@@ -36,7 +36,7 @@ void g() { }
 void f() {
   // TODO(user): msg.
 }
-// TODO(user): msg.
+//TODO(user): msg.
 void g() { }
 ''');
   }
@@ -45,7 +45,7 @@ void g() { }
 @reflectiveTest
 class ConvertToFlutterStyleTodoTest extends FixProcessorLintTest {
   @override
-  FixKind get kind => DartFixKind.CONVERT_TO_FLUTTER_STYLE_TODO;
+  FixKind get kind => DartFixKind.convertToFlutterStyleTodo;
 
   @override
   String get lintCode => LintNames.flutter_style_todos;
@@ -60,7 +60,7 @@ void f() { }
 /// Docs.
 // TODO(user): msg.
 void f() { }
-''', errorFilter: (e) => e.diagnosticCode != TodoCode.TODO);
+''', errorFilter: (e) => e.diagnosticCode != TodoCode.todo);
   }
 
   Future<void> test_docCommentSolo() async {
@@ -71,7 +71,7 @@ void f() { }
     await assertHasFix('''
 // TODO(user): msg.
 void f() { }
-''', errorFilter: (e) => e.diagnosticCode != TodoCode.TODO);
+''', errorFilter: (e) => e.diagnosticCode != TodoCode.todo);
   }
 
   Future<void> test_extraLeadingSpace() async {
@@ -82,7 +82,7 @@ void f() { }
     await assertHasFix('''
 // TODO(user): msg.
 void f() { }
-''', errorFilter: (e) => e.diagnosticCode != TodoCode.TODO);
+''', errorFilter: (e) => e.diagnosticCode != TodoCode.todo);
   }
 
   Future<void> test_lowerCase() async {
@@ -101,7 +101,7 @@ void f() { }
 // TODO(user msg.
 void f() { }
 ''');
-    await assertNoFix(errorFilter: (e) => e.diagnosticCode != TodoCode.TODO);
+    await assertNoFix(errorFilter: (e) => e.diagnosticCode != TodoCode.todo);
   }
 
   Future<void> test_missingColon() async {
@@ -112,7 +112,7 @@ void f() { }
     await assertHasFix('''
 // TODO(user): msg.
 void f() { }
-''', errorFilter: (e) => e.diagnosticCode != TodoCode.TODO);
+''', errorFilter: (e) => e.diagnosticCode != TodoCode.todo);
   }
 
   Future<void> test_missingColon_surroundingComments() async {
@@ -127,7 +127,7 @@ void f() { }
 // TODO(user): msg.
 // Trailing comment.
 void f() { }
-''', errorFilter: (e) => e.diagnosticCode != TodoCode.TODO);
+''', errorFilter: (e) => e.diagnosticCode != TodoCode.todo);
   }
 
   Future<void> test_missingColonAndMessage() async {
@@ -135,7 +135,7 @@ void f() { }
 // TODO(user)
 void f() {}
 ''');
-    await assertNoFix(errorFilter: (e) => e.diagnosticCode != TodoCode.TODO);
+    await assertNoFix(errorFilter: (e) => e.diagnosticCode != TodoCode.todo);
   }
 
   Future<void> test_missingLeadingSpace() async {
@@ -143,10 +143,7 @@ void f() {}
 //TODO(user): msg.
 void f() {}
 ''');
-    await assertHasFix('''
-// TODO(user): msg.
-void f() {}
-''', errorFilter: (e) => e.diagnosticCode != TodoCode.TODO);
+    await assertNoFix();
   }
 
   Future<void> test_unwantedSpaceBeforeUser() async {
@@ -157,6 +154,6 @@ void f() {}
     await assertHasFix('''
 // TODO(user): msg.
 void f() {}
-''', errorFilter: (e) => e.diagnosticCode != TodoCode.TODO);
+''', errorFilter: (e) => e.diagnosticCode != TodoCode.todo);
   }
 }

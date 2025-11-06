@@ -6,6 +6,7 @@ part of '../fragment.dart';
 
 abstract class ClassDeclaration {
   String get name;
+  ExtensionScope get extensionScope;
   LookupScope get compilationUnitScope;
   LookupScope get bodyScope;
   Uri get fileUri;
@@ -18,13 +19,14 @@ abstract class ClassDeclaration {
   List<TypeBuilder>? get mixedInTypes;
   List<TypeBuilder>? get interfaces;
 
-  void buildOutlineExpressions(
-      {required Annotatable annotatable,
-      required Uri annotatableFileUri,
-      required SourceLibraryBuilder libraryBuilder,
-      required ClassHierarchy classHierarchy,
-      required BodyBuilderContext bodyBuilderContext,
-      required bool createFileUriExpression});
+  void buildOutlineExpressions({
+    required Annotatable annotatable,
+    required Uri annotatableFileUri,
+    required SourceLibraryBuilder libraryBuilder,
+    required ClassHierarchy classHierarchy,
+    required BodyBuilderContext bodyBuilderContext,
+    required bool createFileUriExpression,
+  });
 
   int resolveConstructorReferences(SourceLibraryBuilder libraryBuilder);
 }
@@ -33,6 +35,10 @@ class RegularClassDeclaration implements ClassDeclaration {
   final ClassFragment _fragment;
 
   RegularClassDeclaration(this._fragment);
+
+  @override
+  ExtensionScope get extensionScope =>
+      _fragment.enclosingCompilationUnit.extensionScope;
 
   @override
   LookupScope get compilationUnitScope => _fragment.enclosingScope;
@@ -68,20 +74,24 @@ class RegularClassDeclaration implements ClassDeclaration {
   List<TypeBuilder>? get interfaces => _fragment.interfaces;
 
   @override
-  void buildOutlineExpressions(
-      {required Annotatable annotatable,
-      required Uri annotatableFileUri,
-      required SourceLibraryBuilder libraryBuilder,
-      required ClassHierarchy classHierarchy,
-      required BodyBuilderContext bodyBuilderContext,
-      required bool createFileUriExpression}) {
+  void buildOutlineExpressions({
+    required Annotatable annotatable,
+    required Uri annotatableFileUri,
+    required SourceLibraryBuilder libraryBuilder,
+    required ClassHierarchy classHierarchy,
+    required BodyBuilderContext bodyBuilderContext,
+    required bool createFileUriExpression,
+  }) {
     MetadataBuilder.buildAnnotations(
-        annotatable: annotatable,
-        annotatableFileUri: annotatableFileUri,
-        metadata: _fragment.metadata,
-        bodyBuilderContext: bodyBuilderContext,
-        libraryBuilder: libraryBuilder,
-        scope: _fragment.enclosingScope);
+      annotatable: annotatable,
+      annotatableFileUri: annotatableFileUri,
+      metadata: _fragment.metadata,
+      annotationsFileUri: _fragment.fileUri,
+      bodyBuilderContext: bodyBuilderContext,
+      libraryBuilder: libraryBuilder,
+      extensionScope: _fragment.enclosingCompilationUnit.extensionScope,
+      scope: _fragment.enclosingScope,
+    );
   }
 
   @override
@@ -100,6 +110,10 @@ class EnumDeclaration implements ClassDeclaration {
   final TypeBuilder supertype;
 
   EnumDeclaration(this._fragment, this.supertype);
+
+  @override
+  ExtensionScope get extensionScope =>
+      _fragment.enclosingCompilationUnit.extensionScope;
 
   @override
   LookupScope get compilationUnitScope => _fragment.enclosingScope;
@@ -132,20 +146,24 @@ class EnumDeclaration implements ClassDeclaration {
   List<TypeBuilder>? get interfaces => _fragment.interfaces;
 
   @override
-  void buildOutlineExpressions(
-      {required Annotatable annotatable,
-      required Uri annotatableFileUri,
-      required SourceLibraryBuilder libraryBuilder,
-      required ClassHierarchy classHierarchy,
-      required BodyBuilderContext bodyBuilderContext,
-      required bool createFileUriExpression}) {
+  void buildOutlineExpressions({
+    required Annotatable annotatable,
+    required Uri annotatableFileUri,
+    required SourceLibraryBuilder libraryBuilder,
+    required ClassHierarchy classHierarchy,
+    required BodyBuilderContext bodyBuilderContext,
+    required bool createFileUriExpression,
+  }) {
     MetadataBuilder.buildAnnotations(
-        annotatable: annotatable,
-        annotatableFileUri: annotatableFileUri,
-        metadata: _fragment.metadata,
-        bodyBuilderContext: bodyBuilderContext,
-        libraryBuilder: libraryBuilder,
-        scope: _fragment.enclosingScope);
+      annotatable: annotatable,
+      annotatableFileUri: annotatableFileUri,
+      metadata: _fragment.metadata,
+      annotationsFileUri: _fragment.fileUri,
+      bodyBuilderContext: bodyBuilderContext,
+      libraryBuilder: libraryBuilder,
+      extensionScope: _fragment.enclosingCompilationUnit.extensionScope,
+      scope: _fragment.enclosingScope,
+    );
   }
 
   @override
@@ -164,6 +182,10 @@ class NamedMixinApplication implements ClassDeclaration {
   final List<TypeBuilder> mixedInTypes;
 
   NamedMixinApplication(this._fragment, this.mixedInTypes);
+
+  @override
+  ExtensionScope get extensionScope =>
+      _fragment.enclosingCompilationUnit.extensionScope;
 
   @override
   LookupScope get compilationUnitScope => _fragment.enclosingScope;
@@ -197,20 +219,24 @@ class NamedMixinApplication implements ClassDeclaration {
   List<TypeBuilder>? get interfaces => _fragment.interfaces;
 
   @override
-  void buildOutlineExpressions(
-      {required Annotatable annotatable,
-      required Uri annotatableFileUri,
-      required SourceLibraryBuilder libraryBuilder,
-      required ClassHierarchy classHierarchy,
-      required BodyBuilderContext bodyBuilderContext,
-      required bool createFileUriExpression}) {
+  void buildOutlineExpressions({
+    required Annotatable annotatable,
+    required Uri annotatableFileUri,
+    required SourceLibraryBuilder libraryBuilder,
+    required ClassHierarchy classHierarchy,
+    required BodyBuilderContext bodyBuilderContext,
+    required bool createFileUriExpression,
+  }) {
     MetadataBuilder.buildAnnotations(
-        annotatable: annotatable,
-        annotatableFileUri: annotatableFileUri,
-        metadata: _fragment.metadata,
-        bodyBuilderContext: bodyBuilderContext,
-        libraryBuilder: libraryBuilder,
-        scope: _fragment.enclosingScope);
+      annotatable: annotatable,
+      annotatableFileUri: annotatableFileUri,
+      metadata: _fragment.metadata,
+      annotationsFileUri: _fragment.fileUri,
+      bodyBuilderContext: bodyBuilderContext,
+      libraryBuilder: libraryBuilder,
+      extensionScope: _fragment.enclosingCompilationUnit.extensionScope,
+      scope: _fragment.enclosingScope,
+    );
   }
 
   @override
@@ -222,6 +248,9 @@ class NamedMixinApplication implements ClassDeclaration {
 class AnonymousMixinApplication implements ClassDeclaration {
   @override
   final String name;
+
+  @override
+  final ExtensionScope extensionScope;
 
   @override
   final LookupScope compilationUnitScope;
@@ -250,28 +279,31 @@ class AnonymousMixinApplication implements ClassDeclaration {
   @override
   final List<TypeBuilder>? interfaces;
 
-  AnonymousMixinApplication(
-      {required this.name,
-      required this.compilationUnitScope,
-      required this.fileUri,
-      required this.nameOffset,
-      required this.startOffset,
-      required this.endOffset,
-      required this.supertype,
-      required this.interfaces});
+  AnonymousMixinApplication({
+    required this.name,
+    required this.extensionScope,
+    required this.compilationUnitScope,
+    required this.fileUri,
+    required this.nameOffset,
+    required this.startOffset,
+    required this.endOffset,
+    required this.supertype,
+    required this.interfaces,
+  });
 
   @override
   // Coverage-ignore(suite): Not run.
   LookupScope get bodyScope => compilationUnitScope;
 
   @override
-  void buildOutlineExpressions(
-      {required Annotatable annotatable,
-      required Uri annotatableFileUri,
-      required SourceLibraryBuilder libraryBuilder,
-      required ClassHierarchy classHierarchy,
-      required BodyBuilderContext bodyBuilderContext,
-      required bool createFileUriExpression}) {}
+  void buildOutlineExpressions({
+    required Annotatable annotatable,
+    required Uri annotatableFileUri,
+    required SourceLibraryBuilder libraryBuilder,
+    required ClassHierarchy classHierarchy,
+    required BodyBuilderContext bodyBuilderContext,
+    required bool createFileUriExpression,
+  }) {}
 
   @override
   int resolveConstructorReferences(SourceLibraryBuilder libraryBuilder) {
@@ -283,6 +315,10 @@ class MixinDeclaration implements ClassDeclaration {
   final MixinFragment _fragment;
 
   MixinDeclaration(this._fragment);
+
+  @override
+  ExtensionScope get extensionScope =>
+      _fragment.enclosingCompilationUnit.extensionScope;
 
   @override
   LookupScope get compilationUnitScope => _fragment.enclosingScope;
@@ -319,20 +355,24 @@ class MixinDeclaration implements ClassDeclaration {
   List<TypeBuilder>? get interfaces => _fragment.interfaces;
 
   @override
-  void buildOutlineExpressions(
-      {required Annotatable annotatable,
-      required Uri annotatableFileUri,
-      required SourceLibraryBuilder libraryBuilder,
-      required ClassHierarchy classHierarchy,
-      required BodyBuilderContext bodyBuilderContext,
-      required bool createFileUriExpression}) {
+  void buildOutlineExpressions({
+    required Annotatable annotatable,
+    required Uri annotatableFileUri,
+    required SourceLibraryBuilder libraryBuilder,
+    required ClassHierarchy classHierarchy,
+    required BodyBuilderContext bodyBuilderContext,
+    required bool createFileUriExpression,
+  }) {
     MetadataBuilder.buildAnnotations(
-        annotatable: annotatable,
-        annotatableFileUri: annotatableFileUri,
-        metadata: _fragment.metadata,
-        bodyBuilderContext: bodyBuilderContext,
-        libraryBuilder: libraryBuilder,
-        scope: _fragment.enclosingScope);
+      annotatable: annotatable,
+      annotatableFileUri: annotatableFileUri,
+      metadata: _fragment.metadata,
+      annotationsFileUri: _fragment.fileUri,
+      bodyBuilderContext: bodyBuilderContext,
+      libraryBuilder: libraryBuilder,
+      extensionScope: _fragment.enclosingCompilationUnit.extensionScope,
+      scope: _fragment.enclosingScope,
+    );
   }
 
   @override

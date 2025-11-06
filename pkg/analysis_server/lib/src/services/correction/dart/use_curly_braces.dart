@@ -34,10 +34,10 @@ class UseCurlyBraces extends ParsedCorrectionProducer {
   AssistKind get assistKind => DartAssistKind.useCurlyBraces;
 
   @override
-  FixKind get fixKind => DartFixKind.ADD_CURLY_BRACES;
+  FixKind get fixKind => DartFixKind.addCurlyBraces;
 
   @override
-  FixKind get multiFixKind => DartFixKind.ADD_CURLY_BRACES_MULTI;
+  FixKind get multiFixKind => DartFixKind.addCurlyBracesMulti;
 
   @override
   Future<void> compute(ChangeBuilder builder) async {
@@ -174,6 +174,7 @@ class UseCurlyBraces extends ParsedCorrectionProducer {
   ) {
     _replaceLeftParenthesis(builder, left, right, indent);
 
+    var eol = builder.eol;
     builder.addSimpleInsertion(_endAfterComments(right), '$eol$prefix}');
   }
 
@@ -187,6 +188,7 @@ class UseCurlyBraces extends ParsedCorrectionProducer {
     if (right is AstNode) {
       right = right.beginToken.precedingComments ?? right;
     }
+    var eol = builder.eol;
     builder.addSimpleReplacement(range.endStart(left, right), ' {$eol$indent');
   }
 
@@ -200,6 +202,7 @@ class UseCurlyBraces extends ParsedCorrectionProducer {
   ) {
     _replaceLeftParenthesis(builder, left, node, indent);
 
+    var eol = builder.eol;
     var end = _endAfterComments(node);
     builder.addSimpleReplacement(
       SourceRange(end, right.offset - end),

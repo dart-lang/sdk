@@ -8,15 +8,19 @@ import 'builder.dart';
 /// A function defined in a module.
 class FunctionBuilder extends ir.BaseFunction
     with IndexableBuilder<ir.DefinedFunction> {
+  final ModuleBuilder moduleBuilder;
+
   /// All local variables defined in the function, including its inputs.
   List<ir.Local> get locals => body.locals;
 
   /// The body of the function.
   late final InstructionsBuilder body;
 
-  FunctionBuilder(super.enclosingModule, super.index, super.type,
-      [super.functionName]) {
-    body = InstructionsBuilder(enclosingModule, type.inputs, type.outputs);
+  FunctionBuilder(
+      this.moduleBuilder, ir.FinalizableIndex index, ir.FunctionType type,
+      [String? functionName])
+      : super(moduleBuilder.module, index, type, functionName) {
+    body = InstructionsBuilder(moduleBuilder, type.inputs, type.outputs);
   }
 
   @override

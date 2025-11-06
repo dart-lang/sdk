@@ -46,6 +46,7 @@ library
       parts
         part_0
           uri: package:test/a.dart
+          partKeywordOffset: 18
           unit: #F1
     #F1 package:test/a.dart
       element: <testLibrary>
@@ -77,6 +78,7 @@ library
       parts
         part_0
           uri: package:test/a.dart
+          partKeywordOffset: 0
           unit: #F1
     #F1 package:test/a.dart
       element: <testLibrary>
@@ -91,7 +93,7 @@ library
                 token: deprecated @22
                 element: dart:core::@getter::deprecated
                 staticType: null
-              element2: dart:core::@getter::deprecated
+              element: dart:core::@getter::deprecated
 ''');
   }
 
@@ -118,6 +120,7 @@ library
       parts
         part_0
           uri: package:test/a.dart
+          partKeywordOffset: 18
           unit: #F1
     #F1 package:test/a.dart
       element: <testLibrary>
@@ -149,6 +152,7 @@ library
       parts
         part_0
           uri: package:test/a.dart
+          partKeywordOffset: 0
           unit: #F1
     #F1 package:test/a.dart
       element: <testLibrary>
@@ -163,7 +167,7 @@ library
                 token: deprecated @22
                 element: dart:core::@getter::deprecated
                 staticType: null
-              element2: dart:core::@getter::deprecated
+              element: dart:core::@getter::deprecated
 ''');
   }
 
@@ -1505,7 +1509,7 @@ package:test/a.dart
     for (var fragmentUri in fragmentUris) {
       sink.writelnWithIndent(fragmentUri);
       sink.withIndent(() {
-        var fragment = library.units.singleWhere((fragment) {
+        var fragment = library.fragments.singleWhere((fragment) {
           return fragment.source.uri == fragmentUri;
         });
 
@@ -1521,8 +1525,8 @@ package:test/a.dart
 
           void writeResult(ScopeLookupResult result) {
             sink.withIndent(() {
-              elementPrinter.writeNamedElement2('getter', result.getter2);
-              if (result.setter2 case var setter?) {
+              elementPrinter.writeNamedElement2('getter', result.getter);
+              if (result.setter case var setter?) {
                 elementPrinter.writeNamedElement2('setter', setter);
               }
             });
@@ -1532,8 +1536,8 @@ package:test/a.dart
 
           if (prefixName != null) {
             var prefixLookup = fragment.scope.lookup(prefixName);
-            expect(prefixLookup.setter2, isNull);
-            var importPrefix = prefixLookup.getter2;
+            expect(prefixLookup.setter, isNull);
+            var importPrefix = prefixLookup.getter;
             if (importPrefix == null) {
               sink.withIndent(() {
                 elementPrinter.writeNamedElement2(prefixName, importPrefix);

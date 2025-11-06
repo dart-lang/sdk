@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-part of dart.ffi;
+part of "dart:ffi";
 
 /// Marker interface for objects which should not be finalized too soon.
 ///

@@ -163,15 +163,22 @@ abstract class TokenStreamRewriterTest {
     Token a = _makeToken(0, 'a');
     StringToken b = _makeToken(5, 'b');
     b.precedingComments = new CommentTokenImpl.fromSubstring(
-        TokenType.SINGLE_LINE_COMMENT, "Test comment", 1, 9, 1,
-        canonicalize: true);
+      TokenType.SINGLE_LINE_COMMENT,
+      "Test comment",
+      1,
+      9,
+      1,
+      canonicalize: true,
+    );
     Token c = _makeToken(10, 'c');
     _link([a, b, c]);
     setupDone(a);
 
     TokenStreamRewriter rewriter = getTokenStreamRewriter();
-    ReplacementToken replacement =
-        rewriter.replaceNextTokenWithSyntheticToken(a, TokenType.AMPERSAND);
+    ReplacementToken replacement = rewriter.replaceNextTokenWithSyntheticToken(
+      a,
+      TokenType.AMPERSAND,
+    );
     expect(b.offset, same(replacement.offset));
     expect(b.precedingComments, same(replacement.precedingComments));
     expect(replacement.replacedToken, same(b));
@@ -187,14 +194,21 @@ abstract class TokenStreamRewriterTest {
     Token a = _makeToken(0, 'a');
     StringToken b = _makeToken(5, 'b');
     b.precedingComments = new CommentTokenImpl.fromSubstring(
-        TokenType.SINGLE_LINE_COMMENT, "Test comment", 1, 9, 1,
-        canonicalize: true);
+      TokenType.SINGLE_LINE_COMMENT,
+      "Test comment",
+      1,
+      9,
+      1,
+      canonicalize: true,
+    );
     _link([a, b]);
     setupDone(a);
 
     TokenStreamRewriter rewriter = getTokenStreamRewriter();
-    ReplacementToken replacement =
-        rewriter.replaceNextTokenWithSyntheticToken(a, TokenType.AMPERSAND);
+    ReplacementToken replacement = rewriter.replaceNextTokenWithSyntheticToken(
+      a,
+      TokenType.AMPERSAND,
+    );
     expect(b.offset, same(replacement.offset));
     expect(b.precedingComments, same(replacement.precedingComments));
     expect(replacement.replacedToken, same(b));
@@ -209,8 +223,13 @@ abstract class TokenStreamRewriterTest {
     Token a = _makeToken(0, 'a');
     StringToken b = _makeToken(5, 'b');
     b.precedingComments = new CommentTokenImpl.fromSubstring(
-        TokenType.SINGLE_LINE_COMMENT, "Test comment", 1, 9, 1,
-        canonicalize: true);
+      TokenType.SINGLE_LINE_COMMENT,
+      "Test comment",
+      1,
+      9,
+      1,
+      canonicalize: true,
+    );
     Token c = _makeToken(10, 'c');
     Token d = _makeToken(11, 'd');
     Token e = _makeToken(12, 'e');
@@ -218,8 +237,11 @@ abstract class TokenStreamRewriterTest {
     setupDone(a);
 
     TokenStreamRewriter rewriter = getTokenStreamRewriter();
-    ReplacementToken replacement =
-        rewriter.replaceNextTokensWithSyntheticToken(a, 3, TokenType.AMPERSAND);
+    ReplacementToken replacement = rewriter.replaceNextTokensWithSyntheticToken(
+      a,
+      3,
+      TokenType.AMPERSAND,
+    );
     expect(b.offset, same(replacement.offset));
     expect(b.precedingComments, same(replacement.precedingComments));
     expect(replacement.replacedToken, same(b));
@@ -237,15 +259,23 @@ abstract class TokenStreamRewriterTest {
     Token a = _makeToken(0, 'a');
     StringToken b = _makeToken(5, 'b');
     b.precedingComments = new CommentTokenImpl.fromSubstring(
-        TokenType.SINGLE_LINE_COMMENT, "Test comment", 1, 9, 1,
-        canonicalize: true);
+      TokenType.SINGLE_LINE_COMMENT,
+      "Test comment",
+      1,
+      9,
+      1,
+      canonicalize: true,
+    );
     Token c = _makeToken(10, 'c');
     _link([a, b, c]);
     setupDone(a);
 
     TokenStreamRewriter rewriter = getTokenStreamRewriter();
-    ReplacementToken replacement =
-        rewriter.replaceNextTokensWithSyntheticToken(a, 2, TokenType.AMPERSAND);
+    ReplacementToken replacement = rewriter.replaceNextTokensWithSyntheticToken(
+      a,
+      2,
+      TokenType.AMPERSAND,
+    );
     expect(b.offset, same(replacement.offset));
     expect(b.precedingComments, same(replacement.precedingComments));
     expect(replacement.replacedToken, same(b));
@@ -339,7 +369,10 @@ abstract class TokenStreamRewriterTest {
 
   StringToken _makeToken(int charOffset, String text) {
     return new StringTokenImpl.fromString(
-        TokenType.IDENTIFIER, text, charOffset);
+      TokenType.IDENTIFIER,
+      text,
+      charOffset,
+    );
   }
 }
 
@@ -425,9 +458,9 @@ class CachedTokenSetup {
   final Token? precedingComments;
 
   CachedTokenSetup(this.token)
-      : prev = token.previous,
-        next = token.next,
-        precedingComments = token.precedingComments;
+    : prev = token.previous,
+      next = token.next,
+      precedingComments = token.precedingComments;
 
   @override
   bool operator ==(Object other) {

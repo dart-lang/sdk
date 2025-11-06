@@ -3,18 +3,17 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/protocol/protocol_generated.dart';
-import 'package:analysis_server/src/analysis_server.dart';
-import 'package:analysis_server/src/plugin/plugin_manager.dart';
+import 'package:analysis_server/src/plugin/plugin_isolate.dart';
 import 'package:analysis_server/src/services/correction/assist_internal.dart';
 import 'package:analyzer/instrumentation/service.dart';
-import 'package:analyzer_plugin/protocol/protocol.dart' as plugin;
+import 'package:analyzer/src/test_utilities/platform.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:analyzer_plugin/protocol/protocol_generated.dart' as plugin;
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../analysis_server_base.dart';
-import '../src/plugin/plugin_manager_test.dart';
+import '../mocks.dart';
 
 void main() {
   defineReflectiveSuite(() {
@@ -53,13 +52,13 @@ class AssistsTest extends PubPackageAnalysisServerTest {
   }
 
   Future<void> test_fromPlugins() async {
-    if (!AnalysisServer.supportsPlugins) return;
-    PluginInfo info = DiscoveredPluginInfo(
+    var pluginIsolate = PluginIsolate(
       'a',
       'b',
       'c',
       TestNotificationManager(),
       InstrumentationService.NULL_SERVICE,
+      isLegacy: true,
     );
     var message = 'From a plugin';
     var change = plugin.PrioritizedSourceChange(
@@ -74,8 +73,8 @@ class AssistsTest extends PubPackageAnalysisServerTest {
     var result = plugin.EditGetAssistsResult(<plugin.PrioritizedSourceChange>[
       change,
     ]);
-    pluginManager.broadcastResults = <PluginInfo, Future<plugin.Response>>{
-      info: Future.value(result.toResponse('-', 1)),
+    pluginManager.broadcastResults = {
+      pluginIsolate: Future.value(result.toResponse('-', 1)),
     };
 
     addTestFile('void f() {}');
@@ -171,7 +170,7 @@ void f() {
           testFileContent,
           change.edits[0].edits,
         );
-        expect(resultCode, expectedCode);
+        expect(resultCode, normalizeNewlinesForPlatform(expectedCode));
         return;
       }
     }

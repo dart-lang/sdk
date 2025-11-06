@@ -1,0 +1,36 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+class D extends core::Object {
+  field self::E v;
+  late static field self::E staticE;
+  constructor •(self::E v) → self::D
+    ;
+}
+class E extends core::Object {
+  synthetic constructor •() → self::E
+    ;
+  operator +(core::int i) → self::G
+    ;
+  operator -(core::int i) → self::G
+    ;
+}
+class F extends core::Object {
+  synthetic constructor •() → self::F
+    ;
+}
+class G extends self::E implements self::F {
+  synthetic constructor •() → self::G
+    ;
+}
+class H extends core::Object {
+  synthetic constructor •() → self::H
+    ;
+}
+class I extends self::G implements self::H {
+  synthetic constructor •() → self::I
+    ;
+}
+static method method() → dynamic
+  ;

@@ -30,17 +30,6 @@ void buildExtensionTypes(Linker linker, List<AstNode> declarations) {
   for (var node in nodes) {
     walker.walk(node);
   }
-
-  _breakImplementsCycles(elements);
-}
-
-/// Clears interfaces for extension types that have cycles.
-void _breakImplementsCycles(List<ExtensionTypeElementImpl> elements) {
-  var walker = _ImplementsWalker();
-  for (var element in elements) {
-    var node = walker.getNode(element);
-    walker.walk(node);
-  }
 }
 
 /// Collector of referenced extension types in a type.
@@ -57,63 +46,6 @@ class _DependenciesCollector extends RecursiveTypeVisitor {
     }
 
     return super.visitInterfaceType(type);
-  }
-}
-
-class _ImplementsNode extends graph.Node<_ImplementsNode> {
-  final _ImplementsWalker walker;
-  final ExtensionTypeElementImpl element;
-
-  @override
-  bool isEvaluated = false;
-
-  _ImplementsNode(this.walker, this.element);
-
-  @override
-  List<_ImplementsNode> computeDependencies() {
-    return element.interfaces
-        .map((interface) => interface.element)
-        .whereType<ExtensionTypeElementImpl>()
-        .map(walker.getNode)
-        .toList();
-  }
-
-  void _evaluate() {
-    isEvaluated = true;
-  }
-
-  void _markCircular() {
-    isEvaluated = true;
-    element.hasImplementsSelfReference = true;
-
-    var representationType = element.representation.type;
-    var typeSystem = element.library.typeSystem;
-
-    var superInterface =
-        typeSystem.isNonNullable(representationType)
-            ? typeSystem.objectNone
-            : typeSystem.objectQuestion;
-    element.firstFragment.interfaces = [superInterface];
-  }
-}
-
-class _ImplementsWalker extends graph.DependencyWalker<_ImplementsNode> {
-  final Map<ExtensionTypeElementImpl, _ImplementsNode> nodeMap = Map.identity();
-
-  @override
-  void evaluate(_ImplementsNode v) {
-    v._evaluate();
-  }
-
-  @override
-  void evaluateScc(List<_ImplementsNode> scc) {
-    for (var node in scc) {
-      node._markCircular();
-    }
-  }
-
-  _ImplementsNode getNode(ExtensionTypeElementImpl element) {
-    return nodeMap[element] ??= _ImplementsNode(this, element);
   }
 }
 
@@ -135,10 +67,12 @@ class _Node extends graph.Node<_Node> {
 
     var dependencies = <_Node>[];
     for (var element in visitor.dependencies) {
-      var declaration = walker.linker.getLinkingNode2(element.firstFragment);
-      if (declaration is ExtensionTypeDeclarationImpl) {
-        var node = walker.getNode(declaration);
-        dependencies.add(node);
+      if (walker.linker.isLinkingElement(element)) {
+        var declaration = walker.linker.getLinkingNode2(element.firstFragment);
+        if (declaration is ExtensionTypeDeclarationImpl) {
+          var node = walker.getNode(declaration);
+          dependencies.add(node);
+        }
       }
     }
 
@@ -153,26 +87,15 @@ class _Node extends graph.Node<_Node> {
   void _evaluateWithType(TypeImpl type) {
     var typeSystem = element.library.typeSystem;
 
-    var representationFragment = element.firstFragment.representation;
-    var representationElement = representationFragment.element;
+    element.representation.type = type;
+    element.primaryFormalParameter.type = type;
 
-    representationFragment.type = type;
-    representationElement.type = type;
-    // TODO(scheglov): we repeat similar code in many places
-    representationElement.getter!.returnType = type;
-    representationElement.getter!.firstFragment.returnType = type;
+    element.typeErasure = type.extensionTypeErasure;
+    element.interfaces = element.interfaces
+        .whereType<InterfaceType>()
+        .where(typeSystem.isValidExtensionTypeSuperinterface)
+        .toFixedList();
 
-    element.firstFragment.typeErasure = type.extensionTypeErasure;
-    element.firstFragment.interfaces =
-        element.interfaces
-            .whereType<InterfaceType>()
-            .where(typeSystem.isValidExtensionTypeSuperinterface)
-            .toFixedList();
-
-    var primaryConstructor = element.constructors.first;
-    var primaryFormalParameter = primaryConstructor.formalParameters.first;
-    primaryFormalParameter as FieldFormalParameterElementImpl;
-    primaryFormalParameter.type = type;
     isEvaluated = true;
   }
 

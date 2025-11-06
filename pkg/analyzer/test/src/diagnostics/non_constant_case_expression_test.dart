@@ -31,7 +31,7 @@ void f(var e, int a) {
   }
 }
 ''',
-      [error(CompileTimeErrorCode.NON_CONSTANT_CASE_EXPRESSION, 51, 1)],
+      [error(CompileTimeErrorCode.nonConstantCaseExpression, 51, 1)],
     );
   }
 }

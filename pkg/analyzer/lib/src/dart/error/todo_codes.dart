@@ -2,19 +2,17 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/error/error.dart';
+import 'package:_fe_analyzer_shared/src/base/errors.dart';
 
-// It is hard to visually separate each code's _doc comment_ from its published
-// _documentation comment_ when each is written as an end-of-line comment.
-// ignore_for_file: slash_for_doc_comments
+part 'package:analyzer/src/dart/error/todo_codes.g.dart';
 
 /// Static helper methods and properties for working with [TodoCode]s.
 class Todo {
   static const _codes = {
-    'TODO': TodoCode.TODO,
-    'FIXME': TodoCode.FIXME,
-    'HACK': TodoCode.HACK,
-    'UNDONE': TodoCode.UNDONE,
+    'TODO': TodoCode.todo,
+    'FIXME': TodoCode.fixme,
+    'HACK': TodoCode.hack,
+    'UNDONE': TodoCode.undone,
   };
 
   /// This matches the two common Dart task styles
@@ -50,44 +48,6 @@ class Todo {
     throw UnimplementedError('Do not construct');
   }
 
-  /// Returns the TodoCode for [kind], falling back to [TodoCode.TODO].
-  static TodoCode forKind(String kind) => _codes[kind] ?? TodoCode.TODO;
-}
-
-/**
- * The error code indicating a marker in code for work that needs to be finished
- * or revisited.
- */
-class TodoCode extends DiagnosticCode {
-  /**
-   * A standard TODO comment marked as TODO.
-   */
-  static const TodoCode TODO = TodoCode('TODO');
-
-  /**
-   * A TODO comment marked as FIXME.
-   */
-  static const TodoCode FIXME = TodoCode('FIXME');
-
-  /**
-   * A TODO comment marked as HACK.
-   */
-  static const TodoCode HACK = TodoCode('HACK');
-
-  /**
-   * A TODO comment marked as UNDONE.
-   */
-  static const TodoCode UNDONE = TodoCode('UNDONE');
-
-  /**
-   * Initialize a newly created error code to have the given [name].
-   */
-  const TodoCode(String name)
-    : super(problemMessage: "{0}", name: name, uniqueName: 'TodoCode.$name');
-
-  @override
-  DiagnosticSeverity get severity => DiagnosticSeverity.INFO;
-
-  @override
-  DiagnosticType get type => DiagnosticType.TODO;
+  /// Returns the TodoCode for [kind], falling back to [TodoCode.todo].
+  static TodoCode forKind(String kind) => _codes[kind] ?? TodoCode.todo;
 }

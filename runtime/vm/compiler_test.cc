@@ -4,6 +4,7 @@
 
 #include "vm/compiler/jit/compiler.h"
 #include "platform/assert.h"
+#include "platform/thread_sanitizer.h"
 #include "vm/class_finalizer.h"
 #include "vm/code_patcher.h"
 #include "vm/dart_api_impl.h"

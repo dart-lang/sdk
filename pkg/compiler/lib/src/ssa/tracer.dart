@@ -101,6 +101,7 @@ class HTracer extends HGraphVisitor with TracerUtil {
       addIndent();
       String temporaryId = stringifier.temporaryId(instruction);
       String instructionString = stringifier.visit(instruction);
+      instructionString = instructionString.replaceAll('\n', r'\n');
       add("$bci $uses $temporaryId $instructionString $changes $depends <|@\n");
     }
   }

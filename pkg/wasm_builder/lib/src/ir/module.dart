@@ -9,32 +9,80 @@ import 'ir.dart';
 
 /// A logically const wasm module ready to encode. Created with `ModuleBuilder`.
 class Module implements Serializable {
-  final String moduleName;
-  final Functions functions;
-  final Tables tables;
-  final Tags tags;
-  final Memories memories;
-  final Exports exports;
-  final Globals globals;
-  final Types types;
-  final DataSegments dataSegments;
-  final List<Import> imports;
-  final List<int> watchPoints;
-  final Uri? sourceMapUrl;
+  // The [Module] object represents a collection of many wasm objects. Some of
+  // those will have back pointers to this [Module]. That means the data
+  // structures are cyclic.
+  //
+  // (This is similar to how Kernel AST nodes have children and those children
+  // have back pointers to the parent).
+  //
+  // To break the cycle when constructing the objects, we create the [Module] in
+  // uninitialized form, then create the constitutents and finally initialize the
+  // module with the constitutents.
+  bool _initialized = false;
 
-  Module(
-      this.moduleName,
-      this.sourceMapUrl,
-      this.functions,
-      this.tables,
-      this.tags,
-      this.memories,
-      this.exports,
-      this.globals,
-      this.types,
-      this.dataSegments,
-      this.imports,
-      this.watchPoints);
+  late final String? _moduleName;
+  late final Functions _functions;
+  late final BaseFunction? _start;
+  late final Tables _tables;
+  late final Tags _tags;
+  late final Memories _memories;
+  late final Exports _exports;
+  late final Globals _globals;
+  late final Types _types;
+  late final DataSegments _dataSegments;
+  late final Imports _imports;
+  late final List<int> _watchPoints;
+  late final Uri? _sourceMapUrl;
+
+  Module.uninitialized() : _initialized = false;
+
+  void initialize(
+    String? moduleName,
+    Functions functions,
+    BaseFunction? start,
+    Tables tables,
+    Tags tags,
+    Memories memories,
+    Exports exports,
+    Globals globals,
+    Types types,
+    DataSegments dataSegments,
+    Imports imports,
+    List<int> watchPoints,
+    Uri? sourceMapUrl,
+  ) {
+    if (_initialized) throw 'Already initialized';
+
+    _initialized = true;
+    _moduleName = moduleName;
+    _functions = functions;
+    _start = start;
+    _tables = tables;
+    _tags = tags;
+    _memories = memories;
+    _exports = exports;
+    _globals = globals;
+    _types = types;
+    _dataSegments = dataSegments;
+    _imports = imports;
+    _watchPoints = watchPoints;
+    _sourceMapUrl = sourceMapUrl;
+  }
+
+  String? get moduleName => _moduleName;
+  Functions get functions => _functions;
+  BaseFunction? get start => _start;
+  Tables get tables => _tables;
+  Tags get tags => _tags;
+  Memories get memories => _memories;
+  Exports get exports => _exports;
+  Globals get globals => _globals;
+  Types get types => _types;
+  DataSegments get dataSegments => _dataSegments;
+  Imports get imports => _imports;
+  List<int> get watchPoints => _watchPoints;
+  Uri? get sourceMapUrl => _sourceMapUrl;
 
   /// Serialize a module to its binary representation.
   @override
@@ -53,31 +101,136 @@ class Module implements Serializable {
     TagSection(tags.defined, watchPoints).serialize(s);
     GlobalSection(globals.defined, watchPoints).serialize(s);
     ExportSection(exports.exported, watchPoints).serialize(s);
-    StartSection(functions.start, watchPoints).serialize(s);
+    StartSection(start, watchPoints).serialize(s);
     ElementSection(
             tables.defined, tables.imported, functions.declared, watchPoints)
         .serialize(s);
     DataCountSection(dataSegments.defined, watchPoints).serialize(s);
     CodeSection(functions.defined, watchPoints).serialize(s);
     DataSection(dataSegments.defined, watchPoints).serialize(s);
-    if (sourceMapUrl != null) {
-      SourceMapSection(sourceMapUrl.toString()).serialize(s);
+    NameSection(
+            moduleName,
+            <BaseFunction>[...functions.imported, ...functions.defined],
+            types.recursionGroups,
+            <Global>[...globals.imported, ...globals.defined],
+            watchPoints)
+        .serialize(s);
+    SourceMapSection(sourceMapUrl).serialize(s);
+  }
+
+  static Module deserialize(Deserializer d) {
+    final preamble = d.readBytes(8);
+    if (preamble[0] != 0x00 ||
+        preamble[1] != 0x61 ||
+        preamble[2] != 0x73 ||
+        preamble[3] != 0x6D ||
+        preamble[4] != 0x01 ||
+        preamble[5] != 0x00 ||
+        preamble[6] != 0x00 ||
+        preamble[7] != 0x00) {
+      throw 'Invalid Wasm preamble';
     }
 
-    if (functions.namedCount > 0 ||
-        types.namedCount > 0 ||
-        globals.namedCount > 0) {
-      NameSection(
-              moduleName,
-              <BaseFunction>[...functions.imported, ...functions.defined],
-              types.recursionGroups,
-              <Global>[...globals.imported, ...globals.defined],
-              watchPoints,
-              functionNameCount: functions.namedCount,
-              typeNameCount: types.namedCount,
-              globalNameCount: globals.namedCount,
-              typesWithNamedFieldsCount: types.typesWithNamedFieldsCount)
-          .serialize(s);
+    // Although we expect sections in a specific order, we discover all of them
+    // here. This makes the code below that handles the presence/absense of a
+    // section easier.
+    final sections = <int, List<Deserializer>>{};
+    final customSections = <String, List<Deserializer>>{};
+    while (!d.isAtEnd) {
+      final id = d.readByte();
+      final size = d.readUnsigned();
+      final deserializer = Deserializer(d.readBytes(size));
+
+      if (id == CustomSection.sectionId) {
+        // Custom section
+        final name = deserializer.readName();
+        customSections.putIfAbsent(name, () => []).add(deserializer);
+      } else {
+        sections.putIfAbsent(id, () => []).add(deserializer);
+      }
     }
+
+    final Module module = Module.uninitialized();
+
+    // We read the sections in the order they should be in the binary.
+
+    final typeSections = sections[TypeSection.sectionId];
+    final types = TypeSection.deserialize(typeSections?.single);
+
+    final importSections = sections[ImportSection.sectionId];
+    final imports =
+        ImportSection.deserialize(importSections?.single, module, types);
+
+    final functionSections = sections[FunctionSection.sectionId];
+    final functions = FunctionSection.deserialize(
+        functionSections?.single, module, types, imports.functions);
+
+    final tablesSections = sections[TableSection.sectionId];
+    final tables = TableSection.deserialize(
+        tablesSections?.single, module, types, imports.tables);
+
+    final memorySections = sections[MemorySection.sectionId];
+    final memories = MemorySection.deserialize(
+        memorySections?.single, module, imports.memories);
+
+    final tagSections = sections[TagSection.sectionId];
+    final tags = TagSection.deserialize(
+        tagSections?.single, module, types, imports.tags);
+
+    final globalSections = sections[GlobalSection.sectionId];
+    final globals = GlobalSection.deserialize(
+        globalSections?.single, module, types, functions, imports.globals);
+
+    final exportSections = sections[ExportSection.sectionId];
+    final exports = ExportSection.deserialize(
+        exportSections?.single, functions, tables, memories, globals, tags);
+
+    final startFunctionSections = sections[StartSection.sectionId];
+    final start =
+        StartSection.deserialize(startFunctionSections?.single, functions);
+
+    final elementSections = sections[ElementSection.sectionId];
+    // As side-effect initializes [Table.elements]
+    // As side-effect initializes [ImprotedTable.setElements]
+    // As side-effect initializes [Functions.declaredFunctions]
+    ElementSection.deserialize(
+        elementSections?.single, module, types, functions, tables, globals);
+
+    final dataCountSections = sections[DataCountSection.sectionId];
+    final dataSegments =
+        DataCountSection.deserialize(dataCountSections?.single);
+
+    final codeSections = sections[CodeSection.sectionId];
+    CodeSection.deserialize(codeSections?.single, functions.defined, module,
+        types, functions, tables, memories, tags, globals, dataSegments);
+
+    final dataSections = sections[DataSection.sectionId];
+    // As side-effect initializes [dataSegments.defined]
+    DataSection.deserialize(dataSections?.single, dataSegments, memories);
+
+    final moduleName = NameSection.deserialize(
+        customSections[NameSection.customSectionName]?.single,
+        functions,
+        types,
+        globals);
+    final sourceMapUrl = SourceMapSection.deserialize(
+        customSections[SourceMapSection.customSectionName]?.single);
+
+    return module
+      ..initialize(
+        moduleName ?? '',
+        functions,
+        start,
+        tables,
+        tags,
+        memories,
+        exports,
+        globals,
+        types,
+        dataSegments,
+        imports,
+        [],
+        sourceMapUrl,
+      );
   }
 }

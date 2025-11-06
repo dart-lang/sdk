@@ -9,7 +9,6 @@
 
 changing_modules_16: Crash
 constant_fileoffset_and_typedef: EquivalenceError
-changing_nullability_on_recompile: EquivalenceError
 initializer_not_copied: EquivalenceError
 changed_error: EquivalenceError
 issue_49968: ConstantCoverageReferenceWithoutNode

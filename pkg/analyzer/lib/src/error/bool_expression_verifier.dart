@@ -33,14 +33,14 @@ class BoolExpressionVerifier {
   /// Check to ensure that the [condition] is of type bool, are. Otherwise an
   /// error is reported on the expression.
   ///
-  /// See [CompileTimeErrorCode.NON_BOOL_CONDITION].
+  /// See [CompileTimeErrorCode.nonBoolCondition].
   void checkForNonBoolCondition(
     Expression condition, {
     required Map<SharedTypeView, NonPromotionReason> Function()? whyNotPromoted,
   }) {
     checkForNonBoolExpression(
       condition,
-      diagnosticCode: CompileTimeErrorCode.NON_BOOL_CONDITION,
+      diagnosticCode: CompileTimeErrorCode.nonBoolCondition,
       whyNotPromoted: whyNotPromoted,
     );
   }
@@ -63,7 +63,7 @@ class BoolExpressionVerifier {
         )) {
       if (type.isDartCoreBool) {
         _nullableDereferenceVerifier.report(
-          CompileTimeErrorCode.UNCHECKED_USE_OF_NULLABLE_VALUE_AS_CONDITION,
+          CompileTimeErrorCode.uncheckedUseOfNullableValueAsCondition,
           expression,
           type,
           messages: _resolver.computeWhyNotPromotedMessages(
@@ -88,7 +88,7 @@ class BoolExpressionVerifier {
   }) {
     checkForNonBoolExpression(
       expression,
-      diagnosticCode: CompileTimeErrorCode.NON_BOOL_NEGATION_EXPRESSION,
+      diagnosticCode: CompileTimeErrorCode.nonBoolNegationExpression,
       whyNotPromoted: whyNotPromoted,
     );
   }
@@ -106,12 +106,12 @@ class BoolExpressionVerifier {
       SimpleIdentifier methodName = expression.methodName;
       _diagnosticReporter.atNode(
         methodName,
-        CompileTimeErrorCode.USE_OF_VOID_RESULT,
+        CompileTimeErrorCode.useOfVoidResult,
       );
     } else {
       _diagnosticReporter.atNode(
         expression,
-        CompileTimeErrorCode.USE_OF_VOID_RESULT,
+        CompileTimeErrorCode.useOfVoidResult,
       );
     }
 

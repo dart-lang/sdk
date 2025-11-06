@@ -71,7 +71,7 @@ void f(int x) {
   !x;
 }
 ''',
-      [error(CompileTimeErrorCode.NON_BOOL_NEGATION_EXPRESSION, 19, 1)],
+      [error(CompileTimeErrorCode.nonBoolNegationExpression, 19, 1)],
     );
 
     var node = findNode.prefix('!x');
@@ -100,7 +100,7 @@ void f(A? a) {
 ''',
       [
         error(
-          CompileTimeErrorCode.UNCHECKED_USE_OF_NULLABLE_VALUE_AS_CONDITION,
+          CompileTimeErrorCode.uncheckedUseOfNullableValueAsCondition,
           55,
           6,
         ),
@@ -136,8 +136,8 @@ class A {
 }
 ''',
       [
-        error(ParserErrorCode.MISSING_ASSIGNABLE_SELECTOR, 28, 5),
-        error(CompileTimeErrorCode.NON_BOOL_NEGATION_EXPRESSION, 28, 5),
+        error(ParserErrorCode.missingAssignableSelector, 28, 5),
+        error(CompileTimeErrorCode.nonBoolNegationExpression, 28, 5),
       ],
     );
 
@@ -160,7 +160,7 @@ void f(int x) {
   ++ ++ x;
 }
 ''',
-      [error(ParserErrorCode.MISSING_ASSIGNABLE_SELECTOR, 24, 1)],
+      [error(ParserErrorCode.missingAssignableSelector, 24, 1)],
     );
 
     var node = findNode.prefix('++ ++ x');
@@ -173,15 +173,15 @@ PrefixExpression
       token: x
       element: <testLibrary>::@function::f::@formalParameter::x
       staticType: null
-    readElement2: <testLibrary>::@function::f::@formalParameter::x
+    readElement: <testLibrary>::@function::f::@formalParameter::x
     readType: int
-    writeElement2: <testLibrary>::@function::f::@formalParameter::x
+    writeElement: <testLibrary>::@function::f::@formalParameter::x
     writeType: int
     element: dart:core::@class::num::@method::+
     staticType: int
-  readElement2: <null>
+  readElement: <null>
   readType: InvalidType
-  writeElement2: <null>
+  writeElement: <null>
   writeType: InvalidType
   element: <null>
   staticType: InvalidType
@@ -197,7 +197,7 @@ void f(A a) {
   ++a;
 }
 ''',
-      [error(CompileTimeErrorCode.UNDEFINED_OPERATOR, 28, 2)],
+      [error(CompileTimeErrorCode.undefinedOperator, 28, 2)],
     );
 
     var node = findNode.prefix('++a');
@@ -208,9 +208,9 @@ PrefixExpression
     token: a
     element: <testLibrary>::@function::f::@formalParameter::a
     staticType: null
-  readElement2: <testLibrary>::@function::f::@formalParameter::a
+  readElement: <testLibrary>::@function::f::@formalParameter::a
   readType: A
-  writeElement2: <testLibrary>::@function::f::@formalParameter::a
+  writeElement: <testLibrary>::@function::f::@formalParameter::a
   writeType: A
   element: <null>
   staticType: InvalidType
@@ -246,9 +246,9 @@ PrefixExpression
     rightBracket: ]
     element: <null>
     staticType: null
-  readElement2: <testLibrary>::@class::A::@method::[]
+  readElement: <testLibrary>::@class::A::@method::[]
   readType: int
-  writeElement2: <testLibrary>::@class::A::@method::[]=
+  writeElement: <testLibrary>::@class::A::@method::[]=
   writeType: num
   element: dart:core::@class::num::@method::+
   staticType: int
@@ -285,9 +285,9 @@ PrefixExpression
     rightBracket: ]
     element: <null>
     staticType: null
-  readElement2: <testLibrary>::@class::A::@method::[]
+  readElement: <testLibrary>::@class::A::@method::[]
   readType: int
-  writeElement2: <testLibrary>::@class::A::@method::[]=
+  writeElement: <testLibrary>::@class::A::@method::[]=
   writeType: num
   element: dart:core::@class::num::@method::+
   staticType: int
@@ -322,9 +322,9 @@ PrefixExpression
     rightBracket: ]
     element: <null>
     staticType: null
-  readElement2: <testLibrary>::@class::A::@method::[]
+  readElement: <testLibrary>::@class::A::@method::[]
   readType: int
-  writeElement2: <testLibrary>::@class::A::@method::[]=
+  writeElement: <testLibrary>::@class::A::@method::[]=
   writeType: num
   element: dart:core::@class::num::@method::+
   staticType: int
@@ -338,7 +338,7 @@ void f() {
   ++x;
 }
 ''',
-      [error(CompileTimeErrorCode.UNDEFINED_IDENTIFIER, 15, 1)],
+      [error(CompileTimeErrorCode.undefinedIdentifier, 15, 1)],
     );
 
     var node = findNode.prefix('++x');
@@ -349,9 +349,9 @@ PrefixExpression
     token: x
     element: <null>
     staticType: null
-  readElement2: <null>
+  readElement: <null>
   readType: InvalidType
-  writeElement2: <null>
+  writeElement: <null>
   writeType: InvalidType
   element: <null>
   staticType: InvalidType
@@ -446,7 +446,7 @@ augment class A {
   }
 }
 ''',
-      [error(CompileTimeErrorCode.AUGMENTED_EXPRESSION_NOT_OPERATOR, 65, 9)],
+      [error(CompileTimeErrorCode.augmentedExpressionNotOperator, 65, 9)],
     );
 
     var node = findNode.singlePrefixExpression;
@@ -484,7 +484,7 @@ augment class A {
   }
 }
 ''',
-      [error(CompileTimeErrorCode.AUGMENTED_EXPRESSION_IS_SETTER, 69, 9)],
+      [error(CompileTimeErrorCode.augmentedExpressionIsSetter, 69, 9)],
     );
 
     var node = findNode.singlePrefixExpression;
@@ -570,7 +570,7 @@ void f(A? a) {
 ''',
       [
         error(
-          CompileTimeErrorCode.UNCHECKED_METHOD_INVOCATION_OF_NULLABLE_VALUE,
+          CompileTimeErrorCode.uncheckedMethodInvocationOfNullableValue,
           50,
           1,
         ),
@@ -636,9 +636,9 @@ PrefixExpression
     token: x
     element: <testLibrary>::@function::f::@formalParameter::x
     staticType: null
-  readElement2: <testLibrary>::@function::f::@formalParameter::x
+  readElement: <testLibrary>::@function::f::@formalParameter::x
   readType: A
-  writeElement2: <testLibrary>::@function::f::@formalParameter::x
+  writeElement: <testLibrary>::@function::f::@formalParameter::x
   writeType: Object
   element: <testLibrary>::@class::A::@method::+
   staticType: Object
@@ -660,7 +660,7 @@ void f(C c) {
   ++Ext(c);
 }
 ''',
-      [error(ParserErrorCode.MISSING_ASSIGNABLE_SELECTOR, 103, 1)],
+      [error(ParserErrorCode.missingAssignableSelector, 103, 1)],
     );
 
     var node = findNode.prefix('++Ext');
@@ -678,12 +678,12 @@ PrefixExpression
           element: <testLibrary>::@function::f::@formalParameter::c
           staticType: C
       rightParenthesis: )
-    element2: <testLibrary>::@extension::Ext
+    element: <testLibrary>::@extension::Ext
     extendedType: C
     staticType: null
-  readElement2: <null>
+  readElement: <null>
   readType: InvalidType
-  writeElement2: <null>
+  writeElement: <null>
   writeType: InvalidType
   element: <testLibrary>::@extension::Ext::@method::+
   staticType: InvalidType
@@ -697,7 +697,7 @@ void f() {
   ++int;
 }
 ''',
-      [error(CompileTimeErrorCode.ASSIGNMENT_TO_TYPE, 15, 3)],
+      [error(CompileTimeErrorCode.assignmentToType, 15, 3)],
     );
 
     var node = findNode.prefix('++int');
@@ -708,9 +708,9 @@ PrefixExpression
     token: int
     element: <null>
     staticType: null
-  readElement2: dart:core::@class::int
+  readElement: dart:core::@class::int
   readType: InvalidType
-  writeElement2: dart:core::@class::int
+  writeElement: dart:core::@class::int
   writeType: InvalidType
   element: <null>
   staticType: InvalidType
@@ -742,9 +742,9 @@ PrefixExpression
       element: <null>
       staticType: null
     staticType: null
-  readElement2: <testLibrary>::@class::A::@getter::foo
+  readElement: <testLibrary>::@class::A::@getter::foo
   readType: int
-  writeElement2: <testLibrary>::@class::A::@setter::foo
+  writeElement: <testLibrary>::@class::A::@setter::foo
   writeType: int
   element: dart:core::@class::num::@method::+
   staticType: int?
@@ -779,9 +779,9 @@ PrefixExpression
       staticType: null
     element: <null>
     staticType: null
-  readElement2: <testLibrary>::@extensionType::A::@getter::foo
+  readElement: <testLibrary>::@extensionType::A::@getter::foo
   readType: int
-  writeElement2: <testLibrary>::@extensionType::A::@setter::foo
+  writeElement: <testLibrary>::@extensionType::A::@setter::foo
   writeType: int
   element: dart:core::@class::num::@method::+
   staticType: int
@@ -815,9 +815,9 @@ PrefixExpression
       staticType: null
     element: <null>
     staticType: null
-  readElement2: <testLibrary>::@class::A::@getter::x
+  readElement: <testLibrary>::@class::A::@getter::x
   readType: int
-  writeElement2: <testLibrary>::@class::A::@setter::x
+  writeElement: <testLibrary>::@class::A::@setter::x
   writeType: int
   element: dart:core::@class::num::@method::+
   staticType: int
@@ -852,9 +852,9 @@ PrefixExpression
       staticType: null
     element: <null>
     staticType: null
-  readElement2: package:test/a.dart::@getter::x
+  readElement: package:test/a.dart::@getter::x
   readType: int
-  writeElement2: package:test/a.dart::@setter::x
+  writeElement: package:test/a.dart::@setter::x
   writeType: int
   element: dart:core::@class::num::@method::+
   staticType: int
@@ -881,7 +881,7 @@ PrefixExpression
       constructorName: ConstructorName
         type: NamedType
           name: A
-          element2: <testLibrary>::@class::A
+          element: <testLibrary>::@class::A
           type: A
         element: <testLibrary>::@class::A::@constructor::new
       argumentList: ArgumentList
@@ -894,9 +894,9 @@ PrefixExpression
       element: <null>
       staticType: null
     staticType: null
-  readElement2: <testLibrary>::@class::A::@getter::x
+  readElement: <testLibrary>::@class::A::@getter::x
   readType: int
-  writeElement2: <testLibrary>::@class::A::@setter::x
+  writeElement: <testLibrary>::@class::A::@setter::x
   writeType: int
   element: dart:core::@class::num::@method::+
   staticType: int
@@ -934,9 +934,9 @@ PrefixExpression
       element: <null>
       staticType: null
     staticType: null
-  readElement2: <testLibrary>::@class::A::@getter::x
+  readElement: <testLibrary>::@class::A::@getter::x
   readType: int
-  writeElement2: <testLibrary>::@class::A::@setter::x
+  writeElement: <testLibrary>::@class::A::@setter::x
   writeType: num
   element: dart:core::@class::num::@method::+
   staticType: int
@@ -969,9 +969,9 @@ PrefixExpression
       element: <null>
       staticType: null
     staticType: null
-  readElement2: <testLibrary>::@class::A::@getter::x
+  readElement: <testLibrary>::@class::A::@getter::x
   readType: int
-  writeElement2: <testLibrary>::@class::A::@setter::x
+  writeElement: <testLibrary>::@class::A::@setter::x
   writeType: num
   element: dart:core::@class::num::@method::+
   staticType: int
@@ -993,9 +993,9 @@ PrefixExpression
     token: x
     element: <testLibrary>::@function::f::@formalParameter::x
     staticType: null
-  readElement2: <testLibrary>::@function::f::@formalParameter::x
+  readElement: <testLibrary>::@function::f::@formalParameter::x
   readType: double
-  writeElement2: <testLibrary>::@function::f::@formalParameter::x
+  writeElement: <testLibrary>::@function::f::@formalParameter::x
   writeType: double
   element: dart:core::@class::double::@method::+
   staticType: double
@@ -1017,9 +1017,9 @@ PrefixExpression
     token: x
     element: <testLibrary>::@function::f::@formalParameter::x
     staticType: null
-  readElement2: <testLibrary>::@function::f::@formalParameter::x
+  readElement: <testLibrary>::@function::f::@formalParameter::x
   readType: int
-  writeElement2: <testLibrary>::@function::f::@formalParameter::x
+  writeElement: <testLibrary>::@function::f::@formalParameter::x
   writeType: int
   element: dart:core::@class::num::@method::+
   staticType: int
@@ -1041,9 +1041,9 @@ PrefixExpression
     token: x
     element: <testLibrary>::@function::f::@formalParameter::x
     staticType: null
-  readElement2: <testLibrary>::@function::f::@formalParameter::x
+  readElement: <testLibrary>::@function::f::@formalParameter::x
   readType: num
-  writeElement2: <testLibrary>::@function::f::@formalParameter::x
+  writeElement: <testLibrary>::@function::f::@formalParameter::x
   writeType: num
   element: dart:core::@class::num::@method::+
   staticType: num
@@ -1057,7 +1057,7 @@ void f<T extends num>(T x) {
   ++x;
 }
 ''',
-      [error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 31, 3)],
+      [error(CompileTimeErrorCode.invalidAssignment, 31, 3)],
     );
 
     var node = findNode.prefix('++x');
@@ -1068,9 +1068,9 @@ PrefixExpression
     token: x
     element: <testLibrary>::@function::f::@formalParameter::x
     staticType: null
-  readElement2: <testLibrary>::@function::f::@formalParameter::x
+  readElement: <testLibrary>::@function::f::@formalParameter::x
   readType: T
-  writeElement2: <testLibrary>::@function::f::@formalParameter::x
+  writeElement: <testLibrary>::@function::f::@formalParameter::x
   writeType: T
   element: dart:core::@class::num::@method::+
   staticType: num
@@ -1099,9 +1099,9 @@ PrefixExpression
     token: x
     element: <null>
     staticType: null
-  readElement2: <testLibrary>::@class::B::@getter::x
+  readElement: <testLibrary>::@class::B::@getter::x
   readType: int
-  writeElement2: <testLibrary>::@class::A::@setter::x
+  writeElement: <testLibrary>::@class::A::@setter::x
   writeType: num
   element: dart:core::@class::num::@method::+
   staticType: int
@@ -1127,9 +1127,9 @@ PrefixExpression
     token: x
     element: <null>
     staticType: null
-  readElement2: <testLibrary>::@class::A::@getter::x
+  readElement: <testLibrary>::@class::A::@getter::x
   readType: int
-  writeElement2: <testLibrary>::@class::A::@setter::x
+  writeElement: <testLibrary>::@class::A::@setter::x
   writeType: num
   element: dart:core::@class::num::@method::+
   staticType: int
@@ -1155,9 +1155,9 @@ PrefixExpression
     token: x
     element: <null>
     staticType: null
-  readElement2: <testLibrary>::@getter::x
+  readElement: <testLibrary>::@getter::x
   readType: int
-  writeElement2: <testLibrary>::@setter::x
+  writeElement: <testLibrary>::@setter::x
   writeType: num
   element: dart:core::@class::num::@method::+
   staticType: int
@@ -1185,9 +1185,9 @@ PrefixExpression
     token: x
     element: <null>
     staticType: null
-  readElement2: <testLibrary>::@getter::x
+  readElement: <testLibrary>::@getter::x
   readType: int
-  writeElement2: <testLibrary>::@setter::x
+  writeElement: <testLibrary>::@setter::x
   writeType: num
   element: dart:core::@class::num::@method::+
   staticType: int
@@ -1203,7 +1203,7 @@ class A {
   }
 }
 ''',
-      [error(ParserErrorCode.MISSING_ASSIGNABLE_SELECTOR, 29, 5)],
+      [error(ParserErrorCode.missingAssignableSelector, 29, 5)],
     );
 
     var node = findNode.singlePrefixExpression;
@@ -1213,9 +1213,9 @@ PrefixExpression
   operand: SuperExpression
     superKeyword: super
     staticType: A
-  readElement2: <null>
+  readElement: <null>
   readType: InvalidType
-  writeElement2: <null>
+  writeElement: <null>
   writeType: InvalidType
   element: <null>
   staticType: InvalidType
@@ -1231,7 +1231,7 @@ void f(Object? x) {
   };
 }
 ''',
-      [error(ParserErrorCode.MISSING_ASSIGNABLE_SELECTOR, 51, 1)],
+      [error(ParserErrorCode.missingAssignableSelector, 51, 1)],
     );
 
     var node = findNode.prefix('++switch');
@@ -1259,9 +1259,9 @@ PrefixExpression
           staticType: int
     rightBracket: }
     staticType: int
-  readElement2: <null>
+  readElement: <null>
   readType: InvalidType
-  writeElement2: <null>
+  writeElement: <null>
   writeType: InvalidType
   element: <null>
   staticType: InvalidType
@@ -1287,9 +1287,9 @@ PrefixExpression
     token: x
     element: <null>
     staticType: null
-  readElement2: <testLibrary>::@getter::x
+  readElement: <testLibrary>::@getter::x
   readType: int
-  writeElement2: <testLibrary>::@setter::x
+  writeElement: <testLibrary>::@setter::x
   writeType: int
   element: dart:core::@class::num::@method::+
   staticType: int
@@ -1316,7 +1316,7 @@ augment class A {
   }
 }
 ''',
-      [error(CompileTimeErrorCode.AUGMENTED_EXPRESSION_NOT_OPERATOR, 77, 9)],
+      [error(CompileTimeErrorCode.augmentedExpressionNotOperator, 77, 9)],
     );
 
     var node = findNode.singlePrefixExpression;
@@ -1347,7 +1347,7 @@ void f(A? a) {
 ''',
       [
         error(
-          CompileTimeErrorCode.UNCHECKED_METHOD_INVOCATION_OF_NULLABLE_VALUE,
+          CompileTimeErrorCode.uncheckedMethodInvocationOfNullableValue,
           50,
           1,
         ),

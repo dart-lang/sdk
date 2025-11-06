@@ -41,8 +41,9 @@ class ReplaceWithNotNullAware extends ResolvedCorrectionProducer {
         });
       }
     } else if (node is PropertyAccess) {
-      _newOperator =
-          node.operator.type == TokenType.QUESTION_PERIOD ? '.' : '..';
+      _newOperator = node.operator.type == TokenType.QUESTION_PERIOD
+          ? '.'
+          : '..';
       await builder.addDartFileEdit(file, (builder) {
         builder.addSimpleReplacement(range.token(node.operator), _newOperator);
       });

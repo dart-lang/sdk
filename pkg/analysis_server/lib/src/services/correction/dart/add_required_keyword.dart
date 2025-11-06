@@ -18,7 +18,7 @@ class AddRequiredKeyword extends ResolvedCorrectionProducer {
       CorrectionApplicability.singleLocation;
 
   @override
-  FixKind get fixKind => DartFixKind.ADD_REQUIRED;
+  FixKind get fixKind => DartFixKind.addRequired;
 
   @override
   Future<void> compute(ChangeBuilder builder) async {

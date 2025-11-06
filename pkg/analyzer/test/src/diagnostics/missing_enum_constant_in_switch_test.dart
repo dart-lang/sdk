@@ -81,9 +81,9 @@ void f(E e) {
 ''',
       [
         if (!_arePatternsEnabled)
-          error(StaticWarningCode.MISSING_ENUM_CONSTANT_IN_SWITCH, 44, 10)
+          error(StaticWarningCode.missingEnumConstantInSwitch, 44, 10)
         else
-          error(CompileTimeErrorCode.NON_EXHAUSTIVE_SWITCH_STATEMENT, 44, 6),
+          error(CompileTimeErrorCode.nonExhaustiveSwitchStatement, 44, 6),
       ],
     );
   }
@@ -103,9 +103,9 @@ void f(E e) {
 ''',
       [
         if (!_arePatternsEnabled)
-          error(StaticWarningCode.MISSING_ENUM_CONSTANT_IN_SWITCH, 44, 10)
+          error(StaticWarningCode.missingEnumConstantInSwitch, 44, 10)
         else
-          error(CompileTimeErrorCode.NON_EXHAUSTIVE_SWITCH_STATEMENT, 44, 6),
+          error(CompileTimeErrorCode.nonExhaustiveSwitchStatement, 44, 6),
       ],
     );
   }
@@ -125,9 +125,9 @@ void f(E e) {
 ''',
       [
         if (!_arePatternsEnabled)
-          error(StaticWarningCode.MISSING_ENUM_CONSTANT_IN_SWITCH, 44, 10)
+          error(StaticWarningCode.missingEnumConstantInSwitch, 44, 10)
         else
-          error(CompileTimeErrorCode.NON_EXHAUSTIVE_SWITCH_STATEMENT, 44, 6),
+          error(CompileTimeErrorCode.nonExhaustiveSwitchStatement, 44, 6),
       ],
     );
   }
@@ -147,9 +147,9 @@ void f(E? e) {
 ''',
       [
         if (!_arePatternsEnabled)
-          error(StaticWarningCode.MISSING_ENUM_CONSTANT_IN_SWITCH, 38, 10)
+          error(StaticWarningCode.missingEnumConstantInSwitch, 38, 10)
         else
-          error(CompileTimeErrorCode.NON_EXHAUSTIVE_SWITCH_STATEMENT, 38, 6),
+          error(CompileTimeErrorCode.nonExhaustiveSwitchStatement, 38, 6),
       ],
     );
   }

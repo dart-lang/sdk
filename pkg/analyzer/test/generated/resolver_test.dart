@@ -25,7 +25,7 @@ int f(num n) {
   assert (n is int);
   return n & 0x0F;
 }''',
-      [error(CompileTimeErrorCode.UNDEFINED_OPERATOR, 47, 1)],
+      [error(CompileTimeErrorCode.undefinedOperator, 47, 1)],
     );
   }
 
@@ -80,7 +80,7 @@ void f(List<int> list) {
   }
 }
 ''',
-      [error(CompileTimeErrorCode.UNDEFINED_OPERATOR, 110, 1)],
+      [error(CompileTimeErrorCode.undefinedOperator, 110, 1)],
     );
   }
 
@@ -146,7 +146,7 @@ int f() {
   num n = 1234;
   return n & 0x0F;
 }''',
-      [error(CompileTimeErrorCode.UNDEFINED_OPERATOR, 37, 1)],
+      [error(CompileTimeErrorCode.undefinedOperator, 37, 1)],
     );
   }
 }

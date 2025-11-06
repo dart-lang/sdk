@@ -267,6 +267,10 @@ void StubCodeCompiler::GenerateCallNativeThroughSafepointStub() {
   __ bx(R4);
 }
 
+void StubCodeCompiler::GenerateFfiCallTrampolineStub() {
+  __ Breakpoint();  // Not implemented.
+}
+
 void StubCodeCompiler::GenerateLoadBSSEntry(BSS::Relocation relocation,
                                             Register dst,
                                             Register tmp) {
@@ -391,7 +395,7 @@ void StubCodeCompiler::GenerateFfiCallbackTrampolineStub() {
   __ PopRegisters(argument_registers);
 
   Label async_callback;
-  Label sync_isolate_group_shared_callback;
+  Label sync_isolate_group_bound_callback;
   Label done;
 
   // If GetFfiCallbackMetadata returned a null thread, it means that the async
@@ -405,10 +409,9 @@ void StubCodeCompiler::GenerateFfiCallbackTrampolineStub() {
       Operand(static_cast<uword>(FfiCallbackMetadata::TrampolineType::kAsync)));
   __ b(&async_callback, EQ);
 
-  __ cmp(R4,
-         Operand(static_cast<uword>(
-             FfiCallbackMetadata::TrampolineType::kSyncIsolateGroupShared)));
-  __ b(&sync_isolate_group_shared_callback, EQ);
+  __ cmp(R4, Operand(static_cast<uword>(
+                 FfiCallbackMetadata::TrampolineType::kSyncIsolateGroupBound)));
+  __ b(&sync_isolate_group_bound_callback, EQ);
 
   // Sync callback. The entry point contains the target function, so just call
   // it. DLRT_GetThreadForNativeCallbackTrampoline exited the safepoint, so
@@ -424,11 +427,11 @@ void StubCodeCompiler::GenerateFfiCallbackTrampolineStub() {
 
   __ b(&done);
 
-  __ Bind(&sync_isolate_group_shared_callback);
+  __ Bind(&sync_isolate_group_bound_callback);
 
   __ blx(R5);
 
-  // Exit isolate group shared isolate.
+  // Exit isolate group bound isolate.
   {
     __ EnterFrame(1 << FP, 0);
     __ ReserveAlignedFrameSpace(0);
@@ -440,7 +443,7 @@ void StubCodeCompiler::GenerateFfiCallbackTrampolineStub() {
     __ PushRegisters(return_registers);
 
     GenerateLoadFfiCallbackMetadataRuntimeFunction(
-        FfiCallbackMetadata::kExitIsolateGroupSharedIsolate, R4);
+        FfiCallbackMetadata::kExitIsolateGroupBoundIsolate, R4);
 
     __ blx(R4);
 
@@ -3288,12 +3291,12 @@ void StubCodeCompiler::GenerateOptimizedIdenticalWithNumberCheckStub() {
 void StubCodeCompiler::GenerateMegamorphicCallStub() {
   __ LoadTaggedClassIdMayBeSmi(R8, R0);
   // R8: receiver cid as Smi.
-  __ ldr(R2,
-         FieldAddress(IC_DATA_REG, target::MegamorphicCache::buckets_offset()));
   __ ldr(R1,
          FieldAddress(IC_DATA_REG, target::MegamorphicCache::mask_offset()));
+  __ ldr(R2,
+         FieldAddress(IC_DATA_REG, target::MegamorphicCache::buckets_offset()));
+  // R1: mask as a smi - load first to support insertion w/o stopping Dart code.
   // R2: cache buckets array.
-  // R1: mask as a smi.
 
   // Compute the table index.
   ASSERT(target::MegamorphicCache::kSpreadFactor == 7);

@@ -27,8 +27,8 @@ class ImportInternalLibraryTest extends PubPackageResolutionTest {
 import 'dart:_internal';
 ''',
       [
-        error(CompileTimeErrorCode.IMPORT_INTERNAL_LIBRARY, 7, 16),
-        error(WarningCode.UNUSED_IMPORT, 7, 16),
+        error(CompileTimeErrorCode.importInternalLibrary, 7, 16),
+        error(WarningCode.unusedImport, 7, 16),
       ],
     );
   }
@@ -40,7 +40,7 @@ import 'dart:_wasm';
 ''');
     await resolveFile2(file);
     assertErrorsInResolvedUnit(result, [
-      error(WarningCode.UNUSED_IMPORT, 7, 12),
+      error(WarningCode.unusedImport, 7, 12),
     ]);
   }
 
@@ -50,8 +50,8 @@ import 'dart:_wasm';
 import 'dart:_wasm';
 ''',
       [
-        error(CompileTimeErrorCode.IMPORT_INTERNAL_LIBRARY, 7, 12),
-        error(WarningCode.UNUSED_IMPORT, 7, 12),
+        error(CompileTimeErrorCode.importInternalLibrary, 7, 12),
+        error(WarningCode.unusedImport, 7, 12),
       ],
     );
   }
@@ -63,7 +63,7 @@ import 'dart:_wasm';
 ''');
     await resolveFile2(file);
     assertErrorsInResolvedUnit(result, [
-      error(WarningCode.UNUSED_IMPORT, 7, 12),
+      error(WarningCode.unusedImport, 7, 12),
     ]);
   }
 

@@ -453,12 +453,13 @@ class _Base extends AbstractContextTest with DartChangeBuilderMixin {
     expect(change.edits, isEmpty);
   }
 
-  Future<void> _assertImportLibraryElement(
-      {required String initialCode,
-      required String uriStr,
-      required String name,
-      String? expectedPrefix,
-      String? expectedCode}) async {
+  Future<void> _assertImportLibraryElement({
+    required String initialCode,
+    required String uriStr,
+    required String name,
+    String? expectedPrefix,
+    String? expectedCode,
+  }) async {
     var offset = initialCode.indexOf('^');
     if (offset > 0) {
       initialCode =
@@ -472,7 +473,7 @@ class _Base extends AbstractContextTest with DartChangeBuilderMixin {
 
     var requestedResult =
         await (await session).getLibraryByUri(uriStr) as LibraryElementResult;
-    var requestedLibrary = requestedResult.element2;
+    var requestedLibrary = requestedResult.element;
     var requestedElement = requestedLibrary.exportNamespace.get2(name);
     expect(requestedElement, isNotNull, reason: '`$name` in $uriStr');
 

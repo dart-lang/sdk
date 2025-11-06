@@ -34,7 +34,7 @@ f() {
   E('a').g;
 }
 ''',
-      [error(CompileTimeErrorCode.UNDEFINED_EXTENSION_GETTER, 40, 1)],
+      [error(CompileTimeErrorCode.undefinedExtensionGetter, 40, 1)],
     );
   }
 
@@ -48,7 +48,7 @@ f() {
   E(0).foo;
 }
 ''',
-      [error(CompileTimeErrorCode.UNDEFINED_EXTENSION_GETTER, 56, 3)],
+      [error(CompileTimeErrorCode.undefinedExtensionGetter, 56, 3)],
     );
   }
 
@@ -62,7 +62,7 @@ f() {
   E(0).foo += 1;
 }
 ''',
-      [error(CompileTimeErrorCode.UNDEFINED_EXTENSION_GETTER, 56, 3)],
+      [error(CompileTimeErrorCode.undefinedExtensionGetter, 56, 3)],
     );
   }
 
@@ -72,7 +72,7 @@ f() {
 extension E on Object {}
 var a = E.v;
 ''',
-      [error(CompileTimeErrorCode.UNDEFINED_EXTENSION_GETTER, 35, 1)],
+      [error(CompileTimeErrorCode.undefinedExtensionGetter, 35, 1)],
     );
   }
 
@@ -84,7 +84,7 @@ void f() {
   E.v;
 }
 ''',
-      [error(CompileTimeErrorCode.UNDEFINED_EXTENSION_GETTER, 40, 1)],
+      [error(CompileTimeErrorCode.undefinedExtensionGetter, 40, 1)],
     );
   }
 }

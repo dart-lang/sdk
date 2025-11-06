@@ -966,7 +966,9 @@ class Assembler : public AssemblerBase {
   void EmitEntryFrameVerification();
 
   // For non-leaf runtime calls. For leaf runtime calls, use LeafRuntimeScope,
-  void CallRuntime(const RuntimeEntry& entry, intptr_t argument_count);
+  void CallRuntime(const RuntimeEntry& entry,
+                   intptr_t argument_count,
+                   bool tsan_enter_exit = true);
 
   // Call runtime function. Reserves shadow space on the stack before calling
   // if platform ABI requires that.
@@ -1159,37 +1161,37 @@ class Assembler : public AssemblerBase {
     }
   }
 
-  void TsanLoadAcquire(Address addr);
-  void TsanStoreRelease(Address addr);
+  void TsanLoadAcquire(Register dst, Address addr, OperandSize size);
+  void TsanStoreRelease(Register src, Address addr, OperandSize size);
+  void TsanFuncEntry(bool preserve_registers = true);
+  void TsanFuncExit(bool preserve_registers = true);
 
   void LoadAcquire(Register dst,
                    const Address& address,
                    OperandSize size = kEightBytes) override {
-    // On intel loads have load-acquire behavior (i.e. loads are not re-ordered
-    // with other loads).
-    Load(dst, address, size);
     if (FLAG_target_thread_sanitizer) {
-      TsanLoadAcquire(address);
+      TsanLoadAcquire(dst, address, size);
+    } else {
+      // On intel loads have load-acquire behavior (i.e. loads are not
+      // re-ordered with other loads).
+      Load(dst, address, size);
     }
   }
 #if defined(DART_COMPRESSED_POINTERS)
   void LoadAcquireCompressed(Register dst, const Address& address) override {
-    // On intel loads have load-acquire behavior (i.e. loads are not re-ordered
-    // with other loads).
-    LoadCompressed(dst, address);
-    if (FLAG_target_thread_sanitizer) {
-      TsanLoadAcquire(address);
-    }
+    LoadAcquire(dst, address, kUnsignedFourBytes);
+    addq(dst, Address(THR, target::Thread::heap_base_offset()));
   }
 #endif
   void StoreRelease(Register src,
                     const Address& address,
                     OperandSize size = kWordBytes) override {
-    // On intel stores have store-release behavior (i.e. stores are not
-    // re-ordered with other stores).
-    Store(src, address, size);
     if (FLAG_target_thread_sanitizer) {
-      TsanStoreRelease(address);
+      TsanStoreRelease(src, address, size);
+    } else {
+      // On intel stores have store-release behavior (i.e. stores are not
+      // re-ordered with other stores).
+      Store(src, address, size);
     }
   }
 

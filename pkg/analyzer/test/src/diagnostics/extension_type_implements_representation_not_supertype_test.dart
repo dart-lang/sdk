@@ -27,7 +27,7 @@ extension type B(int it) implements A {}
       [
         error(
           CompileTimeErrorCode
-              .EXTENSION_TYPE_IMPLEMENTS_REPRESENTATION_NOT_SUPERTYPE,
+              .extensionTypeImplementsRepresentationNotSupertype,
           67,
           1,
         ),

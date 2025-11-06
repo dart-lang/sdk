@@ -364,7 +364,10 @@ class _GrowableList<T> extends ListBase<T> {
   }
 
   // Shared array used as backing for new empty growable arrays.
-  static final _List _emptyList = _List(0);
+  @pragma("vm:prefer-inline")
+  @pragma("vm:recognized", "other")
+  @pragma("vm:exact-result-type", "dart:core#_List")
+  external static _List get _emptyList;
 
   static _List _allocateData(int capacity) {
     if (capacity == 0) {

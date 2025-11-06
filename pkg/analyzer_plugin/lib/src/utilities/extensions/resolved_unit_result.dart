@@ -9,8 +9,9 @@ extension ResolvedUnitResultExtension on ResolvedUnitResult {
   /// Returns the whitespace prefix of the line which contains the given
   /// [offset].
   String linePrefix(int offset) {
-    var lineStartOffset =
-        lineInfo.getOffsetOfLine(lineInfo.getLocation(offset).lineNumber - 1);
+    var lineStartOffset = lineInfo.getOffsetOfLine(
+      lineInfo.getLocation(offset).lineNumber - 1,
+    );
     var length = content.length;
     var whitespaceEndOffset = lineStartOffset;
     while (whitespaceEndOffset < length) {

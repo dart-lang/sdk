@@ -201,6 +201,10 @@ void StubCodeCompiler::GenerateCallNativeThroughSafepointStub() {
   __ jmp(EBX);
 }
 
+void StubCodeCompiler::GenerateFfiCallTrampolineStub() {
+  __ Breakpoint();  // Not implemented.
+}
+
 void StubCodeCompiler::GenerateFfiCallbackTrampolineStub() {
   Label ret_4;
 
@@ -287,7 +291,7 @@ void StubCodeCompiler::GenerateFfiCallbackTrampolineStub() {
   COMPILE_ASSERT(ECX != THR);
 
   Label async_callback;
-  Label sync_isolate_group_shared_callback;
+  Label sync_isolate_group_bound_callback;
   Label done;
 
   // If GetFfiCallbackMetadata returned a null thread, it means that the async
@@ -302,8 +306,8 @@ void StubCodeCompiler::GenerateFfiCallbackTrampolineStub() {
 
   __ cmpl(EBX,
           Immediate(static_cast<uword>(
-              FfiCallbackMetadata::TrampolineType::kSyncIsolateGroupShared)));
-  __ j(EQUAL, &sync_isolate_group_shared_callback, Assembler::kNearJump);
+              FfiCallbackMetadata::TrampolineType::kSyncIsolateGroupBound)));
+  __ j(EQUAL, &sync_isolate_group_bound_callback, Assembler::kNearJump);
 
   // Sync callback. The entry point contains the target function, so just call
   // it. DLRT_GetThreadForNativeCallbackTrampoline exited the safepoint, so
@@ -331,11 +335,11 @@ void StubCodeCompiler::GenerateFfiCallbackTrampolineStub() {
   __ Bind(&ret_4);
   __ ret(Immediate(4));
 
-  __ Bind(&sync_isolate_group_shared_callback);
+  __ Bind(&sync_isolate_group_bound_callback);
 
   __ call(ECX);
 
-  // Exit isolate group shared isolate.
+  // Exit isolate group bound isolate.
   {
     __ pushl(CallingConventions::kReturnReg);
     __ pushl(CallingConventions::kSecondReturnReg);
@@ -346,7 +350,7 @@ void StubCodeCompiler::GenerateFfiCallbackTrampolineStub() {
     __ ReserveAlignedFrameSpace(0);
 
     __ movl(EAX, Immediate(reinterpret_cast<int64_t>(
-                     DLRT_ExitIsolateGroupSharedIsolate)));
+                     DLRT_ExitIsolateGroupBoundIsolate)));
     __ CallCFunction(EAX);
 
     __ LeaveFrame();
@@ -3177,8 +3181,8 @@ void StubCodeCompiler::GenerateMegamorphicCallStub() {
           FieldAddress(IC_DATA_REG, target::MegamorphicCache::mask_offset()));
   __ movl(EDI, FieldAddress(IC_DATA_REG,
                             target::MegamorphicCache::buckets_offset()));
+  // EBX: mask as a smi - load first to support insert w/o stopping Dart code.
   // EDI: cache buckets array.
-  // EBX: mask as a smi.
 
   // Tag cid as a smi.
   __ addl(EAX, EAX);

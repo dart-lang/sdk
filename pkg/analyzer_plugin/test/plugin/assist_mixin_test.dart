@@ -41,10 +41,12 @@ class AssistsMixinTest extends AbstractPluginTest {
 
   Future<void> test_handleEditGetAssists() async {
     await plugin.handleAnalysisSetContextRoots(
-        AnalysisSetContextRootsParams([contextRoot1]));
+      AnalysisSetContextRootsParams([contextRoot1]),
+    );
 
-    var result = await plugin
-        .handleEditGetAssists(EditGetAssistsParams(filePath1, 10, 0));
+    var result = await plugin.handleEditGetAssists(
+      EditGetAssistsParams(filePath1, 10, 0),
+    );
     expect(result, isNotNull);
     expect(result.assists, hasLength(3));
   }
@@ -57,7 +59,9 @@ class _TestAssistContributor implements AssistContributor {
 
   @override
   Future<void> computeAssists(
-      AssistRequest request, AssistCollector collector) async {
+    AssistRequest request,
+    AssistCollector collector,
+  ) async {
     for (var change in changes) {
       collector.addAssist(change);
     }
@@ -75,16 +79,23 @@ class _TestServerPlugin extends MockServerPlugin with AssistsMixin {
   List<AssistContributor> getAssistContributors(String path) {
     return <AssistContributor>[
       _TestAssistContributor(<PrioritizedSourceChange>[createChange()]),
-      _TestAssistContributor(
-          <PrioritizedSourceChange>[createChange(), createChange()])
+      _TestAssistContributor(<PrioritizedSourceChange>[
+        createChange(),
+        createChange(),
+      ]),
     ];
   }
 
   @override
   Future<AssistRequest> getAssistRequest(
-      EditGetAssistsParams parameters) async {
+    EditGetAssistsParams parameters,
+  ) async {
     var result = MockResolvedUnitResult();
     return DartAssistRequestImpl(
-        resourceProvider, parameters.offset, parameters.length, result);
+      resourceProvider,
+      parameters.offset,
+      parameters.length,
+      result,
+    );
   }
 }

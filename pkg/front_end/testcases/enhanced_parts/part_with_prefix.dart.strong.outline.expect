@@ -1,0 +1,14 @@
+library;
+import self as self;
+
+import "org-dartlang-testcase:///part_with_prefix_lib.dart" as lib;
+
+part part_with_prefix_part.dart;
+static method /* from org-dartlang-testcase:///part_with_prefix_part.dart */ method() → dynamic
+  ;
+
+library;
+import self as self2;
+
+static method method() → dynamic
+  ;

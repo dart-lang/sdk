@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/*@testedFeatures=inference*/
 library test;
 
 T f<T>() => throw '';
@@ -30,19 +29,18 @@ A get target => throw '';
 void set target(B value) {}
 
 void test1() {
-  target /*@target=A.**/ *= /*@typeArgs=D*/ f();
-  var /*@type=C*/ x = target /*@target=A.**/ *= /*@typeArgs=D*/ f();
+  target *= f();
+  var x = target *= f();
 }
 
 void test2() {
-  /*@target=A.+*/ ++target;
-  var /*@type=C*/ x = /*@target=A.+*/ ++target;
+  ++target;
+  var x = ++target;
 }
 
 void test3() {
-  target /*@target=A.+*/ ++;
-  var /*@type=A*/ x = /*@type=A*/ target
-      /*@type=C*/ /*@target=A.+*/ ++;
+  target++;
+  var x = target++;
 }
 
 main() {}

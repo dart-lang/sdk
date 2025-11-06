@@ -28,7 +28,7 @@ class B extends A {}
 class A {}
 class B extends A? {}
 ''',
-      [error(CompileTimeErrorCode.NULLABLE_TYPE_IN_EXTENDS_CLAUSE, 27, 2)],
+      [error(CompileTimeErrorCode.nullableTypeInExtendsClause, 27, 2)],
     );
   }
 
@@ -39,7 +39,7 @@ class A {}
 typedef B = A;
 class C extends B? {}
 ''',
-      [error(CompileTimeErrorCode.NULLABLE_TYPE_IN_EXTENDS_CLAUSE, 42, 2)],
+      [error(CompileTimeErrorCode.nullableTypeInExtendsClause, 42, 2)],
     );
   }
 
@@ -50,7 +50,7 @@ class A {}
 typedef B = A?;
 class C extends B {}
 ''',
-      [error(CompileTimeErrorCode.NULLABLE_TYPE_IN_EXTENDS_CLAUSE, 43, 1)],
+      [error(CompileTimeErrorCode.nullableTypeInExtendsClause, 43, 1)],
     );
   }
 
@@ -69,7 +69,7 @@ class A {}
 mixin B {}
 class C = A? with B;
 ''',
-      [error(CompileTimeErrorCode.NULLABLE_TYPE_IN_EXTENDS_CLAUSE, 32, 2)],
+      [error(CompileTimeErrorCode.nullableTypeInExtendsClause, 32, 2)],
     );
   }
 
@@ -81,7 +81,7 @@ mixin B {}
 typedef C = A;
 class D = C? with B;
 ''',
-      [error(CompileTimeErrorCode.NULLABLE_TYPE_IN_EXTENDS_CLAUSE, 47, 2)],
+      [error(CompileTimeErrorCode.nullableTypeInExtendsClause, 47, 2)],
     );
   }
 
@@ -93,7 +93,7 @@ mixin B {}
 typedef C = A?;
 class D = C with B;
 ''',
-      [error(CompileTimeErrorCode.NULLABLE_TYPE_IN_EXTENDS_CLAUSE, 48, 1)],
+      [error(CompileTimeErrorCode.nullableTypeInExtendsClause, 48, 1)],
     );
   }
 
@@ -112,7 +112,7 @@ class A {}
 mixin B {}
 class C = A? with B;
 ''',
-      [error(CompileTimeErrorCode.NULLABLE_TYPE_IN_EXTENDS_CLAUSE, 32, 2)],
+      [error(CompileTimeErrorCode.nullableTypeInExtendsClause, 32, 2)],
     );
   }
 
@@ -124,7 +124,7 @@ mixin B {}
 typedef C = A;
 class D = C? with B;
 ''',
-      [error(CompileTimeErrorCode.NULLABLE_TYPE_IN_EXTENDS_CLAUSE, 47, 2)],
+      [error(CompileTimeErrorCode.nullableTypeInExtendsClause, 47, 2)],
     );
   }
 
@@ -136,7 +136,7 @@ mixin B {}
 typedef C = A?;
 class D = C with B;
 ''',
-      [error(CompileTimeErrorCode.NULLABLE_TYPE_IN_EXTENDS_CLAUSE, 48, 1)],
+      [error(CompileTimeErrorCode.nullableTypeInExtendsClause, 48, 1)],
     );
   }
 }

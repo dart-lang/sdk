@@ -9,9 +9,9 @@ import 'package:expect/expect.dart';
 
 import 'catch_errors.dart';
 
-main() {
+void main() {
   asyncStart();
-  Completer done = new Completer();
+  Completer done = Completer();
 
   var events = [];
   late StreamController controller;
@@ -21,7 +21,7 @@ main() {
   // zone the subscription lives.
   catchErrors(() {
     catchErrors(() {
-          controller = new StreamController();
+          controller = StreamController();
 
           // Assign to "global" `stream`.
           stream = controller.stream
@@ -30,7 +30,7 @@ main() {
                 return x + 100;
               })
               .transform(
-                new StreamTransformer.fromHandlers(
+                StreamTransformer.fromHandlers(
                   handleError: (e, st, sink) {
                     sink.add("error $e");
                   },
@@ -61,7 +61,7 @@ main() {
     // `addError` does not count as zone-traversal. It should be caught by
     // the inner error handler.
     controller.addError("inner error");
-    new Future.error("caught by outer");
+    Future.error("caught by outer");
     controller.close();
   }).listen(
     (x) {

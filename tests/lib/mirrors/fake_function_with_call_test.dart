@@ -6,8 +6,8 @@ import "dart:mirrors";
 
 import "package:expect/expect.dart";
 
-membersOf(ClassMirror cm) {
-  var result = new Map();
+Map<Symbol, DeclarationMirror> membersOf(ClassMirror cm) {
+  var result = <Symbol, DeclarationMirror>{};
   cm.declarations.forEach((k, v) {
     if (v is MethodMirror && !v.isConstructor) result[k] = v;
     if (v is VariableMirror) result[k] = v;
@@ -20,13 +20,15 @@ class WannabeFunction {
   method(x) => x * x;
 }
 
-main() {
-  Expect.isTrue(new WannabeFunction() is Function);
+void main() {
+  var wf = WannabeFunction();
+  Expect.isFalse(wf is Function);
 
-  ClosureMirror cm = reflect(new WannabeFunction()) as ClosureMirror;
-  Expect.equals(7, cm.invoke(#call, [3, 4]).reflectee);
+  InstanceMirror im = reflect(wf);
+  ClosureMirror cm = reflect(wf.call) as ClosureMirror;
+  Expect.equals(7, im.invoke(#call, [3, 4]).reflectee);
   Expect.throwsNoSuchMethodError(() => cm.invoke(#call, [3]), "Wrong arity");
-  Expect.equals(49, cm.invoke(#method, [7]).reflectee);
+  Expect.equals(49, im.invoke(#method, [7]).reflectee);
   Expect.throwsNoSuchMethodError(
     () => cm.invoke(#method, [3, 4]),
     "Wrong arity",
@@ -42,7 +44,7 @@ main() {
   Expect.equals(#int, mm.parameters[0].type.simpleName);
   Expect.equals(#int, mm.parameters[1].type.simpleName);
 
-  ClassMirror km = cm.type;
+  ClassMirror km = im.type;
   Expect.equals(reflectClass(WannabeFunction), km);
   Expect.equals(#WannabeFunction, km.simpleName);
   Expect.equals(mm.hashCode, km.declarations[#call].hashCode);

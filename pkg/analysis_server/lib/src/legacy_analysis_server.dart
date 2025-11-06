@@ -19,7 +19,8 @@ import 'package:analysis_server/src/analytics/analytics_manager.dart';
 import 'package:analysis_server/src/channel/channel.dart';
 import 'package:analysis_server/src/computer/computer_highlights.dart';
 import 'package:analysis_server/src/domains/analysis/occurrences.dart';
-import 'package:analysis_server/src/domains/analysis/occurrences_dart.dart';
+import 'package:analysis_server/src/domains/analysis/occurrences_dart.dart'
+    hide Occurrences;
 import 'package:analysis_server/src/flutter/flutter_notifications.dart';
 import 'package:analysis_server/src/handler/legacy/analysis_get_errors.dart';
 import 'package:analysis_server/src/handler/legacy/analysis_get_hover.dart';
@@ -174,6 +175,9 @@ class AnalysisServerOptions {
   /// Experiments which have been enabled (or disabled) via the
   /// `--enable-experiment` command-line option.
   List<String> enabledExperiments = [];
+
+  /// Whether to enable fine-grained dependencies.
+  bool withFineDependencies = false;
 }
 
 /// Instances of the class [LegacyAnalysisServer] implement a server that
@@ -776,14 +780,14 @@ class LegacyAnalysisServer extends AnalysisServer {
     return lspResponse is Map<String, Object?>
         ? lsp.ResponseMessage.fromJson(lspResponse)
         : lsp.ResponseMessage(
-          jsonrpc: lsp.jsonRpcVersion,
-          error: lsp.ResponseError(
-            code: lsp.ServerErrorCodes.UnhandledError,
-            message:
-                "The client responded to a '$method' LSP request but"
-                ' did not include a valid response in the lspResponse field',
-          ),
-        );
+            jsonrpc: lsp.jsonRpcVersion,
+            error: lsp.ResponseError(
+              code: lsp.ServerErrorCodes.UnhandledError,
+              message:
+                  "The client responded to a '$method' LSP request but"
+                  ' did not include a valid response in the lspResponse field',
+            ),
+          );
   }
 
   /// Send the given [notification] to the client.

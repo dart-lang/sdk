@@ -50,12 +50,11 @@ class AnalysisGetImportedElementsHandler extends LegacyHandler {
     if (disableManageImportsOnPaste) {
       elements = <ImportedElements>[];
     } else {
-      elements =
-          ImportedElementsComputer(
-            result.unit,
-            params.offset,
-            params.length,
-          ).compute();
+      elements = ImportedElementsComputer(
+        result.unit,
+        params.offset,
+        params.length,
+      ).compute();
     }
 
     sendResult(AnalysisGetImportedElementsResult(elements));

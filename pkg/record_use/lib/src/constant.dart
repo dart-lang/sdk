@@ -61,7 +61,7 @@ sealed class Constant {
       ),
     ),
     InstanceConstant._type => InstanceConstant(
-      fields: (value[_valueKey] as Map<String, Object?>).map(
+      fields: (value[_valueKey] as Map<String, Object?>? ?? {}).map(
         (key, value) => MapEntry(key, constants[value as int]),
       ),
     ),

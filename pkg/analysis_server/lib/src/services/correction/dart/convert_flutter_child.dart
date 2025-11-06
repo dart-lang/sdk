@@ -20,7 +20,7 @@ class ConvertFlutterChild extends ResolvedCorrectionProducer {
       CorrectionApplicability.singleLocation;
 
   @override
-  FixKind get fixKind => DartFixKind.CONVERT_FLUTTER_CHILD;
+  FixKind get fixKind => DartFixKind.convertFlutterChild;
 
   @override
   Future<void> compute(ChangeBuilder builder) async {
@@ -33,6 +33,7 @@ class ConvertFlutterChild extends ResolvedCorrectionProducer {
     var expression = named.expression;
     if (expression.isWidgetExpression) {
       await builder.addDartFileEdit(file, (builder) {
+        var eol = builder.eol;
         var childLoc = named.offset + 'child'.length;
         builder.addSimpleInsertion(childLoc, 'ren');
         var listLoc = expression.offset;

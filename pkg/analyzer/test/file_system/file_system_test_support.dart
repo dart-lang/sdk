@@ -21,8 +21,10 @@ final isFolder = TypeMatcher<Folder>();
 
 final throwsFileSystemException = throwsA(isFileSystemException);
 
-typedef _WatcherChanges =
-    ({List<ChangeType> changes, Future<void> Function() cancel});
+typedef _WatcherChanges = ({
+  List<ChangeType> changes,
+  Future<void> Function() cancel,
+});
 
 abstract class FileSystemTestSupport {
   /// The content used for the file at the [defaultFilePath] if it is created

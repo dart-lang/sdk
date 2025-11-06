@@ -14,7 +14,10 @@ class NativeAssetsValidator {
 
   NativeAssetsValidator(this.errorDetector);
 
-  void _reportError(String message, {Severity severity = Severity.error}) {
+  void _reportError(
+    String message, {
+    CfeSeverity severity = CfeSeverity.error,
+  }) {
     errorDetector(
       NativeAssetsDiagnosticMessage(
         message: message,
@@ -191,7 +194,7 @@ class NativeAssetsValidator {
     if (!_validTargets.contains(object)) {
       _reportError(
         'Unexpected target: $object. Valid targets: $_validTargets.',
-        severity: Severity.warning,
+        severity: CfeSeverity.warning,
       );
       return false;
     }

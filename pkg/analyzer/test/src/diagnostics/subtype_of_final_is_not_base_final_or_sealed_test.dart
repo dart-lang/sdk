@@ -25,7 +25,7 @@ class B extends A {}
 ''',
       [
         error(
-          CompileTimeErrorCode.SUBTYPE_OF_FINAL_IS_NOT_BASE_FINAL_OR_SEALED,
+          CompileTimeErrorCode.subtypeOfFinalIsNotBaseFinalOrSealed,
           23,
           1,
           text:
@@ -50,7 +50,7 @@ class B {}
 ''',
       [
         error(
-          CompileTimeErrorCode.SUBTYPE_OF_FINAL_IS_NOT_BASE_FINAL_OR_SEALED,
+          CompileTimeErrorCode.subtypeOfFinalIsNotBaseFinalOrSealed,
           38,
           1,
           text:
@@ -72,13 +72,7 @@ final class A {}
 import 'a.dart';
 class B extends A {}
 ''',
-      [
-        error(
-          CompileTimeErrorCode.FINAL_CLASS_EXTENDED_OUTSIDE_OF_LIBRARY,
-          33,
-          1,
-        ),
-      ],
+      [error(CompileTimeErrorCode.finalClassExtendedOutsideOfLibrary, 33, 1)],
     );
   }
 
@@ -105,7 +99,7 @@ class B extends A {
 ''',
       [
         error(
-          CompileTimeErrorCode.SUBTYPE_OF_FINAL_IS_NOT_BASE_FINAL_OR_SEALED,
+          CompileTimeErrorCode.subtypeOfFinalIsNotBaseFinalOrSealed,
           23,
           1,
           text:
@@ -123,7 +117,7 @@ class B implements A {}
 ''',
       [
         error(
-          CompileTimeErrorCode.SUBTYPE_OF_FINAL_IS_NOT_BASE_FINAL_OR_SEALED,
+          CompileTimeErrorCode.subtypeOfFinalIsNotBaseFinalOrSealed,
           23,
           1,
           text:
@@ -147,7 +141,7 @@ class B implements A {}
 ''',
       [
         error(
-          CompileTimeErrorCode.FINAL_CLASS_IMPLEMENTED_OUTSIDE_OF_LIBRARY,
+          CompileTimeErrorCode.finalClassImplementedOutsideOfLibrary,
           36,
           1,
         ),
@@ -181,7 +175,7 @@ class B implements A {
 ''',
       [
         error(
-          CompileTimeErrorCode.FINAL_CLASS_IMPLEMENTED_OUTSIDE_OF_LIBRARY,
+          CompileTimeErrorCode.finalClassImplementedOutsideOfLibrary,
           36,
           1,
         ),
@@ -203,8 +197,7 @@ mixin B on A {}
 ''',
       [
         error(
-          CompileTimeErrorCode
-              .FINAL_CLASS_USED_AS_MIXIN_CONSTRAINT_OUTSIDE_OF_LIBRARY,
+          CompileTimeErrorCode.finalClassUsedAsMixinConstraintOutsideOfLibrary,
           28,
           1,
         ),
@@ -221,7 +214,7 @@ class C extends B {}
 ''',
       [
         error(
-          CompileTimeErrorCode.SUBTYPE_OF_FINAL_IS_NOT_BASE_FINAL_OR_SEALED,
+          CompileTimeErrorCode.subtypeOfFinalIsNotBaseFinalOrSealed,
           51,
           1,
           text:
@@ -250,7 +243,7 @@ class D extends C {}
 ''',
       [
         error(
-          CompileTimeErrorCode.SUBTYPE_OF_FINAL_IS_NOT_BASE_FINAL_OR_SEALED,
+          CompileTimeErrorCode.subtypeOfFinalIsNotBaseFinalOrSealed,
           79,
           1,
           text:
@@ -282,13 +275,7 @@ import 'a.dart';
 sealed class B extends A {}
 class C extends B {}
 ''',
-      [
-        error(
-          CompileTimeErrorCode.FINAL_CLASS_EXTENDED_OUTSIDE_OF_LIBRARY,
-          40,
-          1,
-        ),
-      ],
+      [error(CompileTimeErrorCode.finalClassExtendedOutsideOfLibrary, 40, 1)],
     );
   }
 
@@ -301,7 +288,7 @@ final class A {}
 ''',
       [
         error(
-          CompileTimeErrorCode.SUBTYPE_OF_FINAL_IS_NOT_BASE_FINAL_OR_SEALED,
+          CompileTimeErrorCode.subtypeOfFinalIsNotBaseFinalOrSealed,
           6,
           1,
           text:
@@ -329,7 +316,7 @@ class C implements B {}
 ''',
       [
         error(
-          CompileTimeErrorCode.SUBTYPE_OF_FINAL_IS_NOT_BASE_FINAL_OR_SEALED,
+          CompileTimeErrorCode.subtypeOfFinalIsNotBaseFinalOrSealed,
           54,
           1,
           text:
@@ -358,7 +345,7 @@ class D extends C {}
 ''',
       [
         error(
-          CompileTimeErrorCode.SUBTYPE_OF_FINAL_IS_NOT_BASE_FINAL_OR_SEALED,
+          CompileTimeErrorCode.subtypeOfFinalIsNotBaseFinalOrSealed,
           69,
           1,
           text:
@@ -386,7 +373,7 @@ class C = Object with B implements A;
 ''',
       [
         error(
-          CompileTimeErrorCode.SUBTYPE_OF_FINAL_IS_NOT_BASE_FINAL_OR_SEALED,
+          CompileTimeErrorCode.subtypeOfFinalIsNotBaseFinalOrSealed,
           34,
           1,
           text:
@@ -405,7 +392,7 @@ interface class C = Object with B implements A;
 ''',
       [
         error(
-          CompileTimeErrorCode.SUBTYPE_OF_FINAL_IS_NOT_BASE_FINAL_OR_SEALED,
+          CompileTimeErrorCode.subtypeOfFinalIsNotBaseFinalOrSealed,
           44,
           1,
           text:
@@ -425,7 +412,7 @@ class C = Object with B implements AA;
 ''',
       [
         error(
-          CompileTimeErrorCode.SUBTYPE_OF_FINAL_IS_NOT_BASE_FINAL_OR_SEALED,
+          CompileTimeErrorCode.subtypeOfFinalIsNotBaseFinalOrSealed,
           63,
           1,
           text:
@@ -454,7 +441,7 @@ interface class C = Object with B implements AA;
 ''',
       [
         error(
-          CompileTimeErrorCode.SUBTYPE_OF_FINAL_IS_NOT_BASE_FINAL_OR_SEALED,
+          CompileTimeErrorCode.subtypeOfFinalIsNotBaseFinalOrSealed,
           73,
           1,
           text:

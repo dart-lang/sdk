@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/src/protocol_server.dart';
+import 'package:analyzer/src/test_utilities/platform.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -125,7 +126,10 @@ void f() {
     expect(fileEdit.file, testFile.path);
 
     var edits = fileEdit.edits;
-    expect(SourceEdit.applySequence(testFileContent, edits), expected);
+    expect(
+      SourceEdit.applySequence(testFileContent, edits),
+      normalizeNewlinesForPlatform(expected),
+    );
   }
 
   Future<FlutterSetWidgetPropertyValueResult> _setValue(

@@ -4,17 +4,13 @@
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
-import 'package:analyzer/src/dart/element/element.dart';
-import 'package:analyzer/src/dart/resolver/scope.dart';
 
 /// Returns the [Element] exported from the given [LibraryElement].
 Element? getExportedElement(LibraryElement? library, String name) {
   if (library == null) {
     return null;
   }
-  library as LibraryElementImpl;
-  var namespace = NamespaceBuilder().createExportNamespaceForLibrary(library);
-  return namespace.definedNames2[name];
+  return library.exportNamespace.get2(name);
 }
 
 /// Return the [LibraryImport] that is referenced by [prefixNode], or
@@ -44,13 +40,13 @@ LibraryImport? _getImportElement(
   var usedLibrary = element.library;
   // find ImportElement that imports used library with used prefix
   List<LibraryImport>? candidates;
-  for (var libraryImport in libraryElement.firstFragment.libraryImports2) {
+  for (var libraryImport in libraryElement.firstFragment.libraryImports) {
     // required library
     if (libraryImport.importedLibrary != usedLibrary) {
       continue;
     }
     // required prefix
-    var prefixElement = libraryImport.prefix2?.element;
+    var prefixElement = libraryImport.prefix?.element;
     if (prefixElement == null) {
       continue;
     }

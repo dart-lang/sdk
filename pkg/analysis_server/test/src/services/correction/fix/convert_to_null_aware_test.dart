@@ -40,7 +40,7 @@ int f(A x, A y) => x?.m(y?.m(0));
 @reflectiveTest
 class ConvertToNullAwareTest extends FixProcessorLintTest {
   @override
-  FixKind get kind => DartFixKind.CONVERT_TO_NULL_AWARE;
+  FixKind get kind => DartFixKind.convertToNullAware;
 
   @override
   String get lintCode => LintNames.prefer_null_aware_operators;

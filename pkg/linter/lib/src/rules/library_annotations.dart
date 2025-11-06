@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/analysis_rule/rule_context.dart';
+import 'package:analyzer/analysis_rule/rule_visitor_registry.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
@@ -20,10 +21,13 @@ class LibraryAnnotations extends LintRule {
     : super(name: LintNames.library_annotations, description: _desc);
 
   @override
-  DiagnosticCode get diagnosticCode => LinterLintCode.library_annotations;
+  DiagnosticCode get diagnosticCode => LinterLintCode.libraryAnnotations;
 
   @override
-  void registerNodeProcessors(NodeLintRegistry registry, RuleContext context) {
+  void registerNodeProcessors(
+    RuleVisitorRegistry registry,
+    RuleContext context,
+  ) {
     var visitor = _Visitor(this);
     registry.addCompilationUnit(this, visitor);
   }
@@ -86,7 +90,7 @@ extension on ElementAnnotation {
     required String libraryName,
     required String className,
   }) {
-    var element = element2;
+    var element = this.element;
     return element is ConstructorElement &&
         element.enclosingElement.name == className &&
         element.library.name == libraryName;

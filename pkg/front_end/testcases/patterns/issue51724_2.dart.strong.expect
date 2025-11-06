@@ -20,6 +20,7 @@ static method test1(self::C c) → core::String {
   #L1:
   {
     final synthesized self::C #0#0 = c;
+    final const synthesized core::int #0#1 = #C1;
     {
       if(#0#0.{self::C::>}(#C1){(core::num) → dynamic} as core::bool) {
         {

@@ -28,7 +28,7 @@ class MyClass {
   abstract void m2() {}
 }
 ''');
-    await assertHasFixAllFix(ParserErrorCode.ABSTRACT_CLASS_MEMBER, '''
+    await assertHasFixAllFix(ParserErrorCode.abstractClassMember, '''
 class MyClass {
   void m1() {}
   void m2() {}

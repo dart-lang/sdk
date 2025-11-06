@@ -45,12 +45,12 @@ ICCallPattern::ICCallPattern(uword pc, const Code& code)
   Register data_reg, code_reg;
   intptr_t pool_index;
   InstructionPattern::DecodeLoadDoubleWordFromPool(
-      pc - 2 * Instr::kInstrSize, &data_reg, &code_reg, &pool_index);
+      pc - 2 * Instr::kInstrSize, &code_reg, &data_reg, &pool_index);
   ASSERT(data_reg == R5);
   ASSERT(IsBranchLinkScratch(code_reg));
 
-  data_pool_index_ = pool_index;
-  target_pool_index_ = pool_index + 1;
+  target_pool_index_ = pool_index;
+  data_pool_index_ = pool_index + 1;
 }
 
 NativeCallPattern::NativeCallPattern(uword pc, const Code& code)
@@ -76,7 +76,8 @@ CodePtr NativeCallPattern::target() const {
 }
 
 void NativeCallPattern::set_target(const Code& target) const {
-  object_pool_.SetObjectAt(target_code_pool_index_, target);
+  object_pool_.SetObjectAt<std::memory_order_release>(target_code_pool_index_,
+                                                      target);
   // No need to flush the instruction cache, since the code is not modified.
 }
 
@@ -86,8 +87,8 @@ NativeFunction NativeCallPattern::native_function() const {
 }
 
 void NativeCallPattern::set_native_function(NativeFunction func) const {
-  object_pool_.SetRawValueAt(native_function_pool_index_,
-                             reinterpret_cast<uword>(func));
+  object_pool_.SetRawValueAt<std::memory_order_relaxed>(
+      native_function_pool_index_, reinterpret_cast<uword>(func));
 }
 
 // Decodes a load sequence ending at 'end' (the last instruction of the load
@@ -247,6 +248,11 @@ uword InstructionPattern::DecodeLoadDoubleWordFromPool(uword end,
   //      add tmp, tmp, #lower12
   //      ldp reg1, reg2, [tmp, 0]
   //
+  //   4. movz tmp, #lower16
+  //      movk tmp, #upper16
+  //      add tmp, tmp, pp
+  //      ldp reg1, reg2, [tmp, 0]
+  //
   // Note that the pp register is untagged!
   //
   uword start = end - Instr::kInstrSize;
@@ -267,31 +273,52 @@ uword InstructionPattern::DecodeLoadDoubleWordFromPool(uword end,
     // Case 1.
     pool_offset = base_offset;
   } else {
-    // Case 2 & 3.
     ASSERT(base_reg == TMP);
 
     pool_offset = base_offset;
 
     start -= Instr::kInstrSize;
     Instr* add_instr = Instr::At(start);
-    ASSERT(add_instr->IsAddSubImmOp());
-    ASSERT(add_instr->RdField() == TMP);
+    if (add_instr->IsAddSubShiftExtOp()) {
+      // Case 4.
+      ASSERT(add_instr->RdField() == TMP);
 
-    const auto shift = add_instr->Imm12ShiftField();
-    ASSERT(shift == 0 || shift == 1);
-    pool_offset += (add_instr->Imm12Field() << (shift == 1 ? 12 : 0));
-
-    if (add_instr->RnField() == TMP) {
       start -= Instr::kInstrSize;
-      Instr* prev_add_instr = Instr::At(start);
-      ASSERT(prev_add_instr->IsAddSubImmOp());
-      ASSERT(prev_add_instr->RnField() == PP);
+      Instr* movk_instr = Instr::At(start);
+      ASSERT(movk_instr->IsMoveWideOp());
+      ASSERT(movk_instr->Bits(29, 2) == 3);
+      ASSERT(movk_instr->HWField() == 1);  // movk tmp, imm1, 1
+      ASSERT(movk_instr->RdField() == TMP);
+      pool_offset += (movk_instr->Imm16Field() << 16);
 
-      const auto shift = prev_add_instr->Imm12ShiftField();
-      ASSERT(shift == 0 || shift == 1);
-      pool_offset += (prev_add_instr->Imm12Field() << (shift == 1 ? 12 : 0));
+      start -= Instr::kInstrSize;
+      Instr* movz_instr = Instr::At(start);
+      ASSERT(movz_instr->IsMoveWideOp());
+      ASSERT(movz_instr->Bits(29, 2) == 2);
+      ASSERT(movz_instr->HWField() == 0);  // movz tmp, imm0, 0
+      ASSERT(movz_instr->RdField() == TMP);
+      pool_offset += movz_instr->Imm16Field();
     } else {
-      ASSERT(add_instr->RnField() == PP);
+      // Case 2 & 3.
+      ASSERT(add_instr->IsAddSubImmOp());
+      ASSERT(add_instr->RdField() == TMP);
+
+      const auto shift = add_instr->Imm12ShiftField();
+      ASSERT(shift == 0 || shift == 1);
+      pool_offset += (add_instr->Imm12Field() << (shift == 1 ? 12 : 0));
+
+      if (add_instr->RnField() == TMP) {
+        start -= Instr::kInstrSize;
+        Instr* prev_add_instr = Instr::At(start);
+        ASSERT(prev_add_instr->IsAddSubImmOp());
+        ASSERT(prev_add_instr->RnField() == PP);
+
+        const auto shift = prev_add_instr->Imm12ShiftField();
+        ASSERT(shift == 0 || shift == 1);
+        pool_offset += (prev_add_instr->Imm12Field() << (shift == 1 ? 12 : 0));
+      } else {
+        ASSERT(add_instr->RnField() == PP);
+      }
     }
   }
   *index = ObjectPool::IndexFromOffset(pool_offset - kHeapObjectTag);
@@ -372,7 +399,8 @@ CodePtr CallPattern::TargetCode() const {
 }
 
 void CallPattern::SetTargetCode(const Code& target) const {
-  object_pool_.SetObjectAt(target_code_pool_index_, target);
+  object_pool_.SetObjectAt<std::memory_order_release>(target_code_pool_index_,
+                                                      target);
   // No need to flush the instruction cache, since the code is not modified.
 }
 
@@ -382,7 +410,7 @@ ObjectPtr ICCallPattern::Data() const {
 
 void ICCallPattern::SetData(const Object& data) const {
   ASSERT(data.IsArray() || data.IsICData() || data.IsMegamorphicCache());
-  object_pool_.SetObjectAt(data_pool_index_, data);
+  object_pool_.SetObjectAt<std::memory_order_release>(data_pool_index_, data);
 }
 
 CodePtr ICCallPattern::TargetCode() const {
@@ -390,7 +418,8 @@ CodePtr ICCallPattern::TargetCode() const {
 }
 
 void ICCallPattern::SetTargetCode(const Code& target) const {
-  object_pool_.SetObjectAt(target_pool_index_, target);
+  object_pool_.SetObjectAt<std::memory_order_release>(target_pool_index_,
+                                                      target);
   // No need to flush the instruction cache, since the code is not modified.
 }
 
@@ -402,9 +431,9 @@ ObjectPtr SwitchableCallPatternBase::data() const {
   return object_pool_.ObjectAt(data_pool_index_);
 }
 
-void SwitchableCallPatternBase::SetData(const Object& data) const {
+void SwitchableCallPatternBase::SetDataRelease(const Object& data) const {
   ASSERT(!Object::Handle(object_pool_.ObjectAt(data_pool_index_)).IsCode());
-  object_pool_.SetObjectAt(data_pool_index_, data);
+  object_pool_.SetObjectAt<std::memory_order_release>(data_pool_index_, data);
 }
 
 SwitchableCallPattern::SwitchableCallPattern(uword pc, const Code& code)
@@ -416,22 +445,22 @@ SwitchableCallPattern::SwitchableCallPattern(uword pc, const Code& code)
   Register ic_data_reg, code_reg;
   intptr_t pool_index;
   InstructionPattern::DecodeLoadDoubleWordFromPool(
-      pc - 2 * Instr::kInstrSize, &ic_data_reg, &code_reg, &pool_index);
+      pc - 2 * Instr::kInstrSize, &code_reg, &ic_data_reg, &pool_index);
   ASSERT(ic_data_reg == R5);
   ASSERT(IsBranchLinkScratch(code_reg));
 
-  data_pool_index_ = pool_index;
-  target_pool_index_ = pool_index + 1;
+  target_pool_index_ = pool_index;
+  data_pool_index_ = pool_index + 1;
 }
 
-uword SwitchableCallPattern::target_entry() const {
-  return Code::Handle(Code::RawCast(object_pool_.ObjectAt(target_pool_index_)))
-      .MonomorphicEntryPoint();
+ObjectPtr SwitchableCallPattern::target() const {
+  return object_pool_.ObjectAt(target_pool_index_);
 }
 
-void SwitchableCallPattern::SetTarget(const Code& target) const {
+void SwitchableCallPattern::SetTargetRelease(const Code& target) const {
   ASSERT(Object::Handle(object_pool_.ObjectAt(target_pool_index_)).IsCode());
-  object_pool_.SetObjectAt(target_pool_index_, target);
+  object_pool_.SetObjectAt<std::memory_order_release>(target_pool_index_,
+                                                      target);
 }
 
 BareSwitchableCallPattern::BareSwitchableCallPattern(uword pc)
@@ -443,23 +472,23 @@ BareSwitchableCallPattern::BareSwitchableCallPattern(uword pc)
   Register ic_data_reg, code_reg;
   intptr_t pool_index;
   InstructionPattern::DecodeLoadDoubleWordFromPool(
-      pc - Instr::kInstrSize, &ic_data_reg, &code_reg, &pool_index);
+      pc - Instr::kInstrSize, &code_reg, &ic_data_reg, &pool_index);
   ASSERT(ic_data_reg == R5);
   ASSERT(code_reg == LINK_REGISTER);
 
-  data_pool_index_ = pool_index;
-  target_pool_index_ = pool_index + 1;
+  target_pool_index_ = pool_index;
+  data_pool_index_ = pool_index + 1;
 }
 
 uword BareSwitchableCallPattern::target_entry() const {
   return object_pool_.RawValueAt(target_pool_index_);
 }
 
-void BareSwitchableCallPattern::SetTarget(const Code& target) const {
+void BareSwitchableCallPattern::SetTargetRelease(const Code& target) const {
   ASSERT(object_pool_.TypeAt(target_pool_index_) ==
          ObjectPool::EntryType::kImmediate);
-  object_pool_.SetRawValueAt(target_pool_index_,
-                             target.MonomorphicEntryPoint());
+  object_pool_.SetRawValueAt<std::memory_order_release>(
+      target_pool_index_, target.MonomorphicEntryPoint());
 }
 
 ReturnPattern::ReturnPattern(uword pc) : pc_(pc) {}

@@ -30,7 +30,7 @@ class FlutterStatefulWidget extends FlutterSnippetProducer
   Future<Snippet> compute() async {
     var builder = ChangeBuilder(
       session: request.analysisSession,
-      eol: utils.endOfLine,
+      defaultEol: utils.endOfLine,
     );
 
     // Checked by isValid().

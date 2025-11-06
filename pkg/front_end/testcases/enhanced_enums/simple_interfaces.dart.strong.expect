@@ -14,7 +14,6 @@ library;
 //  - inherit an implementation from a superclass or mixin,
 //  - mark the class as abstract, or
 //  - provide a 'noSuchMethod' implementation.
-//
 // enum E2 implements I { // Error.
 //      ^^
 // pkg/front_end/testcases/enhanced_enums/simple_interfaces.dart:6:8: Context: 'I.foo' is defined here.

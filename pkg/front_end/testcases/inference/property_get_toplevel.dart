@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/*@testedFeatures=inference*/
 library test;
 
 class C {
@@ -12,9 +11,7 @@ class C {
 }
 
 C c = new C();
-var function_ref = c. /*@target=C.function*/ function;
-var function_ref_list = /*@typeArgs=() -> int*/ [
-  c. /*@target=C.function*/ function
-];
+var function_ref = c.function;
+var function_ref_list = [c.function];
 
 main() {}

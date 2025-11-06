@@ -94,8 +94,7 @@ mixin GenericMixin<T> {
 
   static var field = /*
    class=GenericMixin,
-   member=field,
-   typeParameters=[GenericMixin.T]
+   member=field
   */
       x;
 
@@ -103,8 +102,7 @@ mixin GenericMixin<T> {
     /*
      class=GenericMixin,
      member=empty,
-     static,
-     typeParameters=[GenericMixin.T]
+     static
     */
     x;
   }
@@ -114,7 +112,6 @@ mixin GenericMixin<T> {
      class=GenericMixin,
      member=oneParameter,
      static,
-     typeParameters=[GenericMixin.T],
      variables=[a]
     */
     x;
@@ -125,7 +122,6 @@ mixin GenericMixin<T> {
      class=GenericMixin,
      member=twoParameters,
      static,
-     typeParameters=[GenericMixin.T],
      variables=[
       a,
       b]
@@ -138,7 +134,6 @@ mixin GenericMixin<T> {
      class=GenericMixin,
      member=optionalParameter,
      static,
-     typeParameters=[GenericMixin.T],
      variables=[
       a,
       b]
@@ -151,7 +146,6 @@ mixin GenericMixin<T> {
      class=GenericMixin,
      member=namedParameter,
      static,
-     typeParameters=[GenericMixin.T],
      variables=[
       a,
       b]
@@ -164,9 +158,7 @@ mixin GenericMixin<T> {
      class=GenericMixin,
      member=oneTypeParameter,
      static,
-     typeParameters=[
-      GenericMixin.T,
-      GenericMixin.oneTypeParameter.T]
+     typeParameters=[GenericMixin.oneTypeParameter.T]
     */
     x;
   }

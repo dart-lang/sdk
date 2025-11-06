@@ -10,8 +10,9 @@ import 'package:expect/expect.dart';
 void main(List<String> arguments) {
   Uri dartVm = Uri.base.resolveUri(new Uri.file(Platform.resolvedExecutable));
   Uri librariesJson = Uri.base.resolve("sdk/lib/libraries.json");
-  Uri compilePlatform =
-      Uri.base.resolve("pkg/front_end/tool/compile_platform.dart");
+  Uri compilePlatform = Uri.base.resolve(
+    "pkg/front_end/tool/compile_platform.dart",
+  );
   asyncTest(() async {
     await withTemporaryDirectory("compile_platform_test_", (Uri tmp) async {
       Uri platformDill = tmp.resolve("vm_platform.dill");
@@ -28,7 +29,10 @@ void main(List<String> arguments) {
       stdout.write(result.stdout);
       stderr.write(result.stderr);
       Expect.equals(
-          0, result.exitCode, "Non-zero exitcode from compile_platform.dart");
+        0,
+        result.exitCode,
+        "Non-zero exitcode from compile_platform.dart",
+      );
       Expect.isTrue(await new File.fromUri(platformDill).exists());
       Expect.isTrue(await new File.fromUri(outlineDill).exists());
     });
@@ -52,7 +56,10 @@ void main(List<String> arguments) {
       stdout.write(result.stdout);
       stderr.write(result.stderr);
       Expect.equals(
-          0, result.exitCode, "Non-zero exitcode from compile_platform.dart");
+        0,
+        result.exitCode,
+        "Non-zero exitcode from compile_platform.dart",
+      );
       Expect.isTrue(await new File.fromUri(platformDill).exists());
       Expect.isTrue(await new File.fromUri(outlineDill).exists());
     });
@@ -60,7 +67,9 @@ void main(List<String> arguments) {
 }
 
 Future<void> withTemporaryDirectory(
-    String prefix, Future<void> f(Uri tmp)) async {
+  String prefix,
+  Future<void> f(Uri tmp),
+) async {
   Directory tmp = await Directory.systemTemp.createTemp(prefix);
   try {
     await f(tmp.uri);

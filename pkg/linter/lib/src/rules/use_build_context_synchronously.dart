@@ -2,14 +2,16 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/analysis_rule/analysis_rule.dart';
 import 'package:analyzer/analysis_rule/rule_context.dart';
+import 'package:analyzer/analysis_rule/rule_state.dart';
+import 'package:analyzer/analysis_rule/rule_visitor_registry.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/src/dart/resolver/exit_detector.dart'; // ignore: implementation_imports
-import 'package:analyzer/src/lint/linter.dart'; // ignore: implementation_imports
 import 'package:collection/collection.dart';
 import 'package:meta/meta.dart';
 import 'package:pub_semver/pub_semver.dart';
@@ -335,8 +337,8 @@ class AsyncStateVisitor extends SimpleAstVisitor<AsyncState> {
   @override
   AsyncState? visitExpressionStatement(ExpressionStatement node) =>
       node.expression == _reference
-          ? null
-          : node.expression.accept(this)?.asynchronousOrNull;
+      ? null
+      : node.expression.accept(this)?.asynchronousOrNull;
 
   @override
   AsyncState? visitExtensionOverride(ExtensionOverride node) =>
@@ -522,8 +524,8 @@ class AsyncStateVisitor extends SimpleAstVisitor<AsyncState> {
 
   @override
   AsyncState? visitSwitchCase(SwitchCase node) =>
-  // TODO(srawlins): Handle when `reference` is in one of the statements.
-  _inOrderAsyncStateGuardable([node.expression, ...node.statements]);
+      // TODO(srawlins): Handle when `reference` is in one of the statements.
+      _inOrderAsyncStateGuardable([node.expression, ...node.statements]);
 
   @override
   AsyncState? visitSwitchDefault(SwitchDefault node) =>
@@ -720,8 +722,9 @@ class AsyncStateVisitor extends SimpleAstVisitor<AsyncState> {
     var referenceIndex = nodes.indexWhere(
       (element) => element.node == _reference,
     );
-    var startingIndex =
-        referenceIndex > 0 ? referenceIndex - 1 : nodes.length - 1;
+    var startingIndex = referenceIndex > 0
+        ? referenceIndex - 1
+        : nodes.length - 1;
 
     for (var i = startingIndex; i >= 0; i--) {
       var (:node, :mountedCanGuard) = nodes[i];
@@ -928,12 +931,15 @@ class UseBuildContextSynchronously extends MultiAnalysisRule {
 
   @override
   List<DiagnosticCode> get diagnosticCodes => [
-    LinterLintCode.use_build_context_synchronously_async_use,
-    LinterLintCode.use_build_context_synchronously_wrong_mounted,
+    LinterLintCode.useBuildContextSynchronouslyAsyncUse,
+    LinterLintCode.useBuildContextSynchronouslyWrongMounted,
   ];
 
   @override
-  void registerNodeProcessors(NodeLintRegistry registry, RuleContext context) {
+  void registerNodeProcessors(
+    RuleVisitorRegistry registry,
+    RuleContext context,
+  ) {
     if (!context.isInTestDirectory) {
       var visitor = _Visitor(this);
       registry.addMethodInvocation(this, visitor);
@@ -1116,10 +1122,9 @@ class _Visitor extends SimpleAstVisitor<void> {
       if (asyncState.isGuarded) return;
 
       if (asyncState == AsyncState.asynchronous) {
-        var errorCode =
-            asyncStateTracker.hasUnrelatedMountedCheck
-                ? LinterLintCode.use_build_context_synchronously_wrong_mounted
-                : LinterLintCode.use_build_context_synchronously_async_use;
+        var errorCode = asyncStateTracker.hasUnrelatedMountedCheck
+            ? LinterLintCode.useBuildContextSynchronouslyWrongMounted
+            : LinterLintCode.useBuildContextSynchronouslyAsyncUse;
         rule.reportAtNode(node, diagnosticCode: errorCode);
         return;
       }
@@ -1166,8 +1171,9 @@ class _Visitor extends SimpleAstVisitor<void> {
     var staticType = invocation.staticType;
     if (staticType == null) return;
     var arguments = invocation.argumentList.arguments;
-    var positionalArguments =
-        arguments.where((a) => a is! NamedExpression).toList();
+    var positionalArguments = arguments
+        .where((a) => a is! NamedExpression)
+        .toList();
     var namedArguments = arguments.whereType<NamedExpression>().toList();
     for (var constructor in protectedConstructors) {
       if (invocation.constructorName.name?.name == constructor.name &&
@@ -1200,8 +1206,9 @@ class _Visitor extends SimpleAstVisitor<void> {
     Expression errorNode,
   ) {
     var arguments = invocation.argumentList.arguments;
-    var positionalArguments =
-        arguments.where((a) => a is! NamedExpression).toList();
+    var positionalArguments = arguments
+        .where((a) => a is! NamedExpression)
+        .toList();
     var namedArguments = arguments.whereType<NamedExpression>().toList();
 
     var target = invocation.realTarget;
@@ -1264,8 +1271,7 @@ class _Visitor extends SimpleAstVisitor<void> {
       if (callback == argument.expression) {
         rule.reportAtNode(
           errorNode,
-          diagnosticCode:
-              LinterLintCode.use_build_context_synchronously_async_use,
+          diagnosticCode: LinterLintCode.useBuildContextSynchronouslyAsyncUse,
         );
       }
     }
@@ -1284,8 +1290,7 @@ class _Visitor extends SimpleAstVisitor<void> {
           callback == positionalArguments[position]) {
         rule.reportAtNode(
           errorNode,
-          diagnosticCode:
-              LinterLintCode.use_build_context_synchronously_async_use,
+          diagnosticCode: LinterLintCode.useBuildContextSynchronouslyAsyncUse,
         );
       }
     }
@@ -1460,26 +1465,26 @@ extension ElementExtension on Element {
         // The BuildContext object is the field on Flutter's State class.
         // This object can only be guarded by async gaps with a mounted
         // check on the State.
-        return enclosingElement.lookUpGetter(
-          name: 'mounted',
-          library: enclosingElement.library,
-        );
+        return enclosingElement.mountedGetter;
       }
     }
 
-    var buildContextElement =
-        switch (self) {
-          ExecutableElement() => self.returnType,
-          VariableElement() => self.type,
-          _ => null,
-        }?.element;
+    var buildContextElement = switch (self) {
+      ExecutableElement() => self.returnType,
+      VariableElement() => self.type,
+      _ => null,
+    }?.element;
     if (buildContextElement is InterfaceElement) {
-      return buildContextElement.lookUpGetter(
-        name: 'mounted',
-        library: buildContextElement.library,
-      );
+      return buildContextElement.mountedGetter;
     }
 
     return null;
+  }
+}
+
+extension _InterfaceElementExtension on InterfaceElement {
+  GetterElement? get mountedGetter {
+    var result = getInterfaceMember(Name(null, 'mounted'));
+    return result is GetterElement ? result : null;
   }
 }

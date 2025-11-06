@@ -76,6 +76,17 @@ class _PushConstVisitor extends GeneralizingAstVisitor<void> {
   _PushConstVisitor(this.builder, this.excluded);
 
   @override
+  void visitDotShorthandConstructorInvocation(
+    DotShorthandConstructorInvocation node,
+  ) {
+    _pushConstInConstructorInvocation(
+      node,
+      node.argumentList,
+      node.constKeyword,
+    );
+  }
+
+  @override
   void visitIfElement(IfElement node) {
     node.thenElement.accept(this);
     node.elseElement?.accept(this);
@@ -83,15 +94,7 @@ class _PushConstVisitor extends GeneralizingAstVisitor<void> {
 
   @override
   void visitInstanceCreationExpression(InstanceCreationExpression node) {
-    if (_containsExcluded(node)) {
-      node.argumentList.visitChildren(this);
-    } else if (excluded.any(node.contains)) {
-      // Don't speculate whether arguments can be const.
-    } else {
-      if (node.keyword == null) {
-        builder.addSimpleInsertion(node.offset, '${Keyword.CONST.lexeme} ');
-      }
-    }
+    _pushConstInConstructorInvocation(node, node.argumentList, node.keyword);
   }
 
   @override
@@ -127,6 +130,20 @@ class _PushConstVisitor extends GeneralizingAstVisitor<void> {
 
   bool _containsExcluded(AstNode node) {
     return {for (var e in excluded) ...e.withAncestors}.contains(node);
+  }
+
+  void _pushConstInConstructorInvocation(
+    AstNode node,
+    ArgumentList argumentList,
+    Token? constKeyword,
+  ) {
+    if (_containsExcluded(node)) {
+      argumentList.visitChildren(this);
+    } else if (excluded.any(node.contains)) {
+      // Don't speculate whether arguments can be const.
+    } else if (constKeyword == null) {
+      builder.addSimpleInsertion(node.offset, '${Keyword.CONST.lexeme} ');
+    }
   }
 }
 
@@ -175,16 +192,13 @@ abstract class _RemoveConst extends ParsedCorrectionProducer {
               if (_codesWhereThisIsValid.contains(e.diagnosticCode)) e,
           ];
           switch (node) {
-            case InstanceCreationExpression contextNode:
-              var (:constNodes, :nodesWithDiagnostic) = contextNode
-                  .argumentList
-                  .arguments
+            case InstanceCreationExpression(:var argumentList) ||
+                DotShorthandConstructorInvocation(:var argumentList):
+              var (:constNodes, :nodesWithDiagnostic) = argumentList.arguments
                   .withDiagnosticCodeIn(validDiagnostics);
               await builder.addDartFileEdit(file, (builder) {
                 _deleteToken(builder, constKeyword);
-                contextNode.accept(
-                  _PushConstVisitor(builder, nodesWithDiagnostic),
-                );
+                node.accept(_PushConstVisitor(builder, nodesWithDiagnostic));
               });
             case TypedLiteral contextNode:
               var (:constNodes, :nodesWithDiagnostic) = switch (contextNode) {

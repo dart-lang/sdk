@@ -12,22 +12,23 @@ main() {
 
 class AssertStatementTest extends PartialCodeTest {
   buildAll() {
-    List<String> allExceptEof =
-        PartialCodeTest.statementSuffixes.map((t) => t.name).toList();
+    List<String> allExceptEof = PartialCodeTest.statementSuffixes
+        .map((t) => t.name)
+        .toList();
     buildTests(
       'assert_statement',
       [
         TestDescriptor('keyword', 'assert', [
-          ParserErrorCode.EXPECTED_TOKEN,
-          ParserErrorCode.EXPECTED_TOKEN,
+          ParserErrorCode.expectedToken,
+          ParserErrorCode.expectedToken,
         ], "assert (_s_);"),
         TestDescriptor(
           'leftParen',
           'assert (',
           [
-            ParserErrorCode.MISSING_IDENTIFIER,
-            ScannerErrorCode.EXPECTED_TOKEN,
-            ParserErrorCode.EXPECTED_TOKEN,
+            ParserErrorCode.missingIdentifier,
+            ScannerErrorCode.expectedToken,
+            ParserErrorCode.expectedToken,
           ],
           "assert (_s_);",
           failing: [
@@ -41,26 +42,26 @@ class AssertStatementTest extends PartialCodeTest {
           ],
         ),
         TestDescriptor('condition', 'assert (a', [
-          ParserErrorCode.EXPECTED_TOKEN,
-          ScannerErrorCode.EXPECTED_TOKEN,
+          ParserErrorCode.expectedToken,
+          ScannerErrorCode.expectedToken,
         ], "assert (a);"),
         TestDescriptor(
           'comma',
           'assert (a,',
-          [ScannerErrorCode.EXPECTED_TOKEN, ParserErrorCode.EXPECTED_TOKEN],
+          [ScannerErrorCode.expectedToken, ParserErrorCode.expectedToken],
           "assert (a,);",
           failing: allExceptEof,
         ),
         TestDescriptor('message', 'assert (a, b', [
-          ParserErrorCode.EXPECTED_TOKEN,
-          ScannerErrorCode.EXPECTED_TOKEN,
+          ParserErrorCode.expectedToken,
+          ScannerErrorCode.expectedToken,
         ], "assert (a, b);"),
         TestDescriptor('trailingComma', 'assert (a, b,', [
-          ParserErrorCode.EXPECTED_TOKEN,
-          ScannerErrorCode.EXPECTED_TOKEN,
+          ParserErrorCode.expectedToken,
+          ScannerErrorCode.expectedToken,
         ], "assert (a, b,);"),
         TestDescriptor('rightParen', 'assert (a, b)', [
-          ParserErrorCode.EXPECTED_TOKEN,
+          ParserErrorCode.expectedToken,
         ], "assert (a, b);"),
       ],
       PartialCodeTest.statementSuffixes,

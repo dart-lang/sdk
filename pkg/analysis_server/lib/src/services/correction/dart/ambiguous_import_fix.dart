@@ -37,7 +37,7 @@ class AmbiguousImportFix extends MultiCorrectionProducer {
     if (element is! MultiplyDefinedElement) {
       return const [];
     }
-    var conflictingElements = element.conflictingElements2;
+    var conflictingElements = element.conflictingElements;
     var name = element.name;
     if (name == null || name.isEmpty) {
       return const [];
@@ -69,10 +69,9 @@ class AmbiguousImportFix extends MultiCorrectionProducer {
     );
 
     for (var uri in uris) {
-      var directives =
-          importDirectives
-              .whereNot((directive) => directive.uri.stringValue == uri)
-              .toList();
+      var directives = importDirectives
+          .whereNot((directive) => directive.uri.stringValue == uri)
+          .toList();
       producers.add(
         _ImportAddHide(name, uri, prefix, directives, context: thisContext),
       );
@@ -127,10 +126,9 @@ class AmbiguousImportFix extends MultiCorrectionProducer {
 
           // If this library is imported directly or if the directive exports
           // the library for this element.
-          var element =
-              prefix != null
-                  ? libraryImport.namespace.getPrefixed2(prefix, name)
-                  : libraryImport.namespace.get2(name);
+          var element = prefix != null
+              ? libraryImport.namespace.getPrefixed2(prefix, name)
+              : libraryImport.namespace.get2(name);
           if (element == conflictingElement) {
             var uri = directive.uri.stringValue;
             if (uri != null) {

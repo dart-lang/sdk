@@ -38,14 +38,16 @@ static method switchStatement(dynamic o) → dynamic {
     final synthesized dynamic #0#0 = o;
     synthesized core::int #0#2;
     synthesized core::bool #0#2#isSet = false;
+    final const synthesized core::int #0#3 = #C4;
+    final const synthesized core::int #0#7 = #C7;
     synthesized dynamic #0#13;
     synthesized core::bool #0#13#isSet = false;
     dynamic #t1;
     {
       lowered hoisted dynamic a#case#0;
       lowered hoisted dynamic a#case#1;
-      if(#0#0 is core::List<dynamic> && (#0#2#isSet ?{core::int} #0#2{core::int} : let final dynamic #t2 = #0#2#isSet = true in #0#2 = #0#0{core::List<dynamic>}.{core::List::length}{core::int}) =={core::num::==}{(core::Object) → core::bool} #C4 && (let final dynamic #t3 = a#case#0 = #0#0{core::List<dynamic>}.{core::List::[]}(0){(core::int) → dynamic} in true) && a#case#0{dynamic}.>(5) as{TypeError} core::bool && (let final dynamic #t4 = #t1 = a#case#0 in true) || #0#0 is core::List<dynamic> && (#0#2#isSet ?{core::int} #0#2{core::int} : let final dynamic #t5 = #0#2#isSet = true in #0#2 = #0#0{core::List<dynamic>}.{core::List::length}{core::int}) =={core::num::==}{(core::Object) → core::bool} #C7 && (let final dynamic #t6 = a#case#1 = #0#0{core::List<dynamic>}.{core::List::[]}(1){(core::int) → dynamic} in true) && a#case#1{dynamic}.<(5) as{TypeError} core::bool && (let final dynamic #t7 = #t1 = a#case#1 in true)) {
-        dynamic a = #t1{dynamic};
+      if(#0#0 is core::List<dynamic> && (#0#2#isSet ?{core::int} #0#2 : let final dynamic #t2 = #0#2#isSet = true in #0#2 = #0#0{core::List<dynamic>}.{core::List::length}{core::int}) =={core::num::==}{(core::Object) → core::bool} #C4 && (let final dynamic #t3 = a#case#0 = #0#0{core::List<dynamic>}.{core::List::[]}(0){(core::int) → dynamic} in true) && a#case#0{dynamic}.>(5) as{TypeError} core::bool && (let final dynamic #t4 = #t1 = a#case#0 in true) || #0#0 is core::List<dynamic> && (#0#2#isSet ?{core::int} #0#2 : let final dynamic #t5 = #0#2#isSet = true in #0#2 = #0#0{core::List<dynamic>}.{core::List::length}{core::int}) =={core::num::==}{(core::Object) → core::bool} #C7 && (let final dynamic #t6 = a#case#1 = #0#0{core::List<dynamic>}.{core::List::[]}(1){(core::int) → dynamic} in true) && a#case#1{dynamic}.<(5) as{TypeError} core::bool && (let final dynamic #t7 = #t1 = a#case#1 in true)) {
+        dynamic a = #t1;
         {
           core::print(a);
           break #L1;
@@ -54,7 +56,7 @@ static method switchStatement(dynamic o) → dynamic {
     }
     {
       hoisted dynamic a;
-      if(#0#0 is core::Map<dynamic, dynamic> && (!((#0#13#isSet ?{dynamic} #0#13{dynamic} : let final dynamic #t8 = #0#13#isSet = true in #0#13 = #0#0{core::Map<dynamic, dynamic>}.{core::Map::[]}(#C4){(core::Object?) → dynamic}) == null) || null is dynamic && #0#0{core::Map<dynamic, dynamic>}.{core::Map::containsKey}(#C4){(core::Object?) → core::bool}) && (let final dynamic #t9 = a = #0#13#isSet ?{dynamic} #0#13{dynamic} : let final dynamic #t10 = #0#13#isSet = true in #0#13 = #0#0{core::Map<dynamic, dynamic>}.{core::Map::[]}(#C4){(core::Object?) → dynamic} in true)) {
+      if(#0#0 is core::Map<dynamic, dynamic> && (!((#0#13#isSet ?{dynamic} #0#13 : let final dynamic #t8 = #0#13#isSet = true in #0#13 = #0#0{core::Map<dynamic, dynamic>}.{core::Map::[]}(#C4){(core::Object?) → dynamic}) == null) || null is dynamic && #0#0{core::Map<dynamic, dynamic>}.{core::Map::containsKey}(#C4){(core::Object?) → core::bool}) && (let final dynamic #t9 = a = #0#13#isSet ?{dynamic} #0#13 : let final dynamic #t10 = #0#13#isSet = true in #0#13 = #0#0{core::Map<dynamic, dynamic>}.{core::Map::[]}(#C4){(core::Object?) → dynamic} in true)) {
         {
           core::print(a);
         }
@@ -68,14 +70,16 @@ static method switchStatementWithLabel(dynamic o) → dynamic {
     final synthesized dynamic #0#0 = o;
     synthesized core::int #0#2;
     synthesized core::bool #0#2#isSet = false;
+    final const synthesized core::int #0#3 = #C4;
+    final const synthesized core::int #0#7 = #C7;
     synthesized dynamic #0#13;
     synthesized core::bool #0#13#isSet = false;
     dynamic #t11;
     {
       lowered hoisted dynamic a#case#0;
       lowered hoisted dynamic a#case#1;
-      if(#0#0 is core::List<dynamic> && (#0#2#isSet ?{core::int} #0#2{core::int} : let final dynamic #t12 = #0#2#isSet = true in #0#2 = #0#0{core::List<dynamic>}.{core::List::length}{core::int}) =={core::num::==}{(core::Object) → core::bool} #C4 && (let final dynamic #t13 = a#case#0 = #0#0{core::List<dynamic>}.{core::List::[]}(0){(core::int) → dynamic} in true) && a#case#0{dynamic}.>(5) as{TypeError} core::bool && (let final dynamic #t14 = #t11 = a#case#0 in true) || #0#0 is core::List<dynamic> && (#0#2#isSet ?{core::int} #0#2{core::int} : let final dynamic #t15 = #0#2#isSet = true in #0#2 = #0#0{core::List<dynamic>}.{core::List::length}{core::int}) =={core::num::==}{(core::Object) → core::bool} #C7 && (let final dynamic #t16 = a#case#1 = #0#0{core::List<dynamic>}.{core::List::[]}(1){(core::int) → dynamic} in true) && a#case#1{dynamic}.<(5) as{TypeError} core::bool && (let final dynamic #t17 = #t11 = a#case#1 in true)) {
-        dynamic a = #t11{dynamic};
+      if(#0#0 is core::List<dynamic> && (#0#2#isSet ?{core::int} #0#2 : let final dynamic #t12 = #0#2#isSet = true in #0#2 = #0#0{core::List<dynamic>}.{core::List::length}{core::int}) =={core::num::==}{(core::Object) → core::bool} #C4 && (let final dynamic #t13 = a#case#0 = #0#0{core::List<dynamic>}.{core::List::[]}(0){(core::int) → dynamic} in true) && a#case#0{dynamic}.>(5) as{TypeError} core::bool && (let final dynamic #t14 = #t11 = a#case#0 in true) || #0#0 is core::List<dynamic> && (#0#2#isSet ?{core::int} #0#2 : let final dynamic #t15 = #0#2#isSet = true in #0#2 = #0#0{core::List<dynamic>}.{core::List::length}{core::int}) =={core::num::==}{(core::Object) → core::bool} #C7 && (let final dynamic #t16 = a#case#1 = #0#0{core::List<dynamic>}.{core::List::[]}(1){(core::int) → dynamic} in true) && a#case#1{dynamic}.<(5) as{TypeError} core::bool && (let final dynamic #t17 = #t11 = a#case#1 in true)) {
+        dynamic a = #t11;
         {
           core::print(a);
           break #L2;
@@ -84,7 +88,7 @@ static method switchStatementWithLabel(dynamic o) → dynamic {
     }
     {
       hoisted dynamic a;
-      if(#0#0 is core::Map<dynamic, dynamic> && (!((#0#13#isSet ?{dynamic} #0#13{dynamic} : let final dynamic #t18 = #0#13#isSet = true in #0#13 = #0#0{core::Map<dynamic, dynamic>}.{core::Map::[]}(#C4){(core::Object?) → dynamic}) == null) || null is dynamic && #0#0{core::Map<dynamic, dynamic>}.{core::Map::containsKey}(#C4){(core::Object?) → core::bool}) && (let final dynamic #t19 = a = #0#13#isSet ?{dynamic} #0#13{dynamic} : let final dynamic #t20 = #0#13#isSet = true in #0#13 = #0#0{core::Map<dynamic, dynamic>}.{core::Map::[]}(#C4){(core::Object?) → dynamic} in true)) {
+      if(#0#0 is core::Map<dynamic, dynamic> && (!((#0#13#isSet ?{dynamic} #0#13 : let final dynamic #t18 = #0#13#isSet = true in #0#13 = #0#0{core::Map<dynamic, dynamic>}.{core::Map::[]}(#C4){(core::Object?) → dynamic}) == null) || null is dynamic && #0#0{core::Map<dynamic, dynamic>}.{core::Map::containsKey}(#C4){(core::Object?) → core::bool}) && (let final dynamic #t19 = a = #0#13#isSet ?{dynamic} #0#13 : let final dynamic #t20 = #0#13#isSet = true in #0#13 = #0#0{core::Map<dynamic, dynamic>}.{core::Map::[]}(#C4){(core::Object?) → dynamic} in true)) {
         {
           core::print(a);
           break #L2;
@@ -107,16 +111,19 @@ static method switchStatementWithContinue(dynamic o) → dynamic {
     final synthesized dynamic #0#0 = o;
     synthesized core::int #0#2;
     synthesized core::bool #0#2#isSet = false;
+    final const synthesized core::int #0#3 = #C4;
+    final const synthesized core::int #0#7 = #C7;
     synthesized dynamic #0#13;
     synthesized core::bool #0#13#isSet = false;
+    final const synthesized core::int #0#14 = #C1;
     dynamic #t22;
     #L4:
     {
       {
         lowered hoisted dynamic a#case#0;
         lowered hoisted dynamic a#case#1;
-        if(#0#0 is core::List<dynamic> && (#0#2#isSet ?{core::int} #0#2{core::int} : let final dynamic #t23 = #0#2#isSet = true in #0#2 = #0#0{core::List<dynamic>}.{core::List::length}{core::int}) =={core::num::==}{(core::Object) → core::bool} #C4 && (let final dynamic #t24 = a#case#0 = #0#0{core::List<dynamic>}.{core::List::[]}(0){(core::int) → dynamic} in true) && a#case#0{dynamic}.>(5) as{TypeError} core::bool && (let final dynamic #t25 = #t22 = a#case#0 in true) || #0#0 is core::List<dynamic> && (#0#2#isSet ?{core::int} #0#2{core::int} : let final dynamic #t26 = #0#2#isSet = true in #0#2 = #0#0{core::List<dynamic>}.{core::List::length}{core::int}) =={core::num::==}{(core::Object) → core::bool} #C7 && (let final dynamic #t27 = a#case#1 = #0#0{core::List<dynamic>}.{core::List::[]}(1){(core::int) → dynamic} in true) && a#case#1{dynamic}.<(5) as{TypeError} core::bool && (let final dynamic #t28 = #t22 = a#case#1 in true)) {
-          dynamic a = #t22{dynamic};
+        if(#0#0 is core::List<dynamic> && (#0#2#isSet ?{core::int} #0#2 : let final dynamic #t23 = #0#2#isSet = true in #0#2 = #0#0{core::List<dynamic>}.{core::List::length}{core::int}) =={core::num::==}{(core::Object) → core::bool} #C4 && (let final dynamic #t24 = a#case#0 = #0#0{core::List<dynamic>}.{core::List::[]}(0){(core::int) → dynamic} in true) && a#case#0{dynamic}.>(5) as{TypeError} core::bool && (let final dynamic #t25 = #t22 = a#case#0 in true) || #0#0 is core::List<dynamic> && (#0#2#isSet ?{core::int} #0#2 : let final dynamic #t26 = #0#2#isSet = true in #0#2 = #0#0{core::List<dynamic>}.{core::List::length}{core::int}) =={core::num::==}{(core::Object) → core::bool} #C7 && (let final dynamic #t27 = a#case#1 = #0#0{core::List<dynamic>}.{core::List::[]}(1){(core::int) → dynamic} in true) && a#case#1{dynamic}.<(5) as{TypeError} core::bool && (let final dynamic #t28 = #t22 = a#case#1 in true)) {
+          dynamic a = #t22;
           {
             core::print(a);
             break #L3;
@@ -125,7 +132,7 @@ static method switchStatementWithContinue(dynamic o) → dynamic {
       }
       {
         hoisted dynamic a;
-        if(#0#0 is core::Map<dynamic, dynamic> && (!((#0#13#isSet ?{dynamic} #0#13{dynamic} : let final dynamic #t29 = #0#13#isSet = true in #0#13 = #0#0{core::Map<dynamic, dynamic>}.{core::Map::[]}(#C4){(core::Object?) → dynamic}) == null) || null is dynamic && #0#0{core::Map<dynamic, dynamic>}.{core::Map::containsKey}(#C4){(core::Object?) → core::bool}) && (let final dynamic #t30 = a = #0#13#isSet ?{dynamic} #0#13{dynamic} : let final dynamic #t31 = #0#13#isSet = true in #0#13 = #0#0{core::Map<dynamic, dynamic>}.{core::Map::[]}(#C4){(core::Object?) → dynamic} in true)) {
+        if(#0#0 is core::Map<dynamic, dynamic> && (!((#0#13#isSet ?{dynamic} #0#13 : let final dynamic #t29 = #0#13#isSet = true in #0#13 = #0#0{core::Map<dynamic, dynamic>}.{core::Map::[]}(#C4){(core::Object?) → dynamic}) == null) || null is dynamic && #0#0{core::Map<dynamic, dynamic>}.{core::Map::containsKey}(#C4){(core::Object?) → core::bool}) && (let final dynamic #t30 = a = #0#13#isSet ?{dynamic} #0#13 : let final dynamic #t31 = #0#13#isSet = true in #0#13 = #0#0{core::Map<dynamic, dynamic>}.{core::Map::[]}(#C4){(core::Object?) → dynamic} in true)) {
           {
             core::print(a);
             #t21 = 0;
@@ -178,8 +185,11 @@ static method switchStatementWithContinueNested(dynamic o1, dynamic o2) → dyna
   {
     core::int #t32 = 1.{core::int::unary-}(){() → core::int};
     final synthesized dynamic #2#0 = o1;
+    final const synthesized core::int #2#3 = #C4;
     synthesized dynamic #2#9;
     synthesized core::bool #2#9#isSet = false;
+    final const synthesized core::int #2#10 = #C1;
+    final const synthesized core::int #2#13 = #C7;
     #L8:
     {
       {
@@ -193,7 +203,7 @@ static method switchStatementWithContinueNested(dynamic o1, dynamic o2) → dyna
       }
       {
         hoisted dynamic a;
-        if(#2#0 is core::Map<dynamic, dynamic> && (!((#2#9#isSet ?{dynamic} #2#9{dynamic} : let final dynamic #t34 = #2#9#isSet = true in #2#9 = #2#0{core::Map<dynamic, dynamic>}.{core::Map::[]}(#C4){(core::Object?) → dynamic}) == null) || null is dynamic && #2#0{core::Map<dynamic, dynamic>}.{core::Map::containsKey}(#C4){(core::Object?) → core::bool}) && (let final dynamic #t35 = a = #2#9#isSet ?{dynamic} #2#9{dynamic} : let final dynamic #t36 = #2#9#isSet = true in #2#9 = #2#0{core::Map<dynamic, dynamic>}.{core::Map::[]}(#C4){(core::Object?) → dynamic} in true)) {
+        if(#2#0 is core::Map<dynamic, dynamic> && (!((#2#9#isSet ?{dynamic} #2#9 : let final dynamic #t34 = #2#9#isSet = true in #2#9 = #2#0{core::Map<dynamic, dynamic>}.{core::Map::[]}(#C4){(core::Object?) → dynamic}) == null) || null is dynamic && #2#0{core::Map<dynamic, dynamic>}.{core::Map::containsKey}(#C4){(core::Object?) → core::bool}) && (let final dynamic #t35 = a = #2#9#isSet ?{dynamic} #2#9 : let final dynamic #t36 = #2#9#isSet = true in #2#9 = #2#0{core::Map<dynamic, dynamic>}.{core::Map::[]}(#C4){(core::Object?) → dynamic} in true)) {
           {
             core::print(a);
             #L9:
@@ -202,16 +212,19 @@ static method switchStatementWithContinueNested(dynamic o1, dynamic o2) → dyna
               final synthesized dynamic #0#0 = o2;
               synthesized core::int #0#2;
               synthesized core::bool #0#2#isSet = false;
+              final const synthesized core::int #0#3 = #C4;
+              final const synthesized core::int #0#7 = #C7;
               synthesized dynamic #0#13;
               synthesized core::bool #0#13#isSet = false;
+              final const synthesized core::int #0#14 = #C1;
               dynamic #t38;
               #L10:
               {
                 {
                   lowered hoisted dynamic a#case#0;
                   lowered hoisted dynamic a#case#1;
-                  if(#0#0 is core::List<dynamic> && (#0#2#isSet ?{core::int} #0#2{core::int} : let final dynamic #t39 = #0#2#isSet = true in #0#2 = #0#0{core::List<dynamic>}.{core::List::length}{core::int}) =={core::num::==}{(core::Object) → core::bool} #C4 && (let final dynamic #t40 = a#case#0 = #0#0{core::List<dynamic>}.{core::List::[]}(0){(core::int) → dynamic} in true) && a#case#0{dynamic}.>(5) as{TypeError} core::bool && (let final dynamic #t41 = #t38 = a#case#0 in true) || #0#0 is core::List<dynamic> && (#0#2#isSet ?{core::int} #0#2{core::int} : let final dynamic #t42 = #0#2#isSet = true in #0#2 = #0#0{core::List<dynamic>}.{core::List::length}{core::int}) =={core::num::==}{(core::Object) → core::bool} #C7 && (let final dynamic #t43 = a#case#1 = #0#0{core::List<dynamic>}.{core::List::[]}(1){(core::int) → dynamic} in true) && a#case#1{dynamic}.<(5) as{TypeError} core::bool && (let final dynamic #t44 = #t38 = a#case#1 in true)) {
-                    dynamic a = #t38{dynamic};
+                  if(#0#0 is core::List<dynamic> && (#0#2#isSet ?{core::int} #0#2 : let final dynamic #t39 = #0#2#isSet = true in #0#2 = #0#0{core::List<dynamic>}.{core::List::length}{core::int}) =={core::num::==}{(core::Object) → core::bool} #C4 && (let final dynamic #t40 = a#case#0 = #0#0{core::List<dynamic>}.{core::List::[]}(0){(core::int) → dynamic} in true) && a#case#0{dynamic}.>(5) as{TypeError} core::bool && (let final dynamic #t41 = #t38 = a#case#0 in true) || #0#0 is core::List<dynamic> && (#0#2#isSet ?{core::int} #0#2 : let final dynamic #t42 = #0#2#isSet = true in #0#2 = #0#0{core::List<dynamic>}.{core::List::length}{core::int}) =={core::num::==}{(core::Object) → core::bool} #C7 && (let final dynamic #t43 = a#case#1 = #0#0{core::List<dynamic>}.{core::List::[]}(1){(core::int) → dynamic} in true) && a#case#1{dynamic}.<(5) as{TypeError} core::bool && (let final dynamic #t44 = #t38 = a#case#1 in true)) {
+                    dynamic a = #t38;
                     {
                       core::print(a);
                       break #L9;
@@ -220,7 +233,7 @@ static method switchStatementWithContinueNested(dynamic o1, dynamic o2) → dyna
                 }
                 {
                   hoisted dynamic a;
-                  if(#0#0 is core::Map<dynamic, dynamic> && (!((#0#13#isSet ?{dynamic} #0#13{dynamic} : let final dynamic #t45 = #0#13#isSet = true in #0#13 = #0#0{core::Map<dynamic, dynamic>}.{core::Map::[]}(#C4){(core::Object?) → dynamic}) == null) || null is dynamic && #0#0{core::Map<dynamic, dynamic>}.{core::Map::containsKey}(#C4){(core::Object?) → core::bool}) && (let final dynamic #t46 = a = #0#13#isSet ?{dynamic} #0#13{dynamic} : let final dynamic #t47 = #0#13#isSet = true in #0#13 = #0#0{core::Map<dynamic, dynamic>}.{core::Map::[]}(#C4){(core::Object?) → dynamic} in true)) {
+                  if(#0#0 is core::Map<dynamic, dynamic> && (!((#0#13#isSet ?{dynamic} #0#13 : let final dynamic #t45 = #0#13#isSet = true in #0#13 = #0#0{core::Map<dynamic, dynamic>}.{core::Map::[]}(#C4){(core::Object?) → dynamic}) == null) || null is dynamic && #0#0{core::Map<dynamic, dynamic>}.{core::Map::containsKey}(#C4){(core::Object?) → core::bool}) && (let final dynamic #t46 = a = #0#13#isSet ?{dynamic} #0#13 : let final dynamic #t47 = #0#13#isSet = true in #0#13 = #0#0{core::Map<dynamic, dynamic>}.{core::Map::[]}(#C4){(core::Object?) → dynamic} in true)) {
                     {
                       core::print(a);
                       #t32 = 1;
@@ -315,16 +328,19 @@ static method switchStatementWithContinueNested(dynamic o1, dynamic o2) → dyna
               final synthesized dynamic #1#0 = o2;
               synthesized core::int #1#2;
               synthesized core::bool #1#2#isSet = false;
+              final const synthesized core::int #1#3 = #C4;
+              final const synthesized core::int #1#7 = #C7;
               synthesized dynamic #1#13;
               synthesized core::bool #1#13#isSet = false;
+              final const synthesized core::int #1#14 = #C1;
               dynamic #t49;
               #L16:
               {
                 {
                   lowered hoisted dynamic a#case#0;
                   lowered hoisted dynamic a#case#1;
-                  if(#1#0 is core::List<dynamic> && (#1#2#isSet ?{core::int} #1#2{core::int} : let final dynamic #t50 = #1#2#isSet = true in #1#2 = #1#0{core::List<dynamic>}.{core::List::length}{core::int}) =={core::num::==}{(core::Object) → core::bool} #C4 && (let final dynamic #t51 = a#case#0 = #1#0{core::List<dynamic>}.{core::List::[]}(0){(core::int) → dynamic} in true) && a#case#0{dynamic}.>(5) as{TypeError} core::bool && (let final dynamic #t52 = #t49 = a#case#0 in true) || #1#0 is core::List<dynamic> && (#1#2#isSet ?{core::int} #1#2{core::int} : let final dynamic #t53 = #1#2#isSet = true in #1#2 = #1#0{core::List<dynamic>}.{core::List::length}{core::int}) =={core::num::==}{(core::Object) → core::bool} #C7 && (let final dynamic #t54 = a#case#1 = #1#0{core::List<dynamic>}.{core::List::[]}(1){(core::int) → dynamic} in true) && a#case#1{dynamic}.<(5) as{TypeError} core::bool && (let final dynamic #t55 = #t49 = a#case#1 in true)) {
-                    dynamic a = #t49{dynamic};
+                  if(#1#0 is core::List<dynamic> && (#1#2#isSet ?{core::int} #1#2 : let final dynamic #t50 = #1#2#isSet = true in #1#2 = #1#0{core::List<dynamic>}.{core::List::length}{core::int}) =={core::num::==}{(core::Object) → core::bool} #C4 && (let final dynamic #t51 = a#case#0 = #1#0{core::List<dynamic>}.{core::List::[]}(0){(core::int) → dynamic} in true) && a#case#0{dynamic}.>(5) as{TypeError} core::bool && (let final dynamic #t52 = #t49 = a#case#0 in true) || #1#0 is core::List<dynamic> && (#1#2#isSet ?{core::int} #1#2 : let final dynamic #t53 = #1#2#isSet = true in #1#2 = #1#0{core::List<dynamic>}.{core::List::length}{core::int}) =={core::num::==}{(core::Object) → core::bool} #C7 && (let final dynamic #t54 = a#case#1 = #1#0{core::List<dynamic>}.{core::List::[]}(1){(core::int) → dynamic} in true) && a#case#1{dynamic}.<(5) as{TypeError} core::bool && (let final dynamic #t55 = #t49 = a#case#1 in true)) {
+                    dynamic a = #t49;
                     {
                       core::print(a);
                       break #L15;
@@ -333,7 +349,7 @@ static method switchStatementWithContinueNested(dynamic o1, dynamic o2) → dyna
                 }
                 {
                   hoisted dynamic a;
-                  if(#1#0 is core::Map<dynamic, dynamic> && (!((#1#13#isSet ?{dynamic} #1#13{dynamic} : let final dynamic #t56 = #1#13#isSet = true in #1#13 = #1#0{core::Map<dynamic, dynamic>}.{core::Map::[]}(#C4){(core::Object?) → dynamic}) == null) || null is dynamic && #1#0{core::Map<dynamic, dynamic>}.{core::Map::containsKey}(#C4){(core::Object?) → core::bool}) && (let final dynamic #t57 = a = #1#13#isSet ?{dynamic} #1#13{dynamic} : let final dynamic #t58 = #1#13#isSet = true in #1#13 = #1#0{core::Map<dynamic, dynamic>}.{core::Map::[]}(#C4){(core::Object?) → dynamic} in true)) {
+                  if(#1#0 is core::Map<dynamic, dynamic> && (!((#1#13#isSet ?{dynamic} #1#13 : let final dynamic #t56 = #1#13#isSet = true in #1#13 = #1#0{core::Map<dynamic, dynamic>}.{core::Map::[]}(#C4){(core::Object?) → dynamic}) == null) || null is dynamic && #1#0{core::Map<dynamic, dynamic>}.{core::Map::containsKey}(#C4){(core::Object?) → core::bool}) && (let final dynamic #t57 = a = #1#13#isSet ?{dynamic} #1#13 : let final dynamic #t58 = #1#13#isSet = true in #1#13 = #1#0{core::Map<dynamic, dynamic>}.{core::Map::[]}(#C4){(core::Object?) → dynamic} in true)) {
                     {
                       core::print(a);
                       continue #L14;
@@ -412,6 +428,8 @@ static method switchStatementEnumWithGuard(self::E o) → dynamic {
   #L23:
   {
     final synthesized self::E #0#0 = o;
+    final const synthesized self::E #0#1 = #C3;
+    final const synthesized self::E #0#3 = #C6;
     {
       if(#C3 =={core::Object::==}{(core::Object) → core::bool} #0#0 && true) {
         {
@@ -498,6 +516,8 @@ static method switchStatementNonPrimitiveEquals(dynamic o) → dynamic {
   #L35:
   {
     final synthesized dynamic #0#0 = o;
+    final const synthesized self::NonPrimitiveEquals #0#1 = #C13;
+    final const synthesized self::NonPrimitiveEquals #0#3 = #C14;
     {
       if(#C13 =={self::NonPrimitiveEquals::==}{(core::Object) → core::bool} #0#0) {
         {
@@ -519,6 +539,7 @@ static method switchExpression(dynamic o) → dynamic {
   return block {
     dynamic #t59;
     final synthesized dynamic #0#0 = o;
+    final const synthesized core::int #0#3 = #C4;
     synthesized dynamic #0#9;
     synthesized core::bool #0#9#isSet = false;
     #L36:
@@ -533,8 +554,8 @@ static method switchExpression(dynamic o) → dynamic {
       }
       {
         hoisted dynamic a;
-        if(#0#0 is core::Map<dynamic, dynamic> && (!((#0#9#isSet ?{dynamic} #0#9{dynamic} : let final dynamic #t60 = #0#9#isSet = true in #0#9 = #0#0{core::Map<dynamic, dynamic>}.{core::Map::[]}(#C4){(core::Object?) → dynamic}) == null) || null is dynamic && #0#0{core::Map<dynamic, dynamic>}.{core::Map::containsKey}(#C4){(core::Object?) → core::bool})) {
-          a = #0#9#isSet ?{dynamic} #0#9{dynamic} : let final dynamic #t61 = #0#9#isSet = true in #0#9 = #0#0{core::Map<dynamic, dynamic>}.{core::Map::[]}(#C4){(core::Object?) → dynamic};
+        if(#0#0 is core::Map<dynamic, dynamic> && (!((#0#9#isSet ?{dynamic} #0#9 : let final dynamic #t60 = #0#9#isSet = true in #0#9 = #0#0{core::Map<dynamic, dynamic>}.{core::Map::[]}(#C4){(core::Object?) → dynamic}) == null) || null is dynamic && #0#0{core::Map<dynamic, dynamic>}.{core::Map::containsKey}(#C4){(core::Object?) → core::bool})) {
+          a = #0#9#isSet ?{dynamic} #0#9 : let final dynamic #t61 = #0#9#isSet = true in #0#9 = #0#0{core::Map<dynamic, dynamic>}.{core::Map::[]}(#C4){(core::Object?) → dynamic};
           #t59 = a;
           break #L36;
         }
@@ -578,6 +599,8 @@ static method switchExpressionEnumWithGuard(self::E o) → dynamic {
   return block {
     core::int #t63;
     final synthesized self::E #0#0 = o;
+    final const synthesized self::E #0#1 = #C3;
+    final const synthesized self::E #0#3 = #C6;
     #L41:
     {
       {
@@ -605,6 +628,8 @@ static method switchExpressionPrimitiveEquals(dynamic o) → dynamic {
   return block {
     core::int #t64;
     final synthesized dynamic #0#0 = o;
+    final const synthesized self::PrimitiveEquals #0#1 = #C11;
+    final const synthesized self::PrimitiveEquals #0#3 = #C12;
     #L42:
     {
       {
@@ -632,6 +657,8 @@ static method switchExpressionNonPrimitiveEquals(dynamic o) → dynamic {
   return block {
     core::int #t65;
     final synthesized dynamic #0#0 = o;
+    final const synthesized self::NonPrimitiveEquals #0#1 = #C13;
+    final const synthesized self::NonPrimitiveEquals #0#3 = #C14;
     #L43:
     {
       {
@@ -659,6 +686,8 @@ static method switchStatementSymbol(core::Symbol s) → dynamic {
   #L44:
   {
     final synthesized core::Symbol #0#0 = s;
+    final const synthesized core::Symbol #0#1 = #C15;
+    final const synthesized core::Symbol #0#3 = #C16;
     {
       if(#C15 =={core::Symbol::==}{(core::Object) → core::bool} #0#0) {
         {
@@ -686,6 +715,8 @@ static method switchExpressionSymbol(core::Symbol s) → dynamic {
   return block {
     core::int #t66;
     final synthesized core::Symbol #0#0 = s;
+    final const synthesized core::Symbol #0#1 = #C15;
+    final const synthesized core::Symbol #0#3 = #C16;
     #L45:
     {
       {

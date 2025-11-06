@@ -36,8 +36,8 @@ class A {
 final b = new A().a;
 ''',
       [
-        error(CompileTimeErrorCode.TOP_LEVEL_CYCLE, 18, 1),
-        error(CompileTimeErrorCode.TOP_LEVEL_CYCLE, 37, 1),
+        error(CompileTimeErrorCode.topLevelCycle, 18, 1),
+        error(CompileTimeErrorCode.topLevelCycle, 37, 1),
       ],
     );
 

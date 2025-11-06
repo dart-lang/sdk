@@ -246,7 +246,7 @@ abstract interface class SharedInferenceLogWriter {
   /// type schema to another.
   void recordGeneratedConstraint(
     SharedTypeParameter parameter,
-    MergedTypeConstraint<Object, SharedType, Object> constraint,
+    MergedTypeConstraint<Object, SharedType, Object, Object> constraint,
   );
 
   /// Records that type inference has resolved a method name.
@@ -256,6 +256,13 @@ abstract interface class SharedInferenceLogWriter {
     required Object? target,
     required String methodName,
   });
+
+  /// Called when null shorting terminates, and so the type of an expression is
+  /// made nullable.
+  ///
+  /// [expression] is the expression whose type is changed, and [type] is the
+  /// type it is changed to.
+  void recordNullShortedType(Object expression, SharedType type);
 
   /// Records the preliminary types chosen during either a downwards or a
   /// horizontal inference step.
@@ -364,10 +371,9 @@ abstract class SharedInferenceLogWriterImpl
       List<String> nodeSetDescriptions = [
         for (Object? node in state.nodeSet) describe(node),
       ];
-      String nodeSetDescription =
-          nodeSetDescriptions.length == 1
-              ? nodeSetDescriptions[0]
-              : nodeSetDescriptions.join(', ');
+      String nodeSetDescription = nodeSetDescriptions.length == 1
+          ? nodeSetDescriptions[0]
+          : nodeSetDescriptions.join(', ');
       fail(
         '${describeMethod()}: expected containing node to be '
         '${describe(expectedNode)}, actual is $nodeSetDescription',
@@ -751,7 +757,7 @@ abstract class SharedInferenceLogWriterImpl
   @override
   void recordGeneratedConstraint(
     SharedTypeParameter parameter,
-    MergedTypeConstraint<Object, SharedType, Object> constraint,
+    MergedTypeConstraint<Object, SharedType, Object, Object> constraint,
   ) {
     checkCall(
       method: 'recordGeneratedConstraint',
@@ -783,9 +789,21 @@ abstract class SharedInferenceLogWriterImpl
       expectedNode: expression,
       expectedKind: StateKind.expression,
     );
-    String query =
-        target != null ? '${describe(target)}.$methodName' : methodName;
+    String query = target != null
+        ? '${describe(target)}.$methodName'
+        : methodName;
     addEvent(new Event(message: 'LOOKUP $query FINDS $type'));
+  }
+
+  @override
+  void recordNullShortedType(Object expression, SharedType type) {
+    addEvent(
+      new Event(
+        message:
+            'STATIC TYPE OF ${describe(expression)} REFINED BY NULL SHORTING '
+            'TO $type',
+      ),
+    );
   }
 
   @override

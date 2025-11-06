@@ -46,3 +46,4 @@ LibTest/async/Stream/Stream.periodic_all_t02: Skip # Issue 42898
 [ $compiler == fasta || $runtime == dart_precompiled || $runtime == vm ]
 LibTest/html/*: SkipByDesign # dart:html not supported on VM.
 LibTest/js_interop/*: SkipByDesign # dart:js_interop not supported on VM.
+LibTest/js_interop_unsafe/*: SkipByDesign # dart:js_interop not supported on VM.

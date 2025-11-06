@@ -24,7 +24,7 @@ f() {
   assert(makeAssertion);
 }
 ''',
-      [error(CompileTimeErrorCode.NON_BOOL_EXPRESSION, 45, 13)],
+      [error(CompileTimeErrorCode.nonBoolExpression, 45, 13)],
     );
   }
 
@@ -36,7 +36,7 @@ f() {
   assert(makeAssertion);
 }
 ''',
-      [error(CompileTimeErrorCode.NON_BOOL_EXPRESSION, 41, 13)],
+      [error(CompileTimeErrorCode.nonBoolExpression, 41, 13)],
     );
   }
 
@@ -47,7 +47,7 @@ f() {
   assert(0);
 }
 ''',
-      [error(CompileTimeErrorCode.NON_BOOL_EXPRESSION, 15, 1)],
+      [error(CompileTimeErrorCode.nonBoolExpression, 15, 1)],
     );
   }
 }
@@ -62,7 +62,7 @@ void f(dynamic a) {
   assert(a);
 }
 ''',
-      [error(CompileTimeErrorCode.NON_BOOL_EXPRESSION, 29, 1)],
+      [error(CompileTimeErrorCode.nonBoolExpression, 29, 1)],
     );
   }
 }

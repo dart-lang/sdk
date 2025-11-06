@@ -48,11 +48,10 @@ ForStatement
     loopVariable: DeclaredIdentifier
       type: NamedType
         name: int
-        element2: dart:core::@class::int
+        element: dart:core::@class::int
         type: int
       name: v
       declaredFragment: isPublic v@56
-        type: int
         element: isPublic
           type: int
     inKeyword: in
@@ -82,7 +81,7 @@ void f(dynamic values) {
   for (var v in values) {}
 }
 ''',
-      [error(WarningCode.UNUSED_LOCAL_VARIABLE, 36, 1)],
+      [error(WarningCode.unusedLocalVariable, 36, 1)],
     );
 
     var node = findNode.singleForStatement;
@@ -95,7 +94,6 @@ ForStatement
       keyword: var
       name: v
       declaredFragment: isPublic v@36
-        type: null
         element: hasImplicitType isPublic
           type: dynamic
     inKeyword: in
@@ -119,7 +117,7 @@ void f() {
   }
 }
 ''',
-      [error(ParserErrorCode.MISSING_IDENTIFIER, 26, 1)],
+      [error(ParserErrorCode.missingIdentifier, 26, 1)],
     );
 
     var node = findNode.forStatement('for');
@@ -132,7 +130,6 @@ ForStatement
       keyword: var
       name: v
       declaredFragment: isPublic v@22
-        type: null
         element: hasImplicitType isPublic
           type: InvalidType
     inKeyword: in
@@ -164,8 +161,8 @@ abstract class A implements Iterable<int> {
 }
 ''',
       [
-        error(WarningCode.UNUSED_LOCAL_VARIABLE, 70, 1),
-        error(ParserErrorCode.MISSING_ASSIGNABLE_SELECTOR, 75, 5),
+        error(WarningCode.unusedLocalVariable, 70, 1),
+        error(ParserErrorCode.missingAssignableSelector, 75, 5),
       ],
     );
 
@@ -179,7 +176,6 @@ ForStatement
       keyword: var
       name: v
       declaredFragment: isPublic v@70
-        type: null
         element: hasImplicitType isPublic
           type: int
     inKeyword: in
@@ -209,11 +205,10 @@ ForStatement
     loopVariable: DeclaredIdentifier
       type: NamedType
         name: dynamic
-        element2: dynamic
+        element: dynamic
         type: dynamic
       name: v
       declaredFragment: isPublic v@42
-        type: dynamic
         element: isPublic
           type: dynamic
     inKeyword: in
@@ -255,7 +250,6 @@ ForStatement
       keyword: var
       name: v
       declaredFragment: isPublic v@56
-        type: null
         element: hasImplicitType isPublic
           type: Object?
     inKeyword: in
@@ -296,7 +290,6 @@ ForStatement
       keyword: var
       name: v
       declaredFragment: isPublic v@42
-        type: null
         element: hasImplicitType isPublic
           type: int
     inKeyword: in
@@ -336,7 +329,6 @@ ForStatement
       keyword: var
       name: v
       declaredFragment: isPublic v@38
-        type: null
         element: hasImplicitType isPublic
           type: int
     inKeyword: in
@@ -376,7 +368,6 @@ ForStatement
       keyword: var
       name: v
       declaredFragment: isPublic v@52
-        type: null
         element: hasImplicitType isPublic
           type: int
     inKeyword: in
@@ -418,7 +409,6 @@ ForStatement
       keyword: var
       name: x
       declaredFragment: isPublic x@39
-        type: null
         element: hasImplicitType isPublic
           type: int
     inKeyword: in
@@ -512,7 +502,7 @@ abstract class A implements Iterable<int> {
   }
 }
 ''',
-      [error(ParserErrorCode.MISSING_ASSIGNABLE_SELECTOR, 76, 5)],
+      [error(ParserErrorCode.missingAssignableSelector, 76, 5)],
     );
     var node = findNode.singleForStatement;
     assertResolvedNodeText(node, r'''
@@ -559,7 +549,6 @@ ForStatement
       pattern: DeclaredVariablePattern
         name: a
         declaredFragment: isPublic a@24
-          type: null
           element: hasImplicitType isPublic
             type: dynamic
         matchedValueType: dynamic
@@ -604,7 +593,6 @@ ForStatement
       pattern: DeclaredVariablePattern
         name: a
         declaredFragment: isPublic a@34
-          type: null
           element: hasImplicitType isPublic
             type: int
         matchedValueType: int
@@ -638,7 +626,7 @@ void f(Object x) {
   }
 }
 ''',
-      [error(CompileTimeErrorCode.FOR_IN_OF_INVALID_TYPE, 37, 1)],
+      [error(CompileTimeErrorCode.forInOfInvalidType, 37, 1)],
     );
     var node = findNode.forStatement('for');
     assertResolvedNodeText(node, r'''
@@ -652,7 +640,6 @@ ForStatement
       pattern: DeclaredVariablePattern
         name: a
         declaredFragment: isPublic a@31
-          type: null
           element: hasImplicitType isPublic
             type: InvalidType
         matchedValueType: InvalidType
@@ -687,8 +674,8 @@ abstract class A implements Iterable<int> {
 }
 ''',
       [
-        error(WarningCode.UNUSED_LOCAL_VARIABLE, 71, 1),
-        error(ParserErrorCode.MISSING_ASSIGNABLE_SELECTOR, 77, 5),
+        error(WarningCode.unusedLocalVariable, 71, 1),
+        error(ParserErrorCode.missingAssignableSelector, 77, 5),
       ],
     );
     var node = findNode.singleForStatement;
@@ -703,7 +690,6 @@ ForStatement
       pattern: DeclaredVariablePattern
         name: a
         declaredFragment: isPublic a@71
-          type: null
           element: hasImplicitType isPublic
             type: int
         matchedValueType: int
@@ -729,7 +715,7 @@ void f() {
 
 T g<T>() => throw 0;
 ''',
-      [error(WarningCode.UNUSED_LOCAL_VARIABLE, 27, 1)],
+      [error(WarningCode.unusedLocalVariable, 27, 1)],
     );
     var node = findNode.forStatement('for');
     assertResolvedNodeText(node, r'''
@@ -743,11 +729,10 @@ ForStatement
       pattern: DeclaredVariablePattern
         type: NamedType
           name: int
-          element2: dart:core::@class::int
+          element: dart:core::@class::int
           type: int
         name: a
         declaredFragment: isPublic a@27
-          type: int
           element: isPublic
             type: int
         matchedValueType: int
@@ -782,7 +767,7 @@ void f() {
 
 T g<T>() => throw 0;
 ''',
-      [error(WarningCode.UNUSED_LOCAL_VARIABLE, 23, 1)],
+      [error(WarningCode.unusedLocalVariable, 23, 1)],
     );
     var node = findNode.forStatement('for');
     assertResolvedNodeText(node, r'''
@@ -796,7 +781,6 @@ ForStatement
       pattern: DeclaredVariablePattern
         name: a
         declaredFragment: isPublic a@23
-          type: null
           element: hasImplicitType isPublic
             type: Object?
         matchedValueType: Object?
@@ -842,7 +826,6 @@ ForStatement
       pattern: DeclaredVariablePattern
         name: a
         declaredFragment: isFinal isPublic a@36
-          type: null
           element: hasImplicitType isFinal isPublic
             type: int
         matchedValueType: int
@@ -887,11 +870,10 @@ ForStatement
       pattern: DeclaredVariablePattern
         type: NamedType
           name: num
-          element2: dart:core::@class::num
+          element: dart:core::@class::num
           type: num
         name: a
         declaredFragment: isPublic a@38
-          type: num
           element: isPublic
             type: num
         matchedValueType: int
@@ -941,7 +923,6 @@ ForStatement
       pattern: DeclaredVariablePattern
         name: a
         declaredFragment: isPublic a@36
-          type: null
           element: hasImplicitType isPublic
             type: dynamic
         matchedValueType: dynamic
@@ -975,7 +956,7 @@ void f(Object x) async {
   }
 }
 ''',
-      [error(CompileTimeErrorCode.FOR_IN_OF_INVALID_TYPE, 49, 1)],
+      [error(CompileTimeErrorCode.forInOfInvalidType, 49, 1)],
     );
     var node = findNode.singleForStatement;
     assertResolvedNodeText(node, r'''
@@ -990,7 +971,6 @@ ForStatement
       pattern: DeclaredVariablePattern
         name: a
         declaredFragment: isPublic a@43
-          type: null
           element: hasImplicitType isPublic
             type: InvalidType
         matchedValueType: InvalidType
@@ -1036,7 +1016,6 @@ ForStatement
       pattern: DeclaredVariablePattern
         name: a
         declaredFragment: isPublic a@48
-          type: null
           element: hasImplicitType isPublic
             type: int
         matchedValueType: int
@@ -1084,11 +1063,10 @@ ForStatement
       pattern: DeclaredVariablePattern
         type: NamedType
           name: int
-          element2: dart:core::@class::int
+          element: dart:core::@class::int
           type: int
         name: a
         declaredFragment: isPublic a@39
-          type: int
           element: isPublic
             type: int
         matchedValueType: int
@@ -1144,7 +1122,6 @@ ForStatement
       pattern: DeclaredVariablePattern
         name: a
         declaredFragment: isPublic a@35
-          type: null
           element: hasImplicitType isPublic
             type: Object?
         matchedValueType: Object?
@@ -1198,7 +1175,6 @@ ForStatement
       pattern: DeclaredVariablePattern
         name: a
         declaredFragment: isFinal isPublic a@50
-          type: null
           element: hasImplicitType isFinal isPublic
             type: int
         matchedValueType: int
@@ -1244,11 +1220,10 @@ ForStatement
       pattern: DeclaredVariablePattern
         type: NamedType
           name: num
-          element2: dart:core::@class::num
+          element: dart:core::@class::num
           type: num
         name: a
         declaredFragment: isPublic a@52
-          type: num
           element: isPublic
             type: num
         matchedValueType: int
@@ -1331,7 +1306,7 @@ ForStatement
         leftParenthesis: (
         pattern: AssignedVariablePattern
           name: a
-          element2: a@17
+          element: a@17
           matchedValueType: int
         rightParenthesis: )
         matchedValueType: int
@@ -1366,7 +1341,7 @@ class A {
   }
 }
 ''',
-      [error(ParserErrorCode.MISSING_ASSIGNABLE_SELECTOR, 35, 5)],
+      [error(ParserErrorCode.missingAssignableSelector, 35, 5)],
     );
 
     var node = findNode.singleForStatement;
@@ -1417,20 +1392,18 @@ ForStatement
             pattern: DeclaredVariablePattern
               name: a
               declaredFragment: isPublic a@36
-                type: null
                 element: hasImplicitType isPublic
                   type: int
               matchedValueType: int
-            element2: <null>
+            element: <null>
           PatternField
             pattern: DeclaredVariablePattern
               name: b
               declaredFragment: isPublic b@39
-                type: null
                 element: hasImplicitType isPublic
                   type: bool
               matchedValueType: bool
-            element2: <null>
+            element: <null>
         rightParenthesis: )
         matchedValueType: (int, bool)
       equals: =
@@ -1452,9 +1425,9 @@ ForStatement
           element: a@36
           staticType: null
         operator: --
-        readElement2: a@36
+        readElement: a@36
         readType: int
-        writeElement2: a@36
+        writeElement: a@36
         writeType: int
         element: dart:core::@class::num::@method::-
         staticType: int

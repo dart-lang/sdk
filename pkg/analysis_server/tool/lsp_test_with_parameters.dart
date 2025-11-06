@@ -229,8 +229,9 @@ void listenToStdout(List<int> event) {
       List<String> headers = headerRaw.split('\r\n');
       for (String header in headers) {
         if (header.startsWith('Content-Length:')) {
-          String contentLength =
-              header.substring('Content-Length:'.length).trim();
+          String contentLength = header
+              .substring('Content-Length:'.length)
+              .trim();
           headerContentLength = int.parse(contentLength);
           break;
         }

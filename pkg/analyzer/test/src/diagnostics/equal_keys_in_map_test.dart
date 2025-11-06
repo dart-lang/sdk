@@ -22,7 +22,7 @@ const a = 1;
 const b = 1;
 var s = {a: 2, b: 3};
 ''',
-      [error(WarningCode.EQUAL_KEYS_IN_MAP, 41, 1)],
+      [error(WarningCode.equalKeysInMap, 41, 1)],
     );
   }
 
@@ -32,7 +32,7 @@ var s = {a: 2, b: 3};
 const one = 1;
 var s = {1: 2, one: 3};
 ''',
-      [error(WarningCode.EQUAL_KEYS_IN_MAP, 30, 3)],
+      [error(WarningCode.equalKeysInMap, 30, 3)],
     );
   }
 
@@ -41,7 +41,7 @@ var s = {1: 2, one: 3};
       '''
 var s = {1: 2, 1: 3};
 ''',
-      [error(WarningCode.EQUAL_KEYS_IN_MAP, 15, 1)],
+      [error(WarningCode.equalKeysInMap, 15, 1)],
     );
   }
 }

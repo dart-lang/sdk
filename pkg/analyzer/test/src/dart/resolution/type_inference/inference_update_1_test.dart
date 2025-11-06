@@ -88,7 +88,7 @@ example(List<int> list) {
 ''';
     if (_isEnabled) {
       await assertErrorsInCode(code, [
-        error(WarningCode.UNUSED_LOCAL_VARIABLE, 32, 1),
+        error(WarningCode.unusedLocalVariable, 32, 1),
       ]);
       assertType(findElement2.localVar('a').type, 'int');
       assertType(findElement2.parameter('x').type, 'int');
@@ -96,9 +96,9 @@ example(List<int> list) {
       expect(findNode.binary('x + y').element!.enclosingElement!.name, 'num');
     } else {
       await assertErrorsInCode(code, [
-        error(WarningCode.UNUSED_LOCAL_VARIABLE, 32, 1),
+        error(WarningCode.unusedLocalVariable, 32, 1),
         error(
-          CompileTimeErrorCode.UNCHECKED_OPERATOR_INVOCATION_OF_NULLABLE_VALUE,
+          CompileTimeErrorCode.uncheckedOperatorInvocationOfNullableValue,
           61,
           1,
         ),
@@ -118,13 +118,9 @@ test() {
 }
 ''',
       [
-        error(WarningCode.UNUSED_LOCAL_VARIABLE, 60, 1),
+        error(WarningCode.unusedLocalVariable, 60, 1),
         if (!_isEnabled)
-          error(
-            CompileTimeErrorCode.UNCHECKED_INVOCATION_OF_NULLABLE_VALUE,
-            83,
-            1,
-          ),
+          error(CompileTimeErrorCode.uncheckedInvocationOfNullableValue, 83, 1),
       ],
     );
     assertType(
@@ -139,9 +135,9 @@ test() {
       findNode.methodInvocation('f(').staticInvokeType,
       _isEnabled
           ? 'List<int> Function(int Function(), '
-              'List<int> Function(int Function()))'
+                'List<int> Function(int Function()))'
           : 'List<InvalidType> Function(int Function(), '
-              'List<InvalidType> Function(int Function()))',
+                'List<InvalidType> Function(int Function()))',
     );
     assertType(
       findNode.simpleParameter('h)').declaredFragment!.element.type,
@@ -164,11 +160,10 @@ test(List<int> list) {
 }
 ''',
       [
-        error(WarningCode.UNUSED_LOCAL_VARIABLE, 29, 1),
+        error(WarningCode.unusedLocalVariable, 29, 1),
         if (!_isEnabled)
           error(
-            CompileTimeErrorCode
-                .UNCHECKED_OPERATOR_INVOCATION_OF_NULLABLE_VALUE,
+            CompileTimeErrorCode.uncheckedOperatorInvocationOfNullableValue,
             62,
             1,
           ),
@@ -197,7 +192,7 @@ test() {
   var a = f((x) => [x], () => 0);
 }
 ''',
-      [error(WarningCode.UNUSED_LOCAL_VARIABLE, 71, 1)],
+      [error(WarningCode.unusedLocalVariable, 71, 1)],
     );
     assertType(findNode.methodInvocation('f(').typeArgumentTypes![0], 'int');
     assertType(
@@ -228,7 +223,7 @@ test() {
   var a = f(() => 0, (x) => [x]);
 }
 ''',
-      [error(WarningCode.UNUSED_LOCAL_VARIABLE, 71, 1)],
+      [error(WarningCode.unusedLocalVariable, 71, 1)],
     );
     assertType(findNode.methodInvocation('f(').typeArgumentTypes![0], 'int');
     assertType(
@@ -259,7 +254,7 @@ test() {
   var a = f(0, (x) => [x]);
 }
 ''',
-      [error(WarningCode.UNUSED_LOCAL_VARIABLE, 60, 1)],
+      [error(WarningCode.unusedLocalVariable, 60, 1)],
     );
     assertType(findNode.methodInvocation('f(').typeArgumentTypes![0], 'int');
     assertType(
@@ -405,7 +400,7 @@ test(List<int> list) {
   var a = list.fold(null, (int? x, y) => (x ?? 0) + y);
 }
 ''',
-      [error(WarningCode.UNUSED_LOCAL_VARIABLE, 29, 1)],
+      [error(WarningCode.unusedLocalVariable, 29, 1)],
     );
     assertType(findElement2.localVar('a').type, 'int?');
     assertType(findElement2.parameter('x').type, 'int?');
@@ -423,7 +418,7 @@ test() {
   var a = f(null, ({int? x, required y}) => (x ?? 0) + y);
 }
 ''',
-      [error(WarningCode.UNUSED_LOCAL_VARIABLE, 86, 1)],
+      [error(WarningCode.unusedLocalVariable, 86, 1)],
     );
     assertType(findElement2.localVar('a').type, 'int?');
     assertType(findElement2.parameter('x').type, 'int?');

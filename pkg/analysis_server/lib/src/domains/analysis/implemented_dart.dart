@@ -18,23 +18,23 @@ class ImplementedComputer {
   ImplementedComputer(this.searchEngine, this.unitElement);
 
   Future<void> compute() async {
-    for (var fragment in unitElement.classes2) {
+    for (var fragment in unitElement.classes) {
       await _computeForInterfaceElement(fragment.element);
     }
-    for (var fragment in unitElement.enums2) {
+    for (var fragment in unitElement.enums) {
       await _computeForInterfaceElement(fragment.element);
     }
-    for (var fragment in unitElement.extensionTypes2) {
+    for (var fragment in unitElement.extensionTypes) {
       await _computeForInterfaceElement(fragment.element);
     }
-    for (var fragment in unitElement.mixins2) {
+    for (var fragment in unitElement.mixins) {
       await _computeForInterfaceElement(fragment.element);
     }
   }
 
   void _addImplementedClass(InterfaceElement element) {
     for (var fragment in element.fragments) {
-      var offset = fragment.nameOffset2;
+      var offset = fragment.nameOffset;
       var name = fragment.name;
       if (offset != null && name != null) {
         classes.add(protocol.ImplementedClass(offset, name.length));
@@ -44,7 +44,7 @@ class ImplementedComputer {
 
   void _addImplementedMember(Element element) {
     for (var fragment in element.fragments) {
-      var offset = fragment.nameOffset2;
+      var offset = fragment.nameOffset;
       var name = fragment.name;
       if (offset != null && name != null) {
         members.add(protocol.ImplementedMember(offset, name.length));

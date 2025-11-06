@@ -21,23 +21,29 @@ class SubscriptionManagerTest {
 
   void test_hasSubscriptionForFile_differentSubscription() {
     manager.setSubscriptions({
-      AnalysisService.NAVIGATION: [barPath]
+      AnalysisService.NAVIGATION: [barPath],
     });
-    expect(manager.hasSubscriptionForFile(fooPath, AnalysisService.HIGHLIGHTS),
-        isFalse);
+    expect(
+      manager.hasSubscriptionForFile(fooPath, AnalysisService.HIGHLIGHTS),
+      isFalse,
+    );
   }
 
   void test_hasSubscriptionForFile_hasSubscription() {
     manager.setSubscriptions({
-      AnalysisService.HIGHLIGHTS: [fooPath]
+      AnalysisService.HIGHLIGHTS: [fooPath],
     });
-    expect(manager.hasSubscriptionForFile(fooPath, AnalysisService.HIGHLIGHTS),
-        isTrue);
+    expect(
+      manager.hasSubscriptionForFile(fooPath, AnalysisService.HIGHLIGHTS),
+      isTrue,
+    );
   }
 
   void test_hasSubscriptionForFile_noSubscription() {
-    expect(manager.hasSubscriptionForFile(fooPath, AnalysisService.HIGHLIGHTS),
-        isFalse);
+    expect(
+      manager.hasSubscriptionForFile(fooPath, AnalysisService.HIGHLIGHTS),
+      isFalse,
+    );
   }
 
   void test_servicesForFile() {
@@ -50,42 +56,52 @@ class SubscriptionManagerTest {
     //
     var newSubscriptions = manager.setSubscriptions({
       AnalysisService.HIGHLIGHTS: [fooPath, barPath],
-      AnalysisService.NAVIGATION: [fooPath]
+      AnalysisService.NAVIGATION: [fooPath],
     });
 
     expect(
-        manager.servicesForFile(fooPath),
-        unorderedEquals(
-            [AnalysisService.HIGHLIGHTS, AnalysisService.NAVIGATION]));
-    expect(manager.servicesForFile(barPath),
-        unorderedEquals([AnalysisService.HIGHLIGHTS]));
+      manager.servicesForFile(fooPath),
+      unorderedEquals([AnalysisService.HIGHLIGHTS, AnalysisService.NAVIGATION]),
+    );
+    expect(
+      manager.servicesForFile(barPath),
+      unorderedEquals([AnalysisService.HIGHLIGHTS]),
+    );
     expect(manager.servicesForFile(bazPath), hasLength(0));
 
     expect(
-        newSubscriptions[fooPath],
-        unorderedEquals(
-            [AnalysisService.HIGHLIGHTS, AnalysisService.NAVIGATION]));
-    expect(newSubscriptions[barPath],
-        unorderedEquals([AnalysisService.HIGHLIGHTS]));
+      newSubscriptions[fooPath],
+      unorderedEquals([AnalysisService.HIGHLIGHTS, AnalysisService.NAVIGATION]),
+    );
+    expect(
+      newSubscriptions[barPath],
+      unorderedEquals([AnalysisService.HIGHLIGHTS]),
+    );
     //
     // Update the subscriptions.
     //
     newSubscriptions = manager.setSubscriptions({
       AnalysisService.HIGHLIGHTS: [bazPath, barPath],
-      AnalysisService.NAVIGATION: [barPath]
+      AnalysisService.NAVIGATION: [barPath],
     });
 
     expect(manager.servicesForFile(fooPath), hasLength(0));
     expect(
-        manager.servicesForFile(barPath),
-        unorderedEquals(
-            [AnalysisService.HIGHLIGHTS, AnalysisService.NAVIGATION]));
-    expect(manager.servicesForFile(bazPath),
-        unorderedEquals([AnalysisService.HIGHLIGHTS]));
+      manager.servicesForFile(barPath),
+      unorderedEquals([AnalysisService.HIGHLIGHTS, AnalysisService.NAVIGATION]),
+    );
+    expect(
+      manager.servicesForFile(bazPath),
+      unorderedEquals([AnalysisService.HIGHLIGHTS]),
+    );
 
-    expect(newSubscriptions[barPath],
-        unorderedEquals([AnalysisService.NAVIGATION]));
-    expect(newSubscriptions[bazPath],
-        unorderedEquals([AnalysisService.HIGHLIGHTS]));
+    expect(
+      newSubscriptions[barPath],
+      unorderedEquals([AnalysisService.NAVIGATION]),
+    );
+    expect(
+      newSubscriptions[bazPath],
+      unorderedEquals([AnalysisService.HIGHLIGHTS]),
+    );
   }
 }

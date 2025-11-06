@@ -15,14 +15,20 @@ import 'package:kernel/ast.dart';
 
 Future<void> main(List<String> args) async {
   Directory dataDir = new Directory.fromUri(
-      Platform.script.resolve('../../../_fe_analyzer_shared/test/'
-          'inference/inferred_variable_types/data'));
-  await runTests<DartType>(dataDir,
-      args: args,
-      createUriForFileName: createUriForFileName,
-      onFailure: onFailure,
-      runTest: runTestFor(
-          const InferredVariableTypesDataComputer(), [defaultCfeConfig]));
+    Platform.script.resolve(
+      '../../../_fe_analyzer_shared/test/'
+      'inference/inferred_variable_types/data',
+    ),
+  );
+  await runTests<DartType>(
+    dataDir,
+    args: args,
+    createUriForFileName: createUriForFileName,
+    onFailure: onFailure,
+    runTest: runTestFor(const InferredVariableTypesDataComputer(), [
+      defaultCfeConfig,
+    ]),
+  );
 }
 
 class InferredVariableTypesDataComputer extends CfeDataComputer<DartType> {
@@ -39,25 +45,33 @@ class InferredVariableTypesDataComputer extends CfeDataComputer<DartType> {
   ///
   /// Fills [actualMap] with the data.
   @override
-  void computeMemberData(CfeTestResultData testResultData, Member member,
-      Map<Id, ActualData<DartType>> actualMap,
-      {bool? verbose}) {
+  void computeMemberData(
+    CfeTestResultData testResultData,
+    Member member,
+    Map<Id, ActualData<DartType>> actualMap, {
+    bool? verbose,
+  }) {
     SourceMemberBuilder memberBuilder =
         lookupMemberBuilder(testResultData.compilerResult, member)
             as SourceMemberBuilder;
-    member.accept(new InferredTypeArgumentDataExtractor(
+    member.accept(
+      new InferredTypeArgumentDataExtractor(
         testResultData.compilerResult,
         memberBuilder.dataForTesting!.inferenceData.typeInferenceResult,
-        actualMap));
+        actualMap,
+      ),
+    );
   }
 }
 
 class InferredTypeArgumentDataExtractor extends CfeDataExtractor<DartType> {
   final TypeInferenceResultForTesting typeInferenceResult;
 
-  InferredTypeArgumentDataExtractor(InternalCompilerResult compilerResult,
-      this.typeInferenceResult, Map<Id, ActualData<DartType>> actualMap)
-      : super(compilerResult, actualMap);
+  InferredTypeArgumentDataExtractor(
+    InternalCompilerResult compilerResult,
+    this.typeInferenceResult,
+    Map<Id, ActualData<DartType>> actualMap,
+  ) : super(compilerResult, actualMap);
 
   @override
   DartType? computeNodeValue(Id id, TreeNode node) {
@@ -75,7 +89,9 @@ class _InferredVariableTypesDataInterpreter
   @override
   String getText(DartType actualData, [String? indentation]) {
     return typeToText(
-        actualData, TypeRepresentation.analyzerNonNullableByDefault);
+      actualData,
+      TypeRepresentation.analyzerNonNullableByDefault,
+    );
   }
 
   @override

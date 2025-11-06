@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/analysis_rule/rule_context.dart';
+import 'package:analyzer/analysis_rule/rule_visitor_registry.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
@@ -24,10 +25,13 @@ class UnnecessaryNullableForFinalVariableDeclarations extends LintRule {
 
   @override
   DiagnosticCode get diagnosticCode =>
-      LinterLintCode.unnecessary_nullable_for_final_variable_declarations;
+      LinterLintCode.unnecessaryNullableForFinalVariableDeclarations;
 
   @override
-  void registerNodeProcessors(NodeLintRegistry registry, RuleContext context) {
+  void registerNodeProcessors(
+    RuleVisitorRegistry registry,
+    RuleContext context,
+  ) {
     var visitor = _Visitor(this, context);
     registry.addFieldDeclaration(this, visitor);
     registry.addPatternVariableDeclaration(this, visitor);
@@ -44,7 +48,7 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   void check(AstNode node) {
     if (node is! DeclaredVariablePattern) return;
-    var type = node.declaredElement?.type;
+    var type = node.declaredFragment?.element.type;
     if (type == null) return;
     if (type is DynamicType) return;
     var valueType = node.matchedValueType;
@@ -96,8 +100,7 @@ class _Visitor extends SimpleAstVisitor<void> {
     var initializerType = variable.initializer?.staticType;
     if (initializerType == null) return;
 
-    var declaredElement =
-        variable.declaredElement ?? variable.declaredFragment?.element;
+    var declaredElement = variable.declaredFragment?.element;
     if (declaredElement == null || declaredElement.type is DynamicType) {
       return;
     }

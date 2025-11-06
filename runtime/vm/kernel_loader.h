@@ -186,20 +186,16 @@ class KernelLoader : public ValueObject {
 
   // Returns the function which will evaluate the expression, or a failure
   // object if there was an error.
-  ObjectPtr LoadExpressionEvaluationFunction(const String& library_url,
-                                             const String& klass);
+  ObjectPtr LoadExpressionEvaluationFunction(const Class& real_class);
 
   // Finds all libraries that have been modified in this incremental
   // version of the kernel program file.
   //
-  // When [force_reload] is false and if [p_num_classes], [p_num_procedures] are
-  // not nullptr, then they are populated with number of classes and top-level
-  // procedures in [program].
+  // Optionally populate [p_num_libraries], [p_num_classes], [p_num_procedures]
+  // with number of libraries, classes and top-level procedures in [program].
   static void FindModifiedLibraries(Program* program,
-                                    IsolateGroup* isolate_group,
                                     BitVector* modified_libs,
-                                    bool force_reload,
-                                    bool* is_empty_program,
+                                    intptr_t* p_num_libraries,
                                     intptr_t* p_num_classes,
                                     intptr_t* p_num_procedures);
 
@@ -236,8 +232,10 @@ class KernelLoader : public ValueObject {
   using FfiNativePragma =
       BitField<uint32_t, bool, DeeplyImmutablePragma::kNextBit>;
   using SharedPragma = BitField<uint32_t, bool, FfiNativePragma::kNextBit>;
-  using DynModuleExtendablePragma =
+  using NoSanitizeThreadPragma =
       BitField<uint32_t, bool, SharedPragma::kNextBit>;
+  using DynModuleExtendablePragma =
+      BitField<uint32_t, bool, NoSanitizeThreadPragma::kNextBit>;
   using DynModuleImplicitlyExtendablePragma =
       BitField<uint32_t, bool, DynModuleExtendablePragma::kNextBit>;
   using DynModuleCanBeOverriddenPragma =
@@ -293,7 +291,7 @@ class KernelLoader : public ValueObject {
   uint8_t CharacterAt(StringIndex string_index, intptr_t index);
 
   void walk_incremental_kernel(BitVector* modified_libs,
-                               bool* is_empty_program,
+                               intptr_t* p_num_libraries,
                                intptr_t* p_num_classes,
                                intptr_t* p_num_procedures);
 

@@ -22,10 +22,10 @@ class AddExplicitCast extends ResolvedCorrectionProducer {
       CorrectionApplicability.acrossSingleFile;
 
   @override
-  FixKind get fixKind => DartFixKind.ADD_EXPLICIT_CAST;
+  FixKind get fixKind => DartFixKind.addExplicitCast;
 
   @override
-  FixKind get multiFixKind => DartFixKind.ADD_EXPLICIT_CAST_MULTI;
+  FixKind get multiFixKind => DartFixKind.addExplicitCastMulti;
 
   @override
   Future<void> compute(ChangeBuilder builder) async {
@@ -149,10 +149,8 @@ class AddExplicitCast extends ResolvedCorrectionProducer {
     if (parent is AssignmentExpression && target == parent.rightHandSide) {
       toType = parent.writeType!;
     } else if (parent is VariableDeclaration && target == parent.initializer) {
-      if (parent.declaredElement case var declaredElement?) {
+      if (parent.declaredFragment?.element case var declaredElement?) {
         toType = declaredElement.type;
-      } else if (parent.declaredFragment case var declaredFragment?) {
-        toType = declaredFragment.element.type;
       } else {
         return null;
       }

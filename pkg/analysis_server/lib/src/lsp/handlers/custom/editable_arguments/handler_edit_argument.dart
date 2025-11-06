@@ -116,8 +116,9 @@ class EditArgumentHandler extends SharedMessageHandler<EditArgumentParams, Null>
       }
 
       var argument = parameterArguments[parameter];
-      var valueExpression =
-          argument is NamedExpression ? argument.expression : argument;
+      var valueExpression = argument is NamedExpression
+          ? argument.expression
+          : argument;
 
       // Determine whether a value for this parameter is editable.
       var notEditableReason = getNotEditableReason(
@@ -164,6 +165,28 @@ class EditArgumentHandler extends SharedMessageHandler<EditArgumentParams, Null>
     });
   }
 
+  /// Computes the appropriate enum value for the String [requestValue].
+  ///
+  /// This method tries to use dot-shorthand syntax for the enum value when the
+  /// [currentArgument] is a [DotShorthandPropertyAccess], a [SimpleIdentifier],
+  /// or `null`.
+  String _computeEnumValue({
+    required String? requestValue,
+    required FieldElement enumConstant,
+    required Expression? currentArgument,
+  }) {
+    var preferDotShorthand =
+        currentArgument is DotShorthandPropertyAccess ||
+        currentArgument is SimpleIdentifier ||
+        currentArgument == null;
+
+    var enumValue = preferDotShorthand
+        ? getDotShorthandEnumConstantName(enumConstant) ?? requestValue
+        : requestValue;
+
+    return enumValue.toString();
+  }
+
   /// Computes the string of Dart code that should be used as the new value
   /// for this argument.
   ///
@@ -188,7 +211,7 @@ class EditArgumentHandler extends SharedMessageHandler<EditArgumentParams, Null>
       } else {
         return error(
           ServerErrorCodes.EditArgumentInvalidValue,
-          "The value for the parameter '${edit.name}' cannot be null",
+          "The value for the parameter '${edit.name}' can't be null",
         );
       }
     }
@@ -211,14 +234,20 @@ class EditArgumentHandler extends SharedMessageHandler<EditArgumentParams, Null>
       );
     } else if (parameter.type case InterfaceType(
       :EnumElement element,
-    ) when value is String?) {
-      var allowedValues = getQualifiedEnumConstantNames(element);
-      if (allowedValues.contains(value)) {
-        return success(value.toString());
+    ) when value is String) {
+      var enumConstant = getEnumConstantMatching(element, matching: value);
+      if (enumConstant != null) {
+        return success(
+          _computeEnumValue(
+            requestValue: value,
+            enumConstant: enumConstant,
+            currentArgument: argument,
+          ),
+        );
       } else {
         return error(
           ServerErrorCodes.EditArgumentInvalidValue,
-          "The value for the parameter '${edit.name}' should be one of ${allowedValues.map((v) => "'$v'").join(', ')} but was '$value'",
+          "The value for the parameter '${edit.name}' should be one of ${getQualifiedEnumConstantNames(element).map((v) => "'$v'").join(', ')} but was '$value'",
         );
       }
     } else {
@@ -265,11 +294,10 @@ class EditArgumentHandler extends SharedMessageHandler<EditArgumentParams, Null>
     // It is a bug if we produced edits in some file other than the one we
     // expect.
     var fileEdits = changeBuilder.sourceChange.edits;
-    var otherFilesEdited =
-        fileEdits
-            .map((edit) => edit.file)
-            .where((file) => file != result.path)
-            .toSet();
+    var otherFilesEdited = fileEdits
+        .map((edit) => edit.file)
+        .where((file) => file != result.path)
+        .toSet();
     if (otherFilesEdited.isNotEmpty) {
       var otherNames = otherFilesEdited.join(', ');
       throw 'Argument edit for ${result.path} unexpectedly produced edits for $otherNames';
@@ -376,8 +404,9 @@ class EditArgumentHandler extends SharedMessageHandler<EditArgumentParams, Null>
     // If this parameter is positional, we need to first ensure arguments for
     // any earlier positional parameters are present.
     if (parameter.isPositional) {
-      var existingPositionalArguments =
-          argumentList.arguments.where((a) => a is! NamedExpression).length;
+      var existingPositionalArguments = argumentList.arguments
+          .where((a) => a is! NamedExpression)
+          .length;
       var unspecifiedPositionals = parameters
           .where((p) => p.isPositional)
           .skip(existingPositionalArguments)
@@ -393,8 +422,9 @@ class EditArgumentHandler extends SharedMessageHandler<EditArgumentParams, Null>
     }
 
     var parameterName = parameter.name;
-    var argumentNamePrefix =
-        parameter.isNamed && parameterName != null ? '$parameterName: ' : '';
+    var argumentNamePrefix = parameter.isNamed && parameterName != null
+        ? '$parameterName: '
+        : '';
     var argumentCode = '$argumentNamePrefix$newValueCode';
 
     // Usually we insert at the end (after the last argument), but if the last
@@ -418,10 +448,9 @@ class EditArgumentHandler extends SharedMessageHandler<EditArgumentParams, Null>
         lineInfo.getLocation(argumentList.rightParenthesis.offset).lineNumber;
 
     // If we are multiline, indent one level more than the invocation.
-    var indent =
-        isMultiline
-            ? '${utils.getLinePrefix(argumentList.leftParenthesis.offset)}  '
-            : '';
+    var indent = isMultiline
+        ? '${utils.getLinePrefix(argumentList.leftParenthesis.offset)}  '
+        : '';
 
     // The prefix we need depends on whether there is an argument before us
     // and whether we are multiline.

@@ -36,7 +36,7 @@ platforms:
   ios:
   web: "chrome" # <-- this is not allowed
 ''',
-      [PubspecWarningCode.PLATFORM_VALUE_DISALLOWED],
+      [PubspecWarningCode.platformValueDisallowed],
     );
   }
 
@@ -50,7 +50,7 @@ platforms:
   ios:
   web: []  # <-- this is not allowed
 ''',
-      [PubspecWarningCode.PLATFORM_VALUE_DISALLOWED],
+      [PubspecWarningCode.platformValueDisallowed],
     );
   }
 
@@ -64,7 +64,7 @@ platforms:
   ios:
   web: {}  # <-- this is not allowed
 ''',
-      [PubspecWarningCode.PLATFORM_VALUE_DISALLOWED],
+      [PubspecWarningCode.platformValueDisallowed],
     );
   }
 
@@ -78,7 +78,7 @@ platforms:
   ios:
   web: False  # <-- this is not allowed
 ''',
-      [PubspecWarningCode.PLATFORM_VALUE_DISALLOWED],
+      [PubspecWarningCode.platformValueDisallowed],
     );
   }
 
@@ -92,7 +92,7 @@ platforms:
   ios:
   web: 42  # <-- this is not allowed
 ''',
-      [PubspecWarningCode.PLATFORM_VALUE_DISALLOWED],
+      [PubspecWarningCode.platformValueDisallowed],
     );
   }
 
@@ -106,7 +106,7 @@ platforms:
   ios:
   web: [1,2,3]  # <-- this is not allowed
 ''',
-      [PubspecWarningCode.PLATFORM_VALUE_DISALLOWED],
+      [PubspecWarningCode.platformValueDisallowed],
     );
   }
 
@@ -122,7 +122,7 @@ platforms:
    - foo
    - bar  # <-- this is not allowed
 ''',
-      [PubspecWarningCode.PLATFORM_VALUE_DISALLOWED],
+      [PubspecWarningCode.platformValueDisallowed],
     );
   }
 
@@ -137,7 +137,7 @@ platforms:
   web:
     foo: bar  # <-- this is not allowed
 ''',
-      [PubspecWarningCode.PLATFORM_VALUE_DISALLOWED],
+      [PubspecWarningCode.platformValueDisallowed],
     );
   }
 
@@ -151,7 +151,7 @@ platforms:
   ios:
   web: True  # <-- this is not allowed
 ''',
-      [PubspecWarningCode.PLATFORM_VALUE_DISALLOWED],
+      [PubspecWarningCode.platformValueDisallowed],
     );
   }
 }

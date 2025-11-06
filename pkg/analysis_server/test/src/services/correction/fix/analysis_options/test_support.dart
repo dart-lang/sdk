@@ -7,8 +7,8 @@ import 'package:analysis_server_plugin/edit/fix/fix.dart';
 import 'package:analyzer/analysis_rule/rule_state.dart';
 import 'package:analyzer/diagnostic/diagnostic.dart';
 import 'package:analyzer/source/file_source.dart';
+import 'package:analyzer/src/analysis_options/options_file_validator.dart';
 import 'package:analyzer/src/generated/source.dart';
-import 'package:analyzer/src/task/options.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart'
     hide AnalysisError;
 import 'package:analyzer_testing/resource_provider_mixin.dart';
@@ -52,6 +52,7 @@ class AnalysisOptionsFixTest with ResourceProviderMixin {
       sourceFactory,
       '/',
       dart2_12,
+      resourceProvider,
     );
     if (diagnosticFilter != null) {
       if (errors.length == 1) {

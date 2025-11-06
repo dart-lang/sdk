@@ -99,20 +99,15 @@ class TypeSystemImpl implements TypeSystem {
     _subtypeHelper = SubtypeHelper(this);
   }
 
-  InterfaceTypeImpl get nullNone =>
-      _nullNone ??= typeProvider.nullType.withNullability(
-        NullabilitySuffix.none,
-      );
+  InterfaceTypeImpl get nullNone => _nullNone ??= typeProvider.nullType
+      .withNullability(NullabilitySuffix.none);
 
-  InterfaceTypeImpl get objectNone =>
-      _objectNone ??= typeProvider.objectType.withNullability(
-        NullabilitySuffix.none,
-      );
+  InterfaceTypeImpl get objectNone => _objectNone ??= typeProvider.objectType
+      .withNullability(NullabilitySuffix.none);
 
-  InterfaceTypeImpl get objectQuestion =>
-      _objectQuestion ??= typeProvider.objectType.withNullability(
-        NullabilitySuffix.question,
-      );
+  InterfaceTypeImpl get objectQuestion => _objectQuestion ??= typeProvider
+      .objectType
+      .withNullability(NullabilitySuffix.question);
 
   /// Returns true iff the type [t] accepts function types, and requires an
   /// implicit coercion if interface types with a `call` method are passed in.
@@ -145,10 +140,9 @@ class TypeSystemImpl implements TypeSystem {
     TypeImpl right, {
     (TypeImpl, TypeImpl) Function(TypeImpl, TypeImpl)? eraseTypes,
   }) {
-    (left, right) =
-        eraseTypes != null
-            ? eraseTypes(left, right)
-            : (left.extensionTypeErasure, right.extensionTypeErasure);
+    (left, right) = eraseTypes != null
+        ? eraseTypes(left, right)
+        : (left.extensionTypeErasure, right.extensionTypeErasure);
 
     // If one is `Null`, then the other must be nullable.
     var leftIsNullable = isPotentiallyNullable(left);
@@ -713,7 +707,10 @@ class TypeSystemImpl implements TypeSystem {
     required covariant InterfaceElementImpl element,
     required NullabilitySuffix nullabilitySuffix,
   }) {
-    return instantiateInterfaceToBounds(element: element, nullabilitySuffix: nullabilitySuffix);
+    return instantiateInterfaceToBounds(
+      element: element,
+      nullabilitySuffix: nullabilitySuffix,
+    );
   }
 
   /// Given a [DartType] [type] and a list of types
@@ -753,10 +750,13 @@ class TypeSystemImpl implements TypeSystem {
     required covariant TypeAliasElementImpl element,
     required NullabilitySuffix nullabilitySuffix,
   }) {
-    return instantiateTypeAliasToBounds(element: element, nullabilitySuffix: nullabilitySuffix);
+    return instantiateTypeAliasToBounds(
+      element: element,
+      nullabilitySuffix: nullabilitySuffix,
+    );
   }
 
-  /// Given uninstantiated [typeFormals], instantiate them to their bounds.
+  /// Given uninstantiated [typeParameters], instantiate them to their bounds.
   /// See the issue for the algorithm description.
   ///
   /// https://github.com/dart-lang/sdk/issues/27526#issuecomment-260021397
@@ -832,8 +832,9 @@ class TypeSystemImpl implements TypeSystem {
       }
     }
 
-    List<TypeImpl> orderedArguments =
-        typeParameters.map((p) => defaults[p]!).toFixedList();
+    List<TypeImpl> orderedArguments = typeParameters
+        .map((p) => defaults[p]!)
+        .toFixedList();
     return orderedArguments;
   }
 
@@ -1468,11 +1469,10 @@ class TypeSystemImpl implements TypeSystem {
       );
     }
 
-    var inferredTypes =
-        inferrer
-            .chooseFinalTypes()
-            .map(_removeBoundsOfGenericFunctionTypes)
-            .toFixedList();
+    var inferredTypes = inferrer
+        .chooseFinalTypes()
+        .map(_removeBoundsOfGenericFunctionTypes)
+        .toFixedList();
     var substitution = Substitution.fromPairs2(typeParameters, inferredTypes);
 
     for (int i = 0; i < srcTypes.length; i++) {
@@ -1523,10 +1523,9 @@ class TypeSystemImpl implements TypeSystem {
       }
 
       // NonNull(X) = X & NonNull(B), where B is the bound of X
-      DartType? promotedBound =
-          element.bound != null
-              ? promoteToNonNull(element.bound!)
-              : typeProvider.objectType;
+      DartType? promotedBound = element.bound != null
+          ? promoteToNonNull(element.bound!)
+          : typeProvider.objectType;
       if (identical(promotedBound, element.bound)) {
         promotedBound = null;
       }
@@ -1789,7 +1788,7 @@ class TypeSystemImpl implements TypeSystem {
       if (isSubtypeOf(to, from.bound)) {
         var declaration = from.element.baseElement;
         return TypeParameterTypeImpl(
-          element: declaration as TypeParameterElementImpl,
+          element: declaration,
           nullabilitySuffix: _promotedTypeParameterTypeNullability(
             from.nullabilitySuffix,
             to.nullabilitySuffix,

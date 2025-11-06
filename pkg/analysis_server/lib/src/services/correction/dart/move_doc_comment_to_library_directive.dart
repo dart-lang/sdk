@@ -81,13 +81,14 @@ class MoveDocCommentToLibraryDirective extends ResolvedCorrectionProducer {
     if (token.precedingComments == comment.beginToken) {
       // Do not "move" the comment. Just slip a library directive below it.
       await builder.addDartFileEdit(file, (builder) {
+        var eol = builder.eol;
         builder.addSimpleInsertion(commentRange.end, 'library;$eol');
       });
       return;
     }
 
     int insertionOffset;
-    String prefix;
+    bool leadingEols = false;
     Token? commentOnFirstToken = token.precedingComments;
     if (commentOnFirstToken != null) {
       while (commentOnFirstToken!.next != null) {
@@ -96,6 +97,7 @@ class MoveDocCommentToLibraryDirective extends ResolvedCorrectionProducer {
         if (commentOnFirstToken == comment.beginToken) {
           // Do not "move" the comment. Just slip a library directive below it.
           await builder.addDartFileEdit(file, (builder) {
+            var eol = builder.eol;
             builder.addSimpleInsertion(commentRange.end, 'library;$eol$eol');
           });
           return;
@@ -104,15 +106,16 @@ class MoveDocCommentToLibraryDirective extends ResolvedCorrectionProducer {
       // `token` is now the last of the leading comments (perhaps a Copyright
       // notice, a Dart language version, etc.)
       insertionOffset = commentOnFirstToken.end;
-      prefix = '$eol$eol';
+      leadingEols = true;
     } else {
       insertionOffset = 0;
-      prefix = '';
     }
 
     await builder.addDartFileEdit(file, (builder) {
+      var eol = builder.eol;
       builder.addDeletion(commentRange);
       var commentText = utils.getRangeText(commentRange);
+      var prefix = leadingEols ? '$eol$eol' : '';
       builder.addSimpleInsertion(
         insertionOffset,
         '$prefix${commentText}library;$eol$eol',

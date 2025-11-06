@@ -6,8 +6,8 @@ import 'package:_fe_analyzer_shared/src/messages/codes.dart'
     show
         LocatedMessage,
         Message,
-        templateExperimentNotEnabled,
-        templateInternalProblemUnsupported;
+        codeExperimentNotEnabled,
+        codeInternalProblemUnsupported;
 import 'package:_fe_analyzer_shared/src/parser/parser.dart';
 import 'package:_fe_analyzer_shared/src/parser/stack_listener.dart';
 import 'package:_fe_analyzer_shared/src/scanner/token.dart';
@@ -219,19 +219,9 @@ class MiniAstBuilder extends StackListener {
   void endBinaryExpression(Token token, Token endToken) {
     debugEvent("BinaryExpression");
 
-    if (identical('.', token.stringValue)) {
-      var rightOperand = pop() as String;
-      var leftOperand = pop();
-      if (leftOperand is String && !leftOperand.contains('.')) {
-        push(PrefixedIdentifier(leftOperand, token, rightOperand));
-      } else {
-        push(UnknownExpression());
-      }
-    } else {
-      pop(); // RHS
-      pop(); // LHS
-      push(UnknownExpression());
-    }
+    pop(); // RHS
+    pop(); // LHS
+    push(UnknownExpression());
   }
 
   @override
@@ -317,7 +307,7 @@ class MiniAstBuilder extends StackListener {
     debugEvent("ConditionalUris");
     if (count != 0) {
       internalProblem(
-        templateInternalProblemUnsupported.withArguments("Conditional URIs"),
+        codeInternalProblemUnsupported.withArgumentsOld("Conditional URIs"),
         -1,
         null,
       );
@@ -469,6 +459,15 @@ class MiniAstBuilder extends StackListener {
   }
 
   @override
+  void handleCascadeAccess(Token token, Token endToken, bool isNullAware) {
+    debugEvent("CascadeAccess");
+
+    pop(); // RHS
+    pop(); // LHS
+    push(UnknownExpression());
+  }
+
+  @override
   void handleClassNoWithClause() {
     debugEvent("NoClassWithClause");
   }
@@ -476,6 +475,25 @@ class MiniAstBuilder extends StackListener {
   @override
   void handleClassWithClause(Token withKeyword) {
     debugEvent("ClassWithClause");
+  }
+
+  @override
+  void handleDotAccess(Token token, Token endToken, bool isNullAware) {
+    debugEvent("DotAccess");
+
+    if (!isNullAware) {
+      var rightOperand = pop() as String;
+      var leftOperand = pop();
+      if (leftOperand is String && !leftOperand.contains('.')) {
+        push(PrefixedIdentifier(leftOperand, token, rightOperand));
+      } else {
+        push(UnknownExpression());
+      }
+    } else {
+      pop(); // RHS
+      pop(); // LHS
+      push(UnknownExpression());
+    }
   }
 
   @override
@@ -708,7 +726,7 @@ class MiniAstBuilder extends StackListener {
       assert(optional('?', questionMark));
       var feature = ExperimentalFeatures.non_nullable;
       handleRecoverableError(
-        templateExperimentNotEnabled.withArguments(
+        codeExperimentNotEnabled.withArgumentsOld(
           feature.enableString,
           _versionAsString(ExperimentStatus.currentVersion),
         ),
@@ -721,7 +739,7 @@ class MiniAstBuilder extends StackListener {
   void reportNonNullAssertExpressionNotEnabled(Token bang) {
     var feature = ExperimentalFeatures.non_nullable;
     handleRecoverableError(
-      templateExperimentNotEnabled.withArguments(
+      codeExperimentNotEnabled.withArgumentsOld(
         feature.enableString,
         _versionAsString(ExperimentStatus.currentVersion),
       ),

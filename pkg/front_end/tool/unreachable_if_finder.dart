@@ -41,8 +41,9 @@ class UnreachableIfFinder extends RecursiveVisitor {
   static List<Warning> find(Component c) {
     EffectivelyFinal effectivelyFinal = new EffectivelyFinal._();
     c.accept(effectivelyFinal);
-    UnreachableIfFinder unreachableIfFinder =
-        new UnreachableIfFinder._(effectivelyFinal.unwritten);
+    UnreachableIfFinder unreachableIfFinder = new UnreachableIfFinder._(
+      effectivelyFinal.unwritten,
+    );
     c.accept(unreachableIfFinder);
     return unreachableIfFinder.warnings;
   }
@@ -93,8 +94,13 @@ class UnreachableIfFinder extends RecursiveVisitor {
         } else if (!knownValue) {
           hint = "The then branch will never execute.";
         }
-        warnings.add(new Warning(
-            originNode.location, "Condition is always $knownValue", hint));
+        warnings.add(
+          new Warning(
+            originNode.location,
+            "Condition is always $knownValue",
+            hint,
+          ),
+        );
       } else {
         if (condition.variable.isFinal ||
             unwritten.contains(condition.variable)) {

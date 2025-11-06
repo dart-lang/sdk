@@ -22,7 +22,7 @@ class A {
   set x(v) async {}
 }
 ''',
-      [error(CompileTimeErrorCode.INVALID_MODIFIER_ON_SETTER, 21, 5)],
+      [error(CompileTimeErrorCode.invalidModifierOnSetter, 21, 5)],
     );
   }
 
@@ -33,7 +33,7 @@ class A {
   set x(v) async* {}
 }
 ''',
-      [error(CompileTimeErrorCode.INVALID_MODIFIER_ON_SETTER, 21, 5)],
+      [error(CompileTimeErrorCode.invalidModifierOnSetter, 21, 5)],
     );
   }
 
@@ -44,7 +44,7 @@ class A {
   set x(v) sync* {}
 }
 ''',
-      [error(CompileTimeErrorCode.INVALID_MODIFIER_ON_SETTER, 21, 4)],
+      [error(CompileTimeErrorCode.invalidModifierOnSetter, 21, 4)],
     );
   }
 
@@ -53,7 +53,7 @@ class A {
       '''
 set x(v) async {}
 ''',
-      [error(CompileTimeErrorCode.INVALID_MODIFIER_ON_SETTER, 9, 5)],
+      [error(CompileTimeErrorCode.invalidModifierOnSetter, 9, 5)],
     );
   }
 
@@ -62,7 +62,7 @@ set x(v) async {}
       '''
 set x(v) async* {}
 ''',
-      [error(CompileTimeErrorCode.INVALID_MODIFIER_ON_SETTER, 9, 5)],
+      [error(CompileTimeErrorCode.invalidModifierOnSetter, 9, 5)],
     );
   }
 
@@ -71,7 +71,7 @@ set x(v) async* {}
       '''
 set x(v) sync* {}
 ''',
-      [error(CompileTimeErrorCode.INVALID_MODIFIER_ON_SETTER, 9, 4)],
+      [error(CompileTimeErrorCode.invalidModifierOnSetter, 9, 4)],
     );
   }
 }

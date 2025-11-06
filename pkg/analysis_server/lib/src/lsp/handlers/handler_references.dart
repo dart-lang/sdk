@@ -69,7 +69,7 @@ class ReferencesHandler
 
     var element = switch (node?.getElement()) {
       FieldFormalParameterElement(:var field?) => field,
-      PropertyAccessorElement(:var variable?) => variable,
+      PropertyAccessorElement(:var variable) => variable,
       var element => element,
     };
 
@@ -106,7 +106,7 @@ class ReferencesHandler
       (_) => convert(results, toLocation).nonNulls.toList(),
     );
 
-    if (params.context.includeDeclaration == true) {
+    if (params.context.includeDeclaration) {
       // Also include the definition for the resolved element.
       referenceResults.addAll(
         performance.run('_getDeclarations', (_) => _getDeclarations(element)),

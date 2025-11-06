@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/analysis_rule/rule_context.dart';
+import 'package:analyzer/analysis_rule/rule_visitor_registry.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
@@ -19,10 +20,13 @@ class AnnotateOverrides extends LintRule {
     : super(name: LintNames.annotate_overrides, description: _desc);
 
   @override
-  DiagnosticCode get diagnosticCode => LinterLintCode.annotate_overrides;
+  DiagnosticCode get diagnosticCode => LinterLintCode.annotateOverrides;
 
   @override
-  void registerNodeProcessors(NodeLintRegistry registry, RuleContext context) {
+  void registerNodeProcessors(
+    RuleVisitorRegistry registry,
+    RuleContext context,
+  ) {
     var visitor = _Visitor(this, context);
     registry.addFieldDeclaration(this, visitor);
     registry.addMethodDeclaration(this, visitor);
@@ -37,7 +41,7 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   void check(Element? element, Token target) {
     if (element == null) return;
-    if (element case Annotatable a when a.metadata.hasOverride) return;
+    if (element.metadata.hasOverride) return;
 
     var member = element.overriddenMember;
     if (member != null) {

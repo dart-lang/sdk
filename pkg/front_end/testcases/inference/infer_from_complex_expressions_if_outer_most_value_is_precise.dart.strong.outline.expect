@@ -2,15 +2,15 @@ library test;
 //
 // Problems in library:
 //
-// pkg/front_end/testcases/inference/infer_from_complex_expressions_if_outer_most_value_is_precise.dart:19:46: Error: Undefined name 'x'.
+// pkg/front_end/testcases/inference/infer_from_complex_expressions_if_outer_most_value_is_precise.dart:18:46: Error: Undefined name 'x'.
 // var b = new B(/*error:UNDEFINED_IDENTIFIER*/ x); // allocations
 //                                              ^
 //
-// pkg/front_end/testcases/inference/infer_from_complex_expressions_if_outer_most_value_is_precise.dart:21:34: Error: Undefined name 'x'.
-//   /*error:UNDEFINED_IDENTIFIER*/ x
-//                                  ^
+// pkg/front_end/testcases/inference/infer_from_complex_expressions_if_outer_most_value_is_precise.dart:19:42: Error: Undefined name 'x'.
+// var c1 = [/*error:UNDEFINED_IDENTIFIER*/ x]; // list literals
+//                                          ^
 //
-// pkg/front_end/testcases/inference/infer_from_complex_expressions_if_outer_most_value_is_precise.dart:32:58: Error: The operator 'unary-' isn't defined for the type 'A'.
+// pkg/front_end/testcases/inference/infer_from_complex_expressions_if_outer_most_value_is_precise.dart:28:58: Error: The operator 'unary-' isn't defined for the type 'A'.
 //  - 'A' is from 'pkg/front_end/testcases/inference/infer_from_complex_expressions_if_outer_most_value_is_precise.dart'.
 // Try correcting the operator to an existing operator, or defining a 'unary-' operator.
 // var i = /*error:UNDEFINED_OPERATOR,info:DYNAMIC_INVOKE*/ -new A();

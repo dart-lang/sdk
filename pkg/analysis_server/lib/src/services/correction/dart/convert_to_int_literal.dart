@@ -22,10 +22,10 @@ class ConvertToIntLiteral extends ResolvedCorrectionProducer {
   AssistKind get assistKind => DartAssistKind.convertToIntLiteral;
 
   @override
-  FixKind get fixKind => DartFixKind.CONVERT_TO_INT_LITERAL;
+  FixKind get fixKind => DartFixKind.convertToIntLiteral;
 
   @override
-  FixKind get multiFixKind => DartFixKind.CONVERT_TO_INT_LITERAL_MULTI;
+  FixKind get multiFixKind => DartFixKind.convertToIntLiteralMulti;
 
   @override
   Future<void> compute(ChangeBuilder builder) async {

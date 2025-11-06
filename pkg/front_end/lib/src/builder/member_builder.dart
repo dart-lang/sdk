@@ -11,7 +11,8 @@ import 'builder.dart';
 import 'declaration_builders.dart';
 import 'library_builder.dart';
 
-abstract class MemberBuilder implements Builder, LookupResult, NamedBuilder {
+abstract class MemberBuilder
+    implements Builder, MemberLookupResult, NamedBuilder {
   @override
   String get name;
 
@@ -116,6 +117,7 @@ abstract class MemberBuilder implements Builder, LookupResult, NamedBuilder {
 }
 
 abstract class MemberBuilderImpl extends NamedBuilderImpl
+    with LookupResultMixin
     implements MemberBuilder {
   @override
   Uri get fileUri;
@@ -226,25 +228,39 @@ abstract class BuilderClassMember implements ClassMember {
   // Coverage-ignore(suite): Not run.
   MemberResult getMemberResult(ClassMembersBuilder membersBuilder) {
     if (isStatic) {
-      return new StaticMemberResult(getMember(membersBuilder), memberKind,
-          isDeclaredAsField:
-              isDeclaredAsField(memberBuilder, forSetter: forSetter),
-          fullName:
-              '${declarationBuilder.name}.${memberBuilder.memberName.text}');
+      return new StaticMemberResult(
+        getMember(membersBuilder),
+        memberKind,
+        isDeclaredAsField: isDeclaredAsField(
+          memberBuilder,
+          forSetter: forSetter,
+        ),
+        fullName: '${declarationBuilder.name}.${memberBuilder.memberName.text}',
+      );
     } else if (memberBuilder.isExtensionTypeMember) {
       ExtensionTypeDeclaration extensionTypeDeclaration =
           (declarationBuilder as ExtensionTypeDeclarationBuilder)
               .extensionTypeDeclaration;
       Member member = getTearOff(membersBuilder) ?? getMember(membersBuilder);
       return new ExtensionTypeMemberResult(
-          extensionTypeDeclaration, member, memberKind, name,
-          isDeclaredAsField:
-              isDeclaredAsField(memberBuilder, forSetter: forSetter));
+        extensionTypeDeclaration,
+        member,
+        memberKind,
+        name,
+        isDeclaredAsField: isDeclaredAsField(
+          memberBuilder,
+          forSetter: forSetter,
+        ),
+      );
     } else {
       return new TypeDeclarationInstanceMemberResult(
-          getMember(membersBuilder), memberKind,
-          isDeclaredAsField:
-              isDeclaredAsField(memberBuilder, forSetter: forSetter));
+        getMember(membersBuilder),
+        memberKind,
+        isDeclaredAsField: isDeclaredAsField(
+          memberBuilder,
+          forSetter: forSetter,
+        ),
+      );
     }
   }
 

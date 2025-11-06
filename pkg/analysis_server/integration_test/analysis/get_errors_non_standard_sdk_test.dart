@@ -27,6 +27,11 @@ class AnalysisDomainGetErrorsTest
       return path.join(sdkPath, 'bin', name);
     }
 
+    String executableVmFilePathIn(String sdkPath) {
+      var name = Platform.isWindows ? 'dartvm.exe' : 'dartvm';
+      return path.join(sdkPath, 'bin', name);
+    }
+
     String serverSnapshotPathIn(String sdkPath) {
       return path.join(
         sdkPath,
@@ -49,6 +54,10 @@ class AnalysisDomainGetErrorsTest
     File(
       executableFilePathIn(standardSdkPath),
     ).copySync(executableFilePathIn(sdkPath));
+
+    File(
+      executableVmFilePathIn(standardSdkPath),
+    ).copySync(executableVmFilePathIn(sdkPath));
 
     File(
       serverSnapshotPathIn(standardSdkPath),

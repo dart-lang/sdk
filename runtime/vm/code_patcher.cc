@@ -3,6 +3,9 @@
 // BSD-style license that can be found in the LICENSE file.
 
 #include "vm/code_patcher.h"
+#if defined(DART_DYNAMIC_MODULES)
+#include "vm/constants_kbc.h"
+#endif
 #include "vm/cpu.h"
 #include "vm/instructions.h"
 #include "vm/object.h"
@@ -60,5 +63,53 @@ bool MatchesPattern(uword end, const int16_t* pattern, intptr_t size) {
   }
   return true;
 }
+
+#if !defined(PRODUCT) && defined(DART_DYNAMIC_MODULES)
+
+uint32_t BytecodePatcher::AddBreakpointAt(uword return_address,
+                                          const Bytecode& bytecode) {
+  auto thread = Thread::Current();
+  uint32_t old_opcode;
+  thread->isolate_group()->RunWithStoppedMutators([&]() {
+    old_opcode =
+        AddBreakpointAtWithMutatorsStopped(thread, return_address, bytecode);
+  });
+  return old_opcode;
+}
+
+void BytecodePatcher::RemoveBreakpointAt(uword return_address,
+                                         const Bytecode& bytecode,
+                                         uint32_t opcode) {
+  auto thread = Thread::Current();
+  thread->isolate_group()->RunWithStoppedMutators([&]() {
+    RemoveBreakpointAtWithMutatorsStopped(thread, return_address, bytecode,
+                                          opcode);
+  });
+}
+
+uint32_t BytecodePatcher::AddBreakpointAtWithMutatorsStopped(
+    Thread* thread,
+    uword return_address,
+    const Bytecode& bytecode) {
+  auto* const instr = reinterpret_cast<KBCInstr*>(
+      bytecode.GetInstructionBefore(return_address));
+  uint32_t old_opcode = *instr;
+  *instr = KernelBytecode::BreakpointOpcode(instr);
+  return old_opcode;
+}
+
+void BytecodePatcher::RemoveBreakpointAtWithMutatorsStopped(
+    Thread* thread,
+    uword return_address,
+    const Bytecode& bytecode,
+    uint32_t opcode) {
+  auto* const instr = reinterpret_cast<KBCInstr*>(
+      bytecode.GetInstructionBefore(return_address));
+  // Must be previously enabled and not yet removed.
+  ASSERT(*instr == KernelBytecode::BreakpointOpcode(
+                       static_cast<KernelBytecode::Opcode>(opcode)));
+  *instr = opcode;
+}
+#endif  // !defined(PRODUCT) && defined(DART_DYNAMIC_MODULES)
 
 }  // namespace dart

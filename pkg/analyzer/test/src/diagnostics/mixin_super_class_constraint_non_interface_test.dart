@@ -24,7 +24,7 @@ mixin M on dynamic {}
 ''',
       [
         error(
-          CompileTimeErrorCode.MIXIN_SUPER_CLASS_CONSTRAINT_NON_INTERFACE,
+          CompileTimeErrorCode.mixinSuperClassConstraintNonInterface,
           11,
           7,
         ),
@@ -38,7 +38,7 @@ MixinOnClause
   superclassConstraints
     NamedType
       name: dynamic
-      element2: dynamic
+      element: dynamic
       type: dynamic
 ''');
   }
@@ -51,7 +51,7 @@ mixin M on E {}
 ''',
       [
         error(
-          CompileTimeErrorCode.MIXIN_SUPER_CLASS_CONSTRAINT_NON_INTERFACE,
+          CompileTimeErrorCode.mixinSuperClassConstraintNonInterface,
           24,
           1,
         ),
@@ -65,7 +65,7 @@ MixinOnClause
   superclassConstraints
     NamedType
       name: E
-      element2: <testLibrary>::@enum::E
+      element: <testLibrary>::@enum::E
       type: E
 ''');
   }
@@ -78,7 +78,7 @@ mixin M on A {}
 ''',
       [
         error(
-          CompileTimeErrorCode.MIXIN_SUPER_CLASS_CONSTRAINT_NON_INTERFACE,
+          CompileTimeErrorCode.mixinSuperClassConstraintNonInterface,
           39,
           1,
         ),
@@ -92,7 +92,7 @@ MixinOnClause
   superclassConstraints
     NamedType
       name: A
-      element2: <testLibrary>::@extensionType::A
+      element: <testLibrary>::@extensionType::A
       type: A
 ''');
   }
@@ -104,7 +104,7 @@ mixin M on Never {}
 ''',
       [
         error(
-          CompileTimeErrorCode.MIXIN_SUPER_CLASS_CONSTRAINT_NON_INTERFACE,
+          CompileTimeErrorCode.mixinSuperClassConstraintNonInterface,
           11,
           5,
         ),
@@ -118,7 +118,7 @@ MixinOnClause
   superclassConstraints
     NamedType
       name: Never
-      element2: Never
+      element: Never
       type: Never
 ''');
   }
@@ -129,9 +129,9 @@ MixinOnClause
 mixin M on void {}
 ''',
       [
-        error(ParserErrorCode.EXPECTED_TYPE_NAME, 11, 4),
+        error(ParserErrorCode.expectedTypeName, 11, 4),
         error(
-          CompileTimeErrorCode.MIXIN_SUPER_CLASS_CONSTRAINT_NON_INTERFACE,
+          CompileTimeErrorCode.mixinSuperClassConstraintNonInterface,
           11,
           4,
         ),
@@ -145,7 +145,7 @@ MixinOnClause
   superclassConstraints
     NamedType
       name: void
-      element2: <null>
+      element: <null>
       type: void
 ''');
   }

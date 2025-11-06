@@ -23,7 +23,7 @@ void f() {
   try {} catch () {}
 }
 ''',
-      [error(ParserErrorCode.CATCH_SYNTAX, 27, 1)],
+      [error(ParserErrorCode.catchSyntax, 27, 1)],
     );
 
     var node = findNode.singleTryStatement;
@@ -40,7 +40,6 @@ TryStatement
       exceptionParameter: CatchClauseParameter
         name: <empty> <synthetic>
         declaredFragment: isFinal isPublic @null
-          type: null
           element: hasImplicitType isFinal isPrivate
             type: Object
       rightParenthesis: )
@@ -58,8 +57,8 @@ void f() {
 }
 ''',
       [
-        error(WarningCode.UNUSED_CATCH_STACK, 30, 1),
-        error(ParserErrorCode.CATCH_SYNTAX_EXTRA_PARAMETERS, 31, 1),
+        error(WarningCode.unusedCatchStack, 30, 1),
+        error(ParserErrorCode.catchSyntaxExtraParameters, 31, 1),
       ],
     );
 
@@ -77,14 +76,12 @@ TryStatement
       exceptionParameter: CatchClauseParameter
         name: x
         declaredFragment: isFinal isPublic x@27
-          type: null
           element: hasImplicitType isFinal isPublic
             type: Object
       comma: ,
       stackTraceParameter: CatchClauseParameter
         name: y
         declaredFragment: isFinal isPublic y@30
-          type: null
           element: hasImplicitType isFinal isPublic
             type: StackTrace
       rightParenthesis: )
@@ -102,8 +99,8 @@ void f() {
 }
 ''',
       [
-        error(ParserErrorCode.CATCH_SYNTAX, 30, 1),
-        error(WarningCode.UNUSED_CATCH_STACK, 31, 2),
+        error(ParserErrorCode.catchSyntax, 30, 1),
+        error(WarningCode.unusedCatchStack, 31, 2),
       ],
     );
 
@@ -121,14 +118,12 @@ TryStatement
       exceptionParameter: CatchClauseParameter
         name: x
         declaredFragment: isFinal isPublic x@27
-          type: null
           element: hasImplicitType isFinal isPublic
             type: Object
       comma: ,
       stackTraceParameter: CatchClauseParameter
         name: st
         declaredFragment: isFinal isPublic st@31
-          type: null
           element: hasImplicitType isFinal isPublic
             type: StackTrace
       rightParenthesis: )
@@ -146,8 +141,8 @@ void f() {
 }
 ''',
       [
-        error(ParserErrorCode.CATCH_SYNTAX, 30, 1),
-        error(WarningCode.UNUSED_CATCH_STACK, 31, 2),
+        error(ParserErrorCode.catchSyntax, 30, 1),
+        error(WarningCode.unusedCatchStack, 31, 2),
       ],
     );
 
@@ -165,14 +160,12 @@ TryStatement
       exceptionParameter: CatchClauseParameter
         name: x
         declaredFragment: isFinal isPublic x@27
-          type: null
           element: hasImplicitType isFinal isPublic
             type: Object
       comma: ,
       stackTraceParameter: CatchClauseParameter
         name: st
         declaredFragment: isFinal isPublic st@31
-          type: null
           element: hasImplicitType isFinal isPublic
             type: StackTrace
       rightParenthesis: )
@@ -189,7 +182,7 @@ void f() {
   try {} catch (e, st) {}
 }
 ''',
-      [error(WarningCode.UNUSED_CATCH_STACK, 30, 2)],
+      [error(WarningCode.unusedCatchStack, 30, 2)],
     );
 
     var node = findNode.singleTryStatement;
@@ -206,14 +199,12 @@ TryStatement
       exceptionParameter: CatchClauseParameter
         name: e
         declaredFragment: isFinal isPublic e@27
-          type: null
           element: hasImplicitType isFinal isPublic
             type: Object
       comma: ,
       stackTraceParameter: CatchClauseParameter
         name: st
         declaredFragment: isFinal isPublic st@30
-          type: null
           element: hasImplicitType isFinal isPublic
             type: StackTrace
       rightParenthesis: )
@@ -230,7 +221,7 @@ void f() {
   try {} on int catch (e, st) {}
 }
 ''',
-      [error(WarningCode.UNUSED_CATCH_STACK, 37, 2)],
+      [error(WarningCode.unusedCatchStack, 37, 2)],
     );
 
     var node = findNode.singleTryStatement;
@@ -245,21 +236,19 @@ TryStatement
       onKeyword: on
       exceptionType: NamedType
         name: int
-        element2: dart:core::@class::int
+        element: dart:core::@class::int
         type: int
       catchKeyword: catch
       leftParenthesis: (
       exceptionParameter: CatchClauseParameter
         name: e
         declaredFragment: isFinal isPublic e@34
-          type: int
           element: isFinal isPublic
             type: int
       comma: ,
       stackTraceParameter: CatchClauseParameter
         name: st
         declaredFragment: isFinal isPublic st@37
-          type: null
           element: hasImplicitType isFinal isPublic
             type: StackTrace
       rightParenthesis: )

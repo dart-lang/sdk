@@ -1,14 +1,22 @@
 # Using plugins
 
-This document describes how to enable an analyzer plugin. An analyzer plugin
-can be enabled for a given package, so that the plugin can report diagnostics
-(lints and warnings) and offer quick fixes. Plugins are enabled via the
-`analysis_options.yaml` file under the top-level `plugins` section:
+This document describes how to enable analyzer plugins. Analyzer plugins can
+report diagnostics (lints and warnings) in an IDE and also at the command line
+(with `dart analyze` or `flutter analyze`). Analyzer plugins can also offer
+quick fixes and assists in an IDE. A set of analyzer plugins can be enabled for
+a given package or [workspace][] via the `analysis_options.yaml` file, at the
+root of the package or workspace source tree. Analyzer plugins cannot be
+enabled, disabled, or otherwise specified or configured in a nested analysis
+options file
+
+Analyzer plugins are specified in the top-level `plugins` section:
 
 ```yaml
 plugins:
   my_plugin: ^1.0.0
 ```
+
+[workspace]: https://dart.dev/tools/pub/workspaces
 
 Note: This is similar to how analyzer plugins are enabled in the [legacy][]
 analyzer plugin system. However, in the legacy system, this `plugins` section

@@ -2,11 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/*@testedFeatures=inference*/
-
 void test() {
   dynamic a = 5;
-  var /*@type=String*/ b = a. /*@target=Object.toString*/ toString();
+  var b = a.toString();
   b = 42;
 }
 

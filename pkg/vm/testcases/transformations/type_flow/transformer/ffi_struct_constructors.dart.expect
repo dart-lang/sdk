@@ -7,52 +7,60 @@ import "dart:typed_data" as typ;
 
 import "dart:ffi";
 
-@#C6
+@#C3
+@#C8
 final class Struct1 extends ffi::Struct {
   constructor #fromTypedDataBase([@vm.inferred-arg-type.metadata=dart.typed_data::_Uint8List] synthesized core::Object #typedDataBase) → self::Struct1
-    : super ffi::Struct::_fromTypedDataBase(#typedDataBase, #C7)
+    : super ffi::Struct::_fromTypedDataBase(#typedDataBase, #C9)
     ;
 }
-@#C6
+@#C3
+@#C8
 final class Struct2 extends ffi::Struct {
   constructor #fromTypedDataBase([@vm.inferred-arg-type.metadata=dart.typed_data::_Uint8List] synthesized core::Object #typedDataBase) → self::Struct2
-    : super ffi::Struct::_fromTypedDataBase(#typedDataBase, #C7)
+    : super ffi::Struct::_fromTypedDataBase(#typedDataBase, #C9)
     ;
 }
-@#C6
+@#C3
+@#C8
 final class Struct3 extends ffi::Struct {
   constructor #fromTypedDataBase([@vm.inferred-arg-type.metadata=dart.typed_data::_Uint8List] synthesized core::Object #typedDataBase) → self::Struct3
-    : super ffi::Struct::_fromTypedDataBase(#typedDataBase, #C7)
+    : super ffi::Struct::_fromTypedDataBase(#typedDataBase, #C9)
     ;
 }
-@#C6
+@#C3
+@#C8
 abstract final class Struct5 extends ffi::Struct {
 }
-@#C6
+@#C3
+@#C8
 abstract final class Struct6 extends ffi::Struct {
 }
-@#C6
+@#C3
+@#C8
 abstract final class Struct7 extends ffi::Struct {
 }
-@#C11
+@#C3
+@#C13
 final class Struct11 extends ffi::Struct {
   constructor #fromTypedDataBase([@vm.inferred-arg-type.metadata=dart.ffi::Pointer] synthesized core::Object #typedDataBase) → self::Struct11
-    : super ffi::Struct::_fromTypedDataBase(#typedDataBase, #C7)
+    : super ffi::Struct::_fromTypedDataBase(#typedDataBase, #C9)
     ;
 
   [@vm.inferred-return-type.metadata=#lib::Struct12]
   [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasNonThisUses:false,hasTearOffUses:false,getterSelectorId:1]
-  @#C13
+  @#C15
   get nested() → self::Struct12
     return new self::Struct12::#fromTypedDataBase([@vm.direct-call.metadata=dart.ffi::_Compound._typedDataBase] this.{ffi::_Compound::_typedDataBase}{core::Object}, [@vm.direct-call.metadata=dart.core::_IntegerImplementation.+] [@vm.inferred-type.metadata=int (skip check)] [@vm.inferred-type.metadata=dart.core::_Smi (value: 0)] self::Struct11::nested#offsetOf.{core::num::+}([@vm.direct-call.metadata=dart.ffi::_Compound._offsetInBytes] [@vm.inferred-type.metadata=int?] this.{ffi::_Compound::_offsetInBytes}{core::int}){(core::num) → core::num});
 
   [@vm.inferred-return-type.metadata=dart.core::_Smi (value: 0)]
   [@vm.unboxing-info.metadata=()->i]
-  @#C13
+  @#C15
   static synthetic get nested#offsetOf() → core::int
-    return #C14.{core::List::[]}(ffi::_abi()){(core::int) → core::int};
+    return #C16.{core::List::[]}(ffi::_abi()){(core::int) → core::int};
 }
-@#C6
+@#C3
+@#C8
 final class Struct12 extends ffi::Struct {
 
   [@vm.unboxing-info.metadata=(b,i)->b]
@@ -62,10 +70,10 @@ final class Struct12 extends ffi::Struct {
 }
 
 [@vm.inferred-type.metadata=dart.ffi::Pointer]
-static final field ffi::Pointer<ffi::NativeFunction<(self::Struct3) → ffi::Int32>> _#ffiCallback0 = [@vm.inferred-type.metadata=dart.ffi::Pointer] ffi::_createNativeCallableIsolateLocal<ffi::NativeFunction<(self::Struct3) → ffi::Int32>>(ffi::_nativeCallbackFunction<(self::Struct3) → ffi::Int32>(#C15, 0), null, false);
+static final field ffi::Pointer<ffi::NativeFunction<(self::Struct3) → ffi::Int32>> _#ffiCallback0 = [@vm.inferred-type.metadata=dart.ffi::Pointer] ffi::_createNativeCallableIsolateLocal<ffi::NativeFunction<(self::Struct3) → ffi::Int32>>(ffi::_nativeCallbackFunction<(self::Struct3) → ffi::Int32>(#C17, #C9), null, false);
 
 [@vm.inferred-type.metadata=dart.ffi::Pointer]
-static final field ffi::Pointer<ffi::NativeFunction<() → self::Struct7>> _#ffiCallback1 = [@vm.inferred-type.metadata=dart.ffi::Pointer] ffi::_createNativeCallableIsolateLocal<ffi::NativeFunction<() → self::Struct7>>(ffi::_nativeCallbackFunction<() → self::Struct7>(#C16, null), null, false);
+static final field ffi::Pointer<ffi::NativeFunction<() → self::Struct7>> _#ffiCallback1 = [@vm.inferred-type.metadata=dart.ffi::Pointer] ffi::_createNativeCallableIsolateLocal<ffi::NativeFunction<() → self::Struct7>>(ffi::_nativeCallbackFunction<() → self::Struct7>(#C18, null), null, false);
 
 [@vm.inferred-return-type.metadata=dart.core::Null? (value: null)]
 static method main() → void {
@@ -84,12 +92,12 @@ static method main() → void {
 static method testLookupFunctionReturn() → void {
   final ffi::DynamicLibrary dylib = [@vm.inferred-type.metadata=dart.ffi::DynamicLibrary] ffi::DynamicLibrary::executable();
   final () → self::Struct1 function1 = block {
-    _in::_nativeEffect(new self::Struct1::#fromTypedDataBase([@vm.inferred-type.metadata=dart.typed_data::_Uint8List] typ::Uint8List::•(#C17)));
+    _in::_nativeEffect(new self::Struct1::#fromTypedDataBase([@vm.inferred-type.metadata=dart.typed_data::_Uint8List] typ::Uint8List::•(#C19)));
   } => block {
     [@vm.inferred-type.metadata=dart.ffi::Pointer] synthesized ffi::Pointer<ffi::NativeFunction<() → self::Struct1>> #ffiTarget0 = [@vm.direct-call.metadata=dart.ffi::DynamicLibrary.lookup] [@vm.inferred-type.metadata=dart.ffi::Pointer (skip check)] dylib.{ffi::DynamicLibrary::lookup}<ffi::NativeFunction<() → self::Struct1>>("function1"){(core::String) → ffi::Pointer<ffi::NativeFunction<() → self::Struct1>>};
 
     [@vm.closure-id=1]
-    @#C21
+    @#C23
     function #ffiClosure0() → self::Struct1 {
       return [@vm.inferred-type.metadata=#lib::Struct1] ffi::_ffiCall<self::Struct1>(#ffiTarget0);
     }
@@ -103,12 +111,12 @@ static method testLookupFunctionReturn() → void {
 static method testAsFunctionReturn() → void {
   final ffi::Pointer<ffi::NativeFunction<() → self::Struct2>> pointer = [@vm.inferred-type.metadata=dart.ffi::Pointer] ffi::Pointer::fromAddress<ffi::NativeFunction<() → self::Struct2>>(3735928559);
   final () → self::Struct2 function2 = block {
-    _in::_nativeEffect(new self::Struct2::#fromTypedDataBase([@vm.inferred-type.metadata=dart.typed_data::_Uint8List] typ::Uint8List::•(#C17)));
+    _in::_nativeEffect(new self::Struct2::#fromTypedDataBase([@vm.inferred-type.metadata=dart.typed_data::_Uint8List] typ::Uint8List::•(#C19)));
   } => block {
     [@vm.inferred-type.metadata=dart.ffi::Pointer] synthesized ffi::Pointer<ffi::NativeFunction<() → self::Struct2>> #ffiTarget1 = pointer;
 
     [@vm.closure-id=1]
-    @#C23
+    @#C25
     function #ffiClosure1() → self::Struct2 {
       return [@vm.inferred-type.metadata=#lib::Struct2] ffi::_ffiCall<self::Struct2>(#ffiTarget1);
     }
@@ -126,7 +134,7 @@ static method useStruct3(self::Struct3 struct3) → core::int {
 [@vm.inferred-return-type.metadata=dart.core::Null? (value: null)]
 static method testFromFunctionArgument() → void {
   final ffi::Pointer<ffi::NativeFunction<(self::Struct3) → ffi::Int32>> pointer = block {
-    _in::_nativeEffect(new self::Struct3::#fromTypedDataBase([@vm.inferred-type.metadata=dart.typed_data::_Uint8List] typ::Uint8List::•(#C17)));
+    _in::_nativeEffect(new self::Struct3::#fromTypedDataBase([@vm.inferred-type.metadata=dart.typed_data::_Uint8List] typ::Uint8List::•(#C19)));
   } =>[@vm.inferred-type.metadata=dart.ffi::Pointer] self::_#ffiCallback0;
   core::print(pointer);
 }
@@ -136,7 +144,7 @@ static method testLookupFunctionArgument() → void {
   final ffi::DynamicLibrary dylib = [@vm.inferred-type.metadata=dart.ffi::DynamicLibrary] ffi::DynamicLibrary::executable();
   final (self::Struct5) → void function5 = block {
     [@vm.inferred-type.metadata=dart.ffi::Pointer] synthesized ffi::Pointer<ffi::NativeFunction<(self::Struct5) → ffi::Void>> #ffiTarget2 = [@vm.direct-call.metadata=dart.ffi::DynamicLibrary.lookup] [@vm.inferred-type.metadata=dart.ffi::Pointer (skip check)] dylib.{ffi::DynamicLibrary::lookup}<ffi::NativeFunction<(self::Struct5) → ffi::Void>>("function5"){(core::String) → ffi::Pointer<ffi::NativeFunction<(self::Struct5) → ffi::Void>>};
-    @#C25
+    @#C27
     function #ffiClosure2(self::Struct5 arg1) → void {
       throw "Attempt to execute code removed by Dart AOT compiler (TFA)";
       return ffi::_ffiCall<void>(#ffiTarget2);
@@ -150,7 +158,7 @@ static method testAsFunctionArgument() → void {
   final ffi::Pointer<ffi::NativeFunction<(self::Struct6) → ffi::Void>> pointer = [@vm.inferred-type.metadata=dart.ffi::Pointer] ffi::Pointer::fromAddress<ffi::NativeFunction<(self::Struct6) → ffi::Void>>(3735928559);
   final (self::Struct6) → void function6 = block {
     [@vm.inferred-type.metadata=dart.ffi::Pointer] synthesized ffi::Pointer<ffi::NativeFunction<(self::Struct6) → ffi::Void>> #ffiTarget3 = pointer;
-    @#C27
+    @#C29
     function #ffiClosure3(self::Struct6 arg1) → void {
       throw "Attempt to execute code removed by Dart AOT compiler (TFA)";
       return ffi::_ffiCall<void>(#ffiTarget3);
@@ -185,31 +193,33 @@ static method testNestedLoad() → void {
   core::print(struct12);
 }
 constants  {
-  #C1 = "vm:ffi:struct-fields"
-  #C2 = TypeLiteralConstant(ffi::Pointer<core::Object>)
-  #C3 = <core::Type>[#C2]
-  #C4 = null
-  #C5 = ffi::_FfiStructLayout {fieldTypes:#C3, packing:#C4}
-  #C6 = core::pragma {name:#C1, options:#C5}
-  #C7 = 0
-  #C8 = TypeLiteralConstant(self::Struct12)
-  #C9 = <core::Type>[#C8]
-  #C10 = ffi::_FfiStructLayout {fieldTypes:#C9, packing:#C4}
-  #C11 = core::pragma {name:#C1, options:#C10}
-  #C12 = "vm:prefer-inline"
-  #C13 = core::pragma {name:#C12, options:#C4}
-  #C14 = <core::int>[#C7, #C7, #C7, #C7, #C7, #C7, #C7, #C7, #C7, #C7, #C7, #C7, #C7, #C7, #C7, #C7, #C7, #C7, #C7, #C7, #C7, #C7]
-  #C15 = static-tearoff self::useStruct3
-  #C16 = static-tearoff self::returnStruct7
-  #C17 = 1
-  #C18 = "vm:ffi:call-closure"
-  #C19 = false
-  #C20 = ffi::_FfiCall<() → self::Struct1> {isLeaf:#C19}
-  #C21 = core::pragma {name:#C18, options:#C20}
-  #C22 = ffi::_FfiCall<() → self::Struct2> {isLeaf:#C19}
-  #C23 = core::pragma {name:#C18, options:#C22}
-  #C24 = ffi::_FfiCall<(self::Struct5) → ffi::Void> {isLeaf:#C19}
-  #C25 = core::pragma {name:#C18, options:#C24}
-  #C26 = ffi::_FfiCall<(self::Struct6) → ffi::Void> {isLeaf:#C19}
-  #C27 = core::pragma {name:#C18, options:#C26}
+  #C1 = "vm:deeply-immutable"
+  #C2 = null
+  #C3 = core::pragma {name:#C1, options:#C2}
+  #C4 = "vm:ffi:struct-fields"
+  #C5 = TypeLiteralConstant(ffi::Pointer<core::Object>)
+  #C6 = <core::Type>[#C5]
+  #C7 = ffi::_FfiStructLayout {fieldTypes:#C6, packing:#C2}
+  #C8 = core::pragma {name:#C4, options:#C7}
+  #C9 = 0
+  #C10 = TypeLiteralConstant(self::Struct12)
+  #C11 = <core::Type>[#C10]
+  #C12 = ffi::_FfiStructLayout {fieldTypes:#C11, packing:#C2}
+  #C13 = core::pragma {name:#C4, options:#C12}
+  #C14 = "vm:prefer-inline"
+  #C15 = core::pragma {name:#C14, options:#C2}
+  #C16 = <core::int>[#C9, #C9, #C9, #C9, #C9, #C9, #C9, #C9, #C9, #C9, #C9, #C9, #C9, #C9, #C9, #C9, #C9, #C9, #C9, #C9, #C9, #C9]
+  #C17 = static-tearoff self::useStruct3
+  #C18 = static-tearoff self::returnStruct7
+  #C19 = 1
+  #C20 = "vm:ffi:call-closure"
+  #C21 = false
+  #C22 = ffi::_FfiCall<() → self::Struct1> {isLeaf:#C21}
+  #C23 = core::pragma {name:#C20, options:#C22}
+  #C24 = ffi::_FfiCall<() → self::Struct2> {isLeaf:#C21}
+  #C25 = core::pragma {name:#C20, options:#C24}
+  #C26 = ffi::_FfiCall<(self::Struct5) → ffi::Void> {isLeaf:#C21}
+  #C27 = core::pragma {name:#C20, options:#C26}
+  #C28 = ffi::_FfiCall<(self::Struct6) → ffi::Void> {isLeaf:#C21}
+  #C29 = core::pragma {name:#C20, options:#C28}
 }

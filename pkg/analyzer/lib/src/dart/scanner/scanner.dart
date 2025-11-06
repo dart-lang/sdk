@@ -17,6 +17,7 @@ import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer/src/dart/error/syntactic_errors.dart';
 import 'package:analyzer/src/dart/scanner/reader.dart';
 import 'package:analyzer/src/error/codes.dart';
+import 'package:meta/meta.dart';
 import 'package:pub_semver/pub_semver.dart';
 
 export 'package:analyzer/src/dart/error/syntactic_errors.dart';
@@ -31,6 +32,11 @@ export 'package:analyzer/src/dart/error/syntactic_errors.dart';
 /// longest possible token.
 class Scanner {
   static final Uint8List _lineStartsZero = Uint8List(0);
+
+  /// Allows to - by default - either preserve or not preserve comments while
+  /// testing.
+  @visibleForTesting
+  static bool preserveCommentsDefaultForTesting = true;
 
   final Source source;
 
@@ -50,7 +56,7 @@ class Scanner {
   late final FeatureSet _featureSetForOverriding;
 
   /// The flag specifying whether documentation comments should be parsed.
-  bool _preserveComments = true;
+  bool _preserveComments = preserveCommentsDefaultForTesting;
   List<int>? _lineStarts;
   late final Token firstToken;
 
@@ -206,7 +212,7 @@ class Scanner {
           source: source,
           offset: versionToken.offset,
           length: versionToken.length,
-          diagnosticCode: WarningCode.INVALID_LANGUAGE_VERSION_OVERRIDE_GREATER,
+          diagnosticCode: WarningCode.invalidLanguageVersionOverrideGreater,
           arguments: [latestVersion.major, latestVersion.minor],
         ),
       );
@@ -220,9 +226,9 @@ class Scanner {
   /// Return a ScannerConfiguration based upon the specified feature set.
   static fasta.ScannerConfiguration buildConfig(FeatureSet? featureSet) =>
       featureSet == null
-          ? fasta.ScannerConfiguration()
-          : fasta.ScannerConfiguration(
-            enableTripleShift: featureSet.isEnabled(Feature.triple_shift),
-            forAugmentationLibrary: featureSet.isEnabled(Feature.macros),
-          );
+      ? fasta.ScannerConfiguration()
+      : fasta.ScannerConfiguration(
+          enableTripleShift: featureSet.isEnabled(Feature.triple_shift),
+          forAugmentationLibrary: featureSet.isEnabled(Feature.macros),
+        );
 }

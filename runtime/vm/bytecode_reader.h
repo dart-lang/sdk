@@ -23,21 +23,65 @@ class BytecodeLoader {
   BytecodeLoader(Thread* thread, const TypedDataBase& binary);
   ~BytecodeLoader();
 
-  FunctionPtr LoadBytecode();
+  FunctionPtr LoadBytecode(bool load_code = true);
+  void LoadPendingCode();
 
   TypedDataBasePtr binary() const { return binary_.ptr(); }
   ArrayPtr bytecode_component_array() const {
     return bytecode_component_array_.ptr();
   }
 
+  void AddPendingObject(const Object& obj, intptr_t offset) {
+    SetOffset(obj, offset);
+    pending_objects_.Add(obj);
+  }
+
   void SetOffset(const Object& obj, intptr_t offset);
-  intptr_t GetOffset(const Object& obj);
+  intptr_t GetOffset(const Object& obj) const;
+  bool HasOffset(const Object& obj) const;
+
+  void FindModifiedLibraries(BitVector* modified_libs,
+                             intptr_t* p_num_libraries,
+                             intptr_t* p_num_classes,
+                             intptr_t* p_num_procedures);
+
+  void SetExpressionEvaluationLibrary(const Library& lib) {
+    ASSERT(expression_evaluation_library_ == nullptr);
+    expression_evaluation_library_ =
+        &Library::ZoneHandle(thread_->zone(), lib.ptr());
+  }
+  LibraryPtr GetExpressionEvaluationLibrary() const {
+    ASSERT(expression_evaluation_library_ != nullptr);
+    return expression_evaluation_library_->ptr();
+  }
+  void SetExpressionEvaluationRealClass(const Class& cls) {
+    ASSERT(expression_evaluation_real_classs_ == nullptr);
+    expression_evaluation_real_classs_ =
+        &Class::ZoneHandle(thread_->zone(), cls.ptr());
+  }
+  ClassPtr GetExpressionEvaluationRealClass() const {
+    ASSERT(expression_evaluation_real_classs_ != nullptr);
+    return expression_evaluation_real_classs_->ptr();
+  }
+  void SetExpressionEvaluationFunction(const Function& func) {
+    ASSERT(expression_evaluation_function_ == nullptr);
+    expression_evaluation_function_ =
+        &Function::ZoneHandle(thread_->zone(), func.ptr());
+  }
+  FunctionPtr GetExpressionEvaluationFunction() const {
+    ASSERT(expression_evaluation_function_ != nullptr);
+    return expression_evaluation_function_->ptr();
+  }
 
  private:
   Thread* thread_;
   const TypedDataBase& binary_;
   Array& bytecode_component_array_;
+  const GrowableObjectArray& pending_objects_;
   Array& bytecode_offsets_map_;
+  Library* expression_evaluation_library_ = nullptr;
+  Class* expression_evaluation_real_classs_ = nullptr;
+  Function* expression_evaluation_function_ = nullptr;
 
   DISALLOW_COPY_AND_ASSIGN(BytecodeLoader);
 };
@@ -195,15 +239,19 @@ class BytecodeReaderHelper : public ValueObject {
   Reader& reader() { return reader_; }
 
   void ReadCode(const Function& function, intptr_t code_offset);
+  void ReadCoveredConstConstructors(const Script& script, intptr_t offset);
 
   void ReadMembers(const Class& cls, bool discard_fields);
 
   void ReadFieldDeclarations(const Class& cls, bool discard_fields);
   void ReadFunctionDeclarations(const Class& cls);
   void ReadClassDeclaration(const Class& cls);
-  void ReadLibraryDeclaration(const Library& library,
-                              const GrowableObjectArray& pending_classes);
-  void ReadLibraryDeclarations(intptr_t num_libraries);
+  void ReadLibraryDeclaration(const Library& library, bool register_classes);
+  void ReadLibraryDeclarations(intptr_t num_libraries,
+                               const GrowableObjectArray& pending_objects,
+                               bool load_code);
+  void ReadPendingCode(const GrowableObjectArray& pending_objects);
+  void FindModifiedLibraries(BitVector* modified_libs, intptr_t num_libraries);
 
   LibraryPtr ReadMain();
 
@@ -550,6 +598,7 @@ class BytecodeLocalVariablesIterator : ValueObject {
     kContextVariable,
   };
 
+  static const char* kKindNames[];
   static const intptr_t kKindMask = 0xF;
   static const intptr_t kIsCapturedFlag = 1 << 4;
 
@@ -597,6 +646,7 @@ class BytecodeLocalVariablesIterator : ValueObject {
   bool IsDone() const { return entries_remaining_ < 0; }
 
   intptr_t Kind() const { return cur_kind_and_flags_ & kKindMask; }
+  const char* KindName() const { return kKindNames[Kind()]; }
   bool IsScope() const { return Kind() == kScope; }
   bool IsVariableDeclaration() const { return Kind() == kVariableDeclaration; }
   bool IsContextVariable() const { return Kind() == kContextVariable; }

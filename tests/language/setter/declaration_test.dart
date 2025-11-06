@@ -8,13 +8,13 @@ import 'dart:async';
 
 set tooFew() {}
 //  ^^^^^^
-// [analyzer] COMPILE_TIME_ERROR.WRONG_NUMBER_OF_PARAMETERS_FOR_SETTER
+// [analyzer] SYNTACTIC_ERROR.WRONG_NUMBER_OF_PARAMETERS_FOR_SETTER
 //        ^
 // [cfe] A setter should have exactly one formal parameter.
 
 set tooMany(var value, var extra) {}
 //  ^^^^^^^
-// [analyzer] COMPILE_TIME_ERROR.WRONG_NUMBER_OF_PARAMETERS_FOR_SETTER
+// [analyzer] SYNTACTIC_ERROR.WRONG_NUMBER_OF_PARAMETERS_FOR_SETTER
 //         ^
 // [cfe] A setter should have exactly one formal parameter.
 

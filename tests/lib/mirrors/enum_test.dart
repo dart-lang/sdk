@@ -12,16 +12,18 @@ class C {}
 
 enum Suite { CLUBS, DIAMONDS, SPADES, HEARTS }
 
-main() {
+void main() {
   Expect.isFalse(reflectClass(C).isEnum);
 
   Expect.isTrue(reflectClass(Suite).isEnum);
   Expect.isFalse(reflectClass(Suite).isAbstract);
-  Expect.equals(
-    0,
-    reflectClass(Suite).declarations.values
-        .where((d) => d is MethodMirror && d.isConstructor)
-        .length,
+  var constructors = reflectClass(Suite).declarations.values
+      .whereType<MethodMirror>()
+      .where((d) => d.isConstructor)
+      .toList();
+  Expect.equals(1, constructors.length);
+  Expect.throwsUnsupportedError(
+    () => reflectClass(Suite).newInstance(Symbol.empty, [2, "BANANA"]),
   );
 
   Expect.equals(
@@ -56,14 +58,12 @@ main() {
 
   Expect.setEquals(
     [
-      'Variable(s(index) in s(Suite), final)',
-      'Variable(s(CLUBS) in s(Suite), static, final)',
-      'Variable(s(DIAMONDS) in s(Suite), static, final)',
-      'Variable(s(SPADES) in s(Suite), static, final)',
-      'Variable(s(HEARTS) in s(Suite), static, final)',
-      'Variable(s(values) in s(Suite), static, final)',
-      'Method(s(hashCode) in s(Suite), getter)',
-      'Method(s(toString) in s(Suite))',
+      'Variable(s(CLUBS) in s(Suite), static, final, const)',
+      'Variable(s(DIAMONDS) in s(Suite), static, final, const)',
+      'Variable(s(SPADES) in s(Suite), static, final, const)',
+      'Variable(s(HEARTS) in s(Suite), static, final, const)',
+      'Variable(s(values) in s(Suite), static, final, const)',
+      'Method(s(Suite) in s(Suite), constructor)',
     ],
     reflectClass(
       Suite,

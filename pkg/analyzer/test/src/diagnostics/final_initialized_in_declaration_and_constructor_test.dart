@@ -38,7 +38,7 @@ augment class A {
     await resolveFile2(testFile);
     assertErrorsInResult([
       error(
-        CompileTimeErrorCode.FINAL_INITIALIZED_IN_DECLARATION_AND_CONSTRUCTOR,
+        CompileTimeErrorCode.finalInitializedInDeclarationAndConstructor,
         54,
         1,
       ),
@@ -58,7 +58,7 @@ class A {
 ''',
       [
         error(
-          CompileTimeErrorCode.FINAL_INITIALIZED_IN_DECLARATION_AND_CONSTRUCTOR,
+          CompileTimeErrorCode.finalInitializedInDeclarationAndConstructor,
           34,
           1,
         ),
@@ -76,9 +76,9 @@ enum E {
 }
 ''',
       [
-        error(CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION, 11, 4),
+        error(CompileTimeErrorCode.constEvalThrowsException, 11, 4),
         error(
-          CompileTimeErrorCode.FINAL_INITIALIZED_IN_DECLARATION_AND_CONSTRUCTOR,
+          CompileTimeErrorCode.finalInitializedInDeclarationAndConstructor,
           47,
           1,
         ),

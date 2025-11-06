@@ -10,6 +10,8 @@ import 'add_late_test.dart' as add_late;
 import 'add_return_type_test.dart' as add_return_type;
 import 'add_type_annotation_test.dart' as add_type_annotation;
 import 'assign_to_local_variable_test.dart' as assign_to_local_variable;
+import 'bind_all_to_fields_test.dart' as bind_all_to_fields_test;
+import 'bind_to_field_test.dart' as bind_to_field_test;
 import 'convert_class_to_enum_test.dart' as convert_class_to_enum;
 import 'convert_class_to_mixin_test.dart' as convert_class_to_mixin;
 import 'convert_documentation_into_block_test.dart'
@@ -29,6 +31,7 @@ import 'convert_into_getter_test.dart' as convert_into_getter;
 import 'convert_into_is_not_empty_test.dart' as convert_into_is_not_empty;
 import 'convert_into_is_not_test.dart' as convert_into_is_not;
 import 'convert_part_of_to_uri_test.dart' as convert_part_of_to_uri;
+import 'convert_to_dot_shorthand_test.dart' as convert_to_dot_shorthand;
 import 'convert_to_double_quoted_string_test.dart'
     as convert_to_double_quoted_string;
 import 'convert_to_field_parameter_test.dart' as convert_to_field_parameter;
@@ -118,6 +121,8 @@ void main() {
     add_return_type.main();
     add_type_annotation.main();
     assign_to_local_variable.main();
+    bind_all_to_fields_test.main();
+    bind_to_field_test.main();
     convert_class_to_enum.main();
     convert_class_to_mixin.main();
     convert_documentation_into_block.main();
@@ -133,6 +138,7 @@ void main() {
     convert_into_is_not.main();
     convert_into_is_not_empty.main();
     convert_part_of_to_uri.main();
+    convert_to_dot_shorthand.main();
     convert_to_double_quoted_string.main();
     convert_to_field_parameter.main();
     convert_to_for_element.main();

@@ -37,6 +37,57 @@ void f(Object a) {
     await _expectHints(content, expected);
   }
 
+  Future<void> test_config_all() async {
+    var content = '''
+void f(int a, int b) {
+  f(a, 0);
+}
+''';
+    var expected = '''
+void f(int a, int b) {
+  f((Parameter:a:) a, (Parameter:b:) 0);
+}
+''';
+
+    await provideConfig(() => _expectHints(content, expected), {
+      'inlayHints': {'parameterNames': 'all'},
+    });
+  }
+
+  Future<void> test_config_literal() async {
+    var content = '''
+void f(int a, int b) {
+  f(a, 0);
+}
+''';
+    var expected = '''
+void f(int a, int b) {
+  f(a, (Parameter:b:) 0);
+}
+''';
+
+    await provideConfig(() => _expectHints(content, expected), {
+      'inlayHints': {'parameterNames': 'literal'},
+    });
+  }
+
+  Future<void> test_config_none() async {
+    var content = '''
+void f(int a, int b) {
+  f(a, 0);
+}
+''';
+    var expected = '''
+void f(int a, int b) {
+  f(a, 0);
+}
+''';
+
+    await provideConfig(() => _expectHints(content, expected), {
+      'inlayHints': {'parameterNames': 'none'},
+    });
+  }
+
   Future<void> test_location() async {
     var code = TestCode.parse('''
 void f(int /*[0*/a/*0]*/) {}
@@ -197,6 +248,118 @@ void f() {
 }
 ''';
     await _expectHints(content, expected);
+  }
+
+  Future<void> test_config_parameterTypes_disabled() async {
+    var content = '''
+void f(a) {}
+''';
+    var expected = '''
+void f(a) {}
+''';
+
+    await provideConfig(() => _expectHints(content, expected), {
+      'inlayHints': {'parameterTypes': false},
+    });
+  }
+
+  Future<void> test_config_parameterTypes_enabled() async {
+    var content = '''
+void f(a) {}
+''';
+    var expected = '''
+void f((Type:dynamic) a) {}
+''';
+
+    await provideConfig(() => _expectHints(content, expected), {
+      'inlayHints': {'parameterTypes': true},
+    });
+  }
+
+  Future<void> test_config_returnTypes_disabled() async {
+    var content = '''
+f() => 1;
+''';
+    var expected = '''
+f() => 1;
+''';
+
+    await provideConfig(() => _expectHints(content, expected), {
+      'inlayHints': {'returnTypes': false},
+    });
+  }
+
+  Future<void> test_config_returnTypes_enabled() async {
+    var content = '''
+f() => 1;
+''';
+    var expected = '''
+(Type:dynamic) f() => 1;
+''';
+
+    await provideConfig(() => _expectHints(content, expected), {
+      'inlayHints': {'returnTypes': true},
+    });
+  }
+
+  Future<void> test_config_typeArguments_disabled() async {
+    var content = '''
+class A<T> {}
+
+var a = A();
+''';
+    var expected = '''
+class A<T> {}
+
+var (Type:A<dynamic>) a = A();
+''';
+
+    await provideConfig(() => _expectHints(content, expected), {
+      'inlayHints': {'typeArguments': false},
+    });
+  }
+
+  Future<void> test_config_typeArguments_enabled() async {
+    var content = '''
+class A<T> {}
+
+var a = A();
+''';
+    var expected = '''
+class A<T> {}
+
+var (Type:A<dynamic>) a = A(Type:<dynamic>)();
+''';
+
+    await provideConfig(() => _expectHints(content, expected), {
+      'inlayHints': {'typeArguments': true},
+    });
+  }
+
+  Future<void> test_config_variableTypes_disabled() async {
+    var content = '''
+var a = 1;
+''';
+    var expected = '''
+var a = 1;
+''';
+
+    await provideConfig(() => _expectHints(content, expected), {
+      'inlayHints': {'variableTypes': false},
+    });
+  }
+
+  Future<void> test_config_variableTypes_enabled() async {
+    var content = '''
+var a = 1;
+''';
+    var expected = '''
+var (Type:int) a = 1;
+''';
+
+    await provideConfig(() => _expectHints(content, expected), {
+      'inlayHints': {'variableTypes': true},
+    });
   }
 
   Future<void> test_documentUpdates() async {

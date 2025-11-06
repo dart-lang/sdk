@@ -3,12 +3,13 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/analysis_rule/rule_context.dart';
+import 'package:analyzer/analysis_rule/rule_state.dart';
+import 'package:analyzer/analysis_rule/rule_visitor_registry.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/error/error.dart';
-import 'package:analyzer/src/lint/linter.dart'; // ignore: implementation_imports
 import 'package:collection/collection.dart';
 
 import '../analyzer.dart';
@@ -34,10 +35,13 @@ class UseLateForPrivateFieldsAndVariables extends LintRule {
 
   @override
   DiagnosticCode get diagnosticCode =>
-      LinterLintCode.use_late_for_private_fields_and_variables;
+      LinterLintCode.useLateForPrivateFieldsAndVariables;
 
   @override
-  void registerNodeProcessors(NodeLintRegistry registry, RuleContext context) {
+  void registerNodeProcessors(
+    RuleVisitorRegistry registry,
+    RuleContext context,
+  ) {
     var visitor = _Visitor(this, context);
     registry.addCompilationUnit(this, visitor);
     registry.afterLibrary(this, () => visitor.afterLibrary());

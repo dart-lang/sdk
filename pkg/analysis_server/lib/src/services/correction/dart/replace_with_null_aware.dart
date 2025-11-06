@@ -15,6 +15,7 @@ class ReplaceWithNullAware extends ResolvedCorrectionProducer {
 
   /// The operator to replace.
   String _operator = '.';
+  String _operatorPrefix = '?';
 
   ReplaceWithNullAware.inChain({required super.context})
     : _correctionKind = _CorrectionKind.inChain;
@@ -30,7 +31,7 @@ class ReplaceWithNullAware extends ResolvedCorrectionProducer {
       CorrectionApplicability.singleLocation;
 
   @override
-  List<String> get fixArguments => [_operator, '?$_operator'];
+  List<String> get fixArguments => [_operator, '$_operatorPrefix$_operator'];
 
   @override
   FixKind get fixKind => DartFixKind.REPLACE_WITH_NULL_AWARE;
@@ -81,14 +82,17 @@ class ReplaceWithNullAware extends ResolvedCorrectionProducer {
         node = parent.cascadeSections.first;
       }
     }
-    if (node is MethodInvocation) {
-      await _insert(builder, node.operator);
-    } else if (node is PrefixedIdentifier) {
-      await _insert(builder, node.period);
-    } else if (node is PropertyAccess) {
-      await _insert(builder, node.operator);
-    } else if (node is IndexExpression) {
-      await _insert(builder, node.period);
+    switch (node) {
+      case MethodInvocation():
+        await _insert(builder, node.operator);
+      case PrefixedIdentifier():
+        await _insert(builder, node.period);
+      case PropertyAccess():
+        await _insert(builder, node.operator);
+      case IndexExpression():
+        await _insert(builder, node.period);
+      case FunctionExpressionInvocation(:var argumentList):
+        await _insertCall(builder, argumentList);
     }
   }
 
@@ -96,9 +100,17 @@ class ReplaceWithNullAware extends ResolvedCorrectionProducer {
     if (token != null) {
       _operator = token.lexeme;
       await builder.addDartFileEdit(file, (builder) {
-        builder.addSimpleInsertion(token.offset, '?');
+        builder.addSimpleInsertion(token.offset, _operatorPrefix);
       });
     }
+  }
+
+  Future<void> _insertCall(ChangeBuilder builder, ArgumentList node) async {
+    _operator = '(';
+    _operatorPrefix = '?.call';
+    await builder.addDartFileEdit(file, (builder) {
+      builder.addSimpleInsertion(node.offset, _operatorPrefix);
+    });
   }
 }
 

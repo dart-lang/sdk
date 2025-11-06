@@ -2,15 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/*@testedFeatures=inference*/
-
 void test() {
-  List<dynamic> l = /*@ typeArgs=dynamic */ [1, "hello"];
-  List<String> l2 = l
-      . /*@target=Iterable.map*/ /*@typeArgs=String*/ map(
-          /*@returnType=String*/ (dynamic element) =>
-              element. /*@target=Object.toString*/ toString())
-      . /*@target=Iterable.toList*/ toList();
+  List<dynamic> l = [1, "hello"];
+  List<String> l2 = l.map((dynamic element) => element.toString()).toList();
 }
 
 void main() {}

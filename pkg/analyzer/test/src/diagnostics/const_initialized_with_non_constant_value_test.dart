@@ -24,12 +24,8 @@ f(p) {
 }
 ''',
       [
-        error(WarningCode.UNUSED_LOCAL_VARIABLE, 15, 1),
-        error(
-          CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE,
-          19,
-          1,
-        ),
+        error(WarningCode.unusedLocalVariable, 15, 1),
+        error(CompileTimeErrorCode.constInitializedWithNonConstantValue, 19, 1),
       ],
     );
   }
@@ -43,7 +39,7 @@ class Foo {
   foo([int x = field]) {}
 }
 ''',
-      [error(CompileTimeErrorCode.NON_CONSTANT_DEFAULT_VALUE, 46, 5)],
+      [error(CompileTimeErrorCode.nonConstantDefaultValue, 46, 5)],
     );
   }
 
@@ -52,13 +48,7 @@ class Foo {
       '''
 const a = () {};
 ''',
-      [
-        error(
-          CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE,
-          10,
-          5,
-        ),
-      ],
+      [error(CompileTimeErrorCode.constInitializedWithNonConstantValue, 10, 5)],
     );
   }
 
@@ -82,13 +72,7 @@ class A {
 }
 const a = new A();
 ''',
-      [
-        error(
-          CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE,
-          35,
-          7,
-        ),
-      ],
+      [error(CompileTimeErrorCode.constInitializedWithNonConstantValue, 35, 7)],
     );
   }
 
@@ -113,13 +97,7 @@ class A {
 final a = const A();
 const c = a.m;
 ''',
-      [
-        error(
-          CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE,
-          72,
-          1,
-        ),
-      ],
+      [error(CompileTimeErrorCode.constInitializedWithNonConstantValue, 72, 1)],
     );
   }
 

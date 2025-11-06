@@ -31,7 +31,7 @@ mixin CompletionTestMixin on AbstractLspAnalysisServerTest {
     var code = TestCode.parse(content);
     // If verifyInsertReplaceRanges is true, we need both expected contents.
     assert(
-      verifyInsertReplaceRanges == false ||
+      !verifyInsertReplaceRanges ||
           (expectedContent != null && expectedContentIfInserting != null),
     );
 
@@ -116,6 +116,6 @@ mixin CompletionTestMixin on AbstractLspAnalysisServerTest {
   /// of the cursor position in completions.
   String withCaret(String contents, InsertTextFormat? format) =>
       format == InsertTextFormat.Snippet
-          ? contents.replaceFirst(r'$0', '^')
-          : contents;
+      ? contents.replaceFirst(r'$0', '^')
+      : contents;
 }

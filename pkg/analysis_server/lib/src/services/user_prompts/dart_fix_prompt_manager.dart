@@ -87,13 +87,12 @@ class DartFixPromptManager {
     var constraintMap = <String, List<String?>>{};
     for (var context in server.contextManager.analysisContexts) {
       var workspace = context.contextRoot.workspace;
-      var sdkConstraints =
-          workspace is PackageConfigWorkspace
-              ? workspace.allPackages
-                  .whereType<PubPackage>()
-                  .map((p) => p.sdkVersionConstraint?.toString())
-                  .toList()
-              : <String>[];
+      var sdkConstraints = workspace is PackageConfigWorkspace
+          ? workspace.allPackages
+                .whereType<PubPackage>()
+                .map((p) => p.sdkVersionConstraint?.toString())
+                .toList()
+          : <String>[];
       constraintMap[context.contextRoot.root.path] = sdkConstraints;
     }
     return constraintMap;
@@ -188,10 +187,9 @@ class DartFixPromptManager {
 
       case (previewFixesActionText, ExecuteCommandHandler execHandler):
       case (applyFixesActionText, ExecuteCommandHandler execHandler):
-        var command =
-            response == applyFixesActionText
-                ? Commands.fixAllInWorkspace
-                : Commands.previewFixAllInWorkspace;
+        var command = response == applyFixesActionText
+            ? Commands.fixAllInWorkspace
+            : Commands.previewFixAllInWorkspace;
         unawaited(
           _executeCommand(
             clientCapabilities,

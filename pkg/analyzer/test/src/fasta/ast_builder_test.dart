@@ -23,7 +23,7 @@ class AstBuilderTest extends ParserDiagnosticsTest {
 abstract final base class A {}
 ''');
     parseResult.assertErrors([
-      error(ParserErrorCode.ABSTRACT_FINAL_BASE_CLASS, 18, 10),
+      error(ParserErrorCode.abstractFinalBaseClass, 18, 10),
     ]);
 
     var node = parseResult.findNode.classDeclaration('class A {}');
@@ -48,7 +48,7 @@ ClassDeclaration
 abstract final interface class A {}
 ''');
     parseResult.assertErrors([
-      error(ParserErrorCode.ABSTRACT_FINAL_INTERFACE_CLASS, 18, 15),
+      error(ParserErrorCode.abstractFinalInterfaceClass, 18, 15),
     ]);
 
     var node = parseResult.findNode.classDeclaration('class A {}');
@@ -73,7 +73,7 @@ ClassDeclaration
 abstract sealed class A {}
 ''');
     parseResult.assertErrors([
-      error(ParserErrorCode.ABSTRACT_SEALED_CLASS, 18, 6),
+      error(ParserErrorCode.abstractSealedClass, 18, 6),
     ]);
 
     var node = parseResult.findNode.classDeclaration('class A {}');
@@ -299,7 +299,7 @@ ConstructorDeclaration
 class C extends (int, int) {}
 ''');
     parseResult.assertErrors([
-      error(ParserErrorCode.EXPECTED_NAMED_TYPE_EXTENDS, 16, 10),
+      error(ParserErrorCode.expectedNamedTypeExtends, 16, 10),
     ]);
 
     var node = parseResult.findNode.classDeclaration('class C');
@@ -337,7 +337,7 @@ ClassDeclaration
     var parseResult = parseStringWithErrors(r'''
 final mixin class A {}
 ''');
-    parseResult.assertErrors([error(ParserErrorCode.FINAL_MIXIN_CLASS, 0, 5)]);
+    parseResult.assertErrors([error(ParserErrorCode.finalMixinClass, 0, 5)]);
 
     var node = parseResult.findNode.classDeclaration('class A {}');
     assertParsedNodeText(node, r'''
@@ -356,7 +356,7 @@ ClassDeclaration
 class C implements A, (int, int), B {}
 ''');
     parseResult.assertErrors([
-      error(ParserErrorCode.EXPECTED_NAMED_TYPE_IMPLEMENTS, 22, 10),
+      error(ParserErrorCode.expectedNamedTypeImplements, 22, 10),
     ]);
 
     var node = parseResult.findNode.classDeclaration('class C');
@@ -402,7 +402,7 @@ ClassDeclaration
 interface mixin class A {}
 ''');
     parseResult.assertErrors([
-      error(ParserErrorCode.INTERFACE_MIXIN_CLASS, 0, 9),
+      error(ParserErrorCode.interfaceMixinClass, 0, 9),
     ]);
 
     var node = parseResult.findNode.classDeclaration('class A {}');
@@ -465,7 +465,7 @@ ClassDeclaration
 sealed abstract class A {}
 ''');
     parseResult.assertErrors([
-      error(ParserErrorCode.ABSTRACT_SEALED_CLASS, 9, 6),
+      error(ParserErrorCode.abstractSealedClass, 9, 6),
     ]);
 
     var node = parseResult.findNode.classDeclaration('class A {}');
@@ -487,7 +487,7 @@ ClassDeclaration
     var parseResult = parseStringWithErrors(r'''
 sealed mixin class A {}
 ''');
-    parseResult.assertErrors([error(ParserErrorCode.SEALED_MIXIN_CLASS, 0, 6)]);
+    parseResult.assertErrors([error(ParserErrorCode.sealedMixinClass, 0, 6)]);
 
     var node = parseResult.findNode.classDeclaration('class A {}');
     assertParsedNodeText(node, r'''
@@ -506,7 +506,7 @@ ClassDeclaration
 class C with A, (int, int), B {}
 ''');
     parseResult.assertErrors([
-      error(ParserErrorCode.EXPECTED_NAMED_TYPE_WITH, 16, 10),
+      error(ParserErrorCode.expectedNamedTypeWith, 16, 10),
     ]);
 
     var node = parseResult.findNode.classDeclaration('class C');
@@ -560,7 +560,7 @@ ClassTypeAlias
 class C = A Function() with M;
 ''');
     parseResult.assertErrors([
-      error(ParserErrorCode.EXPECTED_NAMED_TYPE_EXTENDS, 10, 12),
+      error(ParserErrorCode.expectedNamedTypeExtends, 10, 12),
     ]);
     var node = parseResult.findNode.classTypeAlias('class');
     assertParsedNodeText(node, r'''
@@ -643,7 +643,7 @@ class C = Object with M implements A, (int, int), B;
 mixin M {}
 ''');
     parseResult.assertErrors([
-      error(ParserErrorCode.EXPECTED_NAMED_TYPE_IMPLEMENTS, 38, 10),
+      error(ParserErrorCode.expectedNamedTypeImplements, 38, 10),
     ]);
 
     var node = parseResult.findNode.classTypeAlias('class C');
@@ -733,7 +733,7 @@ ClassTypeAlias
 class C = Object with A, (int, int), B;
 ''');
     parseResult.assertErrors([
-      error(ParserErrorCode.EXPECTED_NAMED_TYPE_WITH, 25, 10),
+      error(ParserErrorCode.expectedNamedTypeWith, 25, 10),
     ]);
 
     var node = parseResult.findNode.classTypeAlias('class C');
@@ -787,8 +787,8 @@ class A {
 }
 ''');
     parseResult.assertErrors([
-      error(ParserErrorCode.MISSING_ASSIGNABLE_SELECTOR, 18, 7),
-      error(ParserErrorCode.INVALID_INITIALIZER, 18, 11),
+      error(ParserErrorCode.missingAssignableSelector, 18, 7),
+      error(ParserErrorCode.invalidInitializer, 18, 11),
     ]);
 
     var node = parseResult.findNode.constructor('A()');
@@ -856,7 +856,7 @@ class A {
 }
 ''');
     parseResult.assertErrors([
-      error(ParserErrorCode.INVALID_CONSTRUCTOR_NAME, 12, 1),
+      error(ParserErrorCode.invalidConstructorName, 12, 1),
     ]);
 
     var node = parseResult.findNode.constructor('B()');
@@ -926,7 +926,7 @@ DotShorthandPropertyAccess
     var parseResult = parseStringWithErrors(r'''
 base enum E { v }
 ''');
-    parseResult.assertErrors([error(ParserErrorCode.BASE_ENUM, 0, 4)]);
+    parseResult.assertErrors([error(ParserErrorCode.baseEnum, 0, 4)]);
 
     var node = parseResult.findNode.enumDeclaration('enum E');
     assertParsedNodeText(node, r'''
@@ -948,8 +948,8 @@ enum E {
 }
 ''');
     parseResult.assertErrors([
-      error(ParserErrorCode.MISSING_IDENTIFIER, 14, 1),
-      error(ParserErrorCode.EXPECTED_TOKEN, 14, 1),
+      error(ParserErrorCode.missingIdentifier, 14, 1),
+      error(ParserErrorCode.expectedToken, 14, 1),
     ]);
 
     var node = parseResult.findNode.enumConstantDeclaration('v.');
@@ -973,7 +973,7 @@ enum E {
   v.named;
 }
 ''');
-    parseResult.assertErrors([error(ParserErrorCode.EXPECTED_TOKEN, 13, 5)]);
+    parseResult.assertErrors([error(ParserErrorCode.expectedToken, 13, 5)]);
 
     var node = parseResult.findNode.enumConstantDeclaration('v.');
     assertParsedNodeText(node, r'''
@@ -997,8 +997,8 @@ enum E {
 }
 ''');
     parseResult.assertErrors([
-      error(ParserErrorCode.EXPECTED_TOKEN, 13, 1),
-      error(ParserErrorCode.MISSING_IDENTIFIER, 13, 1),
+      error(ParserErrorCode.expectedToken, 13, 1),
+      error(ParserErrorCode.missingIdentifier, 13, 1),
     ]);
 
     var node = parseResult.findNode.enumConstantDeclaration('v.');
@@ -1023,8 +1023,8 @@ enum E {
 }
 ''');
     parseResult.assertErrors([
-      error(ParserErrorCode.MISSING_IDENTIFIER, 19, 1),
-      error(ParserErrorCode.EXPECTED_TOKEN, 19, 1),
+      error(ParserErrorCode.missingIdentifier, 19, 1),
+      error(ParserErrorCode.expectedToken, 19, 1),
     ]);
 
     var node = parseResult.findNode.enumConstantDeclaration('v<int>.');
@@ -1055,8 +1055,8 @@ enum E {
 }
 ''');
     parseResult.assertErrors([
-      error(ParserErrorCode.MISSING_IDENTIFIER, 18, 1),
-      error(ParserErrorCode.EXPECTED_TOKEN, 18, 1),
+      error(ParserErrorCode.missingIdentifier, 18, 1),
+      error(ParserErrorCode.expectedToken, 18, 1),
     ]);
 
     var node = parseResult.findNode.enumConstantDeclaration('v<int>');
@@ -1086,7 +1086,7 @@ enum E<T> {
   v<int>;
 }
 ''');
-    parseResult.assertErrors([error(ParserErrorCode.EXPECTED_TOKEN, 19, 1)]);
+    parseResult.assertErrors([error(ParserErrorCode.expectedToken, 19, 1)]);
 
     var node = parseResult.findNode.enumConstantDeclaration('v<int>');
     assertParsedNodeText(node, r'''
@@ -1109,7 +1109,7 @@ EnumConstantDeclaration
     var parseResult = parseStringWithErrors(r'''
 final enum E { v }
 ''');
-    parseResult.assertErrors([error(ParserErrorCode.FINAL_ENUM, 0, 5)]);
+    parseResult.assertErrors([error(ParserErrorCode.finalEnum, 0, 5)]);
 
     var node = parseResult.findNode.enumDeclaration('enum E');
     assertParsedNodeText(node, r'''
@@ -1128,7 +1128,7 @@ EnumDeclaration
     var parseResult = parseStringWithErrors(r'''
 interface enum E { v }
 ''');
-    parseResult.assertErrors([error(ParserErrorCode.INTERFACE_ENUM, 0, 9)]);
+    parseResult.assertErrors([error(ParserErrorCode.interfaceEnum, 0, 9)]);
 
     var node = parseResult.findNode.enumDeclaration('enum E');
     assertParsedNodeText(node, r'''
@@ -1147,7 +1147,7 @@ EnumDeclaration
     var parseResult = parseStringWithErrors(r'''
 sealed enum E { v }
 ''');
-    parseResult.assertErrors([error(ParserErrorCode.SEALED_ENUM, 0, 6)]);
+    parseResult.assertErrors([error(ParserErrorCode.sealedEnum, 0, 6)]);
 
     var node = parseResult.findNode.enumDeclaration('enum E');
     assertParsedNodeText(node, r'''
@@ -1240,7 +1240,7 @@ class A {
 }
 ''');
     parseResult.assertErrors([
-      error(ParserErrorCode.MEMBER_WITH_CLASS_NAME, 16, 1),
+      error(ParserErrorCode.memberWithClassName, 16, 1),
     ]);
 
     var node = parseResult.findNode.methodDeclaration('get A');
@@ -1266,7 +1266,7 @@ library name.and.dots;
     assertParsedNodeText(node, r'''
 LibraryDirective
   libraryKeyword: library
-  name2: LibraryIdentifier
+  name: LibraryIdentifier
     components
       SimpleIdentifier
         token: name
@@ -1317,7 +1317,7 @@ MixinDeclaration
     var parseResult = parseStringWithErrors(r'''
 final mixin M {}
 ''');
-    parseResult.assertErrors([error(ParserErrorCode.FINAL_MIXIN, 0, 5)]);
+    parseResult.assertErrors([error(ParserErrorCode.finalMixin, 0, 5)]);
 
     var node = parseResult.findNode.mixinDeclaration('mixin M');
     assertParsedNodeText(node, r'''
@@ -1335,7 +1335,7 @@ class C {}
 mixin M on C implements A, (int, int), B {}
 ''');
     parseResult.assertErrors([
-      error(ParserErrorCode.EXPECTED_NAMED_TYPE_IMPLEMENTS, 38, 10),
+      error(ParserErrorCode.expectedNamedTypeImplements, 38, 10),
     ]);
 
     var node = parseResult.findNode.mixinDeclaration('mixin M');
@@ -1364,7 +1364,7 @@ MixinDeclaration
     var parseResult = parseStringWithErrors(r'''
 interface mixin M {}
 ''');
-    parseResult.assertErrors([error(ParserErrorCode.INTERFACE_MIXIN, 0, 9)]);
+    parseResult.assertErrors([error(ParserErrorCode.interfaceMixin, 0, 9)]);
 
     var node = parseResult.findNode.mixinDeclaration('mixin M');
     assertParsedNodeText(node, r'''
@@ -1381,7 +1381,7 @@ MixinDeclaration
 mixin M on A, (int, int), B {}
 ''');
     parseResult.assertErrors([
-      error(ParserErrorCode.EXPECTED_NAMED_TYPE_ON, 14, 10),
+      error(ParserErrorCode.expectedNamedTypeOn, 14, 10),
     ]);
 
     var node = parseResult.findNode.mixinDeclaration('mixin M');
@@ -1405,7 +1405,7 @@ MixinDeclaration
     var parseResult = parseStringWithErrors(r'''
 sealed mixin M {}
 ''');
-    parseResult.assertErrors([error(ParserErrorCode.SEALED_MIXIN, 0, 6)]);
+    parseResult.assertErrors([error(ParserErrorCode.sealedMixin, 0, 6)]);
 
     var node = parseResult.findNode.mixinDeclaration('mixin M');
     assertParsedNodeText(node, r'''
@@ -1648,11 +1648,7 @@ RecordTypeAnnotation
 void f((int) r) {}
 ''');
     parseResult.assertErrors([
-      error(
-        ParserErrorCode.RECORD_TYPE_ONE_POSITIONAL_NO_TRAILING_COMMA,
-        11,
-        1,
-      ),
+      error(ParserErrorCode.recordTypeOnePositionalNoTrailingComma, 11, 1),
     ]);
 
     var node = parseResult.findNode.recordTypeAnnotation('(int');
@@ -1753,7 +1749,7 @@ void f(Object value) {
   }
 }
 ''');
-    parseResult.assertErrors([error(ParserErrorCode.EXPECTED_TOKEN, 72, 1)]);
+    parseResult.assertErrors([error(ParserErrorCode.expectedToken, 72, 1)]);
 
     var node = parseResult.findNode.switchCase('case');
     assertParsedNodeText(node, r'''

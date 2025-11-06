@@ -1,0 +1,52 @@
+# Copyright (c) 2025, the Dart project authors.  Please see the AUTHORS file
+# for details. All rights reserved. Use of this source code is governed by a
+# BSD-style license that can be found in the LICENSE file.
+
+# Definition, offset, method etc extracted by starting the VM with
+# `-DDFE_VERBOSE=true`, e.g.
+# ```
+# out/ReleaseX64/dart -DDFE_VERBOSE=true --enable-vm-service \
+# --disable-service-auth-codes --pause_isolates_on_start inputFile.dart
+# ```
+# and then issuing the expression compilation.
+#
+# A list of "A"s has a "B" in it. Given that it's a List<A> we can't access
+# B-members in Dart - but expression evaluation should be able to.
+# Here a binary expression.
+
+sources:
+  main.dart: |
+    library main;
+    import "dart:developer";
+    import "lib.dart";
+
+    abstract class A {}
+
+    void foo (List<A> list) {
+      debugger();
+      for(var element in list) {
+        print(element);
+      }
+    }
+
+    void main() {
+      foo([new B()]);
+    }
+  lib.dart: |
+    library lib;
+    import "main.dart";
+    class B extends A {
+      int operator +(int i) => 40 + i;
+    }
+
+definitions: ["list"]
+definition_types: ["dart:core", "_GrowableList", "1", "1", "org-dartlang-test:///a/b/c/main.dart", "A", "1", "0"]
+type_definitions: []
+type_bounds: []
+type_defaults: []
+method: "foo"
+static: true
+offset: 94
+scriptUri: main.dart
+expression: |
+  list.first + 2

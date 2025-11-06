@@ -6,12 +6,12 @@ import 'package:analyzer/dart/analysis/context_root.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/file_system/physical_file_system.dart'
     show PhysicalResourceProvider;
+import 'package:analyzer/src/analysis_options/analysis_options_file.dart';
 import 'package:analyzer/src/analysis_options/analysis_options_provider.dart';
 import 'package:analyzer/src/context/packages.dart';
 import 'package:analyzer/src/dart/analysis/analysis_options.dart';
 import 'package:analyzer/src/dart/analysis/context_root.dart';
 import 'package:analyzer/src/lint/pub.dart';
-import 'package:analyzer/src/task/options.dart';
 import 'package:analyzer/src/util/file_paths.dart' as file_paths;
 import 'package:analyzer/src/util/yaml.dart';
 import 'package:analyzer/src/utilities/extensions/file_system.dart';
@@ -75,21 +75,19 @@ class ContextLocatorImpl {
     // Use the excluded folders and files to filter the included folders and
     // files.
     //
-    includedFolders =
-        includedFolders
-            .where(
-              (Folder includedFolder) =>
-                  !_containedInAny(excludedFolders, includedFolder),
-            )
-            .toList();
-    includedFiles =
-        includedFiles
-            .where(
-              (File includedFile) =>
-                  !_containedInAny(excludedFolders, includedFile) &&
-                  !excludedFiles.contains(includedFile),
-            )
-            .toList();
+    includedFolders = includedFolders
+        .where(
+          (Folder includedFolder) =>
+              !_containedInAny(excludedFolders, includedFolder),
+        )
+        .toList();
+    includedFiles = includedFiles
+        .where(
+          (File includedFile) =>
+              !_containedInAny(excludedFolders, includedFile) &&
+              !excludedFiles.contains(includedFile),
+        )
+        .toList();
     //
     // We now have a list of all of the files and folders that need to be
     // analyzed. For each, walk the directory structure and figure out where to
@@ -832,9 +830,8 @@ class ContextLocatorImpl {
           var pubspec = Pubspec.parse(pubspecFile.readAsStringSync());
           var resolution = pubspec.resolution;
           if (resolution != null && resolution.value.text == 'workspace') {
-            var known =
-                rootWorkspaceSpecification[location.workspace.root] ??=
-                    _loadWorkspaceDetailsFromPubspec(location.workspace.root);
+            var known = rootWorkspaceSpecification[location.workspace.root] ??=
+                _loadWorkspaceDetailsFromPubspec(location.workspace.root);
             if (known.contains(folder)) {
               (workspaceResolutionRootMap[location.workspace.root] ??= []).add(
                 folder,

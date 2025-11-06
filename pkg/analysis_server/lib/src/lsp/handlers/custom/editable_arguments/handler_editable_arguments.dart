@@ -161,8 +161,9 @@ class EditableArgumentsHandler
     required int numPositionals,
     required int numSuppliedPositionals,
   }) {
-    var valueExpression =
-        argument is NamedExpression ? argument.expression : argument;
+    var valueExpression = argument is NamedExpression
+        ? argument.expression
+        : argument;
 
     // Lazily compute the values if we will use this parameter/argument.
     late var values = _getValues(parameter, valueExpression);

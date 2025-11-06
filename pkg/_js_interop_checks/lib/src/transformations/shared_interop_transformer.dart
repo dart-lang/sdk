@@ -9,13 +9,13 @@ import 'package:_js_interop_checks/js_interop_checks.dart'
 import 'package:_js_interop_checks/src/js_interop.dart' as js_interop;
 import 'package:front_end/src/api_prototype/codes.dart'
     show
-        messageJsInteropIsATearoff,
-        templateJsInteropExportClassNotMarkedExportable,
-        templateJsInteropExportInvalidInteropTypeArgument,
-        templateJsInteropExportInvalidTypeArgument,
-        templateJsInteropIsAInvalidTypeVariable,
-        templateJsInteropIsAObjectLiteralType,
-        templateJsInteropIsAPrimitiveExtensionType;
+        codeJsInteropIsATearoff,
+        codeJsInteropExportClassNotMarkedExportable,
+        codeJsInteropExportInvalidInteropTypeArgument,
+        codeJsInteropExportInvalidTypeArgument,
+        codeJsInteropIsAInvalidTypeVariable,
+        codeJsInteropIsAObjectLiteralType,
+        codeJsInteropIsAPrimitiveExtensionType;
 import 'package:kernel/ast.dart';
 import 'package:kernel/library_index.dart';
 import 'package:kernel/type_environment.dart';
@@ -41,6 +41,7 @@ class SharedInteropTransformer extends Transformer {
   late StaticInvocation? _invocation;
   final Procedure _isA;
   final Procedure _isATearoff;
+  final Procedure _isJSBoxedDartObject;
   final ExtensionTypeDeclaration _jsAny;
   final ExtensionTypeDeclaration _jsFunction;
   final ExtensionTypeDeclaration _jsObject;
@@ -49,6 +50,8 @@ class SharedInteropTransformer extends Transformer {
   final StaticInteropMockValidator _staticInteropMockValidator;
   final TypeEnvironment _typeEnvironment;
   final Procedure _typeofEquals;
+
+  int exportNameIdentifierCounter = 0;
 
   StaticInvocation get invocation => _invocation!;
 
@@ -98,6 +101,8 @@ class SharedInteropTransformer extends Transformer {
         'dart:js_interop',
         'JSAnyUtilityExtension|${LibraryIndex.tearoffPrefix}isA',
       ),
+      _isJSBoxedDartObject = _typeEnvironment.coreTypes.index
+          .getTopLevelProcedure('dart:js_interop', '_isJSBoxedDartObject'),
       _jsAny = _typeEnvironment.coreTypes.index.getExtensionType(
         'dart:js_interop',
         'JSAny',
@@ -133,18 +138,25 @@ class SharedInteropTransformer extends Transformer {
     _invocation = node;
     TreeNode replacement = invocation;
     final target = invocation.target;
-    if (target == _createDartExport || target == _createJSInteropWrapper) {
+    if (target == _createDartExport) {
       final typeArguments = invocation.arguments.types;
       assert(typeArguments.length == 1);
       if (_verifyExportable(typeArguments[0])) {
         final interface = typeArguments[0] as InterfaceType;
-        if (target == _createJSInteropWrapper) {
-          replacement = _createExport(
-            interface,
-            ExtensionType(_jsObject, Nullability.nonNullable),
-          );
-        }
         replacement = _createExport(interface);
+      }
+    } else if (target == _createJSInteropWrapper) {
+      final typeArguments = invocation.arguments.types;
+      assert(typeArguments.length == 1);
+      if (_verifyExportable(typeArguments[0])) {
+        final interface = typeArguments[0] as InterfaceType;
+        final arguments = invocation.arguments.positional;
+        assert(arguments.length == 1 || arguments.length == 2);
+        replacement = _createExport(
+          interface,
+          ExtensionType(_jsObject, Nullability.nonNullable),
+          arguments.length == 2 ? arguments[1] : null,
+        );
       }
     } else if (target == _createStaticInteropMock) {
       final typeArguments = invocation.arguments.types;
@@ -192,7 +204,7 @@ class SharedInteropTransformer extends Transformer {
         if (!_inIsATearoff) {
           assert(interopType is TypeParameterType);
           _diagnosticReporter.report(
-            templateJsInteropIsAInvalidTypeVariable.withArguments(interopType),
+            codeJsInteropIsAInvalidTypeVariable.withArgumentsOld(interopType),
             invocation.fileOffset,
             invocation.name.text.length,
             invocation.location?.file,
@@ -203,7 +215,7 @@ class SharedInteropTransformer extends Transformer {
     } else if (target == _isATearoff) {
       // Calling the generated tear-off is still bad, however.
       _diagnosticReporter.report(
-        messageJsInteropIsATearoff,
+        codeJsInteropIsATearoff,
         invocation.fileOffset,
         invocation.name.text.length,
         invocation.location?.file,
@@ -235,7 +247,7 @@ class SharedInteropTransformer extends Transformer {
   bool _verifyExportable(DartType dartType) {
     if (dartType is! InterfaceType) {
       _diagnosticReporter.report(
-        templateJsInteropExportInvalidTypeArgument.withArguments(dartType),
+        codeJsInteropExportInvalidTypeArgument.withArgumentsOld(dartType),
         invocation.fileOffset,
         invocation.name.text.length,
         invocation.location?.file,
@@ -247,7 +259,7 @@ class SharedInteropTransformer extends Transformer {
         js_interop.hasStaticInteropAnnotation(dartClass) ||
         js_interop.hasAnonymousAnnotation(dartClass)) {
       _diagnosticReporter.report(
-        templateJsInteropExportInvalidInteropTypeArgument.withArguments(
+        codeJsInteropExportInvalidInteropTypeArgument.withArgumentsOld(
           dartType,
         ),
         invocation.fileOffset,
@@ -271,7 +283,7 @@ class SharedInteropTransformer extends Transformer {
     var exportStatus = _exportChecker.exportStatus[dartClass.reference];
     if (exportStatus == ExportStatus.nonExportable) {
       _diagnosticReporter.report(
-        templateJsInteropExportClassNotMarkedExportable.withArguments(
+        codeJsInteropExportClassNotMarkedExportable.withArgumentsOld(
           dartClass.name,
         ),
         invocation.fileOffset,
@@ -395,7 +407,9 @@ class SharedInteropTransformer extends Transformer {
         // A new map VariableDeclaration is created and added to the block of
         // statements for each export name.
         var getSetMap = VariableDeclaration(
-          '#${exportName}Mapping',
+          // Don't use the exportName here because it might not be a valid JS
+          // identifier.
+          '#${exportNameIdentifierCounter++}Mapping',
           initializer: getLiteral(),
           type: ExtensionType(_jsObject, Nullability.nonNullable),
           isSynthesized: true,
@@ -547,27 +561,37 @@ class SharedInteropTransformer extends Transformer {
         typeofString = 'symbol';
         break;
       case 'JSTypedArray' when interopTypeDecl == jsType:
-        // Only do this special case when users are referring directly to
-        // the `dart:js_interop` type and not some wrapper.
+        // Only do this special case when users are referring directly to the
+        // `dart:js_interop` type and not some wrapper.
 
         // `TypedArray` doesn't exist as a property in JS, but rather as a
         // superclass of all typed arrays. In order to do the most sensible
-        // thing here, we can use the prototype of some typed array, and
-        // check that the receiver is an `instanceof` that prototype.
-        // See https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/TypedArray#description
+        // thing here, we can use the prototype of some typed array, and check
+        // that the receiver is an `instanceof` that prototype. See
+        // https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/TypedArray#description
         // for more details.
         check = StaticInvocation(
           _instanceof,
           Arguments([VariableGet(any), getInt8ArrayPrototype()]),
         );
         break;
+      case 'JSBoxedDartObject' when interopTypeDecl == jsType:
+        // Only do this special case when users are referring directly to the
+        // `dart:js_interop` type and not some wrapper.
+
+        // Check whether the given value is the result of a previous call to
+        // `toJSBox`.
+        check = StaticInvocation(
+          _isJSBoxedDartObject,
+          Arguments([VariableGet(any)]),
+        );
       default:
         for (final descriptor in interopTypeDecl.memberDescriptors) {
           final descriptorNode = descriptor.memberReference!.node;
           if (descriptorNode is Procedure &&
               _extensionIndex.isLiteralConstructor(descriptorNode)) {
             _diagnosticReporter.report(
-              templateJsInteropIsAObjectLiteralType.withArguments(interopType),
+              codeJsInteropIsAObjectLiteralType.withArgumentsOld(interopType),
               invocation.fileOffset,
               invocation.name.text.length,
               invocation.location?.file,
@@ -596,7 +620,7 @@ class SharedInteropTransformer extends Transformer {
     if (typeofString != null) {
       if (interopTypeDecl != jsType) {
         _diagnosticReporter.report(
-          templateJsInteropIsAPrimitiveExtensionType.withArguments(
+          codeJsInteropIsAPrimitiveExtensionType.withArgumentsOld(
             interopType,
             jsTypeName,
           ),

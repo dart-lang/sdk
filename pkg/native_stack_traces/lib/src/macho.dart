@@ -121,10 +121,15 @@ class LoadCommand {
 
   LoadCommand._(this.cmd, this.cmdsize);
 
+  static const LC_REQ_DYLD = 0x80000000;
+
   static const LC_SEGMENT = 0x1;
   static const LC_SYMTAB = 0x2;
+  static const LC_ID_DYLIB = 0xd;
   static const LC_SEGMENT_64 = 0x19;
   static const LC_UUID = 0x1b;
+  static const LC_RPATH = 0x1c | LC_REQ_DYLD;
+  static const LC_CODE_SIGNATURE = 0x1d; // Only used in vm/dart tests.
   static const LC_BUILD_VERSION = 0x32;
 
   static LoadCommand fromReader(Reader reader) {
@@ -147,6 +152,10 @@ class LoadCommand {
       case LC_BUILD_VERSION:
         command = BuildVersionCommand.fromReader(reader, cmd, cmdsize);
         break;
+      case LC_ID_DYLIB:
+        command = DylibCommand.fromReader(reader, cmd, cmdsize);
+      case LC_RPATH:
+        command = RunPathCommand.fromReader(reader, cmd, cmdsize);
       default:
         break;
     }
@@ -352,6 +361,86 @@ class UuidCommand extends LoadCommand {
     buffer
       ..write('UUID: ')
       ..write(uuidString);
+  }
+}
+
+class DylibInfo {
+  final String name;
+  final int timestamp;
+  final int currentVersion;
+  final int compatibilityVersion;
+
+  const DylibInfo._(this.name, this.timestamp, this.currentVersion,
+      this.compatibilityVersion);
+
+  static DylibInfo fromReader(Reader reader, int cmdsize) {
+    final start = reader.offset - 8; // cmd + cmdsize
+    final offset = _readMachOUint32(reader);
+    final timestamp = _readMachOUint32(reader);
+    final currentVersion = _readMachOUint32(reader);
+    final compatibilityVersion = _readMachOUint32(reader);
+    reader.seek(start + offset, absolute: true);
+    final name = reader.readNullTerminatedString(maxSize: cmdsize - offset);
+    return DylibInfo._(name, timestamp, currentVersion, compatibilityVersion);
+  }
+
+  void writeToStringBuffer(StringBuffer buffer) {
+    buffer
+      ..write('  Name: ')
+      ..writeln(name)
+      ..write('  Timestamp: ')
+      ..writeln(timestamp)
+      ..write('  Current version: ')
+      ..writeln(currentVersion)
+      ..write('  Compatibility version: ')
+      ..writeln(compatibilityVersion);
+  }
+
+  @override
+  String toString() {
+    final buffer = StringBuffer();
+    writeToStringBuffer(buffer);
+    return buffer.toString();
+  }
+}
+
+class DylibCommand extends LoadCommand {
+  final DylibInfo info;
+
+  DylibCommand._(super.cmd, super.cmdsize, this.info) : super._();
+
+  static DylibCommand fromReader(Reader reader, int cmd, int cmdsize) =>
+      DylibCommand._(cmd, cmdsize, DylibInfo.fromReader(reader, cmdsize));
+
+  @override
+  void writeToStringBuffer(StringBuffer buffer) {
+    if (cmd == LoadCommand.LC_ID_DYLIB) {
+      buffer.writeln('LC_ID_DYLIB:');
+      info.writeToStringBuffer(buffer);
+    } else {
+      throw StateError("Unexpected command code $cmd");
+    }
+  }
+}
+
+class RunPathCommand extends LoadCommand {
+  String path;
+
+  RunPathCommand._(super.cmd, super.cmdsize, this.path) : super._();
+
+  static RunPathCommand fromReader(Reader reader, int cmd, int cmdsize) {
+    final start = reader.offset - 8; // cmd + cmdsize
+    final offset = _readMachOUint32(reader);
+    reader.seek(start + offset, absolute: true);
+    final path = reader.readNullTerminatedString(maxSize: cmdsize - offset);
+    return RunPathCommand._(cmd, cmdsize, path);
+  }
+
+  @override
+  void writeToStringBuffer(StringBuffer buffer) {
+    buffer
+      ..write('Run path: ')
+      ..write(path);
   }
 }
 
@@ -688,6 +777,7 @@ class MachO extends DwarfContainer {
       Reader.fromTypedData(reader.bdata,
           wordSize: _header.wordSize, endian: _header.endian);
 
+  Iterable<LoadCommand> get commands => _commands;
   Iterable<T> commandsWhereType<T extends LoadCommand>() =>
       _commands.whereType<T>();
 

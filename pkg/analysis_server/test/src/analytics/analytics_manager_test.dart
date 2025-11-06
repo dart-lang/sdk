@@ -8,11 +8,12 @@ import 'package:analysis_server/lsp_protocol/protocol.dart';
 import 'package:analysis_server/protocol/protocol_constants.dart';
 import 'package:analysis_server/src/analytics/analytics_manager.dart';
 import 'package:analysis_server/src/analytics/percentile_calculator.dart';
+import 'package:analysis_server/src/plugin/plugin_isolate.dart';
 import 'package:analysis_server/src/plugin/plugin_manager.dart';
 import 'package:analysis_server/src/protocol_server.dart';
 import 'package:analyzer/dart/analysis/analysis_context_collection.dart';
-import 'package:analyzer/dart/analysis/context_root.dart' as analyzer;
 import 'package:analyzer/file_system/file_system.dart';
+import 'package:analyzer/instrumentation/service.dart';
 import 'package:analyzer/src/test_utilities/mock_sdk.dart';
 import 'package:analyzer_testing/resource_provider_mixin.dart';
 import 'package:http/src/response.dart' as http;
@@ -23,6 +24,8 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 import 'package:unified_analytics/src/constants.dart';
 import 'package:unified_analytics/src/enums.dart';
 import 'package:unified_analytics/unified_analytics.dart';
+
+import '../../mocks.dart';
 
 void main() {
   defineReflectiveSuite(() {
@@ -106,7 +109,7 @@ class AnalyticsManagerTest with ResourceProviderMixin {
 
   Future<void> test_plugin_request() async {
     _defaultStartup();
-    PluginManager.pluginResponseTimes[_pluginInfo('a')] = {
+    PluginManager.pluginResponseTimes[_pluginIsolate('a')] = {
       'analysis.getNavigation': PercentileCalculator(),
     };
     await manager.shutdown();
@@ -143,6 +146,23 @@ class AnalyticsManagerTest with ResourceProviderMixin {
           'method': Method.workspace_didCreateFiles.toString(),
           'duration': _IsPercentiles(),
         },
+      ),
+    ]);
+  }
+
+  Future<void> test_server_notification_analysisStatistics() async {
+    _defaultStartup();
+
+    // Record a brief working period.
+    manager.analysisStatusChanged(true);
+    await Future<void>.delayed(const Duration(milliseconds: 2));
+    manager.analysisStatusChanged(false);
+
+    await manager.shutdown();
+    analytics.assertEvents([
+      _ExpectedEvent.session(),
+      _ExpectedEvent.analysisStatistics(
+        eventData: {'workingDuration': _IsPercentiles()},
       ),
     ]);
   }
@@ -396,7 +416,9 @@ class AnalyticsManagerTest with ResourceProviderMixin {
   Future<void> test_startup_withPlugins() async {
     _defaultStartup();
     manager.changedPlugins(
-      _MockPluginManager(plugins: [_pluginInfo('a'), _pluginInfo('b')]),
+      _MockPluginManager(
+        pluginIsolates: [_pluginIsolate('a'), _pluginIsolate('b')],
+      ),
     );
     await manager.shutdown();
     analytics.assertEvents([
@@ -494,8 +516,13 @@ class AnalyticsManagerTest with ResourceProviderMixin {
 
   DateTime _now() => DateTime.now();
 
-  _MockPluginInfo _pluginInfo(String name) => _MockPluginInfo(
+  PluginIsolate _pluginIsolate(String name) => PluginIsolate(
     path.join('.pub-cache', 'pub.dev', name, 'tools', 'analyzer_plugin'),
+    '/some/execution/path',
+    '/some/packages/path',
+    TestNotificationManager(),
+    InstrumentationService.NULL_SERVICE,
+    isLegacy: true,
   );
 }
 
@@ -505,6 +532,9 @@ class _ExpectedEvent {
   final Map<String, Object?>? eventData;
 
   _ExpectedEvent(this.eventName, this.eventData);
+
+  _ExpectedEvent.analysisStatistics({Map<String, Object?>? eventData})
+    : this(DashEvent.analysisStatistics, eventData);
 
   _ExpectedEvent.commandExecuted({Map<String, Object?>? eventData})
     : this(DashEvent.commandExecuted, eventData);
@@ -673,24 +703,11 @@ class _MockAnalytics implements NoOpAnalytics {
   void suppressTelemetry() {}
 }
 
-class _MockPluginInfo implements PluginInfo {
-  @override
-  String pluginId;
-
-  _MockPluginInfo(this.pluginId);
-
-  @override
-  Set<analyzer.ContextRoot> get contextRoots => {};
-
-  @override
-  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
-}
-
 class _MockPluginManager implements PluginManager {
   @override
-  List<PluginInfo> plugins;
+  List<PluginIsolate> pluginIsolates;
 
-  _MockPluginManager({this.plugins = const []});
+  _MockPluginManager({this.pluginIsolates = const []});
 
   @override
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);

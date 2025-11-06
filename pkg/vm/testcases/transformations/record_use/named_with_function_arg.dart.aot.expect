@@ -1,0 +1,29 @@
+library #lib;
+import self as self;
+import "dart:core" as core;
+import "package:meta/meta.dart" as meta;
+
+import "package:meta/meta.dart" show RecordUse;
+
+class A extends core::Object {
+  synthetic constructor •() → self::A
+    : super core::Object::•()
+    ;
+}
+extension Ext on self::A {
+  method foo = self::Ext|foo;
+}
+
+[@vm.inferred-return-type.metadata=dart.core::Null? (value: null)]
+[@vm.closure-id=1]
+static method main(core::List<core::String> arguments) → void {
+  final self::A a = new self::A::•();
+  let final core::String #t1 = "hello-world" in self::Ext|foo(a, [@vm.closure-id=1](dynamic event) → void => [@vm.inferred-type.metadata=dart.core::Null? (value: null)] core::print(event), s: #t1);
+}
+
+[@vm.inferred-return-type.metadata=dart.core::Null? (value: null)]
+@#C1
+static extension-member method Ext|foo([@vm.inferred-arg-type.metadata=#lib::A] lowered final self::A #this, [@vm.inferred-arg-type.metadata=dart.core::_Closure (closure 1 in #lib::main)] core::Function f, {[@vm.inferred-arg-type.metadata=dart.core::_OneByteString (value: "hello-world")] required core::String s}) → void {}
+constants  {
+  #C1 = meta::RecordUse {}
+}

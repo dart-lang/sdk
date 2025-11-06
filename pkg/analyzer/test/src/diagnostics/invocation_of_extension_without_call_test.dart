@@ -23,7 +23,7 @@ f() {
   E(0)();
 }
 ''',
-      [error(CompileTimeErrorCode.INVOCATION_OF_EXTENSION_WITHOUT_CALL, 33, 4)],
+      [error(CompileTimeErrorCode.invocationOfExtensionWithoutCall, 33, 4)],
     );
   }
 }

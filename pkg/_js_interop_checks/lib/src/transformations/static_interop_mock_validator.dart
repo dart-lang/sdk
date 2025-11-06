@@ -9,10 +9,10 @@ import 'package:_js_interop_checks/js_interop_checks.dart'
 import 'package:_js_interop_checks/src/js_interop.dart' as js_interop;
 import 'package:front_end/src/api_prototype/codes.dart'
     show
-        templateJsInteropStaticInteropMockMissingGetterOrSetter,
-        templateJsInteropStaticInteropMockMissingImplements,
-        templateJsInteropStaticInteropMockNotStaticInteropType,
-        templateJsInteropStaticInteropMockTypeParametersNotAllowed;
+        codeJsInteropStaticInteropMockMissingGetterOrSetter,
+        codeJsInteropStaticInteropMockMissingImplements,
+        codeJsInteropStaticInteropMockNotStaticInteropType,
+        codeJsInteropStaticInteropMockTypeParametersNotAllowed;
 import 'package:kernel/ast.dart';
 import 'package:kernel/src/replacement_visitor.dart';
 import 'package:kernel/type_environment.dart';
@@ -44,7 +44,7 @@ class StaticInteropMockValidator {
     if (staticInteropType is! InterfaceType ||
         !js_interop.hasStaticInteropAnnotation(staticInteropType.classNode)) {
       _diagnosticReporter.report(
-        templateJsInteropStaticInteropMockNotStaticInteropType.withArguments(
+        codeJsInteropStaticInteropMockNotStaticInteropType.withArgumentsOld(
           staticInteropType,
         ),
         node.fileOffset,
@@ -88,8 +88,8 @@ class StaticInteropMockValidator {
         // Uninstantiated type parameters are replaced with dynamic by the CFE.
         if (arg is! DynamicType && arg != typeParams[i].bound) {
           _diagnosticReporter.report(
-            templateJsInteropStaticInteropMockTypeParametersNotAllowed
-                .withArguments(type),
+            codeJsInteropStaticInteropMockTypeParametersNotAllowed
+                .withArgumentsOld(type),
             node.fileOffset,
             node.name.text.length,
             node.location?.file,
@@ -177,8 +177,8 @@ class StaticInteropMockValidator {
               setters.isNotEmpty &&
               (implementsGetter ^ implementsSetter)) {
             _diagnosticReporter.report(
-              templateJsInteropStaticInteropMockMissingGetterOrSetter
-                  .withArguments(
+              codeJsInteropStaticInteropMockMissingGetterOrSetter
+                  .withArgumentsOld(
                     dartClass.name,
                     implementsGetter ? 'getter' : 'setter',
                     implementsGetter ? 'setter' : 'getter',
@@ -197,7 +197,7 @@ class StaticInteropMockValidator {
 
       if (!hasImplementation) {
         _diagnosticReporter.report(
-          templateJsInteropStaticInteropMockMissingImplements.withArguments(
+          codeJsInteropStaticInteropMockMissingImplements.withArgumentsOld(
             dartClass.name,
             exportName,
             getAsErrorString(descriptors),

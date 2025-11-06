@@ -3,8 +3,10 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/analysis_rule/rule_context.dart';
+import 'package:analyzer/analysis_rule/rule_visitor_registry.dart';
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/error/error.dart';
@@ -22,10 +24,13 @@ class UseNullAwareElements extends LintRule {
     : super(name: LintNames.use_null_aware_elements, description: _desc);
 
   @override
-  DiagnosticCode get diagnosticCode => LinterLintCode.use_null_aware_elements;
+  DiagnosticCode get diagnosticCode => LinterLintCode.useNullAwareElements;
 
   @override
-  void registerNodeProcessors(NodeLintRegistry registry, RuleContext context) {
+  void registerNodeProcessors(
+    RuleVisitorRegistry registry,
+    RuleContext context,
+  ) {
     if (!context.isFeatureEnabled(Feature.null_aware_elements)) return;
     var visitor = _Visitor(this);
     registry.addIfElement(this, visitor);
@@ -55,35 +60,63 @@ class _Visitor extends SimpleAstVisitor<void> {
           nullCheckTarget = leftOperand.canonicalElement;
         }
       } else if (node.caseClause?.guardedPattern.pattern case NullCheckPattern(
-        pattern: DeclaredVariablePattern(:var declaredElement),
+        pattern: DeclaredVariablePattern(:var declaredFragment),
       )) {
         // Case of pattern null checks of the form `if (x case var y?) y`.
-        nullCheckTarget = declaredElement;
+        nullCheckTarget = declaredFragment?.element;
       }
 
-      if (nullCheckTarget is PromotableElementImpl) {
-        if (thenElement is SimpleIdentifier &&
-            nullCheckTarget == thenElement.canonicalElement) {
-          // List and set elements, such as the following:
-          //
-          //     [if (x != null) x]
-          //     {if (x != null) x}
-          rule.reportAtToken(node.ifKeyword);
-        } else if (thenElement case MapLiteralEntry(:var key, :var value)) {
+      switch ((nullCheckTarget, thenElement)) {
+        // List and set elements with promotable targets:
+        //
+        //     [..., if (x != null) x, ...]
+        //     {..., if (x != null) x, ...}
+        case (
+          PromotableElementImpl(),
+          SimpleIdentifier(canonicalElement: var reference),
+        ):
+        // List and set elements with getters:
+        //
+        //     [..., if (x != null) x!, ...]
+        //     {..., if (x != null) x!, ...}
+        case (
+          GetterElement(),
+          PostfixExpression(
+            operand: SimpleIdentifier(canonicalElement: var reference),
+            operator: Token(lexeme: '!'),
+          ),
+        ):
+          if (nullCheckTarget == reference) {
+            rule.reportAtToken(node.ifKeyword);
+          }
+        // Map entries with promotable targets:
+        //
+        //     {..., if (x != null) x: value, ...}
+        //     {..., if (x != null) key: x, ...}
+        case (PromotableElementImpl(), MapLiteralEntry(:var key, :var value)):
           if (key is SimpleIdentifier &&
               nullCheckTarget == key.canonicalElement) {
-            // Map keys, such as the following:
-            //
-            //     {if (x != null) x: value}
             rule.reportAtToken(node.ifKeyword);
           } else if (value is SimpleIdentifier &&
               nullCheckTarget == value.canonicalElement) {
-            // Map keys, such as the following:
-            //
-            //     {if (x != null) key: x}
             rule.reportAtToken(node.ifKeyword);
           }
-        }
+        // Map entries with getters:
+        //
+        //     {..., if (x != null) x!: value, ...}
+        //     {..., if (x != null) key: x!, ...}
+        case (GetterElement(), MapLiteralEntry(:var key, :var value)):
+          if (key case PostfixExpression(
+            operand: SimpleIdentifier(canonicalElement: var reference),
+            operator: Token(lexeme: '!'),
+          ) when nullCheckTarget == reference) {
+            rule.reportAtToken(node.ifKeyword);
+          } else if (value case PostfixExpression(
+            operand: SimpleIdentifier(canonicalElement: var reference),
+            operator: Token(lexeme: '!'),
+          ) when nullCheckTarget == reference) {
+            rule.reportAtToken(node.ifKeyword);
+          }
       }
     }
   }

@@ -32,845 +32,858 @@ abstract final class AnalysisOptionsFixKind {
 
 /// An enumeration of quick fix kinds found in a Dart file.
 abstract final class DartFixKind {
-  static const ADD_ASYNC = FixKind(
+  static const addAsync = FixKind(
     'dart.fix.add.async',
     DartFixKindPriority.standard,
     "Add 'async' modifier",
   );
-  static const ADD_AWAIT = FixKind(
+  static const addAwait = FixKind(
     'dart.fix.add.await',
-    DartFixKindPriority.standard,
+    DartFixKindPriority.standard + 1,
     "Add 'await' keyword",
   );
-  static const ADD_AWAIT_MULTI = FixKind(
-    'dart.fix.add.await.multi',
-    DartFixKindPriority.inFile,
-    "Add 'await's everywhere in file",
-  );
-  static const ADD_CALL_SUPER = FixKind(
+  static const addCallSuper = FixKind(
     'dart.fix.add.callSuper',
     DartFixKindPriority.standard,
     "Add 'super.{0}'",
   );
-  static const ADD_EMPTY_ARGUMENT_LIST = FixKind(
+  static const addEmptyArgumentList = FixKind(
     'dart.fix.add.empty.argument.list',
     DartFixKindPriority.standard,
     'Add empty argument list',
   );
-  static const ADD_EMPTY_ARGUMENT_LIST_MULTI = FixKind(
+  static const addEmptyArgumentListMulti = FixKind(
     'dart.fix.add.empty.argument.list.multi',
     DartFixKindPriority.inFile,
     'Add empty argument lists everywhere in file',
   );
-  static const ADD_CLASS_MODIFIER_BASE = FixKind(
+  static const addClassModifierBase = FixKind(
     'dart.fix.add.class.modifier.base',
     DartFixKindPriority.standard,
     "Add 'base' modifier",
   );
-  static const ADD_CLASS_MODIFIER_BASE_MULTI = FixKind(
+  static const addClassModifierBaseMulti = FixKind(
     'dart.fix.add.class.modifier.base.multi',
     DartFixKindPriority.inFile,
     "Add 'base' modifier everywhere in file",
   );
-  static const ADD_CLASS_MODIFIER_FINAL = FixKind(
+  static const addClassModifierFinal = FixKind(
     'dart.fix.add.class.modifier.final',
     DartFixKindPriority.standard,
     "Add 'final' modifier",
   );
-  static const ADD_CLASS_MODIFIER_FINAL_MULTI = FixKind(
+  static const addClassModifierFinalMulti = FixKind(
     'dart.fix.add.class.modifier.final.multi',
     DartFixKindPriority.inFile,
     "Add 'final' modifier everywhere in file",
   );
-  static const ADD_CLASS_MODIFIER_SEALED = FixKind(
+  static const addClassModifierSealed = FixKind(
     'dart.fix.add.class.modifier.sealed',
     DartFixKindPriority.standard,
     "Add 'sealed' modifier",
   );
-  static const ADD_CLASS_MODIFIER_SEALED_MULTI = FixKind(
+  static const addClassModifierSealedMulti = FixKind(
     'dart.fix.add.class.modifier.sealed.multi',
     DartFixKindPriority.inFile,
     "Add 'sealed' modifier everywhere in file",
   );
-  static const ADD_CONST = FixKind(
+  static const addConst = FixKind(
     'dart.fix.add.const',
     DartFixKindPriority.standard,
     "Add 'const' modifier",
   );
-  static const ADD_CONST_MULTI = FixKind(
+  static const addConstMulti = FixKind(
     'dart.fix.add.const.multi',
     DartFixKindPriority.inFile,
     "Add 'const' modifiers everywhere in file",
   );
-  static const ADD_CURLY_BRACES = FixKind(
+  static const addCurlyBraces = FixKind(
     'dart.fix.add.curlyBraces',
     DartFixKindPriority.standard,
     'Add curly braces',
   );
-  static const ADD_CURLY_BRACES_MULTI = FixKind(
+  static const addCurlyBracesMulti = FixKind(
     'dart.fix.add.curlyBraces.multi',
     DartFixKindPriority.inFile,
     'Add curly braces everywhere in file',
   );
-  static const ADD_DIAGNOSTIC_PROPERTY_REFERENCE = FixKind(
+  static const addDiagnosticPropertyReference = FixKind(
     'dart.fix.add.diagnosticPropertyReference',
     DartFixKindPriority.standard,
     'Add a debug reference to this property',
   );
-  static const ADD_DIAGNOSTIC_PROPERTY_REFERENCE_MULTI = FixKind(
+  static const addDiagnosticPropertyReferenceMulti = FixKind(
     'dart.fix.add.diagnosticPropertyReference.multi',
     DartFixKindPriority.inFile,
     'Add missing debug property references everywhere in file',
   );
-  static const ADD_ENUM_CONSTANT = FixKind(
+  static const addEnumConstant = FixKind(
     'dart.fix.add.enumConstant',
     DartFixKindPriority.standard,
     "Add enum constant '{0}'",
   );
-  static const ADD_EOL_AT_END_OF_FILE = FixKind(
+  static const addEolAtEndOfFile = FixKind(
     'dart.fix.add.eolAtEndOfFile',
     DartFixKindPriority.standard,
     'Add EOL at end of file',
   );
-  static const ADD_EXTENSION_OVERRIDE = FixKind(
+  static const addExtensionOverride = FixKind(
     'dart.fix.add.extensionOverride',
     DartFixKindPriority.standard,
     "Add an extension override for '{0}'",
   );
-  static const ADD_EXPLICIT_CALL = FixKind(
+  static const addExplicitCall = FixKind(
     'dart.fix.add.explicitCall',
     DartFixKindPriority.standard,
     'Add explicit .call tearoff',
   );
-  static const ADD_EXPLICIT_CALL_MULTI = FixKind(
+  static const addExplicitCallMulti = FixKind(
     'dart.fix.add.explicitCall.multi',
     DartFixKindPriority.inFile,
     'Add explicit .call to implicit tearoffs in file',
   );
-  static const ADD_EXPLICIT_CAST = FixKind(
+  static const addExplicitCast = FixKind(
     'dart.fix.add.explicitCast',
-    DartFixKindPriority.standard,
+    DartFixKindPriority.standard - 1,
     'Add cast',
   );
-  static const ADD_EXPLICIT_CAST_MULTI = FixKind(
+  static const addExplicitCastMulti = FixKind(
     'dart.fix.add.explicitCast.multi',
     DartFixKindPriority.inFile,
     'Add cast everywhere in file',
   );
-  static const ADD_INITIALIZING_FORMAL_PARAMETERS = FixKind(
+  static const addInitializingFormalParameters = FixKind(
     'dart.fix.add.initializingFormalParameters',
     DartFixKindPriority.standard + 20,
     'Add final initializing formal parameters',
   );
-  static const ADD_KEY_TO_CONSTRUCTORS = FixKind(
+  static const addInitializingFormalNamesParameters = FixKind(
+    'dart.fix.add.initializingFormalNamedParameters',
+    DartFixKindPriority.standard + 21,
+    'Add final initializing formal required named parameters',
+  );
+  @Deprecated('Use addKeyToConstructors')
+  static const ADD_KEY_TO_CONSTRUCTORS = addKeyToConstructors;
+  static const addKeyToConstructors = FixKind(
     'dart.fix.add.keyToConstructors',
     DartFixKindPriority.standard,
     "Add 'key' to constructors",
   );
-  static const ADD_KEY_TO_CONSTRUCTORS_MULTI = FixKind(
+  @Deprecated('Use addKeyToConstructorsMulti')
+  static const ADD_KEY_TO_CONSTRUCTORS_MULTI = addKeyToConstructorsMulti;
+  static const addKeyToConstructorsMulti = FixKind(
     'dart.fix.add.keyToConstructors.multi',
     DartFixKindPriority.standard,
     "Add 'key' to constructors everywhere in file",
   );
-  static const ADD_LATE = FixKind(
+  static const addLate = FixKind(
     'dart.fix.add.late',
     DartFixKindPriority.standard,
     "Add 'late' modifier",
   );
-  static const ADD_LEADING_NEWLINE_TO_STRING = FixKind(
+  static const addLeadingNewlineToString = FixKind(
     'dart.fix.add.leadingNewlineToString',
     DartFixKindPriority.standard,
     'Add leading new line',
   );
-  static const ADD_LEADING_NEWLINE_TO_STRING_MULTI = FixKind(
+  static const addLeadingNewlineToStringMulti = FixKind(
     'dart.fix.add.leadingNewlineToString.multi',
     DartFixKindPriority.standard,
     'Add leading new line everywhere in file',
   );
-  static const ADD_MISSING_ENUM_CASE_CLAUSES = FixKind(
+  static const addMissingEnumCaseClauses = FixKind(
     'dart.fix.add.missingEnumCaseClauses',
     DartFixKindPriority.standard,
     'Add missing case clauses',
   );
-  static const ADD_MISSING_PARAMETER_NAMED = FixKind(
+  static const addMissingParameterNamed = FixKind(
     'dart.fix.add.missingParameterNamed',
     DartFixKindPriority.standard + 20,
     "Add named parameter '{0}'",
   );
-  static const ADD_MISSING_PARAMETER_POSITIONAL = FixKind(
+  static const addMissingParameterPositional = FixKind(
     'dart.fix.add.missingParameterPositional',
     DartFixKindPriority.standard + 19,
     'Add optional positional parameter',
   );
-  static const ADD_MISSING_PARAMETER_REQUIRED = FixKind(
+  static const addMissingParameterRequired = FixKind(
     'dart.fix.add.missingParameterRequired',
     DartFixKindPriority.standard + 20,
     'Add required positional parameter',
   );
-  static const ADD_MISSING_REQUIRED_ARGUMENT = FixKind(
+  static const addMissingRequiredArgument = FixKind(
     'dart.fix.add.missingRequiredArgument',
     DartFixKindPriority.standard + 20,
     'Add {0} required argument{1}',
   );
-  static const ADD_MISSING_SWITCH_CASES = FixKind(
+  static const addMissingSwitchCases = FixKind(
     'dart.fix.add.missingSwitchCases',
     DartFixKindPriority.standard,
     'Add missing switch cases',
   );
-  static const ADD_NE_NULL = FixKind(
+  static const addNeNull = FixKind(
     'dart.fix.add.neNull',
     DartFixKindPriority.standard,
     'Add != null',
   );
-  static const ADD_NE_NULL_MULTI = FixKind(
+  static const addNeNullMulti = FixKind(
     'dart.fix.add.neNull.multi',
     DartFixKindPriority.inFile,
     'Add != null everywhere in file',
   );
-  static const ADD_NULL_CHECK = FixKind(
+  static const addNullCheck = FixKind(
     'dart.fix.add.nullCheck',
     DartFixKindPriority.standard - 1,
     'Add a null check (!)',
   );
-  static const ADD_OVERRIDE = FixKind(
+  static const addOverride = FixKind(
     'dart.fix.add.override',
     DartFixKindPriority.standard,
     "Add '@override' annotation",
   );
-  static const ADD_OVERRIDE_MULTI = FixKind(
+  static const addOverrideMulti = FixKind(
     'dart.fix.add.override.multi',
     DartFixKindPriority.inFile,
     "Add '@override' annotations everywhere in file",
   );
-  static const ADD_REDECLARE = FixKind(
+  static const addRedeclare = FixKind(
     'dart.fix.add.redeclare',
     DartFixKindPriority.standard,
     "Add '@redeclare' annotation",
   );
-  static const ADD_REDECLARE_MULTI = FixKind(
+  static const addRedeclareMulti = FixKind(
     'dart.fix.add.redeclare.multi',
     DartFixKindPriority.inFile,
     "Add '@redeclare' annotations everywhere in file",
   );
-  static const ADD_REOPEN = FixKind(
+  static const addReopen = FixKind(
     'dart.fix.add.reopen',
     DartFixKindPriority.standard,
     "Add '@reopen' annotation",
   );
-  static const ADD_REOPEN_MULTI = FixKind(
+  static const addReopenMulti = FixKind(
     'dart.fix.add.reopen.multi',
     DartFixKindPriority.inFile,
     "Add '@reopen' annotations everywhere in file",
   );
-  static const ADD_REQUIRED = FixKind(
+  static const addRequired = FixKind(
     'dart.fix.add.required',
     DartFixKindPriority.standard,
     "Add 'required' keyword",
   );
-  static const ADD_RETURN_NULL = FixKind(
+  static const addReturnNull = FixKind(
     'dart.fix.add.returnNull',
     DartFixKindPriority.standard,
     "Add 'return null'",
   );
-  static const ADD_RETURN_NULL_MULTI = FixKind(
+  static const addReturnNullMulti = FixKind(
     'dart.fix.add.returnNull.multi',
     DartFixKindPriority.inFile,
     "Add 'return null' everywhere in file",
   );
-  static const ADD_RETURN_TYPE = FixKind(
+  static const addReturnType = FixKind(
     'dart.fix.add.returnType',
     DartFixKindPriority.standard,
     'Add return type',
   );
-  static const ADD_RETURN_TYPE_MULTI = FixKind(
+  static const addReturnTypeMulti = FixKind(
     'dart.fix.add.returnType.multi',
     DartFixKindPriority.inFile,
     'Add return types everywhere in file',
   );
-  static const ADD_STATIC = FixKind(
+  static const addStatic = FixKind(
     'dart.fix.add.static',
     DartFixKindPriority.standard,
     "Add 'static' modifier",
   );
-  static const ADD_SUPER_CONSTRUCTOR_INVOCATION = FixKind(
+  static const addSuperConstructorInvocation = FixKind(
     'dart.fix.add.superConstructorInvocation',
     DartFixKindPriority.standard,
     'Add super constructor {0} invocation',
   );
-  static const ADD_SUPER_PARAMETER = FixKind(
+  static const addSuperParameter = FixKind(
     'dart.fix.add.superParameter',
     DartFixKindPriority.standard,
     'Add required parameter{0}',
   );
-  static const ADD_SWITCH_CASE_BREAK = FixKind(
+  static const addSwitchCaseBreak = FixKind(
     'dart.fix.add.switchCaseReturn',
     DartFixKindPriority.standard,
     "Add 'break'",
   );
-  static const ADD_SWITCH_CASE_BREAK_MULTI = FixKind(
+  static const addSwitchCaseBreakMulti = FixKind(
     'dart.fix.add.switchCaseReturn.multi',
     DartFixKindPriority.inFile,
     "Add 'break' everywhere in file",
   );
-  static const ADD_TRAILING_COMMA = FixKind(
+  static const addTrailingComma = FixKind(
     'dart.fix.add.trailingComma',
     DartFixKindPriority.standard,
     'Add trailing comma',
   );
-  static const ADD_TRAILING_COMMA_MULTI = FixKind(
+  static const addTrailingCommaMulti = FixKind(
     'dart.fix.add.trailingComma.multi',
     DartFixKindPriority.inFile,
     'Add trailing commas everywhere in file',
   );
-  static const ADD_TYPE_ANNOTATION = FixKind(
+  static const addTypeAnnotation = FixKind(
     'dart.fix.add.typeAnnotation',
     DartFixKindPriority.standard,
     'Add type annotation',
   );
-  static const ADD_TYPE_ANNOTATION_MULTI = FixKind(
+  static const addTypeAnnotationMulti = FixKind(
     'dart.fix.add.typeAnnotation.multi',
     DartFixKindPriority.inFile,
     'Add type annotations everywhere in file',
   );
-  static const CHANGE_ARGUMENT_NAME = FixKind(
+  static const changeArgumentName = FixKind(
     'dart.fix.change.argumentName',
     DartFixKindPriority.standard + 10,
     "Change to '{0}'",
   );
-  static const CHANGE_TO = FixKind(
+  static const changeTo = FixKind(
     'dart.fix.change.to',
     DartFixKindPriority.standard + 1,
     "Change to '{0}'",
   );
-  static const CHANGE_TO_NEAREST_PRECISE_VALUE = FixKind(
+  static const changeToNearestPreciseValuee = FixKind(
     'dart.fix.change.toNearestPreciseValue',
     DartFixKindPriority.standard,
     'Change to nearest precise int-as-double value: {0}',
   );
-  static const CHANGE_TO_STATIC_ACCESS = FixKind(
+  static const changeToStaticAccess = FixKind(
     'dart.fix.change.toStaticAccess',
     DartFixKindPriority.standard,
     "Change access to static using '{0}'",
   );
-  static const CHANGE_TYPE_ANNOTATION = FixKind(
+  static const changeTypeAnnotation = FixKind(
     'dart.fix.change.typeAnnotation',
     DartFixKindPriority.standard,
     "Change '{0}' to '{1}' type annotation",
   );
-  static const CONVERT_CLASS_TO_ENUM = FixKind(
+  static const convertClassToEnum = FixKind(
     'dart.fix.convert.classToEnum',
     DartFixKindPriority.standard,
     'Convert class to an enum',
   );
-  static const CONVERT_CLASS_TO_ENUM_MULTI = FixKind(
+  static const convertClassToEnumMulti = FixKind(
     'dart.fix.convert.classToEnum.multi',
     DartFixKindPriority.standard,
     'Convert classes to enums in file',
   );
-  static const CONVERT_FLUTTER_CHILD = FixKind(
+  static const convertFlutterChild = FixKind(
     'dart.fix.flutter.convert.childToChildren',
     DartFixKindPriority.standard,
     'Convert to children:',
   );
-  static const CONVERT_FLUTTER_CHILDREN = FixKind(
+  static const convertFlutterChildren = FixKind(
     'dart.fix.flutter.convert.childrenToChild',
     DartFixKindPriority.standard,
     'Convert to child:',
   );
-  static const CONVERT_INTO_BLOCK_BODY = FixKind(
+  static const convertIntoBlockBody = FixKind(
     'dart.fix.convert.bodyToBlock',
     DartFixKindPriority.standard,
     'Convert to block body',
   );
-  static const CONVERT_INTO_BLOCK_BODY_MULTI = FixKind(
+  static const convertIntoBlockBodyMulti = FixKind(
     'dart.fix.convert.bodyToBlock.multi',
     DartFixKindPriority.inFile,
     'Convert to block body everywhere in file',
   );
-  static const CONVERT_INTO_GETTER = FixKind(
+  static const convertIntoGetter = FixKind(
     'dart.fix.convert.getter',
     DartFixKindPriority.standard,
     "Convert '{0}' to a getter",
   );
-  static const CONVERT_FOR_EACH_TO_FOR_LOOP = FixKind(
+  static const convertForEachToForLoop = FixKind(
     'dart.fix.convert.toForLoop',
     DartFixKindPriority.standard,
     "Convert 'forEach' to a 'for' loop",
   );
-  static const CONVERT_FOR_EACH_TO_FOR_LOOP_MULTI = FixKind(
+  static const convertForEachToForLoopMulti = FixKind(
     'dart.fix.convert.toForLoop.multi',
     DartFixKindPriority.inFile,
     "Convert 'forEach' to a 'for' loop everywhere in file",
   );
-  static const CONVERT_INTO_EXPRESSION_BODY = FixKind(
+  static const convertIntoExpressionBody = FixKind(
     'dart.fix.convert.toExpressionBody',
     DartFixKindPriority.standard,
     'Convert to expression body',
   );
-  static const CONVERT_INTO_EXPRESSION_BODY_MULTI = FixKind(
+  static const convertIntoExpressionBodyMulti = FixKind(
     'dart.fix.convert.toExpressionBody.multi',
     DartFixKindPriority.inFile,
     'Convert to expression bodies everywhere in file',
   );
-  static const CONVERT_NULL_CHECK_TO_NULL_AWARE_ELEMENT_OR_ENTRY = FixKind(
+  static const convertNullCheckToNullAwareElementOrEntry = FixKind(
     'dart.fix.convert.nullCheckToNullAwareElement',
     DartFixKindPriority.standard,
     'Convert null check to null-aware element',
   );
-  static const CONVERT_NULL_CHECK_TO_NULL_AWARE_ELEMENT_OR_ENTRY_MULTI =
-      FixKind(
-        'dart.fix.convert.nullCheckToNullAwareElement.multi',
-        DartFixKindPriority.inFile,
-        'Convert null check to null-aware element in file',
-      );
-  static const CONVERT_QUOTES = FixKind(
+  static const convertNullCheckToNullAwareElementOrEntryMulti = FixKind(
+    'dart.fix.convert.nullCheckToNullAwareElement.multi',
+    DartFixKindPriority.inFile,
+    'Convert null check to null-aware element in file',
+  );
+  static const convertQuotes = FixKind(
     'dart.fix.convert.quotes',
     DartFixKindPriority.standard,
     'Convert the quotes and remove escapes',
   );
-  static const CONVERT_QUOTES_MULTI = FixKind(
+  static const convertQuotesMulti = FixKind(
     'dart.fix.convert.quotes.multi',
     DartFixKindPriority.inFile,
     'Convert the quotes and remove escapes everywhere in file',
   );
-  static const CONVERT_RELATED_TO_CASCADE = FixKind(
+  static const convertRelatedToCascade = FixKind(
     'dart.fix.convert.relatedToCascade',
     DartFixKindPriority.standard + 1,
     'Convert this and related to cascade notation',
   );
-  static const CONVERT_TO_BOOL_EXPRESSION = FixKind(
+  static const convertToBoolExpression = FixKind(
     'dart.fix.convert.toBoolExpression',
     DartFixKindPriority.standard,
     'Convert to boolean expression',
   );
-  static const CONVERT_TO_BOOL_EXPRESSION_MULTI = FixKind(
+  static const convertToBoolExpressionMulti = FixKind(
     'dart.fix.convert.toBoolExpression.multi',
     DartFixKindPriority.standard,
     'Convert to boolean expressions everywhere in file',
   );
-  static const CONVERT_TO_CASCADE = FixKind(
+  static const convertToCascade = FixKind(
     'dart.fix.convert.toCascade',
     DartFixKindPriority.standard,
     'Convert to cascade notation',
   );
-  static const CONVERT_TO_CONSTANT_PATTERN = FixKind(
+  static const convertToConstantPattern = FixKind(
     'dart.fix.convert.toConstantPattern',
     DartFixKindPriority.standard - 1,
     'Convert to constant pattern',
   );
-  static const CONVERT_TO_CONTAINS = FixKind(
+  static const convertToContains = FixKind(
     'dart.fix.convert.toContains',
     DartFixKindPriority.standard,
     "Convert to using 'contains'",
   );
-  static const CONVERT_TO_CONTAINS_MULTI = FixKind(
+  static const convertToContainsMulti = FixKind(
     'dart.fix.convert.toContains.multi',
     DartFixKindPriority.inFile,
     "Convert to using 'contains' everywhere in file",
   );
-  static const CONVERT_TO_DOUBLE_QUOTED_STRING = FixKind(
+  static const convertToDoubleQuotedString = FixKind(
     'dart.fix.convert.toDoubleQuotedString',
     DartFixKindPriority.standard,
     'Convert to double quoted string',
   );
-  static const CONVERT_TO_DOUBLE_QUOTED_STRING_MULTI = FixKind(
+  static const convertToDoubleQuotedStringMulti = FixKind(
     'dart.fix.convert.toDoubleQuotedString.multi',
     DartFixKindPriority.inFile,
     'Convert to double quoted strings everywhere in file',
   );
-  static const CONVERT_TO_FLUTTER_STYLE_TODO = FixKind(
+  static const convertToFlutterStyleTodo = FixKind(
     'dart.fix.convert.toFlutterStyleTodo',
     DartFixKindPriority.standard,
     'Convert to flutter style todo',
   );
-  static const CONVERT_TO_FLUTTER_STYLE_TODO_MULTI = FixKind(
+  static const convertToFlutterStyleTodoMulti = FixKind(
     'dart.fix.convert.toFlutterStyleTodo.multi',
     DartFixKindPriority.inFile,
     'Convert to flutter style todos everywhere in file',
   );
-  static const CONVERT_TO_FOR_EACH = FixKind(
+  static const convertToForEach = FixKind(
     'dart.fix.convert.toForEach',
     DartFixKindPriority.standard,
     "Convert to 'forEach'",
   );
-  static const CONVERT_TO_FOR_ELEMENT = FixKind(
+  static const convertToForElement = FixKind(
     'dart.fix.convert.toForElement',
     DartFixKindPriority.standard,
     "Convert to a 'for' element",
   );
-  static const CONVERT_TO_FOR_ELEMENT_MULTI = FixKind(
+  static const convertToForElementMulti = FixKind(
     'dart.fix.convert.toForElement.multi',
     DartFixKindPriority.inFile,
     "Convert to 'for' elements everywhere in file",
   );
-  static const CONVERT_TO_GENERIC_FUNCTION_SYNTAX = FixKind(
+  static const convertToGenericFunctionSyntax = FixKind(
     'dart.fix.convert.toGenericFunctionSyntax',
     DartFixKindPriority.standard,
     "Convert into 'Function' syntax",
   );
-  static const CONVERT_TO_GENERIC_FUNCTION_SYNTAX_MULTI = FixKind(
+  static const convertToGenericFunctionSyntaxMulti = FixKind(
     'dart.fix.convert.toGenericFunctionSyntax.multi',
     DartFixKindPriority.inFile,
     "Convert to 'Function' syntax everywhere in file",
   );
-  static const CONVERT_TO_FUNCTION_DECLARATION = FixKind(
+  static const convertToFunctionDeclaration = FixKind(
     'dart.fix.convert.toFunctionDeclaration',
     DartFixKindPriority.standard,
     'Convert to function declaration',
   );
-  static const CONVERT_TO_FUNCTION_DECLARATION_MULTI = FixKind(
+  static const convertToFunctionDeclarationMulti = FixKind(
     'dart.fix.convert.toFunctionDeclaration.multi',
     DartFixKindPriority.inFile,
     'Convert to function declaration everywhere in file',
   );
-  static const CONVERT_TO_IF_ELEMENT = FixKind(
+  static const convertToIfElement = FixKind(
     'dart.fix.convert.toIfElement',
     DartFixKindPriority.standard,
     "Convert to an 'if' element",
   );
-  static const CONVERT_TO_IF_ELEMENT_MULTI = FixKind(
+  static const convertToIfElementMulti = FixKind(
     'dart.fix.convert.toIfElement.multi',
     DartFixKindPriority.inFile,
     "Convert to 'if' elements everywhere in file",
   );
-  static const CONVERT_TO_IF_NULL = FixKind(
+  static const convertToIfNull = FixKind(
     'dart.fix.convert.toIfNull',
     DartFixKindPriority.standard,
     "Convert to use '??'",
   );
-  static const CONVERT_TO_IF_NULL_MULTI = FixKind(
+  static const convertToIfNullMulti = FixKind(
     'dart.fix.convert.toIfNull.multi',
     DartFixKindPriority.inFile,
     "Convert to '??'s everywhere in file",
   );
-  static const CONVERT_TO_INITIALIZING_FORMAL = FixKind(
+  static const convertToInitializingFormal = FixKind(
     'dart.fix.convert.toInitializingFormal',
     DartFixKindPriority.standard,
     'Convert to an initializing formal parameter',
   );
-  static const CONVERT_TO_INT_LITERAL = FixKind(
+  static const convertToIntLiteral = FixKind(
     'dart.fix.convert.toIntLiteral',
     DartFixKindPriority.standard,
     'Convert to an int literal',
   );
-  static const CONVERT_TO_INT_LITERAL_MULTI = FixKind(
+  static const convertToIntLiteralMulti = FixKind(
     'dart.fix.convert.toIntLiteral.multi',
     DartFixKindPriority.inFile,
     'Convert to int literals everywhere in file',
   );
-  static const CONVERT_TO_IS_NOT = FixKind(
+  static const convertToIsNot = FixKind(
     'dart.fix.convert.isNot',
     DartFixKindPriority.standard,
     'Convert to is!',
   );
-  static const CONVERT_TO_IS_NOT_MULTI = FixKind(
+  static const convertToIsNotMulti = FixKind(
     'dart.fix.convert.isNot.multi',
     DartFixKindPriority.inFile,
     'Convert to is! everywhere in file',
   );
-  static const CONVERT_TO_LINE_COMMENT = FixKind(
+  static const convertToLineComment = FixKind(
     'dart.fix.convert.toLineComment',
     DartFixKindPriority.standard,
     'Convert to line documentation comment',
   );
-  static const CONVERT_TO_LINE_COMMENT_MULTI = FixKind(
+  static const convertToLineCommentMulti = FixKind(
     'dart.fix.convert.toLineComment.multi',
     DartFixKindPriority.inFile,
     'Convert to line documentation comments everywhere in file',
   );
-  static const CONVERT_TO_MAP_LITERAL = FixKind(
+  static const convertToMapLiteral = FixKind(
     'dart.fix.convert.toMapLiteral',
     DartFixKindPriority.standard,
     'Convert to map literal',
   );
-  static const CONVERT_TO_MAP_LITERAL_MULTI = FixKind(
+  static const convertToMapLiteralMulti = FixKind(
     'dart.fix.convert.toMapLiteral.multi',
     DartFixKindPriority.inFile,
     'Convert to map literals everywhere in file',
   );
-  static const CONVERT_TO_NAMED_ARGUMENTS = FixKind(
+  static const convertToNamedArguments = FixKind(
     'dart.fix.convert.toNamedArguments',
     DartFixKindPriority.standard,
     'Convert to named arguments',
   );
-  static const CONVERT_TO_NULL_AWARE = FixKind(
+  static const convertToNullAware = FixKind(
     'dart.fix.convert.toNullAware',
     DartFixKindPriority.standard,
     "Convert to use '?.'",
   );
-  static const CONVERT_TO_NULL_AWARE_LIST_ELEMENT = FixKind(
+  static const convertToNullAwareListElement = FixKind(
     'dart.fix.convert.toNullAwareListElement',
     DartFixKindPriority.standard,
     "Convert to use '?'",
   );
-  static const CONVERT_TO_NULL_AWARE_MAP_ENTRY_KEY = FixKind(
+  static const convertToNullAwareMapEntryKey = FixKind(
     'dart.fix.convert.toNullAwareMapEntryKey',
     DartFixKindPriority.standard,
     "Convert to use '?'",
   );
-  static const CONVERT_TO_NULL_AWARE_MAP_ENTRY_VALUE = FixKind(
+  static const convertToNullAwareMapEntryValue = FixKind(
     'dart.fix.convert.toNullAwareMayEntryValue',
     DartFixKindPriority.standard,
     "Convert to use '?'",
   );
-  static const CONVERT_TO_NULL_AWARE_SET_ELEMENT = FixKind(
+  static const convertToNullAwareSetElement = FixKind(
     'dart.fix.convert.toNullAwareSetElement',
     DartFixKindPriority.standard,
     "Convert to use '?'",
   );
-  static const CONVERT_TO_NULL_AWARE_MULTI = FixKind(
+  static const convertToNullAwareMulti = FixKind(
     'dart.fix.convert.toNullAware.multi',
     DartFixKindPriority.inFile,
     "Convert to use '?.' everywhere in file",
   );
-  static const CONVERT_TO_NULL_AWARE_SPREAD = FixKind(
+  static const convertToNullAwareSpread = FixKind(
     'dart.fix.convert.toNullAwareSpread',
     DartFixKindPriority.standard,
     "Convert to use '...?'",
   );
-  static const CONVERT_TO_NULL_AWARE_SPREAD_MULTI = FixKind(
+  static const convertToNullAwareSpreadMulti = FixKind(
     'dart.fix.convert.toNullAwareSpread.multi',
     DartFixKindPriority.inFile,
     "Convert to use '...?' everywhere in file",
   );
-  static const CONVERT_TO_ON_TYPE = FixKind(
+  static const convertToOnType = FixKind(
     'dart.fix.convert.toOnType',
     DartFixKindPriority.standard,
     "Convert to 'on {0}'",
   );
-  static const CONVERT_TO_PACKAGE_IMPORT = FixKind(
+  static const convertToPackageImport = FixKind(
     'dart.fix.convert.toPackageImport',
     DartFixKindPriority.standard,
     "Convert to 'package:' import",
   );
-  static const CONVERT_TO_PACKAGE_IMPORT_MULTI = FixKind(
+  static const convertToPackageImportMulti = FixKind(
     'dart.fix.convert.toPackageImport.multi',
     DartFixKindPriority.inFile,
     "Convert to 'package:' imports everywhere in file",
   );
-  static const CONVERT_TO_RAW_STRING = FixKind(
+  static const convertToRawString = FixKind(
     'dart.fix.convert.toRawString',
     DartFixKindPriority.standard,
     'Convert to raw string',
   );
-  static const CONVERT_TO_RAW_STRING_MULTI = FixKind(
+  static const convertToRawStringMulti = FixKind(
     'dart.fix.convert.toRawString.multi',
     DartFixKindPriority.inFile,
     'Convert to raw strings everywhere in file',
   );
-  static const CONVERT_TO_RELATIVE_IMPORT = FixKind(
+  static const convertToRelativeImport = FixKind(
     'dart.fix.convert.toRelativeImport',
     DartFixKindPriority.standard,
     'Convert to relative import',
   );
-  static const CONVERT_TO_RELATIVE_IMPORT_MULTI = FixKind(
+  static const convertToRelativeImportMulti = FixKind(
     'dart.fix.convert.toRelativeImport.multi',
     DartFixKindPriority.inFile,
     'Convert to relative imports everywhere in file',
   );
-  static const CONVERT_TO_SET_LITERAL = FixKind(
+  static const convertToSetLiteral = FixKind(
     'dart.fix.convert.toSetLiteral',
     DartFixKindPriority.standard,
     'Convert to set literal',
   );
-  static const CONVERT_TO_SET_LITERAL_MULTI = FixKind(
+  static const convertToSetLiteralMulti = FixKind(
     'dart.fix.convert.toSetLiteral.multi',
     DartFixKindPriority.inFile,
     'Convert to set literals everywhere in file',
   );
-  static const CONVERT_TO_SINGLE_QUOTED_STRING = FixKind(
+  static const convertToSingleQuotedString = FixKind(
     'dart.fix.convert.toSingleQuotedString',
     DartFixKindPriority.standard,
     'Convert to single quoted string',
   );
-  static const CONVERT_TO_SINGLE_QUOTED_STRING_MULTI = FixKind(
+  static const convertToSingleQuotedStringMulti = FixKind(
     'dart.fix.convert.toSingleQuotedString.multi',
     DartFixKindPriority.inFile,
     'Convert to single quoted strings everywhere in file',
   );
-  static const CONVERT_TO_SPREAD = FixKind(
+  static const convertToSpread = FixKind(
     'dart.fix.convert.toSpread',
     DartFixKindPriority.standard,
     'Convert to a spread',
   );
-  static const CONVERT_TO_SPREAD_MULTI = FixKind(
+  static const convertToSpreadMulti = FixKind(
     'dart.fix.convert.toSpread.multi',
     DartFixKindPriority.inFile,
     'Convert to spreads everywhere in file',
   );
-  static const CONVERT_TO_SUPER_PARAMETERS = FixKind(
+  static const convertToSuperParameters = FixKind(
     'dart.fix.convert.toSuperParameters',
     DartFixKindPriority.ignore,
     'Convert to using super parameters',
   );
-  static const CONVERT_TO_SUPER_PARAMETERS_MULTI = FixKind(
+  static const convertToSuperParametersMulti = FixKind(
     'dart.fix.convert.toSuperParameters.multi',
     DartFixKindPriority.ignore,
     'Convert to using super parameters everywhere in file',
   );
-  static const CONVERT_TO_WHERE_TYPE = FixKind(
+  static const convertToWhereType = FixKind(
     'dart.fix.convert.toWhereType',
     DartFixKindPriority.standard,
     "Convert to use 'whereType'",
   );
-  static const CONVERT_TO_WHERE_TYPE_MULTI = FixKind(
+  static const convertToWhereTypeMulti = FixKind(
     'dart.fix.convert.toWhereType.multi',
     DartFixKindPriority.inFile,
     "Convert to using 'whereType' everywhere in file",
   );
-  static const CONVERT_TO_WILDCARD_PATTERN = FixKind(
+  static const convertToWildcardPattern = FixKind(
     'dart.fix.convert.toWildcardPattern',
     DartFixKindPriority.standard,
     'Convert to wildcard pattern',
   );
-  static const CONVERT_TO_WILDCARD_VARIABLE = FixKind(
+  static const convertToWildcardVariable = FixKind(
     'dart.fix.convert.toWildcardVariable',
     DartFixKindPriority.standard,
     'Convert to wildcard variable',
   );
-  static const CREATE_CLASS_UPPERCASE = FixKind(
+  static const createClassUppercase = FixKind(
     'dart.fix.create.class.uppercase',
     DartFixKindPriority.standard + 2,
     "Create class '{0}'",
   );
-  static const CREATE_CLASS_UPPERCASE_WITH = FixKind(
+  static const createClassUppercaseWith = FixKind(
     'dart.fix.create.class.uppercase.with',
     DartFixKindPriority.standard + 1,
     "Create class '{0}'",
   );
-  static const CREATE_CLASS_LOWERCASE = FixKind(
+  static const createClassLowercase = FixKind(
     'dart.fix.create.class.lowercase',
     DartFixKindPriority.standard - 5,
     "Create class '{0}'",
   );
-  static const CREATE_CLASS_LOWERCASE_WITH = FixKind(
+  static const createClassLowercaseWith = FixKind(
     'dart.fix.create.class.lowercase.with',
     DartFixKindPriority.standard - 6,
     "Create class '{0}'",
   );
-  static const CREATE_CONSTRUCTOR = FixKind(
+  static const createConstructor = FixKind(
     'dart.fix.create.constructor',
     DartFixKindPriority.standard,
     "Create constructor '{0}'",
   );
-  static const CREATE_CONSTRUCTOR_FOR_FINAL_FIELDS = FixKind(
+  static const createConstructorForFinalFields = FixKind(
     'dart.fix.create.constructorForFinalFields',
     DartFixKindPriority.standard,
     'Create constructor for final fields',
   );
-  static const CREATE_CONSTRUCTOR_FOR_FINAL_FIELDS_REQUIRED_NAMED = FixKind(
+  static const createConstructorForFinalFieldsRequiredNamed = FixKind(
     'dart.fix.create.constructorForFinalFields.requiredNamed',
     DartFixKindPriority.standard,
     'Create constructor for final fields, required named',
   );
-  static const CREATE_CONSTRUCTOR_SUPER = FixKind(
+  static const createConstructorSuper = FixKind(
     'dart.fix.create.constructorSuper',
     DartFixKindPriority.standard,
     'Create constructor to call {0}',
   );
-  static const CREATE_EXTENSION_GETTER = FixKind(
+  static const createExtensionGetter = FixKind(
     'dart.fix.create.extension.getter',
     DartFixKindPriority.ignore,
     "Create extension getter '{0}'",
   );
-  static const CREATE_EXTENSION_METHOD = FixKind(
+  static const createExtensionMethod = FixKind(
     'dart.fix.create.extension.method',
     DartFixKindPriority.ignore,
     "Create extension method '{0}'",
   );
-  static const CREATE_EXTENSION_OPERATOR = FixKind(
+  static const createExtensionOperator = FixKind(
     'dart.fix.create.extension.operator',
     DartFixKindPriority.ignore,
     "Create extension operator '{0}'",
   );
-  static const CREATE_EXTENSION_SETTER = FixKind(
+  static const createExtensionSetter = FixKind(
     'dart.fix.create.extension.setter',
     DartFixKindPriority.ignore,
     "Create extension setter '{0}'",
   );
-  static const CREATE_FIELD = FixKind(
+  static const createField = FixKind(
     'dart.fix.create.field',
     DartFixKindPriority.standard - 1,
     "Create field '{0}'",
   );
-  static const CREATE_FILE = FixKind(
+  static const createFile = FixKind(
     'dart.fix.create.file',
     DartFixKindPriority.standard,
     "Create file '{0}'",
   );
-  static const CREATE_FUNCTION = FixKind(
+  static const createFunction = FixKind(
     'dart.fix.create.function',
     DartFixKindPriority.standard - 1,
     "Create function '{0}'",
   );
-  static const CREATE_GETTER = FixKind(
+  static const createFunctionTearoff = FixKind(
+    'dart.fix.create.function.tearoff',
+    DartFixKindPriority.standard - 1,
+    "Create function '{0}'",
+  );
+  static const createGetter = FixKind(
     'dart.fix.create.getter',
     DartFixKindPriority.standard,
     "Create getter '{0}'",
   );
-  static const CREATE_LOCAL_VARIABLE = FixKind(
+  static const createLocalVariable = FixKind(
     'dart.fix.create.localVariable',
     DartFixKindPriority.standard,
     "Create local variable '{0}'",
   );
-  static const CREATE_METHOD = FixKind(
+  static const createMethod = FixKind(
     'dart.fix.create.method',
+    DartFixKindPriority.standard,
+    "Create method '{0}'",
+  );
+  static const createMethodTearoff = FixKind(
+    'dart.fix.create.method.tearoff',
     DartFixKindPriority.standard,
     "Create method '{0}'",
   );
 
   // TODO(pq): used by LintNames.hash_and_equals; consider removing.
-  static const CREATE_METHOD_MULTI = FixKind(
+  static const createMethodMulti = FixKind(
     'dart.fix.create.method.multi',
     DartFixKindPriority.inFile,
     'Create methods in file',
   );
-  static const CREATE_MISSING_OVERRIDES = FixKind(
+  static const createMissingOverrides = FixKind(
     'dart.fix.create.missingOverrides',
     DartFixKindPriority.standard + 1,
     'Create {0} missing override{1}',
   );
-  static const CREATE_MIXIN_UPPERCASE = FixKind(
+  static const createMixinUppercase = FixKind(
     'dart.fix.create.mixin.uppercase',
     DartFixKindPriority.standard,
     "Create mixin '{0}'",
   );
-  static const CREATE_MIXIN_UPPERCASE_WITH = FixKind(
+  static const createMixinUppercaseWith = FixKind(
     'dart.fix.create.mixin.uppercase.with',
     DartFixKindPriority.standard + 2,
     "Create mixin '{0}'",
   );
-  static const CREATE_MIXIN_LOWERCASE = FixKind(
+  static const createMixinLowercase = FixKind(
     'dart.fix.create.mixin.lowercase',
     DartFixKindPriority.standard - 6,
     "Create mixin '{0}'",
   );
-  static const CREATE_MIXIN_LOWERCASE_WITH = FixKind(
+  static const createMixinLowercaseWith = FixKind(
     'dart.fix.create.mixin.lowercase.with',
     DartFixKindPriority.standard - 5,
     "Create mixin '{0}'",
   );
-  static const CREATE_NO_SUCH_METHOD = FixKind(
+  static const createNoSuchMethod = FixKind(
     'dart.fix.create.noSuchMethod',
     DartFixKindPriority.standard - 1,
     "Create 'noSuchMethod' method",
   );
-  static const CREATE_OPERATOR = FixKind(
+  static const createOperator = FixKind(
     'dart.fix.create.operator',
     DartFixKindPriority.standard,
     "Create operator '{0}'",
   );
-  static const CREATE_PARAMETER = FixKind(
+  static const createParameter = FixKind(
     'dart.fix.create.parameter',
     DartFixKindPriority.standard,
     "Create required positional parameter '{0}'",
   );
-  static const CREATE_SETTER = FixKind(
+  static const createSetter = FixKind(
     'dart.fix.create.setter',
     DartFixKindPriority.standard,
     "Create setter '{0}'",
   );
-  static const DATA_DRIVEN = FixKind(
+  static const dataDriven = FixKind(
     'dart.fix.dataDriven',
     DartFixKindPriority.standard,
     '{0}',
@@ -887,12 +900,12 @@ abstract final class DartFixKind {
   );
   static const IMPORT_LIBRARY_COMBINATOR = FixKind(
     'dart.fix.import.libraryCombinator',
-    DartFixKindPriority.standard + 5,
+    DartFixKindPriority.standard + 6,
     "Import '{0}' from {1}",
   );
   static const IMPORT_LIBRARY_COMBINATOR_MULTIPLE = FixKind(
     'dart.fix.import.libraryCombinatorMultiple',
-    DartFixKindPriority.standard + 5,
+    DartFixKindPriority.standard + 6,
     "Import '{0}' and {1} other{2} from {3}",
   );
   static const IMPORT_LIBRARY_HIDE = FixKind(
@@ -902,67 +915,97 @@ abstract final class DartFixKind {
   );
   static const IMPORT_LIBRARY_PREFIX = FixKind(
     'dart.fix.import.libraryPrefix',
-    DartFixKindPriority.standard + 5,
+    DartFixKindPriority.standard + 6,
     "Use imported library '{0}' with prefix '{1}'",
   );
+
+  /// {@template dart.fix.import.libraryProject1}
+  /// Import defining library.
+  /// {@endtemplate}
   static const IMPORT_LIBRARY_PROJECT1 = FixKind(
     'dart.fix.import.libraryProject1',
-    DartFixKindPriority.standard + 3,
+    DartFixKindPriority.standard + 5,
     "Import library '{0}'",
   );
+
+  /// {@macro dart.fix.import.libraryProject1}
   static const IMPORT_LIBRARY_PROJECT1_PREFIXED = FixKind(
     'dart.fix.import.libraryProject1Prefixed',
-    DartFixKindPriority.standard + 3,
+    DartFixKindPriority.standard + 5,
     "Import library '{0}' with prefix '{1}'",
   );
+
+  /// {@macro dart.fix.import.libraryProject1}
   static const IMPORT_LIBRARY_PROJECT1_PREFIXED_SHOW = FixKind(
     'dart.fix.import.libraryProject1PrefixedShow',
-    DartFixKindPriority.standard + 3,
+    DartFixKindPriority.standard + 5,
     "Import library '{0}' with prefix '{1}' and 'show'",
   );
+
+  /// {@macro dart.fix.import.libraryProject1}
   static const IMPORT_LIBRARY_PROJECT1_SHOW = FixKind(
     'dart.fix.import.libraryProject1Show',
-    DartFixKindPriority.standard + 3,
+    DartFixKindPriority.standard + 5,
     "Import library '{0}' with 'show'",
   );
+
+  /// {@template dart.fix.import.libraryProject2}
+  /// Import export library.
+  /// {@endtemplate}
   static const IMPORT_LIBRARY_PROJECT2 = FixKind(
     'dart.fix.import.libraryProject2',
-    DartFixKindPriority.standard + 2,
+    DartFixKindPriority.standard + 4,
     "Import library '{0}'",
   );
+
+  /// {@macro dart.fix.import.libraryProject2}
   static const IMPORT_LIBRARY_PROJECT2_PREFIXED = FixKind(
     'dart.fix.import.libraryProject2Prefixed',
-    DartFixKindPriority.standard + 2,
+    DartFixKindPriority.standard + 4,
     "Import library '{0}' with prefix '{1}'",
   );
+
+  /// {@macro dart.fix.import.libraryProject2}
   static const IMPORT_LIBRARY_PROJECT2_PREFIXED_SHOW = FixKind(
     'dart.fix.import.libraryProject2PrefixedShow',
-    DartFixKindPriority.standard + 2,
+    DartFixKindPriority.standard + 4,
     "Import library '{0}' with prefix '{1}' and 'show'",
   );
+
+  /// {@macro dart.fix.import.libraryProject2}
   static const IMPORT_LIBRARY_PROJECT2_SHOW = FixKind(
     'dart.fix.import.libraryProject2Show',
-    DartFixKindPriority.standard + 2,
+    DartFixKindPriority.standard + 4,
     "Import library '{0}' with 'show'",
   );
+
+  /// {@template dart.fix.import.libraryProject3}
+  /// Import non-API.
+  /// {@endtemplate}
   static const IMPORT_LIBRARY_PROJECT3 = FixKind(
     'dart.fix.import.libraryProject3',
-    DartFixKindPriority.standard + 1,
+    DartFixKindPriority.standard + 3,
     "Import library '{0}'",
   );
+
+  /// {@macro dart.fix.import.libraryProject3}
   static const IMPORT_LIBRARY_PROJECT3_PREFIXED = FixKind(
     'dart.fix.import.libraryProject3Prefixed',
-    DartFixKindPriority.standard + 1,
+    DartFixKindPriority.standard + 3,
     "Import library '{0}' with prefix '{1}'",
   );
+
+  /// {@macro dart.fix.import.libraryProject3}
   static const IMPORT_LIBRARY_PROJECT3_PREFIXED_SHOW = FixKind(
     'dart.fix.import.libraryProject3PrefixedShow',
-    DartFixKindPriority.standard + 1,
+    DartFixKindPriority.standard + 3,
     "Import library '{0}' with prefix '{1}' and 'show'",
   );
+
+  /// {@macro dart.fix.import.libraryProject3}
   static const IMPORT_LIBRARY_PROJECT3_SHOW = FixKind(
     'dart.fix.import.libraryProject3Show',
-    DartFixKindPriority.standard + 1,
+    DartFixKindPriority.standard + 3,
     "Import library '{0}' with 'show'",
   );
   static const IMPORT_LIBRARY_REMOVE_SHOW = FixKind(
@@ -972,22 +1015,22 @@ abstract final class DartFixKind {
   );
   static const IMPORT_LIBRARY_SDK = FixKind(
     'dart.fix.import.librarySdk',
-    DartFixKindPriority.standard + 4,
+    DartFixKindPriority.standard + 7,
     "Import library '{0}'",
   );
   static const IMPORT_LIBRARY_SDK_PREFIXED = FixKind(
     'dart.fix.import.librarySdkPrefixed',
-    DartFixKindPriority.standard + 4,
+    DartFixKindPriority.standard + 7,
     "Import library '{0}' with prefix '{1}'",
   );
   static const IMPORT_LIBRARY_SDK_SHOW = FixKind(
     'dart.fix.import.librarySdkShow',
-    DartFixKindPriority.standard + 4,
+    DartFixKindPriority.standard + 7,
     "Import library '{0}' with 'show'",
   );
   static const IMPORT_LIBRARY_SDK_PREFIXED_SHOW = FixKind(
     'dart.fix.import.librarySdkPrefixedShow',
-    DartFixKindPriority.standard + 4,
+    DartFixKindPriority.standard + 7,
     "Import library '{0}' with prefix '{1}' and 'show'",
   );
   static const INLINE_INVOCATION = FixKind(

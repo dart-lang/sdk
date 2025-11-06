@@ -11,6 +11,7 @@ static method split<A extends core::Object? = dynamic>(core::Iterable<self::spli
   return block {
     core::Iterable<(core::Iterable<self::split::A%>, core::Iterable<self::split::A%>)> #t1;
     final synthesized core::Iterable<self::split::A%> #1#0 = it;
+    final const synthesized core::bool #1#2 = #C1;
     #L1:
     {
       {

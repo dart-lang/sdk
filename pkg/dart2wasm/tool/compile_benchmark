@@ -60,6 +60,7 @@ function find_flags {
 }
 # Use same flags as `dart compile exe`
 BINARYEN_FLAGS=($(find_flags 'binaryenFlags'))
+BINARYEN_FLAGS_DEFERRED_LOADING=($(find_flags 'binaryenFlagsDeferredLoading'))
 OPT_FLAGS_L0=($(find_flags 'optimizationLevel0Flags'))
 OPT_FLAGS_L1=($(find_flags 'optimizationLevel1Flags'))
 OPT_FLAGS_L2=($(find_flags 'optimizationLevel2Flags'))
@@ -67,6 +68,7 @@ OPT_FLAGS_L3=($(find_flags 'optimizationLevel3Flags'))
 OPT_FLAGS_L4=($(find_flags 'optimizationLevel4Flags'))
 
 RUN_BINARYEN=1
+MULTI_MODULE=0
 RUN_SRC=0
 GENERATE_SOURCE_MAP=1
 COMPILE_BENCHMARK_BASE_NAME=""
@@ -140,6 +142,18 @@ while [ $# -gt 0 ]; do
 
     --extra-compiler-option=--platform=*)
       PLATFORM_FILENAME="${1#--extra-compiler-option=--platform=}"
+      shift
+      ;;
+
+    --extra-compiler-option=--enable-deferred-loading)
+      MULTI_MODULE=1
+      DART2WASM_ARGS+=("--enable-deferred-loading")
+      shift
+      ;;
+
+    --extra-compiler-option=--enable-multi-module-stress-test-mode)
+      MULTI_MODULE=1
+      DART2WASM_ARGS+=("--enable-multi-module-stress-test-mode")
       shift
       ;;
 
@@ -227,40 +241,83 @@ function run_if_binaryen_enabled() {
   fi
 }
 
-if [ $RUN_SRC -eq 1 ]; then
-  dart2wasm_command=("$DART" "${VM_ARGS[@]}" "$DART2WASM_SRC" "$LIBRARIES_JSON_ARG" "${DART2WASM_ARGS[@]}" "$DART_FILE" "$WASM_FILE")
-else
-  dart2wasm_command=("$DART_AOT_RUNTIME" "${VM_ARGS[@]}" "$DART2WASM_AOT_SNAPSHOT" "$PLATFORM_ARG" "${DART2WASM_ARGS[@]}" "$DART_FILE" "$WASM_FILE")
-fi
+COMPILER_SIZE=0
+COMPILER_GZIP_SIZE=0
 
-binaryen_command=("$BINARYEN" "${BINARYEN_FLAGS[@]}" "$WASM_FILE" -o "$WASM_FILE")
-
-if [ -n "$COMPILE_BENCHMARK_BASE_NAME" ]; then
-  measure "${dart2wasm_command[@]}"
-  COMPILER_TIME=$TIME
-  COMPILER_MEMORY=$MEMORY
-
-  measure_size ${WASM_FILE%.wasm}.mjs
-  MJS_SIZE=$SIZE
-  MJS_GZIP_SIZE=$GZIP_SIZE
-
-  measure_size $WASM_FILE
-  COMPILER_SIZE=$SIZE
-  COMPILER_GZIP_SIZE=$GZIP_SIZE
-
-  if [ $RUN_BINARYEN -eq 1 ]; then
-    measure ${binaryen_command[@]}
-    BINARYEN_TIME=$TIME
-    BINARYEN_MEMORY=$MEMORY
-
-    measure_size $WASM_FILE
-    BINARYEN_SIZE=$SIZE
-    BINARYEN_GZIP_SIZE=$GZIP_SIZE
-
-    TOTAL_TIME=$(echo "$COMPILER_TIME + $BINARYEN_TIME" | bc)
-    MAX_MEMORY=$(($COMPILER_MEMORY > $BINARYEN_MEMORY ? $COMPILER_MEMORY : $BINARYEN_MEMORY ))
+function run_compiler() {
+  if [ $RUN_SRC -eq 1 ]; then
+    dart2wasm_command=("$DART" "${VM_ARGS[@]}" "$DART2WASM_SRC" "$LIBRARIES_JSON_ARG" "${DART2WASM_ARGS[@]}" "$DART_FILE" "$WASM_FILE")
+  else
+    dart2wasm_command=("$DART_AOT_RUNTIME" "${VM_ARGS[@]}" "$DART2WASM_AOT_SNAPSHOT" "$PLATFORM_ARG" "${DART2WASM_ARGS[@]}" "$DART_FILE" "$WASM_FILE")
   fi
 
+  if [ -n "$COMPILE_BENCHMARK_BASE_NAME" ]; then
+    measure "${dart2wasm_command[@]}"
+    COMPILER_TIME=$TIME
+    COMPILER_MEMORY=$MEMORY
+
+    measure_size ${WASM_FILE%.wasm}.mjs
+    MJS_SIZE=$SIZE
+    MJS_GZIP_SIZE=$GZIP_SIZE
+
+    if [ $MULTI_MODULE -eq 1 ]; then
+      for WASM_FILE in "${WASM_FILE%.wasm}"*.wasm; do
+        measure_size $WASM_FILE
+        (( COMPILER_SIZE+=$SIZE ))
+        (( COMPILER_GZIP_SIZE+=$GZIP_SIZE ))
+      done
+    else
+      measure_size $WASM_FILE
+      COMPILER_SIZE=$SIZE
+      COMPILER_GZIP_SIZE=$GZIP_SIZE
+    fi
+  else
+    "${dart2wasm_command[@]}"
+  fi
+}
+
+BINARYEN_TIME=0
+BINARYEN_MEMORY=0
+BINARYEN_SIZE=0
+BINARYEN_GZIP_SIZE=0
+
+function run_binaryen_single() {
+  binaryen_command=("$BINARYEN" "$@" "$WASM_FILE" -o "$WASM_FILE")
+  if [ -n "$COMPILE_BENCHMARK_BASE_NAME" ]; then
+    # If we're measuring run each binaryen command sequentially.
+    measure ${binaryen_command[@]}
+    BINARYEN_TIME=$(echo "$BINARYEN_TIME + $TIME" | bc)
+    BINARYEN_MEMORY=$(($BINARYEN_MEMORY > $MEMORY ? $BINARYEN_MEMORY : $MEMORY ))
+    measure_size $WASM_FILE
+    BINARYEN_SIZE=$(echo "$BINARYEN_SIZE + $SIZE" | bc)
+    BINARYEN_GZIP_SIZE=$(echo "$BINARYEN_GZIP_SIZE + $GZIP_SIZE" | bc)
+  else
+    ${binaryen_command[@]} &
+  fi
+}
+
+function run_binaryen() {
+  if [ $MULTI_MODULE -eq 1 ]; then
+    # Iterate over all matching wasm files and optimize them concurrently in
+    # different processes.
+    for WASM_FILE in "${WASM_FILE%.wasm}"*.wasm; do
+      run_binaryen_single "${BINARYEN_FLAGS_DEFERRED_LOADING[@]}"
+    done
+  else
+    run_binaryen_single "${BINARYEN_FLAGS[@]}"
+  fi
+  wait
+
+  if [ -n "$COMPILE_BENCHMARK_BASE_NAME" ]; then
+    MAX_MEMORY=$(($COMPILER_MEMORY > $BINARYEN_MEMORY ? $COMPILER_MEMORY : $BINARYEN_MEMORY ))
+    TOTAL_TIME=$(echo "$COMPILER_TIME + $BINARYEN_TIME" | bc)
+  fi
+}
+
+run_compiler
+run_if_binaryen_enabled run_binaryen
+
+if [ -n "$COMPILE_BENCHMARK_BASE_NAME" ]; then
   # CompileTime
   run_if_binaryen_enabled echo "$COMPILE_BENCHMARK_BASE_NAME.Time.Total(CompileTime): $TOTAL_TIME s"
   echo "$COMPILE_BENCHMARK_BASE_NAME.Time.Dart2Wasm(CompileTime): $COMPILER_TIME s"
@@ -275,10 +332,7 @@ if [ -n "$COMPILE_BENCHMARK_BASE_NAME" ]; then
   run_if_binaryen_enabled echo "$COMPILE_BENCHMARK_BASE_NAME.Size.wasm.opt.gz(CodeSize): $BINARYEN_GZIP_SIZE bytes"
 
   # MemoryUse
-  echo "$COMPILE_BENCHMARK_BASE_NAME.MemoryUse.Max(MemoryUse): $MAX_MEMORY bytes"
+  run_if_binaryen_enabled echo "$COMPILE_BENCHMARK_BASE_NAME.MemoryUse.Max(MemoryUse): $MAX_MEMORY bytes"
   echo "$COMPILE_BENCHMARK_BASE_NAME.MemoryUse.Dart2Wasm(MemoryUse): $COMPILER_MEMORY bytes"
   run_if_binaryen_enabled echo "$COMPILE_BENCHMARK_BASE_NAME.MemoryUse.Wasm2WasmOpt(MemoryUse): $BINARYEN_MEMORY bytes"
-else
-  "${dart2wasm_command[@]}"
-  run_if_binaryen_enabled ${binaryen_command[@]}
 fi

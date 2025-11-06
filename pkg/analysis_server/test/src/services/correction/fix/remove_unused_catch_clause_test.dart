@@ -31,7 +31,7 @@ void f() {
   }
 }
 ''');
-    await assertHasFixAllFix(WarningCode.UNUSED_CATCH_CLAUSE, '''
+    await assertHasFixAllFix(WarningCode.unusedCatchClause, '''
 void f() {
   try {
     throw 42;

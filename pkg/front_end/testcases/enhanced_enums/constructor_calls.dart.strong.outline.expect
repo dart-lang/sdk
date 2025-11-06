@@ -72,7 +72,7 @@ static method main() → dynamic
 
 Extra constant evaluation status:
 Evaluated: ConstructorInvocation @ org-dartlang-testcase:///constructor_calls.dart:6:3 -> InstanceConstant(const E{_Enum.index: 0, _Enum._name: "one"})
-Evaluated: ConstructorInvocation @ org-dartlang-testcase:///constructor_calls.dart:7:3 -> InstanceConstant(const E{_Enum.index: 1, _Enum._name: "two"})
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///constructor_calls.dart:7:7 -> InstanceConstant(const E{_Enum.index: 1, _Enum._name: "two"})
 Evaluated: StaticGet @ org-dartlang-testcase:///constructor_calls.dart:5:6 -> InstanceConstant(const E{_Enum.index: 0, _Enum._name: "one"})
 Evaluated: StaticGet @ org-dartlang-testcase:///constructor_calls.dart:5:6 -> InstanceConstant(const E{_Enum.index: 1, _Enum._name: "two"})
 Extra constant evaluation: evaluated: 15, effectively constant: 4

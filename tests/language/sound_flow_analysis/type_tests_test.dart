@@ -5,8 +5,6 @@
 // Exercises flow analysis of type tests (`is` and `as` expressions) when
 // `sound-flow-analysis` is enabled.
 
-// SharedOptions=--enable-experiment=sound-flow-analysis
-
 import 'package:expect/expect.dart';
 
 import '../static_type_helper.dart';

@@ -4,6 +4,7 @@
 
 import 'package:analysis_server/lsp_protocol/protocol.dart';
 import 'package:analysis_server/src/lsp/constants.dart';
+import 'package:analyzer/src/test_utilities/platform.dart';
 import 'package:analyzer/src/test_utilities/test_code_format.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -207,8 +208,11 @@ void f  ()
     await initialize();
     await openFile(mainFileUri, code.code);
 
-    var formatEdits =
-        (await formatOnType(mainFileUri, code.position.position, '}'))!;
+    var formatEdits = (await formatOnType(
+      mainFileUri,
+      code.position.position,
+      '}',
+    ))!;
     var formattedContents = applyTextEdits(code.code, formatEdits);
     expect(formattedContents, equals(expected));
   }
@@ -884,19 +888,19 @@ enum A { a, b }
   }
 
   Future<void> test_trailingCommas_preserve() async {
-    const optionsContent = '''
+    var optionsContent = normalizeNewlinesForPlatform('''
 formatter:
   trailing_commas: preserve
-''';
-    const initialContent = '''
+''');
+    var initialContent = normalizeNewlinesForPlatform('''
 enum A { a, b, }
-''';
-    const expectedContent = '''
+''');
+    var expectedContent = normalizeNewlinesForPlatform('''
 enum A {
   a,
   b,
 }
-''';
+''');
 
     newFile(analysisOptionsPath, optionsContent);
     newFile(mainFilePath, initialContent);

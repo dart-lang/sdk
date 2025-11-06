@@ -81,8 +81,9 @@ Future<bool> main() async {
   ProcessedOptions options = new ProcessedOptions(options: compilerOptions);
 
   Uri frontendLibUri = repoDir.resolve("pkg/front_end/lib/");
-  List<FileSystemEntity> entities =
-      new Directory.fromUri(frontendLibUri).listSync(recursive: true);
+  List<FileSystemEntity> entities = new Directory.fromUri(
+    frontendLibUri,
+  ).listSync(recursive: true);
   for (FileSystemEntity entity in entities) {
     if (entity is File && entity.path.endsWith(".dart")) {
       options.inputs.add(entity.uri);
@@ -93,27 +94,39 @@ Future<bool> main() async {
   Map<Uri, Uri> fileUriToImportUri = {};
   List<String> allowedUriPrefixes = [
     for (String relativePath in allowedRelativePaths)
-      repoDir.resolve(relativePath).toString()
+      repoDir.resolve(relativePath).toString(),
   ];
 
-  List<Uri> result = await CompilerContext.runWithOptions<List<Uri>>(options,
-      (CompilerContext c) async {
+  List<Uri> result = await CompilerContext.runWithOptions<List<Uri>>(options, (
+    CompilerContext c,
+  ) async {
     UriTranslator uriTranslator = await c.options.getUriTranslator();
     for (Package package in uriTranslator.packages.packages) {
       if (allowedPackages.contains(package.name)) {
         allowedUriPrefixes.add(package.packageUriRoot.toString());
       }
     }
-    DillTarget dillTarget =
-        new DillTarget(c, ticker, uriTranslator, c.options.target);
-    KernelTarget kernelTarget =
-        new KernelTarget(c, c.fileSystem, false, dillTarget, uriTranslator);
+    DillTarget dillTarget = new DillTarget(
+      c,
+      ticker,
+      uriTranslator,
+      c.options.target,
+    );
+    KernelTarget kernelTarget = new KernelTarget(
+      c,
+      c.fileSystem,
+      false,
+      dillTarget,
+      uriTranslator,
+    );
     Uri? platform = c.options.sdkSummary;
     if (platform != null) {
       var bytes = new File.fromUri(platform).readAsBytesSync();
       var platformComponent = loadComponentFromBytes(bytes);
-      dillTarget.loader
-          .appendLibraries(platformComponent, byteCount: bytes.length);
+      dillTarget.loader.appendLibraries(
+        platformComponent,
+        byteCount: bytes.length,
+      );
     }
 
     kernelTarget.setEntryPoints(c.options.inputs);
@@ -121,8 +134,10 @@ Future<bool> main() async {
     await kernelTarget.loader.buildOutlines();
 
     {
-      List<CompilationUnit> compilationUnits =
-          kernelTarget.loader.compilationUnits.toList(growable: false);
+      List<CompilationUnit> compilationUnits = kernelTarget
+          .loader
+          .compilationUnits
+          .toList(growable: false);
       List<CompilationUnit> rootCompilationUnits = [];
       Set<Uri> inputs = new Set.of(options.inputs);
       for (CompilationUnit unit in compilationUnits) {
@@ -131,8 +146,10 @@ Future<bool> main() async {
           rootCompilationUnits.add(unit);
         }
       }
-      loadedLibraries =
-          new LoadedLibrariesImpl(rootCompilationUnits, compilationUnits);
+      loadedLibraries = new LoadedLibrariesImpl(
+        rootCompilationUnits,
+        compilationUnits,
+      );
     }
 
     return new List<Uri>.from(tracker.dependencies);
@@ -179,8 +196,11 @@ Future<bool> main() async {
         Uri? importUri = fileUriToImportUri[uri];
         if (importUri != null) {
           Set<String> importChains = (computeImportChainsFor(
-              Uri.parse("<entry>"), loadedLibraries!, importUri,
-              verbose: false));
+            Uri.parse("<entry>"),
+            loadedLibraries!,
+            importUri,
+            verbose: false,
+          ));
           for (String s in importChains) {
             print(" => $s");
           }
@@ -203,10 +223,11 @@ CompilerOptions getOptions() {
     ..target = new VmTarget(new TargetFlags())
     ..librariesSpecificationUri = repoDir.resolve("sdk/lib/libraries.json")
     ..omitPlatform = true
-    ..onDiagnostic = (DiagnosticMessage message) {
-      if (message.severity == Severity.error) {
+    ..onDiagnostic = (CfeDiagnosticMessage message) {
+      if (message.severity == CfeSeverity.error) {
         Expect.fail(
-            "Unexpected error: ${message.plainTextFormatted.join('\n')}");
+          "Unexpected error: ${message.plainTextFormatted.join('\n')}",
+        );
       }
     }
     ..environmentDefines = const {};

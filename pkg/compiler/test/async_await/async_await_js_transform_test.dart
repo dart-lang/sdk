@@ -78,7 +78,7 @@ main() {
   var body = _wrapJsFunctionForAsync(function(__errorCode, __result) {
     if (__errorCode === 1)
       return rethrowHelper(__result, __completer);
-    while (true)
+    for (;;)
       switch (__goto) {
         case 0:
           // Function start
@@ -116,7 +116,7 @@ function(a) {
   var body = _wrapJsFunctionForAsync(function(__errorCode, __result) {
     if (__errorCode === 1)
       return rethrowHelper(__result, __completer);
-    while (true)
+    for (;;)
       switch (__goto) {
         case 0:
           // Function start
@@ -168,7 +168,7 @@ function(b) {
       __errorStack.push(__result);
       __goto = __handler;
     }
-    while (true)
+    for (;;)
       __outer1:
         switch (__goto) {
           case 0:
@@ -281,7 +281,7 @@ function(c) {
   var body = _wrapJsFunctionForAsync(function(__errorCode, __result) {
     if (__errorCode === 1)
       return rethrowHelper(__result, __completer);
-    while (true)
+    for (;;)
       switch (__goto) {
         case 0:
           // Function start
@@ -338,7 +338,7 @@ function(d2) {
   var body = _wrapJsFunctionForAsync(function(__errorCode, __result) {
     if (__errorCode === 1)
       return rethrowHelper(__result, __completer);
-    while (true)
+    for (;;)
       switch (__goto) {
         case 0:
           // Function start
@@ -474,7 +474,7 @@ function(x, y) {
   var body = _wrapJsFunctionForAsync(function(__errorCode, __result) {
     if (__errorCode === 1)
       return rethrowHelper(__result, __completer);
-    while (true)
+    for (;;)
       switch (__goto) {
         case 0:
           // Function start
@@ -563,7 +563,7 @@ function(f) {
   var body = _wrapJsFunctionForAsync(function(__errorCode, __result) {
     if (__errorCode === 1)
       return rethrowHelper(__result, __completer);
-    while (true)
+    for (;;)
       switch (__goto) {
         case 0:
           // Function start
@@ -628,7 +628,7 @@ function(g) {
   var body = _wrapJsFunctionForAsync(function(__errorCode, __result) {
     if (__errorCode === 1)
       return rethrowHelper(__result, __completer);
-    while (true)
+    for (;;)
       switch (__goto) {
         case 0:
           // Function start
@@ -713,7 +713,7 @@ function(a, h) {
   var body = _wrapJsFunctionForAsync(function(__errorCode, __result) {
     if (__errorCode === 1)
       return rethrowHelper(__result, __completer);
-    while (true)
+    for (;;)
       switch (__goto) {
         case 0:
           // Function start
@@ -799,7 +799,7 @@ function(c, i) {
       __errorStack.push(__result);
       __goto = __handler;
     }
-    while (true)
+    for (;;)
       switch (__goto) {
         case 0:
           // Function start
@@ -912,7 +912,7 @@ function(x, y, j) {
   var body = _wrapJsFunctionForAsync(function(__errorCode, __result) {
     if (__errorCode === 1)
       return rethrowHelper(__result, __completer);
-    while (true)
+    for (;;)
       switch (__goto) {
         case 0:
           // Function start
@@ -995,7 +995,7 @@ function(x, y, k) {
   var body = _wrapJsFunctionForAsync(function(__errorCode, __result) {
     if (__errorCode === 1)
       return rethrowHelper(__result, __completer);
-    while (true)
+    for (;;)
       switch (__goto) {
         case 0:
           // Function start
@@ -1122,7 +1122,7 @@ function(l) {
   var body = _wrapJsFunctionForAsync(function(__errorCode, __result) {
     if (__errorCode === 1)
       return rethrowHelper(__result, __completer);
-    while (true)
+    for (;;)
       switch (__goto) {
         case 0:
           // Function start
@@ -1196,7 +1196,7 @@ function(b, l) {
   var body = _wrapJsFunctionForAsync(function(__errorCode, __result) {
     if (__errorCode === 1)
       return rethrowHelper(__result, __completer);
-    while (true)
+    for (;;)
       switch (__goto) {
         case 0:
           // Function start
@@ -1275,7 +1275,7 @@ function(m) {
       __errorStack.push(__result);
       __goto = __handler;
     }
-    while (true)
+    for (;;)
       switch (__goto) {
         case 0:
           // Function start
@@ -1348,7 +1348,7 @@ function(__a) {
         __errorStack.push(__result);
         __goto = __handler;
       }
-      while (true)
+      for (;;)
         switch (__goto) {
           case 0:
             // Function start

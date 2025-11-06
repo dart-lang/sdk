@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/analysis_rule/rule_context.dart';
+import 'package:analyzer/analysis_rule/rule_visitor_registry.dart';
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
@@ -21,10 +22,13 @@ class UnnecessaryUnderscores extends LintRule {
     : super(name: LintNames.unnecessary_underscores, description: _desc);
 
   @override
-  DiagnosticCode get diagnosticCode => LinterLintCode.unnecessary_underscores;
+  DiagnosticCode get diagnosticCode => LinterLintCode.unnecessaryUnderscores;
 
   @override
-  void registerNodeProcessors(NodeLintRegistry registry, RuleContext context) {
+  void registerNodeProcessors(
+    RuleVisitorRegistry registry,
+    RuleContext context,
+  ) {
     if (!context.isFeatureEnabled(Feature.wildcard_variables)) return;
     var visitor = _Visitor(this);
     registry.addFormalParameterList(this, visitor);

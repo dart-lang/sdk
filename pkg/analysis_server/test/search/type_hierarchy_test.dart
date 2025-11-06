@@ -64,7 +64,18 @@ class B extends A {
         'superclass': 1,
         'interfaces': [],
         'mixins': [],
-        'subclasses': [1],
+        'subclasses': [2],
+      },
+      {
+        'classElement': {
+          'kind': 'CLASS',
+          'name': 'Object',
+          'location': anything,
+          'flags': 0,
+        },
+        'interfaces': [],
+        'mixins': [],
+        'subclasses': [],
       },
       {
         'classElement': {
@@ -76,7 +87,7 @@ class B extends A {
         'superclass': 0,
         'interfaces': [],
         'mixins': [],
-        'subclasses': [],
+        'subclasses': [0],
       },
     ]);
   }
@@ -219,9 +230,8 @@ class B extends A {}
     writePackageConfig(convertPath('$packagesRootPath/pkgA'));
     // reference the package from a project
     writeTestPackageConfig(
-      config:
-          (PackageConfigFileBuilder()
-            ..add(name: 'pkgA', rootPath: '$packagesRootPath/pkgA')),
+      config: (PackageConfigFileBuilder()
+        ..add(name: 'pkgA', rootPath: '$packagesRootPath/pkgA')),
     );
     addTestFile('''
 import 'package:pkgA/libA.dart';
@@ -1147,11 +1157,10 @@ class D extends C {}
       superOnly: true,
     ).toRequest(requestId, clientUriConverter: server.uriConverter);
     var response = await serverChannel.simulateRequestFromClient(request);
-    var items =
-        SearchGetTypeHierarchyResult.fromResponse(
-          response,
-          clientUriConverter: server.uriConverter,
-        ).hierarchyItems;
+    var items = SearchGetTypeHierarchyResult.fromResponse(
+      response,
+      clientUriConverter: server.uriConverter,
+    ).hierarchyItems;
     expect(items, isNull);
   }
 
@@ -1648,6 +1657,14 @@ extension type E(A it) implements A {
     expect(itemE.memberElement, isNull);
   }
 
+  Future<void> test_never_issue61420() async {
+    addTestFile('''
+Never value = throw 'error';
+''');
+    var items = await _getTypeHierarchyOrNull('Never');
+    expect(items, isNull);
+  }
+
   void _assertMember(TypeHierarchyItem item, String search) {
     expect(item.memberElement!.location!.offset, findOffset(search));
   }
@@ -1674,6 +1691,7 @@ extension type E(A it) implements A {
     await waitForTasksFinished();
     var request = _createGetTypeHierarchyRequest(search, superOnly: superOnly);
     var response = await serverChannel.simulateRequestFromClient(request);
+    expect(response.error, isNull);
     return SearchGetTypeHierarchyResult.fromResponse(
       response,
       clientUriConverter: server.uriConverter,

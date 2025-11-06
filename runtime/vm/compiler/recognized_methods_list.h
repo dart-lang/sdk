@@ -38,6 +38,8 @@ namespace dart {
   V(CoreLibrary, _GrowableList, ._withData, GrowableArrayAllocateWithData,     \
     0x192ac0e1)                                                                \
   V(CoreLibrary, _GrowableList, []=, GrowableArraySetIndexed, 0x3a23c6fa)      \
+  V(CoreLibrary, _GrowableList, get:_emptyList, GrowableArrayGetEmptyList,     \
+    0x735785f0)                                                                \
   V(CoreLibrary, _Record, get:_fieldNames, Record_fieldNames, 0x68c8319e)      \
   V(CoreLibrary, _Record, get:_numFields, Record_numFields, 0x7ba4f393)        \
   V(CoreLibrary, _Record, get:_shape, Record_shape, 0x70c40933)                \
@@ -80,9 +82,9 @@ namespace dart {
   V(CompactHashLibrary, _HashVMBase, set:_index, LinkedHashBase_setIndex,      \
     0xcf36944c)                                                                \
   V(CompactHashLibrary, _HashVMBase, get:_data, LinkedHashBase_getData,        \
-    0x372bf7ad)                                                                \
+    0x82aeadd7)                                                                \
   V(CompactHashLibrary, _HashVMBase, set:_data, LinkedHashBase_setData,        \
-    0x4b9888e9)                                                                \
+    0xc1465c93)                                                                \
   V(CompactHashLibrary, _HashVMBase, get:_usedData,                            \
     LinkedHashBase_getUsedData, 0x74808f38)                                    \
   V(CompactHashLibrary, _HashVMBase, set:_usedData,                            \
@@ -96,7 +98,7 @@ namespace dart {
   V(CompactHashLibrary, _HashVMBase, set:_deletedKeys,                         \
     LinkedHashBase_setDeletedKeys, 0xe2aeac51)                                 \
   V(CompactHashLibrary, _HashVMImmutableBase, get:_data,                       \
-    ImmutableLinkedHashBase_getData, 0x372bf7ad)                               \
+    ImmutableLinkedHashBase_getData, 0x82aeadd7)                               \
   V(CompactHashLibrary, _HashVMImmutableBase, get:_indexNullable,              \
     ImmutableLinkedHashBase_getIndex, 0xfe7649ae)                              \
   V(CompactHashLibrary, _HashVMImmutableBase, set:_index,                      \
@@ -104,7 +106,11 @@ namespace dart {
   V(CompactHashLibrary, ::, get:_uninitializedIndex,                           \
     CompactHash_uninitializedIndex, 0xa25a79e6)                                \
   V(CompactHashLibrary, ::, get:_uninitializedData,                            \
-    CompactHash_uninitializedData, 0x06a56b3b)                                 \
+    CompactHash_uninitializedData, 0x52282165)                                 \
+  V(DeveloperLibrary, ::, _getDefaultTag, UserTag_defaultTag, 0x594908f2)      \
+  V(DeveloperLibrary, ::, _getCurrentTag, Profiler_getCurrentTag, 0x4a075f33)  \
+  V(DeveloperLibrary, ::, _isDartStreamEnabled, Timeline_isDartStreamEnabled,  \
+    0xe87bfe54)                                                                \
   V(DeveloperLibrary, ::, get:extensionStreamHasListener,                      \
     ExtensionStreamHasListener, 0xfa975305)                                    \
   V(DeveloperLibrary, ::, debugger, Debugger, 0xf0aaff14)                      \
@@ -120,13 +126,13 @@ namespace dart {
     FfiNativeAsyncCallbackFunction, 0xbdd1a333)                                \
   V(FfiLibrary, ::, _nativeIsolateLocalCallbackFunction,                       \
     FfiNativeIsolateLocalCallbackFunction, 0x21b66eba)                         \
-  V(FfiLibrary, ::, _nativeIsolateGroupSharedCallbackFunction,                 \
-    FfiNativeIsolateGroupSharedCallbackFunction, 0x8882d3ca)                   \
-  V(FfiLibrary, ::, _nativeIsolateGroupSharedClosureFunction,                  \
-    FfiNativeIsolateGroupSharedClosureFunction, 0x2c93f675)                    \
-  V(FfiLibrary, ::, _loadAbiSpecificInt, FfiLoadAbiSpecificInt, 0x6abf70a6)    \
+  V(FfiLibrary, ::, _nativeIsolateGroupBoundCallbackFunction,                 \
+    FfiNativeIsolateGroupBoundCallbackFunction, 0xc20a0b32)                   \
+  V(FfiLibrary, ::, _nativeIsolateGroupBoundClosureFunction,                  \
+    FfiNativeIsolateGroupBoundClosureFunction, 0x0714be84)                    \
+  V(FfiLibrary, ::, _loadAbiSpecificInt, FfiLoadAbiSpecificInt, 0x6abf7467)    \
   V(FfiLibrary, ::, _loadAbiSpecificIntAtIndex, FfiLoadAbiSpecificIntAtIndex,  \
-    0xc188dd75)                                                                \
+    0xc188e136)                                                                \
   V(FfiLibrary, ::, _loadInt8, FfiLoadInt8, 0xe4acfa39)                        \
   V(FfiLibrary, ::, _loadInt16, FfiLoadInt16, 0xefe48685)                      \
   V(FfiLibrary, ::, _loadInt32, FfiLoadInt32, 0xea00b1ac)                      \
@@ -140,9 +146,9 @@ namespace dart {
   V(FfiLibrary, ::, _loadDouble, FfiLoadDouble, 0xeaad7eac)                    \
   V(FfiLibrary, ::, _loadDoubleUnaligned, FfiLoadDoubleUnaligned, 0xf5f52363)  \
   V(FfiLibrary, ::, _loadPointer, FfiLoadPointer, 0x8a1d0159)                  \
-  V(FfiLibrary, ::, _storeAbiSpecificInt, FfiStoreAbiSpecificInt, 0xaa7305ae)  \
+  V(FfiLibrary, ::, _storeAbiSpecificInt, FfiStoreAbiSpecificInt, 0x4cc50c5e)  \
   V(FfiLibrary, ::, _storeAbiSpecificIntAtIndex,                               \
-    FfiStoreAbiSpecificIntAtIndex, 0x258c6495)                                 \
+    FfiStoreAbiSpecificIntAtIndex, 0x326439bf)                                 \
   V(FfiLibrary, ::, _storeInt8, FfiStoreInt8, 0xeea241c5)                      \
   V(FfiLibrary, ::, _storeInt16, FfiStoreInt16, 0xdb5cf594)                    \
   V(FfiLibrary, ::, _storeInt32, FfiStoreInt32, 0xd4dab471)                    \
@@ -534,8 +540,8 @@ namespace dart {
   V(CoreLibrary, _BigIntImpl, _rsh, Bigint_rsh, 0xddf6be5f)                    \
   V(CoreLibrary, _BigIntImpl, _absAdd, Bigint_absAdd, 0x2aa56271)              \
   V(CoreLibrary, _BigIntImpl, _absSub, Bigint_absSub, 0x70f0b1eb)              \
-  V(CoreLibrary, _BigIntImpl, _mulAdd, Bigint_mulAdd, 0x3d39643d)              \
-  V(CoreLibrary, _BigIntImpl, _sqrAdd, Bigint_sqrAdd, 0x8f977e85)              \
+  V(CoreLibrary, _BigIntImpl, _mulAdd, Bigint_mulAdd, 0x853e7d70)              \
+  V(CoreLibrary, _BigIntImpl, _sqrAdd, Bigint_sqrAdd, 0xd9d62ddd)              \
   V(CoreLibrary, _BigIntImpl, _estimateQuotientDigit,                          \
     Bigint_estimateQuotientDigit, 0x16b87188)                                  \
   V(CoreLibrary, _BigIntMontgomeryReduction, _mulMod, Montgomery_mulMod,       \
@@ -589,10 +595,6 @@ namespace dart {
   V(CoreLibrary, _IntegerImplementation, >=, Integer_greaterEqualThan,         \
     0x4aa007b3)                                                                \
   V(CoreLibrary, _IntegerImplementation, <<, Integer_shl, 0x2d16ae7a)          \
-  V(DeveloperLibrary, ::, _getDefaultTag, UserTag_defaultTag, 0x59490cb3)      \
-  V(DeveloperLibrary, ::, _getCurrentTag, Profiler_getCurrentTag, 0x4a0762f4)  \
-  V(DeveloperLibrary, ::, _isDartStreamEnabled, Timeline_isDartStreamEnabled,  \
-    0xe87bfe54)                                                                \
   V(DeveloperLibrary, ::, _getNextTaskId, Timeline_getNextTaskId, 0x43c2f99b)  \
   V(InternalLibrary, ::, allocateOneByteString, AllocateOneByteString,         \
     0x9e5a2e15)                                                                \

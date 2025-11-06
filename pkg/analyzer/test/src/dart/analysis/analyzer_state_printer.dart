@@ -186,11 +186,6 @@ class AnalyzerStatePrinter {
           var filesIds = kind.fileKinds.map(idProvider.fileKind);
           sink.writelnWithIndent('fileKinds: ${filesIds.join(' ')}');
 
-          if (configuration.withResolvedKey) {
-            var id = idProvider.shortKey(kind.resolvedKey);
-            sink.writelnWithIndent('resolvedKey: $id');
-          }
-
           _writeLibraryCycle(kind);
         });
       case PartOfNameFileKind():
@@ -386,17 +381,6 @@ class AnalyzerStatePrinter {
         });
       }
     });
-
-    if (testData.instance case var libraryContext?) {
-      var bundleProvider = libraryContext.linkedBundleProvider;
-      var bundleKeys =
-          bundleProvider.map.entries
-              .map((entry) => idProvider.shortKey(entry.key))
-              .sorted();
-      if (bundleKeys.isNotEmpty) {
-        sink.writelnWithIndent('linkedBundleProvider: $bundleKeys');
-      }
-    }
   }
 
   void _writeLibraryCycle(LibraryFileKind library) {
@@ -637,7 +621,6 @@ class AnalyzerStatePrinterConfiguration {
   Set<File> filesToPrintContent = {};
 
   bool omitSdkFiles = true;
-  bool withResolvedKey = false;
 }
 
 /// Encoder of object identifies into short identifiers.

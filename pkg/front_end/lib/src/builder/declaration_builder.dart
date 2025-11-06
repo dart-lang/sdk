@@ -18,11 +18,17 @@ abstract class IDeclarationBuilder implements ITypeDeclarationBuilder {
   Uri get fileUri;
 
   /// Lookup a member accessed statically through this declaration.
-  LookupResult? findStaticBuilder(String name, int fileOffset, Uri fileUri,
-      LibraryBuilder accessingLibrary);
+  MemberLookupResult? findStaticBuilder(
+    String name,
+    int fileOffset,
+    Uri fileUri,
+    LibraryBuilder accessingLibrary,
+  );
 
-  MemberBuilder? findConstructorOrFactory(
-      String name, int charOffset, Uri uri, LibraryBuilder accessingLibrary);
+  MemberLookupResult? findConstructorOrFactory(
+    String name,
+    LibraryBuilder accessingLibrary,
+  );
 
   /// Returns the type of `this` in an instance of this declaration.
   ///
@@ -35,11 +41,13 @@ abstract class IDeclarationBuilder implements ITypeDeclarationBuilder {
   /// If [setter] is `true` the sought member is a setter or assignable field.
   /// If [required] is `true` and no member is found an internal problem is
   /// reported.
-  NamedBuilder? lookupLocalMember(String name,
-      {bool setter = false, bool required = false});
+  MemberLookupResult? lookupLocalMember(String name, {bool required = false});
 
-  List<DartType> buildAliasedTypeArguments(LibraryBuilder library,
-      List<TypeBuilder>? arguments, ClassHierarchyBase? hierarchy);
+  List<DartType> buildAliasedTypeArguments(
+    LibraryBuilder library,
+    List<TypeBuilder>? arguments,
+    ClassHierarchyBase? hierarchy,
+  );
 
   /// Returns an iterator of all members declared in this declaration, including
   /// duplicate declarations.
@@ -48,8 +56,9 @@ abstract class IDeclarationBuilder implements ITypeDeclarationBuilder {
   /// [Iterator] for all members declared in this declaration of type [T].
   ///
   /// If [includeDuplicates] is `true`, duplicate declarations are included.
-  Iterator<T> filteredMembersIterator<T extends MemberBuilder>(
-      {required bool includeDuplicates});
+  Iterator<T> filteredMembersIterator<T extends MemberBuilder>({
+    required bool includeDuplicates,
+  });
 
   /// Returns an iterator of all constructors declared in this declaration,
   /// including duplicate declarations.
@@ -58,8 +67,9 @@ abstract class IDeclarationBuilder implements ITypeDeclarationBuilder {
   /// [Iterator] for all constructors declared in this declaration of type [T].
   ///
   /// If [includeDuplicates] is `true`, duplicate declarations are included.
-  Iterator<T> filteredConstructorsIterator<T extends MemberBuilder>(
-      {required bool includeDuplicates});
+  Iterator<T> filteredConstructorsIterator<T extends MemberBuilder>({
+    required bool includeDuplicates,
+  });
 }
 
 abstract class DeclarationBuilderImpl extends TypeDeclarationBuilderImpl
@@ -73,20 +83,15 @@ abstract class DeclarationBuilderImpl extends TypeDeclarationBuilderImpl
   }
 
   @override
-  MemberBuilder? findConstructorOrFactory(
-      String name, int charOffset, Uri uri, LibraryBuilder accessingLibrary) {
+  MemberLookupResult? findConstructorOrFactory(
+    String name,
+    LibraryBuilder accessingLibrary,
+  ) {
     if (accessingLibrary.nameOriginBuilder !=
             libraryBuilder.nameOriginBuilder &&
         name.startsWith("_")) {
       return null;
     }
-    MemberBuilder? declaration =
-        nameSpace.lookupConstructor(name == 'new' ? '' : name);
-    if (declaration != null && declaration.next != null) {
-      return new AmbiguousMemberBuilder(
-          name.isEmpty ? this.name : name, declaration, charOffset, fileUri);
-    }
-
-    return declaration;
+    return nameSpace.lookupConstructor(name == 'new' ? '' : name);
   }
 }

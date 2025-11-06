@@ -68,7 +68,7 @@ dependencies:
       url: git@github.com:foo/foo.git
       path: path/to/foo
 ''',
-      [PubspecWarningCode.INVALID_DEPENDENCY],
+      [PubspecWarningCode.invalidDependency],
     );
   }
 
@@ -170,7 +170,7 @@ dependencies:
   foo:
     path: /foo
 ''',
-      [PubspecWarningCode.INVALID_DEPENDENCY],
+      [PubspecWarningCode.invalidDependency],
     );
   }
 

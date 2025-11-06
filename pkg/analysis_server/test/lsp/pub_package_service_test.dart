@@ -57,9 +57,9 @@ class PubApiTest {
       check_pubHostedUrl('test', pubDefaultUrl);
 
   Future<void> test_envPubHostedUrl_missingScheme() =>
-  // It's hard to tell that this is intended to be a valid URL minus the scheme
-  // so it will fail validation and fall back to the default.
-  check_pubHostedUrl('pub.example.org', pubDefaultUrl);
+      // It's hard to tell that this is intended to be a valid URL minus the scheme
+      // so it will fail validation and fall back to the default.
+      check_pubHostedUrl('pub.example.org', pubDefaultUrl);
 
   Future<void> test_envPubHostedUrl_null() =>
       check_pubHostedUrl(null, pubDefaultUrl);
@@ -178,8 +178,8 @@ class PubCommandTest with ResourceProviderMixin {
       ]
     }
     ''';
-    processRunner.startHandler =
-        (executable, args, {dir, env}) => MockProcess(1, 0, validJson, '');
+    processRunner.startHandler = (executable, args, {dir, env}) =>
+        MockProcess(1, 0, validJson, '');
     var result = await pubCommand.outdatedVersions(pubspecPath);
     expect(result, hasLength(1));
     var package = result.first;
@@ -214,10 +214,9 @@ class PubCommandTest with ResourceProviderMixin {
 
     processRunner.startHandler = (executable, args, {dir, env}) {
       // Return different json based on the directory we were invoked in.
-      var json =
-          dir == resourceProvider.pathContext.dirname(pubspecPath)
-              ? pubspecJson1
-              : pubspecJson2;
+      var json = dir == resourceProvider.pathContext.dirname(pubspecPath)
+          ? pubspecJson1
+          : pubspecJson2;
       return MockProcess(1, 0, json, '');
     };
     var result1 = await pubCommand.outdatedVersions(pubspecPath);
@@ -227,8 +226,8 @@ class PubCommandTest with ResourceProviderMixin {
   }
 
   Future<void> test_outdated_nonZeroExitCode() async {
-    processRunner.startHandler =
-        (executable, args, {dir, env}) => MockProcess(1, 123, '{}', '');
+    processRunner.startHandler = (executable, args, {dir, env}) =>
+        MockProcess(1, 123, '{}', '');
     var result = await pubCommand.outdatedVersions(pubspecPath);
     expect(result, isEmpty);
   }
@@ -254,8 +253,8 @@ class PubCommandTest with ResourceProviderMixin {
       ]
     }
     ''';
-    processRunner.startHandler =
-        (executable, args, {dir, env}) => MockProcess(1, 0, validJson, '');
+    processRunner.startHandler = (executable, args, {dir, env}) =>
+        MockProcess(1, 0, validJson, '');
     var result = await pubCommand.outdatedVersions(pubspecPath);
     expect(result, hasLength(2));
     for (var (index, package) in result.indexed) {
@@ -358,8 +357,8 @@ class PubPackageServiceTest extends AbstractLspAnalysisServerTest {
   }
 
   Future<void> test_packageCache_doesNotRetryUnknownException() async {
-    httpClient.sendHandler =
-        (BaseRequest request) async => throw UnimplementedError();
+    httpClient.sendHandler = (BaseRequest request) async =>
+        throw UnimplementedError();
 
     await initialize();
     expectPackages([]);

@@ -12,6 +12,15 @@ import 'package:ffi/ffi.dart';
 
 import 'dylib_utils.dart';
 
+Function (Pointer<Utf8>) createGetSender(final SendPort sendPort) {
+  return (Pointer<Utf8> responsePointer) {
+    final typedList = responsePointer.cast<Uint8>().asTypedList(
+          responsePointer.length,
+        );
+    sendPort.send(utf8.decode(typedList));
+  };
+}
+
 // Runs a simple HTTP GET request using a native HTTP library that runs
 // the request on a background thread.
 Future<String> httpGet(String uri) async {
@@ -26,16 +35,8 @@ Future<String> httpGet(String uri) async {
         print('httpGet receiver get error $e $st');
       },
     );
-  final sendPort = rp.sendPort;
-  final callback = NativeCallable<HttpCallback>.isolateGroupShared((
-    Pointer<Utf8> responsePointer,
-  ) {
-    final typedList = responsePointer.cast<Uint8>().asTypedList(
-          responsePointer.length,
-        );
-    final s = utf8.decode(typedList);
-    sendPort.send(s);
-  });
+  final callback = NativeCallable<HttpCallback>.isolateGroupBound(
+      createGetSender(rp.sendPort));
 
   // Invoke the native HTTP API. Our example HTTP library runs our GET
   // request on a background thread, and calls the callback on that same
@@ -56,20 +57,22 @@ Future<String> httpGet(String uri) async {
 @pragma('vm:shared')
 late int counter;
 
-// Start a HTTP server on a background thread.
-ReceivePort httpServe(void Function(String) onRequest) {
-  counter = 0;
-  final rp = ReceivePort();
-  final callback = NativeCallable<HttpCallback>.isolateGroupShared((
-    Pointer<Utf8> requestPointer,
-  ) {
+Function (Pointer<Utf8>) createServeSender(final SendPort sendPort) {
+  return (Pointer<Utf8> requestPointer) {
     counter++;
     final typedList = requestPointer.cast<Uint8>().asTypedList(
           requestPointer.length,
         );
-    final s = utf8.decode(typedList);
-    rp.sendPort.send(s);
-  });
+    sendPort.send(utf8.decode(typedList));
+  };
+}
+
+// Start a HTTP server on a background thread.
+ReceivePort httpServe(void Function(String) onRequest) {
+  counter = 0;
+  final rp = ReceivePort();
+  final callback = NativeCallable<HttpCallback>.isolateGroupBound(
+      createServeSender(rp.sendPort));
   rp.listen(
     (s) {
       print('httpServe counter: $counter');

@@ -28,7 +28,7 @@ condition() {
 ''',
       [
         // No lint
-        error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 77, 3),
+        error(CompileTimeErrorCode.argumentTypeNotAssignable, 77, 3),
       ],
     );
   }
@@ -497,7 +497,7 @@ bool f<T extends List<int>>(T list) =>
       r'''
 bool le3 = ([].indexOf(1) as int) > -1;
 ''',
-      [lint(11, 27), error(WarningCode.UNNECESSARY_CAST, 12, 20)],
+      [lint(11, 27), error(WarningCode.unnecessaryCast, 12, 20)],
     );
   }
 

@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/*@testedFeatures=inference*/
 library test;
 
 class A {}
@@ -23,34 +22,20 @@ class Test {
   B? member2;
 
   static void test(Test t) {
-    t. /*@target=Test.member*/ member = /*@typeArgs=B*/ f();
-    /*@type=Test*/ /*@target=Test.member2*/ t
-        . /*@target=Test.member2*/ member2 ??= /*@typeArgs=B?*/ f();
-    /*@type=Test*/ t
-        . /*@target=Test.member*/ /*@target=Test.member*/ member /*@target=B.+*/ += /*@typeArgs=C*/ f();
-    /*@type=Test*/ t
-        . /*@target=Test.member*/ /*@target=Test.member*/ member /*@target=B.**/ *= /*@typeArgs=B*/ f();
-    /*@type=Test*/ t
-        . /*@target=Test.member*/ /*@target=Test.member*/ member /*@target=B.&*/ &= /*@typeArgs=A*/ f();
-    /*@target=B.-*/ -- /*@type=Test*/ t
-        . /*@target=Test.member*/ /*@target=Test.member*/ member;
-    /*@type=Test*/ t
-        . /*@target=Test.member*/ /*@target=Test.member*/ member /*@target=B.-*/ --;
-    var /*@type=B*/ v1 =
-        t. /*@target=Test.member*/ member = /*@typeArgs=B*/ f();
-    var /*@type=B?*/ v2 = /*@type=Test*/ /*@target=Test.member2*/ t
-        . /*@target=Test.member2*/ member2 ??= /*@typeArgs=B?*/ f();
-    var /*@type=B*/ v3 = /*@type=Test*/ t
-        . /*@target=Test.member*/ /*@target=Test.member*/ member /*@target=B.+*/ += /*@typeArgs=C*/ f();
-    var /*@type=B*/ v4 = /*@type=Test*/ t
-        . /*@target=Test.member*/ /*@target=Test.member*/ member /*@target=B.**/ *= /*@typeArgs=B*/ f();
-    var /*@type=C*/ v5 = /*@type=Test*/ t
-        . /*@target=Test.member*/ /*@target=Test.member*/ member /*@target=B.&*/ &= /*@typeArgs=A*/ f();
-    var /*@type=B*/ v6 = /*@target=B.-*/ -- /*@type=Test*/ t
-        . /*@target=Test.member*/ /*@target=Test.member*/ member;
-    var /*@type=B*/ v7 = /*@type=Test*/ t
-        . /*@type=B*/ /*@target=Test.member*/ /*@target=Test.member*/
-        /*@type=B*/ member /*@target=B.-*/ --;
+    t.member = f();
+    t.member2 ??= f();
+    t.member += f();
+    t.member *= f();
+    t.member &= f();
+    --t.member;
+    t.member--;
+    var v1 = t.member = f();
+    var v2 = t.member2 ??= f();
+    var v3 = t.member += f();
+    var v4 = t.member *= f();
+    var v5 = t.member &= f();
+    var v6 = --t.member;
+    var v7 = t.member--;
   }
 }
 

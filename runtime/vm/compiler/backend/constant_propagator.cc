@@ -307,6 +307,14 @@ void ConstantPropagator::VisitDeoptimize(DeoptimizeInstr* instr) {
   // TODO(vegorov) remove all code after DeoptimizeInstr as dead.
 }
 
+void ConstantPropagator::VisitTsanFuncEntryExit(TsanFuncEntryExitInstr* instr) {
+}
+
+void ConstantPropagator::VisitTsanReadWrite(TsanReadWriteInstr* instr) {}
+
+void ConstantPropagator::VisitTsanReadWriteIndexed(
+    TsanReadWriteIndexedInstr* instr) {}
+
 Definition* ConstantPropagator::UnwrapPhi(Definition* defn) {
   if (defn->IsPhi()) {
     JoinEntryInstr* block = defn->AsPhi()->block();
@@ -1484,7 +1492,7 @@ void ConstantPropagator::VisitCaseInsensitiveCompare(
 }
 
 void ConstantPropagator::VisitUnbox(UnboxInstr* instr) {
-  Object& value = instr->value()->definition()->constant_value();
+  const Object& value = instr->value()->definition()->constant_value();
   if (IsUnknown(value)) {
     return;
   }
@@ -1498,7 +1506,9 @@ void ConstantPropagator::VisitUnbox(UnboxInstr* instr) {
         (unbox_int->representation() == kUnboxedUint32)) {
       const int64_t result_val = Evaluator::TruncateTo(
           Integer::Cast(value).Value(), unbox_int->representation());
-      value = Integer::NewCanonical(result_val);
+      SetValue(instr,
+               Integer::ZoneHandle(Z, Integer::NewCanonical(result_val)));
+      return;
     }
   }
 

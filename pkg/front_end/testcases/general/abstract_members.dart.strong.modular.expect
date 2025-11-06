@@ -45,7 +45,6 @@ library;
 //  - inherit an implementation from a superclass or mixin,
 //  - mark the class as abstract, or
 //  - provide a 'noSuchMethod' implementation.
-//
 // class MyClass extends B {
 //       ^^^^^^^
 // pkg/front_end/testcases/general/abstract_members.dart:21:3: Context: 'A.abstractMethod' is defined here.
@@ -114,7 +113,6 @@ library;
 //  - inherit an implementation from a superclass or mixin,
 //  - mark the class as abstract, or
 //  - provide a 'noSuchMethod' implementation.
-//
 // class MyMock3 extends B {
 //       ^^^^^^^
 // pkg/front_end/testcases/general/abstract_members.dart:21:3: Context: 'A.abstractMethod' is defined here.

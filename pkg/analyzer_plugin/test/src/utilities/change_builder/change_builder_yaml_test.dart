@@ -23,8 +23,9 @@ void main() {
 
 class AbstractYamlChangeBuilderTest extends AbstractChangeBuilderTest {
   String get testFilePath {
-    return ResourceProviderExtension(resourceProvider)
-        .convertPath('/home/my/pubspec.yaml');
+    return ResourceProviderExtension(
+      resourceProvider,
+    ).convertPath('/home/my/pubspec.yaml');
   }
 
   void createPubspec([String content = '']) {
@@ -138,7 +139,9 @@ name: my
         builder.addLinkedEdit(groupName, (builder) {
           builder.write('test');
           builder.addSuggestion(
-              LinkedEditSuggestionKind.VARIABLE, 'suggestion');
+            LinkedEditSuggestionKind.VARIABLE,
+            'suggestion',
+          );
         });
       });
     });

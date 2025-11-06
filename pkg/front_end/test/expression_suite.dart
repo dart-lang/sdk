@@ -7,7 +7,7 @@ import 'dart:typed_data' show Uint8List;
 
 import 'package:_fe_analyzer_shared/src/util/colors.dart' as colors;
 import "package:front_end/src/api_prototype/compiler_options.dart"
-    show CompilerOptions, DiagnosticMessage;
+    show CompilerOptions, CfeDiagnosticMessage;
 import 'package:front_end/src/api_prototype/experimental_flags.dart';
 import 'package:front_end/src/api_prototype/expression_compilation_tools.dart'
     show createDefinitionsWithTypes, createTypeParametersWithBounds;
@@ -26,6 +26,7 @@ import 'package:front_end/src/compute_platform_binaries_location.dart'
     show computePlatformBinariesLocation;
 import 'package:front_end/src/kernel/utils.dart'
     show serializeComponent, serializeProcedure;
+import 'package:front_end/src/source/source_loader.dart';
 import 'package:front_end/src/testing/compiler_common.dart';
 import "package:kernel/ast.dart"
     show
@@ -56,7 +57,7 @@ import 'testing/environment_keys.dart';
 
 class Context extends ChainContext {
   final CompilerContext compilerContext;
-  final List<DiagnosticMessage> errors;
+  final List<CfeDiagnosticMessage> errors;
 
   @override
   final List<Step> steps;
@@ -66,13 +67,15 @@ class Context extends ChainContext {
   int fuzzCompiles = 0;
 
   Context(this.compilerContext, this.errors, bool updateExpectations, this.fuzz)
-      : steps = <Step>[
-          const ReadTest(),
-          const CompileExpression(),
-          new MatchProcedureExpectations(".expect",
-              updateExpectations: updateExpectations),
-          const OutputParametersMatches(),
-        ];
+    : steps = <Step>[
+        const ReadTest(),
+        const CompileExpression(),
+        new MatchProcedureExpectations(
+          ".expect",
+          updateExpectations: updateExpectations,
+        ),
+        const OutputParametersMatches(),
+      ];
 
   ProcessedOptions get options => compilerContext.options;
 
@@ -86,23 +89,30 @@ class Context extends ChainContext {
     errors.clear();
   }
 
-  List<DiagnosticMessage> takeErrors() {
-    List<DiagnosticMessage> result = new List<DiagnosticMessage>.from(errors);
+  List<CfeDiagnosticMessage> takeErrors() {
+    List<CfeDiagnosticMessage> result = new List<CfeDiagnosticMessage>.from(
+      errors,
+    );
     errors.clear();
     return result;
   }
 }
 
 class CompilationResult {
+  Library? compiledInLibrary;
   Procedure? compiledProcedure;
-  List<DiagnosticMessage> errors;
+  List<CfeDiagnosticMessage> errors;
 
-  CompilationResult(this.compiledProcedure, this.errors);
+  CompilationResult(
+    this.compiledInLibrary,
+    this.compiledProcedure,
+    this.errors,
+  );
 
   String printResult(Uri entryPoint, Context context) {
     StringBuffer buffer = new StringBuffer();
     buffer.write("Errors: {\n");
-    for (DiagnosticMessage error in errors) {
+    for (CfeDiagnosticMessage error in errors) {
       for (String message in error.plainTextFormatted) {
         for (String line in splitLines(message)) {
           buffer.write("  ");
@@ -118,8 +128,8 @@ class CompilationResult {
     if (compiledProcedure == null) {
       buffer.write("<no procedure>");
     } else {
-      Printer printer = new Printer(buffer);
-      printer.visitProcedure(compiledProcedure!);
+      Printer printer = new Printer(buffer, showLibraryForNames: true);
+      printer.writeProcedureInLibrary(compiledProcedure!, compiledInLibrary!);
       printer.writeConstantTable(new Component());
     }
     Uri base = entryPoint.resolve(".");
@@ -161,21 +171,22 @@ class TestCase {
   List<CompilationResult> results = [];
 
   TestCase(
-      this.description,
-      this.sources,
-      this.entryPoint,
-      this.definitions,
-      this.definitionTypes,
-      this.typeDefinitions,
-      this.typeBounds,
-      this.typeDefaults,
-      this.isStaticMethod,
-      this.library,
-      this.className,
-      this.methodName,
-      this.offset,
-      this.scriptUri,
-      this.expression);
+    this.description,
+    this.sources,
+    this.entryPoint,
+    this.definitions,
+    this.definitionTypes,
+    this.typeDefinitions,
+    this.typeBounds,
+    this.typeDefaults,
+    this.isStaticMethod,
+    this.library,
+    this.className,
+    this.methodName,
+    this.offset,
+    this.scriptUri,
+    this.expression,
+  );
 
   @override
   String toString() {
@@ -208,25 +219,32 @@ class OutputParametersMatches
         if (compiledProcedure == null) continue;
         if (compiledProcedure.function.namedParameters.isNotEmpty) {
           return Future.value(
-              fail(tests, "Compiled expression contains named parameters."));
+            fail(tests, "Compiled expression contains named parameters."),
+          );
         }
         List<VariableDeclaration> positionals =
             compiledProcedure.function.positionalParameters;
         if (positionals.length != test.definitions.length) {
-          return Future.value(fail(
+          return Future.value(
+            fail(
               tests,
               "Compiled expression contains a wrong number of "
               "positional parameters: Expected ${test.definitions.length} "
               "(${test.definitions.join(", ")}) "
               "but had ${positionals.length} "
-              "(${positionals.map((p) => p.name).join(", ")})."));
+              "(${positionals.map((p) => p.name).join(", ")}).",
+            ),
+          );
         }
         for (int i = 0; i < positionals.length; i++) {
           if (positionals[i].name != test.definitions[i]) {
-            return Future.value(fail(
+            return Future.value(
+              fail(
                 tests,
                 "Compiled expression doesn't contain '${test.definitions[i]}' "
-                "but '${positionals[i].name}' as positional parameter $i."));
+                "but '${positionals[i].name}' as positional parameter $i.",
+              ),
+            );
           }
         }
       }
@@ -241,28 +259,35 @@ class MatchProcedureExpectations
   final String suffix;
   final bool updateExpectations;
 
-  const MatchProcedureExpectations(this.suffix,
-      {this.updateExpectations = false});
+  const MatchProcedureExpectations(
+    this.suffix, {
+    this.updateExpectations = false,
+  });
 
   @override
   String get name => "match expectations";
 
   @override
   Future<Result<List<TestCase>>> run(
-      List<TestCase> tests, Context context) async {
+    List<TestCase> tests,
+    Context context,
+  ) async {
     String actual = "";
     for (TestCase test in tests) {
       String primary = test.results.first.printResult(test.entryPoint, context);
       actual += primary;
       for (int i = 1; i < test.results.length; ++i) {
-        String secondary =
-            test.results[i].printResult(test.entryPoint, context);
+        String secondary = test.results[i].printResult(
+          test.entryPoint,
+          context,
+        );
         if (primary != secondary) {
           return fail(
-              tests,
-              "Multiple expectations don't match on $test:"
-              "\nFirst expectation:\n$actual\n"
-              "\nSecond expectation:\n$secondary\n");
+            tests,
+            "Multiple expectations don't match on $test:"
+            "\nFirst expectation:\n$actual\n"
+            "\nSecond expectation:\n$secondary\n",
+          );
         }
       }
     }
@@ -275,7 +300,9 @@ class MatchProcedureExpectations
         if (!updateExpectations) {
           String diff = await runDiff(expectedFile.uri, actual);
           return fail(
-              tests, "$testUri doesn't match ${expectedFile.uri}\n$diff");
+            tests,
+            "$testUri doesn't match ${expectedFile.uri}\n$diff",
+          );
         }
       } else {
         return pass(tests);
@@ -302,7 +329,9 @@ class ReadTest extends Step<TestDescription, List<TestCase>, Context> {
 
   @override
   Future<Result<List<TestCase>>> run(
-      TestDescription description, Context context) async {
+    TestDescription description,
+    Context context,
+  ) async {
     context.reset();
     Uri uri = description.uri;
     String contents = await new File.fromUri(uri).readAsString();
@@ -350,11 +379,13 @@ class ReadTest extends Step<TestDescription, List<TestCase>, Context> {
         } else if (key == "definitions") {
           definitions = (value as YamlList).map((x) => x as String).toList();
         } else if (key == "definition_types") {
-          definitionTypes =
-              (value as YamlList).map((x) => x as String).toList();
+          definitionTypes = (value as YamlList)
+              .map((x) => x as String)
+              .toList();
         } else if (key == "type_definitions") {
-          typeDefinitions =
-              (value as YamlList).map((x) => x as String).toList();
+          typeDefinitions = (value as YamlList)
+              .map((x) => x as String)
+              .toList();
         } else if (key == "type_bounds") {
           typeBounds = (value as YamlList).map((x) => x as String).toList();
         } else if (key == "type_defaults") {
@@ -378,21 +409,22 @@ class ReadTest extends Step<TestDescription, List<TestCase>, Context> {
       }
 
       TestCase test = new TestCase(
-          description,
-          sources,
-          entryPoint,
-          definitions,
-          definitionTypes,
-          typeDefinitions,
-          typeBounds,
-          typeDefaults,
-          isStaticMethod,
-          library,
-          className,
-          methodName,
-          offset,
-          scriptUri,
-          expression);
+        description,
+        sources,
+        entryPoint,
+        definitions,
+        definitionTypes,
+        typeDefinitions,
+        typeBounds,
+        typeDefaults,
+        isStaticMethod,
+        library,
+        className,
+        methodName,
+        offset,
+        scriptUri,
+        expression,
+      );
       tests.add(test);
     }
     return new Result.pass(tests);
@@ -407,12 +439,17 @@ class CompileExpression extends Step<List<TestCase>, List<TestCase>, Context> {
 
   // Compile [test.expression], update [test.errors] with results.
   // As a side effect - verify that generated procedure can be serialized.
-  Future<void> compileExpression(TestCase test, IncrementalCompiler compiler,
-      IncrementalCompilerResult compilerResult, Context context) async {
+  Future<void> compileExpression(
+    TestCase test,
+    IncrementalCompiler compiler,
+    IncrementalCompilerResult compilerResult,
+    Context context,
+  ) async {
     Map<String, DartType>? definitions = createDefinitionsWithTypes(
-        compilerResult.classHierarchy.knownLibraries,
-        test.definitionTypes,
-        test.definitions);
+      compilerResult.classHierarchy.knownLibraries,
+      test.definitionTypes,
+      test.definitions,
+    );
 
     if (definitions == null) {
       definitions = {};
@@ -421,17 +458,26 @@ class CompileExpression extends Step<List<TestCase>, List<TestCase>, Context> {
       }
     }
     List<TypeParameter>? typeParams = createTypeParametersWithBounds(
-        compilerResult.classHierarchy.knownLibraries,
-        test.typeBounds,
-        test.typeDefaults,
-        test.typeDefinitions);
+      compilerResult.classHierarchy.knownLibraries,
+      test.typeBounds,
+      test.typeDefaults,
+      test.typeDefinitions,
+    );
     if (typeParams == null) {
       typeParams = [];
       for (String name in test.typeDefinitions) {
-        typeParams
-            .add(new TypeParameter(name, new DynamicType(), new DynamicType()));
+        typeParams.add(
+          new TypeParameter(name, new DynamicType(), new DynamicType()),
+        );
       }
     }
+
+    SourceLoader loader = compiler.kernelTargetForTesting!.loader;
+    Library? libraryLookup =
+        (loader.lookupCompilationUnit(test.library) ??
+                loader.lookupCompilationUnitByFileUri(test.library))
+            ?.libraryBuilder
+            .library;
 
     Procedure? compiledProcedure = await compiler.compileExpression(
       test.expression,
@@ -445,8 +491,10 @@ class CompileExpression extends Step<List<TestCase>, List<TestCase>, Context> {
       scriptUri: test.scriptUri,
       offset: test.offset ?? TreeNode.noOffset,
     );
-    List<DiagnosticMessage> errors = context.takeErrors();
-    test.results.add(new CompilationResult(compiledProcedure, errors));
+    List<CfeDiagnosticMessage> errors = context.takeErrors();
+    test.results.add(
+      new CompilationResult(libraryLookup, compiledProcedure, errors),
+    );
     if (compiledProcedure != null) {
       // Confirm we can serialize generated procedure.
       compilerResult.component.computeCanonicalNames();
@@ -459,8 +507,11 @@ class CompileExpression extends Step<List<TestCase>, List<TestCase>, Context> {
     }
   }
 
-  Future<void> fuzz(IncrementalCompiler compiler,
-      IncrementalCompilerResult compilerResult, Context context) async {
+  Future<void> fuzz(
+    IncrementalCompiler compiler,
+    IncrementalCompilerResult compilerResult,
+    Context context,
+  ) async {
     for (Library lib in compilerResult.classHierarchy.knownLibraries) {
       if (!context.fuzzedLibraries.add(lib.importUri)) continue;
 
@@ -476,8 +527,12 @@ class CompileExpression extends Step<List<TestCase>, List<TestCase>, Context> {
     }
   }
 
-  Future<void> fuzzMember(Member m, IncrementalCompiler compiler,
-      Uri libraryUri, Context context) async {
+  Future<void> fuzzMember(
+    Member m,
+    IncrementalCompiler compiler,
+    Uri libraryUri,
+    Context context,
+  ) async {
     String expression = m.name.text;
     if (m is Field || (m is Procedure && m.isGetter)) {
       // fields and getters are fine as-is
@@ -503,52 +558,93 @@ class CompileExpression extends Step<List<TestCase>, List<TestCase>, Context> {
       className = parent.name;
     }
 
-    await fuzzTryCompile(compiler, "$expression", libraryUri, className,
-        !m.isInstanceMember, context);
-    if (className != null && !m.isInstanceMember) {
-      await fuzzTryCompile(compiler, "$className.$expression", libraryUri, null,
-          !m.isInstanceMember, context);
-    }
-    await fuzzTryCompile(compiler, "$expression.toString()", libraryUri,
-        className, !m.isInstanceMember, context);
-    if (className != null && !m.isInstanceMember) {
-      await fuzzTryCompile(compiler, "$className.$expression.toString()",
-          libraryUri, null, !m.isInstanceMember, context);
-    }
-    await fuzzTryCompile(compiler, "$expression.toString() == '42'", libraryUri,
-        className, !m.isInstanceMember, context);
+    await fuzzTryCompile(
+      compiler,
+      "$expression",
+      libraryUri,
+      className,
+      !m.isInstanceMember,
+      context,
+    );
     if (className != null && !m.isInstanceMember) {
       await fuzzTryCompile(
-          compiler,
-          "$className.$expression.toString() == '42'",
-          libraryUri,
-          null,
-          !m.isInstanceMember,
-          context);
+        compiler,
+        "$className.$expression",
+        libraryUri,
+        null,
+        !m.isInstanceMember,
+        context,
+      );
     }
     await fuzzTryCompile(
-        compiler,
-        "() { var x = $expression.toString(); x == '42'; }()",
-        libraryUri,
-        className,
-        !m.isInstanceMember,
-        context);
+      compiler,
+      "$expression.toString()",
+      libraryUri,
+      className,
+      !m.isInstanceMember,
+      context,
+    );
     if (className != null && !m.isInstanceMember) {
       await fuzzTryCompile(
-          compiler,
-          "() { var x = $className.$expression.toString(); x == '42'; }()",
-          libraryUri,
-          null,
-          !m.isInstanceMember,
-          context);
+        compiler,
+        "$className.$expression.toString()",
+        libraryUri,
+        null,
+        !m.isInstanceMember,
+        context,
+      );
+    }
+    await fuzzTryCompile(
+      compiler,
+      "$expression.toString() == '42'",
+      libraryUri,
+      className,
+      !m.isInstanceMember,
+      context,
+    );
+    if (className != null && !m.isInstanceMember) {
+      await fuzzTryCompile(
+        compiler,
+        "$className.$expression.toString() == '42'",
+        libraryUri,
+        null,
+        !m.isInstanceMember,
+        context,
+      );
+    }
+    await fuzzTryCompile(
+      compiler,
+      "() { var x = $expression.toString(); x == '42'; }()",
+      libraryUri,
+      className,
+      !m.isInstanceMember,
+      context,
+    );
+    if (className != null && !m.isInstanceMember) {
+      await fuzzTryCompile(
+        compiler,
+        "() { var x = $className.$expression.toString(); x == '42'; }()",
+        libraryUri,
+        null,
+        !m.isInstanceMember,
+        context,
+      );
     }
   }
 
-  Future<void> fuzzTryCompile(IncrementalCompiler compiler, String expression,
-      Uri libraryUri, String? className, bool isStatic, Context context) async {
+  Future<void> fuzzTryCompile(
+    IncrementalCompiler compiler,
+    String expression,
+    Uri libraryUri,
+    String? className,
+    bool isStatic,
+    Context context,
+  ) async {
     context.fuzzCompiles++;
-    print("Fuzz compile #${context.fuzzCompiles} "
-        "('$expression' in $libraryUri $className)");
+    print(
+      "Fuzz compile #${context.fuzzCompiles} "
+      "('$expression' in $libraryUri $className)",
+    );
     Procedure? compiledProcedure = await compiler.compileExpression(
       expression,
       {},
@@ -568,7 +664,9 @@ class CompileExpression extends Step<List<TestCase>, List<TestCase>, Context> {
 
   @override
   Future<Result<List<TestCase>>> run(
-      List<TestCase> tests, Context context) async {
+    List<TestCase> tests,
+    Context context,
+  ) async {
     for (TestCase test in tests) {
       test.sources.forEach((String fileName, String source) {
         context.fileSystem
@@ -576,29 +674,37 @@ class CompileExpression extends Step<List<TestCase>, List<TestCase>, Context> {
             .writeAsStringSync(source);
       });
 
-      IncrementalCompiler sourceCompiler =
-          new IncrementalCompiler(context.compilerContext);
-      IncrementalCompilerResult sourceCompilerResult =
-          await sourceCompiler.computeDelta(entryPoints: [test.entryPoint]);
+      IncrementalCompiler sourceCompiler = new IncrementalCompiler(
+        context.compilerContext,
+      );
+      IncrementalCompilerResult sourceCompilerResult = await sourceCompiler
+          .computeDelta(entryPoints: [test.entryPoint]);
       Component component = sourceCompilerResult.component;
-      List<DiagnosticMessage> errors = context.takeErrors();
+      List<CfeDiagnosticMessage> errors = context.takeErrors();
       if (!errors.isEmpty) {
         return fail(
-            tests,
-            "Couldn't compile entry-point: "
-            "${errors.map((e) => e.plainTextFormatted.first).toList()}");
+          tests,
+          "Couldn't compile entry-point: "
+          "${errors.map((e) => e.plainTextFormatted.first).toList()}",
+        );
       }
       Uri dillFileUri = toTestUri("${test.description.shortName}.dill");
       Uint8List dillData = await serializeComponent(component);
       context.fileSystem.entityForUri(dillFileUri).writeAsBytesSync(dillData);
       Set<Uri> beforeFuzzedLibraries = context.fuzzedLibraries.toSet();
       await compileExpression(
-          test, sourceCompiler, sourceCompilerResult, context);
+        test,
+        sourceCompiler,
+        sourceCompilerResult,
+        context,
+      );
 
-      IncrementalCompiler dillCompiler =
-          new IncrementalCompiler(context.compilerContext, dillFileUri);
-      IncrementalCompilerResult dillCompilerResult =
-          await dillCompiler.computeDelta(entryPoints: [test.entryPoint]);
+      IncrementalCompiler dillCompiler = new IncrementalCompiler(
+        context.compilerContext,
+        dillFileUri,
+      );
+      IncrementalCompilerResult dillCompilerResult = await dillCompiler
+          .computeDelta(entryPoints: [test.entryPoint]);
       component = dillCompilerResult.component;
       component.computeCanonicalNames();
 
@@ -616,7 +722,9 @@ class CompileExpression extends Step<List<TestCase>, List<TestCase>, Context> {
 }
 
 Future<Context> createContext(
-    Chain suite, Map<String, String> environment) async {
+  Chain suite,
+  Map<String, String> environment,
+) async {
   const Set<String> knownEnvironmentKeys = {
     EnvironmentKeys.updateExpectations,
     EnvironmentKeys.fuzz,
@@ -632,9 +740,9 @@ Future<Context> createContext(
   final Uri sdkSummary = base.resolve("vm_platform.dill");
 
   /// The actual location of the dill file.
-  final Uri sdkSummaryFile =
-      computePlatformBinariesLocation(forceBuildDir: true)
-          .resolve("vm_platform.dill");
+  final Uri sdkSummaryFile = computePlatformBinariesLocation(
+    forceBuildDir: true,
+  ).resolve("vm_platform.dill");
 
   final MemoryFileSystem fs = new MemoryFileSystem(base);
 
@@ -642,7 +750,7 @@ Future<Context> createContext(
       .entityForUri(sdkSummary)
       .writeAsBytesSync(await new File.fromUri(sdkSummaryFile).readAsBytes());
 
-  final List<DiagnosticMessage> errors = <DiagnosticMessage>[];
+  final List<CfeDiagnosticMessage> errors = <CfeDiagnosticMessage>[];
 
   final CompilerOptions optionBuilder = new CompilerOptions()
     ..target = new VmTarget(new TargetFlags())
@@ -650,7 +758,7 @@ Future<Context> createContext(
     ..omitPlatform = true
     ..fileSystem = fs
     ..sdkSummary = sdkSummary
-    ..onDiagnostic = (DiagnosticMessage message) {
+    ..onDiagnostic = (CfeDiagnosticMessage message) {
       printDiagnosticMessage(message, print);
       errors.add(message);
     }
@@ -658,8 +766,10 @@ Future<Context> createContext(
     ..explicitExperimentalFlags = {}
     ..allowedExperimentalFlagsForTesting = const AllowedExperimentalFlags();
 
-  final ProcessedOptions options =
-      new ProcessedOptions(options: optionBuilder, inputs: [entryPoint]);
+  final ProcessedOptions options = new ProcessedOptions(
+    options: optionBuilder,
+    inputs: [entryPoint],
+  );
 
   final bool updateExpectations =
       environment[EnvironmentKeys.updateExpectations] == "true";
@@ -676,8 +786,8 @@ Future<Context> createContext(
 }
 
 void main([List<String> arguments = const []]) => internalMain(
-      createContext,
-      arguments: arguments,
-      displayName: "expression suite",
-      configurationPath: "../testing.json",
-    );
+  createContext,
+  arguments: arguments,
+  displayName: "expression suite",
+  configurationPath: "../testing.json",
+);

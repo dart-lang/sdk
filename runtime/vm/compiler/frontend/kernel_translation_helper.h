@@ -176,7 +176,6 @@ class TranslationHelper {
                                    const String& method_name,
                                    bool required = true);
   ObjectPtr LookupMemberByMember(NameIndex kernel_name, bool required = true);
-  FunctionPtr LookupDynamicFunction(const Class& klass, const String& name);
 
   Type& GetDeclarationType(const Class& klass);
 
@@ -1016,19 +1015,27 @@ struct InferredTypeMetadata {
     kFlagSkipCheck = 1 << 2,
     kFlagConstant = 1 << 3,
     kFlagReceiverNotInt = 1 << 4,
+    kFlagClosure = 1 << 5,
+    kFlagExactType = 1 << 6,
   };
 
   // Mask of flags which participate in CompileType computation.
   static constexpr intptr_t kCompileTypeFlagsMask = kFlagNullable | kFlagInt;
 
-  InferredTypeMetadata(intptr_t cid_,
-                       uint8_t flags_,
-                       const Object& constant_value_ = Object::null_object())
-      : cid(cid_), flags(flags_), constant_value(constant_value_) {}
+  InferredTypeMetadata(
+      intptr_t cid_,
+      uint8_t flags_,
+      const Object& constant_value_ = Object::null_object(),
+      const AbstractType& exact_type_ = Object::null_abstract_type())
+      : cid(cid_),
+        flags(flags_),
+        constant_value(constant_value_),
+        exact_type(exact_type_) {}
 
   const intptr_t cid;
   const uint8_t flags;
   const Object& constant_value;
+  const AbstractType& exact_type;
 
   bool IsTrivial() const {
     return (cid == kDynamicCid) &&
@@ -1053,7 +1060,8 @@ struct InferredTypeMetadata {
               zone, (IsNullable() ? Type::NullableIntType() : Type::IntType())),
           IsNullable(), can_be_sentinel);
     } else {
-      return CompileType(IsNullable(), can_be_sentinel, cid, static_type);
+      return CompileType(IsNullable(), can_be_sentinel, cid,
+                         exact_type.IsNull() ? static_type : &exact_type);
     }
   }
 };
@@ -1079,6 +1087,7 @@ class InferredTypeMetadataHelper : public MetadataHelper {
 
   explicit InferredTypeMetadataHelper(KernelReaderHelper* helper,
                                       ConstantReader* constant_reader,
+                                      TypeTranslator* type_translator,
                                       Kind kind = Kind::Type);
 
   InferredTypeMetadata GetInferredType(intptr_t node_offset,
@@ -1086,6 +1095,7 @@ class InferredTypeMetadataHelper : public MetadataHelper {
 
  private:
   ConstantReader* constant_reader_;
+  TypeTranslator* type_translator_;
 
   DISALLOW_COPY_AND_ASSIGN(InferredTypeMetadataHelper);
 };

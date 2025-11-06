@@ -164,15 +164,13 @@ class LspMetaModelCleaner {
       name: interface.name,
       comment: _cleanComment(interface.comment),
       isProposed: interface.isProposed,
-      baseTypes:
-          interface.baseTypes
-              .where((type) => _includeTypeInOutput(type.name))
-              .toList(),
-      members:
-          interface.members
-              .where(_includeEntityInOutput)
-              .map((member) => _cleanMember(interface.name, member))
-              .toList(),
+      baseTypes: interface.baseTypes
+          .where((type) => _includeTypeInOutput(type.name))
+          .toList(),
+      members: interface.members
+          .where(_includeEntityInOutput)
+          .map((member) => _cleanMember(interface.name, member))
+          .toList(),
     );
   }
 
@@ -192,11 +190,10 @@ class LspMetaModelCleaner {
       comment: _cleanComment(namespace.comment),
       isProposed: namespace.isProposed,
       typeOfValues: namespace.typeOfValues,
-      members:
-          namespace.members
-              .where(_includeEntityInOutput)
-              .map((member) => _cleanMember(namespace.name, member))
-              .toList(),
+      members: namespace.members
+          .where(_includeEntityInOutput)
+          .map((member) => _cleanMember(namespace.name, member))
+          .toList(),
     );
   }
 
@@ -227,12 +224,11 @@ class LspMetaModelCleaner {
   /// Key on `dartType` to ensure we combine different types that will map down
   /// to the same type.
   TypeBase _cleanUnionType(UnionType type) {
-    var uniqueTypes =
-        Map.fromEntries(
-          type.types
-              .where(_allowTypeInUnions)
-              .map((t) => MapEntry(t.uniqueTypeIdentifier, t)),
-        ).values.toList();
+    var uniqueTypes = Map.fromEntries(
+      type.types
+          .where(_allowTypeInUnions)
+          .map((t) => MapEntry(t.uniqueTypeIdentifier, t)),
+    ).values.toList();
 
     // If our list includes something that maps to Object? as well as other
     // types, we should just treat the whole thing as Object? as we get no value
@@ -256,10 +252,9 @@ class LspMetaModelCleaner {
       return LiteralUnionType(uniqueTypes.cast<LiteralType>());
     } else if (uniqueTypes.any(isNullType)) {
       var remainingTypes = uniqueTypes.whereNot(isNullType).toList();
-      var nonNullType =
-          remainingTypes.length == 1
-              ? remainingTypes.single
-              : UnionType(remainingTypes);
+      var nonNullType = remainingTypes.length == 1
+          ? remainingTypes.single
+          : UnionType(remainingTypes);
       return NullableType(nonNullType);
     } else {
       return UnionType(uniqueTypes);
@@ -288,18 +283,18 @@ class LspMetaModelCleaner {
 
     return improvedTypeName != null
         ? improvedTypeName.endsWith('[]')
-            ? ArrayType(
-              TypeReference(
-                improvedTypeName.substring(0, improvedTypeName.length - 2),
-              ),
-            )
-            : improvedTypeName.endsWith('?')
-            ? NullableType(
-              TypeReference(
-                improvedTypeName.substring(0, improvedTypeName.length - 1),
-              ),
-            )
-            : TypeReference(improvedTypeName)
+              ? ArrayType(
+                  TypeReference(
+                    improvedTypeName.substring(0, improvedTypeName.length - 2),
+                  ),
+                )
+              : improvedTypeName.endsWith('?')
+              ? NullableType(
+                  TypeReference(
+                    improvedTypeName.substring(0, improvedTypeName.length - 1),
+                  ),
+                )
+              : TypeReference(improvedTypeName)
         : null;
   }
 

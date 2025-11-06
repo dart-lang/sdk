@@ -99,110 +99,110 @@ void foo(String Function() p) {}
     );
   }
 
-  test_typeExtendingType_withToStringOverride() async {
+  test_typeImplementsType_withToStringOverride() async {
     await assertNoDiagnostics(r'''
 mixin M {
   @override
   String toString() => '';
 }
-class Type2 extends Type with M {
+class Type2 with M implements Type {
   String get x => toString();
 }
 ''');
   }
 
-  test_typeThatExtendsType() async {
+  test_typeThatExtendsTypeThatImplementsType() async {
     await assertDiagnostics(
       r'''
-var x = Type2().toString();
-class Type2 extends Type {}
+var x = Type3().toString();
+class Type2 implements Type {}
+class Type3 extends Type2 {}
 ''',
       [lint(16, 8)],
     );
   }
 
-  test_typeThatExtendsType_explicitThis() async {
+  test_typeThatImplementsType() async {
     await assertDiagnostics(
       r'''
-class Type2 extends Type {
+var x = Type2().toString();
+class Type2 implements Type {}
+''',
+      [lint(16, 8)],
+    );
+  }
+
+  test_typeThatImplementsType_explicitThis() async {
+    await assertDiagnostics(
+      r'''
+class Type2 implements Type {
   late var x = this.toString();
 }
 ''',
-      [lint(47, 8)],
+      [lint(50, 8)],
     );
   }
 
-  test_typeThatExtendsType_implicitThis() async {
+  test_typeThatImplementsType_implicitThis() async {
     await assertDiagnostics(
       r'''
-class Type2 extends Type {
+class Type2 implements Type {
   late var x = toString();
 }
 ''',
-      [lint(42, 8)],
+      [lint(45, 8)],
     );
   }
 
-  test_typeThatExtendsType_super() async {
+  test_typeThatImplementsType_super() async {
     await assertDiagnostics(
       r'''
-class Type2 extends Type {
+class Type2 implements Type {
   late var x = super.toString();
 }
 ''',
-      [lint(48, 8)],
+      [lint(51, 8)],
     );
   }
 
-  test_typeThatExtendsType_tearoff() async {
+  test_typeThatImplementsType_tearoff() async {
     await assertDiagnostics(
       r'''
-class Type2 extends Type {}
+class Type2 implements Type {}
 void f(Type2 t) {
   foo(t.toString);
 }
 void foo(String Function() p) {}
 ''',
-      [lint(54, 8)],
+      [lint(57, 8)],
     );
   }
 
-  test_typeThatExtendsType_tearoff_explicitThis() async {
+  test_typeThatImplementsType_tearoff_explicitThis() async {
     await assertDiagnostics(
       r'''
-class Type2 extends Type {
+class Type2 implements Type {
   void f() {
     foo(this.toString);
   }
   void foo(String Function() p) {}
 }
 ''',
-      [lint(53, 8)],
+      [lint(56, 8)],
     );
   }
 
-  test_typeThatExtendsType_tearoff_implicitThis() async {
+  test_typeThatImplementsType_tearoff_implicitThis() async {
     await assertDiagnostics(
       r'''
-class Type2 extends Type {
+class Type2 implements Type {
   void f() {
     foo(toString);
   }
   void foo(String Function() p) {}
 }
 ''',
-      [lint(48, 8)],
-    );
-  }
-
-  test_typeThatExtendsTypeThatExtendsType() async {
-    await assertDiagnostics(
-      r'''
-var x = Type3().toString();
-class Type2 extends Type {}
-class Type3 extends Type2 {}
-''',
-      [lint(16, 8)],
+      [lint(51, 8)],
     );
   }
 }

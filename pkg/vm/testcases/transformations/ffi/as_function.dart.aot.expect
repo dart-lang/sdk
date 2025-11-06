@@ -20,7 +20,7 @@ static method testVoidNoArg() → dynamic {
       return ffi::_ffiCall<void>(#ffiTarget0);
     }
   } =>#ffiClosure0;
-  [@vm.direct-call.metadata=closure 1 in #lib::testVoidNoArg] [@vm.inferred-type.metadata=!? (receiver not int)] function(){() → void};
+  [@vm.direct-call.metadata=closure 1 in #lib::testVoidNoArg] [@vm.inferred-type.metadata=? (receiver not int)] function(){() → void};
 }
 
 [@vm.inferred-return-type.metadata=int]

@@ -62,8 +62,9 @@ class InstanceCreationExpressionResolver {
     DotShorthandConstructorInvocationImpl node, {
     required TypeImpl contextType,
   }) {
-    TypeImpl dotShorthandContextType =
-        _resolver.getDotShorthandContext().unwrapTypeSchemaView();
+    TypeImpl dotShorthandContextType = _resolver
+        .getDotShorthandContext()
+        .unwrapTypeSchemaView();
 
     // The static namespace denoted by `S` is also the namespace denoted by
     // `FutureOr<S>`.
@@ -86,7 +87,7 @@ class InstanceCreationExpressionResolver {
         } else {
           _resolver.diagnosticReporter.atNode(
             node.constructorName,
-            CompileTimeErrorCode.CONST_WITH_UNDEFINED_CONSTRUCTOR,
+            CompileTimeErrorCode.constWithUndefinedConstructor,
             arguments: [contextType, node.constructorName.name],
           );
         }
@@ -98,14 +99,14 @@ class InstanceCreationExpressionResolver {
         if (constructorElement != null && !constructorElement.isFactory) {
           _resolver.diagnosticReporter.atNode(
             node,
-            CompileTimeErrorCode.INSTANTIATE_ABSTRACT_CLASS,
+            CompileTimeErrorCode.instantiateAbstractClass,
           );
         }
       } else if (typeArguments != null) {
         _resolver.diagnosticReporter.atNode(
           typeArguments,
           CompileTimeErrorCode
-              .WRONG_NUMBER_OF_TYPE_ARGUMENTS_DOT_SHORTHAND_CONSTRUCTOR,
+              .wrongNumberOfTypeArgumentsDotShorthandConstructor,
           arguments: [
             dotShorthandContextType.getDisplayString(),
             node.constructorName.name,
@@ -115,7 +116,7 @@ class InstanceCreationExpressionResolver {
     } else {
       _resolver.diagnosticReporter.atNode(
         node,
-        CompileTimeErrorCode.DOT_SHORTHAND_MISSING_CONTEXT,
+        CompileTimeErrorCode.dotShorthandMissingContext,
       );
     }
 
@@ -138,17 +139,18 @@ class InstanceCreationExpressionResolver {
       constructorName: node.constructorName,
       definingLibrary: _resolver.definingLibrary,
     );
-    var returnType = DotShorthandConstructorInvocationInferrer(
-      resolver: _resolver,
-      node: node,
-      argumentList: node.argumentList,
-      contextType: contextType,
-      whyNotPromotedArguments: whyNotPromotedArguments,
-    ).resolveInvocation(
-      // TODO(paulberry): eliminate this cast by changing the type of
-      // `ConstructorElementToInfer.asType`.
-      rawType: elementToInfer?.asType as FunctionTypeImpl?,
-    );
+    var returnType =
+        DotShorthandConstructorInvocationInferrer(
+          resolver: _resolver,
+          node: node,
+          argumentList: node.argumentList,
+          contextType: contextType,
+          whyNotPromotedArguments: whyNotPromotedArguments,
+        ).resolveInvocation(
+          // TODO(paulberry): eliminate this cast by changing the type of
+          // `ConstructorElementToInfer.asType`.
+          rawType: elementToInfer?.asType as FunctionTypeImpl?,
+        );
     node.recordStaticType(returnType, resolver: _resolver);
     _resolver.checkForArgumentTypesNotAssignableInList(
       node.argumentList,

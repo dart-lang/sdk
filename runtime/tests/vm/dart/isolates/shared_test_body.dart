@@ -62,8 +62,56 @@ void init() {
   mutex = Mutex();
 }
 
+final class Struct1Byte extends Struct {
+  @Array(1)
+  external Array<Uint8> a0;
+}
+
+@pragma('vm:shared')
+late Struct1Byte s1byte;
+
+final class StructWithArrays extends Struct {
+  @Array.multi([16])
+  external Array<Int8> a;
+}
+
+@pragma('vm:shared')
+late StructWithArrays switharrays;
+
+final class MyUnion extends Union {
+  @Int32()
+  external int a;
+
+  @Float()
+  external double b;
+}
+
+@pragma('vm:shared')
+late MyUnion myUnion;
+
+@pragma('vm:shared')
+late Array myArray;
+
+void verifySharingOfStructsAndUnions() {
+  s1byte = Struct.create<Struct1Byte>();
+  switharrays = Struct.create<StructWithArrays>();
+  myUnion = Union.create<MyUnion>();
+  // TODO(dartbug.com/61126): Allow sharing of Arrays.
+  Expect.throws(
+    () {
+      myArray = switharrays.a;
+    },
+    (e) {
+      return e.toString().contains("Attempt to place");
+    },
+  );
+}
+
 void main(List<String> args) async {
   asyncStart();
+
+  verifySharingOfStructsAndUnions();
+
   if (args.length > 0) {
     totalWorkItems = int.parse(args[0]);
     if (args.length > 1) {

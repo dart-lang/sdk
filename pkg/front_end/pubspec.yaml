@@ -6,7 +6,7 @@ name: front_end
 publish_to: none
 
 environment:
-  sdk: ^3.5.0
+  sdk: ^3.9.0
 
 workspace:
   - testcases
@@ -23,6 +23,7 @@ dependencies:
 # Use 'any' constraints here; we get our versions from the DEPS file.
 dev_dependencies:
   analyzer: any
+  analyzer_utilities: any
   args: any
   build_integration: any
   compiler: any
@@ -32,9 +33,10 @@ dev_dependencies:
   expect: any
   json_rpc_2: any
   path: any
+  pub_semver: any
   test_reflective_loader: any
   test: any
   testing: any
-  vm: any
   vm_service: any
+  vm: any
   web_socket_channel: any

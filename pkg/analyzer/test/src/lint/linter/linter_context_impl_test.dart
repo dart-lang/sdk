@@ -4,9 +4,9 @@
 
 import 'package:analyzer/analysis_rule/rule_context.dart';
 import 'package:analyzer/error/listener.dart';
+import 'package:analyzer/src/analysis_rule/rule_context.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/lint/constants.dart';
-import 'package:analyzer/src/lint/linter.dart';
 import 'package:analyzer/src/string_source.dart';
 import 'package:analyzer/src/workspace/pub.dart';
 import 'package:test/test.dart';
@@ -40,7 +40,7 @@ abstract class AbstractLinterContextTest extends PubPackageResolutionTest {
       unit: result.unit,
     );
 
-    var libraryElement = result.libraryElement2;
+    var libraryElement = result.libraryElement;
     var analysisContext = libraryElement.session.analysisContext;
     var libraryPath = libraryElement.firstFragment.source.fullName;
     var workspace = analysisContext.contextRoot.workspace;
@@ -285,7 +285,7 @@ f<U>() => A<U>();
 
   void test_true_argument_list_nonBool() async {
     await resolve('''
-const bool kIsWeb = bool.fromEnvironment('dart.library.js_util');
+const bool kIsWeb = bool.fromEnvironment('dart.library.js_interop');
 class A {
   const A(List<int> l);
 }

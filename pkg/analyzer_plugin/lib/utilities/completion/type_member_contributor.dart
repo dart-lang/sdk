@@ -26,8 +26,10 @@ class TypeMemberContributor implements CompletionContributor {
   /// call on `computeSuggestionsWithEntryPoint`.
   @override
   Future<void> computeSuggestions(
-      DartCompletionRequest request, CompletionCollector collector) async {
-    var containingLibrary = request.result.libraryElement2;
+    DartCompletionRequest request,
+    CompletionCollector collector,
+  ) async {
+    var containingLibrary = request.result.libraryElement;
 
     // Recompute the target since resolution may have changed it
     var expression = _computeDotTarget(request.result.unit, request.offset);
@@ -38,9 +40,12 @@ class TypeMemberContributor implements CompletionContributor {
   }
 
   /// Clients should not overload this function.
-  Future<void> computeSuggestionsWithEntryPoint(DartCompletionRequest request,
-      CompletionCollector collector, AstNode entryPoint) async {
-    var containingLibrary = request.result.libraryElement2;
+  Future<void> computeSuggestionsWithEntryPoint(
+    DartCompletionRequest request,
+    CompletionCollector collector,
+    AstNode entryPoint,
+  ) async {
+    var containingLibrary = request.result.libraryElement;
 
     // Recompute the target since resolution may have changed it
     var expression = _computeDotTarget(entryPoint, request.offset);
@@ -57,10 +62,11 @@ class TypeMemberContributor implements CompletionContributor {
   }
 
   void _computeSuggestions(
-      DartCompletionRequest request,
-      CompletionCollector collector,
-      LibraryElement containingLibrary,
-      Expression expression) {
+    DartCompletionRequest request,
+    CompletionCollector collector,
+    LibraryElement containingLibrary,
+    Expression expression,
+  ) {
     if (expression is Identifier) {
       var element = expression.element;
       if (element is ClassElement) {
@@ -104,8 +110,8 @@ class TypeMemberContributor implements CompletionContributor {
       type = type.superclass;
       // Determine the name of the containing method because
       // the most likely completion is a super expression with same name
-      var containingMethod =
-          expression.thisOrAncestorOfType<MethodDeclaration>();
+      var containingMethod = expression
+          .thisOrAncestorOfType<MethodDeclaration>();
       var id = containingMethod?.name;
       if (id != null) {
         containingMethodName = id.lexeme;
@@ -119,7 +125,10 @@ class TypeMemberContributor implements CompletionContributor {
     // Build the suggestions
     if (type is InterfaceType) {
       var builder = _SuggestionBuilder(
-          request.resourceProvider, collector, containingLibrary);
+        request.resourceProvider,
+        collector,
+        containingLibrary,
+      );
       builder.buildSuggestions(type, containingMethodName);
     }
   }
@@ -239,7 +248,9 @@ class _LocalBestTypeVisitor extends LocalDeclarationVisitor {
 
   @override
   void declaredTopLevelVar(
-      VariableDeclarationList varList, VariableDeclaration varDecl) {
+    VariableDeclarationList varList,
+    VariableDeclaration varDecl,
+  ) {
     if (varDecl.name.lexeme == targetName) {
       // Type provided by the element in computeFull above
       finished();
@@ -292,8 +303,10 @@ class _SuggestionBuilder {
   final SuggestionBuilder builder;
 
   _SuggestionBuilder(
-      this.resourceProvider, this.collector, this.containingLibrary)
-      : builder = SuggestionBuilderImpl(resourceProvider);
+    this.resourceProvider,
+    this.collector,
+    this.containingLibrary,
+  ) : builder = SuggestionBuilderImpl(resourceProvider);
 
   Iterable<CompletionSuggestion> get suggestions => _suggestionMap.values;
 
@@ -312,23 +325,23 @@ class _SuggestionBuilder {
         if (!method.isStatic) {
           // Boost the relevance of a super expression
           // calling a method of the same name as the containing method
-          _addSuggestion(method,
-              relevance: method.name == containingMethodName
-                  ? DART_RELEVANCE_HIGH
-                  : null);
+          _addSuggestion(
+            method,
+            relevance: method.name == containingMethodName
+                ? DART_RELEVANCE_HIGH
+                : null,
+          );
         }
       }
       for (var propertyAccessor in [
         ...targetType.getters,
-        ...targetType.setters
+        ...targetType.setters,
       ]) {
         if (!propertyAccessor.isStatic) {
           if (propertyAccessor.isSynthetic) {
             // Avoid visiting a field twice
             if (propertyAccessor is GetterElement) {
-              if (propertyAccessor.variable case var variable?) {
-                _addSuggestion(variable);
-              }
+              _addSuggestion(propertyAccessor.variable);
             }
           } else {
             _addSuggestion(propertyAccessor);
@@ -363,7 +376,9 @@ class _SuggestionBuilder {
     }
 
     var alreadyGenerated = _completionTypesGenerated.putIfAbsent(
-        identifier, () => _COMPLETION_TYPE_NONE);
+      identifier,
+      () => _COMPLETION_TYPE_NONE,
+    );
     if (element is MethodElement) {
       // Anything shadows a method.
       if (alreadyGenerated != _COMPLETION_TYPE_NONE) {

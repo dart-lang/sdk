@@ -21,7 +21,7 @@ class UndefinedHiddenNameTest extends PubPackageResolutionTest {
       r'''
 export 'lib1.dart' hide a;
 ''',
-      [error(WarningCode.UNDEFINED_HIDDEN_NAME, 24, 1)],
+      [error(WarningCode.undefinedHiddenName, 24, 1)],
     );
   }
 
@@ -32,8 +32,8 @@ export 'lib1.dart' hide a;
 import 'lib1.dart' hide a;
 ''',
       [
-        error(WarningCode.UNUSED_IMPORT, 7, 11),
-        error(WarningCode.UNDEFINED_HIDDEN_NAME, 24, 1),
+        error(WarningCode.unusedImport, 7, 11),
+        error(WarningCode.undefinedHiddenName, 24, 1),
       ],
     );
   }

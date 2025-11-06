@@ -36,8 +36,8 @@ f(int a) {
 }
 ''',
       [
-        error(WarningCode.UNNECESSARY_NULL_COMPARISON_NEVER_NULL_FALSE, 15, 7),
-        error(WarningCode.UNNECESSARY_NULL_COMPARISON_NEVER_NULL_FALSE, 26, 7),
+        error(WarningCode.unnecessaryNullComparisonNeverNullFalse, 15, 7),
+        error(WarningCode.unnecessaryNullComparisonNeverNullFalse, 26, 7),
       ],
     );
   }
@@ -61,8 +61,8 @@ f() {
 }
 ''',
       [
-        error(WarningCode.UNNECESSARY_NULL_COMPARISON_ALWAYS_NULL_FALSE, 18, 4),
-        error(WarningCode.UNNECESSARY_NULL_COMPARISON_ALWAYS_NULL_FALSE, 36, 4),
+        error(WarningCode.unnecessaryNullComparisonAlwaysNullFalse, 18, 4),
+        error(WarningCode.unnecessaryNullComparisonAlwaysNullFalse, 36, 4),
       ],
     );
   }
@@ -77,8 +77,8 @@ f() {
 }
 ''',
       [
-        error(WarningCode.UNNECESSARY_NULL_COMPARISON_ALWAYS_NULL_TRUE, 18, 4),
-        error(WarningCode.UNNECESSARY_NULL_COMPARISON_ALWAYS_NULL_TRUE, 36, 4),
+        error(WarningCode.unnecessaryNullComparisonAlwaysNullTrue, 18, 4),
+        error(WarningCode.unnecessaryNullComparisonAlwaysNullTrue, 36, 4),
       ],
     );
   }
@@ -86,6 +86,32 @@ f() {
 
 @reflectiveTest
 class UnnecessaryNullComparisonTrueTest extends PubPackageResolutionTest {
+  test_equal_invalid_nonNull() async {
+    await assertErrorsInCode(
+      '''
+f(Unresolved o) {
+  int? i = o.nonNull;
+  i == null;
+  null == i;
+}
+''',
+      [error(CompileTimeErrorCode.undefinedClass, 2, 10)],
+    );
+  }
+
+  test_equal_invalid_nullable() async {
+    await assertErrorsInCode(
+      '''
+f(Unresolved o) {
+  int? i = o.nullable;
+  i == null;
+  null == i;
+}
+''',
+      [error(CompileTimeErrorCode.undefinedClass, 2, 10)],
+    );
+  }
+
   test_notEqual_intLiteral() async {
     await assertNoErrorsInCode('''
 f(int a, int? b) {
@@ -97,6 +123,32 @@ f(int a, int? b) {
 ''');
   }
 
+  test_notEqual_invalid_nonNull() async {
+    await assertErrorsInCode(
+      '''
+f(Unresolved o) {
+  int? i = o.nonNull;
+  i != null;
+  null != i;
+}
+''',
+      [error(CompileTimeErrorCode.undefinedClass, 2, 10)],
+    );
+  }
+
+  test_notEqual_invalid_nullable() async {
+    await assertErrorsInCode(
+      '''
+f(Unresolved o) {
+  int? i = o.nullable;
+  i != null;
+  null != i;
+}
+''',
+      [error(CompileTimeErrorCode.undefinedClass, 2, 10)],
+    );
+  }
+
   test_notEqual_notNullable() async {
     await assertErrorsInCode(
       '''
@@ -106,8 +158,8 @@ f(int a) {
 }
 ''',
       [
-        error(WarningCode.UNNECESSARY_NULL_COMPARISON_NEVER_NULL_TRUE, 15, 7),
-        error(WarningCode.UNNECESSARY_NULL_COMPARISON_NEVER_NULL_TRUE, 26, 7),
+        error(WarningCode.unnecessaryNullComparisonNeverNullTrue, 15, 7),
+        error(WarningCode.unnecessaryNullComparisonNeverNullTrue, 26, 7),
       ],
     );
   }

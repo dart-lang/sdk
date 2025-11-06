@@ -1,15 +1,4 @@
 library test;
-//
-// Problems in library:
-//
-// pkg/front_end/testcases/inference_new/infer_assign_to_index_upwards.dart:153:2: Error: Expected ';' after this.
-//  st  var /*@type=num*/ v4 =
-//  ^^
-//
-// pkg/front_end/testcases/inference_new/infer_assign_to_index_upwards.dart:153:2: Error: Undefined name 'st'.
-//  st  var /*@type=num*/ v4 =
-//  ^^
-//
 import self as self;
 import "dart:core" as core;
 
@@ -86,9 +75,6 @@ static method test6(self::Test<core::num, core::double> t, self::Test2<core::num
 }
 static method test7(self::Test<core::double, core::int> t, self::Test2<core::double, core::int> t2) → void {
   core::int v1 = let final self::Test<core::double, core::int> #t167 = t in let final core::String #t168 = "x" in let final core::int #t169 = self::getInt() in let final void #t170 = #t167.{self::Test::[]=}(#t168, #t169){(core::String, core::int) → void} in #t169;
-  invalid-expression "pkg/front_end/testcases/inference_new/infer_assign_to_index_upwards.dart:153:2: Error: Undefined name 'st'.
- st  var /*@type=num*/ v4 =
- ^^";
   core::num v4 = let final self::Test2<core::double, core::int> #t171 = t2 in let final core::String #t172 = "x" in let final core::double? #t173 = #t171.{self::Test2::[]}(#t172){(core::String) → core::double?} in #t173 == null ?{core::num} let final core::int #t174 = self::getInt() in let final void #t175 = #t171.{self::Test2::[]=}(#t172, #t174){(core::String, core::int?) → void} in #t174 : #t173{core::double};
 }
 static method test8(self::Test<core::double, core::num> t, self::Test2<core::double, core::num> t2) → void {

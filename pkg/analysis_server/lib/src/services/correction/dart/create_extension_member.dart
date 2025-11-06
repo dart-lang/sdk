@@ -29,7 +29,7 @@ class CreateExtensionGetter extends _CreateExtensionMember {
   List<String> get fixArguments => [_getterName];
 
   @override
-  FixKind get fixKind => DartFixKind.CREATE_EXTENSION_GETTER;
+  FixKind get fixKind => DartFixKind.createExtensionGetter;
 
   @override
   Future<void> compute(ChangeBuilder builder) async {
@@ -81,13 +81,19 @@ class CreateExtensionGetter extends _CreateExtensionMember {
     // Try to find the type of the field.
     var fieldTypeNode = climbPropertyAccess(nameNode);
     var fieldType = inferUndefinedExpressionType(fieldTypeNode);
+    if (fieldType is InvalidType) {
+      return;
+    }
 
     void writeGetter(DartEditBuilder builder) {
       if (inStaticContext) {
         builder.write('static ');
       }
       if (fieldType != null) {
-        builder.writeType(fieldType, methodBeingCopied: methodBeingCopied);
+        builder.writeType(
+          fieldType,
+          typeParametersInScope: methodBeingCopied?.typeParameters,
+        );
         builder.write(' ');
       }
       builder.write('get $_getterName => ');
@@ -141,7 +147,7 @@ class CreateExtensionMethod extends _CreateExtensionMember {
   List<String> get fixArguments => [_methodName];
 
   @override
-  FixKind get fixKind => DartFixKind.CREATE_EXTENSION_METHOD;
+  FixKind get fixKind => DartFixKind.createExtensionMethod;
 
   @override
   Future<void> compute(ChangeBuilder builder) async {
@@ -198,6 +204,9 @@ class CreateExtensionMethod extends _CreateExtensionMember {
     if (invocation ?? parent case Expression exp) {
       returnType = inferUndefinedExpressionType(exp);
     }
+    if (returnType is InvalidType) {
+      return;
+    }
 
     if (returnType is InterfaceType && returnType.isDartCoreFunction) {
       returnType = FunctionTypeImpl(
@@ -222,7 +231,7 @@ class CreateExtensionMethod extends _CreateExtensionMember {
       if (builder.writeType(
         isInvocation ? returnType : functionType?.returnType,
         groupName: 'RETURN_TYPE',
-        methodBeingCopied: methodBeingCopied,
+        typeParametersInScope: methodBeingCopied?.typeParameters,
       )) {
         builder.write(' ');
       }
@@ -233,11 +242,10 @@ class CreateExtensionMethod extends _CreateExtensionMember {
 
       builder.writeTypeParameters(
         ([
-                isInvocation ? returnType : functionType?.returnType,
-                ...?functionType?.formalParameters.map((e) => e.type),
-                ...?invocation?.argumentList.arguments.map((e) => e.staticType),
-              ].typeParameters
-              ..addAll([...?functionType?.typeParameters]))
+              isInvocation ? returnType : functionType?.returnType,
+              ...?functionType?.formalParameters.map((e) => e.type),
+              ...?invocation?.argumentList.arguments.map((e) => e.staticType),
+            ].typeParameters..addAll([...?functionType?.typeParameters]))
             .whereNot([targetType].typeParameters.contains)
             .toList(),
       );
@@ -246,13 +254,13 @@ class CreateExtensionMethod extends _CreateExtensionMember {
         builder.write('(');
         builder.writeParametersMatchingArguments(
           arguments,
-          methodBeingCopied: methodBeingCopied,
+          typeParametersInScope: methodBeingCopied?.typeParameters,
         );
         builder.write(')');
       } else if (functionType != null) {
         builder.writeFormalParameters(
           functionType.formalParameters,
-          methodBeingCopied: methodBeingCopied,
+          typeParametersInScope: methodBeingCopied?.typeParameters,
         );
       }
       builder.write(' {}');
@@ -296,7 +304,7 @@ class CreateExtensionOperator extends _CreateExtensionMember {
   List<String>? get fixArguments => [_operator];
 
   @override
-  FixKind get fixKind => DartFixKind.CREATE_EXTENSION_OPERATOR;
+  FixKind get fixKind => DartFixKind.createExtensionOperator;
 
   @override
   Future<void> compute(ChangeBuilder builder) async {
@@ -363,12 +371,15 @@ class CreateExtensionOperator extends _CreateExtensionMember {
       // Try to find the return type.
       returnType = inferUndefinedExpressionType(node) ?? VoidTypeImpl.instance;
     }
+    if (returnType is InvalidType) {
+      return;
+    }
 
     void writeMethod(DartEditBuilder builder) {
       if (builder.writeType(
         returnType,
         groupName: 'RETURN_TYPE',
-        methodBeingCopied: methodBeingCopied,
+        typeParametersInScope: methodBeingCopied?.typeParameters,
       )) {
         builder.write(' ');
       }
@@ -381,7 +392,7 @@ class CreateExtensionOperator extends _CreateExtensionMember {
         builder.writeFormalParameter(
           indexSetter ? 'index' : 'other',
           type: parameterType,
-          methodBeingCopied: methodBeingCopied,
+          typeParametersInScope: methodBeingCopied?.typeParameters,
         );
       }
       if (indexSetter) {
@@ -389,7 +400,7 @@ class CreateExtensionOperator extends _CreateExtensionMember {
         builder.writeFormalParameter(
           'newValue',
           type: assigningType,
-          methodBeingCopied: methodBeingCopied,
+          typeParametersInScope: methodBeingCopied?.typeParameters,
         );
       }
       builder.write(') {}');
@@ -426,7 +437,7 @@ class CreateExtensionSetter extends _CreateExtensionMember {
   List<String> get fixArguments => [_setterName];
 
   @override
-  FixKind get fixKind => DartFixKind.CREATE_EXTENSION_SETTER;
+  FixKind get fixKind => DartFixKind.createExtensionSetter;
 
   @override
   Future<void> compute(ChangeBuilder builder) async {
@@ -469,6 +480,9 @@ class CreateExtensionSetter extends _CreateExtensionMember {
     // Try to find the type of the field.
     var fieldTypeNode = climbPropertyAccess(nameNode);
     var fieldType = inferUndefinedExpressionType(fieldTypeNode);
+    if (fieldType is InvalidType) {
+      return;
+    }
 
     void writeSetter(DartEditBuilder builder) {
       builder.writeSetterDeclaration(
@@ -476,7 +490,7 @@ class CreateExtensionSetter extends _CreateExtensionMember {
         nameGroupName: 'NAME',
         parameterType: fieldType,
         parameterTypeGroupName: 'TYPE',
-        methodBeingCopied: methodBeingCopied,
+        typeParametersInScope: methodBeingCopied?.typeParameters,
       );
     }
 
@@ -549,12 +563,15 @@ abstract class _CreateExtensionMember extends ResolvedCorrectionProducer {
         if (extensionTypeParameters.isNotEmpty) {
           builder.writeTypeParameters(
             extensionTypeParameters,
-            methodBeingCopied: methodBeingCopied,
+            typeParametersInScope: methodBeingCopied?.typeParameters,
           );
           builder.write(' ');
         }
         builder.write('on ');
-        builder.writeType(targetType, methodBeingCopied: methodBeingCopied);
+        builder.writeType(
+          targetType,
+          typeParametersInScope: methodBeingCopied?.typeParameters,
+        );
         builder.writeln(' {');
         builder.write('  ');
         write(builder);
@@ -651,15 +668,14 @@ extension on List<DartType?> {
   /// it uses and get any type parameters they use by using this same getter.
   ///
   /// These types are added internally to a set so that we don't add duplicates.
-  List<TypeParameterElement> get typeParameters =>
-      {
-        for (var type in whereType<TypeParameterType>()) ...[
-          type.element,
-          ...[type.bound].typeParameters,
-        ],
-        for (var type in whereType<InterfaceType>())
-          ...type.typeArguments.typeParameters,
-      }.toList();
+  List<TypeParameterElement> get typeParameters => {
+    for (var type in whereType<TypeParameterType>()) ...[
+      type.element,
+      ...[type.bound].typeParameters,
+    ],
+    for (var type in whereType<InterfaceType>())
+      ...type.typeArguments.typeParameters,
+  }.toList();
 }
 
 extension on Element? {

@@ -9,13 +9,11 @@ import 'package:analyzer/dart/analysis/declared_variables.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/instrumentation/instrumentation.dart';
 import 'package:analyzer/src/generated/source.dart' show SourceFactory;
-import 'package:meta/meta.dart';
 
 export 'package:analyzer/dart/analysis/analysis_options.dart';
 export 'package:analyzer/error/listener.dart' show RecordingDiagnosticListener;
+export 'package:analyzer/source/timestamped_data.dart' show TimestampedData;
 export 'package:analyzer/src/dart/analysis/analysis_options.dart';
-export 'package:analyzer/src/generated/timestamped_data.dart'
-    show TimestampedData;
 
 /// A context in which a single analysis can be performed and incrementally
 /// maintained. The context includes such information as the version of the SDK
@@ -67,7 +65,6 @@ abstract class AnalysisContext {
   ///
   /// NOTE: this API is experimental and subject to change in a future
   /// release (see https://github.com/dart-lang/sdk/issues/53876 for context).
-  @experimental
   AnalysisOptions getAnalysisOptionsForFile(File file);
 }
 

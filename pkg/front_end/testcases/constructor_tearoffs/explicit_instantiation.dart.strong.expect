@@ -82,6 +82,8 @@ static method main() → void {
   core::Type t2 = #C8;
   function local<T extends core::Object? = dynamic>(T% value) → T%
     return value;
+  const (core::int) → core::int f1 = #C10;
+  const (core::int) → core::int f2 = #C2;
   (core::int) → core::int f3 = local<core::int>;
   self::D d = new self::D::•();
   (core::int) → core::int f4 = d.{self::C::inst}{<T extends core::Object? = dynamic>(T%) → T%}<core::int>;
@@ -100,4 +102,6 @@ constants  {
   #C6 = instantiation #C5 <core::int>
   #C7 = TypeLiteralConstant(core::List<core::int>)
   #C8 = TypeLiteralConstant(core::List<core::List<core::int>>)
+  #C9 = static-tearoff self::top
+  #C10 = instantiation #C9 <core::int>
 }

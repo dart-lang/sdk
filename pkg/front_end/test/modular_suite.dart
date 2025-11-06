@@ -7,7 +7,9 @@ import 'testing/environment_keys.dart';
 import 'testing/suite.dart';
 
 Future<FastaContext> createContext(
-    Chain suite, Map<String, String> environment) {
+  Chain suite,
+  Map<String, String> environment,
+) {
   environment[EnvironmentKeys.compilationMode] = CompileMode.modular.name;
   return FastaContext.create(suite, environment);
 }

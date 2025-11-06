@@ -2307,6 +2307,41 @@ DART_EXPORT Dart_Handle Dart_TypeNever() {
   return Api::NewHandle(T, Type::NeverType());
 }
 
+DART_EXPORT Dart_Handle Dart_TypeString() {
+  DARTSCOPE(Thread::Current());
+  CHECK_CALLBACK_STATE(T);
+  API_TIMELINE_DURATION(T);
+  return Api::NewHandle(T, T->isolate_group()->object_store()->string_type());
+}
+
+DART_EXPORT Dart_Handle Dart_TypeDouble() {
+  DARTSCOPE(Thread::Current());
+  CHECK_CALLBACK_STATE(T);
+  API_TIMELINE_DURATION(T);
+  return Api::NewHandle(T, T->isolate_group()->object_store()->double_type());
+}
+
+DART_EXPORT Dart_Handle Dart_TypeInt() {
+  DARTSCOPE(Thread::Current());
+  CHECK_CALLBACK_STATE(T);
+  API_TIMELINE_DURATION(T);
+  return Api::NewHandle(T, T->isolate_group()->object_store()->int_type());
+}
+
+DART_EXPORT Dart_Handle Dart_TypeBoolean() {
+  DARTSCOPE(Thread::Current());
+  CHECK_CALLBACK_STATE(T);
+  API_TIMELINE_DURATION(T);
+  return Api::NewHandle(T, T->isolate_group()->object_store()->bool_type());
+}
+
+DART_EXPORT Dart_Handle Dart_TypeObject() {
+  DARTSCOPE(Thread::Current());
+  CHECK_CALLBACK_STATE(T);
+  API_TIMELINE_DURATION(T);
+  return Api::NewHandle(T, T->isolate_group()->object_store()->object_type());
+}
+
 DART_EXPORT Dart_Handle Dart_ObjectEquals(Dart_Handle obj1,
                                           Dart_Handle obj2,
                                           bool* value) {
@@ -3137,6 +3172,76 @@ DART_EXPORT Dart_Handle Dart_NewListOfType(Dart_Handle element_type,
                          CURRENT_FUNC);
   }
   return Api::NewHandle(T, Array::New(length, type));
+}
+
+DART_EXPORT Dart_Handle Dart_NewMap(Dart_Handle keys_type,
+                                    Dart_Handle keys_handle,
+                                    Dart_Handle values_type,
+                                    Dart_Handle values_handle) {
+  {  // Validate that keys and values are lists.
+    if (!Dart_IsList(keys_handle)) {
+      return Api::NewError("%s expects argument 'keys_handle' to be a list.",
+                           CURRENT_FUNC);
+    }
+    if (!Dart_IsList(values_handle)) {
+      return Api::NewError("%s expects argument 'values_handle' to be a list.",
+                           CURRENT_FUNC);
+    }
+  }
+  {  // Validate length of keys and values
+    intptr_t keys_len = 0;
+    intptr_t values_len = 0;
+    Dart_Handle api_result = Dart_ListLength(keys_handle, &keys_len);
+    if (Dart_IsError(api_result)) {
+      return api_result;
+    }
+    api_result = Dart_ListLength(values_handle, &values_len);
+    if (Dart_IsError(api_result)) {
+      return api_result;
+    }
+    if (keys_len != values_len) {
+      return Api::NewError(
+          "%s expects length of 'keys_handle' list to be equal to length of "
+          "'values_handle' list.",
+          CURRENT_FUNC);
+    }
+  }
+
+  DARTSCOPE(Thread::Current());
+  CHECK_CALLBACK_STATE(T);
+
+  const Type& keys_type_obj = Api::UnwrapTypeHandle(Z, keys_type);
+  if (keys_type_obj.IsNull()) {
+    RETURN_TYPE_ERROR(Z, keys_type, Type);
+  }
+  const Type& values_type_obj = Api::UnwrapTypeHandle(Z, values_type);
+  if (values_type_obj.IsNull()) {
+    RETURN_TYPE_ERROR(Z, values_type, Type);
+  }
+  const Object& keys_obj = Object::Handle(Z, Api::UnwrapHandle(keys_handle));
+  const Object& values_obj =
+      Object::Handle(Z, Api::UnwrapHandle(values_handle));
+
+  // Init type arguments
+  auto& type_arguments =
+      TypeArguments::Handle(Z, TypeArguments::New(2, Heap::kOld));
+  type_arguments.SetTypeAt(0, keys_type_obj);
+  type_arguments.SetTypeAt(1, values_type_obj);
+  type_arguments ^= type_arguments.Canonicalize(T);
+
+  const Class& map_class =
+      Class::Handle(Z, T->isolate_group()->object_store()->map_class());
+  map_class.EnsureIsFinalized(T);
+
+  // Invoke Map._fromKeysValue class factory:
+  Function& factory_method = Function::ZoneHandle(Z);
+  factory_method = map_class.LookupFactoryAllowPrivate(
+      Library::PrivateCoreLibName(Symbols::MapKeyValuesFactory()));
+  const Array& args = Array::Handle(Z, Array::New(3));
+  args.SetAt(0, type_arguments);
+  args.SetAt(1, keys_obj);
+  args.SetAt(2, values_obj);
+  return Api::NewHandle(T, DartEntry::InvokeFunction(factory_method, args));
 }
 
 DART_EXPORT Dart_Handle Dart_NewListOfTypeFilled(Dart_Handle element_type,
@@ -5344,6 +5449,10 @@ StringPtr Api::GetEnvironmentValue(Thread* thread, const String& name) {
 
 StringPtr Api::CallEnvironmentCallback(Thread* thread, const String& name) {
   Isolate* isolate = thread->isolate();
+  if (isolate == nullptr) {
+    ThrowCantRunWithoutIsolateError();
+    UNREACHABLE();
+  }
   Dart_EnvironmentCallback callback = isolate->environment_callback();
   if (callback != nullptr) {
     Scope api_scope(thread);
@@ -5372,7 +5481,10 @@ StringPtr Api::CallEnvironmentCallback(Thread* thread, const String& name) {
 DART_EXPORT Dart_Handle
 Dart_SetEnvironmentCallback(Dart_EnvironmentCallback callback) {
   Isolate* isolate = Isolate::Current();
-  CHECK_ISOLATE(isolate);
+  if (isolate == nullptr) {
+    ThrowCantRunWithoutIsolateError();
+    UNREACHABLE();
+  }
   isolate->set_environment_callback(callback);
   return Api::Success();
 }
@@ -5804,7 +5916,7 @@ static Dart_Handle LoadLibrary(Thread* T, const ExternalTypedData& td) {
       kernel::KernelLoader::LoadEntireProgram(program.get(), false);
   program.reset();
 
-  IsolateGroupSource* source = Isolate::Current()->source();
+  IsolateGroupSource* source = IsolateGroup::Current()->source();
   source->add_loaded_blob(Z, td);
 
   return Api::NewHandle(T, result.ptr());
@@ -7019,18 +7131,16 @@ DART_EXPORT void Dart_PrepareToAbort() {
 
 DART_EXPORT Dart_Handle Dart_GetCurrentUserTag() {
   Thread* thread = Thread::Current();
-  CHECK_ISOLATE(thread->isolate());
+  CHECK_ISOLATE_GROUP(thread->isolate_group());
   DARTSCOPE(thread);
-  Isolate* isolate = thread->isolate();
-  return Api::NewHandle(thread, isolate->current_tag());
+  return Api::NewHandle(thread, thread->current_tag());
 }
 
 DART_EXPORT Dart_Handle Dart_GetDefaultUserTag() {
   Thread* thread = Thread::Current();
-  CHECK_ISOLATE(thread->isolate());
+  CHECK_ISOLATE_GROUP(thread->isolate_group());
   DARTSCOPE(thread);
-  Isolate* isolate = thread->isolate();
-  return Api::NewHandle(thread, isolate->default_tag());
+  return Api::NewHandle(thread, thread->default_tag());
 }
 
 DART_EXPORT Dart_Handle Dart_NewUserTag(const char* label) {
@@ -7042,7 +7152,7 @@ DART_EXPORT Dart_Handle Dart_NewUserTag(const char* label) {
         "Dart_NewUserTag expects argument 'label' to be non-null");
   }
   const String& value = String::Handle(String::New(label));
-  return Api::NewHandle(thread, UserTag::New(value));
+  return Api::NewHandle(thread, UserTag::New(thread, value));
 }
 
 DART_EXPORT Dart_Handle Dart_SetCurrentUserTag(Dart_Handle user_tag) {
@@ -7078,6 +7188,13 @@ DART_EXPORT char* Dart_WriteHeapSnapshot(
 #else
   return Utils::StrDup("VM is built without the heap snapshot writer.");
 #endif
+}
+
+void ThrowCantRunWithoutIsolateError() {
+  const auto& error =
+      String::Handle(String::New("Only available when running in context of "
+                                 "an isolate, rather than isolate group."));
+  Exceptions::ThrowArgumentError(error);
 }
 
 }  // namespace dart

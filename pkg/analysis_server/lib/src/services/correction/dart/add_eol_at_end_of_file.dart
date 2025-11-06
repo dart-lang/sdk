@@ -4,6 +4,7 @@
 
 import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analysis_server_plugin/edit/dart/correction_producer.dart';
+import 'package:analysis_server_plugin/src/utilities/extensions/string_extension.dart';
 import 'package:analyzer/source/source_range.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
@@ -17,14 +18,18 @@ class AddEolAtEndOfFile extends ResolvedCorrectionProducer {
       CorrectionApplicability.singleLocation;
 
   @override
-  FixKind get fixKind => DartFixKind.ADD_EOL_AT_END_OF_FILE;
+  FixKind get fixKind => DartFixKind.addEolAtEndOfFile;
 
   @override
   Future<void> compute(ChangeBuilder builder) async {
     var content = unitResult.content;
-    if (!content.endsWith(eol)) {
+    var eol = content.endOfLine;
+    if (eol == null || !content.endsWith(eol)) {
       await builder.addDartFileEdit(file, (builder) {
-        builder.addSimpleInsertion(content.length, eol);
+        // Read the EOL off builder, because it is non-null and always has the
+        // correct default, whereas the original variable could be null if the
+        // file has no EOLs.
+        builder.addSimpleInsertion(content.length, builder.eol);
       });
     } else {
       var index = content.length;

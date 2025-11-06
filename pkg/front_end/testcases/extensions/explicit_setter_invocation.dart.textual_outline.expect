@@ -1,0 +1,8 @@
+extension E on int {
+  void set g(_) {}
+  m() {}
+}
+
+test(int i1, int? i2) {}
+
+method() {}

@@ -29,7 +29,7 @@ abstract class D {
   foo(x, [y]);
 }
 class E extends C implements D {}''',
-      [error(CompileTimeErrorCode.INVALID_IMPLEMENTATION_OVERRIDE, 73, 1)],
+      [error(CompileTimeErrorCode.invalidImplementationOverride, 73, 1)],
     );
   }
 

@@ -4,7 +4,8 @@
 
 import 'dart:io' show exit;
 
-import 'package:_fe_analyzer_shared/src/messages/severity.dart' show Severity;
+import 'package:_fe_analyzer_shared/src/messages/severity.dart'
+    show CfeSeverity;
 import 'package:_fe_analyzer_shared/src/util/options.dart';
 import 'package:_fe_analyzer_shared/src/util/resolve_input_uri.dart'
     show resolveInputUri;
@@ -27,9 +28,9 @@ import 'package:front_end/src/codes/cfe_codes.dart'
     show
         Message,
         PlainAndColorizedString,
-        messageFastaUsageLong,
-        messageFastaUsageShort,
-        templateUnspecified;
+        codeFastaUsageLong,
+        codeFastaUsageShort,
+        codeUnspecified;
 import 'package:front_end/src/compute_platform_binaries_location.dart'
     show computePlatformBinariesLocation, computePlatformDillName;
 import 'package:front_end/src/scheme_based_file_system.dart'
@@ -82,10 +83,11 @@ void throwCommandLineProblem(String message) {
 }
 
 ProcessedOptions analyzeCommandLine(
-    FileSystemDependencyTracker? tracker,
-    String programName,
-    ParsedOptions parsedOptions,
-    bool areRestArgumentsInputs) {
+  FileSystemDependencyTracker? tracker,
+  String programName,
+  ParsedOptions parsedOptions,
+  bool areRestArgumentsInputs,
+) {
   final List<String> arguments = parsedOptions.arguments;
 
   final bool help = Options.help.read(parsedOptions);
@@ -100,35 +102,42 @@ ProcessedOptions analyzeCommandLine(
   if (parsedOptions.options.containsKey(Flags.compileSdk) &&
       parsedOptions.options.containsKey(Flags.platform)) {
     return throw new CommandLineProblem.deprecated(
-        "Can't specify both '${Flags.compileSdk}' and '${Flags.platform}'.");
+      "Can't specify both '${Flags.compileSdk}' and '${Flags.platform}'.",
+    );
   }
 
   final String targetName = Options.target.read(parsedOptions);
 
   Map<ExperimentalFlag, bool> explicitExperimentalFlags =
       parseExperimentalFlags(
-          parseExperimentalArguments(
-              Options.enableExperiment.read(parsedOptions)),
-          onError: throwCommandLineProblem,
-          onWarning: print);
+        parseExperimentalArguments(
+          Options.enableExperiment.read(parsedOptions),
+        ),
+        onError: throwCommandLineProblem,
+        onWarning: print,
+      );
 
   final TargetFlags flags = new TestTargetFlags(
-      forceLateLoweringsForTesting:
-          Options.forceLateLowering.read(parsedOptions),
-      forceStaticFieldLoweringForTesting:
-          Options.forceStaticFieldLowering.read(parsedOptions),
-      forceNoExplicitGetterCallsForTesting:
-          Options.forceNoExplicitGetterCalls.read(parsedOptions),
-      forceConstructorTearOffLoweringForTesting:
-          Options.forceConstructorTearOffLowering.read(parsedOptions),
-      forceLateLoweringSentinelForTesting:
-          Options.forceLateLoweringSentinel.read(parsedOptions));
+    forceLateLoweringsForTesting: Options.forceLateLowering.read(parsedOptions),
+    forceStaticFieldLoweringForTesting: Options.forceStaticFieldLowering.read(
+      parsedOptions,
+    ),
+    forceNoExplicitGetterCallsForTesting: Options.forceNoExplicitGetterCalls
+        .read(parsedOptions),
+    forceConstructorTearOffLoweringForTesting: Options
+        .forceConstructorTearOffLowering
+        .read(parsedOptions),
+    forceLateLoweringSentinelForTesting: Options.forceLateLoweringSentinel.read(
+      parsedOptions,
+    ),
+  );
 
   final Target? target = getTarget(targetName, flags);
   if (target == null) {
     return throw new CommandLineProblem.deprecated(
-        "Target '${targetName}' not recognized. "
-        "Valid targets are:\n  ${targets.keys.join("\n  ")}");
+      "Target '${targetName}' not recognized. "
+      "Valid targets are:\n  ${targets.keys.join("\n  ")}",
+    );
   }
 
   final bool noDefines = Options.noDefines.read(parsedOptions);
@@ -137,8 +146,9 @@ ProcessedOptions analyzeCommandLine(
 
   final bool verify = Options.verify.read(parsedOptions);
 
-  final bool skipPlatformVerification =
-      Options.skipPlatformVerification.read(parsedOptions);
+  final bool skipPlatformVerification = Options.skipPlatformVerification.read(
+    parsedOptions,
+  );
 
   final bool showOffsets = Options.showOffsets.read(parsedOptions);
 
@@ -150,8 +160,9 @@ ProcessedOptions analyzeCommandLine(
 
   final Uri? packages = Options.packages.read(parsedOptions);
 
-  final Set<String> fatal =
-      new Set<String>.from(Options.fatal.read(parsedOptions) ?? <String>[]);
+  final Set<String> fatal = new Set<String>.from(
+    Options.fatal.read(parsedOptions) ?? <String>[],
+  );
 
   final bool errorsAreFatal = fatal.contains("errors");
 
@@ -165,8 +176,8 @@ ProcessedOptions analyzeCommandLine(
   final String? singleRootScheme = Options.singleRootScheme.read(parsedOptions);
   final Uri? singleRootBase = Options.singleRootBase.read(parsedOptions);
 
-  final bool enableUnscheduledExperiments =
-      Options.enableUnscheduledExperiments.read(parsedOptions);
+  final bool enableUnscheduledExperiments = Options.enableUnscheduledExperiments
+      .read(parsedOptions);
 
   final List<Uri> linkDependencies =
       Options.linkDependencies.read(parsedOptions) ?? [];
@@ -190,7 +201,10 @@ ProcessedOptions analyzeCommandLine(
       // should have been handled elsewhere).
       '': fileSystem,
       singleRootScheme: new SingleRootFileSystem(
-          singleRootScheme, singleRootBase!, fileSystem),
+        singleRootScheme,
+        singleRootBase!,
+        fileSystem,
+      ),
     });
   }
 
@@ -232,24 +246,28 @@ ProcessedOptions analyzeCommandLine(
   if (programName == "compile_platform") {
     if (arguments.length != 5) {
       return throw new CommandLineProblem.deprecated(
-          "Expected five arguments.");
+        "Expected five arguments.",
+      );
     }
     if (compileSdk) {
       return throw new CommandLineProblem.deprecated(
-          "Cannot specify '${Flags.compileSdk}' option to compile_platform.");
+        "Cannot specify '${Flags.compileSdk}' option to compile_platform.",
+      );
     }
     if (parsedOptions.options.containsKey(Flags.output)) {
       return throw new CommandLineProblem.deprecated(
-          "Cannot specify '${Flags.output}' option to compile_platform.");
+        "Cannot specify '${Flags.output}' option to compile_platform.",
+      );
     }
 
     return new ProcessedOptions(
-        options: compilerOptions
-          ..sdkSummary = Options.platform.read(parsedOptions)
-          ..librariesSpecificationUri = resolveInputUri(arguments[1])
-          ..setExitCodeOnProblem = true,
-        inputs: arguments[0].split(',').map(Uri.parse).toList(),
-        output: resolveInputUri(arguments[3]));
+      options: compilerOptions
+        ..sdkSummary = Options.platform.read(parsedOptions)
+        ..librariesSpecificationUri = resolveInputUri(arguments[1])
+        ..setExitCodeOnProblem = true,
+      inputs: arguments[0].split(',').map(Uri.parse).toList(),
+      output: resolveInputUri(arguments[3]),
+    );
   } else if (arguments.isEmpty) {
     return throw new CommandLineProblem.deprecated("No Dart file specified.");
   }
@@ -266,12 +284,14 @@ ProcessedOptions analyzeCommandLine(
   final Uri? platform = compileSdk
       ? null
       : (Options.platform.read(parsedOptions) ??
-          computePlatformBinariesLocation(forceBuildDir: true)
-              .resolve(computePlatformDillName(target, () {
-            throwCommandLineProblem(
-                "Target '${target.name}' requires an explicit "
-                "'${Flags.platform}' option.");
-          })!));
+            computePlatformBinariesLocation(forceBuildDir: true).resolve(
+              computePlatformDillName(target, () {
+                throwCommandLineProblem(
+                  "Target '${target.name}' requires an explicit "
+                  "'${Flags.platform}' option.",
+                );
+              })!,
+            ));
   compilerOptions
     ..sdkRoot = sdk
     ..sdkSummary = platform
@@ -284,22 +304,30 @@ ProcessedOptions analyzeCommandLine(
     }
   }
   return new ProcessedOptions(
-      options: compilerOptions, inputs: inputs, output: output);
+    options: compilerOptions,
+    inputs: inputs,
+    output: output,
+  );
 }
 
 Future<T> withGlobalOptions<T>(
-    String programName,
-    List<String> arguments,
-    bool areRestArgumentsInputs,
-    Future<T> f(CompilerContext context, List<String> restArguments),
-    {FileSystemDependencyTracker? tracker}) {
+  String programName,
+  List<String> arguments,
+  bool areRestArgumentsInputs,
+  Future<T> f(CompilerContext context, List<String> restArguments), {
+  FileSystemDependencyTracker? tracker,
+}) {
   ParsedOptions? parsedOptions;
   ProcessedOptions options;
   CommandLineProblem? problem;
   try {
     parsedOptions = ParsedOptions.parse(arguments, optionSpecification);
     options = analyzeCommandLine(
-        tracker, programName, parsedOptions, areRestArgumentsInputs);
+      tracker,
+      programName,
+      parsedOptions,
+      areRestArgumentsInputs,
+    );
   } on CommandLineProblem catch (e) {
     options = new ProcessedOptions();
     problem = e;
@@ -308,8 +336,10 @@ Future<T> withGlobalOptions<T>(
   return CompilerContext.runWithOptions<T>(options, (CompilerContext c) {
     if (problem != null) {
       print(computeUsage(programName, options.verbose).problemMessage);
-      PlainAndColorizedString formatted =
-          c.format(problem.message.withoutLocation(), Severity.error);
+      PlainAndColorizedString formatted = c.format(
+        problem.message.withoutLocation(),
+        CfeSeverity.error,
+      );
       String formattedText;
       if (enableColors) {
         formattedText = formatted.colorized;
@@ -327,10 +357,11 @@ Future<T> withGlobalOptions<T>(
 Message computeUsage(String programName, bool verbose) {
   String basicUsage = "Usage: $programName [options] dartfile\n";
   String? summary;
-  String options = (verbose
-          ? messageFastaUsageLong.problemMessage
-          : messageFastaUsageShort.problemMessage)
-      .trim();
+  String options =
+      (verbose
+              ? codeFastaUsageLong.problemMessage
+              : codeFastaUsageShort.problemMessage)
+          .trim();
   switch (programName) {
     case "outline":
       summary =
@@ -347,7 +378,8 @@ Message computeUsage(String programName, bool verbose) {
 
     case "compile_platform":
       summary = "Compiles Dart SDK platform to the Dill/Kernel IR format.";
-      basicUsage = "Usage: $programName [options]"
+      basicUsage =
+          "Usage: $programName [options]"
           " dart-library-uri libraries.json vm_outline.dill"
           " platform.dill outline.dill\n";
   }
@@ -358,12 +390,14 @@ Message computeUsage(String programName, bool verbose) {
     sb.writeln();
   }
   sb.write(options);
-  // TODO(ahe): Don't use [templateUnspecified].
-  return templateUnspecified.withArguments("$sb");
+  // TODO(ahe): Don't use [codeUnspecified].
+  return codeUnspecified.withArgumentsOld("$sb");
 }
 
-Future<T> runProtectedFromAbort<T>(Future<T> Function() action,
-    [T? failingValue]) async {
+Future<T> runProtectedFromAbort<T>(
+  Future<T> Function() action, [
+  T? failingValue,
+]) async {
   try {
     return await action();
   } on DebugAbort catch (e) {

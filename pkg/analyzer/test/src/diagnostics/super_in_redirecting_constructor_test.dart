@@ -23,7 +23,7 @@ class A {
   A.name() {}
 }
 ''',
-      [error(CompileTimeErrorCode.SUPER_IN_REDIRECTING_CONSTRUCTOR, 31, 7)],
+      [error(CompileTimeErrorCode.superInRedirectingConstructor, 31, 7)],
     );
   }
 
@@ -35,7 +35,7 @@ class A {
   A.name() {}
 }
 ''',
-      [error(CompileTimeErrorCode.SUPER_IN_REDIRECTING_CONSTRUCTOR, 18, 7)],
+      [error(CompileTimeErrorCode.superInRedirectingConstructor, 18, 7)],
     );
   }
 }

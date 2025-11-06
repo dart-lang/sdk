@@ -108,8 +108,8 @@ class NotImportedCompletionPass {
     var filter = FileStateFilter(fsState.getFileForPath(request.path));
 
     try {
-      await performance.runAsync('discoverAvailableFiles', (_) async {
-        await analysisDriver.discoverAvailableFiles().timeout(budget.left);
+      performance.run('discoverAvailableFiles', (_) {
+        analysisDriver.discoverAvailableFiles();
       });
     } on TimeoutException {
       _collector.isIncomplete = true;
@@ -138,7 +138,7 @@ class NotImportedCompletionPass {
       }
 
       var library = request.libraryElement;
-      var element = elementResult.element2;
+      var element = elementResult.element;
       if (element == library) {
         // Don't suggest elements from the library in which completion is being
         // requested. They've already been suggested.
@@ -218,7 +218,7 @@ class _ImportSummary {
 
   _ImportSummary(LibraryElement library) {
     for (var fragment in library.fragments) {
-      for (var import in fragment.libraryImports2) {
+      for (var import in fragment.libraryImports) {
         var importedLibrary = import.importedLibrary;
         if (importedLibrary != null) {
           if (import.combinators.isEmpty) {

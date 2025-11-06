@@ -26,7 +26,7 @@ f(A a) {}
     assertResolvedNodeText(node, r'''
 NamedType
   name: A
-  element2: <testLibrary>::@class::A
+  element: <testLibrary>::@class::A
   type: A
 ''');
   }
@@ -42,7 +42,7 @@ f(A a) {}
     assertResolvedNodeText(node, r'''
 NamedType
   name: A
-  element2: <testLibrary>::@class::A
+  element: <testLibrary>::@class::A
   type: A<num>
 ''');
   }
@@ -58,7 +58,7 @@ f(A a) {}
     assertResolvedNodeText(node, r'''
 NamedType
   name: A
-  element2: <testLibrary>::@class::A
+  element: <testLibrary>::@class::A
   type: A<dynamic>
 ''');
   }
@@ -79,10 +79,10 @@ NamedType
     arguments
       NamedType
         name: int
-        element2: dart:core::@class::int
+        element: dart:core::@class::int
         type: int
     rightBracket: >
-  element2: <testLibrary>::@class::A
+  element: <testLibrary>::@class::A
   type: A<int>
 ''');
   }
@@ -98,7 +98,7 @@ dynamic a;
     assertResolvedNodeText(node, r'''
 NamedType
   name: dynamic
-  element2: dynamic
+  element: dynamic
   type: dynamic
 ''');
   }
@@ -116,9 +116,9 @@ NamedType
   importPrefix: ImportPrefixReference
     name: myCore
     period: .
-    element2: <testLibraryFragment>::@prefix2::myCore
+    element: <testLibraryFragment>::@prefix2::myCore
   name: dynamic
-  element2: dynamic
+  element: dynamic
   type: dynamic
 ''');
   }
@@ -130,14 +130,14 @@ import 'dart:core' as myCore;
 
 dynamic a;
 ''',
-      [error(CompileTimeErrorCode.UNDEFINED_CLASS, 31, 7)],
+      [error(CompileTimeErrorCode.undefinedClass, 31, 7)],
     );
 
     var node = findNode.namedType('dynamic a;');
     assertResolvedNodeText(node, r'''
 NamedType
   name: dynamic
-  element2: <null>
+  element: <null>
   type: InvalidType
 ''');
   }
@@ -151,7 +151,7 @@ dynamic a;
     assertResolvedNodeText(node, r'''
 NamedType
   name: dynamic
-  element2: dynamic
+  element: dynamic
   type: dynamic
 ''');
   }
@@ -172,10 +172,10 @@ NamedType
     arguments
       NamedType
         name: int
-        element2: dart:core::@class::int
+        element: dart:core::@class::int
         type: int
     rightBracket: >
-  element2: <testLibrary>::@class::A
+  element: <testLibrary>::@class::A
   type: A<int>
 ''');
   }
@@ -187,7 +187,7 @@ class A<T, U> {}
 
 class B extends A<int> {}
 ''',
-      [error(CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS, 34, 6)],
+      [error(CompileTimeErrorCode.wrongNumberOfTypeArguments, 34, 6)],
     );
 
     var node = findNode.namedType('A<int>');
@@ -199,10 +199,10 @@ NamedType
     arguments
       NamedType
         name: int
-        element2: dart:core::@class::int
+        element: dart:core::@class::int
         type: int
     rightBracket: >
-  element2: <testLibrary>::@class::A
+  element: <testLibrary>::@class::A
   type: A<InvalidType, InvalidType>
 ''');
   }
@@ -214,7 +214,7 @@ class A<T> {}
 
 class B extends A<int, String> {}
 ''',
-      [error(CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS, 31, 14)],
+      [error(CompileTimeErrorCode.wrongNumberOfTypeArguments, 31, 14)],
     );
 
     var node = findNode.namedType('A<int, String>');
@@ -226,14 +226,14 @@ NamedType
     arguments
       NamedType
         name: int
-        element2: dart:core::@class::int
+        element: dart:core::@class::int
         type: int
       NamedType
         name: String
-        element2: dart:core::@class::String
+        element: dart:core::@class::String
         type: String
     rightBracket: >
-  element2: <testLibrary>::@class::A
+  element: <testLibrary>::@class::A
   type: A<InvalidType>
 ''');
   }
@@ -244,8 +244,8 @@ NamedType
 class A<T> extends T<int> {}
 ''',
       [
-        error(CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS, 19, 6),
-        error(CompileTimeErrorCode.EXTENDS_NON_CLASS, 19, 1),
+        error(CompileTimeErrorCode.wrongNumberOfTypeArguments, 19, 6),
+        error(CompileTimeErrorCode.extendsNonClass, 19, 1),
       ],
     );
 
@@ -258,10 +258,10 @@ NamedType
     arguments
       NamedType
         name: int
-        element2: dart:core::@class::int
+        element: dart:core::@class::int
         type: int
     rightBracket: >
-  element2: #E0 T
+  element: #E0 T
   type: T
 ''');
   }
@@ -276,7 +276,7 @@ void f(A a) {}
     assertResolvedNodeText(node, r'''
 NamedType
   name: A
-  element2: <testLibrary>::@extensionType::A
+  element: <testLibrary>::@extensionType::A
   type: A<num>
 ''');
   }
@@ -291,7 +291,7 @@ void f(A a) {}
     assertResolvedNodeText(node, r'''
 NamedType
   name: A
-  element2: <testLibrary>::@extensionType::A
+  element: <testLibrary>::@extensionType::A
   type: A<dynamic>
 ''');
   }
@@ -311,10 +311,10 @@ NamedType
     arguments
       NamedType
         name: int
-        element2: dart:core::@class::int
+        element: dart:core::@class::int
         type: int
     rightBracket: >
-  element2: <testLibrary>::@extensionType::A
+  element: <testLibrary>::@extensionType::A
   type: A<int>
 ''');
   }
@@ -330,7 +330,7 @@ f(F a) {}
     assertResolvedNodeText(node, r'''
 NamedType
   name: F
-  element2: <testLibrary>::@typeAlias::F
+  element: <testLibrary>::@typeAlias::F
   type: int Function()
     alias: <testLibrary>::@typeAlias::F
 ''');
@@ -347,7 +347,7 @@ f(F a) {}
     assertResolvedNodeText(node, r'''
 NamedType
   name: F
-  element2: <testLibrary>::@typeAlias::F
+  element: <testLibrary>::@typeAlias::F
   type: num Function()
     alias: <testLibrary>::@typeAlias::F
       typeArguments
@@ -366,7 +366,7 @@ f(F a) {}
     assertResolvedNodeText(node, r'''
 NamedType
   name: F
-  element2: <testLibrary>::@typeAlias::F
+  element: <testLibrary>::@typeAlias::F
   type: dynamic Function()
     alias: <testLibrary>::@typeAlias::F
       typeArguments
@@ -390,10 +390,10 @@ NamedType
     arguments
       NamedType
         name: int
-        element2: dart:core::@class::int
+        element: dart:core::@class::int
         type: int
     rightBracket: >
-  element2: <testLibrary>::@typeAlias::F
+  element: <testLibrary>::@typeAlias::F
   type: int Function()
     alias: <testLibrary>::@typeAlias::F
       typeArguments
@@ -414,17 +414,17 @@ NamedType
   importPrefix: ImportPrefixReference
     name: async
     period: .
-    element2: <testLibraryFragment>::@prefix2::async
+    element: <testLibraryFragment>::@prefix2::async
   name: Future
   typeArguments: TypeArgumentList
     leftBracket: <
     arguments
       NamedType
         name: int
-        element2: dart:core::@class::int
+        element: dart:core::@class::int
         type: int
     rightBracket: >
-  element2: dart:async::@class::Future
+  element: dart:async::@class::Future
   type: Future<int>
 ''');
   }
@@ -436,7 +436,7 @@ import 'dart:math' as math;
 
 void f(math.Unresolved<int> a) {}
 ''',
-      [error(CompileTimeErrorCode.UNDEFINED_CLASS, 36, 15)],
+      [error(CompileTimeErrorCode.undefinedClass, 36, 15)],
     );
 
     var node = findNode.namedType('math.Unresolved');
@@ -445,17 +445,17 @@ NamedType
   importPrefix: ImportPrefixReference
     name: math
     period: .
-    element2: <testLibraryFragment>::@prefix2::math
+    element: <testLibraryFragment>::@prefix2::math
   name: Unresolved
   typeArguments: TypeArgumentList
     leftBracket: <
     arguments
       NamedType
         name: int
-        element2: dart:core::@class::int
+        element: dart:core::@class::int
         type: int
     rightBracket: >
-  element2: <null>
+  element: <null>
   type: InvalidType
 ''');
   }
@@ -469,7 +469,7 @@ main() {
   new math.A();
 }
 ''',
-      [error(CompileTimeErrorCode.NEW_WITH_NON_TYPE, 49, 1)],
+      [error(CompileTimeErrorCode.newWithNonType, 49, 1)],
     );
 
     var node = findNode.namedType('A();');
@@ -478,9 +478,9 @@ NamedType
   importPrefix: ImportPrefixReference
     name: math
     period: .
-    element2: <testLibraryFragment>::@prefix2::math
+    element: <testLibraryFragment>::@prefix2::math
   name: A
-  element2: <null>
+  element: <null>
   type: InvalidType
 ''');
   }
@@ -498,7 +498,7 @@ main() {
     assertResolvedNodeText(node, r'''
 NamedType
   name: A
-  element2: <testLibrary>::@class::A
+  element: <testLibrary>::@class::A
   type: A
 ''');
   }
@@ -510,14 +510,14 @@ main() {
   new A();
 }
 ''',
-      [error(CompileTimeErrorCode.NEW_WITH_NON_TYPE, 15, 1)],
+      [error(CompileTimeErrorCode.newWithNonType, 15, 1)],
     );
 
     var node = findNode.namedType('A();');
     assertResolvedNodeText(node, r'''
 NamedType
   name: A
-  element2: <null>
+  element: <null>
   type: InvalidType
 ''');
   }
@@ -532,8 +532,8 @@ void f() {
 }
 ''',
       [
-        error(CompileTimeErrorCode.TYPE_ANNOTATION_DEFERRED_CLASS, 53, 17),
-        error(WarningCode.UNUSED_LOCAL_VARIABLE, 71, 1),
+        error(CompileTimeErrorCode.typeAnnotationDeferredClass, 53, 17),
+        error(WarningCode.unusedLocalVariable, 71, 1),
       ],
     );
 
@@ -543,17 +543,17 @@ NamedType
   importPrefix: ImportPrefixReference
     name: async
     period: .
-    element2: <testLibraryFragment>::@prefix2::async
+    element: <testLibraryFragment>::@prefix2::async
   name: Future
   typeArguments: TypeArgumentList
     leftBracket: <
     arguments
       NamedType
         name: int
-        element2: dart:core::@class::int
+        element: dart:core::@class::int
         type: int
     rightBracket: >
-  element2: dart:async::@class::Future
+  element: dart:async::@class::Future
   type: Future<int>
 ''');
   }
@@ -567,7 +567,7 @@ void f(prefix a) {}
 ''',
       [
         error(
-          CompileTimeErrorCode.NOT_A_TYPE,
+          CompileTimeErrorCode.notAType,
           38,
           6,
           contextMessages: [message(testFile, 22, 6)],
@@ -579,7 +579,7 @@ void f(prefix a) {}
     assertResolvedNodeText(node, r'''
 NamedType
   name: prefix
-  element2: <testLibraryFragment>::@prefix2::prefix
+  element: <testLibraryFragment>::@prefix2::prefix
   type: InvalidType
 ''');
   }
@@ -593,7 +593,7 @@ void f(prefix<int> a) {}
 ''',
       [
         error(
-          CompileTimeErrorCode.NOT_A_TYPE,
+          CompileTimeErrorCode.notAType,
           38,
           6,
           contextMessages: [message(testFile, 22, 6)],
@@ -610,10 +610,10 @@ NamedType
     arguments
       NamedType
         name: int
-        element2: dart:core::@class::int
+        element: dart:core::@class::int
         type: int
     rightBracket: >
-  element2: <testLibraryFragment>::@prefix2::prefix
+  element: <testLibraryFragment>::@prefix2::prefix
   type: InvalidType
 ''');
   }
@@ -625,7 +625,7 @@ void f() {
   new int.double.other();
 }
 ''',
-      [error(CompileTimeErrorCode.NEW_WITH_NON_TYPE, 17, 10)],
+      [error(CompileTimeErrorCode.newWithNonType, 17, 10)],
     );
 
     var node = findNode.namedType('int.double');
@@ -634,9 +634,9 @@ NamedType
   importPrefix: ImportPrefixReference
     name: int
     period: .
-    element2: dart:core::@class::int
+    element: dart:core::@class::int
   name: double
-  element2: <null>
+  element: <null>
   type: InvalidType
 ''');
   }
@@ -648,7 +648,7 @@ void f() {
   0 as int.double;
 }
 ''',
-      [error(CompileTimeErrorCode.NOT_A_TYPE, 18, 10)],
+      [error(CompileTimeErrorCode.notAType, 18, 10)],
     );
 
     var node = findNode.namedType('int.double');
@@ -657,9 +657,9 @@ NamedType
   importPrefix: ImportPrefixReference
     name: int
     period: .
-    element2: dart:core::@class::int
+    element: dart:core::@class::int
   name: double
-  element2: <null>
+  element: <null>
   type: InvalidType
 ''');
   }
@@ -673,7 +673,7 @@ void T() {}
 ''',
       [
         error(
-          CompileTimeErrorCode.NOT_A_TYPE,
+          CompileTimeErrorCode.notAType,
           7,
           1,
           contextMessages: [message(testFile, 21, 1)],
@@ -685,7 +685,7 @@ void T() {}
     assertResolvedNodeText(node, r'''
 NamedType
   name: T
-  element2: <testLibrary>::@function::T
+  element: <testLibrary>::@function::T
   type: InvalidType
 ''');
   }
@@ -699,7 +699,7 @@ void T() {}
 ''',
       [
         error(
-          CompileTimeErrorCode.NOT_A_TYPE,
+          CompileTimeErrorCode.notAType,
           7,
           1,
           contextMessages: [message(testFile, 26, 1)],
@@ -716,10 +716,10 @@ NamedType
     arguments
       NamedType
         name: int
-        element2: dart:core::@class::int
+        element: dart:core::@class::int
         type: int
     rightBracket: >
-  element2: <testLibrary>::@function::T
+  element: <testLibrary>::@function::T
   type: InvalidType
 ''');
   }
@@ -729,7 +729,7 @@ NamedType
       r'''
 void f<T>(T.name<int> a) {}
 ''',
-      [error(CompileTimeErrorCode.PREFIX_SHADOWED_BY_LOCAL_DECLARATION, 10, 1)],
+      [error(CompileTimeErrorCode.prefixShadowedByLocalDeclaration, 10, 1)],
     );
 
     var node = findNode.namedType('T.name<int>');
@@ -738,17 +738,17 @@ NamedType
   importPrefix: ImportPrefixReference
     name: T
     period: .
-    element2: #E0 T
+    element: #E0 T
   name: name
   typeArguments: TypeArgumentList
     leftBracket: <
     arguments
       NamedType
         name: int
-        element2: dart:core::@class::int
+        element: dart:core::@class::int
         type: int
     rightBracket: >
-  element2: <null>
+  element: <null>
   type: InvalidType
 ''');
   }
@@ -769,14 +769,14 @@ import 'b.dart';
 
 void f(A a) {}
 ''',
-      [error(CompileTimeErrorCode.AMBIGUOUS_IMPORT, 42, 1)],
+      [error(CompileTimeErrorCode.ambiguousImport, 42, 1)],
     );
 
     var node = findNode.namedType('A a');
     assertResolvedNodeText(node, r'''
 NamedType
   name: A
-  element2: multiplyDefinedElement
+  element: multiplyDefinedElement
     package:test/a.dart::@class::A
     package:test/b.dart::@class::A
   type: InvalidType
@@ -792,7 +792,7 @@ f(Never a) {}
     assertResolvedNodeText(node, r'''
 NamedType
   name: Never
-  element2: Never
+  element: Never
   type: Never
 ''');
   }
@@ -817,10 +817,10 @@ NamedType
     arguments
       NamedType
         name: int
-        element2: dart:core::@class::int
+        element: dart:core::@class::int
         type: int
     rightBracket: >
-  element2: <testLibrary>::@typeAlias::X
+  element: <testLibrary>::@typeAlias::X
   type: A<int>
 ''');
   }
@@ -840,7 +840,7 @@ void f() {
     assertResolvedNodeText(node, r'''
 NamedType
   name: X
-  element2: <testLibrary>::@typeAlias::X
+  element: <testLibrary>::@typeAlias::X
   type: A<int>
 ''');
   }
@@ -865,10 +865,10 @@ NamedType
     arguments
       NamedType
         name: int
-        element2: dart:core::@class::int
+        element: dart:core::@class::int
         type: int
     rightBracket: >
-  element2: <testLibrary>::@typeAlias::X
+  element: <testLibrary>::@typeAlias::X
   type: A<int>
 ''');
   }
@@ -888,10 +888,10 @@ NamedType
     arguments
       NamedType
         name: String
-        element2: dart:core::@class::String
+        element: dart:core::@class::String
         type: String
     rightBracket: >
-  element2: <testLibrary>::@typeAlias::X
+  element: <testLibrary>::@typeAlias::X
   type: Map<int, String>
     alias: <testLibrary>::@typeAlias::X
       typeArguments
@@ -908,10 +908,10 @@ NamedType
       NamedType
         name: String
         question: ?
-        element2: dart:core::@class::String
+        element: dart:core::@class::String
         type: String?
     rightBracket: >
-  element2: <testLibrary>::@typeAlias::X
+  element: <testLibrary>::@typeAlias::X
   type: Map<int, String?>
     alias: <testLibrary>::@typeAlias::X
       typeArguments
@@ -934,10 +934,10 @@ NamedType
     arguments
       NamedType
         name: int
-        element2: dart:core::@class::int
+        element: dart:core::@class::int
         type: int
     rightBracket: >
-  element2: <testLibrary>::@typeAlias::X
+  element: <testLibrary>::@typeAlias::X
   type: List<int?>
     alias: <testLibrary>::@typeAlias::X
       typeArguments
@@ -954,10 +954,10 @@ NamedType
       NamedType
         name: int
         question: ?
-        element2: dart:core::@class::int
+        element: dart:core::@class::int
         type: int?
     rightBracket: >
-  element2: <testLibrary>::@typeAlias::X
+  element: <testLibrary>::@typeAlias::X
   type: List<int?>
     alias: <testLibrary>::@typeAlias::X
       typeArguments
@@ -975,7 +975,7 @@ void f(X a, X? b) {}
     assertResolvedNodeText(node1, r'''
 NamedType
   name: X
-  element2: <testLibrary>::@typeAlias::X
+  element: <testLibrary>::@typeAlias::X
   type: Never
 ''');
 
@@ -984,7 +984,7 @@ NamedType
 NamedType
   name: X
   question: ?
-  element2: <testLibrary>::@typeAlias::X
+  element: <testLibrary>::@typeAlias::X
   type: Never?
 ''');
   }
@@ -999,7 +999,7 @@ void f(X a, X? b) {}
     assertResolvedNodeText(node1, r'''
 NamedType
   name: X
-  element2: <testLibrary>::@typeAlias::X
+  element: <testLibrary>::@typeAlias::X
   type: Never?
 ''');
 
@@ -1008,7 +1008,7 @@ NamedType
 NamedType
   name: X
   question: ?
-  element2: <testLibrary>::@typeAlias::X
+  element: <testLibrary>::@typeAlias::X
   type: Never?
 ''');
   }
@@ -1028,10 +1028,10 @@ NamedType
     arguments
       NamedType
         name: int
-        element2: dart:core::@class::int
+        element: dart:core::@class::int
         type: int
     rightBracket: >
-  element2: <testLibrary>::@typeAlias::X
+  element: <testLibrary>::@typeAlias::X
   type: int?
     alias: <testLibrary>::@typeAlias::X
       typeArguments
@@ -1054,10 +1054,10 @@ NamedType
     arguments
       NamedType
         name: String
-        element2: dart:core::@class::String
+        element: dart:core::@class::String
         type: String
     rightBracket: >
-  element2: <testLibrary>::@typeAlias::X
+  element: <testLibrary>::@typeAlias::X
   type: Map<int, String>
     alias: <testLibrary>::@typeAlias::X
       typeArguments
@@ -1075,7 +1075,7 @@ Nothing f() {}
     assertResolvedNodeText(node, r'''
 NamedType
   name: Nothing
-  element2: <testLibrary>::@typeAlias::Nothing
+  element: <testLibrary>::@typeAlias::Nothing
   type: void
 ''');
   }
@@ -1085,7 +1085,7 @@ NamedType
       r'''
 void f(Unresolved<int> a) {}
 ''',
-      [error(CompileTimeErrorCode.UNDEFINED_CLASS, 7, 10)],
+      [error(CompileTimeErrorCode.undefinedClass, 7, 10)],
     );
 
     var node = findNode.namedType('Unresolved');
@@ -1097,10 +1097,10 @@ NamedType
     arguments
       NamedType
         name: int
-        element2: dart:core::@class::int
+        element: dart:core::@class::int
         type: int
     rightBracket: >
-  element2: <null>
+  element: <null>
   type: InvalidType
 ''');
   }
@@ -1110,7 +1110,7 @@ NamedType
       r'''
 void f(unresolved.List<int> a) {}
 ''',
-      [error(CompileTimeErrorCode.UNDEFINED_CLASS, 7, 15)],
+      [error(CompileTimeErrorCode.undefinedClass, 7, 15)],
     );
 
     var node = findNode.namedType('unresolved.List');
@@ -1119,17 +1119,17 @@ NamedType
   importPrefix: ImportPrefixReference
     name: unresolved
     period: .
-    element2: <null>
+    element: <null>
   name: List
   typeArguments: TypeArgumentList
     leftBracket: <
     arguments
       NamedType
         name: int
-        element2: dart:core::@class::int
+        element: dart:core::@class::int
         type: int
     rightBracket: >
-  element2: <null>
+  element: <null>
   type: InvalidType
 ''');
   }

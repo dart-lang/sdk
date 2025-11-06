@@ -21,11 +21,10 @@ abstract class ExtensionBuilder implements DeclarationBuilder {
   /// reported.
   ///
   /// If the extension member is a duplicate, `null` is returned.
-  // TODO(johnniwinther): Support [AmbiguousBuilder] here and in instance
-  // member lookup to avoid reporting that the member doesn't exist when it is
-  // duplicate.
-  MemberBuilder? lookupLocalMemberByName(Name name,
-      {bool setter = false, bool required = false});
+  MemberLookupResult? lookupLocalMemberByName(
+    Name name, {
+    bool required = false,
+  });
 }
 
 // Coverage-ignore(suite): Not run.
@@ -34,20 +33,24 @@ abstract class ExtensionBuilderImpl extends DeclarationBuilderImpl
     implements ExtensionBuilder {
   @override
   DartType buildAliasedTypeWithBuiltArguments(
-      LibraryBuilder library,
-      Nullability nullability,
-      List<DartType> arguments,
-      TypeUse typeUse,
-      Uri fileUri,
-      int charOffset,
-      {required bool hasExplicitTypeArguments}) {
-    throw new UnsupportedError("ExtensionBuilder.buildTypesWithBuiltArguments "
-        "is not supported in library '${library.importUri}'.");
+    LibraryBuilder library,
+    Nullability nullability,
+    List<DartType> arguments,
+    TypeUse typeUse,
+    Uri fileUri,
+    int charOffset, {
+    required bool hasExplicitTypeArguments,
+  }) {
+    throw new UnsupportedError(
+      "ExtensionBuilder.buildTypesWithBuiltArguments "
+      "is not supported in library '${library.importUri}'.",
+    );
   }
 
   @override
-  Nullability computeNullabilityWithArguments(List<TypeBuilder>? typeArguments,
-          {required Map<TypeParameterBuilder, TraversalState>
-              typeParametersTraversalState}) =>
-      Nullability.nonNullable;
+  Nullability computeNullabilityWithArguments(
+    List<TypeBuilder>? typeArguments, {
+    required Map<TypeParameterBuilder, TraversalState>
+    typeParametersTraversalState,
+  }) => Nullability.nonNullable;
 }

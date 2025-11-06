@@ -4,10 +4,11 @@
 
 import 'package:kernel/ast.dart';
 
-import '../codes/cfe_codes.dart';
+import '../base/compiler_context.dart';
+import '../base/messages.dart';
 import '../kernel/internal_ast.dart';
+import '../source/check_helper.dart';
 import 'external_ast_helper.dart';
-import 'inference_helper.dart';
 import 'inference_visitor_base.dart';
 import 'type_schema.dart';
 
@@ -19,7 +20,9 @@ class StatementInferenceResult {
       SingleStatementInferenceResult;
 
   factory StatementInferenceResult.multiple(
-      int fileOffset, List<Statement> statements) {
+    int fileOffset,
+    List<Statement> statements,
+  ) {
     if (statements.length == 0) {
       return const StatementInferenceResult();
     } else if (statements.length == 1) {
@@ -69,12 +72,15 @@ class MultipleStatementInferenceResult implements StatementInferenceResult {
   final List<Statement> statements;
 
   MultipleStatementInferenceResult(this.fileOffset, this.statements)
-      : assert(statements.isNotEmpty,
-            "The multi-statement result shouldn't be empty."),
-        assert(
-            statements.length != 1,
-            "For the results containing a single statement,"
-            "use SingleStatementInferenceResult.");
+    : assert(
+        statements.isNotEmpty,
+        "The multi-statement result shouldn't be empty.",
+      ),
+      assert(
+        statements.length != 1,
+        "For the results containing a single statement,"
+        "use SingleStatementInferenceResult.",
+      );
 
   @override
   bool get hasChanged => true;
@@ -109,14 +115,23 @@ abstract class InvocationInferenceResult {
   ///
   /// A successful result leaves [expression] intact, and an error detected
   /// during inference would wrap the expression into an [InvalidExpression].
-  Expression applyResult(Expression expression);
+  ///
+  /// If the [expression] is an invocation of an extension instance method or
+  /// an extension type instance method, then [extensionReceiverType] must be
+  /// provided to support hoisting the receiver, if necessary.
+  Expression applyResult(
+    Expression expression, {
+    DartType? extensionReceiverType,
+  });
 
   /// Returns `true` if the arguments of the call where not applicable to the
   /// target.
   bool get isInapplicable;
 
   static Expression _insertHoistedExpressions(
-      Expression expression, List<VariableDeclaration> hoistedExpressions) {
+    Expression expression,
+    List<VariableDeclaration> hoistedExpressions,
+  ) {
     if (hoistedExpressions.isNotEmpty) {
       for (int index = hoistedExpressions.length - 1; index >= 0; index--) {
         expression = createLet(hoistedExpressions[index], expression);
@@ -124,6 +139,10 @@ abstract class InvocationInferenceResult {
     }
     return expression;
   }
+
+  /// Creates the [InitializerResult] corresponding to this
+  /// [InvocationInferenceResult] for the given [initializer].
+  InitializerInferenceResult toInitializerResult(Initializer initializer);
 }
 
 class SuccessfulInferenceResult implements InvocationInferenceResult {
@@ -137,75 +156,120 @@ class SuccessfulInferenceResult implements InvocationInferenceResult {
 
   final DartType? inferredReceiverType;
 
-  SuccessfulInferenceResult(this.inferredType, this.functionType,
-      {required this.hoistedArguments, this.inferredReceiverType});
+  SuccessfulInferenceResult(
+    this.inferredType,
+    this.functionType, {
+    required this.hoistedArguments,
+    this.inferredReceiverType,
+  });
 
   @override
-  Expression applyResult(Expression expression) {
+  Expression applyResult(
+    Expression expression, {
+    DartType? extensionReceiverType,
+  }) {
     List<VariableDeclaration>? hoistedArguments = this.hoistedArguments;
     if (hoistedArguments == null || hoistedArguments.isEmpty) {
       return expression;
     } else {
-      assert(expression is InvocationExpression ||
-          expression is InvalidExpression);
-      if (expression is FactoryConstructorInvocation) {
+      assert(
+        expression is InvocationExpression || expression is InvalidExpression,
+      );
+      if (expression is ConstructorInvocation) {
         return InvocationInferenceResult._insertHoistedExpressions(
-            expression, hoistedArguments);
-      } else if (expression is TypeAliasedConstructorInvocation) {
-        // Coverage-ignore-block(suite): Not run.
-        return InvocationInferenceResult._insertHoistedExpressions(
-            expression, hoistedArguments);
-      } else if (expression is TypeAliasedFactoryInvocation) {
-        // Coverage-ignore-block(suite): Not run.
-        return InvocationInferenceResult._insertHoistedExpressions(
-            expression, hoistedArguments);
-      } else if (expression is ConstructorInvocation) {
-        return InvocationInferenceResult._insertHoistedExpressions(
-            expression, hoistedArguments);
+          expression,
+          hoistedArguments,
+        );
       } else if (expression is DynamicInvocation) {
         return InvocationInferenceResult._insertHoistedExpressions(
-            expression, hoistedArguments);
+          expression,
+          hoistedArguments,
+        );
       } else if (expression is FunctionInvocation) {
         return InvocationInferenceResult._insertHoistedExpressions(
-            expression, hoistedArguments);
+          expression,
+          hoistedArguments,
+        );
       } else if (expression is InstanceGetterInvocation) {
         // The hoisting of InstanceGetterInvocation is performed elsewhere.
         return expression;
       } else if (expression is InstanceInvocation) {
         if (!isPureExpression(expression.receiver)) {
           VariableDeclaration receiver = createVariable(
-              expression.receiver, inferredReceiverType ?? const DynamicType());
+            expression.receiver,
+            inferredReceiverType ?? const DynamicType(),
+          );
           expression.receiver = createVariableGet(receiver)
             ..parent = expression;
           return createLet(
-              receiver,
-              InvocationInferenceResult._insertHoistedExpressions(
-                  expression, hoistedArguments));
+            receiver,
+            InvocationInferenceResult._insertHoistedExpressions(
+              expression,
+              hoistedArguments,
+            ),
+          );
         } else {
           return InvocationInferenceResult._insertHoistedExpressions(
-              expression, hoistedArguments);
+            expression,
+            hoistedArguments,
+          );
         }
       } else if (expression is LocalFunctionInvocation) {
         return InvocationInferenceResult._insertHoistedExpressions(
-            expression, hoistedArguments);
+          expression,
+          hoistedArguments,
+        );
       } else if (expression is StaticInvocation) {
+        if (extensionReceiverType != null) {
+          Expression receiver = expression.arguments.positional.first;
+          if (!isPureExpression(receiver)) {
+            VariableDeclaration receiverVariable = createVariable(
+              receiver,
+              extensionReceiverType,
+            );
+            expression.arguments.positional.first = createVariableGet(
+              receiverVariable,
+            )..parent = expression;
+            return createLet(
+              receiverVariable,
+              InvocationInferenceResult._insertHoistedExpressions(
+                expression,
+                hoistedArguments,
+              ),
+            );
+          }
+        }
         return InvocationInferenceResult._insertHoistedExpressions(
-            expression, hoistedArguments);
+          expression,
+          hoistedArguments,
+        );
       } else if (expression is SuperMethodInvocation) {
         return InvocationInferenceResult._insertHoistedExpressions(
-            expression, hoistedArguments);
+          expression,
+          hoistedArguments,
+        );
       } else if (expression is InvalidExpression) {
         return InvocationInferenceResult._insertHoistedExpressions(
-            expression, hoistedArguments);
+          expression,
+          hoistedArguments,
+        );
       } else {
         throw new StateError(
-            "Unhandled invocation kind '${expression.runtimeType}'.");
+          "Unhandled invocation kind '${expression.runtimeType}'.",
+        );
       }
     }
   }
 
   @override
   bool get isInapplicable => false;
+
+  @override
+  InitializerInferenceResult toInitializerResult(Initializer initializer) {
+    return new // force line break
+    SuccessfulInitializerInvocationInferenceResult // force line break
+    .fromSuccessfulInferenceResult(initializer, this);
+  }
 }
 
 class WrapInProblemInferenceResult implements InvocationInferenceResult {
@@ -215,56 +279,79 @@ class WrapInProblemInferenceResult implements InvocationInferenceResult {
   @override
   final DartType functionType;
 
-  final Message message;
+  final LocatedMessage message;
 
-  final int fileOffset;
+  final ProblemReporting problemReporting;
 
-  final int length;
-
-  final InferenceHelper helper;
+  final CompilerContext compilerContext;
 
   @override
   final bool isInapplicable;
 
   final List<VariableDeclaration>? hoistedArguments;
 
-  WrapInProblemInferenceResult(this.inferredType, this.functionType,
-      this.message, this.fileOffset, this.length, this.helper,
-      {required this.isInapplicable, required this.hoistedArguments});
+  WrapInProblemInferenceResult(
+    this.inferredType,
+    this.functionType,
+    this.message,
+    this.problemReporting,
+    this.compilerContext, {
+    required this.isInapplicable,
+    required this.hoistedArguments,
+  });
 
   @override
-  Expression applyResult(Expression expression) {
-    expression = helper.wrapInProblem(expression, message, fileOffset, length);
+  Expression applyResult(
+    Expression expression, {
+    DartType? extensionReceiverType,
+  }) {
+    expression = problemReporting.wrapInLocatedProblem(
+      compilerContext: compilerContext,
+      expression: expression,
+      message: message,
+    );
     List<VariableDeclaration>? hoistedArguments = this.hoistedArguments;
     if (hoistedArguments == null || hoistedArguments.isEmpty) {
       return expression;
     } else {
       return InvocationInferenceResult._insertHoistedExpressions(
-          expression, hoistedArguments);
+        expression,
+        hoistedArguments,
+      );
     }
+  }
+
+  @override
+  InitializerInferenceResult toInitializerResult(Initializer initializer) {
+    return new // force line break
+    WrapInProblemInitializerInferenceResult.fromWrapInProblemInferenceResult(
+      initializer,
+      this,
+    );
   }
 }
 
 abstract class InitializerInferenceResult {
+  /// The inferred initializer.
+  Initializer get initializer;
+
   /// Modifies list of initializers in-place to apply the inference result.
   void applyResult(List<Initializer> initializers, TreeNode? parent);
 
   factory InitializerInferenceResult.fromInvocationInferenceResult(
-      InvocationInferenceResult invocationInferenceResult) {
-    if (invocationInferenceResult is SuccessfulInferenceResult) {
-      return new SuccessfulInitializerInvocationInferenceResult
-          .fromSuccessfulInferenceResult(invocationInferenceResult);
-    } else {
-      return new WrapInProblemInitializerInferenceResult
-          .fromWrapInProblemInferenceResult(
-          invocationInferenceResult as WrapInProblemInferenceResult);
-    }
+    Initializer initializer,
+    InvocationInferenceResult invocationInferenceResult,
+  ) {
+    return invocationInferenceResult.toInitializerResult(initializer);
   }
 }
 
 class SuccessfulInitializerInferenceResult
     implements InitializerInferenceResult {
-  const SuccessfulInitializerInferenceResult();
+  @override
+  final Initializer initializer;
+
+  SuccessfulInitializerInferenceResult(this.initializer);
 
   @override
   void applyResult(List<Initializer> initializers, TreeNode? parent) {}
@@ -272,6 +359,9 @@ class SuccessfulInitializerInferenceResult
 
 class SuccessfulInitializerInvocationInferenceResult
     implements InitializerInferenceResult {
+  @override
+  final Initializer initializer;
+
   final DartType inferredType;
 
   final FunctionType functionType;
@@ -280,29 +370,35 @@ class SuccessfulInitializerInvocationInferenceResult
 
   final DartType? inferredReceiverType;
 
-  SuccessfulInitializerInvocationInferenceResult(
-      {required this.inferredType,
-      required this.functionType,
-      required this.hoistedArguments,
-      required this.inferredReceiverType});
+  SuccessfulInitializerInvocationInferenceResult({
+    required this.initializer,
+    required this.inferredType,
+    required this.functionType,
+    required this.hoistedArguments,
+    required this.inferredReceiverType,
+  });
 
   SuccessfulInitializerInvocationInferenceResult.fromSuccessfulInferenceResult(
-      SuccessfulInferenceResult successfulInferenceResult)
-      : this(
-            inferredType: successfulInferenceResult.inferredType,
-            functionType: successfulInferenceResult.functionType,
-            hoistedArguments: successfulInferenceResult.hoistedArguments,
-            inferredReceiverType:
-                successfulInferenceResult.inferredReceiverType);
+    Initializer initializer,
+    SuccessfulInferenceResult successfulInferenceResult,
+  ) : this(
+        initializer: initializer,
+        inferredType: successfulInferenceResult.inferredType,
+        functionType: successfulInferenceResult.functionType,
+        hoistedArguments: successfulInferenceResult.hoistedArguments,
+        inferredReceiverType: successfulInferenceResult.inferredReceiverType,
+      );
 
   @override
   void applyResult(List<Initializer> initializers, TreeNode? parent) {
     List<VariableDeclaration>? hoistedArguments = this.hoistedArguments;
     if (hoistedArguments != null && hoistedArguments.isNotEmpty) {
       for (VariableDeclaration hoistedArgument in hoistedArguments) {
-        initializers.add(new LocalInitializer(hoistedArgument)
-          ..parent = parent
-          ..fileOffset = hoistedArgument.fileOffset);
+        initializers.add(
+          new LocalInitializer(hoistedArgument)
+            ..parent = parent
+            ..fileOffset = hoistedArgument.fileOffset,
+        );
       }
     }
   }
@@ -310,8 +406,14 @@ class SuccessfulInitializerInvocationInferenceResult
 
 class WrapInProblemInitializerInferenceResult
     implements InitializerInferenceResult {
+  @override
+  final Initializer initializer;
+  final WrapInProblemInferenceResult wrapInProblemInferenceResult;
+
   WrapInProblemInitializerInferenceResult.fromWrapInProblemInferenceResult(
-      WrapInProblemInferenceResult wrapInProblemInferenceResult);
+    this.initializer,
+    this.wrapInProblemInferenceResult,
+  );
 
   @override
   void applyResult(List<Initializer> initializers, TreeNode? parent) {}
@@ -358,9 +460,11 @@ class ExpressionInferenceResult {
   /// type of the expression after coercion, `int` in the example above.
   final DartType? postCoercionType;
 
-  ExpressionInferenceResult(this.inferredType, this.expression,
-      {this.postCoercionType = null})
-      : assert(isKnown(inferredType), "$inferredType is not known.");
+  ExpressionInferenceResult(
+    this.inferredType,
+    this.expression, {
+    this.postCoercionType = null,
+  }) : assert(isKnown(inferredType), "$inferredType is not known.");
 
   @override
   String toString() => 'ExpressionInferenceResult($inferredType,$expression)';
@@ -377,7 +481,10 @@ class NullAwareGuard {
   final InferenceVisitorBase _inferrer;
 
   NullAwareGuard(
-      this._nullAwareVariable, this._nullAwareFileOffset, this._inferrer);
+    this._nullAwareVariable,
+    this._nullAwareFileOffset,
+    this._inferrer,
+  );
 
   /// Creates the null-guarded application of [nullAwareAction] with the
   /// [inferredType].
@@ -388,9 +495,13 @@ class NullAwareGuard {
   ///     let v in v == null ? null : v.e
   ///
   Expression createExpression(
-      DartType inferredType, Expression nullAwareAction) {
+    DartType inferredType,
+    Expression nullAwareAction,
+  ) {
     Expression equalsNull = _inferrer.createEqualsNull(
-        _nullAwareFileOffset, createVariableGet(_nullAwareVariable));
+      _nullAwareFileOffset,
+      createVariableGet(_nullAwareVariable),
+    );
 
     // In case null guards are applied to non-nullable receivers, we still
     // generate a null-testing conditional expression; although, it is
@@ -427,13 +538,16 @@ class NullAwareGuard {
     // for non-nullable receivers in cascades.
     Expression typeSafeIfNullBranch =
         inferredType.nullability == Nullability.nullable
-            ? new NullLiteral()
-            : createVariableGet(_nullAwareVariable);
+        ? new NullLiteral()
+        : createVariableGet(_nullAwareVariable);
     typeSafeIfNullBranch.fileOffset = _nullAwareFileOffset;
 
     ConditionalExpression condition = new ConditionalExpression(
-        equalsNull, typeSafeIfNullBranch, nullAwareAction, inferredType)
-      ..fileOffset = _nullAwareFileOffset;
+      equalsNull,
+      typeSafeIfNullBranch,
+      nullAwareAction,
+      inferredType,
+    )..fileOffset = _nullAwareFileOffset;
     return new Let(_nullAwareVariable, condition)
       ..fileOffset = _nullAwareFileOffset;
   }

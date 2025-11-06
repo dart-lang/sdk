@@ -85,7 +85,7 @@ class _CreateConstructor extends ResolvedCorrectionProducer {
   }
 
   @override
-  FixKind get fixKind => DartFixKind.CREATE_CONSTRUCTOR_SUPER;
+  FixKind get fixKind => DartFixKind.createConstructorSuper;
 
   @override
   Future<void> compute(ChangeBuilder builder) async {

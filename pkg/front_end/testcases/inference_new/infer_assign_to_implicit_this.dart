@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/*@testedFeatures=inference*/
 library test;
 
 class A {}
@@ -23,33 +22,33 @@ class Test {
   B? member2;
 
   void test() {
-    /*@target=Test.member*/member = /*@typeArgs=B*/f();
+    member = f();
 
-    /*@target=Test.member2*//*@target=Test.member2*/member2 ??= /*@typeArgs=B?*/ f();
+    member2 ??= f();
 
-    /*@target=Test.member*//*@target=Test.member*/member /*@target=B.+*/+= /*@typeArgs=C*/f();
+    member += f();
 
-    /*@target=Test.member*//*@target=Test.member*/member /*@target=B.**/*= /*@typeArgs=B*/f();
+    member *= f();
 
-    /*@target=Test.member*//*@target=Test.member*/member /*@target=B.&*/&= /*@typeArgs=A*/f();
+    member &= f();
 
-    /*@target=B.-*/--/*@target=Test.member*//*@target=Test.member*/member;
+    --member;
 
-    /*@target=Test.member*//*@target=Test.member*/member/*@target=B.-*/--;
+    member--;
 
-    var /*@type=B*/ v1 = /*@target=Test.member*/member = /*@typeArgs=B*/f();
+    var v1 = member = f();
 
-    var /*@type=B?*/ v2 = /*@target=Test.member2*//*@target=Test.member2*/member2 ??= /*@typeArgs=B?*/ f();
+    var v2 = member2 ??= f();
 
-    var /*@type=B*/ v3 = /*@target=Test.member*//*@target=Test.member*/member /*@target=B.+*/+= /*@typeArgs=C*/f();
+    var v3 = member += f();
 
-    var /*@type=B*/ v4 = /*@target=Test.member*//*@target=Test.member*/member /*@target=B.**/*= /*@typeArgs=B*/f();
+    var v4 = member *= f();
 
-    var /*@type=C*/ v5 = /*@target=Test.member*//*@target=Test.member*/member /*@target=B.&*/&= /*@typeArgs=A*/f();
+    var v5 = member &= f();
 
-    var /*@type=B*/ v6 = /*@target=B.-*/--/*@target=Test.member*//*@target=Test.member*/member;
+    var v6 = --member;
 
-    var /*@type=B*/ v7 = /*@target=Test.member*//*@type=B*//*@target=Test.member*//*@type=B*/member/*@target=B.-*/--;
+    var v7 = member--;
   }
 }
 

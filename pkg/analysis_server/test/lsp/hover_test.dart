@@ -222,7 +222,7 @@ void f() {
 ''';
     var expected = '''
 ```dart
-(new) A A.named()
+(new) A.named()
 ```
 Declared in `A` in _package:test/main.dart_.''';
     await assertStringContents(content, equals(expected));
@@ -239,7 +239,7 @@ void f() {
 ''';
     var expected = '''
 ```dart
-(const) A A.named()
+(const) A.named()
 ```
 Declared in `A` in _package:test/main.dart_.''';
     await assertStringContents(content, equals(expected));
@@ -254,7 +254,7 @@ void f() {
 ''';
     var expected = '''
 ```dart
-(new) A A()
+(new) A()
 ```
 Declared in `A` in _package:test/main.dart_.''';
     await assertStringContents(content, equals(expected));
@@ -271,7 +271,7 @@ void f() {
 ''';
     var expected = '''
 ```dart
-(const) A A()
+(const) A()
 ```
 Declared in `A` in _package:test/main.dart_.''';
     await assertStringContents(content, equals(expected));
@@ -617,7 +617,8 @@ With some [refs] and some
 ```dart
 print();
 ```
-    '''.trim();
+    '''
+            .trim();
 
     await assertMarkdownContents(content, equals(expectedHoverContent));
   }
@@ -626,6 +627,26 @@ print();
     /// This is a string.
     String [!a^bc!] = '';
     ''', contains('This is a string.'));
+
+  Future<void> test_method_callMethod() async {
+    var content = '''
+/// f doc.
+void f(int i) {
+  f.[!call^!](1);
+}
+''';
+    var expected = '''
+```dart
+void f(int i)
+```
+Type: `void Function(int)`
+
+Declared in _package:test/main.dart_.
+
+---
+f doc.''';
+    await assertStringContents(content, equals(expected));
+  }
 
   Future<void> test_method_mixin_onImplementation() async {
     var content = '''
@@ -711,7 +732,8 @@ String? abc
 Type: `String?`
 
 Declared in _package:test/main.dart_.
-    '''.trim();
+    '''
+            .trim();
 
     await assertStringContents(content, equals(expectedHoverContent));
   }
@@ -873,7 +895,8 @@ void f(aaa) {
 dynamic aaa
 ```
 Type: `String`
-    '''.trim();
+    '''
+            .trim();
 
     await assertStringContents(content, equals(expectedHoverContent));
   }
@@ -883,7 +906,7 @@ Type: `String`
       1,
       2,
     ]);
-    ''', contains('String String.fromCharCodes('));
+    ''', contains('String.fromCharCodes('));
 
   Future<void> test_recordLiteral_named() => assertStringContents(r'''
 void f(({int f1, int f2}) r) {
@@ -921,7 +944,7 @@ Object f(([!dou^ble!], double) param) {
     ''',
     startsWith('''
 ```dart
-(new) Foo Foo(
+(new) Foo(
   String arg1,
   String arg2, [
   String? arg3,
@@ -941,7 +964,7 @@ Object f(([!dou^ble!], double) param) {
     ''',
     startsWith('''
 ```dart
-(new) Foo Foo(String a, String b)
+(new) Foo(String a, String b)
 ```'''),
   );
 
@@ -962,7 +985,8 @@ String? get myField
 Type: `String?`
 
 Declared in `A` in _package:test/main.dart_.
-'''.trim();
+'''
+            .trim();
 
     await assertStringContents(content, equals(expectedHoverContent));
   }
@@ -984,7 +1008,8 @@ String get myGetter
 Type: `String`
 
 Declared in `A` in _package:test/main.dart_.
-'''.trim();
+'''
+            .trim();
 
     await assertStringContents(content, equals(expectedHoverContent));
   }
@@ -1007,7 +1032,8 @@ String? get myGetter
 Type: `String?`
 
 Declared in `A` in _package:test/main.dart_.
-'''.trim();
+'''
+            .trim();
 
     await assertStringContents(content, equals(expectedHoverContent));
   }
@@ -1031,7 +1057,8 @@ set mySetter(String value)
 Type: `String`
 
 Declared in `A` in _package:test/main.dart_.
-'''.trim();
+'''
+            .trim();
 
     await assertStringContents(content, equals(expectedHoverContent));
   }
@@ -1055,7 +1082,8 @@ set mySetter(String value)
 Type: `String`
 
 Declared in `A` in _package:test/main.dart_.
-'''.trim();
+'''
+            .trim();
 
     await assertStringContents(content, equals(expectedHoverContent));
   }
@@ -1073,7 +1101,8 @@ String? abc
 Type: `String?`
 
 Declared in _package:test/main.dart_.
-    '''.trim();
+    '''
+            .trim();
 
     await assertStringContents(content, equals(expectedHoverContent));
   }

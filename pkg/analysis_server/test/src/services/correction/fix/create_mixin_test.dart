@@ -23,7 +23,7 @@ void main() {
 @reflectiveTest
 class CreateMixinLowercaseTest extends FixProcessorTest {
   @override
-  FixKind get kind => DartFixKind.CREATE_MIXIN_LOWERCASE;
+  FixKind get kind => DartFixKind.createMixinLowercase;
 
   Future<void> test_lowercaseAssignment() async {
     await resolveTestCode('''
@@ -96,7 +96,7 @@ class MyClass with myMixin {}
 @reflectiveTest
 class CreateMixinLowercaseWithTest extends FixProcessorTest {
   @override
-  FixKind get kind => DartFixKind.CREATE_MIXIN_LOWERCASE_WITH;
+  FixKind get kind => DartFixKind.createMixinLowercaseWith;
 
   Future<void> test_with() async {
     await resolveTestCode('''
@@ -118,8 +118,8 @@ class CreateMixinPriorityTest extends FixPriorityTest {
 class Class with myMixin {}
 ''');
     await assertFixPriorityOrder([
-      DartFixKind.CREATE_MIXIN_LOWERCASE_WITH,
-      DartFixKind.CREATE_CLASS_LOWERCASE_WITH,
+      DartFixKind.createMixinLowercaseWith,
+      DartFixKind.createClassLowercaseWith,
     ]);
   }
 
@@ -128,8 +128,8 @@ class Class with myMixin {}
 class Class with MyMixin {}
 ''');
     await assertFixPriorityOrder([
-      DartFixKind.CREATE_MIXIN_UPPERCASE_WITH,
-      DartFixKind.CREATE_CLASS_UPPERCASE_WITH,
+      DartFixKind.createMixinUppercaseWith,
+      DartFixKind.createClassUppercaseWith,
     ]);
   }
 
@@ -138,8 +138,8 @@ class Class with MyMixin {}
 void f(M m) {}
 ''');
     await assertFixPriorityOrder([
-      DartFixKind.CREATE_CLASS_UPPERCASE,
-      DartFixKind.CREATE_MIXIN_UPPERCASE,
+      DartFixKind.createClassUppercase,
+      DartFixKind.createMixinUppercase,
     ]);
   }
 
@@ -148,8 +148,8 @@ void f(M m) {}
 void f(newName m) {}
 ''');
     await assertFixPriorityOrder([
-      DartFixKind.CREATE_CLASS_LOWERCASE,
-      DartFixKind.CREATE_MIXIN_LOWERCASE,
+      DartFixKind.createClassLowercase,
+      DartFixKind.createMixinLowercase,
     ]);
   }
 
@@ -162,7 +162,7 @@ A? a;
 ''');
     await assertFixPriorityOrder([
       DartFixKind.IMPORT_LIBRARY_PROJECT1,
-      DartFixKind.CREATE_MIXIN_UPPERCASE,
+      DartFixKind.createMixinUppercase,
     ]);
   }
 }
@@ -170,7 +170,7 @@ A? a;
 @reflectiveTest
 class CreateMixinUppercaseTest extends FixProcessorTest {
   @override
-  FixKind get kind => DartFixKind.CREATE_MIXIN_UPPERCASE;
+  FixKind get kind => DartFixKind.createMixinUppercase;
 
   Future<void> test_hasUnresolvedPrefix() async {
     await resolveTestCode('''
@@ -298,8 +298,7 @@ mixin Test {
 }
 ''',
       errorFilter: (error) {
-        return error.diagnosticCode ==
-            CompileTimeErrorCode.UNDEFINED_IDENTIFIER;
+        return error.diagnosticCode == CompileTimeErrorCode.undefinedIdentifier;
       },
     );
     assertLinkedGroup(change.linkedEditGroups[0], ['Test])', 'Test {']);
@@ -416,7 +415,7 @@ mixin Foo {
 @reflectiveTest
 class CreateMixinUppercaseWithTest extends FixProcessorTest {
   @override
-  FixKind get kind => DartFixKind.CREATE_MIXIN_UPPERCASE_WITH;
+  FixKind get kind => DartFixKind.createMixinUppercaseWith;
 
   Future<void> test_with() async {
     await resolveTestCode('''

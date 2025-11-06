@@ -18,7 +18,7 @@ void main() {
 @reflectiveTest
 class CreateConstructorMixinTest extends FixProcessorTest {
   @override
-  FixKind get kind => DartFixKind.CREATE_CONSTRUCTOR;
+  FixKind get kind => DartFixKind.createConstructor;
 
   Future<void> test_named() async {
     await resolveTestCode('''
@@ -37,11 +37,50 @@ class CreateConstructorTest extends FixProcessorTest {
   static final _text200 = 'x' * 200;
 
   @override
-  FixKind get kind => DartFixKind.CREATE_CONSTRUCTOR;
+  FixKind get kind => DartFixKind.createConstructor;
 
   Future<void> test_inLibrary_insteadOfSyntheticDefault() async {
-    var a =
-        newFile('$testPackageLibPath/a.dart', '''
+    var a = newFile('$testPackageLibPath/a.dart', '''
+/// $_text200
+class A {}
+''').path;
+    await resolveTestCode('''
+import 'a.dart';
+
+void f() {
+  new A(1, 2.0);
+}
+''');
+    await assertHasFix('''
+/// $_text200
+class A {
+  A(int i, double d);
+}
+''', target: a);
+  }
+
+  Future<void> test_inLibrary_insteadOfSyntheticDefault_dotShorthand() async {
+    var a = newFile('$testPackageLibPath/a.dart', '''
+/// $_text200
+class A {}
+''').path;
+    await resolveTestCode('''
+import 'a.dart';
+
+A f() {
+  return .new(1, 2.0);
+}
+''');
+    await assertHasFix('''
+/// $_text200
+class A {
+  A(int i, double d);
+}
+''', target: a);
+  }
+
+  Future<void> test_inLibrary_named() async {
+    var a = newFile('$testPackageLibPath/a.dart', '''
 /// $_text200
 class A {}
 ''').path;
@@ -60,23 +99,22 @@ class A {
 ''', target: a);
   }
 
-  Future<void> test_inLibrary_named() async {
-    var a =
-        newFile('$testPackageLibPath/a.dart', '''
+  Future<void> test_inLibrary_named_dotShorthand() async {
+    var a = newFile('$testPackageLibPath/a.dart', '''
 /// $_text200
 class A {}
 ''').path;
     await resolveTestCode('''
 import 'a.dart';
 
-void f() {
-  new A(1, 2.0);
+A f() {
+  return .named(1, 2.0);
 }
 ''');
     await assertHasFix('''
 /// $_text200
 class A {
-  A(int i, double d);
+  A.named(int i, double d);
 }
 ''', target: a);
   }
@@ -119,6 +157,31 @@ void f() {
 ''');
   }
 
+  Future<void> test_insteadOfSyntheticDefault_dotShorthand() async {
+    await resolveTestCode('''
+class A {
+  int field = 0;
+
+  method() {}
+}
+A f() {
+  return .new(1, 2.0);
+}
+''');
+    await assertHasFix('''
+class A {
+  int field = 0;
+
+  A(int i, double d);
+
+  method() {}
+}
+A f() {
+  return .new(1, 2.0);
+}
+''');
+  }
+
   Future<void> test_mixin() async {
     verifyNoTestUnitErrors = false;
     await resolveTestCode('''
@@ -152,6 +215,28 @@ void f() {
     assertLinkedGroup(change.linkedEditGroups[0], ['named(int ', 'named(1']);
   }
 
+  Future<void> test_named_dotShorthand() async {
+    await resolveTestCode('''
+class A {
+  method() {}
+}
+A f() {
+  return .named(1, 2.0);
+}
+''');
+    await assertHasFix('''
+class A {
+  A.named(int i, double d);
+
+  method() {}
+}
+A f() {
+  return .named(1, 2.0);
+}
+''');
+    assertLinkedGroup(change.linkedEditGroups[0], ['named(int ', 'named(1']);
+  }
+
   Future<void> test_named_emptyClassBody() async {
     await resolveTestCode('''
 class A {}
@@ -165,6 +250,24 @@ class A {
 }
 void f() {
   new A.named(1);
+}
+''');
+    assertLinkedGroup(change.linkedEditGroups[0], ['named(int ', 'named(1']);
+  }
+
+  Future<void> test_named_emptyClassBody_dotShorthand() async {
+    await resolveTestCode('''
+class A {}
+A f() {
+  return .named(1);
+}
+''');
+    await assertHasFix('''
+class A {
+  A.named(int i);
+}
+A f() {
+  return .named(1);
 }
 ''');
     assertLinkedGroup(change.linkedEditGroups[0], ['named(int ', 'named(1']);
@@ -217,6 +320,27 @@ enum E {
   const E.x();
 
   const E(int i);
+}
+''');
+  }
+
+  Future<void> test_unnamed_dotShorthand() async {
+    await resolveTestCode('''
+class A {
+  method() {}
+}
+A f() {
+  return .new(1);
+}
+''');
+    await assertHasFix('''
+class A {
+  A(int i);
+
+  method() {}
+}
+A f() {
+  return .new(1);
 }
 ''');
   }

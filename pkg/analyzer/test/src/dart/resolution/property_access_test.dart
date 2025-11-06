@@ -44,7 +44,7 @@ PropertyAccess
           element: <testLibrary>::@function::f::@formalParameter::a
           staticType: A
       rightParenthesis: )
-    element2: <testLibrary>::@extension::E
+    element: <testLibrary>::@extension::E
     extendedType: A
     staticType: null
   operator: .
@@ -85,7 +85,7 @@ AssignmentExpression
             element: <testLibrary>::@function::f::@formalParameter::a
             staticType: A
         rightParenthesis: )
-      element2: <testLibrary>::@extension::E
+      element: <testLibrary>::@extension::E
       extendedType: A
       staticType: null
     operator: .
@@ -99,9 +99,9 @@ AssignmentExpression
     literal: 1
     correspondingParameter: dart:core::@class::num::@method::+::@formalParameter::other
     staticType: int
-  readElement2: <testLibrary>::@extension::E::@getter::foo
+  readElement: <testLibrary>::@extension::E::@getter::foo
   readType: int
-  writeElement2: <testLibrary>::@extension::E::@setter::foo
+  writeElement: <testLibrary>::@extension::E::@setter::foo
   writeType: num
   element: dart:core::@class::num::@method::+
   staticType: int
@@ -136,7 +136,7 @@ AssignmentExpression
             element: <testLibrary>::@function::f::@formalParameter::a
             staticType: A
         rightParenthesis: )
-      element2: <testLibrary>::@extension::E
+      element: <testLibrary>::@extension::E
       extendedType: A
       staticType: null
     operator: .
@@ -150,9 +150,9 @@ AssignmentExpression
     literal: 1
     correspondingParameter: <testLibrary>::@extension::E::@setter::foo::@formalParameter::_
     staticType: int
-  readElement2: <null>
+  readElement: <null>
   readType: null
-  writeElement2: <testLibrary>::@extension::E::@setter::foo
+  writeElement: <testLibrary>::@extension::E::@setter::foo
   writeType: int
   element: <null>
   staticType: int
@@ -201,7 +201,7 @@ int Function() foo() {
   return B().a; // ref
 }
 ''',
-      [error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION, 85, 5)],
+      [error(CompileTimeErrorCode.returnOfInvalidTypeFromFunction, 85, 5)],
     );
 
     var identifier = findNode.simple('a; // ref');
@@ -335,7 +335,7 @@ class A {
   }
 }
 ''',
-      [error(CompileTimeErrorCode.UNDEFINED_SUPER_GETTER, 54, 3)],
+      [error(CompileTimeErrorCode.undefinedSuperGetter, 54, 3)],
     );
 
     var node = findNode.propertyAccess('foo;');
@@ -428,7 +428,7 @@ class B extends A {
   }
 }
 ''',
-      [error(CompileTimeErrorCode.UNDEFINED_SUPER_GETTER, 97, 3)],
+      [error(CompileTimeErrorCode.undefinedSuperGetter, 97, 3)],
     );
 
     var node = findNode.propertyAccess('foo;');
@@ -572,7 +572,7 @@ PropertyAccess
     constructorName: ConstructorName
       type: NamedType
         name: A
-        element2: <testLibrary>::@class::A
+        element: <testLibrary>::@class::A
         type: A
       element: <testLibrary>::@class::A::@constructor::new
     argumentList: ArgumentList
@@ -607,7 +607,7 @@ AssignmentExpression
       constructorName: ConstructorName
         type: NamedType
           name: A
-          element2: <testLibrary>::@class::A
+          element: <testLibrary>::@class::A
           type: A
         element: <testLibrary>::@class::A::@constructor::new
       argumentList: ArgumentList
@@ -625,9 +625,9 @@ AssignmentExpression
     literal: 1
     correspondingParameter: dart:core::@class::num::@method::+::@formalParameter::other
     staticType: int
-  readElement2: <testLibrary>::@class::A::@getter::foo
+  readElement: <testLibrary>::@class::A::@getter::foo
   readType: int
-  writeElement2: <testLibrary>::@class::A::@setter::foo
+  writeElement: <testLibrary>::@class::A::@setter::foo
   writeType: int
   element: dart:core::@class::num::@method::+
   staticType: int
@@ -653,7 +653,7 @@ AssignmentExpression
       constructorName: ConstructorName
         type: NamedType
           name: A
-          element2: <testLibrary>::@class::A
+          element: <testLibrary>::@class::A
           type: A
         element: <testLibrary>::@class::A::@constructor::new
       argumentList: ArgumentList
@@ -669,11 +669,11 @@ AssignmentExpression
   operator: =
   rightHandSide: IntegerLiteral
     literal: 1
-    correspondingParameter: <testLibrary>::@class::A::@setter::foo::@formalParameter::_foo
+    correspondingParameter: <testLibrary>::@class::A::@setter::foo::@formalParameter::value
     staticType: int
-  readElement2: <null>
+  readElement: <null>
   readType: null
-  writeElement2: <testLibrary>::@class::A::@setter::foo
+  writeElement: <testLibrary>::@class::A::@setter::foo
   writeType: int
   element: <null>
   staticType: int
@@ -733,7 +733,8 @@ DefaultFormalParameter
   parameter: SimpleFormalParameter
     name: a
     declaredElement: <testLibraryFragment> a@8
-      type: dynamic
+      element: hasImplicitType isPublic
+        type: dynamic
   separator: =
   defaultValue: CascadeExpression
     target: SimpleIdentifier
@@ -750,7 +751,8 @@ DefaultFormalParameter
         staticType: InvalidType
     staticType: InvalidType
   declaredElement: <testLibraryFragment> a@8
-    type: dynamic
+    element: hasImplicitType isPublic
+      type: dynamic
 ''');
   }
 
@@ -811,7 +813,7 @@ CascadeExpression
     constructorName: ConstructorName
       type: NamedType
         name: A
-        element2: <testLibrary>::@class::A
+        element: <testLibrary>::@class::A
         type: A
       element: <testLibrary>::@class::A::@constructor::new
     argumentList: ArgumentList
@@ -858,7 +860,7 @@ CascadeExpression
     constructorName: ConstructorName
       type: NamedType
         name: A
-        element2: <testLibrary>::@class::A
+        element: <testLibrary>::@class::A
         type: A
       element: <testLibrary>::@class::A::@constructor::new
     argumentList: ArgumentList
@@ -1301,9 +1303,9 @@ AssignmentExpression
     literal: 1
     correspondingParameter: <testLibrary>::@enum::E::@setter::foo::@formalParameter::_
     staticType: int
-  readElement2: <null>
+  readElement: <null>
   readType: null
-  writeElement2: <testLibrary>::@enum::E::@setter::foo
+  writeElement: <testLibrary>::@enum::E::@setter::foo
   writeType: int
   element: <null>
   staticType: int
@@ -1536,7 +1538,7 @@ PropertyAccess
     constructorName: ConstructorName
       type: NamedType
         name: A
-        element2: <testLibrary>::@class::A
+        element: <testLibrary>::@class::A
         type: A
       element: <testLibrary>::@class::A::@constructor::new
     argumentList: ArgumentList
@@ -1574,7 +1576,7 @@ AssignmentExpression
       constructorName: ConstructorName
         type: NamedType
           name: A
-          element2: <testLibrary>::@class::A
+          element: <testLibrary>::@class::A
           type: A
         element: <testLibrary>::@class::A::@constructor::new
       argumentList: ArgumentList
@@ -1592,9 +1594,9 @@ AssignmentExpression
     literal: 1
     correspondingParameter: dart:core::@class::num::@method::+::@formalParameter::other
     staticType: int
-  readElement2: <testLibrary>::@extension::E::@getter::foo
+  readElement: <testLibrary>::@extension::E::@getter::foo
   readType: int
-  writeElement2: <testLibrary>::@extension::E::@setter::foo
+  writeElement: <testLibrary>::@extension::E::@setter::foo
   writeType: num
   element: dart:core::@class::num::@method::+
   staticType: int
@@ -1622,7 +1624,7 @@ AssignmentExpression
       constructorName: ConstructorName
         type: NamedType
           name: A
-          element2: <testLibrary>::@class::A
+          element: <testLibrary>::@class::A
           type: A
         element: <testLibrary>::@class::A::@constructor::new
       argumentList: ArgumentList
@@ -1640,9 +1642,9 @@ AssignmentExpression
     literal: 1
     correspondingParameter: <testLibrary>::@extension::E::@setter::foo::@formalParameter::_
     staticType: int
-  readElement2: <null>
+  readElement: <null>
   readType: null
-  writeElement2: <testLibrary>::@extension::E::@setter::foo
+  writeElement: <testLibrary>::@extension::E::@setter::foo
   writeType: int
   element: <null>
   staticType: int
@@ -1747,7 +1749,7 @@ void f(A a) {
   (a).foo;
 }
 ''',
-      [error(CompileTimeErrorCode.UNDEFINED_GETTER, 49, 3)],
+      [error(CompileTimeErrorCode.undefinedGetter, 49, 3)],
     );
 
     var node = findNode.singlePropertyAccess;
@@ -1804,9 +1806,9 @@ AssignmentExpression
     literal: 0
     correspondingParameter: <testLibrary>::@extensionType::A::@setter::foo::@formalParameter::_
     staticType: int
-  readElement2: <null>
+  readElement: <null>
   readType: null
-  writeElement2: <testLibrary>::@extensionType::A::@setter::foo
+  writeElement: <testLibrary>::@extensionType::A::@setter::foo
   writeType: int
   element: <null>
   staticType: int
@@ -2152,7 +2154,7 @@ void f((int, String) r) {
   r.$3;
 }
 ''',
-      [error(CompileTimeErrorCode.UNDEFINED_GETTER, 30, 2)],
+      [error(CompileTimeErrorCode.undefinedGetter, 30, 2)],
     );
 
     var node = findNode.propertyAccess(r'$3;');
@@ -2178,7 +2180,7 @@ void f((int, String) r) {
   r.$0a;
 }
 ''',
-      [error(CompileTimeErrorCode.UNDEFINED_GETTER, 30, 3)],
+      [error(CompileTimeErrorCode.undefinedGetter, 30, 3)],
     );
 
     var node = findNode.propertyAccess(r'$0a;');
@@ -2204,7 +2206,7 @@ void f((int, String) r) {
   r.$zero;
 }
 ''',
-      [error(CompileTimeErrorCode.UNDEFINED_GETTER, 30, 5)],
+      [error(CompileTimeErrorCode.undefinedGetter, 30, 5)],
     );
 
     var node = findNode.propertyAccess(r'$zero;');
@@ -2259,7 +2261,7 @@ void f((int, String) r) {
   r.a$0;
 }
 ''',
-      [error(CompileTimeErrorCode.UNDEFINED_GETTER, 30, 3)],
+      [error(CompileTimeErrorCode.undefinedGetter, 30, 3)],
     );
 
     var node = findNode.propertyAccess(r'a$0;');
@@ -2308,7 +2310,7 @@ void f(({int foo}) r) {
   r.bar;
 }
 ''',
-      [error(CompileTimeErrorCode.UNDEFINED_GETTER, 28, 3)],
+      [error(CompileTimeErrorCode.undefinedGetter, 28, 3)],
     );
 
     var node = findNode.propertyAccess('bar;');
@@ -2336,7 +2338,7 @@ void f((int foo, String) r) {
   r.foo;
 }
 ''',
-      [error(CompileTimeErrorCode.UNDEFINED_GETTER, 34, 3)],
+      [error(CompileTimeErrorCode.undefinedGetter, 34, 3)],
     );
 
     var node = findNode.propertyAccess('foo;');
@@ -2493,9 +2495,9 @@ AssignmentExpression
     literal: 1
     correspondingParameter: dart:core::@class::num::@method::+::@formalParameter::other
     staticType: int
-  readElement2: <testLibrary>::@class::A::@getter::foo
+  readElement: <testLibrary>::@class::A::@getter::foo
   readType: int
-  writeElement2: <testLibrary>::@class::A::@setter::foo
+  writeElement: <testLibrary>::@class::A::@setter::foo
   writeType: int
   element: dart:core::@class::num::@method::+
   staticType: int
@@ -2531,11 +2533,11 @@ AssignmentExpression
   operator: =
   rightHandSide: IntegerLiteral
     literal: 1
-    correspondingParameter: <testLibrary>::@class::A::@setter::foo::@formalParameter::_foo
+    correspondingParameter: <testLibrary>::@class::A::@setter::foo::@formalParameter::value
     staticType: int
-  readElement2: <null>
+  readElement: <null>
   readType: null
-  writeElement2: <testLibrary>::@class::A::@setter::foo
+  writeElement: <testLibrary>::@class::A::@setter::foo
   writeType: int
   element: <null>
   staticType: int
@@ -2582,7 +2584,7 @@ class C<T> {
 ''',
       [
         error(
-          CompileTimeErrorCode.UNCHECKED_PROPERTY_ACCESS_OF_NULLABLE_VALUE,
+          CompileTimeErrorCode.uncheckedPropertyAccessOfNullableValue,
           37,
           3,
         ),
@@ -2636,7 +2638,7 @@ void f() {
   (a).foo;
 }
 ''',
-      [error(CompileTimeErrorCode.UNDEFINED_IDENTIFIER, 14, 1)],
+      [error(CompileTimeErrorCode.undefinedIdentifier, 14, 1)],
     );
 
     var node = findNode.singlePropertyAccess;

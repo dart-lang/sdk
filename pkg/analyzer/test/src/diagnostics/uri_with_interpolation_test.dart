@@ -21,7 +21,7 @@ class UriWithInterpolationTest extends PubPackageResolutionTest {
 /// @docImport '${'foo'}.dart';
 library;
 ''',
-      [error(CompileTimeErrorCode.URI_WITH_INTERPOLATION, 15, 15)],
+      [error(CompileTimeErrorCode.uriWithInterpolation, 15, 15)],
     );
   }
 
@@ -30,7 +30,7 @@ library;
       r'''
 export '${'foo'}.dart';
 ''',
-      [error(CompileTimeErrorCode.URI_WITH_INTERPOLATION, 7, 15)],
+      [error(CompileTimeErrorCode.uriWithInterpolation, 7, 15)],
     );
   }
 
@@ -39,7 +39,7 @@ export '${'foo'}.dart';
       r'''
 import '${'foo'}.dart';
 ''',
-      [error(CompileTimeErrorCode.URI_WITH_INTERPOLATION, 7, 15)],
+      [error(CompileTimeErrorCode.uriWithInterpolation, 7, 15)],
     );
   }
 
@@ -48,7 +48,7 @@ import '${'foo'}.dart';
       r'''
 part '${'foo'}.dart';
 ''',
-      [error(CompileTimeErrorCode.URI_WITH_INTERPOLATION, 5, 15)],
+      [error(CompileTimeErrorCode.uriWithInterpolation, 5, 15)],
     );
   }
 }

@@ -79,10 +79,9 @@ class ConstructorFieldsVerifier {
       if (element is EnumElement && field.name == 'index') {
         continue;
       }
-      fieldMap[field] =
-          field.hasInitializer
-              ? _InitState.initInDeclaration
-              : _InitState.notInit;
+      fieldMap[field] = field.hasInitializer
+          ? _InitState.initInDeclaration
+          : _InitState.notInit;
     }
 
     return _interfaces[element] = _Interface(
@@ -150,19 +149,19 @@ class _Constructor {
     if (names.length == 1) {
       diagnosticReporter.atNode(
         node.returnType,
-        CompileTimeErrorCode.FINAL_NOT_INITIALIZED_CONSTRUCTOR_1,
+        CompileTimeErrorCode.finalNotInitializedConstructor1,
         arguments: names,
       );
     } else if (names.length == 2) {
       diagnosticReporter.atNode(
         node.returnType,
-        CompileTimeErrorCode.FINAL_NOT_INITIALIZED_CONSTRUCTOR_2,
+        CompileTimeErrorCode.finalNotInitializedConstructor2,
         arguments: names,
       );
     } else {
       diagnosticReporter.atNode(
         node.returnType,
-        CompileTimeErrorCode.FINAL_NOT_INITIALIZED_CONSTRUCTOR_3_PLUS,
+        CompileTimeErrorCode.finalNotInitializedConstructor3Plus,
         arguments: [names[0], names[1], names.length - 2],
       );
     }
@@ -179,8 +178,7 @@ class _Constructor {
     for (var name in names) {
       diagnosticReporter.atNode(
         node.returnType,
-        CompileTimeErrorCode
-            .NOT_INITIALIZED_NON_NULLABLE_INSTANCE_FIELD_CONSTRUCTOR,
+        CompileTimeErrorCode.notInitializedNonNullableInstanceFieldConstructor,
         arguments: [name],
       );
     }
@@ -206,19 +204,18 @@ class _Constructor {
               diagnosticReporter.atNode(
                 fieldName,
                 CompileTimeErrorCode
-                    .FIELD_INITIALIZED_IN_INITIALIZER_AND_DECLARATION,
+                    .fieldInitializedInInitializerAndDeclaration,
               );
             }
           } else if (state == _InitState.initInFieldFormal) {
             diagnosticReporter.atNode(
               fieldName,
-              CompileTimeErrorCode
-                  .FIELD_INITIALIZED_IN_PARAMETER_AND_INITIALIZER,
+              CompileTimeErrorCode.fieldInitializedInParameterAndInitializer,
             );
           } else if (state == _InitState.initInInitializer) {
             diagnosticReporter.atNode(
               fieldName,
-              CompileTimeErrorCode.FIELD_INITIALIZED_BY_MULTIPLE_INITIALIZERS,
+              CompileTimeErrorCode.fieldInitializedByMultipleInitializers,
               arguments: [fieldElement.displayName],
             );
           }
@@ -229,10 +226,10 @@ class _Constructor {
 
   void updateWithParameters(ConstructorDeclaration node) {
     var formalParameters = node.parameters.parameters;
-    for (var parameter in formalParameters) {
-      parameter = parameter.notDefault;
-      if (parameter is FieldFormalParameterImpl) {
-        var parameterFragment = parameter.declaredFragment!;
+    for (var formalParameter in formalParameters) {
+      formalParameter = formalParameter.notDefault;
+      if (formalParameter is FieldFormalParameterImpl) {
+        var parameterFragment = formalParameter.declaredFragment!;
         var fieldElement = parameterFragment.element.field;
         if (fieldElement == null) {
           continue;
@@ -243,9 +240,8 @@ class _Constructor {
         } else if (state == _InitState.initInDeclaration) {
           if (fieldElement.isFinal || fieldElement.isConst) {
             diagnosticReporter.atToken(
-              parameter.name,
-              CompileTimeErrorCode
-                  .FINAL_INITIALIZED_IN_DECLARATION_AND_CONSTRUCTOR,
+              formalParameter.name,
+              CompileTimeErrorCode.finalInitializedInDeclarationAndConstructor,
               arguments: [fieldElement.displayName],
             );
           }

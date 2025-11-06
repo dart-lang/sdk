@@ -4,16 +4,15 @@
 
 enum Enum { a, b, c }
 
-/*member: tester1:params=0*/
-@pragma('dart2js:noInline')
+@pragma('dart2js:never-inline')
 tester1() {}
 
 /*member: tester2:params=0*/
-@pragma('dart2js:noInline')
+@pragma('dart2js:never-inline')
 tester2() {}
 
 /*member: tester3:params=0*/
-@pragma('dart2js:noInline')
+@pragma('dart2js:never-inline')
 tester3() {}
 
 class Class {
@@ -26,7 +25,7 @@ class Class {
   Class({this.state1 = 1, this.state2 = Enum.c});
 
   /*member: Class.method1a:calls=[tester2(0)],params=0*/
-  @pragma('dart2js:noInline')
+  @pragma('dart2js:never-inline')
   method1a() {
     if (state1 == 0) {
       return tester1();
@@ -39,7 +38,7 @@ class Class {
 
   // TODO(johnniwinther): Inline switch cases with constant expressions.
   /*member: Class.method1b:calls=[tester2(0)],params=0,switch*/
-  @pragma('dart2js:noInline')
+  @pragma('dart2js:never-inline')
   method1b() {
     switch (state1) {
       case 0:
@@ -52,7 +51,7 @@ class Class {
   }
 
   /*member: Class.method2a:calls=[tester3(0)],params=0*/
-  @pragma('dart2js:noInline')
+  @pragma('dart2js:never-inline')
   method2a() {
     if (state2 == Enum.a) {
       return tester1();
@@ -63,10 +62,9 @@ class Class {
     }
   }
 
-  /*member: Class.method2b:calls=[tester1(0),tester2(0),tester3(0)],params=0,switch*/
-  @pragma('dart2js:noInline')
+  /*member: Class.method2b:calls=[tester3(0)],params=0,switch*/
+  @pragma('dart2js:never-inline')
   method2b() {
-    // TODO(johnniwinther): Eliminate dead code in enum switch.
     switch (state2) {
       case Enum.a:
         return tester1();

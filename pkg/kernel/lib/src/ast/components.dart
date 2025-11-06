@@ -159,6 +159,14 @@ class Component extends TreeNode {
     return uriToSource[file]?.getOffset(line, column) ?? -1;
   }
 
+  /// Translates line and column numbers to an offset in the given file.
+  ///
+  /// Returns offset of the line and column in the file, or -1 if the
+  /// source is not available, has no lines, or the line is out of range.
+  int getOffsetNoThrow(Uri file, int line, int column) {
+    return uriToSource[file]?.getOffsetNoThrow(line, column) ?? -1;
+  }
+
   void addMetadataRepository(MetadataRepository repository) {
     metadata[repository.tag] = repository;
   }
@@ -289,6 +297,25 @@ class Source {
     RangeError.checkValueInInterval(line, 1, lineStarts.length, 'line');
     int offset = lineStarts[line - 1] + column - 1;
     RangeError.checkValueInInterval(offset, 0, lineStarts.last, 'offset');
+    return offset;
+  }
+
+  /// Translates 1-based line and column numbers to an offset in the given file
+  ///
+  /// Returns offset of the line and column in the file, or -1 if the source
+  /// has no lines or the input is out of range.
+  int getOffsetNoThrow(int line, int column) {
+    List<int>? lineStarts = this.lineStarts;
+    if (lineStarts == null || lineStarts.isEmpty) {
+      return -1;
+    }
+    if (line < 1 || line > lineStarts.length) {
+      return -1;
+    }
+    int offset = lineStarts[line - 1] + column - 1;
+    if (offset < 0 || offset > lineStarts.last) {
+      return -1;
+    }
     return offset;
   }
 }

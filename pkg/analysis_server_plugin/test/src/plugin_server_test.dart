@@ -12,6 +12,7 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart' as protocol;
 import 'package:analyzer_plugin/protocol/protocol_constants.dart' as protocol;
 import 'package:analyzer_plugin/protocol/protocol_generated.dart' as protocol;
+import 'package:analyzer_plugin/protocol/protocol_generated.dart';
 import 'package:analyzer_plugin/utilities/assist/assist.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
@@ -33,13 +34,24 @@ class PluginServerTest extends PluginServerTestBase {
 
   String get filePath => join(packagePath, 'lib', 'test.dart');
 
+  String get file2Path => join(packagePath, 'lib', 'test2.dart');
+
+  String get testFilePath => join(packagePath, 'test', 'test.dart');
+
   String get packagePath => convertPath('/package1');
 
   StreamQueue<protocol.AnalysisErrorsParams> get _analysisErrorsParams {
-    return StreamQueue(channel.notifications
-        .where((n) => n.event == protocol.ANALYSIS_NOTIFICATION_ERRORS)
-        .map((n) => protocol.AnalysisErrorsParams.fromNotification(n))
-        .where((p) => p.file == filePath));
+    return StreamQueue(
+      channel.notifications
+          .where((n) => n.event == protocol.ANALYSIS_NOTIFICATION_ERRORS)
+          .map((n) => protocol.AnalysisErrorsParams.fromNotification(n))
+          .where(
+            (p) =>
+                p.file == filePath ||
+                p.file == file2Path ||
+                p.file == testFilePath,
+          ),
+    );
   }
 
   @override
@@ -47,7 +59,9 @@ class PluginServerTest extends PluginServerTestBase {
     await super.setUp();
 
     pluginServer = PluginServer(
-        resourceProvider: resourceProvider, plugins: [_NoLiteralsPlugin()]);
+      resourceProvider: resourceProvider,
+      plugins: [_NoLiteralsPlugin()],
+    );
     await startPlugin();
   }
 
@@ -57,8 +71,9 @@ class PluginServerTest extends PluginServerTestBase {
 // ignore: no_literals/no_bools
 bool b = false;
 ''');
-    await channel
-        .sendRequest(protocol.AnalysisSetContextRootsParams([contextRoot]));
+    await channel.sendRequest(
+      protocol.AnalysisSetContextRootsParams([contextRoot]),
+    );
     var paramsQueue = _analysisErrorsParams;
     var params = await paramsQueue.next;
     expect(params.errors, isEmpty);
@@ -71,8 +86,9 @@ bool b = false;
 
 // ignore_for_file: no_literals/no_bools
 ''');
-    await channel
-        .sendRequest(protocol.AnalysisSetContextRootsParams([contextRoot]));
+    await channel.sendRequest(
+      protocol.AnalysisSetContextRootsParams([contextRoot]),
+    );
     var paramsQueue = _analysisErrorsParams;
     var params = await paramsQueue.next;
     expect(params.errors, isEmpty);
@@ -81,8 +97,9 @@ bool b = false;
   Future<void> test_handleAnalysisSetContextRoots() async {
     writeAnalysisOptionsWithPlugin();
     newFile(filePath, 'bool b = false;');
-    await channel
-        .sendRequest(protocol.AnalysisSetContextRootsParams([contextRoot]));
+    await channel.sendRequest(
+      protocol.AnalysisSetContextRootsParams([contextRoot]),
+    );
     var paramsQueue = _analysisErrorsParams;
     var params = await paramsQueue.next;
     expect(params.errors, hasLength(1));
@@ -92,12 +109,16 @@ bool b = false;
   Future<void> test_handleEditGetAssists() async {
     writeAnalysisOptionsWithPlugin();
     newFile(filePath, 'bool b = false;');
-    await channel
-        .sendRequest(protocol.AnalysisSetContextRootsParams([contextRoot]));
+    await channel.sendRequest(
+      protocol.AnalysisSetContextRootsParams([contextRoot]),
+    );
 
     var result = await pluginServer.handleEditGetAssists(
       protocol.EditGetAssistsParams(
-          filePath, 'bool b = f'.length, 3 /* length */),
+        filePath,
+        'bool b = f'.length,
+        3 /* length */,
+      ),
     );
     var assists = result.assists;
     expect(assists, hasLength(1));
@@ -109,11 +130,13 @@ bool b = false;
     writeAnalysisOptionsWithPlugin();
     newFile(filePath, 'bool b = false;');
 
-    await channel
-        .sendRequest(protocol.AnalysisSetContextRootsParams([contextRoot]));
+    await channel.sendRequest(
+      protocol.AnalysisSetContextRootsParams([contextRoot]),
+    );
 
     var response = await channel.sendRequest(
-        protocol.EditGetAssistsParams(filePath, 'bool b = '.length, 1));
+      protocol.EditGetAssistsParams(filePath, 'bool b = '.length, 1),
+    );
     var result = protocol.EditGetAssistsResult.fromResponse(response);
     expect(result.assists, hasLength(1));
   }
@@ -121,11 +144,41 @@ bool b = false;
   Future<void> test_handleEditGetFixes() async {
     writeAnalysisOptionsWithPlugin();
     newFile(filePath, 'bool b = false;');
-    await channel
-        .sendRequest(protocol.AnalysisSetContextRootsParams([contextRoot]));
+    await channel.sendRequest(
+      protocol.AnalysisSetContextRootsParams([contextRoot]),
+    );
 
     var result = await pluginServer.handleEditGetFixes(
-        protocol.EditGetFixesParams(filePath, 'bool b = '.length));
+      protocol.EditGetFixesParams(filePath, 'bool b = '.length),
+    );
+    var fixes = result.fixes.single;
+    // The WrapInQuotes fix plus three "ignore diagnostic" fixes.
+    expect(fixes.fixes, hasLength(4));
+  }
+
+  Future<void> test_handleEditGetFixes_afterLine() async {
+    writeAnalysisOptionsWithPlugin();
+    newFile(filePath, 'bool b = false;\n\n');
+    await channel.sendRequest(
+      protocol.AnalysisSetContextRootsParams([contextRoot]),
+    );
+
+    var result = await pluginServer.handleEditGetFixes(
+      protocol.EditGetFixesParams(filePath, 'bool b = false;\n'.length),
+    );
+    expect(result.fixes, isEmpty);
+  }
+
+  Future<void> test_handleEditGetFixes_onSameLine() async {
+    writeAnalysisOptionsWithPlugin();
+    newFile(filePath, 'bool b = false;');
+    await channel.sendRequest(
+      protocol.AnalysisSetContextRootsParams([contextRoot]),
+    );
+
+    var result = await pluginServer.handleEditGetFixes(
+      protocol.EditGetFixesParams(filePath, 'bool b = fa'.length),
+    );
     var fixes = result.fixes.single;
     // The WrapInQuotes fix plus three "ignore diagnostic" fixes.
     expect(fixes.fixes, hasLength(4));
@@ -135,20 +188,23 @@ bool b = false;
     writeAnalysisOptionsWithPlugin();
     newFile(filePath, 'bool b = false;');
 
-    await channel
-        .sendRequest(protocol.AnalysisSetContextRootsParams([contextRoot]));
+    await channel.sendRequest(
+      protocol.AnalysisSetContextRootsParams([contextRoot]),
+    );
 
-    var response = await channel
-        .sendRequest(protocol.EditGetFixesParams(filePath, 'bool b = '.length));
+    var response = await channel.sendRequest(
+      protocol.EditGetFixesParams(filePath, 'bool b = '.length),
+    );
     var result = protocol.EditGetFixesResult.fromResponse(response);
     expect(result.fixes.first.fixes, hasLength(4));
   }
 
   Future<void> test_lintCodesCanHaveCustomSeverity() async {
-    writeAnalysisOptionsWithPlugin({'no_doubles_warning': true});
+    writeAnalysisOptionsWithPlugin({'no_doubles_custom_severity': 'enable'});
     newFile(filePath, 'double x = 3.14;');
-    await channel
-        .sendRequest(protocol.AnalysisSetContextRootsParams([contextRoot]));
+    await channel.sendRequest(
+      protocol.AnalysisSetContextRootsParams([contextRoot]),
+    );
     var paramsQueue = _analysisErrorsParams;
     var params = await paramsQueue.next;
     expect(params.errors, hasLength(1));
@@ -159,39 +215,164 @@ bool b = false;
     );
   }
 
+  Future<void> test_lintCodesCanHaveConfigurableSeverity() async {
+    writeAnalysisOptionsWithPlugin({'no_doubles_custom_severity': 'error'});
+    newFile(filePath, 'double x = 3.14;');
+    await channel.sendRequest(
+      protocol.AnalysisSetContextRootsParams([contextRoot]),
+    );
+    var paramsQueue = _analysisErrorsParams;
+    var params = await paramsQueue.next;
+    expect(params.errors, hasLength(1));
+    _expectAnalysisError(
+      params.errors.single,
+      message: 'No doubles message',
+      severity: protocol.AnalysisErrorSeverity.ERROR,
+    );
+  }
+
   Future<void> test_lintRulesAreDisabledByDefault() async {
     writeAnalysisOptionsWithPlugin();
     newFile(filePath, 'double x = 3.14;');
-    await channel
-        .sendRequest(protocol.AnalysisSetContextRootsParams([contextRoot]));
+    await channel.sendRequest(
+      protocol.AnalysisSetContextRootsParams([contextRoot]),
+    );
     var paramsQueue = _analysisErrorsParams;
     var params = await paramsQueue.next;
     expect(params.errors, isEmpty);
   }
 
   Future<void> test_lintRulesCanBeEnabled() async {
-    writeAnalysisOptionsWithPlugin({'no_doubles': true});
+    writeAnalysisOptionsWithPlugin({'no_doubles': 'enable'});
     newFile(filePath, 'double x = 3.14;');
-    await channel
-        .sendRequest(protocol.AnalysisSetContextRootsParams([contextRoot]));
+    await channel.sendRequest(
+      protocol.AnalysisSetContextRootsParams([contextRoot]),
+    );
     var paramsQueue = _analysisErrorsParams;
     var params = await paramsQueue.next;
     expect(params.errors, hasLength(1));
     _expectAnalysisError(params.errors.single, message: 'No doubles message');
   }
 
+  Future<void> test_pluginDetails() async {
+    writeAnalysisOptionsWithPlugin();
+    newFile(filePath, 'bool b = false;');
+
+    var response = await channel.sendRequest(protocol.PluginDetailsParams());
+
+    var result = protocol.PluginDetailsResult.fromResponse(response);
+    expect(result.plugins, hasLength(1));
+    var details = result.plugins.single;
+    expect(details.name, 'No Literals Plugin');
+    expect(
+      details.lintRules,
+      unorderedEquals([
+        'needs_package',
+        'no_doubles',
+        'no_doubles_custom_severity',
+        'no_references_to_strings',
+      ]),
+    );
+    expect(details.warningRules, unorderedEquals(['no_bools']));
+    expect(details.fixes, hasLength(1));
+    var fix = details.fixes.single;
+    expect(fix.codes, ['no_bools']);
+    expect(fix.id, 'dart.fix.wrapInQuotes');
+    expect(fix.message, 'Wrap in quotes');
+    expect(details.assists, hasLength(1));
+    var assist = details.assists.single;
+    expect(assist.id, 'dart.fix.invertBoolean');
+    expect(assist.message, 'Invert Boolean value');
+  }
+
+  Future<void> test_rulesHaveAccessToPackage() async {
+    writeAnalysisOptionsWithPlugin({'needs_package': 'enable'});
+    newFile(filePath, 'var x = 1;');
+    newFile(testFilePath, 'var x = 1;');
+    await channel.sendRequest(
+      protocol.AnalysisSetContextRootsParams([contextRoot]),
+    );
+    var paramsQueue = _analysisErrorsParams;
+    var params = await paramsQueue.next;
+    expect(params.file, filePath);
+    expect(params.errors, hasLength(1));
+    _expectAnalysisError(
+      params.errors.single,
+      message: 'Needs Package at "$packagePath"',
+    );
+
+    params = await paramsQueue.next;
+    expect(params.file, testFilePath);
+    expect(params.errors, isEmpty);
+  }
+
+  Future<void> test_setPriorityFiles() async {
+    newFile(filePath, '''
+int a = 0;
+''');
+    newFile(file2Path, '''
+int b = 1;
+''');
+    await channel.sendRequest(
+      protocol.AnalysisSetContextRootsParams([contextRoot]),
+    );
+
+    var paramsQueue = _analysisErrorsParams;
+    var params = await paramsQueue.next;
+    expect(params.file, filePath);
+
+    params = await paramsQueue.next;
+    expect(params.file, file2Path);
+
+    await channel.sendRequest(
+      protocol.AnalysisSetPriorityFilesParams([file2Path]),
+    );
+
+    expect(pluginServer.priorityPaths, {file2Path});
+
+    await channel.sendRequest(
+      protocol.AnalysisSetContextRootsParams([contextRoot]),
+    );
+
+    params = await paramsQueue.next;
+    expect(params.file, file2Path);
+
+    params = await paramsQueue.next;
+    expect(params.file, filePath);
+  }
+
+  Future<void> test_unsupportedRequest() async {
+    writeAnalysisOptionsWithPlugin();
+    newFile(filePath, 'bool b = false;');
+
+    await channel.sendRequest(
+      protocol.AnalysisSetContextRootsParams([contextRoot]),
+    );
+
+    // This request is unsupported.
+    var response = await channel.sendRequest(
+      protocol.CompletionGetSuggestionsParams(filePath, 0 /* offset */),
+    );
+
+    expect(response.error?.code, RequestErrorCode.UNKNOWN_REQUEST);
+  }
+
   Future<void> test_updateContent_addOverlay() async {
     writeAnalysisOptionsWithPlugin();
     newFile(filePath, 'int b = 7;');
-    await channel
-        .sendRequest(protocol.AnalysisSetContextRootsParams([contextRoot]));
+    await channel.sendRequest(
+      protocol.AnalysisSetContextRootsParams([contextRoot]),
+    );
 
     var paramsQueue = _analysisErrorsParams;
     var params = await paramsQueue.next;
     expect(params.errors, isEmpty);
 
-    await channel.sendRequest(protocol.AnalysisUpdateContentParams(
-        {filePath: protocol.AddContentOverlay('bool b = false;')}));
+    await channel.sendRequest(
+      protocol.AnalysisUpdateContentParams({
+        filePath: protocol.AddContentOverlay('bool b = false;'),
+      }),
+    );
 
     params = await paramsQueue.next;
     expect(params.errors, hasLength(1));
@@ -201,48 +382,148 @@ bool b = false;
   Future<void> test_updateContent_changeOverlay() async {
     writeAnalysisOptionsWithPlugin();
     newFile(filePath, 'int b = 7;');
-    await channel
-        .sendRequest(protocol.AnalysisSetContextRootsParams([contextRoot]));
+    await channel.sendRequest(
+      protocol.AnalysisSetContextRootsParams([contextRoot]),
+    );
 
     var paramsQueue = _analysisErrorsParams;
     var params = await paramsQueue.next;
     expect(params.errors, isEmpty);
 
-    await channel.sendRequest(protocol.AnalysisUpdateContentParams(
-        {filePath: protocol.AddContentOverlay('int b = 0;')}));
+    await channel.sendRequest(
+      protocol.AnalysisUpdateContentParams({
+        filePath: protocol.AddContentOverlay('int b = 0;'),
+      }),
+    );
 
     params = await paramsQueue.next;
     expect(params.errors, isEmpty);
 
-    await channel.sendRequest(protocol.AnalysisUpdateContentParams({
-      filePath: protocol.ChangeContentOverlay(
-          [protocol.SourceEdit(0, 9, 'bool b = false')])
-    }));
+    await channel.sendRequest(
+      protocol.AnalysisUpdateContentParams({
+        filePath: protocol.ChangeContentOverlay([
+          protocol.SourceEdit(0, 9, 'bool b = false'),
+        ]),
+      }),
+    );
 
     params = await paramsQueue.next;
     expect(params.errors, hasLength(1));
     _expectAnalysisError(params.errors.single, message: 'No bools message');
   }
 
+  Future<void> test_updateContent_addOverlay_affectedPart() async {
+    writeAnalysisOptionsWithPlugin({'no_references_to_strings': 'enable'});
+    newFile(filePath, '''
+part 'test2.dart';
+int s = 7;
+''');
+    newFile(file2Path, '''
+part of 'test.dart';
+void f() {
+  print(s);
+}
+''');
+    await channel.sendRequest(
+      protocol.AnalysisSetContextRootsParams([contextRoot]),
+    );
+
+    var paramsQueue = _analysisErrorsParams;
+    var params = await paramsQueue.next; // test.dart
+    expect(params.errors, isEmpty);
+    params = await paramsQueue.next; // test2.dart
+    expect(params.errors, isEmpty);
+
+    await channel.sendRequest(
+      protocol.AnalysisUpdateContentParams({
+        filePath: protocol.AddContentOverlay('''
+part 'test2.dart';
+String s = "hello";
+'''),
+      }),
+    );
+
+    params = await paramsQueue.next;
+    expect(params.errors, isEmpty);
+    expect(params.file, filePath);
+
+    params = await paramsQueue.next;
+    expect(params.errors, hasLength(1));
+    expect(params.file, file2Path);
+    _expectAnalysisError(
+      params.errors.single,
+      message: 'No references to Strings',
+    );
+  }
+
+  Future<void> test_updateContent_addOverlay_affectedLibrary() async {
+    writeAnalysisOptionsWithPlugin({'no_references_to_strings': 'enable'});
+    newFile(filePath, '''
+int s = 7;
+void f() {
+  print(s);
+}
+''');
+    newFile(file2Path, '''
+import 'test.dart';
+void f() {
+  print(s);
+}
+''');
+    await channel.sendRequest(
+      protocol.AnalysisSetContextRootsParams([contextRoot]),
+    );
+
+    var paramsQueue = _analysisErrorsParams;
+    var params = await paramsQueue.next; // test.dart
+    expect(params.errors, isEmpty);
+    params = await paramsQueue.next; // test2.dart
+    expect(params.errors, isEmpty);
+
+    await channel.sendRequest(
+      protocol.AnalysisUpdateContentParams({
+        filePath: protocol.AddContentOverlay('''
+String s = "hello";
+'''),
+      }),
+    );
+
+    params = await paramsQueue.next; // test.dart
+    params = await paramsQueue.next; // test2.dart
+    expect(params.errors, hasLength(1));
+    expect(params.file, file2Path);
+    _expectAnalysisError(
+      params.errors.single,
+      message: 'No references to Strings',
+    );
+  }
+
   Future<void> test_updateContent_removeOverlay() async {
     writeAnalysisOptionsWithPlugin();
     newFile(filePath, 'bool b = false;');
-    await channel
-        .sendRequest(protocol.AnalysisSetContextRootsParams([contextRoot]));
+    await channel.sendRequest(
+      protocol.AnalysisSetContextRootsParams([contextRoot]),
+    );
 
     var paramsQueue = _analysisErrorsParams;
     var params = await paramsQueue.next;
     expect(params.errors, hasLength(1));
     _expectAnalysisError(params.errors.single, message: 'No bools message');
 
-    await channel.sendRequest(protocol.AnalysisUpdateContentParams(
-        {filePath: protocol.AddContentOverlay('int b = 7;')}));
+    await channel.sendRequest(
+      protocol.AnalysisUpdateContentParams({
+        filePath: protocol.AddContentOverlay('int b = 7;'),
+      }),
+    );
 
     params = await paramsQueue.next;
     expect(params.errors, isEmpty);
 
-    await channel.sendRequest(protocol.AnalysisUpdateContentParams(
-        {filePath: protocol.RemoveContentOverlay()}));
+    await channel.sendRequest(
+      protocol.AnalysisUpdateContentParams({
+        filePath: protocol.RemoveContentOverlay(),
+      }),
+    );
 
     params = await paramsQueue.next;
     expect(params.errors, hasLength(1));
@@ -252,8 +533,9 @@ bool b = false;
   Future<void> test_warningRulesAreEnabledByDefault() async {
     writeAnalysisOptionsWithPlugin();
     newFile(filePath, 'bool b = false;');
-    await channel
-        .sendRequest(protocol.AnalysisSetContextRootsParams([contextRoot]));
+    await channel.sendRequest(
+      protocol.AnalysisSetContextRootsParams([contextRoot]),
+    );
     var paramsQueue = _analysisErrorsParams;
     var params = await paramsQueue.next;
     expect(params.errors, hasLength(1));
@@ -261,26 +543,96 @@ bool b = false;
   }
 
   Future<void> test_warningRulesCanBeDisabled() async {
-    writeAnalysisOptionsWithPlugin({'no_bools': false});
+    writeAnalysisOptionsWithPlugin({'no_bools': 'disable'});
     newFile(filePath, 'bool b = false;');
-    await channel
-        .sendRequest(protocol.AnalysisSetContextRootsParams([contextRoot]));
+    await channel.sendRequest(
+      protocol.AnalysisSetContextRootsParams([contextRoot]),
+    );
     var paramsQueue = _analysisErrorsParams;
     var params = await paramsQueue.next;
     expect(params.errors, isEmpty);
   }
 
-  void writeAnalysisOptionsWithPlugin(
-      [Map<String, bool> diagnosticConfiguration = const {}]) {
+  Future<void> test_watchEvent_add() async {
+    writeAnalysisOptionsWithPlugin();
+    await channel.sendRequest(
+      protocol.AnalysisSetContextRootsParams([contextRoot]),
+    );
+
+    var paramsQueue = _analysisErrorsParams;
+
+    newFile(filePath, 'bool b = false;');
+
+    await channel.sendRequest(
+      protocol.AnalysisHandleWatchEventsParams([
+        WatchEvent(WatchEventType.ADD, filePath),
+      ]),
+    );
+
+    var params = await paramsQueue.next;
+    expect(params.errors, hasLength(1));
+    _expectAnalysisError(params.errors.single, message: 'No bools message');
+  }
+
+  Future<void> test_watchEvent_modify() async {
+    writeAnalysisOptionsWithPlugin();
+    newFile(filePath, 'int b = 7;');
+    await channel.sendRequest(
+      protocol.AnalysisSetContextRootsParams([contextRoot]),
+    );
+
+    var paramsQueue = _analysisErrorsParams;
+    var params = await paramsQueue.next;
+    expect(params.errors, isEmpty);
+
+    newFile(filePath, 'bool b = false;');
+
+    await channel.sendRequest(
+      protocol.AnalysisHandleWatchEventsParams([
+        WatchEvent(WatchEventType.MODIFY, filePath),
+      ]),
+    );
+
+    params = await paramsQueue.next;
+    expect(params.errors, hasLength(1));
+    _expectAnalysisError(params.errors.single, message: 'No bools message');
+  }
+
+  Future<void> test_watchEvent_remove() async {
+    writeAnalysisOptionsWithPlugin();
+    newFile(filePath, 'int b = 7;');
+    await channel.sendRequest(
+      protocol.AnalysisSetContextRootsParams([contextRoot]),
+    );
+
+    var paramsQueue = _analysisErrorsParams;
+    var params = await paramsQueue.next;
+    expect(params.errors, isEmpty);
+
+    deleteFile(filePath);
+
+    await channel.sendRequest(
+      protocol.AnalysisHandleWatchEventsParams([
+        WatchEvent(WatchEventType.REMOVE, filePath),
+      ]),
+    );
+
+    params = await paramsQueue.next;
+    expect(params.errors, isEmpty);
+  }
+
+  void writeAnalysisOptionsWithPlugin([
+    Map<String, String> diagnosticConfiguration = const {},
+  ]) {
     var buffer = StringBuffer('''
 plugins:
   no_literals:
     path: some/path
     diagnostics:
 ''');
-    for (var MapEntry(key: diagnosticName, value: isEnabled)
+    for (var MapEntry(key: diagnosticName, value: enablement)
         in diagnosticConfiguration.entries) {
-      buffer.writeln('      $diagnosticName: $isEnabled');
+      buffer.writeln('      $diagnosticName: $enablement');
     }
     newAnalysisOptionsYamlFile(packagePath, buffer.toString());
   }
@@ -296,15 +648,21 @@ plugins:
       isA<protocol.AnalysisError>()
           .having((e) => e.severity, 'severity', severity)
           .having(
-              (e) => e.type, 'type', protocol.AnalysisErrorType.STATIC_WARNING)
+            (e) => e.type,
+            'type',
+            protocol.AnalysisErrorType.STATIC_WARNING,
+          )
           .having((e) => e.message, 'message', message),
     );
   }
 }
 
 class _InvertBoolean extends ResolvedCorrectionProducer {
-  static const _invertBooleanKind =
-      AssistKind('dart.fix.invertBooelan', 50, 'Invert Boolean value');
+  static const _invertBooleanKind = AssistKind(
+    'dart.fix.invertBoolean',
+    50,
+    'Invert Boolean value',
+  );
 
   _InvertBoolean({required super.context});
 
@@ -328,18 +686,26 @@ class _InvertBoolean extends ResolvedCorrectionProducer {
 
 class _NoLiteralsPlugin extends Plugin {
   @override
+  String get name => 'No Literals Plugin';
+
+  @override
   void register(PluginRegistry registry) {
+    registry.registerLintRule(NeedsPackageRule());
     registry.registerWarningRule(NoBoolsRule());
     registry.registerLintRule(NoDoublesRule());
-    registry.registerLintRule(NoDoublesWarningRule());
+    registry.registerLintRule(NoDoublesCustomSeverityRule());
+    registry.registerLintRule(NoReferencesToStringsRule());
     registry.registerFixForRule(NoBoolsRule.code, _WrapInQuotes.new);
     registry.registerAssist(_InvertBoolean.new);
   }
 }
 
 class _WrapInQuotes extends ResolvedCorrectionProducer {
-  static const _wrapInQuotesKind =
-      FixKind('dart.fix.wrapInQuotes', 50, 'Wrap in quotes');
+  static const _wrapInQuotesKind = FixKind(
+    'dart.fix.wrapInQuotes',
+    50,
+    'Wrap in quotes',
+  );
 
   _WrapInQuotes({required super.context});
 

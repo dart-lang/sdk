@@ -17,10 +17,10 @@ class ConvertToRawString extends ResolvedCorrectionProducer {
       CorrectionApplicability.automatically;
 
   @override
-  FixKind get fixKind => DartFixKind.CONVERT_TO_RAW_STRING;
+  FixKind get fixKind => DartFixKind.convertToRawString;
 
   @override
-  FixKind get multiFixKind => DartFixKind.CONVERT_TO_RAW_STRING_MULTI;
+  FixKind get multiFixKind => DartFixKind.convertToRawStringMulti;
 
   @override
   Future<void> compute(ChangeBuilder builder) async {

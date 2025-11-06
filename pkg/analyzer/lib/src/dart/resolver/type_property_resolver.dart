@@ -35,13 +35,13 @@ class TypePropertyResolver {
 
   bool _needsGetterError = false;
   bool _reportedGetterError = false;
-  ExecutableElement2OrMember? _getterRequested;
-  ExecutableElement2OrMember? _getterRecovery;
+  InternalExecutableElement? _getterRequested;
+  InternalExecutableElement? _getterRecovery;
 
   bool _needsSetterError = false;
   bool _reportedSetterError = false;
-  ExecutableElement2OrMember? _setterRequested;
-  ExecutableElement2OrMember? _setterRecovery;
+  InternalExecutableElement? _setterRequested;
+  InternalExecutableElement? _setterRecovery;
 
   TypePropertyResolver(this._resolver)
     : _definingLibrary = _resolver.definingLibrary,
@@ -127,7 +127,7 @@ class TypePropertyResolver {
       CompileTimeErrorCode errorCode;
       List<String> arguments;
       if (parentNode == null) {
-        errorCode = CompileTimeErrorCode.UNCHECKED_INVOCATION_OF_NULLABLE_VALUE;
+        errorCode = CompileTimeErrorCode.uncheckedInvocationOfNullableValue;
         arguments = [];
       } else {
         if (parentNode is CascadeExpression) {
@@ -135,22 +135,19 @@ class TypePropertyResolver {
         }
         if (parentNode is BinaryExpression || parentNode is RelationalPattern) {
           errorCode =
-              CompileTimeErrorCode
-                  .UNCHECKED_OPERATOR_INVOCATION_OF_NULLABLE_VALUE;
+              CompileTimeErrorCode.uncheckedOperatorInvocationOfNullableValue;
           arguments = [name];
         } else if (parentNode is MethodInvocation ||
             parentNode is MethodReferenceExpression) {
           errorCode =
-              CompileTimeErrorCode
-                  .UNCHECKED_METHOD_INVOCATION_OF_NULLABLE_VALUE;
+              CompileTimeErrorCode.uncheckedMethodInvocationOfNullableValue;
           arguments = [name];
         } else if (parentNode is FunctionExpressionInvocation) {
-          errorCode =
-              CompileTimeErrorCode.UNCHECKED_INVOCATION_OF_NULLABLE_VALUE;
+          errorCode = CompileTimeErrorCode.uncheckedInvocationOfNullableValue;
           arguments = [];
         } else {
           errorCode =
-              CompileTimeErrorCode.UNCHECKED_PROPERTY_ACCESS_OF_NULLABLE_VALUE;
+              CompileTimeErrorCode.uncheckedPropertyAccessOfNullableValue;
           arguments = [name];
         }
       }
@@ -243,7 +240,7 @@ class TypePropertyResolver {
   }
 
   void _lookupExtension(TypeImpl type) {
-    var getterName = Name(_definingLibrary.source.uri, _name);
+    var getterName = Name(_definingLibrary.uri, _name);
     var result = _extensionResolver.findExtension(
       type,
       _nameErrorEntity,
@@ -270,7 +267,7 @@ class TypePropertyResolver {
     var isSuper = _receiver is SuperExpression;
 
     if (_hasRead) {
-      var getterName = Name(_definingLibrary.source.uri, _name);
+      var getterName = Name(_definingLibrary.uri, _name);
       _getterRequested = _resolver.inheritance.getMember3(
         type,
         getterName,
@@ -288,7 +285,7 @@ class TypePropertyResolver {
     }
 
     if (_hasWrite) {
-      var setterName = Name(_definingLibrary.source.uri, '$_name=');
+      var setterName = Name(_definingLibrary.uri, '$_name=');
       _setterRequested = _resolver.inheritance.getMember3(
         type,
         setterName,
@@ -310,7 +307,7 @@ class TypePropertyResolver {
     // if there is the setter, i.e. the basename at all. If there is, we
     // should not check extensions.
     if (_hasRead && _getterRequested == null) {
-      var setterName = Name(_definingLibrary.source.uri, '$_name=');
+      var setterName = Name(_definingLibrary.uri, '$_name=');
       _setterRequested = _resolver.inheritance.getMember3(
         type,
         setterName,
@@ -319,7 +316,7 @@ class TypePropertyResolver {
     }
 
     if (_hasWrite && _setterRequested == null) {
-      var getterName = Name(_definingLibrary.source.uri, _name);
+      var getterName = Name(_definingLibrary.uri, _name);
       _getterRequested = _resolver.inheritance.getMember3(
         type,
         getterName,

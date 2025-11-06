@@ -22,8 +22,8 @@ class A extends B {}
 class B extends A {}
 ''',
       [
-        error(CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE, 6, 1),
-        error(CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE, 27, 1),
+        error(CompileTimeErrorCode.recursiveInterfaceInheritance, 6, 1),
+        error(CompileTimeErrorCode.recursiveInterfaceInheritance, 27, 1),
       ],
     );
   }
@@ -35,8 +35,8 @@ class A extends B {}
 class B implements A {}
 ''',
       [
-        error(CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE, 6, 1),
-        error(CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE, 27, 1),
+        error(CompileTimeErrorCode.recursiveInterfaceInheritance, 6, 1),
+        error(CompileTimeErrorCode.recursiveInterfaceInheritance, 27, 1),
       ],
     );
   }
@@ -48,8 +48,8 @@ class A implements B {}
 class B implements A {}
 ''',
       [
-        error(CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE, 6, 1),
-        error(CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE, 30, 1),
+        error(CompileTimeErrorCode.recursiveInterfaceInheritance, 6, 1),
+        error(CompileTimeErrorCode.recursiveInterfaceInheritance, 30, 1),
       ],
     );
   }
@@ -61,8 +61,8 @@ class A<T> implements B<T> {}
 class B<T> implements A<T> {}
 ''',
       [
-        error(CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE, 6, 1),
-        error(CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE, 36, 1),
+        error(CompileTimeErrorCode.recursiveInterfaceInheritance, 6, 1),
+        error(CompileTimeErrorCode.recursiveInterfaceInheritance, 36, 1),
       ],
     );
   }
@@ -74,8 +74,8 @@ class A<T> implements B<List<T>> {}
 class B<T> implements A<List<T>> {}
 ''',
       [
-        error(CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE, 6, 1),
-        error(CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE, 42, 1),
+        error(CompileTimeErrorCode.recursiveInterfaceInheritance, 6, 1),
+        error(CompileTimeErrorCode.recursiveInterfaceInheritance, 42, 1),
       ],
     );
   }
@@ -88,8 +88,8 @@ abstract class B implements A {}
 class C implements A {}
 ''',
       [
-        error(CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE, 15, 1),
-        error(CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE, 48, 1),
+        error(CompileTimeErrorCode.recursiveInterfaceInheritance, 15, 1),
+        error(CompileTimeErrorCode.recursiveInterfaceInheritance, 48, 1),
       ],
     );
   }
@@ -103,9 +103,9 @@ abstract class C implements A {}
 class D implements A {}
 ''',
       [
-        error(CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE, 15, 1),
-        error(CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE, 48, 1),
-        error(CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE, 81, 1),
+        error(CompileTimeErrorCode.recursiveInterfaceInheritance, 15, 1),
+        error(CompileTimeErrorCode.recursiveInterfaceInheritance, 48, 1),
+        error(CompileTimeErrorCode.recursiveInterfaceInheritance, 81, 1),
       ],
     );
   }
@@ -117,8 +117,8 @@ mixin class M1 = Object with M2;
 mixin class M2 = Object with M1;
 ''',
       [
-        error(CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE, 12, 2),
-        error(CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE, 45, 2),
+        error(CompileTimeErrorCode.recursiveInterfaceInheritance, 12, 2),
+        error(CompileTimeErrorCode.recursiveInterfaceInheritance, 45, 2),
       ],
     );
   }
@@ -133,8 +133,8 @@ class D = C with M;
 mixin M {}
 ''',
       [
-        error(CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE, 6, 1),
-        error(CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE, 26, 1),
+        error(CompileTimeErrorCode.recursiveInterfaceInheritance, 6, 1),
+        error(CompileTimeErrorCode.recursiveInterfaceInheritance, 26, 1),
       ],
     );
   }

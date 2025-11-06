@@ -30,7 +30,7 @@ class AddLate extends ResolvedCorrectionProducer {
   AssistKind? get assistKind => DartAssistKind.addLate;
 
   @override
-  FixKind get fixKind => DartFixKind.ADD_LATE;
+  FixKind get fixKind => DartFixKind.addLate;
 
   @override
   Future<void> compute(ChangeBuilder builder) async {
@@ -68,8 +68,7 @@ class AddLate extends ResolvedCorrectionProducer {
           getter.isSynthetic &&
           getter.enclosingElement is InterfaceElement) {
         var variableElement = getter.variable;
-        if (variableElement != null &&
-            !variableElement.isSynthetic &&
+        if (!variableElement.isSynthetic &&
             !variableElement.isLate &&
             variableElement.setter == null &&
             // It is currently too expensive to do a `getFragmentDeclaration`

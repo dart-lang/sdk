@@ -35,7 +35,7 @@ final class MyStruct extends Struct {
   external Array<Int8> arr;
 }
 ''',
-      [error(FfiCode.ADDRESS_POSITION, 200, 7)],
+      [error(FfiCode.addressPosition, 200, 7)],
     );
   }
 
@@ -59,7 +59,7 @@ final class MyStruct extends Struct {
   external Array<Int8> arr;
 }
 ''',
-      [error(FfiCode.ADDRESS_POSITION, 202, 7)],
+      [error(FfiCode.addressPosition, 202, 7)],
     );
   }
 
@@ -99,7 +99,7 @@ main() {
   myNonLeafNative(buffer.address.cast());
 }
 ''',
-      [error(FfiCode.ADDRESS_POSITION, 204, 7)],
+      [error(FfiCode.addressPosition, 204, 7)],
     );
   }
 
@@ -138,7 +138,7 @@ final class MyUnion extends Union {
   external Array<Int8> arr;
 }
 ''',
-      [error(FfiCode.ADDRESS_POSITION, 196, 7)],
+      [error(FfiCode.addressPosition, 196, 7)],
     );
   }
 
@@ -161,7 +161,7 @@ final class MyUnion extends Union {
   external Array<Int8> arr;
       }
 ''',
-      [error(FfiCode.ADDRESS_POSITION, 198, 7)],
+      [error(FfiCode.addressPosition, 198, 7)],
     );
   }
 

@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/*@testedFeatures=inference*/
 library test;
 
 class F3<T> {
@@ -14,6 +13,6 @@ class F4<T> {
 }
 
 void main() {
-  new /*@typeArgs=Object?*/ F3(/*@typeArgs=Iterable<Object?>*/ []);
-  new /*@typeArgs=Object?*/ F4(a: /*@typeArgs=Iterable<Object?>*/ []);
+  new F3([]);
+  new F4(a: []);
 }

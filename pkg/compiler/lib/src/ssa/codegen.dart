@@ -1109,11 +1109,11 @@ class SsaCodeGenerator implements HVisitor<void>, HBlockInformationVisitor {
           currentContainer = body;
           visitBodyIgnoreLabels(info);
           currentContainer = oldContainer;
-          loop = js.For(
-            jsInitialization,
-            jsCondition,
-            jsUpdates,
-            unwrapStatement(body),
+          loop = newLoop(
+            init: jsInitialization,
+            condition: jsCondition,
+            update: jsUpdates,
+            body: unwrapStatement(body),
             sourceInformation: info.sourceInformation,
           );
         } else {
@@ -1129,7 +1129,6 @@ class SsaCodeGenerator implements HVisitor<void>, HBlockInformationVisitor {
             jsCondition = generateExpression(condition);
             currentContainer = body;
           } else {
-            jsCondition = newLiteralBool(true, info.sourceInformation);
             currentContainer = body;
             generateStatements(condition);
             use(condition.conditionExpression!);
@@ -1151,9 +1150,9 @@ class SsaCodeGenerator implements HVisitor<void>, HBlockInformationVisitor {
             visitBodyIgnoreLabels(info);
           }
           currentContainer = oldContainer;
-          loop = js.While(
-            jsCondition!,
-            unwrapStatement(body),
+          loop = newLoop(
+            condition: jsCondition,
+            body: unwrapStatement(body),
             sourceInformation: info.sourceInformation,
           );
         }
@@ -1206,9 +1205,8 @@ class SsaCodeGenerator implements HVisitor<void>, HBlockInformationVisitor {
           // If the condition is dead code, we turn the do-while into
           // a simpler while because we will never reach the condition
           // at the end of the loop anyway.
-          loop = js.While(
-            newLiteralBool(true, info.sourceInformation),
-            unwrapStatement(body),
+          loop = newLoop(
+            body: unwrapStatement(body),
             sourceInformation: info.sourceInformation,
           );
         } else {
@@ -2834,6 +2832,45 @@ class SsaCodeGenerator implements HVisitor<void>, HBlockInformationVisitor {
     } else {
       return js.LiteralBool(value).withSourceInformation(sourceInformation);
     }
+  }
+
+  /// Returns a 'for' loop or 'while' loop depending on which parts of a 'for'
+  /// loop are present.  In effect, choose the loop kind by applying these
+  /// reductions:
+  ///
+  ///     for(init;true;update) -->  for(init;;update)
+  ///     for(;cond;)  -->  while(cond)
+  ///     while(true)  -->  for(;;)
+  js.Loop newLoop({
+    js.Expression? init,
+    js.Expression? condition, // `null` means indefinite, i.e. `true`.
+    js.Expression? update,
+    required js.Statement body,
+    SourceInformation? sourceInformation,
+  }) {
+    // `condition` with `true` replaced with `null`:
+    final conditionOrNull = switch (condition) {
+      js.LiteralBool(value: true) => null,
+      js.LiteralNumber(value: '1') => null,
+      // Minified `true` is `!0`:
+      js.Prefix(op: '!', argument: js.LiteralNumber(value: '0')) => null,
+      _ => condition,
+    };
+
+    if (init == null && update == null && conditionOrNull != null) {
+      return js.While(
+        conditionOrNull,
+        body,
+        sourceInformation: sourceInformation,
+      );
+    }
+    return js.For(
+      init,
+      conditionOrNull,
+      update,
+      body,
+      sourceInformation: sourceInformation,
+    );
   }
 
   void generateConstant(

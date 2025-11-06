@@ -17,6 +17,7 @@
 #include "platform/assert.h"
 #include "platform/atomic.h"
 #include "platform/growable_array.h"
+#include "platform/thread_sanitizer.h"
 #include "vm/class_table.h"
 #include "vm/dispatch_table.h"
 #include "vm/exceptions.h"
@@ -374,10 +375,11 @@ class IsolateGroup : public IntrusiveDListEntry<IsolateGroup> {
   // Returns `true` if this was the last isolate and the caller is responsible
   // for deleting the isolate group.
   bool UnregisterIsolateDecrementCount();
-  void RegisterIsolateGroupMutator();
-  void UnregisterIsolateGroupMutator();
-
+  void IncrementIsolateGroupMutatorCount();
+  void DecrementIsolateGroupMutatorCount();
   bool ContainsOnlyOneIsolate();
+  void RegisterIsolateGroupMutator(Thread* mutator);
+  void UnregisterIsolateGroupMutator(Thread* mutator);
 
   Dart_Port interrupt_port() { return interrupt_port_; }
 
@@ -650,6 +652,8 @@ class IsolateGroup : public IntrusiveDListEntry<IsolateGroup> {
   Isolate* FirstIsolate() const;
   Isolate* FirstIsolateLocked() const;
 
+  void ForEachMutatorAtASafepoint(std::function<void(Thread* thread)> function);
+
   // Ensures mutators are stopped during execution of the provided function.
   //
   // If the current thread is the only mutator in the isolate group,
@@ -847,6 +851,10 @@ class IsolateGroup : public IntrusiveDListEntry<IsolateGroup> {
     has_attempted_stepping_.store(value, std::memory_order_relaxed);
   }
 
+  SafepointRwLock* tag_table_lock() { return &tag_table_lock_; }
+  GrowableObjectArrayPtr tag_table() const { return tag_table_; }
+  void set_tag_table(const GrowableObjectArray& value);
+
  private:
   friend class Dart;  // For `object_store_ = ` in Dart::Init
   friend class Heap;
@@ -903,6 +911,7 @@ class IsolateGroup : public IntrusiveDListEntry<IsolateGroup> {
   IntrusiveDList<Isolate> isolates_;
   RelaxedAtomic<Dart_Port> interrupt_port_ = ILLEGAL_PORT;
   intptr_t isolate_count_ = 0;
+  IntrusiveDList<Thread> mutators_;
   intptr_t group_mutator_count_ = 0;
   bool initial_spawn_successful_ = false;
   Dart_LibraryTagHandler library_tag_handler_ = nullptr;
@@ -1004,6 +1013,9 @@ class IsolateGroup : public IntrusiveDListEntry<IsolateGroup> {
   CatchEntryMovesCache catch_entry_moves_cache_;
 
   std::atomic<bool> has_attempted_stepping_;
+
+  SafepointRwLock tag_table_lock_;
+  GrowableObjectArrayPtr tag_table_;
 };
 
 // When an isolate sends-and-exits this class represent things that it passed
@@ -1112,7 +1124,9 @@ class Isolate : public IntrusiveDListEntry<Isolate> {
 
   bool HasPendingMessages();
 
-  Thread* mutator_thread() const;
+  Thread* mutator_thread() const { return mutator_thread_; }
+  NO_SANITIZE_THREAD
+  Thread* mutator_thread_ignore_race() const { return mutator_thread_; }
 
   const char* name() const { return name_; }
   void set_name(const char* name);
@@ -1182,6 +1196,9 @@ class Isolate : public IntrusiveDListEntry<Isolate> {
   void set_current_sample_block(SampleBlock* block) {
     current_sample_block_ = block;
   }
+  SampleBlock* exchange_current_sample_block(SampleBlock* block) {
+    return current_sample_block_.exchange(block, std::memory_order_acq_rel);
+  }
   void ProcessFreeSampleBlocks(Thread* thread);
 
   // Returns the current SampleBlock used to track Dart allocation samples.
@@ -1190,6 +1207,10 @@ class Isolate : public IntrusiveDListEntry<Isolate> {
   }
   void set_current_allocation_sample_block(SampleBlock* block) {
     current_allocation_sample_block_ = block;
+  }
+  SampleBlock* exchange_current_allocation_sample_block(SampleBlock* block) {
+    return current_allocation_sample_block_.exchange(block,
+                                                     std::memory_order_acq_rel);
   }
 
   bool TakeHasCompletedBlocks() {
@@ -1325,7 +1346,7 @@ class Isolate : public IntrusiveDListEntry<Isolate> {
       const Function& trampoline,
       const Closure& target,
       bool keep_isolate_alive);
-  FfiCallbackMetadata::Trampoline CreateIsolateGroupSharedFfiCallback(
+  FfiCallbackMetadata::Trampoline CreateIsolateGroupBoundFfiCallback(
       Zone* zone,
       const Function& trampoline,
       const Closure& target);
@@ -1386,15 +1407,6 @@ class Isolate : public IntrusiveDListEntry<Isolate> {
 
   ErrorPtr PausePostRequest();
 
-  uword user_tag() const { return user_tag_; }
-  static intptr_t user_tag_offset() { return OFFSET_OF(Isolate, user_tag_); }
-  static intptr_t current_tag_offset() {
-    return OFFSET_OF(Isolate, current_tag_);
-  }
-  static intptr_t default_tag_offset() {
-    return OFFSET_OF(Isolate, default_tag_);
-  }
-
 #if !defined(PRODUCT)
 #define ISOLATE_METRIC_ACCESSOR(type, variable, name, unit)                    \
   type* Get##variable##Metric() { return &metric_##variable##_; }
@@ -1403,15 +1415,6 @@ class Isolate : public IntrusiveDListEntry<Isolate> {
 #endif  // !defined(PRODUCT)
 
   static intptr_t IsolateListLength();
-
-  GrowableObjectArrayPtr tag_table() const { return tag_table_; }
-  void set_tag_table(const GrowableObjectArray& value);
-
-  UserTagPtr current_tag() const { return current_tag_; }
-  void set_current_tag(const UserTag& tag);
-
-  UserTagPtr default_tag() const { return default_tag_; }
-  void set_default_tag(const UserTag& tag);
 
   // Also sends a paused at exit event over the service protocol.
   void SetStickyError(ErrorPtr sticky_error);
@@ -1561,8 +1564,6 @@ class Isolate : public IntrusiveDListEntry<Isolate> {
   void VisitStackPointers(ObjectPointerVisitor* visitor,
                           ValidationPolicy validate_frames);
 
-  void set_user_tag(uword tag) { user_tag_ = tag; }
-
   void set_is_system_isolate(bool is_system_isolate) {
     is_system_isolate_ = is_system_isolate;
   }
@@ -1593,9 +1594,6 @@ class Isolate : public IntrusiveDListEntry<Isolate> {
   // in SIMARM(IA32) and ARM, and the same offsets in SIMARM64(X64) and ARM64.
   // We use only word-sized fields to avoid differences in struct packing on the
   // different architectures. See also CheckOffsets in dart.cc.
-  uword user_tag_ = 0;
-  UserTagPtr current_tag_;
-  UserTagPtr default_tag_;
   FieldTable* field_table_ = nullptr;
   // Used to clear out `UntaggedFinalizerBase::isolate_` pointers on isolate
   // shutdown to prevent usage of dangling pointers.
@@ -1705,8 +1703,6 @@ class Isolate : public IntrusiveDListEntry<Isolate> {
   FfiCallbackMetadata::MetadataEntry* ffi_callback_list_head_ = nullptr;
   intptr_t ffi_callback_keep_alive_counter_ = 0;
   RelaxedAtomic<ThreadId> owner_thread_ = OSThread::kInvalidThreadId;
-
-  GrowableObjectArrayPtr tag_table_;
 
   ErrorPtr sticky_error_;
 

@@ -35,7 +35,7 @@ enum E {}
       '''
 enum E {}
 ''',
-      [error(CompileTimeErrorCode.ENUM_WITHOUT_CONSTANTS, 5, 1)],
+      [error(CompileTimeErrorCode.enumWithoutConstants, 5, 1)],
     );
   }
 
@@ -52,7 +52,7 @@ augment enum E {}
 ''');
 
     await assertErrorsInFile2(a, [
-      error(CompileTimeErrorCode.ENUM_WITHOUT_CONSTANTS, 20, 1),
+      error(CompileTimeErrorCode.enumWithoutConstants, 20, 1),
     ]);
 
     await assertErrorsInFile2(b, []);

@@ -2,23 +2,28 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+/// @docImport 'package:_fe_analyzer_shared/src/scanner/errors.dart';
+/// @docImport 'package:analyzer/src/fasta/ast_builder.dart';
+/// @docImport 'package:analyzer/src/fasta/error_converter.dart';
 library _fe_analyzer_shared.messages.codes;
 
 import 'dart:convert' show JsonEncoder, json;
 
-import 'diagnostic_message.dart' show DiagnosticMessage;
+import 'diagnostic_message.dart' show CfeDiagnosticMessage;
 
 import '../scanner/token.dart' show Token;
 
-import 'severity.dart' show Severity;
+import 'severity.dart' show CfeSeverity;
 
 import '../util/relativize.dart' as util show isWindows, relativizeUri;
+
+import 'conversions.dart' as conversions;
 
 part 'codes_generated.dart';
 
 const int noLength = 1;
 
-class Code<T> {
+class Code {
   final String name;
 
   /// The unique positive integer associated with this code,
@@ -26,15 +31,27 @@ class Code<T> {
   /// this error to its corresponding Analyzer error.
   final int index;
 
-  final List<String>? analyzerCodes;
+  /// Enumerated value that can be used to map this [Code] to a corresponding
+  /// analyzer code.
+  ///
+  /// If this value is non-null, then manually maintained logic (such as
+  /// that in [translateErrorToken], [AstBuilder.addProblem],
+  /// [AstBuilder.handleRecoverableError], or
+  /// [FastaErrorReporter.reportMessage]) can use it to translate to a
+  /// corresponding analyzer error code.
+  ///
+  /// Note that error codes that require translation in this way are not truly
+  /// shared (hence the name "pseudoSharedCode"). Truly shared error codes are
+  /// mapped to corresponding analyzer error codes using [index].
+  final PseudoSharedCode? pseudoSharedCode;
 
-  final Severity severity;
+  final CfeSeverity severity;
 
   const Code(
     this.name, {
     this.index = -1,
-    this.analyzerCodes,
-    this.severity = Severity.error,
+    this.pseudoSharedCode,
+    this.severity = CfeSeverity.error,
   });
 
   @override
@@ -42,7 +59,7 @@ class Code<T> {
 }
 
 class Message {
-  final Code<dynamic> code;
+  final Code code;
 
   final String problemMessage;
 
@@ -71,7 +88,7 @@ class Message {
   }
 }
 
-class MessageCode extends Code<Null> implements Message {
+class MessageCode extends Code implements Message {
   @override
   final String problemMessage;
 
@@ -81,7 +98,7 @@ class MessageCode extends Code<Null> implements Message {
   const MessageCode(
     super.name, {
     super.index,
-    super.analyzerCodes,
+    super.pseudoSharedCode,
     super.severity,
     required this.problemMessage,
     this.correctionMessage,
@@ -91,7 +108,7 @@ class MessageCode extends Code<Null> implements Message {
   Map<String, dynamic> get arguments => const <String, dynamic>{};
 
   @override
-  Code<dynamic> get code => this;
+  Code get code => this;
 
   @override
   LocatedMessage withLocation(Uri uri, int charOffset, int length) {
@@ -104,20 +121,26 @@ class MessageCode extends Code<Null> implements Message {
   }
 }
 
-class Template<T> {
-  final String messageCode;
+class Template<TOld extends Function, T extends Function> extends Code {
+  String get messageCode => name;
 
   final String problemMessageTemplate;
 
   final String? correctionMessageTemplate;
 
+  final TOld withArgumentsOld;
+
   final T withArguments;
 
   const Template(
-    this.messageCode, {
+    super.name, {
     this.correctionMessageTemplate,
     required this.problemMessageTemplate,
+    required this.withArgumentsOld,
     required this.withArguments,
+    super.index = -1,
+    super.pseudoSharedCode,
+    super.severity = CfeSeverity.error,
   });
 
   @override
@@ -140,7 +163,7 @@ class LocatedMessage implements Comparable<LocatedMessage> {
     this.messageObject,
   );
 
-  Code<dynamic> get code => messageObject.code;
+  Code get code => messageObject.code;
 
   String get problemMessage => messageObject.problemMessage;
 
@@ -161,7 +184,7 @@ class LocatedMessage implements Comparable<LocatedMessage> {
     PlainAndColorizedString formatted,
     int line,
     int column,
-    Severity severity,
+    CfeSeverity severity,
     List<FormattedMessage>? relatedInformation, {
     List<Uri>? involvedFiles,
   }) {
@@ -215,7 +238,7 @@ class PlainAndColorizedString {
   const PlainAndColorizedString.plainOnly(this.plain) : this.colorized = plain;
 }
 
-class FormattedMessage implements DiagnosticMessage {
+class FormattedMessage implements CfeDiagnosticMessage {
   final LocatedMessage locatedMessage;
 
   final String formattedPlain;
@@ -227,7 +250,7 @@ class FormattedMessage implements DiagnosticMessage {
   final int column;
 
   @override
-  final Severity severity;
+  final CfeSeverity severity;
 
   final List<FormattedMessage>? relatedInformation;
 
@@ -245,7 +268,7 @@ class FormattedMessage implements DiagnosticMessage {
     this.involvedFiles,
   });
 
-  Code<dynamic> get code => locatedMessage.code;
+  Code get code => locatedMessage.code;
 
   @override
   String get codeName => code.name;
@@ -300,7 +323,7 @@ class FormattedMessage implements DiagnosticMessage {
   }
 }
 
-class DiagnosticMessageFromJson implements DiagnosticMessage {
+class DiagnosticMessageFromJson implements CfeDiagnosticMessage {
   @override
   final Iterable<String> ansiFormatted;
 
@@ -308,7 +331,7 @@ class DiagnosticMessageFromJson implements DiagnosticMessage {
   final Iterable<String> plainTextFormatted;
 
   @override
-  final Severity severity;
+  final CfeSeverity severity;
 
   final Uri? uri;
 
@@ -335,15 +358,15 @@ class DiagnosticMessageFromJson implements DiagnosticMessage {
     List<String> plainTextFormatted = _asListOfString(
       decoded["plainTextFormatted"],
     );
-    Severity severity = Severity.values[decoded["severity"] as int];
-    Uri? uri =
-        decoded["uri"] == null ? null : Uri.parse(decoded["uri"] as String);
-    List<Uri>? involvedFiles =
-        decoded["involvedFiles"] == null
-            ? null
-            : _asListOfString(
-              decoded["involvedFiles"],
-            ).map((e) => Uri.parse(e)).toList();
+    CfeSeverity severity = CfeSeverity.values[decoded["severity"] as int];
+    Uri? uri = decoded["uri"] == null
+        ? null
+        : Uri.parse(decoded["uri"] as String);
+    List<Uri>? involvedFiles = decoded["involvedFiles"] == null
+        ? null
+        : _asListOfString(
+            decoded["involvedFiles"],
+          ).map((e) => Uri.parse(e)).toList();
     String codeName = decoded["codeName"] as String;
 
     return new DiagnosticMessageFromJson(
@@ -407,9 +430,6 @@ String itemizeNames(List<String> names) {
 /// For example, when compiling "class A extends S with M1, M2", the
 /// two synthetic classes will be named "_A&S&M1" and "_A&S&M1&M2".
 /// This function will return "S with M1" and "S with M1, M2", respectively.
-///
-/// This method is copied from package:kernel/ast.dart.
-// TODO(johnniwinther): Avoid the need for this method.
 String demangleMixinApplicationName(String name) {
   List<String> nameParts = name.split('&');
   if (nameParts.length < 2 || name == "&") return name;

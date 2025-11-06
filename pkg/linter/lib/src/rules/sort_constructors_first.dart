@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/analysis_rule/rule_context.dart';
+import 'package:analyzer/analysis_rule/rule_visitor_registry.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/error/error.dart';
@@ -16,10 +17,13 @@ class SortConstructorsFirst extends LintRule {
     : super(name: LintNames.sort_constructors_first, description: _desc);
 
   @override
-  DiagnosticCode get diagnosticCode => LinterLintCode.sort_constructors_first;
+  DiagnosticCode get diagnosticCode => LinterLintCode.sortConstructorsFirst;
 
   @override
-  void registerNodeProcessors(NodeLintRegistry registry, RuleContext context) {
+  void registerNodeProcessors(
+    RuleVisitorRegistry registry,
+    RuleContext context,
+  ) {
     var visitor = _Visitor(this);
     registry.addClassDeclaration(this, visitor);
     registry.addEnumDeclaration(this, visitor);

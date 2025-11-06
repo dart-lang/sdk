@@ -24,6 +24,7 @@ abstract class DartLanguageServerBenchmark {
   int? _headerContentLength;
   bool _printedVmServiceStuff = false;
   final String executableToUse;
+  bool latestIsAnalyzing = false;
 
   /// There's something weird about getting (several) id 3's that wasn't
   /// requested...
@@ -351,7 +352,7 @@ abstract class DartLanguageServerBenchmark {
           '${utf8.decode(_buffer.view())}',
         );
       }
-      if (_lsp == true && _headerContentLength == null && _endsWithCrLfCrLf()) {
+      if (_lsp && _headerContentLength == null && _endsWithCrLfCrLf()) {
         String headerRaw = utf8.decode(_buffer.view());
         _buffer.clear();
         // Use a regex that makes the '\r' optional to handle "The Dart VM service
@@ -368,16 +369,17 @@ abstract class DartLanguageServerBenchmark {
             _printedVmServiceStuff = true;
           }
           if (header.startsWith('Content-Length:')) {
-            String contentLength =
-                header.substring('Content-Length:'.length).trim();
+            String contentLength = header
+                .substring('Content-Length:'.length)
+                .trim();
             _headerContentLength = int.parse(contentLength);
             break;
           }
         }
-      } else if ((_lsp == true &&
+      } else if ((_lsp &&
               _headerContentLength != null &&
               _buffer.length == _headerContentLength!) ||
-          (_lsp == false && _endsWithLf())) {
+          (!_lsp && _endsWithLf())) {
         String messageString = utf8.decode(_buffer.view());
         _buffer.clear();
         _headerContentLength = null;
@@ -396,15 +398,15 @@ abstract class DartLanguageServerBenchmark {
 
         // LSP: {"jsonrpc":"2.0","method":"$/analyzerStatus","params":{"isAnalyzing":false}}
         // Analyzer: {"event":"server.status","params":{"analysis":{"isAnalyzing":true}}}
-        if ((_lsp == true && message['method'] == r'$/analyzerStatus') ||
-            (_lsp == false && message['event'] == 'server.status')) {
+        if ((_lsp && message['method'] == r'$/analyzerStatus') ||
+            (!_lsp && message['event'] == 'server.status')) {
           dynamic params = message['params'];
           if (params is Map) {
-            dynamic isAnalyzing =
-                _lsp == true
-                    ? params['isAnalyzing']
-                    : params['analysis']?['isAnalyzing'];
+            dynamic isAnalyzing = _lsp
+                ? params['isAnalyzing']
+                : params['analysis']?['isAnalyzing'];
             if (isAnalyzing is bool) {
+              latestIsAnalyzing = isAnalyzing;
               _analyzingCompleter.complete(isAnalyzing);
               _analyzingCompleter = Completer<bool>();
               if (verbosity > 0) {
@@ -414,9 +416,7 @@ abstract class DartLanguageServerBenchmark {
           }
         }
         dynamic possibleId = message['id'];
-        if (_lsp == false &&
-            possibleId is String &&
-            int.tryParse(possibleId) != null) {
+        if (!_lsp && possibleId is String && int.tryParse(possibleId) != null) {
           possibleId = int.tryParse(possibleId);
         }
         if (possibleId is int) {

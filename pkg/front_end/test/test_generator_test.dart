@@ -22,13 +22,17 @@ Future<void> main() async {
   int numErrors = 0;
   List<String> errorSource = [];
   for (Generator outerContext in generateOuterContext()) {
-    for (Generator innerContext
-        in generateInnerContext(outerContext.typeParameters)) {
-      for (Generator expression in generateExpression([]
-        ..addAll(outerContext.typeParameters)
-        ..addAll(innerContext.typeParameters))) {
-        String source = outerContext
-            .generate(innerContext.generate(expression.generate("")));
+    for (Generator innerContext in generateInnerContext(
+      outerContext.typeParameters,
+    )) {
+      for (Generator expression in generateExpression(
+        []
+          ..addAll(outerContext.typeParameters)
+          ..addAll(innerContext.typeParameters),
+      )) {
+        String source = outerContext.generate(
+          innerContext.generate(expression.generate("")),
+        );
         String compileResult = await compiler.compile(source);
         compilerAndOptions.options.skipPlatformVerification = true;
         if (compileResult != "") {
@@ -78,20 +82,22 @@ class TestCompiler {
   final List<Code> formattedWarningsCodes;
 
   TestCompiler._(
-      this.testUri,
-      this.fs,
-      this.formattedErrors,
-      this.formattedWarnings,
-      this.formattedErrorsCodes,
-      this.formattedWarningsCodes,
-      this.compiler);
+    this.testUri,
+    this.fs,
+    this.formattedErrors,
+    this.formattedWarnings,
+    this.formattedErrorsCodes,
+    this.formattedWarningsCodes,
+    this.compiler,
+  );
 
   Future<String> compile(String src) async {
     StringBuffer sb = new StringBuffer();
     fs.entityForUri(testUri).writeAsStringSync(src);
     compiler.invalidate(testUri);
-    IncrementalCompilerResult compilerResult =
-        await compiler.computeDelta(entryPoints: [testUri]);
+    IncrementalCompilerResult compilerResult = await compiler.computeDelta(
+      entryPoints: [testUri],
+    );
     Component result = compilerResult.component;
     Iterator<Code> codeIterator = formattedWarningsCodes.iterator;
     for (String warning in formattedWarnings) {
@@ -128,8 +134,9 @@ class TestCompiler {
     final Uri sdkSummary = base.resolve("vm_platform.dill");
     final Uri sdkRoot = computePlatformBinariesLocation(forceBuildDir: true);
     Uri platformUri = sdkRoot.resolve("vm_platform.dill");
-    final List<int> sdkSummaryData =
-        new File.fromUri(platformUri).readAsBytesSync();
+    final List<int> sdkSummaryData = new File.fromUri(
+      platformUri,
+    ).readAsBytesSync();
     MemoryFileSystem fs = new MemoryFileSystem(base);
     fs.entityForUri(sdkSummary).writeAsBytesSync(sdkSummaryData);
 
@@ -145,7 +152,7 @@ class TestCompiler {
     final List<Code> formattedErrorsCodes = <Code>[];
     final List<Code> formattedWarningsCodes = <Code>[];
 
-    options.onDiagnostic = (DiagnosticMessage message) {
+    options.onDiagnostic = (CfeDiagnosticMessage message) {
       String stringId = message.ansiFormatted.join("\n");
       if (message is FormattedMessage) {
         stringId = message.toJsonString();
@@ -153,12 +160,12 @@ class TestCompiler {
         throw "Unsupported currently";
       }
       FormattedMessage formattedMessage = message;
-      if (message.severity == Severity.error) {
+      if (message.severity == CfeSeverity.error) {
         if (!formattedErrors.add(stringId)) {
           throw "Got the same message twice: ${stringId}";
         }
         formattedErrorsCodes.add(formattedMessage.code);
-      } else if (message.severity == Severity.warning) {
+      } else if (message.severity == CfeSeverity.warning) {
         if (!formattedWarnings.add(stringId)) {
           throw "Got the same message twice: ${stringId}";
         }
@@ -171,9 +178,17 @@ class TestCompiler {
         new helper.TestIncrementalCompiler(options, testUri);
 
     return new CompilerAndOptions(
-        new TestCompiler._(testUri, fs, formattedErrors, formattedWarnings,
-            formattedErrorsCodes, formattedWarningsCodes, compiler),
-        options);
+      new TestCompiler._(
+        testUri,
+        fs,
+        formattedErrors,
+        formattedWarnings,
+        formattedErrorsCodes,
+        formattedWarningsCodes,
+        compiler,
+      ),
+      options,
+    );
   }
 }
 
@@ -181,38 +196,66 @@ Iterable<Generator> generateOuterContext() sync* {
   yield new Generator([], "", ""); // top-level.
   yield new Generator([], "class C {\n", "\n}");
   yield new Generator(["T1"], "class C<T1> {\n", "\n}");
-  yield new Generator(["T1"],
-      "class NotList<NT1>{}\nclass C<T1> extends NotList<T1> {\n", "\n}");
+  yield new Generator(
+    ["T1"],
+    "class NotList<NT1>{}\nclass C<T1> extends NotList<T1> {\n",
+    "\n}",
+  );
   yield new Generator([], "extension E on String {\n", "\n}");
   yield new Generator(["E1"], "extension E<E1> on String {\n", "\n}");
   yield new Generator(["E1"], "extension E<E1> on List<E1> {\n", "\n}");
 }
 
 Iterable<Generator> generateInnerContext(
-    List<String> knownTypeParameters) sync* {
+  List<String> knownTypeParameters,
+) sync* {
   for (String static in ["", "static "]) {
     yield new Generator(
-        [], "${static}int method() {\nreturn ", " as Never;\n}");
+      [],
+      "${static}int method() {\nreturn ",
+      " as Never;\n}",
+    );
     yield new Generator(
-        ["T2"], "${static}int method<T2>() {\n  return ", " as Never;\n}");
+      ["T2"],
+      "${static}int method<T2>() {\n  return ",
+      " as Never;\n}",
+    );
     for (String typeParameter in knownTypeParameters) {
       yield new Generator(
-          [], "${static}$typeParameter method() {\nreturn ", " as Never;\n}");
+        [],
+        "${static}$typeParameter method() {\nreturn ",
+        " as Never;\n}",
+      );
     }
     yield new Generator([], "${static}int field = ", " as Never;");
     yield new Generator(
-        [], "${static}int field = () { return ", " as Never; }();");
+      [],
+      "${static}int field = () { return ",
+      " as Never; }();",
+    );
     yield new Generator([], "${static}var field = ", " as Never;");
     yield new Generator(
-        [], "${static}var field = () { return ", " as Never; }();");
+      [],
+      "${static}var field = () { return ",
+      " as Never; }();",
+    );
 
     for (String typeParameter in knownTypeParameters) {
-      yield new Generator(["T2"], "${static}int field = <T2>() { return ",
-          "; }<$typeParameter>() as Never;");
       yield new Generator(
-          [], "${static}${typeParameter} field = ", " as Never;");
-      yield new Generator([], "${static}${typeParameter} field = () { return ",
-          "; }() as Never;");
+        ["T2"],
+        "${static}int field = <T2>() { return ",
+        "; }<$typeParameter>() as Never;",
+      );
+      yield new Generator(
+        [],
+        "${static}${typeParameter} field = ",
+        " as Never;",
+      );
+      yield new Generator(
+        [],
+        "${static}${typeParameter} field = () { return ",
+        "; }() as Never;",
+      );
     }
   }
 }
@@ -221,7 +264,10 @@ Iterable<Generator> generateExpression(List<String> knownTypeParameters) sync* {
   yield new Generator([], "42", "");
   for (String typeParameter in knownTypeParameters) {
     yield new Generator(
-        [], "() { $typeParameter x = throw 0; return x; }()", "");
+      [],
+      "() { $typeParameter x = throw 0; return x; }()",
+      "",
+    );
   }
 }
 

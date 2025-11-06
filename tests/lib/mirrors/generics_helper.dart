@@ -2,17 +2,17 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library generics_helper;
+import 'dart:mirrors';
 
 import 'package:expect/expect.dart';
 
-typeParameters(mirror, parameterNames) {
+void typeParameters(TypeMirror mirror, List<Symbol> parameterNames) {
   Expect.listEquals(
     parameterNames,
     mirror.typeVariables.map((v) => v.simpleName).toList(),
   );
 }
 
-typeArguments(mirror, argumentMirrors) {
+void typeArguments(TypeMirror mirror, List<TypeMirror> argumentMirrors) {
   Expect.listEquals(argumentMirrors, mirror.typeArguments);
 }

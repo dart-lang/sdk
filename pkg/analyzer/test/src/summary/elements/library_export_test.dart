@@ -163,10 +163,10 @@ library
       libraryExports
         package:test/a.dart
       classes
-        #F1 class X @23
+        #F1 class X (nameOffset:23) (firstTokenOffset:17) (offset:23)
           element: <testLibrary>::@class::X
           constructors
-            #F2 synthetic new
+            #F2 synthetic new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:23)
               element: <testLibrary>::@class::X::@constructor::new
               typeName: X
   classes
@@ -310,10 +310,10 @@ library
         package:test/b.dart
         package:test/c.dart
       classes
-        #F1 class X @40
+        #F1 class X (nameOffset:40) (firstTokenOffset:34) (offset:40)
           element: <testLibrary>::@class::X
           constructors
-            #F2 synthetic new
+            #F2 synthetic new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:40)
               element: <testLibrary>::@class::X::@constructor::new
               typeName: X
   classes
@@ -529,10 +529,10 @@ library
       libraryImports
         package:test/bar.dart
       classes
-        #F1 class B @25
+        #F1 class B (nameOffset:25) (firstTokenOffset:19) (offset:25)
           element: <testLibrary>::@class::B
           constructors
-            #F2 synthetic new
+            #F2 synthetic new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:25)
               element: <testLibrary>::@class::B::@constructor::new
               typeName: B
   classes
@@ -579,10 +579,10 @@ library
       libraryImports
         package:test/bar.dart
       classes
-        #F1 class B @25
+        #F1 class B (nameOffset:25) (firstTokenOffset:19) (offset:25)
           element: <testLibrary>::@class::B
           constructors
-            #F2 synthetic new
+            #F2 synthetic new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:25)
               element: <testLibrary>::@class::B::@constructor::new
               typeName: B
   classes
@@ -629,10 +629,10 @@ library
       libraryImports
         package:test/bar.dart
       classes
-        #F1 class B @25
+        #F1 class B (nameOffset:25) (firstTokenOffset:19) (offset:25)
           element: <testLibrary>::@class::B
           constructors
-            #F2 synthetic new
+            #F2 synthetic new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:25)
               element: <testLibrary>::@class::B::@constructor::new
               typeName: B
   classes
@@ -826,15 +826,17 @@ library
       parts
         part_0
           uri: package:test/d.dart
+          partKeywordOffset: 0
           unit: #F1
         part_1
           uri: package:test/e.dart
+          partKeywordOffset: 15
           unit: #F2
       classes
-        #F3 class X @36
+        #F3 class X (nameOffset:36) (firstTokenOffset:30) (offset:36)
           element: <testLibrary>::@class::X
           constructors
-            #F4 synthetic new
+            #F4 synthetic new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:36)
               element: <testLibrary>::@class::X::@constructor::new
               typeName: X
     #F1 package:test/d.dart
@@ -903,12 +905,13 @@ library
       parts
         part_0
           uri: package:test/b.dart
+          partKeywordOffset: 0
           unit: #F1
       classes
-        #F2 class X @21
+        #F2 class X (nameOffset:21) (firstTokenOffset:15) (offset:21)
           element: <testLibrary>::@class::X
           constructors
-            #F3 synthetic new
+            #F3 synthetic new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:21)
               element: <testLibrary>::@class::X::@constructor::new
               typeName: X
     #F1 package:test/b.dart
@@ -966,12 +969,13 @@ library
       parts
         part_0
           uri: package:test/b.dart
+          partKeywordOffset: 0
           unit: #F1
       classes
-        #F2 class X @21
+        #F2 class X (nameOffset:21) (firstTokenOffset:15) (offset:21)
           element: <testLibrary>::@class::X
           constructors
-            #F3 synthetic new
+            #F3 synthetic new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:21)
               element: <testLibrary>::@class::X::@constructor::new
               typeName: X
     #F1 package:test/b.dart
@@ -1127,12 +1131,13 @@ library
       parts
         part_0
           uri: package:test/a.dart
+          partKeywordOffset: 0
           unit: #F1
       classes
-        #F2 class C @21
+        #F2 class C (nameOffset:21) (firstTokenOffset:15) (offset:21)
           element: <testLibrary>::@class::C
           constructors
-            #F3 synthetic new
+            #F3 synthetic new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:21)
               element: <testLibrary>::@class::C::@constructor::new
               typeName: C
     #F1 package:test/a.dart
@@ -1143,12 +1148,13 @@ library
       parts
         part_1
           uri: package:test/b.dart
+          partKeywordOffset: 21
           unit: #F4
       classes
-        #F5 class A @42
+        #F5 class A (nameOffset:42) (firstTokenOffset:36) (offset:42)
           element: <testLibrary>::@class::A
           constructors
-            #F6 synthetic new
+            #F6 synthetic new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:42)
               element: <testLibrary>::@class::A::@constructor::new
               typeName: A
     #F4 package:test/b.dart
@@ -1156,10 +1162,10 @@ library
       enclosingFragment: #F1
       previousFragment: #F1
       classes
-        #F7 class B @24
+        #F7 class B (nameOffset:24) (firstTokenOffset:18) (offset:24)
           element: <testLibrary>::@class::B
           constructors
-            #F8 synthetic new
+            #F8 synthetic new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:24)
               element: <testLibrary>::@class::B::@constructor::new
               typeName: B
   classes
@@ -1231,12 +1237,13 @@ library
       parts
         part_0
           uri: package:test/c.dart
+          partKeywordOffset: 0
           unit: #F1
       classes
-        #F2 class X @21
+        #F2 class X (nameOffset:21) (firstTokenOffset:15) (offset:21)
           element: <testLibrary>::@class::X
           constructors
-            #F3 synthetic new
+            #F3 synthetic new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:21)
               element: <testLibrary>::@class::X::@constructor::new
               typeName: X
     #F1 package:test/c.dart
@@ -1249,6 +1256,7 @@ library
       parts
         part_1
           uri: package:test/d.dart
+          partKeywordOffset: 21
           unit: #F4
     #F4 package:test/d.dart
       element: <testLibrary>
@@ -1296,24 +1304,24 @@ library
       parts
         part_0
           uri: package:test/a.dart
+          partKeywordOffset: 0
           unit: #F1
     #F1 package:test/a.dart
       element: <testLibrary>
       enclosingFragment: #F0
       previousFragment: #F0
       topLevelVariables
-        #F2 hasInitializer a @25
+        #F2 hasInitializer a (nameOffset:25) (firstTokenOffset:25) (offset:25)
           element: <testLibrary>::@topLevelVariable::a
       getters
-        #F3 synthetic a
+        #F3 synthetic a (nameOffset:<null>) (firstTokenOffset:<null>) (offset:25)
           element: <testLibrary>::@getter::a
-          returnType: int
       setters
-        #F4 synthetic a
+        #F4 synthetic a (nameOffset:<null>) (firstTokenOffset:<null>) (offset:25)
           element: <testLibrary>::@setter::a
           formalParameters
-            #F5 _a
-              element: <testLibrary>::@setter::a::@formalParameter::_a
+            #F5 value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:25)
+              element: <testLibrary>::@setter::a::@formalParameter::value
   topLevelVariables
     hasInitializer a
       reference: <testLibrary>::@topLevelVariable::a
@@ -1332,10 +1340,11 @@ library
       reference: <testLibrary>::@setter::a
       firstFragment: #F4
       formalParameters
-        #E0 requiredPositional _a
+        #E0 requiredPositional value
           firstFragment: #F5
           type: int
       returnType: void
+      variable: <testLibrary>::@topLevelVariable::a
   exportedReferences
     declared <testLibrary>::@getter::a
     declared <testLibrary>::@setter::a
@@ -1366,22 +1375,22 @@ library
       parts
         part_0
           uri: package:test/a.dart
+          partKeywordOffset: 0
           unit: #F1
     #F1 package:test/a.dart
       element: <testLibrary>
       enclosingFragment: #F0
       previousFragment: #F0
       topLevelVariables
-        #F2 hasInitializer a @27
+        #F2 hasInitializer a (nameOffset:27) (firstTokenOffset:27) (offset:27)
           element: <testLibrary>::@topLevelVariable::a
           initializer: expression_0
             IntegerLiteral
               literal: 0 @31
               staticType: int
       getters
-        #F3 synthetic a
+        #F3 synthetic a (nameOffset:<null>) (firstTokenOffset:<null>) (offset:27)
           element: <testLibrary>::@getter::a
-          returnType: int
   topLevelVariables
     const hasInitializer a
       reference: <testLibrary>::@topLevelVariable::a

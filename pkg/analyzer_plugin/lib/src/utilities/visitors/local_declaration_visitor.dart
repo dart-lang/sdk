@@ -48,7 +48,9 @@ abstract class LocalDeclarationVisitor extends UnifyingAstVisitor {
   void declaredParam(Token name, Element? element, TypeAnnotation? type) {}
 
   void declaredTopLevelVar(
-      VariableDeclarationList varList, VariableDeclaration varDecl) {}
+    VariableDeclarationList varList,
+    VariableDeclaration varDecl,
+  ) {}
 
   void declaredTypeParameter(TypeParameter declaration) {}
 
@@ -82,7 +84,7 @@ abstract class LocalDeclarationVisitor extends UnifyingAstVisitor {
     if (exceptionParameter != null) {
       declaredParam(
         exceptionParameter.name,
-        exceptionParameter.declaredElement,
+        exceptionParameter.declaredFragment?.element,
         node.exceptionType,
       );
     }
@@ -91,7 +93,7 @@ abstract class LocalDeclarationVisitor extends UnifyingAstVisitor {
     if (stackTraceParameter != null) {
       declaredParam(
         stackTraceParameter.name,
-        stackTraceParameter.declaredElement,
+        stackTraceParameter.declaredFragment?.element,
         null,
       );
     }
@@ -134,12 +136,18 @@ abstract class LocalDeclarationVisitor extends UnifyingAstVisitor {
     if (forLoopParts is ForEachPartsWithDeclaration) {
       var loopVariable = forLoopParts.loopVariable;
       declaredLocalVar(
-          loopVariable.name, loopVariable.type, loopVariable.declaredElement!);
+        loopVariable.name,
+        loopVariable.type,
+        loopVariable.declaredFragment!.element,
+      );
     } else if (forLoopParts is ForPartsWithDeclarations) {
       var varList = forLoopParts.variables;
       for (var varDecl in varList.variables) {
-        declaredLocalVar(varDecl.name, varList.type,
-            varDecl.declaredElement as LocalVariableElement);
+        declaredLocalVar(
+          varDecl.name,
+          varList.type,
+          varDecl.declaredFragment!.element as LocalVariableElement,
+        );
       }
     }
     visitNode(node);
@@ -151,12 +159,18 @@ abstract class LocalDeclarationVisitor extends UnifyingAstVisitor {
     if (forLoopParts is ForEachPartsWithDeclaration) {
       var loopVariable = forLoopParts.loopVariable;
       declaredLocalVar(
-          loopVariable.name, loopVariable.type, loopVariable.declaredElement!);
+        loopVariable.name,
+        loopVariable.type,
+        loopVariable.declaredFragment!.element,
+      );
     } else if (forLoopParts is ForPartsWithDeclarations) {
       var varList = forLoopParts.variables;
       for (var varDecl in varList.variables) {
-        declaredLocalVar(varDecl.name, varList.type,
-            varDecl.declaredElement as LocalVariableElement);
+        declaredLocalVar(
+          varDecl.name,
+          varList.type,
+          varDecl.declaredFragment!.element as LocalVariableElement,
+        );
       }
     }
     visitNode(node);
@@ -296,7 +310,9 @@ abstract class LocalDeclarationVisitor extends UnifyingAstVisitor {
   /// Recursively traverse the given [pattern], adding all of the declared
   /// variable patterns that appear in the structure to the list of [variables].
   void _addVariables(
-      List<DeclaredVariablePattern> variables, DartPattern pattern) {
+    List<DeclaredVariablePattern> variables,
+    DartPattern pattern,
+  ) {
     if (pattern is CastPattern) {
       _addVariables(variables, pattern.pattern);
     } else if (pattern is DeclaredVariablePattern) {
@@ -412,7 +428,7 @@ abstract class LocalDeclarationVisitor extends UnifyingAstVisitor {
 
   /// Visit the given [pattern] without visiting any of its parents.
   void _visitDeclaredVariablePattern(DeclaredVariablePattern pattern) {
-    var declaredElement = pattern.declaredElement;
+    var declaredElement = pattern.declaredFragment?.element;
     if (declaredElement != null) {
       declaredLocalVar(pattern.name, pattern.type, declaredElement);
     }
@@ -447,8 +463,11 @@ abstract class LocalDeclarationVisitor extends UnifyingAstVisitor {
           var varList = stmt.variables;
           for (var varDecl in varList.variables) {
             if (varDecl.end < offset) {
-              declaredLocalVar(varDecl.name, varList.type,
-                  varDecl.declaredElement as LocalVariableElement);
+              declaredLocalVar(
+                varDecl.name,
+                varList.type,
+                varDecl.declaredFragment?.element as LocalVariableElement,
+              );
             }
           }
         } else if (stmt is FunctionDeclarationStatement) {

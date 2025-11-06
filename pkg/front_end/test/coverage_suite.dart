@@ -11,13 +11,12 @@ import 'package:args/src/arg_results.dart';
 
 import '../tool/coverage_merger.dart' as coverageMerger;
 
-part 'coverage_suite_expected.dart';
-
 bool debug = false;
 
 Future<void> main([List<String> arguments = const <String>[]]) async {
-  Directory coverageTmpDir =
-      Directory.systemTemp.createTempSync("cfe_coverage");
+  Directory coverageTmpDir = Directory.systemTemp.createTempSync(
+    "cfe_coverage",
+  );
   try {
     await _run(coverageTmpDir, arguments);
   } finally {
@@ -47,59 +46,78 @@ Future<void> _run(Directory coverageTmpDir, List<String> arguments) async {
 
   for (int i = 0; i < options.numberOfWorkers; i++) {
     print("Starting shard ${i + 1} of ${options.numberOfWorkers}");
-    futures.add(Process.run(Platform.resolvedExecutable, [
+    futures.add(
+      Process.run(Platform.resolvedExecutable, [
+        "--enable-asserts",
+        "--deterministic",
+        "pkg/front_end/test/strong_suite.dart",
+        "-DskipVm=true",
+        "--shards=${options.numberOfWorkers}",
+        "--shard=${i + 1}",
+        "--coverage=${coverageTmpDir.path}/",
+      ]),
+    );
+  }
+  futures.add(
+    Process.run(Platform.resolvedExecutable, [
       "--enable-asserts",
       "--deterministic",
-      "pkg/front_end/test/strong_suite.dart",
-      "-DskipVm=true",
-      "--shards=${options.numberOfWorkers}",
-      "--shard=${i + 1}",
+      "pkg/front_end/test/parser_suite.dart",
       "--coverage=${coverageTmpDir.path}/",
-    ]));
-  }
-  futures.add(Process.run(Platform.resolvedExecutable, [
-    "--enable-asserts",
-    "--deterministic",
-    "pkg/front_end/test/parser_suite.dart",
-    "--coverage=${coverageTmpDir.path}/",
-  ]));
+    ]),
+  );
+  futures.add(
+    Process.run(Platform.resolvedExecutable, [
+      "--enable-asserts",
+      "--deterministic",
+      "pkg/front_end/test/messages_suite.dart",
+      "--coverage=${coverageTmpDir.path}/",
+      // Skip spelling as it uses git which isn't supported with how this is run
+      // on the try bots.
+      "-DskipSpellCheck=true",
+    ]),
+  );
 
   // Wait for isolates to terminate and clean up.
   Iterable<ProcessResult> runResults = await Future.wait(futures);
 
   print("Run finished.");
 
-  Map<Uri, coverageMerger.CoverageInfo>? coverageData =
-      await coverageMerger.mergeFromDirUri(
-    Uri.base.resolve(".dart_tool/package_config.json"),
-    coverageTmpDir.uri,
-    silent: true,
-    extraCoverageIgnores: ["coverage-ignore(suite):"],
-    extraCoverageBlockIgnores: ["coverage-ignore-block(suite):"],
-    addAndRemoveCommentsInFiles: options.addAndRemoveCommentsInFiles,
-  );
+  Map<Uri, coverageMerger.CoverageInfo>? coverageData = await coverageMerger
+      .mergeFromDirUri(
+        Uri.base.resolve(".dart_tool/package_config.json"),
+        coverageTmpDir.uri,
+        silent: true,
+        extraCoverageIgnores: ["coverage-ignore(suite):"],
+        extraCoverageBlockIgnores: ["coverage-ignore-block(suite):"],
+        addAndRemoveCommentsInFiles: options.addAndRemoveCommentsInFiles,
+      );
   if (coverageData == null) throw "Failure in coverage.";
 
   void addResult(String testName, bool pass, {String? log}) {
-    results.add(jsonEncode({
-      "name": "coverage/$testName",
-      "configuration": options.configurationName,
-      "suite": "coverage",
-      "test_name": testName,
-      "expected": "Pass",
-      "result": pass ? "Pass" : "Fail",
-      "matches": pass,
-    }));
-
-    if (log != null) {
-      logs.add(jsonEncode({
+    results.add(
+      jsonEncode({
         "name": "coverage/$testName",
         "configuration": options.configurationName,
         "suite": "coverage",
         "test_name": testName,
+        "expected": "Pass",
         "result": pass ? "Pass" : "Fail",
-        "log": log,
-      }));
+        "matches": pass,
+      }),
+    );
+
+    if (log != null) {
+      logs.add(
+        jsonEncode({
+          "name": "coverage/$testName",
+          "configuration": options.configurationName,
+          "suite": "coverage",
+          "test_name": testName,
+          "result": pass ? "Pass" : "Fail",
+          "log": log,
+        }),
+      );
     }
 
     if (options.verbose || log != null) {
@@ -111,20 +129,6 @@ Future<void> _run(Directory coverageTmpDir, List<String> arguments) async {
     }
   }
 
-  StringBuffer updatedExpectations = new StringBuffer();
-  updatedExpectations.write("""
-// Copyright (c) 2024, the Dart project authors. Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-part of "coverage_suite.dart";
-
-// This is the currently recorded state
-// using out/ReleaseX64/dart-sdk/bin/dart (which for instance makes a
-// difference for compute_platform_binaries_location.dart).
-const Map<String, ({int hitCount, int missCount})> _expect = {
-""");
-
   for (MapEntry<Uri, coverageMerger.CoverageInfo> coverageEntry
       in coverageData.entries) {
     if (coverageEntry.value.error) {
@@ -134,64 +138,43 @@ const Map<String, ({int hitCount, int missCount})> _expect = {
       StringBuffer sb = new StringBuffer();
       int hitCount = coverageEntry.value.hitCount;
       int missCount = coverageEntry.value.missCount;
-      double percent = (hitCount / (hitCount + missCount) * 100);
-      if (percent.isNaN) percent = 100;
-      if (options.updateExpectations) {
-        updatedExpectations.writeln("  // $percent%.");
-        updatedExpectations.writeln("  \"${coverageEntry.key}\": "
-            "(hitCount: $hitCount, missCount: $missCount,),");
-        continue;
+      final bool pass = missCount == 0;
+      if (!pass) {
+        sb.write("${coverageEntry.value.visualization}");
+        double percent = (hitCount / (hitCount + missCount) * 100);
+        sb.write(
+          "\n\nExpected 100% coverage, but got $percent% "
+          "($hitCount hits and $missCount misses).",
+        );
+        sb.write("\n\nTo re-run this test, run:");
+        var extraFlags = _assertsEnabled ? ' --enable-asserts' : '';
+        // It looks like coverage results vary slightly based on the number of
+        // tasks, so include a `--tasks=` argument in the repro instructions.
+        //
+        // TODO(paulberry): why do coverage results vary based on the number
+        // of tasks? (Note: possibly due to
+        // https://github.com/dart-lang/sdk/issues/42061)
+        sb.write(
+          "\n\n   dart$extraFlags pkg/front_end/test/coverage_suite.dart "
+          "--tasks=${options.numberOfWorkers}",
+        );
+        sb.write("\n\n   Or automatically insert ignore comments via");
+        sb.write(
+          "\n\n   dart$extraFlags pkg/front_end/test/coverage_suite.dart "
+          "--tasks=${options.numberOfWorkers} "
+          "--add-and-remove-comments",
+        );
+        sb.write(
+          "\n\nIf that does not work, create a bug report and approve "
+          "the failure.",
+        );
       }
-      bool pass = true;
-      ({int hitCount, int missCount})? expected =
-          _expect[coverageEntry.key.toString()];
-      if (expected != null) {
-        // TODO(jensj): Should we warn if hitCount goes down?
-        // Or be ok with it if both hitCount and missCount goes up?
-        // Or something else?
-        double expectedPercent = (expected.hitCount /
-            (expected.hitCount + expected.missCount) *
-            100);
-        if (expectedPercent.isNaN) expectedPercent = 100;
-        int requireAtLeast = expectedPercent.floor();
-        pass = percent >= requireAtLeast;
-        if (!pass) {
-          sb.write("${coverageEntry.value.visualization}");
-          sb.write("\n\nExpected at least $requireAtLeast%, got $percent% "
-              "($hitCount hits (expected: ${expected.hitCount}) and "
-              "$missCount misses (expected: ${expected.missCount})).");
-          sb.write("\n\nTo re-run this test, run:");
-          var extraFlags = _assertsEnabled ? ' --enable-asserts' : '';
-          // It looks like coverage results vary slightly based on the number of
-          // tasks, so include a `--tasks=` argument in the repro instructions.
-          //
-          // TODO(paulberry): why do coverage results vary based on the number
-          // of tasks? (Note: possibly due to
-          // https://github.com/dart-lang/sdk/issues/42061)
-          sb.write(
-              "\n\n   dart$extraFlags pkg/front_end/test/coverage_suite.dart "
-              "--tasks=${options.numberOfWorkers}");
-          sb.write("\n\n   Or update the expectations directly via");
-          sb.write(
-              "\n\n   dart$extraFlags pkg/front_end/test/coverage_suite.dart "
-              "--tasks=${options.numberOfWorkers} "
-              "--add-and-remove-comments "
-              "--update-expectations");
-        }
-      }
-      addResult(coverageEntry.key.toString(), pass,
-          log: sb.isEmpty ? null : sb.toString());
+      addResult(
+        coverageEntry.key.toString(),
+        pass,
+        log: sb.isEmpty ? null : sb.toString(),
+      );
     }
-  }
-
-  updatedExpectations.writeln("};");
-  if (options.updateExpectations) {
-    File f = new File.fromUri(
-        Uri.base.resolve("pkg/front_end/test/coverage_suite_expected.dart"));
-    f.writeAsStringSync(updatedExpectations.toString());
-    ProcessResult formatResult =
-        Process.runSync(Platform.resolvedExecutable, ["format", f.path]);
-    print("Formatting exit-code: ${formatResult.exitCode}");
   }
 
   // Write results.json and logs.json.
@@ -199,8 +182,10 @@ const Map<String, ({int hitCount, int missCount})> _expect = {
   Uri logsJsonUri = options.outputDirectory.resolve("logs.json");
   await writeLinesToFile(resultJsonUri, results);
   await writeLinesToFile(logsJsonUri, logs);
-  print("Log files written to ${resultJsonUri.toFilePath()} and"
-      " ${logsJsonUri.toFilePath()}");
+  print(
+    "Log files written to ${resultJsonUri.toFilePath()} and"
+    " ${logsJsonUri.toFilePath()}",
+  );
   print("Entire run took ${totalRuntime.elapsed}.");
 
   if (debug) {
@@ -237,7 +222,6 @@ class Options {
   final String? configurationName;
   final bool verbose;
   final bool debug;
-  final bool updateExpectations;
   final bool addAndRemoveCommentsInFiles;
   final Uri outputDirectory;
   final int numberOfWorkers;
@@ -246,7 +230,6 @@ class Options {
     this.configurationName,
     this.verbose,
     this.debug,
-    this.updateExpectations,
     this.addAndRemoveCommentsInFiles,
     this.outputDirectory, {
     required this.numberOfWorkers,
@@ -254,28 +237,42 @@ class Options {
 
   static Options parse(List<String> args) {
     var parser = new ArgParser()
-      ..addOption("named-configuration",
-          abbr: "n",
-          help: "configuration name to use for emitting json result files")
-      ..addOption("output-directory",
-          help: "directory to which results.json and logs.json are written")
-      ..addFlag("verbose",
-          abbr: "v", help: "print additional information", defaultsTo: false)
+      ..addOption(
+        "named-configuration",
+        abbr: "n",
+        help: "configuration name to use for emitting json result files",
+      )
+      ..addOption(
+        "output-directory",
+        help: "directory to which results.json and logs.json are written",
+      )
+      ..addFlag(
+        "verbose",
+        abbr: "v",
+        help: "print additional information",
+        defaultsTo: false,
+      )
       ..addFlag("debug", help: "debug mode", defaultsTo: false)
-      ..addOption("tasks",
-          abbr: "j",
-          help: "The number of parallel tasks to run.",
-          defaultsTo: "${getDefaultThreads()}")
-      ..addFlag("update-expectations",
-          help: "update expectations", defaultsTo: false)
-      ..addFlag("add-and-remove-comments",
-          help: "Automatically remove old and then "
-              "re-add ignore comments in files",
-          defaultsTo: false)
+      ..addOption(
+        "tasks",
+        abbr: "j",
+        help: "The number of parallel tasks to run.",
+        defaultsTo: "${getDefaultThreads()}",
+      )
+      ..addFlag(
+        "add-and-remove-comments",
+        help:
+            "Automatically remove old and then "
+            "re-add ignore comments in files",
+        defaultsTo: false,
+      )
       // These are not used but are here for compatibility with the test system.
       ..addOption("shards", help: "(Ignored) Number of shards", defaultsTo: "1")
-      ..addOption("shard",
-          help: "(Ignored) Which shard to run", defaultsTo: "1");
+      ..addOption(
+        "shard",
+        help: "(Ignored) Which shard to run",
+        defaultsTo: "1",
+      );
     ArgResults parsedOptions = parser.parse(args);
     String outputPath = parsedOptions["output-directory"] ?? ".";
     Uri outputDirectory = Uri.base.resolveUri(Uri.directory(outputPath));
@@ -288,25 +285,24 @@ class Options {
     if (tasks == null || tasks < 1) {
       throw "--tasks (-j) has to be an integer >= 1";
     }
-    bool updateExpectations = parsedOptions["update-expectations"];
     bool addAndRemoveCommentsInFiles = parsedOptions["add-and-remove-comments"];
 
     if (verbose) {
-      print("NOTE: Created with options\n  "
-          "named config = ${parsedOptions["named-configuration"]},\n  "
-          "verbose = ${verbose},\n  "
-          "debug = ${debug},\n  "
-          "${outputDirectory},\n  "
-          "numberOfWorkers: ${tasks},\n  "
-          "updateExpectations = ${updateExpectations}\n  "
-          "addAndRemoveCommentsInFiles = ${addAndRemoveCommentsInFiles}");
+      print(
+        "NOTE: Created with options\n  "
+        "named config = ${parsedOptions["named-configuration"]},\n  "
+        "verbose = ${verbose},\n  "
+        "debug = ${debug},\n  "
+        "${outputDirectory},\n  "
+        "numberOfWorkers: ${tasks},\n  "
+        "addAndRemoveCommentsInFiles = ${addAndRemoveCommentsInFiles}",
+      );
     }
 
     return Options(
       parsedOptions["named-configuration"],
       verbose,
       debug,
-      updateExpectations,
       addAndRemoveCommentsInFiles,
       outputDirectory,
       numberOfWorkers: tasks,

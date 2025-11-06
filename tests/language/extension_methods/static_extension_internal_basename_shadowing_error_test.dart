@@ -52,7 +52,6 @@ extension E1 on A1 {
     topLevelMethod(4);
     // [error column 5, length 14]
     // [analyzer] COMPILE_TIME_ERROR.INVOCATION_OF_NON_FUNCTION_EXPRESSION
-    //            ^
     // [cfe] The method 'call' isn't defined for the type 'int'.
   }
 }
@@ -226,7 +225,6 @@ extension E6 on A6 {
     extensionMethod(4);
     // [error column 5, length 15]
     // [analyzer] COMPILE_TIME_ERROR.INVOCATION_OF_NON_FUNCTION_EXPRESSION
-    //             ^
     // [cfe] The method 'call' isn't defined for the type 'int'.
   }
 }

@@ -9,31 +9,37 @@ import 'package:kernel/reference_from_index.dart';
 import 'package:kernel/type_algebra.dart';
 import 'package:kernel/type_environment.dart';
 
+import '../api_prototype/experimental_flags.dart';
+import '../base/compiler_context.dart';
 import '../base/messages.dart'
     show
         LocatedMessage,
         Message,
-        messageMoreThanOneSuperInitializer,
-        messageRedirectingConstructorWithAnotherInitializer,
-        messageRedirectingConstructorWithMultipleRedirectInitializers,
-        messageRedirectingConstructorWithSuperInitializer,
-        messageSuperInitializerNotLast,
+        codeMoreThanOneSuperInitializer,
+        codeRedirectingConstructorWithAnotherInitializer,
+        codeRedirectingConstructorWithMultipleRedirectInitializers,
+        codeRedirectingConstructorWithSuperInitializer,
+        codeSuperInitializerNotLast,
         noLength,
-        templateCantInferTypeDueToCircularity;
+        codeCantInferTypeDueToCircularity,
+        ProblemReporting;
 import '../base/name_space.dart';
 import '../builder/builder.dart';
 import '../builder/constructor_builder.dart';
 import '../builder/declaration_builders.dart';
+import '../builder/member_builder.dart';
 import '../builder/metadata_builder.dart';
 import '../builder/omitted_type_builder.dart';
 import '../fragment/constructor/declaration.dart';
-import '../kernel/expression_generator_helper.dart';
 import '../kernel/hierarchy/class_member.dart' show ClassMember;
 import '../kernel/internal_ast.dart';
 import '../kernel/kernel_helper.dart' show DelayedDefaultValueCloner;
 import '../kernel/type_algorithms.dart';
+import '../type_inference/external_ast_helper.dart';
 import '../type_inference/inference_results.dart';
 import '../type_inference/type_inference_engine.dart';
+import '../util/reference_map.dart';
+import 'check_helper.dart';
 import 'name_scheme.dart';
 import 'source_class_builder.dart';
 import 'source_library_builder.dart' show SourceLibraryBuilder;
@@ -66,10 +72,11 @@ class InferableConstructor implements InferableMember {
       name += ".${_builder.name}";
     }
     _builder.libraryBuilder.addProblem(
-        templateCantInferTypeDueToCircularity.withArguments(name),
-        _builder.fileOffset,
-        name.length,
-        _builder.fileUri);
+      codeCantInferTypeDueToCircularity.withArgumentsOld(name),
+      _builder.fileOffset,
+      name.length,
+      _builder.fileUri,
+    );
   }
 }
 
@@ -112,8 +119,8 @@ class SourceConstructorBuilder extends SourceMemberBuilderImpl
 
   Set<SourcePropertyBuilder>? _initializedFields;
 
-  late final Substitution _fieldTypeSubstitution =
-      _introductory.computeFieldTypeSubstitution(declarationBuilder);
+  late final Substitution _fieldTypeSubstitution = _introductory
+      .computeFieldTypeSubstitution(declarationBuilder);
 
   SuperInitializer? superInitializer;
 
@@ -142,11 +149,11 @@ class SourceConstructorBuilder extends SourceMemberBuilderImpl
     required ConstructorDeclaration introductory,
     List<ConstructorDeclaration> augmentations = const [],
     required this.isConst,
-  })  : _constructorReferences = constructorReferences,
-        _nameScheme = nameScheme,
-        _introductory = introductory,
-        _augmentations = augmentations,
-        _memberName = nameScheme.getDeclaredName(name) {
+  }) : _constructorReferences = constructorReferences,
+       _nameScheme = nameScheme,
+       _introductory = introductory,
+       _augmentations = augmentations,
+       _memberName = nameScheme.getDeclaredName(name) {
     if (augmentations.isEmpty) {
       _augmentedDeclarations = augmentations;
       _lastDeclaration = introductory;
@@ -174,8 +181,7 @@ class SourceConstructorBuilder extends SourceMemberBuilderImpl
   FunctionNode get function => _lastDeclaration.function;
 
   @override
-  // Coverage-ignore(suite): Not run.
-  NamedBuilder get getable => this;
+  MemberBuilder get getable => this;
 
   bool get hasParameters => _introductory.hasParameters;
 
@@ -269,8 +275,7 @@ class SourceConstructorBuilder extends SourceMemberBuilderImpl
   Reference get readTargetReference => _constructorReferences.tearOffReference;
 
   @override
-  // Coverage-ignore(suite): Not run.
-  NamedBuilder? get setable => null;
+  MemberBuilder? get setable => null;
 
   @override
   // Coverage-ignore(suite): Not run.
@@ -282,80 +287,112 @@ class SourceConstructorBuilder extends SourceMemberBuilderImpl
 
   List<Initializer> get _initializers => _lastDeclaration.initializers;
 
-  void addInitializer(Initializer initializer, ExpressionGeneratorHelper helper,
-      {required InitializerInferenceResult? inferenceResult,
-      required TreeNode parent}) {
+  bool addInitializer(
+    CompilerContext compilerContext,
+    ProblemReporting problemReporting,
+    Initializer initializer, {
+    required InitializerInferenceResult? inferenceResult,
+    required TreeNode parent,
+    required Uri fileUri,
+  }) {
     if (initializer is SuperInitializer) {
       if (superInitializer != null) {
-        _injectInvalidInitializer(messageMoreThanOneSuperInitializer,
-            initializer.fileOffset, "super".length, helper, parent);
+        _injectInvalidInitializer(
+          compilerContext,
+          problemReporting,
+          codeMoreThanOneSuperInitializer,
+          fileUri,
+          initializer.fileOffset,
+          "super".length,
+          parent,
+        );
+        return false;
       } else if (redirectingInitializer != null) {
         _injectInvalidInitializer(
-            messageRedirectingConstructorWithSuperInitializer,
-            initializer.fileOffset,
-            "super".length,
-            helper,
-            parent);
+          compilerContext,
+          problemReporting,
+          codeRedirectingConstructorWithSuperInitializer,
+          fileUri,
+          initializer.fileOffset,
+          "super".length,
+          parent,
+        );
+        return false;
       } else {
         inferenceResult?.applyResult(_initializers, parent);
         superInitializer = initializer;
 
-        LocatedMessage? message = helper.checkArgumentsForFunction(
-            initializer.target.function,
-            initializer.arguments,
-            initializer.arguments.fileOffset, <TypeParameter>[]);
+        LocatedMessage? message = problemReporting.checkArgumentsForFunction(
+          function: initializer.target.function,
+          arguments: initializer.arguments,
+          fileOffset: initializer.arguments.fileOffset,
+          fileUri: fileUri,
+          typeParameters: <TypeParameter>[],
+        );
         if (message != null) {
-          _initializers.add(helper.buildInvalidInitializer(
-              helper.buildUnresolvedError(
-                  helper.constructorNameForDiagnostics(
-                      initializer.target.name.text),
-                  initializer.fileOffset,
-                  arguments: initializer.arguments,
-                  isSuper: true,
-                  message: message,
-                  kind: UnresolvedKind.Constructor))
-            ..parent = parent);
+          _initializers.add(
+            createInvalidInitializer(
+              problemReporting.buildProblemFromLocatedMessage(
+                compilerContext: compilerContext,
+                message: message,
+              ),
+            )..parent = parent,
+          );
+          return false;
         } else {
           _initializers.add(initializer..parent = parent);
+          return true;
         }
       }
     } else if (initializer
         case RedirectingInitializer(
               target: Member initializerTarget,
-              arguments: var initializerArguments
+              arguments: var initializerArguments as ArgumentsImpl,
             ) ||
             ExtensionTypeRedirectingInitializer(
               target: Member initializerTarget,
-              arguments: var initializerArguments
+              arguments: var initializerArguments,
             )) {
       if (superInitializer != null) {
         // Point to the existing super initializer.
         _injectInvalidInitializer(
-            messageRedirectingConstructorWithSuperInitializer,
-            superInitializer!.fileOffset,
-            "super".length,
-            helper,
-            parent);
+          compilerContext,
+          problemReporting,
+          codeRedirectingConstructorWithSuperInitializer,
+          fileUri,
+          superInitializer!.fileOffset,
+          "super".length,
+          parent,
+        );
         markAsErroneous();
+        return false;
       } else if (redirectingInitializer != null) {
         _injectInvalidInitializer(
-            messageRedirectingConstructorWithMultipleRedirectInitializers,
-            initializer.fileOffset,
-            noLength,
-            helper,
-            parent);
+          compilerContext,
+          problemReporting,
+          codeRedirectingConstructorWithMultipleRedirectInitializers,
+          fileUri,
+          initializer.fileOffset,
+          noLength,
+          parent,
+        );
         markAsErroneous();
+        return false;
       } else if (_initializers.isNotEmpty) {
         // Error on all previous ones.
         for (int i = 0; i < _initializers.length; i++) {
           Initializer initializer = _initializers[i];
           int length = noLength;
           if (initializer is AssertInitializer) length = "assert".length;
-          Initializer error = helper.buildInvalidInitializer(
-              helper.buildProblem(
-                  messageRedirectingConstructorWithAnotherInitializer,
-                  initializer.fileOffset,
-                  length));
+          Initializer error = createInvalidInitializer(
+            problemReporting.buildProblem(
+              compilerContext: compilerContext,
+              message: codeRedirectingConstructorWithAnotherInitializer,
+              fileUri: fileUri,
+              fileOffset: initializer.fileOffset,
+              length: length,
+            ),
+          );
           error.parent = parent;
           _initializers[i] = error;
         }
@@ -365,62 +402,85 @@ class SourceConstructorBuilder extends SourceMemberBuilderImpl
           redirectingInitializer = initializer;
         }
         markAsErroneous();
+        return false;
       } else {
         inferenceResult?.applyResult(_initializers, parent);
         if (initializer is RedirectingInitializer) {
           redirectingInitializer = initializer;
         }
 
-        LocatedMessage? message = helper.checkArgumentsForFunction(
-            initializerTarget.function!,
-            initializerArguments,
-            initializerArguments.fileOffset,
-            initializer is ExtensionTypeRedirectingInitializer
-                ? initializerTarget.function!.typeParameters
-                : const <TypeParameter>[]);
+        LocatedMessage? message = problemReporting.checkArgumentsForFunction(
+          function: initializerTarget.function!,
+          arguments: initializerArguments,
+          fileOffset: initializerArguments.fileOffset,
+          fileUri: fileUri,
+          typeParameters: initializer is ExtensionTypeRedirectingInitializer
+              ? initializerTarget.function!.typeParameters
+              : const <TypeParameter>[],
+        );
         if (message != null) {
-          _initializers.add(helper.buildInvalidInitializer(
-              helper.buildUnresolvedError(
-                  helper.constructorNameForDiagnostics(
-                      initializerTarget.name.text),
-                  initializer.fileOffset,
-                  arguments: initializerArguments,
-                  isSuper: false,
-                  message: message,
-                  kind: UnresolvedKind.Constructor))
-            ..parent = parent);
+          _initializers.add(
+            createInvalidInitializer(
+              problemReporting.buildProblemFromLocatedMessage(
+                compilerContext: compilerContext,
+                message: message,
+              ),
+            )..parent = parent,
+          );
           markAsErroneous();
+          return false;
         } else {
           _initializers.add(initializer..parent = parent);
+          return true;
         }
       }
     } else if (redirectingInitializer != null) {
       int length = noLength;
       if (initializer is AssertInitializer) length = "assert".length;
       _injectInvalidInitializer(
-          messageRedirectingConstructorWithAnotherInitializer,
-          initializer.fileOffset,
-          length,
-          helper,
-          parent);
+        compilerContext,
+        problemReporting,
+        codeRedirectingConstructorWithAnotherInitializer,
+        fileUri,
+        initializer.fileOffset,
+        length,
+        parent,
+      );
       markAsErroneous();
+      return false;
     } else if (superInitializer != null) {
-      _injectInvalidInitializer(messageSuperInitializerNotLast,
-          initializer.fileOffset, noLength, helper, parent);
+      _injectInvalidInitializer(
+        compilerContext,
+        problemReporting,
+        codeSuperInitializerNotLast,
+        fileUri,
+        initializer.fileOffset,
+        noLength,
+        parent,
+      );
       markAsErroneous();
+      return false;
     } else {
       inferenceResult?.applyResult(_initializers, parent);
       _initializers.add(initializer..parent = parent);
+      return true;
     }
   }
 
   void addSuperParameterDefaultValueCloners(
-      List<DelayedDefaultValueCloner> delayedDefaultValueCloners) {
+    List<DelayedDefaultValueCloner> delayedDefaultValueCloners,
+  ) {
     _introductory.addSuperParameterDefaultValueCloners(
-        libraryBuilder, declarationBuilder, delayedDefaultValueCloners);
+      libraryBuilder,
+      declarationBuilder,
+      delayedDefaultValueCloners,
+    );
     for (ConstructorDeclaration augmentation in _augmentations) {
       augmentation.addSuperParameterDefaultValueCloners(
-          libraryBuilder, declarationBuilder, delayedDefaultValueCloners);
+        libraryBuilder,
+        declarationBuilder,
+        delayedDefaultValueCloners,
+      );
     }
   }
 
@@ -435,29 +495,33 @@ class SourceConstructorBuilder extends SourceMemberBuilderImpl
   }
 
   @override
-  void buildOutlineExpressions(ClassHierarchy classHierarchy,
-      List<DelayedDefaultValueCloner> delayedDefaultValueCloners) {
+  void buildOutlineExpressions(
+    ClassHierarchy classHierarchy,
+    List<DelayedDefaultValueCloner> delayedDefaultValueCloners,
+  ) {
     if (_hasBuiltOutlines) return;
 
     if (!hasBuiltOutlineExpressions) {
       _introductory.buildOutlineExpressions(
+        annotatables: annotatables,
+        annotatablesFileUri: invokeTarget.fileUri,
+        libraryBuilder: libraryBuilder,
+        declarationBuilder: declarationBuilder,
+        constructorBuilder: this,
+        classHierarchy: classHierarchy,
+        delayedDefaultValueCloners: delayedDefaultValueCloners,
+      );
+      for (int i = 0; i < _augmentations.length; i++) {
+        ConstructorDeclaration augmentation = _augmentations[i];
+        augmentation.buildOutlineExpressions(
           annotatables: annotatables,
           annotatablesFileUri: invokeTarget.fileUri,
           libraryBuilder: libraryBuilder,
           declarationBuilder: declarationBuilder,
           constructorBuilder: this,
           classHierarchy: classHierarchy,
-          delayedDefaultValueCloners: delayedDefaultValueCloners);
-      for (int i = 0; i < _augmentations.length; i++) {
-        ConstructorDeclaration augmentation = _augmentations[i];
-        augmentation.buildOutlineExpressions(
-            annotatables: annotatables,
-            annotatablesFileUri: invokeTarget.fileUri,
-            libraryBuilder: libraryBuilder,
-            declarationBuilder: declarationBuilder,
-            constructorBuilder: this,
-            classHierarchy: classHierarchy,
-            delayedDefaultValueCloners: delayedDefaultValueCloners);
+          delayedDefaultValueCloners: delayedDefaultValueCloners,
+        );
       }
       hasBuiltOutlineExpressions = true;
     }
@@ -469,47 +533,63 @@ class SourceConstructorBuilder extends SourceMemberBuilderImpl
 
   @override
   void buildOutlineNodes(BuildNodesCallback f) {
-    _lastDeclaration.buildOutlineNodes(f,
+    _lastDeclaration.buildOutlineNodes(
+      f,
+      constructorBuilder: this,
+      libraryBuilder: libraryBuilder,
+      nameScheme: _nameScheme,
+      constructorReferences: _constructorReferences,
+      delayedDefaultValueCloners: _delayedDefaultValueCloners,
+    );
+    for (int i = 0; i < _augmentedDeclarations.length; i++) {
+      ConstructorDeclaration declaration = _augmentedDeclarations[i];
+      declaration.buildOutlineNodes(
+        noAddBuildNodesCallback,
         constructorBuilder: this,
         libraryBuilder: libraryBuilder,
         nameScheme: _nameScheme,
-        constructorReferences: _constructorReferences,
-        delayedDefaultValueCloners: _delayedDefaultValueCloners);
-    for (int i = 0; i < _augmentedDeclarations.length; i++) {
-      ConstructorDeclaration declaration = _augmentedDeclarations[i];
-      declaration.buildOutlineNodes(noAddBuildNodesCallback,
-          constructorBuilder: this,
-          libraryBuilder: libraryBuilder,
-          nameScheme: _nameScheme,
-          constructorReferences: null,
-          delayedDefaultValueCloners: _delayedDefaultValueCloners);
+        constructorReferences: null,
+        delayedDefaultValueCloners: _delayedDefaultValueCloners,
+      );
     }
   }
 
   @override
-  void checkTypes(SourceLibraryBuilder libraryBuilder, NameSpace nameSpace,
-      TypeEnvironment typeEnvironment) {
+  void checkTypes(
+    ProblemReporting problemReporting,
+    LibraryFeatures libraryFeatures,
+    NameSpace nameSpace,
+    TypeEnvironment typeEnvironment,
+  ) {
     _introductory.checkTypes(libraryBuilder, nameSpace, typeEnvironment);
     for (int i = 0; i < _augmentations.length; i++) {
       ConstructorDeclaration augmentation = _augmentations[i];
-      augmentation.checkTypes(libraryBuilder, nameSpace, typeEnvironment);
+      augmentation.checkTypes(problemReporting, nameSpace, typeEnvironment);
     }
   }
 
   @override
   // Coverage-ignore(suite): Not run.
   void checkVariance(
-      SourceClassBuilder sourceClassBuilder, TypeEnvironment typeEnvironment) {}
+    SourceClassBuilder sourceClassBuilder,
+    TypeEnvironment typeEnvironment,
+  ) {}
 
   @override
-  int computeDefaultTypes(ComputeDefaultTypeContext context,
-      {required bool inErrorRecovery}) {
-    int count = _introductory.computeDefaultTypes(context,
-        inErrorRecovery: inErrorRecovery);
+  int computeDefaultTypes(
+    ComputeDefaultTypeContext context, {
+    required bool inErrorRecovery,
+  }) {
+    int count = _introductory.computeDefaultTypes(
+      context,
+      inErrorRecovery: inErrorRecovery,
+    );
     for (int i = 0; i < _augmentations.length; i++) {
       ConstructorDeclaration augmentation = _augmentations[i];
-      count += augmentation.computeDefaultTypes(context,
-          inErrorRecovery: inErrorRecovery);
+      count += augmentation.computeDefaultTypes(
+        context,
+        inErrorRecovery: inErrorRecovery,
+      );
     }
     return count;
   }
@@ -517,12 +597,22 @@ class SourceConstructorBuilder extends SourceMemberBuilderImpl
   /// Infers the types of any untyped initializing formals.
   void inferFormalTypes(ClassHierarchyBase hierarchy) {
     if (_hasFormalsInferred) return;
-    _introductory.inferFormalTypes(libraryBuilder, declarationBuilder, this,
-        hierarchy, _delayedDefaultValueCloners);
+    _introductory.inferFormalTypes(
+      libraryBuilder,
+      declarationBuilder,
+      this,
+      hierarchy,
+      _delayedDefaultValueCloners,
+    );
     for (int i = 0; i < _augmentations.length; i++) {
       ConstructorDeclaration augmentation = _augmentations[i];
-      augmentation.inferFormalTypes(libraryBuilder, declarationBuilder, this,
-          hierarchy, _delayedDefaultValueCloners);
+      augmentation.inferFormalTypes(
+        libraryBuilder,
+        declarationBuilder,
+        this,
+        hierarchy,
+        _delayedDefaultValueCloners,
+      );
     }
     _hasFormalsInferred = true;
   }
@@ -575,13 +665,29 @@ class SourceConstructorBuilder extends SourceMemberBuilderImpl
     return result;
   }
 
-  void _injectInvalidInitializer(Message message, int charOffset, int length,
-      ExpressionGeneratorHelper helper, TreeNode parent) {
+  void _injectInvalidInitializer(
+    CompilerContext compilerContext,
+    ProblemReporting problemReporting,
+    Message message,
+    Uri fileUri,
+    int fileOffset,
+    int length,
+    TreeNode parent,
+  ) {
     Initializer lastInitializer = _initializers.removeLast();
-    assert(lastInitializer == superInitializer ||
-        lastInitializer == redirectingInitializer);
-    Initializer error = helper.buildInvalidInitializer(
-        helper.buildProblem(message, charOffset, length));
+    assert(
+      lastInitializer == superInitializer ||
+          lastInitializer == redirectingInitializer,
+    );
+    Initializer error = createInvalidInitializer(
+      problemReporting.buildProblem(
+        compilerContext: compilerContext,
+        message: message,
+        fileUri: fileUri,
+        fileOffset: fileOffset,
+        length: length,
+      ),
+    );
     _initializers.add(error..parent = parent);
     _initializers.add(lastInitializer);
   }
@@ -618,15 +724,17 @@ class ConstructorReferences {
   /// compilations during an incremental compilation, these are the references
   /// used for the same generative constructor and tear-off in the previous
   /// compilation.
-  ConstructorReferences._(
-      {required Reference? preExistingConstructorReference,
-      required Reference? preExistingTearOffReference,
-      required bool hasTearOffLowering})
-      : _constructorReference = preExistingConstructorReference,
-        _tearOffReference = preExistingTearOffReference,
-        _hasTearOffLowering = hasTearOffLowering,
-        assert(!(preExistingTearOffReference != null && !hasTearOffLowering),
-            "Unexpected tear off reference $preExistingTearOffReference.");
+  ConstructorReferences._({
+    required Reference? preExistingConstructorReference,
+    required Reference? preExistingTearOffReference,
+    required bool hasTearOffLowering,
+  }) : _constructorReference = preExistingConstructorReference,
+       _tearOffReference = preExistingTearOffReference,
+       _hasTearOffLowering = hasTearOffLowering,
+       assert(
+         !(preExistingTearOffReference != null && !hasTearOffLowering),
+         "Unexpected tear off reference $preExistingTearOffReference.",
+       );
 
   /// Creates a [ConstructorReferences] object preloaded with the pre-existing
   /// references from [indexedContainer], if available.
@@ -649,17 +757,20 @@ class ConstructorReferences {
     Reference? preExistingTearOffReference;
 
     if (indexedContainer != null) {
-      preExistingConstructorReference =
-          indexedContainer.lookupConstructorReference(
-              nameScheme.getConstructorMemberName(name, isTearOff: false).name);
+      preExistingConstructorReference = indexedContainer
+          .lookupConstructorReference(
+            nameScheme.getConstructorMemberName(name, isTearOff: false).name,
+          );
       preExistingTearOffReference = indexedContainer.lookupGetterReference(
-          nameScheme.getConstructorMemberName(name, isTearOff: true).name);
+        nameScheme.getConstructorMemberName(name, isTearOff: true).name,
+      );
     }
 
     return new ConstructorReferences._(
-        preExistingConstructorReference: preExistingConstructorReference,
-        preExistingTearOffReference: preExistingTearOffReference,
-        hasTearOffLowering: hasTearOffLowering);
+      preExistingConstructorReference: preExistingConstructorReference,
+      preExistingTearOffReference: preExistingTearOffReference,
+      hasTearOffLowering: hasTearOffLowering,
+    );
   }
 
   /// Registers that [builder] is created for the pre-existing references
@@ -668,12 +779,14 @@ class ConstructorReferences {
   /// This must be called before [constructorReference] and [tearOffReference]
   /// are accessed.
   void registerReference(
-      SourceLoader loader, SourceConstructorBuilder builder) {
+    ReferenceMap referenceMap,
+    SourceConstructorBuilder builder,
+  ) {
     if (_constructorReference != null) {
-      loader.buildersCreatedWithReferences[_constructorReference!] = builder;
+      referenceMap.registerNamedBuilder(_constructorReference!, builder);
     }
     if (_tearOffReference != null) {
-      loader.buildersCreatedWithReferences[_tearOffReference!] = builder;
+      referenceMap.registerNamedBuilder(_tearOffReference!, builder);
     }
   }
 
@@ -688,6 +801,7 @@ class ConstructorReferences {
   /// If a tear-off lowering is created for the generative constructor, this is
   /// distinct from [constructorReference], otherwise it is the same [Reference]
   /// as [constructorReference].
-  Reference get tearOffReference => _tearOffReference ??=
-      _hasTearOffLowering ? new Reference() : constructorReference;
+  Reference get tearOffReference => _tearOffReference ??= _hasTearOffLowering
+      ? new Reference()
+      : constructorReference;
 }

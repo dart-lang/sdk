@@ -27,6 +27,7 @@ import 'package:analyzer_utilities/testing/tree_string_sink.dart';
 import 'package:test/test.dart';
 
 import '../../../generated/test_support.dart';
+import '../../../util/diff.dart';
 import '../../../util/element_printer.dart';
 import '../../summary/resolved_ast_printer.dart';
 import '../analysis/result_printer.dart';
@@ -60,12 +61,12 @@ mixin ResolutionTest implements ResourceProviderMixin {
   Element get dynamicElement =>
       (typeProvider.dynamicType as DynamicTypeImpl).element;
 
-  FeatureSet get featureSet => result.libraryElement2.featureSet;
+  FeatureSet get featureSet => result.libraryElement.featureSet;
 
   ClassElement get futureElement => typeProvider.futureElement;
 
   InheritanceManager3 get inheritanceManager {
-    var library = result.libraryElement2;
+    var library = result.libraryElement;
     return library.session.inheritanceManager;
   }
 
@@ -117,10 +118,10 @@ mixin ResolutionTest implements ResourceProviderMixin {
     ).write(object as DartObjectImpl?);
     var actual = buffer.toString();
     if (actual != expected) {
-      print(actual);
       NodeTextExpectationsCollector.add(actual);
+      printPrettyDiff(expected, actual);
+      fail('See the difference above.');
     }
-    expect(actual, expected);
   }
 
   void assertElement(
@@ -138,7 +139,7 @@ mixin ResolutionTest implements ResourceProviderMixin {
     var actualDeclaration = element?.baseElement;
     expect(actualDeclaration, same(declaration));
 
-    if (element is Member) {
+    if (element is SubstitutedElementImpl) {
       assertSubstitution(element.substitution, substitution);
     } else if (substitution.isNotEmpty) {
       fail('Expected to be a Member: (${element.runtimeType}) $element');
@@ -299,10 +300,10 @@ mixin ResolutionTest implements ResourceProviderMixin {
   void assertResolvedNodeText(AstNode node, String expected) {
     var actual = _resolvedNodeText(node);
     if (actual != expected) {
-      print(actual);
       NodeTextExpectationsCollector.add(actual);
+      printPrettyDiff(expected, actual);
+      fail('See the difference above.');
     }
-    expect(actual, expected);
   }
 
   void assertSubstitution(
@@ -468,14 +469,12 @@ mixin ResolutionTest implements ResourceProviderMixin {
     var sink = TreeStringSink(sink: buffer, indent: '');
     var elementPrinter = ElementPrinter(
       sink: sink,
-      configuration:
-          ElementPrinterConfiguration()
-            ..withInterfaceTypeElements =
-                nodeTextConfiguration.withInterfaceTypeElements
-            ..withRedirectedConstructors =
-                nodeTextConfiguration.withRedirectedConstructors
-            ..withSuperConstructors =
-                nodeTextConfiguration.withSuperConstructors,
+      configuration: ElementPrinterConfiguration()
+        ..withInterfaceTypeElements =
+            nodeTextConfiguration.withInterfaceTypeElements
+        ..withRedirectedConstructors =
+            nodeTextConfiguration.withRedirectedConstructors
+        ..withSuperConstructors = nodeTextConfiguration.withSuperConstructors,
     );
     node.accept(
       ResolvedAstPrinter(

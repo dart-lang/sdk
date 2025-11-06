@@ -8,6 +8,7 @@ import 'package:analysis_server/src/utilities/extensions/string.dart';
 import 'package:analysis_server_plugin/edit/dart/correction_producer.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
@@ -99,10 +100,9 @@ class _CreateMixin extends ResolvedCorrectionProducer {
     this.prefixElement, {
     required bool withKeyword,
     required super.context,
-  }) : fixKind =
-           withKeyword
-               ? DartFixKind.CREATE_MIXIN_LOWERCASE_WITH
-               : DartFixKind.CREATE_MIXIN_LOWERCASE;
+  }) : fixKind = withKeyword
+           ? DartFixKind.createMixinLowercaseWith
+           : DartFixKind.createMixinLowercase;
 
   _CreateMixin.uppercase(
     this._mixinName,
@@ -110,10 +110,9 @@ class _CreateMixin extends ResolvedCorrectionProducer {
     this.prefixElement, {
     required bool withKeyword,
     required super.context,
-  }) : fixKind =
-           withKeyword
-               ? DartFixKind.CREATE_MIXIN_UPPERCASE_WITH
-               : DartFixKind.CREATE_MIXIN_UPPERCASE;
+  }) : fixKind = withKeyword
+           ? DartFixKind.createMixinUppercaseWith
+           : DartFixKind.createMixinUppercase;
 
   @override
   CorrectionApplicability get applicability =>
@@ -128,6 +127,9 @@ class _CreateMixin extends ResolvedCorrectionProducer {
     // either not expecting anything specific or expecting a type || object
     if (_expression != null) {
       var fieldType = inferUndefinedExpressionType(_expression);
+      if (fieldType is InvalidType) {
+        return;
+      }
       if (fieldType != null &&
           (!typeSystem.isAssignableTo(fieldType, typeProvider.typeType) ||
               !typeSystem.isSubtypeOf(fieldType, typeProvider.objectType))) {
@@ -136,8 +138,6 @@ class _CreateMixin extends ResolvedCorrectionProducer {
     }
     // prepare environment
     LibraryFragment targetUnit;
-    var prefix = '';
-    var suffix = '';
     var offset = -1;
     String? filePath;
     if (prefixElement == null) {
@@ -151,11 +151,10 @@ class _CreateMixin extends ResolvedCorrectionProducer {
       }
       offset = enclosingMember.end;
       filePath = file;
-      prefix = '$eol$eol';
     } else {
-      for (var import in libraryElement2.firstFragment.libraryImports2) {
+      for (var import in libraryElement2.firstFragment.libraryImports) {
         if (prefixElement is PrefixElement &&
-            import.prefix2?.element == prefixElement) {
+            import.prefix?.element == prefixElement) {
           var library = import.importedLibrary;
           if (library != null) {
             targetUnit = library.firstFragment;
@@ -163,8 +162,6 @@ class _CreateMixin extends ResolvedCorrectionProducer {
             try {
               offset = targetSource.contents.data.length;
               filePath = targetSource.fullName;
-              prefix = eol;
-              suffix = eol;
             } on FileSystemException {
               // If we can't read the file to get the offset, then we can't
               // create a fix.
@@ -178,6 +175,9 @@ class _CreateMixin extends ResolvedCorrectionProducer {
       return;
     }
     await builder.addDartFileEdit(filePath, (builder) {
+      var eol = builder.eol;
+      var prefix = filePath == file ? '$eol$eol' : eol;
+      var suffix = filePath == file ? '' : eol;
       builder.addInsertion(offset, (builder) {
         builder.write(prefix);
         builder.writeMixinDeclaration(_mixinName, nameGroupName: 'NAME');

@@ -26,10 +26,10 @@ class ConvertToIfNull extends ResolvedCorrectionProducer {
       CorrectionApplicability.automatically;
 
   @override
-  FixKind get fixKind => DartFixKind.CONVERT_TO_IF_NULL;
+  FixKind get fixKind => DartFixKind.convertToIfNull;
 
   @override
-  FixKind get multiFixKind => DartFixKind.CONVERT_TO_IF_NULL_MULTI;
+  FixKind get multiFixKind => DartFixKind.convertToIfNullMulti;
 
   @override
   Future<void> compute(ChangeBuilder builder) async {
@@ -38,6 +38,16 @@ class ConvertToIfNull extends ResolvedCorrectionProducer {
         await _preferIfNull(builder);
       case _FixCase.useToConvertNullsToBools:
         await _useToConvertNullsToBools(builder);
+    }
+  }
+
+  bool _outerParenthesesNeeded(AstNode node) {
+    if (node.parent case Expression expression
+        when expression is! ParenthesizedExpression) {
+      return expression.precedence >
+          Precedence.forTokenType(TokenType.QUESTION_QUESTION);
+    } else {
+      return false;
     }
   }
 
@@ -62,21 +72,31 @@ class ConvertToIfNull extends ResolvedCorrectionProducer {
         return;
       }
 
-      var parentheses =
+      var innerParentheses =
           defaultExpression.precedence <
           Precedence.forTokenType(TokenType.QUESTION_QUESTION);
 
+      // Should not be needed because the precedence for ConditionalExpression
+      // is higher than for '??'. We still do it for consistency.
+      var outerParentheses = _outerParenthesesNeeded(node);
+
       await builder.addDartFileEdit(file, (builder) {
         builder.addReplacement(range.node(node), (builder) {
+          if (outerParentheses) {
+            builder.write('(');
+          }
           builder.write(utils.getNodeText(nullableExpression));
 
           if (defaultExpression is NullLiteral) return;
           builder.write(' ?? ');
-          if (parentheses) {
+          if (innerParentheses) {
             builder.write('(');
           }
           builder.write(utils.getNodeText(defaultExpression));
-          if (parentheses) {
+          if (innerParentheses) {
+            builder.write(')');
+          }
+          if (outerParentheses) {
             builder.write(')');
           }
         });
@@ -101,14 +121,21 @@ class ConvertToIfNull extends ResolvedCorrectionProducer {
       } else {
         return;
       }
+      var outerParentheses = _outerParenthesesNeeded(node);
       await builder.addDartFileEdit(file, (builder) {
         builder.addReplacement(range.node(node), (builder) {
+          if (outerParentheses) {
+            builder.write('(');
+          }
           builder.write(utils.getNodeText(nullableExpression));
           builder.write(' ${TokenType.QUESTION_QUESTION.lexeme} ');
           if (node.operator.type == TokenType.EQ_EQ) {
             builder.write('false');
           } else {
             builder.write('true');
+          }
+          if (outerParentheses) {
+            builder.write(')');
           }
         });
       });

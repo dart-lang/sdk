@@ -35,7 +35,7 @@ class C {}
 /// {@animation 600}
 class C {}
 ''',
-      [error(WarningCode.DOC_DIRECTIVE_MISSING_TWO_ARGUMENTS, 4, 17)],
+      [error(WarningCode.docDirectiveMissingTwoArguments, 4, 17)],
     );
   }
 
@@ -52,7 +52,7 @@ class C {}
 /// {@youtube 600}
 class C {}
 ''',
-      [error(WarningCode.DOC_DIRECTIVE_MISSING_TWO_ARGUMENTS, 4, 15)],
+      [error(WarningCode.docDirectiveMissingTwoArguments, 4, 15)],
     );
   }
 
@@ -63,8 +63,8 @@ class C {}
 class C {}
 ''',
       [
-        error(WarningCode.DOC_DIRECTIVE_MISSING_TWO_ARGUMENTS, 4, 14),
-        error(WarningCode.DOC_DIRECTIVE_MISSING_CLOSING_BRACE, 17, 1),
+        error(WarningCode.docDirectiveMissingTwoArguments, 4, 14),
+        error(WarningCode.docDirectiveMissingClosingBrace, 17, 1),
       ],
     );
   }

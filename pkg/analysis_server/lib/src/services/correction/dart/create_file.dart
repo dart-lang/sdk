@@ -24,7 +24,7 @@ class CreateFile extends ResolvedCorrectionProducer {
   List<String> get fixArguments => [_fileName];
 
   @override
-  FixKind get fixKind => DartFixKind.CREATE_FILE;
+  FixKind get fixKind => DartFixKind.createFile;
 
   @override
   Future<void> compute(ChangeBuilder builder) async {
@@ -51,7 +51,7 @@ class CreateFile extends ResolvedCorrectionProducer {
         if (source != null) {
           var pathContext = resourceProvider.pathContext;
           var relativePath = pathContext.relative(
-            unitResult.libraryElement2.firstFragment.source.fullName,
+            unitResult.libraryElement.firstFragment.source.fullName,
             from: pathContext.dirname(source.fullName),
           );
 
@@ -59,6 +59,7 @@ class CreateFile extends ResolvedCorrectionProducer {
           var relativeUri = pathContext.split(relativePath).join('/');
 
           await builder.addDartFileEdit(source.fullName, (builder) {
+            var eol = builder.eol;
             builder.addSimpleInsertion(0, "part of '$relativeUri';$eol$eol");
           });
           _fileName = source.shortName;

@@ -30,6 +30,10 @@ void f(int i) {
 replacement
   left: 1
 suggestions
+  false
+    kind: keyword
+  true
+    kind: keyword
 ''');
   }
 
@@ -66,6 +70,10 @@ void f(int i) {
 replacement
   left: 1
 suggestions
+  false
+    kind: keyword
+  true
+    kind: keyword
   else
     kind: keyword
 ''');
@@ -131,6 +139,10 @@ void f(int i) {
 replacement
   left: 1
 suggestions
+  false
+    kind: keyword
+  true
+    kind: keyword
   else
     kind: keyword
 ''');
@@ -254,6 +266,10 @@ void f() {
 replacement
   left: 1
 suggestions
+  false
+    kind: keyword
+  true
+    kind: keyword
   else
     kind: keyword
 ''');
@@ -275,6 +291,10 @@ void f(int i) {
 replacement
   left: 1
 suggestions
+  false
+    kind: keyword
+  true
+    kind: keyword
   else
     kind: keyword
 ''');
@@ -296,6 +316,10 @@ void f(int i) {
 replacement
   left: 1
 suggestions
+  false
+    kind: keyword
+  true
+    kind: keyword
   else
     kind: keyword
 ''');
@@ -367,6 +391,8 @@ replacement
   left: 1
 suggestions
   const
+    kind: keyword
+  switch
     kind: keyword
 ''');
   }

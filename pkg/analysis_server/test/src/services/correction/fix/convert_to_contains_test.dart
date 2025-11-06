@@ -46,7 +46,7 @@ bool f2(List<int> list, int value) {
 @reflectiveTest
 class ConvertToContainsTest extends FixProcessorLintTest {
   @override
-  FixKind get kind => DartFixKind.CONVERT_TO_CONTAINS;
+  FixKind get kind => DartFixKind.convertToContains;
 
   @override
   String get lintCode => LintNames.prefer_contains;

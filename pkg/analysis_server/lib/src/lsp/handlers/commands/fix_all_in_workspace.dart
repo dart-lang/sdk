@@ -76,10 +76,9 @@ abstract class AbstractFixAllInWorkspaceCommandHandler
       server,
       clientCapabilities,
       change,
-      annotateChanges:
-          requireConfirmation
-              ? ChangeAnnotations.requireConfirmation
-              : ChangeAnnotations.include,
+      annotateChanges: requireConfirmation
+          ? ChangeAnnotations.requireConfirmation
+          : ChangeAnnotations.include,
     );
     return sendWorkspaceEditToClient(edit);
   }

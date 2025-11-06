@@ -1803,7 +1803,7 @@ DART_EXPORT void Dart_SetCurrentThreadOwnsIsolate(void);
  * The port can be the isolate's main port, or any other port owned by the
  * isolate.
  *
- * \param port_id The port to be checked.
+ * \param port The port to be checked.
  */
 DART_EXPORT bool Dart_GetCurrentThreadOwnsIsolate(Dart_Port port);
 
@@ -1891,6 +1891,17 @@ DART_EXPORT Dart_Handle Dart_EmptyString(void);
 DART_EXPORT Dart_Handle Dart_TypeDynamic(void);
 DART_EXPORT Dart_Handle Dart_TypeVoid(void);
 DART_EXPORT Dart_Handle Dart_TypeNever(void);
+
+/**
+ * Returns simple core types.
+ *
+ * \return A handle to type.
+ */
+DART_EXPORT Dart_Handle Dart_TypeString();
+DART_EXPORT Dart_Handle Dart_TypeDouble();
+DART_EXPORT Dart_Handle Dart_TypeInt();
+DART_EXPORT Dart_Handle Dart_TypeBoolean();
+DART_EXPORT Dart_Handle Dart_TypeObject();
 
 /**
  * Checks if the two objects are equal.
@@ -2591,6 +2602,26 @@ DART_EXPORT Dart_Handle Dart_MapContainsKey(Dart_Handle map, Dart_Handle key);
  *   error handle.
  */
 DART_EXPORT Dart_Handle Dart_MapKeys(Dart_Handle map);
+
+/**
+ * Returns a Map filled by key value pairs from the provided lists.
+ *
+ * \param keys_type Handle to a type of keys. E.g., from
+ *   Dart_Get<XXX>Type.
+ * \param keys_handle Handle to a list with keys. E.g., from
+ *   Dart_NewList<XXX>.
+ * \param values_type Handle to a type of values. E.g., from
+ *   Dart_Get<XXX>Type.
+ * \param values_handle Handle to a list with values. E.g., from
+ *   Dart_NewList<XXX>.
+ *
+ * \return The Map object if no error occurs. Otherwise returns
+ *   an error handle.
+ */
+DART_EXPORT Dart_Handle Dart_NewMap(Dart_Handle keys_type,
+                                    Dart_Handle keys_handle,
+                                    Dart_Handle values_type,
+                                    Dart_Handle values_handle);
 
 /*
  * ==========
@@ -3363,7 +3394,7 @@ typedef void* (*Dart_NativeAssetsDlopenCallbackNoPath)(char** error);
  *
  * If provided, takes prescedence over `Dart_NativeAssetsDlopenCallback`.
  *
- * \param path The asset id requested in the `@Native` external function.
+ * \param asset_id The asset id requested in the `@Native` external function.
  *
  * \param error Returns NULL if successful, an error message otherwise. The
  *   caller is responsible for calling free() on the error message.
@@ -3381,7 +3412,7 @@ typedef void* (*Dart_NativeAssetsDlopenAssetId)(const char* asset_id,
  * \return A malloced string containing all asset ids. The caller must free this
  *   string.
  */
-typedef char* (*Dart_NativeAssetsAvailableAssets)();
+typedef char* (*Dart_NativeAssetsAvailableAssets)(void);
 
 /**
  * Callback provided by the embedder that is used by the VM to lookup symbols

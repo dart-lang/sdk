@@ -17,7 +17,7 @@ void main() {
 @reflectiveTest
 class AddSuperParameterTest extends FixProcessorTest {
   @override
-  FixKind get kind => DartFixKind.ADD_SUPER_PARAMETER;
+  FixKind get kind => DartFixKind.addSuperParameter;
 
   Future<void> test_named_first() async {
     await resolveTestCode('''

@@ -72,6 +72,9 @@ Slot* SlotCache::CreateNativeSlot(Slot::Kind kind) {
   (Slot::IsImmutableBit::encode(true) | Slot::IsWeakBit::encode(false))
 #define FIELD_FLAGS_VAR                                                        \
   (Slot::IsImmutableBit::encode(false) | Slot::IsWeakBit::encode(false))
+#define FIELD_FLAGS_VAR_NOSANITIZETHREAD                                       \
+  (Slot::IsImmutableBit::encode(false) | Slot::IsWeakBit::encode(false) |      \
+   Slot::IsNoSanitizeThreadBit::encode(true))
 #define FIELD_FLAGS_WEAK                                                       \
   (Slot::IsImmutableBit::encode(false) | Slot::IsWeakBit::encode(true))
 #define DEFINE_NULLABLE_TAGGED_NATIVE_DART_FIELD(ClassName, UnderlyingType,    \
@@ -195,6 +198,7 @@ Slot* SlotCache::CreateNativeSlot(Slot::Kind kind) {
 
 #undef FIELD_FLAGS_FINAL
 #undef FIELD_FLAGS_VAR
+#undef FIELD_FLAGS_VAR_NOSANITIZETHREAD
 #undef FIELD_FLAGS_WEAK
     default:
       UNREACHABLE();
@@ -349,7 +353,12 @@ const Slot& Slot::Get(const Field& field,
     }
   }
 
-  AbstractType& field_type = AbstractType::ZoneHandle(zone, field.type());
+  AbstractType& field_type = AbstractType::ZoneHandle(zone, field.exact_type());
+  bool is_exact_type = true;
+  if (field_type.IsNull()) {
+    field_type = field.type();
+    is_exact_type = false;
+  }
   if (field_type.IsStrictlyNonNullable()) {
     is_nullable = false;
   }
@@ -378,6 +387,7 @@ const Slot& Slot::Get(const Field& field,
   if (needs_load_guard) {
     // Should be kept in sync with LoadStaticFieldInstr::ComputeType.
     field_type = Type::DynamicType();
+    is_exact_type = false;
     nullable_cid = kDynamicCid;
     is_nullable = true;
     used_guarded_state = false;
@@ -409,10 +419,10 @@ const Slot& Slot::Get(const Field& field,
   const bool is_sentinel_visible =
       field.is_late() && field.is_final() && !field.has_initializer();
 
-  CompileType type = (rep != kTagged)
-                         ? CompileType::FromUnboxedRepresentation(rep)
-                         : CompileType(is_nullable, is_sentinel_visible,
-                                       nullable_cid, &field_type);
+  CompileType type =
+      (rep != kTagged) ? CompileType::FromUnboxedRepresentation(rep)
+                       : CompileType(is_nullable, is_sentinel_visible,
+                                     nullable_cid, &field_type, is_exact_type);
 
   Class& owner = Class::Handle(zone, field.Owner());
   const Slot& slot = GetCanonicalSlot(
@@ -422,7 +432,8 @@ const Slot& Slot::Get(const Field& field,
           IsGuardedBit::encode(used_guarded_state) |
           IsCompressedBit::encode(
               compiler::target::Class::HasCompressedPointers(owner)) |
-          IsNonTaggedBit::encode(is_unboxed),
+          IsNonTaggedBit::encode(is_unboxed) |
+          IsNoSanitizeThreadBit::encode(field.is_no_sanitize_thread()),
       compiler::target::Field::OffsetOf(field), &field, type, rep,
       field_guard_state);
 

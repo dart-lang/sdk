@@ -212,6 +212,7 @@ DEFINE_NATIVE_ENTRY(Developer_NativeRuntime_writeHeapSnapshotToFile, 0, 1) {
       String::CheckedHandle(zone, arguments->NativeArgAt(0));
   bool successful = false;
   {
+    NoActiveIsolateScope no_active_isolate_scope(thread);
     FileHeapSnapshotWriter file_writer(thread, filename.ToCString(),
                                        &successful);
     HeapSnapshotWriter writer(thread, &file_writer);

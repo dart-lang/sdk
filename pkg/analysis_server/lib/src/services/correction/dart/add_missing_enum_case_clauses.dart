@@ -21,7 +21,7 @@ class AddMissingEnumCaseClauses extends ResolvedCorrectionProducer {
       CorrectionApplicability.singleLocation;
 
   @override
-  FixKind get fixKind => DartFixKind.ADD_MISSING_ENUM_CASE_CLAUSES;
+  FixKind get fixKind => DartFixKind.addMissingEnumCaseClauses;
 
   @override
   Future<void> compute(ChangeBuilder builder) async {

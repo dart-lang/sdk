@@ -378,6 +378,28 @@ suggestions
 ''');
   }
 
+  Future<void> test_static() async {
+    allowedIdentifiers = {'other'};
+    await computeSuggestions('''
+enum E {
+  constant;
+
+  static const other = constant;
+
+  void foo() {
+    ot^;
+  }
+}
+''');
+    assertResponse(r'''
+replacement
+  left: 2
+suggestions
+  other
+    kind: field
+''');
+  }
+
   Future<void> test_values() async {
     allowedIdentifiers = {'first', 'last'};
     includeKeywords = false;

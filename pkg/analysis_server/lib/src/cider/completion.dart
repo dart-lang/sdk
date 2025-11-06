@@ -170,12 +170,11 @@ class CiderCompletionComputer {
     required OperationPerformanceImpl performance,
   }) {
     var suggestionBuilders = <CompletionSuggestionBuilder>[];
-    var importedLibraries =
-        target.withEnclosing2
-            .expand((fragment) => fragment.libraryImports2)
-            .map((import) => import.importedLibrary)
-            .nonNulls
-            .toSet();
+    var importedLibraries = target.withEnclosing2
+        .expand((fragment) => fragment.libraryImports)
+        .map((import) => import.importedLibrary)
+        .nonNulls
+        .toSet();
     for (var importedLibrary in importedLibraries) {
       var importedSuggestions = _importedLibrarySuggestions(
         element: importedLibrary,

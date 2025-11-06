@@ -36,74 +36,103 @@ class ConstructorName {
   /// This is used in messages to put the right amount of `^` under the name.
   final int fullNameLength;
 
-  ConstructorName(
-      {required this.name,
-      required this.nameOffset,
-      required this.fullName,
-      required this.fullNameOffset,
-      required this.fullNameLength})
-      : assert(name != 'new');
+  ConstructorName({
+    required this.name,
+    required this.nameOffset,
+    required this.fullName,
+    required this.fullNameOffset,
+    required this.fullNameLength,
+  }) : assert(name != 'new');
 }
 
-void buildMetadataForOutlineExpressions(
-    {required SourceLibraryBuilder libraryBuilder,
-    required LookupScope scope,
-    required BodyBuilderContext bodyBuilderContext,
-    required Annotatable annotatable,
-    required Uri annotatableFileUri,
-    required List<MetadataBuilder>? metadata}) {
+void buildMetadataForOutlineExpressions({
+  required SourceLibraryBuilder libraryBuilder,
+  required ExtensionScope extensionScope,
+  required LookupScope scope,
+  required BodyBuilderContext bodyBuilderContext,
+  required Annotatable annotatable,
+  required Uri annotatableFileUri,
+  required Uri annotationsFileUri,
+  required List<MetadataBuilder>? metadata,
+}) {
   MetadataBuilder.buildAnnotations(
-      annotatable: annotatable,
-      annotatableFileUri: annotatableFileUri,
-      metadata: metadata,
-      bodyBuilderContext: bodyBuilderContext,
-      libraryBuilder: libraryBuilder,
-      scope: scope);
+    annotatable: annotatable,
+    annotatableFileUri: annotatableFileUri,
+    annotationsFileUri: annotationsFileUri,
+    metadata: metadata,
+    bodyBuilderContext: bodyBuilderContext,
+    libraryBuilder: libraryBuilder,
+    extensionScope: extensionScope,
+    scope: scope,
+  );
 }
 
 void buildTypeParametersForOutlineExpressions(
-    ClassHierarchy classHierarchy,
-    SourceLibraryBuilder libraryBuilder,
-    BodyBuilderContext bodyBuilderContext,
-    List<SourceNominalParameterBuilder>? typeParameters) {
+  ClassHierarchy classHierarchy,
+  SourceLibraryBuilder libraryBuilder,
+  BodyBuilderContext bodyBuilderContext,
+  List<SourceNominalParameterBuilder>? typeParameters,
+) {
   if (typeParameters != null) {
     for (int i = 0; i < typeParameters.length; i++) {
       typeParameters[i].buildOutlineExpressions(
-          libraryBuilder, bodyBuilderContext, classHierarchy);
+        libraryBuilder,
+        bodyBuilderContext,
+        classHierarchy,
+      );
     }
   }
 }
 
 void buildFormalsForOutlineExpressions(
-    SourceLibraryBuilder libraryBuilder,
-    DeclarationBuilder? declarationBuilder,
-    List<FormalParameterBuilder>? formals,
-    {required LookupScope scope,
-    required bool isClassInstanceMember}) {
+  SourceLibraryBuilder libraryBuilder,
+  DeclarationBuilder? declarationBuilder,
+  List<FormalParameterBuilder>? formals, {
+  required ExtensionScope extensionScope,
+  required LookupScope scope,
+  required bool isClassInstanceMember,
+}) {
   if (formals != null) {
     for (int i = 0; i < formals.length; i++) {
       FormalParameterBuilder formal = formals[i];
       buildFormalForOutlineExpressions(
-          libraryBuilder, declarationBuilder, formal,
-          scope: scope, isClassInstanceMember: isClassInstanceMember);
+        libraryBuilder,
+        declarationBuilder,
+        formal,
+        extensionScope: extensionScope,
+        scope: scope,
+        isClassInstanceMember: isClassInstanceMember,
+      );
     }
   }
 }
 
-void buildFormalForOutlineExpressions(SourceLibraryBuilder libraryBuilder,
-    DeclarationBuilder? declarationBuilder, FormalParameterBuilder formal,
-    {required LookupScope scope, required bool isClassInstanceMember}) {
+void buildFormalForOutlineExpressions(
+  SourceLibraryBuilder libraryBuilder,
+  DeclarationBuilder? declarationBuilder,
+  FormalParameterBuilder formal, {
+  required ExtensionScope extensionScope,
+  required LookupScope scope,
+  required bool isClassInstanceMember,
+}) {
   // For const constructors we need to include default parameter values
   // into the outline. For all other formals we need to call
   // buildOutlineExpressions to clear initializerToken to prevent
   // consuming too much memory.
-  formal.buildOutlineExpressions(libraryBuilder, declarationBuilder,
-      scope: scope, buildDefaultValue: isClassInstanceMember);
+  formal.buildOutlineExpressions(
+    libraryBuilder,
+    declarationBuilder,
+    extensionScope: extensionScope,
+    scope: scope,
+    buildDefaultValue: isClassInstanceMember,
+  );
 }
 
 sealed class PropertyEncodingStrategy {
-  factory PropertyEncodingStrategy(DeclarationBuilder? declarationBuilder,
-      {required bool isInstanceMember}) {
+  factory PropertyEncodingStrategy(
+    DeclarationBuilder? declarationBuilder, {
+    required bool isInstanceMember,
+  }) {
     switch (declarationBuilder) {
       case null:
       case ClassBuilder():
@@ -123,25 +152,37 @@ sealed class PropertyEncodingStrategy {
     }
   }
 
-  GetterEncoding createGetterEncoding(SourcePropertyBuilder builder,
-      GetterFragment fragment, TypeParameterFactory typeParameterFactory);
+  GetterEncoding createGetterEncoding(
+    SourcePropertyBuilder builder,
+    GetterFragment fragment,
+    TypeParameterFactory typeParameterFactory,
+  );
 
-  SetterEncoding createSetterEncoding(SourcePropertyBuilder builder,
-      SetterFragment fragment, TypeParameterFactory typeParameterFactory);
+  SetterEncoding createSetterEncoding(
+    SourcePropertyBuilder builder,
+    SetterFragment fragment,
+    TypeParameterFactory typeParameterFactory,
+  );
 }
 
 class RegularPropertyEncodingStrategy implements PropertyEncodingStrategy {
   const RegularPropertyEncodingStrategy();
 
   @override
-  GetterEncoding createGetterEncoding(SourcePropertyBuilder builder,
-      GetterFragment fragment, TypeParameterFactory typeParameterFactory) {
+  GetterEncoding createGetterEncoding(
+    SourcePropertyBuilder builder,
+    GetterFragment fragment,
+    TypeParameterFactory typeParameterFactory,
+  ) {
     return new RegularGetterEncoding(fragment);
   }
 
   @override
-  SetterEncoding createSetterEncoding(SourcePropertyBuilder builder,
-      SetterFragment fragment, TypeParameterFactory typeParameterFactory) {
+  SetterEncoding createSetterEncoding(
+    SourcePropertyBuilder builder,
+    SetterFragment fragment,
+    TypeParameterFactory typeParameterFactory,
+  ) {
     return new RegularSetterEncoding(fragment);
   }
 }
@@ -151,37 +192,51 @@ class ExtensionInstancePropertyEncodingStrategy
   const ExtensionInstancePropertyEncodingStrategy();
 
   @override
-  GetterEncoding createGetterEncoding(SourcePropertyBuilder builder,
-      GetterFragment fragment, TypeParameterFactory typeParameterFactory) {
+  GetterEncoding createGetterEncoding(
+    SourcePropertyBuilder builder,
+    GetterFragment fragment,
+    TypeParameterFactory typeParameterFactory,
+  ) {
     ExtensionBuilder declarationBuilder =
         builder.declarationBuilder as ExtensionBuilder;
     SynthesizedExtensionSignature signature = new SynthesizedExtensionSignature(
-        declarationBuilder: declarationBuilder,
-        extensionTypeParameterFragments:
-            fragment.enclosingDeclaration!.typeParameters,
-        typeParameterFactory: typeParameterFactory,
-        onTypeBuilder: declarationBuilder.onType,
-        fileUri: fragment.fileUri,
-        fileOffset: fragment.nameOffset);
-    return new ExtensionInstanceGetterEncoding(fragment,
-        signature.clonedDeclarationTypeParameters, signature.thisFormal);
+      declarationBuilder: declarationBuilder,
+      extensionTypeParameterFragments:
+          fragment.enclosingDeclaration!.typeParameters,
+      typeParameterFactory: typeParameterFactory,
+      onTypeBuilder: declarationBuilder.onType,
+      fileUri: fragment.fileUri,
+      fileOffset: fragment.nameOffset,
+    );
+    return new ExtensionInstanceGetterEncoding(
+      fragment,
+      signature.clonedDeclarationTypeParameters,
+      signature.thisFormal,
+    );
   }
 
   @override
-  SetterEncoding createSetterEncoding(SourcePropertyBuilder builder,
-      SetterFragment fragment, TypeParameterFactory typeParameterFactory) {
+  SetterEncoding createSetterEncoding(
+    SourcePropertyBuilder builder,
+    SetterFragment fragment,
+    TypeParameterFactory typeParameterFactory,
+  ) {
     ExtensionBuilder declarationBuilder =
         builder.declarationBuilder as ExtensionBuilder;
     SynthesizedExtensionSignature signature = new SynthesizedExtensionSignature(
-        declarationBuilder: declarationBuilder,
-        extensionTypeParameterFragments:
-            fragment.enclosingDeclaration!.typeParameters,
-        typeParameterFactory: typeParameterFactory,
-        onTypeBuilder: declarationBuilder.onType,
-        fileUri: fragment.fileUri,
-        fileOffset: fragment.nameOffset);
-    return new ExtensionInstanceSetterEncoding(fragment,
-        signature.clonedDeclarationTypeParameters, signature.thisFormal);
+      declarationBuilder: declarationBuilder,
+      extensionTypeParameterFragments:
+          fragment.enclosingDeclaration!.typeParameters,
+      typeParameterFactory: typeParameterFactory,
+      onTypeBuilder: declarationBuilder.onType,
+      fileUri: fragment.fileUri,
+      fileOffset: fragment.nameOffset,
+    );
+    return new ExtensionInstanceSetterEncoding(
+      fragment,
+      signature.clonedDeclarationTypeParameters,
+      signature.thisFormal,
+    );
   }
 }
 
@@ -190,14 +245,20 @@ class ExtensionStaticPropertyEncodingStrategy
   const ExtensionStaticPropertyEncodingStrategy();
 
   @override
-  GetterEncoding createGetterEncoding(SourcePropertyBuilder builder,
-      GetterFragment fragment, TypeParameterFactory typeParameterFactory) {
+  GetterEncoding createGetterEncoding(
+    SourcePropertyBuilder builder,
+    GetterFragment fragment,
+    TypeParameterFactory typeParameterFactory,
+  ) {
     return new ExtensionStaticGetterEncoding(fragment);
   }
 
   @override
-  SetterEncoding createSetterEncoding(SourcePropertyBuilder builder,
-      SetterFragment fragment, TypeParameterFactory typeParameterFactory) {
+  SetterEncoding createSetterEncoding(
+    SourcePropertyBuilder builder,
+    SetterFragment fragment,
+    TypeParameterFactory typeParameterFactory,
+  ) {
     return new ExtensionStaticSetterEncoding(fragment);
   }
 }
@@ -207,37 +268,51 @@ class ExtensionTypeInstancePropertyEncodingStrategy
   const ExtensionTypeInstancePropertyEncodingStrategy();
 
   @override
-  GetterEncoding createGetterEncoding(SourcePropertyBuilder builder,
-      GetterFragment fragment, TypeParameterFactory typeParameterFactory) {
+  GetterEncoding createGetterEncoding(
+    SourcePropertyBuilder builder,
+    GetterFragment fragment,
+    TypeParameterFactory typeParameterFactory,
+  ) {
     ExtensionTypeDeclarationBuilder declarationBuilder =
         builder.declarationBuilder as ExtensionTypeDeclarationBuilder;
     SynthesizedExtensionTypeSignature signature =
         new SynthesizedExtensionTypeSignature(
-            extensionTypeDeclarationBuilder: declarationBuilder,
-            extensionTypeTypeParameters:
-                fragment.enclosingDeclaration!.typeParameters,
-            typeParameterFactory: typeParameterFactory,
-            fileUri: fragment.fileUri,
-            fileOffset: fragment.nameOffset);
-    return new ExtensionTypeInstanceGetterEncoding(fragment,
-        signature.clonedDeclarationTypeParameters, signature.thisFormal);
+          extensionTypeDeclarationBuilder: declarationBuilder,
+          extensionTypeTypeParameters:
+              fragment.enclosingDeclaration!.typeParameters,
+          typeParameterFactory: typeParameterFactory,
+          fileUri: fragment.fileUri,
+          fileOffset: fragment.nameOffset,
+        );
+    return new ExtensionTypeInstanceGetterEncoding(
+      fragment,
+      signature.clonedDeclarationTypeParameters,
+      signature.thisFormal,
+    );
   }
 
   @override
-  SetterEncoding createSetterEncoding(SourcePropertyBuilder builder,
-      SetterFragment fragment, TypeParameterFactory typeParameterFactory) {
+  SetterEncoding createSetterEncoding(
+    SourcePropertyBuilder builder,
+    SetterFragment fragment,
+    TypeParameterFactory typeParameterFactory,
+  ) {
     ExtensionTypeDeclarationBuilder declarationBuilder =
         builder.declarationBuilder as ExtensionTypeDeclarationBuilder;
     SynthesizedExtensionTypeSignature signature =
         new SynthesizedExtensionTypeSignature(
-            extensionTypeDeclarationBuilder: declarationBuilder,
-            extensionTypeTypeParameters:
-                fragment.enclosingDeclaration!.typeParameters,
-            typeParameterFactory: typeParameterFactory,
-            fileUri: fragment.fileUri,
-            fileOffset: fragment.nameOffset);
-    return new ExtensionTypeInstanceSetterEncoding(fragment,
-        signature.clonedDeclarationTypeParameters, signature.thisFormal);
+          extensionTypeDeclarationBuilder: declarationBuilder,
+          extensionTypeTypeParameters:
+              fragment.enclosingDeclaration!.typeParameters,
+          typeParameterFactory: typeParameterFactory,
+          fileUri: fragment.fileUri,
+          fileOffset: fragment.nameOffset,
+        );
+    return new ExtensionTypeInstanceSetterEncoding(
+      fragment,
+      signature.clonedDeclarationTypeParameters,
+      signature.thisFormal,
+    );
   }
 }
 
@@ -246,14 +321,20 @@ class ExtensionTypeStaticPropertyEncodingStrategy
   const ExtensionTypeStaticPropertyEncodingStrategy();
 
   @override
-  GetterEncoding createGetterEncoding(SourcePropertyBuilder builder,
-      GetterFragment fragment, TypeParameterFactory typeParameterFactory) {
+  GetterEncoding createGetterEncoding(
+    SourcePropertyBuilder builder,
+    GetterFragment fragment,
+    TypeParameterFactory typeParameterFactory,
+  ) {
     return new ExtensionTypeStaticGetterEncoding(fragment);
   }
 
   @override
-  SetterEncoding createSetterEncoding(SourcePropertyBuilder builder,
-      SetterFragment fragment, TypeParameterFactory typeParameterFactory) {
+  SetterEncoding createSetterEncoding(
+    SourcePropertyBuilder builder,
+    SetterFragment fragment,
+    TypeParameterFactory typeParameterFactory,
+  ) {
     return new ExtensionTypeStaticSetterEncoding(fragment);
   }
 }

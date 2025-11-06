@@ -25,8 +25,12 @@ abstract class _ListOrSetConstantBuilder<L extends Expression> {
     Constant constant = evaluator._evaluateSubexpression(element);
     if (constant is AbortConstant) return constant;
     if (evaluator.shouldBeUnevaluated) {
-      parts.add(evaluator.unevaluated(
-          element, makeLiteral([evaluator._wrap(constant)])));
+      parts.add(
+        evaluator.unevaluated(
+          element,
+          makeLiteral([evaluator._wrap(constant)]),
+        ),
+      );
       return null;
     } else {
       return addConstant(constant, element);
@@ -47,7 +51,9 @@ abstract class _ListOrSetConstantBuilder<L extends Expression> {
       // Coverage-ignore-block(suite): Not run.
       // Null spread
       return evaluator.createEvaluationErrorConstant(
-          spreadExpression, messageConstEvalNullValue);
+        spreadExpression,
+        codeConstEvalNullValue,
+      );
     } else {
       // Fully evaluated spread
       List<Constant> entries;
@@ -58,21 +64,25 @@ abstract class _ListOrSetConstantBuilder<L extends Expression> {
       } else if (evaluator.backend.isLoweredListConstant(spread)) {
         // Coverage-ignore-block(suite): Not run.
         entries = <Constant>[];
-        evaluator.backend.forEachLoweredListConstantElement(spread,
-            (Constant element) {
+        evaluator.backend.forEachLoweredListConstantElement(spread, (
+          Constant element,
+        ) {
           entries.add(element);
         });
       } else if (evaluator.backend.isLoweredSetConstant(constant)) {
         // Coverage-ignore-block(suite): Not run.
         entries = <Constant>[];
-        evaluator.backend.forEachLoweredSetConstantElement(spread,
-            (Constant element) {
+        evaluator.backend.forEachLoweredSetConstantElement(spread, (
+          Constant element,
+        ) {
           entries.add(element);
         });
       } else {
         // Not list or set in spread
         return evaluator.createEvaluationErrorConstant(
-            spreadExpression, messageConstEvalNotListOrSetInSpread);
+          spreadExpression,
+          codeConstEvalNotListOrSetInSpread,
+        );
       }
       for (Constant entry in entries) {
         AbortConstant? error = addConstant(entry, spreadExpression);
@@ -95,9 +105,11 @@ class ListConstantBuilder extends _ListOrSetConstantBuilder<ListLiteral> {
   final bool isMutable;
 
   ListConstantBuilder(
-      Expression original, DartType elementType, ConstantEvaluator evaluator,
-      {this.isMutable = false})
-      : super(original, elementType, evaluator);
+    Expression original,
+    DartType elementType,
+    ConstantEvaluator evaluator, {
+    this.isMutable = false,
+  }) : super(original, elementType, evaluator);
 
   @override
   ListLiteral makeLiteral(List<Expression> elements) =>
@@ -125,8 +137,9 @@ class ListConstantBuilder extends _ListOrSetConstantBuilder<ListLiteral> {
       if (isMutable) {
         return new MutableListConstant(elementType, entries);
       }
-      return evaluator
-          .lowerListConstant(new ListConstant(elementType, entries));
+      return evaluator.lowerListConstant(
+        new ListConstant(elementType, entries),
+      );
     }
     // TODO(kallentu): Handle partially evaluated [isMutable] lists.
     List<Expression> lists = <Expression>[];
@@ -142,7 +155,9 @@ class ListConstantBuilder extends _ListOrSetConstantBuilder<ListLiteral> {
       }
     }
     return evaluator.unevaluated(
-        original, new ListConcatenation(lists, typeArgument: elementType));
+      original,
+      new ListConcatenation(lists, typeArgument: elementType),
+    );
   }
 }
 
@@ -151,8 +166,10 @@ class SetConstantBuilder extends _ListOrSetConstantBuilder<SetLiteral> {
   final Set<Constant> weakSeen = new Set<Constant>.identity();
 
   SetConstantBuilder(
-      Expression original, DartType elementType, ConstantEvaluator evaluator)
-      : super(original, elementType, evaluator);
+    Expression original,
+    DartType elementType,
+    ConstantEvaluator evaluator,
+  ) : super(original, elementType, evaluator);
 
   @override
   // Coverage-ignore(suite): Not run.
@@ -161,23 +178,28 @@ class SetConstantBuilder extends _ListOrSetConstantBuilder<SetLiteral> {
 
   @override
   AbortConstant? addConstant(Constant constant, TreeNode context) {
-    if (!evaluator.hasPrimitiveEqual(constant,
-        staticTypeContext: evaluator.staticTypeContext)) {
+    if (!evaluator.hasPrimitiveEqual(
+      constant,
+      staticTypeContext: evaluator.staticTypeContext,
+    )) {
       if (evaluator.staticTypeContext.enablePrimitiveEquality) {
         return evaluator.createEvaluationErrorConstant(
-            context,
-            templateConstEvalElementNotPrimitiveEquality
-                .withArguments(constant));
+          context,
+          codeConstEvalElementNotPrimitiveEquality.withArgumentsOld(constant),
+        );
       } else {
-        // Coverage-ignore-block(suite): Not run.
-        return evaluator.createEvaluationErrorConstant(context,
-            templateConstEvalElementImplementsEqual.withArguments(constant));
+        return evaluator.createEvaluationErrorConstant(
+          context,
+          codeConstEvalElementImplementsEqual.withArgumentsOld(constant),
+        );
       }
     }
     bool unseen = seen.add(constant);
     if (!unseen) {
       return evaluator.createEvaluationErrorConstant(
-          context, templateConstEvalDuplicateElement.withArguments(constant));
+        context,
+        codeConstEvalDuplicateElement.withArgumentsOld(constant),
+      );
     }
 
     List<Constant> lastPart;
@@ -213,7 +235,9 @@ class SetConstantBuilder extends _ListOrSetConstantBuilder<SetLiteral> {
       }
     }
     return evaluator.unevaluated(
-        original, new SetConcatenation(sets, typeArgument: elementType));
+      original,
+      new SetConcatenation(sets, typeArgument: elementType),
+    );
   }
 }
 
@@ -231,7 +255,11 @@ class MapConstantBuilder {
   final Set<Constant> weakSeenKeys = new Set<Constant>.identity();
 
   MapConstantBuilder(
-      this.original, this.keyType, this.valueType, this.evaluator);
+    this.original,
+    this.keyType,
+    this.valueType,
+    this.evaluator,
+  );
 
   /// Add a map entry to the constant map being built by this builder
   ///
@@ -244,11 +272,14 @@ class MapConstantBuilder {
     if (value is AbortConstant) return value;
     if (evaluator.shouldBeUnevaluated) {
       // Coverage-ignore-block(suite): Not run.
-      parts.add(evaluator.unevaluated(
+      parts.add(
+        evaluator.unevaluated(
           element.key,
           new MapLiteral([
-            new MapLiteralEntry(evaluator._wrap(key), evaluator._wrap(value))
-          ], isConst: true)));
+            new MapLiteralEntry(evaluator._wrap(key), evaluator._wrap(value)),
+          ], isConst: true),
+        ),
+      );
       return null;
     } else {
       return addConstant(key, value, element.key, element.value);
@@ -269,27 +300,37 @@ class MapConstantBuilder {
       // Coverage-ignore-block(suite): Not run.
       // Null spread
       return evaluator.createEvaluationErrorConstant(
-          spreadExpression, messageConstEvalNullValue);
+        spreadExpression,
+        codeConstEvalNullValue,
+      );
     } else {
       // Fully evaluated spread
       if (spread is MapConstant) {
         for (ConstantMapEntry entry in spread.entries) {
           AbortConstant? error = addConstant(
-              entry.key, entry.value, spreadExpression, spreadExpression);
+            entry.key,
+            entry.value,
+            spreadExpression,
+            spreadExpression,
+          );
           if (error != null) return error;
         }
       } else if (evaluator.backend.isLoweredMapConstant(spread)) {
         // Coverage-ignore-block(suite): Not run.
         AbortConstant? error;
-        evaluator.backend.forEachLoweredMapConstantEntry(spread,
-            (Constant key, Constant value) {
+        evaluator.backend.forEachLoweredMapConstantEntry(spread, (
+          Constant key,
+          Constant value,
+        ) {
           error ??= addConstant(key, value, spreadExpression, spreadExpression);
         });
         if (error != null) return error;
       } else {
         // Not map in spread
         return evaluator.createEvaluationErrorConstant(
-            spreadExpression, messageConstEvalNotMapInSpread);
+          spreadExpression,
+          codeConstEvalNotMapInSpread,
+        );
       }
     }
     return null;
@@ -297,8 +338,12 @@ class MapConstantBuilder {
 
   /// Returns [null] on success and an error-"constant" on failure, as such the
   /// return value should be checked.
-  AbortConstant? addConstant(Constant key, Constant value, TreeNode keyContext,
-      TreeNode valueContext) {
+  AbortConstant? addConstant(
+    Constant key,
+    Constant value,
+    TreeNode keyContext,
+    TreeNode valueContext,
+  ) {
     List<ConstantMapEntry> lastPart;
     if (parts.last is List<ConstantMapEntry>) {
       lastPart = parts.last as List<ConstantMapEntry>;
@@ -306,21 +351,29 @@ class MapConstantBuilder {
       // Coverage-ignore: Probably unreachable.
       parts.add(lastPart = <ConstantMapEntry>[]);
     }
-    if (!evaluator.hasPrimitiveEqual(key,
-        staticTypeContext: evaluator.staticTypeContext)) {
+    if (!evaluator.hasPrimitiveEqual(
+      key,
+      staticTypeContext: evaluator.staticTypeContext,
+    )) {
       if (evaluator.staticTypeContext.enablePrimitiveEquality) {
-        return evaluator.createEvaluationErrorConstant(keyContext,
-            templateConstEvalKeyNotPrimitiveEquality.withArguments(key));
+        return evaluator.createEvaluationErrorConstant(
+          keyContext,
+          codeConstEvalKeyNotPrimitiveEquality.withArgumentsOld(key),
+        );
       } else {
         // Coverage-ignore-block(suite): Not run.
         return evaluator.createEvaluationErrorConstant(
-            keyContext, templateConstEvalKeyImplementsEqual.withArguments(key));
+          keyContext,
+          codeConstEvalKeyImplementsEqual.withArgumentsOld(key),
+        );
       }
     }
     bool unseenKey = seenKeys.add(key);
     if (!unseenKey) {
       return evaluator.createEvaluationErrorConstant(
-          keyContext, templateConstEvalDuplicateKey.withArguments(key));
+        keyContext,
+        codeConstEvalDuplicateKey.withArgumentsOld(key),
+      );
     }
 
     Constant key2 = evaluator.ensureIsSubtype(key, keyType, keyContext);
@@ -335,8 +388,9 @@ class MapConstantBuilder {
     if (parts.length == 1) {
       // Fully evaluated
       List<ConstantMapEntry> entries = parts.single as List<ConstantMapEntry>;
-      return evaluator
-          .lowerMapConstant(new MapConstant(keyType, valueType, entries));
+      return evaluator.lowerMapConstant(
+        new MapConstant(keyType, valueType, entries),
+      );
     }
     // Coverage-ignore-block(suite): Not run.
     List<Expression> maps = <Expression>[];
@@ -344,14 +398,17 @@ class MapConstantBuilder {
       if (part is List<ConstantMapEntry>) {
         if (part.isEmpty) continue;
         maps.add(
-            new ConstantExpression(new MapConstant(keyType, valueType, part)));
+          new ConstantExpression(new MapConstant(keyType, valueType, part)),
+        );
       } else if (part is Constant) {
         maps.add(evaluator._wrap(part));
       } else {
         throw 'Non-constant in constant map';
       }
     }
-    return evaluator.unevaluated(original,
-        new MapConcatenation(maps, keyType: keyType, valueType: valueType));
+    return evaluator.unevaluated(
+      original,
+      new MapConcatenation(maps, keyType: keyType, valueType: valueType),
+    );
   }
 }

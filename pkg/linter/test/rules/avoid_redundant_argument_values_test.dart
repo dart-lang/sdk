@@ -18,7 +18,7 @@ class AvoidRedundantArgumentValuesNamedArgsAnywhereTest extends LintRuleTest {
   @override
   String get lintRule => LintNames.avoid_redundant_argument_values;
 
-  test_namedArgumentBeforePositional() async {
+  Future<void> test_namedArgumentBeforePositional() async {
     await assertDiagnostics(
       r'''
 void foo(int a, int b, {bool c = true}) {}
@@ -37,7 +37,30 @@ class AvoidRedundantArgumentValuesTest extends LintRuleTest {
   @override
   String get lintRule => LintNames.avoid_redundant_argument_values;
 
-  test_constructor_redundant() async {
+  Future<void> test_annotation() async {
+    await assertNoDiagnostics(r'''
+@A(p: false)
+class A {
+  final bool p;
+  const A({this.p = true});
+}
+''');
+  }
+
+  Future<void> test_annotation_redundant() async {
+    await assertDiagnostics(
+      r'''
+@A(p: true)
+class A {
+  final bool p;
+  const A({this.p = true});
+}
+''',
+      [lint(6, 4)],
+    );
+  }
+
+  Future<void> test_constructor_redundant() async {
     await assertDiagnostics(
       r'''
 void f() {
@@ -51,7 +74,7 @@ class A {
     );
   }
 
-  test_constructor_tearoff_redundant() async {
+  Future<void> test_constructor_tearoff_redundant() async {
     await assertDiagnostics(
       r'''
 void f() {
@@ -67,7 +90,7 @@ class A {
   }
 
   /// https://github.com/dart-lang/linter/issues/3617
-  test_enumDeclaration() async {
+  Future<void> test_enumDeclaration() async {
     await assertDiagnostics(
       r'''
 enum TestEnum {
@@ -83,7 +106,7 @@ enum TestEnum {
   }
 
   @FailingTest(issue: 'https://github.com/dart-lang/linter/issues/3447')
-  test_fromEnvironment() async {
+  Future<void> test_fromEnvironment() async {
     await assertNoDiagnostics(r'''
 const bool someDefine = bool.fromEnvironment('someDefine');
 
@@ -97,7 +120,7 @@ void g() {
 ''');
   }
 
-  test_function_optionalPositional_followedByPositional() async {
+  Future<void> test_function_optionalPositional_followedByPositional() async {
     await assertNoDiagnostics(r'''
 void f() {
   g(0, 1);
@@ -106,7 +129,7 @@ void g([int a = 0, int? b]) {}
 ''');
   }
 
-  test_function_optionalPositional_subsequent_different() async {
+  Future<void> test_function_optionalPositional_subsequent_different() async {
     await assertNoDiagnostics(r'''
 void f() {
   g(0, 2);
@@ -115,7 +138,7 @@ void g([int? a, int? b = 1]) {}
 ''');
   }
 
-  test_function_optionalPositional_subsequent_redundant() async {
+  Future<void> test_function_optionalPositional_subsequent_redundant() async {
     await assertDiagnostics(
       r'''
 void f() {
@@ -127,7 +150,7 @@ void g([int? a, int? b = 1]) {}
     );
   }
 
-  test_localFunction_optionalNamed_different() async {
+  Future<void> test_localFunction_optionalNamed_different() async {
     await assertNoDiagnostics(r'''
 void f() {
   void g({bool p = true}) {}
@@ -136,7 +159,7 @@ void f() {
 ''');
   }
 
-  test_localFunction_optionalNamed_redundant() async {
+  Future<void> test_localFunction_optionalNamed_redundant() async {
     await assertDiagnostics(
       r'''
 void f() {
@@ -148,7 +171,7 @@ void f() {
     );
   }
 
-  test_method_noDefault() async {
+  Future<void> test_method_noDefault() async {
     await assertNoDiagnostics(r'''
 void f(A a) {
   a.g(p: false);
@@ -159,7 +182,7 @@ class A {
 ''');
   }
 
-  test_method_optionalNamed_variable() async {
+  Future<void> test_method_optionalNamed_variable() async {
     await assertNoDiagnostics(r'''
 void f(A a, bool v) {
   a.g(p: v);
@@ -170,7 +193,7 @@ class A {
 ''');
   }
 
-  test_method_redundant() async {
+  Future<void> test_method_redundant() async {
     await assertDiagnostics(
       r'''
 void f(A a) {
@@ -184,7 +207,7 @@ class A {
     );
   }
 
-  test_redirectingFactoryConstructor() async {
+  Future<void> test_redirectingFactoryConstructor() async {
     await assertNoDiagnostics(r'''
 class A {
   factory A([int? value]) = B;
@@ -201,7 +224,7 @@ void f() {
 ''');
   }
 
-  test_redirectingFactoryConstructor_cyclic() async {
+  Future<void> test_redirectingFactoryConstructor_cyclic() async {
     await assertDiagnostics(
       r'''
 class A {
@@ -214,13 +237,13 @@ void f() {
 ''',
       [
         // No lint.
-        error(CompileTimeErrorCode.RECURSIVE_FACTORY_REDIRECT, 30, 5),
-        error(CompileTimeErrorCode.RECURSIVE_FACTORY_REDIRECT, 57, 5),
+        error(CompileTimeErrorCode.recursiveFactoryRedirect, 30, 5),
+        error(CompileTimeErrorCode.recursiveFactoryRedirect, 57, 5),
       ],
     );
   }
 
-  test_redirectingFactoryConstructor_multipleOptional() async {
+  Future<void> test_redirectingFactoryConstructor_multipleOptional() async {
     await assertNoDiagnostics(r'''
 class A {
   factory A([int? one, int? two]) = B;
@@ -239,7 +262,7 @@ void f() {
 ''');
   }
 
-  test_redirectingFactoryConstructor_named() async {
+  Future<void> test_redirectingFactoryConstructor_named() async {
     await assertNoDiagnostics(r'''
 class A {
   factory A({int? value}) = B;
@@ -256,7 +279,7 @@ void f() {
 ''');
   }
 
-  test_redirectingFactoryConstructor_named_redundant() async {
+  Future<void> test_redirectingFactoryConstructor_named_redundant() async {
     await assertDiagnostics(
       r'''
 class A {
@@ -274,6 +297,7 @@ void f() {
     );
   }
 
+  Future<void>
   test_redirectingFactoryConstructor_namedArgumentsAnywhere() async {
     await assertNoDiagnostics(r'''
 class A {
@@ -293,6 +317,7 @@ void f() {
 ''');
   }
 
+  Future<void>
   test_redirectingFactoryConstructor_namedArgumentsAnywhere_redundant() async {
     await assertDiagnostics(
       r'''
@@ -311,7 +336,7 @@ void f() {
     );
   }
 
-  test_redirectingFactoryConstructor_nested() async {
+  Future<void> test_redirectingFactoryConstructor_nested() async {
     await assertNoDiagnostics(r'''
 class A {
   factory A([num? value]) = B;
@@ -336,7 +361,7 @@ void f() {
 ''');
   }
 
-  test_redirectingFactoryConstructor_redundant() async {
+  Future<void> test_redirectingFactoryConstructor_redundant() async {
     await assertDiagnostics(
       r'''
 class A {
@@ -354,7 +379,7 @@ void f() {
     );
   }
 
-  test_redirectingGenerativeConstructor() async {
+  Future<void> test_redirectingGenerativeConstructor() async {
     await assertNoDiagnostics(r'''
 class A {
   A([int? value]) : this._(value);
@@ -366,7 +391,7 @@ void f() {
 ''');
   }
 
-  test_redirectingGenerativeConstructor_named() async {
+  Future<void> test_redirectingGenerativeConstructor_named() async {
     await assertNoDiagnostics(r'''
 class A {
   A({int? value}) : this._(value: value);
@@ -378,7 +403,7 @@ void f() {
 ''');
   }
 
-  test_redirectingGenerativeConstructor_named_redundant() async {
+  Future<void> test_redirectingGenerativeConstructor_named_redundant() async {
     await assertDiagnostics(
       r'''
 class A {
@@ -393,7 +418,7 @@ void f() {
     );
   }
 
-  test_redirectingGenerativeConstructor_redundant() async {
+  Future<void> test_redirectingGenerativeConstructor_redundant() async {
     await assertDiagnostics(
       r'''
 class A {
@@ -408,7 +433,7 @@ void f() {
     );
   }
 
-  test_requiredNullable() async {
+  Future<void> test_requiredNullable() async {
     await assertNoDiagnostics(r'''
 void f({required int? x}) { }
 
@@ -419,7 +444,7 @@ void main() {
   }
 
   @FailingTest(issue: 'https://github.com/dart-lang/linter/issues/4967')
-  test_toListOptionalGrowable() async {
+  Future<void> test_toListOptionalGrowable() async {
     await assertDiagnostics(
       r'''
 void main() {

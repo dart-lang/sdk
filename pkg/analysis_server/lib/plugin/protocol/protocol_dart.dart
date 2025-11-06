@@ -24,9 +24,7 @@ Element convertElement(engine.Element element) {
     name,
     Element.makeFlags(
       isPrivate: element.isPrivate,
-      isDeprecated:
-          (element is engine.Annotatable) &&
-          (element as engine.Annotatable).metadata.hasDeprecated,
+      isDeprecated: element.metadata.hasDeprecated,
       isAbstract: _isAbstract(element),
       isConst: _isConst(element),
       isFinal: _isFinal(element),
@@ -259,17 +257,15 @@ int _preferRequiredParams(
   engine.FormalParameterElement e1,
   engine.FormalParameterElement e2,
 ) {
-  var rank1 =
-      (e1.isRequiredNamed || e1.metadata.hasRequired)
-          ? 0
-          : !e1.isNamed
-          ? -1
-          : 1;
-  var rank2 =
-      (e2.isRequiredNamed || e2.metadata.hasRequired)
-          ? 0
-          : !e2.isNamed
-          ? -1
-          : 1;
+  var rank1 = (e1.isRequiredNamed || e1.metadata.hasRequired)
+      ? 0
+      : !e1.isNamed
+      ? -1
+      : 1;
+  var rank2 = (e2.isRequiredNamed || e2.metadata.hasRequired)
+      ? 0
+      : !e2.isNamed
+      ? -1
+      : 1;
   return rank1 - rank2;
 }

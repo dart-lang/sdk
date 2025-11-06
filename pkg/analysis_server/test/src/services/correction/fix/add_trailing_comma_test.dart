@@ -80,7 +80,7 @@ Object f(a, b) {
 @reflectiveTest
 class AddTrailingCommaRecordTest extends FixProcessorTest {
   @override
-  FixKind get kind => DartFixKind.ADD_TRAILING_COMMA;
+  FixKind get kind => DartFixKind.addTrailingComma;
 
   Future<void> test_parse_literal_initialization() async {
     // ParserErrorCode.RECORD_LITERAL_ONE_POSITIONAL_NO_TRAILING_COMMA
@@ -104,13 +104,13 @@ var r = const (1,);
 // @dart = 3.6
 // (pre tall-style)
 
-(int) record = const (1,);    
+(int) record = const (1,);
 ''');
     await assertHasFix('''
 // @dart = 3.6
 // (pre tall-style)
 
-(int,) record = const (1,);    
+(int,) record = const (1,);
 ''');
   }
 
@@ -170,7 +170,7 @@ void f((int,) r) {
 @reflectiveTest
 class AddTrailingCommaTest extends FixProcessorLintTest {
   @override
-  FixKind get kind => DartFixKind.ADD_TRAILING_COMMA;
+  FixKind get kind => DartFixKind.addTrailingComma;
 
   @override
   String get lintCode => LintNames.require_trailing_commas;

@@ -29,7 +29,7 @@ main() {
   A._foo = 0;
 }
 ''',
-      [error(CompileTimeErrorCode.PRIVATE_SETTER, 31, 4)],
+      [error(CompileTimeErrorCode.privateSetter, 31, 4)],
     );
 
     var assignment = findNode.assignment('_foo =');
@@ -50,11 +50,11 @@ AssignmentExpression
   operator: =
   rightHandSide: IntegerLiteral
     literal: 0
-    correspondingParameter: package:test/a.dart::@class::A::@setter::_foo::@formalParameter::__foo
+    correspondingParameter: package:test/a.dart::@class::A::@setter::_foo::@formalParameter::value
     staticType: int
-  readElement2: <null>
+  readElement: <null>
   readType: null
-  writeElement2: package:test/a.dart::@class::A::@setter::_foo
+  writeElement: package:test/a.dart::@class::A::@setter::_foo
   writeType: int
   element: <null>
   staticType: int
@@ -90,7 +90,7 @@ main() {
   A._foo = 0;
 }
 ''',
-      [error(CompileTimeErrorCode.PRIVATE_SETTER, 31, 4)],
+      [error(CompileTimeErrorCode.privateSetter, 31, 4)],
     );
 
     var assignment = findNode.assignment('_foo =');
@@ -113,9 +113,9 @@ AssignmentExpression
     literal: 0
     correspondingParameter: package:test/a.dart::@class::A::@setter::_foo::@formalParameter::_
     staticType: int
-  readElement2: <null>
+  readElement: <null>
   readType: null
-  writeElement2: package:test/a.dart::@class::A::@setter::_foo
+  writeElement: package:test/a.dart::@class::A::@setter::_foo
   writeType: int
   element: <null>
   staticType: int
@@ -136,7 +136,7 @@ main() {
   A._foo = 0;
 }
 ''',
-      [error(CompileTimeErrorCode.PRIVATE_SETTER, 31, 4)],
+      [error(CompileTimeErrorCode.privateSetter, 31, 4)],
     );
 
     var assignment = findNode.assignment('_foo =');
@@ -159,9 +159,9 @@ AssignmentExpression
     literal: 0
     correspondingParameter: package:test/a.dart::@class::A::@setter::_foo::@formalParameter::_
     staticType: int
-  readElement2: <null>
+  readElement: <null>
   readType: null
-  writeElement2: package:test/a.dart::@class::A::@setter::_foo
+  writeElement: package:test/a.dart::@class::A::@setter::_foo
   writeType: int
   element: <null>
   staticType: int

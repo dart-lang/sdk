@@ -8,6 +8,8 @@ import 'package:analysis_server/src/services/correction/dart/add_late.dart';
 import 'package:analysis_server/src/services/correction/dart/add_return_type.dart';
 import 'package:analysis_server/src/services/correction/dart/add_type_annotation.dart';
 import 'package:analysis_server/src/services/correction/dart/assign_to_local_variable.dart';
+import 'package:analysis_server/src/services/correction/dart/bind_all_to_fields.dart';
+import 'package:analysis_server/src/services/correction/dart/bind_to_field.dart';
 import 'package:analysis_server/src/services/correction/dart/convert_add_all_to_spread.dart';
 import 'package:analysis_server/src/services/correction/dart/convert_class_to_enum.dart';
 import 'package:analysis_server/src/services/correction/dart/convert_class_to_mixin.dart';
@@ -25,6 +27,7 @@ import 'package:analysis_server/src/services/correction/dart/convert_into_is_not
 import 'package:analysis_server/src/services/correction/dart/convert_map_from_iterable_to_for_literal.dart';
 import 'package:analysis_server/src/services/correction/dart/convert_part_of_to_uri.dart';
 import 'package:analysis_server/src/services/correction/dart/convert_quotes.dart';
+import 'package:analysis_server/src/services/correction/dart/convert_to_dot_shorthand.dart';
 import 'package:analysis_server/src/services/correction/dart/convert_to_expression_function_body.dart';
 import 'package:analysis_server/src/services/correction/dart/convert_to_field_parameter.dart';
 import 'package:analysis_server/src/services/correction/dart/convert_to_generic_function_syntax.dart';
@@ -87,6 +90,8 @@ const Set<ProducerGenerator> _builtInGenerators = {
   AddReturnType.new,
   AddTypeAnnotation.bulkFixable,
   AssignToLocalVariable.new,
+  BindAllToFields.new,
+  BindToField.new,
   ConvertAddAllToSpread.new,
   ConvertClassToEnum.new,
   ConvertClassToMixin.new,
@@ -105,6 +110,7 @@ const Set<ProducerGenerator> _builtInGenerators = {
   ConvertMapFromIterableToForLiteral.new,
   ConvertPartOfToUri.new,
   ConvertSwitchExpressionToSwitchStatement.new,
+  ConvertToDotShorthand.new,
   ConvertToDoubleQuotes.new,
   ConvertToExpressionFunctionBody.new,
   ConvertToFieldParameter.new,

@@ -30,7 +30,7 @@ ListLiteral
     arguments
       NamedType
         name: int
-        element2: dart:core::@class::int
+        element: dart:core::@class::int
         type: int
     rightBracket: >
   leftBracket: [
@@ -46,7 +46,7 @@ void f() {
   <int, double>[];
 }
 ''',
-      [error(CompileTimeErrorCode.EXPECTED_ONE_LIST_TYPE_ARGUMENTS, 13, 13)],
+      [error(CompileTimeErrorCode.expectedOneListTypeArguments, 13, 13)],
     );
 
     var node = findNode.singleListLiteral;
@@ -57,11 +57,11 @@ ListLiteral
     arguments
       NamedType
         name: int
-        element2: dart:core::@class::int
+        element: dart:core::@class::int
         type: int
       NamedType
         name: double
-        element2: dart:core::@class::double
+        element: dart:core::@class::double
         type: double
     rightBracket: >
   leftBracket: [

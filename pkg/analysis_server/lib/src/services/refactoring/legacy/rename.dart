@@ -116,18 +116,16 @@ abstract class RenameRefactoringImpl extends RefactoringImpl
   Future<RefactoringStatus> checkInitialConditions() {
     var result = RefactoringStatus();
     if (element.library?.isInSdk == true) {
-      var message = format(
+      var message = formatList(
         "The {0} '{1}' is defined in the SDK, so cannot be renamed.",
-        getElementKindName(element),
-        getElementQualifiedName(element),
+        [getElementKindName(element), getElementQualifiedName(element)],
       );
       result.addFatalError(message);
     }
     if (!workspace.containsElement(element)) {
-      var message = format(
+      var message = formatList(
         "The {0} '{1}' is defined outside of the project, so cannot be renamed.",
-        getElementKindName(element),
-        getElementQualifiedName(element),
+        [getElementKindName(element), getElementQualifiedName(element)],
       );
       result.addFatalError(message);
     }
@@ -156,10 +154,11 @@ abstract class RenameRefactoringImpl extends RefactoringImpl
   /// Adds individual edits to [change].
   Future<void> fillChange();
 
-  CodeStyleOptions getCodeStyleOptions(File file) =>
-      sessionHelper.session.analysisContext
-          .getAnalysisOptionsForFile(file)
-          .codeStyleOptions;
+  CodeStyleOptions getCodeStyleOptions(File file) => sessionHelper
+      .session
+      .analysisContext
+      .getAnalysisOptionsForFile(file)
+      .codeStyleOptions;
 
   static String _getOldName(Element element) {
     if (element is ConstructorElement) {
@@ -169,7 +168,7 @@ abstract class RenameRefactoringImpl extends RefactoringImpl
       }
       return name;
     } else if (element is MockLibraryImportElement) {
-      var prefix = element.import.prefix2?.element;
+      var prefix = element.import.prefix?.element;
       if (prefix != null) {
         return prefix.displayName;
       }

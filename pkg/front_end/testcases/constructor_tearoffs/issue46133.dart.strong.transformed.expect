@@ -2,11 +2,6 @@ library;
 //
 // Problems in library:
 //
-// pkg/front_end/testcases/constructor_tearoffs/issue46133.dart:7:18: Error: This requires the experimental 'dot-shorthands' language feature to be enabled.
-// Try passing the '--enable-experiment=dot-shorthands' command line option.
-// test() => A.const.toString();
-//                  ^
-//
 // pkg/front_end/testcases/constructor_tearoffs/issue46133.dart:7:13: Error: Expected an identifier, but got 'const'.
 // Try inserting an identifier before 'const'.
 // test() => A.const.toString();

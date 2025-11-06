@@ -14,7 +14,7 @@ class PackageNames extends LintRule {
   PackageNames() : super(name: LintNames.package_names, description: _desc);
 
   @override
-  DiagnosticCode get diagnosticCode => LinterLintCode.package_names;
+  DiagnosticCode get diagnosticCode => LinterLintCode.packageNames;
 
   @override
   PubspecVisitor<void> get pubspecVisitor => Visitor(this);

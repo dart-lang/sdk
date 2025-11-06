@@ -6,6 +6,7 @@ import 'package:analyzer/dart/ast/syntactic_entity.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/source/source_range.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:collection/collection.dart';
@@ -95,6 +96,15 @@ extension ArgumentListExtension on ArgumentList {
 }
 
 extension ConstructorDeclarationExtension on ConstructorDeclaration {
+  /// The offset and length to use as an error range for this constructor
+  /// declaration, accounting for named and unnamed constructors.
+  SourceRange get errorRange {
+    var name = this.name;
+    var offset = returnType.offset;
+    int length = (name != null ? name.end : returnType.end) - offset;
+    return SourceRange(offset, length);
+  }
+
   bool get isNonRedirectingGenerative {
     // Must be generative.
     if (externalKeyword != null || factoryKeyword != null) {
@@ -192,6 +202,16 @@ extension FormalParameterExtension on FormalParameter {
       if (type != null) {
         return type;
       }
+    }
+    return self;
+  }
+}
+
+extension FormalParameterImplExtension on FormalParameterImpl {
+  FormalParameterImpl get notDefault {
+    var self = this;
+    if (self is DefaultFormalParameterImpl) {
+      return self.parameter;
     }
     return self;
   }

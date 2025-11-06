@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/*@testedFeatures=inference*/
 library test;
 
 import 'dart:async';
@@ -10,7 +9,7 @@ import 'dart:async';
 T id<T>(T x) => x;
 
 test(Future<String> f) async {
-  String s = await /*@typeArgs=FutureOr<String>*/ id(f);
+  String s = await id(f);
 }
 
 main() {}

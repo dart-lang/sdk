@@ -27,9 +27,13 @@ class E extends core::Object {
 static method main() → void {
   FutureOr<self::Color>color = #C6;
   FutureOr<FutureOr<self::Color>>recursiveColor = #C6;
+  const FutureOr<self::Color>constColor = #C6;
   #L1:
   {
     final synthesized FutureOr<self::Color>#0#0 = color;
+    final const synthesized self::Color #0#1 = #C6;
+    final const synthesized self::Color #0#3 = #C3;
+    final const synthesized self::Color #0#5 = #C9;
     {
       if(#C6 =={core::Object::==}{(core::Object) → core::bool} #0#0) {
         {

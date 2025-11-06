@@ -25,7 +25,7 @@ Future<void> main() async {
       input.sort((a, b) => a.path.compareTo(b.path));
       bool hasError = false;
       options.onDiagnostic = (message) {
-        if (message.severity == Severity.error) {
+        if (message.severity == CfeSeverity.error) {
           hasError = true;
         }
         message.plainTextFormatted.forEach(print);

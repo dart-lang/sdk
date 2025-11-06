@@ -45,7 +45,9 @@ class DillTypeAliasBuilder extends TypeAliasBuilderImpl {
   List<NominalParameterBuilder>? get typeParameters {
     if (_typeParameters == null && typedef.typeParameters.isNotEmpty) {
       _typeParameters = computeTypeParameterBuilders(
-          typedef.typeParameters, libraryBuilder.loader);
+        typedef.typeParameters,
+        libraryBuilder.loader,
+      );
     }
     return _typeParameters;
   }
@@ -68,25 +70,35 @@ class DillTypeAliasBuilder extends TypeAliasBuilderImpl {
   }
 
   @override
-  List<DartType> buildAliasedTypeArguments(LibraryBuilder library,
-      List<TypeBuilder>? arguments, ClassHierarchyBase? hierarchy) {
+  List<DartType> buildAliasedTypeArguments(
+    LibraryBuilder library,
+    List<TypeBuilder>? arguments,
+    ClassHierarchyBase? hierarchy,
+  ) {
     // For performance reasons, [typeParameters] aren't restored from [target].
     // So, if [arguments] is null, the default types should be retrieved from
     // [cls.typeParameters].
     if (arguments == null) {
       // TODO(johnniwinther): Use i2b here when needed.
-      List<DartType> result =
-          new List<DartType>.generate(typedef.typeParameters.length, (int i) {
-        return typedef.typeParameters[i].defaultType;
-      }, growable: true);
+      List<DartType> result = new List<DartType>.generate(
+        typedef.typeParameters.length,
+        (int i) {
+          return typedef.typeParameters[i].defaultType;
+        },
+        growable: true,
+      );
       return result;
     }
 
     // [arguments] != null
-    List<DartType> result =
-        new List<DartType>.generate(arguments.length, (int i) {
-      return arguments[i]
-          .buildAliased(library, TypeUse.typeArgument, hierarchy);
+    List<DartType> result = new List<DartType>.generate(arguments.length, (
+      int i,
+    ) {
+      return arguments[i].buildAliased(
+        library,
+        TypeUse.typeArgument,
+        hierarchy,
+      );
     }, growable: true);
     return result;
   }

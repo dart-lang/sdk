@@ -5,6 +5,8 @@
 analyzer:
   errors:
     sdk_version_since: ignore
+    # `@RecordUse` is still experimental.
+    experimental_member_use: ignore
   exclude:
     - deferred_loading/**
     - dynamic_interface_annotator/**

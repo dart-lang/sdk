@@ -29,8 +29,8 @@ class A {
 }
 ''',
       [
-        error(WarningCode.UNUSED_ELEMENT, 62, 1),
-        error(CompileTimeErrorCode.LABEL_IN_OUTER_SCOPE, 82, 1),
+        error(WarningCode.unusedElement, 62, 1),
+        error(CompileTimeErrorCode.labelInOuterScope, 82, 1),
       ],
     );
   }

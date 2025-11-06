@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/src/services/correction/fix.dart';
+import 'package:analysis_server/src/services/correction/util.dart';
 import 'package:analysis_server_plugin/edit/dart/correction_producer.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/ast/ast.dart';
@@ -29,16 +30,28 @@ class CreateConstructor extends ResolvedCorrectionProducer {
   List<String> get fixArguments => [_constructorName];
 
   @override
-  FixKind get fixKind => DartFixKind.CREATE_CONSTRUCTOR;
+  FixKind get fixKind => DartFixKind.createConstructor;
 
   @override
   Future<void> compute(ChangeBuilder builder) async {
     var node = this.node;
     var argumentList = node.parent is ArgumentList ? node.parent : node;
     if (argumentList is ArgumentList) {
-      var instanceCreation = argumentList.parent;
-      if (instanceCreation is InstanceCreationExpression) {
-        await _proposeFromInstanceCreation(builder, instanceCreation);
+      var constructorInvocation = argumentList.parent;
+      if (constructorInvocation is InstanceCreationExpression) {
+        await _proposeFromConstructorInvocation(
+          builder,
+          constructorInvocation,
+          constructorInvocation.constructorName.element,
+          constructorInvocation.argumentList,
+        );
+      } else if (constructorInvocation is DotShorthandConstructorInvocation) {
+        await _proposeFromConstructorInvocation(
+          builder,
+          constructorInvocation,
+          constructorInvocation.element,
+          constructorInvocation.argumentList,
+        );
       }
     } else {
       if (node is SimpleIdentifier) {
@@ -46,6 +59,12 @@ class CreateConstructor extends ResolvedCorrectionProducer {
         if (parent is ConstructorName) {
           await _proposeFromConstructorName(builder, node.token, parent);
           return;
+        } else if (parent is DotShorthandInvocation) {
+          return await _proposeFromDotShorthandInvocation(
+            builder,
+            node.token,
+            parent,
+          );
         }
       }
       var parent = node.thisOrAncestorOfType<EnumConstantDeclaration>();
@@ -53,6 +72,93 @@ class CreateConstructor extends ResolvedCorrectionProducer {
         await _proposeFromEnumConstantDeclaration(builder, parent.name, parent);
       }
     }
+  }
+
+  /// Common logic for building and writing a constructor from a
+  /// [ConstructorName] or a [DotShorthandInvocation].
+  Future<void> _finishCreatingConstructor(
+    ChangeBuilder builder,
+    InterfaceElement targetElement,
+    Token name,
+    ArgumentList? argumentList,
+  ) async {
+    var targetFragment = targetElement.firstFragment;
+    var targetResult = await sessionHelper.getFragmentDeclaration(
+      targetFragment,
+    );
+    if (targetResult == null) {
+      return;
+    }
+    var targetNode = targetResult.node;
+    if (targetNode is! ClassDeclaration) {
+      return;
+    }
+
+    var resolvedUnit = targetResult.resolvedUnit;
+    if (resolvedUnit == null) {
+      return;
+    }
+
+    await _write(
+      builder,
+      resolvedUnit,
+      name,
+      targetNode,
+      constructorName: name,
+      argumentList: argumentList,
+    );
+  }
+
+  Future<void> _proposeFromConstructorInvocation(
+    ChangeBuilder builder,
+    AstNode node,
+    ConstructorElement? constructorElement,
+    ArgumentList argumentList,
+  ) async {
+    _constructorName = node.toSource();
+    // should be synthetic default constructor
+    if (constructorElement == null ||
+        !constructorElement.isDefaultConstructor ||
+        !constructorElement.isSynthetic) {
+      return;
+    }
+
+    var targetElement = constructorElement.enclosingElement;
+    if (targetElement is! ClassElement) return;
+    var targetFragment = targetElement.firstFragment;
+
+    var targetElementName = targetElement.name;
+    if (targetElementName == null) {
+      return;
+    }
+
+    // prepare target ClassDeclaration
+    var targetResult = await sessionHelper.getFragmentDeclaration(
+      targetFragment,
+    );
+    if (targetResult == null) {
+      return;
+    }
+    var targetNode = targetResult.node;
+    if (targetNode is! ClassDeclaration) {
+      return;
+    }
+
+    var resolvedUnit = targetResult.resolvedUnit;
+    if (resolvedUnit == null) {
+      return;
+    }
+
+    var targetSource = targetFragment.libraryFragment.source;
+    var targetFile = targetSource.fullName;
+    await builder.addDartFileEdit(targetFile, (builder) {
+      builder.insertConstructor(targetNode, (builder) {
+        builder.writeConstructorDeclaration(
+          targetElementName,
+          argumentList: argumentList,
+        );
+      });
+    });
   }
 
   Future<void> _proposeFromConstructorName(
@@ -87,30 +193,31 @@ class CreateConstructor extends ResolvedCorrectionProducer {
 
     // prepare target ClassDeclaration
     var targetElement = targetType.element;
-    var targetFragment = targetElement.firstFragment;
-    var targetResult = await sessionHelper.getFragmentDeclaration(
-      targetFragment,
-    );
-    if (targetResult == null) {
-      return;
-    }
-    var targetNode = targetResult.node;
-    if (targetNode is! ClassDeclaration) {
-      return;
-    }
-
-    var resolvedUnit = targetResult.resolvedUnit;
-    if (resolvedUnit == null) {
-      return;
-    }
-
-    await _write(
+    await _finishCreatingConstructor(
       builder,
-      resolvedUnit,
+      targetElement,
       name,
-      targetNode,
-      constructorName: name,
-      argumentList: instanceCreation.argumentList,
+      instanceCreation.argumentList,
+    );
+  }
+
+  Future<void> _proposeFromDotShorthandInvocation(
+    ChangeBuilder builder,
+    Token name,
+    DotShorthandInvocation node,
+  ) async {
+    _constructorName = node.toSource();
+    var targetElement = computeDotShorthandContextTypeElement(
+      node,
+      unitResult.libraryElement,
+    );
+    if (targetElement == null) return;
+
+    await _finishCreatingConstructor(
+      builder,
+      targetElement,
+      name,
+      node.argumentList,
     );
   }
 
@@ -159,57 +266,6 @@ class CreateConstructor extends ResolvedCorrectionProducer {
       constructorName: arguments?.constructorSelector?.name.token,
       argumentList: arguments?.argumentList,
     );
-  }
-
-  Future<void> _proposeFromInstanceCreation(
-    ChangeBuilder builder,
-    InstanceCreationExpression instanceCreation,
-  ) async {
-    var constructorName = instanceCreation.constructorName;
-    _constructorName = constructorName.toSource();
-    // should be synthetic default constructor
-    var constructorElement = constructorName.element;
-    if (constructorElement == null ||
-        !constructorElement.isDefaultConstructor ||
-        !constructorElement.isSynthetic) {
-      return;
-    }
-
-    var targetElement = constructorElement.enclosingElement;
-    var targetFragment = (targetElement as ClassElement).firstFragment;
-
-    var targetElementName = targetElement.name;
-    if (targetElementName == null) {
-      return;
-    }
-
-    // prepare target ClassDeclaration
-    var targetResult = await sessionHelper.getFragmentDeclaration(
-      targetFragment,
-    );
-    if (targetResult == null) {
-      return;
-    }
-    var targetNode = targetResult.node;
-    if (targetNode is! ClassDeclaration) {
-      return;
-    }
-
-    var resolvedUnit = targetResult.resolvedUnit;
-    if (resolvedUnit == null) {
-      return;
-    }
-
-    var targetSource = targetFragment.libraryFragment.source;
-    var targetFile = targetSource.fullName;
-    await builder.addDartFileEdit(targetFile, (builder) {
-      builder.insertConstructor(targetNode, (builder) {
-        builder.writeConstructorDeclaration(
-          targetElementName,
-          argumentList: instanceCreation.argumentList,
-        );
-      });
-    });
   }
 
   Future<void> _write(

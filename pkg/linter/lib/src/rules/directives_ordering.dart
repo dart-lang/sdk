@@ -2,7 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/analysis_rule/analysis_rule.dart';
 import 'package:analyzer/analysis_rule/rule_context.dart';
+import 'package:analyzer/analysis_rule/rule_visitor_registry.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/error/error.dart';
@@ -60,10 +62,10 @@ bool _isRelativeDirective(NamespaceDirective node) =>
 
 class DirectivesOrdering extends MultiAnalysisRule {
   static const List<LintCode> allCodes = [
-    LinterLintCode.directives_ordering_alphabetical,
-    LinterLintCode.directives_ordering_dart,
-    LinterLintCode.directives_ordering_exports,
-    LinterLintCode.directives_ordering_package_before_relative,
+    LinterLintCode.directivesOrderingAlphabetical,
+    LinterLintCode.directivesOrderingDart,
+    LinterLintCode.directivesOrderingExports,
+    LinterLintCode.directivesOrderingPackageBeforeRelative,
   ];
 
   DirectivesOrdering()
@@ -73,7 +75,10 @@ class DirectivesOrdering extends MultiAnalysisRule {
   List<DiagnosticCode> get diagnosticCodes => allCodes;
 
   @override
-  void registerNodeProcessors(NodeLintRegistry registry, RuleContext context) {
+  void registerNodeProcessors(
+    RuleVisitorRegistry registry,
+    RuleContext context,
+  ) {
     var visitor = _Visitor(this);
     registry.addCompilationUnit(this, visitor);
   }
@@ -81,8 +86,8 @@ class DirectivesOrdering extends MultiAnalysisRule {
   void _reportLintWithDartDirectiveGoFirstMessage(AstNode node, String type) {
     reportAtNode(
       node,
-      diagnosticCode: LinterLintCode.directives_ordering_dart,
-      arguments: [type],
+      diagnosticCode: LinterLintCode.directivesOrderingDart,
+      arguments: ['${type}s'],
     );
   }
 
@@ -91,14 +96,14 @@ class DirectivesOrdering extends MultiAnalysisRule {
   ) {
     reportAtNode(
       node,
-      diagnosticCode: LinterLintCode.directives_ordering_alphabetical,
+      diagnosticCode: LinterLintCode.directivesOrderingAlphabetical,
     );
   }
 
   void _reportLintWithExportDirectiveAfterImportDirectiveMessage(AstNode node) {
     reportAtNode(
       node,
-      diagnosticCode: LinterLintCode.directives_ordering_exports,
+      diagnosticCode: LinterLintCode.directivesOrderingExports,
     );
   }
 
@@ -108,9 +113,8 @@ class DirectivesOrdering extends MultiAnalysisRule {
   ) {
     reportAtNode(
       node,
-      diagnosticCode:
-          LinterLintCode.directives_ordering_package_before_relative,
-      arguments: [type],
+      diagnosticCode: LinterLintCode.directivesOrderingPackageBeforeRelative,
+      arguments: ['${type}s'],
     );
   }
 }
@@ -220,10 +224,11 @@ class _Visitor extends SimpleAstVisitor<void> {
     Set<AstNode> lintedNodes,
     CompilationUnit node,
   ) {
-    for (var directive in node.directives.reversed
-        .skipWhile(_isPartDirective)
-        .skipWhile(_isExportDirective)
-        .where(_isExportDirective)) {
+    for (var directive
+        in node.directives.reversed
+            .skipWhile(_isPartDirective)
+            .skipWhile(_isExportDirective)
+            .where(_isExportDirective)) {
       if (lintedNodes.add(directive)) {
         rule._reportLintWithExportDirectiveAfterImportDirectiveMessage(
           directive,

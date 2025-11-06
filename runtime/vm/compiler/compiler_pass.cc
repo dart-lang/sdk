@@ -30,9 +30,7 @@
    public:                                                                     \
     CompilerPass_##Name() : CompilerPass(k##Name, #Name) {}                    \
                                                                                \
-    static bool Register() {                                                   \
-      return true;                                                             \
-    }                                                                          \
+    static bool Register() { return true; }                                    \
                                                                                \
    protected:                                                                  \
     virtual bool DoBody(CompilerPassState* state) const {                      \
@@ -562,8 +560,10 @@ COMPILER_PASS(TestILSerialization, {
   }
 });
 
-COMPILER_PASS(LoweringAfterCodeMotionDisabled,
-              { flow_graph->ExtractNonInternalTypedDataPayloads(); });
+COMPILER_PASS(LoweringAfterCodeMotionDisabled, {
+  flow_graph->ExtractNonInternalTypedDataPayloads();
+  flow_graph->AddTsanInstrumentation();
+});
 
 COMPILER_PASS(GenerateCode, { state->graph_compiler->CompileGraph(); });
 

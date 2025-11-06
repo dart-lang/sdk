@@ -42,10 +42,9 @@ class C3 {
 required_named(C3 c) {
   if (c.bad == null) return;
   c.f(
-    i:
-        c
-            .
-            /*notPromoted(propertyNotPromotedForInherentReason(target: member:C3.bad))*/ bad,
+    i: c
+        .
+        /*notPromoted(propertyNotPromotedForInherentReason(target: member:C3.bad))*/ bad,
   );
 }
 
@@ -57,10 +56,9 @@ class C4 {
 optional_named(C4 c) {
   if (c.bad == null) return;
   c.f(
-    i:
-        c
-            .
-            /*notPromoted(propertyNotPromotedForInherentReason(target: member:C4.bad))*/ bad,
+    i: c
+        .
+        /*notPromoted(propertyNotPromotedForInherentReason(target: member:C4.bad))*/ bad,
   );
 }
 
@@ -345,10 +343,9 @@ class C21 {
 
 assignmentRhs(C21 c, int i) {
   if (c.bad == null) return;
-  i =
-      c
-          .
-          /*notPromoted(propertyNotPromotedForInherentReason(target: member:C21.bad))*/ bad;
+  i = c
+      .
+      /*notPromoted(propertyNotPromotedForInherentReason(target: member:C21.bad))*/ bad;
 }
 
 class C22 {
@@ -357,10 +354,9 @@ class C22 {
 
 variableInitializer(C22 c) {
   if (c.bad == null) return;
-  int i =
-      c
-          .
-          /*notPromoted(propertyNotPromotedForInherentReason(target: member:C22.bad))*/ bad;
+  int i = c
+      .
+      /*notPromoted(propertyNotPromotedForInherentReason(target: member:C22.bad))*/ bad;
 }
 
 class C23 {
@@ -369,10 +365,9 @@ class C23 {
   final int y;
   C23.constructorInitializer(C23 c)
     : x = c.bad!,
-      y =
-          c
-              .
-              /*notPromoted(propertyNotPromotedForInherentReason(target: member:C23.bad))*/ bad;
+      y = c
+          .
+          /*notPromoted(propertyNotPromotedForInherentReason(target: member:C23.bad))*/ bad;
 }
 
 class C24 {
@@ -382,38 +377,34 @@ class C24 {
 forVariableInitializer(C24 c) {
   if (c.bad == null) return;
   for (
-    int i =
-        c
-            .
-            /*notPromoted(propertyNotPromotedForInherentReason(target: member:C24.bad))*/ bad;
+    int i = c
+        .
+        /*notPromoted(propertyNotPromotedForInherentReason(target: member:C24.bad))*/ bad;
     false;
   ) {}
   [
     for (
-      int i =
-          c
-              .
-              /*notPromoted(propertyNotPromotedForInherentReason(target: member:C24.bad))*/ bad;
+      int i = c
+          .
+          /*notPromoted(propertyNotPromotedForInherentReason(target: member:C24.bad))*/ bad;
       false;
     )
       null,
   ];
   ({
     for (
-      int i =
-          c
-              .
-              /*notPromoted(propertyNotPromotedForInherentReason(target: member:C24.bad))*/ bad;
+      int i = c
+          .
+          /*notPromoted(propertyNotPromotedForInherentReason(target: member:C24.bad))*/ bad;
       false;
     )
       null,
   });
   ({
     for (
-      int i =
-          c
-              .
-              /*notPromoted(propertyNotPromotedForInherentReason(target: member:C24.bad))*/ bad;
+      int i = c
+          .
+          /*notPromoted(propertyNotPromotedForInherentReason(target: member:C24.bad))*/ bad;
       false;
     )
       null: null,
@@ -427,38 +418,34 @@ class C25 {
 forAssignmentInitializer(C25 c, int i) {
   if (c.bad == null) return;
   for (
-    i =
-        c
-            .
-            /*notPromoted(propertyNotPromotedForInherentReason(target: member:C25.bad))*/ bad;
+    i = c
+        .
+        /*notPromoted(propertyNotPromotedForInherentReason(target: member:C25.bad))*/ bad;
     false;
   ) {}
   [
     for (
-      i =
-          c
-              .
-              /*notPromoted(propertyNotPromotedForInherentReason(target: member:C25.bad))*/ bad;
+      i = c
+          .
+          /*notPromoted(propertyNotPromotedForInherentReason(target: member:C25.bad))*/ bad;
       false;
     )
       null,
   ];
   ({
     for (
-      i =
-          c
-              .
-              /*notPromoted(propertyNotPromotedForInherentReason(target: member:C25.bad))*/ bad;
+      i = c
+          .
+          /*notPromoted(propertyNotPromotedForInherentReason(target: member:C25.bad))*/ bad;
       false;
     )
       null,
   });
   ({
     for (
-      i =
-          c
-              .
-              /*notPromoted(propertyNotPromotedForInherentReason(target: member:C25.bad))*/ bad;
+      i = c
+          .
+          /*notPromoted(propertyNotPromotedForInherentReason(target: member:C25.bad))*/ bad;
       false;
     )
       null: null,
@@ -472,10 +459,9 @@ class C26 {
 compoundAssignmentRhs(C26 c) {
   num n = 0;
   if (c.bad == null) return;
-  n +=
-      c
-          .
-          /*notPromoted(propertyNotPromotedForInherentReason(target: member:C26.bad))*/ bad;
+  n += c
+      .
+      /*notPromoted(propertyNotPromotedForInherentReason(target: member:C26.bad))*/ bad;
 }
 
 class C27 {
@@ -592,8 +578,7 @@ class C35 {
 
 indexSetRhs(C35 c, List<int> x) {
   if (c.bad == null) return;
-  x[0] =
-      c
-          .
-          /*notPromoted(propertyNotPromotedForInherentReason(target: member:C35.bad))*/ bad;
+  x[0] = c
+      .
+      /*notPromoted(propertyNotPromotedForInherentReason(target: member:C35.bad))*/ bad;
 }

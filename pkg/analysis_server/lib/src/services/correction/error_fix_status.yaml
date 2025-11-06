@@ -86,10 +86,20 @@ AnalysisOptionsWarningCode.INCLUDED_FILE_WARNING:
   notes: |-
     The fix needs to be made in the included file.
 AnalysisOptionsWarningCode.INCOMPATIBLE_LINT:
-  status: noFix
+  status: needsFix
   notes: |-
-    Without knowing which rule the user would prefer to use, we cannot remove
-    the reported one.
+    Allowing the user to select which rule they would prefer to use so we can
+    remove the incompatible ones.
+AnalysisOptionsWarningCode.INCOMPATIBLE_LINT_FILES:
+  status: needsFix
+  notes: |-
+    Allowing the user to select which rule they would prefer to use so we can
+    disable the incompatible ones.
+AnalysisOptionsWarningCode.INCOMPATIBLE_LINT_INCLUDED:
+  status: needsFix
+  notes: |-
+    Allowing the user to select which rule they would prefer to use so we can
+    disable the incompatible ones.
 AnalysisOptionsWarningCode.INVALID_OPTION:
   status: needsFix
   notes: |-
@@ -105,6 +115,10 @@ AnalysisOptionsWarningCode.MULTIPLE_PLUGINS:
   notes: |-
     The fix is to remove the plugin name. Might not be worth the cost if we
     can address the question of if/how we're supporting plugins.
+AnalysisOptionsWarningCode.PLUGINS_IN_INNER_OPTIONS:
+  status: needsFix
+  notes: |-
+    The fix is to delete the 'plugins' section.
 AnalysisOptionsWarningCode.RECURSIVE_INCLUDE_FILE:
   status: noFix
   notes: |-
@@ -425,7 +439,7 @@ CompileTimeErrorCode.CONST_EVAL_EXTENSION_TYPE_METHOD:
 CompileTimeErrorCode.CONST_EVAL_FOR_ELEMENT:
   status: needsEvaluation
 CompileTimeErrorCode.CONST_EVAL_METHOD_INVOCATION:
-  status: needsEvaluation
+  status: hasFix
 CompileTimeErrorCode.CONST_EVAL_PRIMITIVE_EQUALITY:
   status: needsEvaluation
 CompileTimeErrorCode.CONST_EVAL_PROPERTY_ACCESS:
@@ -517,9 +531,9 @@ CompileTimeErrorCode.DISALLOWED_TYPE_INSTANTIATION_EXPRESSION:
 CompileTimeErrorCode.DOT_SHORTHAND_MISSING_CONTEXT:
   status: needsEvaluation
 CompileTimeErrorCode.DOT_SHORTHAND_UNDEFINED_GETTER:
-  status: needsEvaluation
+  status: hasFix
 CompileTimeErrorCode.DOT_SHORTHAND_UNDEFINED_INVOCATION:
-  status: needsEvaluation
+  status: hasFix
 CompileTimeErrorCode.DUPLICATE_CONSTRUCTOR_DEFAULT:
   status: noFix
   notes: |-
@@ -986,6 +1000,9 @@ CompileTimeErrorCode.INVALID_OVERRIDE_SETTER:
 CompileTimeErrorCode.INVALID_REFERENCE_TO_GENERATIVE_ENUM_CONSTRUCTOR:
   status: noFix
   since: 2.17
+CompileTimeErrorCode.INVALID_REFERENCE_TO_GENERATIVE_ENUM_CONSTRUCTOR_TEAROFF:
+  status: noFix
+  since: 2.17
 CompileTimeErrorCode.INVALID_REFERENCE_TO_THIS:
   status: noFix
 CompileTimeErrorCode.INVALID_SUPER_FORMAL_PARAMETER_LOCATION:
@@ -1125,7 +1142,7 @@ CompileTimeErrorCode.MIXIN_SUPER_CLASS_CONSTRAINT_DISALLOWED_CLASS:
 CompileTimeErrorCode.MIXIN_SUPER_CLASS_CONSTRAINT_NON_INTERFACE:
   status: hasFix
 CompileTimeErrorCode.MIXIN_WITH_NON_CLASS_SUPERCLASS:
-  status: noFix
+  status: hasFix
 CompileTimeErrorCode.MIXINS_SUPER_CLASS:
   status: needsFix
   notes: |-
@@ -1662,8 +1679,6 @@ CompileTimeErrorCode.WRONG_NUMBER_OF_PARAMETERS_FOR_OPERATOR_MINUS:
   notes: |-
     Fixes could include (1) removing all past the first parameter, and (2)
     removing all but a singular used parameter, if only one is used.
-CompileTimeErrorCode.WRONG_NUMBER_OF_PARAMETERS_FOR_SETTER:
-  status: needsFix
 CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS:
   status: hasFix
 CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_ANONYMOUS_FUNCTION:
@@ -1861,9 +1876,17 @@ LintCode.always_specify_types_split_to_types:
   status: hasFix
 LintCode.always_use_package_imports:
   status: hasFix
+LintCode.analyzer_element_model_tracking_bad:
+  status: noFix
+LintCode.analyzer_element_model_tracking_more_than_one:
+  status: noFix
+LintCode.analyzer_element_model_tracking_zero:
+  status: noFix
 LintCode.analyzer_public_api_bad_part_directive:
   status: noFix
 LintCode.analyzer_public_api_bad_type:
+  status: noFix
+LintCode.analyzer_public_api_experimental_inconsistency:
   status: noFix
 LintCode.analyzer_public_api_exports_non_public_name:
   status: noFix
@@ -1876,10 +1899,7 @@ LintCode.annotate_redeclares:
 LintCode.avoid_annotating_with_dynamic:
   status: hasFix
 LintCode.avoid_bool_literals_in_conditional_expressions:
-  status: needsFix
-  notes: |-
-    Each expression like `condition ? true : boolExpression` can be universally
-    fixed to not contain a bool literal.
+  status: hasFix
 LintCode.avoid_catches_without_on_clauses:
   status: noFix
   notes: |-
@@ -2356,6 +2376,10 @@ LintCode.recursive_getters:
   status: noFix
 LintCode.removed_lint:
   status: noFix
+LintCode.remove_deprecations_in_breaking_versions:
+  status: needsFix
+  notes: |-
+    We can implement the fixes indicated in the messages.yaml.
 LintCode.require_trailing_commas:
   status: hasFix
 LintCode.secure_pubspec_urls:
@@ -2481,7 +2505,7 @@ LintCode.unnecessary_to_list_in_spreads:
 LintCode.unnecessary_unawaited:
   status: hasFix
 LintCode.unnecessary_underscores:
-  status: hasFix  
+  status: hasFix
 LintCode.unreachable_from_main:
   status: hasFix
 LintCode.unrelated_type_equality_checks_in_expression:
@@ -2799,10 +2823,6 @@ ParserErrorCode.EXTENSION_TYPE_WITH:
   status: needsEvaluation
 ParserErrorCode.EXTERNAL_CLASS:
   status: hasFix
-ParserErrorCode.EXTERNAL_CONSTRUCTOR_WITH_BODY:
-  status: needsFix
-  notes: |-
-    Remove the `external` keyword.
 ParserErrorCode.EXTERNAL_CONSTRUCTOR_WITH_FIELD_INITIALIZERS:
   status: needsFix
   notes: |-
@@ -2821,10 +2841,6 @@ ParserErrorCode.EXTERNAL_FACTORY_WITH_BODY:
   status: needsFix
   notes: |-
     Remove the `external` keyword, or remove the body of the factory.
-ParserErrorCode.EXTERNAL_FIELD:
-  status: needsFix
-  notes: |-
-    Remove the `external` keyword.
 ParserErrorCode.EXTERNAL_GETTER_WITH_BODY:
   status: needsFix
   notes: |-
@@ -3319,6 +3335,8 @@ ParserErrorCode.WITH_BEFORE_EXTENDS:
   status: needsFix
   notes: |-
     Move the extends clause.
+ParserErrorCode.WRONG_NUMBER_OF_PARAMETERS_FOR_SETTER:
+  status: needsFix
 ParserErrorCode.WRONG_SEPARATOR_FOR_POSITIONAL_PARAMETER:
   status: hasFix
 ParserErrorCode.WRONG_TERMINATOR_FOR_PARAMETER_GROUP:
@@ -3390,6 +3408,8 @@ PubspecWarningCode.WORKSPACE_FIELD_NOT_LIST:
 PubspecWarningCode.WORKSPACE_VALUE_NOT_STRING:
   status: needsEvaluation
 PubspecWarningCode.WORKSPACE_VALUE_NOT_SUBDIRECTORY:
+  status: needsEvaluation
+ScannerErrorCode.ENCODING:
   status: needsEvaluation
 ScannerErrorCode.EXPECTED_TOKEN:
   status: noFix
@@ -3465,17 +3485,32 @@ WarningCode.DEPRECATED_EXPORT_USE:
   status: hasFix
   notes: |-
     A data driven fix using `replacedBy`.
+WarningCode.DEPRECATED_EXTEND:
+  status: hasFix
 WarningCode.DEPRECATED_EXTENDS_FUNCTION:
   status: needsFix
   notes: |-
-    The fix is to remove `Function` from where it's referenced.
+    The fix is to remove the class from the implements list.
+WarningCode.DEPRECATED_IMPLEMENT:
+  status: hasFix
 WarningCode.DEPRECATED_IMPLEMENTS_FUNCTION:
   status: hasFix
+WarningCode.DEPRECATED_INSTANTIATE:
+  status: noFix
+  notes: |-
+    The only fix would be to delete the whole instance creation expression, or
+    follow the directions in the deprecation message.
+WarningCode.DEPRECATED_MIXIN:
+  status: needsFix
 WarningCode.DEPRECATED_MIXIN_FUNCTION:
   status: needsFix
   notes: |-
     The fix is to remove `Function` from where it's referenced.
 WarningCode.DEPRECATED_NEW_IN_COMMENT_REFERENCE:
+  status: hasFix
+WarningCode.DEPRECATED_OPTIONAL:
+  status: needsEvaluation
+WarningCode.DEPRECATED_SUBCLASS:
   status: hasFix
 WarningCode.DOC_DIRECTIVE_ARGUMENT_WRONG_FORMAT:
   status: noFix
@@ -3536,6 +3571,8 @@ WarningCode.EQUAL_KEYS_IN_MAP:
   status: noFix
   notes: |-
     Fix depends on user's intent, which can't be known.
+WarningCode.EXPERIMENTAL_MEMBER_USE:
+  status: needsEvaluation
 WarningCode.INFERENCE_FAILURE_ON_COLLECTION_LITERAL:
   status: noFix
 WarningCode.INFERENCE_FAILURE_ON_FUNCTION_INVOCATION:
@@ -3554,6 +3591,25 @@ WarningCode.INVALID_ANNOTATION_TARGET:
   status: hasFix
 WarningCode.INVALID_AWAIT_NOT_REQUIRED_ANNOTATION:
   status: needsFix
+  notes: The fix is to remove the annotation.
+WarningCode.INVALID_DEPRECATED_EXTEND_ANNOTATION:
+  status: needsFix
+  notes: The fix is to remove the annotation.
+WarningCode.INVALID_DEPRECATED_IMPLEMENT_ANNOTATION:
+  status: needsFix
+  notes: The fix is to remove the annotation.
+WarningCode.INVALID_DEPRECATED_INSTANTIATE_ANNOTATION:
+  status: needsFix
+  notes: The fix is to remove the annotation.
+WarningCode.INVALID_DEPRECATED_MIXIN_ANNOTATION:
+  status: needsFix
+  notes: The fix is to remove the annotation.
+WarningCode.INVALID_DEPRECATED_OPTIONAL_ANNOTATION:
+  status: needsFix
+  notes: The fix is to remove the annotation.
+WarningCode.INVALID_DEPRECATED_SUBCLASS_ANNOTATION:
+  status: needsFix
+  notes: The fix is to remove the annotation.
 WarningCode.INVALID_EXPORT_OF_INTERNAL_ELEMENT:
   status: needsFix
   notes: |-
@@ -3627,12 +3683,6 @@ WarningCode.INVALID_NON_VIRTUAL_ANNOTATION:
 WarningCode.INVALID_OVERRIDE_OF_NON_VIRTUAL_MEMBER:
   status: noFix
 WarningCode.INVALID_REOPEN_ANNOTATION:
-  status: hasFix
-WarningCode.INVALID_REQUIRED_NAMED_PARAM:
-  status: hasFix
-WarningCode.INVALID_REQUIRED_OPTIONAL_POSITIONAL_PARAM:
-  status: hasFix
-WarningCode.INVALID_REQUIRED_POSITIONAL_PARAM:
   status: hasFix
 WarningCode.INVALID_USE_OF_DO_NOT_SUBMIT_MEMBER:
   status: needsEvaluation

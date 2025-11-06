@@ -31,7 +31,7 @@ class Foo {
   int foo([int? value]) => value ?? 0;
 }
 ''',
-      [error(WarningCode.UNDEFINED_REFERENCED_PARAMETER, 84, 7)],
+      [error(WarningCode.undefinedReferencedParameter, 84, 7)],
     );
   }
 
@@ -54,7 +54,7 @@ import 'package:meta/meta.dart';
 @UseResult.unless(parameterDefined: 'undef')
 int foo([int? value]) => value ?? 0;
 ''',
-      [error(WarningCode.UNDEFINED_REFERENCED_PARAMETER, 70, 7)],
+      [error(WarningCode.undefinedReferencedParameter, 70, 7)],
     );
   }
 }

@@ -440,7 +440,7 @@ WasmExternRef jsDataViewFromDartByteData(ByteData l, int length) {
       length,
     );
   } else {
-    jsArray.toDart.setRange(0, length, Uint8List.sublistView(l, length));
+    jsArray.toDart.setRange(0, length, Uint8List.sublistView(l, 0, length));
   }
 
   return (JSDataView(jsArrayBuffer, 0, length) as JSValue).toExternRef!;

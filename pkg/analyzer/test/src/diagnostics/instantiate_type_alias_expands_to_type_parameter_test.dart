@@ -17,7 +17,7 @@ main() {
 class InstantiateTypeAliasExpandsToTypeParameterTest
     extends PubPackageResolutionTest {
   CompileTimeErrorCode get _errorCode =>
-      CompileTimeErrorCode.INSTANTIATE_TYPE_ALIAS_EXPANDS_TO_TYPE_PARAMETER;
+      CompileTimeErrorCode.instantiateTypeAliasExpandsToTypeParameter;
 
   test_const_generic_noArguments_unnamed_typeParameter() async {
     await assertErrorsInCode(
@@ -123,7 +123,7 @@ InstanceCreationExpression
   constructorName: ConstructorName
     type: NamedType
       name: B
-      element2: <testLibrary>::@typeAlias::B
+      element: <testLibrary>::@typeAlias::B
       type: InvalidType
     element: <null>
   argumentList: ArgumentList

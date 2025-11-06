@@ -20,7 +20,7 @@ void main() {
 @reflectiveTest
 class AddAsyncTest extends FixProcessorTest {
   @override
-  FixKind get kind => DartFixKind.ADD_ASYNC;
+  FixKind get kind => DartFixKind.addAsync;
 
   Future<void> test_asyncFor() async {
     await resolveTestCode('''
@@ -72,7 +72,7 @@ Future<int> f() async {
 ''',
       errorFilter: (error) {
         return error.diagnosticCode ==
-            CompileTimeErrorCode.UNDEFINED_IDENTIFIER_AWAIT;
+            CompileTimeErrorCode.undefinedIdentifierAwait;
       },
     );
   }
@@ -91,7 +91,7 @@ void doStuff() => takeFutureCallback(() async => await 1);
 ''',
       errorFilter: (error) {
         return error.diagnosticCode ==
-            CompileTimeErrorCode.UNDEFINED_IDENTIFIER_AWAIT;
+            CompileTimeErrorCode.undefinedIdentifierAwait;
       },
     );
   }
@@ -467,8 +467,7 @@ Future<int> f() async {
 }
 ''',
       errorFilter: (error) {
-        return error.diagnosticCode ==
-            CompileTimeErrorCode.AWAIT_IN_WRONG_CONTEXT;
+        return error.diagnosticCode == CompileTimeErrorCode.awaitInWrongContext;
       },
     );
   }
@@ -528,10 +527,130 @@ f() async {
 @reflectiveTest
 class DiscardedFuturesTest extends FixProcessorLintTest {
   @override
-  FixKind get kind => DartFixKind.ADD_ASYNC;
+  FixKind get kind => DartFixKind.addAsync;
 
   @override
   String get lintCode => LintNames.discarded_futures;
+
+  Future<void> test_awaitBeforeExpression() async {
+    await resolveTestCode('''
+class A {
+  Future<void> m() async {}
+}
+
+void foo(A a) {
+  a.m();
+}
+''');
+    await assertHasFix('''
+class A {
+  Future<void> m() async {}
+}
+
+Future<void> foo(A a) async {
+  await a.m();
+}
+''');
+  }
+
+  Future<void> test_cascade() async {
+    await resolveTestCode('''
+class A {
+  Future<void> m() async {}
+  A get self => this;
+}
+
+void foo(A a) {
+  final _ = a.self..m();
+}
+''');
+    await assertNoFix();
+  }
+
+  Future<void> test_cascade_after() async {
+    await resolveTestCode('''
+class A {
+  Future<void> m() async {}
+}
+
+void foo(A a) {
+  a.m()..hashCode;
+}
+''');
+    await assertNoFix();
+  }
+
+  Future<void> test_cascadeBefore() async {
+    await resolveTestCode('''
+class A {
+  Future<void> m() async {}
+  A get self => this;
+}
+
+void foo(A a) {
+  final _ = a..self.m();
+}
+''');
+    await assertNoFix();
+  }
+
+  Future<void> test_closureAfterCascade() async {
+    await resolveTestCode('''
+class A {
+  Future<void> m() async {}
+
+  void n(void Function() g) {}
+}
+
+void f(A a, bool b) {
+  a..n(() {
+    a.m();
+  });
+}
+''');
+    await assertHasFix('''
+class A {
+  Future<void> m() async {}
+
+  void n(void Function() g) {}
+}
+
+void f(A a, bool b) {
+  a..n(() async {
+    await a.m();
+  });
+}
+''');
+  }
+
+  @FailingTest(
+    issue: 'https://github.com/dart-lang/sdk/issues/61155',
+    reason: 'There is no current diagnostic for this case.',
+  )
+  Future<void> test_closureExpressionAfterCascade() async {
+    await resolveTestCode('''
+class A {
+  Future<void> m() async {}
+
+  void n(void Function() g) {}
+}
+
+void f(A a, bool b) {
+  a..n(() => a.m());
+}
+''');
+    await assertHasFix('''
+class A {
+  Future<void> m() async {}
+
+  void n(void Function() g) {}
+}
+
+void f(A a, bool b) {
+  a..n(() async => await a.m());
+}
+''');
+  }
 
   Future<void> test_discardedFuture() async {
     await resolveTestCode('''

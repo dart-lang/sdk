@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/*@testedFeatures=inference*/
 library test;
 
 class Foo {
@@ -11,7 +10,7 @@ class Foo {
 
 class Bar<T extends Iterable<String>> {
   void foo(T t) {
-    for (var /*@type=String*/ i in t) {
+    for (var i in t) {
       int x = /*error:INVALID_ASSIGNMENT*/ i;
     }
   }
@@ -19,7 +18,7 @@ class Bar<T extends Iterable<String>> {
 
 class Baz<T, E extends Iterable<T>, S extends E> {
   void foo(S t) {
-    for (var /*@type=Baz::T%*/ i in t) {
+    for (var i in t) {
       int x = /*error:INVALID_ASSIGNMENT*/ i;
       T y = i;
     }
@@ -27,8 +26,8 @@ class Baz<T, E extends Iterable<T>, S extends E> {
 }
 
 test() {
-  var /*@type=List<Foo>*/ list = <Foo>[];
-  for (var /*@type=Foo*/ x in list) {
+  var list = <Foo>[];
+  for (var x in list) {
     String y = /*error:INVALID_ASSIGNMENT*/ x;
   }
 
@@ -40,30 +39,30 @@ test() {
     String y = x;
   }
 
-  var /*@ type=dynamic */ z;
+  var z;
   for (z in list) {
     String y = /*info:DYNAMIC_CAST*/ z;
   }
 
   Iterable iter = list;
   for (Foo /*info:DYNAMIC_CAST*/ x in iter) {
-    var /*@type=Foo*/ y = x;
+    var y = x;
   }
 
   dynamic iter2 = list;
   for (Foo /*info:DYNAMIC_CAST*/ x in /*info:DYNAMIC_CAST*/ iter2) {
-    var /*@type=Foo*/ y = x;
+    var y = x;
   }
 
-  var /*@type=Map<String, Foo>*/ map = <String, Foo>{};
+  var map = <String, Foo>{};
   // Error: map must be an Iterable.
-  for (var /*@ type=dynamic */ x in /*error:FOR_IN_OF_INVALID_TYPE*/ map) {
+  for (var x in /*error:FOR_IN_OF_INVALID_TYPE*/ map) {
     String y = /*info:DYNAMIC_CAST*/ x;
   }
 
   // We're not properly inferring that map.keys is an Iterable<String>
   // and that x is a String.
-  for (var /*@type=String*/ x in map. /*@target=Map.keys*/ keys) {
+  for (var x in map.keys) {
     String y = x;
   }
 }

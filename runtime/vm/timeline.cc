@@ -429,6 +429,8 @@ void TimelineEventArguments::SetNumArguments(intptr_t length) {
   } else {
     for (intptr_t i = length; i < length_; ++i) {
       free(buffer_[i].value);
+      buffer_[i].value = nullptr;
+      buffer_[i].name = nullptr;
     }
     buffer_ = reinterpret_cast<TimelineEventArgument*>(
         realloc(buffer_, sizeof(TimelineEventArgument) * length));

@@ -29,7 +29,7 @@ void f() {
 ''',
       [
         error(
-          CompileTimeErrorCode.EXTENSION_OVERRIDE_ACCESS_TO_STATIC_MEMBER,
+          CompileTimeErrorCode.extensionOverrideAccessToStaticMember,
           65,
           2,
         ),
@@ -49,7 +49,7 @@ FunctionExpressionInvocation
           correspondingParameter: <null>
           staticType: int
       rightParenthesis: )
-    element2: <testLibrary>::@extension::E
+    element: <testLibrary>::@extension::E
     extendedType: int
     staticType: null
   argumentList: ArgumentList
@@ -73,7 +73,7 @@ void f() {
 ''',
       [
         error(
-          CompileTimeErrorCode.EXTENSION_OVERRIDE_ACCESS_TO_STATIC_MEMBER,
+          CompileTimeErrorCode.extensionOverrideAccessToStaticMember,
           79,
           5,
         ),
@@ -94,7 +94,7 @@ void f() {
 ''',
       [
         error(
-          CompileTimeErrorCode.EXTENSION_OVERRIDE_ACCESS_TO_STATIC_MEMBER,
+          CompileTimeErrorCode.extensionOverrideAccessToStaticMember,
           116,
           5,
         ),
@@ -114,7 +114,7 @@ void f() {
 ''',
       [
         error(
-          CompileTimeErrorCode.EXTENSION_OVERRIDE_ACCESS_TO_STATIC_MEMBER,
+          CompileTimeErrorCode.extensionOverrideAccessToStaticMember,
           77,
           5,
         ),
@@ -132,7 +132,7 @@ MethodInvocation
         SimpleStringLiteral
           literal: 'a'
       rightParenthesis: )
-    element2: <testLibrary>::@extension::E
+    element: <testLibrary>::@extension::E
     extendedType: String
     staticType: null
   operator: .
@@ -160,7 +160,7 @@ void f() {
 ''',
       [
         error(
-          CompileTimeErrorCode.EXTENSION_OVERRIDE_ACCESS_TO_STATIC_MEMBER,
+          CompileTimeErrorCode.extensionOverrideAccessToStaticMember,
           83,
           5,
         ),

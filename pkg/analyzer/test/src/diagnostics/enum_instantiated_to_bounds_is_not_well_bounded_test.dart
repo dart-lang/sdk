@@ -27,7 +27,7 @@ enum E<T extends A<T>, U> {
 ''',
       [
         error(
-          CompileTimeErrorCode.ENUM_INSTANTIATED_TO_BOUNDS_IS_NOT_WELL_BOUNDED,
+          CompileTimeErrorCode.enumInstantiatedToBoundsIsNotWellBounded,
           36,
           1,
         ),

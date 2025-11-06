@@ -102,37 +102,38 @@ void main(List<String> args) async {
     ..addOption('vm-service-port',
         help: 'Specify the observatory port. Implied --observe.');
 
-  var options = parser.parse(args);
-  if (options['help'] as bool) {
+  var parsedArgs = parser.parse(args);
+  if (parsedArgs.flag('help')) {
     printUsage();
     print('Available options:');
     print(parser.usage);
     exit(0);
   }
-  if (options.rest.isEmpty) {
+  if (parsedArgs.rest.isEmpty) {
     print('Dart script file required.\n');
     printUsage();
     exit(1);
   }
-  var arch = options['arch'] as String?;
-  var debug = options['debug'] as bool ||
-      options['observe'] as bool ||
-      options.wasParsed('vm-service-port');
-  var summarizeText = options['summarize-text'] as bool;
-  var binary = options['binary'] as String?;
-  var experiments = options['enable-experiment'] as List<String>;
-  var summaries = options['summary'] as List<String>;
-  var port = int.parse(options['port'] as String);
-  var mode = options['mode'] as String;
+  var arch = parsedArgs.option('arch');
+  var debug =
+      parsedArgs.flag('debug') ||
+      parsedArgs.flag('observe') ||
+      parsedArgs.wasParsed('vm-service-port');
+  var summarizeText = parsedArgs.flag('summarize-text');
+  var binary = parsedArgs.option('binary');
+  var experiments = parsedArgs.multiOption('enable-experiment');
+  var summaries = parsedArgs.multiOption('summary');
+  var port = int.parse(parsedArgs.option('port')!);
+  var mode = parsedArgs.option('mode')!;
   var compile = mode == 'compile' || mode == 'all';
   var run = mode == 'run' || mode == 'all';
-  var verbose = options['verbose'] as bool;
-  var emitDebugSymbols = options['emit-debug-symbols'] as bool;
-  var nativeNonNullAsserts = options['native-null-assertions'] as bool;
-  var jsInteropNonNullAsserts = options['interop-null-assertions'] as bool;
-  var ddcModules = options['ddc-modules'] as bool;
-  var canaryFeatures = options['canary'] as bool;
-  var sourceFiles = options.rest.map(p.canonicalize);
+  var verbose = parsedArgs.flag('verbose');
+  var emitDebugSymbols = parsedArgs.flag('emit-debug-symbols');
+  var nativeNonNullAsserts = parsedArgs.flag('native-null-assertions');
+  var jsInteropNonNullAsserts = parsedArgs.flag('interop-null-assertions');
+  var ddcModules = parsedArgs.flag('ddc-modules');
+  var canaryFeatures = parsedArgs.flag('canary');
+  var sourceFiles = parsedArgs.rest.map(p.canonicalize);
   var entryPoint = sourceFiles.last;
   var libRoot = p.dirname(entryPoint);
   var basename = p.basenameWithoutExtension(entryPoint);
@@ -186,11 +187,11 @@ void main(List<String> args) async {
 
   Future<void> runDdc(List<String> ddcArgs) async {
     var observe =
-        options.wasParsed('vm-service-port') || options['observe'] as bool;
-    var vmServicePort = options.wasParsed('vm-service-port')
-        ? '=${options['vm-service-port']}'
+        parsedArgs.wasParsed('vm-service-port') || parsedArgs.flag('observe');
+    var vmServicePort = parsedArgs.wasParsed('vm-service-port')
+        ? '=${parsedArgs.option('vm-service-port')!}'
         : '';
-    var vmOptions = options['compile-vm-options'] as String?;
+    var vmOptions = parsedArgs.option('compile-vm-options');
     var args = <String>[
       ...?vmOptions?.split(' '),
       if (debug) ...[
@@ -214,7 +215,7 @@ void main(List<String> args) async {
   var chrome = false;
   var node = false;
   var d8 = false;
-  var runtime = options['runtime'] as String?;
+  var runtime = parsedArgs.option('runtime');
   switch (runtime) {
     case 'node':
       // TODO(nshahan): Cleanup after the ddc module format is used everywhere.
@@ -254,13 +255,14 @@ void main(List<String> args) async {
   }
   var outputs = <String>[];
   if (compile) {
+    var packages = parsedArgs.option('packages');
     var ddcArgs = [
       if (summarizeText) '--summarize-text',
       '--modules=$mod',
       '--dart-sdk-summary=$sdkOutlineDill',
       for (var summary in summaries) '--summary=$summary',
       for (var experiment in experiments) '--enable-experiment=$experiment',
-      if (options['packages'] != null) '--packages=${options['packages']}',
+      if (packages != null) '--packages=$packages',
       if (emitDebugSymbols) '--emit-debug-symbols',
       if (canaryFeatures) '--canary',
       // Provide predictable library URIs for all libraries when using the

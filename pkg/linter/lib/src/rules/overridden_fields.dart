@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/analysis_rule/rule_context.dart';
+import 'package:analyzer/analysis_rule/rule_visitor_registry.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
@@ -19,10 +20,13 @@ class OverriddenFields extends LintRule {
     : super(name: LintNames.overridden_fields, description: _desc);
 
   @override
-  DiagnosticCode get diagnosticCode => LinterLintCode.overridden_fields;
+  DiagnosticCode get diagnosticCode => LinterLintCode.overriddenFields;
 
   @override
-  void registerNodeProcessors(NodeLintRegistry registry, RuleContext context) {
+  void registerNodeProcessors(
+    RuleVisitorRegistry registry,
+    RuleContext context,
+  ) {
     var visitor = _Visitor(this);
     registry.addFieldDeclaration(this, visitor);
   }
@@ -44,7 +48,7 @@ class _Visitor extends SimpleAstVisitor<void> {
         var overriddenMember = parent.getInheritedConcreteMember(
           Name(parent.library.uri, variable.name.lexeme),
         );
-        if (overriddenMember is GetterElement2OrMember &&
+        if (overriddenMember is InternalGetterElement &&
             overriddenMember.isSynthetic) {
           var definingInterface = overriddenMember.enclosingElement;
           rule.reportAtToken(

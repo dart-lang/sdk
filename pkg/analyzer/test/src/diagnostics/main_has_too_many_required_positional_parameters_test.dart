@@ -64,7 +64,7 @@ void main(args, int a, int b) {}
 ''');
     assertErrorsInResult([
       error(
-        CompileTimeErrorCode.MAIN_HAS_TOO_MANY_REQUIRED_POSITIONAL_PARAMETERS,
+        CompileTimeErrorCode.mainHasTooManyRequiredPositionalParameters,
         5,
         4,
       ),
@@ -77,7 +77,7 @@ void main(args, int a, int b, {int c = 0}) {}
 ''');
     assertErrorsInResult([
       error(
-        CompileTimeErrorCode.MAIN_HAS_TOO_MANY_REQUIRED_POSITIONAL_PARAMETERS,
+        CompileTimeErrorCode.mainHasTooManyRequiredPositionalParameters,
         5,
         4,
       ),
@@ -89,9 +89,9 @@ void main(args, int a, int b, {int c = 0}) {}
 void main(args, int a, int b, {required int c}) {}
 ''');
     assertErrorsInResult([
-      error(CompileTimeErrorCode.MAIN_HAS_REQUIRED_NAMED_PARAMETERS, 5, 4),
+      error(CompileTimeErrorCode.mainHasRequiredNamedParameters, 5, 4),
       error(
-        CompileTimeErrorCode.MAIN_HAS_TOO_MANY_REQUIRED_POSITIONAL_PARAMETERS,
+        CompileTimeErrorCode.mainHasTooManyRequiredPositionalParameters,
         5,
         4,
       ),

@@ -27,7 +27,10 @@ class CreateMethodOrFunction extends ResolvedCorrectionProducer {
 
   factory CreateMethodOrFunction({required CorrectionProducerContext context}) {
     if (context is StubCorrectionProducerContext) {
-      return CreateMethodOrFunction._(context: context);
+      return CreateMethodOrFunction._(
+        context: context,
+        fixKind: DartFixKind.createFunctionTearoff,
+      );
     }
 
     if (context.node case SimpleIdentifier node) {
@@ -52,20 +55,22 @@ class CreateMethodOrFunction extends ResolvedCorrectionProducer {
       return CreateMethodOrFunction._(
         context: context,
         targetElement: targetElement,
-        fixKind:
-            targetElement is InterfaceElement
-                ? DartFixKind.CREATE_METHOD
-                : DartFixKind.CREATE_FUNCTION,
+        fixKind: targetElement is InterfaceElement
+            ? DartFixKind.createMethodTearoff
+            : DartFixKind.createFunctionTearoff,
       );
     }
 
-    return CreateMethodOrFunction._(context: context);
+    return CreateMethodOrFunction._(
+      context: context,
+      fixKind: DartFixKind.createFunctionTearoff,
+    );
   }
 
   CreateMethodOrFunction._({
     required super.context,
     Element? targetElement,
-    this.fixKind = DartFixKind.CREATE_METHOD,
+    required this.fixKind,
   }) : _targetElement = targetElement;
 
   @override
@@ -82,6 +87,10 @@ class CreateMethodOrFunction extends ResolvedCorrectionProducer {
       DartType? parameterType;
       var fieldTypeNode = climbPropertyAccess(node);
       parameterType = inferUndefinedExpressionType(fieldTypeNode);
+      if (parameterType is InvalidType) {
+        return;
+      }
+
       var target = getQualifiedPropertyTarget(node);
 
       if (parameterType == null) {
@@ -131,14 +140,17 @@ class CreateMethodOrFunction extends ResolvedCorrectionProducer {
     String targetFile,
     int insertOffset,
     bool isStatic,
-    String prefix,
-    String sourcePrefix,
-    String sourceSuffix,
-  ) async {
+    String prefix, {
+    required bool leadingEol,
+    required bool trailingEol,
+  }) async {
     // build method source
     await builder.addDartFileEdit(targetFile, (builder) {
+      var eol = builder.eol;
       builder.addInsertion(insertOffset, (builder) {
-        builder.write(sourcePrefix);
+        if (leadingEol) {
+          builder.writeln();
+        }
         builder.write(prefix);
         // may be static
         if (isStatic) {
@@ -164,7 +176,9 @@ class CreateMethodOrFunction extends ResolvedCorrectionProducer {
         }
         // close method
         builder.write(' {$eol$prefix}');
-        builder.write(sourceSuffix);
+        if (trailingEol) {
+          builder.writeln();
+        }
       });
       if (targetFile == file) {
         builder.addLinkedPosition(range.node(node), 'NAME');
@@ -183,8 +197,6 @@ class CreateMethodOrFunction extends ResolvedCorrectionProducer {
     var insertOffset = unit.end;
     // prepare prefix
     var prefix = '';
-    var sourcePrefix = eol;
-    var sourceSuffix = eol;
     await _createExecutable(
       builder,
       functionType,
@@ -193,8 +205,8 @@ class CreateMethodOrFunction extends ResolvedCorrectionProducer {
       insertOffset,
       false,
       prefix,
-      sourcePrefix,
-      sourceSuffix,
+      leadingEol: true,
+      trailingEol: true,
     );
     _functionName = name;
   }
@@ -236,13 +248,8 @@ class CreateMethodOrFunction extends ResolvedCorrectionProducer {
     var insertOffset = targetNode.end - 1;
     // prepare prefix
     var prefix = '  ';
-    String sourcePrefix;
-    if (classMembers.isEmpty) {
-      sourcePrefix = '';
-    } else {
-      sourcePrefix = eol;
-    }
-    var sourceSuffix = eol;
+    var leadingEol = classMembers.isNotEmpty;
+    var trailingEol = true;
     await _createExecutable(
       builder,
       functionType,
@@ -251,8 +258,8 @@ class CreateMethodOrFunction extends ResolvedCorrectionProducer {
       insertOffset,
       isStatic || inStaticContext,
       prefix,
-      sourcePrefix,
-      sourceSuffix,
+      leadingEol: leadingEol,
+      trailingEol: trailingEol,
     );
     _functionName = name;
   }

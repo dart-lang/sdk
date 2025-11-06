@@ -14,7 +14,9 @@ abstract class ConstantIntFolder {
   ConstantIntFolder(this.evaluator);
 
   factory ConstantIntFolder.forSemantics(
-      ConstantEvaluator evaluator, NumberSemantics semantics) {
+    ConstantEvaluator evaluator,
+    NumberSemantics semantics,
+  ) {
     if (semantics == NumberSemantics.js) {
       return new JsConstantIntFolder(evaluator);
     } else {
@@ -35,24 +37,39 @@ abstract class ConstantIntFolder {
   Constant makeIntConstant(int value, {bool unsigned = false});
 
   Constant foldUnaryOperator(
-      Expression node, String op, covariant Constant operand);
+    Expression node,
+    String op,
+    covariant Constant operand,
+  );
 
-  Constant foldBinaryOperator(Expression node, String op,
-      covariant Constant left, covariant Constant right);
+  Constant foldBinaryOperator(
+    Expression node,
+    String op,
+    covariant Constant left,
+    covariant Constant right,
+  );
 
   Constant truncatingDivide(Expression node, num left, num right);
 
   /// Returns [null] on success and an error-"constant" on failure, as such the
   /// return value should be checked.
   AbortConstant? _checkOperands(
-      Expression node, String op, num left, num right) {
+    Expression node,
+    String op,
+    num left,
+    num right,
+  ) {
     if ((op == '<<' || op == '>>' || op == '>>>') && right < 0) {
-      return evaluator.createEvaluationErrorConstant(node,
-          templateConstEvalNegativeShift.withArguments(op, '$left', '$right'));
+      return evaluator.createEvaluationErrorConstant(
+        node,
+        codeConstEvalNegativeShift.withArgumentsOld(op, '$left', '$right'),
+      );
     }
     if ((op == '%' || op == '~/') && right == 0) {
       return evaluator.createEvaluationErrorConstant(
-          node, templateConstEvalZeroDivisor.withArguments(op, '$left'));
+        node,
+        codeConstEvalZeroDivisor.withArgumentsOld(op, '$left'),
+      );
     }
     return null;
   }
@@ -87,15 +104,19 @@ class VmConstantIntFolder extends ConstantIntFolder {
       default:
         // Coverage-ignore: Probably unreachable.
         return evaluator.createExpressionErrorConstant(
-            node,
-            templateNotConstantExpression
-                .withArguments("Unary '$op' operation"));
+          node,
+          codeNotConstantExpression.withArgumentsOld("Unary '$op' operation"),
+        );
     }
   }
 
   @override
   Constant foldBinaryOperator(
-      Expression node, String op, IntConstant left, IntConstant right) {
+    Expression node,
+    String op,
+    IntConstant left,
+    IntConstant right,
+  ) {
     int a = left.value;
     int b = right.value;
     AbortConstant? error = _checkOperands(node, op, a, b);
@@ -138,9 +159,9 @@ class VmConstantIntFolder extends ConstantIntFolder {
       default:
         // Coverage-ignore: Probably unreachable.
         return evaluator.createExpressionErrorConstant(
-            node,
-            templateNotConstantExpression
-                .withArguments("Binary '$op' operation"));
+          node,
+          codeNotConstantExpression.withArgumentsOld("Binary '$op' operation"),
+        );
     }
   }
 
@@ -149,8 +170,10 @@ class VmConstantIntFolder extends ConstantIntFolder {
     try {
       return new IntConstant(left ~/ right);
     } catch (e) {
-      return evaluator.createEvaluationErrorConstant(node,
-          templateConstEvalTruncateError.withArguments('$left', '$right'));
+      return evaluator.createEvaluationErrorConstant(
+        node,
+        codeConstEvalTruncateError.withArgumentsOld('$left', '$right'),
+      );
     }
   }
 }
@@ -195,7 +218,10 @@ class JsConstantIntFolder extends ConstantIntFolder {
 
   @override
   Constant foldUnaryOperator(
-      Expression node, String op, DoubleConstant operand) {
+    Expression node,
+    String op,
+    DoubleConstant operand,
+  ) {
     switch (op) {
       case 'unary-':
         return new DoubleConstant(-operand.value);
@@ -205,15 +231,19 @@ class JsConstantIntFolder extends ConstantIntFolder {
       default:
         // Coverage-ignore: Probably unreachable.
         return evaluator.createExpressionErrorConstant(
-            node,
-            templateNotConstantExpression
-                .withArguments("Unary '$op' operation"));
+          node,
+          codeNotConstantExpression.withArgumentsOld("Unary '$op' operation"),
+        );
     }
   }
 
   @override
   Constant foldBinaryOperator(
-      Expression node, String op, DoubleConstant left, DoubleConstant right) {
+    Expression node,
+    String op,
+    DoubleConstant left,
+    DoubleConstant right,
+  ) {
     double a = left.value;
     double b = right.value;
     AbortConstant? error = _checkOperands(node, op, a, b);
@@ -262,9 +292,9 @@ class JsConstantIntFolder extends ConstantIntFolder {
       default:
         // Coverage-ignore: Probably unreachable.
         return evaluator.createExpressionErrorConstant(
-            node,
-            templateNotConstantExpression
-                .withArguments("Binary '$op' operation"));
+          node,
+          codeNotConstantExpression.withArgumentsOld("Binary '$op' operation"),
+        );
     }
   }
 
@@ -272,8 +302,10 @@ class JsConstantIntFolder extends ConstantIntFolder {
   Constant truncatingDivide(Expression node, num left, num right) {
     double division = (left / right);
     if (division.isNaN || division.isInfinite) {
-      return evaluator.createEvaluationErrorConstant(node,
-          templateConstEvalTruncateError.withArguments('$left', '${right}'));
+      return evaluator.createEvaluationErrorConstant(
+        node,
+        codeConstEvalTruncateError.withArgumentsOld('$left', '${right}'),
+      );
     }
     double result = division.truncateToDouble();
     return new DoubleConstant(result == 0.0 ? 0.0 : result);

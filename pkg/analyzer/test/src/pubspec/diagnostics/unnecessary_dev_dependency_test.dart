@@ -24,7 +24,7 @@ dependencies:
 dev_dependencies:
   a: any
 ''',
-      [PubspecWarningCode.UNNECESSARY_DEV_DEPENDENCY],
+      [PubspecWarningCode.unnecessaryDevDependency],
     );
   }
 

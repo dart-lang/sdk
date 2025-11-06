@@ -18,8 +18,6 @@ class C1 extends A<Unresolved> {}
 // [cfe] Type 'Unresolved' not found.
 
 class C2 extends Object with Unresolved {}
-//    ^
-// [cfe] The type 'Unresolved' can't be mixed in.
 //                           ^^^^^^^^^^
 // [analyzer] COMPILE_TIME_ERROR.MIXIN_OF_NON_CLASS
 // [cfe] Type 'Unresolved' not found.
@@ -57,8 +55,6 @@ class C7<A> extends A<Unresolved> {}
 // [cfe] Type 'Unresolved' not found.
 
 class C8<A> extends Object with A<int> {}
-//    ^
-// [cfe] The type 'A<int>' can't be mixed in.
 //                              ^
 // [analyzer] COMPILE_TIME_ERROR.MIXIN_OF_NON_CLASS
 //                              ^^^^^^
@@ -66,8 +62,6 @@ class C8<A> extends Object with A<int> {}
 // [cfe] Can't use type arguments with type variable 'A'.
 
 class C9<A> extends Object with A<Unresolved> {}
-//    ^
-// [cfe] The type 'A<Unresolved>' can't be mixed in.
 //                              ^
 // [analyzer] COMPILE_TIME_ERROR.MIXIN_OF_NON_CLASS
 //                              ^^^^^^^^^^^^^

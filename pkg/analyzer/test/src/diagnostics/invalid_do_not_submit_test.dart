@@ -44,7 +44,7 @@ void b() {
 
     await assertErrorsInFile2(a, []);
     await assertErrorsInFile2(b, [
-      error(WarningCode.INVALID_USE_OF_DO_NOT_SUBMIT_MEMBER, 31, 1),
+      error(WarningCode.invalidUseOfDoNotSubmitMember, 31, 1),
     ]);
   }
 
@@ -69,7 +69,7 @@ void b() {
 
     await assertErrorsInFile2(a, []);
     await assertErrorsInFile2(b, [
-      error(WarningCode.INVALID_USE_OF_DO_NOT_SUBMIT_MEMBER, 31, 1),
+      error(WarningCode.invalidUseOfDoNotSubmitMember, 31, 1),
     ]);
   }
 
@@ -169,7 +169,7 @@ void b() {
 
     await assertErrorsInFile2(a, []);
     await assertErrorsInFile2(b, [
-      error(WarningCode.INVALID_USE_OF_DO_NOT_SUBMIT_MEMBER, 39, 1),
+      error(WarningCode.invalidUseOfDoNotSubmitMember, 39, 1),
     ]);
   }
 
@@ -193,7 +193,7 @@ void b() {
 
     await assertErrorsInFile2(a, []);
     await assertErrorsInFile2(b, [
-      error(WarningCode.INVALID_USE_OF_DO_NOT_SUBMIT_MEMBER, 33, 1),
+      error(WarningCode.invalidUseOfDoNotSubmitMember, 33, 1),
     ]);
   }
 
@@ -217,7 +217,7 @@ void b() {
 
     await assertErrorsInFile2(a, []);
     await assertErrorsInFile2(b, [
-      error(WarningCode.INVALID_USE_OF_DO_NOT_SUBMIT_MEMBER, 33, 1),
+      error(WarningCode.invalidUseOfDoNotSubmitMember, 33, 1),
     ]);
   }
 
@@ -237,7 +237,7 @@ void b() => a();
 
     await assertErrorsInFile2(a, []);
     await assertErrorsInFile2(b, [
-      error(WarningCode.INVALID_USE_OF_DO_NOT_SUBMIT_MEMBER, 30, 1),
+      error(WarningCode.invalidUseOfDoNotSubmitMember, 30, 1),
     ]);
   }
 
@@ -262,7 +262,7 @@ void b() {
 
     await assertErrorsInFile2(a, []);
     await assertErrorsInFile2(b, [
-      error(WarningCode.INVALID_USE_OF_DO_NOT_SUBMIT_MEMBER, 54, 1),
+      error(WarningCode.invalidUseOfDoNotSubmitMember, 54, 1),
     ]);
   }
 
@@ -283,7 +283,7 @@ void b() {
 ''');
 
     await assertErrorsInFile2(a, [
-      error(WarningCode.INVALID_ANNOTATION_TARGET, 35, 11),
+      error(WarningCode.invalidAnnotationTarget, 35, 11),
     ]);
     await assertErrorsInFile2(b, []);
   }
@@ -309,7 +309,7 @@ void b() {
 
     await assertErrorsInFile2(a, []);
     await assertErrorsInFile2(b, [
-      error(WarningCode.INVALID_USE_OF_DO_NOT_SUBMIT_MEMBER, 48, 1),
+      error(WarningCode.invalidUseOfDoNotSubmitMember, 48, 1),
     ]);
   }
 
@@ -330,7 +330,7 @@ void b() {
 
     await assertErrorsInFile2(a, []);
     await assertErrorsInFile2(b, [
-      error(WarningCode.INVALID_USE_OF_DO_NOT_SUBMIT_MEMBER, 33, 1),
+      error(WarningCode.invalidUseOfDoNotSubmitMember, 33, 1),
     ]);
   }
 
@@ -351,7 +351,7 @@ void b() {
 
     await assertErrorsInFile2(a, []);
     await assertErrorsInFile2(b, [
-      error(WarningCode.INVALID_USE_OF_DO_NOT_SUBMIT_MEMBER, 33, 1),
+      error(WarningCode.invalidUseOfDoNotSubmitMember, 33, 1),
     ]);
   }
 
@@ -366,7 +366,7 @@ void b() => a();
 ''');
 
     await assertErrorsInFile2(a, [
-      error(WarningCode.INVALID_USE_OF_DO_NOT_SUBMIT_MEMBER, 72, 1),
+      error(WarningCode.invalidUseOfDoNotSubmitMember, 72, 1),
     ]);
   }
 
@@ -391,7 +391,7 @@ void b() {
 
     await assertErrorsInFile2(a, []);
     await assertErrorsInFile2(b, [
-      error(WarningCode.INVALID_USE_OF_DO_NOT_SUBMIT_MEMBER, 48, 1),
+      error(WarningCode.invalidUseOfDoNotSubmitMember, 48, 1),
     ]);
   }
 
@@ -411,7 +411,7 @@ void b() => print(a);
 
     await assertErrorsInFile2(a, []);
     await assertErrorsInFile2(b, [
-      error(WarningCode.INVALID_USE_OF_DO_NOT_SUBMIT_MEMBER, 36, 1),
+      error(WarningCode.invalidUseOfDoNotSubmitMember, 36, 1),
     ]);
   }
 }

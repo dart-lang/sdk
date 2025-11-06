@@ -17,10 +17,10 @@ class AddSwitchCaseBreak extends ResolvedCorrectionProducer {
       CorrectionApplicability.acrossSingleFile;
 
   @override
-  FixKind get fixKind => DartFixKind.ADD_SWITCH_CASE_BREAK;
+  FixKind get fixKind => DartFixKind.addSwitchCaseBreak;
 
   @override
-  FixKind get multiFixKind => DartFixKind.ADD_SWITCH_CASE_BREAK_MULTI;
+  FixKind get multiFixKind => DartFixKind.addSwitchCaseBreakMulti;
 
   @override
   Future<void> compute(ChangeBuilder builder) async {
@@ -44,7 +44,7 @@ class AddSwitchCaseBreak extends ResolvedCorrectionProducer {
 
     await builder.addDartFileEdit(file, (builder) {
       builder.addInsertion(lastStatement.end, (builder) {
-        builder.write(eol);
+        builder.writeln();
         builder.write(utils.getNodePrefix(lastStatement));
         builder.write('break;');
       });

@@ -186,7 +186,7 @@ class ConstantEvaluator extends GeneralizingAstVisitor<Object> {
           return rightOperand >= 64
               ? 0
               : (leftOperand >> rightOperand) &
-                  ((1 << (64 - rightOperand)) - 1);
+                    ((1 << (64 - rightOperand)) - 1);
         }
       } else if (node.operator.type == TokenType.LT) {
         // numeric or {@code null}
@@ -244,7 +244,7 @@ class ConstantEvaluator extends GeneralizingAstVisitor<Object> {
   }
 
   @override
-  Object? visitBooleanLiteral(BooleanLiteral node) => node.value ? true : false;
+  Object? visitBooleanLiteral(BooleanLiteral node) => node.value;
 
   @override
   Object? visitDoubleLiteral(DoubleLiteral node) => node.value;

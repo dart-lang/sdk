@@ -17,18 +17,29 @@ class NoLiteralBoolComparisonsTest extends LintRuleTest {
   @override
   String get lintRule => LintNames.no_literal_bool_comparisons;
 
-  test_true_eqeq_x_localVariable_nonNullableBool() async {
+  test_ampersand_true() async {
     await assertDiagnostics(
       r'''
-void f(bool x) {
-  while (true == x) {}
+void f(bool value) {
+  if (value & true) {}
 }
 ''',
-      [lint(26, 4)],
+      [lint(35, 4)],
     );
   }
 
-  test_x_bangeq_true_expression_nonNullableBool() async {
+  test_ampersandAmpersand_true() async {
+    await assertDiagnostics(
+      r'''
+void f(bool value) {
+  if (value && true) {}
+}
+''',
+      [lint(36, 4)],
+    );
+  }
+
+  test_bangeq_true_expression_nonNullableBool() async {
     await assertDiagnostics(
       r'''
 void f(bool x, bool y) {
@@ -39,7 +50,49 @@ void f(bool x, bool y) {
     );
   }
 
-  test_x_eqeq_true_field_nonNullableBool() async {
+  test_bar_true() async {
+    await assertDiagnostics(
+      r'''
+void f(bool value) {
+  if (value | true) {}
+}
+''',
+      [lint(35, 4)],
+    );
+  }
+
+  test_barBar_true() async {
+    await assertDiagnostics(
+      r'''
+void f(bool value) {
+  if (value || true) {}
+}
+''',
+      [lint(36, 4)],
+    );
+  }
+
+  test_caret_true() async {
+    await assertDiagnostics(
+      r'''
+void f(bool value) {
+  if (value ^ true) {}
+}
+''',
+      [lint(35, 4)],
+    );
+  }
+
+  test_conditional_both_true() async {
+    // This case should be handled by avoid_bool_literals_in_conditional_expressions
+    await assertNoDiagnostics(r'''
+void f(bool value1, bool value2) {
+  print(value1 ? true : true);
+}
+''');
+  }
+
+  test_eqeq_true_field_nonNullableBool() async {
     await assertDiagnostics(
       r'''
 void f(C c) {
@@ -53,7 +106,18 @@ abstract class C {
     );
   }
 
-  test_x_eqeq_true_localVariable_nonNullableBool() async {
+  test_eqeq_true_invocation() async {
+    await assertDiagnostics(
+      r'''
+void f(bool Function() fn) {
+  if (fn() == true) {}
+}
+''',
+      [lint(43, 4)],
+    );
+  }
+
+  test_eqeq_true_localVariable_nonNullableBool() async {
     await assertDiagnostics(
       r'''
 void f(bool x) {
@@ -64,11 +128,35 @@ void f(bool x) {
     );
   }
 
-  test_x_eqeq_true_nullableBool() async {
+  test_eqeq_true_nullableBool() async {
     await assertNoDiagnostics(r'''
 void f(bool? x) {
   print(x == true);
 }
 ''');
+  }
+
+  test_eqeq_true_propertyAccess() async {
+    await assertDiagnostics(
+      r'''
+extension E on List {
+  void m() {
+    if (this.isNotEmpty == true) {}
+  }
+}
+''',
+      [lint(62, 4)],
+    );
+  }
+
+  test_true_eqeq_localVariable_nonNullableBool() async {
+    await assertDiagnostics(
+      r'''
+void f(bool x) {
+  while (true == x) {}
+}
+''',
+      [lint(26, 4)],
+    );
   }
 }

@@ -5,6 +5,7 @@
 import 'dart:io';
 
 import 'package:dart_mcp/client.dart';
+import 'package:dart_mcp/stdio.dart';
 import 'package:test/test.dart';
 
 void main() {
@@ -19,23 +20,25 @@ void main() {
           'mcp-server',
           if (withExperiment) '--experimental-mcp-server',
         ]);
-        final serverConnection = client.connectStdioServer(
-            process.stdin, process.stdout,
-            onDone: process.kill);
-        final initializeResult = await serverConnection.initialize(
-            InitializeRequest(
-                protocolVersion: ProtocolVersion.latestSupported,
-                capabilities: client.capabilities,
-                clientInfo: client.implementation));
+
+        final connection = client.connectServer(
+          stdioChannel(input: process.stdout, output: process.stdin),
+        );
+        connection.done.then((_) => process.kill());
+
+        final initializeResult = await connection.initialize(
+          InitializeRequest(
+            protocolVersion: ProtocolVersion.latestSupported,
+            capabilities: client.capabilities,
+            clientInfo: client.implementation,
+          ),
+        );
 
         expect(
             initializeResult.protocolVersion, ProtocolVersion.latestSupported);
-        serverConnection.notifyInitialized();
+        connection.notifyInitialized();
 
-        expect(
-          await serverConnection.listTools(ListToolsRequest()),
-          isNotEmpty,
-        );
+        expect(await connection.listTools(ListToolsRequest()), isNotEmpty);
       });
     }
   });

@@ -4,7 +4,7 @@
 
 import 'dart:io' show File;
 
-import 'package:dart_style/dart_style.dart' show DartFormatter;
+import 'package:analyzer_utilities/tools.dart';
 
 import '../test/utils/io_utils.dart' show computeRepoDirUri;
 import 'generate_messages_lib.dart';
@@ -16,20 +16,27 @@ void main(List<String> arguments) {
   Messages message = generateMessagesFiles(repoDir);
   if (message.sharedMessages.trim().isEmpty ||
       message.cfeMessages.trim().isEmpty) {
-    print("Bailing because of errors: "
-        "Refusing to overwrite with empty file!");
+    print(
+      "Bailing because of errors: "
+      "Refusing to overwrite with empty file!",
+    );
   } else {
-    new File.fromUri(computeSharedGeneratedFile(repoDir))
-        .writeAsStringSync(message.sharedMessages, flush: true);
-    new File.fromUri(computeCfeGeneratedFile(repoDir))
-        .writeAsStringSync(message.cfeMessages, flush: true);
+    _writeAndFormat(
+      new File.fromUri(computeSharedGeneratedFile(repoDir)),
+      message.sharedMessages,
+    );
+    _writeAndFormat(
+      new File.fromUri(computeCfeGeneratedFile(repoDir)),
+      message.cfeMessages,
+    );
   }
 }
 
+void _writeAndFormat(File file, String contents) {
+  file.writeAsStringSync(contents, flush: true);
+  DartFormat.formatFile(file);
+}
+
 Messages generateMessagesFiles(Uri repoDir) {
-  return generateMessagesFilesRaw(
-      repoDir,
-      (s) => new DartFormatter(
-              languageVersion: DartFormatter.latestShortStyleLanguageVersion)
-          .format(s));
+  return generateMessagesFilesRaw(repoDir);
 }

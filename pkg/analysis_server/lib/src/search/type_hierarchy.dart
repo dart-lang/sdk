@@ -71,10 +71,9 @@ class TypeHierarchyComputer {
       var subMemberElementDeclared = subMemberElement?.nonSynthetic;
       subItem = TypeHierarchyItem(
         convertElement(subElement),
-        memberElement:
-            subMemberElementDeclared != null
-                ? convertElement(subMemberElementDeclared)
-                : null,
+        memberElement: subMemberElementDeclared != null
+            ? convertElement(subMemberElementDeclared)
+            : null,
         superclass: itemId,
       );
       var subItemId = _items.length;
@@ -124,10 +123,9 @@ class TypeHierarchyComputer {
       item = TypeHierarchyItem(
         convertElement(classElement),
         displayName: displayName,
-        memberElement:
-            memberElementDeclared != null
-                ? convertElement(memberElementDeclared)
-                : null,
+        memberElement: memberElementDeclared != null
+            ? convertElement(memberElementDeclared)
+            : null,
       );
       _elementItemMap[classElement] = item;
       itemId = _items.length;
@@ -161,7 +159,7 @@ class TypeHierarchyComputer {
 
 class TypeHierarchyComputerHelper {
   final Element pivotElement;
-  final LibraryElement pivotLibrary;
+  final LibraryElement? pivotLibrary;
   final ElementKind pivotKind;
   final String? pivotName;
   final bool pivotFieldFinal;
@@ -194,7 +192,7 @@ class TypeHierarchyComputerHelper {
 
     return TypeHierarchyComputerHelper(
       pivotElement,
-      pivotElement.library!,
+      pivotElement.library,
       pivotElement.kind,
       pivotElement.name,
       pivotFieldFinal,
@@ -213,6 +211,12 @@ class TypeHierarchyComputerHelper {
     if (pivotName == null) {
       return null;
     }
+
+    var pivotLibrary = this.pivotLibrary;
+    if (pivotLibrary == null) {
+      return null;
+    }
+
     ExecutableElement? result;
     // try to find in the class itself
     if (pivotKind == ElementKind.METHOD) {

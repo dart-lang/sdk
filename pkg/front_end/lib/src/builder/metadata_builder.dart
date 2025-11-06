@@ -2,20 +2,36 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:_fe_analyzer_shared/src/scanner/scanner.dart' show Token;
 import 'package:_fe_analyzer_shared/src/metadata/expressions.dart' as shared;
+import 'package:_fe_analyzer_shared/src/scanner/scanner.dart' show Token;
 import 'package:kernel/ast.dart';
 import 'package:kernel/clone.dart';
 
+import '../base/extension_scope.dart';
 import '../base/loader.dart';
 import '../base/scope.dart' show LookupScope;
-import '../kernel/body_builder.dart' show BodyBuilder;
 import '../kernel/body_builder_context.dart';
-import '../kernel/macro/metadata.dart';
+import '../kernel/macro/metadata.dart' hide ExtensionScope;
 import '../source/source_library_builder.dart' show SourceLibraryBuilder;
 
 bool computeSharedExpressionForTesting = false;
 bool delaySharedExpressionLookupForTesting = false;
+
+class Annotation {
+  final MetadataBuilder metadataBuilder;
+
+  final Token atToken;
+  final bool createFileUriExpression;
+
+  Annotation(
+    this.metadataBuilder,
+    this.atToken, {
+    required this.createFileUriExpression,
+  });
+
+  late int annotationIndex;
+  late Expression expression;
+}
 
 class MetadataBuilder {
   /// Token for `@` for annotations that have not yet been parsed.
@@ -35,8 +51,8 @@ class MetadataBuilder {
   final Uri fileUri;
 
   MetadataBuilder(Token this._atToken, this.fileUri)
-      : atOffset = _atToken.charOffset,
-        hasPatch = _atToken.next?.lexeme == 'patch';
+    : atOffset = _atToken.charOffset,
+      hasPatch = _atToken.next?.lexeme == 'patch';
 
   // Coverage-ignore(suite): Not run.
   Token? get beginToken => _atToken;
@@ -52,65 +68,57 @@ class MetadataBuilder {
   shared.Expression? get unresolvedExpressionForTesting =>
       _unresolvedSharedExpressionForTesting;
 
-  static void buildAnnotations(
-      {required Annotatable annotatable,
-      required Uri annotatableFileUri,
-      required List<MetadataBuilder>? metadata,
-      required BodyBuilderContext bodyBuilderContext,
-      required SourceLibraryBuilder libraryBuilder,
-      required LookupScope scope}) {
+  static void buildAnnotations({
+    required Annotatable annotatable,
+    required Uri annotatableFileUri,
+    required List<MetadataBuilder>? metadata,
+    required Uri annotationsFileUri,
+    required BodyBuilderContext bodyBuilderContext,
+    required SourceLibraryBuilder libraryBuilder,
+    required ExtensionScope extensionScope,
+    required LookupScope scope,
+  }) {
     if (metadata == null) return;
 
-    // [BodyBuilder] used to build annotations from [Token]s.
-    BodyBuilder? bodyBuilder;
     // Cloner used to clone already parsed annotations.
     CloneVisitorNotMembers? cloner;
 
-    // Map from annotation builder of parsed annotations to the index of the
-    // corresponding annotation in `parent.annotations`.
-    //
-    // This is used to read the fully inferred annotation from [parent] and
-    // store it in `_expression` of the corresponding [MetadataBuilder].
-    Map<MetadataBuilder, int> parsedAnnotationBuilders = {};
-
+    List<Annotation> annotations = [];
     for (int i = 0; i < metadata.length; ++i) {
       MetadataBuilder annotationBuilder = metadata[i];
       bool createFileUriExpression =
           annotatableFileUri != annotationBuilder.fileUri;
       Token? beginToken = annotationBuilder._atToken;
+      annotationBuilder._atToken = null;
       if (beginToken != null) {
         if (computeSharedExpressionForTesting) {
           // Coverage-ignore-block(suite): Not run.
           annotationBuilder._sharedExpression = _parseSharedExpression(
-              libraryBuilder.loader,
-              beginToken,
-              libraryBuilder.importUri,
-              annotationBuilder.fileUri,
-              scope);
+            libraryBuilder.loader,
+            beginToken,
+            libraryBuilder.importUri,
+            annotationBuilder.fileUri,
+            scope,
+          );
           if (delaySharedExpressionLookupForTesting) {
             annotationBuilder._unresolvedSharedExpressionForTesting =
-                _parseSharedExpression(libraryBuilder.loader, beginToken,
-                    libraryBuilder.importUri, annotationBuilder.fileUri, scope,
-                    delayLookupForTesting: true);
+                _parseSharedExpression(
+                  libraryBuilder.loader,
+                  beginToken,
+                  libraryBuilder.importUri,
+                  annotationBuilder.fileUri,
+                  scope,
+                  delayLookupForTesting: true,
+                );
           }
         }
-
-        bodyBuilder ??= libraryBuilder.loader
-            .createBodyBuilderForOutlineExpression(libraryBuilder,
-                bodyBuilderContext, scope, annotationBuilder.fileUri);
-        Expression annotation = bodyBuilder.parseAnnotation(beginToken);
-        annotationBuilder._atToken = null;
-        if (createFileUriExpression) {
-          annotation =
-              new FileUriExpression(annotation, annotationBuilder.fileUri)
-                ..fileOffset = annotationBuilder.atOffset;
-        }
-        // Record the index of [annotation] in `parent.annotations`.
-        parsedAnnotationBuilders[annotationBuilder] =
-            annotatable.annotations.length;
-        // It is important for the inference and backlog computations that the
-        // annotation is already a child of [parent].
-        annotatable.addAnnotation(annotation);
+        annotations.add(
+          new Annotation(
+            annotationBuilder,
+            beginToken,
+            createFileUriExpression: createFileUriExpression,
+          ),
+        );
       } else {
         // The annotation is needed for multiple declarations so we need to
         // clone the expression to use it more than once. For instance
@@ -130,36 +138,49 @@ class MetadataBuilder {
         //     }
         //
         cloner ??= new CloneVisitorNotMembers();
-        Expression annotation =
-            cloner.cloneInContext(annotationBuilder._expression!);
+        Expression annotation = cloner.cloneInContext(
+          annotationBuilder._expression!,
+        );
         // Coverage-ignore(suite): Not run.
         if (createFileUriExpression && annotation is! FileUriExpression) {
-          annotation =
-              new FileUriExpression(annotation, annotationBuilder.fileUri)
-                ..fileOffset = annotationBuilder.atOffset;
+          annotation = new FileUriExpression(
+            annotation,
+            annotationBuilder.fileUri,
+          )..fileOffset = annotationBuilder.atOffset;
         }
         annotatable.addAnnotation(annotation);
       }
     }
-    if (bodyBuilder != null) {
-      // TODO(johnniwinther): Avoid potentially inferring annotations multiple
-      // times.
-      bodyBuilder.inferAnnotations(annotatable, annotatable.annotations);
-      bodyBuilder.performBacklogComputations();
-      for (MapEntry<MetadataBuilder, int> entry
-          in parsedAnnotationBuilders.entries) {
-        MetadataBuilder annotationBuilder = entry.key;
-        int index = entry.value;
-        annotationBuilder._expression = annotatable.annotations[index];
-      }
+    libraryBuilder.loader.createResolver().buildAnnotations(
+      libraryBuilder: libraryBuilder,
+      bodyBuilderContext: bodyBuilderContext,
+      annotationsFileUri: annotationsFileUri,
+      extensionScope: extensionScope,
+      scope: scope,
+      annotatable: annotatable,
+      annotations: annotations,
+    );
+    for (Annotation annotation in annotations) {
+      annotation.metadataBuilder._expression = annotation.expression;
     }
   }
 }
 
 // Coverage-ignore(suite): Not run.
 shared.Expression _parseSharedExpression(
-    Loader loader, Token atToken, Uri importUri, Uri fileUri, LookupScope scope,
-    {bool delayLookupForTesting = false}) {
-  return parseAnnotation(loader, atToken, importUri, fileUri, scope,
-      delayLookupForTesting: delayLookupForTesting);
+  Loader loader,
+  Token atToken,
+  Uri importUri,
+  Uri fileUri,
+  LookupScope scope, {
+  bool delayLookupForTesting = false,
+}) {
+  return parseAnnotation(
+    loader,
+    atToken,
+    importUri,
+    fileUri,
+    scope,
+    delayLookupForTesting: delayLookupForTesting,
+  );
 }

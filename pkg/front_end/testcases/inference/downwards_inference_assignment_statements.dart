@@ -2,13 +2,12 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/*@testedFeatures=inference*/
 library test;
 
 void test() {
   List<int> l;
-  l = /*@typeArgs=int*/ [/*error:LIST_ELEMENT_TYPE_NOT_ASSIGNABLE*/ "hello"];
-  l = (l = /*@typeArgs=int*/ [1]);
+  l = [/*error:LIST_ELEMENT_TYPE_NOT_ASSIGNABLE*/ "hello"];
+  l = (l = [1]);
 }
 
 main() {}

@@ -17,7 +17,7 @@ void main() {
 @reflectiveTest
 class AddRequiredKeywordTest extends FixProcessorTest {
   @override
-  FixKind get kind => DartFixKind.ADD_REQUIRED;
+  FixKind get kind => DartFixKind.addRequired;
 
   Future<void> test_nonNullable() async {
     await resolveTestCode('''

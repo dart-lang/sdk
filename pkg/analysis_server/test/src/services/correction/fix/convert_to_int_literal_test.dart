@@ -36,7 +36,7 @@ double d2 = 700;
 @reflectiveTest
 class ConvertToIntLiteralTest extends FixProcessorLintTest {
   @override
-  FixKind get kind => DartFixKind.CONVERT_TO_INT_LITERAL;
+  FixKind get kind => DartFixKind.convertToIntLiteral;
 
   @override
   String get lintCode => LintNames.prefer_int_literals;

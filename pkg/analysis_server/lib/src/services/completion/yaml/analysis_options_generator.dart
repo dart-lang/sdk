@@ -8,9 +8,9 @@ import 'package:analysis_server/src/services/completion/yaml/yaml_completion_gen
 import 'package:analyzer/dart/analysis/formatter_options.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/file_system/file_system.dart';
+import 'package:analyzer/src/analysis_options/analysis_options_file.dart';
 import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer/src/lint/registry.dart';
-import 'package:analyzer/src/task/options.dart';
 
 /// A completion generator that can produce completion suggestions for analysis
 /// options files.
@@ -73,12 +73,13 @@ class _ErrorProducer extends KeyValueProducer {
 
   @override
   Iterable<CompletionSuggestion> suggestions(YamlCompletionRequest request) {
-    return [
+    // There may be overlaps in these names, so use a set.
+    var names = {
       for (var diagnostic in diagnosticCodeValues)
-        identifier('${diagnostic.name.toLowerCase()}: '),
-      for (var rule in Registry.ruleRegistry.rules)
-        identifier('${rule.name}: '),
-    ];
+        diagnostic.name.toLowerCase(),
+      for (var rule in Registry.ruleRegistry.rules) rule.name,
+    };
+    return {for (var name in names) identifier('$name: ')};
   }
 }
 

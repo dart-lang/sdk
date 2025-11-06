@@ -24,7 +24,7 @@ f() {
   }
 }
 ''',
-      [error(WarningCode.UNUSED_CATCH_CLAUSE, 35, 9)],
+      [error(WarningCode.unusedCatchClause, 35, 9)],
     );
   }
 
@@ -37,7 +37,7 @@ f() {
   }
 }
 ''',
-      [error(WarningCode.UNUSED_CATCH_STACK, 46, 2)],
+      [error(WarningCode.unusedCatchStack, 46, 2)],
     );
   }
 

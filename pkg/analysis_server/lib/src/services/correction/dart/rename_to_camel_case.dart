@@ -42,7 +42,7 @@ class RenameToCamelCase extends ResolvedCorrectionProducer {
       element = node.declaredFragment?.element;
     } else if (node is VariableDeclaration) {
       nameToken = node.name;
-      element = node.declaredElement ?? node.declaredFragment?.element;
+      element = node.declaredFragment?.element;
     } else if (node is RecordTypeAnnotationField) {
       // RecordTypeAnnotationFields do not have Elements.
       nameToken = node.name;
@@ -80,14 +80,13 @@ class RenameToCamelCase extends ResolvedCorrectionProducer {
       }
     } else if (element is FormalParameterElement) {
       if (!element.isNamed) {
-        var root =
-            node
-                .thisOrAncestorMatching(
-                  (node) =>
-                      node.parent is FunctionDeclaration ||
-                      node.parent is MethodDeclaration,
-                )
-                ?.parent;
+        var root = node
+            .thisOrAncestorMatching(
+              (node) =>
+                  node.parent is FunctionDeclaration ||
+                  node.parent is MethodDeclaration,
+            )
+            ?.parent;
         if (root != null) {
           references = findLocalElementReferences(root, element);
         }

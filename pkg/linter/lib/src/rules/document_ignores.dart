@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/analysis_rule/rule_context.dart';
+import 'package:analyzer/analysis_rule/rule_visitor_registry.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/error/error.dart';
@@ -23,10 +24,13 @@ class DocumentIgnores extends LintRule {
     : super(name: LintNames.document_ignores, description: _desc);
 
   @override
-  DiagnosticCode get diagnosticCode => LinterLintCode.document_ignores;
+  DiagnosticCode get diagnosticCode => LinterLintCode.documentIgnores;
 
   @override
-  void registerNodeProcessors(NodeLintRegistry registry, RuleContext context) {
+  void registerNodeProcessors(
+    RuleVisitorRegistry registry,
+    RuleContext context,
+  ) {
     var visitor = _Visitor(this, context);
     registry.addCompilationUnit(this, visitor);
   }
@@ -52,8 +56,9 @@ class _Visitor extends SimpleAstVisitor<void> {
         continue;
       }
 
-      var ignoreCommentLine =
-          node.lineInfo.getLocation(comment.offset).lineNumber;
+      var ignoreCommentLine = node.lineInfo
+          .getLocation(comment.offset)
+          .lineNumber;
       if (ignoreCommentLine > 1) {
         // Only look at the line above if the ignore comment line is not the
         // first line.

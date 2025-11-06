@@ -20,22 +20,26 @@ import 'lowering_predicates.dart' show isExtensionThisName;
 
 // Coverage-ignore(suite): Not run.
 Map<String, DartType>? createDefinitionsWithTypes(
-    Iterable<Library>? knownLibraries,
-    List<String> definitionTypes,
-    List<String> definitions) {
+  Iterable<Library>? knownLibraries,
+  List<String> definitionTypes,
+  List<String> definitions,
+) {
   if (knownLibraries == null) {
     return null;
   }
 
-  List<ParsedType> definitionTypesParsed =
-      parseDefinitionTypes(definitionTypes);
+  List<ParsedType> definitionTypesParsed = parseDefinitionTypes(
+    definitionTypes,
+  );
   if (definitionTypesParsed.length != definitions.length) {
     return null;
   }
 
   Set<String> libraryUris = collectParsedTypeUris(definitionTypesParsed);
-  LibraryIndex libraryIndex =
-      new LibraryIndex.fromLibraries(knownLibraries, libraryUris);
+  LibraryIndex libraryIndex = new LibraryIndex.fromLibraries(
+    knownLibraries,
+    libraryUris,
+  );
 
   Map<String, DartType> completeDefinitions = {};
   for (int i = 0; i < definitions.length; i++) {
@@ -51,10 +55,11 @@ Map<String, DartType>? createDefinitionsWithTypes(
 
 // Coverage-ignore(suite): Not run.
 List<TypeParameter>? createTypeParametersWithBounds(
-    Iterable<Library>? knownLibraries,
-    List<String> typeBounds,
-    List<String> typeDefaults,
-    List<String> typeDefinitions) {
+  Iterable<Library>? knownLibraries,
+  List<String> typeBounds,
+  List<String> typeDefaults,
+  List<String> typeDefinitions,
+) {
   if (knownLibraries == null) {
     return null;
   }
@@ -70,8 +75,10 @@ List<TypeParameter>? createTypeParametersWithBounds(
 
   Set<String> libraryUris = collectParsedTypeUris(typeBoundsParsed)
     ..addAll(collectParsedTypeUris(typeDefaultsParsed));
-  LibraryIndex libraryIndex =
-      new LibraryIndex.fromLibraries(knownLibraries, libraryUris);
+  LibraryIndex libraryIndex = new LibraryIndex.fromLibraries(
+    knownLibraries,
+    libraryUris,
+  );
 
   List<TypeParameter> typeParameters = [];
   for (int i = 0; i < typeDefinitions.length; i++) {
@@ -81,8 +88,9 @@ List<TypeParameter>? createTypeParametersWithBounds(
     DartType dartTypeBound = bound.createDartType(libraryIndex);
     ParsedType defaultType = typeDefaultsParsed[i];
     DartType dartTypeDefaultType = defaultType.createDartType(libraryIndex);
-    typeParameters
-        .add(new TypeParameter(name, dartTypeBound, dartTypeDefaultType));
+    typeParameters.add(
+      new TypeParameter(name, dartTypeBound, dartTypeDefaultType),
+    );
   }
   return typeParameters;
 }
@@ -98,10 +106,9 @@ List<ParsedType> parseDefinitionTypes(List<String> definitionTypes) {
       if (argumentReceivers.isEmpty) {
         result.add(new ParsedType.nullType());
       } else {
-        argumentReceivers
-            .removeLast()
-            .arguments!
-            .add(new ParsedType.nullType());
+        argumentReceivers.removeLast().arguments!.add(
+          new ParsedType.nullType(),
+        );
       }
       i++;
       continue;
@@ -136,8 +143,11 @@ List<ParsedType> parseDefinitionTypes(List<String> definitionTypes) {
       String className = definitionTypes[i + 1];
       int nullability = int.parse(definitionTypes[i + 2]);
       int typeArgumentsCount = int.parse(definitionTypes[i + 3]);
-      ParsedType type =
-          new ParsedType.interface(uriOrSpecialString, className, nullability);
+      ParsedType type = new ParsedType.interface(
+        uriOrSpecialString,
+        className,
+        nullability,
+      );
       if (argumentReceivers.isEmpty) {
         result.add(type);
       } else {
@@ -155,11 +165,7 @@ List<ParsedType> parseDefinitionTypes(List<String> definitionTypes) {
   return result;
 }
 
-enum ParsedTypeKind {
-  Null,
-  Interface,
-  Record,
-}
+enum ParsedTypeKind { Null, Interface, Record }
 
 // Coverage-ignore(suite): Not run.
 class ParsedType {
@@ -171,23 +177,23 @@ class ParsedType {
   final List<String?>? recordFieldNames;
 
   ParsedType.interface(this.uri, this.className, this.nullability)
-      : type = ParsedTypeKind.Interface,
-        arguments = [],
-        recordFieldNames = null;
+    : type = ParsedTypeKind.Interface,
+      arguments = [],
+      recordFieldNames = null;
 
   ParsedType.record(this.nullability, this.recordFieldNames)
-      : type = ParsedTypeKind.Record,
-        uri = null,
-        className = null,
-        arguments = [];
+    : type = ParsedTypeKind.Record,
+      uri = null,
+      className = null,
+      arguments = [];
 
   ParsedType.nullType()
-      : type = ParsedTypeKind.Null,
-        uri = null,
-        className = null,
-        nullability = null,
-        arguments = null,
-        recordFieldNames = null;
+    : type = ParsedTypeKind.Null,
+      uri = null,
+      className = null,
+      nullability = null,
+      arguments = null,
+      recordFieldNames = null;
 
   @override
   bool operator ==(Object other) {
@@ -267,11 +273,12 @@ class ParsedType {
         if (classNode == null) return new DynamicType();
 
         return new InterfaceType(
-            classNode,
-            _getDartNullability(),
-            arguments
-                ?.map((e) => e.createDartType(libraryIndex))
-                .toList(growable: false));
+          classNode,
+          _getDartNullability(),
+          arguments
+              ?.map((e) => e.createDartType(libraryIndex))
+              .toList(growable: false),
+        );
     }
   }
 

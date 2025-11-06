@@ -22,7 +22,7 @@ bool m(i) {
   return i is! Null;
 }
 ''',
-      [error(WarningCode.TYPE_CHECK_IS_NOT_NULL, 21, 10)],
+      [error(WarningCode.typeCheckIsNotNull, 21, 10)],
     );
   }
 }

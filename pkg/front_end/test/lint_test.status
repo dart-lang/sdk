@@ -5,7 +5,6 @@
 _fe_analyzer_shared/lib/src/debug_helpers/debug_helpers/Exports: Fail
 _fe_analyzer_shared/lib/src/metadata/ast/Exports: Fail
 _fe_analyzer_shared/lib/src/parser/parser/Exports: Fail
-_fe_analyzer_shared/lib/src/scanner/errors/Exports: Fail
 _fe_analyzer_shared/lib/src/scanner/scanner/Exports: Fail
 front_end/lib/src/api_prototype/codes/Exports: Fail
 front_end/lib/src/api_prototype/compiler_options/Exports: Fail
@@ -26,3 +25,4 @@ front_end/lib/src/debug_helpers/Exports: Fail
 front_end/lib/src/testing/id_testing_helper/Exports: Fail
 kernel/lib/ast/Exports: Fail
 kernel/lib/kernel/Exports: Fail
+kernel/lib/src/debug_helpers/Exports: Fail

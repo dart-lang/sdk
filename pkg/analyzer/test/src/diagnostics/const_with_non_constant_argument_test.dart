@@ -26,7 +26,7 @@ var v = 42;
 main() {
 }
 ''',
-      [error(CompileTimeErrorCode.CONST_WITH_NON_CONSTANT_ARGUMENT, 45, 1)],
+      [error(CompileTimeErrorCode.constWithNonConstantArgument, 45, 1)],
     );
   }
 
@@ -45,8 +45,8 @@ class Foo {
 }
 ''',
       [
-        error(CompileTimeErrorCode.CONST_WITH_NON_CONSTANT_ARGUMENT, 94, 3),
-        error(CompileTimeErrorCode.UNDEFINED_IDENTIFIER, 94, 3),
+        error(CompileTimeErrorCode.constWithNonConstantArgument, 94, 3),
+        error(CompileTimeErrorCode.undefinedIdentifier, 94, 3),
       ],
     );
   }
@@ -61,7 +61,7 @@ enum E {
   const E(_);
 }
 ''',
-      [error(CompileTimeErrorCode.CONST_WITH_NON_CONSTANT_ARGUMENT, 26, 1)],
+      [error(CompileTimeErrorCode.constWithNonConstantArgument, 26, 1)],
     );
   }
 
@@ -82,7 +82,7 @@ class A {
 }
 f(p) { return const A(p); }
 ''',
-      [error(CompileTimeErrorCode.CONST_WITH_NON_CONSTANT_ARGUMENT, 48, 1)],
+      [error(CompileTimeErrorCode.constWithNonConstantArgument, 48, 1)],
     );
   }
 
@@ -98,7 +98,7 @@ void main() {
   const C(() {});
 }
 ''',
-      [error(CompileTimeErrorCode.CONST_WITH_NON_CONSTANT_ARGUMENT, 83, 5)],
+      [error(CompileTimeErrorCode.constWithNonConstantArgument, 83, 5)],
     );
   }
 }

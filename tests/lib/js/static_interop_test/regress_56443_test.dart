@@ -9,7 +9,10 @@ class A {
     Function f = (int x) => x;
     f.toJS;
     //^
-    // [web] `Function.toJS` requires a statically known function type, but Type 'Function' is not a precise function type, e.g., `void Function()`.
+    // [web] Functions converted via 'toJS' require a statically known function type, but Type 'Function' is not a precise function type, e.g., `void Function()`.
+    f.toJSCaptureThis;
+    //^
+    // [web] Functions converted via 'toJSCaptureThis' require a statically known function type, but Type 'Function' is not a precise function type, e.g., `void Function()`.
   }
 }
 

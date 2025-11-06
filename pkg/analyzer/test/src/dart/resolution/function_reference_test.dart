@@ -39,7 +39,7 @@ FunctionReference
       constructorName: ConstructorName
         type: NamedType
           name: A
-          element2: <testLibrary>::@class::A
+          element: <testLibrary>::@class::A
           type: null
         period: .
         name: SimpleIdentifier
@@ -55,7 +55,7 @@ FunctionReference
     arguments
       NamedType
         name: int
-        element2: dart:core::@class::int
+        element: dart:core::@class::int
         type: int
     rightBracket: >
   staticType: A<int> Function()
@@ -81,7 +81,7 @@ FunctionReference
       constructorName: ConstructorName
         type: NamedType
           name: A
-          element2: <testLibrary>::@class::A
+          element: <testLibrary>::@class::A
           type: null
         period: .
         name: SimpleIdentifier
@@ -97,7 +97,7 @@ FunctionReference
     arguments
       NamedType
         name: int
-        element2: dart:core::@class::int
+        element: dart:core::@class::int
         type: int
     rightBracket: >
   staticType: A<int> Function()
@@ -117,7 +117,7 @@ var x = A.foo<int>;
 ''',
       [
         error(
-          CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_CONSTRUCTOR,
+          CompileTimeErrorCode.wrongNumberOfTypeArgumentsConstructor,
           42,
           5,
           messageContains: ["'A.foo'"],
@@ -131,7 +131,7 @@ FunctionReference
     constructorName: ConstructorName
       type: NamedType
         name: A
-        element2: <testLibrary>::@class::A
+        element: <testLibrary>::@class::A
         type: null
       period: .
       name: SimpleIdentifier
@@ -145,7 +145,7 @@ FunctionReference
     arguments
       NamedType
         name: int
-        element2: dart:core::@class::int
+        element: dart:core::@class::int
         type: int
     rightBracket: >
   staticType: InvalidType
@@ -160,7 +160,7 @@ var x = a.Future.delayed<int>;
 ''',
       [
         error(
-          CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_CONSTRUCTOR,
+          CompileTimeErrorCode.wrongNumberOfTypeArgumentsConstructor,
           50,
           5,
           messageContains: ["'a.Future.delayed'"],
@@ -177,9 +177,9 @@ FunctionReference
         importPrefix: ImportPrefixReference
           name: a
           period: .
-          element2: <testLibraryFragment>::@prefix2::a
+          element: <testLibraryFragment>::@prefix2::a
         name: Future
-        element2: dart:async::@class::Future
+        element: dart:async::@class::Future
         type: null
       period: .
       name: SimpleIdentifier
@@ -193,7 +193,7 @@ FunctionReference
     arguments
       NamedType
         name: int
-        element2: dart:core::@class::int
+        element: dart:core::@class::int
         type: int
     rightBracket: >
   staticType: InvalidType
@@ -212,7 +212,7 @@ void bar() {
 ''',
       [
         error(
-          CompileTimeErrorCode.DISALLOWED_TYPE_INSTANTIATION_EXPRESSION,
+          CompileTimeErrorCode.disallowedTypeInstantiationExpression,
           31,
           1,
         ),
@@ -230,7 +230,7 @@ FunctionReference
     arguments
       NamedType
         name: int
-        element2: dart:core::@class::int
+        element: dart:core::@class::int
         type: int
     rightBracket: >
   staticType: InvalidType
@@ -248,7 +248,7 @@ void bar() {
 ''',
       [
         error(
-          CompileTimeErrorCode.DISALLOWED_TYPE_INSTANTIATION_EXPRESSION,
+          CompileTimeErrorCode.disallowedTypeInstantiationExpression,
           31,
           1,
         ),
@@ -266,7 +266,7 @@ FunctionReference
     arguments
       NamedType
         name: int
-        element2: dart:core::@class::int
+        element: dart:core::@class::int
         type: int
     rightBracket: >
   staticType: InvalidType
@@ -284,7 +284,7 @@ foo() {
 ''',
       [
         error(
-          CompileTimeErrorCode.GENERIC_METHOD_TYPE_INSTANTIATION_ON_DYNAMIC,
+          CompileTimeErrorCode.genericMethodTypeInstantiationOnDynamic,
           29,
           23,
         ),
@@ -317,7 +317,7 @@ FunctionReference
     arguments
       NamedType
         name: int
-        element2: dart:core::@class::int
+        element: dart:core::@class::int
         type: int
     rightBracket: >
   staticType: InvalidType
@@ -332,7 +332,7 @@ bar() {
   a.foo<int>;
 }
 ''',
-      [error(CompileTimeErrorCode.UNDEFINED_IDENTIFIER, 10, 1)],
+      [error(CompileTimeErrorCode.undefinedIdentifier, 10, 1)],
     );
 
     assertResolvedNodeText(findNode.functionReference('foo<int>;'), r'''
@@ -354,7 +354,7 @@ FunctionReference
     arguments
       NamedType
         name: int
-        element2: dart:core::@class::int
+        element: dart:core::@class::int
         type: int
     rightBracket: >
   staticType: InvalidType
@@ -368,7 +368,7 @@ bar() {
   a.b.foo<int>;
 }
 ''',
-      [error(CompileTimeErrorCode.UNDEFINED_IDENTIFIER, 10, 1)],
+      [error(CompileTimeErrorCode.undefinedIdentifier, 10, 1)],
     );
 
     var node = findNode.functionReference('foo<int>;');
@@ -398,7 +398,7 @@ FunctionReference
     arguments
       NamedType
         name: int
-        element2: dart:core::@class::int
+        element: dart:core::@class::int
         type: int
     rightBracket: >
   staticType: InvalidType
@@ -416,7 +416,7 @@ void foo() {
 ''',
       [
         error(
-          CompileTimeErrorCode.DISALLOWED_TYPE_INSTANTIATION_EXPRESSION,
+          CompileTimeErrorCode.disallowedTypeInstantiationExpression,
           44,
           1,
         ),
@@ -435,7 +435,7 @@ FunctionReference
     arguments
       NamedType
         name: int
-        element2: dart:core::@class::int
+        element: dart:core::@class::int
         type: int
     rightBracket: >
   staticType: InvalidType
@@ -456,7 +456,7 @@ void foo() {
 ''',
       [
         error(
-          CompileTimeErrorCode.DISALLOWED_TYPE_INSTANTIATION_EXPRESSION,
+          CompileTimeErrorCode.disallowedTypeInstantiationExpression,
           38,
           3,
         ),
@@ -483,7 +483,7 @@ FunctionReference
     arguments
       NamedType
         name: int
-        element2: dart:core::@class::int
+        element: dart:core::@class::int
         type: int
     rightBracket: >
   staticType: InvalidType
@@ -505,7 +505,7 @@ bar(A a) {
 ''',
       [
         error(
-          CompileTimeErrorCode.DISALLOWED_TYPE_INSTANTIATION_EXPRESSION,
+          CompileTimeErrorCode.disallowedTypeInstantiationExpression,
           67,
           8,
         ),
@@ -526,7 +526,7 @@ FunctionReference
             element: <testLibrary>::@function::bar::@formalParameter::a
             staticType: A
         rightParenthesis: )
-      element2: <testLibrary>::@extension::E
+      element: <testLibrary>::@extension::E
       extendedType: A
       staticType: null
     operator: .
@@ -540,7 +540,7 @@ FunctionReference
     arguments
       NamedType
         name: int
-        element2: dart:core::@class::int
+        element: dart:core::@class::int
         type: int
     rightBracket: >
   staticType: InvalidType
@@ -572,7 +572,7 @@ FunctionReference
     arguments
       NamedType
         name: int
-        element2: dart:core::@class::int
+        element: dart:core::@class::int
         type: int
     rightBracket: >
   staticType: void Function(int)
@@ -612,7 +612,7 @@ FunctionReference
     arguments
       NamedType
         name: int
-        element2: dart:core::@class::int
+        element: dart:core::@class::int
         type: int
     rightBracket: >
   staticType: void Function(int)
@@ -651,7 +651,7 @@ FunctionReference
             element: <testLibrary>::@function::bar::@formalParameter::a
             staticType: A
         rightParenthesis: )
-      element2: <testLibrary>::@extension::E
+      element: <testLibrary>::@extension::E
       extendedType: A
       staticType: null
     operator: .
@@ -665,7 +665,7 @@ FunctionReference
     arguments
       NamedType
         name: int
-        element2: dart:core::@class::int
+        element: dart:core::@class::int
         type: int
     rightBracket: >
   staticType: void Function(int)
@@ -689,7 +689,7 @@ bar(A a) {
   E(a)..foo<int>;
 }
 ''',
-      [error(CompileTimeErrorCode.EXTENSION_OVERRIDE_WITH_CASCADE, 85, 1)],
+      [error(CompileTimeErrorCode.extensionOverrideWithCascade, 85, 1)],
     );
 
     var reference = findNode.functionReference('foo<int>;');
@@ -707,7 +707,7 @@ FunctionReference
     arguments
       NamedType
         name: int
-        element2: dart:core::@class::int
+        element: dart:core::@class::int
         type: int
     rightBracket: >
   staticType: void Function(int)
@@ -731,7 +731,7 @@ bar(A a) {
 ''',
       [
         error(
-          CompileTimeErrorCode.EXTENSION_OVERRIDE_ACCESS_TO_STATIC_MEMBER,
+          CompileTimeErrorCode.extensionOverrideAccessToStaticMember,
           81,
           3,
         ),
@@ -753,7 +753,7 @@ FunctionReference
             element: <testLibrary>::@function::bar::@formalParameter::a
             staticType: A
         rightParenthesis: )
-      element2: <testLibrary>::@extension::E
+      element: <testLibrary>::@extension::E
       extendedType: A
       staticType: null
     operator: .
@@ -767,7 +767,7 @@ FunctionReference
     arguments
       NamedType
         name: int
-        element2: dart:core::@class::int
+        element: dart:core::@class::int
         type: int
     rightBracket: >
   staticType: void Function(int)
@@ -787,7 +787,7 @@ bar(A a) {
   E(a).foo<int>;
 }
 ''',
-      [error(CompileTimeErrorCode.UNDEFINED_EXTENSION_GETTER, 51, 3)],
+      [error(CompileTimeErrorCode.undefinedExtensionGetter, 51, 3)],
     );
 
     assertResolvedNodeText(findNode.functionReference('foo<int>;'), r'''
@@ -804,7 +804,7 @@ FunctionReference
             element: <testLibrary>::@function::bar::@formalParameter::a
             staticType: A
         rightParenthesis: )
-      element2: <testLibrary>::@extension::E
+      element: <testLibrary>::@extension::E
       extendedType: A
       staticType: null
     operator: .
@@ -818,7 +818,7 @@ FunctionReference
     arguments
       NamedType
         name: int
-        element2: dart:core::@class::int
+        element: dart:core::@class::int
         type: int
     rightBracket: >
   staticType: InvalidType
@@ -850,7 +850,7 @@ FunctionReference
     arguments
       NamedType
         name: int
-        element2: dart:core::@class::int
+        element: dart:core::@class::int
         type: int
     rightBracket: >
   staticType: void Function(int)
@@ -869,9 +869,9 @@ extension on double {
 }
 ''',
       [
-        error(WarningCode.UNUSED_ELEMENT, 24, 3),
+        error(WarningCode.unusedElement, 24, 3),
         error(
-          CompileTimeErrorCode.UNDEFINED_METHOD,
+          CompileTimeErrorCode.undefinedMethod,
           36,
           3,
           messageContains: ["for the type 'double'"],
@@ -890,7 +890,7 @@ FunctionReference
     arguments
       NamedType
         name: int
-        element2: dart:core::@class::int
+        element: dart:core::@class::int
         type: int
     rightBracket: >
   staticType: InvalidType
@@ -925,7 +925,7 @@ FunctionReference
     arguments
       NamedType
         name: int
-        element2: dart:core::@class::int
+        element: dart:core::@class::int
         type: int
     rightBracket: >
   staticType: void Function(int)
@@ -943,13 +943,7 @@ void bar() {
   foo.call<int>;
 }
 ''',
-      [
-        error(
-          CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_FUNCTION,
-          52,
-          5,
-        ),
-      ],
+      [error(CompileTimeErrorCode.wrongNumberOfTypeArgumentsFunction, 52, 5)],
     );
 
     assertResolvedNodeText(findNode.functionReference('foo.call<int>;'), r'''
@@ -971,7 +965,7 @@ FunctionReference
     arguments
       NamedType
         name: int
-        element2: dart:core::@class::int
+        element: dart:core::@class::int
         type: int
     rightBracket: >
   staticType: void Function(dynamic, dynamic)
@@ -990,13 +984,7 @@ void bar() {
   foo.call<int>;
 }
 ''',
-      [
-        error(
-          CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_FUNCTION,
-          46,
-          5,
-        ),
-      ],
+      [error(CompileTimeErrorCode.wrongNumberOfTypeArgumentsFunction, 46, 5)],
     );
 
     assertResolvedNodeText(findNode.functionReference('foo.call<int>;'), r'''
@@ -1018,7 +1006,7 @@ FunctionReference
     arguments
       NamedType
         name: int
-        element2: dart:core::@class::int
+        element: dart:core::@class::int
         type: int
     rightBracket: >
   staticType: void Function(String)
@@ -1053,7 +1041,7 @@ FunctionReference
     arguments
       NamedType
         name: String
-        element2: dart:core::@class::String
+        element: dart:core::@class::String
         type: String
     rightBracket: >
   staticType: void Function(String)
@@ -1096,7 +1084,7 @@ FunctionReference
     arguments
       NamedType
         name: int
-        element2: dart:core::@class::int
+        element: dart:core::@class::int
         type: int
     rightBracket: >
   staticType: void Function(int)
@@ -1118,7 +1106,7 @@ extension E on Function {
   static void m<T>(T t) {}
 }
 ''',
-      [error(CompileTimeErrorCode.UNDEFINED_GETTER, 40, 1)],
+      [error(CompileTimeErrorCode.undefinedGetter, 40, 1)],
     );
 
     assertResolvedNodeText(findNode.functionReference('foo.m<int>;'), r'''
@@ -1140,7 +1128,7 @@ FunctionReference
     arguments
       NamedType
         name: int
-        element2: dart:core::@class::int
+        element: dart:core::@class::int
         type: int
     rightBracket: >
   staticType: InvalidType
@@ -1165,7 +1153,7 @@ ImplicitCallReference
     constructorName: ConstructorName
       type: NamedType
         name: C
-        element2: <testLibrary>::@class::C
+        element: <testLibrary>::@class::C
         type: C
       element: <testLibrary>::@class::C::@constructor::new
     argumentList: ArgumentList
@@ -1177,7 +1165,7 @@ ImplicitCallReference
     arguments
       NamedType
         name: int
-        element2: dart:core::@class::int
+        element: dart:core::@class::int
         type: int
     rightBracket: >
   element: <testLibrary>::@class::C::@method::call
@@ -1220,7 +1208,7 @@ ImplicitCallReference
     arguments
       NamedType
         name: int
-        element2: dart:core::@class::int
+        element: dart:core::@class::int
         type: int
     rightBracket: >
   element: <testLibrary>::@class::C::@method::call
@@ -1254,11 +1242,11 @@ ImplicitCallReference
     arguments
       NamedType
         name: int
-        element2: dart:core::@class::int
+        element: dart:core::@class::int
         type: int
       NamedType
         name: String
-        element2: dart:core::@class::String
+        element: dart:core::@class::String
         type: String
     rightBracket: >
   element: <testLibrary>::@extension::E::@method::call
@@ -1339,7 +1327,7 @@ ImplicitCallReference
     arguments
       NamedType
         name: int
-        element2: dart:core::@class::int
+        element: dart:core::@class::int
         type: int
     rightBracket: >
   element: package:test/a.dart::@class::C::@method::call
@@ -1384,7 +1372,7 @@ ImplicitCallReference
     arguments
       NamedType
         name: int
-        element2: dart:core::@class::int
+        element: dart:core::@class::int
         type: int
     rightBracket: >
   element: package:test/a.dart::@class::C::@method::call
@@ -1405,13 +1393,7 @@ foo() {
   C()<int>;
 }
 ''',
-      [
-        error(
-          CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_FUNCTION,
-          57,
-          5,
-        ),
-      ],
+      [error(CompileTimeErrorCode.wrongNumberOfTypeArgumentsFunction, 57, 5)],
     );
 
     var node = findNode.implicitCallReference('C()<int>;');
@@ -1421,7 +1403,7 @@ ImplicitCallReference
     constructorName: ConstructorName
       type: NamedType
         name: C
-        element2: <testLibrary>::@class::C
+        element: <testLibrary>::@class::C
         type: C
       element: <testLibrary>::@class::C::@constructor::new
     argumentList: ArgumentList
@@ -1433,7 +1415,7 @@ ImplicitCallReference
     arguments
       NamedType
         name: int
-        element2: dart:core::@class::int
+        element: dart:core::@class::int
         type: int
     rightBracket: >
   element: <testLibrary>::@class::C::@method::call
@@ -1455,13 +1437,7 @@ foo() {
   C()<int>;
 }
 ''',
-      [
-        error(
-          CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_FUNCTION,
-          50,
-          5,
-        ),
-      ],
+      [error(CompileTimeErrorCode.wrongNumberOfTypeArgumentsFunction, 50, 5)],
     );
 
     var node = findNode.implicitCallReference('C()<int>;');
@@ -1471,7 +1447,7 @@ ImplicitCallReference
     constructorName: ConstructorName
       type: NamedType
         name: C
-        element2: <testLibrary>::@class::C
+        element: <testLibrary>::@class::C
         type: C
       element: <testLibrary>::@class::C::@constructor::new
     argumentList: ArgumentList
@@ -1483,7 +1459,7 @@ ImplicitCallReference
     arguments
       NamedType
         name: int
-        element2: dart:core::@class::int
+        element: dart:core::@class::int
         type: int
     rightBracket: >
   element: <testLibrary>::@class::C::@method::call
@@ -1521,7 +1497,7 @@ FunctionReference
     arguments
       NamedType
         name: int
-        element2: dart:core::@class::int
+        element: dart:core::@class::int
         type: int
     rightBracket: >
   staticType: void Function(int)
@@ -1553,7 +1529,7 @@ FunctionReference
     arguments
       NamedType
         name: int
-        element2: dart:core::@class::int
+        element: dart:core::@class::int
         type: int
     rightBracket: >
   staticType: void Function(int)
@@ -1586,7 +1562,7 @@ FunctionReference
     arguments
       NamedType
         name: int
-        element2: dart:core::@class::int
+        element: dart:core::@class::int
         type: int
     rightBracket: >
   staticType: void Function(int)
@@ -1608,7 +1584,7 @@ void foo(A a) {
 ''',
       [
         error(
-          CompileTimeErrorCode.DISALLOWED_TYPE_INSTANTIATION_EXPRESSION,
+          CompileTimeErrorCode.disallowedTypeInstantiationExpression,
           61,
           1,
         ),
@@ -1634,7 +1610,7 @@ FunctionReference
     arguments
       NamedType
         name: String
-        element2: dart:core::@class::String
+        element: dart:core::@class::String
         type: String
     rightBracket: >
   staticType: InvalidType
@@ -1654,7 +1630,7 @@ void foo(A a) {
 ''',
       [
         error(
-          CompileTimeErrorCode.DISALLOWED_TYPE_INSTANTIATION_EXPRESSION,
+          CompileTimeErrorCode.disallowedTypeInstantiationExpression,
           63,
           1,
         ),
@@ -1683,7 +1659,7 @@ FunctionReference
     arguments
       NamedType
         name: String
-        element2: dart:core::@class::String
+        element: dart:core::@class::String
         type: String
     rightBracket: >
   staticType: InvalidType
@@ -1713,7 +1689,7 @@ FunctionReference
     arguments
       NamedType
         name: int
-        element2: dart:core::@class::int
+        element: dart:core::@class::int
         type: int
     rightBracket: >
   staticType: void Function(int)
@@ -1756,7 +1732,7 @@ FunctionReference
     arguments
       NamedType
         name: int
-        element2: dart:core::@class::int
+        element: dart:core::@class::int
         type: int
     rightBracket: >
   staticType: void Function(int)
@@ -1806,7 +1782,7 @@ FunctionReference
     arguments
       NamedType
         name: int
-        element2: dart:core::@class::int
+        element: dart:core::@class::int
         type: int
     rightBracket: >
   staticType: void Function(int)
@@ -1850,7 +1826,7 @@ FunctionReference
     arguments
       NamedType
         name: int
-        element2: dart:core::@class::int
+        element: dart:core::@class::int
         type: int
     rightBracket: >
   staticType: void Function(int)
@@ -1873,7 +1849,7 @@ void f(A a) {
 ''',
       [
         error(
-          CompileTimeErrorCode.DISALLOWED_TYPE_INSTANTIATION_EXPRESSION,
+          CompileTimeErrorCode.disallowedTypeInstantiationExpression,
           97,
           3,
         ),
@@ -1903,7 +1879,7 @@ FunctionReference
     arguments
       NamedType
         name: double
-        element2: dart:core::@class::double
+        element: dart:core::@class::double
         type: double
     rightBracket: >
   staticType: InvalidType
@@ -1955,7 +1931,7 @@ FunctionReference
     arguments
       NamedType
         name: int
-        element2: dart:core::@class::int
+        element: dart:core::@class::int
         type: int
     rightBracket: >
   staticType: void Function(int)
@@ -2012,10 +1988,10 @@ FunctionReference
           arguments
             NamedType
               name: int
-              element2: dart:core::@class::int
+              element: dart:core::@class::int
               type: int
           rightBracket: >
-        element2: <testLibrary>::@typeAlias::Exactly
+        element: <testLibrary>::@typeAlias::Exactly
         type: int Function(int)
           alias: <testLibrary>::@typeAlias::Exactly
             typeArguments
@@ -2068,7 +2044,7 @@ FunctionReference
     arguments
       NamedType
         name: int
-        element2: dart:core::@class::int
+        element: dart:core::@class::int
         type: int
     rightBracket: >
   staticType: void Function(int)
@@ -2107,7 +2083,7 @@ FunctionReference
     arguments
       NamedType
         name: int
-        element2: dart:core::@class::int
+        element: dart:core::@class::int
         type: int
     rightBracket: >
   staticType: void Function(int)
@@ -2125,7 +2101,7 @@ class A {
   }
 }
 ''',
-      [error(CompileTimeErrorCode.UNDEFINED_SUPER_GETTER, 30, 3)],
+      [error(CompileTimeErrorCode.undefinedSuperGetter, 30, 3)],
     );
 
     assertResolvedNodeText(findNode.functionReference('foo<int>;'), r'''
@@ -2145,7 +2121,7 @@ FunctionReference
     arguments
       NamedType
         name: int
-        element2: dart:core::@class::int
+        element: dart:core::@class::int
         type: int
     rightBracket: >
   staticType: InvalidType
@@ -2159,7 +2135,7 @@ bar() {
   super.foo<int>;
 }
 ''',
-      [error(CompileTimeErrorCode.SUPER_IN_INVALID_CONTEXT, 10, 5)],
+      [error(CompileTimeErrorCode.superInInvalidContext, 10, 5)],
     );
 
     assertResolvedNodeText(findNode.functionReference('foo<int>;'), r'''
@@ -2179,7 +2155,7 @@ FunctionReference
     arguments
       NamedType
         name: int
-        element2: dart:core::@class::int
+        element: dart:core::@class::int
         type: int
     rightBracket: >
   staticType: InvalidType
@@ -2220,7 +2196,7 @@ FunctionReference
     arguments
       NamedType
         name: int
-        element2: dart:core::@class::int
+        element: dart:core::@class::int
         type: int
     rightBracket: >
   staticType: void Function(int)
@@ -2258,7 +2234,7 @@ FunctionReference
     arguments
       NamedType
         name: int
-        element2: dart:core::@class::int
+        element: dart:core::@class::int
         type: int
     rightBracket: >
   staticType: void Function(int)
@@ -2299,7 +2275,7 @@ FunctionReference
     arguments
       NamedType
         name: int
-        element2: dart:core::@class::int
+        element: dart:core::@class::int
         type: int
     rightBracket: >
   staticType: void Function(int)
@@ -2350,7 +2326,7 @@ FunctionReference
     arguments
       NamedType
         name: int
-        element2: dart:core::@class::int
+        element: dart:core::@class::int
         type: int
     rightBracket: >
   staticType: void Function(int)
@@ -2372,7 +2348,7 @@ bar() {
   prefix.a.foo<int>;
 }
 ''',
-      [error(CompileTimeErrorCode.UNDEFINED_GETTER, 47, 3)],
+      [error(CompileTimeErrorCode.undefinedGetter, 47, 3)],
     );
 
     var node = findNode.functionReference('foo<int>;');
@@ -2402,7 +2378,7 @@ FunctionReference
     arguments
       NamedType
         name: int
-        element2: dart:core::@class::int
+        element: dart:core::@class::int
         type: int
     rightBracket: >
   staticType: InvalidType
@@ -2416,7 +2392,7 @@ bar<T>() {
   T.foo<int>;
 }
 ''',
-      [error(CompileTimeErrorCode.UNDEFINED_GETTER, 15, 3)],
+      [error(CompileTimeErrorCode.undefinedGetter, 15, 3)],
     );
 
     assertResolvedNodeText(findNode.functionReference('foo<int>;'), r'''
@@ -2438,7 +2414,7 @@ FunctionReference
     arguments
       NamedType
         name: int
-        element2: dart:core::@class::int
+        element: dart:core::@class::int
         type: int
     rightBracket: >
   staticType: InvalidType
@@ -2476,7 +2452,7 @@ FunctionReference
     arguments
       NamedType
         name: int
-        element2: dart:core::@class::int
+        element: dart:core::@class::int
         type: int
     rightBracket: >
   staticType: void Function(int)
@@ -2511,7 +2487,7 @@ FunctionReference
     arguments
       NamedType
         name: int
-        element2: dart:core::@class::int
+        element: dart:core::@class::int
         type: int
     rightBracket: >
   staticType: void Function(int)
@@ -2568,10 +2544,10 @@ FunctionReference
           arguments
             NamedType
               name: int
-              element2: dart:core::@class::int
+              element: dart:core::@class::int
               type: int
           rightBracket: >
-        element2: <testLibrary>::@typeAlias::Exactly
+        element: <testLibrary>::@typeAlias::Exactly
         type: int Function(int)
           alias: <testLibrary>::@typeAlias::Exactly
             typeArguments
@@ -2611,7 +2587,7 @@ FunctionReference
     arguments
       NamedType
         name: int
-        element2: dart:core::@class::int
+        element: dart:core::@class::int
         type: int
     rightBracket: >
   staticType: void Function(int)
@@ -2646,7 +2622,7 @@ FunctionReference
     arguments
       NamedType
         name: int
-        element2: dart:core::@class::int
+        element: dart:core::@class::int
         type: int
     rightBracket: >
   staticType: void Function(int)
@@ -2666,7 +2642,7 @@ class A {
 ''',
       [
         error(
-          CompileTimeErrorCode.UNDEFINED_METHOD,
+          CompileTimeErrorCode.undefinedMethod,
           24,
           3,
           messageContains: ["for the type 'A'"],
@@ -2685,7 +2661,7 @@ FunctionReference
     arguments
       NamedType
         name: int
-        element2: dart:core::@class::int
+        element: dart:core::@class::int
         type: int
     rightBracket: >
   staticType: InvalidType
@@ -2703,7 +2679,7 @@ void f() {
   prefix.loadLibrary;
 }
 ''',
-      [error(WarningCode.UNUSED_IMPORT, 7, 8)],
+      [error(WarningCode.unusedImport, 7, 8)],
     );
 
     var node = findNode.expressionStatement('prefix.loadLibrary');
@@ -2746,7 +2722,7 @@ FunctionReference
     arguments
       NamedType
         name: int
-        element2: dart:core::@class::int
+        element: dart:core::@class::int
         type: int
     rightBracket: >
   staticType: void Function(int)
@@ -2774,7 +2750,7 @@ FunctionReference
     arguments
       NamedType
         name: int
-        element2: dart:core::@class::int
+        element: dart:core::@class::int
         type: int
     rightBracket: >
   staticType: void Function(int)
@@ -2816,7 +2792,7 @@ FunctionReference
     arguments
       NamedType
         name: int
-        element2: dart:core::@class::int
+        element: dart:core::@class::int
         type: int
     rightBracket: >
   staticType: void Function(int)
@@ -2835,13 +2811,7 @@ void bar() {
   fn.call<int>;
 }
 ''',
-      [
-        error(
-          CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_FUNCTION,
-          74,
-          5,
-        ),
-      ],
+      [error(CompileTimeErrorCode.wrongNumberOfTypeArgumentsFunction, 74, 5)],
     );
 
     var reference = findNode.functionReference('fn.call<int>;');
@@ -2867,7 +2837,7 @@ FunctionReference
     arguments
       NamedType
         name: int
-        element2: dart:core::@class::int
+        element: dart:core::@class::int
         type: int
     rightBracket: >
   staticType: void Function(int)
@@ -2883,7 +2853,7 @@ void bar<T extends Function>(T foo) {
 ''',
       [
         error(
-          CompileTimeErrorCode.DISALLOWED_TYPE_INSTANTIATION_EXPRESSION,
+          CompileTimeErrorCode.disallowedTypeInstantiationExpression,
           40,
           3,
         ),
@@ -2902,7 +2872,7 @@ FunctionReference
     arguments
       NamedType
         name: int
-        element2: dart:core::@class::int
+        element: dart:core::@class::int
         type: int
     rightBracket: >
   staticType: InvalidType
@@ -2928,7 +2898,7 @@ FunctionReference
     arguments
       NamedType
         name: int
-        element2: dart:core::@class::int
+        element: dart:core::@class::int
         type: int
     rightBracket: >
   staticType: void Function(int)
@@ -2946,7 +2916,7 @@ void bar<T>(T foo) {
 ''',
       [
         error(
-          CompileTimeErrorCode.DISALLOWED_TYPE_INSTANTIATION_EXPRESSION,
+          CompileTimeErrorCode.disallowedTypeInstantiationExpression,
           23,
           3,
         ),
@@ -2965,7 +2935,7 @@ FunctionReference
     arguments
       NamedType
         name: int
-        element2: dart:core::@class::int
+        element: dart:core::@class::int
         type: int
     rightBracket: >
   staticType: InvalidType
@@ -2983,7 +2953,7 @@ void bar() {
 ''',
       [
         error(
-          CompileTimeErrorCode.DISALLOWED_TYPE_INSTANTIATION_EXPRESSION,
+          CompileTimeErrorCode.disallowedTypeInstantiationExpression,
           38,
           1,
         ),
@@ -3001,7 +2971,7 @@ FunctionReference
     arguments
       NamedType
         name: int
-        element2: dart:core::@class::int
+        element: dart:core::@class::int
         type: int
     rightBracket: >
   staticType: InvalidType
@@ -3019,13 +2989,7 @@ class A {
   }
 }
 ''',
-      [
-        error(
-          CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_FUNCTION,
-          44,
-          5,
-        ),
-      ],
+      [error(CompileTimeErrorCode.wrongNumberOfTypeArgumentsFunction, 44, 5)],
     );
 
     var reference = findNode.functionReference('foo<int>;');
@@ -3040,7 +3004,7 @@ FunctionReference
     arguments
       NamedType
         name: int
-        element2: dart:core::@class::int
+        element: dart:core::@class::int
         type: int
     rightBracket: >
   staticType: void Function()
@@ -3068,8 +3032,7 @@ void f(void Function<T>(T a) foo, void Function<T>(T a) bar) {
 ''',
       [
         error(
-          CompileTimeErrorCode
-              .WRONG_NUMBER_OF_TYPE_ARGUMENTS_ANONYMOUS_FUNCTION,
+          CompileTimeErrorCode.wrongNumberOfTypeArgumentsAnonymousFunction,
           85,
           13,
         ),
@@ -3092,7 +3055,7 @@ bar(dynamic a) {
 ''',
       [
         error(
-          CompileTimeErrorCode.GENERIC_METHOD_TYPE_INSTANTIATION_ON_DYNAMIC,
+          CompileTimeErrorCode.genericMethodTypeInstantiationOnDynamic,
           19,
           5,
         ),
@@ -3118,7 +3081,7 @@ FunctionReference
     arguments
       NamedType
         name: int
-        element2: dart:core::@class::int
+        element: dart:core::@class::int
         type: int
     rightBracket: >
   staticType: InvalidType
@@ -3132,7 +3095,7 @@ void f(({T Function<T>(T) f1, String f2}) r) {
   int Function(int) v = r.f1;
 }
 ''',
-      [error(WarningCode.UNUSED_LOCAL_VARIABLE, 67, 1)],
+      [error(WarningCode.unusedLocalVariable, 67, 1)],
     );
 
     var node = findNode.functionReference(r'.f1;');
@@ -3162,7 +3125,7 @@ void f((T Function<T>(T), String) r) {
   int Function(int) v = r.$1;
 }
 ''',
-      [error(WarningCode.UNUSED_LOCAL_VARIABLE, 59, 1)],
+      [error(WarningCode.unusedLocalVariable, 59, 1)],
     );
 
     var node = findNode.functionReference(r'.$1;');
@@ -3208,7 +3171,7 @@ FunctionReference
     arguments
       NamedType
         name: int
-        element2: dart:core::@class::int
+        element: dart:core::@class::int
         type: int
     rightBracket: >
   staticType: void Function(int)
@@ -3247,7 +3210,7 @@ FunctionReference
     arguments
       NamedType
         name: int
-        element2: dart:core::@class::int
+        element: dart:core::@class::int
         type: int
     rightBracket: >
   staticType: void Function(int)
@@ -3297,7 +3260,7 @@ FunctionReference
     arguments
       NamedType
         name: int
-        element2: dart:core::@class::int
+        element: dart:core::@class::int
         type: int
     rightBracket: >
   staticType: void Function(int)
@@ -3347,7 +3310,7 @@ FunctionReference
     arguments
       NamedType
         name: int
-        element2: dart:core::@class::int
+        element: dart:core::@class::int
         type: int
     rightBracket: >
   staticType: void Function(int)
@@ -3398,7 +3361,7 @@ FunctionReference
     arguments
       NamedType
         name: int
-        element2: dart:core::@class::int
+        element: dart:core::@class::int
         type: int
     rightBracket: >
   staticType: void Function(int)
@@ -3439,7 +3402,7 @@ FunctionReference
     arguments
       NamedType
         name: int
-        element2: dart:core::@class::int
+        element: dart:core::@class::int
         type: int
     rightBracket: >
   staticType: void Function(int)
@@ -3461,7 +3424,7 @@ class B extends A {
   }
 }
 ''',
-      [error(ParserErrorCode.MISSING_ASSIGNABLE_SELECTOR, 70, 5)],
+      [error(ParserErrorCode.missingAssignableSelector, 70, 5)],
     );
 
     var node = findNode.singleImplicitCallReference;
@@ -3475,7 +3438,7 @@ ImplicitCallReference
     arguments
       NamedType
         name: int
-        element2: dart:core::@class::int
+        element: dart:core::@class::int
         type: int
     rightBracket: >
   element: <testLibrary>::@class::A::@method::call
@@ -3496,13 +3459,7 @@ class A {
   }
 }
 ''',
-      [
-        error(
-          CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_FUNCTION,
-          58,
-          5,
-        ),
-      ],
+      [error(CompileTimeErrorCode.wrongNumberOfTypeArgumentsFunction, 58, 5)],
     );
 
     var reference = findNode.functionReference('foo<int>;');
@@ -3517,7 +3474,7 @@ FunctionReference
     arguments
       NamedType
         name: int
-        element2: dart:core::@class::int
+        element: dart:core::@class::int
         type: int
     rightBracket: >
   staticType: void Function(dynamic, dynamic)
@@ -3538,13 +3495,7 @@ class A {
   }
 }
 ''',
-      [
-        error(
-          CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_FUNCTION,
-          50,
-          10,
-        ),
-      ],
+      [error(CompileTimeErrorCode.wrongNumberOfTypeArgumentsFunction, 50, 10)],
     );
 
     var reference = findNode.functionReference('foo<int, int>;');
@@ -3559,11 +3510,11 @@ FunctionReference
     arguments
       NamedType
         name: int
-        element2: dart:core::@class::int
+        element: dart:core::@class::int
         type: int
       NamedType
         name: int
-        element2: dart:core::@class::int
+        element: dart:core::@class::int
         type: int
     rightBracket: >
   staticType: void Function(dynamic)
@@ -3593,7 +3544,7 @@ FunctionReference
     arguments
       NamedType
         name: int
-        element2: dart:core::@class::int
+        element: dart:core::@class::int
         type: int
     rightBracket: >
   staticType: void Function(int)
@@ -3634,7 +3585,7 @@ FunctionReference
     arguments
       NamedType
         name: int
-        element2: dart:core::@class::int
+        element: dart:core::@class::int
         type: int
     rightBracket: >
   staticType: void Function(int)
@@ -3678,7 +3629,7 @@ FunctionReference
     arguments
       NamedType
         name: int
-        element2: dart:core::@class::int
+        element: dart:core::@class::int
         type: int
     rightBracket: >
   staticType: void Function(int)
@@ -3694,7 +3645,7 @@ bar() {
   prefix.foo<int>;
 }
 ''',
-      [error(CompileTimeErrorCode.UNDEFINED_IDENTIFIER, 10, 6)],
+      [error(CompileTimeErrorCode.undefinedIdentifier, 10, 6)],
     );
 
     assertResolvedNodeText(findNode.functionReference('foo<int>;'), r'''
@@ -3716,7 +3667,7 @@ FunctionReference
     arguments
       NamedType
         name: int
-        element2: dart:core::@class::int
+        element: dart:core::@class::int
         type: int
     rightBracket: >
   staticType: InvalidType
@@ -3745,7 +3696,7 @@ PropertyAccess
       arguments
         NamedType
           name: int
-          element2: dart:core::@class::int
+          element: dart:core::@class::int
           type: int
       rightBracket: >
     staticType: void Function(int)
@@ -3783,7 +3734,7 @@ FunctionReference
     arguments
       NamedType
         name: int
-        element2: dart:core::@class::int
+        element: dart:core::@class::int
         type: int
     rightBracket: >
   staticType: void Function(int)
@@ -3824,7 +3775,7 @@ FunctionReference
     arguments
       NamedType
         name: int
-        element2: dart:core::@class::int
+        element: dart:core::@class::int
         type: int
     rightBracket: >
   staticType: void Function(int)
@@ -3843,7 +3794,7 @@ bar() {
   prefix.a.foo<int>;
 }
 ''',
-      [error(CompileTimeErrorCode.UNDEFINED_PREFIXED_NAME, 45, 1)],
+      [error(CompileTimeErrorCode.undefinedPrefixedName, 45, 1)],
     );
 
     var node = findNode.functionReference('foo<int>;');
@@ -3873,7 +3824,7 @@ FunctionReference
     arguments
       NamedType
         name: int
-        element2: dart:core::@class::int
+        element: dart:core::@class::int
         type: int
     rightBracket: >
   staticType: InvalidType
@@ -3887,7 +3838,7 @@ typedef Cb = void Function();
 
 var a = Cb.foo<int>;
 ''',
-      [error(CompileTimeErrorCode.UNDEFINED_GETTER, 42, 3)],
+      [error(CompileTimeErrorCode.undefinedGetter, 42, 3)],
     );
 
     assertResolvedNodeText(findNode.functionReference('foo<int>;'), r'''
@@ -3909,7 +3860,7 @@ FunctionReference
     arguments
       NamedType
         name: int
-        element2: dart:core::@class::int
+        element: dart:core::@class::int
         type: int
     rightBracket: >
   staticType: InvalidType
@@ -3923,7 +3874,7 @@ typedef T<E> = E;
 
 var a = T.foo<int>;
 ''',
-      [error(CompileTimeErrorCode.UNDEFINED_GETTER, 29, 3)],
+      [error(CompileTimeErrorCode.undefinedGetter, 29, 3)],
     );
 
     assertResolvedNodeText(findNode.functionReference('foo<int>;'), r'''
@@ -3945,7 +3896,7 @@ FunctionReference
     arguments
       NamedType
         name: int
-        element2: dart:core::@class::int
+        element: dart:core::@class::int
         type: int
     rightBracket: >
   staticType: InvalidType
@@ -3959,7 +3910,7 @@ void bar() {
   foo<int>;
 }
 ''',
-      [error(CompileTimeErrorCode.UNDEFINED_IDENTIFIER, 15, 3)],
+      [error(CompileTimeErrorCode.undefinedIdentifier, 15, 3)],
     );
 
     assertResolvedNodeText(findNode.functionReference('foo<int>;'), r'''
@@ -3973,7 +3924,7 @@ FunctionReference
     arguments
       NamedType
         name: int
-        element2: dart:core::@class::int
+        element: dart:core::@class::int
         type: int
     rightBracket: >
   staticType: InvalidType
@@ -3991,7 +3942,7 @@ class B {
   }
 }
 ''',
-      [error(CompileTimeErrorCode.UNDEFINED_GETTER, 41, 3)],
+      [error(CompileTimeErrorCode.undefinedGetter, 41, 3)],
     );
 
     assertResolvedNodeText(findNode.functionReference('foo<int>;'), r'''
@@ -4013,7 +3964,7 @@ FunctionReference
     arguments
       NamedType
         name: int
-        element2: dart:core::@class::int
+        element: dart:core::@class::int
         type: int
     rightBracket: >
   staticType: InvalidType
@@ -4030,7 +3981,7 @@ void bar() {
   a.foo<int>;
 }
 ''',
-      [error(CompileTimeErrorCode.UNDEFINED_PREFIXED_NAME, 40, 3)],
+      [error(CompileTimeErrorCode.undefinedPrefixedName, 40, 3)],
     );
 
     assertResolvedNodeText(findNode.functionReference('foo<int>;'), r'''
@@ -4052,7 +4003,7 @@ FunctionReference
     arguments
       NamedType
         name: int
-        element2: dart:core::@class::int
+        element: dart:core::@class::int
         type: int
     rightBracket: >
   staticType: InvalidType
@@ -4085,7 +4036,7 @@ FunctionReference
         asOperator: as
         type: NamedType
           name: dynamic
-          element2: dynamic
+          element: dynamic
           type: dynamic
         staticType: dynamic
       rightParenthesis: )
@@ -4094,7 +4045,7 @@ FunctionReference
     type: GenericFunctionType
       returnType: NamedType
         name: void
-        element2: <null>
+        element: <null>
         type: void
       functionKeyword: Function
       typeParameters: TypeParameterList
@@ -4110,16 +4061,18 @@ FunctionReference
         parameter: SimpleFormalParameter
           type: NamedType
             name: T
-            element2: #E0 T
+            element: #E0 T
             type: T
           declaredElement: <testLibraryFragment> null@null
-            type: T
+            element: isPrivate
+              type: T
         rightParenthesis: )
       declaredElement: GenericFunctionTypeElement
         parameters
           <empty>
             kind: required positional
-            type: T
+            element:
+              type: T
         returnType: void
         type: void Function<T>(T)
       type: void Function<T>(T)
@@ -4149,12 +4102,12 @@ FunctionReference
     operator: =
     rightHandSide: SimpleIdentifier
       token: f
-      correspondingParameter: <testLibrary>::@setter::g::@formalParameter::_g
+      correspondingParameter: <testLibrary>::@setter::g::@formalParameter::value
       element: <testLibrary>::@function::foo::@formalParameter::f
       staticType: void Function<T>(T)
-    readElement2: <null>
+    readElement: <null>
     readType: null
-    writeElement2: <testLibrary>::@setter::g
+    writeElement: <testLibrary>::@setter::g
     writeType: void Function<T>(T)
     element: <null>
     staticType: void Function<T>(T)
@@ -4189,9 +4142,9 @@ FunctionReference
       literal: 1
       correspondingParameter: <testLibrary>::@extension::0::@method::+::@formalParameter::i
       staticType: int
-    readElement2: <testLibrary>::@function::foo::@formalParameter::f
+    readElement: <testLibrary>::@function::foo::@formalParameter::f
     readType: void Function<T>(T)
-    writeElement2: <testLibrary>::@function::foo::@formalParameter::f
+    writeElement: <testLibrary>::@function::foo::@formalParameter::f
     writeType: void Function<T>(T)
     element: <testLibrary>::@extension::0::@method::+
     staticType: void Function<T>(T)
@@ -4293,7 +4246,7 @@ ConstructorReference
   constructorName: ConstructorName
     type: NamedType
       name: C
-      element2: <testLibrary>::@class::C
+      element: <testLibrary>::@class::C
       type: null
     period: .
     name: SimpleIdentifier
@@ -4330,18 +4283,20 @@ FunctionReference
       parameter: SimpleFormalParameter
         type: NamedType
           name: T
-          element2: #E0 T
+          element: #E0 T
           type: T
         name: a
         declaredElement: <testLibraryFragment> a@42
-          type: T
+          element: isPublic
+            type: T
       rightParenthesis: )
     body: BlockFunctionBody
       block: Block
         leftBracket: {
         rightBracket: }
     declaredElement: <testLibraryFragment> null@null
-      type: Null Function<T>(T)
+      element: null@null
+        type: Null Function<T>(T)
     staticType: Null Function<T>(T)
   staticType: Null Function(int)
   typeArgumentTypes
@@ -4514,9 +4469,9 @@ FunctionReference
       element: <testLibrary>::@function::foo::@formalParameter::f
       staticType: null
     operator: ++
-    readElement2: <testLibrary>::@function::foo::@formalParameter::f
+    readElement: <testLibrary>::@function::foo::@formalParameter::f
     readType: void Function<T>(T)
-    writeElement2: <testLibrary>::@function::foo::@formalParameter::f
+    writeElement: <testLibrary>::@function::foo::@formalParameter::f
     writeType: void Function<T>(T)
     element: <testLibrary>::@extension::0::@method::+
     staticType: void Function<T>(T)
@@ -4578,9 +4533,9 @@ FunctionReference
       token: f
       element: <testLibrary>::@function::foo::@formalParameter::f
       staticType: null
-    readElement2: <testLibrary>::@function::foo::@formalParameter::f
+    readElement: <testLibrary>::@function::foo::@formalParameter::f
     readType: void Function<T>(T)
-    writeElement2: <testLibrary>::@function::foo::@formalParameter::f
+    writeElement: <testLibrary>::@function::foo::@formalParameter::f
     writeType: void Function<T>(T)
     element: <testLibrary>::@extension::0::@method::+
     staticType: void Function<T>(T)
@@ -4658,7 +4613,7 @@ void bar(void Function<T>(T a) foo) {
   foo<int>;
 }
 ''',
-      [error(ParserErrorCode.EXPERIMENT_NOT_ENABLED, 43, 5)],
+      [error(ParserErrorCode.experimentNotEnabled, 43, 5)],
     );
 
     var reference = findNode.functionReference('foo<int>;');
@@ -4673,7 +4628,7 @@ FunctionReference
     arguments
       NamedType
         name: int
-        element2: dart:core::@class::int
+        element: dart:core::@class::int
         type: int
     rightBracket: >
   staticType: void Function(int)

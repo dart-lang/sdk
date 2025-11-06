@@ -49,54 +49,48 @@ class CollectionElementTest {
   }
 
   void test_expression() {
-    parseEntry(
-      '[ x',
-      [
-        'handleIdentifier x expression',
-        'handleNoTypeArguments ]',
-        'handleNoArguments ]',
-        'handleSend x x',
-        'handleLiteralList 1, [, null, ]',
-      ],
-    );
+    parseEntry('[ x', [
+      'handleIdentifier x expression',
+      'handleNoTypeArguments ]',
+      'handleNoArguments ]',
+      'handleSend x x',
+      'handleLiteralList 1, [, null, ]',
+    ]);
   }
 
   void test_for() {
-    parseEntry(
-      '[ for (var i = 0; i < 10; ++i) 2',
-      [
-        'beginForControlFlow null for',
-        'beginMetadataStar var',
-        'endMetadataStar 0',
-        'handleNoTypeArguments var',
-        'beginVariablesDeclaration i var',
-        'handleIdentifier i localVariableDeclaration',
-        'beginInitializedIdentifier i',
-        'beginVariableInitializer =',
-        'handleLiteralInt 0',
-        'endVariableInitializer =',
-        'endInitializedIdentifier i',
-        'endVariablesDeclaration 1 null',
-        'handleForInitializerLocalVariableDeclaration 0',
-        'handleIdentifier i expression',
-        'handleNoTypeArguments <',
-        'handleNoArguments <',
-        'handleSend i i',
-        'beginBinaryExpression <',
-        'handleLiteralInt 10',
-        'endBinaryExpression <',
-        'handleExpressionStatement ;',
-        'handleIdentifier i expression',
-        'handleNoTypeArguments )',
-        'handleNoArguments )',
-        'handleSend i i',
-        'handleUnaryPrefixAssignmentExpression ++',
-        'handleForInitializerExpressionStatement for ( ; 1',
-        'handleLiteralInt 2',
-        'endForControlFlow 2',
-        'handleLiteralList 1, [, null, ]',
-      ],
-    );
+    parseEntry('[ for (var i = 0; i < 10; ++i) 2', [
+      'beginForControlFlow null for',
+      'beginMetadataStar var',
+      'endMetadataStar 0',
+      'handleNoTypeArguments var',
+      'beginVariablesDeclaration i var',
+      'handleIdentifier i localVariableDeclaration',
+      'beginInitializedIdentifier i',
+      'beginVariableInitializer =',
+      'handleLiteralInt 0',
+      'endVariableInitializer =',
+      'endInitializedIdentifier i',
+      'endVariablesDeclaration 1 null',
+      'handleForInitializerLocalVariableDeclaration 0',
+      'handleIdentifier i expression',
+      'handleNoTypeArguments <',
+      'handleNoArguments <',
+      'handleSend i i',
+      'beginBinaryExpression <',
+      'handleLiteralInt 10',
+      'endBinaryExpression <',
+      'handleExpressionStatement ;',
+      'handleIdentifier i expression',
+      'handleNoTypeArguments )',
+      'handleNoArguments )',
+      'handleSend i i',
+      'handleUnaryPrefixAssignmentExpression ++',
+      'handleForInitializerExpressionStatement for ( ; 1',
+      'handleLiteralInt 2',
+      'endForControlFlow 2',
+      'handleLiteralList 1, [, null, ]',
+    ]);
   }
 
   void test_forForFor() {
@@ -177,337 +171,305 @@ class CollectionElementTest {
   }
 
   void test_forIfForElse() {
-    parseEntry(
-      '[ await for (var x in y) if (a) for (b in c) 2 else 7',
-      [
-        // await for (var x in y)
-        'beginForControlFlow await for',
-        'beginMetadataStar var',
-        'endMetadataStar 0',
-        'handleNoTypeArguments var',
-        'beginVariablesDeclaration x var',
-        'handleIdentifier x localVariableDeclaration',
-        'beginInitializedIdentifier x',
-        'handleNoVariableInitializer x',
-        'endInitializedIdentifier x',
-        'endVariablesDeclaration 1 null',
-        'handleForInitializerLocalVariableDeclaration x',
-        'beginForInExpression y',
-        'handleIdentifier y expression',
-        'handleNoTypeArguments )',
-        'handleNoArguments )',
-        'handleSend y y',
-        'endForInExpression )',
-        'handleForInLoopParts await for ( in',
-        // nested if (a)
-        'beginIfControlFlow if',
-        'handleIdentifier a expression',
-        'handleNoTypeArguments )',
-        'handleNoArguments )',
-        'handleSend a a',
-        'handleParenthesizedCondition (',
-        'handleThenControlFlow )',
-        // nested for (b in c)
-        'beginForControlFlow null for',
-        'handleIdentifier b expression',
-        'handleNoTypeArguments in',
-        'handleNoArguments in',
-        'handleSend b b',
-        'handleForInitializerExpressionStatement b',
-        'beginForInExpression c',
-        'handleIdentifier c expression',
-        'handleNoTypeArguments )',
-        'handleNoArguments )',
-        'handleSend c c',
-        'endForInExpression )',
-        'handleForInLoopParts null for ( in',
-        // for-if-for-entry
-        'handleLiteralInt 2',
-        // end nested for
-        'endForInControlFlow 2',
-        // nested else
-        'handleElseControlFlow else',
-        // nested if-else-entry
-        'handleLiteralInt 7',
-        // end nested else
-        'endIfElseControlFlow 7',
-        // end for
-        'endForInControlFlow 7',
-        'handleLiteralList 1, [, null, ]',
-      ],
-      inAsync: true,
-    );
+    parseEntry('[ await for (var x in y) if (a) for (b in c) 2 else 7', [
+      // await for (var x in y)
+      'beginForControlFlow await for',
+      'beginMetadataStar var',
+      'endMetadataStar 0',
+      'handleNoTypeArguments var',
+      'beginVariablesDeclaration x var',
+      'handleIdentifier x localVariableDeclaration',
+      'beginInitializedIdentifier x',
+      'handleNoVariableInitializer x',
+      'endInitializedIdentifier x',
+      'endVariablesDeclaration 1 null',
+      'handleForInitializerLocalVariableDeclaration x',
+      'beginForInExpression y',
+      'handleIdentifier y expression',
+      'handleNoTypeArguments )',
+      'handleNoArguments )',
+      'handleSend y y',
+      'endForInExpression )',
+      'handleForInLoopParts await for ( in',
+      // nested if (a)
+      'beginIfControlFlow if',
+      'handleIdentifier a expression',
+      'handleNoTypeArguments )',
+      'handleNoArguments )',
+      'handleSend a a',
+      'handleParenthesizedCondition (',
+      'handleThenControlFlow )',
+      // nested for (b in c)
+      'beginForControlFlow null for',
+      'handleIdentifier b expression',
+      'handleNoTypeArguments in',
+      'handleNoArguments in',
+      'handleSend b b',
+      'handleForInitializerExpressionStatement b',
+      'beginForInExpression c',
+      'handleIdentifier c expression',
+      'handleNoTypeArguments )',
+      'handleNoArguments )',
+      'handleSend c c',
+      'endForInExpression )',
+      'handleForInLoopParts null for ( in',
+      // for-if-for-entry
+      'handleLiteralInt 2',
+      // end nested for
+      'endForInControlFlow 2',
+      // nested else
+      'handleElseControlFlow else',
+      // nested if-else-entry
+      'handleLiteralInt 7',
+      // end nested else
+      'endIfElseControlFlow 7',
+      // end for
+      'endForInControlFlow 7',
+      'handleLiteralList 1, [, null, ]',
+    ], inAsync: true);
   }
 
   void test_forIn() {
-    parseEntry(
-      '[ await for (var x in y) 2',
-      [
-        'beginForControlFlow await for',
-        'beginMetadataStar var',
-        'endMetadataStar 0',
-        'handleNoTypeArguments var',
-        'beginVariablesDeclaration x var',
-        'handleIdentifier x localVariableDeclaration',
-        'beginInitializedIdentifier x',
-        'handleNoVariableInitializer x',
-        'endInitializedIdentifier x',
-        'endVariablesDeclaration 1 null',
-        'handleForInitializerLocalVariableDeclaration x',
-        'beginForInExpression y',
-        'handleIdentifier y expression',
-        'handleNoTypeArguments )',
-        'handleNoArguments )',
-        'handleSend y y',
-        'endForInExpression )',
-        'handleForInLoopParts await for ( in',
-        'handleLiteralInt 2',
-        'endForInControlFlow 2',
-        'handleLiteralList 1, [, null, ]',
-      ],
-      inAsync: true,
-    );
+    parseEntry('[ await for (var x in y) 2', [
+      'beginForControlFlow await for',
+      'beginMetadataStar var',
+      'endMetadataStar 0',
+      'handleNoTypeArguments var',
+      'beginVariablesDeclaration x var',
+      'handleIdentifier x localVariableDeclaration',
+      'beginInitializedIdentifier x',
+      'handleNoVariableInitializer x',
+      'endInitializedIdentifier x',
+      'endVariablesDeclaration 1 null',
+      'handleForInitializerLocalVariableDeclaration x',
+      'beginForInExpression y',
+      'handleIdentifier y expression',
+      'handleNoTypeArguments )',
+      'handleNoArguments )',
+      'handleSend y y',
+      'endForInExpression )',
+      'handleForInLoopParts await for ( in',
+      'handleLiteralInt 2',
+      'endForInControlFlow 2',
+      'handleLiteralList 1, [, null, ]',
+    ], inAsync: true);
   }
 
   void test_forInSpread() {
-    parseEntry(
-      '[ for (var x in y) ...[2]',
-      [
-        'beginForControlFlow null for',
-        'beginMetadataStar var',
-        'endMetadataStar 0',
-        'handleNoTypeArguments var',
-        'beginVariablesDeclaration x var',
-        'handleIdentifier x localVariableDeclaration',
-        'beginInitializedIdentifier x',
-        'handleNoVariableInitializer x',
-        'endInitializedIdentifier x',
-        'endVariablesDeclaration 1 null',
-        'handleForInitializerLocalVariableDeclaration x',
-        'beginForInExpression y',
-        'handleIdentifier y expression',
-        'handleNoTypeArguments )',
-        'handleNoArguments )',
-        'handleSend y y',
-        'endForInExpression )',
-        'handleForInLoopParts null for ( in',
-        'handleNoTypeArguments [',
-        'handleLiteralInt 2',
-        'handleLiteralList 1, [, null, ]',
-        'handleSpreadExpression ...',
-        'endForInControlFlow ]',
-        'handleLiteralList 1, [, null, ]',
-      ],
-    );
+    parseEntry('[ for (var x in y) ...[2]', [
+      'beginForControlFlow null for',
+      'beginMetadataStar var',
+      'endMetadataStar 0',
+      'handleNoTypeArguments var',
+      'beginVariablesDeclaration x var',
+      'handleIdentifier x localVariableDeclaration',
+      'beginInitializedIdentifier x',
+      'handleNoVariableInitializer x',
+      'endInitializedIdentifier x',
+      'endVariablesDeclaration 1 null',
+      'handleForInitializerLocalVariableDeclaration x',
+      'beginForInExpression y',
+      'handleIdentifier y expression',
+      'handleNoTypeArguments )',
+      'handleNoArguments )',
+      'handleSend y y',
+      'endForInExpression )',
+      'handleForInLoopParts null for ( in',
+      'handleNoTypeArguments [',
+      'handleLiteralInt 2',
+      'handleLiteralList 1, [, null, ]',
+      'handleSpreadExpression ...',
+      'endForInControlFlow ]',
+      'handleLiteralList 1, [, null, ]',
+    ]);
   }
 
   void test_forSpreadQ() {
-    parseEntry(
-      '[ for (i = 0; i < 10; ++i) ...[2]',
-      [
-        'beginForControlFlow null for',
-        'handleIdentifier i expression',
-        'handleNoTypeArguments =',
-        'handleNoArguments =',
-        'handleSend i i',
-        'handleLiteralInt 0',
-        'handleAssignmentExpression =',
-        'handleForInitializerExpressionStatement 0',
-        'handleIdentifier i expression',
-        'handleNoTypeArguments <',
-        'handleNoArguments <',
-        'handleSend i i',
-        'beginBinaryExpression <',
-        'handleLiteralInt 10',
-        'endBinaryExpression <',
-        'handleExpressionStatement ;',
-        'handleIdentifier i expression',
-        'handleNoTypeArguments )',
-        'handleNoArguments )',
-        'handleSend i i',
-        'handleUnaryPrefixAssignmentExpression ++',
-        'handleForInitializerExpressionStatement for ( ; 1',
-        'handleNoTypeArguments [',
-        'handleLiteralInt 2',
-        'handleLiteralList 1, [, null, ]',
-        'handleSpreadExpression ...',
-        'endForControlFlow ]',
-        'handleLiteralList 1, [, null, ]',
-      ],
-    );
+    parseEntry('[ for (i = 0; i < 10; ++i) ...[2]', [
+      'beginForControlFlow null for',
+      'handleIdentifier i expression',
+      'handleNoTypeArguments =',
+      'handleNoArguments =',
+      'handleSend i i',
+      'handleLiteralInt 0',
+      'handleAssignmentExpression =',
+      'handleForInitializerExpressionStatement 0',
+      'handleIdentifier i expression',
+      'handleNoTypeArguments <',
+      'handleNoArguments <',
+      'handleSend i i',
+      'beginBinaryExpression <',
+      'handleLiteralInt 10',
+      'endBinaryExpression <',
+      'handleExpressionStatement ;',
+      'handleIdentifier i expression',
+      'handleNoTypeArguments )',
+      'handleNoArguments )',
+      'handleSend i i',
+      'handleUnaryPrefixAssignmentExpression ++',
+      'handleForInitializerExpressionStatement for ( ; 1',
+      'handleNoTypeArguments [',
+      'handleLiteralInt 2',
+      'handleLiteralList 1, [, null, ]',
+      'handleSpreadExpression ...',
+      'endForControlFlow ]',
+      'handleLiteralList 1, [, null, ]',
+    ]);
   }
 
   void test_if() {
-    parseEntry(
-      '[ if (true) 2',
-      [
-        'beginIfControlFlow if',
-        'handleLiteralBool true',
-        'handleParenthesizedCondition (',
-        'handleThenControlFlow )',
-        'handleLiteralInt 2',
-        'endIfControlFlow 2',
-        'handleLiteralList 1, [, null, ]',
-      ],
-    );
+    parseEntry('[ if (true) 2', [
+      'beginIfControlFlow if',
+      'handleLiteralBool true',
+      'handleParenthesizedCondition (',
+      'handleThenControlFlow )',
+      'handleLiteralInt 2',
+      'endIfControlFlow 2',
+      'handleLiteralList 1, [, null, ]',
+    ]);
   }
 
   void test_ifElse() {
-    parseEntry(
-      '[ if (true) 2 else 5',
-      [
-        'beginIfControlFlow if',
-        'handleLiteralBool true',
-        'handleParenthesizedCondition (',
-        'handleThenControlFlow )',
-        'handleLiteralInt 2',
-        'handleElseControlFlow else',
-        'handleLiteralInt 5',
-        'endIfElseControlFlow 5',
-        'handleLiteralList 1, [, null, ]',
-      ],
-    );
+    parseEntry('[ if (true) 2 else 5', [
+      'beginIfControlFlow if',
+      'handleLiteralBool true',
+      'handleParenthesizedCondition (',
+      'handleThenControlFlow )',
+      'handleLiteralInt 2',
+      'handleElseControlFlow else',
+      'handleLiteralInt 5',
+      'endIfElseControlFlow 5',
+      'handleLiteralList 1, [, null, ]',
+    ]);
   }
 
   void test_ifFor() {
-    parseEntry(
-      '[ if (true) for (x in y) 2',
-      [
-        // if (true)
-        'beginIfControlFlow if',
-        'handleLiteralBool true',
-        'handleParenthesizedCondition (',
-        'handleThenControlFlow )',
-        // nested for (x in y)
-        'beginForControlFlow null for',
-        'handleIdentifier x expression',
-        'handleNoTypeArguments in',
-        'handleNoArguments in',
-        'handleSend x x',
-        'handleForInitializerExpressionStatement x',
-        'beginForInExpression y',
-        'handleIdentifier y expression',
-        'handleNoTypeArguments )',
-        'handleNoArguments )',
-        'handleSend y y',
-        'endForInExpression )',
-        'handleForInLoopParts null for ( in',
-        // if-for-entry
-        'handleLiteralInt 2',
-        // end nested for
-        'endForInControlFlow 2',
-        // end if
-        'endIfControlFlow 2',
-        'handleLiteralList 1, [, null, ]',
-      ],
-    );
+    parseEntry('[ if (true) for (x in y) 2', [
+      // if (true)
+      'beginIfControlFlow if',
+      'handleLiteralBool true',
+      'handleParenthesizedCondition (',
+      'handleThenControlFlow )',
+      // nested for (x in y)
+      'beginForControlFlow null for',
+      'handleIdentifier x expression',
+      'handleNoTypeArguments in',
+      'handleNoArguments in',
+      'handleSend x x',
+      'handleForInitializerExpressionStatement x',
+      'beginForInExpression y',
+      'handleIdentifier y expression',
+      'handleNoTypeArguments )',
+      'handleNoArguments )',
+      'handleSend y y',
+      'endForInExpression )',
+      'handleForInLoopParts null for ( in',
+      // if-for-entry
+      'handleLiteralInt 2',
+      // end nested for
+      'endForInControlFlow 2',
+      // end if
+      'endIfControlFlow 2',
+      'handleLiteralList 1, [, null, ]',
+    ]);
   }
 
   void test_ifForElseIfFor() {
-    parseEntry(
-      '[ if (true) for (a in b) 2 else if (c) for (d in e) 5',
-      [
-        // if (true)
-        'beginIfControlFlow if',
-        'handleLiteralBool true',
-        'handleParenthesizedCondition (',
-        'handleThenControlFlow )',
-        // nested for (a in b)
-        'beginForControlFlow null for',
-        'handleIdentifier a expression',
-        'handleNoTypeArguments in',
-        'handleNoArguments in',
-        'handleSend a a',
-        'handleForInitializerExpressionStatement a',
-        'beginForInExpression b',
-        'handleIdentifier b expression',
-        'handleNoTypeArguments )',
-        'handleNoArguments )',
-        'handleSend b b',
-        'endForInExpression )',
-        'handleForInLoopParts null for ( in',
-        // if-for-entry
-        'handleLiteralInt 2',
-        // end nested for
-        'endForInControlFlow 2',
-        // else
-        'handleElseControlFlow else',
-        // nested if (c)
-        'beginIfControlFlow if',
-        'handleIdentifier c expression',
-        'handleNoTypeArguments )',
-        'handleNoArguments )',
-        'handleSend c c',
-        'handleParenthesizedCondition (',
-        'handleThenControlFlow )',
-        // nested for (d in e)
-        'beginForControlFlow null for',
-        'handleIdentifier d expression',
-        'handleNoTypeArguments in',
-        'handleNoArguments in',
-        'handleSend d d',
-        'handleForInitializerExpressionStatement d',
-        'beginForInExpression e',
-        'handleIdentifier e expression',
-        'handleNoTypeArguments )',
-        'handleNoArguments )',
-        'handleSend e e',
-        'endForInExpression )',
-        'handleForInLoopParts null for ( in',
-        // else-if-for-entry
-        'handleLiteralInt 5',
-        // end nested for
-        'endForInControlFlow 5',
-        // end nested if
-        'endIfControlFlow 5',
-        // end else
-        'endIfElseControlFlow 5',
-        'handleLiteralList 1, [, null, ]',
-      ],
-    );
+    parseEntry('[ if (true) for (a in b) 2 else if (c) for (d in e) 5', [
+      // if (true)
+      'beginIfControlFlow if',
+      'handleLiteralBool true',
+      'handleParenthesizedCondition (',
+      'handleThenControlFlow )',
+      // nested for (a in b)
+      'beginForControlFlow null for',
+      'handleIdentifier a expression',
+      'handleNoTypeArguments in',
+      'handleNoArguments in',
+      'handleSend a a',
+      'handleForInitializerExpressionStatement a',
+      'beginForInExpression b',
+      'handleIdentifier b expression',
+      'handleNoTypeArguments )',
+      'handleNoArguments )',
+      'handleSend b b',
+      'endForInExpression )',
+      'handleForInLoopParts null for ( in',
+      // if-for-entry
+      'handleLiteralInt 2',
+      // end nested for
+      'endForInControlFlow 2',
+      // else
+      'handleElseControlFlow else',
+      // nested if (c)
+      'beginIfControlFlow if',
+      'handleIdentifier c expression',
+      'handleNoTypeArguments )',
+      'handleNoArguments )',
+      'handleSend c c',
+      'handleParenthesizedCondition (',
+      'handleThenControlFlow )',
+      // nested for (d in e)
+      'beginForControlFlow null for',
+      'handleIdentifier d expression',
+      'handleNoTypeArguments in',
+      'handleNoArguments in',
+      'handleSend d d',
+      'handleForInitializerExpressionStatement d',
+      'beginForInExpression e',
+      'handleIdentifier e expression',
+      'handleNoTypeArguments )',
+      'handleNoArguments )',
+      'handleSend e e',
+      'endForInExpression )',
+      'handleForInLoopParts null for ( in',
+      // else-if-for-entry
+      'handleLiteralInt 5',
+      // end nested for
+      'endForInControlFlow 5',
+      // end nested if
+      'endIfControlFlow 5',
+      // end else
+      'endIfElseControlFlow 5',
+      'handleLiteralList 1, [, null, ]',
+    ]);
   }
 
   void test_ifSpreadQ() {
-    parseEntry(
-      '[ if (true) ...?[2]',
-      [
-        'beginIfControlFlow if',
-        'handleLiteralBool true',
-        'handleParenthesizedCondition (',
-        'handleThenControlFlow )',
-        'handleNoTypeArguments [',
-        'handleLiteralInt 2',
-        'handleLiteralList 1, [, null, ]',
-        'handleSpreadExpression ...?',
-        'endIfControlFlow ]',
-        'handleLiteralList 1, [, null, ]',
-      ],
-    );
+    parseEntry('[ if (true) ...?[2]', [
+      'beginIfControlFlow if',
+      'handleLiteralBool true',
+      'handleParenthesizedCondition (',
+      'handleThenControlFlow )',
+      'handleNoTypeArguments [',
+      'handleLiteralInt 2',
+      'handleLiteralList 1, [, null, ]',
+      'handleSpreadExpression ...?',
+      'endIfControlFlow ]',
+      'handleLiteralList 1, [, null, ]',
+    ]);
   }
 
   void test_ifElseSpreadQ() {
-    parseEntry(
-      '[ if (true) ...?[2] else ... const {5}',
-      [
-        'beginIfControlFlow if',
-        'handleLiteralBool true',
-        'handleParenthesizedCondition (',
-        'handleThenControlFlow )',
-        'handleNoTypeArguments [',
-        'handleLiteralInt 2',
-        'handleLiteralList 1, [, null, ]',
-        'handleSpreadExpression ...?',
-        'handleElseControlFlow else',
-        'beginConstLiteral {',
-        'handleNoTypeArguments {',
-        'handleLiteralInt 5',
-        'handleLiteralSetOrMap 1, {, const, }',
-        'endConstLiteral }',
-        'handleSpreadExpression ...',
-        'endIfElseControlFlow }',
-        'handleLiteralList 1, [, null, ]',
-      ],
-    );
+    parseEntry('[ if (true) ...?[2] else ... const {5}', [
+      'beginIfControlFlow if',
+      'handleLiteralBool true',
+      'handleParenthesizedCondition (',
+      'handleThenControlFlow )',
+      'handleNoTypeArguments [',
+      'handleLiteralInt 2',
+      'handleLiteralList 1, [, null, ]',
+      'handleSpreadExpression ...?',
+      'handleElseControlFlow else',
+      'beginConstLiteral {',
+      'handleNoTypeArguments {',
+      'handleLiteralInt 5',
+      'handleLiteralSetOrMap 1, {, const, }',
+      'endConstLiteral }',
+      'handleSpreadExpression ...',
+      'endIfElseControlFlow }',
+      'handleLiteralList 1, [, null, ]',
+    ]);
   }
 
   void test_intLiteral() {
@@ -537,12 +499,19 @@ class CollectionElementTest {
     ]);
   }
 
-  void parseEntry(String source, List<String> expectedCalls,
-      {bool? inAsync, List<ExpectedError>? errors, String? expectAfter}) {
+  void parseEntry(
+    String source,
+    List<String> expectedCalls, {
+    bool? inAsync,
+    List<ExpectedError>? errors,
+    String? expectAfter,
+  }) {
     final start = scanString(source).tokens;
     final listener = new TestInfoListener();
-    final parser = new Parser(listener,
-        useImplicitCreationExpression: useImplicitCreationExpressionInCfe);
+    final parser = new Parser(
+      listener,
+      useImplicitCreationExpression: useImplicitCreationExpressionInCfe,
+    );
     if (inAsync != null) parser.asyncState = AsyncModifier.Async;
     final lastConsumed = parser.parseLiteralListSuffix(start, null);
 
@@ -610,195 +579,173 @@ class MapElementTest {
   }
 
   void test_expression() {
-    parseEntry(
-      'before x:y',
-      [
-        'handleIdentifier x expression',
-        'handleNoTypeArguments :',
-        'handleNoArguments :',
-        'handleSend x x',
-        'handleIdentifier y expression',
-        'handleNoTypeArguments ',
-        'handleNoArguments ',
-        'handleSend y y',
-        'handleLiteralMapEntry :, ',
-      ],
-    );
+    parseEntry('before x:y', [
+      'handleIdentifier x expression',
+      'handleNoTypeArguments :',
+      'handleNoArguments :',
+      'handleSend x x',
+      'handleIdentifier y expression',
+      'handleNoTypeArguments ',
+      'handleNoArguments ',
+      'handleSend y y',
+      'handleLiteralMapEntry :, ',
+    ]);
   }
 
   void test_for() {
-    parseEntry(
-      'before for (var i = 0; i < 10; ++i) 2:3',
-      [
-        'beginForControlFlow null for',
-        'beginMetadataStar var',
-        'endMetadataStar 0',
-        'handleNoTypeArguments var',
-        'beginVariablesDeclaration i var',
-        'handleIdentifier i localVariableDeclaration',
-        'beginInitializedIdentifier i',
-        'beginVariableInitializer =',
-        'handleLiteralInt 0',
-        'endVariableInitializer =',
-        'endInitializedIdentifier i',
-        'endVariablesDeclaration 1 null',
-        'handleForInitializerLocalVariableDeclaration 0',
-        'handleIdentifier i expression',
-        'handleNoTypeArguments <',
-        'handleNoArguments <',
-        'handleSend i i',
-        'beginBinaryExpression <',
-        'handleLiteralInt 10',
-        'endBinaryExpression <',
-        'handleExpressionStatement ;',
-        'handleIdentifier i expression',
-        'handleNoTypeArguments )',
-        'handleNoArguments )',
-        'handleSend i i',
-        'handleUnaryPrefixAssignmentExpression ++',
-        'handleForInitializerExpressionStatement for ( ; 1',
-        'handleLiteralInt 2',
-        'handleLiteralInt 3',
-        'handleLiteralMapEntry :, ',
-        'endForControlFlow 3',
-      ],
-    );
+    parseEntry('before for (var i = 0; i < 10; ++i) 2:3', [
+      'beginForControlFlow null for',
+      'beginMetadataStar var',
+      'endMetadataStar 0',
+      'handleNoTypeArguments var',
+      'beginVariablesDeclaration i var',
+      'handleIdentifier i localVariableDeclaration',
+      'beginInitializedIdentifier i',
+      'beginVariableInitializer =',
+      'handleLiteralInt 0',
+      'endVariableInitializer =',
+      'endInitializedIdentifier i',
+      'endVariablesDeclaration 1 null',
+      'handleForInitializerLocalVariableDeclaration 0',
+      'handleIdentifier i expression',
+      'handleNoTypeArguments <',
+      'handleNoArguments <',
+      'handleSend i i',
+      'beginBinaryExpression <',
+      'handleLiteralInt 10',
+      'endBinaryExpression <',
+      'handleExpressionStatement ;',
+      'handleIdentifier i expression',
+      'handleNoTypeArguments )',
+      'handleNoArguments )',
+      'handleSend i i',
+      'handleUnaryPrefixAssignmentExpression ++',
+      'handleForInitializerExpressionStatement for ( ; 1',
+      'handleLiteralInt 2',
+      'handleLiteralInt 3',
+      'handleLiteralMapEntry :, ',
+      'endForControlFlow 3',
+    ]);
   }
 
   void test_forIn() {
-    parseEntry(
-      'before await for (var x in y) 2:3',
-      [
-        'beginForControlFlow await for',
-        'beginMetadataStar var',
-        'endMetadataStar 0',
-        'handleNoTypeArguments var',
-        'beginVariablesDeclaration x var',
-        'handleIdentifier x localVariableDeclaration',
-        'beginInitializedIdentifier x',
-        'handleNoVariableInitializer x',
-        'endInitializedIdentifier x',
-        'endVariablesDeclaration 1 null',
-        'handleForInitializerLocalVariableDeclaration x',
-        'beginForInExpression y',
-        'handleIdentifier y expression',
-        'handleNoTypeArguments )',
-        'handleNoArguments )',
-        'handleSend y y',
-        'endForInExpression )',
-        'handleForInLoopParts await for ( in',
-        'handleLiteralInt 2',
-        'handleLiteralInt 3',
-        'handleLiteralMapEntry :, ',
-        'endForInControlFlow 3',
-      ],
-      inAsync: true,
-    );
+    parseEntry('before await for (var x in y) 2:3', [
+      'beginForControlFlow await for',
+      'beginMetadataStar var',
+      'endMetadataStar 0',
+      'handleNoTypeArguments var',
+      'beginVariablesDeclaration x var',
+      'handleIdentifier x localVariableDeclaration',
+      'beginInitializedIdentifier x',
+      'handleNoVariableInitializer x',
+      'endInitializedIdentifier x',
+      'endVariablesDeclaration 1 null',
+      'handleForInitializerLocalVariableDeclaration x',
+      'beginForInExpression y',
+      'handleIdentifier y expression',
+      'handleNoTypeArguments )',
+      'handleNoArguments )',
+      'handleSend y y',
+      'endForInExpression )',
+      'handleForInLoopParts await for ( in',
+      'handleLiteralInt 2',
+      'handleLiteralInt 3',
+      'handleLiteralMapEntry :, ',
+      'endForInControlFlow 3',
+    ], inAsync: true);
   }
 
   void test_forInSpread() {
-    parseEntry(
-      'before for (var x in y) ...{2:3}',
-      [
-        'beginForControlFlow null for',
-        'beginMetadataStar var',
-        'endMetadataStar 0',
-        'handleNoTypeArguments var',
-        'beginVariablesDeclaration x var',
-        'handleIdentifier x localVariableDeclaration',
-        'beginInitializedIdentifier x',
-        'handleNoVariableInitializer x',
-        'endInitializedIdentifier x',
-        'endVariablesDeclaration 1 null',
-        'handleForInitializerLocalVariableDeclaration x',
-        'beginForInExpression y',
-        'handleIdentifier y expression',
-        'handleNoTypeArguments )',
-        'handleNoArguments )',
-        'handleSend y y',
-        'endForInExpression )',
-        'handleForInLoopParts null for ( in',
-        'handleNoTypeArguments {',
-        'handleLiteralInt 2',
-        'handleLiteralInt 3',
-        'handleLiteralMapEntry :, }',
-        'handleLiteralSetOrMap 1, {, null, }',
-        'handleSpreadExpression ...',
-        'endForInControlFlow }',
-      ],
-    );
+    parseEntry('before for (var x in y) ...{2:3}', [
+      'beginForControlFlow null for',
+      'beginMetadataStar var',
+      'endMetadataStar 0',
+      'handleNoTypeArguments var',
+      'beginVariablesDeclaration x var',
+      'handleIdentifier x localVariableDeclaration',
+      'beginInitializedIdentifier x',
+      'handleNoVariableInitializer x',
+      'endInitializedIdentifier x',
+      'endVariablesDeclaration 1 null',
+      'handleForInitializerLocalVariableDeclaration x',
+      'beginForInExpression y',
+      'handleIdentifier y expression',
+      'handleNoTypeArguments )',
+      'handleNoArguments )',
+      'handleSend y y',
+      'endForInExpression )',
+      'handleForInLoopParts null for ( in',
+      'handleNoTypeArguments {',
+      'handleLiteralInt 2',
+      'handleLiteralInt 3',
+      'handleLiteralMapEntry :, }',
+      'handleLiteralSetOrMap 1, {, null, }',
+      'handleSpreadExpression ...',
+      'endForInControlFlow }',
+    ]);
   }
 
   void test_forSpreadQ() {
-    parseEntry(
-      'before for (i = 0; i < 10; ++i) ...?{2:7}',
-      [
-        'beginForControlFlow null for',
-        'handleIdentifier i expression',
-        'handleNoTypeArguments =',
-        'handleNoArguments =',
-        'handleSend i i',
-        'handleLiteralInt 0',
-        'handleAssignmentExpression =',
-        'handleForInitializerExpressionStatement 0',
-        'handleIdentifier i expression',
-        'handleNoTypeArguments <',
-        'handleNoArguments <',
-        'handleSend i i',
-        'beginBinaryExpression <',
-        'handleLiteralInt 10',
-        'endBinaryExpression <',
-        'handleExpressionStatement ;',
-        'handleIdentifier i expression',
-        'handleNoTypeArguments )',
-        'handleNoArguments )',
-        'handleSend i i',
-        'handleUnaryPrefixAssignmentExpression ++',
-        'handleForInitializerExpressionStatement for ( ; 1',
-        'handleNoTypeArguments {',
-        'handleLiteralInt 2',
-        'handleLiteralInt 7',
-        'handleLiteralMapEntry :, }',
-        'handleLiteralSetOrMap 1, {, null, }',
-        'handleSpreadExpression ...?',
-        'endForControlFlow }',
-      ],
-    );
+    parseEntry('before for (i = 0; i < 10; ++i) ...?{2:7}', [
+      'beginForControlFlow null for',
+      'handleIdentifier i expression',
+      'handleNoTypeArguments =',
+      'handleNoArguments =',
+      'handleSend i i',
+      'handleLiteralInt 0',
+      'handleAssignmentExpression =',
+      'handleForInitializerExpressionStatement 0',
+      'handleIdentifier i expression',
+      'handleNoTypeArguments <',
+      'handleNoArguments <',
+      'handleSend i i',
+      'beginBinaryExpression <',
+      'handleLiteralInt 10',
+      'endBinaryExpression <',
+      'handleExpressionStatement ;',
+      'handleIdentifier i expression',
+      'handleNoTypeArguments )',
+      'handleNoArguments )',
+      'handleSend i i',
+      'handleUnaryPrefixAssignmentExpression ++',
+      'handleForInitializerExpressionStatement for ( ; 1',
+      'handleNoTypeArguments {',
+      'handleLiteralInt 2',
+      'handleLiteralInt 7',
+      'handleLiteralMapEntry :, }',
+      'handleLiteralSetOrMap 1, {, null, }',
+      'handleSpreadExpression ...?',
+      'endForControlFlow }',
+    ]);
   }
 
   void test_if() {
-    parseEntry(
-      'before if (true) 2:3',
-      [
-        'beginIfControlFlow if',
-        'handleLiteralBool true',
-        'handleParenthesizedCondition (',
-        'handleThenControlFlow )',
-        'handleLiteralInt 2',
-        'handleLiteralInt 3',
-        'handleLiteralMapEntry :, ',
-        'endIfControlFlow 3',
-      ],
-    );
+    parseEntry('before if (true) 2:3', [
+      'beginIfControlFlow if',
+      'handleLiteralBool true',
+      'handleParenthesizedCondition (',
+      'handleThenControlFlow )',
+      'handleLiteralInt 2',
+      'handleLiteralInt 3',
+      'handleLiteralMapEntry :, ',
+      'endIfControlFlow 3',
+    ]);
   }
 
   void test_ifSpread() {
-    parseEntry(
-      'before if (true) ...{2:3}',
-      [
-        'beginIfControlFlow if',
-        'handleLiteralBool true',
-        'handleParenthesizedCondition (',
-        'handleThenControlFlow )',
-        'handleNoTypeArguments {',
-        'handleLiteralInt 2',
-        'handleLiteralInt 3',
-        'handleLiteralMapEntry :, }',
-        'handleLiteralSetOrMap 1, {, null, }',
-        'handleSpreadExpression ...',
-        'endIfControlFlow }',
-      ],
-    );
+    parseEntry('before if (true) ...{2:3}', [
+      'beginIfControlFlow if',
+      'handleLiteralBool true',
+      'handleParenthesizedCondition (',
+      'handleThenControlFlow )',
+      'handleNoTypeArguments {',
+      'handleLiteralInt 2',
+      'handleLiteralInt 3',
+      'handleLiteralMapEntry :, }',
+      'handleLiteralSetOrMap 1, {, null, }',
+      'handleSpreadExpression ...',
+      'endIfControlFlow }',
+    ]);
   }
 
   void test_intLiteral() {
@@ -835,12 +782,19 @@ class MapElementTest {
     ]);
   }
 
-  void parseEntry(String source, List<String> expectedCalls,
-      {bool? inAsync, List<ExpectedError>? errors, String? expectAfter}) {
+  void parseEntry(
+    String source,
+    List<String> expectedCalls, {
+    bool? inAsync,
+    List<ExpectedError>? errors,
+    String? expectAfter,
+  }) {
     final start = scanString(source).tokens;
     final listener = new TestInfoListener();
-    final parser = new Parser(listener,
-        useImplicitCreationExpression: useImplicitCreationExpressionInCfe);
+    final parser = new Parser(
+      listener,
+      useImplicitCreationExpression: useImplicitCreationExpressionInCfe,
+    );
     if (inAsync != null) parser.asyncState = AsyncModifier.Async;
     final lastConsumed = parser.parseMapLiteralEntry(start);
 
@@ -905,7 +859,10 @@ class TestInfoListener implements Listener {
 
   @override
   void beginVariablesDeclaration(
-      Token token, Token? lateToken, Token? varFinalOrConst) {
+    Token token,
+    Token? lateToken,
+    Token? varFinalOrConst,
+  ) {
     // TODO(danrubel): update to include lateToken
     calls.add('beginVariablesDeclaration $token $varFinalOrConst');
   }
@@ -913,6 +870,16 @@ class TestInfoListener implements Listener {
   @override
   void beginVariableInitializer(Token token) {
     calls.add('beginVariableInitializer $token');
+  }
+
+  @override
+  void handleDotAccess(Token token, Token endToken, bool isNullAware) {
+    calls.add('handleDotAccess $token');
+  }
+
+  @override
+  void handleCascadeAccess(Token token, Token endToken, bool isNullAware) {
+    calls.add('handleCascadeAccess $token');
   }
 
   @override
@@ -996,17 +963,31 @@ class TestInfoListener implements Listener {
   }
 
   @override
-  void handleForInLoopParts(Token? awaitToken, Token forToken,
-      Token leftParenthesis, Token? patternKeyword, Token inKeyword) {
-    calls.add('handleForInLoopParts '
-        '$awaitToken $forToken $leftParenthesis $inKeyword');
+  void handleForInLoopParts(
+    Token? awaitToken,
+    Token forToken,
+    Token leftParenthesis,
+    Token? patternKeyword,
+    Token inKeyword,
+  ) {
+    calls.add(
+      'handleForInLoopParts '
+      '$awaitToken $forToken $leftParenthesis $inKeyword',
+    );
   }
 
   @override
-  void handleForLoopParts(Token forKeyword, Token leftParen,
-      Token leftSeparator, Token rightSeparator, int updateExpressionCount) {
-    calls.add('handleForInitializerExpressionStatement '
-        '$forKeyword $leftParen $leftSeparator $updateExpressionCount');
+  void handleForLoopParts(
+    Token forKeyword,
+    Token leftParen,
+    Token leftSeparator,
+    Token rightSeparator,
+    int updateExpressionCount,
+  ) {
+    calls.add(
+      'handleForInitializerExpressionStatement '
+      '$forKeyword $leftParen $leftSeparator $updateExpressionCount',
+    );
   }
 
   @override
@@ -1026,9 +1007,14 @@ class TestInfoListener implements Listener {
 
   @override
   void handleLiteralList(
-      int count, Token leftBracket, Token? constKeyword, Token rightBracket) {
+    int count,
+    Token leftBracket,
+    Token? constKeyword,
+    Token rightBracket,
+  ) {
     calls.add(
-        'handleLiteralList $count, $leftBracket, $constKeyword, $rightBracket');
+      'handleLiteralList $count, $leftBracket, $constKeyword, $rightBracket',
+    );
   }
 
   @override
@@ -1042,12 +1028,17 @@ class TestInfoListener implements Listener {
     bool hasSetEntry,
   ) {
     calls.add(
-        'handleLiteralSetOrMap $count, $leftBrace, $constKeyword, $rightBrace');
+      'handleLiteralSetOrMap $count, $leftBrace, $constKeyword, $rightBrace',
+    );
   }
 
   @override
-  void handleLiteralMapEntry(Token colon, Token endToken,
-      {Token? nullAwareKeyToken, Token? nullAwareValueToken}) {
+  void handleLiteralMapEntry(
+    Token colon,
+    Token endToken, {
+    Token? nullAwareKeyToken,
+    Token? nullAwareValueToken,
+  }) {
     calls.add('handleLiteralMapEntry $colon, $endToken');
   }
 
@@ -1079,10 +1070,14 @@ class TestInfoListener implements Listener {
 
   @override
   void handleRecoverableError(
-      Message message, Token startToken, Token endToken) {
+    Message message,
+    Token startToken,
+    Token endToken,
+  ) {
     int offset = startToken.charOffset;
-    (errors ??= <ExpectedError>[])
-        .add(error(message.code, offset, endToken.charEnd - offset));
+    (errors ??= <ExpectedError>[]).add(
+      error(message.code, offset, endToken.charEnd - offset),
+    );
   }
 
   @override

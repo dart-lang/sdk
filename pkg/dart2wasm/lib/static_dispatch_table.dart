@@ -72,7 +72,7 @@ class StaticDispatchTableForSignature {
   void output() {
     final importedTables = _importedWasmTables;
     _table.forEach((fun, index) {
-      final targetModule = fun.enclosingModule;
+      final targetModule = translator.moduleToBuilder[fun.enclosingModule]!;
       if (translator.isMainModule(targetModule)) {
         _definedWasmTable.setElement(index, fun);
       } else {

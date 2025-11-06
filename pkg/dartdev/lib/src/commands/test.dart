@@ -7,6 +7,7 @@ import 'dart:io';
 
 import 'package:args/args.dart';
 import 'package:dartdev/src/experiments.dart';
+import 'package:dartdev/src/progress.dart';
 import 'package:pub/pub.dart';
 
 import '../core.dart';
@@ -20,8 +21,11 @@ class TestCommand extends DartdevCommand {
   static const String cmdName = 'test';
 
   final bool nativeAssetsExperimentEnabled;
+  final bool dataAssetsExperimentEnabled;
 
-  TestCommand({this.nativeAssetsExperimentEnabled = false})
+  TestCommand(
+      {this.nativeAssetsExperimentEnabled = false,
+      this.dataAssetsExperimentEnabled = false})
       : super(cmdName, 'Run tests for a project.', false);
 
   // This argument parser is here solely to ensure that VM specific flags are
@@ -72,16 +76,19 @@ Run "${runner!.executableName} help" to see global options.''');
           runPackageName: runPackageName,
           includeDevDependencies: true,
           verbose: verbose,
+          dataAssetsExperimentEnabled: dataAssetsExperimentEnabled,
         );
         if (!nativeAssetsExperimentEnabled) {
           if (await builder.warnOnNativeAssets()) {
             return DartdevCommand.errorExitCode;
           }
-        } else {
-          final assetsYamlFileUri =
-              await builder.compileNativeAssetsJitYamlFile();
+        } else if (await builder.hasHooks()) {
+          final assetsYamlFileUri = await progress(
+            'Running build hooks',
+            builder.compileNativeAssetsJitYamlFile,
+          );
           if (assetsYamlFileUri == null) {
-            log.stderr('Error: Compiling native assets failed.');
+            log.stderr('Error: Running build hooks failed.');
             return DartdevCommand.errorExitCode;
           }
           // TODO(https://github.com/dart-lang/sdk/issues/60489): Add a way to
@@ -112,6 +119,7 @@ Run "${runner!.executableName} help" to see global options.''');
         testExecutable.executable,
         argsRestNoExperimentOrSuppressAnalytics,
         packageConfigOverride: testExecutable.packageConfig!,
+        useExecProcess: true,
         // TODO(bkonyi): remove once DartDev moves to AOT and this flag can be
         // provided directly to the process spawned by `dart run` and
         // `dart test`.

@@ -514,6 +514,7 @@ class Object {
   V(Array, empty_array)                                                        \
   V(Array, empty_instantiations_cache_array)                                   \
   V(Array, empty_subtype_test_cache_array)                                     \
+  V(Array, mutable_empty_array)                                                \
   V(ContextScope, empty_context_scope)                                         \
   V(ObjectPool, empty_object_pool)                                             \
   V(CompressedStackMaps, empty_compressed_stackmaps)                           \
@@ -827,18 +828,28 @@ class Object {
   // methods below or their counterparts in UntaggedObject, to ensure that the
   // write barrier is correctly applied.
 
-  template <typename type, std::memory_order order = std::memory_order_relaxed>
+  template <typename type>
+  type LoadPointer(type const* addr) const {
+    return ptr()->untag()->LoadPointer<type>(addr);
+  }
+  template <typename type, std::memory_order order>
   type LoadPointer(type const* addr) const {
     return ptr()->untag()->LoadPointer<type, order>(addr);
   }
 
-  template <typename type, std::memory_order order = std::memory_order_relaxed>
+  template <typename type>
+  void StorePointer(type const* addr, type value) const {
+    ptr()->untag()->StorePointer<type>(addr, value);
+  }
+  template <typename type, std::memory_order order>
   void StorePointer(type const* addr, type value) const {
     ptr()->untag()->StorePointer<type, order>(addr, value);
   }
-  template <typename type,
-            typename compressed_type,
-            std::memory_order order = std::memory_order_relaxed>
+  template <typename type, typename compressed_type>
+  void StoreCompressedPointer(compressed_type const* addr, type value) const {
+    ptr()->untag()->StoreCompressedPointer<type, compressed_type>(addr, value);
+  }
+  template <typename type, typename compressed_type, std::memory_order order>
   void StoreCompressedPointer(compressed_type const* addr, type value) const {
     ptr()->untag()->StoreCompressedPointer<type, compressed_type, order>(addr,
                                                                          value);
@@ -1716,10 +1727,10 @@ class Class : public Object {
   intptr_t FindImplicitClosureFunctionIndex(const Function& needle) const;
   FunctionPtr ImplicitClosureFunctionFromIndex(intptr_t idx) const;
 
+  FunctionPtr LookupFunction(const String& name) const;
   FunctionPtr LookupFunctionReadLocked(const String& name) const;
   FunctionPtr LookupDynamicFunctionUnsafe(const String& name) const;
 
-  FunctionPtr LookupDynamicFunctionAllowPrivate(const String& name) const;
   FunctionPtr LookupStaticFunction(const String& name) const;
   FunctionPtr LookupStaticFunctionAllowPrivate(const String& name) const;
   FunctionPtr LookupConstructor(const String& name) const;
@@ -1727,8 +1738,6 @@ class Class : public Object {
   FunctionPtr LookupFactory(const String& name) const;
   FunctionPtr LookupFactoryAllowPrivate(const String& name) const;
   FunctionPtr LookupFunctionAllowPrivate(const String& name) const;
-  FunctionPtr LookupGetterFunction(const String& name) const;
-  FunctionPtr LookupSetterFunction(const String& name) const;
   FieldPtr LookupInstanceField(const String& name) const;
   FieldPtr LookupStaticField(const String& name) const;
   FieldPtr LookupField(const String& name) const;
@@ -2246,10 +2255,6 @@ class Class : public Object {
   FunctionPtr LookupFunctionAllowPrivate(const String& name,
                                          MemberKind kind) const;
   FieldPtr LookupField(const String& name, MemberKind kind) const;
-
-  FunctionPtr LookupAccessorFunction(const char* prefix,
-                                     intptr_t prefix_length,
-                                     const String& name) const;
 
   // Allocate an instance class which has a VM implementation.
   template <class FakeInstance, class TargetFakeInstance>
@@ -2990,9 +2995,9 @@ struct NameFormattingParams {
 
 enum class FfiCallbackKind : uint8_t {
   kIsolateLocalStaticCallback,
-  kIsolateGroupSharedStaticCallback,
+  kIsolateGroupBoundStaticCallback,
   kIsolateLocalClosureCallback,
-  kIsolateGroupSharedClosureCallback,
+  kIsolateGroupBoundClosureCallback,
   kAsyncCallback,
 };
 
@@ -3043,6 +3048,10 @@ class Function : public Object {
   const char* QualifiedUserVisibleNameCString() const;
 
   virtual StringPtr DictionaryName() const { return name(); }
+
+  // Returns whether either the fully qualified name or qualified scrubbed name
+  // matches the given name filter, or true if the filter is nullptr.
+  bool NamePassesFilter(const char* name_filter) const;
 
   StringPtr GetSource() const;
 
@@ -3306,6 +3315,9 @@ class Function : public Object {
     return IsClosureFunction() &&
            (awaiter_link().depth != UntaggedClosureData::kNoAwaiterLinkDepth);
   }
+
+  void set_does_close_over_only_final_and_shared_vars(bool value) const;
+  bool does_close_over_only_final_and_shared_vars() const;
 
   // Enclosing function of this local function.
   FunctionPtr parent_function() const;
@@ -4388,7 +4400,9 @@ class ClosureData : public Object {
       UntaggedClosureData::kNoAwaiterLinkDepth;
 
  private:
-  ContextScopePtr context_scope() const { return untag()->context_scope(); }
+  ContextScopePtr context_scope() const {
+    return untag()->context_scope<std::memory_order_acquire>();
+  }
   void set_context_scope(const ContextScope& value) const;
 
   void set_packed_fields(uint32_t value) const {
@@ -4397,6 +4411,9 @@ class ClosureData : public Object {
 
   Function::AwaiterLink awaiter_link() const;
   void set_awaiter_link(Function::AwaiterLink link) const;
+
+  bool does_close_over_only_final_and_shared_vars() const;
+  void set_does_close_over_only_final_and_shared_vars(bool value) const;
 
   // Enclosing function of this local function.
   PRECOMPILER_WSR_FIELD_DECLARATION(Function, parent_function)
@@ -4542,6 +4559,13 @@ class Field : public Object {
   }
   bool is_shared() const { return untag()->kind_bits_.Read<SharedBit>(); }
 
+  void set_is_no_sanitize_thread(bool value) const {
+    untag()->kind_bits_.UpdateBool<NoSanitizeThreadBit>(value);
+  }
+  bool is_no_sanitize_thread() const {
+    return untag()->kind_bits_.Read<NoSanitizeThreadBit>();
+  }
+
 #if defined(DART_DYNAMIC_MODULES)
   bool is_declared_in_bytecode() const;
 #else
@@ -4607,6 +4631,11 @@ class Field : public Object {
   // Used by class finalizer, otherwise initialized in constructor.
   void SetFieldType(const AbstractType& value) const;
   void SetFieldTypeSafe(const AbstractType& value) const;
+
+#if !defined(DART_PRECOMPILED_RUNTIME)
+  AbstractTypePtr exact_type() const { return untag()->exact_type(); }
+  void set_exact_type(const AbstractType& value) const;
+#endif
 
   DART_WARN_UNUSED_RESULT
   ErrorPtr VerifyEntryPoint(EntryPointPragma kind) const;
@@ -4948,6 +4977,8 @@ class Field : public Object {
   using SharedBit = BitField<decltype(UntaggedField::kind_bits_),
                              bool,
                              HasInitializerBit::kNextBit>;
+  using NoSanitizeThreadBit =
+      BitField<decltype(UntaggedField::kind_bits_), bool, SharedBit::kNextBit>;
 
   // Force this field's guard to be dynamic and deoptimize dependent code.
   void ForceDynamicGuardedCidAndLength() const;
@@ -5027,10 +5058,6 @@ class Script : public Object {
   TypedDataPtr line_starts() const;
   void set_line_starts(const TypedData& value) const;
 
-#if !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
-  TypedDataViewPtr constant_coverage() const;
-#endif  // !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
-
   LibraryPtr FindLibrary() const;
   StringPtr GetLine(intptr_t line_number, Heap::Space space = Heap::kNew) const;
   StringPtr GetSnippet(intptr_t from_line,
@@ -5078,8 +5105,22 @@ class Script : public Object {
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
 
   ArrayPtr CollectConstConstructorCoverageFrom() const;
+#if !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
+#if defined(DART_DYNAMIC_MODULES)
+  void set_collected_constant_coverage(const Array& value) const;
+#endif  // defined(DART_DYNAMIC_MODULES)
+#endif  // !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
 
  private:
+#if !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
+  TypedDataViewPtr kernel_constant_coverage() const;
+  ArrayPtr CollectConstConstructorCoverageFromKernel() const;
+#if defined(DART_DYNAMIC_MODULES)
+  ArrayPtr collected_constant_coverage() const;
+  bool HasCollectedConstantCoverage() const;
+#endif  // defined(DART_DYNAMIC_MODULES)
+#endif  // !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
+
   void set_debug_positions(const Array& value) const;
 
 #if !defined(DART_PRECOMPILED_RUNTIME)
@@ -5680,13 +5721,22 @@ class ObjectPool : public Object {
     StoreNonPointer(&untag()->entry_bits()[index], bits);
   }
 
-  template <std::memory_order order = std::memory_order_relaxed>
+  ObjectPtr ObjectAt(intptr_t index) const {
+    ASSERT(TypeAt(index) == EntryType::kTaggedObject);
+    return LoadPointer<ObjectPtr>(&(EntryAddr(index)->raw_obj_));
+  }
+  template <std::memory_order order>
   ObjectPtr ObjectAt(intptr_t index) const {
     ASSERT(TypeAt(index) == EntryType::kTaggedObject);
     return LoadPointer<ObjectPtr, order>(&(EntryAddr(index)->raw_obj_));
   }
 
-  template <std::memory_order order = std::memory_order_relaxed>
+  void SetObjectAt(intptr_t index, const Object& obj) const {
+    ASSERT((TypeAt(index) == EntryType::kTaggedObject) ||
+           (TypeAt(index) == EntryType::kImmediate && obj.IsSmi()));
+    StorePointer<ObjectPtr>(&EntryAddr(index)->raw_obj_, obj.ptr());
+  }
+  template <std::memory_order order>
   void SetObjectAt(intptr_t index, const Object& obj) const {
     ASSERT((TypeAt(index) == EntryType::kTaggedObject) ||
            (TypeAt(index) == EntryType::kImmediate && obj.IsSmi()));
@@ -5700,6 +5750,12 @@ class ObjectPool : public Object {
   void SetRawValueAt(intptr_t index, uword raw_value) const {
     ASSERT(TypeAt(index) != EntryType::kTaggedObject);
     StoreNonPointer(&EntryAddr(index)->raw_value_, raw_value);
+  }
+  template <std::memory_order order>
+  void SetRawValueAt(intptr_t index, uword raw_value) const {
+    ASSERT(TypeAt(index) != EntryType::kTaggedObject);
+    StoreNonPointer<uword, uword, order>(&EntryAddr(index)->raw_value_,
+                                         raw_value);
   }
 
   static intptr_t InstanceSize() {
@@ -7476,7 +7532,10 @@ class Bytecode : public Object {
  public:
   uword instructions() const { return untag()->instructions_; }
 
-  uword PayloadStart() const { return instructions(); }
+  static uword PayloadStartOf(BytecodePtr ptr) {
+    return ptr->untag()->instructions_;
+  }
+  uword PayloadStart() const { return PayloadStartOf(ptr()); }
   intptr_t Size() const { return untag()->instructions_size_; }
 
   ObjectPoolPtr object_pool() const { return untag()->object_pool(); }
@@ -7522,14 +7581,9 @@ class Bytecode : public Object {
   TokenPosition GetTokenIndexOfPC(uword return_address) const;
   intptr_t GetTryIndexAtPc(uword return_address) const;
 
-  // Return the pc of the first 'DebugCheck' opcode of the bytecode.
-  // Return 0 if none is found.
-  uword GetFirstDebugCheckOpcodePc() const;
-
-  // Return the pc after the first 'debug checked' opcode in the range.
-  // Return 0 if none is found.
-  uword GetDebugCheckedOpcodeReturnAddress(uword from_offset,
-                                           uword to_offset) const;
+  // Returns the address of the previous instruction when given
+  // a valid return address for the given bytecode or 0 otherwise.
+  uword GetInstructionBefore(uword return_address) const;
 
   intptr_t instructions_binary_offset() const {
     return untag()->instructions_binary_offset_;
@@ -7560,9 +7614,6 @@ class Bytecode : public Object {
   void set_local_variables_binary_offset(intptr_t value) const {
     StoreNonPointer(&untag()->local_variables_binary_offset_, value);
   }
-  bool HasLocalVariablesInfo() const {
-    return (local_variables_binary_offset() != 0);
-  }
 
   LocalVarDescriptorsPtr var_descriptors() const {
     return untag()->var_descriptors<std::memory_order_acquire>();
@@ -7572,13 +7623,25 @@ class Bytecode : public Object {
     untag()->set_var_descriptors<std::memory_order_release>(value.ptr());
   }
 
+  void WriteLocalVariablesInfo(Zone* zone, BaseTextBuffer* buffer) const;
+
   // Will compute local var descriptors if necessary.
   LocalVarDescriptorsPtr GetLocalVarDescriptors() const;
 #endif  // !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
 
+  bool HasLocalVariablesInfo() const {
+#if !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
+    return (local_variables_binary_offset() != 0);
+#else
+    return false;
+#endif
+  }
+
   const char* Name() const;
   const char* QualifiedName() const;
   const char* FullyQualifiedName() const;
+
+  static BytecodePtr FindBytecode(uword pc);
 
  private:
   void set_instructions(uword instructions) const {
@@ -7838,10 +7901,13 @@ class MegamorphicCache : public CallSiteData {
 
   // The caller must hold IsolateGroup::type_feedback_mutex().
   void InsertLocked(const Smi& class_id, const Object& target) const;
-  void EnsureCapacityLocked() const;
   ObjectPtr LookupLocked(const Smi& class_id) const;
 
-  void InsertEntryLocked(const Smi& class_id, const Object& target) const;
+  template <std::memory_order order>
+  static void InsertEntryLocked(const Array& array,
+                                intptr_t mask,
+                                const Smi& class_id,
+                                const Object& target);
 
   static inline void SetEntry(const Array& array,
                               intptr_t index,
@@ -7849,7 +7915,15 @@ class MegamorphicCache : public CallSiteData {
                               const Object& target);
 
   static inline ObjectPtr GetClassId(const Array& array, intptr_t index);
+  template <std::memory_order order>
+  static inline void SetClassId(const Array& array,
+                                intptr_t index,
+                                const Smi& class_id);
   static inline ObjectPtr GetTargetFunction(const Array& array, intptr_t index);
+  template <std::memory_order order>
+  static inline void SetTargetFunction(const Array& array,
+                                       intptr_t index,
+                                       const Object& target);
 
   FINAL_HEAP_OBJECT_IMPLEMENTATION(MegamorphicCache, CallSiteData);
 };
@@ -7902,7 +7976,10 @@ class SubtypeTestCache : public Object {
   intptr_t NumberOfChecks() const;
 
   // Retrieves the number of entries (occupied or unoccupied) in the cache.
-  intptr_t NumEntries() const;
+  intptr_t NumEntries() const {
+    ASSERT(!IsNull());
+    return NumEntries(untag()->cache_);
+  }
 
   // Adds a check, returning the index of the new entry in the cache.
   intptr_t AddCheck(
@@ -7991,7 +8068,10 @@ class SubtypeTestCache : public Object {
   bool Equals(const SubtypeTestCache& other) const;
 
   // Returns whether the cache backed by the given storage is hash-based.
-  bool IsHash() const;
+  bool IsHash() const {
+    if (IsNull()) return false;
+    return IsHash(untag()->cache_);
+  }
 
   // Creates a separate copy of the current STC contents.
   SubtypeTestCachePtr Copy(Thread* thread) const;
@@ -8055,13 +8135,13 @@ class SubtypeTestCache : public Object {
 
   // Retrieves the number of entries (occupied or unoccupied) in a cache
   // backed by the given array.
-  static intptr_t NumEntries(const Array& array);
+  static intptr_t NumEntries(const ArrayPtr array);
 
   // Returns whether the cache backed by the given storage is linear.
-  static bool IsLinear(const Array& array) { return !IsHash(array); }
+  static bool IsLinear(const ArrayPtr array) { return !IsHash(array); }
 
   // Returns whether the cache backed by the given storage is hash-based.
-  static bool IsHash(const Array& array);
+  static bool IsHash(const ArrayPtr array);
 
   struct KeyLocation {
     // The entry index if [present] is true, otherwise where the entry would
@@ -8088,6 +8168,22 @@ class SubtypeTestCache : public Object {
       const TypeArguments& function_type_arguments,
       const TypeArguments& instance_parent_function_type_arguments,
       const TypeArguments& instance_delayed_type_arguments);
+
+  // The main loop of FindKeyOrUnused() after the initial probe index has
+  // been calculated. Used by both FindKeyOrUnused and by the bytecode
+  // interpreter, so uses tagged pointers instead of handles.
+  static KeyLocation FindKeyOrUnusedFromProbe(
+      ArrayPtr array,
+      intptr_t num_inputs,
+      intptr_t probe,
+      ObjectPtr instance_class_id_or_signature,
+      AbstractTypePtr destination_type,
+      TypeArgumentsPtr instance_type_arguments,
+      TypeArgumentsPtr instantiator_type_arguments,
+      TypeArgumentsPtr function_type_arguments,
+      TypeArgumentsPtr instance_parent_function_type_arguments,
+      TypeArgumentsPtr instance_delayed_type_arguments,
+      BoolPtr* test_result = nullptr);
 
   // If the given array can contain the requested number of entries, returns
   // the same array and sets [was_grown] to false.
@@ -8152,6 +8248,7 @@ class SubtypeTestCache : public Object {
   FINAL_HEAP_OBJECT_IMPLEMENTATION(SubtypeTestCache, Object);
   friend class Class;
   friend class FieldInvalidator;
+  friend class Interpreter;
   friend class VMSerializationRoots;
   friend class VMDeserializationRoots;
 };
@@ -9491,7 +9588,9 @@ class AbstractType : public Instance {
   uword type_test_stub_entry_point() const {
     return untag()->type_test_stub_entry_point_;
   }
-  CodePtr type_test_stub() const { return untag()->type_test_stub(); }
+  CodePtr type_test_stub() const {
+    return untag()->type_test_stub<std::memory_order_acquire>();
+  }
 
   // Sets the TTS to [stub].
   //
@@ -10582,8 +10681,6 @@ class String : public Instance {
   static StringPtr ToLowerCase(const String& str,
                                Heap::Space space = Heap::kNew);
 
-  static StringPtr RemovePrivateKey(const String& name);
-
   static const char* ScrubName(const String& name, bool is_extension = false);
   static StringPtr ScrubNameRetainPrivate(const String& name,
                                           bool is_extension = false);
@@ -11032,17 +11129,35 @@ class Array : public Instance {
     return array->untag()->data();
   }
 
-  template <std::memory_order order = std::memory_order_relaxed>
-  ObjectPtr At(intptr_t index) const {
-    ASSERT((0 <= index) && (index < Length()));
-    return untag()->element<order>(index);
+  static ObjectPtr ElementAt(ArrayPtr array, intptr_t index) {
+    ASSERT((0 <= index) && (index < LengthOf(array)));
+    return array->untag()->element(index);
   }
-  template <std::memory_order order = std::memory_order_relaxed>
+  template <std::memory_order order>
+  static ObjectPtr ElementAt(ArrayPtr array, intptr_t index) {
+    ASSERT((0 <= index) && (index < LengthOf(array)));
+    return array->untag()->element<order>(index);
+  }
+
+  ObjectPtr At(intptr_t index) const { return ElementAt(ptr(), index); }
+  template <std::memory_order order>
+  ObjectPtr At(intptr_t index) const {
+    return ElementAt<order>(ptr(), index);
+  }
+  void SetAt(intptr_t index, const Object& value) const {
+    ASSERT((0 <= index) && (index < Length()));
+    untag()->set_element(index, value.ptr());
+  }
+  template <std::memory_order order>
   void SetAt(intptr_t index, const Object& value) const {
     ASSERT((0 <= index) && (index < Length()));
     untag()->set_element<order>(index, value.ptr());
   }
-  template <std::memory_order order = std::memory_order_relaxed>
+  void SetAt(intptr_t index, const Object& value, Thread* thread) const {
+    ASSERT((0 <= index) && (index < Length()));
+    untag()->set_element(index, value.ptr(), thread);
+  }
+  template <std::memory_order order>
   void SetAt(intptr_t index, const Object& value, Thread* thread) const {
     ASSERT((0 <= index) && (index < Length()));
     untag()->set_element<order>(index, value.ptr(), thread);
@@ -11050,8 +11165,7 @@ class Array : public Instance {
 
   // Access to the array with acquire release semantics.
   ObjectPtr AtAcquire(intptr_t index) const {
-    ASSERT((0 <= index) && (index < Length()));
-    return untag()->element<std::memory_order_acquire>(index);
+    return ElementAt<std::memory_order_acquire>(ptr(), index);
   }
   void SetAtRelease(intptr_t index, const Object& value) const {
     ASSERT((0 <= index) && (index < Length()));
@@ -11181,9 +11295,11 @@ class Array : public Instance {
     untag()->set_length<std::memory_order_release>(Smi::New(value));
   }
 
-  template <typename type,
-            std::memory_order order = std::memory_order_relaxed,
-            typename value_type>
+  template <typename type, typename value_type>
+  void StoreArrayPointer(type const* addr, value_type value) const {
+    ptr()->untag()->StoreArrayPointer<type, value_type>(addr, value);
+  }
+  template <typename type, std::memory_order order, typename value_type>
   void StoreArrayPointer(type const* addr, value_type value) const {
     ptr()->untag()->StoreArrayPointer<type, order, value_type>(addr, value);
   }
@@ -12957,7 +13073,9 @@ class RegExp : public Instance {
   intptr_t num_bracket_expressions() const {
     return untag()->num_bracket_expressions_;
   }
-  ArrayPtr capture_name_map() const { return untag()->capture_name_map(); }
+  ArrayPtr capture_name_map() const {
+    return untag()->capture_name_map<std::memory_order_acquire>();
+  }
 
   TypedDataPtr bytecode(bool is_one_byte, bool sticky) const {
     if (sticky) {
@@ -13317,11 +13435,6 @@ class UserTag : public Instance {
     StoreNonPointer(&untag()->tag_, t);
   }
 
-  bool streamable() const { return untag()->streamable(); }
-  void set_streamable(bool streamable) {
-    StoreNonPointer(&untag()->streamable_, streamable);
-  }
-
   static intptr_t tag_offset() { return OFFSET_OF(UntaggedUserTag, tag_); }
 
   StringPtr label() const { return untag()->label(); }
@@ -13332,18 +13445,20 @@ class UserTag : public Instance {
     return RoundedAllocationSize(sizeof(UntaggedUserTag));
   }
 
-  static UserTagPtr New(const String& label, Heap::Space space = Heap::kOld);
-  static UserTagPtr DefaultTag();
+  static UserTagPtr New(Thread* thread,
+                        const String& label,
+                        Heap::Space space = Heap::kOld);
+  static UserTagPtr DefaultTag(Thread* thread);
 
   static bool TagTableIsFull(Thread* thread);
-  static UserTagPtr FindTagById(const Isolate* isolate, uword tag_id);
-  static UserTagPtr FindTagInIsolate(Isolate* isolate,
-                                     Thread* thread,
-                                     const String& label);
+  static UserTagPtr FindTagById(const IsolateGroup* isolate_group,
+                                uword tag_id);
+  static UserTagPtr FindTagInIsolateGroup(IsolateGroup* isolate_group,
+                                          Thread* thread,
+                                          const String& label);
 
  private:
-  static UserTagPtr FindTagInIsolate(Thread* thread, const String& label);
-  static void AddTagToIsolate(Thread* thread, const UserTag& tag);
+  static void AddTagToIsolateGroup(Thread* thread, const UserTag& tag);
 
   void set_label(const String& tag_label) const {
     untag()->set_label(tag_label.ptr());
@@ -13549,9 +13664,23 @@ ObjectPtr MegamorphicCache::GetClassId(const Array& array, intptr_t index) {
   return array.At((index * kEntryLength) + kClassIdIndex);
 }
 
+template <std::memory_order order>
+void MegamorphicCache::SetClassId(const Array& array,
+                                  intptr_t index,
+                                  const Smi& class_id) {
+  array.SetAt<order>((index * kEntryLength) + kClassIdIndex, class_id);
+}
+
 ObjectPtr MegamorphicCache::GetTargetFunction(const Array& array,
                                               intptr_t index) {
   return array.At((index * kEntryLength) + kTargetFunctionIndex);
+}
+
+template <std::memory_order order>
+void MegamorphicCache::SetTargetFunction(const Array& array,
+                                         intptr_t index,
+                                         const Object& target) {
+  array.SetAt<order>((index * kEntryLength) + kTargetFunctionIndex, target);
 }
 
 inline uword AbstractType::Hash() const {

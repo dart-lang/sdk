@@ -39,34 +39,10 @@ class StreamManager {
         if (isBinaryData) {
           listener.connection.sink.add(data);
         } else {
-          Map<String, dynamic> processed = data;
-          if (streamId == kProfilerStream) {
-            processed = _processProfilerEvents(listener, data);
-          }
-          listener.sendNotification('streamNotify', processed);
+          listener.sendNotification('streamNotify', data);
         }
       }
     }
-  }
-
-  static Map<String, dynamic> _processProfilerEvents(
-    DartDevelopmentServiceClient client,
-    Map<String, dynamic> data,
-  ) {
-    final event = Event.parse(data['event'])!;
-    if (event.kind != EventKind.kCpuSamples) {
-      return data;
-    }
-    final cpuSamplesEvent = event.cpuSamples!;
-    cpuSamplesEvent.samples = cpuSamplesEvent.samples!
-        .where(
-          (e) => client.profilerUserTagFilters.contains(e.userTag),
-        )
-        .toList();
-    cpuSamplesEvent.sampleCount = cpuSamplesEvent.samples!.length;
-    final updated = Map<String, dynamic>.from(data);
-    updated['event']['cpuSamples'] = cpuSamplesEvent.toJson();
-    return updated;
   }
 
   static Map<String, dynamic> _buildStreamRegisteredEvent(
@@ -133,9 +109,6 @@ class StreamManager {
         // Stdout and Stderr streams may not exist.
       }
     }
-    if (dds.cachedUserTags.isNotEmpty) {
-      await streamListen(null, EventStreams.kProfiler);
-    }
     dds.vmServiceClient.registerMethod(
       'streamNotify',
       (json_rpc.Parameters parameters) {
@@ -176,11 +149,6 @@ class StreamManager {
           loggingRepositories[streamId]!.add(
             parameters.asMap.cast<String, dynamic>(),
           );
-        }
-        // If the event contains an isolate, forward the event to the
-        // corresponding isolate to be handled.
-        if (event.isolate != null) {
-          dds.isolateManager.routeEventToIsolate(event);
         }
         streamNotify(streamId, parameters.value);
       },
@@ -361,31 +329,6 @@ class StreamManager {
     );
   }
 
-  Future<void> updateUserTagSubscriptions(
-      [List<String> userTags = const []]) async {
-    await _profilerUserTagSubscriptionsMutex.runGuarded(() async {
-      _profilerUserTagSubscriptions.addAll(userTags);
-      for (final subscribedTag in _profilerUserTagSubscriptions.toList()) {
-        bool hasSubscriber = false;
-        for (final c in dds.clientManager.clients) {
-          if (c.profilerUserTagFilters.contains(subscribedTag)) {
-            hasSubscriber = true;
-            break;
-          }
-        }
-        if (!hasSubscriber) {
-          _profilerUserTagSubscriptions.remove(subscribedTag);
-        }
-      }
-      await dds.vmServiceClient.sendRequestAndIgnoreMethodNotFound(
-        'streamCpuSamplesWithUserTag',
-        {
-          'userTags': _profilerUserTagSubscriptions.toList(),
-        },
-      );
-    });
-  }
-
   /// Cleanup stream subscriptions for `client` when it has disconnected.
   void clientDisconnect(DartDevelopmentServiceClient client) {
     for (final streamId in streamListeners.keys.toList()) {
@@ -396,10 +339,6 @@ class StreamManager {
         test: (e) => (e is json_rpc.RpcException) || (e is StateError),
       );
     }
-    updateUserTagSubscriptions().catchError(
-      (_) => null,
-      test: (e) => (e is json_rpc.RpcException) || (e is StateError),
-    );
 
     // Notify other service clients of service extensions that are being
     // unregistered.
@@ -448,7 +387,6 @@ class StreamManager {
     kIsolateStream,
     kGCStream,
     kLoggingStream,
-    kProfilerStream,
     kStderrStream,
     kStdoutStream,
     kTimelineStream,
@@ -474,12 +412,6 @@ class StreamManager {
     kStdoutStream,
   };
 
-  // Never cancel the profiler stream as `CpuSampleRepository` requires
-  // `UserTagChanged` events to enable/disable sample caching.
-  static const cpuSampleRepositoryStreams = <String>{
-    kProfilerStream,
-  };
-
   // The set of streams that DDS requires to function.
   static final ddsCoreStreams = <String>{
     ...isolateManagerStreams,
@@ -489,7 +421,5 @@ class StreamManager {
   final DartDevelopmentServiceImpl dds;
   final streamListeners = <String, List<DartDevelopmentServiceClient>>{};
   final customStreamListenerKeys = <String>{};
-  final _profilerUserTagSubscriptions = <String>{};
   final _streamSubscriptionMutex = Mutex();
-  final _profilerUserTagSubscriptionsMutex = Mutex();
 }

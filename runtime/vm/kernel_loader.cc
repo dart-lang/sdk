@@ -212,7 +212,9 @@ KernelLoader::KernelLoader(Program* program,
                        &constant_reader_,
                        &active_class_,
                        /* finalize= */ false),
-      inferred_type_metadata_helper_(&helper_, &constant_reader_),
+      inferred_type_metadata_helper_(&helper_,
+                                     &constant_reader_,
+                                     &type_translator_),
       static_field_value_(Object::Handle(Z)),
       name_index_handle_(Smi::Handle(Z)),
       expression_evaluation_library_(Library::Handle(Z)) {
@@ -473,7 +475,9 @@ KernelLoader::KernelLoader(const KernelProgramInfo& kernel_program_info,
                        &constant_reader_,
                        &active_class_,
                        /* finalize= */ false),
-      inferred_type_metadata_helper_(&helper_, &constant_reader_),
+      inferred_type_metadata_helper_(&helper_,
+                                     &constant_reader_,
+                                     &type_translator_),
       static_field_value_(Object::Handle(Z)),
       name_index_handle_(Smi::Handle(Z)),
       expression_evaluation_library_(Library::Handle(Z)) {
@@ -568,18 +572,7 @@ void KernelLoader::LoadLibrary(const Library& library) {
 }
 
 ObjectPtr KernelLoader::LoadExpressionEvaluationFunction(
-    const String& library_url,
-    const String& klass) {
-  // Find the original context, i.e. library/class, in which the evaluation will
-  // happen.
-  const Library& real_library =
-      Library::Handle(Z, Library::LookupLibrary(thread_, library_url));
-  ASSERT(!real_library.IsNull());
-  const Class& real_class = Class::Handle(
-      Z, klass.IsNull() ? real_library.toplevel_class()
-                        : real_library.LookupClassAllowPrivate(klass));
-  ASSERT(!real_class.IsNull());
-
+    const Class& real_class) {
   const intptr_t num_cids = IG->class_table()->NumCids();
   const intptr_t num_libs =
       GrowableObjectArray::Handle(IG->object_store()->libraries()).Length();
@@ -626,32 +619,18 @@ ObjectPtr KernelLoader::LoadExpressionEvaluationFunction(
 }
 
 void KernelLoader::FindModifiedLibraries(Program* program,
-                                         IsolateGroup* isolate_group,
                                          BitVector* modified_libs,
-                                         bool force_reload,
-                                         bool* is_empty_program,
+                                         intptr_t* p_num_libraries,
                                          intptr_t* p_num_classes,
                                          intptr_t* p_num_procedures) {
   Thread* thread = Thread::Current();
   LongJumpScope jump(thread);
   if (DART_SETJMP(*jump.Set()) == 0) {
     Zone* zone = thread->zone();
-    if (force_reload) {
-      // If a reload is being forced we mark all libraries as having
-      // been modified.
-      const auto& libs = GrowableObjectArray::Handle(
-          zone, isolate_group->object_store()->libraries());
-      intptr_t num_libs = libs.Length();
-      Library& lib = dart::Library::Handle(zone);
-      for (intptr_t i = 0; i < num_libs; i++) {
-        lib ^= libs.At(i);
-        if (!lib.is_dart_scheme()) {
-          modified_libs->Add(lib.index());
-        }
-      }
-      return;
-    }
 
+    if (p_num_libraries != nullptr) {
+      *p_num_libraries = 0;
+    }
     if (p_num_classes != nullptr) {
       *p_num_classes = 0;
     }
@@ -661,10 +640,9 @@ void KernelLoader::FindModifiedLibraries(Program* program,
 
     // Now go through all the libraries that are present in the incremental
     // kernel files, these will constitute the modified libraries.
-    *is_empty_program = true;
     if (program->is_single_program()) {
       KernelLoader loader(program, /*uri_to_source_table=*/nullptr);
-      loader.walk_incremental_kernel(modified_libs, is_empty_program,
+      loader.walk_incremental_kernel(modified_libs, p_num_libraries,
                                      p_num_classes, p_num_procedures);
     }
 
@@ -689,24 +667,23 @@ void KernelLoader::FindModifiedLibraries(Program* program,
       }
       ASSERT(subprogram->is_single_program());
       KernelLoader loader(subprogram.get(), /*uri_to_source_table=*/nullptr);
-      loader.walk_incremental_kernel(modified_libs, is_empty_program,
+      loader.walk_incremental_kernel(modified_libs, p_num_libraries,
                                      p_num_classes, p_num_procedures);
     }
   }
 }
 
 void KernelLoader::walk_incremental_kernel(BitVector* modified_libs,
-                                           bool* is_empty_program,
+                                           intptr_t* p_num_libraries,
                                            intptr_t* p_num_classes,
                                            intptr_t* p_num_procedures) {
-  intptr_t length = program_->library_count();
-  *is_empty_program = *is_empty_program && (length == 0);
+  const intptr_t num_libraries = program_->library_count();
   bool collect_library_stats =
       p_num_classes != nullptr || p_num_procedures != nullptr;
   intptr_t num_classes = 0;
   intptr_t num_procedures = 0;
   Library& lib = Library::Handle(Z);
-  for (intptr_t i = 0; i < length; i++) {
+  for (intptr_t i = 0; i < num_libraries; i++) {
     intptr_t kernel_offset = library_offset(i);
     helper_.SetOffset(kernel_offset);
     LibraryHelper library_helper(&helper_);
@@ -724,6 +701,9 @@ void KernelLoader::walk_incremental_kernel(BitVector* modified_libs,
       num_classes += library_index.class_count();
       num_procedures += library_index.procedure_count();
     }
+  }
+  if (p_num_libraries != nullptr) {
+    *p_num_libraries += num_libraries;
   }
   if (p_num_classes != nullptr) {
     *p_num_classes += num_classes;
@@ -744,6 +724,7 @@ void KernelLoader::ReadInferredType(const Field& field,
   field.set_guarded_cid(type.cid);
   field.set_is_nullable(type.IsNullable());
   field.set_guarded_list_length(Field::kNoFixedLength);
+  field.set_exact_type(type.exact_type);
   if (FLAG_precompiled_mode) {
     field.set_is_unboxed(!field.is_late() && !field.is_static() &&
                          !field.is_nullable() &&
@@ -1040,6 +1021,8 @@ void KernelLoader::FinishTopLevelClassLoading(
     field.set_is_extension_member(is_extension_member);
     field.set_is_extension_type_member(is_extension_type_member);
     field.set_is_shared(SharedPragma::decode(pragma_bits));
+    field.set_is_no_sanitize_thread(
+        NoSanitizeThreadPragma::decode(pragma_bits));
     const AbstractType& type = T.BuildType();  // read type.
     field.SetFieldType(type);
     ReadInferredType(field, field_offset + library_kernel_offset_);
@@ -1183,6 +1166,7 @@ void KernelLoader::LoadLibraryImportsAndExports(Library* library,
         library->url() != Symbols::DartCore().ptr() &&
         library->url() != Symbols::DartConcurrent().ptr() &&
         library->url() != Symbols::DartInternal().ptr() &&
+        library->url() != Symbols::DartIo().ptr() &&
         library->url() != Symbols::DartFfi().ptr()) {
       H.ReportError(
           "import of dart:ffi is not supported in the current Dart runtime");
@@ -1467,6 +1451,8 @@ void KernelLoader::FinishClassLoading(const Class& klass,
       field.set_is_extension_member(is_extension_member);
       field.set_is_extension_type_member(is_extension_type_member);
       field.set_is_shared(SharedPragma::decode(pragma_bits));
+      field.set_is_no_sanitize_thread(
+          NoSanitizeThreadPragma::decode(pragma_bits));
       ReadInferredType(field, field_offset + library_kernel_offset_);
       CheckForInitializer(field);
       // Static fields with initializers are implicitly late.
@@ -1517,7 +1503,7 @@ void KernelLoader::FinishClassLoading(const Class& klass,
     // is effectively the same as calling this method first with Pointer and
     // subsequently with TypedData with field guards. We also set
     // guarded_list_length_ to kNoFixedLength for similar reasons.
-    if (klass.UserVisibleName() == Symbols::Compound().ptr() &&
+    if (klass.UserVisibleName() == Symbols::_Compound().ptr() &&
         Library::Handle(Z, klass.library()).url() == Symbols::DartFfi().ptr()) {
       ASSERT_EQUAL(fields_.length(), 2);
       ASSERT(String::Handle(Z, fields_[0]->name())
@@ -1776,6 +1762,10 @@ void KernelLoader::ReadVMAnnotations(const Library& library,
             }
           }
           *pragma_bits = SharedPragma::update(true, *pragma_bits);
+        }
+        if (constant_reader.IsStringConstant(name_index,
+                                             "vm:no-sanitize-thread")) {
+          *pragma_bits = NoSanitizeThreadPragma::update(true, *pragma_bits);
         }
         if (constant_reader.IsStringConstant(name_index,
                                              "dyn-module:extendable")) {

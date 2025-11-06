@@ -27,6 +27,43 @@ class RemoveConstConstConstructorParamTypeMismatchTest
   @override
   FixKind get kind => DartFixKind.REMOVE_CONST;
 
+  Future<void> test_methodInvocation() async {
+    await resolveTestCode(r'''
+class A {
+  const A([int _ = 0]);
+
+  int myMethod() => 0;
+}
+
+void foo(A a) {
+  const _ = A(a.myMethod());
+}
+''');
+    await assertHasFix(r'''
+class A {
+  const A([int _ = 0]);
+
+  int myMethod() => 0;
+}
+
+void foo(A a) {
+  final _ = A(a.myMethod());
+}
+''');
+  }
+
+  Future<void> test_methodInvocation_enum() async {
+    await resolveTestCode(r'''
+enum E {
+  enumValue(["text"].map((x) => x));
+
+  const E(this.strings);
+  final Iterable<String> strings;
+}
+''');
+    await assertNoFix();
+  }
+
   Future<void> test_named() async {
     await resolveTestCode(r'''
 class A {
@@ -65,10 +102,9 @@ void f(int i) {
 }
 ''');
     await assertNoFix(
-      errorFilter:
-          (error) =>
-              error.diagnosticCode ==
-              CompileTimeErrorCode.CONST_CONSTRUCTOR_PARAM_TYPE_MISMATCH,
+      errorFilter: (error) =>
+          error.diagnosticCode ==
+          CompileTimeErrorCode.constConstructorParamTypeMismatch,
     );
   }
 
@@ -172,10 +208,8 @@ class B {}
 var v = [const A(), B()];
 ''',
       // TODO(FMorschel): CONST_WITH_NON_CONST should not be probably triggered
-      errorFilter:
-          (error) =>
-              error.diagnosticCode ==
-              CompileTimeErrorCode.NON_CONSTANT_LIST_ELEMENT,
+      errorFilter: (error) =>
+          error.diagnosticCode == CompileTimeErrorCode.nonConstantListElement,
     );
   }
 
@@ -199,11 +233,9 @@ Object f() {
   return [const A(), B(), [const A(), B()]];
 }
 ''',
-      errorFilter:
-          (error) =>
-              error.offset == parsedTestCode.positions[0].offset &&
-              error.diagnosticCode ==
-                  CompileTimeErrorCode.NON_CONSTANT_LIST_ELEMENT,
+      errorFilter: (error) =>
+          error.offset == parsedTestCode.positions[0].offset &&
+          error.diagnosticCode == CompileTimeErrorCode.nonConstantListElement,
     );
     await assertHasFix(
       r'''
@@ -215,11 +247,9 @@ Object f() {
   return [const A(), B(), [const A(), B()]];
 }
 ''',
-      errorFilter:
-          (error) =>
-              error.offset == parsedTestCode.positions[1].offset &&
-              error.diagnosticCode ==
-                  CompileTimeErrorCode.NON_CONSTANT_LIST_ELEMENT,
+      errorFilter: (error) =>
+          error.offset == parsedTestCode.positions[1].offset &&
+          error.diagnosticCode == CompileTimeErrorCode.nonConstantListElement,
     );
   }
 
@@ -243,11 +273,9 @@ Object f() {
   return [const A(), B(), const [A(), A()]];
 }
 ''',
-      errorFilter:
-          (error) =>
-              error.offset == parsedTestCode.position.offset &&
-              error.diagnosticCode ==
-                  CompileTimeErrorCode.NON_CONSTANT_LIST_ELEMENT,
+      errorFilter: (error) =>
+          error.offset == parsedTestCode.position.offset &&
+          error.diagnosticCode == CompileTimeErrorCode.nonConstantListElement,
     );
   }
 
@@ -270,10 +298,8 @@ final x = [const A(), A.nonConst()];
       // TODO(FMorschel): CONST_WITH_NON_CONST and
       // CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE should not be triggered and
       // NON_CONSTANT_LIST_ELEMENT should have the position for the element
-      errorFilter:
-          (error) =>
-              error.diagnosticCode ==
-              CompileTimeErrorCode.NON_CONSTANT_LIST_ELEMENT,
+      errorFilter: (error) =>
+          error.diagnosticCode == CompileTimeErrorCode.nonConstantListElement,
     );
   }
 }
@@ -426,10 +452,8 @@ class B {}
 var v = {1: const A(), 2: B()};
 ''',
       // TODO(FMorschel): CONST_WITH_NON_CONST should not be probably triggered
-      errorFilter:
-          (error) =>
-              error.diagnosticCode ==
-              CompileTimeErrorCode.NON_CONSTANT_MAP_VALUE,
+      errorFilter: (error) =>
+          error.diagnosticCode == CompileTimeErrorCode.nonConstantMapValue,
     );
   }
 
@@ -450,10 +474,8 @@ class A {
 final v = {1: const A(), 2: A.nonConst()};
 ''',
       // TODO(FMorschel): CONST_WITH_NON_CONST should not be probably triggered
-      errorFilter:
-          (error) =>
-              error.diagnosticCode ==
-              CompileTimeErrorCode.NON_CONSTANT_MAP_VALUE,
+      errorFilter: (error) =>
+          error.diagnosticCode == CompileTimeErrorCode.nonConstantMapValue,
     );
   }
 }
@@ -515,10 +537,8 @@ class B {}
 var v = {const A(), B()};
 ''',
       // TODO(FMorschel): CONST_WITH_NON_CONST should not be probably triggered
-      errorFilter:
-          (error) =>
-              error.diagnosticCode ==
-              CompileTimeErrorCode.NON_CONSTANT_SET_ELEMENT,
+      errorFilter: (error) =>
+          error.diagnosticCode == CompileTimeErrorCode.nonConstantSetElement,
     );
   }
 
@@ -539,10 +559,8 @@ class A {
 final v = {const A(), A.nonConst()};
 ''',
       // TODO(FMorschel): CONST_WITH_NON_CONST should not be probably triggered
-      errorFilter:
-          (error) =>
-              error.diagnosticCode ==
-              CompileTimeErrorCode.NON_CONSTANT_SET_ELEMENT,
+      errorFilter: (error) =>
+          error.diagnosticCode == CompileTimeErrorCode.nonConstantSetElement,
     );
   }
 }
@@ -624,6 +642,21 @@ var x = A([0]);
 ''');
   }
 
+  Future<void> test_explicitConst_dotShorthand() async {
+    await resolveTestCode('''
+class A {
+  A(_);
+}
+A x = const .new([0]);
+''');
+    await assertHasFix('''
+class A {
+  A(_);
+}
+A x = .new([0]);
+''');
+  }
+
   Future<void> test_implicitConst_instanceCreation_argument() async {
     await resolveTestCode('''
 class A {}
@@ -642,6 +675,38 @@ class B {
 }
 
 var x = B(A(), const [0]);
+''');
+  }
+
+  Future<void>
+  test_implicitConst_instanceCreation_argument_dotShorthand() async {
+    await resolveTestCode('''
+enum E { a }
+
+class A {
+  A.named();
+  const A.constNamed();
+}
+
+class B {
+  const B(A a, A aa, E e);
+}
+
+B x = const .new(.named(), .constNamed(), .a);
+''');
+    await assertHasFix('''
+enum E { a }
+
+class A {
+  A.named();
+  const A.constNamed();
+}
+
+class B {
+  const B(A a, A aa, E e);
+}
+
+B x = .new(.named(), const .constNamed(), .a);
 ''');
   }
 
@@ -666,7 +731,7 @@ class B {
 var x = B(a1: A(), b: const [0], a2: A());
 ''',
       errorFilter: (e) {
-        return e.diagnosticCode == CompileTimeErrorCode.CONST_WITH_NON_CONST &&
+        return e.diagnosticCode == CompileTimeErrorCode.constWithNonConst &&
             e.offset == testCode.indexOf('A()');
       },
     );
@@ -706,7 +771,7 @@ class A {}
 var x = [A(), if (true) const [0] else const [1]];
 ''',
       errorFilter: (e) {
-        return e.diagnosticCode == CompileTimeErrorCode.CONST_WITH_NON_CONST;
+        return e.diagnosticCode == CompileTimeErrorCode.constWithNonConst;
       },
     );
   }
@@ -732,7 +797,7 @@ class B {
 var x = [A(), const B(), const B(), A()];
 ''',
       errorFilter: (e) {
-        return e.diagnosticCode == CompileTimeErrorCode.CONST_WITH_NON_CONST &&
+        return e.diagnosticCode == CompileTimeErrorCode.constWithNonConst &&
             e.offset == testCode.indexOf('A()');
       },
     );
@@ -751,7 +816,7 @@ class A {}
 var x = [A(), const [0], const [1]];
 ''',
       errorFilter: (e) {
-        return e.diagnosticCode == CompileTimeErrorCode.CONST_WITH_NON_CONST;
+        return e.diagnosticCode == CompileTimeErrorCode.constWithNonConst;
       },
     );
   }
@@ -770,7 +835,7 @@ class A {}
 var x = [A(), ...const [0], ...const [1]];
 ''',
       errorFilter: (e) {
-        return e.diagnosticCode == CompileTimeErrorCode.CONST_WITH_NON_CONST;
+        return e.diagnosticCode == CompileTimeErrorCode.constWithNonConst;
       },
     );
   }
@@ -788,7 +853,7 @@ class A {}
 var x = {0: A(), ...const {1: 2}, ...const {3: 4}};
 ''',
       errorFilter: (e) {
-        return e.diagnosticCode == CompileTimeErrorCode.CONST_WITH_NON_CONST;
+        return e.diagnosticCode == CompileTimeErrorCode.constWithNonConst;
       },
     );
   }
@@ -806,7 +871,7 @@ class A {}
 var x = {A(), ...const {0}, ...const {1}};
 ''',
       errorFilter: (e) {
-        return e.diagnosticCode == CompileTimeErrorCode.CONST_WITH_NON_CONST;
+        return e.diagnosticCode == CompileTimeErrorCode.constWithNonConst;
       },
     );
   }
@@ -824,7 +889,7 @@ class A {}
 final x = A(), y = const [0], z = A();
 ''',
       errorFilter: (e) {
-        return e.diagnosticCode == CompileTimeErrorCode.CONST_WITH_NON_CONST &&
+        return e.diagnosticCode == CompileTimeErrorCode.constWithNonConst &&
             e.offset == testCode.lastIndexOf('A()');
       },
     );
@@ -843,7 +908,7 @@ class A {}
 final Object x = A(), y = const [0];
 ''',
       errorFilter: (e) {
-        return e.diagnosticCode == CompileTimeErrorCode.CONST_WITH_NON_CONST;
+        return e.diagnosticCode == CompileTimeErrorCode.constWithNonConst;
       },
     );
   }

@@ -38,5 +38,5 @@ constants  {
 }
 
 Extra constant evaluation status:
-Evaluated: InstanceInvocation @ org-dartlang-testcase:///bug30624.dart:39:35 -> IntConstant(-1)
+Evaluated: InstanceInvocation @ org-dartlang-testcase:///bug30624.dart:36:12 -> IntConstant(-1)
 Extra constant evaluation: evaluated: 48, effectively constant: 1

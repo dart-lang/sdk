@@ -123,8 +123,9 @@ class TodoFinder {
           var lexemeTextOffset =
               columnOfFirstNoneMarkerOrWhitespace -
               nextCommentLocation.columnNumber;
-          var continuationText =
-              nextComment.lexeme.substring(lexemeTextOffset).trimRight();
+          var continuationText = nextComment.lexeme
+              .substring(lexemeTextOffset)
+              .trimRight();
           todoText = '$todoText $continuationText';
           nextComment = nextComment.next;
         }

@@ -4,24 +4,26 @@
 
 import 'dart:io' show Directory, File, FileSystemEntity;
 
-import 'package:_fe_analyzer_shared/src/messages/severity.dart' show Severity;
+import 'package:_fe_analyzer_shared/src/messages/severity.dart'
+    show CfeSeverity;
 import 'package:_fe_analyzer_shared/src/scanner/io.dart'
     show readBytesFromFileSync;
 import 'package:_fe_analyzer_shared/src/scanner/token.dart'
     show KeywordToken, SimpleToken, Token;
-import 'package:front_end/src/api_prototype/compiler_options.dart' as api
-    show DiagnosticMessage;
+import 'package:front_end/src/api_prototype/compiler_options.dart'
+    as api
+    show CfeDiagnosticMessage;
 import 'package:front_end/src/base/command_line_reporting.dart'
     as command_line_reporting;
 import 'package:front_end/src/builder/declaration_builders.dart'
     show TypeDeclarationBuilder;
 import 'package:front_end/src/builder/type_builder.dart' show TypeBuilder;
-import 'package:front_end/src/codes/cfe_codes.dart' as cfe
-    show templateUnspecified;
-import 'package:front_end/src/kernel/body_builder.dart' show BodyBuilder;
+import 'package:front_end/src/codes/cfe_codes.dart' as cfe show codeUnspecified;
+import 'package:front_end/src/kernel/body_builder.dart' show BodyBuilderImpl;
 import 'package:front_end/src/kernel/constness.dart' show Constness;
 import 'package:front_end/src/kernel/expression_generator_helper.dart'
     show UnresolvedKind;
+import 'package:front_end/src/kernel/internal_ast.dart';
 import 'package:front_end/src/kernel/kernel_target.dart' show BuildResult;
 import 'package:front_end/src/util/import_export_etc_helper.dart';
 import 'package:kernel/class_hierarchy.dart';
@@ -46,15 +48,17 @@ Set<Uri> _includedDirectoryUris = {};
 /// explicitly included in [includedFiles], although that is not guaranteed.
 ///
 /// Returns the number of errors found.
-Future<int> runCompileAndLintTest(
-    {required Set<Uri> includedFiles,
-    required Set<Uri> includedDirectoryUris,
-    required Uri repoDir}) async {
+Future<int> runCompileAndLintTest({
+  required Set<Uri> includedFiles,
+  required Set<Uri> includedDirectoryUris,
+  required Uri repoDir,
+}) async {
   _includedDirectoryUris.clear();
   _includedDirectoryUris.addAll(includedDirectoryUris);
   _ignoredDirectoryUris.clear();
-  _ignoredDirectoryUris
-      .add(repoDir.resolve("pkg/frontend_server/test/fixtures/"));
+  _ignoredDirectoryUris.add(
+    repoDir.resolve("pkg/frontend_server/test/fixtures/"),
+  );
 
   // Ignore kernel for the explicit creation, but include in ast-walking
   // problem finder.
@@ -96,43 +100,46 @@ Future<int> runCompileAndLintTest(
   // but probably we don't actually need to run any vm-specific transformations
   // for instance.
 
-  Set<Uri> partsReplaced =
-      _replaceParts(packageConfigUri, includedFilesFiltered);
+  Set<Uri> partsReplaced = _replaceParts(
+    packageConfigUri,
+    includedFilesFiltered,
+  );
   if (!identical(partsReplaced, includedFilesFiltered)) {
     print("Replaced part of uris in ${stopwatch.elapsedMilliseconds} ms");
   }
 
   BuildResult result = await compile(
-      inputs: partsReplaced.toList(),
-      // Compile sdk because when this is run from a lint it uses the checked-in
-      // sdk and we might not have a suitable compiled platform.dill file.
-      compileSdk: true,
-      omitPlatform: false,
-      packagesFileUri: packageConfigUri,
-      onDiagnostic: (api.DiagnosticMessage message) {
-        if (message.severity == Severity.error) {
-          print(message.plainTextFormatted.join('\n'));
-          errorCount++;
-        }
-      },
-      repoDir: repoDir,
-      bodyBuilderCreator: (
-        create: BodyBuilderTester.new,
-        createForField: BodyBuilderTester.forField,
-        createForOutlineExpression: BodyBuilderTester.forOutlineExpression
-      ),
-      splitCompileAndCompileLess: true);
+    inputs: partsReplaced.toList(),
+    // Compile sdk because when this is run from a lint it uses the checked-in
+    // sdk and we might not have a suitable compiled platform.dill file.
+    compileSdk: true,
+    omitPlatform: false,
+    packagesFileUri: packageConfigUri,
+    onDiagnostic: (api.CfeDiagnosticMessage message) {
+      if (message.severity == CfeSeverity.error) {
+        print(message.plainTextFormatted.join('\n'));
+        errorCount++;
+      }
+    },
+    repoDir: repoDir,
+    bodyBuilderCreator: BodyBuilderTester.new,
+    splitCompileAndCompileLess: true,
+  );
 
-  print("Done in ${stopwatch.elapsedMilliseconds} ms. "
-      "Found $errorCount errors.");
+  print(
+    "Done in ${stopwatch.elapsedMilliseconds} ms. "
+    "Found $errorCount errors.",
+  );
 
   print("Compiled ${result.component?.libraries.length} libraries.");
 
   ProblemFinder problemFinder = new ProblemFinder(partsReplaced);
   Stopwatch visitStopwatch = new Stopwatch()..start();
   result.component?.accept(problemFinder);
-  print("Visited result in ${visitStopwatch.elapsed} and "
-      "found ${problemFinder.foundErrors} error(s).");
+  print(
+    "Visited result in ${visitStopwatch.elapsed} and "
+    "found ${problemFinder.foundErrors} error(s).",
+  );
 
   return errorCount + problemFinder.foundErrors;
 }
@@ -144,8 +151,9 @@ Set<Uri> _replaceParts(Uri packageConfigUri, Set<Uri> files) {
   Map<Uri, FileInfoHelper> helpers = {};
   Map<String, Uri> knownLibraryNames = {};
   FileInfoHelper indexUriHelper(Uri uri) {
-    FileInfoHelper fileInfo =
-        helpers[uri] = getFileInfoHelper(readBytesFromFileSync(uri));
+    FileInfoHelper fileInfo = helpers[uri] = getFileInfoHelper(
+      readBytesFromFileSync(uri),
+    );
     if (fileInfo.libraryNames.isNotEmpty) {
       for (String name in fileInfo.libraryNames) {
         knownLibraryNames[name] = uri;
@@ -168,14 +176,16 @@ Set<Uri> _replaceParts(Uri packageConfigUri, Set<Uri> files) {
   // At least one of the inputs is a part of another library identified by
   // name.
   PackageConfig packageConfig = PackageConfig.parseBytes(
-      new File.fromUri(packageConfigUri).readAsBytesSync(), packageConfigUri);
+    new File.fromUri(packageConfigUri).readAsBytesSync(),
+    packageConfigUri,
+  );
 
   Map<Package, Set<String>> packageToNeededLibraryNames = {};
   for (Uri uri in partOfLibraryNameUris) {
     Package? package = packageConfig.packageOf(uri);
     if (package != null) {
-      Set<String> neededLibraryNames =
-          packageToNeededLibraryNames[package] ??= {};
+      Set<String> neededLibraryNames = packageToNeededLibraryNames[package] ??=
+          {};
       for (String neededName in helpers[uri]!.partOfIdentifiers) {
         if (!knownLibraryNames.containsKey(neededName)) {
           neededLibraryNames.add(neededName);
@@ -188,9 +198,9 @@ Set<Uri> _replaceParts(Uri packageConfigUri, Set<Uri> files) {
       in packageToNeededLibraryNames.entries) {
     if (packageEntry.value.isEmpty) continue;
     Set<String> neededNames = packageEntry.value;
-    for (FileSystemEntity f
-        in Directory.fromUri(packageEntry.key.packageUriRoot)
-            .listSync(recursive: true)) {
+    for (FileSystemEntity f in Directory.fromUri(
+      packageEntry.key.packageUriRoot,
+    ).listSync(recursive: true)) {
       if (f is! File) continue;
       if (!f.path.endsWith(".dart")) continue;
       if (helpers[f.uri] == null) {
@@ -225,25 +235,26 @@ Set<Uri> _replaceParts(Uri packageConfigUri, Set<Uri> files) {
 
 class BodyBuilderTester = BodyBuilderTest with BodyBuilderTestMixin;
 
-mixin BodyBuilderTestMixin on BodyBuilder {
+mixin BodyBuilderTestMixin on BodyBuilderImpl {
   late Set<Uri> _ignoredDirs = {
     ..._ignoredDirectoryUris,
-    ..._explicitCreationIgnoredDirectoryUris
+    ..._explicitCreationIgnoredDirectoryUris,
   };
 
   @override
-  Expression buildConstructorInvocation(
-      TypeDeclarationBuilder? type,
-      Token nameToken,
-      Token nameLastToken,
-      Arguments? arguments,
-      String name,
-      List<TypeBuilder>? typeArguments,
-      int charOffset,
-      Constness constness,
-      {bool isTypeArgumentsInForest = false,
-      TypeDeclarationBuilder? typeAliasBuilder,
-      required UnresolvedKind unresolvedKind}) {
+  Expression resolveAndBuildConstructorInvocation(
+    TypeDeclarationBuilder? type,
+    Token nameToken,
+    Token nameLastToken,
+    ArgumentsImpl arguments,
+    String name,
+    List<TypeBuilder>? typeArguments,
+    int charOffset,
+    Constness constness, {
+    bool isTypeArgumentsInForest = false,
+    TypeDeclarationBuilder? typeAliasBuilder,
+    required UnresolvedKind unresolvedKind,
+  }) {
     Token maybeNewOrConst = nameToken.previous!;
     bool doReport = true;
     if (maybeNewOrConst is KeywordToken) {
@@ -278,14 +289,23 @@ mixin BodyBuilderTestMixin on BodyBuilder {
     }
     if (doReport) {
       addProblem(
-          cfe.templateUnspecified.withArguments("Should use new or const"),
-          nameToken.charOffset,
-          nameToken.length);
+        cfe.codeUnspecified.withArgumentsOld("Should use new or const"),
+        nameToken.charOffset,
+        nameToken.length,
+      );
     }
-    return super.buildConstructorInvocation(type, nameToken, nameLastToken,
-        arguments, name, typeArguments, charOffset, constness,
-        isTypeArgumentsInForest: isTypeArgumentsInForest,
-        unresolvedKind: unresolvedKind);
+    return super.resolveAndBuildConstructorInvocation(
+      type,
+      nameToken,
+      nameLastToken,
+      arguments,
+      name,
+      typeArguments,
+      charOffset,
+      constness,
+      isTypeArgumentsInForest: isTypeArgumentsInForest,
+      unresolvedKind: unresolvedKind,
+    );
   }
 }
 
@@ -304,12 +324,15 @@ class ProblemFinder extends RecursiveVisitor {
   void reportError(TreeNode node, int squigglyLength, String messageText) {
     foundErrors++;
     Location location = node.location!;
-    print(command_line_reporting.formatErrorMessage(
+    print(
+      command_line_reporting.formatErrorMessage(
         uriToSource?[location.file]?.getTextLine(location.line),
         location,
         squigglyLength,
         location.file.toFilePath(),
-        messageText));
+        messageText,
+      ),
+    );
   }
 
   @override
@@ -325,13 +348,16 @@ class ProblemFinder extends RecursiveVisitor {
     stackTraceCurrent = platformIndex
         .getProcedure("dart:core", "StackTrace", "get:current")
         .reference;
-    identicalReference =
-        platformIndex.getTopLevelMember("dart:core", "identical").reference;
+    identicalReference = platformIndex
+        .getTopLevelMember("dart:core", "identical")
+        .reference;
     intReference = platformIndex.getClass("dart:core", "int").reference;
 
     CoreTypes coreTypes = new CoreTypes(node);
-    TypeEnvironment types =
-        TypeEnvironment(coreTypes, new ClassHierarchy(node, coreTypes));
+    TypeEnvironment types = TypeEnvironment(
+      coreTypes,
+      new ClassHierarchy(node, coreTypes),
+    );
     staticTypeContext = StatefulStaticTypeContext.stacked(types);
     super.visitComponent(node);
   }

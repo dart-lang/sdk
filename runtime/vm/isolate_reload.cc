@@ -5,8 +5,10 @@
 #include "vm/isolate_reload.h"
 
 #include <memory>
+#include <utility>
 
 #include "vm/bit_vector.h"
+#include "vm/bytecode_reader.h"
 #include "vm/compiler/jit/compiler.h"
 #include "vm/dart_api_impl.h"
 #if !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
@@ -688,6 +690,106 @@ static ObjectPtr RejectCompilation(Thread* thread) {
   return Object::null();
 }
 
+class DeltaProgram {
+ public:
+  DeltaProgram() {}
+  virtual ~DeltaProgram() {}
+
+  static std::unique_ptr<DeltaProgram> ReadFromTypedData(
+      const ExternalTypedData& typed_data);
+
+  virtual void FindModifiedLibraries(BitVector* modified_libs,
+                                     intptr_t* p_num_libraries,
+                                     intptr_t* p_num_classes,
+                                     intptr_t* p_num_procedures) = 0;
+
+  virtual ObjectPtr Load() = 0;
+  virtual void LoadPendingCode() = 0;
+
+ private:
+  DISALLOW_COPY_AND_ASSIGN(DeltaProgram);
+};
+
+class KernelDeltaProgram : public DeltaProgram {
+ public:
+  explicit KernelDeltaProgram(std::unique_ptr<kernel::Program> kernel_program)
+      : kernel_program_(std::move(kernel_program)) {
+    ASSERT(kernel_program_ != nullptr);
+  }
+
+  void FindModifiedLibraries(BitVector* modified_libs,
+                             intptr_t* p_num_libraries,
+                             intptr_t* p_num_classes,
+                             intptr_t* p_num_procedures) override {
+    kernel::KernelLoader::FindModifiedLibraries(
+        kernel_program_.get(), modified_libs, p_num_libraries, p_num_classes,
+        p_num_procedures);
+  }
+
+  ObjectPtr Load() override {
+    return kernel::KernelLoader::LoadEntireProgram(kernel_program_.get()).ptr();
+  }
+  void LoadPendingCode() override {}
+
+ private:
+  std::unique_ptr<kernel::Program> kernel_program_;
+};
+
+#if defined(DART_DYNAMIC_MODULES)
+class BytecodeDeltaProgram : public DeltaProgram {
+ public:
+  explicit BytecodeDeltaProgram(const ExternalTypedData& typed_data)
+      : loader_(Thread::Current(), typed_data) {}
+
+  void FindModifiedLibraries(BitVector* modified_libs,
+                             intptr_t* p_num_libraries,
+                             intptr_t* p_num_classes,
+                             intptr_t* p_num_procedures) override {
+    loader_.FindModifiedLibraries(modified_libs, p_num_libraries, p_num_classes,
+                                  p_num_procedures);
+  }
+
+  ObjectPtr Load() override {
+    Thread* thread = Thread::Current();
+    SafepointWriteRwLocker ml(thread, thread->isolate_group()->program_lock());
+    const auto& function =
+        Function::Handle(loader_.LoadBytecode(/*load_code=*/false));
+    if (!function.IsNull()) {
+      return Class::Handle(function.Owner()).library();
+    }
+    return Object::null();
+  }
+
+  void LoadPendingCode() override {
+    Thread* thread = Thread::Current();
+    SafepointWriteRwLocker ml(thread, thread->isolate_group()->program_lock());
+    loader_.LoadPendingCode();
+  }
+
+ private:
+  bytecode::BytecodeLoader loader_;
+};
+#endif  // defined(DART_DYNAMIC_MODULES)
+
+std::unique_ptr<DeltaProgram> DeltaProgram::ReadFromTypedData(
+    const ExternalTypedData& typed_data) {
+  if (Dart_IsKernel(reinterpret_cast<const uint8_t*>(typed_data.DataAddr(0)),
+                    typed_data.LengthInBytes())) {
+    auto kernel_program = kernel::Program::ReadFromTypedData(typed_data);
+    if (!kernel_program) {
+      return nullptr;
+    }
+    return std::make_unique<KernelDeltaProgram>(std::move(kernel_program));
+  }
+#if defined(DART_DYNAMIC_MODULES)
+  if (Dart_IsBytecode(reinterpret_cast<const uint8_t*>(typed_data.DataAddr(0)),
+                      typed_data.LengthInBytes())) {
+    return std::make_unique<BytecodeDeltaProgram>(typed_data);
+  }
+#endif  // defined(DART_DYNAMIC_MODULES)
+  return nullptr;
+}
+
 // If [root_script_url] is null, attempt to load from [kernel_buffer].
 bool IsolateGroupReloadContext::Reload(bool force_reload,
                                        const char* root_script_url,
@@ -706,7 +808,7 @@ bool IsolateGroupReloadContext::Reload(bool force_reload,
   // Grab root library before calling CheckpointBeforeReload.
   GetRootLibUrl(root_script_url);
 
-  std::unique_ptr<kernel::Program> kernel_program;
+  std::unique_ptr<DeltaProgram> delta_program;
 
   // Reset stats.
   num_received_libs_ = 0;
@@ -718,20 +820,24 @@ bool IsolateGroupReloadContext::Reload(bool force_reload,
   bool skip_reload = false;
   {
     // Load the kernel program and figure out the modified libraries.
-    intptr_t* p_num_received_classes = nullptr;
-    intptr_t* p_num_received_procedures = nullptr;
+    auto& program_binary = ExternalTypedData::Handle(Z);
+    bool collect_stats = false;
 
-    // ReadKernelFromFile checks to see if the file at
-    // root_script_url is a valid .dill file. If that's the case, a Program*
-    // is returned. Otherwise, this is likely a source file that needs to be
-    // compiled, so ReadKernelFromFile returns nullptr.
-    kernel_program = kernel::Program::ReadFromFile(root_script_url);
-    if (kernel_program != nullptr) {
-      num_received_libs_ = kernel_program->library_count();
-      bytes_received_libs_ = kernel_program->binary().LengthInBytes();
-      p_num_received_classes = &num_received_classes_;
-      p_num_received_procedures = &num_received_procedures_;
-    } else {
+    // Check if root_script_url is a valid program binary file.
+    // Otherwise treat it as a source file that needs to be compiled.
+    if (root_script_url != nullptr) {
+      ASSERT((kernel_buffer == nullptr) && (kernel_buffer_size == 0));
+      program_binary = ReadFile(root_script_url);
+      if (!program_binary.IsNull()) {
+        delta_program = DeltaProgram::ReadFromTypedData(program_binary);
+        if (delta_program != nullptr) {
+          // Collect statistics only when loading a binary from script URI.
+          bytes_received_libs_ = program_binary.LengthInBytes();
+          collect_stats = true;
+        }
+      }
+    }
+    if (delta_program == nullptr) {
       if (kernel_buffer == nullptr || kernel_buffer_size == 0) {
         char* error = CompileToKernel(force_reload, packages_url,
                                       &kernel_buffer, &kernel_buffer_size);
@@ -749,22 +855,27 @@ bool IsolateGroupReloadContext::Reload(bool force_reload,
           return false;
         }
       }
-      const auto& typed_data = ExternalTypedData::Handle(
-          Z, ExternalTypedData::NewFinalizeWithFree(
-                 const_cast<uint8_t*>(kernel_buffer), kernel_buffer_size));
-      kernel_program = kernel::Program::ReadFromTypedData(typed_data);
+      program_binary = ExternalTypedData::NewFinalizeWithFree(
+          const_cast<uint8_t*>(kernel_buffer), kernel_buffer_size);
+      delta_program = DeltaProgram::ReadFromTypedData(program_binary);
+      RELEASE_ASSERT(delta_program != nullptr);
     }
 
     NoActiveIsolateScope no_active_isolate_scope(thread);
 
     IsolateGroupSource* source = IsolateGroup::Current()->source();
-    source->add_loaded_blob(Z,
-                            ExternalTypedData::Cast(kernel_program->binary()));
+    source->add_loaded_blob(Z, program_binary);
 
     modified_libs_ = new (Z) BitVector(Z, num_old_libs_);
-    kernel::KernelLoader::FindModifiedLibraries(
-        kernel_program.get(), IG, modified_libs_, force_reload, &skip_reload,
-        p_num_received_classes, p_num_received_procedures);
+    if (force_reload) {
+      MarkAllLibrariesAsModified(modified_libs_);
+    } else {
+      delta_program->FindModifiedLibraries(
+          modified_libs_, &num_received_libs_,
+          collect_stats ? &num_received_classes_ : nullptr,
+          collect_stats ? &num_received_procedures_ : nullptr);
+      skip_reload = (num_received_libs_ == 0);
+    }
     modified_libs_transitive_ = new (Z) BitVector(Z, num_old_libs_);
     BuildModifiedLibrariesClosure(modified_libs_);
 
@@ -856,14 +967,14 @@ bool IsolateGroupReloadContext::Reload(bool force_reload,
     heap->CollectAllGarbage(GCReason::kDebugging, /*compact=*/true);
   }
 
-  // We synchronously load the hot-reload kernel diff (which includes changed
+  // We synchronously load the delta program (which includes changed
   // libraries and any libraries transitively depending on them).
   //
-  // If loading the hot-reload diff succeeded we'll finalize the loading, which
+  // If loading the delta program succeeded we'll finalize the loading, which
   // will either commit or reject the reload request.
-  const auto& result =
-      Object::Handle(Z, IG->program_reload_context()->ReloadPhase2LoadKernel(
-                            kernel_program.get(), root_lib_url_));
+  const auto& result = Object::Handle(
+      Z, IG->program_reload_context()->ReloadPhase2LoadDeltaProgram(
+             delta_program.get(), root_lib_url_));
 
   if (result.IsError()) {
     TIR_Print("---- LOAD FAILED, ABORTING RELOAD\n");
@@ -977,7 +1088,8 @@ bool IsolateGroupReloadContext::Reload(bool force_reload,
         IG->DropOriginalClassTable();
       }
       const Error& error = Error::Handle(
-          isolate_group_->program_reload_context()->ReloadPhase4CommitFinish());
+          isolate_group_->program_reload_context()->ReloadPhase4CommitFinish(
+              delta_program.get()));
       if (error.IsNull()) {
         TIR_Print("---- DONE COMMIT\n");
         isolate_group_->set_last_reload_timestamp(reload_timestamp_);
@@ -988,6 +1100,7 @@ bool IsolateGroupReloadContext::Reload(bool force_reload,
       TIR_Print("---- ROLLING BACK");
       isolate_group_->program_reload_context()->ReloadPhase4Rollback();
     }
+    delta_program.reset();
 
     // ValidateReload mutates the direct subclass information and does
     // not remove dead subclasses.
@@ -1032,6 +1145,20 @@ bool IsolateGroupReloadContext::Reload(bool force_reload,
   }
 
   return success;
+}
+
+// If a reload is being forced we mark all libraries as having been modified.
+void IsolateGroupReloadContext::MarkAllLibrariesAsModified(
+    BitVector* modified_libs) {
+  const auto& libs =
+      GrowableObjectArray::Handle(Z, IG->object_store()->libraries());
+  auto& lib = Library::Handle(Z);
+  for (intptr_t i = 0, n = libs.Length(); i < n; ++i) {
+    lib ^= libs.At(i);
+    if (!lib.is_dart_scheme()) {
+      modified_libs->Add(lib.index());
+    }
+  }
 }
 
 /// Copied in from https://dart-review.googlesource.com/c/sdk/+/77722.
@@ -1161,6 +1288,20 @@ void IsolateGroupReloadContext::GetRootLibUrl(const char* root_script_url) {
   }
 }
 
+ExternalTypedDataPtr IsolateGroupReloadContext::ReadFile(
+    const char* script_uri) {
+  if (!IG->HasTagHandler()) {
+    return ExternalTypedData::null();
+  }
+  const String& uri = String::Handle(Z, String::New(script_uri));
+  const Object& ret = Object::Handle(
+      Z, IG->CallTagHandler(Dart_kKernelTag, Object::null_object(), uri));
+  if (ret.IsExternalTypedData()) {
+    return ExternalTypedData::Cast(ret).ptr();
+  }
+  return ExternalTypedData::null();
+}
+
 char* IsolateGroupReloadContext::CompileToKernel(bool force_reload,
                                                  const char* packages_url,
                                                  const uint8_t** kernel_buffer,
@@ -1212,27 +1353,25 @@ void ProgramReloadContext::ReloadPhase1AllocateStorageMapsAndCheckpoint() {
   }
 }
 
-ObjectPtr ProgramReloadContext::ReloadPhase2LoadKernel(
-    kernel::Program* program,
+ObjectPtr ProgramReloadContext::ReloadPhase2LoadDeltaProgram(
+    DeltaProgram* program,
     const String& root_lib_url) {
   Thread* thread = Thread::Current();
 
   HANDLESCOPE(thread);
   LongJumpScope jump(thread);
   if (DART_SETJMP(*jump.Set()) == 0) {
-    const Object& tmp = kernel::KernelLoader::LoadEntireProgram(program);
-    if (tmp.IsError()) {
-      return tmp.ptr();
+    Object& result = Object::Handle(Z, program->Load());
+    if (result.IsError()) {
+      return result.ptr();
     }
 
-    // If main method disappeared or were not there to begin with then
-    // KernelLoader will return null. In this case lookup library by
-    // URL.
-    auto& lib = Library::Handle(Library::RawCast(tmp.ptr()));
-    if (lib.IsNull()) {
-      lib = Library::LookupLibrary(thread, root_lib_url);
+    // If main method disappeared or were not there to begin with,
+    // then lookup root library by URL.
+    if (result.IsNull()) {
+      result = Library::LookupLibrary(thread, root_lib_url);
     }
-    IG->object_store()->set_root_library(lib);
+    IG->object_store()->set_root_library(Library::Cast(result));
     return Object::null();
   } else {
     return thread->StealStickyError();
@@ -1249,8 +1388,12 @@ void ProgramReloadContext::ReloadPhase4CommitPrepare() {
   CommitBeforeInstanceMorphing();
 }
 
-ErrorPtr ProgramReloadContext::ReloadPhase4CommitFinish() {
+ErrorPtr ProgramReloadContext::ReloadPhase4CommitFinish(DeltaProgram* program) {
+  // Should be before RehashConstants as it looks at the new constants.
+  program->LoadPendingCode();
+
   CommitAfterInstanceMorphing();
+
   return PostCommit();
 }
 
@@ -1355,7 +1498,7 @@ ErrorPtr ProgramReloadContext::EnsuredUnoptimizedCodeForStack() {
     Function& func = Function::Handle();
     while (it.HasNextFrame()) {
       StackFrame* frame = it.NextFrame();
-      if (frame->IsDartFrame()) {
+      if (frame->IsDartFrame() && !frame->is_interpreted()) {
         func = frame->LookupDartFunction();
         ASSERT(!func.IsNull());
         // Force-optimized functions don't need unoptimized code because their
@@ -1972,19 +2115,21 @@ void ProgramReloadContext::ResetUnoptimizedICsOnStack() {
                                StackFrameIterator::kAllowCrossThreadIteration);
     StackFrame* frame = iterator.NextFrame();
     while (frame != nullptr) {
-      code = frame->LookupDartCode();
-      if (code.is_optimized() && !code.is_force_optimized()) {
-        // If this code is optimized, we need to reset the ICs in the
-        // corresponding unoptimized code, which will be executed when the stack
-        // unwinds to the optimized code.
-        function = code.function();
-        code = function.unoptimized_code();
-        ASSERT(!code.IsNull());
-        resetter.ResetSwitchableCalls(code);
-        resetter.ResetCaches(code);
-      } else {
-        resetter.ResetSwitchableCalls(code);
-        resetter.ResetCaches(code);
+      if (!frame->is_interpreted()) {
+        code = frame->LookupDartCode();
+        if (code.is_optimized() && !code.is_force_optimized()) {
+          // If this code is optimized, we need to reset the ICs in the
+          // corresponding unoptimized code, which will be executed
+          // when the stack unwinds to the optimized code.
+          function = code.function();
+          code = function.unoptimized_code();
+          ASSERT(!code.IsNull());
+          resetter.ResetSwitchableCalls(code);
+          resetter.ResetCaches(code);
+        } else {
+          resetter.ResetSwitchableCalls(code);
+          resetter.ResetCaches(code);
+        }
       }
       frame = iterator.NextFrame();
     }
@@ -2051,6 +2196,13 @@ ErrorPtr ProgramReloadContext::RunInvalidationVisitors() {
   Thread* thread = Thread::Current();
   StackZone stack_zone(thread);
   Zone* zone = stack_zone.GetZone();
+
+#if defined(DART_DYNAMIC_MODULES)
+  Interpreter* interpreter = thread->interpreter();
+  if (interpreter != nullptr) {
+    interpreter->ClearLookupCache();
+  }
+#endif  // defined(DART_DYNAMIC_MODULES)
 
   GrowableArray<const Function*> functions(4 * KB);
   GrowableArray<const KernelProgramInfo*> kernel_infos(KB);
@@ -2126,6 +2278,10 @@ void ProgramReloadContext::InvalidateFunctions(
   Library& owning_lib = Library::Handle(zone);
   Code& code = Code::Handle(zone);
   Field& field = Field::Handle(zone);
+#if defined(DART_DYNAMIC_MODULES)
+  Bytecode& bytecode = Bytecode::Handle(zone);
+#endif  // defined(DART_DYNAMIC_MODULES)
+
   SafepointWriteRwLocker ml(thread, thread->isolate_group()->program_lock());
   for (intptr_t i = 0; i < functions.length(); i++) {
     const Function& func = *functions[i];
@@ -2159,6 +2315,13 @@ void ProgramReloadContext::InvalidateFunctions(
     // Zero edge counters, before clearing the ICDataArray, since that's where
     // they're held.
     resetter.ZeroEdgeCounters(func);
+
+#if defined(DART_DYNAMIC_MODULES)
+    if (func.HasBytecode()) {
+      bytecode = func.GetBytecode();
+      resetter.RebindBytecode(bytecode);
+    }
+#endif  // defined(DART_DYNAMIC_MODULES)
 
     if (stub_code) {
       // Nothing to reset.

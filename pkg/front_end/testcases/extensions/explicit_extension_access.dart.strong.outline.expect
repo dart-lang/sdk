@@ -24,6 +24,12 @@ extension Extension2 on self::Class {
   method genericMethod = self::Extension2|genericMethod;
   method tearoff genericMethod = self::Extension2|get#genericMethod;
 }
+extension /* unnamed */ _extension#2 on core::int {
+  method method1 = self::_extension#2|method1;
+  method tearoff method1 = self::_extension#2|get#method1;
+  method method2 = self::_extension#2|method2;
+  method tearoff method2 = self::_extension#2|get#method2;
+}
 static extension-member method Extension1|get#field(lowered final self::Class #this) → core::int
   ;
 static extension-member method Extension1|set#field(lowered final self::Class #this, core::int value) → void
@@ -48,6 +54,16 @@ static extension-member method Extension2|genericMethod<T extends core::num>(low
   ;
 static extension-member method Extension2|get#genericMethod(lowered final self::Class #this) → <T extends core::num>(T) → core::num
   return <T extends core::num>(T t) → core::num => self::Extension2|genericMethod<T>(#this, t);
+static extension-member method _extension#2|method1(lowered final core::int #this) → dynamic
+  ;
+static extension-member method _extension#2|get#method1(lowered final core::int #this) → () → dynamic
+  return () → dynamic => self::_extension#2|method1(#this);
+static extension-member method _extension#2|method2<T extends core::Object? = dynamic>(lowered final core::int #this, core::List<self::_extension#2|method2::T%> a, core::List<core::int> b, (self::_extension#2|method2::T%) → void c, () →? void d) → dynamic
+  ;
+static extension-member method _extension#2|get#method2(lowered final core::int #this) → <T extends core::Object? = dynamic>(core::List<T%>, core::List<core::int>, (T%) → void, () →? void) → dynamic
+  return <T extends core::Object? = dynamic>(core::List<T%> a, core::List<core::int> b, (T%) → void c, () →? void d) → dynamic => self::_extension#2|method2<T%>(#this, a, b, c, d);
+static method test(self::Class c) → dynamic
+  ;
 static method main() → dynamic
   ;
 static method expect(dynamic expected, dynamic actual) → dynamic

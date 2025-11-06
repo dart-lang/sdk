@@ -618,7 +618,7 @@ suggestions
   Z0
     kind: constructorInvocation
   g0
-    kind: library
+    kind: prefix
 ''');
   }
 
@@ -692,7 +692,7 @@ suggestions
   Z0
     kind: class
   g0
-    kind: library
+    kind: prefix
 ''');
   }
 
@@ -788,7 +788,7 @@ suggestions
   Z0
     kind: class
   g0
-    kind: library
+    kind: prefix
 ''');
   }
 
@@ -862,7 +862,7 @@ suggestions
   Z0
     kind: class
   g0
-    kind: library
+    kind: prefix
 ''');
   }
 
@@ -1375,7 +1375,7 @@ suggestions
     kind: class
     deprecated: true
   x0
-    kind: library
+    kind: prefix
 ''');
   }
 
@@ -1400,7 +1400,7 @@ suggestions
   x0.B
     kind: class
   x0
-    kind: library
+    kind: prefix
 ''');
   }
 
@@ -1426,7 +1426,7 @@ suggestions
   x0.B
     kind: class
   x0
-    kind: library
+    kind: prefix
 ''');
   }
 
@@ -1448,7 +1448,7 @@ replacement
   left: 1
 suggestions
   S2
-    kind: library
+    kind: prefix
 ''');
   }
 
@@ -1474,7 +1474,7 @@ suggestions
   x0.B
     kind: class
   x0
-    kind: library
+    kind: prefix
 ''');
   }
 
@@ -1500,7 +1500,7 @@ suggestions
   x0.B
     kind: class
   x0
-    kind: library
+    kind: prefix
 ''');
   }
 

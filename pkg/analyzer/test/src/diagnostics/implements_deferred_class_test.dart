@@ -26,7 +26,7 @@ library root;
 import 'lib1.dart' deferred as a;
 class B implements a.A {}
 ''',
-      [error(CompileTimeErrorCode.IMPLEMENTS_DEFERRED_CLASS, 67, 3)],
+      [error(CompileTimeErrorCode.implementsDeferredClass, 67, 3)],
     );
 
     var node = findNode.singleImplementsClause;
@@ -38,9 +38,9 @@ ImplementsClause
       importPrefix: ImportPrefixReference
         name: a
         period: .
-        element2: <testLibraryFragment>::@prefix2::a
+        element: <testLibraryFragment>::@prefix2::a
       name: A
-      element2: package:test/lib1.dart::@class::A
+      element: package:test/lib1.dart::@class::A
       type: A
 ''');
   }
@@ -57,7 +57,7 @@ library root;
 import 'lib1.dart' deferred as a;
 class C implements a.B {}
 ''',
-      [error(CompileTimeErrorCode.IMPLEMENTS_DEFERRED_CLASS, 67, 3)],
+      [error(CompileTimeErrorCode.implementsDeferredClass, 67, 3)],
     );
 
     var node = findNode.singleImplementsClause;
@@ -69,9 +69,9 @@ ImplementsClause
       importPrefix: ImportPrefixReference
         name: a
         period: .
-        element2: <testLibraryFragment>::@prefix2::a
+        element: <testLibraryFragment>::@prefix2::a
       name: B
-      element2: package:test/lib1.dart::@typeAlias::B
+      element: package:test/lib1.dart::@typeAlias::B
       type: A
         alias: package:test/lib1.dart::@typeAlias::B
 ''');
@@ -90,7 +90,7 @@ class B {}
 class M {}
 class C = B with M implements a.A;
 ''',
-      [error(CompileTimeErrorCode.IMPLEMENTS_DEFERRED_CLASS, 100, 3)],
+      [error(CompileTimeErrorCode.implementsDeferredClass, 100, 3)],
     );
 
     var node = findNode.singleImplementsClause;
@@ -102,9 +102,9 @@ ImplementsClause
       importPrefix: ImportPrefixReference
         name: a
         period: .
-        element2: <testLibraryFragment>::@prefix2::a
+        element: <testLibraryFragment>::@prefix2::a
       name: A
-      element2: package:test/lib1.dart::@class::A
+      element: package:test/lib1.dart::@class::A
       type: A
 ''');
   }
@@ -119,7 +119,7 @@ class A {}
 import 'a.dart' deferred as a;
 extension type B(a.A it) implements a.A {}
 ''',
-      [error(CompileTimeErrorCode.IMPLEMENTS_DEFERRED_CLASS, 67, 3)],
+      [error(CompileTimeErrorCode.implementsDeferredClass, 67, 3)],
     );
 
     var node = findNode.singleImplementsClause;
@@ -131,9 +131,9 @@ ImplementsClause
       importPrefix: ImportPrefixReference
         name: a
         period: .
-        element2: <testLibraryFragment>::@prefix2::a
+        element: <testLibraryFragment>::@prefix2::a
       name: A
-      element2: package:test/a.dart::@class::A
+      element: package:test/a.dart::@class::A
       type: A
 ''');
   }
@@ -148,7 +148,7 @@ extension type A(int it) {}
 import 'a.dart' deferred as a;
 extension type B(int it) implements a.A {}
 ''',
-      [error(CompileTimeErrorCode.IMPLEMENTS_DEFERRED_CLASS, 67, 3)],
+      [error(CompileTimeErrorCode.implementsDeferredClass, 67, 3)],
     );
 
     var node = findNode.singleImplementsClause;
@@ -160,9 +160,9 @@ ImplementsClause
       importPrefix: ImportPrefixReference
         name: a
         period: .
-        element2: <testLibraryFragment>::@prefix2::a
+        element: <testLibraryFragment>::@prefix2::a
       name: A
-      element2: package:test/a.dart::@extensionType::A
+      element: package:test/a.dart::@extensionType::A
       type: A
 ''');
   }
@@ -173,7 +173,7 @@ ImplementsClause
 import 'dart:math' deferred as math;
 mixin M implements math.Random {}
 ''',
-      [error(CompileTimeErrorCode.IMPLEMENTS_DEFERRED_CLASS, 56, 11)],
+      [error(CompileTimeErrorCode.implementsDeferredClass, 56, 11)],
     );
 
     var node = findNode.singleImplementsClause;
@@ -185,9 +185,9 @@ ImplementsClause
       importPrefix: ImportPrefixReference
         name: math
         period: .
-        element2: <testLibraryFragment>::@prefix2::math
+        element: <testLibraryFragment>::@prefix2::math
       name: Random
-      element2: dart:math::@class::Random
+      element: dart:math::@class::Random
       type: Random
 ''');
   }

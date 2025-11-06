@@ -289,16 +289,15 @@ String _memberNameForType(TypeBase type) {
     type = resolveTypeAlias(type);
   }
 
-  var dartType =
-      type is NullableType
-          ? '${type.dartType}?'
-          : type is UnionType
-          ? type.types.map(_memberNameForType).join()
-          : type is ArrayType
-          ? 'List${_memberNameForType(type.elementType)}'
-          : type is MapType
-          ? 'Map${_memberNameForType(type.indexType)}${_memberNameForType(type.valueType)}'
-          : type.dartType;
+  var dartType = type is NullableType
+      ? '${type.dartType}?'
+      : type is UnionType
+      ? type.types.map(_memberNameForType).join()
+      : type is ArrayType
+      ? 'List${_memberNameForType(type.elementType)}'
+      : type is MapType
+      ? 'Map${_memberNameForType(type.indexType)}${_memberNameForType(type.valueType)}'
+      : type.dartType;
   return capitalize(dartType.replaceAll('?', 'Nullable'));
 }
 
@@ -335,16 +334,16 @@ String _sortContent(String content) {
 /// Subtypes will be sorted such that types with the most required fields appear
 /// first to ensure `fromJson` constructors delegate to the most specific type.
 void _sortSubtypes() {
-  int requiredFieldCount(String interfaceName) =>
-      _interfaces[interfaceName]!.members
-          .whereType<Field>()
-          .where((field) => !field.allowsUndefined && !field.allowsNull)
-          .length;
-  int optionalFieldCount(String interfaceName) =>
-      _interfaces[interfaceName]!.members
-          .whereType<Field>()
-          .where((field) => field.allowsUndefined || field.allowsNull)
-          .length;
+  int requiredFieldCount(String interfaceName) => _interfaces[interfaceName]!
+      .members
+      .whereType<Field>()
+      .where((field) => !field.allowsUndefined && !field.allowsNull)
+      .length;
+  int optionalFieldCount(String interfaceName) => _interfaces[interfaceName]!
+      .members
+      .whereType<Field>()
+      .where((field) => field.allowsUndefined || field.allowsNull)
+      .length;
   for (var entry in _subtypes.entries) {
     var subtypes = entry.value;
     subtypes.sort((subtype1, subtype2) {
@@ -414,10 +413,9 @@ void _writeCanParseMethod(IndentableStringBuffer buffer, Interface interface) {
   // In order to consider this valid for parsing, all fields that must not be
   // undefined must be present and also type check for the correct type.
   // Any fields that are optional but present, must still type check.
-  var fields =
-      _getAllFields(
-        interface,
-      ).whereNot((f) => isNullableAnyType(f.type)).toList();
+  var fields = _getAllFields(
+    interface,
+  ).whereNot((f) => isNullableAnyType(f.type)).toList();
   for (var i = 0; i < fields.length; i++) {
     var field = fields[i];
     var type = field.type;
@@ -558,14 +556,16 @@ void _writeConstructor(IndentableStringBuffer buffer, Interface interface) {
             !field.allowsUndefined &&
             !isNullableAnyType(field.type);
         var requiredKeyword = isRequired ? 'required' : '';
-        var valueCode =
-            isLiteral ? ' = ${(field.type as LiteralType).valueAsLiteral}' : '';
+        var valueCode = isLiteral
+            ? ' = ${(field.type as LiteralType).valueAsLiteral}'
+            : '';
         return '$requiredKeyword this.${field.name}$valueCode, ';
       }).join(),
     )
     ..write('})');
-  var fieldsWithValidation =
-      allFields.where((f) => f.type is LiteralType).toList();
+  var fieldsWithValidation = allFields
+      .where((f) => f.type is LiteralType)
+      .toList();
   if (fieldsWithValidation.isNotEmpty) {
     buffer
       ..writeIndentedln(' {')
@@ -751,12 +751,12 @@ void _writeFromJsonCode(
   var nullOperator = allowsNull ? '?' : '';
   var cast =
       requiresCast &&
-              // LSPAny
-              !isNullableAnyType(type) &&
-              // LSPObject marked as optional
-              !(isObjectType(type) && allowsNull)
-          ? ' as ${type.dartTypeWithTypeArgs}$nullOperator'
-          : '';
+          // LSPAny
+          !isNullableAnyType(type) &&
+          // LSPObject marked as optional
+          !(isObjectType(type) && allowsNull)
+      ? ' as ${type.dartTypeWithTypeArgs}$nullOperator'
+      : '';
 
   if (_isSimpleType(type)) {
     buffer.write('$valueCode$cast');
@@ -1020,8 +1020,9 @@ void _writeInterface(IndentableStringBuffer buffer, Interface interface) {
   buffer
     ..writeIndented(interface.abstract ? 'abstract ' : '')
     ..write('class ${interface.name} ');
-  var allBaseTypes =
-      interface.baseTypes.map((t) => t.dartTypeWithTypeArgs).toList();
+  var allBaseTypes = interface.baseTypes
+      .map((t) => t.dartTypeWithTypeArgs)
+      .toList();
   allBaseTypes.add('ToJsonable');
   if (allBaseTypes.isNotEmpty) {
     buffer.writeIndented('implements ${allBaseTypes.join(', ')} ');

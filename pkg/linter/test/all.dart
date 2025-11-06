@@ -2,15 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/lint/io.dart';
-
 import 'ascii_utils_test.dart' as ascii_utils;
 import 'doc_test.dart' as doc;
-import 'engine_test.dart' as engine;
 import 'formatter_test.dart' as formatter;
 import 'integration_test.dart' as integration;
 import 'lint_code_test.dart' as lint_code;
-import 'mocks.dart';
 import 'pubspec_test.dart' as pubspec;
 import 'rules/all.dart' as rules;
 import 'scope_util_test.dart' as scope_util;
@@ -26,12 +22,8 @@ import 'verify_reflective_test_suites_test.dart'
     as verify_reflective_test_suites;
 
 void main() {
-  // Redirect output.
-  outSink = MockIOSink();
-
   ascii_utils.main();
   doc.main();
-  engine.main();
   formatter.main();
   integration.main();
   lint_code.main();

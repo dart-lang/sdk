@@ -8,18 +8,20 @@ import '../serialize/serialize.dart';
 import 'ir.dart';
 
 class BaseDataSegment {
-  final int index;
-  final Memory? memory;
-  final int? offset;
+  late final int index;
+  late final Memory? memory;
+  late final int? offset;
 
   BaseDataSegment(this.index, this.memory, this.offset);
+  BaseDataSegment.uninitialized();
 }
 
 /// A data segment in a module.
 class DataSegment extends BaseDataSegment implements Serializable {
-  final Uint8List content;
+  late final Uint8List content;
 
   DataSegment(super.index, this.content, super.memory, super.offset);
+  DataSegment.uninitialized() : super.uninitialized();
 
   @override
   void serialize(Serializer s) {

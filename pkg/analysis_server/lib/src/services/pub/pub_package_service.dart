@@ -191,9 +191,9 @@ class PubPackageService {
 
   @visibleForTesting
   File get packageCacheFile {
-    var cacheFolder =
-        resourceProvider.getStateLocation('.pub-package-details-cache')!
-          ..create();
+    var cacheFolder = resourceProvider.getStateLocation(
+      '.pub-package-details-cache',
+    )!..create();
     return cacheFolder.getChildAssumingFile('packages.json');
   }
 

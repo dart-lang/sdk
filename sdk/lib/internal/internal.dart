@@ -1158,6 +1158,6 @@ class TypeTest<T> {
 abstract interface class IsolateGroup {
   external static Object _runSync(Object computation);
 
-  /// Runs [computation] in isolate-group shared context.
+  /// Runs [computation] in isolate-group bound context.
   static R runSync<R>(R computation()) => _runSync(computation) as R;
 }

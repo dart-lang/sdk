@@ -28,7 +28,7 @@ class ClassDeclarationTest extends AbstractRecoveryTest {
       '''
 class A implements B extends C {}
 ''',
-      [ParserErrorCode.IMPLEMENTS_BEFORE_EXTENDS],
+      [ParserErrorCode.implementsBeforeExtends],
       '''
 class A extends C implements B {}
 ''',
@@ -40,7 +40,7 @@ class A extends C implements B {}
       '''
 class A extends B implements C with D {}
 ''',
-      [ParserErrorCode.IMPLEMENTS_BEFORE_WITH],
+      [ParserErrorCode.implementsBeforeWith],
       '''
 class A extends B with D implements C {}
 ''',
@@ -52,10 +52,7 @@ class A extends B with D implements C {}
       '''
 class A implements B with C extends D {}
 ''',
-      [
-        ParserErrorCode.IMPLEMENTS_BEFORE_WITH,
-        ParserErrorCode.WITH_BEFORE_EXTENDS,
-      ],
+      [ParserErrorCode.implementsBeforeWith, ParserErrorCode.withBeforeExtends],
       '''
 class A extends D with C implements B {}
 ''',
@@ -67,7 +64,7 @@ class A extends D with C implements B {}
       '''
 class A extends B extends C {}
 ''',
-      [ParserErrorCode.MULTIPLE_EXTENDS_CLAUSES],
+      [ParserErrorCode.multipleExtendsClauses],
       '''
 class A extends B {}
 ''',
@@ -79,7 +76,7 @@ class A extends B {}
       '''
 class A implements B implements C, D {}
 ''',
-      [ParserErrorCode.MULTIPLE_IMPLEMENTS_CLAUSES],
+      [ParserErrorCode.multipleImplementsClauses],
       '''
 class A implements B, C, D {}
 ''',
@@ -91,7 +88,7 @@ class A implements B, C, D {}
       '''
 class A extends B with C, D with E {}
 ''',
-      [ParserErrorCode.MULTIPLE_WITH_CLAUSES],
+      [ParserErrorCode.multipleWithClauses],
       '''
 class A extends B with C, D, E {}
 ''',
@@ -105,7 +102,7 @@ class A extends B with C, D, E {}
 class Foo exte
 class UnrelatedClass extends Bar {}
 ''',
-      [ParserErrorCode.MULTIPLE_WITH_CLAUSES],
+      [ParserErrorCode.multipleWithClauses],
       '''
 class Foo {}
 class UnrelatedClass extends Bar {}
@@ -119,7 +116,7 @@ class UnrelatedClass extends Bar {}
 class Foo extends CurrentlyTypingHere
 class UnrelatedClass extends Bar {}
 ''',
-      [ParserErrorCode.EXPECTED_CLASS_BODY],
+      [ParserErrorCode.expectedClassBody],
       '''
 class Foo extends CurrentlyTypingHere {}
 class UnrelatedClass extends Bar {}
@@ -132,7 +129,7 @@ class UnrelatedClass extends Bar {}
       '''
 class A with B extends C {}
 ''',
-      [ParserErrorCode.WITH_BEFORE_EXTENDS],
+      [ParserErrorCode.withBeforeExtends],
       '''
 class A extends C with B {}
 ''',
@@ -150,7 +147,7 @@ class CompilationUnitMemberTest extends AbstractRecoveryTest {
 class C { }
 export 'bar.dart';
 ''',
-      [ParserErrorCode.DIRECTIVE_AFTER_DECLARATION],
+      [ParserErrorCode.directiveAfterDeclaration],
       '''
 export 'bar.dart';
 class C { }
@@ -164,7 +161,7 @@ class C { }
 class C { }
 import 'bar.dart';
 ''',
-      [ParserErrorCode.DIRECTIVE_AFTER_DECLARATION],
+      [ParserErrorCode.directiveAfterDeclaration],
       '''
 import 'bar.dart';
 class C { }
@@ -178,7 +175,7 @@ class C { }
 class C { }
 part 'bar.dart';
 ''',
-      [ParserErrorCode.DIRECTIVE_AFTER_DECLARATION],
+      [ParserErrorCode.directiveAfterDeclaration],
       '''
 part 'bar.dart';
 class C { }
@@ -192,7 +189,7 @@ class C { }
 class C { }
 part of foo;
 ''',
-      [ParserErrorCode.DIRECTIVE_AFTER_DECLARATION],
+      [ParserErrorCode.directiveAfterDeclaration],
       '''
 part of foo;
 class C { }
@@ -206,7 +203,7 @@ class C { }
 export 'bar.dart';
 library l;
 ''',
-      [ParserErrorCode.LIBRARY_DIRECTIVE_NOT_FIRST],
+      [ParserErrorCode.libraryDirectiveNotFirst],
       '''
 library l;
 export 'bar.dart';
@@ -221,7 +218,7 @@ export 'bar.dart';
 import 'bar.dart';
 library l;
 ''',
-      [ParserErrorCode.LIBRARY_DIRECTIVE_NOT_FIRST],
+      [ParserErrorCode.libraryDirectiveNotFirst],
       '''
 library l;
 import 'bar.dart';
@@ -236,7 +233,7 @@ import 'bar.dart';
 part 'foo.dart';
 library l;
 ''',
-      [ParserErrorCode.LIBRARY_DIRECTIVE_NOT_FIRST],
+      [ParserErrorCode.libraryDirectiveNotFirst],
       '''
 library l;
 part 'foo.dart';
@@ -269,7 +266,7 @@ class ImportDirectiveTest extends AbstractRecoveryTest {
       '''
 import 'bar.dart' show A as p show B;
 ''',
-      [ParserErrorCode.PREFIX_AFTER_COMBINATOR],
+      [ParserErrorCode.prefixAfterCombinator],
       '''
 import 'bar.dart' as p show A show B;
 ''',
@@ -281,7 +278,7 @@ import 'bar.dart' as p show A show B;
       '''
 import 'bar.dart' show A as p;
 ''',
-      [ParserErrorCode.PREFIX_AFTER_COMBINATOR],
+      [ParserErrorCode.prefixAfterCombinator],
       '''
 import 'bar.dart' as p show A;
 ''',
@@ -293,7 +290,7 @@ import 'bar.dart' as p show A;
       '''
 import 'bar.dart' deferred show A as p;
 ''',
-      [ParserErrorCode.PREFIX_AFTER_COMBINATOR],
+      [ParserErrorCode.prefixAfterCombinator],
       '''
 import 'bar.dart' deferred as p show A;
 ''',
@@ -305,7 +302,7 @@ import 'bar.dart' deferred as p show A;
       '''
 import 'bar.dart' as p deferred;
 ''',
-      [ParserErrorCode.DEFERRED_AFTER_PREFIX],
+      [ParserErrorCode.deferredAfterPrefix],
       '''
 import 'bar.dart' deferred as p;
 ''',
@@ -317,7 +314,7 @@ import 'bar.dart' deferred as p;
       '''
 import 'bar.dart' as p as q;
 ''',
-      [ParserErrorCode.DUPLICATE_PREFIX],
+      [ParserErrorCode.duplicatePrefix],
       '''
 import 'bar.dart' as p;
 ''',
@@ -329,7 +326,7 @@ import 'bar.dart' as p;
       '''
 import 'bar.dart' as p sh;
 ''',
-      [ParserErrorCode.UNEXPECTED_TOKEN],
+      [ParserErrorCode.unexpectedToken],
       '''
 import 'bar.dart' as p;
 ''',
@@ -341,7 +338,7 @@ import 'bar.dart' as p;
       '''
 import 'bar.dart' d as p;
 ''',
-      [ParserErrorCode.UNEXPECTED_TOKEN],
+      [ParserErrorCode.unexpectedToken],
       '''
 import 'bar.dart' as p;
 ''',
@@ -355,9 +352,9 @@ import 'bar.dart' d show A as p
 import 'b.dart';
 ''',
       [
-        ParserErrorCode.UNEXPECTED_TOKEN,
-        ParserErrorCode.PREFIX_AFTER_COMBINATOR,
-        ParserErrorCode.EXPECTED_TOKEN,
+        ParserErrorCode.unexpectedToken,
+        ParserErrorCode.prefixAfterCombinator,
+        ParserErrorCode.expectedToken,
       ],
       '''
 import 'bar.dart' as p show A;
@@ -371,7 +368,7 @@ import 'b.dart';
       '''
 import 'bar.dart' deferred s as p;
 ''',
-      [ParserErrorCode.UNEXPECTED_TOKEN],
+      [ParserErrorCode.unexpectedToken],
       '''
 import 'bar.dart' deferred as p;
 ''',
@@ -396,7 +393,7 @@ class B {
   dynamic @A(const A()) x;
 }
 ''',
-      [ParserErrorCode.UNEXPECTED_TOKEN],
+      [ParserErrorCode.unexpectedToken],
       '''
 class A {
   const A([x]);
@@ -418,7 +415,7 @@ class MixinDeclarationTest extends AbstractRecoveryTest {
       '''
 mixin A implements B on C {}
 ''',
-      [ParserErrorCode.IMPLEMENTS_BEFORE_ON],
+      [ParserErrorCode.implementsBeforeOn],
       '''
 mixin A on C implements B {}
 ''',
@@ -430,7 +427,7 @@ mixin A on C implements B {}
       '''
 mixin A implements B implements C, D {}
 ''',
-      [ParserErrorCode.MULTIPLE_IMPLEMENTS_CLAUSES],
+      [ParserErrorCode.multipleImplementsClauses],
       '''
 mixin A implements B, C, D {}
 ''',
@@ -442,7 +439,7 @@ mixin A implements B, C, D {}
       '''
 mixin A on B on C {}
 ''',
-      [ParserErrorCode.MULTIPLE_ON_CLAUSES],
+      [ParserErrorCode.multipleOnClauses],
       '''
 mixin A on B, C {}
 ''',
@@ -456,7 +453,7 @@ mixin A on B, C {}
 mixin Foo imple
 mixin UnrelatedMixin on Bar {}
 ''',
-      [ParserErrorCode.MULTIPLE_WITH_CLAUSES],
+      [ParserErrorCode.multipleWithClauses],
       '''
 mixin Foo {}
 mixin UnrelatedMixin on Bar {}
@@ -470,7 +467,7 @@ mixin UnrelatedMixin on Bar {}
 mixin Foo implements CurrentlyTypingHere
 mixin UnrelatedMixin on Bar {}
 ''',
-      [ParserErrorCode.EXPECTED_MIXIN_BODY],
+      [ParserErrorCode.expectedMixinBody],
       '''
 mixin Foo implements CurrentlyTypingHere {}
 mixin UnrelatedMixin on Bar {}

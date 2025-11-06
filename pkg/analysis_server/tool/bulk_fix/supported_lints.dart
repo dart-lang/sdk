@@ -11,10 +11,9 @@ void main() {
   var bulkFixCodes = registeredFixGenerators.lintProducers.entries
       .where(
         (e) => e.value.any(
-          (generator) =>
-              generator(
-                context: StubCorrectionProducerContext.instance,
-              ).canBeAppliedAcrossFiles,
+          (generator) => generator(
+            context: StubCorrectionProducerContext.instance,
+          ).canBeAppliedAcrossFiles,
         ),
       )
       .map((e) => e.key);

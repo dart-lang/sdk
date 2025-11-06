@@ -1433,8 +1433,8 @@ ProfileFunction* ProfileCode::SetFunctionAndName(ProfileBuilder* builder) {
   } else if (kind() == kTagCode) {
     if (name() == nullptr) {
       if (UserTags::IsUserTag(start())) {
-        const char* tag_name =
-            UserTags::TagName(builder->thread(), builder->isolate(), start());
+        const char* tag_name = UserTags::TagName(
+            builder->thread(), builder->isolate()->group(), start());
         ASSERT(tag_name != nullptr);
         SetName(tag_name);
       } else if (VMTag::IsVMTag(start()) || VMTag::IsRuntimeEntryTag(start()) ||
@@ -1770,8 +1770,9 @@ void Profile::PrintSamplesJSON(JSONObject* obj, bool code_samples) {
       sample_obj.AddProperty("runtimeEntryTag", true);
     }
     if (UserTags::IsUserTag(sample->user_tag())) {
-      sample_obj.AddProperty("userTag", UserTags::TagName(thread(), isolate(),
-                                                          sample->user_tag()));
+      sample_obj.AddProperty(
+          "userTag",
+          UserTags::TagName(thread(), isolate()->group(), sample->user_tag()));
     }
     if (sample->truncated()) {
       sample_obj.AddProperty("truncated", true);

@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/src/services/correction/fix.dart';
+import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -19,7 +20,7 @@ void main() {
 @reflectiveTest
 class CreateFieldEnumTest extends FixProcessorTest {
   @override
-  FixKind get kind => DartFixKind.CREATE_FIELD;
+  FixKind get kind => DartFixKind.createField;
 
   Future<void> test_initializingFormal_dynamic() async {
     await resolveTestCode('''
@@ -101,6 +102,29 @@ int f(E e) {
 ''');
   }
 
+  Future<void> test_usedAsGetter_dotShorthand() async {
+    await resolveTestCode('''
+enum E {
+  one, two;
+}
+
+E f() {
+  return .a;
+}
+''');
+    await assertHasFix('''
+enum E {
+  one, two;
+
+  static final E a;
+}
+
+E f() {
+  return .a;
+}
+''');
+  }
+
   Future<void> test_usedAsSetter() async {
     await resolveTestCode('''
 enum E {
@@ -118,7 +142,26 @@ void f(E e) {
 @reflectiveTest
 class CreateFieldMixinTest extends FixProcessorTest {
   @override
-  FixKind get kind => DartFixKind.CREATE_FIELD;
+  FixKind get kind => DartFixKind.createField;
+
+  Future<void> test_dotShorthand() async {
+    await resolveTestCode('''
+mixin A {}
+void f() {
+  A v = .test;
+  print(v);
+}
+''');
+    await assertHasFix('''
+mixin A {
+  static A test;
+}
+void f() {
+  A v = .test;
+  print(v);
+}
+''');
+  }
 
   Future<void> test_getter_qualified_instance() async {
     await resolveTestCode('''
@@ -175,7 +218,104 @@ void f(M m) {
 @reflectiveTest
 class CreateFieldTest extends FixProcessorTest {
   @override
-  FixKind get kind => DartFixKind.CREATE_FIELD;
+  FixKind get kind => DartFixKind.createField;
+
+  Future<void> test_dotShorthand_class() async {
+    await resolveTestCode('''
+class A {}
+void f() {
+  A v = .test;
+  print(v);
+}
+''');
+    await assertHasFix('''
+class A {
+  static A test;
+}
+void f() {
+  A v = .test;
+  print(v);
+}
+''');
+  }
+
+  Future<void> test_dotShorthand_enum() async {
+    await resolveTestCode('''
+enum A {
+  ONE
+}
+A f() {
+  return .test;
+}
+''');
+    await assertHasFix('''
+enum A {
+  ONE;
+
+  static final A test;
+}
+A f() {
+  return .test;
+}
+''');
+  }
+
+  Future<void> test_dotShorthand_enum_empty() async {
+    await resolveTestCode('''
+enum A {}
+A f() {
+  return .test;
+}
+''');
+    await assertHasFix(
+      '''
+enum A {;
+  static final A test;
+}
+A f() {
+  return .test;
+}
+''',
+      errorFilter: (e) {
+        return e.diagnosticCode ==
+            CompileTimeErrorCode.dotShorthandUndefinedGetter;
+      },
+    );
+  }
+
+  Future<void> test_dotShorthand_enum_empty_semicolon() async {
+    await resolveTestCode('''
+enum A {;}
+A f() {
+  return .test;
+}
+''');
+    await assertHasFix(
+      '''
+enum A {;
+  static final A test;
+}
+A f() {
+  return .test;
+}
+''',
+      errorFilter: (e) {
+        return e.diagnosticCode ==
+            CompileTimeErrorCode.dotShorthandUndefinedGetter;
+      },
+    );
+  }
+
+  Future<void> test_dotShorthand_extensionType() async {
+    await resolveTestCode('''
+extension type A(int x) {}
+void f() {
+  A v = .test;
+  print(v);
+}
+''');
+    await assertNoFix();
+  }
 
   Future<void> test_getter_multiLevel() async {
     await resolveTestCode('''
@@ -680,7 +820,7 @@ class B<T> {
 ''');
     await assertHasFix('''
 class A {
-  List test;
+  List<Object?> test;
 }
 class B<T> {
   List<T> items = [];

@@ -1,0 +1,72 @@
+library #lib;
+import self as self;
+import "dart:core" as core;
+import "dart:ffi" as ffi;
+import "dart:typed_data" as typ;
+
+import "dart:ffi";
+
+@#C3
+@#C8
+final class version extends ffi::Struct {
+  synthetic constructor •() → self::version
+    : super ffi::Struct::•()
+    ;
+  constructor #fromTypedDataBase(synthesized core::Object #typedDataBase, synthesized core::int #offsetInBytes) → self::version
+    : super ffi::Struct::_fromTypedDataBase(#typedDataBase, #offsetInBytes)
+    ;
+  @#C10
+  constructor #fromTypedData(synthesized typ::TypedData #typedData, synthesized core::int #offset, synthesized core::int #sizeInBytes) → self::version
+    : super ffi::Struct::_fromTypedData(#typedData, #offset, #sizeInBytes)
+    ;
+  @#C11
+  @#C10
+  get major() → core::int
+    return ffi::_loadInt64(this.{ffi::_Compound::_typedDataBase}{core::Object}, self::version::major#offsetOf.{core::num::+}(this.{ffi::_Compound::_offsetInBytes}{core::int}){(core::num) → core::num});
+  @#C11
+  @#C10
+  set major(synthesized core::int #externalFieldValue) → void
+    return ffi::_storeInt64(this.{ffi::_Compound::_typedDataBase}{core::Object}, self::version::major#offsetOf.{core::num::+}(this.{ffi::_Compound::_offsetInBytes}{core::int}){(core::num) → core::num}, #externalFieldValue);
+  @#C10
+  static synthetic get major#offsetOf() → core::int
+    return #C13.{core::List::[]}(ffi::_abi()){(core::int) → core::int};
+  @#C10
+  static get #sizeOf() → core::int
+    return #C15.{core::List::[]}(ffi::_abi()){(core::int) → core::int};
+}
+static method main() → void {
+  core::print("done");
+}
+@#C21
+@#C23
+external static method _library_version(ffi::Pointer<self::version> arg0) → void;
+static method library_version_wrapper(self::version arg0) → void
+  return self::#_library_version#C(arg0);
+@#C21
+@#C23
+external static method #_library_version#C(ffi::_Compound arg0) → void;
+constants  {
+  #C1 = "vm:deeply-immutable"
+  #C2 = null
+  #C3 = core::pragma {name:#C1, options:#C2}
+  #C4 = "vm:ffi:struct-fields"
+  #C5 = TypeLiteralConstant(ffi::Int64)
+  #C6 = <core::Type>[#C5]
+  #C7 = ffi::_FfiStructLayout {fieldTypes:#C6, packing:#C2}
+  #C8 = core::pragma {name:#C4, options:#C7}
+  #C9 = "vm:prefer-inline"
+  #C10 = core::pragma {name:#C9, options:#C2}
+  #C11 = ffi::Int64 {}
+  #C12 = 0
+  #C13 = <core::int>[#C12, #C12, #C12, #C12, #C12, #C12, #C12, #C12, #C12, #C12, #C12, #C12, #C12, #C12, #C12, #C12, #C12, #C12, #C12, #C12, #C12, #C12]
+  #C14 = 8
+  #C15 = <core::int>[#C14, #C14, #C14, #C14, #C14, #C14, #C14, #C14, #C14, #C14, #C14, #C14, #C14, #C14, #C14, #C14, #C14, #C14, #C14, #C14, #C14, #C14]
+  #C16 = "cfe:ffi:native-marker"
+  #C17 = "_library_version"
+  #C18 = "#lib"
+  #C19 = true
+  #C20 = ffi::Native<(ffi::Pointer<self::version>) → ffi::Void> {symbol:#C17, assetId:#C18, isLeaf:#C19}
+  #C21 = core::pragma {name:#C16, options:#C20}
+  #C22 = "vm:ffi:native"
+  #C23 = core::pragma {name:#C22, options:#C20}
+}

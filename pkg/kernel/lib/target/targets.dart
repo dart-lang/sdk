@@ -15,16 +15,31 @@ class TargetFlags {
   final bool trackWidgetCreation;
   final bool supportMirrors;
 
+  /// Whether the backend expects closure contexts to be present in the AST.
+  ///
+  /// This flag is currently experimental. Generally, the backends rely on their
+  /// own analysis of captured variables to create closure contexts.
+  // TODO(cstefantsova): Update the comment when the feature is no longer
+  // experimental.
+  final bool isClosureContextLoweringEnabled;
+
+  /// Indicator for the const backend setting "keep locals".
+  /// Targets can overwrite based on other things.
+  final bool? constKeepLocalsIndicator;
+
   const TargetFlags(
       {this.trackWidgetCreation = false,
-      this.supportMirrors = true});
+      this.supportMirrors = true,
+      this.isClosureContextLoweringEnabled = false,
+      this.constKeepLocalsIndicator});
 
   @override
   bool operator ==(other) {
     if (identical(this, other)) return true;
     return other is TargetFlags &&
         trackWidgetCreation == other.trackWidgetCreation &&
-        supportMirrors == other.supportMirrors;
+        supportMirrors == other.supportMirrors &&
+        constKeepLocalsIndicator == other.constKeepLocalsIndicator;
   }
 
   @override
@@ -32,6 +47,8 @@ class TargetFlags {
     int hash = 485786;
     hash = 0x3fffffff & (hash * 31 + (hash ^ trackWidgetCreation.hashCode));
     hash = 0x3fffffff & (hash * 31 + (hash ^ supportMirrors.hashCode));
+    hash =
+        0x3fffffff & (hash * 31 + (hash ^ constKeepLocalsIndicator.hashCode));
     return hash;
   }
 }
@@ -68,7 +85,7 @@ enum NumberSemantics {
 
 // Backend specific constant evaluation behavior
 class ConstantsBackend {
-  const ConstantsBackend();
+  const ConstantsBackend({this.keepLocals = true});
 
   /// Lowering of a list constant to a backend-specific representation.
   Constant lowerListConstant(ListConstant constant) => constant;
@@ -148,7 +165,7 @@ class ConstantsBackend {
   /// even when use-sites are inlined.
   ///
   /// All use-sites will be rewritten based on [shouldInlineConstant].
-  bool get keepLocals => false;
+  final bool keepLocals;
 }
 
 /// Interface used for determining whether a `dart:*` is considered supported
@@ -534,7 +551,8 @@ class NoneConstantsBackend extends ConstantsBackend {
   @override
   final bool supportsUnevaluatedConstants;
 
-  const NoneConstantsBackend({required this.supportsUnevaluatedConstants});
+  const NoneConstantsBackend(
+      {required this.supportsUnevaluatedConstants, super.keepLocals});
 }
 
 class NoneTarget extends Target {
@@ -732,8 +750,7 @@ class TestTargetFlags extends TargetFlags {
       this.forceConstructorTearOffLoweringForTesting,
       this.supportedDartLibraries = const {},
       this.unsupportedDartLibraries = const {}})
-      : super(
-            trackWidgetCreation: trackWidgetCreation);
+      : super(trackWidgetCreation: trackWidgetCreation);
 }
 
 mixin TestTargetMixin on Target {

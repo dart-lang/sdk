@@ -2,16 +2,16 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import "package:expect/expect.dart";
 import 'dart:async';
 
-main() {
-  // Make sure `runZoned` returns the result of a synchronous call when an
-  // error handler is defined.
+import "package:expect/expect.dart";
+
+void main() {
+  // Make sure `runZonedGuarded` returns the result of a synchronous call.
   Expect.equals(
     499,
     runZonedGuarded(() => 499, (e, s) {
-      throw "Unexpected";
+      Expect.fail("Unreachable");
     }),
   );
 }

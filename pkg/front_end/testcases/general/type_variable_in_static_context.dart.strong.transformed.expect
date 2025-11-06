@@ -572,7 +572,8 @@ abstract class Mixin<T extends core::Object? = dynamic> extends core::Object /*i
 }
 extension Extension<T extends core::Object? = dynamic> on T% {
   static field field0 = self::Extension|field0;
-  field field1 = self::Extension|field1;
+  get field1 = self::Extension|get#field1;
+  set field1 = self::Extension|set#field1;
   static method staticMethod = self::Extension|staticMethod;
   method instanceMethod = self::Extension|instanceMethod;
   method tearoff instanceMethod = self::Extension|get#instanceMethod;
@@ -584,7 +585,11 @@ static field invalid-type Extension|field0;
 @invalid-expression "pkg/front_end/testcases/general/type_variable_in_static_context.dart:112:4: Error: Couldn't find constructor 'T'.
   @T()
    ^"
-static field invalid-type Extension|field1;
+static abstract extension-member method Extension|get#field1<T extends core::Object? = dynamic>(lowered self::Extension|get#field1::T% #this) → invalid-type;
+@invalid-expression "pkg/front_end/testcases/general/type_variable_in_static_context.dart:112:4: Error: Couldn't find constructor 'T'.
+  @T()
+   ^"
+static abstract extension-member method Extension|set#field1<T extends core::Object? = dynamic>(lowered self::Extension|set#field1::T% #this, synthesized invalid-type #externalFieldValue) → void;
 @invalid-expression "pkg/front_end/testcases/general/type_variable_in_static_context.dart:115:4: Error: Couldn't find constructor 'T'.
   @T()
    ^"

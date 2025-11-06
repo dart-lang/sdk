@@ -38,8 +38,10 @@ Future<void> main() async {
   }
   await Future.wait(futures);
 
-  print("Checkpoint #1: Can compiles several at once "
-      "(with different compilers!)");
+  print(
+    "Checkpoint #1: Can compiles several at once "
+    "(with different compilers!)",
+  );
 
   for (int i = 0; i < 5; i++) {
     futures.clear();
@@ -49,8 +51,10 @@ Future<void> main() async {
     await Future.wait(futures);
   }
 
-  print("Checkpoint #2: Can compiles several at once "
-      "(with the same compiler) (without crashing)");
+  print(
+    "Checkpoint #2: Can compiles several at once "
+    "(with the same compiler) (without crashing)",
+  );
 }
 
 List<IncrementalCompiler?> compilers = [];
@@ -62,8 +66,11 @@ Future<Component> compile(int compilerNum, Uri uri) async {
   IncrementalCompiler? compiler = compilers[compilerNum];
   if (compiler == null) {
     var options = getOptions();
-    compiler = new IncrementalCompiler(new CompilerContext(
-        new ProcessedOptions(options: options, inputs: [uri])));
+    compiler = new IncrementalCompiler(
+      new CompilerContext(
+        new ProcessedOptions(options: options, inputs: [uri]),
+      ),
+    );
     compilers[compilerNum] = compiler;
   } else {
     compiler.invalidateAllSources();

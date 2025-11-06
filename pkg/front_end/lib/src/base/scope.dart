@@ -6,9 +6,11 @@ import 'package:kernel/ast.dart';
 import 'package:kernel/class_hierarchy.dart';
 import 'package:kernel/type_environment.dart';
 
+import '../api_prototype/experimental_flags.dart';
 import '../builder/builder.dart';
 import '../builder/compilation_unit.dart';
 import '../builder/declaration_builders.dart';
+import '../builder/member_builder.dart';
 import '../builder/metadata_builder.dart';
 import '../builder/prefix_builder.dart';
 import '../kernel/hierarchy/class_member.dart' show ClassMember;
@@ -23,135 +25,23 @@ import 'messages.dart';
 import 'name_space.dart';
 import 'uri_offset.dart';
 
-enum ScopeKind {
-  /// Scope of pattern switch-case statements
-  ///
-  /// These scopes receive special treatment in that they are end-points of the
-  /// scope stack in presence of multiple heads for the same case, but can have
-  /// nested scopes if it's just a single head. In that latter possibility the
-  /// body of the case is nested into the scope of the case head. And for switch
-  /// expressions that scope includes both the head and the case expression.
-  caseHead,
-
-  /// The declaration-level scope for classes, enums, and similar declarations
-  declaration,
-
-  /// Scope where the formal parameters of a function are declared
-  formals,
-
-  /// Scope of a `for` statement
-  forStatement,
-
-  /// Scope of a function body
-  functionBody,
-
-  /// Scope of the head of the if-case statement
-  ifCaseHead,
-
-  /// Scope of an if-element in a collection
-  ifElement,
-
-  /// Scope for the initializers of generative constructors
-  initializers,
-
-  /// Scope where the joint variables of a switch case are declared
-  jointVariables,
-
-  /// Scope where labels of labelled statements are declared
-  labels,
-
-  /// Top-level scope of a library
-  library,
-
-  /// The special scope of the named function expression
-  ///
-  /// This scope is treated separately because the named function expressions
-  /// are allowed to be recursive, and the name of that function expression
-  /// should be visible in the scope of the function itself.
-  namedFunctionExpression,
-
-  /// The scope of the RHS of a binary-or pattern
-  ///
-  /// It is utilized for separating the branch-local variables from the joint
-  /// variables of the overall binary-or pattern.
-  orPatternRight,
-
-  /// The scope of a pattern
-  ///
-  /// It contains the variables associated with pattern variable declarations.
-  pattern,
-
-  /// Local scope of a statement, such as the body of a while loop
-  statementLocalScope,
-
-  /// Local scope of a switch block
-  switchBlock,
-
-  /// Scope for switch cases
-  ///
-  /// This scope kind is used in assertion checks.
-  switchCase,
-
-  /// Scope for switch case bodies
-  ///
-  /// This is used to handle local variables of switch cases.
-  switchCaseBody,
-
-  /// Scope for type parameters of declarations
-  typeParameters,
-
-  /// Scope for a compilation unit.
-  ///
-  /// This contains the entities declared in the library to which the
-  /// compilation unit belongs. Its parent scopes are the [prefix] and [import]
-  /// scopes of the compilation unit.
-  compilationUnit,
-
-  /// Scope for the prefixed imports in a compilation unit.
-  ///
-  /// The parent scope is the [import] scope of the same compilation unit.
-  prefix,
-
-  /// Scope for the non-prefixed imports in a compilation unit.
-  ///
-  /// The parent scope is the [prefix] scope of the parent compilation unit,
-  /// if any.
-  import,
-}
-
 abstract class LookupScope {
-  ScopeKind get kind;
-  LookupResult? lookup(String name, int fileOffset, Uri fileUri);
-  // TODO(johnniwinther): Should this be moved to an outer scope interface?
-  void forEachExtension(void Function(ExtensionBuilder) f);
+  LookupResult? lookup(String name);
 }
 
 /// A [LookupScope] based directly on a [NameSpace].
 abstract class BaseNameSpaceLookupScope implements LookupScope {
-  @override
-  final ScopeKind kind;
-
-  BaseNameSpaceLookupScope(this.kind);
-
   NameSpace get _nameSpace;
 
   LookupScope? get _parent;
 
   @override
-  LookupResult? lookup(String name, int fileOffset, Uri fileUri) {
-    return _nameSpace.lookupLocal(name,
-            fileUri: fileUri, fileOffset: fileOffset, staticOnly: false) ??
-        _parent?.lookup(name, fileOffset, fileUri);
+  LookupResult? lookup(String name) {
+    return _nameSpace.lookup(name) ?? _parent?.lookup(name);
   }
 
   @override
-  void forEachExtension(void Function(ExtensionBuilder) f) {
-    _nameSpace.forEachLocalExtension(f);
-    _parent?.forEachExtension(f);
-  }
-
-  @override
-  String toString() => "$runtimeType(${kind})";
+  String toString() => "$runtimeType()";
 }
 
 class NameSpaceLookupScope extends BaseNameSpaceLookupScope {
@@ -161,8 +51,8 @@ class NameSpaceLookupScope extends BaseNameSpaceLookupScope {
   @override
   final LookupScope? _parent;
 
-  NameSpaceLookupScope(this._nameSpace, super.kind, {LookupScope? parent})
-      : _parent = parent;
+  NameSpaceLookupScope(this._nameSpace, {LookupScope? parent})
+    : _parent = parent;
 }
 
 abstract class AbstractTypeParameterScope implements LookupScope {
@@ -173,22 +63,13 @@ abstract class AbstractTypeParameterScope implements LookupScope {
   TypeParameterBuilder? getTypeParameter(String name);
 
   @override
-  // Coverage-ignore(suite): Not run.
-  ScopeKind get kind => ScopeKind.typeParameters;
-
-  @override
-  LookupResult? lookup(String name, int fileOffset, Uri fileUri) {
+  LookupResult? lookup(String name) {
     LookupResult? result = getTypeParameter(name);
-    return result ?? _parent.lookup(name, fileOffset, fileUri);
+    return result ?? _parent.lookup(name);
   }
 
   @override
-  void forEachExtension(void Function(ExtensionBuilder) f) {
-    _parent.forEachExtension(f);
-  }
-
-  @override
-  String toString() => "$runtimeType(${kind},type parameter)";
+  String toString() => "$runtimeType(type parameter)";
 }
 
 class TypeParameterScope extends AbstractTypeParameterScope {
@@ -200,7 +81,9 @@ class TypeParameterScope extends AbstractTypeParameterScope {
   TypeParameterBuilder? getTypeParameter(String name) => _typeParameters[name];
 
   static LookupScope fromList(
-      LookupScope parent, List<TypeParameterBuilder>? typeParameterBuilders) {
+    LookupScope parent,
+    List<TypeParameterBuilder>? typeParameterBuilders,
+  ) {
     if (typeParameterBuilders == null) return parent;
     Map<String, TypeParameterBuilder> map = {};
     for (TypeParameterBuilder typeParameterBuilder in typeParameterBuilders) {
@@ -223,8 +106,7 @@ class CompilationUnitImportScope extends BaseNameSpaceLookupScope {
   final SourceCompilationUnit _compilationUnit;
   final NameSpace _importNameSpace;
 
-  CompilationUnitImportScope(this._compilationUnit, this._importNameSpace)
-      : super(ScopeKind.import);
+  CompilationUnitImportScope(this._compilationUnit, this._importNameSpace);
 
   @override
   NameSpace get _nameSpace => _importNameSpace;
@@ -249,25 +131,11 @@ class CompilationUnitScope extends BaseNameSpaceLookupScope {
   @override
   final LookupScope? _parent;
 
-  CompilationUnitScope(this._compilationUnit, super.kind, {LookupScope? parent})
-      : _parent = parent;
+  CompilationUnitScope(this._compilationUnit, {LookupScope? parent})
+    : _parent = parent;
 
   @override
   NameSpace get _nameSpace => _compilationUnit.libraryBuilder.libraryNameSpace;
-
-  /// Set of extension declarations in scope. This is computed lazily in
-  /// [forEachExtension].
-  Set<ExtensionBuilder>? _extensions;
-
-  @override
-  void forEachExtension(void Function(ExtensionBuilder) f) {
-    if (_extensions == null) {
-      Set<ExtensionBuilder> extensions = _extensions = <ExtensionBuilder>{};
-      _parent?.forEachExtension(extensions.add);
-      _nameSpace.forEachLocalExtension(extensions.add);
-    }
-    _extensions!.forEach(f);
-  }
 }
 
 /// The scope containing the prefixes imported into a compilation unit.
@@ -278,28 +146,8 @@ class CompilationUnitPrefixScope extends BaseNameSpaceLookupScope {
   @override
   final LookupScope? _parent;
 
-  CompilationUnitPrefixScope(this._nameSpace, super.kind,
-      {required LookupScope? parent})
-      : _parent = parent;
-
-  /// Set of extension declarations in scope. This is computed lazily in
-  /// [forEachExtension].
-  Set<ExtensionBuilder>? _extensions;
-
-  @override
-  void forEachExtension(void Function(ExtensionBuilder) f) {
-    if (_extensions == null) {
-      Set<ExtensionBuilder> extensions = _extensions = {};
-      Iterator<PrefixBuilder> iterator = _nameSpace.filteredIterator();
-      while (iterator.moveNext()) {
-        iterator.current.forEachExtension((e) {
-          extensions.add(e);
-        });
-      }
-      _parent?.forEachExtension(extensions.add);
-    }
-    _extensions!.forEach(f);
-  }
+  CompilationUnitPrefixScope(this._nameSpace, {required LookupScope? parent})
+    : _parent = parent;
 }
 
 class DeclarationBuilderScope extends BaseNameSpaceLookupScope {
@@ -308,7 +156,7 @@ class DeclarationBuilderScope extends BaseNameSpaceLookupScope {
   @override
   final LookupScope? _parent;
 
-  DeclarationBuilderScope(this._parent) : super(ScopeKind.declaration);
+  DeclarationBuilderScope(this._parent);
 
   @override
   NameSpace get _nameSpace {
@@ -317,8 +165,10 @@ class DeclarationBuilderScope extends BaseNameSpaceLookupScope {
   }
 
   void set declarationBuilder(DeclarationBuilder value) {
-    assert(_declarationBuilder == null,
-        "declarationBuilder has already been set.");
+    assert(
+      _declarationBuilder == null,
+      "declarationBuilder has already been set.",
+    );
     _declarationBuilder = value;
   }
 }
@@ -326,20 +176,23 @@ class DeclarationBuilderScope extends BaseNameSpaceLookupScope {
 /// Computes a builder for the import collision between [declaration] and
 /// [other].
 NamedBuilder computeAmbiguousDeclarationForImport(
-    ProblemReporting problemReporting,
-    String name,
-    NamedBuilder declaration,
-    NamedBuilder other,
-    {required UriOffset uriOffset}) {
+  ProblemReporting problemReporting,
+  String name,
+  NamedBuilder declaration,
+  NamedBuilder other, {
+  required UriOffset uriOffset,
+}) {
   // Prefix fragments are merged to singular prefix builders when computing the
   // import scope.
-  assert(!(declaration is PrefixBuilder && other is PrefixBuilder),
-      "Unexpected prefix builders $declaration and $other.");
+  assert(
+    !(declaration is PrefixBuilder && other is PrefixBuilder),
+    "Unexpected prefix builders $declaration and $other.",
+  );
 
   // TODO(ahe): Can I move this to Scope or Prefix?
   if (declaration == other) return declaration;
-  if (declaration is InvalidTypeDeclarationBuilder) return declaration;
-  if (other is InvalidTypeDeclarationBuilder) return other;
+  if (declaration is InvalidBuilder) return declaration;
+  if (other is InvalidBuilder) return other;
   NamedBuilder? preferred;
   Uri uri = computeLibraryUri(declaration);
   Uri otherUri = computeLibraryUri(other);
@@ -362,62 +215,21 @@ NamedBuilder computeAmbiguousDeclarationForImport(
     firstUri = secondUri;
     secondUri = uri;
   }
-  Message message = templateDuplicatedImport.withArguments(
-      name,
-      // TODO(ahe): We should probably use a context object here
-      // instead of including URIs in this message.
-      firstUri,
-      secondUri);
-  // We report the error lazily (setting suppressMessage to false) because the
-  // spec 18.1 states that 'It is not an error if N is introduced by two or
+  Message message = codeDuplicatedImport.withArgumentsOld(
+    name,
+    // TODO(ahe): We should probably use a context object here
+    // instead of including URIs in this message.
+    firstUri,
+    secondUri,
+  );
+  // We report the error lazily (setting errorHasBeenReported to false) because
+  // the spec 18.1 states that 'It is not an error if N is introduced by two or
   // more imports but never referred to.'
-  return new InvalidTypeDeclarationBuilder(
-      name,
-      message.withLocation(
-          uriOffset.fileUri, uriOffset.fileOffset, name.length),
-      suppressMessage: false);
-}
-
-abstract class ProblemBuilder extends NamedBuilderImpl {
-  @override
-  final String name;
-
-  final NamedBuilder builder;
-
-  @override
-  final int fileOffset;
-
-  @override
-  final Uri fileUri;
-
-  ProblemBuilder(this.name, this.builder, this.fileOffset, this.fileUri);
-
-  Message get message;
-
-  @override
-  String get fullNameForErrors => name;
-}
-
-class AmbiguousBuilder extends ProblemBuilder {
-  AmbiguousBuilder(
-      String name, NamedBuilder builder, int charOffset, Uri fileUri)
-      : super(name, builder, charOffset, fileUri);
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  Builder? get parent => null;
-
-  @override
-  Message get message => templateDuplicatedDeclarationUse.withArguments(name);
-
-  // Coverage-ignore(suite): Not run.
-  NamedBuilder getFirstDeclaration() {
-    NamedBuilder declaration = builder;
-    while (declaration.next != null) {
-      declaration = declaration.next!;
-    }
-    return declaration;
-  }
+  return new InvalidBuilder(
+    name,
+    message.withLocation(uriOffset.fileUri, uriOffset.fileOffset, name.length),
+    errorHasBeenReported: false,
+  );
 }
 
 mixin ErroneousMemberBuilderMixin implements SourceMemberBuilder {
@@ -489,8 +301,10 @@ mixin ErroneousMemberBuilderMixin implements SourceMemberBuilder {
   }
 
   @override
-  void buildOutlineExpressions(ClassHierarchy classHierarchy,
-      List<DelayedDefaultValueCloner> delayedDefaultValueCloners) {
+  void buildOutlineExpressions(
+    ClassHierarchy classHierarchy,
+    List<DelayedDefaultValueCloner> delayedDefaultValueCloners,
+  ) {
     throw new UnsupportedError('$runtimeType.buildOutlineExpressions');
   }
 
@@ -509,8 +323,10 @@ mixin ErroneousMemberBuilderMixin implements SourceMemberBuilder {
 
   @override
   // Coverage-ignore(suite): Not run.
-  int computeDefaultTypes(ComputeDefaultTypeContext context,
-      {required bool inErrorRecovery}) {
+  int computeDefaultTypes(
+    ComputeDefaultTypeContext context, {
+    required bool inErrorRecovery,
+  }) {
     assert(false, "Unexpected call to $runtimeType.computeDefaultTypes.");
     return 0;
   }
@@ -526,40 +342,33 @@ mixin ErroneousMemberBuilderMixin implements SourceMemberBuilder {
   @override
   // Coverage-ignore(suite): Not run.
   void checkVariance(
-      SourceClassBuilder sourceClassBuilder, TypeEnvironment typeEnvironment) {
+    SourceClassBuilder sourceClassBuilder,
+    TypeEnvironment typeEnvironment,
+  ) {
     assert(false, "Unexpected call to $runtimeType.checkVariance.");
   }
 
   @override
   // Coverage-ignore(suite): Not run.
-  void checkTypes(SourceLibraryBuilder library, NameSpace nameSpace,
-      TypeEnvironment typeEnvironment) {
+  void checkTypes(
+    ProblemReporting problemReporting,
+    LibraryFeatures libraryFeatures,
+    NameSpace nameSpace,
+    TypeEnvironment typeEnvironment,
+  ) {
     assert(false, "Unexpected call to $runtimeType.checkVariance.");
   }
-}
-
-class AmbiguousMemberBuilder extends AmbiguousBuilder
-    with ErroneousMemberBuilderMixin {
-  AmbiguousMemberBuilder(
-      String name, NamedBuilder builder, int charOffset, Uri fileUri)
-      : super(name, builder, charOffset, fileUri);
 
   @override
-  // Coverage-ignore(suite): Not run.
-  NamedBuilder get getable => this;
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  NamedBuilder get setable => this;
+  MemberBuilder get getable;
 }
 
 class LookupResultIterator implements Iterator<NamedBuilder> {
   Iterator<LookupResult>? _lookupResultIterator;
-  Iterator<ExtensionBuilder>? _extensionsIterator;
   LookupResult? _currentLookupResult;
   NamedBuilder? _currentBuilder;
 
-  LookupResultIterator(this._lookupResultIterator, this._extensionsIterator);
+  LookupResultIterator(this._lookupResultIterator);
 
   @override
   bool moveNext() {
@@ -597,14 +406,6 @@ class LookupResultIterator implements Iterator<NamedBuilder> {
         }
       } else {
         _lookupResultIterator = null;
-      }
-    }
-    if (_extensionsIterator != null) {
-      // Coverage-ignore-block(suite): Not run.
-      if (_extensionsIterator!.moveNext()) {
-        _currentBuilder = _extensionsIterator!.current;
-      } else {
-        _extensionsIterator = null;
       }
     }
     return false;
@@ -672,7 +473,7 @@ class IteratorSequence<T> implements Iterator<T> {
   Iterator<T>? _current;
 
   IteratorSequence(Iterable<Iterator<T>> iterators)
-      : _iterators = iterators.iterator;
+    : _iterators = iterators.iterator;
 
   @override
   T get current {

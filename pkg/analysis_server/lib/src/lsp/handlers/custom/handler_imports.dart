@@ -49,9 +49,9 @@ class ImportsHandler
       return unit != null
           ? success(unit)
           : error(
-            ErrorCodes.InternalError,
-            'The library containing a path did not contain the path.',
-          );
+              ErrorCodes.InternalError,
+              'The library containing a path did not contain the path.',
+            );
     });
     var offset = unit.mapResultSync(
       (unit) => toOffset(unit.unit.lineInfo, pos),
@@ -72,13 +72,14 @@ class ImportsHandler
       if (node is NamedType) {
         prefixName = node.importPrefix?.name.lexeme;
       } else if (node.thisOrAncestorOfType<PrefixedIdentifier>()
-          case PrefixedIdentifier(:var prefix) when prefix != node) {
+          case PrefixedIdentifier(:var prefix)
+          when prefix != node && prefix.element is PrefixElement) {
         prefixName = prefix.name;
       } else if (node is SimpleIdentifier) {
         if (node.parent case MethodInvocation(
           target: SimpleIdentifier target?,
-        )) {
-          prefixName = target.toString();
+        ) when target.element is PrefixElement) {
+          prefixName = target.name;
         }
       }
 
@@ -142,15 +143,13 @@ class ImportsHandler
       var importPrefix = directive.prefix?.name;
       if (importPrefix != prefix) continue;
 
-      var importedElement =
-          prefix == null
-              ? import.namespace.get2(elementName)
-              : import.namespace.getPrefixed2(prefix, elementName);
+      var importedElement = prefix == null
+          ? import.namespace.get2(elementName)
+          : import.namespace.getPrefixed2(prefix, elementName);
 
-      var isMatch =
-          element is MultiplyDefinedElement
-              ? element.conflictingElements2.contains(importedElement)
-              : element == importedElement;
+      var isMatch = element is MultiplyDefinedElement
+          ? element.conflictingElements.contains(importedElement)
+          : element == importedElement;
 
       if (isMatch) {
         var uri = uriConverter.toClientUri(

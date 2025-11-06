@@ -4,6 +4,7 @@
 
 import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analysis_server_plugin/edit/dart/correction_producer.dart';
+import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
@@ -19,12 +20,11 @@ class ConvertNullCheckToNullAwareElementOrEntry
       CorrectionApplicability.automatically;
 
   @override
-  FixKind get fixKind =>
-      DartFixKind.CONVERT_NULL_CHECK_TO_NULL_AWARE_ELEMENT_OR_ENTRY;
+  FixKind get fixKind => DartFixKind.convertNullCheckToNullAwareElementOrEntry;
 
   @override
   FixKind get multiFixKind =>
-      DartFixKind.CONVERT_NULL_CHECK_TO_NULL_AWARE_ELEMENT_OR_ENTRY_MULTI;
+      DartFixKind.convertNullCheckToNullAwareElementOrEntryMulti;
 
   @override
   Future<void> compute(ChangeBuilder builder) async {
@@ -36,52 +36,104 @@ class ConvertNullCheckToNullAwareElementOrEntry
     )) {
       if (node.caseClause == null) {
         // An element or entry of the form `if (x != null) ...`.
-        if (thenElement is! MapLiteralEntry) {
-          // In case of a list or set element, we simply replace the entire
-          // element with the then-element prefixed by '?'.
+        if (thenElement is SimpleIdentifier) {
+          // In case of a list or set element with a promotable target, we
+          // simply replace the entire element with the then-element prefixed by
+          // '?'.
           //
-          //     `[if (x != null) x]` ==> `[?x]`
-          //     `{if (x != null) x]` ==> `{?x}`
+          //     `if (x != null) x` is rewritten as `?x`
           await builder.addDartFileEdit(file, (builder) {
             builder.addSimpleReplacement(
-              range.startOffsetEndOffset(
-                node.ifKeyword.offset,
-                thenElement.offset,
-              ),
+              range.startStart(node, thenElement),
               '?',
             );
           });
-        } else {
+        } else if (thenElement is PostfixExpression) {
+          // In case of a list or set element with a getter target, we replace
+          // the entire element with the then-element target identifier prefixed
+          // by '?'. Note that in the case of a getter target, the null-check
+          // operator '!' is always present in [thenElement].
+          //
+          //     `if (x != null) x!` is rewritten as `?x`
+          await builder.addDartFileEdit(file, (builder) {
+            builder.addSimpleReplacement(
+              range.startStart(node, thenElement),
+              '?',
+            );
+            builder.addDeletion(range.endEnd(thenElement.operand, thenElement));
+          });
+        } else if (thenElement is MapLiteralEntry) {
           // In case of a map entry we need to check if it's the key that's
           // promoted to non-nullable or the value.
+          var thenElementKey = thenElement.key;
+          var keyCanonicalElement = switch (thenElementKey) {
+            SimpleIdentifier() => thenElementKey.canonicalElement,
+            PostfixExpression(:var operand, operator: Token(lexeme: '!')) =>
+              operand.canonicalElement,
+            _ => null,
+          };
+
           var binaryCondition = condition as BinaryExpression;
-          var keyCanonicalElement = thenElement.key.canonicalElement;
           if (keyCanonicalElement != null &&
               (binaryCondition.leftOperand.canonicalElement ==
                       keyCanonicalElement ||
                   binaryCondition.rightOperand.canonicalElement ==
                       keyCanonicalElement)) {
-            // In case the key is promoted, we simply replace everything before
-            // the key with '?'.
-            //
-            //     `{if (x != null) x: "value"}` ==> `{?x: "value"}`
-            await builder.addDartFileEdit(file, (builder) {
-              builder.addSimpleReplacement(
-                range.startOffsetEndOffset(node.offset, thenElement.key.offset),
-                '?',
-              );
-            });
+            if (thenElementKey is SimpleIdentifier) {
+              // In case the key is null-aware and is promotable, we simply
+              // replace everything before the key with '?'.
+              //
+              //     `if (x != null) x: "v"` is rewritten as `?x: "v"`
+              await builder.addDartFileEdit(file, (builder) {
+                builder.addSimpleReplacement(
+                  range.startStart(node, thenElement.key),
+                  '?',
+                );
+              });
+            } else if (thenElementKey is PostfixExpression) {
+              // In case the key is null-aware and is a getter, we replace
+              // everything before the key with '?' and remove '!' afterwards.
+              // Note that in the case of a getter, the null-check operator '!'
+              // is always present in [thenElementKey].
+              //
+              //     `if (x != null) x!: "v"` is rewritten as `?x: "v"`
+              await builder.addDartFileEdit(file, (builder) {
+                builder.addSimpleReplacement(
+                  range.startStart(node, thenElementKey),
+                  '?',
+                );
+                builder.addDeletion(
+                  range.endStart(thenElementKey.operand, thenElement.separator),
+                );
+              });
+            }
           } else {
-            // In case the value is promoted, we remove everything before the
-            // key and insert '?' before the value.
-            //
-            //     `{if (x != null) "key": x}` ==> `{"key": ?x}`
-            await builder.addDartFileEdit(file, (builder) {
-              builder.addDeletion(
-                range.startOffsetEndOffset(node.offset, thenElement.key.offset),
-              );
-              builder.addSimpleInsertion(thenElement.value.offset, '?');
-            });
+            var thenElementValue = thenElement.value;
+            if (thenElementValue is SimpleIdentifier) {
+              // In case the value is null-aware and is promotable, we remove
+              // everything before the key and insert '?' before the value.
+              //
+              //     `if (x != null) "k": x` is rewritten as `"k": ?x`
+              await builder.addDartFileEdit(file, (builder) {
+                builder.addDeletion(range.startStart(node, thenElement.key));
+                builder.addSimpleInsertion(thenElement.value.offset, '?');
+              });
+            } else if (thenElementValue is PostfixExpression) {
+              // In case the value is null-aware and is a getter, we remove
+              // everything before the key, insert '?' before the value, and
+              // delete '!' after it. Note that in the case of a getter, the
+              // null-check operator '!' is always present in
+              // [thenElementValue].
+              //
+              //     `if (x != null) "k": x!` is rewritten as `"k": ?x`
+              await builder.addDartFileEdit(file, (builder) {
+                builder.addDeletion(range.startStart(node, thenElementKey));
+                builder.addSimpleInsertion(thenElementValue.offset, '?');
+                builder.addDeletion(
+                  range.endEnd(thenElementValue.operand, thenElementValue),
+                );
+              });
+            }
           }
         }
       } else {
@@ -90,13 +142,13 @@ class ConvertNullCheckToNullAwareElementOrEntry
           // In case of a list or set element, we replace the entire element
           // with the expression to the left of 'case', prefixed by '?'.
           //
-          //     `[if (x case var y?) y]` ==> `[?x]`
-          //     `{if (x case var y?) y]` ==> `{?x}`
+          //     `if (x case var y?) y` is rewritten as `?x`
           await builder.addDartFileEdit(file, (builder) {
             builder.addSimpleReplacement(
-              range.startOffsetEndOffset(node.offset, node.end),
-              '?${condition.toSource()}',
+              range.startStart(node, condition),
+              '?',
             );
+            builder.addDeletion(range.endEnd(condition, node));
           });
         } else {
           // In case of a map entry we need to check if it's the key that's
@@ -105,33 +157,30 @@ class ConvertNullCheckToNullAwareElementOrEntry
               ((node.caseClause?.guardedPattern.pattern as NullCheckPattern)
                           .pattern
                       as DeclaredVariablePattern)
-                  .declaredElement;
+                  .declaredFragment
+                  ?.element;
           if (caseVariable == thenElement.key.canonicalElement) {
             // In case the key is promoted, replace everything before ':' with
             // the expression before 'case', prefixed by '?'.
             //
-            //     `{if (x case var y?) y: "value"}` ==> `{?x: "value"}`
+            //     `if (x case var y?) y: "v"` is rewritten as `?x: "v"`
             await builder.addDartFileEdit(file, (builder) {
               builder.addSimpleReplacement(
-                range.startOffsetEndOffset(node.offset, thenElement.key.end),
-                '?${condition.toSource()}',
+                range.startStart(node, condition),
+                '?',
               );
+              builder.addDeletion(range.endEnd(condition, thenElement.key));
             });
           } else {
             // In case the value is promoted, delete everything before the key
             // and replace the value with the expression to the left of 'case',
             // prefixed by '?'.
             //
-            //     `{if (x case var y?) "key": y}` ==> `{"key": ?x}`
+            //     `if (x case var y?) "k": y` is rewritten as `"k": ?x`
             await builder.addDartFileEdit(file, (builder) {
-              builder.addDeletion(
-                range.startOffsetEndOffset(node.offset, thenElement.key.offset),
-              );
+              builder.addDeletion(range.startStart(node, thenElement.key));
               builder.addSimpleReplacement(
-                range.startOffsetEndOffset(
-                  thenElement.value.offset,
-                  thenElement.value.end,
-                ),
+                range.startEnd(thenElement.value, thenElement.value),
                 '?${condition.toSource()}',
               );
             });

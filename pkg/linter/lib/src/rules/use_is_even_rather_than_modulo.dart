@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/analysis_rule/rule_context.dart';
+import 'package:analyzer/analysis_rule/rule_visitor_registry.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
@@ -18,11 +19,13 @@ class UseIsEvenRatherThanModulo extends LintRule {
     : super(name: LintNames.use_is_even_rather_than_modulo, description: _desc);
 
   @override
-  DiagnosticCode get diagnosticCode =>
-      LinterLintCode.use_is_even_rather_than_modulo;
+  DiagnosticCode get diagnosticCode => LinterLintCode.useIsEvenRatherThanModulo;
 
   @override
-  void registerNodeProcessors(NodeLintRegistry registry, RuleContext context) {
+  void registerNodeProcessors(
+    RuleVisitorRegistry registry,
+    RuleContext context,
+  ) {
     var visitor = _Visitor(this);
     registry.addBinaryExpression(this, visitor);
   }
@@ -64,8 +67,8 @@ class _Visitor extends SimpleAstVisitor<void> {
 
     var value = right.value;
     if (value == null) return;
-    var parentAssertInitializer =
-        node.thisOrAncestorOfType<AssertInitializer>();
+    var parentAssertInitializer = node
+        .thisOrAncestorOfType<AssertInitializer>();
     if (parentAssertInitializer != null) {
       var constructor = parentAssertInitializer.parent;
       // `isEven` is not allowed in a const constructor assert initializer.

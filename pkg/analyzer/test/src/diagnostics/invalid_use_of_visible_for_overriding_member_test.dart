@@ -41,7 +41,7 @@ class Child extends Parent {
   }
 }
 ''',
-      [error(WarningCode.INVALID_USE_OF_VISIBLE_FOR_OVERRIDING_MEMBER, 63, 3)],
+      [error(WarningCode.invalidUseOfVisibleForOverridingMember, 63, 3)],
     );
   }
 
@@ -109,7 +109,7 @@ class B {
   }
 }
 ''',
-      [error(WarningCode.INVALID_USE_OF_VISIBLE_FOR_OVERRIDING_MEMBER, 56, 1)],
+      [error(WarningCode.invalidUseOfVisibleForOverridingMember, 56, 1)],
     );
   }
 
@@ -133,7 +133,7 @@ void f(Object o) {
   }
 }
 ''',
-      [error(WarningCode.INVALID_USE_OF_VISIBLE_FOR_OVERRIDING_MEMBER, 63, 1)],
+      [error(WarningCode.invalidUseOfVisibleForOverridingMember, 63, 1)],
     );
   }
 
@@ -155,7 +155,7 @@ class B {
   void m(A a) => a > A();
 }
 ''',
-      [error(WarningCode.INVALID_USE_OF_VISIBLE_FOR_OVERRIDING_MEMBER, 47, 1)],
+      [error(WarningCode.invalidUseOfVisibleForOverridingMember, 47, 1)],
     );
   }
 
@@ -180,7 +180,7 @@ class B extends A {
   int get x => super.g + 1;
 }
 ''',
-      [error(WarningCode.INVALID_USE_OF_VISIBLE_FOR_OVERRIDING_MEMBER, 100, 1)],
+      [error(WarningCode.invalidUseOfVisibleForOverridingMember, 100, 1)],
     );
   }
 
@@ -205,7 +205,7 @@ class B extends A {
   void x() => super.m();
 }
 ''',
-      [error(WarningCode.INVALID_USE_OF_VISIBLE_FOR_OVERRIDING_MEMBER, 96, 1)],
+      [error(WarningCode.invalidUseOfVisibleForOverridingMember, 96, 1)],
     );
   }
 
@@ -230,7 +230,7 @@ class B extends A {
   void m() => super > A();
 }
 ''',
-      [error(WarningCode.INVALID_USE_OF_VISIBLE_FOR_OVERRIDING_MEMBER, 111, 1)],
+      [error(WarningCode.invalidUseOfVisibleForOverridingMember, 111, 1)],
     );
   }
 
@@ -255,7 +255,7 @@ class B extends A {
   set x(int i) => super.s = i;
 }
 ''',
-      [error(WarningCode.INVALID_USE_OF_VISIBLE_FOR_OVERRIDING_MEMBER, 106, 1)],
+      [error(WarningCode.invalidUseOfVisibleForOverridingMember, 106, 1)],
     );
   }
 
@@ -296,7 +296,7 @@ class B {
   }
 }
 ''',
-      [error(WarningCode.INVALID_USE_OF_VISIBLE_FOR_OVERRIDING_MEMBER, 50, 1)],
+      [error(WarningCode.invalidUseOfVisibleForOverridingMember, 50, 1)],
     );
   }
 }

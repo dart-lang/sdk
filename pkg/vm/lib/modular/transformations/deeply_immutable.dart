@@ -6,11 +6,11 @@
 // avoid cyclic dependency between `package:vm/modular` and `package:front_end`.
 import 'package:front_end/src/codes/cfe_codes.dart'
     show
-        messageFfiDeeplyImmutableClassesMustBeFinalOrSealed,
-        messageFfiDeeplyImmutableFieldsModifiers,
-        messageFfiDeeplyImmutableFieldsMustBeDeeplyImmutable,
-        messageFfiDeeplyImmutableSubtypesMustBeDeeplyImmutable,
-        messageFfiDeeplyImmutableSupertypeMustBeDeeplyImmutable;
+        codeFfiDeeplyImmutableClassesMustBeFinalOrSealed,
+        codeFfiDeeplyImmutableFieldsModifiers,
+        codeFfiDeeplyImmutableFieldsMustBeDeeplyImmutable,
+        codeFfiDeeplyImmutableSubtypesMustBeDeeplyImmutable,
+        codeFfiDeeplyImmutableSupertypeMustBeDeeplyImmutable;
 import 'package:kernel/ast.dart';
 import 'package:kernel/core_types.dart';
 import 'package:kernel/library_index.dart' show LibraryIndex;
@@ -23,6 +23,7 @@ void validateLibraries(
   DiagnosticReporter diagnosticReporter,
 ) {
   final LibraryIndex index = LibraryIndex(component, const [
+    'dart:ffi',
     'dart:nativewrappers',
   ]);
   final validator = DeeplyImmutableValidator(
@@ -45,6 +46,9 @@ class DeeplyImmutableValidator {
   final Field pragmaName;
   // Can be null if nativewrappers library is not available.
   final Class? nativeFieldWrapperClass1Class;
+  // Can be null if ffi library is not available.
+  final Class? structClass;
+  final Class? unionClass;
 
   DeeplyImmutableValidator(
     LibraryIndex index,
@@ -55,7 +59,9 @@ class DeeplyImmutableValidator {
       nativeFieldWrapperClass1Class = index.tryGetClass(
         'dart:nativewrappers',
         'NativeFieldWrapperClass1',
-      );
+      ),
+      structClass = index.tryGetClass('dart:ffi', 'Struct'),
+      unionClass = index.tryGetClass('dart:ffi', 'Union');
 
   void visitLibrary(Library library) {
     for (final cls in library.classes) {
@@ -86,7 +92,7 @@ class DeeplyImmutableValidator {
       for (final superClass in classes) {
         if (_isDeeplyImmutableClass(superClass)) {
           diagnosticReporter.report(
-            messageFfiDeeplyImmutableSubtypesMustBeDeeplyImmutable,
+            codeFfiDeeplyImmutableSubtypesMustBeDeeplyImmutable,
             node.fileOffset,
             node.name.length,
             node.location!.file,
@@ -99,10 +105,12 @@ class DeeplyImmutableValidator {
     final superClass = node.superclass;
     if (superClass != null &&
         superClass != coreTypes.objectClass &&
+        node != structClass &&
+        node != unionClass &&
         !_isOrExtendsNativeFieldWrapper1Class(superClass)) {
       if (!_isDeeplyImmutableClass(superClass)) {
         diagnosticReporter.report(
-          messageFfiDeeplyImmutableSupertypeMustBeDeeplyImmutable,
+          codeFfiDeeplyImmutableSupertypeMustBeDeeplyImmutable,
           node.fileOffset,
           node.name.length,
           node.location!.file,
@@ -115,13 +123,20 @@ class DeeplyImmutableValidator {
     // might be implemented, extended or mixed in would break subtypes that are
     // not marked deeply immutable. (We could consider relaxing this and
     // allowing breaking subtypes upon adding the pragma.)
-    if (!(node.isFinal || node.isSealed)) {
-      diagnosticReporter.report(
-        messageFfiDeeplyImmutableClassesMustBeFinalOrSealed,
-        node.fileOffset,
-        node.name.length,
-        node.location!.file,
-      );
+    // Exception being ffi Struct and Union classes which are extended, but
+    // have custom treatment.
+    if (node != structClass &&
+        node != unionClass &&
+        superClass != structClass &&
+        superClass != unionClass) {
+      if (!(node.isFinal || node.isSealed)) {
+        diagnosticReporter.report(
+          codeFfiDeeplyImmutableClassesMustBeFinalOrSealed,
+          node.fileOffset,
+          node.name.length,
+          node.location!.file,
+        );
+      }
     }
 
     // All instance fields should be non-late final and deeply immutable.
@@ -132,7 +147,7 @@ class DeeplyImmutableValidator {
       }
       if (!_isDeeplyImmutableDartType(field.type)) {
         diagnosticReporter.report(
-          messageFfiDeeplyImmutableFieldsMustBeDeeplyImmutable,
+          codeFfiDeeplyImmutableFieldsMustBeDeeplyImmutable,
           field.fileOffset,
           field.name.text.length,
           field.location!.file,
@@ -140,7 +155,7 @@ class DeeplyImmutableValidator {
       }
       if (!field.isFinal || field.isLate) {
         diagnosticReporter.report(
-          messageFfiDeeplyImmutableFieldsModifiers,
+          codeFfiDeeplyImmutableFieldsModifiers,
           field.fileOffset,
           field.name.text.length,
           field.location!.file,

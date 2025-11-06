@@ -8,11 +8,11 @@ class Class {
   var field;
 
   Class.empty()
-      : field = /*
+    : field = /*
    class=Class,
    member=empty
   */
-            x {
+          x {
     /*
      class=Class,
      member=empty
@@ -21,12 +21,12 @@ class Class {
   }
 
   Class.oneParameter(a)
-      : field = /*
+    : field = /*
    class=Class,
    member=oneParameter,
    variables=[a]
   */
-            x {
+          x {
     /*
      class=Class,
      member=oneParameter,
@@ -36,14 +36,14 @@ class Class {
   }
 
   Class.twoParameters(a, b)
-      : field = /*
+    : field = /*
    class=Class,
    member=twoParameters,
    variables=[
     a,
     b]
   */
-            x {
+          x {
     /*
      class=Class,
      member=twoParameters,
@@ -55,14 +55,14 @@ class Class {
   }
 
   Class.optionalParameter(a, [b])
-      : field = /*
+    : field = /*
    class=Class,
    member=optionalParameter,
    variables=[
     a,
     b]
   */
-            x {
+          x {
     /*
      class=Class,
      member=optionalParameter,
@@ -74,14 +74,14 @@ class Class {
   }
 
   Class.namedParameter(a, {b})
-      : field = /*
+    : field = /*
    class=Class,
    member=namedParameter,
    variables=[
     a,
     b]
   */
-            x {
+          x {
     /*
      class=Class,
      member=namedParameter,
@@ -101,9 +101,7 @@ class Foo2<E extends num> {
      class=Foo2,
      member=foo,
      static,
-     typeParameters=[
-      Foo2.E,
-      Foo2.foo.E],
+     typeParameters=[Foo2.foo.E],
      variables=[a]
     */
     x;
@@ -111,12 +109,12 @@ class Foo2<E extends num> {
   }
 
   Foo2._()
-      : field = /*
+    : field = /*
    class=Foo2,
    member=_,
    typeParameters=[Foo2.E]
   */
-            x {
+          x {
     /*
      class=Foo2,
      member=_,
@@ -131,7 +129,6 @@ class Foo2<E extends num> {
      class=Foo2,
      member=bar,
      static,
-     typeParameters=[Foo2.E],
      variables=[a]
     */
     x;
@@ -143,9 +140,7 @@ class Foo2<E extends num> {
      class=Foo2,
      member=baz,
      static,
-     typeParameters=[
-      Foo2.E,
-      Foo2.baz.E],
+     typeParameters=[Foo2.baz.E],
      variables=[a]
     */
     x;

@@ -33,18 +33,49 @@ class _StaticInterop {
 /// An annotation that indicates a [JS] annotated class is structural and does
 /// not have a known JavaScript prototype.
 ///
-/// A class marked with [anonymous] must have an unnamed factory constructor
-/// with no positional arguments, only named arguments. Invoking the constructor
-/// desugars to creating a JavaScript object literal with name-value pairs
-/// corresponding to the parameter names and values.
+/// A class marked with [anonymous] allows external factories with named
+/// parameters. Invoking these factories creates JavaScript object literals with
+/// name-value pairs corresponding to any named parameters and their values. If
+/// there are no named parameters, an empty JavaScript object is created.
+///
+/// [anonymous] classes have the following restrictions:
+///   - They must contain a [JS] annotation, either from this library or from
+///     `dart:js_interop`. If the latter, the class must also contain
+///     [staticInterop].
+///   - They cannot contain any non-external members unless it's a
+///     [staticInterop] class, in which case it can also contain non-external
+///     factories and static methods.
+///   - They cannot contain any external generative constructors.
+///   - Any external factory must not contain any positional parameters.
+///   - They cannot extend or be extended by a non-[JS] annotated class.
+///   - The annotation should only be applied to non-mixin classes and no other
+///     declarations.
 const _Anonymous anonymous = _Anonymous();
 
 /// [staticInterop] enables the [JS] annotated class to be treated as a "static"
 /// interop class.
 ///
 /// These classes allow interop with native types, like the ones in `dart:html`.
-/// These classes should not contain any instance members, inherited or
-/// otherwise, and should instead use static extension members.
+/// These classes implicitly all erase to the internal interceptor
+/// `JavaScriptObject`, so they can be freely casted to and from other
+/// [staticInterop] types, `dart:html` types, and `JSObject` from
+/// `dart:js_interop`. Non-[staticInterop] `package:js` types can be casted to
+/// [staticInterop] types, but the reverse can fail if the underlying value is a
+/// `@Native`-reserved type (like `dart:html` types).
+///
+/// [staticInterop] classes have the following restrictions:
+///  - They must contain a [JS] annotation, either from this library or from
+///    `dart:js_interop`.
+///  - They should not contain any instance members, inherited or otherwise, and
+///    should instead use static extension members, which can be external or
+///    non-external.
+///  - They can only contain factories and `static` members. They can be
+///    combined with [anonymous] to make external factories create new
+///    JavaScript object literals instead.
+///  - They should not implement, extend, or mixin non-[staticInterop] classes
+///    and vice-versa.
+///  - The annotation should only be applied to non-mixin classes and no other
+///    declarations.
 const _StaticInterop staticInterop = _StaticInterop();
 
 /// NOTE: [trustTypes] is an experimental annotation that may disappear at any

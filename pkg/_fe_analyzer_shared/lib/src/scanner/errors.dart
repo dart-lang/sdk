@@ -2,16 +2,13 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// ignore: deprecated_member_use_from_same_package
-import 'package:_fe_analyzer_shared/src/scanner/errors.g.dart';
-
+import '../base/errors.dart';
 import '../messages/codes.dart';
 import 'error_token.dart';
 import 'token.dart' show Token, TokenType;
 import 'token_constants.dart';
 
-// ignore: deprecated_member_use_from_same_package
-export 'package:_fe_analyzer_shared/src/scanner/errors.g.dart';
+part 'errors.g.dart';
 
 /**
  *  Translates the given error [token] into an analyzer error and reports it
@@ -32,50 +29,54 @@ void translateErrorToken(ErrorToken token, ReportError reportError) {
     reportError(errorCode, charOffset, arguments);
   }
 
-  Code<dynamic> errorCode = token.errorCode;
-  switch (errorCode.analyzerCodes?.first) {
-    case "UNTERMINATED_STRING_LITERAL":
+  Code errorCode = token.errorCode;
+  switch (errorCode.pseudoSharedCode) {
+    case PseudoSharedCode.encoding:
+      reportError(ScannerErrorCode.encoding, charOffset, null);
+      return;
+
+    case PseudoSharedCode.unterminatedStringLiteral:
       // TODO(paulberry,ahe): Fasta reports the error location as the entire
       // string; analyzer expects the end of the string.
       reportError(
-        ScannerErrorCode.UNTERMINATED_STRING_LITERAL,
+        ScannerErrorCode.unterminatedStringLiteral,
         endOffset - 1,
         null,
       );
       return;
 
-    case "UNTERMINATED_MULTI_LINE_COMMENT":
+    case PseudoSharedCode.unterminatedMultiLineComment:
       // TODO(paulberry,ahe): Fasta reports the error location as the entire
       // comment; analyzer expects the end of the comment.
       reportError(
-        ScannerErrorCode.UNTERMINATED_MULTI_LINE_COMMENT,
+        ScannerErrorCode.unterminatedMultiLineComment,
         endOffset - 1,
         null,
       );
       return;
 
-    case "MISSING_DIGIT":
+    case PseudoSharedCode.missingDigit:
       // TODO(paulberry,ahe): Fasta reports the error location as the entire
       // number; analyzer expects the end of the number.
       charOffset = endOffset - 1;
-      return _makeError(ScannerErrorCode.MISSING_DIGIT, null);
+      return _makeError(ScannerErrorCode.missingDigit, null);
 
-    case "MISSING_HEX_DIGIT":
+    case PseudoSharedCode.missingHexDigit:
       // TODO(paulberry,ahe): Fasta reports the error location as the entire
       // number; analyzer expects the end of the number.
       charOffset = endOffset - 1;
-      return _makeError(ScannerErrorCode.MISSING_HEX_DIGIT, null);
+      return _makeError(ScannerErrorCode.missingHexDigit, null);
 
-    case "ILLEGAL_CHARACTER":
+    case PseudoSharedCode.illegalCharacter:
       // We can safely assume `token.character` is non-`null` because this error
       // is only reported when there is a character associated with the token.
-      return _makeError(ScannerErrorCode.ILLEGAL_CHARACTER, [token.character!]);
+      return _makeError(ScannerErrorCode.illegalCharacter, [token.character!]);
 
-    case "UNEXPECTED_SEPARATOR_IN_NUMBER":
-      return _makeError(ScannerErrorCode.UNEXPECTED_SEPARATOR_IN_NUMBER, null);
+    case PseudoSharedCode.unexpectedSeparatorInNumber:
+      return _makeError(ScannerErrorCode.unexpectedSeparatorInNumber, null);
 
-    case "UNSUPPORTED_OPERATOR":
-      return _makeError(ScannerErrorCode.UNSUPPORTED_OPERATOR, [
+    case PseudoSharedCode.unsupportedOperator:
+      return _makeError(ScannerErrorCode.unsupportedOperator, [
         (token as UnsupportedOperator).token.lexeme,
       ]);
 
@@ -85,22 +86,22 @@ void translateErrorToken(ErrorToken token, ReportError reportError) {
         TokenType type = token.begin!.type;
         if (type == TokenType.OPEN_CURLY_BRACKET ||
             type == TokenType.STRING_INTERPOLATION_EXPRESSION) {
-          return _makeError(ScannerErrorCode.EXPECTED_TOKEN, ['}']);
+          return _makeError(ScannerErrorCode.expectedToken, ['}']);
         }
         if (type == TokenType.OPEN_SQUARE_BRACKET) {
-          return _makeError(ScannerErrorCode.EXPECTED_TOKEN, [']']);
+          return _makeError(ScannerErrorCode.expectedToken, [']']);
         }
         if (type == TokenType.OPEN_PAREN) {
-          return _makeError(ScannerErrorCode.EXPECTED_TOKEN, [')']);
+          return _makeError(ScannerErrorCode.expectedToken, [')']);
         }
         if (type == TokenType.LT) {
-          return _makeError(ScannerErrorCode.EXPECTED_TOKEN, ['>']);
+          return _makeError(ScannerErrorCode.expectedToken, ['>']);
         }
       } else if (errorCode == codeUnexpectedDollarInString) {
-        return _makeError(ScannerErrorCode.MISSING_IDENTIFIER, null);
+        return _makeError(ScannerErrorCode.missingIdentifier, null);
       }
       throw new UnimplementedError(
-        '$errorCode "${errorCode.analyzerCodes?.first}"',
+        '$errorCode "${errorCode.pseudoSharedCode}"',
       );
   }
 }

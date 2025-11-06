@@ -36,7 +36,7 @@ f() {
   E.g;
 }
 ''',
-      [error(CompileTimeErrorCode.STATIC_ACCESS_TO_INSTANCE_MEMBER, 51, 1)],
+      [error(CompileTimeErrorCode.staticAccessToInstanceMember, 51, 1)],
     );
   }
 
@@ -50,7 +50,7 @@ f() {
   E.m();
 }
 ''',
-      [error(CompileTimeErrorCode.STATIC_ACCESS_TO_INSTANCE_MEMBER, 47, 1)],
+      [error(CompileTimeErrorCode.staticAccessToInstanceMember, 47, 1)],
     );
   }
 
@@ -64,7 +64,7 @@ f() {
   E.s = 2;
 }
 ''',
-      [error(CompileTimeErrorCode.STATIC_ACCESS_TO_INSTANCE_MEMBER, 56, 1)],
+      [error(CompileTimeErrorCode.staticAccessToInstanceMember, 56, 1)],
     );
   }
 
@@ -77,7 +77,7 @@ class A {
 main() {
   A.m();
 }''',
-      [error(CompileTimeErrorCode.STATIC_ACCESS_TO_INSTANCE_MEMBER, 34, 1)],
+      [error(CompileTimeErrorCode.staticAccessToInstanceMember, 34, 1)],
     );
   }
 
@@ -90,7 +90,7 @@ class A {
 main() {
   A.m;
 }''',
-      [error(CompileTimeErrorCode.STATIC_ACCESS_TO_INSTANCE_MEMBER, 34, 1)],
+      [error(CompileTimeErrorCode.staticAccessToInstanceMember, 34, 1)],
     );
   }
 
@@ -103,7 +103,7 @@ class A {
 main() {
   A.f;
 }''',
-      [error(CompileTimeErrorCode.STATIC_ACCESS_TO_INSTANCE_MEMBER, 34, 1)],
+      [error(CompileTimeErrorCode.staticAccessToInstanceMember, 34, 1)],
     );
   }
 
@@ -115,7 +115,7 @@ class C<T> {
 }
 var x = C.t;
 ''',
-      [error(CompileTimeErrorCode.STATIC_ACCESS_TO_INSTANCE_MEMBER, 43, 1)],
+      [error(CompileTimeErrorCode.staticAccessToInstanceMember, 43, 1)],
     );
   }
 
@@ -128,7 +128,7 @@ class A {
 main() {
   A.f;
 }''',
-      [error(CompileTimeErrorCode.STATIC_ACCESS_TO_INSTANCE_MEMBER, 40, 1)],
+      [error(CompileTimeErrorCode.staticAccessToInstanceMember, 40, 1)],
     );
   }
 
@@ -141,7 +141,7 @@ class A {
 main() {
   A.f = 42;
 }''',
-      [error(CompileTimeErrorCode.STATIC_ACCESS_TO_INSTANCE_MEMBER, 39, 1)],
+      [error(CompileTimeErrorCode.staticAccessToInstanceMember, 39, 1)],
     );
   }
 

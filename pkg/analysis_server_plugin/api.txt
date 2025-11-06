@@ -137,6 +137,7 @@ package:analysis_server_plugin/edit/fix/fix_context.dart:
 package:analysis_server_plugin/plugin.dart:
   Plugin (class extends Object):
     new (constructor: Plugin Function())
+    name (getter: String)
     register (method: FutureOr<void> Function(PluginRegistry))
     shutDown (method: FutureOr<void> Function())
     start (method: FutureOr<void> Function())
@@ -159,6 +160,8 @@ dart:core:
   String (referenced)
   bool (referenced)
   int (referenced)
+package:_fe_analyzer_shared/src/base/errors.dart:
+  Diagnostic (referenced)
 package:_fe_analyzer_shared/src/scanner/token.dart:
   Token (referenced)
 package:analyzer/analysis_rule/analysis_rule.dart:
@@ -188,8 +191,6 @@ package:analyzer/dart/element/type_provider.dart:
   TypeProvider (referenced)
 package:analyzer/dart/element/type_system.dart:
   TypeSystem (referenced)
-package:analyzer/diagnostic/diagnostic.dart:
-  Diagnostic (referenced)
 package:analyzer/instrumentation/service.dart:
   InstrumentationService (referenced)
 package:analyzer/source/source_range.dart:

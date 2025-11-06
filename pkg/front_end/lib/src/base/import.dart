@@ -42,26 +42,27 @@ class Import {
   LibraryDependency? libraryDependency;
 
   Import(
-      SourceCompilationUnit importer,
-      this.importedCompilationUnit,
-      this.isAugmentationImport,
-      this.deferred,
-      this.prefix,
-      this.combinators,
-      this.configurations,
-      Uri fileUri,
-      this.importOffset,
-      this.prefixOffset,
-      {this.nativeImportPath})
-      : prefixFragment = createPrefixFragment(
-            prefix,
-            importer,
-            importedCompilationUnit,
-            combinators,
-            deferred,
-            fileUri,
-            importOffset,
-            prefixOffset);
+    SourceCompilationUnit importer,
+    this.importedCompilationUnit,
+    this.isAugmentationImport,
+    this.deferred,
+    this.prefix,
+    this.combinators,
+    this.configurations,
+    Uri fileUri,
+    this.importOffset,
+    this.prefixOffset, {
+    this.nativeImportPath,
+  }) : prefixFragment = createPrefixFragment(
+         prefix,
+         importer,
+         importedCompilationUnit,
+         combinators,
+         deferred,
+         fileUri,
+         importOffset,
+         prefixOffset,
+       );
 
   LibraryBuilder? get importedLibraryBuilder =>
       importedCompilationUnit?.libraryBuilder;
@@ -75,30 +76,43 @@ class Import {
     if (prefixFragment == null) {
       add = (String name, NamedBuilder builder) {
         importer.addImportedBuilderToScope(
-            name: name, builder: builder, charOffset: importOffset);
+          name: name,
+          builder: builder,
+          charOffset: importOffset,
+        );
       };
     } else {
       if (importer.addPrefixFragment(
-          prefixFragment.name, prefixFragment, prefixOffset)) {
+        prefixFragment.name,
+        prefixFragment,
+        prefixOffset,
+      )) {
         importer.addImportedBuilderToScope(
-            name: prefixFragment.name,
-            builder: prefixFragment.builder,
-            charOffset: prefixOffset);
+          name: prefixFragment.name,
+          builder: prefixFragment.builder,
+          charOffset: prefixOffset,
+        );
       }
 
       add = (String name, NamedBuilder member) {
-        prefixFragment.builder.addToPrefixScope(name, member,
-            importOffset: importOffset, prefixOffset: prefixOffset);
+        prefixFragment.builder.addToPrefixScope(
+          name,
+          member,
+          importOffset: importOffset,
+          prefixOffset: prefixOffset,
+        );
       };
     }
-    Iterator<NamedBuilder> iterator =
-        importedLibraryBuilder!.exportNameSpace.filteredIterator();
+    Iterator<NamedBuilder> iterator = importedLibraryBuilder!.exportNameSpace
+        .filteredIterator();
     while (iterator.moveNext()) {
       NamedBuilder member = iterator.current;
       String name = member.name;
       bool include = true;
       if (combinators != null) {
-        for (CombinatorBuilder combinator in combinators!) {
+        List<CombinatorBuilder> combinators = this.combinators!;
+        for (int i = 0; i < combinators.length; i++) {
+          CombinatorBuilder combinator = combinators[i];
           if (combinator.isShow && !combinator.names.contains(name)) {
             include = false;
             break;
@@ -117,22 +131,24 @@ class Import {
 }
 
 PrefixFragment? createPrefixFragment(
-    String? prefix,
-    SourceCompilationUnit importer,
-    CompilationUnit? imported,
-    List<CombinatorBuilder>? combinators,
-    bool deferred,
-    Uri fileUri,
-    int charOffset,
-    int prefixCharOffset) {
+  String? prefix,
+  SourceCompilationUnit importer,
+  CompilationUnit? imported,
+  List<CombinatorBuilder>? combinators,
+  bool deferred,
+  Uri fileUri,
+  int charOffset,
+  int prefixCharOffset,
+) {
   if (prefix == null) return null;
   return new PrefixFragment(
-      name: prefix,
-      importer: importer,
-      imported: imported,
-      combinators: combinators,
-      deferred: deferred,
-      fileUri: fileUri,
-      importOffset: charOffset,
-      prefixOffset: prefixCharOffset);
+    name: prefix,
+    importer: importer,
+    imported: imported,
+    combinators: combinators,
+    deferred: deferred,
+    fileUri: fileUri,
+    importOffset: charOffset,
+    prefixOffset: prefixCharOffset,
+  );
 }

@@ -125,11 +125,7 @@ class _ElementRecorder {
   ) {
     if (referencedElement is PropertyAccessorElement) {
       if (referencedElement.isSynthetic) {
-        var variable = referencedElement.variable;
-        if (variable == null) {
-          return;
-        }
-        referencedElement = variable;
+        referencedElement = referencedElement.variable;
       }
     }
 
@@ -181,9 +177,9 @@ class _ReferenceFinder extends RecursiveAstVisitor<void> {
 
   /// Initialize a newly created finder to send information to the [recorder].
   _ReferenceFinder(this.unit, this.recorder) {
-    for (var import in unit.libraryElement2.firstFragment.libraryImports2) {
+    for (var import in unit.libraryElement.firstFragment.libraryImports) {
       _importsByPrefix
-          .putIfAbsent(import.prefix2?.element.name ?? '', () => {})
+          .putIfAbsent(import.prefix?.element.name ?? '', () => {})
           .add(import);
     }
   }
@@ -330,34 +326,31 @@ class _ReferenceFinder extends RecursiveAstVisitor<void> {
       return null;
     }
 
-    var import =
-        _importsByPrefix[prefix ?? '']?.where((import) {
-          // Check if this import is providing our element with the correct
-          // prefix/name.
-          var exportedElement =
-              prefix != null
-                  ? import.namespace.getPrefixed2(prefix, lookupName)
-                  : import.namespace.get2(lookupName);
-          return exportedElement == element;
-        }).firstOrNull;
+    var import = _importsByPrefix[prefix ?? '']?.where((import) {
+      // Check if this import is providing our element with the correct
+      // prefix/name.
+      var exportedElement = prefix != null
+          ? import.namespace.getPrefixed2(prefix, lookupName)
+          : import.namespace.get2(lookupName);
+      return exportedElement == element;
+    }).firstOrNull;
 
     // Extensions can be used without a prefix, so we can use any import that
     // brings in the extension.
     if (import == null && prefix == null && element is ExtensionElement) {
-      import =
-          _importsByPrefix.values.flattenedToList
-              .where(
-                (import) =>
-                    // Because we don't know what prefix we're looking for (any is
-                    // allowed), use the imports own prefix when checking for the
-                    // element.
-                    import.namespace.getPrefixed2(
-                      import.prefix2?.element.name ?? '',
-                      lookupName,
-                    ) ==
-                    element,
-              )
-              .firstOrNull;
+      import = _importsByPrefix.values.flattenedToList
+          .where(
+            (import) =>
+                // Because we don't know what prefix we're looking for (any is
+                // allowed), use the imports own prefix when checking for the
+                // element.
+                import.namespace.getPrefixed2(
+                  import.prefix?.element.name ?? '',
+                  lookupName,
+                ) ==
+                element,
+          )
+          .firstOrNull;
     }
 
     return import;

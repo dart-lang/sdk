@@ -6,6 +6,7 @@ import 'dart:async';
 
 import 'package:analyzer/dart/analysis/context_root.dart';
 import 'package:analyzer/dart/analysis/declared_variables.dart';
+import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/file_system/physical_file_system.dart';
 import 'package:analyzer/src/analysis_options/analysis_options_provider.dart';
@@ -24,7 +25,6 @@ import 'package:analyzer/src/dart/analysis/driver.dart'
         OwnedFiles;
 import 'package:analyzer/src/dart/analysis/driver_based_analysis_context.dart';
 import 'package:analyzer/src/dart/analysis/file_content_cache.dart';
-import 'package:analyzer/src/dart/analysis/library_context.dart';
 import 'package:analyzer/src/dart/analysis/performance_logger.dart'
     show PerformanceLog;
 import 'package:analyzer/src/dart/analysis/unlinked_unit_store.dart';
@@ -89,11 +89,11 @@ class ContextBuilderImpl {
     UnlinkedUnitStore? unlinkedUnitStore,
     OwnedFiles? ownedFiles,
     bool enableLintRuleTiming = false,
-    LinkedBundleProvider? linkedBundleProvider,
+    required bool withFineDependencies,
+    List<String> enabledExperiments = const [],
   }) {
     byteStore ??= MemoryByteStore();
     performanceLog ??= PerformanceLog(null);
-    linkedBundleProvider ??= LinkedBundleProvider(byteStore: byteStore);
 
     if (scheduler == null) {
       scheduler = AnalysisDriverScheduler(performanceLog);
@@ -137,6 +137,7 @@ class ContextBuilderImpl {
           sourceFactory,
           sdk,
           updateAnalysisOptions3,
+          enabledExperiments,
         ),
       );
     } else {
@@ -159,7 +160,6 @@ class ContextBuilderImpl {
       logger: performanceLog,
       resourceProvider: resourceProvider,
       byteStore: byteStore,
-      linkedBundleProvider: linkedBundleProvider,
       sourceFactory: sourceFactory,
       analysisOptionsMap: analysisOptionsMap,
       packages: _createPackageMap(contextRoot: contextRoot),
@@ -173,6 +173,7 @@ class ContextBuilderImpl {
       testView: retainDataForTesting ? AnalysisDriverTestView() : null,
       ownedFiles: ownedFiles,
       enableLintRuleTiming: enableLintRuleTiming,
+      withFineDependencies: withFineDependencies,
     );
 
     // AnalysisDriver reports results into streams.
@@ -287,6 +288,7 @@ class ContextBuilderImpl {
       required DartSdk sdk,
     })?
     updateAnalysisOptions,
+    List<String> enabledExperiments,
   ) {
     AnalysisOptionsImpl? options;
 
@@ -303,6 +305,10 @@ class ContextBuilderImpl {
       }
     }
     options ??= AnalysisOptionsImpl(file: optionsFile);
+    options.contextFeatures = FeatureSet.fromEnableFlags2(
+      sdkLanguageVersion: sdk.languageVersion,
+      flags: enabledExperiments,
+    );
 
     if (updateAnalysisOptions != null) {
       updateAnalysisOptions(analysisOptions: options, sdk: sdk);

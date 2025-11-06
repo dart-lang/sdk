@@ -123,7 +123,13 @@ void StubCodeCompiler::GenerateInitLateStaticFieldStub(bool is_final,
     // Load a GC-safe value for the arguments descriptor (unused but tagged).
     __ LoadImmediate(ARGS_DESC_REG, 0);
   }
+  if (FLAG_target_thread_sanitizer && FLAG_precompiled_mode) {
+    __ TsanFuncEntry();
+  }
   __ Call(FieldAddress(FUNCTION_REG, target::Function::entry_point_offset()));
+  if (FLAG_target_thread_sanitizer && FLAG_precompiled_mode) {
+    __ TsanFuncExit();
+  }
   __ MoveRegister(kResultReg, CallingConventions::kReturnReg);
   __ PopRegister(kFieldReg);
   __ LoadStaticFieldAddress(kAddressReg, kFieldReg, kScratchReg, is_shared);
@@ -131,12 +137,20 @@ void StubCodeCompiler::GenerateInitLateStaticFieldStub(bool is_final,
   Label throw_exception;
   if (is_final) {
     __ Comment("Checking that initializer did not set late final field");
-    __ LoadFromOffset(kScratchReg, kAddressReg, 0);
+    if (is_shared) {
+      __ LoadAcquireFromOffset(kScratchReg, kAddressReg, 0);
+    } else {
+      __ LoadFromOffset(kScratchReg, kAddressReg, 0);
+    }
     __ CompareObject(kScratchReg, SentinelObject());
     __ BranchIf(NOT_EQUAL, &throw_exception);
   }
 
-  __ StoreToOffset(kResultReg, kAddressReg, 0);
+  if (is_shared) {
+    __ StoreReleaseToOffset(kResultReg, kAddressReg, 0);
+  } else {
+    __ StoreToOffset(kResultReg, kAddressReg, 0);
+  }
   __ LeaveStubFrame();
   __ Ret();
 
@@ -225,7 +239,13 @@ void StubCodeCompiler::GenerateInitLateInstanceFieldStub(bool is_final) {
     __ LoadImmediate(ARGS_DESC_REG, 0);
 #endif  // defined(DART_DYNAMIC_MODULES)
   }
+  if (FLAG_target_thread_sanitizer && FLAG_precompiled_mode) {
+    __ TsanFuncEntry();
+  }
   __ Call(FieldAddress(FUNCTION_REG, target::Function::entry_point_offset()));
+  if (FLAG_target_thread_sanitizer && FLAG_precompiled_mode) {
+    __ TsanFuncExit();
+  }
   __ Drop(1);  // Drop argument.
 
   __ PopRegisterPair(kInstanceReg, kFieldReg);
@@ -1861,7 +1881,13 @@ static void CallDartCoreLibraryFunction(
     intptr_t function_offset_in_object_store,
     bool uses_args_desc = false) {
   if (FLAG_precompiled_mode) {
+    if (FLAG_target_thread_sanitizer) {
+      __ TsanFuncEntry();
+    }
     __ Call(Address(THR, entry_point_offset_in_thread));
+    if (FLAG_target_thread_sanitizer) {
+      __ TsanFuncExit();
+    }
   } else {
     __ LoadIsolateGroup(FUNCTION_REG);
     __ LoadFromOffset(FUNCTION_REG, FUNCTION_REG,
@@ -2135,6 +2161,9 @@ void StubCodeCompiler::GenerateSuspendStub(
 
   __ LeaveStubFrame();
 
+  if (FLAG_target_thread_sanitizer && FLAG_precompiled_mode) {
+    __ TsanFuncExit();
+  }
 #if !defined(TARGET_ARCH_X64) && !defined(TARGET_ARCH_IA32)
   // Drop caller frame on all architectures except x86 (X64/IA32) which
   // needs to maintain call/return balance to avoid performance regressions.
@@ -2310,6 +2339,9 @@ void StubCodeCompiler::GenerateResumeStub() {
   // ... [SuspendState] [value] [exception] [stackTrace] [ReturnAddress]
 
   __ EnterDartFrame(0);
+  if (FLAG_target_thread_sanitizer && FLAG_precompiled_mode) {
+    __ TsanFuncEntry();
+  }
 
   const intptr_t param_offset =
       target::frame_layout.param_end_from_fp * target::kWordSize;
@@ -2422,11 +2454,15 @@ void StubCodeCompiler::GenerateResumeStub() {
 #if !defined(PRODUCT)
     // Check if there is a breakpoint at resumption.
     __ LoadIsolate(kTemp);
+    Label skip_breakpoints_check;
+    // Skip check if no isolate is available(running isolategroup-bound code)
+    __ BranchIfZero(kTemp, &skip_breakpoints_check);
     __ LoadFromOffset(kTemp, kTemp,
                       target::Isolate::has_resumption_breakpoints_offset(),
                       kUnsignedByte);
     __ CompareImmediate(kTemp, 0);
     __ BranchIf(NOT_EQUAL, &call_runtime);
+    __ Bind(&skip_breakpoints_check);
 #endif
   }
 
@@ -2518,6 +2554,9 @@ void StubCodeCompiler::GenerateReturnStub(
     __ Bind(&okay);
   }
 #endif
+  if (FLAG_target_thread_sanitizer && FLAG_precompiled_mode) {
+    __ TsanFuncExit();
+  }
   __ LeaveDartFrame();
   if (!FLAG_precompiled_mode) {
     __ LoadFromOffset(CODE_REG, THR, return_stub_offset_in_thread);
@@ -2570,6 +2609,9 @@ void StubCodeCompiler::GenerateAsyncExceptionHandlerStub() {
   __ CompareObject(kSuspendState, NullObject());
   __ BranchIf(EQUAL, &rethrow_exception);
 
+  if (FLAG_target_thread_sanitizer && FLAG_precompiled_mode) {
+    __ TsanFuncExit();
+  }
   __ LeaveDartFrame();
   if (!FLAG_precompiled_mode) {
     __ LoadFromOffset(CODE_REG, THR,
@@ -2591,6 +2633,9 @@ void StubCodeCompiler::GenerateAsyncExceptionHandlerStub() {
 #endif
   __ Comment("Rethrow exception");
   __ Bind(&rethrow_exception);
+  if (FLAG_target_thread_sanitizer && FLAG_precompiled_mode) {
+    __ TsanFuncExit();
+  }
   __ LeaveDartFrame();
   if (!FLAG_precompiled_mode) {
     __ LoadFromOffset(CODE_REG, THR,

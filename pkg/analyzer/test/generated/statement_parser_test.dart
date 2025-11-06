@@ -44,9 +44,9 @@ class StatementParserTest extends FastaParserTestCase {
     var unit = parseCompilationUnit(
       'foo Future<List<int>> bar() {}',
       errors: [
-        expectedError(ParserErrorCode.EXPECTED_TOKEN, 11, 4),
-        expectedError(ParserErrorCode.MISSING_FUNCTION_PARAMETERS, 4, 6),
-        expectedError(ParserErrorCode.MISSING_FUNCTION_BODY, 22, 3),
+        expectedError(ParserErrorCode.expectedToken, 11, 4),
+        expectedError(ParserErrorCode.missingFunctionParameters, 4, 6),
+        expectedError(ParserErrorCode.missingFunctionBody, 22, 3),
       ],
     );
     // Validate that recovery has properly updated the token stream.
@@ -62,18 +62,14 @@ class StatementParserTest extends FastaParserTestCase {
   void test_invalid_typeParamAnnotation() {
     parseCompilationUnit(
       'main() { C<@Foo T> v; }',
-      errors: [
-        expectedError(ParserErrorCode.ANNOTATION_ON_TYPE_ARGUMENT, 11, 4),
-      ],
+      errors: [expectedError(ParserErrorCode.annotationOnTypeArgument, 11, 4)],
     );
   }
 
   void test_invalid_typeParamAnnotation2() {
     parseCompilationUnit(
       'main() { C<@Foo.bar(1) T> v; }',
-      errors: [
-        expectedError(ParserErrorCode.ANNOTATION_ON_TYPE_ARGUMENT, 11, 11),
-      ],
+      errors: [expectedError(ParserErrorCode.annotationOnTypeArgument, 11, 11)],
     );
   }
 
@@ -88,9 +84,7 @@ main() {
     W<X<Y<Z>>>
   > v;
 }''',
-      errors: [
-        expectedError(ParserErrorCode.ANNOTATION_ON_TYPE_ARGUMENT, 13, 63),
-      ],
+      errors: [expectedError(ParserErrorCode.annotationOnTypeArgument, 13, 63)],
     );
   }
 
@@ -238,9 +232,9 @@ main() {
     parseCompilationUnit(
       'main() { else return 0; } ',
       errors: [
-        expectedError(ParserErrorCode.EXPECTED_TOKEN, 7, 1),
-        expectedError(ParserErrorCode.MISSING_IDENTIFIER, 9, 4),
-        expectedError(ParserErrorCode.UNEXPECTED_TOKEN, 9, 4),
+        expectedError(ParserErrorCode.expectedToken, 7, 1),
+        expectedError(ParserErrorCode.missingIdentifier, 9, 4),
+        expectedError(ParserErrorCode.unexpectedToken, 9, 4),
       ],
     );
   }
@@ -935,7 +929,7 @@ main() {
   void test_parseLocalVariable_external() {
     parseStatement('external int i;');
     assertErrors(
-      errors: [expectedError(ParserErrorCode.EXTRANEOUS_MODIFIER, 0, 8)],
+      errors: [expectedError(ParserErrorCode.extraneousModifier, 0, 8)],
     );
   }
 
@@ -978,7 +972,7 @@ main() {
 
   void test_parseNonLabeledStatement_const_object_named_typeParameters_34403() {
     var statement = parseStatement('const A<B>.c<C>();') as ExpressionStatement;
-    assertErrorsWithCodes([ParserErrorCode.CONSTRUCTOR_WITH_TYPE_ARGUMENTS]);
+    assertErrorsWithCodes([ParserErrorCode.constructorWithTypeArguments]);
     expect(statement.expression, isNotNull);
   }
 
@@ -1213,7 +1207,7 @@ main() {
 
   void test_parseStatement_emptyTypeArgumentList() {
     var declaration = parseStatement('C<> c;') as VariableDeclarationStatement;
-    assertErrorsWithCodes([ParserErrorCode.EXPECTED_TYPE_NAME]);
+    assertErrorsWithCodes([ParserErrorCode.expectedTypeName]);
     VariableDeclarationList variables = declaration.variables;
     var type = variables.type as NamedType;
     var argumentList = type.typeArguments!;
@@ -1431,7 +1425,7 @@ main() {
   void test_parseTryStatement_catch_error_invalidCatchParam() {
     CompilationUnit unit = parseCompilationUnit(
       'main() { try {} catch (int e) { } }',
-      errors: [expectedError(ParserErrorCode.CATCH_SYNTAX, 27, 1)],
+      errors: [expectedError(ParserErrorCode.catchSyntax, 27, 1)],
     );
     var method = unit.declarations[0] as FunctionDeclaration;
     var body = method.functionExpression.body as BlockFunctionBody;
@@ -1454,7 +1448,7 @@ main() {
 
   void test_parseTryStatement_catch_error_missingCatchParam() {
     var statement = parseStatement('try {} catch () {}') as TryStatement;
-    listener.assertErrors([expectedError(ParserErrorCode.CATCH_SYNTAX, 14, 1)]);
+    listener.assertErrors([expectedError(ParserErrorCode.catchSyntax, 14, 1)]);
     expect(statement.tryKeyword, isNotNull);
     expect(statement.body, isNotNull);
     NodeList<CatchClause> catchClauses = statement.catchClauses;
@@ -1473,7 +1467,7 @@ main() {
 
   void test_parseTryStatement_catch_error_missingCatchParen() {
     var statement = parseStatement('try {} catch {}') as TryStatement;
-    listener.assertErrors([expectedError(ParserErrorCode.CATCH_SYNTAX, 13, 1)]);
+    listener.assertErrors([expectedError(ParserErrorCode.catchSyntax, 13, 1)]);
     expect(statement.tryKeyword, isNotNull);
     expect(statement.body, isNotNull);
     NodeList<CatchClause> catchClauses = statement.catchClauses;
@@ -1492,7 +1486,7 @@ main() {
 
   void test_parseTryStatement_catch_error_missingCatchTrace() {
     var statement = parseStatement('try {} catch (e,) {}') as TryStatement;
-    listener.assertErrors([expectedError(ParserErrorCode.CATCH_SYNTAX, 16, 1)]);
+    listener.assertErrors([expectedError(ParserErrorCode.catchSyntax, 16, 1)]);
     expect(statement.tryKeyword, isNotNull);
     expect(statement.body, isNotNull);
     NodeList<CatchClause> catchClauses = statement.catchClauses;
@@ -1738,11 +1732,11 @@ main() {
     var unit = parseCompilationUnit(
       '<bar<',
       errors: [
-        expectedError(ParserErrorCode.EXPECTED_EXECUTABLE, 0, 1),
-        expectedError(ParserErrorCode.EXPECTED_TOKEN, 4, 1),
-        expectedError(ParserErrorCode.MISSING_IDENTIFIER, 5, 0),
-        expectedError(ParserErrorCode.EXPECTED_TYPE_NAME, 5, 0),
-        expectedError(ParserErrorCode.MISSING_IDENTIFIER, 5, 0),
+        expectedError(ParserErrorCode.expectedExecutable, 0, 1),
+        expectedError(ParserErrorCode.expectedToken, 4, 1),
+        expectedError(ParserErrorCode.missingIdentifier, 5, 0),
+        expectedError(ParserErrorCode.expectedTypeName, 5, 0),
+        expectedError(ParserErrorCode.missingIdentifier, 5, 0),
       ],
     );
     // Validate that recovery has properly updated the token stream.
@@ -1759,10 +1753,10 @@ main() {
     var unit = parseCompilationUnit(
       'foo <bar<',
       errors: [
-        expectedError(ParserErrorCode.EXPECTED_TOKEN, 8, 1),
-        expectedError(ParserErrorCode.MISSING_IDENTIFIER, 9, 0),
-        expectedError(ParserErrorCode.EXPECTED_TYPE_NAME, 9, 0),
-        expectedError(ParserErrorCode.MISSING_IDENTIFIER, 9, 0),
+        expectedError(ParserErrorCode.expectedToken, 8, 1),
+        expectedError(ParserErrorCode.missingIdentifier, 9, 0),
+        expectedError(ParserErrorCode.expectedTypeName, 9, 0),
+        expectedError(ParserErrorCode.missingIdentifier, 9, 0),
       ],
     );
     // Validate that recovery has properly updated the token stream.

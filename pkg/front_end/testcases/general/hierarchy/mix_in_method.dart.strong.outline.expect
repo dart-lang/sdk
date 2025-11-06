@@ -11,7 +11,6 @@ library;
 //  - inherit an implementation from a superclass or mixin,
 //  - mark the class as abstract, or
 //  - provide a 'noSuchMethod' implementation.
-//
 // class Super {
 //       ^^^^^
 // pkg/front_end/testcases/general/hierarchy/mix_in_method.dart:8:8: Context: 'Super.extendedAbstractMethod' is defined here.
@@ -33,7 +32,6 @@ library;
 //  - inherit an implementation from a superclass or mixin,
 //  - mark the class as abstract, or
 //  - provide a 'noSuchMethod' implementation.
-//
 // mixin class Mixin {
 //             ^^^^^
 // pkg/front_end/testcases/general/hierarchy/mix_in_method.dart:30:8: Context: 'Mixin.extendedAbstractMixedInAbstractMethod' is defined here.
@@ -56,7 +54,6 @@ library;
 //  - inherit an implementation from a superclass or mixin,
 //  - mark the class as abstract, or
 //  - provide a 'noSuchMethod' implementation.
-//
 // class ClassMixin extends Super with Mixin {}
 //       ^^^^^^^^^^
 // pkg/front_end/testcases/general/hierarchy/mix_in_method.dart:30:8: Context: 'Mixin.extendedAbstractMixedInAbstractMethod' is defined here.
@@ -82,7 +79,6 @@ library;
 //  - inherit an implementation from a superclass or mixin,
 //  - mark the class as abstract, or
 //  - provide a 'noSuchMethod' implementation.
-//
 // class NamedMixin = Super with Mixin;
 //       ^^^^^^^^^^
 // pkg/front_end/testcases/general/hierarchy/mix_in_method.dart:30:8: Context: 'Mixin.extendedAbstractMixedInAbstractMethod' is defined here.

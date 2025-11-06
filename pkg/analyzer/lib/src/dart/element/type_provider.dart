@@ -94,7 +94,7 @@ abstract class TypeProviderBase implements TypeProvider {
   }
 }
 
-  class TypeProviderImpl extends TypeProviderBase {
+class TypeProviderImpl extends TypeProviderBase {
   final LibraryElementImpl _coreLibrary;
   final LibraryElementImpl _asyncLibrary;
 
@@ -159,6 +159,7 @@ abstract class TypeProviderBase implements TypeProvider {
 
   @override
   ClassElementImpl get boolElement {
+    _coreLibrary.recordGetDeclaredClass('bool');
     return _boolElement ??= _getClassElement(_coreLibrary, 'bool');
   }
 
@@ -170,6 +171,7 @@ abstract class TypeProviderBase implements TypeProvider {
 
   @override
   InterfaceTypeImpl get boolType {
+    boolElement; // record requirement
     return _boolType ??= boolElement.instantiateImpl(
       typeArguments: const [],
       nullabilitySuffix: NullabilitySuffix.none,
@@ -182,11 +184,13 @@ abstract class TypeProviderBase implements TypeProvider {
   }
 
   ClassElementImpl get deprecatedElement {
+    _coreLibrary.recordGetDeclaredClass('Deprecated');
     return _deprecatedElement ??= _getClassElement(_coreLibrary, 'Deprecated');
   }
 
   @override
   InterfaceTypeImpl get deprecatedType {
+    deprecatedElement; // record requirement
     return _deprecatedType ??= deprecatedElement.instantiateImpl(
       typeArguments: const [],
       nullabilitySuffix: NullabilitySuffix.none,
@@ -195,6 +199,7 @@ abstract class TypeProviderBase implements TypeProvider {
 
   @override
   ClassElementImpl get doubleElement {
+    _coreLibrary.recordGetDeclaredClass('double');
     return _doubleElement ??= _getClassElement(_coreLibrary, "double");
   }
 
@@ -206,16 +211,19 @@ abstract class TypeProviderBase implements TypeProvider {
 
   @override
   InterfaceTypeImpl get doubleType {
+    doubleElement; // record requirement
     return _doubleType ??= doubleElement.instantiateImpl(
       typeArguments: const [],
       nullabilitySuffix: NullabilitySuffix.none,
     );
   }
 
-  InterfaceTypeImpl get doubleTypeQuestion =>
-      _doubleTypeQuestion ??= doubleType.withNullability(
-        NullabilitySuffix.question,
-      );
+  InterfaceTypeImpl get doubleTypeQuestion {
+    doubleElement; // record requirement
+    return _doubleTypeQuestion ??= doubleType.withNullability(
+      NullabilitySuffix.question,
+    );
+  }
 
   @override
   TypeImpl get dynamicType => DynamicTypeImpl.instance;
@@ -224,6 +232,7 @@ abstract class TypeProviderBase implements TypeProvider {
   ClassElementImpl? get enumElement {
     if (!_hasEnumElement) {
       _hasEnumElement = true;
+      _coreLibrary.recordGetDeclaredClass('Enum');
       _enumElement = _getClassElement(_coreLibrary, 'Enum');
     }
     return _enumElement;
@@ -237,6 +246,7 @@ abstract class TypeProviderBase implements TypeProvider {
 
   @override
   InterfaceTypeImpl? get enumType {
+    enumElement; // record requirement
     if (!_hasEnumType) {
       _hasEnumType = true;
       var element = enumElement;
@@ -251,11 +261,13 @@ abstract class TypeProviderBase implements TypeProvider {
   }
 
   ClassElementImpl get functionElement {
+    _coreLibrary.recordGetDeclaredClass('Function');
     return _functionElement ??= _getClassElement(_coreLibrary, 'Function');
   }
 
   @override
   InterfaceTypeImpl get functionType {
+    functionElement; // record requirement
     return _functionType ??= functionElement.instantiateImpl(
       typeArguments: const [],
       nullabilitySuffix: NullabilitySuffix.none,
@@ -264,6 +276,7 @@ abstract class TypeProviderBase implements TypeProvider {
 
   @override
   InterfaceTypeImpl get futureDynamicType {
+    futureElement; // record requirement
     return _futureDynamicType ??= futureElement.instantiateImpl(
       typeArguments: fixedTypeList(dynamicType),
       nullabilitySuffix: NullabilitySuffix.none,
@@ -272,6 +285,7 @@ abstract class TypeProviderBase implements TypeProvider {
 
   @override
   ClassElementImpl get futureElement {
+    _asyncLibrary.recordGetDeclaredClass('Future');
     return _futureElement ??= _getClassElement(_asyncLibrary, 'Future');
   }
 
@@ -283,6 +297,7 @@ abstract class TypeProviderBase implements TypeProvider {
 
   @override
   InterfaceTypeImpl get futureNullType {
+    futureElement; // record requirement
     return _futureNullType ??= futureElement.instantiateImpl(
       typeArguments: fixedTypeList(nullType),
       nullabilitySuffix: NullabilitySuffix.none,
@@ -291,6 +306,7 @@ abstract class TypeProviderBase implements TypeProvider {
 
   @override
   ClassElementImpl get futureOrElement {
+    _asyncLibrary.recordGetDeclaredClass('FutureOr');
     return _futureOrElement ??= _getClassElement(_asyncLibrary, 'FutureOr');
   }
 
@@ -302,6 +318,7 @@ abstract class TypeProviderBase implements TypeProvider {
 
   @override
   InterfaceTypeImpl get futureOrNullType {
+    futureOrElement; // record requirement
     return _futureOrNullType ??= futureOrElement.instantiateImpl(
       typeArguments: fixedTypeList(nullType),
       nullabilitySuffix: NullabilitySuffix.none,
@@ -310,6 +327,7 @@ abstract class TypeProviderBase implements TypeProvider {
 
   @override
   ClassElementImpl get intElement {
+    _coreLibrary.recordGetDeclaredClass('int');
     return _intElement ??= _getClassElement(_coreLibrary, "int");
   }
 
@@ -321,17 +339,23 @@ abstract class TypeProviderBase implements TypeProvider {
 
   @override
   InterfaceTypeImpl get intType {
+    intElement; // record requirement
     return _intType ??= intElement.instantiateImpl(
       typeArguments: const [],
       nullabilitySuffix: NullabilitySuffix.none,
     );
   }
 
-  InterfaceTypeImpl get intTypeQuestion =>
-      _intTypeQuestion ??= intType.withNullability(NullabilitySuffix.question);
+  InterfaceTypeImpl get intTypeQuestion {
+    intElement; // record requirement
+    return _intTypeQuestion ??= intType.withNullability(
+      NullabilitySuffix.question,
+    );
+  }
 
   @override
   InterfaceTypeImpl get iterableDynamicType {
+    iterableElement; // record requirement
     return _iterableDynamicType ??= iterableElement.instantiateImpl(
       typeArguments: fixedTypeList(dynamicType),
       nullabilitySuffix: NullabilitySuffix.none,
@@ -340,6 +364,7 @@ abstract class TypeProviderBase implements TypeProvider {
 
   @override
   ClassElementImpl get iterableElement {
+    _coreLibrary.recordGetDeclaredClass('Iterable');
     return _iterableElement ??= _getClassElement(_coreLibrary, 'Iterable');
   }
 
@@ -351,6 +376,8 @@ abstract class TypeProviderBase implements TypeProvider {
 
   @override
   InterfaceTypeImpl get iterableObjectType {
+    iterableElement; // record requirement
+    objectElement; // record requirement
     return _iterableObjectType ??= iterableElement.instantiateImpl(
       typeArguments: fixedTypeList(objectType),
       nullabilitySuffix: NullabilitySuffix.none,
@@ -359,6 +386,7 @@ abstract class TypeProviderBase implements TypeProvider {
 
   @override
   ClassElementImpl get listElement {
+    _coreLibrary.recordGetDeclaredClass('List');
     return _listElement ??= _getClassElement(_coreLibrary, 'List');
   }
 
@@ -370,6 +398,7 @@ abstract class TypeProviderBase implements TypeProvider {
 
   @override
   ClassElementImpl get mapElement {
+    _coreLibrary.recordGetDeclaredClass('Map');
     return _mapElement ??= _getClassElement(_coreLibrary, 'Map');
   }
 
@@ -381,6 +410,8 @@ abstract class TypeProviderBase implements TypeProvider {
 
   @override
   InterfaceTypeImpl get mapObjectObjectType {
+    mapElement; // record requirement
+    objectElement; // record requirement
     return _mapObjectObjectType ??= mapElement.instantiateImpl(
       typeArguments: fixedTypeList(objectType, objectType),
       nullabilitySuffix: NullabilitySuffix.none,
@@ -392,6 +423,7 @@ abstract class TypeProviderBase implements TypeProvider {
 
   @override
   ClassElementImpl get nullElement {
+    _coreLibrary.recordGetDeclaredClass('Null');
     return _nullElement ??= _getClassElement(_coreLibrary, 'Null');
   }
 
@@ -403,6 +435,7 @@ abstract class TypeProviderBase implements TypeProvider {
 
   @override
   InterfaceTypeImpl get nullType {
+    nullElement; // record requirement
     return _nullType ??= nullElement.instantiateImpl(
       typeArguments: const [],
       nullabilitySuffix: NullabilitySuffix.none,
@@ -411,6 +444,7 @@ abstract class TypeProviderBase implements TypeProvider {
 
   @override
   ClassElementImpl get numElement {
+    _coreLibrary.recordGetDeclaredClass('num');
     return _numElement ??= _getClassElement(_coreLibrary, 'num');
   }
 
@@ -422,17 +456,23 @@ abstract class TypeProviderBase implements TypeProvider {
 
   @override
   InterfaceTypeImpl get numType {
+    numElement; // record requirement
     return _numType ??= numElement.instantiateImpl(
       typeArguments: const [],
       nullabilitySuffix: NullabilitySuffix.none,
     );
   }
 
-  InterfaceTypeImpl get numTypeQuestion =>
-      _numTypeQuestion ??= numType.withNullability(NullabilitySuffix.question);
+  InterfaceTypeImpl get numTypeQuestion {
+    numElement; // record requirement
+    return _numTypeQuestion ??= numType.withNullability(
+      NullabilitySuffix.question,
+    );
+  }
 
   @override
   ClassElementImpl get objectElement {
+    _coreLibrary.recordGetDeclaredClass('Object');
     return _objectElement ??= _getClassElement(_coreLibrary, 'Object');
   }
 
@@ -444,6 +484,7 @@ abstract class TypeProviderBase implements TypeProvider {
 
   @override
   InterfaceTypeImpl get objectQuestionType {
+    objectElement; // record requirement
     return _objectQuestionType ??= objectElement.instantiateImpl(
       typeArguments: const [],
       nullabilitySuffix: NullabilitySuffix.question,
@@ -452,6 +493,7 @@ abstract class TypeProviderBase implements TypeProvider {
 
   @override
   InterfaceTypeImpl get objectType {
+    objectElement; // record requirement
     return _objectType ??= objectElement.instantiateImpl(
       typeArguments: const [],
       nullabilitySuffix: NullabilitySuffix.none,
@@ -460,6 +502,7 @@ abstract class TypeProviderBase implements TypeProvider {
 
   @override
   ClassElementImpl get recordElement {
+    _coreLibrary.recordGetDeclaredClass('Record');
     return _recordElement ??= _getClassElement(_coreLibrary, 'Record');
   }
 
@@ -471,6 +514,7 @@ abstract class TypeProviderBase implements TypeProvider {
 
   @override
   InterfaceTypeImpl get recordType {
+    recordElement; // record requirement
     return _recordType ??= recordElement.instantiateImpl(
       typeArguments: const [],
       nullabilitySuffix: NullabilitySuffix.none,
@@ -479,6 +523,7 @@ abstract class TypeProviderBase implements TypeProvider {
 
   @override
   ClassElementImpl get setElement {
+    _coreLibrary.recordGetDeclaredClass('Set');
     return _setElement ??= _getClassElement(_coreLibrary, 'Set');
   }
 
@@ -489,11 +534,13 @@ abstract class TypeProviderBase implements TypeProvider {
   }
 
   ClassElementImpl get stackTraceElement {
+    _coreLibrary.recordGetDeclaredClass('StackTrace');
     return _stackTraceElement ??= _getClassElement(_coreLibrary, 'StackTrace');
   }
 
   @override
   InterfaceTypeImpl get stackTraceType {
+    stackTraceElement; // record requirement
     return _stackTraceType ??= stackTraceElement.instantiateImpl(
       typeArguments: const [],
       nullabilitySuffix: NullabilitySuffix.none,
@@ -502,6 +549,7 @@ abstract class TypeProviderBase implements TypeProvider {
 
   @override
   InterfaceTypeImpl get streamDynamicType {
+    streamElement; // record requirement
     return _streamDynamicType ??= streamElement.instantiateImpl(
       typeArguments: fixedTypeList(dynamicType),
       nullabilitySuffix: NullabilitySuffix.none,
@@ -510,6 +558,7 @@ abstract class TypeProviderBase implements TypeProvider {
 
   @override
   ClassElementImpl get streamElement {
+    _asyncLibrary.recordGetDeclaredClass('Stream');
     return _streamElement ??= _getClassElement(_asyncLibrary, 'Stream');
   }
 
@@ -521,6 +570,7 @@ abstract class TypeProviderBase implements TypeProvider {
 
   @override
   ClassElementImpl get stringElement {
+    _coreLibrary.recordGetDeclaredClass('String');
     return _stringElement ??= _getClassElement(_coreLibrary, 'String');
   }
 
@@ -532,6 +582,7 @@ abstract class TypeProviderBase implements TypeProvider {
 
   @override
   InterfaceTypeImpl get stringType {
+    stringElement; // record requirement
     return _stringType ??= stringElement.instantiateImpl(
       typeArguments: const [],
       nullabilitySuffix: NullabilitySuffix.none,
@@ -540,6 +591,7 @@ abstract class TypeProviderBase implements TypeProvider {
 
   @override
   ClassElementImpl get symbolElement {
+    _coreLibrary.recordGetDeclaredClass('Symbol');
     return _symbolElement ??= _getClassElement(_coreLibrary, 'Symbol');
   }
 
@@ -551,6 +603,7 @@ abstract class TypeProviderBase implements TypeProvider {
 
   @override
   InterfaceTypeImpl get symbolType {
+    symbolElement; // record requirement
     return _symbolType ??= symbolElement.instantiateImpl(
       typeArguments: const [],
       nullabilitySuffix: NullabilitySuffix.none,
@@ -558,11 +611,13 @@ abstract class TypeProviderBase implements TypeProvider {
   }
 
   ClassElementImpl get typeElement {
+    _coreLibrary.recordGetDeclaredClass('Type');
     return _typeElement ??= _getClassElement(_coreLibrary, 'Type');
   }
 
   @override
   InterfaceTypeImpl get typeType {
+    typeElement; // record requirement
     return _typeType ??= typeElement.instantiateImpl(
       typeArguments: const [],
       nullabilitySuffix: NullabilitySuffix.none,

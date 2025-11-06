@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/*@testedFeatures=inference*/
 library test;
 
 abstract class C<T> {
@@ -15,9 +14,9 @@ abstract class C<T> {
 class CImpl<T> implements C<T> {
   T t;
   CImpl._(this.t);
-  factory CImpl(T t) => new /*@typeArgs=CImpl::•::T%*/ CImpl._(t);
+  factory CImpl(T t) => new CImpl._(t);
 }
 
 main() {
-  var /*@type=C<int>*/ x = new /*@typeArgs=int*/ C(42);
+  var x = new C(42);
 }

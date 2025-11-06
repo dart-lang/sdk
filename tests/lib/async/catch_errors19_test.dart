@@ -9,15 +9,12 @@ import 'package:expect/expect.dart';
 
 import 'catch_errors.dart';
 
-main() {
+void main() {
   asyncStart();
-  Completer done = new Completer();
+  Completer done = Completer();
 
   var events = [];
-  Stream stream = new Stream.periodic(
-    const Duration(milliseconds: 20),
-    (x) => x,
-  );
+  Stream stream = Stream.periodic(const Duration(milliseconds: 20), (x) => x);
   // Test that asynchronous callbacks in the done-handler of streams (here
   // the `catchErrors`-stream) keep a zone alive.
   catchErrors(() {
@@ -29,7 +26,7 @@ main() {
             events.add(x);
           },
           onDone: () {
-            new Future.delayed(const Duration(milliseconds: 30), () {
+            Future.delayed(const Duration(milliseconds: 30), () {
               events.add(499);
               done.complete(true);
             });

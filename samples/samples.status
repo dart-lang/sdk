@@ -2,6 +2,8 @@
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
 
+ffi/http/test/http_test: Pass, Slow # https://dartbug.com/61583
+
 [ $sanitizer == asan ]
 ffi/samples_test: SkipByDesign # FFI skips, see ffi.status
 
@@ -15,8 +17,6 @@ ffi/*: SkipByDesign # FFI skips, see ffi.status
 *: Skip # Not yet triaged.
 
 [ $arch != x64 || $compiler != dartk || $system != linux || $hot_reload || $hot_reload_rollback ]
-ffi/http/test/http_test: SkipByDesign
-ffi/httpIG/test/http_test: SkipByDesign
 ffi/sqlite/test/sqlite_test: SkipByDesign # FFI not supported or libsqlite3.so not available.
 
 [ $runtime == d8 || $browser ]

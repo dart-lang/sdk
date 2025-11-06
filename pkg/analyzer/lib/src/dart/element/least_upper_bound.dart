@@ -4,8 +4,7 @@
 
 import 'dart:math' show max;
 
-import 'package:_fe_analyzer_shared/src/type_inference/type_analyzer_operations.dart'
-    show Variance;
+import 'package:_fe_analyzer_shared/src/types/shared_type.dart' show Variance;
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
@@ -269,6 +268,34 @@ class InterfaceLeastUpperBoundHelper {
         visitedElements,
       );
 
+      // Since mixin applications involve only one mixin, multiple mixins induce
+      // multiple intermediate application classes. Consider the following
+      // example:
+      //
+      //     class A extends B with M1, M2, M3 {}
+      //
+      // Applying M1, M2, and M3 to B results in the following chain of
+      // declarations.
+      //
+      //     abstract class _A&B&M1 extends B implements M1 {}
+      //     abstract class _A&B&M1&M2 extends _A&B&M1 implements M2 {}
+      //     abstract class _A&B&M1&M2&M3 extends _AA&B&M1&M2 implements M3 {}
+      //     class A extends _A&B&M1&M2&M3 {}
+      //
+      // Each of the intermediate applications increase the distance to the top
+      // type by 1.
+      //
+      // Note that named mixin applications are different in that the last
+      // application is the named application itself, so its distance from the
+      // top type is shorter by 1. Consider the following example.
+      //
+      //     class A = B with M1, M2, M3;
+      //
+      // It will result in the following chain of declarations.
+      //
+      //     abstract class _A&B&M1 extends B implements M1 {}
+      //     abstract class _A&B&M1&M2 extends _A&B&M1 implements M2 {}
+      //     class A extends _A&B&M1&M2 implements M3 {}
       var mixins = element.mixins;
       for (var i = 0; i < mixins.length; i++) {
         // class _X&S&M extends S implements M {}
@@ -280,6 +307,12 @@ class InterfaceLeastUpperBoundHelper {
         superLength = max(superLength, mixinLength);
         // For this synthetic class representing the mixin application.
         superLength++;
+      }
+      if (mixins.isNotEmpty &&
+          element is ClassElementImpl &&
+          element.isMixinApplication) {
+        // In case of named mixin application, reduce the distance by 1.
+        superLength--;
       }
 
       longestPath = max(longestPath, 1 + superLength);
@@ -653,7 +686,7 @@ class LeastUpperBoundHelper {
     var fParameters = f.formalParameters;
     var gParameters = g.formalParameters;
 
-    var parameters = <FormalParameterElementMixin>[];
+    var parameters = <InternalFormalParameterElement>[];
     var fIndex = 0;
     var gIndex = 0;
     while (fIndex < fParameters.length && gIndex < gParameters.length) {
@@ -694,10 +727,9 @@ class LeastUpperBoundHelper {
             parameters.add(
               fParameter.copyWith(
                 type: _parameterType(fParameter, gParameter),
-                kind:
-                    fParameter.isRequiredNamed || gParameter.isRequiredNamed
-                        ? ParameterKind.NAMED_REQUIRED
-                        : ParameterKind.NAMED,
+                kind: fParameter.isRequiredNamed || gParameter.isRequiredNamed
+                    ? ParameterKind.NAMED_REQUIRED
+                    : ParameterKind.NAMED,
               ),
             );
           } else if (compareNames < 0) {
@@ -747,25 +779,21 @@ class LeastUpperBoundHelper {
   }
 
   TypeImpl? _futureOr(TypeImpl T1, TypeImpl T2) {
-    var T1_futureOr =
-        T1 is InterfaceTypeImpl && T1.isDartAsyncFutureOr
-            ? T1.typeArguments[0]
-            : null;
+    var T1_futureOr = T1 is InterfaceTypeImpl && T1.isDartAsyncFutureOr
+        ? T1.typeArguments[0]
+        : null;
 
-    var T1_future =
-        T1 is InterfaceTypeImpl && T1.isDartAsyncFuture
-            ? T1.typeArguments[0]
-            : null;
+    var T1_future = T1 is InterfaceTypeImpl && T1.isDartAsyncFuture
+        ? T1.typeArguments[0]
+        : null;
 
-    var T2_futureOr =
-        T2 is InterfaceTypeImpl && T2.isDartAsyncFutureOr
-            ? T2.typeArguments[0]
-            : null;
+    var T2_futureOr = T2 is InterfaceTypeImpl && T2.isDartAsyncFutureOr
+        ? T2.typeArguments[0]
+        : null;
 
-    var T2_future =
-        T2 is InterfaceTypeImpl && T2.isDartAsyncFuture
-            ? T2.typeArguments[0]
-            : null;
+    var T2_future = T2 is InterfaceTypeImpl && T2.isDartAsyncFuture
+        ? T2.typeArguments[0]
+        : null;
 
     // UP(FutureOr<T1>, FutureOr<T2>) = FutureOr<T3> where T3 = UP(T1, T2)
     if (T1_futureOr != null && T2_futureOr != null) {
@@ -801,8 +829,8 @@ class LeastUpperBoundHelper {
   }
 
   TypeImpl _parameterType(
-    FormalParameterElementMixin a,
-    FormalParameterElementMixin b,
+    InternalFormalParameterElement a,
+    InternalFormalParameterElement b,
   ) {
     return _typeSystem.greatestLowerBound(a.type, b.type);
   }

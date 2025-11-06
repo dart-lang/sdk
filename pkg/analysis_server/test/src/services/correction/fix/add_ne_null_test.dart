@@ -19,7 +19,7 @@ void main() {
 @reflectiveTest
 class AddNeNullMultiTest extends FixProcessorTest {
   @override
-  FixKind get kind => DartFixKind.ADD_NE_NULL_MULTI;
+  FixKind get kind => DartFixKind.addNeNullMulti;
 
   Future<void> test_nonBoolCondition_all_nonNullable() async {
     await resolveTestCode('''
@@ -32,7 +32,7 @@ f(String p, String q) {
   }
 }
 ''');
-    await assertNoFixAllFix(CompileTimeErrorCode.NON_BOOL_CONDITION);
+    await assertNoFixAllFix(CompileTimeErrorCode.nonBoolCondition);
   }
 
   Future<void> test_nonBoolCondition_all_nullable() async {
@@ -46,7 +46,7 @@ f(String? p, String? q) {
   }
 }
 ''');
-    await assertHasFixAllFix(CompileTimeErrorCode.NON_BOOL_CONDITION, '''
+    await assertHasFixAllFix(CompileTimeErrorCode.nonBoolCondition, '''
 f(String? p, String? q) {
   if (p != null) {
     print(p);
@@ -62,7 +62,7 @@ f(String? p, String? q) {
 @reflectiveTest
 class AddNeNullTest extends FixProcessorTest {
   @override
-  FixKind get kind => DartFixKind.ADD_NE_NULL;
+  FixKind get kind => DartFixKind.addNeNull;
 
   Future<void> test_nonBoolCondition_nonNullable() async {
     await resolveTestCode('''

@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/*@testedFeatures=inference*/
 library test;
 
 class B {}
@@ -12,8 +11,8 @@ class C extends B {
 }
 
 void test(B x) {
-  var /*@type=C*/ y = x is C ? /*@promotedType=C*/ x : new C();
-  print(y. /*@target=C.z*/ z);
+  var y = x is C ? x : new C();
+  print(y.z);
 }
 
 main() {}

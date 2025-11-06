@@ -5,7 +5,8 @@
 import 'dart:async' show Zone, runZoned;
 
 import 'package:_fe_analyzer_shared/src/messages/codes.dart';
-import 'package:_fe_analyzer_shared/src/messages/severity.dart' show Severity;
+import 'package:_fe_analyzer_shared/src/messages/severity.dart'
+    show CfeSeverity;
 import 'package:_fe_analyzer_shared/src/scanner/string_canonicalizer.dart'
     show clearStringCanonicalizationCache;
 import 'package:_fe_analyzer_shared/src/util/colors.dart' as colors;
@@ -41,36 +42,50 @@ class CompilerContext {
   }
 
   /// Report [message], for example, by printing it.
-  void report(LocatedMessage message, Severity severity,
-      {List<LocatedMessage>? context, List<Uri>? involvedFiles}) {
-    options.report(this, message, severity,
-        context: context, involvedFiles: involvedFiles);
+  void report(
+    LocatedMessage message,
+    CfeSeverity severity, {
+    List<LocatedMessage>? context,
+    List<Uri>? involvedFiles,
+  }) {
+    options.report(
+      this,
+      message,
+      severity,
+      context: context,
+      involvedFiles: involvedFiles,
+    );
   }
 
   /// Format [message] as a text string that can be included in generated code.
-  PlainAndColorizedString format(LocatedMessage message, Severity severity) {
+  PlainAndColorizedString format(LocatedMessage message, CfeSeverity severity) {
     return command_line_reporting.format(this, message, severity);
   }
 
   /// Perform [action] in a [Zone].
   Future<T> runInContext<T>(Future<T> action(CompilerContext c)) {
     return runZoned(
-        () => new Future<T>.sync(() => action(this)).whenComplete(clear));
+      () => new Future<T>.sync(() => action(this)).whenComplete(clear),
+    );
   }
 
   /// Perform [action] in a [Zone].
   static Future<T> runWithOptions<T>(
-      ProcessedOptions options, Future<T> action(CompilerContext c),
-      {bool errorOnMissingInput = true}) {
-    return new CompilerContext(options)
-        .runInContext<T>((CompilerContext c) async {
+    ProcessedOptions options,
+    Future<T> action(CompilerContext c), {
+    bool errorOnMissingInput = true,
+  }) {
+    return new CompilerContext(options).runInContext<T>((
+      CompilerContext c,
+    ) async {
       await options.validateOptions(errorOnMissingInput: errorOnMissingInput);
       return action(c);
     });
   }
 
   static Future<T> runWithDefaultOptions<T>(
-      Future<T> action(CompilerContext c)) {
+    Future<T> action(CompilerContext c),
+  ) {
     return new CompilerContext(new ProcessedOptions()).runInContext<T>(action);
   }
 

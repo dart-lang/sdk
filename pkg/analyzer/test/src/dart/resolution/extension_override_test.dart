@@ -42,7 +42,7 @@ FunctionExpressionInvocation
           element: <testLibrary>::@function::f::@formalParameter::a
           staticType: A
       rightParenthesis: )
-    element2: <testLibrary>::@extension::E
+    element: <testLibrary>::@extension::E
     extendedType: A
     staticType: null
   argumentList: ArgumentList
@@ -79,7 +79,7 @@ FunctionExpressionInvocation
       arguments
         NamedType
           name: String
-          element2: dart:core::@class::String
+          element: dart:core::@class::String
           type: String
       rightBracket: >
     argumentList: ArgumentList
@@ -91,7 +91,7 @@ FunctionExpressionInvocation
           element: <testLibrary>::@function::f::@formalParameter::a
           staticType: A
       rightParenthesis: )
-    element2: <testLibrary>::@extension::E
+    element: <testLibrary>::@extension::E
     extendedType: A
     staticType: null
     typeArgumentTypes
@@ -131,7 +131,7 @@ FunctionExpressionInvocation
     importPrefix: ImportPrefixReference
       name: p
       period: .
-      element2: <testLibraryFragment>::@prefix2::p
+      element: <testLibraryFragment>::@prefix2::p
     name: E
     argumentList: ArgumentList
       leftParenthesis: (
@@ -142,7 +142,7 @@ FunctionExpressionInvocation
           element: <testLibrary>::@function::f::@formalParameter::a
           staticType: A
       rightParenthesis: )
-    element2: package:test/lib.dart::@extension::E
+    element: package:test/lib.dart::@extension::E
     extendedType: A
     staticType: null
   argumentList: ArgumentList
@@ -179,14 +179,14 @@ FunctionExpressionInvocation
     importPrefix: ImportPrefixReference
       name: p
       period: .
-      element2: <testLibraryFragment>::@prefix2::p
+      element: <testLibraryFragment>::@prefix2::p
     name: E
     typeArguments: TypeArgumentList
       leftBracket: <
       arguments
         NamedType
           name: String
-          element2: dart:core::@class::String
+          element: dart:core::@class::String
           type: String
       rightBracket: >
     argumentList: ArgumentList
@@ -198,7 +198,7 @@ FunctionExpressionInvocation
           element: <testLibrary>::@function::f::@formalParameter::a
           staticType: A
       rightParenthesis: )
-    element2: package:test/lib.dart::@extension::E
+    element: package:test/lib.dart::@extension::E
     extendedType: A
     staticType: null
     typeArgumentTypes
@@ -242,7 +242,7 @@ PropertyAccess
           element: <testLibrary>::@function::f::@formalParameter::a
           staticType: A
       rightParenthesis: )
-    element2: <testLibrary>::@extension::E
+    element: <testLibrary>::@extension::E
     extendedType: A
     staticType: null
   operator: .
@@ -282,7 +282,7 @@ FunctionExpressionInvocation
             element: <testLibrary>::@function::f::@formalParameter::a
             staticType: A
         rightParenthesis: )
-      element2: <testLibrary>::@extension::E
+      element: <testLibrary>::@extension::E
       extendedType: A
       staticType: null
     operator: .
@@ -326,7 +326,7 @@ PropertyAccess
       arguments
         NamedType
           name: int
-          element2: dart:core::@class::int
+          element: dart:core::@class::int
           type: int
       rightBracket: >
     argumentList: ArgumentList
@@ -338,7 +338,7 @@ PropertyAccess
           element: <testLibrary>::@function::f::@formalParameter::a
           staticType: A
       rightParenthesis: )
-    element2: <testLibrary>::@extension::E
+    element: <testLibrary>::@extension::E
     extendedType: A
     staticType: null
     typeArgumentTypes
@@ -373,7 +373,7 @@ PropertyAccess
     importPrefix: ImportPrefixReference
       name: p
       period: .
-      element2: <testLibraryFragment>::@prefix2::p
+      element: <testLibraryFragment>::@prefix2::p
     name: E
     argumentList: ArgumentList
       leftParenthesis: (
@@ -384,7 +384,7 @@ PropertyAccess
           element: <testLibrary>::@function::f::@formalParameter::a
           staticType: A
       rightParenthesis: )
-    element2: package:test/lib.dart::@extension::E
+    element: package:test/lib.dart::@extension::E
     extendedType: A
     staticType: null
   operator: .
@@ -417,14 +417,14 @@ PropertyAccess
     importPrefix: ImportPrefixReference
       name: p
       period: .
-      element2: <testLibraryFragment>::@prefix2::p
+      element: <testLibraryFragment>::@prefix2::p
     name: E
     typeArguments: TypeArgumentList
       leftBracket: <
       arguments
         NamedType
           name: int
-          element2: dart:core::@class::int
+          element: dart:core::@class::int
           type: int
       rightBracket: >
     argumentList: ArgumentList
@@ -436,7 +436,7 @@ PropertyAccess
           element: <testLibrary>::@function::f::@formalParameter::a
           staticType: A
       rightParenthesis: )
-    element2: package:test/lib.dart::@extension::E
+    element: package:test/lib.dart::@extension::E
     extendedType: A
     staticType: null
     typeArgumentTypes
@@ -474,7 +474,7 @@ IndexExpression
           element: <testLibrary>::@function::f::@formalParameter::a
           staticType: int?
       rightParenthesis: )
-    element2: <testLibrary>::@extension::E
+    element: <testLibrary>::@extension::E
     extendedType: int
     staticType: null
   question: ?
@@ -514,7 +514,7 @@ AssignmentExpression
             element: <testLibrary>::@function::f::@formalParameter::a
             staticType: int?
         rightParenthesis: )
-      element2: <testLibrary>::@extension::E
+      element: <testLibrary>::@extension::E
       extendedType: int
       staticType: null
     question: ?
@@ -531,9 +531,9 @@ AssignmentExpression
     literal: 1
     correspondingParameter: <testLibrary>::@extension::E::@method::[]=::@formalParameter::value
     staticType: int
-  readElement2: <null>
+  readElement: <null>
   readType: null
-  writeElement2: <testLibrary>::@extension::E::@method::[]=
+  writeElement: <testLibrary>::@extension::E::@method::[]=
   writeType: int
   element: <null>
   staticType: int?
@@ -565,7 +565,7 @@ MethodInvocation
           element: <testLibrary>::@function::f::@formalParameter::a
           staticType: A
       rightParenthesis: )
-    element2: <testLibrary>::@extension::E
+    element: <testLibrary>::@extension::E
     extendedType: A
     staticType: null
   operator: .
@@ -602,7 +602,7 @@ MethodInvocation
       arguments
         NamedType
           name: int
-          element2: dart:core::@class::int
+          element: dart:core::@class::int
           type: int
       rightBracket: >
     argumentList: ArgumentList
@@ -614,7 +614,7 @@ MethodInvocation
           element: <testLibrary>::@function::f::@formalParameter::a
           staticType: A
       rightParenthesis: )
-    element2: <testLibrary>::@extension::E
+    element: <testLibrary>::@extension::E
     extendedType: A
     staticType: null
     typeArgumentTypes
@@ -653,7 +653,7 @@ MethodInvocation
     importPrefix: ImportPrefixReference
       name: p
       period: .
-      element2: <testLibraryFragment>::@prefix2::p
+      element: <testLibraryFragment>::@prefix2::p
     name: E
     argumentList: ArgumentList
       leftParenthesis: (
@@ -664,7 +664,7 @@ MethodInvocation
           element: <testLibrary>::@function::f::@formalParameter::a
           staticType: A
       rightParenthesis: )
-    element2: package:test/lib.dart::@extension::E
+    element: package:test/lib.dart::@extension::E
     extendedType: A
     staticType: null
   operator: .
@@ -701,14 +701,14 @@ MethodInvocation
     importPrefix: ImportPrefixReference
       name: p
       period: .
-      element2: <testLibraryFragment>::@prefix2::p
+      element: <testLibraryFragment>::@prefix2::p
     name: E
     typeArguments: TypeArgumentList
       leftBracket: <
       arguments
         NamedType
           name: int
-          element2: dart:core::@class::int
+          element: dart:core::@class::int
           type: int
       rightBracket: >
     argumentList: ArgumentList
@@ -720,7 +720,7 @@ MethodInvocation
           element: <testLibrary>::@function::f::@formalParameter::a
           staticType: A
       rightParenthesis: )
-    element2: package:test/lib.dart::@extension::E
+    element: package:test/lib.dart::@extension::E
     extendedType: A
     staticType: null
     typeArgumentTypes
@@ -763,7 +763,7 @@ MethodInvocation
           element: <testLibrary>::@function::f::@formalParameter::a
           staticType: int?
       rightParenthesis: )
-    element2: <testLibrary>::@extension::E
+    element: <testLibrary>::@extension::E
     extendedType: int
     staticType: null
   operator: ?.
@@ -804,7 +804,7 @@ BinaryExpression
           element: <testLibrary>::@function::f::@formalParameter::a
           staticType: A
       rightParenthesis: )
-    element2: <testLibrary>::@extension::E
+    element: <testLibrary>::@extension::E
     extendedType: A
     staticType: null
   operator: +
@@ -839,7 +839,7 @@ BinaryExpression
       arguments
         NamedType
           name: int
-          element2: dart:core::@class::int
+          element: dart:core::@class::int
           type: int
       rightBracket: >
     argumentList: ArgumentList
@@ -851,7 +851,7 @@ BinaryExpression
           element: <testLibrary>::@function::f::@formalParameter::a
           staticType: A
       rightParenthesis: )
-    element2: <testLibrary>::@extension::E
+    element: <testLibrary>::@extension::E
     extendedType: A
     staticType: null
     typeArgumentTypes
@@ -879,7 +879,7 @@ f(){
   E(0).v++;
 }
 ''',
-      [error(CompileTimeErrorCode.UNDEFINED_EXTENSION_SETTER, 45, 1)],
+      [error(CompileTimeErrorCode.undefinedExtensionSetter, 45, 1)],
     );
 
     var node = findNode.postfix('++;');
@@ -896,7 +896,7 @@ PostfixExpression
             correspondingParameter: <null>
             staticType: int
         rightParenthesis: )
-      element2: <testLibrary>::@extension::E
+      element: <testLibrary>::@extension::E
       extendedType: int
       staticType: null
     operator: .
@@ -906,9 +906,9 @@ PostfixExpression
       staticType: null
     staticType: null
   operator: ++
-  readElement2: <testLibrary>::@extension::E::@method::v
+  readElement: <testLibrary>::@extension::E::@method::v
   readType: InvalidType
-  writeElement2: <null>
+  writeElement: <null>
   writeType: InvalidType
   element: <null>
   staticType: InvalidType
@@ -936,7 +936,7 @@ BinaryExpression
     importPrefix: ImportPrefixReference
       name: p
       period: .
-      element2: <testLibraryFragment>::@prefix2::p
+      element: <testLibraryFragment>::@prefix2::p
     name: E
     argumentList: ArgumentList
       leftParenthesis: (
@@ -947,7 +947,7 @@ BinaryExpression
           element: <testLibrary>::@function::f::@formalParameter::a
           staticType: A
       rightParenthesis: )
-    element2: package:test/lib.dart::@extension::E
+    element: package:test/lib.dart::@extension::E
     extendedType: A
     staticType: null
   operator: +
@@ -982,14 +982,14 @@ BinaryExpression
     importPrefix: ImportPrefixReference
       name: p
       period: .
-      element2: <testLibraryFragment>::@prefix2::p
+      element: <testLibraryFragment>::@prefix2::p
     name: E
     typeArguments: TypeArgumentList
       leftBracket: <
       arguments
         NamedType
           name: int
-          element2: dart:core::@class::int
+          element: dart:core::@class::int
           type: int
       rightBracket: >
     argumentList: ArgumentList
@@ -1001,7 +1001,7 @@ BinaryExpression
           element: <testLibrary>::@function::f::@formalParameter::a
           staticType: A
       rightParenthesis: )
-    element2: package:test/lib.dart::@extension::E
+    element: package:test/lib.dart::@extension::E
     extendedType: A
     staticType: null
     typeArgumentTypes
@@ -1066,7 +1066,7 @@ PropertyAccess
           element: <testLibrary>::@function::f::@formalParameter::a
           staticType: int?
       rightParenthesis: )
-    element2: <testLibrary>::@extension::E
+    element: <testLibrary>::@extension::E
     extendedType: int
     staticType: null
   operator: ?.
@@ -1116,7 +1116,7 @@ AssignmentExpression
             element: <testLibrary>::@function::f::@formalParameter::a
             staticType: A
         rightParenthesis: )
-      element2: <testLibrary>::@extension::E
+      element: <testLibrary>::@extension::E
       extendedType: A
       staticType: null
     operator: .
@@ -1130,9 +1130,9 @@ AssignmentExpression
     literal: 0
     correspondingParameter: <testLibrary>::@extension::E::@setter::s::@formalParameter::x
     staticType: int
-  readElement2: <null>
+  readElement: <null>
   readType: null
-  writeElement2: <testLibrary>::@extension::E::@setter::s
+  writeElement: <testLibrary>::@extension::E::@setter::s
   writeType: int
   element: <null>
   staticType: int
@@ -1161,7 +1161,7 @@ AssignmentExpression
         arguments
           NamedType
             name: int
-            element2: dart:core::@class::int
+            element: dart:core::@class::int
             type: int
         rightBracket: >
       argumentList: ArgumentList
@@ -1173,7 +1173,7 @@ AssignmentExpression
             element: <testLibrary>::@function::f::@formalParameter::a
             staticType: A
         rightParenthesis: )
-      element2: <testLibrary>::@extension::E
+      element: <testLibrary>::@extension::E
       extendedType: A
       staticType: null
       typeArgumentTypes
@@ -1189,9 +1189,9 @@ AssignmentExpression
     literal: 0
     correspondingParameter: <testLibrary>::@extension::E::@setter::s::@formalParameter::x
     staticType: int
-  readElement2: <null>
+  readElement: <null>
   readType: null
-  writeElement2: <testLibrary>::@extension::E::@setter::s
+  writeElement: <testLibrary>::@extension::E::@setter::s
   writeType: int
   element: <null>
   staticType: int
@@ -1220,7 +1220,7 @@ AssignmentExpression
       importPrefix: ImportPrefixReference
         name: p
         period: .
-        element2: <testLibraryFragment>::@prefix2::p
+        element: <testLibraryFragment>::@prefix2::p
       name: E
       argumentList: ArgumentList
         leftParenthesis: (
@@ -1231,7 +1231,7 @@ AssignmentExpression
             element: <testLibrary>::@function::f::@formalParameter::a
             staticType: A
         rightParenthesis: )
-      element2: package:test/lib.dart::@extension::E
+      element: package:test/lib.dart::@extension::E
       extendedType: A
       staticType: null
     operator: .
@@ -1245,9 +1245,9 @@ AssignmentExpression
     literal: 0
     correspondingParameter: package:test/lib.dart::@extension::E::@setter::s::@formalParameter::x
     staticType: int
-  readElement2: <null>
+  readElement: <null>
   readType: null
-  writeElement2: package:test/lib.dart::@extension::E::@setter::s
+  writeElement: package:test/lib.dart::@extension::E::@setter::s
   writeType: int
   element: <null>
   staticType: int
@@ -1276,14 +1276,14 @@ AssignmentExpression
       importPrefix: ImportPrefixReference
         name: p
         period: .
-        element2: <testLibraryFragment>::@prefix2::p
+        element: <testLibraryFragment>::@prefix2::p
       name: E
       typeArguments: TypeArgumentList
         leftBracket: <
         arguments
           NamedType
             name: int
-            element2: dart:core::@class::int
+            element: dart:core::@class::int
             type: int
         rightBracket: >
       argumentList: ArgumentList
@@ -1295,7 +1295,7 @@ AssignmentExpression
             element: <testLibrary>::@function::f::@formalParameter::a
             staticType: A
         rightParenthesis: )
-      element2: package:test/lib.dart::@extension::E
+      element: package:test/lib.dart::@extension::E
       extendedType: A
       staticType: null
       typeArgumentTypes
@@ -1311,9 +1311,9 @@ AssignmentExpression
     literal: 0
     correspondingParameter: package:test/lib.dart::@extension::E::@setter::s::@formalParameter::x
     staticType: int
-  readElement2: <null>
+  readElement: <null>
   readType: null
-  writeElement2: package:test/lib.dart::@extension::E::@setter::s
+  writeElement: package:test/lib.dart::@extension::E::@setter::s
   writeType: int
   element: <null>
   staticType: int
@@ -1347,7 +1347,7 @@ AssignmentExpression
             element: <testLibrary>::@function::f::@formalParameter::a
             staticType: A
         rightParenthesis: )
-      element2: <testLibrary>::@extension::E
+      element: <testLibrary>::@extension::E
       extendedType: A
       staticType: null
     operator: .
@@ -1361,9 +1361,9 @@ AssignmentExpression
     literal: 0
     correspondingParameter: dart:core::@class::num::@method::+::@formalParameter::other
     staticType: int
-  readElement2: <testLibrary>::@extension::E::@getter::s
+  readElement: <testLibrary>::@extension::E::@getter::s
   readType: int
-  writeElement2: <testLibrary>::@extension::E::@setter::s
+  writeElement: <testLibrary>::@extension::E::@setter::s
   writeType: int
   element: dart:core::@class::num::@method::+
   staticType: int
@@ -1393,7 +1393,7 @@ AssignmentExpression
         arguments
           NamedType
             name: int
-            element2: dart:core::@class::int
+            element: dart:core::@class::int
             type: int
         rightBracket: >
       argumentList: ArgumentList
@@ -1405,7 +1405,7 @@ AssignmentExpression
             element: <testLibrary>::@function::f::@formalParameter::a
             staticType: A
         rightParenthesis: )
-      element2: <testLibrary>::@extension::E
+      element: <testLibrary>::@extension::E
       extendedType: A
       staticType: null
       typeArgumentTypes
@@ -1421,9 +1421,9 @@ AssignmentExpression
     literal: 0
     correspondingParameter: dart:core::@class::num::@method::+::@formalParameter::other
     staticType: int
-  readElement2: <testLibrary>::@extension::E::@getter::s
+  readElement: <testLibrary>::@extension::E::@getter::s
   readType: int
-  writeElement2: <testLibrary>::@extension::E::@setter::s
+  writeElement: <testLibrary>::@extension::E::@setter::s
   writeType: int
   element: dart:core::@class::num::@method::+
   staticType: int
@@ -1453,7 +1453,7 @@ AssignmentExpression
       importPrefix: ImportPrefixReference
         name: p
         period: .
-        element2: <testLibraryFragment>::@prefix2::p
+        element: <testLibraryFragment>::@prefix2::p
       name: E
       argumentList: ArgumentList
         leftParenthesis: (
@@ -1464,7 +1464,7 @@ AssignmentExpression
             element: <testLibrary>::@function::f::@formalParameter::a
             staticType: A
         rightParenthesis: )
-      element2: package:test/lib.dart::@extension::E
+      element: package:test/lib.dart::@extension::E
       extendedType: A
       staticType: null
     operator: .
@@ -1478,9 +1478,9 @@ AssignmentExpression
     literal: 0
     correspondingParameter: dart:core::@class::num::@method::+::@formalParameter::other
     staticType: int
-  readElement2: package:test/lib.dart::@extension::E::@getter::s
+  readElement: package:test/lib.dart::@extension::E::@getter::s
   readType: int
-  writeElement2: package:test/lib.dart::@extension::E::@setter::s
+  writeElement: package:test/lib.dart::@extension::E::@setter::s
   writeType: int
   element: dart:core::@class::num::@method::+
   staticType: int
@@ -1510,14 +1510,14 @@ AssignmentExpression
       importPrefix: ImportPrefixReference
         name: p
         period: .
-        element2: <testLibraryFragment>::@prefix2::p
+        element: <testLibraryFragment>::@prefix2::p
       name: E
       typeArguments: TypeArgumentList
         leftBracket: <
         arguments
           NamedType
             name: int
-            element2: dart:core::@class::int
+            element: dart:core::@class::int
             type: int
         rightBracket: >
       argumentList: ArgumentList
@@ -1529,7 +1529,7 @@ AssignmentExpression
             element: <testLibrary>::@function::f::@formalParameter::a
             staticType: A
         rightParenthesis: )
-      element2: package:test/lib.dart::@extension::E
+      element: package:test/lib.dart::@extension::E
       extendedType: A
       staticType: null
       typeArgumentTypes
@@ -1545,9 +1545,9 @@ AssignmentExpression
     literal: 0
     correspondingParameter: dart:core::@class::num::@method::+::@formalParameter::other
     staticType: int
-  readElement2: package:test/lib.dart::@extension::E::@getter::s
+  readElement: package:test/lib.dart::@extension::E::@getter::s
   readType: int
-  writeElement2: package:test/lib.dart::@extension::E::@setter::s
+  writeElement: package:test/lib.dart::@extension::E::@setter::s
   writeType: int
   element: dart:core::@class::num::@method::+
   staticType: int
@@ -1579,7 +1579,7 @@ PropertyAccess
           element: <testLibrary>::@function::f::@formalParameter::c
           staticType: C
       rightParenthesis: )
-    element2: <testLibrary>::@extension::E
+    element: <testLibrary>::@extension::E
     extendedType: C
     staticType: null
   operator: .

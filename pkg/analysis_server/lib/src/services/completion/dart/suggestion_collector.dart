@@ -93,12 +93,13 @@ class SuggestionCollector {
     computer.completionLocation = completionLocation;
     for (var candidate in suggestions) {
       candidate.relevanceScore = computer.computeRelevance(candidate);
+      computer.listener?.builtCandidate(candidate);
     }
     // Sort the suggestions based on both the matcher score and the relevance
     // score.
     suggestions.sort((first, second) {
       if (first.matcherScore == second.matcherScore) {
-        return first.relevanceScore.compareTo(second.relevanceScore);
+        return second.relevanceScore.compareTo(first.relevanceScore);
       }
       return second.matcherScore.compareTo(first.matcherScore);
     });

@@ -20,7 +20,7 @@ extension DartTypeExtension on DartType {
 extension Element2Extension on Element {
   TypeImpl? get firstParameterType {
     var self = this;
-    if (self is MethodElement2OrMember) {
+    if (self is InternalMethodElement) {
       return self.formalParameters.firstOrNull?.type;
     }
     return null;
@@ -30,10 +30,8 @@ extension Element2Extension on Element {
   /// the enclosing library, has been annotated with the `@doNotStore`
   /// annotation.
   bool get hasOrInheritsDoNotStore {
-    if (this case Annotatable annotatable) {
-      if (annotatable.metadata.hasDoNotStore) {
-        return true;
-      }
+    if (metadata.hasDoNotStore) {
+      return true;
     }
 
     var ancestor = enclosingElement;
@@ -97,14 +95,14 @@ extension Element2OrNullExtension on Element? {
   }
 }
 
-extension ElementAnnotationExtensions on ElementAnnotation {
+extension ElementAnnotationExtension on ElementAnnotation {
   static final Map<String, TargetKind> _targetKindsByName = {
     for (var kind in TargetKind.values) kind.name: kind,
   };
 
   /// Return the target kinds defined for this [ElementAnnotation].
   Set<TargetKind> get targetKinds {
-    var element = element2;
+    var element = this.element;
     InterfaceElement? interfaceElement;
 
     if (element is GetterElement) {
@@ -153,7 +151,8 @@ extension ExecutableElement2Extension on ExecutableElement {
   }
 }
 
-extension FormalParameterElementMixinExtension on FormalParameterElementMixin {
+extension FormalParameterElementMixinExtension
+    on InternalFormalParameterElement {
   /// Returns [FormalParameterElementImpl] with the specified properties
   /// replaced.
   FormalParameterElementImpl copyWith({
@@ -232,7 +231,7 @@ extension RecordTypeExtension on RecordType {
   }
 }
 
-extension TypeParameterElementImplExtension on TypeParameterFragmentImpl {
+extension TypeParameterElementImplExtension on TypeParameterElementImpl {
   bool get isWildcardVariable {
     return name == '_' && library.hasWildcardVariablesFeatureEnabled;
   }

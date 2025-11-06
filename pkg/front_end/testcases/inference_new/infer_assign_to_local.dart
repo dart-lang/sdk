@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/*@testedFeatures=inference*/
 library test;
 
 class A {}
@@ -19,33 +18,33 @@ class C extends B {}
 T f<T>() => throw '';
 
 void test(B local, B? local2, B? local3) {
-  local = /*@typeArgs=B*/ f();
+  local = f();
 
-  local2 ??= /*@typeArgs=B?*/ f();
+  local2 ??= f();
 
-  local /*@target=B.+*/ += /*@typeArgs=C*/ f();
+  local += f();
 
-  local /*@target=B.**/ *= /*@typeArgs=B*/ f();
+  local *= f();
 
-  local /*@target=B.&*/ &= /*@typeArgs=A*/ f();
+  local &= f();
 
-  /*@target=B.-*/ --local;
+  --local;
 
-  local /*@target=B.-*/ --;
+  local--;
 
-  var /*@type=B*/ v1 = local = /*@typeArgs=B*/ f();
+  var v1 = local = f();
 
-  var /*@type=B?*/ v2 = local3 ??= /*@typeArgs=B?*/ f();
+  var v2 = local3 ??= f();
 
-  var /*@type=B*/ v3 = local /*@target=B.+*/ += /*@typeArgs=C*/ f();
+  var v3 = local += f();
 
-  var /*@type=B*/ v4 = local /*@target=B.**/ *= /*@typeArgs=B*/ f();
+  var v4 = local *= f();
 
-  var /*@type=C*/ v5 = local /*@target=B.&*/ &= /*@typeArgs=A*/ f();
+  var v5 = local &= f();
 
-  var /*@type=B*/ v6 = /*@target=B.-*/ --local;
+  var v6 = --local;
 
-  var /*@type=B*/ v7 = /*@type=B*/ local /*@type=B*/ /*@target=B.-*/ --;
+  var v7 = local--;
 }
 
 main() {}

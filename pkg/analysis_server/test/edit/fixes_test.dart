@@ -5,20 +5,18 @@
 import 'dart:async';
 
 import 'package:analysis_server/protocol/protocol_generated.dart';
-import 'package:analysis_server/src/analysis_server.dart';
-import 'package:analysis_server/src/plugin/plugin_manager.dart';
+import 'package:analysis_server/src/plugin/plugin_isolate.dart';
 import 'package:analysis_server/src/services/correction/fix_internal.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/instrumentation/service.dart';
 import 'package:analyzer/utilities/package_config_file_builder.dart';
-import 'package:analyzer_plugin/protocol/protocol.dart' as plugin;
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:analyzer_plugin/protocol/protocol_generated.dart' as plugin;
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../analysis_server_base.dart';
-import '../src/plugin/plugin_manager_test.dart';
+import '../mocks.dart';
 
 void main() {
   defineReflectiveSuite(() {
@@ -97,13 +95,13 @@ void f() {
   }
 
   Future<void> test_fromPlugins() async {
-    if (!AnalysisServer.supportsPlugins) return;
-    PluginInfo info = DiscoveredPluginInfo(
+    var pluginIsolate = PluginIsolate(
       'a',
       'b',
       'c',
       TestNotificationManager(),
       InstrumentationService.NULL_SERVICE,
+      isLegacy: true,
     );
     var fixes = plugin.AnalysisErrorFixes(
       AnalysisError(
@@ -115,8 +113,8 @@ void f() {
       ),
     );
     var result = plugin.EditGetFixesResult(<plugin.AnalysisErrorFixes>[fixes]);
-    pluginManager.broadcastResults = <PluginInfo, Future<plugin.Response>>{
-      info: Future.value(result.toResponse('-', 1)),
+    pluginManager.broadcastResults = {
+      pluginIsolate: Future.value(result.toResponse('-', 1)),
     };
 
     addTestFile('void f() {}');
@@ -195,9 +193,8 @@ print(1)
   Future<void> test_suggestImportFromDifferentAnalysisRoot() async {
     writePackageConfig(
       convertPath('$workspaceRootPath/aaa'),
-      config:
-          (PackageConfigFileBuilder()
-            ..add(name: 'bbb', rootPath: '$workspaceRootPath/bbb')),
+      config: (PackageConfigFileBuilder()
+        ..add(name: 'bbb', rootPath: '$workspaceRootPath/bbb')),
     );
     newPubspecYamlFile('$workspaceRootPath/aaa', r'''
 dependencies:
@@ -223,11 +220,10 @@ dependencies:
 
     await waitForTasksFinished();
 
-    var fixes =
-        (await _getFixesAt(
-          file,
-          'Foo()',
-        )).single.fixes.map((f) => f.message).toList();
+    var fixes = (await _getFixesAt(
+      file,
+      'Foo()',
+    )).single.fixes.map((f) => f.message).toList();
     expect(fixes, contains("Import library 'package:bbb/target.dart'"));
     expect(
       fixes,

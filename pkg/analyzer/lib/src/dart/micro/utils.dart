@@ -59,10 +59,9 @@ ConstructorElement? _getActualConstructorElement(
   while (constructor is ConstructorElementImpl && constructor.isSynthetic) {
     var enclosing = constructor.enclosingElement;
     if (enclosing is ClassElementImpl && enclosing.isMixinApplication) {
-      var superInvocation =
-          constructor.constantInitializers
-              .whereType<SuperConstructorInvocation>()
-              .singleOrNull;
+      var superInvocation = constructor.constantInitializers
+          .whereType<SuperConstructorInvocation>()
+          .singleOrNull;
       if (superInvocation != null) {
         constructor = superInvocation.element;
       }
@@ -77,8 +76,8 @@ ConstructorElement? _getActualConstructorElement(
   return constructor;
 }
 
-/// Returns the [LibraryImportElement] that is referenced by [prefixNode] with a
-/// [PrefixElement], maybe `null`.
+/// Returns the [MockLibraryImportElement] that is referenced by [prefixNode]
+/// with a [PrefixElement], maybe `null`.
 MockLibraryImportElement? _getImportElementInfo2(SimpleIdentifier prefixNode) {
   // prepare environment
   var parent = prefixNode.parent;
@@ -115,8 +114,8 @@ MockLibraryImportElement? _getImportElementInfo2(SimpleIdentifier prefixNode) {
   );
 }
 
-/// Returns the [LibraryImportElement] that is referenced by [prefixNode] with a
-/// [PrefixElement], maybe `null`.
+/// Returns the [MockLibraryImportElement] that is referenced by [prefixNode]
+/// with a [PrefixElement], maybe `null`.
 MockLibraryImportElement? _getImportElementInfoFromReference(
   ImportPrefixReference prefixNode,
 ) {
@@ -150,12 +149,13 @@ MockLibraryImportElement? _getImportElementInfoFromReference(
   );
 }
 
-/// Returns the [LibraryImportElement] that declared [prefix] and imports [element].
+/// Returns the [MockLibraryImportElement] that declared [prefix] and imports
+/// [element].
 ///
 /// [libraryFragment] - the [LibraryFragmentImpl] where reference is.
 /// [prefix] - the import prefix, maybe `null`.
 /// [element] - the referenced element.
-/// [importElementsMap] - the cache of [Element]s imported by [LibraryImportElement]s.
+/// [importElementsMap] - the cache of [Element]s imported by [LibraryImport]s.
 MockLibraryImportElement? _getMockImportElement(
   LibraryFragmentImpl libraryFragment,
   String prefix,
@@ -168,17 +168,16 @@ MockLibraryImportElement? _getMockImportElement(
   var usedLibrary = element.library;
   // find ImportElement that imports used library with used prefix
   List<LibraryImport>? candidates;
-  var libraryImports =
-      libraryFragment.withEnclosing2
-          .expand((fragment) => fragment.libraryImports2)
-          .toList();
+  var libraryImports = libraryFragment.withEnclosing2
+      .expand((fragment) => fragment.libraryImports)
+      .toList();
   for (var importElement in libraryImports) {
     // required library
     if (importElement.importedLibrary != usedLibrary) {
       continue;
     }
     // required prefix
-    var prefixElement = importElement.prefix2?.element;
+    var prefixElement = importElement.prefix?.element;
     if (prefixElement == null) {
       continue;
     }
@@ -406,10 +405,9 @@ class ReferencesCollector extends GeneralizingAstVisitor<void> {
         offset = node.name.end;
         length = 0;
       }
-      var kind =
-          node.arguments == null
-              ? MatchKind.INVOCATION_BY_ENUM_CONSTANT_WITHOUT_ARGUMENTS
-              : MatchKind.INVOCATION;
+      var kind = node.arguments == null
+          ? MatchKind.INVOCATION_BY_ENUM_CONSTANT_WITHOUT_ARGUMENTS
+          : MatchKind.INVOCATION;
       references.add(MatchInfo(offset, length, kind));
     }
   }

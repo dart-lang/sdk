@@ -28,36 +28,41 @@ abstract class ITypeDeclarationBuilder
   /// legacy library `lib2` call `buildType(<lib2>, <> [<int>]` to create
   /// `C<int*>*`.
   DartType buildAliasedType(
-      LibraryBuilder library,
-      NullabilityBuilder nullabilityBuilder,
-      List<TypeBuilder>? arguments,
-      TypeUse typeUse,
-      Uri fileUri,
-      int charOffset,
-      ClassHierarchyBase? hierarchy,
-      {required bool hasExplicitTypeArguments});
+    LibraryBuilder library,
+    NullabilityBuilder nullabilityBuilder,
+    List<TypeBuilder>? arguments,
+    TypeUse typeUse,
+    Uri fileUri,
+    int charOffset,
+    ClassHierarchyBase? hierarchy, {
+    required bool hasExplicitTypeArguments,
+  });
 
   /// [arguments] have already been built.
   DartType buildAliasedTypeWithBuiltArguments(
-      LibraryBuilder library,
-      Nullability nullability,
-      List<DartType> arguments,
-      TypeUse typeUse,
-      Uri fileUri,
-      int charOffset,
-      {required bool hasExplicitTypeArguments});
+    LibraryBuilder library,
+    Nullability nullability,
+    List<DartType> arguments,
+    TypeUse typeUse,
+    Uri fileUri,
+    int charOffset, {
+    required bool hasExplicitTypeArguments,
+  });
 
   /// Computes the nullability of this type declaration when instantiated with
   /// [typeArguments].
   ///
   /// [typeParametersTraversalState] is passed to handle cyclic dependencies
   /// between type parameters,
-  Nullability computeNullabilityWithArguments(List<TypeBuilder>? typeArguments,
-      {required Map<TypeParameterBuilder, TraversalState>
-          typeParametersTraversalState});
+  Nullability computeNullabilityWithArguments(
+    List<TypeBuilder>? typeArguments, {
+    required Map<TypeParameterBuilder, TraversalState>
+    typeParametersTraversalState,
+  });
 }
 
 abstract class TypeDeclarationBuilderImpl extends NamedBuilderImpl
+    with LookupResultMixin
     implements ITypeDeclarationBuilder {
   @override
   // Coverage-ignore(suite): Not run.

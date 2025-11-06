@@ -4,6 +4,7 @@
 
 import 'package:analysis_server/src/services/correction/fix/data_driven/element_descriptor.dart';
 import 'package:analysis_server/src/services/correction/fix/data_driven/element_kind.dart';
+import 'package:analysis_server/src/services/correction/util.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart'
     show
@@ -141,7 +142,11 @@ class ElementMatcher {
   ///
   /// The list will be empty if there are no appropriate matchers for the
   /// [node].
-  static List<ElementMatcher> matchersForNode(AstNode? node, Token? nameToken) {
+  static List<ElementMatcher> matchersForNode(
+    AstNode? node,
+    Token? nameToken,
+    LibraryElement libraryElement,
+  ) {
     if (node == null) {
       return const [];
     }
@@ -149,7 +154,7 @@ class ElementMatcher {
     if (importedUris == null) {
       return const [];
     }
-    var builder = _MatcherBuilder(importedUris);
+    var builder = _MatcherBuilder(importedUris, libraryElement);
     builder.buildMatchersForNode(node, nameToken);
     return builder.matchers.toList();
   }
@@ -168,7 +173,7 @@ class ElementMatcher {
       return null;
     }
     while (part != null) {
-      for (var libraryImport in part.libraryImports2) {
+      for (var libraryImport in part.libraryImports) {
         // TODO(brianwilkerson): Filter based on combinators to help avoid making
         //  invalid suggestions.
         var uri = libraryImport.importedLibrary?.uri;
@@ -189,7 +194,9 @@ class _MatcherBuilder {
 
   final List<Uri> importedUris;
 
-  _MatcherBuilder(this.importedUris);
+  final LibraryElement libraryElement;
+
+  _MatcherBuilder(this.importedUris, this.libraryElement);
 
   void buildMatchersForNode(AstNode? node, Token? nameToken) {
     if (node is ArgumentList) {
@@ -251,6 +258,14 @@ class _MatcherBuilder {
       // } else if (parent is ExtensionOverride) {
       //   // `TODO`(brianwilkerson) Determine whether this branch can be reached.
       //   _buildFromExtensionOverride(parent);
+    } else if (parent is DotShorthandConstructorInvocation) {
+      _buildFromDotShorthand(parent, parent.constructorName.name, [
+        ElementKind.constructorKind,
+      ]);
+    } else if (parent is DotShorthandInvocation) {
+      _buildFromDotShorthand(parent, parent.memberName.name, [
+        ElementKind.methodKind,
+      ]);
     } else if (parent is FunctionExpressionInvocation) {
       _buildFromFunctionExpressionInvocation(parent);
     } else if (parent is InstanceCreationExpression) {
@@ -308,6 +323,22 @@ class _MatcherBuilder {
     );
   }
 
+  /// Build a matcher for the dot shorthand [node] being accessed.
+  void _buildFromDotShorthand(
+    AstNode node,
+    String memberName,
+    List<ElementKind> kinds,
+  ) {
+    var typeElement = computeDotShorthandContextTypeElement(
+      node,
+      libraryElement,
+    );
+    var typeName = typeElement?.displayName;
+    if (typeName != null) {
+      _addMatcher(components: [memberName, typeName], kinds: kinds);
+    }
+  }
+
   /// Build a matcher for the extension.
   void _buildFromExtensionOverride(ExtensionOverride node) {
     _addMatcher(
@@ -346,6 +377,27 @@ class _MatcherBuilder {
     //   return _buildFromElement(element);
     // }
     var methodName = node.methodName;
+
+    var targetType = node.realTarget?.staticType;
+    if (targetType is InterfaceType) {
+      // We can invoke both methods and constructors of the target type.
+      _addMatcher(
+        components: [methodName.name, targetType.element.name!],
+        kinds: const [ElementKind.constructorKind, ElementKind.methodKind],
+      );
+      // We can invoke methods of supertypes of the target type.
+      var superElements = targetType.allSupertypes
+          .map((superType) => superType.element)
+          .toList();
+      for (var element in superElements) {
+        _addMatcher(
+          components: [methodName.name, element.name!],
+          kinds: const [ElementKind.methodKind],
+        );
+      }
+      return;
+    }
+
     var targetName = _nameOfTarget(node.realTarget);
     if (targetName != null) {
       // If there is a target, and we know the type of the target, then we know
@@ -455,17 +507,23 @@ class _MatcherBuilder {
     // name of the type defining the member.
     var targetType = node.prefix.staticType;
     if (targetType is InterfaceType) {
-      _addMatcher(
-        components: [node.identifier.name, targetType.element.name!],
-        kinds: const [
-          ElementKind.constantKind,
-          ElementKind.fieldKind,
-          ElementKind.functionKind, // tear-off
-          ElementKind.getterKind,
-          ElementKind.methodKind, // tear-off
-          ElementKind.setterKind,
-        ],
-      );
+      var elements = [
+        targetType.element,
+        ...targetType.allSupertypes.map((t) => t.element),
+      ];
+      for (var element in elements) {
+        _addMatcher(
+          components: [node.identifier.name, element.name!],
+          kinds: const [
+            ElementKind.constantKind,
+            ElementKind.fieldKind,
+            ElementKind.functionKind, // tear-off
+            ElementKind.getterKind,
+            ElementKind.methodKind, // tear-off
+            ElementKind.setterKind,
+          ],
+        );
+      }
     }
     // It looks like we're accessing a member, but we don't know what kind of
     // member, so we include all of the member kinds.
@@ -527,7 +585,26 @@ class _MatcherBuilder {
     // TODO(brianwilkerson): Use the static element, if there is one, in order to
     //  get a more exact matcher.
     var parent = node.parent;
-    if (parent is Label && parent.parent is NamedExpression) {
+    if (parent is DotShorthandInvocation && node == parent.memberName) {
+      var kinds = [ElementKind.methodKind];
+      if (parent.typeArguments == null) {
+        kinds.add(ElementKind.constructorKind);
+      }
+      _buildFromDotShorthand(parent, parent.memberName.name, kinds);
+    } else if (parent is DotShorthandPropertyAccess &&
+        node == parent.propertyName) {
+      _buildFromDotShorthand(parent, parent.propertyName.name, [
+        ElementKind.constantKind,
+        ElementKind.fieldKind,
+        ElementKind.getterKind,
+        ElementKind.methodKind, // tear-off
+      ]);
+    } else if (parent is DotShorthandConstructorInvocation &&
+        node == parent.constructorName) {
+      _buildFromDotShorthand(parent, parent.constructorName.name, [
+        ElementKind.constructorKind,
+      ]);
+    } else if (parent is Label && parent.parent is NamedExpression) {
       // The parent of the named expression is an argument list. Because we
       // don't represent parameters as elements, the element we need to match
       // against is the invocation containing those arguments.
@@ -581,6 +658,10 @@ class _MatcherBuilder {
       _buildFromFunctionExpressionInvocation(parent);
     } else if (parent is InstanceCreationExpression) {
       _buildFromInstanceCreationExpression(parent);
+    } else if (parent is DotShorthandInvocation) {
+      _buildFromDotShorthand(parent, parent.memberName.name, [
+        ElementKind.methodKind,
+      ]);
     } else if (parent is MethodInvocation) {
       _buildFromMethodInvocation(parent);
     }

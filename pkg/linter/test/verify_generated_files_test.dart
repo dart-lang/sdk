@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer_testing/package_root.dart' as pkg_root;
+import 'package:analyzer_utilities/generated_content_check.dart';
 import 'package:test/test.dart';
 
 import '../tool/generate_lints.dart';

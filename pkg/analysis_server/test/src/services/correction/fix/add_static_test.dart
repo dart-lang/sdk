@@ -17,7 +17,7 @@ void main() {
 @reflectiveTest
 class AddStaticTest extends FixProcessorTest {
   @override
-  FixKind get kind => DartFixKind.ADD_STATIC;
+  FixKind get kind => DartFixKind.addStatic;
 
   Future<void> test_multipleFields() async {
     await resolveTestCode('''

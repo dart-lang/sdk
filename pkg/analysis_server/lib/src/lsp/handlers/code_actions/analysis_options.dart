@@ -11,8 +11,8 @@ import 'package:analysis_server/src/services/correction/fix/analysis_options/fix
 import 'package:analyzer/source/file_source.dart';
 import 'package:analyzer/source/line_info.dart';
 import 'package:analyzer/src/analysis_options/analysis_options_provider.dart';
+import 'package:analyzer/src/analysis_options/options_file_validator.dart';
 import 'package:analyzer/src/generated/source.dart' show SourceFactory;
-import 'package:analyzer/src/task/options.dart';
 import 'package:analyzer/src/util/performance/operation_performance.dart';
 import 'package:analyzer/src/workspace/pub.dart';
 import 'package:yaml/yaml.dart';
@@ -78,8 +78,9 @@ class AnalysisOptionsCodeActionsProducer extends AbstractCodeActionsProducer {
 
     var contextRoot = session.analysisContext.contextRoot;
     var package = contextRoot.workspace.findPackageFor(optionsFile.path);
-    var sdkVersionConstraint =
-        (package is PubPackage) ? package.sdkVersionConstraint : null;
+    var sdkVersionConstraint = (package is PubPackage)
+        ? package.sdkVersionConstraint
+        : null;
 
     var errors = analyzeAnalysisOptions(
       FileSource(optionsFile),
@@ -87,6 +88,7 @@ class AnalysisOptionsCodeActionsProducer extends AbstractCodeActionsProducer {
       sourceFactory,
       contextRoot.root.path,
       sdkVersionConstraint,
+      resourceProvider,
     );
 
     var codeActions = <CodeActionWithPriority>[];

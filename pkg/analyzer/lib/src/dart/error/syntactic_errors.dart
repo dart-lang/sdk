@@ -2,7 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:_fe_analyzer_shared/src/base/errors.dart';
+
 export 'package:_fe_analyzer_shared/src/scanner/errors.dart'
     show ScannerErrorCode;
-// ignore: deprecated_member_use_from_same_package
-export 'package:analyzer/src/dart/error/syntactic_errors.g.dart';
+
+part 'package:analyzer/src/dart/error/syntactic_errors.g.dart';

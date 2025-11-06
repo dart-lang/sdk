@@ -5,8 +5,6 @@
 import 'dart:async';
 
 import 'package:analysis_server/lsp_protocol/protocol.dart';
-import 'package:analysis_server/src/analysis_server.dart';
-import 'package:analysis_server/src/protocol/protocol_internal.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart' hide Position;
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -34,7 +32,6 @@ class Bar {
 ''';
 
   Future<void> test_documentChange_notifiesPlugins() async {
-    if (!AnalysisServer.supportsPlugins) return;
     await _initializeAndOpen();
     await changeFile(2, mainFileUri, [
       TextDocumentContentChangeEvent.t1(
@@ -62,7 +59,7 @@ class Bar {
             as ChangeContentOverlay;
 
     expect(
-      applySequenceOfEdits(content, notifiedChanges.edits),
+      SourceEdit.applySequence(content, notifiedChanges.edits),
       contentAfterUpdate,
     );
   }
@@ -105,7 +102,6 @@ class Bar {
   }
 
   Future<void> test_documentClose_notifiesPlugins() async {
-    if (!AnalysisServer.supportsPlugins) return;
     await _initializeAndOpen();
     await closeFile(mainFileUri);
 
@@ -300,7 +296,6 @@ class Bar {
   }
 
   Future<void> test_documentOpen_notifiesPlugins() async {
-    if (!AnalysisServer.supportsPlugins) return;
     await _initializeAndOpen();
 
     expect(

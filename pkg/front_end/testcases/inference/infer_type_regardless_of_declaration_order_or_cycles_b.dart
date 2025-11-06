@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/*@testedFeatures=inference*/
 import 'infer_type_regardless_of_declaration_order_or_cycles.dart';
 
 class B extends A {}

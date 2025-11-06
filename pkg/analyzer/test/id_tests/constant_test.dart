@@ -60,9 +60,7 @@ class ConstantsDataComputer extends DataComputer<String> {
     var diagnosticCodes = diagnostics
         .map((e) => e.diagnosticCode)
         .where(
-          (c) =>
-              c !=
-              CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE,
+          (c) => c != CompileTimeErrorCode.constInitializedWithNonConstantValue,
         );
     return diagnosticCodes.isNotEmpty ? diagnosticCodes.join(',') : null;
   }
@@ -86,7 +84,7 @@ class ConstantsDataExtractor extends AstDataExtractor<String> {
     if (node is Identifier) {
       var element = node.element;
       if (element is PropertyAccessorElement && element.isSynthetic) {
-        var variable = element.variable!;
+        var variable = element.variable;
         if (!variable.isSynthetic && variable.isConst) {
           var value = variable.computeConstantValue();
           if (value != null) return _stringify(value);
@@ -135,7 +133,7 @@ class ConstantsDataExtractor extends AstDataExtractor<String> {
       }
       // TODO(paulberry): Support object constants.
     } else if (type is FunctionType) {
-      var element = value.toFunctionValue2()!;
+      var element = value.toFunctionValue()!;
       return 'Function(${element.name},type=${_stringifyType(value.type!)})';
     }
     throw UnimplementedError('_stringify for type $type');

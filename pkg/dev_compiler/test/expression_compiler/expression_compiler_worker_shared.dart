@@ -217,6 +217,88 @@ void runExpressionCompilationTests(ExpressionCompilerWorkerTestDriver driver) {
       );
     });
 
+    test('does not crash on line 0 in a library', () {
+      driver.requestController.add({
+        'command': 'UpdateDeps',
+        'inputs': driver.inputs,
+      });
+
+      driver.requestController.add({
+        'command': 'CompileExpression',
+        'expression': '1 + 1',
+        'line': 0,
+        'column': 0,
+        'jsModules': {},
+        'jsScope': {},
+        'libraryUri': driver.config.getModule('testModule').libraryUris.first,
+        'moduleName': driver.config.getModule('testModule').moduleName,
+      });
+
+      expect(
+        driver.responseController.stream,
+        emitsInOrder([
+          equals({'succeeded': true}),
+          equals({
+            'succeeded': true,
+            'errors': isEmpty,
+            'warnings': isEmpty,
+            'infos': isEmpty,
+            'compiledProcedure': contains('1 + 1;'),
+          }),
+        ]),
+      );
+    });
+
+    test('does not crash on line thats too high in a library', () {
+      driver.requestController.add({
+        'command': 'UpdateDeps',
+        'inputs': driver.inputs,
+      });
+
+      driver.requestController.add({
+        'command': 'CompileExpression',
+        'expression': '1 + 1',
+        'line': 10000000,
+        'column': 1,
+        'jsModules': {},
+        'jsScope': {},
+        'libraryUri': driver.config.getModule('testModule').libraryUris.first,
+        'moduleName': driver.config.getModule('testModule').moduleName,
+      });
+
+      driver.requestController.add({
+        'command': 'CompileExpression',
+        'expression': '2 + 2',
+        'line': 1,
+        'column': 10000000,
+        'jsModules': {},
+        'jsScope': {},
+        'libraryUri': driver.config.getModule('testModule').libraryUris.first,
+        'moduleName': driver.config.getModule('testModule').moduleName,
+      });
+
+      expect(
+        driver.responseController.stream,
+        emitsInOrder([
+          equals({'succeeded': true}),
+          equals({
+            'succeeded': true,
+            'errors': isEmpty,
+            'warnings': isEmpty,
+            'infos': isEmpty,
+            'compiledProcedure': contains('1 + 1;'),
+          }),
+          equals({
+            'succeeded': true,
+            'errors': isEmpty,
+            'warnings': isEmpty,
+            'infos': isEmpty,
+            'compiledProcedure': contains('2 + 2;'),
+          }),
+        ]),
+      );
+    });
+
     test('can compile expressions in a library', () {
       driver.requestController.add({
         'command': 'UpdateDeps',
@@ -294,7 +376,7 @@ void runExpressionCompilationTests(ExpressionCompilerWorkerTestDriver driver) {
         'command': 'CompileExpression',
         'expression': 'count',
         'line': 9,
-        'column': 1,
+        'column': 3,
         'jsModules': {},
         'jsScope': {'count': 'count'},
         'libraryUri': driver.config.getModule('mainModule').libraryUris.first,
@@ -325,8 +407,8 @@ void runExpressionCompilationTests(ExpressionCompilerWorkerTestDriver driver) {
       driver.requestController.add({
         'command': 'CompileExpression',
         'expression': 'ret',
-        'line': 19,
-        'column': 1,
+        'line': 18,
+        'column': 5,
         'jsModules': {},
         'jsScope': {'ret': 'ret'},
         'libraryUri': driver.config.getModule('mainModule').libraryUris.first,
@@ -445,6 +527,202 @@ void runExpressionCompilationTests(ExpressionCompilerWorkerTestDriver driver) {
         ]),
       );
     });
+
+    test('can compile expressions in part file without script uri', () {
+      driver.requestController.add({
+        'command': 'UpdateDeps',
+        'inputs': driver.inputs,
+      });
+
+      // We're really in the main file - but we're not telling.
+      driver.requestController.add({
+        'command': 'CompileExpression',
+        'expression': 'x.length',
+        'line': 6,
+        'column': 3,
+        'jsModules': {},
+        'jsScope': {'x': 'x', 'z': 'z'},
+        'libraryUri': driver.config.getModule('testModule5').libraryUris.last,
+        'moduleName': driver.config.getModule('testModule5').moduleName,
+      });
+
+      // We're really in the part file - but we're not telling.
+      driver.requestController.add({
+        'command': 'CompileExpression',
+        'expression': 'y + 1',
+        'line': 6,
+        'column': 3,
+        'jsModules': {},
+        'jsScope': {'y': 'y', 'z': 'z'},
+        'libraryUri': driver.config.getModule('testModule5').libraryUris.last,
+        'moduleName': driver.config.getModule('testModule5').moduleName,
+      });
+
+      // We're really in the main file - but we're not telling.
+      driver.requestController.add({
+        'command': 'CompileExpression',
+        'expression': 'z.length',
+        'line': 6,
+        'column': 3,
+        'jsModules': {},
+        'jsScope': {'x': 'x', 'z': 'z'},
+        'libraryUri': driver.config.getModule('testModule5').libraryUris.last,
+        'moduleName': driver.config.getModule('testModule5').moduleName,
+      });
+
+      // We're really in the part file - but we're not telling.
+      driver.requestController.add({
+        'command': 'CompileExpression',
+        'expression': 'z + 1',
+        'line': 6,
+        'column': 3,
+        'jsModules': {},
+        'jsScope': {'y': 'y', 'z': 'z'},
+        'libraryUri': driver.config.getModule('testModule5').libraryUris.last,
+        'moduleName': driver.config.getModule('testModule5').moduleName,
+      });
+
+      expect(
+        driver.responseController.stream,
+        emitsInOrder([
+          equals({'succeeded': true}),
+          equals({
+            'succeeded': true,
+            'errors': isEmpty,
+            'warnings': isEmpty,
+            'infos': isEmpty,
+            'compiledProcedure': contains('return x.length;'),
+          }),
+          equals({
+            'succeeded': true,
+            'errors': isEmpty,
+            'warnings': isEmpty,
+            'infos': isEmpty,
+            'compiledProcedure': contains('return y + 1;'),
+          }),
+          equals({
+            'succeeded': true,
+            'errors': isEmpty,
+            'warnings': isEmpty,
+            'infos': isEmpty,
+            'compiledProcedure': contains('return z.length;'),
+          }),
+          equals({
+            'succeeded': true,
+            'errors': isEmpty,
+            'warnings': isEmpty,
+            'infos': isEmpty,
+            'compiledProcedure': contains('return z + 1;'),
+          }),
+        ]),
+      );
+    });
+
+    test(
+      'can compile expressions in part file with script uri as package uri',
+      () {
+        driver.requestController.add({
+          'command': 'UpdateDeps',
+          'inputs': driver.inputs,
+        });
+
+        // We're really in the main file - and we're telling as package uri.
+        driver.requestController.add({
+          'command': 'CompileExpression',
+          'expression': 'x.length',
+          'line': 5,
+          'column': 3,
+          'jsModules': {},
+          'jsScope': {'x': 'x'},
+          'libraryUri': driver.config.getModule('testModule6').libraryUris.last,
+          'scriptUri': driver.config.getModule('testModule6').libraryUris.last,
+          'moduleName': driver.config.getModule('testModule6').moduleName,
+        });
+
+        // We're really in the main file - and we're telling as file uri.
+        driver.requestController.add({
+          'command': 'CompileExpression',
+          'expression': 'x.length',
+          'line': 5,
+          'column': 3,
+          'jsModules': {},
+          'jsScope': {'x': 'x'},
+          'libraryUri': driver.config.getModule('testModule6').libraryUris.last,
+          'scriptUri': driver.config
+              .getModule('testModule6')
+              .libraryUrisAsFileUri
+              .last,
+          'moduleName': driver.config.getModule('testModule6').moduleName,
+        });
+
+        // We're really in the part file - and we're telling as package uri.
+        driver.requestController.add({
+          'command': 'CompileExpression',
+          'expression': 'x + 1',
+          'line': 5,
+          'column': 3,
+          'jsModules': {},
+          'jsScope': {'x': 'x'},
+          'libraryUri': driver.config.getModule('testModule6').libraryUris.last,
+          'scriptUri': driver.config
+              .getModule('testModule6')
+              .partUrisAsPackageUri
+              .last,
+          'moduleName': driver.config.getModule('testModule6').moduleName,
+        });
+
+        // We're really in the part file - and we're telling as file uri.
+        driver.requestController.add({
+          'command': 'CompileExpression',
+          'expression': 'x + 1',
+          'line': 5,
+          'column': 3,
+          'jsModules': {},
+          'jsScope': {'x': 'x'},
+          'libraryUri': driver.config.getModule('testModule6').libraryUris.last,
+          'scriptUri': driver.config
+              .getModule('testModule6')
+              .partUrisAsFileUri
+              .last,
+          'moduleName': driver.config.getModule('testModule6').moduleName,
+        });
+
+        expect(
+          driver.responseController.stream,
+          emitsInOrder([
+            equals({'succeeded': true}),
+            equals({
+              'succeeded': true,
+              'errors': isEmpty,
+              'warnings': isEmpty,
+              'infos': isEmpty,
+              'compiledProcedure': contains('return x.length;'),
+            }),
+            equals({
+              'succeeded': true,
+              'errors': isEmpty,
+              'warnings': isEmpty,
+              'infos': isEmpty,
+              'compiledProcedure': contains('return x.length;'),
+            }),
+            equals({
+              'succeeded': true,
+              'errors': isEmpty,
+              'warnings': isEmpty,
+              'infos': isEmpty,
+              'compiledProcedure': contains('return x + 1;'),
+            }),
+            equals({
+              'succeeded': true,
+              'errors': isEmpty,
+              'warnings': isEmpty,
+              'infos': isEmpty,
+              'compiledProcedure': contains('return x + 1;'),
+            }),
+          ]),
+        );
+      },
+    );
 
     test('can compile series of expressions in various libraries', () {
       driver.requestController.add({
@@ -694,6 +972,9 @@ class ModuleConfiguration {
   final Uri root;
   final String outputDir;
   final List<String> libraryUris;
+  final List<String> libraryUrisAsFileUri;
+  final List<String> partUrisAsPackageUri;
+  final List<String> partUrisAsFileUri;
   final List<ModuleConfiguration> dependencies;
   final String moduleName;
   final String jsFileName;
@@ -705,6 +986,9 @@ class ModuleConfiguration {
     required this.outputDir,
     required this.moduleName,
     required this.libraryUris,
+    this.libraryUrisAsFileUri = const [],
+    this.partUrisAsPackageUri = const [],
+    this.partUrisAsFileUri = const [],
     required this.dependencies,
     required this.jsFileName,
     required this.fullDillFileName,
@@ -735,6 +1019,33 @@ class TestProjectConfiguration {
   TestProjectConfiguration(this.rootDirectory, this.moduleFormat);
 
   void initialize() {
+    final testModule6 = ModuleConfiguration(
+      root: root,
+      outputDir: outputDir,
+      moduleName: 'packages/_testPackage/test_library6',
+      libraryUris: ['package:_testPackage/test_library9.dart'],
+      libraryUrisAsFileUri: [root.resolve('lib/test_library9.dart').toString()],
+      partUrisAsPackageUri: ['package:_testPackage/test_library9_part.dart'],
+      partUrisAsFileUri: [
+        root.resolve('lib/test_library9_part.dart').toString(),
+      ],
+      dependencies: [],
+      jsFileName: 'test_library6.js',
+      fullDillFileName: 'test_library6.full.dill',
+      summaryDillFileName: 'test_library6.dill',
+    );
+
+    final testModule5 = ModuleConfiguration(
+      root: root,
+      outputDir: outputDir,
+      moduleName: 'packages/_testPackage/test_library5',
+      libraryUris: ['package:_testPackage/test_library8.dart'],
+      dependencies: [],
+      jsFileName: 'test_library5.js',
+      fullDillFileName: 'test_library5.full.dill',
+      summaryDillFileName: 'test_library5.dill',
+    );
+
     final testModule4 = ModuleConfiguration(
       root: root,
       outputDir: outputDir,
@@ -798,6 +1109,8 @@ class TestProjectConfiguration {
     );
 
     modules = {
+      'testModule6': testModule6,
+      'testModule5': testModule5,
       'testModule4': testModule4,
       'testModule3': testModule3,
       'testModule2': testModule2,
@@ -886,8 +1199,7 @@ var global = 0;
 
 void main() {
   var count = 0;
-  // line 9
-  print('Global is: \${++global}');
+  print('Global is: \${++global}'); // line 9
   print('Count is: \${++count}');
 
   B b = new B();
@@ -896,8 +1208,7 @@ void main() {
 extension NumberParsing on String {
   int parseInt() {
     var ret = int.parse(this);
-    // line 19
-    return ret;
+    return ret; // line 18
   }
 }
 
@@ -1011,6 +1322,56 @@ import 'package:_testPackage/test_library6.dart';
 
 class E {
   void foo(D bar) {}
+}
+''');
+
+    var testLibrary8 = root.resolve('lib/test_library8.dart');
+    var testLibrary8Part = root.resolve('lib/test_library8_part.dart');
+    File.fromUri(testLibrary8)
+      ..createSync()
+      ..writeAsStringSync('''
+part 'test_library8_part.dart';
+void main() {
+  String x = "foo";
+  String z = "foo";
+  // padding
+  foo(); // line 6 column 3 offset 101
+  print(x);
+}
+''');
+    File.fromUri(testLibrary8Part)
+      ..createSync()
+      ..writeAsStringSync('''
+part of 'test_library8.dart';
+void foo() {
+  int y = 42;
+  int z = 42;
+  // padding...............
+  print(y); // line 6 column 3 offset 101
+}
+''');
+
+    var testLibrary9 = root.resolve('lib/test_library9.dart');
+    var testLibrary9Part = root.resolve('lib/test_library9_part.dart');
+    File.fromUri(testLibrary9)
+      ..createSync()
+      ..writeAsStringSync('''
+part 'test_library9_part.dart';
+void main() {
+  String x = "foo";
+  // padding
+  foo(); // line 5 column 3 offset 81
+  print(x);
+}
+''');
+    File.fromUri(testLibrary9Part)
+      ..createSync()
+      ..writeAsStringSync('''
+part of 'test_library9.dart';
+void foo() {
+  int x = 42;
+  // padding.........
+  print(x); // line 5 column 3 offset 81
 }
 ''');
   }

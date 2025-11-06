@@ -23,8 +23,8 @@ void f(int x) {
 }
 ''',
       [
-        error(WarningCode.UNUSED_LOCAL_VARIABLE, 33, 1),
-        error(WarningCode.UNNECESSARY_CAST_PATTERN, 35, 2),
+        error(WarningCode.unusedLocalVariable, 33, 1),
+        error(WarningCode.unnecessaryCastPattern, 35, 2),
       ],
     );
   }
@@ -37,8 +37,8 @@ void f(int x) {
 }
 ''',
       [
-        error(WarningCode.UNUSED_LOCAL_VARIABLE, 33, 1),
-        error(WarningCode.UNNECESSARY_CAST_PATTERN, 35, 2),
+        error(WarningCode.unusedLocalVariable, 33, 1),
+        error(WarningCode.unnecessaryCastPattern, 35, 2),
       ],
     );
   }
@@ -50,7 +50,7 @@ void f(num x) {
   if (x case var z as int) {}
 }
 ''',
-      [error(WarningCode.UNUSED_LOCAL_VARIABLE, 33, 1)],
+      [error(WarningCode.unusedLocalVariable, 33, 1)],
     );
   }
 
@@ -64,7 +64,7 @@ void f(A x) {
   if (x case var z as B) {}
 }
 ''',
-      [error(WarningCode.UNUSED_LOCAL_VARIABLE, 54, 1)],
+      [error(WarningCode.unusedLocalVariable, 54, 1)],
     );
   }
 }

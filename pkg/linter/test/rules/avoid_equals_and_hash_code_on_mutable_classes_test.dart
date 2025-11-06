@@ -32,13 +32,9 @@ enum E {
 }
 ''',
       [
+        error(CompileTimeErrorCode.illegalConcreteEnumMemberDeclaration, 83, 2),
         error(
-          CompileTimeErrorCode.ILLEGAL_CONCRETE_ENUM_MEMBER_DECLARATION,
-          83,
-          2,
-        ),
-        error(
-          CompileTimeErrorCode.ILLEGAL_CONCRETE_ENUM_MEMBER_DECLARATION,
+          CompileTimeErrorCode.illegalConcreteEnumMemberDeclaration,
           145,
           8,
         ),

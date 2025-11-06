@@ -127,10 +127,11 @@ class Foo {
     ]);
     for (Keyword keyword in Keyword.values) {
       var isModifier = modifierKeywords.contains(keyword);
-      Token token = scanString(keyword.lexeme,
-              configuration: ScannerConfiguration.nonNullable,
-              includeComments: true)
-          .tokens;
+      Token token = scanString(
+        keyword.lexeme,
+        configuration: ScannerConfiguration.nonNullable,
+        includeComments: true,
+      ).tokens;
       expect(token.isModifier, isModifier, reason: keyword.name);
       if (isModifier) {
         expect(token.isTopLevelKeyword, isFalse, reason: keyword.name);

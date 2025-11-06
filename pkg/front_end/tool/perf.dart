@@ -64,8 +64,10 @@ Future<void> main(List<String> args) async {
 
   var handler = handlers[bench];
   if (handler == null) {
-    print('unsupported bench-id: $bench. Please specify one of the following: '
-        '${handlers.keys.join(", ")}');
+    print(
+      'unsupported bench-id: $bench. Please specify one of the following: '
+      '${handlers.keys.join(", ")}',
+    );
     exit(1);
   }
 
@@ -116,7 +118,9 @@ CompilationUnit parseDirectives(Source source) {
     DiagnosticListener.nullListener,
     featureSet: FeatureSet.latestLanguageVersion(),
     languageVersion: LibraryLanguageVersion(
-        package: ExperimentStatus.currentVersion, override: null),
+      package: ExperimentStatus.currentVersion,
+      override: null,
+    ),
     lineInfo: lineInfo,
   );
   return parser.parseDirectives(result.tokens);
@@ -144,7 +148,9 @@ CompilationUnit parseFull(Source source) {
     DiagnosticListener.nullListener,
     featureSet: FeatureSet.latestLanguageVersion(),
     languageVersion: LibraryLanguageVersion(
-        package: ExperimentStatus.currentVersion, override: null),
+      package: ExperimentStatus.currentVersion,
+      override: null,
+    ),
     lineInfo: lineInfo,
   );
   var unit = parser.parseCompilationUnit(result.tokens);
@@ -195,7 +201,7 @@ Set<Source> scanReachableFiles(Uri entryUri) {
     'dart:math',
     'dart:mirrors',
     'dart:typed_data',
-    'dart:io'
+    'dart:io',
   ];
 
   for (var lib in libs) {
@@ -227,10 +233,7 @@ Set<Uint8List> loadFileContentsAsBytes(Set<Source> files) {
 void setup(String path) {
   var provider = PhysicalResourceProvider.INSTANCE;
 
-  var packages = findPackagesFrom(
-    provider,
-    provider.getResource(path),
-  );
+  var packages = findPackagesFrom(provider, provider.getResource(path));
 
   var packageMap = <String, List<Folder>>{};
   for (var package in packages.packages) {
@@ -241,7 +244,8 @@ void setup(String path) {
     new ResourceUriResolver(provider),
     new PackageMapUriResolver(provider, packageMap),
     new DartUriResolver(
-        new FolderBasedDartSdk(provider, provider.getFolder(_sdkPath))),
+      new FolderBasedDartSdk(provider, provider.getFolder(_sdkPath)),
+    ),
   ]);
 }
 
@@ -250,8 +254,10 @@ ScannerResult tokenize(Source source) {
   scanTimer.start();
   // TODO(sigmund): is there a way to scan from a random-access-file without
   // first converting to String?
-  ScannerResult result =
-      scanString(source.contents.data, includeComments: false);
+  ScannerResult result = scanString(
+    source.contents.data,
+    includeComments: false,
+  );
   var token = result.tokens;
   if (result.hasErrors) {
     // Ignore errors.
@@ -282,7 +288,7 @@ String _findSdkPath() {
   var executableDir = path.dirname(executable);
   for (var candidate in [
     path.dirname(executableDir),
-    path.join(executableDir, 'dart-sdk')
+    path.join(executableDir, 'dart-sdk'),
   ]) {
     if (new File(path.join(candidate, 'lib', 'libraries.json')).existsSync()) {
       return candidate;

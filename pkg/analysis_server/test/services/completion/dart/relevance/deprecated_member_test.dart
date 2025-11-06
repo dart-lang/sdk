@@ -19,7 +19,7 @@ class DeprecatedMemberTest extends CompletionRelevanceTest
 
 mixin DeprecatedMemberTestCases on CompletionRelevanceTest {
   Future<void> test_deprecated() async {
-    await addTestFile('''
+    await computeSuggestions('''
 class A {
   void a1() { }
   @deprecated

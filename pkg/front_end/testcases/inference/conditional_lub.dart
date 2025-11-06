@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/*@testedFeatures=inference*/
 library test;
 
 bool b = true;
@@ -11,5 +10,5 @@ double y = 0.0;
 var z = b ? x : y;
 
 main() {
-  var /*@type=num*/ z = b ? x : y;
+  var z = b ? x : y;
 }

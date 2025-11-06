@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-part of dart._js_helper;
+part of "dart:_js_helper";
 
 // TODO(joshualitt): This is a fork of the DDC RegExp class. In the longer term,
 // with careful factoring we may be able to share this code.

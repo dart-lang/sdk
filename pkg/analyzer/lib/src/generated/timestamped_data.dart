@@ -2,18 +2,15 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:_fe_analyzer_shared/src/base/analyzer_public_api.dart';
+@Deprecated('Please use package:analyzer/source/timestamped_data.dart instead.')
+library;
 
-/// Analysis data for which we have a modification time.
-@AnalyzerPublicApi(message: 'exposed by Source.contents')
-class TimestampedData<E> {
-  /// The modification time of the source from which the data was created.
-  final int modificationTime;
+// This export is needed because there are versions of package `dartdoc` that
+// import the `TimestampedData` class from here.
+//
+// All of those versions have an analyzer constraint < 9.0.0, so once the
+// analyzer version gets bumped to 9.0.0, it will be safe to remove this file.
+//
+// TODO(paulberry): remove this file in analyzer version 9.0.0.
 
-  /// The data that was created from the source.
-  final E data;
-
-  /// Initialize a newly created holder to associate the given [data] with the
-  /// given [modificationTime].
-  TimestampedData(this.modificationTime, this.data);
-}
+export 'package:analyzer/source/timestamped_data.dart' show TimestampedData;

@@ -20,34 +20,44 @@ import '../utils/symbolic_language_versions.dart';
 
 Future<void> main(List<String> args) async {
   Directory dataDir = new Directory.fromUri(Platform.script.resolve('data'));
-  await runTests<Features>(dataDir,
-      args: args,
-      createUriForFileName: createUriForFileName,
-      onFailure: onFailure,
-      runTest: runTestFor(const PatchingDataComputer(), [
-        new TestConfigWithLanguageVersion(cfeMarker, 'cfe',
-            librariesSpecificationUri: createUriForFileName('libraries.json'),
-            experimentalFlags: {},
-            allowedExperimentalFlags: const AllowedExperimentalFlags())
-      ]),
-      preProcessFile: replaceMarkersWithVersions,
-      postProcessFile: replaceVersionsWithMarkers);
+  await runTests<Features>(
+    dataDir,
+    args: args,
+    createUriForFileName: createUriForFileName,
+    onFailure: onFailure,
+    runTest: runTestFor(const PatchingDataComputer(), [
+      new TestConfigWithLanguageVersion(
+        cfeMarker,
+        'cfe',
+        librariesSpecificationUri: createUriForFileName('libraries.json'),
+        experimentalFlags: {},
+        allowedExperimentalFlags: const AllowedExperimentalFlags(),
+      ),
+    ]),
+    preProcessFile: replaceMarkersWithVersions,
+    postProcessFile: replaceVersionsWithMarkers,
+  );
 }
 
 class TestConfigWithLanguageVersion extends CfeTestConfig {
-  TestConfigWithLanguageVersion(String marker, String name,
-      {Uri? librariesSpecificationUri,
-      Map<ExperimentalFlag, bool> experimentalFlags = const {},
-      AllowedExperimentalFlags? allowedExperimentalFlags})
-      : super(marker, name,
-            librariesSpecificationUri: librariesSpecificationUri,
-            explicitExperimentalFlags: experimentalFlags,
-            allowedExperimentalFlags: allowedExperimentalFlags);
+  TestConfigWithLanguageVersion(
+    String marker,
+    String name, {
+    Uri? librariesSpecificationUri,
+    Map<ExperimentalFlag, bool> experimentalFlags = const {},
+    AllowedExperimentalFlags? allowedExperimentalFlags,
+  }) : super(
+         marker,
+         name,
+         librariesSpecificationUri: librariesSpecificationUri,
+         explicitExperimentalFlags: experimentalFlags,
+         allowedExperimentalFlags: allowedExperimentalFlags,
+       );
 
   @override
   void customizeCompilerOptions(CompilerOptions options, TestData testData) {
-    options.currentSdkVersion =
-        SymbolicLanguageVersion.currentVersion.version.toText();
+    options.currentSdkVersion = SymbolicLanguageVersion.currentVersion.version
+        .toText();
   }
 }
 
@@ -55,27 +65,41 @@ class PatchingDataComputer extends CfeDataComputer<Features> {
   const PatchingDataComputer();
 
   @override
-  void computeMemberData(CfeTestResultData testResultData, Member member,
-      Map<Id, ActualData<Features>> actualMap,
-      {bool? verbose}) {
+  void computeMemberData(
+    CfeTestResultData testResultData,
+    Member member,
+    Map<Id, ActualData<Features>> actualMap, {
+    bool? verbose,
+  }) {
     member.accept(
-        new PatchingDataExtractor(testResultData.compilerResult, actualMap));
+      new PatchingDataExtractor(testResultData.compilerResult, actualMap),
+    );
   }
 
   @override
-  void computeClassData(CfeTestResultData testResultData, Class cls,
-      Map<Id, ActualData<Features>> actualMap,
-      {bool? verbose}) {
-    new PatchingDataExtractor(testResultData.compilerResult, actualMap)
-        .computeForClass(cls);
+  void computeClassData(
+    CfeTestResultData testResultData,
+    Class cls,
+    Map<Id, ActualData<Features>> actualMap, {
+    bool? verbose,
+  }) {
+    new PatchingDataExtractor(
+      testResultData.compilerResult,
+      actualMap,
+    ).computeForClass(cls);
   }
 
   @override
-  void computeLibraryData(CfeTestResultData testResultData, Library library,
-      Map<Id, ActualData<Features>> actualMap,
-      {bool? verbose}) {
-    new PatchingDataExtractor(testResultData.compilerResult, actualMap)
-        .computeForLibrary(library);
+  void computeLibraryData(
+    CfeTestResultData testResultData,
+    Library library,
+    Map<Id, ActualData<Features>> actualMap, {
+    bool? verbose,
+  }) {
+    new PatchingDataExtractor(
+      testResultData.compilerResult,
+      actualMap,
+    ).computeForLibrary(library);
   }
 
   @override
@@ -83,7 +107,10 @@ class PatchingDataComputer extends CfeDataComputer<Features> {
 
   @override
   Features computeErrorData(
-      CfeTestResultData testResultData, Id id, List<FormattedMessage> errors) {
+    CfeTestResultData testResultData,
+    Id id,
+    List<FormattedMessage> errors,
+  ) {
     Features features = new Features();
     features[Tags.error] = errorsToText(errors);
     return features;
@@ -104,9 +131,10 @@ class Tags {
 }
 
 class PatchingDataExtractor extends CfeDataExtractor<Features> {
-  PatchingDataExtractor(InternalCompilerResult compilerResult,
-      Map<Id, ActualData<Features>> actualMap)
-      : super(compilerResult, actualMap);
+  PatchingDataExtractor(
+    InternalCompilerResult compilerResult,
+    Map<Id, ActualData<Features>> actualMap,
+  ) : super(compilerResult, actualMap);
 
   @override
   Features computeClassValue(Id id, Class cls) {
@@ -117,9 +145,9 @@ class PatchingDataExtractor extends CfeDataExtractor<Features> {
     if (cls.isAbstract) {
       features.add(Tags.isAbstract);
     }
-    clsBuilder
-        .filteredMembersIterator(includeDuplicates: false)
-        .forEach((NamedBuilder builder) {
+    clsBuilder.filteredMembersIterator(includeDuplicates: false).forEach((
+      NamedBuilder builder,
+    ) {
       features.addElement(Tags.scope, builder.name);
     });
 

@@ -28,7 +28,10 @@ List<GeneratedContent> allTargetsForPackage(String pkgName) => [
       includedPaths: [join(pkgRoot, pkgName)],
       resourceProvider: provider,
     );
-    var context = collection.contexts.first;
+    // Use `.single` to make sure that `collection` just contains a single
+    // context. This ensures that `publicApi.build` will see all the files in
+    // the package.
+    var context = collection.contexts.single;
     var publicApi = ApiDescription(pkgName);
     var stringBuffer = StringBuffer();
     _printNodes(stringBuffer, await publicApi.build(context));
@@ -99,7 +102,7 @@ class ApiDescription {
             (await context.currentSession.getResolvedLibrary(file))
                 as ResolvedLibraryResult;
         var node = nodes[uri] = Node<MemberSortKey>();
-        _dumpLibrary(resolvedLibraryResult.element2, node);
+        _dumpLibrary(resolvedLibraryResult.element, node);
       }
     }
     // Then dump anything referenced by public libraries.
@@ -107,11 +110,11 @@ class ApiDescription {
       var element = _potentiallyDanglingReferences.removeFirst();
       if (!_dumpedTopLevelElements.add(element)) continue;
       var containingLibraryUri = element.library!.uri;
-      var childNode =
-          Node<MemberSortKey>()..text.add(_uniqueNamer.name(element));
+      var childNode = Node<MemberSortKey>()
+        ..text.add(_uniqueNamer.name(element));
       _dumpElement(element, childNode);
-      (nodes[containingLibraryUri] ??=
-              Node<MemberSortKey>()..text.add('$containingLibraryUri:'))
+      (nodes[containingLibraryUri] ??= Node<MemberSortKey>()
+            ..text.add('$containingLibraryUri:'))
           .childNodes
           .add((MemberSortKey(element), childNode));
     }
@@ -148,13 +151,20 @@ class ApiDescription {
         for (var formalParameter in formalParameters) {
           if (formalParameter.isNamed) {
             namedParams[formalParameter.name!] = [
+              if (formalParameter.isDeprecated) 'deprecated ',
               if (formalParameter.isRequired) 'required ',
               ..._describeType(formalParameter.type),
             ];
           } else if (formalParameter.isOptional) {
-            optionalParams.add(_describeType(formalParameter.type));
+            optionalParams.add([
+              if (formalParameter.isDeprecated) 'deprecated ',
+              ..._describeType(formalParameter.type),
+            ]);
           } else {
-            params.add(_describeType(formalParameter.type));
+            params.add([
+              if (formalParameter.isDeprecated) 'deprecated ',
+              ..._describeType(formalParameter.type),
+            ]);
           }
         }
         if (optionalParams.isNotEmpty) {
@@ -392,13 +402,11 @@ class ApiDescription {
         throw UnimplementedError('Unexpected element: $runtimeType');
     }
 
-    if (element case Annotatable element) {
-      if (element.metadata.hasDeprecated) {
-        parentheticals.add(['deprecated']);
-      }
-      if (element.metadata.hasExperimental) {
-        parentheticals.add(['experimental']);
-      }
+    if (element.metadata.hasDeprecated) {
+      parentheticals.add(['deprecated']);
+    }
+    if (element.metadata.hasExperimental) {
+      parentheticals.add(['experimental']);
     }
 
     if (parentheticals.isNotEmpty) {
@@ -416,8 +424,8 @@ class ApiDescription {
     var definedNames = library.exportNamespace.definedNames2;
     for (var key in definedNames.keys.sorted()) {
       var element = definedNames[key]!;
-      var childNode =
-          Node<MemberSortKey>()..text.add(_uniqueNamer.name(element));
+      var childNode = Node<MemberSortKey>()
+        ..text.add(_uniqueNamer.name(element));
       if (!_dumpedTopLevelElements.add(element)) {
         childNode.text.add(' (see above)');
       } else {
@@ -504,16 +512,18 @@ class MemberSortKey implements Comparable<MemberSortKey> {
     InterfaceElement() => MemberCategory.interface,
     ExtensionElement() => MemberCategory.extension,
     TypeAliasElement() => MemberCategory.typeAlias,
-    dynamic(:var runtimeType) =>
-      throw UnimplementedError('Unexpected element: $runtimeType'),
+    dynamic(:var runtimeType) => throw UnimplementedError(
+      'Unexpected element: $runtimeType',
+    ),
   };
 
   static bool _computeIsInstanceMember(Element element) =>
       element.enclosingElement is InstanceElement &&
       switch (element) {
         ExecutableElement(:var isStatic) => !isStatic,
-        dynamic(:var runtimeType) =>
-          throw UnimplementedError('Unexpected element: $runtimeType'),
+        dynamic(:var runtimeType) => throw UnimplementedError(
+          'Unexpected element: $runtimeType',
+        ),
       };
 }
 
@@ -568,11 +578,10 @@ class UniqueName {
   }
 
   @override
-  String toString() =>
-      [
-        _nameHint,
-        if (_disambiguator case var disambiguator?) '@$disambiguator',
-      ].join();
+  String toString() => [
+    _nameHint,
+    if (_disambiguator case var disambiguator?) '@$disambiguator',
+  ].join();
 }
 
 /// Manager of unique names for elements.
@@ -598,8 +607,9 @@ class UriSortKey implements Comparable<UriSortKey> {
   final String _uriString;
 
   UriSortKey(Uri uri, String pkgName)
-    : _category =
-          uri.isIn(pkgName) ? UriCategory.inPackage : UriCategory.notInPackage,
+    : _category = uri.isIn(pkgName)
+          ? UriCategory.inPackage
+          : UriCategory.notInPackage,
       _uriString = uri.toString();
 
   @override
@@ -650,16 +660,14 @@ extension on Element {
   bool isInPublicApiOf(String packageName) {
     if (this case PropertyAccessorElement(
       isSynthetic: true,
-      :var variable?,
+      :var variable,
     ) when variable.isInPublicApiOf(packageName)) {
       return true;
     }
     if (packageName == 'analyzer') {
       // Any element annotated with `@analyzerPublicApi` is considered to be
       // part of the public API of the analyzer package.
-      if (this case Annotatable(
-        metadata: Metadata(:var annotations),
-      ) when annotations.any(_isPublicApiAnnotation)) {
+      if (metadata.annotations.any(_isPublicApiAnnotation)) {
         return true;
       }
     }
@@ -670,14 +678,19 @@ extension on Element {
 
   bool _isPublicApiAnnotation(ElementAnnotation annotation) {
     if (annotation.computeConstantValue() case DartObject(
-      type: InterfaceType(
-        element: InterfaceElement(name: 'AnalyzerPublicApi'),
-      ),
+      type: InterfaceType(element: InterfaceElement(name: 'AnalyzerPublicApi')),
     )) {
       return true;
     } else {
       return false;
     }
+  }
+}
+
+extension on FormalParameterElement {
+  bool get isDeprecated {
+    // TODO(paulberry): add this to the analyzer public API
+    return metadata.hasDeprecated;
   }
 }
 

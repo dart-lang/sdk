@@ -5,8 +5,6 @@
 // Exercises flow analysis of null-aware map entries when `sound-flow-analysis`
 // is enabled.
 
-// SharedOptions=--enable-experiment=sound-flow-analysis
-
 // ignore_for_file: invalid_null_aware_operator
 
 import '../static_type_helper.dart';

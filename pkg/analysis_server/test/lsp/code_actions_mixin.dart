@@ -5,6 +5,7 @@
 import 'package:analysis_server/lsp_protocol/protocol.dart';
 import 'package:analysis_server/src/lsp/constants.dart';
 import 'package:analysis_server/src/lsp/extensions/code_action.dart';
+import 'package:analyzer/src/test_utilities/platform.dart';
 import 'package:analyzer/src/test_utilities/test_code_format.dart';
 import 'package:collection/collection.dart';
 import 'package:test/test.dart';
@@ -80,6 +81,8 @@ mixin CodeActionsTestMixin
     String? filePath,
     bool openTargetFile = false,
   }) async {
+    content = normalizeNewlinesForPlatform(content);
+
     var action = await expectCodeAction(
       TestCode.parse(content),
       kind: kind,
@@ -330,10 +333,14 @@ mixin CodeActionsTestMixin
     // For convenience, if a test doesn't provide an full set of edits
     // we assume only a single edit of the file that was being modified.
     if (!expected.startsWith(LspChangeVerifier.editMarkerStart)) {
-      expected = '''
+      expected =
+          '''
 ${LspChangeVerifier.editMarkerStart} ${relativePath(filePath)}
 $expected''';
     }
+
+    content = normalizeNewlinesForPlatform(content);
+    expected = normalizeNewlinesForPlatform(expected);
 
     var action = await expectCodeActionLiteral(
       filePath: filePath,
@@ -370,10 +377,14 @@ $expected''';
     // For convenience, if a test doesn't provide an full set of edits
     // we assume only a single edit of the file that was being modified.
     if (!expected.startsWith(LspChangeVerifier.editMarkerStart)) {
-      expected = '''
+      expected =
+          '''
 ${LspChangeVerifier.editMarkerStart} ${relativePath(filePath)}
 $expected''';
     }
+
+    content = normalizeNewlinesForPlatform(content);
+    expected = normalizeNewlinesForPlatform(expected);
 
     var commandAction = await expectCommandCodeAction(
       filePath: filePath,

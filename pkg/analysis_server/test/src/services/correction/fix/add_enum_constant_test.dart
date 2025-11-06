@@ -18,7 +18,7 @@ void main() {
 @reflectiveTest
 class AddEnumConstantTest extends FixProcessorTest {
   @override
-  FixKind get kind => DartFixKind.ADD_ENUM_CONSTANT;
+  FixKind get kind => DartFixKind.addEnumConstant;
 
   Future<void> test_add() async {
     await resolveTestCode('''
@@ -33,6 +33,23 @@ enum E {ONE, TWO}
 
 E e() {
   return E.TWO;
+}
+''', matchFixMessage: "Add enum constant 'TWO'");
+  }
+
+  Future<void> test_add_dotShorthand() async {
+    await resolveTestCode('''
+enum E { ONE }
+
+E e() {
+  return .TWO;
+}
+''');
+    await assertHasFix('''
+enum E { ONE, TWO }
+
+E e() {
+  return .TWO;
 }
 ''', matchFixMessage: "Add enum constant 'TWO'");
   }
@@ -52,6 +69,24 @@ E e() {
 
     await assertHasFix('''
 enum E {ONE, TWO}
+''', target: '$testPackageLibPath/a.dart');
+  }
+
+  Future<void> test_differentLibrary_dotShorthand() async {
+    newFile('$testPackageLibPath/a.dart', '''
+enum E { ONE }
+''');
+
+    await resolveTestCode('''
+import 'a.dart';
+
+E e() {
+  return .TWO;
+}
+''');
+
+    await assertHasFix('''
+enum E { ONE, TWO }
 ''', target: '$testPackageLibPath/a.dart');
   }
 
@@ -77,6 +112,32 @@ enum E {
 
 E e() {
   return E.TWO;
+}
+''');
+  }
+
+  Future<void> test_named_dotShorthand() async {
+    await resolveTestCode('''
+enum E {
+  ONE.named();
+
+  const E.named();
+}
+
+E e() {
+  return .TWO;
+}
+''');
+
+    await assertHasFix('''
+enum E {
+  ONE.named(), TWO.named();
+
+  const E.named();
+}
+
+E e() {
+  return .TWO;
 }
 ''');
   }
@@ -109,6 +170,34 @@ E e() {
 ''');
   }
 
+  Future<void> test_named_factory_dotShorthand() async {
+    await resolveTestCode('''
+enum E {
+  ONE.named();
+
+  const E.named();
+  factory E.f() => ONE;
+}
+
+E e() {
+  return .TWO;
+}
+''');
+
+    await assertHasFix('''
+enum E {
+  ONE.named(), TWO.named();
+
+  const E.named();
+  factory E.f() => ONE;
+}
+
+E e() {
+  return .TWO;
+}
+''');
+  }
+
   Future<void> test_named_named() async {
     await resolveTestCode('''
 enum E {
@@ -126,6 +215,23 @@ E e() {
     await assertNoFix();
   }
 
+  Future<void> test_named_named_dotShorthand() async {
+    await resolveTestCode('''
+enum E {
+  ONE.something(), TWO.other();
+
+  const E.something();
+  const E.other();
+}
+
+E e() {
+  return .THREE;
+}
+''');
+
+    await assertNoFix();
+  }
+
   Future<void> test_named_non_zero() async {
     await resolveTestCode('''
 enum E {
@@ -137,6 +243,23 @@ enum E {
 
 E e() {
   return E.TWO;
+}
+''');
+
+    await assertNoFix();
+  }
+
+  Future<void> test_named_non_zero_dotShorthand() async {
+    await resolveTestCode('''
+enum E {
+  ONE.named(1);
+
+  final int i;
+  const E.named(this.i);
+}
+
+E e() {
+  return .TWO;
 }
 ''');
 
@@ -177,7 +300,30 @@ void f() {
 }
 ''',
       errorFilter: (e) {
-        return e.diagnosticCode == CompileTimeErrorCode.UNDEFINED_ENUM_CONSTANT;
+        return e.diagnosticCode == CompileTimeErrorCode.undefinedEnumConstant;
+      },
+    );
+  }
+
+  Future<void> test_toEmpty_dotShorthand() async {
+    await resolveTestCode('''
+enum E {}
+
+E e() {
+  return .ONE;
+}
+''');
+    await assertHasFix(
+      '''
+enum E {ONE}
+
+E e() {
+  return .ONE;
+}
+''',
+      errorFilter: (e) {
+        return e.diagnosticCode ==
+            CompileTimeErrorCode.dotShorthandUndefinedGetter;
       },
     );
   }

@@ -83,7 +83,7 @@ void f() async {
 }
 T a<T>() => throw '';
 ''',
-      [error(WarningCode.UNUSED_LOCAL_VARIABLE, 34, 1)],
+      [error(WarningCode.unusedLocalVariable, 34, 1)],
     );
 
     var node = findNode.singleMethodInvocation;
@@ -111,7 +111,7 @@ void f() async {
 }
 T a<T>() => throw '';
 ''',
-      [error(WarningCode.UNUSED_LOCAL_VARIABLE, 34, 1)],
+      [error(WarningCode.unusedLocalVariable, 34, 1)],
     );
 
     var node = findNode.singleMethodInvocation;
@@ -175,7 +175,7 @@ void f() {
 }
 T a<T>() => throw '';
 ''',
-      [error(WarningCode.UNUSED_LOCAL_VARIABLE, 22, 1)],
+      [error(WarningCode.unusedLocalVariable, 22, 1)],
     );
 
     var node = findNode.singleMethodInvocation;
@@ -203,7 +203,7 @@ void f() {
 }
 T a<T>() => throw '';
 ''',
-      [error(WarningCode.UNUSED_LOCAL_VARIABLE, 22, 1)],
+      [error(WarningCode.unusedLocalVariable, 22, 1)],
     );
 
     var node = findNode.singleMethodInvocation;

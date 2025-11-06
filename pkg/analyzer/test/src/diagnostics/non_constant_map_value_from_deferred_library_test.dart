@@ -33,7 +33,7 @@ var v = const { if (cond) 'a': 'b' else 'c' : a.c};
 ''',
       [
         error(
-          CompileTimeErrorCode.NON_CONSTANT_MAP_VALUE_FROM_DEFERRED_LIBRARY,
+          CompileTimeErrorCode.nonConstantMapValueFromDeferredLibrary,
           99,
           3,
         ),
@@ -52,7 +52,7 @@ var v = const { if (cond) 'a' : a.c};
 ''',
       [
         error(
-          CompileTimeErrorCode.NON_CONSTANT_MAP_VALUE_FROM_DEFERRED_LIBRARY,
+          CompileTimeErrorCode.nonConstantMapValueFromDeferredLibrary,
           87,
           1,
         ),
@@ -70,7 +70,7 @@ var v = const {'a' : a.c};
 ''',
       [
         error(
-          CompileTimeErrorCode.NON_CONSTANT_MAP_VALUE_FROM_DEFERRED_LIBRARY,
+          CompileTimeErrorCode.nonConstantMapValueFromDeferredLibrary,
           57,
           1,
         ),
@@ -88,7 +88,7 @@ var v = const {'a' : a.c + 1};
 ''',
       [
         error(
-          CompileTimeErrorCode.NON_CONSTANT_MAP_VALUE_FROM_DEFERRED_LIBRARY,
+          CompileTimeErrorCode.nonConstantMapValueFromDeferredLibrary,
           57,
           1,
         ),

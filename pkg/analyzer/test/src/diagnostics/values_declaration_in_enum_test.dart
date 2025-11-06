@@ -22,7 +22,7 @@ enum E {
   values
 }
 ''',
-      [error(CompileTimeErrorCode.VALUES_DECLARATION_IN_ENUM, 11, 6)],
+      [error(CompileTimeErrorCode.valuesDeclarationInEnum, 11, 6)],
     );
   }
 
@@ -34,7 +34,7 @@ enum E {
   final int values = 0;
 }
 ''',
-      [error(CompileTimeErrorCode.VALUES_DECLARATION_IN_ENUM, 26, 6)],
+      [error(CompileTimeErrorCode.valuesDeclarationInEnum, 26, 6)],
     );
   }
 
@@ -46,7 +46,7 @@ enum E {
   static int values = 0;
 }
 ''',
-      [error(CompileTimeErrorCode.VALUES_DECLARATION_IN_ENUM, 27, 6)],
+      [error(CompileTimeErrorCode.valuesDeclarationInEnum, 27, 6)],
     );
   }
 
@@ -59,7 +59,7 @@ enum E {
   const E();
 }
 ''',
-      [error(CompileTimeErrorCode.VALUES_DECLARATION_IN_ENUM, 22, 6)],
+      [error(CompileTimeErrorCode.valuesDeclarationInEnum, 22, 6)],
     );
   }
 
@@ -71,7 +71,7 @@ enum E {
   int get values => 0;
 }
 ''',
-      [error(CompileTimeErrorCode.VALUES_DECLARATION_IN_ENUM, 24, 6)],
+      [error(CompileTimeErrorCode.valuesDeclarationInEnum, 24, 6)],
     );
   }
 
@@ -83,7 +83,7 @@ enum E {
   static int get values => 0;
 }
 ''',
-      [error(CompileTimeErrorCode.VALUES_DECLARATION_IN_ENUM, 31, 6)],
+      [error(CompileTimeErrorCode.valuesDeclarationInEnum, 31, 6)],
     );
   }
 
@@ -95,7 +95,7 @@ enum E {
   void values() {}
 }
 ''',
-      [error(CompileTimeErrorCode.VALUES_DECLARATION_IN_ENUM, 21, 6)],
+      [error(CompileTimeErrorCode.valuesDeclarationInEnum, 21, 6)],
     );
   }
 
@@ -107,7 +107,7 @@ enum E {
   static void values() {}
 }
 ''',
-      [error(CompileTimeErrorCode.VALUES_DECLARATION_IN_ENUM, 28, 6)],
+      [error(CompileTimeErrorCode.valuesDeclarationInEnum, 28, 6)],
     );
   }
 
@@ -119,7 +119,7 @@ enum E {
   set values(_) {}
 }
 ''',
-      [error(CompileTimeErrorCode.VALUES_DECLARATION_IN_ENUM, 20, 6)],
+      [error(CompileTimeErrorCode.valuesDeclarationInEnum, 20, 6)],
     );
   }
 

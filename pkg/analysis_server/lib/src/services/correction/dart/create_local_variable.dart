@@ -25,7 +25,7 @@ class CreateLocalVariable extends ResolvedCorrectionProducer {
   List<String> get fixArguments => [_variableName];
 
   @override
-  FixKind get fixKind => DartFixKind.CREATE_LOCAL_VARIABLE;
+  FixKind get fixKind => DartFixKind.createLocalVariable;
 
   @override
   Future<void> compute(ChangeBuilder builder) async {
@@ -68,7 +68,8 @@ class CreateLocalVariable extends ResolvedCorrectionProducer {
     if (!(type == null ||
         type is InterfaceType ||
         type is FunctionType ||
-        type is RecordType)) {
+        type is RecordType ||
+        type is InvalidType)) {
       return;
     }
     // build variable declaration source
@@ -80,7 +81,7 @@ class CreateLocalVariable extends ResolvedCorrectionProducer {
           type: type,
           typeGroupName: 'TYPE',
         );
-        builder.write(eol);
+        builder.writeln();
         builder.write(prefix);
       });
       builder.addLinkedPosition(range.node(node), 'NAME');

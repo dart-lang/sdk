@@ -3,7 +3,8 @@ library from "org-dartlang-test:///a.dart" as a {
 
   import "dart:ffi";
 
-  @#C7
+  @#C3
+  @#C9
   final class StructA extends dart.ffi::Struct {
     synthetic constructor •() → a::StructA
       : super dart.ffi::Struct::•()
@@ -11,51 +12,52 @@ library from "org-dartlang-test:///a.dart" as a {
     constructor #fromTypedDataBase(synthesized dart.core::Object #typedDataBase, synthesized dart.core::int #offsetInBytes) → a::StructA
       : super dart.ffi::Struct::_fromTypedDataBase(#typedDataBase, #offsetInBytes)
       ;
-    @#C9
+    @#C11
     constructor #fromTypedData(synthesized dart.typed_data::TypedData #typedData, synthesized dart.core::int #offset, synthesized dart.core::int #sizeInBytes) → a::StructA
       : super dart.ffi::Struct::_fromTypedData(#typedData, #offset, #sizeInBytes)
       ;
-    @#C9
+    @#C11
     get a1() → dart.ffi::Pointer<dart.ffi::Void>
       return dart.ffi::_loadPointer<dart.ffi::Void>(this.{dart.ffi::_Compound::_typedDataBase}{dart.core::Object}, a::StructA::a1#offsetOf.{dart.core::num::+}(this.{dart.ffi::_Compound::_offsetInBytes}{dart.core::int}){(dart.core::num) → dart.core::num});
-    @#C9
+    @#C11
     set a1(synthesized dart.ffi::Pointer<dart.ffi::Void> #externalFieldValue) → void
       return dart.ffi::_storePointer<dart.ffi::Void>(this.{dart.ffi::_Compound::_typedDataBase}{dart.core::Object}, a::StructA::a1#offsetOf.{dart.core::num::+}(this.{dart.ffi::_Compound::_offsetInBytes}{dart.core::int}){(dart.core::num) → dart.core::num}, #externalFieldValue);
-    @#C9
+    @#C11
     get a2() → dart.ffi::Pointer<dart.ffi::Void>
       return dart.ffi::_loadPointer<dart.ffi::Void>(this.{dart.ffi::_Compound::_typedDataBase}{dart.core::Object}, a::StructA::a2#offsetOf.{dart.core::num::+}(this.{dart.ffi::_Compound::_offsetInBytes}{dart.core::int}){(dart.core::num) → dart.core::num});
-    @#C9
+    @#C11
     set a2(synthesized dart.ffi::Pointer<dart.ffi::Void> #externalFieldValue) → void
       return dart.ffi::_storePointer<dart.ffi::Void>(this.{dart.ffi::_Compound::_typedDataBase}{dart.core::Object}, a::StructA::a2#offsetOf.{dart.core::num::+}(this.{dart.ffi::_Compound::_offsetInBytes}{dart.core::int}){(dart.core::num) → dart.core::num}, #externalFieldValue);
-    @#C9
+    @#C11
     get a3() → dart.ffi::Pointer<dart.ffi::Void>
       return dart.ffi::_loadPointer<dart.ffi::Void>(this.{dart.ffi::_Compound::_typedDataBase}{dart.core::Object}, a::StructA::a3#offsetOf.{dart.core::num::+}(this.{dart.ffi::_Compound::_offsetInBytes}{dart.core::int}){(dart.core::num) → dart.core::num});
-    @#C9
+    @#C11
     set a3(synthesized dart.ffi::Pointer<dart.ffi::Void> #externalFieldValue) → void
       return dart.ffi::_storePointer<dart.ffi::Void>(this.{dart.ffi::_Compound::_typedDataBase}{dart.core::Object}, a::StructA::a3#offsetOf.{dart.core::num::+}(this.{dart.ffi::_Compound::_offsetInBytes}{dart.core::int}){(dart.core::num) → dart.core::num}, #externalFieldValue);
-    @#C9
+    @#C11
     get blah() → a::NestedStruct
       return new a::NestedStruct::#fromTypedDataBase(this.{dart.ffi::_Compound::_typedDataBase}{dart.core::Object}, a::StructA::blah#offsetOf.{dart.core::num::+}(this.{dart.ffi::_Compound::_offsetInBytes}{dart.core::int}){(dart.core::num) → dart.core::num});
-    @#C9
+    @#C11
     set blah(synthesized a::NestedStruct #externalFieldValue) → void
-      return dart.ffi::_memCopy(this.{dart.ffi::_Compound::_typedDataBase}{dart.core::Object}, a::StructA::blah#offsetOf.{dart.core::num::+}(this.{dart.ffi::_Compound::_offsetInBytes}{dart.core::int}){(dart.core::num) → dart.core::num}, #externalFieldValue.{dart.ffi::_Compound::_typedDataBase}{dart.core::Object}, #externalFieldValue.{dart.ffi::_Compound::_offsetInBytes}{dart.core::int}, #C12.{dart.core::List::[]}(dart.ffi::_abi()){(dart.core::int) → dart.core::int});
-    @#C9
+      return dart.ffi::_memCopy(this.{dart.ffi::_Compound::_typedDataBase}{dart.core::Object}, a::StructA::blah#offsetOf.{dart.core::num::+}(this.{dart.ffi::_Compound::_offsetInBytes}{dart.core::int}){(dart.core::num) → dart.core::num}, #externalFieldValue.{dart.ffi::_Compound::_typedDataBase}{dart.core::Object}, #externalFieldValue.{dart.ffi::_Compound::_offsetInBytes}{dart.core::int}, #C14.{dart.core::List::[]}(dart.ffi::_abi()){(dart.core::int) → dart.core::int});
+    @#C11
     static synthetic get a1#offsetOf() → dart.core::int
-      return #C14.{dart.core::List::[]}(dart.ffi::_abi()){(dart.core::int) → dart.core::int};
-    @#C9
+      return #C16.{dart.core::List::[]}(dart.ffi::_abi()){(dart.core::int) → dart.core::int};
+    @#C11
     static synthetic get a2#offsetOf() → dart.core::int
-      return #C17.{dart.core::List::[]}(dart.ffi::_abi()){(dart.core::int) → dart.core::int};
-    @#C9
-    static synthetic get a3#offsetOf() → dart.core::int
       return #C19.{dart.core::List::[]}(dart.ffi::_abi()){(dart.core::int) → dart.core::int};
-    @#C9
-    static synthetic get blah#offsetOf() → dart.core::int
-      return #C12.{dart.core::List::[]}(dart.ffi::_abi()){(dart.core::int) → dart.core::int};
-    @#C9
-    static get #sizeOf() → dart.core::int
+    @#C11
+    static synthetic get a3#offsetOf() → dart.core::int
       return #C21.{dart.core::List::[]}(dart.ffi::_abi()){(dart.core::int) → dart.core::int};
+    @#C11
+    static synthetic get blah#offsetOf() → dart.core::int
+      return #C14.{dart.core::List::[]}(dart.ffi::_abi()){(dart.core::int) → dart.core::int};
+    @#C11
+    static get #sizeOf() → dart.core::int
+      return #C23.{dart.core::List::[]}(dart.ffi::_abi()){(dart.core::int) → dart.core::int};
   }
-  @#C24
+  @#C3
+  @#C26
   final class NestedStruct extends dart.ffi::Struct {
     synthetic constructor •() → a::NestedStruct
       : super dart.ffi::Struct::•()
@@ -63,40 +65,40 @@ library from "org-dartlang-test:///a.dart" as a {
     constructor #fromTypedDataBase(synthesized dart.core::Object #typedDataBase, synthesized dart.core::int #offsetInBytes) → a::NestedStruct
       : super dart.ffi::Struct::_fromTypedDataBase(#typedDataBase, #offsetInBytes)
       ;
-    @#C9
+    @#C11
     constructor #fromTypedData(synthesized dart.typed_data::TypedData #typedData, synthesized dart.core::int #offset, synthesized dart.core::int #sizeInBytes) → a::NestedStruct
       : super dart.ffi::Struct::_fromTypedData(#typedData, #offset, #sizeInBytes)
       ;
-    @#C9
+    @#C11
     get n1() → dart.ffi::Pointer<dart.ffi::Void>
       return dart.ffi::_loadPointer<dart.ffi::Void>(this.{dart.ffi::_Compound::_typedDataBase}{dart.core::Object}, a::NestedStruct::n1#offsetOf.{dart.core::num::+}(this.{dart.ffi::_Compound::_offsetInBytes}{dart.core::int}){(dart.core::num) → dart.core::num});
-    @#C9
+    @#C11
     set n1(synthesized dart.ffi::Pointer<dart.ffi::Void> #externalFieldValue) → void
       return dart.ffi::_storePointer<dart.ffi::Void>(this.{dart.ffi::_Compound::_typedDataBase}{dart.core::Object}, a::NestedStruct::n1#offsetOf.{dart.core::num::+}(this.{dart.ffi::_Compound::_offsetInBytes}{dart.core::int}){(dart.core::num) → dart.core::num}, #externalFieldValue);
-    @#C9
+    @#C11
     get n2() → dart.ffi::Pointer<dart.ffi::Void>
       return dart.ffi::_loadPointer<dart.ffi::Void>(this.{dart.ffi::_Compound::_typedDataBase}{dart.core::Object}, a::NestedStruct::n2#offsetOf.{dart.core::num::+}(this.{dart.ffi::_Compound::_offsetInBytes}{dart.core::int}){(dart.core::num) → dart.core::num});
-    @#C9
+    @#C11
     set n2(synthesized dart.ffi::Pointer<dart.ffi::Void> #externalFieldValue) → void
       return dart.ffi::_storePointer<dart.ffi::Void>(this.{dart.ffi::_Compound::_typedDataBase}{dart.core::Object}, a::NestedStruct::n2#offsetOf.{dart.core::num::+}(this.{dart.ffi::_Compound::_offsetInBytes}{dart.core::int}){(dart.core::num) → dart.core::num}, #externalFieldValue);
-    @#C9
+    @#C11
     get n3() → dart.ffi::Pointer<dart.ffi::Void>
       return dart.ffi::_loadPointer<dart.ffi::Void>(this.{dart.ffi::_Compound::_typedDataBase}{dart.core::Object}, a::NestedStruct::n3#offsetOf.{dart.core::num::+}(this.{dart.ffi::_Compound::_offsetInBytes}{dart.core::int}){(dart.core::num) → dart.core::num});
-    @#C9
+    @#C11
     set n3(synthesized dart.ffi::Pointer<dart.ffi::Void> #externalFieldValue) → void
       return dart.ffi::_storePointer<dart.ffi::Void>(this.{dart.ffi::_Compound::_typedDataBase}{dart.core::Object}, a::NestedStruct::n3#offsetOf.{dart.core::num::+}(this.{dart.ffi::_Compound::_offsetInBytes}{dart.core::int}){(dart.core::num) → dart.core::num}, #externalFieldValue);
-    @#C9
+    @#C11
     static synthetic get n1#offsetOf() → dart.core::int
-      return #C14.{dart.core::List::[]}(dart.ffi::_abi()){(dart.core::int) → dart.core::int};
-    @#C9
+      return #C16.{dart.core::List::[]}(dart.ffi::_abi()){(dart.core::int) → dart.core::int};
+    @#C11
     static synthetic get n2#offsetOf() → dart.core::int
-      return #C17.{dart.core::List::[]}(dart.ffi::_abi()){(dart.core::int) → dart.core::int};
-    @#C9
-    static synthetic get n3#offsetOf() → dart.core::int
       return #C19.{dart.core::List::[]}(dart.ffi::_abi()){(dart.core::int) → dart.core::int};
-    @#C9
+    @#C11
+    static synthetic get n3#offsetOf() → dart.core::int
+      return #C21.{dart.core::List::[]}(dart.ffi::_abi()){(dart.core::int) → dart.core::int};
+    @#C11
     static get #sizeOf() → dart.core::int
-      return #C12.{dart.core::List::[]}(dart.ffi::_abi()){(dart.core::int) → dart.core::int};
+      return #C14.{dart.core::List::[]}(dart.ffi::_abi()){(dart.core::int) → dart.core::int};
   }
 }
 library from "org-dartlang-test:///b.dart" as b {
@@ -106,7 +108,8 @@ library from "org-dartlang-test:///b.dart" as b {
   import "dart:async";
   import "org-dartlang-test:///a.dart";
 
-  @#C28
+  @#C3
+  @#C30
   final class StructB extends dart.ffi::Struct {
     synthetic constructor •() → b::StructB
       : super dart.ffi::Struct::•()
@@ -114,61 +117,63 @@ library from "org-dartlang-test:///b.dart" as b {
     constructor #fromTypedDataBase(synthesized dart.core::Object #typedDataBase, synthesized dart.core::int #offsetInBytes) → b::StructB
       : super dart.ffi::Struct::_fromTypedDataBase(#typedDataBase, #offsetInBytes)
       ;
-    @#C9
+    @#C11
     constructor #fromTypedData(synthesized dart.typed_data::TypedData #typedData, synthesized dart.core::int #offset, synthesized dart.core::int #sizeInBytes) → b::StructB
       : super dart.ffi::Struct::_fromTypedData(#typedData, #offset, #sizeInBytes)
       ;
-    @#C9
+    @#C11
     get b1() → a::StructA
       return new a::StructA::#fromTypedDataBase(this.{dart.ffi::_Compound::_typedDataBase}{dart.core::Object}, b::StructB::b1#offsetOf.{dart.core::num::+}(this.{dart.ffi::_Compound::_offsetInBytes}{dart.core::int}){(dart.core::num) → dart.core::num});
-    @#C9
+    @#C11
     set b1(synthesized a::StructA #externalFieldValue) → void
-      return dart.ffi::_memCopy(this.{dart.ffi::_Compound::_typedDataBase}{dart.core::Object}, b::StructB::b1#offsetOf.{dart.core::num::+}(this.{dart.ffi::_Compound::_offsetInBytes}{dart.core::int}){(dart.core::num) → dart.core::num}, #externalFieldValue.{dart.ffi::_Compound::_typedDataBase}{dart.core::Object}, #externalFieldValue.{dart.ffi::_Compound::_offsetInBytes}{dart.core::int}, #C21.{dart.core::List::[]}(dart.ffi::_abi()){(dart.core::int) → dart.core::int});
-    @#C9
+      return dart.ffi::_memCopy(this.{dart.ffi::_Compound::_typedDataBase}{dart.core::Object}, b::StructB::b1#offsetOf.{dart.core::num::+}(this.{dart.ffi::_Compound::_offsetInBytes}{dart.core::int}){(dart.core::num) → dart.core::num}, #externalFieldValue.{dart.ffi::_Compound::_typedDataBase}{dart.core::Object}, #externalFieldValue.{dart.ffi::_Compound::_offsetInBytes}{dart.core::int}, #C23.{dart.core::List::[]}(dart.ffi::_abi()){(dart.core::int) → dart.core::int});
+    @#C11
     static synthetic get b1#offsetOf() → dart.core::int
-      return #C14.{dart.core::List::[]}(dart.ffi::_abi()){(dart.core::int) → dart.core::int};
-    @#C9
+      return #C16.{dart.core::List::[]}(dart.ffi::_abi()){(dart.core::int) → dart.core::int};
+    @#C11
     static get #sizeOf() → dart.core::int
-      return #C21.{dart.core::List::[]}(dart.ffi::_abi()){(dart.core::int) → dart.core::int};
+      return #C23.{dart.core::List::[]}(dart.ffi::_abi()){(dart.core::int) → dart.core::int};
   }
   static method periodic() → void {
     dart.core::print(b::StructB::#sizeOf);
   }
   static method main() → void {
-    dart.async::Timer::periodic(#C30, (wildcard dart.async::Timer _#wc0#formal) → void => b::periodic());
+    dart.async::Timer::periodic(#C32, (wildcard dart.async::Timer _#wc0#formal) → void => b::periodic());
   }
 }
 constants  {
-  #C1 = "vm:ffi:struct-fields"
-  #C2 = TypeLiteralConstant(dart.ffi::Pointer<dart.core::Object>)
-  #C3 = TypeLiteralConstant(a::NestedStruct)
-  #C4 = <dart.core::Type>[#C2, #C2, #C2, #C3]
-  #C5 = null
-  #C6 = dart.ffi::_FfiStructLayout {fieldTypes:#C4, packing:#C5}
-  #C7 = dart.core::pragma {name:#C1, options:#C6}
-  #C8 = "vm:prefer-inline"
-  #C9 = dart.core::pragma {name:#C8, options:#C5}
-  #C10 = 12
-  #C11 = 24
-  #C12 = <dart.core::int>[#C10, #C11, #C10, #C11, #C11, #C11, #C11, #C11, #C10, #C11, #C11, #C10, #C11, #C10, #C11, #C10, #C11, #C11, #C11, #C11, #C10, #C11]
-  #C13 = 0
-  #C14 = <dart.core::int>[#C13, #C13, #C13, #C13, #C13, #C13, #C13, #C13, #C13, #C13, #C13, #C13, #C13, #C13, #C13, #C13, #C13, #C13, #C13, #C13, #C13, #C13]
-  #C15 = 4
-  #C16 = 8
-  #C17 = <dart.core::int>[#C15, #C16, #C15, #C16, #C16, #C16, #C16, #C16, #C15, #C16, #C16, #C15, #C16, #C15, #C16, #C15, #C16, #C16, #C16, #C16, #C15, #C16]
-  #C18 = 16
-  #C19 = <dart.core::int>[#C16, #C18, #C16, #C18, #C18, #C18, #C18, #C18, #C16, #C18, #C18, #C16, #C18, #C16, #C18, #C16, #C18, #C18, #C18, #C18, #C16, #C18]
-  #C20 = 48
-  #C21 = <dart.core::int>[#C11, #C20, #C11, #C20, #C20, #C20, #C20, #C20, #C11, #C20, #C20, #C11, #C20, #C11, #C20, #C11, #C20, #C20, #C20, #C20, #C11, #C20]
-  #C22 = <dart.core::Type>[#C2, #C2, #C2]
-  #C23 = dart.ffi::_FfiStructLayout {fieldTypes:#C22, packing:#C5}
-  #C24 = dart.core::pragma {name:#C1, options:#C23}
-  #C25 = TypeLiteralConstant(a::StructA)
-  #C26 = <dart.core::Type>[#C25]
-  #C27 = dart.ffi::_FfiStructLayout {fieldTypes:#C26, packing:#C5}
-  #C28 = dart.core::pragma {name:#C1, options:#C27}
-  #C29 = 1000000
-  #C30 = dart.core::Duration {_duration:#C29}
+  #C1 = "vm:deeply-immutable"
+  #C2 = null
+  #C3 = dart.core::pragma {name:#C1, options:#C2}
+  #C4 = "vm:ffi:struct-fields"
+  #C5 = TypeLiteralConstant(dart.ffi::Pointer<dart.core::Object>)
+  #C6 = TypeLiteralConstant(a::NestedStruct)
+  #C7 = <dart.core::Type>[#C5, #C5, #C5, #C6]
+  #C8 = dart.ffi::_FfiStructLayout {fieldTypes:#C7, packing:#C2}
+  #C9 = dart.core::pragma {name:#C4, options:#C8}
+  #C10 = "vm:prefer-inline"
+  #C11 = dart.core::pragma {name:#C10, options:#C2}
+  #C12 = 12
+  #C13 = 24
+  #C14 = <dart.core::int>[#C12, #C13, #C12, #C13, #C13, #C13, #C13, #C13, #C12, #C13, #C13, #C12, #C13, #C12, #C13, #C12, #C13, #C13, #C13, #C13, #C12, #C13]
+  #C15 = 0
+  #C16 = <dart.core::int>[#C15, #C15, #C15, #C15, #C15, #C15, #C15, #C15, #C15, #C15, #C15, #C15, #C15, #C15, #C15, #C15, #C15, #C15, #C15, #C15, #C15, #C15]
+  #C17 = 4
+  #C18 = 8
+  #C19 = <dart.core::int>[#C17, #C18, #C17, #C18, #C18, #C18, #C18, #C18, #C17, #C18, #C18, #C17, #C18, #C17, #C18, #C17, #C18, #C18, #C18, #C18, #C17, #C18]
+  #C20 = 16
+  #C21 = <dart.core::int>[#C18, #C20, #C18, #C20, #C20, #C20, #C20, #C20, #C18, #C20, #C20, #C18, #C20, #C18, #C20, #C18, #C20, #C20, #C20, #C20, #C18, #C20]
+  #C22 = 48
+  #C23 = <dart.core::int>[#C13, #C22, #C13, #C22, #C22, #C22, #C22, #C22, #C13, #C22, #C22, #C13, #C22, #C13, #C22, #C13, #C22, #C22, #C22, #C22, #C13, #C22]
+  #C24 = <dart.core::Type>[#C5, #C5, #C5]
+  #C25 = dart.ffi::_FfiStructLayout {fieldTypes:#C24, packing:#C2}
+  #C26 = dart.core::pragma {name:#C4, options:#C25}
+  #C27 = TypeLiteralConstant(a::StructA)
+  #C28 = <dart.core::Type>[#C27]
+  #C29 = dart.ffi::_FfiStructLayout {fieldTypes:#C28, packing:#C2}
+  #C30 = dart.core::pragma {name:#C4, options:#C29}
+  #C31 = 1000000
+  #C32 = dart.core::Duration {_duration:#C31}
 }
 
 

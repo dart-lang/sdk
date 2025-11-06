@@ -196,13 +196,10 @@ class IndexElementInfo {
           kind = IndexSyntheticElementKind.enumValues;
           element = enclosing;
         } else {
-          kind =
-              accessor is GetterElement
-                  ? IndexSyntheticElementKind.getter
-                  : IndexSyntheticElementKind.setter;
-          if (accessor.variable case var variable?) {
-            element = variable;
-          }
+          kind = accessor is GetterElement
+              ? IndexSyntheticElementKind.getter
+              : IndexSyntheticElementKind.setter;
+          element = accessor.variable;
         }
       } else if (element is MethodElement) {
         var enclosing = element.enclosingElement;
@@ -552,7 +549,7 @@ class _IndexAssembler {
     return unitMap.putIfAbsent(unitElement, () {
       assert(unitLibraryUris.length == unitUnitUris.length);
       int id = unitUnitUris.length;
-      unitLibraryUris.add(_getUriInfo(unitElement.library.source.uri));
+      unitLibraryUris.add(_getUriInfo(unitElement.library.uri));
       unitUnitUris.add(_getUriInfo(unitElement.source.uri));
       return id;
     });
@@ -886,7 +883,7 @@ class _IndexContributor extends GeneralizingAstVisitor {
   void visitDotShorthandPropertyAccess(DotShorthandPropertyAccess node) {
     IndexRelationKind kind;
     var element = node.propertyName.element;
-    if (element is ConstructorElementMixin2) {
+    if (element is InternalConstructorElement) {
       element = _getActualConstructorElement(element);
       kind = IndexRelationKind.IS_REFERENCED_BY_CONSTRUCTOR_TEAR_OFF;
     } else {
@@ -1056,10 +1053,9 @@ class _IndexContributor extends GeneralizingAstVisitor {
       recordNameRelation(name, IndexRelationKind.IS_INVOKED_BY, isQualified);
     }
     // element invocation
-    IndexRelationKind kind =
-        element is InterfaceElement
-            ? IndexRelationKind.IS_REFERENCED_BY
-            : IndexRelationKind.IS_INVOKED_BY;
+    IndexRelationKind kind = element is InterfaceElement
+        ? IndexRelationKind.IS_REFERENCED_BY
+        : IndexRelationKind.IS_INVOKED_BY;
     recordRelation(element, kind, name, isQualified);
     node.target?.accept(this);
     node.typeArguments?.accept(this);
@@ -1380,10 +1376,9 @@ class _IndexContributor extends GeneralizingAstVisitor {
     while (constructor is ConstructorElementImpl && constructor.isSynthetic) {
       var enclosing = constructor.enclosingElement;
       if (enclosing is ClassElementImpl && enclosing.isMixinApplication) {
-        var superInvocation =
-            constructor.firstFragment.constantInitializers
-                .whereType<SuperConstructorInvocation>()
-                .singleOrNull;
+        var superInvocation = constructor.firstFragment.constantInitializers
+            .whereType<SuperConstructorInvocation>()
+            .singleOrNull;
         if (superInvocation != null) {
           constructor = superInvocation.element;
         }
@@ -1451,7 +1446,7 @@ class _IndexContributor extends GeneralizingAstVisitor {
     }
     visitedElements.add(ancestor);
     if (includeThis) {
-      var offset = descendant.firstFragment.nameOffset2;
+      var offset = descendant.firstFragment.nameOffset;
       var length = descendant.name?.length;
       if (offset != null && length != null) {
         assembler.addElementRelation(
@@ -1475,12 +1470,7 @@ class _IndexContributor extends GeneralizingAstVisitor {
       }
     }
     for (InterfaceType mixinType in ancestor.mixins) {
-      _recordIsAncestorOf(
-        descendant,
-        mixinType.element,
-        true,
-        visitedElements,
-      );
+      _recordIsAncestorOf(descendant, mixinType.element, true, visitedElements);
     }
     if (ancestor is MixinElement) {
       for (InterfaceType type in ancestor.superclassConstraints) {

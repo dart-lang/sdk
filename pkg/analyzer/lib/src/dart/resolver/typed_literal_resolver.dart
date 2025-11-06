@@ -331,9 +331,7 @@ class TypedLiteralResolver {
       var iterableType = unwrappedContextType.asInstanceOf(
         _typeProvider.iterableElement,
       );
-      var mapType = unwrappedContextType.asInstanceOf(
-        _typeProvider.mapElement,
-      );
+      var mapType = unwrappedContextType.asInstanceOf(_typeProvider.mapElement);
       var isIterable = iterableType != null;
       var isMap = mapType != null;
 
@@ -474,12 +472,7 @@ class TypedLiteralResolver {
   }) {
     var element = _typeProvider.listElement;
     var typeParameters = element.typeParameters;
-    inferenceLogWriter?.enterGenericInference(
-      // TODO(paulberry): make this cast unnecessary by changing
-      // `TypeProviderImpl.listElement2` to `ClassElementImpl2`.
-      typeParameters.cast(),
-      element.thisType,
-    );
+    inferenceLogWriter?.enterGenericInference(typeParameters, element.thisType);
 
     return _typeSystem.setupGenericTypeInference(
       typeParameters: typeParameters,
@@ -510,8 +503,9 @@ class TypedLiteralResolver {
     );
 
     // Also use upwards information to infer the type.
-    List<TypeImpl> elementTypes =
-        node.elements.map(_computeElementType).toList();
+    List<TypeImpl> elementTypes = node.elements
+        .map(_computeElementType)
+        .toList();
     var syntheticParameter = FormalParameterElementImpl.synthetic(
       'element',
       genericElementType,
@@ -526,7 +520,7 @@ class TypedLiteralResolver {
       // as the types of those elements are considered resolved.
       _diagnosticReporter.atNode(
         node,
-        WarningCode.INFERENCE_FAILURE_ON_COLLECTION_LITERAL,
+        WarningCode.inferenceFailureOnCollectionLiteral,
         arguments: ['List'],
       );
     }
@@ -549,9 +543,7 @@ class TypedLiteralResolver {
   ) {
     var element = _typeProvider.mapElement;
     inferenceLogWriter?.enterGenericInference(
-      // TODO(paulberry): make this cast unnecessary by changing
-      // `TypeProviderImpl.mapElement2` to `ClassElementImpl2`.
-      element.typeParameters.cast(),
+      element.typeParameters,
       element.thisType,
     );
     return _typeSystem.setupGenericTypeInference(
@@ -645,12 +637,12 @@ class TypedLiteralResolver {
     if (mustBeAMap && mustBeASet) {
       _diagnosticReporter.atNode(
         literal,
-        CompileTimeErrorCode.AMBIGUOUS_SET_OR_MAP_LITERAL_BOTH,
+        CompileTimeErrorCode.ambiguousSetOrMapLiteralBoth,
       );
     } else {
       _diagnosticReporter.atNode(
         literal,
-        CompileTimeErrorCode.AMBIGUOUS_SET_OR_MAP_LITERAL_EITHER,
+        CompileTimeErrorCode.ambiguousSetOrMapLiteralEither,
       );
     }
     return _typeProvider.dynamicType;
@@ -662,9 +654,7 @@ class TypedLiteralResolver {
   ) {
     var element = _typeProvider.setElement;
     inferenceLogWriter?.enterGenericInference(
-      // TODO(paulberry): make this cast unnecessary by changing
-      // `TypeProviderImpl.setElement2` to `ClassElementImpl2`.
-      element.typeParameters.cast(),
+      element.typeParameters,
       element.thisType,
     );
     return _typeSystem.setupGenericTypeInference(
@@ -801,7 +791,7 @@ class TypedLiteralResolver {
       // as the types of those elements are considered resolved.
       _diagnosticReporter.atNode(
         node,
-        WarningCode.INFERENCE_FAILURE_ON_COLLECTION_LITERAL,
+        WarningCode.inferenceFailureOnCollectionLiteral,
         arguments: [node.isMap ? 'Map' : 'Set'],
       );
     }

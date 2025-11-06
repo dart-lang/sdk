@@ -7,7 +7,8 @@
 /*member: main:main*/
 main() {
   // ignore: unused_element
-  /*main.localFunction*/ localFunction() {}
+  /*main.localFunction*/
+  localFunction() {}
 
   /*main.<anonymous>*/
   () {};
@@ -49,7 +50,8 @@ class Class {
   /*member: Class.method:Class.method*/
   void method() {
     // ignore: unused_element
-    /*Class.method.localFunction*/ localFunction() {}
+    /*Class.method.localFunction*/
+    localFunction() {}
 
     /*Class.method.<anonymous>*/
     () {};

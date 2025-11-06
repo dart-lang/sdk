@@ -7,11 +7,11 @@ import 'dart:typed_data';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/src/binary/binary_reader.dart';
+import 'package:analyzer/src/binary/binary_writer.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/fine/manifest_context.dart';
-import 'package:analyzer/src/summary2/data_reader.dart';
-import 'package:analyzer/src/summary2/data_writer.dart';
 import 'package:analyzer/src/utilities/extensions/collection.dart';
 import 'package:collection/collection.dart';
 import 'package:meta/meta.dart';
@@ -22,8 +22,10 @@ enum ManifestAstElementKind {
   dynamic_,
   formalParameter,
   importPrefix,
+  never_,
   typeParameter,
-  regular;
+  regular,
+  multiplyDefined;
 
   static final _bitCount = values.length.bitLength;
   static final _bitMask = (1 << _bitCount) - 1;
@@ -43,12 +45,18 @@ enum ManifestAstElementKind {
 
 /// Enough information to decide if the node is the same.
 ///
+/// We used it to store information AST nodes exposed through the element
+/// model: constant initializers, constructor initializers, and annotations.
+///
 /// We don't store ASTs, instead we rely on the fact that the same tokens
 /// are parsed into the same AST (when the same language features, which is
 /// ensured outside).
 ///
 /// In addition we record all referenced elements.
 class ManifestNode {
+  /// Whether the encoded AST node has only nodes that we support.
+  final bool isValid;
+
   /// The concatenated lexemes of all tokens.
   final String tokenBuffer;
 
@@ -86,27 +94,39 @@ class ManifestNode {
     );
     node.accept(collector);
 
-    return ManifestNode._(
-      tokenBuffer: buffer.toString(),
-      tokenLengthList: Uint32List.fromList(lengthList),
-      elements:
-          collector.map.keys
-              .map((element) => ManifestElement.encode(context, element))
-              .toFixedList(),
-      elementIndexList: Uint32List.fromList(collector.elementIndexList),
-    );
+    if (collector.isValid) {
+      return ManifestNode._(
+        isValid: true,
+        tokenBuffer: buffer.toString(),
+        tokenLengthList: Uint32List.fromList(lengthList),
+        elements: collector.map.keys
+            .map((element) => ManifestElement.encode(context, element))
+            .toFixedList(),
+        elementIndexList: Uint32List.fromList(collector.elementIndexList),
+      );
+    } else {
+      return ManifestNode._(
+        isValid: false,
+        tokenBuffer: '',
+        tokenLengthList: Uint32List(0),
+        elements: const [],
+        elementIndexList: Uint32List(0),
+      );
+    }
   }
 
-  factory ManifestNode.read(SummaryDataReader reader) {
+  factory ManifestNode.read(BinaryReader reader) {
     return ManifestNode._(
-      tokenBuffer: reader.readStringUtf8(),
-      tokenLengthList: reader.readUInt30List(),
+      isValid: reader.readBool(),
+      tokenBuffer: reader.readStringReference(),
+      tokenLengthList: reader.readUint30List(),
       elements: ManifestElement.readList(reader),
-      elementIndexList: reader.readUInt30List(),
+      elementIndexList: reader.readUint30List(),
     );
   }
 
   ManifestNode._({
+    required this.isValid,
     required this.tokenBuffer,
     required this.tokenLengthList,
     required this.elements,
@@ -114,10 +134,18 @@ class ManifestNode {
   });
 
   bool match(MatchContext context, AstNode node) {
+    if (!isValid) {
+      return false;
+    }
+
     var tokenIndex = 0;
     var tokenOffset = 0;
     var token = node.beginToken;
     while (true) {
+      if (tokenIndex >= tokenLengthList.length) {
+        return false;
+      }
+
       var tokenLength = token.lexeme.length;
       if (tokenLengthList[tokenIndex++] != tokenLength) {
         return false;
@@ -132,6 +160,10 @@ class ManifestNode {
         break;
       }
       token = token.next ?? (throw StateError('endToken not found'));
+    }
+
+    if (tokenIndex != tokenLengthList.length) {
+      return false;
     }
 
     var collector = _ElementCollector(
@@ -161,23 +193,25 @@ class ManifestNode {
     return true;
   }
 
-  void write(BufferedSink sink) {
-    sink.writeStringUtf8(tokenBuffer);
-    sink.writeUint30List(tokenLengthList);
-    sink.writeList(elements, (e) => e.write(sink));
-    sink.writeUint30List(elementIndexList);
+  void write(BinaryWriter writer) {
+    writer.writeBool(isValid);
+    writer.writeStringReference(tokenBuffer);
+    writer.writeUint30List(tokenLengthList);
+    writer.writeList(elements, (e) => e.write(writer));
+    writer.writeUint30List(elementIndexList);
   }
 
-  static List<ManifestNode> readList(SummaryDataReader reader) {
+  static List<ManifestNode> readList(BinaryReader reader) {
     return reader.readTypedList(() => ManifestNode.read(reader));
   }
 
-  static ManifestNode? readOptional(SummaryDataReader reader) {
+  static ManifestNode? readOptional(BinaryReader reader) {
     return reader.readOptionalObject(() => ManifestNode.read(reader));
   }
 }
 
-class _ElementCollector extends ThrowingAstVisitor<void> {
+class _ElementCollector extends GeneralizingAstVisitor<void> {
+  bool isValid = true;
   final int Function(TypeParameterElementImpl) indexOfTypeParameter;
   final int Function(FormalParameterElementImpl) indexOfFormalParameter;
   final Map<Element, int> map = Map.identity();
@@ -258,6 +292,11 @@ class _ElementCollector extends ThrowingAstVisitor<void> {
   }
 
   @override
+  void visitImportPrefixReference(ImportPrefixReference node) {
+    _addElement(node.element);
+  }
+
+  @override
   void visitInstanceCreationExpression(InstanceCreationExpression node) {
     node.visitChildren(this);
   }
@@ -289,6 +328,17 @@ class _ElementCollector extends ThrowingAstVisitor<void> {
   }
 
   @override
+  void visitMethodInvocation(MethodInvocation node) {
+    if (node.methodName.element case TopLevelFunctionElement element) {
+      if (element.isDartCoreIdentical) {
+        node.visitChildren(this);
+        return;
+      }
+    }
+    isValid = false;
+  }
+
+  @override
   void visitNamedExpression(NamedExpression node) {
     node.expression.accept(this);
   }
@@ -297,6 +347,11 @@ class _ElementCollector extends ThrowingAstVisitor<void> {
   void visitNamedType(NamedType node) {
     node.visitChildren(this);
     _addElement(node.element);
+  }
+
+  @override
+  void visitNode(AstNode node) {
+    isValid = false;
   }
 
   @override
@@ -365,6 +420,9 @@ class _ElementCollector extends ThrowingAstVisitor<void> {
   }
 
   @override
+  void visitSymbolLiteral(SymbolLiteral node) {}
+
+  @override
   void visitTypeArgumentList(TypeArgumentList node) {
     node.visitChildren(this);
   }
@@ -383,6 +441,12 @@ class _ElementCollector extends ThrowingAstVisitor<void> {
         rawIndex = 0;
       case DynamicElementImpl():
         kind = ManifestAstElementKind.dynamic_;
+        rawIndex = 0;
+      case NeverElementImpl():
+        kind = ManifestAstElementKind.never_;
+        rawIndex = 0;
+      case MultiplyDefinedElementImpl():
+        kind = ManifestAstElementKind.multiplyDefined;
         rawIndex = 0;
       case FormalParameterElementImpl():
         kind = ManifestAstElementKind.formalParameter;
@@ -405,7 +469,7 @@ class _ElementCollector extends ThrowingAstVisitor<void> {
     // evaluation we will access the corresponding constant variable for
     // its initializer. So, we also depend on the variable.
     if (element is GetterElementImpl) {
-      _addElement(element.variable!);
+      _addElement(element.variable);
     }
   }
 }
@@ -423,8 +487,8 @@ extension ListOfManifestNodeExtension on List<ManifestNode> {
     return true;
   }
 
-  void writeList(BufferedSink sink) {
-    sink.writeList(this, (x) => x.write(sink));
+  void writeList(BinaryWriter writer) {
+    writer.writeList(this, (x) => x.write(writer));
   }
 }
 
@@ -438,7 +502,7 @@ extension ManifestNodeOrNullExtension on ManifestNode? {
     }
   }
 
-  void writeOptional(BufferedSink sink) {
-    sink.writeOptionalObject(this, (it) => it.write(sink));
+  void writeOptional(BinaryWriter writer) {
+    writer.writeOptionalObject(this, (it) => it.write(writer));
   }
 }

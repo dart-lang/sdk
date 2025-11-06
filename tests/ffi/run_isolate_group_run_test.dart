@@ -13,9 +13,12 @@
 // VMOptions=--experimental-shared-data --profiler --profile_vm=false
 
 import 'package:dart_internal/isolate_group.dart' show IsolateGroup;
+import 'dart:developer';
 import 'dart:isolate';
 
 import "package:expect/expect.dart";
+
+import "run_isolate_group_run_test.dart" deferred as lib1;
 
 var foo = 42;
 var foo_no_initializer;
@@ -44,7 +47,51 @@ bar() {
   Baz.foo = 42;
 }
 
-main() {
+@pragma('vm:shared')
+var list_length = 0;
+
+@pragma('vm:shared')
+String string_foo = "";
+
+@pragma('vm:shared')
+SendPort? sp;
+
+StringMethodTearoffTest() {
+  @pragma('vm:shared')
+  final stringTearoff = "abc".toString;
+  IsolateGroup.runSync(() {
+    stringTearoff;
+  });
+}
+
+ListMethodTearoffTest(List<String> args) {
+  final listTearoff = args.insert;
+  Expect.throws(
+    () {
+      IsolateGroup.runSync(() {
+        listTearoff;
+      });
+    },
+    (e) =>
+        e is ArgumentError && e.toString().contains("Only trivially-immutable"),
+  );
+}
+
+thefun() {}
+
+@pragma('vm:shared')
+String default_tag = "";
+
+main(List<String> args) {
+  IsolateGroup.runSync(() {
+    final l = <int>[];
+    for (int i = 0; i < 100; i++) {
+      l.add(i);
+    }
+    list_length = l.length;
+  });
+  Expect.equals(100, list_length);
+
   Expect.equals(42, IsolateGroup.runSync(() => 42));
 
   Expect.listEquals([1, 2, 3], IsolateGroup.runSync(() => [1, 2, 3]));
@@ -131,6 +178,74 @@ main() {
     bar();
     Expect.equals(42, Baz.foo);
   }
+
+  IsolateGroup.runSync(() {
+    string_foo = "foo bar";
+  });
+  Expect.equals("foo bar", string_foo);
+
+  Expect.throws(
+    () {
+      IsolateGroup.runSync(() {
+        ReceivePort();
+      });
+    },
+    (e) =>
+        e is ArgumentError &&
+        e.toString().contains("Only available when running in context"),
+  );
+
+  Expect.throws(() {
+    IsolateGroup.runSync(() {
+      Isolate.exit();
+    });
+  }, (e) => e.toString().contains("Attempt to access isolate static field"));
+
+  Expect.throws(() {
+    IsolateGroup.runSync(() {
+      Isolate.spawn((_) {}, null);
+    });
+  }, (e) => e.toString().contains("Attempt to access isolate static field"));
+
+  Expect.throws(() {
+    IsolateGroup.runSync(() {
+      Isolate.spawnUri(Uri.parse("http://127.0.0.1"), [], (_) {});
+    });
+  }, (e) => e.toString().contains("Attempt to access isolate static field"));
+
+  StringMethodTearoffTest();
+  ListMethodTearoffTest(args);
+
+  final rp = ReceivePort();
+  Expect.throws(
+    () {
+      IsolateGroup.runSync(() {
+        sp = rp.sendPort;
+      });
+    },
+    (e) =>
+        e is ArgumentError && e.toString().contains("Only trivially-immutable"),
+  );
+  rp.close();
+
+  // deferred libraries can't be used from isolate group callbacks.
+  Expect.throws(() {
+    IsolateGroup.runSync(() {
+      lib1.thefun();
+    });
+  }, (e) => e is ArgumentError && e.toString().contains("Only available when"));
+
+  // environment can't be accessed from isolate group callbacks.
+  Expect.throws(() {
+    IsolateGroup.runSync(() {
+      new bool.hasEnvironment("Anything");
+    });
+  }, (e) => e is ArgumentError && e.toString().contains("Only available when"));
+
+  IsolateGroup.runSync(() {
+    default_tag = UserTag.defaultTag.toString();
+  });
+  Expect.notEquals("", default_tag);
 
   print("All tests completed :)");
 }

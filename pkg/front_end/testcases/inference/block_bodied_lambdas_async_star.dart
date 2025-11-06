@@ -2,13 +2,12 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/*@testedFeatures=inference*/
 library test;
 
 import 'dart:async';
 
 test() {
-  var /*@type=() -> Stream<num>*/ f = /*@returnType=Stream<num>*/ () async* {
+  var f = () async* {
     yield 1;
     Stream<double> s;
     yield* s;

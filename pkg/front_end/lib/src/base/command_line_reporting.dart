@@ -12,7 +12,7 @@ import 'dart:math' show min;
 import 'dart:typed_data' show Uint8List;
 
 import 'package:_fe_analyzer_shared/src/messages/severity.dart'
-    show Severity, severityPrefixes;
+    show CfeSeverity, severityPrefixes;
 import 'package:_fe_analyzer_shared/src/scanner/characters.dart'
     show $CARET, $SPACE, $TAB;
 import 'package:_fe_analyzer_shared/src/util/colors.dart'
@@ -37,8 +37,11 @@ const bool hideWarnings = false;
 /// command-line tool. This includes source snippets and - in the colorized
 /// version - different colors based on [severity].
 PlainAndColorizedString format(
-    CompilerContext context, LocatedMessage message, Severity severity,
-    {Location? location}) {
+  CompilerContext context,
+  LocatedMessage message,
+  CfeSeverity severity, {
+  Location? location,
+}) {
   try {
     int length = message.length;
     if (length < 1) {
@@ -47,24 +50,40 @@ PlainAndColorizedString format(
       length = 1;
     }
     final String messageTextPlain = _createMessageText(severity, message);
-    String messageTextColorized =
-        _colorizeMessageText(severity, messageTextPlain);
+    String messageTextColorized = _colorizeMessageText(
+      severity,
+      messageTextPlain,
+    );
 
     if (message.uri != null) {
       String path = relativizeUri(
-          Uri.base, translateSdk(context, message.uri!), isWindows);
+        Uri.base,
+        translateSdk(context, message.uri!),
+        isWindows,
+      );
       int offset = message.charOffset;
-      location ??=
-          (offset == -1 ? null : getLocation(context, message.uri!, offset));
+      location ??= (offset == -1
+          ? null
+          : getLocation(context, message.uri!, offset));
       if (location?.line == TreeNode.noOffset) {
         location = null;
       }
       String? sourceLine = getSourceLine(context, location);
       return new PlainAndColorizedString(
         formatErrorMessage(
-            sourceLine, location, length, path, messageTextPlain),
+          sourceLine,
+          location,
+          length,
+          path,
+          messageTextPlain,
+        ),
         formatErrorMessage(
-            sourceLine, location, length, path, messageTextColorized),
+          sourceLine,
+          location,
+          length,
+          path,
+          messageTextColorized,
+        ),
       );
     } else {
       return new PlainAndColorizedString(
@@ -74,10 +93,12 @@ PlainAndColorizedString format(
     }
   } catch (error, trace) {
     // Coverage-ignore-block(suite): Not run.
-    print("Crash when formatting: "
-        "[${message.code.name}] ${safeToString(message.problemMessage)}\n"
-        "${safeToString(error)}\n"
-        "$trace");
+    print(
+      "Crash when formatting: "
+      "[${message.code.name}] ${safeToString(message.problemMessage)}\n"
+      "${safeToString(error)}\n"
+      "$trace",
+    );
     throw new Crash(message.uri, message.charOffset, error, trace);
   }
 }
@@ -87,8 +108,11 @@ PlainAndColorizedString format(
 /// command-line tool. This includes source snippets and - in the colorized
 /// version - different colors based on [severity].
 PlainAndColorizedString formatWithLocationNoSdk(
-    LocatedMessage message, Severity severity,
-    {required Location location, required Map<Uri, Source> uriToSource}) {
+  LocatedMessage message,
+  CfeSeverity severity, {
+  required Location location,
+  required Map<Uri, Source> uriToSource,
+}) {
   int length = message.length;
   if (length < 1) {
     // TODO(ahe): Throw in this situation. It is normally an error caused by
@@ -96,8 +120,10 @@ PlainAndColorizedString formatWithLocationNoSdk(
     length = 1;
   }
   final String messageTextPlain = _createMessageText(severity, message);
-  String messageTextColorized =
-      _colorizeMessageText(severity, messageTextPlain);
+  String messageTextColorized = _colorizeMessageText(
+    severity,
+    messageTextPlain,
+  );
 
   if (message.uri != null) {
     String path = relativizeUri(Uri.base, message.uri!, isWindows);
@@ -105,13 +131,15 @@ PlainAndColorizedString formatWithLocationNoSdk(
     return new PlainAndColorizedString(
       formatErrorMessage(sourceLine, location, length, path, messageTextPlain),
       formatErrorMessage(
-          sourceLine, location, length, path, messageTextColorized),
+        sourceLine,
+        location,
+        length,
+        path,
+        messageTextColorized,
+      ),
     );
   } else {
-    return new PlainAndColorizedString(
-      messageTextPlain,
-      messageTextColorized,
-    );
+    return new PlainAndColorizedString(messageTextPlain, messageTextColorized);
   }
 }
 
@@ -123,7 +151,9 @@ PlainAndColorizedString formatWithLocationNoSdk(
 /// looked up in uriToSource anyway, or we don't have or can get any
 /// line-position for it.
 PlainAndColorizedString formatNoSourceLine(
-    LocatedMessage message, Severity severity) {
+  LocatedMessage message,
+  CfeSeverity severity,
+) {
   int length = message.length;
   if (length < 1) {
     // TODO(ahe): Throw in this situation. It is normally an error caused by
@@ -131,30 +161,28 @@ PlainAndColorizedString formatNoSourceLine(
     length = 1;
   }
   final String messageTextPlain = _createMessageText(severity, message);
-  String messageTextColorized =
-      _colorizeMessageText(severity, messageTextPlain);
+  String messageTextColorized = _colorizeMessageText(
+    severity,
+    messageTextPlain,
+  );
 
   if (message.uri != null) {
-    // Coverage-ignore-block(suite): Not run.
     String path = relativizeUri(Uri.base, message.uri!, isWindows);
     return new PlainAndColorizedString(
       formatErrorMessage(null, null, length, path, messageTextPlain),
       formatErrorMessage(null, null, length, path, messageTextColorized),
     );
   } else {
-    return new PlainAndColorizedString(
-      messageTextPlain,
-      messageTextColorized,
-    );
+    return new PlainAndColorizedString(messageTextPlain, messageTextColorized);
   }
 }
 
-String _createMessageText(Severity severity, LocatedMessage message) {
+String _createMessageText(CfeSeverity severity, LocatedMessage message) {
   String? prefix = severityPrefixes[severity];
   String messageText = prefix == null
       ?
-      // Coverage-ignore(suite): Not run.
-      message.problemMessage
+        // Coverage-ignore(suite): Not run.
+        message.problemMessage
       : "$prefix: ${message.problemMessage}";
   if (message.correctionMessage != null) {
     messageText += "\n${message.correctionMessage}";
@@ -162,31 +190,36 @@ String _createMessageText(Severity severity, LocatedMessage message) {
   return messageText;
 }
 
-String _colorizeMessageText(Severity severity, String messageTextPlain) {
+String _colorizeMessageText(CfeSeverity severity, String messageTextPlain) {
   switch (severity) {
-    case Severity.error:
-    case Severity.internalProblem:
+    case CfeSeverity.error:
+    case CfeSeverity.internalProblem:
       return red(messageTextPlain);
 
-    case Severity.warning:
+    case CfeSeverity.warning:
       // Coverage-ignore(suite): Not run.
       return magenta(messageTextPlain);
 
-    case Severity.context:
+    case CfeSeverity.context:
       return green(messageTextPlain);
 
     // Coverage-ignore(suite): Not run.
-    case Severity.info:
+    case CfeSeverity.info:
       return yellow(messageTextPlain);
 
     // Coverage-ignore(suite): Not run.
-    case Severity.ignored:
+    case CfeSeverity.ignored:
       throw unhandled("$severity", "format", -1, null);
   }
 }
 
-String formatErrorMessage(String? sourceLine, Location? location,
-    int squigglyLength, String? path, String messageText) {
+String formatErrorMessage(
+  String? sourceLine,
+  Location? location,
+  int squigglyLength,
+  String? path,
+  String messageText,
+) {
   if (sourceLine == null || location == null) {
     sourceLine = "";
   } else if (sourceLine.isNotEmpty) {
@@ -219,51 +252,52 @@ String formatErrorMessage(String? sourceLine, Location? location,
     }
     sourceLine = "\n$sourceLine\n$pointer";
   }
-  String position =
-      location == null ? "" : ":${location.line}:${location.column}";
+  String position = location == null
+      ? ""
+      : ":${location.line}:${location.column}";
   return "$path$position: $messageText$sourceLine";
 }
 
 /// Are problems of [severity] suppressed?
-bool isHidden(Severity severity) {
+bool isHidden(CfeSeverity severity) {
   switch (severity) {
-    case Severity.error:
+    case CfeSeverity.error:
     // Coverage-ignore(suite): Not run.
-    case Severity.internalProblem:
+    case CfeSeverity.internalProblem:
     // Coverage-ignore(suite): Not run.
-    case Severity.context:
+    case CfeSeverity.context:
     // Coverage-ignore(suite): Not run.
-    case Severity.info:
+    case CfeSeverity.info:
       return false;
 
     // Coverage-ignore(suite): Not run.
-    case Severity.warning:
+    case CfeSeverity.warning:
       return hideWarnings;
     // Coverage-ignore(suite): Not run.
-    case Severity.ignored:
+    case CfeSeverity.ignored:
       return true;
   }
 }
 
 /// Are problems of [severity] fatal? That is, should the compiler terminate
 /// immediately?
-bool shouldThrowOn(ProcessedOptions options, Severity severity) {
+bool shouldThrowOn(ProcessedOptions options, CfeSeverity severity) {
   switch (severity) {
-    case Severity.error:
+    case CfeSeverity.error:
       return options.throwOnErrorsForDebugging;
 
     // Coverage-ignore(suite): Not run.
-    case Severity.internalProblem:
+    case CfeSeverity.internalProblem:
       return true;
 
     // Coverage-ignore(suite): Not run.
-    case Severity.warning:
+    case CfeSeverity.warning:
       return options.throwOnWarningsForDebugging;
 
     // Coverage-ignore(suite): Not run.
-    case Severity.info:
-    case Severity.ignored:
-    case Severity.context:
+    case CfeSeverity.info:
+    case CfeSeverity.ignored:
+    case CfeSeverity.context:
       return false;
   }
 }

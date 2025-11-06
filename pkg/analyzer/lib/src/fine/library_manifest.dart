@@ -5,24 +5,41 @@
 import 'dart:typed_data';
 
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/src/binary/binary_reader.dart';
+import 'package:analyzer/src/binary/binary_writer.dart';
+import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer/src/dart/analysis/file_state.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/fine/lookup_name.dart';
 import 'package:analyzer/src/fine/manifest_context.dart';
 import 'package:analyzer/src/fine/manifest_id.dart';
 import 'package:analyzer/src/fine/manifest_item.dart';
-import 'package:analyzer/src/summary2/data_reader.dart';
-import 'package:analyzer/src/summary2/data_writer.dart';
+import 'package:analyzer/src/fine/requirements.dart';
+import 'package:analyzer/src/summary/api_signature.dart';
+import 'package:analyzer/src/summary2/export.dart';
 import 'package:analyzer/src/summary2/linked_element_factory.dart';
 import 'package:analyzer/src/util/performance/operation_performance.dart';
 import 'package:analyzer/src/utilities/extensions/collection.dart';
+import 'package:analyzer/src/utilities/extensions/string.dart';
 import 'package:collection/collection.dart';
+import 'package:pub_semver/pub_semver.dart';
 
 /// The manifest of a single library.
 class LibraryManifest {
+  final String? name;
+  final bool isSynthetic;
+  final Uint8List featureSet;
+  final ManifestLibraryLanguageVersion languageVersion;
+  final LibraryMetadataItem libraryMetadata;
+
+  final List<Uri> exportedLibraryUris;
+
   /// The names that are re-exported by this library.
   /// This does not include names that are declared in this library.
   final Map<LookupName, ManifestItemId> reExportMap;
+
+  /// The names that re-exported exclusively via deprecated exports.
+  final Set<LookupName> reExportDeprecatedOnly;
 
   final Map<LookupName, ClassItem> declaredClasses;
   final Map<LookupName, EnumItem> declaredEnums;
@@ -30,13 +47,47 @@ class LibraryManifest {
   final Map<LookupName, ExtensionTypeItem> declaredExtensionTypes;
   final Map<LookupName, MixinItem> declaredMixins;
   final Map<LookupName, TypeAliasItem> declaredTypeAliases;
-  final Map<LookupName, TopLevelGetterItem> declaredGetters;
-  final Map<LookupName, TopLevelSetterItem> declaredSetters;
+  final Map<LookupName, GetterItem> declaredGetters;
+  final Map<LookupName, SetterItem> declaredSetters;
   final Map<LookupName, TopLevelFunctionItem> declaredFunctions;
   final Map<LookupName, TopLevelVariableItem> declaredVariables;
 
+  /// Map from exported public top-level names to manifest IDs.
+  ///
+  /// Includes names declared in this library and names re-exported from other
+  /// libraries. Excludes private names. If both a local declaration and a
+  /// re-export define the same name, the local declaration is used.
+  final Map<LookupName, ManifestItemId> exportMap;
+
+  /// Identifier that summarizes the contents of [exportMap].
+  ///
+  /// Each build generates a fresh ID. If the computed [exportMap] is equal to
+  /// the previous manifest's map for the same library, the previous ID is
+  /// reused. Equal IDs imply equal export maps; unequal IDs are inconclusive
+  /// and require an entry-by-entry comparison.
+  ManifestItemId exportMapId;
+
+  /// All exported (declared or re-exported) extensions.
+  ManifestItemIdList exportedExtensions;
+
+  /// Stable, order-independent hash for the requirements.
+  ///
+  /// Derived from exactly the parts of the library manifest that
+  /// [RequirementsManifest.isSatisfied] reads. Used as a fast path: if
+  /// the current manifest hash matches a previously observed one, the
+  /// outcome of the requirements check is unchanged and the detailed check
+  /// can be skipped; if it differs, the check must be re-run.
+  Hash hashForRequirements;
+
   LibraryManifest({
+    required this.name,
+    required this.isSynthetic,
+    required this.featureSet,
+    required this.languageVersion,
+    required this.libraryMetadata,
+    required this.exportedLibraryUris,
     required this.reExportMap,
+    required this.reExportDeprecatedOnly,
     required this.declaredClasses,
     required this.declaredEnums,
     required this.declaredExtensions,
@@ -47,11 +98,28 @@ class LibraryManifest {
     required this.declaredSetters,
     required this.declaredFunctions,
     required this.declaredVariables,
+    required this.exportMap,
+    required this.exportMapId,
+    required this.exportedExtensions,
+    required this.hashForRequirements,
   });
 
-  factory LibraryManifest.read(SummaryDataReader reader) {
+  factory LibraryManifest.fromBytes(Uint8List bytes) {
+    var reader = BinaryReader(bytes);
+    reader.initFromTableTrailer();
+    return LibraryManifest.read(reader);
+  }
+
+  factory LibraryManifest.read(BinaryReader reader) {
     return LibraryManifest(
+      name: reader.readOptionalStringUtf8(),
+      isSynthetic: reader.readBool(),
+      featureSet: reader.readUint8List(),
+      languageVersion: ManifestLibraryLanguageVersion.read(reader),
+      libraryMetadata: LibraryMetadataItem.read(reader),
+      exportedLibraryUris: reader.readUriList(),
       reExportMap: reader.readLookupNameToIdMap(),
+      reExportDeprecatedOnly: reader.readLookupNameSet(),
       declaredClasses: reader.readLookupNameMap(
         readValue: () => ClassItem.read(reader),
       ),
@@ -71,10 +139,10 @@ class LibraryManifest {
         readValue: () => TypeAliasItem.read(reader),
       ),
       declaredGetters: reader.readLookupNameMap(
-        readValue: () => TopLevelGetterItem.read(reader),
+        readValue: () => GetterItem.read(reader),
       ),
       declaredSetters: reader.readLookupNameMap(
-        readValue: () => TopLevelSetterItem.read(reader),
+        readValue: () => SetterItem.read(reader),
       ),
       declaredFunctions: reader.readLookupNameMap(
         readValue: () => TopLevelFunctionItem.read(reader),
@@ -82,13 +150,17 @@ class LibraryManifest {
       declaredVariables: reader.readLookupNameMap(
         readValue: () => TopLevelVariableItem.read(reader),
       ),
+      exportMap: reader.readLookupNameToIdMap(),
+      exportMapId: ManifestItemId.read(reader),
+      exportedExtensions: ManifestItemIdList.read(reader),
+      hashForRequirements: Hash.read(reader),
     );
   }
 
   Map<LookupName, ManifestItemId> get exportedIds {
     return Map.fromEntries([
       ...reExportMap.entries,
-      ...<Map<LookupName, TopLevelItem>>[
+      ...<Map<LookupName, ManifestItem>>[
             declaredClasses,
             declaredEnums,
             declaredExtensions,
@@ -105,9 +177,9 @@ class LibraryManifest {
     ]);
   }
 
-  /// Returns the ID of a top-level element either declared or re-exported,
-  /// or `null` if there is no such element.
-  ManifestItemId? getExportedId(LookupName name) {
+  /// Returns the ID of a declared top-level element, or `null` if there is no
+  /// such element.
+  ManifestItemId? getDeclaredId(LookupName name) {
     return declaredClasses[name]?.id ??
         declaredEnums[name]?.id ??
         declaredExtensions[name]?.id ??
@@ -116,22 +188,65 @@ class LibraryManifest {
         declaredTypeAliases[name]?.id ??
         declaredGetters[name]?.id ??
         declaredSetters[name]?.id ??
-        declaredFunctions[name]?.id ??
-        reExportMap[name];
+        declaredFunctions[name]?.id;
   }
 
-  void write(BufferedSink sink) {
-    reExportMap.write(sink);
-    declaredClasses.write(sink);
-    declaredEnums.write(sink);
-    declaredExtensions.write(sink);
-    declaredExtensionTypes.write(sink);
-    declaredMixins.write(sink);
-    declaredTypeAliases.write(sink);
-    declaredGetters.write(sink);
-    declaredSetters.write(sink);
-    declaredFunctions.write(sink);
-    declaredVariables.write(sink);
+  /// Returns the ID of a top-level element either declared or re-exported,
+  /// or `null` if there is no such element.
+  ManifestItemId? getExportedId(LookupName name) {
+    return exportMap[name];
+  }
+
+  Uint8List toBytes() {
+    var writer = BinaryWriter();
+    write(writer);
+    writer.writeTableTrailer();
+    return writer.takeBytes();
+  }
+
+  void write(BinaryWriter writer) {
+    writer.writeOptionalStringUtf8(name);
+    writer.writeBool(isSynthetic);
+    writer.writeUint8List(featureSet);
+    languageVersion.write(writer);
+    libraryMetadata.write(writer);
+    writer.writeUriList(exportedLibraryUris);
+    reExportMap.write(writer);
+    reExportDeprecatedOnly.write(writer);
+    declaredClasses.write(writer);
+    declaredEnums.write(writer);
+    declaredExtensions.write(writer);
+    declaredExtensionTypes.write(writer);
+    declaredMixins.write(writer);
+    declaredTypeAliases.write(writer);
+    declaredGetters.write(writer);
+    declaredSetters.write(writer);
+    declaredFunctions.write(writer);
+    declaredVariables.write(writer);
+    exportMap.write(writer);
+    exportMapId.write(writer);
+    exportedExtensions.write(writer);
+    hashForRequirements.write(writer);
+  }
+
+  void _fillExportMap() {
+    exportMap.addAll(reExportMap);
+
+    void addDeclared<T extends ManifestItem>(Map<LookupName, T> items) {
+      for (var entry in items.entries) {
+        exportMap[entry.key] = entry.value.id;
+      }
+    }
+
+    addDeclared(declaredClasses);
+    addDeclared(declaredEnums);
+    addDeclared(declaredExtensions);
+    addDeclared(declaredExtensionTypes);
+    addDeclared(declaredMixins);
+    addDeclared(declaredTypeAliases);
+    addDeclared(declaredGetters);
+    addDeclared(declaredSetters);
+    addDeclared(declaredFunctions);
   }
 }
 
@@ -162,9 +277,6 @@ class LibraryManifestBuilder {
   /// items for declared elements that don't have items in this map.
   final Map<Element, ManifestItem> declaredItems = Map.identity();
 
-  /// The new manifests for libraries.
-  final Map<Uri, LibraryManifest> newManifests = {};
-
   LibraryManifestBuilder({
     required this.elementFactory,
     required this.inputLibraries,
@@ -177,18 +289,33 @@ class LibraryManifestBuilder {
         .toList(growable: false);
   }
 
-  Map<Uri, LibraryManifest> computeManifests({
+  Map<Uri, LibraryManifestHandle> computeManifests({
     required OperationPerformanceImpl performance,
   }) {
     performance.getDataInt('libraryCount').add(inputLibraries.length);
 
-    _fillItemMapFromInputManifests(performance: performance);
+    performance.run('matchInputManifests', (performance) {
+      _fillItemMapFromInputManifests(performance: performance);
+    });
 
-    _buildManifests();
+    performance.run('buildItems', (performance) {
+      _buildManifests();
+    });
+
+    _addExportedExtensions();
     _addReExports();
+    _fillExportMaps();
+
+    performance.run('computeHashForRequirements', (_) {
+      _computeHashForRequirements();
+    });
+
     assert(_assertSerialization());
 
-    return newManifests;
+    return {
+      for (var libraryElement in libraryElements)
+        libraryElement.uri: libraryElement.manifest!,
+    };
   }
 
   void _addClass({
@@ -204,6 +331,7 @@ class LibraryManifestBuilder {
         element: element,
       );
     });
+    classItem.hasNonFinalField = element.hasNonFinalField;
     newItems[lookupName] = classItem;
 
     encodingContext.withTypeParameters(element.typeParameters, (
@@ -278,7 +406,7 @@ class LibraryManifestBuilder {
 
   void _addEnum({
     required EncodeContext encodingContext,
-    required Map<LookupName, TopLevelItem> newItems,
+    required Map<LookupName, EnumItem> newItems,
     required EnumElementImpl element,
     required LookupName lookupName,
   }) {
@@ -289,6 +417,7 @@ class LibraryManifestBuilder {
         element: element,
       );
     });
+    enumItem.hasNonFinalField = element.hasNonFinalField;
     newItems[lookupName] = enumItem;
 
     encodingContext.withTypeParameters(element.typeParameters, (
@@ -301,6 +430,32 @@ class LibraryManifestBuilder {
         interfaceItem: enumItem,
       );
     });
+  }
+
+  void _addExportedExtensions() {
+    for (var libraryElement in libraryElements) {
+      var manifest = libraryElement.manifest!.instance;
+
+      var extensionIds = <ManifestItemId>{};
+
+      var exportedExtensionElements = libraryElement
+          .exportNamespace
+          .definedNames2
+          .values
+          .whereType<ExtensionElementImpl>();
+      for (var extensionElement in exportedExtensionElements) {
+        var extensionName = extensionElement.lookupName?.asLookupName;
+        var extensionLibraryManifest =
+            extensionElement.library.manifest!.instance;
+        var extensionItem =
+            extensionLibraryManifest.declaredExtensions[extensionName]!;
+        extensionIds.add(extensionItem.id);
+      }
+
+      manifest.exportedExtensions = ManifestItemIdList(
+        extensionIds.toList(growable: false)..sort(),
+      );
+    }
   }
 
   void _addExtension({
@@ -332,7 +487,7 @@ class LibraryManifestBuilder {
 
   void _addExtensionType({
     required EncodeContext encodingContext,
-    required Map<LookupName, TopLevelItem> newItems,
+    required Map<LookupName, ExtensionTypeItem> newItems,
     required ExtensionTypeElementImpl element,
     required LookupName lookupName,
   }) {
@@ -343,6 +498,7 @@ class LibraryManifestBuilder {
         element: element,
       );
     });
+    extensionTypeItem.hasNonFinalField = element.hasNonFinalField;
     newItems[lookupName] = extensionTypeItem;
 
     encodingContext.withTypeParameters(element.typeParameters, (
@@ -368,7 +524,7 @@ class LibraryManifestBuilder {
     }
 
     var item = _getOrBuildElementItem(element, () {
-      return InstanceItemFieldItem.fromElement(
+      return FieldItem.fromElement(
         id: ManifestItemId.generate(),
         context: encodingContext,
         element: element,
@@ -389,7 +545,7 @@ class LibraryManifestBuilder {
     }
 
     var item = _getOrBuildElementItem(element, () {
-      return InstanceItemGetterItem.fromElement(
+      return GetterItem.fromElement(
         id: ManifestItemId.generate(),
         context: encodingContext,
         element: element,
@@ -448,7 +604,7 @@ class LibraryManifestBuilder {
     }
 
     var item = _getOrBuildElementItem(element, () {
-      return InstanceItemMethodItem.fromElement(
+      return MethodItem.fromElement(
         id: ManifestItemId.generate(),
         context: encodingContext,
         element: element,
@@ -469,7 +625,7 @@ class LibraryManifestBuilder {
     }
 
     var item = _getOrBuildElementItem(element, () {
-      return InstanceItemSetterItem.fromElement(
+      return SetterItem.fromElement(
         id: ManifestItemId.generate(),
         context: encodingContext,
         element: element,
@@ -490,7 +646,7 @@ class LibraryManifestBuilder {
     }
 
     var item = _getOrBuildElementItem(element, () {
-      return InterfaceItemConstructorItem.fromElement(
+      return ConstructorItem.fromElement(
         id: ManifestItemId.generate(),
         context: encodingContext,
         element: element,
@@ -540,6 +696,7 @@ class LibraryManifestBuilder {
         element: element,
       );
     });
+    mixinItem.hasNonFinalField = element.hasNonFinalField;
     newItems[lookupName] = mixinItem;
 
     encodingContext.withTypeParameters(element.typeParameters, (
@@ -556,44 +713,39 @@ class LibraryManifestBuilder {
 
   void _addReExports() {
     for (var libraryElement in libraryElements) {
-      var libraryUri = libraryElement.uri;
-      var manifest = newManifests[libraryUri]!;
+      var manifest = libraryElement.manifest!.instance;
 
-      for (var entry in libraryElement.exportNamespace.definedNames2.entries) {
-        var name = entry.key.asLookupName;
-        var element = entry.value;
+      for (var exported in libraryElement.exportedReferences) {
+        // We want only re-exports, skip declared.
+        if (exported is! ExportedReferenceExported) {
+          continue;
+        }
+
+        var reference = exported.reference;
+        var lookupName = reference.isSetter
+            ? '${reference.name}='.asLookupName
+            : reference.name.asLookupName;
+
+        var element = elementFactory.elementOfReference3(reference);
 
         // Skip elements that exist in nowhere.
-        var elementLibraryUri = element.library?.uri;
-        if (elementLibraryUri == null) {
+        var elementLibrary = element.library;
+        if (elementLibrary == null) {
           continue;
         }
 
-        // Skip elements declared in this library.
-        if (elementLibraryUri == libraryUri) {
-          continue;
-        }
+        // Every library has a manifest at this point.
+        // We already set manifests for the current cycle.
+        var elementLibraryManifest = elementLibrary.manifest!.instance;
 
-        // Skip if the element is declared in this library.
-        if (element.library == libraryElement) {
-          continue;
-        }
+        // We use the manifest of the library that declares this element.
+        // So, the element must be declared in the manifest.
+        var id = elementLibraryManifest.getDeclaredId(lookupName)!;
+        manifest.reExportMap[lookupName] = id;
 
-        // Maybe exported from a library outside the current cycle.
-        var id = elementFactory.getElementId(element);
-
-        // If not, then look into new manifest.
-        if (id == null) {
-          var newManifest = newManifests[elementLibraryUri];
-          id ??= newManifest?.getExportedId(name);
-          // TODO(scheglov): repeat for re-re-exports
+        if (libraryElement.isFromDeprecatedExport(exported)) {
+          manifest.reExportDeprecatedOnly.add(lookupName);
         }
-
-        if (id == null) {
-          // TODO(scheglov): complete
-          continue;
-        }
-        manifest.reExportMap[name] = id;
       }
     }
   }
@@ -616,12 +768,12 @@ class LibraryManifestBuilder {
 
   void _addTopLevelGetter({
     required EncodeContext encodingContext,
-    required Map<LookupName, TopLevelGetterItem> newItems,
+    required Map<LookupName, GetterItem> newItems,
     required GetterElementImpl element,
     required LookupName lookupName,
   }) {
     var item = _getOrBuildElementItem(element, () {
-      return TopLevelGetterItem.fromElement(
+      return GetterItem.fromElement(
         id: ManifestItemId.generate(),
         context: encodingContext,
         element: element,
@@ -632,12 +784,12 @@ class LibraryManifestBuilder {
 
   void _addTopLevelSetter({
     required EncodeContext encodingContext,
-    required Map<LookupName, TopLevelSetterItem> newItems,
+    required Map<LookupName, SetterItem> newItems,
     required SetterElementImpl element,
     required LookupName lookupName,
   }) {
     var item = _getOrBuildElementItem(element, () {
-      return TopLevelSetterItem.fromElement(
+      return SetterItem.fromElement(
         id: ManifestItemId.generate(),
         context: encodingContext,
         element: element,
@@ -681,22 +833,18 @@ class LibraryManifestBuilder {
   /// Assert that every manifest can be serialized, and when deserialized
   /// results in the same manifest.
   bool _assertSerialization() {
-    Uint8List manifestAsBytes(LibraryManifest manifest) {
-      var byteSink = BufferedSink();
-      manifest.write(byteSink);
-      return byteSink.takeBytes();
-    }
+    for (var libraryElement in libraryElements) {
+      var uri = libraryElement.uri;
+      var manifest = libraryElement.manifest!.instance;
 
-    newManifests.forEach((uri, manifest) {
-      var bytes = manifestAsBytes(manifest);
-
-      var readManifest = LibraryManifest.read(SummaryDataReader(bytes));
-      var readBytes = manifestAsBytes(readManifest);
+      var bytes = manifest.toBytes();
+      var readManifest = LibraryManifest.fromBytes(bytes);
+      var readBytes = readManifest.toBytes();
 
       if (!const ListEquality<int>().equals(bytes, readBytes)) {
         throw StateError('Library manifest bytes are different: $uri');
       }
-    });
+    }
 
     return true;
   }
@@ -704,28 +852,34 @@ class LibraryManifestBuilder {
   /// Fill `result` with new library manifests.
   /// We reuse existing items when they fully match.
   /// We build new items for mismatched elements.
-  Map<Uri, LibraryManifest> _buildManifests() {
+  void _buildManifests() {
     var encodingContext = EncodeContext(elementFactory: elementFactory);
 
     for (var libraryElement in libraryElements) {
-      var libraryUri = libraryElement.uri;
       var newClassItems = <LookupName, ClassItem>{};
       var newEnumItems = <LookupName, EnumItem>{};
       var newExtensionItems = <LookupName, ExtensionItem>{};
       var newExtensionTypeItems = <LookupName, ExtensionTypeItem>{};
       var newMixinItems = <LookupName, MixinItem>{};
       var newTypeAliasItems = <LookupName, TypeAliasItem>{};
-      var newTopLevelGetters = <LookupName, TopLevelGetterItem>{};
-      var newTopLevelSetters = <LookupName, TopLevelSetterItem>{};
+      var newTopLevelGetters = <LookupName, GetterItem>{};
+      var newTopLevelSetters = <LookupName, SetterItem>{};
       var newTopLevelFunctions = <LookupName, TopLevelFunctionItem>{};
       var newTopLevelVariables = <LookupName, TopLevelVariableItem>{};
+
+      var libraryMetadataItem = _getOrBuildElementItem(libraryElement, () {
+        return LibraryMetadataItem.encode(
+          id: ManifestItemId.generate(),
+          context: encodingContext,
+          metadata: libraryElement.metadata,
+        );
+      });
 
       for (var element in libraryElement.children) {
         var lookupName = element.lookupName?.asLookupName;
         if (lookupName == null) {
           continue;
         }
-
         switch (element) {
           case ClassElementImpl():
             _addClass(
@@ -801,7 +955,18 @@ class LibraryManifestBuilder {
       }
 
       var newManifest = LibraryManifest(
+        name: libraryElement.name.nullIfEmpty,
+        isSynthetic: libraryElement.isSynthetic,
+        featureSet: (libraryElement.featureSet as ExperimentStatus).toStorage(),
+        languageVersion: ManifestLibraryLanguageVersion.encode(
+          libraryElement.languageVersion,
+        ),
+        libraryMetadata: libraryMetadataItem,
+        exportedLibraryUris: libraryElement.exportedLibraries
+            .map((e) => e.uri)
+            .toList(),
         reExportMap: {},
+        reExportDeprecatedOnly: <LookupName>{},
         declaredClasses: newClassItems,
         declaredEnums: newEnumItems,
         declaredExtensions: newExtensionItems,
@@ -812,15 +977,163 @@ class LibraryManifestBuilder {
         declaredSetters: newTopLevelSetters,
         declaredFunctions: newTopLevelFunctions,
         declaredVariables: newTopLevelVariables,
+        exportMap: {},
+        exportMapId: ManifestItemId.generate(),
+        exportedExtensions: ManifestItemIdList([]),
+        hashForRequirements: Hash.empty,
       );
-      libraryElement.manifest = newManifest;
-      newManifests[libraryUri] = newManifest;
+      libraryElement.manifest = LibraryManifestHandle.fromInstance(newManifest);
     }
 
     _fillInterfaceElementsInterface();
     _addClassTypeAliasConstructors();
+    _fillClassAllSubtypes();
+  }
 
-    return newManifests;
+  void _computeHashForRequirements() {
+    for (var libraryElement in libraryElements) {
+      var manifest = libraryElement.manifest!.instance;
+      var builder = ApiSignature();
+
+      List<MapEntry<LookupName, T>> sortedMapEntries<T>(
+        Map<LookupName, T> map,
+      ) {
+        return map.entries.toList()
+          ..sort((a, b) => LookupName.compare(a.key, b.key));
+      }
+
+      void addLookupName(LookupName name) {
+        builder.addString(name.asString);
+      }
+
+      void addId(ManifestItemId id) {
+        builder.addInt(id.hi32);
+        builder.addInt(id.lo32);
+      }
+
+      void addIdList(ManifestItemIdList idList) {
+        builder.addList(idList.ids, addId);
+      }
+
+      void addVersion(Version? version) {
+        if (version != null) {
+          builder.addBool(true);
+          builder.addInt(version.major);
+          builder.addInt(version.minor);
+        } else {
+          builder.addBool(false);
+        }
+      }
+
+      void addMapOfItems<T extends ManifestItem>(Map<LookupName, T> map) {
+        var entries = sortedMapEntries(map);
+        builder.addMapEntryList(entries, (lookupName, item) {
+          addLookupName(lookupName);
+          addId(item.id);
+        });
+      }
+
+      void addMapOfIds(Map<LookupName, ManifestItemId> map) {
+        var entries = sortedMapEntries(map);
+        builder.addMapEntryList(entries, (lookupName, id) {
+          addLookupName(lookupName);
+          addId(id);
+        });
+      }
+
+      void addInstanceChildren(InstanceItem instanceItem) {
+        addMapOfIds(instanceItem.declaredConflicts);
+        addMapOfItems(instanceItem.declaredFields);
+        addMapOfItems(instanceItem.declaredGetters);
+        addMapOfItems(instanceItem.declaredSetters);
+        addMapOfItems(instanceItem.declaredMethods);
+        addMapOfItems(instanceItem.declaredConstructors);
+        addMapOfIds(instanceItem.inheritedConstructors);
+      }
+
+      builder.addString(manifest.name ?? '');
+      builder.addBool(manifest.isSynthetic);
+      builder.addBytes(manifest.featureSet);
+      addVersion(manifest.languageVersion.packageVersion);
+      addVersion(manifest.languageVersion.overrideVersion);
+      addId(manifest.libraryMetadata.id);
+
+      builder.addStringList(
+        manifest.exportedLibraryUris.map((uri) => '$uri').sorted(),
+      );
+
+      builder.addList(
+        manifest.reExportDeprecatedOnly.sorted(LookupName.compare),
+        addLookupName,
+      );
+
+      void addDeclared(Map<LookupName, ManifestItem> map) {
+        var entries = sortedMapEntries(map);
+        builder.addMapEntryList(entries, (lookupName, item) {
+          addLookupName(lookupName);
+          addId(item.id);
+          if (item is InstanceItem) {
+            addInstanceChildren(item);
+            if (item is InterfaceItem) {
+              builder.addBool(item.hasNonFinalField);
+              addId(item.interface.id);
+              if (item is ClassItem) {
+                // Not strictly necessary, we add all top-levels.
+                addIdList(item.allSubtypes);
+              }
+            }
+          }
+        });
+      }
+
+      addDeclared(manifest.declaredClasses);
+      addDeclared(manifest.declaredEnums);
+      addDeclared(manifest.declaredExtensions);
+      addDeclared(manifest.declaredExtensionTypes);
+      addDeclared(manifest.declaredMixins);
+      addDeclared(manifest.declaredTypeAliases);
+      addDeclared(manifest.declaredGetters);
+      addDeclared(manifest.declaredSetters);
+      addDeclared(manifest.declaredFunctions);
+      addDeclared(manifest.declaredVariables);
+
+      addId(manifest.exportMapId);
+      addMapOfIds(manifest.exportMap);
+      addIdList(manifest.exportedExtensions);
+
+      manifest.hashForRequirements = builder.toHash();
+    }
+  }
+
+  void _fillClassAllSubtypes() {
+    for (var libraryElement in libraryElements) {
+      for (var classElement in libraryElement.classes) {
+        var classItem = declaredItems[classElement];
+        if (classItem != null) {
+          classItem as ClassItem;
+          var ids = (classElement.allSubtypes ?? []).map((type) {
+            var item = declaredItems[type.element] as InterfaceItem;
+            return item.id;
+          }).sorted();
+          classItem.allSubtypes = ManifestItemIdList(ids);
+        }
+      }
+    }
+  }
+
+  void _fillExportMaps() {
+    const mapEq = MapEquality<LookupName, ManifestItemId>();
+
+    for (var libraryElement in libraryElements) {
+      var libraryUri = libraryElement.uri;
+      var manifest = libraryElement.manifest!.instance;
+      manifest._fillExportMap();
+
+      var inputManifest = _getInputManifest(libraryUri);
+      if (mapEq.equals(manifest.exportMap, inputManifest.exportMap)) {
+        manifest.exportMapId = inputManifest.exportMapId;
+      }
+    }
   }
 
   void _fillInterfaceElementInterface(InterfaceElementImpl element) {
@@ -833,7 +1146,9 @@ class LibraryManifestBuilder {
     var item = declaredItems[element] as InterfaceItem;
     item.interface.beforeUpdating();
 
-    var interface = element.inheritanceManager.getInterface(element);
+    var inheritance = element.inheritanceManager;
+    var interface = inheritance.getInterface(element);
+
     for (var entry in interface.map.entries) {
       var executable = entry.value.baseElement;
 
@@ -850,18 +1165,16 @@ class LibraryManifestBuilder {
 
       var combinedCandidates = interface.combinedSignatures[entry.key];
       if (combinedCandidates != null) {
-        var candidateElements =
-            combinedCandidates
-                .map((candidate) => candidate.baseElement)
-                .toSet()
-                .toList();
+        var candidateElements = combinedCandidates
+            .map((candidate) => candidate.baseElement)
+            .toSet()
+            .toList();
         if (candidateElements.length == 1) {
           executable = candidateElements[0];
         } else {
-          var candidateIds =
-              candidateElements.map((candidate) {
-                return _getInterfaceElementMemberId(candidate);
-              }).toList();
+          var candidateIds = candidateElements.map((candidate) {
+            return _getInterfaceElementMemberId(candidate);
+          }).toList();
           var idList = ManifestItemIdList(candidateIds);
           var id = item.interface.combinedIdsTemp[idList];
           id ??= ManifestItemId.generate();
@@ -875,16 +1188,51 @@ class LibraryManifestBuilder {
       item.interface.map[lookupName] = id;
     }
 
+    for (var entry in interface.implemented.entries) {
+      var executable = entry.value.baseElement;
+      var lookupName = executable.lookupName?.asLookupName;
+      if (lookupName != null && !lookupName.isPrivate) {
+        var id = _getInterfaceElementMemberId(executable);
+        item.interface.implemented[lookupName] = id;
+      }
+    }
+
+    for (var superImplemented in interface.superImplemented) {
+      var layer = <LookupName, ManifestItemId>{};
+      for (var entry in superImplemented.entries) {
+        var executable = entry.value.baseElement;
+        var lookupName = executable.lookupName?.asLookupName;
+        if (lookupName != null && !lookupName.isPrivate) {
+          layer[lookupName] = _getInterfaceElementMemberId(executable);
+        }
+      }
+      item.interface.superImplemented.add(layer);
+    }
+
+    for (var entry in inheritance.getInheritedMap(element).entries) {
+      var executable = entry.value.baseElement;
+      var lookupName = executable.lookupName?.asLookupName;
+      if (lookupName != null && !lookupName.isPrivate) {
+        var id = _getInterfaceElementMemberId(executable);
+        item.interface.inherited[lookupName] = id;
+      }
+    }
+
     item.interface.afterUpdate();
   }
 
   void _fillInterfaceElementsInterface() {
     var librarySet = libraryElements.toSet();
     var interfaceSet = <InterfaceElementImpl>{};
+    var interfaceList = <InterfaceElementImpl>[];
 
     void addInterfacesToFill(InterfaceElementImpl element) {
       // If not in this bundle, it has interface ready.
       if (!librarySet.contains(element.library)) {
+        return;
+      }
+
+      if (!interfaceSet.add(element)) {
         return;
       }
 
@@ -893,7 +1241,7 @@ class LibraryManifestBuilder {
         addInterfacesToFill(superType.element);
       }
 
-      interfaceSet.add(element);
+      interfaceList.add(element);
     }
 
     for (var libraryElement in libraryElements) {
@@ -908,7 +1256,7 @@ class LibraryManifestBuilder {
     // So that if there are synthetic top-merged members in interfaces of
     // supertypes (these members are not included into declared), we can
     // get corresponding IDs.
-    for (var element in interfaceSet) {
+    for (var element in interfaceList) {
       _fillInterfaceElementInterface(element);
     }
   }
@@ -981,7 +1329,14 @@ class LibraryManifestBuilder {
   LibraryManifest _getInputManifest(Uri uri) {
     return inputManifests[uri] ??
         LibraryManifest(
+          name: null,
+          isSynthetic: false,
+          featureSet: Uint8List(0),
+          languageVersion: ManifestLibraryLanguageVersion.empty(),
+          libraryMetadata: LibraryMetadataItem.empty(),
+          exportedLibraryUris: [],
           reExportMap: {},
+          reExportDeprecatedOnly: <LookupName>{},
           declaredClasses: {},
           declaredEnums: {},
           declaredExtensions: {},
@@ -992,6 +1347,10 @@ class LibraryManifestBuilder {
           declaredSetters: {},
           declaredFunctions: {},
           declaredVariables: {},
+          exportMap: {},
+          exportMapId: ManifestItemId.generate(),
+          exportedExtensions: ManifestItemIdList([]),
+          hashForRequirements: Hash.empty,
         );
   }
 
@@ -1061,6 +1420,81 @@ class LibraryManifestBuilder {
   }
 }
 
+/// Handle for [LibraryManifest.hashForRequirements] or [instance].
+///
+/// Most [RequirementsManifest] can be checked using just [hashForRequirements],
+/// so we don't even need to read the whole [instance] from bytes. But we can,
+/// if we have to check for details of the manifest.
+///
+/// This class has several states:
+/// 1. Has incomplete [_instance], during building.
+/// 2. Has complete [_instance], no bytes, after building.
+/// 3. Has [_instance], has bytes, after building and write.
+/// 4. No [_instance], has bytes, after [discardInstance] or `read`.
+/// 5. Has [instance], has bytes, after [instance] read it.
+class LibraryManifestHandle {
+  Hash? _hashForRequirements;
+  Uint8List? _bytes;
+  LibraryManifest? _instance;
+
+  LibraryManifestHandle({
+    required Hash? hashForRequirements,
+    required Uint8List? bytes,
+    required LibraryManifest? instance,
+  }) : _hashForRequirements = hashForRequirements,
+       _bytes = bytes,
+       _instance = instance;
+
+  factory LibraryManifestHandle.fromInstance(LibraryManifest instance) {
+    // Note, we don't convert instance to bytes here.
+    // The instance is not finished yet in the builder.
+    return LibraryManifestHandle(
+      bytes: null,
+      hashForRequirements: null,
+      instance: instance,
+    );
+  }
+
+  factory LibraryManifestHandle.read(BinaryReader reader) {
+    return LibraryManifestHandle(
+      hashForRequirements: Hash.read(reader),
+      bytes: reader.readUint8List(),
+      instance: null,
+    );
+  }
+
+  Hash get hashForRequirements {
+    return _hashForRequirements ?? _instance!.hashForRequirements;
+  }
+
+  LibraryManifest get instance {
+    return _instance ??= LibraryManifest.fromBytes(_bytes!);
+  }
+
+  void discardInstance() {
+    if (_instance case var instance?) {
+      _hashForRequirements ??= instance.hashForRequirements;
+      _bytes ??= instance.toBytes();
+    }
+    _instance = null;
+  }
+
+  void write(BinaryWriter writer) {
+    var hashForRequirements =
+        _hashForRequirements ?? _instance?.hashForRequirements;
+    if (hashForRequirements == null) {
+      throw StateError('Missing hashForRequirements');
+    }
+    hashForRequirements.write(writer);
+
+    var bytes = _bytes ?? _instance?.toBytes();
+    if (bytes == null) {
+      throw StateError('Missing bytes');
+    }
+    writer.writeUint8List(bytes);
+  }
+}
+
 /// Compares structures of [library] children against [manifest].
 class _LibraryMatch {
   final LibraryElementImpl library;
@@ -1107,6 +1541,10 @@ class _LibraryMatch {
   });
 
   void compareStructures() {
+    if (!_matchLibraryMetadata()) {
+      structureMismatched.add(library);
+    }
+
     for (var element in library.children) {
       var name = element.lookupName?.asLookupName;
       switch (element) {
@@ -1119,8 +1557,10 @@ class _LibraryMatch {
             structureMismatched.add(element);
           }
         case ExtensionElementImpl():
-          if (!_matchExtension(name: name, element: element)) {
-            structureMismatched.add(element);
+          if (name != null) {
+            if (!_matchExtension(name: name, element: element)) {
+              structureMismatched.add(element);
+            }
           }
         case ExtensionTypeElementImpl():
           if (!_matchExtensionType(name: name, element: element)) {
@@ -1292,6 +1732,7 @@ class _LibraryMatch {
   }) {
     for (var field in element.fields) {
       if (!_matchInstanceElementField(
+        instanceElement: element,
         instanceItem: item,
         instanceMatchContext: matchContext,
         element: field,
@@ -1302,6 +1743,7 @@ class _LibraryMatch {
 
     for (var method in element.methods) {
       if (!_matchInstanceElementMethod(
+        instanceElement: element,
         instanceItem: item,
         instanceMatchContext: matchContext,
         element: method,
@@ -1312,6 +1754,7 @@ class _LibraryMatch {
 
     for (var getter in element.getters) {
       if (!_matchInstanceElementGetter(
+        instanceElement: element,
         instanceItem: item,
         instanceMatchContext: matchContext,
         element: getter,
@@ -1322,6 +1765,7 @@ class _LibraryMatch {
 
     for (var setter in element.setters) {
       if (!_matchInstanceElementSetter(
+        instanceElement: element,
         instanceItem: item,
         instanceMatchContext: matchContext,
         element: setter,
@@ -1332,6 +1776,7 @@ class _LibraryMatch {
   }
 
   bool _matchInstanceElementField({
+    required InstanceElementImpl instanceElement,
     required InstanceItem instanceItem,
     required MatchContext instanceMatchContext,
     required FieldElementImpl element,
@@ -1351,11 +1796,13 @@ class _LibraryMatch {
       return false;
     }
 
+    matchContext.elements.add(instanceElement);
     _addMatchingElementItem(element, item, matchContext);
     return true;
   }
 
   bool _matchInstanceElementGetter({
+    required InstanceElementImpl instanceElement,
     required InstanceItem instanceItem,
     required MatchContext instanceMatchContext,
     required GetterElementImpl element,
@@ -1366,7 +1813,7 @@ class _LibraryMatch {
     }
 
     var item = instanceItem.declaredGetters[lookupName];
-    if (item is! InstanceItemGetterItem) {
+    if (item == null) {
       return false;
     }
 
@@ -1375,11 +1822,13 @@ class _LibraryMatch {
       return false;
     }
 
+    matchContext.elements.add(instanceElement);
     _addMatchingElementItem(element, item, matchContext);
     return true;
   }
 
   bool _matchInstanceElementMethod({
+    required InstanceElementImpl instanceElement,
     required InstanceItem instanceItem,
     required MatchContext instanceMatchContext,
     required MethodElementImpl element,
@@ -1390,7 +1839,7 @@ class _LibraryMatch {
     }
 
     var item = instanceItem.declaredMethods[lookupName];
-    if (item is! InstanceItemMethodItem) {
+    if (item == null) {
       return false;
     }
 
@@ -1399,11 +1848,13 @@ class _LibraryMatch {
       return false;
     }
 
+    matchContext.elements.add(instanceElement);
     _addMatchingElementItem(element, item, matchContext);
     return true;
   }
 
   bool _matchInstanceElementSetter({
+    required InstanceElementImpl instanceElement,
     required InstanceItem instanceItem,
     required MatchContext instanceMatchContext,
     required SetterElementImpl element,
@@ -1414,7 +1865,7 @@ class _LibraryMatch {
     }
 
     var item = instanceItem.declaredSetters[lookupName];
-    if (item is! InstanceItemSetterItem) {
+    if (item == null) {
       return false;
     }
 
@@ -1423,11 +1874,13 @@ class _LibraryMatch {
       return false;
     }
 
+    matchContext.elements.add(instanceElement);
     _addMatchingElementItem(element, item, matchContext);
     return true;
   }
 
   bool _matchInterfaceElementConstructor({
+    required InterfaceElementImpl interfaceElement,
     required InterfaceItem interfaceItem,
     required MatchContext interfaceMatchContext,
     required ConstructorElementImpl element,
@@ -1438,7 +1891,7 @@ class _LibraryMatch {
     }
 
     var item = interfaceItem.declaredConstructors[lookupName];
-    if (item is! InterfaceItemConstructorItem) {
+    if (item == null) {
       return false;
     }
 
@@ -1447,6 +1900,7 @@ class _LibraryMatch {
       return false;
     }
 
+    matchContext.elements.add(interfaceElement);
     _addMatchingElementItem(element, item, matchContext);
     return true;
   }
@@ -1458,6 +1912,7 @@ class _LibraryMatch {
   }) {
     for (var constructor in interfaceElement.constructors) {
       if (!_matchInterfaceElementConstructor(
+        interfaceElement: interfaceElement,
         interfaceItem: item,
         interfaceMatchContext: matchContext,
         element: constructor,
@@ -1465,6 +1920,18 @@ class _LibraryMatch {
         structureMismatched.add(constructor);
       }
     }
+  }
+
+  bool _matchLibraryMetadata() {
+    var item = manifest.libraryMetadata;
+
+    var matchContext = MatchContext(parent: null);
+    if (!item.match(matchContext, library)) {
+      return false;
+    }
+
+    _addMatchingElementItem(library, item, matchContext);
+    return true;
   }
 
   bool _matchMixin({

@@ -3,12 +3,13 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/src/binary/binary_reader.dart';
+import 'package:analyzer/src/binary/binary_writer.dart';
+import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/fine/lookup_name.dart';
 import 'package:analyzer/src/fine/manifest_id.dart';
 import 'package:analyzer/src/fine/manifest_item.dart';
 import 'package:analyzer/src/fine/manifest_type.dart';
-import 'package:analyzer/src/summary2/data_reader.dart';
-import 'package:analyzer/src/summary2/data_writer.dart';
 import 'package:analyzer/src/summary2/linked_element_factory.dart';
 
 class EncodeContext {
@@ -56,7 +57,7 @@ class EncodeContext {
   }
 
   T withTypeParameters<T>(
-    List<TypeParameterElement> typeParameters,
+    List<TypeParameterElementImpl> typeParameters,
     T Function(List<ManifestTypeParameter> typeParameters) operation,
   ) {
     for (var typeParameter in typeParameters) {
@@ -112,12 +113,12 @@ final class ManifestElement {
     required this.id,
   });
 
-  factory ManifestElement.read(SummaryDataReader reader) {
+  factory ManifestElement.read(BinaryReader reader) {
     return ManifestElement(
       libraryUri: reader.readUri(),
       kind: reader.readEnum(ManifestElementKind.values),
-      topLevelName: reader.readStringUtf8(),
-      memberName: reader.readOptionalStringUtf8(),
+      topLevelName: reader.readStringReference(),
+      memberName: reader.readOptionalStringReference(),
       id: reader.readOptionalObject(() => ManifestItemId.read(reader)),
     );
   }
@@ -169,12 +170,12 @@ final class ManifestElement {
     return true;
   }
 
-  void write(BufferedSink sink) {
-    sink.writeUri(libraryUri);
-    sink.writeEnum(kind);
-    sink.writeStringUtf8(topLevelName);
-    sink.writeOptionalStringUtf8(memberName);
-    id.writeOptional(sink);
+  void write(BinaryWriter writer) {
+    writer.writeUri(libraryUri);
+    writer.writeEnum(kind);
+    writer.writeStringReference(topLevelName);
+    writer.writeOptionalStringReference(memberName);
+    id.writeOptional(writer);
   }
 
   static ManifestElement encode(EncodeContext context, Element element) {
@@ -198,8 +199,19 @@ final class ManifestElement {
     );
   }
 
-  static List<ManifestElement> readList(SummaryDataReader reader) {
+  static ManifestElement? encodeOptional(
+    EncodeContext context,
+    Element? element,
+  ) {
+    return element != null ? encode(context, element) : null;
+  }
+
+  static List<ManifestElement> readList(BinaryReader reader) {
     return reader.readTypedList(() => ManifestElement.read(reader));
+  }
+
+  static ManifestElement? readOptional(BinaryReader reader) {
+    return reader.readOptionalObject(() => ManifestElement.read(reader));
   }
 }
 
@@ -207,6 +219,7 @@ final class ManifestElement {
 enum ManifestElementKind {
   class_,
   enum_,
+  extension_,
   extensionType,
   mixin_,
   typeAlias,
@@ -226,6 +239,8 @@ enum ManifestElementKind {
         return ManifestElementKind.class_;
       case EnumElement():
         return ManifestElementKind.enum_;
+      case ExtensionElement():
+        return ManifestElementKind.extension_;
       case ExtensionTypeElement():
         return ManifestElementKind.extensionType;
       case MixinElement():
@@ -350,47 +365,99 @@ extension LinkedElementFactoryExtension on LinkedElementFactory {
     var libraryUri = topLevelElement.library!.uri;
 
     // Prepare the external library manifest.
-    var manifest = libraryManifests[libraryUri];
+    var manifest = libraryManifests[libraryUri]?.instance;
     if (manifest == null) {
       return null;
     }
 
     // SAFETY: if we can reference the element, it has a name.
     var topLevelName = topLevelElement.lookupName!.asLookupName;
-    TopLevelItem? topLevelItem;
+    ManifestItem? topLevelItem;
     switch (topLevelElement) {
       case ClassElement():
         topLevelItem = manifest.declaredClasses[topLevelName];
+      case EnumElement():
+        topLevelItem = manifest.declaredEnums[topLevelName];
+      case ExtensionElement():
+        topLevelItem = manifest.declaredExtensions[topLevelName];
+      case ExtensionTypeElement():
+        topLevelItem = manifest.declaredExtensionTypes[topLevelName];
       case MixinElement():
         topLevelItem = manifest.declaredMixins[topLevelName];
       case GetterElement():
-        return manifest.declaredGetters[topLevelName]?.id;
+        return manifest.declaredGetters[topLevelName]!.id;
       case SetterElement():
-        return manifest.declaredSetters[topLevelName]?.id;
+        return manifest.declaredSetters[topLevelName]!.id;
       case TopLevelFunctionElement():
-        return manifest.declaredFunctions[topLevelName]?.id;
+        return manifest.declaredFunctions[topLevelName]!.id;
+      case TopLevelVariableElement():
+        return manifest.declaredVariables[topLevelName]!.id;
+      case TypeAliasElement():
+        return manifest.declaredTypeAliases[topLevelName]!.id;
     }
 
-    // TODO(scheglov): remove it after supporting all elements
     if (topLevelItem == null) {
-      return null;
+      throw StateError(
+        'Missing element manifest: (${topLevelElement.runtimeType}) '
+        '$topLevelElement in $libraryUri',
+      );
     }
 
     if (memberElement == null) {
       return topLevelItem.id;
     }
 
-    // TODO(scheglov): When implementation is complete, cast unconditionally.
-    if (topLevelItem is InterfaceItem) {
-      var memberName = memberElement.lookupName!.asLookupName;
-      if (element is ConstructorElement) {
-        return topLevelItem.getConstructorId(memberName);
-      }
-      var methodId = topLevelItem.getInterfaceMethodId(memberName);
-      // TODO(scheglov): When implementation is complete, null assert.
-      return methodId;
+    // If not top-level element, then a member in [InstanceElement].
+    var memberName = memberElement.lookupName!.asLookupName;
+    topLevelItem as InstanceItem;
+
+    switch (element) {
+      case FieldElement():
+        if (topLevelItem.getDeclaredFieldId(memberName) case var result?) {
+          return result;
+        }
+      case GetterElement():
+        if (topLevelItem.getDeclaredGetterId(memberName) case var result?) {
+          return result;
+        }
+      case SetterElement():
+        if (topLevelItem.getDeclaredSetterId(memberName) case var result?) {
+          return result;
+        }
+      case MethodElement():
+        if (topLevelItem.getDeclaredMethodId(memberName) case var result?) {
+          return result;
+        }
     }
 
-    return null;
+    // If we get here, the top-level container is not [ExtensionElement].
+    // So, it must be [InterfaceElement].
+    topLevelItem as InterfaceItem;
+
+    if (element is ConstructorElement) {
+      return topLevelItem.getConstructorId(memberName)!;
+    }
+
+    // In rare cases the member is not declared by the element, but added
+    // to the interface as a result of top-merge.
+    return topLevelItem.getInterfaceMethodId(memberName) ??
+        (throw '[runtimeType: ${element.runtimeType}]'
+            '[topLevelName: $topLevelName]'
+            '[memberName: $memberName]');
+  }
+}
+
+extension ManifestElementExtension on ManifestElement? {
+  bool match(MatchContext context, Element? element) {
+    if (this case var self?) {
+      return element != null && self.match(context, element);
+    }
+    return element == null;
+  }
+
+  void writeOptional(BinaryWriter writer) {
+    writer.writeOptionalObject(this, (it) {
+      it.write(writer);
+    });
   }
 }

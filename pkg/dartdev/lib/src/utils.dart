@@ -26,7 +26,7 @@ Future<int> runFromSnapshot({
   required List<String> args,
   required bool verbose,
 }) async {
-  if (!Sdk.checkArtifactExists(snapshot)) return 255;
+  if (!checkArtifactExists(snapshot)) return 255;
 
   int retval = 0;
   final result = Completer<int>();
@@ -131,6 +131,8 @@ String trimEnd(String s, String? suffix) {
 
 extension FileSystemEntityExtension on FileSystemEntity {
   String get name => p.basename(path);
+
+  String get basenameWithoutExtension => p.basenameWithoutExtension(path);
 
   bool get isDartFile => this is File && p.extension(path) == '.dart';
 }

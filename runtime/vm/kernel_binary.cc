@@ -68,7 +68,8 @@ const char* kKernelInvalidFilesize =
     "File size is too small to be a valid kernel file";
 const char* kKernelInvalidMagicIdentifier = "Invalid magic identifier";
 const char* kKernelInvalidBinaryFormatVersion =
-    "Invalid kernel binary format version";
+    "Invalid kernel binary format version (expected %" Pu32 ", found %" Pu32
+    ")";
 const char* kKernelInvalidSizeIndicated =
     "Invalid kernel binary: Indicated size is invalid";
 const char* kKernelInvalidSdkHash = "Invalid SDK hash";
@@ -119,7 +120,9 @@ std::unique_ptr<Program> Program::ReadFrom(Reader* reader, const char** error) {
   const uint32_t format_version = reader->ReadUInt32();
   if (format_version != kSupportedKernelFormatVersion) {
     if (error != nullptr) {
-      *error = kKernelInvalidBinaryFormatVersion;
+      *error = OS::SCreate(Thread::Current()->zone(),
+                           kKernelInvalidBinaryFormatVersion,
+                           kSupportedKernelFormatVersion, format_version);
     }
     return nullptr;
   }
@@ -171,37 +174,6 @@ std::unique_ptr<Program> Program::ReadFrom(Reader* reader, const char** error) {
   program->main_method_reference_ = NameIndex(reader->ReadUInt32() - 1);
 
   return program;
-}
-
-std::unique_ptr<Program> Program::ReadFromFile(
-    const char* script_uri,
-    const char** error /* = nullptr */) {
-  Thread* thread = Thread::Current();
-  auto isolate_group = thread->isolate_group();
-  if (script_uri == nullptr) {
-    return nullptr;
-  }
-  if (!isolate_group->HasTagHandler()) {
-    return nullptr;
-  }
-  std::unique_ptr<kernel::Program> kernel_program;
-
-  const String& uri = String::Handle(String::New(script_uri));
-  const Object& ret = Object::Handle(isolate_group->CallTagHandler(
-      Dart_kKernelTag, Object::null_object(), uri));
-  if (ret.IsExternalTypedData()) {
-    const auto& typed_data = ExternalTypedData::Cast(ret);
-    kernel_program = kernel::Program::ReadFromTypedData(typed_data);
-    return kernel_program;
-  } else if (error != nullptr) {
-    Api::Scope api_scope(thread);
-    Dart_Handle retval = Api::NewHandle(thread, ret.ptr());
-    {
-      TransitionVMToNative transition(thread);
-      *error = Dart_GetError(retval);
-    }
-  }
-  return kernel_program;
 }
 
 std::unique_ptr<Program> Program::ReadFromBuffer(const uint8_t* buffer,

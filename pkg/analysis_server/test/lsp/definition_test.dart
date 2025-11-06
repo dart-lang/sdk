@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/lsp_protocol/protocol.dart' as lsp;
-import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/legacy_analysis_server.dart';
 import 'package:analyzer/src/test_utilities/test_code_format.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
@@ -24,12 +23,11 @@ void main() {
 @reflectiveTest
 class DefinitionTest extends AbstractLspAnalysisServerTest {
   @override
-  AnalysisServerOptions get serverOptions =>
-      AnalysisServerOptions()
-        ..enabledExperiments = [
-          ...super.serverOptions.enabledExperiments,
-          ...experimentsForTests,
-        ];
+  AnalysisServerOptions get serverOptions => AnalysisServerOptions()
+    ..enabledExperiments = [
+      ...super.serverOptions.enabledExperiments,
+      ...experimentsForTests,
+    ];
 
   Future<void> test_acrossFiles() async {
     var mainContents = '''
@@ -451,7 +449,7 @@ class A {
     var contents = '''
 class A {
   int [!_!] = 1;
-  int f() => _^;  
+  int f() => _^;
 }
 ''';
 
@@ -470,7 +468,6 @@ class A {
   }
 
   Future<void> test_fromPlugins() async {
-    if (!AnalysisServer.supportsPlugins) return;
     var pluginAnalyzedFilePath = join(projectFolderPath, 'lib', 'foo.foo');
     var pluginAnalyzedFileUri = pathContext.toUri(pluginAnalyzedFilePath);
     var pluginResult = plugin.AnalysisGetNavigationResult(
@@ -659,6 +656,217 @@ math.Random? r;
       expect(loc.targetRange, equals(code.ranges[index].range));
       expect(loc.targetSelectionRange, equals(code.ranges[index].range));
     }
+  }
+
+  Future<void> test_keywordNavigation_break_toDo() async {
+    var contents = '''
+void f() {
+  [!do!] {
+    if (true) br^eak;
+  } while (true);
+}
+''';
+
+    await testContents(contents);
+  }
+
+  Future<void> test_keywordNavigation_break_toFor() async {
+    var contents = '''
+void f() {
+  [!for!] (;;) {
+    if (true) br^eak;
+  }
+}
+''';
+
+    await testContents(contents);
+  }
+
+  Future<void> test_keywordNavigation_break_toSwitch() async {
+    var contents = '''
+void f(int x) {
+  [!switch!] (x) {
+    case 1:
+      br^eak;
+  }
+}
+''';
+
+    await testContents(contents);
+  }
+
+  Future<void> test_keywordNavigation_break_toWhile() async {
+    var contents = '''
+void f() {
+  [!while!] (true) {
+    if (true) br^eak;
+  }
+}
+''';
+
+    await testContents(contents);
+  }
+
+  Future<void> test_keywordNavigation_break_withLabel() async {
+    var contents = '''
+void f() {
+  outer:
+  [!do!] {
+    do {
+      if (true) br^eak outer;
+    } while (true);
+  } while (true);
+}
+''';
+
+    await testContents(contents);
+  }
+
+  Future<void> test_keywordNavigation_continue_toFor() async {
+    var contents = '''
+void f() {
+  [!for!] (;;) {
+    if (true) cont^inue;
+  }
+}
+''';
+
+    await testContents(contents);
+  }
+
+  Future<void> test_keywordNavigation_continue_toFor_insideSwitch() async {
+    var contents = '''
+void f() {
+  [!for!] (;;) {
+    switch (true) {
+      case _: cont^inue;
+    }
+  }
+}
+''';
+
+    await testContents(contents);
+  }
+
+  Future<void> test_keywordNavigation_continue_toWhile() async {
+    var contents = '''
+void f() {
+  [!while!] (true) {
+    if (true) cont^inue;
+  }
+}
+''';
+
+    await testContents(contents);
+  }
+
+  Future<void> test_keywordNavigation_nestedLoop() async {
+    var contents = '''
+void f() {
+  for (;;) {
+    [!while!] (true) {
+      if (true) br^eak;
+    }
+  }
+}
+''';
+
+    await testContents(contents);
+  }
+
+  Future<void> test_keywordNavigation_noTarget() async {
+    failTestOnErrorDiagnostic = false;
+
+    var contents = '''
+void f() {
+  br^eak; // no loop
+}
+''';
+    await testContents(contents, expectNoResults: true);
+  }
+
+  Future<void> test_keywordNavigation_return_toClosure() async {
+    var contents = '''
+int foo() {
+  return [1].firstWhere([!(!]i) {
+    ret^urn true;
+  });
+}
+''';
+
+    await testContents(contents);
+  }
+
+  Future<void> test_keywordNavigation_return_toConstructor_named() async {
+    var contents = '''
+class MyClass {
+  MyClass.[!fooConstructor!]() {
+    ret^urn;
+  }
+}
+''';
+
+    await testContents(contents);
+  }
+
+  Future<void> test_keywordNavigation_return_toConstructor_unnamed() async {
+    var contents = '''
+class MyClass {
+  [!MyClass!]() {
+    ret^urn;
+  }
+}
+''';
+
+    await testContents(contents);
+  }
+
+  Future<void> test_keywordNavigation_return_toFunction() async {
+    var contents = '''
+int [!foo!]() {
+  if (true) ret^urn 42;
+  return 0;
+}
+''';
+
+    await testContents(contents);
+  }
+
+  Future<void> test_keywordNavigation_return_toGetter() async {
+    var contents = '''
+class C {
+  int get [!value!] {
+    if (true) ret^urn 42;
+    return 0;
+  }
+}
+''';
+
+    await testContents(contents);
+  }
+
+  Future<void> test_keywordNavigation_yield_toFunction() async {
+    var contents = '''
+Iterable<int> [!generator!]() sync* {
+  yi^eld 1;
+  yield 2;
+}
+''';
+
+    await testContents(contents);
+  }
+
+  Future<void> test_label() async {
+    var contents = '''
+f() {
+  [!lbl!]:
+  for (;;) {
+    break lb^l;
+  }
+}
+''';
+
+    await testContents(contents);
   }
 
   Future<void> test_locationLink_class() async {
@@ -889,7 +1097,7 @@ void f() {
     var contents = '''
 class A {
   int [!_!]() => 1;
-  int f() => _^();  
+  int f() => _^();
 }
 ''';
 
@@ -1150,7 +1358,11 @@ class [!MyClass!] {}
 
   /// Expects definitions at the location of `^` in [contents] will navigate to
   /// the range in `[!` brackets `!]` in `[contents].
-  Future<void> testContents(String contents, {bool inOpenFile = true}) async {
+  Future<void> testContents(
+    String contents, {
+    bool inOpenFile = true,
+    bool expectNoResults = false,
+  }) async {
     var code = TestCode.parse(contents);
     await initialize();
     if (inOpenFile) {
@@ -1161,6 +1373,17 @@ class [!MyClass!] {}
       code.position.position,
     );
 
+    if (expectNoResults) {
+      expect(
+        code.ranges,
+        isEmpty,
+        reason: 'TestCode should not contain ranges if expectNoResults=true',
+      );
+      expect(res, isEmpty);
+      return;
+    }
+
+    expect(code.ranges, hasLength(1));
     expect(res, hasLength(1));
     var loc = res.single;
     expect(loc.range, equals(code.range.range));

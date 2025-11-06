@@ -7,6 +7,8 @@ import 'dart:convert';
 import 'dart:io' as io;
 import 'dart:math' show max, min;
 
+import 'package:_js_interop_checks/src/js_interop.dart'
+    show getDartJSInteropJSName, hasDartJSInteropAnnotation;
 import 'package:_js_interop_checks/src/transformations/js_util_optimizer.dart'
     show ExtensionIndex;
 import 'package:front_end/src/api_unstable/ddc.dart';
@@ -871,6 +873,7 @@ class LibraryCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
   final FutureOrNormalizer _futureOrNormalizer;
 
   bool _inFunctionExpression = false;
+  bool _inAsyncExpression = false;
 
   /// Returns whether or not [uri] can be hot reloaded.
   ///
@@ -2230,7 +2233,7 @@ class LibraryCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
 
       var memberName = _declareMemberName(
         member,
-        useExtension: _isObjectMethodTearoff(member.name.text),
+        useExtension: member.isToStringOrNoSuchMethod,
       );
       if (!member.isAccessor) {
         var immediateTarget = js.string(fullyResolvedTargetLabel(member));
@@ -5070,8 +5073,14 @@ class LibraryCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
   }
 
   js_ast.Statement _emitFunctionScopedBody(FunctionNode f) {
+    var savedInAsyncExpression = _inAsyncExpression;
+    if (f.asyncMarker != AsyncMarker.Sync) {
+      _inAsyncExpression = true;
+    }
     var jsBody = _visitStatement(f.body!);
-    return _emitScopedBody(f, jsBody);
+    var body = _emitScopedBody(f, jsBody);
+    _inAsyncExpression = savedInAsyncExpression;
+    return body;
   }
 
   js_ast.Statement _emitScopedBody(FunctionNode f, js_ast.Statement body) {
@@ -6181,8 +6190,7 @@ class LibraryCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
       return jsReceiver;
     }
     var memberName = node.name.text;
-    if (_isObjectGetter(memberName) &&
-        _shouldCallObjectMemberHelper(receiver)) {
+    if (member.isCoreObjectGetter && _shouldCallObjectMemberHelper(receiver)) {
       // The names of the static helper methods in the runtime must match the
       // names of the Object instance getters.
       return _runtimeCall('#(#)', [memberName, jsReceiver]);
@@ -6194,16 +6202,19 @@ class LibraryCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     );
     var instanceGet = js_ast.PropertyAccess(jsReceiver, jsMemberName);
     if (_shouldRewriteInvocationWithHotReloadChecks(node.interfaceTarget)) {
-      // TODO(nshahan): Add a runtime helper to perform the checks only so the
-      // call site can be monomorphic.
-      instanceGet.sourceInformation = _nodeStart(node);
-      // Since there are no arguments (unlike methods) the dynamic get path can
-      // be reused for the hot reload checks on a getter.
-      var checkedGet = _emitCast(
-        _emitDynamicGet(jsReceiver, _emitMemberName(memberName)),
-        node.resultType,
-      )..sourceInformation = _nodeStart(node);
-      return _emitHotReloadSafeInvocation(instanceGet, checkedGet);
+      return switch (hotReloadCheckedBranch) {
+        HotReloadBranchState.none => _emitHotReloadChecksConditional(node),
+        HotReloadBranchState.uncheckedBranch => instanceGet,
+        HotReloadBranchState.checkedBranch =>
+          // TODO(nshahan): Add a runtime helper to perform the checks only so
+          // the call site can be monomorphic.
+          // Since there are no arguments (unlike methods) the dynamic get path
+          // can be reused for the hot reload checks on a getter.
+          _emitCast(
+            _emitDynamicGet(jsReceiver, _emitMemberName(memberName)),
+            node.resultType,
+          )..sourceInformation = _nodeStart(node),
+      };
     }
     return _isNullCheckableJsInterop(node.interfaceTarget)
         ? _wrapWithJsInteropNullCheck(instanceGet)
@@ -6241,7 +6252,7 @@ class LibraryCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
       return jsReceiver;
     }
     var memberName = node.name.text;
-    if (_isObjectMethodTearoff(memberName) &&
+    if (member.isToStringOrNoSuchMethod &&
         _shouldCallObjectMemberHelper(receiver)) {
       // The names of the static helper methods in the runtime must start with
       // the names of the Object instance methods.
@@ -6288,20 +6299,25 @@ class LibraryCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
       isJsMember(target) ? _assertInterop(node.value) : node.value,
     );
     var uncheckedSet = js.call('#.# = #', [receiver, memberName, value]);
+
     if (_shouldRewriteInvocationWithHotReloadChecks(target)) {
-      // TODO(nshahan): Add a runtime helper to perform the checks only so the
-      // call site can be monomorphic.
-      var checkedSet = _emitDynamicSet(receiver, memberName, value);
-      // Dart setters can contain a return statement but that value doesn't get
-      // returned anywhere. Instead, the result of an assignment expression is
-      // the RHS. DDC relies on the same behavior in the JavaScript
-      // representation to carry the value through as the result of the
-      // assignment expression. It is then sufficient to check the type of the
-      // argument as it flows into the setter. If it is still valid, then it
-      // should also be valid to flow through to the context where the
-      // assignment appears. No extra cast on the assignment expression is
-      // needed.
-      return _emitHotReloadSafeInvocation(uncheckedSet, checkedSet);
+      return switch (hotReloadCheckedBranch) {
+        HotReloadBranchState.none => _emitHotReloadChecksConditional(node),
+        HotReloadBranchState.uncheckedBranch => uncheckedSet,
+        HotReloadBranchState.checkedBranch =>
+          // TODO(nshahan): Add a runtime helper to perform the checks only so
+          // the call site can be monomorphic.
+          // Dart setters can contain a return statement but that value doesn't
+          // get returned anywhere. Instead, the result of an assignment
+          // expression is the RHS. DDC relies on the same behavior in the
+          // JavaScript representation to carry the value through as the result
+          // of the assignment expression. It is then sufficient to check the
+          // type of the argument as it flows into the setter. If it is still
+          // valid, then it should also be valid to flow through to the context
+          // where the assignment appears. No extra cast on the assignment
+          // expression is needed.
+          _emitDynamicSet(receiver, memberName, value),
+      };
     }
     return uncheckedSet;
   }
@@ -6542,10 +6558,122 @@ class LibraryCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
 
   @override
   js_ast.Expression visitInstanceInvocation(InstanceInvocation node) {
-    var invocation = _emitInstanceInvocation(node);
+    var target = node.interfaceTarget;
+    if (target.isPrimitiveOperator) {
+      return _emitPrimitiveOperatorInvocation(node);
+    }
+    var receiver = node.receiver;
+    var jsReceiver = _visitExpression(receiver);
+    if (node.isNativeListInvariantAddInvocation(_coreTypes.listClass)) {
+      // TODO(nshahan): If this code is retained, can it become invalid after a
+      // hot reload?
+      return js.call('#.push(#)', [
+        jsReceiver,
+        _emitArgumentList(node.arguments, target: target),
+      ]);
+    }
+    var name = node.name.text;
+    if (name == 'call') {
+      var directCallInvocation = _emitDirectInstanceCallInvocation(node);
+      if (directCallInvocation != null) {
+        return directCallInvocation;
+      }
+    }
+    if (target.isToStringOrNoSuchMethodWithDefaultSignature &&
+        _shouldCallObjectMemberHelper(receiver)) {
+      // Handle Object methods when the receiver could potentially be `null` or
+      // JavaScript interop values with static helper methods.
+      // The names of the static helper methods in the runtime must match the
+      // names of the Object instance members.
+      // TODO(nshahan): What should be checked after a hot reload. I think only
+      // the return type of the NSM can change.
+      return _runtimeCall('#(#, #)', [
+        name,
+        jsReceiver,
+        _emitArgumentList(node.arguments, target: target),
+      ]);
+    }
+    // Otherwise generate this as a normal typed method call.
+    var jsName = _emitMemberName(name, member: target);
+
+    js_ast.Expression generateCall() {
+      var args = _emitArgumentList(node.arguments, target: target);
+      return js.call('#.#(#)', [jsReceiver, jsName, args]);
+    }
+
+    if (_shouldRewriteInvocationWithHotReloadChecks(target)) {
+      return switch (hotReloadCheckedBranch) {
+        HotReloadBranchState.none => _emitHotReloadChecksConditional(node),
+        HotReloadBranchState.uncheckedBranch => generateCall(),
+        HotReloadBranchState.checkedBranch =>
+          _rewriteInvocationWithHotReloadChecks(
+            jsReceiver,
+            jsName,
+            target,
+            node.arguments,
+            node.getStaticType(_staticTypeContext),
+            _nodeStart(node),
+          ),
+      };
+    }
+
+    final invocation = generateCall();
     return _isNullCheckableJsInterop(node.interfaceTarget)
         ? _wrapWithJsInteropNullCheck(invocation)
         : invocation;
+  }
+
+  /// Returns a direct invocation to support a `call()` method invocation when
+  /// the receiver is considered directly callable, otherwise returns
+  /// `null`.
+  ///
+  /// For example if `fn` is statically typed as a function type, then
+  /// `fn.call()` would be considered directly callable and compiled as `fn()`.
+  // TODO(nshahan): Handle retained call method invocations that have new
+  // signatures or were deleted after a hot reload.
+  js_ast.Expression? _emitDirectInstanceCallInvocation(
+    InstanceInvocation node,
+  ) {
+    // Erasing the extension types here to support existing callable behavior
+    // on the old style JS interop types that are callable. This should be
+    // safe as it is a compile time error to try to dynamically invoke a call
+    // method that is inherited from an extension type.
+    var receiverType = node.receiver
+        .getStaticType(_staticTypeContext)
+        .extensionTypeErasure;
+    if (!_isDirectCallable(receiverType)) return null;
+    // Handle call methods on function types as function calls.
+    var invocation = js_ast.Call(
+      _visitExpression(node.receiver),
+      _emitArgumentList(node.arguments, target: node.interfaceTarget),
+    );
+    return _isNullCheckableJsInterop(node.interfaceTarget)
+        ? _wrapWithJsInteropNullCheck(invocation)
+        : invocation;
+  }
+
+  /// Returns an invocation of a primitive operator.
+  ///
+  /// See [ProcedureHelpers.isPrimitiveOperator].
+  // TODO(nshahan): Handle retained operator invocations that have new
+  // signatures or were deleted after a hot reload.
+  js_ast.Expression _emitPrimitiveOperatorInvocation(InstanceInvocation node) {
+    var receiver = node.receiver;
+    var target = node.interfaceTarget;
+    var arguments = node.arguments;
+    assert(arguments.types.isEmpty && arguments.named.isEmpty);
+    // JavaScript interop does not support overloading of these operators.
+    return switch (arguments.positional.length) {
+      0 => _emitUnaryOperator(receiver, target, node),
+      1 => _emitBinaryOperator(receiver, target, arguments.positional[0], node),
+      // Should always be a compile time error but here for exhaustiveness.
+      _ => throw UnsupportedError(
+        'Invalid number of positional arguments.\n'
+        'Found: ${arguments.positional.length}\n'
+        'Operator: ${node.name.text} '
+        '${node.location}',
+      ),
+    };
   }
 
   @override
@@ -6645,92 +6773,6 @@ class LibraryCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
       node.expression,
       NullLiteral(),
     ], negated: false);
-  }
-
-  js_ast.Expression _emitInstanceInvocation(InstanceInvocation node) {
-    /// Returns `true` when [node] represents an invocation of `List.add()` that
-    /// can be optimized.
-    ///
-    /// The optimized add operation can skip checks for a growable or modifiable
-    /// list and the element type is known to be invariant so it can skip the
-    /// type check.
-    bool isNativeListInvariantAdd(InstanceInvocation node) {
-      if (node.isInvariant && node.name.text == 'add') {
-        // The call to add is marked as invariant, so the type check on the
-        // parameter to add is not needed.
-        var receiver = node.receiver;
-        if (receiver is VariableGet &&
-            receiver.variable.isFinal &&
-            !receiver.variable.isLate) {
-          // The receiver is a final variable, so it only contains the
-          // initializer value. Also, avoid late variables in case the CFE
-          // lowering of late variables is changed in the future.
-          var initializer = receiver.variable.initializer;
-          if (initializer is ListLiteral) {
-            // The initializer is a list literal, so we know the list can be
-            // grown, modified, and is represented by a JavaScript Array.
-            return true;
-          }
-          if (initializer is StaticInvocation &&
-              initializer.target.enclosingClass == _coreTypes.listClass &&
-              initializer.target.name.text == 'of' &&
-              initializer.arguments.named.isEmpty) {
-            // The initializer is a `List.of()` call from the dart:core library
-            // and the growable named argument has not been passed (it defaults
-            // to true).
-            return true;
-          }
-        }
-      }
-      return false;
-    }
-
-    var name = node.name.text;
-    var receiver = node.receiver;
-    var arguments = node.arguments;
-    var target = node.interfaceTarget;
-    if (isOperatorMethodName(name) && arguments.named.isEmpty) {
-      var argLength = arguments.positional.length;
-      if (argLength == 0) {
-        return _emitUnaryOperator(receiver, target, node);
-      } else if (argLength == 1) {
-        return _emitBinaryOperator(
-          receiver,
-          target,
-          arguments.positional[0],
-          node,
-        );
-      }
-    }
-    var jsReceiver = _visitExpression(receiver);
-    var args = _emitArgumentList(arguments, target: target);
-    if (isNativeListInvariantAdd(node)) {
-      return js.call('#.push(#)', [jsReceiver, args]);
-    }
-    if (name == 'call') {
-      // Erasing the extension types here to support existing callable behavior
-      // on the old style JS interop types that are callable. This should be
-      // safe as it is a compile time error to try to dynamically invoke a call
-      // method that is inherited from an extension type.
-      var receiverType = receiver
-          .getStaticType(_staticTypeContext)
-          .extensionTypeErasure;
-      if (_isDirectCallable(receiverType)) {
-        // Handle call methods on function types as function calls.
-        return js_ast.Call(jsReceiver, args);
-      }
-    }
-    if (_isObjectMethodCall(name, arguments) &&
-        _shouldCallObjectMemberHelper(receiver)) {
-      // Handle Object methods when the receiver could potentially be `null` or
-      // JavaScript interop values with static helper methods.
-      // The names of the static helper methods in the runtime must match the
-      // names of the Object instance members.
-      return _runtimeCall('#(#, #)', [name, jsReceiver, args]);
-    }
-    // Otherwise generate this as a normal typed method call.
-    var jsName = _emitMemberName(name, member: target);
-    return js.call('#.#(#)', [jsReceiver, jsName, args]);
   }
 
   /// Returns an invocation of the runtime helpers `dcall`, `dgcall`, `dsend`,
@@ -7580,14 +7622,22 @@ class LibraryCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
       // JS interop checks assert that only external extension type constructors
       // and factories have named parameters.
       assert(target.function.positionalParameters.isEmpty);
-      return _emitObjectLiteral(
-        Arguments(
-          node.arguments.positional,
-          types: node.arguments.types,
-          named: node.arguments.named,
-        ),
-        target,
-      );
+      var namedProperties = <String, Expression>{};
+      for (var named in node.arguments.named) {
+        var name = named.name;
+        for (var parameter in target.function.namedParameters) {
+          if (parameter.name == named.name) {
+            var customName = getDartJSInteropJSName(parameter);
+            if (customName.isNotEmpty) {
+              name = customName;
+            }
+            break;
+          }
+        }
+        namedProperties[name] = named.value;
+      }
+
+      return _emitObjectLiteral(namedProperties, isDartJsInterop: true);
     }
     if (target == _coreTypes.identicalProcedure) {
       return _emitCoreIdenticalCall(node.arguments.positional);
@@ -7660,33 +7710,23 @@ class LibraryCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
       return js_ast.Call(fn, args)..sourceInformation = _nodeStart(node);
     }
 
-    // Only consider checks if we're not in the unchecked branch.
-    if (_shouldRewriteInvocationWithHotReloadChecks(target) &&
-        hotReloadCheckedBranch != HotReloadBranchState.uncheckedBranch) {
-      final fn = _emitStaticTarget(target);
-
-      var checkedInvocation = _rewriteInvocationWithHotReloadChecks(
-        target,
-        node.arguments,
-        node.getStaticType(_staticTypeContext),
-        _nodeStart(node),
-      );
-
-      // If we're within the checked branch (i.e. not at the root) then return
-      // the checked call as-is.
-      if (hotReloadCheckedBranch == HotReloadBranchState.checkedBranch) {
-        return checkedInvocation;
+    if (_shouldRewriteInvocationWithHotReloadChecks(target)) {
+      switch (hotReloadCheckedBranch) {
+        case HotReloadBranchState.none:
+          return _emitHotReloadChecksConditional(node);
+        case HotReloadBranchState.uncheckedBranch:
+          return generateCall(_emitStaticTarget(target));
+        case HotReloadBranchState.checkedBranch:
+          final fn = _emitStaticTarget(target);
+          return _rewriteInvocationWithHotReloadChecks(
+            fn.receiver,
+            fn.selector,
+            target,
+            node.arguments,
+            node.getStaticType(_staticTypeContext),
+            _nodeStart(node),
+          );
       }
-
-      // We're at the root of the branch so we need to generate the unchecked
-      // branch as well.
-      hotReloadCheckedBranch = HotReloadBranchState.uncheckedBranch;
-      final invocation = generateCall(fn);
-      hotReloadCheckedBranch = HotReloadBranchState.none;
-
-      // As an optimization, avoid extra checks when the invocation code was
-      // compiled in the same generation that it is running.
-      return _emitHotReloadSafeInvocation(invocation, checkedInvocation);
     }
 
     final staticCall = generateCall(_emitStaticTarget(target));
@@ -7699,29 +7739,43 @@ class LibraryCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
   /// include checks to preserve soundness in the presence of hot reloads at
   /// runtime.
   bool _shouldRewriteInvocationWithHotReloadChecks(Member target) =>
-      _inFunctionExpression &&
+      (_inFunctionExpression || _inAsyncExpression) &&
       !_isBuildingSdk &&
       !usesJSInterop(target) &&
       target != _assertInteropMethod;
 
-  js_ast.Expression _emitHotReloadSafeInvocation(
-    js_ast.Expression uncheckedCall,
-    js_ast.Expression checkedCall,
-  ) {
+  /// Wraps [node] in a single conditional that will test if the compile time
+  /// hot reload generation matches the current hot reload generation at
+  /// runtime.
+  ///
+  /// When the generations match the expression is simply evaluated. When they
+  /// don't, the expression is evaluated with checks for soundness issues.
+  js_ast.Expression _emitHotReloadChecksConditional(Expression node) {
+    var savedCheckedBranch = hotReloadCheckedBranch;
+    hotReloadCheckedBranch = HotReloadBranchState.uncheckedBranch;
+    var uncheckedExpression = _visitExpression(node);
+    hotReloadCheckedBranch = HotReloadBranchState.checkedBranch;
+    var checkedExpression = _visitExpression(node);
+    hotReloadCheckedBranch = savedCheckedBranch;
+
     var generationCheck = js.call('# === #', [
       js.number(_hotReloadGeneration),
       _runtimeCall('global.dartDevEmbedder.hotReloadGeneration'),
     ]);
     return js_ast.InvocationWithHotReloadChecks(
       generationCheck,
-      uncheckedCall,
-      checkedCall,
+      uncheckedExpression,
+      checkedExpression,
     )..sourceInformation = continueSourceMap;
   }
 
   /// Rewrites an invocation of [target] that is statically sound at compile
   /// time to include checks to preserve soundness in the presence of hot
   /// reloads at runtime.
+  ///
+  /// The compiled JavaScript [receiver] and [selector] should be passed so that
+  /// they can be reused for the validated invocation after the checks have
+  /// passed.
   ///
   /// The checks are similar to the those performed when making a dynamic call.
   /// The [arguments] are checked for the correct shape and runtime types.
@@ -7734,16 +7788,21 @@ class LibraryCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
   /// The resulting expression for the validated call site will receive the
   /// [originalCallSiteSourceLocation].
   js_ast.Expression _rewriteInvocationWithHotReloadChecks(
-    Member target,
+    js_ast.Expression receiver,
+    js_ast.Expression selector,
+    Procedure target,
     Arguments arguments,
     DartType expectedReturnType,
     SourceLocation? originalCallSiteSourceLocation,
   ) {
-    final savedCheckedBranch = hotReloadCheckedBranch;
-    hotReloadCheckedBranch = HotReloadBranchState.checkedBranch;
+    // Create a temporary let variable for the receiver to handle chains of
+    // invocations. It should be evaluated before the arguments to match the
+    // expected evaluation order.
+    var receiverTemp = _emitScopedId('\$rec');
+    var letAssignments = js.call('# = #', [receiverTemp, receiver]);
+    _letVariables!.add(receiverTemp);
     var hoistedPositionalVariables = <js_ast.Expression>[];
     var hoistedNamedVariables = <String, js_ast.Expression>{};
-    js_ast.Expression? letAssignments;
     for (var i = 0; i < arguments.positional.length; i++) {
       var argument = arguments.positional[i];
       var argumentExpression = _visitExpression(argument);
@@ -7758,9 +7817,7 @@ class LibraryCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
       _letVariables!.add(hoistedVariable);
       var assignment = js.call('# = #', [hoistedVariable, argumentExpression]);
       hoistedPositionalVariables.add(hoistedVariable);
-      letAssignments = letAssignments == null
-          ? assignment
-          : js_ast.Binary(',', letAssignments, assignment);
+      letAssignments = js_ast.Binary(',', letAssignments, assignment);
     }
     for (var i = 0; i < arguments.named.length; i++) {
       var argument = arguments.named[i];
@@ -7777,16 +7834,13 @@ class LibraryCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
       _letVariables!.add(hoistedVariable);
       var assignment = js.call('# = #', [hoistedVariable, argumentValue]);
       hoistedNamedVariables[argumentName] = hoistedVariable;
-      letAssignments = letAssignments == null
-          ? assignment
-          : js_ast.Binary(',', letAssignments, assignment);
+      letAssignments = js_ast.Binary(',', letAssignments, assignment);
     }
     // Create an invocation of the correctness checks to verify the call is
     // still valid.
     var checkResult = _emitScopedId('\$result');
     _letVariables!.add(checkResult);
-    var jsTarget = _emitStaticTarget(target);
-    var jsTypeArguments = [
+    var typeArguments = [
       // TODO(nshahan): Remove this check if we stop rewriting calls to SDK
       // functions.
       if (_reifyGenericFunction(target))
@@ -7795,9 +7849,9 @@ class LibraryCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     var correctnessCheck = _runtimeCall(
       'hotReloadCorrectnessChecks(#, #, #, #, #)',
       [
-        jsTarget.receiver,
-        jsTarget.selector,
-        js_ast.ArrayInitializer(jsTypeArguments),
+        receiverTemp,
+        selector,
+        js_ast.ArrayInitializer(typeArguments),
         js_ast.ArrayInitializer(hoistedPositionalVariables),
         hoistedNamedVariables.isEmpty
             ? js_ast.LiteralNull()
@@ -7808,23 +7862,25 @@ class LibraryCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
       ],
     );
     var checkAssignment = js.call('# = #', [checkResult, correctnessCheck]);
-    letAssignments = letAssignments == null
-        ? checkAssignment
-        : js_ast.Binary(',', letAssignments, checkAssignment);
+    letAssignments = js_ast.Binary(',', letAssignments, checkAssignment);
     // Create a new invocation of the original target but passing all the
     // arguments via their let variables.
-    var validatedCallSite = js_ast.Call(jsTarget, [
-      ...jsTypeArguments,
-      ...hoistedPositionalVariables,
-      if (hoistedNamedVariables.isNotEmpty)
-        js_ast.ObjectInitializer([
-          for (var e in hoistedNamedVariables.entries)
-            js_ast.Property(js.string(e.key), e.value),
-        ]),
+    var validatedCallSite = js.call('#.#(#)', [
+      receiverTemp,
+      selector,
+      [
+        ...typeArguments,
+        ...hoistedPositionalVariables,
+        if (hoistedNamedVariables.isNotEmpty)
+          js_ast.ObjectInitializer([
+            for (var e in hoistedNamedVariables.entries)
+              js_ast.Property(js.string(e.key), e.value),
+          ]),
+      ],
     ])..sourceInformation = originalCallSiteSourceLocation;
     // Cast the result of the checked call or the value returned from a
     // `NoSuchMethod` invocation.
-    final result = js_ast.Binary(
+    return js_ast.Binary(
       ',',
       letAssignments,
       js.call('# == # ? # : #', [
@@ -7834,9 +7890,6 @@ class LibraryCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
         _emitCast(checkResult, expectedReturnType),
       ]),
     );
-
-    hotReloadCheckedBranch = savedCheckedBranch;
-    return result;
   }
 
   js_ast.Expression _emitJSObjectGetPrototypeOf(
@@ -7931,10 +7984,10 @@ class LibraryCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     return _emitTopLevelName(target);
   }
 
-  /// Returns all parts of [arguments] flattened into a list so they can be
-  /// passed in the calling convention for calls with no runtime checks.
+  /// Returns all parts of [node] flattened into a list so they can be passed in
+  /// the calling convention for calls with no runtime checks.
   ///
-  /// When [types] is `false` any type arguments present in [arguments] will be
+  /// When [types] is `false` any type arguments present in [node] will be
   /// omitted.
   ///
   /// Passing [target] when applicable allows for detection of an annotation to
@@ -7961,8 +8014,8 @@ class LibraryCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     ];
   }
 
-  /// Returns all [arguments] but kept in separate packets so they can be
-  /// further processed.
+  /// Returns all arguments from [node] but kept in separate packets so they can
+  /// be further processed.
   ///
   /// Facilitates passing arguments in the calling convention used by runtime
   /// helpers that check arguments.
@@ -7989,9 +8042,14 @@ class LibraryCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
               else
                 _visitExpression(arg),
           ];
+    // Named arguments with JS interop are only allowed in object literal
+    // constructors. Invocations to those are always transformed by
+    // `_emitObjectLiteral` and therefore we should never expect to see a JS
+    // interop invocation with named arguments here.
+    if (node.named.isNotEmpty) assert(!isJSInterop);
     var namedArguments = node.named.isEmpty
         ? null
-        : [for (var arg in node.named) _emitNamedExpression(arg, isJSInterop)];
+        : [for (var arg in node.named) _emitNamedExpression(arg)];
 
     return (
       typeArguments: typeArguments,
@@ -8000,13 +8058,8 @@ class LibraryCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     );
   }
 
-  js_ast.Property _emitNamedExpression(
-    NamedExpression arg, [
-    bool isJsInterop = false,
-  ]) {
-    var value = isJsInterop ? _assertInterop(arg.value) : arg.value;
-    return js_ast.Property(_propertyName(arg.name), _visitExpression(value));
-  }
+  js_ast.Property _emitNamedExpression(NamedExpression arg) =>
+      js_ast.Property(_propertyName(arg.name), _visitExpression(arg.value));
 
   /// Emits code for the `JS(...)` macro.
   js_ast.Node _emitInlineJSCode(StaticInvocation node) {
@@ -8232,7 +8285,15 @@ class LibraryCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     var ctor = node.target;
     var ctorClass = ctor.enclosingClass;
     var args = node.arguments;
-    if (isJSAnonymousType(ctorClass)) return _emitObjectLiteral(args, ctor);
+    if (isJSAnonymousType(ctorClass)) {
+      var namedProperties = {
+        for (final named in node.arguments.named) named.name: named.value,
+      };
+      return _emitObjectLiteral(
+        namedProperties,
+        isDartJsInterop: hasDartJSInteropAnnotation(ctorClass),
+      );
+    }
     // JS interop constructor calls do not provide an RTI at the call site.
     var shouldProvideRti =
         !isJSInteropMember(ctor) && _requiresRtiForInstantiation(ctorClass);
@@ -8320,7 +8381,15 @@ class LibraryCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
 
   js_ast.Expression _emitJSInteropNew(Member ctor, Arguments args) {
     var ctorClass = ctor.enclosingClass!;
-    if (isJSAnonymousType(ctorClass)) return _emitObjectLiteral(args, ctor);
+    if (isJSAnonymousType(ctorClass)) {
+      var namedProperties = {
+        for (final named in args.named) named.name: named.value,
+      };
+      return _emitObjectLiteral(
+        namedProperties,
+        isDartJsInterop: hasDartJSInteropAnnotation(ctorClass),
+      );
+    }
     // JS interop constructor calls do not require an RTI at the call site.
     return js_ast.New(
       _emitConstructorName(_coreTypes.nonNullableRawType(ctorClass), ctor),
@@ -8348,11 +8417,34 @@ class LibraryCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     return InterfaceType(c, Nullability.nonNullable, typeArgs);
   }
 
-  js_ast.Expression _emitObjectLiteral(Arguments node, Member ctor) {
-    var args = _emitArgumentList(node, types: false, target: ctor);
-    if (args.isEmpty) return js.call('{}');
-    assert(args.single is js_ast.ObjectInitializer);
-    return args.single;
+  /// Given a mapping [namedProperties] between names and their associated
+  /// expressions, returns an object literal with the same names mapped to the
+  /// transformed expressions.
+  ///
+  /// This is used for object literal constructors in JS interop.
+  ///
+  /// If [isDartJsInterop] is true, it implies that this is an object literal
+  /// constructor using `dart:js_interop`. If false, this method wraps the
+  /// expressions with an [_assertInterop] call.
+  js_ast.Expression _emitObjectLiteral(
+    Map<String, Expression> namedProperties, {
+    required bool isDartJsInterop,
+  }) {
+    if (namedProperties.isEmpty) return js.call('{}');
+    var properties = <js_ast.Property>[];
+    for (var name in namedProperties.keys) {
+      // `assertInterop` is not needed for `dart:js_interop`. It statically
+      // disallows `Function`s from being passed unless they were explicitly
+      // passed as an opaque reference, in which case, we shouldn't require the
+      // user to wrap them anyways.
+      var value = isDartJsInterop
+          ? namedProperties[name]!
+          : _assertInterop(namedProperties[name]!);
+      properties.add(
+        js_ast.Property(_propertyName(name), _visitExpression(value)),
+      );
+    }
+    return js_ast.ObjectInitializer([...properties]);
   }
 
   @override
@@ -10061,24 +10153,6 @@ bool _isObjectMember(String name) {
     case 'runtimeType':
     case '==':
       return true;
-  }
-  return false;
-}
-
-bool _isObjectGetter(String name) =>
-    name == 'hashCode' || name == 'runtimeType';
-
-bool _isObjectMethodTearoff(String name) =>
-    // "==" isn't in here because there is no syntax to tear it off.
-    name == 'toString' || name == 'noSuchMethod';
-
-bool _isObjectMethodCall(String name, Arguments args) {
-  if (name == 'toString') {
-    return args.positional.isEmpty && args.named.isEmpty && args.types.isEmpty;
-  } else if (name == 'noSuchMethod') {
-    return args.positional.length == 1 &&
-        args.named.isEmpty &&
-        args.types.isEmpty;
   }
   return false;
 }

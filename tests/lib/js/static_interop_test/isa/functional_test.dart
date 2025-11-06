@@ -32,6 +32,15 @@ extension type ArraySubtype._(JSArray _) implements JSObject {
   external ArraySubtype();
 }
 
+extension type WrapJSBoxedDartObject(JSBoxedDartObject _)
+    implements JSBoxedDartObject {}
+
+@JS('WrapJSBoxedDartObject.prototype')
+external JSObject get wrapJSBoxedDartObjectPrototype;
+
+@JS('Object.setPrototypeOf')
+external void setPrototypeOf(JSObject obj, JSObject prototype);
+
 @JS()
 external JSBigInt BigInt(String val);
 
@@ -61,9 +70,11 @@ void main() {
   Expect.isTrue(nil.isA<JSString?>());
   Expect.isTrue(nil.isA<JSObject?>());
   Expect.isTrue(nil.isA<JSAny?>());
+  Expect.isTrue(nil.isA<JSBoxedDartObject?>());
   Expect.isFalse(nil.isA<JSString>());
   Expect.isFalse(nil.isA<JSObject>());
   Expect.isFalse(nil.isA<JSAny>());
+  Expect.isFalse(nil.isA<JSBoxedDartObject>());
 
   // Test inheritance chain, nullability, and one false case.
 
@@ -102,16 +113,22 @@ void main() {
   final jsObject = ObjectLiteral(a: 0);
   testIsJSObject(jsObject);
   Expect.isFalse(jsObject.isA<JSBoolean>());
-  // Note that this is true even though it's a supertype - we can't
-  // differentiate between the two types. This is okay because users will get a
-  // consistent error when trying to internalize it.
-  Expect.isTrue(jsObject.isA<JSBoxedDartObject>());
 
   final jsBox = ''.toJSBox;
   Expect.isTrue(jsBox.isA<JSBoxedDartObject>());
   Expect.isTrue(jsBox.isA<JSBoxedDartObject?>());
   testIsJSObject(jsBox);
   Expect.isFalse(jsBox.isA<JSString>());
+  // While `JSBoxedDartObject`s are just `Object`s, we do additional checking to
+  // make sure `isA` checks this actually is a `JSBoxedDartObject`.
+  Expect.isFalse(jsObject.isA<JSBoxedDartObject>());
+  Expect.isFalse(JSArray().isA<JSBoxedDartObject>());
+  // Check that property access on primitives isn't invalid.
+  Expect.isFalse(jsNum.isA<JSBoxedDartObject>());
+  Expect.isFalse(jsBool.isA<JSBoxedDartObject>());
+  Expect.isFalse(jsString.isA<JSBoxedDartObject>());
+  Expect.isFalse(jsBigInt.isA<JSBoxedDartObject>());
+  Expect.isFalse(jsSymbol.isA<JSBoxedDartObject>());
 
   final jsArray = <JSAny?>[].toJS;
   Expect.isTrue(jsArray.isA<JSArray>());
@@ -220,6 +237,8 @@ void main() {
   eval('''
     class SubtypeArray extends Array {}
     globalThis.SubtypeArray = SubtypeArray;
+    class WrapJSBoxedDartObject {}
+    globalThis.WrapJSBoxedDartObject = WrapJSBoxedDartObject;
   ''');
 
   final customJsAny = CustomJSAny(jsArray);
@@ -251,6 +270,15 @@ void main() {
   Expect.isFalse(nil.isA<CustomTypedArray>());
   Expect.isTrue(customTypedArray.isA<JSTypedArray>());
   Expect.isTrue(customTypedArray.isA<JSTypedArray?>());
+
+  final wrapJsBox = WrapJSBoxedDartObject(jsBox);
+  Expect.isFalse(wrapJsBox.isA<WrapJSBoxedDartObject>());
+  Expect.isFalse(wrapJsBox.isA<WrapJSBoxedDartObject?>());
+  Expect.isTrue(nil.isA<WrapJSBoxedDartObject?>());
+  Expect.isFalse(nil.isA<WrapJSBoxedDartObject>());
+  setPrototypeOf(wrapJsBox, wrapJSBoxedDartObjectPrototype);
+  Expect.isTrue(wrapJsBox.isA<WrapJSBoxedDartObject>());
+  Expect.isTrue(wrapJsBox.isA<WrapJSBoxedDartObject?>());
 
   final arraySubtype = ArraySubtype();
   Expect.isTrue(arraySubtype.isA<ArraySubtype>());

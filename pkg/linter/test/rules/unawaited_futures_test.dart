@@ -351,7 +351,7 @@ f() async {
 ''',
       [
         // No lint
-        error(CompileTimeErrorCode.UNDEFINED_IDENTIFIER, 59, 3),
+        error(CompileTimeErrorCode.undefinedIdentifier, 59, 3),
       ],
     );
   }

@@ -38,10 +38,10 @@ class ConvertIntoBlockBody extends ResolvedCorrectionProducer {
   AssistKind get assistKind => DartAssistKind.convertIntoBlockBody;
 
   @override
-  FixKind get fixKind => DartFixKind.CONVERT_INTO_BLOCK_BODY;
+  FixKind get fixKind => DartFixKind.convertIntoBlockBody;
 
   @override
-  FixKind get multiFixKind => DartFixKind.CONVERT_INTO_BLOCK_BODY_MULTI;
+  FixKind get multiFixKind => DartFixKind.convertIntoBlockBodyMulti;
 
   @override
   Future<void> compute(ChangeBuilder builder) async {
@@ -71,6 +71,7 @@ class ConvertIntoBlockBody extends ResolvedCorrectionProducer {
     var sourceRange = range.endEnd(body.beginToken.previous!, body);
 
     await builder.addDartFileEdit(file, (builder) {
+      var eol = builder.eol;
       builder.addReplacement(sourceRange, (builder) {
         builder.write(' ');
         if (body.isAsynchronous) {

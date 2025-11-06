@@ -9,8 +9,6 @@
 // this test reflects the current behavior of the `sound-flow-analysis` feature,
 // as discussed in https://github.com/dart-lang/language/issues/4344.
 
-// SharedOptions=--enable-experiment=sound-flow-analysis
-
 // ignore_for_file: invalid_null_aware_operator
 
 import 'package:expect/static_type_helper.dart';

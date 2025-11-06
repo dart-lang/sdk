@@ -135,7 +135,7 @@ List<String> someGenSnapshotFlags() {
 
 Stopwatch stopwatch = new Stopwatch();
 
-const overallTimeout = Duration(minutes: 45);
+const overallTimeout = Duration(minutes: 30);
 Duration get remainingTimeout => overallTimeout - stopwatch.elapsed;
 
 // LUCI will kill recipe steps if they go 1200 seconds without any output.

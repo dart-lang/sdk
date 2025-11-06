@@ -14,15 +14,21 @@ import 'package:front_end/src/type_inference/type_inference_engine.dart';
 import 'package:kernel/ast.dart';
 
 Future<void> main(List<String> args) async {
-  Directory dataDir = new Directory.fromUri(Platform.script.resolve(
+  Directory dataDir = new Directory.fromUri(
+    Platform.script.resolve(
       '../../../_fe_analyzer_shared/test/flow_analysis/definite_assignment/'
-      'data'));
-  await runTests<String>(dataDir,
-      args: args,
-      createUriForFileName: createUriForFileName,
-      onFailure: onFailure,
-      runTest: runTestFor(
-          const DefiniteAssignmentDataComputer(), [defaultCfeConfig]));
+      'data',
+    ),
+  );
+  await runTests<String>(
+    dataDir,
+    args: args,
+    createUriForFileName: createUriForFileName,
+    onFailure: onFailure,
+    runTest: runTestFor(const DefiniteAssignmentDataComputer(), [
+      defaultCfeConfig,
+    ]),
+  );
 }
 
 class DefiniteAssignmentDataComputer extends CfeDataComputer<String> {
@@ -35,16 +41,22 @@ class DefiniteAssignmentDataComputer extends CfeDataComputer<String> {
   ///
   /// Fills [actualMap] with the data.
   @override
-  void computeMemberData(CfeTestResultData testResultData, Member member,
-      Map<Id, ActualData<String>> actualMap,
-      {bool? verbose}) {
+  void computeMemberData(
+    CfeTestResultData testResultData,
+    Member member,
+    Map<Id, ActualData<String>> actualMap, {
+    bool? verbose,
+  }) {
     SourceMemberBuilder memberBuilder =
         lookupMemberBuilder(testResultData.compilerResult, member)
             as SourceMemberBuilder;
-    member.accept(new DefiniteAssignmentDataExtractor(
+    member.accept(
+      new DefiniteAssignmentDataExtractor(
         testResultData.compilerResult,
         actualMap,
-        memberBuilder.dataForTesting!.inferenceData.flowAnalysisResult));
+        memberBuilder.dataForTesting!.inferenceData.flowAnalysisResult,
+      ),
+    );
   }
 
   /// Errors are supported for testing erroneous code. The reported errors are
@@ -57,11 +69,13 @@ class DefiniteAssignmentDataExtractor extends CfeDataExtractor<String> {
   final SourceLoaderDataForTesting _sourceLoaderDataForTesting;
   final FlowAnalysisResult _flowResult;
 
-  DefiniteAssignmentDataExtractor(InternalCompilerResult compilerResult,
-      Map<Id, ActualData<String>> actualMap, this._flowResult)
-      : _sourceLoaderDataForTesting =
-            compilerResult.kernelTargetForTesting!.loader.dataForTesting!,
-        super(compilerResult, actualMap);
+  DefiniteAssignmentDataExtractor(
+    InternalCompilerResult compilerResult,
+    Map<Id, ActualData<String>> actualMap,
+    this._flowResult,
+  ) : _sourceLoaderDataForTesting =
+          compilerResult.kernelTargetForTesting!.loader.dataForTesting!,
+      super(compilerResult, actualMap);
 
   @override
   String? computeNodeValue(Id id, TreeNode node) {

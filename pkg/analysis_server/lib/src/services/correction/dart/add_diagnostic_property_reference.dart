@@ -29,11 +29,10 @@ class AddDiagnosticPropertyReference extends ResolvedCorrectionProducer {
   AssistKind get assistKind => DartAssistKind.addDiagnosticPropertyReference;
 
   @override
-  FixKind get fixKind => DartFixKind.ADD_DIAGNOSTIC_PROPERTY_REFERENCE;
+  FixKind get fixKind => DartFixKind.addDiagnosticPropertyReference;
 
   @override
-  FixKind get multiFixKind =>
-      DartFixKind.ADD_DIAGNOSTIC_PROPERTY_REFERENCE_MULTI;
+  FixKind get multiFixKind => DartFixKind.addDiagnosticPropertyReferenceMulti;
 
   @override
   Future<void> compute(ChangeBuilder builder) async {
@@ -323,7 +322,7 @@ class AddDiagnosticPropertyReference extends ResolvedCorrectionProducer {
   }
 
   /// Returns a list of all the [Diagnostic]s of type
-  /// [LinterLintCode.diagnostic_describe_all_properties] for the given
+  /// [LinterLintCode.diagnosticDescribeAllProperties] for the given
   /// [declaration].
   List<Diagnostic> _getAllDiagnosticsInClass(ClassDeclaration declaration) {
     var propertyDiagnostics = <Diagnostic>[];
@@ -332,7 +331,7 @@ class AddDiagnosticPropertyReference extends ResolvedCorrectionProducer {
     for (var diagnostic in unitResult.diagnostics) {
       var diagnosticCode = diagnostic.diagnosticCode;
       if (diagnosticCode.type == DiagnosticType.LINT &&
-          diagnosticCode == LinterLintCode.diagnostic_describe_all_properties &&
+          diagnosticCode == LinterLintCode.diagnosticDescribeAllProperties &&
           diagnostic.offset > startOffset &&
           diagnostic.offset < endOffset) {
         propertyDiagnostics.add(diagnostic);
@@ -465,9 +464,8 @@ class _PropertyInfo {
 }
 
 extension on ClassDeclaration {
-  MethodDeclaration? get debugFillPropertiesDeclaration =>
-      members
-          .whereType<MethodDeclaration>()
-          .where((e) => e.name.lexeme == 'debugFillProperties')
-          .singleOrNull;
+  MethodDeclaration? get debugFillPropertiesDeclaration => members
+      .whereType<MethodDeclaration>()
+      .where((e) => e.name.lexeme == 'debugFillProperties')
+      .singleOrNull;
 }

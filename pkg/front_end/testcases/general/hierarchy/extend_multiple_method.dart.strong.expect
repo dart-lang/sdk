@@ -14,7 +14,6 @@ library;
 //  - inherit an implementation from a superclass or mixin,
 //  - mark the class as abstract, or
 //  - provide a 'noSuchMethod' implementation.
-//
 // class ConcreteSub extends AbstractClass {}
 //       ^^^^^^^^^^^
 // pkg/front_end/testcases/general/hierarchy/extend_multiple_method.dart:22:8: Context: 'Interface1.extendedAbstractImplementedMethod' is defined here.
@@ -48,7 +47,6 @@ library;
 //  - inherit an implementation from a superclass or mixin,
 //  - mark the class as abstract, or
 //  - provide a 'noSuchMethod' implementation.
-//
 // class ConcreteClass extends Super implements Interface1, Interface2 {}
 //       ^^^^^^^^^^^^^
 // pkg/front_end/testcases/general/hierarchy/extend_multiple_method.dart:22:8: Context: 'Interface1.extendedAbstractImplementedMethod' is defined here.

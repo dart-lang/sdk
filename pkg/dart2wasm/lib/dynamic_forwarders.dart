@@ -557,7 +557,7 @@ class _DynamicForwarderCodeGenerator extends CodeGenerator {
           b.if_();
           // Value is not a closure
           final callForwarder = translator
-              .getDynamicForwardersForModule(b.module)
+              .getDynamicForwardersForModule(b.moduleBuilder)
               .getDynamicInvocationForwarder(Name('call'))
               .function;
           b.local_get(receiverLocal);
@@ -841,7 +841,7 @@ void generateNoSuchMethodCall(
     translator.callReference(targetRanges[0].target, b);
   } else if (callPolymorphicDispatcher) {
     b.invoke(translator
-        .getPolymorphicDispatchersForModule(b.module)
+        .getPolymorphicDispatchersForModule(b.moduleBuilder)
         .getPolymorphicDispatcher(noSuchMethodSelector,
             useUncheckedEntry: false));
   } else {

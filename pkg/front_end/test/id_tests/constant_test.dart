@@ -23,40 +23,52 @@ import 'package:front_end/src/testing/id_testing_utils.dart';
 import 'package:kernel/ast.dart';
 
 Future<void> main(List<String> args) async {
-  Directory dataDir = new Directory.fromUri(Platform.script
-      .resolve('../../../_fe_analyzer_shared/test/constants/data'));
-  await runTests<String>(dataDir,
-      args: args,
-      createUriForFileName: createUriForFileName,
-      onFailure: onFailure,
-      runTest: runTestFor(const ConstantsDataComputer(), [
-        const CfeTestConfig(
-          cfeMarker,
-          'cfe with experiments',
-          explicitExperimentalFlags: const {
-            ExperimentalFlag.digitSeparators: true,
-          },
-        )
-      ]));
+  Directory dataDir = new Directory.fromUri(
+    Platform.script.resolve('../../../_fe_analyzer_shared/test/constants/data'),
+  );
+  await runTests<String>(
+    dataDir,
+    args: args,
+    createUriForFileName: createUriForFileName,
+    onFailure: onFailure,
+    runTest: runTestFor(const ConstantsDataComputer(), [
+      const CfeTestConfig(
+        cfeMarker,
+        'cfe with experiments',
+        explicitExperimentalFlags: const {
+          ExperimentalFlag.digitSeparators: true,
+        },
+      ),
+    ]),
+  );
 }
 
 class ConstantsDataComputer extends CfeDataComputer<String> {
   const ConstantsDataComputer();
 
   @override
-  void computeMemberData(CfeTestResultData testResultData, Member member,
-      Map<Id, ActualData<String>> actualMap,
-      {bool? verbose}) {
+  void computeMemberData(
+    CfeTestResultData testResultData,
+    Member member,
+    Map<Id, ActualData<String>> actualMap, {
+    bool? verbose,
+  }) {
     member.accept(
-        new ConstantsDataExtractor(testResultData.compilerResult, actualMap));
+      new ConstantsDataExtractor(testResultData.compilerResult, actualMap),
+    );
   }
 
   @override
-  void computeClassData(CfeTestResultData testResultData, Class cls,
-      Map<Id, ActualData<String>> actualMap,
-      {bool? verbose}) {
-    new ConstantsDataExtractor(testResultData.compilerResult, actualMap)
-        .computeForClass(cls);
+  void computeClassData(
+    CfeTestResultData testResultData,
+    Class cls,
+    Map<Id, ActualData<String>> actualMap, {
+    bool? verbose,
+  }) {
+    new ConstantsDataExtractor(
+      testResultData.compilerResult,
+      actualMap,
+    ).computeForClass(cls);
   }
 
   @override
@@ -65,7 +77,10 @@ class ConstantsDataComputer extends CfeDataComputer<String> {
   /// Returns data corresponding to [error].
   @override
   String computeErrorData(
-      CfeTestResultData testResultData, Id id, List<FormattedMessage> errors) {
+    CfeTestResultData testResultData,
+    Id id,
+    List<FormattedMessage> errors,
+  ) {
     return errorsToText(errors);
   }
 
@@ -74,9 +89,10 @@ class ConstantsDataComputer extends CfeDataComputer<String> {
 }
 
 class ConstantsDataExtractor extends CfeDataExtractor<String> {
-  ConstantsDataExtractor(InternalCompilerResult compilerResult,
-      Map<Id, ActualData<String>> actualMap)
-      : super(compilerResult, actualMap);
+  ConstantsDataExtractor(
+    InternalCompilerResult compilerResult,
+    Map<Id, ActualData<String>> actualMap,
+  ) : super(compilerResult, actualMap);
 
   @override
   String? computeNodeValue(Id id, TreeNode node) {

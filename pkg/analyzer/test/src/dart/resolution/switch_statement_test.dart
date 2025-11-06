@@ -205,7 +205,7 @@ SwitchStatement
             constructorName: ConstructorName
               type: NamedType
                 name: A
-                element2: <testLibrary>::@class::A
+                element: <testLibrary>::@class::A
                 type: A
               element: <testLibrary>::@class::A::@constructor::new
             argumentList: ArgumentList
@@ -303,11 +303,10 @@ SwitchStatement
         pattern: DeclaredVariablePattern
           type: NamedType
             name: int
-            element2: dart:core::@class::int
+            element: dart:core::@class::int
             type: int
           name: a
           declaredFragment: isPublic a@48
-            type: int
             element: isPublic
               type: int
           matchedValueType: Object?
@@ -333,11 +332,10 @@ SwitchStatement
         pattern: DeclaredVariablePattern
           type: NamedType
             name: int
-            element2: dart:core::@class::int
+            element: dart:core::@class::int
             type: int
           name: a
           declaredFragment: isPublic a@75
-            type: int
             element: isPublic
               type: int
           matchedValueType: Object?
@@ -398,11 +396,10 @@ SwitchStatement
           keyword: final
           type: NamedType
             name: int
-            element2: dart:core::@class::int
+            element: dart:core::@class::int
             type: int
           name: a
           declaredFragment: isFinal isPublic a@54
-            type: int
             element: isFinal isPublic
               type: int
           matchedValueType: Object?
@@ -429,11 +426,10 @@ SwitchStatement
           keyword: final
           type: NamedType
             name: int
-            element2: dart:core::@class::int
+            element: dart:core::@class::int
             type: int
           name: a
           declaredFragment: isFinal isPublic a@87
-            type: int
             element: isFinal isPublic
               type: int
           matchedValueType: Object?
@@ -494,11 +490,10 @@ SwitchStatement
           leftOperand: DeclaredVariablePattern
             type: NamedType
               name: int
-              element2: dart:core::@class::int
+              element: dart:core::@class::int
               type: int
             name: a
             declaredFragment: isPublic a@48
-              type: int
               element: isPublic
                 type: int
             matchedValueType: Object?
@@ -509,11 +504,10 @@ SwitchStatement
               DeclaredVariablePattern
                 type: NamedType
                   name: int
-                  element2: dart:core::@class::int
+                  element: dart:core::@class::int
                   type: int
                 name: a
                 declaredFragment: isPublic a@58
-                  type: int
                   element: isPublic
                     type: int
                 matchedValueType: Object?
@@ -544,11 +538,10 @@ SwitchStatement
           leftOperand: DeclaredVariablePattern
             type: NamedType
               name: int
-              element2: dart:core::@class::int
+              element: dart:core::@class::int
               type: int
             name: a
             declaredFragment: isPublic a@86
-              type: int
               element: isPublic
                 type: int
             matchedValueType: Object?
@@ -559,11 +552,10 @@ SwitchStatement
               DeclaredVariablePattern
                 type: NamedType
                   name: int
-                  element2: dart:core::@class::int
+                  element: dart:core::@class::int
                   type: int
                 name: a
                 declaredFragment: isPublic a@96
-                  type: int
                   element: isPublic
                     type: int
                 matchedValueType: Object?
@@ -612,7 +604,7 @@ void f(Object? x) {
       [
         error(
           CompileTimeErrorCode
-              .PATTERN_VARIABLE_SHARED_CASE_SCOPE_DIFFERENT_FINALITY_OR_TYPE,
+              .patternVariableSharedCaseScopeDifferentFinalityOrType,
           101,
           1,
         ),
@@ -638,11 +630,10 @@ SwitchStatement
           keyword: final
           type: NamedType
             name: int
-            element2: dart:core::@class::int
+            element: dart:core::@class::int
             type: int
           name: a
           declaredFragment: isFinal isPublic a@54
-            type: int
             element: isFinal isPublic
               type: int
           matchedValueType: Object?
@@ -668,11 +659,10 @@ SwitchStatement
         pattern: DeclaredVariablePattern
           type: NamedType
             name: int
-            element2: dart:core::@class::int
+            element: dart:core::@class::int
             type: int
           name: a
           declaredFragment: isPublic a@81
-            type: int
             element: isPublic
               type: int
           matchedValueType: Object?
@@ -717,7 +707,7 @@ void f(Object? x) {
       [
         error(
           CompileTimeErrorCode
-              .PATTERN_VARIABLE_SHARED_CASE_SCOPE_DIFFERENT_FINALITY_OR_TYPE,
+              .patternVariableSharedCaseScopeDifferentFinalityOrType,
           101,
           1,
         ),
@@ -743,11 +733,10 @@ SwitchStatement
           keyword: final
           type: NamedType
             name: int
-            element2: dart:core::@class::int
+            element: dart:core::@class::int
             type: int
           name: a
           declaredFragment: isFinal isPublic a@54
-            type: int
             element: isFinal isPublic
               type: int
           matchedValueType: Object?
@@ -773,11 +762,10 @@ SwitchStatement
         pattern: DeclaredVariablePattern
           type: NamedType
             name: num
-            element2: dart:core::@class::num
+            element: dart:core::@class::num
             type: num
           name: a
           declaredFragment: isPublic a@81
-            type: num
             element: isPublic
               type: num
           matchedValueType: Object?
@@ -822,7 +810,7 @@ void f(Object? x) {
       [
         error(
           CompileTimeErrorCode
-              .PATTERN_VARIABLE_SHARED_CASE_SCOPE_DIFFERENT_FINALITY_OR_TYPE,
+              .patternVariableSharedCaseScopeDifferentFinalityOrType,
           95,
           1,
         ),
@@ -847,11 +835,10 @@ SwitchStatement
         pattern: DeclaredVariablePattern
           type: NamedType
             name: int
-            element2: dart:core::@class::int
+            element: dart:core::@class::int
             type: int
           name: a
           declaredFragment: isPublic a@48
-            type: int
             element: isPublic
               type: int
           matchedValueType: Object?
@@ -877,11 +864,10 @@ SwitchStatement
         pattern: DeclaredVariablePattern
           type: NamedType
             name: num
-            element2: dart:core::@class::num
+            element: dart:core::@class::num
             type: num
           name: a
           declaredFragment: isPublic a@75
-            type: num
             element: isPublic
               type: num
           matchedValueType: Object?
@@ -925,7 +911,7 @@ void f(Object? x) {
 ''',
       [
         error(
-          CompileTimeErrorCode.PATTERN_VARIABLE_SHARED_CASE_SCOPE_NOT_ALL_CASES,
+          CompileTimeErrorCode.patternVariableSharedCaseScopeNotAllCases,
           80,
           1,
         ),
@@ -959,11 +945,10 @@ SwitchStatement
         pattern: DeclaredVariablePattern
           type: NamedType
             name: int
-            element2: dart:core::@class::int
+            element: dart:core::@class::int
             type: int
           name: a
           declaredFragment: isPublic a@60
-            type: int
             element: isPublic
               type: int
           matchedValueType: Object?
@@ -1007,7 +992,7 @@ void f(Object? x) {
 ''',
       [
         error(
-          CompileTimeErrorCode.PATTERN_VARIABLE_SHARED_CASE_SCOPE_NOT_ALL_CASES,
+          CompileTimeErrorCode.patternVariableSharedCaseScopeNotAllCases,
           80,
           1,
         ),
@@ -1032,11 +1017,10 @@ SwitchStatement
         pattern: DeclaredVariablePattern
           type: NamedType
             name: int
-            element2: dart:core::@class::int
+            element: dart:core::@class::int
             type: int
           name: a
           declaredFragment: isPublic a@48
-            type: int
             element: isPublic
               type: int
           matchedValueType: Object?
@@ -1089,7 +1073,7 @@ void f(Object? x) {
 ''',
       [
         error(
-          CompileTimeErrorCode.PATTERN_VARIABLE_SHARED_CASE_SCOPE_HAS_LABEL,
+          CompileTimeErrorCode.patternVariableSharedCaseScopeHasLabel,
           81,
           1,
         ),
@@ -1114,11 +1098,10 @@ SwitchStatement
         pattern: DeclaredVariablePattern
           type: NamedType
             name: int
-            element2: dart:core::@class::int
+            element: dart:core::@class::int
             type: int
           name: a
           declaredFragment: isPublic a@48
-            type: int
             element: isPublic
               type: int
           matchedValueType: Object?
@@ -1165,11 +1148,11 @@ void f(Object? x) {
 }
 ''',
       [
-        error(WarningCode.DEAD_CODE, 55, 4),
-        error(WarningCode.UNREACHABLE_SWITCH_CASE, 55, 4),
-        error(WarningCode.DEAD_CODE, 71, 7),
+        error(WarningCode.deadCode, 55, 4),
+        error(WarningCode.unreachableSwitchCase, 55, 4),
+        error(WarningCode.deadCode, 71, 7),
         error(
-          CompileTimeErrorCode.PATTERN_VARIABLE_SHARED_CASE_SCOPE_HAS_LABEL,
+          CompileTimeErrorCode.patternVariableSharedCaseScopeHasLabel,
           86,
           1,
         ),
@@ -1195,7 +1178,6 @@ SwitchStatement
           keyword: var
           name: a
           declaredFragment: isPublic a@48
-            type: null
             element: hasImplicitType isPublic
               type: Object?
           matchedValueType: Object?
@@ -1207,7 +1189,6 @@ SwitchStatement
           keyword: var
           name: a
           declaredFragment: isPublic a@64
-            type: null
             element: hasImplicitType isPublic
               type: Object?
           matchedValueType: Object?
@@ -1238,9 +1219,9 @@ void f(Object? x) {
 }
 ''',
       [
-        error(WarningCode.UNUSED_LABEL, 39, 8),
+        error(WarningCode.unusedLabel, 39, 8),
         error(
-          CompileTimeErrorCode.PATTERN_VARIABLE_SHARED_CASE_SCOPE_HAS_LABEL,
+          CompileTimeErrorCode.patternVariableSharedCaseScopeHasLabel,
           81,
           1,
         ),
@@ -1272,11 +1253,10 @@ SwitchStatement
         pattern: DeclaredVariablePattern
           type: NamedType
             name: int
-            element2: dart:core::@class::int
+            element: dart:core::@class::int
             type: int
           name: a
           declaredFragment: isPublic a@61
-            type: int
             element: isPublic
               type: int
           matchedValueType: Object?
@@ -1323,17 +1303,17 @@ void f(Object? x) {
 ''',
       [
         error(
-          CompileTimeErrorCode.PATTERN_VARIABLE_SHARED_CASE_SCOPE_NOT_ALL_CASES,
+          CompileTimeErrorCode.patternVariableSharedCaseScopeNotAllCases,
           95,
           1,
         ),
         error(
-          CompileTimeErrorCode.PATTERN_VARIABLE_SHARED_CASE_SCOPE_NOT_ALL_CASES,
+          CompileTimeErrorCode.patternVariableSharedCaseScopeNotAllCases,
           104,
           1,
         ),
         error(
-          CompileTimeErrorCode.PATTERN_VARIABLE_SHARED_CASE_SCOPE_NOT_ALL_CASES,
+          CompileTimeErrorCode.patternVariableSharedCaseScopeNotAllCases,
           113,
           1,
         ),
@@ -1358,11 +1338,10 @@ SwitchStatement
         pattern: DeclaredVariablePattern
           type: NamedType
             name: int
-            element2: dart:core::@class::int
+            element: dart:core::@class::int
             type: int
           name: a
           declaredFragment: isPublic a@48
-            type: int
             element: isPublic
               type: int
           matchedValueType: Object?
@@ -1373,11 +1352,10 @@ SwitchStatement
         pattern: DeclaredVariablePattern
           type: NamedType
             name: double
-            element2: dart:core::@class::double
+            element: dart:core::@class::double
             type: double
           name: b
           declaredFragment: isPublic b@67
-            type: double
             element: isPublic
               type: double
           matchedValueType: Object?
@@ -1388,11 +1366,10 @@ SwitchStatement
         pattern: DeclaredVariablePattern
           type: NamedType
             name: String
-            element2: dart:core::@class::String
+            element: dart:core::@class::String
             type: String
           name: c
           declaredFragment: isPublic c@86
-            type: String
             element: isPublic
               type: String
           matchedValueType: Object?
@@ -1430,7 +1407,7 @@ void f(Object? x) {
   }
 }
 ''',
-      [error(WarningCode.DEAD_CODE, 56, 8)],
+      [error(WarningCode.deadCode, 56, 8)],
     );
 
     var node = findNode.switchStatement('switch');
@@ -1454,7 +1431,7 @@ SwitchStatement
             arguments
               NamedType
                 name: int
-                element2: dart:core::@class::int
+                element: dart:core::@class::int
                 type: int
             rightBracket: >
           leftBracket: [
@@ -1464,7 +1441,6 @@ SwitchStatement
                 keyword: var
                 name: a
                 declaredFragment: isPublic a@54
-                  type: null
                   element: hasImplicitType isPublic
                     type: int
                 matchedValueType: int
@@ -1473,7 +1449,6 @@ SwitchStatement
                 keyword: var
                 name: a
                 declaredFragment: isPublic a@63
-                  type: null
                   element: hasImplicitType isPublic
                     type: int
                 matchedValueType: int
@@ -1506,12 +1481,12 @@ void f(Object? x) {
 ''',
       [
         error(
-          CompileTimeErrorCode.NON_CONSTANT_RELATIONAL_PATTERN_EXPRESSION,
+          CompileTimeErrorCode.nonConstantRelationalPatternExpression,
           68,
           1,
         ),
         error(
-          CompileTimeErrorCode.REFERENCED_BEFORE_DECLARATION,
+          CompileTimeErrorCode.referencedBeforeDeclaration,
           68,
           1,
           contextMessages: [message(testFile, 62, 1)],
@@ -1540,11 +1515,10 @@ SwitchStatement
             DeclaredVariablePattern
               type: NamedType
                 name: int
-                element2: dart:core::@class::int
+                element: dart:core::@class::int
                 type: int
               name: a
               declaredFragment: isPublic a@62
-                type: int
                 element: isPublic
                   type: int
               matchedValueType: Object?
@@ -1554,7 +1528,7 @@ SwitchStatement
                 token: a
                 element: a@62
                 staticType: int
-              element2: dart:core::@class::Object::@method::==
+              element: dart:core::@class::Object::@method::==
               matchedValueType: Object?
           rightBracket: ]
           matchedValueType: Object?
@@ -1614,11 +1588,10 @@ SwitchStatement
         pattern: DeclaredVariablePattern
           type: NamedType
             name: int
-            element2: dart:core::@class::int
+            element: dart:core::@class::int
             type: int
           name: a
           declaredFragment: isPublic a@48
-            type: int
             element: isPublic
               type: int
           matchedValueType: Object?

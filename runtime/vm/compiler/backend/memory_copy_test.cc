@@ -4,6 +4,7 @@
 
 #include <vector>
 
+#include "platform/thread_sanitizer.h"
 #include "vm/compiler/backend/il.h"
 #include "vm/compiler/backend/il_printer.h"
 #include "vm/compiler/backend/il_test_helper.h"

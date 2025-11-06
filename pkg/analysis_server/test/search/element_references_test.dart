@@ -30,7 +30,7 @@ class ElementReferencesTest extends AbstractSearchDomainTest {
     required ElementKind kind,
     required Map<int, SearchResultKind> resultKinds,
   }) async {
-    var code = TestCode.parse(content);
+    var code = TestCode.parseNormalized(content);
     expect(
       resultKinds,
       hasLength(code.ranges.length),
@@ -43,29 +43,27 @@ class ElementReferencesTest extends AbstractSearchDomainTest {
     await findElementReferences(offset: code.position.offset, false);
 
     expect(searchElement!.kind, kind);
-    var expected =
-        resultKinds.entries.map((entry) {
-          var index = entry.key;
-          var kind = entry.value;
-          var range = code.ranges[index].sourceRange;
-          return {
-            'kind': kind,
-            'path': testFile.path,
-            'range': range.offset,
-            'length': range.length,
-          };
-        }).toSet();
-    var actual =
-        results
-            .map(
-              (result) => {
-                'kind': result.kind,
-                'path': result.location.file,
-                'range': result.location.offset,
-                'length': result.location.length,
-              },
-            )
-            .toSet();
+    var expected = resultKinds.entries.map((entry) {
+      var index = entry.key;
+      var kind = entry.value;
+      var range = code.ranges[index].sourceRange;
+      return {
+        'kind': kind,
+        'path': testFile.path,
+        'range': range.offset,
+        'length': range.length,
+      };
+    }).toSet();
+    var actual = results
+        .map(
+          (result) => {
+            'kind': result.kind,
+            'path': result.location.file,
+            'range': result.location.offset,
+            'length': result.location.length,
+          },
+        )
+        .toSet();
     expect(actual, equals(expected));
   }
 

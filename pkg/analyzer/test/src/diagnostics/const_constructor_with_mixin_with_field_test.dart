@@ -28,13 +28,7 @@ class B with A {
   const B(this.a);
 }
 ''',
-      [
-        error(
-          CompileTimeErrorCode.CONST_CONSTRUCTOR_WITH_MIXIN_WITH_FIELD,
-          77,
-          1,
-        ),
-      ],
+      [error(CompileTimeErrorCode.constConstructorWithMixinWithField, 77, 1)],
     );
   }
 
@@ -63,13 +57,7 @@ class B extends Object with A {
   const B();
 }
 ''',
-      [
-        error(
-          CompileTimeErrorCode.CONST_CONSTRUCTOR_WITH_MIXIN_WITH_FIELD,
-          68,
-          1,
-        ),
-      ],
+      [error(CompileTimeErrorCode.constConstructorWithMixinWithField, 68, 1)],
     );
   }
 
@@ -108,13 +96,7 @@ class B extends Object with A {
   const B();
 }
 ''',
-      [
-        error(
-          CompileTimeErrorCode.CONST_CONSTRUCTOR_WITH_MIXIN_WITH_FIELD,
-          62,
-          1,
-        ),
-      ],
+      [error(CompileTimeErrorCode.constConstructorWithMixinWithField, 62, 1)],
     );
   }
 
@@ -130,13 +112,7 @@ class B extends Object with A {
   const B();
 }
 ''',
-      [
-        error(
-          CompileTimeErrorCode.CONST_CONSTRUCTOR_WITH_MIXIN_WITH_FIELDS,
-          71,
-          1,
-        ),
-      ],
+      [error(CompileTimeErrorCode.constConstructorWithMixinWithFields, 71, 1)],
     );
   }
 
@@ -173,13 +149,7 @@ class X extends Object with M {
   const X();
 }
 ''',
-      [
-        error(
-          CompileTimeErrorCode.CONST_CONSTRUCTOR_WITH_MIXIN_WITH_FIELD,
-          62,
-          1,
-        ),
-      ],
+      [error(CompileTimeErrorCode.constConstructorWithMixinWithField, 62, 1)],
     );
   }
 
@@ -194,13 +164,7 @@ class X extends Object with M {
   const X();
 }
 ''',
-      [
-        error(
-          CompileTimeErrorCode.CONST_CONSTRUCTOR_WITH_MIXIN_WITH_FIELD,
-          68,
-          1,
-        ),
-      ],
+      [error(CompileTimeErrorCode.constConstructorWithMixinWithField, 68, 1)],
     );
   }
 

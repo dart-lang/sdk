@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/analysis_rule/rule_context.dart';
+import 'package:analyzer/analysis_rule/rule_visitor_registry.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/error/error.dart';
@@ -19,11 +20,13 @@ class AvoidReturnTypesOnSetters extends LintRule {
   bool get canUseParsedResult => true;
 
   @override
-  DiagnosticCode get diagnosticCode =>
-      LinterLintCode.avoid_return_types_on_setters;
+  DiagnosticCode get diagnosticCode => LinterLintCode.avoidReturnTypesOnSetters;
 
   @override
-  void registerNodeProcessors(NodeLintRegistry registry, RuleContext context) {
+  void registerNodeProcessors(
+    RuleVisitorRegistry registry,
+    RuleContext context,
+  ) {
     var visitor = _Visitor(this);
     registry.addFunctionDeclaration(this, visitor);
     registry.addMethodDeclaration(this, visitor);

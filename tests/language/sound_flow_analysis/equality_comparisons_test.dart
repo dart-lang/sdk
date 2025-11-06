@@ -5,8 +5,6 @@
 // Exercises flow analysis of equality comparisons (binary expressions using
 // `==` or `!=`) when `sound-flow-analysis` is enabled.
 
-// SharedOptions=--enable-experiment=sound-flow-analysis
-
 import '../static_type_helper.dart';
 
 // `<nonNullable> == <Null>` is known to evaluate to `false`.

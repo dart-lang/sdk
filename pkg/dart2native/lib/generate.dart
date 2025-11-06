@@ -10,13 +10,6 @@ import 'package:path/path.dart' as path;
 import 'dart2native.dart';
 import 'src/generate_utils.dart';
 
-export 'dart2native.dart' show genKernel, genSnapshotHost;
-
-final hostDartAotRuntime = path.join(
-  binDir.path,
-  'dartaotruntime$executableSuffix',
-);
-
 /// The kinds of native executables supported by [KernelGenerator].
 enum Kind {
   aot,
@@ -215,7 +208,6 @@ class _Generator {
     }
 
     final kernelResult = await generateKernelHelper(
-      hostDartAotRuntime: hostDartAotRuntime,
       sourceFile: _sourcePath,
       kernelFile: _programKernelFile,
       packages: _packages,
@@ -316,7 +308,6 @@ class _Generator {
       final nativeAssetsDillFile =
           path.join(_tempDir.path, 'native_assets.dill');
       final kernelResult = await generateKernelHelper(
-        hostDartAotRuntime: hostDartAotRuntime,
         kernelFile: nativeAssetsDillFile,
         packages: _packages,
         defines: _defines,
@@ -405,7 +396,6 @@ Future<void> generateKernel({
   packages = _normalize(packages);
 
   final kernelResult = await generateKernelHelper(
-    hostDartAotRuntime: hostDartAotRuntime,
     sourceFile: sourcePath,
     kernelFile: outputPath,
     packages: packages,

@@ -7,6 +7,7 @@ import 'dart:io';
 
 import 'package:args/args.dart';
 import 'package:dartdev/src/commands/compile.dart';
+import 'package:dartdev/src/progress.dart';
 import 'package:front_end/src/api_prototype/compiler_options.dart'
     show Verbosity;
 import 'package:frontend_server/resident_frontend_server_utils.dart'
@@ -25,7 +26,6 @@ import '../vm_interop_handler.dart';
 import 'compilation_server.dart';
 
 class RunCommand extends DartdevCommand {
-  static const bool isProductMode = bool.fromEnvironment('dart.vm.product');
   static const String cmdName = 'run';
 
   // kErrorExitCode, as defined in runtime/bin/error_exit.h
@@ -44,10 +44,12 @@ class RunCommand extends DartdevCommand {
   }
 
   final bool nativeAssetsExperimentEnabled;
+  final bool dataAssetsExperimentEnabled;
 
   RunCommand({
     bool verbose = false,
     this.nativeAssetsExperimentEnabled = false,
+    this.dataAssetsExperimentEnabled = false,
   }) : super(
           cmdName,
           'Run a Dart program.',
@@ -92,109 +94,109 @@ class RunCommand extends DartdevCommand {
     argParser.addSeparator(
       'Debugging options:',
     );
-    if (!isProductMode) {
-      argParser
-        ..addOption(
-          'observe',
-          help: 'The observe flag is a convenience flag used to run a program '
-              'with a set of common options useful for debugging. '
-              'Run `dart help -v run` for details.',
-          valueHelp: '[<port>[/<bind-address>]]',
-        )
-        ..addFlag(
-          'enable-asserts',
-          help: 'Enable assert statements.',
-        )
-        ..addOption(
-          'launch-dds',
-          hide: true,
-          help: 'Launch DDS.',
-        );
+    argParser
+      ..addOption(
+        'observe',
+        help: 'The observe flag is a convenience flag used to run a program '
+            'with a set of common options useful for debugging. '
+            'Run `dart help -v run` for details.',
+        valueHelp: '[<port>[/<bind-address>]]',
+      )
+      ..addFlag(
+        'enable-asserts',
+        help: 'Enable assert statements.',
+      )
+      ..addOption(
+        'launch-dds',
+        hide: true,
+        help: 'Launch DDS.',
+      );
 
-      if (verbose) {
-        argParser.addSeparator(
-            verbose ? 'Options implied by --observe are currently:' : '');
-      }
-      argParser
-        ..addOption(
-          'enable-vm-service',
-          help: 'Enables the VM service and listens on the specified port for '
-              'connections (default port number is 8181, default bind address '
-              'is localhost).',
-          valueHelp: '[<port>[/<bind-address>]]',
-          hide: !verbose,
-        )
-        ..addFlag(
-          'serve-devtools',
-          help: 'Serves an instance of the Dart DevTools debugger and profiler '
-              'via the VM service at <vm-service-uri>/devtools.',
-          defaultsTo: true,
-          hide: !verbose,
-        )
-        ..addFlag(
-          'pause-isolates-on-exit',
-          help: 'Pause isolates on exit when '
-              'running with --enable-vm-service.',
-          hide: !verbose,
-        )
-        ..addFlag(
-          'pause-isolates-on-unhandled-exceptions',
-          help: 'Pause isolates when an unhandled exception is encountered '
-              'when running with --enable-vm-service.',
-          hide: !verbose,
-        )
-        ..addFlag(
-          'warn-on-pause-with-no-debugger',
-          help:
-              'Print a warning when an isolate pauses with no attached debugger'
-              ' when running with --enable-vm-service.',
-          hide: !verbose,
-        )
-        ..addOption(
-          'timeline-streams',
-          help: 'Enables recording for specific timeline streams.\n'
-              'Valid streams include: all, API, Compiler, CompilerVerbose, Dart, '
-              'Debugger, Embedder, GC, Isolate, Microtask, VM.\n'
-              'Defaults to "Compiler, Dart, GC, Microtask" when --observe is '
-              'provided.',
-          valueHelp: 'str1, str2, ...',
-          hide: !verbose,
-        );
+    if (verbose) {
+      argParser.addSeparator(
+          verbose ? 'Options implied by --observe are currently:' : '');
+    }
+    argParser
+      ..addOption(
+        'enable-vm-service',
+        help: 'Enables the VM service and listens on the specified port for '
+            'connections (default port number is 8181, default bind address '
+            'is localhost).',
+        valueHelp: '[<port>[/<bind-address>]]',
+        hide: !verbose,
+      )
+      ..addFlag(
+        'serve-devtools',
+        help: 'Serves an instance of the Dart DevTools debugger and profiler '
+            'via the VM service at <vm-service-uri>/devtools.',
+        defaultsTo: true,
+        hide: !verbose,
+      )
+      ..addFlag(
+        'pause-isolates-on-exit',
+        help: 'Pause isolates on exit when '
+            'running with --enable-vm-service.',
+        hide: !verbose,
+      )
+      ..addFlag(
+        'pause-isolates-on-unhandled-exceptions',
+        help: 'Pause isolates when an unhandled exception is encountered '
+            'when running with --enable-vm-service.',
+        hide: !verbose,
+      )
+      ..addFlag(
+        'warn-on-pause-with-no-debugger',
+        help: 'Print a warning when an isolate pauses with no attached debugger'
+            ' when running with --enable-vm-service.',
+        hide: !verbose,
+      )
+      ..addOption(
+        'timeline-streams',
+        help: 'Enables recording for specific timeline streams.\n'
+            'Valid streams include: all, API, Compiler, CompilerVerbose, Dart, '
+            'Debugger, Embedder, GC, Isolate, Microtask, VM.\n'
+            'Defaults to "Compiler, Dart, GC, Microtask" when --observe is '
+            'provided.',
+        valueHelp: 'str1, str2, ...',
+        hide: !verbose,
+      );
 
-      if (verbose) {
-        argParser.addSeparator('Other debugging options:');
-      }
-      argParser
-        ..addFlag(
-          'pause-isolates-on-start',
-          help: 'Pause isolates on start when '
-              'running with --enable-vm-service.',
-          hide: !verbose,
-        )
-        ..addOption(
-          'timeline-recorder',
-          help: 'Selects the timeline recorder to use.\n'
-              'Valid recorders include: none, ring, endless, startup, '
-              'systrace, file, callback, perfettofile.\n'
-              'Defaults to ring.',
-          valueHelp: 'recorder',
-          hide: !verbose,
-        )
-        ..addFlag(
-          'profile-microtasks',
+    if (verbose) {
+      argParser.addSeparator('Other debugging options:');
+    }
+    argParser
+      ..addFlag(
+        'pause-isolates-on-start',
+        help: 'Pause isolates on start when '
+            'running with --enable-vm-service.',
+        hide: !verbose,
+      )
+      ..addOption(
+        'timeline-recorder',
+        help: 'Selects the timeline recorder to use.\n'
+            'Valid recorders include: none, ring, endless, startup, '
+            'systrace, file, callback, perfettofile.\n'
+            'Defaults to ring.',
+        valueHelp: 'recorder',
+        hide: !verbose,
+      )
+      ..addFlag(
+        'profile-microtasks',
+        hide: !verbose,
+        negatable: false,
+        help: 'Record information about each microtask. Information about '
+            'completed microtasks will be written to the "Microtask" '
+            'timeline stream.',
+      )
+      ..addFlag('profile-startup',
           hide: !verbose,
           negatable: false,
-          help: 'Record information about each microtask. Information about '
-              'completed microtasks will be written to the "Microtask" '
-              'timeline stream.',
-        );
-    } else {
-      argParser.addOption('timeline-recorder',
-          help: 'Selects the timeline recorder to use.\n'
-              'Valid recorders include: none, systrace, file, callback.\n'
-              'Defaults to none.',
-          valueHelp: 'recorder');
-    }
+          help: 'Make the profiler discard new samples once the profiler '
+              'sample buffer is full. When this flag is not set, the '
+              'profiler sample buffer is used as a ring buffer, meaning that '
+              'once it is full, new samples start overwriting the oldest '
+              'ones. This flag itself does not enable the profiler; the '
+              'profiler must be enabled separately, e.g. with --profiler.');
 
     argParser.addSeparator('Logging options:');
     argParser.addOption(
@@ -215,26 +217,24 @@ class RunCommand extends DartdevCommand {
       help: 'Define an environment declaration.',
       hide: !verbose,
     );
-    if (!isProductMode) {
-      argParser
-        ..addFlag(
-          'disable-service-auth-codes',
-          hide: !verbose,
-          negatable: false,
-          help: 'Disables the requirement for an authentication code to '
-              'communicate with the VM service. Authentication codes help '
-              'protect against CSRF attacks, so it is not recommended to '
-              'disable them unless behind a firewall on a secure device.',
-        )
-        ..addFlag(
-          'enable-service-port-fallback',
-          hide: !verbose,
-          negatable: false,
-          help: 'When the VM service is told to bind to a particular port, '
-              'fallback to 0 if it fails to bind instead of failing to '
-              'start.',
-        );
-    }
+    argParser
+      ..addFlag(
+        'disable-service-auth-codes',
+        hide: !verbose,
+        negatable: false,
+        help: 'Disables the requirement for an authentication code to '
+            'communicate with the VM service. Authentication codes help '
+            'protect against CSRF attacks, so it is not recommended to '
+            'disable them unless behind a firewall on a secure device.',
+      )
+      ..addFlag(
+        'enable-service-port-fallback',
+        hide: !verbose,
+        negatable: false,
+        help: 'When the VM service is told to bind to a particular port, '
+            'fallback to 0 if it fails to bind instead of failing to '
+            'start.',
+      );
     argParser
       ..addOption(
         'namespace',
@@ -271,40 +271,37 @@ class RunCommand extends DartdevCommand {
             'supplies a mapping of package names\ninto paths.',
       );
 
-    if (!isProductMode) {
-      argParser
-        ..addOption(
-          'write-service-info',
-          help: 'Outputs information necessary to connect to the VM service to '
-              'specified file in JSON format. Useful for clients which are '
-              'unable to listen to stdout for the Dart VM service listening '
-              'message.',
-          valueHelp: 'file',
+    argParser
+      ..addOption(
+        'write-service-info',
+        help: 'Outputs information necessary to connect to the VM service to '
+            'specified file in JSON format. Useful for clients which are '
+            'unable to listen to stdout for the Dart VM service listening '
+            'message.',
+        valueHelp: 'file',
+        hide: !verbose,
+      )
+      ..addFlag('dds',
           hide: !verbose,
-        )
-        ..addFlag('dds',
-            hide: !verbose,
-            help:
-                'Use the Dart Development Service (DDS) for enhanced debugging '
-                'functionality. Note: Disabling DDS may break some '
-                'functionality in IDEs and other tooling.',
-            defaultsTo: true)
-        ..addFlag('serve-observatory',
-            hide: !verbose,
-            help: 'Enable hosting Observatory through the VM Service.',
-            defaultsTo: true)
-        ..addFlag(
-          'print-dtd',
+          help: 'Use the Dart Development Service (DDS) for enhanced debugging '
+              'functionality. Note: Disabling DDS may break some '
+              'functionality in IDEs and other tooling.',
+          defaultsTo: true)
+      ..addFlag('serve-observatory',
           hide: !verbose,
-          help: 'Prints connection details for the Dart Tooling Daemon (DTD).'
-              'Useful for Dart DevTools extension authors working with DTD in the '
-              'extension development environment.',
-        )
-        ..addFlag(
-          'debug-dds',
-          hide: true,
-        );
-    }
+          help: 'Enable hosting Observatory through the VM Service.',
+          defaultsTo: true)
+      ..addFlag(
+        'print-dtd',
+        hide: !verbose,
+        help: 'Prints connection details for the Dart Tooling Daemon (DTD).'
+            'Useful for Dart DevTools extension authors working with DTD in the '
+            'extension development environment.',
+      )
+      ..addFlag(
+        'debug-dds',
+        hide: true,
+      );
     argParser.addExperimentalFlags(verbose: verbose);
   }
 
@@ -418,16 +415,19 @@ class RunCommand extends DartdevCommand {
           runPackageName: runPackageName,
           includeDevDependencies: false,
           verbose: verbose,
+          dataAssetsExperimentEnabled: dataAssetsExperimentEnabled,
         );
         if (!nativeAssetsExperimentEnabled) {
           if (await builder.warnOnNativeAssets()) {
             return errorExitCode;
           }
-        } else {
-          final assetsYamlFileUri =
-              await builder.compileNativeAssetsJitYamlFile();
+        } else if (await builder.hasHooks()) {
+          final assetsYamlFileUri = await progress(
+            'Running build hooks',
+            builder.compileNativeAssetsJitYamlFile,
+          );
           if (assetsYamlFileUri == null) {
-            log.stderr('Error: Compiling native assets failed.');
+            log.stderr('Error: Running build hooks failed.');
             return errorExitCode;
           }
           nativeAssets = assetsYamlFileUri.toFilePath();
@@ -528,6 +528,7 @@ class RunCommand extends DartdevCommand {
       runArgs,
       packageConfigOverride:
           args.option('packages') ?? executable.packageConfig,
+      useExecProcess: true,
     );
     return 0;
   }

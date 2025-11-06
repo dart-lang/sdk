@@ -34,13 +34,7 @@ base class Foo {}
 import 'foo.dart';
 base class Bar implements Foo {}
 ''',
-      [
-        error(
-          CompileTimeErrorCode.BASE_CLASS_IMPLEMENTED_OUTSIDE_OF_LIBRARY,
-          45,
-          3,
-        ),
-      ],
+      [error(CompileTimeErrorCode.baseClassImplementedOutsideOfLibrary, 45, 3)],
     );
   }
 
@@ -57,7 +51,7 @@ base class C implements B {}
 ''',
       [
         error(
-          CompileTimeErrorCode.BASE_CLASS_IMPLEMENTED_OUTSIDE_OF_LIBRARY,
+          CompileTimeErrorCode.baseClassImplementedOutsideOfLibrary,
           69,
           1,
           text:
@@ -91,7 +85,7 @@ class C implements B {}
 ''',
       [
         error(
-          CompileTimeErrorCode.BASE_CLASS_IMPLEMENTED_OUTSIDE_OF_LIBRARY,
+          CompileTimeErrorCode.baseClassImplementedOutsideOfLibrary,
           64,
           1,
           text:
@@ -121,13 +115,7 @@ import 'a.dart';
 base class B extends A {}
 base class C implements B {}
 ''',
-      [
-        error(
-          CompileTimeErrorCode.BASE_CLASS_IMPLEMENTED_OUTSIDE_OF_LIBRARY,
-          67,
-          1,
-        ),
-      ],
+      [error(CompileTimeErrorCode.baseClassImplementedOutsideOfLibrary, 67, 1)],
     );
   }
 
@@ -144,7 +132,7 @@ base class Bar implements FooTypedef {}
 ''',
       [
         error(
-          CompileTimeErrorCode.BASE_CLASS_IMPLEMENTED_OUTSIDE_OF_LIBRARY,
+          CompileTimeErrorCode.baseClassImplementedOutsideOfLibrary,
           45,
           10,
         ),
@@ -165,7 +153,7 @@ base class Bar implements FooTypedef {}
 ''',
       [
         error(
-          CompileTimeErrorCode.BASE_CLASS_IMPLEMENTED_OUTSIDE_OF_LIBRARY,
+          CompileTimeErrorCode.baseClassImplementedOutsideOfLibrary,
           71,
           10,
         ),
@@ -196,7 +184,7 @@ base class C = Object with M implements B;
 ''',
       [
         error(
-          CompileTimeErrorCode.BASE_CLASS_IMPLEMENTED_OUTSIDE_OF_LIBRARY,
+          CompileTimeErrorCode.baseClassImplementedOutsideOfLibrary,
           96,
           1,
           text:
@@ -232,13 +220,7 @@ base class Foo {}
 import 'foo.dart';
 enum Bar implements Foo { bar }
 ''',
-      [
-        error(
-          CompileTimeErrorCode.BASE_CLASS_IMPLEMENTED_OUTSIDE_OF_LIBRARY,
-          39,
-          3,
-        ),
-      ],
+      [error(CompileTimeErrorCode.baseClassImplementedOutsideOfLibrary, 39, 3)],
     );
   }
 
@@ -255,7 +237,7 @@ enum Bar implements FooTypedef { bar }
 ''',
       [
         error(
-          CompileTimeErrorCode.BASE_CLASS_IMPLEMENTED_OUTSIDE_OF_LIBRARY,
+          CompileTimeErrorCode.baseClassImplementedOutsideOfLibrary,
           39,
           10,
         ),
@@ -276,7 +258,7 @@ enum Bar implements FooTypedef { bar }
 ''',
       [
         error(
-          CompileTimeErrorCode.BASE_CLASS_IMPLEMENTED_OUTSIDE_OF_LIBRARY,
+          CompileTimeErrorCode.baseClassImplementedOutsideOfLibrary,
           65,
           10,
         ),
@@ -301,13 +283,7 @@ base class Foo {}
 import 'foo.dart';
 base mixin Bar implements Foo {}
 ''',
-      [
-        error(
-          CompileTimeErrorCode.BASE_CLASS_IMPLEMENTED_OUTSIDE_OF_LIBRARY,
-          45,
-          3,
-        ),
-      ],
+      [error(CompileTimeErrorCode.baseClassImplementedOutsideOfLibrary, 45, 3)],
     );
   }
 
@@ -324,7 +300,7 @@ base mixin Bar implements FooTypedef {}
 ''',
       [
         error(
-          CompileTimeErrorCode.BASE_CLASS_IMPLEMENTED_OUTSIDE_OF_LIBRARY,
+          CompileTimeErrorCode.baseClassImplementedOutsideOfLibrary,
           45,
           10,
         ),
@@ -345,7 +321,7 @@ base mixin Bar implements FooTypedef {}
 ''',
       [
         error(
-          CompileTimeErrorCode.BASE_CLASS_IMPLEMENTED_OUTSIDE_OF_LIBRARY,
+          CompileTimeErrorCode.baseClassImplementedOutsideOfLibrary,
           71,
           10,
         ),

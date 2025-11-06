@@ -13,6 +13,7 @@ import 'dart:_js_helper'
         createObjectLiteral;
 import 'dart:collection' show HashMap;
 import 'dart:async' show Completer;
+import 'dart:js_interop' show NullRejectionException;
 import 'dart:typed_data';
 
 bool _noJsifyRequired(Object? o) =>
@@ -620,8 +621,7 @@ bool isJavaScriptSimpleObject(value) {
       JS('bool', '# === null', proto);
 }
 
-bool _isJavaScriptPromise(value) =>
-    JS('bool', r'typeof Promise != "undefined" && # instanceof Promise', value);
+bool _isJavaScriptPromise(value) => JS('bool', r'# instanceof Promise', value);
 
 DateTime _dateToDateTime(date) {
   int millisSinceEpoch = JS('int', '#.getTime()', date);

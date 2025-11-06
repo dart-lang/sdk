@@ -29,11 +29,6 @@ void FUNCTION_NAME(FileSystemWatcher_InitWatcher)(Dart_NativeArguments args) {
   }
 }
 
-void FUNCTION_NAME(FileSystemWatcher_CloseWatcher)(Dart_NativeArguments args) {
-  intptr_t id = DartUtils::GetIntptrValue(Dart_GetNativeArgument(args, 0));
-  FileSystemWatcher::Close(id);
-}
-
 void FUNCTION_NAME(FileSystemWatcher_WatchPath)(Dart_NativeArguments args) {
   intptr_t id = DartUtils::GetIntptrValue(Dart_GetNativeArgument(args, 0));
   Namespace* namespc = Namespace::GetNamespace(args, 1);
@@ -65,7 +60,7 @@ void FUNCTION_NAME(FileSystemWatcher_ReadEvents)(Dart_NativeArguments args) {
 void FUNCTION_NAME(FileSystemWatcher_GetSocketId)(Dart_NativeArguments args) {
   intptr_t id = DartUtils::GetIntptrValue(Dart_GetNativeArgument(args, 0));
   intptr_t path_id = DartUtils::GetIntptrValue(Dart_GetNativeArgument(args, 1));
-  int socket_id = FileSystemWatcher::GetSocketId(id, path_id);
+  intptr_t socket_id = FileSystemWatcher::GetSocketId(id, path_id);
   Dart_SetIntegerReturnValue(args, socket_id);
 }
 

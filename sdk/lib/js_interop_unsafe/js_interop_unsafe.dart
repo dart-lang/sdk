@@ -36,6 +36,8 @@ extension JSObjectUnsafeUtilExtension on JSObject {
   bool has(String property) => hasProperty(property.toJS).toDart;
 
   /// Whether or not this [JSObject] contains the property key [property].
+  ///
+  /// Uses JavaScript's `in` to check.
   external JSBoolean hasProperty(JSAny property);
 
   /// Shorthand helper for [getProperty] to get the value of the property key
@@ -87,6 +89,8 @@ extension JSObjectUnsafeUtilExtension on JSObject {
   ]) => _callMethodVarArgs(method, arguments) as R;
 
   /// Deletes the property with key [property] from this [JSObject].
+  ///
+  /// Uses JavaScript's `delete` to delete the property.
   external JSBoolean delete(JSAny property);
 }
 

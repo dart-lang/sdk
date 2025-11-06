@@ -47,21 +47,9 @@ class VarianceParserTest extends FastaParserTestCase {
     parseCompilationUnit(
       'class A<in T, inout U, out V> { }',
       errors: [
-        expectedError(
-          ParserErrorCode.EXPERIMENT_NOT_ENABLED_OFF_BY_DEFAULT,
-          8,
-          2,
-        ),
-        expectedError(
-          ParserErrorCode.EXPERIMENT_NOT_ENABLED_OFF_BY_DEFAULT,
-          14,
-          5,
-        ),
-        expectedError(
-          ParserErrorCode.EXPERIMENT_NOT_ENABLED_OFF_BY_DEFAULT,
-          23,
-          3,
-        ),
+        expectedError(ParserErrorCode.experimentNotEnabledOffByDefault, 8, 2),
+        expectedError(ParserErrorCode.experimentNotEnabledOffByDefault, 14, 5),
+        expectedError(ParserErrorCode.experimentNotEnabledOffByDefault, 23, 3),
       ],
       featureSet: _disabledFeatureSet,
     );
@@ -71,11 +59,7 @@ class VarianceParserTest extends FastaParserTestCase {
     parseCompilationUnit(
       'class A<out T> { }',
       errors: [
-        expectedError(
-          ParserErrorCode.EXPERIMENT_NOT_ENABLED_OFF_BY_DEFAULT,
-          8,
-          3,
-        ),
+        expectedError(ParserErrorCode.experimentNotEnabledOffByDefault, 8, 3),
       ],
       featureSet: _disabledFeatureSet,
     );
@@ -129,8 +113,8 @@ class VarianceParserTest extends FastaParserTestCase {
     var unit = parseCompilationUnit(
       'class A<in out inout T> { }',
       errors: [
-        expectedError(ParserErrorCode.MULTIPLE_VARIANCE_MODIFIERS, 11, 3),
-        expectedError(ParserErrorCode.MULTIPLE_VARIANCE_MODIFIERS, 15, 5),
+        expectedError(ParserErrorCode.multipleVarianceModifiers, 11, 3),
+        expectedError(ParserErrorCode.multipleVarianceModifiers, 15, 5),
       ],
     );
     expect(unit.declarations, hasLength(1));
@@ -162,12 +146,8 @@ class VarianceParserTest extends FastaParserTestCase {
     parseCompilationUnit(
       'void A(in int value) {}',
       errors: [
-        expectedError(
-          ParserErrorCode.EXPECTED_IDENTIFIER_BUT_GOT_KEYWORD,
-          7,
-          2,
-        ),
-        expectedError(ParserErrorCode.EXPECTED_TOKEN, 10, 3),
+        expectedError(ParserErrorCode.expectedIdentifierButGotKeyword, 7, 2),
+        expectedError(ParserErrorCode.expectedToken, 10, 3),
       ],
       featureSet: _disabledFeatureSet,
     );
@@ -177,12 +157,8 @@ class VarianceParserTest extends FastaParserTestCase {
     parseCompilationUnit(
       'void A(in int value) {}',
       errors: [
-        expectedError(
-          ParserErrorCode.EXPECTED_IDENTIFIER_BUT_GOT_KEYWORD,
-          7,
-          2,
-        ),
-        expectedError(ParserErrorCode.EXPECTED_TOKEN, 10, 3),
+        expectedError(ParserErrorCode.expectedIdentifierButGotKeyword, 7, 2),
+        expectedError(ParserErrorCode.expectedToken, 10, 3),
       ],
     );
   }
@@ -190,7 +166,7 @@ class VarianceParserTest extends FastaParserTestCase {
   void test_list_disabled() {
     parseCompilationUnit(
       'List<out String> stringList = [];',
-      errors: [expectedError(ParserErrorCode.EXPECTED_TOKEN, 9, 6)],
+      errors: [expectedError(ParserErrorCode.expectedToken, 9, 6)],
       featureSet: _disabledFeatureSet,
     );
   }
@@ -198,7 +174,7 @@ class VarianceParserTest extends FastaParserTestCase {
   void test_list_enabled() {
     parseCompilationUnit(
       'List<out String> stringList = [];',
-      errors: [expectedError(ParserErrorCode.EXPECTED_TOKEN, 9, 6)],
+      errors: [expectedError(ParserErrorCode.expectedToken, 9, 6)],
     );
   }
 
@@ -206,16 +182,8 @@ class VarianceParserTest extends FastaParserTestCase {
     parseCompilationUnit(
       'mixin A<inout T, out U> { }',
       errors: [
-        expectedError(
-          ParserErrorCode.EXPERIMENT_NOT_ENABLED_OFF_BY_DEFAULT,
-          8,
-          5,
-        ),
-        expectedError(
-          ParserErrorCode.EXPERIMENT_NOT_ENABLED_OFF_BY_DEFAULT,
-          17,
-          3,
-        ),
+        expectedError(ParserErrorCode.experimentNotEnabledOffByDefault, 8, 5),
+        expectedError(ParserErrorCode.experimentNotEnabledOffByDefault, 17, 3),
       ],
       featureSet: _disabledFeatureSet,
     );
@@ -225,11 +193,7 @@ class VarianceParserTest extends FastaParserTestCase {
     parseCompilationUnit(
       'mixin A<inout T> { }',
       errors: [
-        expectedError(
-          ParserErrorCode.EXPERIMENT_NOT_ENABLED_OFF_BY_DEFAULT,
-          8,
-          5,
-        ),
+        expectedError(ParserErrorCode.experimentNotEnabledOffByDefault, 8, 5),
       ],
       featureSet: _disabledFeatureSet,
     );
@@ -249,7 +213,7 @@ class VarianceParserTest extends FastaParserTestCase {
   void test_typedef_disabled() {
     parseCompilationUnit(
       'typedef A<inout X> = X Function(X);',
-      errors: [expectedError(ParserErrorCode.EXPECTED_TOKEN, 16, 1)],
+      errors: [expectedError(ParserErrorCode.expectedToken, 16, 1)],
       featureSet: _disabledFeatureSet,
     );
   }
@@ -257,7 +221,7 @@ class VarianceParserTest extends FastaParserTestCase {
   void test_typedef_enabled() {
     parseCompilationUnit(
       'typedef A<inout X> = X Function(X);',
-      errors: [expectedError(ParserErrorCode.EXPECTED_TOKEN, 16, 1)],
+      errors: [expectedError(ParserErrorCode.expectedToken, 16, 1)],
     );
   }
 }

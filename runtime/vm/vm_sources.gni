@@ -346,6 +346,8 @@ vm_sources = [
   "token.h",
   "token_position.cc",
   "token_position.h",
+  "tsan_symbolize.cc",
+  "tsan_symbolize.h",
   "type_testing_stubs.cc",
   "type_testing_stubs.h",
   "unicode.cc",

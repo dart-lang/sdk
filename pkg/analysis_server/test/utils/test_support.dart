@@ -89,7 +89,7 @@ class ExpectedError {
     }
     var messageContains = this.messageContains;
     if (messageContains != null &&
-        diagnostic.message.contains(messageContains) != true) {
+        !diagnostic.message.contains(messageContains)) {
       return false;
     }
     var contextMessages = diagnostic.contextMessages.toList();

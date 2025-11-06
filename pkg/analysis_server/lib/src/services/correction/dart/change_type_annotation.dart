@@ -27,7 +27,7 @@ class ChangeTypeAnnotation extends ResolvedCorrectionProducer {
   List<String> get fixArguments => [_oldAnnotation, _newAnnotation];
 
   @override
-  FixKind get fixKind => DartFixKind.CHANGE_TYPE_ANNOTATION;
+  FixKind get fixKind => DartFixKind.changeTypeAnnotation;
 
   @override
   Future<void> compute(ChangeBuilder builder) async {

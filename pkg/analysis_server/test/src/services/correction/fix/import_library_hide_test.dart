@@ -42,7 +42,7 @@ void f(A a, B b, C c) {
 }
 ''',
       errorFilter: (error) {
-        return error.diagnosticCode == CompileTimeErrorCode.UNDEFINED_CLASS &&
+        return error.diagnosticCode == CompileTimeErrorCode.undefinedClass &&
             testCode.indexOf('B b') == error.offset;
       },
     );
@@ -54,7 +54,7 @@ void f(A a, B b, C c) {
 }
 ''',
       errorFilter: (error) {
-        return error.diagnosticCode == CompileTimeErrorCode.UNDEFINED_CLASS &&
+        return error.diagnosticCode == CompileTimeErrorCode.undefinedClass &&
             testCode.indexOf('C c') == error.offset;
       },
     );
@@ -89,7 +89,7 @@ void f(String s, lib.C c) {
 }
 ''',
       errorFilter: (error) {
-        return error.diagnosticCode == CompileTimeErrorCode.UNDEFINED_METHOD;
+        return error.diagnosticCode == CompileTimeErrorCode.undefinedMethod;
       },
     );
   }
@@ -123,7 +123,7 @@ void f(String s, C c) {
 }
 ''',
       errorFilter: (error) {
-        return error.diagnosticCode == CompileTimeErrorCode.UNDEFINED_METHOD;
+        return error.diagnosticCode == CompileTimeErrorCode.undefinedMethod;
       },
     );
   }
@@ -162,7 +162,7 @@ void f(String s, C c) {
 }
 ''',
       errorFilter: (error) {
-        return error.diagnosticCode == CompileTimeErrorCode.UNDEFINED_OPERATOR;
+        return error.diagnosticCode == CompileTimeErrorCode.undefinedOperator;
       },
     );
   }
@@ -197,7 +197,7 @@ void f() {
 }
 ''',
       errorFilter: (error) {
-        return error.diagnosticCode == CompileTimeErrorCode.UNDEFINED_CLASS &&
+        return error.diagnosticCode == CompileTimeErrorCode.undefinedClass &&
             testCode.indexOf('B?') == error.offset;
       },
     );
@@ -253,7 +253,7 @@ void f(A a1) {
 ''',
       errorFilter: (error) {
         return error.diagnosticCode ==
-                CompileTimeErrorCode.UNDEFINED_IDENTIFIER &&
+                CompileTimeErrorCode.undefinedIdentifier &&
             testCode.indexOf('E.') == error.offset;
       },
     );
@@ -266,7 +266,7 @@ void f(A a1) {
 ''',
       errorFilter: (error) {
         return error.diagnosticCode ==
-                CompileTimeErrorCode.UNDEFINED_IDENTIFIER &&
+                CompileTimeErrorCode.undefinedIdentifier &&
             testCode.indexOf("a')") == error.offset;
       },
     );
@@ -552,6 +552,29 @@ void f(A a) {
   print('$a ${E(3).m()}');
 }
 ''');
+  }
+
+  Future<void> test_relativeImport() async {
+    newFile('$testPackageLibPath/lib.dart', '''
+class C {}
+extension E on String {
+  void m() {}
+}
+''');
+    await resolveTestCode('''
+import 'lib.dart' as lib hide E;
+
+void f(String s, lib.C c) {
+  s.m();
+}
+''');
+    await assertHasFix('''
+import 'lib.dart' as lib;
+
+void f(String s, lib.C c) {
+  s.m();
+}
+''', matchFixMessage: "Import 'E' from lib.dart");
   }
 
   Future<void> test_static_samePackage() async {

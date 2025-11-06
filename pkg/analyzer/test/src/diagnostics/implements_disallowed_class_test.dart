@@ -20,7 +20,7 @@ class ImplementsDisallowedClassTest extends PubPackageResolutionTest {
       '''
 class A implements bool {}
 ''',
-      [error(CompileTimeErrorCode.IMPLEMENTS_DISALLOWED_CLASS, 19, 4)],
+      [error(CompileTimeErrorCode.implementsDisallowedClass, 19, 4)],
     );
   }
 
@@ -36,7 +36,7 @@ abstract class A implements Enum {}
 // @dart = 2.16
 abstract class A implements Enum {}
 ''',
-      [error(CompileTimeErrorCode.IMPLEMENTS_DISALLOWED_CLASS, 44, 4)],
+      [error(CompileTimeErrorCode.implementsDisallowedClass, 44, 4)],
     );
   }
 
@@ -46,7 +46,7 @@ abstract class A implements Enum {}
 // @dart = 2.16
 class A implements Enum {}
 ''',
-      [error(CompileTimeErrorCode.IMPLEMENTS_DISALLOWED_CLASS, 35, 4)],
+      [error(CompileTimeErrorCode.implementsDisallowedClass, 35, 4)],
     );
   }
 
@@ -55,7 +55,7 @@ class A implements Enum {}
       '''
 class A implements double {}
 ''',
-      [error(CompileTimeErrorCode.IMPLEMENTS_DISALLOWED_CLASS, 19, 6)],
+      [error(CompileTimeErrorCode.implementsDisallowedClass, 19, 6)],
     );
   }
 
@@ -65,7 +65,7 @@ class A implements double {}
 import 'dart:async';
 class A implements FutureOr {}
 ''',
-      [error(CompileTimeErrorCode.IMPLEMENTS_DISALLOWED_CLASS, 40, 8)],
+      [error(CompileTimeErrorCode.implementsDisallowedClass, 40, 8)],
     );
   }
 
@@ -75,7 +75,7 @@ class A implements FutureOr {}
 import 'dart:async';
 class A implements FutureOr<int> {}
 ''',
-      [error(CompileTimeErrorCode.IMPLEMENTS_DISALLOWED_CLASS, 40, 13)],
+      [error(CompileTimeErrorCode.implementsDisallowedClass, 40, 13)],
     );
   }
 
@@ -86,7 +86,7 @@ import 'dart:async';
 typedef F = FutureOr<void>;
 class A implements F {}
 ''',
-      [error(CompileTimeErrorCode.IMPLEMENTS_DISALLOWED_CLASS, 68, 1)],
+      [error(CompileTimeErrorCode.implementsDisallowedClass, 68, 1)],
     );
   }
 
@@ -96,7 +96,7 @@ class A implements F {}
 import 'dart:async';
 class A<T> implements FutureOr<T> {}
 ''',
-      [error(CompileTimeErrorCode.IMPLEMENTS_DISALLOWED_CLASS, 43, 11)],
+      [error(CompileTimeErrorCode.implementsDisallowedClass, 43, 11)],
     );
   }
 
@@ -105,7 +105,7 @@ class A<T> implements FutureOr<T> {}
       '''
 class A implements int {}
 ''',
-      [error(CompileTimeErrorCode.IMPLEMENTS_DISALLOWED_CLASS, 19, 3)],
+      [error(CompileTimeErrorCode.implementsDisallowedClass, 19, 3)],
     );
   }
 
@@ -114,7 +114,7 @@ class A implements int {}
       '''
 class A implements Null {}
 ''',
-      [error(CompileTimeErrorCode.IMPLEMENTS_DISALLOWED_CLASS, 19, 4)],
+      [error(CompileTimeErrorCode.implementsDisallowedClass, 19, 4)],
     );
   }
 
@@ -123,7 +123,7 @@ class A implements Null {}
       '''
 class A implements num {}
 ''',
-      [error(CompileTimeErrorCode.IMPLEMENTS_DISALLOWED_CLASS, 19, 3)],
+      [error(CompileTimeErrorCode.implementsDisallowedClass, 19, 3)],
     );
   }
 
@@ -132,7 +132,7 @@ class A implements num {}
       '''
 class A implements Record {}
 ''',
-      [error(CompileTimeErrorCode.IMPLEMENTS_DISALLOWED_CLASS, 19, 6)],
+      [error(CompileTimeErrorCode.implementsDisallowedClass, 19, 6)],
     );
   }
 
@@ -141,7 +141,7 @@ class A implements Record {}
       '''
 class A implements String {}
 ''',
-      [error(CompileTimeErrorCode.IMPLEMENTS_DISALLOWED_CLASS, 19, 6)],
+      [error(CompileTimeErrorCode.implementsDisallowedClass, 19, 6)],
     );
   }
 
@@ -159,7 +159,7 @@ augment class A implements String {}
 
     await assertErrorsInFile2(a, []);
     await assertErrorsInFile2(b, [
-      error(CompileTimeErrorCode.IMPLEMENTS_DISALLOWED_CLASS, 45, 6),
+      error(CompileTimeErrorCode.implementsDisallowedClass, 45, 6),
     ]);
   }
 
@@ -169,8 +169,8 @@ augment class A implements String {}
 class A implements String, num {}
 ''',
       [
-        error(CompileTimeErrorCode.IMPLEMENTS_DISALLOWED_CLASS, 19, 6),
-        error(CompileTimeErrorCode.IMPLEMENTS_DISALLOWED_CLASS, 27, 3),
+        error(CompileTimeErrorCode.implementsDisallowedClass, 19, 6),
+        error(CompileTimeErrorCode.implementsDisallowedClass, 27, 3),
       ],
     );
   }
@@ -182,7 +182,7 @@ class A {}
 class M {}
 class C = A with M implements bool;
 ''',
-      [error(CompileTimeErrorCode.IMPLEMENTS_DISALLOWED_CLASS, 52, 4)],
+      [error(CompileTimeErrorCode.implementsDisallowedClass, 52, 4)],
     );
   }
 
@@ -200,7 +200,7 @@ abstract class A = Object with M implements Enum;
 mixin M {}
 abstract class A = Object with M implements Enum;
 ''',
-      [error(CompileTimeErrorCode.IMPLEMENTS_DISALLOWED_CLASS, 71, 4)],
+      [error(CompileTimeErrorCode.implementsDisallowedClass, 71, 4)],
     );
   }
 
@@ -211,7 +211,7 @@ abstract class A = Object with M implements Enum;
 mixin M {}
 class A = Object with M implements Enum;
 ''',
-      [error(CompileTimeErrorCode.IMPLEMENTS_DISALLOWED_CLASS, 62, 4)],
+      [error(CompileTimeErrorCode.implementsDisallowedClass, 62, 4)],
     );
   }
 
@@ -222,7 +222,7 @@ class A {}
 class M {}
 class C = A with M implements double;
 ''',
-      [error(CompileTimeErrorCode.IMPLEMENTS_DISALLOWED_CLASS, 52, 6)],
+      [error(CompileTimeErrorCode.implementsDisallowedClass, 52, 6)],
     );
   }
 
@@ -234,7 +234,7 @@ class A {}
 class M {}
 class C = A with M implements FutureOr;
 ''',
-      [error(CompileTimeErrorCode.IMPLEMENTS_DISALLOWED_CLASS, 73, 8)],
+      [error(CompileTimeErrorCode.implementsDisallowedClass, 73, 8)],
     );
   }
 
@@ -245,7 +245,7 @@ class A {}
 class M {}
 class C = A with M implements int;
 ''',
-      [error(CompileTimeErrorCode.IMPLEMENTS_DISALLOWED_CLASS, 52, 3)],
+      [error(CompileTimeErrorCode.implementsDisallowedClass, 52, 3)],
     );
   }
 
@@ -256,7 +256,7 @@ class A {}
 class M {}
 class C = A with M implements Null;
 ''',
-      [error(CompileTimeErrorCode.IMPLEMENTS_DISALLOWED_CLASS, 52, 4)],
+      [error(CompileTimeErrorCode.implementsDisallowedClass, 52, 4)],
     );
   }
 
@@ -267,7 +267,7 @@ class A {}
 class M {}
 class C = A with M implements num;
 ''',
-      [error(CompileTimeErrorCode.IMPLEMENTS_DISALLOWED_CLASS, 52, 3)],
+      [error(CompileTimeErrorCode.implementsDisallowedClass, 52, 3)],
     );
   }
 
@@ -278,7 +278,7 @@ class A {}
 class M {}
 class C = A with M implements String;
 ''',
-      [error(CompileTimeErrorCode.IMPLEMENTS_DISALLOWED_CLASS, 52, 6)],
+      [error(CompileTimeErrorCode.implementsDisallowedClass, 52, 6)],
     );
   }
 
@@ -290,8 +290,8 @@ class M {}
 class C = A with M implements String, num;
 ''',
       [
-        error(CompileTimeErrorCode.IMPLEMENTS_DISALLOWED_CLASS, 52, 6),
-        error(CompileTimeErrorCode.IMPLEMENTS_DISALLOWED_CLASS, 60, 3),
+        error(CompileTimeErrorCode.implementsDisallowedClass, 52, 6),
+        error(CompileTimeErrorCode.implementsDisallowedClass, 60, 3),
       ],
     );
   }
@@ -303,7 +303,7 @@ enum E implements int {
   v
 }
 ''',
-      [error(CompileTimeErrorCode.IMPLEMENTS_DISALLOWED_CLASS, 18, 3)],
+      [error(CompileTimeErrorCode.implementsDisallowedClass, 18, 3)],
     );
   }
 
@@ -319,7 +319,7 @@ mixin M implements Enum {}
 // @dart = 2.16
 mixin M implements Enum {}
 ''',
-      [error(CompileTimeErrorCode.IMPLEMENTS_DISALLOWED_CLASS, 35, 4)],
+      [error(CompileTimeErrorCode.implementsDisallowedClass, 35, 4)],
     );
   }
 
@@ -328,7 +328,7 @@ mixin M implements Enum {}
       r'''
 mixin M implements int {}
 ''',
-      [error(CompileTimeErrorCode.IMPLEMENTS_DISALLOWED_CLASS, 19, 3)],
+      [error(CompileTimeErrorCode.implementsDisallowedClass, 19, 3)],
     );
 
     var node = findNode.singleImplementsClause;
@@ -338,7 +338,7 @@ ImplementsClause
   interfaces
     NamedType
       name: int
-      element2: dart:core::@class::int
+      element: dart:core::@class::int
       type: int
 ''');
   }

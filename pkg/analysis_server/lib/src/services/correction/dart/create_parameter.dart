@@ -6,6 +6,7 @@ import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analysis_server_plugin/edit/dart/correction_producer.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
+import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
@@ -23,7 +24,7 @@ class CreateParameter extends ResolvedCorrectionProducer {
   List<String> get fixArguments => [_parameterName];
 
   @override
-  FixKind get fixKind => DartFixKind.CREATE_PARAMETER;
+  FixKind get fixKind => DartFixKind.createParameter;
 
   @override
   Future<void> compute(ChangeBuilder builder) async {
@@ -57,6 +58,9 @@ class CreateParameter extends ResolvedCorrectionProducer {
     // compute type
     var type =
         inferUndefinedExpressionType(nameNode) ?? typeProvider.dynamicType;
+    if (type is InvalidType) {
+      return;
+    }
     var lastRequiredPositional = requiredPositionals.lastOrNull;
     var lastNamed = namedParameters.lastOrNull;
     var hasPreviousParameters =

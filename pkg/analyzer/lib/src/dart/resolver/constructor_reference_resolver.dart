@@ -25,7 +25,7 @@ class ConstructorReferenceResolver {
       // the parser has already reported an error.
       _resolver.diagnosticReporter.atNode(
         node,
-        WarningCode.SDK_VERSION_CONSTRUCTOR_TEAROFFS,
+        WarningCode.sdkVersionConstructorTearoffs,
       );
     }
     node.constructorName.accept(_resolver);
@@ -35,8 +35,7 @@ class ConstructorReferenceResolver {
       if (enclosingElement is ClassElementImpl && enclosingElement.isAbstract) {
         _resolver.diagnosticReporter.atNode(
           node,
-          CompileTimeErrorCode
-              .TEAROFF_OF_GENERATIVE_CONSTRUCTOR_OF_ABSTRACT_CLASS,
+          CompileTimeErrorCode.tearoffOfGenerativeConstructorOfAbstractClass,
         );
       }
     }
@@ -54,8 +53,9 @@ class ConstructorReferenceResolver {
       var enclosingElement = node.constructorName.type.element;
       if (enclosingElement is TypeAliasElement) {
         var aliasedType = enclosingElement.aliasedType;
-        enclosingElement =
-            aliasedType is InterfaceType ? aliasedType.element : null;
+        enclosingElement = aliasedType is InterfaceType
+            ? aliasedType.element
+            : null;
       }
       // TODO(srawlins): Handle `enclosingElement` being a function typedef:
       // typedef F<T> = void Function(); var a = F<int>.extensionOnType;`.
@@ -66,12 +66,9 @@ class ConstructorReferenceResolver {
             enclosingElement.getGetter(name.name) ??
             enclosingElement.getSetter(name.name);
         if (method != null) {
-          var error =
-              method.isStatic
-                  ? CompileTimeErrorCode
-                      .CLASS_INSTANTIATION_ACCESS_TO_STATIC_MEMBER
-                  : CompileTimeErrorCode
-                      .CLASS_INSTANTIATION_ACCESS_TO_INSTANCE_MEMBER;
+          var error = method.isStatic
+              ? CompileTimeErrorCode.classInstantiationAccessToStaticMember
+              : CompileTimeErrorCode.classInstantiationAccessToInstanceMember;
           _resolver.diagnosticReporter.atNode(
             node,
             error,
@@ -80,7 +77,7 @@ class ConstructorReferenceResolver {
         } else if (!name.isSynthetic) {
           _resolver.diagnosticReporter.atNode(
             node,
-            CompileTimeErrorCode.CLASS_INSTANTIATION_ACCESS_TO_UNKNOWN_MEMBER,
+            CompileTimeErrorCode.classInstantiationAccessToUnknownMember,
             arguments: [enclosingElement.name!, name.name],
           );
         }
@@ -136,7 +133,7 @@ class ConstructorReferenceResolver {
 
         // Update the static element as well. This is used in some cases, such
         // as computing constant values. It is stored in two places.
-        var constructorElement = ConstructorMember.from2(
+        var constructorElement = SubstitutedConstructorElementImpl.from2(
           rawElement,
           inferredReturnType,
         );

@@ -32,7 +32,7 @@ const B = a.V;
       [
         error(
           CompileTimeErrorCode
-              .CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE_FROM_DEFERRED_LIBRARY,
+              .constInitializedWithNonConstantValueFromDeferredLibrary,
           60,
           1,
         ),
@@ -54,7 +54,7 @@ const B = a.V + 1;
       [
         error(
           CompileTimeErrorCode
-              .CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE_FROM_DEFERRED_LIBRARY,
+              .constInitializedWithNonConstantValueFromDeferredLibrary,
           60,
           1,
         ),
@@ -72,10 +72,10 @@ extension E on int {
 const g = self.E.f;
 ''',
       [
-        error(CompileTimeErrorCode.DEFERRED_IMPORT_OF_EXTENSION, 7, 2),
+        error(CompileTimeErrorCode.deferredImportOfExtension, 7, 2),
         error(
           CompileTimeErrorCode
-              .CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE_FROM_DEFERRED_LIBRARY,
+              .constInitializedWithNonConstantValueFromDeferredLibrary,
           97,
           1,
         ),

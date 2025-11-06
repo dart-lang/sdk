@@ -27,7 +27,7 @@ class A {
 FieldFormalParameter
   type: NamedType
     name: void
-    element2: <null>
+    element: <null>
     type: void
   thisKeyword: this
   period: .
@@ -37,14 +37,16 @@ FieldFormalParameter
     parameter: SimpleFormalParameter
       type: NamedType
         name: int
-        element2: dart:core::@class::int
+        element: dart:core::@class::int
         type: int
       name: a
       declaredElement: <testLibraryFragment> a@44
-        type: int
+        element: isPublic
+          type: int
     rightParenthesis: )
   declaredElement: <testLibraryFragment> f@38
-    type: void Function(int)
+    element: isFinal isPublic
+      type: void Function(int)
 ''');
   }
 
@@ -63,7 +65,7 @@ class A {
 FieldFormalParameter
   type: NamedType
     name: U
-    element2: #E0 U
+    element: #E0 U
     type: U
   thisKeyword: this
   period: .
@@ -81,14 +83,16 @@ FieldFormalParameter
     parameter: SimpleFormalParameter
       type: NamedType
         name: U
-        element2: #E0 U
+        element: #E0 U
         type: U
       name: a
       declaredElement: <testLibraryFragment> a@50
-        type: U
+        element: isPublic
+          type: U
     rightParenthesis: )
   declaredElement: <testLibraryFragment> f@43
-    type: U Function<U>(U)
+    element: isFinal isPublic
+      type: U Function<U>(U)
 ''');
   }
 
@@ -105,7 +109,7 @@ class A<V> {
 FieldFormalParameter
   type: NamedType
     name: T
-    element2: #E0 T
+    element: #E0 T
     type: T
   thisKeyword: this
   period: .
@@ -127,22 +131,25 @@ FieldFormalParameter
     parameter: SimpleFormalParameter
       type: NamedType
         name: U
-        element2: #E1 U
+        element: #E1 U
         type: U
       name: a
       declaredElement: <testLibraryFragment> a@62
-        type: U
+        element: isPublic
+          type: U
     parameter: SimpleFormalParameter
       type: NamedType
         name: V
-        element2: #E2 V
+        element: #E2 V
         type: V
       name: b
       declaredElement: <testLibraryFragment> b@67
-        type: V
+        element: isPublic
+          type: V
     rightParenthesis: )
   declaredElement: <testLibraryFragment> f@52
-    type: T Function<T, U>(U, V)
+    element: isFinal isPublic
+      type: T Function<T, U>(U, V)
 ''');
   }
 
@@ -161,7 +168,8 @@ FieldFormalParameter
   period: .
   name: f
   declaredElement: <testLibraryFragment> f@28
-    type: int
+    element: hasImplicitType isFinal isPublic
+      type: int
 ''');
   }
 
@@ -178,13 +186,14 @@ class A {
 FieldFormalParameter
   type: NamedType
     name: int
-    element2: dart:core::@class::int
+    element: dart:core::@class::int
     type: int
   thisKeyword: this
   period: .
   name: f
   declaredElement: <testLibraryFragment> f@32
-    type: int
+    element: isFinal isPublic
+      type: int
 ''');
   }
 
@@ -204,7 +213,8 @@ FieldFormalParameter
   period: .
   name: f
   declaredElement: <testLibraryFragment> f@47
-    type: int
+    element: hasImplicitType isFinal isPublic
+      type: int
 ''');
   }
 }

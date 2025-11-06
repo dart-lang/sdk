@@ -146,7 +146,7 @@ augment class A {
   }
 }
 ''',
-      [error(CompileTimeErrorCode.AUGMENTED_EXPRESSION_IS_NOT_SETTER, 65, 9)],
+      [error(CompileTimeErrorCode.augmentedExpressionIsNotSetter, 65, 9)],
     );
 
     var node = findNode.singleAssignmentExpression;
@@ -193,7 +193,7 @@ augment class A {
   }
 }
 ''',
-      [error(CompileTimeErrorCode.AUGMENTED_EXPRESSION_IS_NOT_SETTER, 64, 9)],
+      [error(CompileTimeErrorCode.augmentedExpressionIsNotSetter, 64, 9)],
     );
 
     var node = findNode.singleAssignmentExpression;

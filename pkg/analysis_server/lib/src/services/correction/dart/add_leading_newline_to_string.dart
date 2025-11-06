@@ -16,10 +16,10 @@ class AddLeadingNewlineToString extends ResolvedCorrectionProducer {
       CorrectionApplicability.automatically;
 
   @override
-  FixKind get fixKind => DartFixKind.ADD_LEADING_NEWLINE_TO_STRING;
+  FixKind get fixKind => DartFixKind.addLeadingNewlineToString;
 
   @override
-  FixKind get multiFixKind => DartFixKind.ADD_LEADING_NEWLINE_TO_STRING_MULTI;
+  FixKind get multiFixKind => DartFixKind.addLeadingNewlineToStringMulti;
 
   @override
   Future<void> compute(ChangeBuilder builder) async {
@@ -29,6 +29,7 @@ class AddLeadingNewlineToString extends ResolvedCorrectionProducer {
     }
 
     await builder.addDartFileEdit(file, (builder) {
+      var eol = builder.eol;
       builder.addSimpleInsertion(stringLiteral.contentsOffset, eol);
     });
   }

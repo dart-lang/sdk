@@ -34,7 +34,7 @@ f() {
   E('a') + 1;
 }
 ''',
-      [error(CompileTimeErrorCode.UNDEFINED_EXTENSION_OPERATOR, 40, 1)],
+      [error(CompileTimeErrorCode.undefinedExtensionOperator, 40, 1)],
     );
 
     var node = findNode.binary('+ 1');
@@ -48,7 +48,7 @@ BinaryExpression
         SimpleStringLiteral
           literal: 'a'
       rightParenthesis: )
-    element2: <testLibrary>::@extension::E
+    element: <testLibrary>::@extension::E
     extendedType: String
     staticType: null
   operator: +
@@ -87,7 +87,7 @@ f(A a) {
   E(a)[0];
 }
 ''',
-      [error(CompileTimeErrorCode.UNDEFINED_EXTENSION_OPERATOR, 48, 3)],
+      [error(CompileTimeErrorCode.undefinedExtensionOperator, 48, 3)],
     );
   }
 
@@ -104,7 +104,7 @@ f(A a) {
   E(a)[0];
 }
 ''',
-      [error(CompileTimeErrorCode.UNDEFINED_EXTENSION_OPERATOR, 93, 3)],
+      [error(CompileTimeErrorCode.undefinedExtensionOperator, 93, 3)],
     );
   }
 
@@ -136,7 +136,7 @@ f(A a) {
   E(a)[0] += 1;
 }
 ''',
-      [error(CompileTimeErrorCode.UNDEFINED_EXTENSION_OPERATOR, 83, 3)],
+      [error(CompileTimeErrorCode.undefinedExtensionOperator, 83, 3)],
     );
   }
 
@@ -152,8 +152,8 @@ f(A a) {
 }
 ''',
       [
-        error(CompileTimeErrorCode.UNDEFINED_EXTENSION_OPERATOR, 48, 3),
-        error(CompileTimeErrorCode.UNDEFINED_EXTENSION_OPERATOR, 48, 3),
+        error(CompileTimeErrorCode.undefinedExtensionOperator, 48, 3),
+        error(CompileTimeErrorCode.undefinedExtensionOperator, 48, 3),
       ],
     );
   }
@@ -171,7 +171,7 @@ f(A a) {
   E(a)[0] += 1;
 }
 ''',
-      [error(CompileTimeErrorCode.UNDEFINED_EXTENSION_OPERATOR, 93, 3)],
+      [error(CompileTimeErrorCode.undefinedExtensionOperator, 93, 3)],
     );
   }
 
@@ -188,7 +188,7 @@ f(A a) {
   E(a)[0] = 1;
 }
 ''',
-      [error(CompileTimeErrorCode.UNDEFINED_EXTENSION_OPERATOR, 83, 3)],
+      [error(CompileTimeErrorCode.undefinedExtensionOperator, 83, 3)],
     );
   }
 
@@ -203,7 +203,7 @@ f(A a) {
   E(a)[0] = 1;
 }
 ''',
-      [error(CompileTimeErrorCode.UNDEFINED_EXTENSION_OPERATOR, 48, 3)],
+      [error(CompileTimeErrorCode.undefinedExtensionOperator, 48, 3)],
     );
   }
 
@@ -240,7 +240,7 @@ f() {
   -E('a');
 }
 ''',
-      [error(CompileTimeErrorCode.UNDEFINED_EXTENSION_OPERATOR, 33, 1)],
+      [error(CompileTimeErrorCode.undefinedExtensionOperator, 33, 1)],
     );
   }
 }

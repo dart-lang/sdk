@@ -6,7 +6,6 @@
 
 #include <memory>
 
-#include "compiler/method_recognizer.h"
 #include "include/dart_api.h"
 #include "lib/integers.h"
 #include "lib/stacktrace.h"
@@ -27,6 +26,7 @@
 #include "vm/compiler/assembler/disassembler.h"
 #include "vm/compiler/assembler/disassembler_kbc.h"
 #include "vm/compiler/jit/compiler.h"
+#include "vm/compiler/method_recognizer.h"
 #include "vm/compiler/runtime_api.h"
 #include "vm/cpu.h"
 #include "vm/dart.h"
@@ -71,6 +71,7 @@
 #include "vm/tags.h"
 #include "vm/thread_registry.h"
 #include "vm/timeline.h"
+#include "vm/tsan_symbolize.h"
 #include "vm/type_testing_stubs.h"
 #include "vm/zone_text_buffer.h"
 
@@ -232,27 +233,6 @@ PRECOMPILER_WSR_FIELD_DEFINITION(Function, FunctionType, signature)
     OS::PrintErr(format, ##__VA_ARGS__);                                       \
   }
 #endif
-
-// Remove private keys, but retain getter/setter/constructor/mixin manglings.
-StringPtr String::RemovePrivateKey(const String& name) {
-  ASSERT(name.IsOneByteString());
-  GrowableArray<uint8_t> without_key(name.Length());
-  intptr_t i = 0;
-  while (i < name.Length()) {
-    while (i < name.Length()) {
-      uint8_t c = name.CharAt(i++);
-      if (c == '@') break;
-      without_key.Add(c);
-    }
-    while (i < name.Length()) {
-      uint8_t c = name.CharAt(i);
-      if ((c < '0') || (c > '9')) break;
-      i++;
-    }
-  }
-
-  return String::FromLatin1(without_key.data(), without_key.length());
-}
 
 // Takes a vm internal name and makes it suitable for external user.
 //
@@ -781,6 +761,7 @@ void Object::Init(IsolateGroup* isolate_group) {
   *empty_array_ = Array::null();
   *empty_instantiations_cache_array_ = Array::null();
   *empty_subtype_test_cache_array_ = Array::null();
+  *mutable_empty_array_ = Array::null();
 
   Class& cls = Class::Handle();
 
@@ -1035,6 +1016,14 @@ void Object::Init(IsolateGroup* isolate_group) {
                             static_cast<ArrayPtr>(address + kHeapObjectTag));
     empty_array_->untag()->set_length(Smi::New(0));
     empty_array_->SetCanonical();
+  }
+  {
+    uword address = heap->Allocate(thread, Array::InstanceSize(0), Heap::kOld);
+    InitializeObjectVariant<Array>(address, kArrayCid, 0);
+    Array::initializeHandle(mutable_empty_array_,
+                            static_cast<ArrayPtr>(address + kHeapObjectTag));
+    mutable_empty_array_->untag()->set_length(Smi::New(0));
+    mutable_empty_array_->SetCanonical();
   }
 
   Smi& smi = Smi::Handle();
@@ -2857,6 +2846,10 @@ void Object::InitializeObject(uword address,
 
   reinterpret_cast<UntaggedObject*>(address)->tags_ = tags;
 #if defined(HOST_HAS_FAST_WRITE_WRITE_FENCE)
+  // GCC warns that TSAN doesn't understand thread fences.
+#if defined(__GNUC__) && !defined(__clang__)
+#pragma GCC diagnostic ignored "-Wtsan"
+#endif
   std::atomic_thread_fence(std::memory_order_release);
 #endif
 }
@@ -5240,10 +5233,22 @@ ObjectPtr Class::Invoke(const String& function_name,
 #if !defined(DART_PRECOMPILED_RUNTIME)
 
 static ObjectPtr LoadExpressionEvaluationFunction(
-    Zone* zone,
+    Thread* thread,
     const ExternalTypedData& kernel_buffer,
-    const String& library_url,
-    const String& klass) {
+    const Class& klass) {
+  Zone* zone = thread->zone();
+#if defined(DART_DYNAMIC_MODULES)
+  if (Dart_IsBytecode(
+          reinterpret_cast<const uint8_t*>(kernel_buffer.DataAddr(0)),
+          kernel_buffer.LengthInBytes())) {
+    SafepointWriteRwLocker ml(thread, thread->isolate_group()->program_lock());
+    bytecode::BytecodeLoader loader(thread, kernel_buffer);
+    loader.SetExpressionEvaluationRealClass(klass);
+    loader.LoadBytecode();
+    return loader.GetExpressionEvaluationFunction();
+  }
+#endif  // defined(DART_DYNAMIC_MODULES)
+
   std::unique_ptr<kernel::Program> kernel_pgm =
       kernel::Program::ReadFromTypedData(kernel_buffer);
 
@@ -5256,7 +5261,7 @@ static ObjectPtr LoadExpressionEvaluationFunction(
   {
     kernel::KernelLoader loader(kernel_pgm.get(),
                                 /*uri_to_source_table=*/nullptr);
-    result = loader.LoadExpressionEvaluationFunction(library_url, klass);
+    result = loader.LoadExpressionEvaluationFunction(klass);
     kernel_pgm.reset();
   }
   if (result.IsError()) return result.ptr();
@@ -5346,7 +5351,7 @@ ObjectPtr Instance::EvaluateCompiledExpression(
     const Array& type_definitions,
     const Array& arguments,
     const TypeArguments& type_arguments) {
-  auto zone = Thread::Current()->zone();
+  Zone* zone = thread->zone();
 #if defined(DART_PRECOMPILED_RUNTIME)
   const auto& error_str = String::Handle(
       zone,
@@ -5360,14 +5365,8 @@ ObjectPtr Instance::EvaluateCompiledExpression(
     return UnhandledException::New(exception, StackTrace::null_instance());
   }
 
-  const auto& url = String::Handle(zone, library.url());
-  const auto& klass_name = klass.IsTopLevel()
-                               ? String::null_string()
-                               : String::Handle(zone, klass.UserVisibleName());
-
   const auto& result = Object::Handle(
-      zone,
-      LoadExpressionEvaluationFunction(zone, kernel_buffer, url, klass_name));
+      zone, LoadExpressionEvaluationFunction(thread, kernel_buffer, klass));
   if (result.IsError()) return result.ptr();
 
   const auto& eval_function = Function::Cast(result);
@@ -5410,6 +5409,12 @@ void Class::EnsureDeclarationLoaded() const {
     // Loading of class declaration can be postponed until needed
     // if class comes from bytecode.
     if (is_declared_in_bytecode()) {
+      Thread* thread = Thread::Current();
+      SafepointWriteRwLocker ml(thread,
+                                thread->isolate_group()->program_lock());
+      if (is_declaration_loaded()) {
+        return;
+      }
       bytecode::BytecodeReader::LoadClassDeclaration(*this);
       ASSERT(is_declaration_loaded());
       ASSERT(is_type_finalized());
@@ -6655,10 +6660,6 @@ FunctionPtr Class::LookupDynamicFunctionUnsafe(const String& name) const {
   return LookupFunctionReadLocked(name, kInstance);
 }
 
-FunctionPtr Class::LookupDynamicFunctionAllowPrivate(const String& name) const {
-  return LookupFunctionAllowPrivate(name, kInstance);
-}
-
 FunctionPtr Class::LookupStaticFunction(const String& name) const {
   Thread* thread = Thread::Current();
   SafepointReadRwLocker ml(thread, thread->isolate_group()->program_lock());
@@ -6693,32 +6694,14 @@ FunctionPtr Class::LookupFunctionAllowPrivate(const String& name) const {
   return LookupFunctionAllowPrivate(name, kAny);
 }
 
-FunctionPtr Class::LookupFunctionReadLocked(const String& name) const {
-  return LookupFunctionReadLocked(name, kAny);
+FunctionPtr Class::LookupFunction(const String& name) const {
+  Thread* thread = Thread::Current();
+  SafepointReadRwLocker ml(thread, thread->isolate_group()->program_lock());
+  return LookupFunctionReadLocked(name);
 }
 
-// Returns true if 'prefix' and 'accessor_name' match 'name'.
-static bool MatchesAccessorName(const String& name,
-                                const char* prefix,
-                                intptr_t prefix_length,
-                                const String& accessor_name) {
-  intptr_t name_len = name.Length();
-  intptr_t accessor_name_len = accessor_name.Length();
-
-  if (name_len != (accessor_name_len + prefix_length)) {
-    return false;
-  }
-  for (intptr_t i = 0; i < prefix_length; i++) {
-    if (name.CharAt(i) != prefix[i]) {
-      return false;
-    }
-  }
-  for (intptr_t i = 0, j = prefix_length; i < accessor_name_len; i++, j++) {
-    if (name.CharAt(j) != accessor_name.CharAt(i)) {
-      return false;
-    }
-  }
-  return true;
+FunctionPtr Class::LookupFunctionReadLocked(const String& name) const {
+  return LookupFunctionReadLocked(name, kAny);
 }
 
 FunctionPtr Class::CheckFunctionType(const Function& func, MemberKind kind) {
@@ -6826,42 +6809,6 @@ FunctionPtr Class::LookupFunctionAllowPrivate(const String& name,
       return CheckFunctionType(function, kind);
     }
   }
-  // No function found.
-  return Function::null();
-}
-
-FunctionPtr Class::LookupGetterFunction(const String& name) const {
-  return LookupAccessorFunction(kGetterPrefix, kGetterPrefixLength, name);
-}
-
-FunctionPtr Class::LookupSetterFunction(const String& name) const {
-  return LookupAccessorFunction(kSetterPrefix, kSetterPrefixLength, name);
-}
-
-FunctionPtr Class::LookupAccessorFunction(const char* prefix,
-                                          intptr_t prefix_length,
-                                          const String& name) const {
-  ASSERT(!IsNull());
-  Thread* thread = Thread::Current();
-  if (EnsureIsFinalized(thread) != Error::null()) {
-    return Function::null();
-  }
-  REUSABLE_ARRAY_HANDLESCOPE(thread);
-  REUSABLE_FUNCTION_HANDLESCOPE(thread);
-  REUSABLE_STRING_HANDLESCOPE(thread);
-  Array& funcs = thread->ArrayHandle();
-  funcs = current_functions();
-  intptr_t len = funcs.Length();
-  Function& function = thread->FunctionHandle();
-  String& function_name = thread->StringHandle();
-  for (intptr_t i = 0; i < len; i++) {
-    function ^= funcs.At(i);
-    function_name = function.name();
-    if (MatchesAccessorName(function_name, prefix, prefix_length, name)) {
-      return function.ptr();
-    }
-  }
-
   // No function found.
   return Function::null();
 }
@@ -8454,8 +8401,6 @@ void Function::SetInstructionsSafe(const Code& value) const {
 
 void Function::AttachCode(const Code& value) const {
   ASSERT(IsolateGroup::Current()->program_lock()->IsCurrentThreadWriter());
-  // Finish setting up code before activating it.
-  value.set_owner(*this);
   SetInstructions(value);
   ASSERT(Function::Handle(value.function()).IsNull() ||
          (value.function() == this->ptr()));
@@ -8639,6 +8584,27 @@ void Function::set_awaiter_link(Function::AwaiterLink link) const {
     const Object& obj = Object::Handle(untag()->data());
     ASSERT(!obj.IsNull());
     ClosureData::Cast(obj).set_awaiter_link(link);
+    return;
+  }
+  UNREACHABLE();
+}
+
+bool Function::does_close_over_only_final_and_shared_vars() const {
+  if (IsClosureFunction()) {
+    const Object& obj = Object::Handle(untag()->data());
+    ASSERT(!obj.IsNull());
+    return ClosureData::Cast(obj).does_close_over_only_final_and_shared_vars();
+  }
+  UNREACHABLE();
+}
+
+void Function::set_does_close_over_only_final_and_shared_vars(
+    bool value) const {
+  if (IsClosureFunction()) {
+    const Object& obj = Object::Handle(untag()->data());
+    ASSERT(!obj.IsNull());
+    ClosureData::Cast(obj).set_does_close_over_only_final_and_shared_vars(
+        value);
     return;
   }
   UNREACHABLE();
@@ -9651,7 +9617,10 @@ bool Function::RecognizedKindForceOptimize() const {
     case MethodRecognizer::kFinalizerBase_setIsolate:
     case MethodRecognizer::kFinalizerBase_setIsolateFinalizers:
     case MethodRecognizer::kFinalizerEntry_getExternalSize:
+    case MethodRecognizer::kProfiler_getCurrentTag:
+    case MethodRecognizer::kUserTag_defaultTag:
     case MethodRecognizer::kExtensionStreamHasListener:
+    case MethodRecognizer::kTimeline_isDartStreamEnabled:
     case MethodRecognizer::kFfiLoadInt8:
     case MethodRecognizer::kFfiLoadInt16:
     case MethodRecognizer::kFfiLoadInt32:
@@ -11693,6 +11662,43 @@ void Function::PrintName(const NameFormattingParams& params,
   FunctionPrintNameHelper(fun, params, printer);
 }
 
+bool Function::NamePassesFilter(const char* name_filter) const {
+  if (name_filter == nullptr) return true;
+
+  char* save_ptr;  // Needed for strtok_r.
+  const char* scrubbed_name = QualifiedScrubbedNameCString();
+  const char* function_name = ToFullyQualifiedCString();
+  intptr_t function_name_len = strlen(function_name);
+
+  intptr_t len = strlen(name_filter) + 1;  // Length with \0.
+  char* filter_buffer = new char[len];
+  strncpy(filter_buffer, name_filter, len);  // strtok modifies arg 1.
+  char* token = strtok_r(filter_buffer, ",", &save_ptr);
+  bool found = false;
+  while (token != nullptr) {
+    if ((strstr(function_name, token) != nullptr) ||
+        (strstr(scrubbed_name, token) != nullptr)) {
+      found = true;
+      break;
+    }
+    const intptr_t token_len = strlen(token);
+    if (token[token_len - 1] == '%') {
+      if (function_name_len > token_len) {
+        const char* suffix =
+            function_name + (function_name_len - token_len + 1);
+        if (strncmp(suffix, token, token_len - 1) == 0) {
+          found = true;
+          break;
+        }
+      }
+    }
+    token = strtok_r(nullptr, ",", &save_ptr);
+  }
+  delete[] filter_buffer;
+
+  return found;
+}
+
 StringPtr Function::GetSource() const {
   if (IsImplicitConstructor() || is_synthetic()) {
     // We may need to handle more cases when the restrictions on mixins are
@@ -12034,17 +12040,17 @@ bool Function::HasDynamicCallers(Zone* zone) const {
 }
 
 bool Function::PrologueNeedsArgumentsDescriptor() const {
-  // These functions have a saved compile-time arguments descriptor that is
-  // used in lieu of the runtime arguments descriptor in generated IL.
-  if (HasSavedArgumentsDescriptor()) {
-    return false;
-  }
 #if defined(DART_DYNAMIC_MODULES)
   // Entering interpreter needs arguments descriptor.
   if (is_declared_in_bytecode()) {
     return true;
   }
 #endif
+  // These functions have a saved compile-time arguments descriptor that is
+  // used in lieu of the runtime arguments descriptor in generated IL.
+  if (HasSavedArgumentsDescriptor()) {
+    return false;
+  }
   // The prologue of those functions need to examine the arg descriptor for
   // various purposes.
   return IsGeneric() || HasOptionalParameters();
@@ -12186,6 +12192,19 @@ void ClosureData::set_awaiter_link(Function::AwaiterLink link) const {
       link.index);
 }
 
+bool ClosureData::does_close_over_only_final_and_shared_vars() const {
+  return untag()
+      ->packed_fields_
+      .Read<UntaggedClosureData::DoesCloseOverOnlySharedFields>();
+}
+
+void ClosureData::set_does_close_over_only_final_and_shared_vars(
+    bool value) const {
+  untag()
+      ->packed_fields_
+      .Update<UntaggedClosureData::DoesCloseOverOnlySharedFields>(value);
+}
+
 ClosureDataPtr ClosureData::New() {
   ASSERT(Object::closure_data_class() != Class::null());
   return Object::Allocate<ClosureData>(Heap::kOld);
@@ -12296,7 +12315,7 @@ const char* FunctionType::ToCString() const {
 }
 
 void ClosureData::set_context_scope(const ContextScope& value) const {
-  untag()->set_context_scope(value.ptr());
+  untag()->set_context_scope<std::memory_order_release>(value.ptr());
 }
 
 void ClosureData::set_implicit_static_closure(const Closure& closure) const {
@@ -12558,6 +12577,15 @@ void Field::SetFieldType(const AbstractType& value) const {
       IsolateGroup::Current()->program_lock()->IsCurrentThreadWriter());
   SetFieldTypeSafe(value);
 }
+
+#if !defined(DART_PRECOMPILED_RUNTIME)
+void Field::set_exact_type(const AbstractType& value) const {
+  DEBUG_ASSERT(
+      IsolateGroup::Current()->program_lock()->IsCurrentThreadWriter());
+  ASSERT(IsOriginal());
+  untag()->set_exact_type(value.ptr());
+}
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)
 
 FieldPtr Field::New() {
   ASSERT(Object::field_class() != Class::null());
@@ -12836,7 +12864,8 @@ void Field::set_dependent_code(const WeakArray& array) const {
   ASSERT(IsOriginal());
   DEBUG_ASSERT(
       IsolateGroup::Current()->program_lock()->IsCurrentThreadWriter());
-  untag()->set_dependent_code(array.ptr());
+  // relaxed: races with Field::Clone.
+  untag()->set_dependent_code<std::memory_order_relaxed>(array.ptr());
 }
 
 class FieldDependentArray : public WeakCodeReferences {
@@ -13134,6 +13163,18 @@ ObjectPtr Field::EvaluateInitializer() const {
 
 #if !defined(DART_PRECOMPILED_RUNTIME)
   if (is_static() && is_const()) {
+#if defined(DART_DYNAMIC_MODULES)
+    if (is_declared_in_bytecode()) {
+      const auto& initializer = Function::Handle(InitializerFunction());
+      ASSERT(!initializer.IsNull());
+      const auto& bytecode = Bytecode::Handle(initializer.GetBytecode());
+      ASSERT(!bytecode.IsNull());
+      const auto& pool = ObjectPool::Handle(bytecode.object_pool());
+      ASSERT(!pool.IsNull());
+      ASSERT(pool.Length() == 1);
+      return pool.ObjectAt(0);
+    }
+#endif  // defined(DART_DYNAMIC_MODULES)
     return kernel::EvaluateStaticConstFieldInitializer(*this);
   }
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
@@ -13437,15 +13478,27 @@ TypePtr Class::GetInstantiationOf(Zone* zone, const Type& type) const {
 void Field::SetStaticValue(const Object& value) const {
   auto thread = Thread::Current();
   ASSERT(thread->IsDartMutatorThread());
-  ASSERT(value.IsNull() || value.IsSentinel() || value.IsInstance());
+  ASSERT(value.IsNull() || value.IsSentinel() || value.IsInstance() ||
+         value.IsSmi());
 
   ASSERT(is_static());  // Valid only for static dart fields.
   const intptr_t id = field_id();
   ASSERT(id >= 0);
 
+  if (is_shared() && !value.IsSmi() && !value.IsImmutable() &&
+      !IsTypedDataBaseClassId(value.GetClassId())) {
+    const String& error = String::Handle(
+        thread->zone(),
+        String::NewFormatted("Only trivially-immutable values are allowed: %s.",
+                             value.ToCString()));
+    Exceptions::ThrowArgumentError(error);
+    UNREACHABLE();
+  }
   SafepointReadRwLocker ml(thread, thread->isolate_group()->program_lock());
   if (is_shared()) {
-    thread->isolate_group()->shared_field_table()->SetAt(id, value.ptr());
+    thread->isolate_group()->shared_field_table()->SetAt(
+        id, value.ptr(),
+        /*concurrent_use=*/true);
   } else {
     thread->isolate()->field_table()->SetAt(id, value.ptr());
   }
@@ -13876,9 +13929,27 @@ void Script::set_source(const String& value) const {
 }
 
 #if !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
-TypedDataViewPtr Script::constant_coverage() const {
-  return untag()->constant_coverage();
+TypedDataViewPtr Script::kernel_constant_coverage() const {
+  return TypedDataView::RawCast(untag()->constant_coverage());
 }
+#if defined(DART_DYNAMIC_MODULES)
+ArrayPtr Script::collected_constant_coverage() const {
+  return Array::RawCast(untag()->constant_coverage());
+}
+void Script::set_collected_constant_coverage(const Array& value) const {
+  ASSERT(!value.IsNull());
+  // Collected constant coverage should only be initialized once,
+  // whether empty or non-empty.
+  ASSERT(untag()->constant_coverage() == Object::null());
+  untag()->set_constant_coverage(value.ptr());
+}
+bool Script::HasCollectedConstantCoverage() const {
+  // Constant coverage should always be initialized to a non-null value.
+  ASSERT(untag()->constant_coverage() != Object::null());
+  return untag()->constant_coverage()->IsArray() ||
+         untag()->constant_coverage()->IsImmutableArray();
+}
+#endif  // defined(DART_DYNAMIC_MODULES)
 #endif  // !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
 
 TypedDataPtr Script::line_starts() const {
@@ -13937,6 +14008,19 @@ void Script::CollectDebugTokenPositions() const {
 }
 
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
+
+ArrayPtr Script::CollectConstConstructorCoverageFrom() const {
+#if !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
+#if defined(DART_DYNAMIC_MODULES)
+  if (HasCollectedConstantCoverage()) {
+    return Array::RawCast(untag()->constant_coverage());
+  }
+#endif  // defined(DART_DYNAMIC_MODULES)
+  return CollectConstConstructorCoverageFromKernel();
+#else
+  return Object::empty_array().ptr();
+#endif  // !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
+}
 
 ArrayPtr Script::debug_positions() const {
 #if !defined(DART_PRECOMPILED_RUNTIME)
@@ -18877,6 +18961,7 @@ void Code::NotifyCodeObservers(const Function& function,
     NotifyCodeObservers(name, code, optimized);
   }
 #endif
+  RegisterTsanSymbolize(code);
 }
 
 void Code::NotifyCodeObservers(const char* name,
@@ -19301,40 +19386,25 @@ intptr_t Bytecode::GetTryIndexAtPc(uword return_address) const {
 #endif
 }
 
-uword Bytecode::GetFirstDebugCheckOpcodePc() const {
+uword Bytecode::GetInstructionBefore(uword return_address) const {
 #if defined(DART_DYNAMIC_MODULES)
-  uword pc = PayloadStart();
-  const uword end_pc = pc + Size();
-  while (pc < end_pc) {
-    if (KernelBytecode::IsDebugCheckOpcode(
-            reinterpret_cast<const KBCInstr*>(pc))) {
-      return pc;
-    }
-    pc = KernelBytecode::Next(pc);
+  const uword start = PayloadStart();
+  // return_address could be the end of the bytecode instructions
+  // if the last instruction is Throw.
+  if (return_address <= start || return_address > start + Size()) {
+    return 0;
   }
-  return 0;
+  uword prev = start;
+  uword current = KernelBytecode::Next(start);
+  while (current < return_address) {
+    prev = current;
+    current = KernelBytecode::Next(prev);
+  }
+  // Any valid return address should be on an instruction boundary.
+  return current == return_address ? prev : 0;
 #else
   UNREACHABLE();
-#endif
-}
-
-uword Bytecode::GetDebugCheckedOpcodeReturnAddress(uword from_offset,
-                                                   uword to_offset) const {
-#if defined(DART_DYNAMIC_MODULES)
-  uword pc = PayloadStart() + from_offset;
-  const uword end_pc = pc + (to_offset - from_offset);
-  while (pc < end_pc) {
-    uword next_pc = KernelBytecode::Next(pc);
-    if (KernelBytecode::IsDebugCheckedOpcode(
-            reinterpret_cast<const KBCInstr*>(pc))) {
-      // Return the pc after the opcode, i.e. its 'return address'.
-      return next_pc;
-    }
-    pc = next_pc;
-  }
   return 0;
-#else
-  UNREACHABLE();
 #endif
 }
 
@@ -19352,6 +19422,86 @@ LocalVarDescriptorsPtr Bytecode::GetLocalVarDescriptors() const {
     set_var_descriptors(var_descs);
   }
   return var_descs.ptr();
+#else
+  UNREACHABLE();
+#endif
+}
+
+#if defined(DART_DYNAMIC_MODULES)
+static const int kLocalVariableKindMaxWidth = strlen(
+    bytecode::BytecodeLocalVariablesIterator::kKindNames
+        [bytecode::BytecodeLocalVariablesIterator::kVariableDeclaration]);
+
+static const int kLocalVariableColumnWidths[] = {
+    kLocalVariableKindMaxWidth,  // kind
+    14,                          // start pc
+    14,                          // end pc
+    7,                           // context level
+    7,                           // index
+    7,                           // start token pos
+    7,                           // end token pos
+    7,                           // decl token pos
+};
+#endif
+
+void Bytecode::WriteLocalVariablesInfo(Zone* zone,
+                                       BaseTextBuffer* buffer) const {
+#if defined(DART_DYNAMIC_MODULES)
+  if (!HasLocalVariablesInfo()) return;
+
+  // "*" in a printf format specifier tells it to read the field width from
+  // the printf argument list.
+  buffer->Printf(
+      " %*s %*s %*s %*s %*s %*s %*s %*s name\n", kLocalVariableColumnWidths[0],
+      "kind", kLocalVariableColumnWidths[1], "start pc",
+      kLocalVariableColumnWidths[2], "end pc", kLocalVariableColumnWidths[3],
+      "ctx", kLocalVariableColumnWidths[4], "index",
+      kLocalVariableColumnWidths[5], "start", kLocalVariableColumnWidths[6],
+      "end", kLocalVariableColumnWidths[7], "decl");
+  auto& name = String::Handle(zone);
+  auto& type = AbstractType::Handle(zone);
+  const uword base = PayloadStart();
+  bytecode::BytecodeLocalVariablesIterator iter(zone, *this);
+  while (iter.MoveNext()) {
+    buffer->Printf(" %*s %-#*" Px "", kLocalVariableColumnWidths[0],
+                   iter.KindName(), kLocalVariableColumnWidths[1],
+                   base + iter.StartPC());
+    if (iter.IsVariableDeclaration() || iter.IsScope()) {
+      buffer->Printf(" %-#*" Px "", kLocalVariableColumnWidths[2],
+                     base + iter.EndPC());
+    } else {
+      buffer->Printf(" %*s", kLocalVariableColumnWidths[2], "");
+    }
+    if (iter.IsScope()) {
+      buffer->Printf(" %*" Pd "", kLocalVariableColumnWidths[3],
+                     iter.ContextLevel());
+    } else {
+      buffer->Printf(" %*s", kLocalVariableColumnWidths[3], "");
+    }
+    if (iter.IsContextVariable() || iter.IsVariableDeclaration()) {
+      buffer->Printf(" %*" Pd "", kLocalVariableColumnWidths[4], iter.Index());
+    } else {
+      buffer->Printf(" %*s", kLocalVariableColumnWidths[4], "");
+    }
+    if (iter.IsVariableDeclaration() || iter.IsScope()) {
+      buffer->Printf(" %*s %*s", kLocalVariableColumnWidths[5],
+                     iter.StartTokenPos().ToCString(),
+                     kLocalVariableColumnWidths[6],
+                     iter.EndTokenPos().ToCString());
+
+    } else {
+      buffer->Printf(" %*s %*s", kLocalVariableColumnWidths[5], "",
+                     kLocalVariableColumnWidths[6], "");
+    }
+    if (iter.IsVariableDeclaration()) {
+      name = iter.Name();
+      type = iter.Type();
+      buffer->Printf(" %*s %s: %s%s", kLocalVariableColumnWidths[7],
+                     iter.DeclarationTokenPos().ToCString(), name.ToCString(),
+                     type.ToCString(), iter.IsCaptured() ? " (captured)" : "");
+    }
+    buffer->AddString("\n");
+  }
 #else
   UNREACHABLE();
 #endif
@@ -19414,6 +19564,39 @@ const char* Bytecode::FullyQualifiedName() const {
   }
   const char* function_name = fun.ToFullyQualifiedCString();
   return zone->PrintToString("[Bytecode] %s", function_name);
+}
+
+BytecodePtr Bytecode::FindBytecode(uword pc) {
+#if defined(DART_DYNAMIC_MODULES)
+  class SlowFindBytecodeVisitor : public ObjectVisitor {
+   public:
+    explicit SlowFindBytecodeVisitor(uword pc)
+        : pc_(pc), result_(Bytecode::null()) {}
+
+    void VisitObject(ObjectPtr obj) {
+      if (!obj->IsBytecode()) return;
+      BytecodePtr bytecode = static_cast<BytecodePtr>(obj);
+      if (PayloadStartOf(bytecode) != pc_) return;
+      ASSERT(result_ == Bytecode::null());
+      result_ = bytecode;
+    }
+
+    BytecodePtr result() const { return result_; }
+
+   private:
+    uword pc_;
+    BytecodePtr result_;
+  };
+
+  HeapIterationScope iteration(Thread::Current());
+  SlowFindBytecodeVisitor visitor(pc);
+  iteration.IterateVMIsolateObjects(&visitor);
+  iteration.IterateOldObjectsNoImagePages(&visitor);
+  return visitor.result();
+#else
+  UNREACHABLE();
+  return Bytecode::null();
+#endif
 }
 
 void Bytecode::set_binary(const TypedDataBase& binary) const {
@@ -19759,24 +19942,9 @@ ObjectPtr MegamorphicCache::LookupLocked(const Smi& class_id) const {
   UNREACHABLE();
 }
 
+// Note this may run with Dart execution reading this cache.
 void MegamorphicCache::InsertLocked(const Smi& class_id,
                                     const Object& target) const {
-  auto isolate_group = IsolateGroup::Current();
-  ASSERT(isolate_group->type_feedback_mutex()->IsOwnedByCurrentThread());
-
-  // As opposed to ICData we are stopping mutator threads from other isolates
-  // while modifying the megamorphic cache, since updates are not atomic.
-  //
-  // NOTE: In the future we might change the megamorphic cache insertions to
-  // carefully use store-release barriers on the writer as well as
-  // load-acquire barriers on the reader, ...
-  isolate_group->RunWithStoppedMutators([&]() {
-    EnsureCapacityLocked();
-    InsertEntryLocked(class_id, target);
-  });
-}
-
-void MegamorphicCache::EnsureCapacityLocked() const {
   auto thread = Thread::Current();
   auto zone = thread->zone();
   auto isolate_group = thread->isolate_group();
@@ -19787,6 +19955,7 @@ void MegamorphicCache::EnsureCapacityLocked() const {
   if (static_cast<double>(filled_entry_count() + 1) > load_limit) {
     const Array& old_buckets = Array::Handle(zone, buckets());
     intptr_t new_capacity = old_capacity * 2;
+    intptr_t new_mask = new_capacity - 1;
     const Array& new_buckets =
         Array::Handle(zone, Array::New(kEntryLength * new_capacity));
 
@@ -19794,9 +19963,6 @@ void MegamorphicCache::EnsureCapacityLocked() const {
     for (intptr_t i = 0; i < new_capacity; ++i) {
       SetEntry(new_buckets, i, smi_illegal_cid(), target);
     }
-    set_buckets(new_buckets);
-    set_mask(new_capacity - 1);
-    set_filled_entry_count(0);
 
     // Rehash the valid entries.
     Smi& class_id = Smi::Handle(zone);
@@ -19804,33 +19970,39 @@ void MegamorphicCache::EnsureCapacityLocked() const {
       class_id ^= GetClassId(old_buckets, i);
       if (class_id.Value() != kIllegalCid) {
         target = GetTargetFunction(old_buckets, i);
-        InsertEntryLocked(class_id, target);
+        InsertEntryLocked<std::memory_order_relaxed>(new_buckets, new_mask,
+                                                     class_id, target);
       }
     }
+
+    // Publish buckets first. Old mask with new buckets is just a spurious miss.
+    untag()->set_buckets<std::memory_order_release>(new_buckets.ptr());
+    untag()->set_mask<std::memory_order_release>(Smi::New(new_mask));
   }
+
+  const Array& new_buckets = Array::Handle(zone, buckets());
+  InsertEntryLocked<std::memory_order_release>(new_buckets, mask(), class_id,
+                                               target);
+  set_filled_entry_count(filled_entry_count() + 1);
 }
 
-void MegamorphicCache::InsertEntryLocked(const Smi& class_id,
-                                         const Object& target) const {
-  auto thread = Thread::Current();
-  auto isolate_group = thread->isolate_group();
-  ASSERT(isolate_group->type_feedback_mutex()->IsOwnedByCurrentThread());
-
-  ASSERT(Thread::Current()->IsDartMutatorThread());
-  ASSERT(static_cast<double>(filled_entry_count() + 1) <=
-         (kLoadFactor * static_cast<double>(mask() + 1)));
-  const Array& backing_array = Array::Handle(buckets());
-  intptr_t id_mask = mask();
-  intptr_t index = (class_id.Value() * kSpreadFactor) & id_mask;
-  intptr_t i = index;
+template <std::memory_order order>
+void MegamorphicCache::InsertEntryLocked(const Array& backing_array,
+                                         intptr_t mask,
+                                         const Smi& class_id,
+                                         const Object& target) {
+  const intptr_t start = (class_id.Value() * kSpreadFactor) & mask;
+  intptr_t i = start;
   do {
     if (Smi::Value(Smi::RawCast(GetClassId(backing_array, i))) == kIllegalCid) {
-      SetEntry(backing_array, i, class_id, target);
-      set_filled_entry_count(filled_entry_count() + 1);
+      // Publish target first. Old class id with new target is just a spurious
+      // miss.
+      SetTargetFunction<order>(backing_array, i, target);
+      SetClassId<order>(backing_array, i, class_id);
       return;
     }
-    i = (i + 1) & id_mask;
-  } while (i != index);
+    i = (i + 1) & mask;
+  } while (i != start);
   UNREACHABLE();
 }
 
@@ -19875,23 +20047,14 @@ intptr_t SubtypeTestCache::NumberOfChecks() const {
   return num_occupied();
 }
 
-intptr_t SubtypeTestCache::NumEntries() const {
-  ASSERT(!IsNull());
-  return Array::LengthOf(cache()) / kTestEntryLength;
+intptr_t SubtypeTestCache::NumEntries(const ArrayPtr array) {
+  ASSERT(array != Array::null());
+  return Array::LengthOf(array) / kTestEntryLength;
 }
 
-intptr_t SubtypeTestCache::NumEntries(const Array& array) {
-  SubtypeTestCacheTable table(array);
-  return table.Length();
-}
-
-bool SubtypeTestCache::IsHash() const {
-  if (IsNull()) return false;
-  return Array::LengthOf(cache()) > kMaxLinearCacheSize;
-}
-
-bool SubtypeTestCache::IsHash(const Array& array) {
-  return array.Length() > kMaxLinearCacheSize;
+bool SubtypeTestCache::IsHash(const ArrayPtr array) {
+  ASSERT(array != Array::null());
+  return Array::LengthOf(array) > kMaxLinearCacheSize;
 }
 
 intptr_t SubtypeTestCache::AddCheck(
@@ -19982,64 +20145,6 @@ intptr_t SubtypeTestCache::AddCheck(
   return loc.entry;
 }
 
-static inline bool SubtypeTestCacheEntryMatches(
-    const SubtypeTestCacheTable::TupleView& t,
-    intptr_t num_inputs,
-    const Object& instance_class_id_or_signature,
-    const AbstractType& destination_type,
-    const TypeArguments& instance_type_arguments,
-    const TypeArguments& instantiator_type_arguments,
-    const TypeArguments& function_type_arguments,
-    const TypeArguments& instance_parent_function_type_arguments,
-    const TypeArguments& instance_delayed_type_arguments) {
-  switch (num_inputs) {
-    case 7:
-      if (t.Get<SubtypeTestCache::kDestinationType>() !=
-          destination_type.ptr()) {
-        return false;
-      }
-      FALL_THROUGH;
-    case 6:
-      if (t.Get<SubtypeTestCache::kInstanceDelayedFunctionTypeArguments>() !=
-          instance_delayed_type_arguments.ptr()) {
-        return false;
-      }
-      FALL_THROUGH;
-    case 5:
-      if (t.Get<SubtypeTestCache::kInstanceParentFunctionTypeArguments>() !=
-          instance_parent_function_type_arguments.ptr()) {
-        return false;
-      }
-      FALL_THROUGH;
-    case 4:
-      if (t.Get<SubtypeTestCache::kFunctionTypeArguments>() !=
-          function_type_arguments.ptr()) {
-        return false;
-      }
-      FALL_THROUGH;
-    case 3:
-      if (t.Get<SubtypeTestCache::kInstantiatorTypeArguments>() !=
-          instantiator_type_arguments.ptr()) {
-        return false;
-      }
-      FALL_THROUGH;
-    case 2:
-      if (t.Get<SubtypeTestCache::kInstanceTypeArguments>() !=
-          instance_type_arguments.ptr()) {
-        return false;
-      }
-      FALL_THROUGH;
-    case 1:
-      // We don't need to perform load-acquire semantics when re-retrieving
-      // the kInstanceCidOrSignature field, as this is performed only if the
-      // entry is occupied, and occupied entries never change.
-      return t.Get<SubtypeTestCache::kInstanceCidOrSignature>() ==
-             instance_class_id_or_signature.ptr();
-    default:
-      UNREACHABLE();
-  }
-}
-
 SubtypeTestCache::KeyLocation SubtypeTestCache::FindKeyOrUnused(
     const Array& array,
     intptr_t num_inputs,
@@ -20054,14 +20159,13 @@ SubtypeTestCache::KeyLocation SubtypeTestCache::FindKeyOrUnused(
   if (array.ptr() == Object::empty_subtype_test_cache_array().ptr()) {
     return {0, false};
   }
-  const bool is_hash = IsHash(array);
+  const bool is_hash = IsHash(array.ptr());
   SubtypeTestCacheTable table(array);
   const intptr_t num_entries = table.Length();
   // For a linear cache, start at the first entry and probe linearly. This can
   // be done because a linear cache always has at least one unoccupied entry
   // after all the occupied ones.
   intptr_t probe = 0;
-  intptr_t probe_distance = 1;
   if (is_hash) {
     // For a hash-based cache, instead start at an entry determined by the hash
     // of the keys.
@@ -20099,17 +20203,126 @@ SubtypeTestCache::KeyLocation SubtypeTestCache::FindKeyOrUnused(
     hash = FinalizeHash(hash);
     probe = hash & (num_entries - 1);
   }
+  NoSafepointScope scope;
+  return FindKeyOrUnusedFromProbe(
+      array.ptr(), num_inputs, probe, instance_class_id_or_signature.ptr(),
+      destination_type.ptr(), instance_type_arguments.ptr(),
+      instantiator_type_arguments.ptr(), function_type_arguments.ptr(),
+      instance_parent_function_type_arguments.ptr(),
+      instance_delayed_type_arguments.ptr());
+}
+
+static inline bool CheckSubtypeTestCacheEntry(
+    ArrayPtr array,
+    intptr_t num_inputs,
+    intptr_t entry_start,
+    ObjectPtr instance_class_id_or_signature,
+    AbstractTypePtr destination_type,
+    TypeArgumentsPtr instance_type_arguments,
+    TypeArgumentsPtr instantiator_type_arguments,
+    TypeArgumentsPtr function_type_arguments,
+    TypeArgumentsPtr instance_parent_function_type_arguments,
+    TypeArgumentsPtr instance_delayed_type_arguments) {
+  // This function is only called when the entry slot that determines occupancy
+  // is non-null. This means that the elements do not need to be load-acquired
+  // here, as entries in STC backing arrays are never changed once added.
+  switch (num_inputs) {
+    case 7:
+      if (Array::ElementAt(array,
+                           entry_start + SubtypeTestCache::kDestinationType) !=
+          destination_type) {
+        return false;
+      }
+      FALL_THROUGH;
+    case 6:
+      if (Array::ElementAt(
+              array,
+              entry_start +
+                  SubtypeTestCache::kInstanceDelayedFunctionTypeArguments) !=
+          instance_delayed_type_arguments) {
+        return false;
+      }
+      FALL_THROUGH;
+    case 5:
+      if (Array::ElementAt(
+              array,
+              entry_start +
+                  SubtypeTestCache::kInstanceParentFunctionTypeArguments) !=
+          instance_parent_function_type_arguments) {
+        return false;
+      }
+      FALL_THROUGH;
+    case 4:
+      if (Array::ElementAt(
+              array, entry_start + SubtypeTestCache::kFunctionTypeArguments) !=
+          function_type_arguments) {
+        return false;
+      }
+      FALL_THROUGH;
+    case 3:
+      if (Array::ElementAt(
+              array,
+              entry_start + SubtypeTestCache::kInstantiatorTypeArguments) !=
+          instantiator_type_arguments) {
+        return false;
+      }
+      FALL_THROUGH;
+    case 2:
+      if (Array::ElementAt(
+              array, entry_start + SubtypeTestCache::kInstanceTypeArguments) !=
+          instance_type_arguments) {
+        return false;
+      }
+      FALL_THROUGH;
+    case 1:
+      return Array::ElementAt(
+                 array,
+                 entry_start + SubtypeTestCache::kInstanceCidOrSignature) ==
+             instance_class_id_or_signature;
+  }
+  UNREACHABLE();
+  return false;
+}
+
+SubtypeTestCache::KeyLocation SubtypeTestCache::FindKeyOrUnusedFromProbe(
+    ArrayPtr array,
+    intptr_t num_inputs,
+    intptr_t probe,
+    ObjectPtr instance_class_id_or_signature,
+    AbstractTypePtr destination_type,
+    TypeArgumentsPtr instance_type_arguments,
+    TypeArgumentsPtr instantiator_type_arguments,
+    TypeArgumentsPtr function_type_arguments,
+    TypeArgumentsPtr instance_parent_function_type_arguments,
+    TypeArgumentsPtr instance_delayed_type_arguments,
+    BoolPtr* test_result) {
+  // Fast case for empty STCs.
+  if (array == Object::empty_subtype_test_cache_array().ptr()) {
+    return {probe, false};
+  }
+  const bool is_hash = IsHash(array);
+  const intptr_t num_entries = NumEntries(array);
+  intptr_t probe_distance = 1;
   while (true) {
-    const auto& tuple = table.At(probe);
-    if (tuple.Get<kInstanceCidOrSignature, std::memory_order_acquire>() ==
-        Object::null()) {
-      break;
+    intptr_t entry_start = probe * SubtypeTestCache::kTestEntryLength;
+    // First check the entry slot that determines occupancy, which requires
+    // load-acquire semantics.
+    ObjectPtr cid_or_sig = Array::ElementAt<std::memory_order_acquire>(
+        array, entry_start + SubtypeTestCache::kInstanceCidOrSignature);
+    if (cid_or_sig == Object::null()) {
+      // The appropriate location was found, but there's no existing entry.
+      return {probe, false};
     }
-    if (SubtypeTestCacheEntryMatches(
-            tuple, num_inputs, instance_class_id_or_signature, destination_type,
-            instance_type_arguments, instantiator_type_arguments,
-            function_type_arguments, instance_parent_function_type_arguments,
+    if (CheckSubtypeTestCacheEntry(
+            array, num_inputs, entry_start, instance_class_id_or_signature,
+            destination_type, instance_type_arguments,
+            instantiator_type_arguments, function_type_arguments,
+            instance_parent_function_type_arguments,
             instance_delayed_type_arguments)) {
+      if (test_result != nullptr) {
+        *test_result = Bool::RawCast(Array::ElementAt(
+            array, entry_start + SubtypeTestCache::kTestResult));
+      }
       return {probe, true};
     }
     // Advance probe by the current probing distance.
@@ -20122,6 +20335,7 @@ SubtypeTestCache::KeyLocation SubtypeTestCache::FindKeyOrUnused(
       probe_distance++;
     }
   }
+  UNREACHABLE();
   return {probe, false};
 }
 
@@ -20132,11 +20346,11 @@ ArrayPtr SubtypeTestCache::EnsureCapacity(Zone* zone,
   ASSERT(new_occupied > NumberOfChecks());
   ASSERT(was_grown != nullptr);
   // How many entries are in the current array (including unoccupied entries).
-  const intptr_t current_capacity = NumEntries(array);
+  const intptr_t current_capacity = NumEntries(array.ptr());
 
   // Early returns for cases where no growth is needed.
   *was_grown = false;
-  const bool is_linear = IsLinear(array);
+  const bool is_linear = IsLinear(array.ptr());
   if (is_linear) {
     // We need at least one unoccupied entry in addition to the occupied ones.
     if (current_capacity > new_occupied) return array.ptr();
@@ -27446,7 +27660,7 @@ void RegExp::set_num_bracket_expressions(intptr_t value) const {
 }
 
 void RegExp::set_capture_name_map(const Array& array) const {
-  untag()->set_capture_name_map(array.ptr());
+  untag()->set_capture_name_map<std::memory_order_release>(array.ptr());
 }
 
 RegExpPtr RegExp::New(Zone* zone, Heap::Space space) {
@@ -27716,32 +27930,47 @@ const char* MirrorReference::ToCString() const {
 }
 
 UserTagPtr UserTag::MakeActive() const {
-  Isolate* isolate = Isolate::Current();
-  ASSERT(isolate != nullptr);
-  UserTag& old = UserTag::Handle(isolate->current_tag());
-  isolate->set_current_tag(*this);
+  Thread* thread = Thread::Current();
+  ASSERT(thread != nullptr);
+  UserTag& old = UserTag::Handle(thread->current_tag());
+  thread->set_current_tag(*this);
 
 #if !defined(PRODUCT)
   // Notify VM service clients that the current UserTag has changed.
   if (Service::profiler_stream.enabled()) {
-    ServiceEvent event(isolate, ServiceEvent::kUserTagChanged);
-    String& name = String::Handle(old.label());
-    event.set_previous_tag(name.ToCString());
-    name ^= label();
-    event.set_updated_tag(name.ToCString());
-    Service::HandleEvent(&event);
+    Isolate* isolate = thread->scheduled_dart_mutator_isolate();
+    if (isolate != nullptr) {
+      ServiceEvent event(isolate, ServiceEvent::kUserTagChanged);
+      String& name = String::Handle(old.label());
+      event.set_previous_tag(name.ToCString());
+      name ^= label();
+      event.set_updated_tag(name.ToCString());
+      Service::HandleEvent(&event);
+    }
   }
 #endif  // !defined(PRODUCT)
 
   return old.ptr();
 }
 
-UserTagPtr UserTag::New(const String& label, Heap::Space space) {
-  Thread* thread = Thread::Current();
-  Isolate* isolate = thread->isolate();
-  ASSERT(isolate->tag_table() != GrowableObjectArray::null());
+UserTagPtr UserTag::New(Thread* thread,
+                        const String& label,
+                        Heap::Space space) {
+  auto isolate_group = thread->isolate_group();
   // Canonicalize by name.
-  UserTag& result = UserTag::Handle(FindTagInIsolate(thread, label));
+  {
+    SafepointReadRwLocker ml(thread, isolate_group->tag_table_lock());
+    ASSERT(isolate_group->tag_table() != GrowableObjectArray::null());
+    UserTag& result =
+        UserTag::Handle(FindTagInIsolateGroup(isolate_group, thread, label));
+    if (!result.IsNull()) {
+      // Tag already exists, return existing instance.
+      return result.ptr();
+    }
+  }
+  SafepointWriteRwLocker mlw(thread, isolate_group->tag_table_lock());
+  UserTag& result =
+      UserTag::Handle(FindTagInIsolateGroup(isolate_group, thread, label));
   if (!result.IsNull()) {
     // Tag already exists, return existing instance.
     return result.ptr();
@@ -27753,40 +27982,36 @@ UserTagPtr UserTag::New(const String& label, Heap::Space space) {
     args.SetAt(0, error);
     Exceptions::ThrowByType(Exceptions::kUnsupported, args);
   }
-  // No tag with label exists, create and register with isolate tag table.
+  // No tag with label exists, create and register with thread tag table.
   result = Object::Allocate<UserTag>(space);
   result.set_label(label);
-  result.set_streamable(UserTags::IsTagNameStreamable(label.ToCString()));
-  AddTagToIsolate(thread, result);
+  AddTagToIsolateGroup(thread, result);
   return result.ptr();
 }
 
-UserTagPtr UserTag::DefaultTag() {
-  Thread* thread = Thread::Current();
+UserTagPtr UserTag::DefaultTag(Thread* thread) {
   Zone* zone = thread->zone();
-  Isolate* isolate = thread->isolate();
-  ASSERT(isolate != nullptr);
-  if (isolate->default_tag() != UserTag::null()) {
+  if (thread->default_tag() != UserTag::null()) {
     // Already created.
-    return isolate->default_tag();
+    return thread->default_tag();
   }
   // Create default tag.
   const UserTag& result =
-      UserTag::Handle(zone, UserTag::New(Symbols::Default()));
+      UserTag::Handle(zone, UserTag::New(thread, Symbols::Default()));
   ASSERT(result.tag() == UserTags::kDefaultUserTag);
-  isolate->set_default_tag(result);
+  thread->set_default_tag(result);
   return result.ptr();
 }
 
-UserTagPtr UserTag::FindTagInIsolate(Isolate* isolate,
-                                     Thread* thread,
-                                     const String& label) {
+UserTagPtr UserTag::FindTagInIsolateGroup(IsolateGroup* isolate_group,
+                                          Thread* thread,
+                                          const String& label) {
   Zone* zone = thread->zone();
-  if (isolate->tag_table() == GrowableObjectArray::null()) {
+  if (isolate_group->tag_table() == GrowableObjectArray::null()) {
     return UserTag::null();
   }
   const GrowableObjectArray& tag_table =
-      GrowableObjectArray::Handle(zone, isolate->tag_table());
+      GrowableObjectArray::Handle(zone, isolate_group->tag_table());
   UserTag& other = UserTag::Handle(zone);
   String& tag_label = String::Handle(zone);
   for (intptr_t i = 0; i < tag_table.Length(); i++) {
@@ -27801,17 +28026,12 @@ UserTagPtr UserTag::FindTagInIsolate(Isolate* isolate,
   return UserTag::null();
 }
 
-UserTagPtr UserTag::FindTagInIsolate(Thread* thread, const String& label) {
-  Isolate* isolate = thread->isolate();
-  return FindTagInIsolate(isolate, thread, label);
-}
-
-void UserTag::AddTagToIsolate(Thread* thread, const UserTag& tag) {
-  Isolate* isolate = thread->isolate();
+void UserTag::AddTagToIsolateGroup(Thread* thread, const UserTag& tag) {
+  auto isolate_group = thread->isolate_group();
   Zone* zone = thread->zone();
-  ASSERT(isolate->tag_table() != GrowableObjectArray::null());
+  ASSERT(isolate_group->tag_table() != GrowableObjectArray::null());
   const GrowableObjectArray& tag_table =
-      GrowableObjectArray::Handle(zone, isolate->tag_table());
+      GrowableObjectArray::Handle(zone, isolate_group->tag_table());
   ASSERT(!TagTableIsFull(thread));
 #if defined(DEBUG)
   // Verify that no existing tag has the same tag id.
@@ -27822,7 +28042,7 @@ void UserTag::AddTagToIsolate(Thread* thread, const UserTag& tag) {
     ASSERT(tag.tag() != other.tag());
   }
 #endif
-  // Generate the UserTag tag id by taking the length of the isolate's
+  // Generate the UserTag tag id by taking the length of the isolate group's
   // tag table + kUserTagIdOffset.
   uword tag_id = tag_table.Length() + UserTags::kUserTagIdOffset;
   ASSERT(tag_id >= UserTags::kUserTagIdOffset);
@@ -27832,21 +28052,22 @@ void UserTag::AddTagToIsolate(Thread* thread, const UserTag& tag) {
 }
 
 bool UserTag::TagTableIsFull(Thread* thread) {
-  Isolate* isolate = thread->isolate();
-  ASSERT(isolate->tag_table() != GrowableObjectArray::null());
+  auto isolate_group = thread->isolate_group();
+  ASSERT(isolate_group->tag_table() != GrowableObjectArray::null());
   const GrowableObjectArray& tag_table =
-      GrowableObjectArray::Handle(thread->zone(), isolate->tag_table());
+      GrowableObjectArray::Handle(thread->zone(), isolate_group->tag_table());
   ASSERT(tag_table.Length() <= UserTags::kMaxUserTags);
   return tag_table.Length() == UserTags::kMaxUserTags;
 }
 
-UserTagPtr UserTag::FindTagById(const Isolate* isolate, uword tag_id) {
-  ASSERT(isolate != nullptr);
-  Thread* thread = Thread::Current();
+UserTagPtr UserTag::FindTagById(const IsolateGroup* isolate_group,
+                                uword tag_id) {
+  ASSERT(isolate_group != nullptr);
+  auto thread = Thread::Current();
   Zone* zone = thread->zone();
-  ASSERT(isolate->tag_table() != GrowableObjectArray::null());
+  ASSERT(isolate_group->tag_table() != GrowableObjectArray::null());
   const GrowableObjectArray& tag_table =
-      GrowableObjectArray::Handle(zone, isolate->tag_table());
+      GrowableObjectArray::Handle(zone, isolate_group->tag_table());
   UserTag& tag = UserTag::Handle(zone);
   for (intptr_t i = 0; i < tag_table.Length(); i++) {
     tag ^= tag_table.At(i);
@@ -28565,8 +28786,7 @@ RecordShape RecordShape::Register(Thread* thread,
   IsolateGroup* isolate_group = thread->isolate_group();
   ObjectStore* object_store = isolate_group->object_store();
 
-  if (object_store->record_field_names<std::memory_order_acquire>() ==
-      Array::null()) {
+  if (object_store->record_field_names() == Array::null()) {
     // First-time initialization.
     SafepointWriteRwLocker ml(thread, isolate_group->program_lock());
     if (object_store->record_field_names() == Array::null()) {
@@ -28579,7 +28799,7 @@ RecordShape RecordShape::Register(Thread* thread,
       object_store->set_record_field_names_map(map.Release());
       const auto& table = Array::Handle(zone, Array::New(16));
       table.SetAt(0, Object::empty_array());
-      object_store->set_record_field_names<std::memory_order_release>(table);
+      object_store->set_record_field_names(table);
     }
   }
 

@@ -19,9 +19,7 @@ class MainIsNotFunctionTest extends PubPackageResolutionTest {
     await resolveTestCode('''
 class main {}
 ''');
-    assertErrorsInResult([
-      error(CompileTimeErrorCode.MAIN_IS_NOT_FUNCTION, 6, 4),
-    ]);
+    assertErrorsInResult([error(CompileTimeErrorCode.mainIsNotFunction, 6, 4)]);
   }
 
   test_classAlias() async {
@@ -31,7 +29,7 @@ mixin M {}
 class main = A with M;
 ''');
     assertErrorsInResult([
-      error(CompileTimeErrorCode.MAIN_IS_NOT_FUNCTION, 28, 4),
+      error(CompileTimeErrorCode.mainIsNotFunction, 28, 4),
     ]);
   }
 
@@ -41,9 +39,7 @@ enum main {
   v
 }
 ''');
-    assertErrorsInResult([
-      error(CompileTimeErrorCode.MAIN_IS_NOT_FUNCTION, 5, 4),
-    ]);
+    assertErrorsInResult([error(CompileTimeErrorCode.mainIsNotFunction, 5, 4)]);
   }
 
   test_function() async {
@@ -56,9 +52,7 @@ void main() {}
     await resolveTestCode('''
 int get main => 0;
 ''');
-    assertErrorsInResult([
-      error(CompileTimeErrorCode.MAIN_IS_NOT_FUNCTION, 8, 4),
-    ]);
+    assertErrorsInResult([error(CompileTimeErrorCode.mainIsNotFunction, 8, 4)]);
   }
 
   test_mixin() async {
@@ -67,7 +61,7 @@ class A {}
 mixin main on A {}
 ''');
     assertErrorsInResult([
-      error(CompileTimeErrorCode.MAIN_IS_NOT_FUNCTION, 17, 4),
+      error(CompileTimeErrorCode.mainIsNotFunction, 17, 4),
     ]);
   }
 
@@ -75,9 +69,7 @@ mixin main on A {}
     await resolveTestCode('''
 typedef main = void Function();
 ''');
-    assertErrorsInResult([
-      error(CompileTimeErrorCode.MAIN_IS_NOT_FUNCTION, 8, 4),
-    ]);
+    assertErrorsInResult([error(CompileTimeErrorCode.mainIsNotFunction, 8, 4)]);
   }
 
   test_typedef_legacy() async {
@@ -85,7 +77,7 @@ typedef main = void Function();
 typedef void main();
 ''');
     assertErrorsInResult([
-      error(CompileTimeErrorCode.MAIN_IS_NOT_FUNCTION, 13, 4),
+      error(CompileTimeErrorCode.mainIsNotFunction, 13, 4),
     ]);
   }
 
@@ -93,8 +85,6 @@ typedef void main();
     await resolveTestCode('''
 var main = 0;
 ''');
-    assertErrorsInResult([
-      error(CompileTimeErrorCode.MAIN_IS_NOT_FUNCTION, 4, 4),
-    ]);
+    assertErrorsInResult([error(CompileTimeErrorCode.mainIsNotFunction, 4, 4)]);
   }
 }

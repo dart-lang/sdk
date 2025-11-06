@@ -5,6 +5,7 @@ import "dart:core" as core;
 static method test(dynamic x) → dynamic {
   {
     final synthesized dynamic #0#0 = x;
+    final const synthesized core::String #0#1 = #C1;
     if(#C1 =={core::String::==}{(core::Object) → core::bool} #0#0) {
     }
   }

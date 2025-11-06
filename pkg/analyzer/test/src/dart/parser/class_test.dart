@@ -54,11 +54,7 @@ class A {
 }
 ''');
     parseResult.assertErrors([
-      error(
-        ParserErrorCode.EXTERNAL_CONSTRUCTOR_WITH_FIELD_INITIALIZERS,
-        39,
-        4,
-      ),
+      error(ParserErrorCode.externalConstructorWithFieldInitializers, 39, 4),
     ]);
 
     var node = parseResult.findNode.singleConstructorDeclaration;
@@ -93,11 +89,7 @@ class A {
 }
 ''');
     parseResult.assertErrors([
-      error(
-        ParserErrorCode.EXTERNAL_CONSTRUCTOR_WITH_FIELD_INITIALIZERS,
-        38,
-        4,
-      ),
+      error(ParserErrorCode.externalConstructorWithFieldInitializers, 38, 4),
     ]);
 
     var node = parseResult.findNode.singleConstructorDeclaration;
@@ -126,7 +118,7 @@ class A {
 }
 ''');
     parseResult.assertErrors([
-      error(ParserErrorCode.EXTERNAL_CONSTRUCTOR_WITH_INITIALIZER, 40, 1),
+      error(ParserErrorCode.externalConstructorWithInitializer, 40, 1),
     ]);
 
     var node = parseResult.findNode.singleConstructorDeclaration;
@@ -148,6 +140,141 @@ ConstructorDeclaration
         literal: 0
   body: EmptyFunctionBody
     semicolon: ;
+''');
+  }
+
+  test_setter_formalParameters_absent() {
+    var parseResult = parseStringWithErrors(r'''
+class A {
+  set foo {}
+}
+''');
+    parseResult.assertErrors([
+      error(ParserErrorCode.missingMethodParameters, 16, 3),
+    ]);
+
+    var node = parseResult.findNode.singleMethodDeclaration;
+    assertParsedNodeText(node, withOffsets: true, r'''
+MethodDeclaration
+  propertyKeyword: set @12
+  name: foo @16
+  parameters: FormalParameterList
+    leftParenthesis: ( @20 <synthetic>
+    parameter: SimpleFormalParameter
+      name: <empty> @20 <synthetic>
+    rightParenthesis: ) @20 <synthetic>
+  body: BlockFunctionBody
+    block: Block
+      leftBracket: { @20
+      rightBracket: } @21
+''');
+  }
+
+  test_setter_formalParameters_optionalNamed() {
+    var parseResult = parseStringWithErrors(r'''
+class A {
+  set foo({a}) {}
+}
+''');
+    parseResult.assertErrors([
+      error(ParserErrorCode.wrongNumberOfParametersForSetter, 16, 3),
+    ]);
+
+    var node = parseResult.findNode.singleMethodDeclaration;
+    assertParsedNodeText(node, withOffsets: true, r'''
+MethodDeclaration
+  propertyKeyword: set @12
+  name: foo @16
+  parameters: FormalParameterList
+    leftParenthesis: ( @19
+    parameter: SimpleFormalParameter
+      name: a @21
+    rightParenthesis: ) @23
+  body: BlockFunctionBody
+    block: Block
+      leftBracket: { @25
+      rightBracket: } @26
+''');
+  }
+
+  test_setter_formalParameters_optionalPositional() {
+    var parseResult = parseStringWithErrors(r'''
+class A {
+  set foo([a]) {}
+}
+''');
+    parseResult.assertErrors([
+      error(ParserErrorCode.wrongNumberOfParametersForSetter, 16, 3),
+    ]);
+
+    var node = parseResult.findNode.singleMethodDeclaration;
+    assertParsedNodeText(node, withOffsets: true, r'''
+MethodDeclaration
+  propertyKeyword: set @12
+  name: foo @16
+  parameters: FormalParameterList
+    leftParenthesis: ( @19
+    parameter: SimpleFormalParameter
+      name: a @21
+    rightParenthesis: ) @23
+  body: BlockFunctionBody
+    block: Block
+      leftBracket: { @25
+      rightBracket: } @26
+''');
+  }
+
+  test_setter_formalParameters_requiredPositional_three() {
+    var parseResult = parseStringWithErrors(r'''
+class A {
+  set foo(a, b, c) {}
+}
+''');
+    parseResult.assertErrors([
+      error(ParserErrorCode.wrongNumberOfParametersForSetter, 16, 3),
+    ]);
+
+    var node = parseResult.findNode.singleMethodDeclaration;
+    assertParsedNodeText(node, withOffsets: true, r'''
+MethodDeclaration
+  propertyKeyword: set @12
+  name: foo @16
+  parameters: FormalParameterList
+    leftParenthesis: ( @19
+    parameter: SimpleFormalParameter
+      name: a @20
+    rightParenthesis: ) @27
+  body: BlockFunctionBody
+    block: Block
+      leftBracket: { @29
+      rightBracket: } @30
+''');
+  }
+
+  test_setter_formalParameters_zero() {
+    var parseResult = parseStringWithErrors(r'''
+class A {
+  set foo() {}
+}
+''');
+    parseResult.assertErrors([
+      error(ParserErrorCode.wrongNumberOfParametersForSetter, 16, 3),
+    ]);
+
+    var node = parseResult.findNode.singleMethodDeclaration;
+    assertParsedNodeText(node, withOffsets: true, r'''
+MethodDeclaration
+  propertyKeyword: set @12
+  name: foo @16
+  parameters: FormalParameterList
+    leftParenthesis: ( @19
+    parameter: SimpleFormalParameter
+      name: <empty> @20 <synthetic>
+    rightParenthesis: ) @20
+  body: BlockFunctionBody
+    block: Block
+      leftBracket: { @22
+      rightBracket: } @23
 ''');
   }
 }

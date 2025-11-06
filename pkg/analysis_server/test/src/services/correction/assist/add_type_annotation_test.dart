@@ -483,11 +483,9 @@ void f(int Function(int) p) {
   v = p;
 }
 ''');
-    // TODO(brianwilkerson): Improve `DartChangeBuilder.writeType` so that
-    //  unnecessary parameter names (`p1`) are not written.
     await assertHasAssist('''
 void f(int Function(int) p) {
-  int Function(int p1) v;
+  int Function(int) v;
   v = p;
 }
 ''');
@@ -678,6 +676,34 @@ void f() {
 ''');
   }
 
+  Future<void> test_local_shadowed() async {
+    newFile(join(testPackageLibPath, 'a.dart'), '''
+class A {}
+''');
+    newFile(join(testPackageLibPath, 'other.dart'), '''
+import 'a.dart';
+A getA() => A();
+''');
+    await resolveTestCode('''
+import 'other.dart';
+
+class A {}
+void f() {
+  var ^v = getA();
+}
+''');
+    await assertHasAssist('''
+import 'package:test/a.dart' as prefix0;
+
+import 'other.dart';
+
+class A {}
+void f() {
+  prefix0.A v = getA();
+}
+''');
+  }
+
   Future<void> test_local_unknown() async {
     verifyNoTestUnitErrors = false;
     await resolveTestCode('''
@@ -812,7 +838,12 @@ void f() {
   foo((^test) {});
 }
 ''');
-    await assertNoAssist();
+    await assertHasAssist('''
+import 'my_lib.dart';
+void f() {
+  foo((A test) {});
+}
+''');
   }
 
   Future<void> test_privateType_declaredIdentifier() async {
@@ -831,12 +862,19 @@ class A<T> {
   }
 }
 ''');
-    await assertNoAssist();
+    await assertHasAssist('''
+import 'my_lib.dart';
+class A<T> {
+  void m() {
+    for (A item in getValues()) {
+    }
+  }
+}
+''');
   }
 
   Future<void> test_privateType_list() async {
-    // This is now failing because we're suggesting "List" rather than nothing.
-    // Is it really better to produce nothing?
+    // This would work for impl types in a package, not just private types.
     newFile('$testPackageLibPath/my_lib.dart', '''
 library my_lib;
 class A {}
@@ -852,7 +890,7 @@ void f() {
     await assertHasAssist('''
 import 'my_lib.dart';
 void f() {
-  List v = getValues();
+  List<A> v = getValues();
 }
 ''');
   }
@@ -887,7 +925,12 @@ void f() {
   ^var v = getValue();
 }
 ''');
-    await assertNoAssist();
+    await assertHasAssist('''
+import 'my_lib.dart';
+void f() {
+  A v = getValue();
+}
+''');
   }
 
   Future<void> test_topLevelVariable_int() async {

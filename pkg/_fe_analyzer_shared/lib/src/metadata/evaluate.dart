@@ -526,10 +526,9 @@ class Evaluator {
               }
             default:
               Element? then = _visitElement(element.then);
-              Element? otherwise =
-                  element.otherwise != null
-                      ? _visitElement(element.otherwise!)
-                      : null;
+              Element? otherwise = element.otherwise != null
+                  ? _visitElement(element.otherwise!)
+                  : null;
               if (then != null) {
                 list.add(new IfElement(condition, then, otherwise));
               } else if (otherwise != null) {
@@ -637,10 +636,9 @@ class Evaluator {
             }
           default:
             Element? then = _visitElement(element.then);
-            Element? otherwise =
-                element.otherwise != null
-                    ? _visitElement(element.otherwise!)
-                    : null;
+            Element? otherwise = element.otherwise != null
+                ? _visitElement(element.otherwise!)
+                : null;
             if (then != null) {
               return new IfElement(condition, then, otherwise);
             } else if (otherwise != null) {

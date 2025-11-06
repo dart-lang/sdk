@@ -155,6 +155,8 @@ void f(Object? x) {
 replacement
   left: 1
 suggestions
+  myValue
+    kind: identifier
   value
     kind: identifier
 ''');

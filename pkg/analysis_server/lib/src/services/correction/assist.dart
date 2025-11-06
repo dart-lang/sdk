@@ -36,6 +36,16 @@ abstract final class DartAssistKind {
     DartAssistKindPriority.default_,
     'Assign value to new local variable',
   );
+  static const bindAllToFields = AssistKind(
+    'dart.assist.bindAllToFields',
+    DartAssistKindPriority.default_,
+    'Bind all parameters to fields',
+  );
+  static const bindToField = AssistKind(
+    'dart.assist.bindToField',
+    DartAssistKindPriority.default_,
+    'Bind parameter to field',
+  );
   static const convertClassToEnum = AssistKind(
     'dart.assist.convert.classToEnum',
     DartAssistKindPriority.default_,
@@ -110,6 +120,11 @@ abstract final class DartAssistKind {
     'dart.assist.convert.partOfToPartUri',
     DartAssistKindPriority.default_,
     'Convert to use a URI',
+  );
+  static const convertToDotShorthand = AssistKind(
+    'dart.assist.convert.ToDotShorthand',
+    DartAssistKindPriority.default_,
+    'Convert to dot shorthand',
   );
   static const convertToDoubleQuotedString = AssistKind(
     'dart.assist.convert.toDoubleQuotedString',

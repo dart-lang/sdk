@@ -395,7 +395,7 @@ class DynamicModuleInfo {
   DynamicModuleInfo(this.translator, this.metadata);
 
   void initSubmodule() {
-    submodule.functions.start = initFunction = submodule.functions.define(
+    submodule.startFunction = initFunction = submodule.functions.define(
         translator.typesBuilder.defineFunction(const [], const []), "#init");
 
     // Make sure the exception tag is exported from the main module.
@@ -518,8 +518,6 @@ class DynamicModuleInfo {
     final classId =
         (translator.classInfo[cls]!.classId as AbsoluteClassId).value;
 
-    metadata.callableReferenceIds[target] ??=
-        metadata.callableReferenceIds.length;
     // The class must be allocated in order for the target to be live.
     translator.functions.recordClassTargetUse(classId, target);
   }
@@ -535,8 +533,6 @@ class DynamicModuleInfo {
 
     // Generate static members immediately since they are unconditionally
     // callable.
-    metadata.callableReferenceIds[target] ??=
-        metadata.callableReferenceIds.length;
     translator.functions.getFunction(target);
   }
 
@@ -876,7 +872,7 @@ class DynamicModuleInfo {
           ib.end();
           ib.i32_add();
         }
-        final table = translator.dispatchTable.getWasmTable(ib.module);
+        final table = translator.dispatchTable.getWasmTable(ib.moduleBuilder);
         ib.call_indirect(localSignature, table);
       }
       translator.convertType(ib, localSignature.outputs.single,
@@ -1038,11 +1034,11 @@ class ConstantCanonicalizer extends ConstantVisitor<void> {
 
     // Get the equality checker for the class. Import it into the submodule and
     // use the import if this is in a submodule.
-    w.BaseFunction checker = _getCanonicalChecker(cls, b.module);
+    w.BaseFunction checker = _getCanonicalChecker(cls, b.moduleBuilder);
 
     // Declare the function so it can be used as a ref_func in a constant
     // context.
-    b.module.functions.declare(checker);
+    b.moduleBuilder.functions.declare(checker);
 
     // Invoke the 'canonicalize' function with the value and checker.
     b.local_get(valueLocal);
@@ -1072,11 +1068,11 @@ class ConstantCanonicalizer extends ConstantVisitor<void> {
     // Get the equality checker for the class. Import it into the submodule and
     // use the import if this is in a submodule.
     w.BaseFunction checker = _getCanonicalArrayChecker(
-        translator.translateStorageType(elementType), mutable, b.module);
+        translator.translateStorageType(elementType), mutable, b.moduleBuilder);
 
     // Declare the function so it can be used as a ref_func in a constant
     // context.
-    b.module.functions.declare(checker);
+    b.moduleBuilder.functions.declare(checker);
 
     // Invoke the canonicalizer function with the value and checker.
     b.local_get(valueLocal);

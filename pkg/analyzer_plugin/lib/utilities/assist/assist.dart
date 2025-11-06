@@ -24,7 +24,9 @@ abstract class AssistContributor {
   /// Contribute assists for the location in the file specified by the given
   /// [request] into the given [collector].
   Future<void> computeAssists(
-      covariant AssistRequest request, AssistCollector collector);
+    covariant AssistRequest request,
+    AssistCollector collector,
+  );
 }
 
 /// A generator that will generate an 'edit.getAssists' response.
@@ -42,16 +44,21 @@ class AssistGenerator {
   /// by the given [request]. If any of the contributors throws an exception,
   /// also create a non-fatal 'plugin.error' notification.
   Future<GeneratorResult<EditGetAssistsResult>> generateAssistsResponse(
-      AssistRequest request) async {
+    AssistRequest request,
+  ) async {
     var notifications = <Notification>[];
     var collector = AssistCollectorImpl();
     for (var contributor in contributors) {
       try {
         await contributor.computeAssists(request, collector);
       } catch (exception, stackTrace) {
-        notifications.add(PluginErrorParams(
-                false, exception.toString(), stackTrace.toString())
-            .toNotification());
+        notifications.add(
+          PluginErrorParams(
+            false,
+            exception.toString(),
+            stackTrace.toString(),
+          ).toNotification(),
+        );
       }
     }
     var result = EditGetAssistsResult(collector.assists);

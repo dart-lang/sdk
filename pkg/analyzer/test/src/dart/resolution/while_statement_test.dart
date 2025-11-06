@@ -93,7 +93,7 @@ void f() {
   }
 }
 ''',
-      [error(CompileTimeErrorCode.LABEL_UNDEFINED, 38, 1)],
+      [error(CompileTimeErrorCode.labelUndefined, 38, 1)],
     );
 
     var node = findNode.singleWhileStatement;
@@ -129,8 +129,8 @@ class A {
 }
 ''',
       [
-        error(ParserErrorCode.MISSING_ASSIGNABLE_SELECTOR, 34, 5),
-        error(CompileTimeErrorCode.NON_BOOL_CONDITION, 34, 5),
+        error(ParserErrorCode.missingAssignableSelector, 34, 5),
+        error(CompileTimeErrorCode.nonBoolCondition, 34, 5),
       ],
     );
 
@@ -226,7 +226,7 @@ void f() {
   }
 }
 ''',
-      [error(CompileTimeErrorCode.LABEL_UNDEFINED, 41, 1)],
+      [error(CompileTimeErrorCode.labelUndefined, 41, 1)],
     );
 
     var node = findNode.singleWhileStatement;

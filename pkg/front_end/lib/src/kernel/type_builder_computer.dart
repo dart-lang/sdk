@@ -28,163 +28,229 @@ class TypeBuilderComputer {
   final _TypeBuilderComputerHelper _typeBuilderComputerHelper;
 
   TypeBuilderComputer(Loader loader)
-      : _typeBuilderComputerHelper = new _TypeBuilderComputerHelper(loader);
+    : _typeBuilderComputerHelper = new _TypeBuilderComputerHelper(loader);
 
   TypeBuilder visit(DartType type) => _typeBuilderComputerHelper.visit(type);
 }
 
 class _TypeBuilderComputerHelper
     implements
-        DartTypeVisitor1<TypeBuilder,
-            Map<TypeParameter, DillNominalParameterBuilder>> {
+        DartTypeVisitor1<
+          TypeBuilder,
+          Map<TypeParameter, DillNominalParameterBuilder>
+        > {
   final Loader loader;
 
   late final DynamicTypeDeclarationBuilder dynamicDeclaration =
       new DynamicTypeDeclarationBuilder(
-          const DynamicType(), loader.coreLibrary, -1);
+        const DynamicType(),
+        loader.coreLibrary,
+        -1,
+      );
 
   late final NeverTypeDeclarationBuilder neverDeclaration =
       new NeverTypeDeclarationBuilder(
-          const NeverType.nonNullable(), loader.coreLibrary, -1);
+        const NeverType.nonNullable(),
+        loader.coreLibrary,
+        -1,
+      );
 
   late final NullTypeDeclarationBuilder nullDeclaration =
       new NullTypeDeclarationBuilder(const NullType(), loader.coreLibrary, -1);
 
   late final FutureOrTypeDeclarationBuilder futureOrDeclaration =
       new FutureOrTypeDeclarationBuilder(
-          new FutureOrType(const DynamicType(), Nullability.nonNullable),
-          loader.coreLibrary,
-          -1);
+        new FutureOrType(const DynamicType(), Nullability.nonNullable),
+        loader.coreLibrary,
+        -1,
+      );
 
   _TypeBuilderComputerHelper(this.loader);
 
   final Map<StructuralParameter, StructuralParameterBuilder>
-      structuralTypeParameters =
+  structuralTypeParameters =
       <StructuralParameter, StructuralParameterBuilder>{};
 
   final Map<TypeParameter, DillNominalParameterBuilder>
-      computedNominalTypeParameters =
+  computedNominalTypeParameters =
       <TypeParameter, DillNominalParameterBuilder>{};
 
   TypeBuilder visit(DartType type) {
-    TypeBuilder typeBuilder =
-        type.accept1(this, <TypeParameter, DillNominalParameterBuilder>{});
+    TypeBuilder typeBuilder = type.accept1(
+      this,
+      <TypeParameter, DillNominalParameterBuilder>{},
+    );
     structuralTypeParameters.clear();
     computedNominalTypeParameters.clear();
     return typeBuilder;
   }
 
   @override
-  TypeBuilder visitInvalidType(InvalidType node,
-      Map<TypeParameter, DillNominalParameterBuilder> pendingNominalVariables) {
+  TypeBuilder visitInvalidType(
+    InvalidType node,
+    Map<TypeParameter, DillNominalParameterBuilder> pendingNominalVariables,
+  ) {
     return new FixedTypeBuilderImpl(
-        node, /* fileUri = */ null, /* charOffset = */ null);
+      node,
+      /* fileUri = */ null,
+      /* charOffset = */ null,
+    );
   }
 
   @override
-  TypeBuilder visitDynamicType(DynamicType node,
-      Map<TypeParameter, DillNominalParameterBuilder> pendingNominalVariables) {
+  TypeBuilder visitDynamicType(
+    DynamicType node,
+    Map<TypeParameter, DillNominalParameterBuilder> pendingNominalVariables,
+  ) {
     // 'dynamic' is always nullable.
     return new NamedTypeBuilderImpl.forDartType(
-        node, dynamicDeclaration, const NullabilityBuilder.inherent());
+      node,
+      dynamicDeclaration,
+      const NullabilityBuilder.inherent(),
+    );
   }
 
   @override
-  TypeBuilder visitVoidType(VoidType node,
-      Map<TypeParameter, DillNominalParameterBuilder> pendingNominalVariables) {
+  TypeBuilder visitVoidType(
+    VoidType node,
+    Map<TypeParameter, DillNominalParameterBuilder> pendingNominalVariables,
+  ) {
     return new VoidTypeBuilder(/* fileUri = */ null, /* charOffset = */ null);
   }
 
   @override
   // Coverage-ignore(suite): Not run.
-  TypeBuilder visitNeverType(NeverType node,
-      Map<TypeParameter, DillNominalParameterBuilder> pendingNominalVariables) {
-    return new NamedTypeBuilderImpl.forDartType(node, neverDeclaration,
-        new NullabilityBuilder.fromNullability(node.nullability));
-  }
-
-  @override
-  TypeBuilder visitNullType(NullType node,
-      Map<TypeParameter, DillNominalParameterBuilder> pendingNominalVariables) {
+  TypeBuilder visitNeverType(
+    NeverType node,
+    Map<TypeParameter, DillNominalParameterBuilder> pendingNominalVariables,
+  ) {
     return new NamedTypeBuilderImpl.forDartType(
-        node, nullDeclaration, const NullabilityBuilder.inherent());
+      node,
+      neverDeclaration,
+      new NullabilityBuilder.fromNullability(node.nullability),
+    );
   }
 
   @override
-  TypeBuilder visitInterfaceType(InterfaceType node,
-      Map<TypeParameter, DillNominalParameterBuilder> pendingNominalVariables) {
-    ClassBuilder cls =
-        loader.computeClassBuilderFromTargetClass(node.classNode);
+  TypeBuilder visitNullType(
+    NullType node,
+    Map<TypeParameter, DillNominalParameterBuilder> pendingNominalVariables,
+  ) {
+    return new NamedTypeBuilderImpl.forDartType(
+      node,
+      nullDeclaration,
+      const NullabilityBuilder.inherent(),
+    );
+  }
+
+  @override
+  TypeBuilder visitInterfaceType(
+    InterfaceType node,
+    Map<TypeParameter, DillNominalParameterBuilder> pendingNominalVariables,
+  ) {
+    ClassBuilder cls = loader.computeClassBuilderFromTargetClass(
+      node.classNode,
+    );
     List<TypeBuilder>? arguments;
     List<DartType> kernelArguments = node.typeArguments;
     if (kernelArguments.isNotEmpty) {
-      arguments = new List<TypeBuilder>.generate(kernelArguments.length,
-          (int i) => kernelArguments[i].accept1(this, pendingNominalVariables),
-          growable: false);
+      arguments = new List<TypeBuilder>.generate(
+        kernelArguments.length,
+        (int i) => kernelArguments[i].accept1(this, pendingNominalVariables),
+        growable: false,
+      );
     }
     return new NamedTypeBuilderImpl.forDartType(
-        node, cls, new NullabilityBuilder.fromNullability(node.nullability),
-        arguments: arguments);
+      node,
+      cls,
+      new NullabilityBuilder.fromNullability(node.nullability),
+      arguments: arguments,
+    );
   }
 
   @override
-  TypeBuilder visitExtensionType(ExtensionType node,
-      Map<TypeParameter, DillNominalParameterBuilder> pendingNominalVariables) {
-    ExtensionTypeDeclarationBuilder extensionTypeDeclaration =
-        loader.computeExtensionTypeBuilderFromTargetExtensionType(
-            node.extensionTypeDeclaration);
+  TypeBuilder visitExtensionType(
+    ExtensionType node,
+    Map<TypeParameter, DillNominalParameterBuilder> pendingNominalVariables,
+  ) {
+    ExtensionTypeDeclarationBuilder extensionTypeDeclaration = loader
+        .computeExtensionTypeBuilderFromTargetExtensionType(
+          node.extensionTypeDeclaration,
+        );
     List<TypeBuilder>? arguments;
     List<DartType> kernelArguments = node.typeArguments;
     if (kernelArguments.isNotEmpty) {
-      arguments = new List<TypeBuilder>.generate(kernelArguments.length,
-          (int i) => kernelArguments[i].accept1(this, pendingNominalVariables),
-          growable: false);
+      arguments = new List<TypeBuilder>.generate(
+        kernelArguments.length,
+        (int i) => kernelArguments[i].accept1(this, pendingNominalVariables),
+        growable: false,
+      );
     }
-    return new NamedTypeBuilderImpl.forDartType(node, extensionTypeDeclaration,
-        new NullabilityBuilder.fromNullability(node.nullability),
-        arguments: arguments);
+    return new NamedTypeBuilderImpl.forDartType(
+      node,
+      extensionTypeDeclaration,
+      new NullabilityBuilder.fromNullability(node.nullability),
+      arguments: arguments,
+    );
   }
 
   @override
   // Coverage-ignore(suite): Not run.
-  TypeBuilder visitFutureOrType(FutureOrType node,
-      Map<TypeParameter, DillNominalParameterBuilder> pendingNominalVariables) {
-    TypeBuilder argument =
-        node.typeArgument.accept1(this, pendingNominalVariables);
-    return new NamedTypeBuilderImpl.forDartType(node, futureOrDeclaration,
-        new NullabilityBuilder.fromNullability(node.nullability),
-        arguments: [argument]);
+  TypeBuilder visitFutureOrType(
+    FutureOrType node,
+    Map<TypeParameter, DillNominalParameterBuilder> pendingNominalVariables,
+  ) {
+    TypeBuilder argument = node.typeArgument.accept1(
+      this,
+      pendingNominalVariables,
+    );
+    return new NamedTypeBuilderImpl.forDartType(
+      node,
+      futureOrDeclaration,
+      new NullabilityBuilder.fromNullability(node.nullability),
+      arguments: [argument],
+    );
   }
 
   @override
-  TypeBuilder visitFunctionType(FunctionType node,
-      Map<TypeParameter, DillNominalParameterBuilder> pendingNominalVariables) {
+  TypeBuilder visitFunctionType(
+    FunctionType node,
+    Map<TypeParameter, DillNominalParameterBuilder> pendingNominalVariables,
+  ) {
     List<StructuralParameterBuilder>? typeParameters = null;
     if (node.typeParameters.isNotEmpty) {
       typeParameters = <StructuralParameterBuilder>[
         for (StructuralParameter structuralParameter in node.typeParameters)
           structuralTypeParameters[structuralParameter] =
-              new DillStructuralParameterBuilder(structuralParameter)
+              new DillStructuralParameterBuilder(structuralParameter),
       ];
     }
 
-    TypeBuilder returnType =
-        node.returnType.accept1(this, pendingNominalVariables);
+    TypeBuilder returnType = node.returnType.accept1(
+      this,
+      pendingNominalVariables,
+    );
 
     List<DartType> positionalParameters = node.positionalParameters;
     List<NamedType> namedParameters = node.namedParameters;
     List<ParameterBuilder> formals = new List<ParameterBuilder>.filled(
-        positionalParameters.length + namedParameters.length,
-        dummyFormalParameterBuilder);
+      positionalParameters.length + namedParameters.length,
+      dummyFormalParameterBuilder,
+    );
     for (int i = 0; i < positionalParameters.length; i++) {
-      TypeBuilder type =
-          positionalParameters[i].accept1(this, pendingNominalVariables);
+      TypeBuilder type = positionalParameters[i].accept1(
+        this,
+        pendingNominalVariables,
+      );
       FormalParameterKind kind = FormalParameterKind.requiredPositional;
       if (i >= node.requiredParameterCount) {
         kind = FormalParameterKind.optionalPositional;
       }
-      formals[i] =
-          new FunctionTypeParameterBuilder(kind, type, /* name = */ null);
+      formals[i] = new FunctionTypeParameterBuilder(
+        kind,
+        type,
+        /* name = */ null,
+      );
     }
     for (int i = 0; i < namedParameters.length; i++) {
       NamedType parameter = namedParameters[i];
@@ -196,105 +262,131 @@ class _TypeBuilderComputerHelper
           new FunctionTypeParameterBuilder(kind, type, parameter.name);
     }
     return new FunctionTypeBuilderImpl(
-        returnType,
-        typeParameters,
-        formals,
-        new NullabilityBuilder.fromNullability(node.nullability),
-        /* fileUri = */ null,
-        /* charOffset = */ TreeNode.noOffset);
+      returnType,
+      typeParameters,
+      formals,
+      new NullabilityBuilder.fromNullability(node.nullability),
+      /* fileUri = */ null,
+      /* charOffset = */ TreeNode.noOffset,
+    );
   }
 
   @override
-  TypeBuilder visitTypeParameterType(TypeParameterType node,
-      Map<TypeParameter, DillNominalParameterBuilder> pendingNominalVariables) {
+  TypeBuilder visitTypeParameterType(
+    TypeParameterType node,
+    Map<TypeParameter, DillNominalParameterBuilder> pendingNominalVariables,
+  ) {
     DillNominalParameterBuilder nominalVariableBuilder;
     if (pendingNominalVariables.containsKey(node.parameter)) {
       nominalVariableBuilder = pendingNominalVariables[node.parameter]!;
     } else if (computedNominalTypeParameters.containsKey(node.parameter)) {
       nominalVariableBuilder = computedNominalTypeParameters[node.parameter]!;
     } else {
-      nominalVariableBuilder =
-          new DillNominalParameterBuilder(node.parameter, loader: null);
-      nominalVariableBuilder.bound = node.parameter.bound.accept1(this,
-          {...pendingNominalVariables, node.parameter: nominalVariableBuilder});
+      nominalVariableBuilder = new DillNominalParameterBuilder(
+        node.parameter,
+        loader: null,
+      );
+      nominalVariableBuilder.bound = node.parameter.bound.accept1(this, {
+        ...pendingNominalVariables,
+        node.parameter: nominalVariableBuilder,
+      });
       nominalVariableBuilder.defaultType = node.parameter.defaultType.accept1(
-          this,
-          {...pendingNominalVariables, node.parameter: nominalVariableBuilder});
+        this,
+        {...pendingNominalVariables, node.parameter: nominalVariableBuilder},
+      );
       computedNominalTypeParameters[node.parameter] = nominalVariableBuilder;
     }
     return new NamedTypeBuilderImpl.fromTypeDeclarationBuilder(
-        nominalVariableBuilder,
-        new NullabilityBuilder.fromNullability(node.nullability),
-        instanceTypeParameterAccess: InstanceTypeParameterAccessState.Allowed,
-        type: node);
+      nominalVariableBuilder,
+      new NullabilityBuilder.fromNullability(node.nullability),
+      instanceTypeParameterAccess: InstanceTypeParameterAccessState.Allowed,
+      type: node,
+    );
   }
 
   @override
-  TypeBuilder visitStructuralParameterType(StructuralParameterType node,
-      Map<TypeParameter, DillNominalParameterBuilder> pendingNominalVariables) {
+  TypeBuilder visitStructuralParameterType(
+    StructuralParameterType node,
+    Map<TypeParameter, DillNominalParameterBuilder> pendingNominalVariables,
+  ) {
     assert(structuralTypeParameters.containsKey(node.parameter));
     return new NamedTypeBuilderImpl.fromTypeDeclarationBuilder(
-        structuralTypeParameters[node.parameter]!,
-        new NullabilityBuilder.fromNullability(node.nullability),
-        instanceTypeParameterAccess: InstanceTypeParameterAccessState.Allowed,
-        type: node);
+      structuralTypeParameters[node.parameter]!,
+      new NullabilityBuilder.fromNullability(node.nullability),
+      instanceTypeParameterAccess: InstanceTypeParameterAccessState.Allowed,
+      type: node,
+    );
   }
 
   @override
   // Coverage-ignore(suite): Not run.
-  TypeBuilder visitIntersectionType(IntersectionType node,
-      Map<TypeParameter, DillNominalParameterBuilder> pendingNominalVariables) {
+  TypeBuilder visitIntersectionType(
+    IntersectionType node,
+    Map<TypeParameter, DillNominalParameterBuilder> pendingNominalVariables,
+  ) {
     throw "Not implemented";
   }
 
   @override
   // Coverage-ignore(suite): Not run.
-  TypeBuilder visitTypedefType(TypedefType node,
-      Map<TypeParameter, DillNominalParameterBuilder> pendingNominalVariables) {
+  TypeBuilder visitTypedefType(
+    TypedefType node,
+    Map<TypeParameter, DillNominalParameterBuilder> pendingNominalVariables,
+  ) {
     throw "Not implemented";
   }
 
   @override
-  TypeBuilder visitRecordType(RecordType node,
-      Map<TypeParameter, DillNominalParameterBuilder> pendingNominalVariables) {
+  TypeBuilder visitRecordType(
+    RecordType node,
+    Map<TypeParameter, DillNominalParameterBuilder> pendingNominalVariables,
+  ) {
     List<RecordTypeFieldBuilder>? positionalBuilders;
     List<DartType> positional = node.positional;
     if (positional.isNotEmpty) {
       positionalBuilders = new List<RecordTypeFieldBuilder>.generate(
-          positional.length,
-          (int i) => new RecordTypeFieldBuilder(
-              null,
-              positional[i].accept1(this, pendingNominalVariables),
-              null,
-              TreeNode.noOffset),
-          growable: false);
+        positional.length,
+        (int i) => new RecordTypeFieldBuilder(
+          null,
+          positional[i].accept1(this, pendingNominalVariables),
+          null,
+          TreeNode.noOffset,
+        ),
+        growable: false,
+      );
     }
 
     List<RecordTypeFieldBuilder>? namedBuilders;
     List<NamedType> named = node.named;
     if (named.isNotEmpty) {
       namedBuilders = new List<RecordTypeFieldBuilder>.generate(
-          named.length,
-          (int i) => new RecordTypeFieldBuilder(
-              null,
-              named[i].type.accept1(this, pendingNominalVariables),
-              named[i].name,
-              TreeNode.noOffset),
-          growable: false);
+        named.length,
+        (int i) => new RecordTypeFieldBuilder(
+          null,
+          named[i].type.accept1(this, pendingNominalVariables),
+          named[i].name,
+          TreeNode.noOffset,
+        ),
+        growable: false,
+      );
     }
 
     return new RecordTypeBuilderImpl(
-        positionalBuilders,
-        namedBuilders,
-        new NullabilityBuilder.fromNullability(node.nullability),
-        missingUri,
-        TreeNode.noOffset);
+      positionalBuilders,
+      namedBuilders,
+      new NullabilityBuilder.fromNullability(node.nullability),
+      missingUri,
+      TreeNode.noOffset,
+    );
   }
 
   @override
-  TypeBuilder visitAuxiliaryType(AuxiliaryType node,
-      Map<TypeParameter, DillNominalParameterBuilder> pendingNominalVariables) {
+  TypeBuilder visitAuxiliaryType(
+    AuxiliaryType node,
+    Map<TypeParameter, DillNominalParameterBuilder> pendingNominalVariables,
+  ) {
     throw new UnsupportedError(
-        "Unsupported auxiliary type ${node} (${node.runtimeType}).");
+      "Unsupported auxiliary type ${node} (${node.runtimeType}).",
+    );
   }
 }

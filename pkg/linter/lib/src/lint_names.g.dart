@@ -29,6 +29,30 @@ abstract final class LintNames {
 
   static const String always_use_package_imports = 'always_use_package_imports';
 
+  static const String analyzer_element_model_tracking_bad =
+      'analyzer_element_model_tracking_bad';
+
+  static const String analyzer_element_model_tracking_more_than_one =
+      'analyzer_element_model_tracking_more_than_one';
+
+  static const String analyzer_element_model_tracking_zero =
+      'analyzer_element_model_tracking_zero';
+
+  static const String analyzer_public_api_bad_part_directive =
+      'analyzer_public_api_bad_part_directive';
+
+  static const String analyzer_public_api_bad_type =
+      'analyzer_public_api_bad_type';
+
+  static const String analyzer_public_api_experimental_inconsistency =
+      'analyzer_public_api_experimental_inconsistency';
+
+  static const String analyzer_public_api_exports_non_public_name =
+      'analyzer_public_api_exports_non_public_name';
+
+  static const String analyzer_public_api_impl_in_public_api =
+      'analyzer_public_api_impl_in_public_api';
+
   static const String annotate_overrides = 'annotate_overrides';
 
   static const String annotate_redeclares = 'annotate_redeclares';
@@ -290,6 +314,10 @@ abstract final class LintNames {
 
   static const String no_self_assignments = 'no_self_assignments';
 
+  static const String no_solo_tests = 'no_solo_tests';
+
+  static const String no_trailing_spaces = 'no_trailing_spaces';
+
   static const String no_wildcard_variable_uses = 'no_wildcard_variable_uses';
 
   static const String non_constant_identifier_names =
@@ -431,6 +459,9 @@ abstract final class LintNames {
   static const String public_member_api_docs = 'public_member_api_docs';
 
   static const String recursive_getters = 'recursive_getters';
+
+  static const String remove_deprecations_in_breaking_versions =
+      'remove_deprecations_in_breaking_versions';
 
   static const String require_trailing_commas = 'require_trailing_commas';
 
@@ -613,6 +644,8 @@ abstract final class LintNames {
   static const String use_truncating_division = 'use_truncating_division';
 
   static const String valid_regexps = 'valid_regexps';
+
+  static const String visit_registered_nodes = 'visit_registered_nodes';
 
   static const String void_checks = 'void_checks';
 }

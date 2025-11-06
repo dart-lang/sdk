@@ -7,12 +7,13 @@ import 'package:testing/testing.dart' show Chain;
 import 'utils/suite_utils.dart';
 import 'incremental_bulk_compiler_full.dart' show Context;
 
-void main([List<String> arguments = const []]) => internalMain(createContext,
-    arguments: arguments,
-    displayName: "incremental bulk compiler smoke suite",
-    configurationPath: "../testing.json");
+void main([List<String> arguments = const []]) => internalMain(
+  createContext,
+  arguments: arguments,
+  displayName: "incremental bulk compiler smoke suite",
+  configurationPath: "../testing.json",
+);
 
-Future<Context> createContext(
-    Chain suite, Map<String, String> environment) {
+Future<Context> createContext(Chain suite, Map<String, String> environment) {
   return new Future.value(new Context());
 }

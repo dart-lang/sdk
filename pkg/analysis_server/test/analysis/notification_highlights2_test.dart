@@ -2631,10 +2631,9 @@ void f(Object o) {
   /// Returns the textual dump of the highlight regions that intersect with
   /// the [index]th range in [testCode] (or all code if `-1`).
   String _getHighlightText(TestCode testCode, int index) {
-    var window =
-        index == -1
-            ? SourceRange(0, testCode.code.length)
-            : testCode.ranges[index].sourceRange;
+    var window = index == -1
+        ? SourceRange(0, testCode.code.length)
+        : testCode.ranges[index].sourceRange;
 
     // TODO(scheglov): Apparently, we don't sort in the server.
     var sortedRegions = regions.sortedBy<num>((e) => e.offset);
@@ -2769,6 +2768,8 @@ class HighlightsTestSupport extends PubPackageAnalysisServerTest {
 
   @override
   Future<void> setUp() async {
+    useLineEndingsForPlatform = false;
+
     super.setUp();
     await setRoots(included: [workspaceRootPath], excluded: []);
   }

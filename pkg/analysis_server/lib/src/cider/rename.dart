@@ -84,11 +84,9 @@ class CanRenameResponse {
     }
     // check if there are members with "newName" in the same ClassElement
     for (var newNameMember in getChildren(parentClass, newName)) {
-      var message = format(
+      var message = formatList(
         "Class '{0}' already declares {1} with name '{2}'.",
-        parentClass.displayName,
-        getElementKindName(newNameMember),
-        newName,
+        [parentClass.displayName, getElementKindName(newNameMember), newName],
       );
       result.addError(message, newLocation_fromElement(newNameMember));
     }
@@ -99,8 +97,7 @@ class CanRenameResponse {
       var oldStateName = '${element.displayName}State';
       var library = element.library;
       var state =
-          library.getClass(oldStateName) ??
-          library.getClass('_$oldStateName');
+          library.getClass(oldStateName) ?? library.getClass('_$oldStateName');
       if (state != null) {
         var flutterWidgetStateNewName = '${newName}State';
         // If the State was private, ensure that it stays private.
@@ -240,7 +237,7 @@ class CheckNameResponse {
         infos.add(
           ReplaceInfo(
             newName,
-            lineInfo.getLocation(getter.firstFragment.nameOffset2!),
+            lineInfo.getLocation(getter.firstFragment.nameOffset!),
             getter.name!.length,
           ),
         );
@@ -250,14 +247,14 @@ class CheckNameResponse {
         infos.add(
           ReplaceInfo(
             newName,
-            lineInfo.getLocation(setter.firstFragment.nameOffset2!),
+            lineInfo.getLocation(setter.firstFragment.nameOffset!),
             setter.name!.length,
           ),
         );
       }
     } else if (element is MockLibraryImportElement) {
       var unit = (await canRename._fileResolver.resolve(path: sourcePath)).unit;
-      var index = element.libraryFragment.libraryImports2.indexOf(
+      var index = element.libraryFragment.libraryImports.indexOf(
         element.import,
       );
       var node = unit.directives.whereType<ImportDirective>().elementAt(index);
@@ -290,7 +287,7 @@ class CheckNameResponse {
     } else {
       var location = (await canRename._fileResolver.resolve(
         path: sourcePath,
-      )).lineInfo.getLocation(element.firstFragment.nameOffset2!);
+      )).lineInfo.getLocation(element.firstFragment.nameOffset!);
       infos.add(ReplaceInfo(newName, location, element.name!.length));
     }
     return infos;
@@ -305,7 +302,7 @@ class CheckNameResponse {
     var libraryFragment = firstFragment.libraryFragment;
     var sourcePath = libraryFragment.source.fullName;
     var location = libraryFragment.lineInfo.getLocation(
-      firstFragment.nameOffset2!,
+      firstFragment.nameOffset!,
     );
     CiderSearchMatch ciderMatch;
     var searchInfo = CiderSearchInfo(
@@ -319,23 +316,22 @@ class CheckNameResponse {
     } catch (_) {
       match.add(CiderSearchMatch(sourcePath, [searchInfo]));
     }
-    var replacements =
-        match
-            .map(
-              (m) => CiderReplaceMatch(
-                m.path,
-                m.references
-                    .map(
-                      (p) => ReplaceInfo(
-                        stateName,
-                        p.startPosition,
-                        stateClass.name!.length,
-                      ),
-                    )
-                    .toList(),
-              ),
-            )
-            .toList();
+    var replacements = match
+        .map(
+          (m) => CiderReplaceMatch(
+            m.path,
+            m.references
+                .map(
+                  (p) => ReplaceInfo(
+                    stateName,
+                    p.startPosition,
+                    stateClass.name!.length,
+                  ),
+                )
+                .toList(),
+          ),
+        )
+        .toList();
     return FlutterWidgetRename(stateName, match, replacements);
   }
 
@@ -437,9 +433,6 @@ class CiderRenameComputer {
     }
     if (element is PropertyAccessorElement) {
       element = element.variable;
-      if (element == null) {
-        return null;
-      }
     }
     if (!_canRenameElement(element)) {
       return null;

@@ -6,19 +6,19 @@
 // avoid cyclic dependency between `package:vm/modular` and `package:front_end`.
 import 'package:front_end/src/codes/cfe_codes.dart'
     show
-        messageFfiAbiSpecificIntegerInvalid,
-        messageFfiAbiSpecificIntegerMappingInvalid,
-        messageFfiPackedAnnotationAlignment,
-        templateFfiCompoundImplementsFinalizable,
-        templateFfiEmptyStruct,
-        templateFfiFieldAnnotation,
-        templateFfiFieldCyclic,
-        templateFfiFieldInitializer,
-        templateFfiFieldNoAnnotation,
-        templateFfiFieldNull,
-        templateFfiPackedAnnotation,
-        templateFfiStructGeneric,
-        templateFfiTypeMismatch;
+        codeFfiAbiSpecificIntegerInvalid,
+        codeFfiAbiSpecificIntegerMappingInvalid,
+        codeFfiPackedAnnotationAlignment,
+        codeFfiCompoundImplementsFinalizable,
+        codeFfiEmptyStruct,
+        codeFfiFieldAnnotation,
+        codeFfiFieldCyclic,
+        codeFfiFieldInitializer,
+        codeFfiFieldNoAnnotation,
+        codeFfiFieldNull,
+        codeFfiPackedAnnotation,
+        codeFfiStructGeneric,
+        codeFfiTypeMismatch;
 import 'package:kernel/ast.dart';
 import 'package:kernel/class_hierarchy.dart' show ClassHierarchy;
 import 'package:kernel/core_types.dart';
@@ -213,7 +213,7 @@ class _FfiDefinitionTransformer extends FfiTransformer {
       if (report) {
         component.forEach((Class e) {
           diagnosticReporter.report(
-            templateFfiFieldCyclic.withArguments(
+            codeFfiFieldCyclic.withArgumentsOld(
               e.superclass!.name,
               e.name,
               component.map((e) => e.name).toList(),
@@ -290,7 +290,7 @@ class _FfiDefinitionTransformer extends FfiTransformer {
       if (nativeTypeCfe.abiSpecificTypes.isEmpty) {
         // Annotation missing, multiple annotations, or invalid mapping.
         diagnosticReporter.report(
-          messageFfiAbiSpecificIntegerMappingInvalid,
+          codeFfiAbiSpecificIntegerMappingInvalid,
           node.fileOffset,
           node.name.length,
           node.location!.file,
@@ -303,7 +303,7 @@ class _FfiDefinitionTransformer extends FfiTransformer {
           !node.constructors.single.isConst) {
         // We want exactly one constructor, no other members and no type arguments.
         diagnosticReporter.report(
-          messageFfiAbiSpecificIntegerInvalid,
+          codeFfiAbiSpecificIntegerInvalid,
           node.fileOffset,
           node.name.length,
           node.location!.file,
@@ -316,6 +316,24 @@ class _FfiDefinitionTransformer extends FfiTransformer {
     }
     if (!_isUserCompound(node)) {
       return node;
+    }
+
+    var superClass = node.superclass;
+    while (superClass != null) {
+      if (superClass == structClass || superClass == unionClass) {
+        // Structs and unions gets implict 'vm:deeply-immutable' annotation
+        // to allow those values flow seamlessly through shared static fields.
+        node.addAnnotation(
+          ConstantExpression(
+            InstanceConstant(pragmaClass.reference, [], {
+              pragmaName.fieldReference: StringConstant("vm:deeply-immutable"),
+              pragmaOptions.fieldReference: NullConstant(),
+            }),
+          ),
+        );
+        break;
+      }
+      superClass = superClass.superclass;
     }
 
     final packing = _checkCompoundClass(node);
@@ -343,10 +361,7 @@ class _FfiDefinitionTransformer extends FfiTransformer {
   int? _checkCompoundClass(Class node) {
     if (node.typeParameters.isNotEmpty) {
       diagnosticReporter.report(
-        templateFfiStructGeneric.withArguments(
-          node.superclass!.name,
-          node.name,
-        ),
+        codeFfiStructGeneric.withArgumentsOld(node.superclass!.name, node.name),
         node.fileOffset,
         1,
         node.location!.file,
@@ -368,7 +383,7 @@ class _FfiDefinitionTransformer extends FfiTransformer {
       finalizableType,
     )) {
       diagnosticReporter.report(
-        templateFfiCompoundImplementsFinalizable.withArguments(
+        codeFfiCompoundImplementsFinalizable.withArgumentsOld(
           node.superclass!.name,
           node.name,
         ),
@@ -382,7 +397,7 @@ class _FfiDefinitionTransformer extends FfiTransformer {
       final packingAnnotations = _getPackedAnnotations(node);
       if (packingAnnotations.length > 1) {
         diagnosticReporter.report(
-          templateFfiPackedAnnotation.withArguments(node.name),
+          codeFfiPackedAnnotation.withArgumentsOld(node.name),
           node.fileOffset,
           node.name.length,
           node.location!.file,
@@ -396,7 +411,7 @@ class _FfiDefinitionTransformer extends FfiTransformer {
             packing == 8 ||
             packing == 16)) {
           diagnosticReporter.report(
-            messageFfiPackedAnnotationAlignment,
+            codeFfiPackedAnnotationAlignment,
             node.fileOffset,
             node.name.length,
             node.location!.file,
@@ -461,7 +476,7 @@ class _FfiDefinitionTransformer extends FfiTransformer {
       if (f is Field) {
         if (f.initializer is! NullLiteral) {
           diagnosticReporter.report(
-            templateFfiFieldInitializer.withArguments(f.name.text),
+            codeFfiFieldInitializer.withArgumentsOld(f.name.text),
             f.fileOffset,
             f.name.text.length,
             f.fileUri,
@@ -477,7 +492,7 @@ class _FfiDefinitionTransformer extends FfiTransformer {
               type.declaredNullability == Nullability.nullable ||
               type.declaredNullability == Nullability.undetermined)) {
         diagnosticReporter.report(
-          templateFfiFieldNull.withArguments(f.name.text),
+          codeFfiFieldNull.withArgumentsOld(f.name.text),
           f.fileOffset,
           f.name.text.length,
           f.fileUri,
@@ -489,7 +504,7 @@ class _FfiDefinitionTransformer extends FfiTransformer {
         // a native type annotation.
         if (nativeTypeAnnos.isNotEmpty) {
           diagnosticReporter.report(
-            templateFfiFieldNoAnnotation.withArguments(f.name.text),
+            codeFfiFieldNoAnnotation.withArgumentsOld(f.name.text),
             f.fileOffset,
             f.name.text.length,
             f.fileUri,
@@ -511,7 +526,7 @@ class _FfiDefinitionTransformer extends FfiTransformer {
         }
       } else if (nativeTypeAnnos.length != 1) {
         diagnosticReporter.report(
-          templateFfiFieldAnnotation.withArguments(f.name.text),
+          codeFfiFieldAnnotation.withArgumentsOld(f.name.text),
           f.fileOffset,
           f.name.text.length,
           f.fileUri,
@@ -535,7 +550,7 @@ class _FfiDefinitionTransformer extends FfiTransformer {
             !env.isSubtypeOf(shouldBeDartType, type) ||
             !env.isSubtypeOf(type, shouldBeDartType)) {
           diagnosticReporter.report(
-            templateFfiTypeMismatch.withArguments(
+            codeFfiTypeMismatch.withArgumentsOld(
               type,
               shouldBeDartType!,
               nativeType,
@@ -562,7 +577,7 @@ class _FfiDefinitionTransformer extends FfiTransformer {
         if (i is FieldInitializer) {
           toRemove.add(i);
           diagnosticReporter.report(
-            templateFfiFieldInitializer.withArguments(i.field.name.text),
+            codeFfiFieldInitializer.withArgumentsOld(i.field.name.text),
             i.fileOffset,
             1,
             i.location!.file,
@@ -792,7 +807,7 @@ class _FfiDefinitionTransformer extends FfiTransformer {
     );
     if (compoundType.members.isEmpty) {
       diagnosticReporter.report(
-        templateFfiEmptyStruct.withArguments(node.superclass!.name, node.name),
+        codeFfiEmptyStruct.withArgumentsOld(node.superclass!.name, node.name),
         node.fileOffset,
         node.name.length,
         node.location!.file,

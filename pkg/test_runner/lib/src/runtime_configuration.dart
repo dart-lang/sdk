@@ -369,8 +369,19 @@ class DartVmRuntimeConfiguration extends RuntimeConfiguration {
     if (isReload) {
       multiplier *= 2;
     }
-    if (_configuration.sanitizer != Sanitizer.none) {
-      multiplier *= 4;
+    switch (_configuration.sanitizer) {
+      case Sanitizer.none:
+      case Sanitizer.lsan:
+      case Sanitizer.ubsan:
+        multiplier *= 1;
+        break;
+      case Sanitizer.asan:
+      case Sanitizer.msan:
+        multiplier *= 2;
+        break;
+      case Sanitizer.tsan:
+        multiplier *= 6;
+        break;
     }
     if (_configuration.rr) {
       multiplier *= 2;
@@ -547,7 +558,7 @@ class DartkFuchsiaEmulatorRuntimeConfiguration
             argument.replaceAll(Directory.current.path, "pkg/data"))
         .toList();
 
-    var component = "dart_test_component.cm";
+    var component = "dartvm_test_component.cm";
     if (aot) {
       component = "dartaotruntime_test_component.cm";
       arguments[arguments.length - 1] =

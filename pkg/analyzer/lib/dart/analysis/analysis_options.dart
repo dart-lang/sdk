@@ -6,8 +6,17 @@ import 'package:analyzer/dart/analysis/code_style_options.dart';
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/analysis/formatter_options.dart';
 import 'package:analyzer/source/error_processor.dart';
-import 'package:analyzer/src/lint/config.dart';
-import 'package:analyzer/src/lint/linter.dart';
+import 'package:analyzer/src/analysis_rule/rule_context.dart';
+import 'package:analyzer/src/dart/analysis/analysis_options.dart';
+
+@Deprecated("The 'PluginSource' classes are no longer public API")
+export 'package:analyzer/src/dart/analysis/analysis_options.dart'
+    show
+        GitPluginSource,
+        PathPluginSource,
+        PluginConfiguration,
+        PluginSource,
+        VersionedPluginSource;
 
 /// A set of analysis options used to control the behavior of an analysis
 /// context.
@@ -28,15 +37,14 @@ abstract class AnalysisOptions {
   /// legacy plugin, the legacy plugin should be enabled.
   List<String> get enabledLegacyPluginNames;
 
-  /// Return a list of error processors that are to be used when reporting
-  /// errors in some analysis context.
+  /// The list of error processors that are to be used when reporting errors in
+  /// some analysis context.
   List<ErrorProcessor> get errorProcessors;
 
-  /// Return a list of exclude patterns used to exclude some sources from
-  /// analysis.
+  /// The list of exclude patterns used to exclude some sources from analysis.
   List<String> get excludePatterns;
 
-  /// Return the options used to control the formatter.
+  /// The options used to control the formatter.
   FormatterOptions get formatterOptions;
 
   /// Whether analysis is to generate lint warnings.
@@ -52,6 +60,7 @@ abstract class AnalysisOptions {
   ///
   /// These are distinct from the legacy plugins found at
   /// [enabledLegacyPluginNames].
+  @Deprecated('This will be removed without replacement')
   List<PluginConfiguration> get pluginConfigurations;
 
   /// Whether implicit casts should be reported as potential problems.
@@ -72,96 +81,4 @@ abstract class AnalysisOptions {
 
   /// Return `true` the lint with the given [name] is enabled.
   bool isLintEnabled(String name);
-}
-
-final class GitPluginSource implements PluginSource {
-  final String _url;
-
-  final String? _path;
-
-  final String? _ref;
-
-  GitPluginSource({required String url, String? path, String? ref})
-    : _url = url,
-      _path = path,
-      _ref = ref;
-
-  @override
-  String toYaml({required String name}) {
-    var buffer =
-        StringBuffer()
-          ..writeln('  $name:')
-          ..writeln('    git:')
-          ..writeln('      url: $_url');
-    if (_ref != null) {
-      buffer.writeln('      ref: $_ref');
-    }
-    if (_path != null) {
-      buffer.writeln('      path: $_path');
-    }
-    return buffer.toString();
-  }
-}
-
-final class PathPluginSource implements PluginSource {
-  final String _path;
-
-  PathPluginSource({required String path}) : _path = path;
-
-  @override
-  String toYaml({required String name}) => '''
-  $name:
-    path: $_path
-''';
-}
-
-/// The configuration of a Dart Analysis Server plugin, as specified by
-/// analysis options.
-final class PluginConfiguration {
-  /// The name of the plugin being configured.
-  final String name;
-
-  /// The source of the plugin being configured.
-  final PluginSource source;
-
-  /// The list of specified [DiagnosticConfig]s.
-  // ignore: analyzer_public_api_bad_type
-  final Map<String, DiagnosticConfig> diagnosticConfigs;
-
-  /// Whether the plugin is enabled.
-  final bool isEnabled;
-
-  // ignore: analyzer_public_api_bad_type
-  PluginConfiguration({
-    required this.name,
-    required this.source,
-    this.diagnosticConfigs = const {},
-    this.isEnabled = true,
-  });
-
-  String sourceYaml() => source.toYaml(name: name);
-}
-
-/// A description of the source of a plugin.
-
-/// We support all of the source formats documented at
-/// https://dart.dev/tools/pub/dependencies.
-sealed class PluginSource {
-  /// Returns the YAML-formatted source, using [name] as a key, for writing into
-  /// a pubspec 'dependencies' section.
-  String toYaml({required String name});
-}
-
-/// A plugin source using a version constraint, hosted either at pub.dev or
-/// another host.
-// TODO(srawlins): Support a different 'hosted' URL.
-final class VersionedPluginSource implements PluginSource {
-  /// The specified version constraint.
-  final String _constraint;
-
-  VersionedPluginSource({required String constraint})
-    : _constraint = constraint;
-
-  @override
-  String toYaml({required String name}) => '  $name: $_constraint\n';
 }

@@ -22,7 +22,6 @@ import 'package:analyzer/src/dart/analysis/analysis_options.dart';
 import 'package:analyzer/src/dart/analysis/analysis_options_map.dart';
 import 'package:analyzer/src/dart/analysis/byte_store.dart';
 import 'package:analyzer/src/dart/analysis/defined_names.dart';
-import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer/src/dart/analysis/feature_set_provider.dart';
 import 'package:analyzer/src/dart/analysis/file_content_cache.dart';
 import 'package:analyzer/src/dart/analysis/library_graph.dart';
@@ -35,7 +34,6 @@ import 'package:analyzer/src/dart/scanner/reader.dart';
 import 'package:analyzer/src/dart/scanner/scanner.dart';
 import 'package:analyzer/src/dartdoc/dartdoc_directive_info.dart';
 import 'package:analyzer/src/exception/exception.dart';
-import 'package:analyzer/src/fine/requirements.dart';
 import 'package:analyzer/src/generated/parser.dart';
 import 'package:analyzer/src/generated/source.dart' show SourceFactory;
 import 'package:analyzer/src/summary/api_signature.dart';
@@ -214,56 +212,58 @@ abstract class FileKind {
   /// The import states of each `@docImport` on the library directive or
   /// part-of directive.
   List<LibraryImportState> get docLibraryImports {
-    return _docLibraryImports ??=
-        _unlinkedDocImports.map(_buildLibraryImportState).toFixedList();
+    return _docLibraryImports ??= _unlinkedDocImports
+        .map(_buildLibraryImportState)
+        .toFixedList();
   }
 
   /// Returns the library in which this file should be analyzed.
   LibraryFileKind? get library;
 
   List<LibraryExportState> get libraryExports {
-    return _libraryExports ??=
-        file.unlinked2.exports.map<LibraryExportState>((unlinked) {
-          var uris = file._buildConfigurableDirectiveUris(unlinked);
-          var selectedUri = uris.selected;
-          switch (selectedUri) {
-            case DirectiveUriWithFile():
-              return LibraryExportWithFile(
-                container: this,
-                unlinked: unlinked,
-                selectedUri: selectedUri,
-                uris: uris,
-              );
-            case DirectiveUriWithInSummarySource():
-              return LibraryExportWithInSummarySource(
-                container: this,
-                unlinked: unlinked,
-                selectedUri: selectedUri,
-                uris: uris,
-              );
-            case DirectiveUriWithUri():
-              return LibraryExportWithUri(
-                container: this,
-                unlinked: unlinked,
-                selectedUri: selectedUri,
-                uris: uris,
-              );
-            case DirectiveUriWithString():
-              return LibraryExportWithUriStr(
-                container: this,
-                unlinked: unlinked,
-                selectedUri: selectedUri,
-                uris: uris,
-              );
-            case DirectiveUriWithoutString():
-              return LibraryExportState(
-                container: this,
-                unlinked: unlinked,
-                selectedUri: selectedUri,
-                uris: uris,
-              );
-          }
-        }).toFixedList();
+    return _libraryExports ??= file.unlinked2.exports.map<LibraryExportState>((
+      unlinked,
+    ) {
+      var uris = file._buildConfigurableDirectiveUris(unlinked);
+      var selectedUri = uris.selected;
+      switch (selectedUri) {
+        case DirectiveUriWithFile():
+          return LibraryExportWithFile(
+            container: this,
+            unlinked: unlinked,
+            selectedUri: selectedUri,
+            uris: uris,
+          );
+        case DirectiveUriWithInSummarySource():
+          return LibraryExportWithInSummarySource(
+            container: this,
+            unlinked: unlinked,
+            selectedUri: selectedUri,
+            uris: uris,
+          );
+        case DirectiveUriWithUri():
+          return LibraryExportWithUri(
+            container: this,
+            unlinked: unlinked,
+            selectedUri: selectedUri,
+            uris: uris,
+          );
+        case DirectiveUriWithString():
+          return LibraryExportWithUriStr(
+            container: this,
+            unlinked: unlinked,
+            selectedUri: selectedUri,
+            uris: uris,
+          );
+        case DirectiveUriWithoutString():
+          return LibraryExportState(
+            container: this,
+            unlinked: unlinked,
+            selectedUri: selectedUri,
+            uris: uris,
+          );
+      }
+    }).toFixedList();
   }
 
   List<LibraryImportState> get libraryImports {
@@ -298,41 +298,42 @@ abstract class FileKind {
   }
 
   List<PartIncludeState> get partIncludes {
-    return _partIncludes ??=
-        file.unlinked2.parts.map<PartIncludeState>((unlinked) {
-          var uris = file._buildConfigurableDirectiveUris(unlinked);
-          var selectedUri = uris.selected;
-          switch (selectedUri) {
-            case DirectiveUriWithFile():
-              return PartIncludeWithFile(
-                container: this,
-                unlinked: unlinked,
-                selectedUri: selectedUri,
-                uris: uris,
-              );
-            case DirectiveUriWithUri():
-              return PartIncludeWithUri(
-                container: this,
-                unlinked: unlinked,
-                selectedUri: selectedUri,
-                uris: uris,
-              );
-            case DirectiveUriWithString():
-              return PartIncludeWithUriStr(
-                container: this,
-                unlinked: unlinked,
-                selectedUri: selectedUri,
-                uris: uris,
-              );
-            case DirectiveUriWithoutString():
-              return PartIncludeState(
-                container: this,
-                unlinked: unlinked,
-                selectedUri: selectedUri,
-                uris: uris,
-              );
-          }
-        }).toFixedList();
+    return _partIncludes ??= file.unlinked2.parts.map<PartIncludeState>((
+      unlinked,
+    ) {
+      var uris = file._buildConfigurableDirectiveUris(unlinked);
+      var selectedUri = uris.selected;
+      switch (selectedUri) {
+        case DirectiveUriWithFile():
+          return PartIncludeWithFile(
+            container: this,
+            unlinked: unlinked,
+            selectedUri: selectedUri,
+            uris: uris,
+          );
+        case DirectiveUriWithUri():
+          return PartIncludeWithUri(
+            container: this,
+            unlinked: unlinked,
+            selectedUri: selectedUri,
+            uris: uris,
+          );
+        case DirectiveUriWithString():
+          return PartIncludeWithUriStr(
+            container: this,
+            unlinked: unlinked,
+            selectedUri: selectedUri,
+            uris: uris,
+          );
+        case DirectiveUriWithoutString():
+          return PartIncludeState(
+            container: this,
+            unlinked: unlinked,
+            selectedUri: selectedUri,
+            uris: uris,
+          );
+      }
+    }).toFixedList();
   }
 
   List<UnlinkedLibraryImportDirective> get _unlinkedDocImports;
@@ -374,7 +375,6 @@ abstract class FileKind {
   @mustCallSuper
   void dispose() {
     disposeLibraryCycle();
-    library?.discardResolvedKey();
 
     _libraryExports?.disposeAll();
     _libraryImports?.disposeAll();
@@ -730,18 +730,17 @@ class FileState {
     var primaryUri = _buildDirectiveUri(directive.uri);
 
     DirectiveUri? selectedConfigurationUri;
-    var configurationUris =
-        directive.configurations.map((configuration) {
-          var configurationUri = _buildDirectiveUri(configuration.uri);
-          // Maybe select this URI.
-          var name = configuration.name;
-          var value = configuration.valueOrTrue;
-          if (_fsState._declaredVariables.get(name) == value) {
-            selectedConfigurationUri ??= configurationUri;
-          }
-          // Include it anyway.
-          return configurationUri;
-        }).toFixedList();
+    var configurationUris = directive.configurations.map((configuration) {
+      var configurationUri = _buildDirectiveUri(configuration.uri);
+      // Maybe select this URI.
+      var name = configuration.name;
+      var value = configuration.valueOrTrue;
+      if (_fsState._declaredVariables.get(name) == value) {
+        selectedConfigurationUri ??= configurationUri;
+      }
+      // Include it anyway.
+      return configurationUri;
+    }).toFixedList();
 
     return DirectiveUris(
       primary: primaryUri,
@@ -1032,10 +1031,11 @@ class FileState {
     }
 
     var dartdocDirectiveInfo = DartdocDirectiveInfo.extractFromUnit(unit);
-    var dartdocTemplates =
-        dartdocDirectiveInfo.templateMap.entries.map((entry) {
-          return UnlinkedDartdocTemplate(name: entry.key, value: entry.value);
-        }).toList();
+    var dartdocTemplates = dartdocDirectiveInfo.templateMap.entries.map((
+      entry,
+    ) {
+      return UnlinkedDartdocTemplate(name: entry.key, value: entry.value);
+    }).toList();
 
     var apiSignature = performance.run('apiSignature', (performance) {
       var signatureBuilder = ApiSignature();
@@ -1161,6 +1161,7 @@ class FileState {
   static UnlinkedPartDirective _serializePart(PartDirective node) {
     return UnlinkedPartDirective(
       configurations: _serializeConfigurations(node.configurations),
+      partKeywordOffset: node.partKeyword.offset,
       uri: node.uri.stringValue,
     );
   }
@@ -1194,6 +1195,7 @@ class FileSystemState {
   final SourceFactory _sourceFactory;
   final Workspace? _workspace;
   final DeclaredVariables _declaredVariables;
+  final bool withFineDependencies;
   final Uint32List _saltForUnlinked;
   final Uint32List _saltForElements;
 
@@ -1272,6 +1274,7 @@ class FileSystemState {
     required this.isGenerated,
     required this.onNewFile,
     required this.testData,
+    required this.withFineDependencies,
   }) : _analysisOptionsMap = analysisOptionsMap {
     _testView = FileSystemStateTestView(this);
   }
@@ -1807,24 +1810,14 @@ class LibraryFileKind extends LibraryOrAugmentationFileKind {
   /// The cache for [apiSignature].
   Uint8List? _apiSignature;
 
+  /// The cache for the library diagnostics bundle key.
+  ///
+  /// It is based on the content of all library files, plus other data that
+  /// affects diagnostics (analysis options, etc). But it does not include
+  /// signatures of dependencies.
+  String? diagnosticsBundleKey;
+
   LibraryCycle? _libraryCycle;
-
-  /// The cached value of [resolvedKey].
-  String? _resolvedKey;
-
-  /// The last known resolution result for the library.
-  ///
-  /// It might be still valid, but might be not.
-  /// We check its requirements to decide.
-  ///
-  /// We keep it in memory for performance. There are cases when we edit a
-  /// file with many transitive clients, and we don't want to deserialize
-  /// requirements every time. They are almost always satisfied, so we don't
-  /// analyze libraries, and so deserialization cost would dominate.
-  ///
-  /// There might be a way in the future to collapse these requirements to
-  /// reduce heap usage.
-  LibraryResolutionResult? lastResolutionResult;
 
   LibraryFileKind({
     required super.file,
@@ -1886,33 +1879,15 @@ class LibraryFileKind extends LibraryOrAugmentationFileKind {
   /// just this file.  If the library cycle is not known yet, compute it.
   LibraryCycle get libraryCycle {
     if (_libraryCycle == null) {
-      computeLibraryCycle(file._fsState._saltForElements, this);
+      computeLibraryCycle(
+        withFineDependencies: file._fsState.withFineDependencies,
+        saltForElements: file._fsState._saltForElements,
+        sourceFactory: file._fsState._sourceFactory,
+        file: this,
+      );
     }
 
     return _libraryCycle!;
-  }
-
-  /// The key to store a resolved library result.
-  ///
-  /// The key is based on the path, URI, and content of the library files.
-  ///
-  /// The result contains the fine grained requirements, and map with
-  /// diagnostics for each file.
-  String get resolvedKey {
-    if (_resolvedKey case var result?) {
-      return result;
-    }
-
-    var keyBuilder = ApiSignature();
-    keyBuilder.addInt(AnalysisDriver.DATA_VERSION);
-    var sortedFiles = library.files.sortedBy((f) => f.path);
-    for (var file in sortedFiles) {
-      keyBuilder.addString(file.path);
-      keyBuilder.addString(file.uriStr);
-      keyBuilder.addString(file.contentHash);
-    }
-
-    return _resolvedKey = '${keyBuilder.toHex()}.resolved2';
   }
 
   @override
@@ -1920,13 +1895,10 @@ class LibraryFileKind extends LibraryOrAugmentationFileKind {
     return file.unlinked2.libraryDirective?.docImports ?? const [];
   }
 
-  void discardResolvedKey() {
-    _resolvedKey = null;
-  }
-
   @override
   void dispose() {
     file._fsState._libraryNameToFiles.remove(this);
+    invalidateDiagnosticsBundleKey();
     super.dispose();
   }
 
@@ -1934,10 +1906,15 @@ class LibraryFileKind extends LibraryOrAugmentationFileKind {
   void disposeLibraryCycle() {
     _libraryCycle?.dispose();
     _libraryCycle = null;
+    diagnosticsBundleKey = null;
   }
 
   void internal_setLibraryCycle(LibraryCycle? cycle) {
     _libraryCycle = cycle;
+  }
+
+  void invalidateDiagnosticsBundleKey() {
+    diagnosticsBundleKey = null;
   }
 
   @override
@@ -2061,17 +2038,6 @@ final class LibraryImportWithUriStr<U extends DirectiveUriWithString>
 
 abstract class LibraryOrAugmentationFileKind extends FileKind {
   LibraryOrAugmentationFileKind({required super.file});
-}
-
-/// The resolution result for a library.
-class LibraryResolutionResult {
-  final RequirementsManifest requirements;
-
-  /// Approximately serialized map of file URIs to diagnostics.
-  /// See uses for precise details.
-  final Uint8List bytes;
-
-  LibraryResolutionResult({required this.requirements, required this.bytes});
 }
 
 /// The file has `part of` directive.

@@ -40,7 +40,7 @@ main() {
   const {const A() : 0};
 }
 ''',
-      [error(CompileTimeErrorCode.CONST_MAP_KEY_NOT_PRIMITIVE_EQUALITY, 75, 9)],
+      [error(CompileTimeErrorCode.constMapKeyNotPrimitiveEquality, 75, 9)],
     );
   }
 
@@ -51,13 +51,7 @@ main() {
   const {double.infinity: 0};
 }
 ''',
-      [
-        error(
-          CompileTimeErrorCode.CONST_MAP_KEY_NOT_PRIMITIVE_EQUALITY,
-          18,
-          15,
-        ),
-      ],
+      [error(CompileTimeErrorCode.constMapKeyNotPrimitiveEquality, 18, 15)],
     );
   }
 
@@ -80,13 +74,7 @@ main() {
   const {B.a : 0};
 }
 ''',
-      [
-        error(
-          CompileTimeErrorCode.CONST_MAP_KEY_NOT_PRIMITIVE_EQUALITY,
-          118,
-          3,
-        ),
-      ],
+      [error(CompileTimeErrorCode.constMapKeyNotPrimitiveEquality, 118, 3)],
     );
   }
 
@@ -106,13 +94,7 @@ main() {
   const {const A(): 42};
 }
 ''',
-      [
-        error(
-          CompileTimeErrorCode.CONST_MAP_KEY_NOT_PRIMITIVE_EQUALITY,
-          121,
-          9,
-        ),
-      ],
+      [error(CompileTimeErrorCode.constMapKeyNotPrimitiveEquality, 121, 9)],
     );
   }
 
@@ -133,13 +115,7 @@ main() {
   const B({A(): 0});
 }
 ''',
-      [
-        error(
-          CompileTimeErrorCode.CONST_MAP_KEY_NOT_PRIMITIVE_EQUALITY,
-          110,
-          3,
-        ),
-      ],
+      [error(CompileTimeErrorCode.constMapKeyNotPrimitiveEquality, 110, 3)],
     );
   }
 
@@ -155,13 +131,7 @@ const x = {
   (a: 0, b: const A()): 0,
 };
 ''',
-      [
-        error(
-          CompileTimeErrorCode.CONST_MAP_KEY_NOT_PRIMITIVE_EQUALITY,
-          71,
-          20,
-        ),
-      ],
+      [error(CompileTimeErrorCode.constMapKeyNotPrimitiveEquality, 71, 20)],
     );
   }
 
@@ -177,13 +147,7 @@ const x = {
   (0, const A()): 0,
 };
 ''',
-      [
-        error(
-          CompileTimeErrorCode.CONST_MAP_KEY_NOT_PRIMITIVE_EQUALITY,
-          71,
-          14,
-        ),
-      ],
+      [error(CompileTimeErrorCode.constMapKeyNotPrimitiveEquality, 71, 14)],
     );
   }
 
@@ -203,13 +167,7 @@ main() {
   const {const B() : 0};
 }
 ''',
-      [
-        error(
-          CompileTimeErrorCode.CONST_MAP_KEY_NOT_PRIMITIVE_EQUALITY,
-          111,
-          9,
-        ),
-      ],
+      [error(CompileTimeErrorCode.constMapKeyNotPrimitiveEquality, 111, 9)],
     );
   }
 
@@ -223,7 +181,7 @@ class A {
   int get hashCode => 0;
 }
 ''',
-      [error(CompileTimeErrorCode.CONST_MAP_KEY_NOT_PRIMITIVE_EQUALITY, 11, 3)],
+      [error(CompileTimeErrorCode.constMapKeyNotPrimitiveEquality, 11, 3)],
     );
   }
 

@@ -4,6 +4,8 @@
 
 #include "include/dart_api.h"
 #include "vm/bootstrap_natives.h"
+#include "vm/dart_api_impl.h"
+#include "vm/ffi_callback_metadata.h"
 #include "vm/heap/safepoint.h"
 #include "vm/os_thread.h"
 
@@ -115,8 +117,20 @@ DEFINE_FFI_NATIVE_ENTRY(ConditionVariable_NotifyAll,
 DEFINE_FFI_NATIVE_ENTRY(IsolateGroup_runSync,
                         Dart_Handle,
                         (Dart_Handle closure)) {
+  if (!FLAG_experimental_shared_data) {
+    FATAL(
+        "Encountered shared data api when functionality is disabled. "
+        "Pass --experimental-shared-data");
+  }
   Thread* current_thread = Thread::Current();
   ASSERT(current_thread->execution_state() == Thread::kThreadInNative);
+
+  {
+    DARTSCOPE(current_thread);
+    FfiCallbackMetadata::EnsureOnlyTriviallyImmutableValuesInClosure(
+        current_thread->zone(), Closure::RawCast(Api::UnwrapHandle(closure)));
+  }
+
   Isolate* saved_isolate = current_thread->isolate();
   current_thread->ExitSafepointFromNative();
   current_thread->set_execution_state(Thread::kThreadInVM);

@@ -161,8 +161,8 @@ class ExperimentalFeatures {
       var experimentalReleaseVersion =
           (features[key] as YamlMap)['experimentalReleaseVersion'];
       var enabledIn = (features[key] as YamlMap)['enabledIn'];
-      var channels =
-          (((features[key] as YamlMap)['channels']) as List?)?.cast<String>();
+      var channels = (((features[key] as YamlMap)['channels']) as List?)
+          ?.cast<String>();
       channels ??= ['stable', 'beta', 'dev', 'main'];
       var channelsLiteral = '[${channels.map((e) => '"$e"').join(', ')}]';
       out.write('''

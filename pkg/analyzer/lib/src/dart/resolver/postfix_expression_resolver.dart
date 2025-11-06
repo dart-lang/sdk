@@ -86,7 +86,7 @@ class PostfixExpressionResolver {
     )) {
       _resolver.diagnosticReporter.atNode(
         node,
-        CompileTimeErrorCode.INVALID_ASSIGNMENT,
+        CompileTimeErrorCode.invalidAssignment,
         arguments: [type, operandWriteType],
       );
     }
@@ -133,7 +133,7 @@ class PostfixExpressionResolver {
     if (identical(receiverType, NeverTypeImpl.instance)) {
       _resolver.diagnosticReporter.atNode(
         operand,
-        WarningCode.RECEIVER_OF_TYPE_NEVER,
+        WarningCode.receiverOfTypeNever,
       );
       return;
     }
@@ -153,13 +153,13 @@ class PostfixExpressionResolver {
       if (operand is SuperExpression) {
         _diagnosticReporter.atToken(
           node.operator,
-          CompileTimeErrorCode.UNDEFINED_SUPER_OPERATOR,
+          CompileTimeErrorCode.undefinedSuperOperator,
           arguments: [methodName, receiverType],
         );
       } else {
         _diagnosticReporter.atToken(
           node.operator,
-          CompileTimeErrorCode.UNDEFINED_OPERATOR,
+          CompileTimeErrorCode.undefinedOperator,
           arguments: [methodName, receiverType],
         );
       }
@@ -204,8 +204,6 @@ class PostfixExpressionResolver {
       }
       node.recordStaticType(receiverType, resolver: _resolver);
     }
-
-    _resolver.nullShortingTermination(node);
   }
 
   void _resolveNullCheck(
@@ -217,7 +215,7 @@ class PostfixExpressionResolver {
     if (operand is SuperExpression) {
       _resolver.diagnosticReporter.atNode(
         node,
-        ParserErrorCode.MISSING_ASSIGNABLE_SELECTOR,
+        ParserErrorCode.missingAssignableSelector,
       );
       operand.setPseudoExpressionStaticType(DynamicTypeImpl.instance);
       node.recordStaticType(DynamicTypeImpl.instance, resolver: _resolver);
@@ -227,6 +225,7 @@ class PostfixExpressionResolver {
     _resolver.analyzeExpression(
       operand,
       SharedTypeSchemaView(_typeSystem.makeNullable(contextType)),
+      continueNullShorting: true,
     );
     operand = _resolver.popRewrite()!;
 
@@ -236,6 +235,5 @@ class PostfixExpressionResolver {
     node.recordStaticType(type, resolver: _resolver);
 
     _resolver.flowAnalysis.flow?.nonNullAssert_end(operand);
-    _resolver.nullShortingTermination(node);
   }
 }

@@ -22,7 +22,7 @@ class A {
   static const F;
 }
 ''',
-      [error(CompileTimeErrorCode.CONST_NOT_INITIALIZED, 25, 1)],
+      [error(CompileTimeErrorCode.constNotInitialized, 25, 1)],
     );
   }
 
@@ -34,7 +34,7 @@ enum E {
   static const F;
 }
 ''',
-      [error(CompileTimeErrorCode.CONST_NOT_INITIALIZED, 29, 1)],
+      [error(CompileTimeErrorCode.constNotInitialized, 29, 1)],
     );
   }
 
@@ -45,7 +45,7 @@ extension E on String {
   static const F;
 }
 ''',
-      [error(CompileTimeErrorCode.CONST_NOT_INITIALIZED, 39, 1)],
+      [error(CompileTimeErrorCode.constNotInitialized, 39, 1)],
     );
   }
 
@@ -57,8 +57,8 @@ f() {
 }
 ''',
       [
-        error(WarningCode.UNUSED_LOCAL_VARIABLE, 18, 1),
-        error(CompileTimeErrorCode.CONST_NOT_INITIALIZED, 18, 1),
+        error(WarningCode.unusedLocalVariable, 18, 1),
+        error(CompileTimeErrorCode.constNotInitialized, 18, 1),
       ],
     );
   }
@@ -68,7 +68,7 @@ f() {
       '''
 const F;
 ''',
-      [error(CompileTimeErrorCode.CONST_NOT_INITIALIZED, 6, 1)],
+      [error(CompileTimeErrorCode.constNotInitialized, 6, 1)],
     );
   }
 }

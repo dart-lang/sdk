@@ -1,0 +1,43 @@
+library;
+import self as self;
+import "dart:core" as core;
+import "dart:_compact_hash" as _co;
+import "dart:collection" as col;
+
+extension E<T extends core::Object? = dynamic> on core::Set<T%> {
+  method method = self::E|method;
+  method tearoff method = self::E|get#method;
+}
+static field core::Set<core::int> set = block {
+  final core::Set<core::int> #t1 = new _co::_Set::•<core::int>();
+} =>#t1;
+static method f<T extends core::Object? = dynamic>(core::Set<self::f::T%> s) → void {
+  core::print(s.{core::Object::runtimeType}{core::Type});
+}
+static extension-member method E|method<T extends core::Object? = dynamic>(lowered final core::Set<self::E|method::T%> #this) → dynamic {
+  core::print(#this.{core::Object::runtimeType}{core::Type});
+}
+static extension-member method E|get#method<T extends core::Object? = dynamic>(lowered final core::Set<self::E|get#method::T%> #this) → () → dynamic
+  return () → dynamic => self::E|method<self::E|get#method::T%>(#this);
+static method main() → void {
+  self::f<dynamic>( block {
+    final core::Set<dynamic> #t2 = new _co::_Set::•<dynamic>();
+  } =>#t2);
+  self::f<core::int>( block {
+    final core::Set<core::int> #t3 = new _co::_Set::•<core::int>();
+    #t3.{core::Set::add}{Invariant}(1){(core::int) → core::bool};
+  } =>#t3);
+  self::f<core::int>( block {
+    final core::Set<core::int> #t4 = col::LinkedHashSet::of<core::int>(self::set);
+  } =>#t4);
+  self::E|method<dynamic>( block {
+    final core::Set<dynamic> #t5 = new _co::_Set::•<dynamic>();
+  } =>#t5);
+  self::E|method<core::int>( block {
+    final core::Set<core::int> #t6 = new _co::_Set::•<core::int>();
+    #t6.{core::Set::add}{Invariant}(1){(core::int) → core::bool};
+  } =>#t6);
+  self::E|method<core::int>( block {
+    final core::Set<core::int> #t7 = col::LinkedHashSet::of<core::int>(self::set);
+  } =>#t7);
+}

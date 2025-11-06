@@ -49,7 +49,7 @@ class B {
     assertResolvedNodeText(node1, r'''
 NamedType
   name: a
-  element2: <testLibrary>::@class::a
+  element: <testLibrary>::@class::a
   type: a
 ''');
 
@@ -88,7 +88,7 @@ class C {
   _() {}
 }
 ''',
-      [error(WarningCode.UNUSED_ELEMENT, 12, 1)],
+      [error(WarningCode.unusedElement, 12, 1)],
     );
 
     var node = findNode.methodDeclaration('_');
@@ -103,7 +103,8 @@ MethodDeclaration
       leftBracket: {
       rightBracket: }
   declaredElement: <testLibraryFragment> _@12
-    type: dynamic Function()
+    element: <testLibrary>::@class::C::@method::_
+      type: dynamic Function()
 ''');
   }
 
@@ -117,7 +118,7 @@ class C {
   _() {}
 }
 ''',
-      [error(WarningCode.UNUSED_ELEMENT, 56, 1)],
+      [error(WarningCode.unusedElement, 56, 1)],
     );
 
     var node = findNode.methodDeclaration('_');
@@ -132,7 +133,8 @@ MethodDeclaration
       leftBracket: {
       rightBracket: }
   declaredElement: <testLibraryFragment> _@56
-    type: dynamic Function()
+    element: <testLibrary>::@class::C::@method::_
+      type: dynamic Function()
 ''');
   }
 
@@ -157,7 +159,6 @@ VariableDeclaration
     element: <testLibrary>::@class::C::@getter::_
     staticType: int
   declaredFragment: isPrivate _@51
-    type: int
     element: isPrivate
       type: int
 ''');

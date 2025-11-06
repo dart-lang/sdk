@@ -83,6 +83,10 @@ abstract class AbstractCallHierarchyTest extends AbstractSingleUnitTest {
     return DartCallHierarchyComputer(result).findTarget(offset);
   }
 
+  TestCode parseCode(String content) {
+    return TestCode.parseNormalized(content);
+  }
+
   /// Gets the expected range that follows the string [prefix] in [content] with a
   /// length of [match.length].
   SourceRange rangeAfterPrefix(String prefix, TestCode code, String match) =>
@@ -94,12 +98,6 @@ abstract class AbstractCallHierarchyTest extends AbstractSingleUnitTest {
     var offset = code.code.indexOf(search);
     expect(offset, greaterThanOrEqualTo(0));
     return SourceRange(offset, (match ?? search).length);
-  }
-
-  @override
-  void setUp() {
-    useLineEndingsForPlatform = false;
-    super.setUp();
   }
 }
 
@@ -123,19 +121,19 @@ class CallHierarchyComputerFindTargetTest extends AbstractCallHierarchyTest {
   }
 
   Future<void> test_args() async {
-    await expectNoTarget(TestCode.parse('f(int ^a) {}'));
+    await expectNoTarget(parseCode('f(int ^a) {}'));
   }
 
   Future<void> test_block() async {
-    await expectNoTarget(TestCode.parse('f() {^}'));
+    await expectNoTarget(parseCode('f() {^}'));
   }
 
   Future<void> test_comment() async {
-    await expectNoTarget(TestCode.parse('f() {} // this is a ^comment'));
+    await expectNoTarget(parseCode('f() {} // this is a ^comment'));
   }
 
   Future<void> test_constructor() async {
-    var code = TestCode.parse('''
+    var code = parseCode('''
 class Foo {
   [!Fo^o(String a) {}!]
 }
@@ -156,7 +154,7 @@ class Foo {
   }
 
   Future<void> test_constructorCall() async {
-    var code = TestCode.parse('''
+    var code = parseCode('''
 import 'other.dart';
 
 void f() {
@@ -164,7 +162,7 @@ void f() {
 }
 ''');
 
-    var otherCode = TestCode.parse('''
+    var otherCode = parseCode('''
 class Foo {
   [!Foo();!]
 }
@@ -186,7 +184,7 @@ class Foo {
 
   @SkippedTest() // TODO(scheglov): implement augmentation
   Future<void> test_constructorCall_to_augmentation() async {
-    var code = TestCode.parse('''
+    var code = parseCode('''
 part 'other.dart';
 
 class Foo {}
@@ -196,7 +194,7 @@ void f() {
 }
 ''');
 
-    var otherCode = TestCode.parse('''
+    var otherCode = parseCode('''
 part of 'test.dart';
 augment class Foo {
   [!Foo.named(){}!]
@@ -218,7 +216,7 @@ augment class Foo {
   }
 
   Future<void> test_dotShorthand_constructor_named() async {
-    var code = TestCode.parse('''
+    var code = parseCode('''
 import 'other.dart';
 
 void f() {
@@ -226,7 +224,7 @@ void f() {
 }
 ''');
 
-    var otherCode = TestCode.parse('''
+    var otherCode = parseCode('''
 class Foo {
   [!Foo.named();!]
 }
@@ -247,7 +245,7 @@ class Foo {
   }
 
   Future<void> test_dotShorthand_constructor_unnamed() async {
-    var code = TestCode.parse('''
+    var code = parseCode('''
 import 'other.dart';
 
 void f() {
@@ -255,7 +253,7 @@ void f() {
 }
 ''');
 
-    var otherCode = TestCode.parse('''
+    var otherCode = parseCode('''
 [!class Foo {}!]
 ''');
 
@@ -274,7 +272,7 @@ void f() {
   }
 
   Future<void> test_dotShorthand_extensionType() async {
-    var code = TestCode.parse('''
+    var code = parseCode('''
 import 'other.dart';
 
 void f() {
@@ -282,7 +280,7 @@ void f() {
 }
 ''');
 
-    var otherCode = TestCode.parse('''
+    var otherCode = parseCode('''
 extension type Foo(int x) {
   [!static Foo get bar => Foo(1);!]
 }
@@ -303,7 +301,7 @@ extension type Foo(int x) {
   }
 
   Future<void> test_dotShorthand_getter() async {
-    var code = TestCode.parse('''
+    var code = parseCode('''
 import 'other.dart';
 
 void f() {
@@ -311,7 +309,7 @@ void f() {
 }
 ''');
 
-    var otherCode = TestCode.parse('''
+    var otherCode = parseCode('''
 class Foo {
   [!static Foo get bar => Foo();!]
 }
@@ -332,7 +330,7 @@ class Foo {
   }
 
   Future<void> test_dotShorthand_method() async {
-    var code = TestCode.parse('''
+    var code = parseCode('''
 import 'other.dart';
 
 void f() {
@@ -340,7 +338,7 @@ void f() {
 }
 ''');
 
-    var otherCode = TestCode.parse('''
+    var otherCode = parseCode('''
 class Foo {
   [!static Foo bar() => Foo();!]
 }
@@ -361,7 +359,7 @@ class Foo {
   }
 
   Future<void> test_extension_method() async {
-    var code = TestCode.parse('''
+    var code = parseCode('''
 extension StringExtension on String {
   [!void myMet^hod() {}!]
 }
@@ -381,7 +379,7 @@ extension StringExtension on String {
   }
 
   Future<void> test_extension_methodCall() async {
-    var code = TestCode.parse('''
+    var code = parseCode('''
 import 'other.dart';
 
 void f() {
@@ -389,7 +387,7 @@ void f() {
 }
 ''');
 
-    var otherCode = TestCode.parse('''
+    var otherCode = parseCode('''
 extension StringExtension on String {
   [!void myMethod() {}!]
 }
@@ -410,7 +408,7 @@ extension StringExtension on String {
   }
 
   Future<void> test_function() async {
-    var code = TestCode.parse('''
+    var code = parseCode('''
 [!void myFun^ction() {}!]
 ''');
 
@@ -428,7 +426,7 @@ extension StringExtension on String {
   }
 
   Future<void> test_function_startOfParameterList() async {
-    var code = TestCode.parse('''
+    var code = parseCode('''
 [!void myFunction^() {}!]
 ''');
 
@@ -446,7 +444,7 @@ extension StringExtension on String {
   }
 
   Future<void> test_function_startOfTypeParameterList() async {
-    var code = TestCode.parse('''
+    var code = parseCode('''
 [!void myFunction^<T>() {}!]
 ''');
 
@@ -464,7 +462,7 @@ extension StringExtension on String {
   }
 
   Future<void> test_functionCall() async {
-    var code = TestCode.parse('''
+    var code = parseCode('''
 import 'other.dart' as other;
 
 void f() {
@@ -472,7 +470,7 @@ void f() {
 }
 ''');
 
-    var otherCode = TestCode.parse('''
+    var otherCode = parseCode('''
 [!void myFunction() {}!]
 ''');
 
@@ -491,7 +489,7 @@ void f() {
   }
 
   Future<void> test_functionCallInNullAwareElementInList() async {
-    var code = TestCode.parse('''
+    var code = parseCode('''
 import 'other.dart' as other;
 
 void f() {
@@ -499,7 +497,7 @@ void f() {
 }
 ''');
 
-    var otherCode = TestCode.parse('''
+    var otherCode = parseCode('''
 [!String? myFunction() => null;!]
 ''');
 
@@ -518,7 +516,7 @@ void f() {
   }
 
   Future<void> test_functionCallInNullAwareElementInMapKey() async {
-    var code = TestCode.parse('''
+    var code = parseCode('''
 import 'other.dart' as other;
 
 void f() {
@@ -526,7 +524,7 @@ void f() {
 }
 ''');
 
-    var otherCode = TestCode.parse('''
+    var otherCode = parseCode('''
 [!String? myFunction() => null;!]
 ''');
 
@@ -545,7 +543,7 @@ void f() {
   }
 
   Future<void> test_functionCallInNullAwareElementInMapValue() async {
-    var code = TestCode.parse('''
+    var code = parseCode('''
 import 'other.dart' as other;
 
 void f() {
@@ -553,7 +551,7 @@ void f() {
 }
 ''');
 
-    var otherCode = TestCode.parse('''
+    var otherCode = parseCode('''
 [!String? myFunction() => null;!]
 ''');
 
@@ -572,7 +570,7 @@ void f() {
   }
 
   Future<void> test_functionCallInNullAwareElementInSet() async {
-    var code = TestCode.parse('''
+    var code = parseCode('''
 import 'other.dart' as other;
 
 void f() {
@@ -580,7 +578,7 @@ void f() {
 }
 ''');
 
-    var otherCode = TestCode.parse('''
+    var otherCode = parseCode('''
 [!String? myFunction() => null;!]
 ''');
 
@@ -599,7 +597,7 @@ void f() {
   }
 
   Future<void> test_getter() async {
-    var code = TestCode.parse('''
+    var code = parseCode('''
 class Foo {
   [!String get fo^o => '';!]
 }
@@ -619,7 +617,7 @@ class Foo {
   }
 
   Future<void> test_getterCall() async {
-    var code = TestCode.parse('''
+    var code = parseCode('''
 import 'other.dart';
 
 void f() {
@@ -627,7 +625,7 @@ void f() {
 }
 ''');
 
-    var otherCode = TestCode.parse('''
+    var otherCode = parseCode('''
 [!String get bar => '';!]
 ''');
 
@@ -649,7 +647,7 @@ void f() {
     // Even if a constructor is implicit, we might want to be able to get the
     // incoming calls, so we should return the class location as a stand-in
     // (although with the Kind still set to constructor).
-    var code = TestCode.parse('''
+    var code = parseCode('''
 import 'other.dart';
 
 void f() {
@@ -657,7 +655,7 @@ void f() {
 }
 ''');
 
-    var otherCode = TestCode.parse('''
+    var otherCode = parseCode('''
 [!class Foo {}!]
 ''');
 
@@ -676,7 +674,7 @@ void f() {
   }
 
   Future<void> test_method() async {
-    var code = TestCode.parse('''
+    var code = parseCode('''
 class Foo {
   [!void myMet^hod() {}!]
 }
@@ -696,7 +694,7 @@ class Foo {
   }
 
   Future<void> test_method_startOfParameterList() async {
-    var code = TestCode.parse('''
+    var code = parseCode('''
 class Foo {
   [!void myMethod^() {}!]
 }
@@ -716,7 +714,7 @@ class Foo {
   }
 
   Future<void> test_method_startOfTypeParameterList() async {
-    var code = TestCode.parse('''
+    var code = parseCode('''
 class Foo {
   [!void myMethod^<T>() {}!]
 }
@@ -736,7 +734,7 @@ class Foo {
   }
 
   Future<void> test_methodCall() async {
-    var code = TestCode.parse('''
+    var code = parseCode('''
 import 'other.dart';
 
 void f() {
@@ -744,7 +742,7 @@ void f() {
 }
 ''');
 
-    var otherCode = TestCode.parse('''
+    var otherCode = parseCode('''
 class Foo {
   [!void myMethod() {}!]
 }
@@ -765,7 +763,7 @@ class Foo {
   }
 
   Future<void> test_methodCall_to_augmentation() async {
-    var code = TestCode.parse('''
+    var code = parseCode('''
 part 'other.dart';
 
 class Foo {}
@@ -775,7 +773,7 @@ void f() {
 }
 ''');
 
-    var otherCode = TestCode.parse('''
+    var otherCode = parseCode('''
 part of 'test.dart';
 
 augment class Foo {
@@ -798,7 +796,7 @@ augment class Foo {
   }
 
   Future<void> test_mixin_method() async {
-    var code = TestCode.parse('''
+    var code = parseCode('''
 mixin Bar {
   [!void myMet^hod() {}!]
 }
@@ -818,7 +816,7 @@ mixin Bar {
   }
 
   Future<void> test_mixin_methodCall() async {
-    var code = TestCode.parse('''
+    var code = parseCode('''
 import 'other.dart';
 
 void f() {
@@ -826,7 +824,7 @@ void f() {
 }
 ''');
 
-    var otherCode = TestCode.parse('''
+    var otherCode = parseCode('''
 class Bar {
   [!void myMethod() {}!]
 }
@@ -849,7 +847,7 @@ class Foo with Bar {}
   }
 
   Future<void> test_namedConstructor() async {
-    var code = TestCode.parse('''
+    var code = parseCode('''
 class Foo {
   [!Foo.Ba^r(String a) {}!]
 }
@@ -869,7 +867,7 @@ class Foo {
   }
 
   Future<void> test_namedConstructor_typeName() async {
-    var code = TestCode.parse('''
+    var code = parseCode('''
 class Foo {
   Fo^o.Bar(String a) {}
 }
@@ -879,7 +877,7 @@ class Foo {
   }
 
   Future<void> test_namedConstructorCall() async {
-    var code = TestCode.parse('''
+    var code = parseCode('''
 import 'other.dart';
 
 void f() {
@@ -887,7 +885,7 @@ void f() {
 }
 ''');
 
-    var otherCode = TestCode.parse('''
+    var otherCode = parseCode('''
 class Foo {
   [!Foo.Bar();!]
 }
@@ -908,7 +906,7 @@ class Foo {
   }
 
   Future<void> test_namedConstructorCall_typeName() async {
-    var code = TestCode.parse('''
+    var code = parseCode('''
 import 'other.dart';
 
 void f() {
@@ -916,7 +914,7 @@ void f() {
 }
 ''');
 
-    var otherCode = TestCode.parse('''
+    var otherCode = parseCode('''
 class Foo {
   Foo.Bar();
 }
@@ -927,7 +925,7 @@ class Foo {
   }
 
   Future<void> test_setter() async {
-    var code = TestCode.parse('''
+    var code = parseCode('''
 class Foo {
   [!set fo^o(String value) {}!]
 }
@@ -947,7 +945,7 @@ class Foo {
   }
 
   Future<void> test_setterCall() async {
-    var code = TestCode.parse('''
+    var code = parseCode('''
 import 'other.dart';
 
 void f() {
@@ -955,7 +953,7 @@ void f() {
 }
 ''');
 
-    var otherCode = TestCode.parse('''
+    var otherCode = parseCode('''
 [!set bar(String value) {}!]
 ''');
 
@@ -974,11 +972,11 @@ void f() {
   }
 
   Future<void> test_whitespace() async {
-    await expectNoTarget(TestCode.parse(' ^  void f() {}'));
+    await expectNoTarget(parseCode(' ^  void f() {}'));
   }
 
   Future<void> test_wildcardVariable() async {
-    var code = TestCode.parse('''
+    var code = parseCode('''
 f() {
   [!^_() {}!]
 }
@@ -992,14 +990,14 @@ f() {
         '_',
         testFile.path,
         containerName: 'f',
-        nameRange: SourceRange(8, 1),
+        nameRange: rangeAtSearch('_', code),
         codeRange: code.range.sourceRange,
       ),
     );
   }
 
   Future<void> test_wildcardVariable_preWildcards() async {
-    var code = TestCode.parse('''
+    var code = parseCode('''
 // @dart = 3.4
 // (pre wildcard-variables)
 
@@ -1017,7 +1015,7 @@ f() {
         '_',
         testFile.path,
         containerName: 'f',
-        nameRange: SourceRange(52, 1),
+        nameRange: rangeAtSearch('_', code),
         codeRange: code.range.sourceRange,
       ),
     );
@@ -1054,13 +1052,13 @@ class CallHierarchyComputerIncomingCallsTest extends AbstractCallHierarchyTest {
   }
 
   Future<void> test_constructor() async {
-    var code = TestCode.parse('''
+    var code = parseCode('''
 class Foo {
   Fo^o();
 }
 ''');
 
-    var otherCode = TestCode.parse('''
+    var otherCode = parseCode('''
 import 'test.dart';
 
 final foo1 = Foo();
@@ -1136,7 +1134,7 @@ final foo1 = Foo();
   }
 
   Future<void> test_dotShorthand_constructor_named() async {
-    var code = TestCode.parse('''
+    var code = parseCode('''
 // ignore_for_file: unused_local_variable
 import 'other.dart';
 
@@ -1145,7 +1143,7 @@ import 'other.dart';
 }!]
 ''');
 
-    var otherCode = TestCode.parse('''
+    var otherCode = parseCode('''
 class Foo {
   Foo.named();
 }
@@ -1185,7 +1183,7 @@ Foo foo2 = .named();
   }
 
   Future<void> test_dotShorthand_constructor_unnamed() async {
-    var code = TestCode.parse('''
+    var code = parseCode('''
 // ignore_for_file: unused_local_variable
 import 'other.dart';
 
@@ -1194,7 +1192,7 @@ import 'other.dart';
 }!]
 ''');
 
-    var otherCode = TestCode.parse('''
+    var otherCode = parseCode('''
 class Foo {}
 
 Foo foo2 = .new();
@@ -1232,7 +1230,7 @@ Foo foo2 = .new();
   }
 
   Future<void> test_dotShorthand_extensionType() async {
-    var code = TestCode.parse('''
+    var code = parseCode('''
 // ignore_for_file: unused_local_variable
 import 'other.dart';
 
@@ -1241,7 +1239,7 @@ import 'other.dart';
 }!]
 ''');
 
-    var otherCode = TestCode.parse('''
+    var otherCode = parseCode('''
 extension type Foo(int x) {
   static Foo get getter => Foo(1);
 }
@@ -1281,7 +1279,7 @@ Foo foo2 = .getter;
   }
 
   Future<void> test_dotShorthand_getter() async {
-    var code = TestCode.parse('''
+    var code = parseCode('''
 // ignore_for_file: unused_local_variable
 import 'other.dart';
 
@@ -1290,7 +1288,7 @@ import 'other.dart';
 }!]
 ''');
 
-    var otherCode = TestCode.parse('''
+    var otherCode = parseCode('''
 class Foo {
   static Foo get getter => Foo();
 }
@@ -1330,7 +1328,7 @@ Foo foo2 = .getter;
   }
 
   Future<void> test_dotShorthand_method() async {
-    var code = TestCode.parse('''
+    var code = parseCode('''
 // ignore_for_file: unused_local_variable
 import 'other.dart';
 
@@ -1339,7 +1337,7 @@ import 'other.dart';
 }!]
 ''');
 
-    var otherCode = TestCode.parse('''
+    var otherCode = parseCode('''
 class Foo {
   static Foo method() => Foo();
 }
@@ -1379,13 +1377,13 @@ Foo foo2 = .method();
   }
 
   Future<void> test_extension_method() async {
-    var code = TestCode.parse('''
+    var code = parseCode('''
 extension StringExtension on String {
   void myMet^hod() {}
 }
 ''');
 
-    var otherCode = TestCode.parse('''
+    var otherCode = parseCode('''
 import 'test.dart';
 
 [!void f() {
@@ -1416,7 +1414,7 @@ import 'test.dart';
   }
 
   Future<void> test_fileModifications() async {
-    var code = TestCode.parse('''
+    var code = parseCode('''
 void o^ne() {}
 void two() {
   one();
@@ -1438,11 +1436,11 @@ void two() {
   }
 
   Future<void> test_function() async {
-    var code = TestCode.parse('''
+    var code = parseCode('''
 String myFun^ction() => '';
 ''');
 
-    var otherCode = TestCode.parse('''
+    var otherCode = parseCode('''
 import 'test.dart';
 
 final foo1 = myFunction();
@@ -1519,11 +1517,11 @@ final foo1 = myFunction();
   }
 
   Future<void> test_getter() async {
-    var code = TestCode.parse('''
+    var code = parseCode('''
 String get f^oo => '';
 ''');
 
-    var otherCode = TestCode.parse('''
+    var otherCode = parseCode('''
 import 'test.dart';
 
 final foo1 = foo;
@@ -1601,7 +1599,7 @@ final foo1 = foo;
   Future<void> test_implicitConstructor() async {
     // We still expect to be able to navigate with implicit constructors. This
     // is done by the target being the class, but with a kind of Constructor.
-    var code = TestCode.parse('''
+    var code = parseCode('''
 // ignore_for_file: unused_local_variable
 import 'other.dart';
 
@@ -1610,7 +1608,7 @@ import 'other.dart';
 }!]
 ''');
 
-    var otherCode = TestCode.parse('''
+    var otherCode = parseCode('''
 class Foo {}
 
 final foo2 = Foo();
@@ -1648,13 +1646,13 @@ final foo2 = Foo();
   }
 
   Future<void> test_method() async {
-    var code = TestCode.parse('''
+    var code = parseCode('''
 class Foo {
   void myMet^hod() {}
 }
 ''');
 
-    var otherCode = TestCode.parse('''
+    var otherCode = parseCode('''
 import 'test.dart';
 
 [!void f() {
@@ -1686,7 +1684,7 @@ import 'test.dart';
   }
 
   Future<void> test_method_from_augmentation() async {
-    var code = TestCode.parse('''
+    var code = parseCode('''
 part 'other.dart';
 
 class Foo {
@@ -1694,7 +1692,7 @@ class Foo {
 }
 ''');
 
-    var otherCode = TestCode.parse('''
+    var otherCode = parseCode('''
 part of 'test.dart';
 
 augment class Foo {
@@ -1719,13 +1717,13 @@ augment class Foo {
   }
 
   Future<void> test_methodInNullAwareElementInList() async {
-    var code = TestCode.parse('''
+    var code = parseCode('''
 class Foo {
   bool? myMet^hod() => null;
 }
 ''');
 
-    var otherCode = TestCode.parse('''
+    var otherCode = parseCode('''
 import 'test.dart';
 
 [!void f() {
@@ -1760,13 +1758,13 @@ import 'test.dart';
   }
 
   Future<void> test_methodInNullAwareElementInMapKey() async {
-    var code = TestCode.parse('''
+    var code = parseCode('''
 class Foo {
   bool? myMet^hod() => null;
 }
 ''');
 
-    var otherCode = TestCode.parse('''
+    var otherCode = parseCode('''
 import 'test.dart';
 
 [!void f() {
@@ -1801,13 +1799,13 @@ import 'test.dart';
   }
 
   Future<void> test_methodInNullAwareElementInMapValue() async {
-    var code = TestCode.parse('''
+    var code = parseCode('''
 class Foo {
   bool? myMet^hod() => null;
 }
 ''');
 
-    var otherCode = TestCode.parse('''
+    var otherCode = parseCode('''
 import 'test.dart';
 
 [!void f() {
@@ -1842,13 +1840,13 @@ import 'test.dart';
   }
 
   Future<void> test_methodInNullAwareElementInSet() async {
-    var code = TestCode.parse('''
+    var code = parseCode('''
 class Foo {
   bool? myMet^hod() => null;
 }
 ''');
 
-    var otherCode = TestCode.parse('''
+    var otherCode = parseCode('''
 import 'test.dart';
 
 [!void f() {
@@ -1883,7 +1881,7 @@ import 'test.dart';
   }
 
   Future<void> test_mixin_method() async {
-    var code = TestCode.parse('''
+    var code = parseCode('''
 mixin Bar {
   void myMet^hod() {}
 }
@@ -1891,7 +1889,7 @@ mixin Bar {
 class Foo with Bar {}
 ''');
 
-    var otherCode = TestCode.parse('''
+    var otherCode = parseCode('''
 import 'test.dart';
 
 [!void f() {
@@ -1922,13 +1920,13 @@ import 'test.dart';
   }
 
   Future<void> test_namedConstructor() async {
-    var code = TestCode.parse('''
+    var code = parseCode('''
 class Foo {
   Foo.B^ar();
 }
 ''');
 
-    var otherCode = TestCode.parse('''
+    var otherCode = parseCode('''
 import 'test.dart';
 
 [!void f() {
@@ -1959,11 +1957,11 @@ import 'test.dart';
   }
 
   Future<void> test_setter() async {
-    var code = TestCode.parse('''
+    var code = parseCode('''
 set fo^o(String value) {}
 ''');
 
-    var otherCode = TestCode.parse('''
+    var otherCode = parseCode('''
 import 'test.dart';
 
 class Bar {
@@ -2035,7 +2033,7 @@ class CallHierarchyComputerOutgoingCallsTest extends AbstractCallHierarchyTest {
   }
 
   Future<void> test_constructor() async {
-    var code = TestCode.parse('''
+    var code = parseCode('''
 // ignore_for_file: unused_local_variable
 import 'other.dart';
 
@@ -2049,7 +2047,7 @@ class Foo {
 }
 ''');
 
-    var otherCode = TestCode.parse('''
+    var otherCode = parseCode('''
 class A {
   /*[0*/A();/*0]*/
 }
@@ -2093,7 +2091,7 @@ class A {
 
   @SkippedTest() // TODO(scheglov): implement augmentation
   Future<void> test_constructor_from_augmentation() async {
-    var code = TestCode.parse('''
+    var code = parseCode('''
 part 'other.dart';
 
 class Foo {}
@@ -2103,7 +2101,7 @@ void ba^r() {
 }
 ''');
 
-    var otherCode = TestCode.parse('''
+    var otherCode = parseCode('''
 part of 'test.dart';
 
 augment class Foo {
@@ -2127,7 +2125,7 @@ augment class Foo {
   }
 
   Future<void> test_dotShorthand_constructor_named() async {
-    var code = TestCode.parse('''
+    var code = parseCode('''
 // ignore_for_file: unused_local_variable
 import 'other.dart';
 
@@ -2138,7 +2136,7 @@ class Foo {
 }
 ''');
 
-    var otherCode = TestCode.parse('''
+    var otherCode = parseCode('''
 class A {
   [!A.named();!]
 }
@@ -2163,7 +2161,7 @@ class A {
   }
 
   Future<void> test_dotShorthand_constructor_unnamed() async {
-    var code = TestCode.parse('''
+    var code = parseCode('''
 // ignore_for_file: unused_local_variable
 import 'other.dart';
 
@@ -2174,7 +2172,7 @@ class Foo {
 }
 ''');
 
-    var otherCode = TestCode.parse('''
+    var otherCode = parseCode('''
 [!class A {}!]
 ''');
 
@@ -2197,7 +2195,7 @@ class Foo {
   }
 
   Future<void> test_dotShorthand_extensionType() async {
-    var code = TestCode.parse('''
+    var code = parseCode('''
 // ignore_for_file: unused_local_variable
 import 'other.dart';
 
@@ -2208,7 +2206,7 @@ class Foo {
 }
 ''');
 
-    var otherCode = TestCode.parse('''
+    var otherCode = parseCode('''
 extension type A(int x) {
   [!static A get getter => A(1);!]
 }
@@ -2233,7 +2231,7 @@ extension type A(int x) {
   }
 
   Future<void> test_dotShorthand_getter() async {
-    var code = TestCode.parse('''
+    var code = parseCode('''
 // ignore_for_file: unused_local_variable
 import 'other.dart';
 
@@ -2244,7 +2242,7 @@ class Foo {
 }
 ''');
 
-    var otherCode = TestCode.parse('''
+    var otherCode = parseCode('''
 class A {
   [!static A get getter => A();!]
 }
@@ -2269,7 +2267,7 @@ class A {
   }
 
   Future<void> test_dotShorthand_method() async {
-    var code = TestCode.parse('''
+    var code = parseCode('''
 // ignore_for_file: unused_local_variable
 import 'other.dart';
 
@@ -2280,7 +2278,7 @@ class Foo {
 }
 ''');
 
-    var otherCode = TestCode.parse('''
+    var otherCode = parseCode('''
 class A {
   [!static A method() => A();!]
 }
@@ -2305,7 +2303,7 @@ class A {
   }
 
   Future<void> test_extension_method() async {
-    var code = TestCode.parse('''
+    var code = parseCode('''
 // ignore_for_file: unused_local_variable
 import 'other.dart';
 
@@ -2317,7 +2315,7 @@ extension StringExtension on String {
 }
 ''');
 
-    var otherCode = TestCode.parse('''
+    var otherCode = parseCode('''
 extension StringExtension on String {
   [!void bar() {}!]
 }
@@ -2345,7 +2343,7 @@ extension StringExtension on String {
   }
 
   Future<void> test_fileModifications() async {
-    var code = TestCode.parse('''
+    var code = parseCode('''
 void o^ne() {
   two();
 }
@@ -2367,7 +2365,7 @@ void two() {}
   }
 
   Future<void> test_function() async {
-    var code = TestCode.parse('''
+    var code = parseCode('''
 // ignore_for_file: unused_local_variable
 import 'other.dart';
 
@@ -2382,7 +2380,7 @@ void fo^o() {
 }
 ''');
 
-    var otherCode = TestCode.parse('''
+    var otherCode = parseCode('''
 [!void f() {}!]
 ''');
 
@@ -2420,7 +2418,7 @@ void fo^o() {
   }
 
   Future<void> test_getter() async {
-    var code = TestCode.parse('''
+    var code = parseCode('''
 // ignore_for_file: unused_local_variable
 import 'other.dart';
 
@@ -2432,7 +2430,7 @@ String get fo^o {
 }
 ''');
 
-    var otherCode = TestCode.parse('''
+    var otherCode = parseCode('''
 /*[0*/class A {
   /*[1*/String get b => '';/*1]*/
 }/*0]*/
@@ -2471,7 +2469,7 @@ String get fo^o {
     // We can still begin navigating from an implicit constructor (so we can
     // search for inbound calls), so we should ensure that trying to fetch
     // outbound calls returns empty (and doesn't fail).
-    var code = TestCode.parse('''
+    var code = parseCode('''
 // ignore_for_file: unused_local_variable
 import 'other.dart';
 
@@ -2480,7 +2478,7 @@ void f() {
 }
 ''');
 
-    var otherCode = TestCode.parse('''
+    var otherCode = parseCode('''
 class Foo {}
 ''');
 
@@ -2490,7 +2488,7 @@ class Foo {}
   }
 
   Future<void> test_method() async {
-    var code = TestCode.parse('''
+    var code = parseCode('''
 // ignore_for_file: unused_local_variable
 import 'other.dart';
 
@@ -2507,7 +2505,7 @@ class Foo {
 }
 ''');
 
-    var otherCode = TestCode.parse('''
+    var otherCode = parseCode('''
 /*[0*/class A {
   String field;
   /*[1*/void bar() {}/*1]*/
@@ -2544,7 +2542,7 @@ class Foo {
   }
 
   Future<void> test_method_from_augmentation() async {
-    var code = TestCode.parse('''
+    var code = parseCode('''
 part 'other.dart';
 
 class Foo {}
@@ -2554,7 +2552,7 @@ void ba^r() {
 }
 ''');
 
-    var otherCode = TestCode.parse('''
+    var otherCode = parseCode('''
 part of 'test.dart';
 
 augment class Foo {
@@ -2581,7 +2579,7 @@ augment class Foo {
   }
 
   Future<void> test_mixin_method() async {
-    var code = TestCode.parse('''
+    var code = parseCode('''
 // ignore_for_file: unused_local_variable
 import 'other.dart';
 
@@ -2595,7 +2593,7 @@ mixin MyMixin {
 }
 ''');
 
-    var otherCode = TestCode.parse('''
+    var otherCode = parseCode('''
 mixin OtherMixin {
   /*[0*/void foo() {}/*0]*/
 }
@@ -2633,7 +2631,7 @@ mixin OtherMixin {
   }
 
   Future<void> test_namedConstructor() async {
-    var code = TestCode.parse('''
+    var code = parseCode('''
 // ignore_for_file: unused_local_variable
 import 'other.dart';
 
@@ -2645,7 +2643,7 @@ class Foo {
 }
 ''');
 
-    var otherCode = TestCode.parse('''
+    var otherCode = parseCode('''
 void f() {}
 class A {
   [!A.named();!]
@@ -2674,7 +2672,7 @@ class A {
   }
 
   Future<void> test_namedConstructorInNullAwareElementInList() async {
-    var code = TestCode.parse('''
+    var code = parseCode('''
 // ignore_for_file: unused_local_variable
 import 'other.dart';
 
@@ -2690,7 +2688,7 @@ class Foo {
 }
 ''');
 
-    var otherCode = TestCode.parse('''
+    var otherCode = parseCode('''
 void f() {}
 class A {
   [!A.named();!]
@@ -2719,7 +2717,7 @@ class A {
   }
 
   Future<void> test_namedConstructorInNullAwareElementInMapKey() async {
-    var code = TestCode.parse('''
+    var code = parseCode('''
 // ignore_for_file: unused_local_variable
 import 'other.dart';
 
@@ -2735,7 +2733,7 @@ class Foo {
 }
 ''');
 
-    var otherCode = TestCode.parse('''
+    var otherCode = parseCode('''
 void f() {}
 class A {
   [!A.named();!]
@@ -2764,7 +2762,7 @@ class A {
   }
 
   Future<void> test_namedConstructorInNullAwareElementInMapValue() async {
-    var code = TestCode.parse('''
+    var code = parseCode('''
 // ignore_for_file: unused_local_variable
 import 'other.dart';
 
@@ -2780,7 +2778,7 @@ class Foo {
 }
 ''');
 
-    var otherCode = TestCode.parse('''
+    var otherCode = parseCode('''
 void f() {}
 class A {
   [!A.named();!]
@@ -2809,7 +2807,7 @@ class A {
   }
 
   Future<void> test_namedConstructorInNullAwareElementInSet() async {
-    var code = TestCode.parse('''
+    var code = parseCode('''
 // ignore_for_file: unused_local_variable
 import 'other.dart';
 
@@ -2825,7 +2823,7 @@ class Foo {
 }
 ''');
 
-    var otherCode = TestCode.parse('''
+    var otherCode = parseCode('''
 void f() {}
 class A {
   [!A.named();!]
@@ -2855,7 +2853,7 @@ class A {
 
   Future<void> test_prefixedTypes() async {
     // Prefixed type names that are not tear-offs should never be included.
-    var code = TestCode.parse('''
+    var code = parseCode('''
 // ignore_for_file: unused_local_variable
 import 'dart:io' as io;
 
@@ -2869,7 +2867,7 @@ void ^f(io.File f) {
   }
 
   Future<void> test_setter() async {
-    var code = TestCode.parse('''
+    var code = parseCode('''
 import 'other.dart';
 
 set fo^o(String value) {
@@ -2879,7 +2877,7 @@ set fo^o(String value) {
 }
 ''');
 
-    var otherCode = TestCode.parse('''
+    var otherCode = parseCode('''
 /*[0*/class A {
   /*[1*/set b(String value) {}/*1]*/
 }/*0]*/

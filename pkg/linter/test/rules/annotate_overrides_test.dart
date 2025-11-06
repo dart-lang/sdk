@@ -264,11 +264,7 @@ extension type B(A a) implements A {
 ''',
       [
         // No lint.
-        error(
-          CompileTimeErrorCode.EXTENSION_TYPE_DECLARES_INSTANCE_FIELD,
-          69,
-          1,
-        ),
+        error(CompileTimeErrorCode.extensionTypeDeclaresInstanceField, 69, 1),
       ],
     );
   }

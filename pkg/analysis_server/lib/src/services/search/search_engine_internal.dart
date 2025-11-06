@@ -188,8 +188,7 @@ class SearchEngineImpl implements SearchEngine {
     var allElements = HashSet<Element>(
       hashCode: (e) => e.name.hashCode,
       equals: (a, b) {
-        return a.lookupName == b.lookupName &&
-            a.library?.uri == b.library?.uri;
+        return a.lookupName == b.lookupName && a.library?.uri == b.library?.uri;
       },
     );
     var regExp = RegExp(pattern);
@@ -220,17 +219,16 @@ class SearchEngineImpl implements SearchEngine {
 
     // Fill out cache if needed.
     var drivers = searchEngineCache.drivers ??= _drivers.toList();
-    var searchedFiles =
-        searchEngineCache.searchedFiles ??= _createSearchedFiles(drivers);
+    var searchedFiles = searchEngineCache.searchedFiles ??=
+        _createSearchedFiles(drivers);
     var assignedFiles = searchEngineCache.assignedFiles;
     if (assignedFiles == null) {
       assignedFiles = searchEngineCache.assignedFiles = {};
       for (var driver in drivers) {
         var assignedFilesForDrive = assignedFiles[driver] = [];
-        await performance.runAsync(
-          'discoverAvailableFiles',
-          (_) => driver.discoverAvailableFiles(),
-        );
+        performance.run('discoverAvailableFiles', (_) {
+          return driver.discoverAvailableFiles();
+        });
         for (var file in driver.fsState.knownFiles) {
           if (searchedFiles.add(file.path, driver.search)) {
             assignedFilesForDrive.add(file);
@@ -325,7 +323,7 @@ class SearchMatchImpl implements SearchMatch {
       true,
       true,
       MatchKind.DECLARATION,
-      SourceRange(firstFragment.nameOffset2!, firstFragment.name!.length),
+      SourceRange(firstFragment.nameOffset!, firstFragment.name!.length),
     );
   }
 

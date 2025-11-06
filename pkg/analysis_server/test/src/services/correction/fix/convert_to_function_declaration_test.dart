@@ -93,7 +93,7 @@ void f() {
 @reflectiveTest
 class ConvertToFunctionDeclarationTest extends FixProcessorLintTest {
   @override
-  FixKind get kind => DartFixKind.CONVERT_TO_FUNCTION_DECLARATION;
+  FixKind get kind => DartFixKind.convertToFunctionDeclaration;
 
   @override
   String get lintCode => LintNames.prefer_function_declarations_over_variables;
@@ -156,7 +156,7 @@ void f() {
 ''');
     await assertHasFix('''
 void f() {
-  int v1(int Function(String p1)? p) {
+  int v1(int Function(String)? p) {
     return p?.call('') ?? 0;
   }
   v1((s) => 0);

@@ -26,7 +26,7 @@ enum E with M {
   v
 }
 ''',
-      [error(CompileTimeErrorCode.ENUM_MIXIN_WITH_INSTANCE_VARIABLE, 40, 1)],
+      [error(CompileTimeErrorCode.enumMixinWithInstanceVariable, 40, 1)],
     );
   }
 
@@ -41,7 +41,7 @@ enum E with M {
   v
 }
 ''',
-      [error(CompileTimeErrorCode.ENUM_MIXIN_WITH_INSTANCE_VARIABLE, 42, 1)],
+      [error(CompileTimeErrorCode.enumMixinWithInstanceVariable, 42, 1)],
     );
   }
 

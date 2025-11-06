@@ -116,8 +116,9 @@ class DartCompletionManager {
       }
       var tokenData = TokenData.fromSelection(selection);
       var targetPrefix = tokenData?.prefix ?? '';
-      var matcher =
-          targetPrefix.isEmpty ? NoPrefixMatcher() : FuzzyMatcher(targetPrefix);
+      var matcher = targetPrefix.isEmpty
+          ? NoPrefixMatcher()
+          : FuzzyMatcher(targetPrefix);
       var state = CompletionState(request, selection, budget, matcher);
       var operations = performance.run('InScopeCompletionPass', (performance) {
         var pass = InScopeCompletionPass(
@@ -174,7 +175,9 @@ class DartCompletionManager {
     }
     // Compute relevance, sort and truncate list.
     isTruncated = collector.suggestions.length > maxSuggestions;
-    collector.finalize(RelevanceComputer(request, listener));
+    collector.finalize(
+      RelevanceComputer(request, listener, targetPrefix: request.targetPrefix),
+    );
     return collector;
   }
 

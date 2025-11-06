@@ -2,10 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/*@testedFeatures=inference*/
 library test;
 
 List<double> a = <double>[];
-var b = (a /*@target=List.[]=*/ [0] = 1.0);
+var b = (a[0] = 1.0);
 
 main() {}

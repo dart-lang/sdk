@@ -18,7 +18,7 @@ void main() {
 @reflectiveTest
 class ChangeToTest extends FixProcessorTest {
   @override
-  FixKind get kind => DartFixKind.CHANGE_TO;
+  FixKind get kind => DartFixKind.changeTo;
 
   Future<void> test_annotation_constructor() async {
     await resolveTestCode('''
@@ -156,6 +156,23 @@ enum E { ONE }
 
 E e() {
   return E.ONE;
+}
+''');
+  }
+
+  Future<void> test_enum_constant_dotShorthand() async {
+    await resolveTestCode('''
+enum E { ONE }
+
+E e() {
+  return .OEN;
+}
+''');
+    await assertHasFix('''
+enum E { ONE }
+
+E e() {
+  return .ONE;
 }
 ''');
   }
@@ -397,6 +414,25 @@ void f() {
 ''');
   }
 
+  Future<void> test_getter_qualified_static_dotShorthand() async {
+    await resolveTestCode('''
+class A {
+  static int MY_NAME = 1;
+}
+A f() {
+  return .MY_NAM;
+}
+''');
+    await assertHasFix('''
+class A {
+  static int MY_NAME = 1;
+}
+A f() {
+  return .MY_NAME;
+}
+''');
+  }
+
   Future<void> test_getter_static() async {
     await resolveTestCode('''
 extension E on int {
@@ -457,8 +493,8 @@ void f(A a) {
   a.foo += 2;
 }
 ''',
-      errorFilter:
-          (e) => e.diagnosticCode == CompileTimeErrorCode.UNDEFINED_GETTER,
+      errorFilter: (e) =>
+          e.diagnosticCode == CompileTimeErrorCode.undefinedGetter,
     );
   }
 
@@ -484,8 +520,8 @@ void f() {
   A.foo += 2;
 }
 ''',
-      errorFilter:
-          (e) => e.diagnosticCode == CompileTimeErrorCode.UNDEFINED_GETTER,
+      errorFilter: (e) =>
+          e.diagnosticCode == CompileTimeErrorCode.undefinedGetter,
     );
   }
 
@@ -576,6 +612,44 @@ extension E on int {
 }
 void f() {
   E.myMethod();
+}
+''');
+  }
+
+  Future<void> test_method_static_dotShorthand_class() async {
+    await resolveTestCode('''
+class E {
+  static E myMethod() => E();
+}
+E f() {
+  return .myMehod();
+}
+''');
+    await assertHasFix('''
+class E {
+  static E myMethod() => E();
+}
+E f() {
+  return .myMethod();
+}
+''');
+  }
+
+  Future<void> test_method_static_dotShorthand_extensionType() async {
+    await resolveTestCode('''
+extension type E(int x) {
+  static E myMethod() => E(1);
+}
+E f() {
+  return .myMehod();
+}
+''');
+    await assertHasFix('''
+extension type E(int x) {
+  static E myMethod() => E(1);
+}
+E f() {
+  return .myMethod();
 }
 ''');
   }

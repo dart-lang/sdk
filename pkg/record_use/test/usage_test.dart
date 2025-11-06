@@ -13,19 +13,19 @@ void main() {
   test('All API calls', () {
     expect(
       RecordedUsages.fromJson(
-        jsonDecode(recordedUsesJson) as Map<String, Object?>,
-      ).constArgumentsFor(
-        Identifier(
-          importUri:
-              Uri.parse(
-                'file://lib/_internal/js_runtime/lib/js_helper.dart',
-              ).toString(),
-          scope: 'MyClass',
-          name: 'get:loadDeferredLibrary',
-        ),
-        '''
-void loadDeferredLibrary(String s, bool b, int i, {required String singer, String? character})''',
-      ).length,
+            jsonDecode(recordedUsesJson) as Map<String, Object?>,
+          )
+          .constArgumentsFor(
+            Identifier(
+              importUri:
+                  Uri.parse(
+                    'file://lib/_internal/js_runtime/lib/js_helper.dart',
+                  ).toString(),
+              scope: 'MyClass',
+              name: 'get:loadDeferredLibrary',
+            ),
+          )
+          .length,
       2,
     );
   });
@@ -62,32 +62,32 @@ void loadDeferredLibrary(String s, bool b, int i, {required String singer, Strin
   test('Specific API calls', () {
     var arguments =
         RecordedUsages.fromJson(
-          jsonDecode(recordedUsesJson) as Map<String, Object?>,
-        ).constArgumentsFor(
-          Identifier(
-            importUri:
-                Uri.parse(
-                  'file://lib/_internal/js_runtime/lib/js_helper.dart',
-                ).toString(),
-            scope: 'MyClass',
-            name: 'get:loadDeferredLibrary',
-          ),
-          '''
-void loadDeferredLibrary(String s, bool b, int i, {required String freddy, String? leroy})''',
-        ).toList();
+              jsonDecode(recordedUsesJson) as Map<String, Object?>,
+            )
+            .constArgumentsFor(
+              Identifier(
+                importUri:
+                    Uri.parse(
+                      'file://lib/_internal/js_runtime/lib/js_helper.dart',
+                    ).toString(),
+                scope: 'MyClass',
+                name: 'get:loadDeferredLibrary',
+              ),
+            )
+            .toList();
     var (named: named0, positional: positional0) = arguments[0];
     expect(named0, const {'freddy': 'mercury', 'leroy': 'jenkins'});
     expect(positional0, const ['lib_SHA1', false, 1]);
     var (named: named1, positional: positional1) = arguments[1];
     expect(named1, const {'freddy': 0, 'leroy': 'jenkins'});
     expect(positional1, const [
+      'lib_SHA1',
+      {'key': 99},
       [
         'camus',
         ['einstein', 'insert', false],
         'einstein',
       ],
-      'lib_SHA1',
-      {'key': 99},
     ]);
   });
 

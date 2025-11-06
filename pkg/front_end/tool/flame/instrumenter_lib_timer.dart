@@ -35,17 +35,25 @@ void report(List<String> names) {
   List<_Data> data = [];
   for (int i = 0; i < _combinedRuntimes.length; i++) {
     if (_countVisits[i] > 0) {
-      data.add(new _Data(names[i], _combinedRuntimes[i], _countVisits[i],
-          _currentlyActive[i]));
+      data.add(
+        new _Data(
+          names[i],
+          _combinedRuntimes[i],
+          _countVisits[i],
+          _currentlyActive[i],
+        ),
+      );
     }
   }
   data..sort((a, b) => a.combinedRuntime - b.combinedRuntime);
   for (_Data d in data) {
-    print("${d.name}:"
-        " runtime: ${d.combinedRuntime}"
-        " (${d.combinedRuntime / _stopwatch.frequency} s)"
-        ", visits: ${d.visits}"
-        ", active: ${d.active}");
+    print(
+      "${d.name}:"
+      " runtime: ${d.combinedRuntime}"
+      " (${d.combinedRuntime / _stopwatch.frequency} s)"
+      ", visits: ${d.visits}"
+      ", active: ${d.active}",
+    );
   }
 }
 

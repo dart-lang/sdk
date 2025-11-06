@@ -30,6 +30,8 @@ replacement
 suggestions
   const
     kind: keyword
+  dynamic
+    kind: keyword
 ''');
   }
 
@@ -115,6 +117,8 @@ class A {var foo = n^}
 replacement
   left: 1
 suggestions
+  const
+    kind: keyword
   null
     kind: keyword
 ''');
@@ -137,6 +141,8 @@ replacement
   left: 1
 suggestions
   const
+    kind: keyword
+  dynamic
     kind: keyword
 ''');
   }

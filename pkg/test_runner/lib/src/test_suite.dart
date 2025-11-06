@@ -1054,6 +1054,7 @@ class StandardTestSuite extends TestSuite {
       Compiler.dartk,
       Compiler.dartkp,
       Compiler.appJitk,
+      Compiler.dart2bytecode,
     ];
 
     const runtimes = [Runtime.none, Runtime.dartPrecompiled, Runtime.vm];

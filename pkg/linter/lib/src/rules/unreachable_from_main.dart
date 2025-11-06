@@ -5,12 +5,13 @@
 import 'dart:collection';
 
 import 'package:analyzer/analysis_rule/rule_context.dart';
+import 'package:analyzer/analysis_rule/rule_state.dart';
+import 'package:analyzer/analysis_rule/rule_visitor_registry.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/error/error.dart';
-import 'package:analyzer/src/lint/linter.dart'; // ignore: implementation_imports
 import 'package:collection/collection.dart';
 import 'package:pub_semver/pub_semver.dart';
 
@@ -28,10 +29,13 @@ class UnreachableFromMain extends LintRule {
       );
 
   @override
-  DiagnosticCode get diagnosticCode => LinterLintCode.unreachable_from_main;
+  DiagnosticCode get diagnosticCode => LinterLintCode.unreachableFromMain;
 
   @override
-  void registerNodeProcessors(NodeLintRegistry registry, RuleContext context) {
+  void registerNodeProcessors(
+    RuleVisitorRegistry registry,
+    RuleContext context,
+  ) {
     var visitor = _Visitor(this, context);
     registry.addCompilationUnit(this, visitor);
   }
@@ -125,7 +129,9 @@ class _DeclarationGatherer {
                 rawName.startsWith('test_') ||
                 rawName.startsWith('solo_test_') ||
                 rawName == 'setUp' ||
-                rawName == 'tearDown';
+                rawName == 'tearDown' ||
+                rawName == 'setUpClass' ||
+                rawName == 'tearDownClass';
             if (!isOverride(element) && !isTestMethod) {
               declarations.add(member);
             }
@@ -515,14 +521,13 @@ class _Visitor extends SimpleAstVisitor<void> {
     unitDeclarationGatherer.addDeclarations(node);
     var unitDeclarations = unitDeclarationGatherer.declarations;
     var unusedDeclarations = unitDeclarations.difference(usedMembers);
-    var unusedMembers =
-        unusedDeclarations.where((declaration) {
-          var element = declaration.declaredFragment?.element;
-          return element != null &&
-              element.isPublic &&
-              !element.hasVisibleForTesting &&
-              !element.hasWidgetPreview;
-        }).toList();
+    var unusedMembers = unusedDeclarations.where((declaration) {
+      var element = declaration.declaredFragment?.element;
+      return element != null &&
+          element.isPublic &&
+          !element.hasVisibleForTesting &&
+          !element.hasWidgetPreview;
+    }).toList();
 
     for (var member in unusedMembers) {
       if (member is ConstructorDeclaration) {
@@ -596,10 +601,10 @@ extension on ElementAnnotation {
   );
 
   bool get isWidgetPreview {
-    var element2 = this.element2;
-    return element2 is ConstructorElement &&
-        element2.enclosingElement.name == 'Preview' &&
-        element2.library.uri == _flutterWidgetPreviewLibraryUri;
+    var element = this.element;
+    return element is ConstructorElement &&
+        element.enclosingElement.name == 'Preview' &&
+        element.library.uri == _flutterWidgetPreviewLibraryUri;
   }
 }
 
@@ -610,24 +615,19 @@ extension on LibraryElement {
 }
 
 extension on Element {
-  bool get hasVisibleForTesting => switch (this) {
-    Annotatable(:var metadata) => metadata.hasVisibleForTesting,
-    _ => false,
-  };
-  bool get hasWidgetPreview => switch (this) {
-    Annotatable(:var metadata) =>
+  bool get hasVisibleForTesting => metadata.hasVisibleForTesting;
+
+  bool get hasWidgetPreview =>
       // Widget previews can be applied to public:
       //   - Constructors (generative and factory)
       //   - Top-level functions
       //   - Static member functions
       (this is ConstructorElement ||
-              this is TopLevelFunctionElement ||
-              (this is ExecutableElement &&
-                  (this as ExecutableElement).isStatic)) &&
-          !isPrivate &&
-          metadata.hasWidgetPreview,
-    _ => false,
-  };
+          this is TopLevelFunctionElement ||
+          (this is ExecutableElement &&
+              (this as ExecutableElement).isStatic)) &&
+      !isPrivate &&
+      metadata.hasWidgetPreview;
   bool get isPragma => (library?.isDartCore ?? false) && name == 'pragma';
   bool get isWidgetPreview =>
       (library?.isWidgetPreviews ?? false) && name == 'Preview';
@@ -653,7 +653,7 @@ extension on Annotation {
   }
 
   DartType? get _elementType {
-    var element = elementAnnotation?.element2;
+    var element = elementAnnotation?.element;
     DartType? type;
     if (element is ConstructorElement) {
       type = element.returnType;

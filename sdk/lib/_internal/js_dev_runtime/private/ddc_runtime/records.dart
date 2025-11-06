@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-part of dart._runtime;
+part of "dart:_runtime";
 
 /// Describes the shape of a record value.
 final class Shape {

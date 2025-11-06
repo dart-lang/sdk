@@ -15,10 +15,11 @@ class Ticker {
 
   void logMs(Object message) {
     log(
-        // Coverage-ignore(suite): Not run.
-        (Duration elapsed, Duration sinceStart) {
-      print("$sinceStart: $message in ${elapsed.inMilliseconds}ms.");
-    });
+      // Coverage-ignore(suite): Not run.
+      (Duration elapsed, Duration sinceStart) {
+        print("$sinceStart: $message in ${elapsed.inMilliseconds}ms.");
+      },
+    );
   }
 
   void log(void f(Duration elapsed, Duration sinceStart)) {

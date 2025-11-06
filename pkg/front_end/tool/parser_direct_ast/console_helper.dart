@@ -32,8 +32,9 @@ class Application {
       exit(0);
     });
     if (!Platform.isWindows) {
-      _sigwinchListen =
-          ProcessSignal.sigwinch.watch().listen((ProcessSignal signal) {
+      _sigwinchListen = ProcessSignal.sigwinch.watch().listen((
+        ProcessSignal signal,
+      ) {
         _latestKnownTerminalColumns = stdout.terminalColumns;
         _latestKnownTerminalRows = stdout.terminalLines;
         _repaint();
@@ -42,10 +43,13 @@ class Application {
   }
 
   void _repaint() {
-    _output =
-        new _Output(_latestKnownTerminalRows, _latestKnownTerminalColumns);
-    _widget.print(new WriteOnlyPartialOutput(
-        _output, 0, 0, _output.rows, _output.columns));
+    _output = new _Output(
+      _latestKnownTerminalRows,
+      _latestKnownTerminalColumns,
+    );
+    _widget.print(
+      new WriteOnlyPartialOutput(_output, 0, 0, _output.rows, _output.columns),
+    );
     _printOutput();
   }
 
@@ -138,8 +142,10 @@ class Application {
             break;
         }
 
-        ForegroundColor foregroundColor =
-            _output.getForegroundColor(row, column);
+        ForegroundColor foregroundColor = _output.getForegroundColor(
+          row,
+          column,
+        );
         switch (foregroundColor) {
           case ForegroundColor.Undefined:
             // Do nothing.
@@ -170,8 +176,10 @@ class Application {
             break;
         }
 
-        BackgroundColor backgroundColor =
-            _output.getBackgroundColor(row, column);
+        BackgroundColor backgroundColor = _output.getBackgroundColor(
+          row,
+          column,
+        );
         switch (backgroundColor) {
           case BackgroundColor.Undefined:
             // Do nothing.
@@ -298,8 +306,15 @@ class BoxedWidget extends Widget {
     }
 
     // Reduce all sides by one.
-    _content?.print(new WriteOnlyPartialOutput(
-        output, 1, 1, output.rows - 2, output.columns - 2));
+    _content?.print(
+      new WriteOnlyPartialOutput(
+        output,
+        1,
+        1,
+        output.rows - 2,
+        output.columns - 2,
+      ),
+    );
   }
 }
 
@@ -332,12 +347,14 @@ class WithSingleLineBottomWidget extends Widget {
   @override
   void print(WriteOnlyOutput output) {
     // All but the last row.
-    _contentWidget?.print(new WriteOnlyPartialOutput(
-        output, 0, 0, output.rows - 1, output.columns));
+    _contentWidget?.print(
+      new WriteOnlyPartialOutput(output, 0, 0, output.rows - 1, output.columns),
+    );
 
     // Only that last row.
-    _bottomWidget?.print(new WriteOnlyPartialOutput(
-        output, output.rows - 1, 0, 1, output.columns));
+    _bottomWidget?.print(
+      new WriteOnlyPartialOutput(output, output.rows - 1, 0, 1, output.columns),
+    );
   }
 
   @override
@@ -348,12 +365,7 @@ class WithSingleLineBottomWidget extends Widget {
   }
 }
 
-enum Modifier {
-  Undefined,
-  Bold,
-  Italic,
-  Underline,
-}
+enum Modifier { Undefined, Bold, Italic, Underline }
 
 enum ForegroundColor {
   Undefined,
@@ -388,19 +400,22 @@ class _Output implements WriteOnlyOutput {
   final Uint16List _modifiers;
 
   _Output(this.rows, this.columns)
-      : _text = new Uint16List(rows * columns),
-        _modifiers = new Uint16List(rows * columns);
+    : _text = new Uint16List(rows * columns),
+      _modifiers = new Uint16List(rows * columns);
 
   int getPosition(int row, int column) {
     return row * columns + column;
   }
 
   @override
-  void setCell(int row, int column,
-      {String? char,
-      Modifier? modifier,
-      ForegroundColor? foregroundColor,
-      BackgroundColor? backgroundColor}) {
+  void setCell(
+    int row,
+    int column, {
+    String? char,
+    Modifier? modifier,
+    ForegroundColor? foregroundColor,
+    BackgroundColor? backgroundColor,
+  }) {
     int position = getPosition(row, column);
 
     if (char != null) {
@@ -469,11 +484,14 @@ class _Output implements WriteOnlyOutput {
 abstract class WriteOnlyOutput {
   int get rows;
   int get columns;
-  void setCell(int row, int column,
-      {String? char,
-      Modifier? modifier,
-      ForegroundColor? foregroundColor,
-      BackgroundColor? backgroundColor});
+  void setCell(
+    int row,
+    int column, {
+    String? char,
+    Modifier? modifier,
+    ForegroundColor? foregroundColor,
+    BackgroundColor? backgroundColor,
+  });
 }
 
 class WriteOnlyPartialOutput implements WriteOnlyOutput {
@@ -484,8 +502,13 @@ class WriteOnlyPartialOutput implements WriteOnlyOutput {
   final int rows;
   @override
   final int columns;
-  WriteOnlyPartialOutput(this._output, this.offsetRow, this.offsetColumn,
-      this.rows, this.columns) {
+  WriteOnlyPartialOutput(
+    this._output,
+    this.offsetRow,
+    this.offsetColumn,
+    this.rows,
+    this.columns,
+  ) {
     if (offsetRow + rows > _output.rows ||
         offsetColumn + columns > _output.columns) {
       throw "Out of bounds";
@@ -493,15 +516,21 @@ class WriteOnlyPartialOutput implements WriteOnlyOutput {
   }
 
   @override
-  void setCell(int row, int column,
-      {String? char,
-      Modifier? modifier,
-      ForegroundColor? foregroundColor,
-      BackgroundColor? backgroundColor}) {
+  void setCell(
+    int row,
+    int column, {
+    String? char,
+    Modifier? modifier,
+    ForegroundColor? foregroundColor,
+    BackgroundColor? backgroundColor,
+  }) {
     if (row >= rows || column >= columns) return;
-    _output.setCell(row + offsetRow, column + offsetColumn,
-        char: char,
-        foregroundColor: foregroundColor,
-        backgroundColor: backgroundColor);
+    _output.setCell(
+      row + offsetRow,
+      column + offsetColumn,
+      char: char,
+      foregroundColor: foregroundColor,
+      backgroundColor: backgroundColor,
+    );
   }
 }

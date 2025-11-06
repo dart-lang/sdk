@@ -100,8 +100,8 @@ void f(Color color) {
     Color.red => 'red', // Red.
     Color.blue => 'blue',
     // Not green.
-    Color.green =>  throw 'Green is bad',
-    Color.yellow => /**/
+    Color.green => throw 'Green is bad',
+    Color.yellow =>
       // Yellow is OK.
       'yellow'
   });
@@ -164,8 +164,8 @@ void f(Color color) {
     Color.red => 'red', // Red.
     Color.blue => 'blue',
     // Not green.
-    Color.green =>  throw 'Green is bad',
-    Color.yellow => /**/
+    Color.green => throw 'Green is bad',
+    Color.yellow =>
       // Yellow is OK.
       'yellow'
   });
@@ -191,7 +191,28 @@ void f(String s) {
   print(switch (s) {
     'foo' => 'foo',
     'bar' => 'bar',
-    _ =>  throw 'unrecognized'
+    _ => throw 'unrecognized'
+  });
+}
+''');
+  }
+
+  Future<void> test_argument_when() async {
+    await resolveTestCode('''
+void foo(int a, bool x) {
+  swit^ch (a) {
+    case 1 when x:
+      print(1);
+    default:
+      print(3);
+  }
+}
+''');
+    await assertHasAssist('''
+void foo(int a, bool x) {
+  print(switch (a) {
+    1 when x => 1,
+    _ => 3
   });
 }
 ''');
@@ -472,6 +493,29 @@ String f(String s) {
     _ => throw 'unrecognized'
   };
   return name;
+}
+''');
+  }
+
+  Future<void> test_assignment_when() async {
+    await resolveTestCode('''
+void foo(int a, bool x) {
+  int value;
+  swit^ch (a) {
+    case 1 when x:
+      value = 1;
+    default:
+      value = 3;
+  }
+}
+''');
+    await assertHasAssist('''
+void foo(int a, bool x) {
+  int value;
+  value = switch (a) {
+    1 when x => 1,
+    _ => 3
+  };
 }
 ''');
   }
@@ -820,6 +864,27 @@ String name(Color color) {
       // Whoops.
       throw 'green',
     Color.yellow => 'yellow'
+  };
+}
+''');
+  }
+
+  Future<void> test_return_when() async {
+    await resolveTestCode('''
+int foo(int a, bool x) {
+  swit^ch (a) {
+    case 1 when x:
+      return 1;
+    default:
+      return 3;
+  }
+}
+''');
+    await assertHasAssist('''
+int foo(int a, bool x) {
+  return switch (a) {
+    1 when x => 1,
+    _ => 3
   };
 }
 ''');

@@ -3,12 +3,14 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/analysis_rule/rule_context.dart';
+import 'package:analyzer/analysis_rule/rule_visitor_registry.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/error/error.dart';
+import 'package:collection/collection.dart';
 
 import '../analyzer.dart';
 import '../extensions.dart';
@@ -25,10 +27,13 @@ class DiagnosticDescribeAllProperties extends LintRule {
 
   @override
   DiagnosticCode get diagnosticCode =>
-      LinterLintCode.diagnostic_describe_all_properties;
+      LinterLintCode.diagnosticDescribeAllProperties;
 
   @override
-  void registerNodeProcessors(NodeLintRegistry registry, RuleContext context) {
+  void registerNodeProcessors(
+    RuleVisitorRegistry registry,
+    RuleContext context,
+  ) {
     var visitor = _Visitor(this);
     registry.addClassDeclaration(this, visitor);
   }
@@ -133,4 +138,9 @@ class _Visitor extends SimpleAstVisitor<void> {
 
     return classElement.getInheritedMember(Name(null, name)) != null;
   }
+}
+
+extension on List<ClassMember> {
+  MethodDeclaration? getMethod(String name) => whereType<MethodDeclaration>()
+      .firstWhereOrNull((node) => node.name.lexeme == name);
 }

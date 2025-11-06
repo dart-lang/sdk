@@ -622,9 +622,7 @@ abstract interface class HeaderValue {
   factory HeaderValue([
     String value = "",
     Map<String, String?> parameters = const {},
-  ]) {
-    return _HeaderValue(value, parameters);
-  }
+  ]) => _HeaderValue(value, parameters);
 
   /// Creates a new header value object from parsing a header value
   /// string with both value and optional parameters.
@@ -636,8 +634,8 @@ abstract interface class HeaderValue {
   }) {
     return _HeaderValue.parse(
       value,
-      parameterSeparator: parameterSeparator,
-      valueSeparator: valueSeparator,
+      parameterSeparator: parameterSeparator.codeUnitAt(0),
+      valueSeparator: valueSeparator?.codeUnitAt(0) ?? _CharCode.NONE,
       preserveBackslash: preserveBackslash,
     );
   }
@@ -829,7 +827,7 @@ abstract interface class Cookie {
   /// U+0021 (`!`) through U+007E (`~`), except the separator characters:
   /// `(`, `)`, `<`, `>`, `@`, `,`, `;`, `:`, `\`, `"`, `/`, `[`, `]`, `?`, `=`,
   /// `{`, and `}`.
-  late String name;
+  abstract String name;
 
   /// The value of the cookie.
   ///
@@ -840,34 +838,34 @@ abstract interface class Cookie {
   /// `"`, `,`, `;` and `\`.
   /// Cookie values may be wrapped in a single pair of double quotes
   /// (U+0022, `"`).
-  late String value;
+  abstract String value;
 
   /// The time at which the cookie expires.
-  DateTime? expires;
+  abstract DateTime? expires;
 
   /// The number of seconds until the cookie expires. A zero or negative value
   /// means the cookie has expired.
-  int? maxAge;
+  abstract int? maxAge;
 
   /// The domain that the cookie applies to.
-  String? domain;
+  abstract String? domain;
 
   /// The path within the [domain] that the cookie applies to.
-  String? path;
+  abstract String? path;
 
   /// Whether to only send this cookie on secure connections.
-  bool secure = false;
+  abstract bool secure;
 
   /// Whether the cookie is only sent in the HTTP request and is not made
   /// available to client side scripts.
-  bool httpOnly = false;
+  abstract bool httpOnly;
 
   /// Whether the cookie is available from other sites.
   ///
   /// This value is `null` if the SameSite attribute is not present.
   ///
   /// See [SameSite] for more information.
-  SameSite? sameSite;
+  abstract SameSite? sameSite;
 
   /// Creates a new cookie setting the name and value.
   ///
@@ -1266,7 +1264,7 @@ abstract interface class HttpClient {
     if (enabled != _enableTimelineLogging) {
       if (!const bool.fromEnvironment("dart.vm.product")) {
         postEvent('HttpTimelineLoggingStateChange', {
-          'isolateId': Service.getIsolateID(Isolate.current),
+          'isolateId': Service.getIsolateId(Isolate.current),
           'enabled': enabled,
         });
       }

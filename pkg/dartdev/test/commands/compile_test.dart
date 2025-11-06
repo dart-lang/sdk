@@ -8,13 +8,13 @@ import 'dart:math';
 import 'package:code_assets/code_assets.dart';
 import 'package:dart2native/dart2native_macho.dart' show pipeStream;
 import 'package:dart2native/macho.dart';
+import 'package:dartdev/src/commands/compile.dart'
+    show compileErrorExitCode, genericErrorExitCode;
 import 'package:hooks_runner/hooks_runner.dart';
 import 'package:path/path.dart' as path;
 import 'package:test/test.dart';
 
 import '../utils.dart';
-
-const int compileErrorExitCode = 254;
 
 void main() {
   ensureRunFromSdkBinDart();
@@ -27,15 +27,13 @@ const String soundNullSafetyWarning =
     "Warning: Option '--sound-null-safety' is deprecated.";
 
 const String failedAssertionError = 'Failed assertion: line';
-String usingTargetOSMessageForPlatform(String targetOS) =>
+String usingTargetOSMessage(OS targetOS) =>
     'Specializing Platform getters for target OS $targetOS.';
-final String usingTargetOSMessage =
-    usingTargetOSMessageForPlatform(Platform.operatingSystem);
-String unsupportedTargetError(Target target) =>
-    'Unsupported target platform $target';
+final String targetingHostOSMessage = usingTargetOSMessage(Target.current.os);
 
 void defineCompileTests() {
-  final isRunningOnIA32 = Platform.version.contains('ia32');
+  // AOT compilation is not available on IA32.
+  final bool isRunningOnIA32 = Target.current.architecture == Architecture.ia32;
 
   if (Platform.isMacOS) {
     test('Compile exe for MacOS signing', () async {
@@ -260,7 +258,7 @@ void defineCompileTests() {
       '-v',
       inFile,
     ]);
-    expect(result.stdout, isNot(contains(usingTargetOSMessage)));
+    expect(result.stdout, isNot(contains(targetingHostOSMessage)));
     expect(result.stderr, isNot(contains(soundNullSafetyMessage)));
     expect(result.exitCode, 0);
     final file = File(outFile);
@@ -288,11 +286,28 @@ void defineCompileTests() {
     );
 
     // Executables should be (host) OS-specific by default.
-    expect(result.stdout, contains(usingTargetOSMessage));
+    expect(result.stdout, contains(targetingHostOSMessage));
     expect(result.stderr, isEmpty);
     expect(result.exitCode, 0);
     expect(File(outFile).existsSync(), true,
         reason: 'File not found: $outFile');
+
+    if (Platform.isMacOS && Target.current.architecture == Architecture.arm64) {
+      // Also check that the resulting executable is properly signed on ARM64
+      // macOS, since executables are required to be signed there and checking
+      // this prior to running the executable gives us a clearer test failure
+      // message if for some reason the generated signature was invalid.
+      result = await Process.run('codesign', [
+        '-v',
+        outFile,
+      ]);
+
+      printOnFailure(
+          'Subcommand terminated with exit code ${result.exitCode}.');
+      printOnFailure('Subcommand stdout:\n${result.stdout}');
+      printOnFailure('Subcommand stderr:\n${result.stderr}');
+      expect(result.exitCode, 0);
+    }
 
     result = Process.runSync(
       outFile,
@@ -359,7 +374,7 @@ void defineCompileTests() {
       ],
     );
 
-    expect(result.stdout, contains(usingTargetOSMessage));
+    expect(result.stdout, contains(targetingHostOSMessage));
     expect(result.stderr, isEmpty);
     expect(result.exitCode, 0);
     expect(File(outFile).existsSync(), true,
@@ -412,36 +427,6 @@ void defineCompileTests() {
     expect(result.exitCode, 0);
   }, skip: isRunningOnIA32);
 
-  test('Compile executable cannot compile cross-OS', () async {
-    final p = project(
-        mainSrc: 'void main() {print(const String.fromEnvironment("cross"));}');
-    final inFile = path.canonicalize(path.join(p.dirPath, p.relativeFilePath));
-    final outFile = path.canonicalize(path.join(p.dirPath, 'myexe'));
-    // Make sure targetOS is always unsupported (not Linux and not matches host
-    // OS) to trigger an error.
-    final targetOS = Platform.isWindows ? OS.macOS : OS.windows;
-    final targetArch = Architecture.arm64;
-    final target = Target.fromArchitectureAndOS(targetArch, targetOS);
-    final result = await p.run(
-      [
-        'compile',
-        'exe',
-        '-v',
-        '--target-os',
-        targetOS.name,
-        '--target-arch',
-        targetArch.name,
-        '-o',
-        outFile,
-        inFile,
-      ],
-    );
-
-    expect(result.stdout, isNot(contains(usingTargetOSMessage)));
-    expect(result.stderr, contains(unsupportedTargetError(target)));
-    expect(result.exitCode, 128);
-  }, skip: isRunningOnIA32);
-
   test('Compile and run aot snapshot', () async {
     final p = project(mainSrc: 'void main() { print("I love AOT"); }');
     final inFile = path.canonicalize(path.join(p.dirPath, p.relativeFilePath));
@@ -459,7 +444,7 @@ void defineCompileTests() {
     );
 
     // AOT snapshots should be OS-specific by default.
-    expect(result.stdout, contains(usingTargetOSMessage));
+    expect(result.stdout, contains(targetingHostOSMessage));
     expect(result.stderr, isEmpty);
     expect(result.exitCode, 0);
     expect(File(outFile).existsSync(), true,
@@ -474,73 +459,6 @@ void defineCompileTests() {
     expect(result.stdout, contains('I love AOT'));
     expect(result.stderr, isEmpty);
     expect(result.exitCode, 0);
-  }, skip: isRunningOnIA32);
-
-  test('Compile aot snapshot can compile to host platform', () async {
-    final targetOS = Platform.operatingSystem;
-    final p = project(mainSrc: 'void main() { print("I love $targetOS"); }');
-    final inFile = path.canonicalize(path.join(p.dirPath, p.relativeFilePath));
-    final outFile = path.canonicalize(path.join(p.dirPath, 'main.aot'));
-
-    var result = await p.run(
-      [
-        'compile',
-        'aot-snapshot',
-        '-v',
-        '--target-os',
-        targetOS,
-        '-o',
-        'main.aot',
-        inFile,
-      ],
-    );
-
-    expect(result.stdout, contains(usingTargetOSMessageForPlatform(targetOS)));
-    expect(result.stderr, isEmpty);
-    expect(result.exitCode, 0);
-    expect(File(outFile).existsSync(), true,
-        reason: 'File not found: $outFile');
-
-    final Directory binDir = File(Platform.resolvedExecutable).parent;
-    result = Process.runSync(
-      path.join(binDir.path, 'dartaotruntime'),
-      [outFile],
-    );
-
-    expect(result.stdout, contains('I love $targetOS'));
-    expect(result.stderr, isEmpty);
-    expect(result.exitCode, 0);
-  }, skip: isRunningOnIA32);
-
-  test('Compile aot snapshot cannot compile cross platform', () async {
-    // Make sure targetOS is always unsupported (not Linux and not matches host
-    // OS) to trigger an error.
-    final targetOS = Platform.isWindows ? OS.macOS : OS.windows;
-    final targetArch = Architecture.arm64;
-    final target = Target.fromArchitectureAndOS(targetArch, targetOS);
-    final p = project(mainSrc: 'void main() { print("I love $targetOS"); }');
-    final inFile = path.canonicalize(path.join(p.dirPath, p.relativeFilePath));
-
-    var result = await p.run(
-      [
-        'compile',
-        'aot-snapshot',
-        '-v',
-        '--target-os',
-        targetOS.name,
-        '--target-arch',
-        targetArch.name,
-        '-o',
-        'main.aot',
-        inFile,
-      ],
-    );
-
-    expect(result.stdout,
-        isNot(contains(usingTargetOSMessageForPlatform(targetOS.name))));
-    expect(result.stderr, contains(unsupportedTargetError(target)));
-
-    expect(result.exitCode, isNot(0));
   }, skip: isRunningOnIA32);
 
   test('Compile and run kernel snapshot', () async {
@@ -558,7 +476,7 @@ void defineCompileTests() {
     );
     expect(File(outFile).existsSync(), true,
         reason: 'File not found: $outFile');
-    expect(result.stdout, isNot(contains(usingTargetOSMessage)));
+    expect(result.stdout, isNot(contains(targetingHostOSMessage)));
     expect(result.stderr, isNot(contains(soundNullSafetyMessage)));
     expect(result.exitCode, 0);
 
@@ -588,7 +506,7 @@ void defineCompileTests() {
       '-v',
       inFile,
     ]);
-    expect(result.stdout, isNot(contains(usingTargetOSMessage)));
+    expect(result.stdout, isNot(contains(targetingHostOSMessage)));
     expect(result.stderr, isEmpty);
     expect(result.exitCode, 0);
     final file = File(outFile);
@@ -618,7 +536,7 @@ void defineCompileTests() {
       outFile,
       inFile,
     ]);
-    expect(result.stdout, isNot(contains(usingTargetOSMessage)));
+    expect(result.stdout, isNot(contains(targetingHostOSMessage)));
     expect(result.stderr, isEmpty);
     expect(result.exitCode, 0);
     final file = File(outFile);
@@ -788,7 +706,7 @@ void main() {
     );
 
     // Only printed when -v/--verbose is used, not --verbosity.
-    expect(result.stdout, isNot(contains(usingTargetOSMessage)));
+    expect(result.stdout, isNot(contains(targetingHostOSMessage)));
     expect(result.stdout, isNot(contains(soundNullSafetyMessage)));
     expect(result.stderr, isEmpty);
     expect(result.exitCode, 0);
@@ -818,7 +736,7 @@ void main() {
     );
 
     // Only printed when -v/--verbose is used, not --verbosity.
-    expect(result.stdout, isNot(contains(usingTargetOSMessage)));
+    expect(result.stdout, isNot(contains(targetingHostOSMessage)));
     expect(result.stdout, isNot(contains(soundNullSafetyMessage)));
     expect(result.stderr, isEmpty);
     expect(result.exitCode, 0);
@@ -845,7 +763,7 @@ void main() {
     );
 
     // Only printed when -v/--verbose is used, not --verbosity.
-    expect(result.stdout, isNot(contains(usingTargetOSMessage)));
+    expect(result.stdout, isNot(contains(targetingHostOSMessage)));
     expect(result.stdout, isNot(contains(soundNullSafetyMessage)));
     expect(result.stderr, isEmpty);
     expect(result.exitCode, 0);
@@ -912,7 +830,7 @@ void main() {}
 
     expect(result.stderr,
         contains('Error: The output file "foo" does not end with ".wasm"'));
-    expect(result.exitCode, 255);
+    expect(result.exitCode, genericErrorExitCode);
   }, skip: isRunningOnIA32);
 
   test('Compile wasm with error', () async {
@@ -1101,7 +1019,7 @@ void main() {
     );
 
     // Only printed when -v/--verbose is used, not --verbosity.
-    expect(result.stdout, isNot(contains(usingTargetOSMessage)));
+    expect(result.stdout, isNot(contains(targetingHostOSMessage)));
     expect(result.stdout, isNot(contains(soundNullSafetyMessage)));
     expect(result.stderr, isEmpty);
     expect(result.exitCode, 0);
@@ -1131,7 +1049,7 @@ void main() {
     );
 
     // Only printed when -v/--verbose is used, not --verbosity.
-    expect(result.stdout, isNot(contains(usingTargetOSMessage)));
+    expect(result.stdout, isNot(contains(targetingHostOSMessage)));
     expect(result.stdout, isNot(contains(soundNullSafetyMessage)));
     expect(result.stderr, isEmpty);
     expect(result.exitCode, 0);
@@ -1158,7 +1076,7 @@ void main() {
     );
 
     // Only printed when -v/--verbose is used, not --verbosity.
-    expect(result.stdout, isNot(contains(usingTargetOSMessage)));
+    expect(result.stdout, isNot(contains(targetingHostOSMessage)));
     expect(result.stdout, isNot(contains(soundNullSafetyMessage)));
     expect(result.stderr, isEmpty);
     expect(result.exitCode, 0);
@@ -1234,7 +1152,7 @@ void main() {}
         (dynamic o) => '$o'.contains('Unable to open file'),
       ),
     );
-    expect(result.exitCode, 255);
+    expect(result.exitCode, genericErrorExitCode);
   });
 
   test('Compile kernel with invalid trailing argument', () async {
@@ -1282,7 +1200,7 @@ void main() {}
       ],
     );
 
-    expect(result.stdout, isNot(contains(usingTargetOSMessage)));
+    expect(result.stdout, isNot(contains(targetingHostOSMessage)));
     expect(result.stderr, isNot(contains(soundNullSafetyMessage)));
     expect(result.exitCode, 0);
     expect(File(outFile).existsSync(), true,
@@ -1502,10 +1420,10 @@ void main() {
     );
 
     // Only printed when -v/--verbose is used, not --verbosity.
-    expect(result.stdout, isNot(contains(usingTargetOSMessage)));
+    expect(result.stdout, isNot(contains(targetingHostOSMessage)));
     expect(result.stdout, isNot(contains(soundNullSafetyMessage)));
     expect(result.stderr, contains(failedAssertionError));
-    expect(result.exitCode, 255);
+    expect(result.exitCode, genericErrorExitCode);
 
     result = await p.run(
       ['--enable-asserts', outFile],
@@ -1513,35 +1431,6 @@ void main() {
     expect(result.stdout, isEmpty);
     expect(result.stderr, contains(failedAssertionError));
   });
-
-  if (Platform.isMacOS) {
-    test('Compile and run executable from signed dartaotruntime', () async {
-      // Either the locally built dartaotruntime is already linker signed
-      // (on M1) or it is unsigned (on X64). For this test, sign the
-      // dartaotruntime executable with a non-linker signed adhoc signature,
-      // which won't cause issues with any other tests that use it. This
-      // ensures the code signing path in dart2native is exercised on X64
-      // (macOS <11.0), and also mimics the case for end users that are using
-      // the published Dart SDK (which is fully signed, not linker signed).
-      final Directory binDir = File(Platform.resolvedExecutable).parent;
-      final String originalRuntimePath =
-          path.join(binDir.path, 'dartaotruntime');
-      final codeSigningProcess = await Process.start('codesign', [
-        '-o',
-        'runtime',
-        '-s',
-        '-',
-        originalRuntimePath,
-      ]);
-
-      final signingResult = await codeSigningProcess.exitCode;
-      expect(signingResult, 0);
-
-      // Now perform the same basic compile and run test with the signed
-      // dartaotruntime.
-      await basicCompileTest();
-    }, skip: isRunningOnIA32);
-  }
 
   // Tests for --depfile for compiling to AOT snapshots, executables and
   // kernel.

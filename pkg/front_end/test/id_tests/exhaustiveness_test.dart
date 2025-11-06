@@ -19,21 +19,29 @@ import 'package:front_end/src/testing/id_testing_helper.dart';
 import 'package:kernel/ast.dart';
 
 Future<void> main(List<String> args) async {
-  Directory dataDir = new Directory.fromUri(Platform.script
-      .resolve('../../../_fe_analyzer_shared/test/exhaustiveness/data'));
-  await runTests<Features>(dataDir,
-      args: args,
-      createUriForFileName: createUriForFileName,
-      onFailure: onFailure,
-      runTest: runTestFor<Features>(const ExhaustivenessDataComputer(), [
-        const CfeTestConfig(cfeMarker, 'cfe with experiments',
-            explicitExperimentalFlags: const {
-              ExperimentalFlag.patterns: true,
-              ExperimentalFlag.records: true,
-              ExperimentalFlag.sealedClass: true,
-              ExperimentalFlag.inlineClass: true
-            })
-      ]));
+  Directory dataDir = new Directory.fromUri(
+    Platform.script.resolve(
+      '../../../_fe_analyzer_shared/test/exhaustiveness/data',
+    ),
+  );
+  await runTests<Features>(
+    dataDir,
+    args: args,
+    createUriForFileName: createUriForFileName,
+    onFailure: onFailure,
+    runTest: runTestFor<Features>(const ExhaustivenessDataComputer(), [
+      const CfeTestConfig(
+        cfeMarker,
+        'cfe with experiments',
+        explicitExperimentalFlags: const {
+          ExperimentalFlag.patterns: true,
+          ExperimentalFlag.records: true,
+          ExperimentalFlag.sealedClass: true,
+          ExperimentalFlag.inlineClass: true,
+        },
+      ),
+    ]),
+  );
 }
 
 class ExhaustivenessDataComputer extends CfeDataComputer<Features> {
@@ -47,11 +55,15 @@ class ExhaustivenessDataComputer extends CfeDataComputer<Features> {
   ///
   /// Fills [actualMap] with the data.
   @override
-  void computeMemberData(CfeTestResultData testResultData, Member member,
-      Map<Id, ActualData<Features>> actualMap,
-      {bool? verbose}) {
-    member.accept(new ExhaustivenessDataExtractor(
-        testResultData.compilerResult, actualMap));
+  void computeMemberData(
+    CfeTestResultData testResultData,
+    Member member,
+    Map<Id, ActualData<Features>> actualMap, {
+    bool? verbose,
+  }) {
+    member.accept(
+      new ExhaustivenessDataExtractor(testResultData.compilerResult, actualMap),
+    );
   }
 
   @override
@@ -61,11 +73,15 @@ class ExhaustivenessDataComputer extends CfeDataComputer<Features> {
 class ExhaustivenessDataExtractor extends CfeDataExtractor<Features> {
   final ExhaustivenessDataForTesting _exhaustivenessData;
 
-  ExhaustivenessDataExtractor(InternalCompilerResult compilerResult,
-      Map<Id, ActualData<Features>> actualMap)
-      : _exhaustivenessData = compilerResult
-            .kernelTargetForTesting!.loader.dataForTesting!.exhaustivenessData,
-        super(compilerResult, actualMap);
+  ExhaustivenessDataExtractor(
+    InternalCompilerResult compilerResult,
+    Map<Id, ActualData<Features>> actualMap,
+  ) : _exhaustivenessData = compilerResult
+          .kernelTargetForTesting!
+          .loader
+          .dataForTesting!
+          .exhaustivenessData,
+      super(compilerResult, actualMap);
 
   Features? computeExhaustivenessData(TreeNode node) {
     ExhaustivenessResult? result = _exhaustivenessData.switchResults[node];
@@ -80,26 +96,32 @@ class ExhaustivenessDataExtractor extends CfeDataExtractor<Features> {
           keysOfInterest.addAll(singleSpace.additionalProperties.keys);
         }
       }
-      String? subtypes =
-          typesToText(result.scrutineeType.getSubtypes(keysOfInterest));
+      String? subtypes = typesToText(
+        result.scrutineeType.getSubtypes(keysOfInterest),
+      );
       if (subtypes != null) {
         features[Tags.subtypes] = subtypes;
       }
       if (result.scrutineeType.isSealed) {
         String? expandedSubtypes = typesToText(
-            expandSealedSubtypes(result.scrutineeType, keysOfInterest));
+          expandSealedSubtypes(result.scrutineeType, keysOfInterest),
+        );
         if (subtypes != expandedSubtypes && expandedSubtypes != null) {
           features[Tags.expandedSubtypes] = expandedSubtypes;
         }
-        String? order =
-            typesToText(checkingOrder(result.scrutineeType, keysOfInterest));
+        String? order = typesToText(
+          checkingOrder(result.scrutineeType, keysOfInterest),
+        );
         if (order != null) {
           features[Tags.checkingOrder] = order;
         }
       }
       if (fieldsOfInterest.isNotEmpty) {
-        features[Tags.scrutineeFields] = fieldsToText(result.scrutineeType,
-            _exhaustivenessData.objectFieldLookup!, fieldsOfInterest);
+        features[Tags.scrutineeFields] = fieldsToText(
+          result.scrutineeType,
+          _exhaustivenessData.objectFieldLookup!,
+          fieldsOfInterest,
+        );
       }
       if (result.nonExhaustiveness case NonExhaustiveness nonExhaustiveness) {
         features[Tags.error] = nonExhaustivenessToText(nonExhaustiveness);
@@ -113,7 +135,12 @@ class ExhaustivenessDataExtractor extends CfeDataExtractor<Features> {
           caseFeatures[Tags.error] = 'unreachable';
         }
         registerValue(
-            uri, offset, new NodeId(offset, IdKind.node), caseFeatures, node);
+          uri,
+          offset,
+          new NodeId(offset, IdKind.node),
+          caseFeatures,
+          node,
+        );
       }
       return features;
     }

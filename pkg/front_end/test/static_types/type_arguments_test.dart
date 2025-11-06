@@ -8,32 +8,42 @@ import 'package:front_end/src/testing/verifying_analysis.dart';
 import 'package:kernel/ast.dart';
 
 Future<void> main(List<String> args) async {
-  await run(cfeAndBackendsEntryPoints,
-      'pkg/front_end/test/static_types/type_arguments.json',
-      analyzedUrisFilter: cfeAndBackends,
-      verbose: args.contains('-v'),
-      generate: args.contains('-g'));
+  await run(
+    cfeAndBackendsEntryPoints,
+    'pkg/front_end/test/static_types/type_arguments.json',
+    analyzedUrisFilter: cfeAndBackends,
+    verbose: args.contains('-v'),
+    generate: args.contains('-g'),
+  );
 }
 
-Future<void> run(List<Uri> entryPoints, String allowedListPath,
-    {bool verbose = false,
-    bool generate = false,
-    bool Function(Uri uri)? analyzedUrisFilter}) async {
-  await runAnalysis(entryPoints,
-      (DiagnosticMessageHandler onDiagnostic, Component component) {
+Future<void> run(
+  List<Uri> entryPoints,
+  String allowedListPath, {
+  bool verbose = false,
+  bool generate = false,
+  bool Function(Uri uri)? analyzedUrisFilter,
+}) async {
+  await runAnalysis(entryPoints, (
+    DiagnosticMessageHandler onDiagnostic,
+    Component component,
+  ) {
     new TypeArgumentsVisitor(
-            onDiagnostic, component, allowedListPath, analyzedUrisFilter)
-        .run(verbose: verbose, generate: generate);
+      onDiagnostic,
+      component,
+      allowedListPath,
+      analyzedUrisFilter,
+    ).run(verbose: verbose, generate: generate);
   });
 }
 
 class TypeArgumentsVisitor extends VerifyingAnalysis {
   TypeArgumentsVisitor(
-      DiagnosticMessageHandler onDiagnostic,
-      Component component,
-      String? allowedListPath,
-      UriFilter? analyzedUrisFilter)
-      : super(onDiagnostic, component, allowedListPath, analyzedUrisFilter);
+    DiagnosticMessageHandler onDiagnostic,
+    Component component,
+    String? allowedListPath,
+    UriFilter? analyzedUrisFilter,
+  ) : super(onDiagnostic, component, allowedListPath, analyzedUrisFilter);
 
   @override
   void visitInstanceInvocation(InstanceInvocation node) {
@@ -43,21 +53,30 @@ class TypeArgumentsVisitor extends VerifyingAnalysis {
           receiver.name.text == 'map' &&
           receiver.arguments.types.length == 1) {
         String astUri = 'package:kernel/ast.dart';
-        InterfaceType expressionType =
-            interface.createInterfaceType('Expression', uri: astUri);
-        InterfaceType statementType =
-            interface.createInterfaceType('Statement', uri: astUri);
-        InterfaceType assertStatementType =
-            interface.createInterfaceType('AssertStatement', uri: astUri);
-        InterfaceType variableDeclarationType =
-            interface.createInterfaceType('VariableDeclaration', uri: astUri);
+        InterfaceType expressionType = interface.createInterfaceType(
+          'Expression',
+          uri: astUri,
+        );
+        InterfaceType statementType = interface.createInterfaceType(
+          'Statement',
+          uri: astUri,
+        );
+        InterfaceType assertStatementType = interface.createInterfaceType(
+          'AssertStatement',
+          uri: astUri,
+        );
+        InterfaceType variableDeclarationType = interface.createInterfaceType(
+          'VariableDeclaration',
+          uri: astUri,
+        );
         DartType typeArgument = receiver.arguments.types.single;
         if (interface.isSubtypeOf(typeArgument, expressionType) &&
             typeArgument != expressionType) {
           registerError(
-              node,
-              "map().toList() with type argument "
-              "${typeArgument} instead of ${expressionType}");
+            node,
+            "map().toList() with type argument "
+            "${typeArgument} instead of ${expressionType}",
+          );
         }
         if (interface.isSubtypeOf(typeArgument, statementType)) {
           if (interface.isSubtypeOf(typeArgument, assertStatementType)) {
@@ -65,25 +84,30 @@ class TypeArgumentsVisitor extends VerifyingAnalysis {
             // `InstanceCreation.asserts`.
             if (typeArgument != assertStatementType) {
               registerError(
-                  node,
-                  "map().toList() with type argument "
-                  "${typeArgument} instead of ${assertStatementType}");
+                node,
+                "map().toList() with type argument "
+                "${typeArgument} instead of ${assertStatementType}",
+              );
             }
           } else if (interface.isSubtypeOf(
-              typeArgument, variableDeclarationType)) {
+            typeArgument,
+            variableDeclarationType,
+          )) {
             // [VariableDeclaration] is used as an exclusive member of, for
             // instance, `FunctionNode.positionalParameters`.
             if (typeArgument != variableDeclarationType) {
               registerError(
-                  node,
-                  "map().toList() with type argument "
-                  "${typeArgument} instead of ${variableDeclarationType}");
+                node,
+                "map().toList() with type argument "
+                "${typeArgument} instead of ${variableDeclarationType}",
+              );
             }
           } else if (typeArgument != statementType) {
             registerError(
-                node,
-                "map().toList() with type argument "
-                "${typeArgument} instead of ${statementType}");
+              node,
+              "map().toList() with type argument "
+              "${typeArgument} instead of ${statementType}",
+            );
           }
         }
       }

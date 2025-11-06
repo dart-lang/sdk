@@ -89,12 +89,11 @@ class ConflictValidatorVisitor extends RecursiveAstVisitor<void> {
       if (_isVisibleWithTarget(declaredElement)) {
         conflictingLocals.add(declaredElement);
         var nodeKind = declaredElement.kind.displayName;
-        var message = format(
-          "Duplicate {0} of name '{1}'{2}.",
+        var message = formatList("Duplicate {0} of name '{1}'{2}.", [
           nodeKind,
           newName,
           declaredElement.declarationLocation,
-        );
+        ]);
         result.addError(message, newLocation_fromElement(declaredElement));
         return;
       }
@@ -176,12 +175,11 @@ class RenameLocalRefactoringImpl extends RenameRefactoringImpl {
     if (element is PatternVariableElement) {
       var rootVariable =
           (element.firstFragment as PatternVariableFragmentImpl).rootVariable;
-      var declaredFragments =
-          rootVariable is JoinPatternVariableFragmentImpl
-              ? rootVariable.transitiveVariables
-                  .whereType<BindPatternVariableFragmentImpl>()
-                  .toList()
-              : [element.firstFragment];
+      var declaredFragments = rootVariable is JoinPatternVariableFragmentImpl
+          ? rootVariable.transitiveVariables
+                .whereType<BindPatternVariableFragmentImpl>()
+                .toList()
+          : [element.firstFragment];
       for (var declaredFragment in declaredFragments) {
         processor.addDeclarationEdit(declaredFragment.element);
         if (declaredFragment is BindPatternVariableFragmentImpl) {

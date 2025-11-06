@@ -14,6 +14,10 @@ library;
 // class C<T> extends T {}
 //                    ^
 //
+// pkg/front_end/testcases/general/type_variable_as_super.dart:8:3: Error: The superclass, 'Object', has no unnamed constructor that takes no arguments.
+//   B();
+//   ^
+//
 // pkg/front_end/testcases/general/type_variable_as_super.dart:14:7: Error: The class 'A' is abstract and can't be instantiated.
 //   new A();
 //       ^
@@ -32,7 +36,9 @@ abstract class A<T extends core::Object? = dynamic> extends core::Object {
 }
 abstract class B<T extends core::Object? = dynamic> extends core::Object {
   constructor •() → self::B<self::B::T%>
-    : super core::Object::•()
+    : final dynamic #t1 = invalid-expression "pkg/front_end/testcases/general/type_variable_as_super.dart:8:3: Error: The superclass, 'Object', has no unnamed constructor that takes no arguments.
+  B();
+  ^"
     ;
 }
 class C<T extends core::Object? = dynamic> extends core::Object {

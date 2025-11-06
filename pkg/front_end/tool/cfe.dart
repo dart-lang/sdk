@@ -96,6 +96,10 @@ Future<void> main(List<String> args) async {
       scriptArguments.add('--config=${repoDir}/pkg/front_end/testing.json');
       break;
     case 'generate-messages':
+      print(
+        'Hint: running `generate_messages.dart` directly is faster and avoids '
+        'bootstrapping problems.',
+      );
       mainFunction = generate_messages.main;
       script = '${toolDir}/generate_messages.dart';
       break;
@@ -116,8 +120,11 @@ Future<void> main(List<String> args) async {
     arguments.addAll(scriptArguments);
 
     print('Running: ${dartVm} ${arguments.join(' ')}');
-    Process process = await Process.start(dartVm, arguments,
-        mode: ProcessStartMode.inheritStdio);
+    Process process = await Process.start(
+      dartVm,
+      arguments,
+      mode: ProcessStartMode.inheritStdio,
+    );
     exitCode = await process.exitCode;
   } else {
     // Run within the same VM if no VM arguments are provided.

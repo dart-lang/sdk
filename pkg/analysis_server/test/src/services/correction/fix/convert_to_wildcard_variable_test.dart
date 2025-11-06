@@ -19,7 +19,7 @@ void main() {
 @reflectiveTest
 class ConvertToWildcardVariableTest extends FixProcessorTest {
   @override
-  FixKind get kind => DartFixKind.CONVERT_TO_WILDCARD_VARIABLE;
+  FixKind get kind => DartFixKind.convertToWildcardVariable;
 
   Future<void> test_basic() async {
     await resolveTestCode('''
@@ -176,7 +176,7 @@ void f() {
 @reflectiveTest
 class ConvertUnnecessaryUnderscoresTest extends FixProcessorLintTest {
   @override
-  FixKind get kind => DartFixKind.CONVERT_TO_WILDCARD_VARIABLE;
+  FixKind get kind => DartFixKind.convertToWildcardVariable;
 
   @override
   String get lintCode => LintNames.unnecessary_underscores;

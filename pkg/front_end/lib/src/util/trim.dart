@@ -47,17 +47,19 @@ Future<void> createTrimmedCopy(TrimOptions options) async {
     // Include all libraries declared as accessible from the dynamic_interface
     // specification.
     DynamicInterfaceSpecification spec = new DynamicInterfaceSpecification(
-        options.dynamicInterfaceContents!,
-        options.dynamicInterfaceUri!,
-        component);
+      options.dynamicInterfaceContents!,
+      options.dynamicInterfaceUri!,
+      component,
+    );
     Library enclosingLibrary(TreeNode node) => switch (node) {
-          Member() => node.enclosingLibrary,
-          Class() => node.enclosingLibrary,
-          Library() => node,
-          _ => throw 'Unexpected node ${node.runtimeType} $node'
-        };
-    Set<Library> extendableLibraries =
-        spec.extendable.map(enclosingLibrary).toSet();
+      Member() => node.enclosingLibrary,
+      Class() => node.enclosingLibrary,
+      Library() => node,
+      _ => throw 'Unexpected node ${node.runtimeType} $node',
+    };
+    Set<Library> extendableLibraries = spec.extendable
+        .map(enclosingLibrary)
+        .toSet();
     Set<Library> roots = {
       ...spec.callable.map(enclosingLibrary),
       ...extendableLibraries,
@@ -75,24 +77,29 @@ Future<void> createTrimmedCopy(TrimOptions options) async {
 
   // Also include libraries needed by the required platform libraries.
   addReachable(
-      component.libraries,
-      (Library lib) => _isRootFromPatterns(lib, options.requiredDartLibraries),
-      included);
+    component.libraries,
+    (Library lib) => _isRootFromPatterns(lib, options.requiredDartLibraries),
+    included,
+  );
 
   component.uriToSource.clear();
   component.setMainMethodAndMode(null, true);
 
   Future<void> emit(String path, bool isPlatform) async {
     Set<Library> filteredSet = included
-        .where((lib) => isPlatform
-            ? lib.importUri.isScheme('dart')
-            : !lib.importUri.isScheme('dart'))
+        .where(
+          (lib) => isPlatform
+              ? lib.importUri.isScheme('dart')
+              : !lib.importUri.isScheme('dart'),
+        )
         .toSet();
     IOSink sink = new File(path).openWrite();
-    BinaryPrinter printer = new BinaryPrinter(sink,
-        libraryFilter: filteredSet.contains,
-        includeSources: false,
-        includeSourceBytes: false);
+    BinaryPrinter printer = new BinaryPrinter(
+      sink,
+      libraryFilter: filteredSet.contains,
+      includeSources: false,
+      includeSourceBytes: false,
+    );
     printer.writeComponentFile(component);
     await sink.flush();
     await sink.close();
@@ -157,9 +164,11 @@ class Trimmer extends RecursiveVisitor {
   void visitLibrary(Library node) {
     Uri uri = node.importUri;
     if (isExtendable(node) && node.languageVersion.major < 3) {
-      print('Error: Only libraries 3.0 or newer may be used for extendable '
-          'classes. The library `"$uri" includes extendable classes, but has '
-          'version ${node.languageVersion.toText()}, which is older than 3.0.');
+      print(
+        'Error: Only libraries 3.0 or newer may be used for extendable '
+        'classes. The library `"$uri" includes extendable classes, but has '
+        'version ${node.languageVersion.toText()}, which is older than 3.0.',
+      );
       exit(1);
     }
 
@@ -181,7 +190,8 @@ class Trimmer extends RecursiveVisitor {
 
   @override
   void visitClass(Class node) {
-    preserveMemberBodies = isExtendable(node.enclosingLibrary) &&
+    preserveMemberBodies =
+        isExtendable(node.enclosingLibrary) &&
         (node.isMixinClass || node.isMixinDeclaration);
     super.visitClass(node);
     preserveMemberBodies = false;
@@ -235,11 +245,14 @@ class Trimmer extends RecursiveVisitor {
 
 /// Select [libraries] whose import belongs to any of the [patterns] and
 /// any other transitively reachable library.
-void addReachable(List<Library> libraries, bool Function(Library) isRoot,
-    Set<Library> result) {
+void addReachable(
+  List<Library> libraries,
+  bool Function(Library) isRoot,
+  Set<Library> result,
+) {
   List<Library> pending = [
     for (Library lib in libraries)
-      if (isRoot(lib)) lib
+      if (isRoot(lib)) lib,
   ];
 
   while (!pending.isEmpty) {
@@ -301,12 +314,16 @@ class TrimOptions {
     this.librariesToClear = const {},
   }) {
     if (dynamicInterfaceContents != null && requiredUserLibraries.isNotEmpty) {
-      throw new ArgumentError('Both dynamic interface and required user '
-          'libraries specified at once. Only one expected');
+      throw new ArgumentError(
+        'Both dynamic interface and required user '
+        'libraries specified at once. Only one expected',
+      );
     }
     if (dynamicInterfaceContents == null && requiredUserLibraries.isEmpty) {
-      throw new ArgumentError('Both dynamic interface and required user '
-          'libraries missing. Only one expected');
+      throw new ArgumentError(
+        'Both dynamic interface and required user '
+        'libraries missing. Only one expected',
+      );
     }
   }
 }

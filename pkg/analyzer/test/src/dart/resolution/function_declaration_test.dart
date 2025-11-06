@@ -25,7 +25,7 @@ Stream<int> f() async* {
   return 0;
 }
 ''',
-      [error(CompileTimeErrorCode.RETURN_IN_GENERATOR, 49, 6)],
+      [error(CompileTimeErrorCode.returnInGenerator, 49, 6)],
     );
 
     var node = findNode.singleFunctionDeclaration;
@@ -38,10 +38,10 @@ FunctionDeclaration
       arguments
         NamedType
           name: int
-          element2: dart:core::@class::int
+          element: dart:core::@class::int
           type: int
       rightBracket: >
-    element2: dart:async::@class::Stream
+    element: dart:async::@class::Stream
     type: Stream<int>
   name: f
   functionExpression: FunctionExpression
@@ -62,10 +62,12 @@ FunctionDeclaration
             semicolon: ;
         rightBracket: }
     declaredElement: <testLibraryFragment> f@34
-      type: Stream<int> Function()
+      element: <testLibrary>::@function::f
+        type: Stream<int> Function()
     staticType: Stream<int> Function()
   declaredElement: <testLibraryFragment> f@34
-    type: Stream<int> Function()
+    element: <testLibrary>::@function::f
+      type: Stream<int> Function()
 ''');
   }
 
@@ -76,7 +78,7 @@ import 'dart:async';
 
 Stream<int> f() async* => 0;
 ''',
-      [error(CompileTimeErrorCode.RETURN_IN_GENERATOR, 45, 2)],
+      [error(CompileTimeErrorCode.returnInGenerator, 45, 2)],
     );
 
     var node = findNode.singleFunctionDeclaration;
@@ -89,10 +91,10 @@ FunctionDeclaration
       arguments
         NamedType
           name: int
-          element2: dart:core::@class::int
+          element: dart:core::@class::int
           type: int
       rightBracket: >
-    element2: dart:async::@class::Stream
+    element: dart:async::@class::Stream
     type: Stream<int>
   name: f
   functionExpression: FunctionExpression
@@ -108,10 +110,12 @@ FunctionDeclaration
         staticType: int
       semicolon: ;
     declaredElement: <testLibraryFragment> f@34
-      type: Stream<int> Function()
+      element: <testLibrary>::@function::f
+        type: Stream<int> Function()
     staticType: Stream<int> Function()
   declaredElement: <testLibraryFragment> f@34
-    type: Stream<int> Function()
+    element: <testLibrary>::@function::f
+      type: Stream<int> Function()
 ''');
   }
 
@@ -145,7 +149,7 @@ void bar(a a) {
     assertResolvedNodeText(node_1, r'''
 NamedType
   name: a
-  element2: <testLibrary>::@class::a
+  element: <testLibrary>::@class::a
   type: a
 ''');
 
@@ -168,7 +172,7 @@ void m<T extends List<T>>() {}
 FunctionDeclaration
   returnType: NamedType
     name: void
-    element2: <null>
+    element: <null>
     type: void
   name: m
   functionExpression: FunctionExpression
@@ -185,10 +189,10 @@ FunctionDeclaration
               arguments
                 NamedType
                   name: T
-                  element2: #E0 T
+                  element: #E0 T
                   type: T
               rightBracket: >
-            element2: dart:core::@class::List
+            element: dart:core::@class::List
             type: List<T>
           declaredElement: <testLibraryFragment> T@7
             defaultType: List<dynamic>
@@ -201,10 +205,12 @@ FunctionDeclaration
         leftBracket: {
         rightBracket: }
     declaredElement: <testLibraryFragment> m@5
-      type: void Function<T extends List<T>>()
+      element: <testLibrary>::@function::m
+        type: void Function<T extends List<T>>()
     staticType: void Function<T extends List<T>>()
   declaredElement: <testLibraryFragment> m@5
-    type: void Function<T extends List<T>>()
+    element: <testLibrary>::@function::m
+      type: void Function<T extends List<T>>()
 ''');
   }
 
@@ -218,7 +224,7 @@ void m<T extends num>() {}
 FunctionDeclaration
   returnType: NamedType
     name: void
-    element2: <null>
+    element: <null>
     type: void
   name: m
   functionExpression: FunctionExpression
@@ -230,7 +236,7 @@ FunctionDeclaration
           extendsKeyword: extends
           bound: NamedType
             name: num
-            element2: dart:core::@class::num
+            element: dart:core::@class::num
             type: num
           declaredElement: <testLibraryFragment> T@7
             defaultType: num
@@ -243,10 +249,12 @@ FunctionDeclaration
         leftBracket: {
         rightBracket: }
     declaredElement: <testLibraryFragment> m@5
-      type: void Function<T extends num>()
+      element: <testLibrary>::@function::m
+        type: void Function<T extends num>()
     staticType: void Function<T extends num>()
   declaredElement: <testLibraryFragment> m@5
-    type: void Function<T extends num>()
+    element: <testLibrary>::@function::m
+      type: void Function<T extends num>()
 ''');
   }
 
@@ -257,7 +265,7 @@ void f() {
   void m<T extends List<T>>() {}
 }
 ''',
-      [error(WarningCode.UNUSED_ELEMENT, 18, 1)],
+      [error(WarningCode.unusedElement, 18, 1)],
     );
 
     var node = findNode.singleFunctionDeclarationStatement.functionDeclaration;
@@ -265,7 +273,7 @@ void f() {
 FunctionDeclaration
   returnType: NamedType
     name: void
-    element2: <null>
+    element: <null>
     type: void
   name: m
   functionExpression: FunctionExpression
@@ -282,10 +290,10 @@ FunctionDeclaration
               arguments
                 NamedType
                   name: T
-                  element2: #E0 T
+                  element: #E0 T
                   type: T
               rightBracket: >
-            element2: dart:core::@class::List
+            element: dart:core::@class::List
             type: List<T>
           declaredElement: <testLibraryFragment> T@20
             defaultType: List<dynamic>
@@ -298,10 +306,12 @@ FunctionDeclaration
         leftBracket: {
         rightBracket: }
     declaredElement: <testLibraryFragment> m@18
-      type: void Function<T extends List<T>>()
+      element: m@18
+        type: void Function<T extends List<T>>()
     staticType: void Function<T extends List<T>>()
   declaredElement: <testLibraryFragment> m@18
-    type: void Function<T extends List<T>>()
+    element: m@18
+      type: void Function<T extends List<T>>()
 ''');
   }
 
@@ -312,7 +322,7 @@ void f() {
   void m<T extends num>() {}
 }
 ''',
-      [error(WarningCode.UNUSED_ELEMENT, 18, 1)],
+      [error(WarningCode.unusedElement, 18, 1)],
     );
 
     var node = findNode.singleFunctionDeclarationStatement.functionDeclaration;
@@ -320,7 +330,7 @@ void f() {
 FunctionDeclaration
   returnType: NamedType
     name: void
-    element2: <null>
+    element: <null>
     type: void
   name: m
   functionExpression: FunctionExpression
@@ -332,7 +342,7 @@ FunctionDeclaration
           extendsKeyword: extends
           bound: NamedType
             name: num
-            element2: dart:core::@class::num
+            element: dart:core::@class::num
             type: num
           declaredElement: <testLibraryFragment> T@20
             defaultType: num
@@ -345,10 +355,12 @@ FunctionDeclaration
         leftBracket: {
         rightBracket: }
     declaredElement: <testLibraryFragment> m@18
-      type: void Function<T extends num>()
+      element: m@18
+        type: void Function<T extends num>()
     staticType: void Function<T extends num>()
   declaredElement: <testLibraryFragment> m@18
-    type: void Function<T extends num>()
+    element: m@18
+      type: void Function<T extends num>()
 ''');
   }
 
@@ -357,7 +369,7 @@ FunctionDeclaration
       '''
 int get foo(double a) => 0;
 ''',
-      [error(ParserErrorCode.GETTER_WITH_PARAMETERS, 11, 1)],
+      [error(ParserErrorCode.getterWithParameters, 11, 1)],
     );
 
     var node = findNode.singleFunctionDeclaration;
@@ -365,7 +377,7 @@ int get foo(double a) => 0;
 FunctionDeclaration
   returnType: NamedType
     name: int
-    element2: dart:core::@class::int
+    element: dart:core::@class::int
     type: int
   propertyKeyword: get
   name: foo
@@ -375,11 +387,12 @@ FunctionDeclaration
       parameter: SimpleFormalParameter
         type: NamedType
           name: double
-          element2: dart:core::@class::double
+          element: dart:core::@class::double
           type: double
         name: a
         declaredElement: <testLibraryFragment> a@19
-          type: double
+          element: isPublic
+            type: double
       rightParenthesis: )
     body: ExpressionFunctionBody
       functionDefinition: =>
@@ -388,10 +401,12 @@ FunctionDeclaration
         staticType: int
       semicolon: ;
     declaredElement: <testLibraryFragment> foo@8
-      type: int Function(double)
+      element: <testLibrary>::@getter::foo
+        type: int Function(double)
     staticType: int Function(double)
   declaredElement: <testLibraryFragment> foo@8
-    type: int Function(double)
+    element: <testLibrary>::@getter::foo
+      type: int Function(double)
 ''');
   }
 
@@ -402,7 +417,7 @@ Iterable<int> f() sync* {
   return 0;
 }
 ''',
-      [error(CompileTimeErrorCode.RETURN_IN_GENERATOR, 28, 6)],
+      [error(CompileTimeErrorCode.returnInGenerator, 28, 6)],
     );
 
     var node = findNode.singleFunctionDeclaration;
@@ -415,10 +430,10 @@ FunctionDeclaration
       arguments
         NamedType
           name: int
-          element2: dart:core::@class::int
+          element: dart:core::@class::int
           type: int
       rightBracket: >
-    element2: dart:core::@class::Iterable
+    element: dart:core::@class::Iterable
     type: Iterable<int>
   name: f
   functionExpression: FunctionExpression
@@ -439,10 +454,12 @@ FunctionDeclaration
             semicolon: ;
         rightBracket: }
     declaredElement: <testLibraryFragment> f@14
-      type: Iterable<int> Function()
+      element: <testLibrary>::@function::f
+        type: Iterable<int> Function()
     staticType: Iterable<int> Function()
   declaredElement: <testLibraryFragment> f@14
-    type: Iterable<int> Function()
+    element: <testLibrary>::@function::f
+      type: Iterable<int> Function()
 ''');
   }
 
@@ -451,7 +468,7 @@ FunctionDeclaration
       '''
 Iterable<int> f() sync* => 0;
 ''',
-      [error(CompileTimeErrorCode.RETURN_IN_GENERATOR, 24, 2)],
+      [error(CompileTimeErrorCode.returnInGenerator, 24, 2)],
     );
 
     var node = findNode.singleFunctionDeclaration;
@@ -464,10 +481,10 @@ FunctionDeclaration
       arguments
         NamedType
           name: int
-          element2: dart:core::@class::int
+          element: dart:core::@class::int
           type: int
       rightBracket: >
-    element2: dart:core::@class::Iterable
+    element: dart:core::@class::Iterable
     type: Iterable<int>
   name: f
   functionExpression: FunctionExpression
@@ -483,10 +500,12 @@ FunctionDeclaration
         staticType: int
       semicolon: ;
     declaredElement: <testLibraryFragment> f@14
-      type: Iterable<int> Function()
+      element: <testLibrary>::@function::f
+        type: Iterable<int> Function()
     staticType: Iterable<int> Function()
   declaredElement: <testLibraryFragment> f@14
-    type: Iterable<int> Function()
+    element: <testLibrary>::@function::f
+      type: Iterable<int> Function()
 ''');
   }
 
@@ -495,7 +514,7 @@ FunctionDeclaration
       '''
 _() {}
 ''',
-      [error(WarningCode.UNUSED_ELEMENT, 0, 1)],
+      [error(WarningCode.unusedElement, 0, 1)],
     );
 
     var node = findNode.singleFunctionDeclaration;
@@ -511,10 +530,12 @@ FunctionDeclaration
         leftBracket: {
         rightBracket: }
     declaredElement: <testLibraryFragment> _@0
-      type: dynamic Function()
+      element: <testLibrary>::@function::_
+        type: dynamic Function()
     staticType: dynamic Function()
   declaredElement: <testLibraryFragment> _@0
-    type: dynamic Function()
+    element: <testLibrary>::@function::_
+      type: dynamic Function()
 ''');
   }
 
@@ -526,7 +547,7 @@ FunctionDeclaration
 
 _() {}
 ''',
-      [error(WarningCode.UNUSED_ELEMENT, 44, 1)],
+      [error(WarningCode.unusedElement, 44, 1)],
     );
 
     var node = findNode.singleFunctionDeclaration;
@@ -542,10 +563,12 @@ FunctionDeclaration
         leftBracket: {
         rightBracket: }
     declaredElement: <testLibraryFragment> _@44
-      type: dynamic Function()
+      element: <testLibrary>::@function::_
+        type: dynamic Function()
     staticType: dynamic Function()
   declaredElement: <testLibraryFragment> _@44
-    type: dynamic Function()
+    element: <testLibrary>::@function::_
+      type: dynamic Function()
 ''');
   }
 
@@ -558,8 +581,8 @@ FunctionDeclaration
 void f<_ extends void Function<_>(_, _), _>() {}
 ''',
       [
-        error(CompileTimeErrorCode.UNDEFINED_CLASS, 34, 1),
-        error(CompileTimeErrorCode.UNDEFINED_CLASS, 37, 1),
+        error(CompileTimeErrorCode.undefinedClass, 34, 1),
+        error(CompileTimeErrorCode.undefinedClass, 37, 1),
       ],
     );
 
@@ -571,7 +594,7 @@ TypeParameter
   bound: GenericFunctionType
     returnType: NamedType
       name: void
-      element2: <null>
+      element: <null>
       type: void
     functionKeyword: Function
     typeParameters: TypeParameterList
@@ -587,26 +610,30 @@ TypeParameter
       parameter: SimpleFormalParameter
         type: NamedType
           name: _
-          element2: <null>
+          element: <null>
           type: InvalidType
         declaredElement: <testLibraryFragment> null@null
-          type: InvalidType
+          element: isPrivate
+            type: InvalidType
       parameter: SimpleFormalParameter
         type: NamedType
           name: _
-          element2: <null>
+          element: <null>
           type: InvalidType
         declaredElement: <testLibraryFragment> null@null
-          type: InvalidType
+          element: isPrivate
+            type: InvalidType
       rightParenthesis: )
     declaredElement: GenericFunctionTypeElement
       parameters
         <empty>
           kind: required positional
-          type: InvalidType
+          element:
+            type: InvalidType
         <empty>
           kind: required positional
-          type: InvalidType
+          element:
+            type: InvalidType
       returnType: void
       type: void Function<_>(InvalidType, InvalidType)
     type: void Function<_>(InvalidType, InvalidType)

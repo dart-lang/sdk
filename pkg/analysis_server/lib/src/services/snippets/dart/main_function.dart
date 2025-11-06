@@ -30,7 +30,7 @@ class MainFunction extends DartSnippetProducer {
   Future<Snippet> compute() async {
     var builder = ChangeBuilder(
       session: request.analysisSession,
-      eol: utils.endOfLine,
+      defaultEol: utils.endOfLine,
     );
 
     var typeProvider = request.unit.typeProvider;
@@ -41,10 +41,9 @@ class MainFunction extends DartSnippetProducer {
         builder.writeFunctionDeclaration(
           'main',
           returnType: VoidTypeImpl.instance,
-          parameterWriter:
-              _insertArgsParameter
-                  ? () => builder.writeParameter('args', type: listString)
-                  : null,
+          parameterWriter: _insertArgsParameter
+              ? () => builder.writeParameter('args', type: listString)
+              : null,
           bodyWriter: () {
             builder.writeln('{');
             builder.write('  ');

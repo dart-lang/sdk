@@ -212,10 +212,10 @@ typedef Predicate = bool <E>(E element);
 ''',
       [
         // No lint.
-        error(CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS, 20, 8),
-        error(CompileTimeErrorCode.NON_TYPE_AS_TYPE_ARGUMENT, 26, 1),
-        error(ParserErrorCode.EXPECTED_TOKEN, 28, 1),
-        error(CompileTimeErrorCode.UNDEFINED_CLASS, 29, 1),
+        error(CompileTimeErrorCode.wrongNumberOfTypeArguments, 20, 8),
+        error(CompileTimeErrorCode.nonTypeAsTypeArgument, 26, 1),
+        error(ParserErrorCode.expectedToken, 28, 1),
+        error(CompileTimeErrorCode.undefinedClass, 29, 1),
       ],
     );
   }

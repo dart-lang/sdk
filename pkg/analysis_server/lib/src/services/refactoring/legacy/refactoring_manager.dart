@@ -103,12 +103,11 @@ class RefactoringManager {
   ) {
     // prepare for processing the request
     this.request = request;
-    var result =
-        this.result = EditGetRefactoringResult(
-          EMPTY_PROBLEM_LIST,
-          EMPTY_PROBLEM_LIST,
-          EMPTY_PROBLEM_LIST,
-        );
+    var result = this.result = EditGetRefactoringResult(
+      EMPTY_PROBLEM_LIST,
+      EMPTY_PROBLEM_LIST,
+      EMPTY_PROBLEM_LIST,
+    );
 
     // process the request
     var file = params.file;

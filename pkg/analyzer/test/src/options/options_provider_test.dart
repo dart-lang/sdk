@@ -31,10 +31,8 @@ class ErrorProcessorMatcher extends Matcher {
   ErrorProcessorMatcher(this.required);
 
   @override
-  Description describe(Description desc) =>
-      desc..add(
-        "an ErrorProcessor setting ${required.code} to ${required.severity}",
-      );
+  Description describe(Description desc) => desc
+    ..add("an ErrorProcessor setting ${required.code} to ${required.severity}");
 
   @override
   bool matches(dynamic o, Map<dynamic, dynamic> options) {
@@ -363,9 +361,37 @@ linter:
     expect(options.lintRules, isNot(contains(topLevelLint)));
   }
 
+  test_include_plugins() {
+    newFile('/project/analysis_options.yaml', '''
+plugins:
+  plugin_one:
+    path: foo/bar
+''');
+    newFile('/project/foo/analysis_options.yaml', r'''
+include: ../analysis_options.yaml
+''');
+
+    var options = _getOptionsObject('/project/foo') as AnalysisOptionsImpl;
+
+    expect(options.pluginsOptions.configurations, hasLength(1));
+    var pluginConfiguration = options.pluginsOptions.configurations.first;
+    expect(
+      pluginConfiguration.source,
+      isA<PathPluginSource>().having(
+        (e) => e.toYaml(name: 'plugin_one'),
+        'toYaml',
+        '''
+  plugin_one:
+    path: ${convertPath('/project/foo/bar')}
+''',
+      ),
+    );
+  }
+
   AnalysisOptions _getOptionsObject(String filePath) =>
       AnalysisOptionsImpl.fromYaml(
         optionsMap: provider.getOptions(getFolder(filePath)),
+        file: getFile(filePath),
       );
 }
 

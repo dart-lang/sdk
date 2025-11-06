@@ -22,13 +22,7 @@ class A {
   external A(super.a);
 }
 ''',
-      [
-        error(
-          CompileTimeErrorCode.INVALID_SUPER_FORMAL_PARAMETER_LOCATION,
-          23,
-          5,
-        ),
-      ],
+      [error(CompileTimeErrorCode.invalidSuperFormalParameterLocation, 23, 5)],
     );
   }
 
@@ -42,13 +36,7 @@ class A {
   A._();
 }
 ''',
-      [
-        error(
-          CompileTimeErrorCode.INVALID_SUPER_FORMAL_PARAMETER_LOCATION,
-          22,
-          5,
-        ),
-      ],
+      [error(CompileTimeErrorCode.invalidSuperFormalParameterLocation, 22, 5)],
     );
   }
 
@@ -60,13 +48,7 @@ class A {
   A._();
 }
 ''',
-      [
-        error(
-          CompileTimeErrorCode.INVALID_SUPER_FORMAL_PARAMETER_LOCATION,
-          14,
-          5,
-        ),
-      ],
+      [error(CompileTimeErrorCode.invalidSuperFormalParameterLocation, 14, 5)],
     );
   }
 
@@ -77,13 +59,7 @@ class A {
   void foo(super.a) {}
 }
 ''',
-      [
-        error(
-          CompileTimeErrorCode.INVALID_SUPER_FORMAL_PARAMETER_LOCATION,
-          21,
-          5,
-        ),
-      ],
+      [error(CompileTimeErrorCode.invalidSuperFormalParameterLocation, 21, 5)],
     );
   }
 
@@ -94,13 +70,7 @@ extension E on int {
   void foo(super.a) {}
 }
 ''',
-      [
-        error(
-          CompileTimeErrorCode.INVALID_SUPER_FORMAL_PARAMETER_LOCATION,
-          32,
-          5,
-        ),
-      ],
+      [error(CompileTimeErrorCode.invalidSuperFormalParameterLocation, 32, 5)],
     );
   }
 
@@ -112,13 +82,7 @@ void f() {
   void g(super.a) {}
 }
 ''',
-      [
-        error(
-          CompileTimeErrorCode.INVALID_SUPER_FORMAL_PARAMETER_LOCATION,
-          47,
-          5,
-        ),
-      ],
+      [error(CompileTimeErrorCode.invalidSuperFormalParameterLocation, 47, 5)],
     );
   }
 
@@ -129,13 +93,7 @@ mixin M {
   void foo(super.a) {}
 }
 ''',
-      [
-        error(
-          CompileTimeErrorCode.INVALID_SUPER_FORMAL_PARAMETER_LOCATION,
-          21,
-          5,
-        ),
-      ],
+      [error(CompileTimeErrorCode.invalidSuperFormalParameterLocation, 21, 5)],
     );
   }
 
@@ -144,13 +102,7 @@ mixin M {
       r'''
 void f(super.a) {}
 ''',
-      [
-        error(
-          CompileTimeErrorCode.INVALID_SUPER_FORMAL_PARAMETER_LOCATION,
-          7,
-          5,
-        ),
-      ],
+      [error(CompileTimeErrorCode.invalidSuperFormalParameterLocation, 7, 5)],
     );
   }
 

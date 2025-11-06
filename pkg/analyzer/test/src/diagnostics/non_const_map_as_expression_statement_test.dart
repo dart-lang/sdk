@@ -29,7 +29,7 @@ f() {
     await resolveTestFile();
     expect(
       result.diagnostics[0].diagnosticCode,
-      CompileTimeErrorCode.NON_CONST_MAP_AS_EXPRESSION_STATEMENT,
+      CompileTimeErrorCode.nonConstMapAsExpressionStatement,
     );
   }
 
@@ -46,7 +46,7 @@ f() {
     await resolveTestFile();
     expect(
       result.diagnostics[0].diagnosticCode,
-      CompileTimeErrorCode.NON_CONST_MAP_AS_EXPRESSION_STATEMENT,
+      CompileTimeErrorCode.nonConstMapAsExpressionStatement,
     );
   }
 }

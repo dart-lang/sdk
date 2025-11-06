@@ -2,7 +2,7 @@ library;
 //
 // Problems in library:
 //
-// pkg/front_end/testcases/inference_new/invalid_assignment_during_toplevel_inference.dart:9:13: Error: A value of type 'String' can't be assigned to a variable of type 'int'.
+// pkg/front_end/testcases/inference_new/invalid_assignment_during_toplevel_inference.dart:7:13: Error: A value of type 'String' can't be assigned to a variable of type 'int'.
 // var x = i = s;
 //             ^
 //

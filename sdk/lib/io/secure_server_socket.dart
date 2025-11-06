@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-part of dart.io;
+part of "dart:io";
 
 /// A server socket, providing a stream of high-level [Socket]s.
 ///
@@ -142,10 +142,10 @@ class RawSecureServerSocket extends Stream<RawSecureSocket> {
   ) {
     _controller = new StreamController<RawSecureSocket>(
       sync: true,
-      onListen: _onSubscriptionStateChange,
-      onPause: _onPauseStateChange,
-      onResume: _onPauseStateChange,
-      onCancel: _onSubscriptionStateChange,
+      onListen: _start,
+      onPause: _pause,
+      onResume: _resume,
+      onCancel: close,
     );
   }
 
@@ -288,24 +288,20 @@ class RawSecureServerSocket extends Stream<RawSecureSocket> {
         });
   }
 
-  void _onPauseStateChange() {
-    if (_controller.isPaused) {
-      _subscription!.pause();
-    } else {
-      _subscription!.resume();
-    }
+  void _pause() {
+    _subscription!.pause();
   }
 
-  void _onSubscriptionStateChange() {
-    if (_controller.hasListener) {
-      _subscription = _socket.listen(
-        _onData,
-        onError: _controller.addError,
-        onDone: _controller.close,
-      );
-    } else {
-      close();
-    }
+  void _resume() {
+    _subscription!.resume();
+  }
+
+  void _start() {
+    _subscription = _socket.listen(
+      _onData,
+      onError: _controller.addError,
+      onDone: _controller.close,
+    );
   }
 
   void set _owner(owner) {

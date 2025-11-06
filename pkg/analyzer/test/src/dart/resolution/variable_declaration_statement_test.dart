@@ -27,8 +27,8 @@ class A {
 }
 ''',
       [
-        error(WarningCode.UNUSED_LOCAL_VARIABLE, 33, 1),
-        error(ParserErrorCode.MISSING_ASSIGNABLE_SELECTOR, 37, 5),
+        error(WarningCode.unusedLocalVariable, 33, 1),
+        error(ParserErrorCode.missingAssignableSelector, 37, 5),
       ],
     );
 
@@ -45,7 +45,6 @@ VariableDeclarationStatement
           superKeyword: super
           staticType: A
         declaredFragment: isFinal isPublic a@33
-          type: null
           element: hasImplicitType isFinal isPublic
             type: A
   semicolon: ;
@@ -61,7 +60,7 @@ class A {
   }
 }
 ''',
-      [error(WarningCode.UNUSED_LOCAL_VARIABLE, 33, 1)],
+      [error(WarningCode.unusedLocalVariable, 33, 1)],
     );
 
     var node = findNode.singleVariableDeclarationStatement;
@@ -77,7 +76,6 @@ VariableDeclarationStatement
           thisKeyword: this
           staticType: A
         declaredFragment: isFinal isPublic a@33
-          type: null
           element: hasImplicitType isFinal isPublic
             type: A
   semicolon: ;

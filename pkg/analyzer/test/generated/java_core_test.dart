@@ -7,10 +7,6 @@ import 'package:test/test.dart';
 
 main() {
   test('formatList', () {
-    expect(format('Hello, {0} {1}!', 'John', 'Doe'), 'Hello, John Doe!');
-  });
-
-  test('formatList', () {
     expect(formatList('Hello, {0} {1}!', ['John', 'Doe']), 'Hello, John Doe!');
   });
 }

@@ -189,9 +189,8 @@ class A {
 ''');
 
     writeTestPackageConfig(
-      config:
-          PackageConfigFileBuilder()
-            ..add(name: 'other', rootPath: otherRoot.path),
+      config: PackageConfigFileBuilder()
+        ..add(name: 'other', rootPath: otherRoot.path),
       meta: true,
     );
 
@@ -543,9 +542,8 @@ class A {
 ''');
 
     writeTestPackageConfig(
-      config:
-          PackageConfigFileBuilder()
-            ..add(name: 'other', rootPath: otherRoot.path),
+      config: PackageConfigFileBuilder()
+        ..add(name: 'other', rootPath: otherRoot.path),
       meta: true,
     );
 
@@ -578,9 +576,8 @@ class A {
 ''');
 
     writeTestPackageConfig(
-      config:
-          PackageConfigFileBuilder()
-            ..add(name: 'other', rootPath: otherRoot.path),
+      config: PackageConfigFileBuilder()
+        ..add(name: 'other', rootPath: otherRoot.path),
       meta: true,
     );
 

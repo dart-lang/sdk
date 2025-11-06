@@ -100,6 +100,19 @@ abstract class C {
 ''');
     assertHasNoCompletion('C.c');
   }
+
+  /// Ensures completion does not error when a typedef points at a mixin because
+  /// there are no constructors.
+  Future<void> test_typeDef_toMixin_noError_issue61197() async {
+    await getTestCodeSuggestions('''
+typedef T = M;
+mixin M {}
+
+void main() {
+  ^
+}
+''');
+  }
 }
 
 @reflectiveTest
@@ -317,6 +330,178 @@ extension E on String {
 }
 ''');
     assertHasCompletion('m');
+  }
+
+  Future<void> test_privateGetter_accessible() async {
+    await getTestCodeSuggestions('''
+extension E on String {
+  String get _privateGetter => '';
+}
+
+void f(String s) {
+  s.^;
+}
+''');
+    assertHasCompletion('_privateGetter');
+  }
+
+  Future<void> test_privateGetter_notAccessible_imported() async {
+    newFile(convertPath('$testPackageLibPath/extensions.dart'), '''
+extension E on String {
+  String get _privateGetter => '';
+}
+''');
+    await getTestCodeSuggestions('''
+import 'extensions.dart';
+
+void f(String s) {
+  s.^;
+}
+''');
+    assertHasNoCompletion('_privateGetter');
+  }
+
+  Future<void> test_privateGetter_notAccessible_notImported() async {
+    newFile(convertPath('$testPackageLibPath/extensions.dart'), '''
+extension E on String {
+  String get _privateGetter => '';
+}
+''');
+    await getTestCodeSuggestions('''
+void f(String s) {
+  s.^;
+}
+''');
+    assertHasNoCompletion('_privateGetter');
+  }
+
+  Future<void> test_privateMethod_accessible() async {
+    await getTestCodeSuggestions('''
+extension E on String {
+  void _privateMethod() {}
+}
+
+void f(String s) {
+  s.^;
+}
+''');
+    assertHasCompletion('_privateMethod');
+  }
+
+  Future<void> test_privateMethod_notAccessible_mported() async {
+    newFile(convertPath('$testPackageLibPath/extensions.dart'), '''
+extension E on String {
+  void _privateMethod() {}
+}
+''');
+    await getTestCodeSuggestions('''
+import 'extensions.dart';
+
+void f(String s) {
+  s.^;
+}
+''');
+    assertHasNoCompletion('_privateMethod');
+  }
+
+  Future<void> test_privateMethod_notAccessible_notImported() async {
+    newFile(convertPath('$testPackageLibPath/extensions.dart'), '''
+extension E on String {
+  void _privateMethod() {}
+}
+''');
+    await getTestCodeSuggestions('''
+void f(String s) {
+  s.^;
+}
+''');
+    assertHasNoCompletion('_privateMethod');
+  }
+
+  Future<void> test_privateSetter_accessible() async {
+    await getTestCodeSuggestions('''
+extension E on String {
+  set _privateSetter(String _) {}
+}
+
+void f(String s) {
+  s.^;
+}
+''');
+    assertHasCompletion('_privateSetter');
+  }
+
+  Future<void> test_privateSetter_notAccessible_imported() async {
+    newFile(convertPath('$testPackageLibPath/extensions.dart'), '''
+extension E on String {
+  set _privateSetter(String _) {}
+}
+''');
+    await getTestCodeSuggestions('''
+import 'extensions.dart';
+
+void f(String s) {
+  s.^;
+}
+''');
+    assertHasNoCompletion('_privateSetter');
+  }
+
+  Future<void> test_privateSetter_notAccessible_notImported() async {
+    newFile(convertPath('$testPackageLibPath/extensions.dart'), '''
+extension E on String {
+  set _privateSetter(String _) {}
+}
+''');
+    await getTestCodeSuggestions('''
+void f(String s) {
+  s.^;
+}
+''');
+    assertHasNoCompletion('_privateSetter');
+  }
+
+  Future<void> test_privateVariable_accessible() async {
+    await getTestCodeSuggestions('''
+extension E on String {
+  String _privateVariable = '';
+}
+
+void f(String s) {
+  s.^;
+}
+''');
+    assertHasCompletion('_privateVariable');
+  }
+
+  Future<void> test_privateVariable_notAccessible_imported() async {
+    newFile(convertPath('$testPackageLibPath/extensions.dart'), '''
+extension E on String {
+  String _privateVariable = '';
+}
+''');
+    await getTestCodeSuggestions('''
+import 'extensions.dart';
+
+void f(String s) {
+  s.^;
+}
+''');
+    assertHasNoCompletion('_privateVariable');
+  }
+
+  Future<void> test_privateVariable_notAccessible_notImported() async {
+    newFile(convertPath('$testPackageLibPath/extensions.dart'), '''
+extension E on String {
+  String _privateVariable = '';
+}
+''');
+    await getTestCodeSuggestions('''
+void f(String s) {
+  s.^;
+}
+''');
+    assertHasNoCompletion('_privateVariable');
   }
 }
 
@@ -547,7 +732,7 @@ class B implements A {
 
   @failingTest
   Future<void> test_unnamedConstructor_inDifferentLibrary() async {
-    newFile('/project/bin/b.dart', '''
+    newFile('$testPackageLibPath/b.dart', '''
 class B implements A {
   B();
 }
@@ -658,7 +843,7 @@ void g() {}
 @reflectiveTest
 class SuperConstructorInvocationCompletionTest extends CompletionTestCase {
   Future<void> test_namedConstructor_notVisible() async {
-    newFile('/project/bin/a.dart', '''
+    newFile('$testPackageLibPath/a.dart', '''
 class A {
   A._() {}
 }

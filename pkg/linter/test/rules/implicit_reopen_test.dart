@@ -67,11 +67,7 @@ class C extends A {}
 ''',
       [
         // No lint.
-        error(
-          CompileTimeErrorCode.SUBTYPE_OF_BASE_IS_NOT_BASE_FINAL_OR_SEALED,
-          84,
-          1,
-        ),
+        error(CompileTimeErrorCode.subtypeOfBaseIsNotBaseFinalOrSealed, 84, 1),
       ],
     );
   }
@@ -155,11 +151,7 @@ class C extends S {}
 ''',
       [
         // No lint.
-        error(
-          CompileTimeErrorCode.SUBTYPE_OF_FINAL_IS_NOT_BASE_FINAL_OR_SEALED,
-          51,
-          1,
-        ),
+        error(CompileTimeErrorCode.subtypeOfFinalIsNotBaseFinalOrSealed, 51, 1),
       ],
     );
   }
@@ -182,11 +174,7 @@ class C extends F {}
 ''',
       [
         // No lint.
-        error(
-          CompileTimeErrorCode.SUBTYPE_OF_FINAL_IS_NOT_BASE_FINAL_OR_SEALED,
-          24,
-          1,
-        ),
+        error(CompileTimeErrorCode.subtypeOfFinalIsNotBaseFinalOrSealed, 24, 1),
       ],
     );
   }
@@ -216,7 +204,7 @@ class C extends I {}
       [
         // No lint.
         error(
-          CompileTimeErrorCode.INTERFACE_CLASS_EXTENDED_OUTSIDE_OF_LIBRARY,
+          CompileTimeErrorCode.interfaceClassExtendedOutsideOfLibrary,
           34,
           1,
         ),
@@ -275,7 +263,7 @@ mixin class M extends I {}
       [
         // No lint.
         error(
-          CompileTimeErrorCode.MIXIN_CLASS_DECLARATION_EXTENDS_NOT_OBJECT,
+          CompileTimeErrorCode.mixinClassDeclarationExtendsNotObject,
           44,
           1,
         ),
@@ -325,7 +313,7 @@ mixin M extends I {}
 ''',
       [
         // No lint.
-        error(ParserErrorCode.EXPECTED_INSTEAD, 30, 7),
+        error(ParserErrorCode.expectedInstead, 30, 7),
       ],
     );
   }

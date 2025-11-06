@@ -4,6 +4,7 @@
 
 import 'package:_fe_analyzer_shared/src/scanner/token.dart';
 import 'package:analysis_server/lsp_protocol/protocol.dart' hide Element;
+import 'package:analysis_server/src/lsp/client_configuration.dart';
 import 'package:analysis_server/src/lsp/mapping.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/ast/ast.dart';
@@ -25,15 +26,17 @@ class DartInlayHintComputer {
   final LineInfo _lineInfo;
   final CompilationUnit _unit;
   final List<InlayHint> _hints = [];
+  final LspClientInlayHintsConfiguration _config;
 
-  DartInlayHintComputer(this.pathContext, ResolvedUnitResult result)
-    : _unit = result.unit,
-      _lineInfo = result.lineInfo;
-
-  List<InlayHint> compute() {
-    _unit.accept(_DartInlayHintComputerVisitor(this));
-    return _hints;
-  }
+  DartInlayHintComputer(
+    this.pathContext,
+    ResolvedUnitResult result, [
+    // This parameter is optional because this class is used internally
+    // and does not currently pass config.
+    LspClientInlayHintsConfiguration? config,
+  ]) : _unit = result.unit,
+       _lineInfo = result.lineInfo,
+       _config = config ?? LspClientInlayHintsConfiguration(null);
 
   /// Adds a parameter name hint before [nodeOrToken] showing a the name for
   /// [parameter].
@@ -42,10 +45,11 @@ class DartInlayHintComputer {
   ///
   /// A colon and padding will be added between the hint and [nodeOrToken]
   /// automatically.
-  void _addParameterNamePrefix(
+  void addParameterNamePrefix(
     SyntacticEntity nodeOrToken,
-    FormalParameterElement parameter,
-  ) {
+    FormalParameterElement parameter, {
+    required bool hasLiteralValue,
+  }) {
     var name = parameter.name;
     if (name == null || name.isEmpty) {
       return;
@@ -58,14 +62,33 @@ class DartInlayHintComputer {
         location: _locationForElement(parameter),
       ),
     ]);
-    _hints.add(
+    _addHint(
       InlayHint(
         label: labelParts,
         position: position,
         kind: InlayHintKind.Parameter,
         paddingRight: true,
       ),
+      hasLiteralValue
+          ? _InlayHintKind.parameterNameLiteral
+          : _InlayHintKind.parameterNameNonLiteral,
     );
+  }
+
+  /// Adds a parameter type hint before [entity] showing a label for the type
+  /// [type].
+  ///
+  /// Padding will be added between the hint and [entity] automatically.
+  void addParameterTypePrefix(SyntacticEntity entity, DartType type) {
+    _addTypePrefix(entity, type, _InlayHintKind.parameterType);
+  }
+
+  /// Adds a return type hint before [token] showing a label for the type
+  /// [type].
+  ///
+  /// Padding will be added between the hint and [token] automatically.
+  void addReturnTypePrefix(Token token, DartType type) {
+    _addTypePrefix(token, type, _InlayHintKind.returnType);
   }
 
   /// Adds a type hint for [nodeOrToken] showing a label for type arguments
@@ -74,7 +97,7 @@ class DartInlayHintComputer {
   /// Hints will be added before the node unless [suffix] is `true`.
   ///
   /// If [types] is null or empty, no hints are added.
-  void _addTypeArguments(
+  void addTypeArguments(
     SyntacticEntity nodeOrToken,
     List<DartType>? types, {
     bool suffix = false,
@@ -88,7 +111,7 @@ class DartInlayHintComputer {
     var labelParts = <InlayHintLabelPart>[];
     _appendTypeArgumentParts(labelParts, types);
 
-    _hints.add(
+    _addHint(
       InlayHint(
         label: Either2<List<InlayHintLabelPart>, String>.t1(
           labelParts.toList(),
@@ -96,24 +119,79 @@ class DartInlayHintComputer {
         position: position,
         kind: InlayHintKind.Type,
       ),
+      _InlayHintKind.typeArgument,
     );
+  }
+
+  /// Adds a variable type hint before [entity] showing a label for the type
+  /// [type].
+  ///
+  /// Padding will be added between the hint and [entity] automatically.
+  void addVariableTypePrefix(SyntacticEntity entity, DartType type) {
+    _addTypePrefix(entity, type, _InlayHintKind.variableType);
+  }
+
+  List<InlayHint> compute() {
+    _unit.accept(_DartInlayHintComputerVisitor(this));
+    return _hints;
+  }
+
+  /// Adds a Type hint for type arguments of [type] (if it has type arguments).
+  void maybeAddTypeArguments(
+    Token token,
+    DartType? type, {
+    bool suffix = false,
+  }) {
+    if (type is! ParameterizedType) {
+      return;
+    }
+
+    var typeArgumentTypes = type.typeArguments;
+    if (typeArgumentTypes.isEmpty) {
+      return;
+    }
+
+    addTypeArguments(token, typeArgumentTypes, suffix: suffix);
+  }
+
+  /// Record [hint] if the user configuration has [kind] enabled.
+  void _addHint(InlayHint hint, _InlayHintKind kind) {
+    var isEnabled = switch (kind) {
+      _InlayHintKind.parameterNameLiteral =>
+        _config.parameterNamesMode != InlayHintsParameterNamesMode.none,
+      _InlayHintKind.parameterNameNonLiteral =>
+        _config.parameterNamesMode == InlayHintsParameterNamesMode.all,
+      _InlayHintKind.returnType => _config.returnTypesEnabled,
+      _InlayHintKind.parameterType => _config.parameterTypesEnabled,
+      _InlayHintKind.variableType => _config.variableTypesEnabled,
+      _InlayHintKind.typeArgument => _config.typeArgumentsEnabled,
+    };
+
+    if (isEnabled) {
+      _hints.add(hint);
+    }
   }
 
   /// Adds a type hint before [nodeOrToken] showing a label for the type [type].
   ///
   /// Padding will be added between the hint and [nodeOrToken] automatically.
-  void _addTypePrefix(SyntacticEntity nodeOrToken, DartType type) {
+  void _addTypePrefix(
+    SyntacticEntity nodeOrToken,
+    DartType type,
+    _InlayHintKind inlayHintKind,
+  ) {
     var offset = nodeOrToken.offset;
     var position = toPosition(_lineInfo.getLocation(offset));
     var labelParts = <InlayHintLabelPart>[];
     _appendTypePart(labelParts, type);
-    _hints.add(
+    _addHint(
       InlayHint(
         label: Either2<List<InlayHintLabelPart>, String>.t1(labelParts),
         position: position,
         kind: InlayHintKind.Type,
         paddingRight: true,
       ),
+      inlayHintKind,
     );
   }
 
@@ -208,7 +286,7 @@ class DartInlayHintComputer {
       return null;
     }
     var firstFragment = element.firstFragment;
-    var nameOffset = firstFragment.nameOffset2;
+    var nameOffset = firstFragment.nameOffset;
     var libraryFragment = firstFragment.libraryFragment;
     var path = libraryFragment?.source.fullName;
     var lineInfo = libraryFragment?.lineInfo;
@@ -219,24 +297,6 @@ class DartInlayHintComputer {
       uri: pathContext.toUri(path),
       range: toRange(lineInfo, nameOffset, firstFragment.name?.length ?? 0),
     );
-  }
-
-  /// Adds a Type hint for type arguments of [type] (if it has type arguments).
-  void _maybeAddTypeArguments(
-    Token token,
-    DartType? type, {
-    bool suffix = false,
-  }) {
-    if (type is! ParameterizedType) {
-      return;
-    }
-
-    var typeArgumentTypes = type.typeArguments;
-    if (typeArgumentTypes.isEmpty) {
-      return;
-    }
-
-    _addTypeArguments(token, typeArgumentTypes, suffix: suffix);
   }
 }
 
@@ -252,7 +312,11 @@ class _DartInlayHintComputerVisitor extends GeneralizingAstVisitor<void> {
       if (argument is! NamedExpression) {
         var parameter = argument.correspondingParameter;
         if (parameter != null) {
-          _computer._addParameterNamePrefix(argument, parameter);
+          _computer.addParameterNamePrefix(
+            argument,
+            parameter,
+            hasLiteralValue: argument is Literal,
+          );
         }
       }
     }
@@ -271,9 +335,9 @@ class _DartInlayHintComputerVisitor extends GeneralizingAstVisitor<void> {
       return;
     }
 
-    var declaration = node.declaredElement;
+    var declaration = node.declaredFragment?.element;
     if (declaration is LocalVariableElement) {
-      _computer._addTypePrefix(node.name, declaration.type);
+      _computer.addVariableTypePrefix(node.name, declaration.type);
     }
   }
 
@@ -286,9 +350,9 @@ class _DartInlayHintComputerVisitor extends GeneralizingAstVisitor<void> {
       return;
     }
 
-    var declaration = node.declaredElement;
+    var declaration = node.declaredFragment?.element;
     if (declaration != null) {
-      _computer._addTypePrefix(node.name, declaration.type);
+      _computer.addVariableTypePrefix(node.name, declaration.type);
     }
   }
 
@@ -311,7 +375,7 @@ class _DartInlayHintComputerVisitor extends GeneralizingAstVisitor<void> {
       // For getters/setters, the type must come before the property keyword,
       // not the name.
       var token = node.propertyKeyword ?? node.name;
-      _computer._addTypePrefix(token, declaration.returnType);
+      _computer.addReturnTypePrefix(token, declaration.returnType);
     }
   }
 
@@ -324,7 +388,7 @@ class _DartInlayHintComputerVisitor extends GeneralizingAstVisitor<void> {
       return;
     }
 
-    _computer._addTypeArguments(
+    _computer.addTypeArguments(
       node.argumentList.leftParenthesis,
       node.typeArgumentTypes,
     );
@@ -341,7 +405,7 @@ class _DartInlayHintComputerVisitor extends GeneralizingAstVisitor<void> {
 
     var token = node.leftBracket;
     var type = node.staticType;
-    _computer._maybeAddTypeArguments(token, type);
+    _computer.maybeAddTypeArguments(token, type);
   }
 
   @override
@@ -355,7 +419,7 @@ class _DartInlayHintComputerVisitor extends GeneralizingAstVisitor<void> {
 
     var declaration = node.declaredFragment?.element;
     if (declaration != null) {
-      _computer._addTypePrefix(node.name, declaration.returnType);
+      _computer.addReturnTypePrefix(node.name, declaration.returnType);
     }
   }
 
@@ -370,7 +434,7 @@ class _DartInlayHintComputerVisitor extends GeneralizingAstVisitor<void> {
 
     var token = node.endToken;
     var type = node.type;
-    _computer._maybeAddTypeArguments(token, type, suffix: true);
+    _computer.maybeAddTypeArguments(token, type, suffix: true);
   }
 
   @override
@@ -384,7 +448,7 @@ class _DartInlayHintComputerVisitor extends GeneralizingAstVisitor<void> {
 
     var token = node.leftBracket;
     var type = node.staticType;
-    _computer._maybeAddTypeArguments(token, type);
+    _computer.maybeAddTypeArguments(token, type);
   }
 
   @override
@@ -400,7 +464,7 @@ class _DartInlayHintComputerVisitor extends GeneralizingAstVisitor<void> {
     if (declaration != null) {
       // Prefer to insert before `name` to avoid going before keywords like
       // `required`.
-      _computer._addTypePrefix(node.name ?? node, declaration.type);
+      _computer.addParameterTypePrefix(node.name ?? node, declaration.type);
     }
   }
 
@@ -416,7 +480,19 @@ class _DartInlayHintComputerVisitor extends GeneralizingAstVisitor<void> {
 
     var declaration = node.declaredFragment?.element;
     if (declaration != null) {
-      _computer._addTypePrefix(node, declaration.type);
+      _computer.addVariableTypePrefix(node, declaration.type);
     }
   }
+}
+
+/// Kinds of inlay hints that we generate.
+///
+/// Each of these can be mapped into a configuration setting that controls it.
+enum _InlayHintKind {
+  parameterNameLiteral,
+  parameterNameNonLiteral,
+  returnType,
+  parameterType,
+  variableType,
+  typeArgument,
 }

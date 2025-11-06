@@ -29,18 +29,12 @@ class A {
 import 'a.dart';
 const a = const A();
 ''',
-      [
-        error(
-          CompileTimeErrorCode.CONST_CONSTRUCTOR_PARAM_TYPE_MISMATCH,
-          27,
-          9,
-        ),
-      ],
+      [error(CompileTimeErrorCode.constConstructorParamTypeMismatch, 27, 9)],
     );
 
     var aLib = findElement2.import('package:test/a.dart').importedLibrary!;
     var aConstructor = aLib.getClass('A')!.constructors.single;
-    var p = aConstructor.formalParameters.single as FormalParameterElementImpl;
+    var p = aConstructor.formalParameters.single;
 
     // To evaluate `const A()` we have to evaluate `{int p}`.
     // Even if its value is `null`.
@@ -83,7 +77,7 @@ class A {
   }
 }
 ''',
-      [error(StaticWarningCode.INVALID_NULL_AWARE_ELEMENT, 51, 1)],
+      [error(StaticWarningCode.invalidNullAwareElement, 51, 1)],
     );
     assertType(findNode.listLiteral('const ['), 'List<A>');
   }
@@ -98,7 +92,7 @@ class A {
   }
 }
 ''',
-      [error(StaticWarningCode.INVALID_NULL_AWARE_MAP_ENTRY_KEY, 51, 1)],
+      [error(StaticWarningCode.invalidNullAwareMapEntryKey, 51, 1)],
     );
     assertType(findNode.setOrMapLiteral('const {'), 'Map<A, int>');
   }
@@ -113,7 +107,7 @@ class A {
   }
 }
 ''',
-      [error(StaticWarningCode.INVALID_NULL_AWARE_MAP_ENTRY_VALUE, 54, 1)],
+      [error(StaticWarningCode.invalidNullAwareMapEntryValue, 54, 1)],
     );
     assertType(findNode.setOrMapLiteral('const {'), 'Map<int, A>');
   }
@@ -130,7 +124,7 @@ class C extends B {
   const C() : super(a);
 }
 ''',
-      [error(CompileTimeErrorCode.CONST_NOT_INITIALIZED, 62, 1)],
+      [error(CompileTimeErrorCode.constNotInitialized, 62, 1)],
     );
   }
 
@@ -144,7 +138,7 @@ class A {
   }
 }
 ''',
-      [error(StaticWarningCode.INVALID_NULL_AWARE_ELEMENT, 51, 1)],
+      [error(StaticWarningCode.invalidNullAwareElement, 51, 1)],
     );
     assertType(findNode.setOrMapLiteral('const {'), 'Set<A>');
   }
@@ -197,6 +191,10 @@ C<double Function(int)>
       alias: package:test/a.dart::@typeAlias::F
         typeArguments
           double
+  constructorInvocation
+    constructor: ConstructorMember
+      baseElement: package:test/a.dart::@class::C::@constructor::new
+      substitution: {T: double Function(int)}
   variable: <testLibrary>::@topLevelVariable::v
 ''');
   }

@@ -10,26 +10,32 @@ import 'package:_fe_analyzer_shared/src/sdk/allowed_experiments.dart';
 import 'package:dart_style/dart_style.dart' show DartFormatter;
 import 'package:yaml/yaml.dart' show YamlMap, loadYaml;
 
-import '../test/utils/io_utils.dart' show computeRepoDirUri;
+import '../test/utils/io_utils.dart'
+    show computeRepoDirUri, getPackageVersionFor;
 
 void main(List<String> arguments) {
   final Uri repoDir = computeRepoDirUri();
-  new File.fromUri(computeFeAnalyzerSharedGeneratedFile(repoDir))
-      .writeAsStringSync(generateFeAnalyzerSharedFile(repoDir), flush: true);
-  new File.fromUri(computeCfeGeneratedFile(repoDir))
-      .writeAsStringSync(generateCfeFile(repoDir), flush: true);
-  new File.fromUri(computeKernelGeneratedFile(repoDir))
-      .writeAsStringSync(generateKernelFile(repoDir), flush: true);
+  new File.fromUri(
+    computeFeAnalyzerSharedGeneratedFile(repoDir),
+  ).writeAsStringSync(generateFeAnalyzerSharedFile(repoDir), flush: true);
+  new File.fromUri(
+    computeCfeGeneratedFile(repoDir),
+  ).writeAsStringSync(generateCfeFile(repoDir), flush: true);
+  new File.fromUri(
+    computeKernelGeneratedFile(repoDir),
+  ).writeAsStringSync(generateKernelFile(repoDir), flush: true);
 }
 
 Uri computeFeAnalyzerSharedGeneratedFile(Uri repoDir) {
-  return repoDir
-      .resolve("pkg/_fe_analyzer_shared/lib/src/experiments/flags.dart");
+  return repoDir.resolve(
+    "pkg/_fe_analyzer_shared/lib/src/experiments/flags.dart",
+  );
 }
 
 Uri computeCfeGeneratedFile(Uri repoDir) {
   return repoDir.resolve(
-      "pkg/front_end/lib/src/api_prototype/experimental_flags_generated.dart");
+    "pkg/front_end/lib/src/api_prototype/experimental_flags_generated.dart",
+  );
 }
 
 Uri computeKernelGeneratedFile(Uri repoDir) {
@@ -58,8 +64,9 @@ bool _isCfeFeature(String category) {
 
 String generateFeAnalyzerSharedFile(Uri repoDir) {
   Uri yamlFile = computeYamlFile(repoDir);
-  Map<dynamic, dynamic> yaml =
-      loadYaml(new File.fromUri(yamlFile).readAsStringSync());
+  Map<dynamic, dynamic> yaml = loadYaml(
+    new File.fromUri(yamlFile).readAsStringSync(),
+  );
 
   StringBuffer sb = new StringBuffer();
 
@@ -106,8 +113,9 @@ enum ExperimentalFlag {
   for (String key in keys) {
     String identifier = keyToIdentifier(key);
     String enabledInVersion;
-    String? enabledIn =
-        getAsVersionNumberString((features[key] as YamlMap)['enabledIn']);
+    String? enabledIn = getAsVersionNumberString(
+      (features[key] as YamlMap)['enabledIn'],
+    );
     if (enabledIn == null) {
       enabledInVersion = 'defaultLanguageVersion';
     } else {
@@ -125,7 +133,8 @@ enum ExperimentalFlag {
     }
     String releasedInVersion;
     String? experimentalReleaseVersion = getAsVersionNumberString(
-        (features[key] as YamlMap)['experimentalReleaseVersion']);
+      (features[key] as YamlMap)['experimentalReleaseVersion'],
+    );
     if (experimentalReleaseVersion != null) {
       List<String> split = experimentalReleaseVersion.split(".");
       int releaseMajor = int.parse(split[0]);
@@ -180,14 +189,15 @@ class Version {
 ''');
 
   return new DartFormatter(
-          languageVersion: DartFormatter.latestShortStyleLanguageVersion)
-      .format("$sb");
+    languageVersion: getPackageVersionFor("_fe_analyzer_shared"),
+  ).format("$sb");
 }
 
 String generateKernelFile(Uri repoDir) {
   Uri yamlFile = computeYamlFile(repoDir);
-  Map<dynamic, dynamic> yaml =
-      loadYaml(new File.fromUri(yamlFile).readAsStringSync());
+  Map<dynamic, dynamic> yaml = loadYaml(
+    new File.fromUri(yamlFile).readAsStringSync(),
+  );
 
   int currentVersionMajor;
   int currentVersionMinor;
@@ -216,14 +226,15 @@ const Version defaultLanguageVersion = const Version($currentVersionMajor, $curr
 ''');
 
   return new DartFormatter(
-          languageVersion: DartFormatter.latestShortStyleLanguageVersion)
-      .format("$sb");
+    languageVersion: getPackageVersionFor("kernel"),
+  ).format("$sb");
 }
 
 String generateCfeFile(Uri repoDir) {
   Uri yamlFile = computeYamlFile(repoDir);
-  Map<dynamic, dynamic> yaml =
-      loadYaml(new File.fromUri(yamlFile).readAsStringSync());
+  Map<dynamic, dynamic> yaml = loadYaml(
+    new File.fromUri(yamlFile).readAsStringSync(),
+  );
 
   StringBuffer sb = new StringBuffer();
 
@@ -278,16 +289,17 @@ class ExperimentalFlag {
   final bool isExpired;
   final Version enabledVersion;
 
-  /// The minimum version that supports this feature.
+  /// The minimum version that enables the feature by default.
   ///
   /// If the feature is not enabled by default, this is the current language
   /// version.
   final Version experimentEnabledVersion;
 
-  /// The minimum version that supports this feature in allowed libraries.
+  /// The minimum version that allows this feature to be enabled with a flag and
+  /// enables the experiment in allowed libraries.
   ///
   /// Allowed libraries are specified in
-  /// 
+  ///
   ///    sdk/lib/_internal/allowed_experiments.json
   final Version experimentReleasedVersion;
 
@@ -302,8 +314,9 @@ class ExperimentalFlag {
   for (String key in keys) {
     String identifier = keyToIdentifier(key);
     String enabledInVersion;
-    String? enabledIn =
-        getAsVersionNumberString((features[key] as YamlMap)['enabledIn']);
+    String? enabledIn = getAsVersionNumberString(
+      (features[key] as YamlMap)['enabledIn'],
+    );
     if (enabledIn == null) {
       enabledInVersion = 'defaultLanguageVersion';
     } else {
@@ -321,7 +334,8 @@ class ExperimentalFlag {
     }
     String releasedInVersion;
     String? experimentalReleaseVersion = getAsVersionNumberString(
-        (features[key] as YamlMap)['experimentalReleaseVersion']);
+      (features[key] as YamlMap)['experimentalReleaseVersion'],
+    );
     if (experimentalReleaseVersion != null) {
       List<String> split = experimentalReleaseVersion.split(".");
       int releaseMajor = int.parse(split[0]);
@@ -480,7 +494,8 @@ final Map<ExperimentalFlag, bool> defaultExperimentalFlags = {
 
   Uri allowListFile = computeAllowListFile(repoDir);
   AllowedExperiments allowedExperiments = parseAllowedExperiments(
-      new File.fromUri(allowListFile).readAsStringSync());
+    new File.fromUri(allowListFile).readAsStringSync(),
+  );
 
   sb.write('''
 const AllowedExperimentalFlags defaultAllowedExperimentalFlags =
@@ -493,8 +508,10 @@ const AllowedExperimentalFlags defaultAllowedExperimentalFlags =
   }
   sb.writeln('},');
   sb.writeln('sdkLibraryExperiments: {');
-  allowedExperiments.sdkLibraryExperiments
-      .forEach((String library, List<String> experiments) {
+  allowedExperiments.sdkLibraryExperiments.forEach((
+    String library,
+    List<String> experiments,
+  ) {
     sb.writeln('"$library": {');
     for (String experiment in experiments) {
       sb.writeln('ExperimentalFlag.${keyToIdentifier(experiment)},');
@@ -503,8 +520,10 @@ const AllowedExperimentalFlags defaultAllowedExperimentalFlags =
   });
   sb.writeln('},');
   sb.writeln('packageExperiments: {');
-  allowedExperiments.packageExperiments
-      .forEach((String package, List<String> experiments) {
+  allowedExperiments.packageExperiments.forEach((
+    String package,
+    List<String> experiments,
+  ) {
     sb.writeln('"$package": {');
     for (String experiment in experiments) {
       sb.writeln('ExperimentalFlag.${keyToIdentifier(experiment)},');
@@ -530,8 +549,8 @@ const AllowedExperimentalFlags defaultAllowedExperimentalFlags =
   ''');
 
   return new DartFormatter(
-          languageVersion: DartFormatter.latestShortStyleLanguageVersion)
-      .format("$sb");
+    languageVersion: getPackageVersionFor("front_end"),
+  ).format("$sb");
 }
 
 String keyToIdentifier(String key, {bool upperCaseFirst = false}) {

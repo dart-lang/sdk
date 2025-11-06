@@ -166,7 +166,7 @@ class CatchAllRef extends TryTableCatch {
 /// validation and throw a [ValidationError] if validation fails.
 class InstructionsBuilder with Builder<ir.Instructions> {
   /// The module containing these instructions.
-  final ModuleBuilder module;
+  final ModuleBuilder moduleBuilder;
 
   /// Locals declared in this body, including parameters.
   final List<ir.Local> locals = [];
@@ -223,16 +223,18 @@ class InstructionsBuilder with Builder<ir.Instructions> {
 
   /// Create a new instruction sequence.
   InstructionsBuilder(
-      this.module, List<ir.ValueType> inputs, List<ir.ValueType> outputs,
+      this.moduleBuilder, List<ir.ValueType> inputs, List<ir.ValueType> outputs,
       {bool constantExpression = false})
-      : _stackTraces = module.watchPoints.isNotEmpty ? {} : null,
-        _sourceMappings = module.sourceMapUrl == null ? null : [],
+      : _stackTraces = moduleBuilder.watchPoints.isNotEmpty ? {} : null,
+        _sourceMappings = moduleBuilder.sourceMapUrl == null ? null : [],
         _constantExpression = constantExpression {
     _labelStack.add(Expression(const [], outputs));
     for (ir.ValueType paramType in inputs) {
       _addParameter(paramType);
     }
   }
+
+  ir.Module get module => moduleBuilder.module;
 
   /// Whether the instruction sequence has been completed by the final `end`.
   bool get isComplete => _labelStack.isEmpty;
@@ -265,7 +267,7 @@ class InstructionsBuilder with Builder<ir.Instructions> {
         "Non-constant instruction $i added to constant expression");
     if (!_reachable) return;
     _instructions.add(i);
-    if (module.watchPoints.isNotEmpty) {
+    if (moduleBuilder.watchPoints.isNotEmpty) {
       _stackTraces![i] = StackTrace.current;
     }
   }
@@ -556,7 +558,8 @@ class InstructionsBuilder with Builder<ir.Instructions> {
     } else if (label.inputs.isEmpty && label.outputs.length == 1) {
       _add(oneOutput(label.outputs.single));
     } else {
-      _add(function(module.types.defineFunction(label.inputs, label.outputs)));
+      _add(function(
+          moduleBuilder.types.defineFunction(label.inputs, label.outputs)));
     }
     return label;
   }
@@ -786,7 +789,7 @@ class InstructionsBuilder with Builder<ir.Instructions> {
   void select(ir.ValueType type) {
     assert(_verifyTypes([type, type, ir.NumType.i32], [type],
         trace: ['select', type]));
-    _add(ir.Select(type));
+    _add(type is ir.NumType ? ir.Select() : ir.SelectWithType(type));
   }
 
   // Variable instructions

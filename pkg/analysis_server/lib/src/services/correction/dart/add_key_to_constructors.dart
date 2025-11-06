@@ -24,10 +24,10 @@ class AddKeyToConstructors extends ResolvedCorrectionProducer {
       CorrectionApplicability.automatically;
 
   @override
-  FixKind get fixKind => DartFixKind.ADD_KEY_TO_CONSTRUCTORS;
+  FixKind get fixKind => DartFixKind.addKeyToConstructors;
 
   @override
-  FixKind get multiFixKind => DartFixKind.ADD_KEY_TO_CONSTRUCTORS_MULTI;
+  FixKind get multiFixKind => DartFixKind.addKeyToConstructorsMulti;
 
   @override
   Future<void> compute(ChangeBuilder builder) async {

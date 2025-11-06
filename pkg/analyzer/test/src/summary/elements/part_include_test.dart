@@ -55,16 +55,17 @@ library
       parts
         part_0
           uri: package:test/foo.dart
+          partKeywordOffset: 0
           unit: #F1
       classes
-        #F2 class B @102
+        #F2 class B (nameOffset:102) (firstTokenOffset:96) (offset:102)
           element: <testLibrary>::@class::B
     #F1 package:test/foo.dart
       element: <testLibrary>
       enclosingFragment: #F0
       previousFragment: #F0
       classes
-        #F3 class A @27
+        #F3 class A (nameOffset:27) (firstTokenOffset:21) (offset:27)
           element: <testLibrary>::@class::A
   classes
     class B
@@ -120,16 +121,17 @@ library
       parts
         part_0
           uri: package:test/foo_io.dart
+          partKeywordOffset: 0
           unit: #F1
       classes
-        #F2 class B @102
+        #F2 class B (nameOffset:102) (firstTokenOffset:96) (offset:102)
           element: <testLibrary>::@class::B
     #F1 package:test/foo_io.dart
       element: <testLibrary>
       enclosingFragment: #F0
       previousFragment: #F0
       classes
-        #F3 class A @27
+        #F3 class A (nameOffset:27) (firstTokenOffset:21) (offset:27)
           element: <testLibrary>::@class::A
   classes
     class B
@@ -185,16 +187,17 @@ library
       parts
         part_0
           uri: package:test/foo_io.dart
+          partKeywordOffset: 0
           unit: #F1
       classes
-        #F2 class B @122
+        #F2 class B (nameOffset:122) (firstTokenOffset:116) (offset:122)
           element: <testLibrary>::@class::B
     #F1 package:test/foo_io.dart
       element: <testLibrary>
       enclosingFragment: #F0
       previousFragment: #F0
       classes
-        #F3 class A @27
+        #F3 class A (nameOffset:27) (firstTokenOffset:21) (offset:27)
           element: <testLibrary>::@class::A
   classes
     class B
@@ -250,16 +253,17 @@ library
       parts
         part_0
           uri: package:test/foo_html.dart
+          partKeywordOffset: 0
           unit: #F1
       classes
-        #F2 class B @102
+        #F2 class B (nameOffset:102) (firstTokenOffset:96) (offset:102)
           element: <testLibrary>::@class::B
     #F1 package:test/foo_html.dart
       element: <testLibrary>
       enclosingFragment: #F0
       previousFragment: #F0
       classes
-        #F3 class A @27
+        #F3 class A (nameOffset:27) (firstTokenOffset:21) (offset:27)
           element: <testLibrary>::@class::A
   classes
     class B
@@ -315,16 +319,17 @@ library
       parts
         part_0
           uri: package:test/foo_html.dart
+          partKeywordOffset: 0
           unit: #F1
       classes
-        #F2 class B @122
+        #F2 class B (nameOffset:122) (firstTokenOffset:116) (offset:122)
           element: <testLibrary>::@class::B
     #F1 package:test/foo_html.dart
       element: <testLibrary>
       enclosingFragment: #F0
       previousFragment: #F0
       classes
-        #F3 class A @27
+        #F3 class A (nameOffset:27) (firstTokenOffset:21) (offset:27)
           element: <testLibrary>::@class::A
   classes
     class B
@@ -349,15 +354,17 @@ library
   reference: <testLibrary>
   name: my.lib
   fragments
-    #F0 <testLibraryFragment> (offset=8)
+    #F0 <testLibraryFragment> (nameOffset:<null>) (firstTokenOffset:0) (offset:8)
       element: <testLibrary>
       nextFragment: #F1
       parts
         part_0
           uri: package:test/a.dart
+          partKeywordOffset: 16
           unit: #F1
         part_1
           uri: package:test/b.dart
+          partKeywordOffset: 31
           unit: #F2
     #F1 package:test/a.dart
       element: <testLibrary>
@@ -422,12 +429,14 @@ library
       parts
         part_0
           uri: package:test/a.dart
+          partKeywordOffset: 0
           unit: #F1
         part_1
           uri: package:test/b.dart
+          partKeywordOffset: 15
           unit: #F2
       classes
-        #F3 class Z @36
+        #F3 class Z (nameOffset:36) (firstTokenOffset:30) (offset:36)
           element: <testLibrary>::@class::Z
     #F1 package:test/a.dart
       element: <testLibrary>
@@ -437,12 +446,14 @@ library
       parts
         part_2
           uri: package:test/a11.dart
+          partKeywordOffset: 21
           unit: #F4
         part_3
           uri: package:test/a12.dart
+          partKeywordOffset: 38
           unit: #F5
       classes
-        #F6 class A @61
+        #F6 class A (nameOffset:61) (firstTokenOffset:55) (offset:61)
           element: <testLibrary>::@class::A
     #F4 package:test/a11.dart
       element: <testLibrary>
@@ -450,7 +461,7 @@ library
       previousFragment: #F1
       nextFragment: #F5
       classes
-        #F7 class A11 @24
+        #F7 class A11 (nameOffset:24) (firstTokenOffset:18) (offset:24)
           element: <testLibrary>::@class::A11
     #F5 package:test/a12.dart
       element: <testLibrary>
@@ -458,7 +469,7 @@ library
       previousFragment: #F4
       nextFragment: #F2
       classes
-        #F8 class A12 @24
+        #F8 class A12 (nameOffset:24) (firstTokenOffset:18) (offset:24)
           element: <testLibrary>::@class::A12
     #F2 package:test/b.dart
       element: <testLibrary>
@@ -468,9 +479,11 @@ library
       parts
         part_4
           uri: package:test/b11.dart
+          partKeywordOffset: 21
           unit: #F9
         part_5
           uri: package:test/b12.dart
+          partKeywordOffset: 38
           unit: #F10
     #F9 package:test/b11.dart
       element: <testLibrary>
@@ -478,14 +491,14 @@ library
       previousFragment: #F2
       nextFragment: #F10
       classes
-        #F11 class B11 @24
+        #F11 class B11 (nameOffset:24) (firstTokenOffset:18) (offset:24)
           element: <testLibrary>::@class::B11
     #F10 package:test/b12.dart
       element: <testLibrary>
       enclosingFragment: #F2
       previousFragment: #F9
       classes
-        #F12 class B12 @24
+        #F12 class B12 (nameOffset:24) (firstTokenOffset:18) (offset:24)
           element: <testLibrary>::@class::B12
   classes
     class Z
@@ -522,6 +535,7 @@ library
       parts
         part_0
           uri: noRelativeUriString
+          partKeywordOffset: 0
 ''');
   }
 
@@ -540,18 +554,19 @@ library
   reference: <testLibrary>
   name: my.lib
   fragments
-    #F0 <testLibraryFragment> (offset=8)
+    #F0 <testLibraryFragment> (nameOffset:<null>) (firstTokenOffset:0) (offset:8)
       element: <testLibrary>
       nextFragment: #F1
       parts
         part_0
           uri: package:test/a.dart
+          partKeywordOffset: 16
           unit: #F1
       classes
-        #F2 class A @37
+        #F2 class A (nameOffset:37) (firstTokenOffset:31) (offset:37)
           element: <testLibrary>::@class::A
           constructors
-            #F3 synthetic new
+            #F3 synthetic new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:37)
               element: <testLibrary>::@class::A::@constructor::new
               typeName: A
     #F1 package:test/a.dart
@@ -559,10 +574,10 @@ library
       enclosingFragment: #F0
       previousFragment: #F0
       classes
-        #F4 class B @22
+        #F4 class B (nameOffset:22) (firstTokenOffset:16) (offset:22)
           element: <testLibrary>::@class::B
           constructors
-            #F5 synthetic new
+            #F5 synthetic new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:22)
               element: <testLibrary>::@class::B::@constructor::new
               typeName: B
   classes
@@ -602,12 +617,13 @@ library
       parts
         part_0
           uri: package:test/a.dart
+          partKeywordOffset: 0
           unit: #F1
       classes
-        #F2 class A @21
+        #F2 class A (nameOffset:21) (firstTokenOffset:15) (offset:21)
           element: <testLibrary>::@class::A
           constructors
-            #F3 synthetic new
+            #F3 synthetic new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:21)
               element: <testLibrary>::@class::A::@constructor::new
               typeName: A
     #F1 package:test/a.dart
@@ -615,10 +631,10 @@ library
       enclosingFragment: #F0
       previousFragment: #F0
       classes
-        #F4 class B @27
+        #F4 class B (nameOffset:27) (firstTokenOffset:21) (offset:27)
           element: <testLibrary>::@class::B
           constructors
-            #F5 synthetic new
+            #F5 synthetic new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:27)
               element: <testLibrary>::@class::B::@constructor::new
               typeName: B
   classes
@@ -652,6 +668,7 @@ library
       parts
         part_0
           uri: relativeUri 'foo:bar'
+          partKeywordOffset: 0
 ''');
   }
 
@@ -668,6 +685,7 @@ library
       parts
         part_0
           uri: source 'package:test/test.dart'
+          partKeywordOffset: 0
 ''');
   }
 
@@ -685,6 +703,7 @@ library
       parts
         part_0
           uri: source 'package:test/a.dart'
+          partKeywordOffset: 0
 ''');
   }
 
@@ -701,6 +720,7 @@ library
       parts
         part_0
           uri: source 'package:test/a.dart'
+          partKeywordOffset: 0
 ''');
   }
 
@@ -717,6 +737,7 @@ library
       parts
         part_0
           uri: relativeUriString ':'
+          partKeywordOffset: 0
 ''');
   }
 
@@ -744,9 +765,11 @@ library
       parts
         part_0
           uri: package:test/a.dart
+          partKeywordOffset: 0
           unit: #F1
         part_1
           uri: package:test/b.dart
+          partKeywordOffset: 15
           unit: #F2
     #F1 package:test/a.dart
       element: <testLibrary>
@@ -811,12 +834,14 @@ library
       parts
         part_0
           uri: package:test/a.dart
+          partKeywordOffset: 0
           unit: #F1
         part_1
           uri: package:test/b.dart
+          partKeywordOffset: 15
           unit: #F2
       classes
-        #F3 class Z @36
+        #F3 class Z (nameOffset:36) (firstTokenOffset:30) (offset:36)
           element: <testLibrary>::@class::Z
     #F1 package:test/a.dart
       element: <testLibrary>
@@ -826,12 +851,14 @@ library
       parts
         part_2
           uri: package:test/a11.dart
+          partKeywordOffset: 21
           unit: #F4
         part_3
           uri: package:test/a12.dart
+          partKeywordOffset: 38
           unit: #F5
       classes
-        #F6 class A @61
+        #F6 class A (nameOffset:61) (firstTokenOffset:55) (offset:61)
           element: <testLibrary>::@class::A
     #F4 package:test/a11.dart
       element: <testLibrary>
@@ -839,7 +866,7 @@ library
       previousFragment: #F1
       nextFragment: #F5
       classes
-        #F7 class A11 @24
+        #F7 class A11 (nameOffset:24) (firstTokenOffset:18) (offset:24)
           element: <testLibrary>::@class::A11
     #F5 package:test/a12.dart
       element: <testLibrary>
@@ -847,7 +874,7 @@ library
       previousFragment: #F4
       nextFragment: #F2
       classes
-        #F8 class A12 @24
+        #F8 class A12 (nameOffset:24) (firstTokenOffset:18) (offset:24)
           element: <testLibrary>::@class::A12
     #F2 package:test/b.dart
       element: <testLibrary>
@@ -857,9 +884,11 @@ library
       parts
         part_4
           uri: package:test/b11.dart
+          partKeywordOffset: 21
           unit: #F9
         part_5
           uri: package:test/b12.dart
+          partKeywordOffset: 38
           unit: #F10
     #F9 package:test/b11.dart
       element: <testLibrary>
@@ -867,14 +896,14 @@ library
       previousFragment: #F2
       nextFragment: #F10
       classes
-        #F11 class B11 @24
+        #F11 class B11 (nameOffset:24) (firstTokenOffset:18) (offset:24)
           element: <testLibrary>::@class::B11
     #F10 package:test/b12.dart
       element: <testLibrary>
       enclosingFragment: #F2
       previousFragment: #F9
       classes
-        #F12 class B12 @24
+        #F12 class B12 (nameOffset:24) (firstTokenOffset:18) (offset:24)
           element: <testLibrary>::@class::B12
   classes
     class Z

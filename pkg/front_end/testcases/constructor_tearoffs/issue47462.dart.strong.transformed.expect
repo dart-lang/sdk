@@ -5,13 +5,18 @@ import "dart:core" as core;
 typedef MyList<T extends core::num> = core::List<T>;
 static method main() → dynamic {}
 static method test() → dynamic {
-  self::expect(true, #C1);
-  self::expect(false, #C2);
-  self::expect(true, core::identical(#C4, #C4));
-  self::expect(false, core::identical(#C4, #C6));
-  (core::int, core::num, {growable: core::bool}) → core::List<core::num> v1 = #C4;
-  (core::int, core::num, {growable: core::bool}) → core::List<core::num> v2 = #C4;
-  (core::int, core::num, {growable: core::bool}) → core::List<core::num> v3 = #C6;
+  const (core::int, core::num, {growable: core::bool}) → core::List<core::num> c1 = #C2;
+  const (core::int, core::num, {growable: core::bool}) → core::List<core::num> c2 = #C2;
+  const (core::int, core::num, {growable: core::bool}) → core::List<core::num> c3 = #C4;
+  const core::bool c4 = #C5;
+  const core::bool c5 = #C6;
+  self::expect(true, #C5);
+  self::expect(false, #C6);
+  self::expect(true, core::identical(#C2, #C2));
+  self::expect(false, core::identical(#C2, #C4));
+  (core::int, core::num, {growable: core::bool}) → core::List<core::num> v1 = #C2;
+  (core::int, core::num, {growable: core::bool}) → core::List<core::num> v2 = #C2;
+  (core::int, core::num, {growable: core::bool}) → core::List<core::num> v3 = #C4;
   core::bool v4 = core::identical(v1, v2);
   core::bool v5 = core::identical(v1, v3);
   self::expect(true, v4);
@@ -25,12 +30,12 @@ static method expect(dynamic expected, dynamic actual) → dynamic {
 }
 
 constants  {
-  #C1 = true
-  #C2 = false
-  #C3 = constructor-tearoff core::List::filled
+  #C1 = constructor-tearoff core::List::filled
+  #C2 = instantiation #C1 <core::num>
+  #C3 = typedef-tearoff <T extends core::num>.(#C1<T>)
   #C4 = instantiation #C3 <core::num>
-  #C5 = typedef-tearoff <T extends core::num>.(#C3<T>)
-  #C6 = instantiation #C5 <core::num>
+  #C5 = true
+  #C6 = false
 }
 
 Extra constant evaluation status:

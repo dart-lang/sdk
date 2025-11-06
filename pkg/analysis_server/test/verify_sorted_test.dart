@@ -54,10 +54,9 @@ void buildTests({
   var pkgRootPath = provider.pathContext.normalize(packageRoot);
 
   packagePath = _toPlatformPath(pkgRootPath, packagePath);
-  excludedPaths =
-      excludedPaths.map((e) {
-        return _toPlatformPath(packagePath, e);
-      }).toList();
+  excludedPaths = excludedPaths.map((e) {
+    return _toPlatformPath(packagePath, e);
+  }).toList();
 
   var collection = AnalysisContextCollection(
     includedPaths: <String>[packagePath],

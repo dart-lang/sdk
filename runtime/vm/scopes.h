@@ -104,7 +104,8 @@ class LocalVariable : public ZoneAllocated {
         late_init_offset_(0),
         type_check_mode_(kDoTypeCheck),
         index_(),
-        is_awaiter_link_(IsAwaiterLink::kNotLink) {
+        is_awaiter_link_(IsAwaiterLink::kNotLink),
+        is_shared_(IsShared::kNotShared) {
     DEBUG_ASSERT(static_type.IsNotTemporaryScopedHandle());
     ASSERT(static_type.IsFinalized());
     ASSERT(inferred_type != nullptr);
@@ -129,6 +130,8 @@ class LocalVariable : public ZoneAllocated {
     annotations_offset_ = offset;
     is_awaiter_link_ = (offset == kNoKernelOffset) ? IsAwaiterLink::kNotLink
                                                    : IsAwaiterLink::kUnknown;
+    is_shared_ =
+        (offset == kNoKernelOffset) ? IsShared::kNotShared : IsShared::kUnknown;
   }
 
   const AbstractType& static_type() const { return static_type_; }
@@ -150,6 +153,11 @@ class LocalVariable : public ZoneAllocated {
 
   bool is_late() const { return IsLateBit::decode(bitfield_); }
   void set_is_late() { bitfield_ = IsLateBit::update(true, bitfield_); }
+
+  bool ComputeIfShared(const Library& library);
+  void set_is_shared(bool value) {
+    is_shared_ = value ? IsShared::kShared : IsShared::kNotShared;
+  }
 
   intptr_t late_init_offset() const { return late_init_offset_; }
   void set_late_init_offset(intptr_t late_init_offset) {
@@ -263,6 +271,13 @@ class LocalVariable : public ZoneAllocated {
     kLink,
   };
   IsAwaiterLink is_awaiter_link_;
+
+  enum class IsShared {
+    kUnknown,
+    kNotShared,
+    kShared,
+  };
+  IsShared is_shared_;
 
   friend class LocalScope;
   DISALLOW_COPY_AND_ASSIGN(LocalVariable);

@@ -34,7 +34,7 @@ class C {
   var a;
 }
 ''',
-      [error(WarningCode.INFERENCE_FAILURE_ON_UNINITIALIZED_VARIABLE, 16, 1)],
+      [error(WarningCode.inferenceFailureOnUninitializedVariable, 16, 1)],
     );
   }
 
@@ -72,7 +72,7 @@ class C {
   C(this.a);
 }
 ''',
-      [error(WarningCode.INFERENCE_FAILURE_ON_UNINITIALIZED_VARIABLE, 18, 1)],
+      [error(WarningCode.inferenceFailureOnUninitializedVariable, 18, 1)],
     );
   }
 
@@ -84,8 +84,8 @@ void f() {
 }
 ''',
       [
-        error(WarningCode.UNUSED_LOCAL_VARIABLE, 17, 1),
-        error(WarningCode.INFERENCE_FAILURE_ON_UNINITIALIZED_VARIABLE, 17, 1),
+        error(WarningCode.unusedLocalVariable, 17, 1),
+        error(WarningCode.inferenceFailureOnUninitializedVariable, 17, 1),
       ],
     );
   }
@@ -97,7 +97,7 @@ void f() {
   var a = 7;
 }
 ''',
-      [error(WarningCode.UNUSED_LOCAL_VARIABLE, 17, 1)],
+      [error(WarningCode.unusedLocalVariable, 17, 1)],
     );
   }
 
@@ -112,10 +112,10 @@ void f() {
 }
 ''',
       [
-        error(WarningCode.UNUSED_LOCAL_VARIABLE, 17, 1),
-        error(WarningCode.UNUSED_LOCAL_VARIABLE, 34, 1),
-        error(WarningCode.UNUSED_LOCAL_VARIABLE, 46, 1),
-        error(WarningCode.UNUSED_LOCAL_VARIABLE, 67, 1),
+        error(WarningCode.unusedLocalVariable, 17, 1),
+        error(WarningCode.unusedLocalVariable, 34, 1),
+        error(WarningCode.unusedLocalVariable, 46, 1),
+        error(WarningCode.unusedLocalVariable, 67, 1),
       ],
     );
   }
@@ -127,7 +127,7 @@ class C {
   static var a;
 }
 ''',
-      [error(WarningCode.INFERENCE_FAILURE_ON_UNINITIALIZED_VARIABLE, 23, 1)],
+      [error(WarningCode.inferenceFailureOnUninitializedVariable, 23, 1)],
     );
   }
 
@@ -136,7 +136,7 @@ class C {
       r'''
 var a;
 ''',
-      [error(WarningCode.INFERENCE_FAILURE_ON_UNINITIALIZED_VARIABLE, 4, 1)],
+      [error(WarningCode.inferenceFailureOnUninitializedVariable, 4, 1)],
     );
   }
 

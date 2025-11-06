@@ -67,8 +67,11 @@ class MatchingCache {
   /// where a joint variable is used instead of the two declared 'a' variables.
   Map<VariableDeclaration, VariableDeclaration> _variableAliases = {};
 
-  MatchingCache(this._matchingCacheIndex, this._coreTypes,
-      {required this.useLowering});
+  MatchingCache(
+    this._matchingCacheIndex,
+    this._coreTypes, {
+    required this.useLowering,
+  });
 
   /// Declares that [jointVariables] should be used as aliases of the variables
   /// of the same name in [variables1] and [variables2].
@@ -79,9 +82,10 @@ class MatchingCache {
   ///
   /// where a joint variable is used instead of the two declared 'a' variables.
   void declareJointVariables(
-      List<VariableDeclaration> jointVariables,
-      List<VariableDeclaration> variables1,
-      List<VariableDeclaration> variables2) {
+    List<VariableDeclaration> jointVariables,
+    List<VariableDeclaration> variables1,
+    List<VariableDeclaration> variables2,
+  ) {
     Map<String, VariableDeclaration> jointVariablesMap = {};
     for (VariableDeclaration variable in jointVariables) {
       jointVariablesMap[variable.name!] = variable;
@@ -137,24 +141,27 @@ class MatchingCache {
   ///
   /// If [isConst] is `true`, a const variable is created. This cannot be used
   /// together with [isLate] set to `true`.
-  Cache _createCacheableExpression(CacheKey cacheKey,
-      {bool isLate = true,
-      bool isConst = false,
-      required int fileOffset,
-      required bool requiresCaching}) {
+  Cache _createCacheableExpression(
+    CacheKey cacheKey, {
+    bool isLate = true,
+    bool isConst = false,
+    required int fileOffset,
+    required bool requiresCaching,
+  }) {
     assert(!(isLate && isConst), "Cannot create a late const variable.");
     return _cacheKeyMap[cacheKey] = new Cache(
-        cacheKey,
-        this,
-        '${useVerboseEncodingForDebugging ?
+      cacheKey,
+      this,
+      '${useVerboseEncodingForDebugging ?
             // Coverage-ignore(suite): Not run.
             '${cacheKey.name}' : ''}'
-        '#${this._matchingCacheIndex}'
-        '#${_cachedExpressionIndex++}',
-        isLate: isLate,
-        isConst: isConst,
-        requiresCaching: requiresCaching,
-        fileOffset: fileOffset);
+      '#${this._matchingCacheIndex}'
+      '#${_cachedExpressionIndex++}',
+      isLate: isLate,
+      isConst: isConst,
+      requiresCaching: requiresCaching,
+      fileOffset: fileOffset,
+    );
   }
 
   /// Registers that the variable or local function [declaration] is need for
@@ -176,10 +183,14 @@ class MatchingCache {
 
   /// Creates a [VariableDeclaration] for a temporary variable of the given
   /// [type] and registers it with [registerDeclaration].
-  VariableDeclaration createTemporaryVariable(DartType type,
-      {required int fileOffset}) {
-    VariableDeclaration variable =
-        createUninitializedVariable(type, fileOffset: fileOffset);
+  VariableDeclaration createTemporaryVariable(
+    DartType type, {
+    required int fileOffset,
+  }) {
+    VariableDeclaration variable = createUninitializedVariable(
+      type,
+      fileOffset: fileOffset,
+    );
     registerDeclaration(variable);
     return variable;
   }
@@ -196,17 +207,23 @@ class MatchingCache {
   // TODO(johnniwinther): Support _not_ caching the expression if it is a pure
   // expression like `this`.
   CacheableExpression createRootExpression(
-      Expression expression, DartType expressionType) {
+    Expression expression,
+    DartType expressionType,
+  ) {
     CacheKey cacheKey = new ExpressionKey(expression);
     Cache? cache = _cacheKeyMap[cacheKey];
     if (cache == null) {
-      cache = _createCacheableExpression(cacheKey,
-          isLate: false,
-          requiresCaching: true,
-          fileOffset: expression.fileOffset);
+      cache = _createCacheableExpression(
+        cacheKey,
+        isLate: false,
+        requiresCaching: true,
+        fileOffset: expression.fileOffset,
+      );
     }
     return cache.registerAccess(
-        cacheKey, new FixedExpression(expression, expressionType));
+      cacheKey,
+      new FixedExpression(expression, expressionType),
+    );
   }
 
   /// Creates a cacheable expression for integer constant [value].
@@ -214,8 +231,10 @@ class MatchingCache {
     CacheableExpression? result = _intConstantMap[value];
     if (result == null) {
       result = _intConstantMap[value] = createConstantExpression(
-          new IntConstant(value), _coreTypes.intNonNullableRawType,
-          fileOffset: fileOffset);
+        new IntConstant(value),
+        _coreTypes.intNonNullableRawType,
+        fileOffset: fileOffset,
+      );
     }
     return result;
   }
@@ -223,172 +242,257 @@ class MatchingCache {
   /// Creates a cacheable expression for the [constant] of the given
   /// [expressionType].
   CacheableExpression createConstantExpression(
-      Constant constant, DartType expressionType,
-      {required int fileOffset}) {
+    Constant constant,
+    DartType expressionType, {
+    required int fileOffset,
+  }) {
     assert(isKnown(expressionType));
     CacheKey cacheKey = new ConstantKey(constant);
     Cache? cache = _cacheKeyMap[cacheKey];
     if (cache == null) {
-      cache = _createCacheableExpression(cacheKey,
-          isLate: false,
-          isConst: true,
-          requiresCaching: true,
-          fileOffset: fileOffset);
+      cache = _createCacheableExpression(
+        cacheKey,
+        isLate: false,
+        isConst: true,
+        requiresCaching: true,
+        fileOffset: fileOffset,
+      );
     }
     return cache.registerAccess(
-        cacheKey,
-        new FixedExpression(
-            new ConstantExpression(constant, expressionType)
-              ..fileOffset = fileOffset,
-            expressionType));
+      cacheKey,
+      new FixedExpression(
+        new ConstantExpression(constant, expressionType)
+          ..fileOffset = fileOffset,
+        expressionType,
+      ),
+    );
   }
 
   /// Creates a cacheable as expression of the [operand] against [type].
   CacheableExpression createAsExpression(
-      CacheableExpression operand, DartType type,
-      {required int fileOffset}) {
+    CacheableExpression operand,
+    DartType type, {
+    required int fileOffset,
+  }) {
     CacheKey cacheKey = new AsKey(operand.cacheKey, type);
     Cache? cache = _cacheKeyMap[cacheKey];
     if (cache == null) {
-      cache = _createCacheableExpression(cacheKey,
-          requiresCaching: false, fileOffset: fileOffset);
+      cache = _createCacheableExpression(
+        cacheKey,
+        requiresCaching: false,
+        fileOffset: fileOffset,
+      );
     }
-    return cache.registerAccess(operand.accessKey,
-        new DelayedAsExpression(operand, type, fileOffset: fileOffset));
+    return cache.registerAccess(
+      operand.accessKey,
+      new DelayedAsExpression(operand, type, fileOffset: fileOffset),
+    );
   }
 
   /// Creates a cacheable expression for a null assert pattern, which asserts
   /// that [operand] is non-null.
-  CacheableExpression createNullAssertMatcher(CacheableExpression operand,
-      {required int fileOffset}) {
+  CacheableExpression createNullAssertMatcher(
+    CacheableExpression operand, {
+    required int fileOffset,
+  }) {
     CacheKey cacheKey = new NullAssertKey(operand.cacheKey);
     Cache? cache = _cacheKeyMap[cacheKey];
     if (cache == null) {
-      cache = _createCacheableExpression(cacheKey,
-          requiresCaching: false, fileOffset: fileOffset);
+      cache = _createCacheableExpression(
+        cacheKey,
+        requiresCaching: false,
+        fileOffset: fileOffset,
+      );
     }
-    return cache.registerAccess(operand.accessKey,
-        new DelayedNullAssertExpression(operand, fileOffset: fileOffset));
+    return cache.registerAccess(
+      operand.accessKey,
+      new DelayedNullAssertExpression(operand, fileOffset: fileOffset),
+    );
   }
 
   /// Creates a cacheable expression for a null check pattern, which matches if
   /// [operand] is non-null.
-  CacheableExpression createNullCheckMatcher(CacheableExpression operand,
-      {required int fileOffset}) {
+  CacheableExpression createNullCheckMatcher(
+    CacheableExpression operand, {
+    required int fileOffset,
+  }) {
     CacheKey cacheKey = new NullCheckKey(operand.cacheKey);
     Cache? cache = _cacheKeyMap[cacheKey];
     if (cache == null) {
-      cache = _createCacheableExpression(cacheKey,
-          requiresCaching: false, fileOffset: fileOffset);
+      cache = _createCacheableExpression(
+        cacheKey,
+        requiresCaching: false,
+        fileOffset: fileOffset,
+      );
     }
-    return cache.registerAccess(operand.accessKey,
-        new DelayedNullCheckExpression(operand, fileOffset: fileOffset));
+    return cache.registerAccess(
+      operand.accessKey,
+      new DelayedNullCheckExpression(operand, fileOffset: fileOffset),
+    );
   }
 
   /// Creates a cacheable expression for an is test on [operand] against [type].
   CacheableExpression createIsExpression(
-      CacheableExpression operand, DartType type,
-      {required int fileOffset}) {
+    CacheableExpression operand,
+    DartType type, {
+    required int fileOffset,
+  }) {
     CacheKey cacheKey = new IsKey(operand.cacheKey, type);
     Cache? cache = _cacheKeyMap[cacheKey];
     if (cache == null) {
-      cache = _createCacheableExpression(cacheKey,
-          requiresCaching: false, fileOffset: fileOffset);
+      cache = _createCacheableExpression(
+        cacheKey,
+        requiresCaching: false,
+        fileOffset: fileOffset,
+      );
     }
-    return cache.registerAccess(operand.accessKey,
-        new DelayedIsExpression(operand, type, fileOffset: fileOffset));
+    return cache.registerAccess(
+      operand.accessKey,
+      new DelayedIsExpression(operand, type, fileOffset: fileOffset),
+    );
   }
 
   /// Creates a cacheable expression for accessing the [propertyName] property
   /// on [receiver] of type [receiverType].
-  CacheableExpression createPropertyGetExpression(CacheableExpression receiver,
-      String propertyName, DelayedExpression expression,
-      {Member? staticTarget,
-      List<DartType>? typeArguments,
-      required int fileOffset}) {
+  CacheableExpression createPropertyGetExpression(
+    CacheableExpression receiver,
+    String propertyName,
+    DelayedExpression expression, {
+    Member? staticTarget,
+    List<DartType>? typeArguments,
+    required int fileOffset,
+  }) {
     CacheKey cacheKey;
     if (staticTarget != null) {
-      assert(typeArguments != null,
-          "No type arguments provided for static target $staticTarget.");
+      assert(
+        typeArguments != null,
+        "No type arguments provided for static target $staticTarget.",
+      );
       cacheKey = new StaticAccessKey(
-          receiver.cacheKey, staticTarget, typeArguments!, propertyName);
+        receiver.cacheKey,
+        staticTarget,
+        typeArguments!,
+        propertyName,
+      );
     } else {
       cacheKey = new DynamicAccessKey(receiver.cacheKey, propertyName);
     }
     Cache? cache = _cacheKeyMap[cacheKey];
     if (cache == null) {
-      cache = _createCacheableExpression(cacheKey,
-          requiresCaching: true, fileOffset: fileOffset);
+      cache = _createCacheableExpression(
+        cacheKey,
+        requiresCaching: true,
+        fileOffset: fileOffset,
+      );
     }
     return cache.registerAccess(receiver.accessKey, expression);
   }
 
   /// Creates a cacheable expression that compares [left] of type [leftType]
   /// against [right] with the [operator] operator.
-  CacheableExpression createComparisonExpression(CacheableExpression left,
-      String operator, CacheableExpression right, DelayedExpression expression,
-      {Member? staticTarget,
-      List<DartType>? typeArguments,
-      required int fileOffset}) {
+  CacheableExpression createComparisonExpression(
+    CacheableExpression left,
+    String operator,
+    CacheableExpression right,
+    DelayedExpression expression, {
+    Member? staticTarget,
+    List<DartType>? typeArguments,
+    required int fileOffset,
+  }) {
     CacheKey cacheKey;
     if (staticTarget != null) {
-      assert(typeArguments != null,
-          "No type arguments provided for static target $staticTarget.");
-      cacheKey = new StaticAccessKey(left.cacheKey, staticTarget,
-          typeArguments!, operator, [right.cacheKey]);
+      assert(
+        typeArguments != null,
+        "No type arguments provided for static target $staticTarget.",
+      );
+      cacheKey = new StaticAccessKey(
+        left.cacheKey,
+        staticTarget,
+        typeArguments!,
+        operator,
+        [right.cacheKey],
+      );
     } else {
-      cacheKey =
-          new DynamicAccessKey(left.cacheKey, operator, [right.cacheKey]);
+      cacheKey = new DynamicAccessKey(left.cacheKey, operator, [
+        right.cacheKey,
+      ]);
     }
     Cache? cache = _cacheKeyMap[cacheKey];
     if (cache == null) {
-      cache = _createCacheableExpression(cacheKey,
-          requiresCaching: true, fileOffset: fileOffset);
+      cache = _createCacheableExpression(
+        cacheKey,
+        requiresCaching: true,
+        fileOffset: fileOffset,
+      );
     }
     return cache.registerAccess(
-        new JointAccessKey(left.accessKey, right.accessKey), expression);
+      new JointAccessKey(left.accessKey, right.accessKey),
+      expression,
+    );
   }
 
   /// Creates a cacheable expression that checks [left] of type [leftType]
   /// for equality against [right]. If [isNot] is `true`, the result is negated.
-  CacheableExpression createEqualsExpression(CacheableExpression left,
-      CacheableExpression right, DelayedExpression expression,
-      {Member? staticTarget,
-      List<DartType>? typeArguments,
-      required int fileOffset}) {
+  CacheableExpression createEqualsExpression(
+    CacheableExpression left,
+    CacheableExpression right,
+    DelayedExpression expression, {
+    Member? staticTarget,
+    List<DartType>? typeArguments,
+    required int fileOffset,
+  }) {
     CacheKey cacheKey;
     if (staticTarget != null) {
       // Coverage-ignore-block(suite): Not run.
-      assert(typeArguments != null,
-          "No type arguments provided for static target $staticTarget.");
-      cacheKey = new StaticAccessKey(left.cacheKey, staticTarget,
-          typeArguments!, equalsName.text, [right.cacheKey]);
+      assert(
+        typeArguments != null,
+        "No type arguments provided for static target $staticTarget.",
+      );
+      cacheKey = new StaticAccessKey(
+        left.cacheKey,
+        staticTarget,
+        typeArguments!,
+        equalsName.text,
+        [right.cacheKey],
+      );
     } else {
-      cacheKey = new DynamicAccessKey(
-          left.cacheKey, equalsName.text, [right.cacheKey]);
+      cacheKey = new DynamicAccessKey(left.cacheKey, equalsName.text, [
+        right.cacheKey,
+      ]);
     }
     Cache? cache = _cacheKeyMap[cacheKey];
     if (cache == null) {
-      cache = _createCacheableExpression(cacheKey,
-          requiresCaching: true, fileOffset: fileOffset);
+      cache = _createCacheableExpression(
+        cacheKey,
+        requiresCaching: true,
+        fileOffset: fileOffset,
+      );
     }
     return cache.registerAccess(
-        new JointAccessKey(left.accessKey, right.accessKey), expression);
+      new JointAccessKey(left.accessKey, right.accessKey),
+      expression,
+    );
   }
 
   /// Creates a cacheable lazy-and expression of [left] and [right].
   CacheableExpression createAndExpression(
-      CacheableExpression left, CacheableExpression right,
-      {required int fileOffset}) {
+    CacheableExpression left,
+    CacheableExpression right, {
+    required int fileOffset,
+  }) {
     CacheKey cacheKey = new AndKey(left.cacheKey, right.cacheKey);
     Cache? cache = _cacheKeyMap[cacheKey];
     if (cache == null) {
-      cache = _createCacheableExpression(cacheKey,
-          requiresCaching: false, fileOffset: fileOffset);
+      cache = _createCacheableExpression(
+        cacheKey,
+        requiresCaching: false,
+        fileOffset: fileOffset,
+      );
     }
     return cache.registerAccess(
-        new JointAccessKey(left.accessKey, right.accessKey),
-        new DelayedAndExpression(left, right, fileOffset: fileOffset));
+      new JointAccessKey(left.accessKey, right.accessKey),
+      new DelayedAndExpression(left, right, fileOffset: fileOffset),
+    );
   }
 
   /// Creates a cacheable expression that accesses the `List.[]` operator on
@@ -396,25 +500,39 @@ class MatchingCache {
   ///
   /// This is used access the first elements in a list.
   CacheableExpression createHeadIndexExpression(
-      CacheableExpression receiver, int headSize, DelayedExpression expression,
-      {Member? staticTarget,
-      List<DartType>? typeArguments,
-      required int fileOffset}) {
+    CacheableExpression receiver,
+    int headSize,
+    DelayedExpression expression, {
+    Member? staticTarget,
+    List<DartType>? typeArguments,
+    required int fileOffset,
+  }) {
     CacheKey cacheKey;
     if (staticTarget != null) {
       // Coverage-ignore-block(suite): Not run.
-      assert(typeArguments != null,
-          "No type arguments provided for static target $staticTarget.");
-      cacheKey = new StaticAccessKey(receiver.cacheKey, staticTarget,
-          typeArguments!, indexGetName.text, [new IntegerKey(headSize)]);
+      assert(
+        typeArguments != null,
+        "No type arguments provided for static target $staticTarget.",
+      );
+      cacheKey = new StaticAccessKey(
+        receiver.cacheKey,
+        staticTarget,
+        typeArguments!,
+        indexGetName.text,
+        [new IntegerKey(headSize)],
+      );
     } else {
-      cacheKey = new DynamicAccessKey(
-          receiver.cacheKey, indexGetName.text, [new IntegerKey(headSize)]);
+      cacheKey = new DynamicAccessKey(receiver.cacheKey, indexGetName.text, [
+        new IntegerKey(headSize),
+      ]);
     }
     Cache? cache = _cacheKeyMap[cacheKey];
     if (cache == null) {
-      cache = _createCacheableExpression(cacheKey,
-          requiresCaching: true, fileOffset: fileOffset);
+      cache = _createCacheableExpression(
+        cacheKey,
+        requiresCaching: true,
+        fileOffset: fileOffset,
+      );
     }
     return cache.registerAccess(receiver.accessKey, expression);
   }
@@ -424,30 +542,47 @@ class MatchingCache {
   /// `.length` on the [receiver], minus [tailSize].
   ///
   /// This is used access the last elements in a list.
-  CacheableExpression createTailIndexExpression(CacheableExpression receiver,
-      CacheableExpression length, int tailSize, DelayedExpression expression,
-      {Member? staticTarget,
-      List<DartType>? typeArguments,
-      required int fileOffset}) {
+  CacheableExpression createTailIndexExpression(
+    CacheableExpression receiver,
+    CacheableExpression length,
+    int tailSize,
+    DelayedExpression expression, {
+    Member? staticTarget,
+    List<DartType>? typeArguments,
+    required int fileOffset,
+  }) {
     const String propertyName = 'tail[]';
     CacheKey cacheKey;
     if (staticTarget != null) {
       // Coverage-ignore-block(suite): Not run.
-      assert(typeArguments != null,
-          "No type arguments provided for static target $staticTarget.");
-      cacheKey = new StaticAccessKey(receiver.cacheKey, staticTarget,
-          typeArguments!, propertyName, [new IntegerKey(tailSize)]);
+      assert(
+        typeArguments != null,
+        "No type arguments provided for static target $staticTarget.",
+      );
+      cacheKey = new StaticAccessKey(
+        receiver.cacheKey,
+        staticTarget,
+        typeArguments!,
+        propertyName,
+        [new IntegerKey(tailSize)],
+      );
     } else {
-      cacheKey = new DynamicAccessKey(
-          receiver.cacheKey, propertyName, [new IntegerKey(tailSize)]);
+      cacheKey = new DynamicAccessKey(receiver.cacheKey, propertyName, [
+        new IntegerKey(tailSize),
+      ]);
     }
     Cache? cache = _cacheKeyMap[cacheKey];
     if (cache == null) {
-      cache = _createCacheableExpression(cacheKey,
-          requiresCaching: true, fileOffset: fileOffset);
+      cache = _createCacheableExpression(
+        cacheKey,
+        requiresCaching: true,
+        fileOffset: fileOffset,
+      );
     }
     return cache.registerAccess(
-        new JointAccessKey(receiver.accessKey, length.accessKey), expression);
+      new JointAccessKey(receiver.accessKey, length.accessKey),
+      expression,
+    );
   }
 
   /// Creates a cacheable expression that calls the `List.sublist` method on
@@ -455,91 +590,134 @@ class MatchingCache {
   /// index that is [lengthGet], the `.length` on the [receiver], minus
   /// [tailSize].
   CacheableExpression createSublistExpression(
-      CacheableExpression receiver,
-      CacheableExpression length,
-      int headSize,
-      int tailSize,
-      DelayedExpression expression,
-      {Member? staticTarget,
-      List<DartType>? typeArguments,
-      required int fileOffset}) {
+    CacheableExpression receiver,
+    CacheableExpression length,
+    int headSize,
+    int tailSize,
+    DelayedExpression expression, {
+    Member? staticTarget,
+    List<DartType>? typeArguments,
+    required int fileOffset,
+  }) {
     const String propertyName = 'sublist[]';
     CacheKey cacheKey;
     if (staticTarget != null) {
       // Coverage-ignore-block(suite): Not run.
-      assert(typeArguments != null,
-          "No type arguments provided for static target $staticTarget.");
+      assert(
+        typeArguments != null,
+        "No type arguments provided for static target $staticTarget.",
+      );
       cacheKey = new StaticAccessKey(
-          receiver.cacheKey,
-          staticTarget,
-          typeArguments!,
-          propertyName,
-          [new IntegerKey(headSize), new IntegerKey(tailSize)]);
+        receiver.cacheKey,
+        staticTarget,
+        typeArguments!,
+        propertyName,
+        [new IntegerKey(headSize), new IntegerKey(tailSize)],
+      );
     } else {
-      cacheKey = new DynamicAccessKey(receiver.cacheKey, propertyName,
-          [new IntegerKey(headSize), new IntegerKey(tailSize)]);
+      cacheKey = new DynamicAccessKey(receiver.cacheKey, propertyName, [
+        new IntegerKey(headSize),
+        new IntegerKey(tailSize),
+      ]);
     }
     Cache? cache = _cacheKeyMap[cacheKey];
     if (cache == null) {
-      cache = _createCacheableExpression(cacheKey,
-          requiresCaching: true, fileOffset: fileOffset);
+      cache = _createCacheableExpression(
+        cacheKey,
+        requiresCaching: true,
+        fileOffset: fileOffset,
+      );
     }
     return cache.registerAccess(
-        new JointAccessKey(receiver.accessKey, length.accessKey), expression);
+      new JointAccessKey(receiver.accessKey, length.accessKey),
+      expression,
+    );
   }
 
   /// Creates a cacheable expression that calls the `Map.containsKey` on
   /// [receiver] of type [receiverType] with the given [key].
-  CacheableExpression createContainsKeyExpression(CacheableExpression receiver,
-      CacheableExpression key, DelayedExpression expression,
-      {Member? staticTarget,
-      List<DartType>? typeArguments,
-      required int fileOffset}) {
+  CacheableExpression createContainsKeyExpression(
+    CacheableExpression receiver,
+    CacheableExpression key,
+    DelayedExpression expression, {
+    Member? staticTarget,
+    List<DartType>? typeArguments,
+    required int fileOffset,
+  }) {
     CacheKey cacheKey;
     if (staticTarget != null) {
       // Coverage-ignore-block(suite): Not run.
-      assert(typeArguments != null,
-          "No type arguments provided for static target $staticTarget.");
-      cacheKey = new StaticAccessKey(receiver.cacheKey, staticTarget,
-          typeArguments!, containsKeyName.text, [key.cacheKey]);
+      assert(
+        typeArguments != null,
+        "No type arguments provided for static target $staticTarget.",
+      );
+      cacheKey = new StaticAccessKey(
+        receiver.cacheKey,
+        staticTarget,
+        typeArguments!,
+        containsKeyName.text,
+        [key.cacheKey],
+      );
     } else {
-      cacheKey = new DynamicAccessKey(
-          receiver.cacheKey, containsKeyName.text, [key.cacheKey]);
+      cacheKey = new DynamicAccessKey(receiver.cacheKey, containsKeyName.text, [
+        key.cacheKey,
+      ]);
     }
     Cache? cache = _cacheKeyMap[cacheKey];
     if (cache == null) {
-      cache = _createCacheableExpression(cacheKey,
-          requiresCaching: true, fileOffset: fileOffset);
+      cache = _createCacheableExpression(
+        cacheKey,
+        requiresCaching: true,
+        fileOffset: fileOffset,
+      );
     }
     return cache.registerAccess(
-        new JointAccessKey(receiver.accessKey, key.accessKey), expression);
+      new JointAccessKey(receiver.accessKey, key.accessKey),
+      expression,
+    );
   }
 
   /// Creates a cacheable expression that access the `Map.[]` on [receiver] of
   /// type [receiverType] with the given [key].
-  CacheableExpression createIndexExpression(CacheableExpression receiver,
-      CacheableExpression key, DelayedExpression expression,
-      {Member? staticTarget,
-      List<DartType>? typeArguments,
-      required int fileOffset}) {
+  CacheableExpression createIndexExpression(
+    CacheableExpression receiver,
+    CacheableExpression key,
+    DelayedExpression expression, {
+    Member? staticTarget,
+    List<DartType>? typeArguments,
+    required int fileOffset,
+  }) {
     CacheKey cacheKey;
     if (staticTarget != null) {
       // Coverage-ignore-block(suite): Not run.
-      assert(typeArguments != null,
-          "No type arguments provided for static target $staticTarget.");
-      cacheKey = new StaticAccessKey(receiver.cacheKey, staticTarget,
-          typeArguments!, indexGetName.text, [key.cacheKey]);
+      assert(
+        typeArguments != null,
+        "No type arguments provided for static target $staticTarget.",
+      );
+      cacheKey = new StaticAccessKey(
+        receiver.cacheKey,
+        staticTarget,
+        typeArguments!,
+        indexGetName.text,
+        [key.cacheKey],
+      );
     } else {
-      cacheKey = new DynamicAccessKey(
-          receiver.cacheKey, indexGetName.text, [key.cacheKey]);
+      cacheKey = new DynamicAccessKey(receiver.cacheKey, indexGetName.text, [
+        key.cacheKey,
+      ]);
     }
     Cache? cache = _cacheKeyMap[cacheKey];
     if (cache == null) {
-      cache = _createCacheableExpression(cacheKey,
-          requiresCaching: true, fileOffset: fileOffset);
+      cache = _createCacheableExpression(
+        cacheKey,
+        requiresCaching: true,
+        fileOffset: fileOffset,
+      );
     }
     return cache.registerAccess(
-        new JointAccessKey(receiver.accessKey, key.accessKey), expression);
+      new JointAccessKey(receiver.accessKey, key.accessKey),
+      expression,
+    );
   }
 }
 
@@ -735,8 +913,11 @@ class DynamicAccessKey extends CacheKey {
   }
 
   @override
-  int get hashCode => Object.hash(receiver, propertyName,
-      arguments != null ? Object.hashAll(arguments!) : null);
+  int get hashCode => Object.hash(
+    receiver,
+    propertyName,
+    arguments != null ? Object.hashAll(arguments!) : null,
+  );
 
   @override
   bool operator ==(Object other) {
@@ -758,8 +939,12 @@ class StaticAccessKey extends CacheKey {
   final List<CacheKey>? arguments;
 
   StaticAccessKey(
-      this.receiver, this.target, this.typeArguments, this.propertyName,
-      [this.arguments]);
+    this.receiver,
+    this.target,
+    this.typeArguments,
+    this.propertyName, [
+    this.arguments,
+  ]);
 
   @override
   // Coverage-ignore(suite): Not run.
@@ -776,11 +961,12 @@ class StaticAccessKey extends CacheKey {
 
   @override
   int get hashCode => Object.hash(
-      receiver,
-      target,
-      Object.hashAll(typeArguments),
-      propertyName,
-      arguments != null ? Object.hashAll(arguments!) : null);
+    receiver,
+    target,
+    Object.hashAll(typeArguments),
+    propertyName,
+    arguments != null ? Object.hashAll(arguments!) : null,
+  );
 
   @override
   bool operator ==(Object other) {
@@ -864,29 +1050,40 @@ class PromotedCacheableExpression
   final AccessKey accessKey;
 
   PromotedCacheableExpression(this._expression, this._promotedType)
-      : accessKey = new PromotedAccessKey(_expression.accessKey, _promotedType);
+    : accessKey = new PromotedAccessKey(_expression.accessKey, _promotedType);
 
   @override
   CacheKey get cacheKey => _expression.cacheKey;
 
   @override
-  Expression createExpression(TypeEnvironment typeEnvironment,
-      {List<Expression>? effects, required bool inCacheInitializer}) {
-    Expression result = _expression.createExpression(typeEnvironment,
-        effects: effects, inCacheInitializer: inCacheInitializer);
+  Expression createExpression(
+    TypeEnvironment typeEnvironment, {
+    List<Expression>? effects,
+    required bool inCacheInitializer,
+  }) {
+    Expression result = _expression.createExpression(
+      typeEnvironment,
+      effects: effects,
+      inCacheInitializer: inCacheInitializer,
+    );
     if (!typeEnvironment
             .performSubtypeCheck(
-                _expression.getType(typeEnvironment), _promotedType)
+              _expression.getType(typeEnvironment),
+              _promotedType,
+            )
             .isSuccess() ||
         (_promotedType is! DynamicType &&
             _expression.getType(typeEnvironment) is DynamicType)) {
       if (result is VariableGet && !inCacheInitializer) {
         result.promotedType = _promotedType;
       } else {
-        result = createAsExpression(result, _promotedType,
-            forNonNullableByDefault: true,
-            isUnchecked: true,
-            fileOffset: result.fileOffset);
+        result = createAsExpression(
+          result,
+          _promotedType,
+          forNonNullableByDefault: true,
+          isUnchecked: true,
+          fileOffset: result.fileOffset,
+        );
       }
     }
     return result;
@@ -926,8 +1123,11 @@ class CovariantCheckCacheableExpression
 
   final int fileOffset;
 
-  CovariantCheckCacheableExpression(this._expression, this._checkedType,
-      {required this.fileOffset});
+  CovariantCheckCacheableExpression(
+    this._expression,
+    this._checkedType, {
+    required this.fileOffset,
+  });
 
   @override
   // Coverage-ignore(suite): Not run.
@@ -937,14 +1137,23 @@ class CovariantCheckCacheableExpression
   AccessKey get accessKey => _expression.accessKey;
 
   @override
-  Expression createExpression(TypeEnvironment typeEnvironment,
-      {List<Expression>? effects, required bool inCacheInitializer}) {
-    Expression result = _expression.createExpression(typeEnvironment,
-        effects: effects, inCacheInitializer: inCacheInitializer);
-    return createAsExpression(result, _checkedType,
-        forNonNullableByDefault: true,
-        fileOffset: fileOffset,
-        isCovarianceCheck: true);
+  Expression createExpression(
+    TypeEnvironment typeEnvironment, {
+    List<Expression>? effects,
+    required bool inCacheInitializer,
+  }) {
+    Expression result = _expression.createExpression(
+      typeEnvironment,
+      effects: effects,
+      inCacheInitializer: inCacheInitializer,
+    );
+    return createAsExpression(
+      result,
+      _checkedType,
+      forNonNullableByDefault: true,
+      fileOffset: fileOffset,
+      isCovarianceCheck: true,
+    );
   }
 
   @override
@@ -987,8 +1196,11 @@ class CacheExpression
   CacheExpression(this.cacheKey, this.accessKey, this._cache, this.expression);
 
   @override
-  Expression createExpression(TypeEnvironment typeEnvironment,
-      {List<Expression>? effects, required bool inCacheInitializer}) {
+  Expression createExpression(
+    TypeEnvironment typeEnvironment, {
+    List<Expression>? effects,
+    required bool inCacheInitializer,
+  }) {
     return _cache.createExpression(typeEnvironment, accessKey, this);
   }
 
@@ -1074,15 +1286,18 @@ class Cache {
   /// will have their own offsets.
   Map<AccessKey, CacheExpression> _accesses = {};
 
-  Cache(this.cacheKey, this._matchingCache, this._name,
-      {required bool isLate,
-      required bool isConst,
-      required bool requiresCaching,
-      required int fileOffset})
-      : this._isLate = isLate,
-        this._isConst = isConst,
-        this._requiresCaching = requiresCaching,
-        this._fileOffset = fileOffset;
+  Cache(
+    this.cacheKey,
+    this._matchingCache,
+    this._name, {
+    required bool isLate,
+    required bool isConst,
+    required bool requiresCaching,
+    required int fileOffset,
+  }) : this._isLate = isLate,
+       this._isConst = isConst,
+       this._requiresCaching = requiresCaching,
+       this._fileOffset = fileOffset;
 
   /// Registers that [expression] can be used to compute this value.
   ///
@@ -1093,9 +1308,15 @@ class Cache {
   ///
   /// Returns a [CacheableExpression] for the [expression].
   CacheableExpression registerAccess(
-      AccessKey accessKey, DelayedExpression expression) {
-    CacheExpression cacheExpression =
-        new CacheExpression(cacheKey, accessKey, this, expression);
+    AccessKey accessKey,
+    DelayedExpression expression,
+  ) {
+    CacheExpression cacheExpression = new CacheExpression(
+      cacheKey,
+      accessKey,
+      this,
+      expression,
+    );
     _accesses[accessKey] ??= cacheExpression;
     return cacheExpression;
   }
@@ -1104,8 +1325,11 @@ class Cache {
   ///
   /// If cached, the value is accessed through a caching variable, otherwise
   /// a fresh [Expression] is created.
-  Expression createExpression(TypeEnvironment typeEnvironment,
-      AccessKey accessKey, CacheExpression cacheExpression) {
+  Expression createExpression(
+    TypeEnvironment typeEnvironment,
+    AccessKey accessKey,
+    CacheExpression cacheExpression,
+  ) {
     assert(_useCount >= 1);
     assert(_accesses.isNotEmpty);
     _hasBeenCreated = true;
@@ -1121,8 +1345,10 @@ class Cache {
     }
     Expression result;
     if (!createCache) {
-      result = cacheExpression.expression
-          .createExpression(typeEnvironment, inCacheInitializer: false);
+      result = cacheExpression.expression.createExpression(
+        typeEnvironment,
+        inCacheInitializer: false,
+      );
     } else {
       CacheExpression cacheableExpression = _accesses[accessKey]!;
       if (!_isLate) {
@@ -1130,13 +1356,17 @@ class Cache {
         // unless it is not a late variable.
         VariableDeclaration? variable = _variable;
         if (variable == null) {
-          variable = _variable = createVariableCache(
-              cacheableExpression.expression
-                  .createExpression(typeEnvironment, inCacheInitializer: true),
-              cacheableExpression.getType(typeEnvironment))
-            ..isConst = _isConst
-            ..isLate = _isLate
-            ..name = _name;
+          variable = _variable =
+              createVariableCache(
+                  cacheableExpression.expression.createExpression(
+                    typeEnvironment,
+                    inCacheInitializer: true,
+                  ),
+                  cacheableExpression.getType(typeEnvironment),
+                )
+                ..isConst = _isConst
+                ..isLate = _isLate
+                ..name = _name;
           if (_isLate) {
             // Coverage-ignore-block(suite): Not run.
             // Avoid step debugging on the declaration of caching variables.
@@ -1172,31 +1402,39 @@ class Cache {
 
           _matchingCache.registerDeclaration(variable);
           isSetVariable = _isSetVariable = createInitializedVariable(
-              createBoolLiteral(false, fileOffset: _fileOffset),
-              typeEnvironment.coreTypes.boolNonNullableRawType,
-              // Avoid step debugging on the declaration of caching variables.
-              // TODO(johnniwinther): Find a more systematic way of omitting
-              // offsets for better step debugging.
-              fileOffset: TreeNode.noOffset)
-            ..name = '$_name#isSet';
+            createBoolLiteral(false, fileOffset: _fileOffset),
+            typeEnvironment.coreTypes.boolNonNullableRawType,
+            // Avoid step debugging on the declaration of caching variables.
+            // TODO(johnniwinther): Find a more systematic way of omitting
+            // offsets for better step debugging.
+            fileOffset: TreeNode.noOffset,
+          )..name = '$_name#isSet';
           _matchingCache.registerDeclaration(isSetVariable);
         }
         result = createConditionalExpression(
-            createVariableGet(isSetVariable!),
-            createVariableGet(variable,
-                promotedType: cacheableExpression.getType(typeEnvironment)),
-            createLetEffect(
-                effect: createVariableSet(isSetVariable,
-                    createBoolLiteral(true, fileOffset: _fileOffset),
-                    fileOffset: _fileOffset),
-                result: createVariableSet(
-                    variable,
-                    cacheableExpression.expression.createExpression(
-                        typeEnvironment,
-                        inCacheInitializer: false),
-                    fileOffset: _fileOffset)),
-            staticType: cacheableExpression.getType(typeEnvironment),
-            fileOffset: _fileOffset);
+          createVariableGet(isSetVariable!),
+          createVariableGet(
+            variable,
+            promotedType: cacheableExpression.getType(typeEnvironment),
+          ),
+          createLetEffect(
+            effect: createVariableSet(
+              isSetVariable,
+              createBoolLiteral(true, fileOffset: _fileOffset),
+              fileOffset: _fileOffset,
+            ),
+            result: createVariableSet(
+              variable,
+              cacheableExpression.expression.createExpression(
+                typeEnvironment,
+                inCacheInitializer: false,
+              ),
+              fileOffset: _fileOffset,
+            ),
+          ),
+          staticType: cacheableExpression.getType(typeEnvironment),
+          fileOffset: _fileOffset,
+        );
       }
     }
     return result;

@@ -18,7 +18,7 @@ void main() {
 @reflectiveTest
 class ConvertToOnTypeTest extends FixProcessorLintTest {
   @override
-  FixKind get kind => DartFixKind.CONVERT_TO_ON_TYPE;
+  FixKind get kind => DartFixKind.convertToOnType;
 
   @override
   String get lintCode => LintNames.avoid_types_as_parameter_names;

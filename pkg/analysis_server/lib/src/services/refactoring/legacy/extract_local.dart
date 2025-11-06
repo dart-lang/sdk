@@ -24,6 +24,7 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/source/source_range.dart';
 import 'package:analyzer/src/generated/java_core.dart';
+import 'package:analyzer/src/utilities/dot_shorthands.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
 
 const String _TOKEN_SEPARATOR = '\uFFFF';
@@ -35,7 +36,7 @@ class ExtractLocalRefactoringImpl extends RefactoringImpl
   final int selectionOffset;
   final int selectionLength;
   late SourceRange selectionRange;
-  late CorrectionUtils utils;
+  final CorrectionUtils utils;
 
   late String name;
   bool extractAll = true;
@@ -61,15 +62,12 @@ class ExtractLocalRefactoringImpl extends RefactoringImpl
     this.resolveResult,
     this.selectionOffset,
     this.selectionLength,
-  ) {
-    selectionRange = SourceRange(selectionOffset, selectionLength);
-    utils = CorrectionUtils(resolveResult);
-  }
+  ) : selectionRange = SourceRange(selectionOffset, selectionLength),
+      utils = CorrectionUtils(resolveResult);
 
-  CodeStyleOptions get codeStyleOptions =>
-      resolveResult.session.analysisContext
-          .getAnalysisOptionsForFile(resolveResult.file)
-          .codeStyleOptions;
+  CodeStyleOptions get codeStyleOptions => resolveResult.session.analysisContext
+      .getAnalysisOptionsForFile(resolveResult.file)
+      .codeStyleOptions;
 
   String get file => resolveResult.path;
 
@@ -81,21 +79,31 @@ class ExtractLocalRefactoringImpl extends RefactoringImpl
   CompilationUnit get unit => resolveResult.unit;
 
   String get _declarationKeywordAndType {
-    var useConst =
-        stringLiteralPart == null &&
-        _isPartOfConstantExpression(singleExpression);
-    var useFinal = codeStyleOptions.makeLocalsFinal;
-
-    String? typeString;
-    if (codeStyleOptions.specifyTypes) {
-      typeString =
-          singleExpression != null
-              ? singleExpression?.staticType?.getDisplayString()
-              : stringLiteralPart != null
-              ? 'String'
-              : null;
+    bool useConst;
+    bool dotShorthandRequiresType;
+    var expression = singleExpression;
+    if (expression != null) {
+      useConst = stringLiteralPart == null && expression.inConstantContext;
+      // If the expression that we're extracting is a dot shorthand or we have a
+      // dependent dot shorthand, we need to retain the type in the new
+      // declaration.
+      dotShorthandRequiresType =
+          isDotShorthand(expression) || hasDependentDotShorthand(expression);
+    } else {
+      dotShorthandRequiresType = false;
+      useConst = false;
     }
 
+    String? typeString;
+    if (codeStyleOptions.specifyTypes || dotShorthandRequiresType) {
+      typeString = expression != null
+          ? expression.staticType?.getDisplayString()
+          : stringLiteralPart != null
+          ? 'String'
+          : null;
+    }
+
+    var useFinal = codeStyleOptions.makeLocalsFinal;
     if (useConst) {
       return typeString != null ? 'const $typeString' : 'const';
     } else if (useFinal) {
@@ -138,7 +146,7 @@ class ExtractLocalRefactoringImpl extends RefactoringImpl
     result.addStatus(validateVariableName(name));
     if (_excludedVariableNames.contains(name)) {
       result.addError(
-        format("The name '{0}' is already used in the scope.", name),
+        formatList("The name '{0}' is already used in the scope.", [name]),
       );
     }
     return result;
@@ -497,28 +505,6 @@ class ExtractLocalRefactoringImpl extends RefactoringImpl
       node = node.parent;
     }
     return null;
-  }
-
-  bool _isPartOfConstantExpression(AstNode? node) {
-    if (node == null) {
-      return false;
-    }
-    if (node is TypedLiteral) {
-      return node.isConst;
-    }
-    if (node is InstanceCreationExpression) {
-      return node.isConst;
-    }
-    if (node is ArgumentList ||
-        node is ConditionalExpression ||
-        node is BinaryExpression ||
-        node is ParenthesizedExpression ||
-        node is PrefixExpression ||
-        node is Literal ||
-        node is MapLiteralEntry) {
-      return _isPartOfConstantExpression(node.parent);
-    }
-    return false;
   }
 
   void _prepareNames() {

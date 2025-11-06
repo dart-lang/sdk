@@ -1837,9 +1837,29 @@ void LoadIndexedInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
                          : compiler::Assembler::ElementAddressForIntIndex(
                                IsUntagged(), class_id(), index_scale_, array,
                                Smi::Cast(index.constant()).Value());
-
   auto const rep =
       RepresentationUtils::RepresentationOfArrayElement(class_id());
+
+  if (!compiler->is_optimizing() && FLAG_target_thread_sanitizer) {
+    EmitTsanCallUnopt(compiler, this, [&]() -> const RuntimeEntry& {
+      __ leaq(CallingConventions::ArgumentRegisters[0], element_address);
+      switch (RepresentationUtils::ValueSize(rep)) {
+        case 1:
+          return kTsanRead1RuntimeEntry;
+        case 2:
+          return kTsanRead2RuntimeEntry;
+        case 4:
+          return kTsanRead4RuntimeEntry;
+        case 8:
+          return kTsanRead8RuntimeEntry;
+        case 16:
+          return kTsanRead16RuntimeEntry;
+        default:
+          UNREACHABLE();
+      }
+    });
+  }
+
   ASSERT(representation() == Boxing::NativeRepresentation(rep));
   if (RepresentationUtils::IsUnboxedInteger(rep)) {
     Register result = locs()->out(0).reg();
@@ -2023,9 +2043,29 @@ void StoreIndexedInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
                          : compiler::Assembler::ElementAddressForIntIndex(
                                IsUntagged(), class_id(), index_scale_, array,
                                Smi::Cast(index.constant()).Value());
-
   auto const rep =
       RepresentationUtils::RepresentationOfArrayElement(class_id());
+
+  if (!compiler->is_optimizing() && FLAG_target_thread_sanitizer) {
+    EmitTsanCallUnopt(compiler, this, [&]() -> const RuntimeEntry& {
+      __ leaq(CallingConventions::ArgumentRegisters[0], element_address);
+      switch (RepresentationUtils::ValueSize(rep)) {
+        case 1:
+          return kTsanWrite1RuntimeEntry;
+        case 2:
+          return kTsanWrite2RuntimeEntry;
+        case 4:
+          return kTsanWrite4RuntimeEntry;
+        case 8:
+          return kTsanWrite8RuntimeEntry;
+        case 16:
+          return kTsanWrite16RuntimeEntry;
+        default:
+          UNREACHABLE();
+      }
+    });
+  }
+
   ASSERT(RequiredInputRepresentation(2) == Boxing::NativeRepresentation(rep));
   if (IsClampedTypedDataBaseClassId(class_id())) {
     ASSERT(rep == kUnboxedUint8);
@@ -2499,9 +2539,15 @@ void StoreStaticFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
                   ? compiler::target::Thread::shared_field_table_values_offset()
                   : compiler::target::Thread::field_table_values_offset()));
   // Note: static fields ids won't be changed by hot-reload.
-  __ movq(
-      compiler::Address(temp, compiler::target::FieldTable::OffsetOf(field())),
-      value);
+  if (field().is_shared()) {
+    __ StoreRelease(value,
+                    compiler::Address(
+                        temp, compiler::target::FieldTable::OffsetOf(field())));
+  } else {
+    __ movq(compiler::Address(temp,
+                              compiler::target::FieldTable::OffsetOf(field())),
+            value);
+  }
 }
 
 LocationSummary* InstanceOfInstr::MakeLocationSummary(Zone* zone,
@@ -2847,6 +2893,9 @@ class CheckStackOverflowSlowPath
         ASSERT(__ constant_pool_allowed());
         __ set_constant_pool_allowed(false);
         __ EnterDartFrame(0);
+        if (FLAG_target_thread_sanitizer && FLAG_precompiled_mode) {
+          __ TsanFuncEntry();
+        }
       }
       const uword entry_point_offset =
           Thread::stack_overflow_shared_stub_entry_point_offset(
@@ -2858,12 +2907,20 @@ class CheckStackOverflowSlowPath
                                      instruction()->deopt_id(),
                                      instruction()->source());
       if (!has_frame) {
+        if (FLAG_target_thread_sanitizer && FLAG_precompiled_mode) {
+          __ TsanFuncExit();
+        }
         __ LeaveDartFrame();
         __ set_constant_pool_allowed(true);
       }
     } else {
       ASSERT(has_frame);
-      __ CallRuntime(kInterruptOrStackOverflowRuntimeEntry, kNumSlowPathArgs);
+      // We're using the function's frame, which already did TsanFuncEntry. Also
+      // the pc descriptors, etc need to be recordered for the call's return
+      // address.
+      const bool tsan_enter_exit = false;
+      __ CallRuntime(kInterruptOrStackOverflowRuntimeEntry, kNumSlowPathArgs,
+                     tsan_enter_exit);
       compiler->EmitCallsiteMetadata(
           instruction()->source(), instruction()->deopt_id(),
           UntaggedPcDescriptors::kOther, instruction()->locs(), env);
@@ -3982,6 +4039,9 @@ void BoxInt64Instr::EmitNativeCode(FlowGraphCompiler* compiler) {
       ASSERT(__ constant_pool_allowed());
       __ set_constant_pool_allowed(false);
       __ EnterDartFrame(0);
+      if (FLAG_target_thread_sanitizer && FLAG_precompiled_mode) {
+        __ TsanFuncEntry();
+      }
     }
     auto object_store = compiler->isolate_group()->object_store();
     const bool live_fpu_regs = locs()->live_registers()->FpuRegisterCount() > 0;
@@ -3996,6 +4056,9 @@ void BoxInt64Instr::EmitNativeCode(FlowGraphCompiler* compiler) {
     compiler->GenerateStubCall(source(), stub, UntaggedPcDescriptors::kOther,
                                locs(), DeoptId::kNone, extended_env);
     if (!has_frame) {
+      if (FLAG_target_thread_sanitizer && FLAG_precompiled_mode) {
+        __ TsanFuncExit();
+      }
       __ LeaveDartFrame();
       __ set_constant_pool_allowed(true);
     }
@@ -4532,8 +4595,8 @@ LocationSummary* CaseInsensitiveCompareInstr::MakeLocationSummary(
     Zone* zone,
     bool opt) const {
   const intptr_t kNumTemps = 0;
-  LocationSummary* summary = new (zone)
-      LocationSummary(zone, InputCount(), kNumTemps, LocationSummary::kCall);
+  LocationSummary* summary = new (zone) LocationSummary(
+      zone, InputCount(), kNumTemps, LocationSummary::kNativeLeafCall);
   summary->set_in(0, Location::RegisterLocation(CallingConventions::kArg1Reg));
   summary->set_in(1, Location::RegisterLocation(CallingConventions::kArg2Reg));
   summary->set_in(2, Location::RegisterLocation(CallingConventions::kArg3Reg));
@@ -4909,8 +4972,8 @@ LocationSummary* InvokeMathCFunctionInstr::MakeLocationSummary(Zone* zone,
   if (recognized_kind() == MethodRecognizer::kMathDoublePow) {
     ASSERT(InputCount() == 2);
     const intptr_t kNumTemps = 4;
-    LocationSummary* result = new (zone)
-        LocationSummary(zone, InputCount(), kNumTemps, LocationSummary::kCall);
+    LocationSummary* result = new (zone) LocationSummary(
+        zone, InputCount(), kNumTemps, LocationSummary::kNativeLeafCall);
     result->set_in(0, Location::FpuRegisterLocation(XMM2));
     result->set_in(1, Location::FpuRegisterLocation(XMM1));
     result->set_temp(0, Location::RegisterLocation(R13));
@@ -4925,8 +4988,8 @@ LocationSummary* InvokeMathCFunctionInstr::MakeLocationSummary(Zone* zone,
   }
   ASSERT((InputCount() == 1) || (InputCount() == 2));
   const intptr_t kNumTemps = 1;
-  LocationSummary* result = new (zone)
-      LocationSummary(zone, InputCount(), kNumTemps, LocationSummary::kCall);
+  LocationSummary* result = new (zone) LocationSummary(
+      zone, InputCount(), kNumTemps, LocationSummary::kNativeLeafCall);
   result->set_temp(0, Location::RegisterLocation(R13));
   result->set_in(0, Location::FpuRegisterLocation(XMM0));
   if (InputCount() == 2) {

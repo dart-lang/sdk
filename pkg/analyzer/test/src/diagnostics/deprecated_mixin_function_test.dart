@@ -20,7 +20,7 @@ class DeprecatedMixinFunctionTest extends PubPackageResolutionTest {
       '''
 class A extends Object with Function {}
 ''',
-      [error(CompileTimeErrorCode.CLASS_USED_AS_MIXIN, 28, 8)],
+      [error(CompileTimeErrorCode.classUsedAsMixin, 28, 8)],
     );
   }
 
@@ -30,7 +30,7 @@ class A extends Object with Function {}
 // @dart = 2.19
 class A extends Object with Function {}
 ''',
-      [error(WarningCode.DEPRECATED_MIXIN_FUNCTION, 44, 8)],
+      [error(WarningCode.deprecatedMixinFunction, 44, 8)],
     );
   }
 
@@ -41,7 +41,7 @@ class A extends Object with Function {}
 typedef F = Function;
 class A extends Object with F {}
 ''',
-      [error(WarningCode.DEPRECATED_MIXIN_FUNCTION, 66, 1)],
+      [error(WarningCode.deprecatedMixinFunction, 66, 1)],
     );
   }
 
@@ -51,7 +51,7 @@ class A extends Object with F {}
 mixin Function {}
 class A extends Object with Function {}
 ''',
-      [error(CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE_NAME, 6, 8)],
+      [error(CompileTimeErrorCode.builtInIdentifierAsTypeName, 6, 8)],
     );
   }
 
@@ -62,7 +62,7 @@ class A extends Object with Function {}
 mixin Function {}
 class A extends Object with Function {}
 ''',
-      [error(CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE_NAME, 22, 8)],
+      [error(CompileTimeErrorCode.builtInIdentifierAsTypeName, 22, 8)],
     );
   }
 
@@ -72,7 +72,7 @@ class A extends Object with Function {}
 // @dart = 2.19
 class A = Object with Function;
 ''',
-      [error(WarningCode.DEPRECATED_MIXIN_FUNCTION, 38, 8)],
+      [error(WarningCode.deprecatedMixinFunction, 38, 8)],
     );
   }
 
@@ -83,7 +83,7 @@ class A = Object with Function;
 typedef F = Function;
 class A = Object with F;
 ''',
-      [error(WarningCode.DEPRECATED_MIXIN_FUNCTION, 60, 1)],
+      [error(WarningCode.deprecatedMixinFunction, 60, 1)],
     );
   }
 }

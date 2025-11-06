@@ -62,7 +62,7 @@ class ChangeTo extends ResolvedCorrectionProducer {
   List<String> get fixArguments => [_proposedName];
 
   @override
-  FixKind get fixKind => DartFixKind.CHANGE_TO;
+  FixKind get fixKind => DartFixKind.changeTo;
 
   @override
   Future<void> compute(ChangeBuilder builder) async {
@@ -132,12 +132,12 @@ class ChangeTo extends ResolvedCorrectionProducer {
       );
       // Check elements of this library.
       if (prefixName == null) {
-        finder._updateList(unitResult.libraryElement2.classes);
+        finder._updateList(unitResult.libraryElement.classes);
       }
       // Check elements from imports.
       for (var importElement
-          in unitResult.libraryElement2.firstFragment.libraryImports2) {
-        if (importElement.prefix2?.element.name == prefixName) {
+          in unitResult.libraryElement.firstFragment.libraryImports) {
+        if (importElement.prefix?.element.name == prefixName) {
           var namespace = getImportNamespace(importElement);
           finder._updateList(namespace.values);
         }
@@ -176,13 +176,35 @@ class ChangeTo extends ResolvedCorrectionProducer {
     await _suggest(builder, node, finder._element?.displayName);
   }
 
+  /// Using the context type of the [dotShorthandNode], we'll propose the
+  /// closest element that we believe the user was attempting to write.
+  Future<void> _proposeClassOrMixinMemberForDotShorthand(
+    ChangeBuilder builder,
+    Expression dotShorthandNode,
+    Token dotShorthandIdentifier,
+    _ElementPredicate predicate,
+  ) async {
+    var contextElement = computeDotShorthandContextTypeElement(
+      dotShorthandNode,
+      unitResult.libraryElement,
+    );
+    if (contextElement == null) return;
+
+    var finder = _ClosestElementFinder(
+      dotShorthandIdentifier.lexeme,
+      predicate,
+    );
+    _updateFinderWithClassMembers(finder, contextElement);
+    await _suggest(builder, node, finder._element?.displayName);
+  }
+
   Future<void> _proposeField(ChangeBuilder builder) async {
     var node = this.node;
     if (node is! FieldFormalParameter) return;
 
     var exclusions = <String>{};
-    var constructorDeclaration =
-        node.thisOrAncestorOfType<ConstructorDeclaration>();
+    var constructorDeclaration = node
+        .thisOrAncestorOfType<ConstructorDeclaration>();
     var initializers = constructorDeclaration?.initializers;
     if (initializers != null) {
       for (var initializer in initializers) {
@@ -237,14 +259,14 @@ class ChangeTo extends ResolvedCorrectionProducer {
       );
       // Check to this library units.
       if (prefixName == null) {
-        for (var function in unitResult.libraryElement2.topLevelFunctions) {
+        for (var function in unitResult.libraryElement.topLevelFunctions) {
           finder._update(function);
         }
       }
       // Check unprefixed imports.
       for (var importElement
-          in unitResult.libraryElement2.firstFragment.libraryImports2) {
-        if (importElement.prefix2?.element.name == prefixName) {
+          in unitResult.libraryElement.firstFragment.libraryImports) {
+        if (importElement.prefix?.element.name == prefixName) {
           var namespace = getImportNamespace(importElement);
           finder._updateList(namespace.values);
         }
@@ -257,9 +279,18 @@ class ChangeTo extends ResolvedCorrectionProducer {
   Future<void> _proposeGetterOrSetter(ChangeBuilder builder) async {
     var node = this.node;
     if (node is SimpleIdentifier) {
+      var parent = node.parent;
+      if (parent is DotShorthandPropertyAccess) {
+        await _proposeClassOrMixinMemberForDotShorthand(
+          builder,
+          parent,
+          node.token,
+          (element) => element is GetterElement || element is FieldElement,
+        );
+      }
+
       // prepare target
       Expression? target;
-      var parent = node.parent;
       if (parent is PrefixedIdentifier) {
         target = parent.prefix;
       } else if (parent is PropertyAccess) {
@@ -285,13 +316,22 @@ class ChangeTo extends ResolvedCorrectionProducer {
   Future<void> _proposeMethod(ChangeBuilder builder) async {
     var node = this.node;
     var parent = node.parent;
-    if (parent is MethodInvocation && node is SimpleIdentifier) {
-      await _proposeClassOrMixinMember(
-        builder,
-        node.token,
-        parent.realTarget,
-        (element) => element is MethodElement && !element.isOperator,
-      );
+    if (node is SimpleIdentifier) {
+      if (parent is DotShorthandInvocation) {
+        await _proposeClassOrMixinMemberForDotShorthand(
+          builder,
+          parent,
+          node.token,
+          (element) => element is MethodElement,
+        );
+      } else if (parent is MethodInvocation) {
+        await _proposeClassOrMixinMember(
+          builder,
+          node.token,
+          parent.realTarget,
+          (element) => element is MethodElement && !element.isOperator,
+        );
+      }
     }
   }
 
@@ -299,13 +339,12 @@ class ChangeTo extends ResolvedCorrectionProducer {
     var superParameter = node;
     if (superParameter is! SuperFormalParameter) return;
 
-    var constructorDeclaration =
-        superParameter.thisOrAncestorOfType<ConstructorDeclaration>();
+    var constructorDeclaration = superParameter
+        .thisOrAncestorOfType<ConstructorDeclaration>();
     if (constructorDeclaration == null) return;
 
-    var formalParameters =
-        constructorDeclaration.parameters.parameters
-            .whereType<DefaultFormalParameter>();
+    var formalParameters = constructorDeclaration.parameters.parameters
+        .whereType<DefaultFormalParameter>();
 
     var finder = _ClosestElementFinder(superParameter.name.lexeme, (e) => true);
 
@@ -318,8 +357,8 @@ class ChangeTo extends ResolvedCorrectionProducer {
       var list = _formalParameterSuggestions(element, formalParameters);
       finder._updateList(list);
     } else {
-      var targetClassNode =
-          superParameter.thisOrAncestorOfType<ClassDeclaration>();
+      var targetClassNode = superParameter
+          .thisOrAncestorOfType<ClassDeclaration>();
       if (targetClassNode == null) return;
 
       var targetClassElement = targetClassNode.declaredFragment!.element;

@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/*@testedFeatures=inference*/
 library test;
 
 class A {
@@ -10,8 +9,8 @@ class A {
   double operator -(other) => 2.0;
 }
 
-var v_add = new A() /*@target=A.+*/ + 'foo';
-var v_minus = new A() /*@target=A.-*/ - 'bar';
+var v_add = new A() + 'foo';
+var v_minus = new A() - 'bar';
 
 main() {
   v_add;

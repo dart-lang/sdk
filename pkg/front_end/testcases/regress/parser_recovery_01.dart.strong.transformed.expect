@@ -38,10 +38,6 @@ library;
 //     var y = a<int, void>?.c = 42;
 //                         ^^
 //
-// pkg/front_end/testcases/regress/parser_recovery_01.dart:12:29: Error: Can't assign to this.
-//     var y = a<int, void>?.c = 42;
-//                             ^
-//
 import self as self;
 import "dart:core" as core;
 

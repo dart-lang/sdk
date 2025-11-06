@@ -5,7 +5,8 @@
 import 'dart:convert' show jsonDecode;
 import 'dart:io' show File;
 
-import 'package:_fe_analyzer_shared/src/messages/severity.dart' show Severity;
+import 'package:_fe_analyzer_shared/src/messages/severity.dart'
+    show CfeSeverity;
 import 'package:front_end/src/api_prototype/compiler_options.dart';
 import 'package:front_end/src/api_prototype/incremental_kernel_generator.dart';
 import 'package:front_end/src/api_prototype/memory_file_system.dart';
@@ -34,15 +35,15 @@ const String EXPECTATIONS = '''
 ]
 ''';
 
-void main([List<String> arguments = const []]) => internalMain(createContext,
-    arguments: arguments,
-    displayName: "outline extractor suite",
-    configurationPath: "../testing.json");
+void main([List<String> arguments = const []]) => internalMain(
+  createContext,
+  arguments: arguments,
+  displayName: "outline extractor suite",
+  configurationPath: "../testing.json",
+);
 
 Future<Context> createContext(Chain suite, Map<String, String> environment) {
-  const Set<String> knownEnvironmentKeys = {
-    EnvironmentKeys.updateExpectations,
-  };
+  const Set<String> knownEnvironmentKeys = {EnvironmentKeys.updateExpectations};
   checkEnvironment(environment, knownEnvironmentKeys);
 
   bool updateExpectations =
@@ -73,8 +74,9 @@ class Context extends ChainContext with MatchContext {
   ];
 
   @override
-  final ExpectationSet expectationSet =
-      new ExpectationSet.fromJsonList(jsonDecode(EXPECTATIONS));
+  final ExpectationSet expectationSet = new ExpectationSet.fromJsonList(
+    jsonDecode(EXPECTATIONS),
+  );
 }
 
 class OutlineExtractorStep
@@ -86,13 +88,16 @@ class OutlineExtractorStep
 
   @override
   Future<Result<TestDescription>> run(
-      TestDescription description, Context context) async {
+    TestDescription description,
+    Context context,
+  ) async {
     Uri? packages = description.uri.resolve(".dart_tool/package_config.json");
     if (!new File.fromUri(packages).existsSync()) {
       packages = null;
     }
-    Map<Uri, String> result =
-        await extractOutline([description.uri], packages: packages);
+    Map<Uri, String> result = await extractOutline([
+      description.uri,
+    ], packages: packages);
     StringBuffer sb = new StringBuffer();
     Uri uri = description.uri;
     Uri base = uri.resolve(".");
@@ -127,17 +132,20 @@ class CompileAndCompareStep
 
   @override
   Future<Result<TestDescription>> run(
-      TestDescription description, Context context) async {
+    TestDescription description,
+    Context context,
+  ) async {
     Uri? packages = description.uri.resolve(".dart_tool/package_config.json");
     if (!new File.fromUri(packages).existsSync()) {
       packages = null;
     }
-    Map<Uri, String> processedFiles =
-        await extractOutline([description.uri], packages: packages);
+    Map<Uri, String> processedFiles = await extractOutline([
+      description.uri,
+    ], packages: packages);
 
-    void onDiagnostic(DiagnosticMessage message) {
-      if (message.severity == Severity.error ||
-          message.severity == Severity.warning) {
+    void onDiagnostic(CfeDiagnosticMessage message) {
+      if (message.severity == CfeSeverity.error ||
+          message.severity == CfeSeverity.warning) {
         throw ("Unexpected error: ${message.plainTextFormatted.join('\n')}");
       }
     }
@@ -148,11 +156,16 @@ class CompileAndCompareStep
       options.onDiagnostic = onDiagnostic;
       options.packagesFileUri = packages;
       helper.TestIncrementalCompiler compiler =
-          new helper.TestIncrementalCompiler(options, description.uri,
-              /* initializeFrom = */ null, /* outlineOnly = */ true);
+          new helper.TestIncrementalCompiler(
+            options,
+            description.uri,
+            /* initializeFrom = */ null,
+            /* outlineOnly = */ true,
+          );
       IncrementalCompilerResult c = await compiler.computeDelta();
-      lib1 = c.component.libraries
-          .firstWhere((element) => element.fileUri == description.uri);
+      lib1 = c.component.libraries.firstWhere(
+        (element) => element.fileUri == description.uri,
+      );
     }
     Library lib2;
     {
@@ -161,34 +174,51 @@ class CompileAndCompareStep
       options.packagesFileUri = packages;
       MemoryFileSystem mfs = new MemoryFileSystem(Uri.base);
       if (packages != null) {
-        mfs.entityForUri(packages).writeAsBytesSync(
-            await options.fileSystem.entityForUri(packages).readAsBytes());
+        mfs
+            .entityForUri(packages)
+            .writeAsBytesSync(
+              await options.fileSystem.entityForUri(packages).readAsBytes(),
+            );
       }
       if (options.sdkSummary != null) {
-        mfs.entityForUri(options.sdkSummary!).writeAsBytesSync(await options
-            .fileSystem
+        mfs
             .entityForUri(options.sdkSummary!)
-            .readAsBytes());
+            .writeAsBytesSync(
+              await options.fileSystem
+                  .entityForUri(options.sdkSummary!)
+                  .readAsBytes(),
+            );
       }
       if (options.librariesSpecificationUri != null) {
-        mfs.entityForUri(options.librariesSpecificationUri!).writeAsBytesSync(
-            await options.fileSystem
-                .entityForUri(options.librariesSpecificationUri!)
-                .readAsBytes());
+        mfs
+            .entityForUri(options.librariesSpecificationUri!)
+            .writeAsBytesSync(
+              await options.fileSystem
+                  .entityForUri(options.librariesSpecificationUri!)
+                  .readAsBytes(),
+            );
       }
       for (MapEntry<Uri, String> entry in processedFiles.entries) {
         mfs.entityForUri(entry.key).writeAsStringSync(entry.value);
       }
       options.fileSystem = mfs;
       helper.TestIncrementalCompiler compiler =
-          new helper.TestIncrementalCompiler(options, description.uri,
-              /* initializeFrom = */ null, /* outlineOnly = */ true);
+          new helper.TestIncrementalCompiler(
+            options,
+            description.uri,
+            /* initializeFrom = */ null,
+            /* outlineOnly = */ true,
+          );
       IncrementalCompilerResult c = await compiler.computeDelta();
-      lib2 = c.component.libraries
-          .firstWhere((element) => element.fileUri == description.uri);
+      lib2 = c.component.libraries.firstWhere(
+        (element) => element.fileUri == description.uri,
+      );
     }
-    EquivalenceResult result =
-        checkEquivalence(lib1, lib2, strategy: const Strategy());
+    EquivalenceResult result = checkEquivalence(
+      lib1,
+      lib2,
+      strategy: const Strategy(),
+    );
 
     if (result.isEquivalent) {
       return new Result<TestDescription>.pass(description);
@@ -196,7 +226,9 @@ class CompileAndCompareStep
       print("Bad:");
       print(result);
       return new Result<TestDescription>.fail(
-          description, /* error = */ result);
+        description,
+        /* error = */ result,
+      );
     }
   }
 }
@@ -206,78 +238,115 @@ class Strategy extends EquivalenceStrategy {
 
   @override
   bool checkTreeNode_fileOffset(
-      EquivalenceVisitor visitor, TreeNode node, TreeNode other) {
+    EquivalenceVisitor visitor,
+    TreeNode node,
+    TreeNode other,
+  ) {
     return true;
   }
 
   @override
   bool checkAssertStatement_conditionStartOffset(
-      EquivalenceVisitor visitor, AssertStatement node, AssertStatement other) {
+    EquivalenceVisitor visitor,
+    AssertStatement node,
+    AssertStatement other,
+  ) {
     return true;
   }
 
   @override
   bool checkAssertStatement_conditionEndOffset(
-      EquivalenceVisitor visitor, AssertStatement node, AssertStatement other) {
+    EquivalenceVisitor visitor,
+    AssertStatement node,
+    AssertStatement other,
+  ) {
     return true;
   }
 
   @override
   bool checkClass_startFileOffset(
-      EquivalenceVisitor visitor, Class node, Class other) {
+    EquivalenceVisitor visitor,
+    Class node,
+    Class other,
+  ) {
     return true;
   }
 
   @override
   bool checkClass_fileEndOffset(
-      EquivalenceVisitor visitor, Class node, Class other) {
+    EquivalenceVisitor visitor,
+    Class node,
+    Class other,
+  ) {
     return true;
   }
 
   @override
   bool checkProcedure_fileStartOffset(
-      EquivalenceVisitor visitor, Procedure node, Procedure other) {
+    EquivalenceVisitor visitor,
+    Procedure node,
+    Procedure other,
+  ) {
     return true;
   }
 
   @override
   bool checkConstructor_startFileOffset(
-      EquivalenceVisitor visitor, Constructor node, Constructor other) {
+    EquivalenceVisitor visitor,
+    Constructor node,
+    Constructor other,
+  ) {
     return true;
   }
 
   @override
   bool checkMember_fileEndOffset(
-      EquivalenceVisitor visitor, Member node, Member other) {
+    EquivalenceVisitor visitor,
+    Member node,
+    Member other,
+  ) {
     return true;
   }
 
   @override
   bool checkFunctionNode_fileEndOffset(
-      EquivalenceVisitor visitor, FunctionNode node, FunctionNode other) {
+    EquivalenceVisitor visitor,
+    FunctionNode node,
+    FunctionNode other,
+  ) {
     return true;
   }
 
   @override
   bool checkBlock_fileEndOffset(
-      EquivalenceVisitor visitor, Block node, Block other) {
+    EquivalenceVisitor visitor,
+    Block node,
+    Block other,
+  ) {
     return true;
   }
 
   @override
   bool checkLibrary_additionalExports(
-      EquivalenceVisitor visitor, Library node, Library other) {
+    EquivalenceVisitor visitor,
+    Library node,
+    Library other,
+  ) {
     return visitor.checkSets(
-        node.additionalExports.toSet(),
-        other.additionalExports.toSet(),
-        visitor.matchReferences,
-        visitor.checkReferences,
-        'additionalExports');
+      node.additionalExports.toSet(),
+      other.additionalExports.toSet(),
+      visitor.matchReferences,
+      visitor.checkReferences,
+      'additionalExports',
+    );
   }
 
   @override
   bool checkClass_procedures(
-      EquivalenceVisitor visitor, Class node, Class other) {
+    EquivalenceVisitor visitor,
+    Class node,
+    Class other,
+  ) {
     // Check procedures as a set instead of a list to allow for reordering.
     List<Procedure> a = node.procedures.toList();
     int sorter(Procedure x, Procedure y) {

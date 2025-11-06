@@ -7,6 +7,11 @@ static method test(dynamic o) → core::int {
   {
     core::int #t1 = 1.{core::int::unary-}(){() → core::int};
     final synthesized dynamic #0#0 = o;
+    final const synthesized core::int #0#3 = #C1;
+    final const synthesized core::int #0#7 = #C2;
+    final const synthesized core::int #0#10 = #C3;
+    final const synthesized core::int #0#12 = #C4;
+    final const synthesized core::int #0#14 = #C5;
     #L2:
     {
       {

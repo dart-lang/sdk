@@ -60,6 +60,7 @@ class ReplaceConditionalWithIfElse extends ResolvedCorrectionProducer {
       var prefix = utils.getNodePrefix(statement);
 
       await builder.addDartFileEdit(file, (builder) {
+        var eol = builder.eol;
         var leftSide = assignment.leftHandSide;
         var conditionSrc = utils.getNodeText(conditional.condition);
         var thenSrc = utils.getNodeText(conditional.thenExpression);
@@ -86,6 +87,7 @@ class ReplaceConditionalWithIfElse extends ResolvedCorrectionProducer {
       var prefix = utils.getNodePrefix(statement);
 
       await builder.addDartFileEdit(file, (builder) {
+        var eol = builder.eol;
         var conditionSrc = utils.getNodeText(conditional.condition);
         var thenSrc = utils.getNodeText(conditional.thenExpression);
         var elseSrc = utils.getNodeText(conditional.elseExpression);
@@ -111,10 +113,11 @@ class ReplaceConditionalWithIfElse extends ResolvedCorrectionProducer {
         var prefix = utils.getNodePrefix(statement);
 
         await builder.addDartFileEdit(file, (builder) {
+          var eol = builder.eol;
           var variable = conditional.parent as VariableDeclaration;
           var variableList = variable.parent as VariableDeclarationList;
           if (variableList.type == null) {
-            var type = variable.declaredElement!.type;
+            var type = variable.declaredFragment!.element.type;
             var keyword = variableList.keyword;
             if (keyword != null && keyword.keyword == Keyword.VAR) {
               builder.addReplacement(range.token(keyword), (builder) {

@@ -246,7 +246,7 @@ class FindNode {
 
   BindPatternVariableElement bindPatternVariableElement(String search) {
     var node = declaredVariablePattern(search);
-    return node.declaredElement!;
+    return node.declaredFragment!.element;
   }
 
   Block block(String search) {

@@ -22,11 +22,13 @@ Future<void> compile(String data) async {
   options.sdkSummary = sdkSummary;
   options.librariesSpecificationUri = null;
   options.omitPlatform = true;
-  options.onDiagnostic = (DiagnosticMessage message) {
+  options.onDiagnostic = (CfeDiagnosticMessage message) {
     // ignored
   };
   fs.entityForUri(mainFile).writeAsStringSync(data);
-  TestIncrementalCompiler compiler =
-      new TestIncrementalCompiler(options, mainFile);
+  TestIncrementalCompiler compiler = new TestIncrementalCompiler(
+    options,
+    mainFile,
+  );
   await compiler.computeDelta();
 }

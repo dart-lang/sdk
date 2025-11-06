@@ -133,9 +133,8 @@ class InterpreterHelpers {
                : TypeArguments::null();
   }
 
-  // The usage counter is actually a 'hotness' counter.
-  // For an instance call, both the usage counters of the caller and of the
-  // calle will get incremented, as well as the ICdata counter at the call site.
+  // The usage counter is actually a 'hotness' counter. For a Dart->Dart
+  // call, both the caller's and callee's usage counters are incremented.
   DART_FORCE_INLINE static void IncrementUsageCounter(FunctionPtr f) {
 #if !defined(DART_PRECOMPILED_RUNTIME)
     f->untag()->usage_counter_++;
@@ -260,6 +259,7 @@ DART_FORCE_INLINE static bool TryAllocate(Thread* thread,
                                           ObjectPtr* result) {
   ASSERT(instance_size > 0);
   ASSERT(Utils::IsAligned(instance_size, kObjectAlignment));
+  ASSERT(IsAllocatableInNewSpace(instance_size));
 
   const uword top = thread->top();
   const intptr_t remaining = thread->end() - top;
@@ -603,30 +603,34 @@ DART_NOINLINE bool Interpreter::InvokeCompiled(Thread* thread,
     InterpreterSetjmpBuffer buffer(this);
     if (!DART_SETJMP(buffer.buffer_)) {
 #if defined(DART_INCLUDE_SIMULATOR)
-      // We need to beware that bouncing between the interpreter and the
-      // simulator may exhaust the C stack before exhausting either the
-      // interpreter or simulator stacks.
-      if (!thread->os_thread()->HasStackHeadroom()) {
-        thread->SetStackLimit(-1);
-      }
-      result = bit_copy<ObjectPtr, int64_t>(Simulator::Current()->Call(
-          reinterpret_cast<intptr_t>(entrypoint),
+      if (FLAG_use_simulator) {
+        // We need to beware that bouncing between the interpreter and the
+        // simulator may exhaust the C stack before exhausting either the
+        // interpreter or simulator stacks.
+        if (!thread->os_thread()->HasStackHeadroom()) {
+          thread->SetStackLimit(-1);
+        }
+        result = bit_copy<ObjectPtr, int64_t>(Simulator::Current()->Call(
+            reinterpret_cast<intptr_t>(entrypoint),
 #if defined(DART_PRECOMPILED_RUNTIME)
-          static_cast<intptr_t>(function->untag()->entry_point_),
+            static_cast<intptr_t>(function->untag()->entry_point_),
 #else
-          static_cast<intptr_t>(function->untag()->code()),
+            static_cast<intptr_t>(function->untag()->code()),
 #endif
-          static_cast<intptr_t>(argdesc_),
-          reinterpret_cast<intptr_t>(call_base),
-          reinterpret_cast<intptr_t>(thread)));
-#else
-      result = static_cast<ObjectPtr>(entrypoint(
+            static_cast<intptr_t>(argdesc_),
+            reinterpret_cast<intptr_t>(call_base),
+            reinterpret_cast<intptr_t>(thread)));
+      } else {
+#endif
+        result = static_cast<ObjectPtr>(entrypoint(
 #if defined(DART_PRECOMPILED_RUNTIME)
-          function->untag()->entry_point_,
+            function->untag()->entry_point_,
 #else
           static_cast<uword>(function->untag()->code()),
 #endif
-          static_cast<uword>(argdesc_), call_base, thread));
+            static_cast<uword>(argdesc_), call_base, thread));
+#if defined(DART_INCLUDE_SIMULATOR)
+      }
 #endif
       ASSERT(thread->vm_tag() == VMTag::kDartInterpretedTagId);
       ASSERT(thread->execution_state() == Thread::kThreadInGenerated);
@@ -843,19 +847,66 @@ DART_FORCE_INLINE bool Interpreter::InstanceCall(Thread* thread,
     WriteInstructionToTrace(pc);                                               \
   }                                                                            \
   icount_++;
+#define BREAKPOINT_TRACE_ORIGINAL_INSTRUCTION                                  \
+  do {                                                                         \
+    if (IsTracingExecution()) {                                                \
+      /* Use the original instruction count. */                                \
+      auto const icount = icount_ - 1;                                         \
+      auto const instr_size = KernelBytecode::kInstructionSize[op];            \
+      THR_Print("%" Pu64 " ", icount);                                         \
+      THR_Print("dispatching to original instruction\n");                      \
+      THR_Print("%" Pu64 " ", icount);                                         \
+      if (FLAG_support_disassembler) {                                         \
+        KBCInstr temp[6];                                                      \
+        *temp = op;                                                            \
+        memmove(temp + 1, pc + 1, instr_size - 1);                             \
+        KernelBytecodeDisassembler::Disassemble(                               \
+            reinterpret_cast<uword>(temp),                                     \
+            reinterpret_cast<uword>(temp + instr_size));                       \
+      } else {                                                                 \
+        THR_Print("Disassembler not supported in this mode.\n");               \
+      }                                                                        \
+    }                                                                          \
+  } while (0)
 #else
 #define TRACE_INSTRUCTION
+#define BREAKPOINT_TRACE_ORIGINAL_INSTRUCTION
 #endif  // defined(DEBUG)
+
+#if !defined(PRODUCT)
+#define CALCULATE_SINGLE_STEPPING_OFFSET                                       \
+  (thread->single_step() ? KernelBytecode::kNumOpcodes : 0)
+#define CHECK_SINGLE_STEPPING                                                  \
+  single_stepping_offset = CALCULATE_SINGLE_STEPPING_OFFSET
+#define ADJUST_FOR_SINGLE_STEPPING(op) ((op) + single_stepping_offset)
+#else
+#define ADJUST_FOR_SINGLE_STEPPING(op) (op)
+#define CHECK_SINGLE_STEPPING
+#endif  // !defined(PRODUCT)
 
 // Decode opcode and A part of the given value and dispatch to the
 // corresponding bytecode handler.
-#ifdef DART_HAS_COMPUTED_GOTO
+#if defined(DART_HAS_COMPUTED_GOTO)
 #define DISPATCH_OP(val)                                                       \
   do {                                                                         \
     op = (val);                                                                \
     TRACE_INSTRUCTION                                                          \
-    goto* dispatch[op];                                                        \
+    goto* dispatch[ADJUST_FOR_SINGLE_STEPPING(op)];                            \
   } while (0)
+#if !defined(PRODUCT)
+// The breakpoint should dispatch to the single step handler, if any, in case
+// the breakpoint was set on a call that should then be stepped into or over
+// appropriately. Note that op has already been set to the original opcode
+// that had been replaced with the breakpoint opcode during patching.
+#define BREAKPOINT_DISPATCH                                                    \
+  do {                                                                         \
+    BREAKPOINT_TRACE_ORIGINAL_INSTRUCTION;                                     \
+    goto* dispatch[ADJUST_FOR_SINGLE_STEPPING(op)];                            \
+  } while (0)
+// The dispatch from a single step check back to the original instruction
+// implementation should ignore single_stepping_offset.
+#define DISPATCH_ORIGINAL_OPCODE goto* dispatch[op]
+#endif  // !defined(PRODUCT)
 #else
 #define DISPATCH_OP(val)                                                       \
   do {                                                                         \
@@ -863,7 +914,21 @@ DART_FORCE_INLINE bool Interpreter::InstanceCall(Thread* thread,
     TRACE_INSTRUCTION                                                          \
     goto SwitchDispatch;                                                       \
   } while (0)
-#endif
+#if !defined(PRODUCT)
+// The breakpoint should dispatch to the single step handler, if any, in case
+// the breakpoint was set on a call that should then be stepped into or over
+// appropriately. Note that op has already been set to the original opcode
+// that had been replaced with the breakpoint opcode during patching.
+#define BREAKPOINT_DISPATCH                                                    \
+  do {                                                                         \
+    BREAKPOINT_TRACE_ORIGINAL_INSTRUCTION;                                     \
+    goto SwitchDispatch;                                                       \
+  } while (0)
+// The dispatch from a single step check back to the original instruction
+// implementation should ignore single_stepping_offset.
+#define DISPATCH_ORIGINAL_OPCODE goto SwitchDispatchNoSingleStep
+#endif  // !defined(PRODUCT)
+#endif  // defined(DART_HAS_COMPUTED_GOTO)
 
 // Fetch next operation from PC and dispatch.
 #define DISPATCH() DISPATCH_OP(*pc)
@@ -872,7 +937,9 @@ DART_FORCE_INLINE bool Interpreter::InstanceCall(Thread* thread,
 #define LOAD_JUMP_TARGET() pc = rT
 
 #define BYTECODE_ENTRY_LABEL(Name) bc##Name:
-#define BYTECODE_WIDE_ENTRY_LABEL(Name) bc##Name##_Wide:
+#define BYTECODE_WIDE_ENTRY_LABEL(Name)                                        \
+  static_assert(KernelBytecode::IsWide(KernelBytecode::k##Name##_Wide));       \
+  bc##Name##_Wide:
 #define BYTECODE_IMPL_LABEL(Name) bc##Name##Impl:
 #define GOTO_BYTECODE_IMPL(Name) goto bc##Name##Impl;
 
@@ -1009,6 +1076,7 @@ DART_FORCE_INLINE bool Interpreter::InstanceCall(Thread* thread,
 #define HANDLE_RETURN                                                          \
   do {                                                                         \
     pp_ = InterpreterHelpers::FrameBytecode(FP)->untag()->object_pool();       \
+    CHECK_SINGLE_STEPPING;                                                     \
   } while (0)
 
 // Runtime call helpers: handle invocation and potential exception after return.
@@ -1186,9 +1254,7 @@ bool Interpreter::AssertAssignable(Thread* thread,
                                    ObjectPtr* args,
                                    SubtypeTestCachePtr cache) {
   ObjectPtr null_value = Object::null();
-  if ((cache != null_value) &&
-      (Smi::Value(cache->untag()->cache()->untag()->length()) <=
-       SubtypeTestCache::kMaxLinearCacheSize)) {
+  if (cache != null_value) {
     InstancePtr instance = Instance::RawCast(args[0]);
     AbstractTypePtr dst_type = AbstractType::RawCast(args[1]);
     TypeArgumentsPtr instantiator_type_arguments =
@@ -1232,36 +1298,95 @@ bool Interpreter::AssertAssignable(Thread* thread,
     }
 
     ArrayPtr entries = cache->untag()->cache();
-    for (intptr_t i = 0; entries->untag()->element(i) != null_value;
-         i += SubtypeTestCache::kTestEntryLength) {
-      if ((entries->untag()->element(
-               i + SubtypeTestCache::kInstanceCidOrSignature) ==
-           instance_cid_or_function) &&
-          (entries->untag()->element(
-               i + SubtypeTestCache::kInstanceTypeArguments) ==
-           instance_type_arguments) &&
-          (entries->untag()->element(
-               i + SubtypeTestCache::kInstantiatorTypeArguments) ==
-           instantiator_type_arguments) &&
-          (entries->untag()->element(
-               i + SubtypeTestCache::kFunctionTypeArguments) ==
-           function_type_arguments) &&
-          (entries->untag()->element(
-               i + SubtypeTestCache::kInstanceParentFunctionTypeArguments) ==
-           parent_function_type_arguments) &&
-          (entries->untag()->element(
-               i + SubtypeTestCache::kInstanceDelayedFunctionTypeArguments) ==
-           delayed_function_type_arguments) &&
-          (entries->untag()->element(i + SubtypeTestCache::kDestinationType) ==
-           dst_type)) {
-        if (Bool::True().ptr() ==
-            entries->untag()->element(i + SubtypeTestCache::kTestResult)) {
-          return true;
-        } else {
-          break;
-        }
+    const intptr_t num_inputs = cache->untag()->num_inputs_;
+    // The search in a linear-based STC starts at 0.
+    intptr_t probe = 0;
+    if (SubtypeTestCache::IsHash(entries)) {
+      // Perform the same hash as SubtypeTestCache::FindKeyOrUnused.
+      //
+      // Control flows to AssertAssignableCallRuntime if any of the individual
+      // hashes are 0 (which denotes the hash is not yet computed).
+      if (cid == kClosureCid) {
+        auto sig = AbstractType::RawCast(instance_cid_or_function);
+        probe = RawSmiValue(sig->untag()->hash());
+        if (probe == 0) goto AssertAssignableCallRuntime;
+      } else {
+        probe = cid;
       }
+      switch (num_inputs) {
+        case 7: {
+          intptr_t h = RawSmiValue(dst_type->untag()->hash());
+          if (h == 0) goto AssertAssignableCallRuntime;
+          probe = CombineHashes(probe, h);
+        }
+          FALL_THROUGH;
+        case 6: {
+          intptr_t h = TypeArguments::kAllDynamicHash;
+          if (delayed_function_type_arguments != null_value) {
+            h = RawSmiValue(delayed_function_type_arguments->untag()->hash());
+            if (h == 0) goto AssertAssignableCallRuntime;
+          }
+          probe = CombineHashes(probe, h);
+        }
+          FALL_THROUGH;
+        case 5: {
+          intptr_t h = TypeArguments::kAllDynamicHash;
+          if (parent_function_type_arguments != null_value) {
+            h = RawSmiValue(parent_function_type_arguments->untag()->hash());
+            if (h == 0) goto AssertAssignableCallRuntime;
+          }
+          probe = CombineHashes(probe, h);
+        }
+          FALL_THROUGH;
+        case 4: {
+          intptr_t h = TypeArguments::kAllDynamicHash;
+          if (function_type_arguments != null_value) {
+            h = RawSmiValue(function_type_arguments->untag()->hash());
+            if (h == 0) goto AssertAssignableCallRuntime;
+          }
+          probe = CombineHashes(probe, h);
+        }
+          FALL_THROUGH;
+        case 3: {
+          intptr_t h = TypeArguments::kAllDynamicHash;
+          if (instantiator_type_arguments != null_value) {
+            h = RawSmiValue(instantiator_type_arguments->untag()->hash());
+            if (h == 0) goto AssertAssignableCallRuntime;
+          }
+          probe = CombineHashes(probe, h);
+        }
+          FALL_THROUGH;
+        case 2: {
+          intptr_t h = TypeArguments::kAllDynamicHash;
+          if (instance_type_arguments != null_value) {
+            h = RawSmiValue(instance_type_arguments->untag()->hash());
+            if (h == 0) goto AssertAssignableCallRuntime;
+          }
+          probe = CombineHashes(probe, h);
+        }
+          FALL_THROUGH;
+        case 1:
+          // Already included in the hash.
+          break;
+        default:
+          UNREACHABLE();
+      }
+      probe = FinalizeHash(probe);
+      // The number of entries for a hash-based cache is a power of 2,
+      // so use it as a mask to get a valid entry index from the hash.
+      probe = probe & (SubtypeTestCache::NumEntries(entries) - 1);
     }
+    BoolPtr test_result = nullptr;
+    auto loc = SubtypeTestCache::FindKeyOrUnusedFromProbe(
+        entries, num_inputs, probe, instance_cid_or_function, dst_type,
+        instance_type_arguments, instantiator_type_arguments,
+        function_type_arguments, parent_function_type_arguments,
+        delayed_function_type_arguments, &test_result);
+    if (loc.present && test_result == Bool::True().ptr()) {
+      return true;
+    }
+    // Either there is no matching entry or the matching entry had a false test
+    // result, so a runtime call is needed to generate an appropriate error.
   }
 
 AssertAssignableCallRuntime:
@@ -1457,7 +1582,9 @@ bool Interpreter::AllocateArray(Thread* thread,
                                 ObjectPtr* SP) {
   if (LIKELY(!length_object->IsHeapObject())) {
     const intptr_t length = Smi::Value(Smi::RawCast(length_object));
-    if (LIKELY(Array::IsValidLength(length))) {
+    if (LIKELY(static_cast<uintptr_t>(length) <=
+               static_cast<uintptr_t>(Array::kMaxNewSpaceElements))) {
+      ASSERT(Array::IsValidLength(length));
       ArrayPtr result;
       if (TryAllocate(thread, kArrayCid, Array::InstanceSize(length),
                       reinterpret_cast<ObjectPtr*>(&result))) {
@@ -1722,6 +1849,16 @@ ObjectPtr Interpreter::Resume(Thread* thread,
   pp_ = bytecode->untag()->object_pool();
   fp_ = FP;
 
+#if !defined(PRODUCT)
+  if (auto* const isolate = thread->isolate()) {
+    if (isolate->has_resumption_breakpoints()) {
+      Exit(thread, FP, SP + 1, pc_);
+      InvokeRuntime(thread, this, DRT_ResumptionBreakpointHandler,
+                    NativeArguments(thread, 0, nullptr, nullptr));
+    }
+  }
+#endif
+
   return Run(thread, SP, rethrow_exception);
 }
 
@@ -1748,6 +1885,10 @@ ObjectPtr Interpreter::Run(Thread* thread,
 
   uint32_t op;  // Currently executing op.
 
+#if !defined(PRODUCT)
+  uint32_t single_stepping_offset = CALCULATE_SINGLE_STEPPING_OFFSET;
+#endif
+
   // Save current VM tag and mark thread as executing Dart code. For the
   // profiler, do this *after* setting up the entry frame (compare the machine
   // code entry stubs).
@@ -1767,16 +1908,39 @@ ObjectPtr Interpreter::Run(Thread* thread,
     goto RethrowException;
   }
 
-#ifdef DART_HAS_COMPUTED_GOTO
+#if defined(DART_HAS_COMPUTED_GOTO)
   static const void* dispatch[] = {
 #define TARGET(name, fmt, kind, fmta, fmtb, fmtc) &&bc##name,
       KERNEL_BYTECODES_LIST(TARGET)
 #undef TARGET
+#if !defined(PRODUCT)
+#define TARGET(name, fmt, kind, fmta, fmtb, fmtc) &&bc##name##_SingleStep,
+          KERNEL_BYTECODES_LIST(TARGET)
+#undef TARGET
+#endif  // !defined(PRODUCT)
   };
   DISPATCH();  // Enter the dispatch loop.
 #else
   DISPATCH();  // Enter the dispatch loop.
 SwitchDispatch:
+  switch (ADJUST_FOR_SINGLE_STEPPING(op & 0xFF)) {
+#define TARGET(name, fmt, kind, fmta, fmtb, fmtc)                              \
+  case KernelBytecode::k##name:                                                \
+    goto bc##name;
+    KERNEL_BYTECODES_LIST(TARGET)
+#undef TARGET
+#if !defined(PRODUCT)
+#define TARGET(name, fmt, kind, fmta, fmtb, fmtc)                              \
+  case KernelBytecode::k##name + KernelBytecode::kNumOpcodes:                  \
+    goto bc##name##_SingleStep;
+    KERNEL_BYTECODES_LIST(TARGET)
+#undef TARGET
+#endif  // !defined(PRODUCT)
+    default:
+      FATAL1("Undefined opcode: %d\n", op);
+  }
+#if !defined(PRODUCT)
+SwitchDispatchNoSingleStep:
   switch (op & 0xFF) {
 #define TARGET(name, fmt, kind, fmta, fmtb, fmtc)                              \
   case KernelBytecode::k##name:                                                \
@@ -1786,7 +1950,8 @@ SwitchDispatch:
     default:
       FATAL1("Undefined opcode: %d\n", op);
   }
-#endif
+#endif  // !defined(PRODUCT)
+#endif  // defined(DART_HAS_COMPUTED_GOTO)
 
   // KernelBytecode handlers (see constants_kbc.h for bytecode descriptions).
   {
@@ -1799,6 +1964,7 @@ SwitchDispatch:
     }
     SP = FP + num_locals - 1;
 
+    InterpreterHelpers::IncrementUsageCounter(FrameFunction(FP));
     DISPATCH();
   }
 
@@ -1806,6 +1972,7 @@ SwitchDispatch:
     BYTECODE(EntryOptional, A_B_C);
     SP = FP - 1;
     if (CopyParameters(thread, &pc, &FP, &SP, rA, rB, rC, 0)) {
+      InterpreterHelpers::IncrementUsageCounter(FrameFunction(FP));
       DISPATCH();
     } else {
       SP[1] = FrameFunction(FP);
@@ -1818,6 +1985,7 @@ SwitchDispatch:
     FP[kKBCSuspendStateSlotFromFp] = null_value;
     SP = FP + kKBCSuspendStateSlotFromFp;
     if (CopyParameters(thread, &pc, &FP, &SP, rA, rB, rC, 1)) {
+      InterpreterHelpers::IncrementUsageCounter(FrameFunction(FP));
       DISPATCH();
     } else {
       SP[1] = FrameFunction(FP);
@@ -1861,7 +2029,6 @@ SwitchDispatch:
 
   {
     BYTECODE(DebugCheck, 0);
-
     DISPATCH();
   }
 
@@ -2030,13 +2197,22 @@ SwitchDispatch:
       const uint32_t kidx = rD;
 
       InterpreterHelpers::IncrementUsageCounter(FrameFunction(FP));
-      *++SP = LOAD_CONSTANT(kidx);
+      ObjectPtr target = LOAD_CONSTANT(kidx);
+      *++SP = target;
+#if !defined(DART_PRECOMPILED_RUNTIME) && !defined(PRODUCT)
+      if (target->IsArray()) {
+        // Hot reload failed to find a suitable target for this call.
+        goto ThrowNoSuchMethodError;
+      }
+#endif
+      ASSERT(target->IsFunction());
       ObjectPtr* call_base = SP - argc;
       ObjectPtr* call_top = SP;
       argdesc_ = static_cast<ArrayPtr>(LOAD_CONSTANT(kidx + 1));
       if (!Invoke(thread, call_base, call_top, &pc, &FP, &SP)) {
         HANDLE_EXCEPTION;
       }
+      CHECK_SINGLE_STEPPING;
     }
 
     DISPATCH();
@@ -2051,13 +2227,22 @@ SwitchDispatch:
       const uint32_t kidx = rD;
 
       InterpreterHelpers::IncrementUsageCounter(FrameFunction(FP));
-      *++SP = LOAD_CONSTANT(kidx);
+      ObjectPtr target = LOAD_CONSTANT(kidx);
+      *++SP = target;
+#if !defined(DART_PRECOMPILED_RUNTIME) && !defined(PRODUCT)
+      if (target->IsArray()) {
+        // Hot reload failed to find a suitable target for this call.
+        goto ThrowNoSuchMethodError;
+      }
+#endif
+      ASSERT(target->IsFunction());
       ObjectPtr* call_base = SP - argc;
       ObjectPtr* call_top = SP;
       argdesc_ = static_cast<ArrayPtr>(LOAD_CONSTANT(kidx + 1));
       if (!Invoke(thread, call_base, call_top, &pc, &FP, &SP)) {
         HANDLE_EXCEPTION;
       }
+      CHECK_SINGLE_STEPPING;
     }
 
     DISPATCH();
@@ -2081,6 +2266,7 @@ SwitchDispatch:
                         &SP)) {
         HANDLE_EXCEPTION;
       }
+      CHECK_SINGLE_STEPPING;
     }
 
     DISPATCH();
@@ -2103,6 +2289,7 @@ SwitchDispatch:
                         &SP)) {
         HANDLE_EXCEPTION;
       }
+      CHECK_SINGLE_STEPPING;
     }
 
     DISPATCH();
@@ -2130,6 +2317,7 @@ SwitchDispatch:
       if (!Invoke(thread, call_base, call_top, &pc, &FP, &SP)) {
         HANDLE_EXCEPTION;
       }
+      CHECK_SINGLE_STEPPING;
     }
 
     DISPATCH();
@@ -2153,6 +2341,7 @@ SwitchDispatch:
                         &SP)) {
         HANDLE_EXCEPTION;
       }
+      CHECK_SINGLE_STEPPING;
     }
 
     DISPATCH();
@@ -2175,6 +2364,7 @@ SwitchDispatch:
                         &SP)) {
         HANDLE_EXCEPTION;
       }
+      CHECK_SINGLE_STEPPING;
     }
 
     DISPATCH();
@@ -2226,6 +2416,23 @@ SwitchDispatch:
 
       *(SP - num_arguments) = *return_slot;
       SP -= num_arguments;
+    }
+
+    DISPATCH();
+  }
+
+  {
+    BYTECODE(FfiCall, D);
+
+    {
+      FunctionPtr function = FrameFunction(FP);
+
+      SP[1] = 0;  // Unused space for result.
+      SP[2] = function;
+      SP[3] = Smi::New(rD);
+      Exit(thread, FP, SP + 4, pc);
+      INVOKE_RUNTIME(DRT_FfiCall, NativeArguments(thread, 2, SP + 2, SP + 1));
+      ++SP;
     }
 
     DISPATCH();
@@ -3206,6 +3413,17 @@ SwitchDispatch:
 #undef UNIMPLEMENTED_LABEL_RESV
 #undef UNIMPLEMENTED_LABEL
 
+#if defined(PRODUCT)
+    // The breakpoint opcodes are unimplemented when the debugger
+    // is unavailable.
+    BYTECODE_ENTRY_LABEL(VMInternal_Breakpoint_0)
+    BYTECODE_ENTRY_LABEL(VMInternal_Breakpoint_D)
+    BYTECODE_ENTRY_LABEL(VMInternal_Breakpoint_D_Wide)
+    BYTECODE_ENTRY_LABEL(VMInternal_Breakpoint_A_E)
+    BYTECODE_ENTRY_LABEL(VMInternal_Breakpoint_A_E_Wide)
+    BYTECODE_ENTRY_LABEL(VMInternal_Breakpoint_A_B_C)
+#endif  // defined(PRODUCT)
+
     UNIMPLEMENTED();
     DISPATCH();
   }
@@ -3617,9 +3835,50 @@ SwitchDispatch:
     ASSERT(Function::KindOf(target) !=
            UntaggedFunction::kDynamicInvocationForwarder);
 
-    // TODO(alexmarkov): add parameter type checks.
+    const intptr_t type_args_len =
+        InterpreterHelpers::ArgDescTypeArgsLen(argdesc_);
+    const intptr_t receiver_idx = type_args_len > 0 ? 1 : 0;
+    const intptr_t argc =
+        InterpreterHelpers::ArgDescArgCount(argdesc_) + receiver_idx;
 
     SP[1] = target;
+    SP[2] = argdesc_;
+
+    // Allocate array of arguments.
+    {
+      SP[3] = null_value;      // Reserve space for result.
+      SP[4] = Smi::New(argc);  // length
+      SP[5] = null_value;      // type
+      Exit(thread, FP, SP + 6, pc);
+      if (!InvokeRuntime(thread, this, DRT_AllocateArray,
+                         NativeArguments(thread, 2, SP + 4, SP + 3))) {
+        HANDLE_EXCEPTION;
+      }
+    }
+
+    // Copy arguments into the newly allocated array.
+    ObjectPtr* argv = FrameArguments(FP, argc);
+    ArrayPtr array = Array::RawCast(SP[3]);
+    for (intptr_t i = 0; i < argc; i++) {
+      array->untag()->set_element(i, argv[i], thread);
+    }
+
+    // Check types of arguments.
+    {
+      SP[4] = null_value;  // Reserve space for result.
+      Exit(thread, FP, SP + 5, pc);
+      if (!InvokeRuntime(thread, this, DRT_CheckFunctionArgumentTypes,
+                         NativeArguments(thread, 3, SP + 1, SP + 4))) {
+        HANDLE_EXCEPTION;
+      }
+
+      argdesc_ = Array::RawCast(SP[2]);
+
+      if (SP[4] != true_value) {
+        goto NoSuchMethodFromPrologue;
+      }
+    }
+
     goto TailCallSP1;
   }
 
@@ -3700,7 +3959,7 @@ SwitchDispatch:
   }
 
   {
-    BYTECODE(VMInternal_ImplicitInstanceClosure, 0);
+    BYTECODE(VMInternal_ImplicitInstanceClosure, D_F);
     FunctionPtr function = FrameFunction(FP);
     ASSERT(Function::KindOf(function) ==
            UntaggedFunction::kImplicitClosureFunction);
@@ -3713,10 +3972,60 @@ SwitchDispatch:
     const intptr_t argc =
         InterpreterHelpers::ArgDescArgCount(argdesc_) + receiver_idx;
     ObjectPtr* argv = FrameArguments(FP, argc);
+    ClosurePtr closure = Closure::RawCast(argv[receiver_idx]);
+
+    TypeParametersPtr type_params =
+        FunctionType::RawCast(function->untag()->signature())
+            ->untag()
+            ->type_parameters();
+    if (type_params == null_value) {
+      if (type_args_len > 0) {
+        SP[1] = function;
+        goto NoSuchMethodFromPrologue;
+      }
+    } else {
+      TypeArgumentsPtr delayed_type_arguments =
+          closure->untag()->delayed_type_arguments();
+      if (delayed_type_arguments != Object::empty_type_arguments().ptr()) {
+        if (type_args_len > 0) {
+          SP[1] = function;
+          goto NoSuchMethodFromPrologue;
+        }
+
+        // Type arguments.
+        *++SP = delayed_type_arguments;
+        ObjectPtr* call_base = SP;
+        // Captured receiver.
+        *++SP = closure->untag()->context();
+        // Copy the rest of the arguments.
+        for (intptr_t i = receiver_idx + 1; i < argc; i++) {
+          *++SP = argv[i];
+        }
+
+        const intptr_t new_type_args_len =
+            Smi::Value(type_params->untag()->names()->untag()->length());
+
+        SP[1] = target;
+        SP[2] = 0;  // Space for result.
+        SP[3] = argdesc_;
+        SP[4] = target;
+        SP[5] = Smi::New(new_type_args_len);
+        Exit(thread, FP, SP + 6, pc);
+        INVOKE_RUNTIME(DRT_AdjustArgumentsDesciptorForImplicitClosure,
+                       NativeArguments(thread, 3, SP + 3, SP + 2));
+        argdesc_ = Array::RawCast(SP[2]);
+
+        ObjectPtr* call_top = SP + 1;
+        if (!Invoke(thread, call_base, call_top, &pc, &FP, &SP)) {
+          HANDLE_EXCEPTION;
+        }
+
+        DISPATCH();
+      }
+    }
 
     // Replace closure receiver with captured receiver
     // and call target function.
-    ClosurePtr closure = Closure::RawCast(argv[receiver_idx]);
     argv[receiver_idx] = closure->untag()->context();
     SP[1] = target;
 
@@ -3974,6 +4283,18 @@ SwitchDispatch:
     UNREACHABLE();
   }
 
+#if !defined(DART_PRECOMPILED_RUNTIME) && !defined(PRODUCT)
+  {
+  ThrowNoSuchMethodError:
+    // SP[0] contains arguments.
+    SP[1] = 0;  // Unused space for result.
+    Exit(thread, FP, SP + 2, pc);
+    INVOKE_RUNTIME(DRT_NoSuchMethodError,
+                   NativeArguments(thread, 1, SP, SP + 1));
+    UNREACHABLE();
+  }
+#endif  // !defined(DART_PRECOMPILED_RUNTIME) && !defined(PRODUCT)
+
   // Exception handling helper. Gets handler FP and PC from the Interpreter
   // where they were stored by Interpreter::Longjmp and proceeds to execute the
   // handler. Corner case: handler PC can be a fake marker that marks entry
@@ -4006,6 +4327,54 @@ SwitchDispatch:
     pp_ = InterpreterHelpers::FrameBytecode(FP)->untag()->object_pool();
     DISPATCH();
   }
+
+#if !defined(PRODUCT)
+#define DEFINE_BREAKPOINT(Format)                                              \
+  {                                                                            \
+    BYTECODE(VMInternal_Breakpoint_##Format, Format)                           \
+    SP[1] = 0; /* Smi containing the original opcode. */                       \
+    Exit(thread, FP, SP + 2, pc);                                              \
+    INVOKE_RUNTIME(DRT_BreakpointRuntimeHandler,                               \
+                   NativeArguments(thread, 0, nullptr, SP + 1));               \
+    uint32_t old_op = RawSmiValue(Smi::RawCast(SP[1]));                        \
+    ASSERT_EQUAL(KernelBytecode::BreakpointOpcode(                             \
+                     static_cast<KernelBytecode::Opcode>(old_op)),             \
+                 op);                                                          \
+    op = old_op;                                                               \
+    /* The pc is moved to the next instruction during the dispatch to  */      \
+    /* the original instruction's implementation, so re-adjust it to   */      \
+    /* before the breakpoint/original instruction prior to dispatch.   */      \
+    pc -= KernelBytecode::kInstructionSize[op];                                \
+    BREAKPOINT_DISPATCH;                                                       \
+  }
+  DEFINE_BREAKPOINT(0)      // size 1
+  DEFINE_BREAKPOINT(D)      // size 2 and 5
+  DEFINE_BREAKPOINT(A_E)    // size 3 and 6
+  DEFINE_BREAKPOINT(A_B_C)  // size 4
+#undef DEFINE_BREAKPOINT
+
+  {
+#define SINGLE_STEP_HANDLER_ENTRY(Name, __, ___, ____, _____, ______)          \
+  bc##Name##_SingleStep:
+    KERNEL_BYTECODES_LIST(SINGLE_STEP_HANDLER_ENTRY)
+#undef SINGLE_STEP_HANDLER_ENTRY
+
+#if defined(DEBUG)
+    if (IsTracingExecution()) {
+      // Use the original instruction count, as it was incremented before
+      // the dispatch jump.
+      THR_Print("%" Pu64 " calling single step handler\n", icount_ - 1);
+    }
+#endif
+
+    // The debugger expects return addresses in the frames when retrieving
+    // source positions, so use the next instruction's address.
+    Exit(thread, FP, SP + 1, KernelBytecode::Next(pc));
+    INVOKE_RUNTIME(DRT_SingleStepHandler,
+                   NativeArguments(thread, 0, nullptr, nullptr));
+    DISPATCH_ORIGINAL_OPCODE;
+  }
+#endif  // !defined(PRODUCT)
 
   UNREACHABLE();
   return 0;

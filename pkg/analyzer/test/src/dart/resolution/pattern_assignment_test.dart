@@ -26,7 +26,7 @@ void f() {
   a;
 }
 ''',
-      [error(CompileTimeErrorCode.ASSIGNMENT_TO_FINAL_LOCAL, 38, 1)],
+      [error(CompileTimeErrorCode.assignmentToFinalLocal, 38, 1)],
     );
   }
 
@@ -52,7 +52,7 @@ void f(bool flag) {
   a;
 }
 ''',
-      [error(CompileTimeErrorCode.ASSIGNMENT_TO_FINAL_LOCAL, 67, 1)],
+      [error(CompileTimeErrorCode.assignmentToFinalLocal, 67, 1)],
     );
   }
 
@@ -66,7 +66,7 @@ void f() {
   a;
 }
 ''',
-      [error(CompileTimeErrorCode.LATE_FINAL_LOCAL_ALREADY_ASSIGNED, 43, 1)],
+      [error(CompileTimeErrorCode.lateFinalLocalAlreadyAssigned, 43, 1)],
     );
   }
 
@@ -107,7 +107,7 @@ PatternAssignment
     elements
       AssignedVariablePattern
         name: a
-        element2: <testLibrary>::@function::f::@formalParameter::a
+        element: <testLibrary>::@function::f::@formalParameter::a
         matchedValueType: int
     rightBracket: ]
     matchedValueType: List<int>
@@ -138,7 +138,7 @@ PatternAssignment
   pattern: ObjectPattern
     type: NamedType
       name: A
-      element2: <testLibrary>::@class::A
+      element: <testLibrary>::@class::A
       type: A
     leftParenthesis: (
     fields
@@ -147,9 +147,9 @@ PatternAssignment
           colon: :
         pattern: AssignedVariablePattern
           name: foo
-          element2: <testLibrary>::@function::f::@formalParameter::foo
+          element: <testLibrary>::@function::f::@formalParameter::foo
           matchedValueType: int
-        element2: <testLibrary>::@class::A::@getter::foo
+        element: <testLibrary>::@class::A::@getter::foo
     rightParenthesis: )
     matchedValueType: A
   equals: =
@@ -157,7 +157,7 @@ PatternAssignment
     constructorName: ConstructorName
       type: NamedType
         name: A
-        element2: <testLibrary>::@class::A
+        element: <testLibrary>::@class::A
         type: A
       element: <testLibrary>::@class::A::@constructor::new
     argumentList: ArgumentList
@@ -182,7 +182,7 @@ PatternAssignment
     leftParenthesis: (
     pattern: AssignedVariablePattern
       name: a
-      element2: <testLibrary>::@function::f::@formalParameter::a
+      element: <testLibrary>::@function::f::@formalParameter::a
       matchedValueType: int
     rightParenthesis: )
     matchedValueType: int
@@ -211,7 +211,7 @@ PatternAssignment
     leftParenthesis: (
     pattern: AssignedVariablePattern
       name: a
-      element2: <testLibrary>::@function::f::@formalParameter::a
+      element: <testLibrary>::@function::f::@formalParameter::a
       matchedValueType: int
     rightParenthesis: )
     matchedValueType: int
@@ -251,9 +251,9 @@ PatternAssignment
           colon: :
         pattern: AssignedVariablePattern
           name: a
-          element2: <testLibrary>::@function::f::@formalParameter::a
+          element: <testLibrary>::@function::f::@formalParameter::a
           matchedValueType: int
-        element2: <null>
+        element: <null>
     rightParenthesis: )
     matchedValueType: ({int foo})
   equals: =
@@ -283,9 +283,9 @@ PatternAssignment
           colon: :
         pattern: AssignedVariablePattern
           name: a
-          element2: <testLibrary>::@function::f::@formalParameter::a
+          element: <testLibrary>::@function::f::@formalParameter::a
           matchedValueType: int
-        element2: <null>
+        element: <null>
     rightParenthesis: )
     matchedValueType: ({int a})
   equals: =
@@ -324,9 +324,9 @@ PatternAssignment
       PatternField
         pattern: AssignedVariablePattern
           name: a
-          element2: <testLibrary>::@function::f::@formalParameter::a
+          element: <testLibrary>::@function::f::@formalParameter::a
           matchedValueType: int
-        element2: <null>
+        element: <null>
     rightParenthesis: )
     matchedValueType: (int,)
   equals: =
@@ -353,9 +353,9 @@ void f(a, y) {
       [
         // The reference doesn't resolve so the errors include
         // UNUSED_LOCAL_VARIABLE and UNDEFINED_IDENTIFIER.
-        error(ParserErrorCode.PATTERN_ASSIGNMENT_DECLARES_VARIABLE, 25, 1),
-        error(WarningCode.UNUSED_LOCAL_VARIABLE, 25, 1),
-        error(CompileTimeErrorCode.UNDEFINED_IDENTIFIER, 35, 1),
+        error(ParserErrorCode.patternAssignmentDeclaresVariable, 25, 1),
+        error(WarningCode.unusedLocalVariable, 25, 1),
+        error(CompileTimeErrorCode.undefinedIdentifier, 35, 1),
       ],
     );
   }
@@ -371,8 +371,8 @@ void f(a, y) {
 }
 ''',
       [
-        error(ParserErrorCode.PATTERN_ASSIGNMENT_DECLARES_VARIABLE, 25, 1),
-        error(WarningCode.UNUSED_LOCAL_VARIABLE, 25, 1),
+        error(ParserErrorCode.patternAssignmentDeclaresVariable, 25, 1),
+        error(WarningCode.unusedLocalVariable, 25, 1),
       ],
     );
   }
@@ -387,7 +387,7 @@ void f() {
   a = 1;
 }
 ''',
-      [error(CompileTimeErrorCode.ASSIGNMENT_TO_FINAL_LOCAL, 44, 1)],
+      [error(CompileTimeErrorCode.assignmentToFinalLocal, 44, 1)],
     );
   }
 

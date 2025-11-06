@@ -24,7 +24,7 @@ class Interface {
  superclasses=[Object]
 */
 class Class implements Interface {
-/*member: Class.implementedLateFieldDeclaredGetterSetter#cls:
+  /*member: Class.implementedLateFieldDeclaredGetterSetter#cls:
  classBuilder=Class,
  declared-overrides=[
   Interface.implementedLateFieldDeclaredGetterSetter,
@@ -33,7 +33,7 @@ class Class implements Interface {
 */
   int get implementedLateFieldDeclaredGetterSetter => 0;
 
-/*member: Class.implementedLateFieldDeclaredGetterSetter=#cls:
+  /*member: Class.implementedLateFieldDeclaredGetterSetter=#cls:
  classBuilder=Class,
  declared-overrides=[
   Interface.implementedLateFieldDeclaredGetterSetter,

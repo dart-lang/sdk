@@ -12,8 +12,9 @@ main() {
 
 class ForEachStatementTest extends PartialCodeTest {
   buildAll() {
-    List<String> allExceptEof =
-        PartialCodeTest.statementSuffixes.map((t) => t.name).toList();
+    List<String> allExceptEof = PartialCodeTest.statementSuffixes
+        .map((t) => t.name)
+        .toList();
     //
     // Without a preceding 'await', anything that doesn't contain the `in`
     // keyword will be interpreted as a normal for statement.
@@ -25,10 +26,10 @@ class ForEachStatementTest extends PartialCodeTest {
           'in',
           'for (var a in',
           [
-            ParserErrorCode.MISSING_IDENTIFIER,
-            ParserErrorCode.EXPECTED_TOKEN,
-            ParserErrorCode.MISSING_IDENTIFIER,
-            ScannerErrorCode.EXPECTED_TOKEN,
+            ParserErrorCode.missingIdentifier,
+            ParserErrorCode.expectedToken,
+            ParserErrorCode.missingIdentifier,
+            ScannerErrorCode.expectedToken,
           ],
           'for (var a in _s_) _s_;',
           failing: allExceptEof,
@@ -37,9 +38,9 @@ class ForEachStatementTest extends PartialCodeTest {
           'iterator',
           'for (var a in b',
           [
-            ScannerErrorCode.EXPECTED_TOKEN,
-            ParserErrorCode.MISSING_IDENTIFIER,
-            ParserErrorCode.EXPECTED_TOKEN,
+            ScannerErrorCode.expectedToken,
+            ParserErrorCode.missingIdentifier,
+            ParserErrorCode.expectedToken,
           ],
           'for (var a in b) _s_;',
           failing: allExceptEof,
@@ -57,20 +58,20 @@ class ForEachStatementTest extends PartialCodeTest {
       'forEach_statement',
       [
         TestDescriptor('await_keyword', 'await for', [
-          ParserErrorCode.EXPECTED_TOKEN,
+          ParserErrorCode.expectedToken,
         ], 'await for (_s_ in _s_) _s_;'),
         TestDescriptor(
           'await_leftParen',
           'await for (',
           [
-            ScannerErrorCode.EXPECTED_TOKEN,
-            ParserErrorCode.MISSING_IDENTIFIER,
-            ParserErrorCode.MISSING_IDENTIFIER,
-            ParserErrorCode.MISSING_IDENTIFIER,
+            ScannerErrorCode.expectedToken,
+            ParserErrorCode.missingIdentifier,
+            ParserErrorCode.missingIdentifier,
+            ParserErrorCode.missingIdentifier,
             // TODO(danrubel): investigate why 4 missing identifier errors
-            ParserErrorCode.MISSING_IDENTIFIER,
-            ParserErrorCode.EXPECTED_TOKEN,
-            ParserErrorCode.EXPECTED_TOKEN,
+            ParserErrorCode.missingIdentifier,
+            ParserErrorCode.expectedToken,
+            ParserErrorCode.expectedToken,
           ],
           "await for (_s_ in _s_) _s_;",
           failing: allExceptEof,
@@ -79,11 +80,11 @@ class ForEachStatementTest extends PartialCodeTest {
           'await_variableName',
           'await for (a',
           [
-            ScannerErrorCode.EXPECTED_TOKEN,
-            ParserErrorCode.MISSING_IDENTIFIER,
-            ParserErrorCode.MISSING_IDENTIFIER,
-            ParserErrorCode.EXPECTED_TOKEN,
-            ParserErrorCode.EXPECTED_TOKEN,
+            ScannerErrorCode.expectedToken,
+            ParserErrorCode.missingIdentifier,
+            ParserErrorCode.missingIdentifier,
+            ParserErrorCode.expectedToken,
+            ParserErrorCode.expectedToken,
           ],
           "await for (a in _s_) _s_;",
           failing: allExceptEof,
@@ -92,11 +93,11 @@ class ForEachStatementTest extends PartialCodeTest {
           'await_typeAndVariableName',
           'await for (A a',
           [
-            ScannerErrorCode.EXPECTED_TOKEN,
-            ParserErrorCode.MISSING_IDENTIFIER,
-            ParserErrorCode.MISSING_IDENTIFIER,
-            ParserErrorCode.EXPECTED_TOKEN,
-            ParserErrorCode.EXPECTED_TOKEN,
+            ScannerErrorCode.expectedToken,
+            ParserErrorCode.missingIdentifier,
+            ParserErrorCode.missingIdentifier,
+            ParserErrorCode.expectedToken,
+            ParserErrorCode.expectedToken,
           ],
           "await for (A a in _s_) _s_;",
           failing: allExceptEof,
@@ -105,10 +106,10 @@ class ForEachStatementTest extends PartialCodeTest {
           'await_in',
           'await for (A a in',
           [
-            ScannerErrorCode.EXPECTED_TOKEN,
-            ParserErrorCode.MISSING_IDENTIFIER,
-            ParserErrorCode.MISSING_IDENTIFIER,
-            ParserErrorCode.EXPECTED_TOKEN,
+            ScannerErrorCode.expectedToken,
+            ParserErrorCode.missingIdentifier,
+            ParserErrorCode.missingIdentifier,
+            ParserErrorCode.expectedToken,
           ],
           "await for (A a in _s_) _s_;",
           failing: allExceptEof,
@@ -117,9 +118,9 @@ class ForEachStatementTest extends PartialCodeTest {
           'await_stream',
           'await for (A a in b',
           [
-            ScannerErrorCode.EXPECTED_TOKEN,
-            ParserErrorCode.MISSING_IDENTIFIER,
-            ParserErrorCode.EXPECTED_TOKEN,
+            ScannerErrorCode.expectedToken,
+            ParserErrorCode.missingIdentifier,
+            ParserErrorCode.expectedToken,
           ],
           "await for (A a in b) _s_;",
           failing: allExceptEof,

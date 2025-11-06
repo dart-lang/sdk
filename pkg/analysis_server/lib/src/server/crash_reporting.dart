@@ -20,13 +20,12 @@ class CrashReportingInstrumentation extends NoopInstrumentationService {
     StackTrace? stackTrace,
     List<InstrumentationServiceAttachment>? attachments,
   ]) {
-    var crashReportAttachments =
-        (attachments ?? []).map((e) {
-          return CrashReportAttachment.string(
-            field: 'attachment_${e.id}',
-            value: e.stringValue,
-          );
-        }).toList();
+    var crashReportAttachments = (attachments ?? []).map((e) {
+      return CrashReportAttachment.string(
+        field: 'attachment_${e.id}',
+        value: e.stringValue,
+      );
+    }).toList();
 
     if (exception is CaughtException) {
       // Get the root CaughtException, which matters most for debugging.

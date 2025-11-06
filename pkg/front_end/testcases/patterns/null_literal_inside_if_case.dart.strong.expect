@@ -4,7 +4,12 @@ import self as self;
 static method test(dynamic x) → dynamic {
   {
     final synthesized dynamic #0#0 = x;
+    final const synthesized has-declared-initializer Null #0#1 = #C1;
     if(#0#0 == null) {
     }
   }
+}
+
+constants  {
+  #C1 = null
 }

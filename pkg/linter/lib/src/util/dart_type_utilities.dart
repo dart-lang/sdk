@@ -154,6 +154,8 @@ bool canonicalElementsFromIdentifiersAreEqual(
 ///   * are unrelated if [leftType]'s supertype is [Object].
 ///   * are related if their supertypes are equal, e.g. `List<dynamic>` and
 ///     `Set<dynamic>`.
+///   * are unrelated if they are distinct mixins.
+///   * are unrelated if they are distinct extension types.
 /// * Two type variables are related if their bounds are related.
 /// * A record type is unrelated to any other type except a record type of
 ///   the same shape.
@@ -282,11 +284,14 @@ extension on TypeSystem {
       // Otherwise, they might be related.
       return false;
     } else {
-      var sameSupertypes = leftElement.supertype == rightElement.supertype;
+      var leftSuper = leftElement.supertype;
+      var sameSupertypes = leftSuper == rightElement.supertype;
 
-      // Unrelated Enums have the same supertype, but they are not the same element, so
-      // they are unrelated.
-      if (sameSupertypes && leftElement is EnumElement) {
+      // Unrelated Enums have the same supertype, but they are not the same
+      // element, so they are unrelated. Mixins always have supertype null,
+      // and so do extension types, and they are both considered unrelated
+      // when their elements are not equal.
+      if (sameSupertypes && (leftElement is EnumElement || leftSuper == null)) {
         return true;
       }
 

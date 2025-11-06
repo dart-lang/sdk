@@ -1,0 +1,78 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/nonfunction_type_aliases/void_alias_set.dart:7:1: Error: The return type of the setter must be 'void' or absent.
+// Try removing the return type, or define a method rather than a setter.
+// int set setter2(value) {} // Error
+// ^
+//
+// pkg/front_end/testcases/nonfunction_type_aliases/void_alias_set.dart:14:3: Error: The return type of the setter must be 'void' or absent.
+// Try removing the return type, or define a method rather than a setter.
+//   int set setter(value) {} // Error
+//   ^
+//
+// pkg/front_end/testcases/nonfunction_type_aliases/void_alias_set.dart:22:3: Error: The return type of the setter must be 'void' or absent.
+// Try removing the return type, or define a method rather than a setter.
+//   int set setter(value) {} // Error
+//   ^
+//
+// pkg/front_end/testcases/nonfunction_type_aliases/void_alias_set.dart:30:3: Error: The return type of the setter must be 'void' or absent.
+// Try removing the return type, or define a method rather than a setter.
+//   int set setter(value) {} // Error
+//   ^
+//
+import self as self;
+import "dart:core" as core;
+
+typedef Void = void;
+class Class1 extends core::Object {
+  synthetic constructor •() → self::Class1
+    ;
+  set setter(dynamic value) → void
+    ;
+}
+class Class2 extends core::Object {
+  synthetic constructor •() → self::Class2
+    ;
+  set setter(dynamic value) → void
+    ;
+}
+extension Extension1 on core::int {
+  set setter = self::Extension1|set#setter;
+}
+extension Extension2 on core::int {
+  set setter = self::Extension2|set#setter;
+}
+extension type ExtensionType1(core::int it) {
+  abstract extension-type-member representation-field get it() → core::int;
+  set setter = self::ExtensionType1|set#setter;
+  constructor • = self::ExtensionType1|constructor#;
+  constructor tearoff • = self::ExtensionType1|constructor#_#new#tearOff;
+}
+extension type ExtensionType2(core::int it) {
+  abstract extension-type-member representation-field get it() → core::int;
+  set setter = self::ExtensionType2|set#setter;
+  constructor • = self::ExtensionType2|constructor#;
+  constructor tearoff • = self::ExtensionType2|constructor#_#new#tearOff;
+}
+static set setter1(dynamic value) → void
+  ;
+static set setter2(dynamic value) → void
+  ;
+static extension-member method Extension1|set#setter(lowered final core::int #this, dynamic value) → void
+  ;
+static extension-member method Extension2|set#setter(lowered final core::int #this, dynamic value) → void
+  ;
+static extension-type-member method ExtensionType1|constructor#(core::int it) → self::ExtensionType1% /* erasure=core::int, declared=! */
+  ;
+static extension-type-member synthetic method ExtensionType1|constructor#_#new#tearOff(core::int it) → self::ExtensionType1% /* erasure=core::int, declared=! */
+  return self::ExtensionType1|constructor#(it);
+static extension-type-member method ExtensionType1|set#setter(lowered final self::ExtensionType1% /* erasure=core::int, declared=! */ #this, dynamic value) → void
+  ;
+static extension-type-member method ExtensionType2|constructor#(core::int it) → self::ExtensionType2% /* erasure=core::int, declared=! */
+  ;
+static extension-type-member synthetic method ExtensionType2|constructor#_#new#tearOff(core::int it) → self::ExtensionType2% /* erasure=core::int, declared=! */
+  return self::ExtensionType2|constructor#(it);
+static extension-type-member method ExtensionType2|set#setter(lowered final self::ExtensionType2% /* erasure=core::int, declared=! */ #this, dynamic value) → void
+  ;

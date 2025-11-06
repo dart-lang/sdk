@@ -55,9 +55,9 @@ PostfixExpression
     element: <testLibrary>::@function::f::@formalParameter::x
     staticType: null
   operator: --
-  readElement2: <testLibrary>::@function::f::@formalParameter::x
+  readElement: <testLibrary>::@function::f::@formalParameter::x
   readType: int
-  writeElement2: <testLibrary>::@function::f::@formalParameter::x
+  writeElement: <testLibrary>::@function::f::@formalParameter::x
   writeType: int
   element: dart:core::@class::num::@method::-
   staticType: int
@@ -71,7 +71,7 @@ void f(int x) {
   x ++ ++;
 }
 ''',
-      [error(ParserErrorCode.ILLEGAL_ASSIGNMENT_TO_NON_ASSIGNABLE, 23, 2)],
+      [error(ParserErrorCode.illegalAssignmentToNonAssignable, 23, 2)],
     );
 
     var node = findNode.postfix('++;');
@@ -83,16 +83,16 @@ PostfixExpression
       element: <testLibrary>::@function::f::@formalParameter::x
       staticType: null
     operator: ++
-    readElement2: <testLibrary>::@function::f::@formalParameter::x
+    readElement: <testLibrary>::@function::f::@formalParameter::x
     readType: int
-    writeElement2: <testLibrary>::@function::f::@formalParameter::x
+    writeElement: <testLibrary>::@function::f::@formalParameter::x
     writeType: int
     element: dart:core::@class::num::@method::+
     staticType: int
   operator: ++
-  readElement2: <null>
+  readElement: <null>
   readType: InvalidType
-  writeElement2: <null>
+  writeElement: <null>
   writeType: InvalidType
   element: <null>
   staticType: InvalidType
@@ -108,7 +108,7 @@ void f(A a) {
   a++;
 }
 ''',
-      [error(CompileTimeErrorCode.UNDEFINED_OPERATOR, 29, 2)],
+      [error(CompileTimeErrorCode.undefinedOperator, 29, 2)],
     );
 
     var node = findNode.postfix('++;');
@@ -119,9 +119,9 @@ PostfixExpression
     element: <testLibrary>::@function::f::@formalParameter::a
     staticType: null
   operator: ++
-  readElement2: <testLibrary>::@function::f::@formalParameter::a
+  readElement: <testLibrary>::@function::f::@formalParameter::a
   readType: A
-  writeElement2: <testLibrary>::@function::f::@formalParameter::a
+  writeElement: <testLibrary>::@function::f::@formalParameter::a
   writeType: A
   element: <null>
   staticType: A
@@ -143,9 +143,9 @@ PostfixExpression
     element: <testLibrary>::@function::f::@formalParameter::x
     staticType: null
   operator: ++
-  readElement2: <testLibrary>::@function::f::@formalParameter::x
+  readElement: <testLibrary>::@function::f::@formalParameter::x
   readType: dynamic
-  writeElement2: <testLibrary>::@function::f::@formalParameter::x
+  writeElement: <testLibrary>::@function::f::@formalParameter::x
   writeType: dynamic
   element: <null>
   staticType: dynamic
@@ -159,7 +159,7 @@ void f(int x) {
   ++x++;
 }
 ''',
-      [error(ParserErrorCode.MISSING_ASSIGNABLE_SELECTOR, 21, 2)],
+      [error(ParserErrorCode.missingAssignableSelector, 21, 2)],
     );
 
     var node = findNode.prefix('++x');
@@ -172,15 +172,15 @@ PrefixExpression
       element: <testLibrary>::@function::f::@formalParameter::x
       staticType: null
     operator: ++
-    readElement2: <testLibrary>::@function::f::@formalParameter::x
+    readElement: <testLibrary>::@function::f::@formalParameter::x
     readType: int
-    writeElement2: <testLibrary>::@function::f::@formalParameter::x
+    writeElement: <testLibrary>::@function::f::@formalParameter::x
     writeType: int
     element: dart:core::@class::num::@method::+
     staticType: int
-  readElement2: <null>
+  readElement: <null>
   readType: InvalidType
-  writeElement2: <null>
+  writeElement: <null>
   writeType: InvalidType
   element: <null>
   staticType: InvalidType
@@ -216,9 +216,9 @@ PostfixExpression
     element: <null>
     staticType: null
   operator: ++
-  readElement2: <testLibrary>::@class::A::@method::[]
+  readElement: <testLibrary>::@class::A::@method::[]
   readType: int
-  writeElement2: <testLibrary>::@class::A::@method::[]=
+  writeElement: <testLibrary>::@class::A::@method::[]=
   writeType: num
   element: dart:core::@class::num::@method::+
   staticType: int
@@ -255,9 +255,9 @@ PostfixExpression
     element: <null>
     staticType: null
   operator: ++
-  readElement2: <testLibrary>::@class::A::@method::[]
+  readElement: <testLibrary>::@class::A::@method::[]
   readType: int
-  writeElement2: <testLibrary>::@class::A::@method::[]=
+  writeElement: <testLibrary>::@class::A::@method::[]=
   writeType: num
   element: dart:core::@class::num::@method::+
   staticType: int
@@ -292,9 +292,9 @@ PostfixExpression
     element: <null>
     staticType: null
   operator: ++
-  readElement2: <testLibrary>::@class::A::@method::[]
+  readElement: <testLibrary>::@class::A::@method::[]
   readType: int
-  writeElement2: <testLibrary>::@class::A::@method::[]=
+  writeElement: <testLibrary>::@class::A::@method::[]=
   writeType: num
   element: dart:core::@class::num::@method::+
   staticType: int
@@ -308,7 +308,7 @@ void f() {
   (0)++;
 }
 ''',
-      [error(ParserErrorCode.ILLEGAL_ASSIGNMENT_TO_NON_ASSIGNABLE, 16, 2)],
+      [error(ParserErrorCode.illegalAssignmentToNonAssignable, 16, 2)],
     );
 
     var node = findNode.postfix('(0)++');
@@ -322,9 +322,9 @@ PostfixExpression
     rightParenthesis: )
     staticType: int
   operator: ++
-  readElement2: <null>
+  readElement: <null>
   readType: InvalidType
-  writeElement2: <null>
+  writeElement: <null>
   writeType: InvalidType
   element: <null>
   staticType: InvalidType
@@ -338,7 +338,7 @@ void f() {
   int++;
 }
 ''',
-      [error(CompileTimeErrorCode.ASSIGNMENT_TO_TYPE, 13, 3)],
+      [error(CompileTimeErrorCode.assignmentToType, 13, 3)],
     );
 
     var node = findNode.postfix('int++');
@@ -349,9 +349,9 @@ PostfixExpression
     element: <null>
     staticType: null
   operator: ++
-  readElement2: dart:core::@class::int
+  readElement: dart:core::@class::int
   readType: InvalidType
-  writeElement2: dart:core::@class::int
+  writeElement: dart:core::@class::int
   writeType: InvalidType
   element: <null>
   staticType: InvalidType
@@ -365,7 +365,7 @@ void f<T>() {
   T++;
 }
 ''',
-      [error(CompileTimeErrorCode.ASSIGNMENT_TO_TYPE, 16, 1)],
+      [error(CompileTimeErrorCode.assignmentToType, 16, 1)],
     );
 
     var node = findNode.postfix('T++');
@@ -376,9 +376,9 @@ PostfixExpression
     element: <null>
     staticType: null
   operator: ++
-  readElement2: #E0 T
+  readElement: #E0 T
   readType: InvalidType
-  writeElement2: #E0 T
+  writeElement: #E0 T
   writeType: InvalidType
   element: <null>
   staticType: InvalidType
@@ -413,9 +413,9 @@ PostfixExpression
     element: <null>
     staticType: null
   operator: ++
-  readElement2: <testLibrary>::@extensionType::A::@getter::foo
+  readElement: <testLibrary>::@extensionType::A::@getter::foo
   readType: int
-  writeElement2: <testLibrary>::@extensionType::A::@setter::foo
+  writeElement: <testLibrary>::@extensionType::A::@setter::foo
   writeType: int
   element: dart:core::@class::num::@method::+
   staticType: int
@@ -449,9 +449,9 @@ PostfixExpression
     element: <null>
     staticType: null
   operator: ++
-  readElement2: <testLibrary>::@class::A::@getter::x
+  readElement: <testLibrary>::@class::A::@getter::x
   readType: int
-  writeElement2: <testLibrary>::@class::A::@setter::x
+  writeElement: <testLibrary>::@class::A::@setter::x
   writeType: int
   element: dart:core::@class::num::@method::+
   staticType: int
@@ -486,9 +486,9 @@ PostfixExpression
     element: <null>
     staticType: null
   operator: ++
-  readElement2: package:test/a.dart::@getter::x
+  readElement: package:test/a.dart::@getter::x
   readType: int
-  writeElement2: package:test/a.dart::@setter::x
+  writeElement: package:test/a.dart::@setter::x
   writeType: int
   element: dart:core::@class::num::@method::+
   staticType: int
@@ -514,7 +514,7 @@ PostfixExpression
       constructorName: ConstructorName
         type: NamedType
           name: A
-          element2: <testLibrary>::@class::A
+          element: <testLibrary>::@class::A
           type: A
         element: <testLibrary>::@class::A::@constructor::new
       argumentList: ArgumentList
@@ -528,9 +528,9 @@ PostfixExpression
       staticType: null
     staticType: null
   operator: ++
-  readElement2: <testLibrary>::@class::A::@getter::x
+  readElement: <testLibrary>::@class::A::@getter::x
   readType: int
-  writeElement2: <testLibrary>::@class::A::@setter::x
+  writeElement: <testLibrary>::@class::A::@setter::x
   writeType: int
   element: dart:core::@class::num::@method::+
   staticType: int
@@ -562,9 +562,9 @@ PostfixExpression
       staticType: null
     staticType: null
   operator: ++
-  readElement2: <testLibrary>::@class::A::@getter::foo
+  readElement: <testLibrary>::@class::A::@getter::foo
   readType: int
-  writeElement2: <testLibrary>::@class::A::@setter::foo
+  writeElement: <testLibrary>::@class::A::@setter::foo
   writeType: int
   element: dart:core::@class::num::@method::+
   staticType: int?
@@ -602,9 +602,9 @@ PostfixExpression
       staticType: null
     staticType: null
   operator: ++
-  readElement2: <testLibrary>::@class::A::@getter::x
+  readElement: <testLibrary>::@class::A::@getter::x
   readType: int
-  writeElement2: <testLibrary>::@class::A::@setter::x
+  writeElement: <testLibrary>::@class::A::@setter::x
   writeType: num
   element: dart:core::@class::num::@method::+
   staticType: int
@@ -637,9 +637,9 @@ PostfixExpression
       staticType: null
     staticType: null
   operator: ++
-  readElement2: <testLibrary>::@class::A::@getter::x
+  readElement: <testLibrary>::@class::A::@getter::x
   readType: int
-  writeElement2: <testLibrary>::@class::A::@setter::x
+  writeElement: <testLibrary>::@class::A::@setter::x
   writeType: num
   element: dart:core::@class::num::@method::+
   staticType: int
@@ -667,9 +667,9 @@ PostfixExpression
     element: <testLibrary>::@function::f::@formalParameter::x
     staticType: null
   operator: ++
-  readElement2: <testLibrary>::@function::f::@formalParameter::x
+  readElement: <testLibrary>::@function::f::@formalParameter::x
   readType: A
-  writeElement2: <testLibrary>::@function::f::@formalParameter::x
+  writeElement: <testLibrary>::@function::f::@formalParameter::x
   writeType: Object
   element: <testLibrary>::@class::A::@method::+
   staticType: A
@@ -693,9 +693,9 @@ PostfixExpression
     element: <testLibrary>::@function::f::@formalParameter::x
     staticType: null
   operator: ++
-  readElement2: <testLibrary>::@function::f::@formalParameter::x
+  readElement: <testLibrary>::@function::f::@formalParameter::x
   readType: double
-  writeElement2: <testLibrary>::@function::f::@formalParameter::x
+  writeElement: <testLibrary>::@function::f::@formalParameter::x
   writeType: double
   element: dart:core::@class::double::@method::+
   staticType: double
@@ -717,9 +717,9 @@ PostfixExpression
     element: <testLibrary>::@function::f::@formalParameter::x
     staticType: null
   operator: ++
-  readElement2: <testLibrary>::@function::f::@formalParameter::x
+  readElement: <testLibrary>::@function::f::@formalParameter::x
   readType: int
-  writeElement2: <testLibrary>::@function::f::@formalParameter::x
+  writeElement: <testLibrary>::@function::f::@formalParameter::x
   writeType: int
   element: dart:core::@class::num::@method::+
   staticType: int
@@ -741,9 +741,9 @@ PostfixExpression
     element: <testLibrary>::@function::f::@formalParameter::x
     staticType: null
   operator: ++
-  readElement2: <testLibrary>::@function::f::@formalParameter::x
+  readElement: <testLibrary>::@function::f::@formalParameter::x
   readType: num
-  writeElement2: <testLibrary>::@function::f::@formalParameter::x
+  writeElement: <testLibrary>::@function::f::@formalParameter::x
   writeType: num
   element: dart:core::@class::num::@method::+
   staticType: num
@@ -772,9 +772,9 @@ PostfixExpression
     element: <null>
     staticType: null
   operator: ++
-  readElement2: <testLibrary>::@class::B::@getter::x
+  readElement: <testLibrary>::@class::B::@getter::x
   readType: int
-  writeElement2: <testLibrary>::@class::A::@setter::x
+  writeElement: <testLibrary>::@class::A::@setter::x
   writeType: num
   element: dart:core::@class::num::@method::+
   staticType: int
@@ -800,9 +800,9 @@ PostfixExpression
     element: <null>
     staticType: null
   operator: ++
-  readElement2: <testLibrary>::@getter::x
+  readElement: <testLibrary>::@getter::x
   readType: int
-  writeElement2: <testLibrary>::@setter::x
+  writeElement: <testLibrary>::@setter::x
   writeType: num
   element: dart:core::@class::num::@method::+
   staticType: int
@@ -830,9 +830,9 @@ PostfixExpression
     element: <null>
     staticType: null
   operator: ++
-  readElement2: <testLibrary>::@getter::x
+  readElement: <testLibrary>::@getter::x
   readType: int
-  writeElement2: <testLibrary>::@setter::x
+  writeElement: <testLibrary>::@setter::x
   writeType: num
   element: dart:core::@class::num::@method::+
   staticType: int
@@ -848,7 +848,7 @@ class A {
   }
 }
 ''',
-      [error(ParserErrorCode.ILLEGAL_ASSIGNMENT_TO_NON_ASSIGNABLE, 32, 2)],
+      [error(ParserErrorCode.illegalAssignmentToNonAssignable, 32, 2)],
     );
 
     var node = findNode.singlePostfixExpression;
@@ -858,9 +858,9 @@ PostfixExpression
     superKeyword: super
     staticType: A
   operator: ++
-  readElement2: <null>
+  readElement: <null>
   readType: InvalidType
-  writeElement2: <null>
+  writeElement: <null>
   writeType: InvalidType
   element: <null>
   staticType: InvalidType
@@ -876,7 +876,7 @@ void f(Object? x) {
   }++);
 }
 ''',
-      [error(ParserErrorCode.ILLEGAL_ASSIGNMENT_TO_NON_ASSIGNABLE, 51, 2)],
+      [error(ParserErrorCode.illegalAssignmentToNonAssignable, 51, 2)],
     );
 
     var node = findNode.postfix('++');
@@ -904,9 +904,9 @@ PostfixExpression
     rightBracket: }
     staticType: int
   operator: ++
-  readElement2: <null>
+  readElement: <null>
   readType: InvalidType
-  writeElement2: <null>
+  writeElement: <null>
   writeType: InvalidType
   element: <null>
   staticType: InvalidType
@@ -920,7 +920,7 @@ void f() {
   x++;
 }
 ''',
-      [error(CompileTimeErrorCode.UNDEFINED_IDENTIFIER, 13, 1)],
+      [error(CompileTimeErrorCode.undefinedIdentifier, 13, 1)],
     );
 
     var node = findNode.singlePostfixExpression;
@@ -931,9 +931,9 @@ PostfixExpression
     element: <null>
     staticType: null
   operator: ++
-  readElement2: <null>
+  readElement: <null>
   readType: InvalidType
-  writeElement2: <null>
+  writeElement: <null>
   writeType: InvalidType
   element: <null>
   staticType: InvalidType
@@ -1043,7 +1043,7 @@ void f(Null x) {
   x!;
 }
 ''',
-      [error(WarningCode.NULL_CHECK_ALWAYS_FAILS, 19, 2)],
+      [error(WarningCode.nullCheckAlwaysFails, 19, 2)],
     );
 
     assertType(findNode.postfix('x!'), 'Never');
@@ -1124,8 +1124,8 @@ void test9(Foo? foo, int? a) => foo?[a]!.baz;
 void test10(Foo? foo, int? a, int b) => foo?[a]![b];
 ''',
       [
-        error(StaticWarningCode.UNNECESSARY_NON_NULL_ASSERTION, 107, 1),
-        error(StaticWarningCode.UNNECESSARY_NON_NULL_ASSERTION, 173, 1),
+        error(StaticWarningCode.unnecessaryNonNullAssertion, 107, 1),
+        error(StaticWarningCode.unnecessaryNonNullAssertion, 173, 1),
       ],
     );
 
@@ -1185,7 +1185,7 @@ class B extends A {
   }
 }
 ''',
-      [error(ParserErrorCode.MISSING_ASSIGNABLE_SELECTOR, 70, 6)],
+      [error(ParserErrorCode.missingAssignableSelector, 70, 6)],
     );
 
     var node = findNode.methodInvocation('foo();');

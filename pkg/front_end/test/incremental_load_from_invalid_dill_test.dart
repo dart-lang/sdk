@@ -5,8 +5,9 @@
 import 'dart:io' show File;
 
 import 'package:_fe_analyzer_shared/src/messages/diagnostic_message.dart'
-    show DiagnosticMessage, getMessageCodeObject;
-import 'package:_fe_analyzer_shared/src/messages/severity.dart' show Severity;
+    show CfeDiagnosticMessage, getMessageCodeObject;
+import 'package:_fe_analyzer_shared/src/messages/severity.dart'
+    show CfeSeverity;
 import 'package:expect/expect.dart' show Expect;
 import 'package:front_end/src/api_prototype/compiler_options.dart'
     show CompilerOptions;
@@ -50,21 +51,25 @@ class Tester {
   late Uri entryPointImportDartFoo;
   late Uri platformUri;
   late List<int> sdkSummaryData;
-  late List<DiagnosticMessage> errorMessages;
-  late List<DiagnosticMessage> warningMessages;
+  late List<CfeDiagnosticMessage> errorMessages;
+  late List<CfeDiagnosticMessage> warningMessages;
   late MemoryFileSystem fs;
   late CompilerOptions options;
   late IncrementalCompiler compiler;
 
   Future<void> compileExpectInitializeFailAndSpecificWarning(
-      Code expectedWarningCode, bool writeFileOnCrashReport) async {
+    Code expectedWarningCode,
+    bool writeFileOnCrashReport,
+  ) async {
     errorMessages.clear();
     warningMessages.clear();
     options.writeFileOnCrashReport = writeFileOnCrashReport;
     compiler = new DeleteTempFilesIncrementalCompiler(
-        new CompilerContext(
-            new ProcessedOptions(options: options, inputs: [entryPoint])),
-        initializeFrom);
+      new CompilerContext(
+        new ProcessedOptions(options: options, inputs: [entryPoint]),
+      ),
+      initializeFrom,
+    );
     await compiler.computeDelta();
     if (compiler.initializedFromDillForTesting) {
       Expect.fail("Expected to not be able to initialized from dill, but did.");
@@ -73,30 +78,40 @@ class Tester {
       Expect.fail("Got unexpected errors: " + joinMessages(errorMessages));
     }
     if (warningMessages.length != 1) {
-      Expect.fail("Got unexpected errors: Expected one, got this: " +
-          joinMessages(warningMessages));
+      Expect.fail(
+        "Got unexpected errors: Expected one, got this: " +
+            joinMessages(warningMessages),
+      );
     }
     if (getMessageCodeObject(warningMessages[0]) != expectedWarningCode) {
-      Expect.fail("Expected ${expectedWarningCode.name} but got " +
-          joinMessages(warningMessages));
+      Expect.fail(
+        "Expected ${expectedWarningCode.name} but got " +
+            joinMessages(warningMessages),
+      );
     }
   }
 
   Future<Component> compileExpectOk(
-      bool initializedFromDill, Uri compileThis) async {
+    bool initializedFromDill,
+    Uri compileThis,
+  ) async {
     errorMessages.clear();
     warningMessages.clear();
     options.writeFileOnCrashReport = false;
     compiler = new DeleteTempFilesIncrementalCompiler(
-        new CompilerContext(
-            new ProcessedOptions(options: options, inputs: [compileThis])),
-        initializeFrom);
+      new CompilerContext(
+        new ProcessedOptions(options: options, inputs: [compileThis]),
+      ),
+      initializeFrom,
+    );
     IncrementalCompilerResult compilerResult = await compiler.computeDelta();
     Component component = compilerResult.component;
 
     if (compiler.initializedFromDillForTesting != initializedFromDill) {
-      Expect.fail("Expected initializedFromDill to be $initializedFromDill "
-          "but was ${compiler.initializedFromDillForTesting}");
+      Expect.fail(
+        "Expected initializedFromDill to be $initializedFromDill "
+        "but was ${compiler.initializedFromDillForTesting}",
+      );
     }
     if (errorMessages.isNotEmpty) {
       Expect.fail("Got unexpected errors: " + joinMessages(errorMessages));
@@ -119,8 +134,8 @@ class Tester {
     entryPointImportDartFoo = base.resolve("small_foo.dart");
     platformUri = sdkRoot.resolve("vm_platform.dill");
     sdkSummaryData = await new File.fromUri(platformUri).readAsBytes();
-    errorMessages = <DiagnosticMessage>[];
-    warningMessages = <DiagnosticMessage>[];
+    errorMessages = <CfeDiagnosticMessage>[];
+    warningMessages = <CfeDiagnosticMessage>[];
     fs = new MemoryFileSystem(base);
     options = getOptions();
 
@@ -128,10 +143,10 @@ class Tester {
     options.sdkRoot = null;
     options.sdkSummary = sdkSummary;
     options.omitPlatform = true;
-    options.onDiagnostic = (DiagnosticMessage message) {
-      if (message.severity == Severity.error) {
+    options.onDiagnostic = (CfeDiagnosticMessage message) {
+      if (message.severity == CfeSeverity.error) {
         errorMessages.add(message);
-      } else if (message.severity == Severity.warning) {
+      } else if (message.severity == CfeSeverity.warning) {
         warningMessages.add(message);
       }
     };
@@ -163,12 +178,14 @@ main() {
 
   Future<Null> test() async {
     compiler = new IncrementalCompiler(
-        new CompilerContext(
-            new ProcessedOptions(options: options, inputs: [entryPoint])),
-        initializeFrom);
+      new CompilerContext(
+        new ProcessedOptions(options: options, inputs: [entryPoint]),
+      ),
+      initializeFrom,
+    );
 
-    IncrementalCompilerResult compilerGoodResult =
-        await compiler.computeDelta();
+    IncrementalCompilerResult compilerGoodResult = await compiler
+        .computeDelta();
     Component componentGood = compilerGoodResult.component;
     List<int> dataGood = serializeComponent(componentGood);
     fs.entityForUri(initializeFrom).writeAsBytesSync(dataGood);
@@ -176,14 +193,17 @@ main() {
     // Create fake "dart:foo" library.
     options.omitPlatform = false;
     compiler = new IncrementalCompiler(
-        new CompilerContext(
-            new ProcessedOptions(options: options, inputs: [helper2File])),
-        initializeFrom);
-    IncrementalCompilerResult compilerHelperResult =
-        await compiler.computeDelta();
+      new CompilerContext(
+        new ProcessedOptions(options: options, inputs: [helper2File]),
+      ),
+      initializeFrom,
+    );
+    IncrementalCompilerResult compilerHelperResult = await compiler
+        .computeDelta();
     Component componentHelper = compilerHelperResult.component;
-    Library helper2Lib = componentHelper.libraries
-        .firstWhere((lib) => lib.importUri == helper2File);
+    Library helper2Lib = componentHelper.libraries.firstWhere(
+      (lib) => lib.importUri == helper2File,
+    );
     helper2Lib.importUri = new Uri(scheme: "dart", path: "foo");
     List<int> sdkWithDartFoo = serializeComponent(componentHelper);
     options.omitPlatform = true;
@@ -194,8 +214,10 @@ main() {
     Component component = await compileExpectOk(true, entryPointImportDartFoo);
     fs.entityForUri(sdkSummary).writeAsBytesSync(orgSdkBytes);
     if (component.libraries.length != 1) {
-      Expect.fail("Expected 1 library, got ${component.libraries.length}: "
-          "${component.libraries}");
+      Expect.fail(
+        "Expected 1 library, got ${component.libraries.length}: "
+        "${component.libraries}",
+      );
     }
     List<int> dataLinkedToSdkWithFoo = serializeComponent(component);
 
@@ -207,25 +229,35 @@ main() {
     IncrementalCompilerResult compilerResult = await compiler.computeDelta();
     component = compilerResult.component;
     if (component.libraries.length != 1) {
-      Expect.fail("Expected 1 library, got ${component.libraries.length}: "
-          "${component.libraries}");
+      Expect.fail(
+        "Expected 1 library, got ${component.libraries.length}: "
+        "${component.libraries}",
+      );
     }
     List<int> data = serializeComponent(component);
     fs.entityForUri(initializeFrom).writeAsBytesSync(data);
 
     // Initializing from partial dill should not be ok.
     await compileExpectInitializeFailAndSpecificWarning(
-        codeInitializeFromDillNotSelfContained, true);
+      codeInitializeFromDillNotSelfContained,
+      true,
+    );
     await compileExpectInitializeFailAndSpecificWarning(
-        codeInitializeFromDillNotSelfContainedNoDump, false);
+      codeInitializeFromDillNotSelfContainedNoDump,
+      false,
+    );
 
     // Create a invalid dill file to load from: Should not be ok.
     data = new List<int>.filled(42, 42);
     fs.entityForUri(initializeFrom).writeAsBytesSync(data);
     await compileExpectInitializeFailAndSpecificWarning(
-        codeInitializeFromDillUnknownProblem, true);
+      codeInitializeFromDillUnknownProblem,
+      true,
+    );
     await compileExpectInitializeFailAndSpecificWarning(
-        codeInitializeFromDillUnknownProblemNoDump, false);
+      codeInitializeFromDillUnknownProblemNoDump,
+      false,
+    );
 
     // Create a dill with a reference to a non-existing sdk thing:
     // Should be ok (for now), but we shouldn't actually initialize from dill.
@@ -235,9 +267,10 @@ main() {
 }
 
 class DeleteTempFilesIncrementalCompiler extends IncrementalCompiler {
-  DeleteTempFilesIncrementalCompiler(CompilerContext context,
-      [Uri? initializeFromDillUri])
-      : super(context, initializeFromDillUri);
+  DeleteTempFilesIncrementalCompiler(
+    CompilerContext context, [
+    Uri? initializeFromDillUri,
+  ]) : super(context, initializeFromDillUri);
 
   @override
   final RecorderForTesting recorderForTesting =
@@ -254,6 +287,6 @@ class DeleteTempFilesRecorderForTesting extends RecorderForTesting {
   }
 }
 
-String joinMessages(List<DiagnosticMessage> messages) {
+String joinMessages(List<CfeDiagnosticMessage> messages) {
   return messages.map((m) => m.plainTextFormatted.join("\n")).join("\n");
 }

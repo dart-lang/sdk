@@ -27,7 +27,7 @@ final class C extends Struct {
   external Pointer notEmpty;
 }
 ''',
-      [error(FfiCode.INVALID_FIELD_TYPE_IN_STRUCT, 61, 6)],
+      [error(FfiCode.invalidFieldTypeInStruct, 61, 6)],
     );
   }
 
@@ -43,7 +43,7 @@ final class C extends Union {
   external Pointer notEmpty;
 }
 ''',
-      [error(FfiCode.INVALID_FIELD_TYPE_IN_STRUCT, 60, 6)],
+      [error(FfiCode.invalidFieldTypeInStruct, 60, 6)],
     );
   }
 
@@ -55,7 +55,7 @@ final class C extends Struct {
   external Pointer? p;
 }
 ''',
-      [error(FfiCode.INVALID_FIELD_TYPE_IN_STRUCT, 61, 8)],
+      [error(FfiCode.invalidFieldTypeInStruct, 61, 8)],
     );
   }
 

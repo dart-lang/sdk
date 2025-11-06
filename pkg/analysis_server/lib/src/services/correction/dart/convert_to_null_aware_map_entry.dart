@@ -17,7 +17,7 @@ class ConvertToNullAwareMapEntryKey extends ResolvedCorrectionProducer {
       CorrectionApplicability.singleLocation;
 
   @override
-  FixKind get fixKind => DartFixKind.CONVERT_TO_NULL_AWARE_MAP_ENTRY_KEY;
+  FixKind get fixKind => DartFixKind.convertToNullAwareMapEntryKey;
 
   @override
   Future<void> compute(ChangeBuilder builder) async {
@@ -41,7 +41,7 @@ class ConvertToNullAwareMapEntryValue extends ResolvedCorrectionProducer {
       CorrectionApplicability.singleLocation;
 
   @override
-  FixKind get fixKind => DartFixKind.CONVERT_TO_NULL_AWARE_MAP_ENTRY_VALUE;
+  FixKind get fixKind => DartFixKind.convertToNullAwareMapEntryValue;
 
   @override
   Future<void> compute(ChangeBuilder builder) async {

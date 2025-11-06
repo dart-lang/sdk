@@ -41,6 +41,7 @@ class IncrementalJavaScriptBundler {
     this.useDebuggerModuleNames = false,
     this.emitDebugMetadata = false,
     this.emitDebugSymbols = false,
+    this.useStronglyConnectedComponents = true,
     this.canaryFeatures = false,
     String? moduleFormat,
     this.extraDdcOptions = const [],
@@ -49,6 +50,7 @@ class IncrementalJavaScriptBundler {
   final bool useDebuggerModuleNames;
   final bool emitDebugMetadata;
   final bool emitDebugSymbols;
+  final bool useStronglyConnectedComponents;
   final ModuleFormat _moduleFormat;
   final List<String> extraDdcOptions;
   final bool canaryFeatures;
@@ -71,18 +73,25 @@ class IncrementalJavaScriptBundler {
       Component fullComponent, Uri mainUri, PackageConfig packageConfig) async {
     _lastFullComponent = fullComponent;
     _currentComponent = fullComponent;
-    _strongComponents = new StrongComponents(
-      fullComponent,
-      _loadedLibraries,
-      mainUri,
-      _fileSystem,
-    );
     // Initialize fresh hot reload metadata for this compile and throw out all
     // information collected from any previous series of hot reloads compiles.
     _libraryMetadataRepository = new HotReloadLibraryMetadataRepository();
-    await _strongComponents.computeLibraryBundles();
-    _updateSummaries(
-        _strongComponents.libraryBundleImportToLibraries.keys, packageConfig);
+    Iterable<Uri> initialLibraryUris;
+    if (useStronglyConnectedComponents) {
+      _strongComponents = new StrongComponents(
+        fullComponent,
+        _loadedLibraries,
+        mainUri,
+        _fileSystem,
+      );
+      await _strongComponents.computeLibraryBundles();
+      initialLibraryUris =
+          _strongComponents.libraryBundleImportToLibraries.keys;
+    } else {
+      initialLibraryUris =
+          fullComponent.libraries.map((library) => library.importUri);
+    }
+    _updateSummaries(initialLibraryUris, packageConfig);
   }
 
   /// Update the incremental bundler from a partial component and the last full
@@ -108,23 +117,29 @@ class IncrementalJavaScriptBundler {
     }
     _currentComponent = partialComponent;
     _updateFullComponent(lastFullComponent, partialComponent);
-    _strongComponents = new StrongComponents(
-      _lastFullComponent,
-      _loadedLibraries,
-      mainUri,
-      _fileSystem,
-    );
+    Iterable<Uri> invalidatedLibraryUris;
 
-    await _strongComponents.computeLibraryBundles(<Uri, Library>{
-      for (Library library in partialComponent.libraries)
-        library.importUri: library,
-    });
-    Set<Uri> invalidated = <Uri>{
-      for (Library library in partialComponent.libraries)
-        _strongComponents
-            .libraryImportToLibraryBundleImport[library.importUri]!,
-    };
-    _updateSummaries(invalidated, packageConfig);
+    if (useStronglyConnectedComponents) {
+      _strongComponents = new StrongComponents(
+        _lastFullComponent,
+        _loadedLibraries,
+        mainUri,
+        _fileSystem,
+      );
+      await _strongComponents.computeLibraryBundles(<Uri, Library>{
+        for (Library library in partialComponent.libraries)
+          library.importUri: library,
+      });
+      invalidatedLibraryUris = <Uri>{
+        for (Library library in partialComponent.libraries)
+          _strongComponents
+              .libraryImportToLibraryBundleImport[library.importUri]!,
+      };
+    } else {
+      invalidatedLibraryUris =
+          partialComponent.libraries.map((library) => library.importUri);
+    }
+    _updateSummaries(invalidatedLibraryUris, packageConfig);
   }
 
   void _updateFullComponent(Component lastKnownGood, Component candidate) {
@@ -151,9 +166,14 @@ class IncrementalJavaScriptBundler {
   /// Update the summaries using the [libraryBundleImports].
   void _updateSummaries(
       Iterable<Uri> libraryBundleImports, PackageConfig packageConfig) {
+    final Map<Uri, Library> libraryUriToLibrary = {
+      for (Library library in _lastFullComponent.libraries)
+        library.importUri: library,
+    };
     for (Uri uri in libraryBundleImports) {
-      final List<Library> libraries =
-          _strongComponents.libraryBundleImportToLibraries[uri]!.toList();
+      final List<Library> libraries = useStronglyConnectedComponents
+          ? _strongComponents.libraryBundleImportToLibraries[uri]!.toList()
+          : [libraryUriToLibrary[uri]!];
       final Component summaryComponent = new Component(
         libraries: libraries,
         nameRoot: _lastFullComponent.root,
@@ -226,18 +246,22 @@ class IncrementalJavaScriptBundler {
           library.importUri.isScheme('dart')) {
         continue;
       }
-      final Uri libraryBundleImport = _strongComponents
-          .libraryImportToLibraryBundleImport[library.importUri]!;
-      if (visited.containsKey(libraryBundleImport)) {
+
+      final Uri libraryOrLibraryBundleImportUri = useStronglyConnectedComponents
+          ? _strongComponents
+              .libraryImportToLibraryBundleImport[library.importUri]!
+          : library.importUri;
+      if (visited.containsKey(libraryOrLibraryBundleImportUri)) {
         kernel2JsCompilers[library.importUri.toString()] =
-            visited[libraryBundleImport]!;
+            visited[libraryOrLibraryBundleImportUri]!;
         continue;
       }
 
-      final Component summaryComponent = _uriToComponent[libraryBundleImport]!;
+      final Component summaryComponent =
+          _uriToComponent[libraryOrLibraryBundleImportUri]!;
 
       final String componentUrl =
-          urlForComponentUri(libraryBundleImport, packageConfig);
+          urlForComponentUri(libraryOrLibraryBundleImportUri, packageConfig);
       // Library bundle name to use in trackLibraries. Use the full path for
       // tracking if library bundle uri is not a package uri.
       final String libraryBundleName = makeLibraryBundleName(componentUrl);
@@ -301,15 +325,15 @@ class IncrementalJavaScriptBundler {
 
       // Save program compiler to reuse for expression evaluation.
       kernel2JsCompilers[library.importUri.toString()] = compiler;
-      visited[libraryBundleImport] = compiler;
+      visited[libraryOrLibraryBundleImportUri] = compiler;
 
       String? sourceMapBase;
-      if (libraryBundleImport.isScheme('package')) {
+      if (libraryOrLibraryBundleImportUri.isScheme('package')) {
         // Source locations come through as absolute file uris. In order to
         // make relative paths in the source map we get the absolute uri for
         // the library bundle and make them relative to that.
-        sourceMapBase =
-            p.dirname((packageConfig.resolve(libraryBundleImport))!.path);
+        sourceMapBase = p.dirname(
+            (packageConfig.resolve(libraryOrLibraryBundleImportUri))!.path);
       }
 
       final JSCode code = jsProgramToCode(
@@ -344,7 +368,7 @@ class IncrementalJavaScriptBundler {
         symbolsSink!.add(symbolsBytes!);
       }
       final String libraryBundleJSPath =
-          _summaryToLibraryBundleJSPath[libraryBundleImport]!;
+          _summaryToLibraryBundleJSPath[libraryOrLibraryBundleImportUri]!;
       manifest[libraryBundleJSPath] = {
         'code': <int>[codeOffset, codeOffset += codeBytes.length],
         'sourcemap': <int>[

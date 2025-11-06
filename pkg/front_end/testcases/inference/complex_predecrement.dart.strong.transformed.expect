@@ -9,6 +9,6 @@ static method main() → dynamic {
 
 
 Extra constant evaluation status:
-Evaluated: VariableGet @ org-dartlang-testcase:///complex_predecrement.dart:10:75 -> IntConstant(0)
-Evaluated: VariableGet @ org-dartlang-testcase:///complex_predecrement.dart:10:75 -> IntConstant(0)
+Evaluated: VariableGet @ org-dartlang-testcase:///complex_predecrement.dart:9:15 -> IntConstant(0)
+Evaluated: VariableGet @ org-dartlang-testcase:///complex_predecrement.dart:9:15 -> IntConstant(0)
 Extra constant evaluation: evaluated: 16, effectively constant: 2

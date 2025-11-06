@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:_fe_analyzer_shared/src/messages/codes.dart'
-    show Message, LocatedMessage, messageWasmImportOrExportInUserCode;
+    show Message, LocatedMessage;
 import 'package:_js_interop_checks/js_interop_checks.dart';
 import 'package:_js_interop_checks/src/js_interop.dart' as jsInteropHelper;
 import 'package:_js_interop_checks/src/transformations/shared_interop_transformer.dart';
@@ -11,6 +11,8 @@ import 'package:front_end/src/api_prototype/const_conditional_simplifier.dart'
     show ConstConditionalSimplifier;
 import 'package:front_end/src/api_prototype/constant_evaluator.dart'
     as constantEvaluator show ConstantEvaluator;
+import 'package:front_end/src/codes/cfe_codes.dart'
+    show codeWasmImportOrExportInUserCode;
 import 'package:kernel/ast.dart';
 import 'package:kernel/class_hierarchy.dart';
 import 'package:kernel/clone.dart';
@@ -41,7 +43,7 @@ enum Mode {
 }
 
 class Dart2WasmConstantsBackend extends ConstantsBackend {
-  const Dart2WasmConstantsBackend();
+  const Dart2WasmConstantsBackend() : super(keepLocals: false);
 
   @override
   bool get supportsUnevaluatedConstants => true;
@@ -340,24 +342,34 @@ class WasmTarget extends Target {
       logger?.call("Skipped ffi transformation");
     } else {
       wasmFfiNativeAddressTrans.transformLibraries(
-          component,
-          coreTypes,
-          hierarchy,
-          transitiveImportingDartFfi,
-          diagnosticReporter,
-          referenceFromIndex);
+        component,
+        coreTypes,
+        hierarchy,
+        transitiveImportingDartFfi,
+        diagnosticReporter,
+        referenceFromIndex,
+      );
       wasmFfiNativeTrans.transformLibraries(component, coreTypes, hierarchy,
           transitiveImportingDartFfi, diagnosticReporter, referenceFromIndex);
       transformFfiDefinitions.transformLibraries(
-          component,
-          coreTypes,
-          hierarchy,
-          transitiveImportingDartFfi,
-          diagnosticReporter,
-          referenceFromIndex,
-          changedStructureNotifier);
-      transformFfiUseSites.transformLibraries(component, coreTypes, hierarchy,
-          transitiveImportingDartFfi, diagnosticReporter, referenceFromIndex);
+        component,
+        coreTypes,
+        hierarchy,
+        transitiveImportingDartFfi,
+        diagnosticReporter,
+        referenceFromIndex,
+        changedStructureNotifier,
+      );
+      transformFfiUseSites.transformLibraries(
+        this,
+        component,
+        coreTypes,
+        hierarchy,
+        transitiveImportingDartFfi,
+        diagnosticReporter,
+        referenceFromIndex,
+        environmentDefines,
+      );
       logger?.call("Transformed ffi annotations");
     }
 
@@ -599,7 +611,7 @@ void _checkWasmImportExportPragmas(List<Library> libraries, CoreTypes coreTypes,
             if (pragmaName.value == 'wasm:import' ||
                 pragmaName.value == 'wasm:export') {
               diagnosticReporter.report(
-                messageWasmImportOrExportInUserCode,
+                codeWasmImportOrExportInUserCode,
                 annotation.fileOffset,
                 0,
                 library.fileUri,

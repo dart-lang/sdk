@@ -199,11 +199,7 @@ class FeatureComputer {
     } else if (element is FieldElement && element.isEnumConstant) {
       return protocol.ElementKind.ENUM_CONSTANT;
     } else if (element is PropertyAccessorElement) {
-      var variable = element.variable;
-      if (variable == null) {
-        return protocol.ElementKind.UNKNOWN;
-      }
-      element = variable;
+      element = element.variable;
     }
     var kind = element.kind;
     if (kind == ElementKind.CONSTRUCTOR) {
@@ -255,11 +251,7 @@ class FeatureComputer {
     } else if (element is FieldElement && element.isEnumConstant) {
       return protocol.ElementKind.ENUM_CONSTANT;
     } else if (element is PropertyAccessorElement) {
-      var variable = element.variable;
-      if (variable == null) {
-        return protocol.ElementKind.UNKNOWN;
-      }
-      element = variable;
+      element = element.variable;
     }
     var kind = element.kind;
     if (kind == ElementKind.CONSTRUCTOR) {
@@ -392,7 +384,7 @@ class FeatureComputer {
       return 1.0;
     } else if (element is PropertyAccessorElement && element.isSynthetic) {
       var variable = element.variable;
-      if (variable != null && variable.isStatic && variable.isConst) {
+      if (variable.isStatic && variable.isConst) {
         return 1.0;
       }
     }
@@ -455,10 +447,9 @@ class FeatureComputer {
   double superMatchesFeature(
     String? containingMethodName,
     String proposedMemberName,
-  ) =>
-      containingMethodName == null
-          ? 0.0
-          : (proposedMemberName == containingMethodName ? 1.0 : 0.0);
+  ) => containingMethodName == null
+      ? 0.0
+      : (proposedMemberName == containingMethodName ? 1.0 : 0.0);
 
   /// Return the inheritance distance between the [subclass] and the
   /// [superclass]. The set of [visited] elements is used to guard against
@@ -698,6 +689,23 @@ class _ContextTypeVisitor extends SimpleAstVisitor<DartType> {
   }
 
   @override
+  DartType? visitDotShorthandConstructorInvocation(
+    DotShorthandConstructorInvocation node,
+  ) {
+    return _visitParent(node);
+  }
+
+  @override
+  DartType? visitDotShorthandInvocation(DotShorthandInvocation node) {
+    return _visitParent(node);
+  }
+
+  @override
+  DartType? visitDotShorthandPropertyAccess(DotShorthandPropertyAccess node) {
+    return _visitParent(node);
+  }
+
+  @override
   DartType? visitExpressionFunctionBody(ExpressionFunctionBody node) {
     if (range.endEnd(node.functionDefinition, node).contains(offset)) {
       var parent = node.parent;
@@ -842,6 +850,11 @@ class _ContextTypeVisitor extends SimpleAstVisitor<DartType> {
       return formalParameters?.firstOrNull?.type;
     }
     return null;
+  }
+
+  @override
+  DartType? visitInstanceCreationExpression(InstanceCreationExpression node) {
+    return _visitParent(node);
   }
 
   @override
@@ -1253,7 +1266,7 @@ parent3: ${node.parent?.parent?.parent}
     if (pattern is AssignedVariablePattern) {
       element = pattern.element;
     } else if (pattern is DeclaredVariablePattern) {
-      element = pattern.declaredElement;
+      element = pattern.declaredFragment?.element;
       // } else if (pattern is RecordPattern) {
       //   pattern.fields.map((e) => _requiredTypeOfPattern(e.pattern)).toList();
     } else if (pattern is ListPattern) {
@@ -1367,6 +1380,16 @@ extension on ArgumentList {
       var type = parent.staticInvokeType;
       if (type is FunctionType) {
         return type;
+      }
+    } else if (parent is DotShorthandInvocation) {
+      var type = parent.staticInvokeType;
+      if (type is FunctionType) {
+        return type;
+      }
+    } else if (parent is DotShorthandConstructorInvocation) {
+      if (parent.constructorName.element
+          case ConstructorElement constructorElement) {
+        return constructorElement.type;
       }
     }
     return null;

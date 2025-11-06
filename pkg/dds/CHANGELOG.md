@@ -1,3 +1,9 @@
+# 5.1.0
+- Update to version 2.1 of the DDS protocol.
+- Deprecate `getAvailableCachedCpuSamples` and `getCachedCpuSamples` RPCs.
+- Deprecate the `cachedUserTags` parameter of `DartDevelopmentService.startDartDevelopmentService`.
+- Deprecate the `DartDevelopmentService.cachedUserTags` getter.
+
 # 5.0.5
 - [DAP] The change in DDS 5.0.4 to individually add/remove breakpoints has been reverted and may be restored in a future version.
 

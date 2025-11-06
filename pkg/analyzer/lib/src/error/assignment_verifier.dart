@@ -25,8 +25,8 @@ class AssignmentVerifier {
   /// a good error about this.
   ///
   /// When the [receiverType] is not `null`, we report
-  /// [CompileTimeErrorCode.UNDEFINED_SETTER] instead of a more generic
-  /// [CompileTimeErrorCode.UNDEFINED_IDENTIFIER].
+  /// [CompileTimeErrorCode.undefinedSetter] instead of a more generic
+  /// [CompileTimeErrorCode.undefinedIdentifier].
   void verify({
     required SimpleIdentifier node,
     required Element? requested,
@@ -38,7 +38,7 @@ class AssignmentVerifier {
         if (requested.isConst) {
           _diagnosticReporter.atNode(
             node,
-            CompileTimeErrorCode.ASSIGNMENT_TO_CONST,
+            CompileTimeErrorCode.assignmentToConst,
           );
         }
       }
@@ -49,32 +49,25 @@ class AssignmentVerifier {
         recovery is InterfaceElement ||
         recovery is TypeAliasElement ||
         recovery is TypeParameterElement) {
-      _diagnosticReporter.atNode(node, CompileTimeErrorCode.ASSIGNMENT_TO_TYPE);
+      _diagnosticReporter.atNode(node, CompileTimeErrorCode.assignmentToType);
     } else if (recovery is LocalFunctionElement ||
         recovery is TopLevelFunctionElement) {
       _diagnosticReporter.atNode(
         node,
-        CompileTimeErrorCode.ASSIGNMENT_TO_FUNCTION,
+        CompileTimeErrorCode.assignmentToFunction,
       );
     } else if (recovery is MethodElement) {
-      _diagnosticReporter.atNode(
-        node,
-        CompileTimeErrorCode.ASSIGNMENT_TO_METHOD,
-      );
+      _diagnosticReporter.atNode(node, CompileTimeErrorCode.assignmentToMethod);
     } else if (recovery is PrefixElement) {
       if (recovery.name case var prefixName?) {
         _diagnosticReporter.atNode(
           node,
-          CompileTimeErrorCode.PREFIX_IDENTIFIER_NOT_FOLLOWED_BY_DOT,
+          CompileTimeErrorCode.prefixIdentifierNotFollowedByDot,
           arguments: [prefixName],
         );
       }
     } else if (recovery is GetterElement) {
       var variable = recovery.variable;
-      if (variable == null) {
-        return;
-      }
-
       var variableName = variable.name;
       if (variableName == null) {
         return;
@@ -83,18 +76,18 @@ class AssignmentVerifier {
       if (variable.isConst) {
         _diagnosticReporter.atNode(
           node,
-          CompileTimeErrorCode.ASSIGNMENT_TO_CONST,
+          CompileTimeErrorCode.assignmentToConst,
         );
       } else if (variable is FieldElement && variable.isSynthetic) {
         _diagnosticReporter.atNode(
           node,
-          CompileTimeErrorCode.ASSIGNMENT_TO_FINAL_NO_SETTER,
+          CompileTimeErrorCode.assignmentToFinalNoSetter,
           arguments: [variableName, variable.enclosingElement.displayName],
         );
       } else {
         _diagnosticReporter.atNode(
           node,
-          CompileTimeErrorCode.ASSIGNMENT_TO_FINAL,
+          CompileTimeErrorCode.assignmentToFinal,
           arguments: [variableName],
         );
       }
@@ -107,13 +100,13 @@ class AssignmentVerifier {
       if (receiverType != null) {
         _diagnosticReporter.atNode(
           node,
-          CompileTimeErrorCode.UNDEFINED_SETTER,
+          CompileTimeErrorCode.undefinedSetter,
           arguments: [node.name, receiverType],
         );
       } else {
         _diagnosticReporter.atNode(
           node,
-          CompileTimeErrorCode.UNDEFINED_IDENTIFIER,
+          CompileTimeErrorCode.undefinedIdentifier,
           arguments: [node.name],
         );
       }

@@ -43,32 +43,36 @@ class OccurrencesMixinTest extends AbstractPluginTest {
 
   Future<void> test_sendOccurrencesNotification() async {
     await plugin.handleAnalysisSetContextRoots(
-        AnalysisSetContextRootsParams([contextRoot1]));
+      AnalysisSetContextRootsParams([contextRoot1]),
+    );
 
     var notificationReceived = Completer<void>();
-    channel.listen(null, onNotification: (Notification notification) {
-      expect(notification, isNotNull);
-      var params = AnalysisOccurrencesParams.fromNotification(notification);
-      expect(params.file, filePath1);
-      var occurrenceList = params.occurrences;
-      expect(occurrenceList, hasLength(3));
+    channel.listen(
+      null,
+      onNotification: (Notification notification) {
+        expect(notification, isNotNull);
+        var params = AnalysisOccurrencesParams.fromNotification(notification);
+        expect(params.file, filePath1);
+        var occurrenceList = params.occurrences;
+        expect(occurrenceList, hasLength(3));
 
-      void validate(String elementName, List<int> expectedOffsets) {
-        for (var occurrences in occurrenceList) {
-          if (occurrences.element.name == elementName) {
-            expect(occurrences.offsets, expectedOffsets);
-            expect(occurrences.length, elementName.length);
-            return;
+        void validate(String elementName, List<int> expectedOffsets) {
+          for (var occurrences in occurrenceList) {
+            if (occurrences.element.name == elementName) {
+              expect(occurrences.offsets, expectedOffsets);
+              expect(occurrences.length, elementName.length);
+              return;
+            }
           }
+          fail('No occurrence named $elementName');
         }
-        fail('No occurrence named $elementName');
-      }
 
-      validate('method', [10, 30]);
-      validate('C', [20, 40, 50, 60, 70]);
-      validate('local', [80]);
-      notificationReceived.complete();
-    });
+        validate('method', [10, 30]);
+        validate('C', [20, 40, 50, 60, 70]);
+        validate('local', [80]);
+        notificationReceived.complete();
+      },
+    );
     await plugin.sendOccurrencesNotification(filePath1);
     await notificationReceived.future;
   }
@@ -81,7 +85,9 @@ class _TestOccurrencesContributor implements OccurrencesContributor {
 
   @override
   void computeOccurrences(
-      OccurrencesRequest request, OccurrencesCollector collector) {
+    OccurrencesRequest request,
+    OccurrencesCollector collector,
+  ) {
     elements.forEach((element, offsets) {
       for (var offset in offsets) {
         collector.addOccurrence(element, offset);
@@ -101,12 +107,12 @@ class _TestServerPlugin extends MockServerPlugin with OccurrencesMixin {
     return <OccurrencesContributor>[
       _TestOccurrencesContributor({
         element1: [10, 30],
-        element2: [20, 40, 60]
+        element2: [20, 40, 60],
       }),
       _TestOccurrencesContributor({
         element2: [50, 70],
-        element3: [80]
-      })
+        element3: [80],
+      }),
     ];
   }
 

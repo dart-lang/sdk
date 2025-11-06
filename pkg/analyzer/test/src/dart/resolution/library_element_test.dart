@@ -123,12 +123,11 @@ class LibraryElementTest_featureSet extends PubPackageResolutionTest {
   }
 
   void _assertFeatureSet(List<Feature> expected) {
-    var featureSet = result.libraryElement2.featureSet;
+    var featureSet = result.libraryElement.featureSet;
 
-    var actual =
-        ExperimentStatus.knownFeatures.values
-            .where(featureSet.isEnabled)
-            .toSet();
+    var actual = ExperimentStatus.knownFeatures.values
+        .where(featureSet.isEnabled)
+        .toSet();
 
     expect(actual, unorderedEquals(expected));
   }
@@ -137,7 +136,7 @@ class LibraryElementTest_featureSet extends PubPackageResolutionTest {
     required Version package,
     required Version? override,
   }) {
-    var element = result.libraryElement2;
+    var element = result.libraryElement;
     expect(element.languageVersion.package, package);
     expect(element.languageVersion.override, override);
   }
@@ -150,7 +149,7 @@ class LibraryElementTest_toString extends PubPackageResolutionTest {
 library my.name;
 ''');
 
-    expect(result.libraryElement2.toString(), 'library package:test/test.dart');
+    expect(result.libraryElement.toString(), 'library package:test/test.dart');
   }
 
   test_hasLibraryDirective_noName() async {
@@ -158,7 +157,7 @@ library my.name;
 library;
 ''');
 
-    expect(result.libraryElement2.toString(), 'library package:test/test.dart');
+    expect(result.libraryElement.toString(), 'library package:test/test.dart');
   }
 
   test_noLibraryDirective() async {
@@ -166,6 +165,6 @@ library;
 class A {}
 ''');
 
-    expect(result.libraryElement2.toString(), 'library package:test/test.dart');
+    expect(result.libraryElement.toString(), 'library package:test/test.dart');
   }
 }

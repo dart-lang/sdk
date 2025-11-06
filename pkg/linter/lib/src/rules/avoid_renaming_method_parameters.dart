@@ -5,6 +5,7 @@
 import 'dart:math' as math;
 
 import 'package:analyzer/analysis_rule/rule_context.dart';
+import 'package:analyzer/analysis_rule/rule_visitor_registry.dart';
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
@@ -25,10 +26,13 @@ class AvoidRenamingMethodParameters extends LintRule {
 
   @override
   DiagnosticCode get diagnosticCode =>
-      LinterLintCode.avoid_renaming_method_parameters;
+      LinterLintCode.avoidRenamingMethodParameters;
 
   @override
-  void registerNodeProcessors(NodeLintRegistry registry, RuleContext context) {
+  void registerNodeProcessors(
+    RuleVisitorRegistry registry,
+    RuleContext context,
+  ) {
     if (!context.isInLibDir) return;
 
     var visitor = _Visitor(this, context);
@@ -81,8 +85,9 @@ class _Visitor extends SimpleAstVisitor<void> {
     } else {
       if (!node.isAugmentation) return;
 
-      parentParameters =
-          previousFragment.formalParameters.map((p) => p.element).positional;
+      parentParameters = previousFragment.formalParameters
+          .map((p) => p.element)
+          .positional;
     }
 
     var parameters = nodeParams.parameters.where((p) => !p.isNamed).toList();

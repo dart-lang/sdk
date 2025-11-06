@@ -111,6 +111,9 @@ abstract class ByteDataBase extends WasmTypedDataBase implements ByteData {
   }
 
   @override
+  int get elementSizeInBytes => 1;
+
+  @override
   int getInt8(int byteOffset) {
     _offsetRangeCheck(byteOffset, 1);
     return _getUint8Unchecked(byteOffset).toSigned(8);
@@ -510,9 +513,6 @@ class I8ByteData extends ByteDataBase {
   _I8ByteBuffer get buffer => _I8ByteBuffer(_data);
 
   @override
-  int get elementSizeInBytes => Int8List.bytesPerElement;
-
-  @override
   int _getUint8Unchecked(int byteOffset) {
     return _data.readUnsigned(offsetInBytes + byteOffset);
   }
@@ -529,6 +529,8 @@ extension WasmI8ByteDataExt on I8ByteData {
 }
 
 class _I16ByteData extends ByteDataBase {
+  static const int bytesPerElement = 2;
+
   final WasmArray<WasmI16> _data;
 
   _I16ByteData._(this._data, int offsetInBytes, int lengthInBytes)
@@ -552,19 +554,16 @@ class _I16ByteData extends ByteDataBase {
   _I16ByteBuffer get buffer => _I16ByteBuffer(_data);
 
   @override
-  int get elementSizeInBytes => Int16List.bytesPerElement;
-
-  @override
   int _getUint8Unchecked(int byteOffset) {
     byteOffset += offsetInBytes;
-    final byteIndex = byteOffset ~/ elementSizeInBytes;
+    final byteIndex = byteOffset ~/ bytesPerElement;
     return (_data.readUnsigned(byteIndex) >> (8 * (byteOffset & 1))) & 0xFF;
   }
 
   @override
   void _setUint8Unchecked(int byteOffset, int value) {
     byteOffset += offsetInBytes;
-    final byteIndex = byteOffset ~/ elementSizeInBytes;
+    final byteIndex = byteOffset ~/ bytesPerElement;
     final element = _data.readUnsigned(byteIndex);
     final byteElementIndex = byteOffset & 1;
     final b1 = byteElementIndex == 0 ? value : (element & 0xFF);
@@ -577,7 +576,7 @@ class _I16ByteData extends ByteDataBase {
   int _getUint16Unchecked(int byteOffset, [Endian endian = Endian.big]) {
     final totalOffset = offsetInBytes + byteOffset;
     if (totalOffset & 1 == 0 && endian == Endian.little) {
-      return _data.readUnsigned(totalOffset ~/ elementSizeInBytes);
+      return _data.readUnsigned(totalOffset ~/ bytesPerElement);
     } else {
       return super._getUint16Unchecked(byteOffset, endian);
     }
@@ -591,7 +590,7 @@ class _I16ByteData extends ByteDataBase {
   ]) {
     final totalOffset = offsetInBytes + byteOffset;
     if (totalOffset & 1 == 0 && endian == Endian.little) {
-      _data.write(totalOffset ~/ elementSizeInBytes, value);
+      _data.write(totalOffset ~/ bytesPerElement, value);
     } else {
       super._setUint16Unchecked(byteOffset, value, endian);
     }
@@ -599,6 +598,8 @@ class _I16ByteData extends ByteDataBase {
 }
 
 class _I32ByteData extends ByteDataBase {
+  static const int bytesPerElement = 4;
+
   final WasmArray<WasmI32> _data;
 
   _I32ByteData._(this._data, int offsetInBytes, int lengthInBytes)
@@ -622,19 +623,16 @@ class _I32ByteData extends ByteDataBase {
   _I32ByteBuffer get buffer => _I32ByteBuffer(_data);
 
   @override
-  int get elementSizeInBytes => Int32List.bytesPerElement;
-
-  @override
   int _getUint8Unchecked(int byteOffset) {
     byteOffset += offsetInBytes;
-    final byteIndex = byteOffset ~/ elementSizeInBytes;
+    final byteIndex = byteOffset ~/ bytesPerElement;
     return (_data.readUnsigned(byteIndex) >> (8 * (byteOffset & 3))) & 0xFF;
   }
 
   @override
   void _setUint8Unchecked(int byteOffset, int value) {
     byteOffset += offsetInBytes;
-    final byteIndex = byteOffset ~/ elementSizeInBytes;
+    final byteIndex = byteOffset ~/ bytesPerElement;
     final element = _data.readUnsigned(byteIndex);
     final byteElementIndex = byteOffset & 3;
     final b1 = byteElementIndex == 0 ? value : (element & 0xFF);
@@ -649,7 +647,7 @@ class _I32ByteData extends ByteDataBase {
   int _getInt32Unchecked(int byteOffset, [Endian endian = Endian.big]) {
     final totalOffset = offsetInBytes + byteOffset;
     if (totalOffset & 3 == 0 && endian == Endian.little) {
-      return _data.readSigned(totalOffset ~/ elementSizeInBytes);
+      return _data.readSigned(totalOffset ~/ bytesPerElement);
     } else {
       return super._getInt32Unchecked(byteOffset, endian);
     }
@@ -659,7 +657,7 @@ class _I32ByteData extends ByteDataBase {
   int _getUint32Unchecked(int byteOffset, [Endian endian = Endian.big]) {
     final totalOffset = offsetInBytes + byteOffset;
     if (totalOffset & 3 == 0 && endian == Endian.little) {
-      return _data.readUnsigned(totalOffset ~/ elementSizeInBytes);
+      return _data.readUnsigned(totalOffset ~/ bytesPerElement);
     } else {
       return super._getUint32Unchecked(byteOffset, endian);
     }
@@ -673,7 +671,7 @@ class _I32ByteData extends ByteDataBase {
   ]) {
     final totalOffset = offsetInBytes + byteOffset;
     if (totalOffset & 3 == 0 && endian == Endian.little) {
-      _data.write(totalOffset ~/ elementSizeInBytes, value.toUnsigned(32));
+      _data.write(totalOffset ~/ bytesPerElement, value.toUnsigned(32));
     } else {
       super._setInt32Unchecked(byteOffset, value, endian);
     }
@@ -687,7 +685,7 @@ class _I32ByteData extends ByteDataBase {
   ]) {
     final totalOffset = offsetInBytes + byteOffset;
     if (totalOffset & 3 == 0 && endian == Endian.little) {
-      _data.write(totalOffset ~/ elementSizeInBytes, value);
+      _data.write(totalOffset ~/ bytesPerElement, value);
     } else {
       super._setUint32Unchecked(byteOffset, value, endian);
     }
@@ -695,6 +693,8 @@ class _I32ByteData extends ByteDataBase {
 }
 
 class _I64ByteData extends ByteDataBase {
+  static const int bytesPerElement = 8;
+
   final WasmArray<WasmI64> _data;
 
   _I64ByteData._(this._data, int offsetInBytes, int lengthInBytes)
@@ -718,19 +718,16 @@ class _I64ByteData extends ByteDataBase {
   _I64ByteBuffer get buffer => _I64ByteBuffer(_data);
 
   @override
-  int get elementSizeInBytes => Int64List.bytesPerElement;
-
-  @override
   int _getUint8Unchecked(int byteOffset) {
     byteOffset += offsetInBytes;
-    final byteIndex = byteOffset ~/ elementSizeInBytes;
+    final byteIndex = byteOffset ~/ bytesPerElement;
     return (_data.read(byteIndex) >> (8 * (byteOffset & 7))) & 0xFF;
   }
 
   @override
   void _setUint8Unchecked(int byteOffset, int value) {
     byteOffset += offsetInBytes;
-    final byteIndex = byteOffset ~/ elementSizeInBytes;
+    final byteIndex = byteOffset ~/ bytesPerElement;
     final element = _data.read(byteIndex);
     final byteElementIndex = byteOffset & 7;
     final b1 = byteElementIndex == 0 ? value : (element & 0xFF);
@@ -757,7 +754,7 @@ class _I64ByteData extends ByteDataBase {
   int _getInt64Unchecked(int byteOffset, [Endian endian = Endian.big]) {
     final totalOffset = offsetInBytes + byteOffset;
     if (totalOffset & 7 == 0 && endian == Endian.little) {
-      return _data.read(totalOffset ~/ elementSizeInBytes);
+      return _data.read(totalOffset ~/ bytesPerElement);
     } else {
       return super._getInt64Unchecked(byteOffset, endian);
     }
@@ -767,7 +764,7 @@ class _I64ByteData extends ByteDataBase {
   int _getUint64Unchecked(int byteOffset, [Endian endian = Endian.big]) {
     final totalOffset = offsetInBytes + byteOffset;
     if (totalOffset & 7 == 0 && endian == Endian.little) {
-      return _data.read(totalOffset ~/ elementSizeInBytes);
+      return _data.read(totalOffset ~/ bytesPerElement);
     } else {
       return super._getUint64Unchecked(byteOffset, endian);
     }
@@ -781,7 +778,7 @@ class _I64ByteData extends ByteDataBase {
   ]) {
     final totalOffset = offsetInBytes + byteOffset;
     if (totalOffset & 7 == 0 && endian == Endian.little) {
-      _data.write(totalOffset ~/ elementSizeInBytes, value);
+      _data.write(totalOffset ~/ bytesPerElement, value);
     } else {
       super._setInt64Unchecked(byteOffset, value, endian);
     }
@@ -795,7 +792,7 @@ class _I64ByteData extends ByteDataBase {
   ]) {
     final totalOffset = offsetInBytes + byteOffset;
     if (totalOffset & 7 == 0 && endian == Endian.little) {
-      _data.write(totalOffset ~/ elementSizeInBytes, value);
+      _data.write(totalOffset ~/ bytesPerElement, value);
     } else {
       super._setUint64Unchecked(byteOffset, value, endian);
     }
@@ -803,6 +800,8 @@ class _I64ByteData extends ByteDataBase {
 }
 
 class _F32ByteData extends ByteDataBase {
+  static const int bytesPerElement = 4;
+
   final WasmArray<WasmF32> _data;
 
   _F32ByteData._(this._data, int offsetInBytes, int lengthInBytes)
@@ -826,12 +825,9 @@ class _F32ByteData extends ByteDataBase {
   _F32ByteBuffer get buffer => _F32ByteBuffer(_data);
 
   @override
-  int get elementSizeInBytes => Float32List.bytesPerElement;
-
-  @override
   int _getUint8Unchecked(int byteOffset) {
     byteOffset += offsetInBytes;
-    final byteIndex = byteOffset ~/ elementSizeInBytes;
+    final byteIndex = byteOffset ~/ bytesPerElement;
     final word = floatToIntBits(_data.read(byteIndex));
     return (word >> (8 * (byteOffset & 3))) & 0xFF;
   }
@@ -839,7 +835,7 @@ class _F32ByteData extends ByteDataBase {
   @override
   void _setUint8Unchecked(int byteOffset, int value) {
     byteOffset += offsetInBytes;
-    final byteIndex = byteOffset ~/ elementSizeInBytes;
+    final byteIndex = byteOffset ~/ bytesPerElement;
     final element = floatToIntBits(_data.read(byteIndex));
     final byteElementIndex = byteOffset & 3;
     final b1 = byteElementIndex == 0 ? value : (element & 0xFF);
@@ -854,7 +850,7 @@ class _F32ByteData extends ByteDataBase {
   double _getFloat32Unchecked(int byteOffset, [Endian endian = Endian.big]) {
     final totalOffset = offsetInBytes + byteOffset;
     if (totalOffset & 3 == 0 && endian == Endian.little) {
-      return _data.read(totalOffset ~/ elementSizeInBytes);
+      return _data.read(totalOffset ~/ bytesPerElement);
     } else {
       return super._getFloat32Unchecked(byteOffset, endian);
     }
@@ -868,7 +864,7 @@ class _F32ByteData extends ByteDataBase {
   ]) {
     final totalOffset = offsetInBytes + byteOffset;
     if (totalOffset & 3 == 0 && endian == Endian.little) {
-      _data.write(totalOffset ~/ elementSizeInBytes, value);
+      _data.write(totalOffset ~/ bytesPerElement, value);
     } else {
       super._setFloat32Unchecked(byteOffset, value, endian);
     }
@@ -876,6 +872,8 @@ class _F32ByteData extends ByteDataBase {
 }
 
 class _F64ByteData extends ByteDataBase {
+  static const int bytesPerElement = 8;
+
   final WasmArray<WasmF64> _data;
 
   _F64ByteData._(this._data, int offsetInBytes, int lengthInBytes)
@@ -899,12 +897,9 @@ class _F64ByteData extends ByteDataBase {
   _F64ByteBuffer get buffer => _F64ByteBuffer(_data);
 
   @override
-  int get elementSizeInBytes => Float64List.bytesPerElement;
-
-  @override
   int _getUint8Unchecked(int byteOffset) {
     byteOffset += offsetInBytes;
-    final byteIndex = byteOffset ~/ elementSizeInBytes;
+    final byteIndex = byteOffset ~/ bytesPerElement;
     final word = doubleToIntBits(_data.read(byteIndex));
     return (word >> (8 * (byteOffset & 7))) & 0xFF;
   }
@@ -912,7 +907,7 @@ class _F64ByteData extends ByteDataBase {
   @override
   void _setUint8Unchecked(int byteOffset, int value) {
     byteOffset += offsetInBytes;
-    final byteIndex = byteOffset ~/ elementSizeInBytes;
+    final byteIndex = byteOffset ~/ bytesPerElement;
     final element = doubleToIntBits(_data.read(byteIndex));
     final byteElementIndex = byteOffset & 7;
     final b1 = byteElementIndex == 0 ? value : (element & 0xFF);
@@ -939,7 +934,7 @@ class _F64ByteData extends ByteDataBase {
   double _getFloat64Unchecked(int byteOffset, [Endian endian = Endian.big]) {
     final totalOffset = offsetInBytes + byteOffset;
     if (totalOffset & 7 == 0 && endian == Endian.little) {
-      return _data.read(totalOffset ~/ elementSizeInBytes);
+      return _data.read(totalOffset ~/ bytesPerElement);
     } else {
       return super._getFloat64Unchecked(byteOffset, endian);
     }
@@ -953,7 +948,7 @@ class _F64ByteData extends ByteDataBase {
   ]) {
     final totalOffset = offsetInBytes + byteOffset;
     if (totalOffset & 7 == 0 && endian == Endian.little) {
-      _data.write(totalOffset ~/ elementSizeInBytes, value);
+      _data.write(totalOffset ~/ bytesPerElement, value);
     } else {
       super._setFloat64Unchecked(byteOffset, value, endian);
     }

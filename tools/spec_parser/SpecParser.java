@@ -14,6 +14,7 @@ class ParsingResult {
 }
 
 class DartErrorListener implements ANTLRErrorListener {
+  @Override
   public void reportAmbiguity(
       Parser recognizer,
       DFA dfa,
@@ -23,6 +24,7 @@ class DartErrorListener implements ANTLRErrorListener {
       BitSet ambigAlts,
       ATNConfigSet configs) {}
 
+  @Override
   public void reportAttemptingFullContext(
       Parser recognizer,
       DFA dfa,
@@ -31,6 +33,7 @@ class DartErrorListener implements ANTLRErrorListener {
       BitSet conflictingAlts,
       ATNConfigSet configs) {}
 
+  @Override
   public void reportContextSensitivity(
       Parser recognizer,
       DFA dfa,
@@ -39,14 +42,19 @@ class DartErrorListener implements ANTLRErrorListener {
       int prediction,
       ATNConfigSet configs) {}
 
-  public void syntaxError(
-      Recognizer<?,?> recognizer,
-      Object offendingSymbol,
-      int line,
-      int charPositionInLine,
-      String msg,
-      RecognitionException e) {
-    if (!DartParser.errorHasOccurred) DartParser.prepareForErrors();
+  @Override
+  public void syntaxError(Recognizer<?, ?> recognizer,
+                          Object offendingSymbol,
+                          int line,
+                          int charPositionInLine,
+                          String msg,
+                          RecognitionException e) {
+    DartParser.errorHasOccurred = true;
+    if (!DartParser.errorHeaderHasBeenPrinted) {
+        System.err.println("Syntax error in " + DartParser.filePath + ":");
+        DartParser.errorHeaderHasBeenPrinted = true;
+    }
+    System.err.println("line " + line + ":" + charPositionInLine + " " + msg);
   }
 }
 
@@ -122,7 +130,7 @@ public class SpecParser {
           continue;
       }
       if (verbose) System.err.println("Parsing file: " + filePath);
-      DartLexer lexer = new DartLexer(new ANTLRFileStream(filePath));
+      DartLexer lexer = new DartLexer(CharStreams.fromFileName(filePath));
       DartParser parser = new DartParser(new CommonTokenStream(lexer));
       ANTLRErrorListener errorListener = new DartErrorListener();
       lexer.addErrorListener(errorListener);

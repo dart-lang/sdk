@@ -21,7 +21,7 @@ static method main() → void {
   function #foo#initializer() → self::Foo
     return :foo:finalizableValue = new self::Foo::•();
   [@vm.inferred-type.metadata=#lib::Foo] late final self::Foo foo = [@vm.inferred-type.metadata=#lib::Foo (receiver not int)] #foo#initializer(){() → self::Foo};
-  [@vm.direct-call.metadata=closure 2 in #lib::main] [@vm.inferred-type.metadata=!? (receiver not int)]([@vm.closure-id=2]() → Null {
+  [@vm.direct-call.metadata=closure 2 in #lib::main] [@vm.inferred-type.metadata=? (receiver not int)]([@vm.closure-id=2]() → Null {
     core::print(foo);
     _in::reachabilityFence(:foo:finalizableValue);
   })(){() → Null};

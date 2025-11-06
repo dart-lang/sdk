@@ -294,7 +294,7 @@ class _InlineValueVisitor extends GeneralizingAstVisitor<void> {
   void visitDeclaredIdentifier(DeclaredIdentifier node) {
     var name = node.name;
     collector.recordVariableLookup(
-      node.declaredElement,
+      node.declaredFragment?.element,
       name.offset,
       name.length,
     );
@@ -305,7 +305,7 @@ class _InlineValueVisitor extends GeneralizingAstVisitor<void> {
   void visitDeclaredVariablePattern(DeclaredVariablePattern node) {
     var name = node.name;
     collector.recordVariableLookup(
-      node.declaredElement,
+      node.declaredFragment?.element,
       name.offset,
       name.length,
     );
@@ -333,6 +333,12 @@ class _InlineValueVisitor extends GeneralizingAstVisitor<void> {
     }
 
     super.visitFunctionExpression(node);
+  }
+
+  @override
+  void visitGenericFunctionType(GenericFunctionType node) {
+    // Don't descent into function types or we may generate values
+    // for their parameters.
   }
 
   @override
@@ -417,7 +423,7 @@ class _InlineValueVisitor extends GeneralizingAstVisitor<void> {
   void visitVariableDeclaration(VariableDeclaration node) {
     var name = node.name;
     collector.recordVariableLookup(
-      node.declaredElement,
+      node.declaredFragment?.element,
       name.offset,
       name.length,
     );

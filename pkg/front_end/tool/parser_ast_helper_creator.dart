@@ -10,13 +10,15 @@ import 'package:_fe_analyzer_shared/src/scanner/token.dart';
 import 'package:_fe_analyzer_shared/src/scanner/utf8_bytes_scanner.dart';
 import 'package:dart_style/dart_style.dart' show DartFormatter;
 
-import '../test/utils/io_utils.dart' show computeRepoDirUri;
+import '../test/utils/io_utils.dart'
+    show computeRepoDirUri, getPackageVersionFor;
 
 void main(List<String> args) {
   final Uri repoDir = computeRepoDirUri();
   String generated = generateAstHelper(repoDir);
-  new File.fromUri(computeAstHelperUri(repoDir))
-      .writeAsStringSync(generated, flush: true);
+  new File.fromUri(
+    computeAstHelperUri(repoDir),
+  ).writeAsStringSync(generated, flush: true);
 }
 
 Uri computeAstHelperUri(Uri repoDir) {
@@ -26,10 +28,13 @@ Uri computeAstHelperUri(Uri repoDir) {
 String generateAstHelper(Uri repoDir) {
   StringBuffer out = new StringBuffer();
   File f = new File.fromUri(
-      repoDir.resolve("pkg/_fe_analyzer_shared/lib/src/parser/listener.dart"));
+    repoDir.resolve("pkg/_fe_analyzer_shared/lib/src/parser/listener.dart"),
+  );
   Uint8List rawBytes = f.readAsBytesSync();
-  Utf8BytesScanner scanner =
-      new Utf8BytesScanner(rawBytes, includeComments: true);
+  Utf8BytesScanner scanner = new Utf8BytesScanner(
+    rawBytes,
+    includeComments: true,
+  );
   Token firstToken = scanner.tokenize();
 
   out.write(r"""
@@ -142,16 +147,20 @@ abstract class AbstractParserAstListener implements Listener {
   }
   out.write(r"}");
 
-  out.write(r"class RecursiveParserAstVisitor "
-      "implements ParserAstVisitor<void> {");
+  out.write(
+    r"class RecursiveParserAstVisitor "
+    "implements ParserAstVisitor<void> {",
+  );
   for (String name in listener.visitNames) {
     out.write("  @override\n");
     out.write("  void $name => node.visitChildren(this);\n\n");
   }
   out.write(r"}");
 
-  out.write("class RecursiveParserAstVisitorWithDefaultNodeAsync "
-      "implements ParserAstVisitor<Future<void>> {");
+  out.write(
+    "class RecursiveParserAstVisitorWithDefaultNodeAsync "
+    "implements ParserAstVisitor<Future<void>> {",
+  );
   out.write("Future<void> defaultNode(ParserAstNode node) async {");
   out.write("  List<ParserAstNode>? children = node.children;");
   out.write("  if (children == null) return;");
@@ -167,8 +176,8 @@ abstract class AbstractParserAstListener implements Listener {
   out.write(r"}");
 
   return new DartFormatter(
-          languageVersion: DartFormatter.latestShortStyleLanguageVersion)
-      .format("$out");
+    languageVersion: getPackageVersionFor("front_end"),
+  ).format("$out");
 }
 
 class ParserCreatorListener extends Listener {
@@ -186,16 +195,17 @@ class ParserCreatorListener extends Listener {
 
   @override
   void beginClassDeclaration(
-      Token begin,
-      Token? abstractToken,
-      Token? macroToken,
-      Token? sealedToken,
-      Token? baseToken,
-      Token? interfaceToken,
-      Token? finalToken,
-      Token? augmentToken,
-      Token? mixinToken,
-      Token name) {
+    Token begin,
+    Token? abstractToken,
+    Token? macroToken,
+    Token? sealedToken,
+    Token? baseToken,
+    Token? interfaceToken,
+    Token? finalToken,
+    Token? augmentToken,
+    Token? mixinToken,
+    Token name,
+  ) {
     if (name.lexeme == "Listener") insideListenerClass = true;
   }
 
@@ -206,27 +216,37 @@ class ParserCreatorListener extends Listener {
 
   @override
   void beginMethod(
-      DeclarationKind declarationKind,
-      Token? augmentToken,
-      Token? externalToken,
-      Token? staticToken,
-      Token? covariantToken,
-      Token? varFinalOrConst,
-      Token? getOrSet,
-      Token name,
-      String? enclosingDeclarationName) {
+    DeclarationKind declarationKind,
+    Token? augmentToken,
+    Token? externalToken,
+    Token? staticToken,
+    Token? covariantToken,
+    Token? varFinalOrConst,
+    Token? getOrSet,
+    Token name,
+    String? enclosingDeclarationName,
+  ) {
     currentMethodName = name.lexeme;
   }
 
   @override
   void endFormalParameters(
-      int count, Token beginToken, Token endToken, MemberKind kind) {
+    int count,
+    Token beginToken,
+    Token endToken,
+    MemberKind kind,
+  ) {
     formalParametersEnd = endToken;
   }
 
   @override
-  void endClassMethod(Token? getOrSet, Token beginToken, Token beginParam,
-      Token? beginInitializers, Token endToken) {
+  void endClassMethod(
+    Token? getOrSet,
+    Token beginToken,
+    Token beginParam,
+    Token? beginInitializers,
+    Token endToken,
+  ) {
     void end() {
       parameters.clear();
       currentMethodName = null;
@@ -309,13 +329,17 @@ class ParserCreatorListener extends Listener {
         bool markBeginAndEndTokens = false;
         if (nonQuestionParametersSet.contains("Token beginToken") &&
             nonQuestionParametersSet.contains("Token endToken")) {
-          newClasses.write("class ${name}${typeStringCamel} "
-              "extends ParserAstNode "
-              "implements BeginAndEndTokenParserAstNode {\n");
+          newClasses.write(
+            "class ${name}${typeStringCamel} "
+            "extends ParserAstNode "
+            "implements BeginAndEndTokenParserAstNode {\n",
+          );
           markBeginAndEndTokens = true;
         } else {
-          newClasses.write("class ${name}${typeStringCamel} "
-              "extends ParserAstNode {\n");
+          newClasses.write(
+            "class ${name}${typeStringCamel} "
+            "extends ParserAstNode {\n",
+          );
         }
 
         for (int i = 0; i < parameters.length; i++) {
@@ -334,8 +358,10 @@ class ParserCreatorListener extends Listener {
           newClasses.write(';\n');
         }
         newClasses.write('\n');
-        newClasses.write("  ${name}${typeStringCamel}"
-            "(ParserAstType type");
+        newClasses.write(
+          "  ${name}${typeStringCamel}"
+          "(ParserAstType type",
+        );
         String separator = ", {";
         for (int i = 0; i < parameters.length; i++) {
           Parameter param = parameters[i];
@@ -393,18 +419,22 @@ class ParserCreatorListener extends Listener {
 
   @override
   void endFormalParameter(
-      Token? thisKeyword,
-      Token? superKeyword,
-      Token? periodAfterThisOrSuper,
-      Token nameToken,
-      Token? initializerStart,
-      Token? initializerEnd,
-      FormalParameterKind kind,
-      MemberKind memberKind) {
-    parameters.add(new Parameter(
+    Token? thisKeyword,
+    Token? superKeyword,
+    Token? periodAfterThisOrSuper,
+    Token nameToken,
+    Token? initializerStart,
+    Token? initializerEnd,
+    FormalParameterKind kind,
+    MemberKind memberKind,
+  ) {
+    parameters.add(
+      new Parameter(
         nameToken.lexeme,
         latestSeenParameterTypeToken ?? 'dynamic',
-        latestSeenParameterTypeTokenQuestion == null ? false : true));
+        latestSeenParameterTypeTokenQuestion == null ? false : true,
+      ),
+    );
   }
 }
 

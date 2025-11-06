@@ -42,8 +42,8 @@ abstract class DartSnippetProducerTest extends AbstractSingleUnitTest {
   /// is expected to be. The marked ranges in [expected] are where linked edit
   /// groups / placeholders appear.
   Future<Snippet> assertSnippetResult(String content, String expected) async {
-    var code = TestCode.parse(normalizeSource(content));
-    var expectedCode = TestCode.parse(normalizeSource(expected));
+    var code = TestCode.parseNormalized(content);
+    var expectedCode = TestCode.parseNormalized(expected);
     var snippet = await expectValidSnippet(code);
     expect(snippet.prefix, prefix);
     expect(snippet.label, label);
@@ -59,20 +59,20 @@ abstract class DartSnippetProducerTest extends AbstractSingleUnitTest {
     expect(selection.offset, expectedCode.position.offset);
 
     // Verify all linked edits/placeholders.
-    var expectedLinkedGroups =
-        expectedCode.ranges
-            .map(
-              (range) => {
-                'positions': [
-                  {'file': testFile.path, 'offset': range.sourceRange.offset},
-                ],
-                'length': range.sourceRange.length,
-                'suggestions': [],
-              },
-            )
-            .toSet();
-    var actualLinkedGroups =
-        snippet.change.linkedEditGroups.map((group) => group.toJson()).toSet();
+    var expectedLinkedGroups = expectedCode.ranges
+        .map(
+          (range) => {
+            'positions': [
+              {'file': testFile.path, 'offset': range.sourceRange.offset},
+            ],
+            'length': range.sourceRange.length,
+            'suggestions': [],
+          },
+        )
+        .toSet();
+    var actualLinkedGroups = snippet.change.linkedEditGroups
+        .map((group) => group.toJson())
+        .toSet();
     expect(actualLinkedGroups, equals(expectedLinkedGroups));
 
     return snippet;
@@ -112,8 +112,8 @@ abstract class FlutterSnippetProducerTest extends DartSnippetProducerTest {
     String expected,
     String linkedGroupText,
   ) async {
-    var code = TestCode.parse(normalizeSource(content));
-    var expectedCode = TestCode.parse(normalizeSource(expected));
+    var code = TestCode.parseNormalized(content);
+    var expectedCode = TestCode.parseNormalized(expected);
     var expectedSelection = expectedCode.range.sourceRange;
 
     var snippet = await expectValidSnippet(code);

@@ -10,7 +10,12 @@ import 'shared/shared.dart' show Child, Other;
 void main() async {
   final o1 = Other();
   Child();
-  Expect.equals('Instance of \'Other\'', o1.toString());
+
+  // Ensure that the overrides correctly call `super.toString()`, eventually
+  // ending at `Object.toString`. The class name may be minified, so we don't
+  // want to make it part of the expectation.
+  Expect.isTrue(o1.toString().startsWith('Instance of'));
+
   Expect.equals(3, await helper.load('entry1.dart'));
   helper.done();
 }

@@ -8,19 +8,22 @@ import 'package:kernel/type_algebra.dart';
 import 'package:kernel/type_environment.dart';
 
 import '../api_prototype/experimental_flags.dart';
+import '../base/compiler_context.dart';
 import '../base/constant_context.dart' show ConstantContext;
-import '../base/messages.dart' show Message;
-import '../base/scope.dart';
+import '../base/extension_scope.dart';
+import '../base/lookup_result.dart';
+import '../base/messages.dart' show Message, ProblemReporting;
 import '../builder/builder.dart';
 import '../builder/declaration_builders.dart';
 import '../builder/formal_parameter_builder.dart';
+import '../builder/library_builder.dart';
 import '../builder/named_type_builder.dart';
 import '../builder/prefix_builder.dart';
 import '../builder/type_builder.dart';
 import '../codes/cfe_codes.dart' show LocatedMessage;
 import '../source/source_library_builder.dart' show SourceLibraryBuilder;
-import '../type_inference/inference_helper.dart' show InferenceHelper;
 import 'constness.dart' show Constness;
+import 'expression_generator.dart';
 import 'forest.dart' show Forest;
 import 'internal_ast.dart';
 
@@ -36,7 +39,9 @@ typedef Expression_Generator_Initializer = dynamic;
 /// Alias for Expression | Initializer
 typedef Expression_Initializer = dynamic;
 
-abstract class ExpressionGeneratorHelper implements InferenceHelper {
+abstract class ExpressionGeneratorHelper {
+  Uri get uri;
+
   SourceLibraryBuilder get libraryBuilder;
 
   ConstantContext get constantContext;
@@ -49,9 +54,32 @@ abstract class ExpressionGeneratorHelper implements InferenceHelper {
 
   Forest get forest;
 
-  Constructor? lookupSuperConstructor(Name name);
+  ProblemReporting get problemReporting;
+
+  CompilerContext get compilerContext;
+
+  ExtensionScope get extensionScope;
+
+  InvalidExpression buildProblem({
+    required Message message,
+    required Uri fileUri,
+    required int fileOffset,
+    required int length,
+    List<LocatedMessage>? context,
+    bool errorHasBeenReported = false,
+    Expression? expression,
+  });
+
+  MemberLookupResult? lookupSuperConstructor(
+    String name,
+    LibraryBuilder accessingLibrary,
+  );
 
   Expression toValue(Object? node);
+
+  String superConstructorNameForDiagnostics(String name);
+
+  String constructorNameForDiagnostics(String name, {String? className});
 
   Member? lookupSuperMember(Name name, {bool isSetter});
 
@@ -59,108 +87,156 @@ abstract class ExpressionGeneratorHelper implements InferenceHelper {
 
   bool isDeclaredInEnclosingCase(VariableDeclaration variable);
 
-  Expression_Generator_Builder scopeLookup(LookupScope scope, Token nameToken,
-      {PrefixBuilder? prefix, Token? prefixToken});
+  Generator processLookupResult({
+    required LookupResult? lookupResult,
+    required String name,
+    required Token nameToken,
+    required int nameOffset,
+    PrefixBuilder? prefix,
+    Token? prefixToken,
+    required bool forStatementScope,
+  });
 
-  Expression_Generator_Initializer finishSend(Object receiver,
-      List<TypeBuilder>? typeArguments, ArgumentsImpl arguments, int offset,
-      {bool isTypeArgumentsInForest = false});
+  Expression_Generator_Initializer finishSend(
+    Object receiver,
+    List<TypeBuilder>? typeArguments,
+    ArgumentsImpl arguments,
+    int offset, {
+    bool isTypeArgumentsInForest = false,
+  });
 
-  Initializer buildInvalidInitializer(Expression expression,
-      [int offset = TreeNode.noOffset]);
+  Initializer buildInvalidInitializer(
+    Expression expression, [
+    int offset = TreeNode.noOffset,
+  ]);
 
-  List<Initializer> buildFieldInitializer(String name, int fieldNameOffset,
-      int assignmentOffset, Expression expression,
-      {FormalParameterBuilder? formal});
+  List<Initializer> createFieldInitializer(
+    String name,
+    int fieldNameOffset,
+    int assignmentOffset,
+    Expression expression, {
+    FormalParameterBuilder? formal,
+  });
 
   Initializer buildSuperInitializer(
-      bool isSynthetic, Constructor constructor, Arguments arguments,
-      [int offset = TreeNode.noOffset]);
+    bool isSynthetic,
+    Constructor constructor,
+    ArgumentsImpl arguments, [
+    int offset = TreeNode.noOffset,
+  ]);
 
-  Initializer buildRedirectingInitializer(Name name, Arguments arguments,
-      {required int fileOffset});
+  Initializer buildRedirectingInitializer(
+    Name name,
+    ArgumentsImpl arguments, {
+    required int fileOffset,
+  });
 
-  Expression buildStaticInvocation(Member target, Arguments arguments,
-      {Constness constness = Constness.implicit,
-      int charOffset = TreeNode.noOffset,
-      required bool isConstructorInvocation});
+  Expression buildStaticInvocation({
+    required Procedure target,
+    required ArgumentsImpl arguments,
+    required int fileOffset,
+  });
 
-  Expression buildExtensionMethodInvocation(
-      int fileOffset, Procedure target, Arguments arguments,
-      {required bool isTearOff});
+  Expression buildUnresolvedError(
+    String name,
+    int fileOffset, {
+    bool isSuper,
+    required UnresolvedKind kind,
+    int? length,
+    bool errorHasBeenReported,
+  });
 
-  Expression buildUnresolvedError(String name, int charOffset,
-      {Member candidate,
-      bool isSuper,
-      required UnresolvedKind kind,
-      bool isStatic,
-      Arguments? arguments,
-      Expression? rhs,
-      LocatedMessage message,
-      int? length});
-
-  LocatedMessage? checkArgumentsForFunction(FunctionNode function,
-      Arguments arguments, int offset, List<TypeParameter> typeParameters);
+  Expression buildProblemFromLocatedMessage(LocatedMessage message);
 
   Expression wrapInDeferredCheck(
-      Expression expression, PrefixBuilder prefix, int charOffset);
+    Expression expression,
+    PrefixBuilder prefix,
+    int charOffset,
+  );
 
   bool isIdentical(Member? member);
 
   Expression buildMethodInvocation(
-      Expression receiver, Name name, Arguments arguments, int offset,
-      {bool isConstantExpression = false, bool isNullAware = false});
+    Expression receiver,
+    Name name,
+    ArgumentsImpl arguments,
+    int offset, {
+    bool isConstantExpression = false,
+    bool isNullAware = false,
+  });
 
-  Expression buildSuperInvocation(Name name, Arguments arguments, int offset,
-      {bool isConstantExpression = false,
-      bool isNullAware = false,
-      bool isImplicitCall = false});
+  Expression buildSuperInvocation(
+    Name name,
+    ArgumentsImpl arguments,
+    int offset, {
+    bool isConstantExpression = false,
+    bool isNullAware = false,
+    bool isImplicitCall = false,
+  });
 
-  Expression buildConstructorInvocation(
-      TypeDeclarationBuilder type,
-      Token nameToken,
-      Token nameLastToken,
-      Arguments? arguments,
-      String name,
-      List<TypeBuilder>? typeArguments,
-      int charOffset,
-      Constness constness,
-      {bool isTypeArgumentsInForest = false,
-      TypeDeclarationBuilder? typeAliasBuilder,
-      required UnresolvedKind unresolvedKind});
+  Expression resolveAndBuildConstructorInvocation(
+    TypeDeclarationBuilder type,
+    Token nameToken,
+    Token nameLastToken,
+    ArgumentsImpl arguments,
+    String name,
+    List<TypeBuilder>? typeArguments,
+    int charOffset,
+    Constness constness, {
+    bool isTypeArgumentsInForest = false,
+    TypeDeclarationBuilder? typeAliasBuilder,
+    required UnresolvedKind unresolvedKind,
+  });
 
-  TypeBuilder validateTypeParameterUse(TypeBuilder typeBuilder,
-      {required bool allowPotentiallyConstantType});
+  TypeBuilder validateTypeParameterUse(
+    TypeBuilder typeBuilder, {
+    required bool allowPotentiallyConstantType,
+  });
 
   void addProblemErrorIfConst(Message message, int charOffset, int length);
 
   Expression buildProblemErrorIfConst(
-      Message message, int charOffset, int length);
-
-  Expression wrapInLocatedProblem(Expression expression, LocatedMessage message,
-      {List<LocatedMessage>? context});
+    Message message,
+    int charOffset,
+    int length,
+  );
 
   Expression evaluateArgumentsBefore(
-      Arguments arguments, Expression expression);
+    ArgumentsImpl arguments,
+    Expression expression,
+  );
 
-  DartType buildDartType(TypeBuilder typeBuilder, TypeUse typeUse,
-      {required bool allowPotentiallyConstantType});
+  DartType buildDartType(
+    TypeBuilder typeBuilder,
+    TypeUse typeUse, {
+    required bool allowPotentiallyConstantType,
+  });
 
   List<DartType> buildDartTypeArguments(
-      List<TypeBuilder>? typeArguments, TypeUse typeUse,
-      {required bool allowPotentiallyConstantType});
+    List<TypeBuilder>? typeArguments,
+    TypeUse typeUse, {
+    required bool allowPotentiallyConstantType,
+  });
 
   void reportDuplicatedDeclaration(
-      Builder existing, String name, int charOffset);
+    Builder existing,
+    String name,
+    int charOffset,
+  );
 
   /// Creates a synthetic variable declaration for the value of [expression].
   VariableDeclarationImpl createVariableDeclarationForValue(
-      Expression expression);
+    Expression expression,
+  );
 
   /// Creates a [VariableGet] of the [variable] using [charOffset] as the file
   /// offset of the created node.
-  Expression createVariableGet(VariableDeclaration variable, int charOffset,
-      {bool forNullGuardedAccess = false});
+  Expression createVariableGet(VariableDeclaration variable, int charOffset);
+
+  /// Registers that [variable] is read from.
+  ///
+  /// This is needed for type promotion.
+  void registerVariableRead(VariableDeclaration variable);
 
   /// Registers that [variable] is assigned to.
   ///
@@ -189,19 +265,23 @@ abstract class ExpressionGeneratorHelper implements InferenceHelper {
   /// preceded by `new` or `const`, and an error should be reported instead of
   /// creating the instantiation and invocation.
   Expression createInstantiationAndInvocation(
-      Expression Function() receiverFunction,
-      List<TypeBuilder>? typeArguments,
-      String className,
-      String constructorName,
-      Arguments arguments,
-      {required int instantiationOffset,
-      required int invocationOffset,
-      required bool inImplicitCreationContext});
+    Expression Function() receiverFunction,
+    List<TypeBuilder>? typeArguments,
+    String className,
+    String constructorName,
+    ArgumentsImpl arguments, {
+    required int instantiationOffset,
+    required int invocationOffset,
+    required bool inImplicitCreationContext,
+  });
 }
 
 /// Checks that a generic [typedef] for a generic type declaration.
 bool isProperRenameForTypeDeclaration(
-    TypeEnvironment typeEnvironment, Typedef typedef, Library typedefLibrary) {
+  TypeEnvironment typeEnvironment,
+  Typedef typedef,
+  Library typedefLibrary,
+) {
   DartType? rhsType = typedef.type;
   if (rhsType is! TypeDeclarationType) {
     return false;
@@ -227,8 +307,10 @@ bool isProperRenameForTypeDeclaration(
   }
   Substitution substitution = Substitution.fromMap(substitutionMap);
   for (int i = 0; i < fromParameters.length; ++i) {
-    if (!typeEnvironment.areMutualSubtypes(toParameters[i].bound,
-        substitution.substituteType(fromParameters[i].bound))) {
+    if (!typeEnvironment.areMutualSubtypes(
+      toParameters[i].bound,
+      substitution.substituteType(fromParameters[i].bound),
+    )) {
       return false;
     }
   }
@@ -236,11 +318,4 @@ bool isProperRenameForTypeDeclaration(
   return true;
 }
 
-enum UnresolvedKind {
-  Unknown,
-  Member,
-  Method,
-  Getter,
-  Setter,
-  Constructor,
-}
+enum UnresolvedKind { Unknown, Member, Method, Getter, Setter, Constructor }

@@ -474,6 +474,7 @@ const RegList kAbiVolatileFpuRegs = kAllFpuRegistersList;
 // Registers available to Dart that are not preserved by runtime calls.
 const RegList kDartVolatileCpuRegs =
     kDartAvailableCpuRegs & ~kAbiPreservedCpuRegs;
+const RegList kDartVolatileFpuRegs = kAbiVolatileFpuRegs & ~R(FpuTMP);
 
 enum ScaleFactor {
   TIMES_1 = 0,

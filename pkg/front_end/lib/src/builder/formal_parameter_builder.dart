@@ -15,12 +15,13 @@ import 'package:kernel/ast.dart'
         VariableDeclaration;
 import 'package:kernel/class_hierarchy.dart';
 
-import '../base/constant_context.dart' show ConstantContext;
+import '../base/extension_scope.dart';
+import '../base/lookup_result.dart';
 import '../base/modifiers.dart';
 import '../base/scope.dart' show LookupScope;
-import '../kernel/body_builder.dart' show BodyBuilder;
 import '../kernel/body_builder_context.dart';
 import '../kernel/internal_ast.dart' show VariableDeclarationImpl;
+import '../kernel/resolver.dart';
 import '../kernel/wildcard_lowering.dart';
 import '../source/fragment_factory.dart';
 import '../source/source_constructor_builder.dart';
@@ -57,6 +58,7 @@ abstract class ParameterBuilder {
 /// A builder for a formal parameter, i.e. a parameter on a method or
 /// constructor.
 class FormalParameterBuilder extends NamedBuilderImpl
+    with LookupResultMixin
     implements VariableBuilder, ParameterBuilder, InferredTypeListener {
   static const String noNameSentinel = 'no name sentinel';
 
@@ -102,12 +104,16 @@ class FormalParameterBuilder extends NamedBuilderImpl
   final bool isWildcard;
 
   FormalParameterBuilder(
-      this.kind, this.modifiers, this.type, this.name, this.fileOffset,
-      {required this.fileUri,
-      this.isExtensionThis = false,
-      required this.hasImmediatelyDeclaredInitializer,
-      this.isWildcard = false})
-      : this.hasDeclaredInitializer = hasImmediatelyDeclaredInitializer {
+    this.kind,
+    this.modifiers,
+    this.type,
+    this.name,
+    this.fileOffset, {
+    required this.fileUri,
+    this.isExtensionThis = false,
+    required this.hasImmediatelyDeclaredInitializer,
+    this.isWildcard = false,
+  }) : this.hasDeclaredInitializer = hasImmediatelyDeclaredInitializer {
     type.registerInferredTypeListener(this);
   }
 
@@ -166,21 +172,21 @@ class FormalParameterBuilder extends NamedBuilderImpl
       bool isTypeOmitted = type is OmittedTypeBuilder;
       DartType? builtType = type.build(library, TypeUse.parameterType);
       variable = new VariableDeclarationImpl(
-          name == noNameSentinel ? null : name,
-          // `null` is used in [VariableDeclarationImpl] to signal an omitted
-          // type.
-          type: isTypeOmitted ? null : builtType,
-          isFinal: modifiers.isFinal,
-          isConst: false,
-          isInitializingFormal: isInitializingFormal,
-          isSuperInitializingFormal: isSuperInitializingFormal,
-          isCovariantByDeclaration: isCovariantByDeclaration,
-          isRequired: isRequiredNamed,
-          hasDeclaredInitializer: hasDeclaredInitializer,
-          isLowered: isExtensionThis,
-          isSynthesized: name == noNameSentinel,
-          isWildcard: isWildcard)
-        ..fileOffset = fileOffset;
+        name == noNameSentinel ? null : name,
+        // `null` is used in [VariableDeclarationImpl] to signal an omitted
+        // type.
+        type: isTypeOmitted ? null : builtType,
+        isFinal: modifiers.isFinal,
+        isConst: false,
+        isInitializingFormal: isInitializingFormal,
+        isSuperInitializingFormal: isSuperInitializingFormal,
+        isCovariantByDeclaration: isCovariantByDeclaration,
+        isRequired: isRequiredNamed,
+        hasDeclaredInitializer: hasDeclaredInitializer,
+        isLowered: isExtensionThis,
+        isSynthesized: name == noNameSentinel,
+        isWildcard: isWildcard,
+      )..fileOffset = fileOffset;
     }
     return variable!;
   }
@@ -194,51 +200,56 @@ class FormalParameterBuilder extends NamedBuilderImpl
 
   FormalParameterBuilder forPrimaryConstructor(FragmentFactory builderFactory) {
     return new FormalParameterBuilder(
-        kind,
-        modifiers | Modifiers.InitializingFormal,
-        builderFactory.addInferableType(),
-        name,
-        fileOffset,
-        fileUri: fileUri,
-        isExtensionThis: isExtensionThis,
-        hasImmediatelyDeclaredInitializer: hasImmediatelyDeclaredInitializer)
-      ..variable = variable;
+      kind,
+      modifiers | Modifiers.InitializingFormal,
+      builderFactory.addInferableType(),
+      name,
+      fileOffset,
+      fileUri: fileUri,
+      isExtensionThis: isExtensionThis,
+      hasImmediatelyDeclaredInitializer: hasImmediatelyDeclaredInitializer,
+    )..variable = variable;
   }
 
   FormalParameterBuilder forFormalParameterInitializerScope() {
     if (isInitializingFormal) {
       return new FormalParameterBuilder(
-          kind,
-          modifiers | Modifiers.Final | Modifiers.InitializingFormal,
-          type,
-          name,
-          fileOffset,
-          fileUri: fileUri,
-          isExtensionThis: isExtensionThis,
-          hasImmediatelyDeclaredInitializer: hasImmediatelyDeclaredInitializer)
-        ..variable = variable;
+        kind,
+        modifiers | Modifiers.Final | Modifiers.InitializingFormal,
+        type,
+        name,
+        fileOffset,
+        fileUri: fileUri,
+        isExtensionThis: isExtensionThis,
+        hasImmediatelyDeclaredInitializer: hasImmediatelyDeclaredInitializer,
+      )..variable = variable;
     } else if (isSuperInitializingFormal) {
       return new FormalParameterBuilder(
-          kind,
-          modifiers | Modifiers.Final | Modifiers.SuperInitializingFormal,
-          type,
-          name,
-          fileOffset,
-          fileUri: fileUri,
-          isExtensionThis: isExtensionThis,
-          hasImmediatelyDeclaredInitializer: hasImmediatelyDeclaredInitializer)
-        ..variable = variable;
+        kind,
+        modifiers | Modifiers.Final | Modifiers.SuperInitializingFormal,
+        type,
+        name,
+        fileOffset,
+        fileUri: fileUri,
+        isExtensionThis: isExtensionThis,
+        hasImmediatelyDeclaredInitializer: hasImmediatelyDeclaredInitializer,
+      )..variable = variable;
     } else {
       return this;
     }
   }
 
   void finalizeInitializingFormal(
-      DeclarationBuilder declarationBuilder,
-      SourceConstructorBuilder constructorBuilder,
-      ClassHierarchyBase hierarchy) {
+    DeclarationBuilder declarationBuilder,
+    SourceConstructorBuilder constructorBuilder,
+    ClassHierarchyBase hierarchy,
+  ) {
     String fieldName = isWildcardLoweredFormalParameter(name) ? '_' : name;
-    Builder? fieldBuilder = declarationBuilder.lookupLocalMember(fieldName);
+    LookupResult? result = declarationBuilder.lookupLocalMember(fieldName);
+    Builder? fieldBuilder = result?.getable;
+    if (result is DuplicateMemberLookupResult) {
+      fieldBuilder = result.declarations.first;
+    }
     if (fieldBuilder is SourcePropertyBuilder && fieldBuilder.hasField) {
       DartType fieldType = fieldBuilder.inferFieldType(hierarchy);
       fieldType = constructorBuilder.substituteFieldType(fieldType);
@@ -249,7 +260,8 @@ class FormalParameterBuilder extends NamedBuilderImpl
   }
 
   static bool needsDefaultValuesBuiltAsOutlineExpressions(
-      MemberBuilder memberBuilder) {
+    MemberBuilder memberBuilder,
+  ) {
     // For modular compilation we need to include default values for optional
     // and named parameters in several cases:
     // * for const constructors to enable constant evaluation,
@@ -271,28 +283,37 @@ class FormalParameterBuilder extends NamedBuilderImpl
 
   /// Builds the default value from this [initializerToken] if this is a
   /// formal parameter on a const constructor or instance method.
-  void buildOutlineExpressions(SourceLibraryBuilder libraryBuilder,
-      DeclarationBuilder? declarationBuilder,
-      {required LookupScope scope, required bool buildDefaultValue}) {
+  void buildOutlineExpressions(
+    SourceLibraryBuilder libraryBuilder,
+    DeclarationBuilder? declarationBuilder, {
+    required ExtensionScope extensionScope,
+    required LookupScope scope,
+    required bool buildDefaultValue,
+  }) {
     if (buildDefaultValue) {
       if (initializerToken != null) {
         BodyBuilderContext bodyBuilderContext = new ParameterBodyBuilderContext(
-            libraryBuilder, declarationBuilder, this);
-        BodyBuilder bodyBuilder = libraryBuilder.loader
-            .createBodyBuilderForOutlineExpression(
-                libraryBuilder, bodyBuilderContext, scope, fileUri);
-        bodyBuilder.constantContext = ConstantContext.required;
+          libraryBuilder,
+          declarationBuilder,
+          this,
+        );
         assert(!initializerWasInferred);
-        Expression initializer =
-            bodyBuilder.parseFieldInitializer(initializerToken!);
-        initializer = bodyBuilder.typeInferrer.inferParameterInitializer(
-            bodyBuilder, initializer, variable!.type, hasDeclaredInitializer);
+        Resolver resolver = libraryBuilder.loader.createResolver();
+        Expression initializer = resolver.buildParameterInitializer(
+          libraryBuilder: libraryBuilder,
+          bodyBuilderContext: bodyBuilderContext,
+          extensionScope: extensionScope,
+          scope: scope,
+          fileUri: fileUri,
+          initializerToken: initializerToken!,
+          declaredType: variable!.type,
+          hasDeclaredInitializer: hasDeclaredInitializer,
+        );
         variable!.initializer = initializer..parent = variable;
         if (initializer is InvalidExpression) {
           variable!.isErroneouslyInitialized = true;
         }
         initializerWasInferred = true;
-        bodyBuilder.performBacklogComputations();
       } else if (kind.isOptional) {
         // As done by BodyBuilder.endFormalParameter.
         variable!.initializer = new NullLiteral()..parent = variable;

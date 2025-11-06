@@ -10,6 +10,7 @@ import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_provider.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
 
+/// See https://github.com/dart-lang/language/blob/main/resources/type-system/inference.md#function-literal-return-type-inference
 class BodyInferenceContext {
   final TypeSystemImpl _typeSystem;
   final bool isAsynchronous;
@@ -67,7 +68,12 @@ class BodyInferenceContext {
 
   void addReturnExpression(Expression? expression) {
     if (expression == null) {
-      _returnTypes.add(_typeProvider.nullType);
+      // If the enclosing function is not marked `sync*` or `async*`:
+      //   For each `return;` statement in the block, update
+      //   `T` to be `UP(Null, T)`.
+      if (!isGenerator) {
+        _returnTypes.add(_typeProvider.nullType);
+      }
     } else {
       var type = expression.typeOrThrow;
       if (isAsynchronous) {
@@ -86,10 +92,9 @@ class BodyInferenceContext {
     }
 
     if (isGenerator) {
-      var requiredClass =
-          isAsynchronous
-              ? _typeProvider.streamElement
-              : _typeProvider.iterableElement;
+      var requiredClass = isAsynchronous
+          ? _typeProvider.streamElement
+          : _typeProvider.iterableElement;
       var type = _argumentOf(expressionType, requiredClass);
       if (type != null) {
         _returnTypes.add(type);
@@ -158,10 +163,9 @@ class BodyInferenceContext {
       return _returnTypes.cast<TypeImpl>().reduce(_typeSystem.leastUpperBound);
     }
 
-    var initialType =
-        endOfBlockIsReachable
-            ? _typeProvider.nullType
-            : _typeProvider.neverType;
+    var initialType = endOfBlockIsReachable
+        ? _typeProvider.nullType
+        : _typeProvider.neverType;
     // TODO(paulberry): eliminate this cast by changing the type of
     // `_returnTypes` to `List<TypeImpl>`.
     return _returnTypes.cast<TypeImpl>().fold(

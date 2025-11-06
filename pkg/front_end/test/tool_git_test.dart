@@ -7,7 +7,7 @@
 import "dart:io";
 
 import "package:expect/expect.dart";
-import "package:front_end/src/codes/cfe_codes.dart" show messageFastaUsageShort;
+import "package:front_end/src/codes/cfe_codes.dart" show codeFastaUsageShort;
 
 const String toolPath = "pkg/front_end/tool/cfe";
 
@@ -48,9 +48,10 @@ void main() {
     // The tool is a shell script and only works on Mac and Linux.
     return;
   }
-  Set<String> testedSubtools = new Set<String>.from(subtools)
-      .difference(new Set<String>.from(unsafeTools));
-  String usage = messageFastaUsageShort.problemMessage;
+  Set<String> testedSubtools = new Set<String>.from(
+    subtools,
+  ).difference(new Set<String>.from(unsafeTools));
+  String usage = codeFastaUsageShort.problemMessage;
   Map expectations = {
     "abcompile": {
       "exitCode": 1,
@@ -61,7 +62,8 @@ Expected -DbRoot=/absolute/path/to/other/sdk/repo
     },
     "compile": {
       "exitCode": 1,
-      "stdout": """
+      "stdout":
+          """
 Usage: compile [options] dartfile
 
 Compiles a Dart program to the Dill/Kernel IR format.
@@ -73,7 +75,8 @@ Error: No Dart file specified.
     },
     "compile-platform": {
       "exitCode": 1,
-      "stdout": """
+      "stdout":
+          """
 Usage: compile_platform [options] dart-library-uri libraries.json vm_outline.dill platform.dill outline.dill
 
 Compiles Dart SDK platform to the Dill/Kernel IR format.
@@ -83,14 +86,11 @@ Error: Expected five arguments.
 """,
       "stderr": "",
     },
-    "log": {
-      "exitCode": 0,
-      "stdout": "",
-      "stderr": "",
-    },
+    "log": {"exitCode": 0, "stdout": "", "stderr": ""},
     "outline": {
       "exitCode": 1,
-      "stdout": """
+      "stdout":
+          """
 Usage: outline [options] dartfile
 
 Creates an outline of a Dart program in the Dill/Kernel IR format.
@@ -100,15 +100,8 @@ Error: No Dart file specified.
 """,
       "stderr": "",
     },
-    "parser": {
-      "exitCode": 0,
-      "stdout": "",
-      "stderr": "",
-    },
-    "scanner": {
-      "exitCode": 0,
-      "stderr": "",
-    },
+    "parser": {"exitCode": 0, "stdout": "", "stderr": ""},
+    "scanner": {"exitCode": 0, "stderr": ""},
     "dump-ir": {
       "exitCode": 2,
       "stdout": "",
@@ -119,10 +112,13 @@ Error: No Dart file specified.
   for (String subtool in testedSubtools) {
     print("Testing $subtool");
     ProcessResult result = Process.runSync(
-        "/bin/bash", <String>[toolPath, subtool],
-        environment: <String, String>{"DART_VM": Platform.resolvedExecutable});
+      "/bin/bash",
+      <String>[toolPath, subtool],
+      environment: <String, String>{"DART_VM": Platform.resolvedExecutable},
+    );
     Map expectation = expectations.remove(subtool);
-    String combinedOutput = """
+    String combinedOutput =
+        """
 stdout:
 ${result.stdout}
 stderr:

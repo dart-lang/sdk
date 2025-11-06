@@ -8,6 +8,7 @@ import 'package:analysis_server/lsp_protocol/protocol.dart';
 import 'package:analysis_server/src/lsp/constants.dart';
 import 'package:analysis_server/src/lsp/extensions/code_action.dart';
 import 'package:analysis_server/src/services/correction/fix_internal.dart';
+import 'package:analyzer/analysis_rule/rule_state.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/src/lint/linter.dart';
 import 'package:analyzer/src/lint/registry.dart';
@@ -515,12 +516,11 @@ Future foo;
       testFileUri,
       range: code.range.range,
     );
-    var fixAction =
-        findCodeActionLiteral(
-          codeActions,
-          title: 'Remove unused import',
-          kind: CodeActionKind('quickfix.remove.unusedImport'),
-        )!;
+    var fixAction = findCodeActionLiteral(
+      codeActions,
+      title: 'Remove unused import',
+      kind: CodeActionKind('quickfix.remove.unusedImport'),
+    )!;
 
     await executeCommand(fixAction.command!);
     expectCommandLogged('dart.fix.remove.unusedImport');
@@ -579,12 +579,11 @@ void f() {
       testFileUri,
       position: code.position.position,
     );
-    var removeNnaAction =
-        findCodeActionLiteral(
-          codeActions,
-          title: "Remove the '!'",
-          kind: CodeActionKind('quickfix.remove.nonNullAssertion'),
-        )!;
+    var removeNnaAction = findCodeActionLiteral(
+      codeActions,
+      title: "Remove the '!'",
+      kind: CodeActionKind('quickfix.remove.nonNullAssertion'),
+    )!;
 
     // Ensure the action is for the diagnostic on the second bang which was
     // closest to the range requested.
@@ -607,12 +606,11 @@ var a = [Test, Test, Te[!!]st];
       testFileUri,
       range: code.range.range,
     );
-    var createClassAction =
-        findCodeActionLiteral(
-          codeActions,
-          title: "Create class 'Test'",
-          kind: CodeActionKind('quickfix.create.class.uppercase'),
-        )!;
+    var createClassAction = findCodeActionLiteral(
+      codeActions,
+      title: "Create class 'Test'",
+      kind: CodeActionKind('quickfix.create.class.uppercase'),
+    )!;
 
     expect(createClassAction.diagnostics, hasLength(3));
   }
@@ -629,12 +627,11 @@ var a = [Test, Test, Te[!!]st];
       testFileUri,
       range: code.range.range,
     );
-    var createClassActions =
-        findCodeActionLiteral(
-          codeActions,
-          title: "Create class 'Test'",
-          kind: CodeActionKind('quickfix.create.class.uppercase'),
-        )!;
+    var createClassActions = findCodeActionLiteral(
+      codeActions,
+      title: "Create class 'Test'",
+      kind: CodeActionKind('quickfix.create.class.uppercase'),
+    )!;
 
     expect(createClassActions.diagnostics, hasLength(3));
   }
@@ -690,7 +687,8 @@ ProcessInfo b;
   Future<void> test_pubspec() async {
     const content = '^';
 
-    var expectedContent = '''
+    var expectedContent =
+        '''
 name: $testPackageName
 ''';
 
@@ -748,7 +746,7 @@ class A {
   void a() => c((cell) => cell.south);
   void b() => c((cell) => cell.west);
 
-  ${1:void} ${2:c}(${3:Function(dynamic cell)} ${4:param0}) {}
+  ${1:void} ${2:c}(${3:Function(cell)} ${4:param0}) {}
 }
 ''';
 
@@ -806,7 +804,7 @@ useFunction(int g(a, b)) {}
 
     const expectedContent = r'''
 void f() {
-  ${1:int Function(dynamic a, dynamic b)} ${2:test};
+  ${1:int Function(a, b)} ${2:test};
   useFunction(test);
 }
 

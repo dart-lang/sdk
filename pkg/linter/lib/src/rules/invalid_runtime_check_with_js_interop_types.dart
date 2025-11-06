@@ -2,7 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/analysis_rule/analysis_rule.dart';
 import 'package:analyzer/analysis_rule/rule_context.dart';
+import 'package:analyzer/analysis_rule/rule_visitor_registry.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
@@ -109,7 +111,7 @@ DartType? _jsTypeForStaticInterop(InterfaceType type) {
   var hasStaticInterop = false;
   LibraryElement? dartJsInterop;
   for (var annotation in metadata.annotations) {
-    var annotationElement = annotation.element2;
+    var annotationElement = annotation.element;
     if (annotationElement is ConstructorElement &&
         annotationElement.isFromLibrary(_dartJsInteropUri) &&
         annotationElement.enclosingElement.name == 'JS') {
@@ -123,9 +125,9 @@ DartType? _jsTypeForStaticInterop(InterfaceType type) {
   }
   return (hasJS && hasStaticInterop && dartJsInterop != null)
       ? dartJsInterop.extensionTypes
-          .singleWhere((extType) => extType.name == 'JSObject')
-          // Nullability is ignored in this lint, so just return `thisType`.
-          .thisType
+            .singleWhere((extType) => extType.name == 'JSObject')
+            // Nullability is ignored in this lint, so just return `thisType`.
+            .thisType
       : null;
 }
 
@@ -216,20 +218,20 @@ class InvalidRuntimeCheckWithJSInteropTypes extends MultiAnalysisRule {
 
   @override
   List<DiagnosticCode> get diagnosticCodes => [
-    LinterLintCode.invalid_runtime_check_with_js_interop_types_dart_as_js,
-    LinterLintCode.invalid_runtime_check_with_js_interop_types_dart_is_js,
-    LinterLintCode.invalid_runtime_check_with_js_interop_types_js_as_dart,
-    LinterLintCode
-        .invalid_runtime_check_with_js_interop_types_js_as_incompatible_js,
-    LinterLintCode.invalid_runtime_check_with_js_interop_types_js_is_dart,
-    LinterLintCode
-        .invalid_runtime_check_with_js_interop_types_js_is_inconsistent_js,
-    LinterLintCode
-        .invalid_runtime_check_with_js_interop_types_js_is_unrelated_js,
+    LinterLintCode.invalidRuntimeCheckWithJsInteropTypesDartAsJs,
+    LinterLintCode.invalidRuntimeCheckWithJsInteropTypesDartIsJs,
+    LinterLintCode.invalidRuntimeCheckWithJsInteropTypesJsAsDart,
+    LinterLintCode.invalidRuntimeCheckWithJsInteropTypesJsAsIncompatibleJs,
+    LinterLintCode.invalidRuntimeCheckWithJsInteropTypesJsIsDart,
+    LinterLintCode.invalidRuntimeCheckWithJsInteropTypesJsIsInconsistentJs,
+    LinterLintCode.invalidRuntimeCheckWithJsInteropTypesJsIsUnrelatedJs,
   ];
 
   @override
-  void registerNodeProcessors(NodeLintRegistry registry, RuleContext context) {
+  void registerNodeProcessors(
+    RuleVisitorRegistry registry,
+    RuleContext context,
+  ) {
     var visitor = _Visitor(this, context.typeSystem);
     registry.addIsExpression(this, visitor);
     registry.addAsExpression(this, visitor);
@@ -335,17 +337,14 @@ class _Visitor extends SimpleAstVisitor<void> {
           if (check) {
             if (!erasedLeftIsSubtype && !erasedRightIsDynamic) {
               if (leftIsInteropType && rightIsInteropType) {
-                lintCode =
-                    LinterLintCode
-                        .invalid_runtime_check_with_js_interop_types_js_is_inconsistent_js;
+                lintCode = LinterLintCode
+                    .invalidRuntimeCheckWithJsInteropTypesJsIsInconsistentJs;
               } else if (leftIsInteropType) {
-                lintCode =
-                    LinterLintCode
-                        .invalid_runtime_check_with_js_interop_types_js_is_dart;
+                lintCode = LinterLintCode
+                    .invalidRuntimeCheckWithJsInteropTypesJsIsDart;
               } else {
-                lintCode =
-                    LinterLintCode
-                        .invalid_runtime_check_with_js_interop_types_dart_is_js;
+                lintCode = LinterLintCode
+                    .invalidRuntimeCheckWithJsInteropTypesDartIsJs;
               }
             } else if (erasedLeftIsSubtype &&
                 leftIsInteropType &&
@@ -364,9 +363,8 @@ class _Visitor extends SimpleAstVisitor<void> {
                       keepUserInteropTypes: true,
                     ),
                   )) {
-                lintCode =
-                    LinterLintCode
-                        .invalid_runtime_check_with_js_interop_types_js_is_unrelated_js;
+                lintCode = LinterLintCode
+                    .invalidRuntimeCheckWithJsInteropTypesJsIsUnrelatedJs;
               }
             }
           } else {
@@ -375,17 +373,14 @@ class _Visitor extends SimpleAstVisitor<void> {
                 !erasedLeftIsDynamic &&
                 !erasedRightIsDynamic) {
               if (leftIsInteropType && rightIsInteropType) {
-                lintCode =
-                    LinterLintCode
-                        .invalid_runtime_check_with_js_interop_types_js_as_incompatible_js;
+                lintCode = LinterLintCode
+                    .invalidRuntimeCheckWithJsInteropTypesJsAsIncompatibleJs;
               } else if (leftIsInteropType) {
-                lintCode =
-                    LinterLintCode
-                        .invalid_runtime_check_with_js_interop_types_js_as_dart;
+                lintCode = LinterLintCode
+                    .invalidRuntimeCheckWithJsInteropTypesJsAsDart;
               } else {
-                lintCode =
-                    LinterLintCode
-                        .invalid_runtime_check_with_js_interop_types_dart_as_js;
+                lintCode = LinterLintCode
+                    .invalidRuntimeCheckWithJsInteropTypesDartAsJs;
               }
             }
           }

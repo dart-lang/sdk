@@ -6,11 +6,11 @@ import 'package:kernel/ast.dart';
 import 'package:kernel/class_hierarchy.dart';
 
 import '../base/uri_offset.dart';
-import '../builder/builder.dart';
 import '../builder/constructor_builder.dart';
 import '../builder/declaration_builders.dart';
 import '../builder/factory_builder.dart';
 import '../builder/library_builder.dart';
+import '../builder/member_builder.dart';
 import '../builder/method_builder.dart';
 import '../builder/property_builder.dart';
 import '../builder/type_builder.dart';
@@ -24,24 +24,30 @@ mixin DillDeclarationBuilderMixin implements IDeclarationBuilder {
   int get typeParametersCount => typeParameterNodes.length;
 
   @override
-  List<DartType> buildAliasedTypeArguments(LibraryBuilder library,
-      List<TypeBuilder>? arguments, ClassHierarchyBase? hierarchy) {
+  List<DartType> buildAliasedTypeArguments(
+    LibraryBuilder library,
+    List<TypeBuilder>? arguments,
+    ClassHierarchyBase? hierarchy,
+  ) {
     // For performance reasons, [typeParameters] aren't restored from [target].
     // So, if [arguments] is null, the default types should be retrieved from
     // [cls.typeParameters].
     if (arguments == null) {
       // TODO(johnniwinther): Use i2b here when needed.
-      return new List<DartType>.generate(typeParameterNodes.length,
-          (int i) => typeParameterNodes[i].defaultType,
-          growable: true);
+      return new List<DartType>.generate(
+        typeParameterNodes.length,
+        (int i) => typeParameterNodes[i].defaultType,
+        growable: true,
+      );
     }
 
     // [arguments] != null
     return new List<DartType>.generate(
-        arguments.length,
-        (int i) =>
-            arguments[i].buildAliased(library, TypeUse.typeArgument, hierarchy),
-        growable: true);
+      arguments.length,
+      (int i) =>
+          arguments[i].buildAliased(library, TypeUse.typeArgument, hierarchy),
+      growable: true,
+    );
   }
 }
 
@@ -60,12 +66,10 @@ mixin DillConstructorBuilderMixin
   Reference? get writeTargetReference => null;
 
   @override
-  // Coverage-ignore(suite): Not run.
-  NamedBuilder get getable => this;
+  MemberBuilder get getable => this;
 
   @override
-  // Coverage-ignore(suite): Not run.
-  NamedBuilder? get setable => null;
+  MemberBuilder? get setable => null;
 
   @override
   // Coverage-ignore(suite): Not run.
@@ -89,23 +93,23 @@ mixin DillFieldBuilderMixin implements DillMemberBuilder, PropertyBuilder {
   Reference? get invokeTargetReference => null;
 
   @override
-  NamedBuilder get getable => this;
+  MemberBuilder get getable => this;
 
   @override
-  NamedBuilder? get setable => hasSetter ? this : null;
+  MemberBuilder? get setable => hasSetter ? this : null;
 
   List<ClassMember>? _localMembers;
   List<ClassMember>? _localSetters;
 
   @override
-  List<ClassMember> get localMembers => _localMembers ??= !member
-          .isInternalImplementation
+  List<ClassMember> get localMembers =>
+      _localMembers ??= !member.isInternalImplementation
       ? [new DillClassMember(this, ClassMemberKind.Getter, getterUriOffset!)]
       : const [];
 
   @override
-  List<ClassMember> get localSetters => _localSetters ??= hasSetter &&
-          !member.isInternalImplementation
+  List<ClassMember> get localSetters =>
+      _localSetters ??= hasSetter && !member.isInternalImplementation
       ? [new DillClassMember(this, ClassMemberKind.Setter, setterUriOffset!)]
       : const [];
 }
@@ -131,10 +135,10 @@ mixin DillGetterBuilderMixin implements DillMemberBuilder, PropertyBuilder {
   Reference? get writeTargetReference => null;
 
   @override
-  NamedBuilder get getable => this;
+  MemberBuilder get getable => this;
 
   @override
-  NamedBuilder? get setable => null;
+  MemberBuilder? get setable => null;
 
   @override
   // Coverage-ignore(suite): Not run.
@@ -143,8 +147,8 @@ mixin DillGetterBuilderMixin implements DillMemberBuilder, PropertyBuilder {
   List<ClassMember>? _localMembers;
 
   @override
-  List<ClassMember> get localMembers => _localMembers ??= !member
-          .isInternalImplementation
+  List<ClassMember> get localMembers =>
+      _localMembers ??= !member.isInternalImplementation
       ? [new DillClassMember(this, ClassMemberKind.Getter, getterUriOffset!)]
       : const [];
 
@@ -177,10 +181,10 @@ mixin DillSetterBuilderMixin implements DillMemberBuilder, PropertyBuilder {
   Reference? get invokeTargetReference => null;
 
   @override
-  NamedBuilder? get getable => null;
+  MemberBuilder? get getable => null;
 
   @override
-  NamedBuilder get setable => this;
+  MemberBuilder get setable => this;
 
   @override
   // Coverage-ignore(suite): Not run.
@@ -192,8 +196,8 @@ mixin DillSetterBuilderMixin implements DillMemberBuilder, PropertyBuilder {
   List<ClassMember> get localMembers => const [];
 
   @override
-  List<ClassMember> get localSetters => _localSetters ??= !member
-          .isInternalImplementation
+  List<ClassMember> get localSetters =>
+      _localSetters ??= !member.isInternalImplementation
       ? [new DillClassMember(this, ClassMemberKind.Setter, setterUriOffset!)]
       : const [];
 }
@@ -206,10 +210,10 @@ mixin DillMethodBuilderMixin implements DillMemberBuilder, MethodBuilder {
   bool get isOperator => false;
 
   @override
-  NamedBuilder get getable => this;
+  MemberBuilder get getable => this;
 
   @override
-  NamedBuilder? get setable => null;
+  MemberBuilder? get setable => null;
 
   @override
   // Coverage-ignore(suite): Not run.
@@ -226,8 +230,8 @@ mixin DillMethodBuilderMixin implements DillMemberBuilder, MethodBuilder {
   @override
   List<ClassMember> get localMembers =>
       _localMembers ??= !member.isInternalImplementation
-          ? [new DillClassMember(this, ClassMemberKind.Method, uriOffset)]
-          : const [];
+      ? [new DillClassMember(this, ClassMemberKind.Method, uriOffset)]
+      : const [];
 
   @override
   List<ClassMember> get localSetters => const [];
@@ -241,10 +245,10 @@ mixin DillOperatorBuilderMixin implements DillMemberBuilder, MethodBuilder {
   bool get isOperator => true;
 
   @override
-  NamedBuilder get getable => this;
+  MemberBuilder get getable => this;
 
   @override
-  NamedBuilder? get setable => null;
+  MemberBuilder? get setable => null;
 
   @override
   Member? get readTarget => null;
@@ -268,8 +272,8 @@ mixin DillOperatorBuilderMixin implements DillMemberBuilder, MethodBuilder {
   @override
   List<ClassMember> get localMembers =>
       _localMembers ??= !member.isInternalImplementation
-          ? [new DillClassMember(this, ClassMemberKind.Method, uriOffset)]
-          : const [];
+      ? [new DillClassMember(this, ClassMemberKind.Method, uriOffset)]
+      : const [];
 
   @override
   List<ClassMember> get localSetters => const [];
@@ -281,12 +285,10 @@ mixin DillFactoryBuilderMixin implements DillMemberBuilder, FactoryBuilder {
   bool get isProperty => false;
 
   @override
-  // Coverage-ignore(suite): Not run.
-  NamedBuilder get getable => this;
+  MemberBuilder get getable => this;
 
   @override
-  // Coverage-ignore(suite): Not run.
-  NamedBuilder? get setable => null;
+  MemberBuilder? get setable => null;
 
   @override
   // Coverage-ignore(suite): Not run.

@@ -103,9 +103,6 @@
 ///
 library iterators_benchmark;
 
-// TODO(48277): Update when fixed:
-// ignore_for_file: unnecessary_lambdas
-
 import 'dart:collection';
 
 import 'package:benchmark_harness/benchmark_harness.dart';
@@ -435,16 +432,15 @@ class Thing<T> {
 }
 
 final thingGenerators = [
-  // TODO(48277): Use instantiated constructor tear-offs when fixed:
-  () => Thing<Set<String>>(),
-  () => Thing<Set<Duration>>(),
-  () => Thing<Set<BigInt>>(),
-  () => Thing<Queue<String>>(),
-  () => Thing<Queue<Duration>>(),
-  () => Thing<Queue<BigInt>>(),
-  () => Thing<List<String>>(),
-  () => Thing<List<Duration>>(),
-  () => Thing<List<BigInt>>(),
+  Thing<Set<String>>.new,
+  Thing<Set<Duration>>.new,
+  Thing<Set<BigInt>>.new,
+  Thing<Queue<String>>.new,
+  Thing<Queue<Duration>>.new,
+  Thing<Queue<BigInt>>.new,
+  Thing<List<String>>.new,
+  Thing<List<Duration>>.new,
+  Thing<List<BigInt>>.new,
 ];
 
 int _generateThingListState = 0;
@@ -545,7 +541,7 @@ void main(List<String> commandLineArguments) {
       BenchmarkNothing(size),
       BenchmarkUpTo(size),
       BenchmarkCodeUnits(size),
-      Benchmark('UpTo', size, (n) => UpTo(n)),
+      Benchmark('UpTo', size, UpTo.new),
       Benchmark('CodeUnits', size, (n) => generateString(n).codeUnits),
       Benchmark('Runes', size, (n) => generateString(n).runes),
       // ---

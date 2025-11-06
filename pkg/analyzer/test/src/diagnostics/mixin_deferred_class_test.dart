@@ -27,7 +27,7 @@ import 'lib1.dart' deferred as a;
 class B {}
 class C = B with a.A;
 ''',
-      [error(CompileTimeErrorCode.MIXIN_DEFERRED_CLASS, 76, 3)],
+      [error(CompileTimeErrorCode.mixinDeferredClass, 76, 3)],
     );
   }
 
@@ -42,7 +42,7 @@ enum E with a.A {
   v;
 }
 ''',
-      [error(CompileTimeErrorCode.MIXIN_DEFERRED_CLASS, 43, 3)],
+      [error(CompileTimeErrorCode.mixinDeferredClass, 43, 3)],
     );
   }
 
@@ -57,7 +57,7 @@ library root;
 import 'lib1.dart' deferred as a;
 class B extends Object with a.A {}
 ''',
-      [error(CompileTimeErrorCode.MIXIN_DEFERRED_CLASS, 76, 3)],
+      [error(CompileTimeErrorCode.mixinDeferredClass, 76, 3)],
     );
   }
 }

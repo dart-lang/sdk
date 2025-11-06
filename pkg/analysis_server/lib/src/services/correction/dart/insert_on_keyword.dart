@@ -53,8 +53,9 @@ class InsertOnKeyword extends ResolvedCorrectionProducer {
 
     // `extension int {}`
     // `extension E int {}`
-    var insertOffset =
-        extendedType.isSynthetic ? name.offset : extendedType.offset;
+    var insertOffset = extendedType.isSynthetic
+        ? name.offset
+        : extendedType.offset;
 
     await builder.addDartFileEdit(file, (builder) {
       builder.addSimpleInsertion(insertOffset, 'on ');

@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-part of dart.core;
+part of "dart:core";
 
 /// A regular expression pattern.
 ///
@@ -213,6 +213,10 @@ part of dart.core;
 /// when the regexp does not find a match.
 /// Several guides to [improving the performance of regular expressions](https://www.google.com/search?q=performance+of+regular+expressions)
 /// exist on the internet. Use these as inspirations, too.
+@Deprecated.implement(
+  "This class will become 'final' in a future release. "
+  "'Pattern' may be a more appropriate interface to implement.",
+)
 abstract interface class RegExp implements Pattern {
   /// Constructs a regular expression.
   ///
@@ -468,6 +472,10 @@ abstract interface class RegExp implements Pattern {
 ///   // This is the second message.
 /// }
 /// ```
+@Deprecated.implement(
+  "This class will become 'final' in a future release."
+  "'Match' may be a more appropriate interface to implement.",
+)
 abstract interface class RegExpMatch implements Match {
   /// The string captured by the named capture group [name].
   ///

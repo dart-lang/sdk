@@ -275,22 +275,6 @@ Location? _getLocationInComponent(Component? component, Uri fileUri, int offset,
   }
 }
 
-/// Convert the synthetic name of an implicit mixin application class
-/// into a name suitable for user-faced strings.
-///
-/// For example, when compiling "class A extends S with M1, M2", the
-/// two synthetic classes will be named "_A&S&M1" and "_A&S&M1&M2".
-/// This function will return "S with M1" and "S with M1, M2", respectively.
-String demangleMixinApplicationName(String name) {
-  List<String> nameParts = name.split('&');
-  if (nameParts.length < 2 || name == "&") return name;
-  String demangledName = nameParts[1];
-  for (int i = 2; i < nameParts.length; i++) {
-    demangledName += (i == 2 ? " with " : ", ") + nameParts[i];
-  }
-  return demangledName;
-}
-
 /// Extract from the synthetic name of an implicit mixin application class
 /// the name of the final subclass of the mixin application.
 ///
@@ -310,7 +294,7 @@ List<DartType> getAsTypeArguments(
   if (typeParameters.isEmpty) return const <DartType>[];
   return new List<DartType>.generate(
       typeParameters.length,
-      (int i) => new TypeParameterType.withDefaultNullability(
-          typeParameters[i]),
+      (int i) =>
+          new TypeParameterType.withDefaultNullability(typeParameters[i]),
       growable: false);
 }

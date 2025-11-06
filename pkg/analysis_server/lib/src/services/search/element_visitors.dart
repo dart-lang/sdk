@@ -30,7 +30,7 @@ class _ElementVisitorAdapter extends GeneralizingElementVisitor2<void> {
   @override
   void visitElement(Element element) {
     var visitChildren = processor(element);
-    if (visitChildren == true) {
+    if (visitChildren) {
       element.visitChildren(this);
     }
   }
@@ -45,7 +45,7 @@ class _FragmentByNameOffsetVisitor {
   Fragment? search(LibraryFragment fragment) => _searchIn(fragment);
 
   Fragment? _searchIn(Fragment fragment) {
-    if (fragment.nameOffset2 == nameOffset) {
+    if (fragment.nameOffset == nameOffset) {
       return fragment;
     }
     for (var child in fragment.children) {

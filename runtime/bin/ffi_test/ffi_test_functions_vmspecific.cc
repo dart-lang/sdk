@@ -1234,6 +1234,20 @@ intptr_t ReturnIntPtrMethod(Dart_Handle self, intptr_t value) {
   return value;
 }
 
+void UnsafeSetSharedTo(Dart_Handle library_name,
+                       Dart_Handle field_name,
+                       Dart_Handle value_handle) {
+  struct {
+    void* library_name_handle;
+    void* field_name_handle;
+    void* value_handle;
+  } args = {.library_name_handle = reinterpret_cast<void*>(library_name),
+            .field_name_handle = reinterpret_cast<void*>(field_name),
+            .value_handle = reinterpret_cast<void*>(value_handle)};
+
+  Dart_ExecuteInternalCommand("unsafe-set-shared-to", &args);
+}
+
 static void* FfiNativeResolver(const char* name, uintptr_t args_n) {
   if (strcmp(name, "Dart_SetNativeInstanceField") == 0 && args_n == 3) {
     return reinterpret_cast<void*>(Dart_SetNativeInstanceField);
@@ -1288,6 +1302,9 @@ static void* FfiNativeResolver(const char* name, uintptr_t args_n) {
   }
   if (strcmp(name, "ReturnIntPtrMethod") == 0 && args_n == 2) {
     return reinterpret_cast<void*>(ReturnIntPtrMethod);
+  }
+  if (strcmp(name, "UnsafeSetSharedTo") == 0 && args_n == 3) {
+    return reinterpret_cast<void*>(UnsafeSetSharedTo);
   }
   // This should be unreachable in tests.
   ENSURE(false);

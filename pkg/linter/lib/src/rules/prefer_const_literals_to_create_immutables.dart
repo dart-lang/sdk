@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/analysis_rule/rule_context.dart';
+import 'package:analyzer/analysis_rule/rule_visitor_registry.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/type.dart';
@@ -22,10 +23,13 @@ class PreferConstLiteralsToCreateImmutables extends LintRule {
 
   @override
   DiagnosticCode get diagnosticCode =>
-      LinterLintCode.prefer_const_literals_to_create_immutables;
+      LinterLintCode.preferConstLiteralsToCreateImmutables;
 
   @override
-  void registerNodeProcessors(NodeLintRegistry registry, RuleContext context) {
+  void registerNodeProcessors(
+    RuleVisitorRegistry registry,
+    RuleContext context,
+  ) {
     var visitor = _Visitor(this);
     registry.addListLiteral(this, visitor);
     registry.addSetOrMapLiteral(this, visitor);

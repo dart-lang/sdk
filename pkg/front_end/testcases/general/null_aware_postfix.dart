@@ -16,6 +16,25 @@ class C extends B {}
 
 main() {
   A? a;
+
+  expect(null, a?.b);
   a?.b++;
-  B? c = a?.b++;
+  expect(null, a?.b);
+  B? c1 = a?.b++;
+  expect(null, a?.b);
+  expect(null, c1);
+
+  a = A(B());
+  expect(false, a?.b is C);
+  a?.b++;
+  expect(true, a?.b is C);
+
+  a = A(B());
+  B? c2 = a?.b++;
+  expect(true, a?.b is C);
+  expect(false, c2 is C);
+}
+
+expect(expected, actual) {
+  if (expected != actual) throw 'Expected $expected, actual $actual';
 }

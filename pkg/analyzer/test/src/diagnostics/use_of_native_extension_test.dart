@@ -21,7 +21,7 @@ class UseOfNativeExtensionTest extends PubPackageResolutionTest {
 /// @docImport 'dart-ext:x';
 library;
 ''',
-      [error(CompileTimeErrorCode.USE_OF_NATIVE_EXTENSION, 15, 12)],
+      [error(CompileTimeErrorCode.useOfNativeExtension, 15, 12)],
     );
   }
 
@@ -30,7 +30,7 @@ library;
       r'''
 export 'dart-ext:x';
 ''',
-      [error(CompileTimeErrorCode.USE_OF_NATIVE_EXTENSION, 7, 12)],
+      [error(CompileTimeErrorCode.useOfNativeExtension, 7, 12)],
     );
   }
 
@@ -39,7 +39,7 @@ export 'dart-ext:x';
       r'''
 import 'dart-ext:x';
 ''',
-      [error(CompileTimeErrorCode.USE_OF_NATIVE_EXTENSION, 7, 12)],
+      [error(CompileTimeErrorCode.useOfNativeExtension, 7, 12)],
     );
   }
 }

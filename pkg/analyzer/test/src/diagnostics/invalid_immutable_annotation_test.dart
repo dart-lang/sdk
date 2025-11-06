@@ -48,7 +48,7 @@ class A {
   void m() {}
 }
 ''',
-      [error(WarningCode.INVALID_ANNOTATION_TARGET, 46, 9)],
+      [error(WarningCode.invalidAnnotationTarget, 46, 9)],
     );
   }
 }

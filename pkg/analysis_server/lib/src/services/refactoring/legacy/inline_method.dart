@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/src/protocol_server.dart' hide Element;
+import 'package:analysis_server/src/services/correction/dart/convert_null_check_to_null_aware_element_or_entry.dart';
 import 'package:analysis_server/src/services/correction/status.dart';
 import 'package:analysis_server/src/services/correction/util.dart';
 import 'package:analysis_server/src/services/refactoring/legacy/refactoring.dart';
@@ -18,11 +19,15 @@ import 'package:analyzer/dart/ast/precedence.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/scope.dart';
+import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/source/source_range.dart';
 import 'package:analyzer/src/dart/analysis/session_helper.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
+import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/utilities/extensions/ast.dart';
 import 'package:analyzer_plugin/src/utilities/extensions/resolved_unit_result.dart';
+import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
 
 /// Returns the [SourceRange] to find conflicting locals in.
@@ -43,16 +48,53 @@ SourceRange _getLocalsConflictingRange(AstNode node) {
 
 /// Returns the source which should replace given invocation with given
 /// arguments.
-String _getMethodSourceForInvocation(
+Future<_InlineMethodResult> _getMethodSourceForInvocation(
   RefactoringStatus status,
+  ChangeBuilder builder,
+  String file,
+  Map<TypeParameterElement, DartType> argumentTypes,
+  Map<TypeParameterElement, DartType> instanceArgumentTypes,
   _SourcePart part,
   CorrectionUtils utils,
   AstNode contextNode,
   Expression? targetExpression,
   List<Expression> arguments,
-) {
+  Set<String> previouslyIntroducedVariableNames,
+  Map<FormalParameterElement, String> parameterToVariableName,
+) async {
   // prepare edits to replace parameters with arguments
+  var conflictingNames = _getNamesConflictingAt(contextNode);
+  conflictingNames.addAll(previouslyIntroducedVariableNames);
   var edits = <SourceEdit>[];
+  var variableDeclarations = <_VariableDeclaration>[];
+  await builder.addDartFileEdit(file, (builder) {
+    part._typeParameters.forEach((
+      TypeParameterElement element,
+      List<SourceRange> typeRange,
+    ) {
+      for (var range in typeRange) {
+        builder.addReplacement(range, (builder) {
+          builder.writeType(argumentTypes[element], shouldWriteDynamic: true);
+        });
+      }
+    });
+    part._instanceTypeParameters.forEach((
+      TypeParameterElement element,
+      List<SourceRange> typeRange,
+    ) {
+      for (var range in typeRange) {
+        builder.addReplacement(range, (builder) {
+          builder.writeType(
+            instanceArgumentTypes[element],
+            shouldWriteDynamic: true,
+            typeParametersInScope:
+                contextNode.enclosingExecutableElement?.typeParameters,
+          );
+        });
+      }
+    });
+  });
+  edits.addAll(builder.sourceChange.edits.expand((edit) => edit.edits));
   part._parameters.forEach((
     FormalParameterElement parameter,
     List<_ParameterOccurrence> occurrences,
@@ -90,6 +132,42 @@ String _getMethodSourceForInvocation(
       argumentSource = parameter.defaultValueCode;
       argumentSource ??= 'null';
     }
+
+    var existingVariableName = parameterToVariableName[parameter];
+    var addVariable =
+        existingVariableName != null ||
+        _shouldIntroduceVariable(argument, occurrences.length);
+    if (addVariable) {
+      // Only add a new variable if we haven't already produced one in a
+      // previous call to this method (we may be called twice, once for
+      // statements and once for the return expression).
+      if (existingVariableName == null) {
+        var originalName = parameter.displayName;
+        if (originalName.isEmpty) {
+          originalName = 'p';
+        }
+        var uniqueName = existingVariableName = _getUniqueName(
+          originalName,
+          conflictingNames,
+        );
+        conflictingNames.add(uniqueName);
+        parameterToVariableName[parameter] = uniqueName;
+
+        // Record the variable declaration to be inserted above the inline code.
+        // We can't insert it now because this might be an expression and not a
+        // block of statements (for example `var a = inlineMe();`).
+        variableDeclarations.add(
+          _VariableDeclaration(uniqueName, argumentSource),
+        );
+      }
+
+      // Update the values used for replacing the expression in the body
+      // to this newly-created variable.
+      argumentPrecedence = Precedence.primary;
+      argumentSource = existingVariableName;
+      argument = null;
+    }
+
     // replace all occurrences of this parameter
     for (var occurrence in occurrences) {
       AstNode nodeToReplace = occurrence.identifier;
@@ -98,7 +176,7 @@ String _getMethodSourceForInvocation(
       if (occurrence.identifier.parent
           case InterpolationExpression interpolation) {
         switch (argument) {
-          case SimpleIdentifier():
+          case SimpleIdentifier() || null:
             occurrenceArgumentSource = argumentSource;
           case SingleStringLiteral(canDiscardSingleQuotes: true):
             nodeToReplace = interpolation;
@@ -114,6 +192,18 @@ String _getMethodSourceForInvocation(
       } else {
         occurrenceArgumentSource = argumentSource;
       }
+
+      // If we're replacing this occurrence with a variable and it's
+      // parenthesized (and the parenthesized expression is only this node)
+      // then we can remove the parens.
+      if (addVariable) {
+        var parent = occurrence.identifier.parent;
+        if (parent is ParenthesizedExpression &&
+            parent.expression == occurrence.identifier) {
+          nodeToReplace = parent;
+        }
+      }
+
       // do replace
       var nodeToReplaceRange = range.offsetBy(
         range.node(nodeToReplace),
@@ -145,19 +235,10 @@ String _getMethodSourceForInvocation(
     }
   }
   // prepare edits to replace conflicting variables
-  var conflictingNames = _getNamesConflictingAt(contextNode);
   part._variables.forEach((VariableElement variable, List<SourceRange> ranges) {
     var originalName = variable.displayName;
     // prepare unique name
-    String uniqueName;
-    {
-      uniqueName = originalName;
-      var uniqueIndex = 2;
-      while (conflictingNames.contains(uniqueName)) {
-        uniqueName = originalName + uniqueIndex.toString();
-        uniqueIndex++;
-      }
-    }
+    var uniqueName = _getUniqueName(originalName, conflictingNames);
     // update references, if name was change
     if (uniqueName != originalName) {
       for (var range in ranges) {
@@ -167,7 +248,8 @@ String _getMethodSourceForInvocation(
   });
   // prepare source with applied arguments
   edits.sort((SourceEdit a, SourceEdit b) => b.offset - a.offset);
-  return SourceEdit.applySequence(part._source, edits);
+  var source = SourceEdit.applySequence(part._source, edits);
+  return _InlineMethodResult(source, variableDeclarations);
 }
 
 /// Returns the names which will shadow or will be shadowed by any declaration
@@ -207,14 +289,51 @@ Set<String> _getNamesConflictingAt(AstNode node) {
   return result;
 }
 
+/// Returns a unique name that can be used instead of [originalName] by
+/// appending a number.
+String _getUniqueName(String originalName, Set<String> conflictingNames) {
+  var uniqueName = originalName;
+  var uniqueIndex = 2;
+  while (conflictingNames.contains(uniqueName)) {
+    uniqueName = originalName + uniqueIndex.toString();
+    uniqueIndex++;
+  }
+  return uniqueName;
+}
+
+/// Returns whether the use of this expression should be assigned to a variable
+/// to avoid potential side-effects of evaluating the expression multiple times
+/// or re-ordering by inlining further down the code.
+bool _shouldIntroduceVariable(Expression? expression, int occurrenceCount) {
+  // If it's already a variable, never introduce a new one.
+  if (expression?.canonicalElement is VariableElement) {
+    return false;
+  }
+  // If it's a literal, introduce a variable if it's used more than once.
+  if (expression is Literal) {
+    return occurrenceCount > 1;
+  }
+  // If it's parenthesized, check the expression.
+  if (expression is ParenthesizedExpression) {
+    return _shouldIntroduceVariable(expression.expression, occurrenceCount);
+  }
+  // If it's a binary expression, check if either side needs a variable.
+  if (expression is BinaryExpression) {
+    return _shouldIntroduceVariable(expression.leftOperand, occurrenceCount) ||
+        _shouldIntroduceVariable(expression.rightOperand, occurrenceCount);
+  }
+  // Otherwise, introduce a variable unless there was no expression.
+  return expression != null;
+}
+
 /// [InlineMethodRefactoring] implementation.
 class InlineMethodRefactoringImpl extends RefactoringImpl
     implements InlineMethodRefactoring {
   final SearchEngine searchEngine;
-  final ResolvedUnitResult resolveResult;
+  final ResolvedUnitResult unitResult;
   final int offset;
   final AnalysisSessionHelper sessionHelper;
-  late CorrectionUtils utils;
+  final CorrectionUtils utils;
   late SourceChange change;
 
   @override
@@ -234,13 +353,16 @@ class InlineMethodRefactoringImpl extends RefactoringImpl
   final List<_ReferenceProcessor> _referenceProcessors = [];
   final Set<Element> _alreadyMadeAsync = <Element>{};
 
-  InlineMethodRefactoringImpl(
-    this.searchEngine,
-    this.resolveResult,
-    this.offset,
-  ) : sessionHelper = AnalysisSessionHelper(resolveResult.session) {
-    utils = CorrectionUtils(resolveResult);
-  }
+  /// Tracks variable names being introduced by the block they're being added
+  /// to.
+  ///
+  /// Used to prevent reusing the same new variable names when inlinine multiple
+  /// calls into the same block.
+  final Map<AstNode, Set<String>> _introducedVariablesByBlock = {};
+
+  InlineMethodRefactoringImpl(this.searchEngine, this.unitResult, this.offset)
+    : sessionHelper = AnalysisSessionHelper(unitResult.session),
+      utils = CorrectionUtils(unitResult);
 
   @override
   String? get className {
@@ -266,7 +388,7 @@ class InlineMethodRefactoringImpl extends RefactoringImpl
   }
 
   @override
-  Future<RefactoringStatus> checkFinalConditions() {
+  Future<RefactoringStatus> checkFinalConditions() async {
     change = SourceChange(refactoringName);
     var result = RefactoringStatus();
     // check for compatibility of "deleteSource" and "inlineAll"
@@ -275,7 +397,7 @@ class InlineMethodRefactoringImpl extends RefactoringImpl
     }
     // prepare changes
     for (var processor in _referenceProcessors) {
-      processor._process(result);
+      await processor._process(result);
     }
     // delete method
     if (deleteSource && inlineAll) {
@@ -291,7 +413,7 @@ class InlineMethodRefactoringImpl extends RefactoringImpl
       );
     }
     // done
-    return Future.value(result);
+    return result;
   }
 
   @override
@@ -303,6 +425,12 @@ class InlineMethodRefactoringImpl extends RefactoringImpl
       return result;
     }
     var methodElement = _methodElement!;
+
+    // Disallow inlining SDK code.
+    if (methodElement.library.isInSdk) {
+      result = RefactoringStatus.fatal("Can't inline SDK code.");
+      return result;
+    }
 
     // Disallow inlining an augmented method.
     var methodFragment = methodElement.firstFragment;
@@ -324,7 +452,7 @@ class InlineMethodRefactoringImpl extends RefactoringImpl
     }
 
     // analyze method body
-    result.addStatus(_prepareMethodParts());
+    result.addStatus(await _prepareMethodParts());
     // process references
     var references = await searchEngine.searchReferences(methodElement);
     _referenceProcessors.clear();
@@ -352,7 +480,7 @@ class InlineMethodRefactoringImpl extends RefactoringImpl
       'Method declaration or reference must be selected to activate this refactoring.',
     );
 
-    var selectedNode = resolveResult.unit.nodeCovering(offset: offset);
+    var selectedNode = unitResult.unit.nodeCovering(offset: offset);
     Element? element;
 
     if (selectedNode is FunctionDeclaration) {
@@ -384,13 +512,36 @@ class InlineMethodRefactoringImpl extends RefactoringImpl
     return RefactoringStatus();
   }
 
-  _SourcePart _createSourcePart(SourceRange range) {
+  Future<_SourcePart> _createSourcePart(SourceRange range) async {
     var source = _methodUtils.getRangeText(range);
 
-    var prefix = resolveResult.linePrefix(range.offset);
+    var prefix = unitResult.linePrefix(range.offset);
     var result = _SourcePart(range.offset, source, prefix);
+    var unit = await sessionHelper.getResolvedUnitByElement(_methodElement!);
+    var inliningMethod = unit?.unit.nodeCovering(
+      offset: _methodElement!.firstFragment.offset,
+    );
+    if (inliningMethod == null) {
+      return result;
+    }
+    Scope? scope;
+    if (inliningMethod
+        case MethodDeclaration(:var body) ||
+            FunctionDeclaration(
+              functionExpression: FunctionExpression(:var body),
+            ) ||
+            FunctionDeclarationStatement(
+              functionDeclaration: FunctionDeclaration(
+                functionExpression: FunctionExpression(:var body),
+              ),
+            ) when body is BlockFunctionBody) {
+      scope = ScopeResolverVisitor.getNodeNameScope(body.block);
+    }
     // Remember parameters and variables occurrences.
-    _methodUnit.accept(_VariablesVisitor(_methodElement!, range, result));
+    _methodUnit.accept(
+      _VariablesVisitor(_methodElement!, range, result, scope),
+    );
+
     // Done.
     return result;
   }
@@ -408,7 +559,7 @@ class InlineMethodRefactoringImpl extends RefactoringImpl
     );
 
     // prepare selected SimpleIdentifier
-    var selectedNode = resolveResult.unit.nodeCovering(offset: offset);
+    var selectedNode = unitResult.unit.nodeCovering(offset: offset);
     Element? element;
     if (selectedNode is FunctionDeclaration) {
       element = selectedNode.declaredFragment?.element;
@@ -459,13 +610,13 @@ class InlineMethodRefactoringImpl extends RefactoringImpl
 
   /// Analyze [_methodBody] to fill [_methodExpressionPart] and
   /// [_methodStatementsPart].
-  RefactoringStatus _prepareMethodParts() {
+  Future<RefactoringStatus> _prepareMethodParts() async {
     var result = RefactoringStatus();
     if (_methodBody is ExpressionFunctionBody) {
       var body = _methodBody as ExpressionFunctionBody;
       _methodExpression = body.expression;
       var methodExpressionRange = range.node(_methodExpression!);
-      _methodExpressionPart = _createSourcePart(methodExpressionRange);
+      _methodExpressionPart = await _createSourcePart(methodExpressionRange);
     } else if (_methodBody is BlockFunctionBody) {
       var body = (_methodBody as BlockFunctionBody).block;
       List<Statement> statements = body.statements;
@@ -476,7 +627,9 @@ class InlineMethodRefactoringImpl extends RefactoringImpl
           _methodExpression = lastStatement.expression;
           if (_methodExpression != null) {
             var methodExpressionRange = range.node(_methodExpression!);
-            _methodExpressionPart = _createSourcePart(methodExpressionRange);
+            _methodExpressionPart = await _createSourcePart(
+              methodExpressionRange,
+            );
           }
           // exclude "return" statement from statements
           statements = statements.sublist(0, statements.length - 1);
@@ -486,7 +639,7 @@ class InlineMethodRefactoringImpl extends RefactoringImpl
           var statementsRange = _methodUtils.getLinesRangeStatements(
             statements,
           );
-          _methodStatementsPart = _createSourcePart(statementsRange);
+          _methodStatementsPart = await _createSourcePart(statementsRange);
         }
       }
       // check if more than one return
@@ -496,6 +649,15 @@ class InlineMethodRefactoringImpl extends RefactoringImpl
     }
     return result;
   }
+}
+
+/// The result of inlining a method is a combination of new code to inline and
+/// a set of variables to be declared.
+class _InlineMethodResult {
+  final String source;
+  final List<_VariableDeclaration> variableDeclarations;
+
+  _InlineMethodResult(this.source, this.variableDeclarations);
 }
 
 class _ParameterOccurrence {
@@ -516,6 +678,8 @@ class _ParameterOccurrence {
 class _ReferenceProcessor {
   final InlineMethodRefactoringImpl ref;
   final SearchMatch reference;
+  final Map<TypeParameterElement, DartType> _argumentTypes = {};
+  final Map<TypeParameterElement, DartType> _instanceArgumentTypes = {};
 
   late Element refElement;
   late CorrectionUtils _refUtils;
@@ -566,6 +730,12 @@ class _ReferenceProcessor {
     if (parent is Statement) {
       return parent2 is Block;
     }
+    // OK, if statement in block in an await expression
+    if (parent is AwaitExpression) {
+      if (parent2 is ExpressionStatement) {
+        return parent2.parent is Block;
+      }
+    }
     // maybe assignment, in block
     if (parent is AssignmentExpression) {
       var assignment = parent;
@@ -590,13 +760,13 @@ class _ReferenceProcessor {
     return false;
   }
 
-  void _inlineMethodInvocation(
+  Future<void> _inlineMethodInvocation(
     RefactoringStatus status,
     Expression usage,
     bool cascaded,
     Expression? target,
     List<Expression> arguments,
-  ) {
+  ) async {
     // we don't support cascade
     if (cascaded) {
       status.addError(
@@ -606,19 +776,55 @@ class _ReferenceProcessor {
     }
     // can we inline method body into "methodUsage" block?
     if (_canInlineBody(usage)) {
+      // Get any variables we're previously introduced in this scope so we don't
+      // redeclare the same name.
+      var surroundingBlock = usage.thisOrAncestorMatching(
+        (node) => node is Block || node is LibraryFragment,
+      );
+      var introducedVariableNames = surroundingBlock != null
+          ? ref._introducedVariablesByBlock.putIfAbsent(
+              surroundingBlock,
+              () => {},
+            )
+          // Types allow for no block but in practice we should never hit this
+          // so just track into an empty list.
+          : <String>{};
+
+      // Track which parameters have been assigned to which variables, so we
+      // can reuse the same variable when the same parameter appears in both
+      // the statements part and the expression part.
+      var parameterToVariableName = <FormalParameterElement, String>{};
+
       // insert non-return statements
       if (ref._methodStatementsPart != null) {
         // prepare statements source for invocation
-        var source = _getMethodSourceForInvocation(
+        var result = await _getMethodSourceForInvocation(
           status,
+          ChangeBuilder(
+            session: ref.sessionHelper.session,
+            defaultEol: _refUtils.endOfLine,
+          ),
+          ref.unitResult.path,
+          _argumentTypes,
+          _instanceArgumentTypes,
           ref._methodStatementsPart!,
           _refUtils,
           usage,
           target,
           arguments,
+          introducedVariableNames,
+          parameterToVariableName,
         );
-        source = _refUtils.replaceSourceIndent(
-          source,
+
+        // If there are variable declarations, insert them before the statement.
+        _insertVariableDeclarations(
+          result.variableDeclarations,
+          introducedVariableNames,
+          _refLineRange,
+        );
+
+        var source = _refUtils.replaceSourceIndent(
+          result.source,
           ref._methodStatementsPart!._prefix,
           _refPrefix,
           includeLeading: true,
@@ -634,14 +840,32 @@ class _ReferenceProcessor {
       // replace invocation with return expression
       if (ref._methodExpressionPart != null) {
         // prepare expression source for invocation
-        var source = _getMethodSourceForInvocation(
+        var result = await _getMethodSourceForInvocation(
           status,
+          ChangeBuilder(
+            session: ref.sessionHelper.session,
+            defaultEol: _refUtils.endOfLine,
+          ),
+          ref.unitResult.path,
+          _argumentTypes,
+          _instanceArgumentTypes,
           ref._methodExpressionPart!,
           _refUtils,
           usage,
           target,
           arguments,
+          introducedVariableNames,
+          parameterToVariableName,
         );
+
+        // If there are variable declarations, insert them before the statement.
+        _insertVariableDeclarations(
+          result.variableDeclarations,
+          introducedVariableNames,
+          _refLineRange,
+        );
+
+        var source = result.source;
 
         // If we inline the method expression into a string interpolation,
         // and the expression is not a single identifier, wrap it into `{}`.
@@ -673,6 +897,11 @@ class _ReferenceProcessor {
           // remove the duplicate await keyword and the following whitespace.
           source = source.substring(awaitKeyword.length + 1);
         }
+        source = _refUtils.replaceSourceIndent(
+          source,
+          ref._methodExpressionPart!._prefix,
+          _refPrefix,
+        );
         var edit = newSourceEdit_range(nodeToReplaceRange, source);
         _addRefEdit(edit);
       } else {
@@ -696,7 +925,31 @@ class _ReferenceProcessor {
     _addRefEdit(edit);
   }
 
-  void _process(RefactoringStatus status) {
+  /// Inserts [variableDeclarations] in front of the code at [refLineRange].
+  void _insertVariableDeclarations(
+    List<_VariableDeclaration> variableDeclarations,
+    Set<String> introducedVariableNames,
+    SourceRange? refLineRange,
+  ) {
+    if (variableDeclarations.isEmpty) return;
+
+    var offset = _refLineRange?.offset ?? _node.offset;
+    var insertOffset = _refUtils.getLineThis(offset);
+
+    var buffer = StringBuffer();
+    for (var variable in variableDeclarations) {
+      // Record the name as used so we don't reuse it at other call sites in the
+      // block
+      introducedVariableNames.add(variable.name);
+
+      buffer.write(
+        '${_refPrefix}var ${variable.name} = ${variable.initializer};${_refUtils.endOfLine}',
+      );
+    }
+    _addRefEdit(SourceEdit(insertOffset, 0, buffer.toString()));
+  }
+
+  Future<void> _process(RefactoringStatus status) async {
     var nodeParent = _node.parent;
     // may be only single place should be inlined
     if (!_shouldProcess()) {
@@ -707,6 +960,7 @@ class _ReferenceProcessor {
     if (nodeParent is Combinator) {
       return;
     }
+    _processTypeArguments(_node);
     // If the element being inlined is async, ensure that the function
     // body that encloses the method is also async.
     if (ref._methodElement!.firstFragment.isAsynchronous) {
@@ -742,7 +996,7 @@ class _ReferenceProcessor {
       var invocation = nodeParent;
       var target = invocation.target;
       List<Expression> arguments = invocation.argumentList.arguments;
-      _inlineMethodInvocation(
+      await _inlineMethodInvocation(
         status,
         invocation,
         invocation.isCascaded,
@@ -784,7 +1038,13 @@ class _ReferenceProcessor {
           arguments.add(assignment.rightHandSide);
         }
         // inline body
-        _inlineMethodInvocation(status, usage, cascade, target, arguments);
+        await _inlineMethodInvocation(
+          status,
+          usage,
+          cascade,
+          target,
+          arguments,
+        );
         return;
       }
       // not invocation, just reference to function
@@ -810,6 +1070,28 @@ class _ReferenceProcessor {
       // do insert
       var edit = newSourceEdit_range(range.node(_node), source);
       _addRefEdit(edit);
+    }
+  }
+
+  void _processTypeArguments(SimpleIdentifier node) {
+    if (node.parent case MethodInvocation(:var typeArgumentTypes?)) {
+      _argumentTypes.addAll({
+        for (var (index, element) in ref._methodElement!.typeParameters.indexed)
+          element: typeArgumentTypes[index],
+      });
+    }
+    if (node.parent case MethodInvocation(
+      realTarget: Expression(
+        staticType: ParameterizedType(
+          :var typeArguments,
+          :TypeParameterizedElement element,
+        ),
+      ),
+    )) {
+      _instanceArgumentTypes.addAll({
+        for (var (index, element) in element.typeParameters.indexed)
+          element: typeArguments[index],
+      });
     }
   }
 
@@ -857,6 +1139,11 @@ class _SourcePart {
   final Map<FormalParameterElement, List<_ParameterOccurrence>> _parameters =
       {};
 
+  final Map<TypeParameterElement, List<SourceRange>> _typeParameters = {};
+
+  final Map<TypeParameterElement, List<SourceRange>> _instanceTypeParameters =
+      {};
+
   /// The occurrences of the method local variables.
   final Map<VariableElement, List<SourceRange>> _variables = {};
 
@@ -876,16 +1163,21 @@ class _SourcePart {
   }
 
   void addImplicitClassNameOffset(String className, int offset) {
-    var offsets = _implicitClassNameOffsets[className];
-    if (offsets == null) {
-      offsets = [];
-      _implicitClassNameOffsets[className] = offsets;
-    }
-    offsets.add(offset - _base);
+    _implicitClassNameOffsets
+        .putIfAbsent(className, () => [])
+        .add(offset - _base);
   }
 
   void addImplicitThisOffset(int offset) {
     _implicitThisOffsets.add(offset - _base);
+  }
+
+  void addInstanceTypeParameter(
+    TypeParameterElement element,
+    SourceRange identifierRange,
+  ) {
+    identifierRange = range.offsetBy(identifierRange, -_base);
+    _instanceTypeParameters.putIfAbsent(element, () => []).add(identifierRange);
   }
 
   void addParameterOccurrence({
@@ -894,30 +1186,38 @@ class _SourcePart {
     required Precedence parentPrecedence,
     required bool inStringInterpolation,
   }) {
-    var occurrences = _parameters[parameter];
-    if (occurrences == null) {
-      occurrences = [];
-      _parameters[parameter] = occurrences;
-    }
-    occurrences.add(
-      _ParameterOccurrence(
-        baseOffset: _base,
-        parentPrecedence: parentPrecedence,
-        identifier: identifier,
-        inStringInterpolation: inStringInterpolation,
-      ),
-    );
+    _parameters
+        .putIfAbsent(parameter, () => [])
+        .add(
+          _ParameterOccurrence(
+            baseOffset: _base,
+            parentPrecedence: parentPrecedence,
+            identifier: identifier,
+            inStringInterpolation: inStringInterpolation,
+          ),
+        );
+  }
+
+  void addTypeParameter(
+    TypeParameterElement element,
+    SourceRange identifierRange,
+  ) {
+    identifierRange = range.offsetBy(identifierRange, -_base);
+    _typeParameters.putIfAbsent(element, () => []).add(identifierRange);
   }
 
   void addVariable(VariableElement element, SourceRange identifierRange) {
-    var ranges = _variables[element];
-    if (ranges == null) {
-      ranges = [];
-      _variables[element] = ranges;
-    }
     identifierRange = range.offsetBy(identifierRange, -_base);
-    ranges.add(identifierRange);
+    _variables.putIfAbsent(element, () => []).add(identifierRange);
   }
+}
+
+/// Represents a variable that needs to be declared before inlining.
+class _VariableDeclaration {
+  final String name;
+  final String initializer;
+
+  _VariableDeclaration(this.name, this.initializer);
 }
 
 /// A visitor that fills [_SourcePart] with fields, parameters and variables.
@@ -931,7 +1231,15 @@ class _VariablesVisitor extends GeneralizingAstVisitor<void> {
   /// The [_SourcePart] to record reference into.
   final _SourcePart result;
 
-  _VariablesVisitor(this.methodElement, this.bodyRange, this.result);
+  /// The body [Scope] of the method being inlined.
+  final Scope? scope;
+
+  _VariablesVisitor(
+    this.methodElement,
+    this.bodyRange,
+    this.result,
+    this.scope,
+  );
 
   @override
   void visitNode(AstNode node) {
@@ -948,7 +1256,7 @@ class _VariablesVisitor extends GeneralizingAstVisitor<void> {
     if (bodyRange.covers(nodeRange)) {
       _addMemberQualifier(node);
       _addParameter(node);
-      _addVariable(node);
+      _addVariable(getLocalVariableElement(node), node);
     }
   }
 
@@ -961,13 +1269,29 @@ class _VariablesVisitor extends GeneralizingAstVisitor<void> {
   }
 
   @override
+  void visitTypeAnnotation(TypeAnnotation node) {
+    var nodeRange = range.node(node);
+    InstanceElement? instanceElement;
+    if (methodElement case MethodElement(:InstanceElement enclosingElement)) {
+      instanceElement = enclosingElement;
+    }
+    if (node.typeOrThrow case TypeParameterType(
+      :var element,
+    ) when bodyRange.covers(nodeRange)) {
+      if (methodElement.typeParameters.contains(element)) {
+        result.addTypeParameter(element, nodeRange);
+      } else if (instanceElement?.typeParameters.contains(element) ?? false) {
+        result.addInstanceTypeParameter(element, nodeRange);
+      }
+    }
+    super.visitTypeAnnotation(node);
+  }
+
+  @override
   void visitVariableDeclaration(VariableDeclaration node) {
     var nameRange = range.token(node.name);
     if (bodyRange.covers(nameRange)) {
-      var declaredElement = node.declaredFragment?.element;
-      if (declaredElement != null) {
-        result.addVariable(declaredElement, nameRange);
-      }
+      _addVariable(node.declaredFragment?.element, node);
     }
 
     super.visitVariableDeclaration(node);
@@ -1023,11 +1347,25 @@ class _VariablesVisitor extends GeneralizingAstVisitor<void> {
     );
   }
 
-  void _addVariable(SimpleIdentifier node) {
-    var variableElement = getLocalVariableElement(node);
-    if (variableElement != null) {
-      var nodeRange = range.node(node);
-      result.addVariable(variableElement, nodeRange);
+  void _addVariable(VariableElement? element, AstNode node) {
+    if (element is LocalVariableElement) {
+      if (scope == null) {
+        // No block scope so all variables will be self-contained
+        return;
+      }
+      if (scope!.lookup(element.displayName) case ScopeLookupResult(
+        :var getter,
+        :var setter,
+      ) when getter == null && setter == null) {
+        // No variable with the same name at the block scope
+        return;
+      }
+
+      // Here we found a variable with that name in the block scope
+      var nodeRange = node is VariableDeclaration
+          ? range.token(node.name)
+          : range.node(node);
+      result.addVariable(element, nodeRange);
     }
   }
 }

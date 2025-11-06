@@ -5,6 +5,7 @@
 import 'dart:math';
 
 import 'package:_fe_analyzer_shared/src/scanner/token.dart';
+import 'package:analysis_server/src/services/completion/dart/feature_computer.dart';
 import 'package:analyzer/dart/ast/precedence.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
@@ -17,8 +18,8 @@ import 'package:analyzer/src/utilities/extensions/ast.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
 import 'package:path/path.dart' as path;
 
-/// Climbs up [PrefixedIdentifier] and [PropertyAccess] nodes that include
-/// [node].
+/// Climbs up [PrefixedIdentifier], [PropertyAccess], and
+/// [DotShorthandPropertyAccess] nodes that include [node].
 Expression climbPropertyAccess(Expression node) {
   while (true) {
     var parent = node.parent;
@@ -30,8 +31,32 @@ Expression climbPropertyAccess(Expression node) {
       node = parent;
       continue;
     }
+    if (parent is DotShorthandPropertyAccess && parent.propertyName == node) {
+      node = parent;
+      continue;
+    }
     return node;
   }
+}
+
+/// Computes the [InterfaceElement] of the context type of a given
+/// [dotShorthandNode].
+///
+/// Returns `null` if no context type exists or the context type isn't an
+/// [InterfaceType].
+InterfaceElement? computeDotShorthandContextTypeElement(
+  AstNode dotShorthandNode,
+  LibraryElement libraryElement,
+) {
+  var featureComputer = FeatureComputer(
+    libraryElement.typeSystem,
+    libraryElement.typeProvider,
+  );
+  var contextType = featureComputer.computeContextType(
+    dotShorthandNode,
+    dotShorthandNode.offset,
+  );
+  return contextType is InterfaceType ? contextType.element : null;
 }
 
 /// Return references to the [element] inside the [root] node.

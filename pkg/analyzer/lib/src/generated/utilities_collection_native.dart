@@ -6,11 +6,16 @@
 /// available.
 library;
 
-import 'package:analyzer/src/summary2/data_writer.dart';
+import 'package:analyzer/src/binary/binary_reader.dart';
+import 'package:analyzer/src/binary/binary_writer.dart';
 
 /// The set of [Enum] values, backed by [int].
 extension type EnumSet<T extends Enum>(int _bits) {
   EnumSet.empty() : this(0);
+
+  factory EnumSet.read(BinaryReader reader) {
+    return EnumSet(reader.readInt64());
+  }
 
   /// Whether [constant] is present.
   bool operator [](T constant) {
@@ -34,7 +39,7 @@ extension type EnumSet<T extends Enum>(int _bits) {
     }
   }
 
-  void write(BufferedSink writer) {
+  void write(BinaryWriter writer) {
     writer.writeInt64(_bits);
   }
 

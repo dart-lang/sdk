@@ -5,10 +5,6 @@
 part of "developer.dart";
 
 @patch
-@pragma("vm:external-name", "Timeline_isDartStreamEnabled")
-external bool _isDartStreamEnabled();
-
-@patch
 @pragma("vm:external-name", "Timeline_getTraceClock")
 external int _getTraceClock();
 

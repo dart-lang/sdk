@@ -27,16 +27,13 @@ void platformsValidator(PubspecValidationContext ctx) {
   }
   // The 'platforms' field must be a map
   if (platforms is! YamlMap) {
-    ctx.reportErrorForNode(
-      platforms,
-      PubspecWarningCode.INVALID_PLATFORMS_FIELD,
-    );
+    ctx.reportErrorForNode(platforms, PubspecWarningCode.invalidPlatformsField);
     return;
   }
   // Each key under 'platforms' must be a supported platform.
   for (var platform in platforms.nodeMap.keys) {
     if (platform is! YamlScalar || !_knownPlatforms.contains(platform.value)) {
-      ctx.reportErrorForNode(platform, PubspecWarningCode.UNKNOWN_PLATFORM, [
+      ctx.reportErrorForNode(platform, PubspecWarningCode.unknownPlatform, [
         switch (platform.value) {
           (String s) => s,
           (num n) => n,
@@ -48,7 +45,7 @@ void platformsValidator(PubspecValidationContext ctx) {
   // Values under the platforms keys are not allowed.
   for (var v in platforms.nodeMap.values) {
     if (v is! YamlScalar || v.value != null) {
-      ctx.reportErrorForNode(v, PubspecWarningCode.PLATFORM_VALUE_DISALLOWED);
+      ctx.reportErrorForNode(v, PubspecWarningCode.platformValueDisallowed);
     }
   }
 }

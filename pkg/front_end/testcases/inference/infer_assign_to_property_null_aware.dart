@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/*@testedFeatures=inference*/
 library test;
 
 class A {}
@@ -22,43 +21,33 @@ class Test {
   B member;
 
   static void test(Test? t) {
-    /*@type=Test?*/ /*@promotedType=Test*/ t?. /*@target=Test.member*/
-        member = /*@typeArgs=B*/ f();
+    t?.member = f();
 
-    t?. /*@target=Test.member*/ /*@target=Test.member*/ member ??= /*@typeArgs=B*/ f();
+    t?.member ??= f();
 
-    t?. /*@target=Test.member*/ /*@target=Test.member*/ member /*@target=B.+*/ += /*@typeArgs=C*/ f();
+    t?.member += f();
 
-    t?. /*@target=Test.member*/ /*@target=Test.member*/ member /*@target=B.**/ *= /*@typeArgs=B*/ f();
+    t?.member *= f();
 
-    t?. /*@target=Test.member*/ /*@target=Test.member*/ member /*@target=B.&*/ &= /*@typeArgs=A*/ f();
+    t?.member &= f();
 
-    /*@target=B.-*/ --t
-        ?. /*@target=Test.member*/ /*@target=Test.member*/ member;
+    --t?.member;
 
-    t?. /*@target=Test.member*/ /*@target=Test.member*/ member /*@target=B.-*/ --;
+    t?.member--;
 
-    var /*@type=B?*/ v1 =
-        /*@type=Test?*/ /*@promotedType=Test*/ t?. /*@target=Test.member*/
-            member = /*@typeArgs=B*/ f();
+    var v1 = t?.member = f();
 
-    var /*@type=B?*/ v2 = t
-        ?. /*@target=Test.member*/ /*@target=Test.member*/ member ??= /*@typeArgs=B*/ f();
+    var v2 = t?.member ??= f();
 
-    var /*@type=B?*/ v3 = t
-        ?. /*@target=Test.member*/ /*@target=Test.member*/ member /*@target=B.+*/ += /*@typeArgs=C*/ f();
+    var v3 = t?.member += f();
 
-    var /*@type=B?*/ v4 = t
-        ?. /*@target=Test.member*/ /*@target=Test.member*/ member /*@target=B.**/ *= /*@typeArgs=B*/ f();
+    var v4 = t?.member *= f();
 
-    var /*@type=C?*/ v5 = t
-        ?. /*@target=Test.member*/ /*@target=Test.member*/ member /*@target=B.&*/ &= /*@typeArgs=A*/ f();
+    var v5 = t?.member &= f();
 
-    var /*@type=B?*/ v6 = /*@target=B.-*/ --t
-        ?. /*@target=Test.member*/ /*@target=Test.member*/ member;
+    var v6 = --t?.member;
 
-    var /*@type=B?*/ v7 = t
-        ?. /*@target=Test.member*/ /*@target=Test.member*/ member /*@target=B.-*/ --;
+    var v7 = t?.member--;
   }
 }
 

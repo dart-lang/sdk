@@ -6,6 +6,19 @@ import 'package:analysis_server/src/computer/computer_documentation.dart';
 import 'package:collection/collection.dart';
 import 'package:path/path.dart' as path;
 
+/// Options for which parameter names to show Inlay Hints for.
+enum InlayHintsParameterNamesMode {
+  /// Never show hints for parameter names.
+  none,
+
+  /// Only show hints for parameter names with literal values, since if they
+  /// are identifiers, they probably already describe the parameter.
+  literal,
+
+  /// Always show hints for parameter names.
+  all,
+}
+
 /// Client configuration for Dart CodeLenses.
 ///
 /// Defaults are set per-CodeLens but the user can override these by enabling
@@ -21,29 +34,28 @@ import 'package:path/path.dart' as path;
 /// }
 /// ```
 class LspClientCodeLensConfiguration {
-  final bool? _userOverride;
-  final Map<String, Object?>? _codeLensSettings;
+  final bool? _boolean;
+  final Map<String, Object?>? _map;
 
   LspClientCodeLensConfiguration(Object? userPreference)
-    : _userOverride = userPreference is bool ? userPreference : null,
-      _codeLensSettings =
-          userPreference is Map<String, Object?> ? userPreference : null;
+    : _boolean = userPreference is bool ? userPreference : null,
+      _map = userPreference is Map<String, Object?> ? userPreference : null;
 
   /// Whether the "Go to Augmentation" CodeLens is enabled.
-  bool get augmentation => _getUserPreference('augmentation', true);
+  bool get augmentation => _getEnabled('augmentation', true);
 
   /// Whether the "Go to Augmented" CodeLens is enabled.
-  bool get augmented => _getUserPreference('augmented', true);
+  bool get augmented => _getEnabled('augmented', true);
 
-  bool _getUserPreference(String name, bool defaultValue) {
-    if (_userOverride != null) {
-      return _userOverride;
+  bool _getEnabled(String name, bool defaultValue) {
+    if (_boolean != null) {
+      return _boolean;
     }
-    return defaultValue
-        // Default true, enable if not explicit false.
-        ? (_codeLensSettings?[name] != false)
-        // Default false, enable only if explicit true.
-        : (_codeLensSettings?[name] == true);
+
+    return switch (_map?[name]) {
+      bool enabled => enabled,
+      _ => defaultValue,
+    };
   }
 }
 
@@ -145,14 +157,13 @@ class LspClientConfiguration {
 
   /// Gets the path for the WorkspaceFolder closest to [resourcePath].
   String? _getWorkspaceFolderPath(String resourcePath) {
-    var candidates =
-        _resourceSettings.keys
-            .where(
-              (wfPath) =>
-                  wfPath == _normaliseFolderPath(resourcePath) ||
-                  pathContext.isWithin(wfPath, resourcePath),
-            )
-            .toList();
+    var candidates = _resourceSettings.keys
+        .where(
+          (wfPath) =>
+              wfPath == _normaliseFolderPath(resourcePath) ||
+              pathContext.isWithin(wfPath, resourcePath),
+        )
+        .toList();
     candidates.sort((a, b) => -a.length.compareTo(b.length));
     return candidates.firstOrNull;
   }
@@ -162,6 +173,91 @@ class LspClientConfiguration {
       filePath.replaceAll(_trailingSlashPattern, '');
 }
 
+/// Client configuration for Dart Inlay Hints.
+///
+/// Defaults to enabled for all hint types, but the user can override these by
+/// enabling all, disabling all, or setting their own individual preferences.
+///
+/// ```js
+/// "dart.inlayHints": true, // Enables all Inlay Hints
+///
+/// "dart.inlayHints": false, // Disables all Inlay Hints
+///
+/// "dart.inlayHints": {
+///   "parameterNames": { "enabled": "literal" },
+///   "parameterTypes": { "enabled": true },
+///   "returnTypes": { "enabled": false },
+///   "typeArguments": { "enabled": false },
+///   "variableTypes": { "enabled": true }
+/// }
+/// ```
+class LspClientInlayHintsConfiguration {
+  late InlayHintsParameterNamesMode _parameterNames;
+  late bool _parameterTypes;
+  late bool _returnTypes;
+  late bool _typeArguments;
+  late bool _variableTypes;
+
+  LspClientInlayHintsConfiguration(Object? userPreference) {
+    var map = userPreference is Map<String, Object?> ? userPreference : null;
+    var boolean = userPreference is bool ? userPreference : null;
+
+    _parameterNames = _getParameterNamesMode(
+      map,
+      boolean ?? true
+          ? InlayHintsParameterNamesMode.all
+          : InlayHintsParameterNamesMode.none,
+    );
+    _parameterTypes = _getEnabled(map, 'parameterTypes', boolean ?? true);
+    _returnTypes = _getEnabled(map, 'returnTypes', boolean ?? true);
+    _typeArguments = _getEnabled(map, 'typeArguments', boolean ?? true);
+    _variableTypes = _getEnabled(map, 'variableTypes', boolean ?? true);
+  }
+
+  /// Which kind of parameter names to show inlay hints for.
+  InlayHintsParameterNamesMode get parameterNamesMode => _parameterNames;
+
+  /// Whether parameter type inlay hints are enabled.
+  bool get parameterTypesEnabled => _parameterTypes;
+
+  /// Whether return type inlay hints are enabled.
+  bool get returnTypesEnabled => _returnTypes;
+
+  /// Whether type argument inlay hints are enabled.
+  bool get typeArgumentsEnabled => _typeArguments;
+
+  /// Whether variable type inlay hints are enabled.
+  bool get variableTypesEnabled => _variableTypes;
+
+  bool _getEnabled(Map<String, Object?>? map, String key, bool defaultValue) {
+    return switch (map?[key]) {
+      bool enabled => enabled,
+      {'enabled': bool enabled} => enabled,
+      _ => defaultValue,
+    };
+  }
+
+  /// The mode for inlay hints on parameter names.
+  InlayHintsParameterNamesMode _getParameterNamesMode(
+    Map<String, Object?>? map,
+    InlayHintsParameterNamesMode defaultMode,
+  ) {
+    return switch (map?['parameterNames']) {
+      bool enabled || {'enabled': bool enabled} =>
+        enabled
+            ? InlayHintsParameterNamesMode.all
+            : InlayHintsParameterNamesMode.none,
+      String mode || {'enabled': String mode} => switch (mode) {
+        'none' => InlayHintsParameterNamesMode.none,
+        'literal' => InlayHintsParameterNamesMode.literal,
+        'all' => InlayHintsParameterNamesMode.all,
+        _ => InlayHintsParameterNamesMode.all,
+      },
+      _ => defaultMode,
+    };
+  }
+}
+
 /// Wraps the client (editor) configuration to provide stronger typing and
 /// handling of default values where a setting has not been supplied.
 ///
@@ -169,6 +265,9 @@ class LspClientConfiguration {
 /// level (they will be ignored at the resource level).
 class LspGlobalClientConfiguration extends LspResourceClientConfiguration {
   late final codeLens = LspClientCodeLensConfiguration(_settings['codeLens']);
+  late final inlayHints = LspClientInlayHintsConfiguration(
+    _settings['inlayHints'],
+  );
 
   LspGlobalClientConfiguration(Map<String, Object?> settings)
     : super(settings, null);
@@ -233,7 +332,7 @@ class LspGlobalClientConfiguration extends LspResourceClientConfiguration {
 
   // Whether diagnostics should be generated for all `TODO` comments.
   bool get showAllTodos =>
-      _settings['showTodos'] is bool ? _settings['showTodos'] as bool : false;
+      _settings['showTodos'] is bool && _settings['showTodos'] as bool;
 
   /// A specific set of `TODO` comments that should generate diagnostics.
   ///
@@ -241,13 +340,12 @@ class LspGlobalClientConfiguration extends LspResourceClientConfiguration {
   ///
   /// [showAllTodos] should be checked first, as this will return an empty
   /// set if `showTodos` is a boolean.
-  Set<String> get showTodoTypes =>
-      _settings['showTodos'] is List
-          ? (_settings['showTodos'] as List)
-              .cast<String>()
-              .map((kind) => kind.toUpperCase())
-              .toSet()
-          : const {};
+  Set<String> get showTodoTypes => _settings['showTodos'] is List
+      ? (_settings['showTodos'] as List)
+            .cast<String>()
+            .map((kind) => kind.toUpperCase())
+            .toSet()
+      : const {};
 }
 
 /// Wraps the client (editor) configuration for a specific resource.

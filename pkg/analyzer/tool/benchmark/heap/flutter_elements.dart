@@ -100,14 +100,13 @@ Future<void> _analyzeFiles(AnalysisContextCollectionImpl collection) async {
         // We want to be sure that we get elements models.
         var errorsResult = await analysisSession.getErrors(filePath);
         if (errorsResult is ErrorsResult) {
-          var errors =
-              errorsResult.diagnostics
-                  .where(
-                    (element) =>
-                        element.diagnosticCode.type ==
-                        DiagnosticType.COMPILE_TIME_ERROR,
-                  )
-                  .toList();
+          var errors = errorsResult.diagnostics
+              .where(
+                (element) =>
+                    element.diagnosticCode.type ==
+                    DiagnosticType.COMPILE_TIME_ERROR,
+              )
+              .toList();
           if (errors.isNotEmpty) {
             throw StateError('Errors in $filePath\n$errors');
           }
@@ -239,7 +238,7 @@ Future<void> _getAvailableLibraries(
 ) async {
   for (var analysisContext in collection.contexts) {
     var analysisDriver = analysisContext.driver;
-    await analysisDriver.discoverAvailableFiles();
+    analysisDriver.discoverAvailableFiles();
     var knownFiles = analysisDriver.fsState.knownFiles.toList();
     for (var file in knownFiles) {
       // Skip libraries with known invalid types.
@@ -249,7 +248,7 @@ Future<void> _getAvailableLibraries(
       // }
       var result = await analysisDriver.getLibraryByUri(file.uriStr);
       if (result is LibraryElementResult) {
-        result.element2.accept(_AllElementVisitor());
+        result.element.accept(_AllElementVisitor());
       }
     }
   }
@@ -316,9 +315,7 @@ class _AllElementVisitor extends GeneralizingElementVisitor2<void> {
   @override
   void visitElement(Element element) {
     // This triggers lazy reading.
-    if (element case Annotatable element) {
-      element.metadata;
-    }
+    element.metadata;
     super.visitElement(element);
   }
 }
@@ -347,10 +344,9 @@ extension on Analysis {
     required Uri libraryUri,
     required String name,
   }) {
-    var cid =
-        graph.classes.singleWhere((class_) {
-          return class_.libraryUri == libraryUri && class_.name == name;
-        }).classId;
+    var cid = graph.classes.singleWhere((class_) {
+      return class_.libraryUri == libraryUri && class_.name == name;
+    }).classId;
     return filter(objectIds, (object) => object.classId == cid);
   }
 

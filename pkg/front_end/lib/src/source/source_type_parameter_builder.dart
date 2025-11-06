@@ -26,15 +26,19 @@ class SourceNominalParameterBuilder extends NominalParameterBuilder {
   @override
   final TypeParameter parameter;
 
-  SourceNominalParameterBuilder(this._declaration,
-      {this.bound, super.variableVariance})
-      : parameter = new TypeParameter(
-            _declaration.name == NominalParameterBuilder.noNameSentinel
-                ? null
-                : _declaration.name,
-            null)
-          ..fileOffset = _declaration.fileOffset
-          ..variance = variableVariance;
+  SourceNominalParameterBuilder(
+    this._declaration, {
+    this.bound,
+    super.variableVariance,
+  }) : parameter =
+           new TypeParameter(
+               _declaration.name == NominalParameterBuilder.noNameSentinel
+                   ? null
+                   : _declaration.name,
+               null,
+             )
+             ..fileOffset = _declaration.fileOffset
+             ..variance = variableVariance;
 
   @override
   int get fileOffset => _declaration.fileOffset;
@@ -51,23 +55,28 @@ class SourceNominalParameterBuilder extends NominalParameterBuilder {
   @override
   Uri get fileUri => _declaration.fileUri;
 
-  void buildOutlineExpressions(SourceLibraryBuilder libraryBuilder,
-      BodyBuilderContext bodyBuilderContext, ClassHierarchy classHierarchy) {
+  void buildOutlineExpressions(
+    SourceLibraryBuilder libraryBuilder,
+    BodyBuilderContext bodyBuilderContext,
+    ClassHierarchy classHierarchy,
+  ) {
     _declaration.buildOutlineExpressions(
-        libraryBuilder: libraryBuilder,
-        bodyBuilderContext: bodyBuilderContext,
-        classHierarchy: classHierarchy,
-        parameter: parameter,
-        annotatableFileUri: fileUri);
+      libraryBuilder: libraryBuilder,
+      bodyBuilderContext: bodyBuilderContext,
+      classHierarchy: classHierarchy,
+      parameter: parameter,
+      annotatableFileUri: fileUri,
+    );
     List<NominalParameterDeclaration>? augmentations = _augmentations;
     if (augmentations != null) {
       for (NominalParameterDeclaration augmentation in augmentations) {
         augmentation.buildOutlineExpressions(
-            libraryBuilder: libraryBuilder,
-            bodyBuilderContext: bodyBuilderContext,
-            classHierarchy: classHierarchy,
-            parameter: parameter,
-            annotatableFileUri: fileUri);
+          libraryBuilder: libraryBuilder,
+          bodyBuilderContext: bodyBuilderContext,
+          classHierarchy: classHierarchy,
+          parameter: parameter,
+          annotatableFileUri: fileUri,
+        );
       }
     }
   }
@@ -77,11 +86,14 @@ class SourceNominalParameterBuilder extends NominalParameterBuilder {
   }
 
   static List<TypeParameter>? typeParametersFromBuilders(
-      List<SourceNominalParameterBuilder>? builders) {
+    List<SourceNominalParameterBuilder>? builders,
+  ) {
     if (builders == null) return null;
     return new List<TypeParameter>.generate(
-        builders.length, (int i) => builders[i].parameter,
-        growable: true);
+      builders.length,
+      (int i) => builders[i].parameter,
+      growable: true,
+    );
   }
 }
 
@@ -96,12 +108,13 @@ abstract class NominalParameterDeclaration {
 
   Uri get fileUri;
 
-  void buildOutlineExpressions(
-      {required SourceLibraryBuilder libraryBuilder,
-      required BodyBuilderContext bodyBuilderContext,
-      required ClassHierarchy classHierarchy,
-      required TypeParameter parameter,
-      required Uri annotatableFileUri});
+  void buildOutlineExpressions({
+    required SourceLibraryBuilder libraryBuilder,
+    required BodyBuilderContext bodyBuilderContext,
+    required ClassHierarchy classHierarchy,
+    required TypeParameter parameter,
+    required Uri annotatableFileUri,
+  });
 }
 
 class RegularNominalParameterDeclaration
@@ -126,19 +139,23 @@ class RegularNominalParameterDeclaration
   String get name => _fragment.variableName;
 
   @override
-  void buildOutlineExpressions(
-      {required SourceLibraryBuilder libraryBuilder,
-      required BodyBuilderContext bodyBuilderContext,
-      required ClassHierarchy classHierarchy,
-      required TypeParameter parameter,
-      required Uri annotatableFileUri}) {
+  void buildOutlineExpressions({
+    required SourceLibraryBuilder libraryBuilder,
+    required BodyBuilderContext bodyBuilderContext,
+    required ClassHierarchy classHierarchy,
+    required TypeParameter parameter,
+    required Uri annotatableFileUri,
+  }) {
     MetadataBuilder.buildAnnotations(
-        annotatable: parameter,
-        annotatableFileUri: annotatableFileUri,
-        metadata: _fragment.metadata,
-        bodyBuilderContext: bodyBuilderContext,
-        libraryBuilder: libraryBuilder,
-        scope: _fragment.typeParameterScope);
+      annotatable: parameter,
+      annotatableFileUri: annotatableFileUri,
+      metadata: _fragment.metadata,
+      annotationsFileUri: _fragment.fileUri,
+      bodyBuilderContext: bodyBuilderContext,
+      libraryBuilder: libraryBuilder,
+      extensionScope: _fragment.extensionScope,
+      scope: _fragment.typeParameterScope,
+    );
   }
 }
 
@@ -158,21 +175,23 @@ class DirectNominalParameterDeclaration implements NominalParameterDeclaration {
   @override
   final Uri fileUri;
 
-  DirectNominalParameterDeclaration(
-      {required this.name,
-      required this.kind,
-      required this.isWildcard,
-      required this.fileOffset,
-      required this.fileUri});
+  DirectNominalParameterDeclaration({
+    required this.name,
+    required this.kind,
+    required this.isWildcard,
+    required this.fileOffset,
+    required this.fileUri,
+  });
 
   @override
   // Coverage-ignore(suite): Not run.
-  void buildOutlineExpressions(
-      {required SourceLibraryBuilder libraryBuilder,
-      required BodyBuilderContext bodyBuilderContext,
-      required ClassHierarchy classHierarchy,
-      required TypeParameter parameter,
-      required Uri? annotatableFileUri}) {}
+  void buildOutlineExpressions({
+    required SourceLibraryBuilder libraryBuilder,
+    required BodyBuilderContext bodyBuilderContext,
+    required ClassHierarchy classHierarchy,
+    required TypeParameter parameter,
+    required Uri? annotatableFileUri,
+  }) {}
 }
 
 class SyntheticNominalParameterDeclaration
@@ -188,8 +207,12 @@ class SyntheticNominalParameterDeclaration
   @override
   final TypeParameterKind kind;
 
-  SyntheticNominalParameterDeclaration(this._builder,
-      {required this.kind, required this.fileOffset, required this.fileUri});
+  SyntheticNominalParameterDeclaration(
+    this._builder, {
+    required this.kind,
+    required this.fileOffset,
+    required this.fileUri,
+  });
 
   @override
   bool get isWildcard => _builder.isWildcard;
@@ -198,12 +221,13 @@ class SyntheticNominalParameterDeclaration
   String get name => _builder.name;
 
   @override
-  void buildOutlineExpressions(
-      {required SourceLibraryBuilder libraryBuilder,
-      required BodyBuilderContext bodyBuilderContext,
-      required ClassHierarchy classHierarchy,
-      required TypeParameter parameter,
-      required Uri? annotatableFileUri}) {}
+  void buildOutlineExpressions({
+    required SourceLibraryBuilder libraryBuilder,
+    required BodyBuilderContext bodyBuilderContext,
+    required ClassHierarchy classHierarchy,
+    required TypeParameter parameter,
+    required Uri? annotatableFileUri,
+  }) {}
 }
 
 class SourceStructuralParameterBuilder extends StructuralParameterBuilder {
@@ -221,15 +245,19 @@ class SourceStructuralParameterBuilder extends StructuralParameterBuilder {
   @override
   final StructuralParameter parameter;
 
-  SourceStructuralParameterBuilder(this._declaration,
-      {Variance? parameterVariance, this.metadata})
-      : parameter = new StructuralParameter(
-            _declaration.name == StructuralParameterBuilder.noNameSentinel
-                ? null
-                : _declaration.name,
-            null)
-          ..fileOffset = _declaration.fileOffset
-          ..variance = parameterVariance;
+  SourceStructuralParameterBuilder(
+    this._declaration, {
+    Variance? parameterVariance,
+    this.metadata,
+  }) : parameter =
+           new StructuralParameter(
+               _declaration.name == StructuralParameterBuilder.noNameSentinel
+                   ? null
+                   : _declaration.name,
+               null,
+             )
+             ..fileOffset = _declaration.fileOffset
+             ..variance = parameterVariance;
 
   @override
   // Coverage-ignore(suite): Not run.
@@ -274,12 +302,13 @@ class RegularStructuralParameterDeclaration
   @override
   final bool isWildcard;
 
-  RegularStructuralParameterDeclaration(
-      {required this.metadata,
-      required this.name,
-      required this.fileOffset,
-      required this.fileUri,
-      required this.isWildcard});
+  RegularStructuralParameterDeclaration({
+    required this.metadata,
+    required this.name,
+    required this.fileOffset,
+    required this.fileUri,
+    required this.isWildcard,
+  });
 }
 
 class SyntheticStructuralParameterDeclaration

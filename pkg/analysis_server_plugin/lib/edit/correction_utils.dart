@@ -4,6 +4,7 @@
 
 import 'dart:io';
 
+import 'package:analysis_server_plugin/src/utilities/extensions/string_extension.dart';
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/ast/token.dart';
@@ -30,27 +31,12 @@ final class CorrectionUtils {
   String? _endOfLine;
 
   CorrectionUtils(ParsedUnitResult result)
-      : _unit = result.unit,
-        _buffer = result.content;
+    : _unit = result.unit,
+      _buffer = result.content;
 
   /// The EOL sequence to use for this [CompilationUnit].
   String get endOfLine {
-    var endOfLine = _endOfLine;
-    if (endOfLine != null) {
-      return endOfLine;
-    }
-
-    var indexOfNewline = _buffer.indexOf('\n');
-    if (indexOfNewline < 0) {
-      // No `\n` (and thus no `\r\n` either) found.
-      return Platform.lineTerminator;
-    }
-
-    if (indexOfNewline > 0 &&
-        _buffer.codeUnitAt(indexOfNewline - 1) == 13 /* \r */) {
-      return _endOfLine = '\r\n';
-    }
-    return _endOfLine = '\n';
+    return _endOfLine ??= _buffer.endOfLine ?? Platform.lineTerminator;
   }
 
   String get oneIndent => _oneIndent;
@@ -145,8 +131,10 @@ final class CorrectionUtils {
 
   /// Returns a [SourceRange] that covers [sourceRange] and extends (if
   /// possible) to cover whole lines.
-  SourceRange getLinesRange(SourceRange sourceRange,
-      {bool skipLeadingEmptyLines = false}) {
+  SourceRange getLinesRange(
+    SourceRange sourceRange, {
+    bool skipLeadingEmptyLines = false,
+  }) {
     // Calculate the start:
     var startOffset = sourceRange.offset;
     var startLineOffset = getLineContentStart(startOffset);
@@ -157,8 +145,9 @@ final class CorrectionUtils {
     var endOffset = sourceRange.end;
     var afterEndLineOffset = endOffset;
     var lineInfo = _unit.lineInfo;
-    var lineStart = lineInfo
-        .getOffsetOfLine(lineInfo.getLocation(startLineOffset).lineNumber - 1);
+    var lineStart = lineInfo.getOffsetOfLine(
+      lineInfo.getLocation(startLineOffset).lineNumber - 1,
+    );
     if (lineStart == startLineOffset) {
       // Only consume line endings after the end of the range if there is
       // nothing else on the line containing the beginning of the range.
@@ -198,10 +187,7 @@ final class CorrectionUtils {
 
   /// Returns the text of the given [AstNode] in the unit, including preceding
   /// comments.
-  String getNodeText(
-    AstNode node, {
-    bool withLeadingComments = false,
-  }) {
+  String getNodeText(AstNode node, {bool withLeadingComments = false}) {
     var firstToken = withLeadingComments
         ? node.beginToken.precedingComments ?? node.beginToken
         : node.beginToken;
@@ -266,8 +252,13 @@ final class CorrectionUtils {
   /// Usually [includeLeading] and [ensureTrailingNewline] are set together,
   /// when indenting a set of statements to go inside a block (as opposed to
   /// just wrapping a nested expression that might span multiple lines).
-  String replaceSourceIndent(String source, String oldIndent, String newIndent,
-      {bool includeLeading = false, bool ensureTrailingNewline = false}) {
+  String replaceSourceIndent(
+    String source,
+    String oldIndent,
+    String newIndent, {
+    bool includeLeading = false,
+    bool ensureTrailingNewline = false,
+  }) {
     // Prepare token ranges.
     var lineRanges = <SourceRange>[];
     {
@@ -337,12 +328,20 @@ final class CorrectionUtils {
   /// when indenting a set of statements to go inside a block (as opposed to
   /// just wrapping a nested expression that might span multiple lines).
   String replaceSourceRangeIndent(
-      SourceRange range, String oldIndent, String newIndent,
-      {bool includeLeading = false, bool ensureTrailingNewline = false}) {
+    SourceRange range,
+    String oldIndent,
+    String newIndent, {
+    bool includeLeading = false,
+    bool ensureTrailingNewline = false,
+  }) {
     var oldSource = getRangeText(range);
-    return replaceSourceIndent(oldSource, oldIndent, newIndent,
-        includeLeading: includeLeading,
-        ensureTrailingNewline: ensureTrailingNewline);
+    return replaceSourceIndent(
+      oldSource,
+      oldIndent,
+      newIndent,
+      includeLeading: includeLeading,
+      ensureTrailingNewline: ensureTrailingNewline,
+    );
   }
 
   /// Returns the [_InvertedCondition] for the given logical expression.
@@ -381,13 +380,21 @@ final class CorrectionUtils {
         ls = _invertCondition0(le);
         rs = _invertCondition0(re);
         return _InvertedCondition._binary(
-            TokenType.BAR_BAR.precedence, ls, ' || ', rs);
+          TokenType.BAR_BAR.precedence,
+          ls,
+          ' || ',
+          rs,
+        );
       }
       if (operator == TokenType.BAR_BAR) {
         ls = _invertCondition0(le);
         rs = _invertCondition0(re);
         return _InvertedCondition._binary(
-            TokenType.AMPERSAND_AMPERSAND.precedence, ls, ' && ', rs);
+          TokenType.AMPERSAND_AMPERSAND.precedence,
+          ls,
+          ' && ',
+          rs,
+        );
       }
     } else if (expression is IsExpression) {
       var expressionSource = getNodeText(expression.expression);
@@ -413,19 +420,23 @@ final class CorrectionUtils {
     return _InvertedCondition._simple(getNodeText(expression));
   }
 
-  /// Skips whitespace and EOLs to the left of [index].
+  /// Skips whitespace and EOLs to the left of [index] and returns the position
+  /// at the start of the next line.
   ///
   /// If [index] is the start of a method declaration, then in most cases, this
-  /// returns the end of the previous non-whitespace line.
+  /// returns the start of the line after the last non-blank line.
   int _skipEmptyLinesLeft(int index) {
-    var lastLine = index;
+    var startOfTargetLine = index;
     while (index > 0) {
       var c = _buffer.codeUnitAt(index - 1);
       if (!c.isWhitespace) {
-        return lastLine;
+        return startOfTargetLine;
       }
-      if (c.isEOL) {
-        lastLine = index;
+      // If this is a \n then record the position after it as the start of the
+      // next line. Do not consider \r because otherwise we can end up between
+      // \r\n which we never want.
+      if (c.isLF) {
+        startOfTargetLine = index;
       }
       index--;
     }
@@ -442,14 +453,15 @@ class TokenUtils {
   static List<Token> getTokens(String s, FeatureSet featureSet) {
     try {
       var tokens = <Token>[];
-      var scanner = Scanner(
-        _SourceMock(),
-        CharSequenceReader(s),
-        DiagnosticListener.nullListener,
-      )..configureFeatures(
-          featureSetForOverriding: featureSet,
-          featureSet: featureSet,
-        );
+      var scanner =
+          Scanner(
+            _SourceMock(),
+            CharSequenceReader(s),
+            DiagnosticListener.nullListener,
+          )..configureFeatures(
+            featureSetForOverriding: featureSet,
+            featureSet: featureSet,
+          );
       var token = scanner.tokenize();
       while (!token.isEof) {
         tokens.add(token);
@@ -470,25 +482,37 @@ class _InvertedCondition {
 
   _InvertedCondition(this._precedence, this._source);
 
-  static _InvertedCondition _binary(int precedence, _InvertedCondition left,
-      String operation, _InvertedCondition right) {
-    var src = _parenthesizeIfRequired(left, precedence) +
+  static _InvertedCondition _binary(
+    int precedence,
+    _InvertedCondition left,
+    String operation,
+    _InvertedCondition right,
+  ) {
+    var src =
+        _parenthesizeIfRequired(left, precedence) +
         operation +
         _parenthesizeIfRequired(right, precedence);
     return _InvertedCondition(precedence, src);
   }
 
   static _InvertedCondition _binary2(
-      _InvertedCondition left, String operation, _InvertedCondition right) {
+    _InvertedCondition left,
+    String operation,
+    _InvertedCondition right,
+  ) {
     // TODO(scheglov): consider merging with "_binary()" after testing
     return _InvertedCondition(
-        1 << 20, '${left._source}$operation${right._source}');
+      1 << 20,
+      '${left._source}$operation${right._source}',
+    );
   }
 
   /// Adds enclosing parenthesis if the precedence of the [_InvertedCondition]
   /// if less than the precedence of the expression we are going it to use in.
   static String _parenthesizeIfRequired(
-      _InvertedCondition expr, int newOperatorPrecedence) {
+    _InvertedCondition expr,
+    int newOperatorPrecedence,
+  ) {
     if (expr._precedence < newOperatorPrecedence) {
       return '(${expr._source})';
     }

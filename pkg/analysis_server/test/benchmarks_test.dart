@@ -37,10 +37,9 @@ void defineTests() {
     // variable.
     var runBenchmarks =
         Platform.environment['TEST_SERVER_BENCHMARKS'] != 'false';
-    var skipReason =
-        runBenchmarks
-            ? null
-            : 'Skipped by TEST_SERVER_BENCHMARKS environment variable';
+    var skipReason = runBenchmarks
+        ? null
+        : 'Skipped by TEST_SERVER_BENCHMARKS environment variable';
 
     for (var benchmarkId in benchmarks) {
       if (benchmarkIdsToSkip.contains(benchmarkId)) {

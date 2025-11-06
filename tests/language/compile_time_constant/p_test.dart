@@ -10,7 +10,6 @@ class A {
     //   ^
     // [analyzer] COMPILE_TIME_ERROR.FINAL_INITIALIZED_IN_DECLARATION_AND_CONSTRUCTOR
     // [cfe] 'x' is a final instance variable that was initialized at the declaration.
-    // [cfe] Cannot invoke a non-'const' constructor where a const expression is expected.
   );
   final x = null;
 }

@@ -25,7 +25,7 @@ main() {
   C(a: 1, a: 2);
 }
 ''',
-      [error(CompileTimeErrorCode.DUPLICATE_NAMED_ARGUMENT, 54, 1)],
+      [error(CompileTimeErrorCode.duplicateNamedArgument, 54, 1)],
     );
   }
 
@@ -40,7 +40,7 @@ main() {
   D(a: 1, a: 2);
 }
 ''',
-      [error(CompileTimeErrorCode.DUPLICATE_NAMED_ARGUMENT, 69, 1)],
+      [error(CompileTimeErrorCode.duplicateNamedArgument, 69, 1)],
     );
   }
 
@@ -55,7 +55,7 @@ class B extends A {
   B({required super.a}) : super(a: 0);
 }
 ''',
-      [error(CompileTimeErrorCode.DUPLICATE_NAMED_ARGUMENT, 88, 1)],
+      [error(CompileTimeErrorCode.duplicateNamedArgument, 88, 1)],
     );
   }
 
@@ -67,7 +67,7 @@ enum E {
   const E({required int a});
 }
 ''',
-      [error(CompileTimeErrorCode.DUPLICATE_NAMED_ARGUMENT, 19, 1)],
+      [error(CompileTimeErrorCode.duplicateNamedArgument, 19, 1)],
     );
   }
 
@@ -79,7 +79,7 @@ main() {
   f(a: 1, a: 2);
 }
 ''',
-      [error(CompileTimeErrorCode.DUPLICATE_NAMED_ARGUMENT, 32, 1)],
+      [error(CompileTimeErrorCode.duplicateNamedArgument, 32, 1)],
     );
   }
 }

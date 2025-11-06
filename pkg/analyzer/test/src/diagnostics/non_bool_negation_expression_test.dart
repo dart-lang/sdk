@@ -23,7 +23,7 @@ f() {
   !42;
 }
 ''',
-      [error(CompileTimeErrorCode.NON_BOOL_NEGATION_EXPRESSION, 9, 2)],
+      [error(CompileTimeErrorCode.nonBoolNegationExpression, 9, 2)],
     );
   }
 
@@ -34,7 +34,7 @@ f() {
   ![1, 2, 3];
 }
 ''',
-      [error(CompileTimeErrorCode.NON_BOOL_NEGATION_EXPRESSION, 9, 9)],
+      [error(CompileTimeErrorCode.nonBoolNegationExpression, 9, 9)],
     );
   }
 
@@ -45,7 +45,7 @@ f(Object o) {
   !o;
 }
 ''',
-      [error(CompileTimeErrorCode.NON_BOOL_NEGATION_EXPRESSION, 17, 1)],
+      [error(CompileTimeErrorCode.nonBoolNegationExpression, 17, 1)],
     );
   }
 
@@ -56,7 +56,7 @@ void m(Null x) {
   !x;
 }
 ''',
-      [error(CompileTimeErrorCode.NON_BOOL_NEGATION_EXPRESSION, 20, 1)],
+      [error(CompileTimeErrorCode.nonBoolNegationExpression, 20, 1)],
     );
   }
 }
@@ -72,7 +72,7 @@ void f(dynamic a) {
   !a;
 }
 ''',
-      [error(CompileTimeErrorCode.NON_BOOL_NEGATION_EXPRESSION, 23, 1)],
+      [error(CompileTimeErrorCode.nonBoolNegationExpression, 23, 1)],
     );
   }
 }

@@ -18,18 +18,13 @@ class BreakStatementTest extends PartialCodeTest {
         TestDescriptor(
           'keyword',
           'break',
-          [
-            ParserErrorCode.EXPECTED_TOKEN,
-            ParserErrorCode.BREAK_OUTSIDE_OF_LOOP,
-          ],
+          [ParserErrorCode.expectedToken, ParserErrorCode.breakOutsideOfLoop],
           "break;",
-          expectedDiagnosticsInValidCode: [
-            ParserErrorCode.BREAK_OUTSIDE_OF_LOOP,
-          ],
+          expectedDiagnosticsInValidCode: [ParserErrorCode.breakOutsideOfLoop],
           failing: ['labeled', 'localFunctionNonVoid'],
         ),
         TestDescriptor('label', 'break a', [
-          ParserErrorCode.EXPECTED_TOKEN,
+          ParserErrorCode.expectedToken,
         ], "break a;"),
       ],
       PartialCodeTest.statementSuffixes,

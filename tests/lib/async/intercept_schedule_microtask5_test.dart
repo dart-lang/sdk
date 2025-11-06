@@ -11,7 +11,7 @@ import 'catch_errors.dart';
 
 var events = [];
 
-body() {
+int body() {
   events.add("body entry");
   scheduleMicrotask(() {
     events.add("run async body");
@@ -22,19 +22,19 @@ body() {
   return 499;
 }
 
-handler(fun) {
+void handler(fun) {
   events.add("handler");
   scheduleMicrotask(fun);
   events.add("handler done");
 }
 
-handler2(fun) {
+void handler2(fun) {
   events.add("handler2");
   scheduleMicrotask(fun);
   events.add("handler2 done");
 }
 
-main() {
+void main() {
   asyncStart();
 
   // Test that nested runZonedScheduleMicrotask go to the next outer zone.

@@ -275,7 +275,7 @@ Future<_LoadFromSourceResult> _loadFromSource(
   );
   fe.FileSystem fileSystem = CompilerFileSystem(compilerInput);
   fe.Verbosity verbosity = options.verbosity;
-  void onDiagnostic(fe.DiagnosticMessage message) {
+  void onDiagnostic(fe.CfeDiagnosticMessage message) {
     if (fe.Verbosity.shouldPrint(verbosity, message)) {
       reportFrontEndMessage(reporter, message);
     }

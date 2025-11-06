@@ -46,18 +46,18 @@ library
     #F0 dart:foo
       element: dart:foo
       classes
-        #F1 class A @47
+        #F1 class A (nameOffset:47) (firstTokenOffset:26) (offset:47)
           element: dart:foo::@class::A
           constructors
-            #F2 named @55
+            #F2 named (nameOffset:55) (firstTokenOffset:53) (offset:55)
               element: dart:foo::@class::A::@constructor::named
               typeName: A
               typeNameOffset: 53
               periodOffset: 54
-        #F3 class B @73
+        #F3 class B (nameOffset:73) (firstTokenOffset:67) (offset:73)
           element: dart:foo::@class::B
           constructors
-            #F4 named @81
+            #F4 named (nameOffset:81) (firstTokenOffset:79) (offset:81)
               element: dart:foo::@class::B::@constructor::named
               typeName: B
               typeNameOffset: 79
@@ -99,23 +99,22 @@ library
     #F0 dart:foo
       element: dart:foo
       classes
-        #F1 class A @47
+        #F1 class A (nameOffset:47) (firstTokenOffset:26) (offset:47)
           element: dart:foo::@class::A
           fields
-            #F2 hasInitializer foo @57
+            #F2 hasInitializer foo (nameOffset:57) (firstTokenOffset:57) (offset:57)
               element: dart:foo::@class::A::@field::foo
           getters
-            #F3 synthetic foo
+            #F3 synthetic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:57)
               element: dart:foo::@class::A::@getter::foo
-              returnType: int
           setters
-            #F4 synthetic foo
+            #F4 synthetic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:57)
               element: dart:foo::@class::A::@setter::foo
               formalParameters
-                #F5 _foo
-                  element: dart:foo::@class::A::@setter::foo::@formalParameter::_foo
+                #F5 value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:57)
+                  element: dart:foo::@class::A::@setter::foo::@formalParameter::value
   classes
-    class A
+    hasNonFinalField class A
       reference: dart:foo::@class::A
       firstFragment: #F1
       sinceSdkVersion: 2.15.0
@@ -140,10 +139,11 @@ library
           firstFragment: #F4
           sinceSdkVersion: 2.15.0
           formalParameters
-            #E0 requiredPositional _foo
+            #E0 requiredPositional value
               firstFragment: #F5
               type: int
           returnType: void
+          variable: dart:foo::@class::A::@field::foo
 ''');
   }
 
@@ -164,15 +164,14 @@ library
     #F0 dart:foo
       element: dart:foo
       classes
-        #F1 class A @47
+        #F1 class A (nameOffset:47) (firstTokenOffset:26) (offset:47)
           element: dart:foo::@class::A
           fields
-            #F2 synthetic foo
+            #F2 synthetic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:47)
               element: dart:foo::@class::A::@field::foo
           getters
-            #F3 foo @61
+            #F3 foo (nameOffset:61) (firstTokenOffset:53) (offset:61)
               element: dart:foo::@class::A::@getter::foo
-              returnType: int
   classes
     class A
       reference: dart:foo::@class::A
@@ -212,10 +211,10 @@ library
     #F0 dart:foo
       element: dart:foo
       classes
-        #F1 class A @47
+        #F1 class A (nameOffset:47) (firstTokenOffset:26) (offset:47)
           element: dart:foo::@class::A
           methods
-            #F2 foo @58
+            #F2 foo (nameOffset:58) (firstTokenOffset:53) (offset:58)
               element: dart:foo::@class::A::@method::foo
   classes
     class A
@@ -249,10 +248,10 @@ library
     #F0 dart:foo
       element: dart:foo
       classes
-        #F1 class A @47
+        #F1 class A (nameOffset:47) (firstTokenOffset:26) (offset:47)
           element: dart:foo::@class::A
           methods
-            #F2 foo @75
+            #F2 foo (nameOffset:75) (firstTokenOffset:53) (offset:75)
               element: dart:foo::@class::A::@method::foo
   classes
     class A
@@ -286,10 +285,10 @@ library
     #F0 dart:foo
       element: dart:foo
       classes
-        #F1 class A @47
+        #F1 class A (nameOffset:47) (firstTokenOffset:26) (offset:47)
           element: dart:foo::@class::A
           methods
-            #F2 foo @75
+            #F2 foo (nameOffset:75) (firstTokenOffset:53) (offset:75)
               element: dart:foo::@class::A::@method::foo
   classes
     class A
@@ -322,16 +321,16 @@ library
     #F0 dart:foo
       element: dart:foo
       classes
-        #F1 class A @47
+        #F1 class A (nameOffset:47) (firstTokenOffset:26) (offset:47)
           element: dart:foo::@class::A
           fields
-            #F2 synthetic foo
+            #F2 synthetic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:47)
               element: dart:foo::@class::A::@field::foo
           setters
-            #F3 foo @57
+            #F3 foo (nameOffset:57) (firstTokenOffset:53) (offset:57)
               element: dart:foo::@class::A::@setter::foo
               formalParameters
-                #F4 _ @65
+                #F4 _ (nameOffset:65) (firstTokenOffset:61) (offset:65)
                   element: dart:foo::@class::A::@setter::foo::@formalParameter::_
   classes
     class A
@@ -355,6 +354,7 @@ library
               firstFragment: #F4
               type: int
           returnType: void
+          variable: dart:foo::@class::A::@field::foo
 ''');
   }
 
@@ -376,38 +376,38 @@ library
     #F0 dart:foo
       element: dart:foo
       enums
-        #F1 enum E @31
+        #F1 enum E (nameOffset:31) (firstTokenOffset:26) (offset:31)
           element: dart:foo::@enum::E
           fields
-            #F2 hasInitializer v1 @37
+            #F2 hasInitializer v1 (nameOffset:37) (firstTokenOffset:37) (offset:37)
               element: dart:foo::@enum::E::@field::v1
               initializer: expression_0
                 InstanceCreationExpression
                   constructorName: ConstructorName
                     type: NamedType
                       name: E @-1
-                      element2: dart:foo::@enum::E
+                      element: dart:foo::@enum::E
                       type: E
                     element: dart:foo::@enum::E::@constructor::new
                   argumentList: ArgumentList
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   staticType: E
-            #F3 hasInitializer v2 @60
+            #F3 hasInitializer v2 (nameOffset:60) (firstTokenOffset:43) (offset:60)
               element: dart:foo::@enum::E::@field::v2
               initializer: expression_1
                 InstanceCreationExpression
                   constructorName: ConstructorName
                     type: NamedType
                       name: E @-1
-                      element2: dart:foo::@enum::E
+                      element: dart:foo::@enum::E
                       type: E
                     element: dart:foo::@enum::E::@constructor::new
                   argumentList: ArgumentList
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   staticType: E
-            #F4 synthetic values
+            #F4 synthetic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:31)
               element: dart:foo::@enum::E::@field::values
               initializer: expression_2
                 ListLiteral
@@ -424,15 +424,12 @@ library
                   rightBracket: ] @0
                   staticType: List<E>
           getters
-            #F5 synthetic v1
+            #F5 synthetic v1 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:37)
               element: dart:foo::@enum::E::@getter::v1
-              returnType: E
-            #F6 synthetic v2
+            #F6 synthetic v2 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:60)
               element: dart:foo::@enum::E::@getter::v2
-              returnType: E
-            #F7 synthetic values
+            #F7 synthetic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:31)
               element: dart:foo::@enum::E::@getter::values
-              returnType: List<E>
   enums
     enum E
       reference: dart:foo::@enum::E
@@ -502,24 +499,24 @@ library
     #F0 dart:foo
       element: dart:foo
       enums
-        #F1 enum E @46
+        #F1 enum E (nameOffset:46) (firstTokenOffset:26) (offset:46)
           element: dart:foo::@enum::E
           fields
-            #F2 hasInitializer v @52
+            #F2 hasInitializer v (nameOffset:52) (firstTokenOffset:52) (offset:52)
               element: dart:foo::@enum::E::@field::v
               initializer: expression_0
                 InstanceCreationExpression
                   constructorName: ConstructorName
                     type: NamedType
                       name: E @-1
-                      element2: dart:foo::@enum::E
+                      element: dart:foo::@enum::E
                       type: E
                     element: dart:foo::@enum::E::@constructor::new
                   argumentList: ArgumentList
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   staticType: E
-            #F3 synthetic values
+            #F3 synthetic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:46)
               element: dart:foo::@enum::E::@field::values
               initializer: expression_1
                 ListLiteral
@@ -532,14 +529,12 @@ library
                   rightBracket: ] @0
                   staticType: List<E>
           getters
-            #F4 synthetic v
+            #F4 synthetic v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:52)
               element: dart:foo::@enum::E::@getter::v
-              returnType: E
-            #F5 synthetic values
+            #F5 synthetic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:46)
               element: dart:foo::@enum::E::@getter::values
-              returnType: List<E>
           methods
-            #F6 foo @62
+            #F6 foo (nameOffset:62) (firstTokenOffset:57) (offset:62)
               element: dart:foo::@enum::E::@method::foo
   enums
     enum E
@@ -605,10 +600,10 @@ library
     #F0 dart:foo
       element: dart:foo
       extensions
-        #F1 extension E @51
+        #F1 extension E (nameOffset:51) (firstTokenOffset:26) (offset:51)
           element: dart:foo::@extension::E
           methods
-            #F2 foo @69
+            #F2 foo (nameOffset:69) (firstTokenOffset:64) (offset:69)
               element: dart:foo::@extension::E::@method::foo
   extensions
     extension E
@@ -642,10 +637,10 @@ library
     #F0 dart:foo
       element: dart:foo
       mixins
-        #F1 mixin M @47
+        #F1 mixin M (nameOffset:47) (firstTokenOffset:26) (offset:47)
           element: dart:foo::@mixin::M
           methods
-            #F2 foo @58
+            #F2 foo (nameOffset:58) (firstTokenOffset:53) (offset:58)
               element: dart:foo::@mixin::M::@method::foo
   mixins
     mixin M
@@ -680,9 +675,9 @@ library
     #F0 dart:foo
       element: dart:foo
       functions
-        #F1 foo @46
+        #F1 foo (nameOffset:46) (firstTokenOffset:26) (offset:46)
           element: dart:foo::@function::foo
-        #F2 bar @61
+        #F2 bar (nameOffset:61) (firstTokenOffset:56) (offset:61)
           element: dart:foo::@function::bar
   functions
     foo
@@ -712,7 +707,7 @@ library
     #F0 dart:foo
       element: dart:foo
       functions
-        #F1 foo @54
+        #F1 foo (nameOffset:54) (firstTokenOffset:26) (offset:54)
           element: dart:foo::@function::foo
   functions
     foo
@@ -738,7 +733,7 @@ library
     #F0 dart:foo
       element: dart:foo
       functions
-        #F1 foo @48
+        #F1 foo (nameOffset:48) (firstTokenOffset:26) (offset:48)
           element: dart:foo::@function::foo
   functions
     foo
@@ -764,7 +759,7 @@ library
     #F0 dart:foo
       element: dart:foo
       functions
-        #F1 foo @44
+        #F1 foo (nameOffset:44) (firstTokenOffset:26) (offset:44)
           element: dart:foo::@function::foo
   functions
     foo
@@ -792,7 +787,7 @@ library
     #F0 dart:foo
       element: dart:foo
       functions
-        #F1 foo @56
+        #F1 foo (nameOffset:56) (firstTokenOffset:51) (offset:56)
           element: dart:foo::@function::foo
   functions
     foo
@@ -820,12 +815,12 @@ library
     #F0 dart:foo
       element: dart:foo
       functions
-        #F1 f @31
+        #F1 f (nameOffset:31) (firstTokenOffset:26) (offset:31)
           element: dart:foo::@function::f
           formalParameters
-            #F2 p1 @37
+            #F2 p1 (nameOffset:37) (firstTokenOffset:33) (offset:37)
               element: dart:foo::@function::f::@formalParameter::p1
-            #F3 p2 @67
+            #F3 p2 (nameOffset:67) (firstTokenOffset:45) (offset:67)
               element: dart:foo::@function::f::@formalParameter::p2
   functions
     f
@@ -860,12 +855,12 @@ library
     #F0 dart:foo
       element: dart:foo
       functions
-        #F1 f @31
+        #F1 f (nameOffset:31) (firstTokenOffset:26) (offset:31)
           element: dart:foo::@function::f
           formalParameters
-            #F2 p1 @37
+            #F2 p1 (nameOffset:37) (firstTokenOffset:33) (offset:37)
               element: dart:foo::@function::f::@formalParameter::p1
-            #F3 p2 @67
+            #F3 p2 (nameOffset:67) (firstTokenOffset:45) (offset:67)
               element: dart:foo::@function::f::@formalParameter::p2
   functions
     f
@@ -898,7 +893,7 @@ library
     #F0 dart:foo
       element: dart:foo
       typeAliases
-        #F1 A @49
+        #F1 A (nameOffset:49) (firstTokenOffset:26) (offset:49)
           element: dart:foo::@typeAlias::A
   typeAliases
     A
@@ -924,12 +919,11 @@ library
     #F0 dart:foo
       element: dart:foo
       topLevelVariables
-        #F1 hasInitializer foo @47
+        #F1 hasInitializer foo (nameOffset:47) (firstTokenOffset:47) (offset:47)
           element: dart:foo::@topLevelVariable::foo
       getters
-        #F2 synthetic foo
+        #F2 synthetic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:47)
           element: dart:foo::@getter::foo
-          returnType: int
   topLevelVariables
     final hasInitializer foo
       reference: dart:foo::@topLevelVariable::foo
@@ -962,7 +956,7 @@ library
 
     var libraryResult = await analysisSession.getLibraryByUri(uriStr);
     libraryResult as LibraryElementResult;
-    return libraryResult.element2 as LibraryElementImpl;
+    return libraryResult.element as LibraryElementImpl;
   }
 }
 

@@ -13,7 +13,7 @@ class F {
 }
 
 class G {
-  call() => '42';
+  call(_, {a});
   noSuchMethod(Invocation invocation) => invocation;
 }
 
@@ -21,24 +21,20 @@ class H {
   call(required, {a}) => required + a;
 }
 
-main() {
-  Expect.equals('call', Function.apply(new F(), []));
-  Expect.equals('call', Function.apply(new F(), [1]));
-  Expect.equals('NSM', Function.apply(new F(), [1, 2]));
-  Expect.equals('NSM', Function.apply(new F(), [1, 2, 3]));
+void main() {
+  Expect.equals('call', Function.apply(F().call, []));
+  Expect.equals('call', Function.apply(F().call, [1]));
+  Expect.throwsNoSuchMethodError(() => Function.apply(F().call, [1, 2]));
+  Expect.throwsNoSuchMethodError(() => Function.apply(F().call, [1, 2, 3]));
 
-  var symbol = const Symbol('a');
-  var requiredParameters = [1];
-  var optionalParameters = new Map<Symbol, int>()..[symbol] = 42;
-  Invocation i = Function.apply(
-    new G(),
-    requiredParameters,
-    optionalParameters,
-  );
+  const symbol = #a;
+  var positionalArguments = <Object?>[1];
+  var namedArguments = <Symbol, int>{symbol: 42};
+  Invocation i = Function.apply(G().call, positionalArguments, namedArguments);
 
-  Expect.equals(const Symbol('call'), i.memberName);
-  Expect.listEquals(requiredParameters, i.positionalArguments);
-  Expect.mapEquals(optionalParameters, i.namedArguments);
+  Expect.equals(#call, i.memberName);
+  Expect.listEquals(positionalArguments, i.positionalArguments);
+  Expect.mapEquals(namedArguments, i.namedArguments);
   Expect.isTrue(i.isMethod);
   Expect.isFalse(i.isGetter);
   Expect.isFalse(i.isSetter);
@@ -46,14 +42,14 @@ main() {
 
   // Check that changing the passed list and map for parameters does
   // not affect [i].
-  requiredParameters[0] = 42;
-  optionalParameters[symbol] = 12;
+  positionalArguments[0] = 42;
+  namedArguments[symbol] = 12;
   Expect.listEquals([1], i.positionalArguments);
-  Expect.mapEquals(new Map()..[symbol] = 42, i.namedArguments);
+  Expect.mapEquals({symbol: 42}, i.namedArguments);
 
-  // Check that using [i] for invocation yields the same [Invocation]
+  // Check that delegating [i] to [G] yields equivalent [Invocation]
   // object.
-  var mirror = reflect(new G());
+  var mirror = reflect(G());
   Invocation other = mirror.delegate(i);
   Expect.equals(i.memberName, other.memberName);
   Expect.listEquals(i.positionalArguments, other.positionalArguments);
@@ -64,9 +60,9 @@ main() {
   Expect.equals(i.isAccessor, other.isAccessor);
 
   // Test that [i] can be used to hit an existing method.
-  Expect.equals(43, new H().call(1, a: 42));
-  Expect.equals(43, Function.apply(new H(), [1], new Map()..[symbol] = 42));
-  mirror = reflect(new H());
+  Expect.equals(43, H().call(1, a: 42));
+  Expect.equals(43, Function.apply(H().call, [1], {symbol: 42}));
+  mirror = reflect(H());
   Expect.equals(43, mirror.delegate(i));
   Expect.equals(43, mirror.delegate(other));
 }

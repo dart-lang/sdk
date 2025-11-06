@@ -218,8 +218,7 @@ class C {
       [
         // No lint.
         error(
-          CompileTimeErrorCode
-              .SUPER_FORMAL_PARAMETER_WITHOUT_ASSOCIATED_POSITIONAL,
+          CompileTimeErrorCode.superFormalParameterWithoutAssociatedPositional,
           79,
           1,
         ),

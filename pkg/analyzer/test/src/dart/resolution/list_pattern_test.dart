@@ -25,7 +25,7 @@ void f(x) {
   }
 }
 ''',
-      [error(WarningCode.UNUSED_LOCAL_VARIABLE, 41, 1)],
+      [error(WarningCode.unusedLocalVariable, 41, 1)],
     );
     var node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
@@ -35,11 +35,10 @@ ListPattern
     DeclaredVariablePattern
       type: NamedType
         name: int
-        element2: dart:core::@class::int
+        element: dart:core::@class::int
         type: int
       name: a
       declaredFragment: isPublic a@41
-        type: int
         element: isPublic
           type: int
       matchedValueType: dynamic
@@ -59,7 +58,7 @@ void f(x) {
   }
 }
 ''',
-      [error(WarningCode.UNUSED_LOCAL_VARIABLE, 41, 1)],
+      [error(WarningCode.unusedLocalVariable, 41, 1)],
     );
     var node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
@@ -70,7 +69,6 @@ ListPattern
       keyword: var
       name: a
       declaredFragment: isPublic a@41
-        type: null
         element: hasImplicitType isPublic
           type: dynamic
       matchedValueType: dynamic
@@ -90,7 +88,7 @@ void f(x) {
   }
 }
 ''',
-      [error(WarningCode.UNUSED_LOCAL_VARIABLE, 46, 1)],
+      [error(WarningCode.unusedLocalVariable, 46, 1)],
     );
     var node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
@@ -100,7 +98,7 @@ ListPattern
     arguments
       NamedType
         name: int
-        element2: dart:core::@class::int
+        element: dart:core::@class::int
         type: int
     rightBracket: >
   leftBracket: [
@@ -109,7 +107,6 @@ ListPattern
       keyword: var
       name: a
       declaredFragment: isPublic a@46
-        type: null
         element: hasImplicitType isPublic
           type: int
       matchedValueType: int
@@ -150,7 +147,7 @@ void f(List<int> x) {
   if (x case [0, ...var rest]) {}
 }
 ''',
-      [error(WarningCode.UNUSED_LOCAL_VARIABLE, 46, 4)],
+      [error(WarningCode.unusedLocalVariable, 46, 4)],
     );
     var node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
@@ -168,7 +165,6 @@ ListPattern
         keyword: var
         name: rest
         declaredFragment: isPublic rest@46
-          type: null
           element: hasImplicitType isPublic
             type: List<int>
         matchedValueType: List<int>
@@ -188,7 +184,7 @@ void f(List<int> x) {
   }
 }
 ''',
-      [error(WarningCode.UNUSED_LOCAL_VARIABLE, 51, 1)],
+      [error(WarningCode.unusedLocalVariable, 51, 1)],
     );
     var node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
@@ -199,7 +195,6 @@ ListPattern
       keyword: var
       name: a
       declaredFragment: isPublic a@51
-        type: null
         element: hasImplicitType isPublic
           type: int
       matchedValueType: int
@@ -219,7 +214,7 @@ void f(List<num> x) {
   }
 }
 ''',
-      [error(WarningCode.UNUSED_LOCAL_VARIABLE, 56, 1)],
+      [error(WarningCode.unusedLocalVariable, 56, 1)],
     );
     var node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
@@ -229,7 +224,7 @@ ListPattern
     arguments
       NamedType
         name: int
-        element2: dart:core::@class::int
+        element: dart:core::@class::int
         type: int
     rightBracket: >
   leftBracket: [
@@ -238,7 +233,6 @@ ListPattern
       keyword: var
       name: a
       declaredFragment: isPublic a@56
-        type: null
         element: hasImplicitType isPublic
           type: int
       matchedValueType: int
@@ -302,7 +296,7 @@ void f(Object x) {
   }
 }
 ''',
-      [error(WarningCode.UNUSED_LOCAL_VARIABLE, 48, 1)],
+      [error(WarningCode.unusedLocalVariable, 48, 1)],
     );
     var node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
@@ -312,11 +306,10 @@ ListPattern
     DeclaredVariablePattern
       type: NamedType
         name: int
-        element2: dart:core::@class::int
+        element: dart:core::@class::int
         type: int
       name: a
       declaredFragment: isPublic a@48
-        type: int
         element: isPublic
           type: int
       matchedValueType: Object?
@@ -336,7 +329,7 @@ void f(Object x) {
   }
 }
 ''',
-      [error(WarningCode.UNUSED_LOCAL_VARIABLE, 48, 1)],
+      [error(WarningCode.unusedLocalVariable, 48, 1)],
     );
     var node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
@@ -347,7 +340,6 @@ ListPattern
       keyword: var
       name: a
       declaredFragment: isPublic a@48
-        type: null
         element: hasImplicitType isPublic
           type: Object?
       matchedValueType: Object?
@@ -374,7 +366,7 @@ ListPattern
     arguments
       NamedType
         name: int
-        element2: dart:core::@class::int
+        element: dart:core::@class::int
         type: int
     rightBracket: >
   leftBracket: [
@@ -400,7 +392,7 @@ void f(Object x) {
   }
 }
 ''',
-      [error(WarningCode.UNUSED_LOCAL_VARIABLE, 53, 1)],
+      [error(WarningCode.unusedLocalVariable, 53, 1)],
     );
     var node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
@@ -410,7 +402,7 @@ ListPattern
     arguments
       NamedType
         name: num
-        element2: dart:core::@class::num
+        element: dart:core::@class::num
         type: num
     rightBracket: >
   leftBracket: [
@@ -418,11 +410,10 @@ ListPattern
     DeclaredVariablePattern
       type: NamedType
         name: int
-        element2: dart:core::@class::int
+        element: dart:core::@class::int
         type: int
       name: a
       declaredFragment: isPublic a@53
-        type: int
         element: isPublic
           type: int
       matchedValueType: num
@@ -442,7 +433,7 @@ void f(Object x) {
   }
 }
 ''',
-      [error(WarningCode.UNUSED_LOCAL_VARIABLE, 53, 1)],
+      [error(WarningCode.unusedLocalVariable, 53, 1)],
     );
     var node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
@@ -452,7 +443,7 @@ ListPattern
     arguments
       NamedType
         name: int
-        element2: dart:core::@class::int
+        element: dart:core::@class::int
         type: int
     rightBracket: >
   leftBracket: [
@@ -461,7 +452,6 @@ ListPattern
       keyword: var
       name: a
       declaredFragment: isPublic a@53
-        type: null
         element: hasImplicitType isPublic
           type: int
       matchedValueType: int
@@ -478,7 +468,7 @@ void f(List<int> x) {
   var [a] = x;
 }
 ''',
-      [error(WarningCode.UNUSED_LOCAL_VARIABLE, 29, 1)],
+      [error(WarningCode.unusedLocalVariable, 29, 1)],
     );
     var node = findNode.singlePatternVariableDeclaration;
     assertResolvedNodeText(node, r'''
@@ -490,7 +480,6 @@ PatternVariableDeclaration
       DeclaredVariablePattern
         name: a
         declaredFragment: isPublic a@29
-          type: null
           element: hasImplicitType isPublic
             type: int
         matchedValueType: int
@@ -515,7 +504,7 @@ void f() {
 
 T g<T>() => throw 0;
 ''',
-      [error(WarningCode.UNUSED_LOCAL_VARIABLE, 23, 1)],
+      [error(WarningCode.unusedLocalVariable, 23, 1)],
     );
     var node = findNode.singlePatternVariableDeclaration;
     assertResolvedNodeText(node, r'''
@@ -527,7 +516,7 @@ PatternVariableDeclaration
       arguments
         NamedType
           name: int
-          element2: dart:core::@class::int
+          element: dart:core::@class::int
           type: int
       rightBracket: >
     leftBracket: [
@@ -535,7 +524,6 @@ PatternVariableDeclaration
       DeclaredVariablePattern
         name: a
         declaredFragment: isPublic a@23
-          type: null
           element: hasImplicitType isPublic
             type: int
         matchedValueType: int
@@ -568,7 +556,7 @@ void f() {
 
 T g<T>() => throw 0;
 ''',
-      [error(WarningCode.UNUSED_LOCAL_VARIABLE, 22, 1)],
+      [error(WarningCode.unusedLocalVariable, 22, 1)],
     );
     var node = findNode.singlePatternVariableDeclaration;
     assertResolvedNodeText(node, r'''
@@ -580,11 +568,10 @@ PatternVariableDeclaration
       DeclaredVariablePattern
         type: NamedType
           name: int
-          element2: dart:core::@class::int
+          element: dart:core::@class::int
           type: int
         name: a
         declaredFragment: isPublic a@22
-          type: int
           element: isPublic
             type: int
         matchedValueType: int

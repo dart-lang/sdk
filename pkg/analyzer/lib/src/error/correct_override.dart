@@ -20,14 +20,14 @@ import 'package:analyzer/src/error/codes.dart';
 class CorrectOverrideHelper {
   final TypeSystemImpl _typeSystem;
 
-  final ExecutableElement2OrMember _thisMember;
+  final InternalExecutableElement _thisMember;
   FunctionTypeImpl? _thisTypeForSubtype;
 
   final DiagnosticFactory _diagnosticFactory = DiagnosticFactory();
 
   CorrectOverrideHelper({
     required TypeSystemImpl typeSystem,
-    required ExecutableElement2OrMember thisMember,
+    required InternalExecutableElement thisMember,
   }) : _typeSystem = typeSystem,
        _thisMember = thisMember {
     _computeThisTypeForSubtype();
@@ -72,7 +72,7 @@ class CorrectOverrideHelper {
     var type = _thisMember.type;
     var parameters = type.formalParameters;
 
-    List<FormalParameterElementMixin>? newParameters;
+    List<InternalFormalParameterElement>? newParameters;
     for (var i = 0; i < parameters.length; i++) {
       var parameter = parameters[i];
       if (parameter.isCovariant) {
@@ -98,9 +98,9 @@ class CovariantParametersVerifier {
   final AnalysisSessionImpl _session;
   final TypeSystemImpl _typeSystem;
 
-  final ExecutableElement2OrMember _thisMember;
+  final InternalExecutableElement _thisMember;
 
-  CovariantParametersVerifier({required ExecutableElement2OrMember thisMember})
+  CovariantParametersVerifier({required InternalExecutableElement thisMember})
     : _session = thisMember.library.session as AnalysisSessionImpl,
       _typeSystem = thisMember.library.typeSystem as TypeSystemImpl,
       _thisMember = thisMember;
@@ -124,7 +124,7 @@ class CovariantParametersVerifier {
           // `superMember.enclosingElement3.name` are non-`null`.
           errorReporter.atEntity(
             errorEntity,
-            CompileTimeErrorCode.INVALID_OVERRIDE,
+            CompileTimeErrorCode.invalidOverride,
             arguments: [
               _thisMember.name!,
               _thisMember.enclosingElement!.name!,
@@ -154,8 +154,9 @@ class CovariantParametersVerifier {
     return superMembers;
   }
 
-  Map<FormalParameterElementMixin, List<_SuperParameter>> _superParameters() {
-    var result = <FormalParameterElementMixin, List<_SuperParameter>>{};
+  Map<InternalFormalParameterElement, List<_SuperParameter>>
+  _superParameters() {
+    var result = <InternalFormalParameterElement, List<_SuperParameter>>{};
 
     List<_SuperMember>? superMembers;
     var parameters = _thisMember.formalParameters;

@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 /// Base implementations of [Set].
-part of dart.collection;
+part of "dart:collection";
 
 /// Base implementation of [Set].
 ///

@@ -21,7 +21,7 @@ class MixinOfNonClassTest extends PubPackageResolutionTest {
 enum E { ONE }
 class A extends Object with E {}
 ''',
-      [error(CompileTimeErrorCode.MIXIN_OF_NON_CLASS, 43, 1)],
+      [error(CompileTimeErrorCode.mixinOfNonClass, 43, 1)],
     );
   }
 
@@ -31,7 +31,7 @@ class A extends Object with E {}
 extension type A(int it) {}
 class B with A {}
 ''',
-      [error(CompileTimeErrorCode.MIXIN_OF_NON_CLASS, 41, 1)],
+      [error(CompileTimeErrorCode.mixinOfNonClass, 41, 1)],
     );
   }
 
@@ -41,7 +41,7 @@ class B with A {}
 int A = 7;
 class B extends Object with A {}
 ''',
-      [error(CompileTimeErrorCode.MIXIN_OF_NON_CLASS, 39, 1)],
+      [error(CompileTimeErrorCode.mixinOfNonClass, 39, 1)],
     );
   }
 
@@ -52,7 +52,7 @@ class A {}
 int B = 7;
 class C = A with B;
 ''',
-      [error(CompileTimeErrorCode.MIXIN_OF_NON_CLASS, 39, 1)],
+      [error(CompileTimeErrorCode.mixinOfNonClass, 39, 1)],
     );
   }
 
@@ -61,7 +61,7 @@ class C = A with B;
       r'''
 class C with M {}
 ''',
-      [error(CompileTimeErrorCode.MIXIN_OF_NON_CLASS, 13, 1)],
+      [error(CompileTimeErrorCode.mixinOfNonClass, 13, 1)],
     );
   }
 
@@ -71,7 +71,7 @@ class C with M {}
 enum E1 { v }
 enum E2 with E1 { v }
 ''',
-      [error(CompileTimeErrorCode.MIXIN_OF_NON_CLASS, 27, 2)],
+      [error(CompileTimeErrorCode.mixinOfNonClass, 27, 2)],
     );
   }
 
@@ -81,7 +81,7 @@ enum E2 with E1 { v }
 extension type A(int it) {}
 enum E with A { v }
 ''',
-      [error(CompileTimeErrorCode.MIXIN_OF_NON_CLASS, 40, 1)],
+      [error(CompileTimeErrorCode.mixinOfNonClass, 40, 1)],
     );
   }
 
@@ -93,7 +93,7 @@ enum E with A {
   v
 }
 ''',
-      [error(CompileTimeErrorCode.MIXIN_OF_NON_CLASS, 23, 1)],
+      [error(CompileTimeErrorCode.mixinOfNonClass, 23, 1)],
     );
   }
 
@@ -104,7 +104,7 @@ enum E with M {
   v
 }
 ''',
-      [error(CompileTimeErrorCode.MIXIN_OF_NON_CLASS, 12, 1)],
+      [error(CompileTimeErrorCode.mixinOfNonClass, 12, 1)],
     );
   }
 
@@ -113,7 +113,7 @@ enum E with M {
       '''
 class A with Never {}
 ''',
-      [error(CompileTimeErrorCode.MIXIN_OF_NON_CLASS, 13, 5)],
+      [error(CompileTimeErrorCode.mixinOfNonClass, 13, 5)],
     );
   }
 
@@ -124,7 +124,7 @@ import 'a.dart' as p;
 
 class C with p.M {}
 ''',
-      [error(CompileTimeErrorCode.URI_DOES_NOT_EXIST, 7, 8)],
+      [error(CompileTimeErrorCode.uriDoesNotExist, 7, 8)],
     );
   }
 
@@ -135,7 +135,7 @@ import 'a.dart' show M;
 
 class C with M {}
 ''',
-      [error(CompileTimeErrorCode.URI_DOES_NOT_EXIST, 7, 8)],
+      [error(CompileTimeErrorCode.uriDoesNotExist, 7, 8)],
     );
   }
 
@@ -147,8 +147,8 @@ import 'a.dart' show N;
 class C with M {}
 ''',
       [
-        error(CompileTimeErrorCode.URI_DOES_NOT_EXIST, 7, 8),
-        error(CompileTimeErrorCode.MIXIN_OF_NON_CLASS, 38, 1),
+        error(CompileTimeErrorCode.uriDoesNotExist, 7, 8),
+        error(CompileTimeErrorCode.mixinOfNonClass, 38, 1),
       ],
     );
   }
@@ -164,7 +164,7 @@ part 'a.g.dart';
 
 class C with _$M {}
 ''',
-      [error(CompileTimeErrorCode.MIXIN_OF_NON_CLASS, 31, 3)],
+      [error(CompileTimeErrorCode.mixinOfNonClass, 31, 3)],
     );
   }
 
@@ -175,7 +175,7 @@ part 'a.g.dart';
 
 class C with _$M {}
 ''',
-      [error(CompileTimeErrorCode.URI_HAS_NOT_BEEN_GENERATED, 5, 10)],
+      [error(CompileTimeErrorCode.uriHasNotBeenGenerated, 5, 10)],
     );
   }
 
@@ -187,8 +187,8 @@ part 'a.g.dart';
 class C with M {}
 ''',
       [
-        error(CompileTimeErrorCode.URI_HAS_NOT_BEEN_GENERATED, 5, 10),
-        error(CompileTimeErrorCode.MIXIN_OF_NON_CLASS, 31, 1),
+        error(CompileTimeErrorCode.uriHasNotBeenGenerated, 5, 10),
+        error(CompileTimeErrorCode.mixinOfNonClass, 31, 1),
       ],
     );
   }
@@ -201,8 +201,8 @@ part 'a.dart';
 class C with _$M {}
 ''',
       [
-        error(CompileTimeErrorCode.URI_DOES_NOT_EXIST, 5, 8),
-        error(CompileTimeErrorCode.MIXIN_OF_NON_CLASS, 29, 3),
+        error(CompileTimeErrorCode.uriDoesNotExist, 5, 8),
+        error(CompileTimeErrorCode.mixinOfNonClass, 29, 3),
       ],
     );
   }
@@ -215,8 +215,8 @@ part 'a.dart';
 class C with M {}
 ''',
       [
-        error(CompileTimeErrorCode.URI_DOES_NOT_EXIST, 5, 8),
-        error(CompileTimeErrorCode.MIXIN_OF_NON_CLASS, 29, 1),
+        error(CompileTimeErrorCode.uriDoesNotExist, 5, 8),
+        error(CompileTimeErrorCode.mixinOfNonClass, 29, 1),
       ],
     );
   }
@@ -228,7 +228,7 @@ import 'dart:math' as p;
 
 class C with p.M {}
 ''',
-      [error(CompileTimeErrorCode.MIXIN_OF_NON_CLASS, 39, 3)],
+      [error(CompileTimeErrorCode.mixinOfNonClass, 39, 3)],
     );
   }
 }

@@ -27,7 +27,7 @@ LogicalAndPattern
   leftOperand: WildcardPattern
     type: NamedType
       name: int
-      element2: dart:core::@class::int
+      element: dart:core::@class::int
       type: int
     name: _
     matchedValueType: dynamic
@@ -35,7 +35,7 @@ LogicalAndPattern
   rightOperand: WildcardPattern
     type: NamedType
       name: double
-      element2: dart:core::@class::double
+      element: dart:core::@class::double
       type: double
     name: _
     matchedValueType: int
@@ -58,7 +58,7 @@ LogicalAndPattern
   leftOperand: WildcardPattern
     type: NamedType
       name: int
-      element2: dart:core::@class::int
+      element: dart:core::@class::int
       type: int
     name: _
     matchedValueType: dynamic
@@ -66,7 +66,7 @@ LogicalAndPattern
   rightOperand: WildcardPattern
     type: NamedType
       name: double
-      element2: dart:core::@class::double
+      element: dart:core::@class::double
       type: double
     name: _
     matchedValueType: int
@@ -82,8 +82,8 @@ void f() {
 }
 ''',
       [
-        error(WarningCode.UNUSED_LOCAL_VARIABLE, 18, 1),
-        error(WarningCode.UNUSED_LOCAL_VARIABLE, 23, 1),
+        error(WarningCode.unusedLocalVariable, 18, 1),
+        error(WarningCode.unusedLocalVariable, 23, 1),
       ],
     );
     var node = findNode.singlePatternVariableDeclarationStatement;
@@ -97,7 +97,6 @@ PatternVariableDeclarationStatement
         leftOperand: DeclaredVariablePattern
           name: a
           declaredFragment: isPublic a@18
-            type: null
             element: hasImplicitType isPublic
               type: int
           matchedValueType: int
@@ -105,7 +104,6 @@ PatternVariableDeclarationStatement
         rightOperand: DeclaredVariablePattern
           name: b
           declaredFragment: isPublic b@23
-            type: null
             element: hasImplicitType isPublic
               type: int
           matchedValueType: int

@@ -14,7 +14,7 @@ import 'package:_fe_analyzer_shared/src/scanner/utf8_bytes_scanner.dart'
 import 'package:_fe_analyzer_shared/src/util/relativize.dart'
     show isWindows, relativizeUri;
 import 'package:front_end/src/api_prototype/compiler_options.dart'
-    show DiagnosticMessage;
+    show CfeDiagnosticMessage;
 import 'package:front_end/src/base/compiler_context.dart' show CompilerContext;
 import 'package:front_end/src/base/messages.dart'
     show DiagnosticMessageFromJson;
@@ -74,8 +74,14 @@ mixin MatchContext implements ChainContext {
   Expectation get expectationFileMissing =>
       expectationSet["ExpectationFileMissing"];
 
-  Future<Result<O>> match<O>(String suffix, String actual, Uri uri, O output,
-      {Expectation? onMismatch, bool? overwriteUpdateExpectationsWith}) async {
+  Future<Result<O>> match<O>(
+    String suffix,
+    String actual,
+    Uri uri,
+    O output, {
+    Expectation? onMismatch,
+    bool? overwriteUpdateExpectationsWith,
+  }) async {
     bool updateExpectations =
         overwriteUpdateExpectationsWith ?? this.updateExpectations;
     actual = actual.trim();
@@ -92,13 +98,16 @@ mixin MatchContext implements ChainContext {
         String diff = await runDiff(expectedFile.uri, actual);
         onMismatch ??= expectationFileMismatch;
         return new Result<O>(
-            output, onMismatch, "$uri doesn't match ${expectedFile.uri}\n$diff",
-            autoFixCommand: onMismatch == expectationFileMismatch
-                ? updateExpectationsOption
-                : null,
-            canBeFixWithUpdateExpectations:
-                onMismatch == expectationFileMismatch &&
-                    canBeFixWithUpdateExpectations);
+          output,
+          onMismatch,
+          "$uri doesn't match ${expectedFile.uri}\n$diff",
+          autoFixCommand: onMismatch == expectationFileMismatch
+              ? updateExpectationsOption
+              : null,
+          canBeFixWithUpdateExpectations:
+              onMismatch == expectationFileMismatch &&
+              canBeFixWithUpdateExpectations,
+        );
       } else {
         return new Result<O>.pass(output);
       }
@@ -107,13 +116,9 @@ mixin MatchContext implements ChainContext {
       if (updateExpectations) {
         return updateExpectationFile(expectedFile.uri, actual, output);
       }
-      return new Result<O>(
-          output,
-          expectationFileMissing,
-          """
+      return new Result<O>(output, expectationFileMissing, """
 Please create file ${expectedFile.path} with this content:
-$actual""",
-          autoFixCommand: updateExpectationsOption);
+$actual""", autoFixCommand: updateExpectationsOption);
     }
   }
 
@@ -170,12 +175,14 @@ class ErrorCommentChecker
     "patterns/exhaustiveness/enum_switch",
     "patterns/for_final_variable",
     "patterns/pattern_types",
-    "records/type_record_as_supertype"
+    "records/type_record_as_supertype",
   };
 
   @override
   Future<Result<ComponentResult>> run(
-      ComponentResult result, ChainContext context) {
+    ComponentResult result,
+    ChainContext context,
+  ) {
     if (compileMode != CompileMode.full) return Future.value(pass(result));
     // TODO(jensj): Delete this once failures are fixed.
     if (ignoreBecauseOfFailures.contains(result.description.shortName)) {
@@ -201,10 +208,14 @@ class ErrorCommentChecker
       for (Uri uri in uris) {
         Set<int> expectErrorOnLines = {};
         Set<int> expectNoErrorOnLines = {};
-        Map<int, List<CommentToken>> linesToComments =
-            extractCommentsFromLines(uri);
+        Map<int, List<CommentToken>> linesToComments = extractCommentsFromLines(
+          uri,
+        );
         categorizeCommentLines(
-            linesToComments, expectErrorOnLines, expectNoErrorOnLines);
+          linesToComments,
+          expectErrorOnLines,
+          expectNoErrorOnLines,
+        );
         for (int line in expectErrorOnLines) {
           expectProblemOn.add("${uri.pathSegments.last}:$line");
         }
@@ -221,14 +232,17 @@ class ErrorCommentChecker
         Set<String> overlap = expectProblemOn.intersection(expectNoProblemOn);
         if (overlap.isNotEmpty) {
           for (String fileAndLine in overlap) {
-            failures.add("Test error: "
-                "$fileAndLine is marked as both error and no error.");
+            failures.add(
+              "Test error: "
+              "$fileAndLine is marked as both error and no error.",
+            );
           }
         }
 
         List<String>? libraryProblems = lib.problemsAsJson;
         RegExp extractLineRegExp = RegExp(
-            "(${filenames.map((e) => RegExp.escape(e)).join("|")}):(\\d+)");
+          "(${filenames.map((e) => RegExp.escape(e)).join("|")}):(\\d+)",
+        );
 
         if (libraryProblems != null) {
           for (String jsonString in libraryProblems) {
@@ -237,8 +251,9 @@ class ErrorCommentChecker
             // By taking all of these we accept it if it's just mentioned in a
             // context message too. Is that the precision we want?
             for (String plainTextProblem in message.plainTextFormatted) {
-              List<RegExpMatch> matches =
-                  extractLineRegExp.allMatches(plainTextProblem).toList();
+              List<RegExpMatch> matches = extractLineRegExp
+                  .allMatches(plainTextProblem)
+                  .toList();
               if (matches.isEmpty && throwOnNoMatch) {
                 throw "Couldn't extract any offsets from "
                     "'$plainTextProblem' with '$extractLineRegExp'";
@@ -247,9 +262,11 @@ class ErrorCommentChecker
                 String lineString = match.group(0)!;
                 notYetSeen.remove(lineString);
                 if (expectNoProblemOn.contains(lineString)) {
-                  failures.add("Found error at $lineString "
-                      "but didn't expect any:\n"
-                      "$plainTextProblem");
+                  failures.add(
+                    "Found error at $lineString "
+                    "but didn't expect any:\n"
+                    "$plainTextProblem",
+                  );
                 }
               }
             }
@@ -261,11 +278,14 @@ class ErrorCommentChecker
         }
 
         if (failures.isNotEmpty) {
-          return new Future.value(new Result<ComponentResult>(
+          return new Future.value(
+            new Result<ComponentResult>(
               result,
               context.expectationSet["ErrorCommentCheckFailure"],
               "Found ${failures.length} failures:\n\n * "
-              "${failures.join("\n\n * ")}\n"));
+              "${failures.join("\n\n * ")}\n",
+            ),
+          );
         }
       }
     }
@@ -273,8 +293,11 @@ class ErrorCommentChecker
     return Future.value(pass(result));
   }
 
-  void categorizeCommentLines(Map<int, List<CommentToken>> linesToComments,
-      Set<int> expectErrorOnLines, Set<int> expectNoErrorOnLines) {
+  void categorizeCommentLines(
+    Map<int, List<CommentToken>> linesToComments,
+    Set<int> expectErrorOnLines,
+    Set<int> expectNoErrorOnLines,
+  ) {
     for (MapEntry<int, List<CommentToken>> entry in linesToComments.entries) {
       for (CommentToken comment in entry.value) {
         String message = comment.lexeme.trim().toLowerCase();
@@ -364,8 +387,9 @@ class ErrorCommentChecker
           if (previousTokenLine == commentLine) likelyAboutLine = commentLine;
         }
         if (!precedingComments.lexeme.startsWith("// Copyright (c)") &&
-            !precedingComments.lexeme
-                .startsWith("// for details. All rights reserved.") &&
+            !precedingComments.lexeme.startsWith(
+              "// for details. All rights reserved.",
+            ) &&
             !precedingComments.lexeme.startsWith("// BSD-style license")) {
           (linesToComments[likelyAboutLine] ??= []).add(precedingComments);
         }
@@ -398,8 +422,10 @@ class Print extends Step<ComponentResult, ComponentResult, ChainContext> {
     await CompilerContext.runWithDefaultOptions((compilerContext) async {
       compilerContext.uriToSource.addAll(component.uriToSource);
 
-      Printer printer = new Printer(sb,
-          showOffsets: result.compilationSetup.folderOptions.showOffsets);
+      Printer printer = new Printer(
+        sb,
+        showOffsets: result.compilationSetup.folderOptions.showOffsets,
+      );
       for (Library library in component.libraries) {
         if (result.userLibraries.contains(library.importUri)) {
           printer.writeLibraryFile(library);
@@ -420,21 +446,29 @@ class TypeCheck extends Step<ComponentResult, ComponentResult, ChainContext> {
 
   @override
   Future<Result<ComponentResult>> run(
-      ComponentResult result, ChainContext context) {
+    ComponentResult result,
+    ChainContext context,
+  ) {
     Component component = result.component;
     ErrorFormatter errorFormatter = new ErrorFormatter();
-    NaiveTypeChecker checker =
-        new NaiveTypeChecker(errorFormatter, component, ignoreSdk: true);
+    NaiveTypeChecker checker = new NaiveTypeChecker(
+      errorFormatter,
+      component,
+      ignoreSdk: true,
+    );
     checker.checkComponent(component);
     if (errorFormatter.numberOfFailures == 0) {
       return new Future.value(pass(result));
     } else {
       errorFormatter.failures.forEach(print);
       print('------- Found ${errorFormatter.numberOfFailures} errors -------');
-      return new Future.value(new Result<ComponentResult>(
+      return new Future.value(
+        new Result<ComponentResult>(
           null,
           context.expectationSet["TypeCheckError"],
-          '${errorFormatter.numberOfFailures} type errors'));
+          '${errorFormatter.numberOfFailures} type errors',
+        ),
+      );
     }
   }
 }
@@ -449,15 +483,20 @@ class MatchExpectation
   /// located at [suffix]. If [serializeFirst] is true, the input component will
   /// be serialized, deserialized, and the textual representation of that is
   /// compared. It is still the original component that is returned though.
-  const MatchExpectation(this.suffix,
-      {this.serializeFirst = false, required this.isLastMatchStep});
+  const MatchExpectation(
+    this.suffix, {
+    this.serializeFirst = false,
+    required this.isLastMatchStep,
+  });
 
   @override
   String get name => "match expectations";
 
   @override
   Future<Result<ComponentResult>> run(
-      ComponentResult result, MatchContext context) {
+    ComponentResult result,
+    MatchContext context,
+  ) {
     Component component = result.component;
 
     Component componentToText = component;
@@ -469,17 +508,19 @@ class MatchExpectation
         return new Future.value(new Result<ComponentResult>.pass(result));
       }
       // TODO(johnniwinther): Use library filter instead.
-      List<Library> sdkLibraries =
-          component.libraries.where((l) => !result.isUserLibrary(l)).toList();
+      List<Library> sdkLibraries = component.libraries
+          .where((l) => !result.isUserLibrary(l))
+          .toList();
 
       ByteSink sink = new ByteSink();
       Component writeMe = new Component(
-          libraries: component.libraries.where(result.isUserLibrary).toList())
-        ..setMainMethodAndMode(null, false);
+        libraries: component.libraries.where(result.isUserLibrary).toList(),
+      )..setMainMethodAndMode(null, false);
       writeMe.uriToSource.addAll(component.uriToSource);
       if (component.problemsAsJson != null) {
-        writeMe.problemsAsJson =
-            new List<String>.from(component.problemsAsJson!);
+        writeMe.problemsAsJson = new List<String>.from(
+          component.problemsAsJson!,
+        );
       }
       BinaryPrinter binaryPrinter = new BinaryPrinter(sink);
       binaryPrinter.writeComponentFile(writeMe);
@@ -492,8 +533,9 @@ class MatchExpectation
     }
 
     Uri uri = result.description.uri;
-    Iterable<Library> libraries =
-        componentToText.libraries.where(result.isUserLibrary);
+    Iterable<Library> libraries = componentToText.libraries.where(
+      result.isUserLibrary,
+    );
     Uri base = uri.resolve(".");
 
     StringBuffer buffer = new StringBuffer();
@@ -507,8 +549,9 @@ class MatchExpectation
     void addProblemsAsJson(List<String>? problems) {
       if (problems != null) {
         for (String jsonString in problems) {
-          DiagnosticMessage message =
-              new DiagnosticMessageFromJson.fromJson(jsonString);
+          CfeDiagnosticMessage message = new DiagnosticMessageFromJson.fromJson(
+            jsonString,
+          );
           problemsAsJson.add(message.plainTextFormatted.join('\n'));
         }
       }
@@ -540,10 +583,14 @@ class MatchExpectation
       // non-serialized step.
       errors.clear();
     }
-    Printer printer = new Printer(buffer,
-        showOffsets: result.compilationSetup.folderOptions.showOffsets)
-      ..writeProblemsAsJson(
-          "Problems in component", componentToText.problemsAsJson);
+    Printer printer =
+        new Printer(
+          buffer,
+          showOffsets: result.compilationSetup.folderOptions.showOffsets,
+        )..writeProblemsAsJson(
+          "Problems in component",
+          componentToText.problemsAsJson,
+        );
     libraries.forEach((Library library) {
       printer.writeLibraryFile(library);
       printer.endLine();
@@ -557,17 +604,25 @@ class MatchExpectation
         buffer.writeln(extraConstantString);
       }
     }
-    addConstantCoverageToExpectation(result.component, buffer,
-        skipImportUri: (Uri? importUri) =>
-            !result.isUserLibraryImportUri(importUri));
+    addConstantCoverageToExpectation(
+      result.component,
+      buffer,
+      skipImportUri: (Uri? importUri) =>
+          !result.isUserLibraryImportUri(importUri),
+    );
 
     String actual = "$buffer";
-    String binariesPath =
-        relativizeUri(Uri.base, platformBinariesLocation, isWindows);
+    String binariesPath = relativizeUri(
+      Uri.base,
+      platformBinariesLocation,
+      isWindows,
+    );
     if (binariesPath.endsWith("/dart-sdk/lib/_internal/")) {
       // We are running from something like out/ReleaseX64/dart-sdk/bin/dart
       String search = binariesPath.substring(
-          0, binariesPath.length - "lib/_internal/".length);
+        0,
+        binariesPath.length - "lib/_internal/".length,
+      );
       actual = _replaceSdkLocation(actual, search, "sdk/");
     } else {
       // We are running from something like out/ReleaseX64/dart
@@ -575,11 +630,16 @@ class MatchExpectation
     actual = _replaceSdkLocation(actual, "sdk/", "sdk/");
     actual = actual.replaceAll("$base", "org-dartlang-testcase:///");
     actual = actual.replaceAll("\\n", "\n");
-    return context.match<ComponentResult>(suffix, actual, uri, result,
-        onMismatch: serializeFirst
-            ? context.expectationFileMismatchSerialized
-            : context.expectationFileMismatch,
-        overwriteUpdateExpectationsWith: serializeFirst ? false : null);
+    return context.match<ComponentResult>(
+      suffix,
+      actual,
+      uri,
+      result,
+      onMismatch: serializeFirst
+          ? context.expectationFileMismatchSerialized
+          : context.expectationFileMismatch,
+      overwriteUpdateExpectationsWith: serializeFirst ? false : null,
+    );
   }
 
   /// Replace SDK locations starting with [path] with [replacement] and '*'
@@ -598,10 +658,13 @@ class MatchExpectation
   String _replaceSdkLocation(String text, String path, String replacement) {
     // Replace path with line/column.
     RegExp regExp = new RegExp(
-        '^// ${RegExp.escape(path)}([^:\r\n]*):\\d+:\\d+:',
-        multiLine: true);
+      '^// ${RegExp.escape(path)}([^:\r\n]*):\\d+:\\d+:',
+      multiLine: true,
+    );
     text = text.replaceAllMapped(
-        regExp, (Match match) => '// $replacement${match[1]}:*:');
+      regExp,
+      (Match match) => '// $replacement${match[1]}:*:',
+    );
     // Replace path with no line/column.
     return text.replaceAll(path, replacement);
   }
@@ -635,8 +698,9 @@ class WriteDill extends Step<ComponentResult, ComponentResult, ChainContext> {
       // TODO(johnniwinther): Use library filter instead.
       // Avoid serializing the sdk.
       Component userCode = new Component(
-          nameRoot: component.root,
-          uriToSource: new Map<Uri, Source>.from(component.uriToSource));
+        nameRoot: component.root,
+        uriToSource: new Map<Uri, Source>.from(component.uriToSource),
+      );
       userCode.setMainMethodAndMode(component.mainMethodName, true);
       List<Library> auxiliaryLibraries = [];
       for (Library library in component.libraries) {
@@ -692,12 +756,13 @@ class WriteDill extends Step<ComponentResult, ComponentResult, ChainContext> {
         ioSink.add(sink.builder.takeBytes());
         await ioSink.close();
         result = new ComponentResult(
-            result.description,
-            result.component,
-            result.userLibraries,
-            result.compilationSetup,
-            result.sourceTarget,
-            uri);
+          result.description,
+          result.component,
+          result.userLibraries,
+          result.compilationSetup,
+          result.sourceTarget,
+          uri,
+        );
         print("Wrote component to `${generated.path}`.");
       } else {
         print("Wrote component to memory.");
@@ -732,23 +797,23 @@ Future<String> runDiff(Uri expected, String actual) async {
     Directory tempDirectory = Directory.systemTemp.createTempSync();
     Uri uri = tempDirectory.uri.resolve('actual');
     File file = new File.fromUri(uri)..writeAsStringSync(actual);
-    StdioProcess process = await StdioProcess.run(
-        "git",
-        <String>[
-          "diff",
-          "--no-index",
-          "-u",
-          expected.toFilePath(),
-          uri.toFilePath()
-        ],
-        runInShell: true);
+    StdioProcess process = await StdioProcess.run("git", <String>[
+      "diff",
+      "--no-index",
+      "-u",
+      expected.toFilePath(),
+      uri.toFilePath(),
+    ], runInShell: true);
     file.deleteSync();
     tempDirectory.deleteSync();
     return process.output;
   } else {
     StdioProcess process = await StdioProcess.run(
-        "git", <String>["diff", "--no-index", "-u", expected.toFilePath(), "-"],
-        input: actual, runInShell: true);
+      "git",
+      <String>["diff", "--no-index", "-u", expected.toFilePath(), "-"],
+      input: actual,
+      runInShell: true,
+    );
     return process.output;
   }
 }
@@ -772,9 +837,14 @@ class ComponentResult {
   final KernelTarget sourceTarget;
   final List<String> extraConstantStrings = [];
 
-  ComponentResult(this.description, this.component, this.userLibraries,
-      this.compilationSetup, this.sourceTarget,
-      [this.outputUri]);
+  ComponentResult(
+    this.description,
+    this.component,
+    this.userLibraries,
+    this.compilationSetup,
+    this.sourceTarget, [
+    this.outputUri,
+  ]);
 
   bool isUserLibrary(Library library) {
     return isUserLibraryImportUri(library.importUri);

@@ -32,11 +32,13 @@ Future<void> main(List<String> args, [SendPort? sendPort]) async {
       case CompileAndLintWork():
         int compileAndLintErrorsFound = -1;
         try {
-          compileAndLintErrorsFound = await Isolate.run(() =>
-              runCompileAndLintTest(
-                  includedFiles: work.includedFiles,
-                  includedDirectoryUris: work.includedDirectoryUris,
-                  repoDir: work.repoDir));
+          compileAndLintErrorsFound = await Isolate.run(
+            () => runCompileAndLintTest(
+              includedFiles: work.includedFiles,
+              includedDirectoryUris: work.includedDirectoryUris,
+              repoDir: work.repoDir,
+            ),
+          );
         } catch (e, st) {
           // This will make it send false.
           compileAndLintErrorsFound = -1;
@@ -75,8 +77,10 @@ Then run that file through your debugger or similar.
 """);
           print("Got error for ${work.name}: $e");
         }
-        print("Sending ok = ${compileAndLintErrorsFound == 0} "
-            "for ${work.name} after ${stopwatch.elapsed}");
+        print(
+          "Sending ok = ${compileAndLintErrorsFound == 0} "
+          "for ${work.name} after ${stopwatch.elapsed}",
+        );
         sendPort.send(compileAndLintErrorsFound == 0);
 
       case MessagesWork():
@@ -85,10 +89,11 @@ Then run that file through your debugger or similar.
           ok = await Isolate.run(() async {
             ErrorNotingLogger logger = new ErrorNotingLogger();
             await testing.runMe(
-              const ["-DfastOnly=true"],
+              ["-DfastOnly=true", "--", ...work.filters],
               messages_suite.createContext,
-              me: work.repoDir
-                  .resolve("pkg/front_end/test/messages_suite.dart"),
+              me: work.repoDir.resolve(
+                "pkg/front_end/test/messages_suite.dart",
+              ),
               configurationPath: "../testing.json",
               logger: logger,
             );
@@ -97,8 +102,10 @@ Then run that file through your debugger or similar.
         } catch (e) {
           ok = false;
         }
-        print("Sending ok = $ok "
-            "for ${work.name} after ${stopwatch.elapsed}");
+        print(
+          "Sending ok = $ok "
+          "for ${work.name} after ${stopwatch.elapsed}",
+        );
         sendPort.send(ok);
       case SpellNotSourceWork():
         bool ok;
@@ -109,7 +116,8 @@ Then run that file through your debugger or similar.
               ["--", ...work.filters],
               spelling_test_not_src.createContext,
               me: work.repoDir.resolve(
-                  "pkg/front_end/test/spelling_test_not_src_suite.dart"),
+                "pkg/front_end/test/spelling_test_not_src_suite.dart",
+              ),
               configurationPath: "../testing.json",
               logger: logger,
             );
@@ -118,8 +126,10 @@ Then run that file through your debugger or similar.
         } catch (e) {
           ok = false;
         }
-        print("Sending ok = $ok "
-            "for ${work.name} after ${stopwatch.elapsed}");
+        print(
+          "Sending ok = $ok "
+          "for ${work.name} after ${stopwatch.elapsed}",
+        );
         sendPort.send(ok);
       case SpellSourceWork():
         bool ok;
@@ -129,8 +139,9 @@ Then run that file through your debugger or similar.
             await testing.runMe(
               ["--", ...work.filters],
               spelling_test_src.createContext,
-              me: work.repoDir
-                  .resolve("pkg/front_end/test/spelling_test_src_suite.dart"),
+              me: work.repoDir.resolve(
+                "pkg/front_end/test/spelling_test_src_suite.dart",
+              ),
               configurationPath: "../testing.json",
               logger: logger,
             );
@@ -139,8 +150,10 @@ Then run that file through your debugger or similar.
         } catch (e) {
           ok = false;
         }
-        print("Sending ok = $ok "
-            "for ${work.name} after ${stopwatch.elapsed}");
+        print(
+          "Sending ok = $ok "
+          "for ${work.name} after ${stopwatch.elapsed}",
+        );
         sendPort.send(ok);
       case LintWork():
         bool ok;
@@ -159,8 +172,10 @@ Then run that file through your debugger or similar.
         } catch (e) {
           ok = false;
         }
-        print("Sending ok = $ok "
-            "for ${work.name} after ${stopwatch.elapsed}");
+        print(
+          "Sending ok = $ok "
+          "for ${work.name} after ${stopwatch.elapsed}",
+        );
         sendPort.send(ok);
       case DepsTestWork():
         bool ok;
@@ -171,8 +186,10 @@ Then run that file through your debugger or similar.
         } catch (e) {
           ok = false;
         }
-        print("Sending ok = $ok "
-            "for ${work.name} after ${stopwatch.elapsed}");
+        print(
+          "Sending ok = $ok "
+          "for ${work.name} after ${stopwatch.elapsed}",
+        );
         sendPort.send(ok);
     }
   });
@@ -183,8 +200,12 @@ class ErrorNotingLogger implements Logger {
   bool gotFailure = false;
 
   @override
-  void logExpectedResult(Suite suite, testing.TestDescription description,
-      testing.Result result, Set<testing.Expectation> expectedOutcomes) {}
+  void logExpectedResult(
+    Suite suite,
+    testing.TestDescription description,
+    testing.Result result,
+    Set<testing.Expectation> expectedOutcomes,
+  ) {}
 
   @override
   void logMessage(Object message) {}
@@ -197,21 +218,23 @@ class ErrorNotingLogger implements Logger {
 
   @override
   void logStepComplete(
-      int completed,
-      int failed,
-      int total,
-      Suite suite,
-      testing.TestDescription description,
-      testing.Step<dynamic, dynamic, testing.ChainContext> step) {}
+    int completed,
+    int failed,
+    int total,
+    Suite suite,
+    testing.TestDescription description,
+    testing.Step<dynamic, dynamic, testing.ChainContext> step,
+  ) {}
 
   @override
   void logStepStart(
-      int completed,
-      int failed,
-      int total,
-      Suite suite,
-      testing.TestDescription description,
-      testing.Step<dynamic, dynamic, testing.ChainContext> step) {}
+    int completed,
+    int failed,
+    int total,
+    Suite suite,
+    testing.TestDescription description,
+    testing.Step<dynamic, dynamic, testing.ChainContext> step,
+  ) {}
 
   @override
   void logSuiteComplete(Suite suite) {}
@@ -220,12 +243,22 @@ class ErrorNotingLogger implements Logger {
   void logSuiteStarted(Suite suite) {}
 
   @override
-  void logTestComplete(int completed, int failed, int total, Suite suite,
-      testing.TestDescription description) {}
+  void logTestComplete(
+    int completed,
+    int failed,
+    int total,
+    Suite suite,
+    testing.TestDescription description,
+  ) {}
 
   @override
-  void logTestStart(int completed, int failed, int total, Suite suite,
-      testing.TestDescription description) {}
+  void logTestStart(
+    int completed,
+    int failed,
+    int total,
+    Suite suite,
+    testing.TestDescription description,
+  ) {}
 
   @override
   void logUncaughtError(error, StackTrace stackTrace) {
@@ -239,8 +272,12 @@ class ErrorNotingLogger implements Logger {
   Set<testing.Result> alreadyReportedResults = {};
 
   @override
-  void logUnexpectedResult(Suite suite, testing.TestDescription description,
-      testing.Result result, Set<testing.Expectation> expectedOutcomes) {
+  void logUnexpectedResult(
+    Suite suite,
+    testing.TestDescription description,
+    testing.Result result,
+    Set<testing.Expectation> expectedOutcomes,
+  ) {
     if (!alreadyReportedResults.add(result)) return;
 
     String log = result.log;

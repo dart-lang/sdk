@@ -24,7 +24,7 @@ E e(String name) {
   return const E();
 }
 ''',
-      [error(CompileTimeErrorCode.INSTANTIATE_ENUM, 49, 1)],
+      [error(CompileTimeErrorCode.instantiateEnum, 49, 1)],
     );
   }
 
@@ -36,7 +36,7 @@ E e(String name) {
   return new E();
 }
 ''',
-      [error(CompileTimeErrorCode.INSTANTIATE_ENUM, 47, 1)],
+      [error(CompileTimeErrorCode.instantiateEnum, 47, 1)],
     );
   }
 }

@@ -2,20 +2,23 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:_fe_analyzer_shared/src/messages/severity.dart' show Severity;
+import 'package:_fe_analyzer_shared/src/messages/severity.dart'
+    show CfeSeverity;
 import 'package:kernel/ast.dart' show Library, Version;
 
 import '../base/export.dart' show Export;
+import '../base/extension_scope.dart';
 import '../base/loader.dart' show Loader;
+import '../base/lookup_result.dart';
 import '../base/messages.dart'
     show
         FormattedMessage,
         LocatedMessage,
         Message,
         ProblemReporting,
-        templateInternalProblemConstructorNotFound,
-        templateInternalProblemNotFoundIn,
-        templateInternalProblemPrivateConstructorAccess;
+        codeInternalProblemConstructorNotFound,
+        codeInternalProblemNotFoundIn,
+        codeInternalProblemPrivateConstructorAccess;
 import '../base/name_space.dart';
 import '../base/problems.dart' show internalProblem;
 import '../source/name_scheme.dart';
@@ -29,6 +32,9 @@ import 'type_builder.dart';
 
 abstract class LibraryBuilder implements Builder, ProblemReporting {
   NameSpace get libraryNameSpace;
+
+  /// Extensions declared in this library.
+  Extensions get libraryExtensions;
 
   ComputedNameSpace get exportNameSpace;
 
@@ -71,8 +77,9 @@ abstract class LibraryBuilder implements Builder, ProblemReporting {
   /// [Iterator] for all declarations declared in this library of type [T].
   ///
   /// If [includeDuplicates] is `true`, duplicate declarations are included.
-  Iterator<T> filteredMembersIterator<T extends NamedBuilder>(
-      {required bool includeDuplicates});
+  Iterator<T> filteredMembersIterator<T extends NamedBuilder>({
+    required bool includeDuplicates,
+  });
 
   /// Looks up [constructorName] in the class named [className].
   ///
@@ -86,24 +93,35 @@ abstract class LibraryBuilder implements Builder, ProblemReporting {
   /// If [constructorName] is null or the empty string, it's assumed to be an
   /// unnamed constructor. it's an error if [constructorName] starts with
   /// `"_"`, and [bypassLibraryPrivacy] is false.
-  MemberBuilder getConstructor(String className,
-      {String constructorName, bool bypassLibraryPrivacy = false});
+  MemberBuilder getConstructor(
+    String className, {
+    String constructorName,
+    bool bypassLibraryPrivacy = false,
+  });
 
   void becomeCoreLibrary();
 
   /// Lookups the member [name] declared in this library.
+  LookupResult? lookupLocalMember(String name);
+
+  /// Lookups the required member [name] declared in this library.
   ///
-  /// If [required] is `true` and no member is found an internal problem is
-  /// reported.
-  NamedBuilder? lookupLocalMember(String name, {bool required = false});
+  /// If no member is found an internal problem is reported.
+  NamedBuilder? lookupRequiredLocalMember(String name);
 
   void recordAccess(
-      CompilationUnit accessor, int charOffset, int length, Uri fileUri);
+    CompilationUnit accessor,
+    int charOffset,
+    int length,
+    Uri fileUri,
+  );
 
   /// Returns `true` if [typeDeclarationBuilder] is the 'Function' class defined
   /// in [coreLibrary].
-  static bool isFunction(TypeDeclarationBuilder? typeDeclarationBuilder,
-      LibraryBuilder coreLibrary) {
+  static bool isFunction(
+    TypeDeclarationBuilder? typeDeclarationBuilder,
+    LibraryBuilder coreLibrary,
+  ) {
     return typeDeclarationBuilder is ClassBuilder &&
         typeDeclarationBuilder.name == 'Function' &&
         typeDeclarationBuilder.libraryBuilder == coreLibrary;
@@ -111,8 +129,10 @@ abstract class LibraryBuilder implements Builder, ProblemReporting {
 
   /// Returns `true` if [typeDeclarationBuilder] is the 'Record' class defined
   /// in [coreLibrary].
-  static bool isRecord(TypeDeclarationBuilder? typeDeclarationBuilder,
-      LibraryBuilder coreLibrary) {
+  static bool isRecord(
+    TypeDeclarationBuilder? typeDeclarationBuilder,
+    LibraryBuilder coreLibrary,
+  ) {
     return typeDeclarationBuilder is ClassBuilder &&
         typeDeclarationBuilder.name == 'Record' &&
         typeDeclarationBuilder.libraryBuilder == coreLibrary;
@@ -148,33 +168,47 @@ abstract class LibraryBuilderImpl extends BuilderImpl
 
   @override
   FormattedMessage? addProblem(
-      Message message, int charOffset, int length, Uri? fileUri,
-      {bool wasHandled = false,
-      List<LocatedMessage>? context,
-      Severity? severity,
-      bool problemOnLibrary = false}) {
+    Message message,
+    int charOffset,
+    int length,
+    Uri? fileUri, {
+    bool wasHandled = false,
+    List<LocatedMessage>? context,
+    CfeSeverity? severity,
+    bool problemOnLibrary = false,
+  }) {
     fileUri ??= this.fileUri;
 
-    return loader.addProblem(message, charOffset, length, fileUri,
-        wasHandled: wasHandled,
-        context: context,
-        severity: severity,
-        problemOnLibrary: true);
+    return loader.addProblem(
+      message,
+      charOffset,
+      length,
+      fileUri,
+      wasHandled: wasHandled,
+      context: context,
+      severity: severity,
+      problemOnLibrary: true,
+    );
   }
 
   @override
-  MemberBuilder getConstructor(String className,
-      {String? constructorName, bool bypassLibraryPrivacy = false}) {
+  MemberBuilder getConstructor(
+    String className, {
+    String? constructorName,
+    bool bypassLibraryPrivacy = false,
+  }) {
     constructorName ??= "";
     if (constructorName.startsWith("_") && !bypassLibraryPrivacy) {
       return internalProblem(
-          templateInternalProblemPrivateConstructorAccess
-              .withArguments(constructorName),
-          -1,
-          null);
+        codeInternalProblemPrivateConstructorAccess.withArgumentsOld(
+          constructorName,
+        ),
+        -1,
+        null,
+      );
     }
     Builder? cls = (bypassLibraryPrivacy ? libraryNameSpace : exportNameSpace)
-        .lookupLocalMember(className)
+        .lookup(className)
         ?.getable;
     if (cls is TypeAliasBuilder) {
       // Coverage-ignore-block(suite): Not run.
@@ -187,44 +221,61 @@ abstract class LibraryBuilderImpl extends BuilderImpl
     if (cls is ClassBuilder) {
       // TODO(ahe): This code is similar to code in `endNewExpression` in
       // `body_builder.dart`, try to share it.
-      MemberBuilder? constructor =
-          cls.findConstructorOrFactory(constructorName, -1, fileUri, this);
-      if (constructor == null) {
-        // Fall-through to internal error below.
-      } else if (constructor is ConstructorBuilder) {
-        if (!cls.isAbstract) {
+      MemberLookupResult? result = cls.findConstructorOrFactory(
+        constructorName,
+        this,
+      );
+      if (result != null && !result.isInvalidLookup) {
+        MemberBuilder? constructor = result.getable;
+        if (constructor == null) {
+          // Fall-through to internal error below.
+        } else if (constructor is ConstructorBuilder) {
+          if (!cls.isAbstract) {
+            return constructor;
+          }
+        }
+        // Coverage-ignore(suite): Not run.
+        else if (constructor is FactoryBuilder) {
           return constructor;
         }
-      }
-      // Coverage-ignore(suite): Not run.
-      else if (constructor is FactoryBuilder) {
-        return constructor;
       }
     }
     // Coverage-ignore-block(suite): Not run.
     throw internalProblem(
-        templateInternalProblemConstructorNotFound.withArguments(
-            "$className.$constructorName", importUri),
-        -1,
-        null);
+      codeInternalProblemConstructorNotFound.withArgumentsOld(
+        "$className.$constructorName",
+        importUri,
+      ),
+      -1,
+      null,
+    );
   }
 
   @override
-  NamedBuilder? lookupLocalMember(String name, {bool required = false}) {
-    NamedBuilder? builder = libraryNameSpace.lookupLocalMember(name)?.getable;
-    if (required && builder == null) {
+  LookupResult? lookupLocalMember(String name) {
+    return libraryNameSpace.lookup(name);
+  }
+
+  @override
+  NamedBuilder? lookupRequiredLocalMember(String name) {
+    NamedBuilder? builder = libraryNameSpace.lookup(name)?.getable;
+    if (builder == null) {
       internalProblem(
-          templateInternalProblemNotFoundIn.withArguments(
-              name, fullNameForErrors),
-          -1,
-          null);
+        codeInternalProblemNotFoundIn.withArgumentsOld(name, fullNameForErrors),
+        -1,
+        null,
+      );
     }
     return builder;
   }
 
   @override
   void recordAccess(
-      CompilationUnit accessor, int charOffset, int length, Uri fileUri) {}
+    CompilationUnit accessor,
+    int charOffset,
+    int length,
+    Uri fileUri,
+  ) {}
 
   @override
   String toString() {

@@ -10,6 +10,7 @@ import 'dart:convert';
 
 import 'package:analysis_server/protocol/protocol.dart';
 import 'package:analysis_server/src/channel/channel.dart';
+import 'package:analysis_server/src/plugin/plugin_isolate.dart';
 import 'package:analysis_server/src/plugin/plugin_manager.dart';
 import 'package:analyzer/dart/analysis/context_root.dart' as analyzer;
 import 'package:analyzer_plugin/protocol/protocol.dart' as plugin;
@@ -133,8 +134,9 @@ class MockServerChannel implements ServerCommunicationChannel {
 
     // Round-trip via JSON to ensure all types are fully serialized as they
     // would be in a real setup.
-    response =
-        Response.fromJson(jsonDecode(jsonString) as Map<String, Object?>)!;
+    response = Response.fromJson(
+      jsonDecode(jsonString) as Map<String, Object?>,
+    )!;
 
     responsesReceived.add(response);
     responseController.add(response);
@@ -164,10 +166,9 @@ class MockServerChannel implements ServerCommunicationChannel {
 
     // Round-trip via JSON to ensure all types are fully serialized as they
     // would be in a real setup.
-    response =
-        Response.fromJson(
-          jsonDecode(jsonEncode(response)) as Map<String, Object?>,
-        )!;
+    response = Response.fromJson(
+      jsonDecode(jsonEncode(response)) as Map<String, Object?>,
+    )!;
 
     return response;
   }
@@ -187,8 +188,9 @@ class MockServerChannel implements ServerCommunicationChannel {
 
     // Round-trip via JSON to ensure all types are fully serialized as they
     // would be in a real setup.
-    response =
-        Response.fromJson(jsonDecode(jsonString) as Map<String, Object?>)!;
+    response = Response.fromJson(
+      jsonDecode(jsonString) as Map<String, Object?>,
+    )!;
 
     requestController.add(response);
   }
@@ -226,13 +228,13 @@ class TestPluginManager implements PluginManager {
   plugin.AnalysisSetSubscriptionsParams? analysisSetSubscriptionsParams;
   plugin.AnalysisUpdateContentParams? analysisUpdateContentParams;
   plugin.RequestParams? broadcastedRequest;
-  Map<PluginInfo, Future<plugin.Response>>? broadcastResults;
-  Map<PluginInfo, Future<plugin.Response>>? Function(plugin.RequestParams)?
+  Map<PluginIsolate, Future<plugin.Response>>? broadcastResults;
+  Map<PluginIsolate, Future<plugin.Response>>? Function(plugin.RequestParams)?
   handleRequest;
   Map<analyzer.ContextRoot, List<String>> contextRootPlugins = {};
 
   @override
-  List<PluginInfo> plugins = [];
+  List<PluginIsolate> pluginIsolates = [];
 
   @override
   Completer<void> initializedCompleter = Completer();
@@ -253,7 +255,7 @@ class TestPluginManager implements PluginManager {
   }
 
   @override
-  Map<PluginInfo, Future<plugin.Response>> broadcastRequest(
+  Map<PluginIsolate, Future<plugin.Response>> broadcastRequest(
     plugin.RequestParams params, {
     analyzer.ContextRoot? contextRoot,
   }) {

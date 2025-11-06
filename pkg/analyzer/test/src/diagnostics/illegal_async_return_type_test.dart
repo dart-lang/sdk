@@ -22,7 +22,7 @@ int f() async {
   return 1;
 }
 ''',
-      [error(CompileTimeErrorCode.ILLEGAL_ASYNC_RETURN_TYPE, 0, 3)],
+      [error(CompileTimeErrorCode.illegalAsyncReturnType, 0, 3)],
     );
   }
 
@@ -39,7 +39,7 @@ int f() async {
   return 2;
 }
 ''',
-      [error(CompileTimeErrorCode.ILLEGAL_ASYNC_RETURN_TYPE, 0, 3)],
+      [error(CompileTimeErrorCode.illegalAsyncReturnType, 0, 3)],
     );
   }
 
@@ -51,7 +51,7 @@ SubFuture<int> f() async {
   return 0;
 }
 ''',
-      [error(CompileTimeErrorCode.ILLEGAL_ASYNC_RETURN_TYPE, 52, 14)],
+      [error(CompileTimeErrorCode.illegalAsyncReturnType, 52, 14)],
     );
   }
 
@@ -64,7 +64,7 @@ class C {
   }
 }
 ''',
-      [error(CompileTimeErrorCode.ILLEGAL_ASYNC_RETURN_TYPE, 12, 3)],
+      [error(CompileTimeErrorCode.illegalAsyncReturnType, 12, 3)],
     );
   }
 
@@ -86,7 +86,7 @@ class C {
   }
 }
 ''',
-      [error(CompileTimeErrorCode.ILLEGAL_ASYNC_RETURN_TYPE, 64, 14)],
+      [error(CompileTimeErrorCode.illegalAsyncReturnType, 64, 14)],
     );
   }
 }

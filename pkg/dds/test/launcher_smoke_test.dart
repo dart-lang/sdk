@@ -66,6 +66,22 @@ void main() {
       );
     }
 
+    test(
+      'External DevTools address is reported correctly',
+      () async {
+        final fakeDevToolsUri =
+            Uri.parse('http://localhost:12345/my_devtools/');
+        dds = await DartDevelopmentServiceLauncher.start(
+          remoteVmServiceUri: remoteVmServiceUri,
+          serveDevTools: true,
+          devToolsServerAddress: fakeDevToolsUri,
+        );
+
+        expect(dds.devToolsUri,
+            fakeDevToolsUri.replace(query: 'uri=${dds.wsUri.toString()}'));
+      },
+    );
+
     createSmokeTest(true);
     createSmokeTest(false);
   });

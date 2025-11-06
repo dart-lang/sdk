@@ -32,7 +32,7 @@ main() {
 main() {
 }
 ''',
-      [error(CompileTimeErrorCode.UNDEFINED_ANNOTATION, 0, 11)],
+      [error(CompileTimeErrorCode.undefinedAnnotation, 0, 11)],
     );
   }
 
@@ -43,7 +43,7 @@ main() {
 main() {
 }
 ''',
-      [error(CompileTimeErrorCode.UNDEFINED_ANNOTATION, 0, 13)],
+      [error(CompileTimeErrorCode.undefinedAnnotation, 0, 13)],
     );
   }
 
@@ -53,7 +53,7 @@ main() {
 @p.A(0)
 class B {}
 ''',
-      [error(CompileTimeErrorCode.UNDEFINED_ANNOTATION, 0, 7)],
+      [error(CompileTimeErrorCode.undefinedAnnotation, 0, 7)],
     );
   }
 
@@ -65,7 +65,7 @@ import 'dart:math' as p;
 @p.A(0)
 class B {}
 ''',
-      [error(CompileTimeErrorCode.UNDEFINED_ANNOTATION, 26, 7)],
+      [error(CompileTimeErrorCode.undefinedAnnotation, 26, 7)],
     );
   }
 
@@ -77,7 +77,7 @@ import 'dart:math' as p;
 main() {
 }
 ''',
-      [error(CompileTimeErrorCode.UNDEFINED_ANNOTATION, 25, 13)],
+      [error(CompileTimeErrorCode.undefinedAnnotation, 25, 13)],
     );
   }
 
@@ -89,7 +89,7 @@ class A {
   static const foo = null;
 }
 ''',
-      [error(CompileTimeErrorCode.UNDEFINED_ANNOTATION, 0, 4)],
+      [error(CompileTimeErrorCode.undefinedAnnotation, 0, 4)],
     );
   }
 }

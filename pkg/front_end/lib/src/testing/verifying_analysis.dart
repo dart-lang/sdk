@@ -19,9 +19,12 @@ class VerifyingAnalysis extends AnalysisVisitor {
 
   Map _expectedJson = {};
 
-  VerifyingAnalysis(DiagnosticMessageHandler onDiagnostic, Component component,
-      this._allowedListPath, UriFilter? analyzedUrisFilter)
-      : super(onDiagnostic, component, analyzedUrisFilter);
+  VerifyingAnalysis(
+    DiagnosticMessageHandler onDiagnostic,
+    Component component,
+    this._allowedListPath,
+    UriFilter? analyzedUrisFilter,
+  ) : super(onDiagnostic, component, analyzedUrisFilter);
 
   void run({bool verbose = false, bool generate = false}) {
     if (!generate && _allowedListPath != null) {
@@ -37,18 +40,23 @@ class VerifyingAnalysis extends AnalysisVisitor {
     component.accept(this);
     if (generate && _allowedListPath != null) {
       Map<String, Map<String, int>> actualJson = {};
-      forEachMessage(
-          (String uri, Map<String, List<FormattedMessage>> actualMessagesMap) {
+      forEachMessage((
+        String uri,
+        Map<String, List<FormattedMessage>> actualMessagesMap,
+      ) {
         Map<String, int> map = {};
-        actualMessagesMap
-            .forEach((String message, List<FormattedMessage> actualMessages) {
+        actualMessagesMap.forEach((
+          String message,
+          List<FormattedMessage> actualMessages,
+        ) {
           map[message] = actualMessages.length;
         });
         actualJson[uri] = map;
       });
 
       new File(_allowedListPath).writeAsStringSync(
-          new json.JsonEncoder.withIndent('  ').convert(actualJson));
+        new json.JsonEncoder.withIndent('  ').convert(actualJson),
+      );
       return;
     }
 
@@ -57,36 +65,46 @@ class VerifyingAnalysis extends AnalysisVisitor {
       Map<String, List<FormattedMessage>>? actualMessagesMap =
           getMessagesForUri(uri);
       if (actualMessagesMap == null) {
-        print("Error: Allowed-listing of uri '$uri' isn't used. "
-            "Remove it from the allowed-list.");
+        print(
+          "Error: Allowed-listing of uri '$uri' isn't used. "
+          "Remove it from the allowed-list.",
+        );
         errorCount++;
       } else {
         expectedMessages.forEach((expectedMessage, expectedCount) {
           List<FormattedMessage>? actualMessages =
               actualMessagesMap[expectedMessage];
           if (actualMessages == null) {
-            print("Error: Allowed-listing of message '$expectedMessage' "
-                "in uri '$uri' isn't used. Remove it from the allowed-list.");
+            print(
+              "Error: Allowed-listing of message '$expectedMessage' "
+              "in uri '$uri' isn't used. Remove it from the allowed-list.",
+            );
             errorCount++;
           } else {
             int actualCount = actualMessages.length;
             if (actualCount != expectedCount) {
-              print("Error: Unexpected count of allowed message "
-                  "'$expectedMessage' in uri '$uri'. "
-                  "Expected $expectedCount, actual $actualCount:");
               print(
-                  '----------------------------------------------------------');
+                "Error: Unexpected count of allowed message "
+                "'$expectedMessage' in uri '$uri'. "
+                "Expected $expectedCount, actual $actualCount:",
+              );
+              print(
+                '----------------------------------------------------------',
+              );
               for (FormattedMessage message in actualMessages) {
                 onDiagnostic(message);
               }
               print(
-                  '----------------------------------------------------------');
+                '----------------------------------------------------------',
+              );
               errorCount++;
             }
           }
         });
-        actualMessagesMap
-            .forEach((String message, List<FormattedMessage> actualMessages) {
+        actualMessagesMap.forEach((
+          String message,
+          List<FormattedMessage> actualMessages,
+        ) {
           if (!expectedMessages.containsKey(message)) {
             for (FormattedMessage message in actualMessages) {
               onDiagnostic(message);
@@ -96,11 +114,15 @@ class VerifyingAnalysis extends AnalysisVisitor {
         });
       }
     });
-    forEachMessage(
-        (String uri, Map<String, List<FormattedMessage>> actualMessagesMap) {
+    forEachMessage((
+      String uri,
+      Map<String, List<FormattedMessage>> actualMessagesMap,
+    ) {
       if (!_expectedJson.containsKey(uri)) {
-        actualMessagesMap
-            .forEach((String message, List<FormattedMessage> actualMessages) {
+        actualMessagesMap.forEach((
+          String message,
+          List<FormattedMessage> actualMessages,
+        ) {
           for (FormattedMessage message in actualMessages) {
             onDiagnostic(message);
             errorCount++;
@@ -127,10 +149,14 @@ class VerifyingAnalysis extends AnalysisVisitor {
       exit(-1);
     }
     if (verbose) {
-      forEachMessage(
-          (String uri, Map<String, List<FormattedMessage>> actualMessagesMap) {
-        actualMessagesMap
-            .forEach((String message, List<FormattedMessage> actualMessages) {
+      forEachMessage((
+        String uri,
+        Map<String, List<FormattedMessage>> actualMessagesMap,
+      ) {
+        actualMessagesMap.forEach((
+          String message,
+          List<FormattedMessage> actualMessages,
+        ) {
           for (FormattedMessage message in actualMessages) {
             // TODO(johnniwinther): It is unnecessarily complicated to just
             // add ' (allowed)' to an existing message!
@@ -138,35 +164,47 @@ class VerifyingAnalysis extends AnalysisVisitor {
             String newMessageText =
                 '${locatedMessage.messageObject.problemMessage} (allowed)';
             message = locatedMessage.withFormatting(
-                formatWithLocationNoSdk(
-                    new LocatedMessage(
-                        locatedMessage.uri,
-                        locatedMessage.charOffset,
-                        locatedMessage.length,
-                        new Message(locatedMessage.messageObject.code,
-                            problemMessage: newMessageText,
-                            correctionMessage:
-                                locatedMessage.messageObject.correctionMessage,
-                            arguments: locatedMessage.messageObject.arguments)),
-                    Severity.warning,
-                    location: new Location(
-                        message.uri!, message.line, message.column),
-                    uriToSource: component.uriToSource),
-                message.line,
-                message.column,
-                Severity.warning,
-                []);
+              formatWithLocationNoSdk(
+                new LocatedMessage(
+                  locatedMessage.uri,
+                  locatedMessage.charOffset,
+                  locatedMessage.length,
+                  new Message(
+                    locatedMessage.messageObject.code,
+                    problemMessage: newMessageText,
+                    correctionMessage:
+                        locatedMessage.messageObject.correctionMessage,
+                    arguments: locatedMessage.messageObject.arguments,
+                  ),
+                ),
+                CfeSeverity.warning,
+                location: new Location(
+                  message.uri!,
+                  message.line,
+                  message.column,
+                ),
+                uriToSource: component.uriToSource,
+              ),
+              message.line,
+              message.column,
+              CfeSeverity.warning,
+              [],
+            );
             onDiagnostic(message);
           }
         });
       });
     } else {
       int total = 0;
-      forEachMessage(
-          (String uri, Map<String, List<FormattedMessage>> actualMessagesMap) {
+      forEachMessage((
+        String uri,
+        Map<String, List<FormattedMessage>> actualMessagesMap,
+      ) {
         int count = 0;
-        actualMessagesMap
-            .forEach((String message, List<FormattedMessage> actualMessages) {
+        actualMessagesMap.forEach((
+          String message,
+          List<FormattedMessage> actualMessages,
+        ) {
           count += actualMessages.length;
         });
 

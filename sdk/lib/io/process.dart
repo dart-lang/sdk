@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-part of dart.io;
+part of "dart:io";
 
 // TODO(ager): The only reason for this class is that we
 // cannot patch a top-level at this point.
@@ -51,13 +51,16 @@ class _ProcessUtils {
 /// program to the surrounding environment. This will avoid any
 /// cross-platform issues.
 Never exit(int code) {
-  ArgumentError.checkNotNull(code, "code");
-  if (!_EmbedderConfig._mayExit) {
-    throw new UnsupportedError(
-      "This embedder disallows calling dart:io's exit()",
-    );
+  IOOverrides? overrides = IOOverrides.current;
+  if (overrides == null) {
+    if (!_EmbedderConfig._mayExit) {
+      throw new UnsupportedError(
+        "This embedder disallows calling dart:io's exit()",
+      );
+    }
+    _ProcessUtils._exit(code);
   }
-  _ProcessUtils._exit(code);
+  overrides.exit(code);
 }
 
 /// Set the global exit code for the Dart VM.
@@ -71,7 +74,6 @@ Never exit(int code) {
 /// See [exit] for more information on how to chose a value for the
 /// exit code.
 void set exitCode(int code) {
-  ArgumentError.checkNotNull(code, "code");
   _ProcessUtils._setExitCode(code);
 }
 

@@ -4,18 +4,19 @@
 
 import 'dart:collection';
 
+import 'package:analyzer/src/analysis_rule/rule_context.dart';
 import 'package:analyzer/src/dart/error/lint_codes.dart';
 import 'package:analyzer/src/lint/config.dart';
-import 'package:analyzer/src/lint/linter.dart';
 
 /// Registry of lint rules and warning rules.
 class Registry with IterableMixin<AbstractAnalysisRule> {
   /// The default registry to be used by clients.
   static final Registry ruleRegistry = Registry();
 
-  /// A table mapping rule names to rules.
+  /// A table mapping lint rule names to rules.
   final Map<String, AbstractAnalysisRule> _lintRules = {};
 
+  /// A table mapping warning rule names to rules.
   final Map<String, AbstractAnalysisRule> _warningRules = {};
 
   /// A table mapping unique names to lint codes.

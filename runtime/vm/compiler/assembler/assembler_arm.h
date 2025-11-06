@@ -430,6 +430,10 @@ class Assembler : public AssemblerBase {
   void StoreMemoryValue(Register src, Register base, int32_t offset) {
     StoreToOffset(src, base, offset);
   }
+
+  void TsanFuncEntry(bool preserve_registers = true) { UNREACHABLE(); }
+  void TsanFuncExit(bool preserve_registers = true) { UNREACHABLE(); }
+
   void LoadAcquire(Register dst,
                    const Address& address,
                    OperandSize size = kFourBytes) override {
@@ -1464,7 +1468,9 @@ class Assembler : public AssemblerBase {
   void EmitEntryFrameVerification(Register scratch);
 
   // For non-leaf runtime calls. For leaf runtime calls, use LeafRuntimeScope,
-  void CallRuntime(const RuntimeEntry& entry, intptr_t argument_count);
+  void CallRuntime(const RuntimeEntry& entry,
+                   intptr_t argument_count,
+                   bool tsan_enter_exit = true);
 
   // Set up a Dart frame on entry with a frame pointer and PC information to
   // enable easy access to the RawInstruction object of code corresponding

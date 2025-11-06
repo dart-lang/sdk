@@ -6,67 +6,69 @@ import "dart:typed_data" as typ;
 
 import "dart:ffi";
 
-@#C16
+@#C3
+@#C18
 final class TestStruct extends ffi::Struct {
   constructor #fromTypedDataBase([@vm.inferred-arg-type.metadata=dart.typed_data::_Uint8List] synthesized core::Object #typedDataBase) → self::TestStruct
-    : super ffi::Struct::_fromTypedDataBase(#typedDataBase, #C17)
+    : super ffi::Struct::_fromTypedDataBase(#typedDataBase, #C19)
     ;
 
   [@vm.inferred-return-type.metadata=dart.ffi::Array<#lib::MyStruct>]
   [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasNonThisUses:false,hasTearOffUses:false,getterSelectorId:1]
-  @#C19
+  @#C21
   get structArray() → ffi::Array<self::MyStruct>
-    return new ffi::Array::_<self::MyStruct>([@vm.direct-call.metadata=dart.ffi::_Compound._typedDataBase] this.{ffi::_Compound::_typedDataBase}{core::Object}, [@vm.direct-call.metadata=dart.core::_IntegerImplementation.+] [@vm.inferred-type.metadata=int (skip check)] [@vm.inferred-type.metadata=dart.core::_Smi (value: 0)] self::TestStruct::structArray#offsetOf.{core::num::+}([@vm.direct-call.metadata=dart.ffi::_Compound._offsetInBytes] [@vm.inferred-type.metadata=int?] this.{ffi::_Compound::_offsetInBytes}{core::int}){(core::num) → core::num}, #C3, #C4, #C20);
+    return new ffi::Array::_<self::MyStruct>([@vm.direct-call.metadata=dart.ffi::_Compound._typedDataBase] this.{ffi::_Compound::_typedDataBase}{core::Object}, [@vm.direct-call.metadata=dart.core::_IntegerImplementation.+] [@vm.inferred-type.metadata=int (skip check)] [@vm.inferred-type.metadata=dart.core::_Smi (value: 0)] self::TestStruct::structArray#offsetOf.{core::num::+}([@vm.direct-call.metadata=dart.ffi::_Compound._offsetInBytes] [@vm.inferred-type.metadata=int?] this.{ffi::_Compound::_offsetInBytes}{core::int}){(core::num) → core::num}, #C6, #C7, #C22);
 
   [@vm.inferred-return-type.metadata=dart.ffi::Array<#lib::MyUnion>]
   [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasNonThisUses:false,hasTearOffUses:false,getterSelectorId:2]
-  @#C19
+  @#C21
   get unionArray() → ffi::Array<self::MyUnion>
-    return new ffi::Array::_<self::MyUnion>([@vm.direct-call.metadata=dart.ffi::_Compound._typedDataBase] this.{ffi::_Compound::_typedDataBase}{core::Object}, [@vm.direct-call.metadata=dart.core::_IntegerImplementation.+] [@vm.inferred-type.metadata=int (skip check)] [@vm.inferred-type.metadata=dart.core::_Smi (value: 8)] self::TestStruct::unionArray#offsetOf.{core::num::+}([@vm.direct-call.metadata=dart.ffi::_Compound._offsetInBytes] [@vm.inferred-type.metadata=int?] this.{ffi::_Compound::_offsetInBytes}{core::int}){(core::num) → core::num}, #C3, #C4, #C20);
+    return new ffi::Array::_<self::MyUnion>([@vm.direct-call.metadata=dart.ffi::_Compound._typedDataBase] this.{ffi::_Compound::_typedDataBase}{core::Object}, [@vm.direct-call.metadata=dart.core::_IntegerImplementation.+] [@vm.inferred-type.metadata=int (skip check)] [@vm.inferred-type.metadata=dart.core::_Smi (value: 8)] self::TestStruct::unionArray#offsetOf.{core::num::+}([@vm.direct-call.metadata=dart.ffi::_Compound._offsetInBytes] [@vm.inferred-type.metadata=int?] this.{ffi::_Compound::_offsetInBytes}{core::int}){(core::num) → core::num}, #C6, #C7, #C22);
 
   [@vm.inferred-return-type.metadata=dart.ffi::Array<dart.ffi::Array<dart.ffi::Int8>>]
   [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasNonThisUses:false,hasTearOffUses:false,getterSelectorId:3]
-  @#C19
+  @#C21
   get arrayArray() → ffi::Array<ffi::Array<ffi::Int8>>
-    return new ffi::Array::_<ffi::Array<ffi::Int8>>([@vm.direct-call.metadata=dart.ffi::_Compound._typedDataBase] this.{ffi::_Compound::_typedDataBase}{core::Object}, [@vm.direct-call.metadata=dart.core::_IntegerImplementation.+] [@vm.inferred-type.metadata=int (skip check)] [@vm.inferred-type.metadata=dart.core::_Smi (value: 28)] self::TestStruct::arrayArray#offsetOf.{core::num::+}([@vm.direct-call.metadata=dart.ffi::_Compound._offsetInBytes] [@vm.inferred-type.metadata=int?] this.{ffi::_Compound::_offsetInBytes}{core::int}){(core::num) → core::num}, #C3, #C4, #C21);
+    return new ffi::Array::_<ffi::Array<ffi::Int8>>([@vm.direct-call.metadata=dart.ffi::_Compound._typedDataBase] this.{ffi::_Compound::_typedDataBase}{core::Object}, [@vm.direct-call.metadata=dart.core::_IntegerImplementation.+] [@vm.inferred-type.metadata=int (skip check)] [@vm.inferred-type.metadata=dart.core::_Smi (value: 28)] self::TestStruct::arrayArray#offsetOf.{core::num::+}([@vm.direct-call.metadata=dart.ffi::_Compound._offsetInBytes] [@vm.inferred-type.metadata=int?] this.{ffi::_Compound::_offsetInBytes}{core::int}){(core::num) → core::num}, #C6, #C7, #C23);
 
   [@vm.inferred-return-type.metadata=dart.ffi::Array<dart.ffi::WChar>]
   [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasNonThisUses:false,hasTearOffUses:false,getterSelectorId:4]
-  @#C19
+  @#C21
   get abiSpecificIntegerArray() → ffi::Array<ffi::WChar>
-    return new ffi::Array::_<ffi::WChar>([@vm.direct-call.metadata=dart.ffi::_Compound._typedDataBase] this.{ffi::_Compound::_typedDataBase}{core::Object}, [@vm.direct-call.metadata=dart.core::_IntegerImplementation.+] [@vm.inferred-type.metadata=int (skip check)] [@vm.inferred-type.metadata=dart.core::_Smi] self::TestStruct::abiSpecificIntegerArray#offsetOf.{core::num::+}([@vm.direct-call.metadata=dart.ffi::_Compound._offsetInBytes] [@vm.inferred-type.metadata=int?] this.{ffi::_Compound::_offsetInBytes}{core::int}){(core::num) → core::num}, #C3, #C4, #C20);
+    return new ffi::Array::_<ffi::WChar>([@vm.direct-call.metadata=dart.ffi::_Compound._typedDataBase] this.{ffi::_Compound::_typedDataBase}{core::Object}, [@vm.direct-call.metadata=dart.core::_IntegerImplementation.+] [@vm.inferred-type.metadata=int (skip check)] [@vm.inferred-type.metadata=dart.core::_Smi] self::TestStruct::abiSpecificIntegerArray#offsetOf.{core::num::+}([@vm.direct-call.metadata=dart.ffi::_Compound._offsetInBytes] [@vm.inferred-type.metadata=int?] this.{ffi::_Compound::_offsetInBytes}{core::int}){(core::num) → core::num}, #C6, #C7, #C22);
 
   [@vm.inferred-return-type.metadata=dart.core::_Smi (value: 0)]
   [@vm.unboxing-info.metadata=()->i]
-  @#C19
+  @#C21
   static synthetic get structArray#offsetOf() → core::int
-    return #C22.{core::List::[]}(ffi::_abi()){(core::int) → core::int};
+    return #C24.{core::List::[]}(ffi::_abi()){(core::int) → core::int};
 
   [@vm.inferred-return-type.metadata=dart.core::_Smi (value: 8)]
   [@vm.unboxing-info.metadata=()->i]
-  @#C19
+  @#C21
   static synthetic get unionArray#offsetOf() → core::int
-    return #C24.{core::List::[]}(ffi::_abi()){(core::int) → core::int};
+    return #C26.{core::List::[]}(ffi::_abi()){(core::int) → core::int};
 
   [@vm.inferred-return-type.metadata=dart.core::_Smi (value: 28)]
   [@vm.unboxing-info.metadata=()->i]
-  @#C19
+  @#C21
   static synthetic get arrayArray#offsetOf() → core::int
-    return #C26.{core::List::[]}(ffi::_abi()){(core::int) → core::int};
+    return #C28.{core::List::[]}(ffi::_abi()){(core::int) → core::int};
 
   [@vm.inferred-return-type.metadata=dart.core::_Smi]
   [@vm.unboxing-info.metadata=()->i]
-  @#C19
+  @#C21
   static synthetic get abiSpecificIntegerArray#offsetOf() → core::int
-    return #C29.{core::List::[]}(ffi::_abi()){(core::int) → core::int};
+    return #C31.{core::List::[]}(ffi::_abi()){(core::int) → core::int};
 
   [@vm.inferred-return-type.metadata=dart.core::_Smi]
   [@vm.unboxing-info.metadata=()->i]
-  @#C19
+  @#C21
   static get #sizeOf() → core::int
-    return #C32.{core::List::[]}(ffi::_abi()){(core::int) → core::int};
+    return #C34.{core::List::[]}(ffi::_abi()){(core::int) → core::int};
 }
-@#C35
+@#C3
+@#C37
 final class MyStruct extends ffi::Struct {
   constructor #fromTypedDataBase(synthesized core::Object #typedDataBase, synthesized core::int #offsetInBytes) → self::MyStruct
     : super ffi::Struct::_fromTypedDataBase(#typedDataBase, #offsetInBytes)
@@ -74,11 +76,12 @@ final class MyStruct extends ffi::Struct {
 
   [@vm.inferred-return-type.metadata=dart.core::_Smi (value: 1)]
   [@vm.unboxing-info.metadata=()->i]
-  @#C19
+  @#C21
   static get #sizeOf() → core::int
-    return #C37.{core::List::[]}(ffi::_abi()){(core::int) → core::int};
+    return #C39.{core::List::[]}(ffi::_abi()){(core::int) → core::int};
 }
-@#C42
+@#C3
+@#C44
 final class MyUnion extends ffi::Union {
   constructor #fromTypedDataBase(synthesized core::Object #typedDataBase, synthesized core::int #offsetInBytes) → self::MyUnion
     : super ffi::Union::_fromTypedDataBase(#typedDataBase, #offsetInBytes)
@@ -86,65 +89,67 @@ final class MyUnion extends ffi::Union {
 
   [@vm.inferred-return-type.metadata=dart.core::_Smi (value: 4)]
   [@vm.unboxing-info.metadata=()->i]
-  @#C19
+  @#C21
   static get #sizeOf() → core::int
-    return #C44.{core::List::[]}(ffi::_abi()){(core::int) → core::int};
+    return #C46.{core::List::[]}(ffi::_abi()){(core::int) → core::int};
 }
 
 [@vm.inferred-return-type.metadata=dart.core::Null? (value: null)]
 [@vm.closure-id=2]
 static method main() → void {
   final self::TestStruct struct = new self::TestStruct::#fromTypedDataBase([@vm.inferred-type.metadata=dart.typed_data::_Uint8List] typ::Uint8List::•([@vm.inferred-type.metadata=dart.core::_Smi] self::TestStruct::#sizeOf));
-  core::print(new ffi::_ArrayList::•<self::MyStruct>([@vm.direct-call.metadata=#lib::TestStruct.structArray] [@vm.inferred-type.metadata=dart.ffi::Array<#lib::MyStruct>] struct.{self::TestStruct::structArray}{ffi::Array<self::MyStruct>}, [@vm.inferred-type.metadata=dart.core::_Smi (value: 1)] self::MyStruct::#sizeOf, #C45));
-  core::print(new ffi::_ArrayList::•<self::MyUnion>([@vm.direct-call.metadata=#lib::TestStruct.unionArray] [@vm.inferred-type.metadata=dart.ffi::Array<#lib::MyUnion>] struct.{self::TestStruct::unionArray}{ffi::Array<self::MyUnion>}, [@vm.inferred-type.metadata=dart.core::_Smi (value: 4)] self::MyUnion::#sizeOf, #C46));
+  core::print(new ffi::_ArrayList::•<self::MyStruct>([@vm.direct-call.metadata=#lib::TestStruct.structArray] [@vm.inferred-type.metadata=dart.ffi::Array<#lib::MyStruct>] struct.{self::TestStruct::structArray}{ffi::Array<self::MyStruct>}, [@vm.inferred-type.metadata=dart.core::_Smi (value: 1)] self::MyStruct::#sizeOf, #C47));
+  core::print(new ffi::_ArrayList::•<self::MyUnion>([@vm.direct-call.metadata=#lib::TestStruct.unionArray] [@vm.inferred-type.metadata=dart.ffi::Array<#lib::MyUnion>] struct.{self::TestStruct::unionArray}{ffi::Array<self::MyUnion>}, [@vm.inferred-type.metadata=dart.core::_Smi (value: 4)] self::MyUnion::#sizeOf, #C48));
   core::print(new ffi::_ArrayArrayList::•<ffi::Int8>([@vm.direct-call.metadata=#lib::TestStruct.arrayArray] [@vm.inferred-type.metadata=dart.ffi::Array<dart.ffi::Array<dart.ffi::Int8>>] struct.{self::TestStruct::arrayArray}{ffi::Array<ffi::Array<ffi::Int8>>}));
-  core::print(new ffi::_AbiSpecificIntegerArrayList::•<ffi::WChar>([@vm.direct-call.metadata=#lib::TestStruct.abiSpecificIntegerArray] [@vm.inferred-type.metadata=dart.ffi::Array<dart.ffi::WChar>] struct.{self::TestStruct::abiSpecificIntegerArray}{ffi::Array<ffi::WChar>}, [@vm.closure-id=1](synthesized ffi::Array<ffi::WChar> #array, synthesized core::int #index) → core::int => [@vm.inferred-type.metadata=int] ffi::_loadAbiSpecificIntAtIndex<ffi::WChar>([@vm.direct-call.metadata=dart.ffi::_Compound._typedDataBase] #array.{ffi::_Compound::_typedDataBase}{core::Object}, [@vm.direct-call.metadata=dart.ffi::_Compound._offsetInBytes] [@vm.inferred-type.metadata=int?] #array.{ffi::_Compound::_offsetInBytes}{core::int}, #index), [@vm.closure-id=2](synthesized ffi::Array<ffi::WChar> #array, synthesized core::int #index, synthesized core::int? #value) → core::int => [@vm.inferred-type.metadata=int] ffi::_storeAbiSpecificIntAtIndex<ffi::WChar>([@vm.direct-call.metadata=dart.ffi::_Compound._typedDataBase] #array.{ffi::_Compound::_typedDataBase}{core::Object}, [@vm.direct-call.metadata=dart.ffi::_Compound._offsetInBytes] [@vm.inferred-type.metadata=int?] #array.{ffi::_Compound::_offsetInBytes}{core::int}, #index, #value)));
+  core::print(new ffi::_AbiSpecificIntegerArrayList::•<ffi::WChar>([@vm.direct-call.metadata=#lib::TestStruct.abiSpecificIntegerArray] [@vm.inferred-type.metadata=dart.ffi::Array<dart.ffi::WChar>] struct.{self::TestStruct::abiSpecificIntegerArray}{ffi::Array<ffi::WChar>}, [@vm.closure-id=1](synthesized ffi::Array<ffi::WChar> #array, synthesized core::int #index) → core::int => [@vm.inferred-type.metadata=int] ffi::_loadAbiSpecificIntAtIndex<ffi::WChar>([@vm.direct-call.metadata=dart.ffi::_Compound._typedDataBase] #array.{ffi::_Compound::_typedDataBase}{core::Object}, [@vm.direct-call.metadata=dart.ffi::_Compound._offsetInBytes] [@vm.inferred-type.metadata=int?] #array.{ffi::_Compound::_offsetInBytes}{core::int}, #index), [@vm.closure-id=2](synthesized ffi::Array<ffi::WChar> #array, synthesized core::int #index, synthesized core::int? #value) → core::int => ffi::_storeAbiSpecificIntAtIndex<ffi::WChar>([@vm.direct-call.metadata=dart.ffi::_Compound._typedDataBase] #array.{ffi::_Compound::_typedDataBase}{core::Object}, [@vm.direct-call.metadata=dart.ffi::_Compound._offsetInBytes] [@vm.inferred-type.metadata=int?] #array.{ffi::_Compound::_offsetInBytes}{core::int}, #index, #value)));
 }
 constants  {
-  #C1 = "vm:ffi:struct-fields"
-  #C2 = TypeLiteralConstant(self::MyStruct)
-  #C3 = 5
-  #C4 = false
-  #C5 = ffi::_FfiInlineArray {elementType:#C2, length:#C3, variableLength:#C4}
-  #C6 = TypeLiteralConstant(self::MyUnion)
-  #C7 = ffi::_FfiInlineArray {elementType:#C6, length:#C3, variableLength:#C4}
-  #C8 = TypeLiteralConstant(ffi::Int8)
-  #C9 = 25
-  #C10 = ffi::_FfiInlineArray {elementType:#C8, length:#C9, variableLength:#C4}
-  #C11 = TypeLiteralConstant(ffi::WChar)
-  #C12 = ffi::_FfiInlineArray {elementType:#C11, length:#C3, variableLength:#C4}
-  #C13 = <core::Type>[#C5, #C7, #C10, #C12]
-  #C14 = null
-  #C15 = ffi::_FfiStructLayout {fieldTypes:#C13, packing:#C14}
-  #C16 = core::pragma {name:#C1, options:#C15}
-  #C17 = 0
-  #C18 = "vm:prefer-inline"
-  #C19 = core::pragma {name:#C18, options:#C14}
-  #C20 = <core::int>[]
-  #C21 = <core::int>[#C3]
-  #C22 = <core::int>[#C17, #C17, #C17, #C17, #C17, #C17, #C17, #C17, #C17, #C17, #C17, #C17, #C17, #C17, #C17, #C17, #C17, #C17, #C17, #C17, #C17, #C17]
-  #C23 = 8
-  #C24 = <core::int>[#C23, #C23, #C23, #C23, #C23, #C23, #C23, #C23, #C23, #C23, #C23, #C23, #C23, #C23, #C23, #C23, #C23, #C23, #C23, #C23, #C23, #C23]
-  #C25 = 28
+  #C1 = "vm:deeply-immutable"
+  #C2 = null
+  #C3 = core::pragma {name:#C1, options:#C2}
+  #C4 = "vm:ffi:struct-fields"
+  #C5 = TypeLiteralConstant(self::MyStruct)
+  #C6 = 5
+  #C7 = false
+  #C8 = ffi::_FfiInlineArray {elementType:#C5, length:#C6, variableLength:#C7}
+  #C9 = TypeLiteralConstant(self::MyUnion)
+  #C10 = ffi::_FfiInlineArray {elementType:#C9, length:#C6, variableLength:#C7}
+  #C11 = TypeLiteralConstant(ffi::Int8)
+  #C12 = 25
+  #C13 = ffi::_FfiInlineArray {elementType:#C11, length:#C12, variableLength:#C7}
+  #C14 = TypeLiteralConstant(ffi::WChar)
+  #C15 = ffi::_FfiInlineArray {elementType:#C14, length:#C6, variableLength:#C7}
+  #C16 = <core::Type>[#C8, #C10, #C13, #C15]
+  #C17 = ffi::_FfiStructLayout {fieldTypes:#C16, packing:#C2}
+  #C18 = core::pragma {name:#C4, options:#C17}
+  #C19 = 0
+  #C20 = "vm:prefer-inline"
+  #C21 = core::pragma {name:#C20, options:#C2}
+  #C22 = <core::int>[]
+  #C23 = <core::int>[#C6]
+  #C24 = <core::int>[#C19, #C19, #C19, #C19, #C19, #C19, #C19, #C19, #C19, #C19, #C19, #C19, #C19, #C19, #C19, #C19, #C19, #C19, #C19, #C19, #C19, #C19]
+  #C25 = 8
   #C26 = <core::int>[#C25, #C25, #C25, #C25, #C25, #C25, #C25, #C25, #C25, #C25, #C25, #C25, #C25, #C25, #C25, #C25, #C25, #C25, #C25, #C25, #C25, #C25]
-  #C27 = 56
-  #C28 = 54
-  #C29 = <core::int>[#C27, #C27, #C27, #C27, #C27, #C27, #C27, #C27, #C27, #C27, #C27, #C27, #C27, #C27, #C27, #C27, #C27, #C27, #C27, #C28, #C28, #C28]
-  #C30 = 76
-  #C31 = 64
-  #C32 = <core::int>[#C30, #C30, #C30, #C30, #C30, #C30, #C30, #C30, #C30, #C30, #C30, #C30, #C30, #C30, #C30, #C30, #C30, #C30, #C30, #C31, #C31, #C31]
-  #C33 = <core::Type>[#C8]
-  #C34 = ffi::_FfiStructLayout {fieldTypes:#C33, packing:#C14}
-  #C35 = core::pragma {name:#C1, options:#C34}
-  #C36 = 1
-  #C37 = <core::int>[#C36, #C36, #C36, #C36, #C36, #C36, #C36, #C36, #C36, #C36, #C36, #C36, #C36, #C36, #C36, #C36, #C36, #C36, #C36, #C36, #C36, #C36]
-  #C38 = TypeLiteralConstant(ffi::Int32)
-  #C39 = TypeLiteralConstant(ffi::Float)
-  #C40 = <core::Type>[#C38, #C39]
-  #C41 = ffi::_FfiStructLayout {fieldTypes:#C40, packing:#C14}
-  #C42 = core::pragma {name:#C1, options:#C41}
-  #C43 = 4
-  #C44 = <core::int>[#C43, #C43, #C43, #C43, #C43, #C43, #C43, #C43, #C43, #C43, #C43, #C43, #C43, #C43, #C43, #C43, #C43, #C43, #C43, #C43, #C43, #C43]
-  #C45 = constructor-tearoff self::MyStruct::#fromTypedDataBase
-  #C46 = constructor-tearoff self::MyUnion::#fromTypedDataBase
+  #C27 = 28
+  #C28 = <core::int>[#C27, #C27, #C27, #C27, #C27, #C27, #C27, #C27, #C27, #C27, #C27, #C27, #C27, #C27, #C27, #C27, #C27, #C27, #C27, #C27, #C27, #C27]
+  #C29 = 56
+  #C30 = 54
+  #C31 = <core::int>[#C29, #C29, #C29, #C29, #C29, #C29, #C29, #C29, #C29, #C29, #C29, #C29, #C29, #C29, #C29, #C29, #C29, #C29, #C29, #C30, #C30, #C30]
+  #C32 = 76
+  #C33 = 64
+  #C34 = <core::int>[#C32, #C32, #C32, #C32, #C32, #C32, #C32, #C32, #C32, #C32, #C32, #C32, #C32, #C32, #C32, #C32, #C32, #C32, #C32, #C33, #C33, #C33]
+  #C35 = <core::Type>[#C11]
+  #C36 = ffi::_FfiStructLayout {fieldTypes:#C35, packing:#C2}
+  #C37 = core::pragma {name:#C4, options:#C36}
+  #C38 = 1
+  #C39 = <core::int>[#C38, #C38, #C38, #C38, #C38, #C38, #C38, #C38, #C38, #C38, #C38, #C38, #C38, #C38, #C38, #C38, #C38, #C38, #C38, #C38, #C38, #C38]
+  #C40 = TypeLiteralConstant(ffi::Int32)
+  #C41 = TypeLiteralConstant(ffi::Float)
+  #C42 = <core::Type>[#C40, #C41]
+  #C43 = ffi::_FfiStructLayout {fieldTypes:#C42, packing:#C2}
+  #C44 = core::pragma {name:#C4, options:#C43}
+  #C45 = 4
+  #C46 = <core::int>[#C45, #C45, #C45, #C45, #C45, #C45, #C45, #C45, #C45, #C45, #C45, #C45, #C45, #C45, #C45, #C45, #C45, #C45, #C45, #C45, #C45, #C45]
+  #C47 = constructor-tearoff self::MyStruct::#fromTypedDataBase
+  #C48 = constructor-tearoff self::MyUnion::#fromTypedDataBase
 }

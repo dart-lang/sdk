@@ -142,7 +142,8 @@ void group(String s, void Function() f) {}
 ''';
     provider.setOverlay(
       snippetPath,
-      content: '''
+      content:
+          '''
 $imports
 $snippet
 ''',
@@ -163,8 +164,8 @@ $snippet
         Iterable<Diagnostic> diagnostics = results.diagnostics.where((error) {
           DiagnosticCode diagnosticCode = error.diagnosticCode;
           // TODO(brianwilkerson): .
-          return diagnosticCode != WarningCode.UNUSED_IMPORT &&
-              diagnosticCode != WarningCode.UNUSED_LOCAL_VARIABLE &&
+          return diagnosticCode != WarningCode.unusedImport &&
+              diagnosticCode != WarningCode.unusedLocalVariable &&
               !isAllowedLint(error);
         });
         if (diagnostics.isNotEmpty) {

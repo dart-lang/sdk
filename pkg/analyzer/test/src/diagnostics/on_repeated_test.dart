@@ -21,7 +21,7 @@ class OnRepeatedTest extends PubPackageResolutionTest {
 class A {}
 mixin M on A, A {}
 ''',
-      [error(CompileTimeErrorCode.ON_REPEATED, 25, 1)],
+      [error(CompileTimeErrorCode.onRepeated, 25, 1)],
     );
   }
 
@@ -43,7 +43,7 @@ augment mixin M on A {}
     await assertErrorsInFile2(a, []);
 
     await assertErrorsInFile2(b, [
-      error(CompileTimeErrorCode.ON_REPEATED, 38, 1),
+      error(CompileTimeErrorCode.onRepeated, 38, 1),
     ]);
   }
 
@@ -54,7 +54,7 @@ class A {}
 typedef B = A;
 mixin M on A, B {}
 ''',
-      [error(CompileTimeErrorCode.ON_REPEATED, 40, 1)],
+      [error(CompileTimeErrorCode.onRepeated, 40, 1)],
     );
   }
 }

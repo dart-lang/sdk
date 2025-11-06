@@ -510,13 +510,11 @@ class Utf8BytesScanner extends AbstractScanner {
     bool asciiOnly,
     String syntheticChars,
   ) {
-    String value =
-        syntheticChars.length == 0
-            ? canonicalizeUtf8SubString(_bytes, start, byteOffset, asciiOnly)
-            : canonicalizeString(
-              decodeString(_bytes, start, byteOffset, asciiOnly) +
-                  syntheticChars,
-            );
+    String value = syntheticChars.length == 0
+        ? canonicalizeUtf8SubString(_bytes, start, byteOffset, asciiOnly)
+        : canonicalizeString(
+            decodeString(_bytes, start, byteOffset, asciiOnly) + syntheticChars,
+          );
     return new SyntheticStringToken(
       type,
       value,

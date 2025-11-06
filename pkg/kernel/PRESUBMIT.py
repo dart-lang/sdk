@@ -48,7 +48,11 @@ def runSmokeTest(input_api, output_api):
         print('WARNING: CFE et al presubmit_helper not found: %s' % test_helper)
         return []
 
-    args = [dart, test_helper, input_api.PresubmitLocalPath()]
+    args = [
+        dart, test_helper,
+        input_api.PresubmitLocalPath(),
+        input_api.change.UpstreamBranch()
+    ]
     process = subprocess.Popen(args,
                                stdout=subprocess.PIPE,
                                stdin=subprocess.PIPE)

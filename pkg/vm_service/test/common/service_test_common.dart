@@ -11,7 +11,7 @@ import 'dart:typed_data';
 import 'package:path/path.dart' as p;
 import 'package:test/test.dart';
 import 'package:vm_service/vm_service.dart';
-import 'package:vm_service_protos/vm_service_protos.dart' show DebugAnnotation;
+import 'package:vm_service_protos/vm_service_protos.dart' hide Frame;
 
 typedef IsolateTest = Future<void> Function(
   VmService service,
@@ -471,14 +471,22 @@ Future<String> _locationToString(
   IsolateRef isolateRef,
   Frame frame,
 ) async {
+  final buffer = StringBuffer();
   final location = frame.location!;
-  final Script script =
+  final script =
       await service.getObject(isolateRef.id!, location.script!.id!) as Script;
   final scriptName = p.basename(script.uri!);
+  buffer.write(scriptName);
   final tokenPos = location.tokenPos!;
   final line = script.getLineNumberFromTokenPos(tokenPos);
-  final column = script.getColumnNumberFromTokenPos(tokenPos);
-  return '$scriptName:$line:$column';
+  if (line != null) {
+    buffer.write(':$line');
+    final column = script.getColumnNumberFromTokenPos(tokenPos);
+    if (column != null) {
+      buffer.write(':$column');
+    }
+  }
+  return buffer.toString();
 }
 
 IsolateTest runStepThroughProgramRecordingStops(List<String> recordStops) {
@@ -954,4 +962,44 @@ Map<String, String> mapFromListOfDebugAnnotations(
       }
     }),
   );
+}
+
+int computeTimeOriginNanos(List<TracePacket> packets) {
+  final packetsWithPerfSamples =
+      packets.where((packet) => packet.hasPerfSample()).toList();
+  if (packetsWithPerfSamples.isEmpty) {
+    return 0;
+  }
+  int smallest = packetsWithPerfSamples.first.timestamp.toInt();
+  for (int i = 0; i < packetsWithPerfSamples.length; i++) {
+    if (packetsWithPerfSamples[i].timestamp < smallest) {
+      smallest = packetsWithPerfSamples[i].timestamp.toInt();
+    }
+  }
+  return smallest;
+}
+
+int computeTimeExtentNanos(List<TracePacket> packets, int timeOrigin) {
+  final packetsWithPerfSamples =
+      packets.where((packet) => packet.hasPerfSample()).toList();
+  if (packetsWithPerfSamples.isEmpty) {
+    return 0;
+  }
+  int largestExtent = packetsWithPerfSamples[0].timestamp.toInt() - timeOrigin;
+  for (var i = 0; i < packetsWithPerfSamples.length; i++) {
+    final int duration =
+        packetsWithPerfSamples[i].timestamp.toInt() - timeOrigin;
+    if (duration > largestExtent) {
+      largestExtent = duration;
+    }
+  }
+  return largestExtent;
+}
+
+Iterable<PerfSample> extractPerfSamplesFromTracePackets(
+  List<TracePacket> packets,
+) {
+  return packets
+      .where((packet) => packet.hasPerfSample())
+      .map((packet) => packet.perfSample);
 }

@@ -15,14 +15,18 @@ import 'package:kernel/ast.dart' hide MapLiteralEntry;
 
 Future<void> main(List<String> args) async {
   Directory dataDir = new Directory.fromUri(
-      Platform.script.resolve('../../../_fe_analyzer_shared/test/flow_analysis/'
-          'why_not_promoted/data'));
-  await runTests<String>(dataDir,
-      args: args,
-      createUriForFileName: createUriForFileName,
-      onFailure: onFailure,
-      runTest:
-          runTestFor(const WhyNotPromotedDataComputer(), [defaultCfeConfig]));
+    Platform.script.resolve(
+      '../../../_fe_analyzer_shared/test/flow_analysis/'
+      'why_not_promoted/data',
+    ),
+  );
+  await runTests<String>(
+    dataDir,
+    args: args,
+    createUriForFileName: createUriForFileName,
+    onFailure: onFailure,
+    runTest: runTestFor(const WhyNotPromotedDataComputer(), [defaultCfeConfig]),
+  );
 }
 
 class WhyNotPromotedDataComputer extends CfeDataComputer<String> {
@@ -41,25 +45,33 @@ class WhyNotPromotedDataComputer extends CfeDataComputer<String> {
   ///
   /// Fills [actualMap] with the data.
   @override
-  void computeMemberData(CfeTestResultData testResultData, Member member,
-      Map<Id, ActualData<String>> actualMap,
-      {bool? verbose}) {
+  void computeMemberData(
+    CfeTestResultData testResultData,
+    Member member,
+    Map<Id, ActualData<String>> actualMap, {
+    bool? verbose,
+  }) {
     SourceMemberBuilder memberBuilder =
         lookupMemberBuilder(testResultData.compilerResult, member)
             as SourceMemberBuilder;
-    member.accept(new WhyNotPromotedDataExtractor(
+    member.accept(
+      new WhyNotPromotedDataExtractor(
         testResultData.compilerResult,
         actualMap,
-        memberBuilder.dataForTesting!.inferenceData.flowAnalysisResult));
+        memberBuilder.dataForTesting!.inferenceData.flowAnalysisResult,
+      ),
+    );
   }
 }
 
 class WhyNotPromotedDataExtractor extends CfeDataExtractor<String> {
   final FlowAnalysisResult _flowResult;
 
-  WhyNotPromotedDataExtractor(InternalCompilerResult compilerResult,
-      Map<Id, ActualData<String>> actualMap, this._flowResult)
-      : super(compilerResult, actualMap);
+  WhyNotPromotedDataExtractor(
+    InternalCompilerResult compilerResult,
+    Map<Id, ActualData<String>> actualMap,
+    this._flowResult,
+  ) : super(compilerResult, actualMap);
 
   @override
   String? computeNodeValue(Id id, TreeNode node) {

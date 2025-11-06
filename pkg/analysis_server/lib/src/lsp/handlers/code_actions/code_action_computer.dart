@@ -366,15 +366,10 @@ class _CodeActionSorter {
     var dedupedActions = _dedupeActions(actions, range.start);
 
     // Add each index so we can do a stable sort on priority.
-    var dedupedActionsWithIndex =
-        dedupedActions.indexed.map((item) {
-          var (index, action) = item;
-          return (
-            action: action.action,
-            priority: action.priority,
-            index: index,
-          );
-        }).toList();
+    var dedupedActionsWithIndex = dedupedActions.indexed.map((item) {
+      var (index, action) = item;
+      return (action: action.action, priority: action.priority, index: index);
+    }).toList();
     dedupedActionsWithIndex.sort(_compareCodeActions);
 
     return dedupedActionsWithIndex.map((action) => action.action).toList();
@@ -487,9 +482,8 @@ class _CodeActionSorter {
             // Compare either edits or commands based on which the selected action has.
             return firstLiteral.edit != null
                 ? firstLiteral.edit == other.edit
-                : firstLiteral.command != null
-                ? firstLiteral.command == other.command
-                : false;
+                : firstLiteral.command != null &&
+                      firstLiteral.command == other.command;
           });
 
       // Build a new CodeAction that merges the diagnostics from each same

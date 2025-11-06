@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/*@testedFeatures=inference*/
 library test;
 
 class A {
@@ -14,15 +13,9 @@ class B {
   A a = throw '';
 }
 
-var v_prefix_pp =
-    (/*@target=A.+*/ ++new /*@type=B*/ B(). /*@target=B.a*/ /*@target=B.a*/ a);
-var v_prefix_mm =
-    (/*@target=A.-*/ --new /*@type=B*/ B(). /*@target=B.a*/ /*@target=B.a*/ a);
-var v_postfix_pp = (new /*@type=B*/ B()
-    . /*@type=A*/ /*@target=B.a*/ /*@target=B.a*/
-    /*@type=int*/ a /*@target=A.+*/ ++);
-var v_postfix_mm = (new /*@type=B*/ B()
-    . /*@type=A*/ /*@target=B.a*/ /*@target=B.a*/
-    /*@type=double*/ a /*@target=A.-*/ --);
+var v_prefix_pp = (++new B().a);
+var v_prefix_mm = (--new B().a);
+var v_postfix_pp = (new B().a++);
+var v_postfix_mm = (new B().a--);
 
 main() {}

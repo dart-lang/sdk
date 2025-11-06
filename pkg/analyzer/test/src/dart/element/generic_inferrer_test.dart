@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:_fe_analyzer_shared/src/type_inference/type_analyzer_operations.dart';
+import 'package:_fe_analyzer_shared/src/types/shared_type.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/error/listener.dart';
@@ -162,10 +162,7 @@ class GenericFunctionInferenceTest extends AbstractTypeSystemTest {
 
     // class B extends A<B> {}
     var B = class_2(name: 'B');
-    B.firstFragment.supertype = interfaceTypeNone(
-      A,
-      typeArguments: [interfaceTypeNone(B)],
-    );
+    B.supertype = interfaceTypeNone(A, typeArguments: [interfaceTypeNone(B)]);
     var typeB = interfaceTypeNone(B);
 
     // <S extends A<S>>
@@ -555,15 +552,13 @@ class GenericFunctionInferenceTest extends AbstractTypeSystemTest {
   }
 
   void _assertTypes(List<DartType> actual, List<DartType> expected) {
-    var actualStr =
-        actual.map((e) {
-          return e.getDisplayString();
-        }).toList();
+    var actualStr = actual.map((e) {
+      return e.getDisplayString();
+    }).toList();
 
-    var expectedStr =
-        expected.map((e) {
-          return e.getDisplayString();
-        }).toList();
+    var expectedStr = expected.map((e) {
+      return e.getDisplayString();
+    }).toList();
 
     expect(actualStr, expectedStr);
   }
@@ -605,7 +600,7 @@ class GenericFunctionInferenceTest extends AbstractTypeSystemTest {
     if (expectError) {
       expect(
         listener.diagnostics.map((e) => e.diagnosticCode).toList(),
-        [CompileTimeErrorCode.COULD_NOT_INFER],
+        [CompileTimeErrorCode.couldNotInfer],
         reason: 'expected exactly 1 could not infer error.',
       );
     } else {

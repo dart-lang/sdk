@@ -6,6 +6,7 @@ import 'dart:async';
 
 import 'package:analysis_server/lsp_protocol/protocol.dart';
 import 'package:analysis_server/src/lsp/constants.dart';
+import 'package:analyzer/src/test_utilities/platform.dart';
 import 'package:analyzer/src/test_utilities/test_code_format.dart';
 import 'package:test/test.dart';
 
@@ -435,7 +436,7 @@ mixin SharedEditArgumentTests
       originalArgs: '(x: true)',
       edit: ArgumentEdit(name: 'x'),
       errorCode: ServerErrorCodes.EditArgumentInvalidValue,
-      message: "The value for the parameter 'x' cannot be null",
+      message: "The value for the parameter 'x' can't be null",
     );
   }
 
@@ -483,7 +484,7 @@ mixin SharedEditArgumentTests
       originalArgs: '(x: 1.0)',
       edit: ArgumentEdit(name: 'x'),
       errorCode: ServerErrorCodes.EditArgumentInvalidValue,
-      message: "The value for the parameter 'x' cannot be null",
+      message: "The value for the parameter 'x' can't be null",
     );
   }
 
@@ -523,6 +524,75 @@ mixin SharedEditArgumentTests
     );
   }
 
+  Future<void> test_type_enum_dotshorthand_addNew() async {
+    await _expectSimpleArgumentEdit(
+      additionalCode: 'enum E { one, two }',
+      params: '({ E? x })',
+      originalArgs: '()',
+      edit: ArgumentEdit(name: 'x', newValue: 'E.two'),
+      expectedArgs: '(x: .two)',
+    );
+  }
+
+  Future<void> test_type_enum_dotshorthand_disabled_addNew() async {
+    await _expectSimpleArgumentEdit(
+      additionalCode: 'enum E { one, two }',
+      params: '({ E? x })',
+      originalArgs: '()',
+      edit: ArgumentEdit(name: 'x', newValue: 'E.two'),
+      expectedArgs: '(x: E.two)',
+      fileComment: '// @dart = 3.8',
+    );
+  }
+
+  Future<void> test_type_enum_dotshorthand_disabled_replaceLiteral() async {
+    await _expectSimpleArgumentEdit(
+      additionalCode: 'enum E { one, two }',
+      params: '({ E? x })',
+      originalArgs: '(x: E.one)',
+      edit: ArgumentEdit(name: 'x', newValue: 'E.two'),
+      expectedArgs: '(x: E.two)',
+      fileComment: '// @dart = 3.8',
+    );
+  }
+
+  Future<void> test_type_enum_dotshorthand_disabled_replaceNonLiteral() async {
+    await _expectSimpleArgumentEdit(
+      additionalCode: '''
+enum E { one, two }
+const E myConst = E.one;
+''',
+      params: '({ E? x })',
+      originalArgs: '(x: myConst)',
+      edit: ArgumentEdit(name: 'x', newValue: 'E.two'),
+      expectedArgs: '(x: E.two)',
+      fileComment: '// @dart = 3.8',
+    );
+  }
+
+  Future<void> test_type_enum_dotshorthand_replaceLiteral() async {
+    await _expectSimpleArgumentEdit(
+      additionalCode: 'enum E { one, two }',
+      params: '({ E? x })',
+      originalArgs: '(x: .one)',
+      edit: ArgumentEdit(name: 'x', newValue: 'E.two'),
+      expectedArgs: '(x: .two)',
+    );
+  }
+
+  Future<void> test_type_enum_dotshorthand_replaceNonLiteral() async {
+    await _expectSimpleArgumentEdit(
+      additionalCode: '''
+enum E { one, two }
+const E myConst = .one;
+''',
+      params: '({ E? x })',
+      originalArgs: '(x: myConst)',
+      edit: ArgumentEdit(name: 'x', newValue: 'E.two'),
+      expectedArgs: '(x: .two)',
+    );
+  }
+
   Future<void> test_type_enum_invalidType() async {
     await _expectFailedEdit(
       additionalCode: 'enum E { one, two }',
@@ -552,7 +622,7 @@ mixin SharedEditArgumentTests
       originalArgs: '(x: E.one)',
       edit: ArgumentEdit(name: 'x'),
       errorCode: ServerErrorCodes.EditArgumentInvalidValue,
-      message: "The value for the parameter 'x' cannot be null",
+      message: "The value for the parameter 'x' can't be null",
     );
   }
 
@@ -575,7 +645,7 @@ const myConst = E.one;
       params: '({ E? x })',
       originalArgs: '(x: myConst)',
       edit: ArgumentEdit(name: 'x', newValue: 'E.two'),
-      expectedArgs: '(x: E.two)',
+      expectedArgs: '(x: .two)',
     );
   }
 
@@ -604,7 +674,7 @@ const myConst = E.one;
       originalArgs: '(x: 1)',
       edit: ArgumentEdit(name: 'x'),
       errorCode: ServerErrorCodes.EditArgumentInvalidValue,
-      message: "The value for the parameter 'x' cannot be null",
+      message: "The value for the parameter 'x' can't be null",
     );
   }
 
@@ -687,7 +757,7 @@ const myConst = E.one;
       originalArgs: "(x: 'a')",
       edit: ArgumentEdit(name: 'x'),
       errorCode: ServerErrorCodes.EditArgumentInvalidValue,
-      message: "The value for the parameter 'x' cannot be null",
+      message: "The value for the parameter 'x' can't be null",
     );
   }
 
@@ -802,6 +872,9 @@ const myConst = E.one;
     String expectedContent, {
     bool open = true,
   }) async {
+    content = normalizeNewlinesForPlatform(content);
+    expectedContent = normalizeNewlinesForPlatform(expectedContent);
+
     code = TestCode.parse(content);
     createFile(testFilePath, code.code);
     await initializeServer();
@@ -827,7 +900,8 @@ const myConst = E.one;
     String? additionalCode,
   }) async {
     additionalCode ??= '';
-    var content = '''
+    var content =
+        '''
 import 'package:flutter/widgets.dart';
 
 $additionalCode
@@ -857,10 +931,12 @@ class MyWidget extends StatelessWidget {
     required String originalArgs,
     required ArgumentEdit edit,
     required String expectedArgs,
-    String? additionalCode,
+    String? additionalCode = '',
+    String? fileComment = '',
   }) async {
-    additionalCode ??= '';
-    var content = '''
+    var content =
+        '''
+$fileComment
 import 'package:flutter/widgets.dart';
 
 $additionalCode
@@ -872,8 +948,10 @@ class MyWidget extends StatelessWidget {
   Widget build(BuildContext context) => MyW^idget$originalArgs;
 }
 ''';
-    var expectedContent = '''
+    var expectedContent =
+        '''
 >>>>>>>>>> lib/test.dart
+$fileComment
 import 'package:flutter/widgets.dart';
 
 $additionalCode

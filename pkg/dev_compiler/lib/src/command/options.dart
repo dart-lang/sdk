@@ -127,33 +127,31 @@ class Options {
 
   Options.fromArguments(ArgResults args)
     : this(
-        sourceMap: args['source-map'] as bool,
-        inlineSourceMap: args['inline-source-map'] as bool,
-        summarizeApi: args['summarize'] as bool,
-        enableAsserts: args['enable-asserts'] as bool,
-        replCompile: args['repl-compile'] as bool,
-        emitDebugMetadata: args['experimental-emit-debug-metadata'] as bool,
-        emitDebugSymbols: args['emit-debug-symbols'] as bool,
-        emitFullCompiledKernel:
-            args['experimental-output-compiled-kernel'] as bool,
-        reloadLastAcceptedKernel:
-            args['reload-last-accepted-kernel'] as String?,
-        reloadDeltaKernel: args['reload-delta-kernel'] as String?,
-        summaryModules: _parseCustomSummaryModules(
-          args['summary'] as List<String>,
+        sourceMap: args.flag('source-map'),
+        inlineSourceMap: args.flag('inline-source-map'),
+        summarizeApi: args.flag('summarize'),
+        enableAsserts: args.flag('enable-asserts'),
+        replCompile: args.flag('repl-compile'),
+        emitDebugMetadata: args.flag('experimental-emit-debug-metadata'),
+        emitDebugSymbols: args.flag('emit-debug-symbols'),
+        emitFullCompiledKernel: args.flag(
+          'experimental-output-compiled-kernel',
         ),
+        reloadLastAcceptedKernel: args.option('reload-last-accepted-kernel'),
+        reloadDeltaKernel: args.option('reload-delta-kernel'),
+        summaryModules: _parseCustomSummaryModules(args.multiOption('summary')),
         nonHotReloadablePackages: Set.from(
-          args['non-hot-reloadable-package'] as List<String>,
+          args.multiOption('non-hot-reloadable-package'),
         ),
         moduleFormats: parseModuleFormatOption(args),
         moduleName: _getModuleName(args),
-        multiRootScheme: args['multi-root-scheme'] as String,
-        multiRootOutputPath: args['multi-root-output-path'] as String?,
+        multiRootScheme: args.option('multi-root-scheme')!,
+        multiRootOutputPath: args.option('multi-root-output-path'),
         experiments: parseExperimentalArguments(
-          args['enable-experiment'] as List<String>,
+          args.multiOption('enable-experiment'),
         ),
-        canaryFeatures: args['canary'] as bool,
-        dynamicModule: args['dynamic-module'] as bool,
+        canaryFeatures: args.flag('canary'),
+        dynamicModule: args.flag('dynamic-module'),
       );
 
   Options.fromSdkRequiredArguments(ArgResults args)
@@ -162,15 +160,15 @@ class Options {
         moduleFormats: parseModuleFormatOption(args),
         // When compiling the SDK use dart_sdk as the default. This is the
         // assumed name in various places around the build systems.
-        moduleName: args['module-name'] != null
+        moduleName: args.option('module-name') != null
             ? _getModuleName(args)
             : 'dart_sdk',
-        multiRootScheme: args['multi-root-scheme'] as String,
-        multiRootOutputPath: args['multi-root-output-path'] as String?,
+        multiRootScheme: args.option('multi-root-scheme')!,
+        multiRootOutputPath: args.option('multi-root-output-path'),
         experiments: parseExperimentalArguments(
-          args['enable-experiment'] as List<String>,
+          args.multiOption('enable-experiment'),
         ),
-        canaryFeatures: args['canary'] as bool,
+        canaryFeatures: args.flag('canary'),
       );
 
   static void addArguments(ArgParser parser, {bool hide = true}) {
@@ -330,9 +328,9 @@ class Options {
   }
 
   static String _getModuleName(ArgResults args) {
-    var moduleName = args['module-name'] as String?;
+    var moduleName = args.option('module-name');
     if (moduleName == null) {
-      var outPaths = args['out'] as List<String>;
+      var outPaths = args.multiOption('out');
       if (outPaths.isEmpty) {
         throw UnsupportedError(
           'No module name provided and unable to synthesize one without any '

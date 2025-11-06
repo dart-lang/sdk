@@ -286,16 +286,87 @@ void Assembler::Align(intptr_t alignment, intptr_t offset) {
   ASSERT(((offset + buffer_.GetPosition()) & (alignment - 1)) == 0);
 }
 
-void Assembler::TsanLoadAcquire(Register addr) {
-  LeafRuntimeScope rt(this, /*frame_size=*/0, /*preserve_registers=*/true);
+void Assembler::TsanLoadAcquire(Register dst, Register addr, OperandSize size) {
+  Comment("TsanLoadAcquire");
+  RegisterSet registers(kDartVolatileCpuRegs & ~(1 << dst),
+                        kAllFpuRegistersList);
+
+  EnterFrame(0);
+  PushRegisters(registers);
+  ReserveAlignedFrameSpace(0);
+
   MoveRegister(R0, addr);
-  rt.Call(kTsanLoadAcquireRuntimeEntry, /*argument_count=*/1);
+  LoadImmediate(R1, static_cast<int64_t>(std::memory_order_acquire));
+
+  mov(CSP, SP);
+  switch (size) {
+    case kEightBytes:
+      ldr(TMP, compiler::Address(
+                   THR, kTsanAtomic64LoadRuntimeEntry.OffsetFromThread()));
+      break;
+    case kUnsignedFourBytes:
+      ldr(TMP, compiler::Address(
+                   THR, kTsanAtomic32LoadRuntimeEntry.OffsetFromThread()));
+      break;
+    default:
+      UNIMPLEMENTED();
+  }
+  str(TMP, compiler::Address(THR, target::Thread::vm_tag_offset()));
+  blr(TMP);
+  LoadImmediate(TMP, VMTag::kDartTagId);
+  str(TMP, compiler::Address(THR, target::Thread::vm_tag_offset()));
+  SetupCSPFromThread(THR);
+
+  MoveRegister(dst, R0);
+
+  AddImmediate(SP, FP, -registers.SpillSize());
+  PopRegisters(registers);
+  LeaveFrame();
 }
 
-void Assembler::TsanStoreRelease(Register addr) {
+void Assembler::TsanStoreRelease(Register src,
+                                 Register addr,
+                                 OperandSize size) {
+  Comment("TsanStoreRelease");
   LeafRuntimeScope rt(this, /*frame_size=*/0, /*preserve_registers=*/true);
-  MoveRegister(R0, addr);
-  rt.Call(kTsanStoreReleaseRuntimeEntry, /*argument_count=*/1);
+
+  if (src == R0) {
+    MoveRegister(R1, src);
+    MoveRegister(R0, addr);
+  } else {
+    MoveRegister(R0, addr);
+    MoveRegister(R1, src);
+  }
+  LoadImmediate(R2, static_cast<int64_t>(std::memory_order_release));
+
+  switch (size) {
+    case kEightBytes:
+      rt.Call(kTsanAtomic64StoreRuntimeEntry, /*argument_count=*/3);
+      break;
+    case kFourBytes:
+    case kUnsignedFourBytes:
+      rt.Call(kTsanAtomic32StoreRuntimeEntry, /*argument_count=*/3);
+      break;
+    default:
+      UNIMPLEMENTED();
+      break;
+  }
+}
+
+void Assembler::TsanFuncEntry(bool preserve_registers) {
+  Comment("TsanFuncEntry");
+  LeafRuntimeScope rt(this, /*frame_size=*/0, preserve_registers);
+  ldr(R0, Address(FP, target::frame_layout.saved_caller_fp_from_fp *
+                          target::kWordSize));
+  ldr(R0, Address(R0, target::frame_layout.saved_caller_pc_from_fp *
+                          target::kWordSize));
+  rt.Call(kTsanFuncEntryRuntimeEntry, /*argument_count=*/1);
+}
+
+void Assembler::TsanFuncExit(bool preserve_registers) {
+  Comment("TsanFuncExit");
+  LeafRuntimeScope rt(this, /*frame_size=*/0, preserve_registers);
+  rt.Call(kTsanFuncExitRuntimeEntry, /*argument_count=*/0);
 }
 
 static int CountLeadingZeros(uint64_t value, int width) {
@@ -499,7 +570,6 @@ void Assembler::LoadDoubleWordFromPoolIndex(Register lower,
   Operand op;
   // PP is _un_tagged on ARM64.
   const uint32_t offset = target::ObjectPool::element_offset(index);
-  ASSERT(offset < (1 << 24));
   const uint32_t upper20 = offset & 0xfffff000;
   const uint32_t lower12 = offset & 0x00000fff;
   if (Address::CanHoldOffset(offset, Address::PairOffset)) {
@@ -513,7 +583,7 @@ void Assembler::LoadDoubleWordFromPoolIndex(Register lower,
              Address::CanHoldOffset(lower12, Address::PairOffset)) {
     add(TMP, PP, op);
     ldp(lower, upper, Address(TMP, lower12, Address::PairOffset));
-  } else {
+  } else if (Utils::IsUint(24, offset)) {
     const uint32_t lower12 = offset & 0xfff;
     const uint32_t higher12 = offset & 0xfff000;
 
@@ -527,6 +597,15 @@ void Assembler::LoadDoubleWordFromPoolIndex(Register lower,
     add(TMP, PP, op_high);
     add(TMP, TMP, op_low);
     ldp(lower, upper, Address(TMP, 0, Address::PairOffset));
+  } else if (Utils::IsUint(32, offset)) {
+    const uint16_t offset_low = Utils::Low16Bits(offset);
+    const uint16_t offset_high = Utils::High16Bits(offset);
+    movz(TMP, Immediate(offset_low), 0);
+    movk(TMP, Immediate(offset_high), 1);
+    add(TMP, TMP, Operand(PP));
+    ldp(lower, upper, Address(TMP, 0, Address::PairOffset));
+  } else {
+    UNIMPLEMENTED();
   }
 }
 
@@ -1717,19 +1796,26 @@ void Assembler::VerifyNotInGenerated(Register scratch) {
 }
 
 void Assembler::CallRuntime(const RuntimeEntry& entry,
-                            intptr_t argument_count) {
+                            intptr_t argument_count,
+                            bool tsan_enter_exit) {
   ASSERT(!entry.is_leaf());
   // Argument count is not checked here, but in the runtime entry for a more
   // informative error message.
+  if (FLAG_target_thread_sanitizer && FLAG_precompiled_mode &&
+      tsan_enter_exit) {
+    TsanFuncEntry(/*preserve_registers=*/false);
+  }
   ldr(R5, compiler::Address(THR, entry.OffsetFromThread()));
   LoadImmediate(R4, argument_count);
   Call(Address(THR, target::Thread::call_to_runtime_entry_point_offset()));
+  if (FLAG_target_thread_sanitizer && FLAG_precompiled_mode &&
+      tsan_enter_exit) {
+    TsanFuncExit(/*preserve_registers=*/false);
+  }
 }
 
-// FPU: Only the bottom 64-bits of v8-v15 are preserved by the caller. The upper
-// bits might be in use by Dart, so we save the whole register.
 static const RegisterSet kRuntimeCallSavedRegisters(kDartVolatileCpuRegs,
-                                                    kAllFpuRegistersList);
+                                                    kDartVolatileFpuRegs);
 
 #undef __
 #define __ assembler_->
@@ -1779,10 +1865,7 @@ LeafRuntimeScope::~LeafRuntimeScope() {
     // SP might have been modified to reserve space for arguments
     // and ensure proper alignment of the stack frame.
     // We need to restore it before restoring registers.
-    const intptr_t kPushedRegistersSize =
-        kRuntimeCallSavedRegisters.CpuRegisterCount() * target::kWordSize +
-        kRuntimeCallSavedRegisters.FpuRegisterCount() * kFpuRegisterSize;
-    __ AddImmediate(SP, FP, -kPushedRegistersSize);
+    __ AddImmediate(SP, FP, -kRuntimeCallSavedRegisters.SpillSize());
     __ PopRegisters(kRuntimeCallSavedRegisters);
   }
 

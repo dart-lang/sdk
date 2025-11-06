@@ -19,7 +19,7 @@ void main() {
 @reflectiveTest
 class AddSwitchCaseBreakMultiTest extends FixProcessorTest {
   @override
-  FixKind get kind => DartFixKind.ADD_SWITCH_CASE_BREAK_MULTI;
+  FixKind get kind => DartFixKind.addSwitchCaseBreakMulti;
 
   @override
   String get testPackageLanguageVersion => '2.19';
@@ -38,7 +38,7 @@ void f(Object? x) {
 }
 ''');
     await assertHasFixAllFix(
-      CompileTimeErrorCode.SWITCH_CASE_COMPLETES_NORMALLY,
+      CompileTimeErrorCode.switchCaseCompletesNormally,
       '''
 void f(Object? x) {
   switch (x) {
@@ -60,7 +60,7 @@ void f(Object? x) {
 @reflectiveTest
 class AddSwitchCaseBreakTest extends FixProcessorTest {
   @override
-  FixKind get kind => DartFixKind.ADD_SWITCH_CASE_BREAK;
+  FixKind get kind => DartFixKind.addSwitchCaseBreak;
 
   @override
   String get testPackageLanguageVersion => '2.19';

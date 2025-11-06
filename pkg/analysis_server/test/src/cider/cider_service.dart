@@ -33,8 +33,10 @@ class CiderServiceTest with ResourceProviderMixin {
     createMockSdk(resourceProvider: resourceProvider, root: sdkRoot);
     var sdk = FolderBasedDartSdk(resourceProvider, sdkRoot);
 
-    var workspace =
-        BlazeWorkspace.find(resourceProvider, convertPath(testPath))!;
+    var workspace = BlazeWorkspace.find(
+      resourceProvider,
+      convertPath(testPath),
+    )!;
 
     fileResolver = FileResolver(
       logger: logger,

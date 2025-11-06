@@ -37,14 +37,17 @@ Future<void> main(List<String> args) async {
 
   Stopwatch stopwatch = new Stopwatch()..start();
 
-  IncrementalCompiler compiler =
-      new IncrementalCompiler(new CompilerContext(options));
+  IncrementalCompiler compiler = new IncrementalCompiler(
+    new CompilerContext(options),
+  );
   IncrementalCompilerResult compilerResult = await compiler.computeDelta();
   Component component = compilerResult.component;
   List<Warning> warnings = UnreachableIfFinder.find(component);
 
-  print("Done in ${stopwatch.elapsedMilliseconds} ms. "
-      "Found ${warnings.length} warnings.");
+  print(
+    "Done in ${stopwatch.elapsedMilliseconds} ms. "
+    "Found ${warnings.length} warnings.",
+  );
   if (warnings.length > 0) {
     for (Warning warning in warnings) {
       print(warning);
@@ -62,8 +65,8 @@ api.CompilerOptions getOptions() {
     ..target = new NoneTarget(new TargetFlags())
     ..librariesSpecificationUri = repoDir.resolve("sdk/lib/libraries.json")
     ..omitPlatform = true
-    ..onDiagnostic = (api.DiagnosticMessage message) {
-      if (message.severity == Severity.error) {
+    ..onDiagnostic = (api.CfeDiagnosticMessage message) {
+      if (message.severity == CfeSeverity.error) {
         print(message.plainTextFormatted.join('\n'));
         exitCode = 1;
       }

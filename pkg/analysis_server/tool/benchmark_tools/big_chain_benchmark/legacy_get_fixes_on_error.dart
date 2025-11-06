@@ -61,20 +61,19 @@ class LegacyGetFixesOnErrorBenchmark extends DartLanguageServerBenchmark {
     );
 
     bool isAnalyzing = await isNowAnalyzingFuture;
-    if (isAnalyzing == false) throw 'Expected true.';
+    if (!isAnalyzing) throw 'Expected true.';
     await waitWhileAnalyzing();
 
     // It's done analyzing: Ask for fixes on the error.
     for (int i = 0; i < 5; i++) {
       Stopwatch stopwatch = Stopwatch()..start();
-      var result =
-          await (await send(
-            LegacyMessages.getFixes(
-              largestIdSeen + 1,
-              runDetails.mainFile.uri,
-              runDetails.typingErrorAtOffset,
-            ),
-          ))!.completer.future;
+      var result = await (await send(
+        LegacyMessages.getFixes(
+          largestIdSeen + 1,
+          runDetails.mainFile.uri,
+          runDetails.typingErrorAtOffset,
+        ),
+      ))!.completer.future;
       stopwatch.stop();
       var error = result['result']['fixes'].first['error']['type'];
       if (error != 'COMPILE_TIME_ERROR') throw 'Expected COMPILE_TIME_ERROR';

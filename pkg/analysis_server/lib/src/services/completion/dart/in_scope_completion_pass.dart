@@ -172,6 +172,7 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
     bool excludeTypeNames = false,
     bool objectPatternAllowed = false,
     bool preferNonInvocation = false,
+    bool suggestingDotShorthand = false,
     bool suggestUnnamedAsNew = false,
     Set<AstNode> excludedNodes = const {},
   }) {
@@ -199,7 +200,8 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
               helper.mustBeStatic == mustBeStatic &&
               helper.mustBeType == mustBeType &&
               helper.preferNonInvocation == preferNonInvocation &&
-              helper.objectPatternAllowed == objectPatternAllowed);
+              helper.objectPatternAllowed == objectPatternAllowed &&
+              helper.suggestingDotShorthand == suggestingDotShorthand);
     }());
     return _declarationHelper ??= DeclarationHelper(
       request: state.request,
@@ -217,6 +219,7 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
       excludeTypeNames: excludeTypeNames,
       objectPatternAllowed: objectPatternAllowed,
       preferNonInvocation: preferNonInvocation,
+      suggestingDotShorthand: suggestingDotShorthand,
       suggestUnnamedAsNew: suggestUnnamedAsNew,
       skipImports: skipImports,
       excludedNodes: excludedNodes,
@@ -924,6 +927,40 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
   }
 
   @override
+  void visitDotShorthandConstructorInvocation(
+    DotShorthandConstructorInvocation node,
+  ) {
+    var period = node.period;
+    if (offset >= period.end && offset <= node.constructorName.end) {
+      var contextType = _computeContextType(node);
+      if (contextType is! InterfaceType) return;
+      declarationHelper(
+        mustBeConstant: node.isConst,
+        suggestingDotShorthand: true,
+        suggestUnnamedAsNew: true,
+      ).addConstructorNamesForType(type: contextType);
+    }
+  }
+
+  @override
+  void visitDotShorthandInvocation(DotShorthandInvocation node) {
+    var period = node.period;
+    if (offset >= period.end && offset <= node.memberName.end) {
+      var contextType = _computeContextType(node);
+      if (contextType == null) return;
+
+      var element = contextType.element;
+      if (element == null) return;
+
+      declarationHelper(
+        mustBeConstant: node.inConstantContext,
+        suggestingDotShorthand: true,
+        suggestUnnamedAsNew: true,
+      ).addStaticMembersOfElement(element);
+    }
+  }
+
+  @override
   void visitDotShorthandPropertyAccess(DotShorthandPropertyAccess node) {
     var contextType = _computeContextType(node);
     if (contextType == null) return;
@@ -931,16 +968,17 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
     var element = contextType.element;
     if (element == null) return;
 
-    var parent = node.parent;
-    var mustBeAssignable =
-        parent is AssignmentExpression && node == parent.leftHandSide;
-    var helper = declarationHelper(
-      mustBeAssignable: mustBeAssignable,
+    // Add all getters, methods, and constructors.
+    // When the user needs completing with a `.` or a `.prefix`, the suggestions
+    // can be any of the three.
+    declarationHelper(
+      suggestingDotShorthand: true,
+      mustBeConstant: node.inConstantContext,
       preferNonInvocation:
           element is InterfaceElement &&
           state.request.shouldSuggestTearOff(element),
-    );
-    helper.addStaticMembersOfElement(element);
+      suggestUnnamedAsNew: true,
+    ).addStaticMembersOfElement(element);
   }
 
   @override
@@ -2242,7 +2280,7 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
         _forVariablePattern();
       }
       var isKeywordNeeded = false;
-      if (node.parent?.parent is GuardedPattern) {
+      if (node.thisOrAncestorOfType<GuardedPattern>() != null) {
         isKeywordNeeded = true;
       }
       _forPatternFieldName(
@@ -2297,16 +2335,7 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
       if (type != null && type is! InvalidType) {
         _forMemberAccess(node, type, onlySuper: target is SuperExpression);
       } else {
-        Element? element;
-        if (target.name.isEmpty &&
-            featureSet.isEnabled(Feature.dot_shorthands)) {
-          var contextType = _computeContextType(node);
-          if (contextType == null) return;
-          element = contextType.element;
-        } else {
-          element = target.element;
-        }
-
+        var element = target.element;
         if (element != null) {
           var parent = node.parent;
           var mustBeAssignable =
@@ -2429,10 +2458,9 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
       collector.completionLocation = 'PatternField_pattern';
       keywordHelper.addKeyword(Keyword.DYNAMIC);
       _forExpression(node);
-      var targetField =
-          node.fields.skipWhile((field) {
-            return field.end < offset;
-          }).firstOrNull;
+      var targetField = node.fields.skipWhile((field) {
+        return field.end < offset;
+      }).firstOrNull;
       if (targetField != null) {
         var nameNode = targetField.name;
         if (nameNode != null && offset <= nameNode.colon.offset) {
@@ -2741,8 +2769,8 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
         offset <= node.argumentList.offset) {
       var container = constructor.parent;
       var superType = switch (container) {
-        ClassDeclaration() => container.declaredFragment?.supertype,
-        EnumDeclaration() => container.declaredFragment?.supertype,
+        ClassDeclaration() => container.declaredFragment?.element.supertype,
+        EnumDeclaration() => container.declaredFragment?.element.supertype,
         _ => null,
       };
       if (superType != null) {
@@ -3309,6 +3337,7 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
         matcherScore: 0.0,
         includeTypes: includeTypes,
         indent: state.indent,
+        endOfLine: state.endOfLine,
       ),
     );
     collector.addSuggestion(
@@ -3319,6 +3348,7 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
         useBlockStatement: false,
         includeTypes: includeTypes,
         indent: state.indent,
+        endOfLine: state.endOfLine,
       ),
     );
   }
@@ -3428,11 +3458,10 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
     if (existingNames.contains(coveringNode)) {
       excludedName = coveringNode;
     }
-    var excludedNames =
-        existingNames
-            .where((element) => element != excludedName)
-            .map((element) => element.name)
-            .toSet();
+    var excludedNames = existingNames
+        .where((element) => element != excludedName)
+        .map((element) => element.name)
+        .toSet();
     declarationHelper(
       preferNonInvocation: true,
     ).addFromLibrary(library, excludedNames);
@@ -4078,11 +4107,10 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
 
     var includedNames = const <String>{};
     if (recordLiteral != null) {
-      includedNames =
-          recordLiteral.fields
-              .whereType<NamedExpression>()
-              .map((e) => e.name.label.name)
-              .toSet();
+      includedNames = recordLiteral.fields
+          .whereType<NamedExpression>()
+          .map((e) => e.name.label.name)
+          .toSet();
     }
 
     for (var field in recordType.namedFields) {
@@ -4160,6 +4188,7 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
       keywordHelper.addKeyword(Keyword.AWAIT);
       declarationHelper(
         mustBeStatic: node.inStaticContext,
+        mustBeNonVoid: true,
       ).addLexicalDeclarations(node);
     }
   }
@@ -4263,8 +4292,8 @@ extension on AstNode {
       MethodDeclaration(:var metadata) => metadata.contains(child),
       MixinDeclaration(:var members, :var metadata) =>
         members.contains(child) || metadata.contains(child),
-      MixinOnClause(:var superclassConstraints) => superclassConstraints
-          .contains(child),
+      MixinOnClause(:var superclassConstraints) =>
+        superclassConstraints.contains(child),
       ObjectPattern(:var fields) => fields.contains(child),
       PartDirective(:var metadata) => metadata.contains(child),
       PartOfDirective(:var metadata) => metadata.contains(child),

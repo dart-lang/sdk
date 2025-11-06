@@ -25,21 +25,29 @@ Future<void> main(List<String> args) async {
     Uri input = Platform.script.resolve("../tool/compile.dart");
     CompilerOptions options = helper.getOptions();
     helper.TestIncrementalCompiler compiler =
-        new helper.TestIncrementalCompiler(options, input,
-            /*Uri initializeFrom*/ null, /*bool outlineOnly*/ true);
+        new helper.TestIncrementalCompiler(
+          options,
+          input,
+          /*Uri initializeFrom*/ null,
+          /*bool outlineOnly*/ true,
+        );
     IncrementalCompilerResult compilerResult = await compiler.computeDelta();
     c = compilerResult.component;
     classHierarchy = compilerResult.classHierarchy;
     List<Library> libraries = c.libraries
-        .where((Library lib) =>
-            (lib.importUri.toString() == "package:kernel/ast.dart"))
+        .where(
+          (Library lib) =>
+              (lib.importUri.toString() == "package:kernel/ast.dart"),
+        )
         .toList();
     Library astLibrary = libraries.single;
-    List<Class> classes =
-        astLibrary.classes.where((Class c) => c.name == "Node").toList();
+    List<Class> classes = astLibrary.classes
+        .where((Class c) => c.name == "Node")
+        .toList();
     Class nodeClass = classes.single;
-    classes =
-        astLibrary.classes.where((Class c) => c.name == "Member").toList();
+    classes = astLibrary.classes
+        .where((Class c) => c.name == "Member")
+        .toList();
     memberClass = classes.single;
     classes = astLibrary.classes
         .where((Class c) => c.name == "PrimitiveConstant")
@@ -52,10 +60,12 @@ Future<void> main(List<String> args) async {
         if (classHierarchy.isSubInterfaceOf(c, nodeClass)) {
           List<Member> toStringList = classHierarchy
               .getInterfaceMembers(c)
-              .where((Member m) =>
-                  !m.isAbstract &&
-                  m.name.text == "toString" &&
-                  !m.enclosingLibrary.importUri.isScheme("dart"))
+              .where(
+                (Member m) =>
+                    !m.isAbstract &&
+                    m.name.text == "toString" &&
+                    !m.enclosingLibrary.importUri.isScheme("dart"),
+              )
               .toList();
           if (toStringList.length > 1) throw "What?";
           if (toStringList.length == 1) {
@@ -83,8 +93,10 @@ Future<void> main(List<String> args) async {
     if (args.length == 1 && args.single == "--interactive") {
       for (Uri uri in classMap.keys) {
         List<Class> classes = classMap[uri]!;
-        print("Would you like to update ${classes.length} classes in ${uri}?"
-            " (y/n)");
+        print(
+          "Would you like to update ${classes.length} classes in ${uri}?"
+          " (y/n)",
+        );
         if (stdin.readLineSync() != "y") {
           print("Skipping $uri");
           continue;
@@ -102,7 +114,9 @@ Future<void> main(List<String> args) async {
           if (classHierarchy.isSubInterfaceOf(c, memberClass)) {
             innerContent = "\$name";
           } else if (classHierarchy.isSubInterfaceOf(
-              c, primitiveConstantClass)) {
+            c,
+            primitiveConstantClass,
+          )) {
             innerContent = "\$value";
           }
           int to = c.fileEndOffset;
@@ -131,8 +145,10 @@ Future<void> main(List<String> args) async {
   if (args.length == 1 && args.single == "--interactive") {
     for (Uri uri in classMapWithOne.keys) {
       List<Class> classes = classMapWithOne[uri]!;
-      print("Would you like to update toString for ${classes.length} "
-          "classes in ${uri}? (y/n)");
+      print(
+        "Would you like to update toString for ${classes.length} "
+        "classes in ${uri}? (y/n)",
+      );
       if (stdin.readLineSync() != "y") {
         print("Skipping $uri");
         continue;
@@ -155,10 +171,12 @@ Future<void> main(List<String> args) async {
 
         List<Member> toStringList = classHierarchy
             .getInterfaceMembers(c)
-            .where((Member m) =>
-                !m.isAbstract &&
-                m.name.text == "toString" &&
-                !m.enclosingLibrary.importUri.isScheme("dart"))
+            .where(
+              (Member m) =>
+                  !m.isAbstract &&
+                  m.name.text == "toString" &&
+                  !m.enclosingLibrary.importUri.isScheme("dart"),
+            )
             .toList();
         Member toString = toStringList.single;
         if (toString.fileUri != uri) continue;

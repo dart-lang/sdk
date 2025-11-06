@@ -48,9 +48,9 @@ AssignmentExpression
     staticType: int
     typeArgumentTypes
       int
-  readElement2: <testLibrary>::@function::g::@formalParameter::a
+  readElement: <testLibrary>::@function::g::@formalParameter::a
   readType: int
-  writeElement2: <testLibrary>::@function::g::@formalParameter::a
+  writeElement: <testLibrary>::@function::g::@formalParameter::a
   writeType: int
   element: dart:core::@class::num::@method::+
   staticType: int
@@ -97,11 +97,11 @@ AssignmentExpression
     staticType: int
     typeArgumentTypes
       int
-  readElement2: MethodMember
+  readElement: MethodMember
     baseElement: dart:core::@class::List::@method::[]
     substitution: {E: int}
   readType: int
-  writeElement2: MethodMember
+  writeElement: MethodMember
     baseElement: dart:core::@class::List::@method::[]=
     substitution: {E: int}
   writeType: int
@@ -141,9 +141,9 @@ AssignmentExpression
     staticType: int
     typeArgumentTypes
       int
-  readElement2: <testLibrary>::@function::g::@formalParameter::a
+  readElement: <testLibrary>::@function::g::@formalParameter::a
   readType: int
-  writeElement2: <testLibrary>::@function::g::@formalParameter::a
+  writeElement: <testLibrary>::@function::g::@formalParameter::a
   writeType: num
   element: dart:core::@class::num::@method::+
   staticType: int
@@ -193,9 +193,9 @@ AssignmentExpression
       staticType: double
     correspondingParameter: dart:core::@class::num::@method::+::@formalParameter::other
     staticType: num
-  readElement2: <testLibrary>::@function::g::@formalParameter::a
+  readElement: <testLibrary>::@function::g::@formalParameter::a
   readType: int
-  writeElement2: <testLibrary>::@function::g::@formalParameter::a
+  writeElement: <testLibrary>::@function::g::@formalParameter::a
   writeType: num
   element: dart:core::@class::num::@method::+
   staticType: num
@@ -228,9 +228,9 @@ AssignmentExpression
     literal: 0
     correspondingParameter: <null>
     staticType: int
-  readElement2: <testLibrary>::@function::f::@formalParameter::a
+  readElement: <testLibrary>::@function::f::@formalParameter::a
   readType: dynamic
-  writeElement2: <testLibrary>::@function::f::@formalParameter::a
+  writeElement: <testLibrary>::@function::f::@formalParameter::a
   writeType: dynamic
   element: <null>
   staticType: dynamic
@@ -264,9 +264,9 @@ AssignmentExpression
     literal: 0
     correspondingParameter: <null>
     staticType: int
-  readElement2: <null>
+  readElement: <null>
   readType: dynamic
-  writeElement2: <null>
+  writeElement: <null>
   writeType: dynamic
   element: <null>
   staticType: dynamic
@@ -307,9 +307,9 @@ AssignmentExpression
     literal: 0
     correspondingParameter: <null>
     staticType: int
-  readElement2: <null>
+  readElement: <null>
   readType: dynamic
-  writeElement2: <null>
+  writeElement: <null>
   writeType: dynamic
   element: <null>
   staticType: dynamic
@@ -338,9 +338,9 @@ AssignmentExpression
     correspondingParameter: <null>
     element: <testLibrary>::@function::f::@formalParameter::listNum
     staticType: List<num>
-  readElement2: <testLibrary>::@function::f::@formalParameter::o1
+  readElement: <testLibrary>::@function::f::@formalParameter::o1
   readType: Iterable<int>?
-  writeElement2: <testLibrary>::@function::f::@formalParameter::o1
+  writeElement: <testLibrary>::@function::f::@formalParameter::o1
   writeType: Object?
   element: <null>
   staticType: Object
@@ -378,11 +378,11 @@ AssignmentExpression
   operator: =
   rightHandSide: IntegerLiteral
     literal: 0
-    correspondingParameter: package:test/a.dart::@setter::v::@formalParameter::_v
+    correspondingParameter: package:test/a.dart::@setter::v::@formalParameter::value
     staticType: int
-  readElement2: <null>
+  readElement: <null>
   readType: null
-  writeElement2: package:test/a.dart::@setter::v
+  writeElement: package:test/a.dart::@setter::v
   writeType: int
   element: <null>
   staticType: int
@@ -420,9 +420,9 @@ AssignmentExpression
     literal: 2
     correspondingParameter: dart:core::@class::num::@method::+::@formalParameter::other
     staticType: int
-  readElement2: <testLibrary>::@class::A::@method::[]
+  readElement: <testLibrary>::@class::A::@method::[]
   readType: int
-  writeElement2: <testLibrary>::@class::A::@method::[]=
+  writeElement: <testLibrary>::@class::A::@method::[]=
   writeType: num
   element: dart:core::@class::num::@method::+
   staticType: int
@@ -457,9 +457,9 @@ AssignmentExpression
     literal: 1
     correspondingParameter: <null>
     staticType: int
-  readElement2: <null>
+  readElement: <null>
   readType: dynamic
-  writeElement2: <null>
+  writeElement: <null>
   writeType: dynamic
   element: <null>
   staticType: dynamic
@@ -500,9 +500,9 @@ AssignmentExpression
     literal: 2
     correspondingParameter: dart:core::@class::num::@method::+::@formalParameter::other
     staticType: int
-  readElement2: <testLibrary>::@class::A::@method::[]
+  readElement: <testLibrary>::@class::A::@method::[]
   readType: int
-  writeElement2: <testLibrary>::@class::A::@method::[]=
+  writeElement: <testLibrary>::@class::A::@method::[]=
   writeType: num
   element: dart:core::@class::num::@method::+
   staticType: int
@@ -543,9 +543,9 @@ AssignmentExpression
     literal: 2.0
     correspondingParameter: dart:core::@class::num::@method::+::@formalParameter::other
     staticType: double
-  readElement2: <testLibrary>::@class::A::@method::[]
+  readElement: <testLibrary>::@class::A::@method::[]
   readType: num
-  writeElement2: <testLibrary>::@class::A::@method::[]=
+  writeElement: <testLibrary>::@class::A::@method::[]=
   writeType: num
   element: dart:core::@class::num::@method::+
   staticType: double
@@ -586,9 +586,9 @@ AssignmentExpression
     literal: 2
     correspondingParameter: <null>
     staticType: int
-  readElement2: <testLibrary>::@class::A::@method::[]
+  readElement: <testLibrary>::@class::A::@method::[]
   readType: int?
-  writeElement2: <testLibrary>::@class::A::@method::[]=
+  writeElement: <testLibrary>::@class::A::@method::[]=
   writeType: num?
   element: <null>
   staticType: int
@@ -628,12 +628,117 @@ AssignmentExpression
     literal: 2
     correspondingParameter: <testLibrary>::@class::A::@method::[]=::@formalParameter::_
     staticType: int
-  readElement2: <null>
+  readElement: <null>
   readType: null
-  writeElement2: <testLibrary>::@class::A::@method::[]=
+  writeElement: <testLibrary>::@class::A::@method::[]=
   writeType: num
   element: <null>
   staticType: int
+''');
+  }
+
+  test_indexExpression_nullShorting_assignable() async {
+    await assertNoErrorsInCode('''
+abstract class A {
+  B get b;
+}
+abstract class B {
+  operator []=(String s, int i);
+}
+test(A? a, String s) {
+  a?.b[s] = 0;
+}
+''');
+
+    var node = findNode.assignment('= 0');
+    assertResolvedNodeText(node, r'''
+AssignmentExpression
+  leftHandSide: IndexExpression
+    target: PropertyAccess
+      target: SimpleIdentifier
+        token: a
+        element: <testLibrary>::@function::test::@formalParameter::a
+        staticType: A?
+      operator: ?.
+      propertyName: SimpleIdentifier
+        token: b
+        element: <testLibrary>::@class::A::@getter::b
+        staticType: B
+      staticType: B
+    leftBracket: [
+    index: SimpleIdentifier
+      token: s
+      correspondingParameter: <testLibrary>::@class::B::@method::[]=::@formalParameter::s
+      element: <testLibrary>::@function::test::@formalParameter::s
+      staticType: String
+    rightBracket: ]
+    element: <null>
+    staticType: null
+  operator: =
+  rightHandSide: IntegerLiteral
+    literal: 0
+    correspondingParameter: <testLibrary>::@class::B::@method::[]=::@formalParameter::i
+    staticType: int
+  readElement: <null>
+  readType: null
+  writeElement: <testLibrary>::@class::B::@method::[]=
+  writeType: int
+  element: <null>
+  staticType: int?
+''');
+  }
+
+  test_indexExpression_nullShorting_notAssignable() async {
+    await assertErrorsInCode(
+      '''
+abstract class A {
+  B get b;
+}
+abstract class B {
+  operator []=(String s, int i);
+}
+test(A? a, String s) {
+  a?.b[s] = null;
+}
+''',
+      [error(CompileTimeErrorCode.invalidAssignment, 121, 4)],
+    );
+
+    var node = findNode.assignment('= null');
+    assertResolvedNodeText(node, r'''
+AssignmentExpression
+  leftHandSide: IndexExpression
+    target: PropertyAccess
+      target: SimpleIdentifier
+        token: a
+        element: <testLibrary>::@function::test::@formalParameter::a
+        staticType: A?
+      operator: ?.
+      propertyName: SimpleIdentifier
+        token: b
+        element: <testLibrary>::@class::A::@getter::b
+        staticType: B
+      staticType: B
+    leftBracket: [
+    index: SimpleIdentifier
+      token: s
+      correspondingParameter: <testLibrary>::@class::B::@method::[]=::@formalParameter::s
+      element: <testLibrary>::@function::test::@formalParameter::s
+      staticType: String
+    rightBracket: ]
+    element: <null>
+    staticType: null
+  operator: =
+  rightHandSide: NullLiteral
+    literal: null
+    correspondingParameter: <testLibrary>::@class::B::@method::[]=::@formalParameter::i
+    staticType: Null
+  readElement: <null>
+  readType: null
+  writeElement: <testLibrary>::@class::B::@method::[]=
+  writeType: int
+  element: <null>
+  staticType: Null
 ''');
   }
 
@@ -672,9 +777,9 @@ AssignmentExpression
     literal: 2
     correspondingParameter: dart:core::@class::num::@method::+::@formalParameter::other
     staticType: int
-  readElement2: <testLibrary>::@class::A::@method::[]
+  readElement: <testLibrary>::@class::A::@method::[]
   readType: int
-  writeElement2: <testLibrary>::@class::A::@method::[]=
+  writeElement: <testLibrary>::@class::A::@method::[]=
   writeType: num
   element: dart:core::@class::num::@method::+
   staticType: int
@@ -714,9 +819,9 @@ AssignmentExpression
     literal: 2
     correspondingParameter: dart:core::@class::num::@method::+::@formalParameter::other
     staticType: int
-  readElement2: <testLibrary>::@class::A::@method::[]
+  readElement: <testLibrary>::@class::A::@method::[]
   readType: int
-  writeElement2: <testLibrary>::@class::A::@method::[]=
+  writeElement: <testLibrary>::@class::A::@method::[]=
   writeType: num
   element: dart:core::@class::num::@method::+
   staticType: int
@@ -731,8 +836,8 @@ void f(int c) {
 }
 ''',
       [
-        error(CompileTimeErrorCode.UNDEFINED_IDENTIFIER, 18, 1),
-        error(CompileTimeErrorCode.UNDEFINED_IDENTIFIER, 20, 1),
+        error(CompileTimeErrorCode.undefinedIdentifier, 18, 1),
+        error(CompileTimeErrorCode.undefinedIdentifier, 20, 1),
       ],
     );
 
@@ -760,9 +865,9 @@ AssignmentExpression
     correspondingParameter: <null>
     element: <testLibrary>::@function::f::@formalParameter::c
     staticType: int
-  readElement2: <null>
+  readElement: <null>
   readType: null
-  writeElement2: <null>
+  writeElement: <null>
   writeType: InvalidType
   element: <null>
   staticType: int
@@ -777,8 +882,8 @@ void f(int a, int c) {
 }
 ''',
       [
-        error(CompileTimeErrorCode.UNDEFINED_OPERATOR, 26, 3),
-        error(CompileTimeErrorCode.UNDEFINED_IDENTIFIER, 27, 1),
+        error(CompileTimeErrorCode.undefinedOperator, 26, 3),
+        error(CompileTimeErrorCode.undefinedIdentifier, 27, 1),
       ],
     );
 
@@ -806,9 +911,9 @@ AssignmentExpression
     correspondingParameter: <null>
     element: <testLibrary>::@function::f::@formalParameter::c
     staticType: int
-  readElement2: <null>
+  readElement: <null>
   readType: null
-  writeElement2: <null>
+  writeElement: <null>
   writeType: InvalidType
   element: <null>
   staticType: int
@@ -826,7 +931,7 @@ void f(A a, int c) {
   a[b] = c;
 }
 ''',
-      [error(CompileTimeErrorCode.UNDEFINED_IDENTIFIER, 73, 1)],
+      [error(CompileTimeErrorCode.undefinedIdentifier, 73, 1)],
     );
 
     var assignment = findNode.assignment('a[b] = c');
@@ -853,9 +958,9 @@ AssignmentExpression
     correspondingParameter: <testLibrary>::@class::A::@method::[]=::@formalParameter::_
     element: <testLibrary>::@function::f::@formalParameter::c
     staticType: int
-  readElement2: <null>
+  readElement: <null>
   readType: null
-  writeElement2: <testLibrary>::@class::A::@method::[]=
+  writeElement: <testLibrary>::@class::A::@method::[]=
   writeType: num
   element: <null>
   staticType: int
@@ -873,8 +978,8 @@ void f(A a) {
 }
 ''',
       [
-        error(ParserErrorCode.MISSING_IDENTIFIER, 30, 7),
-        error(CompileTimeErrorCode.UNDEFINED_OPERATOR, 67, 3),
+        error(ParserErrorCode.missingIdentifier, 30, 7),
+        error(CompileTimeErrorCode.undefinedOperator, 67, 3),
       ],
     );
   }
@@ -886,7 +991,7 @@ void f() {
   a[0] += 1;
 }
 ''',
-      [error(CompileTimeErrorCode.UNDEFINED_IDENTIFIER, 13, 1)],
+      [error(CompileTimeErrorCode.undefinedIdentifier, 13, 1)],
     );
 
     var node = findNode.singleAssignmentExpression;
@@ -910,9 +1015,9 @@ AssignmentExpression
     literal: 1
     correspondingParameter: <null>
     staticType: int
-  readElement2: <null>
+  readElement: <null>
   readType: InvalidType
-  writeElement2: <null>
+  writeElement: <null>
   writeType: InvalidType
   element: <null>
   staticType: InvalidType
@@ -929,8 +1034,8 @@ class A {
 }
 ''',
       [
-        error(ParserErrorCode.MISSING_ASSIGNABLE_SELECTOR, 27, 5),
-        error(ParserErrorCode.ILLEGAL_ASSIGNMENT_TO_NON_ASSIGNABLE, 27, 5),
+        error(ParserErrorCode.missingAssignableSelector, 27, 5),
+        error(ParserErrorCode.illegalAssignmentToNonAssignable, 27, 5),
       ],
     );
 
@@ -945,9 +1050,9 @@ AssignmentExpression
     literal: 0
     correspondingParameter: <null>
     staticType: int
-  readElement2: <null>
+  readElement: <null>
   readType: null
-  writeElement2: <null>
+  writeElement: <null>
   writeType: InvalidType
   element: <null>
   staticType: int
@@ -962,8 +1067,8 @@ void f(int a, int b, double c) {
 }
 ''',
       [
-        error(ParserErrorCode.ILLEGAL_ASSIGNMENT_TO_NON_ASSIGNABLE, 35, 5),
-        error(ParserErrorCode.MISSING_ASSIGNABLE_SELECTOR, 35, 5),
+        error(ParserErrorCode.illegalAssignmentToNonAssignable, 35, 5),
+        error(ParserErrorCode.missingAssignableSelector, 35, 5),
       ],
     );
 
@@ -991,9 +1096,9 @@ AssignmentExpression
     correspondingParameter: <null>
     element: <testLibrary>::@function::f::@formalParameter::c
     staticType: double
-  readElement2: <null>
+  readElement: <null>
   readType: InvalidType
-  writeElement2: <null>
+  writeElement: <null>
   writeType: InvalidType
   element: <null>
   staticType: InvalidType
@@ -1008,8 +1113,8 @@ void f(int a, int b, double c) {
 }
 ''',
       [
-        error(ParserErrorCode.ILLEGAL_ASSIGNMENT_TO_NON_ASSIGNABLE, 35, 7),
-        error(ParserErrorCode.MISSING_ASSIGNABLE_SELECTOR, 35, 7),
+        error(ParserErrorCode.illegalAssignmentToNonAssignable, 35, 7),
+        error(ParserErrorCode.missingAssignableSelector, 35, 7),
       ],
     );
 
@@ -1041,9 +1146,9 @@ AssignmentExpression
     correspondingParameter: <null>
     element: <testLibrary>::@function::f::@formalParameter::c
     staticType: double
-  readElement2: <null>
+  readElement: <null>
   readType: InvalidType
-  writeElement2: <null>
+  writeElement: <null>
   writeType: InvalidType
   element: <null>
   staticType: InvalidType
@@ -1059,11 +1164,11 @@ void f(int a, double b) {
 ''',
       [
         error(
-          CompileTimeErrorCode.PATTERN_TYPE_MISMATCH_IN_IRREFUTABLE_CONTEXT,
+          CompileTimeErrorCode.patternTypeMismatchInIrrefutableContext,
           29,
           1,
         ),
-        error(ParserErrorCode.EXPECTED_TOKEN, 31, 1),
+        error(ParserErrorCode.expectedToken, 31, 1),
       ],
     );
 
@@ -1074,7 +1179,7 @@ PatternAssignment
     leftParenthesis: (
     pattern: AssignedVariablePattern
       name: a
-      element2: <testLibrary>::@function::f::@formalParameter::a
+      element: <testLibrary>::@function::f::@formalParameter::a
       matchedValueType: double
     rightParenthesis: )
     matchedValueType: double
@@ -1097,8 +1202,8 @@ void f(int a, double b) {
 }
 ''',
       [
-        error(ParserErrorCode.ILLEGAL_ASSIGNMENT_TO_NON_ASSIGNABLE, 44, 7),
-        error(ParserErrorCode.MISSING_ASSIGNABLE_SELECTOR, 44, 7),
+        error(ParserErrorCode.illegalAssignmentToNonAssignable, 44, 7),
+        error(ParserErrorCode.missingAssignableSelector, 44, 7),
       ],
     );
 
@@ -1128,9 +1233,9 @@ AssignmentExpression
     correspondingParameter: <null>
     element: <testLibrary>::@function::f::@formalParameter::b
     staticType: double
-  readElement2: <null>
+  readElement: <null>
   readType: null
-  writeElement2: <null>
+  writeElement: <null>
   writeType: InvalidType
   element: <null>
   staticType: double
@@ -1145,8 +1250,8 @@ void f(num x, int y) {
 }
 ''',
       [
-        error(ParserErrorCode.ILLEGAL_ASSIGNMENT_TO_NON_ASSIGNABLE, 25, 3),
-        error(ParserErrorCode.MISSING_ASSIGNABLE_SELECTOR, 25, 3),
+        error(ParserErrorCode.illegalAssignmentToNonAssignable, 25, 3),
+        error(ParserErrorCode.missingAssignableSelector, 25, 3),
       ],
     );
 
@@ -1160,9 +1265,9 @@ AssignmentExpression
       element: <testLibrary>::@function::f::@formalParameter::x
       staticType: null
     operator: ++
-    readElement2: <testLibrary>::@function::f::@formalParameter::x
+    readElement: <testLibrary>::@function::f::@formalParameter::x
     readType: num
-    writeElement2: <testLibrary>::@function::f::@formalParameter::x
+    writeElement: <testLibrary>::@function::f::@formalParameter::x
     writeType: num
     element: dart:core::@class::num::@method::+
     staticType: num
@@ -1172,9 +1277,9 @@ AssignmentExpression
     correspondingParameter: <null>
     element: <testLibrary>::@function::f::@formalParameter::y
     staticType: int
-  readElement2: <null>
+  readElement: <null>
   readType: InvalidType
-  writeElement2: <null>
+  writeElement: <null>
   writeType: InvalidType
   element: <null>
   staticType: InvalidType
@@ -1189,8 +1294,8 @@ void f(num x, int y) {
 }
 ''',
       [
-        error(ParserErrorCode.ILLEGAL_ASSIGNMENT_TO_NON_ASSIGNABLE, 25, 3),
-        error(ParserErrorCode.MISSING_ASSIGNABLE_SELECTOR, 25, 3),
+        error(ParserErrorCode.illegalAssignmentToNonAssignable, 25, 3),
+        error(ParserErrorCode.missingAssignableSelector, 25, 3),
       ],
     );
 
@@ -1204,9 +1309,9 @@ AssignmentExpression
       element: <testLibrary>::@function::f::@formalParameter::x
       staticType: null
     operator: ++
-    readElement2: <testLibrary>::@function::f::@formalParameter::x
+    readElement: <testLibrary>::@function::f::@formalParameter::x
     readType: num
-    writeElement2: <testLibrary>::@function::f::@formalParameter::x
+    writeElement: <testLibrary>::@function::f::@formalParameter::x
     writeType: num
     element: dart:core::@class::num::@method::+
     staticType: num
@@ -1216,9 +1321,9 @@ AssignmentExpression
     correspondingParameter: <null>
     element: <testLibrary>::@function::f::@formalParameter::y
     staticType: int
-  readElement2: <null>
+  readElement: <null>
   readType: InvalidType
-  writeElement2: <null>
+  writeElement: <null>
   writeType: InvalidType
   element: <null>
   staticType: InvalidType
@@ -1233,8 +1338,8 @@ void f(num x, int y) {
 }
 ''',
       [
-        error(ParserErrorCode.ILLEGAL_ASSIGNMENT_TO_NON_ASSIGNABLE, 25, 3),
-        error(ParserErrorCode.MISSING_ASSIGNABLE_SELECTOR, 25, 3),
+        error(ParserErrorCode.illegalAssignmentToNonAssignable, 25, 3),
+        error(ParserErrorCode.missingAssignableSelector, 25, 3),
       ],
     );
 
@@ -1248,9 +1353,9 @@ AssignmentExpression
       element: <testLibrary>::@function::f::@formalParameter::x
       staticType: null
     operator: ++
-    readElement2: <testLibrary>::@function::f::@formalParameter::x
+    readElement: <testLibrary>::@function::f::@formalParameter::x
     readType: num
-    writeElement2: <testLibrary>::@function::f::@formalParameter::x
+    writeElement: <testLibrary>::@function::f::@formalParameter::x
     writeType: num
     element: dart:core::@class::num::@method::+
     staticType: num
@@ -1260,9 +1365,9 @@ AssignmentExpression
     correspondingParameter: <null>
     element: <testLibrary>::@function::f::@formalParameter::y
     staticType: int
-  readElement2: <null>
+  readElement: <null>
   readType: null
-  writeElement2: <null>
+  writeElement: <null>
   writeType: InvalidType
   element: <null>
   staticType: int
@@ -1277,8 +1382,8 @@ void f(num x, int y) {
 }
 ''',
       [
-        error(ParserErrorCode.ILLEGAL_ASSIGNMENT_TO_NON_ASSIGNABLE, 25, 3),
-        error(ParserErrorCode.MISSING_ASSIGNABLE_SELECTOR, 25, 3),
+        error(ParserErrorCode.illegalAssignmentToNonAssignable, 25, 3),
+        error(ParserErrorCode.missingAssignableSelector, 25, 3),
       ],
     );
 
@@ -1292,9 +1397,9 @@ AssignmentExpression
       token: x
       element: <testLibrary>::@function::f::@formalParameter::x
       staticType: null
-    readElement2: <testLibrary>::@function::f::@formalParameter::x
+    readElement: <testLibrary>::@function::f::@formalParameter::x
     readType: num
-    writeElement2: <testLibrary>::@function::f::@formalParameter::x
+    writeElement: <testLibrary>::@function::f::@formalParameter::x
     writeType: num
     element: dart:core::@class::num::@method::+
     staticType: num
@@ -1304,9 +1409,9 @@ AssignmentExpression
     correspondingParameter: <null>
     element: <testLibrary>::@function::f::@formalParameter::y
     staticType: int
-  readElement2: <null>
+  readElement: <null>
   readType: InvalidType
-  writeElement2: <null>
+  writeElement: <null>
   writeType: InvalidType
   element: <null>
   staticType: InvalidType
@@ -1321,8 +1426,8 @@ void f(num x, int y) {
 }
 ''',
       [
-        error(ParserErrorCode.ILLEGAL_ASSIGNMENT_TO_NON_ASSIGNABLE, 25, 3),
-        error(ParserErrorCode.MISSING_ASSIGNABLE_SELECTOR, 25, 3),
+        error(ParserErrorCode.illegalAssignmentToNonAssignable, 25, 3),
+        error(ParserErrorCode.missingAssignableSelector, 25, 3),
       ],
     );
 
@@ -1336,9 +1441,9 @@ AssignmentExpression
       token: x
       element: <testLibrary>::@function::f::@formalParameter::x
       staticType: null
-    readElement2: <testLibrary>::@function::f::@formalParameter::x
+    readElement: <testLibrary>::@function::f::@formalParameter::x
     readType: num
-    writeElement2: <testLibrary>::@function::f::@formalParameter::x
+    writeElement: <testLibrary>::@function::f::@formalParameter::x
     writeType: num
     element: dart:core::@class::num::@method::+
     staticType: num
@@ -1348,9 +1453,9 @@ AssignmentExpression
     correspondingParameter: <null>
     element: <testLibrary>::@function::f::@formalParameter::y
     staticType: int
-  readElement2: <null>
+  readElement: <null>
   readType: InvalidType
-  writeElement2: <null>
+  writeElement: <null>
   writeType: InvalidType
   element: <null>
   staticType: InvalidType
@@ -1365,8 +1470,8 @@ void f(num x, int y) {
 }
 ''',
       [
-        error(ParserErrorCode.ILLEGAL_ASSIGNMENT_TO_NON_ASSIGNABLE, 25, 3),
-        error(ParserErrorCode.MISSING_ASSIGNABLE_SELECTOR, 25, 3),
+        error(ParserErrorCode.illegalAssignmentToNonAssignable, 25, 3),
+        error(ParserErrorCode.missingAssignableSelector, 25, 3),
       ],
     );
 
@@ -1380,9 +1485,9 @@ AssignmentExpression
       token: x
       element: <testLibrary>::@function::f::@formalParameter::x
       staticType: null
-    readElement2: <testLibrary>::@function::f::@formalParameter::x
+    readElement: <testLibrary>::@function::f::@formalParameter::x
     readType: num
-    writeElement2: <testLibrary>::@function::f::@formalParameter::x
+    writeElement: <testLibrary>::@function::f::@formalParameter::x
     writeType: num
     element: dart:core::@class::num::@method::+
     staticType: num
@@ -1392,9 +1497,9 @@ AssignmentExpression
     correspondingParameter: <null>
     element: <testLibrary>::@function::f::@formalParameter::y
     staticType: int
-  readElement2: <null>
+  readElement: <null>
   readType: null
-  writeElement2: <null>
+  writeElement: <null>
   writeType: InvalidType
   element: <null>
   staticType: int
@@ -1412,7 +1517,7 @@ void f() {
   C = 0;
 }
 ''',
-      [error(CompileTimeErrorCode.AMBIGUOUS_IMPORT, 47, 1)],
+      [error(CompileTimeErrorCode.ambiguousImport, 47, 1)],
     );
 
     var assignment = findNode.assignment('C = 0');
@@ -1428,9 +1533,9 @@ AssignmentExpression
     literal: 0
     correspondingParameter: <null>
     staticType: int
-  readElement2: <null>
+  readElement: <null>
   readType: null
-  writeElement2: multiplyDefinedElement
+  writeElement: multiplyDefinedElement
     package:test/a.dart::@class::C
     package:test/b.dart::@class::C
   writeType: InvalidType
@@ -1448,7 +1553,7 @@ void f() {
   C = 0;
 }
 ''',
-      [error(CompileTimeErrorCode.ASSIGNMENT_TO_TYPE, 25, 1)],
+      [error(CompileTimeErrorCode.assignmentToType, 25, 1)],
     );
 
     var assignment = findNode.assignment('C = 0');
@@ -1464,9 +1569,9 @@ AssignmentExpression
     literal: 0
     correspondingParameter: <null>
     staticType: int
-  readElement2: <null>
+  readElement: <null>
   readType: null
-  writeElement2: <testLibrary>::@class::C
+  writeElement: <testLibrary>::@class::C
   writeType: InvalidType
   element: <null>
   staticType: int
@@ -1502,9 +1607,9 @@ AssignmentExpression
     staticType: int?
     typeArgumentTypes
       int?
-  readElement2: <testLibrary>::@function::g::@formalParameter::a
+  readElement: <testLibrary>::@function::g::@formalParameter::a
   readType: int?
-  writeElement2: <testLibrary>::@function::g::@formalParameter::a
+  writeElement: <testLibrary>::@function::g::@formalParameter::a
   writeType: int?
   element: <null>
   staticType: int?
@@ -1544,9 +1649,9 @@ AssignmentExpression
     literal: 2
     correspondingParameter: dart:core::@class::num::@method::+::@formalParameter::other
     staticType: int
-  readElement2: <testLibrary>::@class::A::@getter::x
+  readElement: <testLibrary>::@class::A::@getter::x
   readType: int
-  writeElement2: <testLibrary>::@class::A::@setter::x
+  writeElement: <testLibrary>::@class::A::@setter::x
   writeType: num
   element: dart:core::@class::num::@method::+
   staticType: int
@@ -1586,9 +1691,9 @@ AssignmentExpression
     literal: 2
     correspondingParameter: <null>
     staticType: int
-  readElement2: <testLibrary>::@class::A::@getter::x
+  readElement: <testLibrary>::@class::A::@getter::x
   readType: int?
-  writeElement2: <testLibrary>::@class::A::@setter::x
+  writeElement: <testLibrary>::@class::A::@setter::x
   writeType: num?
   element: <null>
   staticType: int
@@ -1627,9 +1732,9 @@ AssignmentExpression
     literal: 2
     correspondingParameter: <testLibrary>::@class::A::@setter::x::@formalParameter::_
     staticType: int
-  readElement2: <null>
+  readElement: <null>
   readType: null
-  writeElement2: <testLibrary>::@class::A::@setter::x
+  writeElement: <testLibrary>::@class::A::@setter::x
   writeType: num
   element: <null>
   staticType: int
@@ -1647,7 +1752,7 @@ void f(A a) {
   a.x = 2;
 }
 ''',
-      [error(CompileTimeErrorCode.ASSIGNMENT_TO_FINAL_NO_SETTER, 49, 1)],
+      [error(CompileTimeErrorCode.assignmentToFinalNoSetter, 49, 1)],
     );
 
     var assignment = findNode.assignment('x = 2');
@@ -1671,9 +1776,9 @@ AssignmentExpression
     literal: 2
     correspondingParameter: <null>
     staticType: int
-  readElement2: <null>
+  readElement: <null>
   readType: null
-  writeElement2: <testLibrary>::@class::A::@getter::x
+  writeElement: <testLibrary>::@class::A::@getter::x
   writeType: InvalidType
   element: <null>
   staticType: int
@@ -1700,7 +1805,7 @@ void f(A a) {
   a.foo = 0;
 }
 ''',
-      [error(CompileTimeErrorCode.ASSIGNMENT_TO_FINAL_NO_SETTER, 46, 3)],
+      [error(CompileTimeErrorCode.assignmentToFinalNoSetter, 46, 3)],
     );
 
     var node = findNode.singleAssignmentExpression;
@@ -1869,7 +1974,7 @@ void f() {
   A.foo = 0;
 }
 ''',
-      [error(CompileTimeErrorCode.ASSIGNMENT_TO_FINAL_NO_SETTER, 43, 3)],
+      [error(CompileTimeErrorCode.assignmentToFinalNoSetter, 43, 3)],
     );
 
     var node = findNode.singleAssignmentExpression;
@@ -2151,9 +2256,9 @@ AssignmentExpression
     literal: 2
     correspondingParameter: <testLibrary>::@class::A::@setter::x::@formalParameter::_
     staticType: int
-  readElement2: <null>
+  readElement: <null>
   readType: null
-  writeElement2: <testLibrary>::@class::A::@setter::x
+  writeElement: <testLibrary>::@class::A::@setter::x
   writeType: num
   element: <null>
   staticType: int
@@ -2171,7 +2276,7 @@ void f() {
   A.x = 2;
 }
 ''',
-      [error(CompileTimeErrorCode.ASSIGNMENT_TO_FINAL_NO_SETTER, 53, 1)],
+      [error(CompileTimeErrorCode.assignmentToFinalNoSetter, 53, 1)],
     );
 
     var assignment = findNode.assignment('x = 2');
@@ -2195,9 +2300,9 @@ AssignmentExpression
     literal: 2
     correspondingParameter: <null>
     staticType: int
-  readElement2: <null>
+  readElement: <null>
   readType: null
-  writeElement2: <testLibrary>::@class::A::@getter::x
+  writeElement: <testLibrary>::@class::A::@getter::x
   writeType: InvalidType
   element: <null>
   staticType: int
@@ -2238,9 +2343,9 @@ AssignmentExpression
     literal: 2
     correspondingParameter: dart:core::@class::num::@method::+::@formalParameter::other
     staticType: int
-  readElement2: package:test/a.dart::@getter::x
+  readElement: package:test/a.dart::@getter::x
   readType: int
-  writeElement2: package:test/a.dart::@setter::x
+  writeElement: package:test/a.dart::@setter::x
   writeType: num
   element: dart:core::@class::num::@method::+
   staticType: int
@@ -2282,9 +2387,9 @@ AssignmentExpression
     literal: 2
     correspondingParameter: dart:core::@class::num::@method::+::@formalParameter::other
     staticType: int
-  readElement2: <testLibrary>::@class::A::@getter::x
+  readElement: <testLibrary>::@class::A::@getter::x
   readType: int
-  writeElement2: <testLibrary>::@class::A::@setter::x
+  writeElement: <testLibrary>::@class::A::@setter::x
   writeType: int
   element: dart:core::@class::num::@method::+
   staticType: int
@@ -2298,7 +2403,7 @@ void f(int c) {
   a.b = c;
 }
 ''',
-      [error(CompileTimeErrorCode.UNDEFINED_IDENTIFIER, 18, 1)],
+      [error(CompileTimeErrorCode.undefinedIdentifier, 18, 1)],
     );
 
     var assignment = findNode.assignment('a.b = c');
@@ -2323,9 +2428,9 @@ AssignmentExpression
     correspondingParameter: <null>
     element: <testLibrary>::@function::f::@formalParameter::c
     staticType: int
-  readElement2: <null>
+  readElement: <null>
   readType: null
-  writeElement2: <null>
+  writeElement: <null>
   writeType: InvalidType
   element: <null>
   staticType: int
@@ -2340,8 +2445,8 @@ void f(int a, int c) {
 }
 ''',
       [
-        error(CompileTimeErrorCode.UNDEFINED_GETTER, 27, 1),
-        error(CompileTimeErrorCode.UNDEFINED_SETTER, 27, 1),
+        error(CompileTimeErrorCode.undefinedGetter, 27, 1),
+        error(CompileTimeErrorCode.undefinedSetter, 27, 1),
       ],
     );
 
@@ -2367,9 +2472,9 @@ AssignmentExpression
     correspondingParameter: <null>
     element: <testLibrary>::@function::f::@formalParameter::c
     staticType: int
-  readElement2: <null>
+  readElement: <null>
   readType: InvalidType
-  writeElement2: <null>
+  writeElement: <null>
   writeType: InvalidType
   element: <null>
   staticType: InvalidType
@@ -2404,9 +2509,9 @@ AssignmentExpression
     literal: 2
     correspondingParameter: dart:core::@class::num::@method::+::@formalParameter::other
     staticType: int
-  readElement2: <testLibrary>::@class::A::@getter::x
+  readElement: <testLibrary>::@class::A::@getter::x
   readType: int
-  writeElement2: <testLibrary>::@class::A::@setter::x
+  writeElement: <testLibrary>::@class::A::@setter::x
   writeType: num
   element: dart:core::@class::num::@method::+
   staticType: int
@@ -2437,7 +2542,7 @@ AssignmentExpression
       constructorName: ConstructorName
         type: NamedType
           name: B
-          element2: <testLibrary>::@class::B
+          element: <testLibrary>::@class::B
           type: B
         element: <testLibrary>::@class::B::@constructor::new
       argumentList: ArgumentList
@@ -2453,11 +2558,11 @@ AssignmentExpression
   operator: =
   rightHandSide: IntegerLiteral
     literal: 1
-    correspondingParameter: <testLibrary>::@class::A::@setter::x::@formalParameter::_x
+    correspondingParameter: <testLibrary>::@class::A::@setter::x::@formalParameter::value
     staticType: int
-  readElement2: <null>
+  readElement: <null>
   readType: null
-  writeElement2: <testLibrary>::@class::A::@setter::x
+  writeElement: <testLibrary>::@class::A::@setter::x
   writeType: int
   element: <null>
   staticType: int
@@ -2500,9 +2605,9 @@ AssignmentExpression
     literal: 2
     correspondingParameter: dart:core::@class::num::@method::+::@formalParameter::other
     staticType: int
-  readElement2: <testLibrary>::@class::A::@getter::x
+  readElement: <testLibrary>::@class::A::@getter::x
   readType: int
-  writeElement2: <testLibrary>::@class::A::@setter::x
+  writeElement: <testLibrary>::@class::A::@setter::x
   writeType: num
   element: dart:core::@class::num::@method::+
   staticType: int
@@ -2553,9 +2658,9 @@ AssignmentExpression
     literal: 2
     correspondingParameter: dart:core::@class::num::@method::+::@formalParameter::other
     staticType: int
-  readElement2: <testLibrary>::@mixin::M2::@getter::x
+  readElement: <testLibrary>::@mixin::M2::@getter::x
   readType: int
-  writeElement2: <testLibrary>::@mixin::M2::@setter::x
+  writeElement: <testLibrary>::@mixin::M2::@setter::x
   writeType: num
   element: dart:core::@class::num::@method::+
   staticType: int
@@ -2598,9 +2703,9 @@ AssignmentExpression
     literal: 2
     correspondingParameter: <null>
     staticType: int
-  readElement2: <testLibrary>::@class::A::@getter::x
+  readElement: <testLibrary>::@class::A::@getter::x
   readType: int?
-  writeElement2: <testLibrary>::@class::A::@setter::x
+  writeElement: <testLibrary>::@class::A::@setter::x
   writeType: num?
   element: <null>
   staticType: int
@@ -2642,12 +2747,111 @@ AssignmentExpression
     literal: 2
     correspondingParameter: <testLibrary>::@class::A::@setter::x::@formalParameter::_
     staticType: int
-  readElement2: <null>
+  readElement: <null>
   readType: null
-  writeElement2: <testLibrary>::@class::A::@setter::x
+  writeElement: <testLibrary>::@class::A::@setter::x
   writeType: num
   element: <null>
   staticType: int
+''');
+  }
+
+  test_propertyAccess_nullShorting_assignable() async {
+    await assertNoErrorsInCode('''
+abstract class A {
+  B get b;
+}
+abstract class B {
+  set setter(int i);
+}
+test(A? a) {
+  a?.b.setter = 0;
+}
+''');
+
+    var node = findNode.assignment('= 0');
+    assertResolvedNodeText(node, r'''
+AssignmentExpression
+  leftHandSide: PropertyAccess
+    target: PropertyAccess
+      target: SimpleIdentifier
+        token: a
+        element: <testLibrary>::@function::test::@formalParameter::a
+        staticType: A?
+      operator: ?.
+      propertyName: SimpleIdentifier
+        token: b
+        element: <testLibrary>::@class::A::@getter::b
+        staticType: B
+      staticType: B
+    operator: .
+    propertyName: SimpleIdentifier
+      token: setter
+      element: <null>
+      staticType: null
+    staticType: null
+  operator: =
+  rightHandSide: IntegerLiteral
+    literal: 0
+    correspondingParameter: <testLibrary>::@class::B::@setter::setter::@formalParameter::i
+    staticType: int
+  readElement: <null>
+  readType: null
+  writeElement: <testLibrary>::@class::B::@setter::setter
+  writeType: int
+  element: <null>
+  staticType: int?
+''');
+  }
+
+  test_propertyAccess_nullShorting_notAssignable() async {
+    await assertErrorsInCode(
+      '''
+abstract class A {
+  B get b;
+}
+abstract class B {
+  set setter(int i);
+}
+test(A? a) {
+  a?.b.setter = null;
+}
+''',
+      [error(CompileTimeErrorCode.invalidAssignment, 103, 4)],
+    );
+
+    var node = findNode.assignment('= null');
+    assertResolvedNodeText(node, r'''
+AssignmentExpression
+  leftHandSide: PropertyAccess
+    target: PropertyAccess
+      target: SimpleIdentifier
+        token: a
+        element: <testLibrary>::@function::test::@formalParameter::a
+        staticType: A?
+      operator: ?.
+      propertyName: SimpleIdentifier
+        token: b
+        element: <testLibrary>::@class::A::@getter::b
+        staticType: B
+      staticType: B
+    operator: .
+    propertyName: SimpleIdentifier
+      token: setter
+      element: <null>
+      staticType: null
+    staticType: null
+  operator: =
+  rightHandSide: NullLiteral
+    literal: null
+    correspondingParameter: <testLibrary>::@class::B::@setter::setter::@formalParameter::i
+    staticType: Null
+  readElement: <null>
+  readType: null
+  writeElement: <testLibrary>::@class::B::@setter::setter
+  writeType: int
+  element: <null>
+  staticType: Null
 ''');
   }
 
@@ -2778,8 +2982,8 @@ void f(({int bar}) r) {
 }
 ''',
       [
-        error(CompileTimeErrorCode.UNDEFINED_GETTER, 28, 3),
-        error(CompileTimeErrorCode.UNDEFINED_SETTER, 28, 3),
+        error(CompileTimeErrorCode.undefinedGetter, 28, 3),
+        error(CompileTimeErrorCode.undefinedSetter, 28, 3),
       ],
     );
 
@@ -2802,9 +3006,9 @@ AssignmentExpression
     literal: 0
     correspondingParameter: <null>
     staticType: int
-  readElement2: <null>
+  readElement: <null>
   readType: InvalidType
-  writeElement2: <null>
+  writeElement: <null>
   writeType: InvalidType
   element: <null>
   staticType: InvalidType
@@ -2822,7 +3026,7 @@ void f(({int bar}) r) {
   r.foo = 0;
 }
 ''',
-      [error(CompileTimeErrorCode.UNDEFINED_SETTER, 28, 3)],
+      [error(CompileTimeErrorCode.undefinedSetter, 28, 3)],
     );
 
     var node = findNode.assignment('= 0');
@@ -2844,9 +3048,9 @@ AssignmentExpression
     literal: 0
     correspondingParameter: <null>
     staticType: int
-  readElement2: <null>
+  readElement: <null>
   readType: null
-  writeElement2: <null>
+  writeElement: <null>
   writeType: InvalidType
   element: <null>
   staticType: int
@@ -2868,7 +3072,7 @@ void f(({int bar}) r) {
   r.foo += 0;
 }
 ''',
-      [error(CompileTimeErrorCode.UNDEFINED_GETTER, 80, 3)],
+      [error(CompileTimeErrorCode.undefinedGetter, 80, 3)],
     );
 
     var node = findNode.assignment('+= 0');
@@ -2890,9 +3094,9 @@ AssignmentExpression
     literal: 0
     correspondingParameter: <null>
     staticType: int
-  readElement2: <testLibrary>::@extension::E::@setter::foo
+  readElement: <testLibrary>::@extension::E::@setter::foo
   readType: InvalidType
-  writeElement2: <testLibrary>::@extension::E::@setter::foo
+  writeElement: <testLibrary>::@extension::E::@setter::foo
   writeType: int
   element: <null>
   staticType: InvalidType
@@ -2933,9 +3137,9 @@ AssignmentExpression
     literal: 0
     correspondingParameter: <testLibrary>::@extension::E::@setter::foo::@formalParameter::_
     staticType: int
-  readElement2: <null>
+  readElement: <null>
   readType: null
-  writeElement2: <testLibrary>::@extension::E::@setter::foo
+  writeElement: <testLibrary>::@extension::E::@setter::foo
   writeType: int
   element: <null>
   staticType: int
@@ -2957,7 +3161,7 @@ void f(({int bar}) r) {
   r.foo += 0;
 }
 ''',
-      [error(CompileTimeErrorCode.ASSIGNMENT_TO_FINAL_NO_SETTER, 80, 3)],
+      [error(CompileTimeErrorCode.assignmentToFinalNoSetter, 80, 3)],
     );
 
     var node = findNode.assignment('+= 0');
@@ -2979,9 +3183,9 @@ AssignmentExpression
     literal: 0
     correspondingParameter: dart:core::@class::num::@method::+::@formalParameter::other
     staticType: int
-  readElement2: <testLibrary>::@extension::E::@getter::foo
+  readElement: <testLibrary>::@extension::E::@getter::foo
   readType: int
-  writeElement2: <testLibrary>::@extension::E::@getter::foo
+  writeElement: <testLibrary>::@extension::E::@getter::foo
   writeType: InvalidType
   element: dart:core::@class::num::@method::+
   staticType: int
@@ -3003,7 +3207,7 @@ void f(({int bar}) r) {
   r.foo = 0;
 }
 ''',
-      [error(CompileTimeErrorCode.ASSIGNMENT_TO_FINAL_NO_SETTER, 80, 3)],
+      [error(CompileTimeErrorCode.assignmentToFinalNoSetter, 80, 3)],
     );
 
     var node = findNode.assignment('= 0');
@@ -3025,9 +3229,9 @@ AssignmentExpression
     literal: 0
     correspondingParameter: <null>
     staticType: int
-  readElement2: <null>
+  readElement: <null>
   readType: null
-  writeElement2: <testLibrary>::@extension::E::@getter::foo
+  writeElement: <testLibrary>::@extension::E::@getter::foo
   writeType: InvalidType
   element: <null>
   staticType: int
@@ -3069,9 +3273,9 @@ AssignmentExpression
     literal: 0
     correspondingParameter: dart:core::@class::num::@method::+::@formalParameter::other
     staticType: int
-  readElement2: <testLibrary>::@extension::E::@getter::foo
+  readElement: <testLibrary>::@extension::E::@getter::foo
   readType: int
-  writeElement2: <testLibrary>::@extension::E::@setter::foo
+  writeElement: <testLibrary>::@extension::E::@setter::foo
   writeType: int
   element: dart:core::@class::num::@method::+
   staticType: int
@@ -3113,9 +3317,9 @@ AssignmentExpression
     literal: 0
     correspondingParameter: <testLibrary>::@extension::E::@setter::foo::@formalParameter::_
     staticType: int
-  readElement2: <null>
+  readElement: <null>
   readType: null
-  writeElement2: <testLibrary>::@extension::E::@setter::foo
+  writeElement: <testLibrary>::@extension::E::@setter::foo
   writeType: int
   element: <null>
   staticType: int
@@ -3133,7 +3337,7 @@ void f(({int foo, String bar}) r) {
   r.foo += 0;
 }
 ''',
-      [error(CompileTimeErrorCode.UNDEFINED_SETTER, 40, 3)],
+      [error(CompileTimeErrorCode.undefinedSetter, 40, 3)],
     );
 
     var node = findNode.assignment('+= 0');
@@ -3155,9 +3359,9 @@ AssignmentExpression
     literal: 0
     correspondingParameter: dart:core::@class::num::@method::+::@formalParameter::other
     staticType: int
-  readElement2: <null>
+  readElement: <null>
   readType: int
-  writeElement2: <null>
+  writeElement: <null>
   writeType: InvalidType
   element: dart:core::@class::num::@method::+
   staticType: int
@@ -3175,7 +3379,7 @@ void f(({int foo, String bar}) r) {
   r.foo = 0;
 }
 ''',
-      [error(CompileTimeErrorCode.UNDEFINED_SETTER, 40, 3)],
+      [error(CompileTimeErrorCode.undefinedSetter, 40, 3)],
     );
 
     var node = findNode.assignment('= 0');
@@ -3197,9 +3401,9 @@ AssignmentExpression
     literal: 0
     correspondingParameter: <null>
     staticType: int
-  readElement2: <null>
+  readElement: <null>
   readType: null
-  writeElement2: <null>
+  writeElement: <null>
   writeType: InvalidType
   element: <null>
   staticType: int
@@ -3221,7 +3425,7 @@ void f(({int foo, String bar}) r) {
   r.foo += 0;
 }
 ''',
-      [error(CompileTimeErrorCode.UNDEFINED_SETTER, 104, 3)],
+      [error(CompileTimeErrorCode.undefinedSetter, 104, 3)],
     );
 
     var node = findNode.assignment('+= 0');
@@ -3243,9 +3447,9 @@ AssignmentExpression
     literal: 0
     correspondingParameter: dart:core::@class::num::@method::+::@formalParameter::other
     staticType: int
-  readElement2: <null>
+  readElement: <null>
   readType: int
-  writeElement2: <null>
+  writeElement: <null>
   writeType: InvalidType
   element: dart:core::@class::num::@method::+
   staticType: int
@@ -3267,7 +3471,7 @@ void f(({int foo, String bar}) r) {
   r.foo = 0;
 }
 ''',
-      [error(CompileTimeErrorCode.UNDEFINED_SETTER, 104, 3)],
+      [error(CompileTimeErrorCode.undefinedSetter, 104, 3)],
     );
 
     var node = findNode.assignment('= 0');
@@ -3289,9 +3493,9 @@ AssignmentExpression
     literal: 0
     correspondingParameter: <null>
     staticType: int
-  readElement2: <null>
+  readElement: <null>
   readType: null
-  writeElement2: <null>
+  writeElement: <null>
   writeType: InvalidType
   element: <null>
   staticType: int
@@ -3313,7 +3517,7 @@ void f(({int foo, String bar}) r) {
   r.foo += 0;
 }
 ''',
-      [error(CompileTimeErrorCode.UNDEFINED_SETTER, 104, 3)],
+      [error(CompileTimeErrorCode.undefinedSetter, 104, 3)],
     );
 
     var node = findNode.assignment('+= 0');
@@ -3335,9 +3539,9 @@ AssignmentExpression
     literal: 0
     correspondingParameter: dart:core::@class::num::@method::+::@formalParameter::other
     staticType: int
-  readElement2: <null>
+  readElement: <null>
   readType: int
-  writeElement2: <null>
+  writeElement: <null>
   writeType: InvalidType
   element: dart:core::@class::num::@method::+
   staticType: int
@@ -3359,7 +3563,7 @@ void f(({int foo, String bar}) r) {
   r.foo = 0;
 }
 ''',
-      [error(CompileTimeErrorCode.UNDEFINED_SETTER, 104, 3)],
+      [error(CompileTimeErrorCode.undefinedSetter, 104, 3)],
     );
 
     var node = findNode.assignment('= 0');
@@ -3381,9 +3585,9 @@ AssignmentExpression
     literal: 0
     correspondingParameter: <null>
     staticType: int
-  readElement2: <null>
+  readElement: <null>
   readType: null
-  writeElement2: <null>
+  writeElement: <null>
   writeType: InvalidType
   element: <null>
   staticType: int
@@ -3406,7 +3610,7 @@ void f(({int foo, String bar}) r) {
   r.foo += 0;
 }
 ''',
-      [error(CompileTimeErrorCode.UNDEFINED_SETTER, 124, 3)],
+      [error(CompileTimeErrorCode.undefinedSetter, 124, 3)],
     );
 
     var node = findNode.assignment('+= 0');
@@ -3428,9 +3632,9 @@ AssignmentExpression
     literal: 0
     correspondingParameter: dart:core::@class::num::@method::+::@formalParameter::other
     staticType: int
-  readElement2: <null>
+  readElement: <null>
   readType: int
-  writeElement2: <null>
+  writeElement: <null>
   writeType: InvalidType
   element: dart:core::@class::num::@method::+
   staticType: int
@@ -3453,7 +3657,7 @@ void f(({int foo, String bar}) r) {
   r.foo = 0;
 }
 ''',
-      [error(CompileTimeErrorCode.UNDEFINED_SETTER, 124, 3)],
+      [error(CompileTimeErrorCode.undefinedSetter, 124, 3)],
     );
 
     var node = findNode.assignment('= 0');
@@ -3475,9 +3679,9 @@ AssignmentExpression
     literal: 0
     correspondingParameter: <null>
     staticType: int
-  readElement2: <null>
+  readElement: <null>
   readType: null
-  writeElement2: <null>
+  writeElement: <null>
   writeType: InvalidType
   element: <null>
   staticType: int
@@ -3496,8 +3700,8 @@ void f((int, String) r) {
 }
 ''',
       [
-        error(CompileTimeErrorCode.UNDEFINED_GETTER, 30, 2),
-        error(CompileTimeErrorCode.UNDEFINED_SETTER, 30, 2),
+        error(CompileTimeErrorCode.undefinedGetter, 30, 2),
+        error(CompileTimeErrorCode.undefinedSetter, 30, 2),
       ],
     );
 
@@ -3520,9 +3724,9 @@ AssignmentExpression
     literal: 0
     correspondingParameter: <null>
     staticType: int
-  readElement2: <null>
+  readElement: <null>
   readType: InvalidType
-  writeElement2: <null>
+  writeElement: <null>
   writeType: InvalidType
   element: <null>
   staticType: InvalidType
@@ -3540,7 +3744,7 @@ void f((int, String) r) {
   r.$4 = 0;
 }
 ''',
-      [error(CompileTimeErrorCode.UNDEFINED_SETTER, 30, 2)],
+      [error(CompileTimeErrorCode.undefinedSetter, 30, 2)],
     );
 
     var node = findNode.assignment('= 0');
@@ -3562,9 +3766,9 @@ AssignmentExpression
     literal: 0
     correspondingParameter: <null>
     staticType: int
-  readElement2: <null>
+  readElement: <null>
   readType: null
-  writeElement2: <null>
+  writeElement: <null>
   writeType: InvalidType
   element: <null>
   staticType: int
@@ -3586,7 +3790,7 @@ void f((int, String) r) {
   r.$3 += 0;
 }
 ''',
-      [error(CompileTimeErrorCode.ASSIGNMENT_TO_FINAL_NO_SETTER, 83, 2)],
+      [error(CompileTimeErrorCode.assignmentToFinalNoSetter, 83, 2)],
     );
 
     var node = findNode.assignment('+= 0');
@@ -3608,9 +3812,9 @@ AssignmentExpression
     literal: 0
     correspondingParameter: dart:core::@class::num::@method::+::@formalParameter::other
     staticType: int
-  readElement2: <testLibrary>::@extension::E::@getter::$3
+  readElement: <testLibrary>::@extension::E::@getter::$3
   readType: int
-  writeElement2: <testLibrary>::@extension::E::@getter::$3
+  writeElement: <testLibrary>::@extension::E::@getter::$3
   writeType: InvalidType
   element: dart:core::@class::num::@method::+
   staticType: int
@@ -3632,7 +3836,7 @@ void f((int, String) r) {
   r.$3 = 0;
 }
 ''',
-      [error(CompileTimeErrorCode.ASSIGNMENT_TO_FINAL_NO_SETTER, 83, 2)],
+      [error(CompileTimeErrorCode.assignmentToFinalNoSetter, 83, 2)],
     );
 
     var node = findNode.assignment('= 0');
@@ -3654,9 +3858,9 @@ AssignmentExpression
     literal: 0
     correspondingParameter: <null>
     staticType: int
-  readElement2: <null>
+  readElement: <null>
   readType: null
-  writeElement2: <testLibrary>::@extension::E::@getter::$3
+  writeElement: <testLibrary>::@extension::E::@getter::$3
   writeType: InvalidType
   element: <null>
   staticType: int
@@ -3674,7 +3878,7 @@ void f((int, String) r) {
   r.$1 += 0;
 }
 ''',
-      [error(CompileTimeErrorCode.UNDEFINED_SETTER, 30, 2)],
+      [error(CompileTimeErrorCode.undefinedSetter, 30, 2)],
     );
 
     var node = findNode.assignment('+= 0');
@@ -3696,9 +3900,9 @@ AssignmentExpression
     literal: 0
     correspondingParameter: dart:core::@class::num::@method::+::@formalParameter::other
     staticType: int
-  readElement2: <null>
+  readElement: <null>
   readType: int
-  writeElement2: <null>
+  writeElement: <null>
   writeType: InvalidType
   element: dart:core::@class::num::@method::+
   staticType: int
@@ -3716,7 +3920,7 @@ void f((int, String) r) {
   r.$1 = 0;
 }
 ''',
-      [error(CompileTimeErrorCode.UNDEFINED_SETTER, 30, 2)],
+      [error(CompileTimeErrorCode.undefinedSetter, 30, 2)],
     );
 
     var node = findNode.assignment('= 0');
@@ -3738,9 +3942,9 @@ AssignmentExpression
     literal: 0
     correspondingParameter: <null>
     staticType: int
-  readElement2: <null>
+  readElement: <null>
   readType: null
-  writeElement2: <null>
+  writeElement: <null>
   writeType: InvalidType
   element: <null>
   staticType: int
@@ -3762,7 +3966,7 @@ void f((int, String) r) {
   r.$1 += 0;
 }
 ''',
-      [error(CompileTimeErrorCode.UNDEFINED_SETTER, 83, 2)],
+      [error(CompileTimeErrorCode.undefinedSetter, 83, 2)],
     );
 
     var node = findNode.assignment('+= 0');
@@ -3784,9 +3988,9 @@ AssignmentExpression
     literal: 0
     correspondingParameter: dart:core::@class::num::@method::+::@formalParameter::other
     staticType: int
-  readElement2: <null>
+  readElement: <null>
   readType: int
-  writeElement2: <null>
+  writeElement: <null>
   writeType: InvalidType
   element: dart:core::@class::num::@method::+
   staticType: int
@@ -3808,7 +4012,7 @@ void f((int, String) r) {
   r.$1 = 0;
 }
 ''',
-      [error(CompileTimeErrorCode.UNDEFINED_SETTER, 83, 2)],
+      [error(CompileTimeErrorCode.undefinedSetter, 83, 2)],
     );
 
     var node = findNode.assignment('= 0');
@@ -3830,9 +4034,9 @@ AssignmentExpression
     literal: 0
     correspondingParameter: <null>
     staticType: int
-  readElement2: <null>
+  readElement: <null>
   readType: null
-  writeElement2: <null>
+  writeElement: <null>
   writeType: InvalidType
   element: <null>
   staticType: int
@@ -3875,9 +4079,9 @@ AssignmentExpression
     literal: 2
     correspondingParameter: dart:core::@class::num::@method::+::@formalParameter::other
     staticType: int
-  readElement2: <testLibrary>::@class::A::@getter::x
+  readElement: <testLibrary>::@class::A::@getter::x
   readType: int
-  writeElement2: <testLibrary>::@class::A::@setter::x
+  writeElement: <testLibrary>::@class::A::@setter::x
   writeType: num
   element: dart:core::@class::num::@method::+
   staticType: int
@@ -3915,9 +4119,9 @@ AssignmentExpression
     literal: 2
     correspondingParameter: dart:core::@class::num::@method::+::@formalParameter::other
     staticType: int
-  readElement2: <testLibrary>::@class::A::@getter::x
+  readElement: <testLibrary>::@class::A::@getter::x
   readType: int
-  writeElement2: <testLibrary>::@class::A::@setter::x
+  writeElement: <testLibrary>::@class::A::@setter::x
   writeType: num
   element: dart:core::@class::num::@method::+
   staticType: int
@@ -3931,7 +4135,7 @@ void f(int c) {
   (a).b = c;
 }
 ''',
-      [error(CompileTimeErrorCode.UNDEFINED_IDENTIFIER, 19, 1)],
+      [error(CompileTimeErrorCode.undefinedIdentifier, 19, 1)],
     );
 
     var assignment = findNode.assignment('(a).b = c');
@@ -3959,9 +4163,9 @@ AssignmentExpression
     correspondingParameter: <null>
     element: <testLibrary>::@function::f::@formalParameter::c
     staticType: int
-  readElement2: <null>
+  readElement: <null>
   readType: null
-  writeElement2: <null>
+  writeElement: <null>
   writeType: InvalidType
   element: <null>
   staticType: int
@@ -3975,7 +4179,7 @@ void f(int a, int c) {
   (a).b = c;
 }
 ''',
-      [error(CompileTimeErrorCode.UNDEFINED_SETTER, 29, 1)],
+      [error(CompileTimeErrorCode.undefinedSetter, 29, 1)],
     );
 
     var assignment = findNode.assignment('(a).b = c');
@@ -4003,9 +4207,9 @@ AssignmentExpression
     correspondingParameter: <null>
     element: <testLibrary>::@function::f::@formalParameter::c
     staticType: int
-  readElement2: <null>
+  readElement: <null>
   readType: null
-  writeElement2: <null>
+  writeElement: <null>
   writeType: InvalidType
   element: <null>
   staticType: int
@@ -4021,7 +4225,7 @@ class A {
   }
 }
 ''',
-      [error(ParserErrorCode.MISSING_ASSIGNABLE_SELECTOR, 39, 5)],
+      [error(ParserErrorCode.missingAssignableSelector, 39, 5)],
     );
 
     var node = findNode.singleAssignmentExpression;
@@ -4035,9 +4239,9 @@ AssignmentExpression
   rightHandSide: SuperExpression
     superKeyword: super
     staticType: A
-  readElement2: <null>
+  readElement: <null>
   readType: null
-  writeElement2: <testLibrary>::@class::A::@method::f::@formalParameter::a
+  writeElement: <testLibrary>::@class::A::@method::f::@formalParameter::a
   writeType: Object
   element: <null>
   staticType: A
@@ -4066,11 +4270,11 @@ AssignmentExpression
   operator: =
   rightHandSide: IntegerLiteral
     literal: 2
-    correspondingParameter: <testLibrary>::@class::C::@setter::x::@formalParameter::_x
+    correspondingParameter: <testLibrary>::@class::C::@setter::x::@formalParameter::value
     staticType: int
-  readElement2: <null>
+  readElement: <null>
   readType: null
-  writeElement2: <testLibrary>::@class::C::@setter::x
+  writeElement: <testLibrary>::@class::C::@setter::x
   writeType: num
   element: <null>
   staticType: int
@@ -4099,11 +4303,11 @@ AssignmentExpression
   operator: =
   rightHandSide: IntegerLiteral
     literal: 2
-    correspondingParameter: <testLibrary>::@class::C::@setter::x::@formalParameter::_x
+    correspondingParameter: <testLibrary>::@class::C::@setter::x::@formalParameter::value
     staticType: int
-  readElement2: <null>
+  readElement: <null>
   readType: null
-  writeElement2: <testLibrary>::@class::C::@setter::x
+  writeElement: <testLibrary>::@class::C::@setter::x
   writeType: num
   element: <null>
   staticType: int
@@ -4121,7 +4325,7 @@ class C {
   }
 }
 ''',
-      [error(CompileTimeErrorCode.ASSIGNMENT_TO_FINAL_NO_SETTER, 46, 1)],
+      [error(CompileTimeErrorCode.assignmentToFinalNoSetter, 46, 1)],
     );
 
     var assignment = findNode.assignment('x = 2');
@@ -4137,9 +4341,9 @@ AssignmentExpression
     literal: 2
     correspondingParameter: <null>
     staticType: int
-  readElement2: <null>
+  readElement: <null>
   readType: null
-  writeElement2: <testLibrary>::@class::C::@getter::x
+  writeElement: <testLibrary>::@class::C::@getter::x
   writeType: InvalidType
   element: <null>
   staticType: int
@@ -4157,7 +4361,7 @@ class C {
   }
 }
 ''',
-      [error(CompileTimeErrorCode.ASSIGNMENT_TO_FINAL_NO_SETTER, 53, 1)],
+      [error(CompileTimeErrorCode.assignmentToFinalNoSetter, 53, 1)],
     );
 
     var assignment = findNode.assignment('x = 2');
@@ -4173,9 +4377,9 @@ AssignmentExpression
     literal: 2
     correspondingParameter: <null>
     staticType: int
-  readElement2: <null>
+  readElement: <null>
   readType: null
-  writeElement2: <testLibrary>::@class::C::@getter::x
+  writeElement: <testLibrary>::@class::C::@getter::x
   writeType: InvalidType
   element: <null>
   staticType: int
@@ -4191,7 +4395,7 @@ void f() {
   x = 2;
 }
 ''',
-      [error(CompileTimeErrorCode.ASSIGNMENT_TO_FINAL, 30, 1)],
+      [error(CompileTimeErrorCode.assignmentToFinal, 30, 1)],
     );
 
     var assignment = findNode.assignment('x = 2');
@@ -4207,9 +4411,9 @@ AssignmentExpression
     literal: 2
     correspondingParameter: <null>
     staticType: int
-  readElement2: <null>
+  readElement: <null>
   readType: null
-  writeElement2: <testLibrary>::@getter::x
+  writeElement: <testLibrary>::@getter::x
   writeType: InvalidType
   element: <null>
   staticType: int
@@ -4231,13 +4435,7 @@ class B extends A {
   }
 }
 ''',
-      [
-        error(
-          CompileTimeErrorCode.PREFIX_IDENTIFIER_NOT_FOLLOWED_BY_DOT,
-          85,
-          1,
-        ),
-      ],
+      [error(CompileTimeErrorCode.prefixIdentifierNotFollowedByDot, 85, 1)],
     );
 
     var assignment = findNode.assignment('x = 2');
@@ -4253,9 +4451,9 @@ AssignmentExpression
     literal: 2
     correspondingParameter: <null>
     staticType: int
-  readElement2: <null>
+  readElement: <null>
   readType: null
-  writeElement2: <testLibraryFragment>::@prefix2::x
+  writeElement: <testLibraryFragment>::@prefix2::x
   writeType: InvalidType
   element: <null>
   staticType: int
@@ -4271,13 +4469,7 @@ main() {
   x = 2;
 }
 ''',
-      [
-        error(
-          CompileTimeErrorCode.PREFIX_IDENTIFIER_NOT_FOLLOWED_BY_DOT,
-          37,
-          1,
-        ),
-      ],
+      [error(CompileTimeErrorCode.prefixIdentifierNotFollowedByDot, 37, 1)],
     );
 
     var assignment = findNode.assignment('x = 2');
@@ -4293,9 +4485,9 @@ AssignmentExpression
     literal: 2
     correspondingParameter: <null>
     staticType: int
-  readElement2: <null>
+  readElement: <null>
   readType: null
-  writeElement2: <testLibraryFragment>::@prefix2::x
+  writeElement: <testLibraryFragment>::@prefix2::x
   writeType: InvalidType
   element: <null>
   staticType: int
@@ -4324,9 +4516,9 @@ AssignmentExpression
     literal: 3
     correspondingParameter: dart:core::@class::num::@method::+::@formalParameter::other
     staticType: int
-  readElement2: x@51
+  readElement: x@51
   readType: num
-  writeElement2: x@51
+  writeElement: x@51
   writeType: num
   element: dart:core::@class::num::@method::+
   staticType: num
@@ -4355,9 +4547,9 @@ AssignmentExpression
     literal: 2
     correspondingParameter: <null>
     staticType: int
-  readElement2: <null>
+  readElement: <null>
   readType: null
-  writeElement2: x@51
+  writeElement: x@51
   writeType: num
   element: <null>
   staticType: int
@@ -4373,7 +4565,7 @@ void f() {
   x = 2;
 }
 ''',
-      [error(CompileTimeErrorCode.ASSIGNMENT_TO_CONST, 66, 1)],
+      [error(CompileTimeErrorCode.assignmentToConst, 66, 1)],
     );
 
     var assignment = findNode.assignment('x = 2');
@@ -4389,9 +4581,9 @@ AssignmentExpression
     literal: 2
     correspondingParameter: <null>
     staticType: int
-  readElement2: <null>
+  readElement: <null>
   readType: null
-  writeElement2: x@57
+  writeElement: x@57
   writeType: num
   element: <null>
   staticType: int
@@ -4407,7 +4599,7 @@ void f() {
   x = 2;
 }
 ''',
-      [error(CompileTimeErrorCode.ASSIGNMENT_TO_FINAL_LOCAL, 66, 1)],
+      [error(CompileTimeErrorCode.assignmentToFinalLocal, 66, 1)],
     );
 
     var assignment = findNode.assignment('x = 2');
@@ -4423,9 +4615,9 @@ AssignmentExpression
     literal: 2
     correspondingParameter: <null>
     staticType: int
-  readElement2: <null>
+  readElement: <null>
   readType: null
-  writeElement2: x@57
+  writeElement: x@57
   writeType: num
   element: <null>
   staticType: int
@@ -4452,9 +4644,9 @@ AssignmentExpression
     literal: 0
     correspondingParameter: <null>
     staticType: int
-  readElement2: <testLibrary>::@function::f::@formalParameter::x
+  readElement: <testLibrary>::@function::f::@formalParameter::x
   readType: num?
-  writeElement2: <testLibrary>::@function::f::@formalParameter::x
+  writeElement: <testLibrary>::@function::f::@formalParameter::x
   writeType: num?
   element: <null>
   staticType: num
@@ -4472,7 +4664,7 @@ void f(B? x) {
   x ??= C();
 }
 ''',
-      [error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 77, 3)],
+      [error(CompileTimeErrorCode.invalidAssignment, 77, 3)],
     );
 
     var assignment = findNode.assignment('x ??=');
@@ -4488,7 +4680,7 @@ AssignmentExpression
     constructorName: ConstructorName
       type: NamedType
         name: C
-        element2: <testLibrary>::@class::C
+        element: <testLibrary>::@class::C
         type: C
       element: <testLibrary>::@class::C::@constructor::new
     argumentList: ArgumentList
@@ -4496,9 +4688,9 @@ AssignmentExpression
       rightParenthesis: )
     correspondingParameter: <null>
     staticType: C
-  readElement2: <testLibrary>::@function::f::@formalParameter::x
+  readElement: <testLibrary>::@function::f::@formalParameter::x
   readType: B?
-  writeElement2: <testLibrary>::@function::f::@formalParameter::x
+  writeElement: <testLibrary>::@function::f::@formalParameter::x
   writeType: B?
   element: <null>
   staticType: A
@@ -4512,7 +4704,7 @@ void f(double? a, int b) {
   a ??= b;
 }
 ''',
-      [error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 35, 1)],
+      [error(CompileTimeErrorCode.invalidAssignment, 35, 1)],
     );
 
     var assignment = findNode.assignment('a ??=');
@@ -4529,9 +4721,9 @@ AssignmentExpression
     correspondingParameter: <null>
     element: <testLibrary>::@function::f::@formalParameter::b
     staticType: int
-  readElement2: <testLibrary>::@function::f::@formalParameter::a
+  readElement: <testLibrary>::@function::f::@formalParameter::a
   readType: double?
-  writeElement2: <testLibrary>::@function::f::@formalParameter::a
+  writeElement: <testLibrary>::@function::f::@formalParameter::a
   writeType: double?
   element: <null>
   staticType: num
@@ -4549,10 +4741,10 @@ void f(int x) {
 }
 ''',
       [
-        error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 23, 3),
-        error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 35, 3),
-        error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 47, 3),
-        error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 59, 3),
+        error(CompileTimeErrorCode.invalidAssignment, 23, 3),
+        error(CompileTimeErrorCode.invalidAssignment, 35, 3),
+        error(CompileTimeErrorCode.invalidAssignment, 47, 3),
+        error(CompileTimeErrorCode.invalidAssignment, 59, 3),
       ],
     );
     assertType(findNode.assignment('+='), 'double');
@@ -4598,9 +4790,9 @@ AssignmentExpression
     literal: 2
     correspondingParameter: <null>
     staticType: int
-  readElement2: <null>
+  readElement: <null>
   readType: null
-  writeElement2: <testLibrary>::@function::f::@formalParameter::x
+  writeElement: <testLibrary>::@function::f::@formalParameter::x
   writeType: num
   element: <null>
   staticType: int
@@ -4629,9 +4821,9 @@ AssignmentExpression
     literal: 1
     correspondingParameter: <null>
     staticType: double
-  readElement2: <null>
+  readElement: <null>
   readType: null
-  writeElement2: <testLibrary>::@function::f::@formalParameter::x
+  writeElement: <testLibrary>::@function::f::@formalParameter::x
   writeType: Object
   element: <null>
   staticType: double
@@ -4645,7 +4837,7 @@ void f(int x) {
   x = true;
 }
 ''',
-      [error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 22, 4)],
+      [error(CompileTimeErrorCode.invalidAssignment, 22, 4)],
     );
 
     var assignment = findNode.assignment('x = true');
@@ -4661,9 +4853,9 @@ AssignmentExpression
     literal: true
     correspondingParameter: <null>
     staticType: bool
-  readElement2: <null>
+  readElement: <null>
   readType: null
-  writeElement2: <testLibrary>::@function::f::@formalParameter::x
+  writeElement: <testLibrary>::@function::f::@formalParameter::x
   writeType: int
   element: <null>
   staticType: bool
@@ -4677,7 +4869,7 @@ void f(final int x) {
   x = 2;
 }
 ''',
-      [error(CompileTimeErrorCode.ASSIGNMENT_TO_FINAL_LOCAL, 24, 1)],
+      [error(CompileTimeErrorCode.assignmentToFinalLocal, 24, 1)],
     );
 
     var assignment = findNode.assignment('x = 2');
@@ -4693,9 +4885,9 @@ AssignmentExpression
     literal: 2
     correspondingParameter: <null>
     staticType: int
-  readElement2: <null>
+  readElement: <null>
   readType: null
-  writeElement2: <testLibrary>::@function::f::@formalParameter::x
+  writeElement: <testLibrary>::@function::f::@formalParameter::x
   writeType: int
   element: <null>
   staticType: int
@@ -4718,8 +4910,8 @@ class B extends A {
 }
 ''',
       [
-        error(CompileTimeErrorCode.CONFLICTING_STATIC_AND_INSTANCE, 68, 1),
-        error(CompileTimeErrorCode.ASSIGNMENT_TO_FINAL_NO_SETTER, 94, 1),
+        error(CompileTimeErrorCode.conflictingStaticAndInstance, 68, 1),
+        error(CompileTimeErrorCode.assignmentToFinalNoSetter, 94, 1),
       ],
     );
 
@@ -4736,9 +4928,9 @@ AssignmentExpression
     literal: 2
     correspondingParameter: <null>
     staticType: int
-  readElement2: <null>
+  readElement: <null>
   readType: null
-  writeElement2: <testLibrary>::@class::B::@getter::x
+  writeElement: <testLibrary>::@class::B::@getter::x
   writeType: InvalidType
   element: <null>
   staticType: int
@@ -4761,8 +4953,8 @@ class B extends A {
 }
 ''',
       [
-        error(CompileTimeErrorCode.CONFLICTING_STATIC_AND_INSTANCE, 65, 1),
-        error(CompileTimeErrorCode.ASSIGNMENT_TO_METHOD, 90, 1),
+        error(CompileTimeErrorCode.conflictingStaticAndInstance, 65, 1),
+        error(CompileTimeErrorCode.assignmentToMethod, 90, 1),
       ],
     );
 
@@ -4779,9 +4971,9 @@ AssignmentExpression
     literal: 2
     correspondingParameter: <null>
     staticType: int
-  readElement2: <null>
+  readElement: <null>
   readType: null
-  writeElement2: <testLibrary>::@class::B::@method::x
+  writeElement: <testLibrary>::@class::B::@method::x
   writeType: InvalidType
   element: <null>
   staticType: int
@@ -4814,9 +5006,9 @@ AssignmentExpression
     literal: 2
     correspondingParameter: <testLibrary>::@class::A::@setter::x::@formalParameter::_
     staticType: int
-  readElement2: <null>
+  readElement: <null>
   readType: null
-  writeElement2: <testLibrary>::@class::A::@setter::x
+  writeElement: <testLibrary>::@class::A::@setter::x
   writeType: num
   element: <null>
   staticType: int
@@ -4830,7 +5022,7 @@ void f(int y) {
   = y;
 }
 ''',
-      [error(ParserErrorCode.MISSING_IDENTIFIER, 18, 1)],
+      [error(ParserErrorCode.missingIdentifier, 18, 1)],
     );
 
     var assignment = findNode.assignment('= y');
@@ -4847,9 +5039,9 @@ AssignmentExpression
     correspondingParameter: <null>
     element: <testLibrary>::@function::f::@formalParameter::y
     staticType: int
-  readElement2: <null>
+  readElement: <null>
   readType: null
-  writeElement2: <null>
+  writeElement: <null>
   writeType: InvalidType
   element: <null>
   staticType: int
@@ -4882,11 +5074,11 @@ AssignmentExpression
   operator: =
   rightHandSide: IntegerLiteral
     literal: 2
-    correspondingParameter: <testLibrary>::@class::A::@setter::x::@formalParameter::_x
+    correspondingParameter: <testLibrary>::@class::A::@setter::x::@formalParameter::value
     staticType: int
-  readElement2: <null>
+  readElement: <null>
   readType: null
-  writeElement2: <testLibrary>::@class::A::@setter::x
+  writeElement: <testLibrary>::@class::A::@setter::x
   writeType: int
   element: <null>
   staticType: int
@@ -4918,9 +5110,9 @@ AssignmentExpression
     literal: 2
     correspondingParameter: dart:core::@class::num::@method::+::@formalParameter::other
     staticType: int
-  readElement2: <testLibrary>::@class::C::@getter::x
+  readElement: <testLibrary>::@class::C::@getter::x
   readType: int
-  writeElement2: <testLibrary>::@class::C::@setter::x
+  writeElement: <testLibrary>::@class::C::@setter::x
   writeType: num
   element: dart:core::@class::num::@method::+
   staticType: int
@@ -4959,9 +5151,9 @@ AssignmentExpression
     literal: 2
     correspondingParameter: dart:core::@class::num::@method::+::@formalParameter::other
     staticType: int
-  readElement2: <testLibrary>::@mixin::M2::@getter::x
+  readElement: <testLibrary>::@mixin::M2::@getter::x
   readType: int
-  writeElement2: <testLibrary>::@mixin::M2::@setter::x
+  writeElement: <testLibrary>::@mixin::M2::@setter::x
   writeType: num
   element: dart:core::@class::num::@method::+
   staticType: int
@@ -4993,9 +5185,9 @@ AssignmentExpression
     literal: 2
     correspondingParameter: <null>
     staticType: int
-  readElement2: <testLibrary>::@class::C::@getter::x
+  readElement: <testLibrary>::@class::C::@getter::x
   readType: int?
-  writeElement2: <testLibrary>::@class::C::@setter::x
+  writeElement: <testLibrary>::@class::C::@setter::x
   writeType: num?
   element: <null>
   staticType: int
@@ -5018,7 +5210,7 @@ class B extends A {
   }
 }
 ''',
-      [error(CompileTimeErrorCode.ASSIGNMENT_TO_FINAL, 86, 1)],
+      [error(CompileTimeErrorCode.assignmentToFinal, 86, 1)],
     );
 
     var assignment = findNode.assignment('x = 2');
@@ -5034,9 +5226,9 @@ AssignmentExpression
     literal: 2
     correspondingParameter: <null>
     staticType: int
-  readElement2: <null>
+  readElement: <null>
   readType: null
-  writeElement2: <testLibrary>::@getter::x
+  writeElement: <testLibrary>::@getter::x
   writeType: InvalidType
   element: <null>
   staticType: int
@@ -5066,9 +5258,9 @@ AssignmentExpression
     literal: 2
     correspondingParameter: dart:core::@class::num::@method::+::@formalParameter::other
     staticType: int
-  readElement2: <testLibrary>::@getter::x
+  readElement: <testLibrary>::@getter::x
   readType: int
-  writeElement2: <testLibrary>::@setter::x
+  writeElement: <testLibrary>::@setter::x
   writeType: num
   element: dart:core::@class::num::@method::+
   staticType: int
@@ -5089,7 +5281,7 @@ class C extends A {}
 B? get x => B();
 set x(B? _) {}
 ''',
-      [error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 19, 3)],
+      [error(CompileTimeErrorCode.invalidAssignment, 19, 3)],
     );
 
     var assignment = findNode.assignment('x ??=');
@@ -5105,7 +5297,7 @@ AssignmentExpression
     constructorName: ConstructorName
       type: NamedType
         name: C
-        element2: <testLibrary>::@class::C
+        element: <testLibrary>::@class::C
         type: C
       element: <testLibrary>::@class::C::@constructor::new
     argumentList: ArgumentList
@@ -5113,9 +5305,9 @@ AssignmentExpression
       rightParenthesis: )
     correspondingParameter: <null>
     staticType: C
-  readElement2: <testLibrary>::@getter::x
+  readElement: <testLibrary>::@getter::x
   readType: B?
-  writeElement2: <testLibrary>::@setter::x
+  writeElement: <testLibrary>::@setter::x
   writeType: B?
   element: <null>
   staticType: A
@@ -5147,9 +5339,9 @@ AssignmentExpression
     literal: 2
     correspondingParameter: dart:core::@class::num::@method::+::@formalParameter::other
     staticType: int
-  readElement2: <testLibrary>::@getter::x
+  readElement: <testLibrary>::@getter::x
   readType: int
-  writeElement2: <testLibrary>::@setter::x
+  writeElement: <testLibrary>::@setter::x
   writeType: num
   element: dart:core::@class::num::@method::+
   staticType: int
@@ -5176,11 +5368,11 @@ AssignmentExpression
   operator: =
   rightHandSide: IntegerLiteral
     literal: 2
-    correspondingParameter: <testLibrary>::@setter::x::@formalParameter::_x
+    correspondingParameter: <testLibrary>::@setter::x::@formalParameter::value
     staticType: int
-  readElement2: <null>
+  readElement: <null>
   readType: null
-  writeElement2: <testLibrary>::@setter::x
+  writeElement: <testLibrary>::@setter::x
   writeType: num
   element: <null>
   staticType: int
@@ -5196,7 +5388,7 @@ void f() {
   x = true;
 }
 ''',
-      [error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 29, 4)],
+      [error(CompileTimeErrorCode.invalidAssignment, 29, 4)],
     );
 
     var assignment = findNode.assignment('x = true');
@@ -5210,11 +5402,11 @@ AssignmentExpression
   operator: =
   rightHandSide: BooleanLiteral
     literal: true
-    correspondingParameter: <testLibrary>::@setter::x::@formalParameter::_x
+    correspondingParameter: <testLibrary>::@setter::x::@formalParameter::value
     staticType: bool
-  readElement2: <null>
+  readElement: <null>
   readType: null
-  writeElement2: <testLibrary>::@setter::x
+  writeElement: <testLibrary>::@setter::x
   writeType: int
   element: <null>
   staticType: bool
@@ -5230,7 +5422,7 @@ void f() {
   x = 2;
 }
 ''',
-      [error(CompileTimeErrorCode.ASSIGNMENT_TO_FINAL, 31, 1)],
+      [error(CompileTimeErrorCode.assignmentToFinal, 31, 1)],
     );
 
     var assignment = findNode.assignment('x = 2');
@@ -5246,9 +5438,9 @@ AssignmentExpression
     literal: 2
     correspondingParameter: <null>
     staticType: int
-  readElement2: <null>
+  readElement: <null>
   readType: null
-  writeElement2: <testLibrary>::@getter::x
+  writeElement: <testLibrary>::@getter::x
   writeType: InvalidType
   element: <null>
   staticType: int
@@ -5262,7 +5454,7 @@ void f() {
   int += 3;
 }
 ''',
-      [error(CompileTimeErrorCode.ASSIGNMENT_TO_TYPE, 13, 3)],
+      [error(CompileTimeErrorCode.assignmentToType, 13, 3)],
     );
 
     var assignment = findNode.assignment('int += 3');
@@ -5278,9 +5470,9 @@ AssignmentExpression
     literal: 3
     correspondingParameter: <null>
     staticType: int
-  readElement2: dart:core::@class::int
+  readElement: dart:core::@class::int
   readType: InvalidType
-  writeElement2: dart:core::@class::int
+  writeElement: dart:core::@class::int
   writeType: InvalidType
   element: <null>
   staticType: InvalidType
@@ -5294,7 +5486,7 @@ void f() {
   int = 0;
 }
 ''',
-      [error(CompileTimeErrorCode.ASSIGNMENT_TO_TYPE, 13, 3)],
+      [error(CompileTimeErrorCode.assignmentToType, 13, 3)],
     );
 
     var assignment = findNode.assignment('int = 0');
@@ -5310,9 +5502,9 @@ AssignmentExpression
     literal: 0
     correspondingParameter: <null>
     staticType: int
-  readElement2: <null>
+  readElement: <null>
   readType: null
-  writeElement2: dart:core::@class::int
+  writeElement: dart:core::@class::int
   writeType: InvalidType
   element: <null>
   staticType: int
@@ -5326,7 +5518,7 @@ void f() {
   x += 1;
 }
 ''',
-      [error(CompileTimeErrorCode.UNDEFINED_IDENTIFIER, 13, 1)],
+      [error(CompileTimeErrorCode.undefinedIdentifier, 13, 1)],
     );
 
     var assignment = findNode.assignment('x += 1');
@@ -5342,9 +5534,9 @@ AssignmentExpression
     literal: 1
     correspondingParameter: <null>
     staticType: int
-  readElement2: <null>
+  readElement: <null>
   readType: InvalidType
-  writeElement2: <null>
+  writeElement: <null>
   writeType: InvalidType
   element: <null>
   staticType: InvalidType
@@ -5358,7 +5550,7 @@ void f(int a) {
   x = a;
 }
 ''',
-      [error(CompileTimeErrorCode.UNDEFINED_IDENTIFIER, 18, 1)],
+      [error(CompileTimeErrorCode.undefinedIdentifier, 18, 1)],
     );
 
     var assignment = findNode.assignment('x = a');
@@ -5375,9 +5567,9 @@ AssignmentExpression
     correspondingParameter: <null>
     element: <testLibrary>::@function::f::@formalParameter::a
     staticType: int
-  readElement2: <null>
+  readElement: <null>
   readType: null
-  writeElement2: <null>
+  writeElement: <null>
   writeType: InvalidType
   element: <null>
   staticType: int
@@ -5418,9 +5610,9 @@ f(Object? o, C2<double> c2) {
   correspondingParameter: ParameterMember
     baseElement: <testLibrary>::@function::contextB1::@formalParameter::b1
     substitution: {T: Object?}
-  readElement2: <testLibrary>::@function::f::@formalParameter::o
+  readElement: <testLibrary>::@function::f::@formalParameter::o
   readType: C1<int>?
-  writeElement2: <testLibrary>::@function::f::@formalParameter::o
+  writeElement: <testLibrary>::@function::f::@formalParameter::o
   writeType: Object?
   element: <null>
   staticType: B1<Object?>
@@ -5450,9 +5642,9 @@ f(Object? o1, Object? o2, int? i) {
     correspondingParameter: <null>
     element: <testLibrary>::@function::f::@formalParameter::i
     staticType: int?
-  readElement2: <testLibrary>::@function::f::@formalParameter::o2
+  readElement: <testLibrary>::@function::f::@formalParameter::o2
   readType: double?
-  writeElement2: <testLibrary>::@function::f::@formalParameter::o2
+  writeElement: <testLibrary>::@function::f::@formalParameter::o2
   writeType: Object?
   element: <null>
   staticType: num?
@@ -5488,9 +5680,9 @@ AssignmentExpression
     element: <testLibrary>::@function::f::@formalParameter::c2
     staticType: C2
   correspondingParameter: <testLibrary>::@function::contextB1::@formalParameter::b1
-  readElement2: <testLibrary>::@function::f::@formalParameter::o
+  readElement: <testLibrary>::@function::f::@formalParameter::o
   readType: C1?
-  writeElement2: <testLibrary>::@function::f::@formalParameter::o
+  writeElement: <testLibrary>::@function::f::@formalParameter::o
   writeType: Object?
   element: <null>
   staticType: B1

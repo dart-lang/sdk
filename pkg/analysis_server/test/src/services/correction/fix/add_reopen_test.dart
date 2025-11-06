@@ -22,8 +22,6 @@ class AddReopenBulkTest extends BulkFixProcessorTest {
   String get lintCode => LintNames.implicit_reopen;
 
   Future<void> test_singleFile() async {
-    useLineEndingsForPlatform = false;
-
     await resolveTestCode('''
 final class F {}
 sealed class S extends F {}
@@ -46,7 +44,7 @@ base class D extends S {}
 @reflectiveTest
 class AddReopenTest extends FixProcessorLintTest {
   @override
-  FixKind get kind => DartFixKind.ADD_REOPEN;
+  FixKind get kind => DartFixKind.addReopen;
 
   @override
   String get lintCode => LintNames.implicit_reopen;

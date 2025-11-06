@@ -1371,8 +1371,9 @@ main() {
             h.run(
               [
                 switch_(expr('int')..errorId = 'SCRUTINEE', [
-                  (expr('num')
-                    ..errorId = 'EXPRESSION').pattern.then([break_()]),
+                  (expr(
+                    'num',
+                  )..errorId = 'EXPRESSION').pattern.then([break_()]),
                 ], isLegacyExhaustive: false),
               ],
               expectedErrors: {
@@ -1388,8 +1389,9 @@ main() {
             h.run(
               [
                 switch_(expr('int')..errorId = 'SCRUTINEE', [
-                  (expr('String')
-                    ..errorId = 'EXPRESSION').pattern.then([break_()]),
+                  (expr(
+                    'String',
+                  )..errorId = 'EXPRESSION').pattern.then([break_()]),
                 ], isLegacyExhaustive: false),
               ],
               expectedErrors: {
@@ -1414,8 +1416,9 @@ main() {
             h.run(
               [
                 switch_(expr('int')..errorId = 'SCRUTINEE', [
-                  (expr('dynamic')
-                    ..errorId = 'EXPRESSION').pattern.then([break_()]),
+                  (expr(
+                    'dynamic',
+                  )..errorId = 'EXPRESSION').pattern.then([break_()]),
                 ], isLegacyExhaustive: false),
               ],
               expectedErrors: {
@@ -2753,9 +2756,9 @@ main() {
         h.run(
           [
             (patternVariableDeclaration(
-              (wildcard(type: 'int')
-                ..errorId =
-                    'LHS').and(wildcard(type: 'double')..errorId = 'RHS'),
+              (wildcard(type: 'int')..errorId = 'LHS').and(
+                wildcard(type: 'double')..errorId = 'RHS',
+              ),
               expr('num'),
             )..errorId = 'CONTEXT'),
           ],
@@ -3575,8 +3578,9 @@ main() {
                 [
                   (patternVariableDeclaration(
                     recordPattern([
-                      (Var('a').pattern(type: 'int')
-                        ..errorId = 'VAR(a)').recordField(),
+                      (Var(
+                        'a',
+                      ).pattern(type: 'int')..errorId = 'VAR(a)').recordField(),
                       Var('b').pattern().recordField(),
                     ])..errorId = 'PATTERN',
                     expr('(int,)').checkSchema('(int, _)'),
@@ -3705,8 +3709,9 @@ main() {
                 [
                   (patternVariableDeclaration(
                     recordPattern([
-                      (Var('a').pattern(type: 'int')
-                        ..errorId = 'VAR(a)').recordField('a'),
+                      (Var('a').pattern(
+                        type: 'int',
+                      )..errorId = 'VAR(a)').recordField('a'),
                       Var('b').pattern().recordField('b'),
                     ])..errorId = 'PATTERN',
                     expr('({int a})').checkSchema('({int a, _ b})'),

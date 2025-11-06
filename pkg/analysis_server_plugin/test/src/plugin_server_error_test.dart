@@ -13,7 +13,7 @@ import 'package:analyzer/analysis_rule/rule_visitor_registry.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/error/error.dart';
-import 'package:analyzer/src/lint/linter.dart';
+import 'package:analyzer/src/analysis_rule/rule_context.dart';
 import 'package:analyzer_plugin/protocol/protocol_constants.dart' as protocol;
 import 'package:analyzer_plugin/protocol/protocol_generated.dart' as protocol;
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
@@ -56,22 +56,27 @@ plugins:
     newFile(filePath, 'bool b = false;');
     var contextRoot = protocol.ContextRoot(packagePath, []);
 
-    await channel
-        .sendRequest(protocol.AnalysisSetContextRootsParams([contextRoot]));
+    await channel.sendRequest(
+      protocol.AnalysisSetContextRootsParams([contextRoot]),
+    );
 
     // Create a broadcast Stream of notifications, so that we can have multiple
     // StreamQueues listening.
     var notifications = channel.notifications.asBroadcastStream();
-    var analysisErrorsParamsQueue = StreamQueue(notifications
-        .where((n) => n.event == protocol.ANALYSIS_NOTIFICATION_ERRORS)
-        .map((n) => protocol.AnalysisErrorsParams.fromNotification(n))
-        .where((p) => p.file == filePath));
+    var analysisErrorsParamsQueue = StreamQueue(
+      notifications
+          .where((n) => n.event == protocol.ANALYSIS_NOTIFICATION_ERRORS)
+          .map((n) => protocol.AnalysisErrorsParams.fromNotification(n))
+          .where((p) => p.file == filePath),
+    );
     var analysisErrorsParams = await analysisErrorsParamsQueue.next;
     expect(analysisErrorsParams.errors, isEmpty);
 
-    var pluginErrorParamsQueue = StreamQueue(notifications
-        .where((n) => n.event == protocol.PLUGIN_NOTIFICATION_ERROR)
-        .map((n) => protocol.PluginErrorParams.fromNotification(n)));
+    var pluginErrorParamsQueue = StreamQueue(
+      notifications
+          .where((n) => n.event == protocol.PLUGIN_NOTIFICATION_ERROR)
+          .map((n) => protocol.PluginErrorParams.fromNotification(n)),
+    );
     var pluginErrorParams = await pluginErrorParamsQueue.next;
     expect(pluginErrorParams.isFatal, false);
     expect(pluginErrorParams.message, 'Bad state: A message.');
@@ -90,8 +95,9 @@ plugins:
     newFile(filePath, 'bool b = false;');
     var contextRoot = protocol.ContextRoot(packagePath, []);
 
-    var response = await channel
-        .sendRequest(protocol.AnalysisSetContextRootsParams([contextRoot]));
+    var response = await channel.sendRequest(
+      protocol.AnalysisSetContextRootsParams([contextRoot]),
+    );
 
     expect(
       response.error,
@@ -112,24 +118,30 @@ plugins:
     newFile(filePath, 'bool b = false;');
     var contextRoot = protocol.ContextRoot(packagePath, []);
 
-    await channel
-        .sendRequest(protocol.AnalysisSetContextRootsParams([contextRoot]));
-    await channel
-        .sendRequest(protocol.EditGetFixesParams(filePath, 'bool b = '.length));
+    await channel.sendRequest(
+      protocol.AnalysisSetContextRootsParams([contextRoot]),
+    );
+    await channel.sendRequest(
+      protocol.EditGetFixesParams(filePath, 'bool b = '.length),
+    );
 
     // Create a broadcast Stream of notifications, so that we can have multiple
     // StreamQueues listening.
     var notifications = channel.notifications.asBroadcastStream();
-    var analysisErrorsParamsQueue = StreamQueue(notifications
-        .where((n) => n.event == protocol.ANALYSIS_NOTIFICATION_ERRORS)
-        .map((n) => protocol.AnalysisErrorsParams.fromNotification(n))
-        .where((p) => p.file == filePath));
+    var analysisErrorsParamsQueue = StreamQueue(
+      notifications
+          .where((n) => n.event == protocol.ANALYSIS_NOTIFICATION_ERRORS)
+          .map((n) => protocol.AnalysisErrorsParams.fromNotification(n))
+          .where((p) => p.file == filePath),
+    );
     var analysisErrorsParams = await analysisErrorsParamsQueue.next;
     expect(analysisErrorsParams.errors.single, isNotNull);
 
-    var pluginErrorParamsQueue = StreamQueue(notifications
-        .where((n) => n.event == protocol.PLUGIN_NOTIFICATION_ERROR)
-        .map((n) => protocol.PluginErrorParams.fromNotification(n)));
+    var pluginErrorParamsQueue = StreamQueue(
+      notifications
+          .where((n) => n.event == protocol.PLUGIN_NOTIFICATION_ERROR)
+          .map((n) => protocol.PluginErrorParams.fromNotification(n)),
+    );
     var pluginErrorParams = await pluginErrorParamsQueue.next;
     expect(pluginErrorParams.isFatal, false);
     expect(pluginErrorParams.message, 'Bad state: A message.');
@@ -148,11 +160,13 @@ plugins:
     newFile(filePath, 'bool b = false;');
     var contextRoot = protocol.ContextRoot(packagePath, []);
 
-    await channel
-        .sendRequest(protocol.AnalysisSetContextRootsParams([contextRoot]));
+    await channel.sendRequest(
+      protocol.AnalysisSetContextRootsParams([contextRoot]),
+    );
 
-    var response = await channel
-        .sendRequest(protocol.EditGetFixesParams(filePath, 'bool b = '.length));
+    var response = await channel.sendRequest(
+      protocol.EditGetFixesParams(filePath, 'bool b = '.length),
+    );
     expect(
       response.error,
       isA<protocol.RequestError>()
@@ -184,6 +198,9 @@ plugins:
 
 class _FixThrowsAsyncErrorPlugin extends Plugin {
   @override
+  String get name => 'Fix Throws Async Error Plugin';
+
+  @override
   void register(PluginRegistry registry) {
     registry.registerWarningRule(NoBoolsRule());
     registry.registerFixForRule(NoBoolsRule.code, _ThrowsAsyncErrorFix.new);
@@ -191,6 +208,9 @@ class _FixThrowsAsyncErrorPlugin extends Plugin {
 }
 
 class _FixThrowsSyncErrorPlugin extends Plugin {
+  @override
+  String get name => 'Fix Throws Sync Error Plugin';
+
   @override
   void register(PluginRegistry registry) {
     registry.registerWarningRule(NoBoolsRule());
@@ -212,12 +232,18 @@ class _MissingFixKindFix extends ResolvedCorrectionProducer {
 
 class _PluginWithAssistWithNoAssistKind extends Plugin {
   @override
+  String get name => 'Plugin with Assist with no Assist Kind';
+
+  @override
   void register(PluginRegistry registry) {
     registry.registerAssist(_ThrowsSyncErrorFix.new);
   }
 }
 
 class _PluginWithFixWithNoFixKind extends Plugin {
+  @override
+  String get name => 'Plugin with Fix with no Fix Kind';
+
   @override
   void register(PluginRegistry registry) {
     registry.registerWarningRule(NoBoolsRule());
@@ -227,12 +253,18 @@ class _PluginWithFixWithNoFixKind extends Plugin {
 
 class _RuleThrowsAsyncErrorPlugin extends Plugin {
   @override
+  String get name => 'Rule Throws Async Error Plugin';
+
+  @override
   void register(PluginRegistry registry) {
     registry.registerWarningRule(_ThrowsAsyncErrorRule());
   }
 }
 
 class _RuleThrowsSyncErrorPlugin extends Plugin {
+  @override
+  String get name => 'Rule Throws Sync Error Plugin';
+
   @override
   void register(PluginRegistry registry) {
     registry.registerWarningRule(_ThrowsSyncErrorRule());
@@ -264,14 +296,16 @@ class _ThrowsAsyncErrorRule extends AnalysisRule {
   static const LintCode code = LintCode('no_bools', 'No bools message');
 
   _ThrowsAsyncErrorRule()
-      : super(name: 'no_bools', description: 'No bools desc');
+    : super(name: 'no_bools', description: 'No bools desc');
 
   @override
   DiagnosticCode get diagnosticCode => code;
 
   @override
   void registerNodeProcessors(
-      RuleVisitorRegistry registry, RuleContext context) {
+    RuleVisitorRegistry registry,
+    RuleContext context,
+  ) {
     var visitor = _ThrowsAsyncErrorVisitor(this);
     registry.addBooleanLiteral(this, visitor);
   }
@@ -311,14 +345,16 @@ class _ThrowsSyncErrorRule extends AnalysisRule {
   static const LintCode code = LintCode('no_bools', 'No bools message');
 
   _ThrowsSyncErrorRule()
-      : super(name: 'no_bools', description: 'No bools desc');
+    : super(name: 'no_bools', description: 'No bools desc');
 
   @override
   DiagnosticCode get diagnosticCode => code;
 
   @override
   void registerNodeProcessors(
-      RuleVisitorRegistry registry, RuleContext context) {
+    RuleVisitorRegistry registry,
+    RuleContext context,
+  ) {
     var visitor = _ThrowsSyncErrorVisitor(this);
     registry.addBooleanLiteral(this, visitor);
   }

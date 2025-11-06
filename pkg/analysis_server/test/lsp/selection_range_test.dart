@@ -37,8 +37,11 @@ void f() {
       code.position.position,
     ]);
     expect(regions!.length, equals(1));
-    var regionTexts =
-        _getSelectionRangeText(lineInfo, code.code, regions.first).toList();
+    var regionTexts = _getSelectionRangeText(
+      lineInfo,
+      code.code,
+      regions.first,
+    ).toList();
 
     expect(
       regionTexts,
@@ -72,8 +75,11 @@ void f() {
       code.position.position,
     ]);
     expect(regions!.length, equals(1));
-    var regionTexts =
-        _getSelectionRangeText(lineInfo, code.code, regions.first).toList();
+    var regionTexts = _getSelectionRangeText(
+      lineInfo,
+      code.code,
+      regions.first,
+    ).toList();
 
     expect(
       regionTexts,
@@ -105,8 +111,11 @@ void f() {
       code.position.position,
     ]);
     expect(regions!.length, equals(1));
-    var regionTexts =
-        _getSelectionRangeText(lineInfo, code.code, regions.first).toList();
+    var regionTexts = _getSelectionRangeText(
+      lineInfo,
+      code.code,
+      regions.first,
+    ).toList();
 
     expect(
       regionTexts,
@@ -141,10 +150,16 @@ class Foo {
       positionFromOffset(content.indexOf('/*2*/'), content),
     ]);
     expect(regions!.length, equals(2));
-    var firstTexts =
-        _getSelectionRangeText(lineInfo, content, regions[0]).toList();
-    var secondTexts =
-        _getSelectionRangeText(lineInfo, content, regions[1]).toList();
+    var firstTexts = _getSelectionRangeText(
+      lineInfo,
+      content,
+      regions[0],
+    ).toList();
+    var secondTexts = _getSelectionRangeText(
+      lineInfo,
+      content,
+      regions[1],
+    ).toList();
 
     expect(
       firstTexts,
@@ -184,8 +199,11 @@ class Foo<T> {
       code.position.position,
     ]);
     expect(regions!.length, equals(1)); // Only one position was sent.
-    var regionTexts =
-        _getSelectionRangeText(lineInfo, code.code, regions.first).toList();
+    var regionTexts = _getSelectionRangeText(
+      lineInfo,
+      code.code,
+      regions.first,
+    ).toList();
 
     expect(
       regionTexts,
@@ -223,8 +241,11 @@ class Foo<T> {
       code.position.position,
     ]);
     expect(regions!.length, equals(1)); // Only one position was sent.
-    var regionTexts =
-        _getSelectionRangeText(lineInfo, code.code, regions.first).toList();
+    var regionTexts = _getSelectionRangeText(
+      lineInfo,
+      code.code,
+      regions.first,
+    ).toList();
 
     expect(
       regionTexts,
@@ -262,8 +283,11 @@ class Foo<T> {
       code.position.position,
     ]);
     expect(regions!.length, equals(1)); // Only one position was sent.
-    var regionTexts =
-        _getSelectionRangeText(lineInfo, code.code, regions.first).toList();
+    var regionTexts = _getSelectionRangeText(
+      lineInfo,
+      code.code,
+      regions.first,
+    ).toList();
 
     expect(
       regionTexts,
@@ -301,8 +325,11 @@ class Foo<T> {
       code.position.position,
     ]);
     expect(regions!.length, equals(1)); // Only one position was sent.
-    var regionTexts =
-        _getSelectionRangeText(lineInfo, code.code, regions.first).toList();
+    var regionTexts = _getSelectionRangeText(
+      lineInfo,
+      code.code,
+      regions.first,
+    ).toList();
 
     expect(
       regionTexts,
@@ -340,8 +367,11 @@ class Foo<T> {
       code.position.position,
     ]);
     expect(regions!.length, equals(1)); // Only one position was sent.
-    var regionTexts =
-        _getSelectionRangeText(lineInfo, code.code, regions.first).toList();
+    var regionTexts = _getSelectionRangeText(
+      lineInfo,
+      code.code,
+      regions.first,
+    ).toList();
 
     expect(
       regionTexts,

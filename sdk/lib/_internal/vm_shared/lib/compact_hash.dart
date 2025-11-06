@@ -115,7 +115,7 @@ abstract class _HashAbstractBase {
 
   abstract int _hashMask;
 
-  abstract List<Object?> _data;
+  abstract List _data;
 
   abstract int _usedData;
 
@@ -151,7 +151,7 @@ abstract class _HashFieldBase implements _HashAbstractImmutableBase {
   // Fixed-length list of keys (set) or key/value at even/odd indices (map).
   //
   // Can be either a mutable or immutable list.
-  List<Object?> _data = _uninitializedData;
+  List _data = _uninitializedData;
 
   // Length of _data that is used (i.e., keys + values for a map).
   int _usedData = 0;
@@ -186,10 +186,10 @@ abstract class _HashVMBase implements _HashAbstractBase {
   @pragma("vm:recognized", "other")
   @pragma("vm:exact-result-type", "dart:core#_List")
   @pragma("vm:prefer-inline")
-  external List<Object?> get _data;
+  external List get _data;
   @pragma("vm:recognized", "other")
   @pragma("vm:prefer-inline")
-  external void set _data(List<Object?> value);
+  external void set _data(List value);
 
   @pragma("vm:recognized", "other")
   @pragma("vm:exact-result-type", "dart:core#_Smi")
@@ -215,7 +215,7 @@ abstract class _HashVMImmutableBase extends _HashVMBase
   @pragma("vm:recognized", "other")
   @pragma("vm:exact-result-type", "dart:core#_ImmutableList")
   @pragma("vm:prefer-inline")
-  external List<Object?> get _data;
+  external List get _data;
 
   // The index is nullable rather than not nullable.
   @pragma("vm:recognized", "other")
@@ -282,16 +282,16 @@ mixin _HashBase on _HashAbstractBase {
   static int _nextProbe(int i, int sizeMask) => (i + 1) & sizeMask;
 
   // A self-loop is used to mark a deleted key or value.
-  static bool _isDeleted(List<Object?> data, Object? keyOrValue) =>
+  static bool _isDeleted(List data, Object? keyOrValue) =>
       identical(keyOrValue, data);
-  static void _setDeletedAt(List<Object?> data, int d) {
+  static void _setDeletedAt(List data, int d) {
     data[d] = data;
   }
 
   // Concurrent modification detection relies on this checksum monotonically
   // increasing between reallocations of _data.
   int get _checkSum => _usedData + _deletedKeys;
-  bool _isModifiedSince(List<Object?> oldData, int oldCheckSum) =>
+  bool _isModifiedSince(List oldData, int oldCheckSum) =>
       !identical(_data, oldData) || (_checkSum != oldCheckSum);
 
   int get length;
@@ -311,7 +311,7 @@ mixin _HashBase on _HashAbstractBase {
     assert(!identical(other._data, _uninitializedData));
     _index = Uint32List.fromList(other._index);
     _hashMask = other._hashMask;
-    _data = List<Object?>.of(other._data, growable: false);
+    _data = List.of(other._data, growable: false);
     _usedData = other._usedData;
     _deletedKeys = other._deletedKeys;
     return true;
@@ -337,6 +337,7 @@ mixin _IdenticalAndIdentityHashCode implements _EqualsAndHashCode {
 }
 
 mixin _OperatorEqualsAndCanonicalHashCode implements _EqualsAndHashCode {
+  @pragma('vm:shared')
   static final int cidSymbol = ClassID.getID(#a);
 
   int _hashCode(Object? e) {
@@ -371,7 +372,7 @@ external Uint32List get _uninitializedIndex;
 @pragma("vm:prefer-inline")
 @pragma("vm:recognized", "other")
 @pragma("vm:exact-result-type", "dart:core#_List")
-external List<Object?> get _uninitializedData;
+external List get _uninitializedData;
 
 // VM-internalized implementation of a default-constructed LinkedHashMap. Map
 // literals also create instances of this class.
@@ -546,7 +547,7 @@ mixin _LinkedHashMapMixin<K, V> on _HashBase, _EqualsAndHashCode {
   /// This function is unsafe: it does not perform any type checking on
   /// keys and values assuming that caller has ensured that types are
   /// correct.
-  void _populateUnsafe(List<Object?> keyValuePairs) {
+  void _populateUnsafe(List keyValuePairs) {
     assert(keyValuePairs.length.isEven);
     int size = _roundUpToPowerOfTwo(keyValuePairs.length);
     if (size < _HashBase._INITIAL_INDEX_SIZE) {
@@ -1338,5 +1339,5 @@ typedef DefaultMap<K, V> = _Map<K, V>;
 typedef DefaultSet<E> = _Set<E>;
 
 @pragma('vm:prefer-inline')
-Map<K, V> createMapFromKeyValueListUnsafe<K, V>(List<Object?> keyValuePairs) =>
+Map<K, V> createMapFromKeyValueListUnsafe<K, V>(List keyValuePairs) =>
     DefaultMap<K, V>().._populateUnsafe(keyValuePairs);

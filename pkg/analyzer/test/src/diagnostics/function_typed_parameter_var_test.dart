@@ -22,7 +22,7 @@ class A {
 }
 ''');
     parseResult.assertErrors([
-      error(ParserErrorCode.FUNCTION_TYPED_PARAMETER_VAR, 14, 3),
+      error(ParserErrorCode.functionTypedParameterVar, 14, 3),
     ]);
 
     var node = parseResult.findNode.superFormalParameter('super.a');

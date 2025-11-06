@@ -14,8 +14,11 @@ Location? getLocation(CompilerContext context, Uri uri, int charOffset) {
   return context.uriToSource[uri]?.getLocation(uri, charOffset);
 }
 
-String? getSourceLine(CompilerContext context, Location? location,
-    [Map<Uri, Source>? uriToSource]) {
+String? getSourceLine(
+  CompilerContext context,
+  Location? location, [
+  Map<Uri, Source>? uriToSource,
+]) {
   if (location == null) return null;
   uriToSource ??= context.uriToSource;
   return uriToSource[location.file]?.getTextLine(location.line);
@@ -33,11 +36,16 @@ abstract interface class ProblemReporting {
   ///
   /// See `Loader.addMessage` for an explanation of the
   /// arguments passed to this method.
-  void addProblem(Message message, int charOffset, int length, Uri? fileUri,
-      {bool wasHandled = false,
-      List<LocatedMessage>? context,
-      Severity? severity,
-      bool problemOnLibrary = false});
+  void addProblem(
+    Message message,
+    int charOffset,
+    int length,
+    Uri? fileUri, {
+    bool wasHandled = false,
+    List<LocatedMessage>? context,
+    CfeSeverity? severity,
+    bool problemOnLibrary = false,
+  });
 }
 
 /// [ProblemReporting] that registers the messages on a [Library] node.
@@ -56,23 +64,32 @@ class LibraryProblemReporting implements ProblemReporting {
   Library? _library;
 
   @override
-  void addProblem(Message message, int charOffset, int length, Uri? fileUri,
-      {bool wasHandled = false,
-      List<LocatedMessage>? context,
-      Severity? severity,
-      bool problemOnLibrary = false}) {
-    // Coverage-ignore(suite): Not run.
+  void addProblem(
+    Message message,
+    int charOffset,
+    int length,
+    Uri? fileUri, {
+    bool wasHandled = false,
+    List<LocatedMessage>? context,
+    CfeSeverity? severity,
+    bool problemOnLibrary = false,
+  }) {
     fileUri ??= _fileUri;
 
     FormattedMessage? formattedMessage = _loader.addProblem(
-        message, charOffset, length, fileUri,
-        wasHandled: wasHandled,
-        context: context,
-        severity: severity,
-        problemOnLibrary: true);
+      message,
+      charOffset,
+      length,
+      fileUri,
+      wasHandled: wasHandled,
+      context: context,
+      severity: severity,
+      problemOnLibrary: true,
+    );
     if (formattedMessage != null) {
-      (_problemsAsJson ??= (_library?.problemsAsJson ??= []) ?? [])
-          .add(formattedMessage.toJsonString());
+      (_problemsAsJson ??= (_library?.problemsAsJson ??= []) ?? []).add(
+        formattedMessage.toJsonString(),
+      );
     }
   }
 
@@ -87,4 +104,36 @@ class LibraryProblemReporting implements ProblemReporting {
 
   @override
   String toString() => '$runtimeType(fileUri=$_fileUri)';
+}
+
+abstract class ProblemReportingHelper {
+  /// Assert that a compile-time error was reported during [expectedPhase] of
+  /// compilation.
+  ///
+  /// The parameters [location] and [originalStackTrace] are supposed to help to
+  /// locate the place where the expectation was declared.
+  ///
+  /// To avoid spending resources on stack trace computations, it is recommended
+  /// to wrap the calls to [assertProblemReportedElsewhere] into `assert`s.
+  bool assertProblemReportedElsewhere(
+    String location, {
+    required CompilationPhaseForProblemReporting expectedPhase,
+  });
+}
+
+/// This enum is used to mark the expected compilation phase for a compile-time
+/// error to be reported.
+enum CompilationPhaseForProblemReporting {
+  /// The outline building phase.
+  ///
+  /// The outline building phase includes outline expressions, such as default
+  /// values of parameters, annotations, and initializers of top-level constant
+  /// fields.
+  outline,
+
+  /// The body building phase.
+  ///
+  /// The body building phase includes initializers of non-constant fields,
+  /// bodies of method, getters, setters, constructors, etc.
+  bodyBuilding,
 }

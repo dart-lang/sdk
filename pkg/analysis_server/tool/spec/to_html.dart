@@ -123,7 +123,8 @@ a:focus, a:hover {
 
   list-style-type: none;
 }
-'''.trim();
+'''
+        .trim();
 
 final GeneratedFile target = GeneratedFile('analysis_server/doc/api.html', (
   pkgRoot,

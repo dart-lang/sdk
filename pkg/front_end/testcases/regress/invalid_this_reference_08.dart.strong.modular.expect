@@ -14,13 +14,13 @@ library;
 import self as self;
 
 extension Foo on dynamic {
-  field foo = self::Foo|foo;
+  get foo = self::Foo|get#foo;
+  set foo = self::Foo|set#foo;
   method bar = self::Foo|bar;
   method tearoff bar = self::Foo|get#bar;
 }
-static field invalid-type Foo|foo = invalid-expression "pkg/front_end/testcases/regress/invalid_this_reference_08.dart:7:13: Error: Expected identifier, but got 'this'.
-  var foo = this();
-            ^^^^";
+static abstract extension-member method Foo|get#foo(lowered dynamic #this) → invalid-type;
+static abstract extension-member method Foo|set#foo(lowered dynamic #this, synthesized invalid-type #externalFieldValue) → void;
 static extension-member method Foo|bar(lowered final dynamic #this) → dynamic {
   return #this;
 }

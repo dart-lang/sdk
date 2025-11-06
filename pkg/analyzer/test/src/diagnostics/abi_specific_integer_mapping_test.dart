@@ -25,7 +25,7 @@ final class UintPtr extends AbiSpecificInteger {
   const UintPtr();
 }
 ''',
-      [error(FfiCode.ABI_SPECIFIC_INTEGER_MAPPING_EXTRA, 51, 25)],
+      [error(FfiCode.abiSpecificIntegerMappingExtra, 51, 25)],
     );
   }
 
@@ -44,13 +44,13 @@ final class UintPtr extends AbiSpecificInteger {
 ''',
       [
         error(
-          FfiCode.ABI_SPECIFIC_INTEGER_MAPPING_UNSUPPORTED,
+          FfiCode.abiSpecificIntegerMappingUnsupported,
           96,
           8,
           messageContains: ["Invalid mapping to 'IntPtr'"],
         ),
         error(
-          FfiCode.ABI_SPECIFIC_INTEGER_MAPPING_UNSUPPORTED,
+          FfiCode.abiSpecificIntegerMappingUnsupported,
           125,
           9,
           messageContains: ["Invalid mapping to 'UintPtr'"],
@@ -75,13 +75,13 @@ final class UintPtr extends AbiSpecificInteger {
 ''',
       [
         error(
-          FfiCode.ABI_SPECIFIC_INTEGER_MAPPING_UNSUPPORTED,
+          FfiCode.abiSpecificIntegerMappingUnsupported,
           149,
           1,
           messageContains: ["Invalid mapping to 'IntPtr'"],
         ),
         error(
-          FfiCode.ABI_SPECIFIC_INTEGER_MAPPING_UNSUPPORTED,
+          FfiCode.abiSpecificIntegerMappingUnsupported,
           149,
           1,
           messageContains: ["Invalid mapping to 'UintPtr'"],
@@ -98,7 +98,7 @@ final class UintPtr extends AbiSpecificInteger {
   const UintPtr();
 }
 ''',
-      [error(FfiCode.ABI_SPECIFIC_INTEGER_MAPPING_MISSING, 31, 7)],
+      [error(FfiCode.abiSpecificIntegerMappingMissing, 31, 7)],
     );
   }
 

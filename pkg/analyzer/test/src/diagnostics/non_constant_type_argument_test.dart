@@ -27,7 +27,7 @@ class C<R extends int Function(int)> {
   }
 }
 ''',
-      [error(FfiCode.NON_CONSTANT_TYPE_ARGUMENT, 147, 1)],
+      [error(FfiCode.nonConstantTypeArgument, 147, 1)],
     );
   }
 }
@@ -75,7 +75,7 @@ import 'dart:ffi';
 T genericRef<T extends Struct>(Pointer<T> p) =>
     p.ref;
 ''',
-      [error(FfiCode.NON_CONSTANT_TYPE_ARGUMENT, 72, 5)],
+      [error(FfiCode.nonConstantTypeArgument, 72, 5)],
     );
   }
 
@@ -120,7 +120,7 @@ import 'dart:ffi';
 T genericRefWithFinalizer<T extends Struct>(Pointer<T> p) =>
     p.refWithFinalizer(nullptr);
 ''',
-      [error(FfiCode.NON_CONSTANT_TYPE_ARGUMENT, 85, 27)],
+      [error(FfiCode.nonConstantTypeArgument, 85, 27)],
     );
   }
 }

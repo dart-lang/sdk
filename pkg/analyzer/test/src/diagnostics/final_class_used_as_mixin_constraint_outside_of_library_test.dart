@@ -35,8 +35,7 @@ base mixin B on A {}
 ''',
       [
         error(
-          CompileTimeErrorCode
-              .FINAL_CLASS_USED_AS_MIXIN_CONSTRAINT_OUTSIDE_OF_LIBRARY,
+          CompileTimeErrorCode.finalClassUsedAsMixinConstraintOutsideOfLibrary,
           33,
           1,
         ),
@@ -57,14 +56,12 @@ base mixin C on A, B {}
 ''',
       [
         error(
-          CompileTimeErrorCode
-              .FINAL_CLASS_USED_AS_MIXIN_CONSTRAINT_OUTSIDE_OF_LIBRARY,
+          CompileTimeErrorCode.finalClassUsedAsMixinConstraintOutsideOfLibrary,
           33,
           1,
         ),
         error(
-          CompileTimeErrorCode
-              .FINAL_CLASS_USED_AS_MIXIN_CONSTRAINT_OUTSIDE_OF_LIBRARY,
+          CompileTimeErrorCode.finalClassUsedAsMixinConstraintOutsideOfLibrary,
           36,
           1,
         ),
@@ -86,8 +83,7 @@ mixin B on A {}
 ''',
       [
         error(
-          CompileTimeErrorCode
-              .FINAL_CLASS_USED_AS_MIXIN_CONSTRAINT_OUTSIDE_OF_LIBRARY,
+          CompileTimeErrorCode.finalClassUsedAsMixinConstraintOutsideOfLibrary,
           28,
           1,
         ),
@@ -108,8 +104,7 @@ base mixin B on ATypedef {}
 ''',
       [
         error(
-          CompileTimeErrorCode
-              .FINAL_CLASS_USED_AS_MIXIN_CONSTRAINT_OUTSIDE_OF_LIBRARY,
+          CompileTimeErrorCode.finalClassUsedAsMixinConstraintOutsideOfLibrary,
           33,
           8,
         ),
@@ -130,8 +125,7 @@ base mixin B on ATypedef {}
 ''',
       [
         error(
-          CompileTimeErrorCode
-              .FINAL_CLASS_USED_AS_MIXIN_CONSTRAINT_OUTSIDE_OF_LIBRARY,
+          CompileTimeErrorCode.finalClassUsedAsMixinConstraintOutsideOfLibrary,
           55,
           8,
         ),

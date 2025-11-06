@@ -201,15 +201,20 @@ namespace dart {
   V(AllocateRecord_Wide,                   D, WIDE, lit, ___, ___)             \
   V(LoadRecordField,                       D, ORDN, num, ___, ___)             \
   V(LoadRecordField_Wide,                  D, WIDE, num, ___, ___)             \
+  V(FfiCall,                               D, ORDN, lit, ___, ___)             \
+  V(FfiCall_Wide,                          D, WIDE, lit, ___, ___)             \
 
   // These bytecodes are only generated within the VM. Reassigning their
   // opcodes is not a breaking change.
 #define INTERNAL_KERNEL_BYTECODES_WITH_CUSTOM_CODE(V) \
-  /* VMInternal_ImplicitConstructorClosure uses D_F encoding as it calls  */   \
-  /* constructor and should be compatible with other ***Call instructions */   \
+  /* ImplicitConstructorClosure and ImplicitInstanceClosure instructions  */   \
+  /* use D_F encoding as they may call target constructor or method and   */   \
+  /* should be compatible with other ***Call instructions                 */   \
   /* in order to support DecodeArgc when returning from a call.           */   \
   V(VMInternal_ImplicitConstructorClosure,      D_F, ORDN, num, num, ___)      \
   V(VMInternal_ImplicitConstructorClosure_Wide, D_F, ORDN, num, num, ___)      \
+  V(VMInternal_ImplicitInstanceClosure,         D_F, ORDN, num, num, ___)      \
+  V(VMInternal_ImplicitInstanceClosure_Wide,    D_F, ORDN, num, num, ___)      \
 
 #define INTERNAL_KERNEL_BYTECODES_WITH_DEFAULT_CODE(V)                         \
   V(VMInternal_ImplicitGetter,                    0, ORDN, ___, ___, ___)      \
@@ -221,8 +226,14 @@ namespace dart {
   V(VMInternal_InvokeField,                       0, ORDN, ___, ___, ___)      \
   V(VMInternal_ForwardDynamicInvocation,          0, ORDN, ___, ___, ___)      \
   V(VMInternal_ImplicitStaticClosure,             0, ORDN, ___, ___, ___)      \
-  V(VMInternal_ImplicitInstanceClosure,           0, ORDN, ___, ___, ___)      \
   V(VMInternal_NoSuchMethodDispatcher,            0, ORDN, ___, ___, ___)      \
+  /* One breakpoint opcode for each instruction size. */                       \
+  V(VMInternal_Breakpoint_0,                      0, ORDN, ___, ___, ___)      \
+  V(VMInternal_Breakpoint_A_B_C,              A_B_C, ORDN, num, num, num)      \
+  V(VMInternal_Breakpoint_D,                      D, ORDN, num, ___, ___)      \
+  V(VMInternal_Breakpoint_D_Wide,                 D, WIDE, num, ___, ___)      \
+  V(VMInternal_Breakpoint_A_E,                  A_E, ORDN, num, num, ___)      \
+  V(VMInternal_Breakpoint_A_E_Wide,             A_E, WIDE, num, num, ___)      \
 
 #define INTERNAL_KERNEL_BYTECODES_LIST(V)                                      \
   INTERNAL_KERNEL_BYTECODES_WITH_CUSTOM_CODE(V)                                \
@@ -248,6 +259,7 @@ class KernelBytecode {
 #define DECLARE_BYTECODE(name, encoding, kind, op1, op2, op3) k##name,
     KERNEL_BYTECODES_LIST(DECLARE_BYTECODE)
 #undef DECLARE_BYTECODE
+        kNumOpcodes,
   };
 
   static const char* NameOf(Opcode op) {
@@ -272,7 +284,12 @@ class KernelBytecode {
 
   // Should be used only on instructions with wide variants.
   DART_FORCE_INLINE static bool IsWide(const KBCInstr* instr) {
-    return ((DecodeOpcode(instr) & kWideModifier) != 0);
+    return IsWide(DecodeOpcode(instr));
+  }
+
+  // Should be used only on instructions with wide variants.
+  DART_FORCE_INLINE static constexpr bool IsWide(Opcode opcode) {
+    return ((opcode & kWideModifier) != 0);
   }
 
  public:
@@ -410,65 +427,20 @@ class KernelBytecode {
     return DecodeOpcode(instr) == KernelBytecode::kSetFrame;
   }
 
-  DART_FORCE_INLINE static bool IsDebugCheckOpcode(const KBCInstr* instr) {
-    return DecodeOpcode(instr) == KernelBytecode::kDebugCheck;
-  }
-
-  // The interpreter, the bytecode generator, the bytecode compiler, and this
-  // function must agree on this list of opcodes.
-  // For each instruction with listed opcode:
-  // - The interpreter checks for a debug break.
-  // - The bytecode generator emits a source position.
-  // - The bytecode compiler may emit a DebugStepCheck call.
-  DART_FORCE_INLINE static bool IsDebugCheckedOpcode(const KBCInstr* instr) {
+  DART_FORCE_INLINE static bool IsDirectCallOpcode(const KBCInstr* instr) {
     switch (DecodeOpcode(instr)) {
-      case KernelBytecode::kDebugCheck:
       case KernelBytecode::kDirectCall:
       case KernelBytecode::kDirectCall_Wide:
       case KernelBytecode::kUncheckedDirectCall:
       case KernelBytecode::kUncheckedDirectCall_Wide:
-      case KernelBytecode::kInterfaceCall:
-      case KernelBytecode::kInterfaceCall_Wide:
-      case KernelBytecode::kInstantiatedInterfaceCall:
-      case KernelBytecode::kInstantiatedInterfaceCall_Wide:
-      case KernelBytecode::kUncheckedClosureCall:
-      case KernelBytecode::kUncheckedClosureCall_Wide:
-      case KernelBytecode::kUncheckedInterfaceCall:
-      case KernelBytecode::kUncheckedInterfaceCall_Wide:
-      case KernelBytecode::kDynamicCall:
-      case KernelBytecode::kDynamicCall_Wide:
-      case KernelBytecode::kReturnTOS:
-      case KernelBytecode::kEqualsNull:
-      case KernelBytecode::kNegateInt:
-      case KernelBytecode::kNegateDouble:
-      case KernelBytecode::kAddInt:
-      case KernelBytecode::kSubInt:
-      case KernelBytecode::kMulInt:
-      case KernelBytecode::kTruncDivInt:
-      case KernelBytecode::kModInt:
-      case KernelBytecode::kBitAndInt:
-      case KernelBytecode::kBitOrInt:
-      case KernelBytecode::kBitXorInt:
-      case KernelBytecode::kShlInt:
-      case KernelBytecode::kShrInt:
-      case KernelBytecode::kCompareIntEq:
-      case KernelBytecode::kCompareIntGt:
-      case KernelBytecode::kCompareIntLt:
-      case KernelBytecode::kCompareIntGe:
-      case KernelBytecode::kCompareIntLe:
-      case KernelBytecode::kAddDouble:
-      case KernelBytecode::kSubDouble:
-      case KernelBytecode::kMulDouble:
-      case KernelBytecode::kDivDouble:
-      case KernelBytecode::kCompareDoubleEq:
-      case KernelBytecode::kCompareDoubleGt:
-      case KernelBytecode::kCompareDoubleLt:
-      case KernelBytecode::kCompareDoubleGe:
-      case KernelBytecode::kCompareDoubleLe:
         return true;
       default:
         return false;
     }
+  }
+
+  DART_FORCE_INLINE static bool IsReturnOpcode(const KBCInstr* instr) {
+    return DecodeOpcode(instr) == KernelBytecode::kReturnTOS;
   }
 
   DART_FORCE_INLINE static uint8_t DecodeArgc(const KBCInstr* ret_addr) {
@@ -492,7 +464,42 @@ class KernelBytecode {
                                                 const KBCInstr** instructions,
                                                 intptr_t* instructions_size);
 
+  static Opcode BreakpointOpcode(Opcode opcode) {
+    Opcode replacement;
+    switch (kInstructionSize[opcode]) {
+      case 1:
+        replacement = kVMInternal_Breakpoint_0;
+        break;
+      case 2:
+        replacement = kVMInternal_Breakpoint_D;
+        break;
+      case 3:
+        replacement = kVMInternal_Breakpoint_A_E;
+        break;
+      case 4:
+        replacement = kVMInternal_Breakpoint_A_B_C;
+        break;
+      case 5:
+        replacement = kVMInternal_Breakpoint_D_Wide;
+        break;
+      case 6:
+        replacement = kVMInternal_Breakpoint_A_E_Wide;
+        break;
+      default:
+        UNREACHABLE();
+        return kTrap;
+    }
+    ASSERT_EQUAL(kInstructionSize[replacement], kInstructionSize[opcode]);
+    return replacement;
+  }
+
+  static Opcode BreakpointOpcode(const KBCInstr* instr) {
+    return BreakpointOpcode(DecodeOpcode(instr));
+  }
+
  private:
+  friend class Interpreter;  // for IsWide(Opcode) in static_asserts.
+
   DISALLOW_ALLOCATION();
   DISALLOW_IMPLICIT_CONSTRUCTORS(KernelBytecode);
 };

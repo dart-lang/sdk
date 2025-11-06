@@ -27,6 +27,7 @@ class ImportElementsComputerTest extends AbstractContextTest {
   late SourceFileEdit? sourceFileEdit;
 
   void assertChanges(String expectedContent) {
+    expectedContent = normalizeSource(expectedContent);
     var resultCode = SourceEdit.applySequence(
       originalContent,
       sourceFileEdit!.edits,
@@ -51,6 +52,7 @@ class ImportElementsComputerTest extends AbstractContextTest {
   }
 
   Future<void> createBuilder(String content) async {
+    content = normalizeSource(content);
     originalContent = content;
     var file = newFile(path, content);
     var result = await getResolvedUnit(file);
@@ -59,7 +61,6 @@ class ImportElementsComputerTest extends AbstractContextTest {
 
   @override
   void setUp() {
-    useLineEndingsForPlatform = false;
     super.setUp();
     path = convertPath('$testPackageLibPath/test.dart');
   }
@@ -110,9 +111,8 @@ void f() {
     var fooFile = newFile('$workspaceRootPath/pkg/lib/foo.dart', '');
 
     writeTestPackageConfig(
-      config:
-          PackageConfigFileBuilder()
-            ..add(name: 'pkg', rootPath: '$workspaceRootPath/pkg'),
+      config: PackageConfigFileBuilder()
+        ..add(name: 'pkg', rootPath: '$workspaceRootPath/pkg'),
     );
 
     await createBuilder('''
@@ -131,9 +131,8 @@ import 'package:pkg/foo.dart';
     var fooFile = newFile('$workspaceRootPath/pkg/lib/foo.dart', '');
 
     writeTestPackageConfig(
-      config:
-          PackageConfigFileBuilder()
-            ..add(name: 'pkg', rootPath: '$workspaceRootPath/pkg'),
+      config: PackageConfigFileBuilder()
+        ..add(name: 'pkg', rootPath: '$workspaceRootPath/pkg'),
     );
 
     await createBuilder('''
@@ -152,9 +151,8 @@ import 'package:pkg/foo.dart' as foo;
     var fooFile = newFile('$workspaceRootPath/pkg/lib/foo.dart', '');
 
     writeTestPackageConfig(
-      config:
-          PackageConfigFileBuilder()
-            ..add(name: 'pkg', rootPath: '$workspaceRootPath/pkg'),
+      config: PackageConfigFileBuilder()
+        ..add(name: 'pkg', rootPath: '$workspaceRootPath/pkg'),
     );
 
     await createBuilder('''
@@ -174,9 +172,8 @@ import 'package:pkg/foo.dart' as foo;
     var fooFile = newFile('$workspaceRootPath/pkg/lib/foo.dart', '');
 
     writeTestPackageConfig(
-      config:
-          PackageConfigFileBuilder()
-            ..add(name: 'pkg', rootPath: '$workspaceRootPath/pkg'),
+      config: PackageConfigFileBuilder()
+        ..add(name: 'pkg', rootPath: '$workspaceRootPath/pkg'),
     );
 
     await createBuilder('''
@@ -194,9 +191,8 @@ import 'package:pkg/foo.dart' show A, B, C hide D;
     var fooFile = newFile('$workspaceRootPath/pkg/lib/foo.dart', '');
 
     writeTestPackageConfig(
-      config:
-          PackageConfigFileBuilder()
-            ..add(name: 'pkg', rootPath: '$workspaceRootPath/pkg'),
+      config: PackageConfigFileBuilder()
+        ..add(name: 'pkg', rootPath: '$workspaceRootPath/pkg'),
     );
 
     await createBuilder('''
@@ -214,9 +210,8 @@ import 'package:pkg/foo.dart' show B, A;
     var fooFile = newFile('$workspaceRootPath/pkg/lib/foo.dart', '');
 
     writeTestPackageConfig(
-      config:
-          PackageConfigFileBuilder()
-            ..add(name: 'pkg', rootPath: '$workspaceRootPath/pkg'),
+      config: PackageConfigFileBuilder()
+        ..add(name: 'pkg', rootPath: '$workspaceRootPath/pkg'),
     );
 
     await createBuilder('''
@@ -236,9 +231,8 @@ import 'package:pkg/foo.dart' as foo show B, A;
     var fooFile = newFile('$workspaceRootPath/pkg/lib/foo.dart', '');
 
     writeTestPackageConfig(
-      config:
-          PackageConfigFileBuilder()
-            ..add(name: 'pkg', rootPath: '$workspaceRootPath/pkg'),
+      config: PackageConfigFileBuilder()
+        ..add(name: 'pkg', rootPath: '$workspaceRootPath/pkg'),
     );
 
     await createBuilder('''
@@ -254,9 +248,8 @@ import 'package:pkg/foo.dart';
     var fooFile = newFile('$workspaceRootPath/pkg/lib/foo.dart', '');
 
     writeTestPackageConfig(
-      config:
-          PackageConfigFileBuilder()
-            ..add(name: 'pkg', rootPath: '$workspaceRootPath/pkg'),
+      config: PackageConfigFileBuilder()
+        ..add(name: 'pkg', rootPath: '$workspaceRootPath/pkg'),
     );
 
     await createBuilder('''
@@ -272,9 +265,8 @@ import 'package:pkg/foo.dart' as foo;
     var fooFile = newFile('$workspaceRootPath/pkg/lib/foo.dart', '');
 
     writeTestPackageConfig(
-      config:
-          PackageConfigFileBuilder()
-            ..add(name: 'pkg', rootPath: '$workspaceRootPath/pkg'),
+      config: PackageConfigFileBuilder()
+        ..add(name: 'pkg', rootPath: '$workspaceRootPath/pkg'),
     );
 
     await createBuilder('''
@@ -302,9 +294,8 @@ class A {
     var fooFile = newFile('$workspaceRootPath/pkg/lib/foo.dart', '');
 
     writeTestPackageConfig(
-      config:
-          PackageConfigFileBuilder()
-            ..add(name: 'pkg', rootPath: '$workspaceRootPath/pkg'),
+      config: PackageConfigFileBuilder()
+        ..add(name: 'pkg', rootPath: '$workspaceRootPath/pkg'),
     );
 
     await createBuilder('''
@@ -329,9 +320,8 @@ import 'package:pkg/foo.dart';
     var fooFile = newFile('$workspaceRootPath/pkg/lib/foo.dart', '');
 
     writeTestPackageConfig(
-      config:
-          PackageConfigFileBuilder()
-            ..add(name: 'pkg', rootPath: '$workspaceRootPath/pkg'),
+      config: PackageConfigFileBuilder()
+        ..add(name: 'pkg', rootPath: '$workspaceRootPath/pkg'),
     );
 
     await createBuilder('''
@@ -349,9 +339,8 @@ import 'package:pkg/foo.dart' hide B, C;
     var fooFile = newFile('$workspaceRootPath/pkg/lib/foo.dart', '');
 
     writeTestPackageConfig(
-      config:
-          PackageConfigFileBuilder()
-            ..add(name: 'pkg', rootPath: '$workspaceRootPath/pkg'),
+      config: PackageConfigFileBuilder()
+        ..add(name: 'pkg', rootPath: '$workspaceRootPath/pkg'),
     );
 
     await createBuilder('''
@@ -369,9 +358,8 @@ import 'package:pkg/foo.dart' hide A, B;
     var fooFile = newFile('$workspaceRootPath/pkg/lib/foo.dart', '');
 
     writeTestPackageConfig(
-      config:
-          PackageConfigFileBuilder()
-            ..add(name: 'pkg', rootPath: '$workspaceRootPath/pkg'),
+      config: PackageConfigFileBuilder()
+        ..add(name: 'pkg', rootPath: '$workspaceRootPath/pkg'),
     );
 
     await createBuilder('''
@@ -389,9 +377,8 @@ import 'package:pkg/foo.dart' hide A, C;
     var fooFile = newFile('$workspaceRootPath/pkg/lib/foo.dart', '');
 
     writeTestPackageConfig(
-      config:
-          PackageConfigFileBuilder()
-            ..add(name: 'pkg', rootPath: '$workspaceRootPath/pkg'),
+      config: PackageConfigFileBuilder()
+        ..add(name: 'pkg', rootPath: '$workspaceRootPath/pkg'),
     );
 
     await createBuilder('''
@@ -409,9 +396,8 @@ import 'package:pkg/foo.dart' hide A, C hide A, C;
     var fooFile = newFile('$workspaceRootPath/pkg/lib/foo.dart', '');
 
     writeTestPackageConfig(
-      config:
-          PackageConfigFileBuilder()
-            ..add(name: 'pkg', rootPath: '$workspaceRootPath/pkg'),
+      config: PackageConfigFileBuilder()
+        ..add(name: 'pkg', rootPath: '$workspaceRootPath/pkg'),
     );
 
     await createBuilder('''
@@ -429,9 +415,8 @@ import 'package:pkg/foo.dart' hide B, C hide D, F hide G, H;
     var fooFile = newFile('$workspaceRootPath/pkg/lib/foo.dart', '');
 
     writeTestPackageConfig(
-      config:
-          PackageConfigFileBuilder()
-            ..add(name: 'pkg', rootPath: '$workspaceRootPath/pkg'),
+      config: PackageConfigFileBuilder()
+        ..add(name: 'pkg', rootPath: '$workspaceRootPath/pkg'),
     );
 
     await createBuilder('''
@@ -449,9 +434,8 @@ import 'package:pkg/foo.dart' hide B hide C;
     var fooFile = newFile('$workspaceRootPath/pkg/lib/foo.dart', '');
 
     writeTestPackageConfig(
-      config:
-          PackageConfigFileBuilder()
-            ..add(name: 'pkg', rootPath: '$workspaceRootPath/pkg'),
+      config: PackageConfigFileBuilder()
+        ..add(name: 'pkg', rootPath: '$workspaceRootPath/pkg'),
     );
 
     await createBuilder('''
@@ -469,9 +453,8 @@ import 'package:pkg/foo.dart' hide A hide B;
     var fooFile = newFile('$workspaceRootPath/pkg/lib/foo.dart', '');
 
     writeTestPackageConfig(
-      config:
-          PackageConfigFileBuilder()
-            ..add(name: 'pkg', rootPath: '$workspaceRootPath/pkg'),
+      config: PackageConfigFileBuilder()
+        ..add(name: 'pkg', rootPath: '$workspaceRootPath/pkg'),
     );
 
     await createBuilder('''
@@ -489,9 +472,8 @@ import 'package:pkg/foo.dart' hide A hide C;
     var fooFile = newFile('$workspaceRootPath/pkg/lib/foo.dart', '');
 
     writeTestPackageConfig(
-      config:
-          PackageConfigFileBuilder()
-            ..add(name: 'pkg', rootPath: '$workspaceRootPath/pkg'),
+      config: PackageConfigFileBuilder()
+        ..add(name: 'pkg', rootPath: '$workspaceRootPath/pkg'),
     );
 
     await createBuilder('''
@@ -509,9 +491,8 @@ import 'package:pkg/foo.dart';
     var fooFile = newFile('$workspaceRootPath/pkg/lib/foo.dart', '');
 
     writeTestPackageConfig(
-      config:
-          PackageConfigFileBuilder()
-            ..add(name: 'pkg', rootPath: '$workspaceRootPath/pkg'),
+      config: PackageConfigFileBuilder()
+        ..add(name: 'pkg', rootPath: '$workspaceRootPath/pkg'),
     );
 
     await createBuilder('''

@@ -22,7 +22,7 @@ enum E {
   v.named()
 }
 ''',
-      [error(CompileTimeErrorCode.UNDEFINED_ENUM_CONSTRUCTOR_NAMED, 13, 5)],
+      [error(CompileTimeErrorCode.undefinedEnumConstructorNamed, 13, 5)],
     );
   }
 }

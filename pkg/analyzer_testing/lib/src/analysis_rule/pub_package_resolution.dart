@@ -13,27 +13,78 @@ import 'package:analyzer/src/dart/analysis/byte_store.dart'; // ignore: implemen
 import 'package:analyzer/src/dart/analysis/driver_based_analysis_context.dart'; // ignore: implementation_imports
 import 'package:analyzer/src/dart/analysis/experiments.dart'; // ignore: implementation_imports
 import 'package:analyzer/src/error/codes.dart'; // ignore: implementation_imports
-import 'package:analyzer/src/lint/util.dart'; // ignore: implementation_imports
 import 'package:analyzer/src/test_utilities/mock_sdk.dart'; // ignore: implementation_imports
 import 'package:analyzer/utilities/package_config_file_builder.dart';
 import 'package:analyzer_testing/experiments/experiments.dart';
 import 'package:analyzer_testing/mock_packages/mock_packages.dart';
 import 'package:analyzer_testing/resource_provider_mixin.dart';
+import 'package:analyzer_testing/src/spelunker.dart';
 import 'package:analyzer_testing/utilities/utilities.dart';
 import 'package:meta/meta.dart';
 import 'package:test/test.dart';
 
 typedef DiagnosticMatcher = bool Function(Diagnostic diagnostic);
 
+/// A description of a message that is expected to be reported with an error.
+class ExpectedContextMessage {
+  /// The path of the file with which the message is associated.
+  final File file;
+
+  /// The offset of the beginning of the error's region.
+  final int offset;
+
+  /// The offset of the beginning of the error's region.
+  final int length;
+
+  /// The message text for the error.
+  final String? text;
+
+  /// A list of patterns that should be contained in the message test; empty if
+  /// the message contents should not be checked.
+  final List<Pattern> textContains;
+
+  ExpectedContextMessage(
+    this.file,
+    this.offset,
+    this.length, {
+    this.text,
+    this.textContains = const [],
+  });
+
+  /// Return `true` if the [message] matches this description of what it's
+  /// expected to be.
+  bool matches(DiagnosticMessage message) {
+    if (message.filePath != file.path) {
+      return false;
+    }
+    if (message.offset != offset) {
+      return false;
+    }
+    if (message.length != length) {
+      return false;
+    }
+    var messageText = message.messageText(includeUrl: true);
+    if (text != null && messageText != text) {
+      return false;
+    }
+    for (var pattern in textContains) {
+      if (!messageText.contains(pattern)) {
+        return false;
+      }
+    }
+    return true;
+  }
+}
+
 /// A description of a diagnostic that is expected to be reported.
 class ExpectedDiagnostic {
-  final DiagnosticMatcher _diagnosticMatcher;
+  final DiagnosticMatcher diagnosticMatcher;
 
   /// The offset of the beginning of the diagnostic's region.
-  final int _offset;
+  final int offset;
 
   /// The length of the diagnostic's region.
-  final int _length;
+  final int length;
 
   /// A pattern that should be contained in the diagnostic message or `null` if
   /// the message contents should not be checked.
@@ -43,20 +94,26 @@ class ExpectedDiagnostic {
   /// `null` if the correction message contents should not be checked.
   final Pattern? _correctionContains;
 
+  /// The list of context messages that are expected to be associated with the
+  /// error, or `null` if the context messages should not be checked.
+  final List<ExpectedContextMessage>? _contextMessages;
+
   ExpectedDiagnostic(
-    this._diagnosticMatcher,
-    this._offset,
-    this._length, {
+    this.diagnosticMatcher,
+    this.offset,
+    this.length, {
     Pattern? messageContains,
     Pattern? correctionContains,
-  }) : _messageContains = messageContains,
+    List<ExpectedContextMessage>? contextMessages,
+  }) : _contextMessages = contextMessages,
+       _messageContains = messageContains,
        _correctionContains = correctionContains;
 
   /// Whether the [diagnostic] matches this description of what it's expected to be.
   bool matches(Diagnostic diagnostic) {
-    if (!_diagnosticMatcher(diagnostic)) return false;
-    if (diagnostic.offset != _offset) return false;
-    if (diagnostic.length != _length) return false;
+    if (!diagnosticMatcher(diagnostic)) return false;
+    if (diagnostic.offset != offset) return false;
+    if (diagnostic.length != length) return false;
     if (_messageContains != null &&
         !diagnostic.message.contains(_messageContains)) {
       return false;
@@ -68,6 +125,17 @@ class ExpectedDiagnostic {
         return false;
       }
     }
+    if (_contextMessages != null) {
+      var actualContextMessages = diagnostic.contextMessages.toList();
+      if (actualContextMessages.length != _contextMessages.length) {
+        return false;
+      }
+      for (int i = 0; i < _contextMessages.length; i++) {
+        if (!_contextMessages[i].matches(actualContextMessages[i])) {
+          return false;
+        }
+      }
+    }
 
     return true;
   }
@@ -77,13 +145,18 @@ class ExpectedDiagnostic {
 final class ExpectedError extends ExpectedDiagnostic {
   final DiagnosticCode _code;
 
-  ExpectedError(this._code, int offset, int length, {Pattern? messageContains})
-    : super(
-        (error) => error.diagnosticCode == _code,
-        offset,
-        length,
-        messageContains: messageContains,
-      );
+  ExpectedError(
+    this._code,
+    int offset,
+    int length, {
+    super.messageContains,
+    super.correctionContains,
+    super.contextMessages,
+  }) : super(
+         (diagnostic) => diagnostic.diagnosticCode == _code,
+         offset,
+         length,
+       );
 }
 
 /// A description of an expected lint rule violation.
@@ -96,7 +169,12 @@ final class ExpectedLint extends ExpectedDiagnostic {
     int length, {
     super.messageContains,
     super.correctionContains,
-  }) : super((error) => error.diagnosticCode.name == _lintName, offset, length);
+    super.contextMessages,
+  }) : super(
+         (diagnostic) => diagnostic.diagnosticCode.name == _lintName,
+         offset,
+         length,
+       );
 }
 
 class PubPackageResolutionTest with MockPackagesMixin, ResourceProviderMixin {
@@ -110,6 +188,9 @@ class PubPackageResolutionTest with MockPackagesMixin, ResourceProviderMixin {
   final MemoryByteStore _byteStore = _sharedByteStore;
 
   AnalysisContextCollectionImpl? _analysisContextCollection;
+
+  /// The test file being analyzed.
+  late File testFile = newFile(_testFilePath, '');
 
   /// The analysis result that is used in various `assertDiagnostics` methods.
   late ResolvedUnitResult result;
@@ -153,9 +234,9 @@ class PubPackageResolutionTest with MockPackagesMixin, ResourceProviderMixin {
 
   /// Error codes that by default should be ignored in test expectations.
   List<DiagnosticCode> get ignoredDiagnosticCodes => [
-    WarningCode.UNUSED_ELEMENT,
-    WarningCode.UNUSED_FIELD,
-    WarningCode.UNUSED_LOCAL_VARIABLE,
+    WarningCode.unusedElement,
+    WarningCode.unusedField,
+    WarningCode.unusedLocalVariable,
   ];
 
   /// The path to the root of the external packages.
@@ -182,12 +263,9 @@ class PubPackageResolutionTest with MockPackagesMixin, ResourceProviderMixin {
   List<String> get _collectionIncludedPaths => [workspaceRootPath];
 
   /// The diagnostics that were computed during analysis.
-  List<Diagnostic> get _diagnostics =>
-      result.diagnostics
-          .where(
-            (e) => !ignoredDiagnosticCodes.any((c) => e.diagnosticCode == c),
-          )
-          .toList();
+  List<Diagnostic> get _diagnostics => result.diagnostics
+      .where((e) => !ignoredDiagnosticCodes.any((c) => e.diagnosticCode == c))
+      .toList();
 
   Folder get _sdkRoot => newFolder('/sdk');
 
@@ -198,6 +276,9 @@ class PubPackageResolutionTest with MockPackagesMixin, ResourceProviderMixin {
   /// descriptions and locations.
   ///
   /// The order in which the diagnostics were gathered is ignored.
+  ///
+  /// Note: Be sure to `await` any use of this API, to avoid stale analysis
+  /// results (See [DisposedAnalysisContextResult]).
   Future<void> assertDiagnostics(
     String content,
     List<ExpectedDiagnostic> expectedDiagnostics,
@@ -208,13 +289,14 @@ class PubPackageResolutionTest with MockPackagesMixin, ResourceProviderMixin {
   }
 
   /// Asserts that the diagnostics in [diagnostics] match [expectedDiagnostics].
+  ///
+  /// Note: Be sure to `await` any use of this API, to avoid stale analysis
+  /// results (See [DisposedAnalysisContextResult]).
   void assertDiagnosticsIn(
     List<Diagnostic> diagnostics,
     List<ExpectedDiagnostic> expectedDiagnostics,
   ) {
-    //
     // Match actual diagnostics to expected diagnostics.
-    //
     var unmatchedActual = diagnostics.toList();
     var unmatchedExpected = expectedDiagnostics.toList();
     var actualIndex = 0;
@@ -236,99 +318,33 @@ class PubPackageResolutionTest with MockPackagesMixin, ResourceProviderMixin {
         actualIndex++;
       }
     }
-    //
-    // Write the results.
-    //
+
+    // Print the results to the terminal.
     var buffer = StringBuffer();
     if (unmatchedExpected.isNotEmpty) {
-      buffer.writeln('Expected but did not find:');
-      for (var expected in unmatchedExpected) {
-        buffer.write('  ');
-        if (expected is ExpectedError) {
-          buffer.write(expected._code);
-        }
-        if (expected is ExpectedLint) {
-          buffer.write(expected._lintName);
-        }
-        buffer.write(' [');
-        buffer.write(expected._offset);
-        buffer.write(', ');
-        buffer.write(expected._length);
-        if (expected._messageContains != null) {
-          buffer.write(', messageContains: ');
-          buffer.write(json.encode(expected._messageContains.toString()));
-        }
-        if (expected._correctionContains != null) {
-          buffer.write(', correctionContains: ');
-          buffer.write(json.encode(expected._correctionContains.toString()));
-        }
-        buffer.writeln(']');
-      }
+      buffer.write(missingExpectedMessage(unmatchedExpected));
     }
     if (unmatchedActual.isNotEmpty) {
-      if (buffer.isNotEmpty) {
-        buffer.writeln();
-      }
-      buffer.writeln('Found but did not expect:');
-      for (var actual in unmatchedActual) {
-        buffer.write('  ');
-        buffer.write(actual.diagnosticCode);
-        buffer.write(' [');
-        buffer.write(actual.offset);
-        buffer.write(', ');
-        buffer.write(actual.length);
-        buffer.write(', ');
-        buffer.write(actual.message);
-        if (actual.correctionMessage != null) {
-          buffer.write(', ');
-          buffer.write(json.encode(actual.correctionMessage));
-        }
-        buffer.writeln(']');
-      }
+      buffer.write(unexpectedMessage(unmatchedActual));
     }
-    if (buffer.isNotEmpty) {
-      diagnostics.sort(
-        (first, second) => first.offset.compareTo(second.offset),
-      );
-      buffer.writeln();
-      buffer.writeln('To accept the current state, expect:');
-      for (var actual in diagnostics) {
-        late String diagnosticKind;
-        Object? description;
-        if (actual.diagnosticCode is LintCode) {
-          diagnosticKind = 'lint';
-        } else {
-          diagnosticKind = 'error';
-          description = actual.diagnosticCode;
-        }
-        buffer.write('  $diagnosticKind(');
-        if (description != null) {
-          buffer.write(description);
-          buffer.write(', ');
-        }
-        buffer.write(actual.offset);
-        buffer.write(', ');
-        buffer.write(actual.length);
-        buffer.writeln('),');
-      }
+    if (unmatchedExpected.isNotEmpty || unmatchedActual.isNotEmpty) {
+      buffer.write(correctionMessage(diagnostics));
 
       if (dumpAstOnFailures) {
         buffer.writeln();
         buffer.writeln();
-        try {
-          var astSink = StringBuffer();
 
+        try {
           Spelunker(
             result.unit.toSource(),
-            sink: astSink,
+            sink: buffer,
             featureSet: result.unit.featureSet,
           ).spelunk();
-          buffer.write(astSink);
-          buffer.writeln();
-          // I hereby choose to catch this type.
         } on ArgumentError catch (_) {
           // Perhaps we encountered a parsing error while spelunking.
         }
+
+        buffer.writeln();
       }
 
       fail(buffer.toString());
@@ -340,6 +356,9 @@ class PubPackageResolutionTest with MockPackagesMixin, ResourceProviderMixin {
   /// expected error descriptions and locations.
   ///
   /// The order in which the diagnostics were gathered is ignored.
+  ///
+  /// Note: Be sure to `await` any use of this API, to avoid stale analysis
+  /// results (See [DisposedAnalysisContextResult]).
   Future<void> assertDiagnosticsInFile(
     String path,
     List<ExpectedDiagnostic> expectedDiagnostics,
@@ -353,6 +372,9 @@ class PubPackageResolutionTest with MockPackagesMixin, ResourceProviderMixin {
   ///
   /// The unit at each path needs to have already been written to the file
   /// system before calling this method.
+  ///
+  /// Note: Be sure to `await` any use of this API, to avoid stale analysis
+  /// results (See [DisposedAnalysisContextResult]).
   Future<void> assertDiagnosticsInUnits(
     List<(String path, List<ExpectedDiagnostic> expectedDiagnostics)>
     unitsAndDiagnostics,
@@ -364,12 +386,77 @@ class PubPackageResolutionTest with MockPackagesMixin, ResourceProviderMixin {
   }
 
   /// Asserts that there are no diagnostics in the given [content].
+  ///
+  /// Note: Be sure to `await` any use of this API, to avoid stale analysis
+  /// results (See [DisposedAnalysisContextResult]).
   Future<void> assertNoDiagnostics(String content) async =>
       assertDiagnostics(content, const []);
 
   /// Asserts that there are no diagnostics in the file at the given [path].
+  ///
+  /// Note: Be sure to `await` any use of this API, to avoid stale analysis
+  /// results (See [DisposedAnalysisContextResult]).
   Future<void> assertNoDiagnosticsInFile(String path) async =>
       assertDiagnosticsInFile(path, const []);
+
+  /// Text to display upon failure, which indicates possible corrections.
+  @visibleForOverriding
+  String correctionMessage(List<Diagnostic> diagnostics) {
+    var buffer = StringBuffer();
+    diagnostics.sort((first, second) => first.offset.compareTo(second.offset));
+    buffer.writeln();
+    buffer.writeln('To accept the current state, expect:');
+    for (var actual in diagnostics) {
+      if (actual.diagnosticCode is LintCode) {
+        buffer.write('  lint(');
+      } else {
+        buffer.write('  error(${actual.diagnosticCode}, ');
+      }
+      buffer.write('${actual.offset}, ${actual.length},');
+      if (actual.contextMessages.isNotEmpty) {
+        buffer.write(' contextMessages: [');
+        for (var contextMessage in actual.contextMessages) {
+          buffer.write('contextMessage(');
+          buffer.write("newFile('${contextMessage.filePath}'), ");
+          buffer.write('${contextMessage.offset}, ${contextMessage.length},');
+          buffer.write('), ');
+        }
+        buffer.write('],');
+      }
+      buffer.write('),');
+    }
+
+    return buffer.toString();
+  }
+
+  /// Text to display upon failure, indicating that [unmatchedExpected]
+  /// diagnostics were expected, but not found.
+  @visibleForOverriding
+  String missingExpectedMessage(List<ExpectedDiagnostic> unmatchedExpected) {
+    var buffer = StringBuffer();
+    buffer.writeln('Expected but did not find:');
+    for (var expected in unmatchedExpected) {
+      buffer.write('  ');
+      if (expected is ExpectedError) {
+        buffer.write(expected._code);
+      }
+      if (expected is ExpectedLint) {
+        buffer.write(expected._lintName);
+      }
+      buffer.write(' [${expected.offset}, ');
+      buffer.write(expected.length);
+      if (expected._messageContains case Pattern messageContains) {
+        buffer.write(', messageContains: ');
+        buffer.write(json.encode(messageContains.toString()));
+      }
+      if (expected._correctionContains case Pattern correctionContains) {
+        buffer.write(', correctionContains: ');
+        buffer.write(json.encode(correctionContains.toString()));
+      }
+      buffer.writeln(']');
+    }
+    return buffer.toString();
+  }
 
   @override
   File newFile(String path, String content) {
@@ -412,6 +499,27 @@ class PubPackageResolutionTest with MockPackagesMixin, ResourceProviderMixin {
   Future<void> tearDown() async {
     await _analysisContextCollection?.dispose();
     _analysisContextCollection = null;
+  }
+
+  /// Text to display upon failure, indicating that [unmatchedActual]
+  /// diagnostics were found, but unexpected.
+  @visibleForOverriding
+  String unexpectedMessage(List<Diagnostic> unmatchedActual) {
+    var buffer = StringBuffer();
+    if (buffer.isNotEmpty) {
+      buffer.writeln();
+    }
+    buffer.writeln('Found but did not expect:');
+    for (var actual in unmatchedActual) {
+      buffer.write('  ${actual.diagnosticCode} [');
+      buffer.write('${actual.offset}, ${actual.length}, ${actual.message}');
+      if (actual.correctionMessage case Pattern correctionMessage) {
+        buffer.write(', ');
+        buffer.write(json.encode(correctionMessage));
+      }
+      buffer.writeln(']');
+    }
+    return buffer.toString();
   }
 
   void writePackageConfig(String path, PackageConfigFileBuilder config) {
@@ -468,7 +576,7 @@ class PubPackageResolutionTest with MockPackagesMixin, ResourceProviderMixin {
   }
 
   void _addTestFile(String content) {
-    newFile(_testFilePath, content);
+    testFile.writeAsStringSync(content);
   }
 
   DriverBasedAnalysisContext _contextFor(String path) {

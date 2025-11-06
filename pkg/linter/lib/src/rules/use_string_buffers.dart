@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/analysis_rule/rule_context.dart';
+import 'package:analyzer/analysis_rule/rule_visitor_registry.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
@@ -28,10 +29,13 @@ class UseStringBuffers extends LintRule {
     : super(name: LintNames.use_string_buffers, description: _desc);
 
   @override
-  DiagnosticCode get diagnosticCode => LinterLintCode.use_string_buffers;
+  DiagnosticCode get diagnosticCode => LinterLintCode.useStringBuffers;
 
   @override
-  void registerNodeProcessors(NodeLintRegistry registry, RuleContext context) {
+  void registerNodeProcessors(
+    RuleVisitorRegistry registry,
+    RuleContext context,
+  ) {
     var visitor = _Visitor(this);
     registry.addDoStatement(this, visitor);
     registry.addForStatement(this, visitor);
@@ -125,7 +129,7 @@ class _UseStringBufferVisitor extends SimpleAstVisitor<void> {
   @override
   void visitVariableDeclarationStatement(VariableDeclarationStatement node) {
     for (var variable in node.variables.variables) {
-      localElements.add(variable.declaredElement);
+      localElements.add(variable.declaredFragment?.element);
     }
   }
 }

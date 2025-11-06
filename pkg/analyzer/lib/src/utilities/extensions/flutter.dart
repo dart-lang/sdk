@@ -201,7 +201,7 @@ extension DartTypeExtension on DartType? {
     return [self, ...self.element.allSupertypes].any(
       (t) =>
           t.element.name == 'Diagnosticable' &&
-          t.element.library.firstFragment.source.uri == _uriDiagnostics,
+          t.element.library.uri == _uriDiagnostics,
     );
   }
 
@@ -330,12 +330,12 @@ extension ElementAnnotationExtension on ElementAnnotation {
   /// Whether the annotation marks the associated member as being a widget
   /// preview.
   bool get isWidgetPreview {
-    var element2 = this.element2;
-    if (element2 is! ConstructorElement) {
+    var element = this.element;
+    if (element is! ConstructorElement) {
       return false;
     }
-    return element2.enclosingElement.name == 'Preview' &&
-        element2.library.uri == _flutterWidgetPreviewLibraryUri;
+    return element.enclosingElement.name == 'Preview' &&
+        element.library.uri == _flutterWidgetPreviewLibraryUri;
   }
 }
 
@@ -502,7 +502,7 @@ extension InterfaceElementExtension2 on InterfaceElement? {
     }
     for (var type in self.allSupertypes) {
       if (type.element.name == requiredName) {
-        var uri = type.element.library.firstFragment.source.uri;
+        var uri = type.element.library.uri;
         if (uri == requiredUri) {
           return true;
         }
@@ -514,9 +514,7 @@ extension InterfaceElementExtension2 on InterfaceElement? {
   /// Whether this is the exact [type] defined in the file with the given [uri].
   bool _isExactly(String type, Uri uri) {
     var self = this;
-    return self is ClassElement &&
-        self.name == type &&
-        self.firstFragment.libraryFragment.source.uri == uri;
+    return self is ClassElement && self.name == type && self.library.uri == uri;
   }
 }
 

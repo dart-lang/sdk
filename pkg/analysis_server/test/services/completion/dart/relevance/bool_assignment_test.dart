@@ -40,7 +40,7 @@ The actual relevances are:
 
 mixin BoolAssignmentTestCases on CompletionRelevanceTest {
   Future<void> test_boolLiterals_imported() async {
-    await addTestFile('''
+    await computeSuggestions('''
 foo() {
   bool b;
   b = ^
@@ -67,7 +67,7 @@ foo() {
   }
 
   Future<void> test_boolLiterals_local() async {
-    await addTestFile('''
+    await computeSuggestions('''
 foo() {
   bool b;
   b = ^

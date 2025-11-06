@@ -34,7 +34,7 @@ B<int> b = B(0);
 ConstructorName
   type: NamedType
     name: B
-    element2: <testLibrary>::@class::B
+    element: <testLibrary>::@class::B
     type: B<int>
   element: ConstructorMember
     baseElement: <testLibrary>::@class::B::@constructor::new
@@ -55,13 +55,7 @@ class A {
   A(var _) : v = _;
 }
 ''',
-      [
-        error(
-          CompileTimeErrorCode.IMPLICIT_THIS_REFERENCE_IN_INITIALIZER,
-          45,
-          1,
-        ),
-      ],
+      [error(CompileTimeErrorCode.implicitThisReferenceInInitializer, 45, 1)],
     );
 
     var node = findNode.constructorFieldInitializer('v = _');
@@ -102,11 +96,12 @@ ConstructorDeclaration
     parameter: SimpleFormalParameter
       type: NamedType
         name: a
-        element2: <testLibrary>::@class::a
+        element: <testLibrary>::@class::a
         type: a
       name: a
       declaredElement: <testLibraryFragment> a@28
-        type: a
+        element: isPublic
+          type: a
     rightParenthesis: )
   body: BlockFunctionBody
     block: Block
@@ -120,7 +115,8 @@ ConstructorDeclaration
           semicolon: ;
       rightBracket: }
   declaredElement: <testLibraryFragment> new@null
-    type: B Function(a)
+    element: <testLibrary>::@class::B::@constructor::new
+      type: B Function(a)
 ''');
   }
 
@@ -150,7 +146,7 @@ ConstructorDeclaration
   redirectedConstructor: ConstructorName
     type: NamedType
       name: A
-      element2: <testLibrary>::@class::A
+      element: <testLibrary>::@class::A
       type: A
     period: .
     name: SimpleIdentifier
@@ -161,7 +157,8 @@ ConstructorDeclaration
   body: EmptyFunctionBody
     semicolon: ;
   declaredElement: <testLibraryFragment> new@null
-    type: B Function()
+    element: <testLibrary>::@class::B::@constructor::new
+      type: B Function()
 ''');
   }
 
@@ -196,10 +193,10 @@ ConstructorDeclaration
         arguments
           NamedType
             name: U
-            element2: #E0 U
+            element: #E0 U
             type: U
         rightBracket: >
-      element2: <testLibrary>::@class::A
+      element: <testLibrary>::@class::A
       type: A<U>
     period: .
     name: SimpleIdentifier
@@ -214,7 +211,8 @@ ConstructorDeclaration
   body: EmptyFunctionBody
     semicolon: ;
   declaredElement: <testLibraryFragment> new@null
-    type: B<U> Function()
+    element: <testLibrary>::@class::B::@constructor::new
+      type: B<U> Function()
 ''');
   }
 
@@ -229,7 +227,7 @@ class B {
   factory B() = A.named;
 }
 ''',
-      [error(CompileTimeErrorCode.REDIRECT_TO_MISSING_CONSTRUCTOR, 59, 7)],
+      [error(CompileTimeErrorCode.redirectToMissingConstructor, 59, 7)],
     );
 
     var node = findNode.constructorDeclaration('factory B');
@@ -247,7 +245,7 @@ ConstructorDeclaration
   redirectedConstructor: ConstructorName
     type: NamedType
       name: A
-      element2: <testLibrary>::@class::A
+      element: <testLibrary>::@class::A
       type: A
     period: .
     name: SimpleIdentifier
@@ -258,7 +256,8 @@ ConstructorDeclaration
   body: EmptyFunctionBody
     semicolon: ;
   declaredElement: <testLibraryFragment> new@null
-    type: B Function()
+    element: <testLibrary>::@class::B::@constructor::new
+      type: B Function()
 ''');
   }
 
@@ -290,13 +289,14 @@ ConstructorDeclaration
   redirectedConstructor: ConstructorName
     type: NamedType
       name: A
-      element2: <testLibrary>::@class::A
+      element: <testLibrary>::@class::A
       type: A
     element: <testLibrary>::@class::A::@constructor::new
   body: EmptyFunctionBody
     semicolon: ;
   declaredElement: <testLibraryFragment> named@55
-    type: B Function()
+    element: <testLibrary>::@class::B::@constructor::named
+      type: B Function()
 ''');
   }
 
@@ -333,10 +333,10 @@ ConstructorDeclaration
         arguments
           NamedType
             name: U
-            element2: #E0 U
+            element: #E0 U
             type: U
         rightBracket: >
-      element2: <testLibrary>::@class::A
+      element: <testLibrary>::@class::A
       type: A<U>
     element: ConstructorMember
       baseElement: <testLibrary>::@class::A::@constructor::new
@@ -344,7 +344,8 @@ ConstructorDeclaration
   body: EmptyFunctionBody
     semicolon: ;
   declaredElement: <testLibraryFragment> named@64
-    type: B<U> Function()
+    element: <testLibrary>::@class::B::@constructor::named
+      type: B<U> Function()
 ''');
   }
 
@@ -359,7 +360,7 @@ class B {
   factory B.named() = A;
 }
 ''',
-      [error(CompileTimeErrorCode.REDIRECT_TO_MISSING_CONSTRUCTOR, 71, 1)],
+      [error(CompileTimeErrorCode.redirectToMissingConstructor, 71, 1)],
     );
 
     var node = findNode.constructorDeclaration('factory B');
@@ -379,13 +380,14 @@ ConstructorDeclaration
   redirectedConstructor: ConstructorName
     type: NamedType
       name: A
-      element2: <testLibrary>::@class::A
+      element: <testLibrary>::@class::A
       type: A
     element: <null>
   body: EmptyFunctionBody
     semicolon: ;
   declaredElement: <testLibraryFragment> named@61
-    type: B Function()
+    element: <testLibrary>::@class::B::@constructor::named
+      type: B Function()
 ''');
   }
 }

@@ -35,8 +35,9 @@ class _Generator {
       'package:analyzer/src/generated/utilities_dart.dart',
     );
     utilitiesLibraryResult as LibraryElementResult;
-    parameterKindClass =
-        utilitiesLibraryResult.element2.getClass('ParameterKind')!;
+    parameterKindClass = utilitiesLibraryResult.element.getClass(
+      'ParameterKind',
+    )!;
 
     await _buildImplClasses(astUnitResult);
     _removeGeneratedMembers(astUnitResult);
@@ -50,18 +51,17 @@ class _Generator {
 
   Future<_ImplClass?> _buildImplClass(ClassDeclarationImpl nodeImpl) async {
     var classElement = nodeImpl.declaredFragment!.element;
-    var generateObject =
-        classElement.metadata.annotations
-            .map((annotation) {
-              var generateObject = annotation.computeConstantValue();
-              var generateObjectType = generateObject?.type;
-              if (generateObjectType?.element?.name != 'GenerateNodeImpl') {
-                return null;
-              }
-              return generateObject;
-            })
-            .nonNulls
-            .firstOrNull;
+    var generateObject = classElement.metadata.annotations
+        .map((annotation) {
+          var generateObject = annotation.computeConstantValue();
+          var generateObjectType = generateObject?.type;
+          if (generateObjectType?.element?.name != 'GenerateNodeImpl') {
+            return null;
+          }
+          return generateObject;
+        })
+        .nonNulls
+        .firstOrNull;
     if (generateObject == null) {
       return null;
     }
@@ -81,49 +81,53 @@ class _Generator {
 
     var inheritanceManager = classElement.inheritanceManager;
 
-    var properties =
-        entities
-            .map((entity) {
-              var propertyName = entity.getField('name')!.toStringValue()!;
-              var isSuper = entity.getField('isSuper')!.toBoolValue()!;
-              var withOverride =
-                  entity.getField('withOverride')!.toBoolValue()!;
-              var isTokenFinal =
-                  entity.getField('isTokenFinal')!.toBoolValue()!;
-              var superNullAssertOverride =
-                  entity.getField('superNullAssertOverride')!.toBoolValue()!;
-              var tokenGroupId = entity.getField('tokenGroupId')!.toIntValue();
-              var type = entity.getField('type')!.toTypeValue();
+    var properties = entities
+        .map((entity) {
+          var propertyName = entity.getField('name')!.toStringValue()!;
+          var isSuper = entity.getField('isSuper')!.toBoolValue()!;
+          var withOverride = entity.getField('withOverride')!.toBoolValue()!;
+          var isNodeListFinal = entity
+              .getField('isNodeListFinal')!
+              .toBoolValue()!;
+          var isTokenFinal = entity.getField('isTokenFinal')!.toBoolValue()!;
+          var superNullAssertOverride = entity
+              .getField('superNullAssertOverride')!
+              .toBoolValue()!;
+          var tokenGroupId = entity.getField('tokenGroupId')!.toIntValue();
+          var type = entity.getField('type')!.toTypeValue();
 
-              if (type == null) {
-                var member = inheritanceManager.getMember(
-                  interfaceElement,
-                  Name(null, propertyName),
-                );
-                if (member case GetterElement getter) {
-                  type = getter.returnType;
-                } else {
-                  throw StateError('$propertyName: ${member.runtimeType}');
-                }
-              }
-              type as InterfaceType;
+          if (type == null) {
+            var member = inheritanceManager.getMember(
+              interfaceElement,
+              Name(null, propertyName),
+            );
+            if (member case GetterElement getter) {
+              type = getter.returnType;
+            } else {
+              throw StateError('$propertyName: ${member.runtimeType}');
+            }
+          }
+          type as InterfaceType;
 
-              var kind = _PropertyTypeKind.fromType(type);
-              if (kind is _PropertyTypeKindToken) {
-                kind.isWritable = !isTokenFinal;
-                kind.groupId = tokenGroupId;
-              }
-              return _Property(
-                name: propertyName,
-                isSuper: isSuper,
-                withOverride: withOverride,
-                withOverrideSuperNotNull: superNullAssertOverride,
-                type: type,
-                typeKind: kind,
-              );
-            })
-            .nonNulls
-            .toList();
+          var kind = _PropertyTypeKind.fromType(type);
+          if (kind is _PropertyTypeKindNodeList) {
+            kind.isWritable = !isNodeListFinal;
+          }
+          if (kind is _PropertyTypeKindToken) {
+            kind.isWritable = !isTokenFinal;
+            kind.groupId = tokenGroupId;
+          }
+          return _Property(
+            name: propertyName,
+            isSuper: isSuper,
+            withOverride: withOverride,
+            withOverrideSuperNotNull: superNullAssertOverride,
+            type: type,
+            typeKind: kind,
+          );
+        })
+        .nonNulls
+        .toList();
 
     return _ImplClass(
       node: nodeImpl,
@@ -540,11 +544,12 @@ final ${property.typeCode} $propertyName;
 \n@generated
 $typeCode _$propertyName;
 ''');
-        case _PropertyTypeKindNodeList():
+        case _PropertyTypeKindNodeList kind:
+          var finalKeyword = kind.isWritable ? '' : 'final ';
           buffer.write('''
 \n@generated
 @override
-final ${property.typeCode} $propertyName = NodeListImpl._();
+$finalKeyword ${property.typeCode} $propertyName = NodeListImpl._();
 ''');
         case _PropertyTypeKindOther():
           buffer.write('''
@@ -895,6 +900,7 @@ class _PropertyTypeKindNode extends _PropertyTypeKind {}
 
 class _PropertyTypeKindNodeList extends _PropertyTypeKind {
   final InterfaceType elementType;
+  bool isWritable = false;
 
   _PropertyTypeKindNodeList({required this.elementType});
 
@@ -974,7 +980,7 @@ extension _DartTypeExtension on DartType {
 
 extension _ElementAnnotationExtension on ElementAnnotation {
   bool get isDoNotGenerate {
-    if (element2 case ConstructorElement constructorElement) {
+    if (element case ConstructorElement constructorElement) {
       var interfaceElement = constructorElement.enclosingElement;
       return interfaceElement.isDoNotGenerateExactly;
     }

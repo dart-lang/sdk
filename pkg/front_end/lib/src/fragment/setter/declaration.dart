@@ -42,44 +42,54 @@ abstract class SetterDeclaration {
 
   Member? get writeTarget;
 
-  void buildSetterOutlineExpressions(
-      {required ClassHierarchy classHierarchy,
-      required SourceLibraryBuilder libraryBuilder,
-      required DeclarationBuilder? declarationBuilder,
-      required SourcePropertyBuilder propertyBuilder,
-      required Annotatable annotatable,
-      required Uri annotatableFileUri,
-      required bool isClassInstanceMember});
+  void buildSetterOutlineExpressions({
+    required ClassHierarchy classHierarchy,
+    required SourceLibraryBuilder libraryBuilder,
+    required DeclarationBuilder? declarationBuilder,
+    required SourcePropertyBuilder propertyBuilder,
+    required Annotatable annotatable,
+    required Uri annotatableFileUri,
+    required bool isClassInstanceMember,
+  });
 
-  void buildSetterOutlineNode(
-      {required SourceLibraryBuilder libraryBuilder,
-      required NameScheme nameScheme,
-      required BuildNodesCallback f,
-      required PropertyReferences? references,
-      required List<TypeParameter>? classTypeParameters});
+  void buildSetterOutlineNode({
+    required SourceLibraryBuilder libraryBuilder,
+    required ProblemReporting problemReporting,
+    required NameScheme nameScheme,
+    required BuildNodesCallback f,
+    required PropertyReferences? references,
+    required List<TypeParameter>? classTypeParameters,
+  });
 
   void checkSetterTypes(
-      SourceLibraryBuilder libraryBuilder, TypeEnvironment typeEnvironment);
+    ProblemReporting problemReporting,
+    TypeEnvironment typeEnvironment,
+  );
 
   void checkSetterVariance(
-      SourceClassBuilder sourceClassBuilder, TypeEnvironment typeEnvironment);
+    SourceClassBuilder sourceClassBuilder,
+    TypeEnvironment typeEnvironment,
+  );
 
   int computeSetterDefaultTypes(ComputeDefaultTypeContext context);
 
   void createSetterEncoding(
-      ProblemReporting problemReporting,
-      SourcePropertyBuilder builder,
-      PropertyEncodingStrategy encodingStrategy,
-      TypeParameterFactory typeParameterFactory);
+    ProblemReporting problemReporting,
+    SourcePropertyBuilder builder,
+    PropertyEncodingStrategy encodingStrategy,
+    TypeParameterFactory typeParameterFactory,
+  );
 
-  void ensureSetterTypes(
-      {required SourceLibraryBuilder libraryBuilder,
-      required DeclarationBuilder? declarationBuilder,
-      required ClassMembersBuilder membersBuilder,
-      required Set<ClassMember>? setterOverrideDependencies});
+  void ensureSetterTypes({
+    required SourceLibraryBuilder libraryBuilder,
+    required DeclarationBuilder? declarationBuilder,
+    required ClassMembersBuilder membersBuilder,
+    required Set<ClassMember>? setterOverrideDependencies,
+  });
 
   Iterable<Reference> getExportedSetterReferences(
-      PropertyReferences references);
+    PropertyReferences references,
+  );
 
   List<ClassMember> get localSetters;
 }
@@ -133,8 +143,8 @@ class RegularSetterDeclaration
   SetterQuality get setterQuality => _fragment.modifiers.isAbstract
       ? SetterQuality.Abstract
       : _fragment.modifiers.isExternal
-          ? SetterQuality.External
-          : SetterQuality.Concrete;
+      ? SetterQuality.External
+      : SetterQuality.Concrete;
 
   @override
   List<TypeParameter>? get thisTypeParameters => _encoding.thisTypeParameters;
@@ -151,52 +161,65 @@ class RegularSetterDeclaration
   }
 
   @override
-  void buildSetterOutlineExpressions(
-      {required ClassHierarchy classHierarchy,
-      required SourceLibraryBuilder libraryBuilder,
-      required DeclarationBuilder? declarationBuilder,
-      required SourcePropertyBuilder propertyBuilder,
-      required Annotatable annotatable,
-      required Uri annotatableFileUri,
-      required bool isClassInstanceMember}) {
+  void buildSetterOutlineExpressions({
+    required ClassHierarchy classHierarchy,
+    required SourceLibraryBuilder libraryBuilder,
+    required DeclarationBuilder? declarationBuilder,
+    required SourcePropertyBuilder propertyBuilder,
+    required Annotatable annotatable,
+    required Uri annotatableFileUri,
+    required bool isClassInstanceMember,
+  }) {
     _encoding.buildOutlineExpressions(
-        classHierarchy: classHierarchy,
-        libraryBuilder: libraryBuilder,
-        declarationBuilder: declarationBuilder,
-        bodyBuilderContext: createBodyBuilderContext(propertyBuilder),
-        annotatable: annotatable,
-        annotatableFileUri: annotatableFileUri,
-        isClassInstanceMember: isClassInstanceMember);
+      classHierarchy: classHierarchy,
+      libraryBuilder: libraryBuilder,
+      declarationBuilder: declarationBuilder,
+      bodyBuilderContext: createBodyBuilderContext(propertyBuilder),
+      annotatable: annotatable,
+      annotatableFileUri: annotatableFileUri,
+      isClassInstanceMember: isClassInstanceMember,
+    );
   }
 
   @override
-  void buildSetterOutlineNode(
-      {required SourceLibraryBuilder libraryBuilder,
-      required NameScheme nameScheme,
-      required BuildNodesCallback f,
-      required PropertyReferences? references,
-      required List<TypeParameter>? classTypeParameters}) {
+  void buildSetterOutlineNode({
+    required SourceLibraryBuilder libraryBuilder,
+    required ProblemReporting problemReporting,
+    required NameScheme nameScheme,
+    required BuildNodesCallback f,
+    required PropertyReferences? references,
+    required List<TypeParameter>? classTypeParameters,
+  }) {
     _encoding.buildOutlineNode(
-        libraryBuilder: libraryBuilder,
-        nameScheme: nameScheme,
-        f: f,
-        references: references,
-        isAbstractOrExternal:
-            _fragment.modifiers.isAbstract || _fragment.modifiers.isExternal,
-        classTypeParameters: classTypeParameters);
+      libraryBuilder: libraryBuilder,
+      problemReporting: problemReporting,
+      nameScheme: nameScheme,
+      f: f,
+      references: references,
+      isAbstractOrExternal:
+          _fragment.modifiers.isAbstract || _fragment.modifiers.isExternal,
+      classTypeParameters: classTypeParameters,
+    );
   }
 
   @override
   void checkSetterTypes(
-      SourceLibraryBuilder libraryBuilder, TypeEnvironment typeEnvironment) {
-    _encoding.checkTypes(libraryBuilder, typeEnvironment,
-        isAbstract: _fragment.modifiers.isAbstract,
-        isExternal: _fragment.modifiers.isExternal);
+    ProblemReporting problemReporting,
+    TypeEnvironment typeEnvironment,
+  ) {
+    _encoding.checkTypes(
+      problemReporting,
+      typeEnvironment,
+      isAbstract: _fragment.modifiers.isAbstract,
+      isExternal: _fragment.modifiers.isExternal,
+    );
   }
 
   @override
   void checkSetterVariance(
-      SourceClassBuilder sourceClassBuilder, TypeEnvironment typeEnvironment) {
+    SourceClassBuilder sourceClassBuilder,
+    TypeEnvironment typeEnvironment,
+  ) {
     _encoding.checkVariance(sourceClassBuilder, typeEnvironment);
   }
 
@@ -207,27 +230,39 @@ class RegularSetterDeclaration
 
   @override
   BodyBuilderContext createBodyBuilderContext(
-      SourcePropertyBuilder propertyBuilder) {
-    return new SetterBodyBuilderContext(propertyBuilder, this,
-        propertyBuilder.libraryBuilder, propertyBuilder.declarationBuilder,
-        isDeclarationInstanceMember:
-            propertyBuilder.isDeclarationInstanceMember);
+    SourcePropertyBuilder propertyBuilder,
+  ) {
+    return new SetterBodyBuilderContext(
+      propertyBuilder,
+      this,
+      propertyBuilder.libraryBuilder,
+      propertyBuilder.declarationBuilder,
+      isDeclarationInstanceMember: propertyBuilder.isDeclarationInstanceMember,
+    );
   }
 
   @override
   void createSetterEncoding(
-      ProblemReporting problemReporting,
-      SourcePropertyBuilder builder,
-      PropertyEncodingStrategy encodingStrategy,
-      TypeParameterFactory typeParameterFactory) {
+    ProblemReporting problemReporting,
+    SourcePropertyBuilder builder,
+    PropertyEncodingStrategy encodingStrategy,
+    TypeParameterFactory typeParameterFactory,
+  ) {
     _fragment.builder = builder;
-    typeParameterFactory
-        .createNominalParameterBuilders(_fragment.declaredTypeParameters);
+    typeParameterFactory.createNominalParameterBuilders(
+      _fragment.declaredTypeParameters,
+    );
     _encoding = encodingStrategy.createSetterEncoding(
-        builder, _fragment, typeParameterFactory);
+      builder,
+      _fragment,
+      typeParameterFactory,
+    );
     _fragment.typeParameterNameSpace.addTypeParameters(
-        problemReporting, _encoding.clonedAndDeclaredTypeParameters,
-        ownerName: _fragment.name, allowNameConflict: true);
+      problemReporting,
+      _encoding.clonedAndDeclaredTypeParameters,
+      ownerName: _fragment.name,
+      allowNameConflict: true,
+    );
   }
 
   @override
@@ -236,26 +271,30 @@ class RegularSetterDeclaration
   }
 
   @override
-  void ensureSetterTypes(
-      {required SourceLibraryBuilder libraryBuilder,
-      required DeclarationBuilder? declarationBuilder,
-      required ClassMembersBuilder membersBuilder,
-      required Set<ClassMember>? setterOverrideDependencies}) {
+  void ensureSetterTypes({
+    required SourceLibraryBuilder libraryBuilder,
+    required DeclarationBuilder? declarationBuilder,
+    required ClassMembersBuilder membersBuilder,
+    required Set<ClassMember>? setterOverrideDependencies,
+  }) {
     if (setterOverrideDependencies != null) {
-      membersBuilder.inferSetterType(declarationBuilder as SourceClassBuilder,
-          _fragment.declaredFormals, setterOverrideDependencies,
-          name: _fragment.name,
-          fileUri: _fragment.fileUri,
-          nameOffset: _fragment.nameOffset,
-          nameLength: _fragment.name.length);
+      membersBuilder.inferSetterType(
+        declarationBuilder as SourceClassBuilder,
+        _fragment.declaredFormals,
+        setterOverrideDependencies,
+        name: _fragment.name,
+        fileUri: _fragment.fileUri,
+        nameOffset: _fragment.nameOffset,
+        nameLength: _fragment.name.length,
+      );
     }
     _encoding.ensureTypes(libraryBuilder, membersBuilder.hierarchyBuilder);
   }
 
   @override
   Iterable<Reference> getExportedSetterReferences(
-          PropertyReferences references) =>
-      [references.setterReference];
+    PropertyReferences references,
+  ) => [references.setterReference];
 
   @override
   VariableDeclaration getFormalParameter(int index) {
@@ -263,8 +302,9 @@ class RegularSetterDeclaration
   }
 
   @override
-  List<ClassMember> get localSetters =>
-      [new SetterClassMember(_fragment.builder)];
+  List<ClassMember> get localSetters => [
+    new SetterClassMember(_fragment.builder),
+  ];
 }
 
 /// Interface for using a [SetterFragment] to create a [BodyBuilderContext].
@@ -292,7 +332,8 @@ abstract class SetterFragmentDeclaration {
   void becomeNative(SourceLoader loader);
 
   BodyBuilderContext createBodyBuilderContext(
-      SourcePropertyBuilder propertyBuilder);
+    SourcePropertyBuilder propertyBuilder,
+  );
 
   LocalScope createFormalParameterScope(LookupScope typeParameterScope);
 

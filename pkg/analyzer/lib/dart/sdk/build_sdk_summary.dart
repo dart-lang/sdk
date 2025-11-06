@@ -58,6 +58,7 @@ Future<Uint8List> buildSdkSummary({
     sourceFactory: SourceFactory([DartUriResolver(sdk)]),
     analysisOptionsMap: optionsMap,
     packages: Packages({}),
+    withFineDependencies: false,
   );
   scheduler.start();
 

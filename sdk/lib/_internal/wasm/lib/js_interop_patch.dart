@@ -9,9 +9,10 @@ import 'dart:_js_types' as js_types;
 import 'dart:_string';
 import 'dart:_wasm';
 import 'dart:async' show Completer;
+import 'dart:collection';
 import 'dart:js_interop';
 import 'dart:js_interop_unsafe' as unsafe;
-import 'dart:js_util' as js_util;
+import 'dart:js_interop_unsafe' show JSObjectUnsafeUtilExtension;
 import 'dart:typed_data';
 
 @patch
@@ -20,7 +21,7 @@ js_types.JSObjectRepType _createObjectLiteral() =>
 
 // This should match the global context we use in our static interop lowerings.
 @patch
-JSObject get globalContext => js_util.globalThis as JSObject;
+JSObject get globalContext => JSValue(globalThisRaw()) as JSObject;
 
 // Helper for working with the JSAny? top type in a backend agnostic way.
 @patch
@@ -70,14 +71,126 @@ extension JSAnyUtilityExtension on JSAny? {
   );
 
   @patch
-  Object? dartify() => js_util.dartify(this);
+  Object? dartify() {
+    final convertedObjects = HashMap<Object?, Object?>.identity();
+    Object? convert(Object? o) {
+      if (convertedObjects.containsKey(o)) {
+        return convertedObjects[o];
+      }
+      // Because [List] needs to be shallowly converted across the interop
+      // boundary, we have to double check for the case where a shallowly
+      // converted [List] is passed back into [dartify].
+      if (o is List<Object?>) {
+        final converted = <Object?>[];
+        for (final item in o) {
+          converted.add(convert(item));
+        }
+        return converted;
+      }
+      if (o is! JSValue) return o;
+      WasmExternRef? ref = o.toExternRef;
+      final refType = externRefType(ref);
+      // TODO(srujzs): Either handle Date and Promise, or remove them completely
+      // from the conversion (preferred) across all backends.
+      if (refType == ExternRefType.unknown && isJSSimpleObject(ref)) {
+        final dartMap = <Object?, Object?>{};
+        convertedObjects[o] = dartMap;
+        // Keys will be a list of Dart [String]s.
+        final keys = toDartList(
+          js_helper.JS<WasmExternRef?>('o => Object.keys(o)', jsifyRaw(o)),
+        );
+        for (int i = 0; i < keys.length; i++) {
+          final key = keys[i];
+          if (key != null) {
+            dartMap[key] = convert(
+              JSValue.box(getPropertyRaw(ref, jsifyRaw(key))),
+            );
+          }
+        }
+        return dartMap;
+      }
+      if (refType == ExternRefType.array) {
+        final dartList = <Object?>[];
+        convertedObjects[o] = dartList;
+        final length = (o as JSObject)
+            .getProperty<JSNumber>('length'.toJS)
+            .toDartInt;
+        for (int i = 0; i < length; i++) {
+          dartList.add(convert(JSValue.box(objectReadIndex(ref, i))));
+        }
+        return dartList;
+      }
+      return dartifyRaw(ref, refType);
+    }
+
+    return convert(this);
+  }
 }
 
 // Utility extensions for Object?.
 @patch
 extension NullableObjectUtilExtension on Object? {
   @patch
-  JSAny? jsify() => js_util.jsify(this);
+  JSAny? jsify() {
+    final convertedObjects = HashMap<Object?, Object?>.identity();
+    Object? convert(Object? o) {
+      if (convertedObjects.containsKey(o)) {
+        return convertedObjects[o];
+      }
+
+      // TODO(srujzs): We do these checks again in `jsifyRaw`. We should
+      // refactor this code so we don't have to, but we have to be careful about
+      // the `Iterable` check below.
+      if (o == null ||
+          o is num ||
+          o is bool ||
+          o is JSValue ||
+          o is String ||
+          (o is TypedData &&
+              (o is Int8List ||
+                  o is Uint8List ||
+                  o is Uint8ClampedList ||
+                  o is Int16List ||
+                  o is Uint16List ||
+                  o is Int32List ||
+                  o is Uint32List ||
+                  o is Float32List ||
+                  o is Float64List ||
+                  o is ByteData)) ||
+          o is ByteBuffer) {
+        return JSValue(jsifyRaw(o));
+      }
+
+      if (o is Map<Object?, Object?>) {
+        final convertedMap = JSValue(newObjectRaw());
+        convertedObjects[o] = convertedMap;
+        for (final key in o.keys) {
+          final convertedKey = convert(key) as JSValue?;
+          setPropertyRaw(
+            convertedMap.toExternRef,
+            convertedKey.toExternRef,
+            (convert(o[key]) as JSValue?).toExternRef,
+          );
+        }
+        return convertedMap;
+      } else if (o is Iterable<Object?>) {
+        final convertedIterable = JSValue(newArrayRaw());
+        convertedObjects[o] = convertedIterable;
+        for (final item in o) {
+          (convertedIterable as JSObject).callMethod(
+            'push'.toJS,
+            convert(item) as JSAny?,
+          );
+        }
+        return convertedIterable;
+      } else {
+        // None of the objects left will require recursive conversions.
+        return JSValue(jsifyRaw(o));
+      }
+    }
+
+    return convert(this) as JSAny?;
+  }
 }
 
 // -----------------------------------------------------------------------------
@@ -116,11 +229,21 @@ extension FunctionToJSExportedDartFunction on Function {
 // This is a Symbol so that different Dart applications don't share Dart
 // objects from different Dart runtimes. We expect all JSBoxedDartObjects to
 // have this Symbol.
-final JSSymbol _jsBoxedDartObjectProperty = JSSymbol._(
-  JSValue(
-    js_helper.JS<WasmExternRef?>('() => Symbol("jsBoxedDartObjectProperty")'),
-  ),
-);
+final WasmExternRef? _jsBoxedDartObjectPropertyExternRef = js_helper
+    .JS<WasmExternRef?>('() => Symbol("jsBoxedDartObjectProperty")');
+
+// Returns the value of the property we embed in every `JSBoxedDartObject` in
+// `any`.
+WasmExternRef? _getJSBoxedDartObjectPropertyValue(JSAny any) =>
+    js_helper.JS<WasmExternRef?>(
+      '(o,s) => o[s]',
+      any.toExternRef,
+      _jsBoxedDartObjectPropertyExternRef,
+    );
+
+// Used in the `isA` transform.
+bool _isJSBoxedDartObject(JSAny any) =>
+    !isDartNull(_getJSBoxedDartObjectPropertyValue(any));
 
 // -----------------------------------------------------------------------------
 // JSBoxedDartObject <-> Object
@@ -128,11 +251,7 @@ final JSSymbol _jsBoxedDartObjectProperty = JSSymbol._(
 extension JSBoxedDartObjectToObject on JSBoxedDartObject {
   @patch
   Object get toDart {
-    final val = js_helper.JS<WasmExternRef?>(
-      '(o,s) => o[s]',
-      this.toExternRef,
-      _jsBoxedDartObjectProperty.toExternRef,
-    );
+    final val = _getJSBoxedDartObjectPropertyValue(this);
     if (isDartNull(val)) {
       throw 'Expected a wrapped Dart object, but got a JS object or a wrapped '
           'Dart object from a separate runtime instead.';
@@ -152,7 +271,7 @@ extension ObjectToJSBoxedDartObject on Object {
     js_helper.JS<WasmExternRef?>(
       '(o,s,v) => o[s] = v',
       box.toExternRef,
-      _jsBoxedDartObjectProperty.toExternRef,
+      _jsBoxedDartObjectPropertyExternRef,
       jsObjectFromDartObject(this),
     );
     return JSBoxedDartObject._(box._jsObject);
@@ -193,36 +312,7 @@ extension ObjectToExternalDartReference<T extends Object?> on T {
 @patch
 extension JSPromiseToFuture<T extends JSAny?> on JSPromise<T> {
   @patch
-  Future<T> get toDart {
-    final completer = Completer<T>();
-    final success = (JSAny? r) {
-      // Note that we explicitly type the parameter as `JSAny?` instead of `T`.
-      // This is because if there's a `TypeError` with the cast, we want to
-      // bubble that up through the completer, so we end up doing a try-catch
-      // here to do so.
-      try {
-        final value = r as T;
-        completer.complete(value);
-      } catch (e) {
-        completer.completeError(e);
-      }
-    }.toJS;
-    final error = (JSAny? e, bool isUndefined) {
-      // `e` is null when the original error is either JS `null` or JS
-      // `undefined`.
-      if (e == null) {
-        completer.completeError(js_util.NullRejectionException(isUndefined));
-        return;
-      }
-      completer.completeError(e);
-    }.toJS;
-    js_helper.promiseThenWithIsUndefined(
-      toExternRef,
-      success.toExternRef,
-      error.toExternRef,
-    );
-    return completer.future;
-  }
+  Future<T> get toDart => js_helper.externPromiseToFuture(toExternRef);
 }
 
 // -----------------------------------------------------------------------------
@@ -284,7 +374,7 @@ extension ByteDataToJSDataView on ByteData {
 @patch
 extension JSInt8ArrayToInt8List on JSInt8Array {
   @patch
-  Int8List get toDart => js_types.JSInt8ArrayImpl.fromRef(toExternRef);
+  Int8List get toDart => js_types.JSInt8ArrayImpl.fromArrayRef(toExternRef);
 }
 
 @patch
@@ -307,7 +397,7 @@ extension Int8ListToJSInt8Array on Int8List {
 @patch
 extension JSUint8ArrayToUint8List on JSUint8Array {
   @patch
-  Uint8List get toDart => js_types.JSUint8ArrayImpl.fromRef(toExternRef);
+  Uint8List get toDart => js_types.JSUint8ArrayImpl.fromArrayRef(toExternRef);
 }
 
 @patch
@@ -331,7 +421,7 @@ extension Uint8ListToJSUint8Array on Uint8List {
 extension JSUint8ClampedArrayToUint8ClampedList on JSUint8ClampedArray {
   @patch
   Uint8ClampedList get toDart =>
-      js_types.JSUint8ClampedArrayImpl.fromRef(toExternRef);
+      js_types.JSUint8ClampedArrayImpl.fromArrayRef(toExternRef);
 }
 
 @patch
@@ -354,7 +444,7 @@ extension Uint8ClampedListToJSUint8ClampedArray on Uint8ClampedList {
 @patch
 extension JSInt16ArrayToInt16List on JSInt16Array {
   @patch
-  Int16List get toDart => js_types.JSInt16ArrayImpl.fromRef(toExternRef);
+  Int16List get toDart => js_types.JSInt16ArrayImpl.fromArrayRef(toExternRef);
 }
 
 @patch
@@ -375,13 +465,13 @@ extension Int16ListToJSInt16Array on Int16List {
 // -----------------------------------------------------------------------------
 // JSUint16Array <-> Uint16List
 @patch
-extension JSUint16ArrayToInt16List on JSUint16Array {
+extension JSUint16ArrayToUint16List on JSUint16Array {
   @patch
-  Uint16List get toDart => js_types.JSUint16ArrayImpl.fromRef(toExternRef);
+  Uint16List get toDart => js_types.JSUint16ArrayImpl.fromArrayRef(toExternRef);
 }
 
 @patch
-extension Uint16ListToJSInt16Array on Uint16List {
+extension Uint16ListToJSUint16Array on Uint16List {
   @patch
   JSUint16Array get toJS {
     final t = this;
@@ -400,7 +490,7 @@ extension Uint16ListToJSInt16Array on Uint16List {
 @patch
 extension JSInt32ArrayToInt32List on JSInt32Array {
   @patch
-  Int32List get toDart => js_types.JSInt32ArrayImpl.fromRef(toExternRef);
+  Int32List get toDart => js_types.JSInt32ArrayImpl.fromArrayRef(toExternRef);
 }
 
 @patch
@@ -423,7 +513,7 @@ extension Int32ListToJSInt32Array on Int32List {
 @patch
 extension JSUint32ArrayToUint32List on JSUint32Array {
   @patch
-  Uint32List get toDart => js_types.JSUint32ArrayImpl.fromRef(toExternRef);
+  Uint32List get toDart => js_types.JSUint32ArrayImpl.fromArrayRef(toExternRef);
 }
 
 @patch
@@ -446,7 +536,8 @@ extension Uint32ListToJSUint32Array on Uint32List {
 @patch
 extension JSFloat32ArrayToFloat32List on JSFloat32Array {
   @patch
-  Float32List get toDart => js_types.JSFloat32ArrayImpl.fromRef(toExternRef);
+  Float32List get toDart =>
+      js_types.JSFloat32ArrayImpl.fromArrayRef(toExternRef);
 }
 
 @patch
@@ -469,7 +560,8 @@ extension Float32ListToJSFloat32Array on Float32List {
 @patch
 extension JSFloat64ArrayToFloat64List on JSFloat64Array {
   @patch
-  Float64List get toDart => js_types.JSFloat64ArrayImpl.fromRef(toExternRef);
+  Float64List get toDart =>
+      js_types.JSFloat64ArrayImpl.fromArrayRef(toExternRef);
 }
 
 @patch
@@ -843,12 +935,7 @@ class _ListBackedJSArray {
 
 JSArray<T> _createJSProxyOfList<T extends JSAny?>(List<T> list) {
   final wrapper = _ListBackedJSArray(list);
-  final jsExportWrapper =
-      js_util.createStaticInteropMock<__ListBackedJSArray, _ListBackedJSArray>(
-            wrapper,
-            _Array.prototype,
-          )
-          as JSObject;
+  final jsExportWrapper = createJSInteropWrapper(wrapper, _Array.prototype);
 
   // Needed for `concat` to spread the contents of the current array instead of
   // prepending.

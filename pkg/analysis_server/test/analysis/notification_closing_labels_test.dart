@@ -7,6 +7,7 @@ import 'dart:async';
 import 'package:analysis_server/protocol/protocol.dart';
 import 'package:analysis_server/protocol/protocol_constants.dart';
 import 'package:analysis_server/protocol/protocol_generated.dart';
+import 'package:analyzer/src/test_utilities/test_code_format.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -21,21 +22,21 @@ void main() {
 @reflectiveTest
 class AnalysisNotificationClosingLabelsTest
     extends PubPackageAnalysisServerTest {
-  static const sampleCode = '''
+  late final expectedResults = [
+    _label(sampleCode.ranges[0], 'Row'),
+    _label(sampleCode.ranges[1], '<Widget>[]'),
+  ];
+
+  final sampleCode = TestCode.parseNormalized('''
 Widget build(BuildContext context) {
-  return new Row(
-    children: <Widget>[
+  return /*[0*/new Row(
+    children: /*[1*/<Widget>[
       Text('a'),
       Text('b'),
-    ],
-  );
+    ]/*1]*/,
+  )/*0]*/;
 }
-''';
-
-  static final expectedResults = [
-    ClosingLabel(46, 77, 'Row'),
-    ClosingLabel(69, 49, '<Widget>[]'),
-  ];
+''');
 
   List<ClosingLabel>? lastLabels;
 
@@ -72,7 +73,7 @@ Widget build(BuildContext context) {
   }
 
   Future<void> test_afterAnalysis() async {
-    addTestFile(sampleCode);
+    addTestFile(sampleCode.code);
     await waitForTasksFinished();
     expect(lastLabels, isNull);
 
@@ -95,7 +96,7 @@ Widget build(BuildContext context) {
     expect(lastLabels, hasLength(0));
 
     // With sample code there will be labels.
-    await waitForLabels(() async => modifyTestFile(sampleCode));
+    await waitForLabels(() async => modifyTestFile(sampleCode.code));
 
     expect(lastLabels, expectedResults);
   }
@@ -104,5 +105,13 @@ Widget build(BuildContext context) {
     _labelsReceived = Completer();
     await action();
     return _labelsReceived.future;
+  }
+
+  ClosingLabel _label(TestCodeRange range, String text) {
+    return ClosingLabel(
+      range.sourceRange.offset,
+      range.sourceRange.length,
+      text,
+    );
   }
 }

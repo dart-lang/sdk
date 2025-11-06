@@ -24,7 +24,7 @@ final class S<T> extends Struct {
 }
 ''',
       [
-        error(FfiCode.GENERIC_STRUCT_SUBCLASS, 31, 1, messageContains: ["'S'"]),
+        error(FfiCode.genericStructSubclass, 31, 1, messageContains: ["'S'"]),
       ],
     );
   }
@@ -38,7 +38,7 @@ final class S<T> extends Union {
 }
 ''',
       [
-        error(FfiCode.GENERIC_STRUCT_SUBCLASS, 31, 1, messageContains: ["'S'"]),
+        error(FfiCode.genericStructSubclass, 31, 1, messageContains: ["'S'"]),
       ],
     );
   }

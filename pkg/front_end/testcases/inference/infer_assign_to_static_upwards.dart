@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/*@testedFeatures=inference*/
 library test;
 
 int getInt() => 0;
@@ -17,55 +16,55 @@ double topLevelDouble = 0;
 double? topLevelDouble2;
 
 void test1() {
-  var /*@type=int*/ v1 = topLevelInt = getInt();
+  var v1 = topLevelInt = getInt();
 
-  var /*@type=int*/ v4 = topLevelInt2 ??= getInt();
+  var v4 = topLevelInt2 ??= getInt();
 
-  var /*@type=int*/ v7 = topLevelInt  /*@target=num.+*/+= getInt();
+  var v7 = topLevelInt += getInt();
 
-  var /*@type=int*/ v10 =  /*@target=num.+*/++topLevelInt;
+  var v10 = ++topLevelInt;
 
-  var /*@type=int*/ v11 =  /*@type=int*/topLevelInt   /*@target=num.+*//*@type=int*/++;
+  var v11 = topLevelInt++;
 }
 
 void test2() {
-  var /*@type=int*/ v1 = topLevelNum = getInt();
+  var v1 = topLevelNum = getInt();
 
-  var /*@type=num*/ v2 = topLevelNum = getNum();
+  var v2 = topLevelNum = getNum();
 
-  var /*@type=double*/ v3 = topLevelNum = getDouble();
+  var v3 = topLevelNum = getDouble();
 
-  var /*@type=num*/ v4 = topLevelNum2 ??= getInt();
+  var v4 = topLevelNum2 ??= getInt();
 
-  var /*@type=num*/ v5 = topLevelNum2 ??= getNum();
+  var v5 = topLevelNum2 ??= getNum();
 
-  var /*@type=num*/ v6 = topLevelNum2 ??= getDouble();
+  var v6 = topLevelNum2 ??= getDouble();
 
-  var /*@type=num*/ v7 = topLevelNum /*@target=num.+*/ += getInt();
+  var v7 = topLevelNum += getInt();
 
-  var /*@type=num*/ v8 = topLevelNum /*@target=num.+*/ += getNum();
+  var v8 = topLevelNum += getNum();
 
-  var /*@type=double*/ v9 = topLevelNum /*@target=num.+*/ += getDouble();
+  var v9 = topLevelNum += getDouble();
 
-  var /*@type=num*/ v10 = /*@target=num.+*/ ++topLevelNum;
+  var v10 = ++topLevelNum;
 
-  var /*@type=num*/ v11 = /*@type=num*/ topLevelNum /*@type=num*/ /*@target=num.+*/ ++;
+  var v11 = topLevelNum++;
 }
 
 void test3() {
-  var /*@type=double*/ v3 = topLevelDouble = getDouble();
+  var v3 = topLevelDouble = getDouble();
 
-  var /*@type=double*/ v6 = topLevelDouble2 ??= getDouble();
+  var v6 = topLevelDouble2 ??= getDouble();
 
-  var /*@type=double*/ v7 = topLevelDouble /*@target=double.+*/ += getInt();
+  var v7 = topLevelDouble += getInt();
 
-  var /*@type=double*/ v8 = topLevelDouble /*@target=double.+*/ += getNum();
+  var v8 = topLevelDouble += getNum();
 
-  var /*@type=double*/ v9 = topLevelDouble /*@target=double.+*/ += getDouble();
+  var v9 = topLevelDouble += getDouble();
 
-  var /*@type=double*/ v10 = /*@target=double.+*/ ++topLevelDouble;
+  var v10 = ++topLevelDouble;
 
-  var /*@type=double*/ v11 = /*@type=double*/ topLevelDouble /*@type=double*/ /*@target=double.+*/ ++;
+  var v11 = topLevelDouble++;
 }
 
 main() {}

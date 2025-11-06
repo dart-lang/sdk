@@ -25,9 +25,7 @@ void main(List<String> args) {
 
   Widget widget = new QuitOnQWidget(
     new WithSingleLineBottomWidget(
-      new BoxedWidget(
-        new AstWidget(ast),
-      ),
+      new BoxedWidget(new AstWidget(ast)),
       new StatusBarWidget(),
     ),
   );
@@ -41,16 +39,12 @@ class PrintedLine {
   final List<PrintedLine>? parentShown;
   final int? selected;
 
-  PrintedLine.parent(this.parentShown, this.selected)
-      : text = "..",
-        ast = null;
+  PrintedLine.parent(this.parentShown, this.selected) : text = "..", ast = null;
 
   PrintedLine.parentWithText(this.parentShown, this.text, this.selected)
-      : ast = null;
+    : ast = null;
 
-  PrintedLine.ast(this.ast, this.text)
-      : parentShown = null,
-        selected = null;
+  PrintedLine.ast(this.ast, this.text) : parentShown = null, selected = null;
 }
 
 class AstWidget extends Widget {
@@ -61,8 +55,11 @@ class AstWidget extends Widget {
     shown = [new PrintedLine.ast(ast, textualize(ast))];
   }
 
-  String textualize(ParserAstNode element,
-      {bool indent = false, bool withEndHeader = false}) {
+  String textualize(
+    ParserAstNode element, {
+    bool indent = false,
+    bool withEndHeader = false,
+  }) {
     String header;
     switch (element.type) {
       case ParserAstType.BEGIN:
@@ -104,8 +101,11 @@ class AstWidget extends Widget {
       if (selected == row) {
         // Mark line with blue background.
         for (int column = 0; column < output.columns; column++) {
-          output.setCell(row - printLineFrom, column,
-              backgroundColor: BackgroundColor.Blue);
+          output.setCell(
+            row - printLineFrom,
+            column,
+            backgroundColor: BackgroundColor.Blue,
+          );
         }
       }
 
@@ -131,12 +131,21 @@ class AstWidget extends Widget {
       List<ParserAstNode>? children = selectedElement.ast!.children;
       if (children != null) {
         for (int i = 0; i < children.length; i++) {
-          shown.add(new PrintedLine.ast(
-              children[i], textualize(children[i], indent: i > 0)));
+          shown.add(
+            new PrintedLine.ast(
+              children[i],
+              textualize(children[i], indent: i > 0),
+            ),
+          );
         }
       }
-      shown.add(new PrintedLine.parentWithText(shown,
-          textualize(selectedElement.ast!, withEndHeader: true), shown.length));
+      shown.add(
+        new PrintedLine.parentWithText(
+          shown,
+          textualize(selectedElement.ast!, withEndHeader: true),
+          shown.length,
+        ),
+      );
       selected = 0;
     }
   }
@@ -147,14 +156,14 @@ class AstWidget extends Widget {
         data[0] == Application.CSI.codeUnitAt(0) &&
         data[1] == Application.CSI.codeUnitAt(1)) {
       // ANSI codes --- at least on my machine.
-      if (data[2] == 65 /* A */) {
+      if (data[2] == 65 /* A */ ) {
         // CSI _n_ A: Cursor Up (where n is optional defaulting to 1).
         // Up arrow.
         if (selected > 0) {
           selected--;
           return true;
         }
-      } else if (data[2] == 66 /* B */) {
+      } else if (data[2] == 66 /* B */ ) {
         // CSI _n_ B: Cursor Down (where n is optional defaulting to 1).
         // Down arrow.
         if (selected < shown.length - 1) {
@@ -186,12 +195,20 @@ class StatusBarWidget extends Widget {
     String leftString = "> ${latestInput ?? ""}";
     String rightString = "Press q or Ctrl-C to quit";
     for (int i = 0; i < leftString.length; i++) {
-      output.setCell(0, i,
-          char: leftString[i], backgroundColor: BackgroundColor.Red);
+      output.setCell(
+        0,
+        i,
+        char: leftString[i],
+        backgroundColor: BackgroundColor.Red,
+      );
     }
     for (int i = 0; i < rightString.length; i++) {
-      output.setCell(output.rows - 1, output.columns - rightString.length + i,
-          char: rightString[i], backgroundColor: BackgroundColor.Red);
+      output.setCell(
+        output.rows - 1,
+        output.columns - rightString.length + i,
+        char: rightString[i],
+        backgroundColor: BackgroundColor.Red,
+      );
     }
   }
 

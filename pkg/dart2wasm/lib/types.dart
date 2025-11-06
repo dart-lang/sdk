@@ -406,7 +406,7 @@ class Types {
     }
     final checkOnlyNullAssignability =
         _requiresOnlyNullAssignabilityCheck(operandType, testedAgainstType);
-    final isCheckers = isCheckersForModule(b.module);
+    final isCheckers = isCheckersForModule(b.moduleBuilder);
     final (typeToCheck, :checkArguments) =
         isCheckers.canUseTypeCheckHelper(testedAgainstType, operandType);
     if (!checkOnlyNullAssignability && typeToCheck != null) {
@@ -482,7 +482,7 @@ class Types {
     final checkOnlyNullAssignability = !isCovarianceCheck &&
         _requiresOnlyNullAssignabilityCheck(operandType, testedAgainstType);
 
-    final asCheckers = asCheckersForModule(b.module);
+    final asCheckers = asCheckersForModule(b.moduleBuilder);
     final (typeToCheck, :checkArguments) =
         asCheckers.canUseTypeCheckHelper(testedAgainstType, operandType);
     if (!checkOnlyNullAssignability && typeToCheck != null) {
@@ -827,7 +827,7 @@ class IsCheckerCodeGenerator implements CodeGenerator {
       const bool forceInline = true;
       b.invoke(
           translator.types
-              .isCheckersForModule(b.module)
+              .isCheckersForModule(b.moduleBuilder)
               .generateIsChecker(testedAgainstType, false, false),
           forceInline: forceInline);
       b.local_set(boolTemp);
@@ -1014,7 +1014,7 @@ class AsCheckerCodeGenerator implements CodeGenerator {
     // performance.
     const bool forceInline = true;
     b.invoke(
-        translator.types.isCheckersForModule(b.module).generateIsChecker(
+        translator.types.isCheckersForModule(b.moduleBuilder).generateIsChecker(
             testedAgainstType, checkArguments, operandIsNullable),
         forceInline: forceInline);
     b.br_if(asCheckBlock);

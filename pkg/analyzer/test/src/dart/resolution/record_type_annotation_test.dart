@@ -30,12 +30,12 @@ RecordTypeAnnotation
     RecordTypeAnnotationPositionalField
       type: NamedType
         name: int
-        element2: dart:core::@class::int
+        element: dart:core::@class::int
         type: int
     RecordTypeAnnotationPositionalField
       type: NamedType
         name: String
-        element2: dart:core::@class::String
+        element: dart:core::@class::String
         type: String
   rightParenthesis: )
   type: (int, String)
@@ -57,12 +57,12 @@ RecordTypeAnnotation
     RecordTypeAnnotationPositionalField
       type: NamedType
         name: int
-        element2: dart:core::@class::int
+        element: dart:core::@class::int
         type: int
     RecordTypeAnnotationPositionalField
       type: NamedType
         name: String
-        element2: dart:core::@class::String
+        element: dart:core::@class::String
         type: String
   rightParenthesis: )
   type: (int, String)
@@ -75,7 +75,7 @@ RecordTypeAnnotation
 // @dart = 2.19
 void f(({int f1, String f2}) x) {}
 ''',
-      [error(ParserErrorCode.EXPERIMENT_NOT_ENABLED, 23, 1)],
+      [error(ParserErrorCode.experimentNotEnabled, 23, 1)],
     );
 
     var node = findNode.singleFormalParameterList;
@@ -85,11 +85,12 @@ FormalParameterList
   parameter: SimpleFormalParameter
     type: NamedType
       name: <empty> <synthetic>
-      element2: <null>
+      element: <null>
       type: InvalidType
     name: x
     declaredElement: <testLibraryFragment> x@45
-      type: InvalidType
+      element: isPublic
+        type: InvalidType
   rightParenthesis: )
 ''');
   }
@@ -100,7 +101,7 @@ FormalParameterList
 // @dart = 2.19
 void f((int, String) x) {}
 ''',
-      [error(ParserErrorCode.EXPERIMENT_NOT_ENABLED, 23, 1)],
+      [error(ParserErrorCode.experimentNotEnabled, 23, 1)],
     );
 
     var node = findNode.singleFormalParameterList;
@@ -110,11 +111,12 @@ FormalParameterList
   parameter: SimpleFormalParameter
     type: NamedType
       name: <empty> <synthetic>
-      element2: <null>
+      element: <null>
       type: InvalidType
     name: x
     declaredElement: <testLibraryFragment> x@37
-      type: InvalidType
+      element: isPublic
+        type: InvalidType
   rightParenthesis: )
 ''');
   }
@@ -135,12 +137,12 @@ RecordTypeAnnotation
     RecordTypeAnnotationPositionalField
       type: NamedType
         name: int
-        element2: dart:core::@class::int
+        element: dart:core::@class::int
         type: int
     RecordTypeAnnotationPositionalField
       type: NamedType
         name: String
-        element2: dart:core::@class::String
+        element: dart:core::@class::String
         type: String
   rightParenthesis: )
   type: (int, String)
@@ -163,12 +165,12 @@ RecordTypeAnnotation
     RecordTypeAnnotationPositionalField
       type: NamedType
         name: int
-        element2: dart:core::@class::int
+        element: dart:core::@class::int
         type: int
     RecordTypeAnnotationPositionalField
       type: NamedType
         name: String
-        element2: dart:core::@class::String
+        element: dart:core::@class::String
         type: String
   rightParenthesis: )
   type: (int, String)
@@ -191,12 +193,12 @@ RecordTypeAnnotation
     RecordTypeAnnotationPositionalField
       type: NamedType
         name: int
-        element2: dart:core::@class::int
+        element: dart:core::@class::int
         type: int
     RecordTypeAnnotationPositionalField
       type: NamedType
         name: String
-        element2: dart:core::@class::String
+        element: dart:core::@class::String
         type: String
   namedFields: RecordTypeAnnotationNamedFields
     leftBracket: {
@@ -204,7 +206,7 @@ RecordTypeAnnotation
       RecordTypeAnnotationNamedField
         type: NamedType
           name: bool
-          element2: dart:core::@class::bool
+          element: dart:core::@class::bool
           type: bool
         name: f3
     rightBracket: }
@@ -231,13 +233,13 @@ RecordTypeAnnotation
       RecordTypeAnnotationNamedField
         type: NamedType
           name: int
-          element2: dart:core::@class::int
+          element: dart:core::@class::int
           type: int
         name: f1
       RecordTypeAnnotationNamedField
         type: NamedType
           name: String
-          element2: dart:core::@class::String
+          element: dart:core::@class::String
           type: String
         name: f2
     rightBracket: }
@@ -262,12 +264,12 @@ RecordTypeAnnotation
     RecordTypeAnnotationPositionalField
       type: NamedType
         name: int
-        element2: dart:core::@class::int
+        element: dart:core::@class::int
         type: int
     RecordTypeAnnotationPositionalField
       type: NamedType
         name: String
-        element2: dart:core::@class::String
+        element: dart:core::@class::String
         type: String
   rightParenthesis: )
   type: (int, String)
@@ -287,12 +289,12 @@ RecordTypeAnnotation
     RecordTypeAnnotationPositionalField
       type: NamedType
         name: int
-        element2: dart:core::@class::int
+        element: dart:core::@class::int
         type: int
     RecordTypeAnnotationPositionalField
       type: NamedType
         name: String
-        element2: dart:core::@class::String
+        element: dart:core::@class::String
         type: String
   rightParenthesis: )
   type: (int, String)
@@ -312,12 +314,12 @@ RecordTypeAnnotation
     RecordTypeAnnotationPositionalField
       type: NamedType
         name: int
-        element2: dart:core::@class::int
+        element: dart:core::@class::int
         type: int
     RecordTypeAnnotationPositionalField
       type: NamedType
         name: String
-        element2: dart:core::@class::String
+        element: dart:core::@class::String
         type: String
   rightParenthesis: )
   question: ?
@@ -338,12 +340,12 @@ RecordTypeAnnotation
     RecordTypeAnnotationPositionalField
       type: NamedType
         name: int
-        element2: dart:core::@class::int
+        element: dart:core::@class::int
         type: int
     RecordTypeAnnotationPositionalField
       type: NamedType
         name: String
-        element2: dart:core::@class::String
+        element: dart:core::@class::String
         type: String
   rightParenthesis: )
   type: (int, String)
@@ -366,12 +368,12 @@ RecordTypeAnnotation
     RecordTypeAnnotationPositionalField
       type: NamedType
         name: int
-        element2: dart:core::@class::int
+        element: dart:core::@class::int
         type: int
     RecordTypeAnnotationPositionalField
       type: NamedType
         name: String
-        element2: dart:core::@class::String
+        element: dart:core::@class::String
         type: String
   rightParenthesis: )
   type: (int, String)

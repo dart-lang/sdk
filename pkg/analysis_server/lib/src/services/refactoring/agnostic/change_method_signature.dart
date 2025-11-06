@@ -696,31 +696,29 @@ class _SignatureUpdater {
     required ArgumentList argumentList,
     required ChangeBuilder builder,
   }) async {
-    var formalParameters =
-        signatureUpdate.formalParameters
-            .whereNot(excludedFormalParameters.contains)
-            .toList();
+    var formalParameters = signatureUpdate.formalParameters
+        .whereNot(excludedFormalParameters.contains)
+        .toList();
 
     var frameworkStatus = await framework.writeArguments(
-      formalParameterUpdates:
-          formalParameters.map((update) {
-            // TODO(scheglov): Maybe support adding formal parameters.
-            var existing = selectionState.formalParameters[update.id];
-            var reference = _asFrameworkFormalParameterReference(existing);
-            switch (update.kind) {
-              case FormalParameterKind.requiredPositional:
-              case FormalParameterKind.optionalPositional:
-                return framework.FormalParameterUpdateExistingPositional(
-                  reference: reference,
-                );
-              case FormalParameterKind.requiredNamed:
-              case FormalParameterKind.optionalNamed:
-                return framework.FormalParameterUpdateExistingNamed(
-                  reference: reference,
-                  name: existing.name,
-                );
-            }
-          }).toList(),
+      formalParameterUpdates: formalParameters.map((update) {
+        // TODO(scheglov): Maybe support adding formal parameters.
+        var existing = selectionState.formalParameters[update.id];
+        var reference = _asFrameworkFormalParameterReference(existing);
+        switch (update.kind) {
+          case FormalParameterKind.requiredPositional:
+          case FormalParameterKind.optionalPositional:
+            return framework.FormalParameterUpdateExistingPositional(
+              reference: reference,
+            );
+          case FormalParameterKind.requiredNamed:
+          case FormalParameterKind.optionalNamed:
+            return framework.FormalParameterUpdateExistingNamed(
+              reference: reference,
+              name: existing.name,
+            );
+        }
+      }).toList(),
       removedNamedFormalParameters:
           signatureUpdate.removedNamedFormalParameters,
       trailingComma: signatureUpdate.argumentsTrailingComma,
@@ -1102,19 +1100,17 @@ class _SignatureUpdater {
       }
     }
 
-    var selectionPositional =
-        selectionState.formalParameters
-            .where((state) => state.kind.isPositional)
-            .toList();
+    var selectionPositional = selectionState.formalParameters
+        .where((state) => state.kind.isPositional)
+        .toList();
     if (positional.length != selectionPositional.length) {
       return null;
     }
 
     for (var i = 0; i < positional.length; i++) {
-      var positionalKind =
-          positional[i].isRequiredPositional
-              ? FormalParameterKind.requiredPositional
-              : FormalParameterKind.optionalPositional;
+      var positionalKind = positional[i].isRequiredPositional
+          ? FormalParameterKind.requiredPositional
+          : FormalParameterKind.optionalPositional;
       if (positionalKind != selectionPositional[i].kind) {
         return null;
       }

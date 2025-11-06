@@ -27,6 +27,17 @@ class ConstantExpressionsDependenciesFinder extends RecursiveAstVisitor {
   }
 
   @override
+  void visitDotShorthandConstructorInvocation(
+    DotShorthandConstructorInvocation node,
+  ) {
+    if (node.isConst) {
+      _find(node);
+    } else {
+      super.visitDotShorthandConstructorInvocation(node);
+    }
+  }
+
+  @override
   void visitInstanceCreationExpression(InstanceCreationExpression node) {
     if (node.isConst) {
       _find(node);
@@ -157,8 +168,7 @@ class ConstantFinder extends RecursiveAstVisitor<void> {
       if (fragment != null) {
         var element = fragment.element;
         constantsToCompute.add(element);
-        // TODO(scheglov): remove cast
-        constantsToCompute.addAll(element.baseElement.formalParameters.cast());
+        constantsToCompute.addAll(element.baseElement.formalParameters);
       }
     }
   }
@@ -182,7 +192,7 @@ class ConstantFinder extends RecursiveAstVisitor<void> {
     constantsToCompute.add(element);
 
     configuration.addErrorNode(
-      fromElement: element.constantInitializer?.expression,
+      fromElement: element.constantInitializer,
       fromAst: node,
     );
   }
@@ -202,7 +212,7 @@ class ConstantFinder extends RecursiveAstVisitor<void> {
       // Fill error nodes.
       if (element.constantInitializer case var constantInitializer?) {
         configuration.addErrorNode(
-          fromElement: constantInitializer.expression,
+          fromElement: constantInitializer,
           fromAst: node.initializer,
         );
       }
@@ -221,6 +231,19 @@ class ReferenceFinder extends RecursiveAstVisitor<void> {
   /// given variable to other variables and to add those references to the given
   /// graph. The [_callback] will be invoked for every dependency found.
   ReferenceFinder(this._callback);
+
+  @override
+  void visitDotShorthandConstructorInvocation(
+    covariant DotShorthandConstructorInvocationImpl node,
+  ) {
+    if (node.isConst) {
+      var constructor = node.constructorName.element?.baseElement;
+      if (constructor is ConstructorElementImpl && constructor.isConst) {
+        _callback(constructor);
+      }
+    }
+    super.visitDotShorthandConstructorInvocation(node);
+  }
 
   @override
   void visitInstanceCreationExpression(

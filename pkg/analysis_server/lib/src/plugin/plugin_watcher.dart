@@ -48,7 +48,8 @@ class PluginWatcher implements DriverWatcher {
     // At some point, we will stop adding legacy plugins to the context root.
     _addLegacyPlugins(driver);
 
-    if (driver.pluginConfigurations.isEmpty) {
+    var pluginsOptions = driver.pluginsOptions;
+    if (pluginsOptions == null || pluginsOptions.configurations.isEmpty) {
       // Call the plugin manager "initialized."
       if (!manager.initializedCompleter.isCompleted) {
         manager.initializedCompleter.complete();
@@ -105,9 +106,14 @@ class PluginWatcher implements DriverWatcher {
   }
 
   void _addPlugins(AnalysisDriver driver) {
-    var pluginConfigurations = driver.pluginConfigurations;
+    var pluginsOptions = driver.pluginsOptions;
+    var pluginConfigurations = pluginsOptions?.configurations ?? const [];
+    var pluginDependencyOverrides = pluginsOptions?.dependencyOverrides;
     var contextRoot = driver.analysisContext!.contextRoot;
-    var packageGenerator = PluginPackageGenerator(pluginConfigurations);
+    var packageGenerator = PluginPackageGenerator(
+      configurations: pluginConfigurations,
+      dependencyOverrides: pluginDependencyOverrides,
+    );
     // The path here just needs to be unique per context root.
 
     var sharedPluginFolder = manager.pluginStateFolder(contextRoot.root.path);
@@ -124,7 +130,7 @@ class PluginWatcher implements DriverWatcher {
         .getChildAssumingFile('plugin.dart')
         .writeAsStringSync(packageGenerator.generateEntrypoint());
     manager.instrumentationService.logInfo(
-      'Adding ${driver.pluginConfigurations.length} analyzer plugins for '
+      'Adding ${pluginConfigurations.length} analyzer plugins for '
       "context root: '${contextRoot.root.path}'",
     );
     manager.addPluginToContextRoot(

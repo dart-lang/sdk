@@ -50,7 +50,7 @@ class DartFixContext implements FixContext {
   /// least some getFixes requsts. Caching the response can speed up such
   /// requests.
   final Map<String, Future<Map<LibraryElement, Element>>>
-      _cachedTopLevelDeclarations = {};
+  _cachedTopLevelDeclarations = {};
 
   @override
   final Diagnostic diagnostic;
@@ -64,8 +64,8 @@ class DartFixContext implements FixContext {
     required Diagnostic error,
     this.autoTriggered = false,
     CorrectionUtils? correctionUtils,
-  })  : diagnostic = error,
-        correctionUtils = correctionUtils ?? CorrectionUtils(unitResult);
+  }) : diagnostic = error,
+       correctionUtils = correctionUtils ?? CorrectionUtils(unitResult);
 
   @override
   Diagnostic get error => diagnostic;
@@ -92,12 +92,10 @@ class DartFixContext implements FixContext {
     }
 
     var analysisDriver = analysisContext.driver;
-    await analysisDriver.discoverAvailableFiles();
+    analysisDriver.discoverAvailableFiles();
 
     var fsState = analysisDriver.fsState;
-    var filter = FileStateFilter(
-      fsState.getFileForPath(unitResult.path),
-    );
+    var filter = FileStateFilter(fsState.getFileForPath(unitResult.path));
 
     for (var file in fsState.knownFiles.toList()) {
       if (!filter.shouldInclude(file)) {
@@ -109,10 +107,10 @@ class DartFixContext implements FixContext {
         continue;
       }
 
-      if (elementResult.element2.exportedExtensions
+      if (elementResult.element.exportedExtensions
           .havingMemberWithBaseName(memberName)
           .isNotEmpty) {
-        yield elementResult.element2;
+        yield elementResult.element;
       }
     }
   }

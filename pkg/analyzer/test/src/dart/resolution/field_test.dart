@@ -24,7 +24,7 @@ class A {
   late Object f = super;
 }
 ''',
-      [error(ParserErrorCode.MISSING_ASSIGNABLE_SELECTOR, 28, 5)],
+      [error(ParserErrorCode.missingAssignableSelector, 28, 5)],
     );
 
     var node = findNode.singleFieldDeclaration;
@@ -34,7 +34,7 @@ FieldDeclaration
     lateKeyword: late
     type: NamedType
       name: Object
-      element2: dart:core::@class::Object
+      element: dart:core::@class::Object
       type: Object
     variables
       VariableDeclaration
@@ -63,7 +63,7 @@ FieldDeclaration
     lateKeyword: late
     type: NamedType
       name: Object
-      element2: dart:core::@class::Object
+      element: dart:core::@class::Object
       type: Object
     variables
       VariableDeclaration
@@ -86,13 +86,7 @@ class A {
   final int b = a;
 }
 ''',
-      [
-        error(
-          CompileTimeErrorCode.IMPLICIT_THIS_REFERENCE_IN_INITIALIZER,
-          45,
-          1,
-        ),
-      ],
+      [error(CompileTimeErrorCode.implicitThisReferenceInInitializer, 45, 1)],
     );
 
     var node = findNode.fieldDeclaration('b =');
@@ -102,7 +96,7 @@ FieldDeclaration
     keyword: final
     type: NamedType
       name: int
-      element2: dart:core::@class::int
+      element: dart:core::@class::int
       type: int
     variables
       VariableDeclaration
@@ -126,13 +120,7 @@ class A {
   final int b = a;
 }
 ''',
-      [
-        error(
-          CompileTimeErrorCode.IMPLICIT_THIS_REFERENCE_IN_INITIALIZER,
-          44,
-          1,
-        ),
-      ],
+      [error(CompileTimeErrorCode.implicitThisReferenceInInitializer, 44, 1)],
     );
 
     var node = findNode.fieldDeclaration('b =');
@@ -142,7 +130,7 @@ FieldDeclaration
     keyword: final
     type: NamedType
       name: int
-      element2: dart:core::@class::int
+      element: dart:core::@class::int
       type: int
     variables
       VariableDeclaration
@@ -166,13 +154,7 @@ class A {
   final int b = a();
 }
 ''',
-      [
-        error(
-          CompileTimeErrorCode.IMPLICIT_THIS_REFERENCE_IN_INITIALIZER,
-          42,
-          1,
-        ),
-      ],
+      [error(CompileTimeErrorCode.implicitThisReferenceInInitializer, 42, 1)],
     );
 
     var node = findNode.fieldDeclaration('b =');
@@ -182,7 +164,7 @@ FieldDeclaration
     keyword: final
     type: NamedType
       name: int
-      element2: dart:core::@class::int
+      element: dart:core::@class::int
       type: int
     variables
       VariableDeclaration
@@ -211,7 +193,7 @@ class A {
   final a = this;
 }
 ''',
-      [error(CompileTimeErrorCode.INVALID_REFERENCE_TO_THIS, 22, 4)],
+      [error(CompileTimeErrorCode.invalidReferenceToThis, 22, 4)],
     );
 
     var node = findNode.singleFieldDeclaration;
@@ -303,7 +285,7 @@ FieldDeclaration
             arguments
               NamedType
                 name: T
-                element2: #E0 T
+                element: #E0 T
                 type: T
             rightBracket: >
           leftBracket: [

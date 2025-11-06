@@ -28,8 +28,8 @@ void f() {
 }
 ''',
       [
-        error(ParserErrorCode.MIXIN_DECLARES_CONSTRUCTOR, 12, 1),
-        error(CompileTimeErrorCode.MIXIN_INSTANTIATE, 45, 1),
+        error(ParserErrorCode.mixinDeclaresConstructor, 12, 1),
+        error(CompileTimeErrorCode.mixinInstantiate, 45, 1),
       ],
     );
 
@@ -40,7 +40,7 @@ InstanceCreationExpression
   constructorName: ConstructorName
     type: NamedType
       name: M
-      element2: <testLibrary>::@mixin::M
+      element: <testLibrary>::@mixin::M
       type: M
     period: .
     name: SimpleIdentifier
@@ -64,7 +64,7 @@ void f() {
   new M();
 }
 ''',
-      [error(CompileTimeErrorCode.MIXIN_INSTANTIATE, 29, 1)],
+      [error(CompileTimeErrorCode.mixinInstantiate, 29, 1)],
     );
 
     var node = findNode.singleInstanceCreationExpression;
@@ -74,7 +74,7 @@ InstanceCreationExpression
   constructorName: ConstructorName
     type: NamedType
       name: M
-      element2: <testLibrary>::@mixin::M
+      element: <testLibrary>::@mixin::M
       type: M
     element: <null>
   argumentList: ArgumentList

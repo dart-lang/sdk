@@ -24,10 +24,10 @@ class AddConst extends ResolvedCorrectionProducer {
       CorrectionApplicability.automatically;
 
   @override
-  FixKind get fixKind => DartFixKind.ADD_CONST;
+  FixKind get fixKind => DartFixKind.addConst;
 
   @override
-  FixKind get multiFixKind => DartFixKind.ADD_CONST_MULTI;
+  FixKind get multiFixKind => DartFixKind.addConstMulti;
 
   @override
   Future<void> compute(ChangeBuilder builder) async {
@@ -95,9 +95,15 @@ class AddConst extends ResolvedCorrectionProducer {
       await _insertBeforeNode(builder, targetNode);
       return;
     }
-    if (targetNode case InstanceCreationExpression(:var parent, :var keyword)) {
-      var constDeclarations =
-          getCodeStyleOptions(unitResult.file).preferConstDeclarations;
+    if (targetNode
+        case InstanceCreationExpression(:var parent, :var keyword) ||
+            DotShorthandConstructorInvocation(
+              :var parent,
+              constKeyword: var keyword,
+            )) {
+      var constDeclarations = getCodeStyleOptions(
+        unitResult.file,
+      ).preferConstDeclarations;
 
       if (parent is VariableDeclaration && constDeclarations) {
         if (parent.parent case VariableDeclarationList(
@@ -110,7 +116,7 @@ class AddConst extends ResolvedCorrectionProducer {
           return;
         }
       }
-      if (keyword == null) {
+      if (keyword == null && targetNode is Expression) {
         await _insertBeforeNode(builder, targetNode);
         return;
       }
@@ -179,7 +185,7 @@ class AddConst extends ResolvedCorrectionProducer {
     var diagnostics = [
       ...unitResult.diagnostics.where(
         (error) =>
-            error.diagnosticCode == LinterLintCode.prefer_const_constructors,
+            error.diagnosticCode == LinterLintCode.preferConstConstructors,
       ),
     ];
     var ranges = diagnostics.map(range.diagnostic);
@@ -215,8 +221,9 @@ class AddConst extends ResolvedCorrectionProducer {
   /// one of [targetNode]s ancestors.
   bool _isAncestorConstant(List<SourceEdit> edits, Expression targetNode) {
     var child = targetNode.parent;
-    var editsWhichStartWithConst =
-        edits.where((e) => e.replacement.startsWith('const')).toList();
+    var editsWhichStartWithConst = edits
+        .where((e) => e.replacement.startsWith('const'))
+        .toList();
     if (editsWhichStartWithConst.isEmpty) {
       return false;
     }

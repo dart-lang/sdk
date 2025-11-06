@@ -13,6 +13,7 @@ import "dart:async"
     show
         Completer,
         Future,
+        MultiStreamController,
         Stream,
         StreamConsumer,
         StreamController,
@@ -28,6 +29,8 @@ import "dart:convert" show Encoding, utf8;
 import "dart:developer" show registerExtension;
 
 import "dart:isolate" show RawReceivePort, ReceivePort, SendPort;
+
+import "dart:ffi" as ffi;
 
 import "dart:math" show min;
 

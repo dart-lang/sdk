@@ -48,6 +48,8 @@ void main([List<String> args = const []]) async {
           workingDirectory: dartAppUri,
           logger: logger,
         );
+        expect(result.stdout, contains('Running build hooks'));
+        expect(result.stdout, isNot(contains('Running link hooks')));
         expectDartAppStdout(result.stdout);
         if (verbose) {
           expect(result.stdout, contains('build.dart'));

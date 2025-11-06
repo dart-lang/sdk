@@ -986,14 +986,13 @@ abstract class ImportAnalyzerTest extends PubPackageAnalysisServerTest {
     Map<_ExpectedElement, List<String>>? expectedStayingReferences,
   }) async {
     createDefaultFiles();
-    var testCode = TestCode.parse(code);
+    var testCode = TestCode.parseNormalized(code);
     var pathToInclude = newFile(testFilePath, testCode.code).path;
-    var context =
-        AnalysisContextCollection(
-          includedPaths: [pathToInclude],
-          resourceProvider: resourceProvider,
-          sdkPath: sdkRoot.path,
-        ).contexts[0];
+    var context = AnalysisContextCollection(
+      includedPaths: [pathToInclude],
+      resourceProvider: resourceProvider,
+      sdkPath: sdkRoot.path,
+    ).contexts[0];
     var result =
         await context.currentSession.getResolvedLibrary(pathToInclude)
             as ResolvedLibraryResult;

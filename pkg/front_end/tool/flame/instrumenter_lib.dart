@@ -52,13 +52,20 @@ void report(List<String> names) {
   StringBuffer sb = new StringBuffer();
   sb.write("[");
 
-  WithOutputInfo withOutputInfo =
-      new WithOutputInfo(names, sb, randomAccessFile);
+  WithOutputInfo withOutputInfo = new WithOutputInfo(
+    names,
+    sb,
+    randomAccessFile,
+  );
 
   // Report previously delayed data.
   for (DelayedReportData data in delayedReportData) {
-    _writeFlameOutputToBuffer(withOutputInfo, data.procedureNumber,
-        data.enterMicroseconds, data.duration);
+    _writeFlameOutputToBuffer(
+      withOutputInfo,
+      data.procedureNumber,
+      data.enterMicroseconds,
+      data.duration,
+    );
   }
 
   // Report "new" data.
@@ -96,26 +103,27 @@ void _processData(WithOutputInfo? withOutputInfo, int factorForMicroSeconds) {
       int enterProcedureNumber = _activeStack.removeLast();
       if (enterProcedureNumber != procedureNumber) {
         if (withOutputInfo != null) {
-          print("DEBUG: Now exiting "
-              "${withOutputInfo.names[procedureNumber]}.");
-          print("DEBUG: Latest entering "
-              "${withOutputInfo.names[enterProcedureNumber]}.");
+          print(
+            "DEBUG: Now exiting "
+            "${withOutputInfo.names[procedureNumber]}.",
+          );
+          print(
+            "DEBUG: Latest entering "
+            "${withOutputInfo.names[enterProcedureNumber]}.",
+          );
         }
-        bool foundMatch = false;
-        int steps = 1;
+        int? foundAt;
         for (int i = _activeStack.length - 2; i >= 0; i -= 2) {
-          steps++;
           if (_activeStack[i] == procedureNumber) {
-            foundMatch = true;
+            foundAt = i;
             break;
           }
         }
-        if (foundMatch) {
+        if (foundAt != null) {
           _activeStack.add(enterProcedureNumber);
           _activeStack.add(enterTicks);
-          enterProcedureNumber =
-              _activeStack.removeAt(_activeStack.length - steps * 2);
-          enterTicks = _activeStack.removeAt(_activeStack.length - steps * 2);
+          enterProcedureNumber = _activeStack.removeAt(foundAt);
+          enterTicks = _activeStack.removeAt(foundAt);
           assert(enterProcedureNumber != procedureNumber);
         } else {
           throw "Mismatching enter/exit with no matching "
@@ -135,35 +143,46 @@ void _processData(WithOutputInfo? withOutputInfo, int factorForMicroSeconds) {
       }
       if (withOutputInfo != null) {
         _writeFlameOutputToBuffer(
-            withOutputInfo, procedureNumber, enterMicroseconds, duration);
+          withOutputInfo,
+          procedureNumber,
+          enterMicroseconds,
+          duration,
+        );
       } else {
         // Save for later output.
-        delayedReportData.add(new DelayedReportData(
-            procedureNumber, enterMicroseconds, duration));
+        delayedReportData.add(
+          new DelayedReportData(procedureNumber, enterMicroseconds, duration),
+        );
       }
     } else {
       throw "Error: $enterOrExit expected to be 0 or 1.";
     }
     if (withOutputInfo != null && withOutputInfo.sb.length > 1024 * 1024) {
-      withOutputInfo.randomAccessFile
-          .writeStringSync(withOutputInfo.sb.toString());
+      withOutputInfo.randomAccessFile.writeStringSync(
+        withOutputInfo.sb.toString(),
+      );
       withOutputInfo.sb.clear();
     }
   }
   data.clear();
 }
 
-void _writeFlameOutputToBuffer(WithOutputInfo withOutputInfo,
-    int procedureNumber, double enterMicroseconds, double duration) {
+void _writeFlameOutputToBuffer(
+  WithOutputInfo withOutputInfo,
+  int procedureNumber,
+  double enterMicroseconds,
+  double duration,
+) {
   withOutputInfo.sb.write(withOutputInfo.separator);
   withOutputInfo.separator = ",\n";
   String name = withOutputInfo.names[procedureNumber];
 
   String displayName = name.substring(name.indexOf("|") + 1);
   String file = name.substring(0, name.indexOf("|"));
-  withOutputInfo.sb
-      .write('{"ph": "X", "ts": $enterMicroseconds, "dur": $duration, '
-          '"name": "$displayName", "cat": "$file", "pid": 1, "tid": 1}');
+  withOutputInfo.sb.write(
+    '{"ph": "X", "ts": $enterMicroseconds, "dur": $duration, '
+    '"name": "$displayName", "cat": "$file", "pid": 1, "tid": 1}',
+  );
 }
 
 void _reportCandidates(int factorForMicroSeconds, List<String> names) {
@@ -178,8 +197,10 @@ void _reportCandidates(int factorForMicroSeconds, List<String> names) {
       String name = names[i];
       sb.writeln(name);
       sbDebug.writeln(name);
-      sbDebug.writeln(" => ${sum.count}, ${sum.totalTicks}, "
-          "${sum.average}, $averageMicroseconds");
+      sbDebug.writeln(
+        " => ${sum.count}, ${sum.totalTicks}, "
+        "${sum.average}, $averageMicroseconds",
+      );
     }
   }
   if (sb.length > 0) {
@@ -209,5 +230,8 @@ class DelayedReportData {
   final double duration;
 
   DelayedReportData(
-      this.procedureNumber, this.enterMicroseconds, this.duration);
+    this.procedureNumber,
+    this.enterMicroseconds,
+    this.duration,
+  );
 }

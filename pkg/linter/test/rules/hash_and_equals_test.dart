@@ -64,11 +64,7 @@ enum A {
 }
 ''',
       [
-        error(
-          CompileTimeErrorCode.ILLEGAL_CONCRETE_ENUM_MEMBER_DECLARATION,
-          46,
-          2,
-        ),
+        error(CompileTimeErrorCode.illegalConcreteEnumMemberDeclaration, 46, 2),
         // no lint
       ],
     );
@@ -119,11 +115,7 @@ extension type E(Object o) {
 ''',
       [
         // No lint.
-        error(
-          CompileTimeErrorCode.EXTENSION_TYPE_DECLARES_MEMBER_OF_OBJECT,
-          45,
-          2,
-        ),
+        error(CompileTimeErrorCode.extensionTypeDeclaresMemberOfObject, 45, 2),
       ],
     );
   }

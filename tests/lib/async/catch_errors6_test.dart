@@ -9,9 +9,9 @@ import 'package:expect/expect.dart';
 
 import 'catch_errors.dart';
 
-main() {
+void main() {
   asyncStart();
-  var completer = new Completer();
+  var completer = Completer();
   var errorHandlerOrDoneHasBeenExecuted = false;
   // Test that `catchErrors` doesn't shut down if a future is never completed.
   catchErrors(() {

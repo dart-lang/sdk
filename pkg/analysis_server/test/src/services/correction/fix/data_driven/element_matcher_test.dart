@@ -6,6 +6,7 @@ import 'package:analysis_server/src/services/correction/fix/data_driven/element_
 import 'package:analysis_server/src/services/correction/fix/data_driven/element_kind.dart';
 import 'package:analysis_server/src/services/correction/fix/data_driven/element_matcher.dart';
 import 'package:analyzer/utilities/package_config_file_builder.dart';
+import 'package:collection/collection.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -19,6 +20,51 @@ void main() {
 }
 
 abstract class AbstractElementMatcherTest extends DataDrivenFixProcessorTest {
+  /// Assert that there is exactly one [ElementMatcher] for the node described
+  /// by [search] that satisfies `expectedXyz` requirements.
+  void _assertHasMatcher(
+    String search, {
+    List<String>? expectedComponents,
+    List<ElementKind>? expectedKinds,
+    List<String>? expectedUris,
+  }) {
+    var node = findNode.any(search);
+    var matchers = ElementMatcher.matchersForNode(
+      node,
+      node.beginToken,
+      testLibraryElement,
+    );
+    var matchedMatchers = <ElementMatcher>[];
+    for (var matcher in matchers) {
+      if (expectedUris != null) {
+        if (!const UnorderedIterableEquality<Uri>().equals(
+          matcher.importedUris,
+          expectedUris.map((uri) => Uri.parse(uri)),
+        )) {
+          continue;
+        }
+      }
+      if (expectedComponents != null) {
+        if (!const ListEquality<String>().equals(
+          matcher.components,
+          expectedComponents,
+        )) {
+          continue;
+        }
+      }
+      if (expectedKinds != null) {
+        if (!const ListEquality<ElementKind>().equals(
+          matcher.validKinds,
+          expectedKinds,
+        )) {
+          continue;
+        }
+      }
+      matchedMatchers.add(matcher);
+    }
+    expect(matchedMatchers, hasLength(1));
+  }
+
   void _assertMatcher(
     String search, {
     List<String>? expectedComponents,
@@ -26,7 +72,11 @@ abstract class AbstractElementMatcherTest extends DataDrivenFixProcessorTest {
     List<String>? expectedUris,
   }) {
     var node = findNode.any(search);
-    var matchers = ElementMatcher.matchersForNode(node, node.beginToken);
+    var matchers = ElementMatcher.matchersForNode(
+      node,
+      node.beginToken,
+      testLibraryElement,
+    );
     expect(matchers, hasLength(1));
     var matcher = matchers[0];
     if (expectedUris != null) {
@@ -54,6 +104,14 @@ class ElementMatcherComponentAndKindTest extends AbstractElementMatcherTest {
     ElementKind.getterKind,
     ElementKind.methodKind, // tear-off
     ElementKind.setterKind,
+  ];
+
+  /// The kinds that are expected where a static getter is allowed.
+  static List<ElementKind> staticGetterAccessorKinds = [
+    ElementKind.constantKind,
+    ElementKind.fieldKind,
+    ElementKind.getterKind,
+    ElementKind.methodKind, // tear-off
   ];
 
   /// The kinds that are expected where an invocation is allowed.
@@ -116,6 +174,148 @@ class C {}
     );
   }
 
+  Future<void> test_dotShorthand_constructor_named() async {
+    await resolveTestCode('''
+class A {
+  final int x;
+  A.named(this.x);
+}
+void f() {
+  A a = .named(1);
+}
+''');
+    _assertMatcher(
+      'named(1)',
+      expectedComponents: ['named', 'A'],
+      expectedKinds: [ElementKind.constructorKind],
+    );
+  }
+
+  Future<void> test_dotShorthand_constructor_named_arguments() async {
+    await resolveTestCode('''
+class A {
+  final int x;
+  A.named(this.x);
+}
+void f() {
+  A a = .named(1);
+}
+''');
+    _assertMatcher(
+      '(1)',
+      expectedComponents: ['named', 'A'],
+      expectedKinds: [ElementKind.constructorKind],
+    );
+  }
+
+  Future<void> test_dotShorthand_constructor_unnamed() async {
+    await resolveTestCode('''
+class A {}
+void f() {
+  A a = .new();
+}
+''');
+    _assertMatcher(
+      'new()',
+      expectedComponents: ['new', 'A'],
+      expectedKinds: [ElementKind.constructorKind],
+    );
+  }
+
+  Future<void> test_dotShorthand_enum() async {
+    await resolveTestCode('''
+enum E { a, b, c }
+E f() {
+  return .a;
+}
+''');
+    _assertMatcher(
+      'a;',
+      expectedComponents: ['a', 'E'],
+      expectedKinds: staticGetterAccessorKinds,
+    );
+  }
+
+  Future<void> test_dotShorthand_field() async {
+    await resolveTestCode('''
+class C {
+  static C? field = null;
+}
+void f() {
+  C? c = .field;
+}
+''');
+    _assertMatcher(
+      'field;',
+      expectedComponents: ['field', 'C'],
+      expectedKinds: staticGetterAccessorKinds,
+    );
+  }
+
+  Future<void> test_dotShorthand_getter() async {
+    await resolveTestCode('''
+class C {
+  static C get getter => C();
+}
+void f() {
+  C c = .getter;
+}
+''');
+    _assertMatcher(
+      'getter;',
+      expectedComponents: ['getter', 'C'],
+      expectedKinds: staticGetterAccessorKinds,
+    );
+  }
+
+  Future<void> test_dotShorthand_method() async {
+    await resolveTestCode('''
+class A {
+  static A method() => A();
+}
+void f() {
+  A a = .method();
+}
+''');
+    _assertMatcher(
+      'method();',
+      expectedComponents: ['method', 'A'],
+      expectedKinds: [ElementKind.methodKind, ElementKind.constructorKind],
+    );
+  }
+
+  Future<void> test_dotShorthand_method_arguments() async {
+    await resolveTestCode('''
+class A {
+  static A method({required int x}) => A();
+}
+void f() {
+  A a = .method(x: 1);
+}
+''');
+    _assertMatcher(
+      '(x: 1);',
+      expectedComponents: ['method', 'A'],
+      expectedKinds: [ElementKind.methodKind],
+    );
+  }
+
+  Future<void> test_dotShorthand_method_typeArguments() async {
+    await resolveTestCode('''
+class A {
+  static A method<T>(T t) => A();
+}
+void f() {
+  A a = .method<int>(1);
+}
+''');
+    _assertMatcher(
+      'method<int>(1);',
+      expectedComponents: ['method', 'A'],
+      expectedKinds: [ElementKind.methodKind],
+    );
+  }
+
   Future<void> test_getter_withoutTarget_resolved() async {
     await resolveTestCode('''
 class C {
@@ -145,7 +345,7 @@ void f(String s) {
   s.length;
 }
 ''');
-    _assertMatcher(
+    _assertHasMatcher(
       'length',
       expectedComponents: ['length', 'String'],
       expectedKinds: accessorKinds,
@@ -158,7 +358,7 @@ void f(String s) {
   s.foo;
 }
 ''');
-    _assertMatcher(
+    _assertHasMatcher(
       'foo',
       expectedComponents: ['foo', 'String'],
       expectedKinds: accessorKinds,
@@ -245,7 +445,7 @@ void f(String s) {
   s.substring(2);
 }
 ''');
-    _assertMatcher(
+    _assertHasMatcher(
       'substring',
       expectedComponents: ['substring', 'String'],
       expectedKinds: methodKinds,
@@ -258,7 +458,7 @@ void f(String s) {
   s.foo(2);
 }
 ''');
-    _assertMatcher(
+    _assertHasMatcher(
       'foo',
       expectedComponents: ['foo', 'String'],
       expectedKinds: methodKinds,
@@ -297,7 +497,7 @@ class C {
   set s(String s) {}
 }
 ''');
-    _assertMatcher(
+    _assertHasMatcher(
       's =',
       expectedComponents: ['s', 'C'],
       expectedKinds: accessorKinds,
@@ -310,7 +510,7 @@ void f(String s) {
   s.foo = '';
 }
 ''');
-    _assertMatcher(
+    _assertHasMatcher(
       'foo',
       expectedComponents: ['foo', 'String'],
       expectedKinds: accessorKinds,
@@ -475,9 +675,8 @@ String s = '';
     var packageRootPath = '$workspaceRootPath/other';
     newFile('$packageRootPath/lib/other.dart', '');
     writeTestPackageConfig(
-      config:
-          PackageConfigFileBuilder()
-            ..add(name: 'other', rootPath: packageRootPath),
+      config: PackageConfigFileBuilder()
+        ..add(name: 'other', rootPath: packageRootPath),
     );
 
     await resolveTestCode('''

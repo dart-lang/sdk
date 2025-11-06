@@ -430,6 +430,10 @@ void StubCodeCompiler::GenerateCallNativeThroughSafepointStub() {
   __ ret(R19);
 }
 
+void StubCodeCompiler::GenerateFfiCallTrampolineStub() {
+  __ Breakpoint();  // See ffi_trampolines_arm64.S
+}
+
 void StubCodeCompiler::GenerateLoadBSSEntry(BSS::Relocation relocation,
                                             Register dst,
                                             Register tmp) {
@@ -568,7 +572,7 @@ void StubCodeCompiler::GenerateFfiCallbackTrampolineStub() {
   }
 
   Label async_callback;
-  Label sync_isolate_group_shared_callback;
+  Label sync_isolate_group_bound_callback;
   Label done;
 
   // If GetFfiCallbackMetadata returned a null thread, it means that the async
@@ -582,10 +586,9 @@ void StubCodeCompiler::GenerateFfiCallbackTrampolineStub() {
       Operand(static_cast<uword>(FfiCallbackMetadata::TrampolineType::kAsync)));
   __ b(&async_callback, EQ);
 
-  __ cmp(R9,
-         Operand(static_cast<uword>(
-             FfiCallbackMetadata::TrampolineType::kSyncIsolateGroupShared)));
-  __ b(&sync_isolate_group_shared_callback, EQ);
+  __ cmp(R9, Operand(static_cast<uword>(
+                 FfiCallbackMetadata::TrampolineType::kSyncIsolateGroupBound)));
+  __ b(&sync_isolate_group_bound_callback, EQ);
 
   // Sync callback. The entry point contains the target function, so just call
   // it. DLRT_GetThreadForNativeCallbackTrampoline exited the safepoint, so
@@ -600,11 +603,11 @@ void StubCodeCompiler::GenerateFfiCallbackTrampolineStub() {
 
   __ b(&done);
 
-  __ Bind(&sync_isolate_group_shared_callback);
+  __ Bind(&sync_isolate_group_bound_callback);
 
   __ blr(R10);
 
-  // Exit isolate group shared isolate.
+  // Exit isolate group bound isolate.
   {
     __ SetupDartSP();
     __ EnterFrame(0);
@@ -619,18 +622,18 @@ void StubCodeCompiler::GenerateFfiCallbackTrampolineStub() {
 #if defined(DART_TARGET_OS_FUCHSIA)
     // TODO(https://dartbug.com/52579): Remove.
     if (FLAG_precompiled_mode) {
-      GenerateLoadBSSEntry(BSS::Relocation::DLRT_ExitIsolateGroupSharedIsolate,
+      GenerateLoadBSSEntry(BSS::Relocation::DLRT_ExitIsolateGroupBoundIsolate,
                            R4, R9);
     } else {
       Label call;
       __ ldr(R4, compiler::Address::PC(2 * Instr::kInstrSize));
       __ b(&call);
-      __ Emit64(reinterpret_cast<int64_t>(&DLRT_ExitIsolateGroupSharedIsolate));
+      __ Emit64(reinterpret_cast<int64_t>(&DLRT_ExitIsolateGroupBoundIsolate));
       __ Bind(&call);
     }
 #else
     GenerateLoadFfiCallbackMetadataRuntimeFunction(
-        FfiCallbackMetadata::kExitIsolateGroupSharedIsolate, R4);
+        FfiCallbackMetadata::kExitIsolateGroupBoundIsolate, R4);
 #endif
 
     __ mov(CSP, SP);
@@ -3460,10 +3463,32 @@ void StubCodeCompiler::GenerateJumpToFrameStub() {
   ASSERT(kExceptionObjectReg == R0);
   ASSERT(kStackTraceObjectReg == R1);
   __ set_lr_state(compiler::LRState::Clobbered());
+  __ mov(THR, R3);
+  if (FLAG_target_thread_sanitizer && FLAG_precompiled_mode) {
+    Label again, done;
+    __ mov(SP, CSP);
+    __ ldr(CALLEE_SAVED_TEMP,
+           Address(R3, target::Thread::top_exit_frame_info_offset()));
+    // Skip CallToRuntime/CallNativeWithWrapper stub frame, which did not call
+    // __tsan_func_entry.
+    __ ldr(CALLEE_SAVED_TEMP,
+           Address(CALLEE_SAVED_TEMP,
+                   target::frame_layout.saved_caller_fp_from_fp *
+                       target::kWordSize));
+    __ Bind(&again);
+    __ cmp(CALLEE_SAVED_TEMP, Operand(R2));
+    __ b(&done, EQUAL);
+    __ TsanFuncExit();
+    __ ldr(CALLEE_SAVED_TEMP,
+           Address(CALLEE_SAVED_TEMP,
+                   target::frame_layout.saved_caller_fp_from_fp *
+                       target::kWordSize));
+    __ b(&again);
+    __ Bind(&done);
+  }
   __ mov(CALLEE_SAVED_TEMP, R0);  // Program counter.
   __ mov(SP, R1);                 // Stack pointer.
   __ mov(FP, R2);                 // Frame_pointer.
-  __ mov(THR, R3);
   __ SetupCSPFromThread(THR);
 #if defined(DART_TARGET_OS_FUCHSIA)
   // We need to restore the shadow call stack pointer like longjmp would,
@@ -3683,12 +3708,12 @@ void StubCodeCompiler::GenerateMegamorphicCallStub() {
 
   Label cid_loaded;
   __ Bind(&cid_loaded);
-  __ ldr(R2,
-         FieldAddress(IC_DATA_REG, target::MegamorphicCache::buckets_offset()));
   __ ldr(R1,
          FieldAddress(IC_DATA_REG, target::MegamorphicCache::mask_offset()));
+  __ ldr(R2,
+         FieldAddress(IC_DATA_REG, target::MegamorphicCache::buckets_offset()));
+  // R1: mask as a smi - load first to support insertion w/o stopping Dart code.
   // R2: cache buckets array.
-  // R1: mask as a smi.
 
   // Make the cid into a smi.
   __ SmiTag(R8);

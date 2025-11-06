@@ -154,14 +154,13 @@ void testGetImportUriIfMatchesRelativeSdkPathSlow() {
     "math/math.dart",
     "typed_data/typed_data.dart",
   ];
-  List<SdkLibrary> sdkLibs =
-      knownSdkPaths
-          .map(
-            (path) => MockSdkLibrary(path.substring(0, path.indexOf("/")), [
-              MockSdkLibraryUnit(path, ""),
-            ]),
-          )
-          .toList();
+  List<SdkLibrary> sdkLibs = knownSdkPaths
+      .map(
+        (path) => MockSdkLibrary(path.substring(0, path.indexOf("/")), [
+          MockSdkLibraryUnit(path, ""),
+        ]),
+      )
+      .toList();
 
   for (var separator in ["\\", "/"]) {
     for (var lib in sdkLibs) {

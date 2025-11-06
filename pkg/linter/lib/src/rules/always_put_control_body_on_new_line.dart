@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/analysis_rule/rule_context.dart';
+import 'package:analyzer/analysis_rule/rule_visitor_registry.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/error/error.dart';
@@ -20,10 +21,13 @@ class AlwaysPutControlBodyOnNewLine extends LintRule {
 
   @override
   DiagnosticCode get diagnosticCode =>
-      LinterLintCode.always_put_control_body_on_new_line;
+      LinterLintCode.alwaysPutControlBodyOnNewLine;
 
   @override
-  void registerNodeProcessors(NodeLintRegistry registry, RuleContext context) {
+  void registerNodeProcessors(
+    RuleVisitorRegistry registry,
+    RuleContext context,
+  ) {
     var visitor = _Visitor(this);
     registry.addDoStatement(this, visitor);
     registry.addForStatement(this, visitor);
@@ -66,8 +70,9 @@ class _Visitor extends SimpleAstVisitor<void> {
     if (node == null || node is Block && node.statements.isEmpty) return;
 
     var unit = node.root as CompilationUnit;
-    var offsetFirstStatement =
-        node is Block ? node.statements.first.offset : node.offset;
+    var offsetFirstStatement = node is Block
+        ? node.statements.first.offset
+        : node.offset;
     var lineInfo = unit.lineInfo;
     if (lineInfo.getLocation(controlEnd).lineNumber ==
         lineInfo.getLocation(offsetFirstStatement).lineNumber) {

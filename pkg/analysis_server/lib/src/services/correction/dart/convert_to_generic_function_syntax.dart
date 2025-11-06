@@ -24,11 +24,10 @@ class ConvertToGenericFunctionSyntax extends ParsedCorrectionProducer {
   AssistKind get assistKind => DartAssistKind.convertIntoGenericFunctionSyntax;
 
   @override
-  FixKind get fixKind => DartFixKind.CONVERT_TO_GENERIC_FUNCTION_SYNTAX;
+  FixKind get fixKind => DartFixKind.convertToGenericFunctionSyntax;
 
   @override
-  FixKind get multiFixKind =>
-      DartFixKind.CONVERT_TO_GENERIC_FUNCTION_SYNTAX_MULTI;
+  FixKind get multiFixKind => DartFixKind.convertToGenericFunctionSyntaxMulti;
 
   @override
   Future<void> compute(ChangeBuilder builder) async {
@@ -104,12 +103,14 @@ class ConvertToGenericFunctionSyntax extends ParsedCorrectionProducer {
     var required = node.requiredKeyword != null ? 'required ' : '';
     var covariant = node.covariantKeyword != null ? 'covariant ' : '';
     var returnTypeNode = node.returnType;
-    var returnType =
-        returnTypeNode != null ? '${utils.getNodeText(returnTypeNode)} ' : '';
+    var returnType = returnTypeNode != null
+        ? '${utils.getNodeText(returnTypeNode)} '
+        : '';
     var functionName = node.name.lexeme;
     var typeParametersNode = node.typeParameters;
-    var typeParameters =
-        typeParametersNode != null ? utils.getNodeText(typeParametersNode) : '';
+    var typeParameters = typeParametersNode != null
+        ? utils.getNodeText(typeParametersNode)
+        : '';
 
     var parameters = utils.getNodeText(node.parameters);
     var question = node.question != null ? '?' : '';

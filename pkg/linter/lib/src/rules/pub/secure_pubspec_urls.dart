@@ -14,7 +14,7 @@ class SecurePubspecUrls extends LintRule {
     : super(name: LintNames.secure_pubspec_urls, description: _desc);
 
   @override
-  DiagnosticCode get diagnosticCode => LinterLintCode.secure_pubspec_urls;
+  DiagnosticCode get diagnosticCode => LinterLintCode.securePubspecUrls;
 
   @override
   PubspecVisitor<void> get pubspecVisitor => Visitor(this);

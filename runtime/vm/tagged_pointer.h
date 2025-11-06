@@ -313,12 +313,8 @@ struct base_ptr_type<
 #define DEFINE_COMPRESSED_POINTER(klass, base)                                 \
   class Compressed##klass##Ptr : public Compressed##base##Ptr {                \
    public:                                                                     \
-    Compressed##klass##Ptr* operator->() {                                     \
-      return this;                                                             \
-    }                                                                          \
-    const Compressed##klass##Ptr* operator->() const {                         \
-      return this;                                                             \
-    }                                                                          \
+    Compressed##klass##Ptr* operator->() { return this; }                      \
+    const Compressed##klass##Ptr* operator->() const { return this; }          \
     explicit Compressed##klass##Ptr(klass##Ptr uncompressed)                   \
         : Compressed##base##Ptr(uncompressed) {}                               \
     const klass##Ptr& operator=(const klass##Ptr& other) {                     \
@@ -335,12 +331,8 @@ struct base_ptr_type<
   class Untagged##klass;                                                       \
   class klass##Ptr : public base##Ptr {                                        \
    public:                                                                     \
-    klass##Ptr* operator->() {                                                 \
-      return this;                                                             \
-    }                                                                          \
-    const klass##Ptr* operator->() const {                                     \
-      return this;                                                             \
-    }                                                                          \
+    klass##Ptr* operator->() { return this; }                                  \
+    const klass##Ptr* operator->() const { return this; }                      \
     Untagged##klass* untag() {                                                 \
       return reinterpret_cast<Untagged##klass*>(untagged_pointer());           \
     }                                                                          \
@@ -358,9 +350,7 @@ struct base_ptr_type<
     constexpr klass##Ptr(std::nullptr_t) : base##Ptr(nullptr) {} /* NOLINT */  \
     explicit klass##Ptr(const UntaggedObject* untagged)                        \
         : base##Ptr(reinterpret_cast<uword>(untagged) + kHeapObjectTag) {}     \
-    klass##Ptr Decompress(uword heap_base) const {                             \
-      return *this;                                                            \
-    }                                                                          \
+    klass##Ptr Decompress(uword heap_base) const { return *this; }             \
   };                                                                           \
   DEFINE_COMPRESSED_POINTER(klass, base)
 

@@ -20,10 +20,12 @@ import "dart:core" as core;
 extension Foo on core::int {
   method bar = self::Foo|bar;
   method tearoff bar = self::Foo|get#bar;
-  field baz = self::Foo|baz;
+  get baz = self::Foo|get#baz;
+  set baz = self::Foo|set#baz;
 }
-static field invalid-type Foo|baz;
 static extension-member method Foo|bar(lowered final core::int #this) → dynamic
   ;
 static extension-member method Foo|get#bar(lowered final core::int #this) → () → dynamic
   return () → dynamic => self::Foo|bar(#this);
+static abstract extension-member method Foo|get#baz(lowered core::int #this) → invalid-type;
+static abstract extension-member method Foo|set#baz(lowered core::int #this, synthesized invalid-type #externalFieldValue) → void;

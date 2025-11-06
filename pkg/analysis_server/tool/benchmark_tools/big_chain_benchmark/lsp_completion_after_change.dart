@@ -109,15 +109,14 @@ class LspCompletionAfterChange extends DartLanguageServerBenchmark {
         insert: 'ge',
       ),
     );
-    Future<Map<String, dynamic>> completionFuture =
-        (await send(
-          LspMessages.completion(
-            runDetails.mainFile.uri,
-            largestIdSeen + 1,
-            line: 3,
-            character: 4 /* after the 'ge' just typed */,
-          ),
-        ))!.completer.future;
+    Future<Map<String, dynamic>> completionFuture = (await send(
+      LspMessages.completion(
+        runDetails.mainFile.uri,
+        largestIdSeen + 1,
+        line: 3,
+        character: 4 /* after the 'ge' just typed */,
+      ),
+    ))!.completer.future;
 
     Stopwatch stopwatch = Stopwatch()..start();
     var completionResponse = await completionFuture;

@@ -29,7 +29,7 @@ var x = TA<int>.i;
 ''',
       [
         error(
-          CompileTimeErrorCode.CLASS_INSTANTIATION_ACCESS_TO_INSTANCE_MEMBER,
+          CompileTimeErrorCode.classInstantiationAccessToInstanceMember,
           60,
           9,
         ),
@@ -50,7 +50,7 @@ var x = A<int>.i;
 ''',
       [
         error(
-          CompileTimeErrorCode.CLASS_INSTANTIATION_ACCESS_TO_UNKNOWN_MEMBER,
+          CompileTimeErrorCode.classInstantiationAccessToUnknownMember,
           63,
           8,
         ),
@@ -69,7 +69,7 @@ var x = A<int>.i;
 ''',
       [
         error(
-          CompileTimeErrorCode.CLASS_INSTANTIATION_ACCESS_TO_INSTANCE_MEMBER,
+          CompileTimeErrorCode.classInstantiationAccessToInstanceMember,
           37,
           8,
         ),
@@ -90,7 +90,7 @@ void foo() {
 ''',
       [
         error(
-          CompileTimeErrorCode.CLASS_INSTANTIATION_ACCESS_TO_INSTANCE_MEMBER,
+          CompileTimeErrorCode.classInstantiationAccessToInstanceMember,
           53,
           8,
         ),
@@ -109,7 +109,7 @@ var x = A<int>.i;
 ''',
       [
         error(
-          CompileTimeErrorCode.CLASS_INSTANTIATION_ACCESS_TO_STATIC_MEMBER,
+          CompileTimeErrorCode.classInstantiationAccessToStaticMember,
           44,
           8,
         ),
@@ -130,7 +130,7 @@ void bar() {
 ''',
       [
         error(
-          CompileTimeErrorCode.CLASS_INSTANTIATION_ACCESS_TO_STATIC_MEMBER,
+          CompileTimeErrorCode.classInstantiationAccessToStaticMember,
           60,
           8,
         ),
@@ -147,7 +147,7 @@ class A<T> {
 
 var x = A<int>.;
 ''',
-      [error(ParserErrorCode.MISSING_IDENTIFIER, 42, 1)],
+      [error(ParserErrorCode.missingIdentifier, 42, 1)],
     );
   }
 }

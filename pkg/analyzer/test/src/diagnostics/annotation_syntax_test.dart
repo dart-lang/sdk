@@ -32,8 +32,8 @@ class C {
 }
 ''',
       [
-        error(ParserErrorCode.ANNOTATION_ON_TYPE_ARGUMENT, 146, 11),
-        error(ParserErrorCode.ANNOTATION_ON_TYPE_ARGUMENT, 158, 19),
+        error(ParserErrorCode.annotationOnTypeArgument, 146, 11),
+        error(ParserErrorCode.annotationOnTypeArgument, 158, 19),
       ],
     );
   }

@@ -18,12 +18,18 @@ extension IntExtension on int {
 
   bool get isLetterOrDigit => isLetter || isDigit;
 
-  bool get isLetterOrDigitOrUnderscore => isLetter || isDigit || this == 0x5F;
+  bool get isLetterOrDigitOrUnderscore => isLetter || isDigit || isUnderscore;
+
+  /// Whether this, as an ASCII character, is a newline (not a carriage
+  /// return) character.
+  bool get isLF => this == 0x0A;
 
   bool get isSlash => this == 0x2F;
 
   /// Whether this, as an ASCII character, is a space or tab character.
   bool get isSpace => this == 0x20 || this == 0x09;
+
+  bool get isUnderscore => this == 0x5F;
 
   /// Whether this, as an ASCII character, is a space (as per [isSpace]) or EOL
   /// character (as per [isEOL]).
@@ -140,11 +146,59 @@ extension StringExtension on String {
     return isNotEmpty ? this : orElse;
   }
 
+  String removePrefixOrSelf(String prefix) {
+    if (startsWith(prefix)) {
+      return substring(prefix.length);
+    } else {
+      return this;
+    }
+  }
+
   String? removeSuffix(String suffix) {
     if (endsWith(suffix)) {
       return substring(0, length - suffix.length);
     } else {
       return null;
     }
+  }
+
+  /// Converts `camelCase` / `PascalCase` to `SCREAMING_SNAKE_CASE`.
+  /// Examples:
+  ///  - camelCase        -> CAMEL_CASE
+  ///  - HTTPRequest      -> HTTP_REQUEST
+  ///  - myURLId2Parser   -> MY_URL_ID_2_PARSER
+  ///  - _privateField    -> _PRIVATE_FIELD
+  String toScreamingSnake() {
+    if (isEmpty) return this;
+
+    // Preserve leading underscores (e.g., Dart private members).
+    var leading = RegExp(r'^_+').stringMatch(this) ?? '';
+    var result = substring(leading.length);
+
+    // Split lower/digit -> Upper (e.g., "fooBar" -> "foo_Bar", "v2X" -> "v2_X").
+    result = result.replaceAllMapped(
+      RegExp(r'([a-z0-9])([A-Z])'),
+      (match) => '${match[1]}_${match[2]}',
+    );
+
+    // Split acronym -> Word (e.g., "HTMLParser" -> "HTML_Parser").
+    result = result.replaceAllMapped(
+      RegExp(r'([A-Z]+)([A-Z][a-z])'),
+      (match) => '${match[1]}_${match[2]}',
+    );
+
+    // Separate letters and digits both ways (e.g., "ID10T" -> "ID_10_T").
+    result = result.replaceAllMapped(
+      RegExp(r'([A-Za-z])([0-9])'),
+      (match) => '${match[1]}_${match[2]}',
+    );
+    result = result.replaceAllMapped(
+      RegExp(r'([0-9])([A-Za-z])'),
+      (match) => '${match[1]}_${match[2]}',
+    );
+
+    // Normalize separators and scream.
+    result = result.replaceAll(RegExp(r'_+'), '_');
+    return leading + result.toUpperCase();
   }
 }

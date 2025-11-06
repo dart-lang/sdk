@@ -17,10 +17,12 @@ import 'utils/io_utils.dart' show computeRepoDir;
 Future<void> main() async {
   final Uri dart2jsUrl = Uri.base.resolve("pkg/compiler/lib/src/dart2js.dart");
   Stopwatch stopwatch = new Stopwatch()..start();
-  Component component = await normalCompileToComponent(dart2jsUrl,
-      options: getOptions()
-        ..target = new VmTarget(new TargetFlags())
-        ..omitPlatform = false);
+  Component component = await normalCompileToComponent(
+    dart2jsUrl,
+    options: getOptions()
+      ..target = new VmTarget(new TargetFlags())
+      ..omitPlatform = false,
+  );
   print("Compiled dart2js in ${stopwatch.elapsedMilliseconds} ms");
 
   component.computeCanonicalNames();
@@ -34,8 +36,10 @@ Future<void> main() async {
     libComponent.setMainMethodAndMode(component.mainMethodName, true);
     libComponents.add(serializeComponent(libComponent));
   }
-  print("Serialized ${libComponents.length} separate library components "
-      "in ${stopwatch.elapsedMilliseconds} ms");
+  print(
+    "Serialized ${libComponents.length} separate library components "
+    "in ${stopwatch.elapsedMilliseconds} ms",
+  );
 
   stopwatch.reset();
   int totalLength = 0;
@@ -66,14 +70,11 @@ Future<void> main() async {
       File f = new File.fromUri(out.uri.resolve("out.dill"));
       f.writeAsBytesSync(data);
 
-      ProcessResult result = await Process.run(
-          dartVm,
-          [
-            "--compile_all",
-            f.path,
-            "-h",
-          ],
-          workingDirectory: out.path);
+      ProcessResult result = await Process.run(dartVm, [
+        "--compile_all",
+        f.path,
+        "-h",
+      ], workingDirectory: out.path);
       print("stdout: ${result.stdout}");
       print("stderr: ${result.stderr}");
       print("Exit code: ${result.exitCode}");

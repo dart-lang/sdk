@@ -135,7 +135,7 @@ void f(String? s) {
 @reflectiveTest
 class AddNullCheckTest extends FixProcessorTest {
   @override
-  FixKind get kind => DartFixKind.ADD_NULL_CHECK;
+  FixKind get kind => DartFixKind.addNullCheck;
 
   Future<void> test_argument() async {
     await resolveTestCode('''
@@ -381,6 +381,19 @@ void f(String x) {
     await assertNoFix();
   }
 
+  Future<void> test_invalidType() async {
+    await resolveTestCode('''
+void g() {
+  int combined = 0;
+  combined += foo();
+}
+''');
+    await assertNoFix(
+      errorFilter: (diagnostic) =>
+          diagnostic.diagnosticCode == CompileTimeErrorCode.invalidAssignment,
+    );
+  }
+
   Future<void> test_isNullThen_left_notAssignable_nonNullable() async {
     await resolveTestCode('''
 void f(String s) {}
@@ -391,7 +404,7 @@ void g(int i) {
     await assertNoFix(
       errorFilter: (error) {
         return error.diagnosticCode ==
-            CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE;
+            CompileTimeErrorCode.argumentTypeNotAssignable;
       },
     );
   }
@@ -434,7 +447,7 @@ void g(int i, int? x) {
 ''',
       errorFilter: (error) {
         return error.diagnosticCode ==
-            CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE;
+            CompileTimeErrorCode.argumentTypeNotAssignable;
       },
     );
   }
@@ -449,7 +462,7 @@ void g(int i, int x) {
     await assertNoFix(
       errorFilter: (error) {
         return error.diagnosticCode ==
-            CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE;
+            CompileTimeErrorCode.argumentTypeNotAssignable;
       },
     );
   }
@@ -464,7 +477,7 @@ void g(int i, int? x) {
     await assertNoFix(
       errorFilter: (error) {
         return error.diagnosticCode ==
-            CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE;
+            CompileTimeErrorCode.argumentTypeNotAssignable;
       },
     );
   }
@@ -531,6 +544,9 @@ String? f(String? s) => s!..hashCode..length;
   }
 
   Future<void> test_spreadList() async {
+    // expected code contains !] which looks like a range.
+    allowTestCodeShorthand = false;
+
     await resolveTestCode('''
 void f (List<String>? args) {
   [...args];
@@ -550,10 +566,9 @@ void f (List<int>? args) {
 }
 ''');
     await assertNoFix(
-      errorFilter:
-          (diagnostic) =>
-              diagnostic.diagnosticCode !=
-              CompileTimeErrorCode.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE,
+      errorFilter: (diagnostic) =>
+          diagnostic.diagnosticCode !=
+          CompileTimeErrorCode.listElementTypeNotAssignable,
     );
   }
 
@@ -601,10 +616,9 @@ f(List<String>? args) {
   });
 }
 ''',
-      errorFilter:
-          (diagnostic) =>
-              diagnostic.diagnosticCode !=
-              CompileTimeErrorCode.YIELD_EACH_OF_INVALID_TYPE,
+      errorFilter: (diagnostic) =>
+          diagnostic.diagnosticCode !=
+          CompileTimeErrorCode.yieldEachOfInvalidType,
     );
   }
 
@@ -624,11 +638,9 @@ g() {
   }
 }
 ''',
-      errorFilter:
-          (diagnostic) =>
-              diagnostic.diagnosticCode ==
-              CompileTimeErrorCode
-                  .UNCHECKED_USE_OF_NULLABLE_VALUE_IN_YIELD_EACH,
+      errorFilter: (diagnostic) =>
+          diagnostic.diagnosticCode ==
+          CompileTimeErrorCode.uncheckedUseOfNullableValueInYieldEach,
     );
   }
 
@@ -648,10 +660,9 @@ class C {
   }
 }
 ''',
-      errorFilter:
-          (diagnostic) =>
-              diagnostic.diagnosticCode !=
-              CompileTimeErrorCode.YIELD_EACH_OF_INVALID_TYPE,
+      errorFilter: (diagnostic) =>
+          diagnostic.diagnosticCode !=
+          CompileTimeErrorCode.yieldEachOfInvalidType,
     );
   }
 
@@ -667,10 +678,9 @@ Iterable<String> f(List<String>? args) sync* {
   yield* args!;
 }
 ''',
-      errorFilter:
-          (diagnostic) =>
-              diagnostic.diagnosticCode !=
-              CompileTimeErrorCode.YIELD_EACH_OF_INVALID_TYPE,
+      errorFilter: (diagnostic) =>
+          diagnostic.diagnosticCode !=
+          CompileTimeErrorCode.yieldEachOfInvalidType,
     );
   }
 }
@@ -678,7 +688,7 @@ Iterable<String> f(List<String>? args) sync* {
 @reflectiveTest
 class CastNullableToNonNullableTest extends FixProcessorLintTest {
   @override
-  FixKind get kind => DartFixKind.ADD_NULL_CHECK;
+  FixKind get kind => DartFixKind.addNullCheck;
 
   @override
   String get lintCode => LintNames.cast_nullable_to_non_nullable;

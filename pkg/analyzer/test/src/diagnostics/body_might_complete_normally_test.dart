@@ -65,10 +65,10 @@ enum E {
 ''',
       [
         if (!_arePatternsEnabled) ...[
-          error(CompileTimeErrorCode.BODY_MIGHT_COMPLETE_NORMALLY, 28, 5),
-          error(StaticWarningCode.MISSING_ENUM_CONSTANT_IN_SWITCH, 40, 13),
+          error(CompileTimeErrorCode.bodyMightCompleteNormally, 28, 5),
+          error(StaticWarningCode.missingEnumConstantInSwitch, 40, 13),
         ] else
-          error(CompileTimeErrorCode.NON_EXHAUSTIVE_SWITCH_STATEMENT, 40, 6),
+          error(CompileTimeErrorCode.nonExhaustiveSwitchStatement, 40, 6),
       ],
     );
   }
@@ -80,7 +80,7 @@ class A {
   factory A.named() {}
 }
 ''',
-      [error(CompileTimeErrorCode.BODY_MIGHT_COMPLETE_NORMALLY, 20, 7)],
+      [error(CompileTimeErrorCode.bodyMightCompleteNormally, 20, 7)],
     );
   }
 
@@ -91,7 +91,7 @@ class A {
   factory A() {}
 }
 ''',
-      [error(CompileTimeErrorCode.BODY_MIGHT_COMPLETE_NORMALLY, 20, 1)],
+      [error(CompileTimeErrorCode.bodyMightCompleteNormally, 20, 1)],
     );
   }
 
@@ -100,7 +100,7 @@ class A {
       r'''
 Future<int> foo() async {}
 ''',
-      [error(CompileTimeErrorCode.BODY_MIGHT_COMPLETE_NORMALLY, 12, 3)],
+      [error(CompileTimeErrorCode.bodyMightCompleteNormally, 12, 3)],
     );
   }
 
@@ -109,7 +109,7 @@ Future<int> foo() async {}
       r'''
 Future<void> foo() {}
 ''',
-      [error(CompileTimeErrorCode.BODY_MIGHT_COMPLETE_NORMALLY, 13, 3)],
+      [error(CompileTimeErrorCode.bodyMightCompleteNormally, 13, 3)],
     );
   }
 
@@ -124,7 +124,7 @@ Future<void> foo() async {}
       r'''
 int foo() {}
 ''',
-      [error(CompileTimeErrorCode.BODY_MIGHT_COMPLETE_NORMALLY, 4, 3)],
+      [error(CompileTimeErrorCode.bodyMightCompleteNormally, 4, 3)],
     );
   }
 
@@ -204,10 +204,10 @@ int f(Foo foo) {
 ''',
       [
         if (!_arePatternsEnabled) ...[
-          error(CompileTimeErrorCode.BODY_MIGHT_COMPLETE_NORMALLY, 23, 1),
-          error(StaticWarningCode.MISSING_ENUM_CONSTANT_IN_SWITCH, 38, 12),
+          error(CompileTimeErrorCode.bodyMightCompleteNormally, 23, 1),
+          error(StaticWarningCode.missingEnumConstantInSwitch, 38, 12),
         ] else
-          error(CompileTimeErrorCode.NON_EXHAUSTIVE_SWITCH_STATEMENT, 38, 6),
+          error(CompileTimeErrorCode.nonExhaustiveSwitchStatement, 38, 6),
       ],
     );
   }
@@ -230,10 +230,10 @@ int f(E e) {
 ''',
       [
         if (!_arePatternsEnabled) ...[
-          error(CompileTimeErrorCode.BODY_MIGHT_COMPLETE_NORMALLY, 47, 1),
-          error(StaticWarningCode.MISSING_ENUM_CONSTANT_IN_SWITCH, 58, 10),
+          error(CompileTimeErrorCode.bodyMightCompleteNormally, 47, 1),
+          error(StaticWarningCode.missingEnumConstantInSwitch, 58, 10),
         ] else
-          error(CompileTimeErrorCode.NON_EXHAUSTIVE_SWITCH_STATEMENT, 58, 6),
+          error(CompileTimeErrorCode.nonExhaustiveSwitchStatement, 58, 6),
       ],
     );
   }
@@ -288,10 +288,10 @@ int f(Foo? foo) {
 ''',
       [
         if (!_arePatternsEnabled) ...[
-          error(CompileTimeErrorCode.BODY_MIGHT_COMPLETE_NORMALLY, 23, 1),
-          error(StaticWarningCode.MISSING_ENUM_CONSTANT_IN_SWITCH, 39, 12),
+          error(CompileTimeErrorCode.bodyMightCompleteNormally, 23, 1),
+          error(StaticWarningCode.missingEnumConstantInSwitch, 39, 12),
         ] else
-          error(CompileTimeErrorCode.NON_EXHAUSTIVE_SWITCH_STATEMENT, 39, 6),
+          error(CompileTimeErrorCode.nonExhaustiveSwitchStatement, 39, 6),
       ],
     );
   }
@@ -312,7 +312,7 @@ void f() {
   foo;
 }
 ''',
-      [error(CompileTimeErrorCode.BODY_MIGHT_COMPLETE_NORMALLY, 51, 1)],
+      [error(CompileTimeErrorCode.bodyMightCompleteNormally, 51, 1)],
     );
   }
 
@@ -324,7 +324,7 @@ void f() {
   foo;
 }
 ''',
-      [error(CompileTimeErrorCode.BODY_MIGHT_COMPLETE_NORMALLY, 46, 1)],
+      [error(CompileTimeErrorCode.bodyMightCompleteNormally, 46, 1)],
     );
   }
 
@@ -346,7 +346,7 @@ void f() {
   foo;
 }
 ''',
-      [error(CompileTimeErrorCode.BODY_MIGHT_COMPLETE_NORMALLY, 37, 1)],
+      [error(CompileTimeErrorCode.bodyMightCompleteNormally, 37, 1)],
     );
   }
 
@@ -384,7 +384,7 @@ class A {
   Future<int> foo() async {}
 }
 ''',
-      [error(CompileTimeErrorCode.BODY_MIGHT_COMPLETE_NORMALLY, 24, 3)],
+      [error(CompileTimeErrorCode.bodyMightCompleteNormally, 24, 3)],
     );
   }
 
@@ -395,7 +395,7 @@ class A {
   Future<void> foo() {}
 }
 ''',
-      [error(CompileTimeErrorCode.BODY_MIGHT_COMPLETE_NORMALLY, 25, 3)],
+      [error(CompileTimeErrorCode.bodyMightCompleteNormally, 25, 3)],
     );
   }
 
@@ -414,7 +414,7 @@ class A {
   int foo() {}
 }
 ''',
-      [error(CompileTimeErrorCode.BODY_MIGHT_COMPLETE_NORMALLY, 16, 3)],
+      [error(CompileTimeErrorCode.bodyMightCompleteNormally, 16, 3)],
     );
   }
 
@@ -500,7 +500,7 @@ class A {
       r'''
 bool set s(int value) {}
 ''',
-      [error(CompileTimeErrorCode.NON_VOID_RETURN_FOR_SETTER, 0, 4)],
+      [error(CompileTimeErrorCode.nonVoidReturnForSetter, 0, 4)],
     );
   }
 }

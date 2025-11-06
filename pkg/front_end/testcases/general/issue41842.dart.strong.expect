@@ -168,9 +168,9 @@ library;
 //   factory A.foo8(int x) = lib.Foo.foo<T>; // Error. Not allowed by parser.
 //                                        ^
 //
-// pkg/front_end/testcases/general/issue41842.dart:21:37: Error: Conflicts with type variable 'T'.
-//   factory A.foo13(int x) = B<T>.bar<T>; // Error. Not allowed by parser.
-//                                     ^
+// pkg/front_end/testcases/general/issue41842.dart:16:39: Error: Conflicts with type variable 'T'.
+//   factory A.foo8(int x) = lib.Foo.foo<T>; // Error. Not allowed by parser.
+//                                       ^
 // pkg/front_end/testcases/general/issue41842.dart:7:9: Context: This is the type variable.
 // class A<T> {
 //         ^
@@ -192,7 +192,6 @@ library;
 //  - inherit an implementation from a superclass or mixin,
 //  - mark the class as abstract, or
 //  - provide a 'noSuchMethod' implementation.
-//
 // class A<T> {
 //       ^
 // pkg/front_end/testcases/general/issue41842.dart:16:40: Context: 'A.>' is defined here.
@@ -206,7 +205,6 @@ library;
 //  - inherit an implementation from a superclass or mixin,
 //  - mark the class as abstract, or
 //  - provide a 'noSuchMethod' implementation.
-//
 // class B<T> extends A<T> {
 //       ^
 // pkg/front_end/testcases/general/issue41842.dart:16:40: Context: 'A.>' is defined here.
@@ -282,7 +280,6 @@ library;
 //  - inherit an implementation from a superclass or mixin,
 //  - mark the class as abstract, or
 //  - provide a 'noSuchMethod' implementation.
-//
 // class Foo<T> extends A<T> {
 //       ^^^
 // pkg/front_end/testcases/general/issue41842.dart:16:40: Context: 'A.>' is defined here.
@@ -296,7 +293,6 @@ library;
 //  - inherit an implementation from a superclass or mixin,
 //  - mark the class as abstract, or
 //  - provide a 'noSuchMethod' implementation.
-//
 // class Bar<T> extends A<T> {
 //       ^^^
 // pkg/front_end/testcases/general/issue41842.dart:16:40: Context: 'A.>' is defined here.

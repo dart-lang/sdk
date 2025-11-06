@@ -12,17 +12,17 @@ name: test_analyzer_plugin
 version: 0.0.1
 
 environment:
-  sdk: '>=3.6.0 <4.0.0'
+  sdk: ^3.7.0
 
 dependencies:
-  analysis_server_plugin: any
-  analyzer: ^7.2.0
+  analysis_server_plugin: ^0.2.2
+  analyzer: ^8.0.0
 ```
 
 There is nothing special about this pubspec; note that we need a dependency on
 the `analysis_server_plugin` package, and on the `analyzer` package, supporting
-at least 7.2.0. The version of the analyzer package needs to move lockstep with
-the Dart SDK. For Dart 3.8.0-70.1.beta, `^7.2.0` is a good version constraint.
+at least 8.0.0. The version of the analyzer package needs to move lockstep with
+the Dart SDK. For Dart 3.10.0-75.1.beta, `^8.0.0` is a good version constraint.
 
 ## The main Dart file
 
@@ -45,8 +45,13 @@ class SimplePlugin extends Plugin {
 Here we have a class, `SimplePlugin`, which extends the `Plugin` class from the
 `analysis_server_plugin` package. This class has one method that we override:
 `register`. In the `register` method, we can register analysis rules, quick
-fixes, and quick assists (CorrectionProducers). See details in the
-[writing rules][] doc, and the [writing fixes][] and [writing assists][] docs.
+fixes, and quick assists (`CorrectionProducer`s). See these other guides for
+details:
+
+* [writing rules][]
+* [writing fixes][]
+* [writing assists][]
+* [testing rules][]
 
 Additionally, we provide a top-level variable in this file called `plugin`,
 which is an instance of our `SimplePlugin` class. When a running instance of
@@ -66,4 +71,5 @@ can help in debugging plugin code.
 [writing rules]: https://github.com/dart-lang/sdk/blob/main/pkg/analysis_server_plugin/doc/writing_rules.md
 [writing fixes]: https://github.com/dart-lang/sdk/blob/main/pkg/analysis_server_plugin/doc/writing_fixes.md
 [writing assists]: https://github.com/dart-lang/sdk/blob/main/pkg/analysis_server_plugin/doc/writing_assists.md
+[testing rules]: https://github.com/dart-lang/sdk/blob/main/pkg/analysis_server_plugin/doc/testing_rules.md
 [analyzer diagnostics pages]: https://github.com/dart-lang/sdk/blob/main/pkg/analysis_server/doc/tutorial/instrumentation.md#open-the-analyzer-diagnostics-pages

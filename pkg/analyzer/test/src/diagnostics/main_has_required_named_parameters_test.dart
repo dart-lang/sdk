@@ -27,7 +27,7 @@ void main({int a = 0}) {}
       '''
 void main({required List<String> a}) {}
 ''',
-      [error(CompileTimeErrorCode.MAIN_HAS_REQUIRED_NAMED_PARAMETERS, 5, 4)],
+      [error(CompileTimeErrorCode.mainHasRequiredNamedParameters, 5, 4)],
     );
   }
 }

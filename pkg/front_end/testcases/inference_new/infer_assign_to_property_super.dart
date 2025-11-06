@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/*@testedFeatures=inference*/
 library test;
 
 class A {}
@@ -25,44 +24,33 @@ class Base {
 
 class Test extends Base {
   void test() {
-    super.member = /*@typeArgs=B*/ f();
+    super.member = f();
 
-    super. /*@target=Base.member2*/ member2 ??= /*@typeArgs=B?*/ f();
+    super.member2 ??= f();
 
-    super
-        . /*@target=Base.member*/ member /*@target=B.+*/ += /*@typeArgs=C*/ f();
+    super.member += f();
 
-    super
-        . /*@target=Base.member*/ member /*@target=B.**/ *= /*@typeArgs=B*/ f();
+    super.member *= f();
 
-    super
-        . /*@target=Base.member*/ member /*@target=B.&*/ &= /*@typeArgs=A*/ f();
+    super.member &= f();
 
-    /*@target=B.-*/ --super. /*@target=Base.member*/ member;
+    --super.member;
 
-    super. /*@target=Base.member*/ member /*@target=B.-*/ --;
+    super.member--;
 
-    var /*@type=B*/ v1 = super.member = /*@typeArgs=B*/ f();
+    var v1 = super.member = f();
 
-    var /*@type=B?*/ v2 =
-        super. /*@target=Base.member2*/ member2 ??= /*@typeArgs=B?*/ f();
+    var v2 = super.member2 ??= f();
 
-    var /*@type=B*/ v3 = super
-        . /*@target=Base.member*/ member /*@target=B.+*/ += /*@typeArgs=C*/ f();
+    var v3 = super.member += f();
 
-    var /*@type=B*/ v4 = super
-        . /*@target=Base.member*/ member /*@target=B.**/ *= /*@typeArgs=B*/ f();
+    var v4 = super.member *= f();
 
-    var /*@type=C*/ v5 = super
-        . /*@target=Base.member*/ member /*@target=B.&*/ &= /*@typeArgs=A*/ f();
+    var v5 = super.member &= f();
 
-    var /*@type=B*/ v6 = /*@target=B.-*/ --super
-        . /*@target=Base.member*/ member;
+    var v6 = --super.member;
 
-    var /*@type=B*/ v7 = super
-        .
-        /*@type=B*/ /*@target=Base.member*/
-        /*@type=B*/ member /*@target=B.-*/ --;
+    var v7 = super.member--;
   }
 }
 

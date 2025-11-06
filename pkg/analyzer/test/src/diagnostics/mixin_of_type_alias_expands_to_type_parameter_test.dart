@@ -33,7 +33,7 @@ class B with T {}
 ''',
       [
         error(
-          CompileTimeErrorCode.MIXIN_OF_TYPE_ALIAS_EXPANDS_TO_TYPE_PARAMETER,
+          CompileTimeErrorCode.mixinOfTypeAliasExpandsToTypeParameter,
           52,
           1,
         ),
@@ -50,7 +50,7 @@ class B with T<A> {}
 ''',
       [
         error(
-          CompileTimeErrorCode.MIXIN_OF_TYPE_ALIAS_EXPANDS_TO_TYPE_PARAMETER,
+          CompileTimeErrorCode.mixinOfTypeAliasExpandsToTypeParameter,
           52,
           1,
         ),

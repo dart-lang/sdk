@@ -57,7 +57,7 @@ void f() {
   if (!true) {}
 }
 ''',
-      [lint(13, 13), error(WarningCode.DEAD_CODE, 24, 2)],
+      [lint(13, 13), error(WarningCode.deadCode, 24, 2)],
     );
   }
 
@@ -120,7 +120,7 @@ void bad() {
   if (true && false) {}
 }
 ''',
-      [lint(15, 21), error(WarningCode.DEAD_CODE, 34, 2)],
+      [lint(15, 21), error(WarningCode.deadCode, 34, 2)],
     );
   }
 
@@ -146,7 +146,7 @@ void f() {
 ''',
       [
         // No lint
-        error(WarningCode.PATTERN_NEVER_MATCHES_VALUE_TYPE, 24, 5),
+        error(WarningCode.patternNeverMatchesValueType, 24, 5),
       ],
     );
   }
@@ -229,7 +229,7 @@ void f() {
   }
 }
 ''',
-      [error(WarningCode.PATTERN_NEVER_MATCHES_VALUE_TYPE, 35, 7), lint(43, 9)],
+      [error(WarningCode.patternNeverMatchesValueType, 35, 7), lint(43, 9)],
     );
   }
 
@@ -240,7 +240,7 @@ void f() {
   while (!true) {}
 }
 ''',
-      [lint(13, 16), error(WarningCode.DEAD_CODE, 27, 2)],
+      [lint(13, 16), error(WarningCode.deadCode, 27, 2)],
     );
   }
 

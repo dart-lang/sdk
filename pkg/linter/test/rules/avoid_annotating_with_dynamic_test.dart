@@ -51,7 +51,6 @@ void f(dynamic o) { }
     await assertDiagnosticsInFile(b.path, [lint(26, 9)]);
   }
 
-  @FailingTest(reason: 'Chaining formal parameter fragments is not implemented')
   test_augmentationTopLevelFunction_localDynamic() async {
     var a = newFile('$testPackageLibPath/a.dart', r'''
 part 'b.dart';

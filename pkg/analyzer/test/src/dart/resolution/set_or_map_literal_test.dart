@@ -30,7 +30,7 @@ SetOrMapLiteral
     arguments
       NamedType
         name: int
-        element2: dart:core::@class::int
+        element: dart:core::@class::int
         type: int
     rightBracket: >
   leftBracket: {
@@ -55,11 +55,11 @@ SetOrMapLiteral
     arguments
       NamedType
         name: int
-        element2: dart:core::@class::int
+        element: dart:core::@class::int
         type: int
       NamedType
         name: String
-        element2: dart:core::@class::String
+        element: dart:core::@class::String
         type: String
     rightBracket: >
   leftBracket: {
@@ -76,7 +76,7 @@ void f() {
   var v = {0};
 }
 ''',
-      [error(WarningCode.UNUSED_LOCAL_VARIABLE, 17, 1)],
+      [error(WarningCode.unusedLocalVariable, 17, 1)],
     );
 
     var node = findNode.singleSetOrMapLiteral;
@@ -100,7 +100,7 @@ void f() {
   var v = {0: ''};
 }
 ''',
-      [error(WarningCode.UNUSED_LOCAL_VARIABLE, 17, 1)],
+      [error(WarningCode.unusedLocalVariable, 17, 1)],
     );
 
     var node = findNode.singleSetOrMapLiteral;
@@ -128,7 +128,7 @@ void f() {
   var v = {};
 }
 ''',
-      [error(WarningCode.UNUSED_LOCAL_VARIABLE, 17, 1)],
+      [error(WarningCode.unusedLocalVariable, 17, 1)],
     );
 
     var node = findNode.singleSetOrMapLiteral;

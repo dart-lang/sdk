@@ -7,7 +7,8 @@ import "dart:_internal" as _in;
 
 import "dart:ffi";
 
-@#C6
+@#C3
+@#C8
 final class Struct1ByteInt extends ffi::Struct {
   synthetic constructor •() → self::Struct1ByteInt
     : super ffi::Struct::•()
@@ -15,60 +16,62 @@ final class Struct1ByteInt extends ffi::Struct {
   constructor #fromTypedDataBase(synthesized core::Object #typedDataBase, synthesized core::int #offsetInBytes) → self::Struct1ByteInt
     : super ffi::Struct::_fromTypedDataBase(#typedDataBase, #offsetInBytes)
     ;
-  @#C8
+  @#C10
   constructor #fromTypedData(synthesized typ::TypedData #typedData, synthesized core::int #offset, synthesized core::int #sizeInBytes) → self::Struct1ByteInt
     : super ffi::Struct::_fromTypedData(#typedData, #offset, #sizeInBytes)
     ;
-  @#C9
-  @#C8
+  @#C11
+  @#C10
   get a0() → core::int
     return ffi::_loadInt8(this.{ffi::_Compound::_typedDataBase}{core::Object}, self::Struct1ByteInt::a0#offsetOf.{core::num::+}(this.{ffi::_Compound::_offsetInBytes}{core::int}){(core::num) → core::num});
-  @#C9
-  @#C8
+  @#C11
+  @#C10
   set a0(synthesized core::int #externalFieldValue) → void
     return ffi::_storeInt8(this.{ffi::_Compound::_typedDataBase}{core::Object}, self::Struct1ByteInt::a0#offsetOf.{core::num::+}(this.{ffi::_Compound::_offsetInBytes}{core::int}){(core::num) → core::num}, #externalFieldValue);
   method toString() → core::String
     return "(${this.{self::Struct1ByteInt::a0}{core::int}})";
-  @#C8
+  @#C10
   static synthetic get a0#offsetOf() → core::int
-    return #C11.{core::List::[]}(ffi::_abi()){(core::int) → core::int};
-  @#C8
-  static get #sizeOf() → core::int
     return #C13.{core::List::[]}(ffi::_abi()){(core::int) → core::int};
+  @#C10
+  static get #sizeOf() → core::int
+    return #C15.{core::List::[]}(ffi::_abi()){(core::int) → core::int};
 }
 static method main() → void {
   final self::Struct1ByteInt result = self::returnStruct1ByteIntNative(1.{core::int::unary-}(){() → core::int});
   core::print("result = ${result}");
-  ffi::Native::_addressOf<ffi::NativeFunction<(ffi::Int8) → self::Struct1ByteInt>>(#C17);
+  ffi::Native::_addressOf<ffi::NativeFunction<(ffi::Int8) → self::Struct1ByteInt>>(#C19);
 }
-@#C19
-@#C8
+@#C21
+@#C10
 static method returnStruct1ByteIntNative(core::int a0) → self::Struct1ByteInt
   return block {
-    _in::_nativeEffect(new self::Struct1ByteInt::#fromTypedDataBase(typ::Uint8List::•(#C12), #C10));
+    _in::_nativeEffect(new self::Struct1ByteInt::#fromTypedDataBase(typ::Uint8List::•(#C14), #C12));
   } =>self::_returnStruct1ByteIntNative$Method$FfiNative(a0);
-@#C21
+@#C23
 external static method _returnStruct1ByteIntNative$Method$FfiNative(core::int #t0) → self::Struct1ByteInt;
 constants  {
-  #C1 = "vm:ffi:struct-fields"
-  #C2 = TypeLiteralConstant(ffi::Int8)
-  #C3 = <core::Type>[#C2]
-  #C4 = null
-  #C5 = ffi::_FfiStructLayout {fieldTypes:#C3, packing:#C4}
-  #C6 = core::pragma {name:#C1, options:#C5}
-  #C7 = "vm:prefer-inline"
-  #C8 = core::pragma {name:#C7, options:#C4}
-  #C9 = ffi::Int8 {}
-  #C10 = 0
-  #C11 = <core::int>[#C10, #C10, #C10, #C10, #C10, #C10, #C10, #C10, #C10, #C10, #C10, #C10, #C10, #C10, #C10, #C10, #C10, #C10, #C10, #C10, #C10, #C10]
-  #C12 = 1
+  #C1 = "vm:deeply-immutable"
+  #C2 = null
+  #C3 = core::pragma {name:#C1, options:#C2}
+  #C4 = "vm:ffi:struct-fields"
+  #C5 = TypeLiteralConstant(ffi::Int8)
+  #C6 = <core::Type>[#C5]
+  #C7 = ffi::_FfiStructLayout {fieldTypes:#C6, packing:#C2}
+  #C8 = core::pragma {name:#C4, options:#C7}
+  #C9 = "vm:prefer-inline"
+  #C10 = core::pragma {name:#C9, options:#C2}
+  #C11 = ffi::Int8 {}
+  #C12 = 0
   #C13 = <core::int>[#C12, #C12, #C12, #C12, #C12, #C12, #C12, #C12, #C12, #C12, #C12, #C12, #C12, #C12, #C12, #C12, #C12, #C12, #C12, #C12, #C12, #C12]
-  #C14 = "ReturnStruct1ByteInt"
-  #C15 = "#lib"
-  #C16 = false
-  #C17 = ffi::Native<(ffi::Int8) → self::Struct1ByteInt> {symbol:#C14, assetId:#C15, isLeaf:#C16}
-  #C18 = "cfe:ffi:native-marker"
-  #C19 = core::pragma {name:#C18, options:#C17}
-  #C20 = "vm:ffi:native"
-  #C21 = core::pragma {name:#C20, options:#C17}
+  #C14 = 1
+  #C15 = <core::int>[#C14, #C14, #C14, #C14, #C14, #C14, #C14, #C14, #C14, #C14, #C14, #C14, #C14, #C14, #C14, #C14, #C14, #C14, #C14, #C14, #C14, #C14]
+  #C16 = "ReturnStruct1ByteInt"
+  #C17 = "#lib"
+  #C18 = false
+  #C19 = ffi::Native<(ffi::Int8) → self::Struct1ByteInt> {symbol:#C16, assetId:#C17, isLeaf:#C18}
+  #C20 = "cfe:ffi:native-marker"
+  #C21 = core::pragma {name:#C20, options:#C19}
+  #C22 = "vm:ffi:native"
+  #C23 = core::pragma {name:#C22, options:#C19}
 }

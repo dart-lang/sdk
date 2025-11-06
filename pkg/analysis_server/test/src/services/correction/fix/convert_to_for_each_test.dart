@@ -18,7 +18,7 @@ void main() {
 @reflectiveTest
 class ConvertToForEachTest extends FixProcessorLintTest {
   @override
-  FixKind get kind => DartFixKind.CONVERT_TO_FOR_EACH;
+  FixKind get kind => DartFixKind.convertToForEach;
 
   @override
   String get lintCode => LintNames.prefer_foreach;

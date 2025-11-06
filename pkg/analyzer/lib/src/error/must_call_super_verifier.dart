@@ -179,7 +179,7 @@ class MustCallSuperVerifier {
       // safe to assume [overriddenEnclosingName] is non-`null`.
       _diagnosticReporter.atToken(
         node.name,
-        WarningCode.MUST_CALL_SUPER,
+        WarningCode.mustCallSuper,
         arguments: [overriddenEnclosingName!],
       );
     }
@@ -207,7 +207,7 @@ extension on InterfaceType? {
     var element = self.element;
 
     var library = element.library as LibraryElementImpl;
-    var inheritanceManager = library.session.inheritanceManager;
+    var inheritanceManager = library.internal.inheritanceManager;
 
     var concrete = inheritanceManager.getMember(
       element,

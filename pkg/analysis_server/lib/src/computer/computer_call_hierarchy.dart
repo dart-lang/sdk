@@ -110,8 +110,9 @@ class CallHierarchyItem {
     var enclosingElement =
         element.enclosingElement ??
         element.firstFragment.enclosingFragment?.element;
-    var container =
-        enclosingElement != null ? _getContainer(enclosingElement) : null;
+    var container = enclosingElement != null
+        ? _getContainer(enclosingElement)
+        : null;
     containerName = container != null ? _getDisplayName(container) : null;
   }
 
@@ -135,7 +136,7 @@ class CallHierarchyItem {
     element = _nonSynthetic(element);
     var fragment = element.firstFragment as FragmentImpl;
 
-    var nameOffset = fragment.nameOffset2;
+    var nameOffset = fragment.nameOffset;
     var nameEnd = fragment.nameEnd;
     if (nameOffset != null && nameEnd != null) {
       return SourceRange(nameOffset, nameEnd - nameOffset);

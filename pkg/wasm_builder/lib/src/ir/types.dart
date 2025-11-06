@@ -8,11 +8,12 @@ class Types {
   /// Types defined in this module.
   final List<List<DefType>> recursionGroups;
 
-  /// Number of types with names.
-  final int namedCount;
+  late final List<DefType> defined;
 
-  /// Number of types with field names.
-  final int typesWithNamedFieldsCount;
+  Types(this.recursionGroups)
+      : defined = recursionGroups.expand((g) => g).toList();
 
-  Types(this.recursionGroups, this.namedCount, this.typesWithNamedFieldsCount);
+  DefType operator [](int index) => defined[index];
+
+  int get length => defined.length;
 }

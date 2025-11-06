@@ -908,7 +908,7 @@ void f() {
 ''',
       [
         error(
-          CompileTimeErrorCode.RECORD_LITERAL_ONE_POSITIONAL_NO_TRAILING_COMMA,
+          CompileTimeErrorCode.recordLiteralOnePositionalNoTrailingComma,
           24,
           3,
         ),
@@ -927,7 +927,7 @@ void g({required (int,) i}) {}
 ''',
       [
         error(
-          CompileTimeErrorCode.RECORD_LITERAL_ONE_POSITIONAL_NO_TRAILING_COMMA,
+          CompileTimeErrorCode.recordLiteralOnePositionalNoTrailingComma,
           18,
           3,
         ),
@@ -947,7 +947,7 @@ void g((int,) i) {}
 ''',
       [
         error(
-          CompileTimeErrorCode.RECORD_LITERAL_ONE_POSITIONAL_NO_TRAILING_COMMA,
+          CompileTimeErrorCode.recordLiteralOnePositionalNoTrailingComma,
           15,
           3,
         ),

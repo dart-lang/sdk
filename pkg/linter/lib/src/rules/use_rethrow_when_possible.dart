@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/analysis_rule/rule_context.dart';
+import 'package:analyzer/analysis_rule/rule_visitor_registry.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/error/error.dart';
@@ -17,10 +18,13 @@ class UseRethrowWhenPossible extends LintRule {
     : super(name: LintNames.use_rethrow_when_possible, description: _desc);
 
   @override
-  DiagnosticCode get diagnosticCode => LinterLintCode.use_rethrow_when_possible;
+  DiagnosticCode get diagnosticCode => LinterLintCode.useRethrowWhenPossible;
 
   @override
-  void registerNodeProcessors(NodeLintRegistry registry, RuleContext context) {
+  void registerNodeProcessors(
+    RuleVisitorRegistry registry,
+    RuleContext context,
+  ) {
     var visitor = _Visitor(this);
     registry.addThrowExpression(this, visitor);
   }
@@ -38,7 +42,8 @@ class _Visitor extends SimpleAstVisitor<void> {
     var element = node.expression.canonicalElement;
     if (element != null) {
       var catchClause = node.thisOrAncestorOfType<CatchClause>();
-      var exceptionParameter = catchClause?.exceptionParameter?.declaredElement;
+      var exceptionParameter =
+          catchClause?.exceptionParameter?.declaredFragment?.element;
       if (element == exceptionParameter) {
         rule.reportAtNode(node);
       }

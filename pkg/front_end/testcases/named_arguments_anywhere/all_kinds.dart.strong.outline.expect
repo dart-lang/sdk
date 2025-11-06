@@ -16,25 +16,34 @@ class A extends core::Object {
 class Test extends self::A {
   constructor •() → self::Test
     ;
+  constructor c1() → self::Test
+    ;
+  constructor c2() → self::Test
+    ;
   method test() → dynamic
     ;
 }
-extension E on self::A {
+extension E on core::int {
   method method1 = self::E|method1;
   method tearoff method1 = self::E|get#method1;
   method method2 = self::E|method2;
   method tearoff method2 = self::E|get#method2;
   static method staticMethod2 = self::E|staticMethod2;
 }
+static field core::int counter;
+static method reset() → void
+  ;
+static method t(core::int value) → core::int
+  ;
 static method foo(core::int x, core::int y, {required core::int z}) → dynamic
   ;
-static extension-member method E|method1(lowered final self::A #this) → dynamic
+static extension-member method E|method1(lowered final core::int #this) → dynamic
   ;
-static extension-member method E|get#method1(lowered final self::A #this) → () → dynamic
+static extension-member method E|get#method1(lowered final core::int #this) → () → dynamic
   return () → dynamic => self::E|method1(#this);
-static extension-member method E|method2(lowered final self::A #this, core::int bar, {core::int? foo}) → dynamic
+static extension-member method E|method2(lowered final core::int #this, core::int bar, {core::int? foo}) → dynamic
   ;
-static extension-member method E|get#method2(lowered final self::A #this) → (core::int, {foo: core::int?}) → dynamic
+static extension-member method E|get#method2(lowered final core::int #this) → (core::int, {foo: core::int?}) → dynamic
   return (core::int bar, {core::int? foo}) → dynamic => self::E|method2(#this, bar, foo: foo);
 static extension-member method E|staticMethod2(core::int bar, {core::int? foo}) → dynamic
   ;

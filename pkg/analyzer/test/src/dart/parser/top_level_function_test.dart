@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/src/dart/error/syntactic_errors.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../../diagnostics/parser_diagnostics.dart';
@@ -144,6 +145,136 @@ FunctionDeclaration
       block: Block
         leftBracket: {
         rightBracket: }
+''');
+  }
+
+  test_setter_formalParameters_absent() {
+    var parseResult = parseStringWithErrors(r'''
+set foo {}
+''');
+    parseResult.assertErrors([
+      error(ParserErrorCode.missingFunctionParameters, 4, 3),
+    ]);
+
+    var node = parseResult.findNode.singleFunctionDeclaration;
+    assertParsedNodeText(node, withOffsets: true, r'''
+FunctionDeclaration
+  propertyKeyword: set @0
+  name: foo @4
+  functionExpression: FunctionExpression
+    parameters: FormalParameterList
+      leftParenthesis: ( @8 <synthetic>
+      parameter: SimpleFormalParameter
+        name: <empty> @8 <synthetic>
+      rightParenthesis: ) @8 <synthetic>
+    body: BlockFunctionBody
+      block: Block
+        leftBracket: { @8
+        rightBracket: } @9
+''');
+  }
+
+  test_setter_formalParameters_optionalNamed() {
+    var parseResult = parseStringWithErrors(r'''
+set foo({a}) {}
+''');
+    parseResult.assertErrors([
+      error(ParserErrorCode.wrongNumberOfParametersForSetter, 4, 3),
+    ]);
+
+    var node = parseResult.findNode.singleFunctionDeclaration;
+    assertParsedNodeText(node, withOffsets: true, r'''
+FunctionDeclaration
+  propertyKeyword: set @0
+  name: foo @4
+  functionExpression: FunctionExpression
+    parameters: FormalParameterList
+      leftParenthesis: ( @7
+      parameter: SimpleFormalParameter
+        name: a @9
+      rightParenthesis: ) @11
+    body: BlockFunctionBody
+      block: Block
+        leftBracket: { @13
+        rightBracket: } @14
+''');
+  }
+
+  test_setter_formalParameters_optionalPositional() {
+    var parseResult = parseStringWithErrors(r'''
+set foo([a]) {}
+''');
+    parseResult.assertErrors([
+      error(ParserErrorCode.wrongNumberOfParametersForSetter, 4, 3),
+    ]);
+
+    var node = parseResult.findNode.singleFunctionDeclaration;
+    assertParsedNodeText(node, withOffsets: true, r'''
+FunctionDeclaration
+  propertyKeyword: set @0
+  name: foo @4
+  functionExpression: FunctionExpression
+    parameters: FormalParameterList
+      leftParenthesis: ( @7
+      parameter: SimpleFormalParameter
+        name: a @9
+      rightParenthesis: ) @11
+    body: BlockFunctionBody
+      block: Block
+        leftBracket: { @13
+        rightBracket: } @14
+''');
+  }
+
+  test_setter_formalParameters_requiredPositional_three() {
+    var parseResult = parseStringWithErrors(r'''
+set foo(a, b, c) {}
+''');
+    parseResult.assertErrors([
+      error(ParserErrorCode.wrongNumberOfParametersForSetter, 4, 3),
+    ]);
+
+    var node = parseResult.findNode.singleFunctionDeclaration;
+    assertParsedNodeText(node, withOffsets: true, r'''
+FunctionDeclaration
+  propertyKeyword: set @0
+  name: foo @4
+  functionExpression: FunctionExpression
+    parameters: FormalParameterList
+      leftParenthesis: ( @7
+      parameter: SimpleFormalParameter
+        name: a @8
+      rightParenthesis: ) @15
+    body: BlockFunctionBody
+      block: Block
+        leftBracket: { @17
+        rightBracket: } @18
+''');
+  }
+
+  test_setter_formalParameters_zero() {
+    var parseResult = parseStringWithErrors(r'''
+set foo() {}
+''');
+    parseResult.assertErrors([
+      error(ParserErrorCode.wrongNumberOfParametersForSetter, 4, 3),
+    ]);
+
+    var node = parseResult.findNode.singleFunctionDeclaration;
+    assertParsedNodeText(node, withOffsets: true, r'''
+FunctionDeclaration
+  propertyKeyword: set @0
+  name: foo @4
+  functionExpression: FunctionExpression
+    parameters: FormalParameterList
+      leftParenthesis: ( @7
+      parameter: SimpleFormalParameter
+        name: <empty> @8 <synthetic>
+      rightParenthesis: ) @8
+    body: BlockFunctionBody
+      block: Block
+        leftBracket: { @10
+        rightBracket: } @11
 ''');
   }
 }

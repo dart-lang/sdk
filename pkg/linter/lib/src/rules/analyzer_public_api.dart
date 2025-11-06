@@ -2,91 +2,24 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/analysis_rule/analysis_rule.dart';
 import 'package:analyzer/analysis_rule/rule_context.dart';
+import 'package:analyzer/analysis_rule/rule_state.dart';
+import 'package:analyzer/analysis_rule/rule_visitor_registry.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/constant/value.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/error/error.dart';
-import 'package:analyzer/src/lint/linter.dart'; // ignore: implementation_imports
 
-import '../analyzer.dart';
+import '../lint_codes.dart';
 
 const _desc =
     'Do not expose implementation details through the analyzer public API.';
 
 class AnalyzerPublicApi extends MultiAnalysisRule {
   static const ruleName = 'analyzer_public_api';
-
-  /// Lint issued if a file in the analyzer public API contains a `part`
-  /// directive that points to a file that's not in the analyzer public API.
-  ///
-  /// The rationale for this lint is that if such a `part` directive were to
-  /// exist, it would cause all the members of the part file to become part of
-  /// the analyzer's public API, even though they don't appear to be public API.
-  ///
-  /// Note that the analyzer doesn't make very much use of `part` directives,
-  /// but it may do so in the future once augmentations and enhanced parts are
-  /// supported.
-  static const LintCode badPartDirective = LintCode(
-    'analyzer_public_api_bad_part_directive',
-    'Part directives in the analyzer public API should point to files in the '
-        'analyzer public API.',
-  );
-
-  /// Lint issued if a method, function, getter, or setter in the analyzer
-  /// public API makes use of a type that's not part of the analyzer public API,
-  /// or if a non-public type appears in an `extends`, `implements`, `with`, or
-  /// `on` clause.
-  ///
-  /// The reason this is a problem is that it makes it possible for analyzer
-  /// clients to implicitly reference analyzer internal types. This can happen
-  /// in many ways; here are some examples:
-  ///
-  /// - If `C` is a public API class that implements `B`, and `B` is a private
-  ///   class with a getter called `x`, then a client can access `B.x` via `C`.
-  ///
-  /// - If `f` has return type `T`, and `T` is a private class with a getter
-  ///   called `x`, then a client can access `T.x` via `f().x`.
-  ///
-  /// - If `f` has type `void Function(T)`, and `T` is a private class with a
-  ///   getter called `x`, then a client can access `T.x` via
-  ///   `var g = f; g = (t) { print(t.x); }`.
-  ///
-  /// This lint can be suppressed either with an `ignore` comment, or by marking
-  /// the referenced type with `@AnalyzerPublicApi(...)`. The advantage of
-  /// marking the referenced type with `@AnalyzerPublicApi(...)` is that it
-  /// causes the members of referenced type to be checked by this lint.
-  static const LintCode badType = LintCode(
-    'analyzer_public_api_bad_type',
-    'Element makes use of type(s) which is not part of the analyzer public '
-        'API: {0}.',
-  );
-
-  /// Lint issued if a file in the analyzer public API contains an `export`
-  /// directive that exports a name that's not part of the analyzer public API.
-  ///
-  /// This lint can be suppressed either with an `ignore` comment, or by marking
-  /// the exported declaration with `@AnalyzerPublicApi(...)`. The advantage of
-  /// marking the exported declaration with `@AnalyzerPublicApi(...)` is that it
-  /// causes the members of the exported declaration to be checked by this lint.
-  static const LintCode exportsNonPublicName = LintCode(
-    'analyzer_public_api_exports_non_public_name',
-    'Export directive exports element(s) that are not part of the analyzer '
-        'public API: {0}.',
-  );
-
-  /// Lint issued if a top level declaration in the analyzer public API has a
-  /// name ending in `Impl`.
-  ///
-  /// Such declarations are not meant to be members of the analyzer public API,
-  /// so if they are either declared outside of `package:analyzer/src`, or
-  /// marked with `@AnalyzerPublicApi(...)`, that is almost certainly a mistake.
-  static const LintCode implInPublicApi = LintCode(
-    'analyzer_public_api_impl_in_public_api',
-    'Declarations in the analyzer public API should not end in "Impl".',
-  );
 
   AnalyzerPublicApi()
     : super(
@@ -97,14 +30,18 @@ class AnalyzerPublicApi extends MultiAnalysisRule {
 
   @override
   List<DiagnosticCode> get diagnosticCodes => [
-    badPartDirective,
-    badType,
-    exportsNonPublicName,
-    implInPublicApi,
+    LinterLintCode.analyzerPublicApiBadPartDirective,
+    LinterLintCode.analyzerPublicApiBadType,
+    LinterLintCode.analyzerPublicApiExperimentalInconsistency,
+    LinterLintCode.analyzerPublicApiExportsNonPublicName,
+    LinterLintCode.analyzerPublicApiImplInPublicApi,
   ];
 
   @override
-  void registerNodeProcessors(NodeLintRegistry registry, RuleContext context) {
+  void registerNodeProcessors(
+    RuleVisitorRegistry registry,
+    RuleContext context,
+  ) {
     var visitor = _Visitor(this);
     registry.addCompilationUnit(this, visitor);
     registry.addExportDirective(this, visitor);
@@ -112,23 +49,38 @@ class AnalyzerPublicApi extends MultiAnalysisRule {
   }
 }
 
+/// Types of problematic uses of types that can be detected by this lint.
+enum _ProblematicTypeUseKind {
+  /// Use of a non-public type by a part of the analyzer public API.
+  useOfNonPublicType,
+
+  /// Use of an experimental type by a non-experimental part of the analyzer
+  /// public API.
+  useOfExperimentalType,
+}
+
+/// Lightweight object representing a public import.
+class _PublicImport {
+  final Element? Function(String name) lookup;
+
+  _PublicImport({required this.lookup});
+}
+
 class _Visitor extends SimpleAstVisitor<void> {
   final MultiAnalysisRule rule;
 
-  /// Elements that are imported into the current compilation unit's import
-  /// namespace via `import` directives that do *not* access a package's `src`
-  /// directory.
-  ///
-  /// Elements in this set are part of the public APIs of their respective
-  /// packages, so it is safe for a part of the analyzer public API to refer to
-  /// them.
-  late Set<Element> importedPublicElements;
+  /// Public imports of the current unit.
+  List<_PublicImport> _publicImports = [];
+
+  /// Cache for [_isPubliclyImported].
+  Map<Element, bool> _isImportedMemo = Map.identity();
 
   _Visitor(this.rule);
 
   @override
   void visitCompilationUnit(CompilationUnit node) {
-    importedPublicElements = _computeImportedPublicElements(node);
+    _publicImports = _getPublicImports(node);
+    _isImportedMemo = Map.identity();
     node.declaredFragment!.children.forEach(_checkTopLevelFragment);
   }
 
@@ -167,7 +119,7 @@ class _Visitor extends SimpleAstVisitor<void> {
     if (badNames != null) {
       rule.reportAtNode(
         node,
-        diagnosticCode: AnalyzerPublicApi.exportsNonPublicName,
+        diagnosticCode: LinterLintCode.analyzerPublicApiExportsNonPublicName,
         arguments: [badNames.join(', ')],
       );
     }
@@ -184,12 +136,12 @@ class _Visitor extends SimpleAstVisitor<void> {
     if (!partElement.includedFragment!.source.uri.isInAnalyzerPublicLib) {
       rule.reportAtNode(
         node,
-        diagnosticCode: AnalyzerPublicApi.badPartDirective,
+        diagnosticCode: LinterLintCode.analyzerPublicApiBadPartDirective,
       );
     }
   }
 
-  void _checkMember(Fragment fragment) {
+  void _checkMember(Fragment fragment, {required bool isParentExperimental}) {
     if (fragment is ConstructorFragment &&
         fragment.element.enclosingElement is EnumElement) {
       // Enum constructors aren't callable from outside of the enum, so they
@@ -202,7 +154,12 @@ class _Visitor extends SimpleAstVisitor<void> {
       return;
     }
     if (fragment is ExecutableFragment) {
-      _checkType(fragment.element.type, fragment: fragment);
+      _checkType(
+        fragment.element.type,
+        fragment: fragment,
+        isUsageSiteExperimental:
+            isParentExperimental || fragment.element.metadata.hasExperimental,
+      );
     }
   }
 
@@ -212,119 +169,214 @@ class _Visitor extends SimpleAstVisitor<void> {
     if (name != null && name.endsWith('Impl')) {
       // Nothing in the analyzer public API may have a name ending in `Impl`.
       rule.reportAtOffset(
-        fragment.nameOffset2!,
+        fragment.nameOffset!,
         name.length,
-        diagnosticCode: AnalyzerPublicApi.implInPublicApi,
+        diagnosticCode: LinterLintCode.analyzerPublicApiImplInPublicApi,
       );
     }
+    var isUsageSiteExperimental = fragment.element.metadata.hasExperimental;
     switch (fragment) {
       case ExtensionFragment(name: null):
         // Unnamed extensions are not public, so ignore.
         break;
-      case InstanceFragment(:var typeParameters2, :var children):
-        for (var typeParameter in typeParameters2) {
-          _checkTypeParameter(typeParameter, fragment: fragment);
+      case InstanceFragment(:var typeParameters, :var children):
+        for (var typeParameter in typeParameters) {
+          _checkTypeParameter(
+            typeParameter,
+            fragment: fragment,
+            isUsageSiteExperimental: isUsageSiteExperimental,
+          );
         }
-        if (fragment case InterfaceFragment(
-          :var supertype,
-          :var interfaces,
-          :var mixins,
-        )) {
-          _checkType(supertype, fragment: fragment);
-          for (var t in interfaces) {
-            _checkType(t, fragment: fragment);
+        if (fragment is InterfaceFragment) {
+          var element = fragment.element;
+          _checkType(
+            element.supertype,
+            fragment: fragment,
+            isUsageSiteExperimental: isUsageSiteExperimental,
+          );
+          for (var t in element.interfaces) {
+            _checkType(
+              t,
+              fragment: fragment,
+              isUsageSiteExperimental: isUsageSiteExperimental,
+            );
           }
-          for (var t in mixins) {
-            _checkType(t, fragment: fragment);
+          for (var t in element.mixins) {
+            _checkType(
+              t,
+              fragment: fragment,
+              isUsageSiteExperimental: isUsageSiteExperimental,
+            );
           }
         }
         if (fragment case ExtensionFragment(:var element)) {
-          _checkType(element.extendedType, fragment: fragment);
+          _checkType(
+            element.extendedType,
+            fragment: fragment,
+            isUsageSiteExperimental: isUsageSiteExperimental,
+          );
         }
         if (fragment case MixinFragment(:var superclassConstraints)) {
           for (var t in superclassConstraints) {
-            _checkType(t, fragment: fragment);
+            _checkType(
+              t,
+              fragment: fragment,
+              isUsageSiteExperimental: isUsageSiteExperimental,
+            );
           }
         }
-        children.forEach(_checkMember);
+        for (var child in children) {
+          _checkMember(child, isParentExperimental: isUsageSiteExperimental);
+        }
       case ExecutableFragment():
-        _checkType(fragment.element.type, fragment: fragment);
-      case TypeAliasFragment(:var element, :var typeParameters2):
+        _checkType(
+          fragment.element.type,
+          fragment: fragment,
+          isUsageSiteExperimental: isUsageSiteExperimental,
+        );
+      case TypeAliasFragment(:var element, :var typeParameters):
         var aliasedType = element.aliasedType;
-        _checkType(element.aliasedType, fragment: fragment);
-        if (typeParameters2.isNotEmpty &&
+        _checkType(
+          aliasedType,
+          fragment: fragment,
+          isUsageSiteExperimental: isUsageSiteExperimental,
+        );
+        if (typeParameters.isNotEmpty &&
             aliasedType is FunctionType &&
             aliasedType.typeParameters.isEmpty) {
           // Sometimes `aliasedType` doesn't have the type parameters. Not sure
           // why.
           // TODO(paulberry): consider fixing this in the analyzer.
-          for (var typeParameter in typeParameters2) {
-            _checkTypeParameter(typeParameter, fragment: fragment);
+          for (var typeParameter in typeParameters) {
+            _checkTypeParameter(
+              typeParameter,
+              fragment: fragment,
+              isUsageSiteExperimental: isUsageSiteExperimental,
+            );
           }
         }
     }
   }
 
-  void _checkType(DartType? type, {required Fragment fragment}) {
+  void _checkType(
+    DartType? type, {
+    required Fragment fragment,
+    required bool isUsageSiteExperimental,
+  }) {
     if (type == null) return;
-    var problems = _problemsForAnalyzerPublicApi(type);
-    if (problems.isEmpty) return;
-    int offset;
-    int length;
-    while (true) {
-      if (fragment.nameOffset2 != null) {
-        offset = fragment.nameOffset2!;
-        length = fragment.name!.length;
-        break;
-      } else if (fragment case PropertyAccessorFragment()
-          when fragment.element.variable!.firstFragment.nameOffset2 != null) {
-        offset = fragment.element.variable!.firstFragment.nameOffset2!;
-        length = fragment.element.variable!.name!.length;
-        break;
-      } else if (fragment is ConstructorFragment &&
-          fragment.typeNameOffset != null) {
-        offset = fragment.typeNameOffset!;
-        length = fragment.enclosingFragment!.name!.length;
-        break;
-      } else if (fragment.enclosingFragment case var enclosingFragment?) {
-        fragment = enclosingFragment;
-      } else {
-        // This should never happen. But if it does, make sure we generate a
-        // lint anyway.
-        offset = 0;
-        length = 1;
-        break;
-      }
-    }
-    rule.reportAtOffset(
-      offset,
-      length,
-      diagnosticCode: AnalyzerPublicApi.badType,
-      arguments: [problems.join(', ')],
+    var nonPublicProblems = _problemsForAnalyzerPublicApi(
+      type,
+      kind: _ProblematicTypeUseKind.useOfNonPublicType,
     );
+    var experimentalProblems = isUsageSiteExperimental
+        ? const <String>{}
+        : _problemsForAnalyzerPublicApi(
+            type,
+            kind: _ProblematicTypeUseKind.useOfExperimentalType,
+          );
+    late var offsetAndLength = _offsetAndLengthForFragment(fragment);
+    if (nonPublicProblems.isNotEmpty) {
+      rule.reportAtOffset(
+        offsetAndLength.offset,
+        offsetAndLength.length,
+        diagnosticCode: LinterLintCode.analyzerPublicApiBadType,
+        arguments: [nonPublicProblems.join(', ')],
+      );
+    }
+    if (experimentalProblems.isNotEmpty) {
+      rule.reportAtOffset(
+        offsetAndLength.offset,
+        offsetAndLength.length,
+        diagnosticCode:
+            LinterLintCode.analyzerPublicApiExperimentalInconsistency,
+        arguments: [nonPublicProblems.join(', ')],
+      );
+    }
   }
 
   void _checkTypeParameter(
     TypeParameterFragment typeParameter, {
     required Fragment fragment,
+    required bool isUsageSiteExperimental,
   }) {
-    _checkType(typeParameter.element.bound, fragment: fragment);
+    _checkType(
+      typeParameter.element.bound,
+      fragment: fragment,
+      isUsageSiteExperimental: isUsageSiteExperimental,
+    );
   }
 
-  Set<String> _problemsForAnalyzerPublicApi(DartType type) {
+  /// Whether [element] is visible through at least one public import.
+  bool _isPubliclyImported(Element element) {
+    var lookupName = element.lookupName;
+    if (lookupName == null) return false;
+
+    if (_isImportedMemo[element] case var cached?) {
+      return cached;
+    }
+
+    for (var import in _publicImports) {
+      var lookedUp = import.lookup(lookupName);
+      if (lookedUp?.baseElement == element.baseElement) {
+        _isImportedMemo[element] = true;
+        return true;
+      }
+    }
+
+    _isImportedMemo[element] = false;
+    return false;
+  }
+
+  ({int length, int offset}) _offsetAndLengthForFragment(Fragment fragment) {
+    while (true) {
+      if (fragment.nameOffset != null) {
+        return (offset: fragment.nameOffset!, length: fragment.name!.length);
+      } else if (fragment case PropertyAccessorFragment()
+          when fragment.element.variable.firstFragment.nameOffset != null) {
+        return (
+          offset: fragment.element.variable.firstFragment.nameOffset!,
+          length: fragment.element.variable.name!.length,
+        );
+      } else if (fragment is ConstructorFragment &&
+          fragment.typeNameOffset != null) {
+        return (
+          offset: fragment.typeNameOffset!,
+          length: fragment.enclosingFragment!.name!.length,
+        );
+      } else if (fragment.enclosingFragment case var enclosingFragment?) {
+        // ignore: parameter_assignments
+        fragment = enclosingFragment;
+      } else {
+        // This should never happen. But if it does, make sure we generate a
+        // lint anyway.
+        return (offset: 0, length: 1);
+      }
+    }
+  }
+
+  Set<String> _problemsForAnalyzerPublicApi(
+    DartType type, {
+    required _ProblematicTypeUseKind kind,
+  }) {
     switch (type) {
       case RecordType(:var positionalFields, :var namedFields):
         return {
           for (var f in positionalFields)
-            ..._problemsForAnalyzerPublicApi(f.type),
-          for (var f in namedFields) ..._problemsForAnalyzerPublicApi(f.type),
+            ..._problemsForAnalyzerPublicApi(f.type, kind: kind),
+          for (var f in namedFields)
+            ..._problemsForAnalyzerPublicApi(f.type, kind: kind),
         };
       case InterfaceType(:var element, :var typeArguments):
+        var isProblematicElement = switch (kind) {
+          _ProblematicTypeUseKind.useOfNonPublicType =>
+            !_isPubliclyImported(element) && !element.isOkForAnalyzerPublicApi,
+          _ProblematicTypeUseKind.useOfExperimentalType =>
+            element.metadata.hasExperimental,
+        };
         return {
-          if (!importedPublicElements.contains(element) &&
-              !element.isOkForAnalyzerPublicApi)
-            element.name!,
-          for (var t in typeArguments) ..._problemsForAnalyzerPublicApi(t),
+          if (isProblematicElement) element.name!,
+          for (var t in typeArguments)
+            ..._problemsForAnalyzerPublicApi(t, kind: kind),
         };
       case NeverType():
       case DynamicType():
@@ -338,36 +390,42 @@ class _Visitor extends SimpleAstVisitor<void> {
         :var formalParameters,
       ):
         return {
-          ..._problemsForAnalyzerPublicApi(returnType),
+          ..._problemsForAnalyzerPublicApi(returnType, kind: kind),
           for (var p in typeParameters)
-            if (p.bound != null) ..._problemsForAnalyzerPublicApi(p.bound!),
+            if (p.bound != null)
+              ..._problemsForAnalyzerPublicApi(p.bound!, kind: kind),
           for (var p in formalParameters)
-            ..._problemsForAnalyzerPublicApi(p.type),
+            ..._problemsForAnalyzerPublicApi(p.type, kind: kind),
         };
       default:
         throw StateError('Unexpected type $runtimeType');
     }
   }
 
-  /// Called during [visitCompilationUnit] to compute the value of
-  /// [importedPublicElements].
-  static Set<Element> _computeImportedPublicElements(
-    CompilationUnit compilationUnit,
-  ) {
-    var elements = <Element>{};
-    for (var directive in compilationUnit.directives) {
+  static List<_PublicImport> _getPublicImports(CompilationUnit unit) {
+    var result = <_PublicImport>[];
+    for (var directive in unit.directives) {
       if (directive is! ImportDirective) continue;
       var libraryImport = directive.libraryImport!;
       var importedLibrary = libraryImport.importedLibrary;
-      if (importedLibrary == null) {
-        // Import was unresolved. Ignore.
-        continue;
-      }
-      if (importedLibrary.uri.isPublic) {
-        elements.addAll(libraryImport.namespace.definedNames2.values);
-      }
+      if (importedLibrary == null) continue;
+      if (!importedLibrary.uri.isPublic) continue;
+      var combinators = libraryImport.combinators;
+      result.add(
+        _PublicImport(
+          lookup: (lookupName) {
+            var baseName = lookupName.endsWith('=')
+                ? lookupName.substring(0, lookupName.length - 1)
+                : lookupName;
+            if (combinators.any((c) => c.blocksName(baseName))) {
+              return null;
+            }
+            return importedLibrary.exportNamespace.get2(lookupName);
+          },
+        ),
+      );
     }
-    return elements;
+    return result;
   }
 }
 
@@ -379,7 +437,7 @@ extension on Element {
   bool get isInAnalyzerPublicApi {
     if (this case PropertyAccessorElement(
       isSynthetic: true,
-      :var variable?,
+      :var variable,
     ) when variable.isInAnalyzerPublicApi) {
       return true;
     }
@@ -395,9 +453,7 @@ extension on Element {
     ) when setter.isInAnalyzerPublicApi) {
       return true;
     }
-    if (this case Annotatable(
-      metadata: Metadata(:var annotations),
-    ) when annotations.any(_isPublicApiAnnotation)) {
+    if (metadata.annotations.any(_isPublicApiAnnotation)) {
       return true;
     }
     if (name case var name? when !name.isPublic) return false;

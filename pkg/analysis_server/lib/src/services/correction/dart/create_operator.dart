@@ -28,7 +28,7 @@ class CreateOperator extends ResolvedCorrectionProducer {
   List<String>? get fixArguments => [_operator];
 
   @override
-  FixKind get fixKind => DartFixKind.CREATE_OPERATOR;
+  FixKind get fixKind => DartFixKind.createOperator;
 
   @override
   Future<void> compute(ChangeBuilder builder) async {
@@ -94,6 +94,9 @@ class CreateOperator extends ResolvedCorrectionProducer {
       // Try to find the return type.
       returnType = inferUndefinedExpressionType(node) ?? VoidTypeImpl.instance;
     }
+    if (returnType is InvalidType) {
+      return;
+    }
 
     var targetClassElement = getTargetInterfaceElement(target);
     if (targetClassElement == null) {
@@ -131,8 +134,9 @@ class CreateOperator extends ResolvedCorrectionProducer {
     var targetSource = targetFragment.libraryFragment!.source;
     var targetFile = targetSource.fullName;
 
-    var writeReturnType =
-        getCodeStyleOptions(unitResult.file).specifyReturnTypes;
+    var writeReturnType = getCodeStyleOptions(
+      unitResult.file,
+    ).specifyReturnTypes;
 
     if (returnType is TypeParameterType) {
       returnType = returnType.bound;

@@ -36,6 +36,8 @@
 // mixins because some implementations expand mixins, which could result in the
 // expanded code having non-parametric types, e.g. `Queue<int>`.
 
+// ignore_for_file: prefer_final_locals
+
 import 'dart:typed_data';
 import 'package:benchmark_harness/benchmark_harness.dart';
 

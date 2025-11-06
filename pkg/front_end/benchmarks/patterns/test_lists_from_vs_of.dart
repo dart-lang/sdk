@@ -23,32 +23,19 @@ const Scenario emptyScenario = Scenario('emptyScenario', 'empty', '''
 The input and output is empty.''');
 const Scenario oneEntryScenario = Scenario('oneEntryScenario', 'one', '''
 The input is one entry.''');
-const Scenario severalEntriesScenario =
-    Scenario('severalEntriesScenario', 'several', '''
-The input has several entries.''');
+const Scenario severalEntriesScenario = Scenario(
+  'severalEntriesScenario',
+  'several',
+  '''
+The input has several entries.''',
+);
 
 Map<Scenario, InputOutputData<String>> scenarios = {
   emptyScenario: const InputOutputData([], []),
   oneEntryScenario: const InputOutputData(["a"], ["a"]),
   severalEntriesScenario: const InputOutputData(
-    [
-      "a",
-      "b",
-      "c",
-      "d",
-      "e",
-      "f",
-      "g",
-    ],
-    [
-      "a",
-      "b",
-      "c",
-      "d",
-      "e",
-      "f",
-      "g",
-    ],
+    ["a", "b", "c", "d", "e", "f", "g"],
+    ["a", "b", "c", "d", "e", "f", "g"],
   ),
 };
 
@@ -58,8 +45,15 @@ class Test<T> {
 
   const Test(this.size, this.strategies);
 
-  void _test(Registry registry, SeriesKey key, int runs, int iterations,
-      List<T> input, List<T> expectedResult, TestFunction<T> testFunction) {
+  void _test(
+    Registry registry,
+    SeriesKey key,
+    int runs,
+    int iterations,
+    List<T> input,
+    List<T> expectedResult,
+    TestFunction<T> testFunction,
+  ) {
     for (int run = 0; run < runs; run++) {
       Stopwatch sw = new Stopwatch();
       for (int i = 0; i < iterations; i++) {
@@ -79,17 +73,25 @@ class Test<T> {
     }
   }
 
-  void performTest(
-      {required Registry registry,
-      required int runs,
-      required int iterations,
-      required Map<Scenario, InputOutputData<T>> scenarios}) {
+  void performTest({
+    required Registry registry,
+    required int runs,
+    required int iterations,
+    required Map<Scenario, InputOutputData<T>> scenarios,
+  }) {
     for (MapEntry<Scenario, InputOutputData<T>> scenario in scenarios.entries) {
       List<T> scenarioInput = scenario.value.input;
       List<T> scenarioExpectedOutput = scenario.value.output;
       for (MapEntry<Strategy, TestFunction<T>> entry in strategies.entries) {
-        _test(registry, new SeriesKey(entry.key, scenario.key), runs,
-            iterations, scenarioInput, scenarioExpectedOutput, entry.value);
+        _test(
+          registry,
+          new SeriesKey(entry.key, scenario.key),
+          runs,
+          iterations,
+          scenarioInput,
+          scenarioExpectedOutput,
+          entry.value,
+        );
       }
     }
   }
@@ -97,10 +99,7 @@ class Test<T> {
 
 List<Test<String>> tests = [
   // "size" isn't used here...
-  Test<String>(-1, {
-    fromStrategy: from,
-    ofStrategy: of,
-  }),
+  Test<String>(-1, {fromStrategy: from, ofStrategy: of}),
 ];
 
 List<String> from(List<String> input) {
@@ -115,16 +114,21 @@ void main() {
   // Dry run
   for (Test test in tests) {
     test.performTest(
-        registry: new Registry(),
-        runs: 5,
-        iterations: 10,
-        scenarios: scenarios);
+      registry: new Registry(),
+      runs: 5,
+      iterations: 10,
+      scenarios: scenarios,
+    );
   }
   // Actual test
   Registry registry = new Registry();
   for (Test test in tests) {
     test.performTest(
-        registry: registry, runs: 10, iterations: 200000, scenarios: scenarios);
+      registry: registry,
+      runs: 10,
+      iterations: 200000,
+      scenarios: scenarios,
+    );
   }
   SeriesSet seriesSet = registry.generateSeriesSet();
   print('== Raw data ==');

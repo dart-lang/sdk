@@ -2,7 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:_fe_analyzer_shared/src/messages/severity.dart' show Severity;
+import 'package:_fe_analyzer_shared/src/messages/severity.dart'
+    show CfeSeverity;
 import 'package:kernel/ast.dart';
 import 'package:kernel/type_environment.dart' show TypeEnvironment;
 import 'package:kernel/verifier.dart';
@@ -11,22 +12,28 @@ import '../codes/cfe_codes.dart'
     show
         LocatedMessage,
         Message,
-        messageVerificationErrorOriginContext,
+        codeVerificationErrorOriginContext,
         noLength,
-        templateInternalProblemVerificationError;
+        codeInternalProblemVerificationError;
 import '../base/compiler_context.dart' show CompilerContext;
 
 List<LocatedMessage> verifyComponent(
-    CompilerContext context, VerificationStage stage, Component component,
-    {bool skipPlatform = false,
-    bool Function(Library library)? librarySkipFilter}) {
-  CfeVerificationErrorListener listener =
-      new CfeVerificationErrorListener(context);
+  CompilerContext context,
+  VerificationStage stage,
+  Component component, {
+  bool skipPlatform = false,
+  bool Function(Library library)? librarySkipFilter,
+}) {
+  CfeVerificationErrorListener listener = new CfeVerificationErrorListener(
+    context,
+  );
   VerifyingVisitor verifier = new VerifyingVisitor(
-      context.options.target, stage,
-      skipPlatform: skipPlatform,
-      librarySkipFilter: librarySkipFilter,
-      listener: listener);
+    context.options.target,
+    stage,
+    skipPlatform: skipPlatform,
+    librarySkipFilter: librarySkipFilter,
+    listener: listener,
+  );
   component.accept(verifier);
   return listener.errors;
 }
@@ -39,33 +46,48 @@ class CfeVerificationErrorListener implements VerificationErrorListener {
 
   @override
   // Coverage-ignore(suite): Not run.
-  void reportError(String details,
-      {required TreeNode? node,
-      required Uri? problemUri,
-      required int? problemOffset,
-      required TreeNode? context,
-      required TreeNode? origin}) {
-    Message message =
-        templateInternalProblemVerificationError.withArguments(details);
+  void reportError(
+    String details, {
+    required TreeNode? node,
+    required Uri? problemUri,
+    required int? problemOffset,
+    required TreeNode? context,
+    required TreeNode? origin,
+  }) {
+    Message message = codeInternalProblemVerificationError.withArgumentsOld(
+      details,
+    );
     LocatedMessage locatedMessage = problemUri != null
         ? message.withLocation(
-            problemUri, problemOffset ?? TreeNode.noOffset, noLength)
+            problemUri,
+            problemOffset ?? TreeNode.noOffset,
+            noLength,
+          )
         : message.withoutLocation();
     List<LocatedMessage>? contextMessages;
     if (origin != null) {
       contextMessages = [
-        messageVerificationErrorOriginContext.withLocation(
-            origin.location!.file, origin.fileOffset, noLength)
+        codeVerificationErrorOriginContext.withLocation(
+          origin.location!.file,
+          origin.fileOffset,
+          noLength,
+        ),
       ];
     }
-    compilerContext.report(locatedMessage, Severity.error,
-        context: contextMessages);
+    compilerContext.report(
+      locatedMessage,
+      CfeSeverity.error,
+      context: contextMessages,
+    );
     errors.add(locatedMessage);
   }
 }
 
-void verifyGetStaticType(TypeEnvironment env, Component component,
-    {bool skipPlatform = false}) {
+void verifyGetStaticType(
+  TypeEnvironment env,
+  Component component, {
+  bool skipPlatform = false,
+}) {
   component.accept(new CfeVerifyGetStaticType(env, skipPlatform));
 }
 

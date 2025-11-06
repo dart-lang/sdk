@@ -44,18 +44,14 @@ class FoldingComputerTest extends AbstractContextTest {
     Map<int, FoldingKind> expected, {
     Set<FoldingKind>? onlyVerify,
   }) {
-    var expectedRegions =
-        expected.entries.map((entry) {
-          var range = code.ranges[entry.key].sourceRange;
-          return FoldingRegion(entry.value, range.offset, range.length);
-        }).toSet();
+    var expectedRegions = expected.entries.map((entry) {
+      var range = code.ranges[entry.key].sourceRange;
+      return FoldingRegion(entry.value, range.offset, range.length);
+    }).toSet();
 
-    var actualRegions =
-        onlyVerify == null
-            ? regions.toSet()
-            : regions
-                .where((region) => onlyVerify.contains(region.kind))
-                .toSet();
+    var actualRegions = onlyVerify == null
+        ? regions.toSet()
+        : regions.where((region) => onlyVerify.contains(region.kind)).toSet();
 
     expect(actualRegions, expectedRegions);
   }
@@ -1070,7 +1066,7 @@ void f/*[0*/() {
   }
 
   Future<void> _computeRegions(String sourceContent) async {
-    code = TestCode.parse(normalizeSource(sourceContent));
+    code = TestCode.parseNormalized(sourceContent);
     var file = newFile(sourcePath, code.code);
     var result = await getResolvedUnit(file);
     var computer = DartUnitFoldingComputer(result.lineInfo, result.unit);

@@ -4,6 +4,7 @@
 
 import "dart:io";
 import "package:expect/expect.dart";
+import 'package:path/path.dart' as p;
 
 import "use_flag_test_helper.dart";
 
@@ -35,7 +36,9 @@ main() {
     Platform.isMacOS ? "--extern-only" : "--dynamic",
     "--defined-only",
     "--format=just-symbols",
-    Platform.executable,
+    isAOTRuntime
+        ? Platform.executable
+        : p.join(p.dirname(Platform.executable), 'dartvm'),
   ]);
   if (result.exitCode != 0) {
     print("nm failed");
@@ -252,6 +255,7 @@ main() {
     "Dart_NewList",
     "Dart_NewListOfType",
     "Dart_NewListOfTypeFilled",
+    "Dart_NewMap",
     "Dart_NewNativePort",
     "Dart_NewPersistentHandle",
     "Dart_NewSendPort",
@@ -348,8 +352,13 @@ main() {
     "Dart_True",
     "Dart_TypedDataAcquireData",
     "Dart_TypedDataReleaseData",
+    "Dart_TypeBoolean",
+    "Dart_TypeDouble",
     "Dart_TypeDynamic",
+    "Dart_TypeInt",
     "Dart_TypeNever",
+    "Dart_TypeObject",
+    "Dart_TypeString",
     "Dart_TypeToNonNullableType",
     "Dart_TypeToNullableType",
     "Dart_TypeVoid",

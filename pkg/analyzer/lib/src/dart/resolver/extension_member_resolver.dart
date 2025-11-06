@@ -6,7 +6,6 @@ import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/syntactic_entity.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
-import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/dart/element/element.dart';
@@ -118,7 +117,7 @@ class ExtensionMemberResolver {
     if (mostSpecific.length == 2) {
       _diagnosticReporter.atEntity(
         nameEntity,
-        CompileTimeErrorCode.AMBIGUOUS_EXTENSION_MEMBER_ACCESS_TWO,
+        CompileTimeErrorCode.ambiguousExtensionMemberAccessTwo,
         arguments: [
           name.name,
           mostSpecific[0].extension,
@@ -129,7 +128,7 @@ class ExtensionMemberResolver {
       var extensions = mostSpecific.map((e) => e.extension).toList();
       _diagnosticReporter.atEntity(
         nameEntity,
-        CompileTimeErrorCode.AMBIGUOUS_EXTENSION_MEMBER_ACCESS_THREE_OR_MORE,
+        CompileTimeErrorCode.ambiguousExtensionMemberAccessThreeOrMore,
         arguments: [
           name.name,
           mostSpecific.map((e) {
@@ -176,10 +175,12 @@ class ExtensionMemberResolver {
       node.typeArgumentTypes!,
     );
 
-    var getterMember =
-        getter != null ? ExecutableMember.from(getter, substitution) : null;
-    var setterMember =
-        setter != null ? ExecutableMember.from(setter, substitution) : null;
+    var getterMember = getter != null
+        ? SubstitutedExecutableElementImpl.from(getter, substitution)
+        : null;
+    var setterMember = setter != null
+        ? SubstitutedExecutableElementImpl.from(setter, substitution)
+        : null;
 
     return SingleExtensionResolutionResult(
       getter2: getterMember,
@@ -196,14 +197,14 @@ class ExtensionMemberResolver {
     var element = node.element;
     // TODO(paulberry): make this cast unnecessary by changing the type of
     // `ExtensionOverrideImpl.element2`.
-    var typeParameters =
-        element.typeParameters.cast<TypeParameterElementImpl>();
+    var typeParameters = element.typeParameters
+        .cast<TypeParameterElementImpl>();
 
     if (!_isValidContext(node)) {
       if (!_isCascadeTarget(node)) {
         _diagnosticReporter.atNode(
           node,
-          CompileTimeErrorCode.EXTENSION_OVERRIDE_WITHOUT_ACCESS,
+          CompileTimeErrorCode.extensionOverrideWithoutAccess,
         );
       }
       nodeImpl.setPseudoExpressionStaticType(DynamicTypeImpl.instance);
@@ -213,7 +214,7 @@ class ExtensionMemberResolver {
     if (arguments.length != 1) {
       _diagnosticReporter.atNode(
         node.argumentList,
-        CompileTimeErrorCode.INVALID_EXTENSION_ARGUMENT_COUNT,
+        CompileTimeErrorCode.invalidExtensionArgumentCount,
       );
       nodeImpl.typeArgumentTypes = _listOfDynamic(typeParameters);
       nodeImpl.extendedType = DynamicTypeImpl.instance;
@@ -227,13 +228,12 @@ class ExtensionMemberResolver {
       receiverType = _typeSystem.promoteToNonNull(receiverType);
     }
 
-    var typeArgumentTypes =
-        _inferTypeArguments(
-          node,
-          receiverType,
-          dataForTesting: _resolver.inferenceHelper.dataForTesting,
-          nodeForTesting: node,
-        )!;
+    var typeArgumentTypes = _inferTypeArguments(
+      node,
+      receiverType,
+      dataForTesting: _resolver.inferenceHelper.dataForTesting,
+      nodeForTesting: node,
+    )!;
     nodeImpl.typeArgumentTypes = typeArgumentTypes;
 
     var substitution = Substitution.fromPairs2(
@@ -241,10 +241,9 @@ class ExtensionMemberResolver {
       typeArgumentTypes,
     );
 
-    var extendedType =
-        nodeImpl.extendedType = substitution.substituteType(
-          element.extendedType,
-        );
+    var extendedType = nodeImpl.extendedType = substitution.substituteType(
+      element.extendedType,
+    );
 
     _checkTypeArgumentsMatchingBounds(
       typeParameters,
@@ -256,18 +255,19 @@ class ExtensionMemberResolver {
     if (receiverType is VoidType) {
       _diagnosticReporter.atNode(
         receiverExpression,
-        CompileTimeErrorCode.USE_OF_VOID_RESULT,
+        CompileTimeErrorCode.useOfVoidResult,
       );
     } else if (!_typeSystem.isAssignableTo(
       receiverType,
       extendedType,
       strictCasts: _resolver.analysisOptions.strictCasts,
     )) {
-      var whyNotPromoted =
-          whyNotPromotedArguments.isEmpty ? null : whyNotPromotedArguments[0];
+      var whyNotPromoted = whyNotPromotedArguments.isEmpty
+          ? null
+          : whyNotPromotedArguments[0];
       _diagnosticReporter.atNode(
         receiverExpression,
-        CompileTimeErrorCode.EXTENSION_OVERRIDE_ARGUMENT_NOT_ASSIGNABLE,
+        CompileTimeErrorCode.extensionOverrideArgumentNotAssignable,
         arguments: [receiverType, extendedType],
         contextMessages: _resolver.computeWhyNotPromotedMessages(
           receiverExpression,
@@ -294,7 +294,7 @@ class ExtensionMemberResolver {
           if (!_typeSystem.isSubtypeOf(argument, parameterBound)) {
             _diagnosticReporter.atNode(
               typeArgumentList.arguments[i],
-              CompileTimeErrorCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS,
+              CompileTimeErrorCode.typeArgumentNotMatchingBounds,
               arguments: [argument, name, parameterBound],
             );
           }
@@ -377,14 +377,14 @@ class ExtensionMemberResolver {
         // explicit extension overrides cannot refer to unnamed extensions.
         _diagnosticReporter.atNode(
           typeArguments,
-          CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_EXTENSION,
+          CompileTimeErrorCode.wrongNumberOfTypeArgumentsExtension,
           arguments: [element.name!, typeParameters.length, arguments.length],
         );
         return _listOfDynamic(typeParameters);
       }
     } else {
       inferenceLogWriter?.enterGenericInference(
-        typeParameters.cast(),
+        typeParameters,
         element.extendedType,
       );
       var inferrer = GenericInferrer(
@@ -496,10 +496,10 @@ enum ExtensionResolutionError implements ExtensionResolutionResult {
   ambiguous;
 
   @override
-  ExecutableElement2OrMember? get getter2 => null;
+  InternalExecutableElement? get getter2 => null;
 
   @override
-  ExecutableElement2OrMember? get setter2 => null;
+  InternalExecutableElement? get setter2 => null;
 }
 
 /// The result of attempting to resolve an identifier to elements, where the

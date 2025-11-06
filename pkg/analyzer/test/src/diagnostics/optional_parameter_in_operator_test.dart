@@ -22,7 +22,7 @@ class A {
   operator +({p}) {}
 }
 ''',
-      [error(CompileTimeErrorCode.OPTIONAL_PARAMETER_IN_OPERATOR, 24, 1)],
+      [error(CompileTimeErrorCode.optionalParameterInOperator, 24, 1)],
     );
   }
 
@@ -33,7 +33,7 @@ class A {
   operator +([p]) {}
 }
 ''',
-      [error(CompileTimeErrorCode.OPTIONAL_PARAMETER_IN_OPERATOR, 24, 1)],
+      [error(CompileTimeErrorCode.optionalParameterInOperator, 24, 1)],
     );
   }
 

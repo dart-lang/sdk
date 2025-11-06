@@ -86,7 +86,7 @@ void f(A x) {
 ''',
       [
         error(
-          CompileTimeErrorCode.RELATIONAL_PATTERN_OPERAND_TYPE_NOT_ASSIGNABLE,
+          CompileTimeErrorCode.relationalPatternOperandTypeNotAssignable,
           101,
           1,
         ),
@@ -133,7 +133,7 @@ void f(A x) {
   }
 }
 ''',
-      [error(WarningCode.DEAD_CODE, 65, 6)],
+      [error(WarningCode.deadCode, 65, 6)],
     );
   }
 
@@ -168,7 +168,7 @@ void f(A x) {
 ''',
       [
         error(
-          CompileTimeErrorCode.RELATIONAL_PATTERN_OPERAND_TYPE_NOT_ASSIGNABLE,
+          CompileTimeErrorCode.relationalPatternOperandTypeNotAssignable,
           89,
           1,
         ),

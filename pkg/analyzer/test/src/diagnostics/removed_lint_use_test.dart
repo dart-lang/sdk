@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/analysis_rule/rule_state.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/lint/linter.dart';
@@ -54,7 +55,7 @@ class ReplacedLintUseTest extends PubPackageResolutionTest
 
 void f() { }
 ''',
-      [error(WarningCode.REMOVED_LINT_USE, 20, 12)],
+      [error(WarningCode.removedLintUse, 20, 12)],
     );
   }
 
@@ -68,7 +69,7 @@ void f() { }
 // ignore: removed_lint
 void f() { }
 ''',
-      [error(WarningCode.REMOVED_LINT_USE, 11, 12)],
+      [error(WarningCode.removedLintUse, 11, 12)],
     );
   }
 }

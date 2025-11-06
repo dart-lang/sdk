@@ -38,10 +38,10 @@ class RemoveLeadingUnderscore extends ResolvedCorrectionProducer {
       element = node.declaredFragment?.element;
     } else if (node is VariableDeclaration) {
       nameToken = node.name;
-      element = node.declaredElement ?? node.declaredFragment?.element;
+      element = node.declaredFragment?.element;
     } else if (node is DeclaredVariablePattern) {
       nameToken = node.name;
-      element = node.declaredElement;
+      element = node.declaredFragment?.element;
     } else if (node is FunctionDeclaration) {
       nameToken = node.name;
       element = node.declaredFragment?.element;
@@ -64,15 +64,14 @@ class RemoveLeadingUnderscore extends ResolvedCorrectionProducer {
     List<AstNode>? references;
     if (element is FormalParameterElement) {
       if (!element.isNamed) {
-        var root =
-            node
-                .thisOrAncestorMatching(
-                  (node) =>
-                      node.parent is FunctionDeclaration ||
-                      node.parent is MethodDeclaration ||
-                      node.parent is ConstructorDeclaration,
-                )
-                ?.parent;
+        var root = node
+            .thisOrAncestorMatching(
+              (node) =>
+                  node.parent is FunctionDeclaration ||
+                  node.parent is MethodDeclaration ||
+                  node.parent is ConstructorDeclaration,
+            )
+            ?.parent;
         if (root != null) {
           references = findLocalElementReferences(root, element);
         }

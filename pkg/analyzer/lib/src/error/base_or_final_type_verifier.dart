@@ -7,10 +7,10 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/diagnostic/diagnostic.dart';
-import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/diagnostic/diagnostic.dart';
 import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/error/listener.dart';
 
 /// Helper for verifying that subelements of a base or final element must be
 /// base, final, or sealed.
@@ -28,9 +28,9 @@ class BaseOrFinalTypeVerifier {
   /// final, or sealed and that base elements are not implemented outside of its
   /// library. Otherwise, an error is reported on that element.
   ///
-  /// See [CompileTimeErrorCode.SUBTYPE_OF_BASE_IS_NOT_BASE_FINAL_OR_SEALED],
-  /// [CompileTimeErrorCode.SUBTYPE_OF_FINAL_IS_NOT_BASE_FINAL_OR_SEALED],
-  /// [CompileTimeErrorCode.BASE_CLASS_IMPLEMENTED_OUTSIDE_OF_LIBRARY].
+  /// See [CompileTimeErrorCode.subtypeOfBaseIsNotBaseFinalOrSealed],
+  /// [CompileTimeErrorCode.subtypeOfFinalIsNotBaseFinalOrSealed],
+  /// [CompileTimeErrorCode.baseClassImplementedOutsideOfLibrary].
   void checkElement(
     InterfaceElementImpl element,
     ImplementsClause? implementsClause,
@@ -208,10 +208,13 @@ class BaseOrFinalTypeVerifier {
       return false;
     }
 
-    var fragment = baseOrFinalSuperElement.firstFragment;
-    var fragmentName = fragment.name;
-    var fragmentNameOffset = fragment.nameOffset2;
-    if (fragmentName == null || fragmentNameOffset == null) {
+    var superLocation = baseOrFinalSuperElement.firstFragmentLocation;
+    var superLibraryFragment = superLocation.libraryFragment;
+    var superName = superLocation.name;
+    var superNameOffset = superLocation.nameOffset;
+    if (superLibraryFragment == null ||
+        superName == null ||
+        superNameOffset == null) {
       return false;
     }
 
@@ -220,13 +223,13 @@ class BaseOrFinalTypeVerifier {
     // an induced modifier of the direct super element.
     var contextMessages = <DiagnosticMessage>[
       DiagnosticMessageImpl(
-        filePath: fragment.libraryFragment.source.fullName,
-        length: fragmentName.length,
+        filePath: superLibraryFragment.source.fullName,
+        length: superName.length,
         message:
             "The type '${superElement.displayName}' is a subtype of "
             "'${baseOrFinalSuperElement.displayName}', and "
             "'${baseOrFinalSuperElement.displayName}' is defined here.",
-        offset: fragmentNameOffset,
+        offset: superNameOffset,
         url: null,
       ),
     ];
@@ -237,16 +240,17 @@ class BaseOrFinalTypeVerifier {
         superElement.isSealed &&
         baseOrFinalSuperElement.library != element.library) {
       if (baseOrFinalSuperElement.isBase) {
-        var errorCode =
-            baseOrFinalSuperElement is MixinElement
-                ? CompileTimeErrorCode.BASE_MIXIN_IMPLEMENTED_OUTSIDE_OF_LIBRARY
-                : CompileTimeErrorCode
-                    .BASE_CLASS_IMPLEMENTED_OUTSIDE_OF_LIBRARY;
-        _diagnosticReporter.atNode(
-          implementsNamedType,
-          errorCode,
-          arguments: [baseOrFinalSuperElement.displayName],
-          contextMessages: contextMessages,
+        var error = baseOrFinalSuperElement is MixinElement
+            ? CompileTimeErrorCode.baseMixinImplementedOutsideOfLibrary
+                  .withArguments(
+                    implementedMixinName: baseOrFinalSuperElement.displayName,
+                  )
+            : CompileTimeErrorCode.baseClassImplementedOutsideOfLibrary
+                  .withArguments(
+                    implementedClassName: baseOrFinalSuperElement.displayName,
+                  );
+        _diagnosticReporter.report(
+          error.withContextMessages(contextMessages).at(implementsNamedType),
         );
         return true;
       }
@@ -274,11 +278,9 @@ class BaseOrFinalTypeVerifier {
             return false;
           }
         }
-        var errorCode =
-            element is MixinElement
-                ? CompileTimeErrorCode.MIXIN_SUBTYPE_OF_FINAL_IS_NOT_BASE
-                : CompileTimeErrorCode
-                    .SUBTYPE_OF_FINAL_IS_NOT_BASE_FINAL_OR_SEALED;
+        var errorCode = element is MixinElement
+            ? CompileTimeErrorCode.mixinSubtypeOfFinalIsNotBase
+            : CompileTimeErrorCode.subtypeOfFinalIsNotBaseFinalOrSealed;
         _diagnosticReporter.atElement2(
           element,
           errorCode,
@@ -287,11 +289,9 @@ class BaseOrFinalTypeVerifier {
         );
         return true;
       } else if (baseOrFinalSuperElement.isBase) {
-        var errorCode =
-            element is MixinElement
-                ? CompileTimeErrorCode.MIXIN_SUBTYPE_OF_BASE_IS_NOT_BASE
-                : CompileTimeErrorCode
-                    .SUBTYPE_OF_BASE_IS_NOT_BASE_FINAL_OR_SEALED;
+        var errorCode = element is MixinElement
+            ? CompileTimeErrorCode.mixinSubtypeOfBaseIsNotBase
+            : CompileTimeErrorCode.subtypeOfBaseIsNotBaseFinalOrSealed;
         _diagnosticReporter.atElement2(
           element,
           errorCode,

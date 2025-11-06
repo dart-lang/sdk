@@ -9,17 +9,17 @@ import 'package:expect/expect.dart';
 
 import 'catch_errors.dart';
 
-main() {
+void main() {
   asyncStart();
-  Completer done = new Completer();
+  Completer done = Completer();
 
   var events = [];
   // Test that nested stream (from `catchErrors`) that is delayed by a future
   // is waited for.
   catchErrors(() {
     catchErrors(() {
-      new Future.error(499);
-      new Future.delayed(const Duration(milliseconds: 20), () {
+      Future.error(499);
+      Future.delayed(const Duration(milliseconds: 20), () {
         events.add(42);
         done.complete(true);
       });

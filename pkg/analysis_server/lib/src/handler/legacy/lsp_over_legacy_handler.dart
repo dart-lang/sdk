@@ -40,14 +40,14 @@ class LspOverLegacyHandler extends LegacyHandler {
     var reporter = LspJsonReporter();
     var lspMessage =
         lspMessageJson is Map<String, Object?> &&
-                RequestMessage.canParse(lspMessageJson, reporter)
-            ? RequestMessage.fromJson({
-              // Pass across any clientRequestTime from the envelope so that we
-              // can record latency for LSP-over-Legacy requests.
-              'clientRequestTime': request.clientRequestTime,
-              ...lspMessageJson,
-            })
-            : null;
+            RequestMessage.canParse(lspMessageJson, reporter)
+        ? RequestMessage.fromJson({
+            // Pass across any clientRequestTime from the envelope so that we
+            // can record latency for LSP-over-Legacy requests.
+            'clientRequestTime': request.clientRequestTime,
+            ...lspMessageJson,
+          })
+        : null;
 
     if (lspMessage != null) {
       server.analyticsManager.startedRequestMessage(

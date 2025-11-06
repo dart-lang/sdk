@@ -26,10 +26,9 @@ void expect(actual, matcher) {}
 ''');
 
     writeTestPackageConfig(
-      config:
-          PackageConfigFileBuilder()
-            ..add(name: 'matcher', rootPath: '$workspaceRootPath/matcher')
-            ..add(name: 'p', rootPath: '$workspaceRootPath/p'),
+      config: PackageConfigFileBuilder()
+        ..add(name: 'matcher', rootPath: '$workspaceRootPath/matcher')
+        ..add(name: 'p', rootPath: '$workspaceRootPath/p'),
     );
 
     addPackageDataFile('''

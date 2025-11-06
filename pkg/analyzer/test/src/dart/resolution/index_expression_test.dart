@@ -96,7 +96,7 @@ void f(A a) {
 
 T g<T>() => throw 0;
 ''',
-      [error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 107, 3)],
+      [error(CompileTimeErrorCode.argumentTypeNotAssignable, 107, 3)],
     );
 
     var node = findNode.methodInvocation('g()');
@@ -309,7 +309,7 @@ class A {
   int operator[](Object index) => 0;
 }
 ''',
-      [error(ParserErrorCode.MISSING_ASSIGNABLE_SELECTOR, 32, 5)],
+      [error(ParserErrorCode.missingAssignableSelector, 32, 5)],
     );
 
     var node = findNode.singleIndexExpression;
@@ -335,7 +335,7 @@ void f(List<int> a) {
   a[b];
 }
 ''',
-      [error(CompileTimeErrorCode.UNDEFINED_IDENTIFIER, 26, 1)],
+      [error(CompileTimeErrorCode.undefinedIdentifier, 26, 1)],
     );
 
     var node = findNode.singleIndexExpression;
@@ -493,7 +493,7 @@ IndexExpression
           constructorName: ConstructorName
             type: NamedType
               name: A
-              element2: <testLibrary>::@class::A
+              element: <testLibrary>::@class::A
               type: A
             element: <testLibrary>::@class::A::@constructor::new
           argumentList: ArgumentList
@@ -545,7 +545,7 @@ void f() {
   a[0];
 }
 ''',
-      [error(CompileTimeErrorCode.UNDEFINED_IDENTIFIER, 13, 1)],
+      [error(CompileTimeErrorCode.undefinedIdentifier, 13, 1)],
     );
 
     var node = findNode.singleIndexExpression;
@@ -599,9 +599,9 @@ AssignmentExpression
     literal: 1.2
     correspondingParameter: dart:core::@class::num::@method::+::@formalParameter::other
     staticType: double
-  readElement2: <testLibrary>::@class::A::@method::[]
+  readElement: <testLibrary>::@class::A::@method::[]
   readType: num
-  writeElement2: <testLibrary>::@class::A::@method::[]=
+  writeElement: <testLibrary>::@class::A::@method::[]=
   writeType: num
   element: dart:core::@class::num::@method::+
   staticType: double
@@ -644,11 +644,11 @@ AssignmentExpression
     literal: 1.2
     correspondingParameter: dart:core::@class::double::@method::+::@formalParameter::other
     staticType: double
-  readElement2: MethodMember
+  readElement: MethodMember
     baseElement: <testLibrary>::@class::A::@method::[]
     substitution: {T: double}
   readType: double
-  writeElement2: MethodMember
+  writeElement: MethodMember
     baseElement: <testLibrary>::@class::A::@method::[]=
     substitution: {T: double}
   writeType: double
@@ -692,9 +692,9 @@ AssignmentExpression
     literal: 1.2
     correspondingParameter: dart:core::@class::num::@method::+::@formalParameter::other
     staticType: double
-  readElement2: <testLibrary>::@class::A::@method::[]
+  readElement: <testLibrary>::@class::A::@method::[]
   readType: num
-  writeElement2: <testLibrary>::@class::A::@method::[]=
+  writeElement: <testLibrary>::@class::A::@method::[]=
   writeType: num
   element: dart:core::@class::num::@method::+
   staticType: double?
@@ -773,9 +773,9 @@ AssignmentExpression
     literal: 1.2
     correspondingParameter: <testLibrary>::@class::A::@method::[]=::@formalParameter::value
     staticType: double
-  readElement2: <null>
+  readElement: <null>
   readType: null
-  writeElement2: <testLibrary>::@class::A::@method::[]=
+  writeElement: <testLibrary>::@class::A::@method::[]=
   writeType: num
   element: <null>
   staticType: double
@@ -818,9 +818,9 @@ CascadeExpression
         correspondingParameter: <testLibrary>::@class::A::@method::[]=::@formalParameter::a
         element: <testLibrary>::@function::f::@formalParameter::a
         staticType: A
-      readElement2: <null>
+      readElement: <null>
       readType: null
-      writeElement2: <testLibrary>::@class::A::@method::[]=
+      writeElement: <testLibrary>::@class::A::@method::[]=
       writeType: A
       element: <null>
       staticType: A
@@ -841,9 +841,9 @@ CascadeExpression
         correspondingParameter: <testLibrary>::@class::A::@method::[]=::@formalParameter::a
         element: <testLibrary>::@function::f::@formalParameter::a
         staticType: A
-      readElement2: <null>
+      readElement: <null>
       readType: null
-      writeElement2: <testLibrary>::@class::A::@method::[]=
+      writeElement: <testLibrary>::@class::A::@method::[]=
       writeType: A
       element: <null>
       staticType: A
@@ -888,9 +888,9 @@ AssignmentExpression
       baseElement: <testLibrary>::@class::A::@method::[]=::@formalParameter::value
       substitution: {T: double}
     staticType: double
-  readElement2: <null>
+  readElement: <null>
   readType: null
-  writeElement2: MethodMember
+  writeElement: MethodMember
     baseElement: <testLibrary>::@class::A::@method::[]=
     substitution: {T: double}
   writeType: double
@@ -933,9 +933,9 @@ AssignmentExpression
     literal: 1.2
     correspondingParameter: <testLibrary>::@class::A::@method::[]=::@formalParameter::value
     staticType: double
-  readElement2: <null>
+  readElement: <null>
   readType: null
-  writeElement2: <testLibrary>::@class::A::@method::[]=
+  writeElement: <testLibrary>::@class::A::@method::[]=
   writeType: num
   element: <null>
   staticType: double?
@@ -973,9 +973,9 @@ AssignmentExpression
     literal: 2.3
     correspondingParameter: <testLibrary>::@extension::E::@method::[]=::@formalParameter::value
     staticType: double
-  readElement2: <null>
+  readElement: <null>
   readType: null
-  writeElement2: <testLibrary>::@extension::E::@method::[]=
+  writeElement: <testLibrary>::@extension::E::@method::[]=
   writeType: num
   element: <null>
   staticType: double
@@ -1072,7 +1072,7 @@ AssignmentExpression
             constructorName: ConstructorName
               type: NamedType
                 name: A
-                element2: <testLibrary>::@class::A
+                element: <testLibrary>::@class::A
                 type: A
               element: <testLibrary>::@class::A::@constructor::new
             argumentList: ArgumentList
@@ -1094,9 +1094,9 @@ AssignmentExpression
     literal: 1.2
     correspondingParameter: <testLibrary>::@class::A::@method::[]=::@formalParameter::value
     staticType: double
-  readElement2: <null>
+  readElement: <null>
   readType: null
-  writeElement2: <testLibrary>::@class::A::@method::[]=
+  writeElement: <testLibrary>::@class::A::@method::[]=
   writeType: num
   element: <null>
   staticType: double

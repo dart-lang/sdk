@@ -19,7 +19,7 @@ void main() {
 @reflectiveTest
 class AddExplicitCastMultiTest extends FixProcessorTest {
   @override
-  FixKind get kind => DartFixKind.ADD_EXPLICIT_CAST_MULTI;
+  FixKind get kind => DartFixKind.addExplicitCastMulti;
 
   Future<void> test_assignment_general() async {
     await resolveTestCode('''
@@ -31,7 +31,7 @@ f(A a) {
 class A {}
 class B {}
 ''');
-    await assertHasFixAllFix(CompileTimeErrorCode.INVALID_ASSIGNMENT, '''
+    await assertHasFixAllFix(CompileTimeErrorCode.invalidAssignment, '''
 f(A a) {
   B b, b2;
   b = a as B;
@@ -52,7 +52,7 @@ f(List<A> a) {
 class A {}
 class B {}
 ''');
-    await assertHasFixAllFix(CompileTimeErrorCode.INVALID_ASSIGNMENT, '''
+    await assertHasFixAllFix(CompileTimeErrorCode.invalidAssignment, '''
 f(List<A> a) {
   List<B> b, b2;
   b = a.where((e) => e is B).cast<B>().toList();
@@ -73,7 +73,7 @@ f(Map<A, B> a) {
 class A {}
 class B {}
 ''');
-    await assertHasFixAllFix(CompileTimeErrorCode.INVALID_ASSIGNMENT, '''
+    await assertHasFixAllFix(CompileTimeErrorCode.invalidAssignment, '''
 f(Map<A, B> a) {
   Map<B, A> b, b2;
   b = a.cast<B, A>();
@@ -96,7 +96,7 @@ class A {
 }
 class B {}
 ''');
-    await assertHasFixAllFix(CompileTimeErrorCode.INVALID_ASSIGNMENT, '''
+    await assertHasFixAllFix(CompileTimeErrorCode.invalidAssignment, '''
 f(A a) {
   B b, b2;
   b = (a..m()) as B;
@@ -119,7 +119,7 @@ f(Set<A> a) {
 class A {}
 class B {}
 ''');
-    await assertHasFixAllFix(CompileTimeErrorCode.INVALID_ASSIGNMENT, '''
+    await assertHasFixAllFix(CompileTimeErrorCode.invalidAssignment, '''
 f(Set<A> a) {
   Set<B> b, b2;
   b = a.cast<B>();
@@ -139,7 +139,7 @@ f(A a) {
 class A {}
 class B {}
 ''');
-    await assertHasFixAllFix(CompileTimeErrorCode.INVALID_ASSIGNMENT, '''
+    await assertHasFixAllFix(CompileTimeErrorCode.invalidAssignment, '''
 f(A a) {
   B b = a as B;
   B b2 = a as B;
@@ -158,7 +158,7 @@ f(List<A> a) {
 class A {}
 class B {}
 ''');
-    await assertHasFixAllFix(CompileTimeErrorCode.INVALID_ASSIGNMENT, '''
+    await assertHasFixAllFix(CompileTimeErrorCode.invalidAssignment, '''
 f(List<A> a) {
   List<B> b = a.where((e) => e is B).cast<B>().toList();
   List<B> b2 = a.where((e) => e is B).cast<B>().toList();
@@ -177,7 +177,7 @@ f(Map<A, B> a) {
 class A {}
 class B {}
 ''');
-    await assertHasFixAllFix(CompileTimeErrorCode.INVALID_ASSIGNMENT, '''
+    await assertHasFixAllFix(CompileTimeErrorCode.invalidAssignment, '''
 f(Map<A, B> a) {
   Map<B, A> b = a.cast<B, A>();
   Map<B, A> b2 = a.cast<B, A>();
@@ -198,7 +198,7 @@ class A {
 }
 class B {}
 ''');
-    await assertHasFixAllFix(CompileTimeErrorCode.INVALID_ASSIGNMENT, '''
+    await assertHasFixAllFix(CompileTimeErrorCode.invalidAssignment, '''
 f(A a) {
   B b = (a..m()) as B;
   B b2 = (a..m()) as B;
@@ -219,7 +219,7 @@ f(Set<A> a) {
 class A {}
 class B {}
 ''');
-    await assertHasFixAllFix(CompileTimeErrorCode.INVALID_ASSIGNMENT, '''
+    await assertHasFixAllFix(CompileTimeErrorCode.invalidAssignment, '''
 f(Set<A> a) {
   Set<B> b = a.cast<B>();
   Set<B> b2 = a.cast<B>();
@@ -233,7 +233,7 @@ class B {}
 @reflectiveTest
 class AddExplicitCastTest extends FixProcessorTest {
   @override
-  FixKind get kind => DartFixKind.ADD_EXPLICIT_CAST;
+  FixKind get kind => DartFixKind.addExplicitCast;
 
   Future<void> test_argument() async {
     await resolveTestCode('''
@@ -645,7 +645,7 @@ void foo(int a) {
 ''');
     await assertNoFix(
       errorFilter: (e) {
-        return e.diagnosticCode == CompileTimeErrorCode.INVALID_ASSIGNMENT;
+        return e.diagnosticCode == CompileTimeErrorCode.invalidAssignment;
       },
     );
   }

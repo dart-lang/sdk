@@ -76,15 +76,16 @@ Future<void> _runForever({
     var budget = CompletionBudget(Duration(seconds: 30));
     List<CompletionSuggestionBuilder> suggestions = [];
     for (var i = 0; i < 10; i++) {
-      suggestions = await DartCompletionManager(
-        budget: budget,
-        notImportedSuggestions: NotImportedSuggestions(),
-      ).computeSuggestions(
-        dartRequest,
-        OperationPerformanceImpl('<root>'),
-        maxSuggestions: -1,
-        useFilter: false,
-      );
+      suggestions =
+          await DartCompletionManager(
+            budget: budget,
+            notImportedSuggestions: NotImportedSuggestions(),
+          ).computeSuggestions(
+            dartRequest,
+            OperationPerformanceImpl('<root>'),
+            maxSuggestions: -1,
+            useFilter: false,
+          );
     }
 
     var responseTime = timer.elapsedMilliseconds;

@@ -69,8 +69,6 @@ class CodePatcher : public AllStatic {
                                                 const Code& code,
                                                 ICData* ic_data);
 
-  static void InsertDeoptimizationCallAt(uword start);
-
   static void PatchPoolPointerCallAt(uword return_address,
                                      const Code& code,
                                      const Code& new_target);
@@ -79,13 +77,10 @@ class CodePatcher : public AllStatic {
                                     const Code& caller_code,
                                     const Object& data,
                                     const Code& target);
-  static void PatchSwitchableCallAtWithMutatorsStopped(Thread* thread,
-                                                       uword return_address,
-                                                       const Code& caller_code,
-                                                       const Object& data,
-                                                       const Code& target);
   static ObjectPtr GetSwitchableCallDataAt(uword return_address,
                                            const Code& caller_code);
+  static ObjectPtr GetSwitchableCallTargetAt(uword return_address,
+                                             const Code& caller_code);
   static uword GetSwitchableCallTargetEntryAt(uword return_address,
                                               const Code& caller_code);
 
@@ -100,6 +95,32 @@ class CodePatcher : public AllStatic {
 
   static intptr_t GetSubtypeTestCachePoolIndex(uword return_address);
 };
+
+#if !defined(PRODUCT) && defined(DART_DYNAMIC_MODULES)
+class BytecodePatcher : public AllStatic {
+ public:
+  // Patch call instruction prior to return_address to add a breakpoint.
+  // Returns the original opcode of the patched instruction.
+  static uint32_t AddBreakpointAt(uword return_address,
+                                  const Bytecode& bytecode);
+
+  // Patch call instruction prior to return_address to remove a breakpoint.
+  // Replaces the breakpoint instruction opcode with the provided opcode.
+  static void RemoveBreakpointAt(uword return_address,
+                                 const Bytecode& code,
+                                 uint32_t opcode);
+
+ private:
+  static uint32_t AddBreakpointAtWithMutatorsStopped(Thread* thread,
+                                                     uword return_address,
+                                                     const Bytecode& bytecode);
+
+  static void RemoveBreakpointAtWithMutatorsStopped(Thread* thread,
+                                                    uword return_address,
+                                                    const Bytecode& bytecode,
+                                                    uint32_t opcode);
+};
+#endif  // !defined(PRODUCT) && defined(DART_DYNAMIC_MODULES)
 
 // Beginning from [end - size] we compare [size] bytes with [pattern]. All
 // [0..255] values in [pattern] have to match, negative values are skipped.

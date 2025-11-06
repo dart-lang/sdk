@@ -302,11 +302,10 @@ class ResultMerger {
       //
       for (var j = 0; j < regions.length; j++) {
         var region = regions[j];
-        var newTargets =
-            region.targets
-                .map((int oldTarget) => targetMap[oldTarget])
-                .toList()
-                .cast<int>();
+        var newTargets = region.targets
+            .map((int oldTarget) => targetMap[oldTarget])
+            .toList()
+            .cast<int>();
         if (region.targets != newTargets) {
           region = NavigationRegion(region.offset, region.length, newTargets);
         }
@@ -496,8 +495,9 @@ class ResultMerger {
       if (currentChildren == null || currentChildren.isEmpty) {
         return outline;
       }
-      var updatedChildren =
-          currentChildren.map((Outline child) => traverse(child)).toList();
+      var updatedChildren = currentChildren
+          .map((Outline child) => traverse(child))
+          .toList();
       if (currentChildren != updatedChildren) {
         if (!isCopied) {
           return Outline(
@@ -604,14 +604,12 @@ class ResultMerger {
         names.toList(),
         offsets,
         lengths,
-        coveringExpressionOffsets:
-            coveringExpressionOffsets.isEmpty
-                ? null
-                : coveringExpressionOffsets,
-        coveringExpressionLengths:
-            coveringExpressionLengths.isEmpty
-                ? null
-                : coveringExpressionLengths,
+        coveringExpressionOffsets: coveringExpressionOffsets.isEmpty
+            ? null
+            : coveringExpressionOffsets,
+        coveringExpressionLengths: coveringExpressionLengths.isEmpty
+            ? null
+            : coveringExpressionLengths,
       );
     } else if (first is ExtractMethodFeedback) {
       var offset = first.offset;

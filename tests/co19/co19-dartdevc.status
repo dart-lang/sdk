@@ -131,6 +131,30 @@ LibTest/html/Window/animationFrame_A01_t01: SkipByDesign # Issue #53985: request
 
 [ $compiler == ddc && $runtime == d8 ]
 LibTest/html/*: SkipByDesign # Browser tests
+LibTest/js_interop/FutureOfJSAnyToJSPromise/toJS_A01_t01: Skip # https://github.com/dart-lang/sdk/issues/54520
+LibTest/js_interop/FutureOfJSAnyToJSPromise/toJS_A01_t02: Skip # https://github.com/dart-lang/sdk/issues/54520
+LibTest/js_interop/FutureOfJSAnyToJSPromise/toJS_A01_t03: Skip # https://github.com/dart-lang/sdk/issues/54520
+LibTest/js_interop/FutureOfJSAnyToJSPromise/toJS_A02_t01: Skip # https://github.com/dart-lang/sdk/issues/54520
+LibTest/js_interop/FutureOfVoidToJSPromise/toJS_A01_t01: Skip # https://github.com/dart-lang/sdk/issues/54520
+LibTest/js_interop/FutureOfVoidToJSPromise/toJS_A01_t02: Skip # https://github.com/dart-lang/sdk/issues/54520
+LibTest/js_interop/FutureOfVoidToJSPromise/toJS_A01_t03: Skip # https://github.com/dart-lang/sdk/issues/54520
+LibTest/js_interop/FutureOfVoidToJSPromise/toJS_A02_t01: Skip # https://github.com/dart-lang/sdk/issues/54520
+LibTest/js_interop/JS/js_A03_t05: Skip # https://github.com/dart-lang/sdk/issues/61204
+LibTest/js_interop/JS/js_A03_t06: Skip # https://github.com/dart-lang/sdk/issues/61204
+LibTest/js_interop/JS/js_A03_t07: Skip # https://github.com/dart-lang/sdk/issues/61204
+LibTest/js_interop/JS/js_A03_t08: Skip # https://github.com/dart-lang/sdk/issues/61204
+LibTest/js_interop/JSAnyUtilityExtension/instanceOfString_A04_t01: Skip # https://github.com/dart-lang/sdk/issues/61204
+LibTest/js_interop/JSAnyUtilityExtension/instanceOfString_A04_t02: Skip # https://github.com/dart-lang/sdk/issues/61204
+LibTest/js_interop/JSAnyUtilityExtension/isA_A03_t05: Skip # https://github.com/dart-lang/sdk/issues/61204
+LibTest/js_interop/JSPromise/promise_t02: Skip # https://github.com/dart-lang/co19/issues/3246
+LibTest/js_interop/JSPromise/promise_t03: Skip # https://github.com/dart-lang/co19/issues/3246
+LibTest/js_interop/importModule_A01_t01: Skip # https://github.com/dart-lang/sdk/issues/61204
+LibTest/js_interop/importModule_A01_t02: Skip # https://github.com/dart-lang/sdk/issues/61204
+LibTest/js_interop/importModule_A02_t01: Skip # https://github.com/dart-lang/sdk/issues/61204
+LibTest/js_interop/importModule_A02_t02: Skip # https://github.com/dart-lang/sdk/issues/61204
+LibTest/js_interop/importModule_A02_t03: Skip # https://github.com/dart-lang/sdk/issues/61204
+LibTest/js_interop/interop_A08_t05: Skip # https://github.com/dart-lang/sdk/issues/61204
+LibTest/js_interop/interop_type_A01_t10: SkipByDesign # Browser test
 
 [ $compiler == ddc && $runtime == ff ]
 LibTest/html/Element/onTouchCancel_A01_t01: SkipByDesign # TouchEvent constructor not exposed in FF

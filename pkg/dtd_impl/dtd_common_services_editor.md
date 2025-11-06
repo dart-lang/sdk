@@ -19,6 +19,13 @@ all methods).
 Instructs the editor to open and navigate to a file (and optional line/column).
 
 
+## getActiveLocation
+`ActiveLocation getActiveLocation()`
+
+Asks the editor for information about the current open file and text cursor
+location.
+
+
 ## getDevices
 `GetDevicesResult getDevices()`
 
@@ -165,15 +172,13 @@ and dark mode or increase/decrease font size.
 # Type Definitions
 
 ```dart
-/// An event sent by an editor when the document/location where the user is
-/// active changes.
+/// Represents an active location in an editor.
 ///
-/// Only the active document is tracked, even if multiple documents are
-/// open/visible at the same time. A new event replaces the active document and
-/// previous selections from an earlier event.
-/// This event may be debounced by the editor to avoid sending frequent events
-/// during typing.
-class ActiveLocationChangedEvent {
+/// If there is no active document, `textDocument` will be `null`.
+///
+/// Otherwise, `selections` will contain at least one location for where the
+/// text cursor(s) are.
+class ActiveLocation {
   /// An identifier that represents the active document.
   ///
   /// `null` is there is no active document.
@@ -189,6 +194,16 @@ class ActiveLocationChangedEvent {
   /// support one location.
   List<EditorSelection> selections;
 }
+
+/// An event sent by an editor when the document/location where the user is
+/// active changes.
+///
+/// Only the active document is tracked, even if multiple documents are
+/// open/visible at the same time. A new event replaces the active document and
+/// previous selections from an earlier event.
+/// This event may be debounced by the editor to avoid sending frequent events
+/// during typing.
+class ActiveLocationChangedEvent extends ActiveLocation {}
 
 /// An event sent by an editor when a debug session is changed.
 ///

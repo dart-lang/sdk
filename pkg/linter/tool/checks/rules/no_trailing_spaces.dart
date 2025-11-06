@@ -3,29 +3,31 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/analysis_rule/rule_context.dart';
+import 'package:analyzer/analysis_rule/rule_visitor_registry.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/src/dart/ast/token.dart';
 import 'package:linter/src/analyzer.dart';
 
-const _desc = r"Don't create string literals with trailing spaces in tests.";
-
 class NoTrailingSpaces extends LintRule {
-  static const LintCode code = LintCode(
-    'no_trailing_spaces',
-    _desc,
-    correctionMessage: 'Try removing the trailing spaces.',
-    hasPublishedDocs: true,
-  );
+  static const LintCode code = LinterLintCode.noTrailingSpaces;
 
-  NoTrailingSpaces() : super(name: 'no_trailing_spaces', description: _desc);
+  NoTrailingSpaces()
+    : super(
+        name: 'no_trailing_spaces',
+        description:
+            "Don't create string literals with trailing spaces in tests.",
+      );
 
   @override
   DiagnosticCode get diagnosticCode => code;
 
   @override
-  void registerNodeProcessors(NodeLintRegistry registry, RuleContext context) {
+  void registerNodeProcessors(
+    RuleVisitorRegistry registry,
+    RuleContext context,
+  ) {
     if (context.isInTestDirectory) {
       var visitor = _Visitor(this);
       registry.addMethodInvocation(this, visitor);

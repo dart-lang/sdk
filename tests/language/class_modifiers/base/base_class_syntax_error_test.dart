@@ -39,7 +39,6 @@ abstract class BaseMembers {
 base base class BaseDuplicateClass {}
 // [error column 1, length 4]
 // [analyzer] COMPILE_TIME_ERROR.NOT_A_TYPE
-// [cfe] 'base' isn't a type.
 //   ^^^^
 // [analyzer] SYNTACTIC_ERROR.EXPECTED_TOKEN
 // [cfe] Expected ';' after this.
@@ -47,7 +46,6 @@ base base class BaseDuplicateClass {}
 base abstract class BaseAbstractClass {}
 // [error column 1, length 4]
 // [analyzer] COMPILE_TIME_ERROR.NOT_A_TYPE
-// [cfe] 'base' isn't a type.
 //   ^^^^^^^^
 // [analyzer] SYNTACTIC_ERROR.EXPECTED_TOKEN
 // [cfe] Expected ';' after this.
@@ -66,7 +64,6 @@ base extension StringExtension on String {}
 // [error column 1, length 4]
 // [analyzer] COMPILE_TIME_ERROR.NOT_A_TYPE
 // [analyzer] SYNTACTIC_ERROR.EXPECTED_TOKEN
-// [cfe] 'base' isn't a type.
 // [cfe] Expected ';' after this.
 //   ^^^^^^^^^
 // [analyzer] SYNTACTIC_ERROR.MISSING_IDENTIFIER

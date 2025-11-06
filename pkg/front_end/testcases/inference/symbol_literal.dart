@@ -2,11 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/*@testedFeatures=inference*/
 library test;
 
 void test() {
-  var /*@type=Symbol*/ x = #foo;
+  var x = #foo;
 }
 
 main() {}

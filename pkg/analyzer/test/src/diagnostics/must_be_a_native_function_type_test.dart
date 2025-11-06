@@ -26,7 +26,7 @@ class C<T extends Function> {
   }
 }
 ''',
-      [error(FfiCode.MUST_BE_A_NATIVE_FUNCTION_TYPE, 110, 1)],
+      [error(FfiCode.mustBeANativeFunctionType, 110, 1)],
     );
   }
 
@@ -40,7 +40,7 @@ void f(DynamicLibrary lib) {
   lib.lookupFunction<S, F>('g');
 }
 ''',
-      [error(FfiCode.MUST_BE_A_NATIVE_FUNCTION_TYPE, 137, 1)],
+      [error(FfiCode.mustBeANativeFunctionType, 137, 1)],
     );
   }
 
@@ -67,7 +67,7 @@ void f(DynamicLibrary lib) {
   lib.lookupFunction<S, F>('g');
 }
 ''',
-      [error(FfiCode.MUST_BE_A_NATIVE_FUNCTION_TYPE, 173, 1)],
+      [error(FfiCode.mustBeANativeFunctionType, 173, 1)],
     );
   }
 
@@ -104,7 +104,7 @@ class C<T extends Function> {
   }
 }
 ''',
-      [error(FfiCode.MUST_BE_A_NATIVE_FUNCTION_TYPE, 152, 1)],
+      [error(FfiCode.mustBeANativeFunctionType, 152, 1)],
     );
   }
 
@@ -151,7 +151,7 @@ final variadicAt1Int64x5Leaf =
     isLeaf:true
   );
 ''',
-      [error(FfiCode.MUST_BE_A_SUBTYPE, 187, 40)],
+      [error(FfiCode.mustBeASubtype, 187, 40)],
     );
   }
 
@@ -169,7 +169,7 @@ final variadicAt1Int64x5Leaf =
     isLeaf:true
   );
 ''',
-      [error(FfiCode.MUST_BE_A_NATIVE_FUNCTION_TYPE, 121, 68)],
+      [error(FfiCode.mustBeANativeFunctionType, 121, 68)],
     );
   }
 
@@ -187,7 +187,7 @@ final variadicAt1Int64x5Leaf =
     isLeaf:true
   );
 ''',
-      [error(FfiCode.MUST_BE_A_NATIVE_FUNCTION_TYPE, 121, 60)],
+      [error(FfiCode.mustBeANativeFunctionType, 121, 60)],
     );
   }
 }

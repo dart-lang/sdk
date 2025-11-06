@@ -24,7 +24,7 @@ mixin M on math.Random {}
 ''',
       [
         error(
-          CompileTimeErrorCode.MIXIN_SUPER_CLASS_CONSTRAINT_DEFERRED_CLASS,
+          CompileTimeErrorCode.mixinSuperClassConstraintDeferredClass,
           48,
           11,
         ),
@@ -40,9 +40,9 @@ MixinOnClause
       importPrefix: ImportPrefixReference
         name: math
         period: .
-        element2: <testLibraryFragment>::@prefix2::math
+        element: <testLibraryFragment>::@prefix2::math
       name: Random
-      element2: dart:math::@class::Random
+      element: dart:math::@class::Random
       type: Random
 ''');
   }

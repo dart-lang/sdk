@@ -58,7 +58,7 @@ class ReturnTypeVerifier {
       if (expression != null) {
         _diagnosticReporter.atNode(
           expression,
-          CompileTimeErrorCode.RETURN_IN_GENERATIVE_CONSTRUCTOR,
+          CompileTimeErrorCode.returnInGenerativeConstructor,
         );
       }
       return;
@@ -107,18 +107,18 @@ class ReturnTypeVerifier {
       if (enclosingExecutable.isGenerator) {
         checkElement(
           _typeProvider.streamElement,
-          CompileTimeErrorCode.ILLEGAL_ASYNC_GENERATOR_RETURN_TYPE,
+          CompileTimeErrorCode.illegalAsyncGeneratorReturnType,
         );
       } else {
         checkElement(
           _typeProvider.futureElement,
-          CompileTimeErrorCode.ILLEGAL_ASYNC_RETURN_TYPE,
+          CompileTimeErrorCode.illegalAsyncReturnType,
         );
       }
     } else if (enclosingExecutable.isGenerator) {
       checkElement(
         _typeProvider.iterableElement,
-        CompileTimeErrorCode.ILLEGAL_SYNC_GENERATOR_RETURN_TYPE,
+        CompileTimeErrorCode.illegalSyncGeneratorReturnType,
       );
     }
   }
@@ -149,13 +149,13 @@ class ReturnTypeVerifier {
       if (enclosingExecutable.catchErrorOnErrorReturnType != null) {
         _diagnosticReporter.atNode(
           expression,
-          WarningCode.RETURN_OF_INVALID_TYPE_FROM_CATCH_ERROR,
+          WarningCode.returnOfInvalidTypeFromCatchError,
           arguments: [S, T],
         );
       } else if (enclosingExecutable.isClosure) {
         _diagnosticReporter.atNode(
           expression,
-          CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_CLOSURE,
+          CompileTimeErrorCode.returnOfInvalidTypeFromClosure,
           arguments: [S, T],
         );
       } else if (enclosingExecutable.isConstructor) {
@@ -165,7 +165,7 @@ class ReturnTypeVerifier {
         // `enclosingExecutable.displayName` is non-`null`.
         _diagnosticReporter.atNode(
           expression,
-          CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_CONSTRUCTOR,
+          CompileTimeErrorCode.returnOfInvalidTypeFromConstructor,
           arguments: [S, T, enclosingExecutable.displayName!],
         );
       } else if (enclosingExecutable.isFunction) {
@@ -175,7 +175,7 @@ class ReturnTypeVerifier {
         // `enclosingExecutable.displayName` is non-`null`.
         _diagnosticReporter.atNode(
           expression,
-          CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION,
+          CompileTimeErrorCode.returnOfInvalidTypeFromFunction,
           arguments: [S, T, enclosingExecutable.displayName!],
         );
       } else if (enclosingExecutable.isMethod) {
@@ -185,7 +185,7 @@ class ReturnTypeVerifier {
         // `enclosingExecutable.displayName` is non-`null`.
         _diagnosticReporter.atNode(
           expression,
-          CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_METHOD,
+          CompileTimeErrorCode.returnOfInvalidTypeFromMethod,
           arguments: [S, T, enclosingExecutable.displayName!],
         );
       }
@@ -223,8 +223,7 @@ class ReturnTypeVerifier {
           )) {
             _diagnosticReporter.atNode(
               expression,
-              CompileTimeErrorCode
-                  .RECORD_LITERAL_ONE_POSITIONAL_NO_TRAILING_COMMA,
+              CompileTimeErrorCode.recordLiteralOnePositionalNoTrailingComma,
             );
             return;
           }
@@ -287,7 +286,7 @@ class ReturnTypeVerifier {
 
     _diagnosticReporter.atToken(
       statement.returnKeyword,
-      CompileTimeErrorCode.RETURN_WITHOUT_VALUE,
+      CompileTimeErrorCode.returnWithoutValue,
     );
   }
 

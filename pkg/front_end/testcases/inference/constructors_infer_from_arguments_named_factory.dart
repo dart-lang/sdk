@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/*@testedFeatures=inference*/
 library test;
 
 class C<T> {
@@ -10,12 +9,12 @@ class C<T> {
   C();
 
   factory C.named(T t) {
-    var /*@type=C<C::named::T%>*/ x = new C<T>();
-    x. /*@target=C.t*/ t = t;
+    var x = new C<T>();
+    x.t = t;
     return x;
   }
 }
 
 main() {
-  var /*@type=C<int>*/ x = new /*@typeArgs=int*/ C.named(42);
+  var x = new C.named(42);
 }

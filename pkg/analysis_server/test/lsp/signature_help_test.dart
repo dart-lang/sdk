@@ -54,8 +54,11 @@ mixin SignatureHelpMixin on AbstractLspAnalysisServerTest {
     }
     await initialAnalysis;
 
-    var res =
-        (await getSignatureHelp(mainFileUri, code.position.position, context))!;
+    var res = (await getSignatureHelp(
+      mainFileUri,
+      code.position.position,
+      context,
+    ))!;
 
     if (activeParameter != null) {
       expect(res.activeParameter, activeParameter);

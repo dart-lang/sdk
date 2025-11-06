@@ -164,7 +164,7 @@ class AbstractNavigationTest extends PubPackageAnalysisServerTest {
     for (var region in regions) {
       if (region.offset == offset &&
           (length == -1 || region.length == length)) {
-        if (exists == false) {
+        if (!exists) {
           fail(
             'Not expected to find (offset=$offset; length=$length) in\n'
             '${regions.join('\n')}',
@@ -176,7 +176,7 @@ class AbstractNavigationTest extends PubPackageAnalysisServerTest {
         return;
       }
     }
-    if (exists == true) {
+    if (exists) {
       fail(
         'Expected to find (offset=$offset; length=$length) in\n'
         '${regions.join('\n')}',
@@ -455,7 +455,7 @@ augment class A {
      bar();
    }
 
-  void bar(){}
+  void [!bar!](){}
 }
 ''');
     newFile(augmentFilePath, '''
@@ -470,7 +470,11 @@ void f() {
 
     await prepareNavigation();
     assertHasRegion('bar');
-    assertHasFileTarget(convertPath(testFilePath), 76, 3);
+    assertHasFileTarget(
+      convertPath(testFilePath),
+      parsedSourceRange.offset,
+      parsedSourceRange.length,
+    );
   }
 
   @SkippedTest() // TODO(scheglov): implement augmentation
@@ -941,7 +945,7 @@ void f() {
 ''');
     await prepareNavigation();
     assertHasRegion('index');
-    assertHasTargetInDartCore('index; // Enum');
+    assertHasTargetInDartCore('index => -1; // Enum');
   }
 
   Future<void> test_enum_method() async {

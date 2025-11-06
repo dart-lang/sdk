@@ -40,8 +40,8 @@ static method main() → void {}
 
 
 Extra constant evaluation status:
-Evaluated: VariableGet @ org-dartlang-testcase:///contravariant_combiner.dart:27:5 -> IntConstant(0)
-Evaluated: VariableGet @ org-dartlang-testcase:///contravariant_combiner.dart:27:5 -> IntConstant(0)
-Evaluated: VariableGet @ org-dartlang-testcase:///contravariant_combiner.dart:28:13 -> IntConstant(0)
-Evaluated: VariableGet @ org-dartlang-testcase:///contravariant_combiner.dart:28:13 -> IntConstant(0)
+Evaluated: VariableGet @ org-dartlang-testcase:///contravariant_combiner.dart:26:5 -> IntConstant(0)
+Evaluated: VariableGet @ org-dartlang-testcase:///contravariant_combiner.dart:26:5 -> IntConstant(0)
+Evaluated: VariableGet @ org-dartlang-testcase:///contravariant_combiner.dart:27:13 -> IntConstant(0)
+Evaluated: VariableGet @ org-dartlang-testcase:///contravariant_combiner.dart:27:13 -> IntConstant(0)
 Extra constant evaluation: evaluated: 62, effectively constant: 4

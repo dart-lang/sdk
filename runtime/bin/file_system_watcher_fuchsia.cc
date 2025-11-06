@@ -28,11 +28,13 @@ bool FileSystemWatcher::IsSupported() {
 
 void FileSystemWatcher::UnwatchPath(intptr_t id, intptr_t path_id) {}
 
+void FileSystemWatcher::InitOnce() {}
+
+void FileSystemWatcher::Cleanup() {}
+
 intptr_t FileSystemWatcher::Init() {
   return 0;
 }
-
-void FileSystemWatcher::Close(intptr_t id) {}
 
 intptr_t FileSystemWatcher::WatchPath(intptr_t id,
                                       Namespace* namespc,

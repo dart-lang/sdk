@@ -10,8 +10,8 @@ import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/source/line_info.dart';
 import 'package:analyzer/source/source.dart';
+import 'package:analyzer/src/analysis_rule/rule_context.dart';
 import 'package:analyzer/src/ignore_comments/ignore_info.dart';
-import 'package:analyzer/src/lint/linter.dart';
 import 'package:analyzer/src/lint/pub.dart';
 import 'package:analyzer/src/pubspec/validators/dependency_validator.dart';
 import 'package:analyzer/src/pubspec/validators/field_validator.dart';
@@ -165,7 +165,6 @@ final class PubspecValidationContext {
     DiagnosticCode diagnosticCode, [
     List<Object>? arguments,
     List<DiagnosticMessage>? messages,
-    Object? data,
   ]) {
     var span = node.span;
     reporter.atOffset(
@@ -174,7 +173,6 @@ final class PubspecValidationContext {
       diagnosticCode: diagnosticCode,
       arguments: arguments,
       contextMessages: messages,
-      data: data,
     );
   }
 }

@@ -19,10 +19,10 @@ class AddOverride extends ResolvedCorrectionProducer {
       CorrectionApplicability.automatically;
 
   @override
-  FixKind get fixKind => DartFixKind.ADD_OVERRIDE;
+  FixKind get fixKind => DartFixKind.addOverride;
 
   @override
-  FixKind get multiFixKind => DartFixKind.ADD_OVERRIDE_MULTI;
+  FixKind get multiFixKind => DartFixKind.addOverrideMulti;
 
   @override
   Future<void> compute(ChangeBuilder builder) async {
@@ -42,6 +42,7 @@ class AddOverride extends ResolvedCorrectionProducer {
     var exitPosition = Position(file, token.offset - 1);
     var indent = utils.oneIndent;
     await builder.addDartFileEdit(file, (builder) {
+      var eol = builder.eol;
       builder.addSimpleReplacement(
         range.startLength(token, 0),
         '@override$eol$indent',

@@ -8,7 +8,7 @@ import 'package:analysis_server/src/lsp/error_or.dart';
 import 'package:analysis_server/src/lsp/handlers/handlers.dart';
 import 'package:analysis_server/src/lsp/mapping.dart';
 import 'package:analysis_server/src/lsp/registration/feature_registration.dart';
-import 'package:collection/collection.dart';
+import 'package:analyzer/dart/ast/token.dart';
 
 typedef StaticOptions = Either2<bool, DocumentHighlightOptions>;
 
@@ -45,45 +45,39 @@ class DocumentHighlightsHandler
     var offset = unit.mapResultSync((unit) => toOffset(unit.lineInfo, pos));
 
     return (unit, offset).mapResults((unit, requestedOffset) async {
-      var visitor = DartUnitOccurrencesComputerVisitor();
-      unit.unit.accept(visitor);
+      var occurrences = getAllOccurrences(unit.unit);
 
-      /// Checks whether an Occurrence offset/length spans the requested
+      /// Checks whether an Occurrence token spans the requested
       /// offset.
       ///
       /// It's possible multiple occurrences might match because some nodes
       /// such as object destructuring might match multiple elements (for
       /// example the object getter and a declared variable).
-      bool spansRequestedPosition((int, int) offsetLength) {
-        var (offset, length) = offsetLength;
-        return offset <= requestedOffset && offset + length >= requestedOffset;
+      bool spansRequestedPosition(Token token) {
+        return token.offset <= requestedOffset && token.end >= requestedOffset;
       }
 
-      // Find the groups (elements) of offset/lengths that contains an
+      // Find the groups of tokens that contains an
       // offset/length that spans the requested range. There may be multiple
       // matches here if the source element is in multiple groups.
-      var matchingSet =
-          visitor.elementsOffsetLengths.values
-              .where(
-                (offsetLengths) => offsetLengths.any(spansRequestedPosition),
-              )
-              .flattened
-              .toSet();
+      var matchingSet = <Token>{};
+
+      for (var occurrence in occurrences) {
+        var tokens = occurrence.tokens;
+        if (tokens.any(spansRequestedPosition)) {
+          matchingSet.addAll(tokens);
+        }
+      }
 
       // No matches will return an empty list (not null) because that prevents
       // the editor falling back to a text search.
-      var highlights =
-          matchingSet
-              .map(
-                (offsetLength) => DocumentHighlight(
-                  range: toRange(
-                    unit.lineInfo,
-                    offsetLength.$1,
-                    offsetLength.$2,
-                  ),
-                ),
-              )
-              .toList();
+      var highlights = matchingSet
+          .map(
+            (token) => DocumentHighlight(
+              range: toRange(unit.lineInfo, token.offset, token.length),
+            ),
+          )
+          .toList();
 
       return success(highlights);
     });

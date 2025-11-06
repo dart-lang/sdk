@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:_fe_analyzer_shared/src/type_inference/type_analyzer_operations.dart';
+import 'package:_fe_analyzer_shared/src/types/shared_type.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
@@ -195,11 +195,11 @@ class DefaultTypesBuilder {
     if (parameterList == null) return;
 
     for (var parameter in parameterList.typeParameters) {
-      var element = parameter.declaredFragment!;
-      var defaultType = element.defaultType;
+      var fragment = parameter.declaredFragment!;
+      var defaultType = fragment.element.defaultType;
       if (defaultType is TypeBuilder) {
         var builtType = defaultType.build();
-        element.defaultType = builtType;
+        fragment.element.defaultType = builtType;
       }
     }
   }
@@ -267,8 +267,8 @@ class DefaultTypesBuilder {
 
     // Set computed TypeBuilder(s) as default types.
     for (var i = 0; i < length; i++) {
-      var element = nodes[i].declaredFragment!;
-      element.defaultType = bounds[i];
+      var fragment = nodes[i].declaredFragment!;
+      fragment.element.defaultType = bounds[i];
     }
   }
 

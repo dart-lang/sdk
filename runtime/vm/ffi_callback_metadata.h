@@ -46,14 +46,14 @@ class FfiCallbackMetadata {
     kSync = 0,
     kSyncStackDelta4 = 1,  // Only used by TARGET_ARCH_IA32
     kAsync = 2,
-    kSyncIsolateGroupShared = 3,
-    kSyncIsolateGroupSharedStackDelta4 = 4,  // Only used by TARGET_ARCH_IA32
+    kSyncIsolateGroupBound = 3,
+    kSyncIsolateGroupBoundStackDelta4 = 4,  // Only used by TARGET_ARCH_IA32
   };
 
   enum RuntimeFunctions {
     kGetFfiCallbackMetadata,
     kExitTemporaryIsolate,
-    kExitIsolateGroupSharedIsolate,
+    kExitIsolateGroupBoundIsolate,
     kNumRuntimeFunctions,
   };
 
@@ -161,16 +161,16 @@ class FfiCallbackMetadata {
       ASSERT(IsLive());
       ASSERT(trampoline_type_ == TrampolineType::kSync ||
              trampoline_type_ == TrampolineType::kSyncStackDelta4 ||
-             trampoline_type_ == TrampolineType::kSyncIsolateGroupShared ||
+             trampoline_type_ == TrampolineType::kSyncIsolateGroupBound ||
              trampoline_type_ ==
-                 TrampolineType::kSyncIsolateGroupSharedStackDelta4);
+                 TrampolineType::kSyncIsolateGroupBoundStackDelta4);
       return reinterpret_cast<PersistentHandle*>(context_);
     }
 
-    bool is_isolate_group_shared() const {
-      return trampoline_type_ == TrampolineType::kSyncIsolateGroupShared ||
+    bool is_isolate_group_bound() const {
+      return trampoline_type_ == TrampolineType::kSyncIsolateGroupBound ||
              trampoline_type_ ==
-                 TrampolineType::kSyncIsolateGroupSharedStackDelta4;
+                 TrampolineType::kSyncIsolateGroupBoundStackDelta4;
     }
     // ApiState associated with an isolate group associated with this metadata.
     ApiState* api_state() const;
@@ -256,10 +256,7 @@ class FfiCallbackMetadata {
   };
 
   // Returns the Metadata object for the given trampoline.
-  Metadata LookupMetadataForTrampoline(Trampoline trampoline) const;
-
-  // The mutex that guards creation and destruction of callbacks.
-  Mutex* lock() { return &lock_; }
+  Metadata LookupMetadataForTrampolineUnlocked(Trampoline trampoline) const;
 
   // The number of trampolines that can be stored on a single page.
   static constexpr intptr_t NumCallbackTrampolinesPerPage() {
@@ -346,7 +343,18 @@ class FfiCallbackMetadata {
 #error What architecture?
 #endif
 
+  static void EnsureOnlyTriviallyImmutableValuesInClosure(
+      Zone* zone,
+      ClosurePtr closure_ptr);
+
   // Visible for testing.
+#if defined(TESTING)
+
+ public:
+#else   // TESTING
+
+ private:
+#endif  // TESTING
   MetadataEntry* MetadataEntryOfTrampoline(Trampoline trampoline) const;
   Trampoline TrampolineOfMetadataEntry(MetadataEntry* metadata) const;
 

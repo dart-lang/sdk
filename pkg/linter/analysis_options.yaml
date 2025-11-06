@@ -14,6 +14,7 @@ linter:
   rules:
     - always_put_required_named_parameters_first
     - avoid_annotating_with_dynamic
+    - avoid_bool_literals_in_conditional_expressions
     - avoid_catches_without_on_clauses
     - avoid_catching_errors
     - avoid_dynamic_calls
@@ -34,6 +35,7 @@ linter:
     - literal_only_boolean_expressions
     - no_adjacent_strings_in_list
     - noop_primitive_operations
+    - no_literal_bool_comparisons
     - only_throw_errors
     - parameter_assignments
     - prefer_asserts_in_initializer_lists
@@ -60,6 +62,7 @@ linter:
     - unreachable_from_main
     - use_if_null_to_convert_nulls_to_bools
     - use_late_for_private_fields_and_variables
+    - use_null_aware_elements
     - use_setters_to_change_properties
     - use_string_buffers
     - use_to_and_as_if_applicable

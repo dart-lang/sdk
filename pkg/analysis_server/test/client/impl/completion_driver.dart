@@ -36,15 +36,9 @@ class CompletionDriver with ExpectMixin {
     server.serverChannel.notifications.listen(processNotification);
   }
 
-  void addTestFile(String content, {int? offset}) {
+  void addTestFile(String content) {
     var code = TestCode.parse(content);
-
-    if (offset != null) {
-      expect(code.positions, isEmpty, reason: 'cannot supply offset and ^');
-      completionOffset = offset;
-    } else {
-      completionOffset = code.position.offset;
-    }
+    completionOffset = code.position.offset;
 
     server.newFile(server.testFilePath, code.code);
   }

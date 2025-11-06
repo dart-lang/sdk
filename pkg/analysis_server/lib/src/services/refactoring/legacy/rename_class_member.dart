@@ -103,21 +103,6 @@ class RenameClassMemberRefactoringImpl extends RenameRefactoringImpl {
         processor.addDeclarationEdit(renameElement.setter);
       } else {
         processor.addDeclarationEdit(renameElement);
-        if (!newName.startsWith('_')) {
-          var interfaceElement = renameElement.enclosingElement;
-          if (interfaceElement is InterfaceElement) {
-            for (var constructor in interfaceElement.constructors) {
-              for (var parameter in constructor.formalParameters) {
-                if (parameter is FieldFormalParameterElement &&
-                    parameter.field == renameElement) {
-                  await searchEngine
-                      .searchReferences(parameter)
-                      .then(processor.addReferenceEdits);
-                }
-              }
-            }
-          }
-        }
       }
     }
     await _updateReferences();
@@ -160,10 +145,9 @@ class RenameClassMemberRefactoringImpl extends RenameRefactoringImpl {
       if (constructor != null) {
         var previous = constructor.separator ?? constructor.parameters;
         var replacement = '$newName = ${parameter.name.lexeme}';
-        replacement =
-            constructor.initializers.isEmpty
-                ? ' : $replacement'
-                : ' $replacement,';
+        replacement = constructor.initializers.isEmpty
+            ? ' : $replacement'
+            : ' $replacement,';
         var edit = SourceEdit(previous.end, 0, replacement);
         doSourceChange_addSourceEdit(change, reference.unitSource, edit);
       }
@@ -198,6 +182,10 @@ class RenameClassMemberRefactoringImpl extends RenameRefactoringImpl {
           element is FieldFormalParameterElement &&
           element.isNamed) {
         await _addPrivateNamedFormalParameterEdit(reference, element);
+        continue;
+      }
+
+      if (element is FormalParameterElement) {
         continue;
       }
 
@@ -236,13 +224,12 @@ class _BaseClassMemberValidator {
     // check if there is a member with "newName" in the same ClassElement
     for (var newNameMember in getChildren(interfaceElement, name)) {
       result.addError(
-        format(
-          "{0} '{1}' already declares {2} with name '{3}'.",
+        formatList("{0} '{1}' already declares {2} with name '{3}'.", [
           capitalize(interfaceElement.kind.displayName),
           interfaceElement.displayName,
           getElementKindName(newNameMember),
           name,
-        ),
+        ]),
         newLocation_fromElement(newNameMember),
       );
     }
@@ -252,8 +239,9 @@ class _BaseClassMemberValidator {
     required bool isRename,
     required Set<InterfaceElement> subClasses,
   }) async {
-    var superClasses =
-        interfaceElement.allSupertypes.map((e) => e.element).toSet();
+    var superClasses = interfaceElement.allSupertypes
+        .map((e) => e.element)
+        .toSet();
     // check shadowing in the hierarchy
     var declarations = await searchEngine.searchMemberDeclarations(name);
     for (var declaration in declarations) {
@@ -262,13 +250,15 @@ class _BaseClassMemberValidator {
       // the renamed Element shadows a member of a superclass
       if (superClasses.contains(nameClass)) {
         result.addError(
-          format(
+          formatList(
             isRename
                 ? "Renamed {0} will shadow {1} '{2}'."
                 : "Created {0} will shadow {1} '{2}'.",
-            elementKind.displayName,
-            getElementKindName(nameElement),
-            getElementQualifiedName(nameElement),
+            [
+              elementKind.displayName,
+              getElementKindName(nameElement),
+              getElementQualifiedName(nameElement),
+            ],
           ),
           newLocation_fromElement(nameElement),
         );
@@ -276,12 +266,11 @@ class _BaseClassMemberValidator {
       // the renamed Element is shadowed by a member of a subclass
       if (isRename && subClasses.contains(nameClass)) {
         result.addError(
-          format(
-            "Renamed {0} will be shadowed by {1} '{2}'.",
+          formatList("Renamed {0} will be shadowed by {1} '{2}'.", [
             elementKind.displayName,
             getElementKindName(nameElement),
             getElementQualifiedName(nameElement),
-          ),
+          ]),
           newLocation_fromElement(nameElement),
         );
       }
@@ -402,14 +391,6 @@ class _MatchShadowedBy {
   _MatchShadowedBy(this.match, this.element);
 }
 
-class _MatchShadowedByLocal extends _MatchShadowedBy {
-  @override
-  final LocalElement element;
-
-  _MatchShadowedByLocal(SearchMatch match, this.element)
-    : super(match, element);
-}
-
 /// Helper to check if the renamed [element] will cause any conflicts.
 class _RenameClassMemberValidator extends _BaseClassMemberValidator {
   final Element element;
@@ -454,12 +435,11 @@ class _RenameClassMemberValidator extends _BaseClassMemberValidator {
       if (conflict != null) {
         var element = conflict.element;
         result.addError(
-          format(
-            "Usage of renamed {0} will be shadowed by {1} '{2}'.",
+          formatList("Usage of renamed {0} will be shadowed by {1} '{2}'.", [
             elementKind.displayName,
             getElementKindName(element),
             element.displayName,
-          ),
+          ]),
           newLocation_fromMatch(conflict.match),
         );
       }
@@ -520,9 +500,6 @@ class _RenameClassMemberValidator extends _BaseClassMemberValidator {
         var elementRange = visibleRangeMap[localElement];
         if (elementRange != null &&
             elementRange.intersects(match.sourceRange)) {
-          if (localElement is LocalElement) {
-            return _MatchShadowedByLocal(match, localElement);
-          }
           return _MatchShadowedBy(match, localElement);
         }
       }
@@ -537,6 +514,29 @@ class _RenameClassMemberValidator extends _BaseClassMemberValidator {
       elements = await getHierarchyMembers(searchEngine, element);
     } else {
       elements = {element};
+    }
+
+    if (element is FieldElement) {
+      var interfaceElement = element.enclosingElement;
+      if (interfaceElement is InterfaceElement &&
+          interfaceElement is! ExtensionTypeElement) {
+        var formalParameters = interfaceElement.constructors
+            .expand((constructor) => constructor.formalParameters)
+            .whereType<FieldFormalParameterElement>()
+            .where((formalParameter) => formalParameter.field == element)
+            .cast<FormalParameterElement>()
+            .toList();
+
+        // The language doesn't allow private named formal parameters.
+        if (name.startsWith('_')) {
+          formalParameters.removeWhere((formalParameter) {
+            return formalParameter.isNamed;
+          });
+        }
+
+        await addNamedSuperFormalParameters(searchEngine, formalParameters);
+        elements.addAll(formalParameters);
+      }
     }
   }
 
@@ -558,11 +558,10 @@ class _RenameClassMemberValidator extends _BaseClassMemberValidator {
       var refElement = reference.element;
       var refLibrary = refElement.library!;
       if (refLibrary != library) {
-        var message = format(
-          "Renamed {0} will be invisible in '{1}'.",
+        var message = formatList("Renamed {0} will be invisible in '{1}'.", [
           getElementKindName(element),
           getElementQualifiedName(refLibrary),
-        );
+        ]);
         result.addError(message, newLocation_fromMatch(reference));
       }
     }

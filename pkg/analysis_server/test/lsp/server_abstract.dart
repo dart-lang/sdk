@@ -10,13 +10,15 @@ import 'package:analysis_server/src/legacy_analysis_server.dart';
 import 'package:analysis_server/src/lsp/client_capabilities.dart';
 import 'package:analysis_server/src/lsp/constants.dart';
 import 'package:analysis_server/src/lsp/lsp_analysis_server.dart';
-import 'package:analysis_server/src/plugin/plugin_manager.dart';
+import 'package:analysis_server/src/plugin/plugin_isolate.dart';
 import 'package:analysis_server/src/server/crash_reporting_attachments.dart';
 import 'package:analysis_server/src/server/error_notifier.dart';
 import 'package:analysis_server/src/services/user_prompts/dart_fix_prompt_manager.dart';
 import 'package:analysis_server/src/utilities/mocks.dart';
+import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/test_utilities/mock_sdk.dart';
+import 'package:analyzer/src/test_utilities/platform.dart';
 import 'package:analyzer/src/test_utilities/test_code_format.dart';
 import 'package:analyzer/src/util/file_paths.dart' as file_paths;
 import 'package:analyzer_plugin/protocol/protocol.dart' as plugin;
@@ -78,6 +80,9 @@ abstract class AbstractLspAnalysisServerTest
   LspClientCapabilities get editorClientCapabilities =>
       server.editorClientCapabilities!;
 
+  /// The line terminator being used for test files and to be expected in edits.
+  String get eol => testEol;
+
   String get mainFileAugmentationPath => fromUri(mainFileAugmentationUri);
 
   /// The path that is not in [projectFolderPath], contains external packages.
@@ -94,37 +99,38 @@ abstract class AbstractLspAnalysisServerTest
   @override
   ClientUriConverter get uriConverter => server.uriConverter;
 
-  DiscoveredPluginInfo configureTestPlugin({
+  PluginIsolate configureTestPlugin({
     plugin.ResponseResult? respondWith,
     plugin.Notification? notification,
     plugin.ResponseResult? Function(plugin.RequestParams)? handler,
     Duration respondAfter = Duration.zero,
   }) {
-    var info = DiscoveredPluginInfo(
+    var pluginIsolate = PluginIsolate(
       'a',
       'b',
       'c',
       server.notificationManager,
       server.instrumentationService,
+      isLegacy: true,
     );
-    pluginManager.plugins.add(info);
+    pluginManager.pluginIsolates.add(pluginIsolate);
 
     if (handler != null) {
       pluginManager.handleRequest = (request) {
         var response = handler(request);
         return response == null
             ? null
-            : <PluginInfo, Future<plugin.Response>>{
-              info: Future.delayed(
-                respondAfter,
-              ).then((_) => response.toResponse('-', 1)),
-            };
+            : {
+                pluginIsolate: Future.delayed(
+                  respondAfter,
+                ).then((_) => response.toResponse('-', 1)),
+              };
       };
     }
 
     if (respondWith != null) {
-      pluginManager.broadcastResults = <PluginInfo, Future<plugin.Response>>{
-        info: Future.delayed(
+      pluginManager.broadcastResults = {
+        pluginIsolate: Future.delayed(
           respondAfter,
         ).then((_) => respondWith.toResponse('-', 1)),
       };
@@ -132,13 +138,19 @@ abstract class AbstractLspAnalysisServerTest
 
     if (notification != null) {
       server.notificationManager.handlePluginNotification(
-        info.pluginId,
+        pluginIsolate.pluginId,
         notification,
       );
     }
 
-    return info;
+    return pluginIsolate;
   }
+
+  /// Returns a matcher that checks that the input matches [expected] after
+  /// newlines have been normalized to the current platforms (only in
+  /// [expected]).
+  Matcher equalsNormalized(String expected) =>
+      equals(normalizeNewlinesForPlatform(expected));
 
   void expectContextBuilds() => expect(
     server.contextBuilds - _previousContextBuilds,
@@ -178,6 +190,12 @@ abstract class AbstractLspAnalysisServerTest
     } catch (_) {
       return null;
     }
+  }
+
+  @override
+  File newFile(String path, String content) {
+    content = normalizeNewlinesForPlatform(content);
+    return super.newFile(path, content);
   }
 
   /// Finds the registration for a given LSP method.
@@ -439,13 +457,12 @@ mixin ClientCapabilitiesHelperMixin {
   void setChangeAnnotationSupport([bool supported = true]) {
     workspaceCapabilities = extendWorkspaceCapabilities(workspaceCapabilities, {
       'workspaceEdit': {
-        'changeAnnotationSupport':
-            supported
-                ? <String, Object?>{
-                  // This is set to an empty object to indicate support. We don't
-                  // currently use any of the child properties.
-                }
-                : null,
+        'changeAnnotationSupport': supported
+            ? <String, Object?>{
+                // This is set to an empty object to indicate support. We don't
+                // currently use any of the child properties.
+              }
+            : null,
       },
     });
   }
@@ -483,11 +500,10 @@ mixin ClientCapabilitiesHelperMixin {
         'completion': {
           'completionItem': {
             'insertTextModeSupport': {
-              'valueSet':
-                  [
-                    InsertTextMode.adjustIndentation,
-                    InsertTextMode.asIs,
-                  ].map((k) => k.toJson()).toList(),
+              'valueSet': [
+                InsertTextMode.adjustIndentation,
+                InsertTextMode.asIs,
+              ].map((k) => k.toJson()).toList(),
             },
           },
         },
@@ -720,14 +736,13 @@ mixin ClientCapabilitiesHelperMixin {
       textDocumentCapabilities,
       {
         'codeAction': {
-          'codeActionLiteralSupport':
-              kinds != null
-                  ? {
-                    'codeActionKind': {
-                      'valueSet': kinds.map((k) => k.toJson()).toList(),
-                    },
-                  }
-                  : null,
+          'codeActionLiteralSupport': kinds != null
+              ? {
+                  'codeActionKind': {
+                    'valueSet': kinds.map((k) => k.toJson()).toList(),
+                  },
+                }
+              : null,
         },
       },
     );
@@ -740,16 +755,15 @@ mixin ClientCapabilitiesHelperMixin {
   }
 
   void setTextDocumentDynamicRegistration(String name) {
-    var json =
-        name == 'semanticTokens'
-            ? SemanticTokensClientCapabilities(
-              dynamicRegistration: true,
-              requests: ClientSemanticTokensRequestOptions(),
-              formats: [],
-              tokenModifiers: [],
-              tokenTypes: [],
-            ).toJson()
-            : {'dynamicRegistration': true};
+    var json = name == 'semanticTokens'
+        ? SemanticTokensClientCapabilities(
+            dynamicRegistration: true,
+            requests: ClientSemanticTokensRequestOptions(),
+            formats: [],
+            tokenModifiers: [],
+            tokenTypes: [],
+          ).toJson()
+        : {'dynamicRegistration': true};
     textDocumentCapabilities = extendTextDocumentCapabilities(
       textDocumentCapabilities,
       {name: json},
@@ -1171,10 +1185,9 @@ mixin LspAnalysisServerTestMixin
       method: method,
       params: params,
       jsonrpc: jsonRpcVersion,
-      clientRequestTime:
-          includeClientRequestTime
-              ? DateTime.now().millisecondsSinceEpoch
-              : null,
+      clientRequestTime: includeClientRequestTime
+          ? DateTime.now().millisecondsSinceEpoch
+          : null,
     );
   }
 
@@ -1184,10 +1197,9 @@ mixin LspAnalysisServerTestMixin
     Position pos,
     String newName,
   ) {
-    var docIdentifier =
-        version != null
-            ? VersionedTextDocumentIdentifier(version: version, uri: uri)
-            : TextDocumentIdentifier(uri: uri);
+    var docIdentifier = version != null
+        ? VersionedTextDocumentIdentifier(version: version, uri: uri)
+        : TextDocumentIdentifier(uri: uri);
     var request = makeRequest(
       Method.textDocument_rename,
       RenameParams(
@@ -1478,16 +1490,12 @@ mixin LspAnalysisServerTestMixin
         }
 
         if (params.value is Map<String, dynamic>) {
-          var isDesiredStatusMessage =
-              analyzing
-                  ? WorkDoneProgressBegin.canParse(
-                    params.value,
-                    nullLspJsonReporter,
-                  )
-                  : WorkDoneProgressEnd.canParse(
-                    params.value,
-                    nullLspJsonReporter,
-                  );
+          var isDesiredStatusMessage = analyzing
+              ? WorkDoneProgressBegin.canParse(
+                  params.value,
+                  nullLspJsonReporter,
+                )
+              : WorkDoneProgressEnd.canParse(params.value, nullLspJsonReporter);
 
           return isDesiredStatusMessage;
         } else {

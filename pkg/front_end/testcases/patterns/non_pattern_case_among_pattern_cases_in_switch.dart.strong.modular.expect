@@ -13,12 +13,13 @@ static method test(dynamic x) → dynamic {
   #L1:
   {
     final synthesized dynamic #0#0 = x;
+    final const synthesized core::int #0#1 = #C1;
     dynamic #t1;
     {
       lowered final hoisted dynamic a#case#0;
       lowered final hoisted dynamic a#case#1;
       if((let final dynamic #t2 = a#case#0 = #0#0 in true) && a#case#0{dynamic}.>(0) as{TypeError} core::bool && (let final dynamic #t3 = #t1 = a#case#0 in true) || #C1 =={core::num::==}{(core::Object) → core::bool} #0#0 || (let final dynamic #t4 = a#case#1 = #0#0 in true) && (let final dynamic #t5 = #t1 = a#case#1 in true)) {
-        final dynamic a = #t1{dynamic};
+        final dynamic a = #t1;
         {
           return a;
         }

@@ -25,7 +25,7 @@ class ListLiteralTest extends AbstractRecoveryTest {
       '''
 f() => [a, , b];
 ''',
-      [ParserErrorCode.MISSING_IDENTIFIER],
+      [ParserErrorCode.missingIdentifier],
       '''
 f() => [a, _s_, b];
 ''',
@@ -37,7 +37,7 @@ f() => [a, _s_, b];
       '''
 f() => [a, b c];
 ''',
-      [ParserErrorCode.EXPECTED_TOKEN],
+      [ParserErrorCode.expectedToken],
       '''
 f() => [a, b, c];
 ''',
@@ -49,7 +49,7 @@ f() => [a, b, c];
       '''
 f() => [a, if (x) b c];
 ''',
-      [ParserErrorCode.EXPECTED_ELSE_OR_COMMA],
+      [ParserErrorCode.expectedElseOrComma],
       '''
 f() => [a, if (x) b, c];
 ''',
@@ -61,7 +61,7 @@ f() => [a, if (x) b, c];
       '''
 f() => [a, if (x) b else y c];
 ''',
-      [ParserErrorCode.EXPECTED_TOKEN],
+      [ParserErrorCode.expectedToken],
       '''
 f() => [a, if (x) b else y, c];
 ''',
@@ -77,7 +77,7 @@ class MapLiteralTest extends AbstractRecoveryTest {
       '''
 f() => {a: b, c: d e: f};
 ''',
-      [ParserErrorCode.EXPECTED_TOKEN],
+      [ParserErrorCode.expectedToken],
       '''
 f() => {a: b, c: d, e: f};
 ''',
@@ -89,7 +89,7 @@ f() => {a: b, c: d, e: f};
       '''
 f() => {a: b, if (x) c: d e: f};
 ''',
-      [ParserErrorCode.EXPECTED_ELSE_OR_COMMA],
+      [ParserErrorCode.expectedElseOrComma],
       '''
 f() => {a: b, if (x) c: d, e: f};
 ''',
@@ -101,7 +101,7 @@ f() => {a: b, if (x) c: d, e: f};
       '''
 f() => {a: b, if (x) c: d else y: z e: f};
 ''',
-      [ParserErrorCode.EXPECTED_TOKEN],
+      [ParserErrorCode.expectedToken],
       '''
 f() => {a: b, if (x) c: d else y: z, e: f};
 ''',
@@ -113,7 +113,7 @@ f() => {a: b, if (x) c: d else y: z, e: f};
       '''
 f() => {: b};
 ''',
-      [ParserErrorCode.MISSING_IDENTIFIER],
+      [ParserErrorCode.missingIdentifier],
       '''
 f() => {_s_: b};
 ''',
@@ -125,7 +125,7 @@ f() => {_s_: b};
       '''
 f() => {a: };
 ''',
-      [ParserErrorCode.MISSING_IDENTIFIER],
+      [ParserErrorCode.missingIdentifier],
       '''
 f() => {a: _s_};
 ''',
@@ -137,7 +137,7 @@ f() => {a: _s_};
       '''
 f() => {a: , b: c};
 ''',
-      [ParserErrorCode.MISSING_IDENTIFIER],
+      [ParserErrorCode.missingIdentifier],
       '''
 f() => {a: _s_, b: c};
 ''',
@@ -162,7 +162,7 @@ class MissingCodeTest extends AbstractRecoveryTest {
       '''
 convert(x) => as T;
 ''',
-      [ParserErrorCode.EXPECTED_TYPE_NAME],
+      [ParserErrorCode.expectedTypeName],
       '''
 convert(x) => _s_ as T;
 ''',
@@ -174,7 +174,7 @@ convert(x) => _s_ as T;
       '''
 convert(x) => x as ;
 ''',
-      [ParserErrorCode.EXPECTED_TYPE_NAME],
+      [ParserErrorCode.expectedTypeName],
       '''
 convert(x) => x as _s_;
 ''',
@@ -189,7 +189,7 @@ f() {
   x =
 }
 ''',
-      [ParserErrorCode.MISSING_IDENTIFIER, ParserErrorCode.EXPECTED_TOKEN],
+      [ParserErrorCode.missingIdentifier, ParserErrorCode.expectedToken],
       '''
 f() {
   var x;
@@ -214,7 +214,7 @@ f(x) {
   x..
 }
 ''',
-      [ParserErrorCode.MISSING_IDENTIFIER, ParserErrorCode.EXPECTED_TOKEN],
+      [ParserErrorCode.missingIdentifier, ParserErrorCode.expectedToken],
       '''
 f(x) {
   x.. _s_;
@@ -228,7 +228,7 @@ f(x) {
       '''
 class {}
 ''',
-      [ParserErrorCode.MISSING_IDENTIFIER],
+      [ParserErrorCode.missingIdentifier],
       '''
 class _s_ {}
 ''',
@@ -242,7 +242,7 @@ class _s_ {}
       '''
 import 'bar.dart' deferred;
 ''',
-      [ParserErrorCode.MISSING_PREFIX_IN_DEFERRED_IMPORT],
+      [ParserErrorCode.missingPrefixInDeferredImport],
       '''
 import 'bar.dart' deferred as _s_;
 ''',
@@ -254,7 +254,7 @@ import 'bar.dart' deferred as _s_;
       '''
 f(int a int b) { }
 ''',
-      [ParserErrorCode.EXPECTED_TOKEN],
+      [ParserErrorCode.expectedToken],
       '''
 f(int a, int b) { }
 ''',
@@ -266,7 +266,7 @@ f(int a, int b) { }
       '''
 f() => x ? y :
 ''',
-      [ParserErrorCode.MISSING_IDENTIFIER, ParserErrorCode.EXPECTED_TOKEN],
+      [ParserErrorCode.missingIdentifier, ParserErrorCode.expectedToken],
       '''
 f() => x ? y : _s_;
 ''',
@@ -278,7 +278,7 @@ f() => x ? y : _s_;
       '''
 f() => x ? : z
 ''',
-      [ParserErrorCode.MISSING_IDENTIFIER, ParserErrorCode.EXPECTED_TOKEN],
+      [ParserErrorCode.missingIdentifier, ParserErrorCode.expectedToken],
       '''
 f() => x ? _s_ : z;
 ''',
@@ -298,7 +298,7 @@ f() => x ? _s_ : z;
       '''
 f(x) = x;
 ''',
-      [ParserErrorCode.MISSING_FUNCTION_BODY],
+      [ParserErrorCode.missingFunctionBody],
       '''
 f(x) => x;
 ''',
@@ -310,7 +310,7 @@ f(x) => x;
       '''
 f(x) return x;
 ''',
-      [ParserErrorCode.MISSING_FUNCTION_BODY],
+      [ParserErrorCode.missingFunctionBody],
       '''
 f(x) => x;
 ''',
@@ -359,7 +359,7 @@ class Test {
       assert(true);
 }
 ''',
-      [ParserErrorCode.EXPECTED_TOKEN],
+      [ParserErrorCode.expectedToken],
       '''
 class Test {
   Test()
@@ -380,7 +380,7 @@ class Test {
       x = 2;
 }
 ''',
-      [ParserErrorCode.EXPECTED_TOKEN],
+      [ParserErrorCode.expectedToken],
       '''
 class Test {
   Test()
@@ -401,7 +401,7 @@ class Test {
       this.x = 2;
 }
 ''',
-      [ParserErrorCode.EXPECTED_TOKEN],
+      [ParserErrorCode.expectedToken],
       '''
 class Test {
   Test()
@@ -420,7 +420,7 @@ f() {
   }
 }
 ''',
-      [ParserErrorCode.MISSING_IDENTIFIER],
+      [ParserErrorCode.missingIdentifier],
       '''
 f() {
   if (_s_ is String) {
@@ -437,7 +437,7 @@ f(x) {
   if (x is ) {}
 }
 ''',
-      [ParserErrorCode.EXPECTED_TYPE_NAME],
+      [ParserErrorCode.expectedTypeName],
       '''
 f(x) {
   if (x is _s_) {}
@@ -486,7 +486,7 @@ class Bar {
   int foo => 0;
 }
 ''',
-      [ParserErrorCode.MISSING_GET],
+      [ParserErrorCode.missingGet],
       '''
 class Bar {
   int get foo => 0;
@@ -502,7 +502,7 @@ class Bar {
       '''
 int f int x, int y) {}
 ''',
-      [ParserErrorCode.EXPECTED_TOKEN],
+      [ParserErrorCode.expectedToken],
       '''
 int f (int x, int y) {}
 ''',
@@ -516,7 +516,7 @@ int f (int x, int y) {}
       '''
 f(x) => x ?? throw 0;
 ''',
-      [ParserErrorCode.EXPECTED_TOKEN, ParserErrorCode.EXPECTED_TOKEN],
+      [ParserErrorCode.expectedToken, ParserErrorCode.expectedToken],
       '''
 f(x) => x ?? (throw 0);
 ''',
@@ -547,7 +547,7 @@ f() {
   v.
 }
 ''',
-      [ParserErrorCode.MISSING_IDENTIFIER, ParserErrorCode.EXPECTED_TOKEN],
+      [ParserErrorCode.missingIdentifier, ParserErrorCode.expectedToken],
       '''
 f() {
   var v = 'String';
@@ -589,12 +589,12 @@ f() {
 }
 ''',
       [
-        ParserErrorCode.EXPECTED_TOKEN,
-        ParserErrorCode.EXPECTED_TOKEN,
-        ScannerErrorCode.EXPECTED_TOKEN,
-        ScannerErrorCode.EXPECTED_TOKEN,
-        ScannerErrorCode.UNTERMINATED_STRING_LITERAL,
-        ScannerErrorCode.UNTERMINATED_STRING_LITERAL,
+        ParserErrorCode.expectedToken,
+        ParserErrorCode.expectedToken,
+        ScannerErrorCode.expectedToken,
+        ScannerErrorCode.expectedToken,
+        ScannerErrorCode.unterminatedStringLiteral,
+        ScannerErrorCode.unterminatedStringLiteral,
       ],
       r'''
 f() {
@@ -617,7 +617,7 @@ f() {
       '''
 f() => x $operator
 ''',
-      [ParserErrorCode.MISSING_IDENTIFIER, ParserErrorCode.EXPECTED_TOKEN],
+      [ParserErrorCode.missingIdentifier, ParserErrorCode.expectedToken],
       '''
 f() => x $operator _s_;
 ''',
@@ -631,7 +631,7 @@ class C {
   int operator $operator(x) => super $operator
 }
 ''',
-      [ParserErrorCode.MISSING_IDENTIFIER, ParserErrorCode.EXPECTED_TOKEN],
+      [ParserErrorCode.missingIdentifier, ParserErrorCode.expectedToken],
       '''
 class C {
   int operator $operator(x) => super $operator _s_;
@@ -651,7 +651,7 @@ class ParameterListTest extends AbstractRecoveryTest {
       '''
 f({a, }) {}
 ''',
-      [ParserErrorCode.MISSING_IDENTIFIER],
+      [ParserErrorCode.missingIdentifier],
       '''
 f({a, _s_}) {}
 ''',
@@ -663,7 +663,7 @@ f({a, _s_}) {}
       '''
 f({a, , b}) {}
 ''',
-      [ParserErrorCode.MISSING_IDENTIFIER],
+      [ParserErrorCode.missingIdentifier],
       '''
 f({a, _s_, b}) {}
 ''',
@@ -676,7 +676,7 @@ f({a, _s_, b}) {}
       '''
 f([a, ]) {}
 ''',
-      [ParserErrorCode.MISSING_IDENTIFIER],
+      [ParserErrorCode.missingIdentifier],
       '''
 f([a, _s_]) {}
 ''',
@@ -688,7 +688,7 @@ f([a, _s_]) {}
       '''
 f([a, , b]) {}
 ''',
-      [ParserErrorCode.MISSING_IDENTIFIER],
+      [ParserErrorCode.missingIdentifier],
       '''
 f([a, _s_, b]) {}
 ''',
@@ -701,7 +701,7 @@ f([a, _s_, b]) {}
       '''
 f(a, ) {}
 ''',
-      [ParserErrorCode.MISSING_IDENTIFIER],
+      [ParserErrorCode.missingIdentifier],
       '''
 f(a, _s_) {}
 ''',
@@ -713,7 +713,7 @@ f(a, _s_) {}
       '''
 f(a, , b) {}
 ''',
-      [ParserErrorCode.MISSING_IDENTIFIER],
+      [ParserErrorCode.missingIdentifier],
       '''
 f(a, _s_, b) {}
 ''',
@@ -728,7 +728,7 @@ class C {
   C(this);
 }
 ''',
-      [ParserErrorCode.EXPECTED_IDENTIFIER_BUT_GOT_KEYWORD],
+      [ParserErrorCode.expectedIdentifierButGotKeyword],
       '''
 class C {
   int f;
@@ -746,7 +746,7 @@ class C {
   C(this, p);
 }
 ''',
-      [ParserErrorCode.EXPECTED_IDENTIFIER_BUT_GOT_KEYWORD],
+      [ParserErrorCode.expectedIdentifierButGotKeyword],
       '''
 class C {
   int f;
@@ -764,7 +764,7 @@ class C {
   C(this.);
 }
 ''',
-      [ParserErrorCode.MISSING_IDENTIFIER],
+      [ParserErrorCode.missingIdentifier],
       '''
 class C {
   int f;
@@ -782,7 +782,7 @@ class C {
   C(this., p);
 }
 ''',
-      [ParserErrorCode.MISSING_IDENTIFIER],
+      [ParserErrorCode.missingIdentifier],
       '''
 class C {
   int f;
@@ -797,7 +797,7 @@ class C {
       '''
 f({a: 0) {}
 ''',
-      [ScannerErrorCode.EXPECTED_TOKEN],
+      [ScannerErrorCode.expectedToken],
       '''
 f({a: 0}) {}
 ''',
@@ -809,7 +809,7 @@ f({a: 0}) {}
       '''
 f({a: 0]) {}
 ''',
-      [ScannerErrorCode.EXPECTED_TOKEN, ParserErrorCode.EXPECTED_TOKEN],
+      [ScannerErrorCode.expectedToken, ParserErrorCode.expectedToken],
       '''
 f({a: 0}) {}
 ''',
@@ -821,7 +821,7 @@ f({a: 0}) {}
       '''
 f(a}) {}
 ''',
-      [ParserErrorCode.EXPECTED_TOKEN],
+      [ParserErrorCode.expectedToken],
       '''
 f(a) {}
 ''',
@@ -833,7 +833,7 @@ f(a) {}
       '''
 f(a]) {}
 ''',
-      [ParserErrorCode.EXPECTED_TOKEN],
+      [ParserErrorCode.expectedToken],
       '''
 f(a) {}
 ''',
@@ -845,7 +845,7 @@ f(a) {}
       '''
 f([a = 0}) {}
 ''',
-      [ScannerErrorCode.EXPECTED_TOKEN, ParserErrorCode.EXPECTED_TOKEN],
+      [ScannerErrorCode.expectedToken, ParserErrorCode.expectedToken],
       '''
 f([a = 0]) {}
 ''',
@@ -858,7 +858,7 @@ f([a = 0]) {}
       '''
 f([a = 0) {}
 ''',
-      [ScannerErrorCode.EXPECTED_TOKEN],
+      [ScannerErrorCode.expectedToken],
       '''
 f([a = 0]) {}
 ''',
@@ -874,7 +874,7 @@ h(v1, v2, v) {
   g(v1 == v2 || v1 == v 3, true);
 }
 ''',
-      [ParserErrorCode.EXPECTED_TOKEN],
+      [ParserErrorCode.expectedToken],
       '''
 g(a, b, c) {}
 h(v1, v2, v) {
@@ -889,7 +889,7 @@ h(v1, v2, v) {
       '''
 f({a: }) {}
 ''',
-      [ParserErrorCode.MISSING_IDENTIFIER],
+      [ParserErrorCode.missingIdentifier],
       '''
 f({a: _s_}) {}
 ''',
@@ -901,7 +901,7 @@ f({a: _s_}) {}
       '''
 f({a: , b}) {}
 ''',
-      [ParserErrorCode.MISSING_IDENTIFIER],
+      [ParserErrorCode.missingIdentifier],
       '''
 f({a: _s_, b}) {}
 ''',
@@ -913,7 +913,7 @@ f({a: _s_, b}) {}
       '''
 f([a = ]) {}
 ''',
-      [ParserErrorCode.MISSING_IDENTIFIER],
+      [ParserErrorCode.missingIdentifier],
       '''
 f([a = _s_]) {}
 ''',
@@ -925,7 +925,7 @@ f([a = _s_]) {}
       '''
 f([a = , b]) {}
 ''',
-      [ParserErrorCode.MISSING_IDENTIFIER],
+      [ParserErrorCode.missingIdentifier],
       '''
 f([a = _s_, b]) {}
 ''',
@@ -938,7 +938,7 @@ f([a = _s_, b]) {}
       '''
 f([a = 0], {b: 1}) {}
 ''',
-      [ParserErrorCode.EXPECTED_TOKEN],
+      [ParserErrorCode.expectedToken],
       '''
 f([a = 0]) {}
 ''',
@@ -952,7 +952,7 @@ f([a = 0]) {}
       '''
 f([a = 0], {b: 1}, [c = 2]) {}
 ''',
-      [ParserErrorCode.MIXED_PARAMETER_GROUPS],
+      [ParserErrorCode.mixedParameterGroups],
       '''
 f([a = 0, c = 2]) {}
 ''',
@@ -965,7 +965,7 @@ f([a = 0, c = 2]) {}
       '''
 f({a: 0}, {b: 1}) {}
 ''',
-      [ParserErrorCode.MULTIPLE_NAMED_PARAMETER_GROUPS],
+      [ParserErrorCode.multipleNamedParameterGroups],
       '''
 f({a: 0, b: 1}) {}
 ''',
@@ -978,7 +978,7 @@ f({a: 0, b: 1}) {}
       '''
 f([a = 0], [b = 1]) {}
 ''',
-      [ParserErrorCode.MULTIPLE_POSITIONAL_PARAMETER_GROUPS],
+      [ParserErrorCode.multiplePositionalParameterGroups],
       '''
 f([a = 0, b = 1]) {}
 ''',
@@ -991,7 +991,7 @@ f([a = 0, b = 1]) {}
       '''
 f(a: 0) {}
 ''',
-      [ParserErrorCode.NAMED_PARAMETER_OUTSIDE_GROUP],
+      [ParserErrorCode.namedParameterOutsideGroup],
       '''
 f({a: 0}) {}
 ''',
@@ -1004,7 +1004,7 @@ f({a: 0}) {}
       '''
 f(a = 0) {}
 ''',
-      [ParserErrorCode.POSITIONAL_PARAMETER_OUTSIDE_GROUP],
+      [ParserErrorCode.positionalParameterOutsideGroup],
       '''
 f([a = 0]) {}
 ''',
@@ -1021,7 +1021,7 @@ class TypedefTest extends AbstractRecoveryTest {
       '''
 typedef Predicate = bool <E>(E element);
 ''',
-      [ParserErrorCode.MISSING_IDENTIFIER],
+      [ParserErrorCode.missingIdentifier],
       '''
 typedef Predicate = bool Function<E>(E element);
 ''',

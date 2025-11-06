@@ -23,7 +23,7 @@ class C {
   C.foo();
 }
 ''',
-      [error(CompileTimeErrorCode.DUPLICATE_CONSTRUCTOR_NAME, 23, 5)],
+      [error(CompileTimeErrorCode.duplicateConstructorName, 23, 5)],
     );
   }
 
@@ -101,7 +101,7 @@ augment class A {
 
     await resolveFile2(a);
     assertErrorsInResult([
-      error(CompileTimeErrorCode.DUPLICATE_CONSTRUCTOR_NAME, 42, 7),
+      error(CompileTimeErrorCode.duplicateConstructorName, 42, 7),
     ]);
   }
 
@@ -115,8 +115,8 @@ enum E {
 }
 ''',
       [
-        error(CompileTimeErrorCode.DUPLICATE_CONSTRUCTOR_NAME, 45, 5),
-        error(WarningCode.UNUSED_ELEMENT, 47, 3),
+        error(CompileTimeErrorCode.duplicateConstructorName, 45, 5),
+        error(WarningCode.unusedElement, 47, 3),
       ],
     );
   }
@@ -129,7 +129,7 @@ extension type A(int it) {
   A.foo(this.it);
 }
 ''',
-      [error(CompileTimeErrorCode.DUPLICATE_CONSTRUCTOR_NAME, 47, 5)],
+      [error(CompileTimeErrorCode.duplicateConstructorName, 47, 5)],
     );
   }
 
@@ -140,7 +140,7 @@ extension type A.foo(int it) {
   A.foo(this.it);
 }
 ''',
-      [error(CompileTimeErrorCode.DUPLICATE_CONSTRUCTOR_NAME, 33, 5)],
+      [error(CompileTimeErrorCode.duplicateConstructorName, 33, 5)],
     );
   }
 }

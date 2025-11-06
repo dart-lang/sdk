@@ -44,11 +44,7 @@ extension type E(int i) {
 ''',
       [
         // No lint.
-        error(
-          CompileTimeErrorCode.EXTENSION_TYPE_DECLARES_INSTANCE_FIELD,
-          42,
-          1,
-        ),
+        error(CompileTimeErrorCode.extensionTypeDeclaresInstanceField, 42, 1),
       ],
     );
   }
@@ -252,7 +248,7 @@ class C {
 ''',
       [
         // Technically not in the private API but we can ignore that for testing.
-        error(WarningCode.INVALID_INTERNAL_ANNOTATION, 35, 8),
+        error(WarningCode.invalidInternalAnnotation, 35, 8),
       ],
     );
   }
@@ -274,7 +270,7 @@ enum E {
 ''',
       [
         // Technically not in the private API but we can ignore that for testing.
-        error(WarningCode.INVALID_INTERNAL_ANNOTATION, 35, 8),
+        error(WarningCode.invalidInternalAnnotation, 35, 8),
       ],
     );
   }
@@ -294,7 +290,7 @@ extension X on Object {
 ''',
       [
         // Technically not in the private API but we can ignore that for testing.
-        error(WarningCode.INVALID_INTERNAL_ANNOTATION, 35, 8),
+        error(WarningCode.invalidInternalAnnotation, 35, 8),
       ],
     );
   }
@@ -310,7 +306,7 @@ void f() {}
 ''',
       [
         // Technically not in the private API but we can ignore that for testing.
-        error(WarningCode.INVALID_INTERNAL_ANNOTATION, 35, 8),
+        error(WarningCode.invalidInternalAnnotation, 35, 8),
       ],
     );
   }
@@ -330,7 +326,7 @@ mixin M {
 ''',
       [
         // Technically not in the private API but we can ignore that for testing.
-        error(WarningCode.INVALID_INTERNAL_ANNOTATION, 35, 8),
+        error(WarningCode.invalidInternalAnnotation, 35, 8),
       ],
     );
   }

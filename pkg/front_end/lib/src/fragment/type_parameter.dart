@@ -12,6 +12,7 @@ class TypeParameterFragment {
   final TypeParameterKind kind;
   final bool isWildcard;
   final String variableName;
+  final ExtensionScope extensionScope;
   final LookupScope typeParameterScope;
 
   late final TypeBuilder? bound;
@@ -19,15 +20,17 @@ class TypeParameterFragment {
 
   SourceNominalParameterBuilder? _builder;
 
-  TypeParameterFragment(
-      {required this.metadata,
-      required this.name,
-      required this.nameOffset,
-      required this.fileUri,
-      required this.kind,
-      required this.isWildcard,
-      required this.variableName,
-      required this.typeParameterScope});
+  TypeParameterFragment({
+    required this.metadata,
+    required this.name,
+    required this.nameOffset,
+    required this.fileUri,
+    required this.kind,
+    required this.isWildcard,
+    required this.variableName,
+    required this.extensionScope,
+    required this.typeParameterScope,
+  });
 
   SourceNominalParameterBuilder get builder {
     assert(_builder != null, "Builder has not been set for $this.");

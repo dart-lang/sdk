@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/*@testedFeatures=inference*/
 library test;
 
 class C<T extends num> {
@@ -15,7 +14,7 @@ class D<T extends num> {
 }
 
 void main() {
-  const /*@type=C<int>*/ c = const /*@typeArgs=int*/ C(0);
+  const c = const C(0);
   C<int> c2 = c;
-  const D<int> d = const /*@typeArgs=int*/ D();
+  const D<int> d = const D();
 }

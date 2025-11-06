@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/analysis_rule/rule_context.dart';
+import 'package:analyzer/analysis_rule/rule_visitor_registry.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
@@ -21,10 +22,13 @@ class AvoidSingleCascadeInExpressionStatements extends LintRule {
 
   @override
   DiagnosticCode get diagnosticCode =>
-      LinterLintCode.avoid_single_cascade_in_expression_statements;
+      LinterLintCode.avoidSingleCascadeInExpressionStatements;
 
   @override
-  void registerNodeProcessors(NodeLintRegistry registry, RuleContext context) {
+  void registerNodeProcessors(
+    RuleVisitorRegistry registry,
+    RuleContext context,
+  ) {
     var visitor = _Visitor(this);
     registry.addCascadeExpression(this, visitor);
   }

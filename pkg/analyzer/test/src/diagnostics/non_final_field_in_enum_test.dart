@@ -23,7 +23,7 @@ enum E {
   int foo = 0;
 }
 ''',
-      [error(CompileTimeErrorCode.NON_FINAL_FIELD_IN_ENUM, 20, 3)],
+      [error(CompileTimeErrorCode.nonFinalFieldInEnum, 20, 3)],
     );
   }
 

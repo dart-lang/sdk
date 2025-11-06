@@ -22,7 +22,7 @@ void f(Null n, num m) {
   (m as int) = n;
 }
 ''',
-      [error(WarningCode.CAST_FROM_NULL_ALWAYS_FAILS, 27, 8)],
+      [error(WarningCode.castFromNullAlwaysFails, 27, 8)],
     );
   }
 
@@ -33,7 +33,7 @@ void f(Null n, num? m) {
   (m as int?) = n;
 }
 ''',
-      [error(WarningCode.UNNECESSARY_CAST_PATTERN, 30, 2)],
+      [error(WarningCode.unnecessaryCastPattern, 30, 2)],
     );
   }
 
@@ -60,7 +60,7 @@ void f(Null n) {
   n as Never;
 }
 ''',
-      [error(WarningCode.CAST_FROM_NULL_ALWAYS_FAILS, 19, 10)],
+      [error(WarningCode.castFromNullAlwaysFails, 19, 10)],
     );
   }
 
@@ -71,7 +71,7 @@ void f(Null n) {
   n as int;
 }
 ''',
-      [error(WarningCode.CAST_FROM_NULL_ALWAYS_FAILS, 19, 8)],
+      [error(WarningCode.castFromNullAlwaysFails, 19, 8)],
     );
   }
 
@@ -82,7 +82,7 @@ void f<T extends Object>(Null n) {
   n as T;
 }
 ''',
-      [error(WarningCode.CAST_FROM_NULL_ALWAYS_FAILS, 37, 6)],
+      [error(WarningCode.castFromNullAlwaysFails, 37, 6)],
     );
   }
 

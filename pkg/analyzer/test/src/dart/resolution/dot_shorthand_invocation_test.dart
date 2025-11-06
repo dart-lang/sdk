@@ -31,7 +31,7 @@ class CAssert {
     : assert(const .named(1) == ctor);
 }
 ''',
-      [error(CompileTimeErrorCode.DOT_SHORTHAND_MISSING_CONTEXT, 114, 15)],
+      [error(CompileTimeErrorCode.dotShorthandMissingContext, 114, 15)],
     );
   }
 
@@ -93,7 +93,7 @@ DotShorthandInvocation
     arguments
       NamedType
         name: int
-        element2: dart:core::@class::int
+        element: dart:core::@class::int
         type: int
     rightBracket: >
   argumentList: ArgumentList
@@ -199,13 +199,7 @@ void main() {
   print(c1);
 }
 ''',
-      [
-        error(
-          CompileTimeErrorCode.INVOCATION_OF_NON_FUNCTION_EXPRESSION,
-          77,
-          4,
-        ),
-      ],
+      [error(CompileTimeErrorCode.invocationOfNonFunctionExpression, 77, 4)],
     );
   }
 
@@ -387,7 +381,7 @@ void main() {
   print(c);
 }
 ''',
-      [error(CompileTimeErrorCode.DOT_SHORTHAND_UNDEFINED_INVOCATION, 47, 6)],
+      [error(CompileTimeErrorCode.dotShorthandUndefinedInvocation, 47, 6)],
     );
   }
 
@@ -399,7 +393,7 @@ void main() {
   print(c);
 }
 ''',
-      [error(CompileTimeErrorCode.DOT_SHORTHAND_UNDEFINED_INVOCATION, 25, 6)],
+      [error(CompileTimeErrorCode.dotShorthandUndefinedInvocation, 25, 6)],
     );
   }
 
@@ -413,7 +407,7 @@ void main() {
   print(c);
 }
 ''',
-      [error(CompileTimeErrorCode.DOT_SHORTHAND_UNDEFINED_INVOCATION, 36, 6)],
+      [error(CompileTimeErrorCode.dotShorthandUndefinedInvocation, 36, 6)],
     );
   }
 
@@ -429,7 +423,7 @@ void main() {
   print(c);
 }
 ''',
-      [error(CompileTimeErrorCode.DOT_SHORTHAND_UNDEFINED_INVOCATION, 49, 3)],
+      [error(CompileTimeErrorCode.dotShorthandUndefinedInvocation, 49, 3)],
     );
   }
 
@@ -651,8 +645,8 @@ void main() {
 }
 ''',
       [
-        error(CompileTimeErrorCode.DOT_SHORTHAND_UNDEFINED_INVOCATION, 87, 6),
-        error(ParserErrorCode.ILLEGAL_ASSIGNMENT_TO_NON_ASSIGNABLE, 95, 2),
+        error(CompileTimeErrorCode.dotShorthandUndefinedInvocation, 87, 6),
+        error(ParserErrorCode.illegalAssignmentToNonAssignable, 95, 2),
       ],
     );
   }
@@ -672,8 +666,8 @@ void main() {
 }
 ''',
       [
-        error(CompileTimeErrorCode.DOT_SHORTHAND_UNDEFINED_INVOCATION, 89, 6),
-        error(ParserErrorCode.MISSING_ASSIGNABLE_SELECTOR, 96, 1),
+        error(CompileTimeErrorCode.dotShorthandUndefinedInvocation, 89, 6),
+        error(ParserErrorCode.missingAssignableSelector, 96, 1),
       ],
     );
   }
@@ -692,7 +686,7 @@ void main() {
   print(c);
 }
 ''',
-      [error(CompileTimeErrorCode.MISSING_REQUIRED_ARGUMENT, 103, 6)],
+      [error(CompileTimeErrorCode.missingRequiredArgument, 103, 6)],
     );
   }
 
@@ -746,7 +740,7 @@ void main() {
 }
 
 ''',
-      [error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 105, 9)],
+      [error(CompileTimeErrorCode.invalidAssignment, 105, 9)],
     );
   }
 }

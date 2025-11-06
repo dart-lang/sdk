@@ -7,7 +7,6 @@ import 'dart:async';
 import 'package:analysis_server/protocol/protocol.dart';
 import 'package:analysis_server/protocol/protocol_constants.dart';
 import 'package:analysis_server/protocol/protocol_generated.dart';
-import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/plugin/plugin_locator.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/util/file_paths.dart' as file_paths;
@@ -447,8 +446,8 @@ AnalysisErrors
 
     // Write `package_config.json`, recreate analysis contexts.
     writeTestPackageConfig(
-      config:
-          PackageConfigFileBuilder()..add(name: 'aaa', rootPath: aaaRootPath),
+      config: PackageConfigFileBuilder()
+        ..add(name: 'aaa', rootPath: aaaRootPath),
     );
 
     await pumpEventQueue(times: 5000);
@@ -997,8 +996,8 @@ AnalysisErrors
 
     // Write `package_config.json`, recreate analysis contexts.
     writeTestPackageConfig(
-      config:
-          PackageConfigFileBuilder()..add(name: 'aaa', rootPath: aaaRootPath),
+      config: PackageConfigFileBuilder()
+        ..add(name: 'aaa', rootPath: aaaRootPath),
     );
 
     await pumpEventQueue(times: 5000);
@@ -1330,8 +1329,8 @@ class A {}
 
     // Write the empty file, without `package:aaa`.
     writeTestPackageConfig(
-      config:
-          PackageConfigFileBuilder()..add(name: 'aaa', rootPath: aaaRootPath),
+      config: PackageConfigFileBuilder()
+        ..add(name: 'aaa', rootPath: aaaRootPath),
     );
 
     newFile(testFilePath, '''
@@ -1908,8 +1907,8 @@ class A {}
 ''');
 
     writeTestPackageConfig(
-      config:
-          PackageConfigFileBuilder()..add(name: 'aaa', rootPath: aaaRootPath),
+      config: PackageConfigFileBuilder()
+        ..add(name: 'aaa', rootPath: aaaRootPath),
     );
 
     newFile(testFilePath, '''
@@ -2115,8 +2114,6 @@ class SetAnalysisRootsTest extends PubPackageAnalysisServerTest {
   /// excluded from the parents plugin root.
   Future<void>
   test_sentToPlugins_inNestedPackages_withNestedAnalysisOptions_enabledPlugin_disabledPlugin() async {
-    if (!AnalysisServer.supportsPlugins) return;
-
     var plugin1 = (name: 'plugin1', path: _createPlugin('plugin1'));
 
     // package1 has plugin2 enabled.
@@ -2156,8 +2153,6 @@ class SetAnalysisRootsTest extends PubPackageAnalysisServerTest {
   /// root should be created.
   Future<void>
   test_sentToPlugins_inNestedPackages_withNestedAnalysisOptions_enabledPlugin_enabledDifferentPlugin() async {
-    if (!AnalysisServer.supportsPlugins) return;
-
     var plugin1 = (name: 'plugin1', path: _createPlugin('plugin1'));
     var plugin2 = (name: 'plugin2', path: _createPlugin('plugin2'));
 
@@ -2203,8 +2198,6 @@ class SetAnalysisRootsTest extends PubPackageAnalysisServerTest {
   /// additional context needs to be created.
   Future<void>
   test_sentToPlugins_inNestedPackages_withNestedAnalysisOptions_enabledPlugin_enabledPluginExplicit() async {
-    if (!AnalysisServer.supportsPlugins) return;
-
     var plugin1 = (name: 'plugin1', path: _createPlugin('plugin1'));
 
     // package1 has plugin2 enabled.
@@ -2248,8 +2241,6 @@ class SetAnalysisRootsTest extends PubPackageAnalysisServerTest {
   /// created.
   Future<void>
   test_sentToPlugins_inNestedPackages_withNestedAnalysisOptions_enabledPlugin_enabledPluginInclude() async {
-    if (!AnalysisServer.supportsPlugins) return;
-
     var plugin1 = (name: 'plugin1', path: _createPlugin('plugin1'));
 
     // package1 has plugin2 enabled.
@@ -2297,8 +2288,6 @@ class SetAnalysisRootsTest extends PubPackageAnalysisServerTest {
   ///   - package3/ (plugin1)
   Future<void>
   test_sentToPlugins_inNestedPackages_withoutPackageConfigs() async {
-    if (!AnalysisServer.supportsPlugins) return;
-
     var plugin1 = (name: 'plugin1', path: _createPlugin('plugin1'));
     var plugin2 = (name: 'plugin2', path: _createPlugin('plugin2'));
 
@@ -2352,8 +2341,6 @@ class SetAnalysisRootsTest extends PubPackageAnalysisServerTest {
   ///   - package2/ (plugin2, (plugin1 - disabled due to limit))
   ///   - package3/ (plugin1)
   Future<void> test_sentToPlugins_inNestedPackages_withPackageConfigs() async {
-    if (!AnalysisServer.supportsPlugins) return;
-
     var plugin1 = (name: 'plugin1', path: _createPlugin('plugin1'));
     var plugin2 = (name: 'plugin2', path: _createPlugin('plugin2'));
 
@@ -2396,8 +2383,6 @@ class SetAnalysisRootsTest extends PubPackageAnalysisServerTest {
   ///   - package1/ (plugin1)
   ///   - package1/lib/ (no explicit options, plugin1 implied)
   Future<void> test_sentToPlugins_inNestedPackages_withSubFolders() async {
-    if (!AnalysisServer.supportsPlugins) return;
-
     var plugin1 = (name: 'plugin1', path: _createPlugin('plugin1'));
 
     // Only the first plugin for each will be enabled due to the 1-plugin-limit.
@@ -2461,8 +2446,8 @@ class SetAnalysisRootsTest extends PubPackageAnalysisServerTest {
     );
 
     if (withPackageConfig) {
-      var packageConfig =
-          PackageConfigFileBuilder()..add(name: name, rootPath: packagePath);
+      var packageConfig = PackageConfigFileBuilder()
+        ..add(name: name, rootPath: packagePath);
       for (var plugin in plugins) {
         packageConfig.add(name: plugin.name, rootPath: plugin.path);
       }
@@ -2530,9 +2515,8 @@ class A {}
 ''');
     writePackageConfig(
       convertPath('/project'),
-      config:
-          (PackageConfigFileBuilder()
-            ..add(name: 'pkgA', rootPath: convertPath('/packages/pkgA'))),
+      config: (PackageConfigFileBuilder()
+        ..add(name: 'pkgA', rootPath: convertPath('/packages/pkgA'))),
     );
     //
     addTestFile('''
@@ -2583,9 +2567,8 @@ class A {}
 ''');
     writePackageConfig(
       convertPath('/project'),
-      config:
-          (PackageConfigFileBuilder()
-            ..add(name: 'pkgA', rootPath: convertPath('/packages/pkgA'))),
+      config: (PackageConfigFileBuilder()
+        ..add(name: 'pkgA', rootPath: convertPath('/packages/pkgA'))),
     );
     //
     addTestFile('// no "pkgA" reference');
@@ -2624,7 +2607,6 @@ class A {}
   }
 
   Future<void> test_sentToPlugins() async {
-    if (!AnalysisServer.supportsPlugins) return;
     addTestFile('int V = 42;');
     // subscribe
     await addAnalysisSubscription(AnalysisService.HIGHLIGHTS, testFile);

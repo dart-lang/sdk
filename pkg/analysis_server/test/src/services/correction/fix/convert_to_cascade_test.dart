@@ -18,7 +18,7 @@ void main() {
 @reflectiveTest
 class ConvertToCascadeTest extends FixProcessorLintTest {
   @override
-  FixKind get kind => DartFixKind.CONVERT_TO_CASCADE;
+  FixKind get kind => DartFixKind.convertToCascade;
 
   @override
   String get lintCode => LintNames.cascade_invocations;

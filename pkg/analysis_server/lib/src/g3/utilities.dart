@@ -36,14 +36,13 @@ String format(String content, {Version? languageVersion}) {
 /// cause of the failure, a list of [Diagnostic]s.
 ParseStringResult sortDirectives(String contents, {String? fileName}) {
   var (unit, diagnostics) = _parse(contents, fullName: fileName);
-  var parseErrors =
-      diagnostics
-          .where(
-            (d) =>
-                d.diagnosticCode is ScannerErrorCode ||
-                d.diagnosticCode is ParserErrorCode,
-          )
-          .toList();
+  var parseErrors = diagnostics
+      .where(
+        (d) =>
+            d.diagnosticCode is ScannerErrorCode ||
+            d.diagnosticCode is ParserErrorCode,
+      )
+      .toList();
   if (parseErrors.isNotEmpty) {
     return ParseStringResultImpl(contents, unit, parseErrors);
   }
@@ -63,10 +62,11 @@ ParseStringResult sortDirectives(String contents, {String? fileName}) {
     sdkLanguageVersion: ExperimentStatus.currentVersion,
     flags: [],
   );
-  var scanner = Scanner(source, reader, diagnosticListener)..configureFeatures(
-    featureSetForOverriding: FeatureSet.latestLanguageVersion(),
-    featureSet: featureSet,
-  );
+  var scanner = Scanner(source, reader, diagnosticListener)
+    ..configureFeatures(
+      featureSetForOverriding: FeatureSet.latestLanguageVersion(),
+      featureSet: featureSet,
+    );
   var token = scanner.tokenize(reportScannerErrors: false);
   var lineInfo = LineInfo(scanner.lineStarts);
   var languageVersion = LibraryLanguageVersion(

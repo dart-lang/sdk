@@ -20,10 +20,6 @@ library;
 //   B.named2(): super().() {}
 //                       ^
 //
-// pkg/front_end/testcases/regress/issue_31198.dart:10:23: Error: Expected an initializer.
-//   B.named2(): super().() {}
-//                       ^
-//
 import self as self;
 import "dart:core" as core;
 

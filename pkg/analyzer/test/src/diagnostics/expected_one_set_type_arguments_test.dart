@@ -21,7 +21,7 @@ class ExpectedOneSetTypeArgumentsTest extends PubPackageResolutionTest {
 main() {
   <int, int, int>{2, 3};
 }''',
-      [error(CompileTimeErrorCode.EXPECTED_ONE_SET_TYPE_ARGUMENTS, 11, 15)],
+      [error(CompileTimeErrorCode.expectedOneSetTypeArguments, 11, 15)],
     );
   }
 }

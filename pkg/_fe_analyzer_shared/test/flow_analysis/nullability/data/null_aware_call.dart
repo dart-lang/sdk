@@ -4,7 +4,8 @@
 
 class C {
   C method(dynamic value) => this;
-  C Function(dynamic) get functionGetter => (_) => this;
+  C Function(dynamic) get functionGetter =>
+      (_) => this;
 }
 
 void methodCall(C? c) {

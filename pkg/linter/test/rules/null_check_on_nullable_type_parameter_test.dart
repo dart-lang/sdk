@@ -185,7 +185,7 @@ f<T>(T? x){
   }
 }
 ''',
-      [lint(40, 1), error(WarningCode.DEAD_CODE, 42, 9), lint(50, 1)],
+      [lint(40, 1), error(WarningCode.deadCode, 42, 9), lint(50, 1)],
     );
   }
 

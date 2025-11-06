@@ -1,0 +1,368 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/general/conditional_export.dart:12:11: Error: The getter 'readyState' isn't defined for the type 'HttpRequest'.
+//  - 'HttpRequest' is from 'dart:_http'.
+// Try correcting the name to the name of an existing getter, or defining a getter or field named 'readyState'.
+//   request.readyState; // Error (from dart:html)
+//           ^^^^^^^^^^
+//
+// pkg/front_end/testcases/general/conditional_export.dart:19:11: Error: The getter 'readyState' isn't defined for the type 'HttpRequest'.
+//  - 'HttpRequest' is from 'dart:_http'.
+// Try correcting the name to the name of an existing getter, or defining a getter or field named 'readyState'.
+//   request.readyState; // Error (from dart:html)
+//           ^^^^^^^^^^
+//
+// pkg/front_end/testcases/general/conditional_export.dart:24:11: Error: The getter 'certificate' isn't defined for the type 'HttpRequest'.
+//  - 'HttpRequest' is from 'pkg/front_end/testcases/general/conditional_export_lib4.dart'.
+// Try correcting the name to the name of an existing getter, or defining a getter or field named 'certificate'.
+//   request.certificate; // Error
+//           ^^^^^^^^^^^
+//
+// pkg/front_end/testcases/general/conditional_export.dart:25:11: Error: The getter 'response' isn't defined for the type 'HttpRequest'.
+//  - 'HttpRequest' is from 'pkg/front_end/testcases/general/conditional_export_lib4.dart'.
+// Try correcting the name to the name of an existing getter, or defining a getter or field named 'response'.
+//   request.response; // Error
+//           ^^^^^^^^
+//
+// pkg/front_end/testcases/general/conditional_export.dart:26:11: Error: The getter 'readyState' isn't defined for the type 'HttpRequest'.
+//  - 'HttpRequest' is from 'pkg/front_end/testcases/general/conditional_export_lib4.dart'.
+// Try correcting the name to the name of an existing getter, or defining a getter or field named 'readyState'.
+//   request.readyState; // Error
+//           ^^^^^^^^^^
+//
+import self as self;
+import "dart:_http" as _ht;
+import "dart:io" as io;
+import "dart:core" as core;
+import "conditional_export_lib4.dart" as con;
+
+import "org-dartlang-testcase:///conditional_export_lib1.dart" as a;
+import "org-dartlang-testcase:///conditional_export_lib2.dart" as b;
+import "org-dartlang-testcase:///conditional_export_lib3.dart" as c;
+
+static method testA(_ht::HttpRequest request) → dynamic {
+  request.{_ht::HttpRequest::certificate}{io::X509Certificate?};
+  request.{_ht::HttpRequest::response}{_ht::HttpResponse};
+  invalid-expression "pkg/front_end/testcases/general/conditional_export.dart:12:11: Error: The getter 'readyState' isn't defined for the type 'HttpRequest'.
+ - 'HttpRequest' is from 'dart:_http'.
+Try correcting the name to the name of an existing getter, or defining a getter or field named 'readyState'.
+  request.readyState; // Error (from dart:html)
+          ^^^^^^^^^^" in request{<unresolved>}.readyState;
+  request.{core::Object::hashCode}{core::int};
+}
+static method testB(_ht::HttpRequest request) → dynamic {
+  request.{_ht::HttpRequest::certificate}{io::X509Certificate?};
+  request.{_ht::HttpRequest::response}{_ht::HttpResponse};
+  invalid-expression "pkg/front_end/testcases/general/conditional_export.dart:19:11: Error: The getter 'readyState' isn't defined for the type 'HttpRequest'.
+ - 'HttpRequest' is from 'dart:_http'.
+Try correcting the name to the name of an existing getter, or defining a getter or field named 'readyState'.
+  request.readyState; // Error (from dart:html)
+          ^^^^^^^^^^" in request{<unresolved>}.readyState;
+  request.{core::Object::hashCode}{core::int};
+}
+static method testC(con::HttpRequest request) → dynamic {
+  invalid-expression "pkg/front_end/testcases/general/conditional_export.dart:24:11: Error: The getter 'certificate' isn't defined for the type 'HttpRequest'.
+ - 'HttpRequest' is from 'pkg/front_end/testcases/general/conditional_export_lib4.dart'.
+Try correcting the name to the name of an existing getter, or defining a getter or field named 'certificate'.
+  request.certificate; // Error
+          ^^^^^^^^^^^" in request{<unresolved>}.certificate;
+  invalid-expression "pkg/front_end/testcases/general/conditional_export.dart:25:11: Error: The getter 'response' isn't defined for the type 'HttpRequest'.
+ - 'HttpRequest' is from 'pkg/front_end/testcases/general/conditional_export_lib4.dart'.
+Try correcting the name to the name of an existing getter, or defining a getter or field named 'response'.
+  request.response; // Error
+          ^^^^^^^^" in request{<unresolved>}.response;
+  invalid-expression "pkg/front_end/testcases/general/conditional_export.dart:26:11: Error: The getter 'readyState' isn't defined for the type 'HttpRequest'.
+ - 'HttpRequest' is from 'pkg/front_end/testcases/general/conditional_export_lib4.dart'.
+Try correcting the name to the name of an existing getter, or defining a getter or field named 'readyState'.
+  request.readyState; // Error
+          ^^^^^^^^^^" in request{<unresolved>}.readyState;
+  request.{core::Object::hashCode}{core::int};
+}
+static method main() → void {
+  self::expect(true, #C1);
+  self::expect(false, #C2);
+  self::expect(false, #C2);
+}
+static method expect(dynamic expected, dynamic actual) → dynamic {
+  if(!(expected =={core::Object::==}{(core::Object) → core::bool} actual))
+    throw "Expected ${expected}, actual ${actual}";
+}
+
+library;
+import self as self2;
+import "dart:io" as io;
+import "dart:_internal" as _in;
+import "dart:_http" as _ht;
+additionalExports = (io::IOException,
+  io::OSError,
+  io::ZLibOption,
+  io::ZLibCodec,
+  io::GZipCodec,
+  io::ZLibEncoder,
+  io::ZLibDecoder,
+  io::RawZLibFilter,
+  io::Directory,
+  io::FileMode,
+  io::FileLock,
+  io::File,
+  io::RandomAccessFile,
+  io::FileSystemException,
+  io::PathAccessException,
+  io::PathExistsException,
+  io::PathNotFoundException,
+  io::ReadPipe,
+  io::WritePipe,
+  io::Pipe,
+  io::FileSystemEntityType,
+  io::FileStat,
+  io::FileSystemEntity,
+  io::FileSystemEvent,
+  io::FileSystemCreateEvent,
+  io::FileSystemModifyEvent,
+  io::FileSystemDeleteEvent,
+  io::FileSystemMoveEvent,
+  io::IOSink,
+  io::Link,
+  io::IOOverrides,
+  io::Platform,
+  io::ProcessInfo,
+  io::ProcessStartMode,
+  io::Process,
+  io::ProcessResult,
+  io::ProcessSignal,
+  io::SignalException,
+  io::ProcessException,
+  io::SecureServerSocket,
+  io::RawSecureServerSocket,
+  io::SecureSocket,
+  io::RawSecureSocket,
+  io::X509Certificate,
+  io::TlsException,
+  io::HandshakeException,
+  io::CertificateException,
+  io::TlsProtocolVersion,
+  io::SecurityContext,
+  io::InternetAddressType,
+  io::InternetAddress,
+  io::NetworkInterface,
+  io::RawServerSocket,
+  io::ServerSocket,
+  io::SocketDirection,
+  io::SocketOption,
+  io::RawSocketOption,
+  io::RawSocketEvent,
+  io::ConnectionTask,
+  io::RawSocket,
+  io::Socket,
+  io::Datagram,
+  io::ResourceHandle,
+  io::SocketControlMessage,
+  io::SocketMessage,
+  io::RawDatagramSocket,
+  io::SocketException,
+  io::Stdin,
+  io::Stdout,
+  io::StdoutException,
+  io::StdinException,
+  io::StdioType,
+  io::SystemEncoding,
+  io::RawSynchronousSocket,
+  io::exit,
+  io::exitCode,
+  io::exitCode,
+  io::sleep,
+  io::pid,
+  io::stdin,
+  io::stdout,
+  io::stderr,
+  io::stdioType,
+  io::zlib,
+  io::gzip,
+  io::systemEncoding,
+  _in::BytesBuilder,
+  _in::HttpStatus,
+  _ht::HttpServer,
+  _ht::HttpConnectionsInfo,
+  _ht::HttpHeaders,
+  _ht::HeaderValue,
+  _ht::HttpSession,
+  _ht::ContentType,
+  _ht::SameSite,
+  _ht::Cookie,
+  _ht::HttpRequest,
+  _ht::HttpResponse,
+  _ht::HttpClient,
+  _ht::HttpClientRequest,
+  _ht::HttpClientResponse,
+  _ht::HttpClientResponseCompressionState,
+  _ht::HttpClientCredentials,
+  _ht::HttpClientBasicCredentials,
+  _ht::HttpClientBearerCredentials,
+  _ht::HttpClientDigestCredentials,
+  _ht::HttpConnectionInfo,
+  _ht::RedirectInfo,
+  _ht::HttpException,
+  _ht::RedirectException,
+  _ht::HttpDate,
+  _ht::BadCertificateCallback,
+  _ht::HttpOverrides,
+  _ht::WebSocketStatus,
+  _ht::CompressionOptions,
+  _ht::WebSocketTransformer,
+  _ht::WebSocket,
+  _ht::WebSocketException)
+
+export "dart:io";
+
+
+library;
+import self as self3;
+import "dart:io" as io;
+import "dart:_internal" as _in;
+import "dart:_http" as _ht;
+additionalExports = (io::IOException,
+  io::OSError,
+  io::ZLibOption,
+  io::ZLibCodec,
+  io::GZipCodec,
+  io::ZLibEncoder,
+  io::ZLibDecoder,
+  io::RawZLibFilter,
+  io::Directory,
+  io::FileMode,
+  io::FileLock,
+  io::File,
+  io::RandomAccessFile,
+  io::FileSystemException,
+  io::PathAccessException,
+  io::PathExistsException,
+  io::PathNotFoundException,
+  io::ReadPipe,
+  io::WritePipe,
+  io::Pipe,
+  io::FileSystemEntityType,
+  io::FileStat,
+  io::FileSystemEntity,
+  io::FileSystemEvent,
+  io::FileSystemCreateEvent,
+  io::FileSystemModifyEvent,
+  io::FileSystemDeleteEvent,
+  io::FileSystemMoveEvent,
+  io::IOSink,
+  io::Link,
+  io::IOOverrides,
+  io::Platform,
+  io::ProcessInfo,
+  io::ProcessStartMode,
+  io::Process,
+  io::ProcessResult,
+  io::ProcessSignal,
+  io::SignalException,
+  io::ProcessException,
+  io::SecureServerSocket,
+  io::RawSecureServerSocket,
+  io::SecureSocket,
+  io::RawSecureSocket,
+  io::X509Certificate,
+  io::TlsException,
+  io::HandshakeException,
+  io::CertificateException,
+  io::TlsProtocolVersion,
+  io::SecurityContext,
+  io::InternetAddressType,
+  io::InternetAddress,
+  io::NetworkInterface,
+  io::RawServerSocket,
+  io::ServerSocket,
+  io::SocketDirection,
+  io::SocketOption,
+  io::RawSocketOption,
+  io::RawSocketEvent,
+  io::ConnectionTask,
+  io::RawSocket,
+  io::Socket,
+  io::Datagram,
+  io::ResourceHandle,
+  io::SocketControlMessage,
+  io::SocketMessage,
+  io::RawDatagramSocket,
+  io::SocketException,
+  io::Stdin,
+  io::Stdout,
+  io::StdoutException,
+  io::StdinException,
+  io::StdioType,
+  io::SystemEncoding,
+  io::RawSynchronousSocket,
+  io::exit,
+  io::exitCode,
+  io::exitCode,
+  io::sleep,
+  io::pid,
+  io::stdin,
+  io::stdout,
+  io::stderr,
+  io::stdioType,
+  io::zlib,
+  io::gzip,
+  io::systemEncoding,
+  _in::BytesBuilder,
+  _in::HttpStatus,
+  _ht::HttpServer,
+  _ht::HttpConnectionsInfo,
+  _ht::HttpHeaders,
+  _ht::HeaderValue,
+  _ht::HttpSession,
+  _ht::ContentType,
+  _ht::SameSite,
+  _ht::Cookie,
+  _ht::HttpRequest,
+  _ht::HttpResponse,
+  _ht::HttpClient,
+  _ht::HttpClientRequest,
+  _ht::HttpClientResponse,
+  _ht::HttpClientResponseCompressionState,
+  _ht::HttpClientCredentials,
+  _ht::HttpClientBasicCredentials,
+  _ht::HttpClientBearerCredentials,
+  _ht::HttpClientDigestCredentials,
+  _ht::HttpConnectionInfo,
+  _ht::RedirectInfo,
+  _ht::HttpException,
+  _ht::RedirectException,
+  _ht::HttpDate,
+  _ht::BadCertificateCallback,
+  _ht::HttpOverrides,
+  _ht::WebSocketStatus,
+  _ht::CompressionOptions,
+  _ht::WebSocketTransformer,
+  _ht::WebSocket,
+  _ht::WebSocketException)
+
+export "dart:io";
+
+
+library;
+import self as self4;
+import "conditional_export_lib4.dart" as con;
+additionalExports = (con::HttpRequest)
+
+export "org-dartlang-testcase:///conditional_export_lib4.dart";
+
+
+library;
+import self as con;
+import "dart:core" as core;
+
+class HttpRequest extends core::Object {
+  synthetic constructor •() → con::HttpRequest
+    : super core::Object::•()
+    ;
+}
+
+constants  {
+  #C1 = true
+  #C2 = false
+}

@@ -24,7 +24,7 @@ class A {
 f() {
   A.v = 1;
 }''',
-      [error(CompileTimeErrorCode.ASSIGNMENT_TO_CONST, 44, 1)],
+      [error(CompileTimeErrorCode.assignmentToConst, 44, 1)],
     );
   }
 
@@ -37,7 +37,7 @@ class A {
 f() {
   A.v += 1;
 }''',
-      [error(CompileTimeErrorCode.ASSIGNMENT_TO_CONST, 44, 1)],
+      [error(CompileTimeErrorCode.assignmentToConst, 44, 1)],
     );
   }
 
@@ -49,8 +49,8 @@ f() {
   x = 1;
 }''',
       [
-        error(WarningCode.UNUSED_LOCAL_VARIABLE, 14, 1),
-        error(CompileTimeErrorCode.ASSIGNMENT_TO_CONST, 23, 1),
+        error(WarningCode.unusedLocalVariable, 14, 1),
+        error(CompileTimeErrorCode.assignmentToConst, 23, 1),
       ],
     );
   }
@@ -64,7 +64,7 @@ f() {
     print(x);
   }
 }''',
-      [error(CompileTimeErrorCode.ASSIGNMENT_TO_CONST, 28, 1)],
+      [error(CompileTimeErrorCode.assignmentToConst, 28, 1)],
     );
   }
 
@@ -76,8 +76,8 @@ f() {
   x += 1;
 }''',
       [
-        error(WarningCode.UNUSED_LOCAL_VARIABLE, 14, 1),
-        error(CompileTimeErrorCode.ASSIGNMENT_TO_CONST, 23, 1),
+        error(WarningCode.unusedLocalVariable, 14, 1),
+        error(CompileTimeErrorCode.assignmentToConst, 23, 1),
       ],
     );
   }

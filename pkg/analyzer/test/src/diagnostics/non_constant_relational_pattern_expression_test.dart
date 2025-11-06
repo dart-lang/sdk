@@ -68,7 +68,7 @@ void f(x, int a) {
 ''',
       [
         error(
-          CompileTimeErrorCode.NON_CONSTANT_RELATIONAL_PATTERN_EXPRESSION,
+          CompileTimeErrorCode.nonConstantRelationalPatternExpression,
           34,
           1,
         ),
@@ -87,7 +87,7 @@ void f(x) {
 ''',
       [
         error(
-          CompileTimeErrorCode.NON_CONSTANT_RELATIONAL_PATTERN_EXPRESSION,
+          CompileTimeErrorCode.nonConstantRelationalPatternExpression,
           41,
           1,
         ),

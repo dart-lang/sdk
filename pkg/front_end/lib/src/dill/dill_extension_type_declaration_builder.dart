@@ -4,6 +4,7 @@
 
 import 'package:kernel/ast.dart';
 
+import '../base/lookup_result.dart';
 import '../base/name_space.dart';
 import '../base/scope.dart';
 import '../builder/declaration_builders.dart';
@@ -23,7 +24,7 @@ class DillExtensionTypeDeclarationBuilder
 
   final ExtensionTypeDeclaration _extensionTypeDeclaration;
 
-  final MutableDeclarationNameSpace _nameSpace;
+  late final DeclarationNameSpace _nameSpace;
 
   List<NominalParameterBuilder>? _typeParameters;
 
@@ -35,8 +36,12 @@ class DillExtensionTypeDeclarationBuilder
   final List<MemberBuilder> _memberBuilders = [];
 
   DillExtensionTypeDeclarationBuilder(
-      this._extensionTypeDeclaration, this.libraryBuilder)
-      : _nameSpace = new DillDeclarationNameSpace() {
+    this._extensionTypeDeclaration,
+    this.libraryBuilder,
+  ) {
+    Map<String, MemberLookupResult> constructors = {};
+    Map<String, MemberLookupResult> content = {};
+
     bool isPrivateFromOtherLibrary(Member member) {
       Name name = member.name;
       return name.isPrivate &&
@@ -50,40 +55,102 @@ class DillExtensionTypeDeclarationBuilder
         case ProcedureKind.Factory:
           // Coverage-ignore(suite): Not run.
           throw new UnsupportedError(
-              "Unexpected procedure kind in extension type declaration: "
-              "$procedure (${procedure.kind}).");
+            "Unexpected procedure kind in extension type declaration: "
+            "$procedure (${procedure.kind}).",
+          );
         case ProcedureKind.Setter:
           // Coverage-ignore(suite): Not run.
-          DillSetterBuilder builder =
-              new DillSetterBuilder(procedure, libraryBuilder, this);
+          DillSetterBuilder builder = new DillSetterBuilder(
+            procedure,
+            libraryBuilder,
+            this,
+          );
           // Coverage-ignore(suite): Not run.
           if (!isPrivateFromOtherLibrary(procedure)) {
-            _nameSpace.addLocalMember(name, builder, setter: true);
+            MemberLookupResult? existing = content[name];
+            if (existing != null) {
+              assert(
+                existing.getable != null && existing.setable == null,
+                "Unexpected existing member $existing, "
+                "trying to add $builder.",
+              );
+              assert(
+                existing.isStatic == builder.isStatic,
+                "Static/instance conflict between existing member $existing "
+                "and new builder $builder.",
+              );
+              content[name] = new GetableSetableMemberResult(
+                existing.getable!,
+                builder,
+                isStatic: existing.isStatic,
+              );
+            } else {
+              content[name] = builder;
+            }
           }
           // Coverage-ignore(suite): Not run.
           _memberBuilders.add(builder);
           break;
         case ProcedureKind.Getter:
-          DillGetterBuilder builder =
-              new DillGetterBuilder(procedure, libraryBuilder, this);
+          DillGetterBuilder builder = new DillGetterBuilder(
+            procedure,
+            libraryBuilder,
+            this,
+          );
           if (!isPrivateFromOtherLibrary(procedure)) {
-            _nameSpace.addLocalMember(name, builder, setter: false);
+            MemberLookupResult? existing = content[name];
+            if (existing != null) {
+              // Coverage-ignore-block(suite): Not run.
+              assert(
+                existing.getable == null && existing.setable != null,
+                "Unexpected existing member $existing, "
+                "trying to add $builder.",
+              );
+              assert(
+                existing.isStatic == builder.isStatic,
+                "Static/instance conflict between existing member $existing "
+                "and new builder $builder.",
+              );
+              content[name] = new GetableSetableMemberResult(
+                builder,
+                existing.setable!,
+                isStatic: existing.isStatic,
+              );
+            } else {
+              content[name] = builder;
+            }
           }
           _memberBuilders.add(builder);
           break;
         case ProcedureKind.Operator:
-          DillOperatorBuilder builder =
-              new DillOperatorBuilder(procedure, libraryBuilder, this);
+          DillOperatorBuilder builder = new DillOperatorBuilder(
+            procedure,
+            libraryBuilder,
+            this,
+          );
           if (!isPrivateFromOtherLibrary(procedure)) {
-            _nameSpace.addLocalMember(name, builder, setter: false);
+            assert(
+              !constructors.containsKey(name),
+              "Unexpected existing member ${constructors[name]}, "
+              "trying to add $builder.",
+            );
+            constructors[name] = builder;
           }
           _memberBuilders.add(builder);
           break;
         case ProcedureKind.Method:
-          DillMethodBuilder builder =
-              new DillMethodBuilder(procedure, libraryBuilder, this);
+          DillMethodBuilder builder = new DillMethodBuilder(
+            procedure,
+            libraryBuilder,
+            this,
+          );
           if (!isPrivateFromOtherLibrary(procedure)) {
-            _nameSpace.addLocalMember(name, builder, setter: false);
+            assert(
+              !constructors.containsKey(name),
+              "Unexpected existing member ${constructors[name]}, "
+              "trying to add $builder.",
+            );
+            constructors[name] = builder;
           }
           _memberBuilders.add(builder);
           break;
@@ -93,38 +160,70 @@ class DillExtensionTypeDeclarationBuilder
         in _extensionTypeDeclaration.memberDescriptors) {
       if (descriptor.isInternalImplementation) continue;
 
-      Name name = descriptor.name;
+      String name = descriptor.name.text;
       switch (descriptor.kind) {
         case ExtensionTypeMemberKind.Method:
+          MemberBuilder builder;
+          Procedure procedure = descriptor.memberReference!.asProcedure;
           if (descriptor.isStatic) {
-            Procedure procedure = descriptor.memberReference!.asProcedure;
-            DillExtensionTypeStaticMethodBuilder builder =
-                new DillExtensionTypeStaticMethodBuilder(
-                    procedure, descriptor, libraryBuilder, this);
-            if (!isPrivateFromOtherLibrary(procedure)) {
-              _nameSpace.addLocalMember(name.text, builder, setter: false);
-            }
-            _memberBuilders.add(builder);
+            builder = new DillExtensionTypeStaticMethodBuilder(
+              procedure,
+              descriptor,
+              libraryBuilder,
+              this,
+            );
           } else {
-            Procedure procedure = descriptor.memberReference!.asProcedure;
             Procedure? tearOff = descriptor.tearOffReference?.asProcedure;
             assert(tearOff != null, "No tear found for ${descriptor}");
-            DillExtensionTypeInstanceMethodBuilder builder =
-                new DillExtensionTypeInstanceMethodBuilder(
-                    procedure, descriptor, libraryBuilder, this, tearOff!);
-            if (!isPrivateFromOtherLibrary(procedure)) {
-              _nameSpace.addLocalMember(name.text, builder, setter: false);
-            }
-            _memberBuilders.add(builder);
+            builder = new DillExtensionTypeInstanceMethodBuilder(
+              procedure,
+              descriptor,
+              libraryBuilder,
+              this,
+              tearOff!,
+            );
           }
+          if (!isPrivateFromOtherLibrary(procedure)) {
+            assert(
+              !content.containsKey(name),
+              "Unexpected existing member ${content[name]}, "
+              "trying to add $builder.",
+            );
+            content[name] = builder;
+          }
+          _memberBuilders.add(builder);
           break;
         case ExtensionTypeMemberKind.Getter:
           Procedure procedure = descriptor.memberReference!.asProcedure;
           DillExtensionTypeGetterBuilder builder =
               new DillExtensionTypeGetterBuilder(
-                  procedure, descriptor, libraryBuilder, this);
+                procedure,
+                descriptor,
+                libraryBuilder,
+                this,
+              );
           if (!isPrivateFromOtherLibrary(procedure)) {
-            _nameSpace.addLocalMember(name.text, builder, setter: false);
+            MemberLookupResult? existing = content[name];
+            if (existing != null) {
+              // Coverage-ignore-block(suite): Not run.
+              assert(
+                existing.getable == null && existing.setable != null,
+                "Unexpected existing member $existing, "
+                "trying to add $builder.",
+              );
+              assert(
+                existing.isStatic == builder.isStatic,
+                "Static/instance conflict between existing member $existing "
+                "and new builder $builder.",
+              );
+              content[name] = new GetableSetableMemberResult(
+                builder,
+                existing.setable!,
+                isStatic: existing.isStatic,
+              );
+            } else {
+              content[name] = builder;
+            }
           }
           _memberBuilders.add(builder);
           break;
@@ -132,9 +231,33 @@ class DillExtensionTypeDeclarationBuilder
           Field field = descriptor.memberReference!.asField;
           DillExtensionTypeFieldBuilder builder =
               new DillExtensionTypeFieldBuilder(
-                  field, descriptor, libraryBuilder, this);
+                field,
+                descriptor,
+                libraryBuilder,
+                this,
+              );
           if (!isPrivateFromOtherLibrary(field)) {
-            _nameSpace.addLocalMember(name.text, builder, setter: false);
+            MemberLookupResult? existing = content[name];
+            if (existing != null) {
+              // Coverage-ignore-block(suite): Not run.
+              assert(
+                existing.getable == null && existing.setable != null,
+                "Unexpected existing member $existing, "
+                "trying to add $builder.",
+              );
+              assert(
+                existing.isStatic == builder.isStatic,
+                "Static/instance conflict between existing member $existing "
+                "and new builder $builder.",
+              );
+              content[name] = new GetableSetableMemberResult(
+                builder,
+                existing.setable!,
+                isStatic: existing.isStatic,
+              );
+            } else {
+              content[name] = builder;
+            }
           }
           _memberBuilders.add(builder);
           break;
@@ -143,9 +266,32 @@ class DillExtensionTypeDeclarationBuilder
 
           DillExtensionTypeSetterBuilder builder =
               new DillExtensionTypeSetterBuilder(
-                  procedure, descriptor, libraryBuilder, this);
+                procedure,
+                descriptor,
+                libraryBuilder,
+                this,
+              );
           if (!isPrivateFromOtherLibrary(procedure)) {
-            _nameSpace.addLocalMember(name.text, builder, setter: true);
+            MemberLookupResult? existing = content[name];
+            if (existing != null) {
+              assert(
+                existing.getable != null && existing.setable == null,
+                "Unexpected existing member $existing, "
+                "trying to add $builder.",
+              );
+              assert(
+                existing.isStatic == builder.isStatic,
+                "Static/instance conflict between existing member $existing "
+                "and new builder $builder.",
+              );
+              content[name] = new GetableSetableMemberResult(
+                existing.getable!,
+                builder,
+                isStatic: existing.isStatic,
+              );
+            } else {
+              content[name] = builder;
+            }
           }
           _memberBuilders.add(builder);
           break;
@@ -154,9 +300,18 @@ class DillExtensionTypeDeclarationBuilder
 
           DillExtensionTypeOperatorBuilder builder =
               new DillExtensionTypeOperatorBuilder(
-                  procedure, descriptor, libraryBuilder, this);
+                procedure,
+                descriptor,
+                libraryBuilder,
+                this,
+              );
           if (!isPrivateFromOtherLibrary(procedure)) {
-            _nameSpace.addLocalMember(name.text, builder, setter: false);
+            assert(
+              !content.containsKey(name),
+              "Unexpected existing member ${content[name]}, "
+              "trying to add $builder.",
+            );
+            content[name] = builder;
           }
           _memberBuilders.add(builder);
           break;
@@ -166,9 +321,19 @@ class DillExtensionTypeDeclarationBuilder
           Procedure? tearOff = descriptor.tearOffReference?.asProcedure;
           DillExtensionTypeConstructorBuilder builder =
               new DillExtensionTypeConstructorBuilder(
-                  procedure, tearOff, descriptor, libraryBuilder, this);
+                procedure,
+                tearOff,
+                descriptor,
+                libraryBuilder,
+                this,
+              );
           if (!isPrivateFromOtherLibrary(procedure)) {
-            _nameSpace.addConstructor(name.text, builder);
+            assert(
+              !constructors.containsKey(name),
+              "Unexpected existing member ${constructors[name]}, "
+              "trying to add $builder.",
+            );
+            constructors[name] = builder;
           }
           _constructorBuilders.add(builder);
 
@@ -179,14 +344,28 @@ class DillExtensionTypeDeclarationBuilder
           Procedure? tearOff = descriptor.tearOffReference?.asProcedure;
           DillExtensionTypeFactoryBuilder builder =
               new DillExtensionTypeFactoryBuilder(
-                  procedure, tearOff, descriptor, libraryBuilder, this);
+                procedure,
+                tearOff,
+                descriptor,
+                libraryBuilder,
+                this,
+              );
           if (!isPrivateFromOtherLibrary(procedure)) {
-            _nameSpace.addConstructor(name.text, builder);
+            assert(
+              !constructors.containsKey(name),
+              "Unexpected existing member ${constructors[name]}, "
+              "trying to add $builder.",
+            );
+            constructors[name] = builder;
           }
           _constructorBuilders.add(builder);
           break;
       }
     }
+    _nameSpace = new DillDeclarationNameSpace(
+      constructors: constructors,
+      content: content,
+    );
   }
 
   @override
@@ -212,8 +391,8 @@ class DillExtensionTypeDeclarationBuilder
 
   @override
   TypeBuilder? get declaredRepresentationTypeBuilder =>
-      _declaredRepresentationTypeBuilder ??=
-          libraryBuilder.loader.computeTypeBuilder(declaredRepresentationType);
+      _declaredRepresentationTypeBuilder ??= libraryBuilder.loader
+          .computeTypeBuilder(declaredRepresentationType);
 
   @override
   ExtensionTypeDeclaration get extensionTypeDeclaration =>
@@ -225,10 +404,12 @@ class DillExtensionTypeDeclarationBuilder
       _memberBuilders.iterator;
 
   @override
-  Iterator<T> filteredMembersIterator<T extends MemberBuilder>(
-          {required bool includeDuplicates}) =>
-      new FilteredIterator<T>(_memberBuilders.iterator,
-          includeDuplicates: includeDuplicates);
+  Iterator<T> filteredMembersIterator<T extends MemberBuilder>({
+    required bool includeDuplicates,
+  }) => new FilteredIterator<T>(
+    _memberBuilders.iterator,
+    includeDuplicates: includeDuplicates,
+  );
 
   @override
   // Coverage-ignore(suite): Not run.
@@ -236,10 +417,12 @@ class DillExtensionTypeDeclarationBuilder
       _constructorBuilders.iterator;
 
   @override
-  Iterator<T> filteredConstructorsIterator<T extends MemberBuilder>(
-          {required bool includeDuplicates}) =>
-      new FilteredIterator<T>(_constructorBuilders.iterator,
-          includeDuplicates: includeDuplicates);
+  Iterator<T> filteredConstructorsIterator<T extends MemberBuilder>({
+    required bool includeDuplicates,
+  }) => new FilteredIterator<T>(
+    _constructorBuilders.iterator,
+    includeDuplicates: includeDuplicates,
+  );
 
   @override
   List<NominalParameterBuilder>? get typeParameters {
@@ -247,7 +430,9 @@ class DillExtensionTypeDeclarationBuilder
     if (typeParameters == null &&
         _extensionTypeDeclaration.typeParameters.isNotEmpty) {
       typeParameters = _typeParameters = computeTypeParameterBuilders(
-          _extensionTypeDeclaration.typeParameters, libraryBuilder.loader);
+        _extensionTypeDeclaration.typeParameters,
+        libraryBuilder.loader,
+      );
     }
     return typeParameters;
   }
@@ -258,10 +443,12 @@ class DillExtensionTypeDeclarationBuilder
     List<TypeBuilder>? interfaceBuilders = _interfaceBuilders;
     if (interfaceBuilders == null) {
       interfaceBuilders = _interfaceBuilders = new List<TypeBuilder>.generate(
-          _extensionTypeDeclaration.implements.length,
-          (int i) => libraryBuilder.loader
-              .computeTypeBuilder(_extensionTypeDeclaration.implements[i]),
-          growable: false);
+        _extensionTypeDeclaration.implements.length,
+        (int i) => libraryBuilder.loader.computeTypeBuilder(
+          _extensionTypeDeclaration.implements[i],
+        ),
+        growable: false,
+      );
     }
     return interfaceBuilders;
   }
@@ -271,10 +458,9 @@ class DillExtensionTypeDeclarationBuilder
       _extensionTypeDeclaration.typeParameters;
 
   @override
-  Nullability computeNullability(
-          {Map<ExtensionTypeDeclarationBuilder, TraversalState>?
-              traversalState}) =>
-      _extensionTypeDeclaration.inherentNullability;
+  Nullability computeNullability({
+    Map<ExtensionTypeDeclarationBuilder, TraversalState>? traversalState,
+  }) => _extensionTypeDeclaration.inherentNullability;
 
   @override
   Reference get reference => _extensionTypeDeclaration.reference;

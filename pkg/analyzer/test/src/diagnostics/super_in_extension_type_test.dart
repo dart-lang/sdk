@@ -24,7 +24,7 @@ extension type A(int it) {
   }
 }
 ''',
-      [error(CompileTimeErrorCode.SUPER_IN_EXTENSION_TYPE, 44, 5)],
+      [error(CompileTimeErrorCode.superInExtensionType, 44, 5)],
     );
 
     var node = findNode.singleBinaryExpression;
@@ -53,7 +53,7 @@ extension type A(int it) {
   }
 }
 ''',
-      [error(CompileTimeErrorCode.SUPER_IN_EXTENSION_TYPE, 44, 5)],
+      [error(CompileTimeErrorCode.superInExtensionType, 44, 5)],
     );
 
     var node = findNode.singleMethodInvocation;
@@ -84,7 +84,7 @@ extension type A(int it) {
   }
 }
 ''',
-      [error(CompileTimeErrorCode.SUPER_IN_EXTENSION_TYPE, 44, 5)],
+      [error(CompileTimeErrorCode.superInExtensionType, 44, 5)],
     );
 
     var node = findNode.singlePropertyAccess;

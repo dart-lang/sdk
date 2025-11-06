@@ -26,6 +26,6 @@ constants  {
 
 Constructor coverage from constants:
 org-dartlang-testcase:///inferred_type_is_enum_values.dart:
-- E. (from org-dartlang-testcase:///inferred_type_is_enum_values.dart:8:6)
+- E. (from org-dartlang-testcase:///inferred_type_is_enum_values.dart:7:6)
 - _Enum. (from org-dartlang-sdk:///sdk/lib/core/enum.dart)
 - Object. (from org-dartlang-sdk:///sdk/lib/core/object.dart)

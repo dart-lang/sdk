@@ -55,7 +55,7 @@ int x = 0;
 class A {}
 ''');
     parseResult.assertErrors([
-      error(WarningCode.DOC_DIRECTIVE_MISSING_CLOSING_BRACE, 73, 1),
+      error(WarningCode.docDirectiveMissingClosingBrace, 73, 1),
     ]);
 
     var node = parseResult.findNode.comment('animation');
@@ -87,7 +87,7 @@ int x = 0;
 class A {}
 ''');
     parseResult.assertErrors([
-      error(WarningCode.DOC_DIRECTIVE_MISSING_CLOSING_BRACE, 68, 1),
+      error(WarningCode.docDirectiveMissingClosingBrace, 68, 1),
     ]);
 
     var node = parseResult.findNode.comment('animation');
@@ -522,7 +522,7 @@ Comment
 /// @docImport 'dart:html'
 class A {}
 ''');
-    parseResult.assertErrors([error(ParserErrorCode.EXPECTED_TOKEN, 15, 11)]);
+    parseResult.assertErrors([error(ParserErrorCode.expectedToken, 15, 11)]);
 
     var node = parseResult.findNode.comment('docImport');
     assertParsedNodeText(node, r'''
@@ -546,10 +546,10 @@ Comment
 class A {}
 ''');
     parseResult.assertErrors([
-      error(ParserErrorCode.EXPECTED_TOKEN, 8, 6),
-      error(ParserErrorCode.EXPECTED_STRING_LITERAL, 15, 4),
-      error(ParserErrorCode.MISSING_CONST_FINAL_VAR_OR_TYPE, 15, 4),
-      error(ParserErrorCode.EXPECTED_TOKEN, 15, 4),
+      error(ParserErrorCode.expectedToken, 8, 6),
+      error(ParserErrorCode.expectedStringLiteral, 15, 4),
+      error(ParserErrorCode.missingConstFinalVarOrType, 15, 4),
+      error(ParserErrorCode.expectedToken, 15, 4),
     ]);
 
     var node = parseResult.findNode.comment('docImport');
@@ -631,8 +631,8 @@ Comment
 class A {}
 ''');
     parseResult.assertErrors([
-      error(ParserErrorCode.EXPECTED_TOKEN, 15, 11),
-      error(ScannerErrorCode.UNTERMINATED_STRING_LITERAL, 17, 1),
+      error(ParserErrorCode.expectedToken, 15, 11),
+      error(ScannerErrorCode.unterminatedStringLiteral, 17, 1),
     ]);
 
     var node = parseResult.findNode.comment('docImport');
@@ -723,7 +723,7 @@ int x = 0;
 class A {}
 ''');
     parseResult.assertErrors([
-      error(WarningCode.DOC_DIRECTIVE_MISSING_OPENING_TAG, 26, 15),
+      error(WarningCode.docDirectiveMissingOpeningTag, 26, 15),
     ]);
 
     var node = parseResult.findNode.comment('endtemplate');
@@ -1577,7 +1577,7 @@ int x = 0;
 class A {}
 ''');
     parseResult.assertErrors([
-      error(WarningCode.DOC_DIRECTIVE_MISSING_CLOSING_TAG, 26, 17),
+      error(WarningCode.docDirectiveMissingClosingTag, 26, 17),
     ]);
 
     var node = parseResult.findNode.comment('template name');
@@ -1609,8 +1609,8 @@ int x = 0;
 class A {}
 ''');
     parseResult.assertErrors([
-      error(WarningCode.DOC_DIRECTIVE_MISSING_CLOSING_TAG, 26, 17),
-      error(WarningCode.DOC_DIRECTIVE_MISSING_CLOSING_TAG, 62, 18),
+      error(WarningCode.docDirectiveMissingClosingTag, 26, 17),
+      error(WarningCode.docDirectiveMissingClosingTag, 62, 18),
     ]);
 
     var node = parseResult.findNode.comment('template name2');
@@ -1649,7 +1649,7 @@ int x = 0;
 class A {}
 ''');
     parseResult.assertErrors([
-      error(WarningCode.DOC_DIRECTIVE_MISSING_CLOSING_TAG, 26, 17),
+      error(WarningCode.docDirectiveMissingClosingTag, 26, 17),
     ]);
 
     var node = parseResult.findNode.comment('template name');
@@ -1692,8 +1692,8 @@ int x = 0;
 class A {}
 ''');
     parseResult.assertErrors([
-      error(WarningCode.DOC_DIRECTIVE_MISSING_CLOSING_TAG, 62, 15),
-      error(WarningCode.DOC_DIRECTIVE_MISSING_OPENING_TAG, 110, 19),
+      error(WarningCode.docDirectiveMissingClosingTag, 62, 15),
+      error(WarningCode.docDirectiveMissingOpeningTag, 110, 19),
     ]);
 
     var node = parseResult.findNode.comment('template name');
@@ -1772,7 +1772,7 @@ int x = 0;
 /// {@yotube 123}
 class A {}
 ''');
-    parseResult.assertErrors([error(WarningCode.DOC_DIRECTIVE_UNKNOWN, 28, 6)]);
+    parseResult.assertErrors([error(WarningCode.docDirectiveUnknown, 28, 6)]);
 
     var node = parseResult.findNode.comment('yotube');
     assertParsedNodeText(node, r'''
@@ -1817,7 +1817,7 @@ Comment
 class A {}
 ''');
     parseResult.assertErrors([
-      error(WarningCode.DOC_DIRECTIVE_MISSING_CLOSING_BRACE, 39, 1),
+      error(WarningCode.docDirectiveMissingClosingBrace, 39, 1),
     ]);
 
     var node = parseResult.findNode.comment('youtube');

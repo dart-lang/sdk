@@ -32,8 +32,9 @@ int64_t SimpleInvoke(Dart_Handle lib, const char* method) {
 
 const char* SimpleInvokeStr(Dart_Handle lib, const char* method) {
   Dart_Handle result = Dart_Invoke(lib, NewString(method), 0, nullptr);
-  const char* result_str = nullptr;
+  EXPECT_VALID(result);
   EXPECT(Dart_IsString(result));
+  const char* result_str = nullptr;
   EXPECT_VALID(Dart_StringToCString(result, &result_str));
   return result_str;
 }

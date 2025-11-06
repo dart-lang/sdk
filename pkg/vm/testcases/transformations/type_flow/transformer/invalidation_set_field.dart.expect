@@ -43,7 +43,7 @@ static method getDynamic() → dynamic
 
 [@vm.inferred-return-type.metadata=dart.core::Null? (value: null)]
 static method setField2([@vm.inferred-arg-type.metadata=#lib::A] self::A aa, [@vm.inferred-arg-type.metadata=#lib::T2] dynamic value) → void {
-  [@vm.direct-call.metadata=#lib::A.field2] [@vm.inferred-type.metadata=!? (skip check)] aa.{self::A::field2} = value;
+  [@vm.direct-call.metadata=#lib::A.field2] [@vm.inferred-type.metadata=? (skip check)] aa.{self::A::field2} = value;
 }
 
 [@vm.inferred-return-type.metadata=dart.core::Null? (value: null)]

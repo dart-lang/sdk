@@ -107,7 +107,7 @@ Future<CompilerResult> _compile(
     return CompilerResult(64);
   }
   if (argResults.wasParsed('sound-null-safety')) {
-    var soundNullSafety = argResults['sound-null-safety'] as bool;
+    var soundNullSafety = argResults.flag('sound-null-safety');
     print(
       'Dart 3 only supports sound null safety, '
       'see https://dart.dev/null-safety.\n'
@@ -119,7 +119,7 @@ Future<CompilerResult> _compile(
     }
   }
 
-  var outPaths = argResults['out'] as List<String>;
+  var outPaths = argResults.multiOption('out');
   var moduleFormats = parseModuleFormatOption(argResults);
   if (outPaths.isEmpty) {
     print(
@@ -135,7 +135,7 @@ Future<CompilerResult> _compile(
     return CompilerResult(64);
   }
 
-  if (argResults['help'] as bool || args.isEmpty) {
+  if (argResults.flag('help') || args.isEmpty) {
     print(_usageMessage(argParser));
     return CompilerResult(0);
   }
@@ -172,7 +172,8 @@ Future<CompilerResult> _compile(
   // lib folder). The following [FileSystem] will resolve those references to
   // the correct location and keeps the real file location hidden from the
   // front end.
-  var multiRootPaths = (argResults['multi-root'] as Iterable<String>)
+  var multiRootPaths = argResults
+      .multiOption('multi-root')
       .map(Uri.base.resolve)
       .toList();
   var multiRootOutputPath = options.multiRootOutputPath;
@@ -198,9 +199,9 @@ Future<CompilerResult> _compile(
     summaryPaths.map(sourcePathToUri).cast<Uri>(),
     options.summaryModules.values,
   );
-  var sdkSummaryPath = argResults['dart-sdk-summary'] as String?;
-  var librarySpecPath = argResults['libraries-file'] as String?;
-  var compileSdk = argResults['compile-sdk'] == true;
+  var sdkSummaryPath = argResults.option('dart-sdk-summary');
+  var librarySpecPath = argResults.option('libraries-file');
+  var compileSdk = argResults.flag('compile-sdk');
   if (sdkSummaryPath == null) {
     if (!compileSdk) {
       sdkSummaryPath = defaultSdkSummaryPath;
@@ -251,12 +252,11 @@ Future<CompilerResult> _compile(
   // .dart_tool/package_config.json file to resolve package URIs that are in the
   // input summaries, but it seems to.
   // This needs further investigation.
-  var packageFile =
-      argResults['packages'] as String? ?? _findPackagesFilePath();
+  var packageFile = argResults.option('packages') ?? _findPackagesFilePath();
 
   var succeeded = true;
-  void diagnosticMessageHandler(fe.DiagnosticMessage message) {
-    if (message.severity == fe.Severity.error) {
+  void diagnosticMessageHandler(fe.CfeDiagnosticMessage message) {
+    if (message.severity == fe.CfeSeverity.error) {
       succeeded = false;
     }
     fe.printDiagnosticMessage(message, print);
@@ -268,9 +268,9 @@ Future<CompilerResult> _compile(
     onWarning: print,
   );
 
-  var trackWidgetCreation = argResults['track-widget-creation'] as bool;
+  var trackWidgetCreation = argResults.flag('track-widget-creation');
   var oldCompilerState = compilerState;
-  var recordUsedInputs = argResults['used-inputs-file'] != null;
+  var recordUsedInputs = argResults.option('used-inputs-file') != null;
   var additionalDills = summaryModules.keys.toList();
   fe.DdcResult? result;
 
@@ -402,7 +402,7 @@ Future<CompilerResult> _compile(
 
   // Output files can be written in parallel, so collect the futures.
   var outFiles = <Future>[];
-  if (argResults['summarize'] as bool) {
+  if (argResults.flag('summarize')) {
     if (outPaths.length > 1) {
       print(
         'If multiple output files (found ${outPaths.length}) are specified, '
@@ -426,7 +426,7 @@ Future<CompilerResult> _compile(
     outFiles.add(sink.flush().then((_) => sink.close()));
   }
   String? fullDillUri;
-  if (argResults['experimental-output-compiled-kernel'] as bool) {
+  if (argResults.flag('experimental-output-compiled-kernel')) {
     if (outPaths.length > 1) {
       print(
         'If multiple output files (found ${outPaths.length}) are specified, '
@@ -448,7 +448,7 @@ Future<CompilerResult> _compile(
     kernel.BinaryPrinter(sink).writeComponentFile(compiledLibraries);
     outFiles.add(sink.flush().then((_) => sink.close()));
   }
-  if (argResults['summarize-text'] as bool) {
+  if (argResults.flag('summarize-text')) {
     if (outPaths.length > 1) {
       print(
         'If multiple output files (found ${outPaths.length}) are specified, '
@@ -589,7 +589,7 @@ Future<CompilerResult> _compile(
       usedOutlines.addAll(summaryModules.keys);
     }
 
-    var outputUsedFile = File(argResults['used-inputs-file'] as String);
+    var outputUsedFile = File(argResults.option('used-inputs-file')!);
     outputUsedFile.createSync(recursive: true);
     outputUsedFile.writeAsStringSync(usedOutlines.join('\n'));
   }
@@ -629,7 +629,7 @@ Future<CompilerResult> compileSdkFromDill(List<String> args) async {
     return CompilerResult(64);
   }
 
-  var outPaths = argResults['out'] as List<String>;
+  var outPaths = argResults.multiOption('out');
   var moduleFormats = parseModuleFormatOption(argResults);
   if (outPaths.isEmpty) {
     print(

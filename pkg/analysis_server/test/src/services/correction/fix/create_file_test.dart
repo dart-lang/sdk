@@ -18,7 +18,7 @@ void main() {
 @reflectiveTest
 class CreateFileTest extends FixProcessorTest {
   @override
-  FixKind get kind => DartFixKind.CREATE_FILE;
+  FixKind get kind => DartFixKind.createFile;
 
   Future<void> test_forExport() async {
     await resolveTestCode('''

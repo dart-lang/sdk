@@ -4,7 +4,6 @@
 
 import 'dart:io';
 
-import 'package:analyzer/src/lint/io.dart';
 import 'package:analyzer/src/lint/registry.dart';
 import 'package:linter/src/rules.dart';
 import 'package:yaml/yaml.dart';
@@ -27,7 +26,7 @@ void main() {
 /// there are errors, and `null` otherwise.
 String? checkAllYaml() {
   var allYamlPath = pathRelativeToPackageRoot(['example', 'all.yaml']);
-  var src = readFile(allYamlPath);
+  var src = File(allYamlPath).readAsStringSync();
 
   var options = _getOptionsFromString(src);
   var linterSection = options['linter'] as YamlMap?;

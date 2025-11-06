@@ -21,10 +21,69 @@ void main() {
 @reflectiveTest
 class AddAwaitTest extends FixProcessorLintTest {
   @override
-  FixKind get kind => DartFixKind.ADD_AWAIT;
+  FixKind get kind => DartFixKind.addAwait;
 
   @override
   String get lintCode => LintNames.unawaited_futures;
+
+  Future<void> test_addAwaitBeforeParent_getter() async {
+    await resolveTestCode('''
+class A {
+  Future<void> get getter async {}
+  A get self => this;
+}
+
+Future<void> foo(A a) async {
+  final local = a.self;
+  local.getter;
+}
+''');
+    await assertHasFix('''
+class A {
+  Future<void> get getter async {}
+  A get self => this;
+}
+
+Future<void> foo(A a) async {
+  final local = a.self;
+  await local.getter;
+}
+''');
+  }
+
+  Future<void> test_addAwaitBeforeParent_method() async {
+    await resolveTestCode('''
+class A {
+  Future<void> m() async {}
+}
+
+Future<void> foo(A a) async {
+  a.m();
+}
+''');
+    await assertHasFix('''
+class A {
+  Future<void> m() async {}
+}
+
+Future<void> foo(A a) async {
+  await a.m();
+}
+''');
+  }
+
+  Future<void> test_cascade_after() async {
+    await resolveTestCode('''
+class A {
+  Future<void> m() async {}
+}
+
+Future<void> foo(A a) async {
+  a.m()..hashCode;
+}
+''');
+    await assertNoFix();
+  }
 
   Future<void> test_cascadeExpression() async {
     await resolveTestCode('''
@@ -35,10 +94,39 @@ class C {
 }
 
 void main() async {
-  C()..something(); 
+  C()..something();
 }
 ''');
     await assertNoFix();
+  }
+
+  Future<void> test_closureAfterCascade() async {
+    await resolveTestCode('''
+class A {
+  Future<void> m() async {}
+
+  void n(void Function() g) {}
+}
+
+void f(A a, bool b) {
+  a..n(() async {
+    a.m();
+  });
+}
+''');
+    await assertHasFix('''
+class A {
+  Future<void> m() async {}
+
+  void n(void Function() g) {}
+}
+
+void f(A a, bool b) {
+  a..n(() async {
+    await a.m();
+  });
+}
+''');
   }
 
   Future<void> test_methodInvocation() async {
@@ -74,8 +162,8 @@ void f() async {
   await doSomething()
 }
 ''',
-      errorFilter:
-          (error) => error.diagnosticCode != ParserErrorCode.EXPECTED_TOKEN,
+      errorFilter: (error) =>
+          error.diagnosticCode != ParserErrorCode.expectedToken,
     );
   }
 
@@ -114,7 +202,7 @@ Future<void> f() async {
 @reflectiveTest
 class AddAwaitTestArgumentAndAssignment extends FixProcessorTest {
   @override
-  FixKind get kind => DartFixKind.ADD_AWAIT;
+  FixKind get kind => DartFixKind.addAwait;
 
   Future<void> test_forIn_futureInt() async {
     await resolveTestCode('''
@@ -237,9 +325,8 @@ Future<void> baz() async {
   variable = await bar();
 }
 ''',
-      errorFilter:
-          (error) =>
-              error.diagnosticCode == CompileTimeErrorCode.INVALID_ASSIGNMENT,
+      errorFilter: (error) =>
+          error.diagnosticCode == CompileTimeErrorCode.invalidAssignment,
     );
   }
 
@@ -252,9 +339,8 @@ void baz() {
 }
 ''');
     await assertNoFix(
-      errorFilter:
-          (error) =>
-              error.diagnosticCode == CompileTimeErrorCode.INVALID_ASSIGNMENT,
+      errorFilter: (error) =>
+          error.diagnosticCode == CompileTimeErrorCode.invalidAssignment,
     );
   }
 
@@ -274,9 +360,8 @@ Future<void> baz() async {
   String variable = await bar();
 }
 ''',
-      errorFilter:
-          (error) =>
-              error.diagnosticCode == CompileTimeErrorCode.INVALID_ASSIGNMENT,
+      errorFilter: (error) =>
+          error.diagnosticCode == CompileTimeErrorCode.invalidAssignment,
     );
   }
 }

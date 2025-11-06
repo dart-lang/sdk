@@ -17,9 +17,9 @@ class ExtensionDeclarationTest extends PartialCodeTest {
         'keyword',
         'extension',
         [
-          ParserErrorCode.EXPECTED_TOKEN,
-          ParserErrorCode.EXPECTED_TYPE_NAME,
-          ParserErrorCode.EXPECTED_EXTENSION_BODY,
+          ParserErrorCode.expectedToken,
+          ParserErrorCode.expectedTypeName,
+          ParserErrorCode.expectedExtensionBody,
         ],
         'extension on _s_ {}',
         failing: [
@@ -35,9 +35,9 @@ class ExtensionDeclarationTest extends PartialCodeTest {
         'named',
         'extension E',
         [
-          ParserErrorCode.EXPECTED_TOKEN,
-          ParserErrorCode.EXPECTED_TYPE_NAME,
-          ParserErrorCode.EXPECTED_EXTENSION_BODY,
+          ParserErrorCode.expectedToken,
+          ParserErrorCode.expectedTypeName,
+          ParserErrorCode.expectedExtensionBody,
         ],
         'extension E on _s_ {}',
         failing: ['getter', 'functionNonVoid', 'functionVoid', 'mixin'],
@@ -46,14 +46,14 @@ class ExtensionDeclarationTest extends PartialCodeTest {
         'on',
         'extension E on',
         [
-          ParserErrorCode.EXPECTED_TYPE_NAME,
-          ParserErrorCode.EXPECTED_EXTENSION_BODY,
+          ParserErrorCode.expectedTypeName,
+          ParserErrorCode.expectedExtensionBody,
         ],
         'extension E on _s_ {}',
         failing: ['getter', 'functionNonVoid', 'functionVoid', 'mixin'],
       ),
       TestDescriptor('extendedType', 'extension E on String', [
-        ParserErrorCode.EXPECTED_EXTENSION_BODY,
+        ParserErrorCode.expectedExtensionBody,
       ], 'extension E on String {}'),
       // Most of the failing tests are because the following text could be
       // a member of the class, so the parser adds the closing brace _after_
@@ -63,7 +63,7 @@ class ExtensionDeclarationTest extends PartialCodeTest {
       TestDescriptor(
         'partialBody',
         'extension E on String {',
-        [ScannerErrorCode.EXPECTED_TOKEN],
+        [ScannerErrorCode.expectedToken],
         'extension E on String {}',
         failing: [
           'class',

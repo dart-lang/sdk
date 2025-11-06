@@ -172,12 +172,11 @@ class StringScanner extends AbstractScanner {
     bool asciiOnly,
     String syntheticChars,
   ) {
-    String value =
-        syntheticChars.length == 0
-            ? canonicalizeSubString(_string, start, scanOffset)
-            : canonicalizeString(
-              _string.substring(start, scanOffset) + syntheticChars,
-            );
+    String value = syntheticChars.length == 0
+        ? canonicalizeSubString(_string, start, scanOffset)
+        : canonicalizeString(
+            _string.substring(start, scanOffset) + syntheticChars,
+          );
     return new SyntheticStringToken(
       type,
       value,

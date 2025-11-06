@@ -1,0 +1,67 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/general/inc_dec.dart:27:13: Error: A value of type 'E' can't be assigned to a variable of type 'F?'.
+//  - 'E' is from 'pkg/front_end/testcases/general/inc_dec.dart'.
+//  - 'F' is from 'pkg/front_end/testcases/general/inc_dec.dart'.
+//   F? f = D?.staticE++; // Error
+//             ^
+//
+// pkg/front_end/testcases/general/inc_dec.dart:28:15: Error: A value of type 'G' can't be assigned to a variable of type 'H?'.
+//  - 'G' is from 'pkg/front_end/testcases/general/inc_dec.dart'.
+//  - 'H' is from 'pkg/front_end/testcases/general/inc_dec.dart'.
+//   H? h = ++D?.staticE; // Error
+//               ^
+//
+import self as self;
+import "dart:core" as core;
+
+class D extends core::Object {
+  field self::E v;
+  late static field self::E staticE;
+  constructor •(self::E v) → self::D
+    : self::D::v = v, super core::Object::•()
+    ;
+}
+class E extends core::Object {
+  synthetic constructor •() → self::E
+    : super core::Object::•()
+    ;
+  operator +(core::int i) → self::G
+    return new self::I::•();
+  operator -(core::int i) → self::G
+    return new self::I::•();
+}
+class F extends core::Object {
+  synthetic constructor •() → self::F
+    : super core::Object::•()
+    ;
+}
+class G extends self::E implements self::F {
+  synthetic constructor •() → self::G
+    : super self::E::•()
+    ;
+}
+class H extends core::Object {
+  synthetic constructor •() → self::H
+    : super core::Object::•()
+    ;
+}
+class I extends self::G implements self::H {
+  synthetic constructor •() → self::I
+    : super self::G::•()
+    ;
+}
+static method method() → dynamic {
+  self::F? f = invalid-expression "pkg/front_end/testcases/general/inc_dec.dart:27:13: Error: A value of type 'E' can't be assigned to a variable of type 'F?'.
+ - 'E' is from 'pkg/front_end/testcases/general/inc_dec.dart'.
+ - 'F' is from 'pkg/front_end/testcases/general/inc_dec.dart'.
+  F? f = D?.staticE++; // Error
+            ^" in (let final self::E #t1 = self::D::staticE in let final void #t2 = self::D::staticE = #t1.{self::E::+}(1){(core::int) → self::G} in #t1) as{TypeError} self::F?;
+  self::H? h = invalid-expression "pkg/front_end/testcases/general/inc_dec.dart:28:15: Error: A value of type 'G' can't be assigned to a variable of type 'H?'.
+ - 'G' is from 'pkg/front_end/testcases/general/inc_dec.dart'.
+ - 'H' is from 'pkg/front_end/testcases/general/inc_dec.dart'.
+  H? h = ++D?.staticE; // Error
+              ^" in (self::D::staticE = self::D::staticE.{self::E::+}(1){(core::int) → self::G}) as{TypeError} self::H?;
+}

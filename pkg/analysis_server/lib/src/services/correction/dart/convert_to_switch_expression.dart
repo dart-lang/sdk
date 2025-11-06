@@ -96,17 +96,20 @@ class ConvertToSwitchExpression extends ResolvedCorrectionProducer {
         if (statement is ExpressionStatement) {
           var invocation = statement.expression;
           if (invocation is MethodInvocation) {
-            var deletion =
-                !hasComment
-                    ? range.startOffsetEndOffset(
-                      lastColon.end,
-                      invocation.argumentList.leftParenthesis.end,
-                    )
-                    : range.startOffsetEndOffset(
-                      invocation.offset,
-                      invocation.argumentList.leftParenthesis.end,
-                    );
-            builder.addDeletion(deletion);
+            var deletion = !hasComment
+                ? range.startOffsetEndOffset(
+                    lastColon.end,
+                    invocation.argumentList.leftParenthesis.end,
+                  )
+                : range.startOffsetEndOffset(
+                    invocation.offset,
+                    invocation.argumentList.leftParenthesis.end,
+                  );
+            if (hasComment) {
+              builder.addDeletion(deletion);
+            } else {
+              builder.addSimpleReplacement(deletion, ' ');
+            }
             builder.addDeletion(
               range.entity(invocation.argumentList.rightParenthesis),
             );
@@ -154,12 +157,12 @@ class ConvertToSwitchExpression extends ResolvedCorrectionProducer {
             var lastColon = lastCase.colon;
 
             var patternCode = group.patternCases
-                .map((patternCase) => patternCase.guardedPattern.pattern)
+                .map((patternCase) => patternCase.guardedPattern)
                 .map((pattern) => utils.getNodeText(pattern))
                 .join(' || ');
             builder.addSimpleReplacement(
               range.startEnd(firstCase.keyword, lastColon),
-              '$patternCode => ',
+              '$patternCode =>',
             );
 
             convertArgumentStatements(
@@ -191,16 +194,15 @@ class ConvertToSwitchExpression extends ResolvedCorrectionProducer {
           var expression = statement.expression;
           if (expression is AssignmentExpression) {
             var hasComment = statement.beginToken.precedingComments != null;
-            var deletion =
-                !hasComment
-                    ? range.startOffsetEndOffset(
-                      lastColon.end,
-                      expression.operator.end,
-                    )
-                    : range.startOffsetEndOffset(
-                      expression.beginToken.offset,
-                      expression.rightHandSide.offset,
-                    );
+            var deletion = !hasComment
+                ? range.startOffsetEndOffset(
+                    lastColon.end,
+                    expression.operator.end,
+                  )
+                : range.startOffsetEndOffset(
+                    expression.beginToken.offset,
+                    expression.rightHandSide.offset,
+                  );
             builder.addDeletion(deletion);
           } else if (expression is ThrowExpression) {
             var deletionRange = range.startOffsetEndOffset(
@@ -248,7 +250,7 @@ class ConvertToSwitchExpression extends ResolvedCorrectionProducer {
             var lastColon = lastCase.colon;
 
             var patternCode = group.patternCases
-                .map((patternCase) => patternCase.guardedPattern.pattern)
+                .map((patternCase) => patternCase.guardedPattern)
                 .map((pattern) => utils.getNodeText(pattern))
                 .join(' || ');
             builder.addSimpleReplacement(
@@ -334,7 +336,7 @@ class ConvertToSwitchExpression extends ResolvedCorrectionProducer {
             var lastCase = group.patternCases.last;
 
             var patternCode = group.patternCases
-                .map((patternCase) => patternCase.guardedPattern.pattern)
+                .map((patternCase) => patternCase.guardedPattern)
                 .map((pattern) => utils.getNodeText(pattern))
                 .join(' || ');
             builder.addSimpleReplacement(
@@ -557,6 +559,7 @@ class ConvertToSwitchExpression extends ResolvedCorrectionProducer {
     required String text,
     required _Indentation indentation,
   }) {
+    var eol = builder.eol;
     var insertOffset = utils.getLineContentStart(nextLineOffset);
     var nextLinePrefix = utils.getLinePrefix(nextLineOffset);
 
@@ -590,7 +593,7 @@ class ConvertToSwitchExpression extends ResolvedCorrectionProducer {
   static SourceRange _getBreakRange(BreakStatement statement) {
     var previous =
         (statement.beginToken.precedingComments ??
-            statement.beginToken.previous)!;
+        statement.beginToken.previous)!;
     var deletion = range.startOffsetEndOffset(
       previous.end,
       statement.endToken.end,

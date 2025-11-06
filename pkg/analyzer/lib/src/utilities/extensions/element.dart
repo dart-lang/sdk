@@ -28,7 +28,7 @@ class MockLibraryImportElement implements Element {
   LibraryFragmentImpl get libraryFragment => import.libraryFragment;
 
   @override
-  String? get name => import.prefix2?.name;
+  String? get name => import.prefix?.name;
 
   @override
   noSuchMethod(invocation) => super.noSuchMethod(invocation);
@@ -67,7 +67,7 @@ extension CompilationUnitElementImplExtension on LibraryFragmentImpl {
     var current = this;
     while (true) {
       result.add(current);
-      if (current.enclosingElement case var enclosing?) {
+      if (current.enclosingFragment case var enclosing?) {
         current = enclosing;
       } else {
         break;
@@ -92,14 +92,12 @@ extension ConstructorElementImplExtension on ConstructorFragmentImpl {
 extension Element2Extension on Element {
   /// Whether the element is effectively [internal].
   bool get isInternal {
-    if (this case Annotatable annotatable) {
-      if (annotatable.metadata.hasInternal) {
-        return true;
-      }
+    if (metadata.hasInternal) {
+      return true;
     }
     if (this case PropertyAccessorElement accessor) {
       var variable = accessor.variable;
-      if (variable != null && variable.metadata.hasInternal) {
+      if (variable.metadata.hasInternal) {
         return true;
       }
     }
@@ -115,7 +113,7 @@ extension Element2Extension on Element {
         return true;
       }
       var variable = self.variable;
-      if (variable != null && variable.metadata.hasProtected) {
+      if (variable.metadata.hasProtected) {
         return true;
       }
     }
@@ -129,30 +127,17 @@ extension Element2Extension on Element {
 
   /// Whether the element is effectively [visibleForTesting].
   bool get isVisibleForTesting {
-    if (this case Annotatable annotatable) {
-      if (annotatable.metadata.hasVisibleForTesting) {
-        return true;
-      }
+    if (metadata.hasVisibleForTesting) {
+      return true;
     }
     if (this case PropertyAccessorElement accessor) {
       var variable = accessor.variable;
-      if (variable != null && variable.metadata.hasVisibleForTesting) {
+      if (variable.metadata.hasVisibleForTesting) {
         return true;
       }
     }
     return false;
   }
-
-  List<ElementAnnotation> get metadataAnnotations {
-    if (this case Annotatable annotatable) {
-      return annotatable.metadata.annotations;
-    }
-    return [];
-  }
-}
-
-extension ElementImplExtension on FragmentImpl {
-  FragmentImpl? get enclosingElementImpl => enclosingElement;
 }
 
 extension ElementOrNullExtension on FragmentImpl? {
@@ -164,9 +149,9 @@ extension ElementOrNullExtension on FragmentImpl? {
       return DynamicElementImpl.instance;
     } else if (self is ExtensionFragmentImpl) {
       return (self as ExtensionFragment).element;
-    } else if (self is ExecutableMember) {
+    } else if (self is SubstitutedExecutableElementImpl) {
       return self as ExecutableElement;
-    } else if (self is FieldMember) {
+    } else if (self is SubstitutedFieldElementImpl) {
       return self as FieldElement;
     } else if (self is FieldFragmentImpl) {
       return (self as FieldFragment).element;
@@ -175,12 +160,12 @@ extension ElementOrNullExtension on FragmentImpl? {
     } else if (self is InterfaceFragmentImpl) {
       return self.element;
     } else if (self is LabelFragmentImpl) {
-      return self.element2;
+      return self.element;
     } else if (self is LocalVariableFragmentImpl) {
       return self.element;
     } else if (self is NeverFragmentImpl) {
       return NeverElementImpl.instance;
-    } else if (self is ParameterMember) {
+    } else if (self is SubstitutedFormalParameterElementImpl) {
       return (self as FormalParameterFragment).element;
     } else if (self is LibraryImportImpl ||
         self is LibraryExportImpl ||
@@ -199,9 +184,8 @@ extension EnumElementImplExtension on EnumFragmentImpl {
   }
 }
 
-extension ExecutableElement2OrMemberExtension on ExecutableElement2OrMember {
-  ExecutableFragmentImpl get declarationImpl =>
-      baseElement.firstFragment as ExecutableFragmentImpl;
+extension ExecutableElement2OrMemberExtension on InternalExecutableElement {
+  ExecutableFragmentImpl get declarationImpl => baseElement.firstFragment;
 }
 
 extension ExecutableElementImpl2Extension on ExecutableElementImpl {
@@ -301,10 +285,6 @@ extension InterfaceElementImplExtension on InterfaceFragmentImpl {
   InterfaceElementImpl get asElement2 {
     return element;
   }
-}
-
-extension InterfaceTypeImplExtension on InterfaceTypeImpl {
-  InterfaceFragmentImpl get elementImpl => element.firstFragment;
 }
 
 extension JoinPatternVariableElementImplExtension
@@ -433,12 +413,10 @@ extension TypeAliasElementImplExtension on TypeAliasFragmentImpl {
 
 extension TypeParameterElement2Extension on TypeParameterElement {
   TypeParameterElementImpl freshCopy() {
-    var fragment = TypeParameterFragmentImpl(
-      name: name,
-      firstTokenOffset: null,
-    );
-    fragment.bound = bound;
-    return TypeParameterElementImpl(firstFragment: fragment, name: name);
+    var fragment = TypeParameterFragmentImpl(name: name);
+    var element = TypeParameterElementImpl(firstFragment: fragment);
+    element.bound = bound as TypeImpl?;
+    return element;
   }
 }
 

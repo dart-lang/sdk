@@ -35,7 +35,7 @@ RelationalPattern
   operand: IntegerLiteral
     literal: 0
     staticType: int
-  element2: <testLibrary>::@class::A::@method::==
+  element: <testLibrary>::@class::A::@method::==
   matchedValueType: A
 ''');
   }
@@ -58,7 +58,7 @@ RelationalPattern
   operand: IntegerLiteral
     literal: 0
     staticType: int
-  element2: dart:core::@class::Object::@method::==
+  element: dart:core::@class::Object::@method::==
   matchedValueType: A
 ''');
   }
@@ -83,7 +83,7 @@ RelationalPattern
   operand: IntegerLiteral
     literal: 0
     staticType: int
-  element2: <testLibrary>::@class::A::@method::>
+  element: <testLibrary>::@class::A::@method::>
   matchedValueType: A
 ''');
   }
@@ -110,7 +110,7 @@ RelationalPattern
   operand: IntegerLiteral
     literal: 0
     staticType: int
-  element2: <testLibrary>::@extension::E::@method::>
+  element: <testLibrary>::@extension::E::@method::>
   matchedValueType: A
 ''');
   }
@@ -127,7 +127,7 @@ void f(A x) {
   }
 }
 ''',
-      [error(CompileTimeErrorCode.UNDEFINED_OPERATOR, 50, 1)],
+      [error(CompileTimeErrorCode.undefinedOperator, 50, 1)],
     );
     var node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
@@ -136,7 +136,7 @@ RelationalPattern
   operand: IntegerLiteral
     literal: 0
     staticType: int
-  element2: <null>
+  element: <null>
   matchedValueType: A
 ''');
   }
@@ -161,7 +161,7 @@ RelationalPattern
   operand: IntegerLiteral
     literal: 0
     staticType: int
-  element2: <testLibrary>::@class::A::@method::>=
+  element: <testLibrary>::@class::A::@method::>=
   matchedValueType: A
 ''');
   }
@@ -188,7 +188,7 @@ RelationalPattern
   operand: IntegerLiteral
     literal: 0
     staticType: int
-  element2: <testLibrary>::@extension::E::@method::>=
+  element: <testLibrary>::@extension::E::@method::>=
   matchedValueType: A
 ''');
   }
@@ -205,7 +205,7 @@ void f(A x) {
   }
 }
 ''',
-      [error(CompileTimeErrorCode.UNDEFINED_OPERATOR, 50, 2)],
+      [error(CompileTimeErrorCode.undefinedOperator, 50, 2)],
     );
     var node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
@@ -214,7 +214,7 @@ RelationalPattern
   operand: IntegerLiteral
     literal: 0
     staticType: int
-  element2: <null>
+  element: <null>
   matchedValueType: A
 ''');
   }
@@ -236,7 +236,7 @@ RelationalPattern
   operand: IntegerLiteral
     literal: 0
     staticType: int
-  element2: <testLibrary>::@class::A::@method::==
+  element: <testLibrary>::@class::A::@method::==
   matchedValueType: A
 ''');
   }
@@ -261,7 +261,7 @@ RelationalPattern
   operand: IntegerLiteral
     literal: 0
     staticType: int
-  element2: <testLibrary>::@class::A::@method::<
+  element: <testLibrary>::@class::A::@method::<
   matchedValueType: A
 ''');
   }
@@ -288,7 +288,7 @@ RelationalPattern
   operand: IntegerLiteral
     literal: 0
     staticType: int
-  element2: <testLibrary>::@extension::E::@method::<
+  element: <testLibrary>::@extension::E::@method::<
   matchedValueType: A
 ''');
   }
@@ -305,7 +305,7 @@ void f(A x) {
   }
 }
 ''',
-      [error(CompileTimeErrorCode.UNDEFINED_OPERATOR, 50, 1)],
+      [error(CompileTimeErrorCode.undefinedOperator, 50, 1)],
     );
     var node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
@@ -314,7 +314,7 @@ RelationalPattern
   operand: IntegerLiteral
     literal: 0
     staticType: int
-  element2: <null>
+  element: <null>
   matchedValueType: A
 ''');
   }
@@ -339,7 +339,7 @@ RelationalPattern
   operand: IntegerLiteral
     literal: 0
     staticType: int
-  element2: <testLibrary>::@class::A::@method::<=
+  element: <testLibrary>::@class::A::@method::<=
   matchedValueType: A
 ''');
   }
@@ -366,7 +366,7 @@ RelationalPattern
   operand: IntegerLiteral
     literal: 0
     staticType: int
-  element2: <testLibrary>::@extension::E::@method::<=
+  element: <testLibrary>::@extension::E::@method::<=
   matchedValueType: A
 ''');
   }
@@ -383,7 +383,7 @@ void f(A x) {
   }
 }
 ''',
-      [error(CompileTimeErrorCode.UNDEFINED_OPERATOR, 50, 2)],
+      [error(CompileTimeErrorCode.undefinedOperator, 50, 2)],
     );
     var node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
@@ -392,7 +392,7 @@ RelationalPattern
   operand: IntegerLiteral
     literal: 0
     staticType: int
-  element2: <null>
+  element: <null>
   matchedValueType: A
 ''');
   }
@@ -417,7 +417,7 @@ RelationalPattern
   operand: IntegerLiteral
     literal: 0
     staticType: int
-  element2: <testLibrary>::@class::A::@method::==
+  element: <testLibrary>::@class::A::@method::==
   matchedValueType: A
 ''');
   }
@@ -440,7 +440,7 @@ RelationalPattern
   operand: IntegerLiteral
     literal: 0
     staticType: int
-  element2: dart:core::@class::Object::@method::==
+  element: dart:core::@class::Object::@method::==
   matchedValueType: A
 ''');
   }
@@ -457,7 +457,7 @@ void f(x, int Function() a) {
 ''',
       [
         error(
-          CompileTimeErrorCode.NON_CONSTANT_RELATIONAL_PATTERN_EXPRESSION,
+          CompileTimeErrorCode.nonConstantRelationalPatternExpression,
           57,
           3,
         ),
@@ -478,7 +478,7 @@ RelationalPattern
     element: <null>
     staticInvokeType: int Function()
     staticType: int
-  element2: dart:core::@class::Object::@method::==
+  element: dart:core::@class::Object::@method::==
   matchedValueType: dynamic
 ''');
   }
@@ -503,7 +503,7 @@ RelationalPattern
   operand: IntegerLiteral
     literal: 0
     staticType: int
-  element2: <testLibrary>::@class::A::@method::==
+  element: <testLibrary>::@class::A::@method::==
   matchedValueType: A
 ''');
   }

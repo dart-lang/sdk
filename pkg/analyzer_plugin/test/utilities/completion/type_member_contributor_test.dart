@@ -25,7 +25,10 @@ class TypeMemberContributorTest extends DartCompletionContributorTest {
   /// purposes of what is shown during completion. [shouldBeShadowed] indicates
   /// whether shadowing is expected.
   Future<void> check_shadowing(
-      String shadower, String shadowee, bool shouldBeShadowed) async {
+    String shadower,
+    String shadowee,
+    bool shouldBeShadowed,
+  ) async {
     addTestSource('''
 class Base {
   $shadowee
@@ -113,8 +116,12 @@ class A {
 void main() {new A().f^}''');
     await computeSuggestions();
 
-    assertSuggestMethod('foo', 'A', 'bool',
-        defaultArgListString: 'bar, baz: baz');
+    assertSuggestMethod(
+      'foo',
+      'A',
+      'bool',
+      defaultArgListString: 'bar, baz: baz',
+    );
   }
 
   Future<void> test_ArgumentList() async {
@@ -167,7 +174,7 @@ void main() {new A().f^}''');
   }
 
   Future<void>
-      test_ArgumentList_InstanceCreationExpression_functionalArg() async {
+  test_ArgumentList_InstanceCreationExpression_functionalArg() async {
     // ArgumentList  InstanceCreationExpression  ExpressionStatement  Block
     addSource('/home/test/lib/a.dart', '''
         library A;
@@ -1086,7 +1093,9 @@ void main() {new A().f^}''');
   Future<void> test_Block_unimported() async {
     newFile('$workspaceRootPath/myBar/bar.dart', 'class Foo2 { Foo2() { } }');
     addSource(
-        '/proj/testAB.dart', 'import "package:myBar/bar.dart"; class Foo { }');
+      '/proj/testAB.dart',
+      'import "package:myBar/bar.dart"; class Foo { }',
+    );
     addTestSource('class C {foo(){F^}}');
     await computeSuggestions();
     expect(replacementOffset, completionOffset! - 1);

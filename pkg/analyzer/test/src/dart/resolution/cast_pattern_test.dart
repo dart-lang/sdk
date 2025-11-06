@@ -22,7 +22,7 @@ void f(x) {
   if (x case var y as int) {}
 }
 ''',
-      [error(WarningCode.UNUSED_LOCAL_VARIABLE, 29, 1)],
+      [error(WarningCode.unusedLocalVariable, 29, 1)],
     );
     var node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
@@ -31,14 +31,13 @@ CastPattern
     keyword: var
     name: y
     declaredFragment: isPublic y@29
-      type: null
       element: hasImplicitType isPublic
         type: int
     matchedValueType: int
   asToken: as
   type: NamedType
     name: int
-    element2: dart:core::@class::int
+    element: dart:core::@class::int
     type: int
   matchedValueType: dynamic
 ''');
@@ -66,7 +65,7 @@ CastPattern
   asToken: as
   type: NamedType
     name: int
-    element2: dart:core::@class::int
+    element: dart:core::@class::int
     type: int
   matchedValueType: dynamic
 ''');
@@ -79,7 +78,7 @@ void f(x) {
   var (a as int) = x;
 }
 ''',
-      [error(WarningCode.UNUSED_LOCAL_VARIABLE, 19, 1)],
+      [error(WarningCode.unusedLocalVariable, 19, 1)],
     );
     var node = findNode.singlePatternVariableDeclaration;
     assertResolvedNodeText(node, r'''
@@ -91,14 +90,13 @@ PatternVariableDeclaration
       pattern: DeclaredVariablePattern
         name: a
         declaredFragment: isPublic a@19
-          type: null
           element: hasImplicitType isPublic
             type: int
         matchedValueType: int
       asToken: as
       type: NamedType
         name: int
-        element2: dart:core::@class::int
+        element: dart:core::@class::int
         type: int
       matchedValueType: dynamic
     rightParenthesis: )

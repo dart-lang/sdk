@@ -17,13 +17,13 @@ import 'package:kernel/src/unaliasing.dart';
 
 import '../codes/cfe_codes.dart'
     show
-        messageNamedFieldClashesWithPositionalFieldInRecord,
-        messageObjectMemberNameUsedForRecordField,
-        messageRecordFieldsCantBePrivate,
-        messageSupertypeIsFunction,
+        codeNamedFieldClashesWithPositionalFieldInRecord,
+        codeObjectMemberNameUsedForRecordField,
+        codeRecordFieldsCantBePrivate,
+        codeSupertypeIsFunction,
         noLength,
-        templateDuplicatedRecordTypeFieldName,
-        templateDuplicatedRecordTypeFieldNameContext;
+        codeDuplicatedRecordTypeFieldName,
+        codeDuplicatedRecordTypeFieldNameContext;
 import '../kernel/implicit_field_type.dart';
 import '../kernel/type_algorithms.dart';
 import '../source/source_library_builder.dart';
@@ -50,11 +50,12 @@ abstract class RecordTypeBuilderImpl extends RecordTypeBuilder {
   final int charOffset;
 
   factory RecordTypeBuilderImpl(
-      List<RecordTypeFieldBuilder>? positional,
-      List<RecordTypeFieldBuilder>? named,
-      NullabilityBuilder nullabilityBuilder,
-      Uri fileUri,
-      int charOffset) {
+    List<RecordTypeFieldBuilder>? positional,
+    List<RecordTypeFieldBuilder>? named,
+    NullabilityBuilder nullabilityBuilder,
+    Uri fileUri,
+    int charOffset,
+  ) {
     bool isExplicit = true;
     if (positional != null) {
       for (RecordTypeFieldBuilder field in positional) {
@@ -74,15 +75,30 @@ abstract class RecordTypeBuilderImpl extends RecordTypeBuilder {
     }
     return isExplicit
         ? new _ExplicitRecordTypeBuilder(
-            positional, named, nullabilityBuilder, fileUri, charOffset)
+            positional,
+            named,
+            nullabilityBuilder,
+            fileUri,
+            charOffset,
+          )
         :
-        // Coverage-ignore(suite): Not run.
-        new _InferredRecordTypeBuilder(
-            positional, named, nullabilityBuilder, fileUri, charOffset);
+          // Coverage-ignore(suite): Not run.
+          new _InferredRecordTypeBuilder(
+            positional,
+            named,
+            nullabilityBuilder,
+            fileUri,
+            charOffset,
+          );
   }
 
-  RecordTypeBuilderImpl._(this.positionalFields, this.namedFields,
-      this.nullabilityBuilder, this.fileUri, this.charOffset);
+  RecordTypeBuilderImpl._(
+    this.positionalFields,
+    this.namedFields,
+    this.nullabilityBuilder,
+    this.fileUri,
+    this.charOffset,
+  );
 
   @override
   // Coverage-ignore(suite): Not run.
@@ -90,10 +106,6 @@ abstract class RecordTypeBuilderImpl extends RecordTypeBuilder {
 
   @override
   String get debugName => "Record";
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  bool get isVoidType => false;
 
   @override
   StringBuffer printOn(StringBuffer buffer) {
@@ -141,20 +153,26 @@ abstract class RecordTypeBuilderImpl extends RecordTypeBuilder {
   }
 
   DartType _buildInternal(
-      LibraryBuilder library, TypeUse typeUse, ClassHierarchyBase? hierarchy) {
+    LibraryBuilder library,
+    TypeUse typeUse,
+    ClassHierarchyBase? hierarchy,
+  ) {
     DartType aliasedType = buildAliased(library, typeUse, hierarchy);
     return unalias(aliasedType);
   }
 
   @override
   DartType buildAliased(
-      LibraryBuilder library, TypeUse typeUse, ClassHierarchyBase? hierarchy) {
+    LibraryBuilder library,
+    TypeUse typeUse,
+    ClassHierarchyBase? hierarchy,
+  ) {
     assert(hierarchy != null || isExplicit, "Cannot build $this.");
     const List<String> forbiddenObjectMemberNames = [
       "noSuchMethod",
       "toString",
       "hashCode",
-      "runtimeType"
+      "runtimeType",
     ];
     List<DartType> positionalEntries = <DartType>[];
     Map<String, RecordTypeFieldBuilder> fieldsMap =
@@ -162,8 +180,11 @@ abstract class RecordTypeBuilderImpl extends RecordTypeBuilder {
     bool hasErrors = false;
     if (positionalFields != null) {
       for (RecordTypeFieldBuilder field in positionalFields!) {
-        DartType type = field.type
-            .buildAliased(library, TypeUse.recordEntryType, hierarchy);
+        DartType type = field.type.buildAliased(
+          library,
+          TypeUse.recordEntryType,
+          hierarchy,
+        );
         positionalEntries.add(type);
         String? fieldName = field.name;
         if (fieldName != null) {
@@ -171,30 +192,42 @@ abstract class RecordTypeBuilderImpl extends RecordTypeBuilder {
             continue;
           }
           if (fieldName.startsWith("_")) {
-            library.addProblem(messageRecordFieldsCantBePrivate,
-                field.charOffset, fieldName.length, fileUri);
+            library.addProblem(
+              codeRecordFieldsCantBePrivate,
+              field.charOffset,
+              fieldName.length,
+              fileUri,
+            );
             hasErrors = true;
             continue;
           }
           if (forbiddenObjectMemberNames.contains(fieldName)) {
-            library.addProblem(messageObjectMemberNameUsedForRecordField,
-                field.charOffset, fieldName.length, fileUri);
+            library.addProblem(
+              codeObjectMemberNameUsedForRecordField,
+              field.charOffset,
+              fieldName.length,
+              fileUri,
+            );
             hasErrors = true;
             continue;
           }
           RecordTypeFieldBuilder? existingField = fieldsMap[fieldName];
           if (existingField != null) {
             library.addProblem(
-                templateDuplicatedRecordTypeFieldName.withArguments(fieldName),
-                field.charOffset,
-                fieldName.length,
-                fileUri,
-                context: [
-                  templateDuplicatedRecordTypeFieldNameContext
-                      .withArguments(fieldName)
-                      .withLocation(
-                          fileUri, existingField.charOffset, fieldName.length)
-                ]);
+              codeDuplicatedRecordTypeFieldName.withArgumentsOld(fieldName),
+              field.charOffset,
+              fieldName.length,
+              fileUri,
+              context: [
+                codeDuplicatedRecordTypeFieldNameContext
+                    .withArgumentsOld(fieldName)
+                    .withLocation(
+                      fileUri,
+                      existingField.charOffset,
+                      fieldName.length,
+                    ),
+              ],
+            );
             hasErrors = true;
             continue;
           } else {
@@ -211,49 +244,63 @@ abstract class RecordTypeBuilderImpl extends RecordTypeBuilder {
     if (namedFields != null) {
       namedEntries = <NamedType>[];
       for (RecordTypeFieldBuilder field in namedFields!) {
-        DartType type = field.type
-            .buildAliased(library, TypeUse.recordEntryType, hierarchy);
+        DartType type = field.type.buildAliased(
+          library,
+          TypeUse.recordEntryType,
+          hierarchy,
+        );
         String? name = field.name;
         if (name == null) {
           hasErrors = true;
           continue;
         }
         if (forbiddenObjectMemberNames.contains(name)) {
-          library.addProblem(messageObjectMemberNameUsedForRecordField,
-              field.charOffset, name.length, fileUri);
+          library.addProblem(
+            codeObjectMemberNameUsedForRecordField,
+            field.charOffset,
+            name.length,
+            fileUri,
+          );
           hasErrors = true;
           continue;
         }
         if (name.startsWith("_")) {
-          library.addProblem(messageRecordFieldsCantBePrivate, field.charOffset,
-              name.length, fileUri);
+          library.addProblem(
+            codeRecordFieldsCantBePrivate,
+            field.charOffset,
+            name.length,
+            fileUri,
+          );
           hasErrors = true;
           continue;
         }
         if (tryParseRecordPositionalGetterName(
-                name, positionalFields?.length ?? 0) !=
+              name,
+              positionalFields?.length ?? 0,
+            ) !=
             null) {
           library.addProblem(
-              messageNamedFieldClashesWithPositionalFieldInRecord,
-              field.charOffset,
-              name.length,
-              fileUri);
+            codeNamedFieldClashesWithPositionalFieldInRecord,
+            field.charOffset,
+            name.length,
+            fileUri,
+          );
           hasErrors = true;
           continue;
         }
         RecordTypeFieldBuilder? existingField = fieldsMap[name];
         if (existingField != null) {
           library.addProblem(
-              templateDuplicatedRecordTypeFieldName.withArguments(name),
-              field.charOffset,
-              name.length,
-              fileUri,
-              context: [
-                templateDuplicatedRecordTypeFieldNameContext
-                    .withArguments(name)
-                    .withLocation(
-                        fileUri, existingField.charOffset, name.length)
-              ]);
+            codeDuplicatedRecordTypeFieldName.withArgumentsOld(name),
+            field.charOffset,
+            name.length,
+            fileUri,
+            context: [
+              codeDuplicatedRecordTypeFieldNameContext
+                  .withArgumentsOld(name)
+                  .withLocation(fileUri, existingField.charOffset, name.length),
+            ],
+          );
           hasErrors = true;
           continue;
         }
@@ -278,14 +325,16 @@ abstract class RecordTypeBuilderImpl extends RecordTypeBuilder {
     // TODO(johnniwinther): Should we create an [InvalidType] if there is <= 1
     // entries?
     return new RecordType(
-        positionalEntries, namedEntries ?? [], nullabilityBuilder.build());
+      positionalEntries,
+      namedEntries ?? [],
+      nullabilityBuilder.build(),
+    );
   }
 
   @override
   // Coverage-ignore(suite): Not run.
   Supertype? buildSupertype(LibraryBuilder library, TypeUse typeUse) {
-    library.addProblem(
-        messageSupertypeIsFunction, charOffset, noLength, fileUri);
+    library.addProblem(codeSupertypeIsFunction, charOffset, noLength, fileUri);
     return null;
   }
 
@@ -297,52 +346,71 @@ abstract class RecordTypeBuilderImpl extends RecordTypeBuilder {
 
   @override
   RecordTypeBuilder withNullabilityBuilder(
-      NullabilityBuilder nullabilityBuilder) {
+    NullabilityBuilder nullabilityBuilder,
+  ) {
     return new RecordTypeBuilderImpl(
-        positionalFields, namedFields, nullabilityBuilder, fileUri, charOffset);
+      positionalFields,
+      namedFields,
+      nullabilityBuilder,
+      fileUri,
+      charOffset,
+    );
   }
 
   @override
-  Nullability computeNullability(
-      {required Map<TypeParameterBuilder, TraversalState>
-          typeParametersTraversalState}) {
+  Nullability computeNullability({
+    required Map<TypeParameterBuilder, TraversalState>
+    typeParametersTraversalState,
+  }) {
     return nullabilityBuilder.build();
   }
 
   @override
   VarianceCalculationValue computeTypeParameterBuilderVariance(
-      NominalParameterBuilder variable,
-      {required SourceLoader sourceLoader}) {
+    NominalParameterBuilder variable, {
+    required SourceLoader sourceLoader,
+  }) {
     List<RecordTypeFieldBuilder>? positionalFields = this.positionalFields;
     List<RecordTypeFieldBuilder>? namedFields = this.namedFields;
     Variance result = Variance.unrelated;
     if (positionalFields != null) {
       for (RecordTypeFieldBuilder field in positionalFields) {
-        result = result.meet(field.type
-            .computeTypeParameterBuilderVariance(variable,
-                sourceLoader: sourceLoader)
-            .variance!);
+        result = result.meet(
+          field.type
+              .computeTypeParameterBuilderVariance(
+                variable,
+                sourceLoader: sourceLoader,
+              )
+              .variance!,
+        );
       }
     }
     if (namedFields != null) {
       for (RecordTypeFieldBuilder field in namedFields) {
-        result = result.meet(field.type
-            .computeTypeParameterBuilderVariance(variable,
-                sourceLoader: sourceLoader)
-            .variance!);
+        result = result.meet(
+          field.type
+              .computeTypeParameterBuilderVariance(
+                variable,
+                sourceLoader: sourceLoader,
+              )
+              .variance!,
+        );
       }
     }
     return new VarianceCalculationValue.fromVariance(result);
   }
 
   @override
-  TypeDeclarationBuilder? computeUnaliasedDeclaration(
-          {required bool isUsedAsClass}) =>
-      null;
+  TypeDeclarationBuilder? computeUnaliasedDeclaration({
+    required bool isUsedAsClass,
+  }) => null;
 
   @override
-  void collectReferencesFrom(Map<TypeParameterBuilder, int> parameterIndices,
-      List<List<int>> edges, int index) {
+  void collectReferencesFrom(
+    Map<TypeParameterBuilder, int> parameterIndices,
+    List<List<int>> edges,
+    int index,
+  ) {
     List<RecordTypeFieldBuilder>? positionalFields = this.positionalFields;
     List<RecordTypeFieldBuilder>? namedFields = this.namedFields;
     if (positionalFields != null) {
@@ -359,10 +427,11 @@ abstract class RecordTypeBuilderImpl extends RecordTypeBuilder {
 
   @override
   TypeBuilder? substituteRange(
-      Map<TypeParameterBuilder, TypeBuilder> upperSubstitution,
-      Map<TypeParameterBuilder, TypeBuilder> lowerSubstitution,
-      TypeParameterFactory typeParameterFactory,
-      {final Variance variance = Variance.covariant}) {
+    Map<TypeParameterBuilder, TypeBuilder> upperSubstitution,
+    Map<TypeParameterBuilder, TypeBuilder> lowerSubstitution,
+    TypeParameterFactory typeParameterFactory, {
+    final Variance variance = Variance.covariant,
+  }) {
     List<RecordTypeFieldBuilder>? positionalFields = this.positionalFields;
     List<RecordTypeFieldBuilder>? namedFields = this.namedFields;
 
@@ -373,15 +442,19 @@ abstract class RecordTypeBuilderImpl extends RecordTypeBuilder {
         RecordTypeFieldBuilder positionalFieldBuilder = positionalFields[i];
         TypeBuilder? positionalFieldType = positionalFieldBuilder.type
             .substituteRange(
-                upperSubstitution, lowerSubstitution, typeParameterFactory,
-                variance: variance);
+              upperSubstitution,
+              lowerSubstitution,
+              typeParameterFactory,
+              variance: variance,
+            );
         if (positionalFieldType != null) {
           newPositionalFields ??= positionalFields.toList();
           newPositionalFields[i] = new RecordTypeFieldBuilder(
-              positionalFieldBuilder.metadata,
-              positionalFieldType,
-              positionalFieldBuilder.name,
-              positionalFieldBuilder.charOffset);
+            positionalFieldBuilder.metadata,
+            positionalFieldType,
+            positionalFieldBuilder.name,
+            positionalFieldBuilder.charOffset,
+          );
         }
       }
     }
@@ -389,26 +462,31 @@ abstract class RecordTypeBuilderImpl extends RecordTypeBuilder {
       for (int i = 0; i < namedFields.length; i++) {
         RecordTypeFieldBuilder namedFieldBuilder = namedFields[i];
         TypeBuilder? namedFieldType = namedFieldBuilder.type.substituteRange(
-            upperSubstitution, lowerSubstitution, typeParameterFactory,
-            variance: variance);
+          upperSubstitution,
+          lowerSubstitution,
+          typeParameterFactory,
+          variance: variance,
+        );
         if (namedFieldType != null) {
           newNamedFields ??= namedFields.toList();
           newNamedFields[i] = new RecordTypeFieldBuilder(
-              namedFieldBuilder.metadata,
-              namedFieldType,
-              namedFieldBuilder.name,
-              namedFieldBuilder.charOffset);
+            namedFieldBuilder.metadata,
+            namedFieldType,
+            namedFieldBuilder.name,
+            namedFieldBuilder.charOffset,
+          );
         }
       }
     }
 
     if (positionalFields != null || newNamedFields != null) {
       return new RecordTypeBuilderImpl(
-          newPositionalFields ?? positionalFields,
-          newNamedFields ?? namedFields,
-          this.nullabilityBuilder,
-          this.fileUri,
-          this.charOffset);
+        newPositionalFields ?? positionalFields,
+        newNamedFields ?? namedFields,
+        this.nullabilityBuilder,
+        this.fileUri,
+        this.charOffset,
+      );
     }
     return null;
   }
@@ -443,14 +521,16 @@ abstract class RecordTypeBuilderImpl extends RecordTypeBuilder {
     List<RecordTypeFieldBuilder>? namedFields = this.namedFields;
     if (positionalFields != null) {
       for (RecordTypeFieldBuilder field in positionalFields) {
-        typesAndDependencies
-            .addAll(field.type.findRawTypesWithInboundReferences());
+        typesAndDependencies.addAll(
+          field.type.findRawTypesWithInboundReferences(),
+        );
       }
     }
     if (namedFields != null) {
       for (RecordTypeFieldBuilder field in namedFields) {
-        typesAndDependencies
-            .addAll(field.type.findRawTypesWithInboundReferences());
+        typesAndDependencies.addAll(
+          field.type.findRawTypesWithInboundReferences(),
+        );
       }
     }
     return typesAndDependencies;
@@ -463,13 +543,18 @@ abstract class RecordTypeBuilderImpl extends RecordTypeBuilder {
 /// omitted.
 class _ExplicitRecordTypeBuilder extends RecordTypeBuilderImpl {
   _ExplicitRecordTypeBuilder(
-      List<RecordTypeFieldBuilder>? positionalFields,
-      List<RecordTypeFieldBuilder>? namedFields,
-      NullabilityBuilder nullabilityBuilder,
-      Uri fileUri,
-      int charOffset)
-      : super._(positionalFields, namedFields, nullabilityBuilder, fileUri,
-            charOffset);
+    List<RecordTypeFieldBuilder>? positionalFields,
+    List<RecordTypeFieldBuilder>? namedFields,
+    NullabilityBuilder nullabilityBuilder,
+    Uri fileUri,
+    int charOffset,
+  ) : super._(
+        positionalFields,
+        namedFields,
+        nullabilityBuilder,
+        fileUri,
+        charOffset,
+      );
 
   @override
   bool get isExplicit => true;
@@ -477,8 +562,11 @@ class _ExplicitRecordTypeBuilder extends RecordTypeBuilderImpl {
   DartType? _type;
 
   @override
-  DartType build(LibraryBuilder library, TypeUse typeUse,
-      {ClassHierarchyBase? hierarchy}) {
+  DartType build(
+    LibraryBuilder library,
+    TypeUse typeUse, {
+    ClassHierarchyBase? hierarchy,
+  }) {
     return _type ??= _buildInternal(library, typeUse, hierarchy);
   }
 }
@@ -491,27 +579,38 @@ class _ExplicitRecordTypeBuilder extends RecordTypeBuilderImpl {
 class _InferredRecordTypeBuilder extends RecordTypeBuilderImpl
     with InferableTypeBuilderMixin {
   _InferredRecordTypeBuilder(
-      List<RecordTypeFieldBuilder>? positionalFields,
-      List<RecordTypeFieldBuilder>? namedFields,
-      NullabilityBuilder nullabilityBuilder,
-      Uri fileUri,
-      int charOffset)
-      : super._(positionalFields, namedFields, nullabilityBuilder, fileUri,
-            charOffset);
+    List<RecordTypeFieldBuilder>? positionalFields,
+    List<RecordTypeFieldBuilder>? namedFields,
+    NullabilityBuilder nullabilityBuilder,
+    Uri fileUri,
+    int charOffset,
+  ) : super._(
+        positionalFields,
+        namedFields,
+        nullabilityBuilder,
+        fileUri,
+        charOffset,
+      );
 
   @override
   bool get isExplicit => false;
 
   @override
-  DartType build(LibraryBuilder library, TypeUse typeUse,
-      {ClassHierarchyBase? hierarchy}) {
+  DartType build(
+    LibraryBuilder library,
+    TypeUse typeUse, {
+    ClassHierarchyBase? hierarchy,
+  }) {
     if (hasType) {
       return type;
     } else if (hierarchy != null) {
       return registerType(_buildInternal(library, typeUse, hierarchy));
     } else {
-      InferableTypeUse inferableTypeUse =
-          new InferableTypeUse(library as SourceLibraryBuilder, this, typeUse);
+      InferableTypeUse inferableTypeUse = new InferableTypeUse(
+        library as SourceLibraryBuilder,
+        this,
+        typeUse,
+      );
       library.loader.inferableTypes.registerInferableType(inferableTypeUse);
       return new InferredType.fromInferableTypeUse(inferableTypeUse);
     }
@@ -535,8 +634,13 @@ class RecordTypeFieldBuilder {
 
   final bool isWildcard;
 
-  RecordTypeFieldBuilder(this.metadata, this.type, this.name, this.charOffset,
-      {this.isWildcard = false});
+  RecordTypeFieldBuilder(
+    this.metadata,
+    this.type,
+    this.name,
+    this.charOffset, {
+    this.isWildcard = false,
+  });
 
   @override
   String toString() {

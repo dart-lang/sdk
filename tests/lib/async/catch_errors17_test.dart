@@ -9,23 +9,23 @@ import 'package:expect/expect.dart';
 
 import 'catch_errors.dart';
 
-main() {
+void main() {
   asyncStart();
-  Completer done = new Completer();
+  Completer done = Completer();
 
   var events = [];
   late StreamController controller;
   // Test that errors do not cross zone boundaries.
   catchErrors(() {
     catchErrors(() {
-      controller = new StreamController();
+      controller = StreamController();
       controller.stream
           .map((x) {
             events.add("map $x");
             return x + 100;
           })
           .transform(
-            new StreamTransformer.fromHandlers(
+            StreamTransformer.fromHandlers(
               handleError: (e, st, sink) {
                 sink.add("error $e");
               },
@@ -39,7 +39,7 @@ main() {
     });
     controller.add(1);
     controller.addError(2);
-    new Future.error("outer error");
+    Future.error("outer error");
     controller.close();
   }).listen(
     (x) {

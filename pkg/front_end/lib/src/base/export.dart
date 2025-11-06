@@ -21,8 +21,12 @@ class Export {
 
   final int charOffset;
 
-  Export(this.exporter, this.exportedCompilationUnit, this.combinators,
-      this.charOffset);
+  Export(
+    this.exporter,
+    this.exportedCompilationUnit,
+    this.combinators,
+    this.charOffset,
+  );
 
   LibraryBuilder get exportedLibraryBuilder =>
       exportedCompilationUnit.libraryBuilder;
@@ -43,7 +47,10 @@ class Export {
         }
       }
     }
-    return exporter.libraryBuilder.addToExportScope(name, member,
-        uriOffset: new UriOffset(exporter.fileUri, charOffset));
+    return exporter.libraryBuilder.addToExportScope(
+      name,
+      member,
+      uriOffset: new UriOffset(exporter.fileUri, charOffset),
+    );
   }
 }

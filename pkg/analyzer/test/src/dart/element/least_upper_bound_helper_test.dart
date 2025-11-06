@@ -114,16 +114,10 @@ class PathToObjectTest extends AbstractTypeSystemTest {
     var classC = class_2(name: "C");
     var classD = class_2(name: "D");
     var classE = class_2(name: "E");
-    classB.firstFragment.interfaces = <InterfaceType>[
-      interfaceTypeNone(classA),
-    ];
-    classC.firstFragment.interfaces = <InterfaceType>[
-      interfaceTypeNone(classA),
-    ];
-    classD.firstFragment.interfaces = <InterfaceType>[
-      interfaceTypeNone(classC),
-    ];
-    classE.firstFragment.interfaces = <InterfaceType>[
+    classB.interfaces = <InterfaceType>[interfaceTypeNone(classA)];
+    classC.interfaces = <InterfaceType>[interfaceTypeNone(classA)];
+    classD.interfaces = <InterfaceType>[interfaceTypeNone(classC)];
+    classE.interfaces = <InterfaceType>[
       interfaceTypeNone(classB),
       interfaceTypeNone(classD),
     ];
@@ -153,9 +147,7 @@ class PathToObjectTest extends AbstractTypeSystemTest {
     var classC = class_2(name: "C", superType: interfaceTypeNone(classA));
     var classD = class_2(name: "D", superType: interfaceTypeNone(classC));
     var classE = class_2(name: "E", superType: interfaceTypeNone(classB));
-    classE.firstFragment.interfaces = <InterfaceType>[
-      interfaceTypeNone(classD),
-    ];
+    classE.interfaces = <InterfaceType>[interfaceTypeNone(classD)];
     // assertion: even though the longest path to Object for typeB is 2, and
     // typeE extends typeB, the longest path for typeE is 4 since it also
     // implements typeD
@@ -175,7 +167,7 @@ class PathToObjectTest extends AbstractTypeSystemTest {
   void test_class_recursion() {
     var classA = class_2(name: "A");
     var classB = class_2(name: "B", superType: interfaceTypeNone(classA));
-    classA.firstFragment.supertype = interfaceTypeNone(classB);
+    classA.supertype = interfaceTypeNone(classB);
     expect(_toElement(classA), 2);
   }
 
@@ -194,8 +186,8 @@ class PathToObjectTest extends AbstractTypeSystemTest {
     var classA = class_2(name: "A");
     var classB = class_2(name: "B");
     var classC = class_2(name: "C");
-    classB.firstFragment.interfaces = [interfaceTypeNone(classA)];
-    classC.firstFragment.interfaces = [interfaceTypeNone(classB)];
+    classB.interfaces = [interfaceTypeNone(classA)];
+    classC.interfaces = [interfaceTypeNone(classB)];
     expect(_toElement(classA), 2);
     expect(_toElement(classB), 3);
     expect(_toElement(classC), 4);
@@ -547,7 +539,7 @@ class SuperinterfaceSetTest extends AbstractTypeSystemTest {
     var classB = class_2(name: 'B', superType: instA);
     var instB = interfaceTypeNone(classB);
 
-    classA.firstFragment.supertype = instB;
+    classA.supertype = instB;
 
     expect(_superInterfaces(instB), unorderedEquals([instA, instB]));
 

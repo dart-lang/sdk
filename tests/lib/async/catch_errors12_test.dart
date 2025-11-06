@@ -9,9 +9,9 @@ import 'package:expect/expect.dart';
 
 import 'catch_errors.dart';
 
-main() {
+void main() {
   asyncStart();
-  Completer done = new Completer();
+  Completer done = Completer();
 
   var events = [];
   // Tests that errors that have been delayed by several milliseconds with
@@ -21,11 +21,11 @@ main() {
     Timer.run(() {
       throw "timer error";
     });
-    new Timer(const Duration(milliseconds: 100), () {
+    Timer(const Duration(milliseconds: 100), () {
       throw "timer2 error";
     });
-    new Future.value(499).then((x) {
-      new Timer(const Duration(milliseconds: 200), () {
+    Future.value(499).then((x) {
+      Timer(const Duration(milliseconds: 200), () {
         done.complete(499);
         throw x;
       });

@@ -6,6 +6,7 @@
 #include "vm/source_report.h"
 
 #include "vm/bit_vector.h"
+#include "vm/bytecode_reader.h"
 #include "vm/closure_functions_cache.h"
 #include "vm/compiler/jit/compiler.h"
 #include "vm/isolate.h"
@@ -333,9 +334,7 @@ intptr_t SourceReport::GetTokenPosOrLine(const Script& script,
 void SourceReport::PrintCoverageData(JSONObject* jsobj,
                                      intptr_t script_index,
                                      const Function& function,
-                                     const Code& code,
                                      bool report_branch_coverage) {
-  ASSERT(!code.IsNull());
   const TokenPosition& begin_pos = function.token_pos();
   const TokenPosition& end_pos = function.end_token_pos();
 
@@ -432,28 +431,46 @@ void SourceReport::PrintPossibleBreakpointsData(JSONObject* jsobj,
   intptr_t func_length = func.SourceSize() + 1;
 
   BitVector possible(zone(), func_length);
-
-  ASSERT(!code.IsNull());
-
-  const uint8_t kSafepointKind = (UntaggedPcDescriptors::kIcCall |
-                                  UntaggedPcDescriptors::kUnoptStaticCall |
-                                  UntaggedPcDescriptors::kRuntimeCall);
-
-  const PcDescriptors& descriptors =
-      PcDescriptors::Handle(zone(), code.pc_descriptors());
   const Script& script = Script::Handle(zone(), func.script());
 
-  PcDescriptors::Iterator iter(descriptors, kSafepointKind);
-  while (iter.MoveNext()) {
-    const TokenPosition& token_pos = iter.TokenPos();
-    if (!token_pos.IsWithin(begin_pos, end_pos)) {
-      // Does not correspond to a valid source position.
-      continue;
+  if (func.HasBytecode()) {
+#if defined(DART_DYNAMIC_MODULES)
+    const auto& bytecode = Bytecode::Handle(zone(), func.GetBytecode());
+    // Currently, every source position is a possible breakpoint.
+    bytecode::BytecodeSourcePositionsIterator iter(zone(), bytecode);
+    while (iter.MoveNext()) {
+      const TokenPosition& token_pos = iter.TokenPos();
+      if (!token_pos.IsWithin(begin_pos, end_pos)) {
+        // Does not correspond to a valid source position.
+        continue;
+      }
+      intptr_t token_offset = token_pos.Pos() - begin_pos.Pos();
+      possible.Add(token_offset);
     }
-    intptr_t token_offset = token_pos.Pos() - begin_pos.Pos();
-    possible.Add(token_offset);
-  }
+#else
+    UNREACHABLE();
+#endif
+  } else {
+    ASSERT(!code.IsNull());
 
+    const uint8_t kSafepointKind = (UntaggedPcDescriptors::kIcCall |
+                                    UntaggedPcDescriptors::kUnoptStaticCall |
+                                    UntaggedPcDescriptors::kRuntimeCall);
+
+    const PcDescriptors& descriptors =
+        PcDescriptors::Handle(zone(), code.pc_descriptors());
+
+    PcDescriptors::Iterator iter(descriptors, kSafepointKind);
+    while (iter.MoveNext()) {
+      const TokenPosition& token_pos = iter.TokenPos();
+      if (!token_pos.IsWithin(begin_pos, end_pos)) {
+        // Does not correspond to a valid source position.
+        continue;
+      }
+      intptr_t token_offset = token_pos.Pos() - begin_pos.Pos();
+      possible.Add(token_offset);
+    }
+  }
   JSONArray bpts(jsobj, "possibleBreakpoints");
   TokenPosition pos = begin_pos;
   for (int i = 0; i < func_length; i++) {
@@ -538,33 +555,36 @@ void SourceReport::VisitFunction(JSONArray* jsarr,
     return;
   }
 
-  Code& code = Code::Handle(zone(), func.unoptimized_code());
-  if (code.IsNull()) {
-    if (func.HasCode() || (compile_mode == kForceCompile)) {
-      const Error& err =
-          Error::Handle(Compiler::EnsureUnoptimizedCode(thread(), func));
-      if (!err.IsNull()) {
-        // Emit an uncompiled range for this function with error information.
+  auto& code = Code::Handle(zone());
+  if (!func.HasBytecode()) {
+    code = func.unoptimized_code();
+    if (code.IsNull()) {
+      if (func.HasCode() || (compile_mode == kForceCompile)) {
+        const Error& err =
+            Error::Handle(Compiler::EnsureUnoptimizedCode(thread(), func));
+        if (!err.IsNull()) {
+          // Emit an uncompiled range for this function with error information.
+          JSONObject range(jsarr);
+          range.AddProperty("scriptIndex", script_index);
+          range.AddProperty("startPos", begin_pos);
+          range.AddProperty("endPos", end_pos);
+          range.AddProperty("compiled", false);
+          range.AddProperty("error", err);
+          return;
+        }
+        code = func.unoptimized_code();
+      } else {
+        // This function has not been compiled yet.
         JSONObject range(jsarr);
         range.AddProperty("scriptIndex", script_index);
         range.AddProperty("startPos", begin_pos);
         range.AddProperty("endPos", end_pos);
         range.AddProperty("compiled", false);
-        range.AddProperty("error", err);
         return;
       }
-      code = func.unoptimized_code();
-    } else {
-      // This function has not been compiled yet.
-      JSONObject range(jsarr);
-      range.AddProperty("scriptIndex", script_index);
-      range.AddProperty("startPos", begin_pos);
-      range.AddProperty("endPos", end_pos);
-      range.AddProperty("compiled", false);
-      return;
     }
   }
-  ASSERT(!code.IsNull());
+  ASSERT(!code.IsNull() || func.HasBytecode());
 
   JSONObject range(jsarr);
   range.AddProperty("scriptIndex", script_index);
@@ -572,15 +592,16 @@ void SourceReport::VisitFunction(JSONArray* jsarr,
   range.AddProperty("endPos", end_pos);
   range.AddProperty("compiled", true);
 
-  if (IsReportRequested(kCallSites)) {
+  // TODO(sstrickl): Handle call site data for bytecode.
+  if (IsReportRequested(kCallSites) && !code.IsNull()) {
     PrintCallSitesData(&range, func, code);
   }
   if (IsReportRequested(kCoverage)) {
-    PrintCoverageData(&range, script_index, func, code,
+    PrintCoverageData(&range, script_index, func,
                       /* report_branch_coverage */ false);
   }
   if (IsReportRequested(kBranchCoverage)) {
-    PrintCoverageData(&range, script_index, func, code,
+    PrintCoverageData(&range, script_index, func,
                       /* report_branch_coverage */ true);
   }
   if (IsReportRequested(kPossibleBreakpoints)) {

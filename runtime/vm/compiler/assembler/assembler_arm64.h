@@ -502,8 +502,10 @@ class Assembler : public AssemblerBase {
     StoreToOffset(src, base, offset, kEightBytes);
   }
 
-  void TsanLoadAcquire(Register addr);
-  void TsanStoreRelease(Register addr);
+  void TsanLoadAcquire(Register dst, Register addr, OperandSize size);
+  void TsanStoreRelease(Register src, Register addr, OperandSize size);
+  void TsanFuncEntry(bool preserve_registers = true);
+  void TsanFuncExit(bool preserve_registers = true);
 
   void LoadAcquire(Register dst,
                    const Address& address,
@@ -515,9 +517,10 @@ class Assembler : public AssemblerBase {
       AddImmediate(TMP2, src, address.offset());
       src = TMP2;
     }
-    ldar(dst, src, size);
     if (FLAG_target_thread_sanitizer) {
-      TsanLoadAcquire(src);
+      TsanLoadAcquire(dst, src, size);
+    } else {
+      ldar(dst, src, size);
     }
   }
 
@@ -538,9 +541,10 @@ class Assembler : public AssemblerBase {
       AddImmediate(TMP2, dst, address.offset());
       dst = TMP2;
     }
-    stlr(src, dst, size);
     if (FLAG_target_thread_sanitizer) {
-      TsanStoreRelease(dst);
+      TsanStoreRelease(src, dst, size);
+    } else {
+      stlr(src, dst, size);
     }
   }
 
@@ -2137,7 +2141,9 @@ class Assembler : public AssemblerBase {
   void LeaveDartFrame();
 
   // For non-leaf runtime calls. For leaf runtime calls, use LeafRuntimeScope,
-  void CallRuntime(const RuntimeEntry& entry, intptr_t argument_count);
+  void CallRuntime(const RuntimeEntry& entry,
+                   intptr_t argument_count,
+                   bool tsan_enter_exit = true);
 
   // Set up a stub frame so that the stack traversal code can easily identify
   // a stub frame.

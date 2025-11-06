@@ -6,6 +6,7 @@ import 'package:front_end/src/builder/property_builder.dart';
 import 'package:kernel/ast.dart' show LibraryDependency;
 
 import '../base/combinator.dart';
+import '../base/extension_scope.dart';
 import '../base/lookup_result.dart';
 import '../base/messages.dart';
 import '../base/name_space.dart';
@@ -18,15 +19,25 @@ import 'builder.dart';
 import 'compilation_unit.dart';
 import 'declaration_builders.dart';
 
-class PrefixBuilder extends NamedBuilderImpl implements LookupResult {
+class PrefixBuilder extends NamedBuilderImpl
+    with LookupResultMixin
+    implements LookupResult {
   @override
   final String name;
 
   final ComputedMutableNameSpace _prefixNameSpace =
       new ComputedMutableNameSpace();
 
-  late final LookupScope _prefixScope =
-      new NameSpaceLookupScope(_prefixNameSpace, ScopeKind.library);
+  final ExtensionsBuilder _prefixExtensions = new ExtensionsBuilder();
+
+  /// The [PrefixBuilder] of the same name declared in an ancestor compilation
+  /// unit, if any.
+  final PrefixBuilder? parentPrefixBuilder;
+
+  late final LookupScope _prefixScope = new NameSpaceLookupScope(
+    _prefixNameSpace,
+    parent: parentPrefixBuilder?.prefixScope,
+  );
 
   @override
   final SourceLibraryBuilder parent;
@@ -43,55 +54,79 @@ class PrefixBuilder extends NamedBuilderImpl implements LookupResult {
 
   final bool isWildcard;
 
-  PrefixBuilder(this.name, this.deferred, this.parent, this.loadLibraryBuilder,
-      {required this.fileUri,
-      required int prefixOffset,
-      required int importOffset})
-      : fileOffset = prefixOffset,
-        isWildcard = name == '_' {
-    assert(deferred == (loadLibraryBuilder != null),
-        "LoadLibraryBuilder must be provided iff prefix is deferred.");
+  PrefixBuilder(
+    this.name,
+    this.deferred,
+    this.parent,
+    this.loadLibraryBuilder, {
+    required this.fileUri,
+    required int prefixOffset,
+    required int importOffset,
+    required this.parentPrefixBuilder,
+  }) : fileOffset = prefixOffset,
+       isWildcard = name == '_' {
+    assert(
+      deferred == (loadLibraryBuilder != null),
+      "LoadLibraryBuilder must be provided iff prefix is deferred.",
+    );
     if (loadLibraryBuilder != null) {
-      addToPrefixScope(loadLibraryBuilder!.name, loadLibraryBuilder!,
-          importOffset: importOffset, prefixOffset: prefixOffset);
+      addToPrefixScope(
+        loadLibraryBuilder!.name,
+        loadLibraryBuilder!,
+        importOffset: importOffset,
+        prefixOffset: prefixOffset,
+      );
     }
   }
 
   LookupScope get prefixScope => _prefixScope;
 
   void forEachExtension(void Function(ExtensionBuilder) f) {
-    _prefixNameSpace.forEachLocalExtension(f);
+    _prefixExtensions.forEachLocalExtension(f);
   }
 
   LibraryDependency? get dependency => loadLibraryBuilder?.importDependency;
 
   /// Lookup a member with [name] in the export scope.
-  LookupResult? lookup(String name, int charOffset, Uri fileUri) {
-    return _prefixScope.lookup(name, charOffset, fileUri);
+  LookupResult? lookup(String name) {
+    return _prefixScope.lookup(name);
   }
 
-  void addToPrefixScope(String name, NamedBuilder member,
-      {required int importOffset, required int prefixOffset}) {
+  void addToPrefixScope(
+    String name,
+    NamedBuilder member, {
+    required int importOffset,
+    required int prefixOffset,
+  }) {
     if (deferred && member is ExtensionBuilder) {
-      parent.addProblem(templateDeferredExtensionImport.withArguments(name),
-          importOffset, noLength, fileUri);
+      parent.addProblem(
+        codeDeferredExtensionImport.withArgumentsOld(name),
+        importOffset,
+        noLength,
+        fileUri,
+      );
     }
 
     bool isSetter = isMappedAsSetter(member);
 
-    LookupResult? existingResult = _prefixNameSpace.lookupLocalMember(name);
-    NamedBuilder? existing =
-        isSetter ? existingResult?.setable : existingResult?.getable;
+    LookupResult? existingResult = _prefixNameSpace.lookup(name);
+    NamedBuilder? existing = isSetter
+        ? existingResult?.setable
+        : existingResult?.getable;
     if (existing != null) {
       NamedBuilder result = computeAmbiguousDeclarationForImport(
-          parent, name, existing, member,
-          uriOffset: new UriOffset(fileUri, prefixOffset));
+        parent,
+        name,
+        existing,
+        member,
+        uriOffset: new UriOffset(fileUri, prefixOffset),
+      );
       _prefixNameSpace.replaceLocalMember(name, result, setter: isSetter);
     } else {
       _prefixNameSpace.addLocalMember(name, member, setter: isSetter);
     }
     if (member is ExtensionBuilder) {
-      _prefixNameSpace.addExtension(member);
+      _prefixExtensions.addExtension(member);
     }
   }
 
@@ -129,23 +164,29 @@ class PrefixFragment {
     required this.prefixOffset,
   });
 
-  PrefixBuilder createPrefixBuilder() {
+  PrefixBuilder createPrefixBuilder(PrefixBuilder? parentPrefixBuilder) {
     LoadLibraryBuilder? loadLibraryBuilder;
     if (deferred) {
       loadLibraryBuilder = new LoadLibraryBuilder(
-          importer.libraryBuilder,
-          prefixOffset,
-          imported!,
-          name,
-          importOffset,
-          toCombinators(combinators));
+        importer.libraryBuilder,
+        prefixOffset,
+        imported!,
+        name,
+        importOffset,
+        toCombinators(combinators),
+      );
     }
 
     return builder = new PrefixBuilder(
-        name, deferred, importer.libraryBuilder, loadLibraryBuilder,
-        fileUri: fileUri,
-        prefixOffset: prefixOffset,
-        importOffset: importOffset);
+      name,
+      deferred,
+      importer.libraryBuilder,
+      loadLibraryBuilder,
+      fileUri: fileUri,
+      prefixOffset: prefixOffset,
+      importOffset: importOffset,
+      parentPrefixBuilder: parentPrefixBuilder,
+    );
   }
 
   PrefixBuilder get builder {

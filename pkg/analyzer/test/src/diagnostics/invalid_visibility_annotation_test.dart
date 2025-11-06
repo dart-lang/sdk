@@ -30,8 +30,8 @@ class C {
 }
 ''',
       [
-        error(WarningCode.INVALID_VISIBILITY_ANNOTATION, 46, 17),
-        error(WarningCode.UNUSED_FIELD, 68, 2),
+        error(WarningCode.invalidVisibilityAnnotation, 46, 17),
+        error(WarningCode.unusedField, 68, 2),
       ],
     );
   }
@@ -45,10 +45,10 @@ class C {
 }
 ''',
       [
-        error(WarningCode.INVALID_VISIBILITY_ANNOTATION, 46, 17),
-        error(WarningCode.INVALID_VISIBILITY_ANNOTATION, 46, 17),
-        error(WarningCode.UNUSED_FIELD, 68, 2),
-        error(WarningCode.UNUSED_FIELD, 76, 2),
+        error(WarningCode.invalidVisibilityAnnotation, 46, 17),
+        error(WarningCode.invalidVisibilityAnnotation, 46, 17),
+        error(WarningCode.unusedField, 68, 2),
+        error(WarningCode.unusedField, 76, 2),
       ],
     );
   }
@@ -69,8 +69,8 @@ import 'package:meta/meta.dart';
 @visibleForTesting class _C {}
 ''',
       [
-        error(WarningCode.INVALID_VISIBILITY_ANNOTATION, 34, 17),
-        error(WarningCode.UNUSED_ELEMENT, 58, 2),
+        error(WarningCode.invalidVisibilityAnnotation, 34, 17),
+        error(WarningCode.unusedElement, 58, 2),
       ],
     );
   }
@@ -83,7 +83,7 @@ class C {
   @visibleForTesting C._() {}
 }
 ''',
-      [error(WarningCode.INVALID_VISIBILITY_ANNOTATION, 46, 17)],
+      [error(WarningCode.invalidVisibilityAnnotation, 46, 17)],
     );
   }
 
@@ -94,7 +94,7 @@ import 'package:meta/meta.dart';
 @visibleForTesting enum _E {a, b}
 void f(_E e) => e == _E.a || e == _E.b;
 ''',
-      [error(WarningCode.INVALID_VISIBILITY_ANNOTATION, 34, 17)],
+      [error(WarningCode.invalidVisibilityAnnotation, 34, 17)],
     );
   }
 
@@ -105,8 +105,8 @@ import 'package:meta/meta.dart';
 @visibleForTesting extension type _E(int i) {}
 ''',
       [
-        error(WarningCode.INVALID_VISIBILITY_ANNOTATION, 34, 17),
-        error(WarningCode.UNUSED_ELEMENT, 67, 2),
+        error(WarningCode.invalidVisibilityAnnotation, 34, 17),
+        error(WarningCode.unusedElement, 67, 2),
       ],
     );
   }
@@ -120,8 +120,8 @@ class C {
 }
 ''',
       [
-        error(WarningCode.INVALID_VISIBILITY_ANNOTATION, 46, 17),
-        error(WarningCode.UNUSED_FIELD, 68, 2),
+        error(WarningCode.invalidVisibilityAnnotation, 46, 17),
+        error(WarningCode.unusedField, 68, 2),
       ],
     );
   }
@@ -135,8 +135,8 @@ class C {
 }
 ''',
       [
-        error(WarningCode.INVALID_VISIBILITY_ANNOTATION, 46, 17),
-        error(WarningCode.UNUSED_ELEMENT, 69, 2),
+        error(WarningCode.invalidVisibilityAnnotation, 46, 17),
+        error(WarningCode.unusedElement, 69, 2),
       ],
     );
   }
@@ -148,8 +148,8 @@ import 'package:meta/meta.dart';
 @visibleForTesting mixin _M {}
 ''',
       [
-        error(WarningCode.INVALID_VISIBILITY_ANNOTATION, 34, 17),
-        error(WarningCode.UNUSED_ELEMENT, 58, 2),
+        error(WarningCode.invalidVisibilityAnnotation, 34, 17),
+        error(WarningCode.unusedElement, 58, 2),
       ],
     );
   }
@@ -161,8 +161,8 @@ import 'package:meta/meta.dart';
 @visibleForTesting void _f() {}
 ''',
       [
-        error(WarningCode.INVALID_VISIBILITY_ANNOTATION, 34, 17),
-        error(WarningCode.UNUSED_ELEMENT, 57, 2),
+        error(WarningCode.invalidVisibilityAnnotation, 34, 17),
+        error(WarningCode.unusedElement, 57, 2),
       ],
     );
   }
@@ -174,8 +174,8 @@ import 'package:meta/meta.dart';
 @visibleForTesting final _a = 1;
 ''',
       [
-        error(WarningCode.INVALID_VISIBILITY_ANNOTATION, 34, 17),
-        error(WarningCode.UNUSED_ELEMENT, 58, 2),
+        error(WarningCode.invalidVisibilityAnnotation, 34, 17),
+        error(WarningCode.unusedElement, 58, 2),
       ],
     );
   }
@@ -187,8 +187,8 @@ import 'package:meta/meta.dart';
 @visibleForTesting typedef _T = Function();
 ''',
       [
-        error(WarningCode.INVALID_VISIBILITY_ANNOTATION, 34, 17),
-        error(WarningCode.UNUSED_ELEMENT, 60, 2),
+        error(WarningCode.invalidVisibilityAnnotation, 34, 17),
+        error(WarningCode.unusedElement, 60, 2),
       ],
     );
   }
@@ -200,8 +200,8 @@ import 'package:meta/meta.dart';
 @visibleForTesting final _a = 1, b = 2;
 ''',
       [
-        error(WarningCode.INVALID_VISIBILITY_ANNOTATION, 34, 17),
-        error(WarningCode.UNUSED_ELEMENT, 58, 2),
+        error(WarningCode.invalidVisibilityAnnotation, 34, 17),
+        error(WarningCode.unusedElement, 58, 2),
       ],
     );
   }
@@ -213,10 +213,10 @@ import 'package:meta/meta.dart';
 @visibleForTesting final _a = 1, _b = 2;
 ''',
       [
-        error(WarningCode.INVALID_VISIBILITY_ANNOTATION, 34, 17),
-        error(WarningCode.INVALID_VISIBILITY_ANNOTATION, 34, 17),
-        error(WarningCode.UNUSED_ELEMENT, 58, 2),
-        error(WarningCode.UNUSED_ELEMENT, 66, 2),
+        error(WarningCode.invalidVisibilityAnnotation, 34, 17),
+        error(WarningCode.invalidVisibilityAnnotation, 34, 17),
+        error(WarningCode.unusedElement, 58, 2),
+        error(WarningCode.unusedElement, 66, 2),
       ],
     );
   }

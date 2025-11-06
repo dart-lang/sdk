@@ -25,9 +25,9 @@ class DataDriven extends MultiCorrectionProducer {
   @override
   Future<List<ResolvedCorrectionProducer>> get producers async {
     var importedUris = <Uri>[];
-    var library = unitResult.libraryElement2;
+    var library = unitResult.libraryElement;
     var fragment = library.firstFragment;
-    for (var importElement in fragment.libraryImports2) {
+    for (var importElement in fragment.libraryImports) {
       // TODO(brianwilkerson): Filter based on combinators to help avoid making
       //  invalid suggestions.
       var uri = importElement.uri;
@@ -36,7 +36,7 @@ class DataDriven extends MultiCorrectionProducer {
         importedUris.add(uri.relativeUri);
       }
     }
-    var matchers = ElementMatcher.matchersForNode(node, token);
+    var matchers = ElementMatcher.matchersForNode(node, token, library);
     if (matchers.isEmpty) {
       // The node doesn't represent any element that can be transformed.
       return const [];
@@ -88,7 +88,7 @@ class DataDrivenFix extends ResolvedCorrectionProducer {
   List<String> get fixArguments => [_transform.title];
 
   @override
-  FixKind get fixKind => DartFixKind.DATA_DRIVEN;
+  FixKind get fixKind => DartFixKind.dataDriven;
 
   @override
   Future<void> compute(ChangeBuilder builder) async {

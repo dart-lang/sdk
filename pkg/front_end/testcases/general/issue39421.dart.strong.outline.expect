@@ -9,13 +9,6 @@ library;
 // class A {}
 //       ^
 //
-// pkg/front_end/testcases/general/issue39421.dart:16:12: Error: 'A' isn't a type.
-//   foo(List<A> a) {}
-//            ^
-// pkg/front_end/testcases/general/issue39421.dart:16:12: Context: This isn't a type.
-//   foo(List<A> a) {}
-//            ^
-//
 import self as self;
 import "dart:core" as core;
 

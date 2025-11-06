@@ -2607,7 +2607,7 @@ void foo(BuildContext context) async {
       [
         // Just don't crash when one argument references BuildContext, and not all
         // positional arguments are given.
-        error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 95, 36),
+        error(CompileTimeErrorCode.argumentTypeNotAssignable, 95, 36),
       ],
     );
   }

@@ -450,7 +450,7 @@ main() {}
 export 'a.dart';
 ''');
 
-    var library = result.libraryElement2;
+    var library = result.libraryElement;
     var main = library.entryPoint!;
 
     expect(main, isNotNull);
@@ -462,7 +462,7 @@ export 'a.dart';
 main() {}
 ''');
 
-    var library = result.libraryElement2;
+    var library = result.libraryElement;
     var main = library.entryPoint!;
 
     expect(main, isNotNull);
@@ -472,7 +472,7 @@ main() {}
   test_entryPoint_none() async {
     await assertNoErrorsInCode('');
 
-    var library = result.libraryElement2;
+    var library = result.libraryElement;
     expect(library.entryPoint, isNull);
   }
 
@@ -529,8 +529,8 @@ f() {
 }
 ''',
       [
-        error(WarningCode.UNUSED_LOCAL_VARIABLE, 40, 1),
-        error(WarningCode.UNUSED_LOCAL_VARIABLE, 65, 1),
+        error(WarningCode.unusedLocalVariable, 40, 1),
+        error(WarningCode.unusedLocalVariable, 65, 1),
       ],
     );
   }
@@ -597,7 +597,7 @@ void main() {
   var y = new C().x;
 }
 ''',
-      [error(WarningCode.UNUSED_LOCAL_VARIABLE, 124, 1)],
+      [error(WarningCode.unusedLocalVariable, 124, 1)],
     );
 
     // Verify that the getter for "x" in "new C().x" refers to the getter
@@ -665,7 +665,7 @@ class H extends D<p.W> {
   H(int i) : super(i);
 }
 ''',
-      [error(CompileTimeErrorCode.URI_DOES_NOT_EXIST, 7, 14)],
+      [error(CompileTimeErrorCode.uriDoesNotExist, 7, 14)],
     );
   }
 
@@ -693,7 +693,7 @@ class H extends D<W> {
   H(int i) : super(i);
 }
 ''',
-      [error(CompileTimeErrorCode.URI_DOES_NOT_EXIST, 7, 14)],
+      [error(CompileTimeErrorCode.uriDoesNotExist, 7, 14)],
     );
   }
 
@@ -728,7 +728,7 @@ f() {
   List<List<int>> b = [];
   b[0][0] = 'hi';
 }''',
-      [error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 44, 4)],
+      [error(CompileTimeErrorCode.invalidAssignment, 44, 4)],
     );
   }
 
@@ -767,7 +767,7 @@ class A {
 class A extends B {}
 class B {}
 class C = Object with A;''',
-      [error(CompileTimeErrorCode.MIXIN_INHERITS_FROM_NOT_OBJECT, 54, 1)],
+      [error(CompileTimeErrorCode.mixinInheritsFromNotObject, 54, 1)],
     );
 
     var a = findElement2.class_('A');
@@ -781,7 +781,7 @@ class A {
   A() {}
 }
 class C = Object with A;''',
-      [error(CompileTimeErrorCode.MIXIN_CLASS_DECLARES_CONSTRUCTOR, 43, 1)],
+      [error(CompileTimeErrorCode.mixinClassDeclaresConstructor, 43, 1)],
     );
 
     var a = findElement2.class_('A');
@@ -877,7 +877,7 @@ Annotation
     token: A
     element: <testLibrary>::@getter::A
     staticType: null
-  element2: <testLibrary>::@getter::A
+  element: <testLibrary>::@getter::A
 ''');
   }
 
@@ -900,7 +900,7 @@ Annotation
     token: A
     element: <testLibrary>::@getter::A
     staticType: null
-  element2: <testLibrary>::@getter::A
+  element: <testLibrary>::@getter::A
 ''');
   }
 
@@ -921,7 +921,7 @@ Annotation
     token: A
     element: <testLibrary>::@getter::A
     staticType: null
-  element2: <testLibrary>::@getter::A
+  element: <testLibrary>::@getter::A
 ''');
   }
 
@@ -941,7 +941,7 @@ Annotation
     token: A
     element: <testLibrary>::@getter::A
     staticType: null
-  element2: <testLibrary>::@getter::A
+  element: <testLibrary>::@getter::A
 ''');
   }
 
@@ -993,7 +993,7 @@ Annotation
     token: A
     element: <testLibrary>::@getter::A
     staticType: null
-  element2: <testLibrary>::@getter::A
+  element: <testLibrary>::@getter::A
 ''');
   }
 
@@ -1014,7 +1014,7 @@ Annotation
     token: A
     element: <testLibrary>::@getter::A
     staticType: null
-  element2: <testLibrary>::@getter::A
+  element: <testLibrary>::@getter::A
 ''');
   }
 
@@ -1043,7 +1043,7 @@ Annotation
     token: A
     element: <testLibrary>::@getter::A
     staticType: null
-  element2: <testLibrary>::@getter::A
+  element: <testLibrary>::@getter::A
 ''');
   }
 
@@ -1064,7 +1064,7 @@ Annotation
     token: A
     element: <testLibrary>::@getter::A
     staticType: null
-  element2: <testLibrary>::@getter::A
+  element: <testLibrary>::@getter::A
 ''');
   }
 
@@ -1073,7 +1073,7 @@ Annotation
 @A library lib;
 const A = null;''');
 
-    var metadata = result.libraryElement2.metadata.annotations;
+    var metadata = result.libraryElement.metadata.annotations;
     expect(metadata, hasLength(1));
   }
 
@@ -1106,7 +1106,7 @@ Annotation
     token: A
     element: <testLibrary>::@getter::A
     staticType: null
-  element2: <testLibrary>::@getter::A
+  element: <testLibrary>::@getter::A
 ''');
   }
 
@@ -1126,7 +1126,7 @@ Annotation
     token: A
     element: <testLibrary>::@getter::A
     staticType: null
-  element2: <testLibrary>::@getter::A
+  element: <testLibrary>::@getter::A
 ''');
   }
 
@@ -1172,7 +1172,7 @@ Annotation
     token: A
     element: <testLibrary>::@getter::A
     staticType: null
-  element2: <testLibrary>::@getter::A
+  element: <testLibrary>::@getter::A
 ''');
   }
 

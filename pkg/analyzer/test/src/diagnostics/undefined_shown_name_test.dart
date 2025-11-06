@@ -21,7 +21,7 @@ class UndefinedShownNameTest extends PubPackageResolutionTest {
       r'''
 export 'lib1.dart' show a;
 ''',
-      [error(WarningCode.UNDEFINED_SHOWN_NAME, 24, 1)],
+      [error(WarningCode.undefinedShownName, 24, 1)],
     );
   }
 
@@ -32,8 +32,8 @@ export 'lib1.dart' show a;
 import 'lib1.dart' show a;
 ''',
       [
-        error(WarningCode.UNUSED_IMPORT, 7, 11),
-        error(WarningCode.UNDEFINED_SHOWN_NAME, 24, 1),
+        error(WarningCode.unusedImport, 7, 11),
+        error(WarningCode.undefinedShownName, 24, 1),
       ],
     );
   }

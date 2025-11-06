@@ -7,6 +7,8 @@ import 'dart:convert';
 import 'dart:io' as io;
 import 'dart:math' show max, min;
 
+import 'package:_js_interop_checks/src/js_interop.dart'
+    show getDartJSInteropJSName, hasDartJSInteropAnnotation;
 import 'package:_js_interop_checks/src/transformations/js_util_optimizer.dart'
     show ExtensionIndex;
 import 'package:front_end/src/api_unstable/ddc.dart';
@@ -5575,8 +5577,7 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
       return jsReceiver;
     }
     var memberName = node.name.text;
-    if (_isObjectGetter(memberName) &&
-        _shouldCallObjectMemberHelper(receiver)) {
+    if (member.isCoreObjectGetter && _shouldCallObjectMemberHelper(receiver)) {
       // The names of the static helper methods in the runtime must match the
       // names of the Object instance getters.
       return _runtimeCall('#(#)', [memberName, jsReceiver]);
@@ -5623,7 +5624,7 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
       return jsReceiver;
     }
     var memberName = node.name.text;
-    if (_isObjectMethodTearoff(memberName) &&
+    if (member.isToStringOrNoSuchMethod &&
         _shouldCallObjectMemberHelper(receiver)) {
       // The names of the static helper methods in the runtime must start with
       // the names of the Object instance methods.
@@ -5906,10 +5907,86 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
 
   @override
   js_ast.Expression visitInstanceInvocation(InstanceInvocation node) {
-    var invocation = _emitInstanceInvocation(node);
+    var target = node.interfaceTarget;
+    if (target.isPrimitiveOperator) {
+      return _emitPrimitiveOperatorInvocation(node);
+    }
+    var receiver = node.receiver;
+    var jsReceiver = _visitExpression(receiver);
+    var jsArguments = _emitArgumentList(node.arguments, target: target);
+    if (node.isNativeListInvariantAddInvocation(_coreTypes.listClass)) {
+      return js.call('#.push(#)', [jsReceiver, jsArguments]);
+    }
+    var name = node.name.text;
+    if (name == 'call') {
+      var directCallInvocation = _emitDirectInstanceCallInvocation(node);
+      if (directCallInvocation != null) {
+        return directCallInvocation;
+      }
+    }
+    if (target.isToStringOrNoSuchMethodWithDefaultSignature &&
+        _shouldCallObjectMemberHelper(receiver)) {
+      // Handle Object methods when the receiver could potentially be `null` or
+      // JavaScript interop values with static helper methods.
+      // The names of the static helper methods in the runtime must match the
+      // names of the Object instance members.
+      return _runtimeCall('#(#, #)', [name, jsReceiver, jsArguments]);
+    }
+    // Otherwise generate this as a normal typed method call.
+    var jsName = _emitMemberName(name, member: target);
+    var invocation = js.call('#.#(#)', [jsReceiver, jsName, jsArguments]);
     return _isNullCheckableJsInterop(node.interfaceTarget)
         ? _wrapWithJsInteropNullCheck(invocation)
         : invocation;
+  }
+
+  /// Returns a direct invocation to support a `call()` method invocation when
+  /// the receiver is considered directly callable, otherwise returns
+  /// `null`.
+  ///
+  /// For example if `fn` is statically typed as a function type, then
+  /// `fn.call()` would be considered directly callable and compiled as `fn()`.
+  js_ast.Expression? _emitDirectInstanceCallInvocation(
+    InstanceInvocation node,
+  ) {
+    // Erasing the extension types here to support existing callable behavior
+    // on the old style JS interop types that are callable. This should be
+    // safe as it is a compile time error to try to dynamically invoke a call
+    // method that is inherited from an extension type.
+    var receiverType = node.receiver
+        .getStaticType(_staticTypeContext)
+        .extensionTypeErasure;
+    if (!_isDirectCallable(receiverType)) return null;
+    // Handle call methods on function types as function calls.
+    var invocation = js_ast.Call(
+      _visitExpression(node.receiver),
+      _emitArgumentList(node.arguments, target: node.interfaceTarget),
+    );
+    return _isNullCheckableJsInterop(node.interfaceTarget)
+        ? _wrapWithJsInteropNullCheck(invocation)
+        : invocation;
+  }
+
+  /// Returns an invocation of a primitive operator.
+  ///
+  /// See [ProcedureHelpers.isPrimitiveOperator].
+  js_ast.Expression _emitPrimitiveOperatorInvocation(InstanceInvocation node) {
+    var receiver = node.receiver;
+    var target = node.interfaceTarget;
+    var arguments = node.arguments;
+    assert(arguments.types.isEmpty && arguments.named.isEmpty);
+    // JavaScript interop does not support overloading of these operators.
+    return switch (arguments.positional.length) {
+      0 => _emitUnaryOperator(receiver, target, node),
+      1 => _emitBinaryOperator(receiver, target, arguments.positional[0], node),
+      // Should always be a compile time error but here for exhaustiveness.
+      _ => throw UnsupportedError(
+        'Invalid number of positional arguments.\n'
+        'Found: ${arguments.positional.length}\n'
+        'Operator: ${node.name.text} '
+        '${node.location}',
+      ),
+    };
   }
 
   @override
@@ -6009,92 +6086,6 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
       node.expression,
       NullLiteral(),
     ], negated: false);
-  }
-
-  js_ast.Expression _emitInstanceInvocation(InstanceInvocation node) {
-    /// Returns `true` when [node] represents an invocation of `List.add()` that
-    /// can be optimized.
-    ///
-    /// The optimized add operation can skip checks for a growable or modifiable
-    /// list and the element type is known to be invariant so it can skip the
-    /// type check.
-    bool isNativeListInvariantAdd(InstanceInvocation node) {
-      if (node.isInvariant && node.name.text == 'add') {
-        // The call to add is marked as invariant, so the type check on the
-        // parameter to add is not needed.
-        var receiver = node.receiver;
-        if (receiver is VariableGet &&
-            receiver.variable.isFinal &&
-            !receiver.variable.isLate) {
-          // The receiver is a final variable, so it only contains the
-          // initializer value. Also, avoid late variables in case the CFE
-          // lowering of late variables is changed in the future.
-          var initializer = receiver.variable.initializer;
-          if (initializer is ListLiteral) {
-            // The initializer is a list literal, so we know the list can be
-            // grown, modified, and is represented by a JavaScript Array.
-            return true;
-          }
-          if (initializer is StaticInvocation &&
-              initializer.target.enclosingClass == _coreTypes.listClass &&
-              initializer.target.name.text == 'of' &&
-              initializer.arguments.named.isEmpty) {
-            // The initializer is a `List.of()` call from the dart:core library
-            // and the growable named argument has not been passed (it defaults
-            // to true).
-            return true;
-          }
-        }
-      }
-      return false;
-    }
-
-    var name = node.name.text;
-    var receiver = node.receiver;
-    var arguments = node.arguments;
-    var target = node.interfaceTarget;
-    if (isOperatorMethodName(name) && arguments.named.isEmpty) {
-      var argLength = arguments.positional.length;
-      if (argLength == 0) {
-        return _emitUnaryOperator(receiver, target, node);
-      } else if (argLength == 1) {
-        return _emitBinaryOperator(
-          receiver,
-          target,
-          arguments.positional[0],
-          node,
-        );
-      }
-    }
-    var jsReceiver = _visitExpression(receiver);
-    var args = _emitArgumentList(arguments, target: target);
-    if (isNativeListInvariantAdd(node)) {
-      return js.call('#.push(#)', [jsReceiver, args]);
-    }
-    if (name == 'call') {
-      // Erasing the extension types here to support existing callable behavior
-      // on the old style JS interop types that are callable. This should be
-      // safe as it is a compile time error to try to dynamically invoke a call
-      // method that is inherited from an extension type.
-      var receiverType = receiver
-          .getStaticType(_staticTypeContext)
-          .extensionTypeErasure;
-      if (_isDirectCallable(receiverType)) {
-        // Handle call methods on function types as function calls.
-        return js_ast.Call(jsReceiver, args);
-      }
-    }
-    if (_isObjectMethodCall(name, arguments) &&
-        _shouldCallObjectMemberHelper(receiver)) {
-      // Handle Object methods that are supported by `null` and possibly
-      // JavaScript interop values with static helper methods.
-      // The names of the static helper methods in the runtime must match the
-      // names of the Object instance members.
-      return _runtimeCall('#(#, #)', [name, jsReceiver, args]);
-    }
-    // Otherwise generate this as a normal typed method call.
-    var jsName = _emitMemberName(name, member: target);
-    return js.call('#.#(#)', [jsReceiver, jsName, args]);
   }
 
   /// Returns an invocation of the runtime helpers `dcall`, `dgcall`, `dsend`,
@@ -6946,14 +6937,21 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
       // JS interop checks assert that only external extension type constructors
       // and factories have named parameters.
       assert(target.function.positionalParameters.isEmpty);
-      return _emitObjectLiteral(
-        Arguments(
-          node.arguments.positional,
-          types: node.arguments.types,
-          named: node.arguments.named,
-        ),
-        target,
-      );
+      var namedProperties = <String, Expression>{};
+      for (var named in node.arguments.named) {
+        var name = named.name;
+        for (var parameter in target.function.namedParameters) {
+          if (parameter.name == named.name) {
+            var customName = getDartJSInteropJSName(parameter);
+            if (customName.isNotEmpty) {
+              name = customName;
+            }
+            break;
+          }
+        }
+        namedProperties[name] = named.value;
+      }
+      return _emitObjectLiteral(namedProperties, isDartJsInterop: true);
     }
     if (target == _coreTypes.identicalProcedure) {
       return _emitCoreIdenticalCall(node.arguments.positional);
@@ -7121,10 +7119,10 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     return _emitTopLevelName(target);
   }
 
-  /// Returns all parts of [arguments] flattened into a list so they can be
-  /// passed in the calling convention for calls with no runtime checks.
+  /// Returns all parts of [node] flattened into a list so they can be passed in
+  /// the calling convention for calls with no runtime checks.
   ///
-  /// When [types] is `false` any type arguments present in [arguments] will be
+  /// When [types] is `false` any type arguments present in [node] will be
   /// omitted.
   ///
   /// Passing [target] when applicable allows for detection of an annotation to
@@ -7151,8 +7149,8 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     ];
   }
 
-  /// Returns all [arguments] but kept in separate packets so they can be
-  /// further processed.
+  /// Returns all arguments from [node] but kept in separate packets so they can
+  /// be further processed.
   ///
   /// Facilitates passing arguments in the calling convention used by runtime
   /// helpers that check arguments.
@@ -7179,9 +7177,14 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
               else
                 _visitExpression(arg),
           ];
+    // Named arguments with JS interop are only allowed in object literal
+    // constructors. Invocations to those are always transformed by
+    // `_emitObjectLiteral` and therefore we should never expect to see a JS
+    // interop invocation with named arguments here.
+    if (node.named.isNotEmpty) assert(!isJSInterop);
     var namedArguments = node.named.isEmpty
         ? null
-        : [for (var arg in node.named) _emitNamedExpression(arg, isJSInterop)];
+        : [for (var arg in node.named) _emitNamedExpression(arg)];
 
     return (
       typeArguments: typeArguments,
@@ -7190,13 +7193,8 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     );
   }
 
-  js_ast.Property _emitNamedExpression(
-    NamedExpression arg, [
-    bool isJsInterop = false,
-  ]) {
-    var value = isJsInterop ? _assertInterop(arg.value) : arg.value;
-    return js_ast.Property(_propertyName(arg.name), _visitExpression(value));
-  }
+  js_ast.Property _emitNamedExpression(NamedExpression arg) =>
+      js_ast.Property(_propertyName(arg.name), _visitExpression(arg.value));
 
   /// Emits code for the `JS(...)` macro.
   js_ast.Node _emitInlineJSCode(StaticInvocation node) {
@@ -7422,7 +7420,15 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     var ctor = node.target;
     var ctorClass = ctor.enclosingClass;
     var args = node.arguments;
-    if (isJSAnonymousType(ctorClass)) return _emitObjectLiteral(args, ctor);
+    if (isJSAnonymousType(ctorClass)) {
+      var namedProperties = {
+        for (final named in node.arguments.named) named.name: named.value,
+      };
+      return _emitObjectLiteral(
+        namedProperties,
+        isDartJsInterop: hasDartJSInteropAnnotation(ctorClass),
+      );
+    }
     // JS interop constructor calls do not provide an RTI at the call site.
     var shouldProvideRti =
         !isJSInteropMember(ctor) && _requiresRtiForInstantiation(ctorClass);
@@ -7510,7 +7516,15 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
 
   js_ast.Expression _emitJSInteropNew(Member ctor, Arguments args) {
     var ctorClass = ctor.enclosingClass!;
-    if (isJSAnonymousType(ctorClass)) return _emitObjectLiteral(args, ctor);
+    if (isJSAnonymousType(ctorClass)) {
+      var namedProperties = {
+        for (final named in args.named) named.name: named.value,
+      };
+      return _emitObjectLiteral(
+        namedProperties,
+        isDartJsInterop: hasDartJSInteropAnnotation(ctorClass),
+      );
+    }
     // JS interop constructor calls do not require an RTI at the call site.
     return js_ast.New(
       _emitConstructorName(_coreTypes.nonNullableRawType(ctorClass), ctor),
@@ -7538,11 +7552,34 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     return InterfaceType(c, Nullability.nonNullable, typeArgs);
   }
 
-  js_ast.Expression _emitObjectLiteral(Arguments node, Member ctor) {
-    var args = _emitArgumentList(node, types: false, target: ctor);
-    if (args.isEmpty) return js.call('{}');
-    assert(args.single is js_ast.ObjectInitializer);
-    return args.single;
+  /// Given a mapping [namedProperties] between names and their associated
+  /// expressions, returns an object literal with the same names mapped to the
+  /// transformed expressions.
+  ///
+  /// This is used for object literal constructors in JS interop.
+  ///
+  /// If [isDartJsInterop] is true, it implies that this is an object literal
+  /// constructor using `dart:js_interop`. If false, this method wraps the
+  /// expressions with an [_assertInterop] call.
+  js_ast.Expression _emitObjectLiteral(
+    Map<String, Expression> namedProperties, {
+    required bool isDartJsInterop,
+  }) {
+    if (namedProperties.isEmpty) return js.call('{}');
+    var properties = <js_ast.Property>[];
+    for (var name in namedProperties.keys) {
+      // `assertInterop` is not needed for `dart:js_interop`. It statically
+      // disallows `Function`s from being passed unless they were explicitly
+      // passed as an opaque reference, in which case, we shouldn't require the
+      // user to wrap them anyways.
+      var value = isDartJsInterop
+          ? namedProperties[name]!
+          : _assertInterop(namedProperties[name]!);
+      properties.add(
+        js_ast.Property(_propertyName(name), _visitExpression(value)),
+      );
+    }
+    return js_ast.ObjectInitializer([...properties]);
   }
 
   @override
@@ -9302,24 +9339,6 @@ bool _isObjectMember(String name) {
     case 'runtimeType':
     case '==':
       return true;
-  }
-  return false;
-}
-
-bool _isObjectGetter(String name) =>
-    name == 'hashCode' || name == 'runtimeType';
-
-bool _isObjectMethodTearoff(String name) =>
-    // "==" isn't in here because there is no syntax to tear it off.
-    name == 'toString' || name == 'noSuchMethod';
-
-bool _isObjectMethodCall(String name, Arguments args) {
-  if (name == 'toString') {
-    return args.positional.isEmpty && args.named.isEmpty && args.types.isEmpty;
-  } else if (name == 'noSuchMethod') {
-    return args.positional.length == 1 &&
-        args.named.isEmpty &&
-        args.types.isEmpty;
   }
   return false;
 }

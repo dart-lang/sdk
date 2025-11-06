@@ -76,10 +76,9 @@ suggestions
     var fooRootPath = '$workspaceRootPath/foo';
     var barRootPath = '$workspaceRootPath/bar';
     writeTestPackageConfig(
-      config:
-          PackageConfigFileBuilder()
-            ..add(name: 'foo', rootPath: fooRootPath)
-            ..add(name: 'bar', rootPath: barRootPath),
+      config: PackageConfigFileBuilder()
+        ..add(name: 'foo', rootPath: fooRootPath)
+        ..add(name: 'bar', rootPath: barRootPath),
     );
     newFile('$fooRootPath/lib/foo.dart', '''
 library foo;
@@ -454,6 +453,8 @@ suggestions
     kind: import
   dart:typed_data
     kind: import
+  package:test/test.dart
+    kind: import
   dart:core
     kind: import
 ''');
@@ -492,6 +493,8 @@ suggestions
   dart:math
     kind: import
   dart:typed_data
+    kind: import
+  package:test/test.dart
     kind: import
   dart:core
     kind: import
@@ -647,6 +650,8 @@ suggestions
     kind: import
   package:test/
     kind: import
+  package:test/test.dart
+    kind: import
 ''');
   }
 
@@ -664,6 +669,8 @@ suggestions
     kind: import
   package:test/
     kind: import
+  package:test/test.dart
+    kind: import
 ''');
   }
 
@@ -671,10 +678,9 @@ suggestions
     var fooRootPath = '$workspaceRootPath/foo';
     var barRootPath = '$workspaceRootPath/bar';
     writeTestPackageConfig(
-      config:
-          PackageConfigFileBuilder()
-            ..add(name: 'foo', rootPath: fooRootPath)
-            ..add(name: 'bar', rootPath: barRootPath),
+      config: PackageConfigFileBuilder()
+        ..add(name: 'foo', rootPath: fooRootPath)
+        ..add(name: 'bar', rootPath: barRootPath),
     );
     newFile('$fooRootPath/lib/foo.dart', '''
 
@@ -692,13 +698,25 @@ import "p^" import
 replacement
   left: 1
 suggestions
+  dart:js_interop
+    kind: import
+  dart:typed_data
+    kind: import
   package:
     kind: import
   package:bar/
     kind: import
+  package:bar/bar.dart
+    kind: import
   package:foo/
     kind: import
+  package:foo/baz/
+    kind: import
+  package:foo/foo.dart
+    kind: import
   package:test/
+    kind: import
+  package:test/test.dart
     kind: import
 ''');
   }
@@ -707,10 +725,9 @@ suggestions
     var fooRootPath = '$workspaceRootPath/foo';
     var barRootPath = '$workspaceRootPath/bar';
     writeTestPackageConfig(
-      config:
-          PackageConfigFileBuilder()
-            ..add(name: 'foo', rootPath: fooRootPath)
-            ..add(name: 'bar', rootPath: barRootPath),
+      config: PackageConfigFileBuilder()
+        ..add(name: 'foo', rootPath: fooRootPath)
+        ..add(name: 'bar', rootPath: barRootPath),
     );
     newFile('$fooRootPath/lib/foo.dart', '''
 
@@ -739,10 +756,9 @@ suggestions
     var fooRootPath = '$workspaceRootPath/foo';
     var barRootPath = '$workspaceRootPath/bar';
     writeTestPackageConfig(
-      config:
-          PackageConfigFileBuilder()
-            ..add(name: 'foo', rootPath: fooRootPath)
-            ..add(name: 'bar', rootPath: barRootPath),
+      config: PackageConfigFileBuilder()
+        ..add(name: 'foo', rootPath: fooRootPath)
+        ..add(name: 'bar', rootPath: barRootPath),
     );
     newFile('$fooRootPath/lib/foo.dart', '''
 
@@ -771,10 +787,9 @@ suggestions
     var fooRootPath = '$workspaceRootPath/foo';
     var barRootPath = '$workspaceRootPath/bar';
     writeTestPackageConfig(
-      config:
-          PackageConfigFileBuilder()
-            ..add(name: 'foo', rootPath: fooRootPath)
-            ..add(name: 'bar', rootPath: barRootPath),
+      config: PackageConfigFileBuilder()
+        ..add(name: 'foo', rootPath: fooRootPath)
+        ..add(name: 'bar', rootPath: barRootPath),
     );
     newFile('$fooRootPath/lib/foo.dart', '''
 
@@ -803,8 +818,8 @@ suggestions
   Future<void> test_import_package_missing_lib() async {
     var barRootPath = '$workspaceRootPath/bar';
     writeTestPackageConfig(
-      config:
-          PackageConfigFileBuilder()..add(name: 'bar', rootPath: barRootPath),
+      config: PackageConfigFileBuilder()
+        ..add(name: 'bar', rootPath: barRootPath),
     );
     await computeSuggestions('''
 import "p^" class
@@ -813,11 +828,17 @@ import "p^" class
 replacement
   left: 1
 suggestions
+  dart:js_interop
+    kind: import
+  dart:typed_data
+    kind: import
   package:
     kind: import
   package:bar/
     kind: import
   package:test/
+    kind: import
+  package:test/test.dart
     kind: import
 ''');
   }
@@ -826,10 +847,9 @@ suggestions
     var fooRootPath = '$workspaceRootPath/foo';
     var barRootPath = '$workspaceRootPath/bar';
     writeTestPackageConfig(
-      config:
-          PackageConfigFileBuilder()
-            ..add(name: 'foo', rootPath: fooRootPath)
-            ..add(name: 'bar', rootPath: barRootPath),
+      config: PackageConfigFileBuilder()
+        ..add(name: 'foo', rootPath: fooRootPath)
+        ..add(name: 'bar', rootPath: barRootPath),
     );
     newFile('$fooRootPath/lib/foo.dart', '''
 
@@ -847,13 +867,25 @@ import r"p^" import
 replacement
   left: 1
 suggestions
+  dart:js_interop
+    kind: import
+  dart:typed_data
+    kind: import
   package:
     kind: import
   package:bar/
     kind: import
+  package:bar/bar.dart
+    kind: import
   package:foo/
     kind: import
+  package:foo/baz/
+    kind: import
+  package:foo/foo.dart
+    kind: import
   package:test/
+    kind: import
+  package:test/test.dart
     kind: import
 ''');
   }
@@ -1053,6 +1085,8 @@ suggestions
   dart:math
     kind: import
   dart:typed_data
+    kind: import
+  package:test/test.dart
     kind: import
   dart:core
     kind: import

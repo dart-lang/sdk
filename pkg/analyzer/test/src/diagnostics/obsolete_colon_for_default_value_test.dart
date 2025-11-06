@@ -33,7 +33,7 @@ class B extends A {
   B({super.a : ''});
 }
 ''',
-      [error(CompileTimeErrorCode.OBSOLETE_COLON_FOR_DEFAULT_VALUE, 74, 1)],
+      [error(CompileTimeErrorCode.obsoleteColonForDefaultValue, 74, 1)],
     );
   }
 
@@ -42,7 +42,7 @@ class B extends A {
       '''
 void f({int x : 0}) {}
 ''',
-      [error(CompileTimeErrorCode.OBSOLETE_COLON_FOR_DEFAULT_VALUE, 14, 1)],
+      [error(CompileTimeErrorCode.obsoleteColonForDefaultValue, 14, 1)],
     );
   }
 

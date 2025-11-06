@@ -64,7 +64,7 @@ void f() {
   g(() async => {1});
 }
 ''',
-      [error(WarningCode.UNNECESSARY_SET_LITERAL, 67, 3)],
+      [error(WarningCode.unnecessarySetLiteral, 67, 3)],
     );
   }
 
@@ -103,7 +103,7 @@ void f() {
   g(() async => {1});
 }
 ''',
-      [error(WarningCode.UNNECESSARY_SET_LITERAL, 91, 3)],
+      [error(WarningCode.unnecessarySetLiteral, 91, 3)],
     );
   }
 
@@ -126,7 +126,7 @@ void f() {
   g(() => {1, 2});
 }
 ''',
-      [error(WarningCode.UNNECESSARY_SET_LITERAL, 53, 6)],
+      [error(WarningCode.unnecessarySetLiteral, 53, 6)],
     );
   }
 
@@ -139,7 +139,7 @@ void f(bool b) {
   g(() => {1, if (b) 2 else 3, 4, for (;;) 5},);
 }
 ''',
-      [error(WarningCode.UNNECESSARY_SET_LITERAL, 59, 35)],
+      [error(WarningCode.unnecessarySetLiteral, 59, 35)],
     );
   }
 
@@ -162,7 +162,7 @@ void f() {
   g((value) => {if (value) print('')});
 }
 ''',
-      [error(WarningCode.UNNECESSARY_SET_LITERAL, 62, 22)],
+      [error(WarningCode.unnecessarySetLiteral, 62, 22)],
     );
   }
 
@@ -175,7 +175,7 @@ void f() {
   g(() => {1});
 }
 ''',
-      [error(WarningCode.UNNECESSARY_SET_LITERAL, 53, 3)],
+      [error(WarningCode.unnecessarySetLiteral, 53, 3)],
     );
   }
 
@@ -212,7 +212,7 @@ Future<Object> f() async => {1};
       r'''
 Future<void> f() async => {1};
 ''',
-      [error(WarningCode.UNNECESSARY_SET_LITERAL, 26, 3)],
+      [error(WarningCode.unnecessarySetLiteral, 26, 3)],
     );
   }
 
@@ -239,7 +239,7 @@ import 'dart:async';
 
 FutureOr<void> f() async => {1};
 ''',
-      [error(WarningCode.UNNECESSARY_SET_LITERAL, 50, 3)],
+      [error(WarningCode.unnecessarySetLiteral, 50, 3)],
     );
   }
 
@@ -254,7 +254,7 @@ void f() => {1: 2};
       r'''
 void f() => {1, 2};
 ''',
-      [error(WarningCode.UNNECESSARY_SET_LITERAL, 12, 6)],
+      [error(WarningCode.unnecessarySetLiteral, 12, 6)],
     );
   }
 
@@ -263,7 +263,7 @@ void f() => {1, 2};
       r'''
 void f(bool b) => {1, if (b) 2 else 3, 4, for (;;) 5};
 ''',
-      [error(WarningCode.UNNECESSARY_SET_LITERAL, 18, 35)],
+      [error(WarningCode.unnecessarySetLiteral, 18, 35)],
     );
   }
 
@@ -278,7 +278,7 @@ Object f() => {1};
       r'''
 void f(bool value) => {if (value) print('')};
 ''',
-      [error(WarningCode.UNNECESSARY_SET_LITERAL, 22, 22)],
+      [error(WarningCode.unnecessarySetLiteral, 22, 22)],
     );
   }
 
@@ -287,7 +287,7 @@ void f(bool value) => {if (value) print('')};
       r'''
 void f() => {1};
 ''',
-      [error(WarningCode.UNNECESSARY_SET_LITERAL, 12, 3)],
+      [error(WarningCode.unnecessarySetLiteral, 12, 3)],
     );
   }
 }

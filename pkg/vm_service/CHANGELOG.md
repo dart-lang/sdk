@@ -1,3 +1,7 @@
+## 15.1.0
+- Update to version `4.20` of the spec.
+- Deprecate `streamCpuSamplesWithUserTag` RPC.
+
 ## 15.0.2
 - Add `kTimerSignificantlyOverdue` field to `EventKind`.
 

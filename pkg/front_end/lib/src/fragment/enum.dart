@@ -24,8 +24,11 @@ class EnumFragment extends DeclarationFragmentImpl implements Fragment {
   final List<EnumElementFragment> enumElements = [];
 
   @override
-  late final UriOffsetLength uriOffset =
-      new UriOffsetLength(fileUri, nameOffset, name.length);
+  late final UriOffsetLength uriOffset = new UriOffsetLength(
+    fileUri,
+    nameOffset,
+    name.length,
+  );
 
   EnumFragment({
     required this.name,

@@ -1,6 +1,6 @@
-# Dart Development Service Protocol 2.0
+# Dart Development Service Protocol 2.1
 
-This document describes _version 2.0_ of the Dart Development Service Protocol.
+This document describes _version 2.1_ of the Dart Development Service Protocol.
 This protocol is an extension of the Dart VM Service Protocol and implements it
 in it's entirety. For details on the VM Service Protocol, see the [Dart VM Service Protocol Specification][service-protocol].
 
@@ -83,9 +83,9 @@ The DDS Protocol supports all [public RPCs defined in the VM Service protocol][s
 AvailableCachedCpuSamples getAvailableCachedCpuSamples();
 ```
 
-The _getAvailableCachedCpuSamples_ RPC is used to determine which caches of CPU samples
-are available. Caches are associated with individual _UserTag_ names and are specified
-when DDS is started via the _cachedUserTags_ parameter.
+The _getAvailableCachedCpuSamples_ RPC is deprecated and will always return an
+_AvailableCachedCpuSamples_ object containing a single property named
+_cacheNames_ with an empty array as its value.
 
 See [AvailableCachedCpuSamples](#availablecachedcpusamples).
 
@@ -95,8 +95,9 @@ See [AvailableCachedCpuSamples](#availablecachedcpusamples).
 CachedCpuSamples getCachedCpuSamples(string isolateId, string userTag);
 ```
 
-The _getCachedCpuSamples_ RPC is used to retrieve a cache of CPU samples collected
-under a _UserTag_ with name _userTag_.
+The _getCachedCpuSamples_ RPC is deprecated and will always return a
+_CachedCpuSamples_ object containing properties with meaningless placeholder
+values.
 
 See [CachedCpuSamples](#cachedcpusamples).
 
@@ -357,6 +358,7 @@ version | comments
 1.4 | Added the ability to subscribe to custom streams (which can be specified when calling `dart:developer`'s `postEvent`).
 1.5 | Added `getPerfettoCpuSamples` RPC.
 1.6 | Added `postEvent` RPC.
+2.1 | Deprecated `getAvailableCachedCpuSamples` and `getCachedCpuSamples` RPCs.
 
 [resume]: https://github.com/dart-lang/sdk/blob/main/runtime/vm/service/service.md#resume
 [success]: https://github.com/dart-lang/sdk/blob/main/runtime/vm/service/service.md#success

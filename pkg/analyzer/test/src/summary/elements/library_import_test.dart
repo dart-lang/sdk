@@ -39,10 +39,10 @@ library
       libraryImports
         package:test/foo.dart
       classes
-        #F1 class B @104
+        #F1 class B (nameOffset:104) (firstTokenOffset:98) (offset:104)
           element: <testLibrary>::@class::B
           constructors
-            #F2 synthetic new
+            #F2 synthetic new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:104)
               element: <testLibrary>::@class::B::@constructor::new
               typeName: B
   classes
@@ -87,10 +87,10 @@ library
       libraryImports
         package:test/foo_io.dart
       classes
-        #F1 class B @104
+        #F1 class B (nameOffset:104) (firstTokenOffset:98) (offset:104)
           element: <testLibrary>::@class::B
           constructors
-            #F2 synthetic new
+            #F2 synthetic new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:104)
               element: <testLibrary>::@class::B::@constructor::new
               typeName: B
   classes
@@ -135,10 +135,10 @@ library
       libraryImports
         package:test/foo_io.dart
       classes
-        #F1 class B @124
+        #F1 class B (nameOffset:124) (firstTokenOffset:118) (offset:124)
           element: <testLibrary>::@class::B
           constructors
-            #F2 synthetic new
+            #F2 synthetic new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:124)
               element: <testLibrary>::@class::B::@constructor::new
               typeName: B
   classes
@@ -183,10 +183,10 @@ library
       libraryImports
         package:test/foo_html.dart
       classes
-        #F1 class B @104
+        #F1 class B (nameOffset:104) (firstTokenOffset:98) (offset:104)
           element: <testLibrary>::@class::B
           constructors
-            #F2 synthetic new
+            #F2 synthetic new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:104)
               element: <testLibrary>::@class::B::@constructor::new
               typeName: B
   classes
@@ -231,10 +231,10 @@ library
       libraryImports
         package:test/foo_html.dart
       classes
-        #F1 class B @124
+        #F1 class B (nameOffset:124) (firstTokenOffset:118) (offset:124)
           element: <testLibrary>::@class::B
           constructors
-            #F2 synthetic new
+            #F2 synthetic new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:124)
               element: <testLibrary>::@class::B::@constructor::new
               typeName: B
   classes
@@ -299,7 +299,7 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       libraryImports
-        package:test/a.dart deferred as p @28
+        package:test/a.dart deferred as p (nameOffset:28) (firstTokenOffset:<null>) (offset:28)
       prefixes
         <testLibraryFragment>::@prefix2::p
           fragments: @28
@@ -322,9 +322,9 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       libraryImports
-        dart:async as i1 @23
-        dart:async as i2 @70
-        dart:async as i3 @117
+        dart:async as i1 (nameOffset:23) (firstTokenOffset:<null>) (offset:23)
+        dart:async as i2 (nameOffset:70) (firstTokenOffset:<null>) (offset:70)
+        dart:async as i3 (nameOffset:117) (firstTokenOffset:<null>) (offset:117)
       prefixes
         <testLibraryFragment>::@prefix2::i1
           fragments: @23
@@ -354,18 +354,17 @@ library
           combinators
             hide: Stream, Completer
       topLevelVariables
-        #F1 f @51
+        #F1 f (nameOffset:51) (firstTokenOffset:51) (offset:51)
           element: <testLibrary>::@topLevelVariable::f
       getters
-        #F2 synthetic f
+        #F2 synthetic f (nameOffset:<null>) (firstTokenOffset:<null>) (offset:51)
           element: <testLibrary>::@getter::f
-          returnType: Future<dynamic>
       setters
-        #F3 synthetic f
+        #F3 synthetic f (nameOffset:<null>) (firstTokenOffset:<null>) (offset:51)
           element: <testLibrary>::@setter::f
           formalParameters
-            #F4 _f
-              element: <testLibrary>::@setter::f::@formalParameter::_f
+            #F4 value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:51)
+              element: <testLibrary>::@setter::f::@formalParameter::value
   topLevelVariables
     f
       reference: <testLibrary>::@topLevelVariable::f
@@ -384,10 +383,11 @@ library
       reference: <testLibrary>::@setter::f
       firstFragment: #F3
       formalParameters
-        #E0 requiredPositional _f
+        #E0 requiredPositional value
           firstFragment: #F4
           type: Future<dynamic>
       returnType: void
+      variable: <testLibrary>::@topLevelVariable::f
 ''');
   }
 
@@ -395,7 +395,7 @@ library
     var library = await buildLibrary('''
 import "dart:math" hide e, pi;
 ''');
-    var import = library.definingCompilationUnit.libraryImports[0];
+    var import = library.firstFragment.libraryImports[0];
     var combinator = import.combinators[0] as HideElementCombinator;
     expect(combinator.offset, 19);
     expect(combinator.end, 29);
@@ -416,7 +416,7 @@ library
         token: foo @1
         element: <null>
         staticType: null
-      element2: <null>
+      element: <null>
   fragments
     #F0 <testLibraryFragment>
       element: <testLibrary>
@@ -429,7 +429,7 @@ library
                 token: foo @1
                 element: <null>
                 staticType: null
-              element2: <null>
+              element: <null>
 ''');
   }
 
@@ -450,18 +450,17 @@ library
             hide: Stream
             show: Future
       topLevelVariables
-        #F1 f @52
+        #F1 f (nameOffset:52) (firstTokenOffset:52) (offset:52)
           element: <testLibrary>::@topLevelVariable::f
       getters
-        #F2 synthetic f
+        #F2 synthetic f (nameOffset:<null>) (firstTokenOffset:<null>) (offset:52)
           element: <testLibrary>::@getter::f
-          returnType: Future<dynamic>
       setters
-        #F3 synthetic f
+        #F3 synthetic f (nameOffset:<null>) (firstTokenOffset:<null>) (offset:52)
           element: <testLibrary>::@setter::f
           formalParameters
-            #F4 _f
-              element: <testLibrary>::@setter::f::@formalParameter::_f
+            #F4 value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:52)
+              element: <testLibrary>::@setter::f::@formalParameter::value
   topLevelVariables
     f
       reference: <testLibrary>::@topLevelVariable::f
@@ -480,10 +479,11 @@ library
       reference: <testLibrary>::@setter::f
       firstFragment: #F3
       formalParameters
-        #E0 requiredPositional _f
+        #E0 requiredPositional value
           firstFragment: #F4
           type: Future<dynamic>
       returnType: void
+      variable: <testLibrary>::@topLevelVariable::f
 ''');
   }
 
@@ -491,9 +491,8 @@ library
     newFile('$testPackageLibPath/a.dart', 'library a; class C {}');
     var library = await buildLibrary('import "a.dart" as a; a.C c;');
 
-    var prefixElement =
-        library.definingCompilationUnit.libraryImports[0].prefix2!;
-    expect(prefixElement.nameOffset2, 19);
+    var prefixElement = library.firstFragment.libraryImports[0].prefix!;
+    expect(prefixElement.nameOffset, 19);
 
     checkElementText(library, r'''
 library
@@ -502,23 +501,22 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       libraryImports
-        package:test/a.dart as a @19
+        package:test/a.dart as a (nameOffset:19) (firstTokenOffset:<null>) (offset:19)
       prefixes
         <testLibraryFragment>::@prefix2::a
           fragments: @19
       topLevelVariables
-        #F1 c @26
+        #F1 c (nameOffset:26) (firstTokenOffset:26) (offset:26)
           element: <testLibrary>::@topLevelVariable::c
       getters
-        #F2 synthetic c
+        #F2 synthetic c (nameOffset:<null>) (firstTokenOffset:<null>) (offset:26)
           element: <testLibrary>::@getter::c
-          returnType: C
       setters
-        #F3 synthetic c
+        #F3 synthetic c (nameOffset:<null>) (firstTokenOffset:<null>) (offset:26)
           element: <testLibrary>::@setter::c
           formalParameters
-            #F4 _c
-              element: <testLibrary>::@setter::c::@formalParameter::_c
+            #F4 value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:26)
+              element: <testLibrary>::@setter::c::@formalParameter::value
   topLevelVariables
     c
       reference: <testLibrary>::@topLevelVariable::c
@@ -537,10 +535,11 @@ library
       reference: <testLibrary>::@setter::c
       firstFragment: #F3
       formalParameters
-        #E0 requiredPositional _c
+        #E0 requiredPositional value
           firstFragment: #F4
           type: C
       returnType: void
+      variable: <testLibrary>::@topLevelVariable::c
 ''');
   }
 
@@ -556,7 +555,7 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       libraryImports
-        dart:math as <null-name> (offset=21)
+        dart:math as <null-name> (nameOffset:<null>) (firstTokenOffset:<null>) (offset:0)
       prefixes
         <testLibraryFragment>::@prefix2::0
           fragments: @null
@@ -569,7 +568,7 @@ import 'test.dart' as p;
 class C {}
 class D extends p.C {} // Prevent "unused import" warning
 ''');
-    var libraryImports = library.definingCompilationUnit.libraryImports;
+    var libraryImports = library.firstFragment.libraryImports;
     expect(libraryImports, hasLength(2));
     expect(libraryImports[1].importedLibrary!.isDartCore, true);
     checkElementText(library, r'''
@@ -579,21 +578,21 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       libraryImports
-        package:test/test.dart as p @22
+        package:test/test.dart as p (nameOffset:22) (firstTokenOffset:<null>) (offset:22)
       prefixes
         <testLibraryFragment>::@prefix2::p
           fragments: @22
       classes
-        #F1 class C @31
+        #F1 class C (nameOffset:31) (firstTokenOffset:25) (offset:31)
           element: <testLibrary>::@class::C
           constructors
-            #F2 synthetic new
+            #F2 synthetic new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:31)
               element: <testLibrary>::@class::C::@constructor::new
               typeName: C
-        #F3 class D @42
+        #F3 class D (nameOffset:42) (firstTokenOffset:36) (offset:42)
           element: <testLibrary>::@class::D
           constructors
-            #F4 synthetic new
+            #F4 synthetic new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:42)
               element: <testLibrary>::@class::D::@constructor::new
               typeName: D
   classes
@@ -633,28 +632,26 @@ library
           combinators
             show: Future, Stream
       topLevelVariables
-        #F1 f @48
+        #F1 f (nameOffset:48) (firstTokenOffset:48) (offset:48)
           element: <testLibrary>::@topLevelVariable::f
-        #F2 s @58
+        #F2 s (nameOffset:58) (firstTokenOffset:58) (offset:58)
           element: <testLibrary>::@topLevelVariable::s
       getters
-        #F3 synthetic f
+        #F3 synthetic f (nameOffset:<null>) (firstTokenOffset:<null>) (offset:48)
           element: <testLibrary>::@getter::f
-          returnType: Future<dynamic>
-        #F4 synthetic s
+        #F4 synthetic s (nameOffset:<null>) (firstTokenOffset:<null>) (offset:58)
           element: <testLibrary>::@getter::s
-          returnType: Stream<dynamic>
       setters
-        #F5 synthetic f
+        #F5 synthetic f (nameOffset:<null>) (firstTokenOffset:<null>) (offset:48)
           element: <testLibrary>::@setter::f
           formalParameters
-            #F6 _f
-              element: <testLibrary>::@setter::f::@formalParameter::_f
-        #F7 synthetic s
+            #F6 value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:48)
+              element: <testLibrary>::@setter::f::@formalParameter::value
+        #F7 synthetic s (nameOffset:<null>) (firstTokenOffset:<null>) (offset:58)
           element: <testLibrary>::@setter::s
           formalParameters
-            #F8 _s
-              element: <testLibrary>::@setter::s::@formalParameter::_s
+            #F8 value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:58)
+              element: <testLibrary>::@setter::s::@formalParameter::value
   topLevelVariables
     f
       reference: <testLibrary>::@topLevelVariable::f
@@ -684,18 +681,20 @@ library
       reference: <testLibrary>::@setter::f
       firstFragment: #F5
       formalParameters
-        #E0 requiredPositional _f
+        #E0 requiredPositional value
           firstFragment: #F6
           type: Future<dynamic>
       returnType: void
+      variable: <testLibrary>::@topLevelVariable::f
     synthetic static s
       reference: <testLibrary>::@setter::s
       firstFragment: #F7
       formalParameters
-        #E1 requiredPositional _s
+        #E1 requiredPositional value
           firstFragment: #F8
           type: Stream<dynamic>
       returnType: void
+      variable: <testLibrary>::@topLevelVariable::s
 ''');
   }
 
@@ -703,7 +702,7 @@ library
     var library = await buildLibrary('''
 import "dart:math" show e, pi;
 ''');
-    var import = library.definingCompilationUnit.libraryImports[0];
+    var import = library.firstFragment.libraryImports[0];
     var combinator = import.combinators[0] as ShowElementCombinator;
     expect(combinator.offset, 19);
     expect(combinator.end, 29);
@@ -714,7 +713,7 @@ import "dart:math" show e, pi;
 import 'foo.dart';
 ''');
 
-    var libraryImports = library.definingCompilationUnit.libraryImports;
+    var libraryImports = library.firstFragment.libraryImports;
     var uri = libraryImports[0].uri as DirectiveUriWithLibrary;
     expect(uri.relativeUriString, 'foo.dart');
   }
@@ -735,28 +734,26 @@ library
         package:test/a.dart
         package:test/b.dart
       topLevelVariables
-        #F1 c @36
+        #F1 c (nameOffset:36) (firstTokenOffset:36) (offset:36)
           element: <testLibrary>::@topLevelVariable::c
-        #F2 d @41
+        #F2 d (nameOffset:41) (firstTokenOffset:41) (offset:41)
           element: <testLibrary>::@topLevelVariable::d
       getters
-        #F3 synthetic c
+        #F3 synthetic c (nameOffset:<null>) (firstTokenOffset:<null>) (offset:36)
           element: <testLibrary>::@getter::c
-          returnType: C
-        #F4 synthetic d
+        #F4 synthetic d (nameOffset:<null>) (firstTokenOffset:<null>) (offset:41)
           element: <testLibrary>::@getter::d
-          returnType: D
       setters
-        #F5 synthetic c
+        #F5 synthetic c (nameOffset:<null>) (firstTokenOffset:<null>) (offset:36)
           element: <testLibrary>::@setter::c
           formalParameters
-            #F6 _c
-              element: <testLibrary>::@setter::c::@formalParameter::_c
-        #F7 synthetic d
+            #F6 value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:36)
+              element: <testLibrary>::@setter::c::@formalParameter::value
+        #F7 synthetic d (nameOffset:<null>) (firstTokenOffset:<null>) (offset:41)
           element: <testLibrary>::@setter::d
           formalParameters
-            #F8 _d
-              element: <testLibrary>::@setter::d::@formalParameter::_d
+            #F8 value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:41)
+              element: <testLibrary>::@setter::d::@formalParameter::value
   topLevelVariables
     c
       reference: <testLibrary>::@topLevelVariable::c
@@ -786,18 +783,20 @@ library
       reference: <testLibrary>::@setter::c
       firstFragment: #F5
       formalParameters
-        #E0 requiredPositional _c
+        #E0 requiredPositional value
           firstFragment: #F6
           type: C
       returnType: void
+      variable: <testLibrary>::@topLevelVariable::c
     synthetic static d
       reference: <testLibrary>::@setter::d
       firstFragment: #F7
       formalParameters
-        #E1 requiredPositional _d
+        #E1 requiredPositional value
           firstFragment: #F8
           type: D
       returnType: void
+      variable: <testLibrary>::@topLevelVariable::d
 ''');
   }
 
@@ -822,10 +821,10 @@ import 'dart:async' as p1;
 import 'dart:collection' as p2;
 import 'dart:math' as p1;
 ''');
-    var p1 = library.definingCompilationUnit.prefixes.singleWhere(
+    var p1 = library.firstFragment.prefixes.singleWhere(
       (prefix) => prefix.name == 'p1',
     );
-    var libraryImports = library.definingCompilationUnit.libraryImports;
+    var libraryImports = library.firstFragment.libraryImports;
     var import_async = libraryImports[0];
     var import_math = libraryImports[2];
     expect(p1.imports, unorderedEquals([import_async, import_math]));
@@ -937,9 +936,9 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       libraryImports
-        dart:async as p1 @23
-        dart:collection as p2 @55
-        dart:math as p1 @81
+        dart:async as p1 (nameOffset:23) (firstTokenOffset:<null>) (offset:23)
+        dart:collection as p2 (nameOffset:55) (firstTokenOffset:<null>) (offset:55)
+        dart:math as p1 (nameOffset:81) (firstTokenOffset:<null>) (offset:81)
       prefixes
         <testLibraryFragment>::@prefix2::p1
           fragments: @23 @81
@@ -964,7 +963,7 @@ library
         token: a @1
         element: <testLibrary>::@getter::a
         staticType: null
-      element2: <testLibrary>::@getter::a
+      element: <testLibrary>::@getter::a
   fragments
     #F0 <testLibraryFragment>
       element: <testLibrary>
@@ -977,18 +976,17 @@ library
                 token: a @1
                 element: <testLibrary>::@getter::a
                 staticType: null
-              element2: <testLibrary>::@getter::a
+              element: <testLibrary>::@getter::a
       topLevelVariables
-        #F1 hasInitializer a @29
+        #F1 hasInitializer a (nameOffset:29) (firstTokenOffset:29) (offset:29)
           element: <testLibrary>::@topLevelVariable::a
           initializer: expression_0
             IntegerLiteral
               literal: 0 @33
               staticType: int
       getters
-        #F2 synthetic a
+        #F2 synthetic a (nameOffset:<null>) (firstTokenOffset:<null>) (offset:29)
           element: <testLibrary>::@getter::a
-          returnType: int
   topLevelVariables
     const hasInitializer a
       reference: <testLibrary>::@topLevelVariable::a
@@ -1024,7 +1022,7 @@ library
         token: a @1
         element: <testLibrary>::@getter::a
         staticType: null
-      element2: <testLibrary>::@getter::a
+      element: <testLibrary>::@getter::a
   fragments
     #F0 <testLibraryFragment>
       element: <testLibrary>
@@ -1037,20 +1035,19 @@ library
                 token: a @1
                 element: <testLibrary>::@getter::a
                 staticType: null
-              element2: <testLibrary>::@getter::a
+              element: <testLibrary>::@getter::a
           combinators
             show: Random
       topLevelVariables
-        #F1 hasInitializer a @42
+        #F1 hasInitializer a (nameOffset:42) (firstTokenOffset:42) (offset:42)
           element: <testLibrary>::@topLevelVariable::a
           initializer: expression_0
             IntegerLiteral
               literal: 0 @46
               staticType: int
       getters
-        #F2 synthetic a
+        #F2 synthetic a (nameOffset:<null>) (firstTokenOffset:<null>) (offset:42)
           element: <testLibrary>::@getter::a
-          returnType: int
   topLevelVariables
     const hasInitializer a
       reference: <testLibrary>::@topLevelVariable::a
@@ -1091,18 +1088,17 @@ library
         package:test/a.dart
         package:test/b.dart
       topLevelVariables
-        #F1 hasInitializer v @36
+        #F1 hasInitializer v (nameOffset:36) (firstTokenOffset:36) (offset:36)
           element: <testLibrary>::@topLevelVariable::v
       getters
-        #F2 synthetic v
+        #F2 synthetic v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:36)
           element: <testLibrary>::@getter::v
-          returnType: A
       setters
-        #F3 synthetic v
+        #F3 synthetic v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:36)
           element: <testLibrary>::@setter::v
           formalParameters
-            #F4 _v
-              element: <testLibrary>::@setter::v::@formalParameter::_v
+            #F4 value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:36)
+              element: <testLibrary>::@setter::v::@formalParameter::value
   topLevelVariables
     hasInitializer v
       reference: <testLibrary>::@topLevelVariable::v
@@ -1121,16 +1117,17 @@ library
       reference: <testLibrary>::@setter::v
       firstFragment: #F3
       formalParameters
-        #E0 requiredPositional _v
+        #E0 requiredPositional value
           firstFragment: #F4
           type: A
       returnType: void
+      variable: <testLibrary>::@topLevelVariable::v
 ''');
   }
 
   test_unresolved_import() async {
     var library = await buildLibrary("import 'foo.dart';");
-    var libraryImports = library.definingCompilationUnit.libraryImports;
+    var libraryImports = library.firstFragment.libraryImports;
     var importedLibrary = libraryImports[0].importedLibrary!;
     expect(importedLibrary.loadLibraryFunction, isNotNull);
     expect(importedLibrary.publicNamespace, isNotNull);

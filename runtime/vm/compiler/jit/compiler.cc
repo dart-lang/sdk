@@ -652,6 +652,7 @@ static ObjectPtr CompileFunctionHelper(const Function& function,
 
   ASSERT(!FLAG_precompiled_mode);
   ASSERT(!optimized || function.WasCompiled() || function.ForceOptimize());
+  ASSERT(!function.is_declared_in_bytecode());
   LongJumpScope jump(thread);
   if (DART_SETJMP(*jump.Set()) == 0) {
     StackZone stack_zone(thread);

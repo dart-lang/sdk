@@ -278,7 +278,7 @@ class GreatestLowerBoundHelper {
     var fParameters = f.formalParameters;
     var gParameters = g.formalParameters;
 
-    var parameters = <FormalParameterElementMixin>[];
+    var parameters = <InternalFormalParameterElement>[];
     var fIndex = 0;
     var gIndex = 0;
     while (fIndex < fParameters.length && gIndex < gParameters.length) {
@@ -294,10 +294,9 @@ class GreatestLowerBoundHelper {
                 fParameter.type,
                 gParameter.type,
               ),
-              kind:
-                  fParameter.isOptional || gParameter.isOptional
-                      ? ParameterKind.POSITIONAL
-                      : ParameterKind.REQUIRED,
+              kind: fParameter.isOptional || gParameter.isOptional
+                  ? ParameterKind.POSITIONAL
+                  : ParameterKind.REQUIRED,
             ),
           );
         } else {
@@ -321,10 +320,9 @@ class GreatestLowerBoundHelper {
                   fParameter.type,
                   gParameter.type,
                 ),
-                kind:
-                    fParameter.isRequiredNamed && gParameter.isRequiredNamed
-                        ? ParameterKind.NAMED_REQUIRED
-                        : ParameterKind.NAMED,
+                kind: fParameter.isRequiredNamed && gParameter.isRequiredNamed
+                    ? ParameterKind.NAMED_REQUIRED
+                    : ParameterKind.NAMED,
               ),
             );
           } else if (compareNames < 0) {

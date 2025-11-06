@@ -1331,10 +1331,10 @@ class CodeShapeMetricsComputer {
   /// column occupied by the map.
   List<String> _convertMap<T extends Object>(String context, Map<T, int> map) {
     var columns = <String>[];
-    var entries =
-        map.entries.toList()..sort((first, second) {
-          return second.value.compareTo(first.value);
-        });
+    var entries = map.entries.toList()
+      ..sort((first, second) {
+        return second.value.compareTo(first.value);
+      });
     var total = 0;
     for (var entry in entries) {
       total += entry.value;

@@ -9,7 +9,6 @@ import 'package:analyzer/src/dart/analysis/analysis_options.dart';
 import 'package:analyzer/src/dart/analysis/driver_based_analysis_context.dart';
 import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer/src/dart/analysis/file_state.dart';
-import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/test_utilities/mock_sdk.dart';
 import 'package:analyzer/src/util/file_paths.dart' as file_paths;
 import 'package:analyzer/src/utilities/extensions/file_system.dart';
@@ -75,8 +74,8 @@ linter:
     - empty_statements
 ''');
 
-    var packageConfigFileBuilder =
-        PackageConfigFileBuilder()..add(name: 'foo', rootPath: fooFolder.path);
+    var packageConfigFileBuilder = PackageConfigFileBuilder()
+      ..add(name: 'foo', rootPath: fooFolder.path);
     newPackageConfigJsonFileFromBuilder(
       rootFolder.path,
       packageConfigFileBuilder,
@@ -379,7 +378,7 @@ name: test
 
     _assertWorkspaceCollectionText(
       workspaceRootPath,
-      updateAnalysisOptions: ({required analysisOptions, required sdk}) {
+      updateAnalysisOptions: ({required analysisOptions}) {
         analysisOptions.contextFeatures = FeatureSet.fromEnableFlags2(
           sdkLanguageVersion: ExperimentStatus.currentVersion,
           flags: ['digit-separators', 'variance'],
@@ -403,6 +402,7 @@ analysisOptions
       constructor-tearoffs
       control-flow-collections
       digit-separators
+      dot-shorthands
       enhanced-enums
       extension-methods
       generic-metadata
@@ -460,7 +460,7 @@ name: test
 
     _assertWorkspaceCollectionText(
       workspaceRootPath,
-      updateAnalysisOptions: ({required analysisOptions, required sdk}) {
+      updateAnalysisOptions: ({required analysisOptions}) {
         analysisOptions.contextFeatures = FeatureSet.fromEnableFlags2(
           sdkLanguageVersion: ExperimentStatus.currentVersion,
           flags: ['variance'],
@@ -484,6 +484,7 @@ analysisOptions
       constructor-tearoffs
       control-flow-collections
       digit-separators
+      dot-shorthands
       enhanced-enums
       extension-methods
       generic-metadata
@@ -790,7 +791,7 @@ workspaces
     );
   }
 
-  test_packageConfigWorkspace_multipleAnalysisOptions_overridingOptions_outsideWorspaceRoot() async {
+  test_packageConfigWorkspace_multipleAnalysisOptions_overridingOptions_outsideWorkspaceRoot() async {
     var workspaceRootPath = '/home';
     var testPackageRootPath = '$workspaceRootPath/test';
     var testPackageLibPath = '$testPackageRootPath/lib';
@@ -1081,16 +1082,51 @@ workspaces
 ''');
   }
 
-  test_pub_workspace_open_root() async {
-    var pubWorkspace = _setupPubWorkspace();
+  test_resolutionWorkspace_noRoot_1of2Packages() async {
+    var workspaceRootPath = '/home';
+    var package1RootPath = '$workspaceRootPath/package1';
+    var package2RootPath = '$workspaceRootPath/package2';
+
+    // See https://dart.dev/tools/pub/workspaces
+    newPubspecYamlFile(workspaceRootPath, r'''
+name: _
+publish_to: none
+environment:
+  sdk: ^3.6.0
+workspace:
+  - package1
+  - package2
+''');
+
+    newPubspecYamlFile(package1RootPath, r'''
+name: package1
+environment:
+  sdk: ^3.6.0
+resolution: workspace
+''');
+
+    newPubspecYamlFile(package2RootPath, r'''
+name: package2
+environment:
+  sdk: ^3.6.0
+resolution: workspace
+''');
+
+    newPackageConfigJsonFileFromBuilder(
+      workspaceRootPath,
+      PackageConfigFileBuilder()
+        ..add(name: 'package1', rootPath: package1RootPath)
+        ..add(name: 'package2', rootPath: package2RootPath),
+    );
+
+    newFile('$package1RootPath/lib/library1.dart', '');
+    newFile('$package2RootPath/lib/library2.dart', '');
+
     var collection = AnalysisContextCollectionImpl(
       resourceProvider: resourceProvider,
       sdkPath: sdkRoot.path,
-      includedPaths: [getFolder(pubWorkspace.workspaceRootPath).path],
+      includedPaths: [getFolder(package1RootPath).path],
     );
-
-    // We expect only 1 context.
-    expect(collection.contexts, hasLength(1));
 
     _assertCollectionText(collection, r'''
 contexts
@@ -1098,39 +1134,65 @@ contexts
     packagesFile: /home/.dart_tool/package_config.json
     workspace: workspace_0
     analyzedFiles
-      /home/packages/package1/lib/package1.dart
-        uri: package:package1/package1.dart
-        analysisOptions_0
+      /home/package1/lib/library1.dart
+        uri: package:package1/library1.dart
         workspacePackage_0_0
-      /home/packages/package2/lib/package2.dart
-        uri: package:package2/package2.dart
-        analysisOptions_1
-        workspacePackage_0_1
-analysisOptions
-  analysisOptions_0: /home/packages/package1/analysis_options.yaml
-  analysisOptions_1: /home/packages/package2/analysis_options.yaml
 workspaces
   workspace_0: PackageConfigWorkspace
     root: /home
     pubPackages
       workspacePackage_0_0: PubPackage
-        root: /home/packages/package1
-        sdkVersionConstraint: ^3.6.0
-      workspacePackage_0_1: PubPackage
-        root: /home/packages/package2
+        root: /home/package1
         sdkVersionConstraint: ^3.6.0
 ''');
   }
 
-  test_pub_workspace_open_root_and_subfolders_bails_out() async {
-    var pubWorkspace = _setupPubWorkspace();
+  test_resolutionWorkspace_noRoot_2of2Packages() async {
+    var workspaceRootPath = '/home';
+    var package1RootPath = '$workspaceRootPath/package1';
+    var package2RootPath = '$workspaceRootPath/package2';
+
+    // See https://dart.dev/tools/pub/workspaces
+    newPubspecYamlFile(workspaceRootPath, r'''
+name: _
+publish_to: none
+environment:
+  sdk: ^3.6.0
+workspace:
+  - package1
+  - package2
+''');
+
+    newPubspecYamlFile(package1RootPath, r'''
+name: package1
+environment:
+  sdk: ^3.6.0
+resolution: workspace
+''');
+
+    newPubspecYamlFile(package2RootPath, r'''
+name: package2
+environment:
+  sdk: ^3.6.0
+resolution: workspace
+''');
+
+    newPackageConfigJsonFileFromBuilder(
+      workspaceRootPath,
+      PackageConfigFileBuilder()
+        ..add(name: 'package1', rootPath: package1RootPath)
+        ..add(name: 'package2', rootPath: package2RootPath),
+    );
+
+    newFile('$package1RootPath/lib/library1.dart', '');
+    newFile('$package2RootPath/lib/library2.dart', '');
+
     var collection = AnalysisContextCollectionImpl(
       resourceProvider: resourceProvider,
       sdkPath: sdkRoot.path,
       includedPaths: [
-        getFolder(pubWorkspace.package1).path,
-        getFolder(pubWorkspace.workspaceRootPath).path,
-        getFolder(pubWorkspace.package2).path,
+        getFolder(package1RootPath).path,
+        getFolder(package2RootPath).path,
       ],
     );
 
@@ -1140,57 +1202,84 @@ contexts
     packagesFile: /home/.dart_tool/package_config.json
     workspace: workspace_0
     analyzedFiles
-  /home/packages/package1
-    packagesFile: /home/.dart_tool/package_config.json
-    workspace: workspace_1
-    analyzedFiles
-      /home/packages/package1/lib/package1.dart
-        uri: package:package1/package1.dart
-        analysisOptions_0
-        workspacePackage_1_0
-  /home/packages/package2
-    packagesFile: /home/.dart_tool/package_config.json
-    workspace: workspace_2
-    analyzedFiles
-      /home/packages/package2/lib/package2.dart
-        uri: package:package2/package2.dart
-        analysisOptions_1
-        workspacePackage_2_0
-analysisOptions
-  analysisOptions_0: /home/packages/package1/analysis_options.yaml
-  analysisOptions_1: /home/packages/package2/analysis_options.yaml
+      /home/package1/lib/library1.dart
+        uri: package:package1/library1.dart
+        workspacePackage_0_0
+      /home/package2/lib/library2.dart
+        uri: package:package2/library2.dart
+        workspacePackage_0_1
 workspaces
   workspace_0: PackageConfigWorkspace
     root: /home
-  workspace_1: PackageConfigWorkspace
-    root: /home
     pubPackages
-      workspacePackage_1_0: PubPackage
-        root: /home/packages/package1
+      workspacePackage_0_0: PubPackage
+        root: /home/package1
         sdkVersionConstraint: ^3.6.0
-  workspace_2: PackageConfigWorkspace
-    root: /home
-    pubPackages
-      workspacePackage_2_0: PubPackage
-        root: /home/packages/package2
+      workspacePackage_0_1: PubPackage
+        root: /home/package2
         sdkVersionConstraint: ^3.6.0
 ''');
   }
 
-  test_pub_workspace_open_subfolders() async {
-    var pubWorkspace = _setupPubWorkspace();
+  test_resolutionWorkspace_noRoot_2of3Packages() async {
+    var workspaceRootPath = '/home';
+    var package1RootPath = '$workspaceRootPath/package1';
+    var package2RootPath = '$workspaceRootPath/package2';
+    var package3RootPath = '$workspaceRootPath/package3';
+
+    // See https://dart.dev/tools/pub/workspaces
+    newPubspecYamlFile(workspaceRootPath, r'''
+name: _
+publish_to: none
+environment:
+  sdk: ^3.6.0
+workspace:
+  - package1
+  - package2
+  - package3
+''');
+
+    newPubspecYamlFile(package1RootPath, r'''
+name: package1
+environment:
+  sdk: ^3.6.0
+resolution: workspace
+''');
+
+    newPubspecYamlFile(package2RootPath, r'''
+name: package2
+environment:
+  sdk: ^3.6.0
+resolution: workspace
+''');
+
+    newPubspecYamlFile(package3RootPath, r'''
+name: package3
+environment:
+  sdk: ^3.6.0
+resolution: workspace
+''');
+
+    newPackageConfigJsonFileFromBuilder(
+      workspaceRootPath,
+      PackageConfigFileBuilder()
+        ..add(name: 'package1', rootPath: package1RootPath)
+        ..add(name: 'package2', rootPath: package2RootPath)
+        ..add(name: 'package3', rootPath: package3RootPath),
+    );
+
+    newFile('$package1RootPath/lib/library1.dart', '');
+    newFile('$package2RootPath/lib/library2.dart', '');
+    newFile('$package3RootPath/lib/library3.dart', '');
 
     var collection = AnalysisContextCollectionImpl(
       resourceProvider: resourceProvider,
       sdkPath: sdkRoot.path,
       includedPaths: [
-        getFolder(pubWorkspace.package1).path,
-        getFolder(pubWorkspace.package2).path,
+        getFolder(package1RootPath).path,
+        getFolder(package2RootPath).path,
       ],
     );
-
-    // We expect only 1 context.
-    expect(collection.contexts, hasLength(1));
 
     _assertCollectionText(collection, r'''
 contexts
@@ -1198,26 +1287,249 @@ contexts
     packagesFile: /home/.dart_tool/package_config.json
     workspace: workspace_0
     analyzedFiles
-      /home/packages/package1/lib/package1.dart
-        uri: package:package1/package1.dart
-        analysisOptions_0
+      /home/package1/lib/library1.dart
+        uri: package:package1/library1.dart
         workspacePackage_0_0
-      /home/packages/package2/lib/package2.dart
-        uri: package:package2/package2.dart
-        analysisOptions_1
+      /home/package2/lib/library2.dart
+        uri: package:package2/library2.dart
         workspacePackage_0_1
-analysisOptions
-  analysisOptions_0: /home/packages/package1/analysis_options.yaml
-  analysisOptions_1: /home/packages/package2/analysis_options.yaml
 workspaces
   workspace_0: PackageConfigWorkspace
     root: /home
     pubPackages
       workspacePackage_0_0: PubPackage
-        root: /home/packages/package1
+        root: /home/package1
         sdkVersionConstraint: ^3.6.0
       workspacePackage_0_1: PubPackage
-        root: /home/packages/package2
+        root: /home/package2
+        sdkVersionConstraint: ^3.6.0
+''');
+  }
+
+  test_resolutionWorkspace_root() async {
+    var workspaceRootPath = '/home';
+    var package1RootPath = '$workspaceRootPath/package1';
+    var package2RootPath = '$workspaceRootPath/package2';
+
+    // See https://dart.dev/tools/pub/workspaces
+    newPubspecYamlFile(workspaceRootPath, r'''
+name: _
+publish_to: none
+environment:
+  sdk: ^3.6.0
+workspace:
+  - package1
+  - package2
+''');
+
+    newPubspecYamlFile(package1RootPath, r'''
+name: package1
+environment:
+  sdk: ^3.6.0
+resolution: workspace
+''');
+
+    newPubspecYamlFile(package2RootPath, r'''
+name: package2
+environment:
+  sdk: ^3.6.0
+resolution: workspace
+''');
+
+    newPackageConfigJsonFileFromBuilder(
+      workspaceRootPath,
+      PackageConfigFileBuilder()
+        ..add(name: 'package1', rootPath: package1RootPath)
+        ..add(name: 'package2', rootPath: package2RootPath),
+    );
+
+    newAnalysisOptionsYamlFile(workspaceRootPath, '');
+    newAnalysisOptionsYamlFile(package1RootPath, '');
+
+    newFile('$package1RootPath/lib/library1.dart', '');
+    newFile('$package2RootPath/lib/library2.dart', '');
+
+    var collection = AnalysisContextCollectionImpl(
+      resourceProvider: resourceProvider,
+      sdkPath: sdkRoot.path,
+      includedPaths: [getFolder(workspaceRootPath).path],
+    );
+
+    _assertCollectionText(collection, r'''
+contexts
+  /home
+    packagesFile: /home/.dart_tool/package_config.json
+    workspace: workspace_0
+    analyzedFiles
+      /home/package1/lib/library1.dart
+        uri: package:package1/library1.dart
+        analysisOptions_0
+        workspacePackage_0_0
+      /home/package2/lib/library2.dart
+        uri: package:package2/library2.dart
+        analysisOptions_1
+        workspacePackage_0_1
+analysisOptions
+  analysisOptions_0: /home/package1/analysis_options.yaml
+  analysisOptions_1: /home/analysis_options.yaml
+workspaces
+  workspace_0: PackageConfigWorkspace
+    root: /home
+    pubPackages
+      workspacePackage_0_0: PubPackage
+        root: /home/package1
+        sdkVersionConstraint: ^3.6.0
+      workspacePackage_0_1: PubPackage
+        root: /home/package2
+        sdkVersionConstraint: ^3.6.0
+''');
+  }
+
+  test_resolutionWorkspace_root_1of2Packages() async {
+    var workspaceRootPath = '/home';
+    var package1RootPath = '$workspaceRootPath/package1';
+    var package2RootPath = '$workspaceRootPath/package2';
+
+    // See https://dart.dev/tools/pub/workspaces
+    newPubspecYamlFile(workspaceRootPath, r'''
+name: _
+publish_to: none
+environment:
+  sdk: ^3.6.0
+workspace:
+  - package1
+  - package2
+''');
+
+    newPubspecYamlFile(package1RootPath, r'''
+name: package1
+environment:
+  sdk: ^3.6.0
+resolution: workspace
+''');
+
+    newPubspecYamlFile(package2RootPath, r'''
+name: package2
+environment:
+  sdk: ^3.6.0
+resolution: workspace
+''');
+
+    newPackageConfigJsonFileFromBuilder(
+      workspaceRootPath,
+      PackageConfigFileBuilder()
+        ..add(name: 'package1', rootPath: package1RootPath)
+        ..add(name: 'package2', rootPath: package2RootPath),
+    );
+
+    newFile('$package1RootPath/lib/library1.dart', '');
+    newFile('$package2RootPath/lib/library2.dart', '');
+
+    var collection = AnalysisContextCollectionImpl(
+      resourceProvider: resourceProvider,
+      sdkPath: sdkRoot.path,
+      includedPaths: [
+        getFolder(workspaceRootPath).path,
+        getFolder(package1RootPath).path,
+      ],
+    );
+
+    _assertCollectionText(collection, r'''
+contexts
+  /home
+    packagesFile: /home/.dart_tool/package_config.json
+    workspace: workspace_0
+    analyzedFiles
+      /home/package1/lib/library1.dart
+        uri: package:package1/library1.dart
+        workspacePackage_0_0
+      /home/package2/lib/library2.dart
+        uri: package:package2/library2.dart
+        workspacePackage_0_1
+workspaces
+  workspace_0: PackageConfigWorkspace
+    root: /home
+    pubPackages
+      workspacePackage_0_0: PubPackage
+        root: /home/package1
+        sdkVersionConstraint: ^3.6.0
+      workspacePackage_0_1: PubPackage
+        root: /home/package2
+        sdkVersionConstraint: ^3.6.0
+''');
+  }
+
+  test_resolutionWorkspace_root_2of2Packages() async {
+    var workspaceRootPath = '/home';
+    var package1RootPath = '$workspaceRootPath/package1';
+    var package2RootPath = '$workspaceRootPath/package2';
+
+    // See https://dart.dev/tools/pub/workspaces
+    newPubspecYamlFile(workspaceRootPath, r'''
+name: _
+publish_to: none
+environment:
+  sdk: ^3.6.0
+workspace:
+  - package1
+  - package2
+''');
+
+    newPubspecYamlFile(package1RootPath, r'''
+name: package1
+environment:
+  sdk: ^3.6.0
+resolution: workspace
+''');
+
+    newPubspecYamlFile(package2RootPath, r'''
+name: package2
+environment:
+  sdk: ^3.6.0
+resolution: workspace
+''');
+
+    newPackageConfigJsonFileFromBuilder(
+      workspaceRootPath,
+      PackageConfigFileBuilder()
+        ..add(name: 'package1', rootPath: package1RootPath)
+        ..add(name: 'package2', rootPath: package2RootPath),
+    );
+
+    newFile('$package1RootPath/lib/library1.dart', '');
+    newFile('$package2RootPath/lib/library2.dart', '');
+
+    var collection = AnalysisContextCollectionImpl(
+      resourceProvider: resourceProvider,
+      sdkPath: sdkRoot.path,
+      includedPaths: [
+        getFolder(workspaceRootPath).path,
+        getFolder(package1RootPath).path,
+        getFolder(package2RootPath).path,
+      ],
+    );
+
+    _assertCollectionText(collection, r'''
+contexts
+  /home
+    packagesFile: /home/.dart_tool/package_config.json
+    workspace: workspace_0
+    analyzedFiles
+      /home/package1/lib/library1.dart
+        uri: package:package1/library1.dart
+        workspacePackage_0_0
+      /home/package2/lib/library2.dart
+        uri: package:package2/library2.dart
+        workspacePackage_0_1
+workspaces
+  workspace_0: PackageConfigWorkspace
+    root: /home
+    pubPackages
+      workspacePackage_0_0: PubPackage
+        root: /home/package1
+        sdkVersionConstraint: ^3.6.0
+      workspacePackage_0_1: PubPackage
+        root: /home/package2
         sdkVersionConstraint: ^3.6.0
 ''');
   }
@@ -1241,10 +1553,7 @@ workspaces
     String workspaceRootPath,
     String expected, {
     File? optionsFile,
-    void Function({
-      required AnalysisOptionsImpl analysisOptions,
-      required DartSdk sdk,
-    })?
+    void Function({required AnalysisOptionsImpl analysisOptions})?
     updateAnalysisOptions,
   }) {
     if (optionsFile != null) {
@@ -1255,7 +1564,7 @@ workspaces
       sdkPath: sdkRoot.path,
       includedPaths: [getFolder(workspaceRootPath).path],
       optionsFile: optionsFile?.path,
-      updateAnalysisOptions3: updateAnalysisOptions,
+      updateAnalysisOptions4: updateAnalysisOptions,
     );
 
     _assertCollectionText(collection, expected);
@@ -1271,63 +1580,6 @@ workspaces
       sink: TreeStringSink(sink: buffer, indent: ''),
     ).write(contextCollection);
     return buffer.toString();
-  }
-
-  ({String workspaceRootPath, String package1, String package2})
-  _setupPubWorkspace() {
-    var workspaceRootPath = '/home';
-    var package1 = '$workspaceRootPath/packages/package1';
-    var package2 = '$workspaceRootPath/packages/package2';
-    var fileInPackage1 = '$package1/lib/package1.dart';
-    var fileInPackage2 = '$package2/lib/package2.dart';
-
-    // Pubspec data mostly copied from https://dart.dev/tools/pub/workspaces.
-    newPubspecYamlFile(workspaceRootPath, r'''
-name: _
-publish_to: none
-environment:
-  sdk: ^3.6.0
-workspace:
-  - packages/package1
-  - packages/package2
-''');
-    newPubspecYamlFile(package1, r'''
-name: package1
-environment:
-  sdk: ^3.6.0
-resolution: workspace
-''');
-    newPubspecYamlFile(package2, r'''
-name: package2
-environment:
-  sdk: ^3.6.0
-resolution: workspace
-''');
-
-    // Package 1 has 1 lint.
-    newAnalysisOptionsYamlFile(package1, '''
-linter:
-  rules:
-    - empty_statements
-''');
-
-    // Package 2 has 0 lints.
-    newAnalysisOptionsYamlFile(package2, '');
-
-    var builder =
-        PackageConfigFileBuilder()
-          ..add(name: 'package1', rootPath: package1)
-          ..add(name: 'package2', rootPath: package2);
-    newPackageConfigJsonFileFromBuilder(workspaceRootPath, builder);
-
-    newFile(fileInPackage1, '');
-    newFile(fileInPackage2, '');
-
-    return (
-      workspaceRootPath: workspaceRootPath,
-      package1: package1,
-      package2: package2,
-    );
   }
 }
 
@@ -1426,17 +1678,15 @@ class _AnalysisContextCollectionPrinter {
   }
 
   void _writeAnalysisOptions() {
-    var filtered =
-        _analysisOptions.keys
-            .map((analysisOption) {
-              var file = analysisOption.file;
-              return configuration.withAnalysisOptionsWithoutFiles ||
-                      file != null
-                  ? (analysisOption, file)
-                  : null;
-            })
-            .nonNulls
-            .toList();
+    var filtered = _analysisOptions.keys
+        .map((analysisOption) {
+          var file = analysisOption.file;
+          return configuration.withAnalysisOptionsWithoutFiles || file != null
+              ? (analysisOption, file)
+              : null;
+        })
+        .nonNulls
+        .toList();
 
     sink.writeElements('analysisOptions', filtered, (pair) {
       var analysisOptions = pair.$1;
@@ -1450,10 +1700,9 @@ class _AnalysisContextCollectionPrinter {
       sink.withIndent(() {
         if (configuration.withEnabledFeatures) {
           var contextFeatures = analysisOptions.contextFeatures;
-          var enabledFeatures =
-              ExperimentStatus.knownFeatures.values
-                  .where((f) => contextFeatures.isEnabled(f))
-                  .toList();
+          var enabledFeatures = ExperimentStatus.knownFeatures.values
+              .where((f) => contextFeatures.isEnabled(f))
+              .toList();
           sink.writeElements('features', enabledFeatures, (feature) {
             sink.writelnWithIndent(feature);
           });

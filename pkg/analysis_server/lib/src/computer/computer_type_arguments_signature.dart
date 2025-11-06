@@ -88,20 +88,15 @@ class DartTypeArgumentsSignatureComputer {
     String? documentation,
     List<TypeParameterElement> typeParameters,
   ) {
-    var parameters =
-        typeParameters
-            .map(
-              (param) =>
-                  lsp.ParameterInformation(label: param.displayString()),
-            )
-            .toList();
+    var parameters = typeParameters
+        .map((param) => lsp.ParameterInformation(label: param.displayString()))
+        .toList();
 
     var signature = lsp.SignatureInformation(
       label: label,
-      documentation:
-          documentation != null
-              ? asMarkupContentOrString(preferredFormats, documentation)
-              : null,
+      documentation: documentation != null
+          ? asMarkupContentOrString(preferredFormats, documentation)
+          : null,
       parameters: parameters,
     );
 

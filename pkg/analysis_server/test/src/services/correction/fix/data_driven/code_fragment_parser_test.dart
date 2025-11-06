@@ -46,11 +46,10 @@ abstract class AbstractCodeFragmentParserTest {
     List<String>? variables,
   }) {
     var diagnosticListener = GatheringDiagnosticListener();
-    var expression =
-        _parser(
-          diagnosticListener,
-          variables: variables,
-        ).parseCondition(content, 0)!;
+    var expression = _parser(
+      diagnosticListener,
+      variables: variables,
+    ).parseCondition(content, 0)!;
     diagnosticListener.assertNoErrors();
     return expression;
   }

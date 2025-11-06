@@ -76,7 +76,7 @@ void f(e) {
       case _Variants.nullSafe:
         expectedErrors = [
           error(
-            CompileTimeErrorCode.CASE_EXPRESSION_TYPE_IMPLEMENTS_EQUALS,
+            CompileTimeErrorCode.caseExpressionTypeImplementsEquals,
             150,
             10,
           ),

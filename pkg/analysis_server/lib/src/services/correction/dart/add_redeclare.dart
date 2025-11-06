@@ -16,10 +16,10 @@ class AddRedeclare extends ResolvedCorrectionProducer {
       CorrectionApplicability.automatically;
 
   @override
-  FixKind get fixKind => DartFixKind.ADD_REDECLARE;
+  FixKind get fixKind => DartFixKind.addRedeclare;
 
   @override
-  FixKind get multiFixKind => DartFixKind.ADD_REDECLARE_MULTI;
+  FixKind get multiFixKind => DartFixKind.addRedeclareMulti;
 
   @override
   Future<void> compute(ChangeBuilder builder) async {
@@ -29,6 +29,7 @@ class AddRedeclare extends ResolvedCorrectionProducer {
     var token = member.firstTokenAfterCommentAndMetadata;
     var indent = utils.oneIndent;
     await builder.addDartFileEdit(file, (builder) {
+      var eol = builder.eol;
       builder.addInsertion(token.offset, (builder) {
         builder.write('@');
         builder.writeImportedName([

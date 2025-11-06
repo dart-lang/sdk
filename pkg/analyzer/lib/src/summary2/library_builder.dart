@@ -19,6 +19,7 @@ import 'package:analyzer/src/summary2/constructor_initializer_resolver.dart';
 import 'package:analyzer/src/summary2/default_value_resolver.dart';
 import 'package:analyzer/src/summary2/element_builder.dart';
 import 'package:analyzer/src/summary2/export.dart';
+import 'package:analyzer/src/summary2/informative_data.dart';
 import 'package:analyzer/src/summary2/link.dart';
 import 'package:analyzer/src/summary2/metadata_resolver.dart';
 import 'package:analyzer/src/summary2/reference.dart';
@@ -27,24 +28,25 @@ import 'package:analyzer/src/summary2/types_builder.dart';
 import 'package:analyzer/src/util/performance/operation_performance.dart';
 import 'package:analyzer/src/utilities/extensions/collection.dart';
 import 'package:analyzer/src/utilities/extensions/element.dart';
+import 'package:collection/collection.dart';
 
 class DefiningLinkingUnit extends LinkingUnit {
   DefiningLinkingUnit({required super.node, required super.element});
 }
 
 class ImplicitEnumNodes {
-  final EnumFragmentImpl element;
+  final EnumFragmentImpl fragment;
   final ast.NamedTypeImpl valuesTypeNode;
   final ast.VariableDeclarationImpl valuesNode;
-  final FieldFragmentImpl valuesElement;
+  final FieldFragmentImpl valuesFragment;
   final Set<String> valuesNames;
   ast.ListLiteralImpl valuesInitializer;
 
   ImplicitEnumNodes({
-    required this.element,
+    required this.fragment,
     required this.valuesTypeNode,
     required this.valuesNode,
-    required this.valuesElement,
+    required this.valuesFragment,
     required this.valuesNames,
     required this.valuesInitializer,
   });
@@ -98,8 +100,13 @@ class LibraryBuilder {
     required this.units,
   });
 
+  void addChildFragment(FragmentImpl parent, FragmentImpl child) {
+    child.enclosingFragment = parent;
+    (_parentChildFragments[parent] ??= []).add(child);
+  }
+
   void addExporters() {
-    for (var (fragmentIndex, fragment) in element.units.indexed) {
+    for (var (fragmentIndex, fragment) in element.internal.fragments.indexed) {
       for (var (exportIndex, exportElement)
           in fragment.libraryExports.indexed) {
         var exportedLibrary = exportElement.exportedLibrary;
@@ -107,7 +114,7 @@ class LibraryBuilder {
           continue;
         }
 
-        var exportedUri = exportedLibrary.source.uri;
+        var exportedUri = exportedLibrary.uri;
         var exportedBuilder = linker.builders[exportedUri];
         var combinators = exportElement.combinators.build();
 
@@ -137,28 +144,21 @@ class LibraryBuilder {
     }
   }
 
-  void addFragmentChild(FragmentImpl parent, FragmentImpl child) {
-    (_parentChildFragments[parent] ??= []).add(child);
-  }
-
   void addTopFragment(LibraryFragmentImpl parent, FragmentImpl fragment) {
-    fragment.enclosingElement = parent;
+    fragment.enclosingFragment = parent;
     (_topFragments[parent] ??= []).add(fragment);
   }
 
   void buildClassSyntheticConstructors() {
-    for (var classFragment in element.topLevelElements) {
-      if (classFragment is! ClassFragmentImpl) continue;
-      if (classFragment.isMixinApplication) continue;
-      if (classFragment.constructors.isNotEmpty) continue;
+    for (var classElement in element.children) {
+      if (classElement is! ClassElementImpl) continue;
+      if (classElement.isMixinApplication) continue;
+      if (classElement.constructors.isNotEmpty) continue;
 
-      var fragment = ConstructorFragmentImpl(
-        name: 'new',
-        firstTokenOffset: null,
-      )..isSynthetic = true;
-      fragment.typeName = classFragment.name;
+      var fragment = ConstructorFragmentImpl(name: 'new')..isSynthetic = true;
+      fragment.typeName = classElement.name;
+      classElement.firstFragment.constructors = [fragment].toFixedList();
 
-      var classElement = classFragment.element;
       classElement.constructors = [
         ConstructorElementImpl(
           name: fragment.name,
@@ -168,18 +168,13 @@ class LibraryBuilder {
           firstFragment: fragment,
         ),
       ];
-
-      classFragment.constructors = [fragment].toFixedList();
     }
   }
 
   /// Build elements for declarations in the library units, add top-level
   /// declarations to the local scope, for combining into export scopes.
   void buildElements() {
-    _buildDirectives(
-      kind: kind,
-      containerUnit: element.definingCompilationUnit,
-    );
+    _buildDirectives(kind: kind, containerUnit: element.firstFragment);
 
     for (var linkingUnit in units) {
       var elementBuilder = FragmentBuilder(
@@ -198,32 +193,35 @@ class LibraryBuilder {
       parentChildFragments: _parentChildFragments,
     );
 
+    for (var linkingUnit in units) {
+      InformativeDataApplier().applyFromNode(
+        linkingUnit.element,
+        linkingUnit.node,
+      );
+    }
+
     _declareDartCoreDynamicNever();
   }
 
   void buildEnumChildren() {
     var typeProvider = element.typeProvider;
     for (var enum_ in implicitEnumNodes.values) {
-      enum_.element.supertype =
+      enum_.fragment.element.supertype =
           typeProvider.enumType ?? typeProvider.objectType;
       var valuesType = typeProvider.listType(
         element.typeSystem.instantiateInterfaceToBounds(
-          element: enum_.element.asElement2,
+          element: enum_.fragment.asElement2,
           nullabilitySuffix: typeProvider.objectType.nullabilitySuffix,
         ),
       );
       enum_.valuesTypeNode.type = valuesType;
-      enum_.valuesElement.type = valuesType;
-      enum_.valuesElement.element.type = valuesType;
-      // TODO(scheglov): We repeat this code.
-      enum_.valuesElement.element.getter!.returnType = valuesType;
-      enum_.valuesElement.element.getter!.firstFragment.returnType = valuesType;
+      enum_.valuesFragment.element.type = valuesType;
     }
   }
 
   void buildEnumSyntheticConstructors() {
-    bool hasConstructor(EnumFragmentImpl fragment) {
-      for (var constructor in fragment.element.constructors) {
+    bool hasConstructor(EnumElementImpl enumElement) {
+      for (var constructor in enumElement.constructors) {
         if (constructor.isGenerative || constructor.name == 'new') {
           return true;
         }
@@ -231,27 +229,23 @@ class LibraryBuilder {
       return false;
     }
 
-    for (var enumFragment in element.topLevelElements) {
-      if (enumFragment is! EnumFragmentImpl) continue;
-      if (hasConstructor(enumFragment)) continue;
+    for (var enumElement in element.enums) {
+      if (hasConstructor(enumElement)) continue;
 
-      var fragment =
-          ConstructorFragmentImpl(name: 'new', firstTokenOffset: null)
-            ..isConst = true
-            ..isSynthetic = true;
-      fragment.typeName = enumFragment.name;
+      var constructorFragment = ConstructorFragmentImpl(name: 'new')
+        ..isConst = true
+        ..isSynthetic = true
+        ..typeName = enumElement.name;
+      enumElement.firstFragment.addConstructor(constructorFragment);
 
-      var element = ConstructorElementImpl(
-        name: fragment.name,
-        reference: enumFragment.element.reference
+      var constructorElement = ConstructorElementImpl(
+        name: constructorFragment.name,
+        reference: enumElement.reference
             .getChild('@constructor')
             .addChild('new'),
-        firstFragment: fragment,
+        firstFragment: constructorFragment,
       );
-      enumFragment.element.addConstructor(element);
-
-      enumFragment.constructors =
-          [...enumFragment.constructors, fragment].toFixedList();
+      enumElement.addConstructor(constructorElement);
     }
   }
 
@@ -276,7 +270,7 @@ class LibraryBuilder {
             }
           }
           var fragment = declaration.declaredFragment!;
-          fragment.superInvokedNames = names.toList();
+          fragment.superInvokedNames = names.sorted();
         }
       }
     }
@@ -324,21 +318,20 @@ class LibraryBuilder {
   }
 
   void resolveConstructorFieldFormals() {
-    for (var interfaceFragment in element.topLevelElements) {
-      if (interfaceFragment is! InterfaceFragmentImpl) {
+    for (var interfaceElement in element.children) {
+      if (interfaceElement is! InterfaceElementImpl) {
         continue;
       }
 
-      if (interfaceFragment is ClassFragmentImpl &&
-          interfaceFragment.isMixinApplication) {
+      if (interfaceElement is ClassElementImpl &&
+          interfaceElement.isMixinApplication) {
         continue;
       }
 
-      var element = interfaceFragment.element;
-      for (var constructor in interfaceFragment.constructors) {
-        for (var parameter in constructor.parameters) {
-          if (parameter is FieldFormalParameterFragmentImpl) {
-            parameter.field = element.getField(parameter.name ?? '')?.asElement;
+      for (var constructor in interfaceElement.constructors) {
+        for (var parameter in constructor.formalParameters) {
+          if (parameter is FieldFormalParameterElementImpl) {
+            parameter.field = interfaceElement.getField(parameter.name ?? '');
           }
         }
       }
@@ -375,22 +368,23 @@ class LibraryBuilder {
   void setDefaultSupertypes() {
     var shouldResetClassHierarchies = false;
     var objectType = element.typeProvider.objectType;
-    for (var interfaceFragment in element.topLevelElements) {
-      switch (interfaceFragment) {
-        case ClassFragmentImpl():
-          if (interfaceFragment.isDartCoreObject) continue;
-          if (interfaceFragment.supertype == null) {
-            shouldResetClassHierarchies = true;
-            interfaceFragment.supertype = objectType;
-          }
-        case MixinFragmentImpl():
-          var element = interfaceFragment.element;
-          if (element.superclassConstraints.isEmpty) {
-            shouldResetClassHierarchies = true;
-            interfaceFragment.superclassConstraints = [objectType];
-          }
+
+    for (var classElement in element.classes) {
+      if (!classElement.isDartCoreObject) {
+        if (classElement.supertype == null) {
+          shouldResetClassHierarchies = true;
+          classElement.supertype = objectType;
+        }
       }
     }
+
+    for (var mixinElement in element.mixins) {
+      if (mixinElement.superclassConstraints.isEmpty) {
+        shouldResetClassHierarchies = true;
+        mixinElement.superclassConstraints = [objectType];
+      }
+    }
+
     if (shouldResetClassHierarchies) {
       element.session.classHierarchy.removeOfLibraries({uri});
     }
@@ -439,27 +433,21 @@ class LibraryBuilder {
     required FileKind kind,
     required LibraryFragmentImpl containerUnit,
   }) {
-    containerUnit.libraryExports =
-        kind.libraryExports.map((state) {
-          return _buildLibraryExport(state);
-        }).toFixedList();
+    containerUnit.libraryExports = kind.libraryExports.map((state) {
+      return _buildLibraryExport(state);
+    }).toFixedList();
 
-    containerUnit.libraryImports =
-        kind.libraryImports.map((state) {
-          return _buildLibraryImport(
-            containerUnit: containerUnit,
-            state: state,
-          );
-        }).toFixedList();
+    containerUnit.libraryImports = kind.libraryImports.map((state) {
+      return _buildLibraryImport(containerUnit: containerUnit, state: state);
+    }).toFixedList();
 
-    containerUnit.parts =
-        kind.partIncludes.map((partState) {
-          return _buildPartInclude(
-            containerLibrary: element,
-            containerUnit: containerUnit,
-            state: partState,
-          );
-        }).toFixedList();
+    containerUnit.parts = kind.partIncludes.map((partState) {
+      return _buildPartInclude(
+        containerLibrary: element,
+        containerUnit: containerUnit,
+        state: partState,
+      );
+    }).toFixedList();
   }
 
   LibraryExportImpl _buildLibraryExport(LibraryExportState state) {
@@ -478,7 +466,7 @@ class LibraryBuilder {
             relativeUriString: state.selectedUri.relativeUriStr,
             relativeUri: state.selectedUri.relativeUri,
             source: exportedLibrary.source,
-            library2: exportedLibrary,
+            library: exportedLibrary,
           );
         } else {
           uri = DirectiveUriWithSourceImpl(
@@ -497,7 +485,7 @@ class LibraryBuilder {
             relativeUriString: state.selectedUri.relativeUriStr,
             relativeUri: state.selectedUri.relativeUri,
             source: exportedLibrary.source,
-            library2: exportedLibrary,
+            library: exportedLibrary,
           );
         } else {
           uri = DirectiveUriWithSourceImpl(
@@ -558,7 +546,7 @@ class LibraryBuilder {
             relativeUriString: state.selectedUri.relativeUriStr,
             relativeUri: state.selectedUri.relativeUri,
             source: importedLibrary.source,
-            library2: importedLibrary,
+            library: importedLibrary,
           );
         } else {
           uri = DirectiveUriWithSourceImpl(
@@ -577,7 +565,7 @@ class LibraryBuilder {
             relativeUriString: state.selectedUri.relativeUriStr,
             relativeUri: state.selectedUri.relativeUri,
             source: importedLibrary.source,
-            library2: importedLibrary,
+            library: importedLibrary,
           );
         } else {
           uri = DirectiveUriWithSourceImpl(
@@ -607,7 +595,7 @@ class LibraryBuilder {
       isSynthetic: state.isSyntheticDartCore,
       combinators: combinators,
       importKeywordOffset: state.unlinked.importKeywordOffset,
-      prefix2: prefixFragment,
+      prefix: prefixFragment,
       uri: uri,
     );
   }
@@ -619,12 +607,12 @@ class LibraryBuilder {
     required bool isDeferred,
   }) {
     var fragment = PrefixFragmentImpl(
-      enclosingFragment: libraryFragment,
       name: unlinkedName?.name,
       firstTokenOffset: null,
-      nameOffset2: unlinkedName?.nameOffset,
+      nameOffset: unlinkedName?.nameOffset,
       isDeferred: isDeferred,
     )..offset = offset;
+    fragment.enclosingFragment = libraryFragment;
 
     var refName = getReferenceName(unlinkedName?.name);
     var reference = this.reference
@@ -709,7 +697,10 @@ class LibraryBuilder {
         }
     }
 
-    return PartIncludeImpl(uri: directiveUri);
+    return PartIncludeImpl(
+      partKeywordOffset: state.unlinked.partKeywordOffset,
+      uri: directiveUri,
+    );
   }
 
   /// We want to have stable references for `loadLibrary` function. But we
@@ -799,7 +790,7 @@ class LibraryBuilder {
         DefiningLinkingUnit(node: libraryUnitNode, element: unitElement),
       );
 
-      libraryElement.definingCompilationUnit = unitElement;
+      libraryElement.firstFragment = unitElement;
     }
 
     var builder = LibraryBuilder._(

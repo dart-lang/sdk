@@ -6,7 +6,8 @@ import "dart:_internal" as _in;
 
 import "dart:ffi";
 
-@#C6
+@#C3
+@#C8
 final class Vec2d extends ffi::Struct {
   constructor #fromTypedDataBase([@vm.inferred-arg-type.metadata=dart.ffi::Pointer] synthesized core::Object #typedDataBase) → self::Vec2d
     : super ffi::Struct::_fromTypedDataBase(#typedDataBase)
@@ -15,106 +16,107 @@ final class Vec2d extends ffi::Struct {
   [@vm.inferred-return-type.metadata=dart.core::_Double]
   [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasNonThisUses:false,hasTearOffUses:false,getterSelectorId:1]
   [@vm.unboxing-info.metadata=()->d]
-  @#C8
+  @#C10
   get x() → core::double
     return [@vm.inferred-type.metadata=dart.core::_Double] ffi::_loadDouble([@vm.direct-call.metadata=dart.ffi::_Compound._typedDataBase] this.{ffi::_Compound::_typedDataBase}{core::Object}, [@vm.direct-call.metadata=dart.core::_IntegerImplementation.+] [@vm.inferred-type.metadata=int (skip check)] [@vm.inferred-type.metadata=dart.core::_Smi (value: 0)] self::Vec2d::x#offsetOf.{core::num::+}([@vm.direct-call.metadata=dart.ffi::_Compound._offsetInBytes] [@vm.inferred-type.metadata=int?] this.{ffi::_Compound::_offsetInBytes}{core::int}){(core::num) → core::num});
 
   [@vm.inferred-return-type.metadata=dart.core::_Double]
   [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasNonThisUses:false,hasTearOffUses:false,getterSelectorId:2]
   [@vm.unboxing-info.metadata=()->d]
-  @#C8
+  @#C10
   get y() → core::double
     return [@vm.inferred-type.metadata=dart.core::_Double] ffi::_loadDouble([@vm.direct-call.metadata=dart.ffi::_Compound._typedDataBase] this.{ffi::_Compound::_typedDataBase}{core::Object}, [@vm.direct-call.metadata=dart.core::_IntegerImplementation.+] [@vm.inferred-type.metadata=int (skip check)] [@vm.inferred-type.metadata=dart.core::_Smi (value: 8)] self::Vec2d::y#offsetOf.{core::num::+}([@vm.direct-call.metadata=dart.ffi::_Compound._offsetInBytes] [@vm.inferred-type.metadata=int?] this.{ffi::_Compound::_offsetInBytes}{core::int}){(core::num) → core::num});
 
   [@vm.inferred-return-type.metadata=dart.core::_Smi (value: 0)]
   [@vm.unboxing-info.metadata=()->i]
-  @#C8
+  @#C10
   static synthetic get x#offsetOf() → core::int
-    return #C10.{core::List::[]}(ffi::_abi()){(core::int) → core::int};
+    return #C12.{core::List::[]}(ffi::_abi()){(core::int) → core::int};
 
   [@vm.inferred-return-type.metadata=dart.core::_Smi (value: 8)]
   [@vm.unboxing-info.metadata=()->i]
-  @#C8
+  @#C10
   static synthetic get y#offsetOf() → core::int
-    return #C12.{core::List::[]}(ffi::_abi()){(core::int) → core::int};
+    return #C14.{core::List::[]}(ffi::_abi()){(core::int) → core::int};
 }
-@#C17
+@#C3
+@#C19
 final class MyUnion extends ffi::Union {
   constructor #fromTypedDataBase([@vm.inferred-arg-type.metadata=dart.ffi::Pointer] synthesized core::Object #typedDataBase) → self::MyUnion
     : super ffi::Union::_fromTypedDataBase(#typedDataBase)
     ;
 
   [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:3]
-  @#C8
+  @#C10
   set indirectVector([@vm.inferred-arg-type.metadata=dart.ffi::Pointer] synthesized ffi::Pointer<self::Vec2d> #externalFieldValue) → void
     return ffi::_storePointer<self::Vec2d>([@vm.direct-call.metadata=dart.ffi::_Compound._typedDataBase] this.{ffi::_Compound::_typedDataBase}{core::Object}, [@vm.direct-call.metadata=dart.core::_IntegerImplementation.+] [@vm.inferred-type.metadata=int (skip check)] [@vm.inferred-type.metadata=dart.core::_Smi (value: 0)] self::MyUnion::indirectVector#offsetOf.{core::num::+}([@vm.direct-call.metadata=dart.ffi::_Compound._offsetInBytes] [@vm.inferred-type.metadata=int?] this.{ffi::_Compound::_offsetInBytes}{core::int}){(core::num) → core::num}, #externalFieldValue);
 
   [@vm.inferred-return-type.metadata=dart.core::_Smi (value: 0)]
   [@vm.unboxing-info.metadata=()->i]
-  @#C8
+  @#C10
   static synthetic get indirectVector#offsetOf() → core::int
-    return #C10.{core::List::[]}(ffi::_abi()){(core::int) → core::int};
+    return #C12.{core::List::[]}(ffi::_abi()){(core::int) → core::int};
 }
 
 [@vm.inferred-return-type.metadata=dart.ffi::Pointer]
-@#C23
+@#C25
 static get aString() → ffi::Pointer<ffi::Char>
-  return [@vm.inferred-type.metadata=dart.ffi::Pointer] ffi::_loadPointer<ffi::Char>([@vm.inferred-type.metadata=dart.ffi::Pointer] ffi::Native::_addressOf<ffi::Pointer<ffi::Char>>(#C22), #C9);
+  return [@vm.inferred-type.metadata=dart.ffi::Pointer] ffi::_loadPointer<ffi::Char>([@vm.inferred-type.metadata=dart.ffi::Pointer] ffi::Native::_addressOf<ffi::Pointer<ffi::Char>>(#C24), #C11);
 static set aString([@vm.inferred-arg-type.metadata=dart.ffi::Pointer] synthesized ffi::Pointer<ffi::Char> #externalFieldValue) → void
-  ffi::_storePointer<ffi::Char>([@vm.inferred-type.metadata=dart.ffi::Pointer] ffi::Native::_addressOf<ffi::Pointer<ffi::Char>>(#C22), #C9, #externalFieldValue);
+  ffi::_storePointer<ffi::Char>([@vm.inferred-type.metadata=dart.ffi::Pointer] ffi::Native::_addressOf<ffi::Pointer<ffi::Char>>(#C24), #C11, #externalFieldValue);
 
 [@vm.inferred-return-type.metadata=int]
 [@vm.unboxing-info.metadata=()->i]
-@#C26
+@#C28
 static get anInt() → core::int
-  return [@vm.inferred-type.metadata=int] ffi::_loadInt32([@vm.inferred-type.metadata=dart.ffi::Pointer] ffi::Native::_addressOf<ffi::Int32>(#C25), #C9);
+  return [@vm.inferred-type.metadata=int] ffi::_loadInt32([@vm.inferred-type.metadata=dart.ffi::Pointer] ffi::Native::_addressOf<ffi::Int32>(#C27), #C11);
 
 [@vm.unboxing-info.metadata=(i)->b]
 static set anInt([@vm.inferred-arg-type.metadata=int] synthesized core::int #externalFieldValue) → void
-  ffi::_storeInt32([@vm.inferred-type.metadata=dart.ffi::Pointer] ffi::Native::_addressOf<ffi::Int32>(#C25), #C9, #externalFieldValue);
+  ffi::_storeInt32([@vm.inferred-type.metadata=dart.ffi::Pointer] ffi::Native::_addressOf<ffi::Int32>(#C27), #C11, #externalFieldValue);
 
 [@vm.inferred-return-type.metadata=#lib::Vec2d]
-@#C29
+@#C31
 static get vector() → self::Vec2d
-  return new self::Vec2d::#fromTypedDataBase([@vm.inferred-type.metadata=dart.ffi::Pointer] ffi::Native::_addressOf<self::Vec2d>(#C28));
+  return new self::Vec2d::#fromTypedDataBase([@vm.inferred-type.metadata=dart.ffi::Pointer] ffi::Native::_addressOf<self::Vec2d>(#C30));
 
 [@vm.inferred-return-type.metadata=#lib::MyUnion]
-@#C32
+@#C34
 static get union() → self::MyUnion
-  return new self::MyUnion::#fromTypedDataBase([@vm.inferred-type.metadata=dart.ffi::Pointer] ffi::Native::_addressOf<self::MyUnion>(#C31));
+  return new self::MyUnion::#fromTypedDataBase([@vm.inferred-type.metadata=dart.ffi::Pointer] ffi::Native::_addressOf<self::MyUnion>(#C33));
 
 [@vm.inferred-return-type.metadata=dart.ffi::Array<dart.ffi::Array<dart.ffi::Array<dart.ffi::Double>>>]
-@#C35
+@#C37
 static get manyNumbers() → ffi::Array<ffi::Array<ffi::Array<ffi::Double>>>
-  return new ffi::Array::_<ffi::Array<ffi::Array<ffi::Double>>>([@vm.inferred-type.metadata=dart.ffi::Pointer] ffi::Native::_addressOf<ffi::Array<ffi::Array<ffi::Array<ffi::Double>>>>(#C34), #C9, #C36, #C21, #C39);
+  return new ffi::Array::_<ffi::Array<ffi::Array<ffi::Double>>>([@vm.inferred-type.metadata=dart.ffi::Pointer] ffi::Native::_addressOf<ffi::Array<ffi::Array<ffi::Array<ffi::Double>>>>(#C36), #C11, #C38, #C23, #C41);
 static set manyNumbers([@vm.inferred-arg-type.metadata=dart.ffi::Array<dart.ffi::Array<dart.ffi::Array<dart.ffi::Double>>>] synthesized ffi::Array<ffi::Array<ffi::Array<ffi::Double>>> #externalFieldValue) → void
-  ffi::_memCopy([@vm.inferred-type.metadata=dart.ffi::Pointer] ffi::Native::_addressOf<ffi::Array<ffi::Array<ffi::Array<ffi::Double>>>>(#C34), #C9, [@vm.direct-call.metadata=dart.ffi::_Compound._typedDataBase] #externalFieldValue.{ffi::_Compound::_typedDataBase}{core::Object}, [@vm.direct-call.metadata=dart.ffi::_Compound._offsetInBytes] [@vm.inferred-type.metadata=int?] #externalFieldValue.{ffi::_Compound::_offsetInBytes}{core::int}, #C41.{core::List::[]}(ffi::_abi()){(core::int) → core::int});
+  ffi::_memCopy([@vm.inferred-type.metadata=dart.ffi::Pointer] ffi::Native::_addressOf<ffi::Array<ffi::Array<ffi::Array<ffi::Double>>>>(#C36), #C11, [@vm.direct-call.metadata=dart.ffi::_Compound._typedDataBase] #externalFieldValue.{ffi::_Compound::_typedDataBase}{core::Object}, [@vm.direct-call.metadata=dart.ffi::_Compound._offsetInBytes] [@vm.inferred-type.metadata=int?] #externalFieldValue.{ffi::_Compound::_offsetInBytes}{core::int}, #C43.{core::List::[]}(ffi::_abi()){(core::int) → core::int});
 
 [@vm.inferred-return-type.metadata=dart.core::Null? (value: null)]
 static method main() → void {
-  core::print("first char of string: ${ffi::_loadAbiSpecificInt<ffi::Char>([@vm.inferred-type.metadata=dart.ffi::Pointer] self::aString, #C9)}");
+  core::print("first char of string: ${ffi::_loadAbiSpecificInt<ffi::Char>([@vm.inferred-type.metadata=dart.ffi::Pointer] self::aString, #C11)}");
   core::print("global int: {${self::anInt}}");
   self::aString = [@vm.inferred-type.metadata=dart.ffi::Pointer] ffi::nullptr;
   self::anInt = [@vm.direct-call.metadata=dart.core::_IntegerImplementation.+] [@vm.inferred-type.metadata=int (skip check)] [@vm.inferred-type.metadata=int] self::anInt.{core::num::+}(1){(core::num) → core::int};
   final self::Vec2d vec = [@vm.inferred-type.metadata=#lib::Vec2d] self::vector;
   core::print("(${[@vm.direct-call.metadata=#lib::Vec2d.x] vec.{self::Vec2d::x}{core::double}}, ${[@vm.direct-call.metadata=#lib::Vec2d.y] vec.{self::Vec2d::y}{core::double}})");
-  [@vm.direct-call.metadata=#lib::MyUnion.indirectVector] [@vm.inferred-type.metadata=!? (skip check)] [@vm.inferred-type.metadata=#lib::MyUnion] self::union.{self::MyUnion::indirectVector} = [@vm.inferred-type.metadata=dart.ffi::Pointer] ffi::Native::_addressOf<self::Vec2d>(#C28);
-  core::print([@vm.inferred-type.metadata=dart.ffi::Pointer] ffi::Native::_addressOf<ffi::Int>(#C43));
-  core::print([@vm.inferred-type.metadata=dart.ffi::Pointer] ffi::Native::_addressOf<self::Vec2d>(#C28));
-  core::print([@vm.inferred-type.metadata=dart.ffi::Pointer] ffi::Native::_addressOf<self::MyUnion>(#C31));
+  [@vm.direct-call.metadata=#lib::MyUnion.indirectVector] [@vm.inferred-type.metadata=? (skip check)] [@vm.inferred-type.metadata=#lib::MyUnion] self::union.{self::MyUnion::indirectVector} = [@vm.inferred-type.metadata=dart.ffi::Pointer] ffi::Native::_addressOf<self::Vec2d>(#C30);
+  core::print([@vm.inferred-type.metadata=dart.ffi::Pointer] ffi::Native::_addressOf<ffi::Int>(#C45));
+  core::print([@vm.inferred-type.metadata=dart.ffi::Pointer] ffi::Native::_addressOf<self::Vec2d>(#C30));
+  core::print([@vm.inferred-type.metadata=dart.ffi::Pointer] ffi::Native::_addressOf<self::MyUnion>(#C33));
   final ffi::Array<ffi::Array<ffi::Array<ffi::Double>>> wholeArray = [@vm.inferred-type.metadata=dart.ffi::Array<dart.ffi::Array<dart.ffi::Array<dart.ffi::Double>>>] self::manyNumbers;
   ffi::DoubleArray|[]=( block {
     synthesized ffi::Array<dynamic> #array = _in::unsafeCast<ffi::Array<ffi::Array<ffi::Double>>>( block {
       synthesized ffi::Array<dynamic> #array = _in::unsafeCast<ffi::Array<ffi::Array<ffi::Array<ffi::Double>>>>(wholeArray);
       synthesized core::int #index = _in::unsafeCast<core::int>(0);
-      [@vm.direct-call.metadata=dart.ffi::Array._checkIndex] [@vm.inferred-type.metadata=!? (skip check)] #array.{ffi::Array::_checkIndex}(#index){(core::int) → void};
-      synthesized core::int #singleElementSize = #C11;
+      [@vm.direct-call.metadata=dart.ffi::Array._checkIndex] [@vm.inferred-type.metadata=? (skip check)] #array.{ffi::Array::_checkIndex}(#index){(core::int) → void};
+      synthesized core::int #singleElementSize = #C13;
       synthesized core::int #elementSize = [@vm.direct-call.metadata=dart.core::_IntegerImplementation.*] [@vm.inferred-type.metadata=int (skip check)] #singleElementSize.{core::num::*}([@vm.direct-call.metadata=dart.ffi::Array._nestedDimensionsFlattened] [@vm.inferred-type.metadata=int] #array.{ffi::Array::_nestedDimensionsFlattened}{core::int}){(core::num) → core::num};
       synthesized core::int #offset = [@vm.direct-call.metadata=dart.core::_IntegerImplementation.*] [@vm.inferred-type.metadata=int (skip check)] #elementSize.{core::num::*}(#index){(core::num) → core::num};
     } =>new ffi::Array::_<ffi::Array<ffi::Double>>([@vm.direct-call.metadata=dart.ffi::_Compound._typedDataBase] #array.{ffi::_Compound::_typedDataBase}{core::Object}, [@vm.direct-call.metadata=dart.core::_IntegerImplementation.+??] [@vm.inferred-type.metadata=int (skip check)] [@vm.direct-call.metadata=dart.ffi::_Compound._offsetInBytes] [@vm.inferred-type.metadata=int?] #array.{ffi::_Compound::_offsetInBytes}{core::int}.{core::num::+}(#offset){(core::num) → core::num}, [@vm.direct-call.metadata=dart.ffi::Array._nestedDimensionsFirst] [@vm.inferred-type.metadata=int] #array.{ffi::Array::_nestedDimensionsFirst}{core::int}, [@vm.direct-call.metadata=dart.ffi::Array._variableLength] [@vm.inferred-type.metadata=dart.core::bool] #array.{ffi::Array::_variableLength}{core::bool}, [@vm.direct-call.metadata=dart.ffi::Array._nestedDimensionsRest] [@vm.inferred-type.metadata=!] #array.{ffi::Array::_nestedDimensionsRest}{core::List<core::int>}));
     synthesized core::int #index = _in::unsafeCast<core::int>(1);
-    [@vm.direct-call.metadata=dart.ffi::Array._checkIndex] [@vm.inferred-type.metadata=!? (skip check)] #array.{ffi::Array::_checkIndex}(#index){(core::int) → void};
-    synthesized core::int #singleElementSize = #C11;
+    [@vm.direct-call.metadata=dart.ffi::Array._checkIndex] [@vm.inferred-type.metadata=? (skip check)] #array.{ffi::Array::_checkIndex}(#index){(core::int) → void};
+    synthesized core::int #singleElementSize = #C13;
     synthesized core::int #elementSize = [@vm.direct-call.metadata=dart.core::_IntegerImplementation.*] [@vm.inferred-type.metadata=int (skip check)] #singleElementSize.{core::num::*}([@vm.direct-call.metadata=dart.ffi::Array._nestedDimensionsFlattened] [@vm.inferred-type.metadata=int] #array.{ffi::Array::_nestedDimensionsFlattened}{core::int}){(core::num) → core::num};
     synthesized core::int #offset = [@vm.direct-call.metadata=dart.core::_IntegerImplementation.*] [@vm.inferred-type.metadata=int (skip check)] #elementSize.{core::num::*}(#index){(core::num) → core::num};
   } =>new ffi::Array::_<ffi::Double>([@vm.direct-call.metadata=dart.ffi::_Compound._typedDataBase] #array.{ffi::_Compound::_typedDataBase}{core::Object}, [@vm.direct-call.metadata=dart.core::_IntegerImplementation.+??] [@vm.inferred-type.metadata=int (skip check)] [@vm.direct-call.metadata=dart.ffi::_Compound._offsetInBytes] [@vm.inferred-type.metadata=int?] #array.{ffi::_Compound::_offsetInBytes}{core::int}.{core::num::+}(#offset){(core::num) → core::num}, [@vm.direct-call.metadata=dart.ffi::Array._nestedDimensionsFirst] [@vm.inferred-type.metadata=int] #array.{ffi::Array::_nestedDimensionsFirst}{core::int}, [@vm.direct-call.metadata=dart.ffi::Array._variableLength] [@vm.inferred-type.metadata=dart.core::bool] #array.{ffi::Array::_variableLength}{core::bool}, [@vm.direct-call.metadata=dart.ffi::Array._nestedDimensionsRest] [@vm.inferred-type.metadata=!] #array.{ffi::Array::_nestedDimensionsRest}{core::List<core::int>}), 2, 123.45);
@@ -123,60 +125,62 @@ static method main() → void {
     synthesized ffi::Array<dynamic> #array = _in::unsafeCast<ffi::Array<ffi::Array<ffi::Double>>>( block {
       synthesized ffi::Array<dynamic> #array = _in::unsafeCast<ffi::Array<ffi::Array<ffi::Array<ffi::Double>>>>([@vm.inferred-type.metadata=dart.ffi::Array<dart.ffi::Array<dart.ffi::Array<dart.ffi::Double>>>] self::manyNumbers);
       synthesized core::int #index = _in::unsafeCast<core::int>(0);
-      [@vm.direct-call.metadata=dart.ffi::Array._checkIndex] [@vm.inferred-type.metadata=!? (skip check)] #array.{ffi::Array::_checkIndex}(#index){(core::int) → void};
-      synthesized core::int #singleElementSize = #C11;
+      [@vm.direct-call.metadata=dart.ffi::Array._checkIndex] [@vm.inferred-type.metadata=? (skip check)] #array.{ffi::Array::_checkIndex}(#index){(core::int) → void};
+      synthesized core::int #singleElementSize = #C13;
       synthesized core::int #elementSize = [@vm.direct-call.metadata=dart.core::_IntegerImplementation.*] [@vm.inferred-type.metadata=int (skip check)] #singleElementSize.{core::num::*}([@vm.direct-call.metadata=dart.ffi::Array._nestedDimensionsFlattened] [@vm.inferred-type.metadata=int] #array.{ffi::Array::_nestedDimensionsFlattened}{core::int}){(core::num) → core::num};
       synthesized core::int #offset = [@vm.direct-call.metadata=dart.core::_IntegerImplementation.*] [@vm.inferred-type.metadata=int (skip check)] #elementSize.{core::num::*}(#index){(core::num) → core::num};
     } =>new ffi::Array::_<ffi::Array<ffi::Double>>([@vm.direct-call.metadata=dart.ffi::_Compound._typedDataBase] #array.{ffi::_Compound::_typedDataBase}{core::Object}, [@vm.direct-call.metadata=dart.core::_IntegerImplementation.+??] [@vm.inferred-type.metadata=int (skip check)] [@vm.direct-call.metadata=dart.ffi::_Compound._offsetInBytes] [@vm.inferred-type.metadata=int?] #array.{ffi::_Compound::_offsetInBytes}{core::int}.{core::num::+}(#offset){(core::num) → core::num}, [@vm.direct-call.metadata=dart.ffi::Array._nestedDimensionsFirst] [@vm.inferred-type.metadata=int] #array.{ffi::Array::_nestedDimensionsFirst}{core::int}, [@vm.direct-call.metadata=dart.ffi::Array._variableLength] [@vm.inferred-type.metadata=dart.core::bool] #array.{ffi::Array::_variableLength}{core::bool}, [@vm.direct-call.metadata=dart.ffi::Array._nestedDimensionsRest] [@vm.inferred-type.metadata=!] #array.{ffi::Array::_nestedDimensionsRest}{core::List<core::int>}));
     synthesized core::int #index = _in::unsafeCast<core::int>(0);
-    [@vm.direct-call.metadata=dart.ffi::Array._checkIndex] [@vm.inferred-type.metadata=!? (skip check)] #array.{ffi::Array::_checkIndex}(#index){(core::int) → void};
-    synthesized core::int #singleElementSize = #C11;
+    [@vm.direct-call.metadata=dart.ffi::Array._checkIndex] [@vm.inferred-type.metadata=? (skip check)] #array.{ffi::Array::_checkIndex}(#index){(core::int) → void};
+    synthesized core::int #singleElementSize = #C13;
     synthesized core::int #elementSize = [@vm.direct-call.metadata=dart.core::_IntegerImplementation.*] [@vm.inferred-type.metadata=int (skip check)] #singleElementSize.{core::num::*}([@vm.direct-call.metadata=dart.ffi::Array._nestedDimensionsFlattened] [@vm.inferred-type.metadata=int] #array.{ffi::Array::_nestedDimensionsFlattened}{core::int}){(core::num) → core::num};
     synthesized core::int #offset = [@vm.direct-call.metadata=dart.core::_IntegerImplementation.*] [@vm.inferred-type.metadata=int (skip check)] #elementSize.{core::num::*}(#index){(core::num) → core::num};
   } =>new ffi::Array::_<ffi::Double>([@vm.direct-call.metadata=dart.ffi::_Compound._typedDataBase] #array.{ffi::_Compound::_typedDataBase}{core::Object}, [@vm.direct-call.metadata=dart.core::_IntegerImplementation.+??] [@vm.inferred-type.metadata=int (skip check)] [@vm.direct-call.metadata=dart.ffi::_Compound._offsetInBytes] [@vm.inferred-type.metadata=int?] #array.{ffi::_Compound::_offsetInBytes}{core::int}.{core::num::+}(#offset){(core::num) → core::num}, [@vm.direct-call.metadata=dart.ffi::Array._nestedDimensionsFirst] [@vm.inferred-type.metadata=int] #array.{ffi::Array::_nestedDimensionsFirst}{core::int}, [@vm.direct-call.metadata=dart.ffi::Array._variableLength] [@vm.inferred-type.metadata=dart.core::bool] #array.{ffi::Array::_variableLength}{core::bool}, [@vm.direct-call.metadata=dart.ffi::Array._nestedDimensionsRest] [@vm.inferred-type.metadata=!] #array.{ffi::Array::_nestedDimensionsRest}{core::List<core::int>}), 0, 54.321);
 }
 constants  {
-  #C1 = "vm:ffi:struct-fields"
-  #C2 = TypeLiteralConstant(ffi::Double)
-  #C3 = <core::Type>[#C2, #C2]
-  #C4 = null
-  #C5 = ffi::_FfiStructLayout {fieldTypes:#C3, packing:#C4}
-  #C6 = core::pragma {name:#C1, options:#C5}
-  #C7 = "vm:prefer-inline"
-  #C8 = core::pragma {name:#C7, options:#C4}
-  #C9 = 0
-  #C10 = <core::int>[#C9, #C9, #C9, #C9, #C9, #C9, #C9, #C9, #C9, #C9, #C9, #C9, #C9, #C9, #C9, #C9, #C9, #C9, #C9, #C9, #C9, #C9]
-  #C11 = 8
+  #C1 = "vm:deeply-immutable"
+  #C2 = null
+  #C3 = core::pragma {name:#C1, options:#C2}
+  #C4 = "vm:ffi:struct-fields"
+  #C5 = TypeLiteralConstant(ffi::Double)
+  #C6 = <core::Type>[#C5, #C5]
+  #C7 = ffi::_FfiStructLayout {fieldTypes:#C6, packing:#C2}
+  #C8 = core::pragma {name:#C4, options:#C7}
+  #C9 = "vm:prefer-inline"
+  #C10 = core::pragma {name:#C9, options:#C2}
+  #C11 = 0
   #C12 = <core::int>[#C11, #C11, #C11, #C11, #C11, #C11, #C11, #C11, #C11, #C11, #C11, #C11, #C11, #C11, #C11, #C11, #C11, #C11, #C11, #C11, #C11, #C11]
-  #C13 = TypeLiteralConstant(self::Vec2d)
-  #C14 = TypeLiteralConstant(ffi::Pointer<core::Object>)
-  #C15 = <core::Type>[#C13, #C14]
-  #C16 = ffi::_FfiStructLayout {fieldTypes:#C15, packing:#C4}
-  #C17 = core::pragma {name:#C1, options:#C16}
-  #C18 = "cfe:ffi:native-marker"
-  #C19 = "aString"
-  #C20 = "#lib"
-  #C21 = false
-  #C22 = ffi::Native<ffi::Pointer<ffi::Char>> {symbol:#C19, assetId:#C20, isLeaf:#C21}
-  #C23 = core::pragma {name:#C18, options:#C22}
-  #C24 = "anInt"
-  #C25 = ffi::Native<ffi::Int32> {symbol:#C24, assetId:#C20, isLeaf:#C21}
-  #C26 = core::pragma {name:#C18, options:#C25}
-  #C27 = "vector"
-  #C28 = ffi::Native<self::Vec2d> {symbol:#C27, assetId:#C20, isLeaf:#C21}
-  #C29 = core::pragma {name:#C18, options:#C28}
-  #C30 = "union"
-  #C31 = ffi::Native<self::MyUnion> {symbol:#C30, assetId:#C20, isLeaf:#C21}
-  #C32 = core::pragma {name:#C18, options:#C31}
-  #C33 = "manyNumbers"
-  #C34 = ffi::Native<ffi::Array<ffi::Array<ffi::Array<ffi::Double>>>> {symbol:#C33, assetId:#C20, isLeaf:#C21}
-  #C35 = core::pragma {name:#C18, options:#C34}
-  #C36 = 1
-  #C37 = 2
-  #C38 = 3
-  #C39 = <core::int>[#C37, #C38]
-  #C40 = 48
-  #C41 = <core::int>[#C40, #C40, #C40, #C40, #C40, #C40, #C40, #C40, #C40, #C40, #C40, #C40, #C40, #C40, #C40, #C40, #C40, #C40, #C40, #C40, #C40, #C40]
-  #C42 = "anotherInt"
-  #C43 = ffi::Native<ffi::Int> {symbol:#C42, assetId:#C20, isLeaf:#C21}
+  #C13 = 8
+  #C14 = <core::int>[#C13, #C13, #C13, #C13, #C13, #C13, #C13, #C13, #C13, #C13, #C13, #C13, #C13, #C13, #C13, #C13, #C13, #C13, #C13, #C13, #C13, #C13]
+  #C15 = TypeLiteralConstant(self::Vec2d)
+  #C16 = TypeLiteralConstant(ffi::Pointer<core::Object>)
+  #C17 = <core::Type>[#C15, #C16]
+  #C18 = ffi::_FfiStructLayout {fieldTypes:#C17, packing:#C2}
+  #C19 = core::pragma {name:#C4, options:#C18}
+  #C20 = "cfe:ffi:native-marker"
+  #C21 = "aString"
+  #C22 = "#lib"
+  #C23 = false
+  #C24 = ffi::Native<ffi::Pointer<ffi::Char>> {symbol:#C21, assetId:#C22, isLeaf:#C23}
+  #C25 = core::pragma {name:#C20, options:#C24}
+  #C26 = "anInt"
+  #C27 = ffi::Native<ffi::Int32> {symbol:#C26, assetId:#C22, isLeaf:#C23}
+  #C28 = core::pragma {name:#C20, options:#C27}
+  #C29 = "vector"
+  #C30 = ffi::Native<self::Vec2d> {symbol:#C29, assetId:#C22, isLeaf:#C23}
+  #C31 = core::pragma {name:#C20, options:#C30}
+  #C32 = "union"
+  #C33 = ffi::Native<self::MyUnion> {symbol:#C32, assetId:#C22, isLeaf:#C23}
+  #C34 = core::pragma {name:#C20, options:#C33}
+  #C35 = "manyNumbers"
+  #C36 = ffi::Native<ffi::Array<ffi::Array<ffi::Array<ffi::Double>>>> {symbol:#C35, assetId:#C22, isLeaf:#C23}
+  #C37 = core::pragma {name:#C20, options:#C36}
+  #C38 = 1
+  #C39 = 2
+  #C40 = 3
+  #C41 = <core::int>[#C39, #C40]
+  #C42 = 48
+  #C43 = <core::int>[#C42, #C42, #C42, #C42, #C42, #C42, #C42, #C42, #C42, #C42, #C42, #C42, #C42, #C42, #C42, #C42, #C42, #C42, #C42, #C42, #C42, #C42]
+  #C44 = "anotherInt"
+  #C45 = ffi::Native<ffi::Int> {symbol:#C44, assetId:#C22, isLeaf:#C23}
 }

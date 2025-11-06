@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-part of vmservice_io;
+part of 'dart:vmservice_io';
 
 // TODO(48602): deprecate SILENT_OBSERVATORY in favor of SILENT_VM_SERVICE
 bool silentObservatory = bool.fromEnvironment('SILENT_OBSERVATORY');
@@ -167,8 +167,14 @@ class _DebuggingSession {
     if (FileSystemEntity.typeSync(script) == FileSystemEntityType.notFound) {
       script = [dartDir, 'dds_aot.dart.snapshot'].join(Platform.pathSeparator);
       if (FileSystemEntity.typeSync(script) == FileSystemEntityType.notFound) {
+        // We could be running on IA32 architecture so check if the JIT
+        // snapshot is available.
         executable = [dartDir, dart].join(Platform.pathSeparator);
-        script = 'development-service';
+        script = [dartDir, 'dds.dart.snapshot'].join(Platform.pathSeparator);
+        if (FileSystemEntity.typeSync(script) ==
+            FileSystemEntityType.notFound) {
+          script = 'development-service';
+        }
       }
     }
 

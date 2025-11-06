@@ -31,7 +31,7 @@ class C {
 ''',
       [
         error(
-          CompileTimeErrorCode.REDIRECT_TO_TYPE_ALIAS_EXPANDS_TO_TYPE_PARAMETER,
+          CompileTimeErrorCode.redirectToTypeAliasExpandsToTypeParameter,
           84,
           1,
         ),
@@ -52,7 +52,7 @@ class C {
 ''',
       [
         error(
-          CompileTimeErrorCode.REDIRECT_TO_TYPE_ALIAS_EXPANDS_TO_TYPE_PARAMETER,
+          CompileTimeErrorCode.redirectToTypeAliasExpandsToTypeParameter,
           70,
           1,
         ),
@@ -73,7 +73,7 @@ class C {
 ''',
       [
         error(
-          CompileTimeErrorCode.REDIRECT_TO_TYPE_ALIAS_EXPANDS_TO_TYPE_PARAMETER,
+          CompileTimeErrorCode.redirectToTypeAliasExpandsToTypeParameter,
           70,
           1,
         ),

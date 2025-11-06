@@ -7,17 +7,93 @@ import '../builder/variable_builder.dart';
 import 'lookup_result.dart';
 import 'scope.dart';
 
+enum LocalScopeKind {
+  /// Outermost immutable local scope derived from a [LookupScope].
+  enclosing,
+
+  /// Scope of pattern switch-case statements
+  ///
+  /// These scopes receive special treatment in that they are end-points of the
+  /// scope stack in presence of multiple heads for the same case, but can have
+  /// nested scopes if it's just a single head. In that latter possibility the
+  /// body of the case is nested into the scope of the case head. And for switch
+  /// expressions that scope includes both the head and the case expression.
+  caseHead,
+
+  /// Scope where the formal parameters of a function are declared
+  formals,
+
+  /// Scope of a `for` statement
+  forStatement,
+
+  /// Scope of a function body
+  functionBody,
+
+  /// Scope of the head of the if-case statement
+  ifCaseHead,
+
+  /// Scope of an if-element in a collection
+  ifElement,
+
+  /// Scope for the initializers of generative constructors
+  initializers,
+
+  /// Scope where the joint variables of a switch case are declared
+  jointVariables,
+
+  /// Scope where labels of labelled statements are declared
+  labels,
+
+  /// The special scope of the named function expression
+  ///
+  /// This scope is treated separately because the named function expressions
+  /// are allowed to be recursive, and the name of that function expression
+  /// should be visible in the scope of the function itself.
+  namedFunctionExpression,
+
+  /// The scope of the RHS of a binary-or pattern
+  ///
+  /// It is utilized for separating the branch-local variables from the joint
+  /// variables of the overall binary-or pattern.
+  orPatternRight,
+
+  /// The scope of a pattern
+  ///
+  /// It contains the variables associated with pattern variable declarations.
+  pattern,
+
+  /// Local scope of a statement, such as the body of a while loop
+  statementLocalScope,
+
+  /// Local scope of a switch block
+  switchBlock,
+
+  /// Scope for switch cases
+  ///
+  /// This scope kind is used in assertion checks.
+  switchCase,
+
+  /// Scope for switch case bodies
+  ///
+  /// This is used to handle local variables of switch cases.
+  switchCaseBody,
+
+  /// Scope for type parameters of declarations
+  typeParameters,
+}
+
 abstract class LocalScope implements LookupScope {
+  LocalScopeKind get kind;
+
   @override
-  ScopeKind get kind;
+  LookupResult? lookup(String name, {int fileOffset = -1});
 
-  LocalScope createNestedScope(
-      {required String debugName, required ScopeKind kind});
+  LocalScope createNestedScope({required LocalScopeKind kind});
 
-  LocalScope createNestedFixedScope(
-      {required String debugName,
-      required Map<String, VariableBuilder> local,
-      required ScopeKind kind});
+  LocalScope createNestedFixedScope({
+    required Map<String, VariableBuilder> local,
+    required LocalScopeKind kind,
+  });
 
   Iterable<VariableBuilder> get localVariables;
 
@@ -35,23 +111,21 @@ abstract class LocalScope implements LookupScope {
 
 abstract base class BaseLocalScope implements LocalScope {
   @override
-  LocalScope createNestedScope(
-      {required String debugName, required ScopeKind kind}) {
-    return new LocalScopeImpl(this, kind, debugName);
+  LocalScope createNestedScope({required LocalScopeKind kind}) {
+    return new LocalScopeImpl(this, kind);
   }
 
   @override
-  LocalScope createNestedFixedScope(
-      {required String debugName,
-      required Map<String, VariableBuilder> local,
-      required ScopeKind kind}) {
-    return new FixedLocalScope(
-        kind: kind, parent: this, local: local, debugName: debugName);
+  LocalScope createNestedFixedScope({
+    required Map<String, VariableBuilder> local,
+    required LocalScopeKind kind,
+  }) {
+    return new FixedLocalScope(kind: kind, parent: this, local: local);
   }
 }
 
 mixin LocalScopeMixin implements LocalScope {
-  LookupScope? get _parent;
+  LocalScope? get _parent;
 
   Map<String, VariableBuilder>? get _local;
 
@@ -59,9 +133,9 @@ mixin LocalScopeMixin implements LocalScope {
   Iterable<VariableBuilder> get localVariables => _local?.values ?? const [];
 
   @override
-  LookupResult? lookup(String name, int fileOffset, Uri fileUri) {
+  LookupResult? lookup(String name, {int fileOffset = -1}) {
     _recordUse(name, fileOffset);
-    return _local?[name] ?? _parent?.lookup(name, fileOffset, fileUri);
+    return _local?[name] ?? _parent?.lookup(name, fileOffset: fileOffset);
   }
 
   @override
@@ -70,12 +144,6 @@ mixin LocalScopeMixin implements LocalScope {
   }
 
   void _recordUse(String name, int charOffset) {}
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  void forEachExtension(void Function(ExtensionBuilder) f) {
-    _parent?.forEachExtension(f);
-  }
 }
 
 final class LocalScopeImpl extends BaseLocalScope
@@ -83,8 +151,6 @@ final class LocalScopeImpl extends BaseLocalScope
     implements LocalScope {
   @override
   final LocalScope? _parent;
-
-  final String _debugName;
 
   /// Names declared in this scope.
   @override
@@ -94,9 +160,9 @@ final class LocalScopeImpl extends BaseLocalScope
   Map<String, List<int>>? usedNames;
 
   @override
-  final ScopeKind kind;
+  final LocalScopeKind kind;
 
-  LocalScopeImpl(this._parent, this.kind, this._debugName);
+  LocalScopeImpl(this._parent, this.kind);
 
   @override
   List<int>? declare(String name, VariableBuilder builder) {
@@ -117,7 +183,7 @@ final class LocalScopeImpl extends BaseLocalScope
   }
 
   @override
-  String toString() => "$runtimeType(${kind}, $_debugName, ${_local?.keys})";
+  String toString() => "$runtimeType(${kind}, ${_local?.keys})";
 }
 
 mixin ImmutableLocalScopeMixin implements LocalScope {
@@ -136,28 +202,24 @@ final class LocalTypeParameterScope extends BaseLocalScope
   final LocalScope? _parent;
 
   @override
-  final ScopeKind kind;
+  final LocalScopeKind kind;
 
   final Map<String, TypeParameterBuilder>? _local;
 
-  final String _debugName;
-
-  LocalTypeParameterScope(
-      {required this.kind,
-      LocalScope? parent,
-      Map<String, TypeParameterBuilder>? local,
-      required String debugName})
-      : _parent = parent,
-        _local = local,
-        _debugName = debugName;
+  LocalTypeParameterScope({
+    required this.kind,
+    LocalScope? parent,
+    Map<String, TypeParameterBuilder>? local,
+  }) : _parent = parent,
+       _local = local;
 
   @override
   // Coverage-ignore(suite): Not run.
   Iterable<VariableBuilder> get localVariables => const [];
 
   @override
-  LookupResult? lookup(String name, int fileOffset, Uri fileUri) {
-    return _local?[name] ?? _parent?.lookup(name, fileOffset, fileUri);
+  LookupResult? lookup(String name, {int fileOffset = -1}) {
+    return _local?[name] ?? _parent?.lookup(name, fileOffset: fileOffset);
   }
 
   @override
@@ -165,13 +227,7 @@ final class LocalTypeParameterScope extends BaseLocalScope
   VariableBuilder? lookupLocalVariable(String name) => null;
 
   @override
-  // Coverage-ignore(suite): Not run.
-  void forEachExtension(void Function(ExtensionBuilder) f) {
-    _parent?.forEachExtension(f);
-  }
-
-  @override
-  String toString() => "$runtimeType(${kind}, $_debugName, ${_local?.keys})";
+  String toString() => "$runtimeType(${kind}, ${_local?.keys})";
 }
 
 final class FixedLocalScope extends BaseLocalScope
@@ -179,39 +235,36 @@ final class FixedLocalScope extends BaseLocalScope
   @override
   final LocalScope? _parent;
   @override
-  final ScopeKind kind;
+  final LocalScopeKind kind;
   @override
   final Map<String, VariableBuilder>? _local;
 
-  final String _debugName;
-
-  FixedLocalScope(
-      {required this.kind,
-      LocalScope? parent,
-      Map<String, VariableBuilder>? local,
-      required String debugName})
-      : _parent = parent,
-        _local = local,
-        _debugName = debugName;
+  FixedLocalScope({
+    required this.kind,
+    LocalScope? parent,
+    Map<String, VariableBuilder>? local,
+  }) : _parent = parent,
+       _local = local;
 
   @override
-  String toString() => "$runtimeType(${kind}, $_debugName, ${_local?.keys})";
+  String toString() => "$runtimeType(${kind}, ${_local?.keys})";
 }
 
 final class FormalParameterScope extends BaseLocalScope
     with ImmutableLocalScopeMixin, LocalScopeMixin {
   @override
-  final LookupScope? _parent;
+  final LocalScope? _parent;
   @override
   final Map<String, VariableBuilder>? _local;
 
-  FormalParameterScope(
-      {LookupScope? parent, Map<String, VariableBuilder>? local})
-      : _parent = parent,
-        _local = local;
+  FormalParameterScope({
+    required LookupScope parent,
+    Map<String, VariableBuilder>? local,
+  }) : _parent = new EnclosingLocalScope(parent),
+       _local = local;
 
   @override
-  ScopeKind get kind => ScopeKind.formals;
+  LocalScopeKind get kind => LocalScopeKind.formals;
 
   @override
   String toString() =>
@@ -225,26 +278,20 @@ final class EnclosingLocalScope extends BaseLocalScope
   EnclosingLocalScope(this._scope);
 
   @override
-  ScopeKind get kind => _scope.kind;
+  LocalScopeKind get kind => LocalScopeKind.enclosing;
 
   @override
   // Coverage-ignore(suite): Not run.
   Iterable<VariableBuilder> get localVariables => const [];
 
   @override
-  LookupResult? lookup(String name, int fileOffset, Uri fileUri) {
-    return _scope.lookup(name, fileOffset, fileUri);
+  LookupResult? lookup(String name, {int fileOffset = -1}) {
+    return _scope.lookup(name);
   }
 
   @override
   // Coverage-ignore(suite): Not run.
   VariableBuilder? lookupLocalVariable(String name) => null;
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  void forEachExtension(void Function(ExtensionBuilder) f) {
-    _scope.forEachExtension(f);
-  }
 
   @override
   String toString() => "$runtimeType(${kind},$_scope)";

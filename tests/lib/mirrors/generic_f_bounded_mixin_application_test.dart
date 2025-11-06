@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library test.generic_f_bounded;
-
 import 'dart:mirrors';
 
 import 'package:expect/expect.dart';
@@ -12,7 +10,7 @@ import 'generics_helper.dart';
 
 class Collection<C> {}
 
-class Serializable<S> {}
+mixin Serializable<S> {}
 
 class OrderedCollection<V> extends Collection<V>
     with Serializable<OrderedCollection<V>> {}
@@ -28,11 +26,11 @@ class CustomOrderedIntegerCollection extends CustomOrderedCollection<int> {}
 
 class Serializer<R extends Serializable<R>> {}
 
-class CollectionSerializer extends Serializer<Collection> {}
+class CollectionSerializer extends Serializer<AbstractOrderedCollection> {}
 
 class OrderedCollectionSerializer extends Serializer<OrderedCollection> {}
 
-main() {
+void main() {
   ClassMirror collectionDecl = reflectClass(Collection);
   ClassMirror serializableDecl = reflectClass(Serializable);
   ClassMirror orderedCollectionDecl = reflectClass(OrderedCollection);
@@ -58,12 +56,14 @@ main() {
   ClassMirror serializerOfCollection = collectionSerializerDecl.superclass!;
   ClassMirror serializerOfOrderedCollection =
       orderedCollectionSerializerDecl.superclass!;
-  ClassMirror collectionOfDynamic = reflect(new Collection()).type;
-  ClassMirror orderedCollectionOfDynamic = reflect(
-    new OrderedCollection(),
-  ).type;
+  ClassMirror collectionOfDynamic =
+      reflectType(Collection<dynamic>) as ClassMirror;
+  ClassMirror orderedCollectionOfDynamic =
+      reflectType(OrderedCollection<dynamic>) as ClassMirror;
   ClassMirror collectionWithSerializableOfOrderedCollection =
       orderedCollectionDecl.superclass!;
+  ClassMirror abstractOrderedCollectionOfDynamic =
+      reflectType(AbstractOrderedCollection<dynamic>) as ClassMirror;
 
   Expect.isTrue(collectionDecl.isOriginalDeclaration);
   Expect.isTrue(serializableDecl.isOriginalDeclaration);
@@ -91,23 +91,23 @@ main() {
   Expect.equals(serializableDecl, serializableOfR.originalDeclaration);
   Expect.equals(rFromSerializer, serializableOfR.typeArguments.single);
 
-  typeParameters(collectionDecl, [#C]);
-  typeParameters(serializableDecl, [#S]);
-  typeParameters(orderedCollectionDecl, [#V]);
-  typeParameters(abstractOrderedCollectionDecl, [#W]);
-  typeParameters(customOrderedCollectionDecl, [#Z]);
+  typeParameters(collectionDecl, [#X0]);
+  typeParameters(serializableDecl, [#X0]);
+  typeParameters(orderedCollectionDecl, [#X0]);
+  typeParameters(abstractOrderedCollectionDecl, [#X0]);
+  typeParameters(customOrderedCollectionDecl, [#X0]);
   typeParameters(orderedIntegerCollection, []);
   typeParameters(customOrderedIntegerCollection, []);
-  typeParameters(serializerDecl, [#R]);
+  typeParameters(serializerDecl, [#X0]);
   typeParameters(collectionSerializerDecl, []);
   typeParameters(orderedCollectionSerializerDecl, []);
 
-  typeParameters(orderedCollectionOfInt, [#V]);
-  typeParameters(customOrderedCollectionOfInt, [#Z]);
-  typeParameters(serializerOfCollection, [#R]);
-  typeParameters(serializerOfOrderedCollection, [#R]);
-  typeParameters(collectionOfDynamic, [#C]);
-  typeParameters(collectionWithSerializableOfOrderedCollection, []);
+  typeParameters(orderedCollectionOfInt, [#X0]);
+  typeParameters(customOrderedCollectionOfInt, [#X0]);
+  typeParameters(serializerOfCollection, [#X0]);
+  typeParameters(serializerOfOrderedCollection, [#X0]);
+  typeParameters(collectionOfDynamic, [#X0]);
+  typeParameters(collectionWithSerializableOfOrderedCollection, [#X0]);
 
   typeArguments(collectionDecl, []);
   typeArguments(serializableDecl, []);
@@ -122,7 +122,9 @@ main() {
 
   typeArguments(orderedCollectionOfInt, [reflectClass(int)]);
   typeArguments(customOrderedCollectionOfInt, [reflectClass(int)]);
-  typeArguments(serializerOfCollection, [collectionOfDynamic]);
+  typeArguments(serializerOfCollection, [abstractOrderedCollectionOfDynamic]);
   typeArguments(serializerOfOrderedCollection, [orderedCollectionOfDynamic]);
-  typeArguments(collectionWithSerializableOfOrderedCollection, []);
+  typeArguments(collectionWithSerializableOfOrderedCollection, [
+    collectionWithSerializableOfOrderedCollection.typeVariables[0],
+  ]);
 }

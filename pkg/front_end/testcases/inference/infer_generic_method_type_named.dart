@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/*@testedFeatures=inference*/
 library test;
 
 class C {
@@ -10,6 +9,5 @@ class C {
 }
 
 test() {
-  var /*@type=double*/ y =
-      new C(). /*@typeArgs=double*/ /*@target=C.m*/ m(1, b: 'bbb', c: 2.0);
+  var y = new C().m(1, b: 'bbb', c: 2.0);
 }

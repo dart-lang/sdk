@@ -21,7 +21,7 @@ class FindElement2 extends _FindElementBase {
   LibraryExportImpl export(String targetUri) {
     LibraryExport? result;
 
-    for (var export in libraryFragment.libraryExports2) {
+    for (var export in libraryFragment.libraryExports) {
       var exportedUri = export.exportedLibrary?.uri.toString();
       if (exportedUri == targetUri) {
         if (result != null) {
@@ -54,7 +54,7 @@ class FindElement2 extends _FindElementBase {
     LibraryImport? importElement;
 
     for (var libraryFragment in libraryFragment.withEnclosing2) {
-      for (var import in libraryFragment.libraryImports2) {
+      for (var import in libraryFragment.libraryImports) {
         var importedUri = import.importedLibrary?.uri.toString();
         if (importedUri == targetUri) {
           if (importElement == null) {
@@ -141,13 +141,13 @@ class FindElement2 extends _FindElementBase {
     unit.accept(
       FunctionAstVisitor(
         catchClauseParameter: (node) {
-          updateResult(node.declaredElement!);
+          updateResult(node.declaredFragment!.element);
         },
         declaredIdentifier: (node) {
-          updateResult(node.declaredElement!);
+          updateResult(node.declaredFragment!.element);
         },
         declaredVariablePattern: (node) {
-          updateResult(node.declaredElement!);
+          updateResult(node.declaredFragment!.element);
         },
         variableDeclaration: (node) {
           updateResult(node.declaredFragment!.element);
@@ -162,6 +162,7 @@ class FindElement2 extends _FindElementBase {
   }
 
   @override
+  // TODO(fshcheglov): rename to formalParameter()
   FormalParameterElement parameter(String name) {
     FormalParameterElement? result;
 
@@ -204,13 +205,6 @@ class FindElement2 extends _FindElementBase {
       findInExecutables(extension_.getters);
       findInExecutables(extension_.setters);
       findInExecutables(extension_.methods);
-    }
-
-    for (var alias in libraryElement.typeAliases) {
-      var aliasedElement = alias.aliasedElement;
-      if (aliasedElement is GenericFunctionTypeElement) {
-        findIn(aliasedElement.formalParameters);
-      }
     }
 
     unit.accept(
@@ -305,7 +299,7 @@ class ImportFindElement extends _FindElementBase {
     return importedLibrary.firstFragment;
   }
 
-  PrefixElement? get prefix => import.prefix2?.element;
+  PrefixElement? get prefix => import.prefix?.element;
 }
 
 class PartFindElement extends _FindElementBase {
@@ -511,10 +505,9 @@ abstract class _FindElementBase {
   ConstructorElement unnamedConstructor(String name) {
     return _findInClassesLike(
       className: name,
-      fromClass:
-          (e) => e.constructors.firstWhereOrNull((element) {
-            return element.name == 'new';
-          }),
+      fromClass: (e) => e.constructors.firstWhereOrNull((element) {
+        return element.name == 'new';
+      }),
       fromExtension: (_) => null,
     );
   }
@@ -544,11 +537,10 @@ abstract class _FindElementBase {
       ...libraryElement.mixins,
     ];
 
-    var results =
-        [
-          ...classes.where(filter).map(fromClass),
-          ...libraryElement.extensions.where(filter).map(fromExtension),
-        ].nonNulls.toList();
+    var results = [
+      ...classes.where(filter).map(fromClass),
+      ...libraryElement.extensions.where(filter).map(fromExtension),
+    ].nonNulls.toList();
 
     var result = results.singleOrNull;
     if (result != null) {

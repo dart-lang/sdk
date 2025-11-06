@@ -12,6 +12,8 @@ import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/diagnostic/diagnostic.dart';
 import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/utilities/extensions/string.dart';
+import 'package:yaml/yaml.dart';
 
 /// A factory used to create diagnostics.
 class DiagnosticFactory {
@@ -30,8 +32,7 @@ class DiagnosticFactory {
       source: source,
       offset: duplicate.offset,
       length: duplicate.length,
-      diagnosticCode:
-          CompileTimeErrorCode.DUPLICATE_PATTERN_ASSIGNMENT_VARIABLE,
+      diagnosticCode: CompileTimeErrorCode.duplicatePatternAssignmentVariable,
       arguments: [variable.name!],
       contextMessages: [
         DiagnosticMessageImpl(
@@ -56,7 +57,7 @@ class DiagnosticFactory {
     var originalFragment = originalElement.nonSynthetic.firstFragment;
     return Diagnostic.tmp(
       source: duplicateFragment.libraryFragment!.source,
-      offset: duplicateFragment.nameOffset2 ?? -1,
+      offset: duplicateFragment.nameOffset ?? -1,
       length: duplicateFragment.name!.length,
       diagnosticCode: code,
       arguments: arguments,
@@ -64,7 +65,7 @@ class DiagnosticFactory {
         DiagnosticMessageImpl(
           filePath: originalFragment.libraryFragment!.source.fullName,
           message: "The first definition of this name.",
-          offset: originalFragment.nameOffset2 ?? -1,
+          offset: originalFragment.nameOffset ?? -1,
           length: originalElement.nonSynthetic.name!.length,
           url: null,
         ),
@@ -112,7 +113,7 @@ class DiagnosticFactory {
       source: source,
       offset: duplicateNode.offset,
       length: duplicateNode.length,
-      diagnosticCode: CompileTimeErrorCode.DUPLICATE_FIELD_NAME,
+      diagnosticCode: CompileTimeErrorCode.duplicateFieldName,
       arguments: [duplicateName],
       contextMessages: [
         DiagnosticMessageImpl(
@@ -142,7 +143,7 @@ class DiagnosticFactory {
       source: source,
       offset: duplicateNode.offset,
       length: duplicateNode.length,
-      diagnosticCode: CompileTimeErrorCode.DUPLICATE_FIELD_NAME,
+      diagnosticCode: CompileTimeErrorCode.duplicateFieldName,
       arguments: [duplicateName],
       contextMessages: [
         DiagnosticMessageImpl(
@@ -172,7 +173,7 @@ class DiagnosticFactory {
       source: source,
       offset: duplicateTarget.offset,
       length: duplicateTarget.length,
-      diagnosticCode: CompileTimeErrorCode.DUPLICATE_PATTERN_FIELD,
+      diagnosticCode: CompileTimeErrorCode.duplicatePatternField,
       arguments: [name],
       contextMessages: [
         DiagnosticMessageImpl(
@@ -197,7 +198,7 @@ class DiagnosticFactory {
       source: source,
       offset: duplicateElement.offset,
       length: duplicateElement.length,
-      diagnosticCode: CompileTimeErrorCode.DUPLICATE_REST_ELEMENT_IN_PATTERN,
+      diagnosticCode: CompileTimeErrorCode.duplicateRestElementInPattern,
       contextMessages: [
         DiagnosticMessageImpl(
           filePath: source.fullName,
@@ -221,7 +222,7 @@ class DiagnosticFactory {
       source: source,
       offset: duplicateElement.offset,
       length: duplicateElement.length,
-      diagnosticCode: CompileTimeErrorCode.EQUAL_ELEMENTS_IN_CONST_SET,
+      diagnosticCode: CompileTimeErrorCode.equalElementsInConstSet,
       contextMessages: [
         DiagnosticMessageImpl(
           filePath: source.fullName,
@@ -245,7 +246,7 @@ class DiagnosticFactory {
       source: source,
       offset: duplicateKey.offset,
       length: duplicateKey.length,
-      diagnosticCode: CompileTimeErrorCode.EQUAL_KEYS_IN_CONST_MAP,
+      diagnosticCode: CompileTimeErrorCode.equalKeysInConstMap,
       contextMessages: [
         DiagnosticMessageImpl(
           filePath: source.fullName,
@@ -269,7 +270,7 @@ class DiagnosticFactory {
       source: source,
       offset: duplicateKey.offset,
       length: duplicateKey.length,
-      diagnosticCode: CompileTimeErrorCode.EQUAL_KEYS_IN_MAP_PATTERN,
+      diagnosticCode: CompileTimeErrorCode.equalKeysInMapPattern,
       contextMessages: [
         DiagnosticMessageImpl(
           filePath: source.fullName,
@@ -278,6 +279,114 @@ class DiagnosticFactory {
           length: originalKey.length,
           url: null,
         ),
+      ],
+    );
+  }
+
+  Diagnostic incompatibleLint({
+    required Source source,
+    required YamlScalar reference,
+    required Map<String, YamlScalar> incompatibleRules,
+  }) {
+    assert(reference.value is String);
+    assert(incompatibleRules.values.every((node) => node.value is String));
+    return Diagnostic.tmp(
+      source: source,
+      offset: reference.span.start.offset,
+      length: reference.span.length,
+      diagnosticCode: AnalysisOptionsWarningCode.incompatibleLint,
+      arguments: [
+        reference.value as String,
+        incompatibleRules.values
+            .map((node) => node.value as String)
+            .quotedAndCommaSeparatedWithAnd,
+      ],
+      contextMessages: [
+        for (var MapEntry(key: file, value: incompatible)
+            in incompatibleRules.entries)
+          DiagnosticMessageImpl(
+            filePath: file,
+            message:
+                "The rule '${incompatible.value.toString()}' is enabled here.",
+            offset: incompatible.span.start.offset,
+            length: incompatible.span.length,
+            url: file,
+          ),
+      ],
+    );
+  }
+
+  /// Returns a diagnostic indicating that incompatible rules were found between
+  /// the current list and one or more of the included files.
+  Diagnostic incompatibleLintFiles({
+    required Source source,
+    required YamlScalar reference,
+    required Map<String, YamlScalar> incompatibleRules,
+  }) {
+    assert(reference.value is String);
+    assert(incompatibleRules.values.every((node) => node.value is String));
+    return Diagnostic.tmp(
+      source: source,
+      offset: reference.span.start.offset,
+      length: reference.span.length,
+      diagnosticCode: AnalysisOptionsWarningCode.incompatibleLintFiles,
+      arguments: [
+        reference.value as String,
+        incompatibleRules.values
+            .map((node) => node.value as String)
+            .quotedAndCommaSeparatedWithAnd,
+      ],
+      contextMessages: [
+        for (var MapEntry(key: file, value: incompatible)
+            in incompatibleRules.entries)
+          DiagnosticMessageImpl(
+            filePath: file,
+            message:
+                "The rule '${incompatible.value.toString()}' is enabled here "
+                "in the file '$file'.",
+            offset: incompatible.span.start.offset,
+            length: incompatible.span.length,
+            url: file,
+          ),
+      ],
+    );
+  }
+
+  /// Returns a diagnostic indicating that incompatible rules were found between
+  /// the included files.
+  Diagnostic incompatibleLintIncluded({
+    required Source source,
+    required YamlScalar reference,
+    required Map<String, YamlScalar> incompatibleRules,
+    required int fileCount,
+  }) {
+    assert(fileCount > 0);
+    assert(reference.value is String);
+    assert(incompatibleRules.values.every((node) => node.value is String));
+    return Diagnostic.tmp(
+      source: source,
+      offset: reference.span.start.offset,
+      length: reference.span.length,
+      diagnosticCode: AnalysisOptionsWarningCode.incompatibleLintIncluded,
+      arguments: [
+        reference.value as String,
+        incompatibleRules.values
+            .map((node) => node.value as String)
+            .quotedAndCommaSeparatedWithAnd,
+        fileCount,
+        fileCount == 1 ? '' : 's',
+      ],
+      contextMessages: [
+        for (var MapEntry(key: file, value: incompatible)
+            in incompatibleRules.entries)
+          DiagnosticMessageImpl(
+            filePath: file,
+            message:
+                "The rule '${incompatible.value.toString()}' is enabled here.",
+            offset: incompatible.span.start.offset,
+            length: incompatible.span.length,
+            url: file,
+          ),
       ],
     );
   }
@@ -295,7 +404,7 @@ class DiagnosticFactory {
       offset: offset,
       length: length,
       diagnosticCode:
-          StaticWarningCode.INVALID_NULL_AWARE_OPERATOR_AFTER_SHORT_CIRCUIT,
+          StaticWarningCode.invalidNullAwareOperatorAfterShortCircuit,
       arguments: arguments,
       contextMessages: [
         DiagnosticMessageImpl(
@@ -322,7 +431,8 @@ class DiagnosticFactory {
     // Elements enclosing members that can participate in overrides are always
     // named, so we can safely assume `_thisMember.enclosingElement3.name` and
     // `superMember.enclosingElement3.name` are non-`null`.
-    var superFragment = superMember.nonSynthetic.firstFragment;
+    var superElement = superMember.nonSynthetic.baseElement as ElementImpl;
+    var superLocation = superElement.firstFragmentLocation;
     return Diagnostic.tmp(
       source: source,
       offset: errorNode.offset,
@@ -341,20 +451,20 @@ class DiagnosticFactory {
         // INVALID_IMPLEMENTATION_OVERRIDE may provide the subclass as superMember
         // if the subclass has an abstract member and the superclass has the
         // concrete).
-        if (code == CompileTimeErrorCode.INVALID_OVERRIDE)
+        if (code == CompileTimeErrorCode.invalidOverride)
           DiagnosticMessageImpl(
-            filePath: superFragment.libraryFragment!.source.fullName,
+            filePath: superLocation.libraryFragment!.source.fullName,
             message: "The member being overridden.",
-            offset: superFragment.nameOffset2 ?? -1,
-            length: superFragment.name!.length,
+            offset: superLocation.nameOffset ?? -1,
+            length: superLocation.name!.length,
             url: null,
           ),
-        if (code == CompileTimeErrorCode.INVALID_OVERRIDE_SETTER)
+        if (code == CompileTimeErrorCode.invalidOverrideSetter)
           DiagnosticMessageImpl(
-            filePath: superFragment.libraryFragment!.source.fullName,
+            filePath: superLocation.libraryFragment!.source.fullName,
             message: "The setter being overridden.",
-            offset: superFragment.nameOffset2 ?? -1,
-            length: superFragment.name!.length,
+            offset: superLocation.nameOffset ?? -1,
+            length: superLocation.name!.length,
             url: null,
           ),
       ],
@@ -370,7 +480,7 @@ class DiagnosticFactory {
   }) {
     String name = nameToken.lexeme;
     List<DiagnosticMessage>? contextMessages;
-    int declarationOffset = element2.firstFragment.nameOffset2 ?? -1;
+    int declarationOffset = element2.firstFragment.nameOffset ?? -1;
     if (declarationOffset >= 0) {
       contextMessages = [
         DiagnosticMessageImpl(
@@ -386,7 +496,7 @@ class DiagnosticFactory {
       source: source,
       offset: nameToken.offset,
       length: nameToken.length,
-      diagnosticCode: CompileTimeErrorCode.REFERENCED_BEFORE_DECLARATION,
+      diagnosticCode: CompileTimeErrorCode.referencedBeforeDeclaration,
       arguments: [name],
       contextMessages: contextMessages ?? const [],
     );

@@ -2,11 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:_fe_analyzer_shared/src/messages/codes.dart'
-    show messageMissingMain;
 import 'package:_fe_analyzer_shared/src/messages/diagnostic_message.dart'
     show DiagnosticMessageHandler;
-import 'package:_fe_analyzer_shared/src/messages/severity.dart' show Severity;
+import 'package:_fe_analyzer_shared/src/messages/severity.dart'
+    show CfeSeverity;
+import 'package:front_end/src/codes/cfe_codes.dart' show codeMissingMain;
 import 'package:kernel/kernel.dart' show Component;
 import 'package:kernel/target/targets.dart' show Target;
 
@@ -25,14 +25,15 @@ export 'package:_fe_analyzer_shared/src/messages/codes.dart'
     show LocatedMessage;
 export 'package:_fe_analyzer_shared/src/messages/diagnostic_message.dart'
     show
-        DiagnosticMessage,
+        CfeDiagnosticMessage,
         DiagnosticMessageHandler,
         getMessageCharOffset,
         getMessageHeaderText,
         getMessageLength,
         getMessageRelatedInformation,
         getMessageUri;
-export 'package:_fe_analyzer_shared/src/messages/severity.dart' show Severity;
+export 'package:_fe_analyzer_shared/src/messages/severity.dart'
+    show CfeSeverity;
 export 'package:_fe_analyzer_shared/src/parser/async_modifier.dart'
     show AsyncModifier;
 export 'package:_fe_analyzer_shared/src/scanner/characters.dart'
@@ -92,16 +93,17 @@ export 'compiler_state.dart' show InitializedCompilerState;
 
 // Coverage-ignore(suite): Not run.
 InitializedCompilerState initializeCompiler(
-    InitializedCompilerState? oldState,
-    Target target,
-    Uri? librariesSpecificationUri,
-    List<Uri> additionalDills,
-    Uri? packagesFileUri,
-    {required Map<ExperimentalFlag, bool> explicitExperimentalFlags,
-    Map<String, String>? environmentDefines,
-    bool verify = false,
-    Set<InvocationMode> invocationModes = const <InvocationMode>{},
-    Verbosity verbosity = Verbosity.all}) {
+  InitializedCompilerState? oldState,
+  Target target,
+  Uri? librariesSpecificationUri,
+  List<Uri> additionalDills,
+  Uri? packagesFileUri, {
+  required Map<ExperimentalFlag, bool> explicitExperimentalFlags,
+  Map<String, String>? environmentDefines,
+  bool verify = false,
+  Set<InvocationMode> invocationModes = const <InvocationMode>{},
+  Verbosity verbosity = Verbosity.all,
+}) {
   additionalDills.sort((a, b) => a.toString().compareTo(b.toString()));
 
   // We don't check `target` because it doesn't support '==' and each
@@ -111,8 +113,10 @@ InitializedCompilerState initializeCompiler(
       oldState.options.packagesFileUri == packagesFileUri &&
       oldState.options.librariesSpecificationUri == librariesSpecificationUri &&
       equalLists(oldState.options.additionalDills, additionalDills) &&
-      equalMaps(oldState.options.explicitExperimentalFlags,
-          explicitExperimentalFlags) &&
+      equalMaps(
+        oldState.options.explicitExperimentalFlags,
+        explicitExperimentalFlags,
+      ) &&
       equalMaps(oldState.options.environmentDefines, environmentDefines) &&
       oldState.options.verify == verify &&
       equalSets(oldState.options.invocationModes, invocationModes) &&
@@ -139,11 +143,12 @@ InitializedCompilerState initializeCompiler(
 
 // Coverage-ignore(suite): Not run.
 Future<Component?> compile(
-    InitializedCompilerState state,
-    bool verbose,
-    FileSystem fileSystem,
-    DiagnosticMessageHandler onDiagnostic,
-    List<Uri> inputs) async {
+  InitializedCompilerState state,
+  bool verbose,
+  FileSystem fileSystem,
+  DiagnosticMessageHandler onDiagnostic,
+  List<Uri> inputs,
+) async {
   assert(inputs.length == 1);
   CompilerOptions options = state.options;
   options
@@ -157,19 +162,22 @@ Future<Component?> compile(
   processedOpts.clearFileSystemCache();
 
   CompilerResult? compilerResult = await CompilerContext.runWithOptions(
-      processedOpts, (CompilerContext context) async {
-    CompilerResult compilerResult = await generateKernelInternal(context);
-    Component? component = compilerResult.component;
-    if (component == null) return null;
-    if (component.mainMethod == null) {
-      context.options.report(
+    processedOpts,
+    (CompilerContext context) async {
+      CompilerResult compilerResult = await generateKernelInternal(context);
+      Component? component = compilerResult.component;
+      if (component == null) return null;
+      if (component.mainMethod == null) {
+        context.options.report(
           context,
-          messageMissingMain.withLocation(inputs.single, -1, 0),
-          Severity.error);
-      return null;
-    }
-    return compilerResult;
-  });
+          codeMissingMain.withLocation(inputs.single, -1, 0),
+          CfeSeverity.error,
+        );
+        return null;
+      }
+      return compilerResult;
+    },
+  );
 
   // Remove these parameters from [options] - they are no longer needed and
   // retain state from the previous compile. (http://dartbug.com/33708)

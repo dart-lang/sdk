@@ -33,7 +33,6 @@ main(args, message) async {
   // Simple tests.
   await testNativeCallableHelloWorld();
   testNativeCallableDoubleCloseError();
-  await testNativeCallableUseAfterFree();
   await testNativeCallableNestedCloseCall();
   await testNativeCallableThrowInsideCallback();
   await testNativeCallableDontKeepAlive();
@@ -94,22 +93,6 @@ testNativeCallableDoubleCloseError() {
   callback.close();
   callback.keepIsolateAlive = true;
   Expect.isFalse(callback.keepIsolateAlive);
-}
-
-Future<void> testNativeCallableUseAfterFree() async {
-  final lib = NativeLibrary();
-
-  final callback = NativeCallable<CallbackNativeType>.listener(simpleFunction);
-  final nativeFunction = callback.nativeFunction;
-  callback.close();
-
-  simpleFunctionResult = Completer<int>();
-  lib.callFunctionOnSameThread(123, nativeFunction);
-
-  await Future.delayed(Duration(milliseconds: 100));
-
-  // The callback wasn't invoked, but we didn't crash either.
-  Expect.equals(false, simpleFunctionResult.isCompleted);
 }
 
 NativeCallable? simpleFunctionAndCloseSelf_callable;

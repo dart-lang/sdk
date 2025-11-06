@@ -11,15 +11,15 @@ library vm.transformations.ffi;
 // avoid cyclic dependency between `package:vm/modular` and `package:front_end`.
 import 'package:front_end/src/codes/cfe_codes.dart'
     show
-        messageFfiLeafCallMustNotReturnHandle,
-        messageFfiLeafCallMustNotTakeHandle,
-        messageFfiVariableLengthArrayNotLast,
-        messageNegativeVariableDimension,
-        messageNonPositiveArrayDimensions,
-        templateFfiSizeAnnotation,
-        templateFfiSizeAnnotationDimensions,
-        templateFfiTypeInvalid,
-        templateFfiTypeMismatch;
+        codeFfiLeafCallMustNotReturnHandle,
+        codeFfiLeafCallMustNotTakeHandle,
+        codeFfiVariableLengthArrayNotLast,
+        codeNegativeVariableDimension,
+        codeNonPositiveArrayDimensions,
+        codeFfiSizeAnnotation,
+        codeFfiSizeAnnotationDimensions,
+        codeFfiTypeInvalid,
+        codeFfiTypeMismatch;
 import 'package:kernel/ast.dart';
 import 'package:kernel/class_hierarchy.dart' show ClassHierarchy;
 import 'package:kernel/core_types.dart';
@@ -329,10 +329,10 @@ class FfiTransformer extends Transformer {
   final Procedure nativeCallbackFunctionProcedure;
   final Procedure nativeAsyncCallbackFunctionProcedure;
   final Procedure createNativeCallableIsolateLocalProcedure;
-  final Procedure createNativeCallableIsolateGroupSharedProcedure;
+  final Procedure createNativeCallableIsolateGroupBoundProcedure;
   final Procedure nativeIsolateLocalCallbackFunctionProcedure;
-  final Procedure nativeIsolateGroupSharedCallbackFunctionProcedure;
-  final Procedure nativeIsolateGroupSharedClosureFunctionProcedure;
+  final Procedure nativeIsolateGroupBoundCallbackFunctionProcedure;
+  final Procedure nativeIsolateGroupBoundClosureFunctionProcedure;
   final Map<NativeType, Procedure> loadMethods;
   final Map<NativeType, Procedure> loadUnalignedMethods;
   final Map<NativeType, Procedure> storeMethods;
@@ -356,9 +356,9 @@ class FfiTransformer extends Transformer {
   final Class rawRecvPortClass;
   final Class nativeCallableClass;
   final Procedure nativeCallableIsolateLocalConstructor;
-  final Procedure nativeCallableIsolateGroupSharedConstructor;
+  final Procedure nativeCallableIsolateGroupBoundConstructor;
   final Constructor nativeCallablePrivateIsolateLocalConstructor;
-  final Constructor nativeCallablePrivateIsolateGroupSharedConstructor;
+  final Constructor nativeCallablePrivateIsolateGroupBoundConstructor;
   final Procedure nativeCallableListenerConstructor;
   final Constructor nativeCallablePrivateListenerConstructor;
   final Field nativeCallablePortField;
@@ -842,10 +842,10 @@ class FfiTransformer extends Transformer {
         'dart:ffi',
         '_createNativeCallableIsolateLocal',
       ),
-      createNativeCallableIsolateGroupSharedProcedure = index
+      createNativeCallableIsolateGroupBoundProcedure = index
           .getTopLevelProcedure(
             'dart:ffi',
-            '_createNativeCallableIsolateGroupShared',
+            '_createNativeCallableIsolateGroupBound',
           ),
       nativeCallbackFunctionProcedure = index.getTopLevelProcedure(
         'dart:ffi',
@@ -859,15 +859,15 @@ class FfiTransformer extends Transformer {
         'dart:ffi',
         '_nativeIsolateLocalCallbackFunction',
       ),
-      nativeIsolateGroupSharedCallbackFunctionProcedure = index
+      nativeIsolateGroupBoundCallbackFunctionProcedure = index
           .getTopLevelProcedure(
             'dart:ffi',
-            '_nativeIsolateGroupSharedCallbackFunction',
+            '_nativeIsolateGroupBoundCallbackFunction',
           ),
-      nativeIsolateGroupSharedClosureFunctionProcedure = index
+      nativeIsolateGroupBoundClosureFunctionProcedure = index
           .getTopLevelProcedure(
             'dart:ffi',
-            '_nativeIsolateGroupSharedClosureFunction',
+            '_nativeIsolateGroupBoundClosureFunction',
           ),
       nativeTypesClasses = nativeTypeClassNames.map(
         (nativeType, name) =>
@@ -973,10 +973,10 @@ class FfiTransformer extends Transformer {
         'NativeCallable',
         'isolateLocal',
       ),
-      nativeCallableIsolateGroupSharedConstructor = index.getProcedure(
+      nativeCallableIsolateGroupBoundConstructor = index.getProcedure(
         'dart:ffi',
         'NativeCallable',
-        'isolateGroupShared',
+        'isolateGroupBound',
       ),
       nativeCallablePrivateIsolateLocalConstructor = index.getConstructor(
         'dart:ffi',
@@ -993,9 +993,9 @@ class FfiTransformer extends Transformer {
         '_NativeCallableListener',
         '',
       ),
-      nativeCallablePrivateIsolateGroupSharedConstructor = index.getConstructor(
+      nativeCallablePrivateIsolateGroupBoundConstructor = index.getConstructor(
         'dart:ffi',
-        '_NativeCallableIsolateGroupShared',
+        '_NativeCallableIsolateGroupBound',
         '',
       ),
       nativeCallablePortField = index.getField(
@@ -1477,7 +1477,7 @@ class FfiTransformer extends Transformer {
         variableLength = sizeAnnotations.single.$2;
         if (arrayDimensions(type) != dimensions.length) {
           diagnosticReporter.report(
-            templateFfiSizeAnnotationDimensions.withArguments(node.name.text),
+            codeFfiSizeAnnotationDimensions.withArgumentsOld(node.name.text),
             node.fileOffset,
             node.name.text.length,
             node.fileUri,
@@ -1486,7 +1486,7 @@ class FfiTransformer extends Transformer {
         if (variableLength) {
           if (!allowVariableLength) {
             diagnosticReporter.report(
-              messageFfiVariableLengthArrayNotLast,
+              codeFfiVariableLengthArrayNotLast,
               node.fileOffset,
               node.name.text.length,
               node.fileUri,
@@ -1499,7 +1499,7 @@ class FfiTransformer extends Transformer {
             // Variable dimension can't be negative.
             if (dimensions[0] < 0) {
               diagnosticReporter.report(
-                messageNegativeVariableDimension,
+                codeNegativeVariableDimension,
                 node.fileOffset,
                 node.name.text.length,
                 node.fileUri,
@@ -1510,7 +1510,7 @@ class FfiTransformer extends Transformer {
 
           if (dimensions[i] <= 0) {
             diagnosticReporter.report(
-              messageNonPositiveArrayDimensions,
+              codeNonPositiveArrayDimensions,
               node.fileOffset,
               node.name.text.length,
               node.fileUri,
@@ -1521,7 +1521,7 @@ class FfiTransformer extends Transformer {
       }
     } else {
       diagnosticReporter.report(
-        templateFfiSizeAnnotation.withArguments(node.name.text),
+        codeFfiSizeAnnotation.withArgumentsOld(node.name.text),
         node.fileOffset,
         node.name.text.length,
         node.fileUri,
@@ -1866,7 +1866,7 @@ class FfiTransformer extends Transformer {
       if (returnType is InterfaceType) {
         if (returnType.classNode == handleClass) {
           diagnosticReporter.report(
-            messageFfiLeafCallMustNotReturnHandle,
+            codeFfiLeafCallMustNotReturnHandle,
             reportErrorOn.fileOffset,
             1,
             reportErrorOn.location?.file,
@@ -1878,7 +1878,7 @@ class FfiTransformer extends Transformer {
       for (DartType param in functionType.positionalParameters) {
         if ((param as InterfaceType).classNode == handleClass) {
           diagnosticReporter.report(
-            messageFfiLeafCallMustNotTakeHandle,
+            codeFfiLeafCallMustNotTakeHandle,
             reportErrorOn.fileOffset,
             1,
             reportErrorOn.location?.file,
@@ -1951,7 +1951,7 @@ class FfiTransformer extends Transformer {
         }
     }
     diagnosticReporter.report(
-      templateFfiTypeMismatch.withArguments(
+      codeFfiTypeMismatch.withArgumentsOld(
         dartType,
         correspondingDartType,
         nativeType,
@@ -1979,7 +1979,7 @@ class FfiTransformer extends Transformer {
       allowVoid: allowVoid,
     )) {
       diagnosticReporter.report(
-        templateFfiTypeInvalid.withArguments(nativeType),
+        codeFfiTypeInvalid.withArgumentsOld(nativeType),
         reportErrorOn.fileOffset,
         1,
         reportErrorOn.location?.file,

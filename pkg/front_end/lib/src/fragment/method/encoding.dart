@@ -4,10 +4,12 @@
 
 import 'package:kernel/ast.dart';
 import 'package:kernel/class_hierarchy.dart';
+import 'package:kernel/names.dart';
 import 'package:kernel/type_algebra.dart';
 import 'package:kernel/type_environment.dart';
 
 import '../../base/local_scope.dart';
+import '../../base/messages.dart';
 import '../../base/scope.dart';
 import '../../builder/declaration_builders.dart';
 import '../../builder/formal_parameter_builder.dart';
@@ -16,6 +18,7 @@ import '../../builder/type_builder.dart';
 import '../../builder/variable_builder.dart';
 import '../../kernel/body_builder_context.dart';
 import '../../kernel/type_algorithms.dart';
+import '../../source/check_helper.dart';
 import '../../source/fragment_factory.dart';
 import '../../source/name_scheme.dart';
 import '../../source/source_class_builder.dart';
@@ -42,34 +45,45 @@ sealed class MethodEncoding implements InferredTypeListener {
 
   void becomeNative(SourceLoader loader);
 
-  void buildOutlineExpressions(
-      {required ClassHierarchy classHierarchy,
-      required SourceLibraryBuilder libraryBuilder,
-      required DeclarationBuilder? declarationBuilder,
-      required BodyBuilderContext bodyBuilderContext,
-      required Annotatable annotatable,
-      required Uri annotatableFileUri,
-      required bool isClassInstanceMember});
+  void buildOutlineExpressions({
+    required ClassHierarchy classHierarchy,
+    required SourceLibraryBuilder libraryBuilder,
+    required DeclarationBuilder? declarationBuilder,
+    required BodyBuilderContext bodyBuilderContext,
+    required Annotatable annotatable,
+    required Uri annotatableFileUri,
+    required bool isClassInstanceMember,
+  });
 
-  void buildOutlineNode(SourceLibraryBuilder libraryBuilder,
-      NameScheme nameScheme, BuildNodesCallback f,
-      {required Reference reference,
-      required Reference? tearOffReference,
-      required bool isAbstractOrExternal,
-      required List<TypeParameter>? classTypeParameters});
+  void buildOutlineNode(
+    SourceLibraryBuilder libraryBuilder,
+    ProblemReporting problemReporting,
+    NameScheme nameScheme,
+    BuildNodesCallback f, {
+    required Reference reference,
+    required Reference? tearOffReference,
+    required bool isAbstractOrExternal,
+    required List<TypeParameter>? classTypeParameters,
+  });
 
   void checkTypes(
-      SourceLibraryBuilder libraryBuilder, TypeEnvironment typeEnvironment);
+    ProblemReporting problemReporting,
+    TypeEnvironment typeEnvironment,
+  );
 
   void checkVariance(
-      SourceClassBuilder sourceClassBuilder, TypeEnvironment typeEnvironment);
+    SourceClassBuilder sourceClassBuilder,
+    TypeEnvironment typeEnvironment,
+  );
 
   int computeDefaultTypes(ComputeDefaultTypeContext context);
 
   LocalScope createFormalParameterScope(LookupScope typeParameterScope);
 
   void ensureTypes(
-      SourceLibraryBuilder libraryBuilder, ClassHierarchyBase hierarchy);
+    SourceLibraryBuilder libraryBuilder,
+    ClassHierarchyBase hierarchy,
+  );
 
   VariableDeclaration getFormalParameter(int index);
 
@@ -77,8 +91,10 @@ sealed class MethodEncoding implements InferredTypeListener {
 }
 
 sealed class MethodEncodingStrategy {
-  factory MethodEncodingStrategy(DeclarationBuilder? declarationBuilder,
-      {required bool isInstanceMember}) {
+  factory MethodEncodingStrategy(
+    DeclarationBuilder? declarationBuilder, {
+    required bool isInstanceMember,
+  }) {
     switch (declarationBuilder) {
       case ExtensionBuilder():
         if (isInstanceMember) {
@@ -98,8 +114,11 @@ sealed class MethodEncodingStrategy {
     }
   }
 
-  MethodEncoding createMethodEncoding(SourceMethodBuilder builder,
-      MethodFragment fragment, TypeParameterFactory typeParameterFactory);
+  MethodEncoding createMethodEncoding(
+    SourceMethodBuilder builder,
+    MethodFragment fragment,
+    TypeParameterFactory typeParameterFactory,
+  );
 }
 
 mixin _DirectMethodEncodingMixin implements MethodEncoding {
@@ -143,63 +162,107 @@ mixin _DirectMethodEncodingMixin implements MethodEncoding {
   }
 
   @override
-  void buildOutlineExpressions(
-      {required ClassHierarchy classHierarchy,
-      required SourceLibraryBuilder libraryBuilder,
-      required DeclarationBuilder? declarationBuilder,
-      required BodyBuilderContext bodyBuilderContext,
-      required Annotatable annotatable,
-      required Uri annotatableFileUri,
-      required bool isClassInstanceMember}) {
+  void buildOutlineExpressions({
+    required ClassHierarchy classHierarchy,
+    required SourceLibraryBuilder libraryBuilder,
+    required DeclarationBuilder? declarationBuilder,
+    required BodyBuilderContext bodyBuilderContext,
+    required Annotatable annotatable,
+    required Uri annotatableFileUri,
+    required bool isClassInstanceMember,
+  }) {
     buildMetadataForOutlineExpressions(
-        libraryBuilder: libraryBuilder,
-        scope: _fragment.enclosingScope,
-        bodyBuilderContext: bodyBuilderContext,
-        annotatable: annotatable,
-        annotatableFileUri: annotatableFileUri,
-        metadata: _fragment.metadata);
-    buildTypeParametersForOutlineExpressions(classHierarchy, libraryBuilder,
-        bodyBuilderContext, _fragment.declaredTypeParameters?.builders);
+      libraryBuilder: libraryBuilder,
+      extensionScope: _fragment.enclosingCompilationUnit.extensionScope,
+      scope: _fragment.enclosingScope,
+      bodyBuilderContext: bodyBuilderContext,
+      annotatable: annotatable,
+      annotatableFileUri: annotatableFileUri,
+      metadata: _fragment.metadata,
+      annotationsFileUri: _fragment.fileUri,
+    );
+    buildTypeParametersForOutlineExpressions(
+      classHierarchy,
+      libraryBuilder,
+      bodyBuilderContext,
+      _fragment.declaredTypeParameters?.builders,
+    );
     buildFormalsForOutlineExpressions(
-        libraryBuilder, declarationBuilder, _fragment.declaredFormals,
-        scope: _fragment.typeParameterScope,
-        isClassInstanceMember: isClassInstanceMember);
+      libraryBuilder,
+      declarationBuilder,
+      _fragment.declaredFormals,
+      extensionScope: _fragment.enclosingCompilationUnit.extensionScope,
+      scope: _fragment.typeParameterScope,
+      isClassInstanceMember: isClassInstanceMember,
+    );
   }
 
   @override
-  void buildOutlineNode(SourceLibraryBuilder libraryBuilder,
-      NameScheme nameScheme, BuildNodesCallback f,
-      {required Reference reference,
-      required Reference? tearOffReference,
-      required bool isAbstractOrExternal,
-      List<TypeParameter>? classTypeParameters}) {
-    FunctionNode function = new FunctionNode(
-        isAbstractOrExternal ? null : new EmptyStatement(),
-        asyncMarker: _fragment.asyncModifier)
-      ..fileOffset = _fragment.formalsOffset
-      ..fileEndOffset = _fragment.endOffset;
-    buildTypeParametersAndFormals(libraryBuilder, function,
-        _fragment.declaredTypeParameters?.builders, _fragment.declaredFormals,
-        classTypeParameters: classTypeParameters, supportsTypeParameters: true);
+  void buildOutlineNode(
+    SourceLibraryBuilder libraryBuilder,
+    ProblemReporting problemReporting,
+    NameScheme nameScheme,
+    BuildNodesCallback f, {
+    required Reference reference,
+    required Reference? tearOffReference,
+    required bool isAbstractOrExternal,
+    List<TypeParameter>? classTypeParameters,
+  }) {
+    FunctionNode function =
+        new FunctionNode(
+            isAbstractOrExternal ? null : new EmptyStatement(),
+            asyncMarker: _fragment.asyncModifier,
+          )
+          ..fileOffset = _fragment.formalsOffset
+          ..fileEndOffset = _fragment.endOffset;
+    buildTypeParametersAndFormals(
+      libraryBuilder,
+      function,
+      _fragment.declaredTypeParameters?.builders,
+      _fragment.declaredFormals,
+      classTypeParameters: classTypeParameters,
+      supportsTypeParameters: true,
+    );
     if (_fragment.returnType is! InferableTypeBuilder) {
-      function.returnType =
-          _fragment.returnType.build(libraryBuilder, TypeUse.returnType);
+      DartType returnType = _fragment.returnType.build(
+        libraryBuilder,
+        TypeUse.returnType,
+      );
+      if (_fragment.name == indexSetName.text) {
+        if (returnType is! VoidType) {
+          problemReporting.addProblem(
+            codeNonVoidReturnOperator,
+            _fragment.returnType.charOffset!,
+            noLength,
+            _fragment.fileUri,
+          );
+          returnType = const VoidType();
+        }
+      }
+      function.returnType = returnType;
     }
 
-    MemberName memberName =
-        nameScheme.getProcedureMemberName(_procedureKind, _fragment.name);
-    Procedure procedure = _procedure = new Procedure(
-        memberName.name, _procedureKind, function,
-        reference: reference, fileUri: _fragment.fileUri)
-      ..fileStartOffset = _fragment.startOffset
-      ..fileOffset = _fragment.nameOffset
-      ..fileEndOffset = _fragment.endOffset
-      ..isAbstract = _fragment.modifiers.isAbstract
-      ..isExternal = _fragment.modifiers.isExternal
-      ..isConst = _fragment.modifiers.isConst
-      ..isStatic = _fragment.modifiers.isStatic
-      ..isExtensionMember = _isExtensionMember
-      ..isExtensionTypeMember = _isExtensionTypeMember;
+    MemberName memberName = nameScheme.getProcedureMemberName(
+      _procedureKind,
+      _fragment.name,
+    );
+    Procedure procedure = _procedure =
+        new Procedure(
+            memberName.name,
+            _procedureKind,
+            function,
+            reference: reference,
+            fileUri: _fragment.fileUri,
+          )
+          ..fileStartOffset = _fragment.startOffset
+          ..fileOffset = _fragment.nameOffset
+          ..fileEndOffset = _fragment.endOffset
+          ..isAbstract = _fragment.modifiers.isAbstract
+          ..isExternal = _fragment.modifiers.isExternal
+          ..isConst = _fragment.modifiers.isConst
+          ..isStatic = _fragment.modifiers.isStatic
+          ..isExtensionMember = _isExtensionMember
+          ..isExtensionTypeMember = _isExtensionTypeMember;
     memberName.attachMember(procedure);
 
     f(kind: _builtMemberKind, member: procedure);
@@ -207,44 +270,61 @@ mixin _DirectMethodEncodingMixin implements MethodEncoding {
 
   @override
   void checkTypes(
-      SourceLibraryBuilder libraryBuilder, TypeEnvironment typeEnvironment) {
+    ProblemReporting problemReporting,
+    TypeEnvironment typeEnvironment,
+  ) {
     List<SourceNominalParameterBuilder>? typeParameters =
         _fragment.declaredTypeParameters?.builders;
     if (typeParameters != null && typeParameters.isNotEmpty) {
-      checkTypeParameterDependencies(libraryBuilder, typeParameters);
+      checkTypeParameterDependencies(problemReporting, typeParameters);
     }
-    libraryBuilder.checkInitializersInFormals(
-        _fragment.declaredFormals, typeEnvironment,
-        isAbstract: _fragment.modifiers.isAbstract,
-        isExternal: _fragment.modifiers.isExternal);
+    problemReporting.checkInitializersInFormals(
+      formals: _fragment.declaredFormals,
+      typeEnvironment: typeEnvironment,
+      isAbstract: _fragment.modifiers.isAbstract,
+      isExternal: _fragment.modifiers.isExternal,
+    );
   }
 
   @override
   void checkVariance(
-      SourceClassBuilder sourceClassBuilder, TypeEnvironment typeEnvironment) {
+    SourceClassBuilder sourceClassBuilder,
+    TypeEnvironment typeEnvironment,
+  ) {
     sourceClassBuilder.checkVarianceInTypeParameters(
-        typeEnvironment, _fragment.declaredTypeParameters?.builders);
+      typeEnvironment,
+      _fragment.declaredTypeParameters?.builders,
+    );
     sourceClassBuilder.checkVarianceInFormals(
-        typeEnvironment, _fragment.declaredFormals);
+      typeEnvironment,
+      _fragment.declaredFormals,
+    );
     sourceClassBuilder.checkVarianceInReturnType(
-        typeEnvironment, function.returnType,
-        fileOffset: _fragment.nameOffset, fileUri: _fragment.fileUri);
+      typeEnvironment,
+      function.returnType,
+      fileOffset: _fragment.nameOffset,
+      fileUri: _fragment.fileUri,
+    );
   }
 
   @override
   int computeDefaultTypes(ComputeDefaultTypeContext context) {
     bool hasErrors = context.reportSimplicityIssuesForTypeParameters(
-        _fragment.declaredTypeParameters?.builders);
+      _fragment.declaredTypeParameters?.builders,
+    );
     context.reportGenericFunctionTypesForFormals(_fragment.declaredFormals);
     if (_fragment.returnType is! OmittedTypeBuilder) {
-      hasErrors |=
-          context.reportInboundReferenceIssuesForType(_fragment.returnType);
+      hasErrors |= context.reportInboundReferenceIssuesForType(
+        _fragment.returnType,
+      );
       context.recursivelyReportGenericFunctionTypesAsBoundsForType(
-          _fragment.returnType);
+        _fragment.returnType,
+      );
     }
     return context.computeDefaultTypesForVariables(
-        _fragment.declaredTypeParameters?.builders,
-        inErrorRecovery: hasErrors);
+      _fragment.declaredTypeParameters?.builders,
+      inErrorRecovery: hasErrors,
+    );
   }
 
   @override
@@ -266,15 +346,23 @@ mixin _DirectMethodEncodingMixin implements MethodEncoding {
 
   @override
   void ensureTypes(
-      SourceLibraryBuilder libraryBuilder, ClassHierarchyBase hierarchy) {
-    _fragment.returnType
-        .build(libraryBuilder, TypeUse.returnType, hierarchy: hierarchy);
+    SourceLibraryBuilder libraryBuilder,
+    ClassHierarchyBase hierarchy,
+  ) {
+    _fragment.returnType.build(
+      libraryBuilder,
+      TypeUse.returnType,
+      hierarchy: hierarchy,
+    );
     List<FormalParameterBuilder>? declaredFormals = _fragment.declaredFormals;
     if (declaredFormals != null) {
       for (int i = 0; i < declaredFormals.length; i++) {
         FormalParameterBuilder formal = declaredFormals[i];
-        formal.type
-            .build(libraryBuilder, TypeUse.parameterType, hierarchy: hierarchy);
+        formal.type.build(
+          libraryBuilder,
+          TypeUse.parameterType,
+          hierarchy: hierarchy,
+        );
       }
     }
   }
@@ -304,8 +392,10 @@ class _ExtensionInstanceMethodEncoding extends MethodEncoding
   final FormalParameterBuilder _thisFormal;
 
   _ExtensionInstanceMethodEncoding(
-      this._fragment, this._clonedDeclarationTypeParameters, this._thisFormal)
-      : assert(!_fragment.isOperator);
+    this._fragment,
+    this._clonedDeclarationTypeParameters,
+    this._thisFormal,
+  ) : assert(!_fragment.isOperator);
 
   @override
   BuiltMemberKind get _builtMemberKind => BuiltMemberKind.ExtensionMethod;
@@ -327,12 +417,12 @@ mixin _ExtensionInstanceMethodEncodingMixin implements MethodEncoding {
   @override
   late final List<TypeParameter>? thisTypeParameters =
       _clonedDeclarationTypeParameters != null
-          ? function.typeParameters
-              // TODO(johnniwinther): Ambivalent analyzer. `!` seems to be both
-              //  required and unnecessary.
-              // ignore: unnecessary_non_null_assertion
-              .sublist(0, _clonedDeclarationTypeParameters!.length)
-          : null;
+      ? function.typeParameters
+        // TODO(johnniwinther): Ambivalent analyzer. `!` seems to be both
+        //  required and unnecessary.
+        // ignore: unnecessary_non_null_assertion
+        .sublist(0, _clonedDeclarationTypeParameters!.length)
+      : null;
 
   /// If this is an extension instance method then
   /// [_extensionTearOffParameterMap] holds a map from the parameters of
@@ -345,16 +435,18 @@ mixin _ExtensionInstanceMethodEncodingMixin implements MethodEncoding {
   @override
   List<SourceNominalParameterBuilder>? get clonedAndDeclaredTypeParameters =>
       _clonedDeclarationTypeParameters != null ||
-              _fragment.declaredTypeParameters != null
-          ? [
-              ...?_clonedDeclarationTypeParameters,
-              ...?_fragment.declaredTypeParameters?.builders
-            ]
-          : null;
+          _fragment.declaredTypeParameters != null
+      ? [
+          ...?_clonedDeclarationTypeParameters,
+          ...?_fragment.declaredTypeParameters?.builders,
+        ]
+      : null;
 
   @override
-  List<FormalParameterBuilder>? get formals =>
-      [_thisFormal, ...?_fragment.declaredFormals];
+  List<FormalParameterBuilder>? get formals => [
+    _thisFormal,
+    ...?_fragment.declaredFormals,
+  ];
 
   @override
   FunctionNode get function => _procedure!.function;
@@ -389,44 +481,68 @@ mixin _ExtensionInstanceMethodEncodingMixin implements MethodEncoding {
   }
 
   @override
-  void buildOutlineExpressions(
-      {required ClassHierarchy classHierarchy,
-      required SourceLibraryBuilder libraryBuilder,
-      required DeclarationBuilder? declarationBuilder,
-      required BodyBuilderContext bodyBuilderContext,
-      required Annotatable annotatable,
-      required Uri annotatableFileUri,
-      required bool isClassInstanceMember}) {
+  void buildOutlineExpressions({
+    required ClassHierarchy classHierarchy,
+    required SourceLibraryBuilder libraryBuilder,
+    required DeclarationBuilder? declarationBuilder,
+    required BodyBuilderContext bodyBuilderContext,
+    required Annotatable annotatable,
+    required Uri annotatableFileUri,
+    required bool isClassInstanceMember,
+  }) {
     buildMetadataForOutlineExpressions(
-        libraryBuilder: libraryBuilder,
-        scope: _fragment.enclosingScope,
-        bodyBuilderContext: bodyBuilderContext,
-        annotatable: annotatable,
-        annotatableFileUri: annotatableFileUri,
-        metadata: _fragment.metadata);
+      libraryBuilder: libraryBuilder,
+      extensionScope: _fragment.enclosingCompilationUnit.extensionScope,
+      scope: _fragment.enclosingScope,
+      bodyBuilderContext: bodyBuilderContext,
+      annotatable: annotatable,
+      annotatableFileUri: annotatableFileUri,
+      metadata: _fragment.metadata,
+      annotationsFileUri: _fragment.fileUri,
+    );
 
-    buildTypeParametersForOutlineExpressions(classHierarchy, libraryBuilder,
-        bodyBuilderContext, _fragment.declaredTypeParameters?.builders);
+    buildTypeParametersForOutlineExpressions(
+      classHierarchy,
+      libraryBuilder,
+      bodyBuilderContext,
+      _fragment.declaredTypeParameters?.builders,
+    );
     buildFormalsForOutlineExpressions(
-        libraryBuilder, declarationBuilder, _fragment.declaredFormals,
-        scope: _fragment.typeParameterScope,
-        isClassInstanceMember: isClassInstanceMember);
+      libraryBuilder,
+      declarationBuilder,
+      _fragment.declaredFormals,
+      extensionScope: _fragment.enclosingCompilationUnit.extensionScope,
+      scope: _fragment.typeParameterScope,
+      isClassInstanceMember: isClassInstanceMember,
+    );
 
-    buildTypeParametersForOutlineExpressions(classHierarchy, libraryBuilder,
-        bodyBuilderContext, _clonedDeclarationTypeParameters);
+    buildTypeParametersForOutlineExpressions(
+      classHierarchy,
+      libraryBuilder,
+      bodyBuilderContext,
+      _clonedDeclarationTypeParameters,
+    );
     buildFormalForOutlineExpressions(
-        libraryBuilder, declarationBuilder, _thisFormal,
-        scope: _fragment.typeParameterScope,
-        isClassInstanceMember: isClassInstanceMember);
+      libraryBuilder,
+      declarationBuilder,
+      _thisFormal,
+      extensionScope: _fragment.enclosingCompilationUnit.extensionScope,
+      scope: _fragment.typeParameterScope,
+      isClassInstanceMember: isClassInstanceMember,
+    );
   }
 
   @override
-  void buildOutlineNode(SourceLibraryBuilder libraryBuilder,
-      NameScheme nameScheme, BuildNodesCallback f,
-      {required Reference reference,
-      required Reference? tearOffReference,
-      required bool isAbstractOrExternal,
-      required List<TypeParameter>? classTypeParameters}) {
+  void buildOutlineNode(
+    SourceLibraryBuilder libraryBuilder,
+    ProblemReporting problemReporting,
+    NameScheme nameScheme,
+    BuildNodesCallback f, {
+    required Reference reference,
+    required Reference? tearOffReference,
+    required bool isAbstractOrExternal,
+    required List<TypeParameter>? classTypeParameters,
+  }) {
     List<TypeParameter>? typeParameters;
     if (_clonedDeclarationTypeParameters != null) {
       typeParameters = [];
@@ -437,40 +553,71 @@ mixin _ExtensionInstanceMethodEncodingMixin implements MethodEncoding {
         typeParameters.add(t.parameter);
       }
     }
-    FunctionNode function = new FunctionNode(
-        isAbstractOrExternal ? null : new EmptyStatement(),
-        typeParameters: typeParameters,
-        positionalParameters: [_thisFormal.build(libraryBuilder)],
-        asyncMarker: _fragment.asyncModifier)
-      ..fileOffset = _fragment.formalsOffset
-      ..fileEndOffset = _fragment.endOffset;
-    buildTypeParametersAndFormals(libraryBuilder, function,
-        _fragment.declaredTypeParameters?.builders, _fragment.declaredFormals,
-        classTypeParameters: classTypeParameters, supportsTypeParameters: true);
+    FunctionNode function =
+        new FunctionNode(
+            isAbstractOrExternal ? null : new EmptyStatement(),
+            typeParameters: typeParameters,
+            positionalParameters: [_thisFormal.build(libraryBuilder)],
+            asyncMarker: _fragment.asyncModifier,
+          )
+          ..fileOffset = _fragment.formalsOffset
+          ..fileEndOffset = _fragment.endOffset;
+    buildTypeParametersAndFormals(
+      libraryBuilder,
+      function,
+      _fragment.declaredTypeParameters?.builders,
+      _fragment.declaredFormals,
+      classTypeParameters: classTypeParameters,
+      supportsTypeParameters: true,
+    );
     if (_fragment.returnType is! InferableTypeBuilder) {
-      function.returnType =
-          _fragment.returnType.build(libraryBuilder, TypeUse.returnType);
+      DartType returnType = _fragment.returnType.build(
+        libraryBuilder,
+        TypeUse.returnType,
+      );
+      if (_fragment.name == indexSetName.text) {
+        if (returnType is! VoidType) {
+          problemReporting.addProblem(
+            codeNonVoidReturnOperator,
+            _fragment.returnType.charOffset!,
+            noLength,
+            _fragment.fileUri,
+          );
+          returnType = const VoidType();
+        }
+      }
+      function.returnType = returnType;
     }
 
-    MemberName memberName =
-        nameScheme.getProcedureMemberName(ProcedureKind.Method, _fragment.name);
-    Procedure procedure = _procedure = new Procedure(
-        memberName.name, ProcedureKind.Method, function,
-        reference: reference, fileUri: _fragment.fileUri)
-      ..fileStartOffset = _fragment.startOffset
-      ..fileOffset = _fragment.nameOffset
-      ..fileEndOffset = _fragment.endOffset
-      ..isAbstract = _fragment.modifiers.isAbstract
-      ..isExternal = _fragment.modifiers.isExternal
-      ..isConst = _fragment.modifiers.isConst
-      ..isStatic = true
-      ..isExtensionMember = _isExtensionMember
-      ..isExtensionTypeMember = _isExtensionTypeMember;
+    MemberName memberName = nameScheme.getProcedureMemberName(
+      ProcedureKind.Method,
+      _fragment.name,
+    );
+    Procedure procedure = _procedure =
+        new Procedure(
+            memberName.name,
+            ProcedureKind.Method,
+            function,
+            reference: reference,
+            fileUri: _fragment.fileUri,
+          )
+          ..fileStartOffset = _fragment.startOffset
+          ..fileOffset = _fragment.nameOffset
+          ..fileEndOffset = _fragment.endOffset
+          ..isAbstract = _fragment.modifiers.isAbstract
+          ..isExternal = _fragment.modifiers.isExternal
+          ..isConst = _fragment.modifiers.isConst
+          ..isStatic = true
+          ..isExtensionMember = _isExtensionMember
+          ..isExtensionTypeMember = _isExtensionTypeMember;
     memberName.attachMember(procedure);
 
     if (!_isOperator) {
-      _extensionTearOff =
-          _buildExtensionTearOff(procedure, nameScheme, tearOffReference);
+      _extensionTearOff = _buildExtensionTearOff(
+        procedure,
+        nameScheme,
+        tearOffReference,
+      );
     }
 
     f(kind: _builtMemberKind, member: procedure, tearOff: _extensionTearOff);
@@ -478,41 +625,57 @@ mixin _ExtensionInstanceMethodEncodingMixin implements MethodEncoding {
 
   @override
   void checkTypes(
-      SourceLibraryBuilder libraryBuilder, TypeEnvironment typeEnvironment) {
+    ProblemReporting problemReporting,
+    TypeEnvironment typeEnvironment,
+  ) {
     List<SourceNominalParameterBuilder>? typeParameters =
         _fragment.declaredTypeParameters?.builders;
     if (typeParameters != null && typeParameters.isNotEmpty) {
-      checkTypeParameterDependencies(libraryBuilder, typeParameters);
+      checkTypeParameterDependencies(problemReporting, typeParameters);
     }
-    libraryBuilder.checkInitializersInFormals(
-        _fragment.declaredFormals, typeEnvironment,
-        isAbstract: _fragment.modifiers.isAbstract,
-        isExternal: _fragment.modifiers.isExternal);
+    problemReporting.checkInitializersInFormals(
+      formals: _fragment.declaredFormals,
+      typeEnvironment: typeEnvironment,
+      isAbstract: _fragment.modifiers.isAbstract,
+      isExternal: _fragment.modifiers.isExternal,
+    );
   }
 
   @override
   // Coverage-ignore(suite): Not run.
   void checkVariance(
-      SourceClassBuilder sourceClassBuilder, TypeEnvironment typeEnvironment) {
+    SourceClassBuilder sourceClassBuilder,
+    TypeEnvironment typeEnvironment,
+  ) {
     sourceClassBuilder.checkVarianceInTypeParameters(
-        typeEnvironment, _fragment.declaredTypeParameters?.builders);
+      typeEnvironment,
+      _fragment.declaredTypeParameters?.builders,
+    );
     sourceClassBuilder.checkVarianceInFormals(
-        typeEnvironment, _fragment.declaredFormals);
+      typeEnvironment,
+      _fragment.declaredFormals,
+    );
     sourceClassBuilder.checkVarianceInReturnType(
-        typeEnvironment, function.returnType,
-        fileOffset: _fragment.nameOffset, fileUri: _fragment.fileUri);
+      typeEnvironment,
+      function.returnType,
+      fileOffset: _fragment.nameOffset,
+      fileUri: _fragment.fileUri,
+    );
   }
 
   @override
   int computeDefaultTypes(ComputeDefaultTypeContext context) {
     bool hasErrors = context.reportSimplicityIssuesForTypeParameters(
-        _fragment.declaredTypeParameters?.builders);
+      _fragment.declaredTypeParameters?.builders,
+    );
     context.reportGenericFunctionTypesForFormals(_fragment.declaredFormals);
     if (_fragment.returnType is! OmittedTypeBuilder) {
-      hasErrors |=
-          context.reportInboundReferenceIssuesForType(_fragment.returnType);
+      hasErrors |= context.reportInboundReferenceIssuesForType(
+        _fragment.returnType,
+      );
       context.recursivelyReportGenericFunctionTypesAsBoundsForType(
-          _fragment.returnType);
+        _fragment.returnType,
+      );
     }
     if (_clonedDeclarationTypeParameters != null &&
         _fragment.declaredTypeParameters != null) {
@@ -523,16 +686,18 @@ mixin _ExtensionInstanceMethodEncodingMixin implements MethodEncoding {
         //  required and unnecessary.
         // ignore: unnecessary_non_null_assertion
         ..._clonedDeclarationTypeParameters!,
-        ..._fragment.declaredTypeParameters!.builders
+        ..._fragment.declaredTypeParameters!.builders,
       ], inErrorRecovery: hasErrors);
     } else if (_clonedDeclarationTypeParameters != null) {
       return context.computeDefaultTypesForVariables(
-          _clonedDeclarationTypeParameters,
-          inErrorRecovery: hasErrors);
+        _clonedDeclarationTypeParameters,
+        inErrorRecovery: hasErrors,
+      );
     } else {
       return context.computeDefaultTypesForVariables(
-          _fragment.declaredTypeParameters?.builders,
-          inErrorRecovery: hasErrors);
+        _fragment.declaredTypeParameters?.builders,
+        inErrorRecovery: hasErrors,
+      );
     }
   }
 
@@ -558,16 +723,27 @@ mixin _ExtensionInstanceMethodEncodingMixin implements MethodEncoding {
   @override
   // Coverage-ignore(suite): Not run.
   void ensureTypes(
-      SourceLibraryBuilder libraryBuilder, ClassHierarchyBase hierarchy) {
-    _fragment.returnType
-        .build(libraryBuilder, TypeUse.fieldType, hierarchy: hierarchy);
-    _thisFormal.type
-        .build(libraryBuilder, TypeUse.parameterType, hierarchy: hierarchy);
+    SourceLibraryBuilder libraryBuilder,
+    ClassHierarchyBase hierarchy,
+  ) {
+    _fragment.returnType.build(
+      libraryBuilder,
+      TypeUse.fieldType,
+      hierarchy: hierarchy,
+    );
+    _thisFormal.type.build(
+      libraryBuilder,
+      TypeUse.parameterType,
+      hierarchy: hierarchy,
+    );
     List<FormalParameterBuilder>? declaredFormals = _fragment.declaredFormals;
     if (declaredFormals != null) {
       for (FormalParameterBuilder formal in declaredFormals) {
-        formal.type
-            .build(libraryBuilder, TypeUse.parameterType, hierarchy: hierarchy);
+        formal.type.build(
+          libraryBuilder,
+          TypeUse.parameterType,
+          hierarchy: hierarchy,
+        );
       }
     }
   }
@@ -606,7 +782,10 @@ mixin _ExtensionInstanceMethodEncodingMixin implements MethodEncoding {
   ///     }
   ///
   Procedure _buildExtensionTearOff(
-      Procedure procedure, NameScheme nameScheme, Reference? tearOffReference) {
+    Procedure procedure,
+    NameScheme nameScheme,
+    Reference? tearOffReference,
+  ) {
     _extensionTearOffParameterMap = {};
 
     int fileStartOffset = _fragment.startOffset;
@@ -623,8 +802,12 @@ mixin _ExtensionInstanceMethodEncodingMixin implements MethodEncoding {
     for (TypeParameter typeParameter in procedure.function.typeParameters) {
       TypeParameter newTypeParameter = new TypeParameter(typeParameter.name);
       typeParameters.add(newTypeParameter);
-      typeArguments.add(substitutionMap[typeParameter] = new TypeParameterType(
-          newTypeParameter, typeParameter.computeNullabilityFromBound()));
+      typeArguments.add(
+        substitutionMap[typeParameter] = new TypeParameterType(
+          newTypeParameter,
+          typeParameter.computeNullabilityFromBound(),
+        ),
+      );
     }
 
     List<TypeParameter> tearOffTypeParameters = <TypeParameter>[];
@@ -632,8 +815,9 @@ mixin _ExtensionInstanceMethodEncodingMixin implements MethodEncoding {
     Substitution substitution = Substitution.fromMap(substitutionMap);
     for (int index = 0; index < typeParameters.length; index++) {
       TypeParameter newTypeParameter = typeParameters[index];
-      newTypeParameter.bound = substitution
-          .substituteType(procedure.function.typeParameters[index].bound);
+      newTypeParameter.bound = substitution.substituteType(
+        procedure.function.typeParameters[index].bound,
+      );
       newTypeParameter.defaultType =
           procedure.function.typeParameters[index].defaultType;
       if (index < extensionTypeParameterCount) {
@@ -644,42 +828,52 @@ mixin _ExtensionInstanceMethodEncodingMixin implements MethodEncoding {
     }
 
     VariableDeclaration copyParameter(
-        VariableDeclaration parameter, DartType type) {
-      VariableDeclaration newParameter = new VariableDeclaration(parameter.name,
-          type: type,
-          isFinal: parameter.isFinal,
-          isLowered: parameter.isLowered,
-          isRequired: parameter.isRequired)
-        ..fileOffset = parameter.fileOffset;
+      VariableDeclaration parameter,
+      DartType type,
+    ) {
+      VariableDeclaration newParameter = new VariableDeclaration(
+        parameter.name,
+        type: type,
+        isFinal: parameter.isFinal,
+        isLowered: parameter.isLowered,
+        isRequired: parameter.isRequired,
+      )..fileOffset = parameter.fileOffset;
       _extensionTearOffParameterMap![parameter] = newParameter;
       return newParameter;
     }
 
     VariableDeclaration extensionThis = copyParameter(
-        procedure.function.positionalParameters.first,
-        substitution.substituteType(
-            procedure.function.positionalParameters.first.type));
+      procedure.function.positionalParameters.first,
+      substitution.substituteType(
+        procedure.function.positionalParameters.first.type,
+      ),
+    );
 
-    DartType closureReturnType =
-        substitution.substituteType(procedure.function.returnType);
+    DartType closureReturnType = substitution.substituteType(
+      procedure.function.returnType,
+    );
     List<VariableDeclaration> closurePositionalParameters = [];
     List<Expression> closurePositionalArguments = [];
 
-    for (int position = 0;
-        position < procedure.function.positionalParameters.length;
-        position++) {
+    for (
+      int position = 0;
+      position < procedure.function.positionalParameters.length;
+      position++
+    ) {
       VariableDeclaration parameter =
           procedure.function.positionalParameters[position];
       if (position == 0) {
         /// Pass `this` as a captured variable.
-        closurePositionalArguments
-            .add(new VariableGet(extensionThis)..fileOffset = fileOffset);
+        closurePositionalArguments.add(
+          new VariableGet(extensionThis)..fileOffset = fileOffset,
+        );
       } else {
         DartType type = substitution.substituteType(parameter.type);
         VariableDeclaration newParameter = copyParameter(parameter, type);
         closurePositionalParameters.add(newParameter);
-        closurePositionalArguments
-            .add(new VariableGet(newParameter)..fileOffset = fileOffset);
+        closurePositionalArguments.add(
+          new VariableGet(newParameter)..fileOffset = fileOffset,
+        );
       }
     }
     List<VariableDeclaration> closureNamedParameters = [];
@@ -688,59 +882,80 @@ mixin _ExtensionInstanceMethodEncodingMixin implements MethodEncoding {
       DartType type = substitution.substituteType(parameter.type);
       VariableDeclaration newParameter = copyParameter(parameter, type);
       closureNamedParameters.add(newParameter);
-      closureNamedArguments.add(new NamedExpression(parameter.name!,
-          new VariableGet(newParameter)..fileOffset = fileOffset));
+      closureNamedArguments.add(
+        new NamedExpression(
+          parameter.name!,
+          new VariableGet(newParameter)..fileOffset = fileOffset,
+        ),
+      );
     }
 
     Statement closureBody = new ReturnStatement(
-        new StaticInvocation(
-            procedure,
-            new Arguments(closurePositionalArguments,
-                types: typeArguments, named: closureNamedArguments))
-          // We need to use the fileStartOffset on the StaticInvocation to
+      new StaticInvocation(
+          procedure,
+          new Arguments(
+            closurePositionalArguments,
+            types: typeArguments,
+            named: closureNamedArguments,
+          ),
+        )
+        // We need to use the fileStartOffset on the StaticInvocation to
+        // avoid a possible "fake coverage miss" on the name of the
+        // extension method.
+        ..fileOffset = fileStartOffset,
+    )..fileOffset = fileOffset;
+
+    FunctionExpression closure =
+        new FunctionExpression(
+            new FunctionNode(
+                closureBody,
+                typeParameters: closureTypeParameters,
+                positionalParameters: closurePositionalParameters,
+                namedParameters: closureNamedParameters,
+                requiredParameterCount:
+                    procedure.function.requiredParameterCount - 1,
+                returnType: closureReturnType,
+              )
+              ..fileOffset = fileOffset
+              ..fileEndOffset = fileEndOffset,
+          )
+          // We need to use the fileStartOffset on the FunctionExpression to
           // avoid a possible "fake coverage miss" on the name of the
           // extension method.
-          ..fileOffset = fileStartOffset)
-      ..fileOffset = fileOffset;
+          ..fileOffset = fileStartOffset;
 
-    FunctionExpression closure = new FunctionExpression(
-        new FunctionNode(closureBody,
-            typeParameters: closureTypeParameters,
-            positionalParameters: closurePositionalParameters,
-            namedParameters: closureNamedParameters,
-            requiredParameterCount:
-                procedure.function.requiredParameterCount - 1,
-            returnType: closureReturnType)
+    FunctionNode function =
+        new FunctionNode(
+            new ReturnStatement(closure)..fileOffset = fileOffset,
+            typeParameters: tearOffTypeParameters,
+            positionalParameters: [extensionThis],
+            requiredParameterCount: 1,
+            returnType: closure.function.computeFunctionType(
+              Nullability.nonNullable,
+            ),
+          )
           ..fileOffset = fileOffset
-          ..fileEndOffset = fileEndOffset)
-      // We need to use the fileStartOffset on the FunctionExpression to
-      // avoid a possible "fake coverage miss" on the name of the
-      // extension method.
-      ..fileOffset = fileStartOffset;
+          ..fileEndOffset = fileEndOffset;
 
-    FunctionNode function = new FunctionNode(
-        new ReturnStatement(closure)..fileOffset = fileOffset,
-        typeParameters: tearOffTypeParameters,
-        positionalParameters: [extensionThis],
-        requiredParameterCount: 1,
-        returnType:
-            closure.function.computeFunctionType(Nullability.nonNullable))
-      ..fileOffset = fileOffset
-      ..fileEndOffset = fileEndOffset;
-
-    MemberName tearOffName =
-        nameScheme.getProcedureMemberName(ProcedureKind.Getter, _fragment.name);
-    Procedure tearOff = new Procedure(
-        tearOffName.name, ProcedureKind.Method, function,
-        isStatic: true,
-        isExtensionMember: _isExtensionMember,
-        isExtensionTypeMember: _isExtensionTypeMember,
-        reference: tearOffReference,
-        fileUri: _fragment.fileUri)
-      ..fileUri = _fragment.fileUri
-      ..fileOffset = fileOffset
-      ..fileStartOffset = _fragment.startOffset
-      ..fileEndOffset = fileEndOffset;
+    MemberName tearOffName = nameScheme.getProcedureMemberName(
+      ProcedureKind.Getter,
+      _fragment.name,
+    );
+    Procedure tearOff =
+        new Procedure(
+            tearOffName.name,
+            ProcedureKind.Method,
+            function,
+            isStatic: true,
+            isExtensionMember: _isExtensionMember,
+            isExtensionTypeMember: _isExtensionTypeMember,
+            reference: tearOffReference,
+            fileUri: _fragment.fileUri,
+          )
+          ..fileUri = _fragment.fileUri
+          ..fileOffset = fileOffset
+          ..fileStartOffset = _fragment.startOffset
+          ..fileEndOffset = fileEndOffset;
     tearOffName.attachMember(tearOff);
     return tearOff;
   }
@@ -750,23 +965,33 @@ class _ExtensionInstanceMethodStrategy implements MethodEncodingStrategy {
   const _ExtensionInstanceMethodStrategy();
 
   @override
-  MethodEncoding createMethodEncoding(SourceMethodBuilder builder,
-      MethodFragment fragment, TypeParameterFactory typeParameterFactory) {
+  MethodEncoding createMethodEncoding(
+    SourceMethodBuilder builder,
+    MethodFragment fragment,
+    TypeParameterFactory typeParameterFactory,
+  ) {
     ExtensionBuilder declarationBuilder =
         builder.declarationBuilder as ExtensionBuilder;
     SynthesizedExtensionSignature signature = new SynthesizedExtensionSignature(
-        declarationBuilder: declarationBuilder,
-        extensionTypeParameterFragments:
-            fragment.enclosingDeclaration!.typeParameters,
-        typeParameterFactory: typeParameterFactory,
-        onTypeBuilder: declarationBuilder.onType,
-        fileUri: fragment.fileUri,
-        fileOffset: fragment.nameOffset);
+      declarationBuilder: declarationBuilder,
+      extensionTypeParameterFragments:
+          fragment.enclosingDeclaration!.typeParameters,
+      typeParameterFactory: typeParameterFactory,
+      onTypeBuilder: declarationBuilder.onType,
+      fileUri: fragment.fileUri,
+      fileOffset: fragment.nameOffset,
+    );
     return fragment.isOperator
-        ? new _ExtensionInstanceOperatorEncoding(fragment,
-            signature.clonedDeclarationTypeParameters, signature.thisFormal)
-        : new _ExtensionInstanceMethodEncoding(fragment,
-            signature.clonedDeclarationTypeParameters, signature.thisFormal);
+        ? new _ExtensionInstanceOperatorEncoding(
+            fragment,
+            signature.clonedDeclarationTypeParameters,
+            signature.thisFormal,
+          )
+        : new _ExtensionInstanceMethodEncoding(
+            fragment,
+            signature.clonedDeclarationTypeParameters,
+            signature.thisFormal,
+          );
   }
 }
 
@@ -782,8 +1007,10 @@ class _ExtensionInstanceOperatorEncoding extends MethodEncoding
   final FormalParameterBuilder _thisFormal;
 
   _ExtensionInstanceOperatorEncoding(
-      this._fragment, this._clonedDeclarationTypeParameters, this._thisFormal)
-      : assert(_fragment.isOperator);
+    this._fragment,
+    this._clonedDeclarationTypeParameters,
+    this._thisFormal,
+  ) : assert(_fragment.isOperator);
 
   @override
   BuiltMemberKind get _builtMemberKind => BuiltMemberKind.ExtensionOperator;
@@ -804,7 +1031,7 @@ class _ExtensionStaticMethodEncoding extends MethodEncoding
   final MethodFragment _fragment;
 
   _ExtensionStaticMethodEncoding(this._fragment)
-      : assert(!_fragment.isOperator);
+    : assert(!_fragment.isOperator);
 
   @override
   Procedure? get readTarget => invokeTarget;
@@ -826,8 +1053,11 @@ class _ExtensionStaticMethodStrategy implements MethodEncodingStrategy {
   const _ExtensionStaticMethodStrategy();
 
   @override
-  MethodEncoding createMethodEncoding(SourceMethodBuilder builder,
-      MethodFragment fragment, TypeParameterFactory typeParameterFactory) {
+  MethodEncoding createMethodEncoding(
+    SourceMethodBuilder builder,
+    MethodFragment fragment,
+    TypeParameterFactory typeParameterFactory,
+  ) {
     return new _ExtensionStaticMethodEncoding(fragment);
   }
 }
@@ -844,8 +1074,10 @@ class _ExtensionTypeInstanceMethodEncoding extends MethodEncoding
   final FormalParameterBuilder _thisFormal;
 
   _ExtensionTypeInstanceMethodEncoding(
-      this._fragment, this._clonedDeclarationTypeParameters, this._thisFormal)
-      : assert(!_fragment.isOperator);
+    this._fragment,
+    this._clonedDeclarationTypeParameters,
+    this._thisFormal,
+  ) : assert(!_fragment.isOperator);
 
   @override
   BuiltMemberKind get _builtMemberKind => BuiltMemberKind.ExtensionTypeMethod;
@@ -864,23 +1096,33 @@ class _ExtensionTypeInstanceMethodStrategy implements MethodEncodingStrategy {
   const _ExtensionTypeInstanceMethodStrategy();
 
   @override
-  MethodEncoding createMethodEncoding(SourceMethodBuilder builder,
-      MethodFragment fragment, TypeParameterFactory typeParameterFactory) {
+  MethodEncoding createMethodEncoding(
+    SourceMethodBuilder builder,
+    MethodFragment fragment,
+    TypeParameterFactory typeParameterFactory,
+  ) {
     ExtensionTypeDeclarationBuilder declarationBuilder =
         builder.declarationBuilder as ExtensionTypeDeclarationBuilder;
     SynthesizedExtensionTypeSignature signature =
         new SynthesizedExtensionTypeSignature(
-            extensionTypeDeclarationBuilder: declarationBuilder,
-            extensionTypeTypeParameters:
-                fragment.enclosingDeclaration!.typeParameters,
-            typeParameterFactory: typeParameterFactory,
-            fileUri: fragment.fileUri,
-            fileOffset: fragment.nameOffset);
+          extensionTypeDeclarationBuilder: declarationBuilder,
+          extensionTypeTypeParameters:
+              fragment.enclosingDeclaration!.typeParameters,
+          typeParameterFactory: typeParameterFactory,
+          fileUri: fragment.fileUri,
+          fileOffset: fragment.nameOffset,
+        );
     return fragment.isOperator
-        ? new _ExtensionTypeInstanceOperatorEncoding(fragment,
-            signature.clonedDeclarationTypeParameters, signature.thisFormal)
-        : new _ExtensionTypeInstanceMethodEncoding(fragment,
-            signature.clonedDeclarationTypeParameters, signature.thisFormal);
+        ? new _ExtensionTypeInstanceOperatorEncoding(
+            fragment,
+            signature.clonedDeclarationTypeParameters,
+            signature.thisFormal,
+          )
+        : new _ExtensionTypeInstanceMethodEncoding(
+            fragment,
+            signature.clonedDeclarationTypeParameters,
+            signature.thisFormal,
+          );
   }
 }
 
@@ -896,8 +1138,10 @@ class _ExtensionTypeInstanceOperatorEncoding extends MethodEncoding
   final FormalParameterBuilder _thisFormal;
 
   _ExtensionTypeInstanceOperatorEncoding(
-      this._fragment, this._clonedDeclarationTypeParameters, this._thisFormal)
-      : assert(_fragment.isOperator);
+    this._fragment,
+    this._clonedDeclarationTypeParameters,
+    this._thisFormal,
+  ) : assert(_fragment.isOperator);
 
   @override
   BuiltMemberKind get _builtMemberKind => BuiltMemberKind.ExtensionTypeOperator;
@@ -918,7 +1162,7 @@ class _ExtensionTypeStaticMethodEncoding extends MethodEncoding
   final MethodFragment _fragment;
 
   _ExtensionTypeStaticMethodEncoding(this._fragment)
-      : assert(!_fragment.isOperator);
+    : assert(!_fragment.isOperator);
 
   @override
   Procedure? get readTarget => invokeTarget;
@@ -940,8 +1184,11 @@ class _ExtensionTypeStaticMethodStrategy implements MethodEncodingStrategy {
   const _ExtensionTypeStaticMethodStrategy();
 
   @override
-  MethodEncoding createMethodEncoding(SourceMethodBuilder builder,
-      MethodFragment fragment, TypeParameterFactory typeParameterFactory) {
+  MethodEncoding createMethodEncoding(
+    SourceMethodBuilder builder,
+    MethodFragment fragment,
+    TypeParameterFactory typeParameterFactory,
+  ) {
     return new _ExtensionTypeStaticMethodEncoding(fragment);
   }
 }
@@ -973,8 +1220,11 @@ class _RegularMethodStrategy implements MethodEncodingStrategy {
   const _RegularMethodStrategy();
 
   @override
-  MethodEncoding createMethodEncoding(SourceMethodBuilder builder,
-      MethodFragment fragment, TypeParameterFactory typeParameterFactory) {
+  MethodEncoding createMethodEncoding(
+    SourceMethodBuilder builder,
+    MethodFragment fragment,
+    TypeParameterFactory typeParameterFactory,
+  ) {
     return fragment.isOperator
         ? new _RegularOperatorEncoding(fragment)
         : new _RegularMethodEncoding(fragment);

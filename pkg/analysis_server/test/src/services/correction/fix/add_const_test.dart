@@ -64,7 +64,7 @@ void f(Object c) {
 @reflectiveTest
 class AddConst_InvalidCasePatternsTest extends FixProcessorLintTest {
   @override
-  FixKind get kind => DartFixKind.ADD_CONST;
+  FixKind get kind => DartFixKind.addConst;
 
   @override
   String get lintCode => LintNames.invalid_case_patterns;
@@ -157,7 +157,7 @@ void f(Object o) {
 @reflectiveTest
 class AddConst_NonConstGenerativeEnumConstructorTest extends FixProcessorTest {
   @override
-  FixKind get kind => DartFixKind.ADD_CONST;
+  FixKind get kind => DartFixKind.addConst;
 
   Future<void> test_named() async {
     await resolveTestCode('''
@@ -193,7 +193,7 @@ enum E {
 @reflectiveTest
 class AddConst_PatternExpressionMustBeValidConst extends FixProcessorTest {
   @override
-  FixKind get kind => DartFixKind.ADD_CONST;
+  FixKind get kind => DartFixKind.addConst;
 
   Future<void> test_caseBinaryExpression() async {
     await resolveTestCode('''
@@ -566,7 +566,7 @@ class A {
 class AddConst_PreferConstConstructorsInImmutablesTest
     extends FixProcessorLintTest {
   @override
-  FixKind get kind => DartFixKind.ADD_CONST;
+  FixKind get kind => DartFixKind.addConst;
 
   @override
   String get lintCode => LintNames.prefer_const_constructors_in_immutables;
@@ -621,10 +621,52 @@ class A {
 @reflectiveTest
 class AddConst_PreferConstConstructorsTest extends FixProcessorLintTest {
   @override
-  FixKind get kind => DartFixKind.ADD_CONST;
+  FixKind get kind => DartFixKind.addConst;
 
   @override
   String get lintCode => LintNames.prefer_const_constructors;
+
+  Future<void> test_dotShorthand_named() async {
+    await resolveTestCode('''
+class C {
+  const C.named();
+}
+void f() {
+  C c = .named();
+  print(c);
+}
+''');
+    await assertHasFix('''
+class C {
+  const C.named();
+}
+void f() {
+  C c = const .named();
+  print(c);
+}
+''');
+  }
+
+  Future<void> test_dotShorthand_unnamed() async {
+    await resolveTestCode('''
+class C {
+  const C();
+}
+void f() {
+  C c = .new();
+  print(c);
+}
+''');
+    await assertHasFix('''
+class C {
+  const C();
+}
+void f() {
+  C c = const .new();
+  print(c);
+}
+''');
+  }
 
   Future<void> test_final_variable() async {
     createAnalysisOptionsFile(
@@ -760,7 +802,7 @@ void f() {
 class AddConst_PreferConstLiteralsToCreateImmutablesTest
     extends FixProcessorLintTest {
   @override
-  FixKind get kind => DartFixKind.ADD_CONST;
+  FixKind get kind => DartFixKind.addConst;
 
   @override
   String get lintCode => LintNames.prefer_const_literals_to_create_immutables;

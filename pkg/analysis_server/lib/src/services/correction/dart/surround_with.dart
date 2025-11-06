@@ -172,6 +172,7 @@ class _SurroundWithBlock extends _SurroundWith {
   @override
   Future<void> compute(ChangeBuilder builder) async {
     await builder.addDartFileEdit(file, (builder) {
+      var eol = builder.eol;
       builder.addSimpleInsertion(statementsRange.offset, '$indentOld{$eol');
       builder.addSimpleReplacement(
         statementsRange,
@@ -208,14 +209,14 @@ class _SurroundWithDoWhile extends _SurroundWith {
       builder.addReplacement(statementsRange, (builder) {
         builder.write(indentOld);
         builder.write('do {');
-        builder.write(eol);
+        builder.writeln();
         builder.write(indentedCode);
         builder.write(indentOld);
         builder.write('} while (');
         builder.addSimpleLinkedEdit('CONDITION', 'condition');
         builder.write(');');
         builder.selectHere();
-        builder.write(eol);
+        builder.writeln();
       });
     });
   }
@@ -249,12 +250,12 @@ class _SurroundWithFor extends _SurroundWith {
         builder.write('; ');
         builder.addSimpleLinkedEdit('INCREMENT', 'increment');
         builder.write(') {');
-        builder.write(eol);
+        builder.writeln();
         builder.write(indentedCode);
         builder.write(indentOld);
         builder.write('}');
         builder.selectHere();
-        builder.write(eol);
+        builder.writeln();
       });
     });
   }
@@ -284,12 +285,12 @@ class _SurroundWithForIn extends _SurroundWith {
         builder.write(' in ');
         builder.addSimpleLinkedEdit('ITERABLE', 'iterable');
         builder.write(') {');
-        builder.write(eol);
+        builder.writeln();
         builder.write(indentedCode);
         builder.write(indentOld);
         builder.write('}');
         builder.selectHere();
-        builder.write(eol);
+        builder.writeln();
       });
     });
   }
@@ -317,12 +318,12 @@ class _SurroundWithIf extends _SurroundWith {
         builder.write('if (');
         builder.addSimpleLinkedEdit('CONDITION', 'condition');
         builder.write(') {');
-        builder.write(eol);
+        builder.writeln();
         builder.write(indentedCode);
         builder.write(indentOld);
         builder.write('}');
         builder.selectHere();
-        builder.write(eol);
+        builder.writeln();
       });
     });
   }
@@ -344,11 +345,10 @@ class _SurroundWithSetState extends _SurroundWith {
 
   @override
   Future<void> compute(ChangeBuilder builder) async {
-    var classElement =
-        node.parent
-            ?.thisOrAncestorOfType<ClassDeclaration>()
-            ?.declaredFragment
-            ?.element;
+    var classElement = node.parent
+        ?.thisOrAncestorOfType<ClassDeclaration>()
+        ?.declaredFragment
+        ?.element;
     if (classElement != null && classElement.isState) {
       await builder.addDartFileEdit(file, (builder) {
         builder.addReplacement(statementsRange, (builder) {
@@ -384,7 +384,7 @@ class _SurroundWithTryCatch extends _SurroundWith {
       builder.addReplacement(statementsRange, (builder) {
         builder.write(indentOld);
         builder.write('try {');
-        builder.write(eol);
+        builder.writeln();
         builder.write(indentedCode);
         builder.write(indentOld);
         builder.write('} on ');
@@ -392,16 +392,16 @@ class _SurroundWithTryCatch extends _SurroundWith {
         builder.write(' catch (');
         builder.addSimpleLinkedEdit('EXCEPTION_VAR', 'e');
         builder.write(') {');
-        builder.write(eol);
+        builder.writeln();
         //
         builder.write(indentNew);
         builder.addSimpleLinkedEdit('CATCH', '// TODO');
         builder.selectHere();
-        builder.write(eol);
+        builder.writeln();
         //
         builder.write(indentOld);
         builder.write('}');
-        builder.write(eol);
+        builder.writeln();
       });
     });
   }
@@ -427,22 +427,22 @@ class _SurroundWithTryFinally extends _SurroundWith {
       builder.addReplacement(statementsRange, (builder) {
         builder.write(indentOld);
         builder.write('try {');
-        builder.write(eol);
+        builder.writeln();
         //
         builder.write(indentedCode);
         //
         builder.write(indentOld);
         builder.write('} finally {');
-        builder.write(eol);
+        builder.writeln();
         //
         builder.write(indentNew);
         builder.addSimpleLinkedEdit('FINALLY', '// TODO');
         builder.selectHere();
-        builder.write(eol);
+        builder.writeln();
         //
         builder.write(indentOld);
         builder.write('}');
-        builder.write(eol);
+        builder.writeln();
       });
     });
   }
@@ -470,12 +470,12 @@ class _SurroundWithWhile extends _SurroundWith {
         builder.write('while (');
         builder.addSimpleLinkedEdit('CONDITION', 'condition');
         builder.write(') {');
-        builder.write(eol);
+        builder.writeln();
         builder.write(indentedCode);
         builder.write(indentOld);
         builder.write('}');
         builder.selectHere();
-        builder.write(eol);
+        builder.writeln();
       });
     });
   }

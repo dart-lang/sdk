@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/analysis_rule/rule_context.dart';
+import 'package:analyzer/analysis_rule/rule_visitor_registry.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
@@ -19,10 +20,13 @@ class ExhaustiveCases extends LintRule {
     : super(name: LintNames.exhaustive_cases, description: _desc);
 
   @override
-  DiagnosticCode get diagnosticCode => LinterLintCode.exhaustive_cases;
+  DiagnosticCode get diagnosticCode => LinterLintCode.exhaustiveCases;
 
   @override
-  void registerNodeProcessors(NodeLintRegistry registry, RuleContext context) {
+  void registerNodeProcessors(
+    RuleVisitorRegistry registry,
+    RuleContext context,
+  ) {
     var visitor = _Visitor(this);
     registry.addSwitchStatement(this, visitor);
   }
@@ -100,10 +104,7 @@ extension on Element? {
   Element? get variableElement {
     var self = this;
     if (self is GetterElement) {
-      var variable = self.variable;
-      if (variable != null) {
-        return variable;
-      }
+      return self.variable;
     }
     return self;
   }

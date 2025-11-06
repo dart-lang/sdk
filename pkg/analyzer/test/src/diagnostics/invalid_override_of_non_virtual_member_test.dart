@@ -38,7 +38,7 @@ class B extends C  {
 ''',
       [
         error(
-          WarningCode.INVALID_OVERRIDE_OF_NON_VIRTUAL_MEMBER,
+          WarningCode.invalidOverrideOfNonVirtualMember,
           113,
           1,
           messageContains: ["member 'g'", "in 'C'"],
@@ -61,7 +61,7 @@ class B extends C  {
   int g = 0, h = 1;
 }
 ''',
-      [error(WarningCode.INVALID_OVERRIDE_OF_NON_VIRTUAL_MEMBER, 101, 1)],
+      [error(WarningCode.invalidOverrideOfNonVirtualMember, 101, 1)],
     );
   }
 
@@ -82,7 +82,7 @@ class B extends C  {
 ''',
       [
         error(
-          WarningCode.INVALID_OVERRIDE_OF_NON_VIRTUAL_MEMBER,
+          WarningCode.invalidOverrideOfNonVirtualMember,
           117,
           1,
           messageContains: ["member 'g'", "in 'C'"],
@@ -106,7 +106,7 @@ class B extends C  {
   set g(int v) {}
 }
 ''',
-      [error(WarningCode.INVALID_OVERRIDE_OF_NON_VIRTUAL_MEMBER, 113, 1)],
+      [error(WarningCode.invalidOverrideOfNonVirtualMember, 113, 1)],
     );
   }
 
@@ -125,7 +125,7 @@ class B extends C  {
   int get g => 0;
 }
 ''',
-      [error(WarningCode.INVALID_OVERRIDE_OF_NON_VIRTUAL_MEMBER, 122, 1)],
+      [error(WarningCode.invalidOverrideOfNonVirtualMember, 122, 1)],
     );
   }
 
@@ -144,7 +144,7 @@ class B extends C  {
   int g = 0;
 }
 ''',
-      [error(WarningCode.INVALID_OVERRIDE_OF_NON_VIRTUAL_MEMBER, 118, 1)],
+      [error(WarningCode.invalidOverrideOfNonVirtualMember, 118, 1)],
     );
   }
 
@@ -195,7 +195,7 @@ class B extends C  {
   void f() {}
 }
 ''',
-      [error(WarningCode.INVALID_OVERRIDE_OF_NON_VIRTUAL_MEMBER, 115, 1)],
+      [error(WarningCode.invalidOverrideOfNonVirtualMember, 115, 1)],
     );
   }
 
@@ -214,7 +214,7 @@ class B extends C  {
   set g(int v) {}
 }
 ''',
-      [error(WarningCode.INVALID_OVERRIDE_OF_NON_VIRTUAL_MEMBER, 118, 1)],
+      [error(WarningCode.invalidOverrideOfNonVirtualMember, 118, 1)],
     );
   }
 
@@ -233,7 +233,7 @@ class B extends C  {
   int g = 0;
 }
 ''',
-      [error(WarningCode.INVALID_OVERRIDE_OF_NON_VIRTUAL_MEMBER, 118, 1)],
+      [error(WarningCode.invalidOverrideOfNonVirtualMember, 118, 1)],
     );
   }
 
@@ -254,7 +254,7 @@ class B with M {
 ''',
       [
         error(
-          WarningCode.INVALID_OVERRIDE_OF_NON_VIRTUAL_MEMBER,
+          WarningCode.invalidOverrideOfNonVirtualMember,
           111,
           1,
           messageContains: ["member 'f'", "in 'M'"],
@@ -278,7 +278,7 @@ class B with M {
   set g(int v) {}
 }
 ''',
-      [error(WarningCode.INVALID_OVERRIDE_OF_NON_VIRTUAL_MEMBER, 114, 1)],
+      [error(WarningCode.invalidOverrideOfNonVirtualMember, 114, 1)],
     );
   }
 }

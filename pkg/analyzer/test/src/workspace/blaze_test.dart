@@ -142,8 +142,10 @@ class BlazeFileUriResolverTest with ResourceProviderMixin {
         newFile(path, '');
       }
     }
-    workspace =
-        BlazeWorkspace.find(resourceProvider, getFolder('/workspace').path)!;
+    workspace = BlazeWorkspace.find(
+      resourceProvider,
+      getFolder('/workspace').path,
+    )!;
     resolver = BlazeFileUriResolver(workspace);
   }
 
@@ -187,7 +189,7 @@ language = struct(
     required Version package,
     required Version? override,
   }) {
-    var element = result.libraryElement2;
+    var element = result.libraryElement;
     expect(element.languageVersion.package, package);
     expect(element.languageVersion.override, override);
   }
@@ -556,8 +558,10 @@ class BlazePackageUriResolverTest with ResourceProviderMixin {
         newFile(path, '');
       }
     }
-    workspace =
-        BlazeWorkspace.find(resourceProvider, convertPath(workspacePath))!;
+    workspace = BlazeWorkspace.find(
+      resourceProvider,
+      convertPath(workspacePath),
+    )!;
     resolver = BlazePackageUriResolver(workspace);
   }
 
@@ -666,11 +670,10 @@ class BlazeWorkspacePackageTest with ResourceProviderMixin {
       '/ws/blaze-out/host/bin/some/code/code.dart',
       '/ws/blaze-bin/some/code/code.dart',
     ]);
-    workspace =
-        BlazeWorkspace.find(
-          resourceProvider,
-          convertPath('/ws/some/code/testing'),
-        )!;
+    workspace = BlazeWorkspace.find(
+      resourceProvider,
+      convertPath('/ws/some/code/testing'),
+    )!;
 
     // Make sure that we can find the package of the generated file.
     var file = workspace.findFile(convertPath('/ws/some/code/code.dart'));
@@ -697,8 +700,10 @@ class BlazeWorkspacePackageTest with ResourceProviderMixin {
       '/ws/${file_paths.blazeWorkspaceMarker}',
       '/ws/blaze-genfiles',
     ]);
-    workspace =
-        BlazeWorkspace.find(resourceProvider, convertPath('/ws/some/code'))!;
+    workspace = BlazeWorkspace.find(
+      resourceProvider,
+      convertPath('/ws/some/code'),
+    )!;
     var targetFile = newFile('/ws/some/code/lib/code.dart', '');
 
     WorkspacePackageImpl? package = workspace.findPackageFor(targetFile.path);
@@ -710,12 +715,11 @@ class BlazeWorkspacePackageTest with ResourceProviderMixin {
       '/ws/blaze-out/host/bin/some/code/code.packages',
       '/ws/some/code/lib/code.dart',
     ]);
-    workspace =
-        BlazeWorkspace.find(
-          resourceProvider,
-          convertPath('/ws/some/code'),
-          lookForBuildFileSubstitutes: false,
-        )!;
+    workspace = BlazeWorkspace.find(
+      resourceProvider,
+      convertPath('/ws/some/code'),
+      lookForBuildFileSubstitutes: false,
+    )!;
 
     WorkspacePackageImpl? package = workspace.findPackageFor(
       convertPath('/ws/some/code/lib/code.dart'),
@@ -729,11 +733,14 @@ class BlazeWorkspacePackageTest with ResourceProviderMixin {
       '/ws/blaze-out/k8-opt/bin/some/code/',
       '/ws/some/code/lib/code.dart',
     ]);
-    workspace =
-        BlazeWorkspace.find(resourceProvider, convertPath('/ws/some/code'))!;
+    workspace = BlazeWorkspace.find(
+      resourceProvider,
+      convertPath('/ws/some/code'),
+    )!;
 
-    package =
-        workspace.findPackageFor(convertPath('/ws/some/code/lib/code.dart'))!;
+    package = workspace.findPackageFor(
+      convertPath('/ws/some/code/lib/code.dart'),
+    )!;
     expect(package.root.path, convertPath('/ws/some/code'));
     expect(package.workspace, equals(workspace));
   }
@@ -743,11 +750,14 @@ class BlazeWorkspacePackageTest with ResourceProviderMixin {
       '/ws/blaze-out/host/bin/some/code/code.packages',
       '/ws/some/code/lib/code.dart',
     ]);
-    workspace =
-        BlazeWorkspace.find(resourceProvider, convertPath('/ws/some/code'))!;
+    workspace = BlazeWorkspace.find(
+      resourceProvider,
+      convertPath('/ws/some/code'),
+    )!;
 
-    package =
-        workspace.findPackageFor(convertPath('/ws/some/code/lib/code.dart'))!;
+    package = workspace.findPackageFor(
+      convertPath('/ws/some/code/lib/code.dart'),
+    )!;
     expect(package.root.path, convertPath('/ws/some/code'));
     expect(package.workspace, equals(workspace));
   }
@@ -759,16 +769,14 @@ class BlazeWorkspacePackageTest with ResourceProviderMixin {
       '/ws/some/code/lib/code.dart',
       '/ws/some/code/testing/lib/testing.dart',
     ]);
-    workspace =
-        BlazeWorkspace.find(
-          resourceProvider,
-          convertPath('/ws/some/code/testing'),
-        )!;
+    workspace = BlazeWorkspace.find(
+      resourceProvider,
+      convertPath('/ws/some/code/testing'),
+    )!;
 
-    package =
-        workspace.findPackageFor(
-          convertPath('/ws/some/code/testing/lib/testing.dart'),
-        )!;
+    package = workspace.findPackageFor(
+      convertPath('/ws/some/code/testing/lib/testing.dart'),
+    )!;
     expect(package.root.path, convertPath('/ws/some/code/testing'));
     expect(package.workspace, equals(workspace));
   }
@@ -822,10 +830,13 @@ class BlazeWorkspacePackageTest with ResourceProviderMixin {
       '/ws/some/code/lib/code.dart',
     ]);
 
-    workspace =
-        BlazeWorkspace.find(resourceProvider, convertPath('/ws/some/code'))!;
-    package =
-        workspace.findPackageFor(convertPath('/ws/some/code/lib/code.dart'))!;
+    workspace = BlazeWorkspace.find(
+      resourceProvider,
+      convertPath('/ws/some/code'),
+    )!;
+    package = workspace.findPackageFor(
+      convertPath('/ws/some/code/lib/code.dart'),
+    )!;
   }
 
   Source _testSource(String path) {
@@ -843,15 +854,15 @@ class BlazeWorkspaceTest with ResourceProviderMixin {
       '/workspace/${file_paths.blazeWorkspaceMarker}',
       '/workspace/blaze-bin/my/module/test1.dart',
     ]);
-    var workspace =
-        BlazeWorkspace.find(
-          resourceProvider,
-          convertPath('/workspace/my/module'),
-        )!;
+    var workspace = BlazeWorkspace.find(
+      resourceProvider,
+      convertPath('/workspace/my/module'),
+    )!;
     var notifications = StreamQueue(workspace.blazeCandidateFiles);
 
-    var file1 =
-        workspace.findFile(convertPath('/workspace/my/module/test1.dart'))!;
+    var file1 = workspace.findFile(
+      convertPath('/workspace/my/module/test1.dart'),
+    )!;
     expect(file1.exists, true);
     var info = await notifications.next;
     expect(info.requestedPath, convertPath('my/module/test1.dart'));
@@ -863,8 +874,9 @@ class BlazeWorkspaceTest with ResourceProviderMixin {
       ]),
     );
 
-    var file2 =
-        workspace.findFile(convertPath('/workspace/my/module/test2.dart'))!;
+    var file2 = workspace.findFile(
+      convertPath('/workspace/my/module/test2.dart'),
+    )!;
     expect(file2.exists, false);
     info = await notifications.next;
     expect(info.requestedPath, convertPath('my/module/test2.dart'));
@@ -889,11 +901,10 @@ class BlazeWorkspaceTest with ResourceProviderMixin {
       '/workspace/blaze-out/host/bin/',
       '/workspace/my/module/BUILD',
     ]);
-    var workspace =
-        BlazeWorkspace.find(
-          resourceProvider,
-          convertPath('/workspace/my/module'),
-        )!;
+    var workspace = BlazeWorkspace.find(
+      resourceProvider,
+      convertPath('/workspace/my/module'),
+    )!;
     expect(workspace.root, convertPath('/workspace'));
     expect(
       workspace.binPaths.first,
@@ -917,11 +928,10 @@ class BlazeWorkspaceTest with ResourceProviderMixin {
       '/workspace/blaze-out/',
       '/workspace/my/module/',
     ]);
-    var workspace =
-        BlazeWorkspace.find(
-          resourceProvider,
-          convertPath('/workspace/my/module'),
-        )!;
+    var workspace = BlazeWorkspace.find(
+      resourceProvider,
+      convertPath('/workspace/my/module'),
+    )!;
     expect(workspace.root, convertPath('/workspace'));
     expect(workspace.binPaths.single, convertPath('/workspace/blaze-bin'));
     expect(workspace.genfiles, convertPath('/workspace/blaze-genfiles'));
@@ -933,11 +943,10 @@ class BlazeWorkspaceTest with ResourceProviderMixin {
       '/workspace/blaze-out/k8-fastbuild/bin/',
       '/workspace/my/module/',
     ]);
-    var workspace =
-        BlazeWorkspace.find(
-          resourceProvider,
-          convertPath('/workspace/my/module'),
-        )!;
+    var workspace = BlazeWorkspace.find(
+      resourceProvider,
+      convertPath('/workspace/my/module'),
+    )!;
     expect(workspace.root, convertPath('/workspace'));
     expect(workspace.binPaths, hasLength(3));
     expect(
@@ -957,11 +966,10 @@ class BlazeWorkspaceTest with ResourceProviderMixin {
       '/workspace/${file_paths.blazeWorkspaceMarker}',
       '/workspace/blaze-genfiles/',
     ]);
-    var workspace =
-        BlazeWorkspace.find(
-          resourceProvider,
-          convertPath('/workspace/my/module'),
-        )!;
+    var workspace = BlazeWorkspace.find(
+      resourceProvider,
+      convertPath('/workspace/my/module'),
+    )!;
     expect(workspace.root, convertPath('/workspace'));
     expect(workspace.binPaths.single, convertPath('/workspace/blaze-bin'));
     expect(workspace.genfiles, convertPath('/workspace/blaze-genfiles'));
@@ -972,11 +980,10 @@ class BlazeWorkspaceTest with ResourceProviderMixin {
       '/workspace/${file_paths.blazeWorkspaceMarker}',
       '/workspace/blaze-genfiles/',
     ]);
-    var workspace =
-        BlazeWorkspace.find(
-          resourceProvider,
-          convertPath('/workspace/my/module'),
-        )!;
+    var workspace = BlazeWorkspace.find(
+      resourceProvider,
+      convertPath('/workspace/my/module'),
+    )!;
     expect(workspace.root, convertPath('/workspace'));
     expect(workspace.binPaths.single, convertPath('/workspace/blaze-bin'));
     expect(workspace.genfiles, convertPath('/workspace/blaze-genfiles'));
@@ -987,8 +994,10 @@ class BlazeWorkspaceTest with ResourceProviderMixin {
       '/workspace/${file_paths.blazeWorkspaceMarker}',
       '/workspace/blaze-genfiles/',
     ]);
-    var workspace =
-        BlazeWorkspace.find(resourceProvider, convertPath('/workspace'))!;
+    var workspace = BlazeWorkspace.find(
+      resourceProvider,
+      convertPath('/workspace'),
+    )!;
     expect(workspace.root, convertPath('/workspace'));
     expect(workspace.binPaths.single, convertPath('/workspace/blaze-bin'));
     expect(workspace.genfiles, convertPath('/workspace/blaze-genfiles'));
@@ -999,8 +1008,10 @@ class BlazeWorkspaceTest with ResourceProviderMixin {
       '/workspace/${file_paths.blazeWorkspaceMarker}',
       '/workspace/blaze-genfiles/',
     ]);
-    var workspace =
-        BlazeWorkspace.find(resourceProvider, convertPath('/workspace'))!;
+    var workspace = BlazeWorkspace.find(
+      resourceProvider,
+      convertPath('/workspace'),
+    )!;
     expect(workspace.root, convertPath('/workspace'));
     expect(workspace.binPaths.single, convertPath('/workspace/blaze-bin'));
     expect(workspace.genfiles, convertPath('/workspace/blaze-genfiles'));
@@ -1021,11 +1032,10 @@ class BlazeWorkspaceTest with ResourceProviderMixin {
 
   void test_find_null_symlinkPrefix() {
     newFile('/workspace/${file_paths.blazeWorkspaceMarker}', '');
-    var workspace =
-        BlazeWorkspace.find(
-          resourceProvider,
-          convertPath('/workspace/my/module'),
-        )!;
+    var workspace = BlazeWorkspace.find(
+      resourceProvider,
+      convertPath('/workspace/my/module'),
+    )!;
     expect(workspace.root, convertPath('/workspace'));
     expect(workspace.binPaths.single, convertPath('/workspace/blaze-bin'));
     expect(workspace.genfiles, convertPath('/workspace/blaze-genfiles'));
@@ -1040,11 +1050,10 @@ class BlazeWorkspaceTest with ResourceProviderMixin {
       '/workspace/blaze-bin/my/module/test2.dart',
       '/workspace/blaze-genfiles/my/module/test3.dart',
     ]);
-    workspace =
-        BlazeWorkspace.find(
-          resourceProvider,
-          convertPath('/workspace/my/module'),
-        )!;
+    workspace = BlazeWorkspace.find(
+      resourceProvider,
+      convertPath('/workspace/my/module'),
+    )!;
     _expectFindFile(
       '/workspace/my/module/test1.dart',
       equals: '/workspace/my/module/test1.dart',

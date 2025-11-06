@@ -26,7 +26,10 @@ class PrimaryConstructorFragment implements Fragment, FunctionFragment {
 
   @override
   late final UriOffsetLength uriOffset = new UriOffsetLength(
-      fileUri, constructorName.fullNameOffset, constructorName.fullNameLength);
+    fileUri,
+    constructorName.fullNameOffset,
+    constructorName.fullNameLength,
+  );
 
   PrimaryConstructorFragment({
     required this.constructorName,
@@ -64,13 +67,17 @@ class PrimaryConstructorFragment implements Fragment, FunctionFragment {
 
   ConstructorFragmentDeclaration get declaration {
     assert(
-        _declaration != null, "Declaration has not been computed for $this.");
+      _declaration != null,
+      "Declaration has not been computed for $this.",
+    );
     return _declaration!;
   }
 
   void set declaration(ConstructorFragmentDeclaration value) {
-    assert(_declaration == null,
-        "Declaration has already been computed for $this.");
+    assert(
+      _declaration == null,
+      "Declaration has already been computed for $this.",
+    );
     _declaration = value;
   }
 
@@ -112,6 +119,11 @@ class _PrimaryConstructorBodyBuildingContext
   bool get shouldBuild => !_fragment.modifiers.isConst;
 
   @override
+  ExtensionScope get extensionScope {
+    return _fragment.enclosingCompilationUnit.extensionScope;
+  }
+
+  @override
   List<TypeParameter>? get thisTypeParameters =>
       _fragment.declaration.thisTypeParameters;
 
@@ -124,9 +136,10 @@ class _PrimaryConstructorBodyBuildingContext
   }
 
   @override
-  LocalScope computeFormalParameterScope(LookupScope typeParameterScope) {
-    return _fragment.declaration
-        .computeFormalParameterScope(typeParameterScope);
+  LocalScope get formalParameterScope {
+    return _fragment.declaration.computeFormalParameterScope(
+      typeParameterScope,
+    );
   }
 
   @override

@@ -83,6 +83,7 @@ abstract class DartdevCommand extends Command<int> {
 }
 
 enum CommandCategory {
+  global('Global'),
   project('Project'),
   sourceCode('Source code'),
   tools('Tools');

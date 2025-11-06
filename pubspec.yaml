@@ -11,7 +11,7 @@ environment:
   #
   # It needs to be updated before testing language features introduced in the
   # next language version.
-  sdk: ^3.9.0-0
+  sdk: ^3.10.0-0
 
 # These are the packages that are contained in the SDK.
 workspace:
@@ -26,6 +26,7 @@ workspace:
   - pkg/async_helper
   - pkg/bisect_dart
   - pkg/build_integration
+  - pkg/cfg
   - pkg/compiler
   - pkg/dart2bytecode
   - pkg/dart2js_info
@@ -34,6 +35,7 @@ workspace:
   - pkg/dart2native
   - pkg/dart2wasm
   - pkg/dartdev
+  - pkg/dart_data_home
   - pkg/dart_internal
   - pkg/dart_service_protocol_shared
   - pkg/dds
@@ -57,6 +59,7 @@ workspace:
   - pkg/meta
   - pkg/mmap
   - pkg/modular_test
+  - pkg/native_compiler
   - pkg/native_stack_traces
   - pkg/node_preamble
   - pkg/record_use
@@ -77,6 +80,7 @@ workspace:
   - pkg/vm_snapshot_analysis
   - pkg/wasm_builder
   - runtime/tests/vm/dart
+  - runtime/tools
   - runtime/tools/profiling
   - samples/ffi/http
   - samples/ffi/httpIG
@@ -92,22 +96,6 @@ workspace:
 
 # All third_party packages are retrieved via the DEPS-file and overridden here.
 dependency_overrides:
-  _experiment_sound:
-    path: third_party/pkg/webdev/fixtures/_experimentSound
-  _test_circular1_sound:
-    path: third_party/pkg/webdev/fixtures/_testCircular1Sound
-  _test_circular2_sound:
-    path: third_party/pkg/webdev/fixtures/_testCircular2Sound
-  _test_hot_restart1:
-    path: third_party/pkg/webdev/fixtures/_testHotRestart1Sound
-  _test_hot_restart2:
-    path: third_party/pkg/webdev/fixtures/_testHotRestart2Sound
-  _test_package_sound:
-    path: third_party/pkg/webdev/fixtures/_testPackageSound
-  _test_sound:
-    path: third_party/pkg/webdev/fixtures/_testSound
-  _webdev_sound_smoke:
-    path: third_party/pkg/webdev/fixtures/_webdevSoundSmoke
   analysis_config:
     path: third_party/pkg/webdev/_analysis_config
   args:
@@ -238,6 +226,8 @@ dependency_overrides:
     path: third_party/pkg/protobuf/protoc_plugin
   pub:
     path: third_party/pkg/pub
+  pub_formats:
+    path: third_party/pkg/native/pkgs/pub_formats
   pub_semver:
     path: third_party/pkg/tools/pkgs/pub_semver
   regression_tests:
@@ -329,4 +319,4 @@ dependency_overrides:
   # observatory needs a migration to language version 3.6 before it can be
   # included in the workspace. (If it is not deleted before)
   observatory:
-    path: runtime/observatory
+    path: pkg/observatory

@@ -56,7 +56,7 @@ void f() async {
 ''',
       [
         // No lint.
-        error(CompileTimeErrorCode.AWAIT_OF_INCOMPATIBLE_TYPE, 48, 5),
+        error(CompileTimeErrorCode.awaitOfIncompatibleType, 48, 5),
       ],
     );
   }
@@ -159,7 +159,7 @@ Undefined f() async => await f();
 ''',
       [
         // No lint.
-        error(CompileTimeErrorCode.UNDEFINED_CLASS, 0, 9),
+        error(CompileTimeErrorCode.undefinedClass, 0, 9),
       ],
     );
   }

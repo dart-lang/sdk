@@ -224,10 +224,8 @@ class IgnoreInfo {
 extension CommentTokenExtension on CommentToken {
   /// The elements ([IgnoredDiagnosticName]s and [IgnoredDiagnosticType]s) cited
   /// by this comment, if it is a correctly formatted ignore comment.
-  // Use of `sync*` should not be non-performant; the vast majority of ignore
-  // comments cite a single diagnostic name. Ignore comments that cite multiple
-  // diagnostic names typically cite only a handful.
-  Iterable<IgnoredElement> get ignoredElements sync* {
+  List<IgnoredElement> get ignoredElements {
+    List<IgnoredElement> result = [];
     var offset = lexeme.indexOf(':') + 1;
 
     void skipPastWhitespace() {
@@ -240,8 +238,9 @@ extension CommentTokenExtension on CommentToken {
     }
 
     void readWord() {
-      if (!lexeme.codeUnitAt(offset).isLetter) {
-        // Must start with a letter.
+      if (!lexeme.codeUnitAt(offset).isLetter &&
+          !lexeme.codeUnitAt(offset).isUnderscore) {
+        // Must start with a letter or underscore.
         return;
       }
       offset++;
@@ -261,7 +260,7 @@ extension CommentTokenExtension on CommentToken {
       skipPastWhitespace();
       if (offset == lexeme.length) {
         // Reached the end without finding any ignored elements.
-        return;
+        return result;
       }
       var wordOffset = offset;
       // Parse each comma-separated diagnostic code, and diagnostic type.
@@ -269,34 +268,38 @@ extension CommentTokenExtension on CommentToken {
       if (wordOffset == offset) {
         // There is a non-word (other characters) at `offset`.
         if (hasIgnoredElements) {
-          yield IgnoredDiagnosticComment(
-            lexeme.substring(offset),
-            this.offset + wordOffset,
+          result.add(
+            IgnoredDiagnosticComment(
+              lexeme.substring(offset),
+              this.offset + wordOffset,
+            ),
           );
         }
-        return;
+        return result;
       }
       var word = lexeme.substring(wordOffset, offset);
       if (word.toLowerCase() == 'type') {
         // Parse diagnostic type.
         skipPastWhitespace();
-        if (offset == lexeme.length) return;
+        if (offset == lexeme.length) return result;
         var nextChar = lexeme.codeUnitAt(offset);
-        if (!nextChar.isEqual) return;
+        if (!nextChar.isEqual) return result;
         offset++;
         skipPastWhitespace();
-        if (offset == lexeme.length) return;
+        if (offset == lexeme.length) return result;
         var typeOffset = offset;
         readWord();
         if (typeOffset == offset) {
           // There is a non-word (other characters) at `offset`.
           if (hasIgnoredElements) {
-            yield IgnoredDiagnosticComment(
-              lexeme.substring(offset),
-              this.offset + wordOffset,
+            result.add(
+              IgnoredDiagnosticComment(
+                lexeme.substring(offset),
+                this.offset + wordOffset,
+              ),
             );
           }
-          return;
+          return result;
         }
         if (offset < lexeme.length) {
           var nextChar = lexeme.codeUnitAt(offset);
@@ -304,20 +307,24 @@ extension CommentTokenExtension on CommentToken {
             // There are non-identifier characters at the end of this word,
             // like `ignore: http://google.com`. This is not a diagnostic name.
             if (hasIgnoredElements) {
-              yield IgnoredDiagnosticComment(
-                lexeme.substring(wordOffset),
-                this.offset + wordOffset,
+              result.add(
+                IgnoredDiagnosticComment(
+                  lexeme.substring(wordOffset),
+                  this.offset + wordOffset,
+                ),
               );
             }
-            return;
+            return result;
           }
         }
         var type = lexeme.substring(typeOffset, offset);
         hasIgnoredElements = true;
-        yield IgnoredDiagnosticType(
-          type,
-          this.offset + wordOffset,
-          offset - wordOffset,
+        result.add(
+          IgnoredDiagnosticType(
+            type,
+            this.offset + wordOffset,
+            offset - wordOffset,
+          ),
         );
       } else {
         String? pluginName;
@@ -328,19 +335,21 @@ extension CommentTokenExtension on CommentToken {
             // 'plugin_one/foo'.
             pluginName = word;
             offset++;
-            if (offset == lexeme.length) return;
+            if (offset == lexeme.length) return result;
             var nameOffset = offset;
             readWord();
             word = lexeme.substring(nameOffset, offset);
             if (nameOffset == offset) {
               // There is a non-word (other characters) at `offset`.
               if (hasIgnoredElements) {
-                yield IgnoredDiagnosticComment(
-                  lexeme.substring(offset),
-                  this.offset + nameOffset,
+                result.add(
+                  IgnoredDiagnosticComment(
+                    lexeme.substring(offset),
+                    this.offset + nameOffset,
+                  ),
                 );
               }
-              return;
+              return result;
             }
           }
         }
@@ -350,40 +359,46 @@ extension CommentTokenExtension on CommentToken {
             // There are non-identifier characters at the end of this word,
             // like `ignore: http://google.com`. This is not a diagnostic name.
             if (hasIgnoredElements) {
-              yield IgnoredDiagnosticComment(
-                lexeme.substring(wordOffset),
-                this.offset + wordOffset,
+              result.add(
+                IgnoredDiagnosticComment(
+                  lexeme.substring(wordOffset),
+                  this.offset + wordOffset,
+                ),
               );
             }
-            return;
+            return result;
           }
         }
         hasIgnoredElements = true;
-        yield IgnoredDiagnosticName(
-          word,
-          this.offset + wordOffset,
-          pluginName: pluginName,
+        result.add(
+          IgnoredDiagnosticName(
+            word,
+            this.offset + wordOffset,
+            pluginName: pluginName,
+          ),
         );
       }
 
-      if (offset == lexeme.length) return;
+      if (offset == lexeme.length) return result;
       skipPastWhitespace();
-      if (offset == lexeme.length) return;
+      if (offset == lexeme.length) return result;
 
       var nextChar = lexeme.codeUnitAt(offset);
       if (!nextChar.isComma) {
         // We've reached the end of the comma-separated codes and types. What
         // follows is unstructured comment text.
         if (hasIgnoredElements) {
-          yield IgnoredDiagnosticComment(
-            lexeme.substring(offset),
-            this.offset + wordOffset,
+          result.add(
+            IgnoredDiagnosticComment(
+              lexeme.substring(offset),
+              this.offset + wordOffset,
+            ),
           );
         }
-        return;
+        return result;
       }
       offset++;
-      if (offset == lexeme.length) return;
+      if (offset == lexeme.length) return result;
     }
   }
 }

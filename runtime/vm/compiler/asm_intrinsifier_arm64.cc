@@ -1979,38 +1979,6 @@ void AsmIntrinsifier::IntrinsifyRegExpExecuteMatch(Assembler* assembler,
   __ br(R1);
 }
 
-void AsmIntrinsifier::UserTag_defaultTag(Assembler* assembler,
-                                         Label* normal_ir_body) {
-  __ LoadIsolate(R0);
-  __ ldr(R0, Address(R0, target::Isolate::default_tag_offset()));
-  __ ret();
-}
-
-void AsmIntrinsifier::Profiler_getCurrentTag(Assembler* assembler,
-                                             Label* normal_ir_body) {
-  __ LoadIsolate(R0);
-  __ ldr(R0, Address(R0, target::Isolate::current_tag_offset()));
-  __ ret();
-}
-
-void AsmIntrinsifier::Timeline_isDartStreamEnabled(Assembler* assembler,
-                                                   Label* normal_ir_body) {
-#if !defined(SUPPORT_TIMELINE)
-  __ LoadObject(R0, CastHandle<Object>(FalseObject()));
-  __ ret();
-#else
-  // Load TimelineStream*.
-  __ ldr(R0, Address(THR, target::Thread::dart_stream_offset()));
-  // Load uintptr_t from TimelineStream*.
-  __ ldr(R0, Address(R0, target::TimelineStream::enabled_offset()));
-  __ cmp(R0, Operand(0));
-  __ LoadObject(R0, CastHandle<Object>(FalseObject()));
-  __ LoadObject(TMP, CastHandle<Object>(TrueObject()));
-  __ csel(R0, TMP, R0, NE);
-  __ ret();
-#endif
-}
-
 void AsmIntrinsifier::Timeline_getNextTaskId(Assembler* assembler,
                                              Label* normal_ir_body) {
 #if !defined(SUPPORT_TIMELINE)

@@ -1928,6 +1928,14 @@ void Assembler::PopRegister(Register r) {
   popl(r);
 }
 
+void Assembler::PushRegisters(const RegisterSet& registers) {
+  UNIMPLEMENTED();
+}
+
+void Assembler::PopRegisters(const RegisterSet& registers) {
+  UNIMPLEMENTED();
+}
+
 void Assembler::PushRegistersInOrder(std::initializer_list<Register> regs) {
   for (Register reg : regs) {
     PushRegister(reg);
@@ -2607,7 +2615,8 @@ static const Register volatile_cpu_registers[kNumberOfVolatileCpuRegisters] = {
     EAX, ECX, EDX};
 
 void Assembler::CallRuntime(const RuntimeEntry& entry,
-                            intptr_t argument_count) {
+                            intptr_t argument_count,
+                            bool tsan_enter_exit) {
   ASSERT(!entry.is_leaf());
   // Argument count is not checked here, but in the runtime entry for a more
   // informative error message.

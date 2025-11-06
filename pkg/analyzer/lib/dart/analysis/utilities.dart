@@ -84,10 +84,11 @@ ParseStringResult parseString({
   var source = StringSource(content, path ?? '');
   var reader = CharSequenceReader(content);
   var diagnosticCollector = RecordingDiagnosticListener();
-  var scanner = Scanner(source, reader, diagnosticCollector)..configureFeatures(
-    featureSetForOverriding: featureSet,
-    featureSet: featureSet,
-  );
+  var scanner = Scanner(source, reader, diagnosticCollector)
+    ..configureFeatures(
+      featureSetForOverriding: featureSet,
+      featureSet: featureSet,
+    );
   var token = scanner.tokenize();
   var languageVersion = LibraryLanguageVersion(
     package: ExperimentStatus.currentVersion,
@@ -128,6 +129,25 @@ ParseStringResult parseString({
 /// Note that if more than one file is going to be resolved then this function
 /// is inefficient. Clients should instead use [AnalysisContextCollection] to
 /// create one or more contexts and use those contexts to resolve the files.
+Future<SomeResolvedUnitResult> resolveFile({
+  required String path,
+  ResourceProvider? resourceProvider,
+}) async {
+  AnalysisContext context = _createAnalysisContext(
+    path: path,
+    resourceProvider: resourceProvider,
+  );
+  return await context.currentSession.getResolvedUnit(path);
+}
+
+/// Return the result of resolving the file at the given [path].
+///
+/// If a [resourceProvider] is given, it will be used to access the file system.
+///
+/// Note that if more than one file is going to be resolved then this function
+/// is inefficient. Clients should instead use [AnalysisContextCollection] to
+/// create one or more contexts and use those contexts to resolve the files.
+@Deprecated('Use resolveFile instead')
 Future<SomeResolvedUnitResult> resolveFile2({
   required String path,
   ResourceProvider? resourceProvider,

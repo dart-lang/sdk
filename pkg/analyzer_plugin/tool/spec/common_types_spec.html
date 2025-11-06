@@ -156,6 +156,25 @@
       <value><code>TODO</code></value>
     </enum>
   </type>
+  <type name="AssistDescription">
+    <p>
+      The description of a registered assist.
+    </p>
+    <object>
+      <field name="id">
+        <ref>String</ref>
+        <p>
+          The ID.
+        </p>
+      </field>
+      <field name="message">
+        <ref>String</ref>
+        <p>
+          The message that is presented to the user, to carry out this assist.
+        </p>
+      </field>
+    </object>
+  </type>
   <type name="ChangeContentOverlay">
     <p>
       A directive to modify an existing file content overlay. One or more ranges
@@ -644,6 +663,33 @@
       not absolute or is not normalized, then an error of type
       <tt>INVALID_FILE_PATH_FORMAT</tt> will be generated.
     </p>
+  </type>
+  <type name="FixDescription">
+    <p>
+      The description of a registered fix.
+    </p>
+    <object>
+      <field name="id">
+        <ref>String</ref>
+        <p>
+          The ID.
+        </p>
+      </field>
+      <field name="message">
+        <ref>String</ref>
+        <p>
+          The message that is presented to the user, to carry out this fix.
+        </p>
+      </field>
+      <field name="codes">
+        <list>
+          <ref>String</ref>
+        </list>
+        <p>
+          The IDs of the diagnostic codes with which this fix was registered.
+        </p>
+      </field>
+    </object>
   </type>
   <type name="FoldingKind">
     <p>
@@ -1281,6 +1327,53 @@
         </p>
       </value>
     </enum>
+  </type>
+  <type name="PluginDetails">
+    <p>
+      The details of an active plugin.
+    </p>
+    <object>
+      <field name="name">
+        <ref>String</ref>
+        <p>
+          The name of the plugin.
+        </p>
+      </field>
+      <field name="lintRules">
+        <list>
+          <ref>String</ref>
+        </list>
+        <p>
+          A list of the IDs of the analysis rules which have been registered as
+          lint rules.
+        </p>
+      </field>
+      <field name="warningRules">
+        <list>
+          <ref>String</ref>
+        </list>
+        <p>
+          A list of the IDs of the analysis rules which have been registered as
+          warning rules.
+        </p>
+      </field>
+      <field name="assists">
+        <list>
+          <ref>AssistDescription</ref>
+        </list>
+        <p>
+          A list of the descriptions of registered assists.
+        </p>
+      </field>
+      <field name="fixes">
+        <list>
+          <ref>FixDescription</ref>
+        </list>
+        <p>
+          A list of the descriptions of registered fixes.
+        </p>
+      </field>
+    </object>
   </type>
   <type name="Position">
     <p>

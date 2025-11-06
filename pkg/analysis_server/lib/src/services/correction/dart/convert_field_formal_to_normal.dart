@@ -30,8 +30,9 @@ class ConvertFieldFormalToNormal extends ResolvedCorrectionProducer {
     if (field == null) {
       return;
     }
-    var constructor =
-        parameter.thisOrAncestorOfType<FormalParameterList>()?.parent;
+    var constructor = parameter
+        .thisOrAncestorOfType<FormalParameterList>()
+        ?.parent;
     if (constructor is! ConstructorDeclaration) {
       return;
     }

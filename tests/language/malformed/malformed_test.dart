@@ -105,11 +105,11 @@ void main() {
 
   new undeclared_prefix.Unresolved();
   //  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  // [analyzer] COMPILE_TIME_ERROR.CREATION_WITH_NON_TYPE
+  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_IDENTIFIER
   // [cfe] Couldn't find constructor 'undeclared_prefix.Unresolved'.
   new undeclared_prefix.Unresolved<int>();
   //  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  // [analyzer] COMPILE_TIME_ERROR.CREATION_WITH_NON_TYPE
+  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_IDENTIFIER
   // [cfe] Couldn't find constructor 'undeclared_prefix.Unresolved'.
 
   try {
@@ -147,5 +147,5 @@ void main() {
   } on undeclared_prefix.Unresolved<int> catch (e) {}
   //   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
   // [analyzer] COMPILE_TIME_ERROR.NON_TYPE_IN_CATCH_CLAUSE
-  // [cfe] 'undeclared_prefix.Unresolved' can't be used as a type because 'undeclared_prefix' isn't defined.
+  // [cfe] 'undeclared_prefix.Unresolved' can't be used as a type because 'undeclared_prefix' doesn't refer to an import prefix.
 }

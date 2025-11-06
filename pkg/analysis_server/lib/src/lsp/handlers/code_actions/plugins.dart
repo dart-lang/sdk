@@ -16,7 +16,7 @@ import 'package:collection/collection.dart';
 
 /// Produces [CodeActionLiteral]s from Plugin fixes and assists.
 class PluginCodeActionsProducer extends AbstractCodeActionsProducer {
-  final AnalysisDriver? driver;
+  final AnalysisDriver? _driver;
 
   PluginCodeActionsProducer(
     super.server,
@@ -31,7 +31,7 @@ class PluginCodeActionsProducer extends AbstractCodeActionsProducer {
     required super.allowCommands,
     required super.analysisOptions,
     required super.allowSnippets,
-  }) : driver = server.getAnalysisDriver(file.path);
+  }) : _driver = server.getAnalysisDriver(file.path);
 
   @override
   String get name => 'PluginActionsComputer';
@@ -149,12 +149,14 @@ class PluginCodeActionsProducer extends AbstractCodeActionsProducer {
   Future<List<plugin.Response>> _sendPluginRequest(
     plugin.RequestParams requestParams,
   ) async {
-    var driver = this.driver;
-    if (driver == null) {
-      return [];
+    if (_driver == null) {
+      return const [];
     }
 
-    var pluginFutures = server.broadcastRequestToPlugins(requestParams, driver);
+    var pluginFutures = server.broadcastRequestToPlugins(
+      requestParams,
+      _driver,
+    );
 
     return waitForResponses(pluginFutures, requestParameters: requestParams);
   }

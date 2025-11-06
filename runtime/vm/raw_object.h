@@ -570,18 +570,32 @@ class UntaggedObject {
   // All writes to heap objects should ultimately pass through one of the
   // methods below or their counterparts in Object, to ensure that the
   // write barrier is correctly applied.
-  template <typename type, std::memory_order order = std::memory_order_relaxed>
+  template <typename type>
+  type LoadPointer(type const* addr) const {
+    return *const_cast<type*>(addr);
+  }
+  template <typename type, std::memory_order order>
   type LoadPointer(type const* addr) const {
     return reinterpret_cast<std::atomic<type>*>(const_cast<type*>(addr))
         ->load(order);
   }
-  template <typename type,
-            typename compressed_type,
-            std::memory_order order = std::memory_order_relaxed>
+  template <typename type, typename compressed_type>
+  type LoadCompressedPointer(compressed_type const* addr) const {
+    compressed_type v = *const_cast<compressed_type*>(addr);
+    return static_cast<type>(v.Decompress(heap_base()));
+  }
+  template <typename type, typename compressed_type, std::memory_order order>
   type LoadCompressedPointer(compressed_type const* addr) const {
     compressed_type v = reinterpret_cast<std::atomic<compressed_type>*>(
                             const_cast<compressed_type*>(addr))
                             ->load(order);
+    return static_cast<type>(v.Decompress(heap_base()));
+  }
+  template <typename type, typename compressed_type>
+  NO_SANITIZE_THREAD type
+  LoadCompressedPointerIgnoreRace(compressed_type const* addr) const {
+    compressed_type v =
+        *reinterpret_cast<compressed_type*>(const_cast<compressed_type*>(addr));
     return static_cast<type>(v.Decompress(heap_base()));
   }
 
@@ -589,7 +603,14 @@ class UntaggedObject {
     return reinterpret_cast<uword>(this) & kHeapBaseMask;
   }
 
-  template <typename type, std::memory_order order = std::memory_order_relaxed>
+  template <typename type>
+  void StorePointer(type const* addr, type value) {
+    *const_cast<type*>(addr) = value;
+    if (value.IsHeapObject()) {
+      CheckHeapPointerStore(value, Thread::Current());
+    }
+  }
+  template <typename type, std::memory_order order>
   void StorePointer(type const* addr, type value) {
     reinterpret_cast<std::atomic<type>*>(const_cast<type*>(addr))
         ->store(value, order);
@@ -598,9 +619,14 @@ class UntaggedObject {
     }
   }
 
-  template <typename type,
-            typename compressed_type,
-            std::memory_order order = std::memory_order_relaxed>
+  template <typename type, typename compressed_type>
+  void StoreCompressedPointer(compressed_type const* addr, type value) {
+    *const_cast<compressed_type*>(addr) = value;
+    if (value.IsHeapObject()) {
+      CheckHeapPointerStore(value, Thread::Current());
+    }
+  }
+  template <typename type, typename compressed_type, std::memory_order order>
   void StoreCompressedPointer(compressed_type const* addr, type value) {
     reinterpret_cast<std::atomic<compressed_type>*>(
         const_cast<compressed_type*>(addr))
@@ -637,9 +663,14 @@ class UntaggedObject {
   }
 
   // Note: StoreArrayPointer won't work if value_type is a compressed pointer.
-  template <typename type,
-            std::memory_order order = std::memory_order_relaxed,
-            typename value_type = type>
+  template <typename type, typename value_type = type>
+  void StoreArrayPointer(type const* addr, value_type value) {
+    *const_cast<type*>(addr) = type(value);
+    if (value->IsHeapObject()) {
+      CheckArrayPointerStore(addr, value, Thread::Current());
+    }
+  }
+  template <typename type, std::memory_order order, typename value_type = type>
   void StoreArrayPointer(type const* addr, value_type value) {
     reinterpret_cast<std::atomic<type>*>(const_cast<type*>(addr))
         ->store(type(value), order);
@@ -656,6 +687,13 @@ class UntaggedObject {
     }
   }
 
+  template <typename type, typename compressed_type>
+  void StoreCompressedArrayPointer(compressed_type const* addr, type value) {
+    *const_cast<compressed_type*>(addr) = static_cast<compressed_type>(value);
+    if (value->IsHeapObject()) {
+      CheckArrayPointerStore(addr, value, Thread::Current());
+    }
+  }
   template <typename type, typename compressed_type, std::memory_order order>
   void StoreCompressedArrayPointer(compressed_type const* addr, type value) {
     reinterpret_cast<std::atomic<compressed_type>*>(
@@ -702,12 +740,19 @@ class UntaggedObject {
     return static_cast<type>(previous_value.Decompress(heap_base()));
   }
 
-  template <std::memory_order order = std::memory_order_relaxed>
+  SmiPtr LoadSmi(SmiPtr const* addr) const {
+    return *const_cast<SmiPtr*>(addr);
+  }
+  template <std::memory_order order>
   SmiPtr LoadSmi(SmiPtr const* addr) const {
     return reinterpret_cast<std::atomic<SmiPtr>*>(const_cast<SmiPtr*>(addr))
         ->load(order);
   }
-  template <std::memory_order order = std::memory_order_relaxed>
+  SmiPtr LoadCompressedSmi(CompressedSmiPtr const* addr) const {
+    return static_cast<SmiPtr>(
+        const_cast<CompressedSmiPtr*>(addr)->DecompressSmi());
+  }
+  template <std::memory_order order>
   SmiPtr LoadCompressedSmi(CompressedSmiPtr const* addr) const {
     return static_cast<SmiPtr>(reinterpret_cast<std::atomic<CompressedSmiPtr>*>(
                                    const_cast<CompressedSmiPtr*>(addr))
@@ -717,17 +762,20 @@ class UntaggedObject {
 
   // Use for storing into an explicitly Smi-typed field of an object
   // (i.e., both the previous and new value are Smis).
-  template <typename type, std::memory_order order = std::memory_order_relaxed>
+  template <typename type>
   void StoreSmi(type const* addr, type value) {
-    // Can't use Contains, as array length is initialized through this method.
-    ASSERT(reinterpret_cast<uword>(addr) >= UntaggedObject::ToAddr(this));
+    *const_cast<type*>(addr) = value;
+  }
+  template <typename type, std::memory_order order>
+  void StoreSmi(type const* addr, type value) {
     reinterpret_cast<std::atomic<type>*>(const_cast<type*>(addr))
         ->store(value, order);
   }
-  template <std::memory_order order = std::memory_order_relaxed>
   void StoreCompressedSmi(CompressedSmiPtr const* addr, SmiPtr value) {
-    // Can't use Contains, as array length is initialized through this method.
-    ASSERT(reinterpret_cast<uword>(addr) >= UntaggedObject::ToAddr(this));
+    *const_cast<CompressedSmiPtr*>(addr) = value;
+  }
+  template <std::memory_order order>
+  void StoreCompressedSmi(CompressedSmiPtr const* addr, SmiPtr value) {
     reinterpret_cast<std::atomic<CompressedSmiPtr>*>(
         const_cast<CompressedSmiPtr*>(addr))
         ->store(static_cast<CompressedSmiPtr>(value), order);
@@ -889,11 +937,17 @@ inline intptr_t ObjectPtr::GetClassId() const {
 
 #define POINTER_FIELD(type, name)                                              \
  public:                                                                       \
-  template <std::memory_order order = std::memory_order_relaxed>               \
+  type name() const {                                                          \
+    return LoadPointer<type>(&name##_);                                        \
+  }                                                                            \
+  template <std::memory_order order>                                           \
   type name() const {                                                          \
     return LoadPointer<type, order>(&name##_);                                 \
   }                                                                            \
-  template <std::memory_order order = std::memory_order_relaxed>               \
+  void set_##name(type value) {                                                \
+    StorePointer<type>(&name##_, value);                                       \
+  }                                                                            \
+  template <std::memory_order order>                                           \
   void set_##name(type value) {                                                \
     StorePointer<type, order>(&name##_, value);                                \
   }                                                                            \
@@ -903,11 +957,20 @@ inline intptr_t ObjectPtr::GetClassId() const {
 
 #define COMPRESSED_POINTER_FIELD(type, name)                                   \
  public:                                                                       \
-  template <std::memory_order order = std::memory_order_relaxed>               \
+  type name() const {                                                          \
+    return LoadCompressedPointer<type, Compressed##type>(&name##_);            \
+  }                                                                            \
+  template <std::memory_order order>                                           \
   type name() const {                                                          \
     return LoadCompressedPointer<type, Compressed##type, order>(&name##_);     \
   }                                                                            \
-  template <std::memory_order order = std::memory_order_relaxed>               \
+  type name##_ignore_race() const {                                            \
+    return LoadCompressedPointerIgnoreRace<type, Compressed##type>(&name##_);  \
+  }                                                                            \
+  void set_##name(type value) {                                                \
+    StoreCompressedPointer<type, Compressed##type>(&name##_, value);           \
+  }                                                                            \
+  template <std::memory_order order>                                           \
   void set_##name(type value) {                                                \
     StoreCompressedPointer<type, Compressed##type, order>(&name##_, value);    \
   }                                                                            \
@@ -917,11 +980,17 @@ inline intptr_t ObjectPtr::GetClassId() const {
 
 #define ARRAY_POINTER_FIELD(type, name)                                        \
  public:                                                                       \
-  template <std::memory_order order = std::memory_order_relaxed>               \
+  type name() const {                                                          \
+    return LoadPointer<type>(&name##_);                                        \
+  }                                                                            \
+  template <std::memory_order order>                                           \
   type name() const {                                                          \
     return LoadPointer<type, order>(&name##_);                                 \
   }                                                                            \
-  template <std::memory_order order = std::memory_order_relaxed>               \
+  void set_##name(type value) {                                                \
+    StoreArrayPointer<type>(&name##_, value);                                  \
+  }                                                                            \
+  template <std::memory_order order>                                           \
   void set_##name(type value) {                                                \
     StoreArrayPointer<type, order>(&name##_, value);                           \
   }                                                                            \
@@ -931,12 +1000,18 @@ inline intptr_t ObjectPtr::GetClassId() const {
 
 #define COMPRESSED_ARRAY_POINTER_FIELD(type, name)                             \
  public:                                                                       \
-  template <std::memory_order order = std::memory_order_relaxed>               \
+  type name() const {                                                          \
+    return LoadPointer<Compressed##type>(&name##_).Decompress(heap_base());    \
+  }                                                                            \
+  template <std::memory_order order>                                           \
   type name() const {                                                          \
     return LoadPointer<Compressed##type, order>(&name##_).Decompress(          \
         heap_base());                                                          \
   }                                                                            \
-  template <std::memory_order order = std::memory_order_relaxed>               \
+  void set_##name(type value) {                                                \
+    StoreCompressedArrayPointer<type, Compressed##type>(&name##_, value);      \
+  }                                                                            \
+  template <std::memory_order order>                                           \
   void set_##name(type value) {                                                \
     StoreCompressedArrayPointer<type, Compressed##type, order>(&name##_,       \
                                                                value);         \
@@ -947,15 +1022,24 @@ inline intptr_t ObjectPtr::GetClassId() const {
 
 #define VARIABLE_POINTER_FIELDS(type, accessor_name, array_name)               \
  public:                                                                       \
-  template <std::memory_order order = std::memory_order_relaxed>               \
+  type accessor_name(intptr_t index) const {                                   \
+    return LoadPointer<type>(&array_name()[index]);                            \
+  }                                                                            \
+  template <std::memory_order order>                                           \
   type accessor_name(intptr_t index) const {                                   \
     return LoadPointer<type, order>(&array_name()[index]);                     \
   }                                                                            \
-  template <std::memory_order order = std::memory_order_relaxed>               \
+  void set_##accessor_name(intptr_t index, type value) {                       \
+    StoreArrayPointer<type>(&array_name()[index], value);                      \
+  }                                                                            \
+  template <std::memory_order order>                                           \
   void set_##accessor_name(intptr_t index, type value) {                       \
     StoreArrayPointer<type, order>(&array_name()[index], value);               \
   }                                                                            \
-  template <std::memory_order order = std::memory_order_relaxed>               \
+  void set_##accessor_name(intptr_t index, type value, Thread* thread) {       \
+    StoreArrayPointer<type>(&array_name()[index], value, thread);              \
+  }                                                                            \
+  template <std::memory_order order>                                           \
   void set_##accessor_name(intptr_t index, type value, Thread* thread) {       \
     StoreArrayPointer<type, order>(&array_name()[index], value, thread);       \
   }                                                                            \
@@ -971,17 +1055,29 @@ inline intptr_t ObjectPtr::GetClassId() const {
 
 #define COMPRESSED_VARIABLE_POINTER_FIELDS(type, accessor_name, array_name)    \
  public:                                                                       \
-  template <std::memory_order order = std::memory_order_relaxed>               \
+  type accessor_name(intptr_t index) const {                                   \
+    return LoadCompressedPointer<type, Compressed##type>(                      \
+        &array_name()[index]);                                                 \
+  }                                                                            \
+  template <std::memory_order order>                                           \
   type accessor_name(intptr_t index) const {                                   \
     return LoadCompressedPointer<type, Compressed##type, order>(               \
         &array_name()[index]);                                                 \
   }                                                                            \
-  template <std::memory_order order = std::memory_order_relaxed>               \
+  void set_##accessor_name(intptr_t index, type value) {                       \
+    StoreCompressedArrayPointer<type, Compressed##type>(&array_name()[index],  \
+                                                        value);                \
+  }                                                                            \
+  template <std::memory_order order>                                           \
   void set_##accessor_name(intptr_t index, type value) {                       \
     StoreCompressedArrayPointer<type, Compressed##type, order>(                \
         &array_name()[index], value);                                          \
   }                                                                            \
-  template <std::memory_order order = std::memory_order_relaxed>               \
+  void set_##accessor_name(intptr_t index, type value, Thread* thread) {       \
+    StoreCompressedArrayPointer<type, Compressed##type>(&array_name()[index],  \
+                                                        value, thread);        \
+  }                                                                            \
+  template <std::memory_order order>                                           \
   void set_##accessor_name(intptr_t index, type value, Thread* thread) {       \
     StoreCompressedArrayPointer<type, Compressed##type, order>(                \
         &array_name()[index], value, thread);                                  \
@@ -998,13 +1094,22 @@ inline intptr_t ObjectPtr::GetClassId() const {
 
 #define SMI_FIELD(type, name)                                                  \
  public:                                                                       \
-  template <std::memory_order order = std::memory_order_relaxed>               \
+  type name() const {                                                          \
+    type result = LoadSmi(&name##_);                                           \
+    ASSERT(!result.IsHeapObject());                                            \
+    return result;                                                             \
+  }                                                                            \
+  template <std::memory_order order>                                           \
   type name() const {                                                          \
     type result = LoadSmi<order>(&name##_);                                    \
     ASSERT(!result.IsHeapObject());                                            \
     return result;                                                             \
   }                                                                            \
-  template <std::memory_order order = std::memory_order_relaxed>               \
+  void set_##name(type value) {                                                \
+    ASSERT(!value.IsHeapObject());                                             \
+    StoreSmi<type>(&name##_, value);                                           \
+  }                                                                            \
+  template <std::memory_order order>                                           \
   void set_##name(type value) {                                                \
     ASSERT(!value.IsHeapObject());                                             \
     StoreSmi<type, order>(&name##_, value);                                    \
@@ -1015,16 +1120,25 @@ inline intptr_t ObjectPtr::GetClassId() const {
 
 #define COMPRESSED_SMI_FIELD(type, name)                                       \
  public:                                                                       \
-  template <std::memory_order order = std::memory_order_relaxed>               \
+  type name() const {                                                          \
+    type result = LoadCompressedSmi(&name##_);                                 \
+    ASSERT(!result.IsHeapObject());                                            \
+    return result;                                                             \
+  }                                                                            \
+  template <std::memory_order order>                                           \
   type name() const {                                                          \
     type result = LoadCompressedSmi<order>(&name##_);                          \
     ASSERT(!result.IsHeapObject());                                            \
     return result;                                                             \
   }                                                                            \
-  template <std::memory_order order = std::memory_order_relaxed>               \
   void set_##name(type value) {                                                \
     ASSERT(!value.IsHeapObject());                                             \
     StoreCompressedSmi(&name##_, value);                                       \
+  }                                                                            \
+  template <std::memory_order order>                                           \
+  void set_##name(type value) {                                                \
+    ASSERT(!value.IsHeapObject());                                             \
+    StoreCompressedSmi<order>(&name##_, value);                                \
   }                                                                            \
                                                                                \
  protected:                                                                    \
@@ -1511,7 +1625,10 @@ class UntaggedClosureData : public UntaggedObject {
   using PackedAwaiterLinkIndex = BitField<decltype(packed_fields_),
                                           uint8_t,
                                           PackedAwaiterLinkDepth::kNextBit>;
-
+  using DoesCloseOverOnlySharedFields =
+      BitField<decltype(packed_fields_),
+               bool,
+               PackedAwaiterLinkIndex::kNextBit>;
   friend class Function;
   friend class UnitDeserializationRoots;
 };
@@ -1563,6 +1680,9 @@ class UntaggedField : public UntaggedObject {
   // - for static fields: index into field_table.
   COMPRESSED_POINTER_FIELD(SmiPtr, host_offset_or_field_id)
   COMPRESSED_POINTER_FIELD(SmiPtr, guarded_list_length)
+#if !defined(DART_PRECOMPILED_RUNTIME)
+  COMPRESSED_POINTER_FIELD(AbstractTypePtr, exact_type)
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)
   COMPRESSED_POINTER_FIELD(WeakArrayPtr, dependent_code)
   VISIT_TO(dependent_code);
   CompressedObjectPtr* to_snapshot(Snapshot::Kind kind) {
@@ -1600,7 +1720,7 @@ class UntaggedField : public UntaggedObject {
   int8_t static_type_exactness_state_;
 
   // static, final, const, has initializer....
-  AtomicBitFieldContainer<uint16_t> kind_bits_;
+  AtomicBitFieldContainer<uint32_t> kind_bits_;
 
 #if !defined(DART_PRECOMPILED_RUNTIME)
   // for instance fields, the offset in words in the target architecture
@@ -1623,7 +1743,7 @@ class alignas(8) UntaggedScript : public UntaggedObject {
   COMPRESSED_POINTER_FIELD(StringPtr, resolved_url)
   COMPRESSED_POINTER_FIELD(TypedDataPtr, line_starts)
 #if !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
-  COMPRESSED_POINTER_FIELD(TypedDataViewPtr, constant_coverage)
+  COMPRESSED_POINTER_FIELD(ObjectPtr, constant_coverage)
 #endif  // !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
   COMPRESSED_POINTER_FIELD(ArrayPtr, debug_positions)
   COMPRESSED_POINTER_FIELD(KernelProgramInfoPtr, kernel_program_info)
@@ -2387,9 +2507,6 @@ class UntaggedLocalVarDescriptors : public UntaggedObject {
   COMPRESSED_VARIABLE_POINTER_FIELDS(StringPtr, name, names)
 
   CompressedStringPtr* nameAddrAt(intptr_t i) { return &(names()[i]); }
-  void set_name(intptr_t i, StringPtr value) {
-    StoreCompressedPointer(nameAddrAt(i), value);
-  }
 
   // Variable info with [num_entries_] entries.
   VarInfo* data() {
@@ -2457,7 +2574,8 @@ class UntaggedContext : public UntaggedObject {
   V(Late)                                                                      \
   V(Nullable)                                                                  \
   V(Invisible)                                                                 \
-  V(AwaiterLink)
+  V(AwaiterLink)                                                               \
+  V(Shared)
 
 class UntaggedContextScope : public UntaggedObject {
   RAW_HEAP_OBJECT_IMPLEMENTATION(ContextScope);
@@ -3770,14 +3888,10 @@ class UntaggedUserTag : public UntaggedInstance {
   // Isolate unique tag.
   uword tag_;
 
-  // Should CPU samples with this tag be streamed?
-  bool streamable_;
-
   friend class Object;
 
  public:
   uword tag() const { return tag_; }
-  bool streamable() const { return streamable_; }
 };
 
 class UntaggedFutureOr : public UntaggedInstance {

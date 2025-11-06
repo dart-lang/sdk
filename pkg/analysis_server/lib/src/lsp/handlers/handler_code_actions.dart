@@ -43,8 +43,9 @@ class CodeActionHandler
     }
 
     var supportsLiterals = callerCapabilities.literalCodeActions;
-    var supportedKinds =
-        supportsLiterals ? callerCapabilities.codeActionKinds : null;
+    var supportedKinds = supportsLiterals
+        ? callerCapabilities.codeActionKinds
+        : null;
 
     var computer = CodeActionComputer(
       server,
@@ -86,12 +87,12 @@ class CodeActionRegistrations extends FeatureRegistration
       // signals code action literal support via the property
       // `textDocument.codeAction.codeActionLiteralSupport`."
       codeActionLiteralSupport
-          ? Either2.t2(
-            CodeActionOptions(
-              codeActionKinds: DartCodeActionKind.serverSupportedKinds,
-            ),
-          )
-          : Either2.t1(true);
+      ? Either2.t2(
+          CodeActionOptions(
+            codeActionKinds: DartCodeActionKind.serverSupportedKinds,
+          ),
+        )
+      : Either2.t1(true);
 
   @override
   bool get supportsDynamic => clientDynamic.codeActions;

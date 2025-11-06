@@ -7,11 +7,13 @@ import "dart:convert" show JsonDecoder, JsonEncoder;
 const JsonEncoder json = const JsonEncoder.withIndent("  ");
 
 List<IncrementalExpectation> extractJsonExpectations(String source) {
-  return new List<IncrementalExpectation>.from(source
-      .split("\n")
-      .where((l) => l.startsWith("<<<< ") || l.startsWith("==== "))
-      .map((l) => l.substring("<<<< ".length))
-      .map((l) => new IncrementalExpectation.fromJson(l)));
+  return new List<IncrementalExpectation>.from(
+    source
+        .split("\n")
+        .where((l) => l.startsWith("<<<< ") || l.startsWith("==== "))
+        .map((l) => l.substring("<<<< ".length))
+        .map((l) => new IncrementalExpectation.fromJson(l)),
+  );
 }
 
 class IncrementalExpectation {
@@ -21,8 +23,11 @@ class IncrementalExpectation {
 
   final bool hasCompileTimeError;
 
-  const IncrementalExpectation(this.messages,
-      {this.commitChangesShouldFail = false, this.hasCompileTimeError = false});
+  const IncrementalExpectation(
+    this.messages, {
+    this.commitChangesShouldFail = false,
+    this.hasCompileTimeError = false,
+  });
 
   factory IncrementalExpectation.fromJson(String json) {
     var data = const JsonDecoder().convert(json);
@@ -32,18 +37,18 @@ class IncrementalExpectation {
     if (data is List) {
       return new IncrementalExpectation(data.cast<String>());
     }
-    return new IncrementalExpectation(extractMessages(data),
-        commitChangesShouldFail: extractCommitChangesShouldFail(data),
-        hasCompileTimeError: extractHasCompileTimeError(data));
+    return new IncrementalExpectation(
+      extractMessages(data),
+      commitChangesShouldFail: extractCommitChangesShouldFail(data),
+      hasCompileTimeError: extractHasCompileTimeError(data),
+    );
   }
 
   dynamic toJson() {
     if (!commitChangesShouldFail && !hasCompileTimeError) {
       return messages.length == 1 ? messages.first : messages;
     }
-    Map<String, dynamic> result = <String, dynamic>{
-      "messages": messages,
-    };
+    Map<String, dynamic> result = <String, dynamic>{"messages": messages};
     if (commitChangesShouldFail) {
       result['commitChangesShouldFail'] = 1;
     }

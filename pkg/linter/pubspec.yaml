@@ -7,7 +7,7 @@ description: >-
   This package is not intended to be used directly.
 
 environment:
-  sdk: ^3.7.0
+  sdk: ^3.9.0
 
 resolution: workspace
 

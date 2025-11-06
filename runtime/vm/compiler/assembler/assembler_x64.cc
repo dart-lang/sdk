@@ -2058,14 +2058,26 @@ void Assembler::CallCFunction(Address address, bool restore_rsp) {
 }
 
 void Assembler::CallRuntime(const RuntimeEntry& entry,
-                            intptr_t argument_count) {
+                            intptr_t argument_count,
+                            bool tsan_enter_exit) {
   ASSERT(!entry.is_leaf());
   // Argument count is not checked here, but in the runtime entry for a more
   // informative error message.
+  if (FLAG_target_thread_sanitizer && FLAG_precompiled_mode &&
+      tsan_enter_exit) {
+    TsanFuncEntry(/*preserve_registers=*/false);
+  }
   movq(RBX, compiler::Address(THR, entry.OffsetFromThread()));
   LoadImmediate(R10, compiler::Immediate(argument_count));
   call(Address(THR, target::Thread::call_to_runtime_entry_point_offset()));
+  if (FLAG_target_thread_sanitizer && FLAG_precompiled_mode &&
+      tsan_enter_exit) {
+    TsanFuncExit(/*preserve_registers=*/false);
+  }
 }
+
+static const RegisterSet kRuntimeCallSavedRegisters(kDartVolatileCpuRegs,
+                                                    kDartVolatileFpuRegs);
 
 #define __ assembler_->
 
@@ -2077,8 +2089,7 @@ LeafRuntimeScope::LeafRuntimeScope(Assembler* assembler,
   __ EnterFrame(0);
 
   if (preserve_registers_) {
-    // TODO(vegorov): avoid saving FpuTMP, it is used only as scratch.
-    __ PushRegisters(kVolatileRegisterSet);
+    __ PushRegisters(kRuntimeCallSavedRegisters);
   } else {
     // These registers must always be preserved.
     ASSERT(IsCalleeSavedRegister(THR));
@@ -2106,18 +2117,9 @@ LeafRuntimeScope::~LeafRuntimeScope() {
     // RSP might have been modified to reserve space for arguments
     // and ensure proper alignment of the stack frame.
     // We need to restore it before restoring registers.
-    const intptr_t kPushedCpuRegistersCount =
-        RegisterSet::RegisterCount(CallingConventions::kVolatileCpuRegisters);
-    const intptr_t kPushedXmmRegistersCount =
-        RegisterSet::RegisterCount(CallingConventions::kVolatileXmmRegisters);
-    const intptr_t kPushedRegistersSize =
-        kPushedCpuRegistersCount * target::kWordSize +
-        kPushedXmmRegistersCount * kFpuRegisterSize;
+    __ leaq(RSP, Address(RBP, -kRuntimeCallSavedRegisters.SpillSize()));
 
-    __ leaq(RSP, Address(RBP, -kPushedRegistersSize));
-
-    // TODO(vegorov): avoid saving FpuTMP, it is used only as scratch.
-    __ PopRegisters(kVolatileRegisterSet);
+    __ PopRegisters(kRuntimeCallSavedRegisters);
   } else {
     const intptr_t kPushedRegistersSize =
         (target::frame_layout.dart_fixed_frame_size - 2) *
@@ -2128,16 +2130,103 @@ LeafRuntimeScope::~LeafRuntimeScope() {
   __ LeaveFrame();
 }
 
-void Assembler::TsanLoadAcquire(Address addr) {
-  LeafRuntimeScope rt(this, /*frame_size=*/0, /*preserve_registers=*/true);
+void Assembler::TsanLoadAcquire(Register dst, Address addr, OperandSize size) {
+  ASSERT(addr.base() != RSP);
+  ASSERT(addr.base() != RBP);
+  ASSERT(dst != RSP);
+  ASSERT(dst != RBP);
+  Comment("TsanLoadAcquire");
+
+  RegisterSet registers(CallingConventions::kVolatileCpuRegisters & ~(1 << dst),
+                        CallingConventions::kVolatileXmmRegisters);
+
+  EnterFrame(0);
+  PushRegisters(registers);
+  ReserveAlignedFrameSpace(0);
+
   leaq(CallingConventions::kArg1Reg, addr);
-  rt.Call(kTsanLoadAcquireRuntimeEntry, /*argument_count=*/1);
+  LoadImmediate(CallingConventions::kArg2Reg,
+                static_cast<int64_t>(std::memory_order_acquire));
+
+  switch (size) {
+    case kEightBytes:
+      movq(RAX, compiler::Address(
+                    THR, kTsanAtomic64LoadRuntimeEntry.OffsetFromThread()));
+      break;
+    case kUnsignedFourBytes:
+      movq(RAX, compiler::Address(
+                    THR, kTsanAtomic32LoadRuntimeEntry.OffsetFromThread()));
+      break;
+    default:
+      UNIMPLEMENTED();
+      break;
+  }
+  movq(compiler::Assembler::VMTagAddress(), RAX);
+  CallCFunction(RAX);
+  movq(compiler::Assembler::VMTagAddress(),
+       compiler::Immediate(VMTag::kDartTagId));
+
+  MoveRegister(dst, RAX);
+
+  // RSP might have been modified to reserve space for arguments
+  // and ensure proper alignment of the stack frame.
+  // We need to restore it before restoring registers.
+  leaq(RSP, Address(RBP, -registers.SpillSize()));
+
+  PopRegisters(registers);
+  LeaveFrame();
 }
 
-void Assembler::TsanStoreRelease(Address addr) {
+void Assembler::TsanStoreRelease(Register src, Address addr, OperandSize size) {
+  ASSERT(addr.base() != RSP);
+  ASSERT(addr.base() != RBP);
+  ASSERT(src != RSP);
+  ASSERT(src != RBP);
+  Comment("TsanStoreRelease");
+
   LeafRuntimeScope rt(this, /*frame_size=*/0, /*preserve_registers=*/true);
-  leaq(CallingConventions::kArg1Reg, addr);
-  rt.Call(kTsanStoreReleaseRuntimeEntry, /*argument_count=*/1);
+
+  if (CallingConventions::kArg1Reg == src) {
+    MoveRegister(CallingConventions::kArg2Reg, src);
+    leaq(CallingConventions::kArg1Reg, addr);
+  } else {
+    leaq(CallingConventions::kArg1Reg, addr);
+    MoveRegister(CallingConventions::kArg2Reg, src);
+  }
+  LoadImmediate(CallingConventions::kArg3Reg,
+                static_cast<int64_t>(std::memory_order_release));
+
+  switch (size) {
+    case kEightBytes:
+      rt.Call(kTsanAtomic64StoreRuntimeEntry, /*argument_count=*/3);
+      break;
+    case kFourBytes:
+    case kUnsignedFourBytes:
+      rt.Call(kTsanAtomic32StoreRuntimeEntry, /*argument_count=*/3);
+      break;
+    default:
+      UNIMPLEMENTED();
+      break;
+  }
+}
+
+void Assembler::TsanFuncEntry(bool preserve_registers) {
+  Comment("TsanFuncEntry");
+  LeafRuntimeScope rt(this, /*frame_size=*/0, preserve_registers);
+  movq(CallingConventions::kArg1Reg,
+       Address(RBP, target::frame_layout.saved_caller_fp_from_fp *
+                        target::kWordSize));
+  movq(CallingConventions::kArg1Reg,
+       Address(
+           CallingConventions::kArg1Reg,
+           target::frame_layout.saved_caller_pc_from_fp * target::kWordSize));
+  rt.Call(kTsanFuncEntryRuntimeEntry, /*argument_count=*/1);
+}
+
+void Assembler::TsanFuncExit(bool preserve_registers) {
+  Comment("TsanFuncExit");
+  LeafRuntimeScope rt(this, /*frame_size=*/0, preserve_registers);
+  rt.Call(kTsanFuncExitRuntimeEntry, /*argument_count=*/0);
 }
 
 void Assembler::RestoreCodePointer() {

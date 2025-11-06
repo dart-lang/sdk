@@ -23,8 +23,8 @@ void f() async {
 }
 ''');
     parseResult.assertErrors([
-      error(ParserErrorCode.ASYNC_KEYWORD_USED_AS_IDENTIFIER, 27, 5),
-      error(ParserErrorCode.EXPECTED_TOKEN, 27, 5),
+      error(ParserErrorCode.asyncKeywordUsedAsIdentifier, 27, 5),
+      error(ParserErrorCode.expectedToken, 27, 5),
     ]);
 
     var node = parseResult.findNode.singleBlock;
@@ -62,7 +62,7 @@ void f() async {
   await y.foo();
 }
 ''');
-    parseResult.assertErrors([error(ParserErrorCode.EXPECTED_TOKEN, 30, 1)]);
+    parseResult.assertErrors([error(ParserErrorCode.expectedToken, 30, 1)]);
 
     var node = parseResult.findNode.singleBlock;
     assertParsedNodeText(node, r'''
@@ -101,7 +101,7 @@ void f() {
   bar();
 }
 ''');
-    parseResult.assertErrors([error(ParserErrorCode.EXPECTED_TOKEN, 21, 3)]);
+    parseResult.assertErrors([error(ParserErrorCode.expectedToken, 21, 3)]);
 
     var node = parseResult.findNode.singleBlock;
     assertParsedNodeText(node, r'''

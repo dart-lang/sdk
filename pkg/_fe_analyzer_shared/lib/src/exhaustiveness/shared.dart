@@ -323,16 +323,15 @@ class ExhaustivenessCache<
     String textualRepresentation,
   ) {
     Type nonNullable = typeOperations.getNonNullable(type);
-    StaticType staticType =
-        _uniqueTypeMap[uniqueValue] ??=
-            new GeneralValueStaticType<Type, Identity>(
-              typeOperations,
-              this,
-              nonNullable,
-              new IdentityRestriction<Identity>(uniqueValue),
-              textualRepresentation,
-              uniqueValue,
-            );
+    StaticType staticType = _uniqueTypeMap[uniqueValue] ??=
+        new GeneralValueStaticType<Type, Identity>(
+          typeOperations,
+          this,
+          nonNullable,
+          new IdentityRestriction<Identity>(uniqueValue),
+          textualRepresentation,
+          uniqueValue,
+        );
     if (typeOperations.isNullable(type)) {
       staticType = staticType.nullable;
     }
@@ -657,8 +656,9 @@ mixin SpaceCreator<Pattern extends Object, Type extends Object> {
     if (space.singleSpaces.length == 1) {
       // Optimize for simple spaces to avoid unnecessary expansion of subtypes.
       SingleSpace singleSpace = space.singleSpaces.single;
-      bool isUnrestricted =
-          unrestrictedCache[singleSpace] ??= _isUnrestricted(singleSpace);
+      bool isUnrestricted = unrestrictedCache[singleSpace] ??= _isUnrestricted(
+        singleSpace,
+      );
       if (isUnrestricted && type.isSubtypeOf(singleSpace.type)) {
         return true;
       }
@@ -677,8 +677,8 @@ mixin SpaceCreator<Pattern extends Object, Type extends Object> {
     for (StaticType subtype in subtypes) {
       bool found = false;
       for (SingleSpace singleSpace in space.singleSpaces) {
-        bool isUnrestricted =
-            unrestrictedCache[singleSpace] ??= _isUnrestricted(singleSpace);
+        bool isUnrestricted = unrestrictedCache[singleSpace] ??=
+            _isUnrestricted(singleSpace);
         if (isUnrestricted && subtype.isSubtypeOf(singleSpace.type)) {
           found = true;
           break;

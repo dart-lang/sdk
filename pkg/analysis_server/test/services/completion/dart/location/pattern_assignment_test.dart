@@ -54,6 +54,8 @@ replacement
 suggestions
   r01
     kind: parameter
+  true
+    kind: keyword
 ''');
   }
 }

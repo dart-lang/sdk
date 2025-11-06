@@ -26,12 +26,11 @@ class ElementLocation {
       [String library, String topName] => ElementLocation._(library, topName),
       [String library, String topName, String memberName] =>
         _MemberElementLocation._(library, topName, memberName),
-      _ =>
-        throw ArgumentError.value(
-          encoded,
-          'encoded',
-          "Encoded string should be in the format 'libraryUri;topLevelName[;memberName]'",
-        ),
+      _ => throw ArgumentError.value(
+        encoded,
+        'encoded',
+        "Encoded string should be in the format 'libraryUri;topLevelName[;memberName]'",
+      ),
     };
   }
 
@@ -47,7 +46,7 @@ class ElementLocation {
     var result = await session.getLibraryByUri(_libraryUri);
     if (result is! LibraryElementResult) return null;
 
-    return result.element2.children.firstWhereOrNull(
+    return result.element.children.firstWhereOrNull(
       (child) => child.lookupName == _topLevelName,
     );
   }

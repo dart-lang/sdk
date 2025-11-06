@@ -2,7 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/analysis_rule/analysis_rule.dart';
 import 'package:analyzer/analysis_rule/rule_context.dart';
+import 'package:analyzer/analysis_rule/rule_visitor_registry.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
@@ -22,12 +24,15 @@ class UnrelatedTypeEqualityChecks extends MultiAnalysisRule {
 
   @override
   List<DiagnosticCode> get diagnosticCodes => [
-    LinterLintCode.unrelated_type_equality_checks_in_expression,
-    LinterLintCode.unrelated_type_equality_checks_in_pattern,
+    LinterLintCode.unrelatedTypeEqualityChecksInExpression,
+    LinterLintCode.unrelatedTypeEqualityChecksInPattern,
   ];
 
   @override
-  void registerNodeProcessors(NodeLintRegistry registry, RuleContext context) {
+  void registerNodeProcessors(
+    RuleVisitorRegistry registry,
+    RuleContext context,
+  ) {
     var visitor = _Visitor(this, context.typeSystem);
     registry.addBinaryExpression(this, visitor);
     registry.addRelationalPattern(this, visitor);
@@ -59,8 +64,7 @@ class _Visitor extends SimpleAstVisitor<void> {
 
     rule.reportAtToken(
       node.operator,
-      diagnosticCode:
-          LinterLintCode.unrelated_type_equality_checks_in_expression,
+      diagnosticCode: LinterLintCode.unrelatedTypeEqualityChecksInExpression,
       arguments: [rightType.getDisplayString(), leftType.getDisplayString()],
     );
   }
@@ -76,7 +80,7 @@ class _Visitor extends SimpleAstVisitor<void> {
 
     rule.reportAtNode(
       node,
-      diagnosticCode: LinterLintCode.unrelated_type_equality_checks_in_pattern,
+      diagnosticCode: LinterLintCode.unrelatedTypeEqualityChecksInPattern,
       arguments: [operandType.getDisplayString(), valueType.getDisplayString()],
     );
   }

@@ -131,292 +131,337 @@ base class _RandomAccessFileOpsImpl extends NativeFieldWrapperClass1
   external lock(int lock, int start, int end);
 }
 
-class _WatcherPath {
+class _WatchedPath implements ffi.Finalizable {
+  /// Path ID returned by [_FileSystemWatcher._watchPath].
+  ///
+  /// Will remain valid until either [_unwatchPath] is called.
   final int pathId;
+
   final String path;
   final int events;
-  int count = 0;
-  _WatcherPath(this.pathId, this.path, this.events);
+
+  /// Listeners subscribed to [FileSystemEvent] occuring at [path].
+  ///
+  /// Once the last listener is unsubscribed the underlying watcher will
+  /// stop monitoring changes at [path].
+  final List<MultiStreamController<FileSystemEvent>> listeners =
+      <MultiStreamController<FileSystemEvent>>[];
+
+  bool isClosed = false;
+
+  /// Source of [_NativeFSEvent] for this path.
+  ///
+  /// This subscription will be cancelled once the last listener is gone.
+  ///
+  /// Might be `null` if events for this path are delivered over multiplexed
+  /// stream (see [_InotifyFileSystemWatcher]).
+  StreamSubscription<List<_NativeFSEvent>>? source;
+
+  /// Finalizer associated with [_WatchedPath] instances.
+  ///
+  /// [_FileSystemWatcher._watchPathImpl] returns `pathId` values which behave
+  /// slightly differently on different OSes.
+  ///
+  /// * On Mac OS X `pathId` values which are actually pointers to `Node`
+  ///   objects. These objects need to be released by calling
+  ///   [_FileSystemWatcher._unwatchPath] - otherwise they will leak.
+  ///   Attaching a [NativeFinalizer] ensures that even if Isolate exits
+  ///   abruptly via [Isolate.exit] we will still free these objects.
+  /// * On Linux `pathId` is a _watch descriptor_ (returned by
+  ///   `inotify_add_watch`) associated with a specific inotify instance.
+  ///   Inotify instances are created by [_FileSystemWatcher._initWatcher] (see
+  ///   `inotify_init`) which returns a file descriptor. This file descriptor is
+  ///   wrapped in a [_NativeSocket] by
+  ///   [_FileSystemWatcher._eventsStreamFromSocket]. Socket takes ownership of
+  ///   the file descriptor and has a finalizer attached to itself. This
+  ///   finalizer will close the descriptor when socket is garbage collected.
+  ///   Thus there is no need to associate a separate finalizer with
+  ///   [_WatchedPath].
+  /// * Windows is a mixture of Linux and Mac OS X: `pathId` itself is a
+  ///   pointer to a socket-like `DirectoryWatchHandle`. It is wrapped in a
+  ///   socket by [_FileSystemWatcher._eventsStreamFromSocket] by we do not
+  ///   allow the socket to take full ownership of the `pathId` handle, because
+  ///   we want to guarantee that invariant that `pathId` remains valid
+  ///   until we explicitly call `_FileSystemWatcher._unwatchPath`. To ensure
+  ///   this we explicitly retain `DirectoryWatchHandle` before returning it
+  ///   from [_FileSystemWatcher._initWatcher]. This will keep the handle
+  ///   alive even after event handler is done with it. This however means that
+  ///   [_FileSystemWatcher._unwatchPath] must be called to release the handle.
+  ///   Thus we need to attach a finalizer to [_WatchedPath] to guarantee that.
+  static final ffi.NativeFinalizer? finalizer =
+      Platform.isMacOS || Platform.isWindows
+      ? ffi.NativeFinalizer(
+          ffi.Native.addressOf(_FileSystemWatcher._destroyWatch),
+        )
+      : null;
+
+  _WatchedPath(this.pathId, this.path, this.events) {
+    finalizer?.attach(this, .fromAddress(pathId), detach: this);
+  }
+
+  FutureOr<void> dispose() {
+    assert(listeners.isEmpty);
+    isClosed = true;
+    finalizer?.detach(this);
+    return source?.cancel();
+  }
+
+  void add(FileSystemEvent event) {
+    if (isClosed) {
+      return;
+    }
+
+    if ((event.type & events) == 0) {
+      return;
+    }
+
+    for (var listener in listeners) {
+      listener.add(event);
+    }
+  }
+
+  void close({Object? error}) {
+    if (isClosed) {
+      return;
+    }
+
+    isClosed = true;
+    for (var listener in listeners) {
+      if (error != null) {
+        listener.addError(error);
+      }
+      listener.close();
+    }
+  }
+
+  /// Emit the given [_NativeFSEvent] to listeners.
+  ///
+  /// A single [_NativeFSEvent] is expanded into a sequence of appropriate
+  /// [FileSystemEvent].
+  ///
+  /// Note: this might modify [unmatchedMoves] - the caller is responsible for
+  /// calling [flushUnmatchedMoves] once it emitted all events from a chunk
+  /// of events.
+  void addEvent(_NativeFSEvent event) {
+    if (isClosed) {
+      return;
+    }
+
+    final flags = event.flags;
+    final fullPath = fullPathOf(event);
+    final isDir = _NativeFSEvent.isDirectory(event, fullPath);
+
+    if ((flags & FileSystemEvent.create) != 0) {
+      add(FileSystemCreateEvent(fullPath, isDir));
+    }
+
+    if ((flags & FileSystemEvent.modify) != 0) {
+      add(FileSystemModifyEvent(fullPath, isDir, true));
+    }
+
+    if ((flags & FileSystemEvent._modifyAttributes) != 0) {
+      add(FileSystemModifyEvent(fullPath, isDir, false));
+    }
+
+    if ((flags & FileSystemEvent.move) != 0) {
+      // Use cookie to merge pairs of move from and move to events.
+      final int cookie = event.cookie;
+      if (cookie > 0) {
+        if (unmatchedMoves.remove(cookie) case final linkedEvent?) {
+          add(FileSystemMoveEvent(fullPathOf(linkedEvent), isDir, fullPath));
+        } else {
+          unmatchedMoves[cookie] = event;
+        }
+      } else {
+        addMove(event, fullPath, isDir);
+      }
+    }
+
+    if ((flags & FileSystemEvent.delete) != 0) {
+      add(FileSystemDeleteEvent(fullPath, false));
+    }
+
+    if ((flags & FileSystemEvent._deleteSelf) != 0) {
+      add(FileSystemDeleteEvent(fullPath, false));
+      // Emit all unmatched moves before emitting the stop event to avoid
+      // loosing these events.
+      flushUnmatchedMoves();
+      close();
+    }
+  }
+
+  /// Flush unmatched move events accumulated in [unmatchedMoves].
+  void flushUnmatchedMoves() {
+    for (var move in unmatchedMoves.values) {
+      final fullPathOfMove = fullPathOf(move);
+      addMove(
+        move,
+        fullPathOfMove,
+        _NativeFSEvent.isDirectory(move, fullPathOf(move)),
+      );
+    }
+    unmatchedMoves.clear();
+  }
+
+  /// Most recently encountered move events by their [_NativeFSEvent.cookie].
+  ///
+  /// When converting a chunk of _NativeFSEvent to corresponding FileSystemEvents
+  /// we try to match and merge pairs of events which correspond to a single
+  /// move operation (e.g. FILE_ACTION_RENAMED_{OLD|NEW}_NAME on Windows and
+  /// IN_MOVED_{FROM|TO} on Linux). We use this as a temporary storage for
+  /// matching. The caller feeding native events must call [flushUnmatchedMoves]
+  /// at the end of the chunk to flush all unmatched moves.
+  final Map<int, _NativeFSEvent> unmatchedMoves = {};
+
+  String fullPathOf(_NativeFSEvent event) {
+    assert(event.pathId == pathId);
+    if (event.relativePath case final eventPath? when eventPath.isNotEmpty) {
+      return '${path}${Platform.pathSeparator}${eventPath}';
+    } else {
+      return path;
+    }
+  }
+
+  void addMove(_NativeFSEvent event, String fullPath, bool isDir) {
+    if ((event.flags & FileSystemEvent._movedTo) != 0) {
+      add(FileSystemCreateEvent(fullPath, isDir));
+    } else {
+      add(FileSystemDeleteEvent(fullPath, false));
+    }
+  }
 }
 
 @patch
 abstract class _FileSystemWatcher {
-  void _pathWatchedEnd();
-
-  static int? _id;
-  static final Map<int, _WatcherPath> _idMap = {};
-
-  final String _path;
-  final int _events;
-  final bool _recursive;
-
-  _WatcherPath? _watcherPath;
-
-  final StreamController<FileSystemEvent> _broadcastController =
-      StreamController<FileSystemEvent>.broadcast();
-
-  /// Subscription on the stream returned by [_watchPath].
-  ///
-  /// Stored while piping events from that stream into [_broadcastController],
-  /// so it can be cancelled when [_broadcastController] is cancelled.
-  StreamSubscription? _sourceSubscription;
-
   @patch
   static Stream<FileSystemEvent> _watch(
     String path,
     int events,
     bool recursive,
   ) {
-    if (Platform.isLinux || Platform.isAndroid) {
-      return _InotifyFileSystemWatcher(path, events, recursive)._stream;
-    }
-    if (Platform.isWindows) {
-      return _Win32FileSystemWatcher(path, events, recursive)._stream;
-    }
-    if (Platform.isMacOS) {
-      return _FSEventStreamFileSystemWatcher(path, events, recursive)._stream;
-    }
-    throw FileSystemException(
-      "File system watching is not supported on this platform",
-    );
+    return _watcher._watchImpl(path, events, recursive);
   }
 
-  _FileSystemWatcher._(this._path, this._events, this._recursive) {
-    if (!isSupported) {
-      throw FileSystemException(
-        "File system watching is not supported on this platform",
-        _path,
-      );
-    }
-    _broadcastController
-      ..onListen = _listen
-      ..onCancel = _cancel;
-  }
-
-  Stream<FileSystemEvent> get _stream => _broadcastController.stream;
-
-  void _listen() {
-    if (_id == null) {
+  Stream<FileSystemEvent> _watchImpl(String path, int events, bool recursive) {
+    _WatchedPath? watchedPath;
+    final stream = Stream<FileSystemEvent>.multi((controller) {
+      _WatchedPath wp;
       try {
-        _id = _initWatcher();
-        _newWatcher();
-      } on dynamic catch (e) {
-        _broadcastController.addError(
-          FileSystemException._fromOSError(
-            e,
-            "Failed to initialize file system entity watcher",
-            _path,
-          ),
-        );
-        _broadcastController.close();
+        wp = watchedPath ??= _watcher._startWatching(path, events, recursive);
+      } on FileSystemException catch (e, st) {
+        controller.addError(e, st);
+        controller.close();
         return;
       }
-    }
-    var pathId;
-    try {
-      pathId = _watchPath(
-        _id!,
-        _Namespace._namespace,
-        _path,
-        _events,
-        _recursive,
-      );
-    } on dynamic catch (e) {
-      _broadcastController.addError(
-        FileSystemException._fromOSError(e, "Failed to watch path", _path),
-      );
-      _broadcastController.close();
-      return;
-    }
-    if (!_idMap.containsKey(pathId)) {
-      _idMap[pathId] = _WatcherPath(pathId, _path, _events);
-    }
-    _watcherPath = _idMap[pathId];
-    _watcherPath!.count++;
-    _sourceSubscription = _pathWatched().listen(
-      _broadcastController.add,
-      onError: _broadcastController.addError,
-      onDone: _broadcastController.close,
-    );
-  }
 
-  void _cancel() {
-    final watcherPath = _watcherPath;
-    if (watcherPath != null) {
-      assert(watcherPath.count > 0);
-      watcherPath.count--;
-      if (watcherPath.count == 0) {
-        var pathId = watcherPath.pathId;
-        // DirectoryWatchHandle(aka pathId) might be closed already initiated
-        // by issueReadEvent for example. When that happens, appropriate closeEvent
-        // will arrive to us and we will remove this pathId from _idMap. If that
-        // happens we should not try to close it again as pathId is no
-        // longer usable(the memory it points to might be released)
-        if (_idMap.containsKey(pathId)) {
-          _unwatchPath(_id!, pathId);
-          _pathWatchedEnd();
-          _idMap.remove(pathId);
-        }
+      if (wp.isClosed) {
+        controller.addError(
+          FileSystemException('Directory watcher is already closed', path),
+        );
+        controller.close();
+        return;
       }
-      _watcherPath = null;
-    }
-    final id = _id;
-    if (_idMap.isEmpty && id != null) {
-      _closeWatcher(id);
-      _doneWatcher();
-      _id = null;
-    }
-    _sourceSubscription?.cancel();
-    _sourceSubscription = null;
+
+      wp.listeners.add(controller);
+      controller.onCancel = () {
+        wp.listeners.remove(controller);
+        if (wp.listeners.isEmpty) {
+          watchedPath = null;
+          return _stopWatching(wp);
+        }
+      };
+    });
+
+    return stream;
   }
 
-  // Called when (and after) a new watcher instance is created and available.
-  void _newWatcher() {}
-  // Called when a watcher is no longer needed.
-  void _doneWatcher() {}
-  // Called when a new path is being watched.
-  Stream<FileSystemEvent> _pathWatched();
-  // Called when a path is no longer being watched.
-  void _donePathWatched() {}
-
-  static _WatcherPath _pathFromPathId(int pathId) {
-    return _idMap[pathId]!;
-  }
-
-  static Stream _listenOnSocket(int socketId, int id, int pathId) {
+  Stream<List<_NativeFSEvent>> _eventsStreamFromSocket(
+    int socketId,
+    int pathId,
+  ) {
     final nativeSocket = _NativeSocket._watch(socketId);
-    final rawSocket = _RawSocket(nativeSocket);
-    return rawSocket.expand((event) {
-      var stops = [];
-      var events = [];
-      var pair = {};
+    return _RawSocket(nativeSocket).map((event) {
       if (event == RawSocketEvent.read) {
-        String getPath(event) {
-          var path = _pathFromPathId(event[4]).path;
-          if (event[2] != null && event[2].isNotEmpty) {
-            path += Platform.pathSeparator;
-            path += event[2];
-          }
-          return path;
-        }
+        final result = <_NativeFSEvent>[];
 
-        bool getIsDir(event) {
-          if (Platform.isWindows) {
-            // Windows does not get 'isDir' as part of the event.
-            // Links should also be skipped.
-            return FileSystemEntity.isDirectorySync(getPath(event)) &&
-                !FileSystemEntity.isLinkSync(getPath(event));
-          }
-          return (event[0] & FileSystemEvent._isDir) != 0;
-        }
-
-        void add(id, event) {
-          if ((event.type & _pathFromPathId(id).events) == 0) return;
-          events.add([id, event]);
-        }
-
-        void rewriteMove(event, isDir) {
-          if (event[3]) {
-            add(event[4], FileSystemCreateEvent(getPath(event), isDir));
-          } else {
-            add(event[4], FileSystemDeleteEvent(getPath(event), false));
-          }
-        }
-
-        int eventCount;
+        int totalEvents;
         do {
-          eventCount = 0;
-          for (var event in _readEvents(id, pathId)) {
-            if (event == null) continue;
-            eventCount++;
-            int pathId = event[4];
-            if (!_idMap.containsKey(pathId)) {
-              // Path is no longer being wathed.
-              continue;
+          totalEvents = result.length;
+          for (_NativeFSEvent? e in _readEvents(_watcherId, pathId)) {
+            if (e == null) {
+              break;
             }
-            bool isDir = getIsDir(event);
-            var path = getPath(event);
-            if ((event[0] & FileSystemEvent.create) != 0) {
-              add(event[4], FileSystemCreateEvent(path, isDir));
-            }
-            if ((event[0] & FileSystemEvent.modify) != 0) {
-              add(event[4], FileSystemModifyEvent(path, isDir, true));
-            }
-            if ((event[0] & FileSystemEvent._modifyAttributes) != 0) {
-              add(event[4], FileSystemModifyEvent(path, isDir, false));
-            }
-            if ((event[0] & FileSystemEvent.move) != 0) {
-              int link = event[1];
-              if (link > 0) {
-                pair.putIfAbsent(pathId, () => {});
-                if (pair[pathId].containsKey(link)) {
-                  add(
-                    event[4],
-                    FileSystemMoveEvent(
-                      getPath(pair[pathId][link]),
-                      isDir,
-                      path,
-                    ),
-                  );
-                  pair[pathId].remove(link);
-                } else {
-                  pair[pathId][link] = event;
-                }
-              } else {
-                rewriteMove(event, isDir);
-              }
-            }
-            if ((event[0] & FileSystemEvent.delete) != 0) {
-              add(event[4], FileSystemDeleteEvent(path, false));
-            }
-            if ((event[0] & FileSystemEvent._deleteSelf) != 0) {
-              add(event[4], FileSystemDeleteEvent(path, false));
-              // Signal done event.
-              stops.add([event[4], null]);
-            }
+            result.add(e);
           }
-        } while (eventCount > 0);
+        } while (result.length > totalEvents);
+
         // Be sure to clear this manually, as the sockets are not read through
         // the _NativeSocket interface.
         nativeSocket.available = 0;
-        for (var map in pair.values) {
-          for (var event in map.values) {
-            rewriteMove(event, getIsDir(event));
-          }
-        }
-      } else if (event == RawSocketEvent.closed) {
-        // After this point we should not try to do anything with pathId as
-        // the handle it represented is closed and gone now.
-        if (_idMap.containsKey(pathId)) {
-          _idMap.remove(pathId);
-          if (_idMap.isEmpty && _id != null) {
-            _closeWatcher(_id!);
-            _id = null;
-          }
-        }
-      } else if (event == RawSocketEvent.readClosed) {
-        // If Directory watcher buffer overflows, it will send an readClosed event.
-        // Normal closing will cancel stream subscription so that path is
-        // no longer being watched, not present in _idMap.
-        if (_idMap.containsKey(pathId)) {
-          var path = _pathFromPathId(pathId).path;
-          _idMap.remove(pathId);
-          if (_idMap.isEmpty && _id != null) {
-            _closeWatcher(_id!);
-            _id = null;
-          }
-          throw FileSystemException(
-            'Directory watcher closed unexpectedly',
-            path,
-          );
-        }
-      } else {
-        assert(false);
+
+        return result;
       }
-      events.addAll(stops);
-      return events;
+      return [];
     });
   }
+
+  /// Native ID associated with the watcher.
+  ///
+  /// Passed as a parameter to [_watchPathImpl] and other native functions.
+  int get _watcherId => 0;
+
+  /// Start watching the given path for the specified events.
+  ///
+  /// Returns [_WatchedPath] instances representing the watch.
+  _WatchedPath _startWatching(String path, int events, bool recursive);
+
+  /// Stop watching the given path.
+  ///
+  /// If this causes the watcher to free some native resources (e.g. because
+  /// this was the last active filesystem watch) this function will return
+  /// an instance of [Future] which will complete after native cleanup is
+  /// complete.
+  FutureOr<void> _stopWatching(_WatchedPath wp) {
+    _unwatchPath(_watcherId, wp.pathId);
+    return wp.dispose();
+  }
+
+  /// Wrapper over [_watchPathImpl] which takes care of converting
+  /// [OSError] into [FileSystemException].
+  int _watchPath(String path, int events, bool recursive) {
+    try {
+      return _watchPathImpl(
+        _watcherId,
+        _Namespace._namespace,
+        path,
+        events,
+        recursive,
+      );
+    } on OSError catch (e) {
+      throw FileSystemException._fromOSError(e, "Failed to watch path", path);
+    }
+  }
+
+  /// Singleton [_FileSystemWatcher] which takes care of watching file system.
+  static _FileSystemWatcher _watcher = () {
+    if (isSupported) {
+      if (Platform.isLinux || Platform.isAndroid) {
+        return _InotifyFileSystemWatcher();
+      }
+
+      if (Platform.isWindows) {
+        return _Win32FileSystemWatcher();
+      }
+
+      if (Platform.isMacOS) {
+        return _FSEventStreamFileSystemWatcher();
+      }
+    }
+
+    throw FileSystemException(
+      "File system watching is not supported on this platform",
+    );
+  }();
 
   @patch
   @pragma("vm:external-name", "FileSystemWatcher_IsSupported")
@@ -424,120 +469,233 @@ abstract class _FileSystemWatcher {
 
   @pragma("vm:external-name", "FileSystemWatcher_InitWatcher")
   external static int _initWatcher();
-  @pragma("vm:external-name", "FileSystemWatcher_CloseWatcher")
-  external static void _closeWatcher(int id);
 
   @pragma("vm:external-name", "FileSystemWatcher_WatchPath")
-  external static int _watchPath(
-    int id,
+  external static int _watchPathImpl(
+    int watcherId,
     _Namespace namespace,
     String path,
     int events,
     bool recursive,
   );
   @pragma("vm:external-name", "FileSystemWatcher_UnwatchPath")
-  external static void _unwatchPath(int id, int path_id);
+  external static void _unwatchPath(int watcherId, int pathId);
+
+  /// Returns a list each element of which is [_NativeFSEvents] or `null`.
+  ///
+  /// After the first `null` only `null` entries will follow, in other words
+  /// all non-`null` entries form the prefix of the list.
   @pragma("vm:external-name", "FileSystemWatcher_ReadEvents")
-  external static List _readEvents(int id, int path_id);
+  external static List _readEvents(int watcherId, int pathId);
+
   @pragma("vm:external-name", "FileSystemWatcher_GetSocketId")
-  external static int _getSocketId(int id, int path_id);
+  external static int _getSocketId(int watcherId, int pathId);
+
+  @ffi.Native<ffi.Void Function(ffi.Pointer<ffi.Void>)>(
+    symbol: "FileSystemWatcher::DestroyWatch",
+  )
+  external static void _destroyWatch(ffi.Pointer<ffi.Void> pathId);
 }
 
-class _InotifyFileSystemWatcher extends _FileSystemWatcher {
-  static final Map<int, StreamController<FileSystemEvent>> _idMap = {};
-  static late StreamSubscription _subscription;
+/// A watcher that receives events for multiple `pathId` on a single channel.
+abstract class _MultiplexingFileSystemWatcher extends _FileSystemWatcher {
+  /// Map of [_watchedPath] indexed by `pathId` values.
+  final Map<int, _WatchedPath> _watchedPaths = <int, _WatchedPath>{};
 
-  _InotifyFileSystemWatcher(path, events, recursive)
-    : super._(path, events, recursive);
+  /// Perform necessary initialization of the native state for the watcher.
+  void _ensureWatcherIsRunning();
 
-  void _newWatcher() {
-    int id = _FileSystemWatcher._id!;
-    _subscription = _FileSystemWatcher._listenOnSocket(id, id, 0).listen((
-      event,
-    ) {
-      if (_idMap.containsKey(event[0])) {
-        if (event[1] != null) {
-          _idMap[event[0]]!.add(event[1]);
-        } else {
-          _idMap[event[0]]!.close();
+  /// Shutdown the watcher when there is no actively watched paths.
+  ///
+  /// If shutdown requires asynchronous actions returns [Future] which will
+  /// complete when shutdown is finished.
+  FutureOr<void> _stopWatcher();
+
+  @override
+  _WatchedPath _startWatching(String path, int events, bool recursive) {
+    _ensureWatcherIsRunning();
+    final pathId = super._watchPath(path, events, recursive);
+    // On Linux inotify_add_watch will return an existing watch descriptor
+    // for the inode if there is already one associated with it. Thus we
+    // need accept the possibility that calling _watchPath twice will
+    // return the same pathId. Other OSes do not reuse pathId values.
+    assert(Platform.isLinux || !_watchedPaths.containsKey(pathId));
+    return _watchedPaths[pathId] ??= _WatchedPath(pathId, path, events);
+  }
+
+  @override
+  Future<void> _stopWatching(_WatchedPath wp) async {
+    assert(_watchedPaths[wp.pathId] == wp);
+    _watchedPaths.remove(wp.pathId);
+    await super._stopWatching(wp);
+
+    // If there are no more active watcher close inotify descriptor.
+    if (_watchedPaths.isEmpty) {
+      await _stopWatcher();
+    }
+  }
+}
+
+class _InotifyFileSystemWatcher extends _MultiplexingFileSystemWatcher {
+  int? _inotifyFd;
+  StreamSubscription<List<_NativeFSEvent>>? _inotifySubscription;
+
+  @override
+  int get _watcherId => _inotifyFd!;
+
+  @override
+  void _ensureWatcherIsRunning() {
+    if (_inotifyFd != null) {
+      return;
+    }
+
+    final inotifyFd = _inotifyFd = _FileSystemWatcher._initWatcher();
+    _inotifySubscription = _eventsStreamFromSocket(
+      inotifyFd,
+      0,
+    ).listen(_handleEvents);
+  }
+
+  void _handleEvents(List<_NativeFSEvent> events) {
+    Set<_WatchedPath>? dirty;
+
+    // Distribute events to corresponding _WatchedPath objects based on
+    // pathId.
+    for (_NativeFSEvent event in events) {
+      if (_watchedPaths[event.pathId] case final watchedPath?) {
+        watchedPath.addEvent(event);
+        if (watchedPath.unmatchedMoves.isNotEmpty) {
+          (dirty ??= {}).add(watchedPath);
         }
       }
-    });
-  }
-
-  void _doneWatcher() {
-    _subscription.cancel();
-  }
-
-  Stream<FileSystemEvent> _pathWatched() {
-    var pathId = _watcherPath!.pathId;
-    if (!_idMap.containsKey(pathId)) {
-      _idMap[pathId] = StreamController<FileSystemEvent>.broadcast();
     }
-    return _idMap[pathId]!.stream;
+
+    if (dirty != null) {
+      for (var watchedPath in dirty) {
+        watchedPath.flushUnmatchedMoves();
+      }
+    }
   }
 
-  void _pathWatchedEnd() {
-    var pathId = _watcherPath!.pathId;
-    if (!_idMap.containsKey(pathId)) return;
-    _idMap[pathId]!.close();
-    _idMap.remove(pathId);
+  @override
+  FutureOr<void> _stopWatcher() {
+    final subscription = _inotifySubscription;
+    _inotifyFd = null;
+    _inotifySubscription = null;
+    return subscription?.cancel();
+  }
+}
+
+class _FSEventStreamFileSystemWatcher extends _MultiplexingFileSystemWatcher {
+  final _port = RawReceivePort()..keepIsolateAlive = false;
+
+  @override
+  late final _watcherId = ffi.NativePort(_port.sendPort).nativePort;
+
+  @override
+  void _ensureWatcherIsRunning() {
+    _port.keepIsolateAlive = true;
+    _port.handler = _handleEvents;
+  }
+
+  @override
+  FutureOr<void> _stopWatcher() {
+    _port.keepIsolateAlive = false;
+    _port.handler = null;
+  }
+
+  void _handleEvents(List events) {
+    // All events in a bundle have the same pathId, and we never get an empty
+    // bundle.
+    final pathId = (events[0] as _NativeFSEvent).pathId;
+    if (_watchedPaths[pathId] case final watchedPath?) {
+      for (_NativeFSEvent event in events) {
+        watchedPath.addEvent(event);
+      }
+      watchedPath.flushUnmatchedMoves();
+    }
   }
 }
 
 class _Win32FileSystemWatcher extends _FileSystemWatcher {
-  late StreamSubscription _subscription;
-  late StreamController<FileSystemEvent> _controller;
-
-  _Win32FileSystemWatcher(path, events, recursive)
-    : super._(path, events, recursive);
-
-  Stream<FileSystemEvent> _pathWatched() {
-    var pathId = _watcherPath!.pathId;
-    _controller = StreamController<FileSystemEvent>();
-    _subscription = _FileSystemWatcher._listenOnSocket(pathId, 0, pathId)
-        .listen((event) {
-          assert(event[0] == pathId);
-          if (event[1] != null) {
-            _controller.add(event[1]);
-          } else {
-            _controller.close();
-          }
-        });
-    return _controller.stream;
-  }
-
-  void _pathWatchedEnd() {
-    _subscription.cancel();
-    _controller.close();
+  @override
+  _WatchedPath _startWatching(String path, int events, bool recursive) {
+    final watchedPath = _WatchedPath(
+      _watchPath(path, events, recursive),
+      path,
+      events,
+    );
+    watchedPath.source =
+        _eventsStreamFromSocket(
+          _FileSystemWatcher._getSocketId(0, watchedPath.pathId),
+          watchedPath.pathId,
+        ).listen(
+          (events) {
+            for (var e in events) {
+              watchedPath.addEvent(e);
+            }
+            watchedPath.flushUnmatchedMoves();
+          },
+          onError: (error) {
+            if (watchedPath.listeners.isNotEmpty) {
+              watchedPath.close(
+                error: FileSystemException(
+                  'Directory watcher failed due to: $error',
+                  watchedPath.path,
+                ),
+              );
+            }
+          },
+          onDone: () {
+            if (watchedPath.listeners.isNotEmpty) {
+              watchedPath.close(
+                error: FileSystemException(
+                  'Directory watcher closed unexpectedly',
+                  watchedPath.path,
+                ),
+              );
+            }
+          },
+          cancelOnError: true,
+        );
+    return watchedPath;
   }
 }
 
-class _FSEventStreamFileSystemWatcher extends _FileSystemWatcher {
-  late StreamSubscription _subscription;
-  late StreamController<FileSystemEvent> _controller;
+extension type _NativeFSEvent(List<dynamic> _) {
+  // See FileSystemWatcher::kEvent*Index constants.
+  static const int flagsIndex = 0;
+  static const int cookieIndex = 1;
+  static const int pathIndex = 2;
+  static const int pathIdIndex = 3;
 
-  _FSEventStreamFileSystemWatcher(path, events, recursive)
-    : super._(path, events, recursive);
+  int get flags => this._[flagsIndex];
 
-  Stream<FileSystemEvent> _pathWatched() {
-    var pathId = _watcherPath!.pathId;
-    var socketId = _FileSystemWatcher._getSocketId(0, pathId);
-    _controller = StreamController<FileSystemEvent>();
-    _subscription = _FileSystemWatcher._listenOnSocket(socketId, 0, pathId)
-        .listen((event) {
-          if (event[1] != null) {
-            _controller.add(event[1]);
-          } else {
-            _controller.close();
-          }
-        });
-    return _controller.stream;
-  }
+  /// A unique identifier (32-bit unsigned integer) for matching related events.
+  ///
+  /// On Linux (inotify) associates unique cookie values with pairs of
+  /// `IN_MOVED_FROM` and `IN_MOVED_TO` events.
+  ///
+  /// On Windows we set cookie to `1` on pairs of `FILE_ACTION_RENAMED_OLD_NAME`
+  /// and `FILE_ACTION_RENAMED_NEW_NAME`.
+  ///
+  /// Not used on Mac OS X (because `FSEventStream` does not generate move
+  /// events).
+  int get cookie => this._[cookieIndex];
 
-  void _pathWatchedEnd() {
-    _subscription.cancel();
-    _controller.close();
+  String? get relativePath => this._[pathIndex];
+
+  int get pathId => this._[pathIdIndex];
+
+  static bool isDirectory(_NativeFSEvent event, String fullPath) {
+    if (Platform.isWindows) {
+      // Windows does not get FileSystemEvent._isDir bit as part of the event
+      // so we need to compute it by checking the file-system. We ignore links
+      // when computing isDirectory.
+      return FileSystemEntity._isDirectoryIgnoringLinksSync(fullPath);
+    } else {
+      return (event.flags & FileSystemEvent._isDir) != 0;
+    }
   }
 }
 

@@ -22,12 +22,11 @@ void main() {
 class DartTextDocumentContentProviderTest
     extends AbstractLspAnalysisServerTest {
   @override
-  AnalysisServerOptions get serverOptions =>
-      AnalysisServerOptions()
-        ..enabledExperiments = [
-          ...super.serverOptions.enabledExperiments,
-          ...experimentsForTests,
-        ];
+  AnalysisServerOptions get serverOptions => AnalysisServerOptions()
+    ..enabledExperiments = [
+      ...super.serverOptions.enabledExperiments,
+      ...experimentsForTests,
+    ];
 
   @override
   void setUp() {

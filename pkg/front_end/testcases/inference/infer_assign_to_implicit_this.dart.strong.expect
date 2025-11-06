@@ -2,17 +2,17 @@ library test;
 //
 // Problems in library:
 //
-// pkg/front_end/testcases/inference/infer_assign_to_implicit_this.dart:34:25: Error: A value of type 'A' can't be assigned to a variable of type 'B'.
+// pkg/front_end/testcases/inference/infer_assign_to_implicit_this.dart:31:12: Error: A value of type 'A' can't be assigned to a variable of type 'B'.
 //  - 'A' is from 'pkg/front_end/testcases/inference/infer_assign_to_implicit_this.dart'.
 //  - 'B' is from 'pkg/front_end/testcases/inference/infer_assign_to_implicit_this.dart'.
-//         /*@target=B.+*/ += /*@typeArgs=C*/ f();
-//                         ^
+//     member += f();
+//            ^
 //
-// pkg/front_end/testcases/inference/infer_assign_to_implicit_this.dart:55:32: Error: A value of type 'A' can't be assigned to a variable of type 'B'.
+// pkg/front_end/testcases/inference/infer_assign_to_implicit_this.dart:45:21: Error: A value of type 'A' can't be assigned to a variable of type 'B'.
 //  - 'A' is from 'pkg/front_end/testcases/inference/infer_assign_to_implicit_this.dart'.
 //  - 'B' is from 'pkg/front_end/testcases/inference/infer_assign_to_implicit_this.dart'.
-//         member /*@target=B.+*/ +=
-//                                ^
+//     var v3 = member += f();
+//                     ^
 //
 import self as self;
 import "dart:core" as core;
@@ -49,26 +49,26 @@ class Test extends core::Object {
   method test() → void {
     this.{self::Test::member} = self::f<self::B>();
     this.{self::Test::member2}{self::B?} == null ?{self::B?} this.{self::Test::member2} = self::f<self::B?>() : null;
-    this.{self::Test::member} = invalid-expression "pkg/front_end/testcases/inference/infer_assign_to_implicit_this.dart:34:25: Error: A value of type 'A' can't be assigned to a variable of type 'B'.
+    this.{self::Test::member} = invalid-expression "pkg/front_end/testcases/inference/infer_assign_to_implicit_this.dart:31:12: Error: A value of type 'A' can't be assigned to a variable of type 'B'.
  - 'A' is from 'pkg/front_end/testcases/inference/infer_assign_to_implicit_this.dart'.
  - 'B' is from 'pkg/front_end/testcases/inference/infer_assign_to_implicit_this.dart'.
-        /*@target=B.+*/ += /*@typeArgs=C*/ f();
-                        ^" in this.{self::Test::member}{self::B}.{self::B::+}(self::f<self::C>()){(self::C) → self::A} as{TypeError} self::B;
+    member += f();
+           ^" in this.{self::Test::member}{self::B}.{self::B::+}(self::f<self::C>()){(self::C) → self::A} as{TypeError} self::B;
     this.{self::Test::member} = this.{self::Test::member}{self::B}.{self::B::*}(self::f<self::B>()){(self::B) → self::B};
     this.{self::Test::member} = this.{self::Test::member}{self::B}.{self::B::&}(self::f<self::A>()){(self::A) → self::C};
     this.{self::Test::member} = this.{self::Test::member}{self::B}.{self::B::-}(1){(core::int) → self::B};
     this.{self::Test::member} = this.{self::Test::member}{self::B}.{self::B::-}(1){(core::int) → self::B};
     self::B v1 = this.{self::Test::member} = self::f<self::B>();
     self::B? v2 = let final self::B? #t1 = this.{self::Test::member2}{self::B?} in #t1 == null ?{self::B?} this.{self::Test::member2} = self::f<self::B?>() : #t1{self::B};
-    self::A v3 = this.{self::Test::member} = invalid-expression "pkg/front_end/testcases/inference/infer_assign_to_implicit_this.dart:55:32: Error: A value of type 'A' can't be assigned to a variable of type 'B'.
+    self::A v3 = this.{self::Test::member} = invalid-expression "pkg/front_end/testcases/inference/infer_assign_to_implicit_this.dart:45:21: Error: A value of type 'A' can't be assigned to a variable of type 'B'.
  - 'A' is from 'pkg/front_end/testcases/inference/infer_assign_to_implicit_this.dart'.
  - 'B' is from 'pkg/front_end/testcases/inference/infer_assign_to_implicit_this.dart'.
-        member /*@target=B.+*/ +=
-                               ^" in this.{self::Test::member}{self::B}.{self::B::+}(self::f<self::C>()){(self::C) → self::A} as{TypeError} self::B;
+    var v3 = member += f();
+                    ^" in this.{self::Test::member}{self::B}.{self::B::+}(self::f<self::C>()){(self::C) → self::A} as{TypeError} self::B;
     self::B v4 = this.{self::Test::member} = this.{self::Test::member}{self::B}.{self::B::*}(self::f<self::B>()){(self::B) → self::B};
     self::C v5 = this.{self::Test::member} = this.{self::Test::member}{self::B}.{self::B::&}(self::f<self::A>()){(self::A) → self::C};
     self::B v6 = this.{self::Test::member} = this.{self::Test::member}{self::B}.{self::B::-}(1){(core::int) → self::B};
-    self::B v7 = let final self::B #t2 = this.{self::Test::member}{self::B} in let final self::B #t3 = this.{self::Test::member} = #t2.{self::B::-}(1){(core::int) → self::B} in #t2;
+    self::B v7 = let final self::B #t2 = this.{self::Test::member}{self::B} in let final void #t3 = this.{self::Test::member} = #t2.{self::B::-}(1){(core::int) → self::B} in #t2;
   }
 }
 static method f<T extends core::Object? = dynamic>() → self::f::T%

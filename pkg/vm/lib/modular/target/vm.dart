@@ -173,14 +173,6 @@ class VmTarget extends Target {
     void Function(String msg)? logger,
     ChangedStructureNotifier? changedStructureNotifier,
   }) {
-    deeply_immutable.validateLibraries(
-      component,
-      libraries,
-      coreTypes,
-      diagnosticReporter,
-    );
-    logger?.call("Validated deeply immutable");
-
     transformMixins.transformLibraries(
       this,
       coreTypes,
@@ -225,15 +217,25 @@ class VmTarget extends Target {
       // VM pragma attached to valid targets in the native transformer. Hence,
       // it can only run after `@Native` targets have been transformed.
       transformFfiUseSites.transformLibraries(
+        this,
         component,
         coreTypes,
         hierarchy,
         transitiveImportingDartFfi,
         diagnosticReporter,
         referenceFromIndex,
+        environmentDefines,
       );
       logger?.call("Transformed ffi use sites");
     }
+
+    deeply_immutable.validateLibraries(
+      component,
+      libraries,
+      coreTypes,
+      diagnosticReporter,
+    );
+    logger?.call("Validated deeply immutable");
 
     bool productMode = environmentDefines!["dart.vm.product"] == "true";
     lowering.transformLibraries(
@@ -625,7 +627,12 @@ class VmTarget extends Target {
   }
 
   @override
-  ConstantsBackend get constantsBackend => const ConstantsBackend();
+  ConstantsBackend get constantsBackend => switch (flags
+      .constKeepLocalsIndicator) {
+    null => const ConstantsBackend(/* keeps defaults */),
+    true => const ConstantsBackend(keepLocals: true),
+    false => const ConstantsBackend(keepLocals: false),
+  };
 
   @override
   Map<String, String> updateEnvironmentDefines(Map<String, String> map) {

@@ -33,9 +33,8 @@ class TransformSetManagerTest extends AbstractContextTest {
     _addDataFile('p1-1.0');
 
     writeTestPackageConfig(
-      config:
-          PackageConfigFileBuilder()
-            ..add(name: 'p1', rootPath: '$workspaceRootPath/p1-1.0'),
+      config: PackageConfigFileBuilder()
+        ..add(name: 'p1', rootPath: '$workspaceRootPath/p1-1.0'),
     );
 
     newFile('/home/test/pubspec.yaml', '');
@@ -43,7 +42,7 @@ class TransformSetManagerTest extends AbstractContextTest {
     var testFile = convertPath('$testPackageLibPath/test.dart');
     newFile(testFile, '');
     var result = await (await session).getResolvedLibraryValid(testFile);
-    var sets = manager.forLibrary(result.element2);
+    var sets = manager.forLibrary(result.element);
     expect(sets, hasLength(1));
     var elementMatcher = ElementMatcher(
       importedUris: [Uri.parse('package:p1/test.dart')],
@@ -63,9 +62,8 @@ class TransformSetManagerTest extends AbstractContextTest {
     _addDataFileIn('$folder/deep/dive/two.yaml', 'p1');
 
     writeTestPackageConfig(
-      config:
-          PackageConfigFileBuilder()
-            ..add(name: 'p1', rootPath: '$workspaceRootPath/p1'),
+      config: PackageConfigFileBuilder()
+        ..add(name: 'p1', rootPath: '$workspaceRootPath/p1'),
     );
 
     newFile('/home/test/pubspec.yaml', '');
@@ -73,7 +71,7 @@ class TransformSetManagerTest extends AbstractContextTest {
     var testFile = convertPath('$testPackageLibPath/test.dart');
     newFile(testFile, '');
     var result = await (await session).getResolvedLibraryValid(testFile);
-    var sets = manager.forLibrary(result.element2);
+    var sets = manager.forLibrary(result.element);
     expect(sets, hasLength(2));
 
     var elementMatcher = ElementMatcher(
@@ -108,10 +106,9 @@ class TransformSetManagerTest extends AbstractContextTest {
     _addDataFile('p2');
 
     writeTestPackageConfig(
-      config:
-          PackageConfigFileBuilder()
-            ..add(name: 'p1', rootPath: '$workspaceRootPath/p1')
-            ..add(name: 'p2', rootPath: '$workspaceRootPath/p2'),
+      config: PackageConfigFileBuilder()
+        ..add(name: 'p1', rootPath: '$workspaceRootPath/p1')
+        ..add(name: 'p2', rootPath: '$workspaceRootPath/p2'),
     );
 
     newFile('/home/test/pubspec.yaml', '');
@@ -119,7 +116,7 @@ class TransformSetManagerTest extends AbstractContextTest {
     var testFile = convertPath('$testPackageLibPath/test.dart');
     newFile(testFile, '');
     var result = await (await session).getResolvedLibraryValid(testFile);
-    var sets = manager.forLibrary(result.element2);
+    var sets = manager.forLibrary(result.element);
     expect(sets, hasLength(2));
   }
 
@@ -130,7 +127,7 @@ class TransformSetManagerTest extends AbstractContextTest {
     var testFile = convertPath('$testPackageLibPath/test.dart');
     newFile(testFile, '');
     var result = await (await session).getResolvedLibraryValid(testFile);
-    var sets = manager.forLibrary(result.element2);
+    var sets = manager.forLibrary(result.element);
     expect(sets, hasLength(0));
   }
 

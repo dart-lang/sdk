@@ -26,7 +26,7 @@ class ListPatternResolver {
       if (length != 1) {
         resolverVisitor.diagnosticReporter.atNode(
           typeArguments,
-          CompileTimeErrorCode.EXPECTED_ONE_LIST_PATTERN_TYPE_ARGUMENTS,
+          CompileTimeErrorCode.expectedOneListPatternTypeArguments,
           arguments: [length],
         );
       }

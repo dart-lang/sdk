@@ -53,31 +53,33 @@ Future<void> main(List<String> args) async {
   if (!patchedSdk.existsSync()) {
     throw "Directory $patchedSdk doesn't exist.";
   }
-  Uri frontendServerStarter = Platform.script
-      .resolve("../../frontend_server/bin/frontend_server_starter.dart");
+  Uri frontendServerStarter = Platform.script.resolve(
+    "../../frontend_server/bin/frontend_server_starter.dart",
+  );
   if (!new File.fromUri(frontendServerStarter).existsSync()) {
     throw "File not found: $frontendServerStarter";
   }
 
-  File packageConfig =
-      new File("$rootPath/flutter/.dart_tool/package_config.json");
+  File packageConfig = new File(
+    "$rootPath/flutter/.dart_tool/package_config.json",
+  );
 
   if (!packageConfig.existsSync()) {
     // If the package_config doesn't exist we should run pub get.
-    Process process = await Process.start("bin/flutter", ["pub", "get"],
-        workingDirectory: "$rootPath/flutter/");
-    process.stdout
-        .transform(utf8.decoder)
-        .transform(new LineSplitter())
-        .listen((line) {
-      print("flutter stdout> $line");
-    });
-    process.stderr
-        .transform(utf8.decoder)
-        .transform(new LineSplitter())
-        .listen((line) {
-      print("flutter stderr> $line");
-    });
+    Process process = await Process.start("bin/flutter", [
+      "pub",
+      "get",
+    ], workingDirectory: "$rootPath/flutter/");
+    process.stdout.transform(utf8.decoder).transform(new LineSplitter()).listen(
+      (line) {
+        print("flutter stdout> $line");
+      },
+    );
+    process.stderr.transform(utf8.decoder).transform(new LineSplitter()).listen(
+      (line) {
+        print("flutter stderr> $line");
+      },
+    );
     int processExitCode = await process.exitCode;
     print("Exit code from flutter: $processExitCode");
   }
@@ -88,30 +90,31 @@ Future<void> main(List<String> args) async {
   }
 
   List<helper.Interest> interests = <helper.Interest>[];
-  interests.add(new helper.Interest(
-    Uri.parse("package:kernel/ast.dart"),
-    "Library",
-    ["fileUri"],
-    expectToAlwaysFind: true,
-  ));
+  interests.add(
+    new helper.Interest(Uri.parse("package:kernel/ast.dart"), "Library", [
+      "fileUri",
+    ], expectToAlwaysFind: true),
+  );
   helper.VMServiceHeapHelperSpecificExactLeakFinder heapHelper =
       new helper.VMServiceHeapHelperSpecificExactLeakFinder(
-    interests: interests,
-    prettyPrints: [
-      new helper.Interest(
-        Uri.parse("package:kernel/ast.dart"),
-        "Library",
-        ["fileUri", "libraryIdForTesting"],
-        expectToAlwaysFind: true,
-      ),
-    ],
-    throwOnPossibleLeak: true,
-  );
+        interests: interests,
+        prettyPrints: [
+          new helper.Interest(
+            Uri.parse("package:kernel/ast.dart"),
+            "Library",
+            ["fileUri", "libraryIdForTesting"],
+            expectToAlwaysFind: true,
+          ),
+        ],
+        throwOnPossibleLeak: true,
+      );
 
-  print("About to run with "
-      "quicker = $quicker; "
-      "path = $rootPath; "
-      "...");
+  print(
+    "About to run with "
+    "quicker = $quicker; "
+    "path = $rootPath; "
+    "...",
+  );
 
   List<String> processArgs = [
     "--disable_dart_dev",
@@ -133,25 +136,27 @@ Future<void> main(List<String> args) async {
     "$rootPath/cache.dill",
   ];
 
-  await heapHelper.start(processArgs,
-      stdoutReceiver: (s) {
-        if (s.startsWith("+")) {
-          files.add(s.substring(1));
-        } else if (s.startsWith("-")) {
-          files.remove(s.substring(1));
+  await heapHelper.start(
+    processArgs,
+    stdoutReceiver: (s) {
+      if (s.startsWith("+")) {
+        files.add(s.substring(1));
+      } else if (s.startsWith("-")) {
+        files.remove(s.substring(1));
+      } else {
+        List<String> split = s.split(" ");
+        if (int.tryParse(split.last) != null &&
+            split[split.length - 2].endsWith(".dill")) {
+          // e.g. something like "filename.dill 0" for output file and 0
+          // errors.
+          completer.complete();
         } else {
-          List<String> split = s.split(" ");
-          if (int.tryParse(split.last) != null &&
-              split[split.length - 2].endsWith(".dill")) {
-            // e.g. something like "filename.dill 0" for output file and 0
-            // errors.
-            completer.complete();
-          } else {
-            print("out> $s");
-          }
+          print("out> $s");
         }
-      },
-      stderrReceiver: (s) => print("err> $s"));
+      }
+    },
+    stderrReceiver: (s) => print("err> $s"),
+  );
 
   Stopwatch stopwatch = new Stopwatch()..start();
   await sendAndWait(heapHelper.process, ['compile package:gallery/main.dart']);
@@ -173,8 +178,9 @@ Future<void> main(List<String> args) async {
     print("On iteration ${iteration++} / ${listFiles.length}");
     print(" => Invalidating $s");
     stopwatch.reset();
-    await recompileAndWait(
-        heapHelper.process, "package:gallery/main.dart", [s]);
+    await recompileAndWait(heapHelper.process, "package:gallery/main.dart", [
+      s,
+    ]);
     await accept(heapHelper);
     print("Recompile took ${stopwatch.elapsedMilliseconds} ms");
     await sendAndWaitSetSelection(heapHelper.process);
@@ -198,7 +204,8 @@ Future<void> main(List<String> args) async {
 }
 
 Future accept(
-    helper.VMServiceHeapHelperSpecificExactLeakFinder heapHelper) async {
+  helper.VMServiceHeapHelperSpecificExactLeakFinder heapHelper,
+) async {
   heapHelper.process.stdin.writeln('accept');
   int waits = 0;
   while (!await heapHelper.isIdle()) {
@@ -237,7 +244,8 @@ class Uuid {
 }
 
 Future pauseAndWait(
-    helper.VMServiceHeapHelperSpecificExactLeakFinder heapHelper) async {
+  helper.VMServiceHeapHelperSpecificExactLeakFinder heapHelper,
+) async {
   int prevIterationNumber = heapHelper.iterationNumber;
   await heapHelper.pause();
 
@@ -253,7 +261,10 @@ Future pauseAndWait(
 }
 
 Future recompileAndWait(
-    Process _server, String what, List<String> invalidates) async {
+  Process _server,
+  String what,
+  List<String> invalidates,
+) async {
   String inputKey = Uuid().generateV4();
   List<String> data = ['recompile $what $inputKey'];
   invalidates.forEach(data.add);
@@ -289,7 +300,7 @@ Future sendAndWaitDebugDidSendFirstFrameEvent(Process _server) async {
     /* libraryUri */ 'package:flutter/src/widgets/binding.dart',
     /* class */ '',
     /* method */ '',
-    /* isStatic */ 'true'
+    /* isStatic */ 'true',
   ]);
 }
 
@@ -312,7 +323,7 @@ Future sendAndWaitSetSelection(Process _server) async {
     /* libraryUri */ 'package:flutter/src/widgets/widget_inspector.dart',
     /* class */ '',
     /* method */ '',
-    /* isStatic */ 'true'
+    /* isStatic */ 'true',
   ]);
 }
 
@@ -335,7 +346,7 @@ Future sendAndWaitToObject(Process _server) async {
     /* libraryUri */ 'package:flutter/src/widgets/widget_inspector.dart',
     /* class */ '',
     /* method */ '',
-    /* isStatic */ 'true'
+    /* isStatic */ 'true',
   ]);
 }
 
@@ -358,6 +369,6 @@ Future sendAndWaitToObjectForSourceLocation(Process _server) async {
     /* libraryUri */ 'package:flutter/src/widgets/widget_inspector.dart',
     /* class */ '',
     /* method */ '',
-    /* isStatic */ 'true'
+    /* isStatic */ 'true',
   ]);
 }

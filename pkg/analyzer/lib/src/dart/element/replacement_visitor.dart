@@ -33,7 +33,7 @@ class ReplacementVisitor
     required FunctionTypeImpl type,
     required InstantiatedTypeAliasElementImpl? newAlias,
     required List<TypeParameterElementImpl>? newTypeParameters,
-    required List<FormalParameterElementMixin>? newParameters,
+    required List<InternalFormalParameterElement>? newParameters,
     required TypeImpl? newReturnType,
     required NullabilitySuffix? newNullability,
   }) {
@@ -175,12 +175,11 @@ class ReplacementVisitor
         var newBound = visitTypeParameterBound(bound);
         if (newBound != null) {
           newTypeParameters ??= node.typeParameters.toList(growable: false);
-          newTypeParameters[i] =
-              typeParameter.freshCopy()
-                ..bound =
-                    // TODO(paulberry): eliminate this cast by changing the return
-                    // type of `visitTypeParameterBound`.
-                    newBound as TypeImpl;
+          newTypeParameters[i] = typeParameter.freshCopy()
+            ..bound =
+                // TODO(paulberry): eliminate this cast by changing the return
+                // type of `visitTypeParameterBound`.
+                newBound as TypeImpl;
         }
       }
     }
@@ -241,7 +240,7 @@ class ReplacementVisitor
 
     changeVariance();
 
-    List<FormalParameterElementMixin>? newParameters;
+    List<InternalFormalParameterElement>? newParameters;
     for (var i = 0; i < node.formalParameters.length; i++) {
       var parameter = node.formalParameters[i];
 
@@ -281,12 +280,11 @@ class ReplacementVisitor
         var newBound = visitTypeParameterBound(bound);
         if (newBound != null) {
           newTypeParameters ??= node.typeParameters.toList(growable: false);
-          newTypeParameters[i] =
-              typeParameter.freshCopy()
-                ..bound =
-                    // TODO(paulberry): eliminate this cast by changing the return
-                    // type of `visitTypeParameterBound`.
-                    newBound as TypeImpl;
+          newTypeParameters[i] = typeParameter.freshCopy()
+            ..bound =
+                // TODO(paulberry): eliminate this cast by changing the return
+                // type of `visitTypeParameterBound`.
+                newBound as TypeImpl;
         }
       }
     }

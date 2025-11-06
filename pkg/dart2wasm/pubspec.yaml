@@ -2,7 +2,7 @@ name: dart2wasm
 # This package is not intended for consumption on pub.dev. DO NOT publish.
 publish_to: none
 environment:
-  sdk: ^3.5.0
+  sdk: ^3.6.0
 
 resolution: workspace
 
@@ -10,11 +10,13 @@ resolution: workspace
 dependencies:
   _fe_analyzer_shared: any
   _js_interop_checks: any
+  analyzer: any
   args: any
   build_integration: any
   collection: any
   front_end: any
   kernel: any
+  linter: any
   vm: any
   wasm_builder: any
   path: any

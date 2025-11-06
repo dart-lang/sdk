@@ -48,36 +48,45 @@ class CompileType : public ZoneAllocated {
   static constexpr bool kCanBeSentinel = true;
   static constexpr bool kCannotBeSentinel = false;
 
+  using CanBeNullBit = BitField<uint8_t, bool>;
+  using CanBeSentinelBit = BitField<uint8_t, bool, CanBeNullBit::kNextBit>;
+  using ExactTypeBit = BitField<uint8_t, bool, CanBeSentinelBit::kNextBit>;
+
   CompileType(bool can_be_null,
               bool can_be_sentinel,
               intptr_t cid,
-              const AbstractType* type)
-      : can_be_null_(can_be_null),
-        can_be_sentinel_(can_be_sentinel),
+              const AbstractType* type,
+              bool exact_type = false)
+      : flags_(CanBeNullBit::encode(can_be_null) |
+               CanBeSentinelBit::encode(can_be_sentinel) |
+               ExactTypeBit::encode(exact_type)),
         cid_(cid),
-        type_(type) {}
+        type_(type) {
+    ASSERT((!exact_type) || (type != nullptr));
+  }
 
   CompileType(const CompileType& other)
       : ZoneAllocated(),
-        can_be_null_(other.can_be_null_),
-        can_be_sentinel_(other.can_be_sentinel_),
+        flags_(other.flags_),
         cid_(other.cid_),
         type_(other.type_) {}
 
   CompileType& operator=(const CompileType& other) {
     // This intentionally does not change the owner of this type.
-    can_be_null_ = other.can_be_null_;
-    can_be_sentinel_ = other.can_be_sentinel_;
+    flags_ = other.flags_;
     cid_ = other.cid_;
     type_ = other.type_;
     return *this;
   }
 
-  bool is_nullable() const { return can_be_null_; }
+  bool is_nullable() const { return CanBeNullBit::decode(flags_); }
 
   // Return true if value of this type can be Object::sentinel().
   // Such values cannot be unboxed.
-  bool can_be_sentinel() const { return can_be_sentinel_; }
+  bool can_be_sentinel() const { return CanBeSentinelBit::decode(flags_); }
+
+  // Return true if type returned by [ToAbstractType] is an exact runtime type.
+  bool is_exact_type() const { return ExactTypeBit::decode(flags_); }
 
   // Return type such that concrete value's type in runtime is guaranteed to
   // be subtype of it.
@@ -109,12 +118,14 @@ class CompileType : public ZoneAllocated {
       return None();
     }
 
-    return CompileType(kCannotBeNull, can_be_sentinel_, cid_, type_);
+    return CompileType(kCannotBeNull, can_be_sentinel(), cid_, type_,
+                       is_exact_type());
   }
 
   // Return the non-sentinel version of this type.
   CompileType CopyNonSentinel() {
-    return CompileType(can_be_null_, kCannotBeSentinel, cid_, type_);
+    return CompileType(is_nullable(), kCannotBeSentinel, cid_, type_,
+                       is_exact_type());
   }
 
   // Create a new CompileType representing given abstract type.
@@ -204,8 +215,7 @@ class CompileType : public ZoneAllocated {
 
   // Return true if this and other types are the same.
   bool IsEqualTo(CompileType* other) {
-    return (can_be_null_ == other->can_be_null_) &&
-           (can_be_sentinel_ == other->can_be_sentinel_) &&
+    return (flags_ == other->flags_) &&
            (ToNullableCid() == other->ToNullableCid()) &&
            (compiler::IsEqualType(*ToAbstractType(), *other->ToAbstractType()));
   }
@@ -299,8 +309,7 @@ class CompileType : public ZoneAllocated {
   explicit CompileType(FlowGraphDeserializer* d);
 
  private:
-  bool can_be_null_;
-  bool can_be_sentinel_;
+  uint8_t flags_;
   classid_t cid_;
   const AbstractType* type_;
   Definition* owner_ = nullptr;

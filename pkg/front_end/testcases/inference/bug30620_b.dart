@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/*@testedFeatures=inference*/
 library test;
 
 class A {
@@ -11,13 +10,9 @@ class A {
   A(this.foo);
 
   bool operator ==(Object other) =>
-      other is A && /*@promotedType=A*/ other
-              . /*@target=A.foo*/ foo /*@target=String.==*/ ==
-          this. /*@target=A.foo*/ foo && /*@promotedType=A*/ other
-              . /*@target=A.foo*/ foo /*@target=String.==*/ ==
-          this. /*@target=A.foo*/ foo;
+      other is A && other.foo == this.foo && other.foo == this.foo;
 }
 
 main() {
-  print(new A("hello") /*@target=A.==*/ == new A("hello"));
+  print(new A("hello") == new A("hello"));
 }

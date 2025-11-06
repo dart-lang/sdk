@@ -29,7 +29,7 @@ class C {
   }
 }
 ''',
-      [error(WarningCode.NON_NULLABLE_EQUALS_PARAMETER, 52, 2)],
+      [error(WarningCode.nonNullableEqualsParameter, 52, 2)],
     );
   }
 
@@ -42,7 +42,7 @@ class C {
   operator ==(dynamic other) => other is C && foo == other.foo;
 }
 ''',
-      [error(WarningCode.NON_NULLABLE_EQUALS_PARAMETER, 52, 2)],
+      [error(WarningCode.nonNullableEqualsParameter, 52, 2)],
     );
   }
 
@@ -58,7 +58,7 @@ class C {
   }
 }
 ''',
-      [error(WarningCode.UNNECESSARY_NULL_COMPARISON_NEVER_NULL_TRUE, 88, 7)],
+      [error(WarningCode.unnecessaryNullComparisonNeverNullTrue, 88, 7)],
     );
   }
 
@@ -72,7 +72,7 @@ class C {
           !(other == null) && other is C && foo == other.foo;
 }
 ''',
-      [error(WarningCode.NON_NULLABLE_EQUALS_PARAMETER, 52, 2), lint(85, 13)],
+      [error(WarningCode.nonNullableEqualsParameter, 52, 2), lint(85, 13)],
     );
   }
 
@@ -86,7 +86,7 @@ class C {
           !((other) == null) && (other) is C && foo == (other.foo);
 }
 ''',
-      [error(WarningCode.NON_NULLABLE_EQUALS_PARAMETER, 52, 2), lint(85, 15)],
+      [error(WarningCode.nonNullableEqualsParameter, 52, 2), lint(85, 15)],
     );
   }
 
@@ -108,10 +108,10 @@ class C {
 }
 ''',
       [
-        error(WarningCode.NON_NULLABLE_EQUALS_PARAMETER, 62, 2),
+        error(WarningCode.nonNullableEqualsParameter, 62, 2),
         lint(126, 14),
-        error(WarningCode.DEAD_CODE, 132, 8),
-        error(StaticWarningCode.DEAD_NULL_AWARE_EXPRESSION, 135, 5),
+        error(WarningCode.deadCode, 132, 8),
+        error(StaticWarningCode.deadNullAwareExpression, 135, 5),
       ],
     );
   }
@@ -126,7 +126,7 @@ class C {
           other != null && other is C && foo == other.foo;
 }
 ''',
-      [error(WarningCode.NON_NULLABLE_EQUALS_PARAMETER, 52, 2), lint(83, 13)],
+      [error(WarningCode.nonNullableEqualsParameter, 52, 2), lint(83, 13)],
     );
   }
 
@@ -140,9 +140,9 @@ class C {
 }
 ''',
       [
-        error(WarningCode.NON_NULLABLE_EQUALS_PARAMETER, 52, 2),
+        error(WarningCode.nonNullableEqualsParameter, 52, 2),
         lint(94, 10),
-        error(StaticWarningCode.INVALID_NULL_AWARE_OPERATOR, 99, 2),
+        error(StaticWarningCode.invalidNullAwareOperator, 99, 2),
       ],
     );
   }

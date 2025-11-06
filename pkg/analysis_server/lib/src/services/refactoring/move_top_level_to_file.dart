@@ -50,10 +50,9 @@ class MoveTopLevelToFile extends RefactoringProducer {
       parameterTitle: 'Select a file to move to',
       actionLabel: 'Move',
       // defaultValue is a String URI.
-      defaultValue:
-          refactoringContext.server.pathContext
-              .toUri(defaultFilePath)
-              .toString(),
+      defaultValue: refactoringContext.server.pathContext
+          .toUri(defaultFilePath)
+          .toString(),
       filters: {
         'Dart': ['dart'],
       },
@@ -105,13 +104,11 @@ class MoveTopLevelToFile extends RefactoringProducer {
     }
 
     var lineInfo = unitResult.lineInfo;
-    var ranges =
-        members.groups
-            .map(
-              (group) =>
-                  group.sourceRange(lineInfo, includePreceedingLine: false),
-            )
-            .toList();
+    var ranges = members.groups
+        .map(
+          (group) => group.sourceRange(lineInfo, includePreceedingLine: false),
+        )
+        .toList();
     var analyzer = ImportAnalyzer(libraryResult, sourcePath, ranges);
 
     await builder.addDartFileEdit(destinationFilePath, (builder) {
@@ -163,7 +160,7 @@ class MoveTopLevelToFile extends RefactoringProducer {
 
     /// Don't update the library from which the code is being moved because
     /// that's already been done.
-    libraries.remove(libraryResult.element2);
+    libraries.remove(libraryResult.element);
     for (var entry in libraries.entries) {
       var library = entry.key;
       var prefixes = <String>{};
@@ -225,11 +222,12 @@ class MoveTopLevelToFile extends RefactoringProducer {
         if (library == null || library.isDartCore) {
           continue;
         }
-        var hasShowCombinator =
-            import.combinators.whereType<ShowElementCombinator>().isNotEmpty;
+        var hasShowCombinator = import.combinators
+            .whereType<ShowElementCombinator>()
+            .isNotEmpty;
         builder.importLibrary(
           library.uri,
-          prefix: import.prefix2?.element.name,
+          prefix: import.prefix?.element.name,
           showName: element.name,
           useShow: hasShowCombinator,
         );
@@ -298,11 +296,10 @@ class MoveTopLevelToFile extends RefactoringProducer {
 
     var index = _SealedSubclassIndex(
       unitResult.unit,
-      candidateElements:
-          candidateMembers.keys
-              .map((member) => member.declaredFragment?.element)
-              .nonNulls
-              .toSet(),
+      candidateElements: candidateMembers.keys
+          .map((member) => member.declaredFragment?.element)
+          .nonNulls
+          .toSet(),
     );
 
     if (index.hasInvalidCandidateSet) {
@@ -313,8 +310,9 @@ class MoveTopLevelToFile extends RefactoringProducer {
     for (var sub in index.findSubclassesOfSealedRecursively(
       candidateMembers.keys.toSet(),
     )) {
-      candidateMembers[sub] ??=
-          sub is NamedCompilationUnitMember ? sub.name.lexeme : null;
+      candidateMembers[sub] ??= sub is NamedCompilationUnitMember
+          ? sub.name.lexeme
+          : null;
     }
 
     // Ensure there aren't any subclasses of sealed items in other parts of this

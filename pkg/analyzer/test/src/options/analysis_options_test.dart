@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/dart/analysis/analysis_options.dart';
 import 'package:analyzer/diagnostic/diagnostic.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/file_system/memory_file_system.dart';
@@ -13,6 +12,7 @@ import 'package:analyzer/src/file_system/file_system.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/lint/registry.dart';
 import 'package:analyzer_testing/utilities/extensions/resource_provider.dart';
+import 'package:collection/collection.dart';
 import 'package:linter/src/rules.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -117,7 +117,7 @@ analyzer:
       source: TestSource(),
       offset: 0,
       length: 1,
-      diagnosticCode: WarningCode.RETURN_TYPE_INVALID_FOR_CATCH_ERROR,
+      diagnosticCode: WarningCode.returnTypeInvalidForCatchError,
       arguments: [
         ['x'],
         ['y'],
@@ -142,7 +142,7 @@ analyzer:
       source: TestSource(),
       offset: 0,
       length: 1,
-      diagnosticCode: WarningCode.UNUSED_LOCAL_VARIABLE,
+      diagnosticCode: WarningCode.unusedLocalVariable,
       arguments: [
         ['x'],
       ],
@@ -167,7 +167,7 @@ analyzer:
       source: TestSource(),
       offset: 0,
       length: 1,
-      diagnosticCode: CompileTimeErrorCode.INVALID_ASSIGNMENT,
+      diagnosticCode: CompileTimeErrorCode.invalidAssignment,
       arguments: [
         ['x'],
         ['y'],
@@ -193,7 +193,7 @@ analyzer:
       source: TestSource(),
       offset: 0,
       length: 1,
-      diagnosticCode: WarningCode.RETURN_TYPE_INVALID_FOR_CATCH_ERROR,
+      diagnosticCode: WarningCode.returnTypeInvalidForCatchError,
       arguments: [
         ['x'],
         ['y'],
@@ -304,7 +304,73 @@ analyzer:
     expect(analysisOptions.propagateLinterExceptions, true);
   }
 
-  test_analyzer_plugins_pathConstraint() {
+  test_codeStyle_format_false() {
+    var analysisOptions = parseOptions('''
+code-style:
+  format: false
+''');
+    expect(analysisOptions.codeStyleOptions.useFormatter, false);
+  }
+
+  test_codeStyle_format_true() {
+    var analysisOptions = parseOptions('''
+code-style:
+  format: true
+''');
+    expect(analysisOptions.codeStyleOptions.useFormatter, true);
+  }
+
+  test_plugins_dependency_overrides_relative() {
+    var analysisOptions = parseOptions('''
+plugins:
+  plugin_one:
+    path: foo/bar
+  dependency_overrides:
+    some_package1:
+      path: ../some_package1
+    some_package2:
+      path: sub_folder/some_package2
+''');
+
+    var dependencyOverrides =
+        analysisOptions.pluginsOptions.dependencyOverrides;
+    expect(dependencyOverrides, isNotNull);
+    expect(dependencyOverrides, hasLength(2));
+    var package1 = dependencyOverrides!.entries.singleWhereOrNull(
+      (entry) => entry.key == 'some_package1',
+    );
+    var package2 = dependencyOverrides.entries.singleWhereOrNull(
+      (entry) => entry.key == 'some_package2',
+    );
+    expect(package1, isNotNull);
+    expect(package1!.key, 'some_package1');
+    expect(
+      package1.value,
+      isA<PathPluginSource>().having(
+        (e) => e.toYaml(name: 'some_package1'),
+        'toYaml',
+        '''
+  some_package1:
+    path: ${convertPath('/some_package1')}
+''',
+      ),
+    );
+    expect(package2, isNotNull);
+    expect(package2!.key, 'some_package2');
+    expect(
+      package2.value,
+      isA<PathPluginSource>().having(
+        (e) => e.toYaml(name: 'some_package2'),
+        'toYaml',
+        '''
+  some_package2:
+    path: ${convertPath('/project/sub_folder/some_package2')}
+''',
+      ),
+    );
+  }
+
+  test_plugins_pathConstraint() {
     var analysisOptions = parseOptions('''
 plugins:
   plugin_one:
@@ -327,7 +393,7 @@ plugins:
     );
   }
 
-  test_analyzer_plugins_pathConstraint_relative() {
+  test_plugins_pathConstraint_relative() {
     var analysisOptions = parseOptions('''
 plugins:
   plugin_one:
@@ -350,7 +416,7 @@ plugins:
     );
   }
 
-  test_analyzer_plugins_pathConstraint_relativeNonNormal() {
+  test_plugins_pathConstraint_relativeNonNormal() {
     var analysisOptions = parseOptions('''
 plugins:
   plugin_one:
@@ -373,7 +439,7 @@ plugins:
     );
   }
 
-  test_analyzer_plugins_scalarConstraint() {
+  test_plugins_scalarConstraint() {
     var analysisOptions = parseOptions('''
 plugins:
   plugin_one: ^1.2.3
@@ -392,7 +458,7 @@ plugins:
     );
   }
 
-  test_analyzer_plugins_versionConstraint() {
+  test_plugins_versionConstraint() {
     var analysisOptions = parseOptions('''
 plugins:
   plugin_one:
@@ -410,22 +476,6 @@ plugins:
         '  plugin_one: ^1.2.3\n',
       ),
     );
-  }
-
-  test_codeStyle_format_false() {
-    var analysisOptions = parseOptions('''
-code-style:
-  format: false
-''');
-    expect(analysisOptions.codeStyleOptions.useFormatter, false);
-  }
-
-  test_codeStyle_format_true() {
-    var analysisOptions = parseOptions('''
-code-style:
-  format: true
-''');
-    expect(analysisOptions.codeStyleOptions.useFormatter, true);
   }
 
   test_signature_on_different_error_ordering() {

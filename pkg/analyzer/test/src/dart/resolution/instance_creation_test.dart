@@ -36,7 +36,7 @@ void f() {
   A.new(0);
 }
 ''',
-      [error(ParserErrorCode.EXPERIMENT_NOT_ENABLED, 40, 3)],
+      [error(ParserErrorCode.experimentNotEnabled, 40, 3)],
     );
 
     // Resolution should continue even though the experiment is not enabled.
@@ -46,7 +46,7 @@ InstanceCreationExpression
   constructorName: ConstructorName
     type: NamedType
       name: A
-      element2: <testLibrary>::@class::A
+      element: <testLibrary>::@class::A
       type: A
     period: .
     name: SimpleIdentifier
@@ -85,7 +85,7 @@ InstanceCreationExpression
   constructorName: ConstructorName
     type: NamedType
       name: A
-      element2: <testLibrary>::@class::A
+      element: <testLibrary>::@class::A
       type: A
     element: <testLibrary>::@class::A::@constructor::new
   argumentList: ArgumentList
@@ -201,7 +201,7 @@ void f() {
   A(0);
 }
 ''',
-      [error(WarningCode.UNUSED_ELEMENT, 33, 1)],
+      [error(WarningCode.unusedElement, 33, 1)],
     );
 
     var node = findNode.singleInstanceCreationExpression;
@@ -250,7 +250,7 @@ InstanceCreationExpression
   constructorName: ConstructorName
     type: NamedType
       name: A
-      element2: <testLibrary>::@class::A
+      element: <testLibrary>::@class::A
       type: A<int>
     period: .
     name: SimpleIdentifier
@@ -298,10 +298,10 @@ InstanceCreationExpression
         arguments
           NamedType
             name: int
-            element2: dart:core::@class::int
+            element: dart:core::@class::int
             type: int
         rightBracket: >
-      element2: <testLibrary>::@class::A
+      element: <testLibrary>::@class::A
       type: A<int>
     period: .
     name: SimpleIdentifier
@@ -337,7 +337,7 @@ InstanceCreationExpression
   constructorName: ConstructorName
     type: NamedType
       name: A
-      element2: <testLibrary>::@class::A
+      element: <testLibrary>::@class::A
       type: A<int>
     element: ConstructorMember
       baseElement: <testLibrary>::@class::A::@constructor::new
@@ -376,10 +376,10 @@ InstanceCreationExpression
         arguments
           NamedType
             name: int
-            element2: dart:core::@class::int
+            element: dart:core::@class::int
             type: int
         rightBracket: >
-      element2: <testLibrary>::@class::A
+      element: <testLibrary>::@class::A
       type: A<int>
     element: ConstructorMember
       baseElement: <testLibrary>::@class::A::@constructor::new
@@ -539,7 +539,7 @@ void f() {
   A();
 }
 ''',
-      [error(WarningCode.UNUSED_ELEMENT, 30, 1)],
+      [error(WarningCode.unusedElement, 30, 1)],
     );
 
     var node = findNode.singleInstanceCreationExpression;
@@ -577,7 +577,7 @@ InstanceCreationExpression
   constructorName: ConstructorName
     type: NamedType
       name: A
-      element2: <testLibrary>::@class::A
+      element: <testLibrary>::@class::A
       type: A
     period: .
     name: SimpleIdentifier
@@ -615,7 +615,7 @@ InstanceCreationExpression
   constructorName: ConstructorName
     type: NamedType
       name: A
-      element2: <testLibrary>::@class::A
+      element: <testLibrary>::@class::A
       type: A
     element: <testLibrary>::@class::A::@constructor::new
   argumentList: ArgumentList
@@ -640,7 +640,7 @@ void f() {
 }
 
 ''',
-      [error(CompileTimeErrorCode.NEW_WITH_UNDEFINED_CONSTRUCTOR, 31, 10)],
+      [error(CompileTimeErrorCode.newWithUndefinedConstructor, 31, 10)],
     );
 
     var node = findNode.singleInstanceCreationExpression;
@@ -650,7 +650,7 @@ InstanceCreationExpression
   constructorName: ConstructorName
     type: NamedType
       name: A
-      element2: <testLibrary>::@class::A
+      element: <testLibrary>::@class::A
       type: A
     period: .
     name: SimpleIdentifier
@@ -690,7 +690,7 @@ InstanceCreationExpression
   constructorName: ConstructorName
     type: NamedType
       name: A
-      element2: <testLibrary>::@class::A
+      element: <testLibrary>::@class::A
       type: A<S>
     element: ConstructorMember
       baseElement: <testLibrary>::@class::A::@constructor::new
@@ -715,7 +715,7 @@ InstanceCreationExpression
       r'''
 final foo = Map<int>();
 ''',
-      [error(CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS, 12, 8)],
+      [error(CompileTimeErrorCode.wrongNumberOfTypeArguments, 12, 8)],
     );
 
     var node = findNode.instanceCreation('Map<int>');
@@ -729,10 +729,10 @@ InstanceCreationExpression
         arguments
           NamedType
             name: int
-            element2: dart:core::@class::int
+            element: dart:core::@class::int
             type: int
         rightBracket: >
-      element2: dart:core::@class::Map
+      element: dart:core::@class::Map
       type: Map<dynamic, dynamic>
     element: ConstructorMember
       baseElement: dart:core::@class::Map::@constructor::new
@@ -757,7 +757,7 @@ main() {
 ''',
       [
         error(
-          CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_CONSTRUCTOR,
+          CompileTimeErrorCode.wrongNumberOfTypeArgumentsConstructor,
           53,
           5,
           messageContains: ["The constructor 'Foo.bar'"],
@@ -772,7 +772,7 @@ InstanceCreationExpression
   constructorName: ConstructorName
     type: NamedType
       name: Foo
-      element2: <testLibrary>::@class::Foo
+      element: <testLibrary>::@class::Foo
       type: Foo<dynamic>
     period: .
     name: SimpleIdentifier
@@ -789,7 +789,7 @@ InstanceCreationExpression
     arguments
       NamedType
         name: int
-        element2: dart:core::@class::int
+        element: dart:core::@class::int
         type: int
     rightBracket: >
   argumentList: ArgumentList
@@ -812,7 +812,7 @@ main() {
 ''',
       [
         error(
-          CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_CONSTRUCTOR,
+          CompileTimeErrorCode.wrongNumberOfTypeArgumentsConstructor,
           53,
           5,
           messageContains: ["The constructor 'Foo.new'"],
@@ -827,7 +827,7 @@ InstanceCreationExpression
   constructorName: ConstructorName
     type: NamedType
       name: Foo
-      element2: <testLibrary>::@class::Foo
+      element: <testLibrary>::@class::Foo
       type: Foo<dynamic>
     period: .
     name: SimpleIdentifier
@@ -844,7 +844,7 @@ InstanceCreationExpression
     arguments
       NamedType
         name: int
-        element2: dart:core::@class::int
+        element: dart:core::@class::int
         type: int
     rightBracket: >
   argumentList: ArgumentList
@@ -868,7 +868,7 @@ main() {
   new p.Foo.bar<int>();
 }
 ''',
-      [error(ParserErrorCode.CONSTRUCTOR_WITH_TYPE_ARGUMENTS, 44, 3)],
+      [error(ParserErrorCode.constructorWithTypeArguments, 44, 3)],
     );
 
     // TODO(brianwilkerson): Test this more carefully after we can re-write the
@@ -882,9 +882,9 @@ InstanceCreationExpression
       importPrefix: ImportPrefixReference
         name: p
         period: .
-        element2: <testLibraryFragment>::@prefix2::p
+        element: <testLibraryFragment>::@prefix2::p
       name: Foo
-      element2: package:test/a.dart::@class::Foo
+      element: package:test/a.dart::@class::Foo
       type: Foo<dynamic>
     period: .
     name: SimpleIdentifier
@@ -901,7 +901,7 @@ InstanceCreationExpression
     arguments
       NamedType
         name: int
-        element2: dart:core::@class::int
+        element: dart:core::@class::int
         type: int
     rightBracket: >
   argumentList: ArgumentList
@@ -924,7 +924,7 @@ main() {
 ''',
       [
         error(
-          CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_CONSTRUCTOR,
+          CompileTimeErrorCode.wrongNumberOfTypeArgumentsConstructor,
           49,
           5,
         ),
@@ -937,7 +937,7 @@ InstanceCreationExpression
   constructorName: ConstructorName
     type: NamedType
       name: Foo
-      element2: <testLibrary>::@class::Foo
+      element: <testLibrary>::@class::Foo
       type: Foo<dynamic>
     period: .
     name: SimpleIdentifier
@@ -954,7 +954,7 @@ InstanceCreationExpression
     arguments
       NamedType
         name: int
-        element2: dart:core::@class::int
+        element: dart:core::@class::int
         type: int
     rightBracket: >
   argumentList: ArgumentList
@@ -980,7 +980,7 @@ main() {
 ''',
       [
         error(
-          CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_CONSTRUCTOR,
+          CompileTimeErrorCode.wrongNumberOfTypeArgumentsConstructor,
           43,
           5,
         ),
@@ -995,17 +995,17 @@ InstanceCreationExpression
       importPrefix: ImportPrefixReference
         name: p
         period: .
-        element2: <testLibraryFragment>::@prefix2::p
+        element: <testLibraryFragment>::@prefix2::p
       name: Foo
       typeArguments: TypeArgumentList
         leftBracket: <
         arguments
           NamedType
             name: int
-            element2: dart:core::@class::int
+            element: dart:core::@class::int
             type: int
         rightBracket: >
-      element2: package:test/a.dart::@class::Foo
+      element: package:test/a.dart::@class::Foo
       type: Foo<int>
     period: .
     name: SimpleIdentifier
@@ -1039,7 +1039,7 @@ InstanceCreationExpression
   constructorName: ConstructorName
     type: NamedType
       name: A
-      element2: <testLibrary>::@extensionType::A
+      element: <testLibrary>::@extensionType::A
       type: A<int>
     element: ConstructorMember
       baseElement: <testLibrary>::@extensionType::A::@constructor::new
@@ -1075,7 +1075,7 @@ InstanceCreationExpression
   constructorName: ConstructorName
     type: NamedType
       name: A
-      element2: <testLibrary>::@extensionType::A
+      element: <testLibrary>::@extensionType::A
       type: A<int>
     element: ConstructorMember
       baseElement: <testLibrary>::@extensionType::A::@constructor::new
@@ -1109,7 +1109,7 @@ InstanceCreationExpression
   constructorName: ConstructorName
     type: NamedType
       name: A
-      element2: <testLibrary>::@extensionType::A
+      element: <testLibrary>::@extensionType::A
       type: A
     period: .
     name: SimpleIdentifier
@@ -1144,7 +1144,7 @@ InstanceCreationExpression
   constructorName: ConstructorName
     type: NamedType
       name: A
-      element2: <testLibrary>::@extensionType::A
+      element: <testLibrary>::@extensionType::A
       type: A
     element: <testLibrary>::@extensionType::A::@constructor::new
   argumentList: ArgumentList
@@ -1176,7 +1176,7 @@ InstanceCreationExpression
   constructorName: ConstructorName
     type: NamedType
       name: A
-      element2: <testLibrary>::@extensionType::A
+      element: <testLibrary>::@extensionType::A
       type: A
     period: .
     name: SimpleIdentifier
@@ -1213,7 +1213,7 @@ InstanceCreationExpression
   constructorName: ConstructorName
     type: NamedType
       name: A
-      element2: <testLibrary>::@extensionType::A
+      element: <testLibrary>::@extensionType::A
       type: A
     element: <testLibrary>::@extensionType::A::@constructor::new
   argumentList: ArgumentList
@@ -1237,7 +1237,7 @@ void f() {
   new A.named(0);
 }
 ''',
-      [error(CompileTimeErrorCode.NEW_WITH_UNDEFINED_CONSTRUCTOR, 48, 5)],
+      [error(CompileTimeErrorCode.newWithUndefinedConstructor, 48, 5)],
     );
 
     var node = findNode.singleInstanceCreationExpression;
@@ -1247,7 +1247,7 @@ InstanceCreationExpression
   constructorName: ConstructorName
     type: NamedType
       name: A
-      element2: <testLibrary>::@extensionType::A
+      element: <testLibrary>::@extensionType::A
       type: A
     period: .
     name: SimpleIdentifier
@@ -1277,7 +1277,7 @@ void f() {
 }
 
 ''',
-      [error(CompileTimeErrorCode.NEW_WITH_NON_TYPE, 48, 6)],
+      [error(CompileTimeErrorCode.newWithNonType, 48, 6)],
     );
 
     var node = findNode.singleInstanceCreationExpression;
@@ -1287,7 +1287,7 @@ InstanceCreationExpression
   constructorName: ConstructorName
     type: NamedType
       name: prefix
-      element2: <testLibraryFragment>::@prefix2::prefix
+      element: <testLibraryFragment>::@prefix2::prefix
       type: InvalidType
     element: <null>
   argumentList: ArgumentList
@@ -1454,9 +1454,9 @@ InstanceCreationExpression
       importPrefix: ImportPrefixReference
         name: prefix
         period: .
-        element2: <testLibraryFragment>::@prefix2::prefix
+        element: <testLibraryFragment>::@prefix2::prefix
       name: A
-      element2: package:test/a.dart::@class::A
+      element: package:test/a.dart::@class::A
       type: A
     period: .
     name: SimpleIdentifier
@@ -1602,17 +1602,17 @@ InstanceCreationExpression
       importPrefix: ImportPrefixReference
         name: prefix
         period: .
-        element2: <testLibraryFragment>::@prefix2::prefix
+        element: <testLibraryFragment>::@prefix2::prefix
       name: A
       typeArguments: TypeArgumentList
         leftBracket: <
         arguments
           NamedType
             name: int
-            element2: dart:core::@class::int
+            element: dart:core::@class::int
             type: int
         rightBracket: >
-      element2: package:test/a.dart::@class::A
+      element: package:test/a.dart::@class::A
       type: A<int>
     period: .
     name: SimpleIdentifier
@@ -1662,17 +1662,17 @@ InstanceCreationExpression
       importPrefix: ImportPrefixReference
         name: prefix
         period: .
-        element2: <testLibraryFragment>::@prefix2::prefix
+        element: <testLibraryFragment>::@prefix2::prefix
       name: A
       typeArguments: TypeArgumentList
         leftBracket: <
         arguments
           NamedType
             name: int
-            element2: dart:core::@class::int
+            element: dart:core::@class::int
             type: int
         rightBracket: >
-      element2: package:test/a.dart::@class::A
+      element: package:test/a.dart::@class::A
       type: A<int>
     element: ConstructorMember
       baseElement: package:test/a.dart::@class::A::@constructor::new
@@ -1715,9 +1715,9 @@ InstanceCreationExpression
       importPrefix: ImportPrefixReference
         name: prefix
         period: .
-        element2: <testLibraryFragment>::@prefix2::prefix
+        element: <testLibraryFragment>::@prefix2::prefix
       name: A
-      element2: package:test/a.dart::@class::A
+      element: package:test/a.dart::@class::A
       type: A
     element: package:test/a.dart::@class::A::@constructor::new
   argumentList: ArgumentList
@@ -1746,7 +1746,7 @@ void f() {
 }
 
 ''',
-      [error(CompileTimeErrorCode.NEW_WITH_UNDEFINED_CONSTRUCTOR, 54, 3)],
+      [error(CompileTimeErrorCode.newWithUndefinedConstructor, 54, 3)],
     );
 
     var node = findNode.singleInstanceCreationExpression;
@@ -1758,9 +1758,9 @@ InstanceCreationExpression
       importPrefix: ImportPrefixReference
         name: prefix
         period: .
-        element2: <testLibraryFragment>::@prefix2::prefix
+        element: <testLibraryFragment>::@prefix2::prefix
       name: A
-      element2: package:test/a.dart::@class::A
+      element: package:test/a.dart::@class::A
       type: A
     period: .
     name: SimpleIdentifier
@@ -1790,7 +1790,7 @@ void f() {
 }
 
 ''',
-      [error(CompileTimeErrorCode.NEW_WITH_NON_TYPE, 55, 3)],
+      [error(CompileTimeErrorCode.newWithNonType, 55, 3)],
     );
 
     var node = findNode.singleInstanceCreationExpression;
@@ -1802,9 +1802,9 @@ InstanceCreationExpression
       importPrefix: ImportPrefixReference
         name: prefix
         period: .
-        element2: <testLibraryFragment>::@prefix2::prefix
+        element: <testLibraryFragment>::@prefix2::prefix
       name: Foo
-      element2: <null>
+      element: <null>
       type: InvalidType
     period: .
     name: SimpleIdentifier
@@ -1851,7 +1851,7 @@ InstanceCreationExpression
   constructorName: ConstructorName
     type: NamedType
       name: X
-      element2: <testLibrary>::@class::X
+      element: <testLibrary>::@class::X
       type: X
     element: <testLibrary>::@class::X::@constructor::new
   argumentList: ArgumentList
@@ -2010,7 +2010,7 @@ void f() {
   X(0);
 }
 ''',
-      [error(WarningCode.UNUSED_ELEMENT, 33, 1)],
+      [error(WarningCode.unusedElement, 33, 1)],
     );
 
     var node = findNode.singleInstanceCreationExpression;
@@ -2061,7 +2061,7 @@ InstanceCreationExpression
   constructorName: ConstructorName
     type: NamedType
       name: B
-      element2: <testLibrary>::@typeAlias::B
+      element: <testLibrary>::@typeAlias::B
       type: A<int>
     period: .
     name: SimpleIdentifier
@@ -2106,7 +2106,7 @@ InstanceCreationExpression
   constructorName: ConstructorName
     type: NamedType
       name: B
-      element2: <testLibrary>::@typeAlias::B
+      element: <testLibrary>::@typeAlias::B
       type: A<int, String>
     period: .
     name: SimpleIdentifier
@@ -2153,7 +2153,7 @@ InstanceCreationExpression
   constructorName: ConstructorName
     type: NamedType
       name: B
-      element2: <testLibrary>::@typeAlias::B
+      element: <testLibrary>::@typeAlias::B
       type: A<int>
     element: ConstructorMember
       baseElement: <testLibrary>::@class::A::@constructor::new
@@ -2191,7 +2191,7 @@ InstanceCreationExpression
   constructorName: ConstructorName
     type: NamedType
       name: B
-      element2: <testLibrary>::@typeAlias::B
+      element: <testLibrary>::@typeAlias::B
       type: A<int, String>
     element: ConstructorMember
       baseElement: <testLibrary>::@class::A::@constructor::new
@@ -2225,7 +2225,7 @@ void f() {
   B.named(0);
 }
 ''',
-      [error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 77, 1)],
+      [error(CompileTimeErrorCode.argumentTypeNotAssignable, 77, 1)],
     );
 
     var node = findNode.instanceCreation('B.named(0)');
@@ -2234,7 +2234,7 @@ InstanceCreationExpression
   constructorName: ConstructorName
     type: NamedType
       name: B
-      element2: <testLibrary>::@typeAlias::B
+      element: <testLibrary>::@typeAlias::B
       type: A<String>
     period: .
     name: SimpleIdentifier
@@ -2273,7 +2273,7 @@ void f() {
   B(0);
 }
 ''',
-      [error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 65, 1)],
+      [error(CompileTimeErrorCode.argumentTypeNotAssignable, 65, 1)],
     );
 
     var node = findNode.instanceCreation('B(0)');
@@ -2282,7 +2282,7 @@ InstanceCreationExpression
   constructorName: ConstructorName
     type: NamedType
       name: B
-      element2: <testLibrary>::@typeAlias::B
+      element: <testLibrary>::@typeAlias::B
       type: A<String>
     element: ConstructorMember
       baseElement: <testLibrary>::@class::A::@constructor::new
@@ -2369,7 +2369,7 @@ void f() {
   X();
 }
 ''',
-      [error(WarningCode.UNUSED_ELEMENT, 30, 1)],
+      [error(WarningCode.unusedElement, 30, 1)],
     );
 
     var node = findNode.singleInstanceCreationExpression;
@@ -2408,7 +2408,7 @@ InstanceCreationExpression
   constructorName: ConstructorName
     type: NamedType
       name: A
-      element2: <testLibrary>::@class::A
+      element: <testLibrary>::@class::A
       type: A
     element: <testLibrary>::@class::A::@constructor::new
   argumentList: ArgumentList
@@ -2441,7 +2441,7 @@ InstanceCreationExpression
   constructorName: ConstructorName
     type: NamedType
       name: A
-      element2: <testLibrary>::@class::A
+      element: <testLibrary>::@class::A
       type: A
     period: .
     name: SimpleIdentifier
@@ -2479,7 +2479,7 @@ InstanceCreationExpression
   constructorName: ConstructorName
     type: NamedType
       name: A
-      element2: <testLibrary>::@class::A
+      element: <testLibrary>::@class::A
       type: A
     period: .
     name: SimpleIdentifier
@@ -2507,7 +2507,7 @@ void f() {
 }
 
 ''',
-      [error(CompileTimeErrorCode.NEW_WITH_NON_TYPE, 17, 10)],
+      [error(CompileTimeErrorCode.newWithNonType, 17, 10)],
     );
 
     var node = findNode.singleInstanceCreationExpression;
@@ -2517,7 +2517,7 @@ InstanceCreationExpression
   constructorName: ConstructorName
     type: NamedType
       name: Unresolved
-      element2: <null>
+      element: <null>
       type: InvalidType
     element: <null>
   argumentList: ArgumentList
@@ -2540,7 +2540,7 @@ void f() {
 }
 
 ''',
-      [error(CompileTimeErrorCode.NEW_WITH_NON_TYPE, 17, 16)],
+      [error(CompileTimeErrorCode.undefinedIdentifier, 17, 16)],
     );
 
     var node = findNode.singleInstanceCreationExpression;
@@ -2552,9 +2552,9 @@ InstanceCreationExpression
       importPrefix: ImportPrefixReference
         name: Unresolved
         period: .
-        element2: <null>
+        element: <null>
       name: named
-      element2: <null>
+      element: <null>
       type: InvalidType
     element: <null>
   argumentList: ArgumentList
@@ -2577,7 +2577,7 @@ void f() {
 }
 
 ''',
-      [error(CompileTimeErrorCode.NEW_WITH_NON_TYPE, 17, 14)],
+      [error(CompileTimeErrorCode.undefinedIdentifier, 17, 14)],
     );
 
     var node = findNode.singleInstanceCreationExpression;
@@ -2589,9 +2589,9 @@ InstanceCreationExpression
       importPrefix: ImportPrefixReference
         name: unresolved
         period: .
-        element2: <null>
+        element: <null>
       name: Foo
-      element2: <null>
+      element: <null>
       type: InvalidType
     period: .
     name: SimpleIdentifier

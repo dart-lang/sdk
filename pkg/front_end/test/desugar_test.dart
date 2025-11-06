@@ -46,24 +46,34 @@ Future<void> testRedirectingFactorySerialized() async {
 // regression test: redirecting factories from patch files don't have the
 // redirecting-factory flag stored in kernel.
 Future<void> testRedirectingFactoryPatchFile() {
-  var componentUri =
-      computePlatformBinariesLocation().resolve('dart2js_platform.dill');
+  var componentUri = computePlatformBinariesLocation().resolve(
+    'dart2js_platform.dill',
+  );
   var component = new ir.Component();
-  new BinaryBuilder(new File.fromUri(componentUri).readAsBytesSync())
-      .readComponent(component);
+  new BinaryBuilder(
+    new File.fromUri(componentUri).readAsBytesSync(),
+  ).readComponent(component);
   checkIsRedirectingFactory(component, 'collection', 'HashMap', 'identity');
   return new Future.value();
 }
 
-void checkIsRedirectingFactory(ir.Component component, String uriPath,
-    String className, String constructorName) {
-  var lib =
-      component.libraries.firstWhere((l) => l.importUri.path.endsWith(uriPath));
+void checkIsRedirectingFactory(
+  ir.Component component,
+  String uriPath,
+  String className,
+  String constructorName,
+) {
+  var lib = component.libraries.firstWhere(
+    (l) => l.importUri.path.endsWith(uriPath),
+  );
   var cls = lib.classes.firstWhere((c) => c.name == className);
-  ir.Procedure member = cls.members
-      .firstWhere((m) => m.name.text == constructorName) as ir.Procedure;
+  ir.Procedure member =
+      cls.members.firstWhere((m) => m.name.text == constructorName)
+          as ir.Procedure;
   Expect.isTrue(
-      member.kind == ir.ProcedureKind.Factory, "$member is not a factory");
+    member.kind == ir.ProcedureKind.Factory,
+    "$member is not a factory",
+  );
   Expect.isTrue(member.isRedirectingFactory);
 }
 

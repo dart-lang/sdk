@@ -6,6 +6,9 @@
 
 #include "include/dart_api.h"
 
+#if defined(DART_DYNAMIC_MODULES)
+#include "vm/bytecode_reader.h"
+#endif
 #include "vm/closure_functions_cache.h"
 #include "vm/code_descriptors.h"
 #include "vm/code_patcher.h"
@@ -37,6 +40,7 @@
 #include "vm/timeline.h"
 #include "vm/token_position.h"
 #include "vm/visitor.h"
+#include "vm/zone_text_buffer.h"
 
 #if !defined(DART_PRECOMPILED_RUNTIME)
 #include "vm/deopt_instructions.h"
@@ -487,11 +491,19 @@ void Debugger::PrintSettingsToJSONObject(JSONObject* jsobj) const {
   }
 }
 
-ActivationFrame::Relation ActivationFrame::CompareTo(uword other_fp) const {
-  if (fp() == other_fp) {
+ActivationFrame::Relation ActivationFrame::CompareTo(bool is_interpreted,
+                                                     uword fp,
+                                                     uword other_fp) {
+  if (fp == other_fp) {
     return kSelf;
   }
-  return IsCalleeFrameOf(other_fp, fp()) ? kCallee : kCaller;
+#if defined(DART_DYNAMIC_MODULES)
+  if (is_interpreted) {
+    // Unlike compiled code, interpreted stacks grow towards higher addresses.
+    return fp > other_fp ? kCallee : kCaller;
+  }
+#endif
+  return IsCalleeFrameOf(other_fp, fp) ? kCallee : kCaller;
 }
 
 StringPtr ActivationFrame::QualifiedFunctionName() {
@@ -524,24 +536,24 @@ void ActivationFrame::GetPcDescriptors() {
 // if not IsInterpreted(), also compute deopt_id_.
 TokenPosition ActivationFrame::TokenPos() {
   if (!token_pos_initialized_) {
-    token_pos_initialized_ = true;
+    token_pos_ = TokenPosition::kNoSource;
     if (IsInterpreted()) {
       token_pos_ = bytecode().GetTokenIndexOfPC(pc_);
       try_index_ = bytecode().GetTryIndexAtPc(pc_);
-      return token_pos_;
-    }
-    token_pos_ = TokenPosition::kNoSource;
-    GetPcDescriptors();
-    PcDescriptors::Iterator iter(pc_desc_, UntaggedPcDescriptors::kAnyKind);
-    const uword pc_offset = pc_ - code().PayloadStart();
-    while (iter.MoveNext()) {
-      if (iter.PcOffset() == pc_offset) {
-        try_index_ = iter.TryIndex();
-        token_pos_ = iter.TokenPos();
-        deopt_id_ = iter.DeoptId();
-        break;
+    } else {
+      GetPcDescriptors();
+      PcDescriptors::Iterator iter(pc_desc_, UntaggedPcDescriptors::kAnyKind);
+      const uword pc_offset = pc_ - code().PayloadStart();
+      while (iter.MoveNext()) {
+        if (iter.PcOffset() == pc_offset) {
+          try_index_ = iter.TryIndex();
+          token_pos_ = iter.TokenPos();
+          deopt_id_ = iter.DeoptId();
+          break;
+        }
       }
     }
+    token_pos_initialized_ = true;
   }
   return token_pos_;
 }
@@ -618,14 +630,25 @@ bool ActivationFrame::IsDebuggable() const {
   return Debugger::IsDebuggable(function());
 }
 
-void ActivationFrame::PrintDescriptorsError(const char* message) {
-  OS::PrintErr("Bad descriptors: %s\n", message);
+void ActivationFrame::PrintContextLevelError(const char* message) {
+  OS::PrintErr("Cannot locate context level: %s\n", message);
   OS::PrintErr("function %s\n", function().ToQualifiedCString());
   OS::PrintErr("pc_ %" Px "\n", pc_);
   OS::PrintErr("deopt_id_ %" Px "\n", deopt_id_);
   OS::PrintErr("context_level_ %" Px "\n", context_level_);
   OS::PrintErr("token_pos_ %s\n", token_pos_.ToCString());
-  {
+  if (IsInterpreted()) {
+#if defined(DART_DYNAMIC_MODULES)
+#if !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
+    Zone* const zone = Thread::Current()->zone();
+    ZoneTextBuffer buffer(zone);
+    bytecode().WriteLocalVariablesInfo(zone, &buffer);
+    OS::PrintErr("%s\n", buffer.buffer());
+#endif
+#else
+    UNREACHABLE();
+#endif
+  } else {
     DisassembleToStdout formatter;
     code().Disassemble(&formatter);
     PcDescriptors::Handle(code().pc_descriptors()).Print();
@@ -647,28 +670,60 @@ intptr_t ActivationFrame::ContextLevel() {
   const Context& ctx = GetSavedCurrentContext();
   if (context_level_ < 0 && !ctx.IsNull()) {
     ASSERT(IsInterpreted() || !code().is_optimized());
-    GetVarDescriptors();
-    intptr_t deopt_id = DeoptId();
-    if (deopt_id == DeoptId::kNone) {
-      PrintDescriptorsError("Missing deopt id");
-    }
-    intptr_t var_desc_len = var_descriptors_.Length();
     bool found = false;
-    // We store the deopt ids as real token positions.
-    const auto to_compare = TokenPosition::Deserialize(deopt_id);
-    for (intptr_t cur_idx = 0; cur_idx < var_desc_len; cur_idx++) {
-      UntaggedLocalVarDescriptors::VarInfo var_info;
-      var_descriptors_.GetInfo(cur_idx, &var_info);
-      const int8_t kind = var_info.kind();
-      if ((kind == UntaggedLocalVarDescriptors::kContextLevel) &&
-          to_compare.IsWithin(var_info.begin_pos, var_info.end_pos)) {
-        context_level_ = var_info.index();
-        found = true;
-        break;
+    if (IsInterpreted()) {
+#if defined(DART_DYNAMIC_MODULES) && !defined(PRODUCT) &&                      \
+    !defined(DART_PRECOMPILED_RUNTIME)
+      const intptr_t pc_offset = pc() - PayloadStart();
+      DEBUG_ONLY(intptr_t closest_start = 0);
+      bytecode::BytecodeLocalVariablesIterator local_vars(
+          Thread::Current()->zone(), bytecode());
+      while (local_vars.MoveNext()) {
+        if (local_vars.IsScope()) {
+          if (local_vars.StartPC() <= pc_offset &&
+              pc_offset <= local_vars.EndPC()) {
+            DEBUG_ASSERT(!found || local_vars.StartPC() > closest_start);
+            found = true;
+            context_level_ = local_vars.ContextLevel();
+            DEBUG_ONLY(closest_start = local_vars.StartPC());
+          } else if (local_vars.StartPC() > pc_offset) {
+            // The scopes in the local variables info are ordered by starting
+            // PC offset, so no need to search further.
+            break;
+          }
+        }
       }
-    }
-    if (!found) {
-      PrintDescriptorsError("Missing context level in var descriptors");
+      if (!found) {
+        PrintContextLevelError(
+            "No Scope local variable info for the current PC");
+      }
+#else
+      UNREACHABLE();
+#endif
+    } else {
+      GetVarDescriptors();
+      intptr_t var_desc_len = var_descriptors_.Length();
+      // We store the deopt ids as real token positions.
+      intptr_t deopt_id = DeoptId();
+      if (deopt_id == DeoptId::kNone) {
+        PrintContextLevelError("Missing deopt id");
+      }
+      const TokenPosition to_compare = TokenPosition::Deserialize(deopt_id);
+      for (intptr_t cur_idx = 0; cur_idx < var_desc_len; cur_idx++) {
+        UntaggedLocalVarDescriptors::VarInfo var_info;
+        var_descriptors_.GetInfo(cur_idx, &var_info);
+        const int8_t kind = var_info.kind();
+        if ((kind == UntaggedLocalVarDescriptors::kContextLevel) &&
+            to_compare.IsWithin(var_info.begin_pos, var_info.end_pos)) {
+          context_level_ = var_info.index();
+          found = true;
+          break;
+        }
+      }
+      if (!found) {
+        PrintContextLevelError(
+            "No ContextLevel var descriptor that contains the deopt id");
+      }
     }
     ASSERT(context_level_ >= 0);
   }
@@ -1240,16 +1295,19 @@ const char* ActivationFrame::ToCString() {
   const char* func_name = function().ToFullyQualifiedCString();
   if (kind_ == kRegular) {
     return Thread::Current()->zone()->PrintToString(
-        "[ Frame pc(0x%" Px " code offset:0x%" Px ") fp(0x%" Px ") sp(0x%" Px
+        "[ Frame pc(0x%" Px ") fp(0x%" Px ") sp(0x%" Px
         ")\n"
+        "\t%s offset = 0x%" Px
+        "\n"
         "\tfunction = %s\n"
         "\turl = %s\n"
         "\tline = %" Pd
         "\n"
         "\tcontext = %s\n"
         "\tcontext level = %" Pd " ]\n",
-        pc(), pc() - code().PayloadStart(), fp(), sp(), func_name,
-        url.ToCString(), line, ctx_.ToCString(), ContextLevel());
+        pc(), fp(), sp(), IsInterpreted() ? "bytecode" : "code",
+        pc() - PayloadStart(), func_name, url.ToCString(), line,
+        ctx_.ToCString(), ContextLevel());
   } else {
     return Thread::Current()->zone()->PrintToString(
         "[ Frame code function = %s\n"
@@ -1371,14 +1429,33 @@ CodeBreakpoint::CodeBreakpoint(const Code& code,
                                uword pc,
                                UntaggedPcDescriptors::Kind kind)
     : code_(code.ptr()),
+      bytecode_(Bytecode::null()),
       pc_(pc),
       enabled_count_(0),
       next_(nullptr),
       breakpoint_kind_(kind),
-      saved_value_(Code::null()) {
+      saved_value_(Code::null()),
+      saved_opcode_(kMaxUint32) {
   ASSERT(!code.IsNull());
   ASSERT(pc_ != 0);
   ASSERT((breakpoint_kind_ & kSafepointKind) != 0);
+  AddBreakpointLocation(breakpoint_location);
+  ASSERT(breakpoint_location->token_pos().IsReal());
+}
+
+CodeBreakpoint::CodeBreakpoint(const Bytecode& bytecode,
+                               BreakpointLocation* breakpoint_location,
+                               uword pc)
+    : code_(Code::null()),
+      bytecode_(bytecode.ptr()),
+      pc_(pc),
+      enabled_count_(0),
+      next_(nullptr),
+      breakpoint_kind_(UntaggedPcDescriptors::kRuntimeCall),
+      saved_value_(Code::null()),
+      saved_opcode_(kMaxUint32) {
+  ASSERT(!bytecode.IsNull());
+  ASSERT(pc_ != 0);
   AddBreakpointLocation(breakpoint_location);
   ASSERT(breakpoint_location->token_pos().IsReal());
 }
@@ -1389,6 +1466,7 @@ CodeBreakpoint::~CodeBreakpoint() {
 // Poison the data so we catch use after free errors.
 #ifdef DEBUG
   code_ = Code::null();
+  bytecode_ = Bytecode::null();
   pc_ = 0ul;
   next_ = nullptr;
   breakpoint_kind_ = UntaggedPcDescriptors::kOther;
@@ -1397,14 +1475,34 @@ CodeBreakpoint::~CodeBreakpoint() {
 
 void CodeBreakpoint::Enable() {
   if (enabled_count_ == 0) {
-    PatchCode();
+    if (bytecode_ != Bytecode::null()) {
+#if defined(DART_DYNAMIC_MODULES)
+      ASSERT_EQUAL(saved_opcode_, kMaxUint32);
+      saved_opcode_ =
+          BytecodePatcher::AddBreakpointAt(pc_, Bytecode::Handle(bytecode_));
+#else
+      UNREACHABLE();
+#endif
+    } else {
+      PatchCode();
+    }
   }
   ++enabled_count_;
 }
 
 void CodeBreakpoint::Disable() {
   if (enabled_count_ == 1) {
-    RestoreCode();
+    if (bytecode_ != Bytecode::null()) {
+#if defined(DART_DYNAMIC_MODULES)
+      BytecodePatcher::RemoveBreakpointAt(pc_, Bytecode::Handle(bytecode_),
+                                          saved_opcode_);
+      saved_opcode_ = kMaxUint32;
+#else
+      UNREACHABLE();
+#endif
+    } else {
+      RestoreCode();
+    }
   }
   --enabled_count_;
 }
@@ -2174,12 +2272,26 @@ static TokenPosition ResolveBreakpointPos(const Function& func,
 
   Zone* zone = Thread::Current()->zone();
   Script& script = Script::Handle(zone, func.script());
-  Code& code = Code::Handle(zone);
   PcDescriptors& desc = PcDescriptors::Handle(zone);
-  ASSERT(func.HasCode());
-  code = func.unoptimized_code();
-  ASSERT(!code.IsNull());
-  desc = code.pc_descriptors();
+#if defined(DART_DYNAMIC_MODULES)
+  auto& bytecode = Bytecode::Handle(zone);
+#endif
+  if (func.HasBytecode()) {
+#if defined(DART_DYNAMIC_MODULES)
+    bytecode = func.GetBytecode();
+    ASSERT(!bytecode.IsNull());
+    if (!bytecode.HasSourcePositions()) {
+      return TokenPosition::kNoSource;
+    }
+#else
+    UNREACHABLE();
+#endif
+  } else {
+    ASSERT(func.HasCode());
+    const auto& code = Code::Handle(zone, func.unoptimized_code());
+    ASSERT(!code.IsNull());
+    desc = code.pc_descriptors();
+  }
 
   // First pass: find the safe point which is closest to the beginning
   // of the given token range.
@@ -2187,34 +2299,65 @@ static TokenPosition ResolveBreakpointPos(const Function& func,
   intptr_t best_column = INT_MAX;
   intptr_t best_line = INT_MAX;
 
-  PcDescriptors::Iterator iter(desc, kSafepointKind);
-  while (iter.MoveNext()) {
-    const TokenPosition& pos = iter.TokenPos();
-    if (pos.IsSynthetic() && pos == requested_token_pos) {
-      // if there's a safepoint for a synthetic function start and the start
-      // was requested, we're done.
-      return pos;
-    }
-    if (!pos.IsWithin(requested_token_pos, last_token_pos)) {
-      // Token is not in the target range.
-      continue;
-    }
-    TokenPosition next_closest_token_position = TokenPosition::kMaxSource;
-    if (requested_column >= 0) {
-      // Find next closest safepoint
-      PcDescriptors::Iterator iter2(desc, kSafepointKind);
-      while (iter2.MoveNext()) {
-        const TokenPosition& next = iter2.TokenPos();
-        if (!next.IsReal()) continue;
-        if ((pos < next) && (next < next_closest_token_position)) {
-          next_closest_token_position = next;
+  if (func.HasBytecode()) {
+#if defined(DART_DYNAMIC_MODULES)
+    // Only compiled code has synthetic token positions.
+    ASSERT(!requested_token_pos.IsSynthetic());
+    bytecode::BytecodeSourcePositionsIterator iter(zone, bytecode);
+    while (iter.MoveNext()) {
+      const TokenPosition& pos = iter.TokenPos();
+      if (!pos.IsWithin(requested_token_pos, last_token_pos)) {
+        // Token is not in the target range.
+        continue;
+      }
+      TokenPosition next_closest_token_position = TokenPosition::kMaxSource;
+      if (requested_column >= 0) {
+        // Find next closest emitted source position.
+        bytecode::BytecodeSourcePositionsIterator iter2(zone, bytecode);
+        while (iter2.MoveNext()) {
+          const TokenPosition& next = iter2.TokenPos();
+          if (!next.IsReal()) continue;
+          if ((pos < next) && (next < next_closest_token_position)) {
+            next_closest_token_position = next;
+          }
         }
       }
+      RefineBreakpointPos(script, pos, next_closest_token_position,
+                          requested_token_pos, last_token_pos, requested_column,
+                          exact_token_pos, &best_fit_pos, &best_column,
+                          &best_line);
     }
-    RefineBreakpointPos(script, pos, next_closest_token_position,
-                        requested_token_pos, last_token_pos, requested_column,
-                        exact_token_pos, &best_fit_pos, &best_column,
-                        &best_line);
+#endif
+  } else {
+    PcDescriptors::Iterator iter(desc, kSafepointKind);
+    while (iter.MoveNext()) {
+      const TokenPosition& pos = iter.TokenPos();
+      if (pos.IsSynthetic() && pos == requested_token_pos) {
+        // if there's a safepoint for a synthetic function start and the start
+        // was requested, we're done.
+        return pos;
+      }
+      if (!pos.IsWithin(requested_token_pos, last_token_pos)) {
+        // Token is not in the target range.
+        continue;
+      }
+      TokenPosition next_closest_token_position = TokenPosition::kMaxSource;
+      if (requested_column >= 0) {
+        // Find next closest safepoint
+        PcDescriptors::Iterator iter2(desc, kSafepointKind);
+        while (iter2.MoveNext()) {
+          const TokenPosition& next = iter2.TokenPos();
+          if (!next.IsReal()) continue;
+          if ((pos < next) && (next < next_closest_token_position)) {
+            next_closest_token_position = next;
+          }
+        }
+      }
+      RefineBreakpointPos(script, pos, next_closest_token_position,
+                          requested_token_pos, last_token_pos, requested_column,
+                          exact_token_pos, &best_fit_pos, &best_column,
+                          &best_line);
+    }
   }
 
   // Second pass (if we found a safe point in the first pass).  Find
@@ -2235,23 +2378,47 @@ static TokenPosition ResolveBreakpointPos(const Function& func,
     end_of_line_pos = TokenPosition::Max(end_of_line_pos, begin_pos);
 
     uword lowest_pc_offset = kUwordMax;
-    PcDescriptors::Iterator iter(desc, kSafepointKind);
-    while (iter.MoveNext()) {
-      const TokenPosition& pos = iter.TokenPos();
-      if (requested_column >= 0) {
-        if (pos != best_fit_pos) {
-          // Not an match for the requested column.
+    if (func.HasBytecode()) {
+#if defined(DART_DYNAMIC_MODULES)
+      bytecode::BytecodeSourcePositionsIterator iter(zone, bytecode);
+      while (iter.MoveNext()) {
+        const TokenPosition& pos = iter.TokenPos();
+        uword pc_offset = iter.PcOffset();
+        if (requested_column >= 0) {
+          if (pos != best_fit_pos) {
+            // Not an match for the requested column.
+            continue;
+          }
+        } else if (!pos.IsWithin(begin_pos, end_of_line_pos)) {
+          // Token is not on same line as best fit.
           continue;
         }
-      } else if (!pos.IsWithin(begin_pos, end_of_line_pos)) {
-        // Token is not on same line as best fit.
-        continue;
+        // Prefer the lowest pc offset.
+        if (pc_offset < lowest_pc_offset) {
+          lowest_pc_offset = pc_offset;
+          best_fit_pos = pos;
+        }
       }
+#endif
+    } else {
+      PcDescriptors::Iterator iter(desc, kSafepointKind);
+      while (iter.MoveNext()) {
+        const TokenPosition& pos = iter.TokenPos();
+        if (requested_column >= 0) {
+          if (pos != best_fit_pos) {
+            // Not an match for the requested column.
+            continue;
+          }
+        } else if (!pos.IsWithin(begin_pos, end_of_line_pos)) {
+          // Token is not on same line as best fit.
+          continue;
+        }
 
-      // Prefer the lowest pc offset.
-      if (iter.PcOffset() < lowest_pc_offset) {
-        lowest_pc_offset = iter.PcOffset();
-        best_fit_pos = pos;
+        // Prefer the lowest pc offset.
+        if (iter.PcOffset() < lowest_pc_offset) {
+          lowest_pc_offset = iter.PcOffset();
+          best_fit_pos = pos;
+        }
       }
     }
     return best_fit_pos;
@@ -2299,28 +2466,60 @@ bool BreakpointLocation::EnsureIsResolved(const Function& target_function,
   return true;
 }
 
-void GroupDebugger::MakeCodeBreakpointAtUnsafe(const Function& func,
+void GroupDebugger::MakeCodeBreakpointAtUnsafe(Thread* thread,
+                                               const Function& func,
                                                BreakpointLocation* loc) {
-  DEBUG_ASSERT(Thread::Current()->IsInStoppedMutatorsScope() ||
+  DEBUG_ASSERT(thread->IsInStoppedMutatorsScope() ||
                code_breakpoints_lock()->IsCurrentThreadWriter());
 
   ASSERT(loc->token_pos().IsReal());
   ASSERT((loc != nullptr) && loc->IsResolved());
-  ASSERT(!func.HasOptimizedCode());
-  ASSERT(func.HasCode());
-  Code& code = Code::Handle(func.unoptimized_code());
-  ASSERT(!code.IsNull());
-  PcDescriptors& desc = PcDescriptors::Handle(code.pc_descriptors());
+  auto* zone = thread->zone();
+  auto& code = Code::Handle(zone);
+  auto& bytecode = Bytecode::Handle(zone);
+  uword start = 0;
   uword lowest_pc_offset = kUwordMax;
   UntaggedPcDescriptors::Kind lowest_kind = UntaggedPcDescriptors::kAnyKind;
   // Find the safe point with the lowest compiled code address
   // that maps to the token position of the source breakpoint.
-  PcDescriptors::Iterator iter(desc, kSafepointKind);
-  while (iter.MoveNext()) {
-    if (iter.TokenPos() == loc->token_pos_) {
-      if (iter.PcOffset() < lowest_pc_offset) {
-        lowest_pc_offset = iter.PcOffset();
-        lowest_kind = iter.Kind();
+  if (func.HasBytecode()) {
+#if defined(DART_DYNAMIC_MODULES)
+    bytecode = func.GetBytecode();
+    ASSERT(!bytecode.IsNull());
+    if (!bytecode.HasSourcePositions()) {
+      return;
+    }
+    start = bytecode.PayloadStart();
+    bytecode::BytecodeSourcePositionsIterator iter(zone, bytecode);
+    while (iter.MoveNext()) {
+      if (iter.TokenPos() == loc->token_pos_) {
+        // Breakpoints are set and located using the address of the instruction
+        // following the breakpoint instruction, since frames contain
+        // return addresses.
+        const uword pc_offset =
+            KernelBytecode::Next(start + iter.PcOffset()) - start;
+        if (pc_offset < lowest_pc_offset) {
+          lowest_pc_offset = pc_offset;
+        }
+      }
+    }
+#else
+    UNREACHABLE();
+#endif
+  } else {
+    ASSERT(func.HasCode());
+    ASSERT(!func.HasOptimizedCode());
+    code = func.unoptimized_code();
+    ASSERT(!code.IsNull());
+    start = code.PayloadStart();
+    const auto& desc = PcDescriptors::Handle(zone, code.pc_descriptors());
+    PcDescriptors::Iterator iter(desc, kSafepointKind);
+    while (iter.MoveNext()) {
+      if (iter.TokenPos() == loc->token_pos_) {
+        if (iter.PcOffset() < lowest_pc_offset) {
+          lowest_pc_offset = iter.PcOffset();
+          lowest_kind = iter.Kind();
+        }
       }
     }
   }
@@ -2328,16 +2527,19 @@ void GroupDebugger::MakeCodeBreakpointAtUnsafe(const Function& func,
     return;
   }
 
-  uword lowest_pc = code.PayloadStart() + lowest_pc_offset;
+  uword lowest_pc = start + lowest_pc_offset;
   CodeBreakpoint* code_bpt = GetCodeBreakpoint(lowest_pc);
   if (code_bpt == nullptr) {
     // No code breakpoint for this code exists; create one.
-    code_bpt = new CodeBreakpoint(code, loc, lowest_pc, lowest_kind);
+    if (!bytecode.IsNull()) {
+      code_bpt = new CodeBreakpoint(bytecode, loc, lowest_pc);
+    } else {
+      code_bpt = new CodeBreakpoint(code, loc, lowest_pc, lowest_kind);
+    }
     if (FLAG_verbose_debug) {
       OS::PrintErr("Setting code breakpoint at pos %s pc %#" Px " offset %#" Px
                    "\n",
-                   loc->token_pos().ToCString(), lowest_pc,
-                   lowest_pc - code.PayloadStart());
+                   loc->token_pos().ToCString(), lowest_pc, lowest_pc - start);
     }
     RegisterCodeBreakpoint(code_bpt);
   } else {
@@ -2345,8 +2547,7 @@ void GroupDebugger::MakeCodeBreakpointAtUnsafe(const Function& func,
       OS::PrintErr(
           "Adding location to existing code breakpoint at pos %s pc %#" Px
           " offset %#" Px "\n",
-          loc->token_pos().ToCString(), lowest_pc,
-          lowest_pc - code.PayloadStart());
+          loc->token_pos().ToCString(), lowest_pc, lowest_pc - start);
     }
     if (!code_bpt->HasBreakpointLocation(loc)) {
       code_bpt->AddBreakpointLocation(loc);
@@ -2361,10 +2562,10 @@ void GroupDebugger::MakeCodeBreakpointAt(const Function& func,
                                          BreakpointLocation* loc) {
   auto thread = Thread::Current();
   if (thread->IsInStoppedMutatorsScope()) {
-    MakeCodeBreakpointAtUnsafe(func, loc);
+    MakeCodeBreakpointAtUnsafe(thread, func, loc);
   } else {
     SafepointWriteRwLocker sl(thread, code_breakpoints_lock());
-    MakeCodeBreakpointAtUnsafe(func, loc);
+    MakeCodeBreakpointAtUnsafe(thread, func, loc);
   }
 }
 
@@ -2934,6 +3135,16 @@ void Debugger::ResumptionBreakpoint() {
             "ResumptionBreakpoint - hit a breakpoint, continue single "
             "stepping\n");
       }
+#if defined(DART_DYNAMIC_MODULES)
+      if (top_frame->IsInterpreted()) {
+        // The interpreter calls the single step handler on every instruction,
+        // so set the last stepping fp/position to the current fp/position when
+        // stepping over so the debugger doesn't pause until it reaches
+        // a _new_ source position.
+        last_stepping_fp_ = top_frame->fp();
+        last_stepping_pos_ = top_frame->TokenPos();
+      }
+#endif
       EnterSingleStepMode();
       return;
     }
@@ -3248,13 +3459,29 @@ void Debugger::EnterSingleStepMode() {
 
 void Debugger::ResetSteppingFramePointer() {
   stepping_fp_ = 0;
+#if defined(DART_DYNAMIC_MODULES)
+  stepping_fp_from_interpreted_frame_ = false;
+#endif
 }
 
 void Debugger::SetSyncSteppingFramePointer(DebuggerStackTrace* stack_trace) {
   if (stack_trace->Length() > 0) {
-    stepping_fp_ = stack_trace->FrameAt(0)->fp();
+    auto* const frame = stack_trace->FrameAt(0);
+    stepping_fp_ = frame->fp();
+#if defined(DART_DYNAMIC_MODULES)
+    stepping_fp_from_interpreted_frame_ = frame->IsInterpreted();
+    // The interpreter calls the single step handler on every instruction,
+    // so set the last stepping fp/position to the current fp/position when
+    // stepping over so the debugger doesn't pause until it reaches
+    // a _new_ source position.
+    last_stepping_fp_ = frame->fp();
+    last_stepping_pos_ = frame->TokenPos();
+#endif
   } else {
     stepping_fp_ = 0;
+#if defined(DART_DYNAMIC_MODULES)
+    stepping_fp_from_interpreted_frame_ = false;
+#endif
   }
 }
 
@@ -3302,6 +3529,9 @@ void Debugger::HandleSteppingRequest(bool skip_next_step /* = false */) {
       ActivationFrame* frame = stack_trace_->FrameAt(i);
       if (frame->IsDebuggable()) {
         stepping_fp_ = frame->fp();
+#if defined(DART_DYNAMIC_MODULES)
+        stepping_fp_from_interpreted_frame_ = frame->IsInterpreted();
+#endif
         break;
       }
     }
@@ -3665,26 +3895,135 @@ void Debugger::SignalPausedEvent(ActivationFrame* top_frame, Breakpoint* bpt) {
 }
 
 static bool IsAtAsyncJump(ActivationFrame* top_frame) {
-  Zone* zone = Thread::Current()->zone();
+  Thread* const thread = Thread::Current();
+  Zone* const zone = thread->zone();
   if (!top_frame->function().IsAsyncFunction() &&
       !top_frame->function().IsAsyncGenerator()) {
     return false;
   }
-  const auto& pc_descriptors =
-      PcDescriptors::Handle(zone, top_frame->code().pc_descriptors());
-  if (pc_descriptors.IsNull()) {
-    return false;
-  }
-  const TokenPosition looking_for = top_frame->TokenPos();
-  PcDescriptors::Iterator it(pc_descriptors, UntaggedPcDescriptors::kOther);
-  while (it.MoveNext()) {
-    if (it.TokenPos() == looking_for &&
-        it.YieldIndex() != UntaggedPcDescriptors::kInvalidYieldIndex) {
-      return true;
+  if (top_frame->IsInterpreted()) {
+#if defined(DART_DYNAMIC_MODULES)
+    const auto& bytecode = top_frame->bytecode();
+    const uword prev = bytecode.GetInstructionBefore(top_frame->pc());
+    if (prev == 0) {
+      // Async awaiter frames have an PC offset of 0 or 1.
+      ASSERT(top_frame->pc() == bytecode.PayloadStart() ||
+             top_frame->pc() == bytecode.PayloadStart() +
+                                    StackTraceUtils::kFutureListenerPcOffset);
+      return false;
+    }
+    auto* const instr = reinterpret_cast<const KBCInstr*>(prev);
+    // Async jumps in bytecode are implemented via direct calls to the
+    // appropriate Dart method.
+    if (!KernelBytecode::IsDirectCallOpcode(instr)) {
+      return false;
+    }
+    const auto& object_pool = ObjectPool::Handle(zone, bytecode.object_pool());
+    auto const index = KernelBytecode::DecodeD(instr);
+    const auto& obj = Object::Handle(zone, object_pool.ObjectAt(index));
+    if (obj.IsNull() || !obj.IsFunction()) {
+      return false;
+    }
+    const auto& target = Function::Cast(obj);
+    auto* const object_store = thread->isolate_group()->object_store();
+    return target.ptr() == object_store->suspend_state_await() ||
+           target.ptr() ==
+               object_store->suspend_state_await_with_type_check() ||
+           target.ptr() == object_store->suspend_state_yield_async_star() ||
+           target.ptr() ==
+               object_store->suspend_state_suspend_sync_star_at_start();
+#else
+    UNREACHABLE();
+#endif
+  } else {
+    const TokenPosition looking_for = top_frame->TokenPos();
+    const auto& pc_descriptors =
+        PcDescriptors::Handle(zone, top_frame->code().pc_descriptors());
+    if (!pc_descriptors.IsNull()) {
+      PcDescriptors::Iterator it(pc_descriptors, UntaggedPcDescriptors::kOther);
+      while (it.MoveNext()) {
+        if (it.TokenPos() == looking_for &&
+            it.YieldIndex() != UntaggedPcDescriptors::kInvalidYieldIndex) {
+          return true;
+        }
+      }
     }
   }
   return false;
 }
+
+static bool IsAtBytecodeAsyncReturn(ActivationFrame* top_frame) {
+#if defined(DART_DYNAMIC_MODULES)
+  if (!top_frame->IsInterpreted()) return false;
+
+  Thread* const thread = Thread::Current();
+  Zone* const zone = thread->zone();
+  const auto& bytecode = top_frame->bytecode();
+  uword prev = bytecode.GetInstructionBefore(top_frame->pc());
+  if (prev == 0) {
+    // Async awaiter frames have an PC offset of 0 or 1.
+    ASSERT(top_frame->pc() == bytecode.PayloadStart() ||
+           top_frame->pc() == bytecode.PayloadStart() +
+                                  StackTraceUtils::kFutureListenerPcOffset);
+    return false;
+  }
+  auto* instr = reinterpret_cast<const KBCInstr*>(prev);
+  // Async returns in bytecode are implemented via direct calls to
+  // the appropriate Dart async return method followed by a return
+  // instruction.
+  if (KernelBytecode::IsReturnOpcode(instr)) {
+    prev = bytecode.GetInstructionBefore(prev);
+    ASSERT(prev != 0);
+    instr = reinterpret_cast<const KBCInstr*>(prev);
+  }
+  if (!KernelBytecode::IsDirectCallOpcode(instr)) {
+    return false;
+  }
+  const auto& object_pool = ObjectPool::Handle(zone, bytecode.object_pool());
+  auto const index = KernelBytecode::DecodeD(instr);
+  const auto& obj = Object::Handle(zone, object_pool.ObjectAt(index));
+  if (obj.IsNull() || !obj.IsFunction()) {
+    return false;
+  }
+  const auto& target = Function::Cast(obj);
+  auto* const object_store = thread->isolate_group()->object_store();
+  return target.ptr() == object_store->suspend_state_return_async() ||
+         target.ptr() ==
+             object_store->suspend_state_return_async_not_future() ||
+         target.ptr() == object_store->suspend_state_return_async_star();
+#else
+  return false;
+#endif
+}
+
+#if defined(DART_DYNAMIC_MODULES)
+static ActivationFrame::Relation CompareTopDartFrameTo(uword other_fp,
+                                                       bool is_interpreted) {
+  StackFrameIterator iterator(ValidationPolicy::kDontValidateFrames,
+                              Thread::Current(),
+                              StackFrameIterator::kNoCrossThreadIteration);
+  for (auto* frame = iterator.NextFrame(); frame != nullptr;
+       frame = iterator.NextFrame()) {
+    if (frame->IsDartFrame() && (frame->is_interpreted() == is_interpreted)) {
+      // The current frame's FP can be directly compared to the provided FP to
+      // provide an answer, since they're using the same stack.
+      //
+      // Since this function is only called if the top Dart frame is interpreted
+      // but the stepping frame is not or vice versa, the current frame is not
+      // the top Dart frame, so a result of kSelf means the top Dart frame
+      // is a callee.
+      return ActivationFrame::CompareTo(is_interpreted, frame->fp(),
+                                        other_fp) == ActivationFrame::kCaller
+                 ? ActivationFrame::kCaller
+                 : ActivationFrame::kCallee;
+    }
+  }
+  // If there were no frames of the same type on the stack, this must have been
+  // a caller of the original jump into the interpreter.
+  ASSERT(is_interpreted);
+  return ActivationFrame::kCaller;
+}
+#endif
 
 ErrorPtr Debugger::PauseStepping() {
   ASSERT(Thread::Current()->single_step());
@@ -3697,18 +4036,28 @@ ErrorPtr Debugger::PauseStepping() {
     return Error::null();
   }
 
-  // Check whether we are in a Dart function that the user is
-  // interested in. If we saved the frame pointer of a stack frame
-  // the user is interested in, we ignore the single step if we are
-  // in a callee of that frame. Note that we assume that the stack
-  // grows towards lower addresses.
   ActivationFrame* frame = TopDartFrame();
   ASSERT(frame != nullptr);
-
   if (stepping_fp_ != 0) {
+    // Check whether we are in a Dart function that the user is
+    // interested in. If we saved the frame pointer of a stack frame
+    // the user is interested in, we ignore the single step if we are
+    // in a callee of that frame.
+#if defined(DART_DYNAMIC_MODULES)
+    auto const relation =
+        stepping_fp_from_interpreted_frame_ == frame->IsInterpreted()
+            ? frame->CompareTo(stepping_fp_)
+            // Since interpreted code and compiled code use different stacks,
+            // finding the relation to the top Dart frame requires some amount
+            // of stack frame iteration.
+            : CompareTopDartFrameTo(stepping_fp_,
+                                    stepping_fp_from_interpreted_frame_);
+#else
+    // Note that we assume that the stack grows towards lower addresses.
+    auto const relation = frame->CompareTo(stepping_fp_);
+#endif
     // There is an "interesting frame" set. Only pause at appropriate
     // locations in this frame.
-    const ActivationFrame::Relation relation = frame->CompareTo(stepping_fp_);
     if (relation == ActivationFrame::kCallee) {
       // We are in a callee of the frame we're interested in.
       // Ignore this stepping break.
@@ -3739,7 +4088,10 @@ ErrorPtr Debugger::PauseStepping() {
   // with regular function wrt the first stop in the function prologue.
   if ((frame->function().IsAsyncFunction() ||
        frame->function().IsAsyncGenerator()) &&
-      frame->GetSuspendStateVar() == Object::null()) {
+      frame->GetSuspendStateVar() == Object::null() &&
+      // The bytecode generator sets the suspend state var to null prior
+      // to returning.
+      !IsAtBytecodeAsyncReturn(frame)) {
     return Error::null();
   }
 
@@ -3759,7 +4111,7 @@ ErrorPtr Debugger::PauseStepping() {
                  frame->LineNumber(), frame->ColumnNumber(),
                  String::Handle(frame->QualifiedFunctionName()).ToCString(),
                  frame->TokenPos().ToCString(), frame->pc(),
-                 frame->pc() - frame->code().PayloadStart());
+                 frame->pc() - frame->PayloadStart());
   }
 
   CacheStackTraces(DebuggerStackTrace::Collect(),
@@ -3817,7 +4169,7 @@ ErrorPtr Debugger::PauseBreakpoint() {
                  bpt_hit->id(), cbpt_tostring,
                  String::Handle(top_frame->QualifiedFunctionName()).ToCString(),
                  bpt_location->token_pos().ToCString(), top_frame->pc(),
-                 top_frame->pc() - top_frame->code().PayloadStart());
+                 top_frame->pc() - top_frame->PayloadStart());
   }
 
   CacheStackTraces(stack_trace, DebuggerStackTrace::CollectAsyncAwaiters());
@@ -4087,6 +4439,16 @@ CodePtr GroupDebugger::GetPatchedStubAddress(uword breakpoint_address) {
   }
   UNREACHABLE();
   return Code::null();
+}
+
+uint32_t GroupDebugger::GetPatchedOpcode(uword breakpoint_address) {
+  SafepointReadRwLocker sl(Thread::Current(), code_breakpoints_lock());
+  CodeBreakpoint* cbpt = GetCodeBreakpoint(breakpoint_address);
+  if (cbpt != nullptr) {
+    return cbpt->OrigOpcode();
+  }
+  UNREACHABLE();
+  return kMaxUint32;
 }
 
 bool Debugger::SetBreakpointState(Breakpoint* bpt, bool enable) {

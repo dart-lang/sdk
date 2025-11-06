@@ -28,13 +28,13 @@ class NumberLiteralsWithSeparatorsTest extends PubPackageResolutionTest {
 
   Future<void> test_missing_number_after_e_1() async {
     await assertErrorsInCode('dynamic x = 1_234_567e;', [
-      error(ScannerErrorCode.MISSING_DIGIT, 21, 1),
+      error(ScannerErrorCode.missingDigit, 21, 1),
     ]);
   }
 
   Future<void> test_missing_number_after_e_2() async {
     await assertErrorsInCode('dynamic x = 1.234_567e;', [
-      error(ScannerErrorCode.MISSING_DIGIT, 21, 1),
+      error(ScannerErrorCode.missingDigit, 21, 1),
     ]);
   }
 

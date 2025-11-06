@@ -6,7 +6,6 @@
 library;
 
 import 'dart:collection';
-import 'dart:io' as io;
 
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/analysis/utilities.dart';
@@ -22,22 +21,6 @@ import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/utilities/uri_cache.dart';
 import 'package:pub_semver/pub_semver.dart';
 import 'package:yaml/yaml.dart';
-
-/// Returns the version of the SDK that runs the analyzer.
-Version? get runningSdkVersion {
-  try {
-    var regExp = RegExp(r'^(\d+\.\d+\.\d+)');
-    var match = regExp.firstMatch(io.Platform.version);
-    if (match == null) {
-      return null;
-    }
-
-    var sdkVersionStr = match.group(1)!;
-    return Version.parse(sdkVersionStr);
-  } catch (_) {
-    return null;
-  }
-}
 
 Version languageVersionFromSdkVersion(String sdkVersionStr) {
   var sdkVersionParts = sdkVersionStr.split('.');
@@ -221,16 +204,13 @@ class EmbedderSdk extends AbstractDartSdk {
 
   final Map<String, String> _urlMappings = HashMap<String, String>();
 
-  // TODO(scheglov): Make [languageVersion] required.
-  /// https://github.com/dart-lang/sdk/issues/42890
   EmbedderSdk(
     ResourceProvider resourceProvider,
     Map<Folder, YamlMap>? embedderYamls, {
-    Version? languageVersion,
+    required Version languageVersion,
   }) {
     this.resourceProvider = resourceProvider;
-    _languageVersion =
-        languageVersion ?? languageVersionFromSdkVersion(io.Platform.version);
+    _languageVersion = languageVersion;
     embedderYamls?.forEach(_processEmbedderYaml);
   }
 
@@ -432,10 +412,9 @@ class FolderBasedDartSdk extends AbstractDartSdk {
   @override
   Version get languageVersion {
     if (_languageVersion == null) {
-      var sdkVersionStr =
-          _sdkDirectory
-              .getChildAssumingFile(_versionFileName)
-              .readAsStringSync();
+      var sdkVersionStr = _sdkDirectory
+          .getChildAssumingFile(_versionFileName)
+          .readAsStringSync();
       _languageVersion = languageVersionFromSdkVersion(sdkVersionStr);
     }
 

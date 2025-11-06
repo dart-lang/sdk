@@ -5,3 +5,4 @@
 export 'src/identifier.dart' show Identifier;
 export 'src/metadata.dart' show Metadata, MetadataExt;
 export 'src/record_use.dart' show ConstantInstance, RecordedUsages;
+export 'src/recorded_usage_from_file.dart' show parseFromFile;

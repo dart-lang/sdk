@@ -246,6 +246,9 @@ void syncTests() {
   arrN = JSArray.from<JSNumber>(arrN);
   Expect.equals(1, arrN.length);
   Expect.equals(1, arrN[0].toDartInt);
+  arrN.add(0.toJS);
+  Expect.equals(2, arrN.length);
+  Expect.equals(0, arrN[1].toDartInt);
   final typedArray = JSArray.from<JSNumber>(JSUint8Array.withLength(4));
   Expect.equals(4, typedArray.length);
   Expect.equals(0, typedArray[0].toDartInt);
@@ -263,14 +266,20 @@ void syncTests() {
   if (isJSBackend) {
     // Since lists on the JS backends are passed by ref, we only create a
     // cast-list if there's a downcast needed.
-    Expect.equals(list, dartArr);
+    Expect.equals(dartArr, list);
+    Expect.equals(dartArr.toJS, arr);
     Expect.notEquals(dartArrN, list);
     Expect.throwsTypeError(() => dartArrN[1]);
+    // `toJS` doesn't handle user-defined lists currently.
+    Expect.throwsTypeError(() => dartArrN.toJS);
   } else {
-    // On dart2wasm, we always create a new list using JSArrayImpl.
+    // dart2wasm clones the list if it was instantiated in Dart and otherwise it
+    // unwraps when using `toJS`.
     Expect.notEquals(dartArr, list);
+    Expect.equals(dartArr.toJS, arr);
     Expect.notEquals(dartArrN, list);
     dartArrN[1];
+    Expect.equals(dartArrN.toJS, arrN);
   }
 
   // [JSArray<T>] <-> [List<T>]
@@ -284,11 +293,17 @@ void syncTests() {
   if (isJSBackend) {
     // A cast-list should not be introduced if the array is already the
     // right list type.
-    Expect.equals(listN, dartArr);
-    Expect.equals(listN, dartArrN);
+    Expect.equals(dartArr, listN);
+    Expect.equals(dartArr.toJS, arrN);
+    Expect.equals(dartArrN, listN);
+    Expect.equals(dartArrN.toJS, arrN);
   } else {
-    Expect.notEquals(dartArr, list);
-    Expect.notEquals(dartArrN, list);
+    // dart2wasm clones the list if it was instantiated in Dart and otherwise it
+    // unwraps when using `toJS`.
+    Expect.notEquals(dartArr, listN);
+    Expect.equals(dartArr.toJS, arrN);
+    Expect.notEquals(dartArrN, listN);
+    Expect.equals(dartArrN.toJS, arrN);
   }
 
   // [ArrayBuffer] <-> [ByteBuffer]
@@ -297,6 +312,7 @@ void syncTests() {
   Expect.isTrue(confuse(buf) is JSArrayBuffer);
   ByteBuffer dartBuf = buf.toDart;
   Expect.listEquals([0, 255, 0, 255], dartBuf.asUint8List());
+  Expect.equals(buf, dartBuf.toJS);
   buf = JSArrayBuffer(5);
   Expect.equals(5, buf.byteLength);
   buf = JSArrayBuffer(5, {'maxByteLength': 12}.jsify() as JSObject);
@@ -319,6 +335,7 @@ void syncTests() {
   ByteData dartDat = dat.toDart;
   Expect.equals(0, dartDat.getUint8(0));
   Expect.equals(255, dartDat.getUint8(1));
+  Expect.equals(dat, dartDat.toJS);
   dat = JSDataView(datBuf);
   Expect.equals(datBuf, dat.buffer);
   final dat2 = JSDataView(datBuf, 1, 3);
@@ -365,6 +382,7 @@ void syncTests() {
   Expect.isTrue(confuse(ai8) is JSInt8Array);
   Int8List dartAi8 = ai8.toDart;
   Expect.listEquals([-128, 0, 127], dartAi8);
+  Expect.equals(ai8, dartAi8.toJS);
   testTypedArrayConstructors(
     (JSArrayBuffer obj) => JSInt8Array(obj),
     (JSArrayBuffer obj, int byteOffset, int length) =>
@@ -379,6 +397,7 @@ void syncTests() {
   Expect.isTrue(confuse(au8) is JSUint8Array);
   Uint8List dartAu8 = au8.toDart;
   Expect.listEquals([255, 0, 255, 0], dartAu8);
+  Expect.equals(au8, dartAu8.toJS);
   testTypedArrayConstructors(
     (JSArrayBuffer obj) => JSUint8Array(obj),
     (JSArrayBuffer obj, int byteOffset, int length) =>
@@ -393,6 +412,7 @@ void syncTests() {
   Expect.isTrue(confuse(ac8) is JSUint8ClampedArray);
   Uint8ClampedList dartAc8 = ac8.toDart;
   Expect.listEquals([0, 0, 255, 255], dartAc8);
+  Expect.equals(ac8, dartAc8.toJS);
   testTypedArrayConstructors(
     (JSArrayBuffer obj) => JSUint8ClampedArray(obj),
     (JSArrayBuffer obj, int byteOffset, int length) =>
@@ -407,6 +427,7 @@ void syncTests() {
   Expect.isTrue(confuse(ai16) is JSInt16Array);
   Int16List dartAi16 = ai16.toDart;
   Expect.listEquals([32767, -32768, 0, 32767, -32768], dartAi16);
+  Expect.equals(ai16, dartAi16.toJS);
   testTypedArrayConstructors(
     (JSArrayBuffer obj) => JSInt16Array(obj),
     (JSArrayBuffer obj, int byteOffset, int length) =>
@@ -421,6 +442,7 @@ void syncTests() {
   Expect.isTrue(confuse(au16) is JSUint16Array);
   Uint16List dartAu16 = au16.toDart;
   Expect.listEquals([65535, 0, 65535, 0], dartAu16);
+  Expect.equals(au16, dartAu16.toJS);
   testTypedArrayConstructors(
     (JSArrayBuffer obj) => JSUint16Array(obj),
     (JSArrayBuffer obj, int byteOffset, int length) =>
@@ -435,6 +457,7 @@ void syncTests() {
   Expect.isTrue(confuse(ai32) is JSInt32Array);
   Int32List dartAi32 = ai32.toDart;
   Expect.listEquals([-2147483648, 0, 2147483647], dartAi32);
+  Expect.equals(ai32, dartAi32.toJS);
   testTypedArrayConstructors(
     (JSArrayBuffer obj) => JSInt32Array(obj),
     (JSArrayBuffer obj, int byteOffset, int length) =>
@@ -449,6 +472,7 @@ void syncTests() {
   Expect.isTrue(confuse(au32) is JSUint32Array);
   Uint32List dartAu32 = au32.toDart;
   Expect.listEquals([4294967295, 0, 4294967295, 0], dartAu32);
+  Expect.equals(au32, dartAu32.toJS);
   testTypedArrayConstructors(
     (JSArrayBuffer obj) => JSUint32Array(obj),
     (JSArrayBuffer obj, int byteOffset, int length) =>
@@ -466,6 +490,7 @@ void syncTests() {
     Float32List.fromList([-1000.488, -0.00001, 0.0001, 10004.888]),
     dartAf32,
   );
+  Expect.equals(af32, dartAf32.toJS);
   testTypedArrayConstructors(
     (JSArrayBuffer obj) => JSFloat32Array(obj),
     (JSArrayBuffer obj, int byteOffset, int length) =>
@@ -480,6 +505,7 @@ void syncTests() {
   Expect.isTrue(confuse(af64) is JSFloat64Array);
   Float64List dartAf64 = af64.toDart;
   Expect.listEquals([-1000.488, -0.00001, 0.0001, 10004.888], dartAf64);
+  Expect.equals(af64, dartAf64.toJS);
   testTypedArrayConstructors(
     (JSArrayBuffer obj) => JSFloat64Array(obj),
     (JSArrayBuffer obj, int byteOffset, int length) =>

@@ -64,7 +64,8 @@ mixin BlockTestCases on AbstractCompletionDriverTest {
   Future<void> test_flutter_setState_indent6_hasPrefix() async {
     await _check_flutter_setState(
       line: '${spaces_6}setSt^',
-      expected: '''
+      expected:
+          '''
 replacement
   left: 5
 suggestions
@@ -80,7 +81,8 @@ $spaces_6});
   Future<void> test_flutter_setState_indent_hasPrefix() async {
     await _check_flutter_setState(
       line: '${spaces_4}setSt^',
-      expected: '''
+      expected:
+          '''
 replacement
   left: 5
 suggestions
@@ -96,7 +98,8 @@ $spaces_4});
   Future<void> test_flutter_setState_indent_noPrefix() async {
     await _check_flutter_setState(
       line: '$spaces_4^',
-      expected: '''
+      expected:
+          '''
 suggestions
   setState(() {
 $spaces_6
@@ -200,7 +203,19 @@ replacement
 suggestions
   return
     kind: keyword
+  var
+    kind: keyword
+  throw
+    kind: keyword
+  for
+    kind: keyword
+  try
+    kind: keyword
+  assert
+    kind: keyword
   rethrow
+    kind: keyword
+  true
     kind: keyword
 ''');
   }
@@ -655,7 +670,19 @@ replacement
 suggestions
   e01
     kind: parameter
+  return
+    kind: keyword
+  assert
+    kind: keyword
   else
+    kind: keyword
+  false
+    kind: keyword
+  late
+    kind: keyword
+  true
+    kind: keyword
+  while
     kind: keyword
 ''');
   }
@@ -807,6 +834,14 @@ void f() async* {n^ foo}
 replacement
   left: 1
 suggestions
+  return
+    kind: keyword
+  final
+    kind: keyword
+  const
+    kind: keyword
+  dynamic
+    kind: keyword
   null
     kind: keyword
 ''');
@@ -936,6 +971,14 @@ void f() async* {n^}
 replacement
   left: 1
 suggestions
+  return
+    kind: keyword
+  final
+    kind: keyword
+  const
+    kind: keyword
+  dynamic
+    kind: keyword
   null
     kind: keyword
 ''');
@@ -965,6 +1008,8 @@ replacement
 suggestions
   wrapper
     kind: functionInvocation
+  switch
+    kind: keyword
 ''');
   }
 
@@ -1023,6 +1068,14 @@ void f() sync* {n^}
 replacement
   left: 1
 suggestions
+  return
+    kind: keyword
+  final
+    kind: keyword
+  const
+    kind: keyword
+  dynamic
+    kind: keyword
   null
     kind: keyword
 ''');
@@ -1586,6 +1639,9 @@ suggestions
   m0
     kind: getter
     declaringType: A
+  dynamic
+    kind: keyword
+    declaringType: null
 ''');
   }
 

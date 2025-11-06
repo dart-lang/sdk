@@ -58,7 +58,7 @@ class ConstantInitializersResolver {
       return;
     }
 
-    var constantInitializer = element.constantInitializer;
+    var constantInitializer = element.constantInitializer2;
     if (constantInitializer == null) {
       return;
     }
@@ -98,12 +98,12 @@ class TopLevelInference {
   }
 
   void _performOverrideInference() {
+    var interfacesToInfer = linker.builders.values.expand((builder) {
+      return builder.element.children.whereType<InterfaceElementImpl>();
+    }).toList();
+
     var inferrer = InstanceMemberInferrer(linker.inheritance);
-    for (var builder in linker.builders.values) {
-      for (var unit in builder.element.units) {
-        inferrer.inferCompilationUnit(unit);
-      }
-    }
+    inferrer.perform(interfacesToInfer);
   }
 }
 
@@ -206,7 +206,6 @@ class _PropertyInducingElementTypeInference
     }
 
     if (initializerFragment == null || variableDeclaration == null) {
-      _element.constantInitializer;
       _status = _InferenceStatus.inferred;
       return DynamicTypeImpl.instance;
     }
@@ -244,15 +243,15 @@ class _PropertyInducingElementTypeInference
     _status = _InferenceStatus.beingInferred;
 
     var enclosingElement = _element.enclosingElement;
-    var enclosingInterfaceElement =
-        enclosingElement.ifTypeOrNull<InterfaceElementImpl>();
+    var enclosingInterfaceElement = enclosingElement
+        .ifTypeOrNull<InterfaceElementImpl>();
 
     var scope = LinkingNodeContext.get(variableDeclaration).scope;
 
     var analysisOptions = _libraryBuilder.kind.file.analysisOptions;
     var astResolver = AstResolver(
       _linker,
-      initializerFragment.libraryFragment as LibraryFragmentImpl,
+      initializerFragment.libraryFragment,
       scope,
       analysisOptions,
       enclosingClassElement: enclosingInterfaceElement,

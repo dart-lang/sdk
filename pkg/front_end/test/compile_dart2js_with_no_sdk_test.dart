@@ -12,12 +12,14 @@ Future<void> main() async {
   options.sdkSummary = options.sdkSummary!.resolve("nonexisting.dill");
   options.librariesSpecificationUri = null;
   int diagnosticCount = 0;
-  options.onDiagnostic = (DiagnosticMessage message) {
+  options.onDiagnostic = (CfeDiagnosticMessage message) {
     // ignoring
     diagnosticCount++;
   };
-  TestIncrementalCompiler compiler =
-      new TestIncrementalCompiler(options, dart2jsUrl);
+  TestIncrementalCompiler compiler = new TestIncrementalCompiler(
+    options,
+    dart2jsUrl,
+  );
   await compiler.computeDelta();
   print("Got a total of $diagnosticCount diagnostics.");
   if (diagnosticCount < 10000) {

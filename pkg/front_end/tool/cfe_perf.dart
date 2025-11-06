@@ -61,8 +61,10 @@ Future<void> main(List<String> args) async {
   var handler = handlers[bench];
   if (handler == null) {
     // TODO(sigmund): implement the remaining benchmarks.
-    print('unsupported bench-id: $bench. Please specify one of the following: '
-        '${handlers.keys.join(", ")}');
+    print(
+      'unsupported bench-id: $bench. Please specify one of the following: '
+      '${handlers.keys.join(", ")}',
+    );
     exit(1);
   }
 
@@ -171,9 +173,10 @@ void collectSources(Uri start, Map<Uri, Uint8List> files) {
 /// import, export, and part directives.
 Set<String> extractDirectiveUris(Uint8List contents) {
   var listener = new DirectiveListenerWithNative();
-  new TopLevelParser(listener,
-          useImplicitCreationExpression: useImplicitCreationExpressionInCfe)
-      .parseUnit(tokenize(contents).tokens);
+  new TopLevelParser(
+    listener,
+    useImplicitCreationExpression: useImplicitCreationExpressionInCfe,
+  ).parseUnit(tokenize(contents).tokens);
   return new Set<String>()
     ..addAll(listener.imports.map((directive) => directive.uri!))
     ..addAll(listener.exports.map((directive) => directive.uri!))
@@ -198,15 +201,19 @@ void parseFiles(Map<Uri, Uint8List> files) {
 
   report('scan', scanTimer.elapsedMicroseconds);
   report(
-      'parse', parseTimer.elapsedMicroseconds - scanTimer.elapsedMicroseconds);
+    'parse',
+    parseTimer.elapsedMicroseconds - scanTimer.elapsedMicroseconds,
+  );
 }
 
 /// Parse the full body of [source].
 void parseFull(Uri uri, Uint8List source) {
   var result = tokenize(source);
   var lineInfo = LineInfo(result.lineStarts);
-  Parser parser = new Parser(new _PartialAstBuilder(uri, lineInfo),
-      useImplicitCreationExpression: useImplicitCreationExpressionInCfe);
+  Parser parser = new Parser(
+    new _PartialAstBuilder(uri, lineInfo),
+    useImplicitCreationExpression: useImplicitCreationExpressionInCfe,
+  );
   parser.parseUnit(result.tokens);
 }
 
@@ -214,20 +221,25 @@ void parseFull(Uri uri, Uint8List source) {
 // bodies. So this listener is not feature complete.
 class _PartialAstBuilder extends AstBuilder {
   _PartialAstBuilder(Uri uri, LineInfo lineInfo)
-      : super(
-            null,
-            uri,
-            true,
-            FeatureSet.latestLanguageVersion(),
-            LibraryLanguageVersion(
-                package: ExperimentStatus.currentVersion, override: null),
-            lineInfo,
-            uri);
+    : super(
+        null,
+        uri,
+        true,
+        FeatureSet.latestLanguageVersion(),
+        LibraryLanguageVersion(
+          package: ExperimentStatus.currentVersion,
+          override: null,
+        ),
+        lineInfo,
+        uri,
+      );
 }
 
 // Invoke the kernel generator for the program starting in [entryUri]
-Future<CompilerResult> generateKernel(Uri entryUri,
-    {bool compileSdk = true}) async {
+Future<CompilerResult> generateKernel(
+  Uri entryUri, {
+  bool compileSdk = true,
+}) async {
   // TODO(sigmund): this is here only to compute the input size,
   // we should extract the input size from the frontend instead.
   scanReachableFiles(entryUri);
@@ -269,7 +281,9 @@ void report(String name, int time) {
 ArgParser argParser = new ArgParser()
   // TODO(johnniwinther): Remove legacy option. Legacy mode is no longer
   //  supported.
-  ..addFlag('legacy',
-      help: 'run the compiler in legacy-mode',
-      defaultsTo: false,
-      negatable: false);
+  ..addFlag(
+    'legacy',
+    help: 'run the compiler in legacy-mode',
+    defaultsTo: false,
+    negatable: false,
+  );

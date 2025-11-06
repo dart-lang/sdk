@@ -84,7 +84,9 @@ class IncrementalSerializer {
 
   /// Write packages to sink, cache new package data, trim input component.
   void writePackagesToSinkAndTrimComponent(
-      Component? component, Sink<List<int>> sink) {
+    Component? component,
+    Sink<List<int>> sink,
+  ) {
     if (component == null) return;
     if (component.libraries.isEmpty) return;
 
@@ -234,7 +236,9 @@ class IncrementalSerializer {
   /// libraries. Note that all groups this depend on has to be created prior
   /// to calling this.
   void setupDependencyTracking(
-      List<Library> libraries, SerializationGroup packageGroup) {
+    List<Library> libraries,
+    SerializationGroup packageGroup,
+  ) {
     for (Library lib in libraries) {
       for (LibraryDependency dep in lib.dependencies) {
         Library dependencyLibrary = dep.importedLibraryReference.asLibrary;
@@ -253,8 +257,11 @@ class IncrementalSerializer {
 
   /// Add the group but not its dependencies to the output if they weren't added
   /// already.
-  void addDataButNotDependentData(SerializationGroup group,
-      Set<SerializationGroup> cachedPackagesInOutput, Sink<List<int>> sink) {
+  void addDataButNotDependentData(
+    SerializationGroup group,
+    Set<SerializationGroup> cachedPackagesInOutput,
+    Sink<List<int>> sink,
+  ) {
     if (cachedPackagesInOutput.add(group)) {
       sink.add(group.serializedData);
     }
@@ -262,8 +269,11 @@ class IncrementalSerializer {
 
   /// Add the group and its dependencies to the output if they weren't added
   /// already.
-  void addDataAndDependentData(SerializationGroup group,
-      Set<SerializationGroup> cachedPackagesInOutput, Sink<List<int>> sink) {
+  void addDataAndDependentData(
+    SerializationGroup group,
+    Set<SerializationGroup> cachedPackagesInOutput,
+    Sink<List<int>> sink,
+  ) {
     if (cachedPackagesInOutput.add(group)) {
       sink.add(group.serializedData);
       if (group.dependencies != null) {
@@ -295,9 +305,10 @@ class IncrementalSerializer {
   /// component.
   Uint8List serialize(Component component, List<Library> libraries) {
     Component singlePackageLibraries = new Component(
-        libraries: libraries,
-        uriToSource: component.uriToSource,
-        nameRoot: component.root);
+      libraries: libraries,
+      uriToSource: component.uriToSource,
+      nameRoot: component.root,
+    );
     singlePackageLibraries.setMainMethodAndMode(null, false);
 
     // Copy all metadata. This should be okay (e.g. not result in a leak)
@@ -314,8 +325,11 @@ class IncrementalSerializer {
   ///
   /// Also remove all uris in the group the uri belongs to, and add the group to
   /// the worklist.
-  void removeUriFromMap(Uri uri, Set<SerializationGroup> removed,
-      List<SerializationGroup> workList) {
+  void removeUriFromMap(
+    Uri uri,
+    Set<SerializationGroup> removed,
+    List<SerializationGroup> workList,
+  ) {
     SerializationGroup? group = uriToGroup.remove(uri);
     if (group == null) return;
     bool added = removed.add(group);
@@ -323,8 +337,10 @@ class IncrementalSerializer {
     workList.add(group);
     for (Uri groupUri in group.uris) {
       SerializationGroup? sameGroup = uriToGroup.remove(groupUri);
-      assert((groupUri == uri && sameGroup == null) ||
-          (groupUri != uri && sameGroup != null));
+      assert(
+        (groupUri == uri && sameGroup == null) ||
+            (groupUri != uri && sameGroup != null),
+      );
     }
   }
 }

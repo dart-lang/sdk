@@ -16,8 +16,8 @@ List<CompletionSuggestionBuilder> fuzzyFilterSort({
 }) {
   var matchStyle =
       suggestions.firstOrNull?.kind == CompletionSuggestionKind.IMPORT
-          ? MatchStyle.FILENAME
-          : MatchStyle.SYMBOL;
+      ? MatchStyle.FILENAME
+      : MatchStyle.SYMBOL;
   var matcher = FuzzyMatcher(pattern, matchStyle: matchStyle);
 
   double score(CompletionSuggestionBuilder suggestion) {
@@ -35,11 +35,10 @@ List<CompletionSuggestionBuilder> fuzzyFilterSort({
     return matcher.score(textToMatch);
   }
 
-  var scored =
-      suggestions
-          .map((e) => _FuzzyScoredSuggestion(e, score(e)))
-          .where((e) => e.score > 0)
-          .toList();
+  var scored = suggestions
+      .map((e) => _FuzzyScoredSuggestion(e, score(e)))
+      .where((e) => e.score > 0)
+      .toList();
 
   scored.sort((a, b) {
     // Prefer what the user requested by typing.

@@ -4,7 +4,7 @@
 
 import 'package:expect/expect.dart' show Expect;
 import 'package:front_end/src/api_prototype/compiler_options.dart'
-    show CompilerOptions, DiagnosticMessage;
+    show CompilerOptions, CfeDiagnosticMessage;
 import 'package:front_end/src/api_prototype/incremental_kernel_generator.dart'
     show IncrementalCompilerResult, IncrementalKernelGenerator;
 import 'package:front_end/src/compute_platform_binaries_location.dart'
@@ -20,16 +20,13 @@ import 'incremental_utils.dart' as util;
 void main([List<String> arguments = const []]) =>
     runMe(arguments, createContext, configurationPath: "../testing.json");
 
-Future<Context> createContext(
-    Chain suite, Map<String, String> environment) {
+Future<Context> createContext(Chain suite, Map<String, String> environment) {
   return new Future.value(new Context());
 }
 
 class Context extends ChainContext {
   @override
-  final List<Step> steps = const <Step>[
-    const RunTest(),
-  ];
+  final List<Step> steps = const <Step>[const RunTest()];
 
   IncrementalKernelGenerator? compiler;
 }
@@ -40,7 +37,7 @@ CompilerOptions getOptions() {
     ..sdkRoot = sdkRoot
     ..librariesSpecificationUri = Uri.base.resolve("sdk/lib/libraries.json")
     ..omitPlatform = true
-    ..onDiagnostic = (DiagnosticMessage message) {
+    ..onDiagnostic = (CfeDiagnosticMessage message) {
       // Ignored.
     };
   options.sdkSummary = sdkRoot.resolve("vm_platform.dill");
@@ -55,17 +52,22 @@ class RunTest extends Step<TestDescription, TestDescription, Context> {
 
   @override
   Future<Result<TestDescription>> run(
-      TestDescription description, Context context) async {
+    TestDescription description,
+    Context context,
+  ) async {
     Uri uri = description.uri;
 
     // "One shot compile"
     bool oneShotFailed = false;
     late List<int> oneShotSerialized;
     try {
-      IncrementalKernelGenerator compiler =
-          new IncrementalKernelGenerator(getOptions(), [uri]);
-      oneShotSerialized =
-          util.postProcess((await compiler.computeDelta()).component);
+      IncrementalKernelGenerator compiler = new IncrementalKernelGenerator(
+        getOptions(),
+        [uri],
+      );
+      oneShotSerialized = util.postProcess(
+        (await compiler.computeDelta()).component,
+      );
     } catch (e) {
       oneShotFailed = true;
     }

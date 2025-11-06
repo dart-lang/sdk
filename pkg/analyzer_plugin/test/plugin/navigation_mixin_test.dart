@@ -43,10 +43,12 @@ class NavigationMixinTest extends AbstractPluginTest {
 
   Future<void> test_handleAnalysisGetNavigation() async {
     await plugin.handleAnalysisSetContextRoots(
-        AnalysisSetContextRootsParams([contextRoot1]));
+      AnalysisSetContextRootsParams([contextRoot1]),
+    );
 
     var result = await plugin.handleAnalysisGetNavigation(
-        AnalysisGetNavigationParams(filePath1, 1, 2));
+      AnalysisGetNavigationParams(filePath1, 1, 2),
+    );
     expect(result, isNotNull);
     expect(result.files, hasLength(1));
     expect(result.targets, hasLength(1));
@@ -55,17 +57,21 @@ class NavigationMixinTest extends AbstractPluginTest {
 
   Future<void> test_sendNavigationNotification() async {
     await plugin.handleAnalysisSetContextRoots(
-        AnalysisSetContextRootsParams([contextRoot1]));
+      AnalysisSetContextRootsParams([contextRoot1]),
+    );
 
     var notificationReceived = Completer<void>();
-    channel.listen(null, onNotification: (Notification notification) {
-      expect(notification, isNotNull);
-      var params = AnalysisNavigationParams.fromNotification(notification);
-      expect(params.files, hasLength(1));
-      expect(params.targets, hasLength(1));
-      expect(params.regions, hasLength(2));
-      notificationReceived.complete();
-    });
+    channel.listen(
+      null,
+      onNotification: (Notification notification) {
+        expect(notification, isNotNull);
+        var params = AnalysisNavigationParams.fromNotification(notification);
+        expect(params.files, hasLength(1));
+        expect(params.targets, hasLength(1));
+        expect(params.regions, hasLength(2));
+        notificationReceived.complete();
+      },
+    );
     await plugin.sendNavigationNotification(filePath1);
     await notificationReceived.future;
   }
@@ -78,10 +84,16 @@ class _TestNavigationContributor implements NavigationContributor {
 
   @override
   void computeNavigation(
-      NavigationRequest request, NavigationCollector collector) {
+    NavigationRequest request,
+    NavigationCollector collector,
+  ) {
     for (var i = 0; i < regionCount; i++) {
-      collector.addRegion(i, 5, ElementKind.METHOD,
-          Location('a', 5, 5, 1, 5, endLine: 1, endColumn: 10));
+      collector.addRegion(
+        i,
+        5,
+        ElementKind.METHOD,
+        Location('a', 5, 5, 1, 5, endLine: 1, endColumn: 10),
+      );
     }
   }
 }
@@ -93,15 +105,20 @@ class _TestServerPlugin extends MockServerPlugin with NavigationMixin {
   List<NavigationContributor> getNavigationContributors(String path) {
     return <NavigationContributor>[
       _TestNavigationContributor(2),
-      _TestNavigationContributor(1)
+      _TestNavigationContributor(1),
     ];
   }
 
   @override
   Future<NavigationRequest> getNavigationRequest(
-      AnalysisGetNavigationParams parameters) async {
+    AnalysisGetNavigationParams parameters,
+  ) async {
     var result = MockResolvedUnitResult(path: parameters.file);
     return DartNavigationRequestImpl(
-        resourceProvider, parameters.offset, parameters.length, result);
+      resourceProvider,
+      parameters.offset,
+      parameters.length,
+      result,
+    );
   }
 }

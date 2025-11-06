@@ -23,7 +23,7 @@ dependencies:
   foo:
     path: does/not/exist
 ''',
-      [PubspecWarningCode.PATH_DOES_NOT_EXIST],
+      [PubspecWarningCode.pathDoesNotExist],
     );
   }
 
@@ -35,7 +35,7 @@ dev_dependencies:
   foo:
     path: does/not/exist
 ''',
-      [PubspecWarningCode.PATH_DOES_NOT_EXIST],
+      [PubspecWarningCode.pathDoesNotExist],
     );
   }
 
@@ -60,7 +60,7 @@ screenshots:
   - description: '...'
     path: example/screenshots/no.webp
 ''',
-      [PubspecWarningCode.PATH_DOES_NOT_EXIST],
+      [PubspecWarningCode.pathDoesNotExist],
     );
   }
 
@@ -75,8 +75,8 @@ screenshots:
     path: example/screenshots/no.webp
 ''',
       [
-        PubspecWarningCode.PATH_DOES_NOT_EXIST,
-        PubspecWarningCode.PATH_DOES_NOT_EXIST,
+        PubspecWarningCode.pathDoesNotExist,
+        PubspecWarningCode.pathDoesNotExist,
       ],
     );
   }

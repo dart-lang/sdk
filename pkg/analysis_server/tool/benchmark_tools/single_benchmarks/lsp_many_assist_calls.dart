@@ -109,17 +109,18 @@ class LspManyAssistCalls extends DartLanguageServerBenchmark {
 
     Future<Duration> timeAssist(int lineNumber, int column) async {
       var codeActionStopwatch = Stopwatch()..start();
-      var codeActionFuture = (await send(
-        LspMessages.codeAction(
-          largestIdSeen + 1,
-          runDetails.mainFile.uri,
-          line: lineNumber,
-          character: column,
-        ),
-      ))!.completer.future.then((result) {
-        codeActionStopwatch.stop();
-        return result;
-      });
+      var codeActionFuture =
+          (await send(
+            LspMessages.codeAction(
+              largestIdSeen + 1,
+              runDetails.mainFile.uri,
+              line: lineNumber,
+              character: column,
+            ),
+          ))!.completer.future.then((result) {
+            codeActionStopwatch.stop();
+            return result;
+          });
       await codeActionFuture;
       return codeActionStopwatch.elapsed;
     }

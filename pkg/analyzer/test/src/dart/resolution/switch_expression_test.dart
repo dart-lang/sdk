@@ -78,7 +78,7 @@ SwitchExpression
       r'''
 final a = switch (0) {};
 ''',
-      [error(CompileTimeErrorCode.NON_EXHAUSTIVE_SWITCH_EXPRESSION, 10, 6)],
+      [error(CompileTimeErrorCode.nonExhaustiveSwitchExpression, 10, 6)],
     );
 
     var node = findNode.singleSwitchExpression;
@@ -153,7 +153,7 @@ void f(void x) {
   });
 }
 ''',
-      [error(CompileTimeErrorCode.USE_OF_VOID_RESULT, 27, 1)],
+      [error(CompileTimeErrorCode.useOfVoidResult, 27, 1)],
     );
 
     var node = findNode.singleSwitchExpression;
@@ -236,7 +236,7 @@ SwitchExpression
         pattern: ObjectPattern
           type: NamedType
             name: int
-            element2: dart:core::@class::int
+            element: dart:core::@class::int
             type: int
           leftParenthesis: (
           fields
@@ -247,11 +247,10 @@ SwitchExpression
                 keyword: var
                 name: isEven
                 declaredFragment: isPublic isEven@46
-                  type: null
                   element: hasImplicitType isPublic
                     type: bool
                 matchedValueType: bool
-              element2: dart:core::@class::int::@getter::isEven
+              element: dart:core::@class::int::@getter::isEven
           rightParenthesis: )
           matchedValueType: num
         whenClause: WhenClause
@@ -333,7 +332,7 @@ SwitchExpressionCase
         constructorName: ConstructorName
           type: NamedType
             name: A
-            element2: <testLibrary>::@class::A
+            element: <testLibrary>::@class::A
             type: A
           element: <testLibrary>::@class::A::@constructor::new
         argumentList: ArgumentList
@@ -533,7 +532,7 @@ void f(Object? x) {
   });
 }
 ''',
-      [error(WarningCode.DEAD_CODE, 52, 8)],
+      [error(WarningCode.deadCode, 52, 8)],
     );
 
     var node = findNode.switchExpression('switch');
@@ -556,7 +555,7 @@ SwitchExpression
             arguments
               NamedType
                 name: int
-                element2: dart:core::@class::int
+                element: dart:core::@class::int
                 type: int
             rightBracket: >
           leftBracket: [
@@ -566,7 +565,6 @@ SwitchExpression
                 keyword: var
                 name: a
                 declaredFragment: isPublic a@50
-                  type: null
                   element: hasImplicitType isPublic
                     type: int
                 matchedValueType: int
@@ -575,7 +573,6 @@ SwitchExpression
                 keyword: var
                 name: a
                 declaredFragment: isPublic a@59
-                  type: null
                   element: hasImplicitType isPublic
                     type: int
                 matchedValueType: int
@@ -615,12 +612,12 @@ void f(Object? x) {
 ''',
       [
         error(
-          CompileTimeErrorCode.NON_CONSTANT_RELATIONAL_PATTERN_EXPRESSION,
+          CompileTimeErrorCode.nonConstantRelationalPatternExpression,
           64,
           1,
         ),
         error(
-          CompileTimeErrorCode.REFERENCED_BEFORE_DECLARATION,
+          CompileTimeErrorCode.referencedBeforeDeclaration,
           64,
           1,
           contextMessages: [message(testFile, 58, 1)],
@@ -648,11 +645,10 @@ SwitchExpression
             DeclaredVariablePattern
               type: NamedType
                 name: int
-                element2: dart:core::@class::int
+                element: dart:core::@class::int
                 type: int
               name: a
               declaredFragment: isPublic a@58
-                type: int
                 element: isPublic
                   type: int
               matchedValueType: Object?
@@ -662,7 +658,7 @@ SwitchExpression
                 token: a
                 element: a@58
                 staticType: int
-              element2: dart:core::@class::Object::@method::==
+              element: dart:core::@class::Object::@method::==
               matchedValueType: Object?
           rightBracket: ]
           matchedValueType: Object?
@@ -711,7 +707,7 @@ void f(Object? x) {
   });
 }
 ''',
-      [error(CompileTimeErrorCode.UNDEFINED_IDENTIFIER, 72, 1)],
+      [error(CompileTimeErrorCode.undefinedIdentifier, 72, 1)],
     );
 
     var node = findNode.switchExpression('switch');
@@ -731,11 +727,10 @@ SwitchExpression
         pattern: DeclaredVariablePattern
           type: NamedType
             name: int
-            element2: dart:core::@class::int
+            element: dart:core::@class::int
             type: int
           name: a
           declaredFragment: isPublic a@44
-            type: int
             element: isPublic
               type: int
           matchedValueType: Object?

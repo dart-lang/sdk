@@ -73,7 +73,6 @@ IfElement
         keyword: var
         name: a
         declaredFragment: isPublic a@40
-          type: null
           element: hasImplicitType isPublic
             type: int
         matchedValueType: int
@@ -106,12 +105,12 @@ void f(Object x) {
 ''',
       [
         error(
-          CompileTimeErrorCode.NON_CONSTANT_RELATIONAL_PATTERN_EXPRESSION,
+          CompileTimeErrorCode.nonConstantRelationalPatternExpression,
           62,
           1,
         ),
         error(
-          CompileTimeErrorCode.REFERENCED_BEFORE_DECLARATION,
+          CompileTimeErrorCode.referencedBeforeDeclaration,
           62,
           1,
           contextMessages: [message(testFile, 56, 1)],
@@ -137,11 +136,10 @@ IfElement
           DeclaredVariablePattern
             type: NamedType
               name: int
-              element2: dart:core::@class::int
+              element: dart:core::@class::int
               type: int
             name: a
             declaredFragment: isPublic a@56
-              type: int
               element: isPublic
                 type: int
             matchedValueType: Object?
@@ -151,7 +149,7 @@ IfElement
               token: a
               element: a@56
               staticType: int
-            element2: dart:core::@class::Object::@method::==
+            element: dart:core::@class::Object::@method::==
             matchedValueType: Object?
         rightBracket: ]
         matchedValueType: Object
@@ -196,7 +194,7 @@ void f(Object x) {
   ];
 }
 ''',
-      [error(CompileTimeErrorCode.UNDEFINED_IDENTIFIER, 79, 1)],
+      [error(CompileTimeErrorCode.undefinedIdentifier, 79, 1)],
     );
 
     var node = findNode.ifElement('if');
@@ -214,11 +212,10 @@ IfElement
       pattern: DeclaredVariablePattern
         type: NamedType
           name: int
-          element2: dart:core::@class::int
+          element: dart:core::@class::int
           type: int
         name: a
         declaredFragment: isPublic a@42
-          type: int
           element: isPublic
             type: int
         matchedValueType: Object
@@ -260,8 +257,8 @@ class A {
 }
 ''',
       [
-        error(ParserErrorCode.MISSING_ASSIGNABLE_SELECTOR, 32, 5),
-        error(CompileTimeErrorCode.NON_BOOL_CONDITION, 32, 5),
+        error(ParserErrorCode.missingAssignableSelector, 32, 5),
+        error(CompileTimeErrorCode.nonBoolCondition, 32, 5),
       ],
     );
 
@@ -313,7 +310,7 @@ IfElement
           constructorName: ConstructorName
             type: NamedType
               name: A
-              element2: <testLibrary>::@class::A
+              element: <testLibrary>::@class::A
               type: A
             element: <testLibrary>::@class::A::@constructor::new
           argumentList: ArgumentList

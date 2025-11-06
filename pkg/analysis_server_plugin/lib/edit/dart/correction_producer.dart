@@ -168,8 +168,10 @@ sealed class CorrectionProducer<T extends ParsedUnitResult>
     }
     var diagnosticOffset = diagnostic.problemMessage.offset;
     var diagnosticLength = diagnostic.problemMessage.length;
-    return _coveringNode =
-        unit.nodeCovering(offset: diagnosticOffset, length: diagnosticLength);
+    return _coveringNode = unit.nodeCovering(
+      offset: diagnosticOffset,
+      length: diagnosticLength,
+    );
   }
 
   /// The length of the source range associated with the diagnostic being
@@ -242,15 +244,15 @@ final class CorrectionProducerContext {
     required Token token,
     required int selectionOffset,
     required int selectionLength,
-  })  : _libraryResult = libraryResult,
-        _unitResult = unitResult,
-        _sessionHelper = AnalysisSessionHelper(unitResult.session),
-        _utils = dartFixContext?.correctionUtils ?? CorrectionUtils(unitResult),
-        _applyingBulkFixes = applyingBulkFixes,
-        _diagnostic = diagnostic,
-        _token = token,
-        _selectionOffset = selectionOffset,
-        _selectionLength = selectionLength;
+  }) : _libraryResult = libraryResult,
+       _unitResult = unitResult,
+       _sessionHelper = AnalysisSessionHelper(unitResult.session),
+       _utils = dartFixContext?.correctionUtils ?? CorrectionUtils(unitResult),
+       _applyingBulkFixes = applyingBulkFixes,
+       _diagnostic = diagnostic,
+       _token = token,
+       _selectionOffset = selectionOffset,
+       _selectionLength = selectionLength;
 
   String get path => _unitResult.path;
 
@@ -296,8 +298,10 @@ final class CorrectionProducerContext {
     int selectionOffset = -1,
     int selectionLength = 0,
   }) {
-    var node = unitResult.unit
-        .nodeCovering(offset: selectionOffset, length: selectionLength);
+    var node = unitResult.unit.nodeCovering(
+      offset: selectionOffset,
+      length: selectionLength,
+    );
     node ??= unitResult.unit;
 
     var token = _tokenAt(node, selectionOffset) ?? node.beginToken;
@@ -350,7 +354,7 @@ abstract class MultiCorrectionProducer
 
   /// The library element for the library in which a correction is being
   /// produced.
-  LibraryElement get libraryElement2 => unitResult.libraryElement2;
+  LibraryElement get libraryElement2 => unitResult.libraryElement;
 
   @override
   ResolvedLibraryResult get libraryResult =>
@@ -402,7 +406,7 @@ abstract class ResolvedCorrectionProducer
 
   /// The library element for the library in which a correction is being
   /// produced.
-  LibraryElement get libraryElement2 => unitResult.libraryElement2;
+  LibraryElement get libraryElement2 => unitResult.libraryElement;
 
   @override
   ResolvedLibraryResult get libraryResult =>
@@ -445,7 +449,8 @@ abstract class ResolvedCorrectionProducer
   /// Returns the extension declaration for the given [fragment], or `null` if
   /// there is no such extension.
   Future<ExtensionDeclaration?> getExtensionDeclaration(
-      ExtensionFragment fragment) async {
+    ExtensionFragment fragment,
+  ) async {
     var result = await sessionHelper.getFragmentDeclaration(fragment);
     var node = result?.node;
     if (node is ExtensionDeclaration) {
@@ -457,7 +462,8 @@ abstract class ResolvedCorrectionProducer
   /// Returns the extension type for the given [fragment], or `null` if there
   /// is no such extension type.
   Future<ExtensionTypeDeclaration?> getExtensionTypeDeclaration(
-      ExtensionTypeFragment fragment) async {
+    ExtensionTypeFragment fragment,
+  ) async {
     var result = await sessionHelper.getFragmentDeclaration(fragment);
     var node = result?.node;
     if (node is ExtensionTypeDeclaration) {
@@ -567,35 +573,56 @@ abstract class ResolvedCorrectionProducer
       var variableDeclaration = parent;
       if (variableDeclaration.initializer == expression) {
         var variableElement = variableDeclaration.declaredFragment?.element;
-        if (variableElement != null) {
-          return variableElement.type;
+        if (variableElement case VariableElement(:var type)) {
+          if (type is InvalidType) {
+            return typeProvider.dynamicType;
+          }
+          return type;
         }
       }
     }
-    // `myField = 42;`.
     if (parent is AssignmentExpression) {
       var assignment = parent;
+      // `myField = 42;`.
       if (assignment.leftHandSide == expression) {
         var rhs = assignment.rightHandSide;
         return rhs.staticType;
-      }
-    }
-    // `v = myFunction();`.
-    if (parent is AssignmentExpression) {
-      var assignment = parent;
-      if (assignment.rightHandSide == expression) {
+      } else if (assignment.rightHandSide == expression) {
         if (assignment.operator.type == TokenType.EQ) {
           // `v = myFunction();`.
           return assignment.writeType;
-        } else {
+        } else if (assignment.writeType case var expectedType?) {
           // `v += myFunction();`.
           var method = assignment.element;
-          if (method != null) {
-            var parameters = method.formalParameters;
-            if (parameters.length == 1) {
-              return parameters[0].type;
+          if (method case MethodElement(
+            :var returnType,
+            formalParameters: List(length: 1, :var first),
+          )) {
+            if (typeSystem.isAssignableTo(returnType, expectedType)) {
+              // The return type is assignable to the expected type, then use
+              // the expected parameter type.
+              return first.type;
+            } else if (typeSystem.isAssignableTo(expectedType, returnType) &&
+                typeSystem.isAssignableTo(expectedType, first.type)) {
+              // The expected type is a subtype of the return type and the
+              // parameter would accept the expected type, then use the
+              // expected type.
+              // ---
+              // Spec (section 17.31) reads:
+              // The static type of an additive expression is usually
+              // determined by the signature given in the declaration of the
+              // operator used. However, invocations of the operators + and -
+              // of class int, double and num are treated specially by the
+              // typechecker.
+              // ---
+              // This ensures that cases like `int v = 0; v += myFunction();`
+              // will return `int`.
+              if (_isSpecialCaseNumTypes(method, expectedType)) {
+                return expectedType;
+              }
             }
           }
+          return InvalidTypeImpl.instance;
         }
       }
     }
@@ -628,6 +655,12 @@ abstract class ResolvedCorrectionProducer
       if (parent is IfStatement) {
         var statement = parent;
         if (statement.expression == expression) {
+          return _coreTypeBool;
+        }
+      }
+      if (parent is WhenClause) {
+        var clause = parent;
+        if (clause.expression == expression) {
           return _coreTypeBool;
         }
       }
@@ -686,14 +719,29 @@ abstract class ResolvedCorrectionProducer
   /// Looks if the [expression] is directly inside a closure and returns the
   /// return type of the closure.
   DartType? _closureReturnType(Expression expression) {
-    if (expression.enclosingClosure
-        case FunctionExpression(:var correspondingParameter, :var staticType)) {
-      if (correspondingParameter?.type ?? staticType
-          case FunctionType(:var returnType)) {
+    if (expression.enclosingClosure case FunctionExpression(
+      :var correspondingParameter,
+      :var staticType,
+    )) {
+      if (correspondingParameter?.type ?? staticType case FunctionType(
+        :var returnType,
+      )) {
         return returnType;
       }
     }
     return null;
+  }
+
+  bool _isSpecialCaseNumTypes(MethodElement method, DartType expectedType) {
+    if (!expectedType.isDartCoreInt) {
+      return false;
+    }
+    if (method.name == TokenType.PLUS.lexeme ||
+        method.name == TokenType.MINUS.lexeme ||
+        method.name == TokenType.STAR.lexeme) {
+      return true;
+    }
+    return false;
   }
 }
 
@@ -723,17 +771,20 @@ sealed class _AbstractCorrectionProducer<T extends ParsedUnitResult> {
   final CorrectionProducerContext _context;
 
   _AbstractCorrectionProducer({required CorrectionProducerContext context})
-      : _context = context;
+    : _context = context;
 
   /// Whether the fixes are being built for the bulk-fix request.
   bool get applyingBulkFixes => _context._applyingBulkFixes;
 
+  /// The default EOL to be used for new files and files that do not have EOLs.
+  ///
+  /// Existing files with EOL markers will always have the same EOL in inserted
+  /// text.
+  String get defaultEol => utils.endOfLine;
+
   /// The diagnostic being fixed, or `null` if this producer is being
   /// used to produce an assist.
   Diagnostic? get diagnostic => _context._diagnostic;
-
-  /// The EOL sequence to use for this [CompilationUnit].
-  String get eol => utils.endOfLine;
 
   String get file => _context.path;
 
@@ -759,10 +810,11 @@ sealed class _AbstractCorrectionProducer<T extends ParsedUnitResult> {
 
   CorrectionUtils get utils => _context._utils;
 
-  CodeStyleOptions getCodeStyleOptions(File file) =>
-      sessionHelper.session.analysisContext
-          .getAnalysisOptionsForFile(file)
-          .codeStyleOptions;
+  CodeStyleOptions getCodeStyleOptions(File file) => sessionHelper
+      .session
+      .analysisContext
+      .getAnalysisOptionsForFile(file)
+      .codeStyleOptions;
 
   /// Returns the function body of the most deeply nested method or function
   /// that encloses the [node], or `null` if the node is not in a method or

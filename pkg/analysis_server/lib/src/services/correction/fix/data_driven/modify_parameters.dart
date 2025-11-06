@@ -128,12 +128,11 @@ class ModifyParameters extends Change<_Data> {
         if (argument == null) {
           // If there is no argument corresponding to the parameter then we assume
           // that the parameter was absent.
-          var index =
-              reference is PositionalFormalParameterReference
-                  ? reference.index
-                  : remainingArguments.isNotEmpty
-                  ? remainingArguments.last + 1
-                  : 0;
+          var index = reference is PositionalFormalParameterReference
+              ? reference.index
+              : remainingArguments.isNotEmpty
+              ? remainingArguments.last + 1
+              : 0;
           remainingArguments.add(index);
           indexToNewArgumentMap[index] = modification;
           argumentsToInsert.add(index);
@@ -247,10 +246,9 @@ class ModifyParameters extends Change<_Data> {
               offset = arguments[remainingIndex - 1].end;
               needsInitialComma = true;
             } else {
-              offset =
-                  arguments.isNotEmpty
-                      ? arguments[remainingIndex].offset
-                      : argumentList.leftParenthesis.end;
+              offset = arguments.isNotEmpty
+                  ? arguments[remainingIndex].offset
+                  : argumentList.leftParenthesis.end;
             }
             builder.addInsertion(offset, (builder) {
               writeInsertionRange(builder, insertionRange, needsInitialComma);
@@ -283,10 +281,9 @@ class ModifyParameters extends Change<_Data> {
       }
       // The remaining insertion ranges might include new required arguments
       // that need to be inserted after the last argument.
-      var offset =
-          arguments.isEmpty
-              ? argumentList.leftParenthesis.end
-              : arguments[arguments.length - 1].end;
+      var offset = arguments.isEmpty
+          ? argumentList.leftParenthesis.end
+          : arguments[arguments.length - 1].end;
       while (nextInsertionRange < insertionRanges.length) {
         var insertionRange = insertionRanges[nextInsertionRange];
         var lower = insertionRange.lower;
@@ -373,6 +370,12 @@ class ModifyParameters extends Change<_Data> {
     } else if (grandParent is InstanceCreationExpression) {
       var argumentList = grandParent.argumentList;
       return _Data(argumentList);
+    } else if (parent is NamedExpression &&
+        greatGrandParent is DotShorthandInvocation) {
+      return _Data(greatGrandParent.argumentList);
+    } else if (parent is NamedExpression &&
+        greatGrandParent is DotShorthandConstructorInvocation) {
+      return _Data(greatGrandParent.argumentList);
     }
     return null;
   }

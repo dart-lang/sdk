@@ -3,6 +3,11 @@ include: package:lints/recommended.yaml
 analyzer:
   exclude:
     - lib/mock_packages/package_content/**
+  errors:
+    # Ignoring this for all developers means developers don't need to ignore
+    # TODOs in their IDE settings.
+    todo: ignore
+
   language:
     strict-casts: true
     strict-inference: true
@@ -21,3 +26,4 @@ linter:
     - unnecessary_library_directive
     - unnecessary_parenthesis
     - unreachable_from_main
+    - use_null_aware_elements

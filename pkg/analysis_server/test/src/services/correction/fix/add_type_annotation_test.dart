@@ -31,7 +31,7 @@ void main() {
 @reflectiveTest
 class AddTypeAnnotationTest extends FixProcessorTest {
   @override
-  FixKind get kind => DartFixKind.ADD_TYPE_ANNOTATION;
+  FixKind get kind => DartFixKind.addTypeAnnotation;
 
   Future<void> test_missingFieldType() async {
     // MISSING_CONST_FINAL_VAR_OR_TYPE
@@ -107,12 +107,10 @@ class A {
 @reflectiveTest
 class AlwaysSpecifyTypesLintTest extends FixProcessorLintTest {
   @override
-  FixKind get kind => DartFixKind.ADD_TYPE_ANNOTATION;
+  FixKind get kind => DartFixKind.addTypeAnnotation;
 
   @override
   String get lintCode => LintNames.always_specify_types;
-
-  // More coverage in the `add_type_annotation_test.dart` assist test.
 
   Future<void> test_field() async {
     await resolveTestCode('''
@@ -210,7 +208,7 @@ f() {
   switch (A(1)) {
     case A(a: >0 && final b): print(b);
   }
- }
+}
 ''');
     await assertHasFix('''
 class A {
@@ -221,7 +219,31 @@ f() {
   switch (A(1)) {
     case A(a: >0 && final int b): print(b);
   }
- }
+}
+''');
+  }
+
+  // More coverage in the `add_type_annotation_test.dart` assist test.
+
+  Future<void> test_privateType_list() async {
+    // This would work for impl types in a package, not just private types.
+    newFile('$testPackageLibPath/my_lib.dart', '''
+library my_lib;
+class A {}
+class _B extends A {}
+List<_B> getValues() => [];
+''');
+    await resolveTestCode('''
+import 'my_lib.dart';
+void f() {
+  var _ = getValues();
+}
+''');
+    await assertHasFix('''
+import 'my_lib.dart';
+void f() {
+  List<A> _ = getValues();
+}
 ''');
   }
 
@@ -383,7 +405,7 @@ void f() {
 @reflectiveTest
 class PreferTypingUninitializedVariablesLintTest extends FixProcessorLintTest {
   @override
-  FixKind get kind => DartFixKind.ADD_TYPE_ANNOTATION;
+  FixKind get kind => DartFixKind.addTypeAnnotation;
 
   @override
   String get lintCode => LintNames.prefer_typing_uninitialized_variables;
@@ -454,7 +476,7 @@ T g<T>(T d) => d;
 @reflectiveTest
 class SpecifyNonObviousLocalVariableTypesLintTest extends FixProcessorLintTest {
   @override
-  FixKind get kind => DartFixKind.ADD_TYPE_ANNOTATION;
+  FixKind get kind => DartFixKind.addTypeAnnotation;
 
   @override
   String get lintCode => LintNames.specify_nonobvious_local_variable_types;
@@ -607,7 +629,7 @@ String a = '', b = '';
 @reflectiveTest
 class TypeAnnotatePublicAPIsLintTest extends FixProcessorLintTest {
   @override
-  FixKind get kind => DartFixKind.ADD_TYPE_ANNOTATION;
+  FixKind get kind => DartFixKind.addTypeAnnotation;
 
   @override
   String get lintCode => LintNames.type_annotate_public_apis;

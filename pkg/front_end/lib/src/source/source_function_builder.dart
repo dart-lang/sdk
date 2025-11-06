@@ -6,7 +6,7 @@ import 'package:kernel/ast.dart';
 import 'package:kernel/class_hierarchy.dart';
 
 import '../base/messages.dart'
-    show templateRequiredNamedParameterHasDefaultValueError;
+    show codeRequiredNamedParameterHasDefaultValueError;
 import '../builder/formal_parameter_builder.dart';
 import '../builder/omitted_type_builder.dart';
 import '../builder/type_builder.dart';
@@ -26,19 +26,21 @@ import 'source_type_parameter_builder.dart';
 /// to the function. This is done to avoid adding type parameters to
 /// [Constructor]s which don't support them.
 void buildTypeParametersAndFormals(
-    SourceLibraryBuilder libraryBuilder,
-    FunctionNode function,
-    List<SourceNominalParameterBuilder>? declaredTypeParameters,
-    List<FormalParameterBuilder>? declaredFormals,
-    {required List<TypeParameter>? classTypeParameters,
-    required bool supportsTypeParameters}) {
+  SourceLibraryBuilder libraryBuilder,
+  FunctionNode function,
+  List<SourceNominalParameterBuilder>? declaredTypeParameters,
+  List<FormalParameterBuilder>? declaredFormals, {
+  required List<TypeParameter>? classTypeParameters,
+  required bool supportsTypeParameters,
+}) {
   IncludesTypeParametersNonCovariantly? needsCheckVisitor;
   if (classTypeParameters != null && classTypeParameters.isNotEmpty) {
-    needsCheckVisitor =
-        new IncludesTypeParametersNonCovariantly(classTypeParameters,
-            // We are checking the parameter types which are in a
-            // contravariant position.
-            initialVariance: Variance.contravariant);
+    needsCheckVisitor = new IncludesTypeParametersNonCovariantly(
+      classTypeParameters,
+      // We are checking the parameter types which are in a
+      // contravariant position.
+      initialVariance: Variance.contravariant,
+    );
   }
   if (declaredTypeParameters != null) {
     for (int i = 0; i < declaredTypeParameters.length; i++) {
@@ -77,11 +79,13 @@ void buildTypeParametersAndFormals(
       // Required named parameters can't have default values.
       if (formal.isRequiredNamed && formal.initializerToken != null) {
         libraryBuilder.addProblem(
-            templateRequiredNamedParameterHasDefaultValueError
-                .withArguments(formal.name),
-            formal.fileOffset,
-            formal.name.length,
-            formal.fileUri);
+          codeRequiredNamedParameterHasDefaultValueError.withArgumentsOld(
+            formal.name,
+          ),
+          formal.fileOffset,
+          formal.name.length,
+          formal.fileUri,
+        );
       }
     }
   }

@@ -24,13 +24,7 @@ main() {
   p; // use
 }
 ''',
-      [
-        error(
-          CompileTimeErrorCode.PREFIX_IDENTIFIER_NOT_FOLLOWED_BY_DOT,
-          38,
-          1,
-        ),
-      ],
+      [error(CompileTimeErrorCode.prefixIdentifierNotFollowedByDot, 38, 1)],
     );
 
     var node = findNode.simple('p; // use');
@@ -52,12 +46,8 @@ main() {
 }
 ''',
       [
-        error(WarningCode.UNUSED_LOCAL_VARIABLE, 47, 1),
-        error(
-          CompileTimeErrorCode.PREFIX_IDENTIFIER_NOT_FOLLOWED_BY_DOT,
-          52,
-          1,
-        ),
+        error(WarningCode.unusedLocalVariable, 47, 1),
+        error(CompileTimeErrorCode.prefixIdentifierNotFollowedByDot, 52, 1),
       ],
     );
 
@@ -71,7 +61,6 @@ ForStatement
       keyword: var
       name: x
       declaredFragment: isPublic x@47
-        type: null
         element: hasImplicitType isPublic
           type: InvalidType
     inKeyword: in
@@ -100,12 +89,8 @@ main() {
 }
 ''',
       [
-        error(WarningCode.UNUSED_LOCAL_VARIABLE, 66, 1),
-        error(
-          CompileTimeErrorCode.PREFIX_IDENTIFIER_NOT_FOLLOWED_BY_DOT,
-          76,
-          1,
-        ),
+        error(WarningCode.unusedLocalVariable, 66, 1),
+        error(CompileTimeErrorCode.prefixIdentifierNotFollowedByDot, 76, 1),
       ],
     );
 
@@ -116,7 +101,7 @@ InstanceCreationExpression
   constructorName: ConstructorName
     type: NamedType
       name: C
-      element2: <testLibrary>::@class::C
+      element: <testLibrary>::@class::C
       type: C<dynamic>
     element: ConstructorMember
       baseElement: <testLibrary>::@class::C::@constructor::new
@@ -202,7 +187,7 @@ f() {
 ''',
       [
         // String extensions are found but `_` is not bound.
-        error(CompileTimeErrorCode.UNDEFINED_IDENTIFIER, 86, 1),
+        error(CompileTimeErrorCode.undefinedIdentifier, 86, 1),
       ],
     );
   }

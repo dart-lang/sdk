@@ -157,41 +157,47 @@ extension type const Modifiers(int _mask) implements Object {
   ///     staticToken: new SimpleToken(Keyword.STATIC, -1)),
   ///     Modifiers.Final | Modifiers.Static)
   /// ```
-  static Modifiers from(
-      {Token? abstractToken,
-      Token? augmentToken,
-      Token? baseToken,
-      Token? covariantToken,
-      Token? constToken,
-      Token? externalToken,
-      Token? finalToken,
-      Token? interfaceToken,
-      Token? lateToken,
-      Token? macroToken,
-      Token? mixinToken,
-      Token? requiredToken,
-      Token? sealedToken,
-      Token? staticToken,
-      Token? varFinalOrConst}) {
+  static Modifiers from({
+    Token? abstractToken,
+    Token? augmentToken,
+    Token? baseToken,
+    Token? covariantToken,
+    Token? constToken,
+    Token? externalToken,
+    Token? finalToken,
+    Token? interfaceToken,
+    Token? lateToken,
+    Token? macroToken,
+    Token? mixinToken,
+    Token? requiredToken,
+    Token? sealedToken,
+    Token? staticToken,
+    Token? varFinalOrConst,
+  }) {
     assert(abstractToken == null || abstractToken.type == Keyword.ABSTRACT);
-    assert(augmentToken == null ||
-        // Coverage-ignore(suite): Not run.
-        augmentToken.type == Keyword.AUGMENT);
+    assert(
+      augmentToken == null ||
+          // Coverage-ignore(suite): Not run.
+          augmentToken.type == Keyword.AUGMENT,
+    );
     assert(baseToken == null || baseToken.type == Keyword.BASE);
     assert(covariantToken == null || covariantToken.type == Keyword.COVARIANT);
     assert(constToken == null || constToken.type == Keyword.CONST);
     assert(finalToken == null || finalToken.type == Keyword.FINAL);
     assert(interfaceToken == null || interfaceToken.type == Keyword.INTERFACE);
     assert(lateToken == null || lateToken.type == Keyword.LATE);
-    assert(macroToken == null ||
-        // Coverage-ignore(suite): Not run.
-        macroToken.lexeme == 'macro');
+    assert(
+      macroToken == null ||
+          // Coverage-ignore(suite): Not run.
+          macroToken.lexeme == 'macro',
+    );
     assert(mixinToken == null || mixinToken.type == Keyword.MIXIN);
     assert(requiredToken == null || requiredToken.type == Keyword.REQUIRED);
     assert(sealedToken == null || sealedToken.type == Keyword.SEALED);
     assert(staticToken == null || staticToken.type == Keyword.STATIC);
 
-    int mask = (abstractToken != null ? _abstractMask : 0) |
+    int mask =
+        (abstractToken != null ? _abstractMask : 0) |
         (augmentToken != null ? _augmentMask : 0) |
         (baseToken != null ? _baseMask : 0) |
         (covariantToken != null ? _covariantMask : 0) |
@@ -211,8 +217,9 @@ extension type const Modifiers(int _mask) implements Object {
         Keyword.FINAL => _finalMask,
         Keyword.VAR => 0,
         _ => // Coverage-ignore(suite): Not run.
-          throw new UnsupportedError(
-              "Unexpected varFinalOrConst token $varFinalOrConst."),
+        throw new UnsupportedError(
+          "Unexpected varFinalOrConst token $varFinalOrConst.",
+        ),
       };
     }
     return new Modifiers(mask);
@@ -395,8 +402,9 @@ extension type const Modifiers(int _mask) implements Object {
   /// DartDocTest(Modifiers.NamedMixinApplication.isEmpty, false)
   /// DartDocTest(Modifiers.NamedMixinApplication.hasInitializer, false)
   /// ```
-  static const Modifiers NamedMixinApplication =
-      const Modifiers(_namedMixinApplicationMask);
+  static const Modifiers NamedMixinApplication = const Modifiers(
+    _namedMixinApplicationMask,
+  );
 
   /// Returns `true` if the set of modifiers contains the synthetic modifier
   /// used to denote that a class is a named mixin application.
@@ -424,8 +432,9 @@ extension type const Modifiers(int _mask) implements Object {
   /// DartDocTest(Modifiers.InitializingFormal.isEmpty, false)
   /// DartDocTest(Modifiers.InitializingFormal.declaresConstConstructor, false)
   /// ```
-  static const Modifiers InitializingFormal =
-      const Modifiers(_initializingFormalMask);
+  static const Modifiers InitializingFormal = const Modifiers(
+    _initializingFormalMask,
+  );
 
   /// Returns `true` if the set of modifiers contains the synthetic modifier
   /// used to denote that a parameter is an initializing formal.
@@ -441,8 +450,9 @@ extension type const Modifiers(int _mask) implements Object {
   /// DartDocTest(
   ///     Modifiers.DeclaresConstConstructor.isSuperInitializingFormal, false)
   /// ```
-  static const Modifiers DeclaresConstConstructor =
-      const Modifiers(_declaresConstConstructorMask);
+  static const Modifiers DeclaresConstConstructor = const Modifiers(
+    _declaresConstConstructorMask,
+  );
 
   /// Returns `true` if the set of modifiers contains the synthetic modifier
   /// used to denote that a declaration declares a const constructor.
@@ -458,8 +468,9 @@ extension type const Modifiers(int _mask) implements Object {
   /// DartDocTest(Modifiers.SuperInitializingFormal.isEmpty, false)
   /// DartDocTest(Modifiers.SuperInitializingFormal.isAbstract, false)
   /// ```
-  static const Modifiers SuperInitializingFormal =
-      const Modifiers(_superInitializingFormalMask);
+  static const Modifiers SuperInitializingFormal = const Modifiers(
+    _superInitializingFormalMask,
+  );
 
   /// Returns `true` if the set of modifiers contains the synthetic modifier
   /// used to denote that a parameter is a super initializing formal.
@@ -510,9 +521,12 @@ extension type const Modifiers(int _mask) implements Object {
   /// DartDocTest(
   ///     Modifiers.SuperInitializingFormal.containsSyntacticModifiers(), false)
   /// ```
-  bool containsSyntacticModifiers(
-      {bool ignoreRequired = false, bool ignoreCovariant = false}) {
-    int mask = _mask &
+  bool containsSyntacticModifiers({
+    bool ignoreRequired = false,
+    bool ignoreCovariant = false,
+  }) {
+    int mask =
+        _mask &
         ~(_hasInitializerMask |
             _initializingFormalMask |
             _declaresConstConstructorMask |

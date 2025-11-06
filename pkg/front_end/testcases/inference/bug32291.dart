@@ -2,21 +2,14 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/*@testedFeatures=inference*/
 library test;
 
 void main() {
-  var /*@type=List<List<String>?>*/ l = /*@typeArgs=List<String>?*/ [
-    /*@typeArgs=String*/ ["hi", "world"],
+  var l = [
+    ["hi", "world"],
     null,
   ];
-  var /*@type=Iterable<List<String>>*/ i1 =
-      l. /*@target=Iterable.map*/ /*@typeArgs=List<String>*/ map(
-          /*@returnType=List<String>*/ (/*@type=List<String>?*/ ll) =>
-              ll ?? /*@typeArgs=String*/ []);
-  var /*@type=Iterable<int>*/ i2 =
-      i1. /*@target=Iterable.map*/ /*@typeArgs=int*/ map(
-          /*@returnType=int*/ (List<String> l) =>
-              l. /*@target=List.length*/ length);
+  var i1 = l.map((ll) => ll ?? []);
+  var i2 = i1.map((List<String> l) => l.length);
   print(i2);
 }

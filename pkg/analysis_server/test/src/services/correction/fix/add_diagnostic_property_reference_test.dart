@@ -161,7 +161,7 @@ class AddDiagnosticPropertyReferenceTest extends FixProcessorLintTest {
   bool get addVectorMathPackageDep => true;
 
   @override
-  FixKind get kind => DartFixKind.ADD_DIAGNOSTIC_PROPERTY_REFERENCE;
+  FixKind get kind => DartFixKind.addDiagnosticPropertyReference;
 
   @override
   String get lintCode => LintNames.diagnostic_describe_all_properties;
@@ -658,9 +658,8 @@ class C extends Widget with Diagnosticable {
   }
 }
 ''',
-      errorFilter:
-          (error) =>
-              error.diagnosticCode != CompileTimeErrorCode.UNDEFINED_CLASS,
+      errorFilter: (error) =>
+          error.diagnosticCode != CompileTimeErrorCode.undefinedClass,
     );
   }
 
@@ -693,9 +692,8 @@ class C extends Widget with Diagnosticable {
   }
 }
 ''',
-      errorFilter:
-          (error) =>
-              error.diagnosticCode != CompileTimeErrorCode.UNDEFINED_CLASS,
+      errorFilter: (error) =>
+          error.diagnosticCode != CompileTimeErrorCode.undefinedClass,
     );
   }
 

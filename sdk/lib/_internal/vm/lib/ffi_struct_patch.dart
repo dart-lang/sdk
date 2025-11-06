@@ -12,11 +12,13 @@ import 'dart:typed_data';
 @patch
 final class _Compound implements NativeType {}
 
+@pragma("vm:deeply-immutable") // subclassing special-cased in validator
 @pragma("vm:entry-point")
 @pragma("wasm:entry-point")
 @patch
 abstract base class Struct extends _Compound implements SizedNativeType {}
 
+@pragma("vm:deeply-immutable") // subclassing special-cased in validator
 @pragma("vm:entry-point")
 @pragma("wasm:entry-point")
 @patch

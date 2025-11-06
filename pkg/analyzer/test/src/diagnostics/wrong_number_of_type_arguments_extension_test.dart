@@ -26,13 +26,7 @@ void f() {
   E<int>(0).foo();
 }
 ''',
-      [
-        error(
-          CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_EXTENSION,
-          54,
-          5,
-        ),
-      ],
+      [error(CompileTimeErrorCode.wrongNumberOfTypeArgumentsExtension, 54, 5)],
     );
 
     var node = findNode.extensionOverride('E<int>');
@@ -44,7 +38,7 @@ ExtensionOverride
     arguments
       NamedType
         name: int
-        element2: dart:core::@class::int
+        element: dart:core::@class::int
         type: int
     rightBracket: >
   argumentList: ArgumentList
@@ -55,7 +49,7 @@ ExtensionOverride
         correspondingParameter: <null>
         staticType: int
     rightParenthesis: )
-  element2: <testLibrary>::@extension::E
+  element: <testLibrary>::@extension::E
   extendedType: int
   staticType: null
 ''');
@@ -72,13 +66,7 @@ void f() {
   E<bool>(0).foo();
 }
 ''',
-      [
-        error(
-          CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_EXTENSION,
-          60,
-          6,
-        ),
-      ],
+      [error(CompileTimeErrorCode.wrongNumberOfTypeArgumentsExtension, 60, 6)],
     );
 
     var node = findNode.extensionOverride('E<bool>');
@@ -90,7 +78,7 @@ ExtensionOverride
     arguments
       NamedType
         name: bool
-        element2: dart:core::@class::bool
+        element: dart:core::@class::bool
         type: bool
     rightBracket: >
   argumentList: ArgumentList
@@ -101,7 +89,7 @@ ExtensionOverride
         correspondingParameter: <null>
         staticType: int
     rightParenthesis: )
-  element2: <testLibrary>::@extension::E
+  element: <testLibrary>::@extension::E
   extendedType: int
   staticType: null
   typeArgumentTypes
@@ -121,13 +109,7 @@ void f() {
   E<bool, int>(0).foo();
 }
 ''',
-      [
-        error(
-          CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_EXTENSION,
-          57,
-          11,
-        ),
-      ],
+      [error(CompileTimeErrorCode.wrongNumberOfTypeArgumentsExtension, 57, 11)],
     );
 
     var node = findNode.extensionOverride('E<bool, int>');
@@ -139,11 +121,11 @@ ExtensionOverride
     arguments
       NamedType
         name: bool
-        element2: dart:core::@class::bool
+        element: dart:core::@class::bool
         type: bool
       NamedType
         name: int
-        element2: dart:core::@class::int
+        element: dart:core::@class::int
         type: int
     rightBracket: >
   argumentList: ArgumentList
@@ -154,7 +136,7 @@ ExtensionOverride
         correspondingParameter: <null>
         staticType: int
     rightParenthesis: )
-  element2: <testLibrary>::@extension::E
+  element: <testLibrary>::@extension::E
   extendedType: int
   staticType: null
   typeArgumentTypes

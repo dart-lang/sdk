@@ -25,14 +25,15 @@ static method listEquals<E extends core::Object? = dynamic>([@vm.inferred-arg-ty
 [@vm.inferred-return-type.metadata=dart.core::Null? (value: null)]
 static method main() → void {
   math::Random random = [@vm.inferred-type.metadata=dart.math::_Random] math::Random::•();
+  const core::int n = #C1;
   core::List<core::int> list1 = block {
     final core::List<core::int> #t1 = [@vm.inferred-type.metadata=dart.core::_GrowableList<dart.core::int>] core::_GrowableList::•<core::int>(0);
     for (core::int i = 0; [@vm.direct-call.metadata=dart.core::_IntegerImplementation.<] [@vm.inferred-type.metadata=dart.core::bool (skip check)] i.{core::num::<}(#C1){(core::num) → core::bool}; i = [@vm.direct-call.metadata=dart.core::_IntegerImplementation.+] [@vm.inferred-type.metadata=int (skip check)] i.{core::num::+}(1){(core::num) → core::int})
-      [@vm.call-site-attributes.metadata=receiverType:dart.core::List<dart.core::int>] [@vm.direct-call.metadata=dart.core::_GrowableList.add] [@vm.inferred-type.metadata=!? (skip check)] #t1.{core::List::add}{Invariant}([@vm.direct-call.metadata=dart.math::_Random.nextInt] [@vm.inferred-type.metadata=int (skip check)] random.{math::Random::nextInt}(256){(core::int) → core::int}){(core::int) → void};
+      [@vm.call-site-attributes.metadata=receiverType:dart.core::List<dart.core::int>] [@vm.direct-call.metadata=dart.core::_GrowableList.add] [@vm.inferred-type.metadata=? (skip check)] #t1.{core::List::add}{Invariant}([@vm.direct-call.metadata=dart.math::_Random.nextInt] [@vm.inferred-type.metadata=int (skip check)] random.{math::Random::nextInt}(256){(core::int) → core::int}){(core::int) → void};
   } =>#t1;
   core::List<core::int> list2 = [@vm.direct-call.metadata=dart.core::_GrowableList.toList] [@vm.inferred-type.metadata=dart.core::_GrowableList<dart.core::int> (skip check)] list1.{core::Iterable::toList}(){({growable: core::bool}) → core::List<core::int>};
   core::Stopwatch stopwatch = let final core::Stopwatch #t2 = new core::Stopwatch::•() in block {
-    [@vm.direct-call.metadata=dart.core::Stopwatch.start] [@vm.inferred-type.metadata=!? (skip check)] #t2.{core::Stopwatch::start}(){() → void};
+    [@vm.direct-call.metadata=dart.core::Stopwatch.start] [@vm.inferred-type.metadata=? (skip check)] #t2.{core::Stopwatch::start}(){() → void};
   } =>#t2;
   core::bool result = self::listEquals<core::int>(list1, list2);
   core::print("${result} ${[@vm.direct-call.metadata=dart.core::Stopwatch.elapsed] stopwatch.{core::Stopwatch::elapsed}{core::Duration}}");

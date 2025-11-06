@@ -1151,6 +1151,29 @@ mixin M {}
     );
   }
 
+  test_setUpClass_class_static_member_reachable() async {
+    await assertNoDiagnostics('''
+void main() {
+  A();
+}
+
+final class A {
+  static setUpClass() {}
+}
+''');
+  }
+
+  test_setUpClass_top_level_unreachable() async {
+    await assertDiagnostics(
+      '''
+void main() {}
+
+setUpClass() {}
+''',
+      [lint(16, 10)],
+    );
+  }
+
   test_staticField_unreachable() async {
     await assertDiagnostics(
       r'''
@@ -1346,6 +1369,29 @@ class C {
 }
 ''',
       [lint(45, 1)],
+    );
+  }
+
+  test_tearDownClass_class_static_member_reachable() async {
+    await assertNoDiagnostics('''
+void main() {
+  A();
+}
+
+final class A {
+  static tearDownClass() {}
+}
+''');
+  }
+
+  test_tearDownClass_top_level_unreachable() async {
+    await assertDiagnostics(
+      '''
+void main() {}
+
+tearDownClass() {}
+''',
+      [lint(16, 13)],
     );
   }
 
@@ -1648,7 +1694,7 @@ class B {
 ''',
       [
         lint(109, 1),
-        error(WarningCode.INVALID_WIDGET_PREVIEW_APPLICATION, 177, 7),
+        error(WarningCode.invalidWidgetPreviewApplication, 177, 7),
         lint(196, 3),
       ],
     );
@@ -1683,10 +1729,7 @@ class B {
   const B();
 }
 ''',
-      [
-        lint(70, 1),
-        error(WarningCode.INVALID_WIDGET_PREVIEW_APPLICATION, 77, 7),
-      ],
+      [lint(70, 1), error(WarningCode.invalidWidgetPreviewApplication, 77, 7)],
     );
   }
 
@@ -1706,7 +1749,7 @@ class B {
 ''',
       [
         lint(70, 1),
-        error(WarningCode.INVALID_WIDGET_PREVIEW_APPLICATION, 77, 7),
+        error(WarningCode.invalidWidgetPreviewApplication, 77, 7),
         lint(122, 1),
       ],
     );
@@ -1736,10 +1779,10 @@ void _f6() {}
 ''',
       [
         lint(168, 1),
-        error(WarningCode.INVALID_WIDGET_PREVIEW_APPLICATION, 175, 7),
-        error(WarningCode.INVALID_WIDGET_PREVIEW_APPLICATION, 218, 7),
-        error(WarningCode.INVALID_WIDGET_PREVIEW_APPLICATION, 241, 7),
-        error(WarningCode.INVALID_WIDGET_PREVIEW_APPLICATION, 291, 7),
+        error(WarningCode.invalidWidgetPreviewApplication, 175, 7),
+        error(WarningCode.invalidWidgetPreviewApplication, 218, 7),
+        error(WarningCode.invalidWidgetPreviewApplication, 241, 7),
+        error(WarningCode.invalidWidgetPreviewApplication, 291, 7),
       ],
     );
   }
@@ -1754,7 +1797,7 @@ void main() {}
 @Preview()
 void f6() {}
 ''',
-      [error(WarningCode.INVALID_WIDGET_PREVIEW_APPLICATION, 65, 7)],
+      [error(WarningCode.invalidWidgetPreviewApplication, 65, 7)],
     );
   }
 

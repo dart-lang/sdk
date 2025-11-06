@@ -8,6 +8,7 @@ import 'package:analysis_server/src/utilities/extensions/ast.dart';
 import 'package:analysis_server_plugin/edit/dart/correction_producer.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
+import 'package:analyzer/src/utilities/dot_shorthands.dart';
 import 'package:analyzer/src/utilities/extensions/ast.dart';
 import 'package:analyzer_plugin/utilities/assist/assist.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
@@ -58,6 +59,8 @@ class RemoveTypeAnnotation extends ParsedCorrectionProducer {
       if (node case TypeAnnotation(:var parent) when diagnostic != null) {
         if (parent is VariableDeclarationList) {
           return _removeFromDeclarationList(builder, parent);
+        } else if (parent is DeclaredIdentifier) {
+          return _removeFromDeclaredIdentifier(builder, parent);
         }
         return _removeTypeAnnotation(builder, node);
       }
@@ -94,9 +97,16 @@ class RemoveTypeAnnotation extends ParsedCorrectionProducer {
       return;
     }
 
-    String? typeArgumentsText;
-    int? typeArgumentsOffset;
-    if (type is NamedType) {
+    String? insertionText;
+    int? insertionOffset;
+    if (isDotShorthand(initializer)) {
+      // Inserts the type before the dot shorthand (e.g. `E.a` where type is
+      // `E`) because we erase the required context type when we replace the
+      // declared type with `var`.
+      // TODO(kallentu): https://github.com/dart-lang/sdk/issues/61164
+      insertionText = utils.getNodeText(type);
+      insertionOffset = initializer.beginToken.offset;
+    } else if (type is NamedType) {
       var typeArguments = type.typeArguments;
       if (typeArguments != null) {
         if (initializer is CascadeExpression) {
@@ -104,26 +114,26 @@ class RemoveTypeAnnotation extends ParsedCorrectionProducer {
         }
         if (initializer is TypedLiteral) {
           if (initializer.typeArguments == null) {
-            typeArgumentsText = utils.getNodeText(typeArguments);
+            insertionText = utils.getNodeText(typeArguments);
             if (initializer is ListLiteral) {
-              typeArgumentsOffset = initializer.leftBracket.offset;
+              insertionOffset = initializer.leftBracket.offset;
             } else if (initializer is SetOrMapLiteral) {
-              typeArgumentsOffset = initializer.leftBracket.offset;
+              insertionOffset = initializer.leftBracket.offset;
             } else {
               throw StateError('Unhandled subclass of TypedLiteral');
             }
           }
         } else if (initializer is InstanceCreationExpression) {
           if (initializer.constructorName.type.typeArguments == null) {
-            typeArgumentsText = utils.getNodeText(typeArguments);
-            typeArgumentsOffset = initializer.constructorName.type.end;
+            insertionText = utils.getNodeText(typeArguments);
+            insertionOffset = initializer.constructorName.type.end;
           }
         }
       }
     }
     if (initializer is SetOrMapLiteral &&
         initializer.typeArguments == null &&
-        typeArgumentsText == null) {
+        insertionText == null) {
       // This is to prevent the fix from converting a valid map or set literal
       // into an ambiguous literal. We could apply this in more places
       // by examining the elements of the collection.
@@ -137,8 +147,8 @@ class RemoveTypeAnnotation extends ParsedCorrectionProducer {
       } else {
         builder.addSimpleReplacement(typeRange, '${Keyword.VAR.lexeme} ');
       }
-      if (typeArgumentsText != null && typeArgumentsOffset != null) {
-        builder.addSimpleInsertion(typeArgumentsOffset, typeArgumentsText);
+      if (insertionText != null && insertionOffset != null) {
+        builder.addSimpleInsertion(insertionOffset, insertionText);
       }
     });
   }
@@ -151,6 +161,21 @@ class RemoveTypeAnnotation extends ParsedCorrectionProducer {
     if (typeNode == null) {
       return;
     }
+
+    String? insertionText;
+    int? insertionOffset;
+    var parent = declaration.parent;
+    if (parent is ForEachPartsWithDeclaration) {
+      var iterable = parent.iterable;
+      if (hasDependentDotShorthand(iterable) && iterable is TypedLiteral) {
+        // If there's a dependent shorthand in the literal, we need to
+        // insert explicit type arguments to ensure we have an appropriate
+        // context type to resolve the dot shorthand.
+        insertionText = '<${utils.getNodeText(typeNode)}>';
+        insertionOffset = iterable.beginToken.offset;
+      }
+    }
+
     var keyword = declaration.keyword;
     var variableName = declaration.name;
     await builder.addDartFileEdit(file, (builder) {
@@ -159,6 +184,10 @@ class RemoveTypeAnnotation extends ParsedCorrectionProducer {
         builder.addSimpleReplacement(typeRange, '');
       } else {
         builder.addSimpleReplacement(typeRange, '${Keyword.VAR.lexeme} ');
+      }
+
+      if (insertionText != null && insertionOffset != null) {
+        builder.addSimpleInsertion(insertionOffset, insertionText);
       }
     });
   }

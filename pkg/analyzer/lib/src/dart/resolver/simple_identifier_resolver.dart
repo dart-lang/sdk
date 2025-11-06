@@ -57,7 +57,7 @@ class SimpleIdentifierResolver with ScopeHelpers {
       if (parameterTypes.isNotEmpty) {
         return parameterTypes[0];
       }
-      var getter = accessor.variable?.getter;
+      var getter = accessor.variable.getter;
       if (getter != null) {
         functionType = getter.type;
         return functionType.returnType;
@@ -198,7 +198,7 @@ class SimpleIdentifierResolver with ScopeHelpers {
         !identical(element, enclosingClass)) {
       diagnosticReporter.atNode(
         node,
-        CompileTimeErrorCode.INVALID_FACTORY_NAME_NOT_A_CLASS,
+        CompileTimeErrorCode.invalidFactoryNameNotAClass,
       );
     } else if (_isConstructorReturnType(node) &&
         !identical(element, enclosingClass)) {
@@ -208,7 +208,7 @@ class SimpleIdentifierResolver with ScopeHelpers {
       if (element.name case var name?) {
         diagnosticReporter.atNode(
           node,
-          CompileTimeErrorCode.PREFIX_IDENTIFIER_NOT_FOLLOWED_BY_DOT,
+          CompileTimeErrorCode.prefixIdentifierNotFollowedByDot,
           arguments: [name],
         );
       }
@@ -217,14 +217,14 @@ class SimpleIdentifierResolver with ScopeHelpers {
       if (node.name == "await" && _resolver.enclosingFunction != null) {
         diagnosticReporter.atNode(
           node,
-          CompileTimeErrorCode.UNDEFINED_IDENTIFIER_AWAIT,
+          CompileTimeErrorCode.undefinedIdentifierAwait,
         );
       } else if (!_resolver.libraryFragment.shouldIgnoreUndefinedIdentifier(
         node,
       )) {
         diagnosticReporter.atNode(
           node,
-          CompileTimeErrorCode.UNDEFINED_IDENTIFIER,
+          CompileTimeErrorCode.undefinedIdentifier,
           arguments: [node.name],
         );
       }
@@ -334,7 +334,7 @@ class SimpleIdentifierResolver with ScopeHelpers {
 
     _resolver.diagnosticReporter.atNode(
       node,
-      CompileTimeErrorCode.EXTENSION_AS_EXPRESSION,
+      CompileTimeErrorCode.extensionAsExpression,
       arguments: [node.name],
     );
 

@@ -11,19 +11,19 @@ import '../../base/messages.dart'
     show
         LocatedMessage,
         ProblemReporting,
-        messageDeclaredMemberConflictsWithInheritedMember,
-        messageDeclaredMemberConflictsWithInheritedMemberCause,
-        messageDeclaredMemberConflictsWithOverriddenMembersCause,
-        messageEnumAbstractMember,
-        messageInheritedMembersConflict,
-        messageInheritedMembersConflictCause1,
-        messageInheritedMembersConflictCause2,
-        templateCantInferReturnTypeDueToNoCombinedSignature,
-        templateCantInferTypeDueToNoCombinedSignature,
-        templateCantInferTypesDueToNoCombinedSignature,
-        templateInstanceAndSynthesizedStaticConflict,
-        templateMissingImplementationCause,
-        templateMissingImplementationNotAbstract;
+        codeDeclaredMemberConflictsWithInheritedMember,
+        codeDeclaredMemberConflictsWithInheritedMemberCause,
+        codeDeclaredMemberConflictsWithOverriddenMembersCause,
+        codeEnumAbstractMember,
+        codeInheritedMembersConflict,
+        codeInheritedMembersConflictCause1,
+        codeInheritedMembersConflictCause2,
+        codeCantInferReturnTypeDueToNoCombinedSignature,
+        codeCantInferTypeDueToNoCombinedSignature,
+        codeCantInferTypesDueToNoCombinedSignature,
+        codeInstanceAndSynthesizedStaticConflict,
+        codeMissingImplementationCause,
+        codeMissingImplementationNotAbstract;
 import '../../base/uri_offset.dart';
 import '../../builder/declaration_builders.dart';
 import '../../builder/formal_parameter_builder.dart';
@@ -59,8 +59,8 @@ abstract class MembersNodeBuilder {
       second = a;
     }
     return <LocatedMessage>[
-      messageInheritedMembersConflictCause1.withLocation2(first.uriOffset),
-      messageInheritedMembersConflictCause2.withLocation2(second.uriOffset),
+      codeInheritedMembersConflictCause1.withLocation2(first.uriOffset),
+      codeInheritedMembersConflictCause2.withLocation2(second.uriOffset),
     ];
   }
 
@@ -74,25 +74,32 @@ abstract class MembersNodeBuilder {
     if (a.declarationBuilder != b.declarationBuilder) {
       if (a.declarationBuilder == declarationBuilder) {
         declarationBuilder.libraryBuilder.addProblem2(
-            messageDeclaredMemberConflictsWithInheritedMember, a.uriOffset,
-            context: <LocatedMessage>[
-              messageDeclaredMemberConflictsWithInheritedMemberCause
-                  .withLocation2(b.uriOffset)
-            ]);
+          codeDeclaredMemberConflictsWithInheritedMember,
+          a.uriOffset,
+          context: <LocatedMessage>[
+            codeDeclaredMemberConflictsWithInheritedMemberCause.withLocation2(
+              b.uriOffset,
+            ),
+          ],
+        );
       } else if (b.declarationBuilder == declarationBuilder) {
         declarationBuilder.libraryBuilder.addProblem2(
-            messageDeclaredMemberConflictsWithInheritedMember, b.uriOffset,
-            context: <LocatedMessage>[
-              messageDeclaredMemberConflictsWithInheritedMemberCause
-                  .withLocation2(a.uriOffset)
-            ]);
+          codeDeclaredMemberConflictsWithInheritedMember,
+          b.uriOffset,
+          context: <LocatedMessage>[
+            codeDeclaredMemberConflictsWithInheritedMemberCause.withLocation2(
+              a.uriOffset,
+            ),
+          ],
+        );
       } else {
         declarationBuilder.libraryBuilder.addProblem(
-            messageInheritedMembersConflict,
-            declarationBuilder.fileOffset,
-            declarationBuilder.fullNameForErrors.length,
-            declarationBuilder.fileUri,
-            context: _inheritedConflictContext(a, b));
+          codeInheritedMembersConflict,
+          declarationBuilder.fileOffset,
+          declarationBuilder.fullNameForErrors.length,
+          declarationBuilder.fileUri,
+          context: _inheritedConflictContext(a, b),
+        );
       }
     }
     // Coverage-ignore(suite): Not run.
@@ -110,9 +117,11 @@ abstract class MembersNodeBuilder {
         // TODO(johnniwinther): Move this to the creation of the shared
         // property builder.
         declarationBuilder.libraryBuilder.addProblem2(
-            templateInstanceAndSynthesizedStaticConflict
-                .withArguments(staticMember.name.text),
-            instanceMember.uriOffset);
+          codeInstanceAndSynthesizedStaticConflict.withArgumentsOld(
+            staticMember.name.text,
+          ),
+          instanceMember.uriOffset,
+        );
       }
     }
   }
@@ -137,21 +146,23 @@ class ClassMembersNodeBuilder extends MembersNodeBuilder {
       classBuilder.libraryBuilder.loader == hierarchy.loader;
 
   static void inferMethodType(
-      ClassHierarchyBuilder hierarchyBuilder,
-      ClassMembersBuilder membersBuilder,
-      SourceClassBuilder classBuilder,
-      FunctionNode declaredFunction,
-      TypeBuilder declaredReturnType,
-      List<FormalParameterBuilder>? formals,
-      Iterable<ClassMember> overriddenMembers,
-      {required String name,
-      required Uri fileUri,
-      required int nameOffset,
-      required int nameLength}) {
+    ClassHierarchyBuilder hierarchyBuilder,
+    ClassMembersBuilder membersBuilder,
+    SourceClassBuilder classBuilder,
+    FunctionNode declaredFunction,
+    TypeBuilder declaredReturnType,
+    List<FormalParameterBuilder>? formals,
+    Iterable<ClassMember> overriddenMembers, {
+    required String name,
+    required Uri fileUri,
+    required int nameOffset,
+    required int nameLength,
+  }) {
     if (declaredReturnType is InferableTypeBuilder ||
         formals != null &&
-            formals
-                .any((parameter) => parameter.type is InferableTypeBuilder)) {
+            formals.any(
+              (parameter) => parameter.type is InferableTypeBuilder,
+            )) {
       List<TypeParameter> declaredTypeParameters =
           declaredFunction.typeParameters;
       List<VariableDeclaration> declaredPositional =
@@ -163,15 +174,22 @@ class ClassMembersNodeBuilder extends MembersNodeBuilder {
       DartType? inferredReturnType;
       Map<FormalParameterBuilder, DartType?> inferredParameterTypes = {};
 
-      Set<ClassMember> overriddenMemberSet =
-          toSet(classBuilder, overriddenMembers);
+      Set<ClassMember> overriddenMemberSet = toSet(
+        classBuilder,
+        overriddenMembers,
+      );
       CombinedMemberSignatureBase combinedMemberSignature =
           new CombinedClassMemberSignature(
-              membersBuilder, classBuilder, overriddenMemberSet.toList(),
-              forSetter: false);
-      FunctionType? combinedMemberSignatureType = combinedMemberSignature
-              .getCombinedSignatureTypeInContext(declaredTypeParameters)
-          as FunctionType?;
+            membersBuilder,
+            classBuilder,
+            overriddenMemberSet.toList(),
+            forSetter: false,
+          );
+      FunctionType? combinedMemberSignatureType =
+          combinedMemberSignature.getCombinedSignatureTypeInContext(
+                declaredTypeParameters,
+              )
+              as FunctionType?;
 
       bool cantInferReturnType = false;
       List<FormalParameterBuilder>? cantInferParameterTypes;
@@ -234,21 +252,29 @@ class ClassMembersNodeBuilder extends MembersNodeBuilder {
       if ((cantInferReturnType && cantInferParameterTypes != null) ||
           (cantInferParameterTypes != null &&
               cantInferParameterTypes.length > 1)) {
-        reportCantInferTypes(classBuilder.libraryBuilder, overriddenMembers,
-            name: name,
-            fileUri: fileUri,
-            nameOffset: nameOffset,
-            nameLength: nameLength);
+        reportCantInferTypes(
+          classBuilder.libraryBuilder,
+          overriddenMembers,
+          name: name,
+          fileUri: fileUri,
+          nameOffset: nameOffset,
+          nameLength: nameLength,
+        );
       } else if (cantInferReturnType) {
         reportCantInferReturnType(
-            classBuilder.libraryBuilder, overriddenMembers,
-            name: name,
-            fileUri: fileUri,
-            nameOffset: nameOffset,
-            nameLength: nameLength);
+          classBuilder.libraryBuilder,
+          overriddenMembers,
+          name: name,
+          fileUri: fileUri,
+          nameOffset: nameOffset,
+          nameLength: nameLength,
+        );
       } else if (cantInferParameterTypes != null) {
-        reportCantInferParameterType(classBuilder.libraryBuilder,
-            cantInferParameterTypes.single, overriddenMembers);
+        reportCantInferParameterType(
+          classBuilder.libraryBuilder,
+          cantInferParameterTypes.single,
+          overriddenMembers,
+        );
       }
 
       if (declaredReturnType is InferableTypeBuilder) {
@@ -260,7 +286,7 @@ class ClassMembersNodeBuilder extends MembersNodeBuilder {
           if (declaredParameter.type is InferableTypeBuilder) {
             DartType inferredParameterType =
                 inferredParameterTypes[declaredParameter] ??
-                    const DynamicType();
+                const DynamicType();
             declaredParameter.type.registerInferredType(inferredParameterType);
           }
         }
@@ -268,41 +294,52 @@ class ClassMembersNodeBuilder extends MembersNodeBuilder {
     }
   }
 
-  void inferMethodSignature(ClassMembersBuilder membersBuilder,
-      ClassMember declaredMember, Iterable<ClassMember> overriddenMembers) {
+  void inferMethodSignature(
+    ClassMembersBuilder membersBuilder,
+    ClassMember declaredMember,
+    Iterable<ClassMember> overriddenMembers,
+  ) {
     assert(!declaredMember.isProperty);
     // Trigger computation of method type.
     Procedure declaredProcedure =
         declaredMember.getMember(membersBuilder) as Procedure;
-    for (ClassMember overriddenMember
-        in toSet(declaredMember.declarationBuilder, overriddenMembers)) {
+    for (ClassMember overriddenMember in toSet(
+      declaredMember.declarationBuilder,
+      overriddenMembers,
+    )) {
       Covariance covariance = overriddenMember.getCovariance(membersBuilder);
       covariance.applyCovariance(declaredProcedure);
     }
   }
 
-  void inferPropertySignature(ClassMembersBuilder membersBuilder,
-      ClassMember declaredMember, Iterable<ClassMember> overriddenMembers) {
+  void inferPropertySignature(
+    ClassMembersBuilder membersBuilder,
+    ClassMember declaredMember,
+    Iterable<ClassMember> overriddenMembers,
+  ) {
     assert(declaredMember.isProperty);
     // Trigger computation of the property type.
     Member declaredProperty = declaredMember.getMember(membersBuilder);
-    for (ClassMember overriddenMember
-        in toSet(declaredMember.declarationBuilder, overriddenMembers)) {
+    for (ClassMember overriddenMember in toSet(
+      declaredMember.declarationBuilder,
+      overriddenMembers,
+    )) {
       Covariance covariance = overriddenMember.getCovariance(membersBuilder);
       covariance.applyCovariance(declaredProperty);
     }
   }
 
   static void inferGetterType(
-      ClassHierarchyBuilder hierarchyBuilder,
-      ClassMembersBuilder membersBuilder,
-      SourceClassBuilder classBuilder,
-      TypeBuilder declaredTypeBuilder,
-      Iterable<ClassMember> overriddenMembers,
-      {required String name,
-      required Uri fileUri,
-      required int nameOffset,
-      required int nameLength}) {
+    ClassHierarchyBuilder hierarchyBuilder,
+    ClassMembersBuilder membersBuilder,
+    SourceClassBuilder classBuilder,
+    TypeBuilder declaredTypeBuilder,
+    Iterable<ClassMember> overriddenMembers, {
+    required String name,
+    required Uri fileUri,
+    required int nameOffset,
+    required int nameLength,
+  }) {
     if (declaredTypeBuilder is InferableTypeBuilder) {
       DartType? inferredType;
       overriddenMembers = toSet(classBuilder, overriddenMembers);
@@ -320,17 +357,23 @@ class ClassMembersNodeBuilder extends MembersNodeBuilder {
       void inferFrom(List<ClassMember> members, {required bool forSetter}) {
         CombinedMemberSignatureBase combinedMemberSignature =
             new CombinedClassMemberSignature(
-                membersBuilder, classBuilder, members,
-                forSetter: forSetter);
+              membersBuilder,
+              classBuilder,
+              members,
+              forSetter: forSetter,
+            );
         DartType? combinedMemberSignatureType =
             combinedMemberSignature.combinedMemberSignatureType;
         if (combinedMemberSignatureType == null) {
           inferredType = const InvalidType();
-          reportCantInferReturnType(classBuilder.libraryBuilder, members,
-              name: name,
-              fileUri: fileUri,
-              nameOffset: nameOffset,
-              nameLength: nameLength);
+          reportCantInferReturnType(
+            classBuilder.libraryBuilder,
+            members,
+            name: name,
+            fileUri: fileUri,
+            nameOffset: nameOffset,
+            nameLength: nameLength,
+          );
         } else {
           inferredType = combinedMemberSignatureType;
         }
@@ -355,21 +398,23 @@ class ClassMembersNodeBuilder extends MembersNodeBuilder {
         inferFrom(overriddenSetters, forSetter: true);
       }
 
-      declaredTypeBuilder
-          .registerInferredType(inferredType ?? const DynamicType());
+      declaredTypeBuilder.registerInferredType(
+        inferredType ?? const DynamicType(),
+      );
     }
   }
 
   static void inferSetterType(
-      ClassHierarchyBuilder hierarchyBuilder,
-      ClassMembersBuilder membersBuilder,
-      SourceClassBuilder classBuilder,
-      List<FormalParameterBuilder>? formals,
-      Iterable<ClassMember> overriddenMembers,
-      {required String name,
-      required Uri fileUri,
-      required int nameOffset,
-      required int nameLength}) {
+    ClassHierarchyBuilder hierarchyBuilder,
+    ClassMembersBuilder membersBuilder,
+    SourceClassBuilder classBuilder,
+    List<FormalParameterBuilder>? formals,
+    Iterable<ClassMember> overriddenMembers, {
+    required String name,
+    required Uri fileUri,
+    required int nameOffset,
+    required int nameLength,
+  }) {
     if (formals == null) {
       // Erroneous case.
       return;
@@ -406,17 +451,23 @@ class ClassMembersNodeBuilder extends MembersNodeBuilder {
       void inferFrom(List<ClassMember> members, {required bool forSetter}) {
         CombinedMemberSignatureBase combinedMemberSignature =
             new CombinedClassMemberSignature(
-                membersBuilder, classBuilder, members,
-                forSetter: forSetter);
+              membersBuilder,
+              classBuilder,
+              members,
+              forSetter: forSetter,
+            );
         DartType? combinedMemberSignatureType =
             combinedMemberSignature.combinedMemberSignatureType;
         if (combinedMemberSignatureType == null) {
           inferredType = const InvalidType();
-          reportCantInferReturnType(classBuilder.libraryBuilder, members,
-              name: name,
-              fileUri: fileUri,
-              nameOffset: nameOffset,
-              nameLength: name.length);
+          reportCantInferReturnType(
+            classBuilder.libraryBuilder,
+            members,
+            name: name,
+            fileUri: fileUri,
+            nameOffset: nameOffset,
+            nameLength: name.length,
+          );
         } else {
           inferredType = combinedMemberSignatureType;
         }
@@ -447,16 +498,17 @@ class ClassMembersNodeBuilder extends MembersNodeBuilder {
 
   /// Infers the field type of [fieldBuilder] based on [overriddenMembers].
   static void inferFieldType(
-      ClassHierarchyBuilder hierarchyBuilder,
-      ClassMembersBuilder membersBuilder,
-      SourceClassBuilder classBuilder,
-      TypeBuilder declaredFieldType,
-      Iterable<ClassMember> overriddenMembers,
-      {required String name,
-      required Uri fileUri,
-      required int nameOffset,
-      required int nameLength,
-      required bool isAssignable}) {
+    ClassHierarchyBuilder hierarchyBuilder,
+    ClassMembersBuilder membersBuilder,
+    SourceClassBuilder classBuilder,
+    TypeBuilder declaredFieldType,
+    Iterable<ClassMember> overriddenMembers, {
+    required String name,
+    required Uri fileUri,
+    required int nameOffset,
+    required int nameLength,
+    required bool isAssignable,
+  }) {
     if (declaredFieldType is InferableTypeBuilder) {
       DartType? inferredType;
 
@@ -471,12 +523,17 @@ class ClassMembersNodeBuilder extends MembersNodeBuilder {
         }
       }
 
-      DartType? inferFrom(List<ClassMember> members,
-          {required bool forSetter}) {
+      DartType? inferFrom(
+        List<ClassMember> members, {
+        required bool forSetter,
+      }) {
         CombinedMemberSignatureBase combinedMemberSignature =
             new CombinedClassMemberSignature(
-                membersBuilder, classBuilder, members,
-                forSetter: forSetter);
+              membersBuilder,
+              classBuilder,
+              members,
+              forSetter: forSetter,
+            );
         return combinedMemberSignature.combinedMemberSignatureType;
       }
 
@@ -506,24 +563,31 @@ class ClassMembersNodeBuilder extends MembersNodeBuilder {
         // setter and a getter is inferred to be the return type of the
         // combined member signature of said getter in the direct
         // superinterfaces.
-        combinedMemberSignatureType =
-            inferFrom(overriddenGetters, forSetter: false);
+        combinedMemberSignatureType = inferFrom(
+          overriddenGetters,
+          forSetter: false,
+        );
       } else {
         // The return type of a getter, parameter type of a setter or type of
         // a field which overrides/implements only one or more setters is
         // inferred to be the parameter type of the combined member signature
         // of said setter in the direct superinterfaces.
-        combinedMemberSignatureType =
-            inferFrom(overriddenSetters, forSetter: true);
+        combinedMemberSignatureType = inferFrom(
+          overriddenSetters,
+          forSetter: true,
+        );
       }
 
       if (combinedMemberSignatureType == null) {
         inferredType = const InvalidType();
-        reportCantInferFieldType(classBuilder.libraryBuilder, overriddenMembers,
-            name: name,
-            fileUri: fileUri,
-            nameOffset: nameOffset,
-            nameLength: nameLength);
+        reportCantInferFieldType(
+          classBuilder.libraryBuilder,
+          overriddenMembers,
+          name: name,
+          fileUri: fileUri,
+          nameOffset: nameOffset,
+          nameLength: nameLength,
+        );
       } else {
         inferredType = combinedMemberSignatureType;
       }
@@ -553,7 +617,9 @@ class ClassMembersNodeBuilder extends MembersNodeBuilder {
   ///    }
   ///
   void registerAbstractMember(
-      List<ClassMember> abstractMembers, ClassMember abstractMember) {
+    List<ClassMember> abstractMembers,
+    ClassMember abstractMember,
+  ) {
     abstractMembers.add(abstractMember);
   }
 
@@ -568,7 +634,8 @@ class ClassMembersNodeBuilder extends MembersNodeBuilder {
   ClassMembersNode build() {
     ClassMembersNode? supernode = _hierarchyNode.directSuperClassNode != null
         ? _membersBuilder.getNodeFromClassBuilder(
-            _hierarchyNode.directSuperClassNode!.classBuilder)
+            _hierarchyNode.directSuperClassNode!.classBuilder,
+          )
         : null;
     List<ClassHierarchyNode>? interfaceNodes =
         _hierarchyNode.directInterfaceNodes;
@@ -580,8 +647,9 @@ class ClassMembersNodeBuilder extends MembersNodeBuilder {
 
     Map<Name, _Tuple> memberMap = {};
 
-    Iterator<MemberBuilder> iterator =
-        classBuilder.filteredMembersIterator(includeDuplicates: false);
+    Iterator<MemberBuilder> iterator = classBuilder.filteredMembersIterator(
+      includeDuplicates: false,
+    );
     while (iterator.moveNext()) {
       MemberBuilder memberBuilder = iterator.current;
       List<ClassMember> localMembers = memberBuilder.localMembers;
@@ -626,11 +694,13 @@ class ClassMembersNodeBuilder extends MembersNodeBuilder {
         mixedInTypeBuilder = mixin.mixedInTypeBuilder!;
         mixin = mixedInTypeBuilder.declaration;
       }
-      mixin =
-          mixedInTypeBuilder.computeUnaliasedDeclaration(isUsedAsClass: true);
+      mixin = mixedInTypeBuilder.computeUnaliasedDeclaration(
+        isUsedAsClass: true,
+      );
       if (mixin is ClassBuilder) {
-        Iterator<MemberBuilder> iterator =
-            mixin.filteredMembersIterator(includeDuplicates: false);
+        Iterator<MemberBuilder> iterator = mixin.filteredMembersIterator(
+          includeDuplicates: false,
+        );
         while (iterator.moveNext()) {
           MemberBuilder memberBuilder = iterator.current;
           if (memberBuilder.isStatic) {
@@ -709,11 +779,13 @@ class ClassMembersNodeBuilder extends MembersNodeBuilder {
           }
         } else {
           if (superInterfaceMember.forSetter) {
-            memberMap[superInterfaceMember.name] =
-                new _Tuple.implementSetter(superInterfaceMember);
+            memberMap[superInterfaceMember.name] = new _Tuple.implementSetter(
+              superInterfaceMember,
+            );
           } else {
-            memberMap[superInterfaceMember.name] =
-                new _Tuple.implementMember(superInterfaceMember);
+            memberMap[superInterfaceMember.name] = new _Tuple.implementMember(
+              superInterfaceMember,
+            );
           }
         }
       }
@@ -744,9 +816,11 @@ class ClassMembersNodeBuilder extends MembersNodeBuilder {
           _hasInterfaces = true;
 
           implement(
-              interfaceNode.interfaceMemberMap ?? interfaceNode.classMemberMap);
+            interfaceNode.interfaceMemberMap ?? interfaceNode.classMemberMap,
+          );
           implement(
-              interfaceNode.interfaceSetterMap ?? interfaceNode.classSetterMap);
+            interfaceNode.interfaceSetterMap ?? interfaceNode.classSetterMap,
+          );
         }
       }
     }
@@ -799,10 +873,11 @@ class ClassMembersNodeBuilder extends MembersNodeBuilder {
     if (retainDataForTesting) {
       // Coverage-ignore-block(suite): Not run.
       dataForTesting = new ClassHierarchyNodeDataForTesting(
-          abstractMembers,
-          declaredOverridesMap,
-          mixinApplicationOverridesMap,
-          inheritedImplementsMap);
+        abstractMembers,
+        declaredOverridesMap,
+        mixinApplicationOverridesMap,
+        inheritedImplementsMap,
+      );
     }
 
     void computeClassInterfaceMember(Name name, _Tuple tuple) {
@@ -812,33 +887,40 @@ class ClassMembersNodeBuilder extends MembersNodeBuilder {
       /// overridden by duplicates are removed.
       ///
       /// Conflicts between the getable and setable are reported afterwards.
-      var (_SanitizedMember? getable, _SanitizedMember? setable) =
-          tuple.sanitize(this);
+      var (_SanitizedMember? getable, _SanitizedMember? setable) = tuple
+          .sanitize(this);
 
       _Overrides overrides = new _Overrides(
-          classBuilder: classBuilder,
-          inheritedImplementsMap: inheritedImplementsMap,
-          dataForTesting: dataForTesting);
+        classBuilder: classBuilder,
+        inheritedImplementsMap: inheritedImplementsMap,
+        dataForTesting: dataForTesting,
+      );
 
       ClassMember? interfaceGetable;
       if (getable != null) {
-        interfaceGetable = getable.computeMembers(this, overrides,
-            noSuchMethodMember: noSuchMethodMember,
-            userNoSuchMethodMember: userNoSuchMethodMember,
-            abstractMembers: abstractMembers,
-            classMemberMap: classMemberMap,
-            interfaceMemberMap: interfaceMemberMap,
-            dataForTesting: dataForTesting);
+        interfaceGetable = getable.computeMembers(
+          this,
+          overrides,
+          noSuchMethodMember: noSuchMethodMember,
+          userNoSuchMethodMember: userNoSuchMethodMember,
+          abstractMembers: abstractMembers,
+          classMemberMap: classMemberMap,
+          interfaceMemberMap: interfaceMemberMap,
+          dataForTesting: dataForTesting,
+        );
       }
       ClassMember? interfaceSetable;
       if (setable != null) {
-        interfaceSetable = setable.computeMembers(this, overrides,
-            noSuchMethodMember: noSuchMethodMember,
-            userNoSuchMethodMember: userNoSuchMethodMember,
-            abstractMembers: abstractMembers,
-            classMemberMap: classSetterMap,
-            interfaceMemberMap: interfaceSetterMap,
-            dataForTesting: dataForTesting);
+        interfaceSetable = setable.computeMembers(
+          this,
+          overrides,
+          noSuchMethodMember: noSuchMethodMember,
+          userNoSuchMethodMember: userNoSuchMethodMember,
+          abstractMembers: abstractMembers,
+          classMemberMap: classSetterMap,
+          interfaceMemberMap: interfaceSetterMap,
+          dataForTesting: dataForTesting,
+        );
       }
       if (classBuilder is SourceClassBuilder) {
         if (interfaceGetable != null &&
@@ -871,18 +953,27 @@ class ClassMembersNodeBuilder extends MembersNodeBuilder {
           SourceClassBuilder sourceClassBuilder =
               classBuilder as SourceClassBuilder;
           if (!sourceClassBuilder
-              .libraryBuilder.libraryFeatures.getterSetterError.isEnabled) {
+              .libraryBuilder
+              .libraryFeatures
+              .getterSetterError
+              .isEnabled) {
             _membersBuilder.registerGetterSetterCheck(
-                new DelayedClassGetterSetterCheck(sourceClassBuilder, name,
-                    interfaceGetable, interfaceSetable));
+              new DelayedClassGetterSetterCheck(
+                sourceClassBuilder,
+                name,
+                interfaceGetable,
+                interfaceSetable,
+              ),
+            );
           }
         }
       }
       overrides.collectOverrides(
-          getable: getable,
-          setable: setable,
-          mixinApplicationOverridesMap: mixinApplicationOverridesMap,
-          declaredOverridesMap: declaredOverridesMap);
+        getable: getable,
+        setable: setable,
+        mixinApplicationOverridesMap: mixinApplicationOverridesMap,
+        declaredOverridesMap: declaredOverridesMap,
+      );
     }
 
     // Compute the 'noSuchMethod' member first so we know the target for
@@ -893,7 +984,8 @@ class ClassMembersNodeBuilder extends MembersNodeBuilder {
       // See for instance pkg/front_end/test/base/object_supertype_test.dart
       computeClassInterfaceMember(noSuchMethodName, noSuchMethod);
     }
-    noSuchMethodMember = interfaceMemberMap[noSuchMethodName] ??
+    noSuchMethodMember =
+        interfaceMemberMap[noSuchMethodName] ??
         // Coverage-ignore(suite): Not run.
         classMemberMap[noSuchMethodName];
 
@@ -908,8 +1000,10 @@ class ClassMembersNodeBuilder extends MembersNodeBuilder {
       // validly override another member once. Currently it can happen multiple
       // times as an inherited implementation.
 
-      declaredOverridesMap.forEach(
-          (ClassMember classMember, Set<ClassMember> overriddenMembers) {
+      declaredOverridesMap.forEach((
+        ClassMember classMember,
+        Set<ClassMember> overriddenMembers,
+      ) {
         /// A declared member can inherit its type from the overridden members.
         ///
         /// We register this with the class member itself so the it can force
@@ -920,13 +1014,18 @@ class ClassMembersNodeBuilder extends MembersNodeBuilder {
         /// inference so we need to ensure that types are computed in dependency
         /// order.
         classMember.registerOverrideDependency(
-            _membersBuilder, overriddenMembers);
+          _membersBuilder,
+          overriddenMembers,
+        );
 
         /// Not all member type are queried during top level inference so we
         /// register delayed computation to ensure that all types have been
         /// computed before override checks are performed.
-        DelayedTypeComputation computation =
-            new DelayedTypeComputation(this, classMember, overriddenMembers);
+        DelayedTypeComputation computation = new DelayedTypeComputation(
+          this,
+          classMember,
+          overriddenMembers,
+        );
         _membersBuilder.registerDelayedTypeComputation(computation);
 
         /// Declared members must be checked to validly override the
@@ -942,12 +1041,17 @@ class ClassMembersNodeBuilder extends MembersNodeBuilder {
           localMember = null;
         }
         _membersBuilder.registerOverrideCheck(
-            classBuilder as SourceClassBuilder, classMember, overriddenMembers,
-            localMember: localMember);
+          classBuilder as SourceClassBuilder,
+          classMember,
+          overriddenMembers,
+          localMember: localMember,
+        );
       });
 
-      mixinApplicationOverridesMap.forEach(
-          (ClassMember classMember, Set<ClassMember> overriddenMembers) {
+      mixinApplicationOverridesMap.forEach((
+        ClassMember classMember,
+        Set<ClassMember> overriddenMembers,
+      ) {
         /// Declared mixed in members must be checked to validly override the
         /// overridden members.
 
@@ -961,12 +1065,17 @@ class ClassMembersNodeBuilder extends MembersNodeBuilder {
           localMember = null;
         }
         _membersBuilder.registerOverrideCheck(
-            classBuilder as SourceClassBuilder, classMember, overriddenMembers,
-            localMember: localMember);
+          classBuilder as SourceClassBuilder,
+          classMember,
+          overriddenMembers,
+          localMember: localMember,
+        );
       });
 
-      inheritedImplementsMap.forEach(
-          (ClassMember classMember, Set<ClassMember> overriddenMembers) {
+      inheritedImplementsMap.forEach((
+        ClassMember classMember,
+        Set<ClassMember> overriddenMembers,
+      ) {
         /// Concrete members must be checked to validly override the overridden
         /// members in concrete classes.
 
@@ -980,8 +1089,11 @@ class ClassMembersNodeBuilder extends MembersNodeBuilder {
           localMember = null;
         }
         _membersBuilder.registerOverrideCheck(
-            classBuilder as SourceClassBuilder, classMember, overriddenMembers,
-            localMember: localMember);
+          classBuilder as SourceClassBuilder,
+          classMember,
+          overriddenMembers,
+          localMember: localMember,
+        );
       });
     }
 
@@ -989,23 +1101,31 @@ class ClassMembersNodeBuilder extends MembersNodeBuilder {
       /// All interface members also class members to we don't need to store
       /// the interface members separately.
       assert(
-          classMemberMap.length == interfaceMemberMap.length,
-          "Class/interface member mismatch. Class members: "
-          "$classMemberMap, interface members: $interfaceMemberMap.");
+        classMemberMap.length == interfaceMemberMap.length,
+        "Class/interface member mismatch. Class members: "
+        "$classMemberMap, interface members: $interfaceMemberMap.",
+      );
       assert(
-          classSetterMap.length == interfaceSetterMap.length,
-          "Class/interface setter mismatch. Class setters: "
-          "$classSetterMap, interface setters: $interfaceSetterMap.");
+        classSetterMap.length == interfaceSetterMap.length,
+        "Class/interface setter mismatch. Class setters: "
+        "$classSetterMap, interface setters: $interfaceSetterMap.",
+      );
       assert(
-          classMemberMap.keys.every((Name name) =>
-              identical(classMemberMap[name], interfaceMemberMap?[name])),
-          "Class/interface member mismatch. Class members: "
-          "$classMemberMap, interface members: $interfaceMemberMap.");
+        classMemberMap.keys.every(
+          (Name name) =>
+              identical(classMemberMap[name], interfaceMemberMap?[name]),
+        ),
+        "Class/interface member mismatch. Class members: "
+        "$classMemberMap, interface members: $interfaceMemberMap.",
+      );
       assert(
-          classSetterMap.keys.every((Name name) =>
-              identical(classSetterMap[name], interfaceSetterMap?[name])),
-          "Class/interface setter mismatch. Class setters: "
-          "$classSetterMap, interface setters: $interfaceSetterMap.");
+        classSetterMap.keys.every(
+          (Name name) =>
+              identical(classSetterMap[name], interfaceSetterMap?[name]),
+        ),
+        "Class/interface setter mismatch. Class setters: "
+        "$classSetterMap, interface setters: $interfaceSetterMap.",
+      );
       interfaceMemberMap = null;
       interfaceSetterMap = null;
     }
@@ -1013,14 +1133,15 @@ class ClassMembersNodeBuilder extends MembersNodeBuilder {
     reportMissingMembers(abstractMembers);
 
     return new ClassMembersNode(
-        classBuilder,
-        supernode,
-        classMemberMap,
-        classSetterMap,
-        interfaceMemberMap,
-        interfaceSetterMap,
-        userNoSuchMethodMember,
-        dataForTesting);
+      classBuilder,
+      supernode,
+      classMemberMap,
+      classSetterMap,
+      interfaceMemberMap,
+      interfaceSetterMap,
+      userNoSuchMethodMember,
+      dataForTesting,
+    );
   }
 
   void reportMissingMembers(List<ClassMember> abstractMembers) {
@@ -1031,16 +1152,17 @@ class ClassMembersNodeBuilder extends MembersNodeBuilder {
       if (classBuilder.isEnum &&
           declaration.declarationBuilder == classBuilder) {
         classBuilder.libraryBuilder.addProblem2(
-          messageEnumAbstractMember,
+          codeEnumAbstractMember,
           declaration.uriOffset,
         );
       } else {
         String name = declaration.fullNameForErrors;
         String className = declaration.declarationBuilder.fullNameForErrors;
-        String displayName =
-            declaration.isSetter ? "$className.$name=" : "$className.$name";
-        contextMap[displayName] = templateMissingImplementationCause
-            .withArguments(displayName)
+        String displayName = declaration.isSetter
+            ? "$className.$name="
+            : "$className.$name";
+        contextMap[displayName] = codeMissingImplementationCause
+            .withArgumentsOld(displayName)
             .withLocation2(declaration.uriOffset);
       }
     }
@@ -1051,12 +1173,15 @@ class ClassMembersNodeBuilder extends MembersNodeBuilder {
       context.add(contextMap[names[i]]!);
     }
     classBuilder.libraryBuilder.addProblem(
-        templateMissingImplementationNotAbstract.withArguments(
-            classBuilder.fullNameForErrors, names),
-        classBuilder.fileOffset,
-        classBuilder.fullNameForErrors.length,
-        classBuilder.fileUri,
-        context: context);
+      codeMissingImplementationNotAbstract.withArgumentsOld(
+        classBuilder.fullNameForErrors,
+        names,
+      ),
+      classBuilder.fileOffset,
+      classBuilder.fullNameForErrors.length,
+      classBuilder.fileUri,
+      context: context,
+    );
   }
 }
 
@@ -1093,14 +1218,15 @@ class ClassMembersNode {
   final ClassHierarchyNodeDataForTesting? dataForTesting;
 
   ClassMembersNode(
-      this.classBuilder,
-      this.supernode,
-      this.classMemberMap,
-      this.classSetterMap,
-      this.interfaceMemberMap,
-      this.interfaceSetterMap,
-      this.userNoSuchMethodMember,
-      this.dataForTesting);
+    this.classBuilder,
+    this.supernode,
+    this.classMemberMap,
+    this.classSetterMap,
+    this.interfaceMemberMap,
+    this.interfaceSetterMap,
+    this.userNoSuchMethodMember,
+    this.dataForTesting,
+  );
 
   @override
   String toString() {
@@ -1121,7 +1247,10 @@ class ClassMembersNode {
 
   // Coverage-ignore(suite): Not run.
   void printMembers(
-      List<ClassMember> members, StringBuffer sb, String heading) {
+    List<ClassMember> members,
+    StringBuffer sb,
+    String heading,
+  ) {
     sb.write("  ");
     sb.write(heading);
     sb.writeln(":");
@@ -1137,7 +1266,10 @@ class ClassMembersNode {
 
   // Coverage-ignore(suite): Not run.
   void printMemberMap(
-      Map<Name, ClassMember> memberMap, StringBuffer sb, String heading) {
+    Map<Name, ClassMember> memberMap,
+    StringBuffer sb,
+    String heading,
+  ) {
     List<ClassMember> members = memberMap.values.toList();
     members.sort((ClassMember a, ClassMember b) {
       if (a == b) return 0;
@@ -1162,8 +1294,8 @@ class ClassMembersNode {
   ClassMember? getDispatchTarget(Name name, bool isSetter) {
     ClassMember? result = isSetter
         ?
-        // Coverage-ignore(suite): Not run.
-        classSetterMap[name]
+          // Coverage-ignore(suite): Not run.
+          classSetterMap[name]
         : classMemberMap[name];
     if (result == null) {
       return null;
@@ -1179,8 +1311,8 @@ class ClassMembersNode {
   ClassMember? getStaticMember(Name name, bool isSetter) {
     ClassMember? result = isSetter
         ?
-        // Coverage-ignore(suite): Not run.
-        classSetterMap[name]
+          // Coverage-ignore(suite): Not run.
+          classSetterMap[name]
         : classMemberMap[name];
     if (result == null) {
       return null;
@@ -1199,8 +1331,12 @@ class ClassHierarchyNodeDataForTesting {
   final Map<ClassMember, Set<ClassMember>> inheritedImplements;
   final Map<ClassMember, ClassMember> aliasMap = {};
 
-  ClassHierarchyNodeDataForTesting(this.abstractMembers, this.declaredOverrides,
-      this.mixinApplicationOverrides, this.inheritedImplements);
+  ClassHierarchyNodeDataForTesting(
+    this.abstractMembers,
+    this.declaredOverrides,
+    this.mixinApplicationOverrides,
+    this.inheritedImplements,
+  );
 }
 
 class _Tuple {
@@ -1215,53 +1351,54 @@ class _Tuple {
   List<ClassMember>? _implementedSetables;
 
   _Tuple.declareMember(ClassMember declaredMember)
-      : assert(!declaredMember.forSetter),
-        this._declaredGetable = declaredMember,
-        this.name = declaredMember.name;
+    : assert(!declaredMember.forSetter),
+      this._declaredGetable = declaredMember,
+      this.name = declaredMember.name;
 
   _Tuple.mixInMember(ClassMember mixedInMember)
-      : assert(!mixedInMember.forSetter),
-        this._mixedInGetable = mixedInMember,
-        this.name = mixedInMember.name;
+    : assert(!mixedInMember.forSetter),
+      this._mixedInGetable = mixedInMember,
+      this.name = mixedInMember.name;
 
   _Tuple.extendMember(ClassMember extendedMember)
-      : assert(!extendedMember.forSetter),
-        this._extendedGetable = extendedMember,
-        this.name = extendedMember.name;
+    : assert(!extendedMember.forSetter),
+      this._extendedGetable = extendedMember,
+      this.name = extendedMember.name;
 
   _Tuple.implementMember(ClassMember implementedMember)
-      : assert(!implementedMember.forSetter),
-        this.name = implementedMember.name,
-        _implementedGetables = <ClassMember>[implementedMember];
+    : assert(!implementedMember.forSetter),
+      this.name = implementedMember.name,
+      _implementedGetables = <ClassMember>[implementedMember];
 
   _Tuple.declareSetter(ClassMember declaredSetter)
-      : assert(declaredSetter.forSetter),
-        this._declaredSetable = declaredSetter,
-        this.name = declaredSetter.name;
+    : assert(declaredSetter.forSetter),
+      this._declaredSetable = declaredSetter,
+      this.name = declaredSetter.name;
 
   _Tuple.mixInSetter(ClassMember mixedInSetter)
-      : assert(mixedInSetter.forSetter),
-        this._mixedInSetable = mixedInSetter,
-        this.name = mixedInSetter.name;
+    : assert(mixedInSetter.forSetter),
+      this._mixedInSetable = mixedInSetter,
+      this.name = mixedInSetter.name;
 
   _Tuple.extendSetter(ClassMember extendedSetter)
-      : assert(extendedSetter.forSetter),
-        this._extendedSetable = extendedSetter,
-        this.name = extendedSetter.name;
+    : assert(extendedSetter.forSetter),
+      this._extendedSetable = extendedSetter,
+      this.name = extendedSetter.name;
 
   _Tuple.implementSetter(ClassMember implementedSetter)
-      : assert(implementedSetter.forSetter),
-        this.name = implementedSetter.name,
-        _implementedSetables = <ClassMember>[implementedSetter];
+    : assert(implementedSetter.forSetter),
+      this.name = implementedSetter.name,
+      _implementedSetables = <ClassMember>[implementedSetter];
 
   ClassMember? get declaredMember => _declaredGetable;
 
   void set declaredMember(ClassMember? value) {
     assert(!value!.forSetter);
     assert(
-        _declaredGetable == null,
-        "Declared member already set to $_declaredGetable, "
-        "trying to set it to $value.");
+      _declaredGetable == null,
+      "Declared member already set to $_declaredGetable, "
+      "trying to set it to $value.",
+    );
     _declaredGetable = value;
   }
 
@@ -1270,9 +1407,10 @@ class _Tuple {
   void set declaredSetter(ClassMember? value) {
     assert(value!.forSetter);
     assert(
-        _declaredSetable == null,
-        "Declared setter already set to $_declaredSetable, "
-        "trying to set it to $value.");
+      _declaredSetable == null,
+      "Declared setter already set to $_declaredSetable, "
+      "trying to set it to $value.",
+    );
     _declaredSetable = value;
   }
 
@@ -1281,9 +1419,10 @@ class _Tuple {
   void set extendedMember(ClassMember? value) {
     assert(!value!.forSetter);
     assert(
-        _extendedGetable == null,
-        "Extended member already set to $_extendedGetable, "
-        "trying to set it to $value.");
+      _extendedGetable == null,
+      "Extended member already set to $_extendedGetable, "
+      "trying to set it to $value.",
+    );
     _extendedGetable = value;
   }
 
@@ -1292,9 +1431,10 @@ class _Tuple {
   void set extendedSetter(ClassMember? value) {
     assert(value!.forSetter);
     assert(
-        _extendedSetable == null,
-        "Extended setter already set to $_extendedSetable, "
-        "trying to set it to $value.");
+      _extendedSetable == null,
+      "Extended setter already set to $_extendedSetable, "
+      "trying to set it to $value.",
+    );
     _extendedSetable = value;
   }
 
@@ -1303,9 +1443,10 @@ class _Tuple {
   void set mixedInMember(ClassMember? value) {
     assert(!value!.forSetter);
     assert(
-        _mixedInGetable == null,
-        "Mixed in member already set to $_mixedInGetable, "
-        "trying to set it to $value.");
+      _mixedInGetable == null,
+      "Mixed in member already set to $_mixedInGetable, "
+      "trying to set it to $value.",
+    );
     _mixedInGetable = value;
   }
 
@@ -1314,9 +1455,10 @@ class _Tuple {
   void set mixedInSetter(ClassMember? value) {
     assert(value!.forSetter);
     assert(
-        _mixedInSetable == null,
-        "Mixed in setter already set to $_mixedInSetable, "
-        "trying to set it to $value.");
+      _mixedInSetable == null,
+      "Mixed in setter already set to $_mixedInSetable, "
+      "trying to set it to $value.",
+    );
     _mixedInSetable = value;
   }
 
@@ -1406,7 +1548,8 @@ class _Tuple {
   /// Conflicts between [definingGetable] and [definingSetable] are reported
   /// afterwards.
   (_SanitizedMember?, _SanitizedMember?) sanitize(
-      ClassMembersNodeBuilder builder) {
+    ClassMembersNodeBuilder builder,
+  ) {
     ClassMember? definingGetable;
     ClassMember? definingSetable;
 
@@ -1488,7 +1631,9 @@ class _Tuple {
             definingGetable.isProperty != tupleMixedInMember.isProperty) {
           // Coverage-ignore-block(suite): Not run.
           builder.reportInheritanceConflict(
-              definingGetable, tupleMixedInMember);
+            definingGetable,
+            tupleMixedInMember,
+          );
         } else {
           mixedInGetable = tupleMixedInMember;
         }
@@ -1547,7 +1692,9 @@ class _Tuple {
         if (definingSetable.isStatic ||
             definingSetable.isProperty != tupleMixedInSetter.isProperty) {
           builder.reportInheritanceConflict(
-              definingSetable, tupleMixedInSetter);
+            definingSetable,
+            tupleMixedInSetter,
+          );
         } else {
           mixedInSetable = tupleMixedInSetter;
         }
@@ -1598,7 +1745,9 @@ class _Tuple {
           ///     get method => 0;
           ///   }
           builder.reportInheritanceConflict(
-              definingGetable, tupleExtendedMember);
+            definingGetable,
+            tupleExtendedMember,
+          );
         } else {
           extendedGetable = tupleExtendedMember;
         }
@@ -1633,7 +1782,9 @@ class _Tuple {
         if (definingSetable.isStatic ||
             definingSetable.isProperty != tupleExtendedSetter.isProperty) {
           builder.reportInheritanceConflict(
-              definingSetable, tupleExtendedSetter);
+            definingSetable,
+            tupleExtendedSetter,
+          );
         } else {
           extendedSetable = tupleExtendedSetter;
         }
@@ -1691,7 +1842,9 @@ class _Tuple {
             ///     get getter => 0;
             ///   }
             builder.reportInheritanceConflict(
-                definingGetable, implementedGetable);
+              definingGetable,
+              implementedGetable,
+            );
             implementedGetable = null;
           }
         }
@@ -1754,7 +1907,9 @@ class _Tuple {
             ///   static set setter(value) {}
             /// }
             builder.reportInheritanceConflict(
-                definingSetable, implementedSetable);
+              definingSetable,
+              implementedSetable,
+            );
             implementedSetable = null;
           }
         }
@@ -1798,13 +1953,25 @@ class _Tuple {
     }
     return (
       definingGetable != null
-          ? new _SanitizedMember(name, definingGetable, declaredGetable,
-              mixedInGetable, extendedGetable, implementedGetables)
+          ? new _SanitizedMember(
+              name,
+              definingGetable,
+              declaredGetable,
+              mixedInGetable,
+              extendedGetable,
+              implementedGetables,
+            )
           : null,
       definingSetable != null
-          ? new _SanitizedMember(name, definingSetable, declaredSetable,
-              mixedInSetable, extendedSetable, implementedSetables)
-          : null
+          ? new _SanitizedMember(
+              name,
+              definingSetable,
+              declaredSetable,
+              mixedInSetable,
+              extendedSetable,
+              implementedSetables,
+            )
+          : null,
     );
   }
 }
@@ -1838,8 +2005,14 @@ class _SanitizedMember {
   /// The members inherited from the super interfaces, if none this is `null`.
   final List<ClassMember>? _implementedMembers;
 
-  _SanitizedMember(this.name, this._definingMember, this._declaredMember,
-      this._mixedInMember, this._extendedMember, this._implementedMembers);
+  _SanitizedMember(
+    this.name,
+    this._definingMember,
+    this._declaredMember,
+    this._mixedInMember,
+    this._extendedMember,
+    this._implementedMembers,
+  );
 
   /// Computes the class and interface members for this [_SanitizedMember].
   ///
@@ -1848,13 +2021,15 @@ class _SanitizedMember {
   ///
   /// [
   ClassMember? computeMembers(
-      ClassMembersNodeBuilder builder, _Overrides overrides,
-      {required ClassMember? noSuchMethodMember,
-      required ClassMember? userNoSuchMethodMember,
-      required List<ClassMember> abstractMembers,
-      required Map<Name, ClassMember> classMemberMap,
-      required Map<Name, ClassMember>? interfaceMemberMap,
-      required ClassHierarchyNodeDataForTesting? dataForTesting}) {
+    ClassMembersNodeBuilder builder,
+    _Overrides overrides, {
+    required ClassMember? noSuchMethodMember,
+    required ClassMember? userNoSuchMethodMember,
+    required List<ClassMember> abstractMembers,
+    required Map<Name, ClassMember> classMemberMap,
+    required Map<Name, ClassMember>? interfaceMemberMap,
+    required ClassHierarchyNodeDataForTesting? dataForTesting,
+  }) {
     ClassBuilder classBuilder = builder.classBuilder;
 
     ClassMember? classMember;
@@ -1863,7 +2038,8 @@ class _SanitizedMember {
     /// A noSuchMethodForwarder can be inserted in non-abstract class
     /// if a user defined noSuchMethod implementation is available or
     /// if the member is not accessible from this library;
-    bool canHaveNoSuchMethodForwarder = !classBuilder.isAbstract &&
+    bool canHaveNoSuchMethodForwarder =
+        !classBuilder.isAbstract &&
         (userNoSuchMethodMember != null ||
             !isNameVisibleIn(name, classBuilder.libraryBuilder));
 
@@ -1924,18 +2100,21 @@ class _SanitizedMember {
         /// case of [interfaceMembers] being a singleton, to insert the
         /// abstract mixin stub.
         interfaceMember = new SynthesizedInterfaceMember(
-            classBuilder, name, interfaceMembers.toList(),
-            superClassMember: _extendedMember,
-            // [definingMember] and [mixedInMember] are always the same
-            // here. Use the latter here and the former below to show the
-            // the member is canonical _because_ its the mixed in member and
-            // it defines the isProperty/forSetter properties _because_ it
-            // is the defining member.
-            canonicalMember: _mixedInMember,
-            mixedInMember: _mixedInMember,
-            noSuchMethodTarget: noSuchMethodTarget,
-            memberKind: _definingMember.memberKind,
-            shouldModifyKernel: builder.shouldModifyKernel);
+          classBuilder,
+          name,
+          interfaceMembers.toList(),
+          superClassMember: _extendedMember,
+          // [definingMember] and [mixedInMember] are always the same
+          // here. Use the latter here and the former below to show the
+          // the member is canonical _because_ its the mixed in member and
+          // it defines the isProperty/forSetter properties _because_ it
+          // is the defining member.
+          canonicalMember: _mixedInMember,
+          mixedInMember: _mixedInMember,
+          noSuchMethodTarget: noSuchMethodTarget,
+          memberKind: _definingMember.memberKind,
+          shouldModifyKernel: builder.shouldModifyKernel,
+        );
         builder._membersBuilder.registerMemberComputation(interfaceMember);
 
         if (_extendedMember != null) {
@@ -1965,15 +2144,17 @@ class _SanitizedMember {
           ///    class Class = Super with Mixin implements Interface;
           ///
           classMember = new InheritedClassMemberImplementsInterface(
-              classBuilder, name,
-              inheritedClassMember: _extendedMember,
-              implementedInterfaceMember: interfaceMember,
-              memberKind: _definingMember.memberKind);
+            classBuilder,
+            name,
+            inheritedClassMember: _extendedMember,
+            implementedInterfaceMember: interfaceMember,
+            memberKind: _definingMember.memberKind,
+          );
           builder._membersBuilder.registerMemberComputation(classMember);
           if (!classBuilder.isAbstract) {
-            overrides.registerInheritedImplements(
-                _extendedMember, {interfaceMember},
-                aliasForTesting: classMember);
+            overrides.registerInheritedImplements(_extendedMember, {
+              interfaceMember,
+            }, aliasForTesting: classMember);
           }
         } else if (noSuchMethodTarget != null) {
           classMember = interfaceMember;
@@ -2009,8 +2190,10 @@ class _SanitizedMember {
           ///    // Mixin.toString should not be checked to override
           ///    // Object.toString.
           ///
-          overrides.registerMixedInOverride(_mixedInMember,
-              aliasForTesting: interfaceMember);
+          overrides.registerMixedInOverride(
+            _mixedInMember,
+            aliasForTesting: interfaceMember,
+          );
         }
       } else {
         assert(!_mixedInMember.isAbstract);
@@ -2053,17 +2236,20 @@ class _SanitizedMember {
         /// case of [interfaceMembers] being a singleton, to insert the
         /// concrete mixin stub.
         interfaceMember = new SynthesizedInterfaceMember(
-            classBuilder, name, interfaceMembers.toList(),
-            superClassMember: _mixedInMember,
-            // [definingMember] and [mixedInMember] are always the same
-            // here. Use the latter here and the former below to show the
-            // the member is canonical _because_ its the mixed in member and
-            // it defines the isProperty/forSetter properties _because_ it
-            // is the defining member.
-            canonicalMember: _mixedInMember,
-            mixedInMember: _mixedInMember,
-            memberKind: _definingMember.memberKind,
-            shouldModifyKernel: builder.shouldModifyKernel);
+          classBuilder,
+          name,
+          interfaceMembers.toList(),
+          superClassMember: _mixedInMember,
+          // [definingMember] and [mixedInMember] are always the same
+          // here. Use the latter here and the former below to show the
+          // the member is canonical _because_ its the mixed in member and
+          // it defines the isProperty/forSetter properties _because_ it
+          // is the defining member.
+          canonicalMember: _mixedInMember,
+          mixedInMember: _mixedInMember,
+          memberKind: _definingMember.memberKind,
+          shouldModifyKernel: builder.shouldModifyKernel,
+        );
         builder._membersBuilder.registerMemberComputation(interfaceMember);
 
         /// The concrete mixed in member is the class member but will
@@ -2078,10 +2264,12 @@ class _SanitizedMember {
         ///    class Class = Object with Mixin;
         ///
         classMember = new InheritedClassMemberImplementsInterface(
-            classBuilder, name,
-            inheritedClassMember: _mixedInMember,
-            implementedInterfaceMember: interfaceMember,
-            memberKind: _definingMember.memberKind);
+          classBuilder,
+          name,
+          inheritedClassMember: _mixedInMember,
+          implementedInterfaceMember: interfaceMember,
+          memberKind: _definingMember.memberKind,
+        );
         builder._membersBuilder.registerMemberComputation(classMember);
 
         if (!classBuilder.isAbstract) {
@@ -2094,9 +2282,9 @@ class _SanitizedMember {
           ///    class Class = Object with Mixin;
           ///
           /// [mixinMember] must implemented interface member.
-          overrides.registerInheritedImplements(
-              _mixedInMember, {interfaceMember},
-              aliasForTesting: classMember);
+          overrides.registerInheritedImplements(_mixedInMember, {
+            interfaceMember,
+          }, aliasForTesting: classMember);
         }
         assert(!_mixedInMember.isSynthesized);
         if (!_mixedInMember.isSynthesized) {
@@ -2176,17 +2364,20 @@ class _SanitizedMember {
           ///      method();
           ///    }
           interfaceMember = new SynthesizedInterfaceMember(
-              classBuilder, name, interfaceMembers.toList(),
-              superClassMember: _extendedMember,
-              // [definingMember] and [declaredMember] are always the same
-              // here. Use the latter here and the former below to show the
-              // the member is canonical _because_ its the declared member
-              // and it defines the isProperty/forSetter properties
-              // _because_ it is the defining member.
-              canonicalMember: _declaredMember,
-              noSuchMethodTarget: noSuchMethodTarget,
-              memberKind: _definingMember.memberKind,
-              shouldModifyKernel: builder.shouldModifyKernel);
+            classBuilder,
+            name,
+            interfaceMembers.toList(),
+            superClassMember: _extendedMember,
+            // [definingMember] and [declaredMember] are always the same
+            // here. Use the latter here and the former below to show the
+            // the member is canonical _because_ its the declared member
+            // and it defines the isProperty/forSetter properties
+            // _because_ it is the defining member.
+            canonicalMember: _declaredMember,
+            noSuchMethodTarget: noSuchMethodTarget,
+            memberKind: _definingMember.memberKind,
+            shouldModifyKernel: builder.shouldModifyKernel,
+          );
           builder._membersBuilder.registerMemberComputation(interfaceMember);
         }
 
@@ -2214,10 +2405,12 @@ class _SanitizedMember {
           ///    }
           ///
           classMember = new InheritedClassMemberImplementsInterface(
-              classBuilder, name,
-              inheritedClassMember: _extendedMember,
-              implementedInterfaceMember: interfaceMember,
-              memberKind: _definingMember.memberKind);
+            classBuilder,
+            name,
+            inheritedClassMember: _extendedMember,
+            implementedInterfaceMember: interfaceMember,
+            memberKind: _definingMember.memberKind,
+          );
           builder._membersBuilder.registerMemberComputation(classMember);
 
           if (!classBuilder.isAbstract && noSuchMethodTarget == null) {
@@ -2229,9 +2422,9 @@ class _SanitizedMember {
             ///    }
             ///
             /// [_extendedMember] must implemented interface member.
-            overrides.registerInheritedImplements(
-                _extendedMember, {interfaceMember},
-                aliasForTesting: classMember);
+            overrides.registerInheritedImplements(_extendedMember, {
+              interfaceMember,
+            }, aliasForTesting: classMember);
           }
         } else if (noSuchMethodTarget != null) {
           classMember = interfaceMember;
@@ -2246,8 +2439,10 @@ class _SanitizedMember {
 
         /// The declared member must override extended and implemented
         /// members.
-        overrides.registerDeclaredOverride(_declaredMember,
-            aliasForTesting: interfaceMember);
+        overrides.registerDeclaredOverride(
+          _declaredMember,
+          aliasForTesting: interfaceMember,
+        );
       } else {
         assert(!_declaredMember.isAbstract);
 
@@ -2265,8 +2460,10 @@ class _SanitizedMember {
       ///      method() {}
       ///    }
       ///    class Class extends Super {}
-      assert(!_extendedMember.isAbstract,
-          "Abstract extended member: ${_extendedMember}");
+      assert(
+        !_extendedMember.isAbstract,
+        "Abstract extended member: ${_extendedMember}",
+      );
 
       classMember = _extendedMember;
 
@@ -2348,11 +2545,14 @@ class _SanitizedMember {
           ///    }
           ///    class Class extends Super implements Interface {}
           interfaceMember = new SynthesizedInterfaceMember(
-              classBuilder, name, interfaceMembers.toList(),
-              superClassMember: _extendedMember,
-              noSuchMethodTarget: noSuchMethodTarget,
-              memberKind: _definingMember.memberKind,
-              shouldModifyKernel: builder.shouldModifyKernel);
+            classBuilder,
+            name,
+            interfaceMembers.toList(),
+            superClassMember: _extendedMember,
+            noSuchMethodTarget: noSuchMethodTarget,
+            memberKind: _definingMember.memberKind,
+            shouldModifyKernel: builder.shouldModifyKernel,
+          );
           builder._membersBuilder.registerMemberComputation(interfaceMember);
         }
         if (interfaceMember == classMember) {
@@ -2392,10 +2592,12 @@ class _SanitizedMember {
           ///    }
           ///
           classMember = new InheritedClassMemberImplementsInterface(
-              classBuilder, name,
-              inheritedClassMember: _extendedMember,
-              implementedInterfaceMember: interfaceMember,
-              memberKind: _definingMember.memberKind);
+            classBuilder,
+            name,
+            inheritedClassMember: _extendedMember,
+            implementedInterfaceMember: interfaceMember,
+            memberKind: _definingMember.memberKind,
+          );
           builder._membersBuilder.registerMemberComputation(classMember);
           if (!classBuilder.isAbstract && noSuchMethodTarget == null) {
             ///    class Super {
@@ -2405,9 +2607,9 @@ class _SanitizedMember {
             ///      method() {}
             ///    }
             ///    class Class extends Super implements Interface {}
-            overrides.registerInheritedImplements(
-                _extendedMember, {interfaceMember},
-                aliasForTesting: classMember);
+            overrides.registerInheritedImplements(_extendedMember, {
+              interfaceMember,
+            }, aliasForTesting: classMember);
           }
         }
       }
@@ -2461,10 +2663,13 @@ class _SanitizedMember {
           ///    }
           ///    class Class implements Interface1, Interface2 {}
           interfaceMember = new SynthesizedInterfaceMember(
-              classBuilder, name, interfaceMembers.toList(),
-              noSuchMethodTarget: noSuchMethodTarget,
-              memberKind: _definingMember.memberKind,
-              shouldModifyKernel: builder.shouldModifyKernel);
+            classBuilder,
+            name,
+            interfaceMembers.toList(),
+            noSuchMethodTarget: noSuchMethodTarget,
+            memberKind: _definingMember.memberKind,
+            shouldModifyKernel: builder.shouldModifyKernel,
+          );
           builder._membersBuilder.registerMemberComputation(interfaceMember);
         }
         if (noSuchMethodTarget != null) {
@@ -2571,13 +2776,13 @@ class _Overrides {
   ClassMember? mixedInMethod;
   List<ClassMember>? mixedInProperties;
 
-  _Overrides(
-      {required ClassBuilder classBuilder,
-      required Map<ClassMember, Set<ClassMember>> inheritedImplementsMap,
-      required ClassHierarchyNodeDataForTesting? dataForTesting})
-      : _classBuilder = classBuilder,
-        _inheritedImplementsMap = inheritedImplementsMap,
-        _dataForTesting = dataForTesting;
+  _Overrides({
+    required ClassBuilder classBuilder,
+    required Map<ClassMember, Set<ClassMember>> inheritedImplementsMap,
+    required ClassHierarchyNodeDataForTesting? dataForTesting,
+  }) : _classBuilder = classBuilder,
+       _inheritedImplementsMap = inheritedImplementsMap,
+       _dataForTesting = dataForTesting;
 
   /// Registers that [declaredMember] overrides extended and implemented
   /// members.
@@ -2600,22 +2805,26 @@ class _Overrides {
   ///
   /// Here the parameter type of the setter `Class.property` must be
   /// inferred from the type of the getter `Super.property`.
-  void registerDeclaredOverride(ClassMember declaredMember,
-      {ClassMember? aliasForTesting}) {
+  void registerDeclaredOverride(
+    ClassMember declaredMember, {
+    ClassMember? aliasForTesting,
+  }) {
     if (_classBuilder is SourceClassBuilder && !declaredMember.isStatic) {
       assert(
-          declaredMember.isSourceDeclaration &&
-              declaredMember.declarationBuilder == _classBuilder,
-          "Only declared members can override: ${declaredMember}");
+        declaredMember.isSourceDeclaration &&
+            declaredMember.declarationBuilder == _classBuilder,
+        "Only declared members can override: ${declaredMember}",
+      );
       hasDeclaredMembers = true;
       if (declaredMember.isProperty) {
         declaredProperties ??= [];
         declaredProperties!.add(declaredMember);
       } else {
         assert(
-            declaredMethod == null,
-            "Multiple methods unexpectedly declared: "
-            "${declaredMethod} and ${declaredMember}.");
+          declaredMethod == null,
+          "Multiple methods unexpectedly declared: "
+          "${declaredMethod} and ${declaredMember}.",
+        );
         declaredMethod = declaredMember;
       }
       if (_dataForTesting != null && aliasForTesting != null) {
@@ -2648,10 +2857,14 @@ class _Overrides {
   /// Here the parameter type of the setter `Mixin.property` must _not_ be
   /// inferred from the type of the getter `Super.property`, but should
   /// instead default to `dynamic`.
-  void registerMixedInOverride(ClassMember mixedInMember,
-      {ClassMember? aliasForTesting}) {
-    assert(mixedInMember.declarationBuilder != _classBuilder,
-        "Only mixin members can override by application: ${mixedInMember}");
+  void registerMixedInOverride(
+    ClassMember mixedInMember, {
+    ClassMember? aliasForTesting,
+  }) {
+    assert(
+      mixedInMember.declarationBuilder != _classBuilder,
+      "Only mixin members can override by application: ${mixedInMember}",
+    );
     if (_classBuilder is SourceClassBuilder) {
       hasDeclaredMembers = true;
       if (mixedInMember.isProperty) {
@@ -2659,9 +2872,10 @@ class _Overrides {
         mixedInProperties!.add(mixedInMember);
       } else {
         assert(
-            mixedInMethod == null,
-            "Multiple methods unexpectedly declared in mixin: "
-            "${mixedInMethod} and ${mixedInMember}.");
+          mixedInMethod == null,
+          "Multiple methods unexpectedly declared in mixin: "
+          "${mixedInMethod} and ${mixedInMember}.",
+        );
         mixedInMethod = mixedInMember;
       }
       if (_dataForTesting != null && aliasForTesting != null) {
@@ -2688,13 +2902,16 @@ class _Overrides {
   /// Here `Super.method` must be checked to be a valid implementation for
   /// `Interface.method` by being a valid override of it.
   void registerInheritedImplements(
-      ClassMember inheritedMember, Set<ClassMember> overrides,
-      {required ClassMember aliasForTesting}) {
+    ClassMember inheritedMember,
+    Set<ClassMember> overrides, {
+    required ClassMember aliasForTesting,
+  }) {
     if (_classBuilder is SourceClassBuilder) {
       assert(
-          inheritedMember.declarationBuilder != _classBuilder,
-          "Only inherited members can implement by inheritance: "
-          "${inheritedMember}");
+        inheritedMember.declarationBuilder != _classBuilder,
+        "Only inherited members can implement by inheritance: "
+        "${inheritedMember}",
+      );
       _inheritedImplementsMap[inheritedMember] = overrides;
       if (_dataForTesting != null) {
         // Coverage-ignore-block(suite): Not run.
@@ -2705,12 +2922,12 @@ class _Overrides {
 
   /// Collects overrides of [getable] and [setable] in [declaredOverridesMap]
   /// and [mixinApplicationOverridesMap] to set up need override checks.
-  void collectOverrides(
-      {required _SanitizedMember? getable,
-      required _SanitizedMember? setable,
-      required Map<ClassMember, Set<ClassMember>> declaredOverridesMap,
-      required Map<ClassMember, Set<ClassMember>>
-          mixinApplicationOverridesMap}) {
+  void collectOverrides({
+    required _SanitizedMember? getable,
+    required _SanitizedMember? setable,
+    required Map<ClassMember, Set<ClassMember>> declaredOverridesMap,
+    required Map<ClassMember, Set<ClassMember>> mixinApplicationOverridesMap,
+  }) {
     if (hasDeclaredMembers) {
       Set<ClassMember> getableOverrides = getable?.computeOverrides() ?? {};
       Set<ClassMember> setableOverrides = setable?.computeOverrides() ?? {};
@@ -2793,14 +3010,19 @@ class _Overrides {
 }
 
 Set<ClassMember> toSet(
-    DeclarationBuilder declarationBuilder, Iterable<ClassMember> members) {
+  DeclarationBuilder declarationBuilder,
+  Iterable<ClassMember> members,
+) {
   Set<ClassMember> result = <ClassMember>{};
   _toSet(declarationBuilder, members, result);
   return result;
 }
 
-void _toSet(DeclarationBuilder declarationBuilder,
-    Iterable<ClassMember> members, Set<ClassMember> result) {
+void _toSet(
+  DeclarationBuilder declarationBuilder,
+  Iterable<ClassMember> members,
+  Set<ClassMember> result,
+) {
   for (ClassMember member in members) {
     if (member.hasDeclarations &&
         declarationBuilder == member.declarationBuilder) {
@@ -2812,12 +3034,15 @@ void _toSet(DeclarationBuilder declarationBuilder,
   }
 }
 
-void reportCantInferParameterType(ProblemReporting problemReporting,
-    FormalParameterBuilder parameter, Iterable<ClassMember> overriddenMembers) {
+void reportCantInferParameterType(
+  ProblemReporting problemReporting,
+  FormalParameterBuilder parameter,
+  Iterable<ClassMember> overriddenMembers,
+) {
   String name = parameter.name;
   List<LocatedMessage> context = overriddenMembers
       .map((ClassMember overriddenMember) {
-        return messageDeclaredMemberConflictsWithOverriddenMembersCause
+        return codeDeclaredMemberConflictsWithOverriddenMembersCause
             .withLocation2(overriddenMember.uriOffset);
       })
       // Call toSet to avoid duplicate context for instance of fields that are
@@ -2825,23 +3050,26 @@ void reportCantInferParameterType(ProblemReporting problemReporting,
       .toSet()
       .toList();
   problemReporting.addProblem(
-      templateCantInferTypeDueToNoCombinedSignature.withArguments(name),
-      parameter.fileOffset,
-      name.length,
-      parameter.fileUri,
-      wasHandled: true,
-      context: context);
+    codeCantInferTypeDueToNoCombinedSignature.withArgumentsOld(name),
+    parameter.fileOffset,
+    name.length,
+    parameter.fileUri,
+    wasHandled: true,
+    context: context,
+  );
 }
 
 void reportCantInferTypes(
-    ProblemReporting problemReporting, Iterable<ClassMember> overriddenMembers,
-    {required String name,
-    required Uri fileUri,
-    required int nameOffset,
-    required int nameLength}) {
+  ProblemReporting problemReporting,
+  Iterable<ClassMember> overriddenMembers, {
+  required String name,
+  required Uri fileUri,
+  required int nameOffset,
+  required int nameLength,
+}) {
   List<LocatedMessage> context = overriddenMembers
       .map((ClassMember overriddenMember) {
-        return messageDeclaredMemberConflictsWithOverriddenMembersCause
+        return codeDeclaredMemberConflictsWithOverriddenMembersCause
             .withLocation2(overriddenMember.uriOffset);
       })
       // Call toSet to avoid duplicate context for instance of fields that are
@@ -2849,23 +3077,26 @@ void reportCantInferTypes(
       .toSet()
       .toList();
   problemReporting.addProblem(
-      templateCantInferTypesDueToNoCombinedSignature.withArguments(name),
-      nameOffset,
-      nameLength,
-      fileUri,
-      wasHandled: true,
-      context: context);
+    codeCantInferTypesDueToNoCombinedSignature.withArgumentsOld(name),
+    nameOffset,
+    nameLength,
+    fileUri,
+    wasHandled: true,
+    context: context,
+  );
 }
 
 void reportCantInferReturnType(
-    ProblemReporting problemReporting, Iterable<ClassMember> overriddenMembers,
-    {required String name,
-    required Uri fileUri,
-    required int nameOffset,
-    required int nameLength}) {
+  ProblemReporting problemReporting,
+  Iterable<ClassMember> overriddenMembers, {
+  required String name,
+  required Uri fileUri,
+  required int nameOffset,
+  required int nameLength,
+}) {
   List<LocatedMessage> context = overriddenMembers
       .map((ClassMember overriddenMember) {
-        return messageDeclaredMemberConflictsWithOverriddenMembersCause
+        return codeDeclaredMemberConflictsWithOverriddenMembersCause
             .withLocation2(overriddenMember.uriOffset);
       })
       // Call toSet to avoid duplicate context for instance of fields that are
@@ -2873,23 +3104,26 @@ void reportCantInferReturnType(
       .toSet()
       .toList();
   problemReporting.addProblem(
-      templateCantInferReturnTypeDueToNoCombinedSignature.withArguments(name),
-      nameOffset,
-      nameLength,
-      fileUri,
-      wasHandled: true,
-      context: context);
+    codeCantInferReturnTypeDueToNoCombinedSignature.withArgumentsOld(name),
+    nameOffset,
+    nameLength,
+    fileUri,
+    wasHandled: true,
+    context: context,
+  );
 }
 
 void reportCantInferFieldType(
-    ProblemReporting problemReporting, Iterable<ClassMember> overriddenMembers,
-    {required String name,
-    required Uri fileUri,
-    required int nameOffset,
-    required int nameLength}) {
+  ProblemReporting problemReporting,
+  Iterable<ClassMember> overriddenMembers, {
+  required String name,
+  required Uri fileUri,
+  required int nameOffset,
+  required int nameLength,
+}) {
   List<LocatedMessage> context = overriddenMembers
       .map((ClassMember overriddenMember) {
-        return messageDeclaredMemberConflictsWithOverriddenMembersCause
+        return codeDeclaredMemberConflictsWithOverriddenMembersCause
             .withLocation2(overriddenMember.uriOffset);
       })
       // Call toSet to avoid duplicate context for instance of fields that are
@@ -2897,12 +3131,13 @@ void reportCantInferFieldType(
       .toSet()
       .toList();
   problemReporting.addProblem(
-      templateCantInferTypeDueToNoCombinedSignature.withArguments(name),
-      nameOffset,
-      nameLength,
-      fileUri,
-      wasHandled: true,
-      context: context);
+    codeCantInferTypeDueToNoCombinedSignature.withArgumentsOld(name),
+    nameOffset,
+    nameLength,
+    fileUri,
+    wasHandled: true,
+    context: context,
+  );
 }
 
 bool isNameVisibleIn(Name name, LibraryBuilder libraryBuilder) {
@@ -2916,7 +3151,9 @@ Set<ClassMember> unfoldDeclarations(Iterable<ClassMember> members) {
 }
 
 void _unfoldDeclarations(
-    Iterable<ClassMember> members, Set<ClassMember> result) {
+  Iterable<ClassMember> members,
+  Set<ClassMember> result,
+) {
   for (ClassMember member in members) {
     if (member.hasDeclarations) {
       _unfoldDeclarations(member.declarations, result);

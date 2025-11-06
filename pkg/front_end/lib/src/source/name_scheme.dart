@@ -17,13 +17,14 @@ class NameScheme {
   final ContainerType containerType;
   final LibraryName libraryName;
 
-  NameScheme(
-      {required this.isInstanceMember,
-      required this.containerName,
-      required this.containerType,
-      required this.libraryName})
-      : assert((containerName == null) ==
-            (containerType == ContainerType.Library));
+  NameScheme({
+    required this.isInstanceMember,
+    required this.containerName,
+    required this.containerType,
+    required this.libraryName,
+  }) : assert(
+         (containerName == null) == (containerType == ContainerType.Library),
+       );
 
   bool get isStatic => !isInstanceMember;
 
@@ -33,8 +34,11 @@ class NameScheme {
       containerType == ContainerType.ExtensionType;
 
   // TODO(johnniwinther): Why do we need [isSynthesized] ?
-  MemberName getFieldMemberName(FieldNameType fieldNameType, String name,
-      {required bool isSynthesized}) {
+  MemberName getFieldMemberName(
+    FieldNameType fieldNameType,
+    String name, {
+    required bool isSynthesized,
+  }) {
     bool hasSynthesizedName;
     switch (containerType) {
       case ContainerType.Library:
@@ -48,8 +52,14 @@ class NameScheme {
     }
     if (hasSynthesizedName) {
       return new SynthesizedFieldName(
-          libraryName, containerName, containerType, fieldNameType, name,
-          isInstanceMember: isInstanceMember, isSynthesized: isSynthesized);
+        libraryName,
+        containerName,
+        containerType,
+        fieldNameType,
+        name,
+        isInstanceMember: isInstanceMember,
+        isSynthesized: isSynthesized,
+      );
     } else {
       return name.startsWith('_')
           ? new PrivateMemberName(libraryName, name)
@@ -57,15 +67,22 @@ class NameScheme {
     }
   }
 
-  static String createFieldName(FieldNameType fieldNameType, String name,
-      {required bool isInstanceMember,
-      required ContainerName? containerName,
-      required ContainerType containerType,
-      bool isSynthesized = false}) {
-    assert(isSynthesized || fieldNameType == FieldNameType.Field,
-        "Unexpected field name type for non-synthesized field: $fieldNameType");
-    assert((containerName == null) == (containerType == ContainerType.Library),
-        "Missing container name for ${containerType}");
+  static String createFieldName(
+    FieldNameType fieldNameType,
+    String name, {
+    required bool isInstanceMember,
+    required ContainerName? containerName,
+    required ContainerType containerType,
+    bool isSynthesized = false,
+  }) {
+    assert(
+      isSynthesized || fieldNameType == FieldNameType.Field,
+      "Unexpected field name type for non-synthesized field: $fieldNameType",
+    );
+    assert(
+      (containerName == null) == (containerType == ContainerType.Library),
+      "Missing container name for ${containerType}",
+    );
 
     String baseName;
     switch (containerType) {
@@ -115,8 +132,13 @@ class NameScheme {
           case ProcedureKind.Setter:
           case ProcedureKind.Operator:
             return new ExtensionProcedureName(
-                libraryName, containerName!, containerType, kind, name,
-                isStatic: isStatic);
+              libraryName,
+              containerName!,
+              containerType,
+              kind,
+              name,
+              isStatic: isStatic,
+            );
           // Coverage-ignore(suite): Not run.
           case ProcedureKind.Factory:
             throw new UnsupportedError('Unexpected procedure kind ${kind}');
@@ -130,12 +152,13 @@ class NameScheme {
   static const String extensionNameDelimiter = '|';
   static const String unnamedExtensionNamePrefix = '_extension#';
 
-  static String _createProcedureName(
-      {required ContainerName? containerName,
-      required ContainerType containerType,
-      required bool isStatic,
-      required ProcedureKind kind,
-      required String name}) {
+  static String _createProcedureName({
+    required ContainerName? containerName,
+    required ContainerType containerType,
+    required bool isStatic,
+    required ProcedureKind kind,
+    required String name,
+  }) {
     switch (containerType) {
       case ContainerType.Extension:
       case ContainerType.ExtensionType:
@@ -158,7 +181,8 @@ class NameScheme {
             // Coverage-ignore(suite): Not run.
             case ProcedureKind.Factory:
               throw new UnsupportedError(
-                  'Unexpected extension method kind ${kind}');
+                'Unexpected extension method kind ${kind}',
+              );
           }
         }
         return '${extensionName}${extensionNameDelimiter}${kindInfix}${name}';
@@ -183,8 +207,11 @@ class NameScheme {
       case ContainerType.Extension:
         // Extension is handled here for the error case only.
         return new ExtensionTypeConstructorName(
-            libraryName, containerName!, name,
-            isTearOff: isTearOff);
+          libraryName,
+          containerName!,
+          name,
+          isTearOff: isTearOff,
+        );
     }
   }
 
@@ -353,10 +380,10 @@ class UnnamedExtensionName implements ExtensionName {
 abstract class MemberName {
   factory MemberName(LibraryName libraryName, String text) =>
       text.startsWith('_')
-          ? new PrivateMemberName(libraryName, text)
-          :
-          // Coverage-ignore(suite): Not run.
-          new PublicMemberName(text);
+      ? new PrivateMemberName(libraryName, text)
+      :
+        // Coverage-ignore(suite): Not run.
+        new PublicMemberName(text);
 
   /// Returns the current [Name] for this member name.
   Name get name;
@@ -381,8 +408,8 @@ class PublicMemberName implements MemberName {
   final Name name;
 
   PublicMemberName(String text)
-      : assert(!text.startsWith('_')),
-        name = new Name(text);
+    : assert(!text.startsWith('_')),
+      name = new Name(text);
 
   @override
   // Coverage-ignore(suite): Not run.
@@ -430,7 +457,7 @@ class PrivateMemberName extends UpdatableMemberName {
   final String _text;
 
   PrivateMemberName(this._libraryName, this._text)
-      : assert(_text.startsWith('_')) {
+    : assert(_text.startsWith('_')) {
     _libraryName.attachMemberName(this);
   }
 
@@ -453,9 +480,14 @@ class ExtensionProcedureName extends UpdatableMemberName {
   final bool isStatic;
   final String _text;
 
-  ExtensionProcedureName(this._libraryName, this._containerName,
-      this._containerType, this._kind, this._text,
-      {required this.isStatic}) {
+  ExtensionProcedureName(
+    this._libraryName,
+    this._containerName,
+    this._containerType,
+    this._kind,
+    this._text, {
+    required this.isStatic,
+  }) {
     _libraryName.attachMemberName(this);
     _containerName.attachMemberName(this);
   }
@@ -463,13 +495,15 @@ class ExtensionProcedureName extends UpdatableMemberName {
   @override
   Name _createName() {
     return new Name.byReference(
-        NameScheme._createProcedureName(
-            containerName: _containerName,
-            containerType: _containerType,
-            isStatic: isStatic,
-            kind: _kind,
-            name: _text),
-        _libraryName.reference);
+      NameScheme._createProcedureName(
+        containerName: _containerName,
+        containerType: _containerType,
+        isStatic: isStatic,
+        kind: _kind,
+        name: _text,
+      ),
+      _libraryName.reference,
+    );
   }
 }
 
@@ -485,8 +519,11 @@ class ExtensionTypeConstructorName extends UpdatableMemberName {
   final String _text;
 
   ExtensionTypeConstructorName(
-      this._libraryName, this._containerName, this._text,
-      {required this.isTearOff}) {
+    this._libraryName,
+    this._containerName,
+    this._text, {
+    required this.isTearOff,
+  }) {
     _libraryName.attachMemberName(this);
     _containerName.attachMemberName(this);
   }
@@ -503,11 +540,12 @@ class ExtensionTypeConstructorName extends UpdatableMemberName {
       name = _text;
     }
     return new Name.byReference(
-        '${className}'
-        '${NameScheme.extensionNameDelimiter}'
-        '${NameScheme.extensionTypeConstructorPrefix}'
-        '${name}',
-        _libraryName.reference);
+      '${className}'
+      '${NameScheme.extensionNameDelimiter}'
+      '${NameScheme.extensionTypeConstructorPrefix}'
+      '${name}',
+      _libraryName.reference,
+    );
   }
 }
 
@@ -525,9 +563,15 @@ class SynthesizedFieldName extends UpdatableMemberName {
   final bool isSynthesized;
   final String _text;
 
-  SynthesizedFieldName(this._libraryName, this._containerName,
-      this._containerType, this._type, this._text,
-      {required this.isInstanceMember, required this.isSynthesized}) {
+  SynthesizedFieldName(
+    this._libraryName,
+    this._containerName,
+    this._containerType,
+    this._type,
+    this._text, {
+    required this.isInstanceMember,
+    required this.isSynthesized,
+  }) {
     _libraryName.attachMemberName(this);
     _containerName?.attachMemberName(this);
   }
@@ -535,11 +579,15 @@ class SynthesizedFieldName extends UpdatableMemberName {
   @override
   Name _createName() {
     return new Name.byReference(
-        NameScheme.createFieldName(_type, _text,
-            isInstanceMember: isInstanceMember,
-            containerName: _containerName,
-            containerType: _containerType,
-            isSynthesized: isSynthesized),
-        _libraryName.reference);
+      NameScheme.createFieldName(
+        _type,
+        _text,
+        isInstanceMember: isInstanceMember,
+        containerName: _containerName,
+        containerType: _containerType,
+        isSynthesized: isSynthesized,
+      ),
+      _libraryName.reference,
+    );
   }
 }

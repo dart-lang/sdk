@@ -13,7 +13,7 @@ static method main() → dynamic {
 
 
 Extra constant evaluation status:
-Evaluated: Not @ org-dartlang-testcase:///infer_prefix_expression.dart:8:13 -> BoolConstant(false)
-Evaluated: InstanceInvocation @ org-dartlang-testcase:///infer_prefix_expression.dart:9:38 -> IntConstant(-2)
-Evaluated: InstanceInvocation @ org-dartlang-testcase:///infer_prefix_expression.dart:10:39 -> IntConstant(-1)
+Evaluated: Not @ org-dartlang-testcase:///infer_prefix_expression.dart:7:13 -> BoolConstant(false)
+Evaluated: InstanceInvocation @ org-dartlang-testcase:///infer_prefix_expression.dart:8:20 -> IntConstant(-2)
+Evaluated: InstanceInvocation @ org-dartlang-testcase:///infer_prefix_expression.dart:9:16 -> IntConstant(-1)
 Extra constant evaluation: evaluated: 6, effectively constant: 3

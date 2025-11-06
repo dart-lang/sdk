@@ -88,7 +88,7 @@ static method use2([@vm.inferred-arg-type.metadata=#lib::C5] self::Message msg) 
 
 [@vm.inferred-return-type.metadata=dart.core::Null? (value: null)]
 static method triggerInvalidation() → dynamic {
-  [@vm.direct-call.metadata=#lib::Message.__fieldSet] [@vm.inferred-type.metadata=!? (skip check)] new self::C1::•().{self::Message::__fieldSet} = new self::_FieldSet::•();
+  [@vm.direct-call.metadata=#lib::Message.__fieldSet] [@vm.inferred-type.metadata=? (skip check)] new self::C1::•().{self::Message::__fieldSet} = new self::_FieldSet::•();
 }
 
 [@vm.inferred-return-type.metadata=dart.core::Null? (value: null)]

@@ -10,8 +10,10 @@ import 'package:analyzer_plugin/utilities/completion/relevance.dart';
 abstract class SuggestionBuilder {
   /// Return a suggestion based on the given [element], or `null` if a
   /// suggestion is not appropriate for the given element.
-  CompletionSuggestion? forElement(Element element,
-      {String? completion,
-      CompletionSuggestionKind kind = CompletionSuggestionKind.INVOCATION,
-      int relevance = DART_RELEVANCE_DEFAULT});
+  CompletionSuggestion? forElement(
+    Element element, {
+    String? completion,
+    CompletionSuggestionKind kind = CompletionSuggestionKind.INVOCATION,
+    int relevance = DART_RELEVANCE_DEFAULT,
+  });
 }

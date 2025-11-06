@@ -83,7 +83,9 @@ class AbstractCompletionDomainTest extends PubPackageAnalysisServerTest {
     required String content,
     int maxResults = 1 << 10,
   }) async {
-    var code = TestCode.parse(content);
+    var code = useLineEndingsForPlatform
+        ? TestCode.parseNormalized(content)
+        : TestCode.parse(content);
     var completionOffset = code.position.offset;
 
     newFile(path, code.code);

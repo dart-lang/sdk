@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/analysis_rule/rule_context.dart';
+import 'package:analyzer/analysis_rule/rule_visitor_registry.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
@@ -18,10 +19,13 @@ class HashAndEquals extends LintRule {
   HashAndEquals() : super(name: LintNames.hash_and_equals, description: _desc);
 
   @override
-  DiagnosticCode get diagnosticCode => LinterLintCode.hash_and_equals;
+  DiagnosticCode get diagnosticCode => LinterLintCode.hashAndEquals;
 
   @override
-  void registerNodeProcessors(NodeLintRegistry registry, RuleContext context) {
+  void registerNodeProcessors(
+    RuleVisitorRegistry registry,
+    RuleContext context,
+  ) {
     var visitor = _Visitor(this);
     registry.addClassDeclaration(this, visitor);
   }

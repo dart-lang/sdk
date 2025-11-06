@@ -46,12 +46,15 @@ Try using a constructor or factory that is 'const'.
   const NotConstant();
         ^^^^^^^^^^^";
   new self::Constant::•();
+  const self::Constant x = #C1;
   core::bool::fromEnvironment("fisk");
+  const core::bool b = #C2;
 }
 static method main() → dynamic {}
 
 constants  {
   #C1 = self::Constant {}
+  #C2 = false
 }
 
 

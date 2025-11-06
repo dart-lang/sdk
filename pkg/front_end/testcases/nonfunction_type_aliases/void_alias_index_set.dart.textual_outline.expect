@@ -1,0 +1,25 @@
+class Class1 {
+  Void operator []=(Object key, Object value) {}
+}
+
+class Class2 {
+  int operator []=(Object key, Object value) {}
+}
+
+extension Extension1 on int {
+  Void operator []=(Object key, Object value) {}
+}
+
+extension Extension2 on int {
+  int operator []=(Object key, Object value) {}
+}
+
+extension type ExtensionType1(int it) {
+  Void operator []=(Object key, Object value) {}
+}
+
+extension type ExtensionType2(int it) {
+  int operator []=(Object key, Object value) {}
+}
+
+typedef Void = void;

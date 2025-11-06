@@ -4,6 +4,7 @@
 
 import 'package:analysis_server/lsp_protocol/protocol.dart';
 import 'package:analysis_server/src/lsp/constants.dart';
+import 'package:analyzer/src/test_utilities/platform.dart';
 import 'package:analyzer/src/test_utilities/test_code_format.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -837,8 +838,8 @@ class MyNewClass {}
     const mainVersion = 111;
     const referencedVersion = 222;
 
-    var mainCode = TestCode.parse(mainContent);
-    var referencedCode = TestCode.parse(referencedContent);
+    var mainCode = TestCode.parseNormalized(mainContent);
+    var referencedCode = TestCode.parseNormalized(referencedContent);
 
     // Create initial files (to avoid diagnostics).
     newFile(mainFilePath, mainCode.code);
@@ -855,13 +856,12 @@ class MyNewClass {}
       version: referencedVersion,
     );
 
-    var result =
-        (await rename(
-          mainFileUri,
-          mainVersion,
-          mainCode.position.position,
-          'MyNewClass',
-        ))!;
+    var result = (await rename(
+      mainFileUri,
+      mainVersion,
+      mainCode.position.position,
+      'MyNewClass',
+    ))!;
 
     var expectedVersions = {
       mainFileUri: mainVersion,
@@ -1017,13 +1017,17 @@ final a = new My^Class();
 class MyNewClass {}
 final a = new MyNewClass();
 ''';
-    var code = TestCode.parse(content);
+    var code = TestCode.parseNormalized(content);
 
     await initialize();
     await openFile(mainFileUri, code.code, version: 222);
 
-    var result =
-        (await rename(mainFileUri, 222, code.position.position, 'MyNewClass'))!;
+    var result = (await rename(
+      mainFileUri,
+      222,
+      code.position.position,
+      'MyNewClass',
+    ))!;
 
     verifyEdit(result, expectedContent);
   }
@@ -1152,10 +1156,9 @@ final a = new MyNewClass();
 
     var code = TestCode.parse(content);
     await initialize(
-      experimentalCapabilities:
-          supportsWindowShowMessageRequest
-              ? const {'supportsWindowShowMessageRequest': true}
-              : null,
+      experimentalCapabilities: supportsWindowShowMessageRequest
+          ? const {'supportsWindowShowMessageRequest': true}
+          : null,
     );
     await openFile(mainFileUri, code.code, version: openFileVersion);
 
@@ -1186,12 +1189,11 @@ final a = new MyNewClass();
   }) async {
     setDocumentChangesSupport();
 
-    var code = TestCode.parse(content);
+    var code = TestCode.parseNormalized(content);
     await initialize(
-      experimentalCapabilities:
-          supportsWindowShowMessageRequest
-              ? const {'supportsWindowShowMessageRequest': true}
-              : null,
+      experimentalCapabilities: supportsWindowShowMessageRequest
+          ? const {'supportsWindowShowMessageRequest': true}
+          : null,
     );
     await openFile(mainFileUri, code.code, version: openFileVersion);
 
@@ -1239,6 +1241,11 @@ final a = new MyNewClass();
     bool supportsWindowShowMessageRequest = true,
     List<Uri>? workspaceFolders,
   }) async {
+    content = normalizeNewlinesForPlatform(content);
+    if (expectedContent != null) {
+      expectedContent = normalizeNewlinesForPlatform(expectedContent);
+    }
+
     filePath ??= mainFilePath;
     expectedFilePath ??= filePath;
     var fileUri = pathContext.toUri(filePath);
@@ -1253,10 +1260,9 @@ final a = new MyNewClass();
 
     var code = TestCode.parse(content);
     await initialize(
-      experimentalCapabilities:
-          supportsWindowShowMessageRequest
-              ? const {'supportsWindowShowMessageRequest': true}
-              : null,
+      experimentalCapabilities: supportsWindowShowMessageRequest
+          ? const {'supportsWindowShowMessageRequest': true}
+          : null,
       workspaceFolders: workspaceFolders,
     );
     await openFile(fileUri, code.code, version: documentVersion);
@@ -1275,7 +1281,8 @@ final a = new MyNewClass();
       // For convenience, if a test doesn't provide an full set of edits
       // we assume only a single edit of the file that was being modified.
       if (!expectedContent.startsWith(LspChangeVerifier.editMarkerStart)) {
-        expectedContent = '''
+        expectedContent =
+            '''
 ${LspChangeVerifier.editMarkerStart} ${relativePath(filePath)}
 $expectedContent''';
       }

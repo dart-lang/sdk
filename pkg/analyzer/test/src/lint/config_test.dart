@@ -57,16 +57,15 @@ linter:
       });
 
       test('config', () {
-        var ruleConfigs =
-            parseLinterSection(
-              loadYamlNode('''
+        var ruleConfigs = parseLinterSection(
+          loadYamlNode('''
 linter:
   rules:
     style_guide:
       unnecessary_getters: false
 ''')
-                  as YamlMap,
-            )!;
+              as YamlMap,
+        )!;
         expect(ruleConfigs, hasLength(1));
         var ruleConfig = ruleConfigs.values.first;
         expect(ruleConfig.group, 'style_guide');

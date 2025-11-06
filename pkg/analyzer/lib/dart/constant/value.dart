@@ -14,7 +14,22 @@ library;
 
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
-import 'package:meta/meta.dart';
+
+/// Information about a const constructor invocation.
+abstract class ConstructorInvocation {
+  /// The constructor that was called.
+  ConstructorElement get constructor;
+
+  /// The constructor that was called.
+  @Deprecated('Use constructor instead')
+  ConstructorElement get constructor2;
+
+  /// The values of named arguments.
+  Map<String, DartObject> get namedArguments;
+
+  /// The values of positional arguments.
+  List<DartObject> get positionalArguments;
+}
 
 /// A representation of the value of a compile-time constant expression.
 ///
@@ -26,6 +41,10 @@ import 'package:meta/meta.dart';
 ///
 /// Clients may not extend, implement or mix-in this class.
 abstract class DartObject {
+  /// If this object was created by invoking a const constructor, information
+  /// about how the const constructor was invoked; otherwise `null`.
+  ConstructorInvocation? get constructorInvocation;
+
   /// Return `true` if the value of the object being represented is known.
   ///
   /// This method will return `false` if
@@ -68,6 +87,10 @@ abstract class DartObject {
   DartType? get type;
 
   /// If this object is the value of a constant variable, the variable.
+  VariableElement? get variable;
+
+  /// If this object is the value of a constant variable, the variable.
+  @Deprecated('Use variable instead')
   VariableElement? get variable2;
 
   /// Return a representation of the value of the field with the given [name].
@@ -101,7 +124,15 @@ abstract class DartObject {
   /// * this object is not of a function type,
   /// * the value of the object being represented is not known, or
   /// * the value of the object being represented is `null`.
-  @experimental
+  ExecutableElement? toFunctionValue();
+
+  /// Return an element corresponding to the value of the object being
+  /// represented, or `null`
+  /// if
+  /// * this object is not of a function type,
+  /// * the value of the object being represented is not known, or
+  /// * the value of the object being represented is `null`.
+  @Deprecated('Use toFunctionValue instead')
   ExecutableElement? toFunctionValue2();
 
   /// Return an integer corresponding to the value of the object being

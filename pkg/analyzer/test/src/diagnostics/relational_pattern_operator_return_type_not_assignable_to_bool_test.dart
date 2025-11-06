@@ -44,7 +44,7 @@ void f(A x) {
       [
         error(
           CompileTimeErrorCode
-              .RELATIONAL_PATTERN_OPERATOR_RETURN_TYPE_NOT_ASSIGNABLE_TO_BOOL,
+              .relationalPatternOperatorReturnTypeNotAssignableToBool,
           67,
           1,
         ),
@@ -66,7 +66,7 @@ void f(A x) {
       [
         error(
           CompileTimeErrorCode
-              .RELATIONAL_PATTERN_OPERATOR_RETURN_TYPE_NOT_ASSIGNABLE_TO_BOOL,
+              .relationalPatternOperatorReturnTypeNotAssignableToBool,
           70,
           1,
         ),

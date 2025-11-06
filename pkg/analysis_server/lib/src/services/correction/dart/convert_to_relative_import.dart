@@ -24,10 +24,10 @@ class ConvertToRelativeImport extends ResolvedCorrectionProducer {
   AssistKind get assistKind => DartAssistKind.convertToRelativeImport;
 
   @override
-  FixKind get fixKind => DartFixKind.CONVERT_TO_RELATIVE_IMPORT;
+  FixKind get fixKind => DartFixKind.convertToRelativeImport;
 
   @override
-  FixKind get multiFixKind => DartFixKind.CONVERT_TO_RELATIVE_IMPORT_MULTI;
+  FixKind get multiFixKind => DartFixKind.convertToRelativeImportMulti;
 
   @override
   Future<void> compute(ChangeBuilder builder) async {

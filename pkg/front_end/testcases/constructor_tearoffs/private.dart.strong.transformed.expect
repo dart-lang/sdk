@@ -37,8 +37,16 @@ library;
 //
 // Problems in library:
 //
+// pkg/front_end/testcases/constructor_tearoffs/private_lib.dart:23:11: Error: Superclass has no constructor named 'A._'.
+//   G._() : super._(); // Error
+//           ^^^^^
+//
 // pkg/front_end/testcases/constructor_tearoffs/private_lib.dart:27:11: Error: Superclass has no constructor named 'B._'.
 //   H._() : super._(); // Error
+//           ^^^^^
+//
+// pkg/front_end/testcases/constructor_tearoffs/private_lib.dart:32:11: Error: Superclass has no constructor named 'C._'.
+//   I._() : super._(); // Error
 //           ^^^^^
 //
 // pkg/front_end/testcases/constructor_tearoffs/private_lib.dart:36:5: Error: Member not found: 'D._'.
@@ -95,12 +103,14 @@ class C extends core::Object {
 }
 class G extends self::D {
   constructor _() → pri::G
-    : super self::D::_()
+    : final dynamic #t1 = invalid-expression "pkg/front_end/testcases/constructor_tearoffs/private_lib.dart:23:11: Error: Superclass has no constructor named 'A._'.
+  G._() : super._(); // Error
+          ^^^^^"
     ;
 }
 class H extends self::E {
   constructor _() → pri::H
-    : final dynamic #t1 = invalid-expression "pkg/front_end/testcases/constructor_tearoffs/private_lib.dart:27:11: Error: Superclass has no constructor named 'B._'.
+    : final dynamic #t2 = invalid-expression "pkg/front_end/testcases/constructor_tearoffs/private_lib.dart:27:11: Error: Superclass has no constructor named 'B._'.
   H._() : super._(); // Error
           ^^^^^"
     ;
@@ -110,7 +120,9 @@ class I extends self::F {
     : super self::F::named()
     ;
   constructor _() → pri::I
-    : super self::F::_()
+    : final dynamic #t3 = invalid-expression "pkg/front_end/testcases/constructor_tearoffs/private_lib.dart:32:11: Error: Superclass has no constructor named 'C._'.
+  I._() : super._(); // Error
+          ^^^^^"
     ;
 }
 static method method() → dynamic {

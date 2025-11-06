@@ -22,7 +22,7 @@ class PrefixedNamespaceTest extends PubPackageResolutionTest {
       r'''
 import 'dart:math' as prefix;
 ''',
-      [error(WarningCode.UNUSED_IMPORT, 7, 11)],
+      [error(WarningCode.unusedImport, 7, 11)],
     );
     var namespace = findElement2.import('dart:math').namespace;
     return namespace as PrefixedNamespace;

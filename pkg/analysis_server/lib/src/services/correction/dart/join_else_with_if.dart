@@ -147,8 +147,9 @@ abstract class _JoinIfWithElseBlock extends ResolvedCorrectionProducer {
     Block block,
     String? startCommentsSource,
     String prefix,
-    String? endCommentSource,
-  ) {
+    String? endCommentSource, {
+    required String eol,
+  }) {
     var lineRanges = range.node(block);
     var blockSource = utils.getRangeText(lineRanges);
     blockSource = utils.indentSourceLeftRight(blockSource).trimRight();
@@ -219,6 +220,7 @@ abstract class _JoinIfWithElseBlock extends ResolvedCorrectionProducer {
     var prefix = utils.getNodePrefix(outerIfStatement);
 
     await builder.addDartFileEdit(file, (builder) {
+      var eol = builder.eol;
       var source = '';
       for (var statement in statements) {
         String newBlockSource;
@@ -240,15 +242,22 @@ abstract class _JoinIfWithElseBlock extends ResolvedCorrectionProducer {
         }
 
         var endingComment = statement.endToken.next?.precedingComments;
-        var endCommentSource = _joinCommentsSources([
-          if (endingComment case var comment?) comment,
-        ], prefix);
+        var endCommentSource = _joinCommentsSources(
+          [if (endingComment case var comment?) comment],
+          prefix,
+          eol: eol,
+        );
 
-        var beginCommentsSource = _joinCommentsSources([
-          if (beforeIfKeywordComments case var comment?) comment,
-          if (beforeConditionComments case var comment?) comment,
-          if (statement.beginToken.precedingComments case var comment?) comment,
-        ], prefix);
+        var beginCommentsSource = _joinCommentsSources(
+          [
+            if (beforeIfKeywordComments case var comment?) comment,
+            if (beforeConditionComments case var comment?) comment,
+            if (statement.beginToken.precedingComments case var comment?)
+              comment,
+          ],
+          prefix,
+          eol: eol,
+        );
 
         if (statement case Block block) {
           newBlockSource = _blockSource(
@@ -256,6 +265,7 @@ abstract class _JoinIfWithElseBlock extends ResolvedCorrectionProducer {
             beginCommentsSource,
             prefix,
             endCommentSource,
+            eol: eol,
           );
         } else {
           var statementSource = utils.getNodeText(statement);
@@ -299,7 +309,11 @@ abstract class _JoinIfWithElseBlock extends ResolvedCorrectionProducer {
     return elses;
   }
 
-  String? _joinCommentsSources(List<CommentToken> comments, String prefix) {
+  String? _joinCommentsSources(
+    List<CommentToken> comments,
+    String prefix, {
+    required String eol,
+  }) {
     if (comments.isEmpty) {
       return null;
     }

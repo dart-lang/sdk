@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import '../builder/module.dart';
 import '../serialize/serialize.dart';
 import 'ir.dart';
 
@@ -26,7 +25,7 @@ abstract class Tag with Indexable, Exportable {
   final FinalizableIndex finalizableIndex;
   final FunctionType type;
   @override
-  final ModuleBuilder enclosingModule;
+  final Module enclosingModule;
 
   Tag(this.enclosingModule, this.finalizableIndex, this.type);
 
@@ -81,4 +80,8 @@ class Tags {
   final List<ImportedTag> imported;
 
   Tags(this.defined, this.imported);
+
+  Tag operator [](int index) => index < imported.length
+      ? imported[index]
+      : defined[index - imported.length];
 }

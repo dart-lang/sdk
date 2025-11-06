@@ -132,13 +132,133 @@ class ChangeTest {
 
 @reflectiveTest
 class EditTest {
-  void test_applySequence() {
+  /// There is no ambiguity in edits sorted last-to-first and the implementation
+  /// may optimize this case.
+  void test_applySequence_lastToFirst() {
     var edit1 = SourceEdit(5, 2, 'abc');
     var edit2 = SourceEdit(1, 0, '!');
     expect(
       SourceEdit.applySequence('0123456789', [edit1, edit2]),
       '0!1234abc789',
     );
+  }
+
+  void test_applySequence_lastToFirst_invalidLength_negative() {
+    var edit1 = SourceEdit(1, 0, 'a');
+    var edit2 = SourceEdit(0, -1, '');
+    expect(
+      () => SourceEdit.applySequence('', [edit1, edit2]),
+      throwsRangeError('The edit length is negative.'),
+    );
+  }
+
+  void test_applySequence_lastToFirst_invalidLength_pastEndOfString() {
+    var edit1 = SourceEdit(1, 100, 'a');
+    var edit2 = SourceEdit(0, 0, '');
+    expect(
+      () => SourceEdit.applySequence('aa', [edit1, edit2]),
+      throwsRangeError('The edit extends past the end of the code.'),
+    );
+  }
+
+  void test_applySequence_lastToFirst_invalidOffset_negative() {
+    var edit1 = SourceEdit(1, 0, 'a');
+    var edit2 = SourceEdit(-1, 0, '');
+    expect(
+      () => SourceEdit.applySequence('', [edit1, edit2]),
+      throwsRangeError('The edit offset is negative.'),
+    );
+  }
+
+  void test_applySequence_lastToFirst_invalidOffset_pastEndOfString() {
+    var edit1 = SourceEdit(1, 0, 'a');
+    var edit2 = SourceEdit(0, 0, 'b');
+    expect(
+      () => SourceEdit.applySequence('', [edit1, edit2]),
+      throwsRangeError('The edit starts past the end of the code.'),
+    );
+  }
+
+  /// Last-to-first offsets may have overlaps if edit `n+1` replaces text
+  /// inserted by edit `n`. The result should be as if they were applied
+  /// sequentially.
+  ///
+  /// Although sorted last-to-first, this case will fall back to sequential
+  /// processing.
+  void test_applySequence_lastToFirstOffsets_overlap() {
+    var edit1 = SourceEdit(3, 0, '1111');
+    var edit2 = SourceEdit(1, 4, '2222'); // replaces aa11
+    expect(SourceEdit.applySequence('aaaa', [edit1, edit2]), 'a222211a');
+  }
+
+  /// Last-to-first offsets may have overlaps if edit `n+1` replaces text
+  /// inserted by edit `n`. The result should be as if they were applied
+  /// sequentially.
+  ///
+  /// Although sorted last-to-first, this case will fall back to sequential
+  /// processing.
+  void test_applySequence_lastToFirstOffsets_touching() {
+    var edit1 = SourceEdit(3, 0, '1111');
+    var edit2 = SourceEdit(1, 2, '2222'); // replaces aa
+    expect(SourceEdit.applySequence('aaaa', [edit1, edit2]), 'a22221111a');
+  }
+
+  /// Edits are described sequentially, so the offsets in edit `n` assume edit
+  /// `n-1` has been applied.
+  void test_applySequence_sequential() {
+    var edit1 = SourceEdit(0, 0, '1111');
+    var edit2 = SourceEdit(2, 0, '2222');
+    expect(SourceEdit.applySequence('', [edit1, edit2]), '11222211');
+  }
+
+  void test_applySequence_sequential_invalidLength_negative() {
+    var edit1 = SourceEdit(0, -1, '');
+    var edit2 = SourceEdit(0, 0, '');
+    expect(
+      () => SourceEdit.applySequence('', [edit1, edit2]),
+      throwsRangeError('The edit length is negative.'),
+    );
+  }
+
+  void test_applySequence_sequential_invalidLength_pastEndOfString() {
+    var edit1 = SourceEdit(0, 0, '');
+    var edit2 = SourceEdit(0, 100, '');
+    expect(
+      () => SourceEdit.applySequence('', [edit1, edit2]),
+      throwsRangeError('The edit extends past the end of the code.'),
+    );
+  }
+
+  void test_applySequence_sequential_invalidOffset_negative() {
+    var edit1 = SourceEdit(-1, 0, '');
+    var edit2 = SourceEdit(0, 0, '');
+    expect(
+      () => SourceEdit.applySequence('', [edit1, edit2]),
+      throwsRangeError('The edit offset is negative.'),
+    );
+  }
+
+  void test_applySequence_sequential_invalidOffset_pastEndOfString() {
+    var edit1 = SourceEdit(0, 0, '');
+    var edit2 = SourceEdit(100, 0, '');
+    expect(
+      () => SourceEdit.applySequence('', [edit1, edit2]),
+      throwsRangeError('The edit starts past the end of the code.'),
+    );
+  }
+
+  /// Edits are described sequentially, so repeated offsets in inserts
+  /// result in the second insert ending up in front of the first.
+  void test_applySequence_sequential_sameOffsets() {
+    var edit1 = SourceEdit(0, 0, '1111');
+    var edit2 = SourceEdit(0, 0, '2222');
+    expect(SourceEdit.applySequence('', [edit1, edit2]), '22221111');
+  }
+
+  void test_applySequence_sequential_validLength_assumesPriorEdit() {
+    var edit1 = SourceEdit(0, 0, '1111');
+    var edit2 = SourceEdit(0, 4, ''); // Valid because it deletes 1111.
+    expect(SourceEdit.applySequence('', [edit1, edit2]), '');
   }
 
   void test_editFromRange() {
@@ -177,6 +297,14 @@ class EditTest {
     var expectedJson = {OFFSET: 1, LENGTH: 2, REPLACEMENT: 'foo'};
     expect(edit.toJson(), expectedJson);
   }
+
+  Matcher throwsRangeError(String message) => throwsA(
+    const TypeMatcher<RangeError>().having(
+      (e) => e.message,
+      'message',
+      message,
+    ),
+  );
 }
 
 @reflectiveTest

@@ -17,7 +17,7 @@ main() {
 class ExtensionConflictingStaticAndInstanceTest
     extends PubPackageResolutionTest {
   CompileTimeErrorCode get _errorCode =>
-      CompileTimeErrorCode.EXTENSION_CONFLICTING_STATIC_AND_INSTANCE;
+      CompileTimeErrorCode.extensionConflictingStaticAndInstance;
 
   test_extendedType_staticField() async {
     await assertNoErrorsInCode('''

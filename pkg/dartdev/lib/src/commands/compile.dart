@@ -26,6 +26,7 @@ import '../vm_interop_handler.dart';
 
 const int genericErrorExitCode = 255;
 const int compileErrorExitCode = 254;
+const int crossCompileErrorExitCode = 128;
 
 class Option {
   final String flag;
@@ -93,24 +94,17 @@ class CompileJSCommand extends CompileSubcommandCommand {
 
   @override
   FutureOr<int> run() async {
-    if (!Sdk.checkArtifactExists(sdk.librariesJson)) {
+    if (!checkArtifactExists(sdk.librariesJson, warnIfBuildRoot: true)) {
       return genericErrorExitCode;
     }
     final args = argResults!;
     var snapshot = sdk.dart2jsAotSnapshot;
-    var script = sdk.dartAotRuntime;
-    var useExecProcess = true;
-    if (!Sdk.checkArtifactExists(snapshot, logError: false)) {
-      // AOT snapshots cannot be generated on IA32, so we need this fallback
-      // branch until support for IA32 is dropped (https://dartbug.com/49969).
-      script = sdk.dart2jsSnapshot;
-      if (!Sdk.checkArtifactExists(script)) {
-        return genericErrorExitCode;
-      }
-      useExecProcess = false;
+    if (!checkArtifactExists(snapshot, logError: false)) {
+      log.stderr('Error: JS compilation failed');
+      log.stderr('Unable to find $snapshot');
+      return compileErrorExitCode;
     }
     final dart2jsCommand = [
-      if (useExecProcess) snapshot,
       '--libraries-spec=${sdk.librariesJson}',
       '--cfe-invocation-modes=compile',
       '--invoker=dart_cli',
@@ -119,10 +113,10 @@ class CompileJSCommand extends CompileSubcommandCommand {
     ];
     try {
       VmInteropHandler.run(
-        script,
+        snapshot,
         dart2jsCommand,
         packageConfigOverride: null,
-        useExecProcess: useExecProcess,
+        useExecProcess: false,
       );
       return 0;
     } catch (e, st) {
@@ -158,33 +152,26 @@ class CompileDDCCommand extends CompileSubcommandCommand {
 
   @override
   FutureOr<int> run() async {
-    if (!Sdk.checkArtifactExists(sdk.librariesJson)) {
+    if (!checkArtifactExists(sdk.librariesJson, warnIfBuildRoot: true)) {
       return genericErrorExitCode;
     }
     final args = argResults!;
     var snapshot = sdk.ddcAotSnapshot;
-    var script = sdk.dartAotRuntime;
-    var useExecProcess = true;
-    if (!Sdk.checkArtifactExists(snapshot, logError: false)) {
-      // AOT snapshots cannot be generated on IA32, so we need this fallback
-      // branch until support for IA32 is dropped (https://dartbug.com/49969).
-      script = sdk.ddcSnapshot;
-      if (!Sdk.checkArtifactExists(script)) {
-        return genericErrorExitCode;
-      }
-      useExecProcess = false;
+    if (!checkArtifactExists(snapshot, logError: false)) {
+      log.stderr('Error: JS compilation failed');
+      log.stderr('Unable to find $snapshot');
+      return compileErrorExitCode;
     }
     final ddcCommand = <String>[
-      if (useExecProcess) snapshot,
       // Add the remaining arguments.
       if (args.rest.isNotEmpty) ...args.rest.sublist(0),
     ];
     try {
       VmInteropHandler.run(
-        script,
+        snapshot,
         ddcCommand,
         packageConfigOverride: null,
-        useExecProcess: useExecProcess,
+        useExecProcess: false,
       );
       return 0;
     } catch (e, st) {
@@ -459,7 +446,7 @@ class CompileJitSnapshotCommand extends CompileSubcommandCommand {
 
     log.stdout('Compiling $sourcePath to jit-snapshot file $outputFile.');
     // TODO(bkonyi): perform compilation in same process.
-    return await runProcess([sdk.dart, ...buildArgs]);
+    return await runProcess([sdk.dartvm, ...buildArgs]);
   }
 }
 
@@ -566,7 +553,10 @@ Remove debugging information from the output and save it separately to the speci
           "'dart compile $commandName' is not supported on x86 architectures.\n");
       return 64;
     }
-    if (!Sdk.checkArtifactExists(genKernel)) {
+    // Kernel is always generated using the host's dartaotruntime and
+    // gen_kernel_aot.dart.snapshot, even during cross compilation.
+    if (!checkArtifactExists(sdk.genKernelSnapshot) ||
+        !checkArtifactExists(sdk.dartAotRuntime)) {
       return 255;
     }
     final args = argResults!;
@@ -587,8 +577,8 @@ Remove debugging information from the output and save it separately to the speci
       return compileErrorExitCode;
     }
 
-    var genSnapshotBinary = genSnapshotHost;
-    var dartAotRuntimeBinary = hostDartAotRuntime;
+    var genSnapshotBinary = sdk.genSnapshot;
+    var dartAotRuntimeBinary = sdk.dartAotRuntime;
 
     final target = crossCompilationTarget(args);
 
@@ -597,7 +587,7 @@ Remove debugging information from the output and save it separately to the speci
         stderr.writeln('Unsupported target platform $target.');
         stderr.writeln('Supported target platforms: '
             '${supportedTargetPlatforms.join(', ')}');
-        return 128;
+        return crossCompileErrorExitCode;
       }
 
       var cacheDir = getDartStorageDirectory();
@@ -646,23 +636,17 @@ Remove debugging information from the output and save it separately to the speci
             packageConfig: packageConfig,
             runPackageName: runPackageName,
             includeDevDependencies: false,
+            dataAssetsExperimentEnabled: false,
             verbose: verbose,
             target: target);
         if (!nativeAssetsExperimentEnabled) {
           if (await builder.warnOnNativeAssets()) {
             return 255;
           }
-        } else {
-          final assets = await builder.compileNativeAssetsJit();
-          if (assets == null) {
-            stderr.writeln('Native assets build failed.');
-            return 255;
-          }
-          if (assets.isNotEmpty) {
-            stderr.writeln(
-                "'dart compile' does currently not support native assets.");
-            return 255;
-          }
+        } else if (await builder.hasHooks()) {
+          stderr.writeln(
+              "'dart compile' does not support build hooks, use 'dart build' instead.");
+          return 255;
         }
       }
     }
@@ -766,6 +750,19 @@ class CompileWasmCommand extends CompileSubcommandCommand {
       --type-finalizing
       --minimize-rec-groups
     '''); // end of binaryenFlags
+
+  final List<String> binaryenFlagsDeferredLoading = _flagList('''
+      --enable-gc
+      --enable-reference-types
+      --enable-multivalue
+      --enable-exception-handling
+      --enable-nontrapping-float-to-int
+      --enable-sign-ext
+      --enable-bulk-memory
+      --enable-threads
+
+      -Os
+    '''); // end of binaryenFlagsDeferredLoading
 
   final List<String> optimizationLevel0Flags = _flagList('''
       --no-inlining
@@ -884,6 +881,11 @@ class CompileWasmCommand extends CompileSubcommandCommand {
         help: 'Generate a source map file.',
         defaultsTo: true,
       )
+      ..addFlag('enable-deferred-loading',
+          help: 'Emit multiple modules based on the Dart program\'s deferred '
+              'import graph.',
+          hide: !verbose,
+          defaultsTo: false)
       ..addOption(
         packagesOption.flag,
         abbr: packagesOption.abbr,
@@ -909,10 +911,9 @@ class CompileWasmCommand extends CompileSubcommandCommand {
     final args = argResults!;
     final verbose = this.verbose || args.flag('verbose');
 
-    if (!Sdk.checkArtifactExists(sdk.wasmPlatformDill) ||
-        !Sdk.checkArtifactExists(sdk.dartAotRuntime) ||
-        !Sdk.checkArtifactExists(sdk.dart2wasmSnapshot) ||
-        !Sdk.checkArtifactExists(sdk.wasmOpt)) {
+    if (!checkArtifactExists(sdk.wasmPlatformDill, warnIfBuildRoot: true) ||
+        !checkArtifactExists(sdk.dartAotRuntime) ||
+        !checkArtifactExists(sdk.dart2wasmSnapshot)) {
       return 255;
     }
 
@@ -964,8 +965,16 @@ class CompileWasmCommand extends CompileSubcommandCommand {
       }
     }
 
+    final isMultiModule = args.flag('enable-deferred-loading') ||
+        // Used in testing to force multiple modules.
+        extraCompilerOptions
+            .any((e) => e.contains('enable-multi-module-stress-test'));
     final optimizationLevel = int.parse(args.option('optimization-level')!);
     final runWasmOpt = optimizationLevel >= 1;
+
+    if (runWasmOpt && !checkArtifactExists(sdk.wasmOpt)) {
+      return 255;
+    }
 
     void handleOverride(List<String> flags, String name, bool? value) {
       // If no override provided, default to what -O implies.
@@ -1002,6 +1011,7 @@ class CompileWasmCommand extends CompileSubcommandCommand {
       if (args.flag('print-kernel')) '--print-kernel',
       if (args.flag(enableAssertsOption.flag)) '--${enableAssertsOption.flag}',
       if (!generateSourceMap) '--no-source-maps',
+      if (isMultiModule) '--enable-deferred-loading',
       for (final define in defines) '-D$define',
       if (maxPages != null) ...[
         '--import-shared-memory',
@@ -1038,42 +1048,92 @@ class CompileWasmCommand extends CompileSubcommandCommand {
     if (isDryRun) return 0;
 
     if (runWasmOpt) {
-      final unoptFile = '$outputFileBasename.unopt.wasm';
-      File(outputFile).renameSync(unoptFile);
-
-      final unoptSourceMapFile = '$outputFileBasename.unopt.wasm.map';
-      if (generateSourceMap) {
-        File('$outputFile.map').renameSync(unoptSourceMapFile);
-      }
-
-      final flags = [
-        ...binaryenFlags,
-        if (!strip) '-g',
-        if (generateSourceMap) ...[
-          '-ism',
-          unoptSourceMapFile,
-          '-osm',
-          '$outputFile.map'
-        ]
-      ];
-
-      if (verbose) {
-        log.stdout('Optimizing output with: ${sdk.wasmOpt} $flags');
-      }
-      final processResult = Process.runSync(
-        sdk.wasmOpt,
-        [...flags, '-o', outputFile, unoptFile],
-      );
-      if (processResult.exitCode != 0) {
-        log.stderr('Error: Wasm compilation failed while optimizing output');
-        log.stderr(processResult.stderr);
-        return compileErrorExitCode;
+      if (isMultiModule) {
+        // Iterate over all matching wasm files and optimize them concurrently
+        // in different processes.
+        final outputFiles = await _listMultiWasmModules(
+            path.dirname(outputFile), outputFileBasename);
+        final futures = <Future<int>>[];
+        for (final f in outputFiles) {
+          final baseFileName = path.setExtension(f.path, '');
+          futures.add(optimize(baseFileName, f.path,
+              deferredLoadingEnabled: true,
+              generateSourceMap: generateSourceMap,
+              strip: strip));
+        }
+        final exitCode = (await Future.wait(futures))
+            .firstWhere((r) => r != 0, orElse: () => 0);
+        if (exitCode != 0) return exitCode;
+      } else {
+        final exitCode = await optimize(outputFileBasename, outputFile,
+            deferredLoadingEnabled: false,
+            generateSourceMap: generateSourceMap,
+            strip: strip);
+        if (exitCode != 0) return exitCode;
       }
     }
 
     final mjsFile = '$outputFileBasename.mjs';
     log.stdout(
         "Generated wasm module '$outputFile', and JS init file '$mjsFile'.");
+    return 0;
+  }
+
+  Future<List<File>> _listMultiWasmModules(
+      String outputDir, String outputFileBasename) async {
+    final files = <File>[];
+    final outputFiles = await Directory(outputDir).list().toList();
+    // When multiple modules are produced from wasm (e.g. with deferred
+    // loading), the compiler emits files:
+    // - basename.wasm (main module)
+    // - basename_module{1...N}.wasm (extra modules)
+    for (final f in outputFiles) {
+      if (f is! File) continue;
+      if (!path.split(f.path).last.startsWith(outputFileBasename)) continue;
+      if (path.extension(f.path) != '.wasm') continue;
+
+      files.add(f);
+    }
+    return files;
+  }
+
+  Future<int> optimize(String outputFileBasename, String outputFile,
+      {required bool deferredLoadingEnabled,
+      required bool generateSourceMap,
+      required bool strip}) async {
+    final unoptFile = '$outputFileBasename.unopt.wasm';
+    File(outputFile).renameSync(unoptFile);
+
+    final unoptSourceMapFile = '$outputFileBasename.unopt.wasm.map';
+    if (generateSourceMap) {
+      File('$outputFile.map').renameSync(unoptSourceMapFile);
+    }
+
+    final flags = [
+      ...(deferredLoadingEnabled
+          ? binaryenFlagsDeferredLoading
+          : binaryenFlags),
+      if (!strip) '-g',
+      if (generateSourceMap) ...[
+        '-ism',
+        unoptSourceMapFile,
+        '-osm',
+        '$outputFile.map'
+      ]
+    ];
+
+    if (verbose) {
+      log.stdout('Optimizing output with: ${sdk.wasmOpt} $flags');
+    }
+    final processResult = Process.runSync(
+      sdk.wasmOpt,
+      [...flags, '-o', outputFile, unoptFile],
+    );
+    if (processResult.exitCode != 0) {
+      log.stderr('Error: Wasm compilation failed while optimizing output');
+      log.stderr(processResult.stderr);
+      return compileErrorExitCode;
+    }
     return 0;
   }
 }

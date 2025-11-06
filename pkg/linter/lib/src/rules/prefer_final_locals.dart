@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/analysis_rule/rule_context.dart';
+import 'package:analyzer/analysis_rule/rule_visitor_registry.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
@@ -20,13 +21,16 @@ class PreferFinalLocals extends LintRule {
     : super(name: LintNames.prefer_final_locals, description: _desc);
 
   @override
-  DiagnosticCode get diagnosticCode => LinterLintCode.prefer_final_locals;
+  DiagnosticCode get diagnosticCode => LinterLintCode.preferFinalLocals;
 
   @override
   List<String> get incompatibleRules => const [LintNames.unnecessary_final];
 
   @override
-  void registerNodeProcessors(NodeLintRegistry registry, RuleContext context) {
+  void registerNodeProcessors(
+    RuleVisitorRegistry registry,
+    RuleContext context,
+  ) {
     var visitor = _Visitor(this);
     registry.addDeclaredVariablePattern(this, visitor);
     registry.addPatternVariableDeclaration(this, visitor);
@@ -39,7 +43,7 @@ class _DeclaredVariableVisitor extends RecursiveAstVisitor<void> {
 
   @override
   void visitDeclaredVariablePattern(DeclaredVariablePattern node) {
-    var element = node.declaredElement;
+    var element = node.declaredFragment?.element;
     if (element != null) {
       declaredElements.add(element);
     }
@@ -53,7 +57,7 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   bool isPotentiallyMutated(AstNode pattern, FunctionBody function) {
     if (pattern is DeclaredVariablePattern) {
-      var element = pattern.declaredElement;
+      var element = pattern.declaredFragment?.element;
       if (element == null || function.isPotentiallyMutatedInScope(element)) {
         return true;
       }
@@ -128,7 +132,7 @@ class _Visitor extends SimpleAstVisitor<void> {
       if (variable.equals == null || variable.initializer == null) {
         return;
       }
-      var declaredElement = variable.declaredElement;
+      var declaredElement = variable.declaredFragment?.element;
       if (declaredElement != null &&
           (declaredElement.isWildcardVariable ||
               function.isPotentiallyMutatedInScope(declaredElement))) {

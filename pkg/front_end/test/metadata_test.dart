@@ -26,11 +26,12 @@ class Metadata {
   Member? get member => _memberRef?.asMember;
 
   Metadata.forNode(TreeNode n)
-      : this(
-            n.leakingDebugToString(),
-            // Refers to the member, not about the function => use getter.
-            getMemberReferenceGetter(getMemberForMetadata(n)),
-            getTypeForMetadata(n));
+    : this(
+        n.leakingDebugToString(),
+        // Refers to the member, not about the function => use getter.
+        getMemberReferenceGetter(getMemberForMetadata(n)),
+        getTypeForMetadata(n),
+      );
 
   Metadata(this.string, this._memberRef, this.type);
 }
@@ -50,7 +51,9 @@ DartType getTypeForMetadata(TreeNode node) {
       return const VoidType();
     }
     return new TypeParameterType(
-        parent.typeParameters[0], Nullability.nonNullable);
+      parent.typeParameters[0],
+      Nullability.nonNullable,
+    );
   }
   return getTypeForMetadata(parent);
 }
@@ -121,9 +124,11 @@ class Visitor extends RecursiveVisitor {
 void annotate(Component p, NodePredicate shouldAnnotate) {
   globalDebuggingNames = new NameSystem();
   final repository = p.metadata[TestMetadataRepository.kTag]!;
-  p.accept(new Visitor(shouldAnnotate, (node) {
-    repository.mapping[node] = new Metadata.forNode(node);
-  }));
+  p.accept(
+    new Visitor(shouldAnnotate, (node) {
+      repository.mapping[node] = new Metadata.forNode(node);
+    }),
+  );
 }
 
 /// Visit the given component and checks that each supported node in the
@@ -131,15 +136,17 @@ void annotate(Component p, NodePredicate shouldAnnotate) {
 void validate(Component p, NodePredicate shouldAnnotate) {
   globalDebuggingNames = new NameSystem();
   final repository = p.metadata[TestMetadataRepository.kTag]!;
-  p.accept(new Visitor(shouldAnnotate, (node) {
-    final m = repository.mapping[node];
-    final expected = new Metadata.forNode(node);
+  p.accept(
+    new Visitor(shouldAnnotate, (node) {
+      final m = repository.mapping[node];
+      final expected = new Metadata.forNode(node);
 
-    expect(m, isNotNull);
-    expect(m.string, equals(expected.string));
-    expect(m.member, equals(expected.member));
-    expect(m.type, equals(expected.type));
-  }));
+      expect(m, isNotNull);
+      expect(m.string, equals(expected.string));
+      expect(m.member, equals(expected.member));
+      expect(m.type, equals(expected.type));
+    }),
+  );
 }
 
 Component fromBinary(Uint8List bytes) {
@@ -162,26 +169,35 @@ void main() async {
       node.kind == ProcedureKind.Method &&
       node.enclosingClass != null;
 
-  final Uri platform = computePlatformBinariesLocation(forceBuildDir: true)
-      .resolve("vm_platform.dill");
-  final Uint8List platformBinary =
-      await new File(platform.toFilePath()).readAsBytes();
+  final Uri platform = computePlatformBinariesLocation(
+    forceBuildDir: true,
+  ).resolve("vm_platform.dill");
+  final Uint8List platformBinary = await new File(
+    platform.toFilePath(),
+  ).readAsBytes();
 
-  Future<void> testRoundTrip(Uint8List Function(Uint8List) binaryTransformer,
-      NodePredicate shouldAnnotate) async {
+  Future<void> testRoundTrip(
+    Uint8List Function(Uint8List) binaryTransformer,
+    NodePredicate shouldAnnotate,
+  ) async {
     final component = fromBinary(platformBinary);
     annotate(component, shouldAnnotate);
     validate(component, shouldAnnotate);
-    expect(component.metadata[TestMetadataRepository.kTag]!.mapping.length,
-        greaterThan(0));
+    expect(
+      component.metadata[TestMetadataRepository.kTag]!.mapping.length,
+      greaterThan(0),
+    );
 
     final annotatedComponentBinary = binaryTransformer(toBinary(component));
     final annotatedComponentFromBinary = fromBinary(annotatedComponentBinary);
     validate(annotatedComponentFromBinary, shouldAnnotate);
     expect(
-        annotatedComponentFromBinary
-            .metadata[TestMetadataRepository.kTag]!.mapping.length,
-        greaterThan(0));
+      annotatedComponentFromBinary
+          .metadata[TestMetadataRepository.kTag]!
+          .mapping
+          .length,
+      greaterThan(0),
+    );
   }
 
   test('annotate-serialize-deserialize-validate', () async {
@@ -198,10 +214,15 @@ void main() async {
     await testRoundTrip((binary) => toBinary(fromBinary(binary)), anyNode);
   });
 
-  test('annotate-serialize-deserialize-twice-then-validate-only-methods',
-      () async {
-    // This test validates that serializing a component that was just
-    // deserialized (without visiting anything) works.
-    await testRoundTrip((binary) => toBinary(fromBinary(binary)), onlyMethods);
-  });
+  test(
+    'annotate-serialize-deserialize-twice-then-validate-only-methods',
+    () async {
+      // This test validates that serializing a component that was just
+      // deserialized (without visiting anything) works.
+      await testRoundTrip(
+        (binary) => toBinary(fromBinary(binary)),
+        onlyMethods,
+      );
+    },
+  );
 }

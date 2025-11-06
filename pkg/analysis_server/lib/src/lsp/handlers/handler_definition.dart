@@ -11,6 +11,7 @@ import 'package:analysis_server/src/lsp/mapping.dart';
 import 'package:analysis_server/src/lsp/registration/feature_registration.dart';
 import 'package:analysis_server/src/plugin/result_merger.dart';
 import 'package:analysis_server/src/protocol_server.dart' show NavigationTarget;
+import 'package:analysis_server/src/utilities/navigation/keyword_navigation_computer.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
@@ -77,6 +78,18 @@ class DefinitionHandler
       offset,
       0,
     );
+
+    // If there are no results, then try keyword navigation.
+    if (collector.regions.isEmpty) {
+      var keywordNavigationComputer = KeywordNavigationComputer(
+        collector,
+        result.libraryFragment,
+      );
+      keywordNavigationComputer.compute(
+        result.unit.nodeCovering(offset: offset),
+      );
+    }
+
     if (supportsLocationLink) {
       await _updateTargetsWithCodeLocations(collector);
     }
@@ -143,12 +156,11 @@ class DefinitionHandler
         // Convert and filter the results using the correct type of Location class
         // depending on the client capabilities.
         if (supportsLocationLink) {
-          var convertedResults =
-              convert(
-                mergedTargets,
-                (NavigationTarget target) =>
-                    _toLocationLink(mergedResults, lineInfo, target),
-              ).nonNulls.toList();
+          var convertedResults = convert(
+            mergedTargets,
+            (NavigationTarget target) =>
+                _toLocationLink(mergedResults, lineInfo, target),
+          ).nonNulls.toList();
 
           var results = _filterResults(
             convertedResults,
@@ -160,11 +172,10 @@ class DefinitionHandler
 
           return success(TextDocumentDefinitionResult.t2(results));
         } else {
-          var convertedResults =
-              convert(
-                mergedTargets,
-                (NavigationTarget target) => _toLocation(mergedResults, target),
-              ).nonNulls.toList();
+          var convertedResults = convert(
+            mergedTargets,
+            (NavigationTarget target) => _toLocation(mergedResults, target),
+          ).nonNulls.toList();
 
           var results = _filterResults(
             convertedResults,
@@ -197,14 +208,13 @@ class DefinitionHandler
     // adjacent to the var keyword, so providing navigation to it is not useful).
     // To prevent this, filter the list to only those on different lines (or
     // different files).
-    var otherResults =
-        results
-            .where(
-              (element) =>
-                  uriSelector(element) != sourceUri ||
-                  rangeSelector(element).start.line != sourceLineNumber,
-            )
-            .toList();
+    var otherResults = results
+        .where(
+          (element) =>
+              uriSelector(element) != sourceUri ||
+              rangeSelector(element).start.line != sourceLineNumber,
+        )
+        .toList();
 
     return otherResults.isNotEmpty ? otherResults : results;
   }
@@ -293,12 +303,12 @@ class DefinitionHandler
 
     return targetLineInfo != null
         ? navigationTargetToLocationLink(
-          region,
-          sourceLineInfo,
-          targetFileUri,
-          target,
-          targetLineInfo,
-        )
+            region,
+            sourceLineInfo,
+            targetFileUri,
+            target,
+            targetLineInfo,
+          )
         : null;
   }
 

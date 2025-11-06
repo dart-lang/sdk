@@ -2,7 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/analysis_rule/analysis_rule.dart';
 import 'package:analyzer/analysis_rule/rule_context.dart';
+import 'package:analyzer/analysis_rule/rule_visitor_registry.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
@@ -22,12 +24,15 @@ class AvoidTypesAsParameterNames extends MultiAnalysisRule {
 
   @override
   List<DiagnosticCode> get diagnosticCodes => [
-    LinterLintCode.avoid_types_as_parameter_names_type_parameter,
-    LinterLintCode.avoid_types_as_parameter_names_formal_parameter,
+    LinterLintCode.avoidTypesAsParameterNamesTypeParameter,
+    LinterLintCode.avoidTypesAsParameterNamesFormalParameter,
   ];
 
   @override
-  void registerNodeProcessors(NodeLintRegistry registry, RuleContext context) {
+  void registerNodeProcessors(
+    RuleVisitorRegistry registry,
+    RuleContext context,
+  ) {
     var visitor = _Visitor(this, context);
     registry.addFormalParameterList(this, visitor);
     registry.addCatchClause(this, visitor);
@@ -49,7 +54,7 @@ class _Visitor extends SimpleAstVisitor<void> {
         parameter,
         arguments: [parameter.name.lexeme],
         diagnosticCode:
-            LinterLintCode.avoid_types_as_parameter_names_formal_parameter,
+            LinterLintCode.avoidTypesAsParameterNamesFormalParameter,
       );
     }
   }
@@ -68,7 +73,7 @@ class _Visitor extends SimpleAstVisitor<void> {
           name,
           arguments: [name.lexeme],
           diagnosticCode:
-              LinterLintCode.avoid_types_as_parameter_names_formal_parameter,
+              LinterLintCode.avoidTypesAsParameterNamesFormalParameter,
         );
       }
     }
@@ -109,7 +114,7 @@ class _Visitor extends SimpleAstVisitor<void> {
           name,
           arguments: [name.lexeme],
           diagnosticCode:
-              LinterLintCode.avoid_types_as_parameter_names_type_parameter,
+              LinterLintCode.avoidTypesAsParameterNamesTypeParameter,
         );
       }
     }

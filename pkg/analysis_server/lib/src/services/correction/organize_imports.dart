@@ -65,9 +65,9 @@ class ImportOrganizer {
 
   bool _isUnusedImport(UriBasedDirective directive) {
     for (var diagnostic in diagnostics) {
-      if ((diagnostic.diagnosticCode == WarningCode.DUPLICATE_IMPORT ||
-              diagnostic.diagnosticCode == WarningCode.UNUSED_IMPORT ||
-              diagnostic.diagnosticCode == HintCode.UNNECESSARY_IMPORT) &&
+      if ((diagnostic.diagnosticCode == WarningCode.duplicateImport ||
+              diagnostic.diagnosticCode == WarningCode.unusedImport ||
+              diagnostic.diagnosticCode == HintCode.unnecessaryImport) &&
           directive.uri.offset == diagnostic.offset) {
         return true;
       }
@@ -77,7 +77,7 @@ class ImportOrganizer {
 
   bool _isUnusedShowName(SimpleIdentifier name) {
     for (var diagnostic in diagnostics) {
-      if ((diagnostic.diagnosticCode == WarningCode.UNUSED_SHOWN_NAME) &&
+      if ((diagnostic.diagnosticCode == WarningCode.unusedShownName) &&
           name.offset == diagnostic.offset) {
         return true;
       }
@@ -129,10 +129,9 @@ class ImportOrganizer {
           // after any non-library annotation. If there are already
           // non-library annotations before library annotations, we will not
           // try to correct those.
-          lastLibraryAnnotation =
-              directive.metadata
-                  .takeWhile(_isLibraryTargetAnnotation)
-                  .lastOrNull;
+          lastLibraryAnnotation = directive.metadata
+              .takeWhile(_isLibraryTargetAnnotation)
+              .lastOrNull;
 
           // If there is no annotation, use the end of the doc text (since the
           // doc text is considered library-level here).
@@ -164,27 +163,26 @@ class ImportOrganizer {
         // Usually we look for leading comments on the directive. However if
         // some library annotations were trimmed off, those comments are part
         // of that and should not also be included here.
-        var leadingToken =
-            lastLibraryAnnotation == null ? directive.beginToken : null;
-        var leadingComment =
-            leadingToken != null
-                ? getLeadingComment(
-                  unit,
-                  leadingToken,
-                  lineInfo,
-                  isPseudoLibraryDirective: isPseudoLibraryDirective,
-                )
-                : null;
+        var leadingToken = lastLibraryAnnotation == null
+            ? directive.beginToken
+            : null;
+        var leadingComment = leadingToken != null
+            ? getLeadingComment(
+                unit,
+                leadingToken,
+                lineInfo,
+                isPseudoLibraryDirective: isPseudoLibraryDirective,
+              )
+            : null;
         var trailingComment = getTrailingComment(unit, directive, lineInfo);
 
         if (leadingComment != null && leadingToken != null) {
-          offset =
-              libraryDocsAndAnnotationsEndOffset != null
-                  ? math.max(
-                    libraryDocsAndAnnotationsEndOffset,
-                    leadingComment.offset,
-                  )
-                  : leadingComment.offset;
+          offset = libraryDocsAndAnnotationsEndOffset != null
+              ? math.max(
+                  libraryDocsAndAnnotationsEndOffset,
+                  leadingComment.offset,
+                )
+              : leadingComment.offset;
         }
         if (trailingComment != null) {
           end = trailingComment.end;
@@ -321,8 +319,9 @@ class ImportOrganizer {
 
     // Skip over any comments on the same line as the previous directive
     // as they will be attached to the end of it.
-    var previousDirectiveLine =
-        lineInfo.getLocation(beginToken.previous!.end).lineNumber;
+    var previousDirectiveLine = lineInfo
+        .getLocation(beginToken.previous!.end)
+        .lineNumber;
     comment = firstComment;
     // For first directive, do not attach comment if there is a line break
     // between comment and directive.

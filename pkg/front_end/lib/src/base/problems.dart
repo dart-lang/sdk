@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:_fe_analyzer_shared/src/messages/severity.dart'
-    show Severity, severityTexts;
+    show CfeSeverity, severityTexts;
 import 'package:kernel/ast.dart' show FileUriNode, TreeNode;
 
 import 'command_line_reporting.dart' as command_line_reporting;
@@ -12,23 +12,23 @@ import 'messages.dart'
         LocatedMessage,
         Message,
         noLength,
-        templateInternalProblemDebugAbort,
-        templateInternalProblemUnexpected,
-        templateInternalProblemUnhandled,
-        templateInternalProblemUnimplemented,
-        templateInternalProblemUnsupported;
+        codeInternalProblemDebugAbort,
+        codeInternalProblemUnexpected,
+        codeInternalProblemUnhandled,
+        codeInternalProblemUnimplemented,
+        codeInternalProblemUnsupported;
 
 // Coverage-ignore(suite): Not run.
 class DebugAbort {
   final LocatedMessage message;
 
-  DebugAbort(Uri? uri, int charOffset, Severity severity, StackTrace trace)
-      : message = uri != null
-            ? templateInternalProblemDebugAbort
-                .withArguments(severityTexts[severity]!, "$trace")
+  DebugAbort(Uri? uri, int charOffset, CfeSeverity severity, StackTrace trace)
+    : message = uri != null
+          ? codeInternalProblemDebugAbort
+                .withArgumentsOld(severityTexts[severity]!, "$trace")
                 .withLocation(uri, charOffset, noLength)
-            : templateInternalProblemDebugAbort
-                .withArguments(severityTexts[severity]!, "$trace")
+          : codeInternalProblemDebugAbort
+                .withArgumentsOld(severityTexts[severity]!, "$trace")
                 .withoutLocation();
 
   @override
@@ -48,12 +48,17 @@ class DebugAbort {
 Never internalProblem(Message message, int charOffset, Uri? uri) {
   if (uri != null) {
     throw command_line_reporting
-        .formatNoSourceLine(message.withLocation(uri, charOffset, noLength),
-            Severity.internalProblem)
+        .formatNoSourceLine(
+          message.withLocation(uri, charOffset, noLength),
+          CfeSeverity.internalProblem,
+        )
         .plain;
   } else {
     throw command_line_reporting
-        .formatNoSourceLine(message.withoutLocation(), Severity.internalProblem)
+        .formatNoSourceLine(
+          message.withoutLocation(),
+          CfeSeverity.internalProblem,
+        )
         .plain;
   }
 }
@@ -61,33 +66,37 @@ Never internalProblem(Message message, int charOffset, Uri? uri) {
 // Coverage-ignore(suite): Not run.
 Never unimplemented(String what, int charOffset, Uri? uri) {
   return internalProblem(
-      templateInternalProblemUnimplemented.withArguments(what),
-      charOffset,
-      uri);
+    codeInternalProblemUnimplemented.withArgumentsOld(what),
+    charOffset,
+    uri,
+  );
 }
 
 // Coverage-ignore(suite): Not run.
 Never unhandled(String what, String where, int charOffset, Uri? uri) {
   return internalProblem(
-      templateInternalProblemUnhandled.withArguments(what, where),
-      charOffset,
-      uri);
+    codeInternalProblemUnhandled.withArgumentsOld(what, where),
+    charOffset,
+    uri,
+  );
 }
 
 // Coverage-ignore(suite): Not run.
 Never unexpected(String expected, String actual, int charOffset, Uri? uri) {
   return internalProblem(
-      templateInternalProblemUnexpected.withArguments(expected, actual),
-      charOffset,
-      uri);
+    codeInternalProblemUnexpected.withArgumentsOld(expected, actual),
+    charOffset,
+    uri,
+  );
 }
 
 // Coverage-ignore(suite): Not run.
 Never unsupported(String operation, int charOffset, Uri? uri) {
   return internalProblem(
-      templateInternalProblemUnsupported.withArguments(operation),
-      charOffset,
-      uri);
+    codeInternalProblemUnsupported.withArgumentsOld(operation),
+    charOffset,
+    uri,
+  );
 }
 
 // Coverage-ignore(suite): Not run.

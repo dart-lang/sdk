@@ -47,6 +47,8 @@ class AnalyzerImpl {
   /// specified the "--package-warnings" option.
   String? _selfPackageName;
 
+  final Set<String> gotErrorsFor;
+
   AnalyzerImpl(
     this.analysisOptions,
     this.analysisDriver,
@@ -54,6 +56,7 @@ class AnalyzerImpl {
     this.options,
     this.stats,
     this.startTime,
+    this.gotErrorsFor,
   );
 
   void addCompilationUnitSource(
@@ -82,7 +85,7 @@ class AnalyzerImpl {
     for (final fragment in library.fragments) {
       addCompilationUnitSource(fragment, units);
       // Add imported libraries.
-      var importedLibraries = fragment.libraryImports2;
+      var importedLibraries = fragment.libraryImports;
       for (var child in importedLibraries) {
         var importedLibrary = child.importedLibrary;
         if (importedLibrary != null) {
@@ -90,7 +93,7 @@ class AnalyzerImpl {
         }
       }
       // Add exported libraries.
-      var exportedLibraries = fragment.libraryExports2;
+      var exportedLibraries = fragment.libraryExports;
       for (var child in exportedLibraries) {
         var exportedLibrary = child.exportedLibrary;
         if (exportedLibrary != null) {
@@ -134,9 +137,11 @@ class AnalyzerImpl {
   /// Fills [errorsResults] using [files].
   Future<void> prepareErrors() async {
     for (var path in files) {
-      var errorsResult = await analysisDriver.getErrors(path);
-      if (errorsResult is ErrorsResult) {
-        errorsResults.add(errorsResult);
+      if (gotErrorsFor.add(path)) {
+        var errorsResult = await analysisDriver.getErrors(path);
+        if (errorsResult is ErrorsResult) {
+          errorsResults.add(errorsResult);
+        }
       }
     }
   }

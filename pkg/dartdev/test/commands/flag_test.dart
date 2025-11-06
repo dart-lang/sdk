@@ -100,18 +100,10 @@ void help() {
   test('print Dart CLI help on usage error', () async {
     p = project();
     var result = await p.run(['---help']);
-    expect(result.exitCode, 255);
-    expect(result.stdout, contains(DartdevRunner.dartdevDescription));
-    expect(result.stderr, isEmpty);
-  });
-
-  test('print VM help on usage error when --disable-dart-dev is provided',
-      () async {
-    p = project();
-    var result = await p.run(['---help', '--disable-dart-dev']);
-    expect(result.exitCode, 255);
-    expect(result.stdout, isNot(contains(DartdevRunner.dartdevDescription)));
-    expect(result.stderr, isEmpty);
+    expect(result.exitCode, 64);
+    expect(result.stderr, contains('Could not find an option named "---help"'));
+    expectUsage(result.stderr);
+    expect(result.stdout, isEmpty);
   });
 
   test('help', () async {

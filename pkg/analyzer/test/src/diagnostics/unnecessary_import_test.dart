@@ -168,7 +168,7 @@ import 'lib1.dart' as p;
 import 'lib2.dart' as p;
 f(p.A a, p.B b) {}
 ''',
-      [error(HintCode.UNNECESSARY_IMPORT, 7, 11)],
+      [error(HintCode.unnecessaryImport, 7, 11)],
     );
   }
 
@@ -205,7 +205,7 @@ void f() {
   0.bar();
 }
 ''',
-      [error(HintCode.UNNECESSARY_IMPORT, 7, 11)],
+      [error(HintCode.unnecessaryImport, 7, 11)],
     );
   }
 
@@ -251,7 +251,7 @@ void f() {
   0.bar();
 }
 ''',
-      [error(HintCode.UNNECESSARY_IMPORT, 7, 11)],
+      [error(HintCode.unnecessaryImport, 7, 11)],
     );
   }
 
@@ -309,7 +309,7 @@ import 'c.dart';
 
 void f(A _, B _) {}
 ''',
-      [error(HintCode.UNNECESSARY_IMPORT, 41, 8)],
+      [error(HintCode.unnecessaryImport, 41, 8)],
     );
   }
 
@@ -338,7 +338,7 @@ import 'c.dart';
 
 void f(A _, B _) {}
 ''',
-      [error(WarningCode.DEPRECATED_EXPORT_USE, 47, 1)],
+      [error(WarningCode.deprecatedExportUse, 47, 1)],
     );
   }
 
@@ -384,7 +384,7 @@ import 'a.dart';
 import 'b.dart';
 void f(A _, B _, C _) {}
 ''',
-      [error(CompileTimeErrorCode.UNDEFINED_CLASS, 51, 1)],
+      [error(CompileTimeErrorCode.undefinedClass, 51, 1)],
     );
   }
 
@@ -402,7 +402,7 @@ import 'lib1.dart';
 import 'lib2.dart';
 f(A a, B b) {}
 ''',
-      [error(HintCode.UNNECESSARY_IMPORT, 7, 11)],
+      [error(HintCode.unnecessaryImport, 7, 11)],
     );
   }
 
@@ -420,7 +420,7 @@ import 'dart:async';
 import 'dart:async' show Completer;
 f(FutureOr<int> a, Completer<int> b) {}
 ''',
-      [error(HintCode.UNNECESSARY_IMPORT, 28, 12)],
+      [error(HintCode.unnecessaryImport, 28, 12)],
     );
   }
 
@@ -435,7 +435,7 @@ import 'a.dart';
 import 'b.dart';
 void f(A _) {}
 ''',
-      [error(CompileTimeErrorCode.URI_DOES_NOT_EXIST, 24, 8)],
+      [error(CompileTimeErrorCode.uriDoesNotExist, 24, 8)],
     );
   }
 
@@ -458,7 +458,7 @@ void f(A _, B _) {}
 
     await assertErrorsInFile2(a, []);
 
-    await assertErrorsInFile2(b, [error(HintCode.UNNECESSARY_IMPORT, 25, 8)]);
+    await assertErrorsInFile2(b, [error(HintCode.unnecessaryImport, 25, 8)]);
   }
 
   test_part_inside_unnecessary_prefixed() async {
@@ -480,6 +480,6 @@ void f(prefix.A _, prefix.B _) {}
 
     await assertErrorsInFile2(a, []);
 
-    await assertErrorsInFile2(b, [error(HintCode.UNNECESSARY_IMPORT, 25, 8)]);
+    await assertErrorsInFile2(b, [error(HintCode.unnecessaryImport, 25, 8)]);
   }
 }

@@ -5,10 +5,9 @@
 import 'dart:async';
 
 import 'package:analysis_server/lsp_protocol/protocol.dart';
-import 'package:analysis_server/src/analysis_server.dart' hide MessageType;
 import 'package:analysis_server/src/lsp/constants.dart';
 import 'package:analysis_server/src/lsp/server_capabilities_computer.dart';
-import 'package:analysis_server/src/plugin/plugin_manager.dart';
+import 'package:analysis_server/src/plugin/plugin_isolate.dart';
 import 'package:analysis_server/src/scheduler/message_scheduler.dart';
 import 'package:analyzer/file_system/memory_file_system.dart';
 import 'package:analyzer/src/util/file_paths.dart' as file_paths;
@@ -55,8 +54,9 @@ class InitializationTest extends AbstractLspAnalysisServerTest {
     var registrations = <Registration>[];
     await monitorDynamicRegistrations(registrations, initialize);
 
-    var registeredMethods =
-        registrations.map((registration) => registration.method).toSet();
+    var registeredMethods = registrations
+        .map((registration) => registration.method)
+        .toSet();
     var result = expectedResult.map((method) => method.toJson()).toSet();
 
     expect(registeredMethods, equals(result));
@@ -165,17 +165,14 @@ class InitializationTest extends AbstractLspAnalysisServerTest {
     var nonDartOptions = CompletionRegistrationOptions.fromJson(
       nonDartRegistration.registerOptions as Map<String, Object?>,
     );
-    var otherLanguages =
-        nonDartOptions.documentSelector!
-            .map((selector) => selector.language)
-            .toList();
+    var otherLanguages = nonDartOptions.documentSelector!
+        .map((selector) => selector.language)
+        .toList();
     expect(otherLanguages, isNot(contains('dart')));
     expect(nonDartOptions.triggerCharacters, isNull);
   }
 
   Future<void> test_completionRegistrations_withDartPlugin() async {
-    if (!AnalysisServer.supportsPlugins) return;
-
     // This tests for a bug that occurred with an analysis server plugin
     // that works on Dart files. When computing completion registrations we
     // usually have separate registrations for Dart + non-Dart to account for
@@ -216,8 +213,6 @@ class InitializationTest extends AbstractLspAnalysisServerTest {
   }
 
   Future<void> test_dynamicRegistration_areNotInterleaved() async {
-    if (!AnalysisServer.supportsPlugins) return;
-
     // Some of the issues in https://github.com/dart-lang/sdk/issues/47851
     // (duplicate hovers/code actions/etc.) were caused by duplicate
     // registrations. This happened when we tried to rebuild registrations
@@ -244,52 +239,49 @@ class InitializationTest extends AbstractLspAnalysisServerTest {
     var registrations = <Registration>[];
     await monitorDynamicRegistrations(registrations, initialize);
 
-    var knownRegistrationsIds =
-        registrations.map((registration) => registration.id).toSet();
+    var knownRegistrationsIds = registrations
+        .map((registration) => registration.id)
+        .toSet();
 
     var numberOfReregistrations = 10;
 
     // Listen to incoming registrations, ensure they're not in the set, and add
     // them.
-    var registrationsDone =
-        requestsFromServer
-            .where((n) => n.method == Method.client_registerCapability)
-            .take(numberOfReregistrations)
-            .listen((request) {
-              respondTo(request, null);
-              var registrations =
-                  RegistrationParams.fromJson(
-                    request.params as Map<String, Object?>,
-                  ).registrations;
-              for (var registration in registrations) {
-                var id = registration.id;
-                if (!knownRegistrationsIds.add(id)) {
-                  throw 'Registration $id was already in the existing set!';
-                }
-              }
-            })
-            .asFuture();
+    var registrationsDone = requestsFromServer
+        .where((n) => n.method == Method.client_registerCapability)
+        .take(numberOfReregistrations)
+        .listen((request) {
+          respondTo(request, null);
+          var registrations = RegistrationParams.fromJson(
+            request.params as Map<String, Object?>,
+          ).registrations;
+          for (var registration in registrations) {
+            var id = registration.id;
+            if (!knownRegistrationsIds.add(id)) {
+              throw 'Registration $id was already in the existing set!';
+            }
+          }
+        })
+        .asFuture();
 
     // Listen to incoming unregistrations, verify they're in the set, and remove
     // them.
-    var unregistrationsDone =
-        requestsFromServer
-            .where((n) => n.method == Method.client_unregisterCapability)
-            .take(numberOfReregistrations)
-            .listen((request) {
-              respondTo(request, null);
-              var unregistrations =
-                  UnregistrationParams.fromJson(
-                    request.params as Map<String, Object?>,
-                  ).unregisterations;
-              for (var unregistration in unregistrations) {
-                var id = unregistration.id;
-                if (!knownRegistrationsIds.remove(id)) {
-                  throw 'Registration $id was not in the existing set!';
-                }
-              }
-            })
-            .asFuture();
+    var unregistrationsDone = requestsFromServer
+        .where((n) => n.method == Method.client_unregisterCapability)
+        .take(numberOfReregistrations)
+        .listen((request) {
+          respondTo(request, null);
+          var unregistrations = UnregistrationParams.fromJson(
+            request.params as Map<String, Object?>,
+          ).unregisterations;
+          for (var unregistration in unregistrations) {
+            var id = unregistration.id;
+            if (!knownRegistrationsIds.remove(id)) {
+              throw 'Registration $id was not in the existing set!';
+            }
+          }
+        })
+        .asFuture();
 
     // Trigger multiple plugin events that will rebuild the registrations.
     for (var i = 0; i < numberOfReregistrations; i++) {
@@ -617,8 +609,6 @@ class InitializationTest extends AbstractLspAnalysisServerTest {
   }
 
   Future<void> test_dynamicRegistration_unregistersOutdatedAfterChange() async {
-    if (!AnalysisServer.supportsPlugins) return;
-
     // Initialize by supporting dynamic registrations everywhere
     setAllSupportedTextDocumentDynamicRegistrations();
 
@@ -634,17 +624,15 @@ class InitializationTest extends AbstractLspAnalysisServerTest {
         pluginManager.pluginsChangedController.add(null);
       },
     );
-    var unregistrations =
-        UnregistrationParams.fromJson(
-          unregisterRequest.params as Map<String, Object?>,
-        ).unregisterations;
+    var unregistrations = UnregistrationParams.fromJson(
+      unregisterRequest.params as Map<String, Object?>,
+    ).unregisterations;
 
     // folding method should have been unregistered as the server now supports
     // *.foo files for it as well.
-    var registrationIdForFolding =
-        registrations
-            .singleWhere((r) => r.method == 'textDocument/foldingRange')
-            .id;
+    var registrationIdForFolding = registrations
+        .singleWhere((r) => r.method == 'textDocument/foldingRange')
+        .id;
     expect(
       unregistrations,
       contains(
@@ -656,7 +644,6 @@ class InitializationTest extends AbstractLspAnalysisServerTest {
   }
 
   Future<void> test_dynamicRegistration_updatesWithPlugins() async {
-    if (!AnalysisServer.supportsPlugins) return;
     setTextDocumentDynamicRegistration('foldingRange');
     await initialize();
 
@@ -679,10 +666,9 @@ class InitializationTest extends AbstractLspAnalysisServerTest {
       pluginManager.pluginsChangedController.add(null);
     });
 
-    var registrations =
-        RegistrationParams.fromJson(
-          request.params as Map<String, Object?>,
-        ).registrations;
+    var registrations = RegistrationParams.fromJson(
+      request.params as Map<String, Object?>,
+    ).registrations;
 
     var documentFilterSql = TextDocumentFilterScheme(
       scheme: 'file',
@@ -699,10 +685,9 @@ class InitializationTest extends AbstractLspAnalysisServerTest {
         isA<Registration>()
             .having((r) => r.method, 'method', 'textDocument/foldingRange')
             .having(
-              (r) =>
-                  TextDocumentRegistrationOptions.fromJson(
-                    r.registerOptions as Map<String, Object?>,
-                  ).documentSelector,
+              (r) => TextDocumentRegistrationOptions.fromJson(
+                r.registerOptions as Map<String, Object?>,
+              ).documentSelector,
               'registerOptions.documentSelector',
               containsAll([documentFilterSql, documentFilterDart]),
             ),

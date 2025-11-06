@@ -61,11 +61,15 @@ class C<T> {
   void method9(T Function(void Function(T)) value) {}
   void set setter1(T value) {}
   void set setter10(void Function(T Function(T)) value) {}
-  void set setter11(T Function(T Function(T)) value) {}
+  void set setter11(
+    T Function(T Function(T)) value,
+  ) {}
   void set setter12(S Function<S extends T>() value) {}
   void set setter13(void Function<S extends T>(S) value) {}
   void set setter14(S Function<S extends T>(S) value) {}
-  void set setter15(void Function(S Function<S extends T>()) value) {}
+  void set setter15(
+    void Function(S Function<S extends T>()) value,
+  ) {}
   void set setter2(T Function() value) {}
   void set setter3(void Function(T) value) {}
   void set setter4(T Function(T) value) {}
@@ -73,7 +77,9 @@ class C<T> {
   void set setter6(void Function(T Function()) value) {}
   void set setter7(T Function(T Function()) value) {}
   void set setter8(void Function(void Function(T)) value) {}
-  void set setter9(T Function(void Function(T)) value) {}
+  void set setter9(
+    T Function(void Function(T)) value,
+  ) {}
 }
 
 main() {}

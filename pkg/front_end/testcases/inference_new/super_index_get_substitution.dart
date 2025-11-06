@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/*@testedFeatures=inference*/
 library test;
 
 import 'dart:async';
@@ -20,8 +19,7 @@ class B<T> {
 class C<U> extends B<Future<U>> {
   E<Future<U>> operator [](Object x) => throw '';
   void h() {
-    var /*@type=D<Future<C::U%>>*/ x =
-        super /*@target=B.[]*/ [/*@typeArgs=E<Future<C::U%>>*/ f()];
+    var x = super[f()];
   }
 }
 

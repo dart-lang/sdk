@@ -52,7 +52,7 @@ f2() {
 @reflectiveTest
 class ConvertToSpreadTest extends FixProcessorLintTest {
   @override
-  FixKind get kind => DartFixKind.CONVERT_TO_SPREAD;
+  FixKind get kind => DartFixKind.convertToSpread;
 
   @override
   String get lintCode => LintNames.prefer_spread_collections;

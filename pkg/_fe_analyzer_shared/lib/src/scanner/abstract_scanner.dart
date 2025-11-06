@@ -31,11 +31,11 @@ import 'token.dart' as analyzer show StringToken;
 
 import '../messages/codes.dart'
     show
-        messageExpectedHexDigit,
-        messageMissingExponent,
-        messageUnexpectedDollarInString,
-        messageUnexpectedSeparatorInNumber,
-        messageUnterminatedComment;
+        codeExpectedHexDigit,
+        codeMissingExponent,
+        codeUnexpectedDollarInString,
+        codeUnexpectedSeparatorInNumber,
+        codeUnterminatedComment;
 
 import '../util/link.dart' show Link;
 
@@ -522,7 +522,8 @@ abstract class AbstractScanner implements Scanner {
     Token? next = openBraceWithMissingEndForPossibleRecovery!.next;
     Token? lastMismatch;
     while (next != null && !next.isEof) {
-      if (next.isA(TokenType.OPEN_CURLY_BRACKET)) {
+      if (next.isA(TokenType.OPEN_CURLY_BRACKET) ||
+          next.isA(TokenType.STRING_INTERPOLATION_EXPRESSION)) {
         if (_getLineOf(next) != _getLineOf(next.endGroup!)) {
           int indentOfNext = _spacesAtStartOfLogicalLineOf(next);
           if (indentOfNext >= 0 &&
@@ -1202,7 +1203,6 @@ abstract class AbstractScanner implements Scanner {
     }
 
     if (next == $BACKSLASH) {
-      // Coverage-ignore-block(suite): Not run.
       // Hit when parsing doc comments in the analyzer.
       appendPrecedenceToken(TokenType.BACKSLASH);
       return advance();
@@ -1492,7 +1492,7 @@ abstract class AbstractScanner implements Scanner {
           // Not allowed.
           prependErrorToken(
             new UnterminatedToken(
-              messageUnexpectedSeparatorInNumber,
+              codeUnexpectedSeparatorInNumber,
               start,
               stringOffset,
             ),
@@ -1505,7 +1505,7 @@ abstract class AbstractScanner implements Scanner {
             // Not allowed.
             prependErrorToken(
               new UnterminatedToken(
-                messageUnexpectedSeparatorInNumber,
+                codeUnexpectedSeparatorInNumber,
                 start,
                 stringOffset,
               ),
@@ -1517,8 +1517,9 @@ abstract class AbstractScanner implements Scanner {
             advance();
             return tokenizeFractionPart(nextnext, start, hasSeparators);
           } else {
-            TokenType tokenType =
-                hasSeparators ? TokenType.INT_WITH_SEPARATORS : TokenType.INT;
+            TokenType tokenType = hasSeparators
+                ? TokenType.INT_WITH_SEPARATORS
+                : TokenType.INT;
             appendSubstringToken(tokenType, start, /* asciiOnly = */ true);
             return next;
           }
@@ -1527,14 +1528,15 @@ abstract class AbstractScanner implements Scanner {
           // End of the number is a separator; not allowed.
           prependErrorToken(
             new UnterminatedToken(
-              messageUnexpectedSeparatorInNumber,
+              codeUnexpectedSeparatorInNumber,
               start,
               stringOffset,
             ),
           );
         }
-        TokenType tokenType =
-            hasSeparators ? TokenType.INT_WITH_SEPARATORS : TokenType.INT;
+        TokenType tokenType = hasSeparators
+            ? TokenType.INT_WITH_SEPARATORS
+            : TokenType.INT;
         appendSubstringToken(tokenType, start, /* asciiOnly = */ true);
         return next;
       }
@@ -1567,7 +1569,7 @@ abstract class AbstractScanner implements Scanner {
           // Not allowed.
           prependErrorToken(
             new UnterminatedToken(
-              messageUnexpectedSeparatorInNumber,
+              codeUnexpectedSeparatorInNumber,
               start,
               stringOffset,
             ),
@@ -1578,7 +1580,7 @@ abstract class AbstractScanner implements Scanner {
       } else {
         if (!hasDigits) {
           prependErrorToken(
-            new UnterminatedToken(messageExpectedHexDigit, start, stringOffset),
+            new UnterminatedToken(codeExpectedHexDigit, start, stringOffset),
           );
           // Recovery
           appendSyntheticSubstringToken(
@@ -1593,16 +1595,15 @@ abstract class AbstractScanner implements Scanner {
           // End of the number is a separator; not allowed.
           prependErrorToken(
             new UnterminatedToken(
-              messageUnexpectedSeparatorInNumber,
+              codeUnexpectedSeparatorInNumber,
               start,
               stringOffset,
             ),
           );
         }
-        TokenType tokenType =
-            hasSeparators
-                ? TokenType.HEXADECIMAL_WITH_SEPARATORS
-                : TokenType.HEXADECIMAL;
+        TokenType tokenType = hasSeparators
+            ? TokenType.HEXADECIMAL_WITH_SEPARATORS
+            : TokenType.HEXADECIMAL;
         appendSubstringToken(tokenType, start, /* asciiOnly = */ true);
         return next;
       }
@@ -1652,7 +1653,7 @@ abstract class AbstractScanner implements Scanner {
           // Not allowed.
           prependErrorToken(
             new UnterminatedToken(
-              messageUnexpectedSeparatorInNumber,
+              codeUnexpectedSeparatorInNumber,
               start,
               stringOffset,
             ),
@@ -1663,7 +1664,7 @@ abstract class AbstractScanner implements Scanner {
         while (next == $_) {
           prependErrorToken(
             new UnterminatedToken(
-              messageUnexpectedSeparatorInNumber,
+              codeUnexpectedSeparatorInNumber,
               start,
               stringOffset,
             ),
@@ -1685,7 +1686,7 @@ abstract class AbstractScanner implements Scanner {
             if (!hasExponentDigits) {
               prependErrorToken(
                 new UnterminatedToken(
-                  messageUnexpectedSeparatorInNumber,
+                  codeUnexpectedSeparatorInNumber,
                   start,
                   stringOffset,
                 ),
@@ -1705,7 +1706,7 @@ abstract class AbstractScanner implements Scanner {
               );
               prependErrorToken(
                 new UnterminatedToken(
-                  messageMissingExponent,
+                  codeMissingExponent,
                   tokenStart,
                   stringOffset,
                 ),
@@ -1720,7 +1721,7 @@ abstract class AbstractScanner implements Scanner {
           // End of the number is a separator; not allowed.
           prependErrorToken(
             new UnterminatedToken(
-              messageUnexpectedSeparatorInNumber,
+              codeUnexpectedSeparatorInNumber,
               start,
               stringOffset,
             ),
@@ -1734,7 +1735,7 @@ abstract class AbstractScanner implements Scanner {
           // End of the number is a separator; not allowed.
           prependErrorToken(
             new UnterminatedToken(
-              messageUnexpectedSeparatorInNumber,
+              codeUnexpectedSeparatorInNumber,
               start,
               stringOffset,
             ),
@@ -1745,8 +1746,9 @@ abstract class AbstractScanner implements Scanner {
       }
       next = advance();
     }
-    TokenType tokenType =
-        hasSeparators ? TokenType.DOUBLE_WITH_SEPARATORS : TokenType.DOUBLE;
+    TokenType tokenType = hasSeparators
+        ? TokenType.DOUBLE_WITH_SEPARATORS
+        : TokenType.DOUBLE;
     appendSubstringToken(tokenType, start, /* asciiOnly = */ true);
     return next;
   }
@@ -1918,7 +1920,7 @@ abstract class AbstractScanner implements Scanner {
         }
         prependErrorToken(
           new UnterminatedToken(
-            messageUnterminatedComment,
+            codeUnterminatedComment,
             tokenStart,
             stringOffset,
           ),
@@ -2200,6 +2202,13 @@ abstract class AbstractScanner implements Scanner {
 
   int tokenizeInterpolatedExpression(int next) {
     appendBeginGroup(TokenType.STRING_INTERPOLATION_EXPRESSION);
+    if (offsetForCurlyBracketRecoveryStart != null &&
+        tokenStart == offsetForCurlyBracketRecoveryStart) {
+      // This instance of the scanner was instructed to recover this
+      // string interpolation start.
+      discardInterpolation();
+      return advance();
+    }
     beginToken(); // The expression starts here.
     next = advance(); // Move past the curly bracket.
     while (next != $EOF && next != $STX) {
@@ -2231,7 +2240,7 @@ abstract class AbstractScanner implements Scanner {
       );
       prependErrorToken(
         new UnterminatedToken(
-          messageUnexpectedDollarInString,
+          codeUnexpectedDollarInString,
           tokenStart,
           stringOffset,
         ),

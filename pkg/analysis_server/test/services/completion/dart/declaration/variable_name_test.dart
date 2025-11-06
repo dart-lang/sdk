@@ -69,6 +69,14 @@ replacement
 suggestions
   abstractCrazyNonsenseClassName
     kind: identifier
+  className
+    kind: identifier
+  crazyNonsenseClassName
+    kind: identifier
+  name
+    kind: identifier
+  nonsenseClassName
+    kind: identifier
 ''');
   }
 
@@ -105,6 +113,14 @@ replacement
   left: 1
 suggestions
   abstractCrazyNonsenseClassName
+    kind: identifier
+  className
+    kind: identifier
+  crazyNonsenseClassName
+    kind: identifier
+  name
+    kind: identifier
+  nonsenseClassName
     kind: identifier
 ''');
   }

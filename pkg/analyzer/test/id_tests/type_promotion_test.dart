@@ -40,6 +40,9 @@ class _TypePromotionDataComputer extends DataComputer<DartType> {
       const _TypePromotionDataInterpreter();
 
   @override
+  bool get supportsErrors => true;
+
+  @override
   void computeUnitData(
     TestingData testingData,
     CompilationUnit unit,

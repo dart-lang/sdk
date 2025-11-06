@@ -167,14 +167,11 @@
   FIELD(ICData, owner_offset)                                                  \
   FIELD(ICData, state_bits_offset)                                             \
   FIELD(Int32x4, value_offset)                                                 \
-  FIELD(Isolate, current_tag_offset)                                           \
-  FIELD(Isolate, default_tag_offset)                                           \
   FIELD(Isolate, finalizers_offset)                                            \
   NOT_IN_PRODUCT(FIELD(Isolate, has_resumption_breakpoints_offset))            \
   FIELD(IsolateGroup, object_store_offset)                                     \
   FIELD(IsolateGroup, class_table_offset)                                      \
   FIELD(IsolateGroup, cached_class_table_table_offset)                         \
-  FIELD(Isolate, user_tag_offset)                                              \
   FIELD(LinkedHashBase, data_offset)                                           \
   FIELD(ImmutableLinkedHashBase, data_offset)                                  \
   FIELD(LinkedHashBase, deleted_keys_offset)                                   \
@@ -243,11 +240,8 @@
   FIELD(Thread, allocate_mint_without_fpu_regs_entry_point_offset)             \
   FIELD(Thread, allocate_mint_without_fpu_regs_stub_offset)                    \
   FIELD(Thread, allocate_object_entry_point_offset)                            \
-  FIELD(Thread, allocate_object_stub_offset)                                   \
   FIELD(Thread, allocate_object_parameterized_entry_point_offset)              \
-  FIELD(Thread, allocate_object_parameterized_stub_offset)                     \
   FIELD(Thread, allocate_object_slow_entry_point_offset)                       \
-  FIELD(Thread, allocate_object_slow_stub_offset)                              \
   FIELD(Thread, api_top_scope_offset)                                          \
   FIELD(Thread, async_exception_handler_stub_offset)                           \
   FIELD(Thread, auto_scope_native_wrapper_entry_point_offset)                  \
@@ -354,6 +348,9 @@
   FIELD(Thread, random_offset)                                                 \
   FIELD(Thread, jump_to_frame_entry_point_offset)                              \
   FIELD(Thread, tsan_utils_offset)                                             \
+  FIELD(Thread, current_tag_offset)                                            \
+  FIELD(Thread, default_tag_offset)                                            \
+  FIELD(Thread, user_tag_offset)                                               \
   FIELD(TsanUtils, setjmp_function_offset)                                     \
   FIELD(TsanUtils, setjmp_buffer_offset)                                       \
   FIELD(TsanUtils, exception_pc_offset)                                        \

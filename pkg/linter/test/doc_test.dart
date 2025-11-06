@@ -2,14 +2,14 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:linter/src/rules.dart';
 import 'package:test/test.dart';
 
 import '../tool/machine.dart';
-import 'util/test_utils.dart';
 
 void main() {
   group('doc generation', () {
-    setUp(setUpSharedTestEnvironment);
+    setUp(registerLintRules);
     test('fixStatus (sanity)', () {
       var fixStatusMap = readFixStatusMap();
       // Doc generation reads the fix status map to associate fix status

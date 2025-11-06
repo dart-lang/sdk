@@ -10,14 +10,8 @@ main() {
   [/*int!*/ 0];
 
   /*List<num!>!*/
-  [
-    /*int!*/ 0,
-    /*double!*/ 0.5
-  ];
+  [/*int!*/ 0, /*double!*/ 0.5];
 
   /*List<Object!>!*/
-  [
-    /*int!*/ 0,
-    /*String!*/ ''
-  ];
+  [/*int!*/ 0, /*String!*/ ''];
 }

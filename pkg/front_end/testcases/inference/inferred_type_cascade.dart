@@ -2,18 +2,17 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/*@testedFeatures=inference*/
 library test;
 
 class A {
   int a = 0;
-  List<int> b = /*@typeArgs=int*/ [];
+  List<int> b = [];
   void m() {}
 }
 
 var v = new A()
-  .. /*@target=A.a*/ a = 1
-  .. /*@target=A.b*/ b. /*@target=List.add*/ add(2)
-  .. /*@target=A.m*/ m();
+  ..a = 1
+  ..b.add(2)
+  ..m();
 
 main() {}

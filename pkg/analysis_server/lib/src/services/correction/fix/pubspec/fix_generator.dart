@@ -17,6 +17,7 @@ import 'package:analyzer/src/generated/java_core.dart';
 import 'package:analyzer/src/pubspec/pubspec_warning_code.dart';
 import 'package:analyzer/src/pubspec/validators/missing_dependency_validator.dart';
 import 'package:analyzer/src/util/yaml.dart';
+import 'package:analyzer_plugin/src/utilities/extensions/string_extension.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:yaml/yaml.dart';
@@ -24,8 +25,8 @@ import 'package:yaml/yaml.dart';
 /// The generator used to generate fixes in pubspec.yaml files.
 class PubspecFixGenerator {
   static const List<DiagnosticCode> codesWithFixes = [
-    PubspecWarningCode.MISSING_DEPENDENCY,
-    PubspecWarningCode.MISSING_NAME,
+    PubspecWarningCode.missingDependency,
+    PubspecWarningCode.missingName,
   ];
 
   /// The resource provider used to access the file system.
@@ -51,35 +52,19 @@ class PubspecFixGenerator {
   /// The fixes that were generated.
   final List<Fix> fixes = <Fix>[];
 
-  /// The end-of-line marker used in the `pubspec.yaml` file.
-  String? _endOfLine;
+  /// The end-of-line marker to be used in this `pubspec.yaml` file.
+  final String endOfLine;
 
   PubspecFixGenerator(
     this.resourceProvider,
     this.diagnostic,
     this.content,
-    this.node,
-  ) : diagnosticOffset = diagnostic.offset,
-      diagnosticLength = diagnostic.length,
-      lineInfo = LineInfo.fromContent(content);
-
-  /// Returns the end-of-line marker to use for the `pubspec.yaml` file.
-  String get endOfLine {
-    // TODO(brianwilkerson): Share this with CorrectionUtils, probably by
-    //  creating a subclass of CorrectionUtils containing utilities that are
-    //  only dependent on knowing the content of the file. Also consider moving
-    //  this kind of utility into the ChangeBuilder API directly.
-    var endOfLine = _endOfLine;
-    if (endOfLine != null) {
-      return endOfLine;
-    }
-
-    if (content.contains('\r\n')) {
-      return _endOfLine = '\r\n';
-    } else {
-      return _endOfLine = '\n';
-    }
-  }
+    this.node, {
+    required String defaultEol,
+  }) : diagnosticOffset = diagnostic.offset,
+       diagnosticLength = diagnostic.length,
+       lineInfo = LineInfo.fromContent(content),
+       endOfLine = content.endOfLine ?? defaultEol;
 
   /// Return the absolute, normalized path to the file in which the error was
   /// reported.
@@ -108,40 +93,37 @@ class PubspecFixGenerator {
       return fixes;
     }
 
-    if (diagnosticCode == PubspecWarningCode.ASSET_DOES_NOT_EXIST) {
+    if (diagnosticCode == PubspecWarningCode.assetDoesNotExist) {
       // Consider replacing the path with a valid path.
     } else if (diagnosticCode ==
-        PubspecWarningCode.ASSET_DIRECTORY_DOES_NOT_EXIST) {
+        PubspecWarningCode.assetDirectoryDoesNotExist) {
       // Consider replacing the path with a valid path.
       // Consider creating the directory.
-    } else if (diagnosticCode == PubspecWarningCode.ASSET_FIELD_NOT_LIST) {
+    } else if (diagnosticCode == PubspecWarningCode.assetFieldNotList) {
       // Not sure how to fix a structural issue.
-    } else if (diagnosticCode == PubspecWarningCode.ASSET_NOT_STRING) {
+    } else if (diagnosticCode == PubspecWarningCode.assetNotString) {
       // Not sure how to fix a structural issue.
-    } else if (diagnosticCode ==
-        PubspecWarningCode.DEPENDENCIES_FIELD_NOT_MAP) {
+    } else if (diagnosticCode == PubspecWarningCode.dependenciesFieldNotMap) {
       // Not sure how to fix a structural issue.
-    } else if (diagnosticCode == PubspecWarningCode.DEPRECATED_FIELD) {
+    } else if (diagnosticCode == PubspecWarningCode.deprecatedField) {
       // Consider removing the field.
-    } else if (diagnosticCode == PubspecWarningCode.FLUTTER_FIELD_NOT_MAP) {
+    } else if (diagnosticCode == PubspecWarningCode.flutterFieldNotMap) {
       // Not sure how to fix a structural issue.
-    } else if (diagnosticCode == PubspecWarningCode.INVALID_DEPENDENCY) {
+    } else if (diagnosticCode == PubspecWarningCode.invalidDependency) {
       // Consider adding `publish_to: none`.
-    } else if (diagnosticCode == PubspecWarningCode.MISSING_NAME) {
+    } else if (diagnosticCode == PubspecWarningCode.missingName) {
       await _addNameEntry();
-    } else if (diagnosticCode == PubspecWarningCode.NAME_NOT_STRING) {
+    } else if (diagnosticCode == PubspecWarningCode.nameNotString) {
       // Not sure how to fix a structural issue.
-    } else if (diagnosticCode == PubspecWarningCode.PATH_DOES_NOT_EXIST) {
+    } else if (diagnosticCode == PubspecWarningCode.pathDoesNotExist) {
       // Consider replacing the path with a valid path.
-    } else if (diagnosticCode == PubspecWarningCode.PATH_NOT_POSIX) {
+    } else if (diagnosticCode == PubspecWarningCode.pathNotPosix) {
       // Consider converting to a POSIX-style path.
-    } else if (diagnosticCode ==
-        PubspecWarningCode.PATH_PUBSPEC_DOES_NOT_EXIST) {
+    } else if (diagnosticCode == PubspecWarningCode.pathPubspecDoesNotExist) {
       // Consider replacing the path with a valid path.
-    } else if (diagnosticCode ==
-        PubspecWarningCode.UNNECESSARY_DEV_DEPENDENCY) {
+    } else if (diagnosticCode == PubspecWarningCode.unnecessaryDevDependency) {
       // Consider removing the dependency.
-    } else if (diagnosticCode == PubspecWarningCode.MISSING_DEPENDENCY) {
+    } else if (diagnosticCode == PubspecWarningCode.missingDependency) {
       await _addMissingDependency(diagnosticCode);
     }
     return fixes;
@@ -166,10 +148,10 @@ class PubspecFixGenerator {
     }
     var builder = ChangeBuilder(
       workspace: _NonDartChangeWorkspace(resourceProvider),
-      eol: endOfLine,
+      defaultEol: endOfLine,
     );
 
-    var data = diagnostic.data as MissingDependencyData;
+    var data = MissingDependencyData.byDiagnostic[diagnostic]!;
     var addDeps = data.addDeps;
     var addDevDeps = data.addDevDeps;
     var removeDevDeps = data.removeDevDeps;
@@ -246,18 +228,16 @@ class PubspecFixGenerator {
               }
             }
 
-            var startOffset =
-                prevEntry != null
-                    ? prevEntry.value.span.end.offset
-                    : (currentEntry.key as YamlNode).span.start.offset;
+            var startOffset = prevEntry != null
+                ? prevEntry.value.span.end.offset
+                : (currentEntry.key as YamlNode).span.start.offset;
             // If nextEntry is null, this is the last entry in the
             // dev_dependencies section, and also dev_dependencies is the last
             // section in the pubspec file. So delete till the end of the
             // section.
-            var endOffset =
-                nextEntry == null
-                    ? currentEntry.value.span.end.offset
-                    : (nextEntry.key as YamlNode).span.start.offset;
+            var endOffset = nextEntry == null
+                ? currentEntry.value.span.end.offset
+                : (nextEntry.key as YamlNode).span.start.offset;
             // If entry in the middle of two other entries that are not to be
             // removed, delete the line.
             if (prevEntry != null &&
@@ -307,7 +287,7 @@ class PubspecFixGenerator {
     var packageName = _identifierFrom(context.basename(context.dirname(file)));
     var builder = ChangeBuilder(
       workspace: _NonDartChangeWorkspace(resourceProvider),
-      eol: endOfLine,
+      defaultEol: endOfLine,
     );
     var firstOffset = _initialOffset(node);
     if (firstOffset < 0) {
@@ -332,16 +312,17 @@ class PubspecFixGenerator {
     var section = node[sectionName];
     var buffer = StringBuffer();
     if (section == null) {
-      buffer.writeln('$sectionName:');
+      buffer.write('$sectionName:');
+      buffer.write(endOfLine);
     }
     for (var name in packageNames) {
-      buffer.writeln('  $name: any');
+      buffer.write('  $name: any');
+      buffer.write(endOfLine);
     }
 
-    var offset =
-        section == null
-            ? node.span.end.offset
-            : (section as YamlNode).span.end.offset;
+    var offset = section == null
+        ? node.span.end.offset
+        : (section as YamlNode).span.end.offset;
 
     return (buffer.toString(), offset);
   }

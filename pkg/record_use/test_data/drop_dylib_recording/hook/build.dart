@@ -15,7 +15,7 @@ void main(List<String> arguments) async {
           ..onRecord.listen((record) {
             print('${record.level.name}: ${record.time}: ${record.message}');
           });
-    final routing =
+    final List<AssetRouting> routing =
         input.config.linkingEnabled
             ? [ToLinkHook(input.packageName)]
             : const [ToAppBundle()];

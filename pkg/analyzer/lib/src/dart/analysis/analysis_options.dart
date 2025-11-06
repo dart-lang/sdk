@@ -4,6 +4,7 @@
 
 import 'dart:typed_data';
 
+import 'package:_fe_analyzer_shared/src/base/analyzer_public_api.dart';
 import 'package:analyzer/dart/analysis/analysis_options.dart';
 import 'package:analyzer/dart/analysis/code_style_options.dart';
 import 'package:analyzer/dart/analysis/features.dart';
@@ -11,14 +12,14 @@ import 'package:analyzer/dart/analysis/formatter_options.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/source/error_processor.dart';
+import 'package:analyzer/src/analysis_options/analysis_options_file.dart';
 import 'package:analyzer/src/analysis_options/code_style_options.dart';
+import 'package:analyzer/src/analysis_rule/rule_context.dart';
 import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer/src/generated/utilities_general.dart' show toBool;
 import 'package:analyzer/src/lint/config.dart';
-import 'package:analyzer/src/lint/linter.dart';
 import 'package:analyzer/src/lint/registry.dart';
 import 'package:analyzer/src/summary/api_signature.dart';
-import 'package:analyzer/src/task/options.dart';
 import 'package:analyzer/src/util/yaml.dart';
 import 'package:collection/collection.dart';
 import 'package:pub_semver/pub_semver.dart';
@@ -61,7 +62,12 @@ final class AnalysisOptionsBuilder {
 
   Set<String> unignorableDiagnosticCodeNames = {};
 
-  List<PluginConfiguration> pluginConfigurations = [];
+  PluginsOptions pluginsOptions = PluginsOptions(
+    configurations: const [],
+    dependencyOverrides: null,
+  );
+
+  String? pluginDependencyOverrides;
 
   AnalysisOptionsImpl build() {
     return AnalysisOptionsImpl._(
@@ -69,7 +75,7 @@ final class AnalysisOptionsBuilder {
       contextFeatures: contextFeatures,
       nonPackageFeatureSet: nonPackageFeatureSet,
       enabledLegacyPluginNames: enabledLegacyPluginNames,
-      pluginConfigurations: pluginConfigurations,
+      pluginsOptions: pluginsOptions,
       errorProcessors: errorProcessors,
       excludePatterns: excludePatterns,
       lint: lint,
@@ -216,75 +222,46 @@ final class AnalysisOptionsBuilder {
       return;
     }
 
+    var configurations = <PluginConfiguration>[];
+    Map<String, PluginSource>? dependencyOverrides;
+
     plugins.nodes.forEach((nameNode, pluginNode) {
       if (nameNode is! YamlScalar) {
         return;
       }
-      var pluginName = nameNode.toString();
 
-      // If the plugin name just maps to a String, then that is the version
-      // constraint; use it and move on.
-      if (pluginNode case YamlScalar(:String value)) {
-        pluginConfigurations.add(
-          PluginConfiguration(
-            name: pluginName,
-            source: VersionedPluginSource(constraint: value),
-          ),
+      var pluginName = nameNode.toString();
+      if (pluginName == 'dependency_overrides') {
+        // This is a magic key; not the name of a plugin.
+        if (pluginNode is! YamlMap) return;
+        pluginNode.nodes.forEach((nameNode, dependencyOverride) {
+          if (nameNode is! YamlScalar) {
+            return;
+          }
+          var source = _getSource(dependencyOverride, resourceProvider);
+          if (source == null) return;
+          (dependencyOverrides ??= {})[nameNode.toString()] = source;
+        });
+
+        return;
+      }
+
+      var source = _getSource(pluginNode, resourceProvider);
+      if (source == null) return;
+
+      if (pluginNode is! YamlMap) {
+        configurations.add(
+          PluginConfiguration(name: pluginName, source: source),
         );
         return;
       }
 
-      if (pluginNode is! YamlMap) {
-        return;
-      }
-
-      // Grab either the source value from 'version', 'git', or 'path'. In the
-      // erroneous case that multiple are specified, just take the first. A
-      // warning should be reported by `OptionsFileValidator`.
-      // TODO(srawlins): In adition to 'version' and 'path', try 'git'.
-
-      PluginSource? source;
-      var versionSource = pluginNode.valueAt(AnalysisOptionsFile.version);
-      if (versionSource case YamlScalar(:String value)) {
-        // TODO(srawlins): Handle the 'hosted' key.
-        source = VersionedPluginSource(constraint: value);
-      } else {
-        var pathSource = pluginNode.valueAt(AnalysisOptionsFile.path);
-        if (pathSource case YamlScalar(value: String pathValue)) {
-          var file = this.file;
-          assert(
-            file != null,
-            "AnalysisOptionsImpl must be initialized with a non-null 'file' if "
-            'plugins are specified with path constraints.',
-          );
-          if (file != null &&
-              resourceProvider != null &&
-              resourceProvider.pathContext.isRelative(pathValue)) {
-            // We need to store the absolute path, before this value is used in
-            // a synthetic pub package.
-            pathValue = resourceProvider.pathContext.join(
-              file.parent.path,
-              pathValue,
-            );
-            pathValue = resourceProvider.pathContext.normalize(pathValue);
-          }
-          source = PathPluginSource(path: pathValue);
-        }
-      }
-
-      if (source == null) {
-        // Either the source data is malformed, or neither 'version' nor 'git'
-        // was provided. A warning should be reported by OptionsFileValidator.
-        return;
-      }
-
       var diagnostics = pluginNode.valueAt(AnalysisOptionsFile.diagnostics);
-      var diagnosticConfigurations =
-          diagnostics == null
-              ? const <String, RuleConfig>{}
-              : parseDiagnosticsSection(diagnostics);
+      var diagnosticConfigurations = diagnostics == null
+          ? const <String, RuleConfig>{}
+          : parseDiagnosticsSection(diagnostics);
 
-      pluginConfigurations.add(
+      configurations.add(
         PluginConfiguration(
           name: pluginName,
           source: source,
@@ -293,6 +270,11 @@ final class AnalysisOptionsBuilder {
         ),
       );
     });
+
+    pluginsOptions = PluginsOptions(
+      configurations: configurations,
+      dependencyOverrides: dependencyOverrides,
+    );
   }
 
   void _applyUnignorables(YamlNode? cannotIgnore) {
@@ -329,6 +311,53 @@ final class AnalysisOptionsBuilder {
       stringValues.map((name) => name.toUpperCase()),
     );
   }
+
+  PluginSource? _getSource(
+    YamlNode pluginNode,
+    ResourceProvider? resourceProvider,
+  ) {
+    // If it just maps to a String, then that is the version constraint.
+    if (pluginNode case YamlScalar(:String value)) {
+      return VersionedPluginSource(constraint: value);
+    }
+
+    if (pluginNode is! YamlMap) {
+      return null;
+    }
+
+    // Grab either the source value from 'version', 'git', or 'path'. In the
+    // erroneous case that multiple are specified, just take the first. A
+    // warning should be reported by `OptionsFileValidator`.
+    // TODO(srawlins): In adition to 'version' and 'path', try 'git'.
+
+    var versionSource = pluginNode.valueAt(AnalysisOptionsFile.version);
+    if (versionSource case YamlScalar(:String value)) {
+      // TODO(srawlins): Handle the 'hosted' key.
+      return VersionedPluginSource(constraint: value);
+    }
+    var pathSource = pluginNode.valueAt(AnalysisOptionsFile.path);
+    if (pathSource case YamlScalar(value: String pathValue)) {
+      var file = this.file;
+      assert(
+        file != null,
+        "AnalysisOptionsImpl must be initialized with a non-null 'file' if "
+        'plugins are specified with path constraints.',
+      );
+      if (file != null &&
+          resourceProvider != null &&
+          resourceProvider.pathContext.isRelative(pathValue)) {
+        // We need to store the absolute path, before this value is used in
+        // a synthetic pub package.
+        pathValue = resourceProvider.pathContext.join(
+          file.parent.path,
+          pathValue,
+        );
+        pathValue = resourceProvider.pathContext.normalize(pathValue);
+      }
+      return PathPluginSource(path: pathValue);
+    }
+    return null;
+  }
 }
 
 /// A set of analysis options used to control the behavior of an analysis
@@ -361,8 +390,8 @@ class AnalysisOptionsImpl implements AnalysisOptions {
   @override
   final List<String> enabledLegacyPluginNames;
 
-  @override
-  final List<PluginConfiguration> pluginConfigurations;
+  /// The options used to specify plugins.
+  final PluginsOptions pluginsOptions;
 
   @override
   final List<ErrorProcessor> errorProcessors;
@@ -504,7 +533,7 @@ class AnalysisOptionsImpl implements AnalysisOptions {
     required this.nonPackageFeatureSet,
     required this.excludePatterns,
     required this.enabledLegacyPluginNames,
-    required this.pluginConfigurations,
+    required this.pluginsOptions,
     required this.errorProcessors,
     required this.lint,
     required this.lintRules,
@@ -533,6 +562,10 @@ class AnalysisOptionsImpl implements AnalysisOptions {
   /// If a library is in a package, this language version is *not* used,
   /// even if the package does not specify the language version.
   Version get nonPackageLanguageVersion => ExperimentStatus.currentVersion;
+
+  @override
+  List<PluginConfiguration> get pluginConfigurations =>
+      pluginsOptions.configurations;
 
   Uint32List get signature {
     if (_signature == null) {
@@ -577,12 +610,46 @@ class AnalysisOptionsImpl implements AnalysisOptions {
       )) {
         buffer.addString(pluginConfiguration.name);
         buffer.addBool(pluginConfiguration.isEnabled);
+        switch (pluginConfiguration.source) {
+          case GitPluginSource source:
+            buffer.addString(source._url);
+            if (source._path case var path?) {
+              buffer.addString(path);
+            }
+            if (source._ref case var ref?) {
+              buffer.addString(ref);
+            }
+          case PathPluginSource source:
+            buffer.addString(source._path);
+          case VersionedPluginSource source:
+            buffer.addString(source._constraint);
+        }
         buffer.addInt(pluginConfiguration.diagnosticConfigs.length);
         for (var diagnosticConfig
             in pluginConfiguration.diagnosticConfigs.values) {
           buffer.addString(diagnosticConfig.group ?? '');
           buffer.addString(diagnosticConfig.name);
-          buffer.addBool(diagnosticConfig.isEnabled);
+          buffer.addInt(diagnosticConfig.severity.index);
+        }
+        if (pluginsOptions.dependencyOverrides case var dependencyOverrides?) {
+          for (var pluginDependencyOverrideEntry
+              in dependencyOverrides.entries.sortedBy((entry) => entry.key)) {
+            buffer.addString(pluginDependencyOverrideEntry.key);
+            switch (pluginDependencyOverrideEntry.value) {
+              case GitPluginSource source:
+                buffer.addString(source._url);
+                if (source._path case var path?) {
+                  buffer.addString(path);
+                }
+                if (source._ref case var ref?) {
+                  buffer.addString(ref);
+                }
+              case PathPluginSource source:
+                buffer.addString(source._path);
+              case VersionedPluginSource source:
+                buffer.addString(source._constraint);
+            }
+          }
         }
       }
 
@@ -633,6 +700,128 @@ class AnalysisOptionsImpl implements AnalysisOptions {
   bool isLintEnabled(String name) {
     return lintRules.any((rule) => rule.name == name);
   }
+}
+
+@AnalyzerPublicApi(
+  message: 'exported by lib/dart/analysis/analysis_options.dart',
+)
+final class GitPluginSource implements PluginSource {
+  final String _url;
+
+  final String? _path;
+
+  final String? _ref;
+
+  GitPluginSource({required String url, String? path, String? ref})
+    : _url = url,
+      _path = path,
+      _ref = ref;
+
+  @override
+  String toYaml({required String name}) {
+    var buffer = StringBuffer()
+      ..writeln('  $name:')
+      ..writeln('    git:')
+      ..writeln('      url: $_url');
+    if (_ref != null) {
+      buffer.writeln('      ref: $_ref');
+    }
+    if (_path != null) {
+      buffer.writeln('      path: $_path');
+    }
+    return buffer.toString();
+  }
+}
+
+@AnalyzerPublicApi(
+  message: 'exported by lib/dart/analysis/analysis_options.dart',
+)
+final class PathPluginSource implements PluginSource {
+  final String _path;
+
+  PathPluginSource({required String path}) : _path = path;
+
+  @override
+  String toYaml({required String name}) =>
+      '''
+  $name:
+    path: $_path
+''';
+}
+
+/// The configuration of a Dart Analysis Server plugin, as specified by
+/// analysis options.
+@AnalyzerPublicApi(
+  message: 'exported by lib/dart/analysis/analysis_options.dart',
+)
+final class PluginConfiguration {
+  /// The name of the plugin being configured.
+  final String name;
+
+  /// The source of the plugin being configured.
+  final PluginSource source;
+
+  /// The list of specified [DiagnosticConfig]s.
+  // ignore: analyzer_public_api_bad_type
+  final Map<String, DiagnosticConfig> diagnosticConfigs;
+
+  /// Whether the plugin is enabled.
+  final bool isEnabled;
+
+  // ignore: analyzer_public_api_bad_type
+  PluginConfiguration({
+    required this.name,
+    required this.source,
+    this.diagnosticConfigs = const {},
+    this.isEnabled = true,
+  });
+
+  String sourceYaml() => source.toYaml(name: name);
+}
+
+/// The analysis options for plugins, as specified in the top-level `plugins`
+/// section.
+final class PluginsOptions {
+  /// The list of each listed plugin's configuration.
+  final List<PluginConfiguration> configurations;
+
+  /// The dependency overrides, if specified.
+  final Map<String, PluginSource>? dependencyOverrides;
+
+  PluginsOptions({
+    required this.configurations,
+    required this.dependencyOverrides,
+  });
+}
+
+/// A description of the source of a plugin.
+///
+/// We support all of the source formats documented at
+/// https://dart.dev/tools/pub/dependencies.
+@AnalyzerPublicApi(
+  message: 'exported by lib/dart/analysis/analysis_options.dart',
+)
+sealed class PluginSource {
+  /// Returns the YAML-formatted source, using [name] as a key, for writing into
+  /// a pubspec 'dependencies' section.
+  String toYaml({required String name});
+}
+
+/// A plugin source using a version constraint, hosted either at pub.dev or
+/// another host.
+// TODO(srawlins): Support a different 'hosted' URL.
+@AnalyzerPublicApi(
+  message: 'exported by lib/dart/analysis/analysis_options.dart',
+)
+final class VersionedPluginSource implements PluginSource {
+  /// The specified version constraint.
+  final String _constraint;
+
+  VersionedPluginSource({required String constraint})
+    : _constraint = constraint;
+
+  @override
+  String toYaml({required String name}) => '  $name: $_constraint\n';
 }
 
 extension on YamlNode? {

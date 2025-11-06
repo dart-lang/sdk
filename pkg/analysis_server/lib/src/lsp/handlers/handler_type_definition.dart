@@ -122,7 +122,7 @@ class TypeDefinitionHandler
           return success(_emptyResult);
         }
 
-        var nameOffset = targetFragment.nameOffset2;
+        var nameOffset = targetFragment.nameOffset;
         var nameLength = targetFragment.name?.length;
         if (nameOffset == null || nameLength == null) {
           return success(_emptyResult);
@@ -180,10 +180,9 @@ class TypeDefinitionHandler
       _ => (null, null),
     };
 
-    var codeRange =
-        codeOffset != null && codeLength != null
-            ? toRange(targetUnit.lineInfo, codeOffset, codeLength)
-            : targetNameRange;
+    var codeRange = codeOffset != null && codeLength != null
+        ? toRange(targetUnit.lineInfo, codeOffset, codeLength)
+        : targetNameRange;
 
     return LocationLink(
       originSelectionRange: toRange(
@@ -217,7 +216,7 @@ class TypeDefinitionHandler
         if (writeElement
             case analyzer.GetterElement(:var variable) ||
                 analyzer.SetterElement(:var variable)) {
-          return variable?.type;
+          return variable.type;
         }
       }
     }

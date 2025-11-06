@@ -11,6 +11,6 @@ static method main() → dynamic {
 
 
 Extra constant evaluation status:
-Evaluated: ConditionalExpression @ org-dartlang-testcase:///infer_conditional.dart:8:35 -> DoubleConstant(2.0)
-Evaluated: ConditionalExpression @ org-dartlang-testcase:///infer_conditional.dart:9:35 -> IntConstant(2)
+Evaluated: ConditionalExpression @ org-dartlang-testcase:///infer_conditional.dart:7:16 -> DoubleConstant(2.0)
+Evaluated: ConditionalExpression @ org-dartlang-testcase:///infer_conditional.dart:8:16 -> IntConstant(2)
 Extra constant evaluation: evaluated: 4, effectively constant: 2

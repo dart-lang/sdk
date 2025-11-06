@@ -18,6 +18,7 @@ dependencies:
   code_assets: any
   collection: any
   dart2native: any
+  dart_data_home: any
   dart_mcp_server: any
   dart_style: any
   dartdoc: any
@@ -37,6 +38,7 @@ dependencies:
   package_config: any
   path: any
   pub: any
+  pub_formats: any
   unified_analytics: any
   vm: any
   vm_service: any

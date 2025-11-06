@@ -5,8 +5,6 @@
 // Exercises flow analysis of patterns that fail to match a Null scrutinee when
 // `sound-flow-analysis` is enabled.
 
-// SharedOptions=--enable-experiment=sound-flow-analysis
-
 import '../static_type_helper.dart';
 
 // `<nonNullable> <var>` is known to mismatch a null expression.

@@ -11,21 +11,21 @@ import "dart:typed_data";
 [@vm.inferred-return-type.metadata=dart.core::Null? (value: null)]
 static method main() → void {
   final typ::Int8List typedData = [@vm.inferred-type.metadata=dart.typed_data::_Int8List] typ::Int8List::•(20);
-  self::myNative#T(typedData);
-  self::myNative#C(new ffi::_Compound::_fromTypedDataBase(typedData, [@vm.direct-call.metadata=dart.core::_IntegerImplementation.*] [@vm.inferred-type.metadata=int (skip check)] #C1.{core::num::*}(0){(core::num) → core::num}));
+  self::#myNative#T(typedData);
+  self::#myNative#C(new ffi::_Compound::_fromTypedDataBase(typedData, [@vm.direct-call.metadata=dart.core::_IntegerImplementation.*] [@vm.inferred-type.metadata=int (skip check)] #C1.{core::num::*}(0){(core::num) → core::num}));
 }
 
 [@vm.inferred-return-type.metadata=int]
 [@vm.unboxing-info.metadata=(b)->i]
 @#C7
 @#C9
-external static method myNative#T([@vm.inferred-arg-type.metadata=dart.typed_data::_Int8List] typ::TypedData pointer) → core::int;
+external static method #myNative#T([@vm.inferred-arg-type.metadata=dart.typed_data::_Int8List] typ::TypedData pointer) → core::int;
 
 [@vm.inferred-return-type.metadata=int]
 [@vm.unboxing-info.metadata=(b)->i]
 @#C7
 @#C9
-external static method myNative#C([@vm.inferred-arg-type.metadata=dart.ffi::_Compound] ffi::_Compound pointer) → core::int;
+external static method #myNative#C([@vm.inferred-arg-type.metadata=dart.ffi::_Compound] ffi::_Compound pointer) → core::int;
 constants  {
   #C1 = 1
   #C2 = "cfe:ffi:native-marker"

@@ -379,7 +379,8 @@ a''';
 $a
 bbb''';
 }
-""".replaceAll('\n', '\r\n'),
+"""
+          .replaceAll('\n', '\r\n'),
     );
     _createRefactoring('a =');
     // validate change
@@ -392,7 +393,8 @@ a
 a
 bbb''';
 }
-""".replaceAll('\n', '\r\n'),
+"""
+          .replaceAll('\n', '\r\n'),
     );
   }
 

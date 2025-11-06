@@ -33,8 +33,7 @@ abstract class X extends A with M {}
 ''',
       [
         error(
-          CompileTimeErrorCode
-              .MIXIN_APPLICATION_NO_CONCRETE_SUPER_INVOKED_MEMBER,
+          CompileTimeErrorCode.mixinApplicationNoConcreteSuperInvokedMember,
           121,
           1,
         ),
@@ -63,8 +62,7 @@ class X extends A with M1, M2 {}
 ''',
       [
         error(
-          CompileTimeErrorCode
-              .MIXIN_APPLICATION_NO_CONCRETE_SUPER_INVOKED_MEMBER,
+          CompileTimeErrorCode.mixinApplicationNoConcreteSuperInvokedMember,
           149,
           2,
         ),
@@ -89,8 +87,7 @@ class X extends A with M {}
 ''',
       [
         error(
-          CompileTimeErrorCode
-              .MIXIN_APPLICATION_NO_CONCRETE_SUPER_INVOKED_MEMBER,
+          CompileTimeErrorCode.mixinApplicationNoConcreteSuperInvokedMember,
           113,
           1,
         ),
@@ -115,8 +112,7 @@ abstract class X extends A with M {}
 ''',
       [
         error(
-          CompileTimeErrorCode
-              .MIXIN_APPLICATION_NO_CONCRETE_SUPER_INVOKED_MEMBER,
+          CompileTimeErrorCode.mixinApplicationNoConcreteSuperInvokedMember,
           122,
           1,
         ),
@@ -259,8 +255,7 @@ abstract class X extends A with M {}
 ''',
       [
         error(
-          CompileTimeErrorCode
-              .MIXIN_APPLICATION_NO_CONCRETE_SUPER_INVOKED_SETTER,
+          CompileTimeErrorCode.mixinApplicationNoConcreteSuperInvokedSetter,
           129,
           1,
         ),
@@ -288,8 +283,7 @@ enum E with M1, M2 {
 ''',
       [
         error(
-          CompileTimeErrorCode
-              .MIXIN_APPLICATION_NO_CONCRETE_SUPER_INVOKED_MEMBER,
+          CompileTimeErrorCode.mixinApplicationNoConcreteSuperInvokedMember,
           99,
           2,
         ),
@@ -349,8 +343,7 @@ enum E with M1, M2 {
 ''',
       [
         error(
-          CompileTimeErrorCode
-              .MIXIN_APPLICATION_NO_CONCRETE_SUPER_INVOKED_MEMBER,
+          CompileTimeErrorCode.mixinApplicationNoConcreteSuperInvokedMember,
           100,
           2,
         ),
@@ -414,8 +407,7 @@ enum E with M1, M2 {
 ''',
       [
         error(
-          CompileTimeErrorCode
-              .MIXIN_APPLICATION_NO_CONCRETE_SUPER_INVOKED_SETTER,
+          CompileTimeErrorCode.mixinApplicationNoConcreteSuperInvokedSetter,
           106,
           2,
         ),

@@ -76,7 +76,7 @@ mixin AsyncCodeGeneratorMixin on StateMachineEntryAstCodeGenerator {
   }
 
   w.FunctionBuilder _defineInnerBodyFunction(FunctionNode functionNode) =>
-      b.module.functions.define(
+      b.moduleBuilder.functions.define(
           translator.typesBuilder.defineFunction([
             asyncSuspendStateInfo.nonNullableType, // _AsyncSuspendState
             translator.topType, // Object?, await value
@@ -200,7 +200,7 @@ class AsyncStateMachineCodeGenerator extends StateMachineCodeGenerator {
                   .withNullability(false),
               name: "this");
           translator
-              .getDummyValuesCollectorForModule(b.module)
+              .getDummyValuesCollectorForModule(b.moduleBuilder)
               .instantiateDummyValue(b, thisLocal!.type);
           b.local_set(thisLocal!);
 
@@ -279,7 +279,7 @@ class AsyncStateMachineCodeGenerator extends StateMachineCodeGenerator {
     }
 
     // Handle Dart exceptions.
-    b.catch_legacy(translator.getExceptionTag(b.module));
+    b.catch_legacy(translator.getExceptionTag(b.moduleBuilder));
     b.local_set(stackTraceLocal);
     b.local_set(exceptionLocal);
     callCompleteError();
@@ -395,7 +395,7 @@ class AsyncStateMachineCodeGenerator extends StateMachineCodeGenerator {
     b.local_get(_pendingStackTraceLocal);
     b.ref_as_non_null();
 
-    b.throw_(translator.getExceptionTag(b.module));
+    b.throw_(translator.getExceptionTag(b.moduleBuilder));
     b.end(); // exceptionBlock
 
     setVariable(awaitValueVar, () {

@@ -2,14 +2,17 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:_fe_analyzer_shared/src/messages/severity.dart' show Severity;
+import 'package:_fe_analyzer_shared/src/messages/severity.dart'
+    show CfeSeverity;
 import 'package:_fe_analyzer_shared/src/scanner/scanner.dart' show Token;
 import 'package:kernel/ast.dart' show Annotatable, Library, Version;
 import 'package:kernel/reference_from_index.dart';
 
 import '../api_prototype/experimental_flags.dart';
 import '../base/combinator.dart' show CombinatorBuilder;
+import '../base/directives.dart';
 import '../base/export.dart' show Export;
+import '../base/extension_scope.dart';
 import '../base/loader.dart' show Loader;
 import '../base/messages.dart'
     show LocatedMessage, Message, ProblemReporting, noLength;
@@ -62,12 +65,19 @@ sealed class CompilationUnit {
   Iterable<Uri> get dependencies;
 
   void recordAccess(
-      CompilationUnit accessor, int charOffset, int length, Uri fileUri);
+    CompilationUnit accessor,
+    int charOffset,
+    int length,
+    Uri fileUri,
+  );
 
   List<Export> get exporters;
 
-  void addExporter(SourceCompilationUnit exporter,
-      List<CombinatorBuilder>? combinators, int charOffset);
+  void addExporter(
+    SourceCompilationUnit exporter,
+    List<CombinatorBuilder>? combinators,
+    int charOffset,
+  );
 
   /// Add a problem with a severity determined by the severity of the message.
   ///
@@ -75,11 +85,16 @@ sealed class CompilationUnit {
   ///
   /// See `Loader.addMessage` for an explanation of the
   /// arguments passed to this method.
-  void addProblem(Message message, int charOffset, int length, Uri? fileUri,
-      {bool wasHandled = false,
-      List<LocatedMessage>? context,
-      Severity? severity,
-      bool problemOnLibrary = false});
+  void addProblem(
+    Message message,
+    int charOffset,
+    int length,
+    Uri? fileUri, {
+    bool wasHandled = false,
+    List<LocatedMessage>? context,
+    CfeSeverity? severity,
+    bool problemOnLibrary = false,
+  });
 }
 
 abstract class DillCompilationUnit implements CompilationUnit {}
@@ -116,8 +131,11 @@ abstract class SourceCompilationUnit
   ///
   /// [offset] and [length] refers to the offset and length of the source code
   /// specifying the language version.
-  void registerExplicitLanguageVersion(Version version,
-      {int offset = 0, int length = noLength});
+  void registerExplicitLanguageVersion(
+    Version version, {
+    int offset = 0,
+    int length = noLength,
+  });
 
   // TODO(johnniwinther): Remove this.
   bool get forAugmentationLibrary;
@@ -146,13 +164,11 @@ abstract class SourceCompilationUnit
 
   LanguageVersion get languageVersion;
 
-  String? get name;
+  LibraryDirective? get libraryDirective;
 
   int finishNativeMethods(SourceLoader loader);
 
-  String? get partOfName;
-
-  Uri? get partOfUri;
+  PartOf? get partOfDirective;
 
   List<MetadataBuilder>? get metadata;
 
@@ -167,7 +183,17 @@ abstract class SourceCompilationUnit
   /// This contains all imports with prefixes declared in this compilation unit.
   LookupScope get prefixScope;
 
+  ExtensionScope get prefixExtensionScope;
+
+  /// The name space containing the prefixes declared in this compilation unit.
   NameSpace get prefixNameSpace;
+
+  /// Returns the [PrefixBuilder] of the given [name] available in this
+  /// compilation unit, if any.
+  ///
+  /// A prefix builder is available if it is declared in this compilation unit
+  /// or if it is available in the parent compilation unit.
+  PrefixBuilder? lookupPrefixBuilder(String name);
 
   bool get mayImplementRestrictedTypes;
 
@@ -185,7 +211,9 @@ abstract class SourceCompilationUnit
   /// [libraryBuilder]. Inclusion of nested parts is from within this method,
   /// using [becomePart] for each individual subpart.
   void includeParts(
-      List<SourceCompilationUnit> includedParts, Set<Uri> usedParts);
+    List<SourceCompilationUnit> includedParts,
+    Set<Uri> usedParts,
+  );
 
   /// Includes this compilation unit as a part of [libraryBuilder] with
   /// [parentCompilationUnit] as the parent compilation unit.
@@ -200,24 +228,30 @@ abstract class SourceCompilationUnit
   /// the compilation units of the part directives in this compilation unit
   /// will be added [libraryBuilder] recursively.
   void becomePart(
-      SourceLibraryBuilder libraryBuilder,
-      LibraryNameSpaceBuilder libraryNameSpaceBuilder,
-      SourceCompilationUnit parentCompilationUnit,
-      List<SourceCompilationUnit> includedParts,
-      Set<Uri> usedParts,
-      {required bool allowPartInParts});
+    SourceLibraryBuilder libraryBuilder,
+    LibraryNameSpaceBuilder libraryNameSpaceBuilder,
+    SourceCompilationUnit parentCompilationUnit,
+    List<SourceCompilationUnit> includedParts,
+    Set<Uri> usedParts, {
+    required bool allowPartInParts,
+  });
 
-  void buildOutlineExpressions(
-      {required Annotatable annotatable,
-      required Uri annotatableFileUri,
-      required BodyBuilderContext bodyBuilderContext});
+  void buildOutlineExpressions({
+    required Annotatable annotatable,
+    required Uri annotatableFileUri,
+    required BodyBuilderContext bodyBuilderContext,
+  });
 
   /// Reports that [feature] is not enabled, using [charOffset] and
   /// [length] for the location of the message.
   ///
   /// Return the primary message.
   Message reportFeatureNotEnabled(
-      LibraryFeature feature, Uri fileUri, int charOffset, int length);
+    LibraryFeature feature,
+    Uri fileUri,
+    int charOffset,
+    int length,
+  );
 
   /// Registers that [augmentation] is a part of the library for which this is
   /// the main compilation unit.
@@ -239,7 +273,11 @@ abstract class SourceCompilationUnit
   /// Once the problems has been issued, adding a new "postponed" problem will
   /// be issued immediately.
   void addPostponedProblem(
-      Message message, int charOffset, int length, Uri fileUri);
+    Message message,
+    int charOffset,
+    int length,
+    Uri fileUri,
+  );
 
   void issuePostponedProblems();
 
@@ -248,16 +286,18 @@ abstract class SourceCompilationUnit
   /// Index of the library we use references for.
   IndexedLibrary? get indexedLibrary;
 
-  void addSyntheticImport(
-      {required Uri importUri,
-      required String? prefix,
-      required List<CombinatorBuilder>? combinators,
-      required bool deferred});
+  void addSyntheticImport({
+    required Uri importUri,
+    required String? prefix,
+    required List<CombinatorBuilder>? combinators,
+    required bool deferred,
+  });
 
-  void addImportedBuilderToScope(
-      {required String name,
-      required NamedBuilder builder,
-      required int charOffset});
+  void addImportedBuilderToScope({
+    required String name,
+    required NamedBuilder builder,
+    required int charOffset,
+  });
 
   void addImportsToScope();
 
@@ -269,8 +309,12 @@ abstract class SourceCompilationUnit
   /// where they were omitted by the programmer and not provided by the type
   /// inference.  The method returns the number of distinct type parameters
   /// that were instantiated in this library.
-  int computeDefaultTypes(TypeBuilder dynamicType, TypeBuilder nullType,
-      TypeBuilder bottomType, ClassBuilder objectClass);
+  int computeDefaultTypes(
+    TypeBuilder dynamicType,
+    TypeBuilder nullType,
+    TypeBuilder bottomType,
+    ClassBuilder objectClass,
+  );
 
   /// Computes variances of type parameters on typedefs.
   ///
@@ -292,7 +336,10 @@ abstract class SourceCompilationUnit
   /// prefix was merged with an existing prefix of the same name.
   // TODO(johnniwinther): Remove this.
   bool addPrefixFragment(
-      String name, PrefixFragment prefixFragment, int charOffset);
+    String name,
+    PrefixFragment prefixFragment,
+    int charOffset,
+  );
 
   int resolveTypes(ProblemReporting problemReporting);
 }

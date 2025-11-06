@@ -93,7 +93,7 @@ void top() {
 ''',
       errorFilter: (error) {
         return error.diagnosticCode ==
-            CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION;
+            CompileTimeErrorCode.returnOfInvalidTypeFromFunction;
       },
     );
   }
@@ -137,7 +137,7 @@ class B extends A {
 ''',
       errorFilter: (error) {
         return error.diagnosticCode ==
-            CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_METHOD;
+            CompileTimeErrorCode.returnOfInvalidTypeFromMethod;
       },
     );
   }
@@ -192,7 +192,13 @@ int f(A a) {
   return a.b();
 }
 ''');
-    await assertNoFix();
+    await assertHasFix('''
+import 'package:test/a.dart';
+
+Object f(A a) {
+  return a.b();
+}
+''');
   }
 
   Future<void> test_upperBound_function() async {
@@ -215,7 +221,7 @@ num f() {
 ''',
       errorFilter: (error) {
         return error.diagnosticCode ==
-            CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION;
+            CompileTimeErrorCode.returnOfInvalidTypeFromFunction;
       },
     );
   }
@@ -244,7 +250,7 @@ class A {
 ''',
       errorFilter: (error) {
         return error.diagnosticCode ==
-            CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_METHOD;
+            CompileTimeErrorCode.returnOfInvalidTypeFromMethod;
       },
     );
   }

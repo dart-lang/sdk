@@ -46,17 +46,24 @@ class RemoteVm {
     if (existing != null) return existing.stream;
 
     late final StreamController controller;
-    controller = StreamController.broadcast(onListen: () {
-      rpc.sendRequest('streamListen', {'streamId': streamId}).catchError(
-          (error, stack) {
-        controller.addError(error, stack);
-      });
-    }, onCancel: () {
-      rpc.sendRequest('streamCancel', {'streamId': streamId}).catchError(
-          (error, stack) {
-        controller.addError(error, stack);
-      });
-    });
+    controller = StreamController.broadcast(
+      onListen: () {
+        rpc.sendRequest('streamListen', {'streamId': streamId}).catchError((
+          error,
+          stack,
+        ) {
+          controller.addError(error, stack);
+        });
+      },
+      onCancel: () {
+        rpc.sendRequest('streamCancel', {'streamId': streamId}).catchError((
+          error,
+          stack,
+        ) {
+          controller.addError(error, stack);
+        });
+      },
+    );
 
     return (_eventStreams[streamId] = controller).stream;
   }
@@ -67,13 +74,16 @@ class RemoteVm {
   json_rpc.Peer _createPeer() {
     var socket = new IOWebSocketChannel.connect('ws://127.0.0.1:$port/ws');
     var peer = new json_rpc.Peer(socket.cast<String>());
-    peer.listen().then((_) {
-      if (VERBOSE_DEBUG) print('connection to vm-service closed');
-      return disconnect();
-    }).catchError((e) {
-      if (VERBOSE_DEBUG) print('error connecting to the vm-service');
-      return disconnect();
-    });
+    peer
+        .listen()
+        .then((_) {
+          if (VERBOSE_DEBUG) print('connection to vm-service closed');
+          return disconnect();
+        })
+        .catchError((e) {
+          if (VERBOSE_DEBUG) print('error connecting to the vm-service');
+          return disconnect();
+        });
     peer.registerMethod('streamNotify', (arg) {
       final response = (arg as json_rpc.Parameters).asMap;
       final streamId = response['streamId'];
@@ -87,8 +97,9 @@ class RemoteVm {
 
   /// Retrieves the ID of the main isolate using the service protocol.
   Future<String> _computeMainId() async {
-    final isolateStartEventFuture =
-        getEventStream('Isolate').firstWhere((event) {
+    final isolateStartEventFuture = getEventStream('Isolate').firstWhere((
+      event,
+    ) {
       return event['kind'] == 'IsolateStart';
     });
 

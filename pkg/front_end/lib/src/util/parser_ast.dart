@@ -32,8 +32,9 @@ CompilationUnitEnd getAST(
   List<Token>? languageVersionsSeen,
   List<int>? lineStarts,
 }) {
-  ScannerConfiguration scannerConfiguration =
-      new ScannerConfiguration(enableTripleShift: enableTripleShift);
+  ScannerConfiguration scannerConfiguration = new ScannerConfiguration(
+    enableTripleShift: enableTripleShift,
+  );
 
   ScannerResult scanResult = scan(
     rawBytes,
@@ -64,10 +65,12 @@ CompilationUnitEnd getAST(
       enableFeatureEnhancedParts: enableEnhancedParts,
     );
   } else {
-    parser = new ClassMemberParser(listener,
-        useImplicitCreationExpression: useImplicitCreationExpressionInCfe,
-        allowPatterns: allowPatterns,
-        enableFeatureEnhancedParts: enableEnhancedParts);
+    parser = new ClassMemberParser(
+      listener,
+      useImplicitCreationExpression: useImplicitCreationExpressionInCfe,
+      allowPatterns: allowPatterns,
+      enableFeatureEnhancedParts: enableEnhancedParts,
+    );
   }
   parser.parseUnit(firstToken);
   return listener.data.single as CompilationUnitEnd;
@@ -156,7 +159,10 @@ class BestEffortParserAstVisitor {
     if (node is TypedefEnd) {
       TypedefEnd typedefDecl = node;
       visitTypedef(
-          typedefDecl, typedefDecl.typedefKeyword, typedefDecl.endToken);
+        typedefDecl,
+        typedefDecl.typedefKeyword,
+        typedefDecl.endToken,
+      );
       return;
     }
     if (node is ClassDeclarationEnd) {
@@ -246,8 +252,11 @@ class BestEffortParserAstVisitor {
     }
     if (node is EnumEnd) {
       EnumEnd declaration = node;
-      visitEnum(declaration, declaration.enumKeyword,
-          declaration.leftBrace.endGroup!);
+      visitEnum(
+        declaration,
+        declaration.enumKeyword,
+        declaration.leftBrace.endGroup!,
+      );
       return;
     }
     if (node is LibraryNameEnd) {
@@ -331,7 +340,10 @@ class BestEffortParserAstVisitor {
 
   /// Note: Implementers are NOT expected to call visitChildren on this node.
   void visitTypedef(
-      TypedefEnd node, Token startInclusive, Token endInclusive) {}
+    TypedefEnd node,
+    Token startInclusive,
+    Token endInclusive,
+  ) {}
 
   /// Note: Implementers can call visitChildren on this node.
   void visitMetadataStar(MetadataStarEnd node) {
@@ -340,59 +352,98 @@ class BestEffortParserAstVisitor {
 
   /// Note: Implementers can call visitChildren on this node.
   void visitClass(
-      ClassDeclarationEnd node, Token startInclusive, Token endInclusive) {
+    ClassDeclarationEnd node,
+    Token startInclusive,
+    Token endInclusive,
+  ) {
     visitChildren(node);
   }
 
   /// Note: Implementers are NOT expected to call visitChildren on this node.
   void visitTopLevelMethod(
-      TopLevelMethodEnd node, Token startInclusive, Token endInclusive) {}
+    TopLevelMethodEnd node,
+    Token startInclusive,
+    Token endInclusive,
+  ) {}
 
   /// Note: Implementers are NOT expected to call visitChildren on this node.
   void visitClassMethod(
-      ClassMethodEnd node, Token startInclusive, Token endInclusive) {}
+    ClassMethodEnd node,
+    Token startInclusive,
+    Token endInclusive,
+  ) {}
 
   /// Note: Implementers are NOT expected to call visitChildren on this node.
   void visitExtensionMethod(
-      ExtensionMethodEnd node, Token startInclusive, Token endInclusive) {}
+    ExtensionMethodEnd node,
+    Token startInclusive,
+    Token endInclusive,
+  ) {}
 
   /// Note: Implementers are NOT expected to call visitChildren on this node.
   void visitExtensionTypeMethod(
-      ExtensionTypeMethodEnd node, Token startInclusive, Token endInclusive) {}
+    ExtensionTypeMethodEnd node,
+    Token startInclusive,
+    Token endInclusive,
+  ) {}
 
   /// Note: Implementers are NOT expected to call visitChildren on this node.
   void visitMixinMethod(
-      MixinMethodEnd node, Token startInclusive, Token endInclusive) {}
+    MixinMethodEnd node,
+    Token startInclusive,
+    Token endInclusive,
+  ) {}
 
   /// Note: Implementers are NOT expected to call visitChildren on this node.
   void visitTopLevelFields(
-      TopLevelFieldsEnd node, Token startInclusive, Token endInclusive) {}
+    TopLevelFieldsEnd node,
+    Token startInclusive,
+    Token endInclusive,
+  ) {}
 
   /// Note: Implementers are NOT expected to call visitChildren on this node.
   void visitClassFields(
-      ClassFieldsEnd node, Token startInclusive, Token endInclusive) {}
+    ClassFieldsEnd node,
+    Token startInclusive,
+    Token endInclusive,
+  ) {}
 
   /// Note: Implementers are NOT expected to call visitChildren on this node.
   void visitExtensionFields(
-      ExtensionFieldsEnd node, Token startInclusive, Token endInclusive) {}
+    ExtensionFieldsEnd node,
+    Token startInclusive,
+    Token endInclusive,
+  ) {}
 
   /// Note: Implementers are NOT expected to call visitChildren on this node.
   void visitExtensionTypeFields(
-      ExtensionTypeFieldsEnd node, Token startInclusive, Token endInclusive) {}
+    ExtensionTypeFieldsEnd node,
+    Token startInclusive,
+    Token endInclusive,
+  ) {}
 
   /// Note: Implementers are NOT expected to call visitChildren on this node.
   void visitMixinFields(
-      MixinFieldsEnd node, Token startInclusive, Token endInclusive) {}
+    MixinFieldsEnd node,
+    Token startInclusive,
+    Token endInclusive,
+  ) {}
 
   /// Note: Implementers can call visitChildren on this node.
   void visitNamedMixin(
-      NamedMixinApplicationEnd node, Token startInclusive, Token endInclusive) {
+    NamedMixinApplicationEnd node,
+    Token startInclusive,
+    Token endInclusive,
+  ) {
     visitChildren(node);
   }
 
   /// Note: Implementers can call visitChildren on this node.
   void visitMixin(
-      MixinDeclarationEnd node, Token startInclusive, Token endInclusive) {
+    MixinDeclarationEnd node,
+    Token startInclusive,
+    Token endInclusive,
+  ) {
     visitChildren(node);
   }
 
@@ -401,7 +452,10 @@ class BestEffortParserAstVisitor {
 
   /// Note: Implementers are NOT expected to call visitChildren on this node.
   void visitLibraryName(
-      LibraryNameEnd node, Token startInclusive, Token endInclusive) {}
+    LibraryNameEnd node,
+    Token startInclusive,
+    Token endInclusive,
+  ) {}
 
   /// Note: Implementers are NOT expected to call visitChildren on this node.
   void visitPart(PartEnd node, Token startInclusive, Token endInclusive) {}
@@ -411,43 +465,70 @@ class BestEffortParserAstVisitor {
 
   /// Note: Implementers can call visitChildren on this node.
   void visitExtension(
-      ExtensionDeclarationEnd node, Token startInclusive, Token endInclusive) {
+    ExtensionDeclarationEnd node,
+    Token startInclusive,
+    Token endInclusive,
+  ) {
     visitChildren(node);
   }
 
   /// Note: Implementers can call visitChildren on this node.
-  void visitExtensionTypeDeclaration(ExtensionTypeDeclarationEnd node,
-      Token startInclusive, Token endInclusive) {
+  void visitExtensionTypeDeclaration(
+    ExtensionTypeDeclarationEnd node,
+    Token startInclusive,
+    Token endInclusive,
+  ) {
     visitChildren(node);
   }
 
   /// Note: Implementers are NOT expected to call visitChildren on this node.
   void visitClassConstructor(
-      ClassConstructorEnd node, Token startInclusive, Token endInclusive) {}
+    ClassConstructorEnd node,
+    Token startInclusive,
+    Token endInclusive,
+  ) {}
 
   /// Note: Implementers are NOT expected to call visitChildren on this node.
   void visitExtensionConstructor(
-      ExtensionConstructorEnd node, Token startInclusive, Token endInclusive) {}
+    ExtensionConstructorEnd node,
+    Token startInclusive,
+    Token endInclusive,
+  ) {}
 
   /// Note: Implementers are NOT expected to call visitChildren on this node.
-  void visitExtensionTypeConstructor(ExtensionTypeConstructorEnd node,
-      Token startInclusive, Token endInclusive) {}
+  void visitExtensionTypeConstructor(
+    ExtensionTypeConstructorEnd node,
+    Token startInclusive,
+    Token endInclusive,
+  ) {}
 
   /// Note: Implementers are NOT expected to call visitChildren on this node.
   void visitClassFactoryMethod(
-      ClassFactoryMethodEnd node, Token startInclusive, Token endInclusive) {}
+    ClassFactoryMethodEnd node,
+    Token startInclusive,
+    Token endInclusive,
+  ) {}
 
   /// Note: Implementers are NOT expected to call visitChildren on this node.
-  void visitExtensionFactoryMethod(ExtensionFactoryMethodEnd node,
-      Token startInclusive, Token endInclusive) {}
+  void visitExtensionFactoryMethod(
+    ExtensionFactoryMethodEnd node,
+    Token startInclusive,
+    Token endInclusive,
+  ) {}
 
   /// Note: Implementers are NOT expected to call visitChildren on this node.
-  void visitExtensionTypeFactoryMethod(ExtensionTypeFactoryMethodEnd node,
-      Token startInclusive, Token endInclusive) {}
+  void visitExtensionTypeFactoryMethod(
+    ExtensionTypeFactoryMethodEnd node,
+    Token startInclusive,
+    Token endInclusive,
+  ) {}
 
   /// Note: Implementers are NOT expected to call visitChildren on this node.
   void visitMetadata(
-      MetadataEnd node, Token startInclusive, Token endInclusive) {}
+    MetadataEnd node,
+    Token startInclusive,
+    Token endInclusive,
+  ) {}
 }
 
 enum MemberContentType {
@@ -892,7 +973,9 @@ extension GeneralASTContentExtension on ParserAstNode {
   }
 
   static void _recursivelyFindInternal<E extends ParserAstNode>(
-      ParserAstNode node, Set<E> result) {
+    ParserAstNode node,
+    Set<E> result,
+  ) {
     if (node is E) {
       result.add(node);
       return;
@@ -904,8 +987,10 @@ extension GeneralASTContentExtension on ParserAstNode {
   }
 
   void debugDumpNodeRecursively({String indent = ""}) {
-    print("$indent${runtimeType} (${what}) "
-        "(${deprecatedArguments})");
+    print(
+      "$indent${runtimeType} (${what}) "
+      "(${deprecatedArguments})",
+    );
     if (children == null) return;
     for (ParserAstNode child in children!) {
       child.debugDumpNodeRecursively(indent: "  $indent");
@@ -1683,8 +1768,13 @@ extension ImportExtension on ImportEnd {
     for (ParserAstNode child in children!) {
       if (child is LiteralStringEnd) {
         LiteralStringBegin uri = child.children!.single as LiteralStringBegin;
-        sb.write(unescapeString(
-            uri.token.lexeme, uri.token, const UnescapeErrorListenerDummy()));
+        sb.write(
+          unescapeString(
+            uri.token.lexeme,
+            uri.token,
+            const UnescapeErrorListenerDummy(),
+          ),
+        );
         foundOne = true;
       }
     }
@@ -1700,8 +1790,13 @@ extension ImportExtension on ImportEnd {
           if (child2 is ConditionalUriEnd) {
             LiteralStringEnd end = child2.children!.last as LiteralStringEnd;
             LiteralStringBegin uri = end.children!.single as LiteralStringBegin;
-            (result ??= []).add(unescapeString(uri.token.lexeme, uri.token,
-                const UnescapeErrorListenerDummy()));
+            (result ??= []).add(
+              unescapeString(
+                uri.token.lexeme,
+                uri.token,
+                const UnescapeErrorListenerDummy(),
+              ),
+            );
           }
         }
         return result;
@@ -1719,8 +1814,13 @@ extension ExportExtension on ExportEnd {
     for (ParserAstNode child in children!) {
       if (child is LiteralStringEnd) {
         LiteralStringBegin uri = child.children!.single as LiteralStringBegin;
-        sb.write(unescapeString(
-            uri.token.lexeme, uri.token, const UnescapeErrorListenerDummy()));
+        sb.write(
+          unescapeString(
+            uri.token.lexeme,
+            uri.token,
+            const UnescapeErrorListenerDummy(),
+          ),
+        );
         foundOne = true;
       }
     }
@@ -1736,8 +1836,13 @@ extension ExportExtension on ExportEnd {
           if (child2 is ConditionalUriEnd) {
             LiteralStringEnd end = child2.children!.last as LiteralStringEnd;
             LiteralStringBegin uri = end.children!.single as LiteralStringBegin;
-            (result ??= []).add(unescapeString(uri.token.lexeme, uri.token,
-                const UnescapeErrorListenerDummy()));
+            (result ??= []).add(
+              unescapeString(
+                uri.token.lexeme,
+                uri.token,
+                const UnescapeErrorListenerDummy(),
+              ),
+            );
           }
         }
         return result;
@@ -1755,8 +1860,13 @@ extension PartExtension on PartEnd {
     for (ParserAstNode child in children!) {
       if (child is LiteralStringEnd) {
         LiteralStringBegin uri = child.children!.single as LiteralStringBegin;
-        sb.write(unescapeString(
-            uri.token.lexeme, uri.token, const UnescapeErrorListenerDummy()));
+        sb.write(
+          unescapeString(
+            uri.token.lexeme,
+            uri.token,
+            const UnescapeErrorListenerDummy(),
+          ),
+        );
         foundOne = true;
       }
     }
@@ -1773,8 +1883,13 @@ extension PartOfExtension on PartOfEnd {
     for (ParserAstNode child in children!) {
       if (child is LiteralStringEnd) {
         LiteralStringBegin uri = child.children!.single as LiteralStringBegin;
-        sb.write(unescapeString(
-            uri.token.lexeme, uri.token, const UnescapeErrorListenerDummy()));
+        sb.write(
+          unescapeString(
+            uri.token.lexeme,
+            uri.token,
+            const UnescapeErrorListenerDummy(),
+          ),
+        );
         foundOne = true;
       }
     }
@@ -1812,7 +1927,11 @@ class UnescapeErrorListenerDummy implements UnescapeErrorListener {
   @override
   // Coverage-ignore(suite): Not run.
   void handleUnescapeError(
-      Message message, covariant location, int offset, int length) {
+    Message message,
+    covariant location,
+    int offset,
+    int length,
+  ) {
     // Purposely doesn't do anything.
   }
 }
@@ -2213,8 +2332,10 @@ void main(List<String> args) {
       }
     }
     stopwatch.stop();
-    print("First $numRuns took ${stopwatch.elapsedMilliseconds} ms "
-        "(i.e. ${stopwatch.elapsedMilliseconds / numRuns}ms/iteration)");
+    print(
+      "First $numRuns took ${stopwatch.elapsedMilliseconds} ms "
+      "(i.e. ${stopwatch.elapsedMilliseconds / numRuns}ms/iteration)",
+    );
     stopwatch = new Stopwatch()..start();
     numRuns = 2500;
     for (int i = 0; i < numRuns; i++) {
@@ -2224,8 +2345,10 @@ void main(List<String> args) {
       }
     }
     stopwatch.stop();
-    print("Next $numRuns took ${stopwatch.elapsedMilliseconds} ms "
-        "(i.e. ${stopwatch.elapsedMilliseconds / numRuns}ms/iteration)");
+    print(
+      "Next $numRuns took ${stopwatch.elapsedMilliseconds} ms "
+      "(i.e. ${stopwatch.elapsedMilliseconds / numRuns}ms/iteration)",
+    );
   } else {
     print(ast);
   }

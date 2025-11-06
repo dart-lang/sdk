@@ -9,7 +9,7 @@ import 'package:kernel/ast.dart';
 void main() {
   void check(Map<Node, String> expectations, int bulletCount) {
     TypeLabeler labeler = new TypeLabeler();
-    Map<Node, List<Object>> conversions = {};
+    Map<Node, LabeledString> conversions = {};
     expectations.forEach((Node node, String expected) {
       if (node is DartType) {
         conversions[node] = labeler.labelType(node);
@@ -20,7 +20,7 @@ void main() {
       }
     });
     expectations.forEach((Node node, String expected) {
-      Expect.stringEquals(expected, conversions[node]!.join());
+      Expect.stringEquals(expected, conversions[node]!.toString());
     });
     int newlines = "\n".allMatches(labeler.originMessages).length;
     Expect.equals(bulletCount, newlines);
@@ -36,34 +36,44 @@ void main() {
   Class objectClass = new Class(name: "Object", fileUri: dartCoreUri)
     ..parent = dartCoreLib;
   Supertype objectSuper = new Supertype(objectClass, []);
-  Class boolClass =
-      new Class(name: "bool", supertype: objectSuper, fileUri: dartCoreUri)
-        ..parent = dartCoreLib;
-  Class numClass =
-      new Class(name: "num", supertype: objectSuper, fileUri: dartCoreUri)
-        ..parent = dartCoreLib;
+  Class boolClass = new Class(
+    name: "bool",
+    supertype: objectSuper,
+    fileUri: dartCoreUri,
+  )..parent = dartCoreLib;
+  Class numClass = new Class(
+    name: "num",
+    supertype: objectSuper,
+    fileUri: dartCoreUri,
+  )..parent = dartCoreLib;
   Supertype numSuper = new Supertype(numClass, []);
-  Class intClass =
-      new Class(name: "int", supertype: numSuper, fileUri: dartCoreUri)
-        ..parent = dartCoreLib;
-  Class fooClass =
-      new Class(name: "Foo", supertype: objectSuper, fileUri: myUri)
-        ..parent = myLib;
-  Class foo2Class =
-      new Class(name: "Foo", supertype: objectSuper, fileUri: myUri)
-        ..parent = myLib;
+  Class intClass = new Class(
+    name: "int",
+    supertype: numSuper,
+    fileUri: dartCoreUri,
+  )..parent = dartCoreLib;
+  Class fooClass = new Class(
+    name: "Foo",
+    supertype: objectSuper,
+    fileUri: myUri,
+  )..parent = myLib;
+  Class foo2Class = new Class(
+    name: "Foo",
+    supertype: objectSuper,
+    fileUri: myUri,
+  )..parent = myLib;
   Class barClass = new Class(
-      name: "Bar",
-      supertype: objectSuper,
-      typeParameters: [new TypeParameter("X")],
-      fileUri: myUri)
-    ..parent = myLib;
+    name: "Bar",
+    supertype: objectSuper,
+    typeParameters: [new TypeParameter("X")],
+    fileUri: myUri,
+  )..parent = myLib;
   Class bazClass = new Class(
-      name: "Baz",
-      supertype: objectSuper,
-      typeParameters: [new TypeParameter("X"), new TypeParameter("Y")],
-      fileUri: myUri)
-    ..parent = myLib;
+    name: "Baz",
+    supertype: objectSuper,
+    typeParameters: [new TypeParameter("X"), new TypeParameter("Y")],
+    fileUri: myUri,
+  )..parent = myLib;
 
   // Test types
   DartType voidType = const VoidType();
@@ -91,136 +101,199 @@ void main() {
   check({foo2: "Foo"}, 1);
   check({foo: "Foo/*1*/", foo2: "Foo/*2*/"}, 2);
 
-  DartType barVoid =
-      new InterfaceType(barClass, Nullability.nonNullable, [voidType]);
+  DartType barVoid = new InterfaceType(barClass, Nullability.nonNullable, [
+    voidType,
+  ]);
   check({barVoid: "Bar<void>"}, 1);
 
-  DartType barObject =
-      new InterfaceType(barClass, Nullability.nonNullable, [object]);
+  DartType barObject = new InterfaceType(barClass, Nullability.nonNullable, [
+    object,
+  ]);
   check({barObject: "Bar<Object>"}, 2);
 
-  DartType barBarDynamic =
-      new InterfaceType(barClass, Nullability.nonNullable, [
-    new InterfaceType(barClass, Nullability.nonNullable, [dynamicType])
-  ]);
+  DartType barBarDynamic = new InterfaceType(
+    barClass,
+    Nullability.nonNullable,
+    [
+      new InterfaceType(barClass, Nullability.nonNullable, [dynamicType]),
+    ],
+  );
   check({barBarDynamic: "Bar<Bar<dynamic>>"}, 1);
 
-  DartType parameterY =
-      new TypeParameterType(new TypeParameter("Y"), Nullability.nonNullable);
-  DartType barY =
-      new InterfaceType(barClass, Nullability.nonNullable, [parameterY]);
+  DartType parameterY = new TypeParameterType(
+    new TypeParameter("Y"),
+    Nullability.nonNullable,
+  );
+  DartType barY = new InterfaceType(barClass, Nullability.nonNullable, [
+    parameterY,
+  ]);
   check({parameterY: "Y", barY: "Bar<Y>"}, 1);
 
-  DartType bazFooBarBazDynamicVoid =
-      new InterfaceType(bazClass, Nullability.nonNullable, [
-    foo,
-    new InterfaceType(barClass, Nullability.nonNullable, [
-      new InterfaceType(
-          bazClass, Nullability.nonNullable, [dynamicType, voidType])
-    ])
-  ]);
+  DartType bazFooBarBazDynamicVoid = new InterfaceType(
+    bazClass,
+    Nullability.nonNullable,
+    [
+      foo,
+      new InterfaceType(barClass, Nullability.nonNullable, [
+        new InterfaceType(bazClass, Nullability.nonNullable, [
+          dynamicType,
+          voidType,
+        ]),
+      ]),
+    ],
+  );
   check({bazFooBarBazDynamicVoid: "Baz<Foo, Bar<Baz<dynamic, void>>>"}, 3);
 
-  DartType bazFooFoo2 =
-      new InterfaceType(bazClass, Nullability.nonNullable, [foo, foo2]);
+  DartType bazFooFoo2 = new InterfaceType(bazClass, Nullability.nonNullable, [
+    foo,
+    foo2,
+  ]);
   check({bazFooFoo2: "Baz<Foo/*1*/, Foo/*2*/>"}, 3);
 
   DartType funVoid = new FunctionType([], voidType, Nullability.nonNullable);
   check({funVoid: "void Function()"}, 0);
 
-  DartType funFooBarVoid =
-      new FunctionType([foo], barVoid, Nullability.nonNullable);
+  DartType funFooBarVoid = new FunctionType(
+    [foo],
+    barVoid,
+    Nullability.nonNullable,
+  );
   check({funFooBarVoid: "Bar<void> Function(Foo)"}, 2);
 
   DartType funFooFoo2 = new FunctionType([foo], foo2, Nullability.nonNullable);
   check({funFooFoo2: "Foo/*1*/ Function(Foo/*2*/)"}, 2);
 
   DartType funOptFooVoid = new FunctionType(
-      [foo], voidType, Nullability.nonNullable,
-      requiredParameterCount: 0);
+    [foo],
+    voidType,
+    Nullability.nonNullable,
+    requiredParameterCount: 0,
+  );
   check({funOptFooVoid: "void Function([Foo])"}, 1);
 
   DartType funFooOptIntVoid = new FunctionType(
-      [foo, intType], voidType, Nullability.nonNullable,
-      requiredParameterCount: 1);
+    [foo, intType],
+    voidType,
+    Nullability.nonNullable,
+    requiredParameterCount: 1,
+  );
   check({funFooOptIntVoid: "void Function(Foo, [int])"}, 1);
 
   DartType funOptFooOptIntVoid = new FunctionType(
-      [foo, intType], voidType, Nullability.nonNullable,
-      requiredParameterCount: 0);
+    [foo, intType],
+    voidType,
+    Nullability.nonNullable,
+    requiredParameterCount: 0,
+  );
   check({funOptFooOptIntVoid: "void Function([Foo, int])"}, 1);
 
   DartType funNamedObjectVoid = new FunctionType(
-      [], voidType, Nullability.nonNullable,
-      namedParameters: [new NamedType("obj", object)]);
+    [],
+    voidType,
+    Nullability.nonNullable,
+    namedParameters: [new NamedType("obj", object)],
+  );
   check({funNamedObjectVoid: "void Function({Object obj})"}, 1);
 
   DartType funFooNamedObjectVoid = new FunctionType(
-      [foo], voidType, Nullability.nonNullable,
-      namedParameters: [new NamedType("obj", object)]);
+    [foo],
+    voidType,
+    Nullability.nonNullable,
+    namedParameters: [new NamedType("obj", object)],
+  );
   check({funFooNamedObjectVoid: "void Function(Foo, {Object obj})"}, 2);
 
   StructuralParameter t = new StructuralParameter("T", object, dynamicType);
   DartType funGeneric = new FunctionType(
-      [new StructuralParameterType(t, Nullability.nonNullable)],
-      new StructuralParameterType(t, Nullability.nonNullable),
-      Nullability.nonNullable,
-      typeParameters: [t]);
+    [new StructuralParameterType(t, Nullability.nonNullable)],
+    new StructuralParameterType(t, Nullability.nonNullable),
+    Nullability.nonNullable,
+    typeParameters: [t],
+  );
   check({funGeneric: "T Function<T>(T)"}, 0);
 
   StructuralParameter tObject = new StructuralParameter("T", object, object);
   DartType funGenericObject = new FunctionType(
-      [new StructuralParameterType(tObject, Nullability.nonNullable)],
-      new StructuralParameterType(tObject, Nullability.nonNullable),
-      Nullability.nonNullable,
-      typeParameters: [tObject]);
+    [new StructuralParameterType(tObject, Nullability.nonNullable)],
+    new StructuralParameterType(tObject, Nullability.nonNullable),
+    Nullability.nonNullable,
+    typeParameters: [tObject],
+  );
   check({funGenericObject: "T Function<T extends Object>(T)"}, 1);
 
   StructuralParameter tFoo = new StructuralParameter("T", foo, dynamicType);
   DartType funGenericFoo = new FunctionType(
-      [new StructuralParameterType(tFoo, Nullability.nonNullable)],
-      new StructuralParameterType(tFoo, Nullability.nonNullable),
-      Nullability.nonNullable,
-      typeParameters: [tFoo]);
+    [new StructuralParameterType(tFoo, Nullability.nonNullable)],
+    new StructuralParameterType(tFoo, Nullability.nonNullable),
+    Nullability.nonNullable,
+    typeParameters: [tFoo],
+  );
   check({funGenericFoo: "T Function<T extends Foo>(T)"}, 1);
 
-  StructuralParameter tBar =
-      new StructuralParameter("T", dynamicType, dynamicType);
-  tBar.bound = new InterfaceType(barClass, Nullability.nonNullable,
-      [new StructuralParameterType(tBar, Nullability.nonNullable)]);
+  StructuralParameter tBar = new StructuralParameter(
+    "T",
+    dynamicType,
+    dynamicType,
+  );
+  tBar.bound = new InterfaceType(barClass, Nullability.nonNullable, [
+    new StructuralParameterType(tBar, Nullability.nonNullable),
+  ]);
   DartType funGenericBar = new FunctionType(
-      [new StructuralParameterType(tBar, Nullability.nonNullable)],
-      new StructuralParameterType(tBar, Nullability.nonNullable),
-      Nullability.nonNullable,
-      typeParameters: [tBar]);
+    [new StructuralParameterType(tBar, Nullability.nonNullable)],
+    new StructuralParameterType(tBar, Nullability.nonNullable),
+    Nullability.nonNullable,
+    typeParameters: [tBar],
+  );
   check({funGenericBar: "T Function<T extends Bar<T>>(T)"}, 1);
 
   // Add some members for testing instance constants
-  Field booField = new Field.immutable(new Name("boo"),
-      type: boolType, fileUri: fooClass.fileUri);
+  Field booField = new Field.immutable(
+    new Name("boo"),
+    type: boolType,
+    fileUri: fooClass.fileUri,
+  );
   fooClass.fields.add(booField);
-  Field valueField = new Field.immutable(new Name("value"),
-      type: intType, fileUri: foo2Class.fileUri);
+  Field valueField = new Field.immutable(
+    new Name("value"),
+    type: intType,
+    fileUri: foo2Class.fileUri,
+  );
   foo2Class.fields.add(valueField);
-  Field nextField = new Field.immutable(new Name("next"),
-      type: foo2, fileUri: foo2Class.fileUri);
+  Field nextField = new Field.immutable(
+    new Name("next"),
+    type: foo2,
+    fileUri: foo2Class.fileUri,
+  );
   foo2Class.fields.add(nextField);
-  Field xField = new Field.immutable(new Name("x"),
-      type: new TypeParameterType(
-          bazClass.typeParameters[0], Nullability.nonNullable),
-      fileUri: bazClass.fileUri);
+  Field xField = new Field.immutable(
+    new Name("x"),
+    type: new TypeParameterType(
+      bazClass.typeParameters[0],
+      Nullability.nonNullable,
+    ),
+    fileUri: bazClass.fileUri,
+  );
   bazClass.fields.add(xField);
-  Field yField = new Field.immutable(new Name("y"),
-      type: new TypeParameterType(
-          bazClass.typeParameters[1], Nullability.nonNullable),
-      fileUri: bazClass.fileUri);
+  Field yField = new Field.immutable(
+    new Name("y"),
+    type: new TypeParameterType(
+      bazClass.typeParameters[1],
+      Nullability.nonNullable,
+    ),
+    fileUri: bazClass.fileUri,
+  );
   bazClass.fields.add(yField);
-  FunctionNode gooFunction = new FunctionNode(new EmptyStatement(),
-      typeParameters: [new TypeParameter("V")]);
+  FunctionNode gooFunction = new FunctionNode(
+    new EmptyStatement(),
+    typeParameters: [new TypeParameter("V")],
+  );
   Procedure gooMethod = new Procedure(
-      new Name("goo"), ProcedureKind.Method, gooFunction,
-      isStatic: true, fileUri: fooClass.fileUri)
-    ..parent = fooClass;
+    new Name("goo"),
+    ProcedureKind.Method,
+    gooFunction,
+    isStatic: true,
+    fileUri: fooClass.fileUri,
+  )..parent = fooClass;
 
   // Test constants
   Constant nullConst = new NullConstant();
@@ -241,13 +314,14 @@ void main() {
   Constant symLibConst = new SymbolConstant("bar", dartCoreLib.reference);
   check({symConst: "#foo", symLibConst: "#dart:core::bar"}, 0);
 
-  Constant fooConst = new InstanceConstant(
-      fooClass.reference, [], {booField.fieldReference: trueConst});
+  Constant fooConst = new InstanceConstant(fooClass.reference, [], {
+    booField.fieldReference: trueConst,
+  });
   check({fooConst: "Foo {boo: true}"}, 1);
 
   Constant foo2Const = new InstanceConstant(foo2Class.reference, [], {
     nextField.fieldReference: nullConst,
-    valueField.fieldReference: intConst
+    valueField.fieldReference: intConst,
   });
   check({foo2Const: "Foo {value: 2, next: null}"}, 1);
 
@@ -255,18 +329,20 @@ void main() {
     valueField.fieldReference: intConst,
     nextField.fieldReference: new InstanceConstant(foo2Class.reference, [], {
       valueField.fieldReference: intConst,
-      nextField.fieldReference: nullConst
+      nextField.fieldReference: nullConst,
     }),
   });
   check({foo2nConst: "Foo {value: 2, next: Foo {value: 2, next: null}}"}, 1);
 
   Constant bazFooFoo2Const = new InstanceConstant(
-      bazClass.reference,
-      [foo, foo2],
-      {xField.fieldReference: fooConst, yField.fieldReference: foo2Const});
+    bazClass.reference,
+    [foo, foo2],
+    {xField.fieldReference: fooConst, yField.fieldReference: foo2Const},
+  );
   check({
-    bazFooFoo2Const: "Baz<Foo/*1*/, Foo/*2*/> "
-        "{x: Foo/*1*/ {boo: true}, y: Foo/*2*/ {value: 2, next: null}}"
+    bazFooFoo2Const:
+        "Baz<Foo/*1*/, Foo/*2*/> "
+        "{x: Foo/*1*/ {boo: true}, y: Foo/*2*/ {value: 2, next: null}}",
   }, 3);
 
   Constant listConst = new ListConstant(dynamicType, [intConst, doubleConst]);
@@ -283,15 +359,16 @@ void main() {
 
   Constant mapConst = new MapConstant(boolType, numType, [
     new ConstantMapEntry(trueConst, intConst),
-    new ConstantMapEntry(falseConst, doubleConst)
+    new ConstantMapEntry(falseConst, doubleConst),
   ]);
   check({mapConst: "<bool, num>{true: 2, false: 2.5}"}, 0);
 
   Constant tearOffConst = new StaticTearOffConstant(gooMethod);
   check({tearOffConst: "Foo.goo"}, 1);
 
-  Constant partialInstantiationConst =
-      new InstantiationConstant(tearOffConst, [intType]);
+  Constant partialInstantiationConst = new InstantiationConstant(tearOffConst, [
+    intType,
+  ]);
   check({partialInstantiationConst: "Foo.goo<int>"}, 1);
 
   Constant typeLiteralConst = new TypeLiteralConstant(foo);

@@ -24,7 +24,7 @@ mixin B implements A {}
 ''',
       [
         error(
-          CompileTimeErrorCode.MIXIN_SUBTYPE_OF_FINAL_IS_NOT_BASE,
+          CompileTimeErrorCode.mixinSubtypeOfFinalIsNotBase,
           23,
           1,
           text:
@@ -43,7 +43,7 @@ mixin C implements B {}
 ''',
       [
         error(
-          CompileTimeErrorCode.MIXIN_SUBTYPE_OF_FINAL_IS_NOT_BASE,
+          CompileTimeErrorCode.mixinSubtypeOfFinalIsNotBase,
           54,
           1,
           text:
@@ -70,7 +70,7 @@ mixin B on A {}
 ''',
       [
         error(
-          CompileTimeErrorCode.MIXIN_SUBTYPE_OF_FINAL_IS_NOT_BASE,
+          CompileTimeErrorCode.mixinSubtypeOfFinalIsNotBase,
           23,
           1,
           text:

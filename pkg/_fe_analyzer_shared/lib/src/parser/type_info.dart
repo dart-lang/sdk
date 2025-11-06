@@ -416,6 +416,7 @@ TypeInfo computeVariablePatternType(Token token, [bool required = false]) {
 ///
 /// If [inDeclaration] is `true`, then this will more aggressively recover
 /// given unbalanced `<` `>` and invalid parameters or arguments.
+@pragma("vm:prefer-inline")
 TypeParamOrArgInfo computeTypeParamOrArg(
   Token token, [
   bool inDeclaration = false,
@@ -425,7 +426,20 @@ TypeParamOrArgInfo computeTypeParamOrArg(
   if (!beginGroup.isA(TokenType.LT)) {
     return noTypeParamOrArg;
   }
+  return _computeTypeParamOrArgImpl(
+    token,
+    beginGroup,
+    inDeclaration,
+    allowsVariance,
+  );
+}
 
+TypeParamOrArgInfo _computeTypeParamOrArgImpl(
+  Token token,
+  Token beginGroup,
+  bool inDeclaration,
+  bool allowsVariance,
+) {
   // identifier `<` `void` `>` and `<` `dynamic` `>`
   // are handled by ComplexTypeInfo.
   Token next = beginGroup.next!;
@@ -470,7 +484,8 @@ TypeParamOrArgInfo computeTypeParamOrArg(
 /// possible other constructs will pass (e.g., 'a < C, D > 3').
 TypeParamOrArgInfo computeMethodTypeArguments(Token token) {
   TypeParamOrArgInfo typeArg = computeTypeParamOrArg(token);
-  return mayFollowTypeArgs(typeArg.skip(token).next!) && !typeArg.recovered
+  return _mayFollowTypeArgs(typeArg.skip(token).next!.typeIndex) &&
+          !typeArg.recovered
       ? typeArg
       : noTypeParamOrArg;
 }
@@ -480,8 +495,10 @@ TypeParamOrArgInfo computeMethodTypeArguments(Token token) {
 /// pattern.
 const Set<String> illegalPatternIdentifiers = {'when', 'as'};
 
-/// Indicates whether the given [token] is allowed to follow a list of type
-/// arguments used as a selector after an expression.
+/// Indicates whether the given [tokenTypeIndex] is allowed to follow a list of
+/// type arguments used as a selector after an expression.
+///
+/// Get the index from a token via `Token.typeIndex`.
 ///
 /// This is used for disambiguating constructs like `f(a<b,c>(d))` and
 /// `f(a<b,c>-d)`.  In the case of `f(a<b,c>(d))`, `true` will be returned,
@@ -490,19 +507,71 @@ const Set<String> illegalPatternIdentifiers = {'when', 'as'};
 /// function `a`).  In the case of `f(a<b,c>-d)`, `false` will be returned,
 /// indicating that the `<` and `>` should be interpreted as operators (so two
 /// arguments are being passed to `f`: `a < b` and `c > -d`).
-bool mayFollowTypeArgs(Token token) {
-  const Set<String> continuationTokens = {'(', '.', '==', '!='};
-  const Set<String> stopTokens = {')', ']', '}', ';', ':', ','};
-  const Set<String> tokensThatMayFollowTypeArg = {
-    ...continuationTokens,
-    ...stopTokens,
-  };
-  if (token.isA(TokenType.EOF)) {
-    // The spec doesn't have anything to say about this case, since an
-    // expression can't occur at the end of a file, but for testing it's to our
-    // advantage to allow EOF after type arguments, so that an isolated `f<x>`
-    // can be parsed as an expression.
-    return true;
-  }
-  return tokensThatMayFollowTypeArg.contains(token.lexeme);
+///
+// DartDocTest(() {
+//   for (int i = 0; i < 256; i++) {
+//     if (_mayFollowTypeArgs(i) !=
+//         _mayFollowTypeArgs_helper_for_testing(i)) {
+//       return false;
+//     }
+//   }
+//   return true;
+// }(), true);
+@pragma("vm:prefer-inline")
+bool _mayFollowTypeArgs(int tokenTypeIndex) {
+  // Table has size 256 to avoid bounds checks as this is called with
+  // `Token.typeIndex` which is know to be in [0-255].
+  const List<bool> table = [
+    // format hack.
+    true, false, false, false, false, false, false, false,
+    false, false, false, false, false, false, false, false,
+    false, false, true, false, false, false, false, false,
+    true, true, false, false, true, true, true, false,
+    true, false, false, false, false, false, false, false,
+    false, false, false, false, false, false, false, false,
+    false, false, false, false, true, false, false, false,
+    true, false, false, false, false, false, false, false,
+    false, true, false, false, false, false, false, false,
+    false, false, false, false, false, false, false, false,
+    false, false, false, false, false, false, false, false,
+    false, false, false, false, false, false, false, false,
+    false, false, false, false, false, false, false, false,
+    false, false, false, false, false, false, false, false,
+    false, false, false, false, false, false, false, false,
+    false, false, false, false, false, false, false, false,
+    false, false, false, false, false, false, false, false,
+    false, false, false, false, false, false, false, false,
+    false, false, false, false, false, false, false, false,
+    false, false, false, false, false, false, false, false,
+    false, false, false, false, false, false, false, false,
+    false, false, false, false, false, false, false, false,
+    false, false, false, false, false, false, false, false,
+    false, false, false, false, false, false, false, false,
+    false, false, false, false, false, false, false, false,
+    false, false, false, false, false, false, false, false,
+    false, false, false, false, false, false, false, false,
+    false, false, false, false, false, false, false, false,
+    false, false, false, false, false, false, false, false,
+    false, false, false, false, false, false, false, false,
+    false, false, false, false, false, false, false, false,
+    false, false, false, false, false, false, false, false,
+    // format hack.
+  ];
+
+  return table[tokenTypeIndex];
+}
+
+// ignore: unused_element
+bool _mayFollowTypeArgs_helper_for_testing(int tokenTypeIndex) {
+  return tokenTypeIndex == TokenType.OPEN_PAREN.index ||
+      tokenTypeIndex == TokenType.PERIOD.index ||
+      tokenTypeIndex == TokenType.EQ_EQ.index ||
+      tokenTypeIndex == TokenType.BANG_EQ.index ||
+      tokenTypeIndex == TokenType.CLOSE_PAREN.index ||
+      tokenTypeIndex == TokenType.CLOSE_SQUARE_BRACKET.index ||
+      tokenTypeIndex == TokenType.CLOSE_CURLY_BRACKET.index ||
+      tokenTypeIndex == TokenType.SEMICOLON.index ||
+      tokenTypeIndex == TokenType.COLON.index ||
+      tokenTypeIndex == TokenType.COMMA.index ||
+      tokenTypeIndex == TokenType.EOF.index;
 }

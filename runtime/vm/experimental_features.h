@@ -12,6 +12,7 @@
 namespace dart {
 
 enum class ExperimentalFeature {
+  dot_shorthands,
   native_assets,
   getter_setter_error,
   sound_flow_analysis,

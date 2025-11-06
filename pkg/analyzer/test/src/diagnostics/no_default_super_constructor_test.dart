@@ -116,7 +116,7 @@ class B extends A {
 ''',
       [
         error(
-          CompileTimeErrorCode.IMPLICIT_SUPER_INITIALIZER_MISSING_ARGUMENTS,
+          CompileTimeErrorCode.implicitSuperInitializerMissingArguments,
           58,
           1,
         ),
@@ -132,13 +132,7 @@ class A {
 }
 class B extends A {}
 ''',
-      [
-        error(
-          CompileTimeErrorCode.NO_DEFAULT_SUPER_CONSTRUCTOR_IMPLICIT,
-          42,
-          1,
-        ),
-      ],
+      [error(CompileTimeErrorCode.noDefaultSuperConstructorImplicit, 42, 1)],
     );
   }
 
@@ -165,7 +159,7 @@ class B extends A {
 ''',
       [
         error(
-          CompileTimeErrorCode.IMPLICIT_SUPER_INITIALIZER_MISSING_ARGUMENTS,
+          CompileTimeErrorCode.implicitSuperInitializerMissingArguments,
           75,
           1,
         ),
@@ -207,7 +201,7 @@ class B extends A {
 ''',
       [
         error(
-          CompileTimeErrorCode.IMPLICIT_SUPER_INITIALIZER_MISSING_ARGUMENTS,
+          CompileTimeErrorCode.implicitSuperInitializerMissingArguments,
           42,
           1,
         ),
@@ -234,13 +228,7 @@ class A {
 }
 class B extends A {}
 ''',
-      [
-        error(
-          CompileTimeErrorCode.NO_DEFAULT_SUPER_CONSTRUCTOR_IMPLICIT,
-          26,
-          1,
-        ),
-      ],
+      [error(CompileTimeErrorCode.noDefaultSuperConstructorImplicit, 26, 1)],
     );
   }
 

@@ -6,10 +6,6 @@ library;
 //     @bar
 //      ^^^
 //
-// pkg/front_end/testcases/regress/extension_type_metadata_references_variable.dart:7:6: Error: This can't be used as an annotation; an annotation should be a reference to a compile-time constant variable, or a call to a constant constructor.
-//     @bar
-//      ^
-//
 import self as self;
 import "dart:core" as core;
 

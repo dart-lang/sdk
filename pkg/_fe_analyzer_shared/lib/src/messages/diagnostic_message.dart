@@ -6,7 +6,7 @@ library front_end.diagnostic_message;
 
 import 'codes.dart' show Code, DiagnosticMessageFromJson, FormattedMessage;
 
-import 'severity.dart' show Severity;
+import 'severity.dart' show CfeSeverity;
 
 /// The type of a diagnostic message callback. For example:
 ///
@@ -17,7 +17,7 @@ import 'severity.dart' show Severity;
 ///        message.plainTextFormatted.forEach(stderr.writeln);
 ///      }
 ///    }
-typedef DiagnosticMessageHandler = void Function(DiagnosticMessage);
+typedef DiagnosticMessageHandler = void Function(CfeDiagnosticMessage);
 
 /// Represents a diagnostic message that can be reported from a tool, for
 /// example, a compiler.
@@ -26,14 +26,14 @@ typedef DiagnosticMessageHandler = void Function(DiagnosticMessage);
 /// reporting any kind of message, including non-diagnostic messages such as
 /// licensing, informal, or logging information. This allows a well-behaved
 /// tool to never directly write to stdout or stderr.
-abstract class DiagnosticMessage {
-  DiagnosticMessage._(); // Prevent subclassing.
+abstract class CfeDiagnosticMessage {
+  CfeDiagnosticMessage._(); // Prevent subclassing.
 
   Iterable<String> get ansiFormatted;
 
   Iterable<String> get plainTextFormatted;
 
-  Severity get severity;
+  CfeSeverity get severity;
 
   Iterable<Uri>? get involvedFiles;
 
@@ -41,7 +41,7 @@ abstract class DiagnosticMessage {
 }
 
 /// This method is subject to change.
-Uri? getMessageUri(DiagnosticMessage message) {
+Uri? getMessageUri(CfeDiagnosticMessage message) {
   return message is FormattedMessage
       ? message.uri
       : message is DiagnosticMessageFromJson
@@ -50,38 +50,33 @@ Uri? getMessageUri(DiagnosticMessage message) {
 }
 
 /// This method is subject to change.
-int? getMessageCharOffset(DiagnosticMessage message) {
+int? getMessageCharOffset(CfeDiagnosticMessage message) {
   return message is FormattedMessage ? message.charOffset : null;
 }
 
 /// This method is subject to change.
-int? getMessageLength(DiagnosticMessage message) {
+int? getMessageLength(CfeDiagnosticMessage message) {
   return message is FormattedMessage ? message.length : null;
 }
 
 /// This method is subject to change.
-Code? getMessageCodeObject(DiagnosticMessage message) {
+Code? getMessageCodeObject(CfeDiagnosticMessage message) {
   return message is FormattedMessage ? message.code : null;
 }
 
 /// This method is subject to change.
-String? getMessageHeaderText(DiagnosticMessage message) {
+String? getMessageHeaderText(CfeDiagnosticMessage message) {
   return message is FormattedMessage ? message.problemMessage : null;
 }
 
 /// This method is subject to change.
-int getMessageCode(DiagnosticMessage message) {
-  return message is FormattedMessage ? message.code.index : -1;
-}
-
-/// This method is subject to change.
-Map<String, dynamic>? getMessageArguments(DiagnosticMessage message) {
+Map<String, dynamic>? getMessageArguments(CfeDiagnosticMessage message) {
   return message is FormattedMessage ? message.arguments : null;
 }
 
 /// This method is subject to change.
-Iterable<DiagnosticMessage>? getMessageRelatedInformation(
-  DiagnosticMessage message,
+Iterable<CfeDiagnosticMessage>? getMessageRelatedInformation(
+  CfeDiagnosticMessage message,
 ) {
   return message is FormattedMessage ? message.relatedInformation : null;
 }

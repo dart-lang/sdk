@@ -22,7 +22,7 @@ void f(void Function() x) {
   if (x case int _) {}
 }
 ''',
-      [error(WarningCode.PATTERN_NEVER_MATCHES_VALUE_TYPE, 41, 3)],
+      [error(WarningCode.patternNeverMatchesValueType, 41, 3)],
     );
   }
 
@@ -57,7 +57,7 @@ void f(void Function() x) {
   if (x case (int,) _) {}
 }
 ''',
-      [error(WarningCode.PATTERN_NEVER_MATCHES_VALUE_TYPE, 41, 6)],
+      [error(WarningCode.patternNeverMatchesValueType, 41, 6)],
     );
   }
 
@@ -98,7 +98,7 @@ void f(List<A> x) {
 final class A {}
 final class B {}
 ''',
-      [error(WarningCode.PATTERN_NEVER_MATCHES_VALUE_TYPE, 33, 7)],
+      [error(WarningCode.patternNeverMatchesValueType, 33, 7)],
     );
   }
 
@@ -143,7 +143,7 @@ class B {}
 
 final class C {}
 ''',
-      [error(WarningCode.PATTERN_NEVER_MATCHES_VALUE_TYPE, 27, 1)],
+      [error(WarningCode.patternNeverMatchesValueType, 27, 1)],
     );
   }
 
@@ -172,7 +172,7 @@ final class A2 extends A {}
 final class A3 implements A {}
 class R {}
 ''',
-      [error(WarningCode.PATTERN_NEVER_MATCHES_VALUE_TYPE, 27, 1)],
+      [error(WarningCode.patternNeverMatchesValueType, 27, 1)],
     );
   }
 
@@ -246,7 +246,7 @@ void f(A x) {
 final class A extends R<num> {}
 class R<T> {}
 ''',
-      [error(WarningCode.PATTERN_NEVER_MATCHES_VALUE_TYPE, 27, 6)],
+      [error(WarningCode.patternNeverMatchesValueType, 27, 6)],
     );
   }
 
@@ -296,7 +296,7 @@ void f(A x) {
   if (x case FutureOr<B> _) {}
 }
 ''',
-      [error(WarningCode.PATTERN_NEVER_MATCHES_VALUE_TYPE, 78, 11)],
+      [error(WarningCode.patternNeverMatchesValueType, 78, 11)],
     );
   }
 
@@ -310,7 +310,7 @@ void f(A x) {
 final class A {}
 class R {}
 ''',
-      [error(WarningCode.PATTERN_NEVER_MATCHES_VALUE_TYPE, 27, 1)],
+      [error(WarningCode.patternNeverMatchesValueType, 27, 1)],
     );
   }
 
@@ -481,7 +481,7 @@ final class A2 extends A {}
 final class A3 implements A {}
 class R {}
 ''',
-      [error(WarningCode.PATTERN_NEVER_MATCHES_VALUE_TYPE, 27, 1)],
+      [error(WarningCode.patternNeverMatchesValueType, 27, 1)],
     );
   }
 
@@ -497,7 +497,7 @@ sealed class A2 extends A {}
 final class A3 implements A {}
 class R {}
 ''',
-      [error(WarningCode.PATTERN_NEVER_MATCHES_VALUE_TYPE, 27, 1)],
+      [error(WarningCode.patternNeverMatchesValueType, 27, 1)],
     );
   }
 
@@ -546,7 +546,7 @@ final class A<T> {}
 final class B {}
 final class C {}
 ''',
-      [error(WarningCode.PATTERN_NEVER_MATCHES_VALUE_TYPE, 30, 4)],
+      [error(WarningCode.patternNeverMatchesValueType, 30, 4)],
     );
   }
 
@@ -573,7 +573,7 @@ final class B extends A<C> {}
 final class C {}
 final class D {}
 ''',
-      [error(WarningCode.PATTERN_NEVER_MATCHES_VALUE_TYPE, 27, 4)],
+      [error(WarningCode.patternNeverMatchesValueType, 27, 4)],
     );
   }
 
@@ -612,7 +612,7 @@ final class B extends A<C> {}
 final class C {}
 final class D {}
 ''',
-      [error(WarningCode.PATTERN_NEVER_MATCHES_VALUE_TYPE, 30, 1)],
+      [error(WarningCode.patternNeverMatchesValueType, 30, 1)],
     );
   }
 
@@ -637,7 +637,7 @@ void f(A x) {
 class A {}
 final class B {}
 ''',
-      [error(WarningCode.PATTERN_NEVER_MATCHES_VALUE_TYPE, 27, 1)],
+      [error(WarningCode.patternNeverMatchesValueType, 27, 1)],
     );
   }
 
@@ -666,7 +666,7 @@ sealed class R {}
 final class R1 extends R {}
 final class R2 extends R {}
 ''',
-      [error(WarningCode.PATTERN_NEVER_MATCHES_VALUE_TYPE, 27, 1)],
+      [error(WarningCode.patternNeverMatchesValueType, 27, 1)],
     );
   }
 
@@ -690,7 +690,7 @@ void f(int x) {
   if (x case void Function() _) {}
 }
 ''',
-      [error(WarningCode.PATTERN_NEVER_MATCHES_VALUE_TYPE, 29, 15)],
+      [error(WarningCode.patternNeverMatchesValueType, 29, 15)],
     );
   }
 
@@ -719,7 +719,7 @@ void f(A x) {
 
 class A {}
 ''',
-      [error(WarningCode.PATTERN_NEVER_MATCHES_VALUE_TYPE, 27, 4)],
+      [error(WarningCode.patternNeverMatchesValueType, 27, 4)],
     );
   }
 
@@ -749,7 +749,7 @@ void f(A x) {
 enum A { v }
 enum R { v }
 ''',
-      [error(WarningCode.PATTERN_NEVER_MATCHES_VALUE_TYPE, 27, 1)],
+      [error(WarningCode.patternNeverMatchesValueType, 27, 1)],
     );
   }
 
@@ -763,7 +763,7 @@ void f(A x) {
 enum A { v }
 class R {}
 ''',
-      [error(WarningCode.PATTERN_NEVER_MATCHES_VALUE_TYPE, 27, 1)],
+      [error(WarningCode.patternNeverMatchesValueType, 27, 1)],
     );
   }
 
@@ -814,7 +814,7 @@ void f(A x) {
 enum A implements R<num> { v }
 class R<T> {}
 ''',
-      [error(WarningCode.PATTERN_NEVER_MATCHES_VALUE_TYPE, 27, 6)],
+      [error(WarningCode.patternNeverMatchesValueType, 27, 6)],
     );
   }
 
@@ -832,7 +832,7 @@ enum A<T> implements R<T> {
 
 class R<T> {}
 ''',
-      [error(WarningCode.PATTERN_NEVER_MATCHES_VALUE_TYPE, 27, 9)],
+      [error(WarningCode.patternNeverMatchesValueType, 27, 9)],
     );
   }
 
@@ -876,7 +876,7 @@ void f<T>(E<T>? x) {
 
 enum E<T> { v1<int>(), v2<double>() }
 ''',
-      [error(WarningCode.PATTERN_NEVER_MATCHES_VALUE_TYPE, 34, 9)],
+      [error(WarningCode.patternNeverMatchesValueType, 34, 9)],
     );
   }
 
@@ -899,7 +899,7 @@ void f(FutureOr<(int,)> x) {
   if (x case Future<(String,)> _) {}
 }
 ''',
-      [error(WarningCode.PATTERN_NEVER_MATCHES_VALUE_TYPE, 64, 17)],
+      [error(WarningCode.patternNeverMatchesValueType, 64, 17)],
     );
   }
 
@@ -922,7 +922,7 @@ void f(FutureOr<(int,)> x) {
   if (x case (String,) _) {}
 }
 ''',
-      [error(WarningCode.PATTERN_NEVER_MATCHES_VALUE_TYPE, 64, 9)],
+      [error(WarningCode.patternNeverMatchesValueType, 64, 9)],
     );
   }
 
@@ -945,7 +945,7 @@ void f(Future<(int,)> x) {
   if (x case FutureOr<(String,)> _) {}
 }
 ''',
-      [error(WarningCode.PATTERN_NEVER_MATCHES_VALUE_TYPE, 62, 19)],
+      [error(WarningCode.patternNeverMatchesValueType, 62, 19)],
     );
   }
 
@@ -959,8 +959,8 @@ void f(Null x) {
 class A {}
 ''',
       [
-        error(WarningCode.PATTERN_NEVER_MATCHES_VALUE_TYPE, 30, 1),
-        error(WarningCode.DEAD_CODE, 35, 2),
+        error(WarningCode.patternNeverMatchesValueType, 30, 1),
+        error(WarningCode.deadCode, 35, 2),
       ],
     );
   }
@@ -981,8 +981,8 @@ void f(Null x) {
 }
 ''',
       [
-        error(WarningCode.PATTERN_NEVER_MATCHES_VALUE_TYPE, 30, 6),
-        error(WarningCode.DEAD_CODE, 40, 2),
+        error(WarningCode.patternNeverMatchesValueType, 30, 6),
+        error(WarningCode.deadCode, 40, 2),
       ],
     );
   }
@@ -1006,7 +1006,7 @@ void f((int,) x) {
   if (x case FutureOr<(String,)> _) {}
 }
 ''',
-      [error(WarningCode.PATTERN_NEVER_MATCHES_VALUE_TYPE, 54, 19)],
+      [error(WarningCode.patternNeverMatchesValueType, 54, 19)],
     );
   }
 
@@ -1017,7 +1017,7 @@ void f(({int f1,}) x) {
   if (x case ({int f1, int f2,}) _) {}
 }
 ''',
-      [error(WarningCode.PATTERN_NEVER_MATCHES_VALUE_TYPE, 37, 19)],
+      [error(WarningCode.patternNeverMatchesValueType, 37, 19)],
     );
   }
 
@@ -1028,7 +1028,7 @@ void f(({int a, int b}) x) {
   if (x case ({int f1, int f2,}) _) {}
 }
 ''',
-      [error(WarningCode.PATTERN_NEVER_MATCHES_VALUE_TYPE, 42, 19)],
+      [error(WarningCode.patternNeverMatchesValueType, 42, 19)],
     );
   }
 
@@ -1042,7 +1042,7 @@ void f(({A f1,}) x) {
 final class A {}
 class R {}
 ''',
-      [error(WarningCode.PATTERN_NEVER_MATCHES_VALUE_TYPE, 35, 9)],
+      [error(WarningCode.patternNeverMatchesValueType, 35, 9)],
     );
   }
 
@@ -1064,7 +1064,7 @@ void f((int,) x) {
   if (x case (int, String) _) {}
 }
 ''',
-      [error(WarningCode.PATTERN_NEVER_MATCHES_VALUE_TYPE, 32, 13)],
+      [error(WarningCode.patternNeverMatchesValueType, 32, 13)],
     );
   }
 
@@ -1078,7 +1078,7 @@ void f((A,) x) {
 final class A {}
 class R {}
 ''',
-      [error(WarningCode.PATTERN_NEVER_MATCHES_VALUE_TYPE, 30, 4)],
+      [error(WarningCode.patternNeverMatchesValueType, 30, 4)],
     );
   }
 
@@ -1089,7 +1089,7 @@ void f((int,) x) {
   if (x case void Function() _) {}
 }
 ''',
-      [error(WarningCode.PATTERN_NEVER_MATCHES_VALUE_TYPE, 32, 15)],
+      [error(WarningCode.patternNeverMatchesValueType, 32, 15)],
     );
   }
 
@@ -1102,7 +1102,7 @@ void f((A,) x) {
 
 class A {}
 ''',
-      [error(WarningCode.PATTERN_NEVER_MATCHES_VALUE_TYPE, 30, 1)],
+      [error(WarningCode.patternNeverMatchesValueType, 30, 1)],
     );
   }
 
@@ -1137,7 +1137,7 @@ void f(String x) {
   if (x case _ as int) {}
 }
 ''',
-      [error(WarningCode.PATTERN_NEVER_MATCHES_VALUE_TYPE, 37, 3)],
+      [error(WarningCode.patternNeverMatchesValueType, 37, 3)],
     );
   }
 
@@ -1148,7 +1148,7 @@ void f(num x) {
   if (x case int a) {}
 }
 ''',
-      [error(WarningCode.UNUSED_LOCAL_VARIABLE, 33, 1)],
+      [error(WarningCode.unusedLocalVariable, 33, 1)],
     );
   }
 
@@ -1160,8 +1160,8 @@ void f(String x) {
 }
 ''',
       [
-        error(WarningCode.PATTERN_NEVER_MATCHES_VALUE_TYPE, 32, 3),
-        error(WarningCode.UNUSED_LOCAL_VARIABLE, 36, 1),
+        error(WarningCode.patternNeverMatchesValueType, 32, 3),
+        error(WarningCode.unusedLocalVariable, 36, 1),
       ],
     );
   }
@@ -1181,7 +1181,7 @@ void f(int x) {
   if (x case <int>[]) {}
 }
 ''',
-      [error(WarningCode.PATTERN_NEVER_MATCHES_VALUE_TYPE, 29, 7)],
+      [error(WarningCode.patternNeverMatchesValueType, 29, 7)],
     );
   }
 
@@ -1200,7 +1200,7 @@ void f(int x) {
   if (x case <int, String>{0: _}) {}
 }
 ''',
-      [error(WarningCode.PATTERN_NEVER_MATCHES_VALUE_TYPE, 29, 19)],
+      [error(WarningCode.patternNeverMatchesValueType, 29, 19)],
     );
   }
 
@@ -1219,7 +1219,7 @@ void f(String x) {
   if (x case int()) {}
 }
 ''',
-      [error(WarningCode.PATTERN_NEVER_MATCHES_VALUE_TYPE, 32, 3)],
+      [error(WarningCode.patternNeverMatchesValueType, 32, 3)],
     );
   }
 
@@ -1233,7 +1233,7 @@ void f((int,) x) {
   }
 }
 ''',
-      [error(WarningCode.UNUSED_LOCAL_VARIABLE, 48, 1)],
+      [error(WarningCode.unusedLocalVariable, 48, 1)],
     );
   }
 
@@ -1248,9 +1248,9 @@ void f((int,) x) {
 }
 ''',
       [
-        error(WarningCode.PATTERN_NEVER_MATCHES_VALUE_TYPE, 43, 16),
-        error(WarningCode.UNUSED_LOCAL_VARIABLE, 48, 2),
-        error(WarningCode.UNUSED_LOCAL_VARIABLE, 56, 2),
+        error(WarningCode.patternNeverMatchesValueType, 43, 16),
+        error(WarningCode.unusedLocalVariable, 48, 2),
+        error(WarningCode.unusedLocalVariable, 56, 2),
       ],
     );
   }
@@ -1270,7 +1270,7 @@ void f(String x) {
   if (x case int _) {}
 }
 ''',
-      [error(WarningCode.PATTERN_NEVER_MATCHES_VALUE_TYPE, 32, 3)],
+      [error(WarningCode.patternNeverMatchesValueType, 32, 3)],
     );
   }
 
@@ -1284,8 +1284,8 @@ void f(A x) {
 class A {}
 ''',
       [
-        error(WarningCode.PATTERN_NEVER_MATCHES_VALUE_TYPE, 27, 4),
-        error(WarningCode.DEAD_CODE, 35, 2),
+        error(WarningCode.patternNeverMatchesValueType, 27, 4),
+        error(WarningCode.deadCode, 35, 2),
       ],
     );
   }
@@ -1298,8 +1298,8 @@ void f(void Function() x) {
 }
 ''',
       [
-        error(WarningCode.PATTERN_NEVER_MATCHES_VALUE_TYPE, 41, 4),
-        error(WarningCode.DEAD_CODE, 49, 2),
+        error(WarningCode.patternNeverMatchesValueType, 41, 4),
+        error(WarningCode.deadCode, 49, 2),
       ],
     );
   }
@@ -1312,8 +1312,8 @@ void f(Object x) {
 }
 ''',
       [
-        error(WarningCode.PATTERN_NEVER_MATCHES_VALUE_TYPE, 32, 4),
-        error(WarningCode.DEAD_CODE, 40, 2),
+        error(WarningCode.patternNeverMatchesValueType, 32, 4),
+        error(WarningCode.deadCode, 40, 2),
       ],
     );
   }
@@ -1326,8 +1326,8 @@ void f<T extends num>(T x) {
 }
 ''',
       [
-        error(WarningCode.PATTERN_NEVER_MATCHES_VALUE_TYPE, 42, 4),
-        error(WarningCode.DEAD_CODE, 50, 2),
+        error(WarningCode.patternNeverMatchesValueType, 42, 4),
+        error(WarningCode.deadCode, 50, 2),
       ],
     );
   }
@@ -1389,7 +1389,7 @@ void f(A x) {
 final class A {}
 final class B {}
 ''',
-      [error(WarningCode.PATTERN_NEVER_MATCHES_VALUE_TYPE, 27, 2)],
+      [error(WarningCode.patternNeverMatchesValueType, 27, 2)],
     );
   }
 

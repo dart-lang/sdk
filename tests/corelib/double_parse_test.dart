@@ -1246,6 +1246,11 @@ void main() {
   testParseWhitespace("1e+1", 10.0);
   testParseWhitespace("1e-1", 0.1);
 
+  // Edge cases for parsing using exponent.
+  testParse("1e000000000000000000002", 100.0);
+  testParse("1e+000000000000000000002", 100.0);
+  testParse("1e-000000000000000000002", 0.01);
+
   // Negative tests - things not to allow.
 
   // Spaces inside the numeral.

@@ -44,12 +44,21 @@ bool _isDartLibrary(Uri importUri, Uri fileUri) {
 /// a create the resolved expression. This is used in testing to mimic the
 /// scenario in which the declaration is added to the scope via macros.
 shared.Expression parseAnnotation(
-    Loader loader, Token atToken, Uri importUri, Uri fileUri, LookupScope scope,
-    {bool delayLookupForTesting = false}) {
+  Loader loader,
+  Token atToken,
+  Uri importUri,
+  Uri fileUri,
+  LookupScope scope, {
+  bool delayLookupForTesting = false,
+}) {
   return shared.parseAnnotation(
-      atToken, fileUri, new AnnotationScope(scope), new References(loader),
-      isDartLibrary: _isDartLibrary(importUri, fileUri),
-      delayLookupForTesting: delayLookupForTesting);
+    atToken,
+    fileUri,
+    new AnnotationScope(scope),
+    new References(loader),
+    isDartLibrary: _isDartLibrary(importUri, fileUri),
+    delayLookupForTesting: delayLookupForTesting,
+  );
 }
 
 // Coverage-ignore(suite): Not run.
@@ -61,13 +70,22 @@ shared.Expression parseAnnotation(
 /// A subsequent call to [shared.Expression.resolve] will perform the lookup
 /// a create the resolved expression. This is used in testing to mimic the
 /// scenario in which the declaration is added to the scope via macros.
-shared.Expression parseFieldInitializer(Loader loader, Token initializerToken,
-    Uri importUri, Uri fileUri, LookupScope scope,
-    {bool delayLookupForTesting = false}) {
-  return shared.parseExpression(initializerToken, fileUri,
-      new AnnotationScope(scope), new References(loader),
-      isDartLibrary: _isDartLibrary(importUri, fileUri),
-      delayLookupForTesting: delayLookupForTesting);
+shared.Expression parseFieldInitializer(
+  Loader loader,
+  Token initializerToken,
+  Uri importUri,
+  Uri fileUri,
+  LookupScope scope, {
+  bool delayLookupForTesting = false,
+}) {
+  return shared.parseExpression(
+    initializerToken,
+    fileUri,
+    new AnnotationScope(scope),
+    new References(loader),
+    isDartLibrary: _isDartLibrary(importUri, fileUri),
+    delayLookupForTesting: delayLookupForTesting,
+  );
 }
 
 // Coverage-ignore(suite): Not run.
@@ -79,8 +97,10 @@ shared.Expression? getFieldInitializer(shared.FieldReference reference) {
       return element.initializerExpression;
     }
   } else {
-    assert(false,
-        "Unexpected field reference $reference (${reference.runtimeType})");
+    assert(
+      false,
+      "Unexpected field reference $reference (${reference.runtimeType})",
+    );
   }
   return null;
 }
@@ -97,32 +117,45 @@ shared.Proto builderToProto(Builder builder, String name) {
     if (builder.isEnum) {
       shared.EnumReference enumReference = new EnumReference(builder);
       return new shared.EnumProto(
-          enumReference, new EnumScope(builder, enumReference));
+        enumReference,
+        new EnumScope(builder, enumReference),
+      );
     } else if (builder.isMixinDeclaration) {
       shared.MixinReference mixinReference = new MixinReference(builder);
       return new shared.MixinProto(
-          mixinReference, new MixinScope(builder, mixinReference));
+        mixinReference,
+        new MixinScope(builder, mixinReference),
+      );
     } else {
       shared.ClassReference classReference = new ClassReference(builder);
       return new shared.ClassProto(
-          classReference, new ClassScope(builder, classReference));
+        classReference,
+        new ClassScope(builder, classReference),
+      );
     }
   } else if (builder is DynamicTypeDeclarationBuilder) {
     return new shared.DynamicProto(new TypeReference(builder));
   } else if (builder is TypeAliasBuilder) {
     shared.TypedefReference typedefReference = new TypedefReference(builder);
     return new shared.TypedefProto(
-        typedefReference, new TypedefScope(builder, typedefReference));
+      typedefReference,
+      new TypedefScope(builder, typedefReference),
+    );
   } else if (builder is ExtensionBuilder) {
-    shared.ExtensionReference extensionReference =
-        new ExtensionReference(builder);
+    shared.ExtensionReference extensionReference = new ExtensionReference(
+      builder,
+    );
     return new shared.ExtensionProto(
-        extensionReference, new ExtensionScope(builder, extensionReference));
+      extensionReference,
+      new ExtensionScope(builder, extensionReference),
+    );
   } else if (builder is ExtensionTypeDeclarationBuilder) {
     shared.ExtensionTypeReference extensionReference =
         new ExtensionTypeReference(builder);
-    return new shared.ExtensionTypeProto(extensionReference,
-        new ExtensionTypeScope(builder, extensionReference));
+    return new shared.ExtensionTypeProto(
+      extensionReference,
+      new ExtensionTypeScope(builder, extensionReference),
+    );
   } else {
     // TODO(johnniwinther): Support extension types.
     throw new UnsupportedError("Unsupported builder $builder for $name");
@@ -135,24 +168,32 @@ class References implements shared.References {
 
   late final DynamicTypeDeclarationBuilder dynamicDeclaration =
       new DynamicTypeDeclarationBuilder(
-          const DynamicType(), loader.coreLibrary, -1);
+        const DynamicType(),
+        loader.coreLibrary,
+        -1,
+      );
 
   late final NeverTypeDeclarationBuilder neverDeclaration =
       new NeverTypeDeclarationBuilder(
-          const NeverType.nonNullable(), loader.coreLibrary, -1);
+        const NeverType.nonNullable(),
+        loader.coreLibrary,
+        -1,
+      );
 
   late final NullTypeDeclarationBuilder nullDeclaration =
       new NullTypeDeclarationBuilder(const NullType(), loader.coreLibrary, -1);
 
   late final FutureOrTypeDeclarationBuilder futureOrDeclaration =
       new FutureOrTypeDeclarationBuilder(
-          new FutureOrType(const DynamicType(), Nullability.nonNullable),
-          loader.coreLibrary,
-          -1);
+        new FutureOrType(const DynamicType(), Nullability.nonNullable),
+        loader.coreLibrary,
+        -1,
+      );
 
   @override
-  late final shared.TypeReference dynamicReference =
-      new TypeReference(dynamicDeclaration);
+  late final shared.TypeReference dynamicReference = new TypeReference(
+    dynamicDeclaration,
+  );
 
   @override
   shared.TypeReference get voidReference => const VoidTypeReference();
@@ -168,9 +209,7 @@ class AnnotationScope implements shared.Scope {
 
   @override
   shared.Proto lookup(String name) {
-    int fileOffset = -1;
-    Uri fileUri = dummyUri;
-    Builder? builder = scope.lookup(name, fileOffset, fileUri)?.getable;
+    Builder? builder = scope.lookup(name)?.getable;
     if (builder == null) {
       return new shared.UnresolvedIdentifier(this, name);
     } else {
@@ -188,14 +227,20 @@ final class ClassScope extends shared.BaseClassScope {
   ClassScope(this.builder, this.classReference);
 
   @override
-  shared.Proto lookup(String name,
-      [List<shared.TypeAnnotation>? typeArguments]) {
-    MemberBuilder? constructor = builder.nameSpace.lookupConstructor(name);
+  shared.Proto lookup(
+    String name, [
+    List<shared.TypeAnnotation>? typeArguments,
+  ]) {
+    MemberBuilder? constructor = builder.nameSpace
+        .lookupConstructor(name)
+        ?.getable;
     if (constructor != null) {
       return createConstructorProto(
-          typeArguments, new ConstructorReference(constructor));
+        typeArguments,
+        new ConstructorReference(constructor),
+      );
     }
-    Builder? member = builder.lookupLocalMember(name, setter: false);
+    Builder? member = builder.lookupLocalMember(name)?.getable;
     return createMemberProto(typeArguments, name, member, builderToProto);
   }
 }
@@ -209,9 +254,11 @@ final class EnumScope extends shared.BaseEnumScope {
   EnumScope(this.builder, this.enumReference);
 
   @override
-  shared.Proto lookup(String name,
-      [List<shared.TypeAnnotation>? typeArguments]) {
-    Builder? member = builder.lookupLocalMember(name, setter: false);
+  shared.Proto lookup(
+    String name, [
+    List<shared.TypeAnnotation>? typeArguments,
+  ]) {
+    Builder? member = builder.lookupLocalMember(name)?.getable;
     return createMemberProto(typeArguments, name, member, builderToProto);
   }
 }
@@ -225,9 +272,11 @@ final class MixinScope extends shared.BaseMixinScope {
   MixinScope(this.builder, this.mixinReference);
 
   @override
-  shared.Proto lookup(String name,
-      [List<shared.TypeAnnotation>? typeArguments]) {
-    Builder? member = builder.lookupLocalMember(name, setter: false);
+  shared.Proto lookup(
+    String name, [
+    List<shared.TypeAnnotation>? typeArguments,
+  ]) {
+    Builder? member = builder.lookupLocalMember(name)?.getable;
     return createMemberProto(typeArguments, name, member, builderToProto);
   }
 }
@@ -241,9 +290,11 @@ final class ExtensionScope extends shared.BaseExtensionScope {
   ExtensionScope(this.builder, this.extensionReference);
 
   @override
-  shared.Proto lookup(String name,
-      [List<shared.TypeAnnotation>? typeArguments]) {
-    Builder? member = builder.lookupLocalMember(name, setter: false);
+  shared.Proto lookup(
+    String name, [
+    List<shared.TypeAnnotation>? typeArguments,
+  ]) {
+    Builder? member = builder.lookupLocalMember(name)?.getable;
     return createMemberProto(typeArguments, name, member, builderToProto);
   }
 }
@@ -257,14 +308,20 @@ final class ExtensionTypeScope extends shared.BaseExtensionTypeScope {
   ExtensionTypeScope(this.builder, this.extensionTypeReference);
 
   @override
-  shared.Proto lookup(String name,
-      [List<shared.TypeAnnotation>? typeArguments]) {
-    MemberBuilder? constructor = builder.nameSpace.lookupConstructor(name);
+  shared.Proto lookup(
+    String name, [
+    List<shared.TypeAnnotation>? typeArguments,
+  ]) {
+    MemberBuilder? constructor = builder.nameSpace
+        .lookupConstructor(name)
+        ?.getable;
     if (constructor != null) {
       return createConstructorProto(
-          typeArguments, new ConstructorReference(constructor));
+        typeArguments,
+        new ConstructorReference(constructor),
+      );
     }
-    Builder? member = builder.lookupLocalMember(name, setter: false);
+    Builder? member = builder.lookupLocalMember(name)?.getable;
     return createMemberProto(typeArguments, name, member, builderToProto);
   }
 }
@@ -279,15 +336,20 @@ final class TypedefScope extends shared.BaseTypedefScope {
   TypedefScope(this.builder, this.typedefReference);
 
   @override
-  shared.Proto lookup(String name,
-      [List<shared.TypeAnnotation>? typeArguments]) {
+  shared.Proto lookup(
+    String name, [
+    List<shared.TypeAnnotation>? typeArguments,
+  ]) {
     TypeDeclarationBuilder? typeDeclaration = builder.unaliasDeclaration(null);
     if (typeDeclaration is ClassBuilder) {
-      MemberBuilder? constructor =
-          typeDeclaration.nameSpace.lookupConstructor(name);
+      MemberBuilder? constructor = typeDeclaration.nameSpace
+          .lookupConstructor(name)
+          ?.getable;
       if (constructor != null) {
         return createConstructorProto(
-            typeArguments, new ConstructorReference(constructor));
+          typeArguments,
+          new ConstructorReference(constructor),
+        );
       }
     }
     return createMemberProto(typeArguments, name);
@@ -320,9 +382,7 @@ class PrefixScope implements shared.Scope {
 
   @override
   shared.Proto lookup(String name) {
-    int fileOffset = -1;
-    Uri fileUri = dummyUri;
-    Builder? builder = prefixBuilder.lookup(name, fileOffset, fileUri)?.getable;
+    Builder? builder = prefixBuilder.lookup(name)?.getable;
     if (builder == null) {
       return new shared.UnresolvedIdentifier(this, name);
     } else {

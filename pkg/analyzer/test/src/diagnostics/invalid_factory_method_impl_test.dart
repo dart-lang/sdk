@@ -44,7 +44,7 @@ class Stateful {
 }
 class State { }
 ''',
-      [error(WarningCode.INVALID_FACTORY_METHOD_IMPL, 96, 11)],
+      [error(WarningCode.invalidFactoryMethodImpl, 96, 11)],
     );
   }
 
@@ -59,7 +59,7 @@ extension type E(int i) {
   }  
 }
 ''',
-      [error(WarningCode.INVALID_FACTORY_METHOD_IMPL, 79, 6)],
+      [error(WarningCode.invalidFactoryMethodImpl, 79, 6)],
     );
   }
 
@@ -165,7 +165,7 @@ class Stateful {
   void createState() {}
 }
 ''',
-      [error(WarningCode.INVALID_FACTORY_METHOD_DECL, 69, 11)],
+      [error(WarningCode.invalidFactoryMethodDecl, 69, 11)],
     );
   }
 }

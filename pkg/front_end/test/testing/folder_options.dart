@@ -12,10 +12,14 @@ import 'package:front_end/src/api_prototype/experimental_flags.dart'
 import 'package:front_end/src/base/command_line_options.dart';
 import 'package:testing/testing.dart' show TestDescription;
 
-const Option<String?> overwriteCurrentSdkVersion =
-    const Option('--overwrite-current-sdk-version', const StringValue());
-const Option<bool> noVerifyCmd =
-    const Option('--no-verify', const BoolValue(false));
+const Option<String?> overwriteCurrentSdkVersion = const Option(
+  '--overwrite-current-sdk-version',
+  const StringValue(),
+);
+const Option<bool> noVerifyCmd = const Option(
+  '--no-verify',
+  const BoolValue(false),
+);
 
 const List<Option> folderOptionsSpecification = [
   Options.enableExperiment,
@@ -53,40 +57,50 @@ class SuiteFolderOptions {
       String target = "vm";
       bool showOffsets = false;
       if (directory.uri == baseUri) {
-        folderOptions = new FolderOptions({},
-            enableUnscheduledExperiments: enableUnscheduledExperiments,
-            forceLateLowerings: forceLateLowering,
-            forceLateLoweringSentinel: forceLateLoweringSentinel,
-            forceStaticFieldLowering: forceStaticFieldLowering,
-            forceNoExplicitGetterCalls: forceNoExplicitGetterCalls,
-            forceConstructorTearOffLowering: forceConstructorTearOffLowering,
-            defines: defines,
-            noVerify: noVerify,
-            target: target,
-            showOffsets: showOffsets);
+        folderOptions = new FolderOptions(
+          {},
+          enableUnscheduledExperiments: enableUnscheduledExperiments,
+          forceLateLowerings: forceLateLowering,
+          forceLateLoweringSentinel: forceLateLoweringSentinel,
+          forceStaticFieldLowering: forceStaticFieldLowering,
+          forceNoExplicitGetterCalls: forceNoExplicitGetterCalls,
+          forceConstructorTearOffLowering: forceConstructorTearOffLowering,
+          defines: defines,
+          noVerify: noVerify,
+          target: target,
+          showOffsets: showOffsets,
+        );
       } else {
-        File optionsFile =
-            new File.fromUri(directory.uri.resolve('folder.options'));
+        File optionsFile = new File.fromUri(
+          directory.uri.resolve('folder.options'),
+        );
         if (optionsFile.existsSync()) {
-          List<String> arguments =
-              ParsedOptions.readOptionsFile(optionsFile.readAsStringSync());
-          ParsedOptions parsedOptions =
-              ParsedOptions.parse(arguments, folderOptionsSpecification);
+          List<String> arguments = ParsedOptions.readOptionsFile(
+            optionsFile.readAsStringSync(),
+          );
+          ParsedOptions parsedOptions = ParsedOptions.parse(
+            arguments,
+            folderOptionsSpecification,
+          );
           List<String> experimentalFlagsArguments =
               Options.enableExperiment.read(parsedOptions) ?? <String>[];
           String? overwriteCurrentSdkVersionArgument =
               overwriteCurrentSdkVersion.read(parsedOptions);
-          enableUnscheduledExperiments =
-              Options.enableUnscheduledExperiments.read(parsedOptions);
-          forceLateLoweringSentinel =
-              Options.forceLateLoweringSentinel.read(parsedOptions);
+          enableUnscheduledExperiments = Options.enableUnscheduledExperiments
+              .read(parsedOptions);
+          forceLateLoweringSentinel = Options.forceLateLoweringSentinel.read(
+            parsedOptions,
+          );
           forceLateLowering = Options.forceLateLowering.read(parsedOptions);
-          forceStaticFieldLowering =
-              Options.forceStaticFieldLowering.read(parsedOptions);
-          forceNoExplicitGetterCalls =
-              Options.forceNoExplicitGetterCalls.read(parsedOptions);
-          forceConstructorTearOffLowering =
-              Options.forceConstructorTearOffLowering.read(parsedOptions);
+          forceStaticFieldLowering = Options.forceStaticFieldLowering.read(
+            parsedOptions,
+          );
+          forceNoExplicitGetterCalls = Options.forceNoExplicitGetterCalls.read(
+            parsedOptions,
+          );
+          forceConstructorTearOffLowering = Options
+              .forceConstructorTearOffLowering
+              .read(parsedOptions);
           defines = parsedOptions.defines;
           showOffsets = Options.showOffsets.read(parsedOptions);
           if (Options.noDefines.read(parsedOptions)) {
@@ -99,22 +113,23 @@ class SuiteFolderOptions {
           noVerify = noVerifyCmd.read(parsedOptions);
           target = Options.target.read(parsedOptions);
           folderOptions = new FolderOptions(
-              parseExperimentalFlags(
-                  parseExperimentalArguments(experimentalFlagsArguments),
-                  onError: (String message) => throw new ArgumentError(message),
-                  onWarning: (String message) =>
-                      throw new ArgumentError(message)),
-              enableUnscheduledExperiments: enableUnscheduledExperiments,
-              forceLateLowerings: forceLateLowering,
-              forceLateLoweringSentinel: forceLateLoweringSentinel,
-              forceStaticFieldLowering: forceStaticFieldLowering,
-              forceNoExplicitGetterCalls: forceNoExplicitGetterCalls,
-              forceConstructorTearOffLowering: forceConstructorTearOffLowering,
-              defines: defines,
-              noVerify: noVerify,
-              target: target,
-              overwriteCurrentSdkVersion: overwriteCurrentSdkVersionArgument,
-              showOffsets: showOffsets);
+            parseExperimentalFlags(
+              parseExperimentalArguments(experimentalFlagsArguments),
+              onError: (String message) => throw new ArgumentError(message),
+              onWarning: (String message) => throw new ArgumentError(message),
+            ),
+            enableUnscheduledExperiments: enableUnscheduledExperiments,
+            forceLateLowerings: forceLateLowering,
+            forceLateLoweringSentinel: forceLateLoweringSentinel,
+            forceStaticFieldLowering: forceStaticFieldLowering,
+            forceNoExplicitGetterCalls: forceNoExplicitGetterCalls,
+            forceConstructorTearOffLowering: forceConstructorTearOffLowering,
+            defines: defines,
+            noVerify: noVerify,
+            target: target,
+            overwriteCurrentSdkVersion: overwriteCurrentSdkVersionArgument,
+            showOffsets: showOffsets,
+          );
         } else {
           folderOptions = _computeFolderOptions(directory.parent);
         }
@@ -130,7 +145,8 @@ class SuiteFolderOptions {
   }
 
   static Map<ExperimentalFlag, bool> computeForcedExperimentalFlags(
-      Map<String, String> environment) {
+    Map<String, String> environment,
+  ) {
     Map<ExperimentalFlag, bool> experimentalFlags = <ExperimentalFlag, bool>{
       // Force enable features in development.
       ExperimentalFlag.nullAwareElements: true,
@@ -145,7 +161,9 @@ class SuiteFolderOptions {
     }
 
     addForcedExperimentalFlag(
-        "enableNonNullable", ExperimentalFlag.nonNullable);
+      "enableNonNullable",
+      ExperimentalFlag.nonNullable,
+    );
     return experimentalFlags;
   }
 }
@@ -168,30 +186,33 @@ class FolderOptions {
   final String? overwriteCurrentSdkVersion;
   final bool showOffsets;
 
-  FolderOptions(this._explicitExperimentalFlags,
-      {this.enableUnscheduledExperiments,
-      this.forceLateLowerings,
-      this.forceLateLoweringSentinel,
-      this.forceStaticFieldLowering,
-      this.forceNoExplicitGetterCalls,
-      this.forceConstructorTearOffLowering,
-      this.defines = const {},
-      this.noVerify = false,
-      this.target = "vm",
-      // can be null
-      this.overwriteCurrentSdkVersion,
-      this.showOffsets = false})
-      : assert(
-            // no this doesn't make any sense but left to underline
-            // that this is allowed to be null!
-            defines != null || defines == null);
+  FolderOptions(
+    this._explicitExperimentalFlags, {
+    this.enableUnscheduledExperiments,
+    this.forceLateLowerings,
+    this.forceLateLoweringSentinel,
+    this.forceStaticFieldLowering,
+    this.forceNoExplicitGetterCalls,
+    this.forceConstructorTearOffLowering,
+    this.defines = const {},
+    this.noVerify = false,
+    this.target = "vm",
+    // can be null
+    this.overwriteCurrentSdkVersion,
+    this.showOffsets = false,
+  }) : assert(
+         // no this doesn't make any sense but left to underline
+         // that this is allowed to be null!
+         defines != null || defines == null,
+       );
 
   /// Computes the experimental flag for the folder.
   ///
   /// [forcedExperimentalFlags] is used to override the default flags the
   /// folder.
   Map<ExperimentalFlag, bool> computeExplicitExperimentalFlags(
-      Map<ExperimentalFlag, bool> forcedExperimentalFlags) {
+    Map<ExperimentalFlag, bool> forcedExperimentalFlags,
+  ) {
     Map<ExperimentalFlag, bool> flags = {};
     flags.addAll(_explicitExperimentalFlags);
     flags.addAll(forcedExperimentalFlags);

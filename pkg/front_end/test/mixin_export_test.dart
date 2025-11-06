@@ -13,8 +13,11 @@ void main() {
       'b.dart': 'import "a.dart"; class B extends Object with M {}',
       'c.dart': 'export "a.dart"; export "b.dart";',
     };
-    await compileUnit(sources.keys.toList(), sources,
-        options: new CompilerOptions()
-          ..onDiagnostic = (m) => throw m.plainTextFormatted.join("\n"));
+    await compileUnit(
+      sources.keys.toList(),
+      sources,
+      options: new CompilerOptions()
+        ..onDiagnostic = (m) => throw m.plainTextFormatted.join("\n"),
+    );
   });
 }

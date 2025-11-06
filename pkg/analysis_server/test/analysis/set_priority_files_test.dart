@@ -4,7 +4,6 @@
 
 import 'package:analysis_server/protocol/protocol.dart';
 import 'package:analysis_server/protocol/protocol_generated.dart';
-import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -143,7 +142,6 @@ analyzer:
   }
 
   Future<void> test_sentToPlugins() async {
-    if (!AnalysisServer.supportsPlugins) return;
     addTestFile('');
     // set priority files
     var response = await _setPriorityFile(testFile);

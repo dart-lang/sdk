@@ -183,15 +183,7 @@ class Sub6 extends Base7 {
 }
 
 List<Base7> createData7() {
-  return [
-    Sub0(),
-    Sub1(),
-    Sub2(),
-    Sub3(),
-    Sub4(),
-    Sub5(),
-    Sub6(),
-  ];
+  return [Sub0(), Sub1(), Sub2(), Sub3(), Sub4(), Sub5(), Sub6()];
 }
 
 void incByDynamicDispatch7(Base7 base, Counter counter) {

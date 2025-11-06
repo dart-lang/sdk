@@ -47,7 +47,7 @@ class A {
   bool operator <(@mustBeConst A other) => false;
 }
 ''',
-      [error(WarningCode.NON_CONST_ARGUMENT_FOR_CONST_PARAMETER, 86, 1)],
+      [error(WarningCode.nonConstArgumentForConstParameter, 86, 1)],
     );
   }
 
@@ -109,7 +109,7 @@ class C {
   C(@mustBeConst int i);
 }
 ''',
-      [error(WarningCode.NON_CONST_ARGUMENT_FOR_CONST_PARAMETER, 77, 1)],
+      [error(WarningCode.nonConstArgumentForConstParameter, 77, 1)],
     );
   }
 
@@ -134,7 +134,7 @@ void f(int x) {
   g(x);
 }
 ''',
-      [error(WarningCode.NON_CONST_ARGUMENT_FOR_CONST_PARAMETER, 106, 1)],
+      [error(WarningCode.nonConstArgumentForConstParameter, 106, 1)],
     );
   }
 
@@ -157,7 +157,7 @@ void f(void g(@mustBeConst int i), int x) {
   g(x);
 }
 ''',
-      [error(WarningCode.NON_CONST_ARGUMENT_FOR_CONST_PARAMETER, 99, 1)],
+      [error(WarningCode.nonConstArgumentForConstParameter, 99, 1)],
     );
   }
 
@@ -193,7 +193,7 @@ class A {
   void operator []=(@mustBeConst int i, @mustBeConst A v) {}
 }
 ''',
-      [error(WarningCode.NON_CONST_ARGUMENT_FOR_CONST_PARAMETER, 74, 3)],
+      [error(WarningCode.nonConstArgumentForConstParameter, 74, 3)],
     );
   }
 
@@ -210,7 +210,7 @@ class C {
   C(@mustBeConst String s);
 }
 ''',
-      [error(WarningCode.NON_CONST_ARGUMENT_FOR_CONST_PARAMETER, 82, 5)],
+      [error(WarningCode.nonConstArgumentForConstParameter, 82, 5)],
     );
   }
 
@@ -235,7 +235,7 @@ void f(int x) {
   g(x);
 }
 ''',
-      [error(WarningCode.NON_CONST_ARGUMENT_FOR_CONST_PARAMETER, 103, 1)],
+      [error(WarningCode.nonConstArgumentForConstParameter, 103, 1)],
     );
   }
 
@@ -264,7 +264,7 @@ class C {
   void g([@mustBeConst int? value]) {}
 }
 ''',
-      [error(WarningCode.NON_CONST_ARGUMENT_FOR_CONST_PARAMETER, 84, 1)],
+      [error(WarningCode.nonConstArgumentForConstParameter, 84, 1)],
     );
   }
 
@@ -301,7 +301,7 @@ void f() => g(value: v);
 
 void g({@mustBeConst int? value}) {}
 ''',
-      [error(WarningCode.NON_CONST_ARGUMENT_FOR_CONST_PARAMETER, 79, 8)],
+      [error(WarningCode.nonConstArgumentForConstParameter, 79, 8)],
     );
   }
 
@@ -338,7 +338,7 @@ void f() => g(v);
 
 void g([@mustBeConst int? value]) {}
 ''',
-      [error(WarningCode.NON_CONST_ARGUMENT_FOR_CONST_PARAMETER, 79, 1)],
+      [error(WarningCode.nonConstArgumentForConstParameter, 79, 1)],
     );
   }
 
@@ -352,7 +352,7 @@ class A {
   A.named(int i) : this(i);
 }
 ''',
-      [error(WarningCode.NON_CONST_ARGUMENT_FOR_CONST_PARAMETER, 110, 1)],
+      [error(WarningCode.nonConstArgumentForConstParameter, 110, 1)],
     );
   }
 
@@ -430,7 +430,7 @@ void f(int value) => g(value);
 
 void g(@mustBeConst int value) {}
 ''',
-      [error(WarningCode.NON_CONST_ARGUMENT_FOR_CONST_PARAMETER, 74, 5)],
+      [error(WarningCode.nonConstArgumentForConstParameter, 74, 5)],
     );
   }
 
@@ -457,7 +457,7 @@ void f() => g(v);
 
 void g(@mustBeConst int value) {}
 ''',
-      [error(WarningCode.NON_CONST_ARGUMENT_FOR_CONST_PARAMETER, 79, 1)],
+      [error(WarningCode.nonConstArgumentForConstParameter, 79, 1)],
     );
   }
 
@@ -473,7 +473,7 @@ void f() {
 
 set i(@mustBeConst int? value) {}
 ''',
-      [error(WarningCode.NON_CONST_ARGUMENT_FOR_CONST_PARAMETER, 83, 1)],
+      [error(WarningCode.nonConstArgumentForConstParameter, 83, 1)],
     );
   }
 
@@ -545,7 +545,7 @@ class B extends A {
   void f(@mustBeConst int i) {}
 }
 ''',
-      [error(WarningCode.NON_CONST_ARGUMENT_FOR_CONST_PARAMETER, 81, 1)],
+      [error(WarningCode.nonConstArgumentForConstParameter, 81, 1)],
     );
   }
 
@@ -562,7 +562,7 @@ class B extends A {
   B(int i) : super(i);
 }
 ''',
-      [error(WarningCode.NON_CONST_ARGUMENT_FOR_CONST_PARAMETER, 128, 1)],
+      [error(WarningCode.nonConstArgumentForConstParameter, 128, 1)],
     );
   }
 
@@ -619,7 +619,7 @@ class C {
 
 void g(int x) => T(x);
 ''',
-      [error(WarningCode.NON_CONST_ARGUMENT_FOR_CONST_PARAMETER, 124, 1)],
+      [error(WarningCode.nonConstArgumentForConstParameter, 124, 1)],
     );
   }
 }

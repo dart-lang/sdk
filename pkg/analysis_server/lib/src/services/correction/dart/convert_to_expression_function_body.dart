@@ -22,10 +22,10 @@ class ConvertToExpressionFunctionBody extends ResolvedCorrectionProducer {
   AssistKind get assistKind => DartAssistKind.convertIntoExpressionBody;
 
   @override
-  FixKind get fixKind => DartFixKind.CONVERT_INTO_EXPRESSION_BODY;
+  FixKind get fixKind => DartFixKind.convertIntoExpressionBody;
 
   @override
-  FixKind get multiFixKind => DartFixKind.CONVERT_INTO_EXPRESSION_BODY_MULTI;
+  FixKind get multiFixKind => DartFixKind.convertIntoExpressionBodyMulti;
 
   @override
   Future<void> compute(ChangeBuilder builder) async {

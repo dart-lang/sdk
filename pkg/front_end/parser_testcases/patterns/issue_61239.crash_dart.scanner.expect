@@ -1,0 +1,15 @@
+void f(x) {
+return switch(x) {
+42 xor => 42,
+_ => 0,
+}
+}
+
+
+void[KeywordToken] f[StringToken]([BeginToken]x[StringToken])[SimpleToken] {[BeginToken]
+return[KeywordToken] switch[KeywordToken]([BeginToken]x[StringToken])[SimpleToken] {[BeginToken]
+42[StringToken] xor[StringToken] =>[SimpleToken] 42[StringToken],[SimpleToken]
+_[StringToken] =>[SimpleToken] 0[StringToken],[SimpleToken]
+}[SimpleToken]
+}[SimpleToken]
+[SimpleToken]

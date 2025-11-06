@@ -38,25 +38,27 @@ class FixedTypeBuilderImpl extends FixedTypeBuilder {
 
   @override
   // Coverage-ignore(suite): Not run.
-  bool get isVoidType => type is VoidType;
-
-  @override
-  // Coverage-ignore(suite): Not run.
   StringBuffer printOn(StringBuffer buffer) {
     buffer.write('type=${type}');
     return buffer;
   }
 
   @override
-  DartType build(LibraryBuilder library, TypeUse typeUse,
-      {ClassHierarchyBase? hierarchy}) {
+  DartType build(
+    LibraryBuilder library,
+    TypeUse typeUse, {
+    ClassHierarchyBase? hierarchy,
+  }) {
     return type;
   }
 
   @override
   // Coverage-ignore(suite): Not run.
   DartType buildAliased(
-      LibraryBuilder library, TypeUse typeUse, ClassHierarchyBase? hierarchy) {
+    LibraryBuilder library,
+    TypeUse typeUse,
+    ClassHierarchyBase? hierarchy,
+  ) {
     return type;
   }
 
@@ -64,14 +66,22 @@ class FixedTypeBuilderImpl extends FixedTypeBuilder {
   // Coverage-ignore(suite): Not run.
   Supertype buildSupertype(LibraryBuilder library, TypeUse typeUse) {
     return unhandled(
-        'buildSupertype', 'FixedTypeBuilder', charOffset ?? -1, fileUri);
+      'buildSupertype',
+      'FixedTypeBuilder',
+      charOffset ?? -1,
+      fileUri,
+    );
   }
 
   @override
   // Coverage-ignore(suite): Not run.
   Supertype buildMixedInType(LibraryBuilder library) {
     return unhandled(
-        'buildMixedInType', 'FixedTypeBuilder', charOffset ?? -1, fileUri);
+      'buildMixedInType',
+      'FixedTypeBuilder',
+      charOffset ?? -1,
+      fileUri,
+    );
   }
 
   @override
@@ -85,37 +95,43 @@ class FixedTypeBuilderImpl extends FixedTypeBuilder {
 
   @override
   // Coverage-ignore(suite): Not run.
-  Nullability computeNullability(
-          {required Map<TypeParameterBuilder, TraversalState>
-              typeParametersTraversalState}) =>
-      type.nullability;
+  Nullability computeNullability({
+    required Map<TypeParameterBuilder, TraversalState>
+    typeParametersTraversalState,
+  }) => type.nullability;
 
   @override
   // Coverage-ignore(suite): Not run.
   VarianceCalculationValue computeTypeParameterBuilderVariance(
-      NominalParameterBuilder nominalParameterBuilder,
-      {required SourceLoader sourceLoader}) {
+    NominalParameterBuilder nominalParameterBuilder, {
+    required SourceLoader sourceLoader,
+  }) {
     return VarianceCalculationValue.calculatedUnrelated;
   }
 
   @override
-  TypeDeclarationBuilder? computeUnaliasedDeclaration(
-      {required bool isUsedAsClass}) {
+  TypeDeclarationBuilder? computeUnaliasedDeclaration({
+    required bool isUsedAsClass,
+  }) {
     throw new UnsupportedError('$runtimeType.computeUnaliasedDeclaration');
   }
 
   @override
   // Coverage-ignore(suite): Not run.
-  void collectReferencesFrom(Map<TypeParameterBuilder, int> parameterIndices,
-      List<List<int>> edges, int index) {}
+  void collectReferencesFrom(
+    Map<TypeParameterBuilder, int> parameterIndices,
+    List<List<int>> edges,
+    int index,
+  ) {}
 
   @override
   // Coverage-ignore(suite): Not run.
   TypeBuilder? substituteRange(
-      Map<TypeParameterBuilder, TypeBuilder> upperSubstitution,
-      Map<TypeParameterBuilder, TypeBuilder> lowerSubstitution,
-      TypeParameterFactory typeParameterFactory,
-      {Variance variance = Variance.covariant}) {
+    Map<TypeParameterBuilder, TypeBuilder> upperSubstitution,
+    Map<TypeParameterBuilder, TypeBuilder> lowerSubstitution,
+    TypeParameterFactory typeParameterFactory, {
+    Variance variance = Variance.covariant,
+  }) {
     return null;
   }
 

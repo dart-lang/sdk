@@ -30,7 +30,7 @@ class C {
   var x = 0;
 }
 ''',
-      [error(WarningCode.INVALID_AWAIT_NOT_REQUIRED_ANNOTATION, 69, 5)],
+      [error(WarningCode.invalidAwaitNotRequiredAnnotation, 69, 5)],
     );
   }
 
@@ -43,7 +43,7 @@ class C {
   int x = 0;
 }
 ''',
-      [error(WarningCode.INVALID_AWAIT_NOT_REQUIRED_ANNOTATION, 69, 5)],
+      [error(WarningCode.invalidAwaitNotRequiredAnnotation, 69, 5)],
     );
   }
 
@@ -54,7 +54,7 @@ import 'package:meta/meta.dart';
 @awaitNotRequired
 void f() {}
 ''',
-      [error(WarningCode.INVALID_AWAIT_NOT_REQUIRED_ANNOTATION, 34, 16)],
+      [error(WarningCode.invalidAwaitNotRequiredAnnotation, 34, 16)],
     );
   }
 
@@ -67,7 +67,7 @@ class C {
   void f() {}
 }
 ''',
-      [error(WarningCode.INVALID_AWAIT_NOT_REQUIRED_ANNOTATION, 46, 16)],
+      [error(WarningCode.invalidAwaitNotRequiredAnnotation, 46, 16)],
     );
   }
 
@@ -84,7 +84,7 @@ class D extends C {
   f() {}
 }
 ''',
-      [error(WarningCode.INVALID_AWAIT_NOT_REQUIRED_ANNOTATION, 82, 16)],
+      [error(WarningCode.invalidAwaitNotRequiredAnnotation, 82, 16)],
     );
   }
 
@@ -95,7 +95,7 @@ import 'package:meta/meta.dart';
 @awaitNotRequired
 int x = 0;
 ''',
-      [error(WarningCode.INVALID_AWAIT_NOT_REQUIRED_ANNOTATION, 55, 5)],
+      [error(WarningCode.invalidAwaitNotRequiredAnnotation, 55, 5)],
     );
   }
 

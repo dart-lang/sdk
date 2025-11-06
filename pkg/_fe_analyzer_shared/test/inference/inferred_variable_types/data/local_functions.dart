@@ -19,9 +19,9 @@ localFunctions() {
   }
 
   var /*dynamic Function(dynamic)*/ singleReturn2 =
-  /*dynamic*/ (/*dynamic*/ o) {
-    return o;
-  };
+      /*dynamic*/ (/*dynamic*/ o) {
+        return o;
+      };
 
   /*int*/
   typedArrowReturn1() => 1;
@@ -45,16 +45,15 @@ localFunctions() {
     }
   }
 
-  var /*int? Function(bool)*/ multipleTypedReturns2 = /*int?*/ (
-    bool condition,
-  ) {
-    if (condition) {
-      return 1;
-    } else {
-      return null;
-    }
-  };
+  var /*int? Function(bool)*/ multipleTypedReturns2 = /*int?*/
+      (bool condition) {
+        if (condition) {
+          return 1;
+        } else {
+          return null;
+        }
+      };
 
-  int Function(String) inferredFromContext = /*int*/
-      (/*String*/ condition) => condition.length;
+  int Function(String) inferredFromContext = /*int*/ (/*String*/ condition) =>
+      condition.length;
 }

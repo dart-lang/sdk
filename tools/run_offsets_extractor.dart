@@ -3,23 +3,14 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:convert' as convert show json;
 import 'dart:io';
 
 import 'package:pool/pool.dart';
 
 final pool = Pool(Platform.numberOfProcessors);
 
-void main(List<String> args) async {
-  final sdkRoot = Platform.script.resolve('../').toFilePath();
-  Directory.current = Directory(sdkRoot);
-
-  final extractedOffsetsFile =
-      'runtime/vm/compiler/runtime_offsets_extracted.h';
-
-  final old = File(extractedOffsetsFile).readAsStringSync();
-  final header = old.substring(0, old.indexOf('\n#if '));
-  final footer = old.substring(old.lastIndexOf('\n#endif '));
-
+Future<void> buildOffsetsExtractor(List<String> args) async {
   // Build all configurations
   await forAllConfigurationsMode((
     String buildDir,
@@ -38,27 +29,88 @@ void main(List<String> args) async {
     ]);
     print('Building $buildDir - done');
   });
+}
 
+Future<String> runOffsetsExtractor() async {
   final (jit, aot) = await (
     forAllConfigurationsMode((String buildDir, _, __) async {
       return await run(['$buildDir/offsets_extractor']);
-    }).then<String>((lines) => lines.join('\n')),
+    }).then<String>((lines) => lines.join(',\n')),
     forAllConfigurationsMode((String buildDir, _, __) async {
       return await run(['$buildDir/offsets_extractor_aotruntime']);
-    }).then<String>((lines) => lines.join('\n')),
+    }).then<String>((lines) => lines.join(',\n')),
   ).wait;
 
-  if (exitCode == 0) {
-    final output = StringBuffer();
-    output.writeln(header);
-    output.writeln(jit);
-    output.writeln(aot);
-    output.writeln(footer);
-    File(extractedOffsetsFile).writeAsStringSync(output.toString());
-    print('Written $extractedOffsetsFile');
-    print('Running `git cl format $extractedOffsetsFile');
-    await run(['git', 'cl', 'format', extractedOffsetsFile]);
+  final buf = StringBuffer();
+  buf.writeln('[');
+  buf.writeln(jit);
+  buf.writeln(',');
+  buf.writeln(aot);
+  buf.writeln(']');
+  return buf.toString();
+}
+
+String toCValue(Object? value) {
+  final intValue = int.parse(value as String);
+  if (intValue == -1) return '-1';
+  return '0x${intValue.toRadixString(16)}';
+}
+
+Future<void> writeCHeaderFile(List json) async {
+  final extractedOffsetsFile =
+      'runtime/vm/compiler/runtime_offsets_extracted.h';
+
+  final old = File(extractedOffsetsFile).readAsStringSync();
+  final header = old.substring(0, old.indexOf('\n#if '));
+  final footer = old.substring(old.lastIndexOf('\n#endif '));
+
+  final output = StringBuffer();
+  output.writeln(header);
+  for (final config in json) {
+    final product = (config['product'] as bool) ? '' : '!';
+    final productDef = '${product}defined(PRODUCT)';
+    final arch = (config['arch'] as String).toUpperCase();
+    final archDef = 'defined(TARGET_ARCH_$arch)';
+    final compressed = (config['compressed'] as bool) ? '' : '!';
+    final compressedDef = '${compressed}defined(DART_COMPRESSED_POINTERS)';
+    final aot = (config['aot'] as bool) ? 'AOT_' : '';
+    final prefix = 'static constexpr dart::compiler::target::word $aot';
+    final offsets = config['offsets'] as List;
+    output.writeln('#if $productDef && $archDef && $compressedDef');
+    for (final offset in offsets) {
+      final kind = offset['kind'] as String;
+      switch (kind) {
+        case 'value':
+          final cls = offset['class'] as String;
+          final name = offset['name'] as String;
+          final value = toCValue(offset['value']);
+          output.writeln('$prefix${cls}_$name = $value;');
+          break;
+        case 'array':
+          final cls = offset['class'] as String;
+          final startOffset = toCValue(offset['startOffset']);
+          final elemSize = toCValue(offset['elemSize']);
+          output.writeln('$prefix${cls}_elements_start_offset = $startOffset;');
+          output.writeln('$prefix${cls}_element_size = $elemSize;');
+          break;
+        case 'range':
+          final cls = offset['class'] as String;
+          final name = offset['name'] as String;
+          final values = (offset['values'] as List).map(toCValue).toList();
+          output.writeln('$prefix${cls}_$name[] = {${values.join(', ')}};');
+          break;
+      }
+    }
+    output.writeln('#endif  // $productDef &&');
+    output.writeln('        // $archDef &&');
+    output.writeln('        // $compressedDef');
+    output.writeln();
   }
+  output.writeln(footer);
+  File(extractedOffsetsFile).writeAsStringSync(output.toString());
+  print('Written $extractedOffsetsFile');
+  print('Running `git cl format $extractedOffsetsFile');
+  await run(['git', 'cl', 'format', extractedOffsetsFile]);
 }
 
 Future<List<T>> forAllConfigurationsMode<T>(
@@ -102,4 +154,23 @@ Future<String> run(List<String> args) async {
 extension on String {
   String get capitalized => substring(0, 1).toUpperCase() + substring(1);
   String get upper => toUpperCase();
+}
+
+void main(List<String> args) async {
+  final sdkRoot = Platform.script.resolve('../').toFilePath();
+  Directory.current = Directory(sdkRoot);
+
+  await buildOffsetsExtractor(args);
+  if (exitCode != 0) {
+    return;
+  }
+
+  final text = await runOffsetsExtractor();
+  if (exitCode != 0) {
+    return;
+  }
+
+  final json = convert.json.decode(text) as List;
+
+  await writeCHeaderFile(json);
 }

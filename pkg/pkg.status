@@ -43,6 +43,7 @@ compiler/test/sourcemaps/source_mapping_invokes_test: Slow, Pass
 compiler/test/sourcemaps/source_mapping_operators_test: Slow, Pass
 compiler/test/sourcemaps/source_mapping_test: Slow, Pass
 compiler/test/sourcemaps/stacktrace_test: Slow, Pass
+dart2wasm/*: Slow, Pass # Tests run subprocesses.
 dartdev/test/commands/analyze_test: Slow, Pass
 dartdev/test/commands/help_test: Slow, Pass
 dartdev/test/smoke/*: Slow, Pass
@@ -69,7 +70,6 @@ vm/testcases/*: SkipByDesign # These are not tests but input for tests.
 vm_service/*: Slow, Pass
 vm_service/test/valid_source_locations_test: ExtraSlow, Pass # Iterates through all libraries and checks for valid source locations.
 vm_snapshot_analysis/test/instruction_sizes_test: Pass, Slow # https://github.com/dart-lang/sdk/issues/60067
-wasm/*: SkipByDesign # These can't be run without running wasm:setup first.
 
 [ $compiler == dart2analyzer ]
 dev_compiler/test/options/*: SkipByDesign
@@ -100,7 +100,6 @@ status_file/test/repo_status_files_test: SkipByDesign # Uses dart:io
 telemetry/test/*: SkipByDesign # Only meant to run on vm
 test_runner/test/*: SkipByDesign # Only meant to run on vm
 testing/*: SkipByDesign # Only meant to run on vm
-wasm/*: SkipByDesign # Only meant to run on vm
 
 [ $compiler == dartkp ]
 vm_service/test/*breakpoint*: SkipByDesign # Debugger is disabled in AOT mode.

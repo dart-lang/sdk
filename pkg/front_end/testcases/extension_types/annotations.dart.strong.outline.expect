@@ -29,7 +29,7 @@ static extension-type-member method A|get#m(lowered final self::A% /* erasure=co
 
 
 Extra constant evaluation status:
-Evaluated: ConstructorInvocation @ org-dartlang-testcase:///annotations.dart:5:2 -> InstanceConstant(const Deprecated{Deprecated.message: ""})
-Evaluated: ConstructorInvocation @ org-dartlang-testcase:///annotations.dart:7:4 -> InstanceConstant(const Deprecated{Deprecated.message: ""})
-Evaluated: ConstructorInvocation @ org-dartlang-testcase:///annotations.dart:10:4 -> InstanceConstant(const Deprecated{Deprecated.message: ""})
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///annotations.dart:5:2 -> InstanceConstant(const Deprecated{Deprecated.message: "", Deprecated._kind: const _DeprecationKind{_Enum.index: 0, _Enum._name: "use"}})
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///annotations.dart:7:4 -> InstanceConstant(const Deprecated{Deprecated.message: "", Deprecated._kind: const _DeprecationKind{_Enum.index: 0, _Enum._name: "use"}})
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///annotations.dart:10:4 -> InstanceConstant(const Deprecated{Deprecated.message: "", Deprecated._kind: const _DeprecationKind{_Enum.index: 0, _Enum._name: "use"}})
 Extra constant evaluation: evaluated: 10, effectively constant: 3

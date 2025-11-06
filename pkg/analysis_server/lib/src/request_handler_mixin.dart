@@ -6,7 +6,7 @@ import 'dart:async';
 import 'dart:convert';
 
 import 'package:analysis_server/src/analysis_server.dart';
-import 'package:analysis_server/src/plugin/plugin_manager.dart';
+import 'package:analysis_server/src/plugin/plugin_isolate.dart';
 import 'package:analyzer_plugin/protocol/protocol.dart' as plugin;
 import 'package:analyzer_plugin/src/protocol/protocol_internal.dart' as plugin;
 
@@ -22,7 +22,7 @@ mixin RequestHandlerMixin<T extends AnalysisServer> {
   /// restarted. The [timeout] is the maximum amount of time that will be spent
   /// waiting for plugins to respond.
   Future<List<plugin.Response>> waitForResponses(
-    Map<PluginInfo, Future<plugin.Response>> futures, {
+    Map<PluginIsolate, Future<plugin.Response>> futures, {
     plugin.RequestParams? requestParameters,
     Duration timeout = const Duration(milliseconds: 500),
   }) async {

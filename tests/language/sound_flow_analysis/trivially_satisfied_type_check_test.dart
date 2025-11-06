@@ -5,8 +5,6 @@
 // Exercises flow analysis of a trivially satisfied type check (an `is` test
 // that is guaranteed to succeed) when `sound-flow-analysis` is enabled.
 
-// SharedOptions=--enable-experiment=sound-flow-analysis
-
 import '../static_type_helper.dart';
 
 // If `x` is of type `T`, flow analysis considers `x is T` to be guaranteed to

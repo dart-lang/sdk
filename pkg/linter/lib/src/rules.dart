@@ -11,6 +11,7 @@ import 'rules/always_put_required_named_parameters_first.dart';
 import 'rules/always_require_non_null_named_parameters.dart';
 import 'rules/always_specify_types.dart';
 import 'rules/always_use_package_imports.dart';
+import 'rules/analyzer_element_model_tracking.dart';
 import 'rules/analyzer_public_api.dart';
 import 'rules/annotate_overrides.dart';
 import 'rules/annotate_redeclares.dart';
@@ -179,6 +180,7 @@ import 'rules/pub/secure_pubspec_urls.dart';
 import 'rules/pub/sort_pub_dependencies.dart';
 import 'rules/public_member_api_docs.dart';
 import 'rules/recursive_getters.dart';
+import 'rules/remove_deprecations_in_breaking_version.dart';
 import 'rules/require_trailing_commas.dart';
 import 'rules/sized_box_for_whitespace.dart';
 import 'rules/sized_box_shrink_expand.dart';
@@ -264,6 +266,7 @@ void registerLintRules() {
     ..registerLintRule(AlwaysRequireNonNullNamedParameters())
     ..registerLintRule(AlwaysSpecifyTypes())
     ..registerLintRule(AlwaysUsePackageImports())
+    ..registerLintRule(AnalyzerElementModelTracking())
     ..registerLintRule(AnalyzerPublicApi())
     ..registerLintRule(AnnotateOverrides())
     ..registerLintRule(AnnotateRedeclares())
@@ -430,6 +433,7 @@ void registerLintRules() {
     ..registerLintRule(ProvideDeprecationMessage())
     ..registerLintRule(PublicMemberApiDocs())
     ..registerLintRule(RecursiveGetters())
+    ..registerLintRule(RemoveDeprecationsInBreakingVersion())
     ..registerLintRule(RequireTrailingCommas())
     ..registerLintRule(SecurePubspecUrls())
     ..registerLintRule(SizedBoxForWhitespace())

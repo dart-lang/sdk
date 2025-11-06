@@ -26,7 +26,7 @@ class TearOffDynamicMethod extends core::Object {
   field dynamic bazz;
   constructor •([@vm.inferred-arg-type.metadata=#lib::B] dynamic arg) → self::TearOffDynamicMethod
     : self::TearOffDynamicMethod::bazz = [@vm.inferred-type.metadata=dart.core::_Closure (receiver not int) (closure 0 in #lib::B.foo)] arg{dynamic}.foo, super core::Object::•() {
-    [@vm.inferred-type.metadata=!? (receiver not int)] [@vm.direct-call.metadata=#lib::TearOffDynamicMethod.bazz] [@vm.inferred-type.metadata=dart.core::_Closure (closure 0 in #lib::B.foo)] this.{self::TearOffDynamicMethod::bazz}{dynamic}{dynamic}();
+    [@vm.inferred-type.metadata=? (receiver not int)] [@vm.direct-call.metadata=#lib::TearOffDynamicMethod.bazz] [@vm.inferred-type.metadata=dart.core::_Closure (closure 0 in #lib::B.foo)] this.{self::TearOffDynamicMethod::bazz}{dynamic}{dynamic}();
   }
 }
 

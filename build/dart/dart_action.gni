@@ -132,7 +132,7 @@ template("_prebuilt_tool_action") {
                            ])
     script = "$_dart_root/build/gn_run_binary.py"
 
-    inputs = []
+    inputs = [ invoker.binary ]
     if (defined(invoker.inputs)) {
       inputs += invoker.inputs
     }
@@ -142,6 +142,9 @@ template("_prebuilt_tool_action") {
     }
     if (defined(invoker.packages)) {
       inputs += [ invoker.packages ]
+    }
+    if (defined(invoker.dfe)) {
+      inputs += [ invoker.dfe ]
     }
 
     args = [ "compiled_action" ]
@@ -207,7 +210,6 @@ template("prebuilt_dart_action") {
   _prebuilt_tool_action(target_name) {
     forward_variables_from(invoker, "*")
     binary = "$_dart_root/tools/sdks/dart-sdk/bin/dart$executable_suffix"
-    dfe = "$_dart_root/tools/sdks/dart-sdk/bin/snapshots/kernel-service.dart.snapshot"
   }
 }
 
@@ -353,7 +355,7 @@ template("_built_tool_action") {
 template("dart_action") {
   assert(defined(invoker.script), "script must be defined for $target_name")
   _built_tool_action(target_name) {
-    tool = "$_dart_root/runtime/bin:dart"
+    tool = "$_dart_root/runtime/bin:dartvm"
     forward_variables_from(invoker,
                            [
                              "args",
@@ -379,7 +381,7 @@ template("dart_action") {
       if (!defined(invoker.deps)) {
         deps = []
       }
-      deps += [ "$_dart_root/utils/kernel-service:kernel-service" ]
+      deps += [ "$_dart_root/utils/kernel-service" ]
     }
   }
 }

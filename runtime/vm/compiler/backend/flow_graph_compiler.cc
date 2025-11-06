@@ -3087,6 +3087,7 @@ void ThrowErrorSlowPathCode::EmitNativeCode(FlowGraphCompiler* compiler) {
   EmitCodeAtSlowPathEntry(compiler);
   LocationSummary* locs = instruction()->locs();
   const bool has_frame = compiler->flow_graph().graph_entry()->NeedsFrame();
+  bool need_tsan_exit = false;
   if (use_shared_stub) {
     if (!has_frame) {
 #if !defined(TARGET_ARCH_IA32)
@@ -3094,6 +3095,9 @@ void ThrowErrorSlowPathCode::EmitNativeCode(FlowGraphCompiler* compiler) {
       __ set_constant_pool_allowed(false);
 #endif
       __ EnterDartFrame(0);
+      if (FLAG_target_thread_sanitizer && FLAG_precompiled_mode) {
+        __ TsanFuncEntry();
+      }
     }
     EmitSharedStubCall(compiler, live_fpu_registers);
 #if defined(TARGET_ARCH_ARM) || defined(TARGET_ARCH_ARM64)
@@ -3107,7 +3111,14 @@ void ThrowErrorSlowPathCode::EmitNativeCode(FlowGraphCompiler* compiler) {
     // Save registers as they are needed for lazy deopt / exception handling.
     compiler->SaveLiveRegisters(locs);
     PushArgumentsForRuntimeCall(compiler);
-    __ CallRuntime(runtime_entry_, num_args);
+    if (FLAG_target_thread_sanitizer && FLAG_precompiled_mode) {
+      need_tsan_exit = true;
+      __ TsanFuncEntry(/*preserve_registers=*/false);
+    }
+    // We need to emit TsanFuncEntry/Exit separately so the pc descriptors,  etc
+    // are recordered for the call's return address.
+    bool tsan_enter_exit = false;
+    __ CallRuntime(runtime_entry_, num_args, tsan_enter_exit);
   }
   const intptr_t deopt_id = instruction()->deopt_id();
   compiler->AddCurrentDescriptor(UntaggedPcDescriptors::kOther, deopt_id,
@@ -3134,6 +3145,8 @@ void ThrowErrorSlowPathCode::EmitNativeCode(FlowGraphCompiler* compiler) {
   }
   if (!use_shared_stub) {
     __ Breakpoint();
+  } else if (need_tsan_exit) {
+    __ TsanFuncExit(/*preserve_registers=*/false);
   }
 }
 

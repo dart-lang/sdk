@@ -33,7 +33,11 @@ class RangeFactory {
   /// index into the [argumentList] or if the [upper] bound is less than the
   /// [lower] bound.
   SourceRange argumentRange(
-      ArgumentList argumentList, int lower, int upper, bool forDeletion) {
+    ArgumentList argumentList,
+    int lower,
+    int upper,
+    bool forDeletion,
+  ) {
     var arguments = argumentList.arguments;
     assert(lower >= 0 && lower < arguments.length);
     assert(upper >= lower && upper < arguments.length);
@@ -49,7 +53,9 @@ class RangeFactory {
       if (upper == arguments.length - 1) {
         // Remove all of the arguments.
         return endStart(
-            argumentList.leftParenthesis, argumentList.rightParenthesis);
+          argumentList.leftParenthesis,
+          argumentList.rightParenthesis,
+        );
       } else {
         // Remove a subset of the arguments starting with the first argument.
         return startStart(arguments[lower], arguments[upper + 1]);
@@ -117,7 +123,9 @@ class RangeFactory {
   /// Return a source range that starts at the end of [leftEntity] and ends at
   /// the start of [rightEntity].
   SourceRange endStart(
-      SyntacticEntity leftEntity, SyntacticEntity rightEntity) {
+    SyntacticEntity leftEntity,
+    SyntacticEntity rightEntity,
+  ) {
     var offset = leftEntity.end;
     var length = rightEntity.offset - offset;
     return SourceRange(offset, length);
@@ -136,9 +144,9 @@ class RangeFactory {
   /// Returns `null` if the [fragment] does not have an explicit name location,
   /// such as when it is synthetic.
   ///
-  /// See [Fragment.name] and [Fragment.nameOffset2].
+  /// See [Fragment.name] and [Fragment.nameOffset].
   SourceRange? fragmentName(Fragment fragment) {
-    var nameOffset = fragment.nameOffset2;
+    var nameOffset = fragment.nameOffset;
     var nameLength = fragment.name?.length;
     if (nameOffset == null || nameLength == null) {
       return null;
@@ -196,7 +204,9 @@ class RangeFactory {
   /// Return a source range that starts at the start of [leftEntity] and ends at
   /// the end of [rightEntity].
   SourceRange startEnd(
-      SyntacticEntity leftEntity, SyntacticEntity rightEntity) {
+    SyntacticEntity leftEntity,
+    SyntacticEntity rightEntity,
+  ) {
     var offset = leftEntity.offset;
     var length = rightEntity.end - offset;
     return SourceRange(offset, length);
@@ -231,7 +241,9 @@ class RangeFactory {
   /// Return a source range that starts at the start of [leftEntity] and ends at
   /// the start of [rightEntity].
   SourceRange startStart(
-      SyntacticEntity leftEntity, SyntacticEntity rightEntity) {
+    SyntacticEntity leftEntity,
+    SyntacticEntity rightEntity,
+  ) {
     var offset = leftEntity.offset;
     var length = rightEntity.offset - offset;
     return SourceRange(offset, length);

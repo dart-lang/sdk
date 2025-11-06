@@ -28,7 +28,7 @@ WithClause
   mixinTypes
     NamedType
       name: M
-      element2: <testLibrary>::@mixin::M
+      element: <testLibrary>::@mixin::M
       type: M
 ''');
   }
@@ -46,7 +46,7 @@ WithClause
   mixinTypes
     NamedType
       name: M
-      element2: <testLibrary>::@mixin::M
+      element: <testLibrary>::@mixin::M
       type: M
 ''');
   }
@@ -83,7 +83,7 @@ FieldDeclaration
     lateKeyword: late
     type: NamedType
       name: T
-      element2: #E0 T
+      element: #E0 T
       type: T
     variables
       VariableDeclaration
@@ -106,7 +106,7 @@ mixin M {
 MethodDeclaration
   returnType: NamedType
     name: int
-    element2: dart:core::@class::int
+    element: dart:core::@class::int
     type: int
   propertyKeyword: get
   name: foo
@@ -117,7 +117,8 @@ MethodDeclaration
       staticType: int
     semicolon: ;
   declaredElement: <testLibraryFragment> foo@20
-    type: int Function()
+    element: <testLibrary>::@mixin::M::@getter::foo
+      type: int Function()
 ''');
   }
 
@@ -136,11 +137,11 @@ ImplementsClause
   interfaces
     NamedType
       name: A
-      element2: <testLibrary>::@class::A
+      element: <testLibrary>::@class::A
       type: A
     NamedType
       name: B
-      element2: <testLibrary>::@class::B
+      element: <testLibrary>::@class::B
       type: B
 ''');
   }
@@ -161,11 +162,10 @@ mixin M on A {
 abstract class X extends A with U1, U2, M {}
 ''',
       [
-        error(CompileTimeErrorCode.MIXIN_OF_NON_CLASS, 121, 2),
-        error(CompileTimeErrorCode.MIXIN_OF_NON_CLASS, 125, 2),
+        error(CompileTimeErrorCode.mixinOfNonClass, 121, 2),
+        error(CompileTimeErrorCode.mixinOfNonClass, 125, 2),
         error(
-          CompileTimeErrorCode
-              .MIXIN_APPLICATION_NO_CONCRETE_SUPER_INVOKED_MEMBER,
+          CompileTimeErrorCode.mixinApplicationNoConcreteSuperInvokedMember,
           129,
           1,
         ),
@@ -199,7 +199,7 @@ Annotation
     token: a
     element: <testLibrary>::@getter::a
     staticType: null
-  element2: <testLibrary>::@getter::a
+  element: <testLibrary>::@getter::a
 ''');
   }
 
@@ -215,7 +215,7 @@ mixin M {
 MethodDeclaration
   returnType: NamedType
     name: void
-    element2: <null>
+    element: <null>
     type: void
   name: foo
   parameters: FormalParameterList
@@ -226,7 +226,8 @@ MethodDeclaration
       leftBracket: {
       rightBracket: }
   declaredElement: <testLibraryFragment> foo@17
-    type: void Function()
+    element: <testLibrary>::@mixin::M::@method::foo
+      type: void Function()
 ''');
   }
 
@@ -241,7 +242,7 @@ class C<T> {}
 
 mixin M<T> on C<T> {}
 ''',
-      [error(WarningCode.UNUSED_LOCAL_VARIABLE, 26, 1)],
+      [error(WarningCode.unusedLocalVariable, 26, 1)],
     );
 
     var node = findNode.functionExpressionInvocation('f()');
@@ -277,11 +278,11 @@ MixinOnClause
   superclassConstraints
     NamedType
       name: A
-      element2: <testLibrary>::@class::A
+      element: <testLibrary>::@class::A
       type: A
     NamedType
       name: B
-      element2: <testLibrary>::@class::B
+      element: <testLibrary>::@class::B
       type: B
 ''');
   }
@@ -298,7 +299,7 @@ mixin M {
 MethodDeclaration
   returnType: NamedType
     name: void
-    element2: <null>
+    element: <null>
     type: void
   propertyKeyword: set
   name: foo
@@ -307,18 +308,20 @@ MethodDeclaration
     parameter: SimpleFormalParameter
       type: NamedType
         name: int
-        element2: dart:core::@class::int
+        element: dart:core::@class::int
         type: int
       name: _
       declaredElement: <testLibraryFragment> _@29
-        type: int
+        element: isPrivate
+          type: int
     rightParenthesis: )
   body: BlockFunctionBody
     block: Block
       leftBracket: {
       rightBracket: }
   declaredElement: <testLibraryFragment> foo@21
-    type: void Function(int)
+    element: <testLibrary>::@mixin::M::@setter::foo
+      type: void Function(int)
 ''');
   }
 
@@ -424,9 +427,9 @@ AssignmentExpression
     literal: 0
     correspondingParameter: <testLibrary>::@class::A::@setter::foo::@formalParameter::_
     staticType: int
-  readElement2: <null>
+  readElement: <null>
   readType: null
-  writeElement2: <testLibrary>::@class::A::@setter::foo
+  writeElement: <testLibrary>::@class::A::@setter::foo
   writeType: int
   element: <null>
   staticType: int

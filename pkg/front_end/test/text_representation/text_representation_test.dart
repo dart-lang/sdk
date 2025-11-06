@@ -19,34 +19,37 @@ const String expressionMarker = 'expr';
 const String initializerMarker = 'init';
 
 const AstTextStrategy normalStrategy = const AstTextStrategy(
-    includeLibraryNamesInMembers: false,
-    includeLibraryNamesInTypes: false,
-    includeAuxiliaryProperties: false,
-    useMultiline: true,
-    maxExpressionDepth: null,
-    maxExpressionsLength: null,
-    maxStatementDepth: null,
-    maxStatementsLength: null);
+  includeLibraryNamesInMembers: false,
+  includeLibraryNamesInTypes: false,
+  includeAuxiliaryProperties: false,
+  useMultiline: true,
+  maxExpressionDepth: null,
+  maxExpressionsLength: null,
+  maxStatementDepth: null,
+  maxStatementsLength: null,
+);
 
 const AstTextStrategy verboseStrategy = const AstTextStrategy(
-    includeLibraryNamesInMembers: true,
-    includeLibraryNamesInTypes: true,
-    includeAuxiliaryProperties: true,
-    useMultiline: true,
-    maxExpressionDepth: null,
-    maxExpressionsLength: null,
-    maxStatementDepth: null,
-    maxStatementsLength: null);
+  includeLibraryNamesInMembers: true,
+  includeLibraryNamesInTypes: true,
+  includeAuxiliaryProperties: true,
+  useMultiline: true,
+  maxExpressionDepth: null,
+  maxExpressionsLength: null,
+  maxStatementDepth: null,
+  maxStatementsLength: null,
+);
 
 const AstTextStrategy limitedStrategy = const AstTextStrategy(
-    includeLibraryNamesInMembers: false,
-    includeLibraryNamesInTypes: false,
-    includeAuxiliaryProperties: false,
-    useMultiline: false,
-    maxExpressionDepth: 5,
-    maxExpressionsLength: 4,
-    maxStatementDepth: 5,
-    maxStatementsLength: 4);
+  includeLibraryNamesInMembers: false,
+  includeLibraryNamesInTypes: false,
+  includeAuxiliaryProperties: false,
+  useMultiline: false,
+  maxExpressionDepth: 5,
+  maxExpressionsLength: 4,
+  maxStatementDepth: 5,
+  maxStatementsLength: 4,
+);
 
 AstTextStrategy getStrategy(String marker) {
   switch (marker) {
@@ -62,38 +65,51 @@ AstTextStrategy getStrategy(String marker) {
 
 Future<void> main(List<String> args) async {
   Directory dataDir = new Directory.fromUri(Platform.script.resolve('data'));
-  await runTests<String>(dataDir,
-      args: args,
-      createUriForFileName: createUriForFileName,
-      onFailure: onFailure,
-      preserveWhitespaceInAnnotations: true,
-      runTest: runTestFor(const TextRepresentationDataComputer(), [
-        const CfeTestConfig(normalMarker, 'normal'),
-        const CfeTestConfig(verboseMarker, 'verbose'),
-        const CfeTestConfig(limitedMarker, 'limited'),
-      ]));
+  await runTests<String>(
+    dataDir,
+    args: args,
+    createUriForFileName: createUriForFileName,
+    onFailure: onFailure,
+    preserveWhitespaceInAnnotations: true,
+    runTest: runTestFor(const TextRepresentationDataComputer(), [
+      const CfeTestConfig(normalMarker, 'normal'),
+      const CfeTestConfig(verboseMarker, 'verbose'),
+      const CfeTestConfig(limitedMarker, 'limited'),
+    ]),
+  );
 }
 
 class TextRepresentationDataComputer extends CfeDataComputer<String> {
   const TextRepresentationDataComputer();
 
   @override
-  void computeLibraryData(CfeTestResultData testResultData, Library library,
-      Map<Id, ActualData<String>> actualMap,
-      {bool? verbose}) {
-    new TextRepresentationDataExtractor(testResultData.compilerResult,
-            actualMap, getStrategy(testResultData.config.marker))
-        .computeForLibrary(library);
+  void computeLibraryData(
+    CfeTestResultData testResultData,
+    Library library,
+    Map<Id, ActualData<String>> actualMap, {
+    bool? verbose,
+  }) {
+    new TextRepresentationDataExtractor(
+      testResultData.compilerResult,
+      actualMap,
+      getStrategy(testResultData.config.marker),
+    ).computeForLibrary(library);
   }
 
   @override
-  void computeMemberData(CfeTestResultData testResultData, Member member,
-      Map<Id, ActualData<String>> actualMap,
-      {bool? verbose}) {
-    member.accept(new TextRepresentationDataExtractor(
+  void computeMemberData(
+    CfeTestResultData testResultData,
+    Member member,
+    Map<Id, ActualData<String>> actualMap, {
+    bool? verbose,
+  }) {
+    member.accept(
+      new TextRepresentationDataExtractor(
         testResultData.compilerResult,
         actualMap,
-        getStrategy(testResultData.config.marker)));
+        getStrategy(testResultData.config.marker),
+      ),
+    );
   }
 
   @override
@@ -103,9 +119,11 @@ class TextRepresentationDataComputer extends CfeDataComputer<String> {
 class TextRepresentationDataExtractor extends CfeDataExtractor<String> {
   final AstTextStrategy strategy;
 
-  TextRepresentationDataExtractor(InternalCompilerResult compilerResult,
-      Map<Id, ActualData<String>> actualMap, this.strategy)
-      : super(compilerResult, actualMap);
+  TextRepresentationDataExtractor(
+    InternalCompilerResult compilerResult,
+    Map<Id, ActualData<String>> actualMap,
+    this.strategy,
+  ) : super(compilerResult, actualMap);
 
   @override
   void visitConstructor(Constructor node) {

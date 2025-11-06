@@ -712,6 +712,7 @@ class _ClassMirror extends _ObjectMirror implements ClassMirror, _TypeMirror {
     List positionalArguments, [
     Map<Symbol, dynamic> namedArguments = const <Symbol, dynamic>{},
   ]) {
+    if (isEnum) throw UnsupportedError("Cannot instantiate enums");
     // Native code will add the 1 or 2 implicit arguments depending on whether
     // we end up invoking a factory or constructor respectively.
     int numPositionalArguments = positionalArguments.length;

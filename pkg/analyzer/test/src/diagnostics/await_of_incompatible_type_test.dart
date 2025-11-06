@@ -34,7 +34,7 @@ void f(A a) async {
   await a;
 }
 ''',
-      [error(CompileTimeErrorCode.AWAIT_OF_INCOMPATIBLE_TYPE, 51, 5)],
+      [error(CompileTimeErrorCode.awaitOfIncompatibleType, 51, 5)],
     );
   }
 
@@ -57,7 +57,7 @@ void f<T extends A>(T a) async {
   await a;
 }
 ''',
-      [error(CompileTimeErrorCode.AWAIT_OF_INCOMPATIBLE_TYPE, 72, 5)],
+      [error(CompileTimeErrorCode.awaitOfIncompatibleType, 72, 5)],
     );
   }
 
@@ -84,7 +84,7 @@ void f<T>(T a) async {
   }
 }
 ''',
-      [error(CompileTimeErrorCode.AWAIT_OF_INCOMPATIBLE_TYPE, 80, 5)],
+      [error(CompileTimeErrorCode.awaitOfIncompatibleType, 80, 5)],
     );
   }
 }

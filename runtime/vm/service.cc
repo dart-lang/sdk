@@ -2194,6 +2194,12 @@ static ObjectPtr LookupHeapObjectCode(char** parts, int num_parts) {
   if (!code.IsNull()) {
     return code.ptr();
   }
+#if defined(DART_DYNAMIC_MODULES)
+  const auto& bytecode = Bytecode::Handle(Bytecode::FindBytecode(pc));
+  if (!bytecode.IsNull()) {
+    return bytecode.ptr();
+  }
+#endif
 
   // Not found.
   return Object::sentinel().ptr();

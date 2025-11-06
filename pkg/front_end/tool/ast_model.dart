@@ -15,8 +15,9 @@ import 'package:kernel/type_environment.dart';
 import 'package:vm/modular/target/vm.dart';
 
 final Uri astLibraryUri = Uri.parse('package:kernel/ast.dart');
-final Uri canonicalNameLibraryUri =
-    Uri.parse('package:kernel/canonical_name.dart');
+final Uri canonicalNameLibraryUri = Uri.parse(
+  'package:kernel/canonical_name.dart',
+);
 Uri computePackageConfig(Uri repoDir) =>
     repoDir.resolve('.dart_tool/package_config.json');
 
@@ -39,9 +40,7 @@ const Map<String, String?> _declarativeClassesNames = const {
 
 /// Names of non-node, non-enum classes that should be treated as atomic
 /// values.
-const Set<String> _utilityClassesAsValues = const {
-  'Version',
-};
+const Set<String> _utilityClassesAsValues = const {'Version'};
 
 /// Names of subclasses of [Node] that do _not_ have a `visitX` method.
 const Set<String> _classesWithoutVisitMethods = const {
@@ -80,10 +79,7 @@ const Set<String> _classesWithoutVisitReference = const {
 ///
 /// If a field name maps to `null`, the field is not included in the [AstModel].
 const Map<String?, Map<String, FieldRule?>> _fieldRuleMap = {
-  null: {
-    'hashCode': null,
-    'parent': null,
-  },
+  null: {'hashCode': null, 'parent': null},
   'Component': {
     'root': null,
     '_mainMethodName': FieldRule(name: 'mainMethodName'),
@@ -110,104 +106,48 @@ const Map<String?, Map<String, FieldRule?>> _fieldRuleMap = {
     'lazyBuilder': null,
     'dirty': null,
   },
-  'Extension': {
-    'typeParameters': FieldRule(isDeclaration: true),
-  },
+  'Extension': {'typeParameters': FieldRule(isDeclaration: true)},
   'ExtensionTypeDeclaration': {
     'typeParameters': FieldRule(isDeclaration: true),
     '_procedures': FieldRule(name: 'procedures'),
   },
-  'Field': {
-    'reference': FieldRule(name: 'fieldReference'),
-  },
-  'TypeParameter': {
-    '_variance': FieldRule(name: 'variance'),
-  },
-  'StructuralParameter': {
-    '_variance': FieldRule(name: 'variance'),
-  },
+  'Field': {'reference': FieldRule(name: 'fieldReference')},
+  'TypeParameter': {'_variance': FieldRule(name: 'variance')},
+  'StructuralParameter': {'_variance': FieldRule(name: 'variance')},
   'FunctionNode': {
     '_body': FieldRule(name: 'body'),
     'typeParameters': FieldRule(isDeclaration: true),
     'positionalParameters': FieldRule(isDeclaration: true),
     'namedParameters': FieldRule(isDeclaration: true),
   },
-  'Typedef': {
-    'typeParameters': FieldRule(isDeclaration: true),
-  },
-  'TypedefTearOff': {
-    'structuralParameters': FieldRule(isDeclaration: true),
-  },
-  'TypedefTearOffConstant': {
-    'parameters': FieldRule(isDeclaration: true),
-  },
-  'LocalInitializer': {
-    'variable': FieldRule(isDeclaration: true),
-  },
-  'Let': {
-    'variable': FieldRule(isDeclaration: true),
-  },
-  'VariableGet': {
-    'variable': FieldRule(isDeclaration: false),
-  },
-  'VariableSet': {
-    'variable': FieldRule(isDeclaration: false),
-  },
-  'LocalFunctionInvocation': {
-    'variable': FieldRule(isDeclaration: false),
-  },
-  'BreakStatement': {
-    'target': FieldRule(isDeclaration: false),
-  },
-  'ForStatement': {
-    'variables': FieldRule(isDeclaration: true),
-  },
-  'ForInStatement': {
-    'variable': FieldRule(isDeclaration: true),
-  },
-  'SwitchStatement': {
-    'cases': FieldRule(isDeclaration: true),
-  },
-  'ContinueSwitchStatement': {
-    'target': FieldRule(isDeclaration: false),
-  },
+  'Typedef': {'typeParameters': FieldRule(isDeclaration: true)},
+  'TypedefTearOff': {'structuralParameters': FieldRule(isDeclaration: true)},
+  'TypedefTearOffConstant': {'parameters': FieldRule(isDeclaration: true)},
+  'LocalInitializer': {'variable': FieldRule(isDeclaration: true)},
+  'Let': {'variable': FieldRule(isDeclaration: true)},
+  'VariableGet': {'variable': FieldRule(isDeclaration: false)},
+  'VariableSet': {'variable': FieldRule(isDeclaration: false)},
+  'LocalFunctionInvocation': {'variable': FieldRule(isDeclaration: false)},
+  'BreakStatement': {'target': FieldRule(isDeclaration: false)},
+  'ForStatement': {'variables': FieldRule(isDeclaration: true)},
+  'ForInStatement': {'variable': FieldRule(isDeclaration: true)},
+  'SwitchStatement': {'cases': FieldRule(isDeclaration: true)},
+  'ContinueSwitchStatement': {'target': FieldRule(isDeclaration: false)},
   'Catch': {
     'exception': FieldRule(isDeclaration: true),
     'stackTrace': FieldRule(isDeclaration: true),
   },
-  'FunctionDeclaration': {
-    'variable': FieldRule(isDeclaration: true),
-  },
-  'FunctionType': {
-    'typeParameters': FieldRule(isDeclaration: true),
-  },
-  'TypeParameterType': {
-    'parameter': FieldRule(isDeclaration: false),
-  },
-  'StructuralParameterType': {
-    'parameter': FieldRule(isDeclaration: false),
-  },
-  'VariableDeclaration': {
-    '_name': FieldRule(name: 'name'),
-  },
-  'AssignedVariablePattern': {
-    'variable': FieldRule(isDeclaration: false),
-  },
-  'InvalidPattern': {
-    'declaredVariables': FieldRule(isDeclaration: true),
-  },
-  'OrPattern': {
-    'orPatternJointVariables': FieldRule(isDeclaration: false),
-  },
-  'VariablePattern': {
-    'variable': FieldRule(isDeclaration: true),
-  },
-  'PatternSwitchCase': {
-    'jointVariables': FieldRule(isDeclaration: true),
-  },
-  'PatternSwitchStatement': {
-    'cases': FieldRule(isDeclaration: true),
-  },
+  'FunctionDeclaration': {'variable': FieldRule(isDeclaration: true)},
+  'FunctionType': {'typeParameters': FieldRule(isDeclaration: true)},
+  'TypeParameterType': {'parameter': FieldRule(isDeclaration: false)},
+  'StructuralParameterType': {'parameter': FieldRule(isDeclaration: false)},
+  'VariableDeclaration': {'_name': FieldRule(name: 'name')},
+  'AssignedVariablePattern': {'variable': FieldRule(isDeclaration: false)},
+  'InvalidPattern': {'declaredVariables': FieldRule(isDeclaration: true)},
+  'OrPattern': {'orPatternJointVariables': FieldRule(isDeclaration: false)},
+  'VariablePattern': {'variable': FieldRule(isDeclaration: true)},
+  'PatternSwitchCase': {'jointVariables': FieldRule(isDeclaration: true)},
+  'PatternSwitchStatement': {'cases': FieldRule(isDeclaration: true)},
 };
 
 /// Data that determines exceptions to how fields are used.
@@ -316,12 +256,13 @@ class AstClass {
 
   Map<String, AstField> fields = {};
 
-  AstClass(this.node,
-      {this.superclass,
-      AstClassKind? kind,
-      this.declarativeName,
-      required this.isInterchangeable})
-      : _kind = kind {
+  AstClass(
+    this.node, {
+    this.superclass,
+    AstClassKind? kind,
+    this.declarativeName,
+    required this.isInterchangeable,
+  }) : _kind = kind {
     if (superclass != null) {
       superclass!.subclasses.add(this);
     }
@@ -337,7 +278,8 @@ class AstClass {
           _kind = AstClassKind.auxiliary;
         } else if (subclasses.isNotEmpty) {
           if (subclasses.every(
-              (element) => element.kind == AstClassKind.implementation)) {
+            (element) => element.kind == AstClassKind.implementation,
+          )) {
             _kind = AstClassKind.public;
           } else {
             _kind = AstClassKind.inner;
@@ -463,7 +405,7 @@ class ListFieldType extends FieldType {
   final FieldType elementType;
 
   ListFieldType(DartType type, this.elementType)
-      : super(type, AstFieldKind.list);
+    : super(type, AstFieldKind.list);
 
   @override
   String toString() => 'ListFieldType($type,$elementType)';
@@ -483,7 +425,7 @@ class MapFieldType extends FieldType {
   final FieldType valueType;
 
   MapFieldType(DartType type, this.keyType, this.valueType)
-      : super(type, AstFieldKind.map);
+    : super(type, AstFieldKind.map);
 
   @override
   String toString() => 'MapFieldType($type,$keyType,$valueType)';
@@ -493,7 +435,7 @@ class UtilityFieldType extends FieldType {
   final AstClass astClass;
 
   UtilityFieldType(DartType type, this.astClass)
-      : super(type, AstFieldKind.utility);
+    : super(type, AstFieldKind.utility);
 
   @override
   String toString() => 'UtilityFieldType($type,$astClass)';
@@ -556,30 +498,35 @@ Future<AstModel> deriveAstModel(Uri repoDir, {bool printDump = false}) async {
   options.librariesSpecificationUri = repoDir.resolve("sdk/lib/libraries.json");
   options.environmentDefines = const {};
   options.packagesFileUri = computePackageConfig(repoDir);
-  options.onDiagnostic = (DiagnosticMessage message) {
+  options.onDiagnostic = (CfeDiagnosticMessage message) {
     printDiagnosticMessage(message, print);
-    if (message.severity == Severity.error) {
+    if (message.severity == CfeSeverity.error) {
       errorsFound = true;
     }
   };
 
-  InternalCompilerResult compilerResult = (await kernelForProgramInternal(
-    astLibraryUri,
-    options,
-    retainDataForTesting: true,
-    requireMain: false,
-    buildComponent: false,
-  )) as InternalCompilerResult;
+  InternalCompilerResult compilerResult =
+      (await kernelForProgramInternal(
+            astLibraryUri,
+            options,
+            retainDataForTesting: true,
+            requireMain: false,
+            buildComponent: false,
+          ))
+          as InternalCompilerResult;
   if (errorsFound) {
     throw 'Errors found';
   }
   ClassHierarchy classHierarchy = compilerResult.classHierarchy!;
   CoreTypes coreTypes = compilerResult.coreTypes!;
-  TypeEnvironment typeEnvironment =
-      new TypeEnvironment(coreTypes, classHierarchy);
+  TypeEnvironment typeEnvironment = new TypeEnvironment(
+    coreTypes,
+    classHierarchy,
+  );
 
-  Library astLibrary = compilerResult.component!.libraries
-      .singleWhere((library) => library.importUri == astLibraryUri);
+  Library astLibrary = compilerResult.component!.libraries.singleWhere(
+    (library) => library.importUri == astLibraryUri,
+  );
 
   void reportError(String message) {
     print(message);
@@ -588,8 +535,8 @@ Future<AstModel> deriveAstModel(Uri repoDir, {bool printDump = false}) async {
 
   Map<String, String?> declarativeClassesNames = {..._declarativeClassesNames};
   Set<String> classesWithoutVisitMethods = _classesWithoutVisitMethods.toSet();
-  Set<String> classesWithoutVisitReference =
-      _classesWithoutVisitReference.toSet();
+  Set<String> classesWithoutVisitReference = _classesWithoutVisitReference
+      .toSet();
   Map<String?, Map<String, FieldRule?>> fieldRuleMap = {..._fieldRuleMap};
   Map<String, FieldRule?> nullFieldRules = {...?fieldRuleMap.remove(null)};
   Set<String> interchangeableClasses = _interchangeableClasses.toSet();
@@ -614,8 +561,9 @@ Future<AstModel> deriveAstModel(Uri repoDir, {bool printDump = false}) async {
         if (!hasFieldRule) {
           if (!cls.isEnum && !field.isStatic && field.name.isPrivate) {
             reportError(
-                'Private field `${field.name.text}` in ${parent.name} must '
-                'have a field rule.');
+              'Private field `${field.name.text}` in ${parent.name} must '
+              'have a field rule.',
+            );
           }
         }
         if (nullFieldRules.containsKey(field.name.text)) {
@@ -631,50 +579,66 @@ Future<AstModel> deriveAstModel(Uri repoDir, {bool printDump = false}) async {
       renames.remove(procedure.name.text);
     }
     if (renames.isNotEmpty) {
-      reportError('Unknown procedure(s) for field redirections in '
-          '${cls.name}: ${renames}');
+      reportError(
+        'Unknown procedure(s) for field redirections in '
+        '${cls.name}: ${renames}',
+      );
     }
     if (fieldRules.isNotEmpty) {
       reportError(
-          'Unknown field(s) for rules in ${cls.name}: ${fieldRules.keys}');
+        'Unknown field(s) for rules in ${cls.name}: ${fieldRules.keys}',
+      );
     }
   }
   if (declarativeClassesNames.isNotEmpty) {
     reportError('Unknown declarative classes: ${declarativeClassesNames}');
   }
   if (classesWithoutVisitMethods.isNotEmpty) {
-    reportError('Unknown classes without visit methods: '
-        '${classesWithoutVisitMethods}');
+    reportError(
+      'Unknown classes without visit methods: '
+      '${classesWithoutVisitMethods}',
+    );
   }
   if (classesWithoutVisitReference.isNotEmpty) {
-    reportError('Unknown classes without visit reference methods: '
-        '${classesWithoutVisitReference}');
+    reportError(
+      'Unknown classes without visit reference methods: '
+      '${classesWithoutVisitReference}',
+    );
   }
   if (interchangeableClasses.isNotEmpty) {
-    reportError('Unknown interchangeable classes: '
-        '${interchangeableClasses}');
+    reportError(
+      'Unknown interchangeable classes: '
+      '${interchangeableClasses}',
+    );
   }
   if (fieldRuleMap.isNotEmpty) {
     reportError('Unknown classes with field rules: ${fieldRuleMap.keys}');
   }
 
   Class classNode = astLibrary.classes.singleWhere((cls) => cls.name == 'Node');
-  DartType nullableNodeType =
-      classNode.getThisType(coreTypes, Nullability.nullable);
+  DartType nullableNodeType = classNode.getThisType(
+    coreTypes,
+    Nullability.nullable,
+  );
 
-  Class classNamedNode =
-      astLibrary.classes.singleWhere((cls) => cls.name == 'NamedNode');
+  Class classNamedNode = astLibrary.classes.singleWhere(
+    (cls) => cls.name == 'NamedNode',
+  );
 
-  Class classConstant =
-      astLibrary.classes.singleWhere((cls) => cls.name == 'Constant');
+  Class classConstant = astLibrary.classes.singleWhere(
+    (cls) => cls.name == 'Constant',
+  );
 
   Library canonicalNameLibrary = compilerResult.component!.libraries
       .singleWhere((library) => library.importUri == canonicalNameLibraryUri);
 
-  Class referenceClass = canonicalNameLibrary.classes
-      .singleWhere((cls) => cls.name == 'Reference');
-  DartType nullableReferenceType =
-      referenceClass.getThisType(coreTypes, Nullability.nullable);
+  Class referenceClass = canonicalNameLibrary.classes.singleWhere(
+    (cls) => cls.name == 'Reference',
+  );
+  DartType nullableReferenceType = referenceClass.getThisType(
+    coreTypes,
+    Nullability.nullable,
+  );
 
   Set<Class> declarativeClasses = {};
   Set<DartType> declarativeTypes = {};
@@ -696,8 +660,11 @@ Future<AstModel> deriveAstModel(Uri repoDir, {bool printDump = false}) async {
     if (astClass == null) {
       bool isInterchangeable = _interchangeableClasses.contains(node.name);
       if (node == classNode) {
-        astClass = new AstClass(node,
-            kind: AstClassKind.root, isInterchangeable: isInterchangeable);
+        astClass = new AstClass(
+          node,
+          kind: AstClassKind.root,
+          isInterchangeable: isInterchangeable,
+        );
       } else if (classHierarchy.isSubInterfaceOf(node, classNode)) {
         AstClass? superclass = computeAstClass(node.superclass);
         AstClassKind? kind;
@@ -709,11 +676,13 @@ Future<AstModel> deriveAstModel(Uri repoDir, {bool printDump = false}) async {
           kind = AstClassKind.declarative;
           declarativeName = _declarativeClassesNames[node.name];
         }
-        astClass = new AstClass(node,
-            superclass: superclass,
-            kind: kind,
-            declarativeName: declarativeName,
-            isInterchangeable: isInterchangeable);
+        astClass = new AstClass(
+          node,
+          superclass: superclass,
+          kind: kind,
+          declarativeName: declarativeName,
+          isInterchangeable: isInterchangeable,
+        );
         for (Supertype supertype in node.implementedTypes) {
           AstClass? astSupertype = computeAstClass(supertype.classNode);
           if (astSupertype != null) {
@@ -722,15 +691,19 @@ Future<AstModel> deriveAstModel(Uri repoDir, {bool printDump = false}) async {
           }
         }
       } else if (node.isEnum || _utilityClassesAsValues.contains(node.name)) {
-        astClass = new AstClass(node,
-            kind: AstClassKind.utilityAsValue,
-            isInterchangeable: isInterchangeable);
+        astClass = new AstClass(
+          node,
+          kind: AstClassKind.utilityAsValue,
+          isInterchangeable: isInterchangeable,
+        );
       } else {
         AstClass? superclass = computeAstClass(node.superclass);
-        astClass = new AstClass(node,
-            superclass: superclass,
-            kind: AstClassKind.utilityAsStructure,
-            isInterchangeable: isInterchangeable);
+        astClass = new AstClass(
+          node,
+          superclass: superclass,
+          kind: AstClassKind.utilityAsStructure,
+          isInterchangeable: isInterchangeable,
+        );
       }
       classMap[node] = astClass;
     }
@@ -768,11 +741,12 @@ Future<AstModel> deriveAstModel(Uri repoDir, {bool printDump = false}) async {
         if (isDeclarativeType) {
           if (rule.isDeclaration == null) {
             reportError(
-                "No field rule for '${field.name}' in ${astClass.name}.\n"
-                "The field type contains the declarative type "
-                "'${type.toText(defaultAstTextStrategy)}' "
-                "and a rule must therefore specify "
-                "whether this constitutes declarative or referential use.");
+              "No field rule for '${field.name}' in ${astClass.name}.\n"
+              "The field type contains the declarative type "
+              "'${type.toText(defaultAstTextStrategy)}' "
+              "and a rule must therefore specify "
+              "whether this constitutes declarative or referential use.",
+            );
           }
           if (!rule.isDeclaration!) {
             return new FieldType(type, AstFieldKind.use);
@@ -794,8 +768,11 @@ Future<AstModel> deriveAstModel(Uri repoDir, {bool printDump = false}) async {
             typeEnvironment.isSubtypeOf(type, coreTypes.mapNullableRawType)) {
           List<DartType> typeArguments = typeEnvironment
               .getTypeArgumentsAsInstanceOf(type, coreTypes.mapClass)!;
-          return new MapFieldType(type, computeFieldType(typeArguments[0]),
-              computeFieldType(typeArguments[1]));
+          return new MapFieldType(
+            type,
+            computeFieldType(typeArguments[0]),
+            computeFieldType(typeArguments[1]),
+          );
         } else if (type is InterfaceType &&
             typeEnvironment.isSubtypeOf(type, nullableNodeType)) {
           return new FieldType(type, AstFieldKind.node);
@@ -817,7 +794,12 @@ Future<AstModel> deriveAstModel(Uri repoDir, {bool printDump = false}) async {
       FieldType? fieldType = computeFieldType(type);
       String name = rule.name ?? field.name.text;
       astClass.fields[name] = new AstField(
-          astClass, field, name, fieldType, astClass.superclass?.fields[name]);
+        astClass,
+        field,
+        name,
+        fieldType,
+        astClass.superclass?.fields[name],
+      );
     }
 
     AstClass? parent = astClass;
@@ -829,7 +811,8 @@ Future<AstModel> deriveAstModel(Uri repoDir, {bool printDump = false}) async {
       parent = parent.superclass;
       if (parent != null) {
         substitution = Substitution.fromSupertype(
-            classHierarchy.getClassAsInstanceOf(astClass.node, parent.node)!);
+          classHierarchy.getClassAsInstanceOf(astClass.node, parent.node)!,
+        );
       }
     }
   }

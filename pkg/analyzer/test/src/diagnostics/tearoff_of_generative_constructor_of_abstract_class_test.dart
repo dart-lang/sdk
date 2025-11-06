@@ -57,8 +57,7 @@ void foo() {
 ''',
       [
         error(
-          CompileTimeErrorCode
-              .TEAROFF_OF_GENERATIVE_CONSTRUCTOR_OF_ABSTRACT_CLASS,
+          CompileTimeErrorCode.tearoffOfGenerativeConstructorOfAbstractClass,
           44,
           5,
         ),

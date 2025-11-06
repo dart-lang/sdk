@@ -30,7 +30,7 @@ f() async* {
   return 0;
 }
 ''',
-      [error(CompileTimeErrorCode.RETURN_IN_GENERATOR, 15, 6)],
+      [error(CompileTimeErrorCode.returnInGenerator, 15, 6)],
     );
   }
 
@@ -47,7 +47,7 @@ Stream<int> f() async* {
       r'''
 f() async* => 0;
 ''',
-      [error(CompileTimeErrorCode.RETURN_IN_GENERATOR, 11, 2)],
+      [error(CompileTimeErrorCode.returnInGenerator, 11, 2)],
     );
   }
 
@@ -66,7 +66,7 @@ f() sync* {
   return 0;
 }
 ''',
-      [error(CompileTimeErrorCode.RETURN_IN_GENERATOR, 14, 6)],
+      [error(CompileTimeErrorCode.returnInGenerator, 14, 6)],
     );
   }
 
@@ -83,7 +83,7 @@ Iterable<int> f() sync* {
       r'''
 f() sync* => 0;
 ''',
-      [error(CompileTimeErrorCode.RETURN_IN_GENERATOR, 10, 2)],
+      [error(CompileTimeErrorCode.returnInGenerator, 10, 2)],
     );
   }
 }

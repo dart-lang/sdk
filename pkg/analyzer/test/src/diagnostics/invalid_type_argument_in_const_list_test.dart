@@ -36,7 +36,7 @@ class A<E> {
 ''',
       [
         error(
-          CompileTimeErrorCode.INVALID_TYPE_ARGUMENT_IN_CONST_LIST,
+          CompileTimeErrorCode.invalidTypeArgumentInConstList,
           37,
           1,
           messageContains: ["'E'"],
@@ -56,7 +56,7 @@ class A<E> {
 ''',
       [
         error(
-          CompileTimeErrorCode.INVALID_TYPE_ARGUMENT_IN_CONST_LIST,
+          CompileTimeErrorCode.invalidTypeArgumentInConstList,
           51,
           1,
           messageContains: ["'E'"],
@@ -76,7 +76,7 @@ class A<E> {
 ''',
       [
         error(
-          CompileTimeErrorCode.INVALID_TYPE_ARGUMENT_IN_CONST_LIST,
+          CompileTimeErrorCode.invalidTypeArgumentInConstList,
           37,
           1,
           messageContains: ["'E'"],
@@ -96,7 +96,7 @@ class A<E> {
 ''',
       [
         error(
-          CompileTimeErrorCode.INVALID_TYPE_ARGUMENT_IN_CONST_LIST,
+          CompileTimeErrorCode.invalidTypeArgumentInConstList,
           42,
           1,
           messageContains: ["'E'"],
@@ -116,7 +116,7 @@ class A<E> {
 ''',
       [
         error(
-          CompileTimeErrorCode.INVALID_TYPE_ARGUMENT_IN_CONST_LIST,
+          CompileTimeErrorCode.invalidTypeArgumentInConstList,
           38,
           1,
           messageContains: ["'E'"],

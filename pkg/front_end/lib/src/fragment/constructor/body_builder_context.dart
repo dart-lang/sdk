@@ -2,17 +2,18 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:front_end/src/base/messages.dart';
 import 'package:kernel/ast.dart';
 import 'package:kernel/core_types.dart';
 import 'package:kernel/transformations/flags.dart';
 
+import '../../base/compiler_context.dart';
 import '../../base/constant_context.dart';
 import '../../base/identifiers.dart';
 import '../../base/local_scope.dart';
 import '../../builder/formal_parameter_builder.dart';
 import '../../builder/type_builder.dart';
 import '../../kernel/body_builder_context.dart';
-import '../../kernel/expression_generator_helper.dart';
 import '../../source/source_constructor_builder.dart';
 import '../../source/source_property_builder.dart';
 import '../../type_inference/inference_results.dart';
@@ -27,8 +28,11 @@ class ConstructorBodyBuilderContext extends BodyBuilderContext {
   final Member _member;
 
   ConstructorBodyBuilderContext(this._builder, this._declaration, this._member)
-      : super(_builder.libraryBuilder, _builder.declarationBuilder,
-            isDeclarationInstanceMember: false);
+    : super(
+        _builder.libraryBuilder,
+        _builder.declarationBuilder,
+        isDeclarationInstanceMember: false,
+      );
 
   @override
   int get memberNameOffset => _declaration.fileOffset;
@@ -98,16 +102,50 @@ class ConstructorBodyBuilderContext extends BodyBuilderContext {
   }
 
   @override
-  void addInitializer(Initializer initializer, ExpressionGeneratorHelper helper,
-      {required InitializerInferenceResult? inferenceResult}) {
-    _builder.addInitializer(initializer, helper,
-        inferenceResult: inferenceResult, parent: _member);
+  bool addInitializer(
+    CompilerContext compilerContext,
+    ProblemReporting problemReporting,
+    Initializer initializer,
+    Uri fileUri,
+  ) {
+    return _builder.addInitializer(
+      compilerContext,
+      problemReporting,
+      initializer,
+      inferenceResult: null,
+      parent: _member,
+      fileUri: fileUri,
+    );
   }
 
   @override
-  InitializerInferenceResult inferInitializer(Initializer initializer,
-      ExpressionGeneratorHelper helper, TypeInferrer typeInferrer) {
-    return typeInferrer.inferInitializer(helper, _builder, initializer);
+  bool addInferredInitializer(
+    CompilerContext compilerContext,
+    ProblemReporting problemReporting,
+    InitializerInferenceResult inferenceResult,
+    Uri fileUri,
+  ) {
+    return _builder.addInitializer(
+      compilerContext,
+      problemReporting,
+      inferenceResult.initializer,
+      inferenceResult: inferenceResult,
+      parent: _member,
+      fileUri: fileUri,
+    );
+  }
+
+  @override
+  InitializerInferenceResult inferInitializer({
+    required TypeInferrer typeInferrer,
+    required Uri fileUri,
+    required Initializer initializer,
+  }) {
+    return typeInferrer.inferInitializer(
+      fileUri: fileUri,
+      constructorBuilder: _builder,
+      initializer: initializer,
+    );
   }
 
   @override

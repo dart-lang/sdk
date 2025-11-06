@@ -29,7 +29,7 @@ void f() {
   A();
 }
 ''',
-      [error(FfiCode.CREATION_OF_STRUCT_OR_UNION, 96, 1)],
+      [error(FfiCode.creationOfStructOrUnion, 96, 1)],
     );
   }
 
@@ -47,7 +47,7 @@ void f() {
   A();
 }
 ''',
-      [error(FfiCode.CREATION_OF_STRUCT_OR_UNION, 95, 1)],
+      [error(FfiCode.creationOfStructOrUnion, 95, 1)],
     );
   }
 }

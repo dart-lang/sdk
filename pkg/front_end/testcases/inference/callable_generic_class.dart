@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/*@testedFeatures=inference*/
 library test;
 
 class ActionDispatcher<P> {
@@ -16,13 +15,7 @@ class FooActions {
 }
 
 void main() {
-  new FooActions()
-      . /*@target=FooActions.foo*/ foo /*@target=ActionDispatcher.call*/ (
-          new Bar());
-  new FooActions()
-      . /*@target=FooActions.foo*/ foo
-      . /*@target=ActionDispatcher.call*/ call(new Bar());
-  (new FooActions()
-          . /*@target=FooActions.foo*/ foo) /*@target=ActionDispatcher.call*/ (
-      new Bar());
+  new FooActions().foo(new Bar());
+  new FooActions().foo.call(new Bar());
+  (new FooActions().foo)(new Bar());
 }

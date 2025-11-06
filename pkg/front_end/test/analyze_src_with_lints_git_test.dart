@@ -10,7 +10,7 @@ Future<void> main() async {
   await testing.main(<String>[
     "--config=pkg/front_end/testing_with_lints.json",
     "--verbose",
-    "analyze"
+    "analyze",
   ]);
   if (exitCode != 0) {
     throw "Exit-code was $exitCode!";

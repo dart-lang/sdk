@@ -42,10 +42,9 @@ class ElementWalker {
   /// Creates an [ElementWalker] which walks the child elements of a class
   /// element.
   ElementWalker.forClass(ClassFragmentImpl this.fragment)
-    : _constructors =
-          fragment.isMixinApplication
-              ? null
-              : fragment.constructors.where(_isNotSynthetic).toList(),
+    : _constructors = fragment.isMixinApplication
+          ? null
+          : fragment.constructors.where(_isNotSynthetic).toList(),
       _functions = fragment.methods,
       _getters = fragment.getters.where(_isNotSynthetic).toList(),
       _setters = fragment.setters.where(_isNotSynthetic).toList(),
@@ -83,7 +82,7 @@ class ElementWalker {
   /// unit element.
   ElementWalker.forExecutable(ExecutableFragmentImpl this.fragment)
     : _functions = const <ExecutableFragmentImpl>[],
-      _parameters = fragment.parameters,
+      _parameters = fragment.formalParameters,
       _typeParameters = fragment.typeParameters;
 
   /// Creates an [ElementWalker] which walks the child elements of an extension
@@ -107,7 +106,7 @@ class ElementWalker {
   /// element.
   ElementWalker.forGenericFunctionType(
     GenericFunctionTypeFragmentImpl this.fragment,
-  ) : _parameters = fragment.parameters,
+  ) : _parameters = fragment.formalParameters,
       _typeParameters = fragment.typeParameters;
 
   /// Creates an [ElementWalker] which walks the child elements of a typedef
@@ -128,15 +127,14 @@ class ElementWalker {
   /// Creates an [ElementWalker] which walks the child elements of a parameter
   /// element.
   ElementWalker.forParameter(FormalParameterFragmentImpl this.fragment)
-    : _parameters = fragment.parameters,
+    : _parameters = fragment.formalParameters,
       _typeParameters = fragment.typeParameters;
 
   /// Creates an [ElementWalker] which walks the child elements of a typedef
   /// element.
   ElementWalker.forTypedef(TypeAliasFragmentImpl this.fragment)
-    : _parameters =
-          (fragment.aliasedElement as GenericFunctionTypeFragmentImpl)
-              .parameters,
+    : _parameters = (fragment.aliasedElement as GenericFunctionTypeFragmentImpl)
+          .formalParameters,
       _typeParameters = fragment.typeParameters;
 
   void consumeLocalElements() {

@@ -2,11 +2,18 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/// @docImport 'package:analyzer/src/error/codes.g.dart';
+/// @docImport 'package:analyzer/src/error/codes.dart';
 library;
 
 import 'package:_fe_analyzer_shared/src/base/analyzer_public_api.dart';
-import 'package:analyzer/error/error.dart';
+import 'package:_fe_analyzer_shared/src/base/errors.dart';
+
+export 'package:_fe_analyzer_shared/src/base/errors.dart'
+    show
+        DiagnosticWithoutArguments,
+        ExpectedType,
+        LocatableDiagnostic,
+        LocatableDiagnosticImpl;
 
 /// Diagnostic codes which are not reported by default.
 ///
@@ -24,6 +31,41 @@ class LintCode extends DiagnosticCode {
     super.hasPublishedDocs,
     String? uniqueName,
     this.severity = DiagnosticSeverity.INFO,
+  }) : super(
+         problemMessage: problemMessage,
+         name: name,
+         uniqueName: uniqueName ?? 'LintCode.$name',
+       );
+
+  @override
+  int get hashCode => uniqueName.hashCode;
+
+  @override
+  DiagnosticType get type => DiagnosticType.LINT;
+
+  @override
+  String? get url => null;
+
+  @override
+  bool operator ==(Object other) =>
+      other is LintCode && uniqueName == other.uniqueName;
+}
+
+/// Private subtype of [LintCode] that supports runtime checking of parameter
+/// types.
+class LintCodeWithExpectedTypes extends DiagnosticCodeWithExpectedTypes
+    implements LintCode {
+  @override
+  final DiagnosticSeverity severity;
+
+  const LintCodeWithExpectedTypes(
+    String name,
+    String problemMessage, {
+    super.correctionMessage,
+    super.hasPublishedDocs,
+    String? uniqueName,
+    this.severity = DiagnosticSeverity.INFO,
+    required super.expectedTypes,
   }) : super(
          problemMessage: problemMessage,
          name: name,

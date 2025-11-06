@@ -62,8 +62,8 @@ typedef Cb2
 ''',
       [
         // No lint
-        error(ParserErrorCode.EXPECTED_TOKEN, 8, 3),
-        error(ParserErrorCode.MISSING_TYPEDEF_PARAMETERS, 12, 0),
+        error(ParserErrorCode.expectedToken, 8, 3),
+        error(ParserErrorCode.missingTypedefParameters, 12, 0),
       ],
     );
   }

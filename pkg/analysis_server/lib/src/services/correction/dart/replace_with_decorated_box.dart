@@ -27,19 +27,18 @@ class ReplaceWithDecoratedBox extends ResolvedCorrectionProducer {
 
   @override
   Future<void> compute(ChangeBuilder builder) async {
-    var instanceCreation =
-        node.thisOrAncestorOfType<InstanceCreationExpression>();
+    var instanceCreation = node
+        .thisOrAncestorOfType<InstanceCreationExpression>();
     if (instanceCreation is! InstanceCreationExpression) return;
 
     if (applyingBulkFixes) {
-      var parent =
-          instanceCreation.parent
-              ?.thisOrAncestorOfType<InstanceCreationExpression>();
+      var parent = instanceCreation.parent
+          ?.thisOrAncestorOfType<InstanceCreationExpression>();
 
       while (parent != null) {
         if (_hasLint(parent)) return;
-        parent =
-            parent.parent?.thisOrAncestorOfType<InstanceCreationExpression>();
+        parent = parent.parent
+            ?.thisOrAncestorOfType<InstanceCreationExpression>();
       }
     }
 
@@ -119,7 +118,7 @@ class ReplaceWithDecoratedBox extends ResolvedCorrectionProducer {
     return unitResult.diagnostics.any((d) {
       var diagnosticCode = d.diagnosticCode;
       return diagnosticCode.type == DiagnosticType.LINT &&
-          diagnosticCode == LinterLintCode.use_decorated_box &&
+          diagnosticCode == LinterLintCode.useDecoratedBox &&
           d.offset == constructorName.offset &&
           d.length == constructorName.length;
     });

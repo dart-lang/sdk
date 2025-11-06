@@ -23,7 +23,7 @@ class A {
   A() {}
 }
 ''',
-      [error(CompileTimeErrorCode.FINAL_NOT_INITIALIZED_CONSTRUCTOR_1, 27, 1)],
+      [error(CompileTimeErrorCode.finalNotInitializedConstructor1, 27, 1)],
     );
   }
 
@@ -36,7 +36,7 @@ class A {
   A() {}
 }
 ''',
-      [error(CompileTimeErrorCode.FINAL_NOT_INITIALIZED_CONSTRUCTOR_2, 42, 1)],
+      [error(CompileTimeErrorCode.finalNotInitializedConstructor2, 42, 1)],
     );
   }
 
@@ -50,13 +50,7 @@ class A {
   A() {}
 }
 ''',
-      [
-        error(
-          CompileTimeErrorCode.FINAL_NOT_INITIALIZED_CONSTRUCTOR_3_PLUS,
-          57,
-          1,
-        ),
-      ],
+      [error(CompileTimeErrorCode.finalNotInitializedConstructor3Plus, 57, 1)],
     );
   }
 
@@ -148,7 +142,7 @@ augment class A {
     await resolveFile2(testFile);
     assertErrorsInResult([
       error(
-        CompileTimeErrorCode.FINAL_NOT_INITIALIZED_CONSTRUCTOR_1,
+        CompileTimeErrorCode.finalNotInitializedConstructor1,
         60,
         1,
         messageContains: ['f2'],
@@ -208,7 +202,7 @@ augment class A {
 
     await resolveFile2(a);
     assertErrorsInResult([
-      error(CompileTimeErrorCode.FINAL_NOT_INITIALIZED_CONSTRUCTOR_1, 42, 1),
+      error(CompileTimeErrorCode.finalNotInitializedConstructor1, 42, 1),
     ]);
   }
 
@@ -221,7 +215,7 @@ class A {
   A._();
 }
 ''',
-      [error(CompileTimeErrorCode.FINAL_NOT_INITIALIZED_CONSTRUCTOR_1, 45, 1)],
+      [error(CompileTimeErrorCode.finalNotInitializedConstructor1, 45, 1)],
     );
   }
 
@@ -254,7 +248,7 @@ enum E {
   const E();
 }
 ''',
-      [error(CompileTimeErrorCode.FINAL_NOT_INITIALIZED_CONSTRUCTOR_1, 37, 1)],
+      [error(CompileTimeErrorCode.finalNotInitializedConstructor1, 37, 1)],
     );
   }
 
@@ -268,7 +262,7 @@ enum E {
   const E();
 }
 ''',
-      [error(CompileTimeErrorCode.FINAL_NOT_INITIALIZED_CONSTRUCTOR_2, 52, 1)],
+      [error(CompileTimeErrorCode.finalNotInitializedConstructor2, 52, 1)],
     );
   }
 
@@ -283,13 +277,7 @@ enum E {
   const E();
 }
 ''',
-      [
-        error(
-          CompileTimeErrorCode.FINAL_NOT_INITIALIZED_CONSTRUCTOR_3_PLUS,
-          67,
-          1,
-        ),
-      ],
+      [error(CompileTimeErrorCode.finalNotInitializedConstructor3Plus, 67, 1)],
     );
   }
 
@@ -303,7 +291,7 @@ enum E {
   const E._();
 }
 ''',
-      [error(CompileTimeErrorCode.FINAL_NOT_INITIALIZED_CONSTRUCTOR_1, 70, 1)],
+      [error(CompileTimeErrorCode.finalNotInitializedConstructor1, 70, 1)],
     );
   }
 
@@ -336,7 +324,7 @@ extension type A(int it) {
   A.named();
 }
 ''',
-      [error(CompileTimeErrorCode.FINAL_NOT_INITIALIZED_CONSTRUCTOR_1, 29, 1)],
+      [error(CompileTimeErrorCode.finalNotInitializedConstructor1, 29, 1)],
     );
   }
 

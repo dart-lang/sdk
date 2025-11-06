@@ -207,7 +207,7 @@ class ProgramCreator implements Visitor {
     const newLinesAround = {
       "topLevelDefinition",
       "libraryName",
-      "partDirective"
+      "partDirective",
     };
     const newLinesAfter = {"metadatum"};
     bool addNewlinesAround = newLinesAround.contains(what);
@@ -290,7 +290,7 @@ class ProgramCreator implements Visitor {
           // Choose the one with the smallest depth.
           pickSmallestDepth = true;
         } else if (random.nextBool() &&
-            1 + 1 == 3 /* i.e. currently disabled */) {
+            1 + 1 == 3 /* i.e. currently disabled */ ) {
           // If depth and length is not too big yet, and if several nodes has
           // depth <= 10, choose randomly among those.
           List<Node> smallDepthNodes = [];
@@ -398,16 +398,15 @@ class ProgramCreator implements Visitor {
     depth++;
     int count = random.nextInt(3);
     if (node.a is Sequence &&
-        (node.a as Sequence)
-            .nodes
+        (node.a as Sequence).nodes
             .where(
-                (Node e) => e is Leaf && e.token.value == "topLevelDefinition")
+              (Node e) => e is Leaf && e.token.value == "topLevelDefinition",
+            )
             .isNotEmpty) {
       // We likely want more top level definitions.
       count = random.nextInt(20);
     } else if (node.a is Sequence &&
-        (node.a as Sequence)
-            .nodes
+        (node.a as Sequence).nodes
             .where((Node e) => e is Leaf && e.token.value == "metadatum")
             .isNotEmpty) {
       // We likely don't want too many metadata entries...
@@ -623,7 +622,9 @@ void join() {
           (sequenceList[1] as Leaf).token.value == ".." &&
           sequenceList[2] is Literal) {
         RangeNode range = new RangeNode(
-            sequenceList[0] as Literal, sequenceList[2] as Literal);
+          sequenceList[0] as Literal,
+          sequenceList[2] as Literal,
+        );
         stack = [range];
       } else {
         Sequence sequence = new Sequence(sequenceList);

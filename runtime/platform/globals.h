@@ -304,9 +304,16 @@ struct simd128_value_t {
 #endif
 
 #if defined(__APPLE__)
-// Avoid expensive saving of sigmask in setjmp/longjmp.
+// Avoid expensive saving of sigmask in setjmp/longjmp, but not under TSAN since
+// TSAN doesn't intercept _longjmp.
+// https://github.com/llvm/llvm-project/issues/161443
+#if __has_feature(thread_sanitizer)
+#define DART_SETJMP setjmp
+#define DART_LONGJMP longjmp
+#else
 #define DART_SETJMP _setjmp
 #define DART_LONGJMP _longjmp
+#endif
 #else
 #define DART_SETJMP setjmp
 #define DART_LONGJMP longjmp

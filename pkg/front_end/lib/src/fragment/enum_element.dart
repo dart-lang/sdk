@@ -16,15 +16,16 @@ class EnumElementDeclaration
   Field? _field;
 
   late DartType _type = new InferredType(
-      libraryBuilder: builder.libraryBuilder,
-      typeBuilder: type,
-      inferType: inferType,
-      computeType: _computeType,
-      fileUri: fileUri,
-      name: _fragment.name,
-      nameOffset: nameOffset,
-      nameLength: _fragment.name.length,
-      token: _fragment.argumentsBeginToken);
+    libraryBuilder: builder.libraryBuilder,
+    typeBuilder: type,
+    inferType: inferType,
+    computeType: _computeType,
+    fileUri: fileUri,
+    name: _fragment.name,
+    nameOffset: nameOffset,
+    nameLength: _fragment.name.length,
+    token: _fragment.argumentsBeginToken,
+  );
 
   late final int elementIndex;
 
@@ -88,10 +89,12 @@ class EnumElementDeclaration
   bool get isLate => false;
 
   @override
-  List<ClassMember> get localMembers =>
-      [new _EnumElementClassMember(builder, _fragment)];
+  List<ClassMember> get localMembers => [
+    new _EnumElementClassMember(builder, _fragment),
+  ];
 
   @override
+  // Coverage-ignore(suite): Not run.
   List<MetadataBuilder>? get metadata => _fragment.metadata;
 
   @override
@@ -108,73 +111,89 @@ class EnumElementDeclaration
   UriOffsetLength get uriOffset => _fragment.uriOffset;
 
   @override
-  Initializer buildErroneousInitializer(Expression effect, Expression value,
-      {required int fileOffset}) {
+  Initializer buildErroneousInitializer(
+    Expression effect,
+    Expression value, {
+    required int fileOffset,
+  }) {
     throw new UnsupportedError("${runtimeType}.buildErroneousInitializer");
   }
 
   @override
-  void buildFieldOutlineExpressions(
-      {required ClassHierarchy classHierarchy,
-      required SourceLibraryBuilder libraryBuilder,
-      required DeclarationBuilder? declarationBuilder,
-      required List<Annotatable> annotatables,
-      required Uri annotatablesFileUri,
-      required bool isClassInstanceMember}) {
+  void buildFieldOutlineExpressions({
+    required ClassHierarchy classHierarchy,
+    required SourceLibraryBuilder libraryBuilder,
+    required DeclarationBuilder? declarationBuilder,
+    required List<Annotatable> annotatables,
+    required Uri annotatablesFileUri,
+    required bool isClassInstanceMember,
+  }) {
     BodyBuilderContext bodyBuilderContext = createBodyBuilderContext();
     for (Annotatable annotatable in annotatables) {
       buildMetadataForOutlineExpressions(
-          libraryBuilder: libraryBuilder,
-          scope: _fragment.enclosingScope,
-          bodyBuilderContext: bodyBuilderContext,
-          annotatable: annotatable,
-          annotatableFileUri: annotatablesFileUri,
-          metadata: metadata);
+        libraryBuilder: libraryBuilder,
+        extensionScope: _fragment.enclosingCompilationUnit.extensionScope,
+        scope: _fragment.enclosingScope,
+        bodyBuilderContext: bodyBuilderContext,
+        annotatable: annotatable,
+        annotatableFileUri: annotatablesFileUri,
+        metadata: _fragment.metadata,
+        annotationsFileUri: _fragment.fileUri,
+      );
     }
   }
 
   @override
   void buildFieldOutlineNode(
-      SourceLibraryBuilder libraryBuilder,
-      NameScheme nameScheme,
-      BuildNodesCallback f,
-      PropertyReferences references,
-      {required List<TypeParameter>? classTypeParameters}) {
-    _field = new Field.immutable(dummyName,
-        type: _type,
-        isFinal: false,
-        isConst: true,
-        isStatic: true,
-        fileUri: fileUri,
-        fieldReference: references.fieldReference,
-        getterReference: references.getterReference,
-        isEnumElement: true)
-      ..fileOffset = nameOffset
-      ..fileEndOffset = nameOffset;
+    SourceLibraryBuilder libraryBuilder,
+    NameScheme nameScheme,
+    BuildNodesCallback f,
+    PropertyReferences references, {
+    required List<TypeParameter>? classTypeParameters,
+  }) {
+    _field =
+        new Field.immutable(
+            dummyName,
+            type: _type,
+            isFinal: false,
+            isConst: true,
+            isStatic: true,
+            fileUri: fileUri,
+            fieldReference: references.fieldReference,
+            getterReference: references.getterReference,
+            isEnumElement: true,
+          )
+          ..fileOffset = nameOffset
+          ..fileEndOffset = nameOffset;
     nameScheme
-        .getFieldMemberName(FieldNameType.Field, _fragment.name,
-            isSynthesized: false)
+        .getFieldMemberName(
+          FieldNameType.Field,
+          _fragment.name,
+          isSynthesized: false,
+        )
         .attachMember(_field!);
     f(member: _field!, kind: BuiltMemberKind.Field);
   }
 
   @override
-  void buildGetterOutlineExpressions(
-      {required ClassHierarchy classHierarchy,
-      required SourceLibraryBuilder libraryBuilder,
-      required DeclarationBuilder? declarationBuilder,
-      required SourcePropertyBuilder propertyBuilder,
-      required Annotatable annotatable,
-      required Uri annotatableFileUri,
-      required bool isClassInstanceMember}) {}
+  void buildGetterOutlineExpressions({
+    required ClassHierarchy classHierarchy,
+    required SourceLibraryBuilder libraryBuilder,
+    required DeclarationBuilder? declarationBuilder,
+    required SourcePropertyBuilder propertyBuilder,
+    required Annotatable annotatable,
+    required Uri annotatableFileUri,
+    required bool isClassInstanceMember,
+  }) {}
 
   @override
-  void buildGetterOutlineNode(
-      {required SourceLibraryBuilder libraryBuilder,
-      required NameScheme nameScheme,
-      required BuildNodesCallback f,
-      required PropertyReferences? references,
-      required List<TypeParameter>? classTypeParameters}) {}
+  void buildGetterOutlineNode({
+    required SourceLibraryBuilder libraryBuilder,
+    required NameScheme nameScheme,
+    required BuildNodesCallback f,
+    required PropertyReferences? references,
+    required List<TypeParameter>? classTypeParameters,
+  }) {}
 
   @override
   void buildImplicitDefaultValue() {
@@ -187,28 +206,42 @@ class EnumElementDeclaration
   }
 
   @override
-  List<Initializer> buildInitializer(int fileOffset, Expression value,
-      {required bool isSynthetic}) {
+  List<Initializer> buildInitializer(
+    int fileOffset,
+    Expression value, {
+    required bool isSynthetic,
+  }) {
     throw new UnsupportedError("${runtimeType}.buildInitializer");
   }
 
   @override
-  void checkFieldTypes(SourceLibraryBuilder libraryBuilder,
-      TypeEnvironment typeEnvironment, SourcePropertyBuilder? setterBuilder) {}
+  void checkFieldTypes(
+    ProblemReporting problemReporting,
+    TypeEnvironment typeEnvironment,
+    SourcePropertyBuilder? setterBuilder,
+  ) {}
 
   @override
   // Coverage-ignore(suite): Not run.
   void checkFieldVariance(
-      SourceClassBuilder sourceClassBuilder, TypeEnvironment typeEnvironment) {}
+    SourceClassBuilder sourceClassBuilder,
+    TypeEnvironment typeEnvironment,
+  ) {}
 
   @override
-  void checkGetterTypes(SourceLibraryBuilder libraryBuilder,
-      TypeEnvironment typeEnvironment, SourcePropertyBuilder? setterBuilder) {}
+  void checkGetterTypes(
+    ProblemReporting problemReporting,
+    LibraryFeatures libraryFeatures,
+    TypeEnvironment typeEnvironment,
+    SourcePropertyBuilder? setterBuilder,
+  ) {}
 
   @override
   // Coverage-ignore(suite): Not run.
   void checkGetterVariance(
-      SourceClassBuilder sourceClassBuilder, TypeEnvironment typeEnvironment) {}
+    SourceClassBuilder sourceClassBuilder,
+    TypeEnvironment typeEnvironment,
+  ) {}
 
   @override
   int computeFieldDefaultTypes(ComputeDefaultTypeContext context) {
@@ -222,8 +255,11 @@ class EnumElementDeclaration
 
   BodyBuilderContext createBodyBuilderContext() {
     return new _EnumElementFragmentBodyBuilderContext(
-        _fragment, builder.libraryBuilder, builder.declarationBuilder,
-        isDeclarationInstanceMember: builder.isDeclarationInstanceMember);
+      _fragment,
+      builder.libraryBuilder,
+      builder.declarationBuilder,
+      isDeclarationInstanceMember: builder.isDeclarationInstanceMember,
+    );
   }
 
   @override
@@ -233,32 +269,36 @@ class EnumElementDeclaration
 
   @override
   void createGetterEncoding(
-      ProblemReporting problemReporting,
-      SourcePropertyBuilder builder,
-      PropertyEncodingStrategy encodingStrategy,
-      TypeParameterFactory typeParameterFactory) {}
+    ProblemReporting problemReporting,
+    SourcePropertyBuilder builder,
+    PropertyEncodingStrategy encodingStrategy,
+    TypeParameterFactory typeParameterFactory,
+  ) {}
 
   @override
   // Coverage-ignore(suite): Not run.
-  void ensureGetterTypes(
-      {required SourceLibraryBuilder libraryBuilder,
-      required DeclarationBuilder? declarationBuilder,
-      required ClassMembersBuilder membersBuilder,
-      required Set<ClassMember>? getterOverrideDependencies}) {}
+  void ensureGetterTypes({
+    required SourceLibraryBuilder libraryBuilder,
+    required DeclarationBuilder? declarationBuilder,
+    required ClassMembersBuilder membersBuilder,
+    required Set<ClassMember>? getterOverrideDependencies,
+  }) {}
 
   @override
   // Coverage-ignore(suite): Not run.
   void ensureTypes(
-      ClassMembersBuilder membersBuilder,
-      Set<ClassMember>? getterOverrideDependencies,
-      Set<ClassMember>? setterOverrideDependencies) {
+    ClassMembersBuilder membersBuilder,
+    Set<ClassMember>? getterOverrideDependencies,
+    Set<ClassMember>? setterOverrideDependencies,
+  ) {
     inferType(membersBuilder.hierarchyBuilder);
   }
 
   @override
   // Coverage-ignore(suite): Not run.
   Iterable<Reference> getExportedGetterReferences(
-      PropertyReferences references) {
+    PropertyReferences references,
+  ) {
     return [references.getterReference];
   }
 
@@ -268,8 +308,12 @@ class EnumElementDeclaration
     _field!.isCovariantByClass = true;
   }
 
-  void _buildElement(SourceEnumBuilder sourceEnumBuilder, DartType selfType,
-      CoreTypes coreTypes, Token? token) {
+  void _buildElement(
+    SourceEnumBuilder sourceEnumBuilder,
+    DartType selfType,
+    CoreTypes coreTypes,
+    Token? token,
+  ) {
     SourceLibraryBuilder libraryBuilder = sourceEnumBuilder.libraryBuilder;
     DartType inferredFieldType = selfType;
 
@@ -278,19 +322,15 @@ class EnumElementDeclaration
         _fragment.constructorReferenceBuilder?.suffix ?? "";
     String fullConstructorNameForErrors =
         _fragment.constructorReferenceBuilder?.fullNameForErrors ??
-            _fragment.name;
+        _fragment.name;
     int fileOffset =
         _fragment.constructorReferenceBuilder?.charOffset ?? nameOffset;
     constructorName = constructorName == "new" ? "" : constructorName;
-    MemberBuilder? constructorBuilder =
-        sourceEnumBuilder.nameSpace.lookupConstructor(constructorName);
-    // TODO(CFE Team): Should there be a conversion to an invalid expression
-    // instead? That's what happens on classes.
-    while (constructorBuilder?.next != null) {
-      constructorBuilder = constructorBuilder?.next as MemberBuilder;
-    }
+    MemberLookupResult? result = sourceEnumBuilder.nameSpace.lookupConstructor(
+      constructorName,
+    );
+    MemberBuilder? constructorBuilder = result?.getable;
 
-    ArgumentsImpl arguments;
     List<Expression> enumSyntheticArguments = <Expression>[
       new IntLiteral(elementIndex),
       new StringLiteral(constant),
@@ -302,75 +342,52 @@ class EnumElementDeclaration
       typeArguments = <DartType>[];
       for (TypeBuilder typeBuilder in typeArgumentBuilders) {
         typeArguments.add(
-            typeBuilder.build(libraryBuilder, TypeUse.constructorTypeArgument));
+          typeBuilder.build(libraryBuilder, TypeUse.constructorTypeArgument),
+        );
       }
     }
-    if (libraryBuilder.libraryFeatures.enhancedEnums.isEnabled) {
-      // We need to create a BodyBuilder to solve the following: 1) if
-      // the arguments token is provided, we'll use the BodyBuilder to
-      // parse them and perform inference, 2) if the type arguments
-      // aren't provided, but required, we'll use it to infer them, and
-      // 3) in case of erroneous code the constructor invocation should
-      // be built via a body builder to detect potential errors.
-      BodyBuilder bodyBuilder = libraryBuilder.loader
-          .createBodyBuilderForOutlineExpression(
-              libraryBuilder,
-              sourceEnumBuilder.createBodyBuilderContext(),
-              _fragment.enclosingScope,
-              fileUri);
-      bodyBuilder.constantContext = ConstantContext.inferred;
-
-      if (token != null) {
-        arguments = bodyBuilder.parseArguments(token);
-        // We pass `true` for [allowFurtherDelays] here because the members of
-        // the enums are built before the inference, and the resolution of the
-        // redirecting factories can't be completed at this moment and
-        // therefore should be delayed to another invocation of
-        // [BodyBuilder.performBacklogComputations].
-        bodyBuilder.performBacklogComputations();
-
-        arguments.positional.insertAll(0, enumSyntheticArguments);
-        arguments.argumentsOriginalOrder?.insertAll(0, enumSyntheticArguments);
-      } else {
-        arguments = new ArgumentsImpl(enumSyntheticArguments);
-      }
-      if (typeArguments != null) {
-        ArgumentsImpl.setNonInferrableArgumentTypes(arguments, typeArguments);
-      } else if (sourceEnumBuilder.cls.typeParameters.isNotEmpty) {
-        arguments.types.addAll(new List<DartType>.filled(
-            sourceEnumBuilder.cls.typeParameters.length, const UnknownType()));
-      }
-      setParents(enumSyntheticArguments, arguments);
-      if (constructorBuilder == null ||
-          constructorBuilder is! SourceConstructorBuilder) {
-        assert(
-            _field!.initializer == null,
-            "Initializer has already been computed for $this: "
-            "${_field!.initializer}.");
-        _field!.initializer = bodyBuilder.buildUnresolvedError(
-            fullConstructorNameForErrors, fileOffset,
-            arguments: arguments, kind: UnresolvedKind.Constructor)
-          ..parent = _field;
-      } else {
-        Expression initializer = bodyBuilder.buildStaticInvocation(
-            constructorBuilder.invokeTarget, arguments,
-            constness: Constness.explicitConst,
-            charOffset: nameOffset,
-            isConstructorInvocation: true);
-        ExpressionInferenceResult inferenceResult = bodyBuilder.typeInferrer
-            .inferFieldInitializer(
-                bodyBuilder, const UnknownType(), initializer);
-        initializer = inferenceResult.expression;
-        inferredFieldType = inferenceResult.inferredType;
-        assert(
-            _field!.initializer == null,
-            "Initializer has already been computed for $this: "
-            "${_field!.initializer}.");
-        _field!.initializer = initializer..parent = _field;
+    if (result != null && result.isInvalidLookup) {
+      assert(
+        _field!.initializer == null,
+        "Initializer has already been computed for $this: "
+        "${_field!.initializer}.",
+      );
+      _field!.initializer = LookupResult.createDuplicateExpression(
+        result,
+        context: libraryBuilder.loader.target.context,
+        name: fullConstructorNameForErrors,
+        fileUri: fileUri,
+        fileOffset: nameOffset,
+        length: noLength,
+      )..parent = _field;
+    } else if (libraryBuilder.libraryFeatures.enhancedEnums.isEnabled) {
+      var (Expression initializer, DartType? fieldType) = libraryBuilder.loader
+          .createResolver()
+          .buildEnumConstant(
+            libraryBuilder: libraryBuilder,
+            bodyBuilderContext: sourceEnumBuilder.createBodyBuilderContext(),
+            extensionScope: _fragment.enclosingCompilationUnit.extensionScope,
+            scope: _fragment.enclosingScope,
+            token: token,
+            enumSyntheticArguments: enumSyntheticArguments,
+            enumTypeParameterCount: sourceEnumBuilder.typeParametersCount,
+            typeArguments: typeArguments,
+            constructorBuilder: constructorBuilder,
+            fileUri: fileUri,
+            fileOffset: fileOffset,
+            fullConstructorNameForErrors: fullConstructorNameForErrors,
+          );
+      assert(
+        _field!.initializer == null,
+        "Initializer has already been computed for $this: "
+        "${_field!.initializer}.",
+      );
+      _field!.initializer = initializer..parent = _field;
+      if (fieldType != null) {
+        inferredFieldType = fieldType;
       }
     } else {
-      arguments = new ArgumentsImpl(enumSyntheticArguments);
-      setParents(enumSyntheticArguments, arguments);
+      Arguments arguments = new Arguments(enumSyntheticArguments);
       if (constructorBuilder == null ||
           constructorBuilder is! SourceConstructorBuilder ||
           !constructorBuilder.isConst) {
@@ -379,43 +396,63 @@ class EnumElementDeclaration
         assert(libraryBuilder.loader.hasSeenError);
         String text = libraryBuilder.loader.target.context
             .format(
-                templateConstructorNotFound
-                    .withArguments(fullConstructorNameForErrors)
-                    .withLocation(fileUri, fileOffset, noLength),
-                Severity.error)
+              codeConstructorNotFound
+                  .withArgumentsOld(fullConstructorNameForErrors)
+                  .withLocation(fileUri, fileOffset, noLength),
+              CfeSeverity.error,
+            )
             .plain;
         assert(
-            _field!.initializer == null,
-            "Initializer has already been computed for $this: "
-            "${_field!.initializer}.");
+          _field!.initializer == null,
+          "Initializer has already been computed for $this: "
+          "${_field!.initializer}.",
+        );
         _field!.initializer = new InvalidExpression(text)
           ..fileOffset = nameOffset
           ..parent = _field;
       } else {
         Expression initializer = new ConstructorInvocation(
-            constructorBuilder.invokeTarget as Constructor, arguments,
-            isConst: true)
-          ..fileOffset = nameOffset;
+          constructorBuilder.invokeTarget as Constructor,
+          arguments,
+          isConst: true,
+        )..fileOffset = nameOffset;
         assert(
-            _field!.initializer == null,
-            "Initializer has already been computed for $this: "
-            "${_field!.initializer}.");
+          _field!.initializer == null,
+          "Initializer has already been computed for $this: "
+          "${_field!.initializer}.",
+        );
         _field!.initializer = initializer..parent = _field;
       }
     }
     fieldType = inferredFieldType;
   }
 
-  DartType _computeType(ClassHierarchyBase hierarchy, Token? token) {
+  (DartType, Expression?) _computeType(
+    ClassHierarchyBase hierarchy,
+    Token? token,
+  ) {
     SourceLibraryBuilder libraryBuilder = builder.libraryBuilder;
     SourceEnumBuilder sourceEnumBuilder =
         builder.declarationBuilder as SourceEnumBuilder;
     _buildElement(
-        sourceEnumBuilder,
-        sourceEnumBuilder.selfType.build(libraryBuilder, TypeUse.enumSelfType),
-        libraryBuilder.loader.coreTypes,
-        token);
-    return fieldType;
+      sourceEnumBuilder,
+      sourceEnumBuilder.selfType.build(libraryBuilder, TypeUse.enumSelfType),
+      libraryBuilder.loader.coreTypes,
+      token,
+    );
+    return (fieldType, _field!.initializer);
+  }
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  void buildBody(CoreTypes coreTypes, Expression? initializer) {
+    // Initializer has already been created through [_buildElement].
+  }
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  void cacheFieldInitializer(Expression? initializer) {
+    // Initializer is created through [_buildElement].
   }
 }
 
@@ -442,8 +479,11 @@ class EnumElementFragment implements Fragment {
   final TypeBuilder type = new InferableTypeBuilder();
 
   @override
-  late final UriOffsetLength uriOffset =
-      new UriOffsetLength(fileUri, nameOffset, name.length);
+  late final UriOffsetLength uriOffset = new UriOffsetLength(
+    fileUri,
+    nameOffset,
+    name.length,
+  );
 
   EnumElementFragment({
     required this.metadata,
@@ -481,13 +521,17 @@ class EnumElementFragment implements Fragment {
 
   EnumElementDeclaration get declaration {
     assert(
-        _declaration != null, "Declaration has not been computed for $this.");
+      _declaration != null,
+      "Declaration has not been computed for $this.",
+    );
     return _declaration!;
   }
 
   void set declaration(EnumElementDeclaration value) {
-    assert(_declaration == null,
-        "Declaration has already been computed for $this.");
+    assert(
+      _declaration == null,
+      "Declaration has already been computed for $this.",
+    );
     _declaration = value;
   }
 
@@ -577,8 +621,10 @@ class _EnumElementClassMember implements ClassMember {
   // Coverage-ignore(suite): Not run.
   Covariance getCovariance(ClassMembersBuilder membersBuilder) {
     return _covariance ??= forSetter
-        ? new Covariance.fromMember(getMember(membersBuilder),
-            forSetter: forSetter)
+        ? new Covariance.fromMember(
+            getMember(membersBuilder),
+            forSetter: forSetter,
+          )
         : const Covariance.empty();
   }
 
@@ -587,17 +633,20 @@ class _EnumElementClassMember implements ClassMember {
     inferType(membersBuilder);
     return forSetter
         ?
-        // Coverage-ignore(suite): Not run.
-        _builder.writeTarget!
+          // Coverage-ignore(suite): Not run.
+          _builder.writeTarget!
         : _builder.readTarget!;
   }
 
   @override
   // Coverage-ignore(suite): Not run.
   MemberResult getMemberResult(ClassMembersBuilder membersBuilder) {
-    return new StaticMemberResult(getMember(membersBuilder), memberKind,
-        isDeclaredAsField: true,
-        fullName: '${declarationBuilder.name}.${_builder.memberName.text}');
+    return new StaticMemberResult(
+      getMember(membersBuilder),
+      memberKind,
+      isDeclaredAsField: true,
+      fullName: '${declarationBuilder.name}.${_builder.memberName.text}',
+    );
   }
 
   @override
@@ -625,9 +674,13 @@ class _EnumElementClassMember implements ClassMember {
   @override
   // Coverage-ignore(suite): Not run.
   void registerOverrideDependency(
-      ClassMembersBuilder membersBuilder, Set<ClassMember> overriddenMembers) {
+    ClassMembersBuilder membersBuilder,
+    Set<ClassMember> overriddenMembers,
+  ) {
     _builder.registerGetterOverrideDependency(
-        membersBuilder, overriddenMembers);
+      membersBuilder,
+      overriddenMembers,
+    );
   }
 
   @override
@@ -638,12 +691,15 @@ class _EnumElementFragmentBodyBuilderContext extends BodyBuilderContext {
   final EnumElementFragment _fragment;
 
   _EnumElementFragmentBodyBuilderContext(
-      this._fragment,
-      SourceLibraryBuilder libraryBuilder,
-      DeclarationBuilder? declarationBuilder,
-      {required bool isDeclarationInstanceMember})
-      : super(libraryBuilder, declarationBuilder,
-            isDeclarationInstanceMember: isDeclarationInstanceMember);
+    this._fragment,
+    SourceLibraryBuilder libraryBuilder,
+    DeclarationBuilder? declarationBuilder, {
+    required bool isDeclarationInstanceMember,
+  }) : super(
+         libraryBuilder,
+         declarationBuilder,
+         isDeclarationInstanceMember: isDeclarationInstanceMember,
+       );
 
   @override
   // Coverage-ignore(suite): Not run.

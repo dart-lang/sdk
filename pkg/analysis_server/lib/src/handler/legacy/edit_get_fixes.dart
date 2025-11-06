@@ -22,12 +22,12 @@ import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/source/file_source.dart';
 import 'package:analyzer/source/line_info.dart';
 import 'package:analyzer/src/analysis_options/analysis_options_provider.dart';
+import 'package:analyzer/src/analysis_options/options_file_validator.dart';
 import 'package:analyzer/src/dart/analysis/analysis_options.dart';
 import 'package:analyzer/src/dart/analysis/results.dart' as engine;
 import 'package:analyzer/src/exception/exception.dart';
 import 'package:analyzer/src/generated/source.dart' show SourceFactory;
 import 'package:analyzer/src/pubspec/pubspec_validator.dart';
-import 'package:analyzer/src/task/options.dart';
 import 'package:analyzer/src/util/file_paths.dart' as file_paths;
 import 'package:analyzer/src/workspace/pub.dart';
 import 'package:analyzer_plugin/protocol/protocol_generated.dart' as plugin;
@@ -125,14 +125,16 @@ class EditGetFixesHandler extends LegacyHandler
     var package = analysisContext.contextRoot.workspace.findPackageFor(
       optionsFile.path,
     );
-    var sdkVersionConstraint =
-        (package is PubPackage) ? package.sdkVersionConstraint : null;
+    var sdkVersionConstraint = (package is PubPackage)
+        ? package.sdkVersionConstraint
+        : null;
     var diagnostics = analyzeAnalysisOptions(
       FileSource(optionsFile),
       content,
       sourceFactory,
       analysisContext.contextRoot.root.path,
       sdkVersionConstraint,
+      resourceProvider,
     );
     var options = _getOptions(sourceFactory, content);
     if (options == null) {
@@ -221,7 +223,8 @@ class EditGetFixesHandler extends LegacyHandler
           } on InconsistentAnalysisException {
             fixes = [];
           } catch (exception, stackTrace) {
-            var parametersFile = '''
+            var parametersFile =
+                '''
 offset: $offset
 error: $diagnostic
 error.errorCode: ${diagnostic.diagnosticCode}
@@ -297,6 +300,7 @@ error.errorCode: ${diagnostic.diagnosticCode}
         diagnostic,
         content,
         node,
+        defaultEol: server.defaultEol,
       );
       var fixes = await generator.computeFixes();
       if (fixes.isNotEmpty) {

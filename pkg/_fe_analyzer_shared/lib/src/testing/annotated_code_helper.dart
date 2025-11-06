@@ -263,23 +263,23 @@ class AnnotatedCode {
 
   String toText() {
     StringBuffer sb = new StringBuffer();
-    List<Annotation> list =
-        annotations.toList()..sort((a, b) {
-          int result = a.offset.compareTo(b.offset);
-          if (result == 0) {
-            if (a.index != null && b.index != null) {
-              result = a.index!.compareTo(b.index!);
-            } else if (a.index != null) {
-              result = -1;
-            } else if (b.index != null) {
-              result = 1;
-            }
+    List<Annotation> list = annotations.toList()
+      ..sort((a, b) {
+        int result = a.offset.compareTo(b.offset);
+        if (result == 0) {
+          if (a.index != null && b.index != null) {
+            result = a.index!.compareTo(b.index!);
+          } else if (a.index != null) {
+            result = -1;
+          } else if (b.index != null) {
+            result = 1;
           }
-          if (result == 0) {
-            result = annotations.indexOf(a).compareTo(annotations.indexOf(b));
-          }
-          return result;
-        });
+        }
+        if (result == 0) {
+          result = annotations.indexOf(a).compareTo(annotations.indexOf(b));
+        }
+        return result;
+      });
     int offset = 0;
     for (Annotation annotation in list) {
       sb.write(sourceCode.substring(offset, annotation.offset));

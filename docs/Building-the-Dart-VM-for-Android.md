@@ -30,7 +30,7 @@ Run gclient sync to install the Android NDK and SDK. This may take 10 minutes or
 
 Once you've set up your build tree, you can build the Dart VM for Android by using the standard Dart build script with the addition of the --os android build flag:
 
-`$ tools/build.py --arch=arm,arm64,ia32,x64,riscv64 --os=android runtime`
+`$ tools/build.py --arch=arm,arm64,x64,riscv64 --os=android runtime`
 
 # Testing the result
 
@@ -58,7 +58,7 @@ Create a directory on the Android emulator.
 
 Copy the Dart VM executable to the Android emulator:
 
-`$ adb push out/android/ReleaseAndroid{ARM,ARM64,IA32,X64,RISCV64}/dart /data/local/tmp/dart/dart`
+`$ adb push out/android/ReleaseAndroid{ARM,ARM64,X64,RISCV64}/dart /data/local/tmp/dart/dart`
 
 Create a simple Dart test script:
 

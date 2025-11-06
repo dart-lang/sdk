@@ -33,7 +33,7 @@ const a = 42 >>> 3;
       '''
 const a = 42 >>> 3;
 ''',
-      expectedErrors: [error(WarningCode.SDK_VERSION_GT_GT_GT_OPERATOR, 13, 3)],
+      expectedErrors: [error(WarningCode.sdkVersionGtGtGtOperator, 13, 3)],
     );
   }
 
@@ -53,7 +53,7 @@ class A {
   A operator >>>(A a) => this;
 }
 ''',
-      expectedErrors: [error(WarningCode.SDK_VERSION_GT_GT_GT_OPERATOR, 23, 3)],
+      expectedErrors: [error(WarningCode.sdkVersionGtGtGtOperator, 23, 3)],
     );
   }
 
@@ -69,7 +69,7 @@ var a = 42 >>> 3;
       '''
 var a = 42 >>> 3;
 ''',
-      expectedErrors: [error(WarningCode.SDK_VERSION_GT_GT_GT_OPERATOR, 11, 3)],
+      expectedErrors: [error(WarningCode.sdkVersionGtGtGtOperator, 11, 3)],
     );
   }
 }

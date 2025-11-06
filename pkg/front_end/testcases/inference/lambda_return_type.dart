@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/*@testedFeatures=inference*/
 library test;
 
 typedef num FunctionReturningNum();
@@ -10,12 +9,12 @@ typedef num FunctionReturningNum();
 test() {
   int i = 1;
   dynamic o = 1;
-  FunctionReturningNum a = /*@returnType=int*/ () => i;
-  FunctionReturningNum b = /*@returnType=num*/ () => o;
-  FunctionReturningNum c = /*@returnType=int*/ () {
+  FunctionReturningNum a = () => i;
+  FunctionReturningNum b = () => o;
+  FunctionReturningNum c = () {
     return i;
   };
-  FunctionReturningNum d = /*@returnType=num*/ () {
+  FunctionReturningNum d = () {
     return o;
   };
 }

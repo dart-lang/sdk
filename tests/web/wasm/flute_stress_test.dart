@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// dart2wasmOptions=--extra-compiler-option=--enable-multi-module-stress-test-mode -O0
+// dart2wasmOptions=--extra-compiler-option=--enable-multi-module-stress-test-mode
 
 import 'dart:async';
 

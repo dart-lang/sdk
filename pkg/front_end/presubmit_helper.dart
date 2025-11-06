@@ -13,10 +13,15 @@ import 'test/utils/io_utils.dart';
 Future<void> main(List<String> args) async {
   Directory.current = Directory.fromUri(_repoDir);
   Stopwatch stopwatch = new Stopwatch()..start();
-  // Expect something like /full/path/to/sdk/pkg/some_dir/whatever/else
-  if (args.length != 1) throw "Need exactly one argument.";
+  // Expect something like:
+  //   /full/path/to/sdk/pkg/some_dir/whatever/else upstreamBranch
+  if (args.length != 2) throw "Need exactly two arguments.";
 
-  final List<String> changedFiles = getChangedFiles(collectUncommitted: false);
+  String upstreamBranch = args[1];
+  final List<String> changedFiles = getChangedFiles(
+    collectUncommitted: false,
+    upstreamBranch: upstreamBranch,
+  );
   String callerPath = args[0].replaceAll("\\", "/");
   if (!_shouldRun(changedFiles, callerPath)) {
     return;
@@ -47,9 +52,12 @@ Future<void> main(List<String> args) async {
   List<Future> futures = [];
   if (shouldRunGenerateFilesTest) {
     print("Running generated_files_up_to_date_git_test in different process.");
-    futures.add(_run(
+    futures.add(
+      _run(
         "pkg/front_end/test/generated_files_up_to_date_git_test.dart",
-        const []));
+        const [],
+      ),
+    );
   }
 
   if (workItems.isNotEmpty) {
@@ -77,6 +85,7 @@ const Set<String> _generatedFilesUpToDateFiles = {
   "pkg/_fe_analyzer_shared/lib/src/messages/codes_generated.dart",
   "pkg/_fe_analyzer_shared/lib/src/parser/listener.dart",
   "pkg/_fe_analyzer_shared/lib/src/parser/parser_impl.dart",
+  "pkg/_fe_analyzer_shared/messages.yaml",
   "pkg/front_end/lib/src/api_prototype/experimental_flags_generated.dart",
   "pkg/front_end/lib/src/codes/cfe_codes_generated.dart",
   "pkg/front_end/lib/src/util/parser_ast_helper.dart",
@@ -168,9 +177,10 @@ CompileAndLintWork? _createCompileAndLintTestWork(List<String> changedFiles) {
   if (files.isEmpty) return null;
 
   return new CompileAndLintWork(
-      includedFiles: files,
-      includedDirectoryUris: includedDirs,
-      repoDir: _repoDir);
+    includedFiles: files,
+    includedDirectoryUris: includedDirs,
+    repoDir: _repoDir,
+  );
 }
 
 LintWork? _createLintWork(List<String> changedFiles) {
@@ -192,21 +202,26 @@ LintWork? _createLintWork(List<String> changedFiles) {
   return new LintWork(filters: filters, repoDir: _repoDir);
 }
 
+final RegExp _messagesYamlPathRegExp = RegExp('^pkg/(.+)/messages.yaml\$');
+
 MessagesWork? _createMessagesTestWork(List<String> changedFiles) {
   // TODO(jensj): Could we detect what ones are changed/added and only test
   // those?
+  List<String> filters = [];
   for (String file in changedFiles) {
-    if (file == "pkg/front_end/messages.yaml") {
-      return new MessagesWork(repoDir: _repoDir);
+    if (_messagesYamlPathRegExp.matchAsPrefix(file) case var match?) {
+      filters.add('messages/${match.group(1)}/...');
     }
   }
 
-  // messages.yaml not changed.
-  return null;
+  if (filters.isEmpty) return null;
+
+  return new MessagesWork(filters: filters, repoDir: _repoDir);
 }
 
 SpellNotSourceWork? _createSpellingTestNotSourceWork(
-    List<String> changedFiles) {
+  List<String> changedFiles,
+) {
   // TODO(jensj): Not here, but I'll add the note here.
   // package:testing takes *a long time* listing files because it does
   // ```
@@ -261,19 +276,20 @@ Future<void> _executePendingWorkItems(List<Work> workItems) async {
   SpawnHelper spawnHelper = new SpawnHelper();
   print("Waiting for spawn to start up.");
   Stopwatch stopwatch = new Stopwatch()..start();
-  await spawnHelper
-      .spawn(_repoDir.resolve("pkg/front_end/presubmit_helper_spawn.dart"),
-          (dynamic ok) {
-    if (ok is! bool) {
-      exitCode = 1;
-      print("Error got message of type ${ok.runtimeType}");
-      return;
-    }
-    currentlyRunning--;
-    if (!ok) {
-      exitCode = 1;
-    }
-  });
+  await spawnHelper.spawn(
+    _repoDir.resolve("pkg/front_end/presubmit_helper_spawn.dart"),
+    (dynamic ok) {
+      if (ok is! bool) {
+        exitCode = 1;
+        print("Error got message of type ${ok.runtimeType}");
+        return;
+      }
+      currentlyRunning--;
+      if (!ok) {
+        exitCode = 1;
+      }
+    },
+  );
   print("Isolate started in ${stopwatch.elapsed}");
 
   for (Work workItem in workItems) {
@@ -291,7 +307,10 @@ Future<void> _executePendingWorkItems(List<Work> workItems) async {
 /// Queries git about changes against upstream, or origin/main if no upstream is
 /// set. This is similar (but different), I believe, to what
 /// `git cl presubmit` does.
-List<String> getChangedFiles({required bool collectUncommitted}) {
+List<String> getChangedFiles({
+  required bool collectUncommitted,
+  required String upstreamBranch,
+}) {
   Set<String> paths = {};
   void collectChanges(ProcessResult processResult) {
     for (String line in processResult.stdout.toString().split("\n")) {
@@ -303,29 +322,23 @@ List<String> getChangedFiles({required bool collectUncommitted}) {
     }
   }
 
-  ProcessResult result = Process.runSync(
-      "git",
-      [
-        "-c",
-        "core.quotePath=false",
-        "diff",
-        "--name-status",
-        "--no-renames",
-        "@{u}...HEAD",
-      ],
-      runInShell: true);
+  ProcessResult result = Process.runSync("git", [
+    "-c",
+    "core.quotePath=false",
+    "diff",
+    "--name-status",
+    "--no-renames",
+    "$upstreamBranch...HEAD",
+  ], runInShell: true);
   if (result.exitCode != 0) {
-    result = Process.runSync(
-        "git",
-        [
-          "-c",
-          "core.quotePath=false",
-          "diff",
-          "--name-status",
-          "--no-renames",
-          "origin/main...HEAD",
-        ],
-        runInShell: true);
+    result = Process.runSync("git", [
+      "-c",
+      "core.quotePath=false",
+      "diff",
+      "--name-status",
+      "--no-renames",
+      "origin/main...HEAD",
+    ], runInShell: true);
   }
   if (result.exitCode != 0) {
     throw "Failure";
@@ -333,17 +346,14 @@ List<String> getChangedFiles({required bool collectUncommitted}) {
   collectChanges(result);
 
   if (collectUncommitted) {
-    result = Process.runSync(
-        "git",
-        [
-          "-c",
-          "core.quotePath=false",
-          "diff",
-          "--name-status",
-          "--no-renames",
-          "HEAD",
-        ],
-        runInShell: true);
+    result = Process.runSync("git", [
+      "-c",
+      "core.quotePath=false",
+      "diff",
+      "--name-status",
+      "--no-renames",
+      "HEAD",
+    ], runInShell: true);
     collectChanges(result);
   }
 
@@ -375,24 +385,26 @@ int? _getPathSegmentIndexIfSubEntry(Uri outer, Uri inner) {
   return end;
 }
 
-Future<void> _run(
-  String script,
-  List<String> scriptArguments,
-) async {
+Future<void> _run(String script, List<String> scriptArguments) async {
   List<String> arguments = [];
   arguments.add("$script");
   arguments.addAll(scriptArguments);
 
   Stopwatch stopwatch = new Stopwatch()..start();
-  ProcessResult result = await Process.run(_dartVm, arguments,
-      workingDirectory: _repoDir.toFilePath());
+  ProcessResult result = await Process.run(
+    _dartVm,
+    arguments,
+    workingDirectory: _repoDir.toFilePath(),
+  );
   String runWhat = "${_dartVm} ${arguments.join(' ')}";
   if (result.exitCode != 0) {
     exitCode = result.exitCode;
     print("-----");
-    print("Running: $runWhat: "
-        "Failed with exit code ${result.exitCode} "
-        "in ${stopwatch.elapsedMilliseconds} ms.");
+    print(
+      "Running: $runWhat: "
+      "Failed with exit code ${result.exitCode} "
+      "in ${stopwatch.elapsedMilliseconds} ms.",
+    );
     String stdout = result.stdout.toString();
     stdout = stdout.trim();
     if (stdout.isNotEmpty) {
@@ -474,9 +486,7 @@ class DepsTestWork extends Work {
 
   @override
   Map<String, Object?> toJson() {
-    return {
-      "WorkTypeIndex": WorkEnum.DepsTest.index,
-    };
+    return {"WorkTypeIndex": WorkEnum.DepsTest.index};
   }
 
   static Work fromJson(Map<String, Object?> json) {
@@ -489,10 +499,11 @@ class CompileAndLintWork extends Work {
   final Set<Uri> includedDirectoryUris;
   final Uri repoDir;
 
-  CompileAndLintWork(
-      {required this.includedFiles,
-      required this.includedDirectoryUris,
-      required this.repoDir});
+  CompileAndLintWork({
+    required this.includedFiles,
+    required this.includedDirectoryUris,
+    required this.repoDir,
+  });
 
   @override
   String get name => "compile and lint test";
@@ -502,8 +513,9 @@ class CompileAndLintWork extends Work {
     return {
       "WorkTypeIndex": WorkEnum.CompileAndLint.index,
       "includedFiles": includedFiles.map((e) => e.toString()).toList(),
-      "includedDirectoryUris":
-          includedDirectoryUris.map((e) => e.toString()).toList(),
+      "includedDirectoryUris": includedDirectoryUris
+          .map((e) => e.toString())
+          .toList(),
       "repoDir": repoDir.toString(),
     };
   }
@@ -511,9 +523,11 @@ class CompileAndLintWork extends Work {
   static Work fromJson(Map<String, Object?> json) {
     return new CompileAndLintWork(
       includedFiles: Set<Uri>.from(
-          (json["includedFiles"] as Iterable).map((e) => Uri.parse(e))),
+        (json["includedFiles"] as Iterable).map((e) => Uri.parse(e)),
+      ),
       includedDirectoryUris: Set<Uri>.from(
-          (json["includedDirectoryUris"] as Iterable).map((e) => Uri.parse(e))),
+        (json["includedDirectoryUris"] as Iterable).map((e) => Uri.parse(e)),
+      ),
       repoDir: Uri.parse(json["repoDir"] as String),
     );
   }
@@ -546,9 +560,10 @@ class LintWork extends Work {
 }
 
 class MessagesWork extends Work {
+  final List<String> filters;
   final Uri repoDir;
 
-  MessagesWork({required this.repoDir});
+  MessagesWork({required this.filters, required this.repoDir});
 
   @override
   String get name => "messages test";
@@ -557,12 +572,14 @@ class MessagesWork extends Work {
   Map<String, Object?> toJson() {
     return {
       "WorkTypeIndex": WorkEnum.Messages.index,
+      "filters": filters,
       "repoDir": repoDir.toString(),
     };
   }
 
   static Work fromJson(Map<String, Object?> json) {
     return new MessagesWork(
+      filters: List<String>.from(json["filters"] as Iterable),
       repoDir: Uri.parse(json["repoDir"] as String),
     );
   }

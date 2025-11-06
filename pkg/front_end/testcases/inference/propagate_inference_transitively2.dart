@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/*@testedFeatures=inference*/
 library test;
 
 class A {
@@ -22,11 +21,9 @@ class D {
 }
 
 void main() {
-  var /*@type=D*/ d1 = new D();
-  print(d1. /*@target=D.c*/ c. /*@target=C.b*/ b. /*@target=B.a*/ a
-      . /*@target=A.x*/ x);
+  var d1 = new D();
+  print(d1.c.b.a.x);
 
   D d2 = new D();
-  print(d2. /*@target=D.c*/ c. /*@target=C.b*/ b. /*@target=B.a*/ a
-      . /*@target=A.x*/ x);
+  print(d2.c.b.a.x);
 }

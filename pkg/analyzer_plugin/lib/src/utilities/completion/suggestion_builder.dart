@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart'
     hide Element, ElementKind;
@@ -25,10 +26,11 @@ class SuggestionBuilderImpl implements SuggestionBuilder {
   /// Add default argument list text and ranges based on the given
   /// [requiredParams] and [namedParams].
   void addDefaultArgDetails(
-      CompletionSuggestion suggestion,
-      Element element,
-      Iterable<FormalParameterElement> requiredParams,
-      Iterable<FormalParameterElement> namedParams) {
+    CompletionSuggestion suggestion,
+    Element element,
+    Iterable<FormalParameterElement> requiredParams,
+    Iterable<FormalParameterElement> namedParams,
+  ) {
     // Copied from analysis_server/lib/src/services/completion/dart/suggestion_builder.dart
     var buffer = StringBuffer();
     var ranges = <int>[];
@@ -58,17 +60,21 @@ class SuggestionBuilderImpl implements SuggestionBuilder {
       }
     }
 
-    suggestion.defaultArgumentListString =
-        buffer.isNotEmpty ? buffer.toString() : null;
-    suggestion.defaultArgumentListTextRanges =
-        ranges.isNotEmpty ? ranges : null;
+    suggestion.defaultArgumentListString = buffer.isNotEmpty
+        ? buffer.toString()
+        : null;
+    suggestion.defaultArgumentListTextRanges = ranges.isNotEmpty
+        ? ranges
+        : null;
   }
 
   @override
-  CompletionSuggestion? forElement(Element? element,
-      {String? completion,
-      CompletionSuggestionKind? kind,
-      int relevance = DART_RELEVANCE_DEFAULT}) {
+  CompletionSuggestion? forElement(
+    Element? element, {
+    String? completion,
+    CompletionSuggestionKind? kind,
+    int relevance = DART_RELEVANCE_DEFAULT,
+  }) {
     // Copied from analysis_server/lib/src/services/completion/dart/suggestion_builder.dart
     if (element == null) {
       return null;
@@ -79,23 +85,19 @@ class SuggestionBuilderImpl implements SuggestionBuilder {
     }
     completion ??= element.displayName;
 
-    Annotatable? annotatable;
-    if (element case Annotatable annotatable2) {
-      annotatable = annotatable2;
-    }
-
-    var isDeprecated = annotatable?.metadata.hasDeprecated ?? false;
+    var isDeprecated = element.metadata.hasDeprecated;
     var suggestion = CompletionSuggestion(
-        kind ?? CompletionSuggestionKind.INVOCATION,
-        isDeprecated ? DART_RELEVANCE_LOW : relevance,
-        completion,
-        completion.length,
-        0,
-        isDeprecated,
-        false);
+      kind ?? CompletionSuggestionKind.INVOCATION,
+      isDeprecated ? DART_RELEVANCE_LOW : relevance,
+      completion,
+      completion.length,
+      0,
+      isDeprecated,
+      false,
+    );
 
     // Attach docs.
-    var doc = removeDartDocDelimiters(annotatable?.documentationComment);
+    var doc = removeDartDocDelimiters(element.documentationComment);
     suggestion.docComplete = doc;
     suggestion.docSummary = getDartDocSummary(doc);
 
@@ -113,16 +115,22 @@ class SuggestionBuilderImpl implements SuggestionBuilder {
         return parameter.type.getDisplayString();
       }).toList();
 
-      var requiredParameters =
-          element.formalParameters.where((param) => param.isRequiredPositional);
+      var requiredParameters = element.formalParameters.where(
+        (param) => param.isRequiredPositional,
+      );
       suggestion.requiredParameterCount = requiredParameters.length;
 
-      var namedParameters =
-          element.formalParameters.where((param) => param.isNamed);
+      var namedParameters = element.formalParameters.where(
+        (param) => param.isNamed,
+      );
       suggestion.hasNamedParameters = namedParameters.isNotEmpty;
 
       addDefaultArgDetails(
-          suggestion, element, requiredParameters, namedParameters);
+        suggestion,
+        element,
+        requiredParameters,
+        namedParameters,
+      );
     }
     return suggestion;
   }
@@ -139,13 +147,10 @@ class SuggestionBuilderImpl implements SuggestionBuilder {
       var type = element.type;
       return type.getDisplayString();
     } else if (element is TypeAliasElement) {
-      var aliasedElement = element.aliasedElement;
-      if (aliasedElement is GenericFunctionTypeElement) {
-        var returnType = aliasedElement.returnType;
-        return returnType.getDisplayString();
-      } else {
-        return null;
+      if (element.aliasedType case FunctionType aliasedType) {
+        return aliasedType.returnType.getDisplayString();
       }
+      return null;
     } else {
       return null;
     }

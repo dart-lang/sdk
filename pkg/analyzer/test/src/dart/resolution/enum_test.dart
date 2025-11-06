@@ -47,7 +47,7 @@ enum E {
 GenericFunctionType
   returnType: NamedType
     name: void
-    element2: <null>
+    element: <null>
     type: void
   functionKeyword: Function
   parameters: FormalParameterList
@@ -55,16 +55,18 @@ GenericFunctionType
     parameter: SimpleFormalParameter
       type: NamedType
         name: double
-        element2: dart:core::@class::double
+        element: dart:core::@class::double
         type: double
       declaredElement: <testLibraryFragment> null@null
-        type: double
+        element: isPrivate
+          type: double
     rightParenthesis: )
   declaredElement: GenericFunctionTypeElement
     parameters
       <empty>
         kind: required positional
-        type: double
+        element:
+          type: double
     returnType: void
     type: void Function(double)
   type: void Function(double)
@@ -100,7 +102,7 @@ EnumConstantDeclaration
             substitution: {T: int}
           staticType: int
       rightParenthesis: )
-  constructorElement2: ConstructorMember
+  constructorElement: ConstructorMember
     baseElement: <testLibrary>::@enum::E::@constructor::named
     substitution: {T: int}
   declaredElement: <testLibraryFragment> v@14
@@ -130,7 +132,7 @@ EnumConstantDeclaration
             substitution: {T: int}
           staticType: int
       rightParenthesis: )
-  constructorElement2: ConstructorMember
+  constructorElement: ConstructorMember
     baseElement: <testLibrary>::@enum::E::@constructor::new
     substitution: {T: int}
   declaredElement: <testLibraryFragment> v@14
@@ -155,7 +157,7 @@ EnumConstantDeclaration
       arguments
         NamedType
           name: double
-          element2: dart:core::@class::double
+          element: dart:core::@class::double
           type: double
       rightBracket: >
     constructorSelector: ConstructorSelector
@@ -174,7 +176,7 @@ EnumConstantDeclaration
             substitution: {T: double}
           staticType: double
       rightParenthesis: )
-  constructorElement2: ConstructorMember
+  constructorElement: ConstructorMember
     baseElement: <testLibrary>::@enum::E::@constructor::named
     substitution: {T: double}
   declaredElement: <testLibraryFragment> v@14
@@ -208,7 +210,7 @@ EnumConstantDeclaration
           correspondingParameter: <testLibrary>::@enum::E::@constructor::named::@formalParameter::a
           staticType: int
       rightParenthesis: )
-  constructorElement2: <testLibrary>::@enum::E::@constructor::named
+  constructorElement: <testLibrary>::@enum::E::@constructor::named
   declaredElement: <testLibraryFragment> v@11
 ''');
   }
@@ -234,7 +236,7 @@ EnumConstantDeclaration
           correspondingParameter: <testLibrary>::@enum::E::@constructor::new::@formalParameter::a
           staticType: int
       rightParenthesis: )
-  constructorElement2: <testLibrary>::@enum::E::@constructor::new
+  constructorElement: <testLibrary>::@enum::E::@constructor::new
   declaredElement: <testLibraryFragment> v@11
 ''');
   }
@@ -250,7 +252,7 @@ enum E {
     assertResolvedNodeText(node, r'''
 EnumConstantDeclaration
   name: v
-  constructorElement2: <testLibrary>::@enum::E::@constructor::new
+  constructorElement: <testLibrary>::@enum::E::@constructor::new
   declaredElement: <testLibraryFragment> v@11
 ''');
   }
@@ -263,7 +265,7 @@ enum E {
   const E(int a);
 }
 ''',
-      [error(CompileTimeErrorCode.UNDEFINED_ENUM_CONSTRUCTOR_NAMED, 13, 5)],
+      [error(CompileTimeErrorCode.undefinedEnumConstructorNamed, 13, 5)],
     );
 
     var node = findNode.enumConstantDeclaration('v.');
@@ -285,7 +287,7 @@ EnumConstantDeclaration
           correspondingParameter: <null>
           staticType: int
       rightParenthesis: )
-  constructorElement2: <null>
+  constructorElement: <null>
   declaredElement: <testLibraryFragment> v@11
 ''');
   }
@@ -298,7 +300,7 @@ enum E {
   const E.named(int a);
 }
 ''',
-      [error(CompileTimeErrorCode.UNDEFINED_ENUM_CONSTRUCTOR_UNNAMED, 11, 1)],
+      [error(CompileTimeErrorCode.undefinedEnumConstructorUnnamed, 11, 1)],
     );
 
     var node = findNode.enumConstantDeclaration('v(');
@@ -314,7 +316,7 @@ EnumConstantDeclaration
           correspondingParameter: <null>
           staticType: int
       rightParenthesis: )
-  constructorElement2: <null>
+  constructorElement: <null>
   declaredElement: <testLibraryFragment> v@11
 ''');
   }
@@ -358,7 +360,7 @@ enum E<T> {
 MethodDeclaration
   returnType: NamedType
     name: T
-    element2: #E0 T
+    element: #E0 T
     type: T
   propertyKeyword: get
   name: foo
@@ -372,7 +374,8 @@ MethodDeclaration
       staticType: Never
     semicolon: ;
   declaredElement: <testLibraryFragment> foo@25
-    type: T Function()
+    element: <testLibrary>::@enum::E::@getter::foo
+      type: T Function()
 ''');
   }
 
@@ -403,7 +406,7 @@ ImplementsClause
   interfaces
     NamedType
       name: I
-      element2: <testLibrary>::@class::I
+      element: <testLibrary>::@class::I
       type: I
 ''');
   }
@@ -434,7 +437,7 @@ enum E<T> {
 MethodDeclaration
   returnType: NamedType
     name: int
-    element2: dart:core::@class::int
+    element: dart:core::@class::int
     type: int
   name: foo
   typeParameters: TypeParameterList
@@ -450,19 +453,21 @@ MethodDeclaration
     parameter: SimpleFormalParameter
       type: NamedType
         name: T
-        element2: #E0 T
+        element: #E0 T
         type: T
       name: t
       declaredElement: <testLibraryFragment> t@32
-        type: T
+        element: isPublic
+          type: T
     parameter: SimpleFormalParameter
       type: NamedType
         name: U
-        element2: #E1 U
+        element: #E1 U
         type: U
       name: u
       declaredElement: <testLibraryFragment> u@37
-        type: U
+        element: isPublic
+          type: U
     rightParenthesis: )
   body: ExpressionFunctionBody
     functionDefinition: =>
@@ -471,7 +476,8 @@ MethodDeclaration
       staticType: int
     semicolon: ;
   declaredElement: <testLibraryFragment> foo@23
-    type: int Function<U>(T, U)
+    element: <testLibrary>::@enum::E::@method::foo
+      type: int Function<U>(T, U)
 ''');
   }
 
@@ -488,7 +494,7 @@ enum E {
 MethodDeclaration
   returnType: NamedType
     name: String
-    element2: dart:core::@class::String
+    element: dart:core::@class::String
     type: String
   name: toString
   parameters: FormalParameterList
@@ -500,7 +506,8 @@ MethodDeclaration
       literal: 'E'
     semicolon: ;
   declaredElement: <testLibraryFragment> toString@23
-    type: String Function()
+    element: <testLibrary>::@enum::E::@method::toString
+      type: String Function()
 ''');
   }
 
@@ -519,7 +526,7 @@ WithClause
   mixinTypes
     NamedType
       name: M
-      element2: <testLibrary>::@mixin::M
+      element: <testLibrary>::@mixin::M
       type: M
 ''');
   }
@@ -545,14 +552,14 @@ WithClause
         arguments
           NamedType
             name: int
-            element2: dart:core::@class::int
+            element: dart:core::@class::int
             type: int
         rightBracket: >
-      element2: <testLibrary>::@mixin::M1
+      element: <testLibrary>::@mixin::M1
       type: M1<int>
     NamedType
       name: M2
-      element2: <testLibrary>::@mixin::M2
+      element: <testLibrary>::@mixin::M2
       type: M2<int>
 ''');
   }
@@ -575,18 +582,20 @@ MethodDeclaration
     parameter: SimpleFormalParameter
       type: NamedType
         name: T
-        element2: #E0 T
+        element: #E0 T
         type: T
       name: a
       declaredElement: <testLibraryFragment> a@29
-        type: T
+        element: isPublic
+          type: T
     rightParenthesis: )
   body: BlockFunctionBody
     block: Block
       leftBracket: {
       rightBracket: }
   declaredElement: <testLibraryFragment> foo@23
-    type: void Function(T)
+    element: <testLibrary>::@enum::E::@setter::foo
+      type: void Function(T)
 ''');
   }
 

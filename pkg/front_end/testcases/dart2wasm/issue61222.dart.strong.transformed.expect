@@ -1,0 +1,92 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+class C extends core::Object /*hasConstConstructor*/  {
+  final field core::int? field;
+  const constructor _(final core::int? field) → self::C
+    : self::C::field = field, super core::Object::•()
+    ;
+  const constructor vn() → self::C
+    : this self::C::_(null)
+    ;
+  const constructor v1() → self::C
+    : this self::C::_(1)
+    ;
+  static synthetic method _#_#tearOff(final core::int? field) → self::C
+    return new self::C::_(field);
+  static synthetic method _#vn#tearOff() → self::C
+    return new self::C::vn();
+  static synthetic method _#v1#tearOff() → self::C
+    return new self::C::v1();
+}
+extension type E(core::int? _) {
+  abstract extension-type-member representation-field get _() → core::int?;
+  constructor _ = self::E|constructor#_;
+  constructor tearoff _ = self::E|constructor#_#_#tearOff;
+  constructor vn = self::E|constructor#vn;
+  constructor tearoff vn = self::E|constructor#_#vn#tearOff;
+  constructor v1 = self::E|constructor#v1;
+  constructor tearoff v1 = self::E|constructor#_#v1#tearOff;
+}
+static method main() → void {
+  #C3;
+  final core::List<self::E% /* erasure=core::int?, declared=! */> eList = block {
+    final core::List<self::E% /* erasure=core::int?, declared=! */> #t1 = <self::E% /* erasure=core::int?, declared=! */>[];
+    final self::E? /* erasure=core::int? */ #t2 = self::E|constructor#vn();
+    final self::E? /* erasure=core::int? */ #t3 = self::E|constructor#v1();
+    #t1.{core::List::add}{Invariant}(#t3{self::E% /* erasure=core::int?, declared=! */}){(self::E% /* erasure=core::int?, declared=! */) → void};
+  } =>#t1;
+  #C6;
+  final core::List<self::C> cList = block {
+    final core::List<self::C> #t4 = <self::C>[];
+    if(!(new self::C::vn() =={core::Object::==}{(core::Object) → core::bool} new self::C::v1()))
+      #t4.{core::List::add}{Invariant}(new self::C::v1()){(self::C) → void};
+  } =>#t4;
+}
+static extension-type-member method E|constructor#_(final core::int? _) → self::E% /* erasure=core::int?, declared=! */ {
+  lowered final self::E% /* erasure=core::int?, declared=! */ #this = _;
+  return #this;
+}
+static extension-type-member synthetic method E|constructor#_#_#tearOff(final core::int? _) → self::E% /* erasure=core::int?, declared=! */
+  return self::E|constructor#_(_);
+static extension-type-member method E|constructor#vn() → self::E% /* erasure=core::int?, declared=! */ {
+  lowered final self::E% /* erasure=core::int?, declared=! */ #this;
+  #this = self::E|constructor#_(null);
+  return #this;
+}
+static extension-type-member synthetic method E|constructor#_#vn#tearOff() → self::E% /* erasure=core::int?, declared=! */
+  return self::E|constructor#vn();
+static extension-type-member method E|constructor#v1() → self::E% /* erasure=core::int?, declared=! */ {
+  lowered final self::E% /* erasure=core::int?, declared=! */ #this;
+  #this = self::E|constructor#_(1);
+  return #this;
+}
+static extension-type-member synthetic method E|constructor#_#v1#tearOff() → self::E% /* erasure=core::int?, declared=! */
+  return self::E|constructor#v1();
+
+constants  {
+  #C1 = null
+  #C2 = 1
+  #C3 = <core::int?>[#C1, #C2]
+  #C4 = self::C {field:#C1}
+  #C5 = self::C {field:#C2}
+  #C6 = <self::C>[#C4, #C5]
+}
+
+Extra constant evaluation status:
+Evaluated: StaticInvocation @ org-dartlang-testcase:///issue61222.dart:7:22 -> NullConstant(null)
+Evaluated: StaticInvocation @ org-dartlang-testcase:///issue61222.dart:7:31 -> IntConstant(1)
+Evaluated: StaticInvocation @ org-dartlang-testcase:///issue61222.dart:14:23 -> NullConstant(null)
+Evaluated: StaticInvocation @ org-dartlang-testcase:///issue61222.dart:14:9 -> NullConstant(null)
+Evaluated: StaticInvocation @ org-dartlang-testcase:///issue61222.dart:15:23 -> IntConstant(1)
+Evaluated: StaticInvocation @ org-dartlang-testcase:///issue61222.dart:15:9 -> IntConstant(1)
+Extra constant evaluation: evaluated: 35, effectively constant: 6
+
+
+Constructor coverage from constants:
+org-dartlang-testcase:///issue61222.dart:
+- C.vn (from org-dartlang-testcase:///issue61222.dart:21:9)
+- C._ (from org-dartlang-testcase:///issue61222.dart:20:9)
+- Object. (from org-dartlang-sdk:///lib/core/object.dart)
+- C.v1 (from org-dartlang-testcase:///issue61222.dart:22:9)

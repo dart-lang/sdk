@@ -37,6 +37,31 @@ class B extends A {
     expect(result.edits, hasLength(1));
   }
 
+  Future<void> test_bulk_fix_override_first() async {
+    writeFile(sourcePath(file_paths.analysisOptionsYaml), '''
+linter:
+  rules:
+    - always_declare_return_types
+    - annotate_overrides
+''');
+    writeFile(sourcePath('test.dart'), '''
+abstract class A {
+  void foo();
+}
+
+class B extends A {
+  foo() {}
+}
+''');
+    await standardAnalysisSetup();
+    await analysisFinished;
+
+    var result = await sendEditBulkFixes([sourceDirectory.path]);
+    var edits = result.edits;
+    expect(edits, hasLength(1));
+    expect(edits.single.edits, hasLength(2));
+  }
+
   Future<void> test_bulk_fix_with_parts() async {
     writeFile(sourcePath(file_paths.analysisOptionsYaml), '''
 linter:
@@ -71,7 +96,7 @@ void a() {
     var result = await sendEditBulkFixes([sourceDirectory.path]);
     var edits = result.edits;
     expect(edits, hasLength(2));
-    expect(edits[0].edits, hasLength(1));
-    expect(edits[1].edits, hasLength(1));
+    expect(edits.first.edits, hasLength(1));
+    expect(edits.last.edits, hasLength(1));
   }
 }

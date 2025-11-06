@@ -13,13 +13,14 @@ import 'parser_suite.dart'
     show ListenerStep, ParserTestListenerWithMessageFormatting;
 import 'testing_utils.dart' show checkEnvironment;
 
-void main([List<String> arguments = const []]) => internalMain(createContext,
-    arguments: arguments,
-    displayName: "parser equivalence suite",
-    configurationPath: "../testing.json");
+void main([List<String> arguments = const []]) => internalMain(
+  createContext,
+  arguments: arguments,
+  displayName: "parser equivalence suite",
+  configurationPath: "../testing.json",
+);
 
-Future<Context> createContext(
-    Chain suite, Map<String, String> environment) {
+Future<Context> createContext(Chain suite, Map<String, String> environment) {
   const Set<String> knownEnvironmentKeys = {};
   checkEnvironment(environment, knownEnvironmentKeys);
 
@@ -32,9 +33,7 @@ class Context extends ChainContext {
   Context(this.suiteName);
 
   @override
-  final List<Step> steps = const <Step>[
-    const ListenerCompareStep(),
-  ];
+  final List<Step> steps = const <Step>[const ListenerCompareStep()];
 }
 
 class ListenerCompareStep
@@ -46,21 +45,24 @@ class ListenerCompareStep
 
   @override
   Future<Result<TestDescription>> run(
-      TestDescription description, Context context) {
+    TestDescription description,
+    Context context,
+  ) {
     Uri uri = description.uri;
     String contents = new File.fromUri(uri).readAsStringSync();
     YamlMap yaml = loadYamlNode(contents, sourceUrl: uri) as YamlMap;
-    List<Uri> files =
-        (yaml["files"] as List).map((s) => uri.resolve(s)).toList();
+    List<Uri> files = (yaml["files"] as List)
+        .map((s) => uri.resolve(s))
+        .toList();
     Set<String> filters = new Set<String>.from(yaml["filters"] ?? []);
     Set<String> ignored = new Set<String>.from(yaml["ignored"] ?? []);
 
     ParserTestListenerWithMessageFormatting? parserTestListenerFirst =
         ListenerStep.doListenerParsing(
-      files[0],
-      context.suiteName,
-      description.shortName,
-    );
+          files[0],
+          context.suiteName,
+          description.shortName,
+        );
     if (parserTestListenerFirst == null) {
       return Future.value(crash(description, StackTrace.current));
     }
@@ -68,18 +70,23 @@ class ListenerCompareStep
     for (int i = 1; i < files.length; i++) {
       ParserTestListenerWithMessageFormatting? parserTestListener =
           ListenerStep.doListenerParsing(
-        files[i],
-        context.suiteName,
-        description.shortName,
-      );
+            files[i],
+            context.suiteName,
+            description.shortName,
+          );
       if (parserTestListener == null) {
         return Future.value(crash(description, StackTrace.current));
       }
       String? compareResult = compare(
-          parserTestListenerFirst, parserTestListener, filters, ignored);
+        parserTestListenerFirst,
+        parserTestListener,
+        filters,
+        ignored,
+      );
       if (compareResult != null) {
         return Future.value(
-            fail(description, compareResult, StackTrace.current));
+          fail(description, compareResult, StackTrace.current),
+        );
       }
     }
 
@@ -87,15 +94,17 @@ class ListenerCompareStep
   }
 
   String? compare(
-      ParserTestListenerWithMessageFormatting a,
-      ParserTestListenerWithMessageFormatting b,
-      Set<String> filters,
-      Set<String> ignored) {
+    ParserTestListenerWithMessageFormatting a,
+    ParserTestListenerWithMessageFormatting b,
+    Set<String> filters,
+    Set<String> ignored,
+  ) {
     List<String> aLines = a.sb.toString().split("\n");
     List<String> bLines = b.sb.toString().split("\n");
 
-    bool doRemoveListenerArguments =
-        filters.contains("ignoreListenerArguments");
+    bool doRemoveListenerArguments = filters.contains(
+      "ignoreListenerArguments",
+    );
 
     int aIndex = 0;
     int bIndex = 0;

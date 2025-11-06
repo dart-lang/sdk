@@ -2,27 +2,23 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// Formatting can break multitests, so don't format them.
-// dart format off
-
-library test.top_level_accessors_test;
-
 import 'dart:mirrors';
 
 import 'package:expect/expect.dart';
 
-var field;
+Object? field;
 
-get accessor => field;
+Object? get accessor => field;
 
-set accessor(value) {
+set accessor(Object? value) {
   field = value;
-  return 'fisk'; //# 01: compile-time error
+  return;
 }
 
-main() {
+void main() {
   LibraryMirror library =
-      currentMirrorSystem().findLibrary(#test.top_level_accessors_test);
+      (reflect(main) as ClosureMirror).function.owner as LibraryMirror;
+
   field = 42;
   Expect.equals(42, library.getField(#accessor).reflectee);
   Expect.equals(87, library.setField(#accessor, 87).reflectee);

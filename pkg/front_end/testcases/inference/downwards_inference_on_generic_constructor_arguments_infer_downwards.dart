@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/*@testedFeatures=inference*/
 library test;
 
 class F0<T> {
@@ -26,83 +25,80 @@ class F4<T> {
 }
 
 void test() {
-  new F0<int>(/*@typeArgs=int*/ []);
-  new F0<int>(/*@typeArgs=int*/ [3]);
-  new F0<int>(
-      /*@typeArgs=int*/ [/*error:LIST_ELEMENT_TYPE_NOT_ASSIGNABLE*/ "hello"]);
-  new F0<int>(/*@typeArgs=int*/ [
-    /*error:LIST_ELEMENT_TYPE_NOT_ASSIGNABLE*/ "hello",
-    3
+  new F0<int>([]);
+  new F0<int>([3]);
+  new F0<int>([/*error:LIST_ELEMENT_TYPE_NOT_ASSIGNABLE*/ "hello"]);
+  new F0<int>([/*error:LIST_ELEMENT_TYPE_NOT_ASSIGNABLE*/ "hello", 3]);
+
+  new F1<int>(a: []);
+  new F1<int>(a: [3]);
+  new F1<int>(a: [/*error:LIST_ELEMENT_TYPE_NOT_ASSIGNABLE*/ "hello"]);
+  new F1<int>(a: [/*error:LIST_ELEMENT_TYPE_NOT_ASSIGNABLE*/ "hello", 3]);
+
+  new F2<int>([]);
+  new F2<int>([3]);
+  new F2<int>([/*error:LIST_ELEMENT_TYPE_NOT_ASSIGNABLE*/ "hello"]);
+  new F2<int>([/*error:LIST_ELEMENT_TYPE_NOT_ASSIGNABLE*/ "hello", 3]);
+
+  new F3<int>([]);
+  new F3<int>([
+    [3],
+  ]);
+  new F3<int>([
+    [/*error:LIST_ELEMENT_TYPE_NOT_ASSIGNABLE*/ "hello"],
+  ]);
+  new F3<int>([
+    [/*error:LIST_ELEMENT_TYPE_NOT_ASSIGNABLE*/ "hello"],
+    [3],
   ]);
 
-  new F1<int>(a: /*@typeArgs=int*/ []);
-  new F1<int>(a: /*@typeArgs=int*/ [3]);
-  new F1<int>(a: /*@typeArgs=int*/ [
-    /*error:LIST_ELEMENT_TYPE_NOT_ASSIGNABLE*/ "hello"
+  new F4<int>(a: []);
+  new F4<int>(
+    a: [
+      [3],
+    ],
+  );
+  new F4<int>(
+    a: [
+      [/*error:LIST_ELEMENT_TYPE_NOT_ASSIGNABLE*/ "hello"],
+    ],
+  );
+  new F4<int>(
+    a: [
+      [/*error:LIST_ELEMENT_TYPE_NOT_ASSIGNABLE*/ "hello"],
+      [3],
+    ],
+  );
+
+  new F3([]);
+  var f31 = new F3([
+    [3],
   ]);
-  new F1<int>(a: /*@typeArgs=int*/ [
-    /*error:LIST_ELEMENT_TYPE_NOT_ASSIGNABLE*/ "hello",
-    3
+  var f32 = new F3([
+    ["hello"],
+  ]);
+  var f33 = new F3([
+    ["hello"],
+    [3],
   ]);
 
-  new F2<int>(/*@typeArgs=int*/ []);
-  new F2<int>(/*@typeArgs=int*/ [3]);
-  new F2<int>(
-      /*@typeArgs=int*/ [/*error:LIST_ELEMENT_TYPE_NOT_ASSIGNABLE*/ "hello"]);
-  new F2<int>(/*@typeArgs=int*/ [
-    /*error:LIST_ELEMENT_TYPE_NOT_ASSIGNABLE*/ "hello",
-    3
-  ]);
-
-  new F3<int>(/*@typeArgs=Iterable<int>*/ []);
-  new F3<int>(/*@typeArgs=Iterable<int>*/ [
-    /*@typeArgs=int*/ [3]
-  ]);
-  new F3<int>(/*@typeArgs=Iterable<int>*/ [
-    /*@typeArgs=int*/ [/*error:LIST_ELEMENT_TYPE_NOT_ASSIGNABLE*/ "hello"]
-  ]);
-  new F3<int>(/*@typeArgs=Iterable<int>*/ [
-    /*@typeArgs=int*/ [/*error:LIST_ELEMENT_TYPE_NOT_ASSIGNABLE*/ "hello"],
-    /*@typeArgs=int*/ [3]
-  ]);
-
-  new F4<int>(a: /*@typeArgs=Iterable<int>*/ []);
-  new F4<int>(a: /*@typeArgs=Iterable<int>*/ [
-    /*@typeArgs=int*/ [3]
-  ]);
-  new F4<int>(a: /*@typeArgs=Iterable<int>*/ [
-    /*@typeArgs=int*/ [/*error:LIST_ELEMENT_TYPE_NOT_ASSIGNABLE*/ "hello"]
-  ]);
-  new F4<int>(a: /*@typeArgs=Iterable<int>*/ [
-    /*@typeArgs=int*/ [/*error:LIST_ELEMENT_TYPE_NOT_ASSIGNABLE*/ "hello"],
-    /*@typeArgs=int*/ [3]
-  ]);
-
-  new /*@typeArgs=Object?*/ F3(/*@typeArgs=Iterable<Object?>*/ []);
-  var /*@type=F3<int>*/ f31 = new /*@typeArgs=int*/ F3(/*@typeArgs=List<int>*/ [
-    /*@typeArgs=int*/ [3]
-  ]);
-  var /*@type=F3<String>*/ f32 =
-      new /*@typeArgs=String*/ F3(/*@typeArgs=List<String>*/ [
-    /*@typeArgs=String*/ ["hello"]
-  ]);
-  var /*@type=F3<Object>*/ f33 =
-      new /*@typeArgs=Object*/ F3(/*@typeArgs=List<Object>*/ [
-    /*@typeArgs=String*/ ["hello"],
-    /*@typeArgs=int*/ [3]
-  ]);
-
-  new /*@typeArgs=Object?*/ F4(a: /*@typeArgs=Iterable<Object?>*/ []);
-  new /*@typeArgs=int*/ F4(a: /*@typeArgs=List<int>*/ [
-    /*@typeArgs=int*/ [3]
-  ]);
-  new /*@typeArgs=String*/ F4(a: /*@typeArgs=List<String>*/ [
-    /*@typeArgs=String*/ ["hello"]
-  ]);
-  new /*@typeArgs=Object*/ F4(a: /*@typeArgs=List<Object>*/ [
-    /*@typeArgs=String*/ ["hello"],
-    /*@typeArgs=int*/ [3]
-  ]);
+  new F4(a: []);
+  new F4(
+    a: [
+      [3],
+    ],
+  );
+  new F4(
+    a: [
+      ["hello"],
+    ],
+  );
+  new F4(
+    a: [
+      ["hello"],
+      [3],
+    ],
+  );
 }
 
 main() {}

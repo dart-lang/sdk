@@ -18,6 +18,12 @@ import 'abstract_context.dart';
 class AbstractSingleUnitTest extends AbstractContextTest {
   bool verifyNoTestUnitErrors = true;
 
+  /// Whether the test code should parse with position and range shorthands.
+  ///
+  /// Set this to `false` when the test code contains a legitimate carret
+  /// or contains `[!` or `!]`.
+  bool allowTestCodeShorthand = true;
+
   TestCode? _parsedTestCode;
   late ParsedUnitResult testParsedResult;
   late ResolvedLibraryResult? testLibraryResult;
@@ -38,7 +44,11 @@ class AbstractSingleUnitTest extends AbstractContextTest {
 
   String get testCode => parsedTestCode.code;
   set testCode(String value) {
-    parsedTestCode = TestCode.parse(normalizeSource(value));
+    parsedTestCode = TestCode.parseNormalized(
+      value,
+      positionShorthand: allowTestCodeShorthand,
+      rangeShorthand: allowTestCodeShorthand,
+    );
   }
 
   void addTestSource(String code) {
@@ -74,13 +84,13 @@ class AbstractSingleUnitTest extends AbstractContextTest {
     if (verifyNoTestUnitErrors) {
       expect(
         unitResult.diagnostics.where((d) {
-          return d.diagnosticCode != WarningCode.DEAD_CODE &&
-              d.diagnosticCode != WarningCode.UNUSED_CATCH_CLAUSE &&
-              d.diagnosticCode != WarningCode.UNUSED_CATCH_STACK &&
-              d.diagnosticCode != WarningCode.UNUSED_ELEMENT &&
-              d.diagnosticCode != WarningCode.UNUSED_FIELD &&
-              d.diagnosticCode != WarningCode.UNUSED_IMPORT &&
-              d.diagnosticCode != WarningCode.UNUSED_LOCAL_VARIABLE;
+          return d.diagnosticCode != WarningCode.deadCode &&
+              d.diagnosticCode != WarningCode.unusedCatchClause &&
+              d.diagnosticCode != WarningCode.unusedCatchStack &&
+              d.diagnosticCode != WarningCode.unusedElement &&
+              d.diagnosticCode != WarningCode.unusedField &&
+              d.diagnosticCode != WarningCode.unusedImport &&
+              d.diagnosticCode != WarningCode.unusedLocalVariable;
         }),
         isEmpty,
       );

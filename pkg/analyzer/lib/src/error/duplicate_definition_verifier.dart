@@ -37,14 +37,14 @@ class DuplicateDefinitionVerifier {
     var exceptionParameter = node.exceptionParameter;
     var stackTraceParameter = node.stackTraceParameter;
     if (exceptionParameter != null && stackTraceParameter != null) {
-      var element = exceptionParameter.declaredElement;
+      var element = exceptionParameter.declaredFragment?.element;
       if (element != null && element.isWildcardVariable) return;
       String exceptionName = exceptionParameter.name.lexeme;
       if (exceptionName == stackTraceParameter.name.lexeme) {
         _diagnosticReporter.reportError(
           _diagnosticFactory.duplicateDefinitionForNodes(
             _diagnosticReporter.source,
-            CompileTimeErrorCode.DUPLICATE_DEFINITION,
+            CompileTimeErrorCode.duplicateDefinition,
             stackTraceParameter,
             exceptionParameter,
             [exceptionName],
@@ -151,25 +151,25 @@ class DuplicateDefinitionVerifier {
           definedSetters[name] = element;
         }
       }
-      for (var fragment in libraryFragment.classes2) {
+      for (var fragment in libraryFragment.classes) {
         var element = fragment.element;
         if (element.lookupName case var name?) {
           definedGetters[name] = element;
         }
       }
-      for (var fragment in libraryFragment.enums2) {
+      for (var fragment in libraryFragment.enums) {
         var element = fragment.element;
         if (element.lookupName case var name?) {
           definedGetters[name] = element;
         }
       }
-      for (var fragment in libraryFragment.extensions2) {
+      for (var fragment in libraryFragment.extensions) {
         var element = fragment.element;
         if (element.lookupName case var name?) {
           definedGetters[name] = element;
         }
       }
-      for (var fragment in libraryFragment.extensionTypes2) {
+      for (var fragment in libraryFragment.extensionTypes) {
         var element = fragment.element;
         if (element.lookupName case var name?) {
           definedGetters[name] = element;
@@ -181,7 +181,7 @@ class DuplicateDefinitionVerifier {
           definedGetters[name] = element;
         }
       }
-      for (var fragment in libraryFragment.mixins2) {
+      for (var fragment in libraryFragment.mixins) {
         var element = fragment.element;
         if (element.lookupName case var name?) {
           definedGetters[name] = element;
@@ -202,7 +202,7 @@ class DuplicateDefinitionVerifier {
         if (libraryDeclarations.withName(name) case var existing?) {
           _diagnosticReporter.reportError(
             _diagnosticFactory.duplicateDefinition(
-              CompileTimeErrorCode.PREFIX_COLLIDES_WITH_TOP_LEVEL_MEMBER,
+              CompileTimeErrorCode.prefixCollidesWithTopLevelMember,
               importPrefix.firstFragment,
               existing as ElementImpl,
               [name],
@@ -305,9 +305,9 @@ class DuplicateDefinitionVerifier {
     DiagnosticCode getDiagnostic(ElementImpl previous, FragmentImpl current) {
       if (previous is FieldFormalParameterElement &&
           current is FieldFormalParameterFragment) {
-        return CompileTimeErrorCode.DUPLICATE_FIELD_FORMAL_PARAMETER;
+        return CompileTimeErrorCode.duplicateFieldFormalParameter;
       }
-      return CompileTimeErrorCode.DUPLICATE_DEFINITION;
+      return CompileTimeErrorCode.duplicateDefinition;
     }
 
     if (fragment is SetterFragment) {
@@ -324,7 +324,7 @@ class DuplicateDefinitionVerifier {
             ),
           );
         } else {
-          setterScope[lookupName] = fragment.element as ElementImpl;
+          setterScope[lookupName] = fragment.element;
         }
       }
     } else {
@@ -340,7 +340,7 @@ class DuplicateDefinitionVerifier {
           ),
         );
       } else {
-        getterScope[lookupName] = fragment.element as ElementImpl;
+        getterScope[lookupName] = fragment.element;
       }
     }
   }
@@ -413,12 +413,12 @@ class MemberDuplicateDefinitionVerifier {
             if (name == 'new') {
               _diagnosticReporter.atConstructorDeclaration(
                 member,
-                CompileTimeErrorCode.DUPLICATE_CONSTRUCTOR_DEFAULT,
+                CompileTimeErrorCode.duplicateConstructorDefault,
               );
             } else {
               _diagnosticReporter.atConstructorDeclaration(
                 member,
-                CompileTimeErrorCode.DUPLICATE_CONSTRUCTOR_NAME,
+                CompileTimeErrorCode.duplicateConstructorName,
                 arguments: [name],
               );
             }
@@ -491,7 +491,7 @@ class MemberDuplicateDefinitionVerifier {
                 String className = firstFragment.name ?? '';
                 _diagnosticReporter.atToken(
                   identifier,
-                  CompileTimeErrorCode.CONFLICTING_STATIC_AND_INSTANCE,
+                  CompileTimeErrorCode.conflictingStaticAndInstance,
                   arguments: [className, name, className],
                 );
               }
@@ -507,7 +507,7 @@ class MemberDuplicateDefinitionVerifier {
               String className = firstFragment.name ?? '';
               _diagnosticReporter.atToken(
                 identifier,
-                CompileTimeErrorCode.CONFLICTING_STATIC_AND_INSTANCE,
+                CompileTimeErrorCode.conflictingStaticAndInstance,
                 arguments: [className, name, className],
               );
             }
@@ -540,13 +540,13 @@ class MemberDuplicateDefinitionVerifier {
           CompileTimeErrorCode errorCode;
           if (staticMember2.isSynthetic) {
             errorCode =
-                CompileTimeErrorCode.CONFLICTING_CONSTRUCTOR_AND_STATIC_FIELD;
+                CompileTimeErrorCode.conflictingConstructorAndStaticField;
           } else if (staticMember2 is GetterElementImpl) {
             errorCode =
-                CompileTimeErrorCode.CONFLICTING_CONSTRUCTOR_AND_STATIC_GETTER;
+                CompileTimeErrorCode.conflictingConstructorAndStaticGetter;
           } else {
             errorCode =
-                CompileTimeErrorCode.CONFLICTING_CONSTRUCTOR_AND_STATIC_SETTER;
+                CompileTimeErrorCode.conflictingConstructorAndStaticSetter;
           }
           _diagnosticReporter.atElement2(
             constructor.asElement2,
@@ -556,16 +556,15 @@ class MemberDuplicateDefinitionVerifier {
         case _ScopeEntryElement(element: MethodElementImpl()):
           _diagnosticReporter.atElement2(
             constructor.asElement2,
-            CompileTimeErrorCode.CONFLICTING_CONSTRUCTOR_AND_STATIC_METHOD,
+            CompileTimeErrorCode.conflictingConstructorAndStaticMethod,
             arguments: [name],
           );
         case _ScopeEntryGetterSetterPair():
           _diagnosticReporter.atElement2(
             constructor.asElement2,
             state.getter.isSynthetic
-                ? CompileTimeErrorCode.CONFLICTING_CONSTRUCTOR_AND_STATIC_FIELD
-                : CompileTimeErrorCode
-                    .CONFLICTING_CONSTRUCTOR_AND_STATIC_GETTER,
+                ? CompileTimeErrorCode.conflictingConstructorAndStaticField
+                : CompileTimeErrorCode.conflictingConstructorAndStaticGetter,
             arguments: [name],
           );
         case _ScopeEntryElement(:var element):
@@ -600,7 +599,7 @@ class MemberDuplicateDefinitionVerifier {
     var scopeEntry = scope[name];
     switch (scopeEntry) {
       case null:
-        scope[name] = _ScopeEntryElement(fragment.element as ElementImpl);
+        scope[name] = _ScopeEntryElement(fragment.element);
       case _ScopeEntryElement(element: GetterElementImpl previous)
           when fragment is SetterFragmentImpl:
         scope[name] = _ScopeEntryGetterSetterPair(
@@ -620,7 +619,7 @@ class MemberDuplicateDefinitionVerifier {
         if (!identical(previous, fragment.element)) {
           _diagnosticReporter.reportError(
             _diagnosticFactory.duplicateDefinition(
-              CompileTimeErrorCode.DUPLICATE_DEFINITION,
+              CompileTimeErrorCode.duplicateDefinition,
               originFragment ?? fragment,
               previous,
               [name],
@@ -643,7 +642,7 @@ class MemberDuplicateDefinitionVerifier {
       if (constant.name.lexeme == declarationName) {
         _diagnosticReporter.atToken(
           constant.name,
-          CompileTimeErrorCode.ENUM_CONSTANT_SAME_NAME_AS_ENCLOSING,
+          CompileTimeErrorCode.enumConstantSameNameAsEnclosing,
         );
       }
       var constantFragment = constant.declaredFragment!;
@@ -662,7 +661,7 @@ class MemberDuplicateDefinitionVerifier {
     if (declarationName == 'values') {
       _diagnosticReporter.atToken(
         node.name,
-        CompileTimeErrorCode.ENUM_WITH_NAME_VALUES,
+        CompileTimeErrorCode.enumWithNameValues,
       );
     }
 
@@ -670,15 +669,15 @@ class MemberDuplicateDefinitionVerifier {
       if (accessor.isStatic) {
         continue;
       }
-      if (accessor.source != _currentUnit.source) {
+      if (accessor.libraryFragment.source != _currentUnit.source) {
         continue;
       }
       var baseName = accessor.displayName;
       var inherited = _getInheritedMember(fragment.element, baseName);
-      if (inherited is MethodElement2OrMember) {
+      if (inherited is InternalMethodElement) {
         _diagnosticReporter.atElement2(
           accessor.asElement2,
-          CompileTimeErrorCode.CONFLICTING_FIELD_AND_METHOD,
+          CompileTimeErrorCode.conflictingFieldAndMethod,
           arguments: [
             firstFragment.displayName,
             baseName,
@@ -692,15 +691,15 @@ class MemberDuplicateDefinitionVerifier {
       if (method.isStatic) {
         continue;
       }
-      if (method.source != _currentUnit.source) {
+      if (method.libraryFragment.source != _currentUnit.source) {
         continue;
       }
       var baseName = method.displayName;
       var inherited = _getInheritedMember(fragment.element, baseName);
-      if (inherited is PropertyAccessorElement2OrMember) {
+      if (inherited is InternalPropertyAccessorElement) {
         _diagnosticReporter.atElement2(
           method.asElement2,
-          CompileTimeErrorCode.CONFLICTING_METHOD_AND_FIELD,
+          CompileTimeErrorCode.conflictingMethodAndField,
           arguments: [
             firstFragment.displayName,
             baseName,
@@ -720,7 +719,7 @@ class MemberDuplicateDefinitionVerifier {
     }
 
     for (var accessor in fragment.accessors) {
-      if (accessor.source != _currentUnit.source) {
+      if (accessor.libraryFragment.source != _currentUnit.source) {
         continue;
       }
       var baseName = accessor.displayName;
@@ -729,7 +728,7 @@ class MemberDuplicateDefinitionVerifier {
         if (instance != null && baseName != 'values') {
           _diagnosticReporter.atElement2(
             accessor.asElement2,
-            CompileTimeErrorCode.CONFLICTING_STATIC_AND_INSTANCE,
+            CompileTimeErrorCode.conflictingStaticAndInstance,
             arguments: [declarationName, baseName, declarationName],
           );
         }
@@ -737,7 +736,7 @@ class MemberDuplicateDefinitionVerifier {
     }
 
     for (var method in fragment.methods) {
-      if (method.source != _currentUnit.source) {
+      if (method.libraryFragment.source != _currentUnit.source) {
         continue;
       }
       var baseName = method.displayName;
@@ -746,7 +745,7 @@ class MemberDuplicateDefinitionVerifier {
         if (instance != null) {
           _diagnosticReporter.atElement2(
             method.asElement2,
-            CompileTimeErrorCode.CONFLICTING_STATIC_AND_INSTANCE,
+            CompileTimeErrorCode.conflictingStaticAndInstance,
             arguments: [declarationName, baseName, declarationName],
           );
         }
@@ -776,7 +775,7 @@ class MemberDuplicateDefinitionVerifier {
             if (instanceScope.containsKey(name)) {
               _diagnosticReporter.atToken(
                 identifier,
-                CompileTimeErrorCode.EXTENSION_CONFLICTING_STATIC_AND_INSTANCE,
+                CompileTimeErrorCode.extensionConflictingStaticAndInstance,
                 arguments: [name],
               );
             }
@@ -789,7 +788,7 @@ class MemberDuplicateDefinitionVerifier {
           if (instanceScope.containsKey(name)) {
             _diagnosticReporter.atToken(
               identifier,
-              CompileTimeErrorCode.EXTENSION_CONFLICTING_STATIC_AND_INSTANCE,
+              CompileTimeErrorCode.extensionConflictingStaticAndInstance,
               arguments: [name],
             );
           }
@@ -800,9 +799,10 @@ class MemberDuplicateDefinitionVerifier {
 
   void _checkExtensionType(ExtensionTypeDeclarationImpl node) {
     var fragment = node.declaredFragment!;
-    var firstFragment = fragment.element.firstFragment;
-    var primaryConstructorName = firstFragment.constructors.first.name;
-    var representationGetter = firstFragment.representation.element.getter!;
+    var element = fragment.element;
+    var firstFragment = element.firstFragment;
+    var primaryConstructorName = element.primaryConstructor.name!;
+    var representationGetter = element.representation.getter!;
     var elementContext = _getElementContext(firstFragment);
     elementContext.constructorNames.add(primaryConstructorName);
     if (representationGetter.name case var getterName?) {
@@ -871,7 +871,7 @@ class MemberDuplicateDefinitionVerifier {
     if (name.lexeme == 'values') {
       _diagnosticReporter.atToken(
         name,
-        CompileTimeErrorCode.VALUES_DECLARATION_IN_ENUM,
+        CompileTimeErrorCode.valuesDeclarationInEnum,
       );
     }
   }
@@ -881,11 +881,11 @@ class MemberDuplicateDefinitionVerifier {
         _InstanceElementContext();
   }
 
-  ExecutableElement2OrMember? _getInheritedMember(
+  InternalExecutableElement? _getInheritedMember(
     InterfaceElementImpl element,
     String baseName,
   ) {
-    var libraryUri = _currentLibrary.source.uri;
+    var libraryUri = _currentLibrary.uri;
 
     var getterName = Name(libraryUri, baseName);
     var getter = _inheritanceManager.getInherited(element, getterName);
@@ -897,11 +897,11 @@ class MemberDuplicateDefinitionVerifier {
     return _inheritanceManager.getInherited(element, setterName);
   }
 
-  ExecutableElement2OrMember? _getInterfaceMember(
+  InternalExecutableElement? _getInterfaceMember(
     InterfaceElementImpl element,
     String baseName,
   ) {
-    var libraryUri = _currentLibrary.source.uri;
+    var libraryUri = _currentLibrary.uri;
 
     var getterName = Name(libraryUri, baseName);
     var getter = _inheritanceManager.getMember(element, getterName);

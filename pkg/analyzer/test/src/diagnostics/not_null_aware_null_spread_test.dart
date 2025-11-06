@@ -21,8 +21,8 @@ class NotNullAwareNullSpreadTest extends PubPackageResolutionTest {
 var v = [...null];
 ''',
       [
-        error(CompileTimeErrorCode.INVALID_USE_OF_NULL_VALUE, 12, 4),
-        error(CompileTimeErrorCode.NOT_NULL_AWARE_NULL_SPREAD, 12, 4),
+        error(CompileTimeErrorCode.invalidUseOfNullValue, 12, 4),
+        error(CompileTimeErrorCode.notNullAwareNullSpread, 12, 4),
       ],
     );
   }
@@ -34,8 +34,8 @@ Null a = null;
 var v = [...a];
 ''',
       [
-        error(CompileTimeErrorCode.INVALID_USE_OF_NULL_VALUE, 27, 1),
-        error(CompileTimeErrorCode.NOT_NULL_AWARE_NULL_SPREAD, 27, 1),
+        error(CompileTimeErrorCode.invalidUseOfNullValue, 27, 1),
+        error(CompileTimeErrorCode.notNullAwareNullSpread, 27, 1),
       ],
     );
   }
@@ -59,8 +59,8 @@ var v = [...?a];
 var v = <int, int>{...null};
 ''',
       [
-        error(CompileTimeErrorCode.INVALID_USE_OF_NULL_VALUE, 22, 4),
-        error(CompileTimeErrorCode.NOT_NULL_AWARE_NULL_SPREAD, 22, 4),
+        error(CompileTimeErrorCode.invalidUseOfNullValue, 22, 4),
+        error(CompileTimeErrorCode.notNullAwareNullSpread, 22, 4),
       ],
     );
   }
@@ -72,8 +72,8 @@ Null a = null;
 var v = <int, int>{...a};
 ''',
       [
-        error(CompileTimeErrorCode.INVALID_USE_OF_NULL_VALUE, 37, 1),
-        error(CompileTimeErrorCode.NOT_NULL_AWARE_NULL_SPREAD, 37, 1),
+        error(CompileTimeErrorCode.invalidUseOfNullValue, 37, 1),
+        error(CompileTimeErrorCode.notNullAwareNullSpread, 37, 1),
       ],
     );
   }
@@ -97,8 +97,8 @@ var v = <int, int>{...?a};
 var v = <int>{...null};
 ''',
       [
-        error(CompileTimeErrorCode.INVALID_USE_OF_NULL_VALUE, 17, 4),
-        error(CompileTimeErrorCode.NOT_NULL_AWARE_NULL_SPREAD, 17, 4),
+        error(CompileTimeErrorCode.invalidUseOfNullValue, 17, 4),
+        error(CompileTimeErrorCode.notNullAwareNullSpread, 17, 4),
       ],
     );
   }
@@ -110,8 +110,8 @@ Null a = null;
 var v = <int>{...a};
 ''',
       [
-        error(CompileTimeErrorCode.INVALID_USE_OF_NULL_VALUE, 32, 1),
-        error(CompileTimeErrorCode.NOT_NULL_AWARE_NULL_SPREAD, 32, 1),
+        error(CompileTimeErrorCode.invalidUseOfNullValue, 32, 1),
+        error(CompileTimeErrorCode.notNullAwareNullSpread, 32, 1),
       ],
     );
   }

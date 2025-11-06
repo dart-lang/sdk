@@ -43,16 +43,19 @@ static method test(dynamic value, core::bool expected) → void {
     final synthesized dynamic #0#0 = value;
     synthesized core::bool #0#4;
     synthesized core::bool #0#4#isSet = false;
+    final const synthesized core::int #0#3 = #C9;
     synthesized core::bool #0#8;
     synthesized core::bool #0#8#isSet = false;
+    final const synthesized core::int #0#7 = #C1;
     synthesized dynamic #0#13;
     synthesized core::bool #0#13#isSet = false;
     synthesized core::bool #0#12;
     synthesized core::bool #0#12#isSet = false;
     synthesized core::bool #0#15;
     synthesized core::bool #0#15#isSet = false;
+    final const synthesized core::String #0#14 = #C4;
     {
-      if(#0#0 is core::List<dynamic> && (#0#4#isSet ?{core::bool} #0#4{core::bool} : let final dynamic #t1 = #0#4#isSet = true in #0#4 = #0#0{core::List<dynamic>}.{core::List::length}{core::int} =={core::num::==}{(core::Object) → core::bool} #C9) && (#0#8#isSet ?{core::bool} #0#8{core::bool} : let final dynamic #t2 = #0#8#isSet = true in #0#8 = #C1 =={core::num::==}{(core::Object) → core::bool} #0#0{core::List<dynamic>}.{core::List::[]}(0){(core::int) → dynamic})) {
+      if(#0#0 is core::List<dynamic> && (#0#4#isSet ?{core::bool} #0#4 : let final dynamic #t1 = #0#4#isSet = true in #0#4 = #0#0{core::List<dynamic>}.{core::List::length}{core::int} =={core::num::==}{(core::Object) → core::bool} #C9) && (#0#8#isSet ?{core::bool} #0#8 : let final dynamic #t2 = #0#8#isSet = true in #0#8 = #C1 =={core::num::==}{(core::Object) → core::bool} #0#0{core::List<dynamic>}.{core::List::[]}(0){(core::int) → dynamic})) {
         {
           matched = true;
           break #L1;
@@ -60,7 +63,7 @@ static method test(dynamic value, core::bool expected) → void {
       }
     }
     {
-      if(#0#0 is core::List<core::num> && (#0#4#isSet ?{core::bool} #0#4{core::bool} : let final dynamic #t3 = #0#4#isSet = true in #0#4 = #0#0{core::List<core::num>}.{core::List::length}{core::int} =={core::num::==}{(core::Object) → core::bool} #C9) && (#0#8#isSet ?{core::bool} #0#8{core::bool} : let final dynamic #t4 = #0#8#isSet = true in #0#8 = #C1 =={core::num::==}{(core::Object) → core::bool} #0#0{core::List<core::num>}.{core::List::[]}(0){(core::int) → core::num})) {
+      if(#0#0 is core::List<core::num> && (#0#4#isSet ?{core::bool} #0#4 : let final dynamic #t3 = #0#4#isSet = true in #0#4 = #0#0{core::List<core::num>}.{core::List::length}{core::int} =={core::num::==}{(core::Object) → core::bool} #C9) && (#0#8#isSet ?{core::bool} #0#8 : let final dynamic #t4 = #0#8#isSet = true in #0#8 = #C1 =={core::num::==}{(core::Object) → core::bool} #0#0{core::List<core::num>}.{core::List::[]}(0){(core::int) → core::num})) {
         {
           matched = true;
           break #L1;
@@ -68,7 +71,7 @@ static method test(dynamic value, core::bool expected) → void {
       }
     }
     {
-      if(#0#0 is core::Map<dynamic, dynamic> && (!((#0#13#isSet ?{dynamic} #0#13{dynamic} : let final dynamic #t5 = #0#13#isSet = true in #0#13 = #0#0{core::Map<dynamic, dynamic>}.{core::Map::[]}(#C1){(core::Object?) → dynamic}) == null) || null is dynamic && (#0#12#isSet ?{core::bool} #0#12{core::bool} : let final dynamic #t6 = #0#12#isSet = true in #0#12 = #0#0{core::Map<dynamic, dynamic>}.{core::Map::containsKey}(#C1){(core::Object?) → core::bool})) && (#0#15#isSet ?{core::bool} #0#15{core::bool} : let final dynamic #t7 = #0#15#isSet = true in #0#15 = #C4 =={core::String::==}{(core::Object) → core::bool} (#0#13#isSet ?{dynamic} #0#13{dynamic} : let final dynamic #t8 = #0#13#isSet = true in #0#13 = #0#0{core::Map<dynamic, dynamic>}.{core::Map::[]}(#C1){(core::Object?) → dynamic}))) {
+      if(#0#0 is core::Map<dynamic, dynamic> && (!((#0#13#isSet ?{dynamic} #0#13 : let final dynamic #t5 = #0#13#isSet = true in #0#13 = #0#0{core::Map<dynamic, dynamic>}.{core::Map::[]}(#C1){(core::Object?) → dynamic}) == null) || null is dynamic && (#0#12#isSet ?{core::bool} #0#12 : let final dynamic #t6 = #0#12#isSet = true in #0#12 = #0#0{core::Map<dynamic, dynamic>}.{core::Map::containsKey}(#C1){(core::Object?) → core::bool})) && (#0#15#isSet ?{core::bool} #0#15 : let final dynamic #t7 = #0#15#isSet = true in #0#15 = #C4 =={core::String::==}{(core::Object) → core::bool} (#0#13#isSet ?{dynamic} #0#13 : let final dynamic #t8 = #0#13#isSet = true in #0#13 = #0#0{core::Map<dynamic, dynamic>}.{core::Map::[]}(#C1){(core::Object?) → dynamic}))) {
         {
           matched = true;
           break #L1;
@@ -76,7 +79,7 @@ static method test(dynamic value, core::bool expected) → void {
       }
     }
     {
-      if(#0#0 is core::Map<core::num, core::Object> && (!((#0#13#isSet ?{core::Object?} #0#13{core::Object?} : let final dynamic #t9 = #0#13#isSet = true in #0#13 = #0#0{core::Map<core::num, core::Object>}.{core::Map::[]}(#C1){(core::Object?) → core::Object?}) == null) || null is core::Object && (#0#12#isSet ?{core::bool} #0#12{core::bool} : let final dynamic #t10 = #0#12#isSet = true in #0#12 = #0#0{core::Map<core::num, core::Object>}.{core::Map::containsKey}(#C1){(core::Object?) → core::bool})) && (#0#15#isSet ?{core::bool} #0#15{core::bool} : let final dynamic #t11 = #0#15#isSet = true in #0#15 = #C4 =={core::String::==}{(core::Object) → core::bool} (let core::Object? #t12 = #0#13#isSet ?{core::Object?} #0#13{core::Object?} : let final dynamic #t13 = #0#13#isSet = true in #0#13 = #0#0{core::Map<core::num, core::Object>}.{core::Map::[]}(#C1){(core::Object?) → core::Object?} in #t12 == null ?{core::Object} #t12 as{Unchecked} core::Object : #t12{core::Object}))) {
+      if(#0#0 is core::Map<core::num, core::Object> && (!((#0#13#isSet ?{core::Object?} #0#13{core::Object?} : let final dynamic #t9 = #0#13#isSet = true in #0#13 = #0#0{core::Map<core::num, core::Object>}.{core::Map::[]}(#C1){(core::Object?) → core::Object?}) == null) || null is core::Object && (#0#12#isSet ?{core::bool} #0#12 : let final dynamic #t10 = #0#12#isSet = true in #0#12 = #0#0{core::Map<core::num, core::Object>}.{core::Map::containsKey}(#C1){(core::Object?) → core::bool})) && (#0#15#isSet ?{core::bool} #0#15 : let final dynamic #t11 = #0#15#isSet = true in #0#15 = #C4 =={core::String::==}{(core::Object) → core::bool} (let core::Object? #t12 = #0#13#isSet ?{core::Object?} #0#13{core::Object?} : let final dynamic #t13 = #0#13#isSet = true in #0#13 = #0#0{core::Map<core::num, core::Object>}.{core::Map::[]}(#C1){(core::Object?) → core::Object?} in #t12 == null ?{core::Object} #t12 as{Unchecked} core::Object : #t12{core::Object}))) {
         {
           matched = true;
           break #L1;

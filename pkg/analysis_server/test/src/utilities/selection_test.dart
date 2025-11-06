@@ -1439,13 +1439,15 @@ nodesInRange
   }
 
   Future<_CodeSelection> _computeSelection(String annotatedCode) async {
-    var testCode = TestCode.parse(normalizeSource(annotatedCode));
+    var testCode = TestCode.parseNormalized(annotatedCode);
     expect(testCode.positions, isEmpty);
     var range = testCode.range.sourceRange;
 
     await resolveTestCode(testCode.code);
-    var selection =
-        testUnit.select(offset: range.offset, length: range.length)!;
+    var selection = testUnit.select(
+      offset: range.offset,
+      length: range.length,
+    )!;
 
     return _CodeSelection(testCode: testCode, selection: selection);
   }

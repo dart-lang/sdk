@@ -64,13 +64,18 @@ class OutlineGenerator {
       try {
         contributor.computeOutline(request, collector);
       } catch (exception, stackTrace) {
-        notifications.add(PluginErrorParams(
-                false, exception.toString(), stackTrace.toString())
-            .toNotification());
+        notifications.add(
+          PluginErrorParams(
+            false,
+            exception.toString(),
+            stackTrace.toString(),
+          ).toNotification(),
+        );
       }
     }
-    notifications.add(AnalysisOutlineParams(request.path, collector.outlines)
-        .toNotification());
+    notifications.add(
+      AnalysisOutlineParams(request.path, collector.outlines).toNotification(),
+    );
     return GeneratorResult(null, notifications);
   }
 }

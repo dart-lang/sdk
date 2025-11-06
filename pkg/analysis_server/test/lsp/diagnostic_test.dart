@@ -8,6 +8,7 @@ import 'package:analysis_server/lsp_protocol/protocol.dart';
 import 'package:analysis_server/src/services/correction/assist_internal.dart';
 import 'package:analysis_server/src/services/correction/fix_internal.dart';
 import 'package:analyzer/src/lint/registry.dart';
+import 'package:analyzer/src/test_utilities/test_code_format.dart';
 import 'package:analyzer/utilities/package_config_file_builder.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart' as plugin;
 import 'package:analyzer_plugin/protocol/protocol_generated.dart' as plugin;
@@ -15,6 +16,7 @@ import 'package:linter/src/rules.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
+import '../utils/test_code_extensions.dart';
 import 'server_abstract.dart';
 
 void main() {
@@ -30,10 +32,14 @@ class DiagnosticTest extends AbstractLspAnalysisServerTest {
   Future<void> checkPluginErrorsForFile(String pluginAnalyzedFilePath) async {
     var pluginAnalyzedUri = pathContext.toUri(pluginAnalyzedFilePath);
 
-    newFile(pluginAnalyzedFilePath, '''String a = "Test";
-String b = "Test";
+    var code = TestCode.parseNormalized('''/*[0*/String/*0]*/ a = "Test";
+String b = "/*[1*/Test/*1]*/";
 ''');
+    newFile(pluginAnalyzedFilePath, code.code);
     await initialize();
+
+    var errorRange = code.ranges[0];
+    var relatedRange = code.ranges[1];
 
     var diagnosticsUpdate = waitForDiagnostics(pluginAnalyzedUri);
     var pluginError = plugin.AnalysisError(
@@ -41,12 +47,13 @@ String b = "Test";
       plugin.AnalysisErrorType.STATIC_TYPE_WARNING,
       plugin.Location(
         pluginAnalyzedFilePath,
-        0,
-        6,
-        1,
-        1,
-        endLine: 1,
-        endColumn: 7,
+        errorRange.sourceRange.offset,
+        errorRange.sourceRange.length,
+        // LSP types are zero-based but server is one-based.
+        errorRange.range.start.line + 1,
+        errorRange.range.start.character + 1,
+        endLine: errorRange.range.end.line + 1,
+        endColumn: errorRange.range.end.character + 1,
       ),
       'Test error from plugin',
       'ERR1',
@@ -55,12 +62,13 @@ String b = "Test";
           'Related error',
           plugin.Location(
             pluginAnalyzedFilePath,
-            31,
-            4,
-            2,
-            13,
-            endLine: 2,
-            endColumn: 17,
+            relatedRange.sourceRange.offset,
+            relatedRange.sourceRange.length,
+            // LSP types are zero-based but server is one-based.
+            relatedRange.range.start.line + 1,
+            relatedRange.range.start.character + 1,
+            endLine: relatedRange.range.end.line + 1,
+            endColumn: relatedRange.range.end.character + 1,
           ),
         ),
       ],
@@ -77,18 +85,25 @@ String b = "Test";
     expect(err.severity, DiagnosticSeverity.Error);
     expect(err.message, equals('Test error from plugin'));
     expect(err.code, equals('ERR1'));
-    expect(err.range.start.line, equals(0));
-    expect(err.range.start.character, equals(0));
-    expect(err.range.end.line, equals(0));
-    expect(err.range.end.character, equals(6));
+    expect(err.range.start.line, errorRange.range.start.line);
+    expect(err.range.start.character, errorRange.range.start.character);
+    expect(err.range.end.line, errorRange.range.end.line);
+    expect(err.range.end.character, errorRange.range.end.character);
     expect(err.relatedInformation, hasLength(1));
 
     var related = err.relatedInformation![0];
     expect(related.message, equals('Related error'));
-    expect(related.location.range.start.line, equals(1));
-    expect(related.location.range.start.character, equals(12));
-    expect(related.location.range.end.line, equals(1));
-    expect(related.location.range.end.character, equals(16));
+    // Server types are one-based but LSP is zero-based.
+    expect(related.location.range.start.line, relatedRange.range.start.line);
+    expect(
+      related.location.range.start.character,
+      relatedRange.range.start.character,
+    );
+    expect(related.location.range.end.line, relatedRange.range.end.line);
+    expect(
+      related.location.range.end.character,
+      relatedRange.range.end.character,
+    );
   }
 
   @override
@@ -253,9 +268,8 @@ void f() {
 
     var onePackagePath = convertPath('/home/one');
     writeTestPackageConfig(
-      config:
-          PackageConfigFileBuilder()
-            ..add(name: 'one', rootPath: onePackagePath),
+      config: PackageConfigFileBuilder()
+        ..add(name: 'one', rootPath: onePackagePath),
     );
     newFile(convertPath('$onePackagePath/lib/one.dart'), '''
     @deprecated
@@ -278,9 +292,8 @@ void f() {
   Future<void> test_diagnosticTag_notSupported() async {
     var onePackagePath = convertPath('/home/one');
     writeTestPackageConfig(
-      config:
-          PackageConfigFileBuilder()
-            ..add(name: 'one', rootPath: onePackagePath),
+      config: PackageConfigFileBuilder()
+        ..add(name: 'one', rootPath: onePackagePath),
     );
     newFile(convertPath('$onePackagePath/lib/one.dart'), '''
     @deprecated
@@ -601,9 +614,8 @@ linter:
     var projectPackagePath = '$rootWorkspacePath/my_project';
     writePackageConfig(
       projectPackagePath,
-      config:
-          PackageConfigFileBuilder()
-            ..add(name: 'my_lints', rootPath: lintsPackagePath),
+      config: PackageConfigFileBuilder()
+        ..add(name: 'my_lints', rootPath: lintsPackagePath),
     );
     newFile('$projectPackagePath/analysis_options.yaml', '''
 include: package:my_lints/analysis_options.yaml
@@ -689,7 +701,8 @@ void f(dynamic a) => a.foo();
   Future<void> test_stableOrder() async {
     /// Helper to pad out the content in a way that has previously triggered
     /// this issue.
-    String wrappedContent(String content) => '''
+    String wrappedContent(String content) =>
+        '''
 //
 //
 //

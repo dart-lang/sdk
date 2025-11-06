@@ -6,7 +6,8 @@ import "dart:typed_data" as typ;
 
 import "dart:ffi";
 
-@#C9
+@#C3
+@#C11
 final class MyStruct extends ffi::Struct {
   constructor #fromTypedDataBase([@vm.inferred-arg-type.metadata=dart.typed_data::_Uint8List] synthesized core::Object #typedDataBase) → self::MyStruct
     : super ffi::Struct::_fromTypedDataBase(#typedDataBase)
@@ -14,23 +15,24 @@ final class MyStruct extends ffi::Struct {
 
   [@vm.inferred-return-type.metadata=dart.ffi::Array<dart.ffi::Int8>]
   [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasNonThisUses:false,hasTearOffUses:false,getterSelectorId:1]
-  @#C11
+  @#C13
   get a() → ffi::Array<ffi::Int8>
-    return new ffi::Array::_<ffi::Int8>([@vm.direct-call.metadata=dart.ffi::_Compound._typedDataBase] this.{ffi::_Compound::_typedDataBase}{core::Object}, [@vm.direct-call.metadata=dart.core::_IntegerImplementation.+] [@vm.inferred-type.metadata=int (skip check)] [@vm.inferred-type.metadata=dart.core::_Smi (value: 0)] self::MyStruct::a#offsetOf.{core::num::+}([@vm.direct-call.metadata=dart.ffi::_Compound._offsetInBytes] [@vm.inferred-type.metadata=int?] this.{ffi::_Compound::_offsetInBytes}{core::int}){(core::num) → core::num}, #C3, #C4, #C12);
+    return new ffi::Array::_<ffi::Int8>([@vm.direct-call.metadata=dart.ffi::_Compound._typedDataBase] this.{ffi::_Compound::_typedDataBase}{core::Object}, [@vm.direct-call.metadata=dart.core::_IntegerImplementation.+] [@vm.inferred-type.metadata=int (skip check)] [@vm.inferred-type.metadata=dart.core::_Smi (value: 0)] self::MyStruct::a#offsetOf.{core::num::+}([@vm.direct-call.metadata=dart.ffi::_Compound._offsetInBytes] [@vm.inferred-type.metadata=int?] this.{ffi::_Compound::_offsetInBytes}{core::int}){(core::num) → core::num}, #C6, #C7, #C14);
 
   [@vm.inferred-return-type.metadata=dart.core::_Smi (value: 0)]
   [@vm.unboxing-info.metadata=()->i]
-  @#C11
+  @#C13
   static synthetic get a#offsetOf() → core::int
-    return #C14.{core::List::[]}(ffi::_abi()){(core::int) → core::int};
+    return #C16.{core::List::[]}(ffi::_abi()){(core::int) → core::int};
 
   [@vm.inferred-return-type.metadata=dart.core::_Smi (value: 10)]
   [@vm.unboxing-info.metadata=()->i]
-  @#C11
+  @#C13
   static get #sizeOf() → core::int
-    return #C15.{core::List::[]}(ffi::_abi()){(core::int) → core::int};
+    return #C17.{core::List::[]}(ffi::_abi()){(core::int) → core::int};
 }
-@#C18
+@#C3
+@#C20
 final class MyUnion extends ffi::Union {
   constructor #fromTypedDataBase([@vm.inferred-arg-type.metadata=dart.typed_data::_Uint8List] synthesized core::Object #typedDataBase) → self::MyUnion
     : super ffi::Union::_fromTypedDataBase(#typedDataBase)
@@ -38,63 +40,65 @@ final class MyUnion extends ffi::Union {
 
   [@vm.inferred-return-type.metadata=dart.core::_Smi (value: 1)]
   [@vm.unboxing-info.metadata=()->i]
-  @#C11
+  @#C13
   static get #sizeOf() → core::int
-    return #C20.{core::List::[]}(ffi::_abi()){(core::int) → core::int};
+    return #C22.{core::List::[]}(ffi::_abi()){(core::int) → core::int};
 }
 
 [@vm.inferred-return-type.metadata=dart.core::Null? (value: null)]
 static method main() → void {
   final self::MyStruct myStruct = new self::MyStruct::#fromTypedDataBase([@vm.inferred-type.metadata=dart.typed_data::_Uint8List] typ::Uint8List::•([@vm.inferred-type.metadata=dart.core::_Smi (value: 10)] self::MyStruct::#sizeOf));
-  self::myNative#C(myStruct);
+  self::#myNative#C(myStruct);
   final self::MyUnion myUnion = new self::MyUnion::#fromTypedDataBase([@vm.inferred-type.metadata=dart.typed_data::_Uint8List] typ::Uint8List::•([@vm.inferred-type.metadata=dart.core::_Smi (value: 1)] self::MyUnion::#sizeOf));
-  self::myNative2#C(myUnion);
-  self::myNative3#C([@vm.direct-call.metadata=#lib::MyStruct.a] [@vm.inferred-type.metadata=dart.ffi::Array<dart.ffi::Int8>] myStruct.{self::MyStruct::a}{ffi::Array<ffi::Int8>});
+  self::#myNative2#C(myUnion);
+  self::#myNative3#C([@vm.direct-call.metadata=#lib::MyStruct.a] [@vm.inferred-type.metadata=dart.ffi::Array<dart.ffi::Int8>] myStruct.{self::MyStruct::a}{ffi::Array<ffi::Int8>});
 }
-@#C26
 @#C28
-external static method myNative#C([@vm.inferred-arg-type.metadata=#lib::MyStruct] ffi::_Compound pointer) → void;
-@#C31
-@#C32
-external static method myNative2#C([@vm.inferred-arg-type.metadata=#lib::MyUnion] ffi::_Compound pointer) → void;
-@#C35
-@#C36
-external static method myNative3#C([@vm.inferred-arg-type.metadata=dart.ffi::Array<dart.ffi::Int8>] ffi::_Compound pointer) → void;
+@#C30
+external static method #myNative#C([@vm.inferred-arg-type.metadata=#lib::MyStruct] ffi::_Compound pointer) → void;
+@#C33
+@#C34
+external static method #myNative2#C([@vm.inferred-arg-type.metadata=#lib::MyUnion] ffi::_Compound pointer) → void;
+@#C37
+@#C38
+external static method #myNative3#C([@vm.inferred-arg-type.metadata=dart.ffi::Array<dart.ffi::Int8>] ffi::_Compound pointer) → void;
 constants  {
-  #C1 = "vm:ffi:struct-fields"
-  #C2 = TypeLiteralConstant(ffi::Int8)
-  #C3 = 10
-  #C4 = false
-  #C5 = ffi::_FfiInlineArray {elementType:#C2, length:#C3, variableLength:#C4}
-  #C6 = <core::Type>[#C5]
-  #C7 = null
-  #C8 = ffi::_FfiStructLayout {fieldTypes:#C6, packing:#C7}
-  #C9 = core::pragma {name:#C1, options:#C8}
-  #C10 = "vm:prefer-inline"
-  #C11 = core::pragma {name:#C10, options:#C7}
-  #C12 = <core::int>[]
-  #C13 = 0
-  #C14 = <core::int>[#C13, #C13, #C13, #C13, #C13, #C13, #C13, #C13, #C13, #C13, #C13, #C13, #C13, #C13, #C13, #C13, #C13, #C13, #C13, #C13, #C13, #C13]
-  #C15 = <core::int>[#C3, #C3, #C3, #C3, #C3, #C3, #C3, #C3, #C3, #C3, #C3, #C3, #C3, #C3, #C3, #C3, #C3, #C3, #C3, #C3, #C3, #C3]
-  #C16 = <core::Type>[#C2]
-  #C17 = ffi::_FfiStructLayout {fieldTypes:#C16, packing:#C7}
-  #C18 = core::pragma {name:#C1, options:#C17}
-  #C19 = 1
-  #C20 = <core::int>[#C19, #C19, #C19, #C19, #C19, #C19, #C19, #C19, #C19, #C19, #C19, #C19, #C19, #C19, #C19, #C19, #C19, #C19, #C19, #C19, #C19, #C19]
-  #C21 = "cfe:ffi:native-marker"
-  #C22 = "myNative"
-  #C23 = "#lib"
-  #C24 = true
-  #C25 = ffi::Native<(ffi::Pointer<self::MyStruct>) → ffi::Void> {symbol:#C22, assetId:#C23, isLeaf:#C24}
-  #C26 = core::pragma {name:#C21, options:#C25}
-  #C27 = "vm:ffi:native"
-  #C28 = core::pragma {name:#C27, options:#C25}
-  #C29 = "myNative2"
-  #C30 = ffi::Native<(ffi::Pointer<self::MyUnion>) → ffi::Void> {symbol:#C29, assetId:#C23, isLeaf:#C24}
-  #C31 = core::pragma {name:#C21, options:#C30}
-  #C32 = core::pragma {name:#C27, options:#C30}
-  #C33 = "myNative3"
-  #C34 = ffi::Native<(ffi::Pointer<ffi::Int8>) → ffi::Void> {symbol:#C33, assetId:#C23, isLeaf:#C24}
-  #C35 = core::pragma {name:#C21, options:#C34}
-  #C36 = core::pragma {name:#C27, options:#C34}
+  #C1 = "vm:deeply-immutable"
+  #C2 = null
+  #C3 = core::pragma {name:#C1, options:#C2}
+  #C4 = "vm:ffi:struct-fields"
+  #C5 = TypeLiteralConstant(ffi::Int8)
+  #C6 = 10
+  #C7 = false
+  #C8 = ffi::_FfiInlineArray {elementType:#C5, length:#C6, variableLength:#C7}
+  #C9 = <core::Type>[#C8]
+  #C10 = ffi::_FfiStructLayout {fieldTypes:#C9, packing:#C2}
+  #C11 = core::pragma {name:#C4, options:#C10}
+  #C12 = "vm:prefer-inline"
+  #C13 = core::pragma {name:#C12, options:#C2}
+  #C14 = <core::int>[]
+  #C15 = 0
+  #C16 = <core::int>[#C15, #C15, #C15, #C15, #C15, #C15, #C15, #C15, #C15, #C15, #C15, #C15, #C15, #C15, #C15, #C15, #C15, #C15, #C15, #C15, #C15, #C15]
+  #C17 = <core::int>[#C6, #C6, #C6, #C6, #C6, #C6, #C6, #C6, #C6, #C6, #C6, #C6, #C6, #C6, #C6, #C6, #C6, #C6, #C6, #C6, #C6, #C6]
+  #C18 = <core::Type>[#C5]
+  #C19 = ffi::_FfiStructLayout {fieldTypes:#C18, packing:#C2}
+  #C20 = core::pragma {name:#C4, options:#C19}
+  #C21 = 1
+  #C22 = <core::int>[#C21, #C21, #C21, #C21, #C21, #C21, #C21, #C21, #C21, #C21, #C21, #C21, #C21, #C21, #C21, #C21, #C21, #C21, #C21, #C21, #C21, #C21]
+  #C23 = "cfe:ffi:native-marker"
+  #C24 = "myNative"
+  #C25 = "#lib"
+  #C26 = true
+  #C27 = ffi::Native<(ffi::Pointer<self::MyStruct>) → ffi::Void> {symbol:#C24, assetId:#C25, isLeaf:#C26}
+  #C28 = core::pragma {name:#C23, options:#C27}
+  #C29 = "vm:ffi:native"
+  #C30 = core::pragma {name:#C29, options:#C27}
+  #C31 = "myNative2"
+  #C32 = ffi::Native<(ffi::Pointer<self::MyUnion>) → ffi::Void> {symbol:#C31, assetId:#C25, isLeaf:#C26}
+  #C33 = core::pragma {name:#C23, options:#C32}
+  #C34 = core::pragma {name:#C29, options:#C32}
+  #C35 = "myNative3"
+  #C36 = ffi::Native<(ffi::Pointer<ffi::Int8>) → ffi::Void> {symbol:#C35, assetId:#C25, isLeaf:#C26}
+  #C37 = core::pragma {name:#C23, options:#C36}
+  #C38 = core::pragma {name:#C29, options:#C36}
 }

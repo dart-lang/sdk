@@ -18,6 +18,7 @@ import 'package:kernel/text/ast_to_text.dart';
 
 import '../base/combinator.dart';
 import '../base/configuration.dart';
+import '../base/extension_scope.dart';
 import '../base/identifiers.dart';
 import '../base/modifiers.dart';
 import '../builder/declaration_builders.dart';
@@ -75,10 +76,13 @@ void printQualifiedNameOn(Member? member, StringSink sink) {
   }
 }
 
-void bindCoreType(LibraryBuilder coreLibrary, NamedTypeBuilder typeBuilder,
-    {bool isNullClass = false}) {
+void bindCoreType(
+  LibraryBuilder coreLibrary,
+  NamedTypeBuilder typeBuilder, {
+  bool isNullClass = false,
+}) {
   TypeDeclarationBuilder typeDeclarationBuilder =
-      coreLibrary.lookupLocalMember(typeBuilder.typeName.name, required: true)
+      coreLibrary.lookupRequiredLocalMember(typeBuilder.typeName.name)
           as TypeDeclarationBuilder;
   typeBuilder.bind(coreLibrary, typeDeclarationBuilder);
   if (isNullClass) {
@@ -90,8 +94,11 @@ void bindCoreType(LibraryBuilder coreLibrary, NamedTypeBuilder typeBuilder,
 /// Print the given [component].  Do nothing if it is `null`.  If the
 /// [libraryFilter] is provided, then only libraries that satisfy it are
 /// printed.
-void printComponentText(Component? component,
-    {bool Function(Library library)? libraryFilter, bool showOffsets = false}) {
+void printComponentText(
+  Component? component, {
+  bool Function(Library library)? libraryFilter,
+  bool showOffsets = false,
+}) {
   if (component == null) return;
   StringBuffer sb = new StringBuffer();
   Printer printer = new Printer(sb, showOffsets: showOffsets);
@@ -106,8 +113,11 @@ void printComponentText(Component? component,
 
 // Coverage-ignore(suite): Not run.
 /// Write [component] to file only including libraries that match [filter].
-Future<Null> writeComponentToFile(Component component, Uri uri,
-    {bool Function(Library library)? filter}) async {
+Future<Null> writeComponentToFile(
+  Component component,
+  Uri uri, {
+  bool Function(Library library)? filter,
+}) async {
   File output = new File.fromUri(uri);
   IOSink sink = output.openWrite();
   try {
@@ -120,15 +130,19 @@ Future<Null> writeComponentToFile(Component component, Uri uri,
 
 // Coverage-ignore(suite): Not run.
 /// Serialize the libraries in [component] that match [filter].
-Uint8List serializeComponent(Component component,
-    {bool Function(Library library)? filter,
-    bool includeSources = true,
-    bool includeOffsets = true}) {
+Uint8List serializeComponent(
+  Component component, {
+  bool Function(Library library)? filter,
+  bool includeSources = true,
+  bool includeOffsets = true,
+}) {
   ByteSink byteSink = new ByteSink();
-  BinaryPrinter printer = new BinaryPrinter(byteSink,
-      libraryFilter: filter,
-      includeSources: includeSources,
-      includeOffsets: includeOffsets);
+  BinaryPrinter printer = new BinaryPrinter(
+    byteSink,
+    libraryFilter: filter,
+    includeSources: includeSources,
+    includeOffsets: includeOffsets,
+  );
   printer.writeComponentFile(component);
   return byteSink.builder.takeBytes();
 }
@@ -181,21 +195,27 @@ Component createExpressionEvaluationComponent(Procedure procedure) {
         ..declaration = fakeClass;
       typeParams[typeParam] = newNode;
       typeSubstitution[typeParam] = new TypeParameterType(
-          newNode, typeParam.computeNullabilityFromBound());
+        newNode,
+        typeParam.computeNullabilityFromBound(),
+      );
     }
     CloneVisitorWithMembers cloner = new CloneVisitorWithMembers(
-        typeSubstitution: typeSubstitution, typeParams: typeParams);
+      typeSubstitution: typeSubstitution,
+      typeParams: typeParams,
+    );
 
     for (TypeParameter typeParam in realClass.typeParameters) {
-      fakeClass.typeParameters
-          .add(typeParam.accept<TreeNode>(cloner) as TypeParameter);
+      fakeClass.typeParameters.add(
+        typeParam.accept<TreeNode>(cloner) as TypeParameter,
+      );
     }
 
     if (realClass.supertype != null) {
       // supertype is null for Object.
       fakeClass.supertype = new Supertype.byReference(
-          realClass.supertype!.className,
-          realClass.supertype!.typeArguments.map(cloner.visitType).toList());
+        realClass.supertype!.className,
+        realClass.supertype!.typeArguments.map(cloner.visitType).toList(),
+      );
     }
 
     // Rebind the type parameters in the procedure.
@@ -257,60 +277,90 @@ List<Combinator>? toCombinators(List<CombinatorBuilder>? combinatorBuilders) {
 
 final Token dummyToken = new SyntheticToken(TokenType.AT, -1);
 final Identifier dummyIdentifier = new SimpleIdentifier(dummyToken);
-final CombinatorBuilder dummyCombinator =
-    new CombinatorBuilder(false, {}, -1, dummyUri);
-final MetadataBuilder dummyMetadataBuilder =
-    new MetadataBuilder(dummyToken, dummyUri);
-final TypeBuilder dummyTypeBuilder =
-    new FixedTypeBuilderImpl(dummyDartType, dummyUri, -1);
+final CombinatorBuilder dummyCombinator = new CombinatorBuilder(
+  false,
+  {},
+  -1,
+  dummyUri,
+);
+final MetadataBuilder dummyMetadataBuilder = new MetadataBuilder(
+  dummyToken,
+  dummyUri,
+);
+final TypeBuilder dummyTypeBuilder = new FixedTypeBuilderImpl(
+  dummyDartType,
+  dummyUri,
+  -1,
+);
 final FormalParameterBuilder dummyFormalParameterBuilder =
-    new FormalParameterBuilder(FormalParameterKind.requiredPositional,
-        Modifiers.empty, const ImplicitTypeBuilder(), '', -1,
-        fileUri: dummyUri, hasImmediatelyDeclaredInitializer: false);
+    new FormalParameterBuilder(
+      FormalParameterKind.requiredPositional,
+      Modifiers.empty,
+      const ImplicitTypeBuilder(),
+      '',
+      -1,
+      fileUri: dummyUri,
+      hasImmediatelyDeclaredInitializer: false,
+    );
 final FunctionTypeParameterBuilder dummyFunctionTypeParameterBuilder =
-    new FunctionTypeParameterBuilder(FormalParameterKind.requiredPositional,
-        const ImplicitTypeBuilder(), '');
+    new FunctionTypeParameterBuilder(
+      FormalParameterKind.requiredPositional,
+      const ImplicitTypeBuilder(),
+      '',
+    );
 final NominalParameterBuilder dummyNominalVariableBuilder =
-    new SourceNominalParameterBuilder(new DirectNominalParameterDeclaration(
+    new SourceNominalParameterBuilder(
+      new DirectNominalParameterDeclaration(
         name: NominalParameterBuilder.noNameSentinel,
         kind: TypeParameterKind.function,
         isWildcard: false,
         fileOffset: -1,
-        fileUri: dummyUri));
+        fileUri: dummyUri,
+      ),
+    );
 final TypeParameterFragment dummyTypeParameterFragment =
     new TypeParameterFragment(
-        metadata: null,
-        name: '',
-        nameOffset: -1,
-        fileUri: dummyUri,
-        kind: TypeParameterKind.function,
-        isWildcard: false,
-        variableName: '',
-        typeParameterScope: dummyLookupScope);
+      metadata: null,
+      name: '',
+      nameOffset: -1,
+      fileUri: dummyUri,
+      kind: TypeParameterKind.function,
+      isWildcard: false,
+      variableName: '',
+      extensionScope: dummyExtensionScope,
+      typeParameterScope: dummyLookupScope,
+    );
 final SourceStructuralParameterBuilder dummyStructuralVariableBuilder =
     new SourceStructuralParameterBuilder(
-        new RegularStructuralParameterDeclaration(
-            metadata: null,
-            name: StructuralParameterBuilder.noNameSentinel,
-            fileOffset: -1,
-            fileUri: dummyUri,
-            isWildcard: false));
+      new RegularStructuralParameterDeclaration(
+        metadata: null,
+        name: StructuralParameterBuilder.noNameSentinel,
+        fileOffset: -1,
+        fileUri: dummyUri,
+        isWildcard: false,
+      ),
+    );
 final Label dummyLabel = new Label('', -1);
 final RecordTypeFieldBuilder dummyRecordTypeFieldBuilder =
     new RecordTypeFieldBuilder(null, dummyTypeBuilder, null, -1);
-final FieldInfo dummyFieldInfo =
-    new FieldInfo(dummyIdentifier, null, dummyToken, -1);
+final FieldInfo dummyFieldInfo = new FieldInfo(
+  dummyIdentifier,
+  null,
+  dummyToken,
+  -1,
+);
 final Configuration dummyConfiguration = new Configuration(-1, '', '', '');
 final LookupScope dummyLookupScope = new _DummyLookupScope();
+final ExtensionScope dummyExtensionScope = new _DummyExtensionScope();
 
 // Coverage-ignore(suite): Not run.
 class _DummyLookupScope implements LookupScope {
   @override
-  void forEachExtension(void Function(ExtensionBuilder p1) f) {}
+  LookupResult? lookup(String name) => null;
+}
 
+// Coverage-ignore(suite): Not run.
+class _DummyExtensionScope implements ExtensionScope {
   @override
-  ScopeKind get kind => ScopeKind.library;
-
-  @override
-  LookupResult? lookup(String name, int fileOffset, Uri fileUri) => null;
+  void forEachExtension(void Function(ExtensionBuilder) f) {}
 }

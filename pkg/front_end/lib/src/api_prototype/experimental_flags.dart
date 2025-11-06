@@ -50,9 +50,11 @@ class AllowedExperimentalFlags {
 ///
 /// If [explicitExperimentalFlags] is `null` or doesn't contain [flag], the
 /// default value from [defaultExperimentalFlags] is returned.
-bool isExperimentEnabled(ExperimentalFlag flag,
-    {Map<ExperimentalFlag, bool>? explicitExperimentalFlags,
-    Map<ExperimentalFlag, bool>? defaultExperimentFlagsForTesting}) {
+bool isExperimentEnabled(
+  ExperimentalFlag flag, {
+  Map<ExperimentalFlag, bool>? explicitExperimentalFlags,
+  Map<ExperimentalFlag, bool>? defaultExperimentFlagsForTesting,
+}) {
   bool? enabled;
   if (explicitExperimentalFlags != null) {
     enabled = explicitExperimentalFlags[flag];
@@ -78,10 +80,13 @@ bool isExperimentEnabled(ExperimentalFlag flag,
 /// The canonical uri, also known as the import uri, is the absolute uri that
 /// defines the identity of a library, for instance `dart:core`, `package:foo`,
 /// or `file:///path/dir/file.dart`.
-bool isExperimentEnabledInLibrary(ExperimentalFlag flag, Uri canonicalUri,
-    {Map<ExperimentalFlag, bool>? defaultExperimentFlagsForTesting,
-    Map<ExperimentalFlag, bool>? explicitExperimentalFlags,
-    AllowedExperimentalFlags? allowedExperimentalFlags}) {
+bool isExperimentEnabledInLibrary(
+  ExperimentalFlag flag,
+  Uri canonicalUri, {
+  Map<ExperimentalFlag, bool>? defaultExperimentFlagsForTesting,
+  Map<ExperimentalFlag, bool>? explicitExperimentalFlags,
+  AllowedExperimentalFlags? allowedExperimentalFlags,
+}) {
   bool? enabled;
   if (explicitExperimentalFlags != null) {
     enabled = explicitExperimentalFlags[flag];
@@ -115,12 +120,15 @@ bool isExperimentEnabledInLibrary(ExperimentalFlag flag, Uri canonicalUri,
 
 /// Returns the version in which [flag] is enabled for the library with the
 /// [canonicalUri].
-Version getExperimentEnabledVersionInLibrary(ExperimentalFlag flag,
-    Uri canonicalUri, Map<ExperimentalFlag, bool> explicitExperimentalFlags,
-    {AllowedExperimentalFlags? allowedExperimentalFlags,
-    Map<ExperimentalFlag, bool>? defaultExperimentFlagsForTesting,
-    Map<ExperimentalFlag, Version>? experimentEnabledVersionForTesting,
-    Map<ExperimentalFlag, Version>? experimentReleasedVersionForTesting}) {
+Version getExperimentEnabledVersionInLibrary(
+  ExperimentalFlag flag,
+  Uri canonicalUri,
+  Map<ExperimentalFlag, bool> explicitExperimentalFlags, {
+  AllowedExperimentalFlags? allowedExperimentalFlags,
+  Map<ExperimentalFlag, bool>? defaultExperimentFlagsForTesting,
+  Map<ExperimentalFlag, Version>? experimentEnabledVersionForTesting,
+  Map<ExperimentalFlag, Version>? experimentReleasedVersionForTesting,
+}) {
   allowedExperimentalFlags ??= defaultAllowedExperimentalFlags;
 
   Set<ExperimentalFlag>? allowedFlags;
@@ -169,12 +177,15 @@ Version getExperimentEnabledVersionInLibrary(ExperimentalFlag flag,
 }
 
 bool isExperimentEnabledInLibraryByVersion(
-    ExperimentalFlag flag, Uri canonicalUri, Version version,
-    {Map<ExperimentalFlag, bool>? defaultExperimentFlagsForTesting,
-    required Map<ExperimentalFlag, bool> explicitExperimentalFlags,
-    AllowedExperimentalFlags? allowedExperimentalFlags,
-    Map<ExperimentalFlag, Version>? experimentEnabledVersionForTesting,
-    Map<ExperimentalFlag, Version>? experimentReleasedVersionForTesting}) {
+  ExperimentalFlag flag,
+  Uri canonicalUri,
+  Version version, {
+  Map<ExperimentalFlag, bool>? defaultExperimentFlagsForTesting,
+  required Map<ExperimentalFlag, bool> explicitExperimentalFlags,
+  AllowedExperimentalFlags? allowedExperimentalFlags,
+  Map<ExperimentalFlag, Version>? experimentEnabledVersionForTesting,
+  Map<ExperimentalFlag, Version>? experimentReleasedVersionForTesting,
+}) {
   bool? enabledByDefault;
   if (defaultExperimentFlagsForTesting != null) {
     // Coverage-ignore-block(suite): Not run.
@@ -266,7 +277,10 @@ class LibraryFeature extends ExperimentalFeature {
   /// The minimum language version for enabling this feature in this library.
   final Version enabledVersion;
 
-  LibraryFeature(ExperimentalFlag flag, this.isSupported, this.enabledVersion,
-      this.isEnabled)
-      : super(flag);
+  LibraryFeature(
+    ExperimentalFlag flag,
+    this.isSupported,
+    this.enabledVersion,
+    this.isEnabled,
+  ) : super(flag);
 }

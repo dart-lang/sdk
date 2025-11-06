@@ -175,7 +175,7 @@ class NamedTypeBuilder extends TypeBuilder {
       } else {
         return FunctionTypeImpl.v2(
           typeParameters: const <TypeParameterElementImpl>[],
-          formalParameters: const <FormalParameterElementMixin>[],
+          formalParameters: const <InternalFormalParameterElement>[],
           returnType: _dynamicType,
           nullabilitySuffix: NullabilitySuffix.none,
         );
@@ -259,12 +259,12 @@ class NamedTypeBuilder extends TypeBuilder {
   }
 
   TypeImpl _getAliasedType(TypeAliasElementImpl element) {
-    var typedefNode = linker.getLinkingNode2(element.firstFragment);
-
     // If the element is not being linked, the types have already been built.
-    if (typedefNode == null) {
+    if (!linker.isLinkingElement(element)) {
       return element.aliasedType;
     }
+
+    var typedefNode = linker.getLinkingNode2(element.firstFragment)!;
 
     // Break a possible recursion.
     var existing = element.aliasedTypeRaw;

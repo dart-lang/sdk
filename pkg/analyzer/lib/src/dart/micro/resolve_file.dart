@@ -60,7 +60,11 @@ class CiderFileContent implements FileContent {
     var contentWithDigest = _getContent();
 
     if (contentWithDigest.digestStr != digestStr) {
-      throw StateError('File was changed, but not invalidated: $path');
+      throw StateError(
+        'File was changed, but not invalidated: $path. '
+        'Expected digest: $digestStr.'
+        'Actual digest: ${contentWithDigest.digestStr}',
+      );
     }
 
     return contentWithDigest.content;
@@ -330,10 +334,9 @@ class FileResolver {
       var bytes = _errorResultsCache.get(errorsKey);
       if (bytes != null) {
         var data = CiderUnitErrors.fromBuffer(bytes);
-        diagnostics =
-            data.errors.map((error) {
-              return ErrorEncoding.decode(file.source, error)!;
-            }).toList();
+        diagnostics = data.errors.map((error) {
+          return ErrorEncoding.decode(file.source, error)!;
+        }).toList();
       } else {
         var unitResult = await resolve(path: path, performance: performance);
         diagnostics = unitResult.diagnostics;
@@ -447,10 +450,13 @@ class FileResolver {
   /// partially resynthesized data, and so prepare for loading linked summaries
   /// from bytes, which will be done by [getErrors2]. It is OK for it to
   /// spend some more time on this.
-  Future<void> linkLibraries2({required String path}) async {
+  Future<void> linkLibraries2({
+    required String path,
+    OperationPerformanceImpl? performance,
+  }) async {
     _throwIfNotAbsoluteNormalizedPath(path);
 
-    var performance = OperationPerformanceImpl('<unused>');
+    performance ??= OperationPerformanceImpl('<unused>');
 
     var fileContext = getFileContext(path: path, performance: performance);
     var file = fileContext.file;
@@ -649,21 +655,20 @@ class FileResolver {
         });
       });
 
-      var resolvedUnits =
-          results.map((fileResult) {
-            var file = fileResult.file;
-            return ResolvedUnitResultImpl(
-              session: contextObjects!.analysisSession,
-              fileState: file,
-              unit: fileResult.unit,
-              diagnostics: fileResult.diagnostics,
-            );
-          }).toList();
+      var resolvedUnits = results.map((fileResult) {
+        var file = fileResult.file;
+        return ResolvedUnitResultImpl(
+          session: contextObjects!.analysisSession,
+          fileState: file,
+          unit: fileResult.unit,
+          diagnostics: fileResult.diagnostics,
+        );
+      }).toList();
 
       var libraryUnit = resolvedUnits.first;
       var result = ResolvedLibraryResultImpl(
         session: contextObjects!.analysisSession,
-        element2: libraryUnit.libraryElement2,
+        element: libraryUnit.libraryElement,
         units: resolvedUnits,
       );
 
@@ -726,6 +731,7 @@ class FileResolver {
         onNewFile: (file) {},
         testData: testData?.fileSystem,
         unlinkedUnitStore: UnlinkedUnitStoreImpl(),
+        withFineDependencies: false,
       );
     }
 
@@ -755,8 +761,8 @@ class FileResolver {
         sourceFactory: sourceFactory,
         externalSummaries: SummaryDataStore(),
         packagesFile: null,
+        withFineDependencies: false,
         testData: testData?.libraryContext,
-        linkedBundleProvider: LinkedBundleProvider(byteStore: byteStore),
       );
 
       contextObjects!.analysisSession.elementFactory =
@@ -818,7 +824,10 @@ class FileResolver {
         performance.run('getOptionsFromFile', (_) {
           try {
             var optionsProvider = AnalysisOptionsProvider(sourceFactory);
-            optionMap = optionsProvider.getOptionsFromSource(source);
+            optionMap = optionsProvider.getOptionsFromSource(
+              source,
+              resourceProvider.pathContext,
+            );
           } catch (_) {}
         });
       }
@@ -878,16 +887,15 @@ class FileResolver {
       );
       unitResult.unit.accept(visitor);
       var lineInfo = unitResult.lineInfo;
-      var infos =
-          visitor.results
-              .map(
-                (searchResult) => CiderSearchInfo(
-                  lineInfo.getLocation(searchResult.offset),
-                  searchResult.length,
-                  MatchKind.REFERENCE,
-                ),
-              )
-              .toList();
+      var infos = visitor.results
+          .map(
+            (searchResult) => CiderSearchInfo(
+              lineInfo.getLocation(searchResult.offset),
+              searchResult.length,
+              MatchKind.REFERENCE,
+            ),
+          )
+          .toList();
       results.add(CiderSearchMatch(unitPath, infos));
     }
     return results;

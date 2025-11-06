@@ -22,30 +22,36 @@ const String sentinelMarker = 'sentinel';
 
 Future<void> main(List<String> args) async {
   Directory dataDir = new Directory.fromUri(Platform.script.resolve('data'));
-  await runTests<Features>(dataDir,
-      args: args,
-      createUriForFileName: createUriForFileName,
-      onFailure: onFailure,
-      runTest: runTestFor(const PredicateDataComputer(), [
-        const CfeTestConfig(isNullMarker, 'use is-null',
-            explicitExperimentalFlags: const {
-              ExperimentalFlag.nonNullable: true
-            },
-            targetFlags: const TestTargetFlags(
-                forceConstructorTearOffLoweringForTesting:
-                    ConstructorTearOffLowering.all,
-                forceLateLoweringsForTesting: LateLowering.all,
-                forceLateLoweringSentinelForTesting: false)),
-        const CfeTestConfig(sentinelMarker, 'use sentinel',
-            explicitExperimentalFlags: const {
-              ExperimentalFlag.nonNullable: true
-            },
-            targetFlags: const TestTargetFlags(
-                forceConstructorTearOffLoweringForTesting:
-                    ConstructorTearOffLowering.all,
-                forceLateLoweringsForTesting: LateLowering.all,
-                forceLateLoweringSentinelForTesting: true))
-      ]));
+  await runTests<Features>(
+    dataDir,
+    args: args,
+    createUriForFileName: createUriForFileName,
+    onFailure: onFailure,
+    runTest: runTestFor(const PredicateDataComputer(), [
+      const CfeTestConfig(
+        isNullMarker,
+        'use is-null',
+        explicitExperimentalFlags: const {ExperimentalFlag.nonNullable: true},
+        targetFlags: const TestTargetFlags(
+          forceConstructorTearOffLoweringForTesting:
+              ConstructorTearOffLowering.all,
+          forceLateLoweringsForTesting: LateLowering.all,
+          forceLateLoweringSentinelForTesting: false,
+        ),
+      ),
+      const CfeTestConfig(
+        sentinelMarker,
+        'use sentinel',
+        explicitExperimentalFlags: const {ExperimentalFlag.nonNullable: true},
+        targetFlags: const TestTargetFlags(
+          forceConstructorTearOffLoweringForTesting:
+              ConstructorTearOffLowering.all,
+          forceLateLoweringsForTesting: LateLowering.all,
+          forceLateLoweringSentinelForTesting: true,
+        ),
+      ),
+    ]),
+  );
 }
 
 class Tags {
@@ -81,19 +87,28 @@ class PredicateDataComputer extends CfeDataComputer<Features> {
   ///
   /// Fills [actualMap] with the data.
   @override
-  void computeLibraryData(CfeTestResultData testResultData, Library library,
-      Map<Id, ActualData<Features>> actualMap,
-      {bool? verbose}) {
-    new PredicateDataExtractor(testResultData.compilerResult, actualMap)
-        .computeForLibrary(library);
+  void computeLibraryData(
+    CfeTestResultData testResultData,
+    Library library,
+    Map<Id, ActualData<Features>> actualMap, {
+    bool? verbose,
+  }) {
+    new PredicateDataExtractor(
+      testResultData.compilerResult,
+      actualMap,
+    ).computeForLibrary(library);
   }
 
   @override
-  void computeMemberData(CfeTestResultData testResultData, Member member,
-      Map<Id, ActualData<Features>> actualMap,
-      {bool? verbose}) {
+  void computeMemberData(
+    CfeTestResultData testResultData,
+    Member member,
+    Map<Id, ActualData<Features>> actualMap, {
+    bool? verbose,
+  }) {
     member.accept(
-        new PredicateDataExtractor(testResultData.compilerResult, actualMap));
+      new PredicateDataExtractor(testResultData.compilerResult, actualMap),
+    );
   }
 
   @override
@@ -105,9 +120,10 @@ class PredicateDataExtractor extends CfeDataExtractor<Features> {
   Map<Object?, Features> featureMap = {};
   Map<Object?, NodeId> nodeIdMap = {};
 
-  PredicateDataExtractor(InternalCompilerResult compilerResult,
-      Map<Id, ActualData<Features>> actualMap)
-      : super(compilerResult, actualMap);
+  PredicateDataExtractor(
+    InternalCompilerResult compilerResult,
+    Map<Id, ActualData<Features>> actualMap,
+  ) : super(compilerResult, actualMap);
 
   @override
   Features? computeLibraryValue(Id id, Library node) {
@@ -120,8 +136,9 @@ class PredicateDataExtractor extends CfeDataExtractor<Features> {
     if (node is Field) {
       if (isLateLoweredField(node)) {
         features.add(Tags.lateField);
-        features[Tags.lateFieldName] =
-            extractFieldNameFromLateLoweredField(node).text;
+        features[Tags.lateFieldName] = extractFieldNameFromLateLoweredField(
+          node,
+        ).text;
       }
       if (isLateLoweredIsSetField(node)) {
         features.add(Tags.lateIsSetField);
@@ -134,8 +151,9 @@ class PredicateDataExtractor extends CfeDataExtractor<Features> {
       }
       Expression? initializer = getLateFieldInitializer(node);
       if (initializer != null) {
-        features[Tags.lateFieldInitializer] =
-            initializer.toText(astTextStrategyForTesting);
+        features[Tags.lateFieldInitializer] = initializer.toText(
+          astTextStrategyForTesting,
+        );
       }
     } else if (node is Procedure) {
       if (isLateLoweredFieldGetter(node)) {
@@ -154,8 +172,9 @@ class PredicateDataExtractor extends CfeDataExtractor<Features> {
       }
       Expression? initializer = getLateFieldInitializer(node);
       if (initializer != null) {
-        features[Tags.lateFieldInitializer] =
-            initializer.toText(astTextStrategyForTesting);
+        features[Tags.lateFieldInitializer] = initializer.toText(
+          astTextStrategyForTesting,
+        );
       }
       if (isConstructorTearOffLowering(node)) {
         features.add(Tags.tearoffConstructor);
@@ -164,8 +183,9 @@ class PredicateDataExtractor extends CfeDataExtractor<Features> {
         features.add(Tags.tearoffTypedef);
       }
       if (node.isExtensionMember || node.isExtensionTypeMember) {
-        features[Tags.extensionName] =
-            extractQualifiedNameFromExtensionMember(node)!;
+        features[Tags.extensionName] = extractQualifiedNameFromExtensionMember(
+          node,
+        )!;
       }
     }
     if (isTearOffLowering(node)) {
@@ -182,7 +202,12 @@ class PredicateDataExtractor extends CfeDataExtractor<Features> {
       if (features != null) {
         TreeNode nodeWithOffset = computeTreeNodeWithOffset(node)!;
         registerValue(
-            nodeWithOffset.location!.file, id.value, id, features, '$identity');
+          nodeWithOffset.location!.file,
+          id.value,
+          id,
+          features,
+          '$identity',
+        );
       }
     });
     nodeIdMap.clear();
@@ -237,7 +262,9 @@ class PredicateDataExtractor extends CfeDataExtractor<Features> {
 
   @override
   ActualData<Features>? mergeData(
-      ActualData<Features> value1, ActualData<Features> value2) {
+    ActualData<Features> value1,
+    ActualData<Features> value2,
+  ) {
     if ('${value1.value}' == '${value2.value}') {
       // The extension this parameter is seen twice in the extension method
       // and the corresponding tearoff. The features are identical, though, so

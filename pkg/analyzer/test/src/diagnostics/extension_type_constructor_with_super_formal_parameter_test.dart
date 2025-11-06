@@ -25,8 +25,7 @@ extension type E(int it) {
 ''',
       [
         error(
-          CompileTimeErrorCode
-              .EXTENSION_TYPE_CONSTRUCTOR_WITH_SUPER_FORMAL_PARAMETER,
+          CompileTimeErrorCode.extensionTypeConstructorWithSuperFormalParameter,
           47,
           5,
         ),
@@ -42,7 +41,8 @@ FormalParameterList
     period: .
     name: it
     declaredElement: <testLibraryFragment> it@42
-      type: int
+      element: hasImplicitType isFinal isPublic
+        type: int
   leftDelimiter: {
   parameter: DefaultFormalParameter
     parameter: SuperFormalParameter
@@ -50,9 +50,11 @@ FormalParameterList
       period: .
       name: foo
       declaredElement: <testLibraryFragment> foo@53
-        type: dynamic
+        element: hasImplicitType isFinal isPublic
+          type: dynamic
     declaredElement: <testLibraryFragment> foo@53
-      type: dynamic
+      element: hasImplicitType isFinal isPublic
+        type: dynamic
   rightDelimiter: }
   rightParenthesis: )
 ''');
@@ -67,8 +69,7 @@ extension type E(int it) {
 ''',
       [
         error(
-          CompileTimeErrorCode
-              .EXTENSION_TYPE_CONSTRUCTOR_WITH_SUPER_FORMAL_PARAMETER,
+          CompileTimeErrorCode.extensionTypeConstructorWithSuperFormalParameter,
           46,
           5,
         ),
@@ -84,13 +85,15 @@ FormalParameterList
     period: .
     name: it
     declaredElement: <testLibraryFragment> it@42
-      type: int
+      element: hasImplicitType isFinal isPublic
+        type: int
   parameter: SuperFormalParameter
     superKeyword: super
     period: .
     name: foo
     declaredElement: <testLibraryFragment> foo@52
-      type: dynamic
+      element: hasImplicitType isFinal isPublic
+        type: dynamic
   rightParenthesis: )
 ''');
   }

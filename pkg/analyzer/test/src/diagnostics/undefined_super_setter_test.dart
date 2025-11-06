@@ -25,7 +25,7 @@ class B extends A {
   }
 }
 ''',
-      [error(CompileTimeErrorCode.UNDEFINED_SUPER_SETTER, 49, 1)],
+      [error(CompileTimeErrorCode.undefinedSuperSetter, 49, 1)],
     );
   }
 
@@ -39,7 +39,7 @@ enum E {
   }
 }
 ''',
-      [error(CompileTimeErrorCode.UNDEFINED_SUPER_SETTER, 37, 3)],
+      [error(CompileTimeErrorCode.undefinedSuperSetter, 37, 3)],
     );
   }
 

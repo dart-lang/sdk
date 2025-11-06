@@ -62,7 +62,7 @@ int b = a;
 
     // `strict-cast: true`, so has errors.
     assertErrorsInList(await _computeTestFileDiagnostics(), [
-      error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 23, 1),
+      error(CompileTimeErrorCode.invalidAssignment, 23, 1),
     ]);
   }
 
@@ -220,7 +220,7 @@ import 'a.dart';
     // from the `LibraryReader` current at the moment of `exportNamespace`
     // access, not necessary the same that created this instance.
     var aResult = await driver.getLibraryByUri('package:test/a.dart');
-    var aElement = (aResult as LibraryElementResult).element2;
+    var aElement = (aResult as LibraryElementResult).element;
 
     // The element is valid at this point.
     expect(driver.isValidLibraryElement(aElement), isTrue);
@@ -345,11 +345,10 @@ void f() {
   }
 
   void _assertHasLintReported(List<Diagnostic> diagnostics, String name) {
-    var matching =
-        diagnostics.where((element) {
-          var diagnosticCode = element.diagnosticCode;
-          return diagnosticCode is LintCode && diagnosticCode.name == name;
-        }).toList();
+    var matching = diagnostics.where((element) {
+      var diagnosticCode = element.diagnosticCode;
+      return diagnosticCode is LintCode && diagnosticCode.name == name;
+    }).toList();
     expect(matching, hasLength(1));
   }
 

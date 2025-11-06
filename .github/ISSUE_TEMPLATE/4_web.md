@@ -1,9 +1,8 @@
 ---
 name: Report an issue related to Dart web.
 about: >-
-  Create a bug or file a feature request related to Dart web (including the web
-  compilers, web libraries, and JS interop).
-labels: area-web
+  Create a bug or file a feature request related to JavaScript support for Dart Web (including DDC, dart2js, and JS interop).
+labels: area-web-js
 ---
 
 If this is a bug report, please help us by providing:

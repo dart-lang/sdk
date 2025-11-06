@@ -3,11 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:_fe_analyzer_shared/src/messages/codes.dart'
-    show
-        Code,
-        Message,
-        codeAssertAsExpression,
-        codeSetOrMapLiteralTooManyTypeArguments;
+    show Code, Message, PseudoSharedCode;
 import 'package:analyzer/dart/ast/token.dart' show Token;
 import 'package:analyzer/diagnostic/diagnostic.dart';
 import 'package:analyzer/error/error.dart';
@@ -26,7 +22,7 @@ class FastaErrorReporter {
   FastaErrorReporter(this.diagnosticReporter);
 
   void reportByCode(
-    String? analyzerCode,
+    PseudoSharedCode? pseudoSharedCode,
     int offset,
     int length,
     Message message,
@@ -35,530 +31,353 @@ class FastaErrorReporter {
 
     String lexeme() => (arguments['lexeme'] as Token).lexeme;
 
-    switch (analyzerCode) {
-      case "ASYNC_FOR_IN_WRONG_CONTEXT":
+    switch (pseudoSharedCode) {
+      case PseudoSharedCode.asyncForInWrongContext:
         diagnosticReporter?.atOffset(
           offset: offset,
           length: length,
-          diagnosticCode: CompileTimeErrorCode.ASYNC_FOR_IN_WRONG_CONTEXT,
+          diagnosticCode: CompileTimeErrorCode.asyncForInWrongContext,
         );
         return;
-      case "ASYNC_KEYWORD_USED_AS_IDENTIFIER":
+      case PseudoSharedCode.asyncKeywordUsedAsIdentifier:
         diagnosticReporter?.atOffset(
           offset: offset,
           length: length,
-          diagnosticCode: ParserErrorCode.ASYNC_KEYWORD_USED_AS_IDENTIFIER,
+          diagnosticCode: ParserErrorCode.asyncKeywordUsedAsIdentifier,
         );
         return;
-      case "AWAIT_IN_WRONG_CONTEXT":
+      case PseudoSharedCode.awaitInWrongContext:
         diagnosticReporter?.atOffset(
           offset: offset,
           length: length,
-          diagnosticCode: CompileTimeErrorCode.AWAIT_IN_WRONG_CONTEXT,
+          diagnosticCode: CompileTimeErrorCode.awaitInWrongContext,
         );
         return;
-      case "BUILT_IN_IDENTIFIER_AS_TYPE":
+      case PseudoSharedCode.builtInIdentifierAsType:
         diagnosticReporter?.atOffset(
           offset: offset,
           length: length,
-          diagnosticCode: CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE,
+          diagnosticCode: CompileTimeErrorCode.builtInIdentifierAsType,
           arguments: [lexeme()],
         );
         return;
-      case "CONCRETE_CLASS_WITH_ABSTRACT_MEMBER":
+      case PseudoSharedCode.constConstructorWithBody:
         diagnosticReporter?.atOffset(
           offset: offset,
           length: length,
-          diagnosticCode:
-              CompileTimeErrorCode.CONCRETE_CLASS_WITH_ABSTRACT_MEMBER,
+          diagnosticCode: ParserErrorCode.constConstructorWithBody,
         );
         return;
-      case "CONST_CONSTRUCTOR_WITH_BODY":
-        diagnosticReporter?.atOffset(
-          offset: offset,
-          length: length,
-          diagnosticCode: ParserErrorCode.CONST_CONSTRUCTOR_WITH_BODY,
-        );
-        return;
-      case "CONST_NOT_INITIALIZED":
+      case PseudoSharedCode.constNotInitialized:
         var name = arguments['name'] as String;
         diagnosticReporter?.atOffset(
           offset: offset,
           length: length,
-          diagnosticCode: CompileTimeErrorCode.CONST_NOT_INITIALIZED,
+          diagnosticCode: CompileTimeErrorCode.constNotInitialized,
           arguments: [name],
         );
         return;
-      case "DEFAULT_VALUE_IN_FUNCTION_TYPE":
+      case PseudoSharedCode.defaultValueInFunctionType:
         diagnosticReporter?.atOffset(
           offset: offset,
           length: length,
-          diagnosticCode: ParserErrorCode.DEFAULT_VALUE_IN_FUNCTION_TYPE,
+          diagnosticCode: ParserErrorCode.defaultValueInFunctionType,
         );
         return;
-      case "LABEL_UNDEFINED":
+      case PseudoSharedCode.expectedClassMember:
         diagnosticReporter?.atOffset(
           offset: offset,
           length: length,
-          diagnosticCode: CompileTimeErrorCode.LABEL_UNDEFINED,
-          arguments: [arguments['name'] as Object],
+          diagnosticCode: ParserErrorCode.expectedClassMember,
         );
         return;
-      case "EMPTY_ENUM_BODY":
+      case PseudoSharedCode.expectedExecutable:
         diagnosticReporter?.atOffset(
           offset: offset,
           length: length,
-          diagnosticCode: ParserErrorCode.EMPTY_ENUM_BODY,
+          diagnosticCode: ParserErrorCode.expectedExecutable,
         );
         return;
-      case "EXPECTED_CLASS_MEMBER":
+      case PseudoSharedCode.expectedStringLiteral:
         diagnosticReporter?.atOffset(
           offset: offset,
           length: length,
-          diagnosticCode: ParserErrorCode.EXPECTED_CLASS_MEMBER,
+          diagnosticCode: ParserErrorCode.expectedStringLiteral,
         );
         return;
-      case "EXPECTED_EXECUTABLE":
+      case PseudoSharedCode.expectedToken:
         diagnosticReporter?.atOffset(
           offset: offset,
           length: length,
-          diagnosticCode: ParserErrorCode.EXPECTED_EXECUTABLE,
-        );
-        return;
-      case "EXPECTED_STRING_LITERAL":
-        diagnosticReporter?.atOffset(
-          offset: offset,
-          length: length,
-          diagnosticCode: ParserErrorCode.EXPECTED_STRING_LITERAL,
-        );
-        return;
-      case "EXPECTED_TOKEN":
-        diagnosticReporter?.atOffset(
-          offset: offset,
-          length: length,
-          diagnosticCode: ParserErrorCode.EXPECTED_TOKEN,
+          diagnosticCode: ParserErrorCode.expectedToken,
           arguments: [arguments['string'] as Object],
         );
         return;
-      case "EXPECTED_TYPE_NAME":
+      case PseudoSharedCode.expectedTypeName:
         diagnosticReporter?.atOffset(
           offset: offset,
           length: length,
-          diagnosticCode: ParserErrorCode.EXPECTED_TYPE_NAME,
+          diagnosticCode: ParserErrorCode.expectedTypeName,
         );
         return;
-      case "EXTENSION_DECLARES_INSTANCE_FIELD":
+      case PseudoSharedCode.extensionDeclaresInstanceField:
         // Reported by
         // [ErrorVerifier._checkForExtensionDeclaresInstanceField]
         return;
-      case "FIELD_INITIALIZER_REDIRECTING_CONSTRUCTOR":
-        diagnosticReporter?.atOffset(
-          offset: offset,
-          length: length,
-          diagnosticCode:
-              CompileTimeErrorCode.FIELD_INITIALIZER_REDIRECTING_CONSTRUCTOR,
-        );
-        return;
-      case "FINAL_NOT_INITIALIZED":
+      case PseudoSharedCode.finalNotInitialized:
         var name = arguments['name'] as String;
         diagnosticReporter?.atOffset(
           offset: offset,
           length: length,
-          diagnosticCode: CompileTimeErrorCode.FINAL_NOT_INITIALIZED,
+          diagnosticCode: CompileTimeErrorCode.finalNotInitialized,
           arguments: [name],
         );
         return;
-      case "FINAL_NOT_INITIALIZED_CONSTRUCTOR_1":
-        var name = arguments['name'] as String;
+      case PseudoSharedCode.getterWithParameters:
         diagnosticReporter?.atOffset(
           offset: offset,
           length: length,
-          diagnosticCode:
-              CompileTimeErrorCode.FINAL_NOT_INITIALIZED_CONSTRUCTOR_1,
-          arguments: [name],
+          diagnosticCode: ParserErrorCode.getterWithParameters,
         );
         return;
-      case "GETTER_WITH_PARAMETERS":
+      case PseudoSharedCode.illegalCharacter:
         diagnosticReporter?.atOffset(
           offset: offset,
           length: length,
-          diagnosticCode: ParserErrorCode.GETTER_WITH_PARAMETERS,
+          diagnosticCode: ScannerErrorCode.illegalCharacter,
         );
         return;
-      case "ILLEGAL_CHARACTER":
+      case PseudoSharedCode.invalidInlineFunctionType:
         diagnosticReporter?.atOffset(
           offset: offset,
           length: length,
-          diagnosticCode: ScannerErrorCode.ILLEGAL_CHARACTER,
+          diagnosticCode: CompileTimeErrorCode.invalidInlineFunctionType,
         );
         return;
-      case "INVALID_ASSIGNMENT":
-        var type1 = arguments['type'] as Object;
-        var type2 = arguments['type2'] as Object;
+      case PseudoSharedCode.invalidLiteralInConfiguration:
         diagnosticReporter?.atOffset(
           offset: offset,
           length: length,
-          diagnosticCode: CompileTimeErrorCode.INVALID_ASSIGNMENT,
-          arguments: [type1, type2],
+          diagnosticCode: ParserErrorCode.invalidLiteralInConfiguration,
         );
         return;
-      case "INVALID_INLINE_FUNCTION_TYPE":
+      case PseudoSharedCode.invalidCodePoint:
         diagnosticReporter?.atOffset(
           offset: offset,
           length: length,
-          diagnosticCode: CompileTimeErrorCode.INVALID_INLINE_FUNCTION_TYPE,
-        );
-        return;
-      case "INVALID_LITERAL_IN_CONFIGURATION":
-        diagnosticReporter?.atOffset(
-          offset: offset,
-          length: length,
-          diagnosticCode: ParserErrorCode.INVALID_LITERAL_IN_CONFIGURATION,
-        );
-        return;
-      case "IMPORT_OF_NON_LIBRARY":
-        diagnosticReporter?.atOffset(
-          offset: offset,
-          length: length,
-          diagnosticCode: CompileTimeErrorCode.IMPORT_OF_NON_LIBRARY,
-        );
-        return;
-      case "INVALID_CAST_FUNCTION":
-        diagnosticReporter?.atOffset(
-          offset: offset,
-          length: length,
-          diagnosticCode: CompileTimeErrorCode.INVALID_CAST_FUNCTION,
-        );
-        return;
-      case "INVALID_CAST_FUNCTION_EXPR":
-        diagnosticReporter?.atOffset(
-          offset: offset,
-          length: length,
-          diagnosticCode: CompileTimeErrorCode.INVALID_CAST_FUNCTION_EXPR,
-        );
-        return;
-      case "INVALID_CAST_LITERAL_LIST":
-        diagnosticReporter?.atOffset(
-          offset: offset,
-          length: length,
-          diagnosticCode: CompileTimeErrorCode.INVALID_CAST_LITERAL_LIST,
-        );
-        return;
-      case "INVALID_CAST_LITERAL_MAP":
-        diagnosticReporter?.atOffset(
-          offset: offset,
-          length: length,
-          diagnosticCode: CompileTimeErrorCode.INVALID_CAST_LITERAL_MAP,
-        );
-        return;
-      case "INVALID_CAST_LITERAL_SET":
-        diagnosticReporter?.atOffset(
-          offset: offset,
-          length: length,
-          diagnosticCode: CompileTimeErrorCode.INVALID_CAST_LITERAL_SET,
-        );
-        return;
-      case "INVALID_CAST_METHOD":
-        diagnosticReporter?.atOffset(
-          offset: offset,
-          length: length,
-          diagnosticCode: CompileTimeErrorCode.INVALID_CAST_METHOD,
-        );
-        return;
-      case "INVALID_CAST_NEW_EXPR":
-        diagnosticReporter?.atOffset(
-          offset: offset,
-          length: length,
-          diagnosticCode: CompileTimeErrorCode.INVALID_CAST_NEW_EXPR,
-        );
-        return;
-      case "INVALID_CODE_POINT":
-        diagnosticReporter?.atOffset(
-          offset: offset,
-          length: length,
-          diagnosticCode: ParserErrorCode.INVALID_CODE_POINT,
+          diagnosticCode: ParserErrorCode.invalidCodePoint,
           arguments: ['\\u{...}'],
         );
         return;
-      case "INVALID_GENERIC_FUNCTION_TYPE":
-        diagnosticReporter?.atOffset(
-          offset: offset,
-          length: length,
-          diagnosticCode: ParserErrorCode.INVALID_GENERIC_FUNCTION_TYPE,
-        );
-        return;
-      case "INVALID_METHOD_OVERRIDE":
-        diagnosticReporter?.atOffset(
-          offset: offset,
-          length: length,
-          diagnosticCode: CompileTimeErrorCode.INVALID_OVERRIDE,
-        );
-        return;
-      case "INVALID_MODIFIER_ON_SETTER":
+      case PseudoSharedCode.invalidModifierOnSetter:
         _reportByCode(
           offset: offset,
           length: length,
-          code: CompileTimeErrorCode.INVALID_MODIFIER_ON_SETTER,
+          code: CompileTimeErrorCode.invalidModifierOnSetter,
           message: message,
         );
         return;
-      case "INVALID_OPERATOR_FOR_SUPER":
-        _reportByCode(
-          offset: offset,
-          length: length,
-          code: ParserErrorCode.INVALID_OPERATOR_FOR_SUPER,
-          message: message,
-        );
-        return;
-      case "MISSING_DIGIT":
+      case PseudoSharedCode.missingDigit:
         diagnosticReporter?.atOffset(
-          diagnosticCode: ScannerErrorCode.MISSING_DIGIT,
+          diagnosticCode: ScannerErrorCode.missingDigit,
           offset: offset,
           length: length,
         );
         return;
-      case "MISSING_ENUM_BODY":
+      case PseudoSharedCode.missingEnumBody:
         diagnosticReporter?.atOffset(
           offset: offset,
           length: length,
-          diagnosticCode: ParserErrorCode.MISSING_ENUM_BODY,
+          diagnosticCode: ParserErrorCode.missingEnumBody,
         );
         return;
-      case "MISSING_FUNCTION_BODY":
+      case PseudoSharedCode.missingFunctionBody:
         diagnosticReporter?.atOffset(
           offset: offset,
           length: length,
-          diagnosticCode: ParserErrorCode.MISSING_FUNCTION_BODY,
+          diagnosticCode: ParserErrorCode.missingFunctionBody,
         );
         return;
-      case "MISSING_FUNCTION_PARAMETERS":
+      case PseudoSharedCode.missingFunctionParameters:
         diagnosticReporter?.atOffset(
           offset: offset,
           length: length,
-          diagnosticCode: ParserErrorCode.MISSING_FUNCTION_PARAMETERS,
+          diagnosticCode: ParserErrorCode.missingFunctionParameters,
         );
         return;
-      case "MISSING_HEX_DIGIT":
+      case PseudoSharedCode.missingHexDigit:
         diagnosticReporter?.atOffset(
           offset: offset,
           length: length,
-          diagnosticCode: ScannerErrorCode.MISSING_HEX_DIGIT,
+          diagnosticCode: ScannerErrorCode.missingHexDigit,
         );
         return;
-      case "MISSING_IDENTIFIER":
+      case PseudoSharedCode.missingIdentifier:
         diagnosticReporter?.atOffset(
           offset: offset,
           length: length,
-          diagnosticCode: ParserErrorCode.MISSING_IDENTIFIER,
+          diagnosticCode: ParserErrorCode.missingIdentifier,
         );
         return;
-      case "MISSING_METHOD_PARAMETERS":
+      case PseudoSharedCode.missingMethodParameters:
         diagnosticReporter?.atOffset(
           offset: offset,
           length: length,
-          diagnosticCode: ParserErrorCode.MISSING_METHOD_PARAMETERS,
+          diagnosticCode: ParserErrorCode.missingMethodParameters,
         );
         return;
-      case "MISSING_STAR_AFTER_SYNC":
+      case PseudoSharedCode.missingStarAfterSync:
         diagnosticReporter?.atOffset(
           offset: offset,
           length: length,
-          diagnosticCode: ParserErrorCode.MISSING_STAR_AFTER_SYNC,
+          diagnosticCode: ParserErrorCode.missingStarAfterSync,
         );
         return;
-      case "MISSING_TYPEDEF_PARAMETERS":
+      case PseudoSharedCode.missingTypedefParameters:
         diagnosticReporter?.atOffset(
           offset: offset,
           length: length,
-          diagnosticCode: ParserErrorCode.MISSING_TYPEDEF_PARAMETERS,
+          diagnosticCode: ParserErrorCode.missingTypedefParameters,
         );
         return;
-      case "MULTIPLE_IMPLEMENTS_CLAUSES":
+      case PseudoSharedCode.multipleImplementsClauses:
         diagnosticReporter?.atOffset(
           offset: offset,
           length: length,
-          diagnosticCode: ParserErrorCode.MULTIPLE_IMPLEMENTS_CLAUSES,
+          diagnosticCode: ParserErrorCode.multipleImplementsClauses,
         );
         return;
-      case "NAMED_FUNCTION_EXPRESSION":
+      case PseudoSharedCode.namedFunctionExpression:
         diagnosticReporter?.atOffset(
           offset: offset,
           length: length,
-          diagnosticCode: ParserErrorCode.NAMED_FUNCTION_EXPRESSION,
+          diagnosticCode: ParserErrorCode.namedFunctionExpression,
         );
         return;
-      case "NAMED_PARAMETER_OUTSIDE_GROUP":
+      case PseudoSharedCode.namedParameterOutsideGroup:
         diagnosticReporter?.atOffset(
           offset: offset,
           length: length,
-          diagnosticCode: ParserErrorCode.NAMED_PARAMETER_OUTSIDE_GROUP,
+          diagnosticCode: ParserErrorCode.namedParameterOutsideGroup,
         );
         return;
-      case "NON_PART_OF_DIRECTIVE_IN_PART":
+      case PseudoSharedCode.nonPartOfDirectiveInPart:
         diagnosticReporter?.atOffset(
           offset: offset,
           length: length,
-          diagnosticCode: ParserErrorCode.NON_PART_OF_DIRECTIVE_IN_PART,
+          diagnosticCode: ParserErrorCode.nonPartOfDirectiveInPart,
         );
         return;
-      case "NON_SYNC_FACTORY":
+      case PseudoSharedCode.nonSyncFactory:
         diagnosticReporter?.atOffset(
           offset: offset,
           length: length,
-          diagnosticCode: CompileTimeErrorCode.NON_SYNC_FACTORY,
+          diagnosticCode: CompileTimeErrorCode.nonSyncFactory,
         );
         return;
-      case "POSITIONAL_AFTER_NAMED_ARGUMENT":
+      case PseudoSharedCode.positionalAfterNamedArgument:
         diagnosticReporter?.atOffset(
           offset: offset,
           length: length,
-          diagnosticCode: ParserErrorCode.POSITIONAL_AFTER_NAMED_ARGUMENT,
+          diagnosticCode: ParserErrorCode.positionalAfterNamedArgument,
         );
         return;
-      case "RECURSIVE_CONSTRUCTOR_REDIRECT":
+      case PseudoSharedCode.returnInGenerator:
         diagnosticReporter?.atOffset(
           offset: offset,
           length: length,
-          diagnosticCode: CompileTimeErrorCode.RECURSIVE_CONSTRUCTOR_REDIRECT,
+          diagnosticCode: CompileTimeErrorCode.returnInGenerator,
         );
         return;
-      case "RETURN_IN_GENERATOR":
+      case PseudoSharedCode.unexpectedDollarInString:
         diagnosticReporter?.atOffset(
           offset: offset,
           length: length,
-          diagnosticCode: CompileTimeErrorCode.RETURN_IN_GENERATOR,
+          diagnosticCode: ScannerErrorCode.unexpectedDollarInString,
         );
         return;
-      case "SUPER_INVOCATION_NOT_LAST":
+      case PseudoSharedCode.unexpectedToken:
         diagnosticReporter?.atOffset(
           offset: offset,
           length: length,
-          diagnosticCode: CompileTimeErrorCode.SUPER_INVOCATION_NOT_LAST,
-        );
-        return;
-      case "SUPER_IN_REDIRECTING_CONSTRUCTOR":
-        diagnosticReporter?.atOffset(
-          offset: offset,
-          length: length,
-          diagnosticCode: CompileTimeErrorCode.SUPER_IN_REDIRECTING_CONSTRUCTOR,
-        );
-        return;
-      case "UNDEFINED_CLASS":
-        diagnosticReporter?.atOffset(
-          offset: offset,
-          length: length,
-          diagnosticCode: CompileTimeErrorCode.UNDEFINED_CLASS,
-        );
-        return;
-      case "UNDEFINED_GETTER":
-        diagnosticReporter?.atOffset(
-          offset: offset,
-          length: length,
-          diagnosticCode: CompileTimeErrorCode.UNDEFINED_GETTER,
-        );
-        return;
-      case "UNDEFINED_METHOD":
-        diagnosticReporter?.atOffset(
-          offset: offset,
-          length: length,
-          diagnosticCode: CompileTimeErrorCode.UNDEFINED_METHOD,
-        );
-        return;
-      case "UNDEFINED_SETTER":
-        diagnosticReporter?.atOffset(
-          offset: offset,
-          length: length,
-          diagnosticCode: CompileTimeErrorCode.UNDEFINED_SETTER,
-        );
-        return;
-      case "UNEXPECTED_DOLLAR_IN_STRING":
-        diagnosticReporter?.atOffset(
-          offset: offset,
-          length: length,
-          diagnosticCode: ScannerErrorCode.UNEXPECTED_DOLLAR_IN_STRING,
-        );
-        return;
-      case "UNEXPECTED_TOKEN":
-        diagnosticReporter?.atOffset(
-          offset: offset,
-          length: length,
-          diagnosticCode: ParserErrorCode.UNEXPECTED_TOKEN,
+          diagnosticCode: ParserErrorCode.unexpectedToken,
           arguments: [lexeme()],
         );
         return;
-      case "UNTERMINATED_MULTI_LINE_COMMENT":
+      case PseudoSharedCode.unterminatedMultiLineComment:
         diagnosticReporter?.atOffset(
           offset: offset,
           length: length,
-          diagnosticCode: ScannerErrorCode.UNTERMINATED_MULTI_LINE_COMMENT,
+          diagnosticCode: ScannerErrorCode.unterminatedMultiLineComment,
         );
         return;
-      case "UNTERMINATED_STRING_LITERAL":
+      case PseudoSharedCode.unterminatedStringLiteral:
         diagnosticReporter?.atOffset(
           offset: offset,
           length: length,
-          diagnosticCode: ScannerErrorCode.UNTERMINATED_STRING_LITERAL,
+          diagnosticCode: ScannerErrorCode.unterminatedStringLiteral,
         );
         return;
-      case "WRONG_NUMBER_OF_PARAMETERS_FOR_SETTER":
+      case PseudoSharedCode.wrongSeparatorForPositionalParameter:
         diagnosticReporter?.atOffset(
           offset: offset,
           length: length,
-          diagnosticCode:
-              CompileTimeErrorCode.WRONG_NUMBER_OF_PARAMETERS_FOR_SETTER,
+          diagnosticCode: ParserErrorCode.wrongSeparatorForPositionalParameter,
         );
         return;
-      case "WRONG_SEPARATOR_FOR_POSITIONAL_PARAMETER":
-        diagnosticReporter?.atOffset(
-          offset: offset,
-          length: length,
-          diagnosticCode:
-              ParserErrorCode.WRONG_SEPARATOR_FOR_POSITIONAL_PARAMETER,
-        );
-        return;
-      case "YIELD_IN_NON_GENERATOR":
+      case PseudoSharedCode.yieldInNonGenerator:
         // Reported by [YieldStatementResolver._resolve_notGenerator]
         return;
-      case "BUILT_IN_IDENTIFIER_IN_DECLARATION":
+      case PseudoSharedCode.builtInIdentifierInDeclaration:
         // Reported by [ErrorVerifier._checkForBuiltInIdentifierAsName].
         return;
-      case "PRIVATE_OPTIONAL_PARAMETER":
+      case PseudoSharedCode.privateOptionalParameter:
         // Reported by [ErrorVerifier._checkForPrivateOptionalParameter].
         return;
-      case "NON_SYNC_ABSTRACT_METHOD":
+      case PseudoSharedCode.nonSyncAbstractMethod:
         // Not reported but followed by a MISSING_FUNCTION_BODY error.
         return;
-      case "ABSTRACT_EXTENSION_FIELD":
+      case PseudoSharedCode.abstractExtensionField:
         // Not reported but followed by a
         // CompileTimeErrorCode.EXTENSION_DECLARES_INSTANCE_FIELD.
         return;
-      case "EXTENSION_TYPE_WITH_ABSTRACT_MEMBER":
+      case PseudoSharedCode.extensionTypeWithAbstractMember:
         // Reported by [ErrorVerifier._checkForExtensionTypeWithAbstractMember].
         return;
-      case "EXTENSION_TYPE_DECLARES_INSTANCE_FIELD":
+      case PseudoSharedCode.extensionTypeDeclaresInstanceField:
         // Reported by
         // [ErrorVerifier._checkForExtensionTypeDeclaresInstanceField]
         return;
+      case PseudoSharedCode.encoding:
+      case PseudoSharedCode.unexpectedSeparatorInNumber:
+      case PseudoSharedCode.unsupportedOperator:
+        // This is handled by `translateErrorToken` in
+        // `package:_fe_analyzer_shared/src/scanner/errors.dart`.
+        assert(false, 'Should be handled by translateErrorToken');
+        return;
+      case PseudoSharedCode.setOrMapLiteralTooManyTypeArguments:
+        // Reported as EXPECTED_TWO_MAP_TYPE_ARGUMENTS in
+        // [TypeArgumentsVerifier.checkMapLiteral].
+        return;
+      case PseudoSharedCode.assertAsExpression:
+        // Reported as UNDEFINED_IDENTIFIER in
+        // [SimpleIdentifierResolver._resolve1],
+        // followed by an EXPECTED_IDENTIFIER_BUT_GOT_KEYWORD error,
+        // or followed by an EXPECTED_TOKEN error as seen in
+        // `language/constructor/explicit_instantiation_syntax_test`
+        // TODO(srawlins): See below
+        // TODO(johnniwinther): How can we be sure that no other
+        // cases exists?
+        return;
+      case PseudoSharedCode.fastaCliArgumentRequired:
+      case PseudoSharedCode.internalProblemStackNotEmpty:
+      case PseudoSharedCode.internalProblemUnhandled:
+      case PseudoSharedCode.internalProblemUnsupported:
+      case PseudoSharedCode.unspecified:
       case null:
-        switch (message.code) {
-          case codeAssertAsExpression:
-            // Reported as UNDEFINED_IDENTIFIER in
-            // [SimpleIdentifierResolver._resolve1],
-            // followed by an EXPECTED_IDENTIFIER_BUT_GOT_KEYWORD error,
-            // or followed by an EXPECTED_TOKEN error as seen in
-            // `language/constructor/explicit_instantiation_syntax_test`
-            // TODO(srawlins): See below
-            // TODO(johnniwinther): How can we be sure that no other
-            // cases exists?
-            return;
-          case codeSetOrMapLiteralTooManyTypeArguments:
-            // Reported as EXPECTED_TWO_MAP_TYPE_ARGUMENTS in
-            // [TypeArgumentsVerifier.checkMapLiteral].
-            return;
-          default:
-        }
+        break;
     }
-    assert(false, "Unreported message $analyzerCode.");
+    assert(false, "Unreported message $pseudoSharedCode.");
   }
 
   /// Report an error based on the given [message] whose range is described by
@@ -581,7 +400,7 @@ class FastaErrorReporter {
         return;
       }
     }
-    reportByCode(code.analyzerCodes?.first, offset, length, message);
+    reportByCode(code.pseudoSharedCode, offset, length, message);
   }
 
   void reportScannerError(

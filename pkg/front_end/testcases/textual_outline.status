@@ -22,7 +22,9 @@ general/invalid_operator: FormatterCrash
 general/invalid_super_initializer: FormatterCrash
 general/issue45700.crash: FormatterCrash
 general/issue48919: FormatterCrash
-nnbd_mixed/issue41597: FormatterCrash
+inference/property_set_bad_setter: FormatterCrash
+nnbd/instance_duplicates: FormatterCrash
+regress/erroneous_setter: FormatterCrash
 regress/issue_30994: FormatterCrash
 regress/issue_31198: FormatterCrash
 super_parameters/var_before_super: FormatterCrash
@@ -61,8 +63,3 @@ regress/issue_34850: UnknownChunk # Test has parser errors
 coverage/external_test: FormatterCrash
 coverage/operator_unsupported_test: EmptyOutput
 coverage/syntax_get_set_syntax_test: UnknownChunk
-
-null_aware_elements/constant_collections: FormatterCrash
-null_aware_elements/constant_null_aware_map_entry_shorting: FormatterCrash
-null_aware_elements/constant_null_aware_map_entry_shorting_erroneous: FormatterCrash
-null_aware_elements/simple_positive: FormatterCrash

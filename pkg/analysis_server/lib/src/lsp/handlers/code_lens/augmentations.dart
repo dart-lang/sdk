@@ -77,7 +77,7 @@ class AugmentationCodeLensProvider extends AbstractCodeLensProvider {
         title,
         targetFragment,
       );
-      var nameOffset = thisFragment.nameOffset2;
+      var nameOffset = thisFragment.nameOffset;
       var nameLength = thisFragment.element.displayName.length;
       if (command != null && nameOffset != null) {
         var range = toRange(result.lineInfo, nameOffset, nameLength);

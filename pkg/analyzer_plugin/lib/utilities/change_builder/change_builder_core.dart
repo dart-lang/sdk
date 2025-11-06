@@ -21,15 +21,25 @@ abstract class ChangeBuilder {
   /// If the builder is used to create changes for Dart files, then either a
   /// [session] or a [workspace] must be provided (but not both).
   ///
-  /// Note that omitting [eol], the EOL sequence to use, can result in
-  /// inconsistent EOL sequences being added to files.
-  // TODO(srawlins): Should `eol` be required? Each `DartFileEditBuilderImpl`
-  //  has a `ResolvedUnitResult` that can be relied on to detect the existing
-  //  EOL sequences, so could `eol` be removed? (dantup: but non-Dart builders?)
-  factory ChangeBuilder(
-      {AnalysisSession session,
-      ChangeWorkspace workspace,
-      String eol}) = ChangeBuilderImpl;
+  /// [defaultEol] is the default EOL to be used for new files and files that do
+  /// not have EOLs. Existing files with EOL markers will always have the same
+  /// EOL in inserted text. If not specified, Platform.lineTerminator will be
+  /// used.
+  factory ChangeBuilder({
+    AnalysisSession session,
+    ChangeWorkspace workspace,
+    @Deprecated(
+      'Use defaultEol instead, as this is only a '
+      'default for files without existing EOLs',
+    )
+    String? eol,
+    String? defaultEol,
+  }) = ChangeBuilderImpl;
+
+  /// The default EOL to be used for new files and files that do not have EOLs.
+  /// Existing files with EOL markers will always have the same EOL in inserted
+  /// text. If not specified, Platform.lineTerminator will be used.
+  String get defaultEol;
 
   /// Return the range of the selection for the change being built, or `null` if
   /// there is no selection.
@@ -49,11 +59,13 @@ abstract class ChangeBuilder {
   ///
   /// Setting [createEditsForImports] to `false` will prevent edits being
   /// produced to add `import` statements for any unimported types.
-  Future<void> addDartFileEdit(String path,
-      FutureOr<void> Function(DartFileEditBuilder builder) buildFileEdit,
-      {@Deprecated('No longer supported')
-      ImportPrefixGenerator importPrefixGenerator,
-      bool createEditsForImports = true});
+  Future<void> addDartFileEdit(
+    String path,
+    FutureOr<void> Function(DartFileEditBuilder builder) buildFileEdit, {
+    @Deprecated('No longer supported')
+    ImportPrefixGenerator importPrefixGenerator,
+    bool createEditsForImports = true,
+  });
 
   /// Use the [buildFileEdit] function to create a collection of edits to the
   /// file with the given [path]. The edits will be added to the source change
@@ -62,7 +74,9 @@ abstract class ChangeBuilder {
   /// The builder passed to the [buildFileEdit] function has no special support
   /// for any particular kind of file.
   Future<void> addGenericFileEdit(
-      String path, void Function(FileEditBuilder builder) buildFileEdit);
+    String path,
+    void Function(FileEditBuilder builder) buildFileEdit,
+  );
 
   /// Use the [buildFileEdit] function to create a collection of edits to the
   /// file with the given [path]. The edits will be added to the source change
@@ -71,12 +85,16 @@ abstract class ChangeBuilder {
   /// The builder passed to the [buildFileEdit] function has additional support
   /// for working with YAML source files.
   Future<void> addYamlFileEdit(
-      String path, void Function(YamlFileEditBuilder builder) buildFileEdit);
+    String path,
+    void Function(YamlFileEditBuilder builder) buildFileEdit,
+  );
 
   /// Return a copy of this change builder that is constructed in such as was
   /// that changes to the copy will not effect this change builder.
-  @Deprecated('Copying change builders is expensive, so it is no longer '
-      'supported. There is no replacement.')
+  @Deprecated(
+    'Copying change builders is expensive, so it is no longer '
+    'supported. There is no replacement.',
+  )
   ChangeBuilder copy();
 
   /// Return `true` if this builder already has edits for the file with the
@@ -95,8 +113,10 @@ abstract class EditBuilder {
   /// [groupName]. The [buildLinkedEdit] function is used to write the content
   /// of the region of text and to add suggestions for other possible values for
   /// that region.
-  void addLinkedEdit(String groupName,
-      void Function(LinkedEditBuilder builder) buildLinkedEdit);
+  void addLinkedEdit(
+    String groupName,
+    void Function(LinkedEditBuilder builder) buildLinkedEdit,
+  );
 
   /// Add the given text as a linked edit group with the given [groupName]. If
   /// both a [kind] and a list of [suggestions] are provided, they will be added
@@ -104,8 +124,12 @@ abstract class EditBuilder {
   ///
   /// Throws an [ArgumentError] if either [kind] or [suggestions] are provided
   /// without the other.
-  void addSimpleLinkedEdit(String groupName, String text,
-      {LinkedEditSuggestionKind kind, List<String> suggestions});
+  void addSimpleLinkedEdit(
+    String groupName,
+    String text, {
+    LinkedEditSuggestionKind kind,
+    List<String> suggestions,
+  });
 
   /// Set the selection to cover all of the code written by the given [writer].
   void selectAll(void Function() writer);
@@ -125,6 +149,9 @@ abstract class EditBuilder {
 ///
 /// Clients may not extend, implement or mix-in this class.
 abstract class FileEditBuilder {
+  /// The end of line marker used for this file.
+  String get eol;
+
   /// Add a deletion of text specified by the given [range]. The [range] is
   /// relative to the original source. This is fully equivalent to
   ///
@@ -149,7 +176,9 @@ abstract class FileEditBuilder {
   /// relative to the original source. The [buildEdit] function is used to write
   /// the text that will replace the specified region.
   void addReplacement(
-      SourceRange range, void Function(EditBuilder builder) buildEdit);
+    SourceRange range,
+    void Function(EditBuilder builder) buildEdit,
+  );
 
   /// Add an insertion of the given [text] at the given [offset]. The [offset]
   /// is relative to the original source. This is fully equivalent to

@@ -18,16 +18,14 @@ Future<void> main(final List<String> args) async {
     throw "Set coverage path via 'CFE_COVERAGE' environment!";
   }
 
-  MyLaunchingVMServiceHelper launchingHelper =
-      new MyLaunchingVMServiceHelper(args);
-  await launchingHelper.start(
-    [
-      "--pause_isolates_on_exit",
-      "--disable-dart-dev",
-      ...args,
-    ],
-    pauseIsolateOnStart: false,
+  MyLaunchingVMServiceHelper launchingHelper = new MyLaunchingVMServiceHelper(
+    args,
   );
+  await launchingHelper.start([
+    "--pause_isolates_on_exit",
+    "--disable-dart-dev",
+    ...args,
+  ], pauseIsolateOnStart: false);
   await launchingHelper.exitCompleter.future;
 }
 
@@ -56,9 +54,13 @@ class MyLaunchingVMServiceHelper extends LaunchingVMServiceHelper {
       displayName: args.join(" "),
     );
     if (coverage != null) {
-      File f = new File.fromUri(coverageUri!.resolve("coverage_run_"
+      File f = new File.fromUri(
+        coverageUri!.resolve(
+          "coverage_run_"
           "${DateTime.now().microsecondsSinceEpoch}_"
-          "${process.pid}.coverage"));
+          "${process.pid}.coverage",
+        ),
+      );
       coverage.writeToFile(f);
     }
 

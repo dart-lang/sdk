@@ -110,20 +110,20 @@ class UseResultVerifier {
     if (message == null || message.isEmpty) {
       _diagnosticReporter.atNode(
         toAnnotate,
-        WarningCode.UNUSED_RESULT,
+        WarningCode.unusedResult,
         arguments: [displayName],
       );
     } else {
       _diagnosticReporter.atNode(
         toAnnotate,
-        WarningCode.UNUSED_RESULT_WITH_MESSAGE,
+        WarningCode.unusedResultWithMessage,
         arguments: [displayName, message],
       );
     }
   }
 
   String? _getUseResultMessage(ElementAnnotation annotation) {
-    if (annotation.element2 is GetterElement) {
+    if (annotation.element is GetterElement) {
       return null;
     }
     var constantValue = annotation.computeConstantValue();
@@ -177,20 +177,10 @@ class UseResultVerifier {
   static ElementAnnotation? _getUseResultMetadata(Element element) {
     // Implicit getters/setters.
     if (element.isSynthetic && element is PropertyAccessorElement) {
-      if (element.variable case var variable?) {
-        element = variable;
-      } else {
-        return null;
-      }
+      element = element.variable;
     }
 
-    if (element case Annotatable annotatable) {
-      return annotatable.metadata.annotations.firstWhereOrNull(
-        (e) => e.isUseResult,
-      );
-    }
-
-    return null;
+    return element.metadata.annotations.firstWhereOrNull((e) => e.isUseResult);
   }
 
   static bool _isUsed(AstNode node) {
@@ -263,6 +253,7 @@ class UseResultVerifier {
         parent is RecordLiteral ||
         parent is ReturnStatement ||
         parent is SetOrMapLiteral ||
+        parent is SwitchExpression ||
         parent is SwitchExpressionCase ||
         parent is SwitchStatement ||
         parent is ThrowExpression ||

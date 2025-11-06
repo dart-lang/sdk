@@ -274,13 +274,12 @@ class RenameHandler extends LspMessageHandler<RenameParams, WorkspaceEdit?> {
           _isClassRename(refactoring)) {
         // The rename must always be performed on the file that defines the
         // class which is not necessarily the one where the rename was invoked.
-        var declaringFile =
-            (refactoring as RenameUnitMemberRefactoringImpl)
-                .element
-                .firstFragment
-                .libraryFragment
-                ?.source
-                .fullName;
+        var declaringFile = (refactoring as RenameUnitMemberRefactoringImpl)
+            .element
+            .firstFragment
+            .libraryFragment
+            ?.source
+            .fullName;
         if (declaringFile != null) {
           var folder = pathContext.dirname(declaringFile);
           var actualFilename = pathContext.basename(declaringFile);
@@ -358,12 +357,9 @@ class RenameRegistrations extends FeatureRegistration
   Method get registrationMethod => Method.textDocument_rename;
 
   @override
-  StaticOptions get staticOptions =>
-      clientCapabilities.renameValidation
-          ? Either2<bool, RenameOptions>.t2(
-            RenameOptions(prepareProvider: true),
-          )
-          : Either2<bool, RenameOptions>.t1(true);
+  StaticOptions get staticOptions => clientCapabilities.renameValidation
+      ? Either2<bool, RenameOptions>.t2(RenameOptions(prepareProvider: true))
+      : Either2<bool, RenameOptions>.t1(true);
 
   @override
   bool get supportsDynamic => clientDynamic.rename;

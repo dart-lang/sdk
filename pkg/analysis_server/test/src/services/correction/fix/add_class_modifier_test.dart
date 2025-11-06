@@ -19,7 +19,7 @@ void main() {
 @reflectiveTest
 class AddClassModifierBaseTest extends FixProcessorTest {
   @override
-  FixKind get kind => DartFixKind.ADD_CLASS_MODIFIER_BASE;
+  FixKind get kind => DartFixKind.addClassModifierBase;
 
   Future<void> test_mixinSubtypeOfBaseIsNotBase() async {
     await resolveTestCode('''
@@ -82,7 +82,7 @@ base class B extends A {}
 @reflectiveTest
 class AddClassModifierFinalTest extends FixProcessorTest {
   @override
-  FixKind get kind => DartFixKind.ADD_CLASS_MODIFIER_FINAL;
+  FixKind get kind => DartFixKind.addClassModifierFinal;
 
   Future<void> test_subtypeOfBaseIsNotBaseFinalOrSealed() async {
     await resolveTestCode('''
@@ -110,7 +110,7 @@ final class B extends A {}
 @reflectiveTest
 class AddClassModifierSealedTest extends FixProcessorTest {
   @override
-  FixKind get kind => DartFixKind.ADD_CLASS_MODIFIER_SEALED;
+  FixKind get kind => DartFixKind.addClassModifierSealed;
 
   Future<void> test_subtypeOfBaseIsNotBaseFinalOrSealed() async {
     await resolveTestCode('''

@@ -57,7 +57,7 @@ void f(
 
     var node = findNode.singleGenericFunctionType;
     var element = node.declaredFragment!.element;
-    expect(element.enclosingElement, same(result.libraryElement2));
+    expect(element.enclosingElement, same(result.libraryElement));
   }
 
   test_metadata_typeParameter() async {
@@ -77,7 +77,7 @@ TypeParameter
         token: a
         element: <testLibrary>::@getter::a
         staticType: null
-      element2: <testLibrary>::@getter::a
+      element: <testLibrary>::@getter::a
   name: T
   declaredElement: <testLibraryFragment> T@27
     defaultType: null

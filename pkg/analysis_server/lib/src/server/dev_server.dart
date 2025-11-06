@@ -142,8 +142,9 @@ class DevAnalysisServer {
       }),
     );
 
-    directories =
-        directories.map((dir) => path.normalize(path.absolute(dir))).toList();
+    directories = directories
+        .map((dir) => path.normalize(path.absolute(dir)))
+        .toList();
 
     await _channel.simulateRequestFromClient(
       Request('${_nextId++}', 'analysis.setAnalysisRoots', {

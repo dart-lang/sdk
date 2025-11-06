@@ -10,7 +10,7 @@ import 'package:front_end/src/api_prototype/compiler_options.dart'
     show CompilerOptions;
 
 import 'package:_fe_analyzer_shared/src/messages/diagnostic_message.dart'
-    show DiagnosticMessage;
+    show CfeDiagnosticMessage;
 import 'package:front_end/src/api_prototype/incremental_kernel_generator.dart';
 
 import "package:front_end/src/api_prototype/memory_file_system.dart"
@@ -59,7 +59,7 @@ class Helper {
     options!.sdkRoot = null;
     options!.sdkSummary = sdkSummary;
     options!.omitPlatform = true;
-    options!.onDiagnostic = (DiagnosticMessage message) {
+    options!.onDiagnostic = (CfeDiagnosticMessage message) {
       diagnostics[message.severity.toString()] =
           (diagnostics[message.severity.toString()] ?? 0) + 1;
     };
@@ -68,20 +68,25 @@ class Helper {
     compiler!.invalidate(uri);
 
     try {
-      ZoneSpecification specification =
-          new ZoneSpecification(print: (_1, _2, _3, String line) {
-        // Swallow!
-      });
+      ZoneSpecification specification = new ZoneSpecification(
+        print: (_1, _2, _3, String line) {
+          // Swallow!
+        },
+      );
       await runZoned(() async {
         Stopwatch stopwatch = new Stopwatch()..start();
-        IncrementalCompilerResult result = await compiler!
-            .computeDelta(entryPoints: [uri], fullComponent: true);
+        IncrementalCompilerResult result = await compiler!.computeDelta(
+          entryPoints: [uri],
+          fullComponent: true,
+        );
         Component component = result.component;
 
         util.throwOnEmptyMixinBodies(component);
         await util.throwOnInsufficientUriToSource(component);
-        print("Compile took ${stopwatch.elapsedMilliseconds} ms. "
-            "Got $diagnostics");
+        print(
+          "Compile took ${stopwatch.elapsedMilliseconds} ms. "
+          "Got $diagnostics",
+        );
       }, zoneSpecification: specification);
       return null;
     } catch (e, st) {

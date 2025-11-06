@@ -9,16 +9,16 @@ import 'package:expect/expect.dart';
 
 import 'catch_errors.dart';
 
-main() {
+void main() {
   asyncStart();
-  Completer done = new Completer();
+  Completer done = Completer();
 
   var events = [];
   StreamController controller;
   // Test multiple subscribers of an asBroadcastStream inside the same
   // `catchErrors`.
   catchErrors(() {
-    var stream = new Stream.fromIterable([1, 2]).asBroadcastStream();
+    var stream = Stream.fromIterable([1, 2]).asBroadcastStream();
     stream.listen(events.add);
     stream.listen(events.add);
     done.complete(stream.listen(null).asFuture());

@@ -93,6 +93,7 @@ class JoinIfWithInner extends ResolvedCorrectionProducer {
     var newSource = utils.indentSourceLeftRight(oldSource);
 
     await builder.addDartFileEdit(file, (builder) {
+      var eol = builder.eol;
       builder.addSimpleReplacement(
         range.node(targetIfStatement),
         'if ($condition) {$eol$newSource$prefix}',

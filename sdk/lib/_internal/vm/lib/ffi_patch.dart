@@ -193,8 +193,8 @@ external Pointer<NS> _createNativeCallableIsolateLocal<
   NS extends NativeFunction
 >(dynamic trampoline, dynamic target, bool keepIsolateAlive);
 
-@pragma("vm:external-name", "Ffi_createNativeCallableIsolateGroupShared")
-external Pointer<NS> _createNativeCallableIsolateGroupShared<
+@pragma("vm:external-name", "Ffi_createNativeCallableIsolateGroupBound")
+external Pointer<NS> _createNativeCallableIsolateGroupBound<
   NS extends NativeFunction
 >(dynamic trampoline, dynamic target);
 
@@ -215,15 +215,15 @@ external dynamic _nativeIsolateLocalCallbackFunction<NS extends Function>(
 );
 
 @pragma("vm:recognized", "other")
-@pragma("vm:external-name", "Ffi_nativeIsolateGroupSharedCallbackFunction")
-external dynamic _nativeIsolateGroupSharedCallbackFunction<NS extends Function>(
+@pragma("vm:external-name", "Ffi_nativeIsolateGroupBoundCallbackFunction")
+external dynamic _nativeIsolateGroupBoundCallbackFunction<NS extends Function>(
   Function target,
   dynamic exceptionalReturn,
 );
 
 @pragma("vm:recognized", "other")
-@pragma("vm:external-name", "Ffi_nativeIsolateGroupSharedClosureFunction")
-external dynamic _nativeIsolateGroupSharedClosureFunction<NS extends Function>(
+@pragma("vm:external-name", "Ffi_nativeIsolateGroupBoundClosureFunction")
+external dynamic _nativeIsolateGroupBoundClosureFunction<NS extends Function>(
   dynamic exceptionalReturn,
 );
 
@@ -347,11 +347,11 @@ final class _NativeCallableListener<T extends Function>
   bool get _keepIsolateAlive => _port.keepIsolateAlive;
 }
 
-final class _NativeCallableIsolateGroupShared<T extends Function>
+final class _NativeCallableIsolateGroupBound<T extends Function>
     extends _NativeCallableBase<T> {
   bool _isKeepingIsolateAlive = true;
 
-  _NativeCallableIsolateGroupShared(super._pointer) {
+  _NativeCallableIsolateGroupBound(super._pointer) {
     _updateNativeCallableKeepIsolateAliveCounter(1);
   }
 
@@ -517,6 +517,7 @@ external int _loadUint64(Object typedDataBase, int offsetInBytes);
 @pragma("vm:recognized", "other")
 @pragma("vm:idempotent")
 @pragma("vm:prefer-inline")
+@pragma("vm:external-name", "Ffi_loadAbiSpecificInt")
 external int _loadAbiSpecificInt<T extends AbiSpecificInteger>(
   Object typedDataBase,
   int offsetInBytes,
@@ -525,6 +526,7 @@ external int _loadAbiSpecificInt<T extends AbiSpecificInteger>(
 @pragma("vm:recognized", "other")
 @pragma("vm:idempotent")
 @pragma("vm:prefer-inline")
+@pragma("vm:external-name", "Ffi_loadAbiSpecificIntAtIndex")
 external int _loadAbiSpecificIntAtIndex<T extends AbiSpecificInteger>(
   Object typedDataBase,
   int offsetInBytes,
@@ -610,7 +612,8 @@ external void _storeUint64(Object typedDataBase, int offsetInBytes, int value);
 @pragma("vm:recognized", "other")
 @pragma("vm:idempotent")
 @pragma("vm:prefer-inline")
-external int _storeAbiSpecificInt<T extends AbiSpecificInteger>(
+@pragma("vm:external-name", "Ffi_storeAbiSpecificInt")
+external void _storeAbiSpecificInt<T extends AbiSpecificInteger>(
   Object typedDataBase,
   int offsetInBytes,
   int value,
@@ -619,7 +622,8 @@ external int _storeAbiSpecificInt<T extends AbiSpecificInteger>(
 @pragma("vm:recognized", "other")
 @pragma("vm:idempotent")
 @pragma("vm:prefer-inline")
-external int _storeAbiSpecificIntAtIndex<T extends AbiSpecificInteger>(
+@pragma("vm:external-name", "Ffi_storeAbiSpecificIntAtIndex")
+external void _storeAbiSpecificIntAtIndex<T extends AbiSpecificInteger>(
   Object typedDataBase,
   int offsetInBytes,
   int index,

@@ -232,8 +232,8 @@ void FfiCallbackMetadata::EnsureFreeListNotEmptyLocked() {
   FillRuntimeFunction(new_page, kExitTemporaryIsolate,
                       reinterpret_cast<void*>(DLRT_ExitTemporaryIsolate));
   FillRuntimeFunction(
-      new_page, kExitIsolateGroupSharedIsolate,
-      reinterpret_cast<void*>(DLRT_ExitIsolateGroupSharedIsolate));
+      new_page, kExitIsolateGroupBoundIsolate,
+      reinterpret_cast<void*>(DLRT_ExitIsolateGroupBoundIsolate));
 
   // Add all the trampolines to the free list.
   const intptr_t trampolines_per_page = NumCallbackTrampolinesPerPage();
@@ -351,6 +351,66 @@ PersistentHandle* FfiCallbackMetadata::CreatePersistentHandle(
   return handle;
 }
 
+static void ValidateTriviallyImmutabilityOfAnObject(Zone* zone,
+                                                    Object* p_obj,
+                                                    ObjectPtr object_ptr) {
+  *p_obj = object_ptr;
+  if (p_obj->IsSmi() || p_obj->IsNull()) {
+    return;
+  }
+  if (p_obj->IsClosure()) {
+    FfiCallbackMetadata::EnsureOnlyTriviallyImmutableValuesInClosure(
+        zone, Closure::RawCast(p_obj->ptr()));
+    return;
+  }
+  if (p_obj->IsImmutable()) {
+    return;
+  }
+  if (IsTypedDataBaseClassId(p_obj->GetClassId())) {
+    return;
+  }
+  const String& error = String::Handle(
+      zone,
+      String::NewFormatted("Only trivially-immutable values are allowed: %s.",
+                           p_obj->ToCString()));
+  Exceptions::ThrowArgumentError(error);
+  UNREACHABLE();
+}
+
+void FfiCallbackMetadata::EnsureOnlyTriviallyImmutableValuesInClosure(
+    Zone* zone,
+    ClosurePtr closure_ptr) {
+  Closure& closure = Closure::Handle(zone, closure_ptr);
+  if (closure.IsNull()) {
+    return;
+  }
+  Object& obj = Object::Handle(zone);
+  const auto& function = Function::Handle(closure.function());
+  if (function.IsImplicitClosureFunction()) {
+    ValidateTriviallyImmutabilityOfAnObject(
+        zone, &obj, closure.GetImplicitClosureReceiver());
+  } else {
+    const Context& context = Context::Handle(zone, closure.GetContext());
+    if (context.IsNull()) {
+      return;
+    }
+    // Iterate through all elements of the context.
+    for (intptr_t i = 0; i < context.num_variables(); i++) {
+      ValidateTriviallyImmutabilityOfAnObject(zone, &obj, context.At(i));
+    }
+
+    if (!function.does_close_over_only_final_and_shared_vars()) {
+      const String& error = String::Handle(
+          zone,
+          String::New(
+              "Only final and 'vm:shared' variables can be captured by isolate "
+              "group callbacks."));
+      Exceptions::ThrowArgumentError(error);
+      UNREACHABLE();
+    }
+  }
+}
+
 FfiCallbackMetadata::Trampoline FfiCallbackMetadata::CreateLocalFfiCallback(
     Isolate* isolate,
     IsolateGroup* isolate_group,
@@ -367,14 +427,20 @@ FfiCallbackMetadata::Trampoline FfiCallbackMetadata::CreateLocalFfiCallback(
                 FfiCallbackKind::kIsolateLocalStaticCallback) ||
            (isolate == nullptr && isolate_group != nullptr &&
             function.GetFfiCallbackKind() ==
-                FfiCallbackKind::kIsolateGroupSharedStaticCallback));
+                FfiCallbackKind::kIsolateGroupBoundStaticCallback));
   } else {
     ASSERT((isolate != nullptr && isolate_group == nullptr &&
             function.GetFfiCallbackKind() ==
                 FfiCallbackKind::kIsolateLocalClosureCallback) ||
            (isolate == nullptr && isolate_group != nullptr &&
             function.GetFfiCallbackKind() ==
-                FfiCallbackKind::kIsolateGroupSharedClosureCallback));
+                FfiCallbackKind::kIsolateGroupBoundClosureCallback));
+
+    if (function.GetFfiCallbackKind() ==
+        FfiCallbackKind::kIsolateGroupBoundClosureCallback) {
+      EnsureOnlyTriviallyImmutableValuesInClosure(zone, closure.ptr());
+    }
+
     handle = CreatePersistentHandle(
         isolate != nullptr ? isolate->group() : isolate_group, closure);
   }
@@ -389,9 +455,9 @@ FfiCallbackMetadata::Trampoline FfiCallbackMetadata::CreateSyncFfiCallbackImpl(
     const Function& function,
     PersistentHandle* closure,
     MetadataEntry** list_head) {
-  TrampolineType trampoline_type =
-      isolate != nullptr ? TrampolineType::kSync
-                         : TrampolineType::kSyncIsolateGroupShared;
+  TrampolineType trampoline_type = isolate != nullptr
+                                       ? TrampolineType::kSync
+                                       : TrampolineType::kSyncIsolateGroupBound;
 
 #if defined(TARGET_ARCH_IA32)
   // On ia32, store the stack delta that we need to use when returning.
@@ -403,7 +469,7 @@ FfiCallbackMetadata::Trampoline FfiCallbackMetadata::CreateSyncFfiCallbackImpl(
     ASSERT(stack_return_delta == 4);
     trampoline_type = isolate != nullptr
                           ? TrampolineType::kSyncStackDelta4
-                          : TrampolineType::kSyncIsolateGroupSharedStackDelta4;
+                          : TrampolineType::kSyncIsolateGroupBoundStackDelta4;
   }
 #endif
 
@@ -495,7 +561,8 @@ FfiCallbackMetadata::MetadataEntryOfTrampoline(Trampoline trampoline) const {
 #endif
 }
 
-FfiCallbackMetadata::Metadata FfiCallbackMetadata::LookupMetadataForTrampoline(
+FfiCallbackMetadata::Metadata
+FfiCallbackMetadata::LookupMetadataForTrampolineUnlocked(
     Trampoline trampoline) const {
   return *MetadataEntryOfTrampoline(trampoline)->metadata();
 }
@@ -503,8 +570,8 @@ FfiCallbackMetadata::Metadata FfiCallbackMetadata::LookupMetadataForTrampoline(
 FfiCallbackMetadata* FfiCallbackMetadata::singleton_ = nullptr;
 
 ApiState* FfiCallbackMetadata::Metadata::api_state() const {
-  return (is_isolate_group_shared() ? target_isolate_group_
-                                    : target_isolate_->group())
+  return (is_isolate_group_bound() ? target_isolate_group_
+                                   : target_isolate_->group())
       ->api_state();
 }
 

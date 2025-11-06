@@ -2,16 +2,20 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/dart/element/element.dart';
+import 'package:_fe_analyzer_shared/src/types/shared_type.dart'
+    as shared
+    show Variance;
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/src/binary/binary_reader.dart';
+import 'package:analyzer/src/binary/binary_writer.dart';
+import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
+import 'package:analyzer/src/fine/manifest_ast.dart';
 import 'package:analyzer/src/fine/manifest_context.dart';
-import 'package:analyzer/src/summary2/data_reader.dart';
-import 'package:analyzer/src/summary2/data_writer.dart';
+import 'package:analyzer/src/fine/manifest_item.dart';
 import 'package:analyzer/src/utilities/extensions/collection.dart';
-import 'package:collection/collection.dart';
 
 final class ManifestDynamicType extends ManifestType {
   static final instance = ManifestDynamicType._();
@@ -24,19 +28,49 @@ final class ManifestDynamicType extends ManifestType {
   }
 
   @override
-  void write(BufferedSink sink) {
-    sink.writeEnum(_ManifestTypeKind.dynamic);
+  void write(BinaryWriter writer) {
+    writer.writeEnum(_ManifestTypeKind.dynamic);
   }
 }
 
 sealed class ManifestFunctionFormalParameter {
+  final ManifestMetadata metadata;
   final bool isRequired;
+  final bool isCovariant;
+  final bool isInitializingFormal;
+  final bool isSuperFormal;
   final ManifestType type;
+  final ManifestNode? defaultValue;
 
   ManifestFunctionFormalParameter({
+    required this.metadata,
     required this.isRequired,
+    required this.isCovariant,
+    required this.isInitializingFormal,
+    required this.isSuperFormal,
     required this.type,
+    required this.defaultValue,
   });
+
+  bool match(MatchContext context, InternalFormalParameterElement element) {
+    return metadata.match(context, element.metadata) &&
+        element.isRequired == isRequired &&
+        element.isCovariant == isCovariant &&
+        element.isInitializingFormal == isInitializingFormal &&
+        element.isSuperFormal == isSuperFormal &&
+        type.match(context, element.type) &&
+        defaultValue.match(context, element.constantInitializer);
+  }
+
+  void write(BinaryWriter writer) {
+    metadata.write(writer);
+    writer.writeBool(isRequired);
+    writer.writeBool(isCovariant);
+    writer.writeBool(isInitializingFormal);
+    writer.writeBool(isSuperFormal);
+    type.write(writer);
+    defaultValue.writeOptional(writer);
+  }
 }
 
 class ManifestFunctionNamedFormalParameter
@@ -44,98 +78,101 @@ class ManifestFunctionNamedFormalParameter
   final String name;
 
   factory ManifestFunctionNamedFormalParameter.encode(
-    EncodeContext context, {
-    required bool isRequired,
-    required DartType type,
-    required String name,
-  }) {
+    EncodeContext context,
+    InternalFormalParameterElement element,
+  ) {
     return ManifestFunctionNamedFormalParameter._(
-      isRequired: isRequired,
-      type: type.encode(context),
-      name: name,
+      metadata: ManifestMetadata.encode(context, element.metadata),
+      isRequired: element.isRequired,
+      isCovariant: element.isCovariant,
+      isInitializingFormal: element.isInitializingFormal,
+      isSuperFormal: element.isSuperFormal,
+      type: element.type.encode(context),
+      defaultValue: element.constantInitializer?.encode(context),
+      name: element.name ?? '',
     );
   }
 
-  factory ManifestFunctionNamedFormalParameter.read(SummaryDataReader reader) {
+  factory ManifestFunctionNamedFormalParameter.read(BinaryReader reader) {
     return ManifestFunctionNamedFormalParameter._(
+      metadata: ManifestMetadata.read(reader),
       isRequired: reader.readBool(),
+      isCovariant: reader.readBool(),
+      isInitializingFormal: reader.readBool(),
+      isSuperFormal: reader.readBool(),
       type: ManifestType.read(reader),
-      name: reader.readStringUtf8(),
+      defaultValue: ManifestNode.readOptional(reader),
+      name: reader.readStringReference(),
     );
   }
 
   ManifestFunctionNamedFormalParameter._({
+    required super.metadata,
     required super.isRequired,
+    required super.isCovariant,
+    required super.isInitializingFormal,
+    required super.isSuperFormal,
     required super.type,
+    required super.defaultValue,
     required this.name,
   });
 
   @override
-  bool operator ==(Object other) {
-    if (identical(this, other)) return true;
-    return other is ManifestFunctionNamedFormalParameter &&
-        other.name == name &&
-        other.type == type;
-  }
-
-  bool match(MatchContext context, FormalParameterElementMixin element) {
+  bool match(MatchContext context, InternalFormalParameterElement element) {
     return element.isNamed &&
-        element.isRequired == isRequired &&
-        type.match(context, element.type) &&
+        super.match(context, element) &&
         element.name == name;
   }
 
-  void write(BufferedSink sink) {
-    sink.writeBool(isRequired);
-    type.write(sink);
-    sink.writeStringUtf8(name);
+  @override
+  void write(BinaryWriter writer) {
+    super.write(writer);
+    writer.writeStringReference(name);
   }
 }
 
 class ManifestFunctionPositionalFormalParameter
     extends ManifestFunctionFormalParameter {
   factory ManifestFunctionPositionalFormalParameter.encode(
-    EncodeContext context, {
-    required bool isRequired,
-    required DartType type,
-  }) {
+    EncodeContext context,
+    InternalFormalParameterElement element,
+  ) {
     return ManifestFunctionPositionalFormalParameter._(
-      isRequired: isRequired,
-      type: type.encode(context),
+      metadata: ManifestMetadata.encode(context, element.metadata),
+      isRequired: element.isRequiredPositional,
+      isCovariant: element.isCovariant,
+      isInitializingFormal: element.isInitializingFormal,
+      isSuperFormal: element.isSuperFormal,
+      type: element.type.encode(context),
+      defaultValue: element.constantInitializer?.encode(context),
     );
   }
 
-  factory ManifestFunctionPositionalFormalParameter.read(
-    SummaryDataReader reader,
-  ) {
+  factory ManifestFunctionPositionalFormalParameter.read(BinaryReader reader) {
     return ManifestFunctionPositionalFormalParameter._(
+      metadata: ManifestMetadata.read(reader),
       isRequired: reader.readBool(),
+      isCovariant: reader.readBool(),
+      isInitializingFormal: reader.readBool(),
+      isSuperFormal: reader.readBool(),
       type: ManifestType.read(reader),
+      defaultValue: ManifestNode.readOptional(reader),
     );
   }
 
   ManifestFunctionPositionalFormalParameter._({
+    required super.metadata,
     required super.isRequired,
+    required super.isCovariant,
+    required super.isInitializingFormal,
+    required super.isSuperFormal,
     required super.type,
+    required super.defaultValue,
   });
 
   @override
-  bool operator ==(Object other) {
-    if (identical(this, other)) return true;
-    return other is ManifestFunctionPositionalFormalParameter &&
-        other.isRequired == isRequired &&
-        other.type == type;
-  }
-
-  bool match(MatchContext context, FormalParameterElementMixin element) {
-    return element.isPositional &&
-        element.isRequired == isRequired &&
-        type.match(context, element.type);
-  }
-
-  void write(BufferedSink sink) {
-    sink.writeBool(isRequired);
-    type.write(sink);
+  bool match(MatchContext context, InternalFormalParameterElement element) {
+    return element.isPositional && super.match(context, element);
   }
 }
 
@@ -153,27 +190,24 @@ final class ManifestFunctionType extends ManifestType {
       return ManifestFunctionType._(
         typeParameters: typeParameters,
         returnType: type.returnType.encode(context),
-        positional:
-            type.positionalParameterTypes.indexed.map((pair) {
-              return ManifestFunctionPositionalFormalParameter._(
-                isRequired: pair.$1 < type.requiredPositionalParameterCount,
-                type: pair.$2.encode(context),
+        positional: type.formalParameters
+            .where((element) => element.isPositional)
+            .map((element) {
+              return ManifestFunctionPositionalFormalParameter.encode(
+                context,
+                element,
               );
-            }).toFixedList(),
-        named:
-            type.sortedNamedParametersShared.map((element) {
-              return ManifestFunctionNamedFormalParameter._(
-                isRequired: element.isRequired,
-                type: element.type.encode(context),
-                name: element.name!,
-              );
-            }).toFixedList(),
+            })
+            .toFixedList(),
+        named: type.sortedNamedParametersShared.map((element) {
+          return ManifestFunctionNamedFormalParameter.encode(context, element);
+        }).toFixedList(),
         nullabilitySuffix: type.nullabilitySuffix,
       );
     });
   }
 
-  factory ManifestFunctionType.read(SummaryDataReader reader) {
+  factory ManifestFunctionType.read(BinaryReader reader) {
     return ManifestFunctionType._(
       typeParameters: reader.readTypedList(() {
         return ManifestTypeParameter.read(reader);
@@ -198,21 +232,6 @@ final class ManifestFunctionType extends ManifestType {
   });
 
   @override
-  bool operator ==(Object other) {
-    if (identical(this, other)) return true;
-    return other is ManifestFunctionType &&
-        const ListEquality<ManifestFunctionPositionalFormalParameter>().equals(
-          other.positional,
-          positional,
-        ) &&
-        const ListEquality<ManifestFunctionNamedFormalParameter>().equals(
-          other.named,
-          named,
-        ) &&
-        other.nullabilitySuffix == nullabilitySuffix;
-  }
-
-  @override
   bool match(MatchContext context, DartType type) {
     if (type is! FunctionTypeImpl) {
       return false;
@@ -231,7 +250,7 @@ final class ManifestFunctionType extends ManifestType {
       var index = 0;
 
       for (var i = 0; i < positional.length; i++) {
-        if (i >= formalParameters.length) {
+        if (index >= formalParameters.length) {
           return false;
         }
         var manifest = positional[i];
@@ -242,7 +261,7 @@ final class ManifestFunctionType extends ManifestType {
       }
 
       for (var i = 0; i < named.length; i++) {
-        if (i >= formalParameters.length) {
+        if (index >= formalParameters.length) {
           return false;
         }
         var manifest = named[i];
@@ -266,17 +285,17 @@ final class ManifestFunctionType extends ManifestType {
   }
 
   @override
-  void write(BufferedSink sink) {
-    sink.writeEnum(_ManifestTypeKind.function);
-    writeNoTag(sink);
+  void write(BinaryWriter writer) {
+    writer.writeEnum(_ManifestTypeKind.function);
+    writeNoTag(writer);
   }
 
-  void writeNoTag(BufferedSink sink) {
-    sink.writeList(typeParameters, (e) => e.write(sink));
-    returnType.write(sink);
-    sink.writeList(positional, (e) => e.write(sink));
-    sink.writeList(named, (e) => e.write(sink));
-    sink.writeEnum(nullabilitySuffix);
+  void writeNoTag(BinaryWriter writer) {
+    writer.writeList(typeParameters, (e) => e.write(writer));
+    returnType.write(writer);
+    writer.writeList(positional, (e) => e.write(writer));
+    writer.writeList(named, (e) => e.write(writer));
+    writer.writeEnum(nullabilitySuffix);
   }
 }
 
@@ -295,7 +314,7 @@ final class ManifestInterfaceType extends ManifestType {
     );
   }
 
-  factory ManifestInterfaceType.read(SummaryDataReader reader) {
+  factory ManifestInterfaceType.read(BinaryReader reader) {
     return ManifestInterfaceType._(
       element: ManifestElement.read(reader),
       arguments: reader.readTypedList(() {
@@ -310,15 +329,6 @@ final class ManifestInterfaceType extends ManifestType {
     required this.arguments,
     required super.nullabilitySuffix,
   });
-
-  @override
-  bool operator ==(Object other) {
-    if (identical(this, other)) return true;
-    return other is ManifestInterfaceType &&
-        other.element == element &&
-        const ListEquality<ManifestType>().equals(other.arguments, arguments) &&
-        other.nullabilitySuffix == nullabilitySuffix;
-  }
 
   @override
   bool match(MatchContext context, DartType type) {
@@ -347,13 +357,13 @@ final class ManifestInterfaceType extends ManifestType {
   }
 
   @override
-  void write(BufferedSink sink) {
-    sink.writeEnum(_ManifestTypeKind.interface);
-    element.write(sink);
-    sink.writeList(arguments, (argument) {
-      argument.write(sink);
+  void write(BinaryWriter writer) {
+    writer.writeEnum(_ManifestTypeKind.interface);
+    element.write(writer);
+    writer.writeList(arguments, (argument) {
+      argument.write(writer);
     });
-    sink.writeEnum(nullabilitySuffix);
+    writer.writeEnum(nullabilitySuffix);
   }
 }
 
@@ -368,8 +378,8 @@ final class ManifestInvalidType extends ManifestType {
   }
 
   @override
-  void write(BufferedSink sink) {
-    sink.writeEnum(_ManifestTypeKind.invalid);
+  void write(BinaryWriter writer) {
+    writer.writeEnum(_ManifestTypeKind.invalid);
   }
 }
 
@@ -378,20 +388,13 @@ final class ManifestNeverType extends ManifestType {
     return ManifestNeverType._(nullabilitySuffix: type.nullabilitySuffix);
   }
 
-  factory ManifestNeverType.read(SummaryDataReader reader) {
+  factory ManifestNeverType.read(BinaryReader reader) {
     return ManifestNeverType._(
       nullabilitySuffix: reader.readEnum(NullabilitySuffix.values),
     );
   }
 
   ManifestNeverType._({required super.nullabilitySuffix});
-
-  @override
-  bool operator ==(Object other) {
-    if (identical(this, other)) return true;
-    return other is ManifestNeverType &&
-        other.nullabilitySuffix == nullabilitySuffix;
-  }
 
   @override
   bool match(MatchContext context, DartType type) {
@@ -405,9 +408,9 @@ final class ManifestNeverType extends ManifestType {
   }
 
   @override
-  void write(BufferedSink sink) {
-    sink.writeEnum(_ManifestTypeKind.never);
-    sink.writeEnum(nullabilitySuffix);
+  void write(BinaryWriter writer) {
+    writer.writeEnum(_ManifestTypeKind.never);
+    writer.writeEnum(nullabilitySuffix);
   }
 }
 
@@ -425,15 +428,14 @@ final class ManifestRecordType extends ManifestType {
             return field.type;
           })
           .encode(context),
-      namedFields:
-          type.namedFields.map((field) {
-            return ManifestRecordTypeNamedField.encode(context, field);
-          }).toFixedList(),
+      namedFields: type.namedFields.map((field) {
+        return ManifestRecordTypeNamedField.encode(context, field);
+      }).toFixedList(),
       nullabilitySuffix: type.nullabilitySuffix,
     );
   }
 
-  factory ManifestRecordType.read(SummaryDataReader reader) {
+  factory ManifestRecordType.read(BinaryReader reader) {
     return ManifestRecordType._(
       positionalFields: reader.readTypedList(() {
         return ManifestType.read(reader);
@@ -450,21 +452,6 @@ final class ManifestRecordType extends ManifestType {
     required this.namedFields,
     required super.nullabilitySuffix,
   });
-
-  @override
-  bool operator ==(Object other) {
-    if (identical(this, other)) return true;
-    return other is ManifestRecordType &&
-        const ListEquality<ManifestType>().equals(
-          other.positionalFields,
-          positionalFields,
-        ) &&
-        const ListEquality<ManifestRecordTypeNamedField>().equals(
-          other.namedFields,
-          namedFields,
-        ) &&
-        other.nullabilitySuffix == nullabilitySuffix;
-  }
 
   @override
   bool match(MatchContext context, DartType type) {
@@ -502,11 +489,11 @@ final class ManifestRecordType extends ManifestType {
   }
 
   @override
-  void write(BufferedSink sink) {
-    sink.writeEnum(_ManifestTypeKind.record);
-    sink.writeList(positionalFields, (e) => e.write(sink));
-    sink.writeList(namedFields, (e) => e.write(sink));
-    sink.writeEnum(nullabilitySuffix);
+  void write(BinaryWriter writer) {
+    writer.writeEnum(_ManifestTypeKind.record);
+    writer.writeList(positionalFields, (e) => e.write(writer));
+    writer.writeList(namedFields, (e) => e.write(writer));
+    writer.writeEnum(nullabilitySuffix);
   }
 }
 
@@ -524,30 +511,22 @@ class ManifestRecordTypeNamedField {
     );
   }
 
-  factory ManifestRecordTypeNamedField.read(SummaryDataReader reader) {
+  factory ManifestRecordTypeNamedField.read(BinaryReader reader) {
     return ManifestRecordTypeNamedField._(
-      name: reader.readStringUtf8(),
+      name: reader.readStringReference(),
       type: ManifestType.read(reader),
     );
   }
 
   ManifestRecordTypeNamedField._({required this.name, required this.type});
 
-  @override
-  bool operator ==(Object other) {
-    if (identical(this, other)) return true;
-    return other is ManifestRecordTypeNamedField &&
-        other.name == name &&
-        other.type == type;
-  }
-
   bool match(MatchContext context, RecordTypeNamedField field) {
     return field.name == name && type.match(context, field.type);
   }
 
-  void write(BufferedSink sink) {
-    sink.writeStringUtf8(name);
-    type.write(sink);
+  void write(BinaryWriter writer) {
+    writer.writeStringReference(name);
+    type.write(writer);
   }
 }
 
@@ -558,9 +537,9 @@ sealed class ManifestType {
 
   bool match(MatchContext context, DartType type);
 
-  void write(BufferedSink sink);
+  void write(BinaryWriter writer);
 
-  static ManifestType read(SummaryDataReader reader) {
+  static ManifestType read(BinaryReader reader) {
     var kind = reader.readEnum(_ManifestTypeKind.values);
     switch (kind) {
       case _ManifestTypeKind.dynamic:
@@ -582,46 +561,48 @@ sealed class ManifestType {
     }
   }
 
-  static List<ManifestType> readList(SummaryDataReader reader) {
+  static List<ManifestType> readList(BinaryReader reader) {
     return reader.readTypedList(() => ManifestType.read(reader));
   }
 
-  static ManifestType? readOptional(SummaryDataReader reader) {
+  static ManifestType? readOptional(BinaryReader reader) {
     return reader.readOptionalObject(() => ManifestType.read(reader));
   }
 }
 
 class ManifestTypeParameter {
+  final shared.Variance variance;
   final ManifestType? bound;
 
   factory ManifestTypeParameter.encode(
     EncodeContext context,
-    TypeParameterElement element,
+    TypeParameterElementImpl element,
   ) {
-    return ManifestTypeParameter._(bound: element.bound?.encode(context));
+    return ManifestTypeParameter._(
+      variance: element.variance,
+      bound: element.bound?.encode(context),
+    );
   }
 
-  factory ManifestTypeParameter.read(SummaryDataReader reader) {
-    return ManifestTypeParameter._(bound: ManifestType.readOptional(reader));
+  factory ManifestTypeParameter.read(BinaryReader reader) {
+    return ManifestTypeParameter._(
+      variance: reader.readEnum(shared.Variance.values),
+      bound: ManifestType.readOptional(reader),
+    );
   }
 
-  ManifestTypeParameter._({required this.bound});
+  ManifestTypeParameter._({required this.variance, required this.bound});
 
-  @override
-  bool operator ==(Object other) {
-    if (identical(this, other)) return true;
-    return other is ManifestTypeParameter && other.bound == bound;
+  bool match(MatchContext context, TypeParameterElementImpl element) {
+    return element.variance == variance && bound.match(context, element.bound);
   }
 
-  bool match(MatchContext context, TypeParameterElement element) {
-    return bound.match(context, element.bound);
+  void write(BinaryWriter writer) {
+    writer.writeEnum(variance);
+    bound.writeOptional(writer);
   }
 
-  void write(BufferedSink sink) {
-    bound.writeOptional(sink);
-  }
-
-  static List<ManifestTypeParameter> readList(SummaryDataReader reader) {
+  static List<ManifestTypeParameter> readList(BinaryReader reader) {
     return reader.readTypedList(() => ManifestTypeParameter.read(reader));
   }
 }
@@ -639,9 +620,9 @@ final class ManifestTypeParameterType extends ManifestType {
     );
   }
 
-  factory ManifestTypeParameterType.read(SummaryDataReader reader) {
+  factory ManifestTypeParameterType.read(BinaryReader reader) {
     return ManifestTypeParameterType._(
-      index: reader.readUInt30(),
+      index: reader.readUint30(),
       nullabilitySuffix: reader.readEnum(NullabilitySuffix.values),
     );
   }
@@ -650,14 +631,6 @@ final class ManifestTypeParameterType extends ManifestType {
     required this.index,
     required super.nullabilitySuffix,
   });
-
-  @override
-  bool operator ==(Object other) {
-    if (identical(this, other)) return true;
-    return other is ManifestTypeParameterType &&
-        other.index == index &&
-        other.nullabilitySuffix == nullabilitySuffix;
-  }
 
   @override
   bool match(MatchContext context, DartType type) {
@@ -678,10 +651,10 @@ final class ManifestTypeParameterType extends ManifestType {
   }
 
   @override
-  void write(BufferedSink sink) {
-    sink.writeEnum(_ManifestTypeKind.typeParameter);
-    sink.writeUInt30(index);
-    sink.writeEnum(nullabilitySuffix);
+  void write(BinaryWriter writer) {
+    writer.writeEnum(_ManifestTypeKind.typeParameter);
+    writer.writeUint30(index);
+    writer.writeEnum(nullabilitySuffix);
   }
 }
 
@@ -696,8 +669,8 @@ final class ManifestVoidType extends ManifestType {
   }
 
   @override
-  void write(BufferedSink sink) {
-    sink.writeEnum(_ManifestTypeKind.void_);
+  void write(BinaryWriter writer) {
+    writer.writeEnum(_ManifestTypeKind.void_);
   }
 }
 
@@ -763,13 +736,13 @@ extension ListOfManifestTypeExtension on List<ManifestType> {
     return true;
   }
 
-  void writeList(BufferedSink sink) {
-    sink.writeList(this, (x) => x.write(sink));
+  void writeList(BinaryWriter writer) {
+    writer.writeList(this, (x) => x.write(writer));
   }
 }
 
 extension ListOfManifestTypeParameterExtension on List<ManifestTypeParameter> {
-  bool match(MatchContext context, List<TypeParameterElement> elements) {
+  bool match(MatchContext context, List<TypeParameterElementImpl> elements) {
     if (elements.length != length) {
       return false;
     }
@@ -781,8 +754,8 @@ extension ListOfManifestTypeParameterExtension on List<ManifestTypeParameter> {
     return true;
   }
 
-  void write(BufferedSink sink) {
-    sink.writeList(this, (x) => x.write(sink));
+  void write(BinaryWriter writer) {
+    writer.writeList(this, (x) => x.write(writer));
   }
 }
 
@@ -795,7 +768,13 @@ extension ManifestTypeOrNullExtension on ManifestType? {
     return self.match(context, type);
   }
 
-  void writeOptional(BufferedSink sink) {
-    sink.writeOptionalObject(this, (x) => x.write(sink));
+  void writeOptional(BinaryWriter writer) {
+    writer.writeOptionalObject(this, (x) => x.write(writer));
+  }
+}
+
+extension _AstNodeExtension on AstNode {
+  ManifestNode encode(EncodeContext context) {
+    return ManifestNode.encode(context, this);
   }
 }

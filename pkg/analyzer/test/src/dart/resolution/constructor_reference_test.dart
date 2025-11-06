@@ -39,7 +39,7 @@ ConstructorReference
   constructorName: ConstructorName
     type: NamedType
       name: A
-      element2: <testLibrary>::@class::A
+      element: <testLibrary>::@class::A
       type: null
     period: .
     name: SimpleIdentifier
@@ -64,8 +64,7 @@ foo() {
 ''',
       [
         error(
-          CompileTimeErrorCode
-              .TEAROFF_OF_GENERATIVE_CONSTRUCTOR_OF_ABSTRACT_CLASS,
+          CompileTimeErrorCode.tearoffOfGenerativeConstructorOfAbstractClass,
           39,
           5,
         ),
@@ -78,7 +77,7 @@ ConstructorReference
   constructorName: ConstructorName
     type: NamedType
       name: A
-      element2: <testLibrary>::@class::A
+      element: <testLibrary>::@class::A
       type: null
     period: .
     name: SimpleIdentifier
@@ -105,8 +104,7 @@ foo() {
 ''',
       [
         error(
-          CompileTimeErrorCode
-              .TEAROFF_OF_GENERATIVE_CONSTRUCTOR_OF_ABSTRACT_CLASS,
+          CompileTimeErrorCode.tearoffOfGenerativeConstructorOfAbstractClass,
           63,
           5,
         ),
@@ -119,7 +117,7 @@ ConstructorReference
   constructorName: ConstructorName
     type: NamedType
       name: A
-      element2: <testLibrary>::@class::A
+      element: <testLibrary>::@class::A
       type: null
     period: .
     name: SimpleIdentifier
@@ -144,7 +142,7 @@ A<String> Function() bar() {
 ''',
       [
         error(
-          CompileTimeErrorCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS,
+          CompileTimeErrorCode.typeArgumentNotMatchingBounds,
           41,
           6,
           contextMessages: [message(testFile, 39, 9)],
@@ -158,7 +156,7 @@ ConstructorReference
   constructorName: ConstructorName
     type: NamedType
       name: A
-      element2: <testLibrary>::@class::A
+      element: <testLibrary>::@class::A
       type: null
     period: .
     name: SimpleIdentifier
@@ -189,7 +187,7 @@ ConstructorReference
   constructorName: ConstructorName
     type: NamedType
       name: A
-      element2: <testLibrary>::@class::A
+      element: <testLibrary>::@class::A
       type: null
     period: .
     name: SimpleIdentifier
@@ -220,7 +218,7 @@ ConstructorReference
   constructorName: ConstructorName
     type: NamedType
       name: A
-      element2: <testLibrary>::@class::A
+      element: <testLibrary>::@class::A
       type: null
     period: .
     name: SimpleIdentifier
@@ -249,7 +247,7 @@ ConstructorReference
   constructorName: ConstructorName
     type: NamedType
       name: A
-      element2: <testLibrary>::@class::A
+      element: <testLibrary>::@class::A
       type: null
     period: .
     name: SimpleIdentifier
@@ -276,7 +274,7 @@ ConstructorReference
   constructorName: ConstructorName
     type: NamedType
       name: A
-      element2: <testLibrary>::@class::A
+      element: <testLibrary>::@class::A
       type: null
     period: .
     name: SimpleIdentifier
@@ -305,7 +303,7 @@ ConstructorReference
   constructorName: ConstructorName
     type: NamedType
       name: A
-      element2: <testLibrary>::@class::A
+      element: <testLibrary>::@class::A
       type: null
     period: .
     name: SimpleIdentifier
@@ -334,7 +332,7 @@ ConstructorReference
   constructorName: ConstructorName
     type: NamedType
       name: A
-      element2: <testLibrary>::@class::A
+      element: <testLibrary>::@class::A
       type: null
     period: .
     name: SimpleIdentifier
@@ -368,9 +366,9 @@ ConstructorReference
       importPrefix: ImportPrefixReference
         name: a
         period: .
-        element2: <testLibraryFragment>::@prefix2::a
+        element: <testLibraryFragment>::@prefix2::a
       name: TA
-      element2: package:test/a.dart::@typeAlias::TA
+      element: package:test/a.dart::@typeAlias::TA
       type: null
     period: .
     name: SimpleIdentifier
@@ -404,9 +402,9 @@ ConstructorReference
       importPrefix: ImportPrefixReference
         name: a
         period: .
-        element2: <testLibraryFragment>::@prefix2::a
+        element: <testLibraryFragment>::@prefix2::a
       name: TA
-      element2: package:test/a.dart::@typeAlias::TA
+      element: package:test/a.dart::@typeAlias::TA
       type: null
     period: .
     name: SimpleIdentifier
@@ -439,9 +437,9 @@ ConstructorReference
       importPrefix: ImportPrefixReference
         name: a
         period: .
-        element2: <testLibraryFragment>::@prefix2::a
+        element: <testLibraryFragment>::@prefix2::a
       name: A
-      element2: package:test/a.dart::@class::A
+      element: package:test/a.dart::@class::A
       type: null
     period: .
     name: SimpleIdentifier
@@ -474,9 +472,9 @@ ConstructorReference
       importPrefix: ImportPrefixReference
         name: a
         period: .
-        element2: <testLibraryFragment>::@prefix2::a
+        element: <testLibraryFragment>::@prefix2::a
       name: A
-      element2: package:test/a.dart::@class::A
+      element: package:test/a.dart::@class::A
       type: null
     period: .
     name: SimpleIdentifier
@@ -504,7 +502,7 @@ ConstructorReference
   constructorName: ConstructorName
     type: NamedType
       name: TA
-      element2: <testLibrary>::@typeAlias::TA
+      element: <testLibrary>::@typeAlias::TA
       type: null
     period: .
     name: SimpleIdentifier
@@ -534,7 +532,7 @@ ConstructorReference
   constructorName: ConstructorName
     type: NamedType
       name: TA
-      element2: <testLibrary>::@typeAlias::TA
+      element: <testLibrary>::@typeAlias::TA
       type: null
     period: .
     name: SimpleIdentifier
@@ -562,7 +560,7 @@ ConstructorReference
   constructorName: ConstructorName
     type: NamedType
       name: TA
-      element2: <testLibrary>::@typeAlias::TA
+      element: <testLibrary>::@typeAlias::TA
       type: null
     period: .
     name: SimpleIdentifier
@@ -596,7 +594,7 @@ ConstructorReference
   constructorName: ConstructorName
     type: NamedType
       name: TA
-      element2: <testLibrary>::@typeAlias::TA
+      element: <testLibrary>::@typeAlias::TA
       type: null
     period: .
     name: SimpleIdentifier
@@ -637,14 +635,14 @@ ConstructorReference
         arguments
           NamedType
             name: int
-            element2: dart:core::@class::int
+            element: dart:core::@class::int
             type: int
           NamedType
             name: String
-            element2: dart:core::@class::String
+            element: dart:core::@class::String
             type: String
         rightBracket: >
-      element2: <testLibrary>::@typeAlias::TA
+      element: <testLibrary>::@typeAlias::TA
       type: null
     period: .
     name: SimpleIdentifier
@@ -681,10 +679,10 @@ ConstructorReference
         arguments
           NamedType
             name: int
-            element2: dart:core::@class::int
+            element: dart:core::@class::int
             type: int
         rightBracket: >
-      element2: <testLibrary>::@typeAlias::TA
+      element: <testLibrary>::@typeAlias::TA
       type: null
     period: .
     name: SimpleIdentifier
@@ -723,14 +721,14 @@ ConstructorReference
         arguments
           NamedType
             name: int
-            element2: dart:core::@class::int
+            element: dart:core::@class::int
             type: int
           NamedType
             name: String
-            element2: dart:core::@class::String
+            element: dart:core::@class::String
             type: String
         rightBracket: >
-      element2: <testLibrary>::@typeAlias::TA
+      element: <testLibrary>::@typeAlias::TA
       type: null
     period: .
     name: SimpleIdentifier
@@ -762,7 +760,7 @@ ConstructorReference
   constructorName: ConstructorName
     type: NamedType
       name: TA
-      element2: <testLibrary>::@typeAlias::TA
+      element: <testLibrary>::@typeAlias::TA
       type: null
     period: .
     name: SimpleIdentifier
@@ -797,10 +795,10 @@ ConstructorReference
         arguments
           NamedType
             name: int
-            element2: dart:core::@class::int
+            element: dart:core::@class::int
             type: int
         rightBracket: >
-      element2: <testLibrary>::@typeAlias::TA
+      element: <testLibrary>::@typeAlias::TA
       type: null
     period: .
     name: SimpleIdentifier
@@ -828,7 +826,7 @@ void main() {
   var x = const <C<int> Function(int)>[Direct.new];
 }
 ''',
-      [error(WarningCode.UNUSED_LOCAL_VARIABLE, 87, 1)],
+      [error(WarningCode.unusedLocalVariable, 87, 1)],
     );
   }
 
@@ -855,10 +853,10 @@ ConstructorReference
         arguments
           NamedType
             name: int
-            element2: dart:core::@class::int
+            element: dart:core::@class::int
             type: int
         rightBracket: >
-      element2: <testLibrary>::@typeAlias::TA
+      element: <testLibrary>::@typeAlias::TA
       type: null
     period: .
     name: SimpleIdentifier
@@ -886,7 +884,7 @@ void bar() {
   TA<String>.new;
 }
 ''',
-      [error(CompileTimeErrorCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS, 75, 6)],
+      [error(CompileTimeErrorCode.typeArgumentNotMatchingBounds, 75, 6)],
     );
 
     var node = findNode.constructorReference('TA<String>.new;');
@@ -900,10 +898,10 @@ ConstructorReference
         arguments
           NamedType
             name: String
-            element2: dart:core::@class::String
+            element: dart:core::@class::String
             type: String
         rightBracket: >
-      element2: <testLibrary>::@typeAlias::TA
+      element: <testLibrary>::@typeAlias::TA
       type: null
     period: .
     name: SimpleIdentifier
@@ -939,10 +937,10 @@ ConstructorReference
         arguments
           NamedType
             name: int
-            element2: dart:core::@class::int
+            element: dart:core::@class::int
             type: int
         rightBracket: >
-      element2: <testLibrary>::@class::A
+      element: <testLibrary>::@class::A
       type: null
     period: .
     name: SimpleIdentifier
@@ -980,10 +978,10 @@ ConstructorReference
         arguments
           NamedType
             name: int
-            element2: dart:core::@class::int
+            element: dart:core::@class::int
             type: int
         rightBracket: >
-      element2: <testLibrary>::@class::A
+      element: <testLibrary>::@class::A
       type: null
     period: .
     name: SimpleIdentifier
@@ -1011,9 +1009,9 @@ void bar() {
 }
 ''',
       [
-        error(CompileTimeErrorCode.UNDEFINED_OPERATOR, 43, 1),
-        error(ParserErrorCode.EQUALITY_CANNOT_BE_EQUALITY_OPERAND, 47, 1),
-        error(ParserErrorCode.MISSING_IDENTIFIER, 48, 2),
+        error(CompileTimeErrorCode.undefinedOperator, 43, 1),
+        error(ParserErrorCode.equalityCannotBeEqualityOperand, 47, 1),
+        error(ParserErrorCode.missingIdentifier, 48, 2),
       ],
     );
     // The parser produces nonsense here because the `<` disambiguates as a
@@ -1033,9 +1031,9 @@ void bar() {
 }
 ''',
       [
-        error(CompileTimeErrorCode.UNDEFINED_OPERATOR, 43, 1),
-        error(ParserErrorCode.EQUALITY_CANNOT_BE_EQUALITY_OPERAND, 47, 1),
-        error(ParserErrorCode.MISSING_IDENTIFIER, 48, 2),
+        error(CompileTimeErrorCode.undefinedOperator, 43, 1),
+        error(ParserErrorCode.equalityCannotBeEqualityOperand, 47, 1),
+        error(ParserErrorCode.missingIdentifier, 48, 2),
       ],
     );
     // The parser produces nonsense here because the `<` disambiguates as a
@@ -1056,7 +1054,7 @@ void bar() {
 ''',
       [
         error(
-          CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_CONSTRUCTOR,
+          CompileTimeErrorCode.wrongNumberOfTypeArgumentsConstructor,
           52,
           5,
           messageContains: ["The constructor 'A.foo'"],
@@ -1075,10 +1073,10 @@ ConstructorReference
         arguments
           NamedType
             name: int
-            element2: dart:core::@class::int
+            element: dart:core::@class::int
             type: int
         rightBracket: >
-      element2: <testLibrary>::@class::A
+      element: <testLibrary>::@class::A
       type: null
     period: .
     name: SimpleIdentifier
@@ -1107,7 +1105,7 @@ void bar() {
 ''',
       [
         error(
-          CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_CONSTRUCTOR,
+          CompileTimeErrorCode.wrongNumberOfTypeArgumentsConstructor,
           52,
           5,
           messageContains: ["The constructor 'A.new'"],
@@ -1126,10 +1124,10 @@ ConstructorReference
         arguments
           NamedType
             name: int
-            element2: dart:core::@class::int
+            element: dart:core::@class::int
             type: int
         rightBracket: >
-      element2: <testLibrary>::@class::A
+      element: <testLibrary>::@class::A
       type: null
     period: .
     name: SimpleIdentifier
@@ -1158,7 +1156,7 @@ void bar() {
 ''',
       [
         error(
-          CompileTimeErrorCode.CLASS_INSTANTIATION_ACCESS_TO_STATIC_MEMBER,
+          CompileTimeErrorCode.classInstantiationAccessToStaticMember,
           51,
           8,
         ),
@@ -1176,10 +1174,10 @@ ConstructorReference
         arguments
           NamedType
             name: int
-            element2: dart:core::@class::int
+            element: dart:core::@class::int
             type: int
         rightBracket: >
-      element2: <testLibrary>::@class::A
+      element: <testLibrary>::@class::A
       type: null
     period: .
     name: SimpleIdentifier
@@ -1202,7 +1200,7 @@ void bar() {
   A<int>.;
 }
 ''',
-      [error(ParserErrorCode.MISSING_IDENTIFIER, 49, 1)],
+      [error(ParserErrorCode.missingIdentifier, 49, 1)],
     );
 
     var node = findNode.constructorReference('A<int>.;');
@@ -1216,10 +1214,10 @@ ConstructorReference
         arguments
           NamedType
             name: int
-            element2: dart:core::@class::int
+            element: dart:core::@class::int
             type: int
         rightBracket: >
-      element2: <testLibrary>::@class::A
+      element: <testLibrary>::@class::A
       type: null
     period: .
     name: SimpleIdentifier
@@ -1253,10 +1251,10 @@ ConstructorReference
         arguments
           NamedType
             name: int
-            element2: dart:core::@class::int
+            element: dart:core::@class::int
             type: int
         rightBracket: >
-      element2: <testLibrary>::@class::A
+      element: <testLibrary>::@class::A
       type: null
     period: .
     name: SimpleIdentifier
@@ -1294,10 +1292,10 @@ ConstructorReference
         arguments
           NamedType
             name: int
-            element2: dart:core::@class::int
+            element: dart:core::@class::int
             type: int
         rightBracket: >
-      element2: <testLibrary>::@class::A
+      element: <testLibrary>::@class::A
       type: null
     period: .
     name: SimpleIdentifier
@@ -1335,10 +1333,10 @@ ConstructorReference
         arguments
           NamedType
             name: int
-            element2: dart:core::@class::int
+            element: dart:core::@class::int
             type: int
         rightBracket: >
-      element2: <testLibrary>::@class::A
+      element: <testLibrary>::@class::A
       type: null
     period: .
     name: SimpleIdentifier
@@ -1365,7 +1363,7 @@ void bar() {
   A<String>.new;
 }
 ''',
-      [error(CompileTimeErrorCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS, 52, 6)],
+      [error(CompileTimeErrorCode.typeArgumentNotMatchingBounds, 52, 6)],
     );
 
     var node = findNode.constructorReference('A<String>.new;');
@@ -1379,10 +1377,10 @@ ConstructorReference
         arguments
           NamedType
             name: String
-            element2: dart:core::@class::String
+            element: dart:core::@class::String
             type: String
         rightBracket: >
-      element2: <testLibrary>::@class::A
+      element: <testLibrary>::@class::A
       type: null
     period: .
     name: SimpleIdentifier
@@ -1420,17 +1418,17 @@ ConstructorReference
       importPrefix: ImportPrefixReference
         name: a
         period: .
-        element2: <testLibraryFragment>::@prefix2::a
+        element: <testLibraryFragment>::@prefix2::a
       name: TA
       typeArguments: TypeArgumentList
         leftBracket: <
         arguments
           NamedType
             name: int
-            element2: dart:core::@class::int
+            element: dart:core::@class::int
             type: int
         rightBracket: >
-      element2: package:test/a.dart::@typeAlias::TA
+      element: package:test/a.dart::@typeAlias::TA
       type: null
     period: .
     name: SimpleIdentifier
@@ -1467,17 +1465,17 @@ ConstructorReference
       importPrefix: ImportPrefixReference
         name: a
         period: .
-        element2: <testLibraryFragment>::@prefix2::a
+        element: <testLibraryFragment>::@prefix2::a
       name: A
       typeArguments: TypeArgumentList
         leftBracket: <
         arguments
           NamedType
             name: int
-            element2: dart:core::@class::int
+            element: dart:core::@class::int
             type: int
         rightBracket: >
-      element2: package:test/a.dart::@class::A
+      element: package:test/a.dart::@class::A
       type: null
     period: .
     name: SimpleIdentifier
@@ -1517,17 +1515,17 @@ ConstructorReference
       importPrefix: ImportPrefixReference
         name: a
         period: .
-        element2: <testLibraryFragment>::@prefix2::a
+        element: <testLibraryFragment>::@prefix2::a
       name: A
       typeArguments: TypeArgumentList
         leftBracket: <
         arguments
           NamedType
             name: int
-            element2: dart:core::@class::int
+            element: dart:core::@class::int
             type: int
         rightBracket: >
-      element2: package:test/a.dart::@class::A
+      element: package:test/a.dart::@class::A
       type: null
     period: .
     name: SimpleIdentifier
@@ -1564,17 +1562,17 @@ ConstructorReference
       importPrefix: ImportPrefixReference
         name: a
         period: .
-        element2: <testLibraryFragment>::@prefix2::a
+        element: <testLibraryFragment>::@prefix2::a
       name: A
       typeArguments: TypeArgumentList
         leftBracket: <
         arguments
           NamedType
             name: int
-            element2: dart:core::@class::int
+            element: dart:core::@class::int
             type: int
         rightBracket: >
-      element2: package:test/a.dart::@class::A
+      element: package:test/a.dart::@class::A
       type: null
     period: .
     name: SimpleIdentifier
@@ -1606,7 +1604,7 @@ void bar() {
   A<int>.i;
 }
 ''',
-      [error(ParserErrorCode.EXPERIMENT_NOT_ENABLED, 52, 5)],
+      [error(ParserErrorCode.experimentNotEnabled, 52, 5)],
     );
 
     var node = findNode.constructorReference('A<int>.i;');
@@ -1620,10 +1618,10 @@ ConstructorReference
         arguments
           NamedType
             name: int
-            element2: dart:core::@class::int
+            element: dart:core::@class::int
             type: int
         rightBracket: >
-      element2: <testLibrary>::@class::A
+      element: <testLibrary>::@class::A
       type: null
     period: .
     name: SimpleIdentifier
@@ -1646,7 +1644,7 @@ void bar() {
   A.foo;
 }
 ''',
-      [error(WarningCode.SDK_VERSION_CONSTRUCTOR_TEAROFFS, 39, 5)],
+      [error(WarningCode.sdkVersionConstructorTearoffs, 39, 5)],
     );
 
     var node = findNode.constructorReference('A.foo;');
@@ -1655,7 +1653,7 @@ ConstructorReference
   constructorName: ConstructorName
     type: NamedType
       name: A
-      element2: <testLibrary>::@class::A
+      element: <testLibrary>::@class::A
       type: null
     period: .
     name: SimpleIdentifier

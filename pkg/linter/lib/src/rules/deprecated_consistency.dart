@@ -2,7 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/analysis_rule/analysis_rule.dart';
 import 'package:analyzer/analysis_rule/rule_context.dart';
+import 'package:analyzer/analysis_rule/rule_visitor_registry.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
@@ -18,13 +20,16 @@ class DeprecatedConsistency extends MultiAnalysisRule {
 
   @override
   List<DiagnosticCode> get diagnosticCodes => [
-    LinterLintCode.deprecated_consistency_constructor,
-    LinterLintCode.deprecated_consistency_field,
-    LinterLintCode.deprecated_consistency_parameter,
+    LinterLintCode.deprecatedConsistencyConstructor,
+    LinterLintCode.deprecatedConsistencyField,
+    LinterLintCode.deprecatedConsistencyParameter,
   ];
 
   @override
-  void registerNodeProcessors(NodeLintRegistry registry, RuleContext context) {
+  void registerNodeProcessors(
+    RuleVisitorRegistry registry,
+    RuleContext context,
+  ) {
     var visitor = _Visitor(this);
     registry.addConstructorDeclaration(this, visitor);
     registry.addFieldFormalParameter(this, visitor);
@@ -46,7 +51,7 @@ class _Visitor extends SimpleAstVisitor<void> {
       rule.reportAtOffset(
         nodeToAnnotate.offset,
         nodeToAnnotate.length,
-        diagnosticCode: LinterLintCode.deprecated_consistency_constructor,
+        diagnosticCode: LinterLintCode.deprecatedConsistencyConstructor,
       );
     }
   }
@@ -62,24 +67,24 @@ class _Visitor extends SimpleAstVisitor<void> {
     if (field.hasDeprecated && !declaredElement.hasDeprecated) {
       rule.reportAtNode(
         node,
-        diagnosticCode: LinterLintCode.deprecated_consistency_field,
+        diagnosticCode: LinterLintCode.deprecatedConsistencyField,
       );
     }
     if (!field.hasDeprecated && declaredElement.hasDeprecated) {
       var fieldFragment = field.firstFragment;
-      var nameOffset = fieldFragment.nameOffset2;
+      var nameOffset = fieldFragment.nameOffset;
       if (nameOffset == null) return;
       var nameLength = fieldFragment.name?.length;
       if (nameLength == null) return;
       rule.reportAtOffset(
         nameOffset,
         nameLength,
-        diagnosticCode: LinterLintCode.deprecated_consistency_parameter,
+        diagnosticCode: LinterLintCode.deprecatedConsistencyParameter,
       );
     }
   }
 }
 
-extension on Annotatable {
+extension on Element {
   bool get hasDeprecated => metadata.hasDeprecated;
 }

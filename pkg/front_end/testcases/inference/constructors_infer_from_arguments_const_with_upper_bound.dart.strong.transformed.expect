@@ -14,17 +14,20 @@ class D<T extends core::num> extends core::Object /*hasConstConstructor*/  {
     ;
 }
 static method main() → void {
+  const self::C<core::int> c = #C2;
   self::C<core::int> c2 = #C2;
+  const self::D<core::int> d = #C3;
 }
 
 constants  {
   #C1 = 0
   #C2 = self::C<core::int> {x:#C1}
+  #C3 = self::D<core::int> {}
 }
 
 
 Constructor coverage from constants:
 org-dartlang-testcase:///constructors_infer_from_arguments_const_with_upper_bound.dart:
-- C. (from org-dartlang-testcase:///constructors_infer_from_arguments_const_with_upper_bound.dart:10:9)
+- C. (from org-dartlang-testcase:///constructors_infer_from_arguments_const_with_upper_bound.dart:9:9)
 - Object. (from org-dartlang-sdk:///sdk/lib/core/object.dart)
-- D. (from org-dartlang-testcase:///constructors_infer_from_arguments_const_with_upper_bound.dart:14:9)
+- D. (from org-dartlang-testcase:///constructors_infer_from_arguments_const_with_upper_bound.dart:13:9)

@@ -32,8 +32,8 @@ class ExtensionFragment extends DeclarationFragmentImpl implements Fragment {
     required super.nominalParameterNameSpace,
     required super.enclosingCompilationUnit,
   }) : extensionName = name != null
-            ? new FixedExtensionName(name)
-            : new UnnamedExtensionName();
+           ? new FixedExtensionName(name)
+           : new UnnamedExtensionName();
 
   @override
   // Coverage-ignore(suite): Not run.

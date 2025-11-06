@@ -4,7 +4,7 @@
 
 import 'package:analysis_server_plugin/src/correction/fix_generators.dart';
 import 'package:analyzer/error/error.dart';
-import 'package:analyzer/src/lint/linter.dart';
+import 'package:analyzer/src/analysis_rule/rule_context.dart';
 
 abstract class PluginRegistry {
   /// Registers this assist [generator] with the analyzer's rule registry.

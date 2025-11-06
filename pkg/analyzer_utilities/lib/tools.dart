@@ -8,14 +8,13 @@ library;
 import 'dart:async';
 import 'dart:io';
 
+import 'package:analyzer_testing/package_root.dart';
 import 'package:analyzer_utilities/html_dom.dart' as dom;
 import 'package:analyzer_utilities/html_generator.dart';
 import 'package:analyzer_utilities/text_formatter.dart';
-import 'package:dart_style/dart_style.dart';
-import 'package:package_config/package_config.dart';
+import 'package:collection/collection.dart';
 import 'package:path/path.dart';
 import 'package:pub_semver/pub_semver.dart';
-import 'package:test/test.dart';
 
 final RegExp trailingSpacesInLineRegExp = RegExp(r' +$', multiLine: true);
 final RegExp trailingWhitespaceRegExp = RegExp(r'[\n ]+$');
@@ -161,7 +160,8 @@ mixin CodeGenerator {
   void outputHeader({bool javaStyle = false, String? year}) {
     String header;
     if (codeGeneratorSettings.languageName == 'java') {
-      header = '''
+      header =
+          '''
 /*
  * Copyright (c) ${year ?? '2019'}, the Dart project authors. Please see the AUTHORS file
  * for details. All rights reserved. Use of this source code is governed by a
@@ -171,7 +171,8 @@ mixin CodeGenerator {
  * To regenerate the file, use the script "pkg/analysis_server/tool/spec/generate_files".
  */''';
     } else if (codeGeneratorSettings.languageName == 'python') {
-      header = '''
+      header =
+          '''
 # Copyright (c) ${year ?? '2014'}, the Dart project authors. Please see the AUTHORS file
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
@@ -181,7 +182,8 @@ mixin CodeGenerator {
 # "pkg/analysis_server/tool/spec/generate_files".
 ''';
     } else {
-      header = '''
+      header =
+          '''
 // Copyright (c) ${year ?? '2014'}, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -243,36 +245,37 @@ class CodeGeneratorSettings {
 
 /// A utility class for invoking 'dart format'.
 class DartFormat {
-  static String get _dartPath => Platform.resolvedExecutable;
+  static final String _dartPath = join(
+    packageRoot,
+    '..',
+    'tools',
+    'sdks',
+    'dart-sdk',
+    'bin',
+    Platform.isWindows ? 'dart.exe' : 'dart',
+  );
 
   static void formatFile(File file) {
     var result = Process.runSync(_dartPath, ['format', file.path]);
     _throwIfExitCode(result);
   }
 
-  static Future<String> _formatText(
-    String text, {
-    required String pkgPath,
-  }) async {
-    var packageConfig = await findPackageConfig(Directory(pkgPath));
-    if (packageConfig == null) {
-      throw StateError(
-        'Could not find the shared Dart SDK package_config.json file, for '
-        '"$pkgPath"',
-      );
+  static String formatString(String text, {required Version languageVersion}) {
+    var tempDir = Directory.systemTemp.createTempSync('format');
+    try {
+      var file = File(join(tempDir.path, 'input.dart'));
+      file.writeAsStringSync(text);
+      var result = Process.runSync(_dartPath, [
+        'format',
+        file.path,
+        '--language-version',
+        '${languageVersion.major}.${languageVersion.minor}',
+      ]);
+      _throwIfExitCode(result);
+      return file.readAsStringSync();
+    } finally {
+      tempDir.deleteSync(recursive: true);
     }
-    var package = packageConfig.packageOf(
-      Uri.file(join(pkgPath, 'pubspec.yaml')),
-    );
-    if (package == null) {
-      throw StateError('Could not find the package for "$pkgPath"');
-    }
-    var languageVersion = package.languageVersion;
-    if (languageVersion == null) {
-      throw StateError('Could not find a Dart language version for "$pkgPath"');
-    }
-    var version = Version(languageVersion.major, languageVersion.minor, 0);
-    return DartFormatter(languageVersion: version).format(text);
   }
 
   static void _throwIfExitCode(ProcessResult result) {
@@ -282,13 +285,7 @@ class DartFormat {
 
 /// Abstract base class representing behaviors common to generated files and
 /// generated directories.
-abstract class GeneratedContent {
-  /// Check whether the [output] has the correct contents, and return true if it
-  /// does.
-  ///
-  /// [pkgRoot] is the path to the SDK's `pkg` directory.
-  Future<bool> check(String pkgRoot);
-
+sealed class GeneratedContent {
   /// Replace the [output] with the correct contents.
   ///
   /// [pkgRoot] is the path to the SDK's `pkg` directory.
@@ -298,40 +295,6 @@ abstract class GeneratedContent {
   ///
   /// [pkgRoot] is the path to the SDK's `pkg` directory.
   FileSystemEntity output(String pkgRoot);
-
-  /// Check that all of the [targets] are up to date.  If they are not, print
-  /// out a message instructing the user to regenerate them, and exit with a
-  /// nonzero error code.
-  ///
-  /// [pkgRoot] is the path to the SDK's `pkg` directory.  [generatorPath] is
-  /// the path to a .dart script the user may use to regenerate the targets.
-  ///
-  /// To avoid mistakes when run on Windows, [generatorPath] always uses
-  /// POSIX directory separators.
-  static Future<void> checkAll(
-    String pkgRoot,
-    String generatorPath,
-    Iterable<GeneratedContent> targets,
-  ) async {
-    var generateNeeded = false;
-    for (var target in targets) {
-      var ok = await target.check(pkgRoot);
-      if (!ok) {
-        print(
-          '${normalize(target.output(pkgRoot).absolute.path)}'
-          " doesn't have expected contents.",
-        );
-        generateNeeded = true;
-      }
-    }
-    if (generateNeeded) {
-      print('Please regenerate using:');
-      var executable = Platform.executable;
-      var generateScript = normalize(joinAll(posix.split(generatorPath)));
-      print('  $executable $generateScript');
-      fail('Generated content needs to be regenerated');
-    }
-  }
 
   /// Regenerate all of the [targets].
   ///
@@ -360,47 +323,6 @@ class GeneratedDirectory extends GeneratedContent {
   final DirectoryContentsComputer directoryContentsComputer;
 
   GeneratedDirectory(this.outputDirPath, this.directoryContentsComputer);
-
-  @override
-  Future<bool> check(String pkgRoot) async {
-    var outputDirectory = output(pkgRoot);
-    var map = directoryContentsComputer(pkgRoot);
-    try {
-      for (var entry in map.entries) {
-        var file = entry.key;
-        var fileContentsComputer = entry.value;
-        var expectedContents = await fileContentsComputer(pkgRoot);
-        var outputFile = File(posix.join(outputDirectory.path, file));
-        var actualContents = outputFile.readAsStringSync();
-        // Normalize Windows line endings to Unix line endings so that the
-        // comparison doesn't fail on Windows.
-        actualContents = actualContents.replaceAll('\r\n', '\n');
-        if (expectedContents != actualContents) {
-          return false;
-        }
-      }
-      var nonHiddenFileCount = 0;
-      outputDirectory.listSync(recursive: false, followLinks: false).forEach((
-        FileSystemEntity fileSystemEntity,
-      ) {
-        if (fileSystemEntity is File &&
-            !basename(fileSystemEntity.path).startsWith('.')) {
-          nonHiddenFileCount++;
-        }
-      });
-      if (nonHiddenFileCount != map.length) {
-        // The number of files generated doesn't match the number we expected to
-        // generate.
-        return false;
-      }
-    } catch (e) {
-      // There was a problem reading the file (most likely because it didn't
-      // exist).  Treat that the same as if the file doesn't have the expected
-      // contents.
-      return false;
-    }
-    return true;
-  }
 
   @override
   Future<void> generate(String pkgRoot) async {
@@ -447,31 +369,6 @@ class GeneratedFile extends GeneratedContent {
   GeneratedFile(this.outputPath, this.computeContents);
 
   bool get isDartFile => outputPath.endsWith('.dart');
-
-  @override
-  Future<bool> check(String pkgRoot) async {
-    var outputFile = output(pkgRoot);
-    var expectedContents = await computeContents(pkgRoot);
-    if (isDartFile) {
-      expectedContents = await DartFormat._formatText(
-        expectedContents,
-        pkgPath: dirname(outputFile.path),
-      );
-    }
-    try {
-      var actualContents = outputFile.readAsStringSync();
-      // Normalize Windows line endings to Unix line endings so that the
-      // comparison doesn't fail on Windows.
-      actualContents = actualContents.replaceAll('\r\n', '\n');
-      expectedContents = expectedContents.replaceAll('\r\n', '\n');
-      return expectedContents == actualContents;
-    } catch (e) {
-      // There was a problem reading the file (most likely because it didn't
-      // exist).  Treat that the same as if the file doesn't have the expected
-      // contents.
-      return false;
-    }
-  }
 
   @override
   Future<void> generate(String pkgRoot) async {
@@ -551,6 +448,45 @@ mixin HtmlCodeGenerator {
   /// Output text, ending the current line.
   void writeln([Object obj = '']) {
     _state.write('$obj\n');
+  }
+}
+
+/// Helper class that can accumulate members of a generated class and then
+/// output them in sorted order.
+///
+/// To use this class, accumulate the desired members into the maps [constants],
+/// [constructors], [accessors], and [staticMethods], and then call [writeTo].
+/// The members will be sorted by map key prior to output them, so the map keys
+/// should be the member names.
+class MemberAccumulator {
+  final Map<String, String> constants = {};
+  final Map<String, String> constructors = {};
+  final Map<String, String> accessors = {};
+  final Map<String, String> staticMethods = {};
+
+  /// Writes the accumulated members to [out].
+  void writeTo(StringBuffer out) {
+    Iterable<String> sortMembers(Map<String, String> nameToMemberMap) =>
+        nameToMemberMap.entries
+            .sortedBy((e) => e.key.toLowerCase())
+            .map((e) => e.value);
+
+    var members = [
+      ...sortMembers(constants),
+      ...sortMembers(constructors),
+      ...sortMembers(accessors),
+      ...sortMembers(staticMethods),
+    ];
+
+    var blankLineNeeded = false;
+    for (var member in members) {
+      if (blankLineNeeded) {
+        out.writeln();
+      } else {
+        blankLineNeeded = true;
+      }
+      out.write(member);
+    }
   }
 }
 

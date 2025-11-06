@@ -532,7 +532,7 @@ explicitExtensionInvocation(C33 c) {
   //  ^^^^^
   // [analyzer] COMPILE_TIME_ERROR.EXTENSION_OVERRIDE_ARGUMENT_NOT_ASSIGNABLE
   //    ^
-  // [cfe] The argument type 'int?' can't be assigned to the parameter type 'int'.
+  // [cfe] A value of type 'int?' can't be assigned to a variable of type 'int'.
 }
 
 class C34 {

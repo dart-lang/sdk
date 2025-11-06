@@ -120,8 +120,8 @@ class CompletionTarget {
 
   /// The enclosing [InterfaceElement], or `null` if not in a class.
   late final InterfaceElement? enclosingInterfaceElement = () {
-    var unitMember =
-        containingNode.thisOrAncestorOfType<CompilationUnitMember>();
+    var unitMember = containingNode
+        .thisOrAncestorOfType<CompilationUnitMember>();
     if (unitMember is ClassDeclaration) {
       return unitMember.declaredFragment?.element;
     } else if (unitMember is MixinDeclaration) {
@@ -179,14 +179,24 @@ class CompletionTarget {
               // If the preceding comment is dartdoc token, then update
               // the containing node to be the dartdoc comment.
               // Otherwise completion is not required.
-              var docComment =
-                  _getContainingDocComment(containingNode, commentToken);
+              var docComment = _getContainingDocComment(
+                containingNode,
+                commentToken,
+              );
               if (docComment != null) {
                 return CompletionTarget._(
-                    offset, docComment, commentToken, false);
+                  offset,
+                  docComment,
+                  commentToken,
+                  false,
+                );
               } else {
                 return CompletionTarget._(
-                    offset, entryPoint, commentToken, true);
+                  offset,
+                  entryPoint,
+                  commentToken,
+                  true,
+                );
               }
             }
             // Target found.
@@ -207,20 +217,32 @@ class CompletionTarget {
           // If the node is a candidate target, then we are done.
           if (_isCandidateNode(entity, offset)) {
             // Check to see if the offset is in a preceding comment
-            var commentToken =
-                _getContainingCommentToken(entity.beginToken, offset);
+            var commentToken = _getContainingCommentToken(
+              entity.beginToken,
+              offset,
+            );
             if (commentToken != null) {
               // If the preceding comment is dartdoc token, then update
               // the containing node to be the dartdoc comment.
               // Otherwise completion is not required.
-              var docComment =
-                  _getContainingDocComment(containingNode, commentToken);
+              var docComment = _getContainingDocComment(
+                containingNode,
+                commentToken,
+              );
               if (docComment != null) {
                 return CompletionTarget._(
-                    offset, docComment, commentToken, false);
+                  offset,
+                  docComment,
+                  commentToken,
+                  false,
+                );
               } else {
                 return CompletionTarget._(
-                    offset, entryPoint, commentToken, true);
+                  offset,
+                  entryPoint,
+                  commentToken,
+                  true,
+                );
               }
             }
             return CompletionTarget._(offset, containingNode, entity, false);
@@ -247,8 +269,10 @@ class CompletionTarget {
 
       // Check for comments on the EOF token (trailing comments in a file).
       if (entryPoint is CompilationUnit) {
-        var commentToken =
-            _getContainingCommentToken(entryPoint.endToken, offset);
+        var commentToken = _getContainingCommentToken(
+          entryPoint.endToken,
+          offset,
+        );
         if (commentToken != null) {
           return CompletionTarget._(offset, entryPoint, commentToken, true);
         }
@@ -263,9 +287,12 @@ class CompletionTarget {
   /// Create a [CompletionTarget] holding the given [containingNode] and
   /// [entity].
   CompletionTarget._(
-      this.offset, this.containingNode, this.entity, this.isCommentText)
-      : argIndex = _computeArgIndex(containingNode, entity),
-        droppedToken = _computeDroppedToken(containingNode, entity, offset);
+    this.offset,
+    this.containingNode,
+    this.entity,
+    this.isCommentText,
+  ) : argIndex = _computeArgIndex(containingNode, entity),
+      droppedToken = _computeDroppedToken(containingNode, entity, offset);
 
   /// Return the expression to the left of the "dot" or "dot dot",
   /// or `null` if this is not a "dot" completion (e.g. `{ foo^; }`).
@@ -459,7 +486,10 @@ class CompletionTarget {
       var executable = executableElement;
       if (executable != null) {
         _parameterElement = _getParameterElement(
-            executable.formalParameters, containingNode, argIndex);
+          executable.formalParameters,
+          containingNode,
+          argIndex,
+        );
       }
     }
     return _parameterElement;
@@ -472,7 +502,8 @@ class CompletionTarget {
     bool isKeywordOrIdentifier(Token token) =>
         token.type.isKeyword || token.type == TokenType.IDENTIFIER;
 
-    var token = droppedToken ??
+    var token =
+        droppedToken ??
         (entity is AstNode ? (entity as AstNode).beginToken : entity as Token?);
     if (token != null && requestOffset < token.offset) {
       token = containingNode.findPrevious(token);
@@ -510,8 +541,8 @@ class CompletionTarget {
           directive =
               // SimpleString -> Directive
               containingNode.parent.ifTypeOrNull() ??
-                  // SimpleString -> Configuration -> Directive
-                  containingNode.parent?.parent.ifTypeOrNull();
+              // SimpleString -> Configuration -> Directive
+              containingNode.parent?.parent.ifTypeOrNull();
         } else if (containingNode is Comment) {
           for (var reference in containingNode.references) {
             if (reference.offset <= requestOffset &&
@@ -607,7 +638,10 @@ class CompletionTarget {
   }
 
   static Token? _computeDroppedToken(
-      AstNode containingNode, Object? entity, int offset) {
+    AstNode containingNode,
+    Object? entity,
+    int offset,
+  ) {
     // Find the last token of the member before the entity.
     SyntacticEntity? previousMember;
     for (var member in containingNode.childEntities) {

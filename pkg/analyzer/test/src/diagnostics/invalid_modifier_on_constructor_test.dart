@@ -22,7 +22,7 @@ class A {
   A() async {}
 }
 ''',
-      [error(CompileTimeErrorCode.INVALID_MODIFIER_ON_CONSTRUCTOR, 16, 5)],
+      [error(CompileTimeErrorCode.invalidModifierOnConstructor, 16, 5)],
     );
   }
 
@@ -33,7 +33,7 @@ class A {
   A() async* {}
 }
 ''',
-      [error(CompileTimeErrorCode.INVALID_MODIFIER_ON_CONSTRUCTOR, 16, 5)],
+      [error(CompileTimeErrorCode.invalidModifierOnConstructor, 16, 5)],
     );
   }
 
@@ -44,7 +44,7 @@ class A {
   A() sync* {}
 }
 ''',
-      [error(CompileTimeErrorCode.INVALID_MODIFIER_ON_CONSTRUCTOR, 16, 4)],
+      [error(CompileTimeErrorCode.invalidModifierOnConstructor, 16, 4)],
     );
   }
 }

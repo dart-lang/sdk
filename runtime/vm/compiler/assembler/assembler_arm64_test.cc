@@ -5,6 +5,7 @@
 #include "vm/globals.h"
 #if defined(TARGET_ARCH_ARM64)
 
+#include "platform/thread_sanitizer.h"
 #include "vm/compiler/assembler/assembler.h"
 #include "vm/compiler/assembler/assembler_test.h"
 #include "vm/compiler/backend/locations.h"

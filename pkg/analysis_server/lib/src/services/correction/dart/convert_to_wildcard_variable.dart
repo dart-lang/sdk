@@ -21,7 +21,7 @@ class ConvertToWildcardVariable extends ResolvedCorrectionProducer {
       CorrectionApplicability.singleLocation;
 
   @override
-  FixKind get fixKind => DartFixKind.CONVERT_TO_WILDCARD_VARIABLE;
+  FixKind get fixKind => DartFixKind.convertToWildcardVariable;
 
   bool get wildcardVariablesEnabled =>
       libraryElement2.featureSet.isEnabled(Feature.wildcard_variables);
@@ -46,7 +46,7 @@ class ConvertToWildcardVariable extends ResolvedCorrectionProducer {
     if (node is! VariableDeclaration) return;
 
     var nameToken = node.name;
-    var element = node.declaredElement;
+    var element = node.declaredFragment?.element;
     if (element is! LocalVariableElement) {
       return;
     }

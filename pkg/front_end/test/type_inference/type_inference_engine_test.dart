@@ -20,134 +20,228 @@ class IncludesTypeParametersCovariantlyTest {
   final TypeParameter V = new TypeParameter('V');
 
   bool check(DartType type, List<TypeParameter> typeParameters) {
-    return type.accept(new IncludesTypeParametersNonCovariantly(typeParameters,
-        initialVariance: Variance.contravariant));
+    return type.accept(
+      new IncludesTypeParametersNonCovariantly(
+        typeParameters,
+        initialVariance: Variance.contravariant,
+      ),
+    );
   }
 
   bool checkContravariant(DartType type, List<TypeParameter> typeParameters) {
     return check(
-        new FunctionType([type], const VoidType(), Nullability.nonNullable),
-        typeParameters);
+      new FunctionType([type], const VoidType(), Nullability.nonNullable),
+      typeParameters,
+    );
   }
 
   NamedType named(String name, DartType type) => new NamedType(name, type);
 
   void test_function_type() {
     expect(
-        check(
-            new FunctionType(
-                [tpt(T), tpt(U)], const VoidType(), Nullability.nonNullable),
-            [T]),
-        isFalse);
+      check(
+        new FunctionType(
+          [tpt(T), tpt(U)],
+          const VoidType(),
+          Nullability.nonNullable,
+        ),
+        [T],
+      ),
+      isFalse,
+    );
     expect(
-        check(
-            new FunctionType(
-                [tpt(T), tpt(U)], const VoidType(), Nullability.nonNullable),
-            [U]),
-        isFalse);
+      check(
+        new FunctionType(
+          [tpt(T), tpt(U)],
+          const VoidType(),
+          Nullability.nonNullable,
+        ),
+        [U],
+      ),
+      isFalse,
+    );
     expect(
-        check(
-            new FunctionType(
-                [tpt(T), tpt(U)], const VoidType(), Nullability.nonNullable),
-            []),
-        isFalse);
+      check(
+        new FunctionType(
+          [tpt(T), tpt(U)],
+          const VoidType(),
+          Nullability.nonNullable,
+        ),
+        [],
+      ),
+      isFalse,
+    );
     expect(
-        check(
-            new FunctionType([], const VoidType(), Nullability.nonNullable,
-                namedParameters: [named('a', tpt(T)), named('b', tpt(U))]),
-            [T]),
-        isFalse);
+      check(
+        new FunctionType(
+          [],
+          const VoidType(),
+          Nullability.nonNullable,
+          namedParameters: [named('a', tpt(T)), named('b', tpt(U))],
+        ),
+        [T],
+      ),
+      isFalse,
+    );
     expect(
-        check(
-            new FunctionType([], const VoidType(), Nullability.nonNullable,
-                namedParameters: [named('a', tpt(T)), named('b', tpt(U))]),
-            [U]),
-        isFalse);
+      check(
+        new FunctionType(
+          [],
+          const VoidType(),
+          Nullability.nonNullable,
+          namedParameters: [named('a', tpt(T)), named('b', tpt(U))],
+        ),
+        [U],
+      ),
+      isFalse,
+    );
     expect(
-        check(
-            new FunctionType([], const VoidType(), Nullability.nonNullable,
-                namedParameters: [named('a', tpt(T)), named('b', tpt(U))]),
-            []),
-        isFalse);
-    expect(check(new FunctionType([], tpt(T), Nullability.nonNullable), [T]),
-        isTrue);
-    expect(check(new FunctionType([], tpt(T), Nullability.nonNullable), [U]),
-        isFalse);
+      check(
+        new FunctionType(
+          [],
+          const VoidType(),
+          Nullability.nonNullable,
+          namedParameters: [named('a', tpt(T)), named('b', tpt(U))],
+        ),
+        [],
+      ),
+      isFalse,
+    );
     expect(
-        checkContravariant(
-            new FunctionType(
-                [tpt(T), tpt(U)], const VoidType(), Nullability.nonNullable),
-            [T]),
-        isTrue);
+      check(new FunctionType([], tpt(T), Nullability.nonNullable), [T]),
+      isTrue,
+    );
     expect(
-        checkContravariant(
-            new FunctionType(
-                [tpt(T), tpt(U)], const VoidType(), Nullability.nonNullable),
-            [U]),
-        isTrue);
+      check(new FunctionType([], tpt(T), Nullability.nonNullable), [U]),
+      isFalse,
+    );
     expect(
-        checkContravariant(
-            new FunctionType(
-                [tpt(T), tpt(U)], const VoidType(), Nullability.nonNullable),
-            []),
-        isFalse);
+      checkContravariant(
+        new FunctionType(
+          [tpt(T), tpt(U)],
+          const VoidType(),
+          Nullability.nonNullable,
+        ),
+        [T],
+      ),
+      isTrue,
+    );
     expect(
-        checkContravariant(
-            new FunctionType([], const VoidType(), Nullability.nonNullable,
-                namedParameters: [named('a', tpt(T)), named('b', tpt(U))]),
-            [T]),
-        isTrue);
+      checkContravariant(
+        new FunctionType(
+          [tpt(T), tpt(U)],
+          const VoidType(),
+          Nullability.nonNullable,
+        ),
+        [U],
+      ),
+      isTrue,
+    );
     expect(
-        checkContravariant(
-            new FunctionType([], const VoidType(), Nullability.nonNullable,
-                namedParameters: [named('a', tpt(T)), named('b', tpt(U))]),
-            [U]),
-        isTrue);
+      checkContravariant(
+        new FunctionType(
+          [tpt(T), tpt(U)],
+          const VoidType(),
+          Nullability.nonNullable,
+        ),
+        [],
+      ),
+      isFalse,
+    );
     expect(
-        checkContravariant(
-            new FunctionType([], const VoidType(), Nullability.nonNullable,
-                namedParameters: [named('a', tpt(T)), named('b', tpt(U))]),
-            []),
-        isFalse);
+      checkContravariant(
+        new FunctionType(
+          [],
+          const VoidType(),
+          Nullability.nonNullable,
+          namedParameters: [named('a', tpt(T)), named('b', tpt(U))],
+        ),
+        [T],
+      ),
+      isTrue,
+    );
     expect(
-        checkContravariant(
-            new FunctionType([], tpt(T), Nullability.nonNullable), [T]),
-        isFalse);
+      checkContravariant(
+        new FunctionType(
+          [],
+          const VoidType(),
+          Nullability.nonNullable,
+          namedParameters: [named('a', tpt(T)), named('b', tpt(U))],
+        ),
+        [U],
+      ),
+      isTrue,
+    );
     expect(
-        checkContravariant(
-            new FunctionType([], tpt(T), Nullability.nonNullable), [U]),
-        isFalse);
+      checkContravariant(
+        new FunctionType(
+          [],
+          const VoidType(),
+          Nullability.nonNullable,
+          namedParameters: [named('a', tpt(T)), named('b', tpt(U))],
+        ),
+        [],
+      ),
+      isFalse,
+    );
+    expect(
+      checkContravariant(
+        new FunctionType([], tpt(T), Nullability.nonNullable),
+        [T],
+      ),
+      isFalse,
+    );
+    expect(
+      checkContravariant(
+        new FunctionType([], tpt(T), Nullability.nonNullable),
+        [U],
+      ),
+      isFalse,
+    );
   }
 
   void test_interface_type() {
     Class cls = new Class(name: 'C', typeParameters: [T, U], fileUri: dummyUri);
     expect(
-        check(new InterfaceType(cls, Nullability.nonNullable, [tpt(T), tpt(U)]),
-            [T]),
-        isTrue);
+      check(new InterfaceType(cls, Nullability.nonNullable, [tpt(T), tpt(U)]), [
+        T,
+      ]),
+      isTrue,
+    );
     expect(
-        check(new InterfaceType(cls, Nullability.nonNullable, [tpt(T), tpt(U)]),
-            [U]),
-        isTrue);
+      check(new InterfaceType(cls, Nullability.nonNullable, [tpt(T), tpt(U)]), [
+        U,
+      ]),
+      isTrue,
+    );
     expect(
-        check(new InterfaceType(cls, Nullability.nonNullable, [tpt(T), tpt(U)]),
-            []),
-        isFalse);
+      check(
+        new InterfaceType(cls, Nullability.nonNullable, [tpt(T), tpt(U)]),
+        [],
+      ),
+      isFalse,
+    );
     expect(
-        checkContravariant(
-            new InterfaceType(cls, Nullability.nonNullable, [tpt(T), tpt(U)]),
-            [T]),
-        isFalse);
+      checkContravariant(
+        new InterfaceType(cls, Nullability.nonNullable, [tpt(T), tpt(U)]),
+        [T],
+      ),
+      isFalse,
+    );
     expect(
-        checkContravariant(
-            new InterfaceType(cls, Nullability.nonNullable, [tpt(T), tpt(U)]),
-            [U]),
-        isFalse);
+      checkContravariant(
+        new InterfaceType(cls, Nullability.nonNullable, [tpt(T), tpt(U)]),
+        [U],
+      ),
+      isFalse,
+    );
     expect(
-        checkContravariant(
-            new InterfaceType(cls, Nullability.nonNullable, [tpt(T), tpt(U)]),
-            []),
-        isFalse);
+      checkContravariant(
+        new InterfaceType(cls, Nullability.nonNullable, [tpt(T), tpt(U)]),
+        [],
+      ),
+      isFalse,
+    );
   }
 
   void test_other_type() {
@@ -172,61 +266,100 @@ class IncludesTypeParametersCovariantlyTest {
     expect(check(tpt(V, variance: Variance.covariant), [T, U]), isFalse);
     expect(check(tpt(V, variance: Variance.contravariant), [T, U]), isFalse);
     expect(check(tpt(V, variance: Variance.invariant), [T, U]), isFalse);
-    expect(checkContravariant(tpt(T, variance: Variance.covariant), [T, U]),
-        isFalse);
-    expect(checkContravariant(tpt(T, variance: Variance.contravariant), [T, U]),
-        isTrue);
-    expect(checkContravariant(tpt(T, variance: Variance.invariant), [T, U]),
-        isFalse);
-    expect(checkContravariant(tpt(V, variance: Variance.covariant), [T, U]),
-        isFalse);
-    expect(checkContravariant(tpt(V, variance: Variance.contravariant), [T, U]),
-        isFalse);
-    expect(checkContravariant(tpt(V, variance: Variance.invariant), [T, U]),
-        isFalse);
+    expect(
+      checkContravariant(tpt(T, variance: Variance.covariant), [T, U]),
+      isFalse,
+    );
+    expect(
+      checkContravariant(tpt(T, variance: Variance.contravariant), [T, U]),
+      isTrue,
+    );
+    expect(
+      checkContravariant(tpt(T, variance: Variance.invariant), [T, U]),
+      isFalse,
+    );
+    expect(
+      checkContravariant(tpt(V, variance: Variance.covariant), [T, U]),
+      isFalse,
+    );
+    expect(
+      checkContravariant(tpt(V, variance: Variance.contravariant), [T, U]),
+      isFalse,
+    );
+    expect(
+      checkContravariant(tpt(V, variance: Variance.invariant), [T, U]),
+      isFalse,
+    );
   }
 
   void test_typedef_type() {
     // typedef U F<T, U>(T x);
     var typedefNode = new Typedef(
-        'F', new FunctionType([tpt(T)], tpt(U), Nullability.nonNullable),
-        typeParameters: [T, U], fileUri: dummyUri);
+      'F',
+      new FunctionType([tpt(T)], tpt(U), Nullability.nonNullable),
+      typeParameters: [T, U],
+      fileUri: dummyUri,
+    );
     expect(
-        check(
-            new TypedefType(typedefNode, Nullability.nonNullable,
-                [const DynamicType(), const DynamicType()]),
-            [V]),
-        isFalse);
+      check(
+        new TypedefType(typedefNode, Nullability.nonNullable, [
+          const DynamicType(),
+          const DynamicType(),
+        ]),
+        [V],
+      ),
+      isFalse,
+    );
     expect(
-        check(
-            new TypedefType(typedefNode, Nullability.nonNullable,
-                [tpt(V), const DynamicType()]),
-            [V]),
-        isFalse);
+      check(
+        new TypedefType(typedefNode, Nullability.nonNullable, [
+          tpt(V),
+          const DynamicType(),
+        ]),
+        [V],
+      ),
+      isFalse,
+    );
     expect(
-        check(
-            new TypedefType(typedefNode, Nullability.nonNullable,
-                [const DynamicType(), tpt(V)]),
-            [V]),
-        isTrue);
+      check(
+        new TypedefType(typedefNode, Nullability.nonNullable, [
+          const DynamicType(),
+          tpt(V),
+        ]),
+        [V],
+      ),
+      isTrue,
+    );
     expect(
-        checkContravariant(
-            new TypedefType(typedefNode, Nullability.nonNullable,
-                [const DynamicType(), const DynamicType()]),
-            [V]),
-        isFalse);
+      checkContravariant(
+        new TypedefType(typedefNode, Nullability.nonNullable, [
+          const DynamicType(),
+          const DynamicType(),
+        ]),
+        [V],
+      ),
+      isFalse,
+    );
     expect(
-        checkContravariant(
-            new TypedefType(typedefNode, Nullability.nonNullable,
-                [tpt(V), const DynamicType()]),
-            [V]),
-        isTrue);
+      checkContravariant(
+        new TypedefType(typedefNode, Nullability.nonNullable, [
+          tpt(V),
+          const DynamicType(),
+        ]),
+        [V],
+      ),
+      isTrue,
+    );
     expect(
-        checkContravariant(
-            new TypedefType(typedefNode, Nullability.nonNullable,
-                [const DynamicType(), tpt(V)]),
-            [V]),
-        isFalse);
+      checkContravariant(
+        new TypedefType(typedefNode, Nullability.nonNullable, [
+          const DynamicType(),
+          tpt(V),
+        ]),
+        [V],
+      ),
+      isFalse,
+    );
   }
 
   TypeParameterType tpt(TypeParameter param, {Variance? variance = null}) {

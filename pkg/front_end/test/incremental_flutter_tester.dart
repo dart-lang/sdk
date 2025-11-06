@@ -5,9 +5,10 @@
 import 'dart:io' show Directory, File, exit;
 import 'dart:typed_data';
 
-import 'package:_fe_analyzer_shared/src/messages/severity.dart' show Severity;
+import 'package:_fe_analyzer_shared/src/messages/severity.dart'
+    show CfeSeverity;
 import 'package:front_end/src/api_prototype/compiler_options.dart'
-    show CompilerOptions, DiagnosticMessage;
+    show CompilerOptions, CfeDiagnosticMessage;
 import 'package:front_end/src/api_prototype/experimental_flags.dart';
 import 'package:front_end/src/api_prototype/incremental_kernel_generator.dart'
     show IncrementalCompilerResult;
@@ -54,8 +55,9 @@ Future<void> main(List<String> args) async {
         throw "$inputFile doesn't exist!";
       }
     } else if (arg.startsWith("--flutter_patched_sdk_dir=")) {
-      flutterPatchedSdk =
-          new Directory(arg.substring("--flutter_patched_sdk_dir=".length));
+      flutterPatchedSdk = new Directory(
+        arg.substring("--flutter_patched_sdk_dir=".length),
+      );
       if (!flutterPatchedSdk.existsSync()) {
         throw "$flutterPatchedSdk doesn't exist!";
       }
@@ -73,13 +75,18 @@ Future<void> main(List<String> args) async {
   Stopwatch stopwatch = new Stopwatch()..start();
   CompilerOptions options = getOptions(flutterPatchedSdk.uri);
   options.explicitExperimentalFlags[ExperimentalFlag
-      .alternativeInvalidationStrategy] = useExperimentalInvalidation;
-  helper.TestIncrementalCompiler compiler =
-      new helper.TestIncrementalCompiler(options, inputFile.uri);
+          .alternativeInvalidationStrategy] =
+      useExperimentalInvalidation;
+  helper.TestIncrementalCompiler compiler = new helper.TestIncrementalCompiler(
+    options,
+    inputFile.uri,
+  );
   IncrementalCompilerResult compilerResult = await compiler.computeDelta();
   Component? c = compilerResult.component;
-  print("Compiled to Component with ${c.libraries.length} "
-      "libraries in ${stopwatch.elapsedMilliseconds} ms.");
+  print(
+    "Compiled to Component with ${c.libraries.length} "
+    "libraries in ${stopwatch.elapsedMilliseconds} ms.",
+  );
   stopwatch.reset();
   late Uint8List firstCompileData;
   late Map<Uri, Uint8List> libToData;
@@ -97,8 +104,10 @@ Future<void> main(List<String> args) async {
       library.additionalExports.sort();
       library.problemsAsJson?.sort();
 
-      Uint8List libSerialized =
-          serializeComponent(c, filter: (l) => l == library);
+      Uint8List libSerialized = serializeComponent(
+        c,
+        filter: (l) => l == library,
+      );
       libToData[library.importUri] = libSerialized;
     }
   } else {
@@ -125,14 +134,19 @@ Future<void> main(List<String> args) async {
     print("Invalidating $uri ($i)");
     compiler.invalidate(uri);
     localStopwatch.reset();
-    IncrementalCompilerResult compilerResult =
-        await compiler.computeDelta(fullComponent: true);
+    IncrementalCompilerResult compilerResult = await compiler.computeDelta(
+      fullComponent: true,
+    );
     Component c2 = compilerResult.component;
     print("Recompiled in ${localStopwatch.elapsedMilliseconds} ms");
-    print("invalidatedImportUrisForTesting: "
-        "${compiler.recorderForTesting.invalidatedImportUrisForTesting}");
-    print("rebuildBodiesCount: "
-        "${compiler.recorderForTesting.rebuildBodiesCount}");
+    print(
+      "invalidatedImportUrisForTesting: "
+      "${compiler.recorderForTesting.invalidatedImportUrisForTesting}",
+    );
+    print(
+      "rebuildBodiesCount: "
+      "${compiler.recorderForTesting.rebuildBodiesCount}",
+    );
     localStopwatch.reset();
     Set<Uri> thisUris = new Set<Uri>.from(c2.libraries.map((l) => l.importUri));
     if (componentUris.isNotEmpty) {
@@ -170,8 +184,10 @@ Future<void> main(List<String> args) async {
         library.additionalExports.sort();
         library.problemsAsJson?.sort();
 
-        Uint8List libSerialized =
-            serializeComponent(c2, filter: (l) => l == library);
+        Uint8List libSerialized = serializeComponent(
+          c2,
+          filter: (l) => l == library,
+        );
         if (!isEqual(libToData[library.importUri]!, libSerialized)) {
           print("=====");
           print("=====");
@@ -211,8 +227,10 @@ Future<void> main(List<String> args) async {
     print(" - $uri");
   }
 
-  print("Done after ${uris.length} recompiles in "
-      "${stopwatch.elapsedMilliseconds} ms");
+  print(
+    "Done after ${uris.length} recompiles in "
+    "${stopwatch.elapsedMilliseconds} ms",
+  );
 }
 
 bool isEqual(Uint8List a, Uint8List b) {
@@ -266,8 +284,8 @@ CompilerOptions getOptions(Uri sdkRoot) {
     ..sdkRoot = sdkRoot
     ..target = target
     ..omitPlatform = true
-    ..onDiagnostic = (DiagnosticMessage message) {
-      if (message.severity == Severity.error) {
+    ..onDiagnostic = (CfeDiagnosticMessage message) {
+      if (message.severity == CfeSeverity.error) {
         throw "Unexpected error: ${message.plainTextFormatted.join('\n')}";
       }
     }
@@ -277,30 +295,37 @@ CompilerOptions getOptions(Uri sdkRoot) {
 }
 
 class PrinterPrime extends Printer {
-  PrinterPrime(StringSink sink,
-      {NameSystem? syntheticNames,
-      bool showOffsets = false,
-      bool showMetadata = false,
-      ImportTable? importTable,
-      Annotator? annotator,
-      Map<String, MetadataRepository<dynamic>>? metadata})
-      : super(sink,
-            showOffsets: showOffsets,
-            showMetadata: showMetadata,
-            importTable: importTable,
-            annotator: annotator,
-            metadata: metadata);
+  PrinterPrime(
+    StringSink sink, {
+    NameSystem? syntheticNames,
+    bool showOffsets = false,
+    bool showMetadata = false,
+    ImportTable? importTable,
+    Annotator? annotator,
+    Map<String, MetadataRepository<dynamic>>? metadata,
+  }) : super(
+         sink,
+         showOffsets: showOffsets,
+         showMetadata: showMetadata,
+         importTable: importTable,
+         annotator: annotator,
+         metadata: metadata,
+       );
 
   @override
-  PrinterPrime createInner(ImportTable importTable,
-      Map<String, MetadataRepository<dynamic>>? metadata) {
-    return new PrinterPrime(sink,
-        importTable: importTable,
-        metadata: metadata,
-        syntheticNames: syntheticNames,
-        annotator: annotator,
-        showOffsets: showOffsets,
-        showMetadata: showMetadata);
+  PrinterPrime createInner(
+    ImportTable importTable,
+    Map<String, MetadataRepository<dynamic>>? metadata,
+  ) {
+    return new PrinterPrime(
+      sink,
+      importTable: importTable,
+      metadata: metadata,
+      syntheticNames: syntheticNames,
+      annotator: annotator,
+      showOffsets: showOffsets,
+      showMetadata: showMetadata,
+    );
   }
 
   @override

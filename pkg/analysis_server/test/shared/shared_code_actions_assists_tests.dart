@@ -346,17 +346,16 @@ build() {
 
     // Also ensure there was a single edit that was correctly marked
     // as a SnippetTextEdit.
-    var textEdits =
-        extractTextDocumentEdits(verifier.edit.documentChanges!)
-            .expand((tde) => tde.edits)
-            .map(
-              (edit) => edit.map(
-                (e) => throw 'Expected SnippetTextEdit, got AnnotatedTextEdit',
-                (e) => e,
-                (e) => throw 'Expected SnippetTextEdit, got TextEdit',
-              ),
-            )
-            .toList();
+    var textEdits = extractTextDocumentEdits(verifier.edit.documentChanges!)
+        .expand((tde) => tde.edits)
+        .map(
+          (edit) => edit.map(
+            (e) => throw 'Expected SnippetTextEdit, got AnnotatedTextEdit',
+            (e) => e,
+            (e) => throw 'Expected SnippetTextEdit, got TextEdit',
+          ),
+        )
+        .toList();
     expect(textEdits, hasLength(1));
     expect(textEdits.first.insertTextFormat, equals(InsertTextFormat.Snippet));
   }
@@ -390,11 +389,10 @@ build() {
     // Extract just TextDocumentEdits, create/rename/delete are not relevant.
     var edit = assist.edit!;
     var textDocumentEdits = extractTextDocumentEdits(edit.documentChanges!);
-    var textEdits =
-        textDocumentEdits
-            .expand((tde) => tde.edits)
-            .map((edit) => edit.map((e) => e, (e) => e, (e) => e))
-            .toList();
+    var textEdits = textDocumentEdits
+        .expand((tde) => tde.edits)
+        .map((edit) => edit.map((e) => e, (e) => e, (e) => e))
+        .toList();
 
     // Ensure the edit does _not_ have a format of Snippet, nor does it include
     // any $ characters that would indicate snippet text.
@@ -460,17 +458,16 @@ void f() {
 
     // Also ensure there was a single edit that was correctly marked
     // as a SnippetTextEdit.
-    var textEdits =
-        extractTextDocumentEdits(verifier.edit.documentChanges!)
-            .expand((tde) => tde.edits)
-            .map(
-              (edit) => edit.map(
-                (e) => throw 'Expected SnippetTextEdit, got AnnotatedTextEdit',
-                (e) => e,
-                (e) => throw 'Expected SnippetTextEdit, got TextEdit',
-              ),
-            )
-            .toList();
+    var textEdits = extractTextDocumentEdits(verifier.edit.documentChanges!)
+        .expand((tde) => tde.edits)
+        .map(
+          (edit) => edit.map(
+            (e) => throw 'Expected SnippetTextEdit, got AnnotatedTextEdit',
+            (e) => e,
+            (e) => throw 'Expected SnippetTextEdit, got TextEdit',
+          ),
+        )
+        .toList();
     expect(textEdits, hasLength(1));
     expect(textEdits.first.insertTextFormat, equals(InsertTextFormat.Snippet));
   }

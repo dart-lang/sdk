@@ -41,10 +41,9 @@ class ConvertIntoForIndex extends ResolvedCorrectionProducer {
       return;
     }
     // loop should declare variable
-    var loopVariable =
-        forEachParts is ForEachPartsWithDeclaration
-            ? forEachParts.loopVariable
-            : null;
+    var loopVariable = forEachParts is ForEachPartsWithDeclaration
+        ? forEachParts.loopVariable
+        : null;
     if (loopVariable == null) {
       return;
     }
@@ -91,6 +90,7 @@ class ConvertIntoForIndex extends ResolvedCorrectionProducer {
     var firstBlockLine = utils.getLineContentEnd(body.leftBracket.end);
     // add change
     await builder.addDartFileEdit(file, (builder) {
+      var eol = builder.eol;
       // TODO(brianwilkerson): Create linked positions for the loop variable.
       builder.addSimpleReplacement(
         range.startEnd(forStatement, forStatement.rightParenthesis),

@@ -25,8 +25,8 @@ f() {
 }
 ''',
       [
-        error(WarningCode.UNUSED_LABEL, 8, 2),
-        error(CompileTimeErrorCode.LABEL_UNDEFINED, 36, 1),
+        error(WarningCode.unusedLabel, 8, 2),
+        error(CompileTimeErrorCode.labelUndefined, 36, 1),
       ],
     );
   }
@@ -40,7 +40,7 @@ f(int x) {
   }
 }
 ''',
-      [error(CompileTimeErrorCode.LABEL_UNDEFINED, 38, 1)],
+      [error(CompileTimeErrorCode.labelUndefined, 38, 1)],
     );
   }
 
@@ -54,8 +54,8 @@ f() {
 }
 ''',
       [
-        error(WarningCode.UNUSED_LABEL, 8, 2),
-        error(CompileTimeErrorCode.LABEL_UNDEFINED, 39, 1),
+        error(WarningCode.unusedLabel, 8, 2),
+        error(CompileTimeErrorCode.labelUndefined, 39, 1),
       ],
     );
   }
@@ -69,7 +69,7 @@ f(int x) {
   }
 }
 ''',
-      [error(CompileTimeErrorCode.LABEL_UNDEFINED, 41, 1)],
+      [error(CompileTimeErrorCode.labelUndefined, 41, 1)],
     );
   }
 }

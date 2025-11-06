@@ -154,25 +154,33 @@ Future<void> _main(List<String> inputArguments, Directory tmpDir) async {
   }
 
   await compileInstrumentationLibrary(
-      tmpDir,
-      new TimerCounterInstrumenterConfig(
-          libFilename: libFilename,
-          reportCandidates: reportCandidates,
-          wanted: wanted,
-          includeAll: reportCandidates,
-          includeConstructors:
-              !reportCandidates || doCount || doTimer || doSingleTimer),
-      arguments,
-      output);
+    tmpDir,
+    new TimerCounterInstrumenterConfig(
+      libFilename: libFilename,
+      reportCandidates: reportCandidates,
+      wanted: wanted,
+      includeAll: reportCandidates,
+      includeConstructors:
+          !reportCandidates || doCount || doTimer || doSingleTimer,
+    ),
+    arguments,
+    output,
+  );
 }
 
 Uri parseCompilerArguments(List<String> arguments) {
   installAdditionalTargets();
   FileSystemDependencyTracker tracker = new FileSystemDependencyTracker();
-  ParsedOptions parsedOptions =
-      ParsedOptions.parse(arguments, optionSpecification);
-  ProcessedOptions options =
-      analyzeCommandLine(tracker, "compile", parsedOptions, true);
+  ParsedOptions parsedOptions = ParsedOptions.parse(
+    arguments,
+    optionSpecification,
+  );
+  ProcessedOptions options = analyzeCommandLine(
+    tracker,
+    "compile",
+    parsedOptions,
+    true,
+  );
   Uri? output = options.output;
   if (output == null) throw "No output";
   if (!output.isScheme("file")) throw "Output won't be saved";
@@ -190,10 +198,14 @@ abstract class InstrumenterConfig {
   bool includeConstructor(Constructor constructor);
 
   Arguments createBeforeArguments(
-      List<Procedure> procedures, List<Constructor> constructors);
+    List<Procedure> procedures,
+    List<Constructor> constructors,
+  );
 
   Arguments createAfterArguments(
-      List<Procedure> procedures, List<Constructor> constructors);
+    List<Procedure> procedures,
+    List<Constructor> constructors,
+  );
 
   Arguments createEnterArguments(int id, Member member);
 
@@ -208,12 +220,13 @@ class TimerCounterInstrumenterConfig implements InstrumenterConfig {
   final bool includeConstructors;
   final Map<String, Set<String>> wanted;
 
-  TimerCounterInstrumenterConfig(
-      {required this.libFilename,
-      required this.reportCandidates,
-      required this.includeAll,
-      required this.includeConstructors,
-      required this.wanted});
+  TimerCounterInstrumenterConfig({
+    required this.libFilename,
+    required this.reportCandidates,
+    required this.includeAll,
+    required this.includeConstructors,
+    required this.wanted,
+  });
 
   @override
   String get beforeName => 'initialize';
@@ -234,7 +247,7 @@ class TimerCounterInstrumenterConfig implements InstrumenterConfig {
     Set<String> procedureNamesWantedInFile =
         wanted[p.fileUri.pathSegments.last] ?? const {};
     return procedureNamesWantedInFile.contains(name) ||
-        !procedureNamesWantedInFile.contains("*");
+        procedureNamesWantedInFile.contains("*");
   }
 
   @override
@@ -250,7 +263,9 @@ class TimerCounterInstrumenterConfig implements InstrumenterConfig {
 
   @override
   Arguments createBeforeArguments(
-      List<Procedure> procedures, List<Constructor> constructors) {
+    List<Procedure> procedures,
+    List<Constructor> constructors,
+  ) {
     return new Arguments([
       new IntLiteral(procedures.length + constructors.length),
       new BoolLiteral(reportCandidates),
@@ -259,15 +274,23 @@ class TimerCounterInstrumenterConfig implements InstrumenterConfig {
 
   @override
   Arguments createAfterArguments(
-      List<Procedure> procedures, List<Constructor> constructors) {
+    List<Procedure> procedures,
+    List<Constructor> constructors,
+  ) {
     return new Arguments([
       new ListLiteral([
-        ...procedures
-            .map((p) => new StringLiteral("${p.fileUri.pathSegments.last}|"
-                "${getProcedureName(p)}")),
-        ...constructors
-            .map((c) => new StringLiteral("${c.fileUri.pathSegments.last}|"
-                "${getConstructorName(c)}")),
+        ...procedures.map(
+          (p) => new StringLiteral(
+            "${p.fileUri.pathSegments.last}|"
+            "${getProcedureName(p)}",
+          ),
+        ),
+        ...constructors.map(
+          (c) => new StringLiteral(
+            "${c.fileUri.pathSegments.last}|"
+            "${getConstructorName(c)}",
+          ),
+        ),
       ]),
     ]);
   }
@@ -283,14 +306,18 @@ class TimerCounterInstrumenterConfig implements InstrumenterConfig {
   }
 }
 
-Future<void> compileInstrumentationLibrary(Directory tmpDir,
-    InstrumenterConfig config, List<String> arguments, Uri output) async {
+Future<void> compileInstrumentationLibrary(
+  Directory tmpDir,
+  InstrumenterConfig config,
+  List<String> arguments,
+  Uri output,
+) async {
   print("Compiling the instrumentation library.");
   Uri instrumentationLibDill = tmpDir.uri.resolve("instrumenter.dill");
   await cfe_compile.main([
     "--omit-platform",
     "-o=${instrumentationLibDill.toFilePath()}",
-    Platform.script.resolve(config.libFilename).toFilePath()
+    Platform.script.resolve(config.libFilename).toFilePath(),
   ]);
   if (!File.fromUri(instrumentationLibDill).existsSync()) {
     throw "Instrumentation library didn't compile as expected.";
@@ -326,16 +353,21 @@ Future<void> compileInstrumentationLibrary(Directory tmpDir,
   print("Constructors: ${constructors.length}");
 
   // TODO: Check that this is true.
-  Library instrumenterLib = component.libraries
-      .singleWhere((lib) => lib.fileUri.path.endsWith(config.libFilename));
-  Procedure instrumenterInitialize = instrumenterLib.procedures
-      .singleWhere((p) => p.name.text == config.beforeName);
-  Procedure instrumenterEnter = instrumenterLib.procedures
-      .singleWhere((p) => p.name.text == config.enterName);
-  Procedure instrumenterExit = instrumenterLib.procedures
-      .singleWhere((p) => p.name.text == config.exitName);
-  Procedure instrumenterReport = instrumenterLib.procedures
-      .singleWhere((p) => p.name.text == config.afterName);
+  Library instrumenterLib = component.libraries.singleWhere(
+    (lib) => lib.fileUri.path.endsWith(config.libFilename),
+  );
+  Procedure instrumenterInitialize = instrumenterLib.procedures.singleWhere(
+    (p) => p.name.text == config.beforeName,
+  );
+  Procedure instrumenterEnter = instrumenterLib.procedures.singleWhere(
+    (p) => p.name.text == config.enterName,
+  );
+  Procedure instrumenterExit = instrumenterLib.procedures.singleWhere(
+    (p) => p.name.text == config.exitName,
+  );
+  Procedure instrumenterReport = instrumenterLib.procedures.singleWhere(
+    (p) => p.name.text == config.afterName,
+  );
 
   int id = 0;
   for (Procedure p in procedures) {
@@ -347,8 +379,14 @@ Future<void> compileInstrumentationLibrary(Directory tmpDir,
     wrapConstructor(config, c, thisId, instrumenterEnter, instrumenterExit);
   }
 
-  initializeAndReport(config, component.mainMethod!, instrumenterInitialize,
-      procedures, constructors, instrumenterReport);
+  initializeAndReport(
+    config,
+    component.mainMethod!,
+    instrumenterInitialize,
+    procedures,
+    constructors,
+    instrumenterReport,
+  );
 
   print("Writing output.");
   String outString = output.toFilePath() + ".instrumented.dill";
@@ -357,7 +395,10 @@ Future<void> compileInstrumentationLibrary(Directory tmpDir,
 }
 
 void addIfWantedProcedures(
-    InstrumenterConfig config, List<Procedure> output, List<Procedure> input) {
+  InstrumenterConfig config,
+  List<Procedure> output,
+  List<Procedure> input,
+) {
   for (Procedure p in input) {
     if (p.function.body == null) continue;
     // Yielding functions doesn't work well with the begin/end scheme.
@@ -369,8 +410,11 @@ void addIfWantedProcedures(
   }
 }
 
-void addIfWantedConstructors(InstrumenterConfig config,
-    List<Constructor> output, List<Constructor> input) {
+void addIfWantedConstructors(
+  InstrumenterConfig config,
+  List<Constructor> output,
+  List<Constructor> input,
+) {
   for (Constructor c in input) {
     if (c.isExternal) continue;
     if (config.includeConstructor(c)) {
@@ -398,7 +442,9 @@ String getConstructorName(Constructor c) {
 }
 
 Map<String, Set<String>> setupWantedMap(
-    List<String> candidates, List<String> candidatesRaw) {
+  List<String> candidates,
+  List<String> candidatesRaw,
+) {
   Map<String, Set<String>> wanted = {};
   for (String filename in candidates) {
     File f = new File(filename);
@@ -426,52 +472,81 @@ Map<String, Set<String>> setupWantedMap(
 }
 
 void initializeAndReport(
-    InstrumenterConfig config,
-    Procedure mainProcedure,
-    Procedure initializeProcedure,
-    List<Procedure> procedures,
-    List<Constructor> constructors,
-    Procedure instrumenterReport) {
-  mainProcedure.enclosingLibrary.dependencies
-      .add(new LibraryDependency.import(initializeProcedure.enclosingLibrary));
+  InstrumenterConfig config,
+  Procedure mainProcedure,
+  Procedure initializeProcedure,
+  List<Procedure> procedures,
+  List<Constructor> constructors,
+  Procedure instrumenterReport,
+) {
+  mainProcedure.enclosingLibrary.dependencies.add(
+    new LibraryDependency.import(initializeProcedure.enclosingLibrary),
+  );
   Block block = new Block([
-    new ExpressionStatement(new StaticInvocation(initializeProcedure,
-        config.createBeforeArguments(procedures, constructors))),
+    new ExpressionStatement(
+      new StaticInvocation(
+        initializeProcedure,
+        config.createBeforeArguments(procedures, constructors),
+      ),
+    ),
     new TryFinally(
-        mainProcedure.function.body as Statement,
-        new ExpressionStatement(new StaticInvocation(instrumenterReport,
-            config.createAfterArguments(procedures, constructors)))),
+      mainProcedure.function.body as Statement,
+      new ExpressionStatement(
+        new StaticInvocation(
+          instrumenterReport,
+          config.createAfterArguments(procedures, constructors),
+        ),
+      ),
+    ),
   ]);
   mainProcedure.function.body = block;
   block.parent = mainProcedure.function;
 }
 
-void wrapProcedure(InstrumenterConfig config, Procedure p, int id,
-    Procedure instrumenterEnter, Procedure instrumenterExit) {
+void wrapProcedure(
+  InstrumenterConfig config,
+  Procedure p,
+  int id,
+  Procedure instrumenterEnter,
+  Procedure instrumenterExit,
+) {
   Block block = new Block([
-    new ExpressionStatement(new StaticInvocation(
-        instrumenterEnter, config.createEnterArguments(id, p))),
-    p.function.body as Statement
+    new ExpressionStatement(
+      new StaticInvocation(
+        instrumenterEnter,
+        config.createEnterArguments(id, p),
+      ),
+    ),
+    p.function.body as Statement,
   ]);
   TryFinally tryFinally = new TryFinally(
-      block,
-      new ExpressionStatement(new StaticInvocation(
-          instrumenterExit, config.createExitArguments(id, p))));
+    block,
+    new ExpressionStatement(
+      new StaticInvocation(instrumenterExit, config.createExitArguments(id, p)),
+    ),
+  );
   p.function.body = tryFinally;
   tryFinally.parent = p.function;
 }
 
-void wrapConstructor(InstrumenterConfig config, Constructor c, int id,
-    Procedure instrumenterEnter, Procedure instrumenterExit) {
+void wrapConstructor(
+  InstrumenterConfig config,
+  Constructor c,
+  int id,
+  Procedure instrumenterEnter,
+  Procedure instrumenterExit,
+) {
   Arguments enterArguments = config.createEnterArguments(id, c);
   Arguments exitArguments = config.createExitArguments(id, c);
   if (c.function.body == null || c.function.body is EmptyStatement) {
     // We just completely replace the body.
     Block block = new Block([
       new ExpressionStatement(
-          new StaticInvocation(instrumenterEnter, enterArguments)),
+        new StaticInvocation(instrumenterEnter, enterArguments),
+      ),
       new ExpressionStatement(
-          new StaticInvocation(instrumenterExit, exitArguments)),
+        new StaticInvocation(instrumenterExit, exitArguments),
+      ),
     ]);
     c.function.body = block;
     block.parent = c.function;
@@ -481,13 +556,19 @@ void wrapConstructor(InstrumenterConfig config, Constructor c, int id,
   // We retain the original body as with procedures.
   Block block = new Block([
     new ExpressionStatement(
-        new StaticInvocation(instrumenterEnter, enterArguments)),
+      new StaticInvocation(instrumenterEnter, enterArguments),
+    ),
     c.function.body as Statement,
   ]);
   TryFinally tryFinally = new TryFinally(
-      block,
-      new ExpressionStatement(new StaticInvocation(
-          instrumenterExit, new Arguments([new IntLiteral(id)]))));
+    block,
+    new ExpressionStatement(
+      new StaticInvocation(
+        instrumenterExit,
+        new Arguments([new IntLiteral(id)]),
+      ),
+    ),
+  );
   c.function.body = tryFinally;
   tryFinally.parent = c.function;
 }

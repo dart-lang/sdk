@@ -26,7 +26,7 @@ class CreateSetter extends ResolvedCorrectionProducer {
   List<String> get fixArguments => [_setterName];
 
   @override
-  FixKind get fixKind => DartFixKind.CREATE_SETTER;
+  FixKind get fixKind => DartFixKind.createSetter;
 
   @override
   Future<void> compute(ChangeBuilder builder) async {
@@ -77,7 +77,7 @@ class CreateSetter extends ResolvedCorrectionProducer {
     }
     var targetFragment = targetElement.firstFragment;
     var targetSource = targetFragment.libraryFragment.source;
-    if (targetElement.library.isInSdk == true) {
+    if (targetElement.library.isInSdk) {
       return;
     }
     // prepare target declaration
@@ -101,10 +101,13 @@ class CreateSetter extends ResolvedCorrectionProducer {
     // Build setter source.
     var targetFile = targetSource.fullName;
     _setterName = nameNode.name;
+    var parameterTypeNode = climbPropertyAccess(nameNode);
+    var parameterType = inferUndefinedExpressionType(parameterTypeNode);
+    if (parameterType is InvalidType) {
+      return;
+    }
     await builder.addDartFileEdit(targetFile, (builder) {
       builder.insertGetter(targetNode, (builder) {
-        var parameterTypeNode = climbPropertyAccess(nameNode);
-        var parameterType = inferUndefinedExpressionType(parameterTypeNode);
         builder.writeSetterDeclaration(
           _setterName,
           isStatic: staticModifier,

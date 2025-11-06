@@ -5,8 +5,6 @@
 // Exercises flow analysis of patterns that match a Null scrutinee when
 // `sound-flow-analysis` is enabled.
 
-// SharedOptions=--enable-experiment=sound-flow-analysis
-
 import '../static_type_helper.dart';
 
 typedef IntQuestion = int?;

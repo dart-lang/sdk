@@ -43,7 +43,7 @@ void f(String s) {
 @reflectiveTest
 class ConvertToIfNullPreferTest extends FixProcessorLintTest {
   @override
-  FixKind get kind => DartFixKind.CONVERT_TO_IF_NULL;
+  FixKind get kind => DartFixKind.convertToIfNull;
 
   @override
   String get lintCode => LintNames.prefer_if_null_operators;
@@ -160,7 +160,7 @@ void f(bool? value) {
 @reflectiveTest
 class ConvertToIfNullUseTest extends FixProcessorLintTest {
   @override
-  FixKind get kind => DartFixKind.CONVERT_TO_IF_NULL;
+  FixKind get kind => DartFixKind.convertToIfNull;
 
   @override
   String get lintCode => LintNames.use_if_null_to_convert_nulls_to_bools;
@@ -187,6 +187,19 @@ void f(bool? value) {
     await assertHasFix('''
 void f(bool? value) {
   print(value ?? false);
+}
+''');
+  }
+
+  Future<void> test_parensAround() async {
+    await resolveTestCode('''
+void f(bool? value) {
+  print(value != false && 1 == 2);
+}
+''');
+    await assertHasFix('''
+void f(bool? value) {
+  print((value ?? true) && 1 == 2);
 }
 ''');
   }

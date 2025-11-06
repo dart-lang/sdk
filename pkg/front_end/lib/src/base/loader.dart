@@ -2,7 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:_fe_analyzer_shared/src/messages/severity.dart' show Severity;
+import 'package:_fe_analyzer_shared/src/messages/severity.dart'
+    show CfeSeverity;
 import 'package:kernel/ast.dart' show Class, DartType, ExtensionTypeDeclaration;
 
 import '../builder/declaration_builders.dart';
@@ -17,18 +18,23 @@ abstract class Loader {
   /// Register [message] as a problem with a severity determined by the
   /// intrinsic severity of the message.
   FormattedMessage? addProblem(
-      Message message, int charOffset, int length, Uri? fileUri,
-      {bool wasHandled = false,
-      List<LocatedMessage>? context,
-      Severity? severity,
-      bool problemOnLibrary = false,
-      List<Uri>? involvedFiles});
+    Message message,
+    int charOffset,
+    int length,
+    Uri? fileUri, {
+    bool wasHandled = false,
+    List<LocatedMessage>? context,
+    CfeSeverity? severity,
+    bool problemOnLibrary = false,
+    List<Uri>? involvedFiles,
+  });
 
   ClassBuilder computeClassBuilderFromTargetClass(Class cls);
 
   ExtensionTypeDeclarationBuilder
-      computeExtensionTypeBuilderFromTargetExtensionType(
-          ExtensionTypeDeclaration extensionType);
+  computeExtensionTypeBuilderFromTargetExtensionType(
+    ExtensionTypeDeclaration extensionType,
+  );
 
   TypeBuilder computeTypeBuilder(DartType type);
 

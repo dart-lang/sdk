@@ -30,7 +30,7 @@ mixin M on Enum {}
 ''',
       [
         error(
-          CompileTimeErrorCode.MIXIN_SUPER_CLASS_CONSTRAINT_DISALLOWED_CLASS,
+          CompileTimeErrorCode.mixinSuperClassConstraintDisallowedClass,
           27,
           4,
         ),
@@ -44,7 +44,7 @@ MixinOnClause
   superclassConstraints
     NamedType
       name: Enum
-      element2: dart:core::@class::Enum
+      element: dart:core::@class::Enum
       type: Enum
 ''');
   }
@@ -64,7 +64,7 @@ augment mixin A on int {}
     await assertErrorsInFile2(a, []);
     await assertErrorsInFile2(b, [
       error(
-        CompileTimeErrorCode.MIXIN_SUPER_CLASS_CONSTRAINT_DISALLOWED_CLASS,
+        CompileTimeErrorCode.mixinSuperClassConstraintDisallowedClass,
         37,
         3,
       ),
@@ -78,7 +78,7 @@ mixin M on int {}
 ''',
       [
         error(
-          CompileTimeErrorCode.MIXIN_SUPER_CLASS_CONSTRAINT_DISALLOWED_CLASS,
+          CompileTimeErrorCode.mixinSuperClassConstraintDisallowedClass,
           11,
           3,
         ),
@@ -92,7 +92,7 @@ MixinOnClause
   superclassConstraints
     NamedType
       name: int
-      element2: dart:core::@class::int
+      element: dart:core::@class::int
       type: int
 ''');
   }

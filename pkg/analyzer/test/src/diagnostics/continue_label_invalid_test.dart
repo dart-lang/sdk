@@ -28,8 +28,8 @@ void f() {
 }
 ''',
       [
-        error(WarningCode.UNUSED_LOCAL_VARIABLE, 33, 1),
-        error(CompileTimeErrorCode.CONTINUE_LABEL_INVALID, 50, 11),
+        error(WarningCode.unusedLocalVariable, 33, 1),
+        error(CompileTimeErrorCode.continueLabelInvalid, 50, 11),
       ],
     );
   }
@@ -44,7 +44,7 @@ void f(int x) {
   }
 }
 ''',
-      [error(CompileTimeErrorCode.CONTINUE_LABEL_INVALID, 52, 11)],
+      [error(CompileTimeErrorCode.continueLabelInvalid, 52, 11)],
     );
   }
 
@@ -59,7 +59,7 @@ void f(int x) {
   }
 }
 ''',
-      [error(CompileTimeErrorCode.CONTINUE_LABEL_INVALID, 68, 11)],
+      [error(CompileTimeErrorCode.continueLabelInvalid, 68, 11)],
     );
   }
 }

@@ -17,7 +17,7 @@ import 'service_extension_registry.dart';
 
 export 'service_extension_registry.dart' show ServiceExtensionRegistry;
 
-const String vmServiceVersion = '4.19.0';
+const String vmServiceVersion = '4.20.0';
 
 /// A class representation of the Dart VM Service Protocol.
 abstract interface class VmServiceInterface {
@@ -1281,13 +1281,13 @@ abstract interface class VmServiceInterface {
   /// See [Success].
   Future<Success> streamCancel(String streamId);
 
-  /// The `streamCpuSamplesWithUserTag` RPC allows for clients to specify which
-  /// CPU samples collected by the profiler should be sent over the `Profiler`
-  /// stream. When called, the VM will stream `CpuSamples` events containing
-  /// `CpuSample`'s collected while a user tag contained in `userTags` was
-  /// active.
+  /// The `streamCpuSamplesWithUserTag` RPC is deprecated and calling it will
+  /// cause no effect. The RPC will return a `Success` object when called with
+  /// any `string[]` as the `userTags` argument, and will return an [RPCError]
+  /// when called with any other `userTags` argument.
   ///
   /// See [Success].
+  @Deprecated('This method is deprecated and calling it will cause no effect')
   Future<Success> streamCpuSamplesWithUserTag(List<String> userTags);
 
   /// The `streamListen` RPC subscribes to a stream in the VM. Once subscribed,
@@ -1795,6 +1795,7 @@ class VmServerConnection {
           response = Success();
           break;
         case 'streamCpuSamplesWithUserTag':
+          // ignore: deprecated_member_use_from_same_package
           response = await _serviceImplementation.streamCpuSamplesWithUserTag(
             List<String>.from(params!['userTags'] ?? []),
           );

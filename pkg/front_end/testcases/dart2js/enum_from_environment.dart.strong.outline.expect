@@ -36,7 +36,7 @@ Evaluated with empty environment: ListLiteral @ org-dartlang-testcase:///enum_fr
 Evaluated with empty environment: StaticGet @ org-dartlang-testcase:///enum_from_environment.dart:5:6 -> InstanceConstant(const A{A.value: const B{B.value: 0.0}, _Enum.index: 0.0, _Enum._name: "a"})
 Evaluated with empty environment: StaticGet @ org-dartlang-testcase:///enum_from_environment.dart:5:6 -> InstanceConstant(const A{A.value: const B{B.value: 0.0}, _Enum.index: 1.0, _Enum._name: "b"})
 Evaluated with empty environment: ConstructorInvocation @ org-dartlang-testcase:///enum_from_environment.dart:20:28 -> InstanceConstant(const B{B.value: 0.0})
-Evaluated with empty environment: FactoryConstructorInvocation @ org-dartlang-testcase:///enum_from_environment.dart:20:36 -> DoubleConstant(0.0)
+Evaluated with empty environment: StaticInvocation @ org-dartlang-testcase:///enum_from_environment.dart:20:36 -> DoubleConstant(0.0)
 Evaluated with empty environment: ConstructorInvocation @ org-dartlang-testcase:///enum_from_environment.dart:21:28 -> InstanceConstant(const B{B.value: 0.0})
-Evaluated with empty environment: FactoryConstructorInvocation @ org-dartlang-testcase:///enum_from_environment.dart:21:36 -> DoubleConstant(0.0)
+Evaluated with empty environment: StaticInvocation @ org-dartlang-testcase:///enum_from_environment.dart:21:36 -> DoubleConstant(0.0)
 Extra constant evaluation: evaluated: 20, effectively constant: 11

@@ -23,7 +23,7 @@ var r = (a: 1, a: 2);
 ''',
       [
         error(
-          CompileTimeErrorCode.DUPLICATE_FIELD_NAME,
+          CompileTimeErrorCode.duplicateFieldName,
           15,
           1,
           contextMessages: [message(testFile, 9, 1)],
@@ -49,7 +49,7 @@ void f(({int a, int a}) r) {}
 ''',
       [
         error(
-          CompileTimeErrorCode.DUPLICATE_FIELD_NAME,
+          CompileTimeErrorCode.duplicateFieldName,
           20,
           1,
           contextMessages: [message(testFile, 13, 1)],
@@ -65,7 +65,7 @@ void f((int a, int a) r) {}
 ''',
       [
         error(
-          CompileTimeErrorCode.DUPLICATE_FIELD_NAME,
+          CompileTimeErrorCode.duplicateFieldName,
           19,
           1,
           contextMessages: [message(testFile, 12, 1)],
@@ -81,7 +81,7 @@ void f((int a, {int a}) r) {}
 ''',
       [
         error(
-          CompileTimeErrorCode.DUPLICATE_FIELD_NAME,
+          CompileTimeErrorCode.duplicateFieldName,
           20,
           1,
           contextMessages: [message(testFile, 12, 1)],
@@ -97,14 +97,14 @@ void f(({int _, int _}) r) {}
 ''',
       [
         // Only positional wildcard fields can be duplicated.
-        error(CompileTimeErrorCode.INVALID_FIELD_NAME_PRIVATE, 13, 1),
+        error(CompileTimeErrorCode.invalidFieldNamePrivate, 13, 1),
         error(
-          CompileTimeErrorCode.DUPLICATE_FIELD_NAME,
+          CompileTimeErrorCode.duplicateFieldName,
           20,
           1,
           contextMessages: [message(testFile, 13, 1)],
         ),
-        error(CompileTimeErrorCode.INVALID_FIELD_NAME_PRIVATE, 20, 1),
+        error(CompileTimeErrorCode.invalidFieldNamePrivate, 20, 1),
       ],
     );
   }
@@ -124,14 +124,14 @@ void f((int _, int _) r) {}
 void f((int _, int _) r) {}
 ''',
       [
-        error(CompileTimeErrorCode.INVALID_FIELD_NAME_PRIVATE, 56, 1),
+        error(CompileTimeErrorCode.invalidFieldNamePrivate, 56, 1),
         error(
-          CompileTimeErrorCode.DUPLICATE_FIELD_NAME,
+          CompileTimeErrorCode.duplicateFieldName,
           63,
           1,
           contextMessages: [message(testFile, 56, 1)],
         ),
-        error(CompileTimeErrorCode.INVALID_FIELD_NAME_PRIVATE, 63, 1),
+        error(CompileTimeErrorCode.invalidFieldNamePrivate, 63, 1),
       ],
     );
   }

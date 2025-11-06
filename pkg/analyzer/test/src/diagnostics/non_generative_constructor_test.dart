@@ -26,7 +26,7 @@ class B extends A {
   B() : super.named();
 }
 ''',
-      [error(CompileTimeErrorCode.NON_GENERATIVE_CONSTRUCTOR, 90, 13)],
+      [error(CompileTimeErrorCode.nonGenerativeConstructor, 90, 13)],
     );
   }
 
@@ -65,7 +65,7 @@ class B extends A {
   B();
 }
 ''',
-      [error(CompileTimeErrorCode.NON_GENERATIVE_CONSTRUCTOR, 73, 1)],
+      [error(CompileTimeErrorCode.nonGenerativeConstructor, 73, 1)],
     );
   }
 }

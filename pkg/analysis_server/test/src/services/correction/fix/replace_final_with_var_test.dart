@@ -75,6 +75,23 @@ void f() {
     await assertNoFix();
   }
 
+  Future<void> test_if_case_pattern() async {
+    await resolveTestCode(r'''
+f() {
+  if (0 case final a){
+    print(a);
+  }
+}
+''');
+    await assertHasFix(r'''
+f() {
+  if (0 case var a){
+    print(a);
+  }
+}
+''');
+  }
+
   /// https://github.com/dart-lang/sdk/issues/51864
   Future<void> test_listPattern_assignment() async {
     await resolveTestCode('''

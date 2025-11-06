@@ -907,7 +907,6 @@ const Function& TypedListGetNativeFunction(Thread* thread, classid_t cid) {
   V(ReceivePort_getSendPort, ReceivePort_send_port)                            \
   V(ReceivePort_getHandler, ReceivePort_handler)                               \
   V(ImmutableLinkedHashBase_getData, ImmutableLinkedHashBase_data)             \
-  V(ImmutableLinkedHashBase_getIndex, ImmutableLinkedHashBase_index)           \
   V(LinkedHashBase_getData, LinkedHashBase_data)                               \
   V(LinkedHashBase_getDeletedKeys, LinkedHashBase_deleted_keys)                \
   V(LinkedHashBase_getHashMask, LinkedHashBase_hash_mask)                      \
@@ -924,6 +923,9 @@ const Function& TypedListGetNativeFunction(Thread* thread, classid_t cid) {
   V(WeakProperty_getKey, WeakProperty_key)                                     \
   V(WeakProperty_getValue, WeakProperty_value)                                 \
   V(WeakReference_getTarget, WeakReference_target)
+
+#define LOAD_ACQUIRE_NATIVE_FIELD(V)                                           \
+  V(ImmutableLinkedHashBase_getIndex, ImmutableLinkedHashBase_index)
 
 #define STORE_NATIVE_FIELD(V)                                                  \
   V(Finalizer_setCallback, Finalizer_callback)                                 \
@@ -1059,8 +1061,8 @@ bool FlowGraphBuilder::IsRecognizedMethodForFlowGraph(
     case MethodRecognizer::kFfiNativeCallbackFunction:
     case MethodRecognizer::kFfiNativeAsyncCallbackFunction:
     case MethodRecognizer::kFfiNativeIsolateLocalCallbackFunction:
-    case MethodRecognizer::kFfiNativeIsolateGroupSharedCallbackFunction:
-    case MethodRecognizer::kFfiNativeIsolateGroupSharedClosureFunction:
+    case MethodRecognizer::kFfiNativeIsolateGroupBoundCallbackFunction:
+    case MethodRecognizer::kFfiNativeIsolateGroupBoundClosureFunction:
     case MethodRecognizer::kFfiStoreInt8:
     case MethodRecognizer::kFfiStoreInt16:
     case MethodRecognizer::kFfiStoreInt32:
@@ -1101,13 +1103,17 @@ bool FlowGraphBuilder::IsRecognizedMethodForFlowGraph(
     case MethodRecognizer::kClassIDgetID:
     case MethodRecognizer::kGrowableArrayAllocateWithData:
     case MethodRecognizer::kGrowableArrayCapacity:
+    case MethodRecognizer::kGrowableArrayGetEmptyList:
     case MethodRecognizer::kObjectArrayAllocate:
     case MethodRecognizer::kCopyRangeFromUint8ListToOneByteString:
     case MethodRecognizer::kImmutableLinkedHashBase_setIndexStoreRelease:
     case MethodRecognizer::kFfiAbi:
     case MethodRecognizer::kUtf8DecoderScan:
     case MethodRecognizer::kHas63BitSmis:
+    case MethodRecognizer::kProfiler_getCurrentTag:
+    case MethodRecognizer::kUserTag_defaultTag:
     case MethodRecognizer::kExtensionStreamHasListener:
+    case MethodRecognizer::kTimeline_isDartStreamEnabled:
     case MethodRecognizer::kCompactHash_uninitializedIndex:
     case MethodRecognizer::kCompactHash_uninitializedData:
     case MethodRecognizer::kSmi_hashCode:
@@ -1115,6 +1121,7 @@ bool FlowGraphBuilder::IsRecognizedMethodForFlowGraph(
     case MethodRecognizer::kDouble_hashCode:
 #define CASE(method, slot) case MethodRecognizer::k##method:
       LOAD_NATIVE_FIELD(CASE)
+      LOAD_ACQUIRE_NATIVE_FIELD(CASE)
       STORE_NATIVE_FIELD(CASE)
       STORE_NATIVE_FIELD_NO_BARRIER(CASE)
 #undef CASE
@@ -1243,7 +1250,8 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfRecognizedMethod(
       break;
     case MethodRecognizer::kRecord_fieldNames:
       body += LoadObjectStore();
-      body += LoadNativeField(Slot::ObjectStore_record_field_names());
+      body += LoadNativeField(Slot::ObjectStore_record_field_names(), false,
+                              compiler::Assembler::kAcquire);
       body += LoadLocal(parsed_function_->RawParameterVariable(0));
       body += LoadNativeField(Slot::Record_shape());
       body += IntConstant(compiler::target::RecordShape::kFieldNamesIndexShift);
@@ -1479,6 +1487,9 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfRecognizedMethod(
       body += LoadNativeField(Slot::GrowableObjectArray_data());
       body += LoadNativeField(Slot::Array_length());
       break;
+    case MethodRecognizer::kGrowableArrayGetEmptyList:
+      body += Constant(Object::mutable_empty_array());
+      break;
     case MethodRecognizer::kObjectArrayAllocate:
       ASSERT(function.IsFactory() && (function.NumParameters() == 2));
       body += LoadLocal(parsed_function_->RawParameterVariable(0));
@@ -1552,8 +1563,8 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfRecognizedMethod(
     case MethodRecognizer::kFfiNativeCallbackFunction:
     case MethodRecognizer::kFfiNativeAsyncCallbackFunction:
     case MethodRecognizer::kFfiNativeIsolateLocalCallbackFunction:
-    case MethodRecognizer::kFfiNativeIsolateGroupSharedCallbackFunction:
-    case MethodRecognizer::kFfiNativeIsolateGroupSharedClosureFunction: {
+    case MethodRecognizer::kFfiNativeIsolateGroupBoundCallbackFunction:
+    case MethodRecognizer::kFfiNativeIsolateGroupBoundClosureFunction: {
       const auto& error = String::ZoneHandle(
           Z, Symbols::New(thread_,
                           "This function should be handled on call site."));
@@ -1712,6 +1723,14 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfRecognizedMethod(
       body += Constant(Bool::False());
 #endif  // defined(ARCH_IS_64_BIT)
     } break;
+    case MethodRecognizer::kProfiler_getCurrentTag: {
+      body += LoadThread();
+      body += LoadNativeField(Slot::Thread_current_tag());
+    } break;
+    case MethodRecognizer::kUserTag_defaultTag: {
+      body += LoadThread();
+      body += LoadNativeField(Slot::Thread_default_tag());
+    } break;
     case MethodRecognizer::kExtensionStreamHasListener: {
 #ifdef PRODUCT
       body += Constant(Bool::False());
@@ -1722,6 +1741,17 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfRecognizedMethod(
       // relaxed order access, which is acceptable for this use case.
       body += IntToBool();
 #endif  // PRODUCT
+    } break;
+    case MethodRecognizer::kTimeline_isDartStreamEnabled: {
+#if !defined(SUPPORT_TIMELINE)
+      body += Constant(Bool::False());
+#else
+      body += LoadDartStream();
+      body += LoadNativeField(Slot::StreamInfo_enabled());
+      // StreamInfo::enabled_ is a std::atomic<intptr_t>. This is effectively
+      // relaxed order access, which is acceptable for this use case.
+      body += IntToBool();
+#endif  // SUPPORT_TIMELINE
     } break;
     case MethodRecognizer::kCompactHash_uninitializedIndex: {
       body += Constant(Object::uninitialized_index());
@@ -1924,6 +1954,15 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfRecognizedMethod(
     body += LoadNativeField(Slot::slot());                                     \
     break;
       LOAD_NATIVE_FIELD(IL_BODY)
+#undef IL_BODY
+#define IL_BODY(method, slot)                                                  \
+  case MethodRecognizer::k##method:                                            \
+    ASSERT_EQUAL(function.NumParameters(), 1);                                 \
+    body += LoadLocal(parsed_function_->RawParameterVariable(0));              \
+    body +=                                                                    \
+        LoadNativeField(Slot::slot(), false, compiler::Assembler::kAcquire);   \
+    break;
+      LOAD_ACQUIRE_NATIVE_FIELD(IL_BODY)
 #undef IL_BODY
 #define IL_BODY(method, slot)                                                  \
   case MethodRecognizer::k##method:                                            \
@@ -4625,6 +4664,13 @@ Fragment FlowGraphBuilder::LoadServiceExtensionStream() {
   return body;
 }
 
+Fragment FlowGraphBuilder::LoadDartStream() {
+  Fragment body;
+  body += LoadThread();
+  body += LoadNativeField(Slot::Thread_dart_stream());
+  return body;
+}
+
 // TODO(http://dartbug.com/47487): Support unboxed output value.
 Fragment FlowGraphBuilder::BoolToInt() {
   // TODO(http://dartbug.com/36855) Build IfThenElseInstr, instead of letting
@@ -4746,7 +4792,7 @@ Fragment FlowGraphBuilder::WrapTypedDataBaseInCompound(
       Class::ZoneHandle(Z, compound_type.type_class());
   compound_sub_class.EnsureIsFinalized(thread_);
 
-  auto& state = thread_->compiler_state();
+  ObjectStore* object_store = IG->object_store();
 
   Fragment body;
   LocalVariable* typed_data = MakeTemporary("typed_data_base");
@@ -4754,29 +4800,31 @@ Fragment FlowGraphBuilder::WrapTypedDataBaseInCompound(
   LocalVariable* compound = MakeTemporary("compound");
   body += LoadLocal(compound);
   body += LoadLocal(typed_data);
-  body += StoreField(state.CompoundTypedDataBaseField(),
-                     StoreFieldInstr::Kind::kInitializing);
+  body += StoreField(
+      Field::ZoneHandle(Z, object_store->compound_typed_data_base_field()),
+      StoreFieldInstr::Kind::kInitializing);
   body += LoadLocal(compound);
   body += IntConstant(0);
-  body += StoreField(state.CompoundOffsetInBytesField(),
-                     StoreFieldInstr::Kind::kInitializing);
+  body += StoreField(
+      Field::ZoneHandle(Z, object_store->compound_offset_in_bytes_field()),
+      StoreFieldInstr::Kind::kInitializing);
   body += DropTempsPreserveTop(1);  // Drop TypedData.
   return body;
 }
 
 Fragment FlowGraphBuilder::LoadTypedDataBaseFromCompound() {
   Fragment body;
-  auto& state = thread_->compiler_state();
-  body += LoadField(state.CompoundTypedDataBaseField(),
-                    /*calls_initializer=*/false);
+  const auto& field = Field::ZoneHandle(
+      Z, IG->object_store()->compound_typed_data_base_field());
+  body += LoadField(field, /*calls_initializer=*/false);
   return body;
 }
 
 Fragment FlowGraphBuilder::LoadOffsetInBytesFromCompound() {
   Fragment body;
-  auto& state = thread_->compiler_state();
-  body += LoadField(state.CompoundOffsetInBytesField(),
-                    /*calls_initializer=*/false);
+  const auto& field = Field::ZoneHandle(
+      Z, IG->object_store()->compound_offset_in_bytes_field());
+  body += LoadField(field, /*calls_initializer=*/false);
   return body;
 }
 
@@ -5262,9 +5310,9 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfFfiTrampoline(
     const Function& function) {
   switch (function.GetFfiCallbackKind()) {
     case FfiCallbackKind::kIsolateLocalStaticCallback:
-    case FfiCallbackKind::kIsolateGroupSharedStaticCallback:
+    case FfiCallbackKind::kIsolateGroupBoundStaticCallback:
     case FfiCallbackKind::kIsolateLocalClosureCallback:
-    case FfiCallbackKind::kIsolateGroupSharedClosureCallback:
+    case FfiCallbackKind::kIsolateGroupBoundClosureCallback:
       return BuildGraphOfSyncFfiCallback(function);
     case FfiCallbackKind::kAsyncCallback:
       return BuildGraphOfAsyncFfiCallback(function);
@@ -5579,7 +5627,7 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfSyncFfiCallback(
       function.GetFfiCallbackKind() ==
           FfiCallbackKind::kIsolateLocalClosureCallback ||
       function.GetFfiCallbackKind() ==
-          FfiCallbackKind::kIsolateGroupSharedClosureCallback;
+          FfiCallbackKind::kIsolateGroupBoundClosureCallback;
 
   graph_entry_ =
       new (Z) GraphEntryInstr(*parsed_function_, Compiler::kNoOSRDeoptId);

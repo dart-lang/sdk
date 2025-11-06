@@ -916,8 +916,6 @@ template("dart_executable") {
                 "error_exit.cc",
                 "error_exit.h",
                 "icu.cc",
-                "main_options.cc",
-                "main_options.h",
                 "options.cc",
                 "options.h",
                 "snapshot_utils.cc",
@@ -966,7 +964,7 @@ template("dart_executable") {
   }
 }
 
-dart_executable("dart") {
+dart_executable("dartvm") {
   extra_deps = [
     ":dart_snapshot_cc",
     "..:libdart_jit",
@@ -974,8 +972,7 @@ dart_executable("dart") {
   ]
   extra_sources = [
     "builtin.cc",
-    "dartdev_isolate.cc",
-    "dartdev_isolate.h",
+    "common_options.h",
     "dfe.cc",
     "dfe.h",
     "gzip.cc",
@@ -984,6 +981,8 @@ dart_executable("dart") {
     "loader.h",
     "main.cc",
     "main_impl.cc",
+    "main_options.cc",
+    "main_options.h",
   ]
   if (!exclude_kernel_service) {
     extra_deps += [ ":dart_kernel_platform_cc" ]
@@ -1007,12 +1006,15 @@ dart_executable("dartaotruntime") {
   ]
   extra_sources = [
     "builtin.cc",
+    "common_options.h",
     "gzip.cc",
     "gzip.h",
     "loader.cc",
     "loader.h",
     "main.cc",
     "main_impl.cc",
+    "main_options.cc",
+    "main_options.h",
     "snapshot_empty.cc",
   ]
 
@@ -1041,12 +1043,15 @@ dart_executable("dartaotruntime_product") {
   ]
   extra_sources = [
     "builtin.cc",
+    "common_options.h",
     "gzip.cc",
     "gzip.h",
     "loader.cc",
     "loader.h",
     "main.cc",
     "main_impl.cc",
+    "main_options.cc",
+    "main_options.h",
     "snapshot_empty.cc",
   ]
 
@@ -1054,6 +1059,40 @@ dart_executable("dartaotruntime_product") {
     ":native_assets_api_product",
     ":shared_object_loaders_product",
   ]
+}
+
+if (dart_target_arch != "ia32" && dart_target_arch != "x86") {
+  dart_executable("dart") {
+    use_product_mode = true
+    extra_configs = [
+      "..:dartdev_config",
+      "..:add_empty_macho_section_config",
+    ]
+    extra_deps = [
+      ":shared_object_loaders_product",
+      "..:libdart_aotruntime_product",
+      "../platform:libdart_platform_aotruntime_product",
+    ]
+    extra_sources = [
+      "builtin.cc",
+      "common_options.h",
+      "dartdev.cc",
+      "dartdev.h",
+      "dartdev_options.cc",
+      "dartdev_options.h",
+      "gzip.cc",
+      "gzip.h",
+      "loader.cc",
+      "loader.h",
+      "snapshot_empty.cc",
+    ]
+  }
+} else {
+  copy("dart") {
+    deps = [ ":dartvm" ]
+    sources = [ "$root_build_dir/dartvm${executable_suffix}" ]
+    outputs = [ "$root_build_dir/dart${executable_suffix}" ]
+  }
 }
 
 # This flag is set in runtime/runtime_args.gni
@@ -1079,8 +1118,11 @@ if (build_analyze_snapshot) {
     extra_sources = [
       "analyze_snapshot.cc",
       "builtin.cc",
+      "common_options.h",
       "loader.cc",
       "loader.h",
+      "main_options.cc",
+      "main_options.h",
     ]
 
     if (use_product_mode) {
@@ -1206,7 +1248,7 @@ executable("run_vm_tests") {
 }
 
 shared_library("entrypoints_verification_test") {
-  deps = [ ":dart" ]
+  deps = [ ":dartvm" ]
   sources = [ "entrypoints_verification_test.cc" ]
   if (is_win) {
     sources += [ "dart_api_win.c" ]
@@ -1215,13 +1257,13 @@ shared_library("entrypoints_verification_test") {
 }
 
 shared_library("ffi_test_dynamic_library") {
-  deps = [ ":dart" ]
+  deps = [ ":dartvm" ]
   sources = [ "ffi_test/ffi_test_dynamic_library.cc" ]
   include_dirs = [ ".." ]
 }
 
 shared_library("ffi_test_functions") {
-  deps = [ ":dart" ]
+  deps = [ ":dartvm" ]
 
   sources = [
     # This file must be compiled in for dynamic linking.
@@ -1259,8 +1301,11 @@ if (defined(is_linux) && is_linux && defined(is_asan) && is_asan &&
     extra_sources = [
       "../vm/libfuzzer/dart_libfuzzer.cc",
       "builtin.cc",
+      "common_options.h",
       "dfe.cc",
       "dfe.h",
+      "main_options.cc",
+      "main_options.h",
     ]
     if (!exclude_kernel_service) {
       extra_deps += [ ":dart_kernel_platform_cc" ]

@@ -627,7 +627,7 @@ void f() {
   }
 
   Future<List<SelectionRange>?> _computeSelectionRanges(String content) async {
-    code = TestCode.parse(normalizeSource(content));
+    code = TestCode.parseNormalized(content);
     var file = newFile(sourcePath, code.code);
     var result = await getResolvedUnit(file);
     var computer = DartSelectionRangeComputer(
@@ -639,15 +639,12 @@ void f() {
 
   /// Checks the text of [regions] against [expected].
   void _expectRegions(List<SelectionRange>? regions, List<String> expected) {
-    var actual =
-        regions!
-            .map(
-              (region) => code.code.substring(
-                region.offset,
-                region.offset + region.length,
-              ),
-            )
-            .toList();
+    var actual = regions!
+        .map(
+          (region) =>
+              code.code.substring(region.offset, region.offset + region.length),
+        )
+        .toList();
 
     expect(actual, equals(expected.map(normalizeSource)));
   }

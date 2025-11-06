@@ -30,7 +30,7 @@ mixin DataDrivenFixProcessorTestMixin on AbstractSingleUnitTest {
   /// Returns the URI used to import the library created by [setPackageContent].
   String get importUri => 'package:p/lib.dart';
 
-  FixKind get kind => DartFixKind.DATA_DRIVEN;
+  FixKind get kind => DartFixKind.dataDriven;
 
   /// Adds the file containing the data used by the data-driven fix with the
   /// given [content].
@@ -60,16 +60,15 @@ mixin DataDrivenFixProcessorTestMixin on AbstractSingleUnitTest {
   /// A method that can be used as an error filter to ignore any unused_import
   /// diagnostics.
   bool ignoreUnusedImport(Diagnostic diagnostic) =>
-      diagnostic.diagnosticCode != WarningCode.UNUSED_IMPORT;
+      diagnostic.diagnosticCode != WarningCode.unusedImport;
 
   /// Sets the content of the library that defines the element referenced by the
   /// data on which this test is based.
   void setPackageContent(String content) {
     newFile('$workspaceRootPath/p/lib/lib.dart', content);
     writeTestPackageConfig(
-      config:
-          PackageConfigFileBuilder()
-            ..add(name: 'p', rootPath: '$workspaceRootPath/p'),
+      config: PackageConfigFileBuilder()
+        ..add(name: 'p', rootPath: '$workspaceRootPath/p'),
     );
   }
 

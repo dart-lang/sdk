@@ -28,7 +28,7 @@ class B extends A {
   }
 }
 ''',
-      [error(CompileTimeErrorCode.INSTANCE_MEMBER_ACCESS_FROM_STATIC, 75, 3)],
+      [error(CompileTimeErrorCode.instanceMemberAccessFromStatic, 75, 3)],
     );
   }
 
@@ -43,7 +43,7 @@ class A {
   }
 }
 ''',
-      [error(CompileTimeErrorCode.INSTANCE_MEMBER_ACCESS_FROM_STATIC, 57, 3)],
+      [error(CompileTimeErrorCode.instanceMemberAccessFromStatic, 57, 3)],
     );
   }
 
@@ -60,7 +60,7 @@ class A {
   }
 }
 ''',
-      [error(CompileTimeErrorCode.INSTANCE_MEMBER_ACCESS_FROM_STATIC, 77, 3)],
+      [error(CompileTimeErrorCode.instanceMemberAccessFromStatic, 77, 3)],
     );
   }
 
@@ -75,7 +75,7 @@ class A {
   }
 }
 ''',
-      [error(CompileTimeErrorCode.INSTANCE_MEMBER_ACCESS_FROM_STATIC, 63, 3)],
+      [error(CompileTimeErrorCode.instanceMemberAccessFromStatic, 63, 3)],
     );
   }
 
@@ -91,7 +91,7 @@ class A {
   }
 }
 ''',
-      [error(CompileTimeErrorCode.INSTANCE_MEMBER_ACCESS_FROM_STATIC, 107, 3)],
+      [error(CompileTimeErrorCode.instanceMemberAccessFromStatic, 107, 3)],
     );
   }
 
@@ -106,7 +106,7 @@ class A {
   }
 }
 ''',
-      [error(CompileTimeErrorCode.INSTANCE_MEMBER_ACCESS_FROM_STATIC, 53, 3)],
+      [error(CompileTimeErrorCode.instanceMemberAccessFromStatic, 53, 3)],
     );
   }
 
@@ -121,7 +121,7 @@ class A {
   }
 }
 ''',
-      [error(CompileTimeErrorCode.INSTANCE_MEMBER_ACCESS_FROM_STATIC, 57, 3)],
+      [error(CompileTimeErrorCode.instanceMemberAccessFromStatic, 57, 3)],
     );
   }
 
@@ -138,7 +138,7 @@ class A {
   }
 }
 ''',
-      [error(CompileTimeErrorCode.INSTANCE_MEMBER_ACCESS_FROM_STATIC, 78, 3)],
+      [error(CompileTimeErrorCode.instanceMemberAccessFromStatic, 78, 3)],
     );
   }
 
@@ -155,7 +155,7 @@ class A {
   }
 }
 ''',
-      [error(CompileTimeErrorCode.INSTANCE_MEMBER_ACCESS_FROM_STATIC, 74, 3)],
+      [error(CompileTimeErrorCode.instanceMemberAccessFromStatic, 74, 3)],
     );
   }
 
@@ -172,7 +172,7 @@ class A {
   }
 }
 ''',
-      [error(CompileTimeErrorCode.INSTANCE_MEMBER_ACCESS_FROM_STATIC, 78, 3)],
+      [error(CompileTimeErrorCode.instanceMemberAccessFromStatic, 78, 3)],
     );
   }
 
@@ -187,7 +187,7 @@ extension E on int {
   }
 }
 ''',
-      [error(CompileTimeErrorCode.INSTANCE_MEMBER_ACCESS_FROM_STATIC, 68, 3)],
+      [error(CompileTimeErrorCode.instanceMemberAccessFromStatic, 68, 3)],
     );
   }
 
@@ -202,7 +202,7 @@ extension E on int {
   }
 }
 ''',
-      [error(CompileTimeErrorCode.INSTANCE_MEMBER_ACCESS_FROM_STATIC, 64, 3)],
+      [error(CompileTimeErrorCode.instanceMemberAccessFromStatic, 64, 3)],
     );
   }
 
@@ -217,7 +217,7 @@ extension E on int {
   }
 }
 ''',
-      [error(CompileTimeErrorCode.INSTANCE_MEMBER_ACCESS_FROM_STATIC, 68, 3)],
+      [error(CompileTimeErrorCode.instanceMemberAccessFromStatic, 68, 3)],
     );
   }
 }

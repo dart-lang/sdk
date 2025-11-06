@@ -270,10 +270,9 @@ extension SubjectInstruction on Subject<Instruction> {
 extension SubjectInstructionIterable on Subject<Iterable<Instruction>> {
   void hasLength(int expectedLength) => context.expect(
     () => ['has length $expectedLength'],
-    (instructions) =>
-        instructions.length == expectedLength
-            ? null
-            : Rejection(which: ['does not have length $expectedLength']),
+    (instructions) => instructions.length == expectedLength
+        ? null
+        : Rejection(which: ['does not have length $expectedLength']),
   );
 
   @meta.useResult

@@ -585,7 +585,7 @@ class ProcessStarter {
     return 0;
   }
 
-  int StartForExec() {
+  int StartForExec(HANDLE hjob) {
     ASSERT(mode_ == kInheritStdio);
     ASSERT(Process::ModeIsAttached(mode_));
     ASSERT(!Process::ModeHasStdio(mode_));
@@ -642,13 +642,19 @@ class ProcessStarter {
         reinterpret_cast<STARTUPINFOW*>(&startup_info), &process_info);
 
     if (result == 0) {
-      return SetOsErrorMessage(os_error_message_);
+      return CleanupAndReturnError();
     }
     child_process_handle_ = process_info.hProcess;
     CloseHandle(process_info.hThread);
     CloseHandle(stdin_handle);
     CloseHandle(stdout_handle);
     CloseHandle(stderr_handle);
+
+    // Put this new process into the job object of the parent so that it
+    // is killed when the parent is killed.
+    if (!AssignProcessToJobObject(hjob, child_process_handle_)) {
+      return CleanupAndReturnError();
+    }
 
     // Return process id.
     *id_ = process_info.dwProcessId;
@@ -980,6 +986,7 @@ int Process::Exec(Namespace* namespc,
   }
   JOBOBJECT_EXTENDED_LIMIT_INFORMATION info;
   DWORD qresult;
+  memset(&info, 0, sizeof(JOBOBJECT_EXTENDED_LIMIT_INFORMATION));
   if (!QueryInformationJobObject(hjob, JobObjectExtendedLimitInformation, &info,
                                  sizeof(JOBOBJECT_EXTENDED_LIMIT_INFORMATION),
                                  &qresult)) {
@@ -988,7 +995,13 @@ int Process::Exec(Namespace* namespc,
              GetLastError());
     return -1;
   }
-  info.BasicLimitInformation.LimitFlags |= JOB_OBJECT_LIMIT_KILL_ON_JOB_CLOSE;
+  // Ensure that a child process that adds itself to this job object will
+  // be killed when the parent dies and child processes that do not add
+  // themselves to this job object will not get killed when the parent
+  // dies.
+  info.BasicLimitInformation.LimitFlags |=
+      (JOB_OBJECT_LIMIT_KILL_ON_JOB_CLOSE |
+       JOB_OBJECT_LIMIT_SILENT_BREAKAWAY_OK);
   if (!SetInformationJobObject(hjob, JobObjectExtendedLimitInformation, &info,
                                sizeof(JOBOBJECT_EXTENDED_LIMIT_INFORMATION))) {
     BufferFormatter f(errmsg, errmsg_len);
@@ -1019,7 +1032,7 @@ int Process::Exec(Namespace* namespc,
   ProcessStarter starter(path, &(arguments[1]), (arguments_length - 1),
                          working_directory, nullptr, 0, kInheritStdio, nullptr,
                          nullptr, nullptr, &pid, nullptr, &os_error_message);
-  int result = starter.StartForExec();
+  int result = starter.StartForExec(hjob);
   if (result != 0) {
     BufferFormatter f(errmsg, errmsg_len);
     f.Printf("Process::Exec - %s\n", os_error_message);
@@ -1029,6 +1042,8 @@ int Process::Exec(Namespace* namespc,
   // Now wait for this child process to terminate (normal exit or crash).
   HANDLE child_process = starter.child_process_handle_;
   ASSERT(child_process != INVALID_HANDLE_VALUE);
+  // Don't attempt to handle ctrl-c events, let spawned child handle them.
+  SetConsoleCtrlHandler(NULL, TRUE);
   DWORD wait_result = WaitForSingleObject(child_process, INFINITE);
   if (wait_result != WAIT_OBJECT_0) {
     BufferFormatter f(errmsg, errmsg_len);
@@ -1044,10 +1059,7 @@ int Process::Exec(Namespace* namespc,
     return -1;
   }
   CloseHandle(child_process);
-  // We exit the process here to simulate the same behaviour as exec on systems
-  // that support it.
-  ExitProcess(retval);
-  return 0;
+  return retval;
 }
 
 bool Process::Kill(intptr_t id, int signal) {

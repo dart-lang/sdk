@@ -31,9 +31,9 @@ import 'package:analyzer/source/error_processor.dart';
 import 'package:analyzer/source/file_source.dart';
 import 'package:analyzer/source/source.dart';
 import 'package:analyzer/source/source_range.dart';
+import 'package:analyzer/src/analysis_rule/rule_context.dart';
 import 'package:analyzer/src/dart/error/syntactic_errors.dart';
 import 'package:analyzer/src/error/codes.dart';
-import 'package:analyzer/src/lint/linter.dart';
 import 'package:analyzer/src/lint/linter_visitor.dart';
 import 'package:analyzer/src/lint/registry.dart';
 import 'package:analyzer/src/pubspec/pubspec_warning_code.dart';
@@ -50,13 +50,16 @@ import 'package:analyzer_plugin/protocol/protocol_common.dart'
 import 'package:analyzer_plugin/src/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/change_builder/conflicting_edit_exception.dart';
+import 'package:linter/src/lint_codes.dart';
 import 'package:linter/src/lint_names.dart';
 import 'package:linter/src/rules/directives_ordering.dart';
 import 'package:meta/meta.dart';
 import 'package:yaml/yaml.dart';
 
-typedef PubspecFixRequestResult =
-    ({List<SourceFileEdit> edits, List<BulkFix> details});
+typedef PubspecFixRequestResult = ({
+  List<SourceFileEdit> edits,
+  List<BulkFix> details,
+});
 
 /// A fix producer that produces changes that will fix multiple diagnostics in
 /// one or more files.
@@ -90,9 +93,11 @@ class BulkFixProcessor {
   /// will almost certainly be invalid code.
   static const Map<DiagnosticCode, List<MultiProducerGenerator>>
   nonLintMultiProducerMap = {
-    CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE: [DataDriven.new],
-    CompileTimeErrorCode.CAST_TO_NON_TYPE: [DataDriven.new],
-    CompileTimeErrorCode.EXTENDS_NON_CLASS: [DataDriven.new],
+    CompileTimeErrorCode.argumentTypeNotAssignable: [DataDriven.new],
+    CompileTimeErrorCode.castToNonType: [DataDriven.new],
+    CompileTimeErrorCode.dotShorthandUndefinedGetter: [DataDriven.new],
+    CompileTimeErrorCode.dotShorthandUndefinedInvocation: [DataDriven.new],
+    CompileTimeErrorCode.extendsNonClass: [DataDriven.new],
     // TODO(brianwilkerson): The following fix fails if an invocation of the
     //  function is the argument that needs to be removed.
     // CompileTimeErrorCode.EXTRA_POSITIONAL_ARGUMENTS: [
@@ -103,63 +108,53 @@ class BulkFixProcessor {
     // CompileTimeErrorCode.EXTRA_POSITIONAL_ARGUMENTS_COULD_BE_NAMED: [
     //   DataDriven.newInstance,
     // ],
-    CompileTimeErrorCode.IMPLEMENTS_NON_CLASS: [DataDriven.new],
-    CompileTimeErrorCode.INVALID_OVERRIDE: [DataDriven.new],
-    CompileTimeErrorCode.INVALID_OVERRIDE_SETTER: [DataDriven.new],
-    CompileTimeErrorCode.MISSING_REQUIRED_ARGUMENT: [DataDriven.new],
-    CompileTimeErrorCode.MIXIN_OF_NON_CLASS: [DataDriven.new],
-    CompileTimeErrorCode.NEW_WITH_UNDEFINED_CONSTRUCTOR_DEFAULT: [
+    CompileTimeErrorCode.implementsNonClass: [DataDriven.new],
+    CompileTimeErrorCode.invalidOverride: [DataDriven.new],
+    CompileTimeErrorCode.invalidOverrideSetter: [DataDriven.new],
+    CompileTimeErrorCode.missingRequiredArgument: [DataDriven.new],
+    CompileTimeErrorCode.mixinOfNonClass: [DataDriven.new],
+    CompileTimeErrorCode.newWithUndefinedConstructorDefault: [DataDriven.new],
+    CompileTimeErrorCode.nonTypeAsTypeArgument: [DataDriven.new],
+    CompileTimeErrorCode.notEnoughPositionalArgumentsNamePlural: [
       DataDriven.new,
     ],
-    CompileTimeErrorCode.NON_TYPE_AS_TYPE_ARGUMENT: [DataDriven.new],
-    CompileTimeErrorCode.NOT_ENOUGH_POSITIONAL_ARGUMENTS_NAME_PLURAL: [
+    CompileTimeErrorCode.notEnoughPositionalArgumentsNameSingular: [
       DataDriven.new,
     ],
-    CompileTimeErrorCode.NOT_ENOUGH_POSITIONAL_ARGUMENTS_NAME_SINGULAR: [
+    CompileTimeErrorCode.notEnoughPositionalArgumentsPlural: [DataDriven.new],
+    CompileTimeErrorCode.notEnoughPositionalArgumentsSingular: [DataDriven.new],
+    CompileTimeErrorCode.undefinedClass: [DataDriven.new],
+    CompileTimeErrorCode.undefinedExtensionGetter: [DataDriven.new],
+    CompileTimeErrorCode.undefinedFunction: [DataDriven.new],
+    CompileTimeErrorCode.undefinedGetter: [DataDriven.new],
+    CompileTimeErrorCode.undefinedIdentifier: [DataDriven.new],
+    CompileTimeErrorCode.undefinedMethod: [DataDriven.new],
+    CompileTimeErrorCode.undefinedNamedParameter: [DataDriven.new],
+    CompileTimeErrorCode.undefinedSetter: [DataDriven.new],
+    CompileTimeErrorCode.wrongNumberOfTypeArguments: [DataDriven.new],
+    CompileTimeErrorCode.wrongNumberOfTypeArgumentsConstructor: [
       DataDriven.new,
     ],
-    CompileTimeErrorCode.NOT_ENOUGH_POSITIONAL_ARGUMENTS_PLURAL: [
-      DataDriven.new,
-    ],
-    CompileTimeErrorCode.NOT_ENOUGH_POSITIONAL_ARGUMENTS_SINGULAR: [
-      DataDriven.new,
-    ],
-    CompileTimeErrorCode.UNDEFINED_CLASS: [DataDriven.new],
-    CompileTimeErrorCode.UNDEFINED_EXTENSION_GETTER: [DataDriven.new],
-    CompileTimeErrorCode.UNDEFINED_FUNCTION: [DataDriven.new],
-    CompileTimeErrorCode.UNDEFINED_GETTER: [DataDriven.new],
-    CompileTimeErrorCode.UNDEFINED_IDENTIFIER: [DataDriven.new],
-    CompileTimeErrorCode.UNDEFINED_METHOD: [DataDriven.new],
-    CompileTimeErrorCode.UNDEFINED_NAMED_PARAMETER: [DataDriven.new],
-    CompileTimeErrorCode.UNDEFINED_SETTER: [DataDriven.new],
-    CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS: [DataDriven.new],
-    CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_CONSTRUCTOR: [
-      DataDriven.new,
-    ],
-    CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_EXTENSION: [
-      DataDriven.new,
-    ],
-    CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_METHOD: [
-      DataDriven.new,
-    ],
-    HintCode.DEPRECATED_MEMBER_USE: [DataDriven.new],
-    HintCode.DEPRECATED_MEMBER_USE_FROM_SAME_PACKAGE: [DataDriven.new],
-    HintCode.DEPRECATED_MEMBER_USE_FROM_SAME_PACKAGE_WITH_MESSAGE: [
-      DataDriven.new,
-    ],
-    HintCode.DEPRECATED_MEMBER_USE_WITH_MESSAGE: [DataDriven.new],
-    WarningCode.DEPRECATED_EXPORT_USE: [DataDriven.new],
-    WarningCode.OVERRIDE_ON_NON_OVERRIDING_METHOD: [DataDriven.new],
+    CompileTimeErrorCode.wrongNumberOfTypeArgumentsExtension: [DataDriven.new],
+    CompileTimeErrorCode.wrongNumberOfTypeArgumentsMethod: [DataDriven.new],
+    HintCode.deprecatedMemberUse: [DataDriven.new],
+    HintCode.deprecatedMemberUseFromSamePackage: [DataDriven.new],
+    HintCode.deprecatedMemberUseFromSamePackageWithMessage: [DataDriven.new],
+    HintCode.deprecatedMemberUseWithMessage: [DataDriven.new],
+    WarningCode.deprecatedExportUse: [DataDriven.new],
+    WarningCode.overrideOnNonOverridingMethod: [DataDriven.new],
   };
 
   /// Cached results of [_canBulkFix].
   static final Map<DiagnosticCode, bool> _bulkFixableCodes = {};
 
-  static final Set<String> _diagnosticCodes =
-      diagnosticCodeValues.map((code) => code.name.toLowerCase()).toSet();
+  static final Set<String> _diagnosticCodes = diagnosticCodeValues
+      .map((code) => code.name.toLowerCase())
+      .toSet();
 
-  static final Set<String> _lintCodes =
-      Registry.ruleRegistry.rules.map((rule) => rule.name).toSet();
+  static final Set<String> _lintCodes = Registry.ruleRegistry.rules
+      .map((rule) => rule.name)
+      .toSet();
 
   /// The service used to report errors when building fixes.
   final InstrumentationService _instrumentationService;
@@ -365,10 +360,9 @@ class BulkFixProcessor {
         !parsedOnly || producer is ParsedCorrectionProducer,
         '$producer must be a ParsedCorrectionProducer',
       );
-      var shouldFix =
-          (context.dartFixContext?.autoTriggered ?? false)
-              ? producer.canBeAppliedAutomatically
-              : producer.canBeAppliedAcrossFiles;
+      var shouldFix = (context.dartFixContext?.autoTriggered ?? false)
+          ? producer.canBeAppliedAutomatically
+          : producer.canBeAppliedAcrossFiles;
       if (shouldFix) {
         await _generateFix(context, producer, codeName);
         if (isCancelled) {
@@ -418,8 +412,9 @@ class BulkFixProcessor {
         for (var unitResult in libraryResult.units) {
           var directives = unitResult.unit.directives;
           for (var directive in directives) {
-            var uri =
-                (directive is ImportDirective) ? directive.uri.stringValue : '';
+            var uri = (directive is ImportDirective)
+                ? directive.uri.stringValue
+                : '';
             if (uri!.startsWith('package:')) {
               var name = Uri.parse(uri).pathSegments.first;
               if (libPath.contains(path) || binPath.contains(path)) {
@@ -449,7 +444,7 @@ class BulkFixProcessor {
           details.add(
             BulkFix(pubspecFile.path, [
               BulkFixDetail(
-                PubspecWarningCode.MISSING_DEPENDENCY.name.toLowerCase(),
+                PubspecWarningCode.missingDependency.name.toLowerCase(),
                 1,
               ),
             ]),
@@ -536,10 +531,9 @@ class BulkFixProcessor {
     // TODO(srawlins): We are passing `currentUnit` in as `definingUnit`. Seems
     // wrong.
     var context = RuleContextWithParsedResults(allUnits, currentUnit);
-    var lintRules =
-        _syntacticLintCodes
-            .map((name) => Registry.ruleRegistry.getRule(name))
-            .nonNulls;
+    var lintRules = _syntacticLintCodes
+        .map((name) => Registry.ruleRegistry.getRule(name))
+        .nonNulls;
     for (var lintRule in lintRules) {
       lintRule.reporter = currentUnit.diagnosticReporter;
       lintRule.registerNodeProcessors(nodeRegistry, context);
@@ -557,7 +551,7 @@ class BulkFixProcessor {
     List<Diagnostic> originalDiagnostics,
   ) sync* {
     var diagnostics = originalDiagnostics.toList();
-    diagnostics.sort((a, b) => a.offset.compareTo(b.offset));
+    diagnostics.sort(_fixOrder);
     for (var diagnostic in diagnostics) {
       if (_codes != null &&
           !_codes.contains(diagnostic.diagnosticCode.name.toLowerCase())) {
@@ -662,9 +656,9 @@ class BulkFixProcessor {
           directivesOrderingError = diagnostic;
           break;
         }
-      } else if (diagnosticCode == WarningCode.DUPLICATE_IMPORT ||
-          diagnosticCode == HintCode.UNNECESSARY_IMPORT ||
-          diagnosticCode == WarningCode.UNUSED_IMPORT) {
+      } else if (diagnosticCode == WarningCode.duplicateImport ||
+          diagnosticCode == HintCode.unnecessaryImport ||
+          diagnosticCode == WarningCode.unusedImport) {
         unusedImportDiagnostics.add(diagnostic);
       }
     }
@@ -710,6 +704,23 @@ class BulkFixProcessor {
         }
       }
     }
+  }
+
+  int _fixOrder(Diagnostic a, Diagnostic b) {
+    var result = a.offset.compareTo(b.offset);
+    if (result != 0) {
+      return result;
+    }
+    // Special casing for `annotate_overrides` fix order
+    // See https://github.com/dart-lang/sdk/issues/61301
+    // Since the output for it should be before any other fixes like editing
+    // the return type
+    if (a.diagnosticCode == LinterLintCode.annotateOverrides) {
+      return -1;
+    } else if (b.diagnosticCode == LinterLintCode.annotateOverrides) {
+      return 1;
+    }
+    return 0;
   }
 
   /// Uses the change [builder] and the [fixContext] to create a fix for the
@@ -963,6 +974,7 @@ class BulkFixProcessor {
         errors[0],
         contents,
         node,
+        defaultEol: builder.defaultEol,
       );
       return await generator.computeFixes();
     }
@@ -974,10 +986,9 @@ class BulkFixProcessor {
     bool hasBulkFixProducers(List<ProducerGenerator>? generators) {
       return generators != null &&
           generators.any(
-            (generator) =>
-                generator(
-                  context: StubCorrectionProducerContext.instance,
-                ).canBeAppliedAcrossFiles,
+            (generator) => generator(
+              context: StubCorrectionProducerContext.instance,
+            ).canBeAppliedAcrossFiles,
           );
     }
 
@@ -1146,9 +1157,9 @@ extension on Diagnostic {
   bool get isFixable {
     // Special cases that can be bulk fixed by this class but not by
     // FixProcessor.
-    if (diagnosticCode == WarningCode.DUPLICATE_IMPORT ||
-        diagnosticCode == HintCode.UNNECESSARY_IMPORT ||
-        diagnosticCode == WarningCode.UNUSED_IMPORT ||
+    if (diagnosticCode == WarningCode.duplicateImport ||
+        diagnosticCode == HintCode.unnecessaryImport ||
+        diagnosticCode == WarningCode.unusedImport ||
         (DirectivesOrdering.allCodes.contains(diagnosticCode))) {
       return true;
     }

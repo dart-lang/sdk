@@ -23,7 +23,7 @@ enum E {
   const E.named();
 }
 ''',
-      [error(CompileTimeErrorCode.UNDEFINED_ENUM_CONSTRUCTOR_UNNAMED, 11, 1)],
+      [error(CompileTimeErrorCode.undefinedEnumConstructorUnnamed, 11, 1)],
     );
   }
 
@@ -35,7 +35,7 @@ enum E {
   const E.named();
 }
 ''',
-      [error(CompileTimeErrorCode.UNDEFINED_ENUM_CONSTRUCTOR_UNNAMED, 11, 1)],
+      [error(CompileTimeErrorCode.undefinedEnumConstructorUnnamed, 11, 1)],
     );
   }
 }

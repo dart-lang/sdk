@@ -345,29 +345,42 @@ sealed class TypeBuilder {
   // TODO(johnniwinther): Change [NamedTypeBuilder] to hold the
   // [TypeParameterScopeBuilder] should resolve it, so that we cannot create
   // [NamedTypeBuilder]s that are orphaned.
-  TypeBuilder subst(Map<NominalParameterBuilder, TypeBuilder> substitution,
-      {TypeParameterFactory? typeParameterFactory}) {
+  TypeBuilder subst(
+    Map<NominalParameterBuilder, TypeBuilder> substitution, {
+    TypeParameterFactory? typeParameterFactory,
+  }) {
     if (substitution.isEmpty) {
       return this;
     }
     TypeParameterFactory typeParameterFactoryInternal =
         typeParameterFactory ?? new TypeParameterFactory();
-    TypeBuilder result = substituteRange(
-            substitution, substitution, typeParameterFactoryInternal,
-            variance: Variance.covariant) ??
+    TypeBuilder result =
+        substituteRange(
+          substitution,
+          substitution,
+          typeParameterFactoryInternal,
+          variance: Variance.covariant,
+        ) ??
         this;
-    assert(typeParameterFactory != null || typeParameterFactoryInternal.isEmpty,
-        "Non-empty unbound type parameters: $typeParameterFactoryInternal.");
+    assert(
+      typeParameterFactory != null || typeParameterFactoryInternal.isEmpty,
+      "Non-empty unbound type parameters: $typeParameterFactoryInternal.",
+    );
     return result;
   }
 
   // Coverage-ignore(suite): Not run.
   TypeBuilder substitute(
-      TypeBuilder type, Map<NominalParameterBuilder, TypeBuilder> substitution,
-      {required TypeParameterFactory typeParameterFactory}) {
+    TypeBuilder type,
+    Map<NominalParameterBuilder, TypeBuilder> substitution, {
+    required TypeParameterFactory typeParameterFactory,
+  }) {
     return type.substituteRange(
-            substitution, substitution, typeParameterFactory,
-            variance: Variance.covariant) ??
+          substitution,
+          substitution,
+          typeParameterFactory,
+          variance: Variance.covariant,
+        ) ??
         type;
   }
 
@@ -389,8 +402,11 @@ sealed class TypeBuilder {
   ///
   /// If [hierarchy] is provided, inference is triggered on inferable types.
   /// Otherwise, [isExplicit] must be true.
-  DartType build(LibraryBuilder library, TypeUse typeUse,
-      {ClassHierarchyBase? hierarchy});
+  DartType build(
+    LibraryBuilder library,
+    TypeUse typeUse, {
+    ClassHierarchyBase? hierarchy,
+  });
 
   /// Creates the [DartType] from this [TypeBuilder] that contains
   /// [TypedefType]. This is used to create types internal on which well-
@@ -404,15 +420,16 @@ sealed class TypeBuilder {
   /// If [hierarchy] is non-null, inference is triggered on inferable types.
   /// Otherwise, [isExplicit] must be true.
   DartType buildAliased(
-      LibraryBuilder library, TypeUse typeUse, ClassHierarchyBase? hierarchy);
+    LibraryBuilder library,
+    TypeUse typeUse,
+    ClassHierarchyBase? hierarchy,
+  );
 
   Supertype? buildSupertype(LibraryBuilder library, TypeUse typeUse);
 
   Supertype? buildMixedInType(LibraryBuilder library);
 
   TypeBuilder withNullabilityBuilder(NullabilityBuilder nullabilityBuilder);
-
-  bool get isVoidType;
 
   /// Register [type] as the inferred type of this type builder.
   ///
@@ -450,9 +467,10 @@ sealed class TypeBuilder {
   ///
   /// [typeParametersTraversalState] is passed to handle cyclic dependencies
   /// between type parameters,
-  Nullability computeNullability(
-      {required Map<TypeParameterBuilder, TraversalState>
-          typeParametersTraversalState});
+  Nullability computeNullability({
+    required Map<TypeParameterBuilder, TraversalState>
+    typeParametersTraversalState,
+  });
 
   /// Computes the variance of a variable in a type.  The function can be run
   /// before the types are resolved to compute variances of typedefs' type
@@ -460,21 +478,27 @@ sealed class TypeBuilder {
   /// its name matches that of the variable, it's interpreted as an occurrence
   /// of a type parameter.
   VarianceCalculationValue computeTypeParameterBuilderVariance(
-      NominalParameterBuilder nominalParameterBuilder,
-      {required SourceLoader sourceLoader});
+    NominalParameterBuilder nominalParameterBuilder, {
+    required SourceLoader sourceLoader,
+  });
 
   /// Computes the unaliased [TypeDeclarationBuilder] for this type, if any.
-  TypeDeclarationBuilder? computeUnaliasedDeclaration(
-      {required bool isUsedAsClass});
+  TypeDeclarationBuilder? computeUnaliasedDeclaration({
+    required bool isUsedAsClass,
+  });
 
-  void collectReferencesFrom(Map<TypeParameterBuilder, int> parameterIndices,
-      List<List<int>> edges, int index);
+  void collectReferencesFrom(
+    Map<TypeParameterBuilder, int> parameterIndices,
+    List<List<int>> edges,
+    int index,
+  );
 
   TypeBuilder? substituteRange(
-      Map<TypeParameterBuilder, TypeBuilder> upperSubstitution,
-      Map<TypeParameterBuilder, TypeBuilder> lowerSubstitution,
-      TypeParameterFactory typeParameterFactory,
-      {final Variance variance = Variance.covariant});
+    Map<TypeParameterBuilder, TypeBuilder> upperSubstitution,
+    Map<TypeParameterBuilder, TypeBuilder> lowerSubstitution,
+    TypeParameterFactory typeParameterFactory, {
+    final Variance variance = Variance.covariant,
+  });
 
   TypeBuilder? unaliasAndErase();
 
@@ -511,31 +535,39 @@ abstract class FunctionTypeBuilder extends TypeBuilder {
 abstract class InvalidTypeBuilder extends TypeBuilder {
   @override
   VarianceCalculationValue computeTypeParameterBuilderVariance(
-      NominalParameterBuilder variable,
-      {required SourceLoader sourceLoader}) {
+    NominalParameterBuilder variable, {
+    required SourceLoader sourceLoader,
+  }) {
     return VarianceCalculationValue.calculatedUnrelated;
   }
 
   @override
-  TypeDeclarationBuilder? computeUnaliasedDeclaration(
-          {required bool isUsedAsClass}) =>
-      null;
+  TypeDeclarationBuilder? computeUnaliasedDeclaration({
+    required bool isUsedAsClass,
+  }) => null;
 }
 
 abstract class NamedTypeBuilder extends TypeBuilder {
   @override
   TypeName get typeName;
 
-  void resolveIn(LookupScope scope, int charOffset, Uri fileUri,
-      ProblemReporting problemReporting);
+  void resolveIn(
+    LookupScope scope,
+    int charOffset,
+    Uri fileUri,
+    ProblemReporting problemReporting,
+  );
   void bind(
-      ProblemReporting problemReporting, TypeDeclarationBuilder declaration);
+    ProblemReporting problemReporting,
+    TypeDeclarationBuilder declaration,
+  );
 
   NamedTypeBuilder withTypeArguments(List<TypeBuilder> arguments);
 
-  InvalidTypeDeclarationBuilder buildInvalidTypeDeclarationBuilder(
-      LocatedMessage message,
-      {List<LocatedMessage>? context});
+  InvalidBuilder buildInvalidTypeDeclarationBuilder(
+    LocatedMessage message, {
+    List<LocatedMessage>? context,
+  });
 }
 
 abstract class RecordTypeBuilder extends TypeBuilder {
@@ -686,7 +718,11 @@ class QualifiedTypeName implements TypeName {
   final int nameOffset;
 
   QualifiedTypeName(
-      this.qualifier, this.qualifierOffset, this.name, this.nameOffset);
+    this.qualifier,
+    this.qualifierOffset,
+    this.name,
+    this.nameOffset,
+  );
 
   @override
   int get nameLength => name.length;

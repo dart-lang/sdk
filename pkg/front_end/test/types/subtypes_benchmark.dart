@@ -66,8 +66,11 @@ SubtypesBenchmark parseBenchMark(String source) {
 
   Uri uri = Uri.parse("dart:core");
   TypeParserEnvironment environment = new TypeParserEnvironment(uri, uri);
-  Library library =
-      parseLibrary(uri, classes.join("\n"), environment: environment);
+  Library library = parseLibrary(
+    uri,
+    classes.join("\n"),
+    environment: environment,
+  );
   List<dynamic> checks = data["checks"];
   List<SubtypeCheck> subtypeChecks = <SubtypeCheck>[];
   for (Map<dynamic, dynamic> check in checks) {
@@ -82,8 +85,9 @@ SubtypesBenchmark parseBenchMark(String source) {
     TypeParserEnvironment localEnvironment = environment;
     if (arguments.length > 2) {
       List<dynamic> typeParametersSource = arguments[2];
-      localEnvironment = environment
-          .extendWithTypeParameters("${typeParametersSource.join(', ')}");
+      localEnvironment = environment.extendWithTypeParameters(
+        "${typeParametersSource.join(', ')}",
+      );
     }
     DartType s = localEnvironment.parseType(sSource);
     DartType t = localEnvironment.parseType(tSource);
@@ -93,7 +97,9 @@ SubtypesBenchmark parseBenchMark(String source) {
 }
 
 void performKernelChecks(
-    List<SubtypeCheck> checks, TypeEnvironment environment) {
+  List<SubtypeCheck> checks,
+  TypeEnvironment environment,
+) {
   for (int i = 0; i < checks.length; i++) {
     SubtypeCheck check = checks[i];
     bool isSubtype = environment.isSubtypeOf(check.s, check.t);
@@ -104,7 +110,9 @@ void performKernelChecks(
 }
 
 void performBuilderChecks(
-    List<SubtypeCheck> checks, ClassHierarchyBuilder hierarchy) {
+  List<SubtypeCheck> checks,
+  ClassHierarchyBuilder hierarchy,
+) {
   for (int i = 0; i < checks.length; i++) {
     SubtypeCheck check = checks[i];
     bool isSubtype = hierarchy.types.isSubtypeOf(check.s, check.t);
@@ -133,23 +141,29 @@ Future<void> run(Uri benchmarkInput, String name) async {
   ClassHierarchy hierarchy = new ClassHierarchy(c, coreTypes);
   TypeEnvironment environment = new TypeEnvironment(coreTypes, hierarchy);
 
-  final CompilerContext context = new CompilerContext(new ProcessedOptions(
+  final CompilerContext context = new CompilerContext(
+    new ProcessedOptions(
       options: new CompilerOptions()
-        ..packagesFileUri =
-            Uri.base.resolve(".dart_tool/package_config.json")));
+        ..packagesFileUri = Uri.base.resolve(".dart_tool/package_config.json"),
+    ),
+  );
   await context.runInContext<void>((_) async {
     DillTarget target = new DillTarget(
-        context,
-        ticker,
-        await context.options.getUriTranslator(),
-        new NoneTarget(new TargetFlags()));
+      context,
+      ticker,
+      await context.options.getUriTranslator(),
+      new NoneTarget(new TargetFlags()),
+    );
     final DillLoader loader = target.loader;
     loader.appendLibraries(c);
     target.buildOutlines();
-    ClassBuilder objectClass = loader.coreLibrary
-        .lookupLocalMember("Object", required: true) as ClassBuilder;
-    ClassHierarchyBuilder hierarchy =
-        new ClassHierarchyBuilder(objectClass, loader, coreTypes);
+    ClassBuilder objectClass =
+        loader.coreLibrary.lookupRequiredLocalMember("Object") as ClassBuilder;
+    ClassHierarchyBuilder hierarchy = new ClassHierarchyBuilder(
+      objectClass,
+      loader,
+      coreTypes,
+    );
 
     for (int i = 0; i < runs; i++) {
       kernelWatch.start();
@@ -161,18 +175,26 @@ Future<void> run(Uri benchmarkInput, String name) async {
       builderWatch.stop();
 
       if (i == 0) {
-        print("SubtypeKernel${name}First(RuntimeRaw): "
-            "${kernelWatch.elapsedMilliseconds} ms");
-        print("SubtypeFasta${name}First(RuntimeRaw): "
-            "${builderWatch.elapsedMilliseconds} ms");
+        print(
+          "SubtypeKernel${name}First(RuntimeRaw): "
+          "${kernelWatch.elapsedMilliseconds} ms",
+        );
+        print(
+          "SubtypeFasta${name}First(RuntimeRaw): "
+          "${builderWatch.elapsedMilliseconds} ms",
+        );
       }
     }
   });
 
-  print("SubtypeKernel${name}Avg${runs}(RuntimeRaw): "
-      "${kernelWatch.elapsedMilliseconds / runs} ms");
-  print("SubtypeFasta${name}Avg${runs}(RuntimeRaw): "
-      "${builderWatch.elapsedMilliseconds / runs} ms");
+  print(
+    "SubtypeKernel${name}Avg${runs}(RuntimeRaw): "
+    "${kernelWatch.elapsedMilliseconds / runs} ms",
+  );
+  print(
+    "SubtypeFasta${name}Avg${runs}(RuntimeRaw): "
+    "${builderWatch.elapsedMilliseconds / runs} ms",
+  );
 }
 
 void main() => run(Uri.base.resolve("type_checks.json"), "***");

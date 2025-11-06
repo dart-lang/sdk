@@ -22,7 +22,7 @@ abstract class A {
   abstract final int x = 0;
 }
 ''',
-      [error(CompileTimeErrorCode.ABSTRACT_FIELD_INITIALIZER, 40, 1)],
+      [error(CompileTimeErrorCode.abstractFieldInitializer, 40, 1)],
     );
   }
 
@@ -41,7 +41,7 @@ abstract class A {
   abstract int x = 0;
 }
 ''',
-      [error(CompileTimeErrorCode.ABSTRACT_FIELD_INITIALIZER, 34, 1)],
+      [error(CompileTimeErrorCode.abstractFieldInitializer, 34, 1)],
     );
   }
 

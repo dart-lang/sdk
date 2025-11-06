@@ -122,14 +122,9 @@ void test_cycle() {
 ''',
       [
         // No lint
-        error(CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE, 6, 1),
-        error(CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE, 41, 1),
-        error(
-          CompileTimeErrorCode.NO_DEFAULT_SUPER_CONSTRUCTOR_IMPLICIT,
-          41,
-          1,
-        ),
-        error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 81, 4),
+        error(CompileTimeErrorCode.recursiveInterfaceInheritance, 6, 1),
+        error(CompileTimeErrorCode.recursiveInterfaceInheritance, 41, 1),
+        error(CompileTimeErrorCode.argumentTypeNotAssignable, 81, 4),
       ],
     );
   }

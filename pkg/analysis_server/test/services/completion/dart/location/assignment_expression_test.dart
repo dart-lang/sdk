@@ -46,6 +46,8 @@ void f() async {var foo = n^}
 replacement
   left: 1
 suggestions
+  const
+    kind: keyword
   null
     kind: keyword
 ''');
@@ -78,6 +80,8 @@ void f() {var foo = n^}
 replacement
   left: 1
 suggestions
+  const
+    kind: keyword
   null
     kind: keyword
 ''');

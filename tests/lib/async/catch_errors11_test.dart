@@ -9,15 +9,15 @@ import 'package:expect/expect.dart';
 
 import 'catch_errors.dart';
 
-main() {
+void main() {
   asyncStart();
-  Completer done = new Completer();
+  Completer done = Completer();
 
   var events = [];
   // Test that `catchErrors` catches errors that are delayed by `Timer.run`.
   catchErrors(() {
     events.add("catch error entry");
-    new Future.error("future error");
+    Future.error("future error");
     Timer.run(() {
       done.complete(true);
       throw "timer error";

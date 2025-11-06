@@ -37,6 +37,31 @@ void f(dynamic x) {
 ''');
   }
 
+  test_extension_types() async {
+    await assertDiagnostics(
+      r'''
+void m(A a, B b) {
+  if (a == b) {}
+}
+extension type A(String value) {}
+extension type B(String value) {}
+''',
+      [lint(27, 2)],
+    );
+  }
+
+  test_extension_types_ok() async {
+    await assertNoDiagnostics(r'''
+void m(A a1, A a2, B b) {
+  if (a1 == a2) {}
+  if (a1 == b) {}
+  if (b == a1) {}
+}
+extension type A(String value) {}
+extension type B(String value) implements A {}
+''');
+  }
+
   test_fixnum_int32_leftSide() async {
     await assertNoDiagnostics(r'''
 import 'package:fixnum/fixnum.dart';
@@ -116,6 +141,29 @@ void f(M x, C y) {
 }
 mixin M {}
 class C with M {}
+''');
+  }
+
+  test_mixins() async {
+    await assertDiagnostics(
+      r'''
+void f(M1 m1, M2 m2) {
+  if (m1 == m2) {}
+}
+mixin M1 {}
+mixin M2 {}
+''',
+      [lint(32, 2)],
+    );
+  }
+
+  test_mixins_ok() async {
+    await assertNoDiagnostics(r'''
+void f(M1 m1, M2 m2) {
+  if (m1 == m2) {}
+}
+mixin M1 on M2 {}
+mixin M2 {}
 ''');
   }
 
@@ -250,8 +298,8 @@ void f() {
 ''',
       [
         // No lint.
-        error(WarningCode.UNNECESSARY_NULL_COMPARISON_NEVER_NULL_FALSE, 23, 7),
-        error(WarningCode.DEAD_CODE, 32, 2),
+        error(WarningCode.unnecessaryNullComparisonNeverNullFalse, 23, 7),
+        error(WarningCode.deadCode, 32, 2),
       ],
     );
   }
@@ -276,7 +324,7 @@ String f(int char) {
 }
 ''',
       [
-        error(CompileTimeErrorCode.NON_EXHAUSTIVE_SWITCH_EXPRESSION, 49, 6),
+        error(CompileTimeErrorCode.nonExhaustiveSwitchExpression, 49, 6),
         lint(69, 10),
       ],
     );
@@ -293,7 +341,7 @@ String f(int i) {
 ''',
       [
         // No lint.
-        error(CompileTimeErrorCode.NON_EXHAUSTIVE_SWITCH_EXPRESSION, 27, 6),
+        error(CompileTimeErrorCode.nonExhaustiveSwitchExpression, 27, 6),
       ],
     );
   }
@@ -310,7 +358,7 @@ String f(int char) {
 }
 ''',
       [
-        error(CompileTimeErrorCode.NON_EXHAUSTIVE_SWITCH_EXPRESSION, 49, 6),
+        error(CompileTimeErrorCode.nonExhaustiveSwitchExpression, 49, 6),
         lint(69, 10),
       ],
     );
@@ -327,7 +375,7 @@ String f(String char) {
 ''',
       [
         // No lint.
-        error(CompileTimeErrorCode.NON_EXHAUSTIVE_SWITCH_EXPRESSION, 33, 6),
+        error(CompileTimeErrorCode.nonExhaustiveSwitchExpression, 33, 6),
       ],
     );
   }

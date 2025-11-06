@@ -39,14 +39,12 @@ class MemoryResourceProvider implements ResourceProvider {
   MemoryResourceProvider({
     pathos.Context? context,
     this.delayWatcherInitialization,
-  }) : _pathContext =
-           context ??=
-               pathos.style == pathos.Style.windows
-                   // On Windows, ensure that the current drive matches
-                   // the drive inserted by ResourceProvider.convertPath
-                   // so that packages are mapped to the correct drive
-                   ? pathos.Context(current: 'C:\\')
-                   : pathos.context;
+  }) : _pathContext = context ??= pathos.style == pathos.Style.windows
+           // On Windows, ensure that the current drive matches
+           // the drive inserted by ResourceProvider.convertPath
+           // so that packages are mapped to the correct drive
+           ? pathos.Context(current: 'C:\\')
+           : pathos.context;
 
   @override
   pathos.Context get pathContext => _pathContext;

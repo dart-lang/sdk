@@ -12,4 +12,8 @@ class Memories {
   final List<DefinedMemory> defined;
 
   Memories(this.imported, this.defined);
+
+  Memory operator [](int index) => index < imported.length
+      ? imported[index]
+      : defined[index - imported.length];
 }

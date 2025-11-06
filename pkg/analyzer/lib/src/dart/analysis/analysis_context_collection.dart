@@ -15,7 +15,6 @@ import 'package:analyzer/src/dart/analysis/context_locator.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer/src/dart/analysis/driver_based_analysis_context.dart';
 import 'package:analyzer/src/dart/analysis/file_content_cache.dart';
-import 'package:analyzer/src/dart/analysis/library_context.dart';
 import 'package:analyzer/src/dart/analysis/performance_logger.dart';
 import 'package:analyzer/src/dart/analysis/unlinked_unit_store.dart';
 import 'package:analyzer/src/generated/sdk.dart';
@@ -47,6 +46,7 @@ class AnalysisContextCollectionImpl implements AnalysisContextCollection {
     List<String>? librarySummaryPaths,
     String? optionsFile,
     String? packagesFile,
+    bool withFineDependencies = false,
     PerformanceLog? performanceLog,
     ResourceProvider? resourceProvider,
     bool retainDataForTesting = false,
@@ -55,17 +55,28 @@ class AnalysisContextCollectionImpl implements AnalysisContextCollection {
     AnalysisDriverScheduler? scheduler,
     FileContentCache? fileContentCache,
     UnlinkedUnitStore? unlinkedUnitStore,
+    List<String> enabledExperiments = const [],
+    @Deprecated('Use updateAnalysisOptions4 instead')
     void Function({
       required AnalysisOptionsImpl analysisOptions,
       required DartSdk sdk,
     })?
     updateAnalysisOptions3,
+    void Function({required AnalysisOptionsImpl analysisOptions})?
+    updateAnalysisOptions4,
     bool enableLintRuleTiming = false,
   }) : resourceProvider =
            resourceProvider ?? PhysicalResourceProvider.INSTANCE {
     sdkPath ??= getSdkPath();
 
     performanceLog ??= PerformanceLog(null);
+
+    if (updateAnalysisOptions3 != null && updateAnalysisOptions4 != null) {
+      throw ArgumentError(
+        'Only one of updateAnalysisOptions3 and updateAnalysisOptions4 may be '
+        'given',
+      );
+    }
 
     if (scheduler == null) {
       scheduler = AnalysisDriverScheduler(performanceLog);
@@ -92,16 +103,24 @@ class AnalysisContextCollectionImpl implements AnalysisContextCollection {
     );
 
     byteStore ??= MemoryByteStore();
-    var linkedBundleProvider = LinkedBundleProvider(byteStore: byteStore);
 
     var contextBuilder = ContextBuilderImpl(
       resourceProvider: this.resourceProvider,
     );
 
+    // While users can use the deprecated `updateAnalysisOptions3` and the new
+    // `updateAnalysisOptions4` parameter, prefer `updateAnalysisOptions4`, but
+    // create a new closure with the signature of the old.
+    var updateAnalysisOptions = updateAnalysisOptions4 != null
+        ? ({
+            required AnalysisOptionsImpl analysisOptions,
+            required DartSdk sdk,
+          }) => updateAnalysisOptions4(analysisOptions: analysisOptions)
+        : updateAnalysisOptions3;
+
     for (var root in roots) {
       var context = contextBuilder.createContext(
         byteStore: byteStore,
-        linkedBundleProvider: linkedBundleProvider,
         contextRoot: root,
         definedOptionsFile: optionsFile != null,
         declaredVariables: DeclaredVariables.fromMap(declaredVariables ?? {}),
@@ -113,11 +132,13 @@ class AnalysisContextCollectionImpl implements AnalysisContextCollection {
         sdkPath: sdkPath,
         sdkSummaryPath: sdkSummaryPath,
         scheduler: scheduler,
-        updateAnalysisOptions3: updateAnalysisOptions3,
+        updateAnalysisOptions3: updateAnalysisOptions,
         fileContentCache: fileContentCache,
         unlinkedUnitStore: unlinkedUnitStore ?? UnlinkedUnitStoreImpl(),
         ownedFiles: ownedFiles,
         enableLintRuleTiming: enableLintRuleTiming,
+        withFineDependencies: withFineDependencies,
+        enabledExperiments: enabledExperiments,
       );
       contexts.add(context);
     }

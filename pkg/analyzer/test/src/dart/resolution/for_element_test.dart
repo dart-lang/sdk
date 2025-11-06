@@ -86,7 +86,6 @@ ForElement
       pattern: DeclaredVariablePattern
         name: a
         declaredFragment: isPublic a@25
-          type: null
           element: hasImplicitType isPublic
             type: dynamic
         matchedValueType: dynamic
@@ -123,7 +122,6 @@ ForElement
       pattern: DeclaredVariablePattern
         name: a
         declaredFragment: isPublic a@35
-          type: null
           element: hasImplicitType isPublic
             type: int
         matchedValueType: int
@@ -149,7 +147,7 @@ void f(Object x) {
   [for (var (a) in x) a];
 }
 ''',
-      [error(CompileTimeErrorCode.FOR_IN_OF_INVALID_TYPE, 38, 1)],
+      [error(CompileTimeErrorCode.forInOfInvalidType, 38, 1)],
     );
     var node = findNode.forElement('for');
     assertResolvedNodeText(node, r'''
@@ -163,7 +161,6 @@ ForElement
       pattern: DeclaredVariablePattern
         name: a
         declaredFragment: isPublic a@32
-          type: null
           element: hasImplicitType isPublic
             type: InvalidType
         matchedValueType: InvalidType
@@ -202,11 +199,10 @@ ForElement
       pattern: DeclaredVariablePattern
         type: NamedType
           name: int
-          element2: dart:core::@class::int
+          element: dart:core::@class::int
           type: int
         name: a
         declaredFragment: isPublic a@28
-          type: int
           element: isPublic
             type: int
         matchedValueType: int
@@ -253,7 +249,6 @@ ForElement
       pattern: DeclaredVariablePattern
         name: a
         declaredFragment: isPublic a@24
-          type: null
           element: hasImplicitType isPublic
             type: Object?
         matchedValueType: Object?
@@ -298,7 +293,6 @@ ForElement
       pattern: DeclaredVariablePattern
         name: a
         declaredFragment: isFinal isPublic a@37
-          type: null
           element: hasImplicitType isFinal isPublic
             type: int
         matchedValueType: int
@@ -335,11 +329,10 @@ ForElement
       pattern: DeclaredVariablePattern
         type: NamedType
           name: num
-          element2: dart:core::@class::num
+          element: dart:core::@class::num
           type: num
         name: a
         declaredFragment: isPublic a@39
-          type: num
           element: isPublic
             type: num
         matchedValueType: int
@@ -375,7 +368,6 @@ ForElement
       pattern: DeclaredVariablePattern
         name: a
         declaredFragment: isPublic a@43
-          type: null
           element: hasImplicitType isPublic
             type: int
         matchedValueType: int
@@ -411,7 +403,6 @@ ForElement
       pattern: DeclaredVariablePattern
         name: x
         declaredFragment: isPublic x@43
-          type: null
           element: hasImplicitType isPublic
             type: int
         matchedValueType: int
@@ -453,7 +444,6 @@ ForElement
       pattern: DeclaredVariablePattern
         name: a
         declaredFragment: isPublic a@37
-          type: null
           element: hasImplicitType isPublic
             type: dynamic
         matchedValueType: dynamic
@@ -479,7 +469,7 @@ void f(Object x) async {
   [await for (var (a) in x) a];
 }
 ''',
-      [error(CompileTimeErrorCode.FOR_IN_OF_INVALID_TYPE, 50, 1)],
+      [error(CompileTimeErrorCode.forInOfInvalidType, 50, 1)],
     );
     var node = findNode.forElement('for');
     assertResolvedNodeText(node, r'''
@@ -494,7 +484,6 @@ ForElement
       pattern: DeclaredVariablePattern
         name: a
         declaredFragment: isPublic a@44
-          type: null
           element: hasImplicitType isPublic
             type: InvalidType
         matchedValueType: InvalidType
@@ -532,7 +521,6 @@ ForElement
       pattern: DeclaredVariablePattern
         name: a
         declaredFragment: isPublic a@49
-          type: null
           element: hasImplicitType isPublic
             type: int
         matchedValueType: int
@@ -572,11 +560,10 @@ ForElement
       pattern: DeclaredVariablePattern
         type: NamedType
           name: int
-          element2: dart:core::@class::int
+          element: dart:core::@class::int
           type: int
         name: a
         declaredFragment: isPublic a@40
-          type: int
           element: isPublic
             type: int
         matchedValueType: int
@@ -624,7 +611,6 @@ ForElement
       pattern: DeclaredVariablePattern
         name: a
         declaredFragment: isPublic a@36
-          type: null
           element: hasImplicitType isPublic
             type: Object?
         matchedValueType: Object?
@@ -670,7 +656,6 @@ ForElement
       pattern: DeclaredVariablePattern
         name: a
         declaredFragment: isFinal isPublic a@51
-          type: null
           element: hasImplicitType isFinal isPublic
             type: int
         matchedValueType: int
@@ -708,11 +693,10 @@ ForElement
       pattern: DeclaredVariablePattern
         type: NamedType
           name: num
-          element2: dart:core::@class::num
+          element: dart:core::@class::num
           type: num
         name: a
         declaredFragment: isPublic a@53
-          type: num
           element: isPublic
             type: num
         matchedValueType: int
@@ -809,20 +793,18 @@ ForElement
             pattern: DeclaredVariablePattern
               name: a
               declaredFragment: isPublic a@37
-                type: null
                 element: hasImplicitType isPublic
                   type: int
               matchedValueType: int
-            element2: <null>
+            element: <null>
           PatternField
             pattern: DeclaredVariablePattern
               name: b
               declaredFragment: isPublic b@40
-                type: null
                 element: hasImplicitType isPublic
                   type: bool
               matchedValueType: bool
-            element2: <null>
+            element: <null>
         rightParenthesis: )
         matchedValueType: (int, bool)
       equals: =
@@ -844,9 +826,9 @@ ForElement
           element: a@37
           staticType: null
         operator: --
-        readElement2: a@37
+        readElement: a@37
         readType: int
-        writeElement2: a@37
+        writeElement: a@37
         writeType: int
         element: dart:core::@class::num::@method::-
         staticType: int

@@ -71,10 +71,9 @@ class CompletionHandler
     : suggestFromUnimportedLibraries =
           server.initializationOptions?.suggestFromUnimportedLibraries ?? true {
     var budgetMs = server.initializationOptions?.completionBudgetMilliseconds;
-    completionBudgetDuration =
-        budgetMs != null
-            ? Duration(milliseconds: budgetMs)
-            : CompletionBudget.defaultDuration;
+    completionBudgetDuration = budgetMs != null
+        ? Duration(milliseconds: budgetMs)
+        : CompletionBudget.defaultDuration;
   }
 
   @override
@@ -148,8 +147,9 @@ class CompletionHandler
       offset,
     ) async {
       var fileExtension = pathContext.extension(path);
-      var maxResults =
-          server.lspClientConfiguration.forResource(path).maxCompletionItems;
+      var maxResults = server.lspClientConfiguration
+          .forResource(path)
+          .maxCompletionItems;
       CompletionPerformance? completionPerformance;
       Future<ErrorOr<_CompletionResults>>? serverResultsFuture;
       if (fileExtension == '.dart') {
@@ -216,18 +216,17 @@ class CompletionHandler
         var maxRankedItems = math.max(maxResults - unrankedItems.length, 0);
         var truncatedRankedItems =
             untruncatedRankedItems.length <= maxRankedItems
-                ? untruncatedRankedItems
-                : _truncateResults(
-                  untruncatedRankedItems,
-                  serverResults.targetPrefix,
-                  maxRankedItems,
-                );
+            ? untruncatedRankedItems
+            : _truncateResults(
+                untruncatedRankedItems,
+                serverResults.targetPrefix,
+                maxRankedItems,
+              );
 
-        var truncatedItems =
-            truncatedRankedItems
-                .map((item) => item.item)
-                .followedBy(unrankedItems)
-                .toList();
+        var truncatedItems = truncatedRankedItems
+            .map((item) => item.item)
+            .followedBy(unrankedItems)
+            .toList();
 
         // If we're tracing performance (only Dart), record the number of results
         // after truncation.
@@ -263,8 +262,9 @@ class CompletionHandler
     }
 
     return CompletionItemDefaults(
-      insertTextMode:
-          capabilities.completionDefaultTextMode ? InsertTextMode.asIs : null,
+      insertTextMode: capabilities.completionDefaultTextMode
+          ? InsertTextMode.asIs
+          : null,
       editRange: _computeDefaultEditRange(
         capabilities,
         insertionRange,
@@ -414,9 +414,8 @@ class CompletionHandler
       /// invocation that already has an argument list, otherwise we would
       /// insert dupes.
       var completeFunctionCalls =
-          _hasExistingArgList(target.entity)
-              ? false
-              : server.lspClientConfiguration.global.completeFunctionCalls;
+          !_hasExistingArgList(target.entity) &&
+          server.lspClientConfiguration.global.completeFunctionCalls;
 
       // Compute defaults that will allow us to reduce payload size.
       var defaultReplacementRange = toRange(
@@ -542,10 +541,9 @@ class CompletionHandler
           resolutionData: resolutionInfo,
           // Exclude docs if we will be providing them via
           // `completionItem/resolve`, otherwise use users preference.
-          includeDocumentation:
-              resolutionInfo != null
-                  ? DocumentationPreference.none
-                  : server.lspClientConfiguration.global.preferredDocumentation,
+          includeDocumentation: resolutionInfo != null
+              ? DocumentationPreference.none
+              : server.lspClientConfiguration.global.preferredDocumentation,
         );
       }
 
@@ -563,8 +561,9 @@ class CompletionHandler
       });
 
       // Add in any snippets.
-      var snippetsEnabled =
-          server.lspClientConfiguration.forResource(unit.path).enableSnippets;
+      var snippetsEnabled = server.lspClientConfiguration
+          .forResource(unit.path)
+          .enableSnippets;
       // We can only produce edits with edit builders for files inside
       // the root, so skip snippets entirely if not.
       var isEditableFile = unit.session.analysisContext.contextRoot.isAnalyzed(
@@ -659,47 +658,41 @@ class CompletionHandler
     var fuzzyPattern = suggestions.targetPrefix;
     var fuzzyMatcher = FuzzyMatcher(fuzzyPattern);
 
-    var completionItems =
-        suggestions.suggestions
-            .where(
-              (item) =>
-                  fuzzyMatcher.score(item.displayText ?? item.completion) > 0,
-            )
-            .map((item) {
-              var resolutionInfo =
-                  item.kind == CompletionSuggestionKind.PACKAGE_NAME
-                      ? PubPackageCompletionItemResolutionInfo(
-                        // The completion for package names may contain a trailing
-                        // ': ' for convenience, so if it's there, trim it off.
-                        packageName: item.completion.split(':').first,
-                      )
-                      : null;
-              return toCompletionItem(
-                capabilities,
-                lineInfo,
-                item,
-                uriConverter: uriConverter,
-                pathContext: pathContext,
-                completionFilePath: filePath,
-                replacementRange: replacementRange,
-                insertionRange: insertionRange,
-                commitCharactersEnabled: false,
-                completeFunctionCalls: false,
-                // Exclude docs if we could provide them via
-                // `completionItem/resolve`, otherwise use users preference.
-                includeDocumentation:
-                    resolutionInfo != null
-                        ? DocumentationPreference.none
-                        : server
-                            .lspClientConfiguration
-                            .global
-                            .preferredDocumentation,
-                // Add on any completion-kind-specific resolution data that will be
-                // used during resolve() calls to provide additional information.
-                resolutionData: resolutionInfo,
-              );
-            })
-            .toList();
+    var completionItems = suggestions.suggestions
+        .where(
+          (item) => fuzzyMatcher.score(item.displayText ?? item.completion) > 0,
+        )
+        .map((item) {
+          var resolutionInfo =
+              item.kind == CompletionSuggestionKind.PACKAGE_NAME
+              ? PubPackageCompletionItemResolutionInfo(
+                  // The completion for package names may contain a trailing
+                  // ': ' for convenience, so if it's there, trim it off.
+                  packageName: item.completion.split(':').first,
+                )
+              : null;
+          return toCompletionItem(
+            capabilities,
+            lineInfo,
+            item,
+            uriConverter: uriConverter,
+            pathContext: pathContext,
+            completionFilePath: filePath,
+            replacementRange: replacementRange,
+            insertionRange: insertionRange,
+            commitCharactersEnabled: false,
+            completeFunctionCalls: false,
+            // Exclude docs if we could provide them via
+            // `completionItem/resolve`, otherwise use users preference.
+            includeDocumentation: resolutionInfo != null
+                ? DocumentationPreference.none
+                : server.lspClientConfiguration.global.preferredDocumentation,
+            // Add on any completion-kind-specific resolution data that will be
+            // used during resolve() calls to provide additional information.
+            resolutionData: resolutionInfo,
+          );
+        })
+        .toList();
     return success(
       _CompletionResults.unranked(completionItems, isIncomplete: false),
     );
@@ -785,12 +778,10 @@ class CompletionHandler
 
     // Skip the text comparisons if we don't have a prefix (plugin results, or
     // just no prefix when completion was invoked).
-    var shouldInclude =
-        prefixLower.isEmpty
-            ? (int index, _ScoredCompletionItem item) =>
-                index < maxCompletionCount
-            : (int index, _ScoredCompletionItem item) =>
-                index < maxCompletionCount || isExactMatch(item.item);
+    var shouldInclude = prefixLower.isEmpty
+        ? (int index, _ScoredCompletionItem item) => index < maxCompletionCount
+        : (int index, _ScoredCompletionItem item) =>
+              index < maxCompletionCount || isExactMatch(item.item);
 
     return items.whereIndexed(shouldInclude);
   }
@@ -852,8 +843,9 @@ class CompletionRegistrations extends FeatureRegistration
         CompletionRegistrationOptions(
           documentSelector: dartFiles,
           triggerCharacters: dartCompletionTriggerCharacters,
-          allCommitCharacters:
-              previewCommitCharacters ? dartCompletionCommitCharacters : null,
+          allCommitCharacters: previewCommitCharacters
+              ? dartCompletionCommitCharacters
+              : null,
           resolveProvider: true,
           completionItem: ServerCompletionItemOptions(
             labelDetailsSupport: true,
@@ -893,8 +885,9 @@ class CompletionRegistrations extends FeatureRegistration
   @override
   CompletionOptions get staticOptions => CompletionOptions(
     triggerCharacters: dartCompletionTriggerCharacters,
-    allCommitCharacters:
-        previewCommitCharacters ? dartCompletionCommitCharacters : null,
+    allCommitCharacters: previewCommitCharacters
+        ? dartCompletionCommitCharacters
+        : null,
     resolveProvider: true,
     completionItem: ServerCompletionItemOptions(labelDetailsSupport: true),
   );

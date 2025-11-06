@@ -2,15 +2,13 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/analysis_rule/analysis_rule.dart';
 import 'package:analyzer/dart/ast/token.dart';
-import 'package:analyzer/dart/element/element.dart';
-import 'package:analyzer/diagnostic/diagnostic.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/source/source.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/token.dart';
-import 'package:analyzer/src/lint/linter.dart';
 import 'package:test/test.dart';
 
 import '../../generated/test_support.dart';
@@ -20,101 +18,54 @@ main() {
     group('error code reporting', () {
       test('reportLintForToken (custom)', () {
         var rule = TestRule();
-        var reporter = CollectingReporter(
-          GatheringDiagnosticListener(),
-          _MockSource('mock'),
-        );
+        var listener = GatheringDiagnosticListener();
+        var reporter = DiagnosticReporter(listener, _MockSource('mock'));
         rule.reporter = reporter;
 
         rule.reportAtToken(
           SimpleToken(TokenType.SEMICOLON, 0),
           diagnosticCode: TestRule.customCode,
         );
-        expect(reporter.code, TestRule.customCode);
+        expect(listener.diagnostics.single.diagnosticCode, TestRule.customCode);
       });
       test('reportLintForToken (default)', () {
         var rule = TestRule();
-        var reporter = CollectingReporter(
-          GatheringDiagnosticListener(),
-          _MockSource('mock'),
-        );
+        var listener = GatheringDiagnosticListener();
+        var reporter = DiagnosticReporter(listener, _MockSource('mock'));
         rule.reporter = reporter;
 
         rule.reportAtToken(
           SimpleToken(TokenType.SEMICOLON, 0),
           diagnosticCode: TestRule.code,
         );
-        expect(reporter.code, TestRule.code);
+        expect(listener.diagnostics.single.diagnosticCode, TestRule.code);
       });
       test('reportLint (custom)', () {
         var rule = TestRule();
-        var reporter = CollectingReporter(
-          GatheringDiagnosticListener(),
-          _MockSource('mock'),
-        );
+        var listener = GatheringDiagnosticListener();
+        var reporter = DiagnosticReporter(listener, _MockSource('mock'));
         rule.reporter = reporter;
 
         var node = EmptyStatementImpl(
           semicolon: SimpleToken(TokenType.SEMICOLON, 0),
         );
         rule.reportAtNode(node, diagnosticCode: TestRule.customCode);
-        expect(reporter.code, TestRule.customCode);
+        expect(listener.diagnostics.single.diagnosticCode, TestRule.customCode);
       });
       test('reportLint (default)', () {
         var rule = TestRule();
-        var reporter = CollectingReporter(
-          GatheringDiagnosticListener(),
-          _MockSource('mock'),
-        );
+        var listener = GatheringDiagnosticListener();
+        var reporter = DiagnosticReporter(listener, _MockSource('mock'));
         rule.reporter = reporter;
 
         var node = EmptyStatementImpl(
           semicolon: SimpleToken(TokenType.SEMICOLON, 0),
         );
         rule.reportAtNode(node, diagnosticCode: TestRule.code);
-        expect(reporter.code, TestRule.code);
+        expect(listener.diagnostics.single.diagnosticCode, TestRule.code);
       });
     });
   });
-}
-
-class CollectingReporter extends DiagnosticReporter {
-  DiagnosticCode? code;
-
-  CollectingReporter(super.listener, super.source);
-
-  @override
-  void atElement2(
-    Element element,
-    DiagnosticCode diagnosticCode, {
-    List<Object>? arguments,
-    List<DiagnosticMessage>? contextMessages,
-    Object? data,
-  }) {
-    code = diagnosticCode;
-  }
-
-  @override
-  void atNode(
-    AstNode node,
-    DiagnosticCode diagnosticCode, {
-    List<Object>? arguments,
-    List<DiagnosticMessage>? contextMessages,
-    Object? data,
-  }) {
-    code = diagnosticCode;
-  }
-
-  @override
-  void atToken(
-    Token token,
-    DiagnosticCode diagnosticCode, {
-    List<Object>? arguments,
-    List<DiagnosticMessage>? contextMessages,
-    Object? data,
-  }) {
-    code = diagnosticCode;
-  }
 }
 
 class TestRule extends MultiAnalysisRule {

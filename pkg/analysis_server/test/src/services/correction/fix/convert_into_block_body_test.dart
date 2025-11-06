@@ -21,7 +21,7 @@ void main() {
 @reflectiveTest
 class ConvertIntoBlockBodyMissingBodyTest extends FixProcessorTest {
   @override
-  FixKind get kind => DartFixKind.CONVERT_INTO_BLOCK_BODY;
+  FixKind get kind => DartFixKind.convertIntoBlockBody;
 
   Future<void> test_enum_getter() async {
     await resolveTestCode('''
@@ -228,7 +228,7 @@ void f() {
 @reflectiveTest
 class ConvertIntoBlockBodySetLiteralMultiTest extends FixProcessorTest {
   @override
-  FixKind get kind => DartFixKind.CONVERT_INTO_BLOCK_BODY_MULTI;
+  FixKind get kind => DartFixKind.convertIntoBlockBodyMulti;
 
   Future<void> test_multi() async {
     await resolveTestCode('''
@@ -242,7 +242,7 @@ void f() {
   });
 }
 ''');
-    await assertHasFixAllFix(WarningCode.UNNECESSARY_SET_LITERAL, '''
+    await assertHasFixAllFix(WarningCode.unnecessarySetLiteral, '''
 void g(void Function() fun) {}
 
 void f() {
@@ -259,7 +259,7 @@ void f() {
 @reflectiveTest
 class ConvertIntoBlockBodySetLiteralTest extends FixProcessorTest {
   @override
-  FixKind get kind => DartFixKind.CONVERT_INTO_BLOCK_BODY;
+  FixKind get kind => DartFixKind.convertIntoBlockBody;
 
   Future<void> test_expressionFunctionBody() async {
     await resolveTestCode('''

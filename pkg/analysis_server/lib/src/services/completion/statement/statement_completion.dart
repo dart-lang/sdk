@@ -313,7 +313,7 @@ class StatementCompletionProcessor {
           : null;
     }
 
-    var expr = diagnosticMatching(ScannerErrorCode.UNTERMINATED_STRING_LITERAL);
+    var expr = diagnosticMatching(ScannerErrorCode.unterminatedStringLiteral);
     if (expr != null) {
       var source = utils.getNodeText(expr);
       var content = source;
@@ -339,18 +339,15 @@ class StatementCompletionProcessor {
         delimiter = content.substring(0, 1);
         loc = expr.offset + source.length;
       }
-      _removeError(ScannerErrorCode.UNTERMINATED_STRING_LITERAL);
+      _removeError(ScannerErrorCode.unterminatedStringLiteral);
       _addInsertEdit(loc, delimiter);
     }
     expr =
         diagnosticMatching(
-          ParserErrorCode.EXPECTED_TOKEN,
+          ParserErrorCode.expectedToken,
           partialMatch: "']'",
         ) ??
-        diagnosticMatching(
-          ScannerErrorCode.EXPECTED_TOKEN,
-          partialMatch: "']'",
-        );
+        diagnosticMatching(ScannerErrorCode.expectedToken, partialMatch: "']'");
     if (expr != null) {
       expr = expr.thisOrAncestorOfType<ListLiteral>();
       if (expr is ListLiteral) {
@@ -363,8 +360,8 @@ class StatementCompletionProcessor {
           } else {
             _addInsertEdit(loc, ']');
           }
-          _removeError(ParserErrorCode.EXPECTED_TOKEN, partialMatch: "']'");
-          _removeError(ScannerErrorCode.EXPECTED_TOKEN, partialMatch: "']'");
+          _removeError(ParserErrorCode.expectedToken, partialMatch: "']'");
+          _removeError(ScannerErrorCode.expectedToken, partialMatch: "']'");
         }
       }
     }
@@ -403,7 +400,7 @@ class StatementCompletionProcessor {
     }
     if (node.leftBracket.isSynthetic && diagnostics.length == 1) {
       // The space before the left brace is assumed to exist, even if it does not.
-      var sb = SourceBuilder(file, node.end - 1);
+      var sb = SourceBuilder(file, node.end - eol.length);
       sb.append(' ');
       _appendEmptyBraces(sb, true);
       _insertBuilder(sb);
@@ -414,10 +411,9 @@ class StatementCompletionProcessor {
   }
 
   bool _complete_controlFlowBlock(AstNode node) {
-    var expr =
-        (node is ExpressionStatement)
-            ? node.expression
-            : (node is ReturnStatement ? node.expression : null);
+    var expr = (node is ExpressionStatement)
+        ? node.expression
+        : (node is ReturnStatement ? node.expression : null);
     if (!(node is ReturnStatement || expr is ThrowExpression)) {
       return false;
     }
@@ -436,7 +432,7 @@ class StatementCompletionProcessor {
     var delta = 0;
     if (diagnostics.isNotEmpty) {
       var error = _findDiagnostic(
-        ParserErrorCode.EXPECTED_TOKEN,
+        ParserErrorCode.expectedToken,
         partialMatch: "';'",
       );
       if (error != null) {
@@ -752,14 +748,12 @@ class StatementCompletionProcessor {
     var needsParen = false;
     int computeExitPos(FormalParameterList parameters) {
       if (needsParen = parameters.rightParenthesis.isSynthetic) {
-        var error = _findDiagnostic(
-          ParserErrorCode.MISSING_CLOSING_PARENTHESIS,
-        );
+        var error = _findDiagnostic(ParserErrorCode.missingClosingParenthesis);
         if (error != null) {
           return error.offset - 1;
         }
       }
-      return node.end - 1;
+      return node.end - eol.length;
     }
 
     int paramListEnd;
@@ -794,12 +788,12 @@ class StatementCompletionProcessor {
       return false;
     }
     var error = _findDiagnostic(
-      ParserErrorCode.EXPECTED_TOKEN,
+      ParserErrorCode.expectedToken,
       partialMatch: "';'",
     );
     if (error != null) {
       var src = utils.getNodeText(node);
-      var insertOffset = node.functionDeclaration.end - 1;
+      var insertOffset = node.functionDeclaration.end - eol.length;
       var body = node.functionDeclaration.functionExpression.body;
       if (body is ExpressionFunctionBody) {
         var fnbOffset = body.functionDefinition.offset;
@@ -928,8 +922,8 @@ class StatementCompletionProcessor {
 
   bool _complete_methodCall(AstNode node) {
     var parenError =
-        _findDiagnostic(ParserErrorCode.EXPECTED_TOKEN, partialMatch: "')'") ??
-        _findDiagnostic(ScannerErrorCode.EXPECTED_TOKEN, partialMatch: "')'");
+        _findDiagnostic(ParserErrorCode.expectedToken, partialMatch: "')'") ??
+        _findDiagnostic(ScannerErrorCode.expectedToken, partialMatch: "')'");
     if (parenError == null) {
       return false;
     }
@@ -944,27 +938,22 @@ class StatementCompletionProcessor {
         argList.thisOrAncestorMatching((n) => n == node) == null) {
       return false;
     }
-    var previousInsertions = _lengthOfInsertions();
-    var loc = min(selectionOffset, argList.end - 1);
-    var delta = 1;
+    var loc = min(selectionOffset, argList.end);
+    _addInsertEdit(loc, ')');
     var semicolonError = _findDiagnostic(
-      ParserErrorCode.EXPECTED_TOKEN,
+      ParserErrorCode.expectedToken,
       partialMatch: "';'",
     );
-    if (semicolonError == null) {
-      loc += 1;
-      delta = 0;
-    }
-    _addInsertEdit(loc, ')');
     if (semicolonError != null) {
       _addInsertEdit(loc, ';');
     }
     var indent = utils.getLinePrefix(selectionOffset);
     var exit = utils.getLineNext(selectionOffset);
+    var previousInsertions = _lengthOfInsertions();
     _addInsertEdit(exit, indent + eol);
-    exit += indent.length + eol.length + previousInsertions;
+    exit += indent.length + previousInsertions;
 
-    _setCompletionAt(DartStatementCompletion.SIMPLE_ENTER, exit + delta);
+    _setCompletionAt(DartStatementCompletion.SIMPLE_ENTER, exit);
     return true;
   }
 
@@ -987,7 +976,7 @@ class StatementCompletionProcessor {
       return false;
     }
     var error = _findDiagnostic(
-      ParserErrorCode.EXPECTED_TOKEN,
+      ParserErrorCode.expectedToken,
       partialMatch: "';'",
     );
     if (error != null) {
@@ -1038,8 +1027,9 @@ class StatementCompletionProcessor {
       var member = _findInvalidElement(node.members);
       if (member != null) {
         if (member.colon.isSynthetic) {
-          var loc =
-              member is SwitchCase ? member.expression.end : member.keyword.end;
+          var loc = member is SwitchCase
+              ? member.expression.end
+              : member.keyword.end;
           sb = SourceBuilder(file, loc);
           sb.append(': ');
           exitPosition = Position(file, loc + 2);
@@ -1080,7 +1070,7 @@ class StatementCompletionProcessor {
         if (onKeyword != null && exceptionType != null) {
           if (exceptionType.length == 0 ||
               _findDiagnostic(
-                    CompileTimeErrorCode.NON_TYPE_IN_CATCH_CLAUSE,
+                    CompileTimeErrorCode.nonTypeInCatchClause,
                     partialMatch: "name 'catch",
                   ) !=
                   null) {
@@ -1185,7 +1175,7 @@ class StatementCompletionProcessor {
     return diagnostics.firstWhereOrNull(
       (d) =>
           d.diagnosticCode == code &&
-          (partialMatch == null ? true : d.message.contains(partialMatch)),
+          (partialMatch == null || d.message.contains(partialMatch)),
     );
   }
 

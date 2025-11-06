@@ -45,7 +45,7 @@ class C extends Object with M {}
 ''',
       [
         error(
-          CompileTimeErrorCode.MIXIN_APPLICATION_NOT_IMPLEMENTED_INTERFACE,
+          CompileTimeErrorCode.mixinApplicationNotImplementedInterface,
           84,
           1,
         ),
@@ -64,7 +64,7 @@ augment mixin M on A {}
 ''',
       [
         error(
-          CompileTimeErrorCode.MIXIN_APPLICATION_NOT_IMPLEMENTED_INTERFACE,
+          CompileTimeErrorCode.mixinApplicationNotImplementedInterface,
           13,
           1,
         ),
@@ -82,7 +82,7 @@ class C extends Object with M<int> {}
 ''',
       [
         error(
-          CompileTimeErrorCode.MIXIN_APPLICATION_NOT_IMPLEMENTED_INTERFACE,
+          CompileTimeErrorCode.mixinApplicationNotImplementedInterface,
           84,
           1,
         ),
@@ -111,7 +111,7 @@ class X = C with M;
 ''',
       [
         error(
-          CompileTimeErrorCode.MIXIN_APPLICATION_NOT_IMPLEMENTED_INTERFACE,
+          CompileTimeErrorCode.mixinApplicationNotImplementedInterface,
           134,
           1,
         ),
@@ -158,8 +158,8 @@ abstract class Directory implements FileSystemEntity, ioDirectory {}
 mixin DirectoryAddOnsMixin implements Directory {}
 ''',
       [
-        error(CompileTimeErrorCode.CONFLICTING_GENERIC_INTERFACES, 96, 15),
-        error(WarningCode.UNUSED_ELEMENT, 96, 15),
+        error(CompileTimeErrorCode.conflictingGenericInterfaces, 96, 15),
+        error(WarningCode.unusedElement, 96, 15),
       ],
     );
 
@@ -178,7 +178,7 @@ class X = A<double> with M;
 ''',
       [
         error(
-          CompileTimeErrorCode.MIXIN_APPLICATION_NOT_IMPLEMENTED_INTERFACE,
+          CompileTimeErrorCode.mixinApplicationNotImplementedInterface,
           62,
           1,
         ),
@@ -196,7 +196,7 @@ class C = Object with M;
 ''',
       [
         error(
-          CompileTimeErrorCode.MIXIN_APPLICATION_NOT_IMPLEMENTED_INTERFACE,
+          CompileTimeErrorCode.mixinApplicationNotImplementedInterface,
           78,
           1,
         ),
@@ -215,7 +215,7 @@ class X = Object with M;
 ''',
       [
         error(
-          CompileTimeErrorCode.MIXIN_APPLICATION_NOT_IMPLEMENTED_INTERFACE,
+          CompileTimeErrorCode.mixinApplicationNotImplementedInterface,
           51,
           1,
         ),
@@ -278,7 +278,7 @@ class X = C with M;
 ''',
       [
         error(
-          CompileTimeErrorCode.MIXIN_APPLICATION_NOT_IMPLEMENTED_INTERFACE,
+          CompileTimeErrorCode.mixinApplicationNotImplementedInterface,
           71,
           1,
         ),
@@ -313,7 +313,7 @@ enum E with M {
 ''',
       [
         error(
-          CompileTimeErrorCode.MIXIN_APPLICATION_NOT_IMPLEMENTED_INTERFACE,
+          CompileTimeErrorCode.mixinApplicationNotImplementedInterface,
           50,
           1,
         ),

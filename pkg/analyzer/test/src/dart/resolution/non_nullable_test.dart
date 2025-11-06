@@ -61,7 +61,7 @@ FieldDeclaration
     type: NamedType
       name: F
       question: ?
-      element2: <testLibrary>::@typeAlias::F
+      element: <testLibrary>::@typeAlias::F
       type: T Function<T>(int, T)?
         alias: <testLibrary>::@typeAlias::F
     variables
@@ -92,8 +92,8 @@ main() {
 }
 ''',
       [
-        error(WarningCode.UNUSED_LOCAL_VARIABLE, 16, 1),
-        error(WarningCode.UNUSED_LOCAL_VARIABLE, 29, 1),
+        error(WarningCode.unusedLocalVariable, 16, 1),
+        error(WarningCode.unusedLocalVariable, 29, 1),
       ],
     );
 
@@ -112,10 +112,10 @@ main() {
 }
 ''',
       [
-        error(WarningCode.UNUSED_LOCAL_VARIABLE, 23, 1),
-        error(WarningCode.UNUSED_LOCAL_VARIABLE, 44, 1),
-        error(WarningCode.UNUSED_LOCAL_VARIABLE, 65, 1),
-        error(WarningCode.UNUSED_LOCAL_VARIABLE, 85, 1),
+        error(WarningCode.unusedLocalVariable, 23, 1),
+        error(WarningCode.unusedLocalVariable, 44, 1),
+        error(WarningCode.unusedLocalVariable, 65, 1),
+        error(WarningCode.unusedLocalVariable, 85, 1),
       ],
     );
 
@@ -169,8 +169,8 @@ void f<T>(T a) {
 }
 ''',
       [
-        error(WarningCode.UNUSED_LOCAL_VARIABLE, 21, 1),
-        error(WarningCode.UNUSED_LOCAL_VARIABLE, 33, 1),
+        error(WarningCode.unusedLocalVariable, 21, 1),
+        error(WarningCode.unusedLocalVariable, 33, 1),
       ],
     );
 
@@ -185,7 +185,7 @@ main() {
   int? Function(bool, String?)? a;
 }
 ''',
-      [error(WarningCode.UNUSED_LOCAL_VARIABLE, 41, 1)],
+      [error(WarningCode.unusedLocalVariable, 41, 1)],
     );
 
     assertType(
@@ -201,7 +201,7 @@ main() {
   f(int? a, int b) {}
 }
 ''',
-      [error(WarningCode.UNUSED_ELEMENT, 11, 1)],
+      [error(WarningCode.unusedElement, 11, 1)],
     );
 
     assertType(findNode.namedType('int? a'), 'int?');
@@ -217,8 +217,8 @@ main() {
 }
 ''',
       [
-        error(WarningCode.UNUSED_ELEMENT, 16, 1),
-        error(WarningCode.UNUSED_ELEMENT, 32, 1),
+        error(WarningCode.unusedElement, 16, 1),
+        error(WarningCode.unusedElement, 32, 1),
       ],
     );
 
@@ -264,14 +264,15 @@ FormalParameterList
   parameter: FunctionTypedFormalParameter
     returnType: NamedType
       name: void
-      element2: <null>
+      element: <null>
       type: void
     name: p1
     parameters: FormalParameterList
       leftParenthesis: (
       rightParenthesis: )
     declaredElement: <testLibraryFragment> p1@13
-      type: void Function()
+      element: isPublic
+        type: void Function()
   rightParenthesis: )
 ''');
 
@@ -282,7 +283,7 @@ FormalParameterList
   parameter: FunctionTypedFormalParameter
     returnType: NamedType
       name: void
-      element2: <null>
+      element: <null>
       type: void
     name: p2
     parameters: FormalParameterList
@@ -290,7 +291,8 @@ FormalParameterList
       rightParenthesis: )
     question: ?
     declaredElement: <testLibraryFragment> p2@35
-      type: void Function()?
+      element: isPublic
+        type: void Function()?
   rightParenthesis: )
 ''');
 
@@ -303,7 +305,7 @@ FormalParameterList
     parameter: FunctionTypedFormalParameter
       returnType: NamedType
         name: void
-        element2: <null>
+        element: <null>
         type: void
       name: p3
       parameters: FormalParameterList
@@ -311,9 +313,11 @@ FormalParameterList
         rightParenthesis: )
       question: ?
       declaredElement: <testLibraryFragment> p3@59
-        type: void Function()?
+        element: isPublic
+          type: void Function()?
     declaredElement: <testLibraryFragment> p3@59
-      type: void Function()?
+      element: isPublic
+        type: void Function()?
   rightDelimiter: }
   rightParenthesis: )
 ''');
@@ -338,7 +342,7 @@ FormalParameterList
   parameter: FieldFormalParameter
     type: NamedType
       name: void
-      element2: <null>
+      element: <null>
       type: void
     thisKeyword: this
     period: .
@@ -347,7 +351,8 @@ FormalParameterList
       leftParenthesis: (
       rightParenthesis: )
     declaredElement: <testLibraryFragment> f1@57
-      type: void Function()
+      element: isFinal isPublic
+        type: void Function()
   rightParenthesis: )
 ''');
 
@@ -358,7 +363,7 @@ FormalParameterList
   parameter: FieldFormalParameter
     type: NamedType
       name: void
-      element2: <null>
+      element: <null>
       type: void
     thisKeyword: this
     period: .
@@ -368,7 +373,8 @@ FormalParameterList
       rightParenthesis: )
     question: ?
     declaredElement: <testLibraryFragment> f2@81
-      type: void Function()?
+      element: isFinal isPublic
+        type: void Function()?
   rightParenthesis: )
 ''');
 
@@ -381,7 +387,7 @@ FormalParameterList
     parameter: FieldFormalParameter
       type: NamedType
         name: void
-        element2: <null>
+        element: <null>
         type: void
       thisKeyword: this
       period: .
@@ -391,9 +397,11 @@ FormalParameterList
         rightParenthesis: )
       question: ?
       declaredElement: <testLibraryFragment> f3@107
-        type: void Function()?
+        element: isFinal isPublic
+          type: void Function()?
     declaredElement: <testLibraryFragment> f3@107
-      type: void Function()?
+      element: isFinal isPublic
+        type: void Function()?
   rightDelimiter: }
   rightParenthesis: )
 ''');
@@ -409,9 +417,9 @@ f() {
 }
 ''',
       [
-        error(WarningCode.UNUSED_ELEMENT, 13, 2),
-        error(WarningCode.UNUSED_ELEMENT, 37, 2),
-        error(WarningCode.UNUSED_ELEMENT, 62, 2),
+        error(WarningCode.unusedElement, 13, 2),
+        error(WarningCode.unusedElement, 37, 2),
+        error(WarningCode.unusedElement, 62, 2),
       ],
     );
 
@@ -422,14 +430,15 @@ FormalParameterList
   parameter: FunctionTypedFormalParameter
     returnType: NamedType
       name: void
-      element2: <null>
+      element: <null>
       type: void
     name: p1
     parameters: FormalParameterList
       leftParenthesis: (
       rightParenthesis: )
     declaredElement: <testLibraryFragment> p1@21
-      type: void Function()
+      element: isPublic
+        type: void Function()
   rightParenthesis: )
 ''');
 
@@ -440,7 +449,7 @@ FormalParameterList
   parameter: FunctionTypedFormalParameter
     returnType: NamedType
       name: void
-      element2: <null>
+      element: <null>
       type: void
     name: p2
     parameters: FormalParameterList
@@ -448,7 +457,8 @@ FormalParameterList
       rightParenthesis: )
     question: ?
     declaredElement: <testLibraryFragment> p2@45
-      type: void Function()?
+      element: isPublic
+        type: void Function()?
   rightParenthesis: )
 ''');
 
@@ -461,7 +471,7 @@ FormalParameterList
     parameter: FunctionTypedFormalParameter
       returnType: NamedType
         name: void
-        element2: <null>
+        element: <null>
         type: void
       name: p3
       parameters: FormalParameterList
@@ -469,9 +479,11 @@ FormalParameterList
         rightParenthesis: )
       question: ?
       declaredElement: <testLibraryFragment> p3@71
-        type: void Function()?
+        element: isPublic
+          type: void Function()?
     declaredElement: <testLibraryFragment> p3@71
-      type: void Function()?
+      element: isPublic
+        type: void Function()?
   rightDelimiter: }
   rightParenthesis: )
 ''');
@@ -572,7 +584,7 @@ main() {
   F? a;
 }
 ''',
-      [error(WarningCode.UNUSED_LOCAL_VARIABLE, 50, 1)],
+      [error(WarningCode.unusedLocalVariable, 50, 1)],
     );
 
     assertType(findNode.namedType('F? a'), 'int? Function(bool, String?)?');
@@ -587,7 +599,7 @@ main() {
   F<String>? a;
 }
 ''',
-      [error(WarningCode.UNUSED_LOCAL_VARIABLE, 66, 1)],
+      [error(WarningCode.unusedLocalVariable, 66, 1)],
     );
 
     assertType(
@@ -618,8 +630,8 @@ main() {
 }
 ''',
       [
-        error(WarningCode.UNUSED_LOCAL_VARIABLE, 52, 1),
-        error(WarningCode.UNUSED_LOCAL_VARIABLE, 68, 1),
+        error(WarningCode.unusedLocalVariable, 52, 1),
+        error(WarningCode.unusedLocalVariable, 68, 1),
       ],
     );
 

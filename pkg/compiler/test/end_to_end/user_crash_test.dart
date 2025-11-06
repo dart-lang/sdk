@@ -6,7 +6,7 @@ import 'dart:async';
 import 'package:expect/async_helper.dart';
 import 'package:expect/expect.dart';
 import 'package:front_end/src/api_prototype/codes.dart'
-    show templateCantReadFile, messageMissingMain;
+    show codeCantReadFile, codeMissingMain;
 import 'package:compiler/compiler_api.dart' as api;
 import 'package:compiler/src/util/memory_compiler.dart';
 
@@ -27,13 +27,10 @@ main() {
       expectedExceptions: [EXCEPTION],
     );
 
-    var cantReadFile = templateCantReadFile.withArguments(
-      entryPoint,
-      EXCEPTION,
-    );
+    var cantReadFile = codeCantReadFile.withArgumentsOld(entryPoint, EXCEPTION);
     List<String> expectedLines = [
       "Error: ${cantReadFile.problemMessage}",
-      "Error: ${messageMissingMain.problemMessage}",
+      "Error: ${codeMissingMain.problemMessage}",
     ];
     test(
       'Throw in input provider',

@@ -34,7 +34,7 @@ void f() {
   g(D());
 }
 ''',
-      [error(CompileTimeErrorCode.URI_DOES_NOT_EXIST, 24, 11)],
+      [error(CompileTimeErrorCode.uriDoesNotExist, 24, 11)],
     );
   }
 
@@ -43,7 +43,7 @@ void f() {
       '''
 export 'unknown.dart';
 ''',
-      [error(CompileTimeErrorCode.URI_DOES_NOT_EXIST, 7, 14)],
+      [error(CompileTimeErrorCode.uriDoesNotExist, 7, 14)],
     );
   }
 
@@ -52,7 +52,7 @@ export 'unknown.dart';
       r'''
 export 'dart:foo';
 ''',
-      [error(CompileTimeErrorCode.URI_DOES_NOT_EXIST, 7, 10)],
+      [error(CompileTimeErrorCode.uriDoesNotExist, 7, 10)],
     );
   }
 
@@ -61,7 +61,7 @@ export 'dart:foo';
       '''
 export 'dart:math/bar.dart';
 ''',
-      [error(CompileTimeErrorCode.URI_DOES_NOT_EXIST, 7, 20)],
+      [error(CompileTimeErrorCode.uriDoesNotExist, 7, 20)],
     );
   }
 
@@ -70,7 +70,7 @@ export 'dart:math/bar.dart';
       '''
 import 'unknown.dart';
 ''',
-      [error(CompileTimeErrorCode.URI_DOES_NOT_EXIST, 7, 14)],
+      [error(CompileTimeErrorCode.uriDoesNotExist, 7, 14)],
     );
   }
 
@@ -81,7 +81,7 @@ import 'unknown.dart';
       '''
 import 'target.dart';
 ''',
-      [error(WarningCode.UNUSED_IMPORT, 7, 13)],
+      [error(WarningCode.unusedImport, 7, 13)],
     );
 
     // Remove the overlay in the same way as AnalysisServer.
@@ -92,9 +92,7 @@ import 'target.dart';
     await analysisDriver.applyPendingFileChanges();
 
     await resolveTestFile();
-    assertErrorsInResult([
-      error(CompileTimeErrorCode.URI_DOES_NOT_EXIST, 7, 13),
-    ]);
+    assertErrorsInResult([error(CompileTimeErrorCode.uriDoesNotExist, 7, 13)]);
   }
 
   test_libraryImport_cannotResolve() async {
@@ -102,7 +100,7 @@ import 'target.dart';
       r'''
 import 'dart:foo';
 ''',
-      [error(CompileTimeErrorCode.URI_DOES_NOT_EXIST, 7, 10)],
+      [error(CompileTimeErrorCode.uriDoesNotExist, 7, 10)],
     );
   }
 
@@ -111,7 +109,7 @@ import 'dart:foo';
       '''
 import 'dart:math/bar.dart';
 ''',
-      [error(CompileTimeErrorCode.URI_DOES_NOT_EXIST, 7, 20)],
+      [error(CompileTimeErrorCode.uriDoesNotExist, 7, 20)],
     );
   }
 
@@ -123,7 +121,7 @@ main() {
   p.loadLibrary();
 }
 ''',
-      [error(CompileTimeErrorCode.URI_DOES_NOT_EXIST, 7, 15)],
+      [error(CompileTimeErrorCode.uriDoesNotExist, 7, 15)],
     );
   }
 
@@ -133,7 +131,7 @@ main() {
       '''
 import 'target.dart';
 ''',
-      [error(CompileTimeErrorCode.URI_DOES_NOT_EXIST, 7, 13)],
+      [error(CompileTimeErrorCode.uriDoesNotExist, 7, 13)],
     );
 
     newFile('$testPackageLibPath/target.dart', '');
@@ -142,7 +140,7 @@ import 'target.dart';
     // TODO(brianwilkerson): The error does not go away, possibly because the
     //  file is not being reanalyzed.
     await resolveTestFile();
-    assertErrorsInResult([error(WarningCode.UNUSED_IMPORT, 0, 0)]);
+    assertErrorsInResult([error(WarningCode.unusedImport, 0, 0)]);
   }
 
   test_part() async {
@@ -151,7 +149,7 @@ import 'target.dart';
 library lib;
 part 'unknown.dart';
 ''',
-      [error(CompileTimeErrorCode.URI_DOES_NOT_EXIST, 18, 14)],
+      [error(CompileTimeErrorCode.uriDoesNotExist, 18, 14)],
     );
   }
 
@@ -160,7 +158,7 @@ part 'unknown.dart';
       r'''
 part 'dart:foo';
 ''',
-      [error(CompileTimeErrorCode.URI_DOES_NOT_EXIST, 5, 10)],
+      [error(CompileTimeErrorCode.uriDoesNotExist, 5, 10)],
     );
   }
 }

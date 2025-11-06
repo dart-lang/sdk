@@ -8,8 +8,11 @@ import 'dart:io';
 
 import 'package:analysis_server/protocol/protocol.dart';
 import 'package:analysis_server/protocol/protocol_generated.dart';
+import 'package:analysis_server/src/plugin/notification_manager.dart';
 import 'package:analysis_server/src/utilities/process.dart';
 import 'package:analyzer/source/source.dart';
+import 'package:analyzer_plugin/protocol/protocol.dart' as plugin;
+import 'package:analyzer_plugin/protocol/protocol_common.dart' as protocol;
 import 'package:http/http.dart' as http;
 import 'package:test/test.dart';
 
@@ -96,8 +99,8 @@ class MockProcessRunner implements ProcessRunner {
     String? dir,
     Map<String, String>? env,
   })
-  startHandler =
-      (executable, arguments, {dir, env}) => throw UnimplementedError();
+  startHandler = (executable, arguments, {dir, env}) =>
+      throw UnimplementedError();
 
   @override
   dynamic noSuchMethod(Invocation invocation) {
@@ -136,14 +139,38 @@ class MockSource implements Source {
   String toString() => fullName;
 }
 
-class StringTypedMock {
-  final String? _toString;
+class TestNotificationManager implements AbstractNotificationManager {
+  List<plugin.Notification> notifications = [];
 
-  StringTypedMock(this._toString);
+  Map<String, Map<String, List<protocol.AnalysisError>>> recordedErrors = {};
+
+  List<String> pluginErrors = [];
 
   @override
-  String toString() {
-    return _toString ?? super.toString();
+  void handlePluginError(String message) {
+    pluginErrors.add(message);
+  }
+
+  @override
+  void handlePluginNotification(
+    String pluginId,
+    plugin.Notification notification,
+  ) {
+    notifications.add(notification);
+  }
+
+  @override
+  dynamic noSuchMethod(Invocation invocation) {
+    fail('Unexpected invocation of ${invocation.memberName}');
+  }
+
+  @override
+  void recordAnalysisErrors(
+    String pluginId,
+    String filePath,
+    List<protocol.AnalysisError> errorData,
+  ) {
+    recordedErrors.putIfAbsent(pluginId, () => {})[filePath] = errorData;
   }
 }
 

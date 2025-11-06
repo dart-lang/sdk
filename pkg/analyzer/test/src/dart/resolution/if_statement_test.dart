@@ -74,11 +74,10 @@ IfStatement
         leftOperand: DeclaredVariablePattern
           type: NamedType
             name: int
-            element2: dart:core::@class::int
+            element: dart:core::@class::int
             type: int
           name: a
           declaredFragment: isPublic a@37
-            type: int
             element: isPublic
               type: int
           matchedValueType: Object?
@@ -89,11 +88,10 @@ IfStatement
             DeclaredVariablePattern
               type: NamedType
                 name: int
-                element2: dart:core::@class::int
+                element: dart:core::@class::int
                 type: int
               name: a
               declaredFragment: isPublic a@47
-                type: int
                 element: isPublic
                   type: int
               matchedValueType: Object?
@@ -139,7 +137,7 @@ void f(Object? x) {
   }
 }
 ''',
-      [error(WarningCode.DEAD_CODE, 45, 8)],
+      [error(WarningCode.deadCode, 45, 8)],
     );
 
     var node = findNode.ifStatement('if');
@@ -160,7 +158,7 @@ IfStatement
           arguments
             NamedType
               name: int
-              element2: dart:core::@class::int
+              element: dart:core::@class::int
               type: int
           rightBracket: >
         leftBracket: [
@@ -170,7 +168,6 @@ IfStatement
               keyword: var
               name: a
               declaredFragment: isPublic a@43
-                type: null
                 element: hasImplicitType isPublic
                   type: int
               matchedValueType: int
@@ -179,7 +176,6 @@ IfStatement
               keyword: var
               name: a
               declaredFragment: isPublic a@52
-                type: null
                 element: hasImplicitType isPublic
                   type: int
               matchedValueType: int
@@ -225,13 +221,7 @@ void f(Object? x) {
   }
 }
 ''',
-      [
-        error(
-          CompileTimeErrorCode.INCONSISTENT_PATTERN_VARIABLE_LOGICAL_OR,
-          53,
-          1,
-        ),
-      ],
+      [error(CompileTimeErrorCode.inconsistentPatternVariableLogicalOr, 53, 1)],
     );
 
     var node = findNode.ifStatement('if');
@@ -250,11 +240,10 @@ IfStatement
         leftOperand: DeclaredVariablePattern
           type: NamedType
             name: int
-            element2: dart:core::@class::int
+            element: dart:core::@class::int
             type: int
           name: a
           declaredFragment: isPublic a@37
-            type: int
             element: isPublic
               type: int
           matchedValueType: Object?
@@ -266,11 +255,10 @@ IfStatement
               keyword: final
               type: NamedType
                 name: int
-                element2: dart:core::@class::int
+                element: dart:core::@class::int
                 type: int
               name: a
               declaredFragment: isFinal isPublic a@53
-                type: int
                 element: isFinal isPublic
                   type: int
               matchedValueType: Object?
@@ -316,13 +304,7 @@ void f(Object? x) {
   }
 }
 ''',
-      [
-        error(
-          CompileTimeErrorCode.INCONSISTENT_PATTERN_VARIABLE_LOGICAL_OR,
-          50,
-          1,
-        ),
-      ],
+      [error(CompileTimeErrorCode.inconsistentPatternVariableLogicalOr, 50, 1)],
     );
 
     var node = findNode.ifStatement('if');
@@ -341,11 +323,10 @@ IfStatement
         leftOperand: DeclaredVariablePattern
           type: NamedType
             name: int
-            element2: dart:core::@class::int
+            element: dart:core::@class::int
             type: int
           name: a
           declaredFragment: isPublic a@37
-            type: int
             element: isPublic
               type: int
           matchedValueType: Object?
@@ -356,11 +337,10 @@ IfStatement
             DeclaredVariablePattern
               type: NamedType
                 name: double
-                element2: dart:core::@class::double
+                element: dart:core::@class::double
                 type: double
               name: a
               declaredFragment: isPublic a@50
-                type: double
                 element: isPublic
                   type: double
               matchedValueType: Object?
@@ -407,8 +387,8 @@ void f(Object? x) {
 }
 ''',
       [
-        error(CompileTimeErrorCode.MISSING_VARIABLE_PATTERN, 42, 1),
-        error(CompileTimeErrorCode.MISSING_VARIABLE_PATTERN, 47, 1),
+        error(CompileTimeErrorCode.missingVariablePattern, 42, 1),
+        error(CompileTimeErrorCode.missingVariablePattern, 47, 1),
       ],
     );
 
@@ -429,11 +409,10 @@ IfStatement
           leftOperand: DeclaredVariablePattern
             type: NamedType
               name: int
-              element2: dart:core::@class::int
+              element: dart:core::@class::int
               type: int
             name: a
             declaredFragment: isPublic a@37
-              type: int
               element: isPublic
                 type: int
             matchedValueType: Object?
@@ -489,7 +468,7 @@ void f(Object? x) {
   }
 }
 ''',
-      [error(CompileTimeErrorCode.MISSING_VARIABLE_PATTERN, 51, 1)],
+      [error(CompileTimeErrorCode.missingVariablePattern, 51, 1)],
     );
 
     var node = findNode.ifStatement('if');
@@ -509,11 +488,10 @@ IfStatement
           leftOperand: DeclaredVariablePattern
             type: NamedType
               name: int
-              element2: dart:core::@class::int
+              element: dart:core::@class::int
               type: int
             name: a
             declaredFragment: isPublic a@37
-              type: int
               element: isPublic
                 type: int
             matchedValueType: Object?
@@ -521,11 +499,10 @@ IfStatement
           rightOperand: DeclaredVariablePattern
             type: NamedType
               name: int
-              element2: dart:core::@class::int
+              element: dart:core::@class::int
               type: int
             name: a
             declaredFragment: isPublic a@46
-              type: int
               element: isPublic
                 type: int
             matchedValueType: Object?
@@ -592,11 +569,10 @@ IfStatement
           leftOperand: DeclaredVariablePattern
             type: NamedType
               name: int
-              element2: dart:core::@class::int
+              element: dart:core::@class::int
               type: int
             name: a
             declaredFragment: isPublic a@37
-              type: int
               element: isPublic
                 type: int
             matchedValueType: Object?
@@ -604,11 +580,10 @@ IfStatement
           rightOperand: DeclaredVariablePattern
             type: NamedType
               name: int
-              element2: dart:core::@class::int
+              element: dart:core::@class::int
               type: int
             name: a
             declaredFragment: isPublic a@46
-              type: int
               element: isPublic
                 type: int
             matchedValueType: Object?
@@ -617,11 +592,10 @@ IfStatement
         rightOperand: DeclaredVariablePattern
           type: NamedType
             name: int
-            element2: dart:core::@class::int
+            element: dart:core::@class::int
             type: int
           name: a
           declaredFragment: isPublic a@55
-            type: int
             element: isPublic
               type: int
           matchedValueType: Object?
@@ -664,7 +638,7 @@ void f(Object? x) {
   }
 }
 ''',
-      [error(CompileTimeErrorCode.MISSING_VARIABLE_PATTERN, 42, 1)],
+      [error(CompileTimeErrorCode.missingVariablePattern, 42, 1)],
     );
 
     var node = findNode.ifStatement('if');
@@ -684,11 +658,10 @@ IfStatement
           leftOperand: DeclaredVariablePattern
             type: NamedType
               name: int
-              element2: dart:core::@class::int
+              element: dart:core::@class::int
               type: int
             name: a
             declaredFragment: isPublic a@37
-              type: int
               element: isPublic
                 type: int
             matchedValueType: Object?
@@ -703,11 +676,10 @@ IfStatement
         rightOperand: DeclaredVariablePattern
           type: NamedType
             name: int
-            element2: dart:core::@class::int
+            element: dart:core::@class::int
             type: int
           name: a
           declaredFragment: isPublic a@51
-            type: int
             element: isPublic
               type: int
           matchedValueType: Object?
@@ -751,8 +723,8 @@ void f(Object? x) {
 }
 ''',
       [
-        error(CompileTimeErrorCode.MISSING_VARIABLE_PATTERN, 33, 1),
-        error(CompileTimeErrorCode.MISSING_VARIABLE_PATTERN, 47, 1),
+        error(CompileTimeErrorCode.missingVariablePattern, 33, 1),
+        error(CompileTimeErrorCode.missingVariablePattern, 47, 1),
       ],
     );
 
@@ -779,11 +751,10 @@ IfStatement
           rightOperand: DeclaredVariablePattern
             type: NamedType
               name: int
-              element2: dart:core::@class::int
+              element: dart:core::@class::int
               type: int
             name: a
             declaredFragment: isPublic a@42
-              type: int
               element: isPublic
                 type: int
             matchedValueType: Object?
@@ -833,7 +804,7 @@ void f(Object? x) {
   }
 }
 ''',
-      [error(CompileTimeErrorCode.MISSING_VARIABLE_PATTERN, 33, 1)],
+      [error(CompileTimeErrorCode.missingVariablePattern, 33, 1)],
     );
 
     var node = findNode.ifStatement('if');
@@ -859,11 +830,10 @@ IfStatement
           rightOperand: DeclaredVariablePattern
             type: NamedType
               name: int
-              element2: dart:core::@class::int
+              element: dart:core::@class::int
               type: int
             name: a
             declaredFragment: isPublic a@42
-              type: int
               element: isPublic
                 type: int
             matchedValueType: Object?
@@ -872,11 +842,10 @@ IfStatement
         rightOperand: DeclaredVariablePattern
           type: NamedType
             name: int
-            element2: dart:core::@class::int
+            element: dart:core::@class::int
             type: int
           name: a
           declaredFragment: isPublic a@51
-            type: int
             element: isPublic
               type: int
           matchedValueType: Object?
@@ -930,12 +899,12 @@ void f(Object? x) {
 ''',
       [
         error(
-          CompileTimeErrorCode.NON_CONSTANT_RELATIONAL_PATTERN_EXPRESSION,
+          CompileTimeErrorCode.nonConstantRelationalPatternExpression,
           57,
           1,
         ),
         error(
-          CompileTimeErrorCode.REFERENCED_BEFORE_DECLARATION,
+          CompileTimeErrorCode.referencedBeforeDeclaration,
           57,
           1,
           contextMessages: [message(testFile, 51, 1)],
@@ -961,11 +930,10 @@ IfStatement
           DeclaredVariablePattern
             type: NamedType
               name: int
-              element2: dart:core::@class::int
+              element: dart:core::@class::int
               type: int
             name: a
             declaredFragment: isPublic a@51
-              type: int
               element: isPublic
                 type: int
             matchedValueType: Object?
@@ -975,7 +943,7 @@ IfStatement
               token: a
               element: a@51
               staticType: int
-            element2: dart:core::@class::Object::@method::==
+            element: dart:core::@class::Object::@method::==
             matchedValueType: Object?
         rightBracket: ]
         matchedValueType: Object?
@@ -1033,8 +1001,8 @@ void f(Object? x) {
 }
 ''',
       [
-        error(CompileTimeErrorCode.MISSING_VARIABLE_PATTERN, 56, 1),
-        error(CompileTimeErrorCode.REFERENCED_BEFORE_DECLARATION, 56, 1),
+        error(CompileTimeErrorCode.missingVariablePattern, 56, 1),
+        error(CompileTimeErrorCode.referencedBeforeDeclaration, 56, 1),
       ],
     );
 
@@ -1054,11 +1022,10 @@ IfStatement
         leftOperand: DeclaredVariablePattern
           type: NamedType
             name: bool
-            element2: dart:core::@class::bool
+            element: dart:core::@class::bool
             type: bool
           name: a
           declaredFragment: isPublic a@51
-            type: bool
             element: isPublic
               type: bool
           matchedValueType: Object?
@@ -1112,7 +1079,7 @@ void f(Object? x) {
   }
 }
 ''',
-      [error(CompileTimeErrorCode.UNDEFINED_IDENTIFIER, 75, 1)],
+      [error(CompileTimeErrorCode.undefinedIdentifier, 75, 1)],
     );
 
     var node = findNode.ifStatement('if');
@@ -1130,11 +1097,10 @@ IfStatement
       pattern: DeclaredVariablePattern
         type: NamedType
           name: int
-          element2: dart:core::@class::int
+          element: dart:core::@class::int
           type: int
         name: a
         declaredFragment: isPublic a@37
-          type: int
           element: isPublic
             type: int
         matchedValueType: Object?
@@ -1188,8 +1154,8 @@ class A {
 }
 ''',
       [
-        error(ParserErrorCode.MISSING_ASSIGNABLE_SELECTOR, 31, 5),
-        error(CompileTimeErrorCode.NON_BOOL_CONDITION, 31, 5),
+        error(ParserErrorCode.missingAssignableSelector, 31, 5),
+        error(CompileTimeErrorCode.nonBoolCondition, 31, 5),
       ],
     );
 
@@ -1237,7 +1203,7 @@ IfStatement
           constructorName: ConstructorName
             type: NamedType
               name: A
-              element2: <testLibrary>::@class::A
+              element: <testLibrary>::@class::A
               type: A
             element: <testLibrary>::@class::A::@constructor::new
           argumentList: ArgumentList
@@ -1435,7 +1401,7 @@ IfStatement
     isOperator: is
     type: NamedType
       name: int
-      element2: dart:core::@class::int
+      element: dart:core::@class::int
       type: int
     staticType: bool
   rightParenthesis: )
@@ -1462,7 +1428,8 @@ IfStatement
               element: dart:core::@class::int::@getter::isEven
               staticType: bool
           declaredElement: <testLibraryFragment> null@null
-            type: bool Function()
+            element: null@null
+              type: bool Function()
           staticType: bool Function()
         semicolon: ;
     rightBracket: }
@@ -1496,7 +1463,7 @@ IfStatement
     isOperator: is
     type: NamedType
       name: int
-      element2: dart:core::@class::int
+      element: dart:core::@class::int
       type: int
     staticType: bool
   rightParenthesis: )
@@ -1523,7 +1490,8 @@ IfStatement
               element: dart:core::@class::int::@getter::isEven
               staticType: bool
           declaredElement: <testLibraryFragment> null@null
-            type: bool Function()
+            element: null@null
+              type: bool Function()
           staticType: bool Function()
         semicolon: ;
     rightBracket: }
@@ -1586,7 +1554,8 @@ IfStatement
               element: dart:core::@class::int::@getter::isEven
               staticType: bool
           declaredElement: <testLibraryFragment> null@null
-            type: bool Function()
+            element: null@null
+              type: bool Function()
           staticType: bool Function()
         semicolon: ;
     rightBracket: }
@@ -1649,7 +1618,8 @@ IfStatement
               element: dart:core::@class::int::@getter::isEven
               staticType: bool
           declaredElement: <testLibraryFragment> null@null
-            type: bool Function()
+            element: null@null
+              type: bool Function()
           staticType: bool Function()
         semicolon: ;
     rightBracket: }

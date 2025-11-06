@@ -22,7 +22,7 @@ enum values {
   v
 }
 ''',
-      [error(CompileTimeErrorCode.ENUM_WITH_NAME_VALUES, 5, 6)],
+      [error(CompileTimeErrorCode.enumWithNameValues, 5, 6)],
     );
   }
 }

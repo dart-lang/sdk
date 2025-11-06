@@ -9,6 +9,7 @@ class C extends core::Object /*hasConstConstructor*/  {
     ;
 }
 static method main() → dynamic {
+  const self::C c = #C4;
   self::expect(43, #C4.{self::C::r}{(core::num, {required name: core::String})}.$1{core::num});
   self::expect("Hi!", #C4.{self::C::r}{(core::num, {required name: core::String})}.name{core::String});
 }

@@ -9,8 +9,12 @@ class Class<T> {
   T Function() functionReturn;
   T Function(T) functionArgumentReturn;
 
-  Class(this.direct, this.functionArgument, this.functionReturn,
-      this.functionArgumentReturn);
+  Class(
+    this.direct,
+    this.functionArgument,
+    this.functionReturn,
+    this.functionArgumentReturn,
+  );
 
   void method(Class<T> other) {
     direct;

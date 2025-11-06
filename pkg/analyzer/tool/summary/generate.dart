@@ -205,8 +205,9 @@ class _BuilderGenerator extends _BaseGenerator {
 
   void generate() {
     String mixinName = '_${name}Mixin';
-    var implementsClause =
-        cls.isDeprecated ? '' : ' implements ${idlPrefix(name)}';
+    var implementsClause = cls.isDeprecated
+        ? ''
+        : ' implements ${idlPrefix(name)}';
     out('class $builderName extends Object with $mixinName$implementsClause {');
     indent(() {
       _generateFields();
@@ -254,11 +255,11 @@ class _BuilderGenerator extends _BaseGenerator {
     }
 
     indent(() {
-      List<idl_model.FieldDeclaration> sortedFields =
-          cls.fields.toList()..sort(
-            (idl_model.FieldDeclaration a, idl_model.FieldDeclaration b) =>
-                a.id.compareTo(b.id),
-          );
+      List<idl_model.FieldDeclaration> sortedFields = cls.fields.toList()
+        ..sort(
+          (idl_model.FieldDeclaration a, idl_model.FieldDeclaration b) =>
+              a.id.compareTo(b.id),
+        );
       for (idl_model.FieldDeclaration field in sortedFields) {
         writeField(field);
       }
@@ -676,6 +677,9 @@ class _CodeGenerator {
     out("// The generator sometimes generates unnecessary 'this' references.");
     out('// ignore_for_file: unnecessary_this');
     out();
+    out("/// @docImport 'package:analyzer/src/summary/idl.dart';");
+    out('library;');
+    out();
     out("import 'dart:convert' as convert;");
     out("import 'dart:typed_data' as typed_data;");
     out();
@@ -683,6 +687,7 @@ class _CodeGenerator {
     out("import 'package:analyzer/src/summary/flat_buffers.dart' as fb;");
     out("import 'package:analyzer/src/summary/idl.dart' as idl;");
     out();
+
     for (idl_model.EnumDeclaration enum_ in _idl.enums.values) {
       _EnumReaderGenerator(_idl, _outBuffer, enum_).generate();
       out();
@@ -1088,8 +1093,8 @@ class _MixinGenerator extends _BaseGenerator {
           // strings so that we don't have to do this kludge.
           convertItem = (String name) => "$name.toString().split('.')[1]";
         } else if (type.typeName == 'double') {
-          convertItem =
-              (String name) => '$name.isFinite ? $name : $name.toString()';
+          convertItem = (String name) =>
+              '$name.isFinite ? $name : $name.toString()';
         }
         String convertField;
         if (convertItem == null) {

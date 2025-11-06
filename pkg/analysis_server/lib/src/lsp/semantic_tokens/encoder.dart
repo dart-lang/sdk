@@ -65,8 +65,9 @@ class SemanticTokenEncoder {
 
       var relativeLine = tokenLine - lastLine;
       // Column is relative to last only if on the same line.
-      var relativeColumn =
-          relativeLine == 0 ? tokenColumn - lastColumn : tokenColumn;
+      var relativeColumn = relativeLine == 0
+          ? tokenColumn - lastColumn
+          : tokenColumn;
 
       // The resulting array is groups of 5 items as described in the LSP spec:
       // https://github.com/microsoft/language-server-protocol/blob/gh-pages/_specifications/specification-3-16.md#textDocument_semanticTokens
@@ -106,10 +107,9 @@ class SemanticTokenEncoder {
       var lineOffset = lineInfo.getOffsetOfLine(lineNumber - 1);
 
       var startOffset = isFirstLine ? start.columnNumber - 1 : 0;
-      var endOffset =
-          isLastLine
-              ? end.columnNumber - 1
-              : lineInfo.getOffsetOfLine(lineNumber) - lineOffset;
+      var endOffset = isLastLine
+          ? end.columnNumber - 1
+          : lineInfo.getOffsetOfLine(lineNumber) - lineOffset;
       var length = endOffset - startOffset;
 
       yield SemanticTokenInfo(

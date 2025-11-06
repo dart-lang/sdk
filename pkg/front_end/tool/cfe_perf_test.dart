@@ -11,12 +11,10 @@ import 'dart:io' show Platform;
 import 'cfe_perf.dart' as m show main;
 
 Future<void> main() async {
-  var benchIds = [
-    'scan',
-    'kernel_gen_e2e',
-  ];
-  var inputFile =
-      Platform.script.resolve('../lib/src/api_prototype/file_system.dart').path;
+  var benchIds = ['scan', 'kernel_gen_e2e'];
+  var inputFile = Platform.script
+      .resolve('../lib/src/api_prototype/file_system.dart')
+      .path;
   for (var id in benchIds) {
     print('=== legacy for $id $inputFile');
     await m.main(['--legacy', id, inputFile]);

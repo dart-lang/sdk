@@ -30,6 +30,7 @@ class Result {
   final bool flaked; // From optional flakiness_data argument to constructor.
   final bool? isFlaky; // From results.json after it is extended.
   final String? previousOutcome;
+  final int? timeMs;
 
   Result(
     this.configuration,
@@ -40,7 +41,8 @@ class Result {
     this.changed,
     this.commitHash,
     this.isFlaky,
-    this.previousOutcome, {
+    this.previousOutcome,
+    this.timeMs, {
     this.flaked = false,
   });
 
@@ -56,6 +58,7 @@ class Result {
         commitHash = map["commit_hash"] as String?,
         isFlaky = map["flaky"] as bool?,
         previousOutcome = map["previous_result"] as String?,
+        timeMs = map["timeMs"] as int?,
         flaked = flakinessData != null &&
             (flakinessData["active"] ?? true) == true &&
             (flakinessData["outcomes"] as List).contains(map["result"]);

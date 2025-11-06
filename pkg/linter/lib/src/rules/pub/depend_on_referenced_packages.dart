@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/analysis_rule/rule_context.dart';
+import 'package:analyzer/analysis_rule/rule_visitor_registry.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/error/error.dart';
@@ -19,10 +20,13 @@ class DependOnReferencedPackages extends LintRule {
 
   @override
   DiagnosticCode get diagnosticCode =>
-      LinterLintCode.depend_on_referenced_packages;
+      LinterLintCode.dependOnReferencedPackages;
 
   @override
-  void registerNodeProcessors(NodeLintRegistry registry, RuleContext context) {
+  void registerNodeProcessors(
+    RuleVisitorRegistry registry,
+    RuleContext context,
+  ) {
     // Only lint if we have a pubspec.
     var package = context.package;
     if (package is! PubPackage) return;

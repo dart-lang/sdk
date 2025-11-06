@@ -22,8 +22,8 @@ class TryStatementTest extends PartialCodeTest {
           'keyword',
           'try',
           [
-            ParserErrorCode.EXPECTED_TRY_STATEMENT_BODY,
-            ParserErrorCode.MISSING_CATCH_OR_FINALLY,
+            ParserErrorCode.expectedTryStatementBody,
+            ParserErrorCode.missingCatchOrFinally,
           ],
           "try {} finally {}",
           allFailing: true,
@@ -31,7 +31,7 @@ class TryStatementTest extends PartialCodeTest {
         TestDescriptor(
           'noCatchOrFinally',
           'try {}',
-          [ParserErrorCode.MISSING_CATCH_OR_FINALLY],
+          [ParserErrorCode.missingCatchOrFinally],
           "try {} finally {}",
           allFailing: true,
         ),
@@ -42,8 +42,8 @@ class TryStatementTest extends PartialCodeTest {
           'on',
           'try {} on',
           [
-            ParserErrorCode.EXPECTED_TYPE_NAME,
-            ParserErrorCode.EXPECTED_CATCH_CLAUSE_BODY,
+            ParserErrorCode.expectedTypeName,
+            ParserErrorCode.expectedCatchClauseBody,
           ],
           "try {} on _s_ {}",
           failing: [
@@ -56,7 +56,7 @@ class TryStatementTest extends PartialCodeTest {
         TestDescriptor(
           'on_identifier',
           'try {} on A',
-          [ParserErrorCode.EXPECTED_CATCH_CLAUSE_BODY],
+          [ParserErrorCode.expectedCatchClauseBody],
           "try {} on A {}",
           failing: ['block'],
         ),
@@ -67,8 +67,8 @@ class TryStatementTest extends PartialCodeTest {
           'catch',
           'try {} catch',
           [
-            ParserErrorCode.CATCH_SYNTAX,
-            ParserErrorCode.EXPECTED_CATCH_CLAUSE_BODY,
+            ParserErrorCode.catchSyntax,
+            ParserErrorCode.expectedCatchClauseBody,
           ],
           "try {} catch (_s_) {}",
           failing: ['block'],
@@ -77,9 +77,9 @@ class TryStatementTest extends PartialCodeTest {
           'catch_leftParen',
           'try {} catch (',
           [
-            ScannerErrorCode.EXPECTED_TOKEN,
-            ParserErrorCode.CATCH_SYNTAX,
-            ParserErrorCode.EXPECTED_CATCH_CLAUSE_BODY,
+            ScannerErrorCode.expectedToken,
+            ParserErrorCode.catchSyntax,
+            ParserErrorCode.expectedCatchClauseBody,
           ],
           "try {} catch (_s_) {}",
           failing: ['block', 'labeled', 'localFunctionNonVoid'],
@@ -88,9 +88,9 @@ class TryStatementTest extends PartialCodeTest {
           'catch_identifier',
           'try {} catch (e',
           [
-            ParserErrorCode.CATCH_SYNTAX,
-            ParserErrorCode.EXPECTED_CATCH_CLAUSE_BODY,
-            ScannerErrorCode.EXPECTED_TOKEN,
+            ParserErrorCode.catchSyntax,
+            ParserErrorCode.expectedCatchClauseBody,
+            ScannerErrorCode.expectedToken,
           ],
           "try {} catch (e) {}",
           failing: ['eof', 'block'],
@@ -99,9 +99,9 @@ class TryStatementTest extends PartialCodeTest {
           'catch_identifierComma',
           'try {} catch (e, ',
           [
-            ParserErrorCode.CATCH_SYNTAX,
-            ParserErrorCode.EXPECTED_CATCH_CLAUSE_BODY,
-            ScannerErrorCode.EXPECTED_TOKEN,
+            ParserErrorCode.catchSyntax,
+            ParserErrorCode.expectedCatchClauseBody,
+            ScannerErrorCode.expectedToken,
           ],
           "try {} catch (e, _s_) {}",
           failing: ['block', 'labeled', 'localFunctionNonVoid'],
@@ -112,9 +112,9 @@ class TryStatementTest extends PartialCodeTest {
           [
             // TODO(danrubel): Update parser to generate CATCH_SYNTAX
             // because in this situation there are not any extra parameters.
-            ParserErrorCode.CATCH_SYNTAX_EXTRA_PARAMETERS,
-            ParserErrorCode.EXPECTED_CATCH_CLAUSE_BODY,
-            ScannerErrorCode.EXPECTED_TOKEN,
+            ParserErrorCode.catchSyntaxExtraParameters,
+            ParserErrorCode.expectedCatchClauseBody,
+            ScannerErrorCode.expectedToken,
           ],
           "try {} catch (e, s) {}",
           failing: ['eof', 'block'],
@@ -122,7 +122,7 @@ class TryStatementTest extends PartialCodeTest {
         TestDescriptor(
           'catch_rightParen',
           'try {} catch (e, s)',
-          [ParserErrorCode.EXPECTED_CATCH_CLAUSE_BODY],
+          [ParserErrorCode.expectedCatchClauseBody],
           "try {} catch (e, s) {}",
           failing: ['block'],
         ),
@@ -133,8 +133,8 @@ class TryStatementTest extends PartialCodeTest {
           'on_catch',
           'try {} on A catch',
           [
-            ParserErrorCode.CATCH_SYNTAX,
-            ParserErrorCode.EXPECTED_CATCH_CLAUSE_BODY,
+            ParserErrorCode.catchSyntax,
+            ParserErrorCode.expectedCatchClauseBody,
           ],
           "try {} on A catch (_s_) {}",
           failing: ['block'],
@@ -143,9 +143,9 @@ class TryStatementTest extends PartialCodeTest {
           'on_catch_leftParen',
           'try {} on A catch (',
           [
-            ParserErrorCode.CATCH_SYNTAX,
-            ParserErrorCode.EXPECTED_CATCH_CLAUSE_BODY,
-            ScannerErrorCode.EXPECTED_TOKEN,
+            ParserErrorCode.catchSyntax,
+            ParserErrorCode.expectedCatchClauseBody,
+            ScannerErrorCode.expectedToken,
           ],
           "try {} on A catch (_s_) {}",
           failing: ['block', 'labeled', 'localFunctionNonVoid'],
@@ -154,9 +154,9 @@ class TryStatementTest extends PartialCodeTest {
           'on_catch_identifier',
           'try {} on A catch (e',
           [
-            ParserErrorCode.CATCH_SYNTAX,
-            ParserErrorCode.EXPECTED_CATCH_CLAUSE_BODY,
-            ScannerErrorCode.EXPECTED_TOKEN,
+            ParserErrorCode.catchSyntax,
+            ParserErrorCode.expectedCatchClauseBody,
+            ScannerErrorCode.expectedToken,
           ],
           "try {} on A catch (e) {}",
           failing: ['eof', 'block'],
@@ -165,9 +165,9 @@ class TryStatementTest extends PartialCodeTest {
           'on_catch_identifierComma',
           'try {} on A catch (e, ',
           [
-            ParserErrorCode.CATCH_SYNTAX,
-            ParserErrorCode.EXPECTED_CATCH_CLAUSE_BODY,
-            ScannerErrorCode.EXPECTED_TOKEN,
+            ParserErrorCode.catchSyntax,
+            ParserErrorCode.expectedCatchClauseBody,
+            ScannerErrorCode.expectedToken,
           ],
           "try {} on A catch (e, _s_) {}",
           failing: ['block', 'labeled', 'localFunctionNonVoid'],
@@ -178,9 +178,9 @@ class TryStatementTest extends PartialCodeTest {
           [
             // TODO(danrubel): Update parser to generate CATCH_SYNTAX
             // because in this situation there are not any extra parameters.
-            ParserErrorCode.CATCH_SYNTAX_EXTRA_PARAMETERS,
-            ParserErrorCode.EXPECTED_CATCH_CLAUSE_BODY,
-            ScannerErrorCode.EXPECTED_TOKEN,
+            ParserErrorCode.catchSyntaxExtraParameters,
+            ParserErrorCode.expectedCatchClauseBody,
+            ScannerErrorCode.expectedToken,
           ],
           "try {} on A catch (e, s) {}",
           failing: ['eof', 'block'],
@@ -188,7 +188,7 @@ class TryStatementTest extends PartialCodeTest {
         TestDescriptor(
           'on_catch_rightParen',
           'try {} on A catch (e, s)',
-          [ParserErrorCode.EXPECTED_CATCH_CLAUSE_BODY],
+          [ParserErrorCode.expectedCatchClauseBody],
           "try {} on A catch (e, s) {}",
           failing: ['block'],
         ),
@@ -198,7 +198,7 @@ class TryStatementTest extends PartialCodeTest {
         TestDescriptor(
           'finally_noCatch_noBlock',
           'try {} finally',
-          [ParserErrorCode.EXPECTED_FINALLY_CLAUSE_BODY],
+          [ParserErrorCode.expectedFinallyClauseBody],
           "try {} finally {}",
           failing: ['block'],
         ),
@@ -208,7 +208,7 @@ class TryStatementTest extends PartialCodeTest {
         TestDescriptor(
           'finally_catch_noBlock',
           'try {} catch (e) {} finally',
-          [ParserErrorCode.EXPECTED_FINALLY_CLAUSE_BODY],
+          [ParserErrorCode.expectedFinallyClauseBody],
           "try {} catch (e) {} finally {}",
           failing: ['block'],
         ),

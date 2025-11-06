@@ -183,7 +183,7 @@ main() {
   var /*@type=B*/ v = topLevel += 1;
 }
 ''',
-      [error(WarningCode.UNUSED_LOCAL_VARIABLE, 152, 1)],
+      [error(WarningCode.unusedLocalVariable, 152, 1)],
     );
     _assertTypeAnnotations();
   }
@@ -246,7 +246,7 @@ void test(List<A> listA, List<B> listB) {
     ) {
       var node = findNode.declaredIdentifier(vSearch);
 
-      var element = node.declaredElement as LocalVariableElement;
+      var element = node.declaredFragment?.element as LocalVariableElement;
       assertType(element.type, vType);
 
       var invocation = findNode.methodInvocation(fSearch);

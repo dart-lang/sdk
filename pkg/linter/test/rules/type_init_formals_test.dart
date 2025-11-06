@@ -29,7 +29,7 @@ class A {
       [
         // No lint
         error(
-          CompileTimeErrorCode.FIELD_INITIALIZING_FORMAL_NOT_ASSIGNABLE,
+          CompileTimeErrorCode.fieldInitializingFormalNotAssignable,
           49,
           24,
         ),
@@ -47,7 +47,7 @@ class Invalid {
       [
         // No lint
         error(
-          CompileTimeErrorCode.INITIALIZING_FORMAL_FOR_NON_EXISTENT_FIELD,
+          CompileTimeErrorCode.initializingFormalForNonExistentField,
           26,
           10,
         ),

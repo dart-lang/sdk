@@ -20,12 +20,12 @@ import 'package:front_end/src/api_unstable/vm.dart'
         CompilerOptions,
         CompilerResult,
         InvocationMode,
-        DiagnosticMessage,
+        CfeDiagnosticMessage,
         DiagnosticMessageHandler,
         FileSystem,
         FileSystemEntity,
         ProcessedOptions,
-        Severity,
+        CfeSeverity,
         StandardFileSystem,
         Verbosity,
         getMessageUri,
@@ -416,7 +416,7 @@ Future<int> runCompiler(ArgResults options, String usage) async {
           parseExperimentalArguments(experimentalFlags),
           onError: print,
         )
-        ..onDiagnostic = (DiagnosticMessage m) {
+        ..onDiagnostic = (CfeDiagnosticMessage m) {
           errorDetector(m);
         }
         ..embedSourceText = embedSources
@@ -429,6 +429,7 @@ Future<int> runCompiler(ArgResults options, String usage) async {
     targetName,
     trackWidgetCreation: options['track-widget-creation'],
     supportMirrors: supportMirrors ?? !(aot || minimalKernel),
+    constKeepLocalsIndicator: !(aot || minimalKernel),
   );
   if (compilerOptions.target == null) {
     print('Failed to create front-end target $targetName.');
@@ -878,8 +879,8 @@ class ErrorDetector {
 
   ErrorDetector({this.previousErrorHandler});
 
-  void call(DiagnosticMessage message) {
-    if (message.severity == Severity.error) {
+  void call(CfeDiagnosticMessage message) {
+    if (message.severity == CfeSeverity.error) {
       hasCompilationErrors = true;
     }
 
@@ -890,8 +891,8 @@ class ErrorDetector {
 class ErrorPrinter {
   final Verbosity verbosity;
   final DiagnosticMessageHandler? previousErrorHandler;
-  final Map<Uri?, List<DiagnosticMessage>> compilationMessages =
-      <Uri?, List<DiagnosticMessage>>{};
+  final Map<Uri?, List<CfeDiagnosticMessage>> compilationMessages =
+      <Uri?, List<CfeDiagnosticMessage>>{};
   final void Function(String) println;
 
   ErrorPrinter(
@@ -900,9 +901,9 @@ class ErrorPrinter {
     this.println = print,
   });
 
-  void call(DiagnosticMessage message) {
+  void call(CfeDiagnosticMessage message) {
     final sourceUri = getMessageUri(message);
-    (compilationMessages[sourceUri] ??= <DiagnosticMessage>[]).add(message);
+    (compilationMessages[sourceUri] ??= <CfeDiagnosticMessage>[]).add(message);
     previousErrorHandler?.call(message);
   }
 
@@ -921,7 +922,8 @@ class ErrorPrinter {
           return 0;
         });
     for (final Uri? sourceUri in sortedUris) {
-      for (final DiagnosticMessage message in compilationMessages[sourceUri]!) {
+      for (final CfeDiagnosticMessage message
+          in compilationMessages[sourceUri]!) {
         if (Verbosity.shouldPrint(verbosity, message)) {
           printDiagnosticMessage(message, println);
         }
@@ -957,6 +959,8 @@ Target? createFrontEndTarget(
   String targetName, {
   bool trackWidgetCreation = false,
   bool supportMirrors = true,
+  bool? constKeepLocalsIndicator,
+  bool isClosureContextLoweringEnabled = false,
 }) {
   // Make sure VM-specific targets are available.
   installAdditionalTargets();
@@ -964,6 +968,8 @@ Target? createFrontEndTarget(
   final TargetFlags targetFlags = new TargetFlags(
     trackWidgetCreation: trackWidgetCreation,
     supportMirrors: supportMirrors,
+    constKeepLocalsIndicator: constKeepLocalsIndicator,
+    isClosureContextLoweringEnabled: isClosureContextLoweringEnabled,
   );
   return getTarget(targetName, targetFlags);
 }

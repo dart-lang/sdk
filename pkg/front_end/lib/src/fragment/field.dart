@@ -33,8 +33,11 @@ class FieldFragment implements Fragment {
   FieldFragmentDeclaration? _declaration;
 
   @override
-  late final UriOffsetLength uriOffset =
-      new UriOffsetLength(fileUri, nameOffset, name.length);
+  late final UriOffsetLength uriOffset = new UriOffsetLength(
+    fileUri,
+    nameOffset,
+    name.length,
+  );
 
   FieldFragment({
     required this.name,
@@ -50,8 +53,8 @@ class FieldFragment implements Fragment {
     required this.enclosingScope,
     required this.enclosingDeclaration,
     required this.enclosingCompilationUnit,
-  })  : _initializerToken = initializerToken,
-        _constInitializerToken = constInitializerToken;
+  }) : _initializerToken = initializerToken,
+       _constInitializerToken = constInitializerToken;
 
   @override
   SourcePropertyBuilder get builder {
@@ -79,13 +82,17 @@ class FieldFragment implements Fragment {
 
   FieldFragmentDeclaration get declaration {
     assert(
-        _declaration != null, "Declaration has not been computed for $this.");
+      _declaration != null,
+      "Declaration has not been computed for $this.",
+    );
     return _declaration!;
   }
 
   void set declaration(FieldFragmentDeclaration value) {
-    assert(_declaration == null,
-        "Declaration has already been computed for $this.");
+    assert(
+      _declaration == null,
+      "Declaration has already been computed for $this.",
+    );
     _declaration = value;
   }
 

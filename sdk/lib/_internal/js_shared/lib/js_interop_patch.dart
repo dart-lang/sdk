@@ -99,6 +99,15 @@ final Object _jsBoxedDartObjectProperty = foreign_helper.JS(
   'Symbol("jsBoxedDartObjectProperty")',
 );
 
+// Returns the value of the property we embed in every `JSBoxedDartObject` in
+// `any`.
+Object? _getJSBoxedDartObjectPropertyValue(JSAny any) =>
+    js_util.getProperty<Object?>(any, _jsBoxedDartObjectProperty);
+
+// Used in the `isA` transform.
+bool _isJSBoxedDartObject(JSAny any) =>
+    _getJSBoxedDartObjectPropertyValue(any) != null;
+
 // -----------------------------------------------------------------------------
 // JSBoxedDartObject <-> Object
 @patch
@@ -106,7 +115,7 @@ extension JSBoxedDartObjectToObject on JSBoxedDartObject {
   @patch
   @pragma('dart2js:prefer-inline')
   Object get toDart {
-    final val = js_util.getProperty<Object?>(this, _jsBoxedDartObjectProperty);
+    final val = _getJSBoxedDartObjectPropertyValue(this);
     if (val == null) {
       throw 'Expected a wrapped Dart object, but got a JS object or a wrapped '
           'Dart object from a separate runtime instead.';
@@ -256,14 +265,14 @@ extension Int16ListToJSInt16Array on Int16List {
 // -----------------------------------------------------------------------------
 // JSUint16Array <-> Uint16List
 @patch
-extension JSUint16ArrayToInt16List on JSUint16Array {
+extension JSUint16ArrayToUint16List on JSUint16Array {
   @patch
   @pragma('dart2js:prefer-inline')
   Uint16List get toDart => this._jsUint16Array;
 }
 
 @patch
-extension Uint16ListToJSInt16Array on Uint16List {
+extension Uint16ListToJSUint16Array on Uint16List {
   @patch
   @pragma('dart2js:prefer-inline')
   JSUint16Array get toJS => this as JSUint16Array;

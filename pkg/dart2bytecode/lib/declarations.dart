@@ -94,6 +94,12 @@ class ClassDeclaration extends BytecodeDeclaration {
   static const hasSourcePositionsFlag = 1 << 5;
   static const hasAnnotationsFlag = 1 << 6;
   static const hasPragmaFlag = 1 << 7;
+  static const hasConstConstructorFlag = 1 << 8;
+  static const isSealedFlag = 1 << 9;
+  static const isMixinClassFlag = 1 << 10;
+  static const isBaseClassFlag = 1 << 11;
+  static const isInterfaceFlag = 1 << 12;
+  static const isFinalFlag = 1 << 13;
 
   ObjectHandle? name;
   final int flags;
@@ -219,17 +225,23 @@ class ClassDeclaration extends BytecodeDeclaration {
 class SourceFile extends BytecodeDeclaration {
   static const hasLineStartsFlag = 1 << 0;
   static const hasSourceFlag = 1 << 1;
+  static const hasConstConstructorCoverageFlag = 1 << 2;
 
   final ObjectHandle importUri;
   LineStarts? lineStarts;
   String? source;
+  List<ObjectHandle>? coveredConstConstructors;
 
-  SourceFile(this.importUri, [this.lineStarts, this.source]);
+  SourceFile(this.importUri,
+      [this.coveredConstConstructors, this.lineStarts, this.source]);
 
   void write(BufferedWriter writer) {
     int flags = 0;
     if (lineStarts != null) {
       flags |= hasLineStartsFlag;
+    }
+    if (coveredConstConstructors?.isNotEmpty ?? false) {
+      flags |= hasConstConstructorCoverageFlag;
     }
     if (source != null && source != '') {
       flags |= hasSourceFlag;
@@ -242,6 +254,9 @@ class SourceFile extends BytecodeDeclaration {
     if ((flags & hasSourceFlag) != 0) {
       writer.writePackedStringReference(source!);
     }
+    if ((flags & hasConstConstructorCoverageFlag) != 0) {
+      writer.writePackedList(coveredConstConstructors!);
+    }
   }
 
   factory SourceFile.read(BufferedReader reader) {
@@ -253,7 +268,12 @@ class SourceFile extends BytecodeDeclaration {
     final source = ((flags & hasSourceFlag) != 0)
         ? reader.readPackedStringReference()
         : null;
-    return new SourceFile(importUri, lineStarts, source);
+    final coveredConstConstructors =
+        ((flags & hasConstConstructorCoverageFlag) != 0)
+            ? reader.readPackedList<ObjectHandle>()
+            : null;
+    return new SourceFile(
+        importUri, coveredConstConstructors, lineStarts, source);
   }
 
   @override
@@ -265,6 +285,11 @@ class SourceFile extends BytecodeDeclaration {
     }
     if (lineStarts != null) {
       sb.write(', ${lineStarts!.lineStarts.length} line starts');
+    }
+    if (coveredConstConstructors?.isNotEmpty ?? false) {
+      sb.write(', covered const constructors: [');
+      sb.writeAll(coveredConstConstructors!, ', ');
+      sb.write(']');
     }
     return sb.toString();
   }
@@ -941,6 +966,8 @@ class ClosureDeclaration {
   static const isSyncStarFlag = 1 << 6;
   static const isDebuggableFlag = 1 << 7;
   static const hasParameterFlagsFlag = 1 << 8;
+  static const hasAnnotationsFlag = 1 << 9;
+  static const hasPragmaFlag = 1 << 10;
 
   int flags;
   final ObjectHandle parent;
@@ -954,6 +981,7 @@ class ClosureDeclaration {
   // Only contains the required flag for named parameters when present.
   final List<int>? parameterFlags;
   final ObjectHandle returnType;
+  final AnnotationsDeclaration? annotations;
   ClosureCode? code;
 
   ClosureDeclaration(
@@ -967,7 +995,8 @@ class ClosureDeclaration {
       this.numNamedParams,
       this.parameters,
       this.parameterFlags,
-      this.returnType);
+      this.returnType,
+      this.annotations);
 
   void write(BufferedWriter writer) {
     writer.writePackedUInt30(flags);
@@ -1000,6 +1029,9 @@ class ClosureDeclaration {
       }
     }
     writer.writePackedObject(returnType);
+    if ((flags & hasAnnotationsFlag) != 0) {
+      writer.writeLinkOffset(annotations!);
+    }
   }
 
   factory ClosureDeclaration.read(BufferedReader reader) {
@@ -1037,6 +1069,9 @@ class ClosureDeclaration {
           numParameterFlags, (_) => reader.readPackedUInt30());
     }
     final ObjectHandle returnType = reader.readPackedObject();
+    final annotations = ((flags & hasAnnotationsFlag) != 0)
+        ? reader.readLinkOffset<AnnotationsDeclaration>()
+        : null;
     return new ClosureDeclaration(
         flags,
         parent,
@@ -1048,7 +1083,8 @@ class ClosureDeclaration {
         numNamedParams,
         parameters,
         parameterFlags,
-        returnType);
+        returnType,
+        annotations);
   }
 
   void _writeParamsToBuffer(
@@ -1081,6 +1117,9 @@ class ClosureDeclaration {
     }
     if (position != TreeNode.noOffset) {
       sb.write(' pos = $position, end-pos = $endPosition');
+    }
+    if ((flags & hasAnnotationsFlag) != 0) {
+      sb.write(' annotations $annotations\n');
     }
     if ((flags & hasTypeParamsFlag) != 0) {
       sb.write(' type-params $typeParameters');

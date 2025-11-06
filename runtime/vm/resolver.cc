@@ -157,15 +157,6 @@ FunctionPtr Resolver::ResolveDynamicForReceiverClass(
       std::mem_fn(&Class::LookupDynamicFunctionUnsafe));
 }
 
-FunctionPtr Resolver::ResolveDynamicForReceiverClassAllowPrivate(
-    const Class& receiver_class,
-    const String& function_name,
-    const ArgumentsDescriptor& args_desc) {
-  return ResolveDynamicForReceiverClassWithCustomLookup(
-      receiver_class, function_name, args_desc, /*allow_add=*/false,
-      std::mem_fn(&Class::LookupDynamicFunctionAllowPrivate));
-}
-
 FunctionPtr Resolver::ResolveFunction(Zone* zone,
                                       const Class& receiver_class,
                                       const String& function_name) {

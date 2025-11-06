@@ -93,9 +93,9 @@ class _CompilerFileSystemEntity implements fe.FileSystemEntity {
 /// [DiagnosticReporter].
 void reportFrontEndMessage(
   DiagnosticReporter reporter,
-  fe.DiagnosticMessage message,
+  fe.CfeDiagnosticMessage message,
 ) {
-  Spannable getSpannable(fe.DiagnosticMessage message) {
+  Spannable getSpannable(fe.CfeDiagnosticMessage message) {
     Uri? uri = fe.getMessageUri(message);
     int offset = fe.getMessageCharOffset(message)!;
     int length = fe.getMessageLength(message)!;
@@ -106,7 +106,7 @@ void reportFrontEndMessage(
     }
   }
 
-  DiagnosticMessage convertMessage(fe.DiagnosticMessage message) {
+  DiagnosticMessage convertMessage(fe.CfeDiagnosticMessage message) {
     Spannable span = getSpannable(message);
     String? text = fe.getMessageHeaderText(message);
     return reporter.createMessage(span, MessageKind.generic, {
@@ -114,26 +114,26 @@ void reportFrontEndMessage(
     });
   }
 
-  Iterable<fe.DiagnosticMessage>? relatedInformation = fe
+  Iterable<fe.CfeDiagnosticMessage>? relatedInformation = fe
       .getMessageRelatedInformation(message);
   DiagnosticMessage mainMessage = convertMessage(message);
   List<DiagnosticMessage> infos = relatedInformation != null
       ? relatedInformation.map(convertMessage).toList()
       : const [];
   switch (message.severity) {
-    case fe.Severity.internalProblem:
+    case fe.CfeSeverity.internalProblem:
       throw mainMessage.message.message;
-    case fe.Severity.error:
+    case fe.CfeSeverity.error:
       reporter.reportError(mainMessage, infos);
       break;
-    case fe.Severity.warning:
+    case fe.CfeSeverity.warning:
       reporter.reportWarning(mainMessage, infos);
       break;
-    case fe.Severity.info:
+    case fe.CfeSeverity.info:
       reporter.reportInfo(mainMessage, infos);
       break;
-    case fe.Severity.context:
-    case fe.Severity.ignored:
+    case fe.CfeSeverity.context:
+    case fe.CfeSeverity.ignored:
       throw UnimplementedError('unhandled severity ${message.severity}');
   }
 }

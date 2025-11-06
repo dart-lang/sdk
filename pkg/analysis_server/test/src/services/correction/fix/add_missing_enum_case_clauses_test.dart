@@ -25,14 +25,14 @@ void main() {
 @reflectiveTest
 class AddMissingEnumCaseClausesTest extends FixProcessorTest {
   @override
-  FixKind get kind => DartFixKind.ADD_MISSING_ENUM_CASE_CLAUSES;
+  FixKind get kind => DartFixKind.addMissingEnumCaseClauses;
 
   bool Function(Diagnostic) get _filter {
     var hasError = false;
     return (error) {
       if (!hasError &&
           error.diagnosticCode ==
-              StaticWarningCode.MISSING_ENUM_CONSTANT_IN_SWITCH) {
+              StaticWarningCode.missingEnumConstantInSwitch) {
         hasError = true;
         return true;
       }

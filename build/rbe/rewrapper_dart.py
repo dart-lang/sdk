@@ -269,6 +269,9 @@ trace to find the place to insert the appropriate support.
             elif arg.endswith('/dart'):
                 self.dart_subdir = os.path.dirname(arg)
                 return self.parse_dart()
+            elif arg.endswith('/dartvm'):
+                self.dart_subdir = os.path.dirname(arg)
+                return self.parse_dart()
             elif arg.endswith('/dartaotruntime'):
                 self.dart_subdir = os.path.dirname(arg)
                 return self.parse_dartaotruntime()
@@ -279,6 +282,13 @@ trace to find the place to insert the appropriate support.
                 self.unsupported('rewrapper', arg)
 
     def parse_dart(self):
+        self.extra_paths.add(
+            self.rebase(os.path.join(self.dart_subdir, 'dartvm')))
+        self.extra_paths.add(
+            self.rebase(
+                os.path.join(self.dart_subdir,
+                             'snapshots/kernel-service.dart.snapshot')))
+
         while self.has_next_arg:
             arg = self.next_arg()
             if self.get_option(['--dfe']):
@@ -470,10 +480,13 @@ trace to find the place to insert the appropriate support.
                 self.extra_paths.add(self.rebase(self.optarg))
                 self.entry_points.add(
                     self.rebase(os.path.join(self.optarg, 'compiler_api.dart')))
-                # This file isn't referenced from compiler_api.dart.
+                # These files aren't referenced from compiler_api.dart.
                 self.entry_points.add(
                     self.rebase(
                         os.path.join(self.optarg, 'src/io/mapped_file.dart')))
+                self.entry_points.add(
+                    self.rebase(
+                        'package:shell_arg_splitter/shell_arg_splitter.dart'))
             else:
                 self.unsupported('analysis_server', arg)
 

@@ -38,15 +38,15 @@ class DirectiveContext {
       case DirectiveState.ImportAndExport:
         state = DirectiveState.ImportAndExport;
       case DirectiveState.Part:
-        parser.reportRecoverableError(token, messageExportAfterPart);
+        parser.reportRecoverableError(token, codeExportAfterPart);
       case DirectiveState.PartOf:
         if (enableFeatureEnhancedParts) {
           state = DirectiveState.ImportAndExport;
         } else {
-          parser.reportRecoverableError(token, messageNonPartOfDirectiveInPart);
+          parser.reportRecoverableError(token, codeNonPartOfDirectiveInPart);
         }
       case DirectiveState.Declarations:
-        parser.reportRecoverableError(token, messageDirectiveAfterDeclaration);
+        parser.reportRecoverableError(token, codeDirectiveAfterDeclaration);
     }
   }
 
@@ -58,15 +58,15 @@ class DirectiveContext {
       case DirectiveState.ImportAndExport:
         state = DirectiveState.ImportAndExport;
       case DirectiveState.Part:
-        parser.reportRecoverableError(token, messageImportAfterPart);
+        parser.reportRecoverableError(token, codeImportAfterPart);
       case DirectiveState.PartOf:
         if (enableFeatureEnhancedParts) {
           state = DirectiveState.ImportAndExport;
         } else {
-          parser.reportRecoverableError(token, messageNonPartOfDirectiveInPart);
+          parser.reportRecoverableError(token, codeNonPartOfDirectiveInPart);
         }
       case DirectiveState.Declarations:
-        parser.reportRecoverableError(token, messageDirectiveAfterDeclaration);
+        parser.reportRecoverableError(token, codeDirectiveAfterDeclaration);
     }
   }
 
@@ -77,11 +77,11 @@ class DirectiveContext {
     }
     // Recovery
     if (state == DirectiveState.Library) {
-      parser.reportRecoverableError(token, messageMultipleLibraryDirectives);
+      parser.reportRecoverableError(token, codeMultipleLibraryDirectives);
     } else if (state == DirectiveState.PartOf) {
-      parser.reportRecoverableError(token, messageNonPartOfDirectiveInPart);
+      parser.reportRecoverableError(token, codeNonPartOfDirectiveInPart);
     } else {
-      parser.reportRecoverableError(token, messageLibraryDirectiveNotFirst);
+      parser.reportRecoverableError(token, codeLibraryDirectiveNotFirst);
     }
   }
 
@@ -97,10 +97,10 @@ class DirectiveContext {
         if (enableFeatureEnhancedParts) {
           state = DirectiveState.ImportAndExport;
         } else {
-          parser.reportRecoverableError(token, messageNonPartOfDirectiveInPart);
+          parser.reportRecoverableError(token, codeNonPartOfDirectiveInPart);
         }
       case DirectiveState.Declarations:
-        parser.reportRecoverableError(token, messageDirectiveAfterDeclaration);
+        parser.reportRecoverableError(token, codeDirectiveAfterDeclaration);
     }
   }
 
@@ -111,9 +111,9 @@ class DirectiveContext {
     }
     // Recovery
     if (state == DirectiveState.PartOf) {
-      parser.reportRecoverableError(token, messagePartOfTwice);
+      parser.reportRecoverableError(token, codePartOfTwice);
     } else {
-      parser.reportRecoverableError(token, messageNonPartOfDirectiveInPart);
+      parser.reportRecoverableError(token, codeNonPartOfDirectiveInPart);
     }
   }
 

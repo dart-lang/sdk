@@ -30,7 +30,7 @@ abstract class C implements A, B {
   foo(num x);
 }
 ''',
-      [error(CompileTimeErrorCode.NO_COMBINED_SUPER_SIGNATURE, 122, 3)],
+      [error(CompileTimeErrorCode.noCombinedSuperSignature, 122, 3)],
     );
   }
 
@@ -54,7 +54,7 @@ abstract class C implements A, B {
   Never foo(x);
 }
 ''',
-      [error(CompileTimeErrorCode.NO_COMBINED_SUPER_SIGNATURE, 126, 3)],
+      [error(CompileTimeErrorCode.noCombinedSuperSignature, 126, 3)],
     );
   }
 
@@ -73,7 +73,7 @@ abstract class C implements A, B {
   foo(a);
 }
 ''',
-      [error(CompileTimeErrorCode.NO_COMBINED_SUPER_SIGNATURE, 123, 3)],
+      [error(CompileTimeErrorCode.noCombinedSuperSignature, 123, 3)],
     );
   }
 }

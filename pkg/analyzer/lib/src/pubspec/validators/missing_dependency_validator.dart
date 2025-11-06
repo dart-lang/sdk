@@ -12,6 +12,12 @@ import 'package:analyzer/src/pubspec/pubspec_warning_code.dart';
 import 'package:yaml/yaml.dart';
 
 class MissingDependencyData {
+  /// Expando associating each [PubspecWarningCode.missingDependency] with
+  /// missing dependency information; this information is used by the analysis
+  /// server to list of missing patterns; this data is used by the analysis
+  /// server to compute fixes.
+  static final byDiagnostic = Expando<MissingDependencyData>();
+
   final List<String> addDeps;
   final List<String> addDevDeps;
   final List<String> removeDevDeps;
@@ -70,11 +76,9 @@ class MissingDependencyValidator {
       } else if (field is YamlMap) {
         return field.nodes;
       }
-      _reportErrorForNode(
-        field,
-        PubspecWarningCode.DEPENDENCIES_FIELD_NOT_MAP,
-        [key],
-      );
+      _reportErrorForNode(field, PubspecWarningCode.dependenciesFieldNotMap, [
+        key,
+      ]);
       return <String, YamlNode>{};
     }
 
@@ -117,43 +121,46 @@ class MissingDependencyValidator {
         addDevDeps.add(name);
       }
     }
-    var message =
-        addDeps.isNotEmpty
-            ? "${addDeps.map((s) => "'$s'").join(',')} in 'dependencies'"
-            : '';
+    var message = addDeps.isNotEmpty
+        ? "${addDeps.map((s) => "'$s'").join(',')} in 'dependencies'"
+        : '';
     if (addDevDeps.isNotEmpty) {
       message = message.isNotEmpty ? '$message,' : message;
       message =
           "$message ${addDevDeps.map((s) => "'$s'").join(',')} in 'dev_dependencies'";
     }
     if (addDeps.isNotEmpty || addDevDeps.isNotEmpty) {
-      _reportErrorForNode(
+      var diagnostic = _reportErrorForNode(
         contents.nodes.values.first,
-        PubspecWarningCode.MISSING_DEPENDENCY,
+        PubspecWarningCode.missingDependency,
         [message],
         [],
-        MissingDependencyData(addDeps, addDevDeps, removeDevDeps),
+      );
+      MissingDependencyData.byDiagnostic[diagnostic] = MissingDependencyData(
+        addDeps,
+        addDevDeps,
+        removeDevDeps,
       );
     }
     return recorder.diagnostics;
   }
 
   /// Report an error for the given node.
-  void _reportErrorForNode(
+  ///
+  /// The reported [Diagnostic] is returned.
+  Diagnostic _reportErrorForNode(
     YamlNode node,
     DiagnosticCode diagnosticCode, [
     List<Object>? arguments,
     List<DiagnosticMessage>? messages,
-    Object? data,
   ]) {
     var span = node.span;
-    reporter.atOffset(
+    return reporter.atOffset(
       offset: span.start.offset,
       length: span.length,
       diagnosticCode: diagnosticCode,
       arguments: arguments,
       contextMessages: messages,
-      data: data,
     );
   }
 }

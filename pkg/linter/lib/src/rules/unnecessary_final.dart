@@ -2,7 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/analysis_rule/analysis_rule.dart';
 import 'package:analyzer/analysis_rule/rule_context.dart';
+import 'package:analyzer/analysis_rule/rule_visitor_registry.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
@@ -19,8 +21,8 @@ class UnnecessaryFinal extends MultiAnalysisRule {
 
   @override
   List<DiagnosticCode> get diagnosticCodes => [
-    LinterLintCode.unnecessary_final_with_type,
-    LinterLintCode.unnecessary_final_without_type,
+    LinterLintCode.unnecessaryFinalWithType,
+    LinterLintCode.unnecessaryFinalWithoutType,
   ];
 
   @override
@@ -31,7 +33,10 @@ class UnnecessaryFinal extends MultiAnalysisRule {
   ];
 
   @override
-  void registerNodeProcessors(NodeLintRegistry registry, RuleContext context) {
+  void registerNodeProcessors(
+    RuleVisitorRegistry registry,
+    RuleContext context,
+  ) {
     var visitor = _Visitor(this);
     registry
       ..addFormalParameterList(this, visitor)
@@ -46,10 +51,9 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   _Visitor(this.rule);
 
-  LintCode getErrorCode(Object? type) =>
-      type == null
-          ? LinterLintCode.unnecessary_final_without_type
-          : LinterLintCode.unnecessary_final_with_type;
+  LintCode getErrorCode(Object? type) => type == null
+      ? LinterLintCode.unnecessaryFinalWithoutType
+      : LinterLintCode.unnecessaryFinalWithType;
 
   (Token?, AstNode?) getParameterDetails(FormalParameter node) {
     var parameter = node is DefaultFormalParameter ? node.parameter : node;
@@ -64,8 +68,9 @@ class _Visitor extends SimpleAstVisitor<void> {
   @override
   void visitDeclaredVariablePattern(DeclaredVariablePattern node) {
     var keyword = node.keyword;
-    keyword ??=
-        node.thisOrAncestorOfType<PatternVariableDeclaration>()?.keyword;
+    keyword ??= node
+        .thisOrAncestorOfType<PatternVariableDeclaration>()
+        ?.keyword;
     if (keyword == null || keyword.type != Keyword.FINAL) return;
 
     var errorCode = getErrorCode(node.matchedValueType);
@@ -105,7 +110,7 @@ class _Visitor extends SimpleAstVisitor<void> {
       if (keyword.isFinal) {
         rule.reportAtToken(
           keyword,
-          diagnosticCode: LinterLintCode.unnecessary_final_without_type,
+          diagnosticCode: LinterLintCode.unnecessaryFinalWithoutType,
         );
       }
     }

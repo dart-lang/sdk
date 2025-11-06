@@ -35,12 +35,12 @@ List<String> fruits = const <String>['apples', 'bananas', 'pears'];
       '''
 const default = const Object();
 ''',
-      [ParserErrorCode.EXPECTED_IDENTIFIER_BUT_GOT_KEYWORD],
+      [ParserErrorCode.expectedIdentifierButGotKeyword],
       '''
 const default = const Object();
 ''',
       expectedDiagnosticsInValidCode: [
-        ParserErrorCode.EXPECTED_IDENTIFIER_BUT_GOT_KEYWORD,
+        ParserErrorCode.expectedIdentifierButGotKeyword,
       ],
     );
   }
@@ -53,7 +53,7 @@ f() {
   return <g('')>[0, 1, 2];
 }
 ''',
-      [ParserErrorCode.EXPECTED_TOKEN],
+      [ParserErrorCode.expectedToken],
       '''
 f() {
   return <g>[0, 1, 2];
@@ -70,7 +70,7 @@ f() {
   return <test('', (){})>[0, 1, 2];
 }
 ''',
-      [ParserErrorCode.EXPECTED_TOKEN],
+      [ParserErrorCode.expectedToken],
       '''
 f() {
   return <test>[0, 1, 2];
@@ -90,7 +90,7 @@ f() {
   return <test('', (){});>[0, 1, 2];
 }
 ''',
-      [ParserErrorCode.UNEXPECTED_TOKEN],
+      [ParserErrorCode.unexpectedToken],
       '''
 f() {
   return _s_ < test('', (){}); _s_ > [0, 1, 2];
@@ -107,7 +107,7 @@ g() {
   f(with: 3);
 }
 ''',
-      [ParserErrorCode.EXPECTED_IDENTIFIER_BUT_GOT_KEYWORD],
+      [ParserErrorCode.expectedIdentifierButGotKeyword],
       '''
 f() {}
 g() {
@@ -115,7 +115,7 @@ g() {
 }
 ''',
       expectedDiagnosticsInValidCode: [
-        ParserErrorCode.EXPECTED_IDENTIFIER_BUT_GOT_KEYWORD,
+        ParserErrorCode.expectedIdentifierButGotKeyword,
       ],
     );
   }

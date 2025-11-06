@@ -25,8 +25,8 @@ void f(int x) {
 }
 ''',
       [
-        error(WarningCode.UNUSED_LOCAL_VARIABLE, 35, 1),
-        error(WarningCode.UNUSED_LOCAL_VARIABLE, 61, 1),
+        error(WarningCode.unusedLocalVariable, 35, 1),
+        error(WarningCode.unusedLocalVariable, 61, 1),
       ],
     );
 
@@ -37,7 +37,6 @@ GuardedPattern
     keyword: final
     name: a
     declaredFragment: isFinal isPublic a@35
-      type: null
       element: hasImplicitType isFinal isPublic
         type: int
     matchedValueType: int
@@ -50,7 +49,6 @@ GuardedPattern
     keyword: final
     name: b
     declaredFragment: isFinal isPublic b@61
-      type: null
       element: hasImplicitType isFinal isPublic
         type: int
     matchedValueType: int
@@ -66,8 +64,8 @@ void f(int x) {
 }
 ''',
       [
-        error(WarningCode.UNUSED_LOCAL_VARIABLE, 35, 1),
-        error(WarningCode.UNUSED_LOCAL_VARIABLE, 60, 1),
+        error(WarningCode.unusedLocalVariable, 35, 1),
+        error(WarningCode.unusedLocalVariable, 60, 1),
       ],
     );
 
@@ -78,7 +76,6 @@ GuardedPattern
     keyword: final
     name: a
     declaredFragment: isFinal isPublic a@35
-      type: null
       element: hasImplicitType isFinal isPublic
         type: int
     matchedValueType: int
@@ -91,7 +88,6 @@ GuardedPattern
     keyword: final
     name: b
     declaredFragment: isFinal isPublic b@60
-      type: null
       element: hasImplicitType isFinal isPublic
         type: int
     matchedValueType: int
@@ -106,9 +102,9 @@ void f(int x) {
 }
 ''',
       [
-        error(WarningCode.UNUSED_LOCAL_VARIABLE, 35, 1),
-        error(WarningCode.DEAD_CODE, 37, 10),
-        error(WarningCode.UNUSED_LOCAL_VARIABLE, 46, 1),
+        error(WarningCode.unusedLocalVariable, 35, 1),
+        error(WarningCode.deadCode, 37, 10),
+        error(WarningCode.unusedLocalVariable, 46, 1),
       ],
     );
     var node = findNode.singleGuardedPattern.pattern;
@@ -118,7 +114,6 @@ LogicalOrPattern
     keyword: final
     name: a
     declaredFragment: isFinal isPublic a@35
-      type: null
       element: hasImplicitType isFinal isPublic
         type: int
     matchedValueType: int
@@ -127,7 +122,6 @@ LogicalOrPattern
     keyword: final
     name: a
     declaredFragment: isFinal isPublic a@46
-      type: null
       element: hasImplicitType isFinal isPublic
         type: int
     matchedValueType: int
@@ -143,8 +137,8 @@ void f(int x) {
 }
 ''',
       [
-        error(WarningCode.UNUSED_LOCAL_VARIABLE, 40, 1),
-        error(WarningCode.UNUSED_LOCAL_VARIABLE, 51, 1),
+        error(WarningCode.unusedLocalVariable, 40, 1),
+        error(WarningCode.unusedLocalVariable, 51, 1),
       ],
     );
     var node = findNode.singleGuardedPattern.pattern;
@@ -161,7 +155,6 @@ LogicalOrPattern
       keyword: final
       name: a
       declaredFragment: isFinal isPublic a@40
-        type: null
         element: hasImplicitType isFinal isPublic
           type: int
       matchedValueType: int
@@ -171,7 +164,6 @@ LogicalOrPattern
     keyword: final
     name: a
     declaredFragment: isFinal isPublic a@51
-      type: null
       element: hasImplicitType isFinal isPublic
         type: int
     matchedValueType: int
@@ -187,8 +179,8 @@ void f(num x) {
 }
 ''',
       [
-        error(WarningCode.UNUSED_LOCAL_VARIABLE, 39, 1),
-        error(CompileTimeErrorCode.MISSING_VARIABLE_PATTERN, 44, 1),
+        error(WarningCode.unusedLocalVariable, 39, 1),
+        error(CompileTimeErrorCode.missingVariablePattern, 44, 1),
       ],
     );
     var node = findNode.singleGuardedPattern.pattern;
@@ -198,11 +190,10 @@ LogicalOrPattern
     keyword: final
     type: NamedType
       name: int
-      element2: dart:core::@class::int
+      element: dart:core::@class::int
       type: int
     name: a
     declaredFragment: isFinal isPublic a@39
-      type: int
       element: isFinal isPublic
         type: int
     matchedValueType: num
@@ -224,8 +215,8 @@ void f(int x) {
 }
 ''',
       [
-        error(CompileTimeErrorCode.MISSING_VARIABLE_PATTERN, 29, 1),
-        error(WarningCode.UNUSED_LOCAL_VARIABLE, 40, 1),
+        error(CompileTimeErrorCode.missingVariablePattern, 29, 1),
+        error(WarningCode.unusedLocalVariable, 40, 1),
       ],
     );
     var node = findNode.singleGuardedPattern.pattern;
@@ -241,7 +232,6 @@ LogicalOrPattern
     keyword: final
     name: a
     declaredFragment: isFinal isPublic a@40
-      type: null
       element: hasImplicitType isFinal isPublic
         type: int
     matchedValueType: int
@@ -257,9 +247,9 @@ void f(num x) {
 }
 ''',
       [
-        error(WarningCode.UNUSED_LOCAL_VARIABLE, 39, 1),
-        error(CompileTimeErrorCode.MISSING_VARIABLE_PATTERN, 44, 1),
-        error(CompileTimeErrorCode.MISSING_VARIABLE_PATTERN, 49, 1),
+        error(WarningCode.unusedLocalVariable, 39, 1),
+        error(CompileTimeErrorCode.missingVariablePattern, 44, 1),
+        error(CompileTimeErrorCode.missingVariablePattern, 49, 1),
       ],
     );
     var node = findNode.singleGuardedPattern.pattern;
@@ -270,11 +260,10 @@ LogicalOrPattern
       keyword: final
       type: NamedType
         name: int
-        element2: dart:core::@class::int
+        element: dart:core::@class::int
         type: int
       name: a
       declaredFragment: isFinal isPublic a@39
-        type: int
         element: isFinal isPublic
           type: int
       matchedValueType: num
@@ -303,9 +292,9 @@ void f(num x) {
 }
 ''',
       [
-        error(WarningCode.UNUSED_LOCAL_VARIABLE, 39, 1),
-        error(WarningCode.UNUSED_LOCAL_VARIABLE, 54, 1),
-        error(CompileTimeErrorCode.MISSING_VARIABLE_PATTERN, 59, 1),
+        error(WarningCode.unusedLocalVariable, 39, 1),
+        error(WarningCode.unusedLocalVariable, 54, 1),
+        error(CompileTimeErrorCode.missingVariablePattern, 59, 1),
       ],
     );
     var node = findNode.singleGuardedPattern.pattern;
@@ -316,11 +305,10 @@ LogicalOrPattern
       keyword: final
       type: NamedType
         name: int
-        element2: dart:core::@class::int
+        element: dart:core::@class::int
         type: int
       name: a
       declaredFragment: isFinal isPublic a@39
-        type: int
         element: isFinal isPublic
           type: int
       matchedValueType: num
@@ -329,11 +317,10 @@ LogicalOrPattern
       keyword: final
       type: NamedType
         name: int
-        element2: dart:core::@class::int
+        element: dart:core::@class::int
         type: int
       name: a
       declaredFragment: isFinal isPublic a@54
-        type: int
         element: isFinal isPublic
           type: int
       matchedValueType: num
@@ -356,11 +343,11 @@ void f(int x) {
 }
 ''',
       [
-        error(WarningCode.UNUSED_LOCAL_VARIABLE, 35, 1),
-        error(WarningCode.DEAD_CODE, 37, 10),
-        error(WarningCode.UNUSED_LOCAL_VARIABLE, 46, 1),
-        error(WarningCode.DEAD_CODE, 48, 10),
-        error(WarningCode.UNUSED_LOCAL_VARIABLE, 57, 1),
+        error(WarningCode.unusedLocalVariable, 35, 1),
+        error(WarningCode.deadCode, 37, 10),
+        error(WarningCode.unusedLocalVariable, 46, 1),
+        error(WarningCode.deadCode, 48, 10),
+        error(WarningCode.unusedLocalVariable, 57, 1),
       ],
     );
     var node = findNode.singleGuardedPattern.pattern;
@@ -371,7 +358,6 @@ LogicalOrPattern
       keyword: final
       name: a
       declaredFragment: isFinal isPublic a@35
-        type: null
         element: hasImplicitType isFinal isPublic
           type: int
       matchedValueType: int
@@ -380,7 +366,6 @@ LogicalOrPattern
       keyword: final
       name: a
       declaredFragment: isFinal isPublic a@46
-        type: null
         element: hasImplicitType isFinal isPublic
           type: int
       matchedValueType: int
@@ -390,7 +375,6 @@ LogicalOrPattern
     keyword: final
     name: a
     declaredFragment: isFinal isPublic a@57
-      type: null
       element: hasImplicitType isFinal isPublic
         type: int
     matchedValueType: int
@@ -406,9 +390,9 @@ void f(num x) {
 }
 ''',
       [
-        error(WarningCode.UNUSED_LOCAL_VARIABLE, 39, 1),
-        error(CompileTimeErrorCode.MISSING_VARIABLE_PATTERN, 44, 1),
-        error(WarningCode.UNUSED_LOCAL_VARIABLE, 59, 1),
+        error(WarningCode.unusedLocalVariable, 39, 1),
+        error(CompileTimeErrorCode.missingVariablePattern, 44, 1),
+        error(WarningCode.unusedLocalVariable, 59, 1),
       ],
     );
     var node = findNode.singleGuardedPattern.pattern;
@@ -419,11 +403,10 @@ LogicalOrPattern
       keyword: final
       type: NamedType
         name: int
-        element2: dart:core::@class::int
+        element: dart:core::@class::int
         type: int
       name: a
       declaredFragment: isFinal isPublic a@39
-        type: int
         element: isFinal isPublic
           type: int
       matchedValueType: num
@@ -439,11 +422,10 @@ LogicalOrPattern
     keyword: final
     type: NamedType
       name: int
-      element2: dart:core::@class::int
+      element: dart:core::@class::int
       type: int
     name: a
     declaredFragment: isFinal isPublic a@59
-      type: int
       element: isFinal isPublic
         type: int
     matchedValueType: num
@@ -459,9 +441,9 @@ void f(num x) {
 }
 ''',
       [
-        error(CompileTimeErrorCode.MISSING_VARIABLE_PATTERN, 29, 1),
-        error(WarningCode.UNUSED_LOCAL_VARIABLE, 44, 1),
-        error(CompileTimeErrorCode.MISSING_VARIABLE_PATTERN, 49, 1),
+        error(CompileTimeErrorCode.missingVariablePattern, 29, 1),
+        error(WarningCode.unusedLocalVariable, 44, 1),
+        error(CompileTimeErrorCode.missingVariablePattern, 49, 1),
       ],
     );
     var node = findNode.singleGuardedPattern.pattern;
@@ -478,11 +460,10 @@ LogicalOrPattern
       keyword: final
       type: NamedType
         name: int
-        element2: dart:core::@class::int
+        element: dart:core::@class::int
         type: int
       name: a
       declaredFragment: isFinal isPublic a@44
-        type: int
         element: isFinal isPublic
           type: int
       matchedValueType: num
@@ -505,10 +486,10 @@ void f(int x) {
 }
 ''',
       [
-        error(CompileTimeErrorCode.MISSING_VARIABLE_PATTERN, 29, 1),
-        error(WarningCode.UNUSED_LOCAL_VARIABLE, 40, 1),
-        error(WarningCode.DEAD_CODE, 42, 10),
-        error(WarningCode.UNUSED_LOCAL_VARIABLE, 51, 1),
+        error(CompileTimeErrorCode.missingVariablePattern, 29, 1),
+        error(WarningCode.unusedLocalVariable, 40, 1),
+        error(WarningCode.deadCode, 42, 10),
+        error(WarningCode.unusedLocalVariable, 51, 1),
       ],
     );
     var node = findNode.singleGuardedPattern.pattern;
@@ -525,7 +506,6 @@ LogicalOrPattern
       keyword: final
       name: a
       declaredFragment: isFinal isPublic a@40
-        type: null
         element: hasImplicitType isFinal isPublic
           type: int
       matchedValueType: int
@@ -535,7 +515,6 @@ LogicalOrPattern
     keyword: final
     name: a
     declaredFragment: isFinal isPublic a@51
-      type: null
       element: hasImplicitType isFinal isPublic
         type: int
     matchedValueType: int
@@ -551,8 +530,8 @@ void f(int x) {
 }
 ''',
       [
-        error(CompileTimeErrorCode.MISSING_VARIABLE_PATTERN, 29, 6),
-        error(WarningCode.UNUSED_LOCAL_VARIABLE, 45, 1),
+        error(CompileTimeErrorCode.missingVariablePattern, 29, 6),
+        error(WarningCode.unusedLocalVariable, 45, 1),
       ],
     );
     var node = findNode.singleGuardedPattern.pattern;
@@ -576,7 +555,6 @@ LogicalOrPattern
     keyword: final
     name: a
     declaredFragment: isFinal isPublic a@45
-      type: null
       element: hasImplicitType isFinal isPublic
         type: int
     matchedValueType: int
@@ -595,9 +573,9 @@ void f(int x) {
 }
 ''',
       [
-        error(WarningCode.UNUSED_LOCAL_VARIABLE, 46, 1),
-        error(WarningCode.DEAD_CODE, 48, 10),
-        error(WarningCode.UNUSED_LOCAL_VARIABLE, 57, 1),
+        error(WarningCode.unusedLocalVariable, 46, 1),
+        error(WarningCode.deadCode, 48, 10),
+        error(WarningCode.unusedLocalVariable, 57, 1),
       ],
     );
     var node = findNode.singleGuardedPattern.pattern;
@@ -607,7 +585,6 @@ LogicalOrPattern
     keyword: final
     name: a
     declaredFragment: isFinal isPublic a@46
-      type: null
       element: hasImplicitType isFinal isPublic
         type: int
     matchedValueType: int
@@ -616,7 +593,6 @@ LogicalOrPattern
     keyword: final
     name: a
     declaredFragment: isFinal isPublic a@57
-      type: null
       element: hasImplicitType isFinal isPublic
         type: int
     matchedValueType: int
@@ -637,8 +613,8 @@ void f(num x) {
 }
 ''',
       [
-        error(WarningCode.UNUSED_LOCAL_VARIABLE, 50, 1),
-        error(CompileTimeErrorCode.MISSING_VARIABLE_PATTERN, 55, 1),
+        error(WarningCode.unusedLocalVariable, 50, 1),
+        error(CompileTimeErrorCode.missingVariablePattern, 55, 1),
       ],
     );
     var node = findNode.singleGuardedPattern.pattern;
@@ -648,11 +624,10 @@ LogicalOrPattern
     keyword: final
     type: NamedType
       name: int
-      element2: dart:core::@class::int
+      element: dart:core::@class::int
       type: int
     name: a
     declaredFragment: isFinal isPublic a@50
-      type: int
       element: isFinal isPublic
         type: int
     matchedValueType: num
@@ -677,8 +652,8 @@ void f(int x) {
 }
 ''',
       [
-        error(CompileTimeErrorCode.MISSING_VARIABLE_PATTERN, 40, 1),
-        error(WarningCode.UNUSED_LOCAL_VARIABLE, 51, 1),
+        error(CompileTimeErrorCode.missingVariablePattern, 40, 1),
+        error(WarningCode.unusedLocalVariable, 51, 1),
       ],
     );
     var node = findNode.singleGuardedPattern.pattern;
@@ -694,7 +669,6 @@ LogicalOrPattern
     keyword: final
     name: a
     declaredFragment: isFinal isPublic a@51
-      type: null
       element: hasImplicitType isFinal isPublic
         type: int
     matchedValueType: int
@@ -714,10 +688,10 @@ void f(int x) {
 }
 ''',
       [
-        error(WarningCode.UNUSED_LOCAL_VARIABLE, 52, 1),
-        error(WarningCode.DEAD_CODE, 59, 4),
-        error(WarningCode.UNREACHABLE_SWITCH_CASE, 59, 4),
-        error(WarningCode.UNUSED_LOCAL_VARIABLE, 76, 1),
+        error(WarningCode.unusedLocalVariable, 52, 1),
+        error(WarningCode.deadCode, 59, 4),
+        error(WarningCode.unreachableSwitchCase, 59, 4),
+        error(WarningCode.unusedLocalVariable, 76, 1),
       ],
     );
 
@@ -728,7 +702,6 @@ GuardedPattern
     keyword: final
     name: a
     declaredFragment: isFinal isPublic a@52
-      type: null
       element: hasImplicitType isFinal isPublic
         type: int
     matchedValueType: int
@@ -741,7 +714,6 @@ GuardedPattern
     keyword: final
     name: a
     declaredFragment: isFinal isPublic a@76
-      type: null
       element: hasImplicitType isFinal isPublic
         type: int
     matchedValueType: int
@@ -761,7 +733,7 @@ void f(num x) {
   }
 }
 ''',
-      [error(WarningCode.UNUSED_LOCAL_VARIABLE, 53, 1)],
+      [error(WarningCode.unusedLocalVariable, 53, 1)],
     );
   }
 
@@ -776,7 +748,7 @@ void f(int x) {
   }
 }
 ''',
-      [error(WarningCode.UNUSED_LOCAL_VARIABLE, 58, 1)],
+      [error(WarningCode.unusedLocalVariable, 58, 1)],
     );
   }
 
@@ -794,7 +766,7 @@ void f(int x) {
   }
 }
 ''',
-      [error(WarningCode.UNUSED_LOCAL_VARIABLE, 46, 1)],
+      [error(WarningCode.unusedLocalVariable, 46, 1)],
     );
   }
 
@@ -812,7 +784,7 @@ void f(num x) {
   }
 }
 ''',
-      [error(WarningCode.UNUSED_LOCAL_VARIABLE, 53, 1)],
+      [error(WarningCode.unusedLocalVariable, 53, 1)],
     );
   }
 }

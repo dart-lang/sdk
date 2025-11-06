@@ -33,62 +33,93 @@ class OffsetMap {
   OffsetMap(this.uri);
 
   void registerImport(Token importKeyword, Import import) {
-    assert(importKeyword.lexeme == 'import',
-        "Invalid token for import: $importKeyword.");
+    assert(
+      importKeyword.lexeme == 'import',
+      "Invalid token for import: $importKeyword.",
+    );
     _imports[importKeyword.charOffset] = import;
   }
 
   Import lookupImport(Token importKeyword) {
-    assert(importKeyword.lexeme == 'import',
-        "Invalid token for import: $importKeyword.");
-    return _checkDirective(_imports[importKeyword.charOffset], '<import>',
-        importKeyword.charOffset);
+    assert(
+      importKeyword.lexeme == 'import',
+      "Invalid token for import: $importKeyword.",
+    );
+    return _checkDirective(
+      _imports[importKeyword.charOffset],
+      '<import>',
+      importKeyword.charOffset,
+    );
   }
 
   void registerExport(Token exportKeyword, Export export) {
-    assert(exportKeyword.lexeme == 'export',
-        "Invalid token for export: $exportKeyword.");
+    assert(
+      exportKeyword.lexeme == 'export',
+      "Invalid token for export: $exportKeyword.",
+    );
     _exports[exportKeyword.charOffset] = export;
   }
 
   Export lookupExport(Token exportKeyword) {
-    assert(exportKeyword.lexeme == 'export',
-        "Invalid token for export: $exportKeyword.");
-    return _checkDirective(_exports[exportKeyword.charOffset], '<export>',
-        exportKeyword.charOffset);
+    assert(
+      exportKeyword.lexeme == 'export',
+      "Invalid token for export: $exportKeyword.",
+    );
+    return _checkDirective(
+      _exports[exportKeyword.charOffset],
+      '<export>',
+      exportKeyword.charOffset,
+    );
   }
 
   void registerPart(Token partKeyword, LibraryPart part) {
     assert(
-        partKeyword.lexeme == 'part', "Invalid token for part: $partKeyword.");
+      partKeyword.lexeme == 'part',
+      "Invalid token for part: $partKeyword.",
+    );
     _parts[partKeyword.charOffset] = part;
   }
 
   LibraryPart lookupPart(Token partKeyword) {
     assert(
-        partKeyword.lexeme == 'part', "Invalid token for part: $partKeyword.");
+      partKeyword.lexeme == 'part',
+      "Invalid token for part: $partKeyword.",
+    );
     return _checkDirective(
-        _parts[partKeyword.charOffset], '<part>', partKeyword.charOffset);
+      _parts[partKeyword.charOffset],
+      '<part>',
+      partKeyword.charOffset,
+    );
   }
 
   void registerNamedDeclarationFragment(
-      Identifier identifier, DeclarationFragmentImpl fragment) {
+    Identifier identifier,
+    DeclarationFragmentImpl fragment,
+  ) {
     _declarations[identifier.nameOffset] = fragment;
   }
 
   DeclarationFragmentImpl lookupNamedDeclaration(Identifier identifier) {
-    return _checkFragment(_declarations[identifier.nameOffset], identifier.name,
-        identifier.nameOffset);
+    return _checkFragment(
+      _declarations[identifier.nameOffset],
+      identifier.name,
+      identifier.nameOffset,
+    );
   }
 
   void registerUnnamedDeclaration(
-      Token beginToken, DeclarationFragmentImpl fragment) {
+    Token beginToken,
+    DeclarationFragmentImpl fragment,
+  ) {
     _declarations[beginToken.charOffset] = fragment;
   }
 
   DeclarationFragmentImpl lookupUnnamedDeclaration(Token beginToken) {
-    return _checkFragment(_declarations[beginToken.charOffset],
-        '<unnamed-declaration>', beginToken.charOffset);
+    return _checkFragment(
+      _declarations[beginToken.charOffset],
+      '<unnamed-declaration>',
+      beginToken.charOffset,
+    );
   }
 
   void registerField(Identifier identifier, FieldFragment fragment) {
@@ -97,26 +128,38 @@ class OffsetMap {
 
   FieldFragment lookupField(Identifier identifier) {
     return _checkFragment(
-        _fields[identifier.nameOffset], identifier.name, identifier.nameOffset);
+      _fields[identifier.nameOffset],
+      identifier.name,
+      identifier.nameOffset,
+    );
   }
 
   void registerPrimaryConstructor(
-      Token beginToken, PrimaryConstructorFragment fragment) {
+    Token beginToken,
+    PrimaryConstructorFragment fragment,
+  ) {
     _primaryConstructors[beginToken.charOffset] = fragment;
   }
 
   FunctionFragment lookupPrimaryConstructor(Token beginToken) {
-    return _checkFragment(_primaryConstructors[beginToken.charOffset],
-        '<primary-constructor>', beginToken.charOffset);
+    return _checkFragment(
+      _primaryConstructors[beginToken.charOffset],
+      '<primary-constructor>',
+      beginToken.charOffset,
+    );
   }
 
   void registerConstructorFragment(
-      Identifier identifier, ConstructorFragment fragment) {
+    Identifier identifier,
+    ConstructorFragment fragment,
+  ) {
     _constructors[identifier.nameOffset] = fragment;
   }
 
   void registerFactoryFragment(
-      Identifier identifier, FactoryFragment fragment) {
+    Identifier identifier,
+    FactoryFragment fragment,
+  ) {
     _factoryFragments[identifier.nameOffset] = fragment;
   }
 
@@ -139,24 +182,36 @@ class OffsetMap {
   }
 
   FunctionFragment lookupGetter(Identifier identifier) {
-    return _checkFragment(_getters[identifier.nameOffset], identifier.name,
-        identifier.nameOffset);
+    return _checkFragment(
+      _getters[identifier.nameOffset],
+      identifier.name,
+      identifier.nameOffset,
+    );
   }
 
   FunctionFragment lookupSetter(Identifier identifier) {
-    return _checkFragment(_setters[identifier.nameOffset], identifier.name,
-        identifier.nameOffset);
+    return _checkFragment(
+      _setters[identifier.nameOffset],
+      identifier.name,
+      identifier.nameOffset,
+    );
   }
 
   FunctionFragment lookupMethod(Identifier identifier) {
-    return _checkFragment(_methods[identifier.nameOffset], identifier.name,
-        identifier.nameOffset);
+    return _checkFragment(
+      _methods[identifier.nameOffset],
+      identifier.name,
+      identifier.nameOffset,
+    );
   }
 
   T _checkDirective<T>(T? directive, String name, int charOffset) {
     if (directive == null) {
       internalProblem(
-          templateInternalProblemNotFound.withArguments(name), charOffset, uri);
+        codeInternalProblemNotFound.withArgumentsOld(name),
+        charOffset,
+        uri,
+      );
     }
     return directive;
   }
@@ -164,7 +219,10 @@ class OffsetMap {
   T _checkFragment<T>(T? fragment, String name, int fileOffset) {
     if (fragment == null) {
       internalProblem(
-          templateInternalProblemNotFound.withArguments(name), fileOffset, uri);
+        codeInternalProblemNotFound.withArgumentsOld(name),
+        fileOffset,
+        uri,
+      );
     }
     return fragment;
   }

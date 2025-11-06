@@ -68,8 +68,7 @@ class _ConstantWalker extends graph.DependencyWalker<_ConstantNode> {
     for (var node in scc) {
       var constant = node.constant;
       if (constant is ConstructorElementImpl) {
-        // TODO(scheglov): move the flag to the element
-        constant.firstFragment.isCycleFree = false;
+        constant.isCycleFree = false;
       }
       _getEvaluationEngine(node).generateCycleError(constantsInCycle, constant);
     }

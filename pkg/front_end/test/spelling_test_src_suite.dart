@@ -9,31 +9,36 @@ import 'spell_checking_utils.dart' as spell;
 import 'spelling_test_base.dart';
 import 'testing_utils.dart' show checkEnvironment;
 
-void main([List<String> arguments = const []]) => internalMain(createContext,
-    arguments: arguments,
-    displayName: "spelling test src suite",
-    configurationPath: "../testing.json");
+void main([List<String> arguments = const []]) => internalMain(
+  createContext,
+  arguments: arguments,
+  displayName: "spelling test src suite",
+  configurationPath: "../testing.json",
+);
 
 Future<SpellContext> createContext(
-    Chain suite, Map<String, String> environment) {
+  Chain suite,
+  Map<String, String> environment,
+) {
   const Set<String> knownEnvironmentKeys = {"interactive", "onlyInGit"};
   checkEnvironment(environment, knownEnvironmentKeys);
 
   bool interactive = environment["interactive"] == "true";
   bool onlyInGit = environment["onlyInGit"] != "false";
   return new Future.value(
-      new SpellContextSource(interactive: interactive, onlyInGit: onlyInGit));
+    new SpellContextSource(interactive: interactive, onlyInGit: onlyInGit),
+  );
 }
 
 class SpellContextSource extends SpellContext {
   SpellContextSource({required bool interactive, required bool onlyInGit})
-      : super(interactive: interactive, onlyInGit: onlyInGit);
+    : super(interactive: interactive, onlyInGit: onlyInGit);
 
   @override
   List<spell.Dictionaries> get dictionaries => const <spell.Dictionaries>[
-        spell.Dictionaries.common,
-        spell.Dictionaries.cfeCode
-      ];
+    spell.Dictionaries.common,
+    spell.Dictionaries.cfeCode,
+  ];
 
   @override
   bool get onlyDenylisted => false;

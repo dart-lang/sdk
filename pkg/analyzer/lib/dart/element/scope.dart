@@ -20,7 +20,13 @@ abstract class Scope {
 ///
 /// Clients may not extend, implement or mix-in this class.
 abstract class ScopeLookupResult {
+  Element? get getter;
+
+  @Deprecated('Use getter instead')
   Element? get getter2;
 
+  Element? get setter;
+
+  @Deprecated('Use setter instead')
   Element? get setter2;
 }

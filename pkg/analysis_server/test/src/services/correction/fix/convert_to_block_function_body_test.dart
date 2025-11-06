@@ -40,7 +40,7 @@ void f() {
 @reflectiveTest
 class ConvertToBlockFunctionBodyMultiTest extends FixProcessorTest {
   @override
-  FixKind get kind => DartFixKind.CONVERT_INTO_BLOCK_BODY_MULTI;
+  FixKind get kind => DartFixKind.convertIntoBlockBodyMulti;
 
   Future<void> test_multi() async {
     await resolveTestCode('''
@@ -50,7 +50,7 @@ void f() {
   g(() => {g(() => {1})});
 }
 ''');
-    await assertHasFixAllFix(WarningCode.UNNECESSARY_SET_LITERAL, '''
+    await assertHasFixAllFix(WarningCode.unnecessarySetLiteral, '''
 void g(void Function() fun) {}
 
 void f() {
@@ -63,7 +63,7 @@ void f() {
 @reflectiveTest
 class ConvertToBlockFunctionBodyTest extends FixProcessorTest {
   @override
-  FixKind get kind => DartFixKind.CONVERT_INTO_BLOCK_BODY;
+  FixKind get kind => DartFixKind.convertIntoBlockBody;
 
   Future<void> test_expressionFunctionBody() async {
     await resolveTestCode('''

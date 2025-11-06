@@ -15,6 +15,7 @@ import 'package:hooks/hooks.dart';
 import 'package:hooks_runner/hooks_runner.dart';
 import 'package:logging/logging.dart';
 import 'package:package_config/package_config.dart' as package_config;
+import 'package:pub/pub.dart';
 import 'package:yaml/yaml.dart' show loadYaml;
 
 import 'core.dart';
@@ -26,6 +27,7 @@ class DartNativeAssetsBuilder {
   final String runPackageName;
   final bool includeDevDependencies;
   final bool verbose;
+  final bool dataAssetsExperimentEnabled;
 
   static const _fileSystem = LocalFileSystem();
 
@@ -72,6 +74,7 @@ class DartNativeAssetsBuilder {
     required this.runPackageName,
     required this.includeDevDependencies,
     required this.verbose,
+    required this.dataAssetsExperimentEnabled,
     Target? target,
   }) : target = target ?? Target.current;
 
@@ -116,6 +119,16 @@ class DartNativeAssetsBuilder {
     );
   }
 
+  /// Check whether there are build hooks in the project.
+  ///
+  /// Fine to run together with the other methods, this is stateful, no work is
+  /// duplicated.
+  Future<bool> hasHooks() async {
+    final builder = await _nativeAssetsBuildRunner;
+    final packageNames = await builder.packagesWithBuildHooks();
+    return packageNames.isNotEmpty;
+  }
+
   Future<bool> warnOnNativeAssets() async {
     final builder = await _nativeAssetsBuildRunner;
     final packageNames = await builder.packagesWithBuildHooks();
@@ -135,9 +148,7 @@ class DartNativeAssetsBuilder {
       macOS: _macOSConfig,
       cCompiler: _cCompilerConfig,
     ),
-    // TODO(dacoharkes,mosum): This should be gated behind a data-assets
-    // experiment flag.
-    DataAssetsExtension(),
+    if (dataAssetsExperimentEnabled) DataAssetsExtension(),
   ];
 
   Future<BuildResult?> _buildNativeAssetsShared({
@@ -225,8 +236,10 @@ class DartNativeAssetsBuilder {
       if (pubspecMaybe != null) {
         // Silently run `pub get`, this is what would happen in
         // `getExecutableForCommand` later.
-        final result = await Process.run(sdk.dart, ['pub', 'get']);
-        if (result.exitCode != 0) {
+        try {
+          await ensurePubspecResolved(pubspecMaybe.resolve('.').toFilePath());
+        } on ResolutionFailedException catch (e) {
+          stderr.writeln(e.message);
           return null;
         }
         packageConfig = await _findPackageConfigUri(uri);

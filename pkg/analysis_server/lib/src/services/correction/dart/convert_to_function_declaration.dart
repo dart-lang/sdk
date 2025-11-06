@@ -21,10 +21,10 @@ class ConvertToFunctionDeclaration extends ResolvedCorrectionProducer {
       CorrectionApplicability.automatically;
 
   @override
-  FixKind get fixKind => DartFixKind.CONVERT_TO_FUNCTION_DECLARATION;
+  FixKind get fixKind => DartFixKind.convertToFunctionDeclaration;
 
   @override
-  FixKind get multiFixKind => DartFixKind.CONVERT_TO_FUNCTION_DECLARATION_MULTI;
+  FixKind get multiFixKind => DartFixKind.convertToFunctionDeclarationMulti;
 
   @override
   Future<void> compute(ChangeBuilder builder) async {
@@ -57,7 +57,7 @@ class ConvertToFunctionDeclaration extends ResolvedCorrectionProducer {
           if (before != null) {
             builder.write(before);
           }
-          builder.write(eol);
+          builder.writeln();
           builder.write(utils.getLinePrefix(range.offset));
           if (after != null) {
             builder.write(after);
@@ -83,16 +83,15 @@ class ConvertToFunctionDeclaration extends ResolvedCorrectionProducer {
       DartType? returnType;
       List<FormalParameterElement?>? parameterList;
       if (type case NamedType(
-        element: TypeAliasElement(:GenericFunctionTypeElement aliasedElement),
+        element: TypeAliasElement(:FunctionType aliasedType),
       )) {
-        returnType = aliasedElement.returnType;
-        parameterList = aliasedElement.formalParameters;
+        returnType = aliasedType.returnType;
+        parameterList = aliasedType.formalParameters;
       } else if (type is GenericFunctionType) {
         returnType = type.returnType?.type;
-        parameterList =
-            type.parameters.parameters
-                .map((node) => node.declaredFragment!.element)
-                .toList();
+        parameterList = type.parameters.parameters
+            .map((node) => node.declaredFragment!.element)
+            .toList();
       } else if (initializer case FunctionExpression(
         declaredFragment: ExecutableFragment(:var element),
         :var body,

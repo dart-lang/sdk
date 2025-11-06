@@ -208,6 +208,10 @@ Future<ServerSocket> serverSocketBind(
   throw "";
 }
 
+Never exitOverride(int code) {
+  throw code;
+}
+
 class StdinMock extends Stream<List<int>> implements Stdin {
   bool echoMode = false;
   bool echoNewlineMode = false;
@@ -278,6 +282,7 @@ Future<Null> ioOverridesRunTest() async {
       Expect.isTrue(stdin is StdinMock);
       Expect.identical(stdout, stdoutMock);
       Expect.identical(stderr, stderrMock);
+      Expect.throws<int>(() => exit(42), (int code) => code == 42);
     },
     createDirectory: DirectoryMock.createDirectory,
     getCurrentDirectory: DirectoryMock.getCurrent,
@@ -299,13 +304,14 @@ Future<Null> ioOverridesRunTest() async {
     stdin: () => StdinMock(),
     stdout: () => stdoutMock,
     stderr: () => stderrMock,
+    exit: exitOverride,
   );
   Expect.isFalse(new Directory("directory") is DirectoryMock);
   Expect.isTrue(new Directory("directory") is Directory);
   await f;
 }
 
-class MyIOOverrides extends IOOverrides {
+final class MyIOOverrides extends IOOverrides {
   Directory createDirectory(String path) => DirectoryMock.createDirectory(path);
 }
 
@@ -331,7 +337,7 @@ globalIOOverridesZoneTest() {
   Expect.isTrue(dir is Directory);
 }
 
-class EmptyOverride extends IOOverrides {}
+final class EmptyOverride extends IOOverrides {}
 
 void emptyIOOverride() {
   IOOverrides.runWithIOOverrides(

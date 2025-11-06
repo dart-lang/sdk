@@ -343,21 +343,21 @@ class ValidateCommentCodeSamplesVisitor extends GeneralizingAstVisitor {
       // Filter out unused imports, since we speculatively add imports to some
       // samples.
       diagnostics
-          .removeWhere((e) => e.diagnosticCode == WarningCode.UNUSED_IMPORT);
+          .removeWhere((e) => e.diagnosticCode == WarningCode.unusedImport);
 
       // Also, don't worry about 'unused_local_variable' and related; this may
       // be intentional in samples.
       diagnostics.removeWhere(
         (e) =>
-            e.diagnosticCode == WarningCode.UNUSED_LOCAL_VARIABLE ||
-            e.diagnosticCode == WarningCode.UNUSED_ELEMENT,
+            e.diagnosticCode == WarningCode.unusedLocalVariable ||
+            e.diagnosticCode == WarningCode.unusedElement,
       );
 
       // Handle edge case around dart:_http
       diagnostics.removeWhere((e) {
         if (e.message.contains("'dart:_http'")) {
-          return e.diagnosticCode == HintCode.UNNECESSARY_IMPORT ||
-              e.diagnosticCode == CompileTimeErrorCode.IMPORT_INTERNAL_LIBRARY;
+          return e.diagnosticCode == HintCode.unnecessaryImport ||
+              e.diagnosticCode == CompileTimeErrorCode.importInternalLibrary;
         }
         return false;
       });

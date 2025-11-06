@@ -98,7 +98,7 @@ class CreateGetter extends CreateFieldOrGetter {
   List<String> get fixArguments => [_getterName];
 
   @override
-  FixKind get fixKind => DartFixKind.CREATE_GETTER;
+  FixKind get fixKind => DartFixKind.createGetter;
 
   @override
   Future<void> addForObjectPattern({
@@ -132,14 +132,13 @@ class CreateGetter extends CreateFieldOrGetter {
     }
     // prepare target
     Expression? target;
-    {
-      var nameParent = nameNode.parent;
-      if (nameParent is PrefixedIdentifier) {
-        target = nameParent.prefix;
-      } else if (nameParent is PropertyAccess) {
-        target = nameParent.realTarget;
-      }
+    var nameParent = nameNode.parent;
+    if (nameParent is PrefixedIdentifier) {
+      target = nameParent.prefix;
+    } else if (nameParent is PropertyAccess) {
+      target = nameParent.realTarget;
     }
+
     // prepare target element
     var staticModifier = false;
     InstanceElement? targetElement;
@@ -161,6 +160,12 @@ class CreateGetter extends CreateFieldOrGetter {
         var targetElement = targetIdentifier.element;
         staticModifier = targetElement?.kind == ElementKind.CLASS;
       }
+    } else if (nameParent is DotShorthandPropertyAccess) {
+      staticModifier = true;
+      targetElement = computeDotShorthandContextTypeElement(
+        node,
+        unitResult.libraryElement,
+      );
     } else {
       staticModifier = inStaticContext;
       targetElement = nameNode.enclosingInstanceElement;
@@ -178,6 +183,9 @@ class CreateGetter extends CreateFieldOrGetter {
 
     var fieldTypeNode = climbPropertyAccess(nameNode);
     var fieldType = inferUndefinedExpressionType(fieldTypeNode);
+    if (fieldType is InvalidType) {
+      return;
+    }
 
     await _addDeclaration(
       builder: builder,

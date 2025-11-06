@@ -29,8 +29,6 @@ void main() {
   //         ^^^^^^^^^^^
   // [analyzer] COMPILE_TIME_ERROR.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE
   // [cfe] New expression is not a constant expression.
-  //             ^
-  // [cfe] New expression is not a constant expression.
   const c8 = const Class();
 }
 

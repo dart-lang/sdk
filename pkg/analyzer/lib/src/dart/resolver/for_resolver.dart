@@ -85,7 +85,7 @@ class ForResolver {
     );
     _resolver.popRewrite();
     _resolver.nullableDereferenceVerifier.expression(
-      CompileTimeErrorCode.UNCHECKED_USE_OF_NULLABLE_VALUE_AS_ITERATOR,
+      CompileTimeErrorCode.uncheckedUseOfNullableValueAsIterator,
       forLoopParts.iterable,
     );
   }
@@ -105,10 +105,9 @@ class ForResolver {
       return DynamicTypeImpl.instance;
     }
 
-    ClassElement iteratedElement =
-        isAsync
-            ? _resolver.typeProvider.streamElement
-            : _resolver.typeProvider.iterableElement;
+    ClassElement iteratedElement = isAsync
+        ? _resolver.typeProvider.streamElement
+        : _resolver.typeProvider.iterableElement;
 
     var iteratedType = iterableType.asInstanceOf(iteratedElement);
     if (iteratedType == null) {
@@ -155,7 +154,7 @@ class ForResolver {
           identifier,
           isRead: false,
         );
-      } else if (identifierElement is SetterElement2OrMember) {
+      } else if (identifierElement is InternalSetterElement) {
         var parameters = identifierElement.formalParameters;
         if (parameters.isNotEmpty) {
           valueType = parameters[0].type;
@@ -164,10 +163,9 @@ class ForResolver {
     }
     InterfaceTypeImpl? targetType;
     if (valueType != null) {
-      targetType =
-          isAsync
-              ? _resolver.typeProvider.streamType(valueType)
-              : _resolver.typeProvider.iterableType(valueType);
+      targetType = isAsync
+          ? _resolver.typeProvider.streamType(valueType)
+          : _resolver.typeProvider.iterableType(valueType);
     }
 
     _resolver.analyzeExpression(
@@ -177,7 +175,7 @@ class ForResolver {
     iterable = _resolver.popRewrite()!;
 
     _resolver.nullableDereferenceVerifier.expression(
-      CompileTimeErrorCode.UNCHECKED_USE_OF_NULLABLE_VALUE_AS_ITERATOR,
+      CompileTimeErrorCode.uncheckedUseOfNullableValueAsIterator,
       iterable,
     );
 
@@ -190,7 +188,7 @@ class ForResolver {
     }
 
     if (loopVariable != null) {
-      var declaredElement = loopVariable.declaredElement!;
+      var declaredElement = loopVariable.declaredFragment!.element;
       _resolver.flowAnalysis.flow?.declare(
         declaredElement,
         SharedTypeView(declaredElement.type),
@@ -253,8 +251,8 @@ class ForResolver {
       );
     }
 
-    var deadCodeForPartsState =
-        _resolver.nullSafetyDeadCodeVerifier.for_conditionEnd();
+    var deadCodeForPartsState = _resolver.nullSafetyDeadCodeVerifier
+        .for_conditionEnd();
     _resolver.flowAnalysis.for_bodyBegin(node, condition);
     visitBody();
 

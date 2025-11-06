@@ -21,7 +21,7 @@ main() {
     source: TestSource(),
     offset: 0,
     length: 1,
-    diagnosticCode: CompileTimeErrorCode.INVALID_ASSIGNMENT,
+    diagnosticCode: CompileTimeErrorCode.invalidAssignment,
     arguments: [
       ['x'],
       ['y'],
@@ -32,7 +32,7 @@ main() {
     source: TestSource(),
     offset: 0,
     length: 1,
-    diagnosticCode: WarningCode.ASSIGNMENT_OF_DO_NOT_STORE,
+    diagnosticCode: WarningCode.assignmentOfDoNotStore,
     arguments: [
       ['x'],
     ],
@@ -42,7 +42,7 @@ main() {
     source: TestSource(),
     offset: 0,
     length: 1,
-    diagnosticCode: WarningCode.UNUSED_LOCAL_VARIABLE,
+    diagnosticCode: WarningCode.unusedLocalVariable,
     arguments: [
       ['x'],
     ],
@@ -52,7 +52,7 @@ main() {
     source: TestSource(),
     offset: 0,
     length: 1,
-    diagnosticCode: CompileTimeErrorCode.USE_OF_VOID_RESULT,
+    diagnosticCode: CompileTimeErrorCode.useOfVoidResult,
   );
 
   // We in-line a lint code here in order to avoid adding a dependency on the

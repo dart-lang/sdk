@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:_fe_analyzer_shared/src/type_inference/type_analyzer_operations.dart';
+import 'package:_fe_analyzer_shared/src/types/shared_type.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/extensions.dart';
 import 'package:analyzer/src/dart/element/type.dart';
@@ -46,15 +46,11 @@ class ReplaceTopBottomVisitor {
   TypeImpl _functionType(FunctionTypeImpl type, Variance variance) {
     var newReturnType = process(type.returnType, variance);
 
-    var newParameters =
-        type.formalParameters.map((parameter) {
-          return parameter.copyWith(
-            type: process(
-              parameter.type,
-              variance.combine(Variance.contravariant),
-            ),
-          );
-        }).toList();
+    var newParameters = type.formalParameters.map((parameter) {
+      return parameter.copyWith(
+        type: process(parameter.type, variance.combine(Variance.contravariant)),
+      );
+    }).toList();
 
     return FunctionTypeImpl.v2(
       typeParameters: type.typeParameters,

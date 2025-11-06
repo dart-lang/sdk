@@ -184,6 +184,9 @@ class Tokens {
   static Token stringInterpolationExpression() =>
       TokenFactory.tokenFromType(TokenType.STRING_INTERPOLATION_EXPRESSION);
 
+  static Token stringInterpolationIdentifier() =>
+      TokenFactory.tokenFromType(TokenType.STRING_INTERPOLATION_IDENTIFIER);
+
   static Token super_() => TokenFactory.tokenFromKeyword(Keyword.SUPER);
 
   static Token switch_() => TokenFactory.tokenFromKeyword(Keyword.SWITCH);

@@ -475,8 +475,8 @@ void FlowGraphCompiler::EmitInstanceCallJIT(const Code& stub,
   // Load receiver into RDX.
   __ movq(RDX, compiler::Address(
                    RSP, (ic_data.SizeWithoutTypeArgs() - 1) * kWordSize));
-  __ LoadUniqueObject(IC_DATA_REG, ic_data);
   __ LoadUniqueObject(CODE_REG, stub);
+  __ LoadUniqueObject(IC_DATA_REG, ic_data);
   const intptr_t entry_point_offset =
       entry_kind == Code::EntryKind::kNormal
           ? Code::entry_point_offset(Code::EntryKind::kMonomorphic)
@@ -505,8 +505,8 @@ void FlowGraphCompiler::EmitMegamorphicInstanceCall(
   __ movq(RDX, compiler::Address(RSP, (args_desc.Count() - 1) * kWordSize));
 
   // Use same code pattern as instance call so it can be parsed by code patcher.
-  __ LoadUniqueObject(IC_DATA_REG, cache);
   __ LoadUniqueObject(CODE_REG, StubCode::MegamorphicCall());
+  __ LoadUniqueObject(IC_DATA_REG, cache);
   __ call(compiler::FieldAddress(
       CODE_REG, Code::entry_point_offset(Code::EntryKind::kMonomorphic)));
 

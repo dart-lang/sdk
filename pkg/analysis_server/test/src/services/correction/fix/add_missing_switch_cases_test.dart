@@ -5,6 +5,7 @@
 import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analyzer/diagnostic/diagnostic.dart';
 import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/utilities/package_config_file_builder.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:linter/src/lint_names.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -21,7 +22,7 @@ void main() {
 @reflectiveTest
 class AddMissingSwitchCasesTest_SwitchExpression extends FixProcessorTest {
   @override
-  FixKind get kind => DartFixKind.ADD_MISSING_SWITCH_CASES;
+  FixKind get kind => DartFixKind.addMissingSwitchCases;
 
   Future<void> test_bool_hasFalse() async {
     await resolveTestCode('''
@@ -249,10 +250,9 @@ int f(E x) {
   };
 }
 ''',
-      errorFilter:
-          (e) =>
-              e.diagnosticCode ==
-              CompileTimeErrorCode.NON_EXHAUSTIVE_SWITCH_EXPRESSION,
+      errorFilter: (e) =>
+          e.diagnosticCode ==
+          CompileTimeErrorCode.nonExhaustiveSwitchExpression,
     );
   }
 
@@ -357,19 +357,57 @@ int f(num x) {
 }
 ''');
   }
+
+  Future<void> test_sealed_impl() async {
+    var otherRoot = getFolder('$packagesRootPath/other');
+    newFile('$otherRoot/lib/src/private.dart', '''
+sealed class A {}
+sealed class B implements A {}
+abstract final class C implements B {}
+final class CImpl extends B implements C {}
+''');
+    newFile('$otherRoot/lib/exposed.dart', '''
+export 'src/private.dart' show A, B, C;
+''');
+    updateTestPubspecFile('''
+name: test
+dependencies:
+  other: any
+''');
+    writeTestPackageConfig(
+      config: PackageConfigFileBuilder()
+        ..add(name: 'other', rootPath: otherRoot.path),
+    );
+    await resolveTestCode('''
+import 'package:other/exposed.dart';
+
+int f(A a) => switch (a) {
+};
+''');
+    await assertHasFix('''
+import 'package:other/exposed.dart';
+
+int f(A a) => switch (a) {
+  // TODO: Handle this case.
+  C() => throw UnimplementedError(),
+  // TODO: Handle this case.
+  _ => throw UnimplementedError(),
+};
+''');
+  }
 }
 
 @reflectiveTest
 class AddMissingSwitchCasesTest_SwitchStatement extends FixProcessorTest {
   @override
-  FixKind get kind => DartFixKind.ADD_MISSING_SWITCH_CASES;
+  FixKind get kind => DartFixKind.addMissingSwitchCases;
 
   bool Function(Diagnostic) get _filter {
     var hasError = false;
     return (diagnostic) {
       if (!hasError &&
           diagnostic.diagnosticCode ==
-              CompileTimeErrorCode.NON_EXHAUSTIVE_SWITCH_STATEMENT) {
+              CompileTimeErrorCode.nonExhaustiveSwitchStatement) {
         hasError = true;
         return true;
       }
@@ -519,10 +557,8 @@ void f(E e) {
   }
 }
 ''',
-      errorFilter:
-          (e) =>
-              e.diagnosticCode ==
-              CompileTimeErrorCode.NON_EXHAUSTIVE_SWITCH_STATEMENT,
+      errorFilter: (e) =>
+          e.diagnosticCode == CompileTimeErrorCode.nonExhaustiveSwitchStatement,
     );
   }
 

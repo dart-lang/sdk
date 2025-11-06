@@ -13,29 +13,18 @@ import self as self;
 import "dart:core" as core;
 
 class Foo extends core::_Enum /*isEnum*/  {
-  enum-element static const field self::Foo a = #C3;
-  enum-element static const field self::Foo b = #C6;
-  static const field core::List<self::Foo> values = #C7;
+  enum-element static const field self::Foo a = invalid-expression "pkg/front_end/testcases/regress/duplicate_enum_constructor.dart:6:3: Error: Can't use 'Foo' because it is declared more than once.
+  a, b;
+  ^";
+  enum-element static const field self::Foo b = invalid-expression "pkg/front_end/testcases/regress/duplicate_enum_constructor.dart:6:6: Error: Can't use 'Foo' because it is declared more than once.
+  a, b;
+     ^";
+  static const field core::List<self::Foo> values = invalid-expression "pkg/front_end/testcases/regress/duplicate_enum_constructor.dart:6:3: Error: Can't use 'Foo' because it is declared more than once.
+  a, b;
+  ^";
   const constructor •(core::int #index, core::String #name) → self::Foo
     : super core::_Enum::•(#index, #name)
     ;
   method core::_enumToString() → core::String
     return "Foo.${this.{core::_Enum::_name}{core::String}}";
 }
-
-constants  {
-  #C1 = 0
-  #C2 = "a"
-  #C3 = self::Foo {index:#C1, _name:#C2}
-  #C4 = 1
-  #C5 = "b"
-  #C6 = self::Foo {index:#C4, _name:#C5}
-  #C7 = <self::Foo>[#C3, #C6]
-}
-
-
-Constructor coverage from constants:
-org-dartlang-testcase:///duplicate_enum_constructor.dart:
-- Foo. (from org-dartlang-testcase:///duplicate_enum_constructor.dart:8:9)
-- _Enum. (from org-dartlang-sdk:///sdk/lib/core/enum.dart)
-- Object. (from org-dartlang-sdk:///sdk/lib/core/object.dart)

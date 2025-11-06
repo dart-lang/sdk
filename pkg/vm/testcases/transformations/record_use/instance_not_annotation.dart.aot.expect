@@ -11,6 +11,7 @@ class MyClass extends core::Object /*hasConstConstructor*/  {
 
 [@vm.inferred-return-type.metadata=dart.core::Null? (value: null)]
 static method main() → void {
+  const self::MyClass myClass = #C2;
   core::print(#C2);
 }
 constants  {

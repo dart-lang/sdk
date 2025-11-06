@@ -45,7 +45,7 @@ dynamic f(bool c, int a, int b) {
   return c ? a : b as int;
 }
 ''',
-      [error(WarningCode.UNNECESSARY_CAST, 51, 8)],
+      [error(WarningCode.unnecessaryCast, 51, 8)],
     );
   }
 
@@ -56,7 +56,7 @@ dynamic f(bool c, int a, int b) {
   return c ? a as int : b;
 }
 ''',
-      [error(WarningCode.UNNECESSARY_CAST, 47, 8)],
+      [error(WarningCode.unnecessaryCast, 47, 8)],
     );
   }
 
@@ -67,7 +67,7 @@ dynamic f(bool c, int a, dynamic b) {
   return c ? a as int : b;
 }
 ''',
-      [error(WarningCode.UNNECESSARY_CAST, 51, 8)],
+      [error(WarningCode.unnecessaryCast, 51, 8)],
     );
   }
 
@@ -79,8 +79,8 @@ dynamic f(bool c, int a, int b) {
 }
 ''',
       [
-        error(WarningCode.UNNECESSARY_CAST, 47, 8),
-        error(WarningCode.UNNECESSARY_CAST, 58, 8),
+        error(WarningCode.unnecessaryCast, 47, 8),
+        error(WarningCode.unnecessaryCast, 58, 8),
       ],
     );
   }
@@ -92,7 +92,7 @@ dynamic f(bool c, int a, int b) {
   return c ? a : b as int;
 }
 ''',
-      [error(WarningCode.UNNECESSARY_CAST, 51, 8)],
+      [error(WarningCode.unnecessaryCast, 51, 8)],
     );
   }
 
@@ -111,7 +111,7 @@ void f() {
   x as int;
 }
 ''',
-      [error(CompileTimeErrorCode.UNDEFINED_IDENTIFIER, 13, 1)],
+      [error(CompileTimeErrorCode.undefinedIdentifier, 13, 1)],
     );
   }
 
@@ -194,7 +194,7 @@ void f(num a) {
   a as num;
 }
 ''',
-      [error(WarningCode.UNNECESSARY_CAST, 18, 8)],
+      [error(WarningCode.unnecessaryCast, 18, 8)],
     );
   }
 
@@ -206,7 +206,7 @@ void f(num a) {
   a as N;
 }
 ''',
-      [error(WarningCode.UNNECESSARY_CAST, 35, 6)],
+      [error(WarningCode.unnecessaryCast, 35, 6)],
     );
   }
 

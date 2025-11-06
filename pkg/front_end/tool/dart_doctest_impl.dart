@@ -43,7 +43,9 @@ import 'package:front_end/src/source/diet_parser.dart'
 import 'package:front_end/src/source/source_compilation_unit.dart';
 import 'package:front_end/src/source/source_library_builder.dart';
 import 'package:front_end/src/source/source_loader.dart';
-import 'package:kernel/kernel.dart' as kernel
+import 'package:kernel/ast.dart';
+import 'package:kernel/kernel.dart'
+    as kernel
     show Combinator, Component, LibraryDependency, Location, Source;
 import 'package:kernel/reference_from_index.dart';
 import 'package:kernel/target/targets.dart';
@@ -52,12 +54,12 @@ import 'package:vm/modular/target/vm.dart';
 import '../test/incremental_suite.dart' show getOptions;
 import 'utils.dart';
 
-const _portMessageTest = "test";
-const _portMessageGood = "good";
-const _portMessageBad = "bad";
-const _portMessageCrash = "crash";
-const _portMessageParseError = "parseError";
-const _portMessageDone = "done";
+const String _portMessageTest = "test";
+const String _portMessageGood = "good";
+const String _portMessageBad = "bad";
+const String _portMessageCrash = "crash";
+const String _portMessageParseError = "parseError";
+const String _portMessageDone = "done";
 
 // TODO: This doesn't work on parts... (Well, it might, depending on how
 // the part declares what file it's part of and if we've compiled other stuff
@@ -67,16 +69,17 @@ class DartDocTest {
   late CompilerOptions options;
   late ProcessedOptions processedOpts;
   bool errors = false;
-  List<DiagnosticMessage> errorMessages = [];
+  List<CfeDiagnosticMessage> errorMessages = [];
   final FileSystem? underlyingFileSystem;
   final bool silent;
   final bool onlyIncludeFirstError;
   bool printOnDiagnostic = true;
 
-  DartDocTest(
-      {this.underlyingFileSystem,
-      this.silent = false,
-      this.onlyIncludeFirstError = false});
+  DartDocTest({
+    this.underlyingFileSystem,
+    this.silent = false,
+    this.onlyIncludeFirstError = false,
+  });
 
   FileSystem _getFileSystem() =>
       underlyingFileSystem ?? StandardFileSystem.instance;
@@ -97,8 +100,10 @@ class DartDocTest {
       _print("No tests found in file in ${stopwatch.elapsedMilliseconds} ms.");
       return [];
     }
-    _print("Found ${tests.length} test(s) in file "
-        "in ${stopwatch.elapsedMilliseconds} ms.");
+    _print(
+      "Found ${tests.length} test(s) in file "
+      "in ${stopwatch.elapsedMilliseconds} ms.",
+    );
 
     return await compileAndRun(uri, tests);
   }
@@ -108,12 +113,16 @@ class DartDocTest {
     FileSystemEntity file = _getFileSystem().entityForUri(uri);
     List<int> rawBytes = await file.readAsBytes();
     return extractTests(
-        rawBytes is Uint8List ? rawBytes : new Uint8List.fromList(rawBytes),
-        uri);
+      rawBytes is Uint8List ? rawBytes : new Uint8List.fromList(rawBytes),
+      uri,
+    );
   }
 
-  Future<List<TestResult>> compileAndRun(Uri uri, List<Test> tests,
-      {bool silent = false}) async {
+  Future<List<TestResult>> compileAndRun(
+    Uri uri,
+    List<Test> tests, {
+    bool silent = false,
+  }) async {
     errors = false;
     errorMessages.clear();
 
@@ -134,14 +143,16 @@ class DartDocTest {
       }
 
       addLine(
-          r"Future<void> $dart$doc$test$tester(dynamic dartDocTest) async {");
+        r"Future<void> $dart$doc$test$tester(dynamic dartDocTest) async {",
+      );
       lineNumber++;
       for (Test test in tests) {
         switch (test) {
           case TestParseError():
             addLine(
-                "dartDocTest.parseError(\"Parse error @ ${test.position}\");",
-                newTest: true);
+              "dartDocTest.parseError(\"Parse error @ ${test.position}\");",
+              newTest: true,
+            );
           case ExpectTest():
             addLine("try {", newTest: true);
             addLine("  dartDocTest.test(${test.call}, ${test.result});");
@@ -171,8 +182,9 @@ class DartDocTest {
     processedOpts.inputs.clear();
     processedOpts.inputs.add(uri);
     HybridFileSystem fileSystem = new HybridFileSystem(
-        new MemoryFileSystem(new Uri(scheme: "dartdoctest", path: "/")),
-        _getFileSystem());
+      new MemoryFileSystem(new Uri(scheme: "dartdoctest", path: "/")),
+      _getFileSystem(),
+    );
     options.fileSystem = fileSystem;
     processedOpts.clearFileSystemCache();
     // Invalidate package uri to force re-finding of packages
@@ -182,14 +194,16 @@ class DartDocTest {
     Stopwatch stopwatch = new Stopwatch()..start();
     // Do print any errors in the actual file.
     printOnDiagnostic = true;
-    IncrementalCompilerResult compilerResult =
-        await incrementalCompiler.computeDelta(entryPoints: [uri]);
+    IncrementalCompilerResult compilerResult = await incrementalCompiler
+        .computeDelta(entryPoints: [uri]);
     kernel.Component component = compilerResult.component;
     if (errors) {
-      _print("Got errors when compiling $uri "
-          "in ${stopwatch.elapsedMilliseconds} ms.");
+      _print(
+        "Got errors when compiling $uri "
+        "in ${stopwatch.elapsedMilliseconds} ms.",
+      );
       List<String> errorStrings = [];
-      for (DiagnosticMessage message in errorMessages) {
+      for (CfeDiagnosticMessage message in errorMessages) {
         for (String errorString in message.plainTextFormatted) {
           errorStrings.add(errorString);
           if (onlyIncludeFirstError) break;
@@ -197,7 +211,7 @@ class DartDocTest {
       }
       return [
         new TestResult(null, TestOutcome.CompilationError)
-          ..message = errorStrings.join("\n")
+          ..message = errorStrings.join("\n"),
       ];
     }
     _print("Compiled (1) in ${stopwatch.elapsedMilliseconds} ms.");
@@ -206,7 +220,9 @@ class DartDocTest {
     // Don't print errors in the tests up front.
     printOnDiagnostic = false;
     await incrementalCompiler.compileDartDocTestLibrary(
-        testSource, component.uriToSource[uri]?.importUri ?? uri);
+      testSource,
+      component.uriToSource[uri]?.importUri ?? uri,
+    );
 
     final Uri dartDocMainUri = new Uri(scheme: "dartdoctest", path: "main");
     fileSystem.memory
@@ -221,8 +237,11 @@ class DartDocTest {
       _print("Got errors in ${stopwatch.elapsedMilliseconds} ms.");
 
       // Map back to the offending test.
-      List<List<String>?> testsWithErrors = List.filled(tests.length + 1, null);
-      for (DiagnosticMessage message in errorMessages) {
+      List<List<String>?> testsWithErrors = new List.filled(
+        tests.length + 1,
+        null,
+      );
+      for (CfeDiagnosticMessage message in errorMessages) {
         int testIndex = tests.length; // indicating no test.
         if (message is FormattedMessage) {
           testIndex = binarySearch(lineNumberForStartOfTest, message.line);
@@ -245,15 +264,21 @@ class DartDocTest {
           offendingTest = tests[i];
         }
         String message = errors.join("\n");
-        result.add(new TestResult(offendingTest, TestOutcome.CompilationError)
-          ..message = message);
+        result.add(
+          new TestResult(offendingTest, TestOutcome.CompilationError)
+            ..message = message,
+        );
         if (offendingTest != null) {
-          _print("Compilation error:\n"
-              "Test from ${offendingTest.location} has errors when compiling:\n"
-              "$message\n");
+          _print(
+            "Compilation error:\n"
+            "Test from ${offendingTest.location} has errors when compiling:\n"
+            "$message\n",
+          );
         } else {
-          _print("Compilation error:\n"
-              "$message\n");
+          _print(
+            "Compilation error:\n"
+            "$message\n",
+          );
         }
       }
       return result;
@@ -309,13 +334,18 @@ class DartDocTest {
         result.add(new TestResult(currentTest!, TestOutcome.Pass));
       } else if (message.toString().startsWith("$_portMessageBad: ")) {
         badCount++;
-        String strippedMessage =
-            message.toString().substring("$_portMessageBad: ".length);
-        result.add(new TestResult(currentTest!, TestOutcome.Failed)
-          ..message = strippedMessage);
-        _print("Failure:\n"
-            "Test from ${currentTest!.location} failed with this message:\n"
-            "$strippedMessage\n");
+        String strippedMessage = message.toString().substring(
+          "$_portMessageBad: ".length,
+        );
+        result.add(
+          new TestResult(currentTest!, TestOutcome.Failed)
+            ..message = strippedMessage,
+        );
+        _print(
+          "Failure:\n"
+          "Test from ${currentTest!.location} failed with this message:\n"
+          "$strippedMessage\n",
+        );
       } else if (message.toString().startsWith("$_portMessageCrash: ")) {
         List<String> strippedMessageLines = message
             .toString()
@@ -328,25 +358,34 @@ class DartDocTest {
             break;
           }
         }
-        String strippedMessage =
-            strippedMessageLines.sublist(0, end).join("\n");
+        String strippedMessage = strippedMessageLines
+            .sublist(0, end)
+            .join("\n");
 
-        result.add(new TestResult(currentTest!, TestOutcome.Crash)
-          ..message = strippedMessage);
-        crashCount++;
-        _print("Failure:\n"
-            "Test from ${currentTest!.location} crashed with this message:\n"
-            "$strippedMessage\n");
-      } else if (message.toString().startsWith("$_portMessageParseError: ")) {
-        String strippedMessage =
-            message.toString().substring("$_portMessageParseError: ".length);
         result.add(
-            new TestResult(currentTest!, TestOutcome.TestCompilationError)
-              ..message = strippedMessage);
+          new TestResult(currentTest!, TestOutcome.Crash)
+            ..message = strippedMessage,
+        );
+        crashCount++;
+        _print(
+          "Failure:\n"
+          "Test from ${currentTest!.location} crashed with this message:\n"
+          "$strippedMessage\n",
+        );
+      } else if (message.toString().startsWith("$_portMessageParseError: ")) {
+        String strippedMessage = message.toString().substring(
+          "$_portMessageParseError: ".length,
+        );
+        result.add(
+          new TestResult(currentTest!, TestOutcome.TestCompilationError)
+            ..message = strippedMessage,
+        );
         parseErrorCount++;
-        _print("Failure:\n"
-            "Test from ${currentTest!.location} has a parse error:\n"
-            "$strippedMessage\n");
+        _print(
+          "Failure:\n"
+          "Test from ${currentTest!.location} has a parse error:\n"
+          "$strippedMessage\n",
+        );
       } else if (message == _portMessageDone) {
         done = true;
         // don't complete completer here. Expect the exit port to close.
@@ -374,26 +413,33 @@ class DartDocTest {
       return [new TestResult(null, TestOutcome.RuntimeError)];
     } else if (!done) {
       _print(
-          "Didn't complete correctly in ${stopwatch.elapsedMilliseconds} ms.");
+        "Didn't complete correctly in ${stopwatch.elapsedMilliseconds} ms.",
+      );
       return [new TestResult(null, TestOutcome.FrameworkError)];
     } else if (testCount != tests.length) {
-      _print("Didn't complete with error but ran "
-          "${testCount} tests while expecting ${tests.length} "
-          "in ${stopwatch.elapsedMilliseconds} ms.");
+      _print(
+        "Didn't complete with error but ran "
+        "${testCount} tests while expecting ${tests.length} "
+        "in ${stopwatch.elapsedMilliseconds} ms.",
+      );
       return [new TestResult(null, TestOutcome.FrameworkError)];
     } else {
-      _print("Processed $testCount test(s) "
-          "in ${stopwatch.elapsedMilliseconds} ms.");
+      _print(
+        "Processed $testCount test(s) "
+        "in ${stopwatch.elapsedMilliseconds} ms.",
+      );
       if (goodCount == testCount &&
           badCount == 0 &&
           crashCount == 0 &&
           parseErrorCount == 0) {
         _print("All tests passed.");
       } else {
-        _print("$goodCount OK; "
-            "$badCount bad; "
-            "$crashCount crashed; "
-            "$parseErrorCount parse errors.");
+        _print(
+          "$goodCount OK; "
+          "$badCount bad; "
+          "$crashCount crashed; "
+          "$parseErrorCount parse errors.",
+        );
       }
       return result;
     }
@@ -406,11 +452,11 @@ class DartDocTest {
     Target target = new VmTarget(targetFlags);
     options.target = target;
     options.omitPlatform = true;
-    options.onDiagnostic = (DiagnosticMessage message) {
+    options.onDiagnostic = (CfeDiagnosticMessage message) {
       if (printOnDiagnostic) {
         _print(message.plainTextFormatted.first);
       }
-      if (message.severity == Severity.error) {
+      if (message.severity == CfeSeverity.error) {
         errors = true;
         errorMessages.add(message);
       }
@@ -421,7 +467,8 @@ class DartDocTest {
   }
 }
 
-final String mainFileContent = """
+final String mainFileContent =
+    """
 // Copyright (c) 2021, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -514,8 +561,12 @@ List<Test> extractTests(Uint8List rawBytes, Uri uriForReporting) {
   String rawString = utf8.decode(rawBytes);
   List<int> lineStarts = [];
   Token firstToken = scanRawBytes(rawBytes, lineStarts: lineStarts);
-  kernel.Source source =
-      new kernel.Source(lineStarts, rawBytes, uriForReporting, uriForReporting);
+  kernel.Source source = new kernel.Source(
+    lineStarts,
+    rawBytes,
+    uriForReporting,
+    uriForReporting,
+  );
   Token token = firstToken;
   List<Test> tests = [];
   while (true) {
@@ -532,8 +583,9 @@ List<Test> extractTests(Uint8List rawBytes, Uri uriForReporting) {
 }
 
 Token scanRawBytes(Uint8List rawBytes, {List<int>? lineStarts}) {
-  ScannerConfiguration scannerConfiguration =
-      new ScannerConfiguration(enableTripleShift: true);
+  ScannerConfiguration scannerConfiguration = new ScannerConfiguration(
+    enableTripleShift: true,
+  );
 
   Utf8BytesScanner scanner = new Utf8BytesScanner(
     rawBytes,
@@ -634,7 +686,7 @@ enum TestOutcome {
   TestCompilationError,
   CompilationError,
   RuntimeError,
-  FrameworkError
+  FrameworkError,
 }
 
 class TestResult {
@@ -663,7 +715,10 @@ class TestResult {
 }
 
 List<Test> extractTestsFromComment(
-    CommentToken comment, String rawString, kernel.Source source) {
+  CommentToken comment,
+  String rawString,
+  kernel.Source source,
+) {
   CommentString commentsData = extractComments(comment, rawString);
   final String comments = commentsData.string;
   int index = -1;
@@ -675,15 +730,19 @@ List<Test> extractTestsFromComment(
   }
 
   Test scanVariableDartDoc(
-      int scanOffset,
-      String expectedLexeme,
-      int expressionCount,
-      Test Function(List<String> expressions, String location) testCreator) {
-    final Token firstToken =
-        scanRawBytes(utf8.encode(comments.substring(scanOffset)));
+    int scanOffset,
+    String expectedLexeme,
+    int expressionCount,
+    Test Function(List<String> expressions, String location) testCreator,
+  ) {
+    final Token firstToken = scanRawBytes(
+      utf8.encode(comments.substring(scanOffset)),
+    );
     final ErrorListener listener = new ErrorListener();
-    final Parser parser = new Parser(listener,
-        useImplicitCreationExpression: useImplicitCreationExpressionInCfe);
+    final Parser parser = new Parser(
+      listener,
+      useImplicitCreationExpression: useImplicitCreationExpressionInCfe,
+    );
     parser.asyncState = AsyncModifier.Async;
 
     final Token pastErrors = parser.skipErrorTokens(firstToken);
@@ -704,33 +763,51 @@ List<Test> extractTestsFromComment(
       final Token expressionFirstToken = parseFrom.next!;
       final Token beforeNextSeparator = parser.parseExpression(parseFrom);
       final Token nextSeparator = parseFrom = beforeNextSeparator.next!;
-      final String expectedSeparator = i == expressionCount ? ")" : ",";
 
       if (listener.hasErrors) {
         StringBuffer sb = new StringBuffer();
         int firstPosition = _createParseErrorMessages(
-            listener, sb, commentsData, scanOffset, source);
+          listener,
+          sb,
+          commentsData,
+          scanOffset,
+          source,
+        );
         return new TestParseError(
           sb.toString(),
           firstPosition,
           getLocation(firstPosition),
         );
-      } else if (!identical(expectedSeparator, nextSeparator.stringValue)) {
+      } else if ((i < expressionCount &&
+              !identical(",", nextSeparator.stringValue)) ||
+          (i == expressionCount &&
+              !identical(")", nextSeparator.stringValue) &&
+              !(identical(",", nextSeparator.stringValue) &&
+                  identical(")", nextSeparator.next!.stringValue)))) {
         int position =
             commentsData.charOffset + scanOffset + nextSeparator.charOffset;
-        Message message =
-            codes.templateExpectedButGot.withArguments(expectedSeparator);
+        Message message = codes.codeExpectedButGot.withArgumentsOld(
+          i < expressionCount ? "," : ")",
+        );
         return new TestParseError(
           _createParseErrorMessage(
-              source, position, nextSeparator, nextSeparator, message),
+            source,
+            position,
+            nextSeparator,
+            nextSeparator,
+            message,
+          ),
           position,
           getLocation(position),
         );
       } else {
         // Good.
-        expressionsText.add(comments.substring(
+        expressionsText.add(
+          comments.substring(
             scanOffset + expressionFirstToken.charOffset,
-            scanOffset + beforeNextSeparator.charEnd));
+            scanOffset + beforeNextSeparator.charEnd,
+          ),
+        );
       }
     }
 
@@ -747,58 +824,78 @@ List<Test> extractTestsFromComment(
   List<Test> result = [];
   index = comments.indexOf("DartDocTest(");
   while (index >= 0) {
-    result.add(scanVariableDartDoc(
+    result.add(
+      scanVariableDartDoc(
         index,
         "DartDocTest",
         2,
         (List<String> expressions, String location) =>
-            new ExpectTest(expressions[0], expressions[1], location)));
+            new ExpectTest(expressions[0], expressions[1], location),
+      ),
+    );
     index = comments.indexOf("DartDocTest(", index);
   }
   index = comments.indexOf("DartDocTestThrows(");
   while (index >= 0) {
-    result.add(scanVariableDartDoc(
+    result.add(
+      scanVariableDartDoc(
         index,
         "DartDocTestThrows",
         1,
         (List<String> expressions, String location) =>
-            new ThrowsTest(expressions[0], location)));
+            new ThrowsTest(expressions[0], location),
+      ),
+    );
     index = comments.indexOf("DartDocTestThrows(", index);
   }
   return result;
 }
 
-int _createParseErrorMessages(ErrorListener listener, StringBuffer sb,
-    CommentString commentsData, int scanOffset, kernel.Source source) {
+int _createParseErrorMessages(
+  ErrorListener listener,
+  StringBuffer sb,
+  CommentString commentsData,
+  int scanOffset,
+  kernel.Source source,
+) {
   assert(listener.recoverableErrors.isNotEmpty);
   sb.writeln("Parse error(s):");
   int? firstPosition;
   for (RecoverableError recoverableError in listener.recoverableErrors) {
-    final int position = commentsData.charOffset +
+    final int position =
+        commentsData.charOffset +
         scanOffset +
         recoverableError.startToken.charOffset;
     firstPosition ??= position;
     sb.writeln("");
-    sb.write(_createParseErrorMessage(
-      source,
-      position,
-      recoverableError.startToken,
-      recoverableError.endToken,
-      recoverableError.message,
-    ));
+    sb.write(
+      _createParseErrorMessage(
+        source,
+        position,
+        recoverableError.startToken,
+        recoverableError.endToken,
+        recoverableError.message,
+      ),
+    );
   }
   return firstPosition!;
 }
 
-String _createParseErrorMessage(kernel.Source source, int position,
-    Token startToken, Token endToken, Message message) {
+String _createParseErrorMessage(
+  kernel.Source source,
+  int position,
+  Token startToken,
+  Token endToken,
+  Message message,
+) {
   kernel.Location location = source.getLocation(source.importUri!, position);
   return command_line_reporting.formatErrorMessage(
-      source.getTextLine(location.line),
-      location,
-      endToken.charEnd - startToken.charOffset,
-      source.importUri!.toString(),
-      message.problemMessage);
+    source.getTextLine(location.line),
+    location,
+    endToken.charEnd - startToken.charOffset,
+    source.importUri!.toString(),
+    message.problemMessage,
+  );
 }
 
 CommentString extractComments(CommentToken comment, String rawString) {
@@ -899,7 +996,10 @@ class ErrorListener extends NullListener {
 
   @override
   void handleRecoverableError(
-      Message message, Token startToken, Token endToken) {
+    Message message,
+    Token startToken,
+    Token endToken,
+  ) {
     super.handleRecoverableError(message, startToken, endToken);
     recoverableErrors.add(new RecoverableError(message, startToken, endToken));
   }
@@ -914,8 +1014,10 @@ class RecoverableError {
 }
 
 class DocTestIncrementalCompiler extends IncrementalCompiler {
-  static final Uri dartDocTestUri =
-      new Uri(scheme: "dartdoctest", path: "tester");
+  static final Uri dartDocTestUri = new Uri(
+    scheme: "dartdoctest",
+    path: "tester",
+  );
   DocTestIncrementalCompiler(CompilerContext context) : super(context);
 
   @override
@@ -925,24 +1027,56 @@ class DocTestIncrementalCompiler extends IncrementalCompiler {
 
   @override
   IncrementalKernelTarget createIncrementalKernelTarget(
-      FileSystem fileSystem,
-      bool includeComments,
-      DillTarget dillTarget,
-      UriTranslator uriTranslator) {
+    FileSystem fileSystem,
+    bool includeComments,
+    DillTarget dillTarget,
+    UriTranslator uriTranslator,
+  ) {
     return new DocTestIncrementalKernelTarget(
-        context, this, fileSystem, includeComments, dillTarget, uriTranslator);
+      context,
+      this,
+      fileSystem,
+      includeComments,
+      dillTarget,
+      uriTranslator,
+    );
   }
 
   LibraryBuilder? _dartDocTestLibraryBuilder;
   String? _dartDocTestCode;
 
   Future<kernel.Component> compileDartDocTestLibrary(
-      String dartDocTestCode, Uri libraryUri) async {
+    String dartDocTestCode,
+    Uri libraryOrPartUri,
+  ) async {
     assert(dillTargetForTesting != null && kernelTargetForTesting != null);
 
     return await context.runInContext((_) async {
-      LibraryBuilder libraryBuilder = kernelTargetForTesting!.loader
-          .lookupLoadedLibraryBuilder(libraryUri)!;
+      LibraryBuilder? libraryBuilder = kernelTargetForTesting!.loader
+          .lookupLoadedLibraryBuilder(libraryOrPartUri);
+      if (libraryBuilder == null) {
+        // This might be a part file, in which case we need to find the main
+        // library.
+        String lastUriPart = libraryOrPartUri.pathSegments.last;
+        for (LibraryBuilder builder
+            in kernelTargetForTesting!.loader.loadedLibraryBuilders) {
+          List<LibraryPart> parts = builder.library.parts;
+          if (parts.isEmpty) continue;
+          for (LibraryPart part in parts) {
+            if (!part.partUri.endsWith(lastUriPart)) continue;
+            // The part string is either a relative file uri or an import uri,
+            // in both cases we'll end up with an import uri which is what we're
+            // after.
+            Uri partUri = builder.importUri.resolve(part.partUri);
+            if (partUri == libraryOrPartUri) {
+              libraryBuilder = kernelTargetForTesting!.loader
+                  .lookupLoadedLibraryBuilder(builder.importUri);
+              break;
+            }
+          }
+        }
+        if (libraryBuilder == null) throw "Couldn't find '$libraryOrPartUri'.";
+      }
 
       kernelTargetForTesting!.loader.resetSeenMessages();
 
@@ -951,7 +1085,9 @@ class DocTestIncrementalCompiler extends IncrementalCompiler {
 
       invalidate(dartDocTestUri);
       IncrementalCompilerResult compilerResult = await computeDelta(
-          entryPoints: [dartDocTestUri], fullComponent: true);
+        entryPoints: [dartDocTestUri],
+        fullComponent: true,
+      );
       kernel.Component result = compilerResult.component;
       _dartDocTestLibraryBuilder = null;
       _dartDocTestCode = null;
@@ -964,26 +1100,29 @@ class DocTestIncrementalCompiler extends IncrementalCompiler {
   }
 
   SourceCompilationUnit createDartDocTestCompilationUnit(
-      SourceLoader loader, LibraryBuilder libraryBuilder) {
+    SourceLoader loader,
+    LibraryBuilder libraryBuilder,
+  ) {
     SourceCompilationUnit dartDocTestCompilationUnit =
         new SourceCompilationUnitImpl(
-      importUri: dartDocTestUri,
-      fileUri: dartDocTestUri,
-      originImportUri: dartDocTestUri,
-      packageLanguageVersion:
-          new ImplicitLanguageVersion(libraryBuilder.languageVersion),
-      loader: loader,
-      resolveInLibrary: libraryBuilder,
-      isUnsupported: false,
-      forAugmentationLibrary: false,
-      isAugmenting: false,
-      forPatchLibrary: false,
-      referenceIsPartOwner: null,
-      packageUri: null,
-      indexedLibrary: null,
-      augmentationRoot: null,
-      mayImplementRestrictedTypes: false,
-    );
+          importUri: dartDocTestUri,
+          fileUri: dartDocTestUri,
+          originImportUri: dartDocTestUri,
+          packageLanguageVersion: new ImplicitLanguageVersion(
+            libraryBuilder.languageVersion,
+          ),
+          loader: loader,
+          resolveInLibrary: libraryBuilder,
+          isUnsupported: false,
+          forAugmentationLibrary: false,
+          isAugmenting: false,
+          forPatchLibrary: false,
+          referenceIsPartOwner: null,
+          packageUri: null,
+          indexedLibrary: null,
+          augmentationRoot: null,
+          mayImplementRestrictedTypes: false,
+        );
 
     if (libraryBuilder is DillLibraryBuilder) {
       for (kernel.LibraryDependency dependency
@@ -995,25 +1134,35 @@ class DocTestIncrementalCompiler extends IncrementalCompiler {
         for (kernel.Combinator combinator in dependency.combinators) {
           combinators ??= <CombinatorBuilder>[];
 
-          combinators.add(combinator.isShow
-              ? new CombinatorBuilder.show(combinator.names,
-                  combinator.fileOffset, libraryBuilder.fileUri)
-              : new CombinatorBuilder.hide(combinator.names,
-                  combinator.fileOffset, libraryBuilder.fileUri));
+          combinators.add(
+            combinator.isShow
+                ? new CombinatorBuilder.show(
+                    combinator.names,
+                    combinator.fileOffset,
+                    libraryBuilder.fileUri,
+                  )
+                : new CombinatorBuilder.hide(
+                    combinator.names,
+                    combinator.fileOffset,
+                    libraryBuilder.fileUri,
+                  ),
+          );
         }
 
         dartDocTestCompilationUnit.addSyntheticImport(
-            importUri: dependency.importedLibraryReference.asLibrary.importUri,
-            prefix: dependency.name,
-            combinators: combinators,
-            deferred: dependency.isDeferred);
+          importUri: dependency.importedLibraryReference.asLibrary.importUri,
+          prefix: dependency.name,
+          combinators: combinators,
+          deferred: dependency.isDeferred,
+        );
       }
 
       dartDocTestCompilationUnit.addSyntheticImport(
-          importUri: libraryBuilder.importUri,
-          prefix: null,
-          combinators: null,
-          deferred: false);
+        importUri: libraryBuilder.importUri,
+        prefix: null,
+        combinators: null,
+        deferred: false,
+      );
     } else {
       throw "Got ${libraryBuilder.runtimeType}";
     }
@@ -1025,14 +1174,19 @@ class DocTestIncrementalCompiler extends IncrementalCompiler {
 class DocTestIncrementalKernelTarget extends IncrementalKernelTarget {
   final DocTestIncrementalCompiler compiler;
   DocTestIncrementalKernelTarget(
-      CompilerContext compilerContext,
-      this.compiler,
-      FileSystem fileSystem,
-      bool includeComments,
-      DillTarget dillTarget,
-      UriTranslator uriTranslator)
-      : super(compilerContext, fileSystem, includeComments, dillTarget,
-            uriTranslator);
+    CompilerContext compilerContext,
+    this.compiler,
+    FileSystem fileSystem,
+    bool includeComments,
+    DillTarget dillTarget,
+    UriTranslator uriTranslator,
+  ) : super(
+        compilerContext,
+        fileSystem,
+        includeComments,
+        dillTarget,
+        uriTranslator,
+      );
 
   @override
   SourceLoader createLoader() {
@@ -1043,23 +1197,27 @@ class DocTestIncrementalKernelTarget extends IncrementalKernelTarget {
 class DocTestSourceLoader extends SourceLoader {
   final DocTestIncrementalCompiler compiler;
 
-  DocTestSourceLoader(this.compiler, FileSystem fileSystem,
-      bool includeComments, DocTestIncrementalKernelTarget target)
-      : super(fileSystem, includeComments, target);
+  DocTestSourceLoader(
+    this.compiler,
+    FileSystem fileSystem,
+    bool includeComments,
+    DocTestIncrementalKernelTarget target,
+  ) : super(fileSystem, includeComments, target);
 
   @override
-  SourceCompilationUnit createSourceCompilationUnit(
-      {required Uri importUri,
-      required Uri fileUri,
-      Uri? packageUri,
-      required Uri originImportUri,
-      required LanguageVersion packageLanguageVersion,
-      SourceCompilationUnit? origin,
-      IndexedLibrary? referencesFromIndex,
-      bool? referenceIsPartOwner,
-      bool isAugmentation = false,
-      bool isPatch = false,
-      required bool mayImplementRestrictedTypes}) {
+  SourceCompilationUnit createSourceCompilationUnit({
+    required Uri importUri,
+    required Uri fileUri,
+    Uri? packageUri,
+    required Uri originImportUri,
+    required LanguageVersion packageLanguageVersion,
+    SourceCompilationUnit? origin,
+    IndexedLibrary? referencesFromIndex,
+    bool? referenceIsPartOwner,
+    bool isAugmentation = false,
+    bool isPatch = false,
+    required bool mayImplementRestrictedTypes,
+  }) {
     if (importUri == DocTestIncrementalCompiler.dartDocTestUri) {
       HybridFileSystem hfs = target.fileSystem as HybridFileSystem;
       MemoryFileSystem fs = hfs.memory;
@@ -1067,19 +1225,22 @@ class DocTestSourceLoader extends SourceLoader {
           .entityForUri(DocTestIncrementalCompiler.dartDocTestUri)
           .writeAsStringSync(compiler._dartDocTestCode!);
       return compiler.createDartDocTestCompilationUnit(
-          this, compiler._dartDocTestLibraryBuilder!);
+        this,
+        compiler._dartDocTestLibraryBuilder!,
+      );
     }
     return super.createSourceCompilationUnit(
-        importUri: importUri,
-        fileUri: fileUri,
-        packageUri: packageUri,
-        originImportUri: originImportUri,
-        packageLanguageVersion: packageLanguageVersion,
-        origin: origin,
-        referencesFromIndex: referencesFromIndex,
-        referenceIsPartOwner: referenceIsPartOwner,
-        isAugmentation: isAugmentation,
-        isPatch: isPatch,
-        mayImplementRestrictedTypes: mayImplementRestrictedTypes);
+      importUri: importUri,
+      fileUri: fileUri,
+      packageUri: packageUri,
+      originImportUri: originImportUri,
+      packageLanguageVersion: packageLanguageVersion,
+      origin: origin,
+      referencesFromIndex: referencesFromIndex,
+      referenceIsPartOwner: referenceIsPartOwner,
+      isAugmentation: isAugmentation,
+      isPatch: isPatch,
+      mayImplementRestrictedTypes: mayImplementRestrictedTypes,
+    );
   }
 }

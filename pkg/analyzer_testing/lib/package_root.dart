@@ -11,8 +11,9 @@ import 'package:path/path.dart' as path;
 String get packageRoot {
   // If the package root directory is specified on the command line using
   // `-DpkgRoot=...`, use that.
-  const pkgRootVar =
-      bool.hasEnvironment('pkgRoot') ? String.fromEnvironment('pkgRoot') : null;
+  const pkgRootVar = bool.hasEnvironment('pkgRoot')
+      ? String.fromEnvironment('pkgRoot')
+      : null;
   if (pkgRootVar != null) {
     var pkgRootPath = path.join(Directory.current.path, pkgRootVar);
     if (!pkgRootPath.endsWith(path.separator)) pkgRootPath += path.separator;
@@ -40,7 +41,15 @@ String get packageRoot {
     return pathFromCwd;
   }
 
-  throw StateError('Unable to find sdk/pkg/ in $scriptPath');
+  var exceptionMessage =
+      'Unable to find the Dart SDK package root directory ("sdk/pkg/") in ';
+  if (pkgRootVar != null) {
+    exceptionMessage += '"$pkgRootVar" (specified via `-DpkgRoot=`), or ';
+  }
+  exceptionMessage +=
+      'in an ancestor of either "$pathFromScript", or "$pathFromCwd".';
+
+  throw StateError(exceptionMessage);
 }
 
 /// Tries to find the path to the 'pkg' folder from [searchPath].

@@ -47,6 +47,10 @@ library;
 //   final z1 = y;
 //              ^
 //
+// pkg/front_end/testcases/general/constants/various.dart:197:14: Error: Not a constant expression.
+//   final z2 = x;
+//              ^
+//
 // pkg/front_end/testcases/general/constants/various.dart:9:49: Error: The argument type 'Null' can't be assigned to the parameter type 'bool'.
 // const bool.fromEnvironment("bar", defaultValue: null);
 //                                                 ^
@@ -80,14 +84,6 @@ library;
 // Try adding an explicit super initializer with the required arguments.
 //   const ExtendsFoo2();
 //         ^
-//
-// pkg/front_end/testcases/general/constants/various.dart:196:14: Error: Not a constant expression.
-//   final z1 = y;
-//              ^
-//
-// pkg/front_end/testcases/general/constants/various.dart:197:14: Error: Not a constant expression.
-//   final z2 = x;
-//              ^
 //
 // pkg/front_end/testcases/general/constants/various.dart:96:7: Error: The class 'AbstractClassWithConstructor' is abstract and can't be instantiated.
 // const AbstractClassWithConstructor();
@@ -276,10 +272,10 @@ class ConstClassWithFinalFields1 extends core::Object /*hasConstConstructor*/  {
 }
 class ConstClassWithFinalFields2 extends core::Object /*hasConstConstructor*/  {
   final field core::int y = 1;
-  final field invalid-type z1 = invalid-expression "pkg/front_end/testcases/general/constants/various.dart:196:14: Error: Not a constant expression.
+  final field invalid-type z1 = invalid-expression "pkg/front_end/testcases/general/constants/various.dart:196:14: Error: Can't access 'this' in a field initializer to read 'y'.
   final z1 = y;
              ^";
-  final field core::int z2 = invalid-expression "pkg/front_end/testcases/general/constants/various.dart:197:14: Error: Not a constant expression.
+  final field invalid-type z2 = invalid-expression "pkg/front_end/testcases/general/constants/various.dart:197:14: Error: Not a constant expression.
   final z2 = x;
              ^";
   const constructor •() → self::ConstClassWithFinalFields2
@@ -391,10 +387,10 @@ const y1 = --y;
 static const field invalid-type y2 = invalid-expression "pkg/front_end/testcases/general/constants/various.dart:83:14: Error: Setter not found: 'y'.
 const y2 = ++y;
              ^";
-static const field core::int y3 = invalid-expression "pkg/front_end/testcases/general/constants/various.dart:84:12: Error: Setter not found: 'y'.
+static const field invalid-type y3 = invalid-expression "pkg/front_end/testcases/general/constants/various.dart:84:12: Error: Setter not found: 'y'.
 const y3 = y--;
            ^";
-static const field core::int y4 = invalid-expression "pkg/front_end/testcases/general/constants/various.dart:85:12: Error: Setter not found: 'y'.
+static const field invalid-type y4 = invalid-expression "pkg/front_end/testcases/general/constants/various.dart:85:12: Error: Setter not found: 'y'.
 const y4 = y++;
            ^";
 static field self::AbstractClassWithConstructor abstractClassWithConstructor = invalid-expression "The class 'AbstractClassWithConstructor' is abstract and can't be instantiated.";
@@ -435,7 +431,7 @@ static field self::ClassWithNonEmptyConstConstructor classWithNonEmptyConstConst
 Try using a constructor or factory that is 'const'.
 const ClassWithNonEmptyConstConstructor();
       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^";
-static field self::ConstClassWithFinalFields2 constClassWithFinalFields = invalid-expression "pkg/front_end/testcases/general/constants/various.dart:196:14: Error: Not a constant expression.
+static field self::ConstClassWithFinalFields2 constClassWithFinalFields = invalid-expression "pkg/front_end/testcases/general/constants/various.dart:196:14: Error: Can't access 'this' in a field initializer to read 'y'.
   final z1 = y;
              ^";
 static const field core::bool zeroPointZeroIdentical = #C2;

@@ -91,10 +91,10 @@ class AstResolver {
       node.redirectedConstructor?.accept(visitor);
     }
 
+    _prepareEnclosingDeclarations();
     visit(_resolutionVisitor);
     visit(_scopeResolverVisitor);
 
-    _prepareEnclosingDeclarations();
     _flowAnalysis.bodyOrInitializer_enter(node, node.parameters, visit: visit);
     visit(_resolverVisitor);
     _resolverVisitor.checkIdle();
@@ -119,6 +119,10 @@ class AstResolver {
   }
 
   void _prepareEnclosingDeclarations() {
+    _resolutionVisitor.prepareEnclosingDeclarations(
+      enclosingClassElement: enclosingClassElement,
+    );
+
     _resolverVisitor.prepareEnclosingDeclarations(
       enclosingClassElement: enclosingClassElement,
       enclosingExecutableElement: enclosingExecutableElement,

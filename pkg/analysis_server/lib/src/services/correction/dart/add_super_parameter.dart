@@ -28,7 +28,7 @@ class AddSuperParameter extends ResolvedCorrectionProducer {
   List<String> get fixArguments => [_missingCount == 1 ? '' : 's'];
 
   @override
-  FixKind get fixKind => DartFixKind.ADD_SUPER_PARAMETER;
+  FixKind get fixKind => DartFixKind.addSuperParameter;
 
   @override
   Future<void> compute(ChangeBuilder builder) async {
@@ -83,10 +83,9 @@ class AddSuperParameter extends ResolvedCorrectionProducer {
 
     var missingPositionalParameters = <FormalParameterElement>[];
     if (arePositionalOrdered) {
-      var index =
-          lastPositionalParameter == null
-              ? 0
-              : parameters.indexOf(lastPositionalParameter) + 1;
+      var index = lastPositionalParameter == null
+          ? 0
+          : parameters.indexOf(lastPositionalParameter) + 1;
       missingPositionalParameters = superPositionalParameters.sublist(index);
     }
 
@@ -115,10 +114,9 @@ class AddSuperParameter extends ResolvedCorrectionProducer {
         (parameter) => parameter.isNamed,
       );
       if (missingPositionalParameters.isNotEmpty) {
-        var offset =
-            lastPositionalParameter == null
-                ? constructorDeclaration.parameters.leftParenthesis.end
-                : lastPositionalParameter.end;
+        var offset = lastPositionalParameter == null
+            ? constructorDeclaration.parameters.leftParenthesis.end
+            : lastPositionalParameter.end;
 
         await builder.addDartFileEdit(file, (builder) {
           builder.addInsertion(offset, (builder) {

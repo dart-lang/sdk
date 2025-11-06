@@ -27,7 +27,7 @@ import 'lib1.dart' deferred as a;
 mixin M {}
 class C = a.A with M;
 ''',
-      [error(CompileTimeErrorCode.EXTENDS_DEFERRED_CLASS, 69, 3)],
+      [error(CompileTimeErrorCode.extendsDeferredClass, 69, 3)],
     );
   }
 
@@ -42,7 +42,7 @@ library root;
 import 'lib1.dart' deferred as a;
 class B extends a.A {}
 ''',
-      [error(CompileTimeErrorCode.EXTENDS_DEFERRED_CLASS, 64, 3)],
+      [error(CompileTimeErrorCode.extendsDeferredClass, 64, 3)],
     );
   }
 
@@ -58,7 +58,7 @@ library root;
 import 'lib1.dart' deferred as a;
 class B extends a.B {}
 ''',
-      [error(CompileTimeErrorCode.EXTENDS_DEFERRED_CLASS, 64, 3)],
+      [error(CompileTimeErrorCode.extendsDeferredClass, 64, 3)],
     );
   }
 }
