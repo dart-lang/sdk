@@ -214,7 +214,10 @@ ArgParser argParser = new ArgParser(allowTrailingOptions: true)
   ..addOption('libraries-spec',
       help: 'A path or uri to the libraries specification JSON file')
   ..addFlag('debugger-module-names',
-      help: 'Use debugger-friendly modules names', defaultsTo: false)
+      help: "Use debugger-friendly modules names that assume the 'lib/' "
+          "directories of packages are present in the served directory "
+          "structure at runtime.",
+      defaultsTo: false)
   ..addFlag('experimental-emit-debug-metadata',
       help: 'Emit module and library metadata for the debugger',
       defaultsTo: false)
