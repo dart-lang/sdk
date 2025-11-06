@@ -1782,18 +1782,24 @@ library
     hasImplicitType hasInitializer a
       reference: <testLibrary>::@topLevelVariable::a
       firstFragment: #F1
+      typeInferenceError: dependencyCycle
+        arguments: [a, b, c]
       type: dynamic
       getter: <testLibrary>::@getter::a
       setter: <testLibrary>::@setter::a
     hasImplicitType hasInitializer b
       reference: <testLibrary>::@topLevelVariable::b
       firstFragment: #F2
+      typeInferenceError: dependencyCycle
+        arguments: [a, b, c]
       type: dynamic
       getter: <testLibrary>::@getter::b
       setter: <testLibrary>::@setter::b
     hasImplicitType hasInitializer c
       reference: <testLibrary>::@topLevelVariable::c
       firstFragment: #F3
+      typeInferenceError: dependencyCycle
+        arguments: [a, b, c]
       type: dynamic
       getter: <testLibrary>::@getter::c
       setter: <testLibrary>::@setter::c
@@ -3846,11 +3852,15 @@ library
         static final hasImplicitType hasInitializer x
           reference: <testLibrary>::@class::A::@field::x
           firstFragment: #F2
+          typeInferenceError: dependencyCycle
+            arguments: [x, y]
           type: dynamic
           getter: <testLibrary>::@class::A::@getter::x
         static final hasImplicitType hasInitializer y
           reference: <testLibrary>::@class::A::@field::y
           firstFragment: #F3
+          typeInferenceError: dependencyCycle
+            arguments: [x, y]
           type: dynamic
           getter: <testLibrary>::@class::A::@getter::y
       constructors
@@ -3914,6 +3924,8 @@ library
         static final hasImplicitType hasInitializer a
           reference: <testLibrary>::@class::A::@field::a
           firstFragment: #F2
+          typeInferenceError: dependencyCycle
+            arguments: [a, c]
           type: dynamic
           getter: <testLibrary>::@class::A::@getter::a
         static final hasImplicitType hasInitializer b
@@ -3924,6 +3936,8 @@ library
         final hasImplicitType hasInitializer c
           reference: <testLibrary>::@class::A::@field::c
           firstFragment: #F4
+          typeInferenceError: dependencyCycle
+            arguments: [a, c]
           type: dynamic
           getter: <testLibrary>::@class::A::@getter::c
       constructors
@@ -4412,11 +4426,15 @@ library
     final hasImplicitType hasInitializer a
       reference: <testLibrary>::@topLevelVariable::a
       firstFragment: #F4
+      typeInferenceError: dependencyCycle
+        arguments: [a, b]
       type: dynamic
       getter: <testLibrary>::@getter::a
     final hasImplicitType hasInitializer b
       reference: <testLibrary>::@topLevelVariable::b
       firstFragment: #F5
+      typeInferenceError: dependencyCycle
+        arguments: [a, b]
       type: dynamic
       getter: <testLibrary>::@getter::b
   getters
@@ -4668,11 +4686,15 @@ library
     final hasImplicitType hasInitializer b
       reference: <testLibrary>::@topLevelVariable::b
       firstFragment: #F2
+      typeInferenceError: dependencyCycle
+        arguments: [b, c]
       type: dynamic
       getter: <testLibrary>::@getter::b
     final hasImplicitType hasInitializer c
       reference: <testLibrary>::@topLevelVariable::c
       firstFragment: #F3
+      typeInferenceError: dependencyCycle
+        arguments: [b, c]
       type: dynamic
       getter: <testLibrary>::@getter::c
   getters
@@ -4725,11 +4747,15 @@ library
     final hasImplicitType hasInitializer a
       reference: <testLibrary>::@topLevelVariable::a
       firstFragment: #F1
+      typeInferenceError: dependencyCycle
+        arguments: [a, b]
       type: dynamic
       getter: <testLibrary>::@getter::a
     final hasImplicitType hasInitializer b
       reference: <testLibrary>::@topLevelVariable::b
       firstFragment: #F2
+      typeInferenceError: dependencyCycle
+        arguments: [a, b]
       type: dynamic
       getter: <testLibrary>::@getter::b
     final hasImplicitType hasInitializer c
@@ -4793,21 +4819,29 @@ library
     final hasImplicitType hasInitializer a
       reference: <testLibrary>::@topLevelVariable::a
       firstFragment: #F1
+      typeInferenceError: dependencyCycle
+        arguments: [a, d]
       type: dynamic
       getter: <testLibrary>::@getter::a
     final hasImplicitType hasInitializer b
       reference: <testLibrary>::@topLevelVariable::b
       firstFragment: #F2
+      typeInferenceError: dependencyCycle
+        arguments: [b, c]
       type: dynamic
       getter: <testLibrary>::@getter::b
     final hasImplicitType hasInitializer c
       reference: <testLibrary>::@topLevelVariable::c
       firstFragment: #F3
+      typeInferenceError: dependencyCycle
+        arguments: [b, c]
       type: dynamic
       getter: <testLibrary>::@getter::c
     final hasImplicitType hasInitializer d
       reference: <testLibrary>::@topLevelVariable::d
       firstFragment: #F4
+      typeInferenceError: dependencyCycle
+        arguments: [a, d]
       type: dynamic
       getter: <testLibrary>::@getter::d
   getters
@@ -4871,16 +4905,22 @@ library
     final hasImplicitType hasInitializer a
       reference: <testLibrary>::@topLevelVariable::a
       firstFragment: #F1
+      typeInferenceError: dependencyCycle
+        arguments: [a, b]
       type: dynamic
       getter: <testLibrary>::@getter::a
     final hasImplicitType hasInitializer b
       reference: <testLibrary>::@topLevelVariable::b
       firstFragment: #F2
+      typeInferenceError: dependencyCycle
+        arguments: [b, c]
       type: dynamic
       getter: <testLibrary>::@getter::b
     final hasImplicitType hasInitializer c
       reference: <testLibrary>::@topLevelVariable::c
       firstFragment: #F3
+      typeInferenceError: dependencyCycle
+        arguments: [b, c]
       type: dynamic
       getter: <testLibrary>::@getter::c
   getters

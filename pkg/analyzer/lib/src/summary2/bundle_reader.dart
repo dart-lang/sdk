@@ -707,6 +707,7 @@ class LibraryReader {
       );
       element.linkFragments(fragments);
       element.readModifiers(_reader);
+      element.typeInferenceError = _readTopLevelInferenceError();
 
       element.deferReadResolution(
         _createDeferredReadResolutionCallback((reader) {
@@ -1253,6 +1254,7 @@ class LibraryReader {
       var element = TopLevelVariableElementImpl(reference, fragments.first);
       element.linkFragments(fragments);
       element.readModifiers(_reader);
+      element.typeInferenceError = _readTopLevelInferenceError();
 
       element.deferReadResolution(
         _createDeferredReadResolutionCallback((reader) {

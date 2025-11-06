@@ -40,39 +40,6 @@ class C4([covariant this.x]) {
   int? x;
 }
 
-// In-body declaring constructor
-class C5 {
-  int? x;
-  this(covariant this.x);
-  //   ^
-  // [analyzer] unspecified
-  // [cfe] unspecified
-}
-
-class C6 {
-  int x;
-  this({covariant this.x});
-  //   ^
-  // [analyzer] unspecified
-  // [cfe] unspecified
-}
-
-class C7 {
-  int x;
-  this({required covariant this.x});
-  //   ^
-  // [analyzer] unspecified
-  // [cfe] unspecified
-}
-
-class C8 {
-  int? x;
-  this([covariant this.x]);
-  //   ^
-  // [analyzer] unspecified
-  // [cfe] unspecified
-}
-
 // `covariant` with `super.x`
 
 class A(final int? x);
@@ -97,32 +64,3 @@ class C12([covariant super.x]) extends A;
 //                           ^
 // [analyzer] unspecified
 // [cfe] unspecified
-
-// In-body declaring constructor
-class C13 extends A {
-  this(covariant super.x);
-  //  ^
-  // [analyzer] unspecified
-  // [cfe] unspecified
-}
-
-class C14 extends A {
-  this({covariant super.x});
-  //  ^
-  // [analyzer] unspecified
-  // [cfe] unspecified
-}
-
-class C15 extends A {
-  this({required covariant super.x});
-  //  ^
-  // [analyzer] unspecified
-  // [cfe] unspecified
-}
-
-class C16 extends A {
-  this([covariant super.x]);
-  //  ^
-  // [analyzer] unspecified
-  // [cfe] unspecified
-}

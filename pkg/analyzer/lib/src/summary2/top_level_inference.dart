@@ -162,7 +162,7 @@ class _InitializerInference {
 
     _toInfer.add(element);
 
-    element.firstFragment.typeInference = _PropertyInducingElementTypeInference(
+    element.typeInference = _PropertyInducingElementTypeInference(
       _linker,
       _inferring,
       element,
@@ -228,7 +228,7 @@ class _PropertyInducingElementTypeInference
       for (var inference in cycle) {
         if (inference._status == _InferenceStatus.beingInferred) {
           var element = inference._element;
-          element.firstFragment.typeInferenceError = inferenceError;
+          element.typeInferenceError = inferenceError;
           element.type = DynamicTypeImpl.instance;
           inference._status = _InferenceStatus.inferred;
         }

@@ -2549,12 +2549,16 @@ library
     hasImplicitType hasInitializer a
       reference: <testLibrary>::@topLevelVariable::a
       firstFragment: #F1
+      typeInferenceError: dependencyCycle
+        arguments: [a, b]
       type: dynamic
       getter: <testLibrary>::@getter::a
       setter: <testLibrary>::@setter::a
     hasImplicitType hasInitializer b
       reference: <testLibrary>::@topLevelVariable::b
       firstFragment: #F2
+      typeInferenceError: dependencyCycle
+        arguments: [a, b]
       type: dynamic
       getter: <testLibrary>::@getter::b
       setter: <testLibrary>::@setter::b
@@ -2617,6 +2621,8 @@ library
     hasImplicitType hasInitializer a
       reference: <testLibrary>::@topLevelVariable::a
       firstFragment: #F1
+      typeInferenceError: dependencyCycle
+        arguments: [a]
       type: dynamic
       getter: <testLibrary>::@getter::a
       setter: <testLibrary>::@setter::a
@@ -4752,6 +4758,8 @@ library
         static hasImplicitType hasInitializer a
           reference: <testLibrary>::@class::A::@field::a
           firstFragment: #F2
+          typeInferenceError: dependencyCycle
+            arguments: [a, b]
           type: dynamic
           getter: <testLibrary>::@class::A::@getter::a
           setter: <testLibrary>::@class::A::@setter::a
@@ -4782,6 +4790,8 @@ library
         static hasImplicitType hasInitializer b
           reference: <testLibrary>::@class::B::@field::b
           firstFragment: #F8
+          typeInferenceError: dependencyCycle
+            arguments: [a, b]
           type: dynamic
           getter: <testLibrary>::@class::B::@getter::b
           setter: <testLibrary>::@class::B::@setter::b
@@ -4893,6 +4903,8 @@ library
         static hasImplicitType hasInitializer a
           reference: <testLibrary>::@class::A::@field::a
           firstFragment: #F2
+          typeInferenceError: dependencyCycle
+            arguments: [a, b]
           type: dynamic
           getter: <testLibrary>::@class::A::@getter::a
           setter: <testLibrary>::@class::A::@setter::a
@@ -4920,6 +4932,8 @@ library
     hasImplicitType hasInitializer b
       reference: <testLibrary>::@topLevelVariable::b
       firstFragment: #F7
+      typeInferenceError: dependencyCycle
+        arguments: [a, b]
       type: dynamic
       getter: <testLibrary>::@getter::b
       setter: <testLibrary>::@setter::b
@@ -4997,16 +5011,22 @@ library
     final hasImplicitType hasInitializer a
       reference: <testLibrary>::@topLevelVariable::a
       firstFragment: #F1
+      typeInferenceError: dependencyCycle
+        arguments: [a, b, c]
       type: dynamic
       getter: <testLibrary>::@getter::a
     final hasImplicitType hasInitializer b
       reference: <testLibrary>::@topLevelVariable::b
       firstFragment: #F2
+      typeInferenceError: dependencyCycle
+        arguments: [a, b, c]
       type: dynamic
       getter: <testLibrary>::@getter::b
     final hasImplicitType hasInitializer c
       reference: <testLibrary>::@topLevelVariable::c
       firstFragment: #F3
+      typeInferenceError: dependencyCycle
+        arguments: [a, b, c]
       type: dynamic
       getter: <testLibrary>::@getter::c
     final hasImplicitType hasInitializer d
@@ -12256,6 +12276,7 @@ library
         m
           reference: <testLibrary>::@class::C::@method::m
           firstFragment: #F11
+          typeInferenceError: overrideNoCombinedSuperSignature
           formalParameters
             #E2 requiredPositional hasImplicitType a
               firstFragment: #F12
@@ -12368,6 +12389,7 @@ library
         abstract foo
           reference: <testLibrary>::@class::C::@method::foo
           firstFragment: #F11
+          typeInferenceError: overrideNoCombinedSuperSignature
           formalParameters
             #E2 requiredPositional hasImplicitType x
               firstFragment: #F12
@@ -12463,6 +12485,7 @@ library
         m
           reference: <testLibrary>::@class::C::@method::m
           firstFragment: #F9
+          typeInferenceError: overrideNoCombinedSuperSignature
           returnType: dynamic
 ''');
   }
@@ -12586,6 +12609,7 @@ library
         m
           reference: <testLibrary>::@class::C::@method::m
           firstFragment: #F13
+          typeInferenceError: overrideNoCombinedSuperSignature
           formalParameters
             #E4 requiredPositional hasImplicitType a
               firstFragment: #F14
@@ -12717,6 +12741,7 @@ library
         m
           reference: <testLibrary>::@class::C::@method::m
           firstFragment: #F14
+          typeInferenceError: overrideNoCombinedSuperSignature
           formalParameters
             #E5 requiredPositional hasImplicitType a
               firstFragment: #F15

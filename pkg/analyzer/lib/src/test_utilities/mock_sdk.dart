@@ -46,7 +46,10 @@ abstract class Future<T> {
   Future<T> whenComplete(FutureOr<void> action());
 
   static Future<List<T>> wait<T>(
-    Iterable<Future<T>> futures, {void cleanUp(T successValue)?,}) => throw 0;
+    Iterable<Future<T>> futures, {
+    bool eagerError = false,
+    void cleanUp(T successValue)?,
+  }) => throw 0;
 }
 
 abstract class FutureOr<T> {}
@@ -241,7 +244,10 @@ final class JsonDecoder extends Converter<String, Object?> {}
 const JsonCodec json = JsonCodec();
 
 final class JsonCodec {
-  const JsonCodec();
+  const JsonCodec({
+    Object? reviver(Object? key, Object? value)?,
+    Object? toEncodable(dynamic object)?,
+  });
   String encode(Object? value, {Object? toEncodable(dynamic object)?}) => '';
 }
 
@@ -342,7 +348,9 @@ enum _DeprecationKind {
 final class pragma {
   final String name;
   final Object? options;
-  const pragma(this.name, [this.options]);
+
+  const factory pragma(String name, [Object? options]) = pragma._;
+  const pragma._(this.name, [this.options]);
 }
 
 abstract final class double extends num {
@@ -613,7 +621,28 @@ class Object {
   external dynamic noSuchMethod(Invocation invocation);
 
   @Since("2.14")
-  static int hash(Object? object1, Object? object2) => 0;
+  static int hash(
+    Object? object1,
+    Object? object2, [
+    Object? object3 = sentinelValue,
+    Object? object4 = sentinelValue,
+    Object? object5 = sentinelValue,
+    Object? object6 = sentinelValue,
+    Object? object7 = sentinelValue,
+    Object? object8 = sentinelValue,
+    Object? object9 = sentinelValue,
+    Object? object10 = sentinelValue,
+    Object? object11 = sentinelValue,
+    Object? object12 = sentinelValue,
+    Object? object13 = sentinelValue,
+    Object? object14 = sentinelValue,
+    Object? object15 = sentinelValue,
+    Object? object16 = sentinelValue,
+    Object? object17 = sentinelValue,
+    Object? object18 = sentinelValue,
+    Object? object19 = sentinelValue,
+    Object? object20 = sentinelValue,
+  ]) => throw 0;
 
   @Since("2.14")
   static int hashAll(Iterable<Object?> objects) => 0;
@@ -633,7 +662,13 @@ abstract final class Record {}
   "'Pattern' may be a more appropriate interface to implement.",
 )
 abstract interface class RegExp implements Pattern {
-  external factory RegExp(String source, {bool unicode = false});
+  external factory RegExp(
+    String source, {
+    bool multiLine = false,
+    bool caseSensitive = true,
+    bool unicode = false,
+    bool dotAll = false,
+  });
 }
 
 abstract interface class Set<E> implements Iterable<E> {
@@ -1222,7 +1257,7 @@ class InputElement extends HtmlElement {
   factory InputElement._() {
     throw new UnsupportedError("Not supported");
   }
-  factory InputElement() => document.createElement("input");
+  factory InputElement({String? type}) => document.createElement("input");
   String? get value => throw 0;
   set value(String? value) {}
   String get validationMessage => throw 0;
@@ -1234,7 +1269,7 @@ class IFrameElement extends HtmlElement {
   }
   factory IFrameElement() => throw 0;
   String? get src => throw 0;
-  set src(Stirng? value) {}
+  set src(String? value) {}
   set srcdoc(String? value) {}
 }
 
@@ -1337,6 +1372,13 @@ class ExternalName {
   const ExternalName(this.name);
 }
 
+class SentinelValue {
+  final int id;
+  const SentinelValue(this.id);
+}
+
+const Object sentinelValue = SentinelValue(0);
+
 class Since {
   final String version;
   const Since(this.version);
@@ -1366,13 +1408,21 @@ abstract interface class Directory implements FileSystemEntity {
   }
 }
 
+class FileMode {
+  static const write = FileMode._internal(1);
+
+  final int _mode;
+
+  const FileMode._internal(this._mode);
+}
+
 abstract interface class File implements FileSystemEntity {
   factory File(String path) {
     throw 0;
   }
   Future<DateTime> lastModified();
   DateTime lastModifiedSync();
-  IOSink openWrite();
+  IOSink openWrite({FileMode mode = FileMode.write, Encoding encoding = utf8});
 }
 
 abstract class FileSystemEntity {

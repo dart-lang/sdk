@@ -38,118 +38,34 @@ mixin M6.named();
 // [analyzer] unspecified
 // [cfe] unspecified
 
-mixin M7 {
-  this(var int x);
-  // ^
-  // [analyzer] unspecified
-  // [cfe] unspecified)
-}
-
-mixin M8 {
-  this(final int x);
-  // ^
-  // [analyzer] unspecified
-  // [cfe] unspecified)
-}
-
-mixin M9 {
-  this(int x);
-  // ^
-  // [analyzer] unspecified
-  // [cfe] unspecified)
-}
-
-mixin M10 {
-  this.named(int x);
-  // ^
-  // [analyzer] unspecified
-  // [cfe] unspecified)
-}
-
-mixin M11 {
-  this();
-  // ^
-  // [analyzer] unspecified
-  // [cfe] unspecified)
-}
-
-mixin M12 {
-  this.named();
-  // ^
-  // [analyzer] unspecified
-  // [cfe] unspecified)
-}
-
 class C2<T>;
 
-mixin M13<T>(var T x) implements C2<T>;
+mixin M7<T>(var T x) implements C2<T>;
 //    ^
 // [analyzer] unspecified
 // [cfe] unspecified
 
-mixin M14<T>(final T x) on C2<T>;
+mixin M8<T>(final T x) on C2<T>;
 //    ^
 // [analyzer] unspecified
 // [cfe] unspecified
 
-mixin M15<T>(T x);
+mixin M9<T>(T x);
 //    ^
 // [analyzer] unspecified
 // [cfe] unspecified
 
-mixin M16<T>.named(T x);
+mixin M10<T>.named(T x);
 //    ^
 // [analyzer] unspecified
 // [cfe] unspecified
 
-mixin M17<T>();
+mixin M11<T>();
 //    ^
 // [analyzer] unspecified
 // [cfe] unspecified
 
-mixin M18<T>.named();
+mixin M12<T>.named();
 //    ^
 // [analyzer] unspecified
 // [cfe] unspecified
-
-mixin M19<T> {
-  this(var T x);
-  // ^
-  // [analyzer] unspecified
-  // [cfe] unspecified)
-}
-
-mixin M20<T> {
-  this(final T x);
-  // ^
-  // [analyzer] unspecified
-  // [cfe] unspecified)
-}
-
-mixin M21<T> {
-  this(T x);
-  // ^
-  // [analyzer] unspecified
-  // [cfe] unspecified)
-}
-
-mixin M22<T> {
-  this.named(T x);
-  // ^
-  // [analyzer] unspecified
-  // [cfe] unspecified)
-}
-
-mixin M23<T> {
-  this();
-  // ^
-  // [analyzer] unspecified
-  // [cfe] unspecified)
-}
-
-mixin M24<T> {
-  this.named();
-  // ^
-  // [analyzer] unspecified
-  // [cfe] unspecified)
-}

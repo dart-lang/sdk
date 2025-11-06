@@ -6,13 +6,13 @@
 
 // SharedOptions=--enable-experiment=declaring-constructors
 
-class C2(this.x) {
+import "package:expect/expect.dart";
+
+class C1(this.x) {
   late int x;
   external double d;
 }
 
-class C2 {
-  late int x;
-  external double d;
-  this(this.x);
+void main() {
+  Expect.equals(1, C1(1).x);
 }

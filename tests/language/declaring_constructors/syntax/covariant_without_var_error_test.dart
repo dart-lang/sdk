@@ -26,32 +26,3 @@ class C4([covariant int? x]);
 //      ^
 // [analyzer] unspecified
 // [cfe] unspecified
-
-
-class C5 {
-  this(covariant int x);
-  //   ^
-  // [analyzer] unspecified
-  // [cfe] unspecified
-}
-
-class C6 {
-  this({covariant int? x});
-  //   ^
-  // [analyzer] unspecified
-  // [cfe] unspecified
-}
-
-class C7 {
-  this({required covariant int x});
-  //   ^
-  // [analyzer] unspecified
-  // [cfe] unspecified
-}
-
-class C8 {
-  this([covariant int? x]);
-  //   ^
-  // [analyzer] unspecified
-  // [cfe] unspecified
-}

@@ -491,6 +491,7 @@ class FieldItem extends VariableItem<FieldElementImpl> {
     required super.metadata,
     required super.type,
     required super.constInitializer,
+    required super.typeInferenceError,
   });
 
   factory FieldItem.fromElement({
@@ -504,6 +505,7 @@ class FieldItem extends VariableItem<FieldElementImpl> {
       metadata: ManifestMetadata.encode(context, element.metadata),
       type: element.type.encode(context),
       constInitializer: element.constantInitializer?.encode(context),
+      typeInferenceError: element.typeInferenceError,
     );
   }
 
@@ -514,6 +516,7 @@ class FieldItem extends VariableItem<FieldElementImpl> {
       metadata: ManifestMetadata.read(reader),
       type: ManifestType.read(reader),
       constInitializer: ManifestNode.readOptional(reader),
+      typeInferenceError: TopLevelInferenceError.readOptional(reader),
     );
   }
 
@@ -1441,6 +1444,7 @@ class TopLevelVariableItem extends VariableItem<TopLevelVariableElementImpl> {
     required super.metadata,
     required super.type,
     required super.constInitializer,
+    required super.typeInferenceError,
   });
 
   factory TopLevelVariableItem.fromElement({
@@ -1454,6 +1458,7 @@ class TopLevelVariableItem extends VariableItem<TopLevelVariableElementImpl> {
       metadata: ManifestMetadata.encode(context, element.metadata),
       type: element.type.encode(context),
       constInitializer: element.constantInitializer?.encode(context),
+      typeInferenceError: element.typeInferenceError,
     );
   }
 
@@ -1464,6 +1469,7 @@ class TopLevelVariableItem extends VariableItem<TopLevelVariableElementImpl> {
       metadata: ManifestMetadata.read(reader),
       type: ManifestType.read(reader),
       constInitializer: ManifestNode.readOptional(reader),
+      typeInferenceError: TopLevelInferenceError.readOptional(reader),
     );
   }
 
@@ -1541,6 +1547,7 @@ sealed class VariableItem<E extends PropertyInducingElementImpl>
     extends ManifestItem<E> {
   final ManifestType type;
   final ManifestNode? constInitializer;
+  final TopLevelInferenceError? typeInferenceError;
 
   VariableItem({
     required super.id,
@@ -1548,6 +1555,7 @@ sealed class VariableItem<E extends PropertyInducingElementImpl>
     required super.metadata,
     required this.type,
     required this.constInitializer,
+    required this.typeInferenceError,
   });
 
   @override
@@ -1565,7 +1573,8 @@ sealed class VariableItem<E extends PropertyInducingElementImpl>
         flags.shouldUseTypeForInitializerInference ==
             element.shouldUseTypeForInitializerInference &&
         type.match(context, element.type) &&
-        constInitializer.match(context, element.constantInitializer);
+        constInitializer.match(context, element.constantInitializer) &&
+        typeInferenceError == element.typeInferenceError;
   }
 
   @override
@@ -1573,6 +1582,7 @@ sealed class VariableItem<E extends PropertyInducingElementImpl>
     super.write(writer);
     type.write(writer);
     constInitializer.writeOptional(writer);
+    typeInferenceError.writeOptional(writer);
   }
 }
 

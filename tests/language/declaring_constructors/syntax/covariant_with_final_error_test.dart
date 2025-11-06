@@ -26,34 +26,6 @@ class C4([covariant final int? x]);
 // [analyzer] unspecified
 // [cfe] unspecified
 
-class C5 {
-  this(covariant final int x);
-  //   ^
-  // [analyzer] unspecified
-  // [cfe] unspecified
-}
-
-class C6 {
-  this({covariant final int? x});
-  //   ^
-  // [analyzer] unspecified
-  // [cfe] unspecified
-}
-
-class C7 {
-  this({required covariant final int x});
-  //   ^
-  // [analyzer] unspecified
-  // [cfe] unspecified
-}
-
-class C8 {
-  this([covariant final int? x]);
-  //   ^
-  // [analyzer] unspecified
-  // [cfe] unspecified
-}
-
 extension type E1(covariant final int x);
 //                ^
 // [analyzer] unspecified
