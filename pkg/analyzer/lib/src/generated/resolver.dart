@@ -4251,7 +4251,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     if (fragment.isConst) {
       return;
     }
-    var error = fragment.typeInferenceError;
+    var error = fragment.element.typeInferenceError;
     if (error == null) {
       return;
     }

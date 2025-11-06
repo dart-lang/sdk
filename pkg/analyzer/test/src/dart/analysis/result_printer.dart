@@ -1420,6 +1420,7 @@ class LibraryManifestPrinter extends ManifestPrinter {
       _writeMetadata(item);
       _writeNamedType('type', item.type);
       _writeNode('constInitializer', item.constInitializer);
+      _writeTopLevelInferenceError('inferenceError', item.typeInferenceError);
     });
 
     writeDeclaredItems('declaredGetters', item.declaredGetters, (item) {
@@ -1713,6 +1714,7 @@ class LibraryManifestPrinter extends ManifestPrinter {
         _writeMetadata(item);
         _writeNamedType('type', item.type);
         _writeNode('constInitializer', item.constInitializer);
+        _writeTopLevelInferenceError('inferenceError', item.typeInferenceError);
       });
     }
   }

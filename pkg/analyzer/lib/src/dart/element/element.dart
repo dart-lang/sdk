@@ -8535,6 +8535,16 @@ abstract class PropertyInducingElementImpl extends VariableElementImpl
 
   TypeImpl? _type;
 
+  /// This field is set during linking, and performs type inference for
+  /// this property. After linking this field is always `null`.
+  @trackedInternal
+  PropertyInducingElementTypeInference? typeInference;
+
+  /// The error reported during type inference for this variable, or `null` if
+  /// this variable is not a subject of type inference, or there was no error.
+  @trackedIncludedInId
+  TopLevelInferenceError? typeInferenceError;
+
   PropertyInducingElementImpl() {
     shouldUseTypeForInitializerInference = true;
   }
@@ -8596,7 +8606,7 @@ abstract class PropertyInducingElementImpl extends VariableElementImpl
     }
 
     // We must be linking, and the type has not been set yet.
-    var type = _firstFragment.typeInference?.perform();
+    var type = typeInference?.perform();
     type ??= InvalidTypeImpl.instance;
     this.type = type;
     shouldUseTypeForInitializerInference = false;
@@ -8656,14 +8666,6 @@ abstract class PropertyInducingFragmentImpl
 
   @override
   PropertyInducingFragmentImpl? nextFragment;
-
-  /// This field is set during linking, and performs type inference for
-  /// this property. After linking this field is always `null`.
-  PropertyInducingElementTypeInference? typeInference;
-
-  /// The error reported during type inference for this variable, or `null` if
-  /// this variable is not a subject of type inference, or there was no error.
-  TopLevelInferenceError? typeInferenceError;
 
   /// Initialize a newly created synthetic element to have the given [name] and
   /// [offset].

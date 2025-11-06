@@ -411,6 +411,7 @@ class BundleWriter {
       _writeReference(element.reference);
       _writeFragments(element.fragments);
       element.writeModifiers(_sink);
+      _sink._writeTopLevelInferenceError(element.typeInferenceError);
 
       _writeElementResolution(() {
         _resolutionSink.writeType(element.type);
@@ -739,6 +740,7 @@ class BundleWriter {
       _writeReference(element.reference);
       _writeFragments(element.fragments);
       element.writeModifiers(_sink);
+      _sink._writeTopLevelInferenceError(element.typeInferenceError);
       _writeElementResolution(() {
         _resolutionSink.writeType(element.type);
       });

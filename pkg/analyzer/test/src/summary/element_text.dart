@@ -7,7 +7,9 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/field_name_non_promotability_info.dart';
+import 'package:analyzer/src/error/inference_error.dart';
 import 'package:analyzer/src/summary2/export.dart';
+import 'package:analyzer/src/utilities/extensions/string.dart';
 import 'package:analyzer_utilities/testing/tree_string_sink.dart';
 import 'package:collection/collection.dart';
 import 'package:test/test.dart';
@@ -577,7 +579,7 @@ class _Element2Writer extends _AbstractElementWriter {
       // _writeMetadata(e.metadata);
       _writeSinceSdkVersion(e);
       // _writeCodeRange(e);
-      // _writeTypeInferenceError(e);
+      _writeTypeInferenceError(e.typeInferenceError);
       _writeType('type', e.type);
       // _writeShouldUseTypeForInitializerInference(e);
       _writeVariableElementConstantInitializer(e);
@@ -639,7 +641,6 @@ class _Element2Writer extends _AbstractElementWriter {
       // _writeMetadata(f.metadata);
       // _writeSinceSdkVersion(f.sinceSdkVersion);
       // _writeCodeRange(f);
-      // _writeTypeInferenceError(f);
       // _writeType('type', f.type);
       // _writeShouldUseTypeForInitializerInference(f);
       _writeVariableFragmentInitializer(f);
@@ -1313,7 +1314,7 @@ class _Element2Writer extends _AbstractElementWriter {
       _writeDocumentation(e.documentationComment);
       _writeMetadata(e.metadata);
       _writeSinceSdkVersion(e);
-      // _writeTypeInferenceError(e);
+      _writeTypeInferenceError(e.typeInferenceError);
 
       _writeElementList(
         'typeParameters',
@@ -1359,7 +1360,6 @@ class _Element2Writer extends _AbstractElementWriter {
       _writeDocumentation(f.documentationComment);
       _writeMetadata(f.metadata);
       _writeFragmentCodeRange(f);
-      // _writeTypeInferenceError(f);
 
       _writeFragmentList(
         'typeParameters',
@@ -1689,7 +1689,7 @@ class _Element2Writer extends _AbstractElementWriter {
       _writeDocumentation(e.documentationComment);
       _writeMetadata(e.metadata);
       _writeSinceSdkVersion(e);
-      // _writeTypeInferenceError(e);
+      _writeTypeInferenceError(e.typeInferenceError);
       _writeType('type', e.type);
       // _writeShouldUseTypeForInitializerInference(e);
       _writeVariableElementConstantInitializer(e);
@@ -1745,7 +1745,6 @@ class _Element2Writer extends _AbstractElementWriter {
       _writeDocumentation(f.documentationComment);
       _writeMetadata(f.metadata);
       // _writeCodeRange(f);
-      // _writeTypeInferenceError(f);
       // _writeType('type', f.type);
       // _writeShouldUseTypeForInitializerInference(f);
       _writeVariableFragmentInitializer(f);
@@ -1851,6 +1850,19 @@ class _Element2Writer extends _AbstractElementWriter {
     });
 
     // _assertNonSyntheticElementSelf(e);
+  }
+
+  void _writeTypeInferenceError(TopLevelInferenceError? error) {
+    if (error != null) {
+      String kindName = error.kind.toString();
+      kindName = kindName.removePrefixOrSelf('TopLevelInferenceErrorKind.');
+      _sink.writelnWithIndent('typeInferenceError: $kindName');
+      _sink.withIndent(() {
+        if (kindName == 'dependencyCycle') {
+          _sink.writelnWithIndent('arguments: ${error.arguments}');
+        }
+      });
+    }
   }
 
   void _writeTypeParameterElement(TypeParameterElement e) {

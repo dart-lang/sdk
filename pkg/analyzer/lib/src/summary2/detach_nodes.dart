@@ -87,12 +87,10 @@ class _Visitor extends GeneralizingElementVisitor2<void> {
   }
 
   @override
-  void visitPropertyInducingElement(PropertyInducingElement element) {
-    for (var fragment in element.fragments) {
-      if (fragment is PropertyInducingFragmentImpl) {
-        fragment.typeInference = null;
-      }
-    }
+  void visitPropertyInducingElement(
+    covariant PropertyInducingElementImpl element,
+  ) {
+    element.typeInference = null;
     _detachConstVariable(element);
     super.visitPropertyInducingElement(element);
   }
