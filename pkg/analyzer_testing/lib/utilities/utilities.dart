@@ -8,6 +8,7 @@ String analysisOptionsContent({
   List<String> includes = const [],
   List<String> experiments = const [],
   List<String> legacyPlugins = const [],
+  bool propagateLinterExceptions = true,
   List<String> rules = const [],
   Map<String, Object?> errors = const {},
   bool strictCasts = false,
@@ -30,7 +31,8 @@ String analysisOptionsContent({
       errors.isNotEmpty ||
       unignorableNames.isNotEmpty ||
       legacyPlugins.isNotEmpty ||
-      experiments.isNotEmpty) {
+      experiments.isNotEmpty ||
+      propagateLinterExceptions) {
     buffer.writeln('analyzer:');
   }
   if (experiments.isNotEmpty) {
@@ -72,6 +74,13 @@ String analysisOptionsContent({
     for (var plugin in legacyPlugins) {
       buffer.writeln('    - $plugin');
     }
+  }
+
+  if (propagateLinterExceptions) {
+    buffer.writeln('  optional-checks:');
+    buffer.writeln(
+      '    propagate-linter-exceptions: $propagateLinterExceptions',
+    );
   }
 
   if (rules.isNotEmpty) {
