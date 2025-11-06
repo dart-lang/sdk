@@ -1,0 +1,1253 @@
+// Copyright (c) 2025, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+import 'package:kernel/ast.dart' as ast show DartType, Name;
+import 'package:cfg/ir/constant_value.dart';
+import 'package:cfg/ir/flow_graph.dart';
+import 'package:cfg/ir/functions.dart';
+import 'package:cfg/ir/local_variable.dart';
+import 'package:cfg/ir/source_position.dart';
+import 'package:cfg/ir/types.dart';
+import 'package:cfg/ir/use_lists.dart';
+import 'package:cfg/ir/visitor.dart';
+import 'package:cfg/utils/misc.dart';
+
+/// Base class for all instructions.
+abstract base class Instruction {
+  /// Enclosing control-flow graph.
+  final FlowGraph graph;
+
+  /// Index in the [FlowGraph.instructions].
+  final int id;
+
+  /// Source position associated with this instruction.
+  final SourcePosition sourcePosition;
+
+  /// Explicit inputs.
+  final UsesArray _inputs;
+
+  /// Enclosing basic block.
+  Block? block;
+
+  /// Next instruction in basic block.
+  Instruction? next;
+
+  /// Previous instruction in basic block.
+  Instruction? previous;
+
+  /// Values implicitly used by this instruction
+  /// e.g. for exception handling and deoptimization).
+  UsesArray? implicitInputs;
+
+  /// Create a new instruction.
+  ///
+  /// The newly created instruction belongs to [graph] but not linked into
+  /// a basic block and uses lists.
+  Instruction(this.graph, this.sourcePosition, int inputCount)
+    : id = graph.instructions.length,
+      _inputs = inputCount == 0
+          ? graph.emptyUsesArray
+          : UsesArray.allocate(graph, inputCount) {
+    for (int i = 0; i < inputCount; ++i) {
+      _inputs.at(graph, i).init(graph, this);
+    }
+    graph.instructions.add(this);
+  }
+
+  /// Returns true if this instruction is linked into a list of instructions
+  /// in a basic block (also imlplies inputs are linked in their use lists).
+  bool get isInGraph => block != null;
+
+  /// Number of explicit inputs.
+  int get inputCount => _inputs.getLength(graph);
+
+  /// [Use] corresponding to an [i]-th explicit input.
+  Use inputAt(int i) => _inputs.at(graph, i);
+
+  /// [Definition] of [i]-th explicit input.
+  Definition inputDefAt(int i) => inputAt(i).getDefinition(graph);
+
+  /// Set [i]-th input to the given [value]. Can be done only once.
+  void setInputAt(int i, Definition value) {
+    final input = inputAt(i);
+    assert(input.getNext(graph) == Use.Null);
+    assert(input.getPrevious(graph) == Use.Null);
+    input.setDefinition(graph, value);
+  }
+
+  /// Replace [i]-th input with [value]. This instruction should be
+  /// linked into a basic block.
+  void replaceInputAt(int i, Definition value) {
+    assert(isInGraph);
+    removeInputFromUseList(i);
+    setInputAt(i, value);
+    addInputToUseList(i);
+  }
+
+  /// Reduce number of inputs to [newInputCount].
+  void truncateInputs(int newInputCount) {
+    _inputs.truncateTo(graph, newInputCount);
+  }
+
+  /// Link this instruction to the [next] instruction in basic block.
+  void linkTo(Instruction next) {
+    assert(!identical(this, next));
+    this.next = next;
+    next.previous = this;
+    next.block = this.block;
+  }
+
+  /// Add [inputIndex]-th input to use list of its definition.
+  ///
+  /// This is a low-level operation which is rarely needed.
+  /// Prefer using [appendInstruction] or [insertAfter].
+  void addInputToUseList(int inputIndex) {
+    final input = inputAt(inputIndex);
+    assert(input.getNext(graph) == Use.Null);
+    assert(input.getPrevious(graph) == Use.Null);
+    final def = input.getDefinition(graph);
+    final nextUse = def._inputUses;
+    if (nextUse != Use.Null) {
+      assert(nextUse.getPrevious(graph) == Use.Null);
+      input.setNext(graph, nextUse);
+      nextUse.setPrevious(graph, input);
+    }
+    def._inputUses = input;
+  }
+
+  void _addInputsToUseLists() {
+    for (int i = 0, n = inputCount; i < n; ++i) {
+      addInputToUseList(i);
+    }
+    assert(implicitInputs == null);
+  }
+
+  /// Remove [inputIndex]-th input from use list of its definition.
+  ///
+  /// This is a low-level operation which is rarely needed.
+  /// Prefer using [replaceInputAt] or [removeFromGraph].
+  void removeInputFromUseList(int inputIndex) {
+    final input = inputAt(inputIndex);
+    assert(input.getInstruction(graph) == this);
+    final nextUse = input.getNext(graph);
+    final prevUse = input.getPrevious(graph);
+    if (prevUse == Use.Null) {
+      final def = input.getDefinition(graph);
+      assert(def._inputUses == input);
+      def._inputUses = nextUse;
+    } else {
+      prevUse.setNext(graph, nextUse);
+    }
+    if (nextUse != Use.Null) {
+      nextUse.setPrevious(graph, prevUse);
+    }
+    input.setNext(graph, Use.Null);
+    input.setPrevious(graph, Use.Null);
+  }
+
+  /// Remove all inputs from their use lists.
+  void removeInputsFromUseLists() {
+    for (int i = 0, n = inputCount; i < n; ++i) {
+      removeInputFromUseList(i);
+    }
+  }
+
+  /// Append an unlinked [instr] after this instruction,
+  /// which should be the last instruction appended into basic block.
+  ///
+  /// Also, add all inputs of [instr] to their use lists.
+  void appendInstruction(Instruction instr) {
+    assert(isInGraph);
+    assert(!instr.isInGraph);
+    assert(this.next == null);
+    assert(this.block!.lastInstruction == this);
+    assert(instr.next == null);
+    assert(instr.previous == null);
+    assert(instr.block == null);
+    linkTo(instr);
+    instr._addInputsToUseLists();
+    block!.lastInstruction = instr;
+  }
+
+  /// Insert this instruction between [previous] and [previous.next].
+  /// (which should be linked into a basic block).
+  ///
+  /// If [addInputsToUseLists], then also add all inputs to their use lists.
+  void insertAfter(Instruction previous, {bool addInputsToUseLists = true}) {
+    assert(previous.isInGraph);
+    assert(!isInGraph);
+    final next = previous.next!;
+    assert(previous.block != null);
+    assert(this.next == null);
+    assert(this.previous == null);
+    assert(this.block == null);
+
+    this.previous = previous;
+    this.next = next;
+    this.block = previous.block;
+    next.previous = this;
+    previous.next = this;
+
+    if (addInputsToUseLists) {
+      _addInputsToUseLists();
+    }
+  }
+
+  /// Insert this instruction between [next.previous] and [next].
+  /// (which should be linked into a basic block).
+  ///
+  /// If [addInputsToUseLists], then also add all inputs to their use lists.
+  void insertBefore(Instruction next, {bool addInputsToUseLists = true}) {
+    assert(next.isInGraph);
+    insertAfter(next.previous!, addInputsToUseLists: addInputsToUseLists);
+  }
+
+  /// Unlink this instruction from its basic block and use lists.
+  void removeFromGraph() {
+    assert(isInGraph);
+    assert(block != null);
+    assert(this != block);
+
+    removeInputsFromUseLists();
+    final next = this.next;
+    final previous = this.previous!;
+    previous.next = next;
+    if (next != null) {
+      next.previous = previous;
+    } else {
+      assert(this is ControlFlowInstruction);
+      assert(this == block!.lastInstruction);
+      block!.lastInstruction = previous;
+    }
+    this.next = null;
+    this.previous = null;
+    this.block = null;
+    assert(!isInGraph);
+  }
+
+  /// Whether this instruction can potentially throw a Dart exception.
+  bool get canThrow;
+
+  /// Whether this instruction can have any visible side-effects.
+  bool get hasSideEffects;
+
+  /// Returns true if this instruction is idempotent (i.e.
+  /// repeating this instruction does not have any effect),
+  /// and it is a subject to value numbering.
+  bool get isIdempotent => false;
+
+  /// Returns true if extra instruction attributes are equal.
+  /// Used only for idempotent instructions of the same type.
+  bool attributesEqual(Instruction other) =>
+      throw 'Not implemented for ${runtimeType}';
+
+  R accept<R>(InstructionVisitor<R> v);
+}
+
+/// Trait of instructions which can potentially throw Dart exceptions.
+base mixin CanThrow on Instruction {
+  bool get canThrow => true;
+}
+
+/// Trait of instructions which cannot throw Dart exceptions.
+base mixin NoThrow on Instruction {
+  bool get canThrow => false;
+}
+
+/// Trait of instructions which can have visible side-effects.
+base mixin HasSideEffects on Instruction {
+  bool get hasSideEffects => true;
+}
+
+/// Trait of instructions which do not have any side-effects.
+base mixin Pure on Instruction {
+  bool get hasSideEffects => false;
+}
+
+/// Trait of idempotent instructions.
+base mixin Idempotent on Instruction {
+  bool get isIdempotent => true;
+}
+
+/// Base class for instructions which yield a value.
+abstract base class Definition extends Instruction {
+  Use _inputUses = Use.Null;
+  Use _implicitUses = Use.Null;
+
+  Definition(super.graph, super.sourcePosition, super.inputCount);
+
+  UsesIterable get inputUses => UsesIterable(graph, _inputUses);
+  UsesIterable get implicitUses => UsesIterable(graph, _implicitUses);
+
+  bool get hasInputUses => _inputUses != Use.Null;
+  bool get hasImplicitUses => _implicitUses != Use.Null;
+  bool get hasUses => hasInputUses || hasImplicitUses;
+
+  /// Replace all uses of this instruction with [other].
+  void replaceUsesWith(Definition other) {
+    if (hasInputUses) {
+      Use last = Use.Null;
+      for (final use in inputUses) {
+        use.setDefinition(graph, other);
+        last = use;
+      }
+      final tail = other._inputUses;
+      last.setNext(graph, tail);
+      if (tail != Use.Null) {
+        tail.setPrevious(graph, last);
+      }
+      other._inputUses = this._inputUses;
+      this._inputUses = Use.Null;
+    }
+    if (hasImplicitUses) {
+      Use last = Use.Null;
+      for (final use in implicitUses) {
+        use.setDefinition(graph, other);
+        last = use;
+      }
+      final tail = other._implicitUses;
+      last.setNext(graph, tail);
+      if (tail != Use.Null) {
+        tail.setPrevious(graph, last);
+      }
+      other._implicitUses = this._implicitUses;
+      this._implicitUses = Use.Null;
+    }
+  }
+
+  /// Result type of this instruction.
+  CType get type;
+
+  /// Whether this instruction can yield a zero value.
+  bool get canBeZero => true;
+
+  /// Whether this instruction can yield a negative value.
+  bool get canBeNegative => true;
+
+  /// Returns the only instruction which uses result of this instruction as
+  /// an explicit input.
+  ///
+  /// Returns `null` if there are no or multiple uses.
+  Instruction? get singleUser {
+    if (hasInputUses && !hasImplicitUses) {
+      final use = _inputUses;
+      if (use.getNext(graph) == Use.Null) {
+        return use.getInstruction(graph);
+      }
+    }
+    return null;
+  }
+}
+
+/// Forward iterator over instructions in the block.
+final class _InstructionsIterator implements Iterator<Instruction> {
+  Instruction? _current;
+  Instruction? _next;
+
+  _InstructionsIterator(this._next);
+
+  @override
+  bool moveNext() {
+    _current = _next;
+    _next = _current?.next;
+    return (_current != null);
+  }
+
+  @override
+  Instruction get current => _current!;
+}
+
+/// Backwards iterator over instructions in the block.
+final class _ReverseInstructionsIterator implements Iterator<Instruction> {
+  Instruction? _current;
+  Instruction _previous;
+
+  _ReverseInstructionsIterator(this._previous);
+
+  @override
+  bool moveNext() {
+    final instr = _previous.previous;
+    if (instr == null) {
+      assert(_previous is Block);
+      _current = null;
+      return false;
+    } else {
+      _current = _previous;
+      _previous = instr;
+      return true;
+    }
+  }
+
+  @override
+  Instruction get current => _current!;
+}
+
+/// Iterable for backwards iteration of instructions in the block.
+final class _ReverseInstructionsIterable extends Iterable<Instruction> {
+  final Block _block;
+
+  _ReverseInstructionsIterable(this._block);
+
+  @override
+  Iterator<Instruction> get iterator =>
+      _ReverseInstructionsIterator(_block.lastInstruction);
+}
+
+/// Basic block.
+abstract base class Block extends Instruction
+    with NoThrow, Pure, Iterable<Instruction> {
+  final List<Block> predecessors = [];
+  final List<Block> successors = [];
+  late Instruction lastInstruction;
+  CatchBlock? exceptionHandler;
+
+  int preorderNumber = -1;
+  int postorderNumber = -1;
+
+  Block(FlowGraph graph, SourcePosition sourcePosition)
+    : super(graph, sourcePosition, 0) {
+    this.block = this;
+    this.lastInstruction = this;
+  }
+
+  /// Replace [oldPredecessor] with [newPredecessor].
+  void replacePredecessor(Block oldPredecessor, Block newPredecessor) {
+    final predecessors = this.predecessors;
+    for (int i = 0, n = predecessors.length; i < n; ++i) {
+      if (predecessors[i] == oldPredecessor) {
+        predecessors[i] = newPredecessor;
+      }
+    }
+  }
+
+  /// Iterate over instructions in the block from the first to the last.
+  /// Iteration is robust wrt removal of the current instruction.
+  @override
+  Iterator<Instruction> get iterator => _InstructionsIterator(next);
+
+  /// Iterate over instructions in the block from the last to the first.
+  /// Iteration is robust wrt removal of the current instruction.
+  Iterable<Instruction> get reversed => _ReverseInstructionsIterable(this);
+}
+
+/// The entry block in the [FlowGraph].
+///
+/// Contains all [Constant] instructions and [Parameter] instructions
+/// corresponding to the function parameters.
+final class EntryBlock extends Block {
+  EntryBlock(super.graph, super.sourcePosition);
+
+  @override
+  R accept<R>(InstructionVisitor<R> v) => v.visitEntryBlock(this);
+}
+
+/// Iterator over [Phi] instructions in the [JoinBlock].
+final class _PhiIterator implements Iterator<Phi> {
+  Phi? _current;
+  Phi? _next;
+
+  _PhiIterator(JoinBlock block) {
+    final nextInstruction = block.next;
+    _next = (nextInstruction is Phi) ? nextInstruction : null;
+  }
+
+  @override
+  bool moveNext() {
+    _current = _next;
+    final nextInstruction = _current?.next;
+    _next = (nextInstruction is Phi) ? nextInstruction : null;
+    return (_current != null);
+  }
+
+  @override
+  Phi get current => _current!;
+}
+
+/// Iterable over [Phi] instructions in the [JoinBlock].
+final class _PhiIterable extends Iterable<Phi> {
+  final JoinBlock _block;
+
+  _PhiIterable(this._block);
+
+  @override
+  Iterator<Phi> get iterator => _PhiIterator(_block);
+}
+
+/// Basic block which can have multiple predecessors.
+///
+/// May contain [Phi] instructions in the beginning of the block.
+final class JoinBlock extends Block {
+  JoinBlock(super.graph, super.sourcePosition);
+
+  Iterable<Phi> get phis => _PhiIterable(this);
+
+  bool get hasPhis => next is Phi;
+
+  @override
+  R accept<R>(InstructionVisitor<R> v) => v.visitJoinBlock(this);
+}
+
+/// Target block of a branch.
+final class TargetBlock extends Block {
+  TargetBlock(super.graph, super.sourcePosition);
+
+  @override
+  R accept<R>(InstructionVisitor<R> v) => v.visitTargetBlock(this);
+}
+
+/// Exception handler block.
+///
+/// May contain [Parameter] instructions in the beginning of the block
+/// to represent incoming values of local variables, exception object and
+/// stack trace.
+final class CatchBlock extends Block {
+  CatchBlock(super.graph, super.sourcePosition);
+
+  @override
+  R accept<R>(InstructionVisitor<R> v) => v.visitCatchBlock(this);
+}
+
+/// Marker interface for instructions which can end basic block.
+abstract class ControlFlowInstruction {}
+
+/// Unconditional jump to the sole successor of this basic block.
+final class Goto extends Instruction
+    with NoThrow, Pure
+    implements ControlFlowInstruction {
+  Goto(FlowGraph graph, SourcePosition sourcePosition)
+    : super(graph, sourcePosition, 0);
+
+  Block get target => block!.successors.single;
+
+  @override
+  R accept<R>(InstructionVisitor<R> v) => v.visitGoto(this);
+}
+
+/// Conditional branch to either true of false successors of this basic block.
+final class Branch extends Instruction
+    with NoThrow, Pure
+    implements ControlFlowInstruction {
+  Branch(FlowGraph graph, SourcePosition sourcePosition, Definition condition)
+    : super(graph, sourcePosition, 1) {
+    setInputAt(0, condition);
+  }
+
+  Definition get condition => inputDefAt(0);
+  TargetBlock get trueSuccessor => block!.successors[0] as TargetBlock;
+  TargetBlock get falseSuccessor => block!.successors[1] as TargetBlock;
+
+  @override
+  R accept<R>(InstructionVisitor<R> v) => v.visitBranch(this);
+}
+
+/// Unconditional jump to the try block body (the first succesor of this
+/// basic block). The second successor of this basic block is a catch block.
+final class TryEntry extends Instruction
+    with NoThrow, Pure
+    implements ControlFlowInstruction {
+  TryEntry(FlowGraph graph, SourcePosition sourcePosition)
+    : super(graph, sourcePosition, 0);
+
+  TargetBlock get tryBody => block!.successors[0] as TargetBlock;
+  CatchBlock get catchBlock => block!.successors[1] as CatchBlock;
+
+  @override
+  R accept<R>(InstructionVisitor<R> v) => v.visitTryEntry(this);
+}
+
+/// The result of instruction `v = Phi(v[0],...,v[N-1])` is `v[i]` when
+/// control is transferred from the i-th predecessor block.
+///
+/// Number of inputs always matches number of predecessor blocks.
+final class Phi extends Definition with NoThrow, Pure {
+  /// Local variable for which this [Phi] was originally created.
+  final LocalVariable variable;
+
+  Phi(super.graph, super.sourcePosition, this.variable, super.inputCount);
+
+  @override
+  CType get type => variable.type;
+
+  @override
+  R accept<R>(InstructionVisitor<R> v) => v.visitPhi(this);
+}
+
+/// Return value from the current function.
+final class Return extends Instruction
+    with NoThrow, Pure
+    implements ControlFlowInstruction {
+  Return(FlowGraph graph, SourcePosition sourcePosition, Definition value)
+    : super(graph, sourcePosition, 1) {
+    setInputAt(0, value);
+  }
+
+  @override
+  R accept<R>(InstructionVisitor<R> v) => v.visitReturn(this);
+}
+
+enum ComparisonOpcode {
+  // Simple object pointer equality.
+  equal('=='),
+  notEqual('!='),
+  // identical with special cases for num.
+  identical('==='),
+  notIdentical('!=='),
+  // int comparisons.
+  intEqual('int =='),
+  intNotEqual('int !='),
+  intLess('int <'),
+  intLessOrEqual('int <='),
+  intGreater('int >'),
+  intGreaterOrEqual('int >='),
+  // int bitwise tests
+  intTestIsZero('int & == 0'),
+  intTestIsNotZero('int & != 0'),
+  // double comparisons.
+  doubleEqual('double =='),
+  doubleNotEqual('double !='),
+  doubleLess('double <'),
+  doubleLessOrEqual('double <='),
+  doubleGreater('double >'),
+  doubleGreaterOrEqual('double >=');
+
+  final String token;
+  const ComparisonOpcode(this.token);
+
+  bool get isIntComparison => switch (this) {
+    intEqual ||
+    intNotEqual ||
+    intLess ||
+    intLessOrEqual ||
+    intGreater ||
+    intGreaterOrEqual ||
+    intTestIsZero ||
+    intTestIsNotZero => true,
+    _ => false,
+  };
+
+  bool get isDoubleComparison => switch (this) {
+    doubleEqual ||
+    doubleNotEqual ||
+    doubleLess ||
+    doubleLessOrEqual ||
+    doubleGreater ||
+    doubleGreaterOrEqual => true,
+    _ => false,
+  };
+
+  ComparisonOpcode flipOperands() => switch (this) {
+    equal ||
+    notEqual ||
+    identical ||
+    notIdentical ||
+    intEqual ||
+    intNotEqual ||
+    intTestIsZero ||
+    intTestIsNotZero ||
+    doubleEqual ||
+    doubleNotEqual => this,
+    intLess => intGreaterOrEqual,
+    intLessOrEqual => intGreater,
+    intGreater => intLessOrEqual,
+    intGreaterOrEqual => intLess,
+    doubleLess => doubleGreaterOrEqual,
+    doubleLessOrEqual => doubleGreater,
+    doubleGreater => doubleLessOrEqual,
+    doubleGreaterOrEqual => doubleLess,
+  };
+
+  bool get canBeNegated => switch (this) {
+    doubleLess ||
+    doubleLessOrEqual ||
+    doubleGreater ||
+    doubleGreaterOrEqual => false,
+    _ => true,
+  };
+
+  ComparisonOpcode negate() => switch (this) {
+    equal => notEqual,
+    notEqual => equal,
+    identical => notIdentical,
+    notIdentical => identical,
+    intEqual => intNotEqual,
+    intNotEqual => intEqual,
+    intLess => intGreaterOrEqual,
+    intLessOrEqual => intGreater,
+    intGreater => intLessOrEqual,
+    intGreaterOrEqual => intLess,
+    intTestIsZero => intTestIsNotZero,
+    intTestIsNotZero => intTestIsZero,
+    doubleEqual => doubleNotEqual,
+    doubleNotEqual => doubleEqual,
+    doubleLess ||
+    doubleLessOrEqual ||
+    doubleGreater ||
+    doubleGreaterOrEqual => throw '${token} cannot be negated',
+  };
+}
+
+/// Compare two operands.
+final class Comparison extends Definition with NoThrow, Pure, Idempotent {
+  ComparisonOpcode op;
+
+  Comparison(
+    FlowGraph graph,
+    SourcePosition sourcePosition,
+    this.op,
+    Definition left,
+    Definition right,
+  ) : super(graph, sourcePosition, 2) {
+    setInputAt(0, left);
+    setInputAt(1, right);
+  }
+
+  Definition get left => inputDefAt(0);
+  Definition get right => inputDefAt(1);
+
+  @override
+  CType get type => const BoolType();
+
+  @override
+  bool attributesEqual(covariant Comparison other) => op == other.op;
+
+  @override
+  R accept<R>(InstructionVisitor<R> v) => v.visitComparison(this);
+}
+
+/// Instruction representing a constant value.
+///
+/// Should not be created directly, use [FlowGraph.getConstant] instead.
+final class Constant extends Definition with NoThrow, Pure {
+  final ConstantValue value;
+
+  Constant(FlowGraph graph, this.value) : super(graph, noPosition, 0);
+
+  @override
+  bool get canBeZero => value.isZero;
+
+  @override
+  bool get canBeNegative => value.isNegative;
+
+  @override
+  CType get type => value.type;
+
+  @override
+  R accept<R>(InstructionVisitor<R> v) => v.visitConstant(this);
+}
+
+/// Base class for various calls.
+abstract base class CallInstruction extends Definition
+    with CanThrow, HasSideEffects {
+  CallInstruction(super.graph, super.sourcePosition, super.inputCount);
+
+  bool get hasTypeArguments => inputCount > 0 && inputDefAt(0) is TypeArguments;
+  TypeArguments? get typeArguments =>
+      hasTypeArguments ? inputDefAt(0) as TypeArguments : null;
+}
+
+/// Direct call of the target function.
+final class DirectCall extends CallInstruction {
+  final CFunction target;
+
+  @override
+  final CType type;
+
+  DirectCall(
+    super.graph,
+    super.sourcePosition,
+    this.target,
+    super.inputCount,
+    this.type,
+  );
+
+  @override
+  R accept<R>(InstructionVisitor<R> v) => v.visitDirectCall(this);
+}
+
+/// Interface call via given interface target.
+final class InterfaceCall extends CallInstruction {
+  final CFunction interfaceTarget;
+
+  @override
+  final CType type;
+
+  InterfaceCall(
+    super.graph,
+    super.sourcePosition,
+    this.interfaceTarget,
+    super.inputCount,
+    this.type,
+  );
+
+  @override
+  R accept<R>(InstructionVisitor<R> v) => v.visitInterfaceCall(this);
+}
+
+enum DynamicCallKind { method, getter, setter }
+
+/// Dynamic call via given selector.
+final class DynamicCall extends CallInstruction {
+  final ast.Name selector;
+  final DynamicCallKind kind;
+
+  DynamicCall(
+    super.graph,
+    super.sourcePosition,
+    this.selector,
+    this.kind,
+    super.inputCount,
+  );
+
+  @override
+  CType get type => const TopType();
+
+  @override
+  R accept<R>(InstructionVisitor<R> v) => v.visitDynamicCall(this);
+}
+
+/// Parameter of a function or a catch block.
+final class Parameter extends Definition with NoThrow, Pure {
+  final LocalVariable variable;
+
+  Parameter(FlowGraph graph, SourcePosition sourcePosition, this.variable)
+    : super(graph, sourcePosition, 0);
+
+  bool get isFunctionParameter => block is EntryBlock;
+  bool get isCatchParameter => block is CatchBlock;
+
+  @override
+  CType get type => variable.type;
+
+  @override
+  R accept<R>(InstructionVisitor<R> v) => v.visitParameter(this);
+}
+
+/// Loads value from the local variable.
+///
+/// [LoadLocal] instructions are only used before
+/// IR is converted to SSA form.
+final class LoadLocal extends Definition with NoThrow, Pure {
+  final LocalVariable variable;
+
+  LoadLocal(FlowGraph graph, SourcePosition sourcePosition, this.variable)
+    : super(graph, sourcePosition, 0);
+
+  @override
+  CType get type => variable.type;
+
+  @override
+  R accept<R>(InstructionVisitor<R> v) => v.visitLoadLocal(this);
+}
+
+/// Store value to the local variable.
+///
+/// [StoreLocal] instructions are only used before
+/// IR is converted to SSA form.
+final class StoreLocal extends Instruction with NoThrow, HasSideEffects {
+  final LocalVariable variable;
+
+  StoreLocal(
+    FlowGraph graph,
+    SourcePosition sourcePosition,
+    this.variable,
+    Definition value,
+  ) : super(graph, sourcePosition, 1) {
+    setInputAt(0, value);
+  }
+
+  Definition get value => inputDefAt(0);
+
+  @override
+  R accept<R>(InstructionVisitor<R> v) => v.visitStoreLocal(this);
+}
+
+/// Throw given exception object. Also takes optional stack trace
+/// input to rethrow exception object without collecting a new stack trace.
+final class Throw extends Instruction
+    with CanThrow, HasSideEffects
+    implements ControlFlowInstruction {
+  Throw(
+    FlowGraph graph,
+    SourcePosition sourcePosition,
+    Definition exception,
+    Definition? stackTrace,
+  ) : super(graph, sourcePosition, stackTrace != null ? 2 : 1) {
+    setInputAt(0, exception);
+    if (stackTrace != null) {
+      setInputAt(1, stackTrace);
+    }
+  }
+
+  @override
+  R accept<R>(InstructionVisitor<R> v) => v.visitThrow(this);
+}
+
+/// Represents collection of class and function type parameters.
+final class TypeParameters extends Definition with NoThrow, Pure {
+  TypeParameters(
+    FlowGraph graph,
+    SourcePosition sourcePosition,
+    Definition? receiver,
+  ) : super(graph, sourcePosition, receiver != null ? 1 : 0) {
+    if (receiver != null) {
+      setInputAt(0, receiver);
+    }
+  }
+
+  @override
+  CType get type => const TypeParametersType();
+
+  @override
+  R accept<R>(InstructionVisitor<R> v) => v.visitTypeParameters(this);
+}
+
+/// Casts input object to the given type.
+///
+/// Checked casts throw TypeError if
+/// object is not assignable to the given type.
+final class TypeCast extends Definition with CanThrow, Pure, Idempotent {
+  /// Target type for the type cast.
+  final CType testedType;
+
+  /// Whether this type cast involves check at runtime.
+  bool isChecked;
+
+  TypeCast(
+    FlowGraph graph,
+    SourcePosition sourcePosition,
+    Definition object,
+    this.testedType,
+    Definition? typeParameters, {
+    this.isChecked = true,
+  }) : super(graph, sourcePosition, typeParameters != null ? 2 : 1) {
+    setInputAt(0, object);
+    if (typeParameters != null) {
+      setInputAt(1, typeParameters);
+    }
+  }
+
+  Definition get operand => inputDefAt(0);
+  Definition? get typeParameters => (inputCount > 1) ? inputDefAt(1) : null;
+
+  @override
+  CType get type => testedType;
+
+  @override
+  bool get canThrow => isChecked;
+
+  @override
+  bool attributesEqual(covariant TypeCast other) =>
+      // 'isChecked' is not taken into account as checked and unchecked casts
+      // against the same type are congruent wrt value numbering.
+      testedType == other.testedType;
+
+  @override
+  R accept<R>(InstructionVisitor<R> v) => v.visitTypeCast(this);
+}
+
+/// Test if input object is assignable to the given type.
+final class TypeTest extends Definition with NoThrow, Pure, Idempotent {
+  final CType testedType;
+
+  TypeTest(
+    FlowGraph graph,
+    SourcePosition sourcePosition,
+    Definition object,
+    this.testedType,
+    Definition? typeParameters,
+  ) : super(graph, sourcePosition, typeParameters != null ? 2 : 1) {
+    setInputAt(0, object);
+    if (typeParameters != null) {
+      setInputAt(1, typeParameters);
+    }
+  }
+
+  Definition get operand => inputDefAt(0);
+  Definition? get typeParameters => (inputCount > 1) ? inputDefAt(1) : null;
+
+  @override
+  CType get type => const BoolType();
+
+  @override
+  bool attributesEqual(covariant TypeTest other) =>
+      testedType == other.testedType;
+
+  @override
+  R accept<R>(InstructionVisitor<R> v) => v.visitTypeTest(this);
+}
+
+/// Represents a list of type arguments passed to a call.
+///
+/// Only used as the first input of call instructions.
+final class TypeArguments extends Definition with NoThrow, Pure, Idempotent {
+  final List<ast.DartType> types;
+  TypeArguments(
+    FlowGraph graph,
+    SourcePosition sourcePosition,
+    this.types,
+    Definition? typeParameters,
+  ) : super(graph, sourcePosition, typeParameters != null ? 1 : 0) {
+    if (typeParameters != null) {
+      setInputAt(0, typeParameters);
+    }
+  }
+
+  Definition? get typeParameters => (inputCount > 0) ? inputDefAt(0) : null;
+
+  @override
+  CType get type => const TypeArgumentsType();
+
+  @override
+  bool attributesEqual(covariant TypeArguments other) =>
+      listEquals(types, other.types);
+
+  @override
+  R accept<R>(InstructionVisitor<R> v) => v.visitTypeArguments(this);
+}
+
+enum BinaryIntOpcode {
+  add('+'),
+  sub('-'),
+  mul('*'),
+  truncatingDiv('~/'),
+  mod('%'),
+  rem('remainder'),
+  bitOr('|'),
+  bitAnd('&'),
+  bitXor('^'),
+  shiftLeft('<<'),
+  shiftRight('>>'),
+  unsignedShiftRight('>>>');
+
+  final String token;
+  const BinaryIntOpcode(this.token);
+
+  bool get isCommutative => switch (this) {
+    add || mul || bitOr || bitAnd || bitXor => true,
+    _ => false,
+  };
+}
+
+/// Binary operation on two int operands.
+final class BinaryIntOp extends Definition with Pure, Idempotent {
+  BinaryIntOpcode op;
+
+  BinaryIntOp(
+    FlowGraph graph,
+    SourcePosition sourcePosition,
+    this.op,
+    Definition left,
+    Definition right,
+  ) : super(graph, sourcePosition, 2) {
+    setInputAt(0, left);
+    setInputAt(1, right);
+  }
+
+  Definition get left => inputDefAt(0);
+  Definition get right => inputDefAt(1);
+
+  @override
+  bool get canThrow => switch (op) {
+    BinaryIntOpcode.truncatingDiv ||
+    BinaryIntOpcode.mod ||
+    BinaryIntOpcode.rem => right.canBeZero,
+    BinaryIntOpcode.shiftLeft ||
+    BinaryIntOpcode.shiftRight ||
+    BinaryIntOpcode.unsignedShiftRight => right.canBeNegative,
+    _ => false,
+  };
+
+  @override
+  CType get type => const IntType();
+
+  @override
+  bool attributesEqual(covariant BinaryIntOp other) => op == other.op;
+
+  @override
+  R accept<R>(InstructionVisitor<R> v) => v.visitBinaryIntOp(this);
+}
+
+enum UnaryIntOpcode {
+  neg('-'),
+  bitNot('~'),
+  toDouble('toDouble'),
+  abs('abs'),
+  sign('sign');
+
+  final String token;
+  const UnaryIntOpcode(this.token);
+}
+
+/// Unary operation on the int operand.
+final class UnaryIntOp extends Definition with NoThrow, Pure, Idempotent {
+  UnaryIntOpcode op;
+
+  UnaryIntOp(
+    FlowGraph graph,
+    SourcePosition sourcePosition,
+    this.op,
+    Definition operand,
+  ) : super(graph, sourcePosition, 1) {
+    setInputAt(0, operand);
+  }
+
+  Definition get operand => inputDefAt(0);
+
+  @override
+  CType get type => switch (op) {
+    UnaryIntOpcode.toDouble => const DoubleType(),
+    _ => const IntType(),
+  };
+
+  @override
+  bool attributesEqual(covariant UnaryIntOp other) => op == other.op;
+
+  @override
+  R accept<R>(InstructionVisitor<R> v) => v.visitUnaryIntOp(this);
+}
+
+enum BinaryDoubleOpcode {
+  add('+'),
+  sub('-'),
+  mul('*'),
+  div('/'),
+  truncatingDiv('~/'),
+  mod('%'),
+  rem('remainder');
+
+  final String token;
+  const BinaryDoubleOpcode(this.token);
+
+  bool get isCommutative => switch (this) {
+    add || mul => true,
+    _ => false,
+  };
+}
+
+/// Binary operation on two double operands.
+final class BinaryDoubleOp extends Definition with NoThrow, Pure, Idempotent {
+  BinaryDoubleOpcode op;
+
+  BinaryDoubleOp(
+    FlowGraph graph,
+    SourcePosition sourcePosition,
+    this.op,
+    Definition left,
+    Definition right,
+  ) : super(graph, sourcePosition, 2) {
+    setInputAt(0, left);
+    setInputAt(1, right);
+  }
+
+  Definition get left => inputDefAt(0);
+  Definition get right => inputDefAt(1);
+
+  @override
+  CType get type => switch (op) {
+    BinaryDoubleOpcode.truncatingDiv => const IntType(),
+    _ => const DoubleType(),
+  };
+
+  @override
+  bool attributesEqual(covariant BinaryDoubleOp other) => op == other.op;
+
+  @override
+  R accept<R>(InstructionVisitor<R> v) => v.visitBinaryDoubleOp(this);
+}
+
+enum UnaryDoubleOpcode {
+  neg('-'),
+  abs('abs'),
+  sign('sign'),
+  square('square'),
+  round('round'),
+  floor('floor'),
+  ceil('ceil'),
+  truncate('truncate'),
+  roundToDouble('roundToDouble'),
+  floorToDouble('floorToDouble'),
+  ceilToDouble('ceilToDouble'),
+  truncateToDouble('truncateToDouble');
+
+  final String token;
+  const UnaryDoubleOpcode(this.token);
+}
+
+/// Unary operation on the double operand.
+final class UnaryDoubleOp extends Definition with NoThrow, Pure, Idempotent {
+  UnaryDoubleOpcode op;
+
+  UnaryDoubleOp(
+    FlowGraph graph,
+    SourcePosition sourcePosition,
+    this.op,
+    Definition operand,
+  ) : super(graph, sourcePosition, 1) {
+    setInputAt(0, operand);
+  }
+
+  Definition get operand => inputDefAt(0);
+
+  @override
+  CType get type => switch (op) {
+    UnaryDoubleOpcode.round ||
+    UnaryDoubleOpcode.floor ||
+    UnaryDoubleOpcode.ceil ||
+    UnaryDoubleOpcode.truncate => const IntType(),
+    _ => const DoubleType(),
+  };
+
+  @override
+  bool attributesEqual(covariant UnaryDoubleOp other) => op == other.op;
+
+  @override
+  R accept<R>(InstructionVisitor<R> v) => v.visitUnaryDoubleOp(this);
+}
+
+/// Marker for the back-end specific instructions.
+base mixin BackendInstruction on Instruction {}
+
+/// Combined comparison and branch.
+///
+/// Certain back-ends may create [CompareAndBranch] during lowering.
+final class CompareAndBranch extends Instruction
+    with NoThrow, Pure, BackendInstruction
+    implements ControlFlowInstruction {
+  ComparisonOpcode op;
+
+  CompareAndBranch(
+    FlowGraph graph,
+    SourcePosition sourcePosition,
+    this.op,
+    Definition left,
+    Definition right,
+  ) : super(graph, sourcePosition, 2) {
+    setInputAt(0, left);
+    setInputAt(1, right);
+  }
+
+  Definition get left => inputDefAt(0);
+  Definition get right => inputDefAt(1);
+  TargetBlock get trueSuccessor => block!.successors[0] as TargetBlock;
+  TargetBlock get falseSuccessor => block!.successors[1] as TargetBlock;
+
+  @override
+  R accept<R>(InstructionVisitor<R> v) => v.visitCompareAndBranch(this);
+}
+
+/// Base class for move operations, part of [ParallelMove].
+abstract base class MoveOp {}
+
+/// In native back-ends, register allocator inserts [ParallelMove]
+/// instructions to copy values atomically between registers
+/// and memory locations.
+final class ParallelMove extends Instruction
+    with NoThrow, HasSideEffects, BackendInstruction {
+  final List<MoveOp> moves = [];
+
+  ParallelMove(FlowGraph graph) : super(graph, noPosition, 0);
+
+  @override
+  R accept<R>(InstructionVisitor<R> v) => v.visitParallelMove(this);
+}
