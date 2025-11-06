@@ -18,5 +18,11 @@ Future<ChainContext> createContext(
   Chain suite,
   Map<String, String> environment,
 ) {
-  return new Future.value(new ContextChecksOnly(suite.name));
+  return new Future.value(
+    new ContextChecksOnly(
+      baseUri: suite.root,
+      suiteName: suite.name,
+      environment: environment,
+    ),
+  );
 }

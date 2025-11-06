@@ -1,0 +1,765 @@
+Problems reported:
+
+parser/general/augment_super_2:1:1: Variables must be declared using the keywords 'const', 'final', 'var' or a type name.
+augment void topLevelMethod() {
+^^^^^^^
+
+parser/general/augment_super_2:1:1: Expected ';' after this.
+augment void topLevelMethod() {
+^^^^^^^
+
+parser/general/augment_super_2:2:11: 'super' can't be used as an identifier because it's a keyword.
+  augment super();
+          ^^^^^
+
+parser/general/augment_super_2:2:11: Expected ';' after this.
+  augment super();
+          ^^^^^
+
+parser/general/augment_super_2:5:1: Variables must be declared using the keywords 'const', 'final', 'var' or a type name.
+augment void topLevelMethodError() {
+^^^^^^^
+
+parser/general/augment_super_2:5:1: Expected ';' after this.
+augment void topLevelMethodError() {
+^^^^^^^
+
+parser/general/augment_super_2:6:11: Expected ';' after this.
+  augment int local;
+          ^^^
+
+parser/general/augment_super_2:11:9: A function declaration needs an explicit list of parameters.
+augment List<int> get topLevelProperty {
+        ^^^^
+
+parser/general/augment_super_2:11:19: Expected a function body, but got 'get'.
+augment List<int> get topLevelProperty {
+                  ^^^
+
+parser/general/augment_super_2:12:23: Expected ',' before this.
+  return [... augment super, augment super[0]];
+                      ^^^^^
+
+parser/general/augment_super_2:12:38: Expected ',' before this.
+  return [... augment super, augment super[0]];
+                                     ^^^^^
+
+parser/general/augment_super_2:15:1: Variables must be declared using the keywords 'const', 'final', 'var' or a type name.
+augment void set topLevelProperty(List<int> value) {
+^^^^^^^
+
+parser/general/augment_super_2:15:1: Expected ';' after this.
+augment void set topLevelProperty(List<int> value) {
+^^^^^^^
+
+parser/general/augment_super_2:16:11: 'super' can't be used as an identifier because it's a keyword.
+  augment super[0] = value[1];
+          ^^^^^
+
+parser/general/augment_super_2:16:11: Expected ';' after this.
+  augment super[0] = value[1];
+          ^^^^^
+
+parser/general/augment_super_2:17:11: 'super' can't be used as an identifier because it's a keyword.
+  augment super = value;
+          ^^^^^
+
+parser/general/augment_super_2:21:11: 'super' can't be used as an identifier because it's a keyword.
+  augment super();
+          ^^^^^
+
+parser/general/augment_super_2:21:11: Expected ';' after this.
+  augment super();
+          ^^^^^
+
+parser/general/augment_super_2:22:11: 'super' can't be used as an identifier because it's a keyword.
+  augment super;
+          ^^^^^
+
+parser/general/augment_super_2:23:11: Expected ';' after this.
+  augment int local;
+          ^^^
+
+parser/general/augment_super_2:27:1: Variables must be declared using the keywords 'const', 'final', 'var' or a type name.
+augment class Class {
+^^^^^^^
+
+parser/general/augment_super_2:27:1: Expected ';' after this.
+augment class Class {
+^^^^^^^
+
+parser/general/augment_super_2:28:3: Variables must be declared using the keywords 'const', 'final', 'var' or a type name.
+  augment void instanceMethod() {
+  ^^^^^^^
+
+parser/general/augment_super_2:28:3: Expected ';' after this.
+  augment void instanceMethod() {
+  ^^^^^^^
+
+parser/general/augment_super_2:29:13: 'super' can't be used as an identifier because it's a keyword.
+    augment super();
+            ^^^^^
+
+parser/general/augment_super_2:29:13: Expected ';' after this.
+    augment super();
+            ^^^^^
+
+parser/general/augment_super_2:32:3: Variables must be declared using the keywords 'const', 'final', 'var' or a type name.
+  augment void instanceMethodErrors() {
+  ^^^^^^^
+
+parser/general/augment_super_2:32:3: Expected ';' after this.
+  augment void instanceMethodErrors() {
+  ^^^^^^^
+
+parser/general/augment_super_2:33:13: Expected ';' after this.
+    augment int local;
+            ^^^
+
+parser/general/augment_super_2:37:11: Expected ';' after this.
+  augment int get instanceProperty {
+          ^^^
+
+parser/general/augment_super_2:38:13: 'super' can't be used as an identifier because it's a keyword.
+    augment super++;
+            ^^^^^
+
+parser/general/augment_super_2:38:13: Expected ';' after this.
+    augment super++;
+            ^^^^^
+
+parser/general/augment_super_2:38:20: Expected an identifier, but got ';'.
+    augment super++;
+                   ^
+
+parser/general/augment_super_2:39:7: Expected ';' after this.
+    --augment super;
+      ^^^^^^^
+
+parser/general/augment_super_2:40:13: Expected ';' after this.
+    return -augment super;
+            ^^^^^^^
+
+parser/general/augment_super_2:43:3: Variables must be declared using the keywords 'const', 'final', 'var' or a type name.
+  augment void set instanceProperty(int value) {
+  ^^^^^^^
+
+parser/general/augment_super_2:43:3: Expected ';' after this.
+  augment void set instanceProperty(int value) {
+  ^^^^^^^
+
+parser/general/augment_super_2:44:13: 'super' can't be used as an identifier because it's a keyword.
+    augment super = value;
+            ^^^^^
+
+parser/general/augment_super_2:48:13: 'super' can't be used as an identifier because it's a keyword.
+    augment super();
+            ^^^^^
+
+parser/general/augment_super_2:48:13: Expected ';' after this.
+    augment super();
+            ^^^^^
+
+parser/general/augment_super_2:49:13: 'super' can't be used as an identifier because it's a keyword.
+    augment super;
+            ^^^^^
+
+parser/general/augment_super_2:50:13: Expected ';' after this.
+    augment int local;
+            ^^^
+
+beginCompilationUnit(augment)
+  beginMetadataStar(augment)
+  endMetadataStar(0)
+  beginTopLevelMember(augment)
+    beginFields(DeclarationKind.TopLevel, null, null, null, null, null, null, null, )
+      handleRecoverableError(MissingConstFinalVarOrType, augment, augment)
+      handleNoType()
+      handleIdentifier(augment, topLevelVariableDeclaration)
+      handleNoFieldInitializer(void)
+      handleRecoverableError(Message[Template(ExpectedAfterButGot), Expected ';' after this., null, {string: ;}], augment, augment)
+    endTopLevelFields(null, null, null, null, null, null, 1, augment, ;)
+  endTopLevelDeclaration(;)
+  beginMetadataStar(void)
+  endMetadataStar(0)
+  beginTopLevelMember(void)
+    beginTopLevelMethod(;, null, null)
+      handleVoidKeyword(void)
+      handleIdentifier(topLevelMethod, topLevelFunctionDeclaration)
+      handleNoTypeVariables(()
+      beginFormalParameters((, MemberKind.TopLevelMethod)
+      endFormalParameters(0, (, ), MemberKind.TopLevelMethod)
+      handleAsyncModifier(null, null)
+      beginBlockFunctionBody({)
+        beginMetadataStar(augment)
+        endMetadataStar(0)
+        handleIdentifier(augment, typeReference)
+        handleNoTypeArguments(super)
+        handleType(augment, null)
+        beginVariablesDeclaration(super, null, null)
+          handleRecoverableError(Message[Template(ExpectedIdentifierButGotKeyword), 'super' can't be used as an identifier because it's a keyword., Try renaming this to be an identifier that isn't a keyword., {lexeme: super}], super, super)
+          handleIdentifier(super, localVariableDeclaration)
+          beginInitializedIdentifier(super)
+            handleNoVariableInitializer(super)
+          endInitializedIdentifier(super)
+          handleRecoverableError(Message[Template(ExpectedAfterButGot), Expected ';' after this., null, {string: ;}], super, super)
+        endVariablesDeclaration(1, ;)
+        beginParenthesizedExpressionOrRecordLiteral(()
+        endRecordLiteral((, 0, null)
+        handleExpressionStatement((, ;)
+      endBlockFunctionBody(2, {, })
+    endTopLevelMethod(void, null, })
+  endTopLevelDeclaration(})
+  beginMetadataStar(augment)
+  endMetadataStar(0)
+  beginTopLevelMember(augment)
+    beginFields(DeclarationKind.TopLevel, null, null, null, null, null, null, null, })
+      handleRecoverableError(MissingConstFinalVarOrType, augment, augment)
+      handleNoType(})
+      handleIdentifier(augment, topLevelVariableDeclaration)
+      handleNoFieldInitializer(void)
+      handleRecoverableError(Message[Template(ExpectedAfterButGot), Expected ';' after this., null, {string: ;}], augment, augment)
+    endTopLevelFields(null, null, null, null, null, null, 1, augment, ;)
+  endTopLevelDeclaration(;)
+  beginMetadataStar(void)
+  endMetadataStar(0)
+  beginTopLevelMember(void)
+    beginTopLevelMethod(;, null, null)
+      handleVoidKeyword(void)
+      handleIdentifier(topLevelMethodError, topLevelFunctionDeclaration)
+      handleNoTypeVariables(()
+      beginFormalParameters((, MemberKind.TopLevelMethod)
+      endFormalParameters(0, (, ), MemberKind.TopLevelMethod)
+      handleAsyncModifier(null, null)
+      beginBlockFunctionBody({)
+        beginMetadataStar(augment)
+        endMetadataStar(0)
+        handleIdentifier(augment, typeReference)
+        handleNoTypeArguments(int)
+        handleType(augment, null)
+        beginVariablesDeclaration(int, null, null)
+          handleIdentifier(int, localVariableDeclaration)
+          beginInitializedIdentifier(int)
+            handleNoVariableInitializer(int)
+          endInitializedIdentifier(int)
+          handleRecoverableError(Message[Template(ExpectedAfterButGot), Expected ';' after this., null, {string: ;}], int, int)
+        endVariablesDeclaration(1, ;)
+        handleIdentifier(local, expression)
+        handleNoTypeArguments(;)
+        handleNoArguments(;)
+        handleSend(local, local)
+        handleExpressionStatement(local, ;)
+        handleIdentifier(augment, expression)
+        handleNoTypeArguments(;)
+        handleNoArguments(;)
+        handleSend(augment, augment)
+        handleExpressionStatement(augment, ;)
+      endBlockFunctionBody(3, {, })
+    endTopLevelMethod(void, null, })
+  endTopLevelDeclaration(})
+  beginMetadataStar(augment)
+  endMetadataStar(0)
+  beginTopLevelMember(augment)
+    beginTopLevelMethod(}, null, null)
+      handleIdentifier(augment, typeReference)
+      handleNoTypeArguments(List)
+      handleType(augment, null)
+      handleIdentifier(List, topLevelFunctionDeclaration)
+      beginTypeVariables(<)
+        beginMetadataStar(int)
+        endMetadataStar(0)
+        handleIdentifier(int, typeVariableDeclaration)
+        beginTypeVariable(int)
+          handleTypeVariablesDefined(int, 1)
+          handleNoType(int)
+        endTypeVariable(>, 0, null, null)
+      endTypeVariables(<, >)
+      handleRecoverableError(MissingFunctionParameters, List, List)
+      beginFormalParameters((, MemberKind.TopLevelMethod)
+      endFormalParameters(0, (, ), MemberKind.TopLevelMethod)
+      handleAsyncModifier(null, null)
+      handleRecoverableError(Message[Template(ExpectedFunctionBody), Expected a function body, but got 'get'., null, {lexeme: get}], get, get)
+      handleInvalidFunctionBody({)
+    endTopLevelMethod(augment, null, })
+  endTopLevelDeclaration(})
+  beginMetadataStar(get)
+  endMetadataStar(0)
+  beginTopLevelMember(get)
+    beginTopLevelMethod(}, null, null)
+      handleNoType(})
+      handleIdentifier(topLevelProperty, topLevelFunctionDeclaration)
+      handleNoTypeVariables({)
+      handleNoFormalParameters({, MemberKind.TopLevelMethod)
+      handleAsyncModifier(null, null)
+      beginBlockFunctionBody({)
+        beginReturnStatement(return)
+          handleNoTypeArguments([)
+          handleIdentifier(augment, expression)
+          handleNoTypeArguments(super)
+          handleNoArguments(super)
+          handleSend(augment, augment)
+          handleSpreadExpression(...)
+          handleRecoverableError(Message[Template(ExpectedButGot), Expected ',' before this., null, {string: ,}], super, super)
+          handleSuperExpression(super, expression)
+          handleIdentifier(augment, expression)
+          handleNoTypeArguments(super)
+          handleNoArguments(super)
+          handleSend(augment, augment)
+          handleRecoverableError(Message[Template(ExpectedButGot), Expected ',' before this., null, {string: ,}], super, super)
+          handleSuperExpression(super, expression)
+          handleLiteralInt(0)
+          handleIndexedExpression(null, [, ])
+          handleLiteralList(4, [, null, ])
+        endReturnStatement(true, return, ;)
+      endBlockFunctionBody(1, {, })
+    endTopLevelMethod(get, get, })
+  endTopLevelDeclaration(})
+  beginMetadataStar(augment)
+  endMetadataStar(0)
+  beginTopLevelMember(augment)
+    beginFields(DeclarationKind.TopLevel, null, null, null, null, null, null, null, })
+      handleRecoverableError(MissingConstFinalVarOrType, augment, augment)
+      handleNoType(})
+      handleIdentifier(augment, topLevelVariableDeclaration)
+      handleNoFieldInitializer(void)
+      handleRecoverableError(Message[Template(ExpectedAfterButGot), Expected ';' after this., null, {string: ;}], augment, augment)
+    endTopLevelFields(null, null, null, null, null, null, 1, augment, ;)
+  endTopLevelDeclaration(;)
+  beginMetadataStar(void)
+  endMetadataStar(0)
+  beginTopLevelMember(void)
+    beginTopLevelMethod(;, null, null)
+      handleVoidKeyword(void)
+      handleIdentifier(topLevelProperty, topLevelFunctionDeclaration)
+      handleNoTypeVariables(()
+      beginFormalParameters((, MemberKind.TopLevelMethod)
+        beginMetadataStar(List)
+        endMetadataStar(0)
+        beginFormalParameter(List, MemberKind.TopLevelMethod, null, null, null)
+          handleIdentifier(List, typeReference)
+          beginTypeArguments(<)
+            handleIdentifier(int, typeReference)
+            handleNoTypeArguments(>)
+            handleType(int, null)
+          endTypeArguments(1, <, >)
+          handleType(List, null)
+          handleIdentifier(value, formalParameterDeclaration)
+          handleFormalParameterWithoutValue())
+        endFormalParameter(null, null, null, null, value, null, null, FormalParameterKind.requiredPositional, MemberKind.TopLevelMethod)
+      endFormalParameters(1, (, ), MemberKind.TopLevelMethod)
+      handleAsyncModifier(null, null)
+      beginBlockFunctionBody({)
+        beginMetadataStar(augment)
+        endMetadataStar(0)
+        handleIdentifier(augment, typeReference)
+        handleNoTypeArguments(super)
+        handleType(augment, null)
+        beginVariablesDeclaration(super, null, null)
+          handleRecoverableError(Message[Template(ExpectedIdentifierButGotKeyword), 'super' can't be used as an identifier because it's a keyword., Try renaming this to be an identifier that isn't a keyword., {lexeme: super}], super, super)
+          handleIdentifier(super, localVariableDeclaration)
+          beginInitializedIdentifier(super)
+            handleNoVariableInitializer(super)
+          endInitializedIdentifier(super)
+          handleRecoverableError(Message[Template(ExpectedAfterButGot), Expected ';' after this., null, {string: ;}], super, super)
+        endVariablesDeclaration(1, ;)
+        beginPattern(;)
+          handleNoTypeArguments([)
+          beginPattern([)
+            beginConstantPattern(null)
+              handleLiteralInt(0)
+            endConstantPattern(null)
+          endPattern(0)
+          handleListPattern(1, [, ])
+        endPattern(])
+        handleIdentifier(value, expression)
+        handleNoTypeArguments([)
+        handleNoArguments([)
+        handleSend(value, value)
+        handleLiteralInt(1)
+        handleIndexedExpression(null, [, ])
+        handlePatternAssignment(=)
+        handleExpressionStatement([, ;)
+        beginMetadataStar(augment)
+        endMetadataStar(0)
+        handleIdentifier(augment, typeReference)
+        handleNoTypeArguments(super)
+        handleType(augment, null)
+        beginVariablesDeclaration(super, null, null)
+          handleRecoverableError(Message[Template(ExpectedIdentifierButGotKeyword), 'super' can't be used as an identifier because it's a keyword., Try renaming this to be an identifier that isn't a keyword., {lexeme: super}], super, super)
+          handleIdentifier(super, localVariableDeclaration)
+          beginInitializedIdentifier(super)
+            beginVariableInitializer(=)
+              handleIdentifier(value, expression)
+              handleNoTypeArguments(;)
+              handleNoArguments(;)
+              handleSend(value, value)
+            endVariableInitializer(=)
+          endInitializedIdentifier(super)
+        endVariablesDeclaration(1, ;)
+      endBlockFunctionBody(3, {, })
+    endTopLevelMethod(void, set, })
+  endTopLevelDeclaration(})
+  beginMetadataStar(void)
+  endMetadataStar(0)
+  beginTopLevelMember(void)
+    beginTopLevelMethod(}, null, null)
+      handleVoidKeyword(void)
+      handleIdentifier(injectedTopLevelMethod, topLevelFunctionDeclaration)
+      handleNoTypeVariables(()
+      beginFormalParameters((, MemberKind.TopLevelMethod)
+      endFormalParameters(0, (, ), MemberKind.TopLevelMethod)
+      handleAsyncModifier(null, null)
+      beginBlockFunctionBody({)
+        beginMetadataStar(augment)
+        endMetadataStar(0)
+        handleIdentifier(augment, typeReference)
+        handleNoTypeArguments(super)
+        handleType(augment, null)
+        beginVariablesDeclaration(super, null, null)
+          handleRecoverableError(Message[Template(ExpectedIdentifierButGotKeyword), 'super' can't be used as an identifier because it's a keyword., Try renaming this to be an identifier that isn't a keyword., {lexeme: super}], super, super)
+          handleIdentifier(super, localVariableDeclaration)
+          beginInitializedIdentifier(super)
+            handleNoVariableInitializer(super)
+          endInitializedIdentifier(super)
+          handleRecoverableError(Message[Template(ExpectedAfterButGot), Expected ';' after this., null, {string: ;}], super, super)
+        endVariablesDeclaration(1, ;)
+        beginParenthesizedExpressionOrRecordLiteral(()
+        endRecordLiteral((, 0, null)
+        handleExpressionStatement((, ;)
+        beginMetadataStar(augment)
+        endMetadataStar(0)
+        handleIdentifier(augment, typeReference)
+        handleNoTypeArguments(super)
+        handleType(augment, null)
+        beginVariablesDeclaration(super, null, null)
+          handleRecoverableError(Message[Template(ExpectedIdentifierButGotKeyword), 'super' can't be used as an identifier because it's a keyword., Try renaming this to be an identifier that isn't a keyword., {lexeme: super}], super, super)
+          handleIdentifier(super, localVariableDeclaration)
+          beginInitializedIdentifier(super)
+            handleNoVariableInitializer(super)
+          endInitializedIdentifier(super)
+        endVariablesDeclaration(1, ;)
+        beginMetadataStar(augment)
+        endMetadataStar(0)
+        handleIdentifier(augment, typeReference)
+        handleNoTypeArguments(int)
+        handleType(augment, null)
+        beginVariablesDeclaration(int, null, null)
+          handleIdentifier(int, localVariableDeclaration)
+          beginInitializedIdentifier(int)
+            handleNoVariableInitializer(int)
+          endInitializedIdentifier(int)
+          handleRecoverableError(Message[Template(ExpectedAfterButGot), Expected ';' after this., null, {string: ;}], int, int)
+        endVariablesDeclaration(1, ;)
+        handleIdentifier(local, expression)
+        handleNoTypeArguments(;)
+        handleNoArguments(;)
+        handleSend(local, local)
+        handleExpressionStatement(local, ;)
+        handleIdentifier(augment, expression)
+        handleNoTypeArguments(;)
+        handleNoArguments(;)
+        handleSend(augment, augment)
+        handleExpressionStatement(augment, ;)
+      endBlockFunctionBody(6, {, })
+    endTopLevelMethod(void, null, })
+  endTopLevelDeclaration(})
+  beginMetadataStar(augment)
+  endMetadataStar(0)
+  beginTopLevelMember(augment)
+    beginFields(DeclarationKind.TopLevel, null, null, null, null, null, null, null, })
+      handleRecoverableError(MissingConstFinalVarOrType, augment, augment)
+      handleNoType(})
+      handleIdentifier(augment, topLevelVariableDeclaration)
+      handleNoFieldInitializer(class)
+      handleRecoverableError(Message[Template(ExpectedAfterButGot), Expected ';' after this., null, {string: ;}], augment, augment)
+    endTopLevelFields(null, null, null, null, null, null, 1, augment, ;)
+  endTopLevelDeclaration(;)
+  beginMetadataStar(class)
+  endMetadataStar(0)
+  beginClassOrMixinOrNamedMixinApplicationPrelude(class)
+    handleIdentifier(Class, classOrMixinDeclaration)
+    handleNoTypeVariables({)
+    beginClassDeclaration(class, null, null, null, null, null, null, null, null, Class)
+      handleNoPrimaryConstructor(Class, null, false)
+      handleNoType(Class)
+      handleClassExtends(null, 1)
+      handleClassNoWithClause()
+      handleImplements(null, 0)
+      handleClassHeader(class, class, null)
+      beginClassOrMixinOrExtensionBody(DeclarationKind.Class, {)
+        beginMetadataStar(augment)
+        endMetadataStar(0)
+        beginMember()
+          beginFields(DeclarationKind.Class, null, null, null, null, null, null, null, {)
+            handleRecoverableError(MissingConstFinalVarOrType, augment, augment)
+            handleNoType({)
+            handleIdentifier(augment, fieldDeclaration)
+            handleNoFieldInitializer(void)
+            handleRecoverableError(Message[Template(ExpectedAfterButGot), Expected ';' after this., null, {string: ;}], augment, augment)
+          endClassFields(null, null, null, null, null, null, null, 1, augment, ;)
+        endMember()
+        beginMetadataStar(void)
+        endMetadataStar(0)
+        beginMember()
+          beginMethod(DeclarationKind.Class, null, null, null, null, null, null, instanceMethod, Class)
+            handleVoidKeyword(void)
+            handleIdentifier(instanceMethod, methodDeclaration)
+            handleNoTypeVariables(()
+            beginFormalParameters((, MemberKind.NonStaticMethod)
+            endFormalParameters(0, (, ), MemberKind.NonStaticMethod)
+            handleNoInitializers()
+            handleAsyncModifier(null, null)
+            beginBlockFunctionBody({)
+              beginMetadataStar(augment)
+              endMetadataStar(0)
+              handleIdentifier(augment, typeReference)
+              handleNoTypeArguments(super)
+              handleType(augment, null)
+              beginVariablesDeclaration(super, null, null)
+                handleRecoverableError(Message[Template(ExpectedIdentifierButGotKeyword), 'super' can't be used as an identifier because it's a keyword., Try renaming this to be an identifier that isn't a keyword., {lexeme: super}], super, super)
+                handleIdentifier(super, localVariableDeclaration)
+                beginInitializedIdentifier(super)
+                  handleNoVariableInitializer(super)
+                endInitializedIdentifier(super)
+                handleRecoverableError(Message[Template(ExpectedAfterButGot), Expected ';' after this., null, {string: ;}], super, super)
+              endVariablesDeclaration(1, ;)
+              beginParenthesizedExpressionOrRecordLiteral(()
+              endRecordLiteral((, 0, null)
+              handleExpressionStatement((, ;)
+            endBlockFunctionBody(2, {, })
+          endClassMethod(null, void, (, null, })
+        endMember()
+        beginMetadataStar(augment)
+        endMetadataStar(0)
+        beginMember()
+          beginFields(DeclarationKind.Class, null, null, null, null, null, null, null, })
+            handleRecoverableError(MissingConstFinalVarOrType, augment, augment)
+            handleNoType(})
+            handleIdentifier(augment, fieldDeclaration)
+            handleNoFieldInitializer(void)
+            handleRecoverableError(Message[Template(ExpectedAfterButGot), Expected ';' after this., null, {string: ;}], augment, augment)
+          endClassFields(null, null, null, null, null, null, null, 1, augment, ;)
+        endMember()
+        beginMetadataStar(void)
+        endMetadataStar(0)
+        beginMember()
+          beginMethod(DeclarationKind.Class, null, null, null, null, null, null, instanceMethodErrors, Class)
+            handleVoidKeyword(void)
+            handleIdentifier(instanceMethodErrors, methodDeclaration)
+            handleNoTypeVariables(()
+            beginFormalParameters((, MemberKind.NonStaticMethod)
+            endFormalParameters(0, (, ), MemberKind.NonStaticMethod)
+            handleNoInitializers()
+            handleAsyncModifier(null, null)
+            beginBlockFunctionBody({)
+              beginMetadataStar(augment)
+              endMetadataStar(0)
+              handleIdentifier(augment, typeReference)
+              handleNoTypeArguments(int)
+              handleType(augment, null)
+              beginVariablesDeclaration(int, null, null)
+                handleIdentifier(int, localVariableDeclaration)
+                beginInitializedIdentifier(int)
+                  handleNoVariableInitializer(int)
+                endInitializedIdentifier(int)
+                handleRecoverableError(Message[Template(ExpectedAfterButGot), Expected ';' after this., null, {string: ;}], int, int)
+              endVariablesDeclaration(1, ;)
+              handleIdentifier(local, expression)
+              handleNoTypeArguments(;)
+              handleNoArguments(;)
+              handleSend(local, local)
+              handleExpressionStatement(local, ;)
+              handleIdentifier(augment, expression)
+              handleNoTypeArguments(;)
+              handleNoArguments(;)
+              handleSend(augment, augment)
+              handleExpressionStatement(augment, ;)
+            endBlockFunctionBody(3, {, })
+          endClassMethod(null, void, (, null, })
+        endMember()
+        beginMetadataStar(augment)
+        endMetadataStar(0)
+        beginMember()
+          beginFields(DeclarationKind.Class, null, null, null, null, null, null, null, })
+            handleIdentifier(augment, typeReference)
+            handleNoTypeArguments(int)
+            handleType(augment, null)
+            handleIdentifier(int, fieldDeclaration)
+            handleNoFieldInitializer(get)
+            handleRecoverableError(Message[Template(ExpectedAfterButGot), Expected ';' after this., null, {string: ;}], int, int)
+          endClassFields(null, null, null, null, null, null, null, 1, augment, ;)
+        endMember()
+        beginMetadataStar(get)
+        endMetadataStar(0)
+        beginMember()
+          beginMethod(DeclarationKind.Class, null, null, null, null, null, get, instanceProperty, Class)
+            handleNoType(;)
+            handleIdentifier(instanceProperty, methodDeclaration)
+            handleNoTypeVariables({)
+            handleNoFormalParameters({, MemberKind.NonStaticMethod)
+            handleNoInitializers()
+            handleAsyncModifier(null, null)
+            beginBlockFunctionBody({)
+              beginMetadataStar(augment)
+              endMetadataStar(0)
+              handleIdentifier(augment, typeReference)
+              handleNoTypeArguments(super)
+              handleType(augment, null)
+              beginVariablesDeclaration(super, null, null)
+                handleRecoverableError(Message[Template(ExpectedIdentifierButGotKeyword), 'super' can't be used as an identifier because it's a keyword., Try renaming this to be an identifier that isn't a keyword., {lexeme: super}], super, super)
+                handleIdentifier(super, localVariableDeclaration)
+                beginInitializedIdentifier(super)
+                  handleNoVariableInitializer(super)
+                endInitializedIdentifier(super)
+                handleRecoverableError(Message[Template(ExpectedAfterButGot), Expected ';' after this., null, {string: ;}], super, super)
+              endVariablesDeclaration(1, ;)
+              handleRecoverableError(Message[Template(ExpectedIdentifier), Expected an identifier, but got ';'., Try inserting an identifier before ';'., {lexeme: ;}], ;, ;)
+              handleIdentifier(, expression)
+              handleNoTypeArguments(;)
+              handleNoArguments(;)
+              handleSend(, )
+              handleUnaryPrefixAssignmentExpression(++)
+              handleExpressionStatement(++, ;)
+              handleIdentifier(augment, expression)
+              handleNoTypeArguments(super)
+              handleNoArguments(super)
+              handleSend(augment, augment)
+              handleUnaryPrefixAssignmentExpression(--)
+              handleRecoverableError(Message[Template(ExpectedAfterButGot), Expected ';' after this., null, {string: ;}], augment, augment)
+              handleExpressionStatement(--, ;)
+              handleSuperExpression(super, expression)
+              handleExpressionStatement(super, ;)
+              beginReturnStatement(return)
+                handleIdentifier(augment, expression)
+                handleNoTypeArguments(super)
+                handleNoArguments(super)
+                handleSend(augment, augment)
+                handleUnaryPrefixExpression(-)
+                handleRecoverableError(Message[Template(ExpectedAfterButGot), Expected ';' after this., null, {string: ;}], augment, augment)
+              endReturnStatement(true, return, ;)
+              handleSuperExpression(super, expression)
+              handleExpressionStatement(super, ;)
+            endBlockFunctionBody(6, {, })
+          endClassMethod(get, get, {, null, })
+        endMember()
+        beginMetadataStar(augment)
+        endMetadataStar(0)
+        beginMember()
+          beginFields(DeclarationKind.Class, null, null, null, null, null, null, null, })
+            handleRecoverableError(MissingConstFinalVarOrType, augment, augment)
+            handleNoType(})
+            handleIdentifier(augment, fieldDeclaration)
+            handleNoFieldInitializer(void)
+            handleRecoverableError(Message[Template(ExpectedAfterButGot), Expected ';' after this., null, {string: ;}], augment, augment)
+          endClassFields(null, null, null, null, null, null, null, 1, augment, ;)
+        endMember()
+        beginMetadataStar(void)
+        endMetadataStar(0)
+        beginMember()
+          beginMethod(DeclarationKind.Class, null, null, null, null, null, set, instanceProperty, Class)
+            handleVoidKeyword(void)
+            handleIdentifier(instanceProperty, methodDeclaration)
+            handleNoTypeVariables(()
+            beginFormalParameters((, MemberKind.NonStaticMethod)
+              beginMetadataStar(int)
+              endMetadataStar(0)
+              beginFormalParameter(int, MemberKind.NonStaticMethod, null, null, null)
+                handleIdentifier(int, typeReference)
+                handleNoTypeArguments(value)
+                handleType(int, null)
+                handleIdentifier(value, formalParameterDeclaration)
+                handleFormalParameterWithoutValue())
+              endFormalParameter(null, null, null, null, value, null, null, FormalParameterKind.requiredPositional, MemberKind.NonStaticMethod)
+            endFormalParameters(1, (, ), MemberKind.NonStaticMethod)
+            handleNoInitializers()
+            handleAsyncModifier(null, null)
+            beginBlockFunctionBody({)
+              beginMetadataStar(augment)
+              endMetadataStar(0)
+              handleIdentifier(augment, typeReference)
+              handleNoTypeArguments(super)
+              handleType(augment, null)
+              beginVariablesDeclaration(super, null, null)
+                handleRecoverableError(Message[Template(ExpectedIdentifierButGotKeyword), 'super' can't be used as an identifier because it's a keyword., Try renaming this to be an identifier that isn't a keyword., {lexeme: super}], super, super)
+                handleIdentifier(super, localVariableDeclaration)
+                beginInitializedIdentifier(super)
+                  beginVariableInitializer(=)
+                    handleIdentifier(value, expression)
+                    handleNoTypeArguments(;)
+                    handleNoArguments(;)
+                    handleSend(value, value)
+                  endVariableInitializer(=)
+                endInitializedIdentifier(super)
+              endVariablesDeclaration(1, ;)
+            endBlockFunctionBody(1, {, })
+          endClassMethod(set, void, (, null, })
+        endMember()
+        beginMetadataStar(void)
+        endMetadataStar(0)
+        beginMember()
+          beginMethod(DeclarationKind.Class, null, null, null, null, null, null, injectedInstanceMethod, Class)
+            handleVoidKeyword(void)
+            handleIdentifier(injectedInstanceMethod, methodDeclaration)
+            handleNoTypeVariables(()
+            beginFormalParameters((, MemberKind.NonStaticMethod)
+            endFormalParameters(0, (, ), MemberKind.NonStaticMethod)
+            handleNoInitializers()
+            handleAsyncModifier(null, null)
+            beginBlockFunctionBody({)
+              beginMetadataStar(augment)
+              endMetadataStar(0)
+              handleIdentifier(augment, typeReference)
+              handleNoTypeArguments(super)
+              handleType(augment, null)
+              beginVariablesDeclaration(super, null, null)
+                handleRecoverableError(Message[Template(ExpectedIdentifierButGotKeyword), 'super' can't be used as an identifier because it's a keyword., Try renaming this to be an identifier that isn't a keyword., {lexeme: super}], super, super)
+                handleIdentifier(super, localVariableDeclaration)
+                beginInitializedIdentifier(super)
+                  handleNoVariableInitializer(super)
+                endInitializedIdentifier(super)
+                handleRecoverableError(Message[Template(ExpectedAfterButGot), Expected ';' after this., null, {string: ;}], super, super)
+              endVariablesDeclaration(1, ;)
+              beginParenthesizedExpressionOrRecordLiteral(()
+              endRecordLiteral((, 0, null)
+              handleExpressionStatement((, ;)
+              beginMetadataStar(augment)
+              endMetadataStar(0)
+              handleIdentifier(augment, typeReference)
+              handleNoTypeArguments(super)
+              handleType(augment, null)
+              beginVariablesDeclaration(super, null, null)
+                handleRecoverableError(Message[Template(ExpectedIdentifierButGotKeyword), 'super' can't be used as an identifier because it's a keyword., Try renaming this to be an identifier that isn't a keyword., {lexeme: super}], super, super)
+                handleIdentifier(super, localVariableDeclaration)
+                beginInitializedIdentifier(super)
+                  handleNoVariableInitializer(super)
+                endInitializedIdentifier(super)
+              endVariablesDeclaration(1, ;)
+              beginMetadataStar(augment)
+              endMetadataStar(0)
+              handleIdentifier(augment, typeReference)
+              handleNoTypeArguments(int)
+              handleType(augment, null)
+              beginVariablesDeclaration(int, null, null)
+                handleIdentifier(int, localVariableDeclaration)
+                beginInitializedIdentifier(int)
+                  handleNoVariableInitializer(int)
+                endInitializedIdentifier(int)
+                handleRecoverableError(Message[Template(ExpectedAfterButGot), Expected ';' after this., null, {string: ;}], int, int)
+              endVariablesDeclaration(1, ;)
+              handleIdentifier(local, expression)
+              handleNoTypeArguments(;)
+              handleNoArguments(;)
+              handleSend(local, local)
+              handleExpressionStatement(local, ;)
+              handleIdentifier(augment, expression)
+              handleNoTypeArguments(;)
+              handleNoArguments(;)
+              handleSend(augment, augment)
+              handleExpressionStatement(augment, ;)
+            endBlockFunctionBody(6, {, })
+          endClassMethod(null, void, (, null, })
+        endMember()
+      endClassOrMixinOrExtensionBody(DeclarationKind.Class, 9, {, })
+    endClassDeclaration(class, })
+  endTopLevelDeclaration(})
+endCompilationUnit(11, )

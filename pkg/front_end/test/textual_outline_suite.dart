@@ -112,6 +112,8 @@ class TextualOutline extends Step<TestDescription, TestDescription, Context> {
     Uint8List bytes = new File.fromUri(description.uri).readAsBytesSync();
     for (bool modelled in [false, true]) {
       TextualOutlineInfoForTesting info = new TextualOutlineInfoForTesting();
+      ExperimentalFeaturesFromFlags experimentalFeatures =
+          new ExperimentalFeaturesFromFlags(experimentalFlags);
       String? result = textualOutline(
         bytes,
         new ScannerConfiguration(
@@ -123,9 +125,7 @@ class TextualOutline extends Step<TestDescription, TestDescription, Context> {
         throwOnUnexpected: true,
         performModelling: modelled,
         returnNullOnError: false,
-        experimentalFeatures: new ExperimentalFeaturesFromFlags(
-          experimentalFlags,
-        ),
+        experimentalFeatures: experimentalFeatures,
         infoForTesting: info,
       );
       if (result == null) {

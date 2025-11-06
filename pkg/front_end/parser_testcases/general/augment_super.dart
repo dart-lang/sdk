@@ -1,3 +1,4 @@
+// @dart=2.19
 augment void topLevelMethod() {
   augment super();
 }

@@ -1,0 +1,87 @@
+Problems reported:
+
+parser/nnbd/issue_40267_case_01_2:4:14: Expected ':' before this.
+    case b ? [c] : d: e;
+             ^
+
+parser/nnbd/issue_40267_case_01_2:4:16: Expected ';' after this.
+    case b ? [c] : d: e;
+               ^
+
+parser/nnbd/issue_40267_case_01_2:4:18: Expected an identifier, but got ':'.
+    case b ? [c] : d: e;
+                 ^
+
+parser/nnbd/issue_40267_case_01_2:4:16: Expected ';' after this.
+    case b ? [c] : d: e;
+               ^
+
+parser/nnbd/issue_40267_case_01_2:4:18: Unexpected token ':'.
+    case b ? [c] : d: e;
+                 ^
+
+beginCompilationUnit(main)
+  beginMetadataStar(main)
+  endMetadataStar(0)
+  beginTopLevelMember(main)
+    beginTopLevelMethod(, null, null)
+      handleNoType()
+      handleIdentifier(main, topLevelFunctionDeclaration)
+      handleNoTypeVariables(()
+      beginFormalParameters((, MemberKind.TopLevelMethod)
+      endFormalParameters(0, (, ), MemberKind.TopLevelMethod)
+      handleAsyncModifier(null, null)
+      beginBlockFunctionBody({)
+        beginSwitchStatement(switch)
+          handleIdentifier(a, expression)
+          handleNoTypeArguments())
+          handleNoArguments())
+          handleSend(a, a)
+          handleParenthesizedCondition((, null, null)
+          beginSwitchBlock({)
+            beginCaseExpression(case)
+              beginPattern(case)
+                beginConstantPattern(null)
+                  handleIdentifier(b, expression)
+                  handleNoTypeArguments(?)
+                  handleNoArguments(?)
+                  handleSend(b, b)
+                endConstantPattern(null)
+                handleNullCheckPattern(?)
+              endPattern(?)
+              handleSwitchCaseNoWhenClause(?)
+              handleRecoverableError(Message[Template(ExpectedButGot), Expected ':' before this., null, {string: :}], [, [)
+            endCaseExpression(case, null, :)
+            beginSwitchCase(0, 1, case)
+              handleNoTypeArguments([)
+              handleIdentifier(c, expression)
+              handleNoTypeArguments(])
+              handleNoArguments(])
+              handleSend(c, c)
+              handleLiteralList(1, [, null, ])
+              handleRecoverableError(Message[Template(ExpectedAfterButGot), Expected ';' after this., null, {string: ;}], ], ])
+              handleExpressionStatement([, ;)
+              handleRecoverableError(Message[Template(ExpectedIdentifier), Expected an identifier, but got ':'., Try inserting an identifier before ':'., {lexeme: :}], :, :)
+              handleIdentifier(, expression)
+              handleNoTypeArguments(:)
+              handleNoArguments(:)
+              handleSend(, )
+              handleRecoverableError(Message[Template(ExpectedAfterButGot), Expected ';' after this., null, {string: ;}], ], ])
+              handleExpressionStatement(:, ;)
+              handleRecoverableError(Message[Template(UnexpectedToken), Unexpected token ':'., null, {lexeme: :}], :, :)
+              handleIdentifier(d, labelDeclaration)
+              handleLabel(:)
+              beginLabeledStatement(e, 1)
+                handleIdentifier(e, expression)
+                handleNoTypeArguments(;)
+                handleNoArguments(;)
+                handleSend(e, e)
+                handleExpressionStatement(e, ;)
+              endLabeledStatement(1)
+            endSwitchCase(0, 1, null, null, 3, case, ;)
+          endSwitchBlock(1, {, })
+        endSwitchStatement(switch, })
+      endBlockFunctionBody(1, {, })
+    endTopLevelMethod(main, null, })
+  endTopLevelDeclaration(})
+endCompilationUnit(1, )
