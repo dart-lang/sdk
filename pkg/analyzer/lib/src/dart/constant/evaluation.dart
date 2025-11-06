@@ -673,7 +673,10 @@ class ConstantVisitor extends UnifyingAstVisitor<Constant> {
         case DartObjectImpl():
           return constant;
         case InvalidConstant():
-          throw EvaluationException(constant.diagnosticCode);
+          throw EvaluationException(
+            constant.diagnosticCode,
+            arguments: constant.arguments,
+          );
       }
     }
 
@@ -2265,6 +2268,7 @@ class DartObjectComputer {
       return InvalidConstant.forEntity(
         entity: node,
         diagnosticCode: exception.diagnosticCode,
+        arguments: exception.arguments,
       );
     }
   }
@@ -2282,6 +2286,7 @@ class DartObjectComputer {
       return InvalidConstant.forEntity(
         entity: node,
         diagnosticCode: exception.diagnosticCode,
+        arguments: exception.arguments,
       );
     }
   }
@@ -2293,6 +2298,7 @@ class DartObjectComputer {
       return InvalidConstant.forEntity(
         entity: node,
         diagnosticCode: exception.diagnosticCode,
+        arguments: exception.arguments,
       );
     }
   }
@@ -2308,6 +2314,7 @@ class DartObjectComputer {
       return InvalidConstant.forEntity(
         entity: node,
         diagnosticCode: exception.diagnosticCode,
+        arguments: exception.arguments,
       );
     }
   }
@@ -2323,6 +2330,7 @@ class DartObjectComputer {
       return InvalidConstant.forEntity(
         entity: node,
         diagnosticCode: exception.diagnosticCode,
+        arguments: exception.arguments,
       );
     }
   }
@@ -2338,6 +2346,7 @@ class DartObjectComputer {
       return InvalidConstant.forEntity(
         entity: node,
         diagnosticCode: exception.diagnosticCode,
+        arguments: exception.arguments,
       );
     }
   }
@@ -2353,6 +2362,7 @@ class DartObjectComputer {
       return InvalidConstant.forEntity(
         entity: node,
         diagnosticCode: exception.diagnosticCode,
+        arguments: exception.arguments,
       );
     }
   }
@@ -2368,6 +2378,7 @@ class DartObjectComputer {
       return InvalidConstant.forEntity(
         entity: node,
         diagnosticCode: exception.diagnosticCode,
+        arguments: exception.arguments,
       );
     }
   }
@@ -2383,6 +2394,7 @@ class DartObjectComputer {
       return InvalidConstant.forEntity(
         entity: node,
         diagnosticCode: exception.diagnosticCode,
+        arguments: exception.arguments,
       );
     }
   }
@@ -2398,6 +2410,7 @@ class DartObjectComputer {
       return InvalidConstant.forEntity(
         entity: node,
         diagnosticCode: exception.diagnosticCode,
+        arguments: exception.arguments,
       );
     }
   }
@@ -2413,6 +2426,7 @@ class DartObjectComputer {
       return InvalidConstant.forEntity(
         entity: node,
         diagnosticCode: exception.diagnosticCode,
+        arguments: exception.arguments,
       );
     }
   }
@@ -2428,6 +2442,7 @@ class DartObjectComputer {
       return InvalidConstant.forEntity(
         entity: node,
         diagnosticCode: exception.diagnosticCode,
+        arguments: exception.arguments,
       );
     }
   }
@@ -2443,6 +2458,7 @@ class DartObjectComputer {
       return InvalidConstant.forEntity(
         entity: node,
         diagnosticCode: exception.diagnosticCode,
+        arguments: exception.arguments,
         isRuntimeException: exception.isRuntimeException,
       );
     }
@@ -2459,6 +2475,7 @@ class DartObjectComputer {
       return InvalidConstant.forEntity(
         entity: node,
         diagnosticCode: exception.diagnosticCode,
+        arguments: exception.arguments,
       );
     }
   }
@@ -2474,6 +2491,7 @@ class DartObjectComputer {
       return InvalidConstant.forEntity(
         entity: node,
         diagnosticCode: exception.diagnosticCode,
+        arguments: exception.arguments,
       );
     }
   }
@@ -2489,6 +2507,7 @@ class DartObjectComputer {
       return InvalidConstant.forEntity(
         entity: node,
         diagnosticCode: exception.diagnosticCode,
+        arguments: exception.arguments,
       );
     }
   }
@@ -2515,6 +2534,7 @@ class DartObjectComputer {
       return InvalidConstant.forEntity(
         entity: node,
         diagnosticCode: exception.diagnosticCode,
+        arguments: exception.arguments,
       );
     }
   }
@@ -2530,6 +2550,7 @@ class DartObjectComputer {
       return InvalidConstant.forEntity(
         entity: node,
         diagnosticCode: exception.diagnosticCode,
+        arguments: exception.arguments,
       );
     }
   }
@@ -2541,6 +2562,7 @@ class DartObjectComputer {
       return InvalidConstant.forEntity(
         entity: node,
         diagnosticCode: exception.diagnosticCode,
+        arguments: exception.arguments,
       );
     }
   }
@@ -2556,6 +2578,7 @@ class DartObjectComputer {
       return InvalidConstant.forEntity(
         entity: node,
         diagnosticCode: exception.diagnosticCode,
+        arguments: exception.arguments,
       );
     }
   }
@@ -2571,6 +2594,7 @@ class DartObjectComputer {
       return InvalidConstant.forEntity(
         entity: node,
         diagnosticCode: exception.diagnosticCode,
+        arguments: exception.arguments,
       );
     }
   }
@@ -2582,6 +2606,7 @@ class DartObjectComputer {
       return InvalidConstant.forEntity(
         entity: node,
         diagnosticCode: exception.diagnosticCode,
+        arguments: exception.arguments,
       );
     }
   }
@@ -2597,6 +2622,7 @@ class DartObjectComputer {
       return InvalidConstant.forEntity(
         entity: node,
         diagnosticCode: exception.diagnosticCode,
+        arguments: exception.arguments,
       );
     }
   }
@@ -2608,6 +2634,7 @@ class DartObjectComputer {
       return InvalidConstant.forEntity(
         entity: node,
         diagnosticCode: exception.diagnosticCode,
+        arguments: exception.arguments,
       );
     }
   }
@@ -2623,6 +2650,7 @@ class DartObjectComputer {
       return InvalidConstant.forEntity(
         entity: node,
         diagnosticCode: exception.diagnosticCode,
+        arguments: exception.arguments,
       );
     }
   }
@@ -2638,6 +2666,7 @@ class DartObjectComputer {
       return InvalidConstant.forEntity(
         entity: node,
         diagnosticCode: exception.diagnosticCode,
+        arguments: exception.arguments,
       );
     }
   }
@@ -2653,6 +2682,7 @@ class DartObjectComputer {
       return InvalidConstant.forEntity(
         entity: node,
         diagnosticCode: exception.diagnosticCode,
+        arguments: exception.arguments,
       );
     }
   }
@@ -2664,6 +2694,7 @@ class DartObjectComputer {
       return InvalidConstant.forEntity(
         entity: node,
         diagnosticCode: exception.diagnosticCode,
+        arguments: exception.arguments,
       );
     }
   }
@@ -2679,6 +2710,7 @@ class DartObjectComputer {
       return InvalidConstant.forEntity(
         entity: node,
         diagnosticCode: exception.diagnosticCode,
+        arguments: exception.arguments,
       );
     }
   }
@@ -2736,6 +2768,7 @@ class DartObjectComputer {
       return InvalidConstant.forEntity(
         entity: node,
         diagnosticCode: exception.diagnosticCode,
+        arguments: exception.arguments,
       );
     }
   }

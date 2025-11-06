@@ -16,6 +16,26 @@ main() {
 
 @reflectiveTest
 class ConstEvalPropertyAccessTest extends PubPackageResolutionTest {
+  test_constructorArgument_rhsOfLogicalOperation() async {
+    // Note: prior to the fix for https://github.com/dart-lang/sdk/issues/61761,
+    // this caused an exception to be thrown during constant evaluation.
+    await assertErrorsInCode(
+      r'''
+class C {
+  final bool x;
+  const C(this.x);
+}
+const C a = C(true);
+const C b = C(false || a.x);
+''',
+      [
+        // TODO(paulberry): this error range covers the whole subexpression
+        // `false || a.x`. Probably it's better to just cover `a.x`.
+        error(CompileTimeErrorCode.constEvalPropertyAccess, 82, 12),
+      ],
+    );
+  }
+
   test_constructorFieldInitializer_fromSeparateLibrary() async {
     var lib = newFile('$testPackageLibPath/lib.dart', r'''
 class A<T> {

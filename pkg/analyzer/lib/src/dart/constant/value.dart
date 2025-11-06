@@ -1358,11 +1358,18 @@ class EvaluationException {
   /// The diagnostic code associated with the exception.
   final DiagnosticCode diagnosticCode;
 
+  /// The arguments that must be supplied to [diagnosticCode].
+  final List<Object> arguments;
+
   /// Returns `true` if the evaluation exception is a runtime exception.
   final bool isRuntimeException;
 
   /// Initialize a newly created exception to have the given [diagnosticCode].
-  EvaluationException(this.diagnosticCode, {this.isRuntimeException = false});
+  EvaluationException(
+    this.diagnosticCode, {
+    this.arguments = const [],
+    this.isRuntimeException = false,
+  });
 }
 
 /// The state of an object representing a function.
