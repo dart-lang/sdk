@@ -298,10 +298,13 @@ void expect<E>(E expect, E actual) {
   if (expect != actual) throw "Expected '$expect' but got '$actual'";
 }
 
-List<String> splitIntoChunks(ParserAstNode ast, List<int> data) {
+List<String> splitIntoChunks(ParserAstNode? ast, List<int> data) {
   List<String> foundChunks = [];
-  for (ParserAstNode child in ast.children!) {
-    foundChunks.addAll(processItem(child, data));
+  List<ParserAstNode>? children = ast?.children;
+  if (children != null) {
+    for (ParserAstNode child in children) {
+      foundChunks.addAll(processItem(child, data));
+    }
   }
   return foundChunks;
 }

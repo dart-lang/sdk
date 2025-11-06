@@ -1576,25 +1576,35 @@ worlds:
           if (child.isClass()) {
             // Also try to remove all content of the class.
             ClassDeclarationEnd decl = child.asClass();
-            ClassOrMixinOrExtensionBodyEnd body = decl
+            ClassOrMixinOrExtensionBodyEnd? body = decl
                 .getClassOrMixinOrExtensionBody();
-            if (body.beginToken.offset + 2 < body.endToken.offset) {
-              helper.replacements.add(
-                new _Replacement(body.beginToken.offset, body.endToken.offset),
-              );
-              what = "class body";
-              success = await _tryReplaceAndCompile(
-                helper,
-                uri,
-                initialComponent,
-                what,
-              );
-              if (helper.shouldQuit) return;
-            }
+            Token bodyBegin;
+            if (body != null) {
+              bodyBegin = body.beginToken;
+              if (body.beginToken.offset + 2 < body.endToken.offset) {
+                helper.replacements.add(
+                  new _Replacement(
+                    body.beginToken.offset,
+                    body.endToken.offset,
+                  ),
+                );
+                what = "class body";
+                success = await _tryReplaceAndCompile(
+                  helper,
+                  uri,
+                  initialComponent,
+                  what,
+                );
+                if (helper.shouldQuit) return;
+              }
 
-            if (!success) {
-              // Also try to remove members one at a time.
-              await _deleteBlocksHelper(body, helper, uri, initialComponent);
+              if (!success) {
+                // Also try to remove members one at a time.
+                await _deleteBlocksHelper(body, helper, uri, initialComponent);
+              }
+            } else {
+              NoClassBodyHandle body = decl.getNoClassBody()!;
+              bodyBegin = body.semicolonToken;
             }
 
             // Try to remove "extends", "implements" etc.
@@ -1606,7 +1616,7 @@ worlds:
               helper.replacements.add(
                 new _Replacement(
                   decl.getClassExtends().extendsKeyword!.offset - 1,
-                  body.beginToken.offset,
+                  bodyBegin.offset,
                 ),
               );
               what = "class extends";
@@ -1622,7 +1632,7 @@ worlds:
               helper.replacements.add(
                 new _Replacement(
                   decl.getClassImplements().implementsKeyword!.offset - 1,
-                  body.beginToken.offset,
+                  bodyBegin.offset,
                 ),
               );
               what = "class implements";
@@ -1638,7 +1648,7 @@ worlds:
               helper.replacements.add(
                 new _Replacement(
                   decl.getClassWithClause()!.withKeyword.offset - 1,
-                  body.beginToken.offset,
+                  bodyBegin.offset,
                 ),
               );
               what = "class with clause";
@@ -1675,24 +1685,27 @@ worlds:
           } else if (child.isExtensionType()) {
             // Also try to remove all content of the extension type.
             ExtensionTypeDeclarationEnd decl = child.asExtensionType();
-            ClassOrMixinOrExtensionBodyEnd body = decl
+            ClassOrMixinOrExtensionBodyEnd? body = decl
                 .getClassOrMixinOrExtensionBody();
-            if (body.beginToken.offset + 2 < body.endToken.offset) {
-              helper.replacements.add(
-                new _Replacement(body.beginToken.offset, body.endToken.offset),
-              );
-              what = "extension type body";
-              success = await _tryReplaceAndCompile(
-                helper,
-                uri,
-                initialComponent,
-                what,
-              );
-              if (helper.shouldQuit) return;
-            }
+            if (body != null) {
+              if (body.beginToken.offset + 2 < body.endToken.offset) {
+                helper.replacements.add(
+                  new _Replacement(
+                      body.beginToken.offset, body.endToken.offset),
+                );
+                what = "extension type body";
+                success = await _tryReplaceAndCompile(
+                  helper,
+                  uri,
+                  initialComponent,
+                  what,
+                );
+                if (helper.shouldQuit) return;
+              }
 
-            if (!success) {
-              await _deleteBlocksHelper(body, helper, uri, initialComponent);
+              if (!success) {
+                await _deleteBlocksHelper(body, helper, uri, initialComponent);
+              }
             }
           } else if (child.isTopLevelMethod()) {
             // Try to remove parameters.

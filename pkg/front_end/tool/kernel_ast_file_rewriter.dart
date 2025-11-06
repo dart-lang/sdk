@@ -59,7 +59,7 @@ void main(List<String> args) {
     }
 
     ClassDeclarationEnd classDeclaration = cls.getClassDeclaration();
-    ClassOrMixinOrExtensionBodyEnd classOrMixinBody = classDeclaration
+    ClassOrMixinOrExtensionBodyEnd? classOrMixinBody = classDeclaration
         .getClassOrMixinOrExtensionBody();
 
     Set<String> namedClassConstructors = {};
@@ -87,7 +87,7 @@ void main(List<String> args) {
 
     // If there isn't a `frozen` field in `TreeNode` we insert one.
     if (entry.key == "TreeNode" && !namedFields.contains("frozen")) {
-      Token classBraceToken = classOrMixinBody.beginToken;
+      Token classBraceToken = classOrMixinBody!.beginToken;
       assert(classBraceToken.lexeme == "{");
       replacements[classBraceToken] = new Replacement(
         classBraceToken,

@@ -1167,13 +1167,23 @@ extension NamedMixinApplicationExtension on NamedMixinApplicationEnd {
 
 extension ClassDeclarationExtension on ClassDeclarationEnd {
   // Coverage-ignore(suite): Not run.
-  ClassOrMixinOrExtensionBodyEnd getClassOrMixinOrExtensionBody() {
+  ClassOrMixinOrExtensionBodyEnd? getClassOrMixinOrExtensionBody() {
     for (ParserAstNode child in children!) {
       if (child is ClassOrMixinOrExtensionBodyEnd) {
         return child;
       }
     }
-    throw "Not found.";
+    return null;
+  }
+
+  // Coverage-ignore(suite): Not run.
+  NoClassBodyHandle? getNoClassBody() {
+    for (ParserAstNode child in children!) {
+      if (child is NoClassBodyHandle) {
+        return child;
+      }
+    }
+    return null;
   }
 
   // Coverage-ignore(suite): Not run.
@@ -1212,12 +1222,15 @@ extension ClassDeclarationExtension on ClassDeclarationEnd {
 }
 
 // Coverage-ignore(suite): Not run.
-extension ClassOrMixinBodyExtension on ClassOrMixinOrExtensionBodyEnd {
+extension ClassOrMixinBodyExtension on ClassOrMixinOrExtensionBodyEnd? {
   List<MemberEnd> getMembers() {
     List<MemberEnd> members = [];
-    for (ParserAstNode child in children!) {
-      if (child is MemberEnd) {
-        members.add(child);
+    List<ParserAstNode>? children = this?.children;
+    if (children != null) {
+      for (ParserAstNode child in children) {
+        if (child is MemberEnd) {
+          members.add(child);
+        }
       }
     }
     return members;
@@ -1712,13 +1725,22 @@ extension ExtensionTypeDeclarationExtension on ExtensionTypeDeclarationEnd {
     return begin.name;
   }
 
-  ClassOrMixinOrExtensionBodyEnd getClassOrMixinOrExtensionBody() {
+  ClassOrMixinOrExtensionBodyEnd? getClassOrMixinOrExtensionBody() {
     for (ParserAstNode child in children!) {
       if (child is ClassOrMixinOrExtensionBodyEnd) {
         return child;
       }
     }
-    throw "Not found.";
+    return null;
+  }
+
+  NoExtensionTypeBodyHandle? getNoExtensionTypeBody() {
+    for (ParserAstNode child in children!) {
+      if (child is NoExtensionTypeBodyHandle) {
+        return child;
+      }
+    }
+    return null;
   }
 }
 

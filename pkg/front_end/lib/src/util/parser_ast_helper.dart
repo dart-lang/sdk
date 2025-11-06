@@ -348,6 +348,24 @@ abstract class AbstractParserAstListener implements Listener {
   }
 
   @override
+  void handleNoClassBody(Token semicolonToken) {
+    NoClassBodyHandle data = new NoClassBodyHandle(
+      ParserAstType.HANDLE,
+      semicolonToken: semicolonToken,
+    );
+    seen(data);
+  }
+
+  @override
+  void handleNoExtensionTypeBody(Token semicolonToken) {
+    NoExtensionTypeBodyHandle data = new NoExtensionTypeBodyHandle(
+      ParserAstType.HANDLE,
+      semicolonToken: semicolonToken,
+    );
+    seen(data);
+  }
+
+  @override
   void beginMixinDeclaration(
     Token beginToken,
     Token? augmentToken,
@@ -4723,6 +4741,36 @@ class ClassDeclarationEnd extends ParserAstNode
 
   @override
   R accept<R>(ParserAstVisitor<R> v) => v.visitClassDeclarationEnd(this);
+}
+
+class NoClassBodyHandle extends ParserAstNode {
+  final Token semicolonToken;
+
+  NoClassBodyHandle(ParserAstType type, {required this.semicolonToken})
+    : super("NoClassBody", type);
+
+  @override
+  Map<String, Object?> get deprecatedArguments => {
+    "semicolonToken": semicolonToken,
+  };
+
+  @override
+  R accept<R>(ParserAstVisitor<R> v) => v.visitNoClassBodyHandle(this);
+}
+
+class NoExtensionTypeBodyHandle extends ParserAstNode {
+  final Token semicolonToken;
+
+  NoExtensionTypeBodyHandle(ParserAstType type, {required this.semicolonToken})
+    : super("NoExtensionTypeBody", type);
+
+  @override
+  Map<String, Object?> get deprecatedArguments => {
+    "semicolonToken": semicolonToken,
+  };
+
+  @override
+  R accept<R>(ParserAstVisitor<R> v) => v.visitNoExtensionTypeBodyHandle(this);
 }
 
 class MixinDeclarationBegin extends ParserAstNode {
@@ -11289,6 +11337,8 @@ abstract class ParserAstVisitor<R> {
   R visitClassHeaderHandle(ClassHeaderHandle node);
   R visitRecoverDeclarationHeaderHandle(RecoverDeclarationHeaderHandle node);
   R visitClassDeclarationEnd(ClassDeclarationEnd node);
+  R visitNoClassBodyHandle(NoClassBodyHandle node);
+  R visitNoExtensionTypeBodyHandle(NoExtensionTypeBodyHandle node);
   R visitMixinDeclarationBegin(MixinDeclarationBegin node);
   R visitMixinOnHandle(MixinOnHandle node);
   R visitMixinHeaderHandle(MixinHeaderHandle node);
@@ -11777,6 +11827,14 @@ class RecursiveParserAstVisitor implements ParserAstVisitor<void> {
 
   @override
   void visitClassDeclarationEnd(ClassDeclarationEnd node) =>
+      node.visitChildren(this);
+
+  @override
+  void visitNoClassBodyHandle(NoClassBodyHandle node) =>
+      node.visitChildren(this);
+
+  @override
+  void visitNoExtensionTypeBodyHandle(NoExtensionTypeBodyHandle node) =>
       node.visitChildren(this);
 
   @override
@@ -13229,6 +13287,14 @@ class RecursiveParserAstVisitorWithDefaultNodeAsync
 
   @override
   Future<void> visitClassDeclarationEnd(ClassDeclarationEnd node) =>
+      defaultNode(node);
+
+  @override
+  Future<void> visitNoClassBodyHandle(NoClassBodyHandle node) =>
+      defaultNode(node);
+
+  @override
+  Future<void> visitNoExtensionTypeBodyHandle(NoExtensionTypeBodyHandle node) =>
       defaultNode(node);
 
   @override
