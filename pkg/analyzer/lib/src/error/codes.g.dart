@@ -1292,14 +1292,14 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
   /// object results in an uncaught exception being thrown.
   ///
   /// Parameters:
-  /// Object p0: the type of the runtime value of the argument
-  /// Object p1: the name of the field
-  /// Object p2: the type of the field
+  /// Object valueType: the type of the runtime value of the argument
+  /// Object fieldName: the name of the field
+  /// Object fieldType: the type of the field
   static const DiagnosticWithArguments<
     LocatableDiagnostic Function({
-      required Object p0,
-      required Object p1,
-      required Object p2,
+      required Object valueType,
+      required Object fieldName,
+      required Object fieldType,
     })
   >
   constConstructorFieldTypeMismatch = CompileTimeErrorTemplate(
@@ -1318,10 +1318,13 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
   );
 
   /// Parameters:
-  /// String p0: the type of the runtime value of the argument
-  /// String p1: the static type of the parameter
+  /// String valueType: the type of the runtime value of the argument
+  /// String parameterType: the static type of the parameter
   static const DiagnosticWithArguments<
-    LocatableDiagnostic Function({required String p0, required String p1})
+    LocatableDiagnostic Function({
+      required String valueType,
+      required String parameterType,
+    })
   >
   constConstructorParamTypeMismatch = CompileTimeErrorTemplate(
     name: 'CONST_CONSTRUCTOR_PARAM_TYPE_MISMATCH',
@@ -1481,9 +1484,9 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
       );
 
   /// Parameters:
-  /// Object p0: the message of the assertion
+  /// Object message: the message of the assertion
   static const DiagnosticWithArguments<
-    LocatableDiagnostic Function({required Object p0})
+    LocatableDiagnostic Function({required Object message})
   >
   constEvalAssertionFailureWithMessage = CompileTimeErrorTemplate(
     name: 'CONST_EVAL_ASSERTION_FAILURE_WITH_MESSAGE',
@@ -1549,10 +1552,13 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
   );
 
   /// Parameters:
-  /// String p0: the name of the property being accessed
-  /// String p1: the type with the property being accessed
+  /// String propertyName: the name of the property being accessed
+  /// String type: the type with the property being accessed
   static const DiagnosticWithArguments<
-    LocatableDiagnostic Function({required String p0, required String p1})
+    LocatableDiagnostic Function({
+      required String propertyName,
+      required String type,
+    })
   >
   constEvalPropertyAccess = CompileTimeErrorTemplate(
     name: 'CONST_EVAL_PROPERTY_ACCESS',
@@ -8570,10 +8576,13 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
       );
 
   /// Parameters:
-  /// Object p0: the type of the object being assigned.
-  /// Object p1: the type of the variable being assigned to
+  /// Object valueType: the type of the object being assigned.
+  /// Object variableType: the type of the variable being assigned to
   static const DiagnosticWithArguments<
-    LocatableDiagnostic Function({required Object p0, required Object p1})
+    LocatableDiagnostic Function({
+      required Object valueType,
+      required Object variableType,
+    })
   >
   variableTypeMismatch = CompileTimeErrorTemplate(
     name: 'VARIABLE_TYPE_MISMATCH',
@@ -8696,10 +8705,13 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
   );
 
   /// Parameters:
-  /// int p0: the number of type parameters that were declared
-  /// int p1: the number of type arguments provided
+  /// int typeParameterCount: the number of type parameters that were declared
+  /// int typeArgumentCount: the number of type arguments provided
   static const DiagnosticWithArguments<
-    LocatableDiagnostic Function({required int p0, required int p1})
+    LocatableDiagnostic Function({
+      required int typeParameterCount,
+      required int typeArgumentCount,
+    })
   >
   wrongNumberOfTypeArgumentsAnonymousFunction = CompileTimeErrorTemplate(
     name: 'WRONG_NUMBER_OF_TYPE_ARGUMENTS_FUNCTION',
@@ -8794,14 +8806,14 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
   );
 
   /// Parameters:
-  /// String p0: the name of the function being referenced
-  /// int p1: the number of type parameters that were declared
-  /// int p2: the number of type arguments provided
+  /// String functionName: the name of the function being referenced
+  /// int typeParameterCount: the number of type parameters that were declared
+  /// int typeArgumentCount: the number of type arguments provided
   static const DiagnosticWithArguments<
     LocatableDiagnostic Function({
-      required String p0,
-      required int p1,
-      required int p2,
+      required String functionName,
+      required int typeParameterCount,
+      required int typeArgumentCount,
     })
   >
   wrongNumberOfTypeArgumentsFunction = CompileTimeErrorTemplate(
@@ -9443,23 +9455,23 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
   }
 
   static LocatableDiagnostic _withArgumentsConstConstructorFieldTypeMismatch({
-    required Object p0,
-    required Object p1,
-    required Object p2,
+    required Object valueType,
+    required Object fieldName,
+    required Object fieldType,
   }) {
     return LocatableDiagnosticImpl(
       CompileTimeErrorCode.constConstructorFieldTypeMismatch,
-      [p0, p1, p2],
+      [valueType, fieldName, fieldType],
     );
   }
 
   static LocatableDiagnostic _withArgumentsConstConstructorParamTypeMismatch({
-    required String p0,
-    required String p1,
+    required String valueType,
+    required String parameterType,
   }) {
     return LocatableDiagnosticImpl(
       CompileTimeErrorCode.constConstructorParamTypeMismatch,
-      [p0, p1],
+      [valueType, parameterType],
     );
   }
 
@@ -9501,20 +9513,22 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
   }
 
   static LocatableDiagnostic
-  _withArgumentsConstEvalAssertionFailureWithMessage({required Object p0}) {
+  _withArgumentsConstEvalAssertionFailureWithMessage({
+    required Object message,
+  }) {
     return LocatableDiagnosticImpl(
       CompileTimeErrorCode.constEvalAssertionFailureWithMessage,
-      [p0],
+      [message],
     );
   }
 
   static LocatableDiagnostic _withArgumentsConstEvalPropertyAccess({
-    required String p0,
-    required String p1,
+    required String propertyName,
+    required String type,
   }) {
     return LocatableDiagnosticImpl(
       CompileTimeErrorCode.constEvalPropertyAccess,
-      [p0, p1],
+      [propertyName, type],
     );
   }
 
@@ -11682,12 +11696,12 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
   }
 
   static LocatableDiagnostic _withArgumentsVariableTypeMismatch({
-    required Object p0,
-    required Object p1,
+    required Object valueType,
+    required Object variableType,
   }) {
     return LocatableDiagnosticImpl(CompileTimeErrorCode.variableTypeMismatch, [
-      p0,
-      p1,
+      valueType,
+      variableType,
     ]);
   }
 
@@ -11736,12 +11750,12 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
 
   static LocatableDiagnostic
   _withArgumentsWrongNumberOfTypeArgumentsAnonymousFunction({
-    required int p0,
-    required int p1,
+    required int typeParameterCount,
+    required int typeArgumentCount,
   }) {
     return LocatableDiagnosticImpl(
       CompileTimeErrorCode.wrongNumberOfTypeArgumentsAnonymousFunction,
-      [p0, p1],
+      [typeParameterCount, typeArgumentCount],
     );
   }
 
@@ -11789,13 +11803,13 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
   }
 
   static LocatableDiagnostic _withArgumentsWrongNumberOfTypeArgumentsFunction({
-    required String p0,
-    required int p1,
-    required int p2,
+    required String functionName,
+    required int typeParameterCount,
+    required int typeArgumentCount,
   }) {
     return LocatableDiagnosticImpl(
       CompileTimeErrorCode.wrongNumberOfTypeArgumentsFunction,
-      [p0, p1, p2],
+      [functionName, typeParameterCount, typeArgumentCount],
     );
   }
 
