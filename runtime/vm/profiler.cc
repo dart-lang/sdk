@@ -15,6 +15,7 @@
 #include "vm/compiler/compiler_state.h"
 #endif
 #include "vm/debugger.h"
+#include "vm/globals.h"
 #include "vm/heap/safepoint.h"
 #include "vm/instructions.h"
 #include "vm/isolate.h"
@@ -158,6 +159,7 @@ class ProfilerStackWalker : public ValueObject {
       total_frames_++;
       return true;
     }
+#if defined(DART_INCLUDE_PROFILER)
     if (total_frames_ >= FLAG_max_profile_depth) {
       sample_->set_truncated_trace(true);
       return false;
@@ -178,6 +180,10 @@ class ProfilerStackWalker : public ValueObject {
     frame_index_++;
     total_frames_++;
     return true;
+#else
+    UNREACHABLE();
+    return false;
+#endif
   }
 
  protected:
