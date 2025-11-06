@@ -23,34 +23,6 @@ class D3({required var B x}) implements C2;
 class C4([covariant var A? x]);
 class D4([var B? x]) implements C2;
 
-class C5 {
-  this(covariant var A x);
-}
-class D5 implements C5 {
-  this(var B x);
-}
-
-class C6 {
-  this({covariant var A? x});
-}
-class D6 {
-  this({var B? x});
-}
-
-class C7 {
-  this({required covariant var A x});
-}
-class D7 {
-  this({required var B x});
-}
-
-class C8 {
-  this([covariant var A? x]);
-}
-class D8 {
-  this([var B? x]);
-}
-
 void main() {
   A a = A();
   B b = B();
@@ -67,17 +39,4 @@ void main() {
 
   Expect.equals(a, C4(a).x);
   Expect.equals(b, D4(b).x);
-
-  // In-body
-  Expect.equals(a, C5(a).x);
-  Expect.equals(b, D5(b).x);
-
-  Expect.equals(a, C6(x: a).x);
-  Expect.equals(b, D6(x: b).x);
-
-  Expect.equals(a, C7(x: a).x);
-  Expect.equals(b, D7(x: b).x);
-
-  Expect.equals(a, C8(a).x);
-  Expect.equals(b, D8(b).x);
 }

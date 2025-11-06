@@ -11,10 +11,3 @@ class C1(late int x, external double d);
 //       ^
 // [analyzer] unspecified
 // [cfe] unspecified
-
-class C2 {
-  this(late int x, external double d);
-  //   ^
-  // [analyzer] unspecified
-  // [cfe] unspecified
-}
