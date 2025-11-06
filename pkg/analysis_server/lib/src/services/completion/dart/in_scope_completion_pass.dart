@@ -2325,7 +2325,9 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
         collector.completionLocation = 'PatternField_pattern';
       }
       _forPatternFieldName(node, isKeywordNeeded: false, isTypeNeeded: false);
+      return;
     }
+    node.parent?.accept(this);
   }
 
   @override
