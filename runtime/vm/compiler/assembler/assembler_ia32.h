@@ -1199,6 +1199,8 @@ class Assembler : public AssemblerBase {
   // Debugging and bringup support.
   void Breakpoint() override { int3(); }
 
+  void StoreStoreFence() override {}
+
   // Check if the given value is an integer value that can be directly
   // embedded into the code without additional XORing with jit_cookie.
   // We consider 16-bit integers, powers of two and corresponding masks

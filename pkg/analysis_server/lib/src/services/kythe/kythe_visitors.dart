@@ -26,15 +26,15 @@ String? _getNodeKind(Element e) {
   if (e is FieldElement && e.isEnumConstant) {
     // FieldElement is a kind of VariableElement, so this test case must be
     // before the e is VariableElement check.
-    return schema.CONSTANT_KIND;
+    return schema.constantKind;
   } else if (e is VariableElement || e is PrefixElement) {
-    return schema.VARIABLE_KIND;
+    return schema.variableKind;
   } else if (e is ExecutableElement) {
-    return schema.FUNCTION_KIND;
+    return schema.functionKind;
   } else if (e is InterfaceElement || e is TypeParameterElement) {
     // TODO(jwren): this should be using absvar instead, see
     // https://kythe.io/docs/schema/#absvar
-    return schema.RECORD_KIND;
+    return schema.recordKind;
   }
   return null;
 }
@@ -82,7 +82,7 @@ String _getPath(
 }
 
 /// If a non-null element is passed, the [_SignatureElementVisitor] is used to
-/// generate and return a [String] signature, otherwise [schema.DYNAMIC_KIND] is
+/// generate and return a [String] signature, otherwise [schema.dynamicKind] is
 /// returned.
 String _getSignature(
   ResourceProvider provider,
@@ -91,9 +91,9 @@ String _getSignature(
   String corpus, {
   String? sdkRootPath,
 }) {
-  assert(nodeKind != schema.ANCHOR_KIND); // Call _getAnchorSignature instead
+  assert(nodeKind != schema.anchorKind); // Call _getAnchorSignature instead
   if (element == null) {
-    return schema.DYNAMIC_KIND;
+    return schema.dynamicKind;
   }
   if (element is LibraryElement) {
     return _getPath(
@@ -118,14 +118,14 @@ class CiderKytheHelper {
 
   /// Returns a URI that can be used to query Kythe.
   String toKytheUri(Element e) {
-    var nodeKind = _getNodeKind(e) ?? schema.RECORD_KIND;
+    var nodeKind = _getNodeKind(e) ?? schema.recordKind;
     var vname = _vNameFromElement(e, nodeKind);
     return 'kythe://$corpus?lang=dart?path=${vname.path}#${vname.signature}';
   }
 
   /// Returns the Kythe name for the [element].
   _KytheVName _vNameFromElement(Element? e, String nodeKind) {
-    assert(nodeKind != schema.FILE_KIND);
+    assert(nodeKind != schema.fileKind);
     // general case
     return _KytheVName(
       path: _getPath(

@@ -566,7 +566,7 @@ library
       reference: <testLibrary>::@class::C
       firstFragment: #F1
       fields
-        x
+        hasImplicitType x
           reference: <testLibrary>::@class::C::@field::x
           firstFragment: #F2
           type: dynamic
@@ -648,7 +648,7 @@ library
       reference: <testLibrary>::@class::C
       firstFragment: #F1
       fields
-        x
+        hasImplicitType x
           reference: <testLibrary>::@class::C::@field::x
           firstFragment: #F2
           type: dynamic
@@ -1161,7 +1161,7 @@ library
       reference: <testLibrary>::@class::C
       firstFragment: #F1
       fields
-        x
+        hasImplicitType x
           reference: <testLibrary>::@class::C::@field::x
           firstFragment: #F2
           type: dynamic
@@ -1231,7 +1231,7 @@ library
       reference: <testLibrary>::@class::C
       firstFragment: #F1
       fields
-        x
+        hasImplicitType x
           reference: <testLibrary>::@class::C::@field::x
           firstFragment: #F2
           type: dynamic
@@ -1301,7 +1301,7 @@ library
       reference: <testLibrary>::@class::C
       firstFragment: #F1
       fields
-        x
+        hasImplicitType x
           reference: <testLibrary>::@class::C::@field::x
           firstFragment: #F2
           type: dynamic
@@ -1810,7 +1810,7 @@ library
       reference: <testLibrary>::@class::C
       firstFragment: #F1
       fields
-        final x
+        final hasImplicitType x
           reference: <testLibrary>::@class::C::@field::x
           firstFragment: #F2
           type: dynamic
@@ -1875,7 +1875,7 @@ library
       reference: <testLibrary>::@class::C
       firstFragment: #F1
       fields
-        final x
+        final hasImplicitType x
           reference: <testLibrary>::@class::C::@field::x
           firstFragment: #F2
           type: dynamic
@@ -2098,7 +2098,7 @@ library
       reference: <testLibrary>::@class::C
       firstFragment: #F1
       fields
-        final f
+        final hasImplicitType f
           reference: <testLibrary>::@class::C::@field::f
           firstFragment: #F2
           type: dynamic
@@ -2172,7 +2172,7 @@ library
       reference: <testLibrary>::@class::C
       firstFragment: #F1
       fields
-        final f
+        final hasImplicitType f
           reference: <testLibrary>::@class::C::@field::f
           firstFragment: #F2
           type: dynamic
@@ -2250,7 +2250,7 @@ library
       reference: <testLibrary>::@class::C
       firstFragment: #F1
       fields
-        final x
+        final hasImplicitType x
           reference: <testLibrary>::@class::C::@field::x
           firstFragment: #F2
           type: dynamic
@@ -6528,7 +6528,7 @@ library
       reference: <testLibrary>::@class::C
       firstFragment: #F1
       fields
-        final x
+        final hasImplicitType x
           reference: <testLibrary>::@class::C::@field::x
           firstFragment: #F2
           type: dynamic
@@ -6566,7 +6566,7 @@ library
       reference: <testLibrary>::@class::D
       firstFragment: #F5
       fields
-        final x
+        final hasImplicitType x
           reference: <testLibrary>::@class::D::@field::x
           firstFragment: #F6
           type: dynamic
@@ -6652,7 +6652,7 @@ library
       reference: <testLibrary>::@class::C
       firstFragment: #F1
       fields
-        final x
+        final hasImplicitType x
           reference: <testLibrary>::@class::C::@field::x
           firstFragment: #F2
           type: dynamic
@@ -6671,7 +6671,7 @@ library
       reference: <testLibrary>::@class::D
       firstFragment: #F5
       fields
-        final x
+        final hasImplicitType x
           reference: <testLibrary>::@class::D::@field::x
           firstFragment: #F6
           type: dynamic
@@ -7619,7 +7619,7 @@ library
       reference: <testLibrary>::@class::C
       firstFragment: #F1
       fields
-        x
+        hasImplicitType x
           reference: <testLibrary>::@class::C::@field::x
           firstFragment: #F2
           type: dynamic
@@ -7916,7 +7916,7 @@ library
       reference: <testLibrary>::@class::C
       firstFragment: #F1
       fields
-        final hasInitializer x
+        final hasImplicitType hasInitializer x
           reference: <testLibrary>::@class::C::@field::x
           firstFragment: #F2
           type: int
@@ -8038,7 +8038,7 @@ library
       reference: <testLibrary>::@class::B
       firstFragment: #F4
       fields
-        final hasInitializer f
+        final hasImplicitType hasInitializer f
           reference: <testLibrary>::@class::B::@field::f
           firstFragment: #F5
           type: A<int Function(double)>
@@ -8089,7 +8089,7 @@ library
       reference: <testLibrary>::@class::C
       firstFragment: #F1
       fields
-        final hasInitializer x
+        final hasImplicitType hasInitializer x
           reference: <testLibrary>::@class::C::@field::x
           firstFragment: #F2
           type: int
@@ -8235,7 +8235,7 @@ library
       firstFragment: #F1
       supertype: D
       fields
-        v
+        hasImplicitType v
           reference: <testLibrary>::@class::C::@field::v
           firstFragment: #F2
           type: int
@@ -8321,7 +8321,7 @@ library
       reference: <testLibrary>::@class::C
       firstFragment: #F1
       fields
-        x
+        hasImplicitType x
           reference: <testLibrary>::@class::C::@field::x
           firstFragment: #F2
           type: dynamic
@@ -8382,7 +8382,7 @@ library
       reference: <testLibrary>::@class::C
       firstFragment: #F1
       fields
-        late x
+        late hasImplicitType x
           reference: <testLibrary>::@class::C::@field::x
           firstFragment: #F2
           type: dynamic
@@ -8504,7 +8504,7 @@ library
       reference: <testLibrary>::@class::C
       firstFragment: #F1
       fields
-        hasInitializer v
+        hasImplicitType hasInitializer v
           reference: <testLibrary>::@class::C::@field::v
           firstFragment: #F2
           type: int
@@ -8580,7 +8580,7 @@ library
       firstFragment: #F1
       supertype: D
       fields
-        v
+        hasImplicitType v
           reference: <testLibrary>::@class::C::@field::v
           firstFragment: #F2
           type: int
@@ -8719,7 +8719,7 @@ library
       firstFragment: #F5
       supertype: A
       fields
-        final hasInitializer f
+        final hasImplicitType hasInitializer f
           reference: <testLibrary>::@class::B::@field::f
           firstFragment: #F6
           type: List<int>
@@ -8739,7 +8739,7 @@ library
           returnType: List<int>
           variable: <testLibrary>::@class::B::@field::f
   topLevelVariables
-    const hasInitializer a
+    const hasImplicitType hasInitializer a
       reference: <testLibrary>::@topLevelVariable::a
       firstFragment: #F9
       type: int
@@ -8788,7 +8788,7 @@ library
       reference: <testLibrary>::@class::C
       firstFragment: #F1
       fields
-        static hasInitializer v
+        static hasImplicitType hasInitializer v
           reference: <testLibrary>::@class::C::@field::v
           firstFragment: #F2
           type: int
@@ -8890,7 +8890,7 @@ library
       firstFragment: #F5
       supertype: A
       fields
-        final hasInitializer foo
+        final hasImplicitType hasInitializer foo
           reference: <testLibrary>::@class::B::@field::foo
           firstFragment: #F6
           type: double
@@ -9720,7 +9720,7 @@ library
           firstFragment: #F1
           type: int?
           getter: <testLibrary>::@class::A::@getter::_foo
-        final hasInitializer bar
+        final hasImplicitType hasInitializer bar
           reference: <testLibrary>::@class::A::@field::bar
           firstFragment: #F2
           type: int
@@ -9986,7 +9986,7 @@ library
       reference: <testLibrary>::@class::C
       firstFragment: #F1
       fields
-        static const hasInitializer x
+        static const hasImplicitType hasInitializer x
           reference: <testLibrary>::@class::C::@field::x
           firstFragment: #F2
           type: int
@@ -10040,7 +10040,7 @@ library
       reference: <testLibrary>::@class::C
       firstFragment: #F1
       fields
-        final hasInitializer b
+        final hasImplicitType hasInitializer b
           reference: <testLibrary>::@class::C::@field::b
           firstFragment: #F2
           type: double
@@ -10107,7 +10107,7 @@ library
       reference: <testLibrary>::@class::C
       firstFragment: #F2
       fields
-        final hasInitializer b
+        final hasImplicitType hasInitializer b
           reference: <testLibrary>::@class::C::@field::b
           firstFragment: #F3
           type: double
@@ -10123,7 +10123,7 @@ library
           returnType: double
           variable: <testLibrary>::@class::C::@field::b
   topLevelVariables
-    final hasInitializer a
+    final hasImplicitType hasInitializer a
       reference: <testLibrary>::@topLevelVariable::a
       firstFragment: #F6
       type: int
@@ -10166,7 +10166,7 @@ library
       reference: <testLibrary>::@class::C
       firstFragment: #F1
       fields
-        final hasInitializer x
+        final hasImplicitType hasInitializer x
           reference: <testLibrary>::@class::C::@field::x
           firstFragment: #F2
           type: int
@@ -10213,7 +10213,7 @@ library
       reference: <testLibrary>::@class::C
       firstFragment: #F1
       fields
-        static final hasInitializer x
+        static final hasImplicitType hasInitializer x
           reference: <testLibrary>::@class::C::@field::x
           firstFragment: #F2
           type: int
@@ -10324,7 +10324,7 @@ library
       reference: <testLibrary>::@class::C
       firstFragment: #F1
       fields
-        static final hasInitializer f
+        static final hasImplicitType hasInitializer f
           reference: <testLibrary>::@class::C::@field::f
           firstFragment: #F2
           type: int
@@ -10368,7 +10368,7 @@ library
       reference: <testLibrary>::@class::C
       firstFragment: #F1
       fields
-        static final hasInitializer x
+        static final hasImplicitType hasInitializer x
           reference: <testLibrary>::@class::C::@field::x
           firstFragment: #F2
           type: int
@@ -10550,7 +10550,7 @@ library
       reference: <testLibrary>::@class::C
       firstFragment: #F1
       fields
-        hasInitializer foo
+        hasImplicitType hasInitializer foo
           reference: <testLibrary>::@class::C::@field::foo
           firstFragment: #F2
           type: int
@@ -10646,7 +10646,7 @@ library
       firstFragment: #F5
       supertype: A
       fields
-        final hasInitializer foo
+        final hasImplicitType hasInitializer foo
           reference: <testLibrary>::@class::B::@field::foo
           firstFragment: #F6
           type: int
@@ -10702,7 +10702,7 @@ library
       reference: <testLibrary>::@class::C
       firstFragment: #F1
       fields
-        hasInitializer a
+        hasImplicitType hasInitializer a
           reference: <testLibrary>::@class::C::@field::a
           firstFragment: #F2
           type: Never
@@ -10824,7 +10824,7 @@ library
       reference: <testLibrary>::@class::C
       firstFragment: #F1
       fields
-        hasInitializer x
+        hasImplicitType hasInitializer x
           reference: <testLibrary>::@class::C::@field::x
           firstFragment: #F2
           type: int
@@ -11183,7 +11183,7 @@ library
       firstFragment: #F4
       supertype: A
       fields
-        late hasInitializer f
+        late hasImplicitType hasInitializer f
           reference: <testLibrary>::@class::B::@field::f
           firstFragment: #F5
           type: int
@@ -11285,7 +11285,7 @@ library
       firstFragment: #F5
       supertype: A
       fields
-        late hasInitializer f
+        late hasImplicitType hasInitializer f
           reference: <testLibrary>::@class::B::@field::f
           firstFragment: #F6
           type: int
@@ -19361,7 +19361,7 @@ library
         #F2 synthetic x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:23)
           element: <testLibrary>::@getter::x
   topLevelVariables
-    const hasInitializer x
+    const hasImplicitType hasInitializer x
       reference: <testLibrary>::@topLevelVariable::x
       firstFragment: #F1
       type: B
@@ -21185,7 +21185,7 @@ library
           returnType: Object
           variable: <testLibrary>::@class::C::@field::x
   topLevelVariables
-    const hasInitializer x
+    const hasImplicitType hasInitializer x
       reference: <testLibrary>::@topLevelVariable::x
       firstFragment: #F6
       type: C
@@ -21417,7 +21417,7 @@ library
       type: C<int>
       getter: <testLibrary>::@getter::c
       setter: <testLibrary>::@setter::c
-    hasInitializer v
+    hasImplicitType hasInitializer v
       reference: <testLibrary>::@topLevelVariable::v
       firstFragment: #F6
       type: void Function()

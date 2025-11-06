@@ -438,12 +438,12 @@ class Assembler : public AssemblerBase {
                    const Address& address,
                    OperandSize size = kFourBytes) override {
     Load(dst, address, size);
-    dmb();
+    dmb_ish();
   }
   void StoreRelease(Register src,
                     const Address& address,
                     OperandSize size = kFourBytes) override {
-    dmb();
+    dmb_ish();
     Store(src, address, size);
   }
 
@@ -468,6 +468,8 @@ class Assembler : public AssemblerBase {
 
   // Debugging and bringup support.
   void Breakpoint() override { bkpt(0); }
+
+  void StoreStoreFence() override { dmb_ishst(); }
 
   // Data-processing instructions.
   void and_(Register rd, Register rn, Operand o, Condition cond = AL);
@@ -601,7 +603,8 @@ class Assembler : public AssemblerBase {
   void ldrex(Register rd, Register rn, Condition cond = AL);
   void strex(Register rd, Register rt, Register rn, Condition cond = AL);
 
-  void dmb();
+  void dmb_ish() { Emit(kDMB_ISH); }
+  void dmb_ishst() { Emit(kDMB_ISHST); }
 
   // Media instructions.
   void sbfx(Register rd,
@@ -1041,13 +1044,13 @@ class Assembler : public AssemblerBase {
   void InitializeHeader(Register tags, Register object) {
     str(tags, FieldAddress(object, target::Object::tags_offset()));
 #if defined(TARGET_HAS_FAST_WRITE_WRITE_FENCE)
-    dmb();
+    StoreStoreFence();
 #endif
   }
   void InitializeHeaderUntagged(Register tags, Register object) {
     str(tags, Address(object, target::Object::tags_offset()));
 #if defined(TARGET_HAS_FAST_WRITE_WRITE_FENCE)
-    dmb();
+    StoreStoreFence();
 #endif
   }
 

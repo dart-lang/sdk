@@ -1027,6 +1027,8 @@ class Assembler : public MicroAssembler {
   // Debugging and bringup support.
   void Breakpoint() override { trap(); }
 
+  void StoreStoreFence() override { fence(kWrite, kWrite); }
+
   void SetPrologueOffset() {
     if (prologue_offset_ == -1) {
       prologue_offset_ = CodeSize();

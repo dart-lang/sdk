@@ -436,7 +436,7 @@ library
       firstFragment: #F1
       supertype: Enum
       fields
-        static const enumConstant hasInitializer v1
+        static const enumConstant hasImplicitType hasInitializer v1
           reference: dart:foo::@enum::E::@field::v1
           firstFragment: #F2
           type: E
@@ -444,7 +444,7 @@ library
             fragment: #F2
             expression: expression_0
           getter: dart:foo::@enum::E::@getter::v1
-        static const enumConstant hasInitializer v2
+        static const enumConstant hasImplicitType hasInitializer v2
           reference: dart:foo::@enum::E::@field::v2
           firstFragment: #F3
           sinceSdkVersion: 2.15.0
@@ -543,7 +543,7 @@ library
       sinceSdkVersion: 2.15.0
       supertype: Enum
       fields
-        static const enumConstant hasInitializer v
+        static const enumConstant hasImplicitType hasInitializer v
           reference: dart:foo::@enum::E::@field::v
           firstFragment: #F2
           sinceSdkVersion: 2.15.0
@@ -926,7 +926,7 @@ library
         #F2 synthetic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:47)
           element: dart:foo::@getter::foo
   topLevelVariables
-    final hasInitializer foo
+    final hasImplicitType hasInitializer foo
       reference: dart:foo::@topLevelVariable::foo
       firstFragment: #F1
       sinceSdkVersion: 2.15.0

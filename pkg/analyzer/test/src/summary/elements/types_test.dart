@@ -155,7 +155,7 @@ library
         #F2 synthetic x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:27)
           element: <testLibrary>::@getter::x
   topLevelVariables
-    const hasInitializer x
+    const hasImplicitType hasInitializer x
       reference: <testLibrary>::@topLevelVariable::x
       firstFragment: #F1
       type: Type
@@ -217,13 +217,13 @@ library
         #F9 f (nameOffset:35) (firstTokenOffset:21) (offset:35)
           element: <testLibrary>::@function::f
   topLevelVariables
-    hasInitializer x
+    hasImplicitType hasInitializer x
       reference: <testLibrary>::@topLevelVariable::x
       firstFragment: #F1
       type: FutureOr<int>
       getter: <testLibrary>::@getter::x
       setter: <testLibrary>::@setter::x
-    hasInitializer y
+    hasImplicitType hasInitializer y
       reference: <testLibrary>::@topLevelVariable::y
       firstFragment: #F2
       type: InvalidType
@@ -470,7 +470,7 @@ library
             #F4 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:4)
               element: <testLibrary>::@setter::v::@formalParameter::value
   topLevelVariables
-    hasInitializer v
+    hasImplicitType hasInitializer v
       reference: <testLibrary>::@topLevelVariable::v
       firstFragment: #F1
       type: int Function()
@@ -516,7 +516,7 @@ library
             #F4 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:4)
               element: <testLibrary>::@setter::v::@formalParameter::value
   topLevelVariables
-    hasInitializer v
+    hasImplicitType hasInitializer v
       reference: <testLibrary>::@topLevelVariable::v
       firstFragment: #F1
       type: Future<dynamic> Function(dynamic)
@@ -568,7 +568,7 @@ library
             #F4 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:25)
               element: <testLibrary>::@setter::v::@formalParameter::value
   topLevelVariables
-    hasInitializer v
+    hasImplicitType hasInitializer v
       reference: <testLibrary>::@topLevelVariable::v
       firstFragment: #F1
       type: Future<int> Function(Future<Future<Future<int>>>)
@@ -619,7 +619,7 @@ library
             #F4 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:25)
               element: <testLibrary>::@setter::v::@formalParameter::value
   topLevelVariables
-    hasInitializer v
+    hasImplicitType hasInitializer v
       reference: <testLibrary>::@topLevelVariable::v
       firstFragment: #F1
       type: Future<int> Function(Future<int>)
@@ -670,7 +670,7 @@ library
             #F4 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:25)
               element: <testLibrary>::@setter::v::@formalParameter::value
   topLevelVariables
-    hasInitializer v
+    hasImplicitType hasInitializer v
       reference: <testLibrary>::@topLevelVariable::v
       firstFragment: #F1
       type: Future<dynamic> Function(Future<dynamic>)
@@ -731,7 +731,7 @@ library
       reference: <testLibrary>::@class::C
       firstFragment: #F1
       fields
-        hasInitializer v
+        hasImplicitType hasInitializer v
           reference: <testLibrary>::@class::C::@field::v
           firstFragment: #F2
           type: int Function()
@@ -1067,7 +1067,7 @@ library
       reference: <testLibrary>::@class::B
       firstFragment: #F4
       fields
-        hasInitializer c3
+        hasImplicitType hasInitializer c3
           reference: <testLibrary>::@class::B::@field::c3
           firstFragment: #F5
           type: C<C<Object?>>
@@ -1100,7 +1100,7 @@ library
       type: C<C<dynamic>>
       getter: <testLibrary>::@getter::c
       setter: <testLibrary>::@setter::c
-    hasInitializer c2
+    hasImplicitType hasInitializer c2
       reference: <testLibrary>::@topLevelVariable::c2
       firstFragment: #F11
       type: C<C<Object?>>
@@ -1555,7 +1555,7 @@ library
           firstFragment: #F2
           bound: B<num>
       fields
-        final hasInitializer values
+        final hasImplicitType hasInitializer values
           reference: <testLibrary>::@class::A::@field::values
           firstFragment: #F3
           type: List<B<num>>
@@ -1856,7 +1856,7 @@ library
         #F7 V (nameOffset:16) (firstTokenOffset:16) (offset:16)
           element: <testLibrary>::@function::V
   topLevelVariables
-    V
+    hasImplicitType V
       reference: <testLibrary>::@topLevelVariable::V
       firstFragment: #F1
       type: dynamic
@@ -2322,7 +2322,7 @@ library
         #F3 f (nameOffset:52) (firstTokenOffset:47) (offset:52)
           element: <testLibrary>::@function::f
   topLevelVariables
-    final hasInitializer v
+    final hasImplicitType hasInitializer v
       reference: <testLibrary>::@topLevelVariable::v
       firstFragment: #F1
       type: int Function<T>(T)
@@ -2431,7 +2431,7 @@ library
         #E1 U
           firstFragment: #F3
       fields
-        hasInitializer v
+        hasImplicitType hasInitializer v
           reference: <testLibrary>::@class::C::@field::v
           firstFragment: #F4
           hasEnclosingTypeParameterReference: true
@@ -2529,7 +2529,7 @@ library
         #F3 f (nameOffset:40) (firstTokenOffset:35) (offset:40)
           element: <testLibrary>::@function::f
   topLevelVariables
-    final hasInitializer v
+    final hasImplicitType hasInitializer v
       reference: <testLibrary>::@topLevelVariable::v
       firstFragment: #F1
       type: int Function()
@@ -2569,7 +2569,7 @@ library
         #F3 f (nameOffset:70) (firstTokenOffset:65) (offset:70)
           element: <testLibrary>::@function::f
   topLevelVariables
-    final hasInitializer v
+    final hasImplicitType hasInitializer v
       reference: <testLibrary>::@topLevelVariable::v
       firstFragment: #F1
       type: int Function(int, String)

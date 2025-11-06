@@ -988,7 +988,7 @@ library
         #F2 synthetic a (nameOffset:<null>) (firstTokenOffset:<null>) (offset:29)
           element: <testLibrary>::@getter::a
   topLevelVariables
-    const hasInitializer a
+    const hasImplicitType hasInitializer a
       reference: <testLibrary>::@topLevelVariable::a
       firstFragment: #F1
       type: int
@@ -1049,7 +1049,7 @@ library
         #F2 synthetic a (nameOffset:<null>) (firstTokenOffset:<null>) (offset:42)
           element: <testLibrary>::@getter::a
   topLevelVariables
-    const hasInitializer a
+    const hasImplicitType hasInitializer a
       reference: <testLibrary>::@topLevelVariable::a
       firstFragment: #F1
       type: int

@@ -279,7 +279,7 @@ library
           returnType: void
           variable: <testLibrary>::@class::C::@field::x
   topLevelVariables
-    const hasInitializer a
+    const hasImplicitType hasInitializer a
       reference: <testLibrary>::@topLevelVariable::a
       firstFragment: #F7
       type: int
@@ -378,7 +378,7 @@ library
                 staticType: null
               element: <testLibrary>::@getter::foo
       fields
-        static const hasInitializer foo
+        static const hasImplicitType hasInitializer foo
           reference: <testLibrary>::@class::C::@field::foo
           firstFragment: #F3
           type: int
@@ -410,7 +410,7 @@ library
               element: <testLibrary>::@class::C::@getter::foo
           returnType: void
   topLevelVariables
-    const hasInitializer foo
+    const hasImplicitType hasInitializer foo
       reference: <testLibrary>::@topLevelVariable::foo
       firstFragment: #F7
       type: int
@@ -474,7 +474,7 @@ library
           reference: <testLibrary>::@class::C::@constructor::new
           firstFragment: #F2
   topLevelVariables
-    const hasInitializer a
+    const hasImplicitType hasInitializer a
       reference: <testLibrary>::@topLevelVariable::a
       firstFragment: #F3
       type: dynamic
@@ -482,7 +482,7 @@ library
         fragment: #F3
         expression: expression_0
       getter: <testLibrary>::@getter::a
-    const hasInitializer b
+    const hasImplicitType hasInitializer b
       reference: <testLibrary>::@topLevelVariable::b
       firstFragment: #F4
       type: dynamic
@@ -577,7 +577,7 @@ library
           reference: <testLibrary>::@class::E::@constructor::new
           firstFragment: #F6
   topLevelVariables
-    const hasInitializer a
+    const hasImplicitType hasInitializer a
       reference: <testLibrary>::@topLevelVariable::a
       firstFragment: #F7
       type: dynamic
@@ -1581,7 +1581,7 @@ library
                 staticType: null
               element: <testLibrary>::@getter::a
   topLevelVariables
-    const hasInitializer a
+    const hasImplicitType hasInitializer a
       reference: <testLibrary>::@topLevelVariable::a
       firstFragment: #F3
       type: dynamic
@@ -1649,7 +1649,7 @@ library
                 staticType: null
               element: <testLibrary>::@getter::a
   topLevelVariables
-    const hasInitializer a
+    const hasImplicitType hasInitializer a
       reference: <testLibrary>::@topLevelVariable::a
       firstFragment: #F3
       type: dynamic
@@ -1710,7 +1710,7 @@ library
         #F2 synthetic a (nameOffset:<null>) (firstTokenOffset:<null>) (offset:28)
           element: <testLibrary>::@getter::a
   topLevelVariables
-    const hasInitializer a
+    const hasImplicitType hasInitializer a
       reference: <testLibrary>::@topLevelVariable::a
       firstFragment: #F1
       type: int
@@ -1796,7 +1796,7 @@ library
           returnType: void
           variable: <testLibrary>::@class::C::@field::x
   topLevelVariables
-    const hasInitializer a
+    const hasImplicitType hasInitializer a
       reference: <testLibrary>::@topLevelVariable::a
       firstFragment: #F7
       type: dynamic
@@ -1873,7 +1873,7 @@ library
       reference: <testLibrary>::@class::C
       firstFragment: #F1
       fields
-        x
+        hasImplicitType x
           reference: <testLibrary>::@class::C::@field::x
           firstFragment: #F2
           type: dynamic
@@ -1913,7 +1913,7 @@ library
           returnType: void
           variable: <testLibrary>::@class::C::@field::x
   topLevelVariables
-    const hasInitializer a
+    const hasImplicitType hasInitializer a
       reference: <testLibrary>::@topLevelVariable::a
       firstFragment: #F8
       type: dynamic
@@ -1990,7 +1990,7 @@ library
       reference: <testLibrary>::@class::C
       firstFragment: #F1
       fields
-        x
+        hasImplicitType x
           reference: <testLibrary>::@class::C::@field::x
           firstFragment: #F2
           type: dynamic
@@ -2033,7 +2033,7 @@ library
           returnType: void
           variable: <testLibrary>::@class::C::@field::x
   topLevelVariables
-    const hasInitializer a
+    const hasImplicitType hasInitializer a
       reference: <testLibrary>::@topLevelVariable::a
       firstFragment: #F8
       type: dynamic
@@ -2084,7 +2084,7 @@ library
                 staticType: null
               element: <testLibrary>::@getter::a
   topLevelVariables
-    const hasInitializer a
+    const hasImplicitType hasInitializer a
       reference: <testLibrary>::@topLevelVariable::a
       firstFragment: #F1
       type: dynamic
@@ -2145,7 +2145,7 @@ library
                 staticType: null
               element: <testLibrary>::@getter::a
   topLevelVariables
-    const hasInitializer a
+    const hasImplicitType hasInitializer a
       reference: <testLibrary>::@topLevelVariable::a
       firstFragment: #F1
       type: dynamic
@@ -2215,7 +2215,7 @@ library
             #F5 requiredPositional value (nameOffset:25) (firstTokenOffset:25) (offset:25)
               element: <testLibrary>::@setter::f::@formalParameter::value
   topLevelVariables
-    const hasInitializer a
+    const hasImplicitType hasInitializer a
       reference: <testLibrary>::@topLevelVariable::a
       firstFragment: #F1
       type: dynamic
@@ -2298,7 +2298,7 @@ library
           element: <testLibrary>::@getter::a
       aliasedType: dynamic Function()
   topLevelVariables
-    const hasInitializer a
+    const hasImplicitType hasInitializer a
       reference: <testLibrary>::@topLevelVariable::a
       firstFragment: #F2
       type: dynamic
@@ -2348,7 +2348,7 @@ library
                     staticType: null
                   element: <testLibrary>::@getter::a
   topLevelVariables
-    const hasInitializer a
+    const hasImplicitType hasInitializer a
       reference: <testLibrary>::@topLevelVariable::a
       firstFragment: #F1
       type: dynamic
@@ -2419,7 +2419,7 @@ library
                   literal: null @28
                   staticType: Null
   topLevelVariables
-    const hasInitializer a
+    const hasImplicitType hasInitializer a
       reference: <testLibrary>::@topLevelVariable::a
       firstFragment: #F1
       type: dynamic
@@ -2526,7 +2526,7 @@ library
           element: <testLibrary>::@getter::b
       aliasedType: void Function()
   topLevelVariables
-    const hasInitializer a
+    const hasImplicitType hasInitializer a
       reference: <testLibrary>::@topLevelVariable::a
       firstFragment: #F2
       type: dynamic
@@ -2534,7 +2534,7 @@ library
         fragment: #F2
         expression: expression_0
       getter: <testLibrary>::@getter::a
-    const hasInitializer b
+    const hasImplicitType hasInitializer b
       reference: <testLibrary>::@topLevelVariable::b
       firstFragment: #F3
       type: dynamic
@@ -2600,7 +2600,7 @@ library
         #F2 synthetic a (nameOffset:<null>) (firstTokenOffset:<null>) (offset:28)
           element: <testLibrary>::@getter::a
   topLevelVariables
-    const hasInitializer a
+    const hasImplicitType hasInitializer a
       reference: <testLibrary>::@topLevelVariable::a
       firstFragment: #F1
       type: int
@@ -2647,7 +2647,7 @@ library
       firstFragment: #F1
       aliasedType: void Function(int)
   topLevelVariables
-    const hasInitializer a
+    const hasImplicitType hasInitializer a
       reference: <testLibrary>::@topLevelVariable::a
       firstFragment: #F2
       type: int
@@ -2694,7 +2694,7 @@ library
       firstFragment: #F1
       aliasedType: void Function(int Function(int))
   topLevelVariables
-    const hasInitializer a
+    const hasImplicitType hasInitializer a
       reference: <testLibrary>::@topLevelVariable::a
       firstFragment: #F2
       type: int
@@ -2741,7 +2741,7 @@ library
       firstFragment: #F1
       aliasedType: void Function<T>(int)
   topLevelVariables
-    const hasInitializer a
+    const hasImplicitType hasInitializer a
       reference: <testLibrary>::@topLevelVariable::a
       firstFragment: #F2
       type: int
@@ -2905,7 +2905,7 @@ library
         #F2 synthetic a (nameOffset:<null>) (firstTokenOffset:<null>) (offset:20)
           element: <testLibrary>::@getter::a
   topLevelVariables
-    const hasInitializer a
+    const hasImplicitType hasInitializer a
       reference: <testLibrary>::@topLevelVariable::a
       firstFragment: #F1
       type: dynamic
@@ -2992,7 +2992,7 @@ library
           returnType: dynamic
           variable: <testLibrary>::@class::C::@field::m
   topLevelVariables
-    const hasInitializer a
+    const hasImplicitType hasInitializer a
       reference: <testLibrary>::@topLevelVariable::a
       firstFragment: #F5
       type: dynamic
@@ -3097,7 +3097,7 @@ library
               element: <testLibrary>::@getter::b
           returnType: dynamic
   topLevelVariables
-    const hasInitializer a
+    const hasImplicitType hasInitializer a
       reference: <testLibrary>::@topLevelVariable::a
       firstFragment: #F4
       type: dynamic
@@ -3105,7 +3105,7 @@ library
         fragment: #F4
         expression: expression_0
       getter: <testLibrary>::@getter::a
-    const hasInitializer b
+    const hasImplicitType hasInitializer b
       reference: <testLibrary>::@topLevelVariable::b
       firstFragment: #F5
       type: dynamic
@@ -3209,7 +3209,7 @@ library
               element: <testLibrary>::@getter::b
           returnType: dynamic
   topLevelVariables
-    const hasInitializer a
+    const hasImplicitType hasInitializer a
       reference: <testLibrary>::@topLevelVariable::a
       firstFragment: #F3
       type: dynamic
@@ -3217,7 +3217,7 @@ library
         fragment: #F3
         expression: expression_0
       getter: <testLibrary>::@getter::a
-    const hasInitializer b
+    const hasImplicitType hasInitializer b
       reference: <testLibrary>::@topLevelVariable::b
       firstFragment: #F4
       type: dynamic
@@ -3320,7 +3320,7 @@ library
           returnType: void
           variable: <testLibrary>::@class::C::@field::m
   topLevelVariables
-    const hasInitializer a
+    const hasImplicitType hasInitializer a
       reference: <testLibrary>::@topLevelVariable::a
       firstFragment: #F6
       type: dynamic
@@ -3417,7 +3417,7 @@ library
       superclassConstraints
         Object
       fields
-        static const hasInitializer foo
+        static const hasImplicitType hasInitializer foo
           reference: <testLibrary>::@mixin::M::@field::foo
           firstFragment: #F3
           type: int
@@ -3445,7 +3445,7 @@ library
               element: <testLibrary>::@mixin::M::@getter::foo
           returnType: void
   topLevelVariables
-    const hasInitializer foo
+    const hasImplicitType hasInitializer foo
       reference: <testLibrary>::@topLevelVariable::foo
       firstFragment: #F6
       type: int
@@ -3503,7 +3503,7 @@ library
       superclassConstraints
         Object
   topLevelVariables
-    const hasInitializer a
+    const hasImplicitType hasInitializer a
       reference: <testLibrary>::@topLevelVariable::a
       firstFragment: #F2
       type: dynamic
@@ -3511,7 +3511,7 @@ library
         fragment: #F2
         expression: expression_0
       getter: <testLibrary>::@getter::a
-    const hasInitializer b
+    const hasImplicitType hasInitializer b
       reference: <testLibrary>::@topLevelVariable::b
       firstFragment: #F3
       type: dynamic
@@ -3594,7 +3594,7 @@ library
           reference: <testLibrary>::@class::A::@constructor::new
           firstFragment: #F3
   topLevelVariables
-    const hasInitializer foo
+    const hasImplicitType hasInitializer foo
       reference: <testLibrary>::@topLevelVariable::foo
       firstFragment: #F4
       type: int
@@ -3692,7 +3692,7 @@ library
                     staticType: null
                   element: <testLibrary>::@getter::foo
   topLevelVariables
-    const hasInitializer foo
+    const hasImplicitType hasInitializer foo
       reference: <testLibrary>::@topLevelVariable::foo
       firstFragment: #F4
       type: int
@@ -3784,7 +3784,7 @@ library
           returnType: int
           variable: <testLibrary>::@class::A::@field::getter
   topLevelVariables
-    const hasInitializer foo
+    const hasImplicitType hasInitializer foo
       reference: <testLibrary>::@topLevelVariable::foo
       firstFragment: #F5
       type: int
@@ -3911,7 +3911,7 @@ library
                   element: <testLibrary>::@getter::foo
           returnType: void
   topLevelVariables
-    const hasInitializer foo
+    const hasImplicitType hasInitializer foo
       reference: <testLibrary>::@topLevelVariable::foo
       firstFragment: #F6
       type: int
@@ -4026,7 +4026,7 @@ library
           returnType: void
           variable: <testLibrary>::@class::A::@field::setter
   topLevelVariables
-    const hasInitializer foo
+    const hasImplicitType hasInitializer foo
       reference: <testLibrary>::@topLevelVariable::foo
       firstFragment: #F6
       type: int
@@ -4140,7 +4140,7 @@ library
       superclassConstraints
         Object
   topLevelVariables
-    const hasInitializer foo
+    const hasImplicitType hasInitializer foo
       reference: <testLibrary>::@topLevelVariable::foo
       firstFragment: #F7
       type: int
@@ -4269,7 +4269,7 @@ library
       firstFragment: #F1
       supertype: Enum
       fields
-        static const enumConstant hasInitializer e1
+        static const enumConstant hasImplicitType hasInitializer e1
           reference: <testLibrary>::@enum::E::@field::e1
           firstFragment: #F2
           type: E
@@ -4277,7 +4277,7 @@ library
             fragment: #F2
             expression: expression_0
           getter: <testLibrary>::@enum::E::@getter::e1
-        static const enumConstant hasInitializer e2
+        static const enumConstant hasImplicitType hasInitializer e2
           reference: <testLibrary>::@enum::E::@field::e2
           firstFragment: #F3
           type: E
@@ -4285,7 +4285,7 @@ library
             fragment: #F3
             expression: expression_1
           getter: <testLibrary>::@enum::E::@getter::e2
-        static const enumConstant hasInitializer e3
+        static const enumConstant hasImplicitType hasInitializer e3
           reference: <testLibrary>::@enum::E::@field::e3
           firstFragment: #F4
           type: E
@@ -4327,7 +4327,7 @@ library
           returnType: List<E>
           variable: <testLibrary>::@enum::E::@field::values
   topLevelVariables
-    const hasInitializer foo
+    const hasImplicitType hasInitializer foo
       reference: <testLibrary>::@topLevelVariable::foo
       firstFragment: #F11
       type: int
@@ -4399,7 +4399,7 @@ library
       extendedType: List<T>
       onDeclaration: dart:core::@class::List
   topLevelVariables
-    const hasInitializer foo
+    const hasImplicitType hasInitializer foo
       reference: <testLibrary>::@topLevelVariable::foo
       firstFragment: #F3
       type: int
@@ -4488,13 +4488,13 @@ library
       reference: <testLibrary>::@class::A
       firstFragment: #F1
       fields
-        static hasInitializer isStatic
+        static hasImplicitType hasInitializer isStatic
           reference: <testLibrary>::@class::A::@field::isStatic
           firstFragment: #F2
           type: int
           getter: <testLibrary>::@class::A::@getter::isStatic
           setter: <testLibrary>::@class::A::@setter::isStatic
-        static const hasInitializer isStaticConst
+        static const hasImplicitType hasInitializer isStaticConst
           reference: <testLibrary>::@class::A::@field::isStaticConst
           firstFragment: #F3
           type: int
@@ -4502,7 +4502,7 @@ library
             fragment: #F3
             expression: expression_0
           getter: <testLibrary>::@class::A::@getter::isStaticConst
-        hasInitializer isInstance
+        hasImplicitType hasInitializer isInstance
           reference: <testLibrary>::@class::A::@field::isInstance
           firstFragment: #F4
           type: int
@@ -4548,7 +4548,7 @@ library
           returnType: void
           variable: <testLibrary>::@class::A::@field::isInstance
   topLevelVariables
-    const hasInitializer foo
+    const hasImplicitType hasInitializer foo
       reference: <testLibrary>::@topLevelVariable::foo
       firstFragment: #F13
       type: int
@@ -4600,7 +4600,7 @@ library
         #F2 synthetic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:52)
           element: <testLibrary>::@getter::foo
   topLevelVariables
-    const hasInitializer foo
+    const hasImplicitType hasInitializer foo
       reference: <testLibrary>::@topLevelVariable::foo
       firstFragment: #F1
       type: int
@@ -4672,7 +4672,7 @@ library
       superclassConstraints
         Object
   topLevelVariables
-    const hasInitializer foo
+    const hasImplicitType hasInitializer foo
       reference: <testLibrary>::@topLevelVariable::foo
       firstFragment: #F3
       type: int
@@ -4759,7 +4759,7 @@ library
               element: <testLibrary>::@getter::foo
       aliasedType: void Function(int)
   topLevelVariables
-    const hasInitializer foo
+    const hasImplicitType hasInitializer foo
       reference: <testLibrary>::@topLevelVariable::foo
       firstFragment: #F3
       type: int
@@ -4846,7 +4846,7 @@ library
               element: <testLibrary>::@getter::foo
       aliasedType: void Function<U>(int)
   topLevelVariables
-    const hasInitializer foo
+    const hasImplicitType hasInitializer foo
       reference: <testLibrary>::@topLevelVariable::foo
       firstFragment: #F3
       type: int
@@ -4936,7 +4936,7 @@ library
       enclosingFragment: #F0
       previousFragment: #F1
   topLevelVariables
-    const hasInitializer foo
+    const hasImplicitType hasInitializer foo
       reference: <testLibrary>::@topLevelVariable::foo
       firstFragment: #F3
       type: int
@@ -5014,7 +5014,7 @@ library
                   literal: 42 @51
                   staticType: int
   topLevelVariables
-    const hasInitializer foo
+    const hasImplicitType hasInitializer foo
       reference: <testLibrary>::@topLevelVariable::foo
       firstFragment: #F1
       type: int
@@ -5106,7 +5106,7 @@ library
                 staticType: null
               element: <testLibrary>::@getter::foo
   topLevelVariables
-    const hasInitializer foo
+    const hasImplicitType hasInitializer foo
       reference: <testLibrary>::@topLevelVariable::foo
       firstFragment: #F1
       type: int
@@ -5189,7 +5189,7 @@ library
                     staticType: null
                   element: <testLibrary>::@getter::foo
   topLevelVariables
-    const hasInitializer foo
+    const hasImplicitType hasInitializer foo
       reference: <testLibrary>::@topLevelVariable::foo
       firstFragment: #F1
       type: int
@@ -5298,7 +5298,7 @@ library
             #F8 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:25)
               element: <testLibrary>::@setter::isNotConst::@formalParameter::value
   topLevelVariables
-    const hasInitializer foo
+    const hasImplicitType hasInitializer foo
       reference: <testLibrary>::@topLevelVariable::foo
       firstFragment: #F1
       type: int
@@ -5306,7 +5306,7 @@ library
         fragment: #F1
         expression: expression_0
       getter: <testLibrary>::@getter::foo
-    hasInitializer isNotConst
+    hasImplicitType hasInitializer isNotConst
       reference: <testLibrary>::@topLevelVariable::isNotConst
       firstFragment: #F2
       metadata
@@ -5320,7 +5320,7 @@ library
       type: int
       getter: <testLibrary>::@getter::isNotConst
       setter: <testLibrary>::@setter::isNotConst
-    const hasInitializer isConst
+    const hasImplicitType hasInitializer isConst
       reference: <testLibrary>::@topLevelVariable::isConst
       firstFragment: #F3
       metadata
@@ -5419,7 +5419,7 @@ library
       enclosingFragment: #F0
       previousFragment: #F0
   topLevelVariables
-    const hasInitializer a
+    const hasImplicitType hasInitializer a
       reference: <testLibrary>::@topLevelVariable::a
       firstFragment: #F2
       type: int
@@ -5479,7 +5479,7 @@ library
       enclosingFragment: #F0
       previousFragment: #F0
   topLevelVariables
-    const hasInitializer a
+    const hasImplicitType hasInitializer a
       reference: <testLibrary>::@topLevelVariable::a
       firstFragment: #F2
       type: dynamic
@@ -5749,7 +5749,7 @@ library
                     staticType: null
                   element: <testLibrary>::@getter::a
   topLevelVariables
-    const hasInitializer a
+    const hasImplicitType hasInitializer a
       reference: <testLibrary>::@topLevelVariable::a
       firstFragment: #F1
       type: dynamic
@@ -5854,7 +5854,7 @@ library
                   element: <testLibrary>::@getter::a
           returnType: dynamic
   topLevelVariables
-    const hasInitializer a
+    const hasImplicitType hasInitializer a
       reference: <testLibrary>::@topLevelVariable::a
       firstFragment: #F5
       type: dynamic
@@ -5910,7 +5910,7 @@ library
                     staticType: null
                   element: <testLibrary>::@getter::a
   topLevelVariables
-    const hasInitializer a
+    const hasImplicitType hasInitializer a
       reference: <testLibrary>::@topLevelVariable::a
       firstFragment: #F1
       type: dynamic
@@ -5987,7 +5987,7 @@ library
                   literal: null @26
                   staticType: Null
   topLevelVariables
-    const hasInitializer a
+    const hasImplicitType hasInitializer a
       reference: <testLibrary>::@topLevelVariable::a
       firstFragment: #F1
       type: dynamic
@@ -6116,7 +6116,7 @@ library
               superConstructorParameter: <testLibrary>::@class::A::@constructor::new::@formalParameter::x
           superConstructor: <testLibrary>::@class::A::@constructor::new
   topLevelVariables
-    const hasInitializer a
+    const hasImplicitType hasInitializer a
       reference: <testLibrary>::@topLevelVariable::a
       firstFragment: #F7
       type: dynamic
@@ -6170,7 +6170,7 @@ library
             #F6 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:23)
               element: <testLibrary>::@setter::v::@formalParameter::value
   topLevelVariables
-    const hasInitializer a
+    const hasImplicitType hasInitializer a
       reference: <testLibrary>::@topLevelVariable::a
       firstFragment: #F1
       type: dynamic
@@ -6272,7 +6272,7 @@ library
           reference: <testLibrary>::@class::C::@constructor::new
           firstFragment: #F3
   topLevelVariables
-    const hasInitializer a
+    const hasImplicitType hasInitializer a
       reference: <testLibrary>::@topLevelVariable::a
       firstFragment: #F4
       type: dynamic
@@ -6386,7 +6386,7 @@ library
           reference: <testLibrary>::@class::E::@constructor::new
           firstFragment: #F7
   topLevelVariables
-    const hasInitializer a
+    const hasImplicitType hasInitializer a
       reference: <testLibrary>::@topLevelVariable::a
       firstFragment: #F8
       type: dynamic
@@ -6436,7 +6436,7 @@ library
                     staticType: null
                   element: <testLibrary>::@getter::a
   topLevelVariables
-    const hasInitializer a
+    const hasImplicitType hasInitializer a
       reference: <testLibrary>::@topLevelVariable::a
       firstFragment: #F1
       type: dynamic
@@ -6518,7 +6518,7 @@ library
               element: <testLibrary>::@getter::a
       aliasedType: dynamic Function()
   topLevelVariables
-    const hasInitializer a
+    const hasImplicitType hasInitializer a
       reference: <testLibrary>::@topLevelVariable::a
       firstFragment: #F3
       type: dynamic
@@ -6580,7 +6580,7 @@ library
             #F6 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:20)
               element: <testLibrary>::@setter::x::@formalParameter::value
   topLevelVariables
-    const hasInitializer a
+    const hasImplicitType hasInitializer a
       reference: <testLibrary>::@topLevelVariable::a
       firstFragment: #F1
       type: int
@@ -6668,7 +6668,7 @@ library
       reference: <testLibrary>::@class::A
       firstFragment: #F1
       fields
-        static const hasInitializer x
+        static const hasImplicitType hasInitializer x
           reference: <testLibrary>::@class::A::@field::x
           firstFragment: #F2
           type: int
@@ -6808,7 +6808,7 @@ library
       firstFragment: #F3
       supertype: Enum
       fields
-        static const enumConstant hasInitializer a
+        static const enumConstant hasImplicitType hasInitializer a
           reference: <testLibrary>::@enum::E::@field::a
           firstFragment: #F4
           type: E
@@ -6816,7 +6816,7 @@ library
             fragment: #F4
             expression: expression_0
           getter: <testLibrary>::@enum::E::@getter::a
-        static const enumConstant hasInitializer b
+        static const enumConstant hasImplicitType hasInitializer b
           reference: <testLibrary>::@enum::E::@field::b
           firstFragment: #F5
           type: E
@@ -6824,7 +6824,7 @@ library
             fragment: #F5
             expression: expression_1
           getter: <testLibrary>::@enum::E::@getter::b
-        static const enumConstant hasInitializer c
+        static const enumConstant hasImplicitType hasInitializer c
           reference: <testLibrary>::@enum::E::@field::c
           firstFragment: #F6
           type: E
@@ -6917,7 +6917,7 @@ library
       extendedType: int
       onDeclaration: dart:core::@class::int
       fields
-        static const hasInitializer x
+        static const hasImplicitType hasInitializer x
           reference: <testLibrary>::@extension::E::@field::x
           firstFragment: #F4
           type: int
@@ -6967,7 +6967,7 @@ library
       extendedType: Object
       onDeclaration: dart:core::@class::Object
       fields
-        static const hasInitializer foo
+        static const hasImplicitType hasInitializer foo
           reference: <testLibrary>::@extension::0::@field::foo
           firstFragment: #F2
           type: int

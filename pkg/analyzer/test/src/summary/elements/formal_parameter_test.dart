@@ -720,7 +720,7 @@ library
       reference: <testLibrary>::@class::C
       firstFragment: #F1
       fields
-        x
+        hasImplicitType x
           reference: <testLibrary>::@class::C::@field::x
           firstFragment: #F2
           type: dynamic

@@ -1141,7 +1141,7 @@ library
             #F4 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:4)
               element: <testLibrary>::@setter::main::@formalParameter::value
   topLevelVariables
-    main
+    hasImplicitType main
       reference: <testLibrary>::@topLevelVariable::main
       firstFragment: #F1
       type: dynamic

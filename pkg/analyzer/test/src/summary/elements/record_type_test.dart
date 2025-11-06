@@ -94,7 +94,7 @@ library
       reference: <testLibrary>::@class::A
       firstFragment: #F1
       fields
-        final hasInitializer x
+        final hasImplicitType hasInitializer x
           reference: <testLibrary>::@class::A::@field::x
           firstFragment: #F2
           type: (int, bool)
@@ -558,7 +558,7 @@ library
         #F2 synthetic x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
           element: <testLibrary>::@getter::x
   topLevelVariables
-    final hasInitializer x
+    final hasImplicitType hasInitializer x
       reference: <testLibrary>::@topLevelVariable::x
       firstFragment: #F1
       type: (int, bool)
@@ -620,7 +620,7 @@ library
         #F2 synthetic x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
           element: <testLibrary>::@getter::x
   topLevelVariables
-    const hasInitializer x
+    const hasImplicitType hasInitializer x
       reference: <testLibrary>::@topLevelVariable::x
       firstFragment: #F1
       type: Type
@@ -681,7 +681,7 @@ library
         #F2 synthetic x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
           element: <testLibrary>::@getter::x
   topLevelVariables
-    const hasInitializer x
+    const hasImplicitType hasInitializer x
       reference: <testLibrary>::@topLevelVariable::x
       firstFragment: #F1
       type: Type

@@ -714,7 +714,7 @@ library
           type: int
           getter: <testLibrary>::@extensionType::A::@getter::it
           declaringFormalParameter: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
-        static const hasInitializer foo
+        static const hasImplicitType hasInitializer foo
           reference: <testLibrary>::@extensionType::A::@field::foo
           firstFragment: #F3
           type: int
@@ -777,7 +777,7 @@ library
           type: int
           getter: <testLibrary>::@extensionType::A::@getter::it
           declaringFormalParameter: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
-        final hasInitializer foo
+        final hasImplicitType hasInitializer foo
           reference: <testLibrary>::@extensionType::A::@field::foo
           firstFragment: #F3
           type: int

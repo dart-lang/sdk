@@ -2846,11 +2846,7 @@ void Object::InitializeObject(uword address,
 
   reinterpret_cast<UntaggedObject*>(address)->tags_ = tags;
 #if defined(HOST_HAS_FAST_WRITE_WRITE_FENCE)
-  // GCC warns that TSAN doesn't understand thread fences.
-#if defined(__GNUC__) && !defined(__clang__)
-#pragma GCC diagnostic ignored "-Wtsan"
-#endif
-  std::atomic_thread_fence(std::memory_order_release);
+  StoreStoreFence();
 #endif
 }
 
