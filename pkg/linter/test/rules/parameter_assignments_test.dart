@@ -17,6 +17,21 @@ class ParameterAssignmentsTest extends LintRuleTest {
   @override
   String get lintRule => LintNames.parameter_assignments;
 
+  test_assignment_inIfElseBranches() async {
+    await assertDiagnostics(
+      r'''
+void foo({String? value}) {
+  if (1 == 1) {
+    value = ' $value';
+  } else {
+    value = ' $value';
+  }
+}
+''',
+      [lint(48, 17), lint(82, 17)],
+    );
+  }
+
   test_assignment_nullableParameter() async {
     await assertDiagnostics(
       r'''
