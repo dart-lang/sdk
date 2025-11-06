@@ -420,6 +420,8 @@ abstract final class NativeCallable<T extends Function> {
   /// After [NativeCallable.close] is called, invoking
   /// the [nativeFunction] from native code will cause
   /// undefined behavior.
+  ///
+  /// NOTE: This is an experimental feature and may change in the future.
   factory NativeCallable.isolateGroupBound(
     @DartRepresentationOf("T") Function callback, {
     Object? exceptionalReturn,
