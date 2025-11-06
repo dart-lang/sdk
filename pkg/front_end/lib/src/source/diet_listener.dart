@@ -1027,6 +1027,38 @@ class DietListener extends StackListenerImpl {
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
+  void handleNoClassBody(Token semicolonToken) {
+    assert(
+      checkState(semicolonToken, [
+        ValueKinds.Token,
+        ValueKinds.IdentifierOrParserRecoveryOrNull,
+        ValueKinds.TokenOrNull,
+      ]),
+    );
+    debugEvent("NoClassBody");
+    pop(); // Begin token
+    pop(); // Name
+    pop(); // Annotation begin token.
+  }
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  void handleNoExtensionTypeBody(Token semicolonToken) {
+    assert(
+      checkState(semicolonToken, [
+        ValueKinds.Token,
+        ValueKinds.IdentifierOrParserRecoveryOrNull,
+        ValueKinds.TokenOrNull,
+      ]),
+    );
+    debugEvent("NoExtensionTypeBody");
+    pop(); // Begin token
+    pop(); // Name
+    pop(); // Annotation begin token.
+  }
+
+  @override
   void endClassOrMixinOrExtensionBody(
     DeclarationKind kind,
     int memberCount,

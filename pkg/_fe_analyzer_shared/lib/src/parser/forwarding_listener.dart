@@ -2116,8 +2116,18 @@ class ForwardingListener implements Listener {
   }
 
   @override
+  void handleNoClassBody(Token semicolonToken) {
+    listener?.handleNoClassBody(semicolonToken);
+  }
+
+  @override
   void handleNoConstructorReferenceContinuationAfterTypeArguments(Token token) {
     listener?.handleNoConstructorReferenceContinuationAfterTypeArguments(token);
+  }
+
+  @override
+  void handleNoExtensionTypeBody(Token semicolonToken) {
+    listener?.handleNoExtensionTypeBody(semicolonToken);
   }
 
   @override

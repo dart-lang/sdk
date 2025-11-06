@@ -373,6 +373,24 @@ class ParserTestListener implements Listener {
   }
 
   @override
+  void handleNoClassBody(Token semicolonToken) {
+    seen(semicolonToken);
+    doPrint(
+      'handleNoClassBody('
+      '$semicolonToken)',
+    );
+  }
+
+  @override
+  void handleNoExtensionTypeBody(Token semicolonToken) {
+    seen(semicolonToken);
+    doPrint(
+      'handleNoExtensionTypeBody('
+      '$semicolonToken)',
+    );
+  }
+
+  @override
   void beginMixinDeclaration(
     Token beginToken,
     Token? augmentToken,

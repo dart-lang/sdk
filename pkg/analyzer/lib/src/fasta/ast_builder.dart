@@ -5357,10 +5357,34 @@ class AstBuilder extends StackListener {
   }
 
   @override
+  void handleNoClassBody(Token semicolonToken) {
+    debugEvent("NoClassBody");
+    // TODO(scheglov): Handle omitted class body.
+    var builder = _classLikeBuilder;
+    if (builder != null) {
+      builder
+        ..leftBracket = semicolonToken
+        ..rightBracket = semicolonToken;
+    }
+  }
+
+  @override
   void handleNoConstructorReferenceContinuationAfterTypeArguments(Token token) {
     debugEvent("NoConstructorReferenceContinuationAfterTypeArguments");
 
     push(NullValues.ConstructorReferenceContinuationAfterTypeArguments);
+  }
+
+  @override
+  void handleNoExtensionTypeBody(Token semicolonToken) {
+    debugEvent("NoExtensionTypeBody");
+    // TODO(scheglov): Handle omitted extension type body.
+    var builder = _classLikeBuilder;
+    if (builder != null) {
+      builder
+        ..leftBracket = semicolonToken
+        ..rightBracket = semicolonToken;
+    }
   }
 
   @override

@@ -3051,6 +3051,10 @@ class Parser {
   /// typeWithParameters
   ///     :    typeIdentifier typeParameters?
   ///     ;
+  /// classBody
+  ///     :    '{' (metadata memberDeclaration)* '}'
+  ///     |    ';'
+  ///     ;
   /// ```
   Token parseClass(
     Token token,
@@ -3066,16 +3070,28 @@ class Parser {
       /* forExtensionType = */ false,
     );
     token = parseClassHeaderOpt(token, beginToken, classKeyword);
-    if (!token.next!.isA(TokenType.OPEN_CURLY_BRACKET)) {
-      // Recovery
-      token = parseClassHeaderRecovery(start, beginToken, classKeyword);
-      ensureBlock(token, BlockKind.classDeclaration);
+    if (token.next!.isA(TokenType.SEMICOLON)) {
+      Token semicolonToken = token = token.next!;
+      if (!_isDeclaringConstructorsFeatureEnabled) {
+        reportExperimentNotEnabled(
+          ExperimentalFlag.declaringConstructors,
+          semicolonToken,
+          semicolonToken,
+        );
+      }
+      listener.handleNoClassBody(semicolonToken);
+    } else {
+      if (!token.next!.isA(TokenType.OPEN_CURLY_BRACKET)) {
+        // Recovery
+        token = parseClassHeaderRecovery(start, beginToken, classKeyword);
+        ensureBlock(token, BlockKind.classDeclaration);
+      }
+      token = parseClassOrMixinOrExtensionBody(
+        token,
+        DeclarationKind.Class,
+        className,
+      );
     }
-    token = parseClassOrMixinOrExtensionBody(
-      token,
-      DeclarationKind.Class,
-      className,
-    );
     listener.endClassDeclaration(beginToken, token);
     return token;
   }
@@ -3751,19 +3767,31 @@ class Parser {
     );
     Token start = token;
     token = parseClassOrMixinOrEnumImplementsOpt(token);
-    if (!token.next!.isA(TokenType.OPEN_CURLY_BRACKET)) {
-      // TODO(johnniwinther): Reuse logic from [parseClassHeaderRecovery] to
-      // handle `extends`, `with` and out-of-order/duplicate clauses.
-      token = parseExtensionTypeHeaderRecovery(start, extensionKeyword);
+    if (token.next!.isA(TokenType.SEMICOLON)) {
+      Token semicolonToken = token = token.next!;
+      if (!_isDeclaringConstructorsFeatureEnabled) {
+        reportExperimentNotEnabled(
+          ExperimentalFlag.declaringConstructors,
+          semicolonToken,
+          semicolonToken,
+        );
+      }
+      listener.handleNoExtensionTypeBody(semicolonToken);
+    } else {
+      if (!token.next!.isA(TokenType.OPEN_CURLY_BRACKET)) {
+        // TODO(johnniwinther): Reuse logic from [parseClassHeaderRecovery] to
+        // handle `extends`, `with` and out-of-order/duplicate clauses.
+        token = parseExtensionTypeHeaderRecovery(start, extensionKeyword);
 
-      // Recovery
-      ensureBlock(token, BlockKind.extensionTypeDeclaration);
+        // Recovery
+        ensureBlock(token, BlockKind.extensionTypeDeclaration);
+      }
+      token = parseClassOrMixinOrExtensionBody(
+        token,
+        DeclarationKind.ExtensionType,
+        name.lexeme,
+      );
     }
-    token = parseClassOrMixinOrExtensionBody(
-      token,
-      DeclarationKind.ExtensionType,
-      name.lexeme,
-    );
     listener.endExtensionTypeDeclaration(
       beginToken,
       augmentToken,

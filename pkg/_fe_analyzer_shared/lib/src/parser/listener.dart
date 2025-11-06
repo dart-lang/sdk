@@ -208,6 +208,16 @@ abstract class Listener implements UnescapeErrorListener {
     logEvent("ClassDeclaration");
   }
 
+  /// Handle `;` as a class body.
+  void handleNoClassBody(Token semicolonToken) {
+    logEvent("NoClassBody");
+  }
+
+  /// Handle `;` as an extension type body.
+  void handleNoExtensionTypeBody(Token semicolonToken) {
+    logEvent("NoExtensionTypeBody");
+  }
+
   /// Handle the beginning of a mixin declaration.
   void beginMixinDeclaration(
     Token beginToken,

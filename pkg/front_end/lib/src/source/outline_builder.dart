@@ -4614,6 +4614,20 @@ class OutlineBuilder extends StackListenerImpl {
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
+  void handleNoClassBody(Token semicolonToken) {
+    debugEvent("NoClassBody");
+    _builderFactory.beginClassBody();
+  }
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  void handleNoExtensionTypeBody(Token semicolonToken) {
+    debugEvent("NoExtensionTypeBody");
+    _builderFactory.beginExtensionTypeBody();
+  }
+
+  @override
   void endClassOrMixinOrExtensionBody(
     DeclarationKind kind,
     int memberCount,
