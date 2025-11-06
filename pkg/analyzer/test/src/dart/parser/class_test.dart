@@ -47,6 +47,24 @@ ClassDeclaration
 ''');
   }
 
+  test_body_empty() {
+    useDeclaringConstructorsAst = true;
+    var parseResult = parseStringWithErrors(r'''
+class A;
+''');
+    parseResult.assertNoErrors();
+
+    var node = parseResult.findNode.singleClassDeclaration;
+    assertParsedNodeText(node, r'''
+ClassDeclaration
+  classKeyword: class
+  namePart: NameWithTypeParameters
+    typeName: A
+  body: EmptyClassBody
+    semicolon: ;
+''');
+  }
+
   test_constructor_external_fieldFormalParameter_optionalPositional() {
     var parseResult = parseStringWithErrors(r'''
 class A {
