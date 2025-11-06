@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/src/error/codes.dart';
+import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
@@ -184,6 +185,35 @@ f(A a1, p.A a2, B b) {}
 ''');
   }
 
+  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/61877')
+  test_library_export_and_export() async {
+    var a = newFile('$testPackageLibPath/a.dart', r'''
+class C {}
+''');
+
+    var b = newFile('$testPackageLibPath/b.dart', r'''
+export 'a.dart';
+''');
+
+    var c = newFile('$testPackageLibPath/c.dart', r'''
+export 'a.dart';
+''');
+
+    var d = newFile('$testPackageLibPath/d.dart', r'''
+import 'b.dart';
+import 'c.dart';
+
+method() => C();
+''');
+    await assertErrorsInFile2(a, []);
+    await assertErrorsInFile2(b, []);
+    await assertErrorsInFile2(c, []);
+    // Import of 'c.dart' is not marked as unused even though it could be
+    // removed.
+    var result = await resolveFile(d);
+    expect(result.diagnostics, isNotEmpty);
+  }
+
   test_library_extension_equalPrefixes_unnecessary() async {
     newFile('$testPackageLibPath/lib1.dart', '''
 extension E1 on int {
@@ -355,6 +385,30 @@ import 'lib1.dart';
 import 'lib2.dart';
 f(A a, B b) {}
 ''');
+  }
+
+  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/61877')
+  test_library_import_and_export() async {
+    var a = newFile('$testPackageLibPath/a.dart', r'''
+class C {}
+''');
+
+    var b = newFile('$testPackageLibPath/b.dart', r'''
+export 'a.dart';
+''');
+
+    var c = newFile('$testPackageLibPath/c.dart', r'''
+import 'a.dart';
+import 'b.dart';
+
+method() => C();
+''');
+    await assertErrorsInFile2(a, []);
+    await assertErrorsInFile2(b, []);
+    // Import of 'b.dart' is not marked as unused even though it could be
+    // removed.
+    var result = await resolveFile(c);
+    expect(result.diagnostics, isNotEmpty);
   }
 
   test_library_systemShadowing() async {

@@ -65,33 +65,6 @@ Three? three;
 ''');
   }
 
-  test_library_export_and_export() async {
-    var a = newFile('$testPackageLibPath/a.dart', r'''
-class C {}
-''');
-
-    var b = newFile('$testPackageLibPath/b.dart', r'''
-export 'a.dart';
-''');
-
-    var c = newFile('$testPackageLibPath/c.dart', r'''
-export 'a.dart';
-''');
-
-    var d = newFile('$testPackageLibPath/d.dart', r'''
-import 'b.dart';
-import 'c.dart';
-
-method() => C();
-''');
-    await assertErrorsInFile2(a, []);
-    await assertErrorsInFile2(b, []);
-    await assertErrorsInFile2(c, []);
-    // Import of 'c.dart' is not marked as unused even though it could be
-    // removed.
-    await assertErrorsInFile2(d, []);
-  }
-
   test_library_export_infiniteLoop() async {
     newFile('$testPackageLibPath/lib1.dart', r'''
 export 'lib2.dart';
@@ -358,28 +331,6 @@ A? a;
 ''',
       [error(WarningCode.unusedImport, 27, 11)],
     );
-  }
-
-  test_library_import_and_export() async {
-    var a = newFile('$testPackageLibPath/a.dart', r'''
-class C {}
-''');
-
-    var b = newFile('$testPackageLibPath/b.dart', r'''
-export 'a.dart';
-''');
-
-    var c = newFile('$testPackageLibPath/c.dart', r'''
-import 'a.dart';
-import 'b.dart';
-
-method() => C();
-''');
-    await assertErrorsInFile2(a, []);
-    await assertErrorsInFile2(b, []);
-    // Import of 'b.dart' is not marked as unused even though it could be
-    // removed.
-    await assertErrorsInFile2(c, []);
   }
 
   test_library_inComment_libraryDirective() async {
