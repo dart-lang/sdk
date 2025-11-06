@@ -31,6 +31,7 @@ import 'package:analyzer/src/dart/element/type_provider.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/diagnostic/diagnostic_factory.dart';
 import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/error/listener.dart';
 import 'package:analyzer/src/generated/exhaustiveness.dart';
 import 'package:analyzer/src/utilities/extensions/ast.dart';
 
@@ -672,7 +673,7 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
     //
     // These error codes are more specific than the [defaultErrorCode] so they
     // will overwrite and replace the default when we report the error.
-    DiagnosticCode diagnosticCode = error.diagnosticCode;
+    DiagnosticCode diagnosticCode = error.locatableDiagnostic.code;
     if (identical(
           diagnosticCode,
           CompileTimeErrorCode.constEvalExtensionMethod,
@@ -803,14 +804,10 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
           diagnosticCode,
           CompileTimeErrorCode.wrongNumberOfTypeArgumentsAnonymousFunction,
         )) {
-      _diagnosticReporter.reportError(
-        Diagnostic.tmp(
-          source: _diagnosticReporter.source,
+      _diagnosticReporter.report(
+        error.locatableDiagnostic.atOffset(
           offset: error.offset,
           length: error.length,
-          diagnosticCode: error.diagnosticCode,
-          arguments: error.arguments,
-          contextMessages: error.contextMessages,
         ),
       );
     } else if (defaultDiagnosticCode != null) {
@@ -911,12 +908,11 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
     switch (result) {
       case InvalidConstant():
         if (!result.avoidReporting) {
-          _diagnosticReporter.atOffset(
-            offset: result.offset,
-            length: result.length,
-            diagnosticCode: result.diagnosticCode,
-            arguments: result.arguments,
-            contextMessages: result.contextMessages,
+          _diagnosticReporter.report(
+            result.locatableDiagnostic.atOffset(
+              offset: result.offset,
+              length: result.length,
+            ),
           );
         }
       case DartObjectImpl():

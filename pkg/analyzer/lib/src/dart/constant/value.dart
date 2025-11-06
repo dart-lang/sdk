@@ -15,8 +15,6 @@ import 'package:analyzer/dart/ast/syntactic_entity.dart';
 import 'package:analyzer/dart/constant/value.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
-import 'package:analyzer/diagnostic/diagnostic.dart';
-import 'package:analyzer/error/error.dart';
 import 'package:analyzer/src/dart/constant/has_invalid_type.dart';
 import 'package:analyzer/src/dart/constant/has_type_parameter_reference.dart';
 import 'package:analyzer/src/dart/element/element.dart';
@@ -1355,19 +1353,16 @@ class DoubleState extends NumState {
 
 /// Exception that would be thrown during the evaluation of Dart code.
 class EvaluationException {
-  /// The diagnostic code associated with the exception.
-  final DiagnosticCode diagnosticCode;
-
-  /// The arguments that must be supplied to [diagnosticCode].
-  final List<Object> arguments;
+  /// The [LocatableDiagnostic] associated with the exception.
+  final LocatableDiagnostic locatableDiagnostic;
 
   /// Returns `true` if the evaluation exception is a runtime exception.
   final bool isRuntimeException;
 
-  /// Initialize a newly created exception to have the given [diagnosticCode].
+  /// Initialize a newly created exception to have the given
+  /// [locatableDiagnostic].
   EvaluationException(
-    this.diagnosticCode, {
-    this.arguments = const [],
+    this.locatableDiagnostic, {
     this.isRuntimeException = false,
   });
 }
@@ -2439,15 +2434,13 @@ class InvalidConstant implements Constant {
   /// The length of the entity that the evaluation error is reported at.
   final int length;
 
-  /// The diagnostic code that is being reported.
-  final DiagnosticCode diagnosticCode;
-
-  /// The arguments required to complete the message.
-  final List<Object> arguments;
-
-  /// Additional context messages for the error, including stack trace
-  /// information if the error occurs within a constructor.
-  final List<DiagnosticMessage> contextMessages;
+  /// The [LocatableDiagnostic] that is being reported.
+  ///
+  /// This object encapsulates the diagnostic code that is being reported, the
+  /// arguments required to complete the diagnostic message, and additional
+  /// context messages for the error, including stack trace information if the
+  /// error occurs within a constructor.
+  LocatableDiagnostic locatableDiagnostic;
 
   /// Whether to omit reporting this error.
   ///
@@ -2477,9 +2470,7 @@ class InvalidConstant implements Constant {
   }) {
     return InvalidConstant.forEntity(
       entity: entity,
-      diagnosticCode: other.diagnosticCode,
-      arguments: other.arguments,
-      contextMessages: other.contextMessages,
+      locatableDiagnostic: other.locatableDiagnostic,
       avoidReporting: other.avoidReporting,
       isUnresolved: other.isUnresolved,
       isRuntimeException: other.isRuntimeException,
@@ -2489,18 +2480,14 @@ class InvalidConstant implements Constant {
   /// Creates a constant evaluation error associated with an [element].
   InvalidConstant.forElement({
     required Element element,
-    required DiagnosticCode diagnosticCode,
-    List<Object>? arguments,
-    List<DiagnosticMessage>? contextMessages,
+    required LocatableDiagnostic locatableDiagnostic,
     bool avoidReporting = false,
     bool isUnresolved = false,
     bool isRuntimeException = false,
   }) : this._(
          length: element.name!.length,
          offset: element.firstFragment.nameOffset ?? -1,
-         diagnosticCode: diagnosticCode,
-         arguments: arguments,
-         contextMessages: contextMessages,
+         locatableDiagnostic: locatableDiagnostic,
          avoidReporting: avoidReporting,
          isUnresolved: isUnresolved,
          isRuntimeException: isRuntimeException,
@@ -2510,18 +2497,14 @@ class InvalidConstant implements Constant {
   /// [entity].
   InvalidConstant.forEntity({
     required SyntacticEntity entity,
-    required DiagnosticCode diagnosticCode,
-    List<Object>? arguments,
-    List<DiagnosticMessage>? contextMessages,
+    required LocatableDiagnostic locatableDiagnostic,
     bool avoidReporting = false,
     bool isUnresolved = false,
     bool isRuntimeException = false,
   }) : this._(
          offset: entity.offset,
          length: entity.length,
-         diagnosticCode: diagnosticCode,
-         arguments: arguments,
-         contextMessages: contextMessages,
+         locatableDiagnostic: locatableDiagnostic,
          avoidReporting: avoidReporting,
          isUnresolved: isUnresolved,
          isRuntimeException: isRuntimeException,
@@ -2539,13 +2522,13 @@ class InvalidConstant implements Constant {
         parent2.isConst) {
       return InvalidConstant.forEntity(
         entity: node,
-        diagnosticCode: CompileTimeErrorCode.constWithNonConstantArgument,
+        locatableDiagnostic: CompileTimeErrorCode.constWithNonConstantArgument,
         isUnresolved: isUnresolved,
       );
     }
     return InvalidConstant.forEntity(
       entity: node,
-      diagnosticCode: CompileTimeErrorCode.invalidConstant,
+      locatableDiagnostic: CompileTimeErrorCode.invalidConstant,
       isUnresolved: isUnresolved,
     );
   }
@@ -2553,14 +2536,11 @@ class InvalidConstant implements Constant {
   InvalidConstant._({
     required this.offset,
     required this.length,
-    required this.diagnosticCode,
-    List<Object>? arguments,
-    List<DiagnosticMessage>? contextMessages,
+    required this.locatableDiagnostic,
     this.avoidReporting = false,
     this.isUnresolved = false,
     this.isRuntimeException = false,
-  }) : arguments = arguments ?? [],
-       contextMessages = contextMessages ?? [];
+  });
 }
 
 /// The state of an object representing a list.
