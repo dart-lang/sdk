@@ -1844,6 +1844,7 @@ class FragmentBuilder extends ThrowingAstVisitor<void> {
         var fieldFragment = FieldFragmentImpl(name: name);
         fieldFragment.isFinal = formalParameter.isFinal;
         fieldFragment.isSynthetic = true;
+        fieldFragment.hasImplicitType = !formalParameter.isExplicitlyTyped;
         _linker.elementNodes[fieldFragment] = formalParameter;
         _addChildFragment(fieldFragment);
 

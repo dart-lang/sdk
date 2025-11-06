@@ -31937,6 +31937,98 @@ library
 ''');
   }
 
+  test_primaryConstructor_declaringFormalParameter_requiredNamed_type_fromField_inferred() async {
+    var library = await buildLibrary('''
+class A {
+  int get foo => 0;
+}
+class B({required final foo}) implements A {}
+''');
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      classes
+        #F1 class A (nameOffset:6) (firstTokenOffset:0) (offset:6)
+          element: <testLibrary>::@class::A
+          fields
+            #F2 synthetic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
+              element: <testLibrary>::@class::A::@field::foo
+          constructors
+            #F3 synthetic new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
+              element: <testLibrary>::@class::A::@constructor::new
+              typeName: A
+          getters
+            #F4 foo (nameOffset:20) (firstTokenOffset:12) (offset:20)
+              element: <testLibrary>::@class::A::@getter::foo
+        #F5 class B (nameOffset:38) (firstTokenOffset:32) (offset:38)
+          element: <testLibrary>::@class::B
+          fields
+            #F6 synthetic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:38)
+              element: <testLibrary>::@class::B::@field::foo
+          constructors
+            #F7 new (nameOffset:<null>) (firstTokenOffset:38) (offset:38)
+              element: <testLibrary>::@class::B::@constructor::new
+              typeName: B
+              typeNameOffset: 38
+              formalParameters
+                #F8 requiredNamed final this.foo (nameOffset:56) (firstTokenOffset:41) (offset:56)
+                  element: <testLibrary>::@class::B::@constructor::new::@formalParameter::foo
+          getters
+            #F9 synthetic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:38)
+              element: <testLibrary>::@class::B::@getter::foo
+  classes
+    class A
+      reference: <testLibrary>::@class::A
+      firstFragment: #F1
+      fields
+        synthetic foo
+          reference: <testLibrary>::@class::A::@field::foo
+          firstFragment: #F2
+          type: int
+          getter: <testLibrary>::@class::A::@getter::foo
+      constructors
+        synthetic new
+          reference: <testLibrary>::@class::A::@constructor::new
+          firstFragment: #F3
+      getters
+        foo
+          reference: <testLibrary>::@class::A::@getter::foo
+          firstFragment: #F4
+          returnType: int
+          variable: <testLibrary>::@class::A::@field::foo
+    class B
+      reference: <testLibrary>::@class::B
+      firstFragment: #F5
+      interfaces
+        A
+      fields
+        synthetic final hasImplicitType foo
+          reference: <testLibrary>::@class::B::@field::foo
+          firstFragment: #F6
+          type: int
+          getter: <testLibrary>::@class::B::@getter::foo
+          declaringFormalParameter: <testLibrary>::@class::B::@constructor::new::@formalParameter::foo
+      constructors
+        declaring primary new
+          reference: <testLibrary>::@class::B::@constructor::new
+          firstFragment: #F7
+          formalParameters
+            #E0 requiredNamed final hasImplicitType declaring this.foo
+              firstFragment: #F8
+              type: int
+              field: <testLibrary>::@class::B::@field::foo
+      getters
+        synthetic foo
+          reference: <testLibrary>::@class::B::@getter::foo
+          firstFragment: #F9
+          returnType: int
+          variable: <testLibrary>::@class::B::@field::foo
+''');
+  }
+
   test_primaryConstructor_declaringFormalParameter_requiredPositional_functionTyped_final() async {
     var library = await buildLibrary('''
 class A(final int foo()) {}
@@ -32192,6 +32284,98 @@ library
               type: int
           returnType: void
           variable: <testLibrary>::@class::A::@field::foo
+''');
+  }
+
+  test_primaryConstructor_declaringFormalParameter_requiredPositional_type_fromField_inferred() async {
+    var library = await buildLibrary('''
+class A {
+  int get foo => 0;
+}
+class B(final foo) implements A {}
+''');
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      classes
+        #F1 class A (nameOffset:6) (firstTokenOffset:0) (offset:6)
+          element: <testLibrary>::@class::A
+          fields
+            #F2 synthetic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
+              element: <testLibrary>::@class::A::@field::foo
+          constructors
+            #F3 synthetic new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
+              element: <testLibrary>::@class::A::@constructor::new
+              typeName: A
+          getters
+            #F4 foo (nameOffset:20) (firstTokenOffset:12) (offset:20)
+              element: <testLibrary>::@class::A::@getter::foo
+        #F5 class B (nameOffset:38) (firstTokenOffset:32) (offset:38)
+          element: <testLibrary>::@class::B
+          fields
+            #F6 synthetic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:38)
+              element: <testLibrary>::@class::B::@field::foo
+          constructors
+            #F7 new (nameOffset:<null>) (firstTokenOffset:38) (offset:38)
+              element: <testLibrary>::@class::B::@constructor::new
+              typeName: B
+              typeNameOffset: 38
+              formalParameters
+                #F8 requiredPositional final this.foo (nameOffset:46) (firstTokenOffset:40) (offset:46)
+                  element: <testLibrary>::@class::B::@constructor::new::@formalParameter::foo
+          getters
+            #F9 synthetic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:38)
+              element: <testLibrary>::@class::B::@getter::foo
+  classes
+    class A
+      reference: <testLibrary>::@class::A
+      firstFragment: #F1
+      fields
+        synthetic foo
+          reference: <testLibrary>::@class::A::@field::foo
+          firstFragment: #F2
+          type: int
+          getter: <testLibrary>::@class::A::@getter::foo
+      constructors
+        synthetic new
+          reference: <testLibrary>::@class::A::@constructor::new
+          firstFragment: #F3
+      getters
+        foo
+          reference: <testLibrary>::@class::A::@getter::foo
+          firstFragment: #F4
+          returnType: int
+          variable: <testLibrary>::@class::A::@field::foo
+    class B
+      reference: <testLibrary>::@class::B
+      firstFragment: #F5
+      interfaces
+        A
+      fields
+        synthetic final hasImplicitType foo
+          reference: <testLibrary>::@class::B::@field::foo
+          firstFragment: #F6
+          type: int
+          getter: <testLibrary>::@class::B::@getter::foo
+          declaringFormalParameter: <testLibrary>::@class::B::@constructor::new::@formalParameter::foo
+      constructors
+        declaring primary new
+          reference: <testLibrary>::@class::B::@constructor::new
+          firstFragment: #F7
+          formalParameters
+            #E0 requiredPositional final hasImplicitType declaring this.foo
+              firstFragment: #F8
+              type: int
+              field: <testLibrary>::@class::B::@field::foo
+      getters
+        synthetic foo
+          reference: <testLibrary>::@class::B::@getter::foo
+          firstFragment: #F9
+          returnType: int
+          variable: <testLibrary>::@class::B::@field::foo
 ''');
   }
 

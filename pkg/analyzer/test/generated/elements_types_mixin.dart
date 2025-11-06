@@ -272,16 +272,16 @@ mixin ElementsTypesMixin {
     var fieldFragment = FieldFragmentImpl(name: representationName);
     fragment.fields = [fieldFragment];
 
+    var element = ExtensionTypeElementImpl(Reference.root(), fragment);
+    element.typeErasure = representationType;
+    element.interfaces = interfaces;
+
     var fieldElement = FieldElementImpl(
       reference: Reference.root(),
       firstFragment: fieldFragment,
     );
-    fieldElement.type = representationType;
-
-    var element = ExtensionTypeElementImpl(Reference.root(), fragment);
-    element.typeErasure = representationType;
-    element.interfaces = interfaces;
     element.fields = [fieldElement];
+    fieldElement.type = representationType;
 
     return element;
   }

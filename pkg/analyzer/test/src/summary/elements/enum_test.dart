@@ -15827,6 +15827,161 @@ library
 ''');
   }
 
+  test_primaryConstructor_declaringFormalParameter_requiredPositional_type_fromField_inferred() async {
+    var library = await buildLibrary('''
+class A {
+  int get foo => 0;
+}
+enum B(final foo) implements A {v(0)}
+''');
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      classes
+        #F1 class A (nameOffset:6) (firstTokenOffset:0) (offset:6)
+          element: <testLibrary>::@class::A
+          fields
+            #F2 synthetic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
+              element: <testLibrary>::@class::A::@field::foo
+          constructors
+            #F3 synthetic new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
+              element: <testLibrary>::@class::A::@constructor::new
+              typeName: A
+          getters
+            #F4 foo (nameOffset:20) (firstTokenOffset:12) (offset:20)
+              element: <testLibrary>::@class::A::@getter::foo
+      enums
+        #F5 enum B (nameOffset:37) (firstTokenOffset:32) (offset:37)
+          element: <testLibrary>::@enum::B
+          fields
+            #F6 hasInitializer v (nameOffset:64) (firstTokenOffset:64) (offset:64)
+              element: <testLibrary>::@enum::B::@field::v
+              initializer: expression_0
+                InstanceCreationExpression
+                  constructorName: ConstructorName
+                    type: NamedType
+                      name: B @-1
+                      element: <testLibrary>::@enum::B
+                      type: B
+                    element: <testLibrary>::@enum::B::@constructor::new
+                  argumentList: ArgumentList
+                    leftParenthesis: ( @65
+                    arguments
+                      IntegerLiteral
+                        literal: 0 @66
+                        staticType: int
+                    rightParenthesis: ) @67
+                  staticType: B
+            #F7 synthetic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:37)
+              element: <testLibrary>::@enum::B::@field::values
+              initializer: expression_1
+                ListLiteral
+                  leftBracket: [ @0
+                  elements
+                    SimpleIdentifier
+                      token: v @-1
+                      element: <testLibrary>::@enum::B::@getter::v
+                      staticType: B
+                  rightBracket: ] @0
+                  staticType: List<B>
+            #F8 synthetic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:37)
+              element: <testLibrary>::@enum::B::@field::foo
+          constructors
+            #F9 const new (nameOffset:<null>) (firstTokenOffset:37) (offset:37)
+              element: <testLibrary>::@enum::B::@constructor::new
+              typeName: B
+              typeNameOffset: 37
+              formalParameters
+                #F10 requiredPositional final this.foo (nameOffset:45) (firstTokenOffset:39) (offset:45)
+                  element: <testLibrary>::@enum::B::@constructor::new::@formalParameter::foo
+          getters
+            #F11 synthetic v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:64)
+              element: <testLibrary>::@enum::B::@getter::v
+            #F12 synthetic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:37)
+              element: <testLibrary>::@enum::B::@getter::values
+            #F13 synthetic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:37)
+              element: <testLibrary>::@enum::B::@getter::foo
+  classes
+    class A
+      reference: <testLibrary>::@class::A
+      firstFragment: #F1
+      fields
+        synthetic foo
+          reference: <testLibrary>::@class::A::@field::foo
+          firstFragment: #F2
+          type: int
+          getter: <testLibrary>::@class::A::@getter::foo
+      constructors
+        synthetic new
+          reference: <testLibrary>::@class::A::@constructor::new
+          firstFragment: #F3
+      getters
+        foo
+          reference: <testLibrary>::@class::A::@getter::foo
+          firstFragment: #F4
+          returnType: int
+          variable: <testLibrary>::@class::A::@field::foo
+  enums
+    enum B
+      reference: <testLibrary>::@enum::B
+      firstFragment: #F5
+      supertype: Enum
+      interfaces
+        A
+      fields
+        static const enumConstant hasImplicitType hasInitializer v
+          reference: <testLibrary>::@enum::B::@field::v
+          firstFragment: #F6
+          type: B
+          constantInitializer
+            fragment: #F6
+            expression: expression_0
+          getter: <testLibrary>::@enum::B::@getter::v
+        synthetic static const values
+          reference: <testLibrary>::@enum::B::@field::values
+          firstFragment: #F7
+          type: List<B>
+          constantInitializer
+            fragment: #F7
+            expression: expression_1
+          getter: <testLibrary>::@enum::B::@getter::values
+        synthetic final hasImplicitType foo
+          reference: <testLibrary>::@enum::B::@field::foo
+          firstFragment: #F8
+          type: int
+          getter: <testLibrary>::@enum::B::@getter::foo
+          declaringFormalParameter: <testLibrary>::@enum::B::@constructor::new::@formalParameter::foo
+      constructors
+        const declaring primary new
+          reference: <testLibrary>::@enum::B::@constructor::new
+          firstFragment: #F9
+          formalParameters
+            #E0 requiredPositional final hasImplicitType declaring this.foo
+              firstFragment: #F10
+              type: int
+              field: <testLibrary>::@enum::B::@field::foo
+      getters
+        synthetic static v
+          reference: <testLibrary>::@enum::B::@getter::v
+          firstFragment: #F11
+          returnType: B
+          variable: <testLibrary>::@enum::B::@field::v
+        synthetic static values
+          reference: <testLibrary>::@enum::B::@getter::values
+          firstFragment: #F12
+          returnType: List<B>
+          variable: <testLibrary>::@enum::B::@field::values
+        synthetic foo
+          reference: <testLibrary>::@enum::B::@getter::foo
+          firstFragment: #F13
+          returnType: int
+          variable: <testLibrary>::@enum::B::@field::foo
+''');
+  }
+
   test_primaryConstructor_declaringFormalParameter_requiredPositional_type_typeParameter() async {
     var library = await buildLibrary('''
 enum A<T>(final T foo) {v(0)}
