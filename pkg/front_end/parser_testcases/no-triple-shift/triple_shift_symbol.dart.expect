@@ -1,6 +1,6 @@
 Problems reported:
 
-parser/no-triple-shift/triple_shift_symbol:2:13: Expected an identifier, but got ')'.
+parser/no-triple-shift/triple_shift_symbol:3:13: Expected an identifier, but got ')'.
   print(#>>>);
             ^
 

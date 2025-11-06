@@ -29,7 +29,7 @@
 
 ## 3.10.0
 
-**Released on:** Unreleased
+**Released on:** 2025-11-12
 
 ### Language
 

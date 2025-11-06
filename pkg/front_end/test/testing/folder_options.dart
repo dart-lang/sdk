@@ -21,6 +21,12 @@ const Option<bool> noVerifyCmd = const Option(
   const BoolValue(false),
 );
 
+/// Options used by the parser suite to include outline expectations.
+const Option<bool> withOutlineOption = const Option(
+  '--with-outline',
+  const BoolValue(false),
+);
+
 const List<Option> folderOptionsSpecification = [
   Options.enableExperiment,
   Options.enableUnscheduledExperiments,
@@ -36,6 +42,7 @@ const List<Option> folderOptionsSpecification = [
   Options.target,
   Options.defines,
   Options.showOffsets,
+  withOutlineOption,
 ];
 
 class SuiteFolderOptions {
@@ -58,6 +65,7 @@ class SuiteFolderOptions {
       String target = "vm";
       bool showOffsets = false;
       bool forceClosureContextLowering = false;
+      bool withOutline = withOutlineOption.spec.defaultValue!;
       if (directory.uri == baseUri) {
         folderOptions = new FolderOptions(
           {},
@@ -117,6 +125,7 @@ class SuiteFolderOptions {
           }
           noVerify = noVerifyCmd.read(parsedOptions);
           target = Options.target.read(parsedOptions);
+          withOutline = withOutlineOption.read(parsedOptions);
           folderOptions = new FolderOptions(
             parseExperimentalFlags(
               parseExperimentalArguments(experimentalFlagsArguments),
@@ -131,6 +140,7 @@ class SuiteFolderOptions {
             forceConstructorTearOffLowering: forceConstructorTearOffLowering,
             defines: defines,
             noVerify: noVerify,
+            withOutline: withOutline,
             target: target,
             overwriteCurrentSdkVersion: overwriteCurrentSdkVersionArgument,
             showOffsets: showOffsets,
@@ -188,6 +198,7 @@ class FolderOptions {
   final int? forceConstructorTearOffLowering;
   final Map<String, String>? defines;
   final bool noVerify;
+  final bool withOutline;
   final String target;
   final String? overwriteCurrentSdkVersion;
   final bool showOffsets;
@@ -203,6 +214,7 @@ class FolderOptions {
     this.forceConstructorTearOffLowering,
     this.defines = const {},
     this.noVerify = false,
+    this.withOutline = false,
     this.target = "vm",
     // can be null
     this.overwriteCurrentSdkVersion,

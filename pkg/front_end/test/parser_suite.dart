@@ -11,14 +11,19 @@ import 'package:_fe_analyzer_shared/src/experiments/errors.dart'
 import 'package:_fe_analyzer_shared/src/experiments/flags.dart'
     as shared
     show ExperimentalFlag;
-import 'package:_fe_analyzer_shared/src/parser/experimental_features.dart'
-    show DefaultExperimentalFeatures;
 import 'package:_fe_analyzer_shared/src/parser/parser.dart'
     show Parser, lengthOfSpan;
 import 'package:_fe_analyzer_shared/src/scanner/scanner.dart'
-    show ErrorToken, ScannerConfiguration, ScannerResult, Token, scan;
+    show
+        ErrorToken,
+        ScannerConfiguration,
+        ScannerResult,
+        Token,
+        scan,
+        LanguageVersionChanged;
 import 'package:_fe_analyzer_shared/src/scanner/token.dart'
     show SyntheticStringToken;
+import 'package:front_end/src/api_prototype/experimental_flags.dart';
 import 'package:front_end/src/base/command_line_reporting.dart'
     as command_line_reporting;
 import 'package:front_end/src/base/messages.dart' show Message;
@@ -32,12 +37,14 @@ import 'package:kernel/ast.dart';
 import 'package:testing/testing.dart'
     show Chain, ChainContext, ExpectationSet, Result, Step, TestDescription;
 
-import 'utils/suite_utils.dart';
-import 'testing/environment_keys.dart';
 import 'parser_test_listener.dart' show ParserTestListener;
 import 'parser_test_parser.dart' show TestParser;
+import 'testing/environment_keys.dart';
+import 'testing/experimental_features.dart';
+import 'testing/folder_options.dart';
 import 'testing_utils.dart' show checkEnvironment;
 import 'utils/kernel_chain.dart' show MatchContext;
+import 'utils/suite_utils.dart';
 
 const String EXPECTATIONS = '''
 [
@@ -73,7 +80,14 @@ Future<Context> createContext(Chain suite, Map<String, String> environment) {
   bool annotateLines = environment[EnvironmentKeys.annotateLines] == "true";
 
   return new Future.value(
-    new Context(suite.name, updateExpectations, trace, annotateLines),
+    new Context(
+      baseUri: suite.root,
+      suiteName: suite.name,
+      updateExpectations: updateExpectations,
+      addTrace: trace,
+      annotateLines: annotateLines,
+      environment: environment,
+    ),
   );
 }
 
@@ -108,13 +122,19 @@ class Context extends ChainContext with MatchContext {
   final bool addTrace;
   final bool annotateLines;
   final String suiteName;
+  final SuiteFolderOptions folderOptions;
 
-  Context(
-    this.suiteName,
-    this.updateExpectations,
-    this.addTrace,
-    this.annotateLines,
-  );
+  final Map<ExperimentalFlag, bool> forcedExperimentalFlags;
+  Context({
+    required Uri baseUri,
+    required this.suiteName,
+    required this.updateExpectations,
+    required this.addTrace,
+    required this.annotateLines,
+    required Map<String, String> environment,
+  }) : folderOptions = new SuiteFolderOptions(baseUri),
+       forcedExperimentalFlags =
+           SuiteFolderOptions.computeForcedExperimentalFlags(environment);
 
   @override
   final List<Step> steps = const <Step>[
@@ -132,7 +152,18 @@ class Context extends ChainContext with MatchContext {
 }
 
 class ContextChecksOnly extends Context {
-  ContextChecksOnly(String suiteName) : super(suiteName, false, false, false);
+  ContextChecksOnly({
+    required Uri baseUri,
+    required String suiteName,
+    required Map<String, String> environment,
+  }) : super(
+         baseUri: baseUri,
+         suiteName: suiteName,
+         updateExpectations: false,
+         addTrace: false,
+         annotateLines: false,
+         environment: environment,
+       );
 
   @override
   final List<Step> steps = const <Step>[
@@ -158,6 +189,7 @@ class ParserAstStep extends Step<TestDescription, TestDescription, Context> {
     TestDescription description,
     Context context,
   ) {
+    FolderOptions folderOptions = description.computeFolderOptions(context);
     Uri uri = description.uri;
     File f = new File.fromUri(uri);
     Uint8List rawBytes = f.readAsBytesSync();
@@ -166,7 +198,7 @@ class ParserAstStep extends Step<TestDescription, TestDescription, Context> {
       throw "Expected a single element for 'CompilationUnit' "
           "but got ${ast.what}";
     }
-    if (enablePossibleExpectFile && shouldDoOutline(description.shortName)) {
+    if (enablePossibleExpectFile && folderOptions.withOutline) {
       ExtractSomeMembers indexer = new ExtractSomeMembers();
       ast.accept(indexer);
       return context.match<TestDescription>(
@@ -220,12 +252,20 @@ class ListenerStep extends Step<TestDescription, TestDescription, Context> {
   static ParserTestListenerWithMessageFormatting? doListenerParsing(
     Uri uri,
     String suiteName,
+    Map<ExperimentalFlag, bool> explicitExperimentalFlags,
     String shortName, {
     bool addTrace = false,
     bool annotateLines = false,
   }) {
+    ExperimentalFeaturesFromFlags experimentalFeatures =
+        new ExperimentalFeaturesFromFlags(explicitExperimentalFlags);
     List<int> lineStarts = <int>[];
-    Token firstToken = scanUri(uri, shortName, lineStarts: lineStarts);
+    Token firstToken = scanUri(
+      uri,
+      experimentalFeatures,
+      lineStarts: lineStarts,
+      languageVersionChanged: experimentalFeatures.onLanguageVersionChanged,
+    );
 
     File f = new File.fromUri(uri);
     Uint8List rawBytes = f.readAsBytesSync();
@@ -241,7 +281,7 @@ class ListenerStep extends Step<TestDescription, TestDescription, Context> {
     Parser parser = new Parser(
       parserTestListener,
       useImplicitCreationExpression: useImplicitCreationExpressionInCfe,
-      experimentalFeatures: new TestDescriptionExperimentalFeatures(shortName),
+      experimentalFeatures: experimentalFeatures,
     );
     parser.parseUnit(firstToken);
     return parserTestListener;
@@ -253,11 +293,11 @@ class ListenerStep extends Step<TestDescription, TestDescription, Context> {
     Context context,
   ) {
     Uri uri = description.uri;
-
     ParserTestListenerWithMessageFormatting? parserTestListener =
         doListenerParsing(
           uri,
           context.suiteName,
+          description.computeExplicitExperimentalFlags(context),
           description.shortName,
           addTrace: context.addTrace,
           annotateLines: context.annotateLines,
@@ -298,10 +338,15 @@ class IntertwinedStep extends Step<TestDescription, TestDescription, Context> {
     Context context,
   ) {
     List<int> lineStarts = <int>[];
+    Map<ExperimentalFlag, bool> explicitExperimentalFlags = description
+        .computeExplicitExperimentalFlags(context);
+    ExperimentalFeaturesFromFlags experimentalFeatures =
+        new ExperimentalFeaturesFromFlags(explicitExperimentalFlags);
     Token firstToken = scanUri(
       description.uri,
-      description.shortName,
+      experimentalFeatures,
       lineStarts: lineStarts,
+      languageVersionChanged: experimentalFeatures.onLanguageVersionChanged,
     );
 
     File f = new File.fromUri(description.uri);
@@ -322,9 +367,7 @@ class IntertwinedStep extends Step<TestDescription, TestDescription, Context> {
     TestParser parser = new TestParser(
       parserTestListener,
       context.addTrace,
-      experimentalFeatures: new TestDescriptionExperimentalFeatures(
-        description.shortName,
-      ),
+      experimentalFeatures: experimentalFeatures,
     );
     parserTestListener.parser = parser;
     parser.sb = parserTestListener.sb;
@@ -336,26 +379,6 @@ class IntertwinedStep extends Step<TestDescription, TestDescription, Context> {
       description.uri,
       description,
     );
-  }
-}
-
-class TestDescriptionExperimentalFeatures extends DefaultExperimentalFeatures {
-  final String shortName;
-
-  TestDescriptionExperimentalFeatures(this.shortName);
-
-  @override
-  bool isExperimentEnabled(shared.ExperimentalFlag flag) {
-    return switch (flag) {
-      // TODO(johnniwinther): Use 'folder.options' for this instead.
-      shared.ExperimentalFlag.patterns => shouldAllowPatterns(shortName),
-      shared.ExperimentalFlag.enhancedParts => shouldAllowEnhancedParts(
-        shortName,
-      ),
-      shared.ExperimentalFlag.declaringConstructors =>
-        shouldAllowDeclaringConstructors(shortName),
-      _ => super.isExperimentEnabled(flag),
-    };
   }
 }
 
@@ -373,11 +396,16 @@ class TokenStep extends Step<TestDescription, TestDescription, Context> {
     TestDescription description,
     Context context,
   ) {
+    Map<ExperimentalFlag, bool> explicitExperimentalFlags = description
+        .computeExplicitExperimentalFlags(context);
+    ExperimentalFeaturesFromFlags experimentalFeatures =
+        new ExperimentalFeaturesFromFlags(explicitExperimentalFlags);
     List<int> lineStarts = <int>[];
     Token firstToken = scanUri(
       description.uri,
-      description.shortName,
+      experimentalFeatures,
       lineStarts: lineStarts,
+      languageVersionChanged: experimentalFeatures.onLanguageVersionChanged,
     );
 
     StringBuffer beforeParser = tokenStreamToString(firstToken, lineStarts);
@@ -401,9 +429,7 @@ class TokenStep extends Step<TestDescription, TestDescription, Context> {
     Parser parser = new Parser(
       parserTestListener,
       useImplicitCreationExpression: useImplicitCreationExpressionInCfe,
-      experimentalFeatures: new TestDescriptionExperimentalFeatures(
-        description.shortName,
-      ),
+      experimentalFeatures: experimentalFeatures,
     );
     bool parserCrashed = false;
     dynamic parserCrashedE;
@@ -526,57 +552,33 @@ StringBuffer tokenStreamToString(
   return sb;
 }
 
-Token scanUri(Uri uri, String shortName, {List<int>? lineStarts}) {
+Token scanUri(
+  Uri uri,
+  ExperimentalFeaturesFromFlags experimentalFeatures, {
+  List<int>? lineStarts,
+  LanguageVersionChanged? languageVersionChanged,
+}) {
   File f = new File.fromUri(uri);
   Uint8List rawBytes = f.readAsBytesSync();
-  return scanRawBytes(rawBytes, _getConfig(shortName), lineStarts);
-}
-
-ScannerConfiguration _getConfig(String shortName) {
-  ScannerConfiguration config;
-
-  String firstDir = shortName.split("/")[0];
-  if (firstDir == "also-nnbd") {
-    config = scannerConfigurationNonTripleShift;
-  } else if (firstDir == "no-triple-shift") {
-    config = scannerConfigurationNonTripleShift;
-  } else if (firstDir == "augmentation") {
-    config = scannerConfigurationAugmentation;
-  } else {
-    config = scannerConfiguration;
-  }
-  return config;
-}
-
-bool shouldDoOutline(String shortName) {
-  List<String> split = shortName.split("/");
-  return (split.length > 1 && split[split.length - 2] == "with_outline");
-}
-
-bool shouldAllowPatterns(String shortName) {
-  String firstDir = shortName.split("/")[0];
-  return firstDir == "patterns";
-}
-
-bool shouldAllowEnhancedParts(String shortName) {
-  String firstDir = shortName.split("/")[0];
-  return firstDir == "enhanced_parts";
-}
-
-bool shouldAllowDeclaringConstructors(String shortName) {
-  String firstDir = shortName.split("/")[0];
-  return firstDir == "declaring_constructors";
+  return scanRawBytes(
+    rawBytes,
+    experimentalFeatures.scannerConfiguration,
+    lineStarts,
+    languageVersionChanged: languageVersionChanged,
+  );
 }
 
 Token scanRawBytes(
   Uint8List rawBytes,
   ScannerConfiguration config,
-  List<int>? lineStarts,
-) {
+  List<int>? lineStarts, {
+  LanguageVersionChanged? languageVersionChanged,
+}) {
   ScannerResult scanResult = scan(
     rawBytes,
     configuration: config,
     includeComments: true,
+    languageVersionChanged: languageVersionChanged,
   );
   Token firstToken = scanResult.tokens;
   if (lineStarts != null) {
@@ -713,5 +715,19 @@ class ParserTestListenerForIntertwined
       super.doPrint("listener: " + s);
     }
     super.indent = prevIndent;
+  }
+}
+
+extension on TestDescription {
+  FolderOptions computeFolderOptions(Context context) {
+    return context.folderOptions.computeFolderOptions(this);
+  }
+
+  Map<ExperimentalFlag, bool> computeExplicitExperimentalFlags(
+    Context context,
+  ) {
+    return computeFolderOptions(
+      context,
+    ).computeExplicitExperimentalFlags(context.forcedExperimentalFlags);
   }
 }

@@ -1,474 +1,474 @@
 Problems reported:
 
-parser/error_recovery/keyword_named_top_level_methods:11:5: 'assert' can't be used as an identifier because it's a keyword.
+parser/error_recovery/keyword_named_top_level_methods:12:5: 'assert' can't be used as an identifier because it's a keyword.
 int assert(int x) {
     ^^^^^^
 
-parser/error_recovery/keyword_named_top_level_methods:13:10: `assert` can't be used as an expression.
+parser/error_recovery/keyword_named_top_level_methods:14:10: `assert` can't be used as an expression.
   return assert(x-1) + 1;
          ^^^^^^
 
-parser/error_recovery/keyword_named_top_level_methods:26:5: 'break' can't be used as an identifier because it's a keyword.
+parser/error_recovery/keyword_named_top_level_methods:27:5: 'break' can't be used as an identifier because it's a keyword.
 int break(int x) {
     ^^^^^
 
-parser/error_recovery/keyword_named_top_level_methods:28:10: Expected an identifier, but got 'break'.
+parser/error_recovery/keyword_named_top_level_methods:29:10: Expected an identifier, but got 'break'.
   return break(x-1) + 1;
          ^^^^^
 
-parser/error_recovery/keyword_named_top_level_methods:28:3: Expected ';' after this.
+parser/error_recovery/keyword_named_top_level_methods:29:3: Expected ';' after this.
   return break(x-1) + 1;
   ^^^^^^
 
-parser/error_recovery/keyword_named_top_level_methods:28:10: A break statement can't be used outside of a loop or switch statement.
+parser/error_recovery/keyword_named_top_level_methods:29:10: A break statement can't be used outside of a loop or switch statement.
   return break(x-1) + 1;
          ^^^^^
 
-parser/error_recovery/keyword_named_top_level_methods:28:10: Expected ';' after this.
+parser/error_recovery/keyword_named_top_level_methods:29:10: Expected ';' after this.
   return break(x-1) + 1;
          ^^^^^
 
-parser/error_recovery/keyword_named_top_level_methods:31:5: 'case' can't be used as an identifier because it's a keyword.
+parser/error_recovery/keyword_named_top_level_methods:32:5: 'case' can't be used as an identifier because it's a keyword.
 int case(int x) {
     ^^^^
 
-parser/error_recovery/keyword_named_top_level_methods:33:10: 'case' can't be used as an identifier because it's a keyword.
+parser/error_recovery/keyword_named_top_level_methods:34:10: 'case' can't be used as an identifier because it's a keyword.
   return case(x-1) + 1;
          ^^^^
 
-parser/error_recovery/keyword_named_top_level_methods:36:5: 'catch' can't be used as an identifier because it's a keyword.
+parser/error_recovery/keyword_named_top_level_methods:37:5: 'catch' can't be used as an identifier because it's a keyword.
 int catch(int x) {
     ^^^^^
 
-parser/error_recovery/keyword_named_top_level_methods:38:10: 'catch' can't be used as an identifier because it's a keyword.
+parser/error_recovery/keyword_named_top_level_methods:39:10: 'catch' can't be used as an identifier because it's a keyword.
   return catch(x-1) + 1;
          ^^^^^
 
-parser/error_recovery/keyword_named_top_level_methods:41:5: 'class' can't be used as an identifier because it's a keyword.
+parser/error_recovery/keyword_named_top_level_methods:42:5: 'class' can't be used as an identifier because it's a keyword.
 int class(int x) {
     ^^^^^
 
-parser/error_recovery/keyword_named_top_level_methods:43:10: 'class' can't be used as an identifier because it's a keyword.
+parser/error_recovery/keyword_named_top_level_methods:44:10: 'class' can't be used as an identifier because it's a keyword.
   return class(x-1) + 1;
          ^^^^^
 
-parser/error_recovery/keyword_named_top_level_methods:46:5: 'const' can't be used as an identifier because it's a keyword.
+parser/error_recovery/keyword_named_top_level_methods:47:5: 'const' can't be used as an identifier because it's a keyword.
 int const(int x) {
     ^^^^^
 
-parser/error_recovery/keyword_named_top_level_methods:48:19: A record literal with exactly one positional field requires a trailing comma.
+parser/error_recovery/keyword_named_top_level_methods:49:19: A record literal with exactly one positional field requires a trailing comma.
   return const(x-1) + 1;
                   ^
 
-parser/error_recovery/keyword_named_top_level_methods:51:5: 'continue' can't be used as an identifier because it's a keyword.
+parser/error_recovery/keyword_named_top_level_methods:52:5: 'continue' can't be used as an identifier because it's a keyword.
 int continue(int x) {
     ^^^^^^^^
 
-parser/error_recovery/keyword_named_top_level_methods:53:10: Expected an identifier, but got 'continue'.
+parser/error_recovery/keyword_named_top_level_methods:54:10: Expected an identifier, but got 'continue'.
   return continue(x-1) + 1;
          ^^^^^^^^
 
-parser/error_recovery/keyword_named_top_level_methods:53:3: Expected ';' after this.
+parser/error_recovery/keyword_named_top_level_methods:54:3: Expected ';' after this.
   return continue(x-1) + 1;
   ^^^^^^
 
-parser/error_recovery/keyword_named_top_level_methods:53:10: A continue statement can't be used outside of a loop or switch statement.
+parser/error_recovery/keyword_named_top_level_methods:54:10: A continue statement can't be used outside of a loop or switch statement.
   return continue(x-1) + 1;
          ^^^^^^^^
 
-parser/error_recovery/keyword_named_top_level_methods:53:10: Expected ';' after this.
+parser/error_recovery/keyword_named_top_level_methods:54:10: Expected ';' after this.
   return continue(x-1) + 1;
          ^^^^^^^^
 
-parser/error_recovery/keyword_named_top_level_methods:61:5: 'default' can't be used as an identifier because it's a keyword.
+parser/error_recovery/keyword_named_top_level_methods:62:5: 'default' can't be used as an identifier because it's a keyword.
 int default(int x) {
     ^^^^^^^
 
-parser/error_recovery/keyword_named_top_level_methods:63:10: 'default' can't be used as an identifier because it's a keyword.
+parser/error_recovery/keyword_named_top_level_methods:64:10: 'default' can't be used as an identifier because it's a keyword.
   return default(x-1) + 1;
          ^^^^^^^
 
-parser/error_recovery/keyword_named_top_level_methods:71:5: 'do' can't be used as an identifier because it's a keyword.
+parser/error_recovery/keyword_named_top_level_methods:72:5: 'do' can't be used as an identifier because it's a keyword.
 int do(int x) {
     ^^
 
-parser/error_recovery/keyword_named_top_level_methods:73:10: Expected an identifier, but got 'do'.
+parser/error_recovery/keyword_named_top_level_methods:74:10: Expected an identifier, but got 'do'.
   return do(x-1) + 1;
          ^^
 
-parser/error_recovery/keyword_named_top_level_methods:73:3: Expected ';' after this.
+parser/error_recovery/keyword_named_top_level_methods:74:3: Expected ';' after this.
   return do(x-1) + 1;
   ^^^^^^
 
-parser/error_recovery/keyword_named_top_level_methods:74:1: Expected 'while' before this.
+parser/error_recovery/keyword_named_top_level_methods:75:1: Expected 'while' before this.
 }
 ^
 
-parser/error_recovery/keyword_named_top_level_methods:74:1: Expected to find '('.
+parser/error_recovery/keyword_named_top_level_methods:75:1: Expected to find '('.
 }
 ^
 
-parser/error_recovery/keyword_named_top_level_methods:74:1: Expected an identifier, but got '}'.
+parser/error_recovery/keyword_named_top_level_methods:75:1: Expected an identifier, but got '}'.
 }
 ^
 
-parser/error_recovery/keyword_named_top_level_methods:73:21: Expected ';' after this.
+parser/error_recovery/keyword_named_top_level_methods:74:21: Expected ';' after this.
   return do(x-1) + 1;
                     ^
 
-parser/error_recovery/keyword_named_top_level_methods:81:5: 'else' can't be used as an identifier because it's a keyword.
+parser/error_recovery/keyword_named_top_level_methods:82:5: 'else' can't be used as an identifier because it's a keyword.
 int else(int x) {
     ^^^^
 
-parser/error_recovery/keyword_named_top_level_methods:83:10: Expected an identifier, but got 'else'.
+parser/error_recovery/keyword_named_top_level_methods:84:10: Expected an identifier, but got 'else'.
   return else(x-1) + 1;
          ^^^^
 
-parser/error_recovery/keyword_named_top_level_methods:83:3: Expected ';' after this.
+parser/error_recovery/keyword_named_top_level_methods:84:3: Expected ';' after this.
   return else(x-1) + 1;
   ^^^^^^
 
-parser/error_recovery/keyword_named_top_level_methods:83:10: Expected an identifier, but got 'else'.
+parser/error_recovery/keyword_named_top_level_methods:84:10: Expected an identifier, but got 'else'.
   return else(x-1) + 1;
          ^^^^
 
-parser/error_recovery/keyword_named_top_level_methods:83:3: Expected ';' after this.
+parser/error_recovery/keyword_named_top_level_methods:84:3: Expected ';' after this.
   return else(x-1) + 1;
   ^^^^^^
 
-parser/error_recovery/keyword_named_top_level_methods:83:10: Unexpected token ';'.
+parser/error_recovery/keyword_named_top_level_methods:84:10: Unexpected token ';'.
   return else(x-1) + 1;
          ^^^^
 
-parser/error_recovery/keyword_named_top_level_methods:86:5: 'enum' can't be used as an identifier because it's a keyword.
+parser/error_recovery/keyword_named_top_level_methods:87:5: 'enum' can't be used as an identifier because it's a keyword.
 int enum(int x) {
     ^^^^
 
-parser/error_recovery/keyword_named_top_level_methods:88:10: 'enum' can't be used as an identifier because it's a keyword.
+parser/error_recovery/keyword_named_top_level_methods:89:10: 'enum' can't be used as an identifier because it's a keyword.
   return enum(x-1) + 1;
          ^^^^
 
-parser/error_recovery/keyword_named_top_level_methods:96:5: 'extends' can't be used as an identifier because it's a keyword.
+parser/error_recovery/keyword_named_top_level_methods:97:5: 'extends' can't be used as an identifier because it's a keyword.
 int extends(int x) {
     ^^^^^^^
 
-parser/error_recovery/keyword_named_top_level_methods:98:10: 'extends' can't be used as an identifier because it's a keyword.
+parser/error_recovery/keyword_named_top_level_methods:99:10: 'extends' can't be used as an identifier because it's a keyword.
   return extends(x-1) + 1;
          ^^^^^^^
 
-parser/error_recovery/keyword_named_top_level_methods:116:5: 'false' can't be used as an identifier because it's a keyword.
+parser/error_recovery/keyword_named_top_level_methods:117:5: 'false' can't be used as an identifier because it's a keyword.
 int false(int x) {
     ^^^^^
 
-parser/error_recovery/keyword_named_top_level_methods:121:5: 'final' can't be used as an identifier because it's a keyword.
+parser/error_recovery/keyword_named_top_level_methods:122:5: 'final' can't be used as an identifier because it's a keyword.
 int final(int x) {
     ^^^^^
 
-parser/error_recovery/keyword_named_top_level_methods:123:10: Expected an identifier, but got 'final'.
+parser/error_recovery/keyword_named_top_level_methods:124:10: Expected an identifier, but got 'final'.
   return final(x-1) + 1;
          ^^^^^
 
-parser/error_recovery/keyword_named_top_level_methods:123:3: Expected ';' after this.
+parser/error_recovery/keyword_named_top_level_methods:124:3: Expected ';' after this.
   return final(x-1) + 1;
   ^^^^^^
 
-parser/error_recovery/keyword_named_top_level_methods:123:15: Expected an identifier, but got '('.
+parser/error_recovery/keyword_named_top_level_methods:124:15: Expected an identifier, but got '('.
   return final(x-1) + 1;
               ^
 
-parser/error_recovery/keyword_named_top_level_methods:123:15: Expected ';' after this.
+parser/error_recovery/keyword_named_top_level_methods:124:15: Expected ';' after this.
   return final(x-1) + 1;
               ^
 
-parser/error_recovery/keyword_named_top_level_methods:123:18: Expected ';' after this.
+parser/error_recovery/keyword_named_top_level_methods:124:18: Expected ';' after this.
   return final(x-1) + 1;
                  ^
 
-parser/error_recovery/keyword_named_top_level_methods:123:19: Expected an identifier, but got ')'.
+parser/error_recovery/keyword_named_top_level_methods:124:19: Expected an identifier, but got ')'.
   return final(x-1) + 1;
                   ^
 
-parser/error_recovery/keyword_named_top_level_methods:123:18: Expected ';' after this.
+parser/error_recovery/keyword_named_top_level_methods:124:18: Expected ';' after this.
   return final(x-1) + 1;
                  ^
 
-parser/error_recovery/keyword_named_top_level_methods:123:19: Unexpected token ';'.
+parser/error_recovery/keyword_named_top_level_methods:124:19: Unexpected token ';'.
   return final(x-1) + 1;
                   ^
 
-parser/error_recovery/keyword_named_top_level_methods:123:21: '+' is not a prefix operator.
+parser/error_recovery/keyword_named_top_level_methods:124:21: '+' is not a prefix operator.
   return final(x-1) + 1;
                     ^
 
-parser/error_recovery/keyword_named_top_level_methods:126:5: 'finally' can't be used as an identifier because it's a keyword.
+parser/error_recovery/keyword_named_top_level_methods:127:5: 'finally' can't be used as an identifier because it's a keyword.
 int finally(int x) {
     ^^^^^^^
 
-parser/error_recovery/keyword_named_top_level_methods:128:10: 'finally' can't be used as an identifier because it's a keyword.
+parser/error_recovery/keyword_named_top_level_methods:129:10: 'finally' can't be used as an identifier because it's a keyword.
   return finally(x-1) + 1;
          ^^^^^^^
 
-parser/error_recovery/keyword_named_top_level_methods:131:5: 'for' can't be used as an identifier because it's a keyword.
+parser/error_recovery/keyword_named_top_level_methods:132:5: 'for' can't be used as an identifier because it's a keyword.
 int for(int x) {
     ^^^
 
-parser/error_recovery/keyword_named_top_level_methods:133:10: Expected an identifier, but got 'for'.
+parser/error_recovery/keyword_named_top_level_methods:134:10: Expected an identifier, but got 'for'.
   return for(x-1) + 1;
          ^^^
 
-parser/error_recovery/keyword_named_top_level_methods:133:3: Expected ';' after this.
+parser/error_recovery/keyword_named_top_level_methods:134:3: Expected ';' after this.
   return for(x-1) + 1;
   ^^^^^^
 
-parser/error_recovery/keyword_named_top_level_methods:133:16: Expected ';' after this.
+parser/error_recovery/keyword_named_top_level_methods:134:16: Expected ';' after this.
   return for(x-1) + 1;
                ^
 
-parser/error_recovery/keyword_named_top_level_methods:133:17: Expected an identifier, but got ')'.
+parser/error_recovery/keyword_named_top_level_methods:134:17: Expected an identifier, but got ')'.
   return for(x-1) + 1;
                 ^
 
-parser/error_recovery/keyword_named_top_level_methods:133:16: Expected ';' after this.
+parser/error_recovery/keyword_named_top_level_methods:134:16: Expected ';' after this.
   return for(x-1) + 1;
                ^
 
-parser/error_recovery/keyword_named_top_level_methods:133:19: '+' is not a prefix operator.
+parser/error_recovery/keyword_named_top_level_methods:134:19: '+' is not a prefix operator.
   return for(x-1) + 1;
                   ^
 
-parser/error_recovery/keyword_named_top_level_methods:151:5: 'if' can't be used as an identifier because it's a keyword.
+parser/error_recovery/keyword_named_top_level_methods:152:5: 'if' can't be used as an identifier because it's a keyword.
 int if(int x) {
     ^^
 
-parser/error_recovery/keyword_named_top_level_methods:153:10: Expected an identifier, but got 'if'.
+parser/error_recovery/keyword_named_top_level_methods:154:10: Expected an identifier, but got 'if'.
   return if(x-1) + 1;
          ^^
 
-parser/error_recovery/keyword_named_top_level_methods:153:3: Expected ';' after this.
+parser/error_recovery/keyword_named_top_level_methods:154:3: Expected ';' after this.
   return if(x-1) + 1;
   ^^^^^^
 
-parser/error_recovery/keyword_named_top_level_methods:153:18: '+' is not a prefix operator.
+parser/error_recovery/keyword_named_top_level_methods:154:18: '+' is not a prefix operator.
   return if(x-1) + 1;
                  ^
 
-parser/error_recovery/keyword_named_top_level_methods:166:5: 'in' can't be used as an identifier because it's a keyword.
+parser/error_recovery/keyword_named_top_level_methods:167:5: 'in' can't be used as an identifier because it's a keyword.
 int in(int x) {
     ^^
 
-parser/error_recovery/keyword_named_top_level_methods:168:10: 'in' can't be used as an identifier because it's a keyword.
+parser/error_recovery/keyword_named_top_level_methods:169:10: 'in' can't be used as an identifier because it's a keyword.
   return in(x-1) + 1;
          ^^
 
-parser/error_recovery/keyword_named_top_level_methods:181:5: 'is' can't be used as an identifier because it's a keyword.
+parser/error_recovery/keyword_named_top_level_methods:182:5: 'is' can't be used as an identifier because it's a keyword.
 int is(int x) {
     ^^
 
-parser/error_recovery/keyword_named_top_level_methods:183:10: Expected an identifier, but got 'is'.
+parser/error_recovery/keyword_named_top_level_methods:184:10: Expected an identifier, but got 'is'.
   return is(x-1) + 1;
          ^^
 
-parser/error_recovery/keyword_named_top_level_methods:183:14: Expected ')' before this.
+parser/error_recovery/keyword_named_top_level_methods:184:14: Expected ')' before this.
   return is(x-1) + 1;
              ^
 
-parser/error_recovery/keyword_named_top_level_methods:183:16: A record type with exactly one positional field requires a trailing comma.
+parser/error_recovery/keyword_named_top_level_methods:184:16: A record type with exactly one positional field requires a trailing comma.
   return is(x-1) + 1;
                ^
 
-parser/error_recovery/keyword_named_top_level_methods:183:16: Expected ';' after this.
+parser/error_recovery/keyword_named_top_level_methods:184:16: Expected ';' after this.
   return is(x-1) + 1;
                ^
 
-parser/error_recovery/keyword_named_top_level_methods:183:18: '+' is not a prefix operator.
+parser/error_recovery/keyword_named_top_level_methods:184:18: '+' is not a prefix operator.
   return is(x-1) + 1;
                  ^
 
-parser/error_recovery/keyword_named_top_level_methods:206:5: 'new' can't be used as an identifier because it's a keyword.
+parser/error_recovery/keyword_named_top_level_methods:207:5: 'new' can't be used as an identifier because it's a keyword.
 int new(int x) {
     ^^^
 
-parser/error_recovery/keyword_named_top_level_methods:208:13: Expected an identifier, but got '('.
+parser/error_recovery/keyword_named_top_level_methods:209:13: Expected an identifier, but got '('.
   return new(x-1) + 1;
             ^
 
-parser/error_recovery/keyword_named_top_level_methods:211:5: 'null' can't be used as an identifier because it's a keyword.
+parser/error_recovery/keyword_named_top_level_methods:212:5: 'null' can't be used as an identifier because it's a keyword.
 int null(int x) {
     ^^^^
 
-parser/error_recovery/keyword_named_top_level_methods:251:5: 'rethrow' can't be used as an identifier because it's a keyword.
+parser/error_recovery/keyword_named_top_level_methods:252:5: 'rethrow' can't be used as an identifier because it's a keyword.
 int rethrow(int x) {
     ^^^^^^^
 
-parser/error_recovery/keyword_named_top_level_methods:253:10: 'rethrow' can't be used as an identifier because it's a keyword.
+parser/error_recovery/keyword_named_top_level_methods:254:10: 'rethrow' can't be used as an identifier because it's a keyword.
   return rethrow(x-1) + 1;
          ^^^^^^^
 
-parser/error_recovery/keyword_named_top_level_methods:256:5: 'return' can't be used as an identifier because it's a keyword.
+parser/error_recovery/keyword_named_top_level_methods:257:5: 'return' can't be used as an identifier because it's a keyword.
 int return(int x) {
     ^^^^^^
 
-parser/error_recovery/keyword_named_top_level_methods:258:10: Unexpected token 'return'.
+parser/error_recovery/keyword_named_top_level_methods:259:10: Unexpected token 'return'.
   return return(x-1) + 1;
          ^^^^^^
 
-parser/error_recovery/keyword_named_top_level_methods:281:5: 'super' can't be used as an identifier because it's a keyword.
+parser/error_recovery/keyword_named_top_level_methods:282:5: 'super' can't be used as an identifier because it's a keyword.
 int super(int x) {
     ^^^^^
 
-parser/error_recovery/keyword_named_top_level_methods:286:5: 'switch' can't be used as an identifier because it's a keyword.
+parser/error_recovery/keyword_named_top_level_methods:287:5: 'switch' can't be used as an identifier because it's a keyword.
 int switch(int x) {
     ^^^^^^
 
-parser/error_recovery/keyword_named_top_level_methods:288:10: Expected an identifier, but got 'switch'.
+parser/error_recovery/keyword_named_top_level_methods:289:10: Expected an identifier, but got 'switch'.
   return switch(x-1) + 1;
          ^^^^^^
 
-parser/error_recovery/keyword_named_top_level_methods:288:3: Expected ';' after this.
+parser/error_recovery/keyword_named_top_level_methods:289:3: Expected ';' after this.
   return switch(x-1) + 1;
   ^^^^^^
 
-parser/error_recovery/keyword_named_top_level_methods:288:20: A switch statement must have a body, even if it is empty.
+parser/error_recovery/keyword_named_top_level_methods:289:20: A switch statement must have a body, even if it is empty.
   return switch(x-1) + 1;
                    ^
 
-parser/error_recovery/keyword_named_top_level_methods:288:22: '+' is not a prefix operator.
+parser/error_recovery/keyword_named_top_level_methods:289:22: '+' is not a prefix operator.
   return switch(x-1) + 1;
                      ^
 
-parser/error_recovery/keyword_named_top_level_methods:296:5: 'this' can't be used as an identifier because it's a keyword.
+parser/error_recovery/keyword_named_top_level_methods:297:5: 'this' can't be used as an identifier because it's a keyword.
 int this(int x) {
     ^^^^
 
-parser/error_recovery/keyword_named_top_level_methods:301:5: 'throw' can't be used as an identifier because it's a keyword.
+parser/error_recovery/keyword_named_top_level_methods:302:5: 'throw' can't be used as an identifier because it's a keyword.
 int throw(int x) {
     ^^^^^
 
-parser/error_recovery/keyword_named_top_level_methods:306:5: 'true' can't be used as an identifier because it's a keyword.
+parser/error_recovery/keyword_named_top_level_methods:307:5: 'true' can't be used as an identifier because it's a keyword.
 int true(int x) {
     ^^^^
 
-parser/error_recovery/keyword_named_top_level_methods:311:5: 'try' can't be used as an identifier because it's a keyword.
+parser/error_recovery/keyword_named_top_level_methods:312:5: 'try' can't be used as an identifier because it's a keyword.
 int try(int x) {
     ^^^
 
-parser/error_recovery/keyword_named_top_level_methods:313:10: Expected an identifier, but got 'try'.
+parser/error_recovery/keyword_named_top_level_methods:314:10: Expected an identifier, but got 'try'.
   return try(x-1) + 1;
          ^^^
 
-parser/error_recovery/keyword_named_top_level_methods:313:3: Expected ';' after this.
+parser/error_recovery/keyword_named_top_level_methods:314:3: Expected ';' after this.
   return try(x-1) + 1;
   ^^^^^^
 
-parser/error_recovery/keyword_named_top_level_methods:313:10: A try statement must have a body, even if it is empty.
+parser/error_recovery/keyword_named_top_level_methods:314:10: A try statement must have a body, even if it is empty.
   return try(x-1) + 1;
          ^^^
 
-parser/error_recovery/keyword_named_top_level_methods:313:10: A try block must be followed by an 'on', 'catch', or 'finally' clause.
+parser/error_recovery/keyword_named_top_level_methods:314:10: A try block must be followed by an 'on', 'catch', or 'finally' clause.
   return try(x-1) + 1;
          ^^^
 
-parser/error_recovery/keyword_named_top_level_methods:321:5: 'var' can't be used as an identifier because it's a keyword.
+parser/error_recovery/keyword_named_top_level_methods:322:5: 'var' can't be used as an identifier because it's a keyword.
 int var(int x) {
     ^^^
 
-parser/error_recovery/keyword_named_top_level_methods:323:10: Expected an identifier, but got 'var'.
+parser/error_recovery/keyword_named_top_level_methods:324:10: Expected an identifier, but got 'var'.
   return var(x-1) + 1;
          ^^^
 
-parser/error_recovery/keyword_named_top_level_methods:323:3: Expected ';' after this.
+parser/error_recovery/keyword_named_top_level_methods:324:3: Expected ';' after this.
   return var(x-1) + 1;
   ^^^^^^
 
-parser/error_recovery/keyword_named_top_level_methods:323:13: Expected an identifier, but got '('.
+parser/error_recovery/keyword_named_top_level_methods:324:13: Expected an identifier, but got '('.
   return var(x-1) + 1;
             ^
 
-parser/error_recovery/keyword_named_top_level_methods:323:13: Expected ';' after this.
+parser/error_recovery/keyword_named_top_level_methods:324:13: Expected ';' after this.
   return var(x-1) + 1;
             ^
 
-parser/error_recovery/keyword_named_top_level_methods:323:16: Expected ';' after this.
+parser/error_recovery/keyword_named_top_level_methods:324:16: Expected ';' after this.
   return var(x-1) + 1;
                ^
 
-parser/error_recovery/keyword_named_top_level_methods:323:17: Expected an identifier, but got ')'.
+parser/error_recovery/keyword_named_top_level_methods:324:17: Expected an identifier, but got ')'.
   return var(x-1) + 1;
                 ^
 
-parser/error_recovery/keyword_named_top_level_methods:323:16: Expected ';' after this.
+parser/error_recovery/keyword_named_top_level_methods:324:16: Expected ';' after this.
   return var(x-1) + 1;
                ^
 
-parser/error_recovery/keyword_named_top_level_methods:323:17: Unexpected token ';'.
+parser/error_recovery/keyword_named_top_level_methods:324:17: Unexpected token ';'.
   return var(x-1) + 1;
                 ^
 
-parser/error_recovery/keyword_named_top_level_methods:323:19: '+' is not a prefix operator.
+parser/error_recovery/keyword_named_top_level_methods:324:19: '+' is not a prefix operator.
   return var(x-1) + 1;
                   ^
 
-parser/error_recovery/keyword_named_top_level_methods:326:5: 'void' can't be used as an identifier because it's a keyword.
+parser/error_recovery/keyword_named_top_level_methods:327:5: 'void' can't be used as an identifier because it's a keyword.
 int void(int x) {
     ^^^^
 
-parser/error_recovery/keyword_named_top_level_methods:328:10: Expected an identifier, but got 'void'.
+parser/error_recovery/keyword_named_top_level_methods:329:10: Expected an identifier, but got 'void'.
   return void(x-1) + 1;
          ^^^^
 
-parser/error_recovery/keyword_named_top_level_methods:328:3: Expected ';' after this.
+parser/error_recovery/keyword_named_top_level_methods:329:3: Expected ';' after this.
   return void(x-1) + 1;
   ^^^^^^
 
-parser/error_recovery/keyword_named_top_level_methods:328:14: Expected an identifier, but got '('.
+parser/error_recovery/keyword_named_top_level_methods:329:14: Expected an identifier, but got '('.
   return void(x-1) + 1;
              ^
 
-parser/error_recovery/keyword_named_top_level_methods:328:14: Expected ';' after this.
+parser/error_recovery/keyword_named_top_level_methods:329:14: Expected ';' after this.
   return void(x-1) + 1;
              ^
 
-parser/error_recovery/keyword_named_top_level_methods:328:17: Expected ';' after this.
+parser/error_recovery/keyword_named_top_level_methods:329:17: Expected ';' after this.
   return void(x-1) + 1;
                 ^
 
-parser/error_recovery/keyword_named_top_level_methods:328:18: Expected an identifier, but got ')'.
+parser/error_recovery/keyword_named_top_level_methods:329:18: Expected an identifier, but got ')'.
   return void(x-1) + 1;
                  ^
 
-parser/error_recovery/keyword_named_top_level_methods:328:17: Expected ';' after this.
+parser/error_recovery/keyword_named_top_level_methods:329:17: Expected ';' after this.
   return void(x-1) + 1;
                 ^
 
-parser/error_recovery/keyword_named_top_level_methods:328:18: Unexpected token ';'.
+parser/error_recovery/keyword_named_top_level_methods:329:18: Unexpected token ';'.
   return void(x-1) + 1;
                  ^
 
-parser/error_recovery/keyword_named_top_level_methods:328:20: '+' is not a prefix operator.
+parser/error_recovery/keyword_named_top_level_methods:329:20: '+' is not a prefix operator.
   return void(x-1) + 1;
                    ^
 
-parser/error_recovery/keyword_named_top_level_methods:331:5: 'while' can't be used as an identifier because it's a keyword.
+parser/error_recovery/keyword_named_top_level_methods:332:5: 'while' can't be used as an identifier because it's a keyword.
 int while(int x) {
     ^^^^^
 
-parser/error_recovery/keyword_named_top_level_methods:333:10: Expected an identifier, but got 'while'.
+parser/error_recovery/keyword_named_top_level_methods:334:10: Expected an identifier, but got 'while'.
   return while(x-1) + 1;
          ^^^^^
 
-parser/error_recovery/keyword_named_top_level_methods:333:3: Expected ';' after this.
+parser/error_recovery/keyword_named_top_level_methods:334:3: Expected ';' after this.
   return while(x-1) + 1;
   ^^^^^^
 
-parser/error_recovery/keyword_named_top_level_methods:333:21: '+' is not a prefix operator.
+parser/error_recovery/keyword_named_top_level_methods:334:21: '+' is not a prefix operator.
   return while(x-1) + 1;
                     ^
 
-parser/error_recovery/keyword_named_top_level_methods:336:5: 'with' can't be used as an identifier because it's a keyword.
+parser/error_recovery/keyword_named_top_level_methods:337:5: 'with' can't be used as an identifier because it's a keyword.
 int with(int x) {
     ^^^^
 
-parser/error_recovery/keyword_named_top_level_methods:338:10: 'with' can't be used as an identifier because it's a keyword.
+parser/error_recovery/keyword_named_top_level_methods:339:10: 'with' can't be used as an identifier because it's a keyword.
   return with(x-1) + 1;
          ^^^^
 

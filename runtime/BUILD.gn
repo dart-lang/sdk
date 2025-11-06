@@ -51,6 +51,9 @@ config("dart_product_config") {
         "-fvisibility=hidden",
       ]
     }
+    if (dart_runtime_mode == "release" && target_os == "linux") {
+      defines += [ "DART_DISABLE_TIMELINE" ]
+    }
   }
 }
 
