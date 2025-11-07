@@ -3652,6 +3652,15 @@ abstract class AbstractParserAstListener implements Listener {
   }
 
   @override
+  void handleNoIdentifier(Token token) {
+    NoIdentifierHandle data = new NoIdentifierHandle(
+      ParserAstType.HANDLE,
+      token: token,
+    );
+    seen(data);
+  }
+
+  @override
   void handleNoTypeNameInConstructorReference(Token token) {
     NoTypeNameInConstructorReferenceHandle data =
         new NoTypeNameInConstructorReferenceHandle(
@@ -10286,6 +10295,19 @@ class NoConstructorReferenceContinuationAfterTypeArgumentsHandle
       v.visitNoConstructorReferenceContinuationAfterTypeArgumentsHandle(this);
 }
 
+class NoIdentifierHandle extends ParserAstNode {
+  final Token token;
+
+  NoIdentifierHandle(ParserAstType type, {required this.token})
+    : super("NoIdentifier", type);
+
+  @override
+  Map<String, Object?> get deprecatedArguments => {"token": token};
+
+  @override
+  R accept<R>(ParserAstVisitor<R> v) => v.visitNoIdentifierHandle(this);
+}
+
 class NoTypeNameInConstructorReferenceHandle extends ParserAstNode {
   final Token token;
 
@@ -11657,6 +11679,7 @@ abstract class ParserAstVisitor<R> {
   R visitNoConstructorReferenceContinuationAfterTypeArgumentsHandle(
     NoConstructorReferenceContinuationAfterTypeArgumentsHandle node,
   );
+  R visitNoIdentifierHandle(NoIdentifierHandle node);
   R visitNoTypeNameInConstructorReferenceHandle(
     NoTypeNameInConstructorReferenceHandle node,
   );
@@ -12949,6 +12972,10 @@ class RecursiveParserAstVisitor implements ParserAstVisitor<void> {
   void visitNoConstructorReferenceContinuationAfterTypeArgumentsHandle(
     NoConstructorReferenceContinuationAfterTypeArgumentsHandle node,
   ) => node.visitChildren(this);
+
+  @override
+  void visitNoIdentifierHandle(NoIdentifierHandle node) =>
+      node.visitChildren(this);
 
   @override
   void visitNoTypeNameInConstructorReferenceHandle(
@@ -14463,6 +14490,10 @@ class RecursiveParserAstVisitorWithDefaultNodeAsync
   Future<void> visitNoConstructorReferenceContinuationAfterTypeArgumentsHandle(
     NoConstructorReferenceContinuationAfterTypeArgumentsHandle node,
   ) => defaultNode(node);
+
+  @override
+  Future<void> visitNoIdentifierHandle(NoIdentifierHandle node) =>
+      defaultNode(node);
 
   @override
   Future<void> visitNoTypeNameInConstructorReferenceHandle(

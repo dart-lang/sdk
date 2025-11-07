@@ -1934,6 +1934,7 @@ class TestParser extends Parser {
     Token? externalToken,
     Token? staticOrCovariant,
     Token? varFinalOrConst,
+    bool hasName,
   ) {
     doPrint(
       'parseFactoryMethod('
@@ -1942,7 +1943,8 @@ class TestParser extends Parser {
       '$beforeStart, '
       '$externalToken, '
       '$staticOrCovariant, '
-      '$varFinalOrConst)',
+      '$varFinalOrConst, '
+      '$hasName)',
     );
     indent++;
     var result = super.parseFactoryMethod(
@@ -1952,6 +1954,7 @@ class TestParser extends Parser {
       externalToken,
       staticOrCovariant,
       varFinalOrConst,
+      hasName,
     );
     indent--;
     return result;

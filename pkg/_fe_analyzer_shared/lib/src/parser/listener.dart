@@ -2389,6 +2389,10 @@ abstract class Listener implements UnescapeErrorListener {
     logEvent("NoConstructorReferenceContinuationAfterTypeArguments");
   }
 
+  void handleNoIdentifier(Token token) {
+    logEvent("NoIdentifier");
+  }
+
   void handleNoTypeNameInConstructorReference(Token token) {
     logEvent("NoTypeNameInConstructorReference");
   }
