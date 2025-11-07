@@ -10,6 +10,7 @@ import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../../tool/lsp_spec/matchers.dart';
+import '../request_helpers_mixin.dart';
 import '../server_abstract.dart';
 
 void main() {
@@ -20,7 +21,8 @@ void main() {
 }
 
 abstract class AbstractFixAllInWorkspaceTest
-    extends AbstractLspAnalysisServerTest {
+    extends AbstractLspAnalysisServerTest
+    with LspProgressNotificationsMixin {
   String get commandId;
   String get commandName;
   bool get expectRequiresConfirmation;
@@ -227,6 +229,28 @@ C b() {
   return const C();
 }
 ''');
+  }
+
+  Future<void> test_progressNotifications_supported() async {
+    // Advertise that we (the client) support progress.
+    setWorkDoneProgressSupport();
+
+    // Expect (during the test) a progress token to be created, started, ended.
+    expect(progressUpdates, emitsInOrder(['CREATE', 'BEGIN', 'END']));
+
+    await initialize();
+    await executeCommand(Command(command: commandId, title: 'UNUSED'));
+  }
+
+  Future<void> test_progressNotifications_unsupported() async {
+    // Advertise that we do not support progress.
+    setWorkDoneProgressSupport(false);
+
+    // Expect no progress updates at all.
+    expect(progressUpdates, neverEmits(anything));
+
+    await initialize();
+    await executeCommand(Command(command: commandId, title: 'UNUSED'));
   }
 
   Future<void> test_serverAdvertisesCommand() async {
