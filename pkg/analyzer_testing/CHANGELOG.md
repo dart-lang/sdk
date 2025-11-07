@@ -4,6 +4,8 @@
   analysis options file used in testing specifies a `true` value for
   `propagate-linter-exceptions`. This ensures that when tests are run,
   exceptions that occur while processing lint rules will cause the test to fail.
+- Deprecate `PubPackageResolutionTest.addKernelPackageDep`. A mock kernel
+  package can still be written with `PubPackageResolutionTest.newPackage`.
 
 ## 0.1.7
 
