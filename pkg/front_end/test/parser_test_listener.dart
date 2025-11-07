@@ -4169,6 +4169,15 @@ class ParserTestListener implements Listener {
   }
 
   @override
+  void handleNoIdentifier(Token token) {
+    seen(token);
+    doPrint(
+      'handleNoIdentifier('
+      '$token)',
+    );
+  }
+
+  @override
   void handleNoTypeNameInConstructorReference(Token token) {
     seen(token);
     doPrint(

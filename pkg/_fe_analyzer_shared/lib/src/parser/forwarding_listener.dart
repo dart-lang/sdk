@@ -2194,6 +2194,11 @@ class ForwardingListener implements Listener {
   }
 
   @override
+  void handleNoIdentifier(Token token) {
+    listener?.handleNoIdentifier(token);
+  }
+
+  @override
   void handleNoType(Token lastConsumed) {
     listener?.handleNoType(lastConsumed);
   }

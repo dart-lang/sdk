@@ -1,0 +1,73 @@
+class C {
+external factory ();
+external factory C();
+external factory name();
+external factory C.name();
+factory () => C();
+factory C() => C();
+factory name() => C();
+factory C.name() => C();
+factory () {}
+factory C() {}
+factory name() {}
+factory C.name() {}
+factory () = C;
+factory C() = C;
+factory name() = C;
+factory C.name() = C;
+external const factory ();
+external const factory C();
+external const factory name();
+external const factory C.name();
+const factory () => C();
+const factory C() => C();
+const factory name() => C();
+const factory C.name() => C();
+const factory () {}
+const factory C() {}
+const factory name() {}
+const factory C.name() {}
+const factory () = C;
+const factory C() = C;
+const factory name() = C;
+const factory C.name() = C;
+
+void factory() => C();
+}
+
+class[KeywordToken] C[StringToken] {[BeginToken]
+external[KeywordToken] factory[KeywordToken] ([BeginToken])[SimpleToken];[SimpleToken]
+external[KeywordToken] factory[KeywordToken] C[StringToken]([BeginToken])[SimpleToken];[SimpleToken]
+external[KeywordToken] factory[KeywordToken] name[StringToken]([BeginToken])[SimpleToken];[SimpleToken]
+external[KeywordToken] factory[KeywordToken] C[StringToken].[SimpleToken]name[StringToken]([BeginToken])[SimpleToken];[SimpleToken]
+factory[KeywordToken] ([BeginToken])[SimpleToken] =>[SimpleToken] C[StringToken]([BeginToken])[SimpleToken];[SimpleToken]
+factory[KeywordToken] C[StringToken]([BeginToken])[SimpleToken] =>[SimpleToken] C[StringToken]([BeginToken])[SimpleToken];[SimpleToken]
+factory[KeywordToken] name[StringToken]([BeginToken])[SimpleToken] =>[SimpleToken] C[StringToken]([BeginToken])[SimpleToken];[SimpleToken]
+factory[KeywordToken] C[StringToken].[SimpleToken]name[StringToken]([BeginToken])[SimpleToken] =>[SimpleToken] C[StringToken]([BeginToken])[SimpleToken];[SimpleToken]
+factory[KeywordToken] ([BeginToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+factory[KeywordToken] C[StringToken]([BeginToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+factory[KeywordToken] name[StringToken]([BeginToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+factory[KeywordToken] C[StringToken].[SimpleToken]name[StringToken]([BeginToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+factory[KeywordToken] ([BeginToken])[SimpleToken] =[SimpleToken] C[StringToken];[SimpleToken]
+factory[KeywordToken] C[StringToken]([BeginToken])[SimpleToken] =[SimpleToken] C[StringToken];[SimpleToken]
+factory[KeywordToken] name[StringToken]([BeginToken])[SimpleToken] =[SimpleToken] C[StringToken];[SimpleToken]
+factory[KeywordToken] C[StringToken].[SimpleToken]name[StringToken]([BeginToken])[SimpleToken] =[SimpleToken] C[StringToken];[SimpleToken]
+external[KeywordToken] const[KeywordToken] factory[KeywordToken] ([BeginToken])[SimpleToken];[SimpleToken]
+external[KeywordToken] const[KeywordToken] factory[KeywordToken] C[StringToken]([BeginToken])[SimpleToken];[SimpleToken]
+external[KeywordToken] const[KeywordToken] factory[KeywordToken] name[StringToken]([BeginToken])[SimpleToken];[SimpleToken]
+external[KeywordToken] const[KeywordToken] factory[KeywordToken] C[StringToken].[SimpleToken]name[StringToken]([BeginToken])[SimpleToken];[SimpleToken]
+const[KeywordToken] factory[KeywordToken] ([BeginToken])[SimpleToken] =>[SimpleToken] C[StringToken]([BeginToken])[SimpleToken];[SimpleToken]
+const[KeywordToken] factory[KeywordToken] C[StringToken]([BeginToken])[SimpleToken] =>[SimpleToken] C[StringToken]([BeginToken])[SimpleToken];[SimpleToken]
+const[KeywordToken] factory[KeywordToken] name[StringToken]([BeginToken])[SimpleToken] =>[SimpleToken] C[StringToken]([BeginToken])[SimpleToken];[SimpleToken]
+const[KeywordToken] factory[KeywordToken] C[StringToken].[SimpleToken]name[StringToken]([BeginToken])[SimpleToken] =>[SimpleToken] C[StringToken]([BeginToken])[SimpleToken];[SimpleToken]
+const[KeywordToken] factory[KeywordToken] ([BeginToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+const[KeywordToken] factory[KeywordToken] C[StringToken]([BeginToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+const[KeywordToken] factory[KeywordToken] name[StringToken]([BeginToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+const[KeywordToken] factory[KeywordToken] C[StringToken].[SimpleToken]name[StringToken]([BeginToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+const[KeywordToken] factory[KeywordToken] ([BeginToken])[SimpleToken] =[SimpleToken] C[StringToken];[SimpleToken]
+const[KeywordToken] factory[KeywordToken] C[StringToken]([BeginToken])[SimpleToken] =[SimpleToken] C[StringToken];[SimpleToken]
+const[KeywordToken] factory[KeywordToken] name[StringToken]([BeginToken])[SimpleToken] =[SimpleToken] C[StringToken];[SimpleToken]
+const[KeywordToken] factory[KeywordToken] C[StringToken].[SimpleToken]name[StringToken]([BeginToken])[SimpleToken] =[SimpleToken] C[StringToken];[SimpleToken]
+
+void[KeywordToken] factory[KeywordToken]([BeginToken])[SimpleToken] =>[SimpleToken] C[StringToken]([BeginToken])[SimpleToken];[SimpleToken]
+}[SimpleToken][SimpleToken]

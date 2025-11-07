@@ -4015,7 +4015,7 @@ class Parser {
     }
 
     Token beforeType = token;
-    if (varFinalOrConst != null) {
+    if (varFinalOrConst != null && !varFinalOrConst.isA(Keyword.CONST)) {
       Token? afterOuterPattern = skipOuterPattern(beforeType);
       if (afterOuterPattern != null &&
           (afterOuterPattern.next!.isA(TokenType.EQ))) {
@@ -5192,7 +5192,7 @@ class Parser {
     listener.beginMember();
 
     Token beforeType = token;
-    if (varFinalOrConst != null) {
+    if (varFinalOrConst != null && !varFinalOrConst.isA(Keyword.CONST)) {
       Token? afterOuterPattern = skipOuterPattern(beforeType);
       if (afterOuterPattern != null &&
           (afterOuterPattern.next!.isA(TokenType.EQ))) {
@@ -5267,9 +5267,31 @@ class Parser {
             externalToken,
             staticToken ?? covariantToken,
             varFinalOrConst,
+            /* hasName = */ true,
           );
           listener.endMember();
           return token;
+        } else if (_isDeclaringConstructorsFeatureEnabled &&
+            next2.isA(TokenType.OPEN_PAREN)) {
+          if (typeInfo == noType &&
+              covariantToken == null &&
+              //externalToken = null &&
+              lateToken == null &&
+              staticToken == null &&
+              (varFinalOrConst == null || varFinalOrConst.isA(Keyword.CONST)) &&
+              abstractToken == null) {
+            token = parseFactoryMethod(
+              token,
+              kind,
+              beforeStart,
+              externalToken,
+              staticToken ?? covariantToken,
+              varFinalOrConst,
+              /* hasName = */ false,
+            );
+            listener.endMember();
+            return token;
+          }
         }
         // Fall through to continue parsing `factory` as an identifier.
       } else if (identical(value, 'operator')) {
@@ -5832,6 +5854,7 @@ class Parser {
     Token? externalToken,
     Token? staticOrCovariant,
     Token? varFinalOrConst,
+    bool hasName,
   ) {
     Token factoryKeyword = token = token.next!;
     assert(factoryKeyword.isA(Keyword.FACTORY));
@@ -5870,11 +5893,15 @@ class Parser {
       externalToken,
       varFinalOrConst,
     );
-    token = ensureIdentifier(token, IdentifierContext.methodDeclaration);
-    token = parseQualifiedRestOpt(
-      token,
-      IdentifierContext.methodDeclarationContinuation,
-    );
+    if (!hasName) {
+      listener.handleNoIdentifier(token);
+    } else {
+      token = ensureIdentifier(token, IdentifierContext.methodDeclaration);
+      token = parseQualifiedRestOpt(
+        token,
+        IdentifierContext.methodDeclarationContinuation,
+      );
+    }
     token = parseMethodTypeVar(token);
     token = parseFormalParametersRequiredOpt(token, MemberKind.Factory);
     Token asyncToken = token.next!;
