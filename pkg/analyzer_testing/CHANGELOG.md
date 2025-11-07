@@ -7,8 +7,11 @@
 - Deprecate `MockPackagesMixin.addJs` and
   `PubPackageResolutionTest.addJsPackageDep`. A mock js package can still be
   written with `PubPackageResolutionTest.newPackage`.
-- Deprecate `PubPackageResolutionTest.addKernelPackageDep`. A mock kernel
+- Deprecate `MockPackagesMixin.addKernel` and
+  `PubPackageResolutionTest.addKernelPackageDep`. A mock kernel
   package can still be written with `PubPackageResolutionTest.newPackage`.
+- Deprecate `MockPackagesMixin.addPedantic`. A mock pedantic package can still
+  be written with `PubPackageResolutionTest.newPackage`.
 
 ## 0.1.7
 
