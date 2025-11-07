@@ -852,12 +852,17 @@ class DispatchTable {
               fun = wrappedDynamicSubmoduleImports[fun] ??=
                   _wrapDynamicSubmoduleFunction(target, fun);
             }
-            _definedWasmTable.setElement(i, fun);
+            _definedWasmTable.moduleBuilder.elements
+                .activeFunctionSegmentBuilderFor(_definedWasmTable)
+                .setFunctionAt(i, fun);
           } else {
             // This will generate the imported table if it doesn't already
             // exist.
-            (getWasmTable(targetModuleBuilder) as w.ImportedTable)
-                .setElements[i] = fun;
+            final importedTable =
+                getWasmTable(targetModuleBuilder) as w.ImportedTable;
+            targetModuleBuilder.elements
+                .activeFunctionSegmentBuilderFor(importedTable)
+                .setFunctionAt(i, fun);
           }
         }
       }

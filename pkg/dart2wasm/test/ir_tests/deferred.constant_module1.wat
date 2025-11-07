@@ -31,7 +31,7 @@
   (global $"C306 WasmArray<_NamedParameter>[0]" (import "module0" "global4") (ref $Array<_NamedParameter>))
   (global $"C28 _InterfaceType" (import "module0" "global7") (ref $_InterfaceType))
   (global $S.globalH1Bar< (import "S" "globalH1Bar<") (ref extern))
-  (table $module0.constant-table0 (import "module0" "constant-table0") 1 (ref null $_FunctionType) <...>)
+  (table $module0.constant-table0 (import "module0" "constant-table0") 1 (ref null $_FunctionType))
   (global $global7 (ref $#Vtable-1-1) <...>)
   (global $global4 (ref $#DummyStruct) <...>)
   (global $"C459 _FunctionType" (ref $_FunctionType) <...>)

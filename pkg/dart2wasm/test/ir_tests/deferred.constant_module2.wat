@@ -19,7 +19,7 @@
   (global $"C62 WasmArray<_Type>[1]" (import "module0" "global3") (ref $Array<_Type>))
   (global $"C306 WasmArray<_NamedParameter>[0]" (import "module0" "global4") (ref $Array<_NamedParameter>))
   (global $S.globalH0Foo (import "S" "globalH0Foo") (ref extern))
-  (table $module0.constant-table0 (import "module0" "constant-table0") 1 (ref null $_FunctionType) <...>)
+  (table $module0.constant-table0 (import "module0" "constant-table0") 1 (ref null $_FunctionType))
   (global $global6 (ref $#Vtable-0-1) <...>)
   (global $global3 (ref $#DummyStruct) <...>)
   (global $"C465 globalH0Foo tear-off" (mut (ref null $#Closure-0-1))

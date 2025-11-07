@@ -7,25 +7,13 @@ import 'builder.dart';
 
 /// A table defined in a module.
 class TableBuilder extends ir.Table with IndexableBuilder<ir.DefinedTable> {
-  final List<ir.BaseFunction?> elements;
+  final ModuleBuilder moduleBuilder;
 
-  TableBuilder(super.enclosingModule, super.index, super.type, super.minSize,
-      super.maxSize)
-      : elements = List.filled(minSize, null, growable: true);
-
-  void setElement(int index, ir.BaseFunction function) {
-    assert(type.isSubtypeOf(ir.RefType.func(nullable: true)),
-        "Elements are only supported for funcref tables");
-    assert(maxSize == null || index < maxSize!,
-        'Index $index greater than max table size $maxSize');
-    assert(function.enclosingModule == enclosingModule);
-    if (index >= elements.length) {
-      elements.length = index + 1;
-    }
-    elements[index] = function;
-  }
+  TableBuilder(this.moduleBuilder, ir.FinalizableIndex index, ir.RefType type,
+      int minSize, int? maxSize)
+      : super(moduleBuilder.module, index, type, minSize, maxSize);
 
   @override
   ir.DefinedTable forceBuild() => ir.DefinedTable(
-      enclosingModule, elements, finalizableIndex, type, minSize, maxSize);
+      enclosingModule, finalizableIndex, type, minSize, maxSize);
 }

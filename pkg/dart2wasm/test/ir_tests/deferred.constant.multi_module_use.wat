@@ -15,8 +15,8 @@
   (type $type1 (func 
     (param $var0 i32)
     (result (ref $MyConstClass))))
-  (global $"C370 \"bad\"" (ref $JSStringImpl) <...>)
   (table $static0-0 (export "static0-0") 2 (ref null $type1))
+  (global $"C370 \"bad\"" (ref $JSStringImpl) <...>)
   (func $Error._throwWithCurrentStackTrace (param $var0 (ref $#Top)) <...>)
   (func $"mainImpl <noInline>" (param $var0 i32)
     (local $var1 (ref $MyConstClass))

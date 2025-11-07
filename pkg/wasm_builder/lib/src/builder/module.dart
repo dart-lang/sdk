@@ -26,7 +26,8 @@ class ModuleBuilder with Builder<ir.Module> {
   final List<int> watchPoints;
   late final TypesBuilder types;
   late final functions = FunctionsBuilder(this);
-  late final tables = TablesBuilder(module);
+  late final elements = ElementsBuilder(this);
+  late final tables = TablesBuilder(this);
   late final memories = MemoriesBuilder(module);
   late final tags = TagsBuilder(module);
   final dataSegments = DataSegmentsBuilder();
@@ -54,6 +55,7 @@ class ModuleBuilder with Builder<ir.Module> {
   ir.Module forceBuild() {
     final finalFunctions = functions.build();
     final finalTables = tables.build();
+    final finalElements = elements.build();
     final finalMemories = memories.build();
     final finalGlobals = globals.build();
     final finalTags = tags.build();
@@ -70,6 +72,7 @@ class ModuleBuilder with Builder<ir.Module> {
           finalFunctions,
           _startFunction,
           finalTables,
+          finalElements,
           finalTags,
           finalMemories,
           exports.build(),

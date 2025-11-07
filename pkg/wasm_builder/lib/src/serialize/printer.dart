@@ -26,6 +26,9 @@ class ModulePrinter {
   final _types = <ir.DefType, String>{};
   final _tags = <ir.Tag, String>{};
   final _tables = <ir.Table, String>{};
+  final _elementSegments = <ir.ElementSegment>{};
+  final _activeElementSegments = <ir.Table, Map<int, String>>{};
+  final _declarativeElements = <ir.DeclarativeElementSegment, String>{};
   final _globals = <ir.Global, String>{};
   final _functions = <ir.BaseFunction, String>{};
   final _dataSegments = <ir.BaseDataSegment, String>{};
@@ -81,9 +84,84 @@ class ModulePrinter {
   void enqueueTable(ir.Table table) {
     if (!_tables.containsKey(table)) {
       _tables[table] = '';
-      _generateTable(table,
-          includeElements: settings.printTableElements(
-              tableNamer.nameTable(table, activateOnReferenceCallback: false)));
+      _generateTable(table);
+
+      for (final segment in _module.elements.segments) {
+        if (segment is ir.ActiveElementSegment && segment.table == table) {
+          enqueueElementSegment(segment);
+        }
+      }
+    }
+  }
+
+  void enqueueElementSegment(ir.ElementSegment segment) {
+    if (_elementSegments.add(segment)) {
+      switch (segment) {
+        case ir.ActiveFunctionElementSegment(
+            startIndex: final start,
+            table: final table,
+            entries: final entries
+          ):
+          final printedEntries =
+              _activeElementSegments.putIfAbsent(table, () => {});
+          if (settings.printTableElements(tableNamer.nameTable(segment.table,
+              activateOnReferenceCallback: false))) {
+            for (int i = 0; i < entries.length; ++i) {
+              final index = start + i;
+              final ip = newIrPrinter();
+              ip.write('(');
+              ir.RefFunc(entries[i]).printTo(ip);
+              ip.write(')');
+              printedEntries[index] = ip.getText();
+            }
+          }
+
+          break;
+        case ir.ActiveExpressionElementSegment(
+            startIndex: final start,
+            table: final table,
+            expressions: final expressions
+          ):
+          final printedEntries =
+              _activeElementSegments.putIfAbsent(table, () => {});
+          if (settings.printTableElements(tableNamer.nameTable(segment.table,
+              activateOnReferenceCallback: false))) {
+            for (int i = 0; i < expressions.length; ++i) {
+              final index = start + i;
+              final expression = expressions[i];
+              final ip = newIrPrinter();
+              for (int j = 0; j < expression.length; ++j) {
+                ip.write(j > 0 ? ' (' : '(');
+                expression[j].printTo(ip);
+                ip.write(')');
+              }
+              printedEntries[index] = ip.getText();
+            }
+          }
+          break;
+        case ir.DeclarativeElementSegment(entries: final entries):
+          final ip = newIrPrinter();
+          ip.write('(elem declare');
+          if (ip.preferMultiline) {
+            ip.indent();
+          }
+          for (final entry in entries) {
+            if (ip.preferMultiline) {
+              ip.writeln();
+            } else {
+              ip.write(' ');
+            }
+            ip.write('(');
+            ir.RefFunc(entry).printTo(ip);
+            ip.write(')');
+          }
+          if (ip.preferMultiline) {
+            ip.deindent();
+          }
+          ip.write(')');
+          _declarativeElements[segment] = ip.getText();
+          break;
+      }
     }
   }
 
@@ -151,6 +229,13 @@ class ModulePrinter {
           mp.writeln();
         }
       }
+      for (final table in _module.tables.defined) {
+        final s = _tables[table];
+        if (s != null) {
+          mp.write(s);
+          mp.writeln();
+        }
+      }
       for (final tag in _module.tags.defined) {
         final s = _tags[tag];
         if (s != null) {
@@ -165,13 +250,30 @@ class ModulePrinter {
           mp.writeln();
         }
       }
-      for (final table in _module.tables.defined) {
-        final s = _tables[table];
-        if (s != null) {
-          mp.write(s);
-          mp.writeln();
+      _activeElementSegments.forEach((table, values) {
+        final ip = newIrPrinter();
+        ip.write('(elem ');
+        ip.writeTableReference(table, alwaysPrint: true);
+        if (values.isEmpty) {
+          ip.write(' <...>');
+        } else {
+          ip.withIndent(() {
+            final indices = values.keys.toList()..sort();
+            for (int i = 0; i < indices.length; ++i) {
+              ip.writeln();
+              final index = indices[i];
+              final value = values[index]!;
+              ip.write('(set $index $value)');
+            }
+          });
         }
-      }
+        ip.write(')');
+        mp.writeln(ip.getText());
+      });
+      _declarativeElements.forEach((_, value) {
+        mp.writeln(value);
+      });
+
       for (final fun in _module.functions.defined) {
         final s = _functions[fun];
         if (s != null) {
@@ -197,12 +299,12 @@ class ModulePrinter {
     _tags[tag] = p.getText();
   }
 
-  void _generateTable(ir.Table table, {required bool includeElements}) {
+  void _generateTable(ir.Table table) {
     final p = newIrPrinter();
     if (table is ir.DefinedTable) {
-      table.printTo(p, includeElements: includeElements);
+      table.printTo(p);
     } else if (table is ir.ImportedTable) {
-      table.printTo(p, includeElements: includeElements);
+      table.printTo(p);
     } else {
       return;
     }
