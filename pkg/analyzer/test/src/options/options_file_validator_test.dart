@@ -622,6 +622,22 @@ plugins:
 ''', []);
   }
 
+  test_propagate_linter_exceptions() {
+    validate('''
+analyzer:
+  optional-checks:
+    propagate-linter-exceptions
+''', []);
+  }
+
+  test_propagate_linter_exceptions_mapKey() {
+    validate('''
+analyzer:
+  optional-checks:
+    propagate-linter-exceptions: true
+''', []);
+  }
+
   List<Diagnostic> validate(String source, List<DiagnosticCode> expected) {
     var options = optionsProvider.getOptionsFromString(source);
     var diagnostics = validator.validate(options);

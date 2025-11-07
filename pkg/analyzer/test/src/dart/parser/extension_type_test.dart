@@ -40,6 +40,68 @@ ExtensionTypeDeclaration
 ''');
   }
 
+  test_body_empty() {
+    useDeclaringConstructorsAst = true;
+    var parseResult = parseStringWithErrors(r'''
+extension type A(int it);
+''');
+    parseResult.assertNoErrors();
+
+    var node = parseResult.findNode.singleExtensionTypeDeclaration;
+    assertParsedNodeText(node, r'''
+ExtensionTypeDeclaration
+  extensionKeyword: extension
+  typeKeyword: type
+  namePart: PrimaryConstructorDeclaration
+    typeName: A
+    formalParameters: FormalParameterList
+      leftParenthesis: (
+      parameter: SimpleFormalParameter
+        type: NamedType
+          name: int
+        name: it
+      rightParenthesis: )
+  body: EmptyClassBody
+    semicolon: ;
+''');
+
+    {
+      useDeclaringConstructorsAst = false;
+      var parseResult = parseStringWithErrors(r'''
+extension type const A<T, U>.named(int it) {}
+''');
+      parseResult.assertNoErrors();
+
+      var node = parseResult.findNode.singleExtensionTypeDeclaration;
+      assertParsedNodeText(node, r'''
+ExtensionTypeDeclaration
+  extensionKeyword: extension
+  typeKeyword: type
+  constKeyword: const
+  name: A
+  typeParameters: TypeParameterList
+    leftBracket: <
+    typeParameters
+      TypeParameter
+        name: T
+      TypeParameter
+        name: U
+    rightBracket: >
+  representation: RepresentationDeclaration
+    constructorName: RepresentationConstructorName
+      period: .
+      name: named
+    leftParenthesis: (
+    fieldType: NamedType
+      name: int
+    fieldName: it
+    rightParenthesis: )
+  leftBracket: {
+  rightBracket: }
+''');
+    }
+  }
+
   test_error_fieldModifier_const() {
     useDeclaringConstructorsAst = true;
     var parseResult = parseStringWithErrors(r'''

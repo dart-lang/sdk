@@ -1738,9 +1738,6 @@ class MockSdkLibrary implements SdkLibrary {
   String get category => throw UnimplementedError();
 
   @override
-  bool get isDart2JsLibrary => throw UnimplementedError();
-
-  @override
   bool get isDocumented => throw UnimplementedError();
 
   @override
@@ -1748,12 +1745,6 @@ class MockSdkLibrary implements SdkLibrary {
 
   @override
   bool get isInternal => shortName.startsWith('dart:_');
-
-  @override
-  bool get isShared => throw UnimplementedError();
-
-  @override
-  bool get isVmLibrary => throw UnimplementedError();
 
   @override
   String get path => units[0].path;

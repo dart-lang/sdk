@@ -2496,10 +2496,10 @@ CompileTimeErrorCode:
     hasPublishedDocs: true
   CONST_CONSTRUCTOR_FIELD_TYPE_MISMATCH:
     parameters:
-      Object p0: the type of the runtime value of the argument
-      Object p1: the name of the field
-      Object p2: the type of the field
-    problemMessage: "In a const constructor, a value of type '#p0' can't be assigned to the field '#p1', which has type '#p2'."
+      Object valueType: the type of the runtime value of the argument
+      Object fieldName: the name of the field
+      Object fieldType: the type of the field
+    problemMessage: "In a const constructor, a value of type '#valueType' can't be assigned to the field '#fieldName', which has type '#fieldType'."
     correctionMessage: "Try using a subtype, or removing the keyword 'const'."
     hasPublishedDocs: false
     comment: |-
@@ -2513,9 +2513,9 @@ CompileTimeErrorCode:
     hasPublishedDocs: true
   CONST_CONSTRUCTOR_PARAM_TYPE_MISMATCH:
     parameters:
-      String p0: the type of the runtime value of the argument
-      String p1: the static type of the parameter
-    problemMessage: "A value of type '#p0' can't be assigned to a parameter of type '#p1' in a const constructor."
+      String valueType: the type of the runtime value of the argument
+      String parameterType: the static type of the parameter
+    problemMessage: "A value of type '#valueType' can't be assigned to a parameter of type '#parameterType' in a const constructor."
     correctionMessage: "Try using a subtype, or removing the keyword 'const'."
     hasPublishedDocs: true
     documentation: |-
@@ -2822,8 +2822,8 @@ CompileTimeErrorCode:
     hasPublishedDocs: false
   CONST_EVAL_ASSERTION_FAILURE_WITH_MESSAGE:
     parameters:
-      Object p0: the message of the assertion
-    problemMessage: "An assertion failed with message '#p0'."
+      Object message: the message of the assertion
+    problemMessage: "An assertion failed with message '#message'."
     hasPublishedDocs: false
   CONST_EVAL_EXTENSION_METHOD:
     parameters: none
@@ -2840,9 +2840,9 @@ CompileTimeErrorCode:
     hasPublishedDocs: false
   CONST_EVAL_PROPERTY_ACCESS:
     parameters:
-      String p0: the name of the property being accessed
-      String p1: the type with the property being accessed
-    problemMessage: "The property '#p0' can't be accessed on the type '#p1' in a constant expression."
+      String propertyName: the name of the property being accessed
+      String type: the type with the property being accessed
+    problemMessage: "The property '#propertyName' can't be accessed on the type '#type' in a constant expression."
     hasPublishedDocs: false
   CONST_EVAL_METHOD_INVOCATION:
     parameters: none
@@ -18018,9 +18018,9 @@ CompileTimeErrorCode:
       ```
   VARIABLE_TYPE_MISMATCH:
     parameters:
-      Object p0: the type of the object being assigned.
-      Object p1: the type of the variable being assigned to
-    problemMessage: "A value of type '#p0' can't be assigned to a const variable of type '#p1'."
+      Object valueType: the type of the object being assigned.
+      Object variableType: the type of the variable being assigned to
+    problemMessage: "A value of type '#valueType' can't be assigned to a const variable of type '#variableType'."
     correctionMessage: "Try using a subtype, or removing the 'const' keyword"
     hasPublishedDocs: true
     documentation: |-
@@ -18323,18 +18323,18 @@ CompileTimeErrorCode:
       ```
   WRONG_NUMBER_OF_TYPE_ARGUMENTS_ANONYMOUS_FUNCTION:
     parameters:
-      int p0: the number of type parameters that were declared
-      int p1: the number of type arguments provided
+      int typeParameterCount: the number of type parameters that were declared
+      int typeArgumentCount: the number of type arguments provided
     sharedName: WRONG_NUMBER_OF_TYPE_ARGUMENTS_FUNCTION
-    problemMessage: "This function is declared with #p0 type parameters, but #p1 type arguments were given."
+    problemMessage: "This function is declared with #typeParameterCount type parameters, but #typeArgumentCount type arguments were given."
     correctionMessage: Try adjusting the number of type arguments to match the number of type parameters.
     hasPublishedDocs: false
   WRONG_NUMBER_OF_TYPE_ARGUMENTS_FUNCTION:
     parameters:
-      String p0: the name of the function being referenced
-      int p1: the number of type parameters that were declared
-      int p2: the number of type arguments provided
-    problemMessage: "The function '#p0' is declared with #p1 type parameters, but #p2 type arguments were given."
+      String functionName: the name of the function being referenced
+      int typeParameterCount: the number of type parameters that were declared
+      int typeArgumentCount: the number of type arguments provided
+    problemMessage: "The function '#functionName' is declared with #typeParameterCount type parameters, but #typeArgumentCount type arguments were given."
     correctionMessage: Try adjusting the number of type arguments to match the number of type parameters.
     hasPublishedDocs: false
   WRONG_NUMBER_OF_TYPE_ARGUMENTS_METHOD:

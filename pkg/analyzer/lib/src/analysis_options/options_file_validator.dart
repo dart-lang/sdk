@@ -901,10 +901,12 @@ class _OptionalChecksValueValidator extends OptionsValidator {
       var v = analyzer.valueAt(AnalysisOptionsFile.optionalChecks);
       if (v is YamlScalar) {
         var value = toLowerCase(v.value);
-        if (value != AnalysisOptionsFile.chromeOsManifestChecks) {
+        if (!AnalysisOptionsFile.optionalChecksOptions.contains(value)) {
           _builder.reportError(
             reporter,
-            AnalysisOptionsFile.chromeOsManifestChecks,
+            AnalysisOptionsFile
+                .optionalChecksOptions
+                .quotedAndCommaSeparatedWithOr,
             v,
           );
         }
@@ -913,10 +915,12 @@ class _OptionalChecksValueValidator extends OptionsValidator {
           String? key, value;
           if (k is YamlScalar) {
             key = k.value?.toString();
-            if (key != AnalysisOptionsFile.chromeOsManifestChecks) {
+            if (!AnalysisOptionsFile.optionalChecksOptions.contains(key)) {
               _builder.reportError(
                 reporter,
-                AnalysisOptionsFile.chromeOsManifestChecks,
+                AnalysisOptionsFile
+                    .optionalChecksOptions
+                    .quotedAndCommaSeparatedWithOr,
                 k,
               );
             } else {

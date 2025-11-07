@@ -1,3 +1,10 @@
+## 0.1.8-dev
+
+- Change the behavior of `analysisOptionsContent` so that by default, the
+  analysis options file used in testing specifies a `true` value for
+  `propagate-linter-exceptions`. This ensures that when tests are run,
+  exceptions that occur while processing lint rules will cause the test to fail.
+
 ## 0.1.7
 
 - Deprecate `AnalysisRuleTest.analysisRule`; instead of implementing this

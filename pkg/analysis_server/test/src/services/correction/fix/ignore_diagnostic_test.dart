@@ -23,7 +23,10 @@ class IgnoreDiagnosticAnalysisOptionFileTest extends FixProcessorTest {
   FixKind get kind => ignoreErrorAnalysisFileKind;
 
   Future<void> test_addFixToExistingErrorMap() async {
-    createAnalysisOptionsFile(errors: {'unused_label': 'ignore'});
+    createAnalysisOptionsFile(
+      errors: {'unused_label': 'ignore'},
+      propagateLinterExceptions: false,
+    );
 
     await resolveTestCode('''
 void f() {
@@ -107,6 +110,7 @@ analyzer:
       // To create a valid `analyzer` label, we add a `cannot-ignore` label.
       // This also  implicitly tests when unrelated label is in `cannot-ignore`
       cannotIgnore: ['unused_label'],
+      propagateLinterExceptions: false,
     );
 
     await resolveTestCode('''
@@ -139,7 +143,10 @@ void f() {
     // Having a newline is important because yaml_edit copies existing
     // newlines and we want to test the current platforms EOLs.
     // The content is normalized in newFile().
-    createAnalysisOptionsFile(includes: ['package:lints/recommended.yaml']);
+    createAnalysisOptionsFile(
+      includes: ['package:lints/recommended.yaml'],
+      propagateLinterExceptions: false,
+    );
 
     await resolveTestCode('''
   void f() {

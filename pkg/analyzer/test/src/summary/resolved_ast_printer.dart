@@ -514,6 +514,14 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
   }
 
   @override
+  void visitEmptyClassBody(EmptyClassBody node) {
+    _sink.writeln('EmptyClassBody');
+    _sink.withIndent(() {
+      _writeNamedChildEntities(node);
+    });
+  }
+
+  @override
   void visitEmptyFunctionBody(EmptyFunctionBody node) {
     _sink.writeln('EmptyFunctionBody');
     _sink.withIndent(() {

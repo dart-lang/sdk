@@ -92,17 +92,22 @@ class _DeclarationVisitor extends RecursiveAstVisitor<void> {
   }
 
   @override
-  visitAssignmentExpression(AssignmentExpression node) {
+  void visitAssignmentExpression(AssignmentExpression node) {
+    if (!_isFormalParameterReassigned(parameter, node)) return;
+
     if (paramIsNotNullByDefault) {
-      if (_isFormalParameterReassigned(parameter, node)) {
-        reportLint(node);
-      }
-    } else if (paramDefaultsToNull) {
-      if (_isFormalParameterReassigned(parameter, node)) {
+      reportLint(node);
+      return;
+    }
+
+    if (paramDefaultsToNull) {
+      if (node.operator.type.lexeme == '??=') {
         if (hasBeenAssigned) {
           reportLint(node);
         }
         hasBeenAssigned = true;
+      } else {
+        reportLint(node);
       }
     }
 

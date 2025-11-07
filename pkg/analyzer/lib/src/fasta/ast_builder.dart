@@ -5359,12 +5359,9 @@ class AstBuilder extends StackListener {
   @override
   void handleNoClassBody(Token semicolonToken) {
     debugEvent("NoClassBody");
-    // TODO(scheglov): Handle omitted class body.
     var builder = _classLikeBuilder;
     if (builder != null) {
-      builder
-        ..leftBracket = semicolonToken
-        ..rightBracket = semicolonToken;
+      builder.emptyClassBodySemicolon = semicolonToken;
     }
   }
 
@@ -5378,12 +5375,9 @@ class AstBuilder extends StackListener {
   @override
   void handleNoExtensionTypeBody(Token semicolonToken) {
     debugEvent("NoExtensionTypeBody");
-    // TODO(scheglov): Handle omitted extension type body.
     var builder = _classLikeBuilder;
     if (builder != null) {
-      builder
-        ..leftBracket = semicolonToken
-        ..rightBracket = semicolonToken;
+      builder.emptyClassBodySemicolon = semicolonToken;
     }
   }
 
@@ -6541,11 +6535,15 @@ class _ClassDeclarationBuilder extends _ClassLikeDeclarationBuilder {
   ClassDeclarationImpl build() {
     ClassBodyImpl body;
     if (useDeclaringConstructorsAst) {
-      body = BlockClassBodyImpl(
-        leftBracket: leftBracket,
-        members: members,
-        rightBracket: rightBracket,
-      );
+      if (emptyClassBodySemicolon case var semicolon?) {
+        body = EmptyClassBodyImpl(semicolon: semicolon);
+      } else {
+        body = BlockClassBodyImpl(
+          leftBracket: leftBracket,
+          members: members,
+          rightBracket: rightBracket,
+        );
+      }
     } else {
       body = ClassBodyImplStub();
     }
@@ -6584,6 +6582,7 @@ class _ClassLikeDeclarationBuilder {
   final List<AnnotationImpl>? metadata;
   final TypeParameterListImpl? typeParameters;
 
+  Token? emptyClassBodySemicolon;
   Token leftBracket;
   final List<ClassMemberImpl> members = [];
   Token rightBracket;
@@ -6759,11 +6758,15 @@ class _ExtensionTypeDeclarationBuilder extends _ClassLikeDeclarationBuilder {
   }) {
     ClassBodyImpl body;
     if (useDeclaringConstructorsAst) {
-      body = BlockClassBodyImpl(
-        leftBracket: leftBracket,
-        members: members,
-        rightBracket: rightBracket,
-      );
+      if (emptyClassBodySemicolon case var semicolon?) {
+        body = EmptyClassBodyImpl(semicolon: semicolon);
+      } else {
+        body = BlockClassBodyImpl(
+          leftBracket: leftBracket,
+          members: members,
+          rightBracket: rightBracket,
+        );
+      }
     } else {
       body = ClassBodyImplStub();
     }
