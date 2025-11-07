@@ -1180,12 +1180,12 @@ class ConstantCreator extends ConstantVisitor<ConstantInfo?>
 
         final b = function.body;
 
-        final closureLocal = function.locals[0];
         final typeArgsListLocal = function.locals[1]; // empty
         final posArgsListLocal = function.locals[2];
         final namedArgsListLocal = function.locals[3];
 
-        b.local_get(closureLocal);
+        constants.instantiateConstant(
+            b, tearOffConstantInfo.constant, translator.topTypeNonNullable);
         constants.instantiateConstant(
             b, typeArgsArrayConstantInfo.constant, typeArgsListLocal.type);
         b.local_get(posArgsListLocal);

@@ -1,12 +1,10 @@
 (module $module2
   (type $#Top <...>)
   (type $Object <...>)
-  (type $Array<Object?> <...>)
-  (type $JSStringImpl <...>)
   (type $Array<_Type> <...>)
+  (type $JSStringImpl <...>)
   (type $Array<_NamedParameter> <...>)
   (type $_FunctionType <...>)
-  (type $#ClosureBase <...>)
   (type $#Vtable-0-1 <...>)
   (type $#Closure-0-1 <...>)
   (type $H0 (sub final $Object (struct
@@ -34,10 +32,6 @@
     (global.get $S.globalH0Foo)
     (struct.new $JSStringImpl))
   (func $globalH0Foo (param $var0 i64) (result (ref null $#Top))
-    global.get $"C467 \"globalH0Foo\""
-    call $print
-  )
-  (func $"globalH0Foo tear-off dynamic call entry" (param $var0 (ref $#ClosureBase)) (param $var1 (ref $Array<_Type>)) (param $var2 (ref $Array<Object?>)) (param $var3 (ref $Array<Object?>)) (result (ref null $#Top))
     global.get $"C467 \"globalH0Foo\""
     call $print
   )

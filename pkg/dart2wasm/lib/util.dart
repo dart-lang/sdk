@@ -17,6 +17,12 @@ import 'package:vm/metadata/procedure_attributes.dart'
 import 'package:vm/metadata/table_selector.dart'
     show TableSelectorMetadataRepository;
 
+final bool compilerAssertsEnabled = (() {
+  bool compilerAsserts = false;
+  assert(compilerAsserts = true);
+  return compilerAsserts;
+})();
+
 bool hasPragma(CoreTypes coreTypes, Annotatable node, String name) {
   return getPragma(coreTypes, node, name, defaultValue: '') != null;
 }

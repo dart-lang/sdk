@@ -2021,7 +2021,7 @@ class Intrinsifier {
         b.end();
         b.local_set(posArgsLocal);
 
-        // Convert named argument map to list, to be passed to shape and type
+        // Convert named argument map to array, to be passed to shape and type
         // checkers and the dynamic call entry.
         final namedArgsListLocal =
             b.addLocal(translator.nullableObjectArrayTypeRef);
