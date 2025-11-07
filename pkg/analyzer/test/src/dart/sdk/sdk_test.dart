@@ -315,14 +315,12 @@ final Map<String, LibraryInfo> LIBRARIES = const <String, LibraryInfo> {
     expect(libraryMap.size(), 2);
     var first = libraryMap.getLibrary("dart:first")!;
     expect(first, isNotNull);
-    expect(first.category, "Client");
     expect(first.path, "first/first.dart");
     expect(first.shortName, "dart:first");
     expect(first.isDocumented, true);
     expect(first.isImplementation, false);
     var second = libraryMap.getLibrary("dart:second")!;
     expect(second, isNotNull);
-    expect(second.category, "Server");
     expect(second.path, "second/second.dart");
     expect(second.shortName, "dart:second");
     expect(second.isDocumented, false);

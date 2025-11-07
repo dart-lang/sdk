@@ -1388,7 +1388,7 @@ class Symbol implements core.Symbol {
   external const Symbol(String name);
 }
 '''),
-], categories: '');
+]);
 
 final MockSdkLibrary _LIB_IO = MockSdkLibrary('io', [
   MockSdkLibraryUnit('io/io.dart', '''
@@ -1702,7 +1702,7 @@ void createMockSdk({
     }
     librariesBuffer.writeln(
       '  "${library.name}": const LibraryInfo("${library.path}", '
-      'categories: "${library.categories}"),',
+      'categories: "Shared"),',
     );
   }
 
@@ -1729,13 +1729,9 @@ void createMockSdk({
 
 class MockSdkLibrary implements SdkLibrary {
   final String name;
-  final String categories;
   final List<MockSdkLibraryUnit> units;
 
-  MockSdkLibrary(this.name, this.units, {this.categories = 'Shared'});
-
-  @override
-  String get category => throw UnimplementedError();
+  MockSdkLibrary(this.name, this.units);
 
   @override
   bool get isDocumented => throw UnimplementedError();

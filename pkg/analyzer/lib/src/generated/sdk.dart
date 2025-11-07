@@ -182,10 +182,6 @@ class SdkLibrariesReader_LibraryBuilder extends RecursiveAstVisitor<void> {
   /// documented.
   static const String _DOCUMENTED = "documented";
 
-  /// The name of the optional parameter used to specify the category of the
-  /// library.
-  static const String _CATEGORIES = "categories";
-
   /// The library map that is populated by visiting the AST structure parsed
   /// from the contents of the libraries file.
   final LibraryMap _librariesMap = LibraryMap();
@@ -193,24 +189,6 @@ class SdkLibrariesReader_LibraryBuilder extends RecursiveAstVisitor<void> {
   /// Return the library map that was populated by visiting the AST structure
   /// parsed from the contents of the libraries file.
   LibraryMap get librariesMap => _librariesMap;
-
-  // To be backwards-compatible the new categories field is translated to
-  // an old approximation.
-  String convertCategories(String categories) {
-    switch (categories) {
-      case "":
-        return "Internal";
-      case "Client":
-        return "Client";
-      case "Server":
-        return "Server";
-      case "Client,Server":
-        return "Shared";
-      case "Client,Server,Embedded":
-        return "Shared";
-    }
-    return "Shared";
-  }
 
   @override
   void visitMapLiteralEntry(MapLiteralEntry node) {
@@ -227,10 +205,7 @@ class SdkLibrariesReader_LibraryBuilder extends RecursiveAstVisitor<void> {
         } else if (argument is NamedExpression) {
           String name = argument.name.label.name;
           Expression expression = argument.expression;
-          if (name == _CATEGORIES) {
-            var value = (expression as StringLiteral).stringValue!;
-            library.category = convertCategories(value);
-          } else if (name == _IMPLEMENTATION) {
+          if (name == _IMPLEMENTATION) {
             library._implementation = (expression as BooleanLiteral).value;
           } else if (name == _DOCUMENTED) {
             library.documented = (expression as BooleanLiteral).value;
@@ -248,9 +223,6 @@ class SdkLibrariesReader_LibraryBuilder extends RecursiveAstVisitor<void> {
 
 /// Represents a single library in the SDK
 abstract class SdkLibrary {
-  /// Return the name of the category containing the library.
-  String get category;
-
   /// Return `true` if the library is documented.
   bool get isDocumented;
 
@@ -287,12 +259,6 @@ class SdkLibraryImpl implements SdkLibrary {
   /// 'lib' directory within the SDK.
   @override
   late String path;
-
-  /// The name of the category containing the library. Unless otherwise
-  /// specified in the libraries file all libraries are assumed to be shared
-  /// between server and client.
-  @override
-  String category = "Shared";
 
   /// A flag indicating whether the library is documented.
   bool _documented = true;
