@@ -857,7 +857,7 @@ f() {
           CompileTimeErrorCode.undefinedIdentifier,
           8,
           10,
-          text: "Undefined name 'unresolved.Class'.",
+          text: "Undefined name 'unresolved'.",
         ),
       ],
     );

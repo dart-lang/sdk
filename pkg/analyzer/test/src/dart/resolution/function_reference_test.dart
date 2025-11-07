@@ -341,12 +341,12 @@ FunctionReference
     prefix: SimpleIdentifier
       token: a
       element: <null>
-      staticType: null
+      staticType: InvalidType
     period: .
     identifier: SimpleIdentifier
       token: foo
       element: <null>
-      staticType: null
+      staticType: InvalidType
     element: <null>
     staticType: InvalidType
   typeArguments: TypeArgumentList
@@ -454,13 +454,7 @@ void foo() {
   a.E<int>;
 }
 ''',
-      [
-        error(
-          CompileTimeErrorCode.disallowedTypeInstantiationExpression,
-          38,
-          3,
-        ),
-      ],
+      [error(CompileTimeErrorCode.extensionAsExpression, 38, 3)],
     );
 
     var reference = findNode.functionReference('E<int>;');
@@ -475,9 +469,9 @@ FunctionReference
     identifier: SimpleIdentifier
       token: E
       element: package:test/a.dart::@extension::E
-      staticType: InvalidType
+      staticType: dynamic
     element: package:test/a.dart::@extension::E
-    staticType: InvalidType
+    staticType: dynamic
   typeArguments: TypeArgumentList
     leftBracket: <
     arguments
@@ -917,9 +911,9 @@ FunctionReference
     identifier: SimpleIdentifier
       token: call
       element: <null>
-      staticType: null
+      staticType: void Function<T>(T)
     element: <null>
-    staticType: null
+    staticType: void Function<T>(T)
   typeArguments: TypeArgumentList
     leftBracket: <
     arguments
@@ -957,9 +951,9 @@ FunctionReference
     identifier: SimpleIdentifier
       token: call
       element: <null>
-      staticType: null
+      staticType: void Function<T, U>(T, U)
     element: <null>
-    staticType: null
+    staticType: void Function<T, U>(T, U)
   typeArguments: TypeArgumentList
     leftBracket: <
     arguments
@@ -998,9 +992,9 @@ FunctionReference
     identifier: SimpleIdentifier
       token: call
       element: <null>
-      staticType: null
+      staticType: void Function(String)
     element: <null>
-    staticType: null
+    staticType: void Function(String)
   typeArguments: TypeArgumentList
     leftBracket: <
     arguments
@@ -1014,13 +1008,16 @@ FunctionReference
   }
 
   test_function_call_typeArgNotMatchingBound() async {
-    await assertNoErrorsInCode('''
+    await assertErrorsInCode(
+      '''
 void foo<T extends num>(T a) {}
 
 void bar() {
   foo.call<String>;
 }
-''');
+''',
+      [error(CompileTimeErrorCode.typeArgumentNotMatchingBounds, 57, 6)],
+    );
 
     assertResolvedNodeText(findNode.functionReference('foo.call<String>;'), r'''
 FunctionReference
@@ -1033,9 +1030,9 @@ FunctionReference
     identifier: SimpleIdentifier
       token: call
       element: <null>
-      staticType: null
+      staticType: void Function<T extends num>(T)
     element: <null>
-    staticType: null
+    staticType: void Function<T extends num>(T)
   typeArguments: TypeArgumentList
     leftBracket: <
     arguments
@@ -1076,7 +1073,7 @@ FunctionReference
     identifier: SimpleIdentifier
       token: m
       element: <testLibrary>::@extension::0::@method::m
-      staticType: null
+      staticType: void Function<T>(T)
     element: <testLibrary>::@extension::0::@method::m
     staticType: void Function<T>(T)
   typeArguments: TypeArgumentList
@@ -1200,9 +1197,9 @@ ImplicitCallReference
     identifier: SimpleIdentifier
       token: v
       element: <testLibrary>::@class::C::@getter::v
-      staticType: null
+      staticType: C
     element: <testLibrary>::@class::C::@getter::v
-    staticType: null
+    staticType: C
   typeArguments: TypeArgumentList
     leftBracket: <
     arguments
@@ -1489,7 +1486,7 @@ FunctionReference
     identifier: SimpleIdentifier
       token: foo
       element: <testLibrary>::@class::A::@getter::foo
-      staticType: null
+      staticType: void Function<T>(T)
     element: <testLibrary>::@class::A::@getter::foo
     staticType: void Function<T>(T)
   typeArguments: TypeArgumentList
@@ -1724,7 +1721,7 @@ FunctionReference
     identifier: SimpleIdentifier
       token: call
       element: <null>
-      staticType: null
+      staticType: void Function<T>(T)
     element: <null>
     staticType: void Function<T>(T)
   typeArguments: TypeArgumentList
@@ -1818,7 +1815,7 @@ FunctionReference
     identifier: SimpleIdentifier
       token: foo
       element: <testLibrary>::@class::A::@method::foo
-      staticType: null
+      staticType: void Function<T>(T)
     element: <testLibrary>::@class::A::@method::foo
     staticType: void Function<T>(T)
   typeArguments: TypeArgumentList
@@ -1973,7 +1970,7 @@ FunctionReference
       element: MethodMember
         baseElement: <testLibrary>::@extension::StaticType::@method::expectStaticType
         substitution: {T: int, X: X}
-      staticType: null
+      staticType: void Function<X extends int Function(int)>()
     element: MethodMember
       baseElement: <testLibrary>::@extension::StaticType::@method::expectStaticType
       substitution: {T: int, X: X}
@@ -2188,7 +2185,7 @@ FunctionReference
     identifier: SimpleIdentifier
       token: foo
       element: <testLibrary>::@class::A::@method::foo
-      staticType: null
+      staticType: void Function<T>(T)
     element: <testLibrary>::@class::A::@method::foo
     staticType: void Function<T>(T)
   typeArguments: TypeArgumentList
@@ -2267,7 +2264,7 @@ FunctionReference
     identifier: SimpleIdentifier
       token: foo
       element: <testLibrary>::@class::A::@method::foo
-      staticType: null
+      staticType: void Function<T>(T)
     element: <testLibrary>::@class::A::@method::foo
     staticType: void Function<T>(T)
   typeArguments: TypeArgumentList
@@ -2444,7 +2441,7 @@ FunctionReference
     identifier: SimpleIdentifier
       token: foo
       element: <testLibrary>::@class::A::@method::foo
-      staticType: null
+      staticType: void Function<T>(T)
     element: <testLibrary>::@class::A::@method::foo
     staticType: void Function<T>(T)
   typeArguments: TypeArgumentList
@@ -2529,7 +2526,7 @@ FunctionReference
       element: MethodMember
         baseElement: <testLibrary>::@extension::StaticType::@method::expectStaticType
         substitution: {T: int, X: X}
-      staticType: null
+      staticType: void Function<X extends int Function(int)>()
     element: MethodMember
       baseElement: <testLibrary>::@extension::StaticType::@method::expectStaticType
       substitution: {T: int, X: X}
@@ -2591,6 +2588,141 @@ FunctionReference
         type: int
     rightBracket: >
   staticType: void Function(int)
+  typeArgumentTypes
+    int
+''');
+  }
+
+  test_instanceMethod_prefixedIdentifier_fromExtension() async {
+    await assertNoErrorsInCode('''
+class A {
+  void bar<T>() {}
+}
+
+extension on B {
+  A get foo => A();
+}
+
+abstract class B {
+  void f() {
+    foo.bar<int>;
+  }
+}
+''');
+
+    var node = findNode.singleFunctionReference;
+    assertResolvedNodeText(node, r'''
+FunctionReference
+  function: PrefixedIdentifier
+    prefix: SimpleIdentifier
+      token: foo
+      element: <testLibrary>::@extension::0::@getter::foo
+      staticType: A
+    period: .
+    identifier: SimpleIdentifier
+      token: bar
+      element: <testLibrary>::@class::A::@method::bar
+      staticType: void Function<T>()
+    element: <testLibrary>::@class::A::@method::bar
+    staticType: void Function<T>()
+  typeArguments: TypeArgumentList
+    leftBracket: <
+    arguments
+      NamedType
+        name: int
+        element: dart:core::@class::int
+        type: int
+    rightBracket: >
+  staticType: void Function()
+  typeArgumentTypes
+    int
+''');
+  }
+
+  test_instanceMethod_prefixedIdentifier_fromSuper() async {
+    await assertNoErrorsInCode('''
+class A {
+  void bar<T>() {}
+}
+
+abstract class B {
+  A get foo;
+}
+
+abstract class C extends B {
+  void f() {
+    foo.bar<int>;
+  }
+}
+''');
+
+    var node = findNode.singleFunctionReference;
+    assertResolvedNodeText(node, r'''
+FunctionReference
+  function: PrefixedIdentifier
+    prefix: SimpleIdentifier
+      token: foo
+      element: <testLibrary>::@class::B::@getter::foo
+      staticType: A
+    period: .
+    identifier: SimpleIdentifier
+      token: bar
+      element: <testLibrary>::@class::A::@method::bar
+      staticType: void Function<T>()
+    element: <testLibrary>::@class::A::@method::bar
+    staticType: void Function<T>()
+  typeArguments: TypeArgumentList
+    leftBracket: <
+    arguments
+      NamedType
+        name: int
+        element: dart:core::@class::int
+        type: int
+    rightBracket: >
+  staticType: void Function()
+  typeArgumentTypes
+    int
+''');
+  }
+
+  test_instanceMethod_prefixedIdentifier_fromThis() async {
+    await assertNoErrorsInCode('''
+class A {
+  void bar<T>() {}
+}
+
+abstract class B {
+  A get foo;
+  void f() {
+    foo.bar<int>;
+  }
+}
+''');
+
+    var node = findNode.singleFunctionReference;
+    assertResolvedNodeText(node, r'''
+FunctionReference
+  function: PrefixedIdentifier
+    prefix: SimpleIdentifier
+      token: foo
+      element: <testLibrary>::@class::B::@getter::foo
+      staticType: A
+    period: .
+    identifier: SimpleIdentifier
+      token: bar
+      element: <testLibrary>::@class::A::@method::bar
+      staticType: void Function<T>()
+    element: <testLibrary>::@class::A::@method::bar
+    staticType: void Function<T>()
+  typeArguments: TypeArgumentList
+    leftBracket: <
+    arguments
+      NamedType
+        name: int
+        element: dart:core::@class::int
+        type: int
+    rightBracket: >
+  staticType: void Function()
   typeArgumentTypes
     int
 ''');
@@ -2784,7 +2916,7 @@ FunctionReference
     identifier: SimpleIdentifier
       token: call
       element: <null>
-      staticType: null
+      staticType: void Function<T>(T)
     element: <null>
     staticType: void Function<T>(T)
   typeArguments: TypeArgumentList
@@ -2829,7 +2961,7 @@ FunctionReference
     identifier: SimpleIdentifier
       token: call
       element: <null>
-      staticType: null
+      staticType: void Function(int)
     element: <null>
     staticType: void Function(int)
   typeArguments: TypeArgumentList
@@ -3073,9 +3205,9 @@ FunctionReference
     identifier: SimpleIdentifier
       token: foo
       element: <null>
-      staticType: null
+      staticType: dynamic
     element: <null>
-    staticType: null
+    staticType: dynamic
   typeArguments: TypeArgumentList
     leftBracket: <
     arguments
@@ -3202,7 +3334,7 @@ FunctionReference
     identifier: SimpleIdentifier
       token: foo
       element: <testLibrary>::@class::A::@method::foo
-      staticType: null
+      staticType: void Function<T>(T)
     element: <testLibrary>::@class::A::@method::foo
     staticType: void Function<T>(T)
   typeArguments: TypeArgumentList
@@ -3394,7 +3526,7 @@ FunctionReference
     identifier: SimpleIdentifier
       token: foo
       element: <testLibrary>::@class::A::@method::foo
-      staticType: null
+      staticType: void Function<T>(T)
     element: <testLibrary>::@class::A::@method::foo
     staticType: void Function<T>(T)
   typeArguments: TypeArgumentList
@@ -3654,12 +3786,12 @@ FunctionReference
     prefix: SimpleIdentifier
       token: prefix
       element: <null>
-      staticType: null
+      staticType: InvalidType
     period: .
     identifier: SimpleIdentifier
       token: foo
       element: <null>
-      staticType: null
+      staticType: InvalidType
     element: <null>
     staticType: InvalidType
   typeArguments: TypeArgumentList
@@ -3995,7 +4127,7 @@ FunctionReference
     identifier: SimpleIdentifier
       token: foo
       element: <null>
-      staticType: null
+      staticType: InvalidType
     element: <null>
     staticType: InvalidType
   typeArguments: TypeArgumentList
