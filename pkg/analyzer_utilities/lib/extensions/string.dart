@@ -3,6 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 
 extension StringExtension on String {
+  static final _toSnakeCaseRegExp = RegExp('_?[A-Z]');
+
   /// Converts `SCREAMING_SNAKE_CASE` or `snake_case` to `camelCase`.
   String toCamelCase() {
     var parts = toLowerCase().split('_');
@@ -50,5 +52,27 @@ extension StringExtension on String {
       ++i;
     }
     return buffer.toString();
+  }
+
+  /// Converts `camelCase` or `PascalCase` to `snake_case`
+  String toSnakeCase() {
+    var parts = <String>[];
+    var i = 0;
+    var wordStarts = _toSnakeCaseRegExp.allMatches(this);
+    for (var RegExpMatch(:start) in wordStarts) {
+      if (i < start) {
+        parts.add(substring(i, start).toLowerCase());
+        i = start;
+      }
+      if (this[i] == '_' && parts.isNotEmpty) {
+        // Avoid doubling up the `_`. This handles strings that are already in
+        // snake case like `foo_Bar` (which translates to `foo_bar`).
+        i++;
+      }
+    }
+    if (i < length) {
+      parts.add(substring(i).toLowerCase());
+    }
+    return parts.join('_');
   }
 }
