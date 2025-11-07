@@ -356,6 +356,21 @@ abstract class Listener implements UnescapeErrorListener {
     bool forExtensionType,
   ) {}
 
+  void beginPrimaryConstructorBody(Token token) {}
+
+  // Handles the `this` body block for a primary constructor. Substructures:
+  /// - metadata
+  /// - initializers
+  /// - async marker
+  /// - body
+  void endPrimaryConstructorBody(
+    Token beginToken,
+    Token? beginInitializers,
+    Token endToken,
+  ) {
+    logEvent("endPrimaryConstructorBody");
+  }
+
   void beginCombinators(Token token) {}
 
   void endCombinators(int count) {

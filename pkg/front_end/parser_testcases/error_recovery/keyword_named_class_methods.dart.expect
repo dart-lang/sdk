@@ -348,14 +348,6 @@ parser/error_recovery/keyword_named_class_methods:298:7: 'this' can't be used as
   int this(int x) {
       ^^^^
 
-parser/error_recovery/keyword_named_class_methods:298:7: Expected ';' after this.
-  int this(int x) {
-      ^^^^
-
-parser/error_recovery/keyword_named_class_methods:298:11: Expected an identifier, but got '('.
-  int this(int x) {
-          ^
-
 parser/error_recovery/keyword_named_class_methods:303:7: 'throw' can't be used as an identifier because it's a keyword.
   int throw(int x) {
       ^^^^^
@@ -4105,23 +4097,12 @@ beginCompilationUnit(class)
         beginMetadataStar(int)
         endMetadataStar(0)
         beginMember()
-          beginFields(DeclarationKind.Class, null, null, null, null, null, null, null, })
+          beginMethod(DeclarationKind.Class, null, null, null, null, null, null, this, WrapperClass)
             handleIdentifier(int, typeReference)
             handleNoTypeArguments(this)
             handleType(int, null)
             handleRecoverableError(Message[Template(ExpectedIdentifierButGotKeyword), 'this' can't be used as an identifier because it's a keyword., Try renaming this to be an identifier that isn't a keyword., {lexeme: this}], this, this)
-            handleIdentifier(this, fieldDeclaration)
-            handleNoFieldInitializer(()
-            handleRecoverableError(Message[Template(ExpectedAfterButGot), Expected ';' after this., null, {string: ;}], this, this)
-          endClassFields(null, null, null, null, null, null, null, 1, int, ;)
-        endMember()
-        beginMetadataStar(()
-        endMetadataStar(0)
-        beginMember()
-          beginMethod(DeclarationKind.Class, null, null, null, null, null, null, (, WrapperClass)
-            handleNoType(;)
-            handleRecoverableError(Message[Template(ExpectedIdentifier), Expected an identifier, but got '('., Try inserting an identifier before '('., {lexeme: (}], (, ()
-            handleIdentifier(, methodDeclaration)
+            handleIdentifier(this, methodDeclaration)
             handleNoTypeVariables(()
             beginFormalParameters((, MemberKind.NonStaticMethod)
               beginMetadataStar(int)
@@ -4170,7 +4151,7 @@ beginCompilationUnit(class)
                 endBinaryExpression(+, 1)
               endReturnStatement(true, return, ;)
             endBlockFunctionBody(2, {, })
-          endClassMethod(null, , (, null, })
+          endClassMethod(null, int, (, null, })
         endMember()
         beginMetadataStar(int)
         endMetadataStar(0)
@@ -4778,7 +4759,7 @@ beginCompilationUnit(class)
             endBlockFunctionBody(2, {, })
           endClassMethod(null, int, (, null, })
         endMember()
-      endClassOrMixinOrExtensionBody(DeclarationKind.Class, 71, {, })
+      endClassOrMixinOrExtensionBody(DeclarationKind.Class, 70, {, })
     endClassDeclaration(class, })
   endTopLevelDeclaration(})
 endCompilationUnit(1, )

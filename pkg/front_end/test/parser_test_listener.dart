@@ -597,6 +597,34 @@ class ParserTestListener implements Listener {
   }
 
   @override
+  void beginPrimaryConstructorBody(Token token) {
+    seen(token);
+    doPrint(
+      'beginPrimaryConstructorBody('
+      '$token)',
+    );
+    indent++;
+  }
+
+  @override
+  void endPrimaryConstructorBody(
+    Token beginToken,
+    Token? beginInitializers,
+    Token endToken,
+  ) {
+    indent--;
+    seen(beginToken);
+    seen(beginInitializers);
+    seen(endToken);
+    doPrint(
+      'endPrimaryConstructorBody('
+      '$beginToken, '
+      '$beginInitializers, '
+      '$endToken)',
+    );
+  }
+
+  @override
   void beginCombinators(Token token) {
     seen(token);
     doPrint(

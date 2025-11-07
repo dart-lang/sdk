@@ -1533,6 +1533,18 @@ extension MemberExtension on MemberEnd {
     if (child is EnumFactoryMethodEnd) return child;
     throw "Not found";
   }
+
+  bool isPrimaryConstructorBody() {
+    ParserAstNode child = children![1];
+    if (child is PrimaryConstructorBodyEnd) return true;
+    return false;
+  }
+
+  PrimaryConstructorBodyEnd getPrimaryConstructorBody() {
+    ParserAstNode child = children![1];
+    if (child is PrimaryConstructorBodyEnd) return child;
+    throw "Not found";
+  }
 }
 
 // Coverage-ignore(suite): Not run.

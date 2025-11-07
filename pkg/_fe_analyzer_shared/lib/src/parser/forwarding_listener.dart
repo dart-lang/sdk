@@ -2669,6 +2669,24 @@ class ForwardingListener implements Listener {
   void endConstDotShorthand(Token token) {
     listener?.beginConstDotShorthand(token);
   }
+
+  @override
+  void beginPrimaryConstructorBody(Token token) {
+    listener?.beginPrimaryConstructorBody(token);
+  }
+
+  @override
+  void endPrimaryConstructorBody(
+    Token beginToken,
+    Token? beginInitializers,
+    Token endToken,
+  ) {
+    listener?.endPrimaryConstructorBody(
+      beginToken,
+      beginInitializers,
+      endToken,
+    );
+  }
 }
 
 class NullListener extends ForwardingListener {
