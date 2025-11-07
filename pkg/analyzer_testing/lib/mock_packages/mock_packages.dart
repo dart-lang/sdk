@@ -112,6 +112,10 @@ mixin MockPackagesMixin {
     return packageFolder.getChildAssumingFolder('lib');
   }
 
+  @Deprecated(
+    'The mock js package is deprecated; use '
+    '`PubPackageResolutionTest.newPackage` to make a custom mock',
+  )
   Folder addJs() {
     var packageFolder = _addFiles('js');
     return packageFolder.getChildAssumingFolder('lib');

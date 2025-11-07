@@ -367,7 +367,6 @@ class PubPackageResolutionTest extends ContextResolutionTest
     bool angularMeta = false,
     bool ffi = false,
     bool flutter = false,
-    bool js = false,
     bool meta = false,
   }) {
     config = config.copy();
@@ -394,11 +393,6 @@ class PubPackageResolutionTest extends ContextResolutionTest
 
       var flutterPath = addFlutter().parent.path;
       config.add(name: 'flutter', rootPath: flutterPath);
-    }
-
-    if (js) {
-      var jsPath = addJs().parent.path;
-      config.add(name: 'js', rootPath: jsPath);
     }
 
     if (meta || flutter) {

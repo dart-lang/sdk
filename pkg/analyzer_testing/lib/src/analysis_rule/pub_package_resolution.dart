@@ -230,6 +230,10 @@ class PubPackageResolutionTest with MockPackagesMixin, ResourceProviderMixin {
   /// Adds the 'js' package as a dependency to the package-under-test.
   ///
   /// This allows various `package:js/` imports to resolve.
+  @Deprecated(
+    'The mock js package is deprecated; use '
+    '`PubPackageResolutionTest.newPackage` to make a custom mock',
+  )
   bool get addJsPackageDep => false;
 
   /// Adds the 'kernel' package as a dependency to the package-under-test.

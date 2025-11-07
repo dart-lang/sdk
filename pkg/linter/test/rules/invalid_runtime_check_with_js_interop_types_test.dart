@@ -16,10 +16,18 @@ void main() {
 @reflectiveTest
 class InvalidRuntimeCheckWithJSInteropTypesTest extends LintRuleTest {
   @override
-  bool get addJsPackageDep => true;
+  String get lintRule => LintNames.invalid_runtime_check_with_js_interop_types;
 
   @override
-  String get lintRule => LintNames.invalid_runtime_check_with_js_interop_types;
+  void setUp() {
+    newPackage('js').addFile('lib/js.dart', r'''
+library js;
+
+// ignore: EXPORT_INTERNAL_LIBRARY
+export 'dart:_js_annotations' show JS, staticInterop;
+''');
+    super.setUp();
+  }
 
   test_baseTypesAs_dart_type_as_js_type() async {
     await _testCasts([_AsCast('int', 'JSNumber')]);
