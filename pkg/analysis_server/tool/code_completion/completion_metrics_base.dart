@@ -190,17 +190,17 @@ abstract class CompletionMetricsComputer {
 /// The options specified on the command-line.
 class CompletionMetricsOptions {
   /// An option to control whether and how overlays should be produced.
-  static const String OVERLAY = 'overlay';
+  static const String overlayOption = 'overlay';
 
   /// An option controlling how long of a prefix should be used.
   ///
   /// This affects the offset of the completion request, and how much content is
   /// removed in each of the overlay modes.
-  static const String PREFIX_LENGTH = 'prefix-length';
+  static const String prefixLengthOption = 'prefix-length';
 
   /// A flag that causes information to be printed about the completion requests
   /// that were the slowest to return suggestions.
-  static const String PRINT_SLOWEST_RESULTS = 'print-slowest-results';
+  static const String printSlowestResultsFlag = 'print-slowest-results';
 
   /// The overlay mode that should be used.
   final OverlayMode overlay;
@@ -212,9 +212,9 @@ class CompletionMetricsOptions {
   final bool printSlowestResults;
 
   CompletionMetricsOptions(ArgResults results)
-    : overlay = OverlayMode.parseFlag(results[OVERLAY] as String),
-      prefixLength = int.parse(results[PREFIX_LENGTH] as String),
-      printSlowestResults = results[PRINT_SLOWEST_RESULTS] as bool;
+    : overlay = OverlayMode.parseFlag(results.option(overlayOption)!),
+      prefixLength = int.parse(results.option(prefixLengthOption)!),
+      printSlowestResults = results.flag(printSlowestResultsFlag);
 }
 
 enum OverlayMode {

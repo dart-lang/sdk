@@ -153,7 +153,7 @@ ArgParser createArgParser() {
     )
     ..addFlag('help', abbr: 'h', help: 'Print this help message.')
     ..addOption(
-      CompletionMetricsOptions.OVERLAY,
+      CompletionMetricsOptions.overlayOption,
       allowed: [
         OverlayMode.none.flag,
         OverlayMode.removeRestOfFile.flag,
@@ -167,7 +167,7 @@ ArgParser createArgParser() {
           'complete at the start of the token without modifying the file.',
     )
     ..addOption(
-      CompletionMetricsOptions.PREFIX_LENGTH,
+      CompletionMetricsOptions.prefixLengthOption,
       defaultsTo: '0',
       help:
           'The number of characters to include in the prefix. Each '
@@ -175,14 +175,14 @@ ArgParser createArgParser() {
           'start of the token being completed.',
     )
     ..addFlag(
-      CompletionMetricsQualityOptions.PRINT_MISSED_COMPLETION_DETAILS,
+      CompletionMetricsQualityOptions._printMissedCompletionDetails,
       help:
           'Print detailed information every time a completion request fails '
           'to produce a suggestions matching the expected suggestion.',
       negatable: false,
     )
     ..addFlag(
-      CompletionMetricsQualityOptions.PRINT_MISSED_COMPLETION_SUMMARY,
+      CompletionMetricsQualityOptions._printMissedCompletionSummary,
       help:
           'Print summary information about the times that a completion '
           'request failed to produce a suggestions matching the expected '
@@ -190,7 +190,7 @@ ArgParser createArgParser() {
       negatable: false,
     )
     ..addFlag(
-      CompletionMetricsQualityOptions.PRINT_MISSING_INFORMATION,
+      CompletionMetricsQualityOptions._printMissingInformation,
       help:
           'Print information about places where no completion location was '
           'computed and about information that is missing in the completion '
@@ -198,7 +198,7 @@ ArgParser createArgParser() {
       negatable: false,
     )
     ..addFlag(
-      CompletionMetricsQualityOptions.PRINT_MRR_BY_LOCATION,
+      CompletionMetricsQualityOptions._printMrrByLocation,
       help:
           'Print information about the mrr score achieved at each completion '
           'location. This can help focus efforts to improve the overall '
@@ -207,7 +207,7 @@ ArgParser createArgParser() {
       negatable: false,
     )
     ..addFlag(
-      CompletionMetricsQualityOptions.PRINT_SHADOWED_COMPLETION_DETAILS,
+      CompletionMetricsQualityOptions._printShadowedCompletionDetails,
       help:
           'Print detailed information every time a completion request '
           'produces a suggestion whose name matches the expected suggestion '
@@ -215,14 +215,14 @@ ArgParser createArgParser() {
       negatable: false,
     )
     ..addFlag(
-      CompletionMetricsOptions.PRINT_SLOWEST_RESULTS,
+      CompletionMetricsOptions.printSlowestResultsFlag,
       help:
           'Print information about the completion requests that were the '
           'slowest to return suggestions.',
       negatable: false,
     )
     ..addFlag(
-      CompletionMetricsQualityOptions.PRINT_WORST_RESULTS,
+      CompletionMetricsQualityOptions._printWorstResults,
       help:
           'Print information about the completion requests that had the '
           'worst mrr scores.',
@@ -691,34 +691,34 @@ class CompletionMetricsQualityOptions extends CompletionMetricsOptions {
   /// A flag that causes detailed information to be printed every time a
   /// completion request fails to produce a suggestions matching the expected
   /// suggestion.
-  static const String PRINT_MISSED_COMPLETION_DETAILS =
+  static const String _printMissedCompletionDetails =
       'print-missed-completion-details';
 
   /// A flag that causes summary information to be printed about the times that
   /// a completion request failed to produce a suggestions matching the expected
   /// suggestion.
-  static const String PRINT_MISSED_COMPLETION_SUMMARY =
+  static const String _printMissedCompletionSummary =
       'print-missed-completion-summary';
 
   /// A flag that causes information to be printed about places where no
   /// completion location was computed and about information that's missing in
   /// the completion tables.
-  static const String PRINT_MISSING_INFORMATION = 'print-missing-information';
+  static const String _printMissingInformation = 'print-missing-information';
 
   /// A flag that causes information to be printed about the mrr score achieved
   /// at each completion location.
-  static const String PRINT_MRR_BY_LOCATION = 'print-mrr-by-location';
+  static const String _printMrrByLocation = 'print-mrr-by-location';
 
   /// A flag that causes detailed information to be printed every time a
   /// completion request produce a suggestions whose name matches the expected
   /// suggestion but that is referencing a different element (one that's
   /// shadowed by the correct element).
-  static const String PRINT_SHADOWED_COMPLETION_DETAILS =
+  static const String _printShadowedCompletionDetails =
       'print-shadowed-completion-details';
 
   /// A flag that causes information to be printed about the completion requests
   /// that had the worst mrr scores.
-  static const String PRINT_WORST_RESULTS = 'print-worst-results';
+  static const String _printWorstResults = 'print-worst-results';
 
   /// A flag indicating whether information should be printed every time a
   /// completion request fails to produce a suggestions matching the expected
@@ -749,15 +749,18 @@ class CompletionMetricsQualityOptions extends CompletionMetricsOptions {
   final bool printWorstResults;
 
   CompletionMetricsQualityOptions(super.results)
-    : printMissedCompletionDetails =
-          results[PRINT_MISSED_COMPLETION_DETAILS] as bool,
-      printMissedCompletionSummary =
-          results[PRINT_MISSED_COMPLETION_SUMMARY] as bool,
-      printMissingInformation = results[PRINT_MISSING_INFORMATION] as bool,
-      printMrrByLocation = results[PRINT_MRR_BY_LOCATION] as bool,
-      printShadowedCompletionDetails =
-          results[PRINT_SHADOWED_COMPLETION_DETAILS] as bool,
-      printWorstResults = results[PRINT_WORST_RESULTS] as bool;
+    : printMissedCompletionDetails = results.flag(
+        _printMissedCompletionDetails,
+      ),
+      printMissedCompletionSummary = results.flag(
+        _printMissedCompletionSummary,
+      ),
+      printMissingInformation = results.flag(_printMissingInformation),
+      printMrrByLocation = results.flag(_printMrrByLocation),
+      printShadowedCompletionDetails = results.flag(
+        _printShadowedCompletionDetails,
+      ),
+      printWorstResults = results.flag(_printWorstResults);
 }
 
 /// This is the main metrics computer class for code completions. After the
