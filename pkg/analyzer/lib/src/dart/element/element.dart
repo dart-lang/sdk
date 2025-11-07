@@ -2803,12 +2803,6 @@ class FieldElementImpl extends PropertyInducingElementImpl
   }
 
   @override
-  set type(TypeImpl value) {
-    super.type = value;
-    declaringFormalParameter?.type = value;
-  }
-
-  @override
   List<FieldFragmentImpl> get _fragments {
     return [
       for (
