@@ -159,7 +159,7 @@ class ExtensionMemberResolver {
   }
 
   /// Finds extensions applicable to [declaration] for static member lookups.
-  StaticExtensionResolutionResult findExtensionForDeclaration(
+  StaticExtensionResolutionResult findStaticExtension(
     InterfaceElement declaration,
     SyntacticEntity nameEntity,
     Name name,

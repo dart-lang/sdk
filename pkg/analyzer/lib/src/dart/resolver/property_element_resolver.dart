@@ -802,7 +802,7 @@ class PropertyElementResolver with ScopeHelpers {
       if (readElement == null) {
         if (_definingLibrary.featureSet.isEnabled(Feature.static_extensions)) {
           // When direct lookups fail, try static extension resolution.
-          var result = _resolver.typePropertyResolver.resolveForDeclaration(
+          var result = _resolver.typePropertyResolver.resolveStaticExtension(
             declaration: typeReference,
             name: propertyName.name,
             hasRead: hasRead,
@@ -859,6 +859,31 @@ class PropertyElementResolver with ScopeHelpers {
         if (_checkForStaticAccessToInstanceMember(propertyName, writeElement)) {
           writeElementRecovery = writeElement;
           writeElement = null;
+        }
+      } else if (_definingLibrary.featureSet.isEnabled(
+        Feature.static_extensions,
+      )) {
+        // When direct lookups fail, try static extension resolution.
+        var result = _resolver.typePropertyResolver.resolveStaticExtension(
+          declaration: typeReference,
+          name: propertyName.name,
+          hasRead: hasRead,
+          hasWrite: hasWrite,
+          propertyErrorEntity: propertyName,
+          nameErrorEntity: propertyName,
+        );
+        if (result.setter2 != null) {
+          writeElementRecovery = writeElement;
+          writeElement = result.setter2;
+        } else {
+          // Recovery, try to use getter.
+          writeElementRecovery = typeReference.getGetter(propertyName.name);
+          AssignmentVerifier(diagnosticReporter).verify(
+            node: propertyName,
+            requested: null,
+            recovery: writeElementRecovery,
+            receiverType: typeReference.thisType,
+          );
         }
       } else {
         // Recovery, try to use getter.

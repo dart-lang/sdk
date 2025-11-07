@@ -241,7 +241,7 @@ class TypePropertyResolver {
   }
 
   /// Resolve static invocations for [declaration].
-  ResolutionResult resolveForDeclaration({
+  ResolutionResult resolveStaticExtension({
     required InterfaceElement declaration,
     required String name,
     required bool hasRead,
@@ -256,21 +256,26 @@ class TypePropertyResolver {
     _nameErrorEntity = nameErrorEntity;
     _resetResult();
 
-    var getterName = Name(_definingLibrary.uri, _name);
-    var result = _extensionResolver.findExtensionForDeclaration(
+    var memberName = Name(_definingLibrary.uri, _name);
+    var result = _extensionResolver.findStaticExtension(
       declaration,
       _nameErrorEntity,
-      getterName,
+      memberName,
     );
-    // TODO(cstefantsova): Add the support for setters and methods.
+
     _reportedGetterError =
         result == const AmbiguousStaticExtensionResolutionError();
-    _reportedSetterError = false;
+    _reportedSetterError =
+        result == const AmbiguousStaticExtensionResolutionError();
 
-    if (result.member != null) {
-      // TODO(cstefantsova): Add the support for setters and methods.
+    if (result.member != null && hasRead) {
       _needsGetterError = false;
       _getterRequested = result.member;
+    }
+
+    if (result.member != null && hasWrite) {
+      _needsSetterError = false;
+      _setterRequested = result.member;
     }
 
     return _toResult();
