@@ -17,6 +17,43 @@ class ParameterAssignmentsTest extends LintRuleTest {
   @override
   String get lintRule => LintNames.parameter_assignments;
 
+  test_anonymousFunction_assignment() async {
+    await assertDiagnostics(
+      r'''
+void main() {
+  (int i) {
+    i = 42;
+  }(0);
+}
+''',
+      [lint(30, 6)],
+    );
+  }
+
+  test_anonymousFunction_assignment_arrowBody() async {
+    await assertDiagnostics(
+      r'''
+void main() {
+  (int i) => i = 42;
+}
+''',
+      [lint(27, 6)],
+    );
+  }
+
+  test_anonymousFunction_assignment_notInvoked() async {
+    await assertDiagnostics(
+      r'''
+void main() {
+  (int i) {
+    i = 42;
+  };
+}
+''',
+      [lint(30, 6)],
+    );
+  }
+
   test_assignment_inIfElseBranches() async {
     await assertDiagnostics(
       r'''
@@ -70,7 +107,6 @@ void f([int? _]) {
     );
   }
 
-  @FailingTest(reason: 'Closures not implemented')
   test_closure_assignment() async {
     await assertDiagnostics(
       r'''
@@ -92,6 +128,19 @@ void f(int p) {
 }
 ''',
       [lint(18, 6)],
+    );
+  }
+
+  test_constructor_assignment() async {
+    await assertDiagnostics(
+      r'''
+class Foo {
+  Foo(int x) {
+    x = 4;
+  }
+}
+''',
+      [lint(31, 5)],
     );
   }
 
