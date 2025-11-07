@@ -41,4 +41,20 @@ class StringExtensionTest {
     expect('FOO__BAR'.toPascalCase(), 'FooBar');
     expect('FOO_BAR_'.toPascalCase(), 'FooBar');
   }
+
+  void test_toSnakeCase() {
+    expect('camelCase'.toSnakeCase(), 'camel_case');
+    expect('PascalCase'.toSnakeCase(), 'pascal_case');
+    expect('already_snake_case'.toSnakeCase(), 'already_snake_case');
+    expect(
+      'mixedCamel_AndPascal_and_snake'.toSnakeCase(),
+      'mixed_camel_and_pascal_and_snake',
+    );
+    expect('with123Numbers'.toSnakeCase(), 'with123_numbers');
+    expect(''.toSnakeCase(), '');
+    expect(
+      'CONSECUTIVE_UPCASE'.toSnakeCase(),
+      'c_o_n_s_e_c_u_t_i_v_e_u_p_c_a_s_e',
+    );
+  }
 }
