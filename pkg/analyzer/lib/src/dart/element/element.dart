@@ -1386,9 +1386,10 @@ class ElementAnnotationImpl
           source: libraryFragment.source,
           offset: evaluationResult.offset,
           length: evaluationResult.length,
-          diagnosticCode: evaluationResult.diagnosticCode,
-          arguments: evaluationResult.arguments,
-          contextMessages: evaluationResult.contextMessages,
+          diagnosticCode: evaluationResult.locatableDiagnostic.code,
+          arguments: evaluationResult.locatableDiagnostic.arguments,
+          contextMessages: evaluationResult.locatableDiagnostic.contextMessages
+              .toList(),
         ),
       ];
     }

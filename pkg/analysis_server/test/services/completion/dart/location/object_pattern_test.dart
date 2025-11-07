@@ -666,6 +666,33 @@ suggestions
 ''');
   }
 
+  Future<void> test_patternFieldName_afterColon() async {
+    await computeSuggestions('''
+void f(MyClassWithReallyBigName parameter) {
+  if (parameter case MyClassWithReallyBigName(
+    fieldWithBigName: var fieldWithReallyVeryBigName,
+    :^
+  )) {}
+}
+
+abstract class MyClassWithReallyBigName {
+  int get fieldWithBigName;
+  int get g01;
+}
+''');
+    assertResponse(r'''
+location: PatternField_pattern
+locationOpType: PatternField_pattern
+suggestions
+  final
+    kind: keyword
+  var
+    kind: keyword
+  var g01
+    kind: getter
+''');
+  }
+
   Future<void> test_property_first() async {
     await computeSuggestions('''
 void f1(Object x0) {

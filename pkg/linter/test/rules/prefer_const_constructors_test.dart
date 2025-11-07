@@ -317,6 +317,19 @@ class A {
 ''');
   }
 
+  test_constructorArgument_rhsOfLogicalOperation() async {
+    // Note: prior to the fix for https://github.com/dart-lang/sdk/issues/61761,
+    // this caused an exception to be thrown in the linter.
+    await assertNoDiagnostics(r'''
+class C {
+  final bool x;
+  const C(this.x);
+}
+const C a = C(true);
+final C b = C(false || a.x);
+''');
+  }
+
   test_deferred_arg() async {
     newFile('$testPackageLibPath/a.dart', '''
 class A {
