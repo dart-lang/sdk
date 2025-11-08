@@ -73,7 +73,7 @@ linter:
 
   Future<void> test_analysisOptionsFile_packageInclude() async {
     var analysisOptions = newAnalysisOptionsYamlFile(testPackageRootPath, '''
-include: package:pedantic/analysis_options.yaml
+include: package:lints/lints.yaml
 ''');
 
     await setRoots(included: [workspaceRootPath], excluded: []);
@@ -89,7 +89,15 @@ include: package:pedantic/analysis_options.yaml
     expect(error.type, AnalysisErrorType.STATIC_WARNING);
 
     // Write a package file that allows resolving the include.
-    writeTestPackageConfig(pedantic: true);
+    var lintsRootPath = '/packages/lints';
+    newFile(
+      '$lintsRootPath/lib/lints.yaml',
+      '# Used for testing diagnostics for imports in analysis options files.',
+    );
+    writeTestPackageConfig(
+      config: PackageConfigFileBuilder()
+        ..add(name: 'lints', rootPath: lintsRootPath),
+    );
 
     // Ensure the errors disappear.
     await waitForTasksFinished();

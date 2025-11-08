@@ -112,11 +112,19 @@ mixin MockPackagesMixin {
     return packageFolder.getChildAssumingFolder('lib');
   }
 
+  @Deprecated(
+    'The mock js package is deprecated; use '
+    '`PubPackageResolutionTest.newPackage` to make a custom mock',
+  )
   Folder addJs() {
     var packageFolder = _addFiles('js');
     return packageFolder.getChildAssumingFolder('lib');
   }
 
+  @Deprecated(
+    'The mock kernel package is deprecated; use '
+    '`PubPackageResolutionTest.newPackage` to make a custom mock',
+  )
   Folder addKernel() {
     var packageFolder = _addFiles('kernel');
     return packageFolder.getChildAssumingFolder('lib');
@@ -127,6 +135,10 @@ mixin MockPackagesMixin {
     return packageFolder.getChildAssumingFolder('lib');
   }
 
+  @Deprecated(
+    'The mock pedantic package is deprecated; use '
+    '`PubPackageResolutionTest.newPackage` to make a custom mock',
+  )
   Folder addPedantic() {
     var packageFolder = _addFiles('pedantic');
     return packageFolder.getChildAssumingFolder('lib');

@@ -80,6 +80,5 @@ abstract interface class SharedTestInterface {
     String? languageVersion,
     bool flutter = false,
     bool meta = false,
-    bool pedantic = false,
   });
 }

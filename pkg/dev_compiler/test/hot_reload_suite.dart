@@ -1251,7 +1251,10 @@ abstract class DdcStandaloneSuiteRunner
         .path;
   }
 
-  List<String> _getDdcArguments(String deltaKernelPath, bool recompile) {
+  List<String> _getDdcArguments(
+    String deltaKernelPath,
+    bool recompileForHotReload,
+  ) {
     return [
       '--modules=ddc',
       '--canary',
@@ -1262,7 +1265,7 @@ abstract class DdcStandaloneSuiteRunner
       '--multi-root-scheme=$filesystemScheme',
       '--experimental-output-compiled-kernel',
       '--experimental-emit-debug-metadata',
-      if (recompile && acceptedDill != null)
+      if (recompileForHotReload && acceptedDill != null)
         '--reload-last-accepted-kernel=$acceptedDill',
       '-o',
       emittedFilesDir.uri.resolve('out.js').path,
@@ -1295,7 +1298,10 @@ abstract class DdcStandaloneSuiteRunner
     final deltaKernelPath = _createDeltaKernelPath(generation);
     final response = await controller.doWork(
       WorkRequest(
-        arguments: _getDdcArguments(deltaKernelPath, true),
+        arguments: _getDdcArguments(
+          deltaKernelPath,
+          !test.isHotRestart[generation]!,
+        ),
         inputs: [Input(path: deltaKernelPath)],
       ),
     );
