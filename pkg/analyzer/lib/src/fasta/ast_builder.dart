@@ -618,6 +618,11 @@ class AstBuilder extends StackListener {
   }
 
   @override
+  void beginPrimaryConstructorBody(Token beginToken) {
+    debugEvent("PrimaryConstructorBody");
+  }
+
+  @override
   void beginSwitchCaseWhenClause(Token when) {
     debugEvent("PatternSwitchCaseGuard");
   }
@@ -3166,6 +3171,23 @@ class AstBuilder extends StackListener {
 
       return;
     }
+  }
+
+  @override
+  void endPrimaryConstructorBody(
+    Token beginToken,
+    Token? beginInitializers,
+    Token endToken,
+  ) {
+    // TODO(declaring-constructors): Implement primary constructor body.
+    // ignore: unused_local_variable
+    var bodyObject = pop();
+    // ignore: unused_local_variable
+    var initializers = (pop() as List<ConstructorInitializerImpl>?) ?? const [];
+    // ignore: unused_local_variable
+    var separator = pop() as Token?;
+    // ignore: unused_local_variable
+    var metadata = pop() as List<AnnotationImpl>?;
   }
 
   @override

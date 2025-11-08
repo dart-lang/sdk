@@ -677,7 +677,8 @@ class DynamicModuleInfo {
     overridableFunctions.putIfAbsent(index, () {
       if (!isSubmodule) {
         final mainFunction = translator.mainModule.functions.define(type, name);
-        translator.mainModule.functions.declare(mainFunction);
+        translator.mainModule.elements.declarativeSegmentBuilder
+            .declare(mainFunction);
         buildMain(mainFunction);
         return mainFunction;
       }
@@ -685,7 +686,7 @@ class DynamicModuleInfo {
       if (skipSubmodule) return null;
 
       final submoduleFunction = submodule.functions.define(type, name);
-      submodule.functions.declare(submoduleFunction);
+      submodule.elements.declarativeSegmentBuilder.declare(submoduleFunction);
       buildSubmodule(submoduleFunction);
       return submoduleFunction;
     });
@@ -1067,7 +1068,7 @@ class ConstantCanonicalizer extends ConstantVisitor<void> {
 
     // Declare the function so it can be used as a ref_func in a constant
     // context.
-    b.moduleBuilder.functions.declare(checker);
+    b.moduleBuilder.elements.declarativeSegmentBuilder.declare(checker);
 
     // Invoke the 'canonicalize' function with the value and checker.
     b.local_get(valueLocal);
@@ -1101,7 +1102,7 @@ class ConstantCanonicalizer extends ConstantVisitor<void> {
 
     // Declare the function so it can be used as a ref_func in a constant
     // context.
-    b.moduleBuilder.functions.declare(checker);
+    b.moduleBuilder.elements.declarativeSegmentBuilder.declare(checker);
 
     // Invoke the canonicalizer function with the value and checker.
     b.local_get(valueLocal);

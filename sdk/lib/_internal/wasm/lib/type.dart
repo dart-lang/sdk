@@ -1780,10 +1780,6 @@ class _TypeCheckVerificationError extends Error {
 /// Checks that argument lists have expected number of arguments for the
 /// closure.
 ///
-/// If the type argument list ([typeArguments]) is empty but the closure has
-/// type parameters, updates [typeArguments] with the default bounds of the
-/// type parameters.
-///
 /// [namedArguments] is a list of `Symbol` and `Object?` pairs.
 @pragma("wasm:entry-point")
 bool _checkClosureShape(

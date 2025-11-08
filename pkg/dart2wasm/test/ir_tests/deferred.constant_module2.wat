@@ -1,12 +1,10 @@
 (module $module2
   (type $#Top <...>)
   (type $Object <...>)
-  (type $Array<Object?> <...>)
-  (type $JSStringImpl <...>)
   (type $Array<_Type> <...>)
+  (type $JSStringImpl <...>)
   (type $Array<_NamedParameter> <...>)
   (type $_FunctionType <...>)
-  (type $#ClosureBase <...>)
   (type $#Vtable-0-1 <...>)
   (type $#Closure-0-1 <...>)
   (type $H0 (sub final $Object (struct
@@ -21,7 +19,7 @@
   (global $"C62 WasmArray<_Type>[1]" (import "module0" "global3") (ref $Array<_Type>))
   (global $"C306 WasmArray<_NamedParameter>[0]" (import "module0" "global4") (ref $Array<_NamedParameter>))
   (global $S.globalH0Foo (import "S" "globalH0Foo") (ref extern))
-  (table $module0.constant-table0 (import "module0" "constant-table0") 1 (ref null $_FunctionType) <...>)
+  (table $module0.constant-table0 (import "module0" "constant-table0") 1 (ref null $_FunctionType))
   (global $global6 (ref $#Vtable-0-1) <...>)
   (global $global3 (ref $#DummyStruct) <...>)
   (global $"C465 globalH0Foo tear-off" (mut (ref null $#Closure-0-1))
@@ -34,10 +32,6 @@
     (global.get $S.globalH0Foo)
     (struct.new $JSStringImpl))
   (func $globalH0Foo (param $var0 i64) (result (ref null $#Top))
-    global.get $"C467 \"globalH0Foo\""
-    call $print
-  )
-  (func $"globalH0Foo tear-off dynamic call entry" (param $var0 (ref $#ClosureBase)) (param $var1 (ref $Array<_Type>)) (param $var2 (ref $Array<Object?>)) (param $var3 (ref $Array<Object?>)) (result (ref null $#Top))
     global.get $"C467 \"globalH0Foo\""
     call $print
   )

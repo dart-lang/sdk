@@ -130,19 +130,19 @@ class ExpectedCompletion {
 }
 
 class ExpectedCompletionsVisitor extends RecursiveAstVisitor<void> {
-  static const ASYNC_STAR = 'async*';
+  static const _asyncStar = 'async*';
 
-  static const DEFAULT_COLON = 'default:';
+  static const _defaultColon = 'default:';
 
-  static const DEFERRED_AS = 'deferred as';
+  static const _deferredAs = 'deferred as';
 
-  static const EXPORT_STATEMENT = "export '';";
+  static const _exportStatement = "export '';";
 
-  static const IMPORT_STATEMENT = "import '';";
+  static const _importStatement = "import '';";
 
-  static const PART_STATEMENT = "part '';";
-  static const SYNC_STAR = 'sync*';
-  static const YIELD_STAR = 'yield*';
+  static const _partStatement = "part '';";
+  static const _syncStar = 'sync*';
+  static const _yieldStar = 'yield*';
 
   /// The result of resolving the file being visited.
   final ResolvedUnitResult result;
@@ -204,7 +204,7 @@ class ExpectedCompletionsVisitor extends RecursiveAstVisitor<void> {
             entity,
             lineNumber,
             columnNumber,
-            ASYNC_STAR,
+            _asyncStar,
             kind,
             elementKind,
           ),
@@ -216,7 +216,7 @@ class ExpectedCompletionsVisitor extends RecursiveAstVisitor<void> {
             entity,
             lineNumber,
             columnNumber,
-            DEFAULT_COLON,
+            _defaultColon,
             kind,
             elementKind,
           ),
@@ -228,7 +228,7 @@ class ExpectedCompletionsVisitor extends RecursiveAstVisitor<void> {
             entity,
             lineNumber,
             columnNumber,
-            DEFERRED_AS,
+            _deferredAs,
             kind,
             elementKind,
           ),
@@ -240,7 +240,7 @@ class ExpectedCompletionsVisitor extends RecursiveAstVisitor<void> {
             entity,
             lineNumber,
             columnNumber,
-            EXPORT_STATEMENT,
+            _exportStatement,
             kind,
             elementKind,
           ),
@@ -252,7 +252,7 @@ class ExpectedCompletionsVisitor extends RecursiveAstVisitor<void> {
             entity,
             lineNumber,
             columnNumber,
-            IMPORT_STATEMENT,
+            _importStatement,
             kind,
             elementKind,
           ),
@@ -264,7 +264,7 @@ class ExpectedCompletionsVisitor extends RecursiveAstVisitor<void> {
             entity,
             lineNumber,
             columnNumber,
-            PART_STATEMENT,
+            _partStatement,
             kind,
             elementKind,
           ),
@@ -276,7 +276,7 @@ class ExpectedCompletionsVisitor extends RecursiveAstVisitor<void> {
             entity,
             lineNumber,
             columnNumber,
-            SYNC_STAR,
+            _syncStar,
             kind,
             elementKind,
           ),
@@ -288,7 +288,7 @@ class ExpectedCompletionsVisitor extends RecursiveAstVisitor<void> {
             entity,
             lineNumber,
             columnNumber,
-            YIELD_STAR,
+            _yieldStar,
             kind,
             elementKind,
           ),

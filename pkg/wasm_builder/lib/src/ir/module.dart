@@ -26,6 +26,7 @@ class Module implements Serializable {
   late final Functions _functions;
   late final BaseFunction? _start;
   late final Tables _tables;
+  late final Elements _elements;
   late final Tags _tags;
   late final Memories _memories;
   late final Exports _exports;
@@ -43,6 +44,7 @@ class Module implements Serializable {
     Functions functions,
     BaseFunction? start,
     Tables tables,
+    Elements elements,
     Tags tags,
     Memories memories,
     Exports exports,
@@ -60,6 +62,7 @@ class Module implements Serializable {
     _functions = functions;
     _start = start;
     _tables = tables;
+    _elements = elements;
     _tags = tags;
     _memories = memories;
     _exports = exports;
@@ -75,6 +78,7 @@ class Module implements Serializable {
   Functions get functions => _functions;
   BaseFunction? get start => _start;
   Tables get tables => _tables;
+  Elements get elements => _elements;
   Tags get tags => _tags;
   Memories get memories => _memories;
   Exports get exports => _exports;
@@ -103,9 +107,7 @@ class Module implements Serializable {
     GlobalSection(globals.defined, watchPoints).serialize(s);
     ExportSection(exports.exported, watchPoints).serialize(s);
     StartSection(start, watchPoints).serialize(s);
-    ElementSection(
-            tables.defined, tables.imported, functions.declared, watchPoints)
-        .serialize(s);
+    ElementSection(elements, watchPoints).serialize(s);
     DataCountSection(dataSegments.defined, watchPoints).serialize(s);
     CodeSection(functions.defined, watchPoints).serialize(s);
     DataSection(dataSegments.defined, watchPoints).serialize(s);
@@ -198,10 +200,7 @@ class Module implements Serializable {
         StartSection.deserialize(startFunctionSections?.single, functions);
 
     final elementSections = sections[ElementSection.sectionId];
-    // As side-effect initializes [Table.elements]
-    // As side-effect initializes [ImprotedTable.setElements]
-    // As side-effect initializes [Functions.declaredFunctions]
-    ElementSection.deserialize(
+    final elements = ElementSection.deserialize(
         elementSections?.single, module, types, functions, tables, globals);
 
     final dataCountSections = sections[DataCountSection.sectionId];
@@ -230,6 +229,7 @@ class Module implements Serializable {
         functions,
         start,
         tables,
+        elements,
         tags,
         memories,
         exports,

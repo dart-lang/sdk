@@ -549,6 +549,30 @@ abstract class AbstractParserAstListener implements Listener {
   }
 
   @override
+  void beginPrimaryConstructorBody(Token token) {
+    PrimaryConstructorBodyBegin data = new PrimaryConstructorBodyBegin(
+      ParserAstType.BEGIN,
+      token: token,
+    );
+    seen(data);
+  }
+
+  @override
+  void endPrimaryConstructorBody(
+    Token beginToken,
+    Token? beginInitializers,
+    Token endToken,
+  ) {
+    PrimaryConstructorBodyEnd data = new PrimaryConstructorBodyEnd(
+      ParserAstType.END,
+      beginToken: beginToken,
+      beginInitializers: beginInitializers,
+      endToken: endToken,
+    );
+    seen(data);
+  }
+
+  @override
   void beginCombinators(Token token) {
     CombinatorsBegin data = new CombinatorsBegin(
       ParserAstType.BEGIN,
@@ -5080,6 +5104,46 @@ class NoPrimaryConstructorHandle extends ParserAstNode {
 
   @override
   R accept<R>(ParserAstVisitor<R> v) => v.visitNoPrimaryConstructorHandle(this);
+}
+
+class PrimaryConstructorBodyBegin extends ParserAstNode {
+  final Token token;
+
+  PrimaryConstructorBodyBegin(ParserAstType type, {required this.token})
+    : super("PrimaryConstructorBody", type);
+
+  @override
+  Map<String, Object?> get deprecatedArguments => {"token": token};
+
+  @override
+  R accept<R>(ParserAstVisitor<R> v) =>
+      v.visitPrimaryConstructorBodyBegin(this);
+}
+
+class PrimaryConstructorBodyEnd extends ParserAstNode
+    implements BeginAndEndTokenParserAstNode {
+  @override
+  final Token beginToken;
+  final Token? beginInitializers;
+  @override
+  final Token endToken;
+
+  PrimaryConstructorBodyEnd(
+    ParserAstType type, {
+    required this.beginToken,
+    this.beginInitializers,
+    required this.endToken,
+  }) : super("PrimaryConstructorBody", type);
+
+  @override
+  Map<String, Object?> get deprecatedArguments => {
+    "beginToken": beginToken,
+    "beginInitializers": beginInitializers,
+    "endToken": endToken,
+  };
+
+  @override
+  R accept<R>(ParserAstVisitor<R> v) => v.visitPrimaryConstructorBodyEnd(this);
 }
 
 class CombinatorsBegin extends ParserAstNode {
@@ -11379,6 +11443,8 @@ abstract class ParserAstVisitor<R> {
   R visitPrimaryConstructorBegin(PrimaryConstructorBegin node);
   R visitPrimaryConstructorEnd(PrimaryConstructorEnd node);
   R visitNoPrimaryConstructorHandle(NoPrimaryConstructorHandle node);
+  R visitPrimaryConstructorBodyBegin(PrimaryConstructorBodyBegin node);
+  R visitPrimaryConstructorBodyEnd(PrimaryConstructorBodyEnd node);
   R visitCombinatorsBegin(CombinatorsBegin node);
   R visitCombinatorsEnd(CombinatorsEnd node);
   R visitCompilationUnitBegin(CompilationUnitBegin node);
@@ -11915,6 +11981,14 @@ class RecursiveParserAstVisitor implements ParserAstVisitor<void> {
 
   @override
   void visitNoPrimaryConstructorHandle(NoPrimaryConstructorHandle node) =>
+      node.visitChildren(this);
+
+  @override
+  void visitPrimaryConstructorBodyBegin(PrimaryConstructorBodyBegin node) =>
+      node.visitChildren(this);
+
+  @override
+  void visitPrimaryConstructorBodyEnd(PrimaryConstructorBodyEnd node) =>
       node.visitChildren(this);
 
   @override
@@ -13383,6 +13457,15 @@ class RecursiveParserAstVisitorWithDefaultNodeAsync
   Future<void> visitNoPrimaryConstructorHandle(
     NoPrimaryConstructorHandle node,
   ) => defaultNode(node);
+
+  @override
+  Future<void> visitPrimaryConstructorBodyBegin(
+    PrimaryConstructorBodyBegin node,
+  ) => defaultNode(node);
+
+  @override
+  Future<void> visitPrimaryConstructorBodyEnd(PrimaryConstructorBodyEnd node) =>
+      defaultNode(node);
 
   @override
   Future<void> visitCombinatorsBegin(CombinatorsBegin node) =>

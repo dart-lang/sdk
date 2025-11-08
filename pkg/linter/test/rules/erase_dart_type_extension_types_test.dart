@@ -15,10 +15,21 @@ void main() {
 @reflectiveTest
 class EraseDartTypeExtensionTypesTest extends LintRuleTest {
   @override
-  bool get addKernelPackageDep => true;
+  String get lintRule => LintNames.erase_dart_type_extension_types;
 
   @override
-  String get lintRule => LintNames.erase_dart_type_extension_types;
+  void setUp() {
+    newPackage('kernel').addFile('lib/ast.dart', r'''
+library kernel.ast;
+
+abstract class Node {}
+
+class DartType extends Node {}
+
+class InterfaceType extends DartType {}
+''');
+    super.setUp();
+  }
 
   test_isDartType() async {
     await assertDiagnostics(

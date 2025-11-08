@@ -1236,6 +1236,18 @@ class TestParser extends Parser {
   }
 
   @override
+  Token parsePrimaryConstructorBody(Token token) {
+    doPrint(
+      'parsePrimaryConstructorBody('
+      '$token)',
+    );
+    indent++;
+    var result = super.parsePrimaryConstructorBody(token);
+    indent--;
+    return result;
+  }
+
+  @override
   Token parseExtensionTypeDeclaration(
     Token beginToken,
     Token token,

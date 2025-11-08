@@ -771,9 +771,9 @@ mixin ClientCapabilitiesHelperMixin {
     setTextDocumentDynamicRegistration('synchronization');
   }
 
-  void setWorkDoneProgressSupport() {
+  void setWorkDoneProgressSupport([bool supported = true]) {
     windowCapabilities = extendWindowCapabilities(windowCapabilities, {
-      'workDoneProgress': true,
+      'workDoneProgress': supported,
     });
   }
 
@@ -826,7 +826,7 @@ mixin LspAnalysisServerTestMixin
   /// initialize.
   ServerCapabilities? _serverCapabilities;
 
-  final validProgressTokens = <ProgressToken>{};
+  final _validProgressTokens = <ProgressToken>{};
 
   /// Default initialization options to be used if [initialize] is not provided
   /// options explicitly.
@@ -1574,7 +1574,7 @@ mixin LspAnalysisServerTestMixin
       request.params as Map<String, Object?>,
     );
     if (params.token != clientProvidedTestWorkDoneToken &&
-        !validProgressTokens.contains(params.token)) {
+        !_validProgressTokens.contains(params.token)) {
       throw Exception(
         'Server sent a progress notification for a token '
         'that has not been created: ${params.token}',
@@ -1582,7 +1582,7 @@ mixin LspAnalysisServerTestMixin
     }
 
     if (WorkDoneProgressEnd.canParse(params.value, nullLspJsonReporter)) {
-      validProgressTokens.remove(params.token);
+      _validProgressTokens.remove(params.token);
     }
 
     if (params.token == analyzingProgressToken) {
@@ -1605,10 +1605,10 @@ mixin LspAnalysisServerTestMixin
     var params = WorkDoneProgressCreateParams.fromJson(
       request.params as Map<String, Object?>,
     );
-    if (validProgressTokens.contains(params.token)) {
+    if (_validProgressTokens.contains(params.token)) {
       throw Exception('Server tried to create already-active progress token');
     }
-    validProgressTokens.add(params.token);
+    _validProgressTokens.add(params.token);
   }
 
   /// Checks whether a notification is likely an error from the server (for

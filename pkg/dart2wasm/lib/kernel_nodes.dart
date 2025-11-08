@@ -276,6 +276,8 @@ mixin KernelNodes {
       index.getTopLevelProcedure("dart:core", "_runtimeTypeEquals");
   late final Procedure runtimeTypeHashCode =
       index.getTopLevelProcedure("dart:core", "_runtimeTypeHashCode");
+  late final Procedure? functionApply =
+      index.tryGetProcedure('dart:core', 'Function', 'apply');
 
   // dart:core invocation/exception procedures
   late final Procedure invocationGetterFactory =

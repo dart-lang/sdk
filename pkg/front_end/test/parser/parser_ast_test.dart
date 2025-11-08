@@ -704,6 +704,15 @@ List<String> processItem(ParserAstNode item, List<int> data) {
           decl.endToken.offset + decl.endToken.length,
         ),
       ];
+    } else if (item.isPrimaryConstructorBody()) {
+      PrimaryConstructorBodyEnd decl = item.getPrimaryConstructorBody();
+      return [
+        getCutContent(
+          data,
+          decl.beginToken.offset,
+          decl.endToken.offset + decl.endToken.length,
+        ),
+      ];
     } else {
       if (item.type == ParserAstType.BEGIN) return const [];
       if (item.type == ParserAstType.HANDLE) return const [];

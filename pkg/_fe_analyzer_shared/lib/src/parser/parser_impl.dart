@@ -3715,6 +3715,24 @@ class Parser {
     return token;
   }
 
+  Token parsePrimaryConstructorBody(Token token) {
+    Token beginToken = token;
+    listener.beginPrimaryConstructorBody(token);
+
+    Token? beforeInitializers = token;
+    token = parseInitializersOpt(beforeInitializers);
+
+    token = parseAsyncModifierOpt(token);
+    token = parseFunctionBody(
+      token,
+      /* ofFunctionExpression = */ false,
+      /* allowAbstract = */ inPlainSync,
+    );
+
+    listener.endPrimaryConstructorBody(beginToken, beforeInitializers, token);
+    return token;
+  }
+
   /// Parses an extension type declaration after
   ///
   ///    'extension' 'type'
@@ -5361,6 +5379,22 @@ class Parser {
           return token;
         }
         // Fall through to continue parsing `operator` as an identifier.
+      } else if (identical(value, 'this')) {
+        Token next2 = next.next!;
+        if (next2.isA(TokenType.COLON) ||
+            next2.isA(TokenType.SEMICOLON) ||
+            next2.isA(TokenType.OPEN_CURLY_BRACKET)) {
+          if (!_isDeclaringConstructorsFeatureEnabled) {
+            reportExperimentNotEnabled(
+              ExperimentalFlag.declaringConstructors,
+              next,
+              next,
+            );
+          }
+          token = parsePrimaryConstructorBody(next);
+          listener.endMember();
+          return token;
+        }
       } else if (!next.isIdentifier ||
           (identical(value, 'typedef') &&
               token == beforeStart &&

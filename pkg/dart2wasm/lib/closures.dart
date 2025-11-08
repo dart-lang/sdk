@@ -59,9 +59,11 @@ class ClosureImplementation {
 /// an entry for each (non-empty) combination of argument names that closures
 /// with this layout can be called with.
 class ClosureRepresentation {
-  /// The struct field index in the vtable struct at which the function
-  /// entries start.
+  /// The number of type arguments.
   final int typeCount;
+
+  /// The maximum number of positional parameters.
+  final int maxPositionalCount;
 
   /// The Wasm struct type for the vtable.
   final w.StructType vtableStruct;
@@ -129,12 +131,15 @@ class ClosureRepresentation {
   ClosureRepresentation(
       Translator translator,
       this.typeCount,
+      this.maxPositionalCount,
       this.vtableStruct,
       this.closureStruct,
       this._indexOfCombination,
       this.instantiationContextStruct);
 
   bool get isGeneric => typeCount > 0;
+
+  bool get hasNamed => _indexOfCombination != null;
 
   /// Where the vtable entries for function calls start in the vtable struct.
   int get vtableBaseIndex => isGeneric
@@ -215,6 +220,10 @@ class ClosureLayouter extends RecursiveVisitor {
 
   // The member currently being visited while collecting function signatures.
   Member? currentMember;
+
+  /// Whether the kernel [Component] uses `Function.apply` and possibly passes
+  /// non-empty map for named arguments.
+  late bool usesFunctionApplyWithNamedArguments;
 
   // For non-generic closures. The entries are:
   // 0: Dynamic call entry
@@ -400,8 +409,9 @@ class ClosureLayouter extends RecursiveVisitor {
             (translator.component.metadata["vm.procedure-attributes.metadata"]
                     as ProcedureAttributesMetadataRepository)
                 .mapping;
-
   void collect() {
+    usesFunctionApplyWithNamedArguments = false;
+
     // Dynamic module enabled builds use dynamic call entry points for all
     // closure invocations so we don't need to generate any representation
     // info.
@@ -478,12 +488,12 @@ class ClosureLayouter extends RecursiveVisitor {
 
   ClosureRepresentation _createRepresentation(
       int typeCount,
-      int positionalCount,
+      int maxPositionalCount,
       List<String> names,
       ClosureRepresentation? parent,
       Map<NameCombination, int>? indexOfCombination,
       Iterable<int> paramCounts) {
-    List<String> nameTags = ["$typeCount", "$positionalCount", ...names];
+    List<String> nameTags = ["$typeCount", "$maxPositionalCount", ...names];
     String vtableName = ["#Vtable", ...nameTags].join("-");
     String closureName = ["#Closure", ...nameTags].join("-");
     w.StructType parentVtableStruct = parent?.vtableStruct ??
@@ -508,7 +518,7 @@ class ClosureLayouter extends RecursiveVisitor {
     if (typeCount > 0) {
       // Add or set vtable field for the instantiation function.
       instantiatedRepresentation =
-          getClosureRepresentation(0, positionalCount, names)!;
+          getClosureRepresentation(0, maxPositionalCount, names)!;
       w.RefType inputType = w.RefType.def(closureBaseStruct, nullable: false);
       w.RefType outputType = w.RefType.def(
           instantiatedRepresentation.closureStruct,
@@ -564,6 +574,7 @@ class ClosureLayouter extends RecursiveVisitor {
     ClosureRepresentation representation = ClosureRepresentation(
         translator,
         typeCount,
+        maxPositionalCount,
         vtableStruct,
         closureStruct,
         indexOfCombination,
@@ -618,7 +629,7 @@ class ClosureLayouter extends RecursiveVisitor {
                     vtableBaseIndexNonGeneric + instantiationTrampolines.length,
                     vtableStruct,
                     vtableBaseIndexGeneric +
-                        (positionalCount + 1) +
+                        (maxPositionalCount + 1) +
                         genericIndex)
                 : translator
                     .getDummyValuesCollectorForModule(module)
@@ -1009,7 +1020,26 @@ class ClosureLayouter extends RecursiveVisitor {
   }
 
   @override
+  void visitStaticInvocation(StaticInvocation node) {
+    super.visitStaticInvocation(node);
+    if (node.target == translator.functionApply) {
+      // Function.apply(function, positionalArguments, [namedArguments])
+      if (node.arguments.positional.length > 2) {
+        usesFunctionApplyWithNamedArguments = true;
+      }
+    }
+  }
+
+  @override
+  void visitStaticTearOff(StaticTearOff node) {
+    visitStaticTearOffConstantReference(StaticTearOffConstant(node.target));
+  }
+
+  @override
   void visitStaticTearOffConstantReference(StaticTearOffConstant constant) {
+    if (constant.target == translator.functionApply) {
+      usesFunctionApplyWithNamedArguments = true;
+    }
     _visitFunctionNode(constant.function);
   }
 
@@ -1028,9 +1058,23 @@ class ClosureLayouter extends RecursiveVisitor {
 
   @override
   void visitDynamicInvocation(DynamicInvocation node) {
-    if (node.name.text == "call") {
-      _visitFunctionInvocation(node.arguments);
-    }
+    // NOTE: One may have two different kinds of calls here:
+    // ```
+    //   dynamic x;
+    //   x(namedArg: 1);
+    //   x.foo(namedArg: 1);
+    // ```
+    // It may appear as we only have to handle the first case, namely
+    // `node.name.text == "call"`, but the second case can also be a
+    // dynamic closure callsite via call-through-field:
+    // ```
+    //   class Foo {
+    //     void Function({int? namedArg}) get foo => ...;
+    //   }
+    // ```
+    // then a `x.foo(namedArg: 1)` will be executed at runtime via
+    // `var tmp = x.foo; tmp(namedArg: 1)`.
+    _visitFunctionInvocation(node.arguments);
     super.visitDynamicInvocation(node);
   }
 }

@@ -1214,6 +1214,22 @@ class DietListener extends StackListenerImpl {
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
+  void endPrimaryConstructorBody(
+    Token beginToken,
+    Token? beginInitializers,
+    Token endToken,
+  ) {
+    debugEvent("endPrimaryConstructorBody");
+    assert(
+      checkState(beginToken, [/* metadata token */ ValueKinds.TokenOrNull]),
+    );
+    // TODO(declaring-constructors): Implement primary constructor body.
+    pop() as Token?;
+    checkEmpty(beginToken.charOffset);
+  }
+
+  @override
   void endExtensionTypeDeclaration(
     Token beginToken,
     Token? augmentToken,

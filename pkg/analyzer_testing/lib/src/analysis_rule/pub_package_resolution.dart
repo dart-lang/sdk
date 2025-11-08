@@ -235,6 +235,10 @@ class PubPackageResolutionTest with MockPackagesMixin, ResourceProviderMixin {
   /// Adds the 'kernel' package as a dependency to the package-under-test.
   ///
   /// This allows various `package:kernel/` imports to resolve.
+  @Deprecated(
+    'The mock kernel package is deprecated; use '
+    '`PubPackageResolutionTest.newPackage` to make a custom mock',
+  )
   bool get addKernelPackageDep => false;
 
   /// Adds the 'meta' package as a dependency to the package-under-test.

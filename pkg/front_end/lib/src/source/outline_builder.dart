@@ -1961,6 +1961,31 @@ class OutlineBuilder extends StackListenerImpl {
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
+  void endPrimaryConstructorBody(
+    Token beginToken,
+    Token? beginInitializers,
+    Token endToken,
+  ) {
+    debugEvent("endPrimaryConstructorBody");
+    assert(
+      checkState(beginToken, [
+        ValueKinds.MethodBody,
+        ValueKinds.AsyncModifier,
+        ValueKinds.MetadataListOrNull,
+      ]),
+    );
+
+    // TODO(declaring-constructors): Implement primary constructor body.
+    // ignore: unused_local_variable
+    MethodBody bodyKind = pop() as MethodBody;
+    // ignore: unused_local_variable
+    AsyncMarker asyncModifier = pop() as AsyncMarker;
+    // ignore: unused_local_variable
+    List<MetadataBuilder>? metadata = pop() as List<MetadataBuilder>?;
+  }
+
+  @override
   void beginTopLevelMethod(
     Token lastConsumed,
     Token? augmentToken,
