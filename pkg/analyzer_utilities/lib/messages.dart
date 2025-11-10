@@ -449,9 +449,7 @@ class DiagnosticTables {
                 [])
             .add(message);
         var diagnosticClass = analyzerCode.diagnosticClass;
-        if (diagnosticClass is GeneratedDiagnosticClassInfo &&
-            !message.isRemoved &&
-            message is! AliasMessage) {
+        if (!message.isRemoved && message is! AliasMessage) {
           (activeMessagesByPackage[diagnosticClass.package] ??= []).add(
             message,
           );

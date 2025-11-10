@@ -23,47 +23,43 @@ const codesFile = GeneratedDiagnosticFile(
 /// Note: to look up an error class by name, use [DiagnosticClassInfo.byName].
 const List<DiagnosticClassInfo> diagnosticClasses = [
   linterLintCodeInfo,
-  GeneratedDiagnosticClassInfo(
+  DiagnosticClassInfo(
     file: optionCodesFile,
     name: 'AnalysisOptionsErrorCode',
     type: 'COMPILE_TIME_ERROR',
   ),
-  GeneratedDiagnosticClassInfo(
+  DiagnosticClassInfo(
     file: optionCodesFile,
     name: 'AnalysisOptionsWarningCode',
     type: 'STATIC_WARNING',
   ),
-  GeneratedDiagnosticClassInfo(
+  DiagnosticClassInfo(
     file: codesFile,
     name: 'CompileTimeErrorCode',
     type: 'COMPILE_TIME_ERROR',
   ),
-  GeneratedDiagnosticClassInfo(
+  DiagnosticClassInfo(
     file: syntacticErrorsFile,
     name: 'ScannerErrorCode',
     type: 'SYNTACTIC_ERROR',
   ),
-  GeneratedDiagnosticClassInfo(
+  DiagnosticClassInfo(
     file: codesFile,
     name: 'StaticWarningCode',
     type: 'STATIC_WARNING',
   ),
-  GeneratedDiagnosticClassInfo(
+  DiagnosticClassInfo(
     file: codesFile,
     name: 'WarningCode',
     type: 'STATIC_WARNING',
   ),
-  GeneratedDiagnosticClassInfo(
+  DiagnosticClassInfo(
     file: ffiCodesFile,
     name: 'FfiCode',
     type: 'COMPILE_TIME_ERROR',
   ),
-  GeneratedDiagnosticClassInfo(
-    file: hintCodesFile,
-    name: 'HintCode',
-    type: 'HINT',
-  ),
-  GeneratedDiagnosticClassInfo(
+  DiagnosticClassInfo(file: hintCodesFile, name: 'HintCode', type: 'HINT'),
+  DiagnosticClassInfo(
     file: syntacticErrorsFile,
     name: 'ParserErrorCode',
     type: 'SYNTACTIC_ERROR',
@@ -71,17 +67,17 @@ const List<DiagnosticClassInfo> diagnosticClasses = [
       'UNEXPECTED_TOKEN', // Referenced by `package:dart_style`.
     },
   ),
-  GeneratedDiagnosticClassInfo(
+  DiagnosticClassInfo(
     file: manifestWarningCodeFile,
     name: 'ManifestWarningCode',
     type: 'STATIC_WARNING',
   ),
-  GeneratedDiagnosticClassInfo(
+  DiagnosticClassInfo(
     file: pubspecWarningCodeFile,
     name: 'PubspecWarningCode',
     type: 'STATIC_WARNING',
   ),
-  GeneratedDiagnosticClassInfo(
+  DiagnosticClassInfo(
     file: todoCodesFile,
     name: 'TodoCode',
     type: 'TODO',
@@ -90,7 +86,7 @@ The error code indicating a marker in code for work that needs to be finished
 or revisited.
 ''',
   ),
-  GeneratedDiagnosticClassInfo(
+  DiagnosticClassInfo(
     file: transformSetErrorCodeFile,
     name: 'TransformSetErrorCode',
     type: 'COMPILE_TIME_ERROR',
@@ -119,7 +115,7 @@ const lintCodesFile = GeneratedDiagnosticFile(
   parentLibrary: 'package:linter/src/lint_codes.dart',
 );
 
-const linterLintCodeInfo = GeneratedDiagnosticClassInfo(
+const linterLintCodeInfo = DiagnosticClassInfo(
   file: lintCodesFile,
   name: 'LinterLintCode',
   type: 'LINT',
@@ -412,16 +408,6 @@ class DiagnosticClassInfo {
   /// The name of this class.
   final String name;
 
-  const DiagnosticClassInfo({required this.name});
-
-  static DiagnosticClassInfo byName(String name) =>
-      _diagnosticClassesByName[name] ??
-      (throw 'No diagnostic class named ${json.encode(name)}. Possible names: '
-          '$_allDiagnosticClassNames');
-}
-
-/// Information about a code generated class derived from `DiagnosticCode`.
-class GeneratedDiagnosticClassInfo extends DiagnosticClassInfo {
   /// The generated file containing this class.
   final GeneratedDiagnosticFile file;
 
@@ -441,9 +427,9 @@ class GeneratedDiagnosticClassInfo extends DiagnosticClassInfo {
   /// If no documentation comment is needed, this should be the empty string.
   final String comment;
 
-  const GeneratedDiagnosticClassInfo({
+  const DiagnosticClassInfo({
     required this.file,
-    required super.name,
+    required this.name,
     required this.type,
     this.deprecatedSnakeCaseNames = const {},
     this.package = AnalyzerDiagnosticPackage.analyzer,
@@ -465,13 +451,18 @@ class GeneratedDiagnosticClassInfo extends DiagnosticClassInfo {
       throw "Can't infer base name for class $name";
     }
   }
+
+  static DiagnosticClassInfo byName(String name) =>
+      _diagnosticClassesByName[name] ??
+      (throw 'No diagnostic class named ${json.encode(name)}. Possible names: '
+          '$_allDiagnosticClassNames');
 }
 
 /// Interface class for diagnostic messages that have an analyzer code, and thus
 /// can be reported by the analyzer.
 mixin MessageWithAnalyzerCode on Message {
-  late final GeneratedDiagnosticClassInfo diagnosticClassInfo =
-      analyzerCode.diagnosticClass as GeneratedDiagnosticClassInfo;
+  late final DiagnosticClassInfo diagnosticClassInfo =
+      analyzerCode.diagnosticClass;
 
   /// The code used by the analyzer to refer to this diagnostic message.
   AnalyzerCode get analyzerCode;
