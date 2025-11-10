@@ -544,7 +544,7 @@ extension type JSSymbol._(JSSymbolRepType _jsSymbol) implements JSAny {
   JSSymbol([String? description]) =>
       description == null ? _constructSymbol() : _constructSymbol(description);
 
-  /// Aearches for an existing symbol in a runtime-wide symbol registry with the
+  /// Searches for an existing symbol in a runtime-wide symbol registry with the
   /// given key and returns it if found.
   ///
   /// Otherwise, creates a new symbol with this key, adds it to the global
@@ -653,7 +653,7 @@ extension type JSSymbol._(JSSymbolRepType _jsSymbol) implements JSAny {
   /// symbol (as registered with [forKey]), if this symbol was created with
   /// [Symbol.forKey].
   @Since('3.11')
-  String get key => _keyFor(this);
+  String? get key => _keyFor(this);
 
   /// A string containing the description of the symbol, as passed to [new
   /// Symbol].
