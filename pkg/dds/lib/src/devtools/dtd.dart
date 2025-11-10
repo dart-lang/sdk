@@ -39,11 +39,11 @@ String getDTDSnapshotDir() {
     // non-standard SDK layouts that can involve symlinks (e.g., Brew
     // installations, google3 tests, etc).
     if (!File(
-      path.join(snapshotsDir, 'dds_aot.dart.snapshot'),
+      path.join(snapshotsDir, 'dart_tooling_daemon_aot.dart.snapshot'),
     ).existsSync()) {
       // We do not have an AOT snpashot and hence look for the JIT snapshot.
       if (!File(
-        path.join(snapshotsDir, 'dds.dart.snapshot'),
+        path.join(snapshotsDir, 'dart_tooling_daemon.dart.snapshot'),
       ).existsSync()) {
         return null;
       }
