@@ -88,7 +88,7 @@ FormalParameterList
       element: <null>
       type: InvalidType
     name: x
-    declaredElement: <testLibraryFragment> x@45
+    declaredFragment: <testLibraryFragment> x@45
       element: isPublic
         type: InvalidType
   rightParenthesis: )
@@ -114,7 +114,7 @@ FormalParameterList
       element: <null>
       type: InvalidType
     name: x
-    declaredElement: <testLibraryFragment> x@37
+    declaredFragment: <testLibraryFragment> x@37
       element: isPublic
         type: InvalidType
   rightParenthesis: )

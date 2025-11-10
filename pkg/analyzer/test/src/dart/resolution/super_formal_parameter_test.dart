@@ -76,7 +76,7 @@ SuperFormalParameter
     typeParameters
       TypeParameter
         name: T
-        declaredElement: <testLibraryFragment> T@62
+        declaredFragment: <testLibraryFragment> T@62
           defaultType: null
     rightBracket: >
   parameters: FormalParameterList
@@ -87,11 +87,11 @@ SuperFormalParameter
         element: dart:core::@class::int
         type: int
       name: b
-      declaredElement: <testLibraryFragment> b@69
+      declaredFragment: <testLibraryFragment> b@69
         element: isPublic
           type: int
     rightParenthesis: )
-  declaredElement: <testLibraryFragment> a@60
+  declaredFragment: <testLibraryFragment> a@60
     element: isFinal isPublic
       type: T Function<T>(int)
 ''');
@@ -111,7 +111,7 @@ SuperFormalParameter
   superKeyword: super
   period: .
   name: a
-  declaredElement: <testLibraryFragment> a@13
+  declaredFragment: <testLibraryFragment> a@13
     element: hasImplicitType isFinal isPublic
       type: dynamic
 ''');
@@ -134,7 +134,7 @@ SuperFormalParameter
   superKeyword: super
   period: .
   name: a
-  declaredElement: <testLibraryFragment> a@59
+  declaredFragment: <testLibraryFragment> a@59
     element: hasImplicitType isFinal isPublic
       type: int?
 ''');
@@ -157,7 +157,7 @@ SuperFormalParameter
   superKeyword: super
   period: .
   name: a
-  declaredElement: <testLibraryFragment> a@59
+  declaredFragment: <testLibraryFragment> a@59
     element: hasImplicitType isFinal isPublic
       type: int?
 ''');
@@ -181,7 +181,7 @@ SuperFormalParameter
   superKeyword: super
   period: .
   name: a
-  declaredElement: <testLibraryFragment> a@76
+  declaredFragment: <testLibraryFragment> a@76
     element: hasImplicitType isFinal isPublic
       type: int
 ''');
@@ -204,7 +204,7 @@ SuperFormalParameter
   superKeyword: super
   period: .
   name: a
-  declaredElement: <testLibraryFragment> a@55
+  declaredFragment: <testLibraryFragment> a@55
     element: hasImplicitType isFinal isPublic
       type: int
 ''');

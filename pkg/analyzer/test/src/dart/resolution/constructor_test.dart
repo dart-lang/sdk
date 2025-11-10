@@ -99,7 +99,7 @@ ConstructorDeclaration
         element: <testLibrary>::@class::a
         type: a
       name: a
-      declaredElement: <testLibraryFragment> a@28
+      declaredFragment: <testLibraryFragment> a@28
         element: isPublic
           type: a
     rightParenthesis: )
@@ -114,7 +114,7 @@ ConstructorDeclaration
             staticType: a
           semicolon: ;
       rightBracket: }
-  declaredElement: <testLibraryFragment> new@null
+  declaredFragment: <testLibraryFragment> new@null
     element: <testLibrary>::@class::B::@constructor::new
       type: B Function(a)
 ''');
@@ -156,7 +156,7 @@ ConstructorDeclaration
     element: <testLibrary>::@class::A::@constructor::named
   body: EmptyFunctionBody
     semicolon: ;
-  declaredElement: <testLibraryFragment> new@null
+  declaredFragment: <testLibraryFragment> new@null
     element: <testLibrary>::@class::B::@constructor::new
       type: B Function()
 ''');
@@ -210,7 +210,7 @@ ConstructorDeclaration
       substitution: {T: U}
   body: EmptyFunctionBody
     semicolon: ;
-  declaredElement: <testLibraryFragment> new@null
+  declaredFragment: <testLibraryFragment> new@null
     element: <testLibrary>::@class::B::@constructor::new
       type: B<U> Function()
 ''');
@@ -255,7 +255,7 @@ ConstructorDeclaration
     element: <null>
   body: EmptyFunctionBody
     semicolon: ;
-  declaredElement: <testLibraryFragment> new@null
+  declaredFragment: <testLibraryFragment> new@null
     element: <testLibrary>::@class::B::@constructor::new
       type: B Function()
 ''');
@@ -294,7 +294,7 @@ ConstructorDeclaration
     element: <testLibrary>::@class::A::@constructor::new
   body: EmptyFunctionBody
     semicolon: ;
-  declaredElement: <testLibraryFragment> named@55
+  declaredFragment: <testLibraryFragment> named@55
     element: <testLibrary>::@class::B::@constructor::named
       type: B Function()
 ''');
@@ -343,7 +343,7 @@ ConstructorDeclaration
       substitution: {T: U}
   body: EmptyFunctionBody
     semicolon: ;
-  declaredElement: <testLibraryFragment> named@64
+  declaredFragment: <testLibraryFragment> named@64
     element: <testLibrary>::@class::B::@constructor::named
       type: B<U> Function()
 ''');
@@ -385,7 +385,7 @@ ConstructorDeclaration
     element: <null>
   body: EmptyFunctionBody
     semicolon: ;
-  declaredElement: <testLibraryFragment> named@61
+  declaredFragment: <testLibraryFragment> named@61
     element: <testLibrary>::@class::B::@constructor::named
       type: B Function()
 ''');

@@ -483,11 +483,11 @@ GenericFunctionType
         name: int
         element: dart:core::@class::int
         type: int
-      declaredElement: <testLibraryFragment> null@null
+      declaredFragment: <testLibraryFragment> null@null
         element: isPrivate
           type: int
     rightParenthesis: )
-  declaredElement: GenericFunctionTypeElement
+  declaredFragment: GenericFunctionTypeElement
     parameters
       <empty>
         kind: required positional
@@ -596,11 +596,11 @@ GenericFunctionType
         name: String
         element: dart:core::@class::String
         type: String
-      declaredElement: <testLibraryFragment> null@null
+      declaredFragment: <testLibraryFragment> null@null
         element: isPrivate
           type: String
     rightParenthesis: )
-  declaredElement: GenericFunctionTypeElement
+  declaredFragment: GenericFunctionTypeElement
     parameters
       <empty>
         kind: required positional

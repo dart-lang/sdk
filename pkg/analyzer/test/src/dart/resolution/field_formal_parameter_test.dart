@@ -40,11 +40,11 @@ FieldFormalParameter
         element: dart:core::@class::int
         type: int
       name: a
-      declaredElement: <testLibraryFragment> a@44
+      declaredFragment: <testLibraryFragment> a@44
         element: isPublic
           type: int
     rightParenthesis: )
-  declaredElement: <testLibraryFragment> f@38
+  declaredFragment: <testLibraryFragment> f@38
     element: isFinal isPublic
       type: void Function(int)
 ''');
@@ -75,7 +75,7 @@ FieldFormalParameter
     typeParameters
       TypeParameter
         name: U
-        declaredElement: <testLibraryFragment> U@45
+        declaredFragment: <testLibraryFragment> U@45
           defaultType: null
     rightBracket: >
   parameters: FormalParameterList
@@ -86,11 +86,11 @@ FieldFormalParameter
         element: #E0 U
         type: U
       name: a
-      declaredElement: <testLibraryFragment> a@50
+      declaredFragment: <testLibraryFragment> a@50
         element: isPublic
           type: U
     rightParenthesis: )
-  declaredElement: <testLibraryFragment> f@43
+  declaredFragment: <testLibraryFragment> f@43
     element: isFinal isPublic
       type: U Function<U>(U)
 ''');
@@ -119,11 +119,11 @@ FieldFormalParameter
     typeParameters
       TypeParameter
         name: T
-        declaredElement: <testLibraryFragment> T@54
+        declaredFragment: <testLibraryFragment> T@54
           defaultType: null
       TypeParameter
         name: U
-        declaredElement: <testLibraryFragment> U@57
+        declaredFragment: <testLibraryFragment> U@57
           defaultType: null
     rightBracket: >
   parameters: FormalParameterList
@@ -134,7 +134,7 @@ FieldFormalParameter
         element: #E1 U
         type: U
       name: a
-      declaredElement: <testLibraryFragment> a@62
+      declaredFragment: <testLibraryFragment> a@62
         element: isPublic
           type: U
     parameter: SimpleFormalParameter
@@ -143,11 +143,11 @@ FieldFormalParameter
         element: #E2 V
         type: V
       name: b
-      declaredElement: <testLibraryFragment> b@67
+      declaredFragment: <testLibraryFragment> b@67
         element: isPublic
           type: V
     rightParenthesis: )
-  declaredElement: <testLibraryFragment> f@52
+  declaredFragment: <testLibraryFragment> f@52
     element: isFinal isPublic
       type: T Function<T, U>(U, V)
 ''');
@@ -167,7 +167,7 @@ FieldFormalParameter
   thisKeyword: this
   period: .
   name: f
-  declaredElement: <testLibraryFragment> f@28
+  declaredFragment: <testLibraryFragment> f@28
     element: hasImplicitType isFinal isPublic
       type: int
 ''');
@@ -191,7 +191,7 @@ FieldFormalParameter
   thisKeyword: this
   period: .
   name: f
-  declaredElement: <testLibraryFragment> f@32
+  declaredFragment: <testLibraryFragment> f@32
     element: isFinal isPublic
       type: int
 ''');
@@ -212,7 +212,7 @@ FieldFormalParameter
   thisKeyword: this
   period: .
   name: f
-  declaredElement: <testLibraryFragment> f@47
+  declaredFragment: <testLibraryFragment> f@47
     element: hasImplicitType isFinal isPublic
       type: int
 ''');

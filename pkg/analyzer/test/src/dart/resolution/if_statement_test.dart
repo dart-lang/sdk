@@ -1427,7 +1427,7 @@ IfStatement
                 staticType: bool
               element: dart:core::@class::int::@getter::isEven
               staticType: bool
-          declaredElement: <testLibraryFragment> null@null
+          declaredFragment: <testLibraryFragment> null@null
             element: null@null
               type: bool Function()
           staticType: bool Function()
@@ -1489,7 +1489,7 @@ IfStatement
                 staticType: bool
               element: dart:core::@class::int::@getter::isEven
               staticType: bool
-          declaredElement: <testLibraryFragment> null@null
+          declaredFragment: <testLibraryFragment> null@null
             element: null@null
               type: bool Function()
           staticType: bool Function()
@@ -1553,7 +1553,7 @@ IfStatement
                 staticType: bool
               element: dart:core::@class::int::@getter::isEven
               staticType: bool
-          declaredElement: <testLibraryFragment> null@null
+          declaredFragment: <testLibraryFragment> null@null
             element: null@null
               type: bool Function()
           staticType: bool Function()
@@ -1617,7 +1617,7 @@ IfStatement
                 staticType: bool
               element: dart:core::@class::int::@getter::isEven
               staticType: bool
-          declaredElement: <testLibraryFragment> null@null
+          declaredFragment: <testLibraryFragment> null@null
             element: null@null
               type: bool Function()
           staticType: bool Function()

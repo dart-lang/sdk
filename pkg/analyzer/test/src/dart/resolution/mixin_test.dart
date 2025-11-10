@@ -88,9 +88,9 @@ FieldDeclaration
     variables
       VariableDeclaration
         name: f
-        declaredElement: <testLibraryFragment> f@22
+        declaredFragment: <testLibraryFragment> f@22
   semicolon: ;
-  declaredElement: <null>
+  declaredFragment: <null>
 ''');
   }
 
@@ -116,7 +116,7 @@ MethodDeclaration
       literal: 0
       staticType: int
     semicolon: ;
-  declaredElement: <testLibraryFragment> foo@20
+  declaredFragment: <testLibraryFragment> foo@20
     element: <testLibrary>::@mixin::M::@getter::foo
       type: int Function()
 ''');
@@ -225,7 +225,7 @@ MethodDeclaration
     block: Block
       leftBracket: {
       rightBracket: }
-  declaredElement: <testLibraryFragment> foo@17
+  declaredFragment: <testLibraryFragment> foo@17
     element: <testLibrary>::@mixin::M::@method::foo
       type: void Function()
 ''');
@@ -311,7 +311,7 @@ MethodDeclaration
         element: dart:core::@class::int
         type: int
       name: _
-      declaredElement: <testLibraryFragment> _@29
+      declaredFragment: <testLibraryFragment> _@29
         element: isPrivate
           type: int
     rightParenthesis: )
@@ -319,7 +319,7 @@ MethodDeclaration
     block: Block
       leftBracket: {
       rightBracket: }
-  declaredElement: <testLibraryFragment> foo@21
+  declaredFragment: <testLibraryFragment> foo@21
     element: <testLibrary>::@mixin::M::@setter::foo
       type: void Function(int)
 ''');

@@ -102,7 +102,7 @@ MethodDeclaration
     block: Block
       leftBracket: {
       rightBracket: }
-  declaredElement: <testLibraryFragment> _@12
+  declaredFragment: <testLibraryFragment> _@12
     element: <testLibrary>::@class::C::@method::_
       type: dynamic Function()
 ''');
@@ -132,7 +132,7 @@ MethodDeclaration
     block: Block
       leftBracket: {
       rightBracket: }
-  declaredElement: <testLibraryFragment> _@56
+  declaredFragment: <testLibraryFragment> _@56
     element: <testLibrary>::@class::C::@method::_
       type: dynamic Function()
 ''');

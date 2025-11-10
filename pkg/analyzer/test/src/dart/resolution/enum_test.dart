@@ -57,11 +57,11 @@ GenericFunctionType
         name: double
         element: dart:core::@class::double
         type: double
-      declaredElement: <testLibraryFragment> null@null
+      declaredFragment: <testLibraryFragment> null@null
         element: isPrivate
           type: double
     rightParenthesis: )
-  declaredElement: GenericFunctionTypeElement
+  declaredFragment: GenericFunctionTypeElement
     parameters
       <empty>
         kind: required positional
@@ -105,7 +105,7 @@ EnumConstantDeclaration
   constructorElement: ConstructorMember
     baseElement: <testLibrary>::@enum::E::@constructor::named
     substitution: {T: int}
-  declaredElement: <testLibraryFragment> v@14
+  declaredFragment: <testLibraryFragment> v@14
 ''');
   }
 
@@ -135,7 +135,7 @@ EnumConstantDeclaration
   constructorElement: ConstructorMember
     baseElement: <testLibrary>::@enum::E::@constructor::new
     substitution: {T: int}
-  declaredElement: <testLibraryFragment> v@14
+  declaredFragment: <testLibraryFragment> v@14
 ''');
   }
 
@@ -179,7 +179,7 @@ EnumConstantDeclaration
   constructorElement: ConstructorMember
     baseElement: <testLibrary>::@enum::E::@constructor::named
     substitution: {T: double}
-  declaredElement: <testLibraryFragment> v@14
+  declaredFragment: <testLibraryFragment> v@14
 ''');
   }
 
@@ -211,7 +211,7 @@ EnumConstantDeclaration
           staticType: int
       rightParenthesis: )
   constructorElement: <testLibrary>::@enum::E::@constructor::named
-  declaredElement: <testLibraryFragment> v@11
+  declaredFragment: <testLibraryFragment> v@11
 ''');
   }
 
@@ -237,7 +237,7 @@ EnumConstantDeclaration
           staticType: int
       rightParenthesis: )
   constructorElement: <testLibrary>::@enum::E::@constructor::new
-  declaredElement: <testLibraryFragment> v@11
+  declaredFragment: <testLibraryFragment> v@11
 ''');
   }
 
@@ -253,7 +253,7 @@ enum E {
 EnumConstantDeclaration
   name: v
   constructorElement: <testLibrary>::@enum::E::@constructor::new
-  declaredElement: <testLibraryFragment> v@11
+  declaredFragment: <testLibraryFragment> v@11
 ''');
   }
 
@@ -288,7 +288,7 @@ EnumConstantDeclaration
           staticType: int
       rightParenthesis: )
   constructorElement: <null>
-  declaredElement: <testLibraryFragment> v@11
+  declaredFragment: <testLibraryFragment> v@11
 ''');
   }
 
@@ -317,7 +317,7 @@ EnumConstantDeclaration
           staticType: int
       rightParenthesis: )
   constructorElement: <null>
-  declaredElement: <testLibraryFragment> v@11
+  declaredFragment: <testLibraryFragment> v@11
 ''');
   }
 
@@ -341,9 +341,9 @@ FieldDeclaration
         initializer: IntegerLiteral
           literal: 42
           staticType: int
-        declaredElement: <testLibraryFragment> foo@22
+        declaredFragment: <testLibraryFragment> foo@22
   semicolon: ;
-  declaredElement: <null>
+  declaredFragment: <null>
 ''');
   }
 
@@ -373,7 +373,7 @@ MethodDeclaration
         staticType: int
       staticType: Never
     semicolon: ;
-  declaredElement: <testLibraryFragment> foo@25
+  declaredFragment: <testLibraryFragment> foo@25
     element: <testLibrary>::@enum::E::@getter::foo
       type: T Function()
 ''');
@@ -445,7 +445,7 @@ MethodDeclaration
     typeParameters
       TypeParameter
         name: U
-        declaredElement: <testLibraryFragment> U@27
+        declaredFragment: <testLibraryFragment> U@27
           defaultType: dynamic
     rightBracket: >
   parameters: FormalParameterList
@@ -456,7 +456,7 @@ MethodDeclaration
         element: #E0 T
         type: T
       name: t
-      declaredElement: <testLibraryFragment> t@32
+      declaredFragment: <testLibraryFragment> t@32
         element: isPublic
           type: T
     parameter: SimpleFormalParameter
@@ -465,7 +465,7 @@ MethodDeclaration
         element: #E1 U
         type: U
       name: u
-      declaredElement: <testLibraryFragment> u@37
+      declaredFragment: <testLibraryFragment> u@37
         element: isPublic
           type: U
     rightParenthesis: )
@@ -475,7 +475,7 @@ MethodDeclaration
       literal: 0
       staticType: int
     semicolon: ;
-  declaredElement: <testLibraryFragment> foo@23
+  declaredFragment: <testLibraryFragment> foo@23
     element: <testLibrary>::@enum::E::@method::foo
       type: int Function<U>(T, U)
 ''');
@@ -505,7 +505,7 @@ MethodDeclaration
     expression: SimpleStringLiteral
       literal: 'E'
     semicolon: ;
-  declaredElement: <testLibraryFragment> toString@23
+  declaredFragment: <testLibraryFragment> toString@23
     element: <testLibrary>::@enum::E::@method::toString
       type: String Function()
 ''');
@@ -585,7 +585,7 @@ MethodDeclaration
         element: #E0 T
         type: T
       name: a
-      declaredElement: <testLibraryFragment> a@29
+      declaredFragment: <testLibraryFragment> a@29
         element: isPublic
           type: T
     rightParenthesis: )
@@ -593,7 +593,7 @@ MethodDeclaration
     block: Block
       leftBracket: {
       rightBracket: }
-  declaredElement: <testLibraryFragment> foo@23
+  declaredFragment: <testLibraryFragment> foo@23
     element: <testLibrary>::@enum::E::@setter::foo
       type: void Function(T)
 ''');

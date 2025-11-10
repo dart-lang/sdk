@@ -252,7 +252,7 @@ TypeLiteral
           parameters: FormalParameterList
             leftParenthesis: (
             rightParenthesis: )
-          declaredElement: GenericFunctionTypeElement
+          declaredFragment: GenericFunctionTypeElement
             parameters
             returnType: void
             type: void Function()
@@ -908,7 +908,7 @@ TypeLiteral
           parameters: FormalParameterList
             leftParenthesis: (
             rightParenthesis: )
-          declaredElement: GenericFunctionTypeElement
+          declaredFragment: GenericFunctionTypeElement
             parameters
             returnType: void
             type: void Function()

@@ -40,7 +40,7 @@ FormalParameterList
     thisKeyword: this
     period: .
     name: it
-    declaredElement: <testLibraryFragment> it@42
+    declaredFragment: <testLibraryFragment> it@42
       element: hasImplicitType isFinal isPublic
         type: int
   leftDelimiter: {
@@ -49,10 +49,10 @@ FormalParameterList
       superKeyword: super
       period: .
       name: foo
-      declaredElement: <testLibraryFragment> foo@53
+      declaredFragment: <testLibraryFragment> foo@53
         element: hasImplicitType isFinal isPublic
           type: dynamic
-    declaredElement: <testLibraryFragment> foo@53
+    declaredFragment: <testLibraryFragment> foo@53
       element: hasImplicitType isFinal isPublic
         type: dynamic
   rightDelimiter: }
@@ -84,14 +84,14 @@ FormalParameterList
     thisKeyword: this
     period: .
     name: it
-    declaredElement: <testLibraryFragment> it@42
+    declaredFragment: <testLibraryFragment> it@42
       element: hasImplicitType isFinal isPublic
         type: int
   parameter: SuperFormalParameter
     superKeyword: super
     period: .
     name: foo
-    declaredElement: <testLibraryFragment> foo@52
+    declaredFragment: <testLibraryFragment> foo@52
       element: hasImplicitType isFinal isPublic
         type: dynamic
   rightParenthesis: )

@@ -4185,7 +4185,7 @@ FunctionReference
         typeParameters
           TypeParameter
             name: T
-            declaredElement: <testLibraryFragment> T@89
+            declaredFragment: <testLibraryFragment> T@89
               defaultType: null
         rightBracket: >
       parameters: FormalParameterList
@@ -4195,11 +4195,11 @@ FunctionReference
             name: T
             element: #E0 T
             type: T
-          declaredElement: <testLibraryFragment> null@null
+          declaredFragment: <testLibraryFragment> null@null
             element: isPrivate
               type: T
         rightParenthesis: )
-      declaredElement: GenericFunctionTypeElement
+      declaredFragment: GenericFunctionTypeElement
         parameters
           <empty>
             kind: required positional
@@ -4407,7 +4407,7 @@ FunctionReference
       typeParameters
         TypeParameter
           name: T
-          declaredElement: <testLibraryFragment> T@37
+          declaredFragment: <testLibraryFragment> T@37
             defaultType: dynamic
       rightBracket: >
     parameters: FormalParameterList
@@ -4418,7 +4418,7 @@ FunctionReference
           element: #E0 T
           type: T
         name: a
-        declaredElement: <testLibraryFragment> a@42
+        declaredFragment: <testLibraryFragment> a@42
           element: isPublic
             type: T
       rightParenthesis: )
@@ -4426,7 +4426,7 @@ FunctionReference
       block: Block
         leftBracket: {
         rightBracket: }
-    declaredElement: <testLibraryFragment> null@null
+    declaredFragment: <testLibraryFragment> null@null
       element: null@null
         type: Null Function<T>(T)
     staticType: Null Function<T>(T)

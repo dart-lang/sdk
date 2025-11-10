@@ -843,7 +843,7 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
       _writeNamedChildEntities(node);
       if (_withResolution) {
         _writeGenericFunctionTypeElement(
-          'declaredElement',
+          'declaredFragment',
           node.declaredFragment,
         );
       }
@@ -1840,12 +1840,12 @@ Expected parent: (${parent.runtimeType}) $parent
       if (fragment is LocalVariableFragmentImpl) {
         _writeDeclaredLocalVariableFragment(fragment);
       } else if (fragment is TypeParameterFragmentImpl) {
-        _writeFragment('declaredElement', fragment);
+        _writeFragment('declaredFragment', fragment);
         _sink.withIndent(() {
           _writeType('defaultType', fragment.element.defaultType);
         });
       } else {
-        _writeFragment('declaredElement', fragment);
+        _writeFragment('declaredFragment', fragment);
         if (fragment is ExecutableFragmentImpl) {
           _sink.withIndent(() {
             var element = fragment.element;

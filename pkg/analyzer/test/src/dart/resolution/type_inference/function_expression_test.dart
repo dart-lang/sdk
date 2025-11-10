@@ -79,7 +79,7 @@ FunctionExpression
               FutureOr<Object?>
           semicolon: ;
       rightBracket: }
-  declaredElement: <testLibraryFragment> null@null
+  declaredFragment: <testLibraryFragment> null@null
     element: null@null
       type: Future<Object?> Function()
   staticType: Future<Object?> Function()
@@ -132,7 +132,7 @@ FunctionExpression
       staticType: FutureOr<int>
       typeArgumentTypes
         FutureOr<int>
-  declaredElement: <testLibraryFragment> null@null
+  declaredFragment: <testLibraryFragment> null@null
     element: null@null
       type: Future<int> Function()
   staticType: Future<int> Function()
@@ -174,7 +174,7 @@ FunctionExpression
       staticType: FutureOr<Object?>
       typeArgumentTypes
         FutureOr<Object?>
-  declaredElement: <testLibraryFragment> null@null
+  declaredFragment: <testLibraryFragment> null@null
     element: null@null
       type: Future<Object?> Function()
   staticType: Future<Object?> Function()
@@ -209,7 +209,7 @@ FunctionExpression
       staticType: FutureOr<Object?>
       typeArgumentTypes
         FutureOr<Object?>
-  declaredElement: <testLibraryFragment> null@null
+  declaredFragment: <testLibraryFragment> null@null
     element: null@null
       type: Future<Object?> Function()
   staticType: Future<Object?> Function()
@@ -262,7 +262,7 @@ FunctionExpression
               int
           semicolon: ;
       rightBracket: }
-  declaredElement: <testLibraryFragment> null@null
+  declaredFragment: <testLibraryFragment> null@null
     element: null@null
       type: Stream<int> Function()
   staticType: Stream<int> Function()
@@ -313,7 +313,7 @@ FunctionExpression
               int
           semicolon: ;
       rightBracket: }
-  declaredElement: <testLibraryFragment> null@null
+  declaredFragment: <testLibraryFragment> null@null
     element: null@null
       type: int Function()
   staticType: int Function()
@@ -366,7 +366,7 @@ FunctionExpression
       staticType: int
       typeArgumentTypes
         int
-  declaredElement: <testLibraryFragment> null@null
+  declaredFragment: <testLibraryFragment> null@null
     element: null@null
       type: int Function()
   staticType: int Function()
@@ -419,7 +419,7 @@ FunctionExpression
               int
           semicolon: ;
       rightBracket: }
-  declaredElement: <testLibraryFragment> null@null
+  declaredFragment: <testLibraryFragment> null@null
     element: null@null
       type: Iterable<int> Function()
   staticType: Iterable<int> Function()
@@ -442,7 +442,7 @@ FunctionExpression
     leftParenthesis: (
     parameter: SimpleFormalParameter
       name: item
-      declaredElement: <testLibraryFragment> item@43
+      declaredFragment: <testLibraryFragment> item@43
         element: hasImplicitType isPublic
           type: int
     rightParenthesis: )
@@ -457,7 +457,7 @@ FunctionExpression
             staticType: int
           semicolon: ;
       rightBracket: }
-  declaredElement: <testLibraryFragment> null@null
+  declaredFragment: <testLibraryFragment> null@null
     element: null@null
       type: void Function(int)
   correspondingParameter: action@null
@@ -481,7 +481,7 @@ FunctionExpression
     leftParenthesis: (
     parameter: SimpleFormalParameter
       name: x
-      declaredElement: <testLibraryFragment> x@53
+      declaredFragment: <testLibraryFragment> x@53
         element: hasImplicitType isPublic
           type: Object?
     rightParenthesis: )
@@ -489,7 +489,7 @@ FunctionExpression
     block: Block
       leftBracket: {
       rightBracket: }
-  declaredElement: <testLibraryFragment> null@null
+  declaredFragment: <testLibraryFragment> null@null
     element: null@null
       type: void Function(Object?)
   correspondingParameter: <testLibrary>::@function::foo::@formalParameter::a
@@ -513,7 +513,7 @@ FunctionExpression
     leftParenthesis: (
     parameter: SimpleFormalParameter
       name: x
-      declaredElement: <testLibraryFragment> x@52
+      declaredFragment: <testLibraryFragment> x@52
         element: hasImplicitType isPublic
           type: Object?
     rightParenthesis: )
@@ -521,7 +521,7 @@ FunctionExpression
     block: Block
       leftBracket: {
       rightBracket: }
-  declaredElement: <testLibraryFragment> null@null
+  declaredFragment: <testLibraryFragment> null@null
     element: null@null
       type: void Function(Object?)
   correspondingParameter: <testLibrary>::@function::foo::@formalParameter::a
@@ -547,7 +547,7 @@ FunctionExpression
     typeParameters
       TypeParameter
         name: T
-        declaredElement: <testLibraryFragment> T@24
+        declaredFragment: <testLibraryFragment> T@24
           defaultType: dynamic
     rightBracket: >
   parameters: FormalParameterList
@@ -558,7 +558,7 @@ FunctionExpression
         element: #E0 T
         type: T
       name: a
-      declaredElement: <testLibraryFragment> a@29
+      declaredFragment: <testLibraryFragment> a@29
         element: isPublic
           type: T
     rightParenthesis: )
@@ -581,7 +581,7 @@ FunctionExpression
           staticType: T
       rightBracket: ]
       staticType: List<T>
-  declaredElement: <testLibraryFragment> null@null
+  declaredFragment: <testLibraryFragment> null@null
     element: null@null
       type: List<T> Function<T>(T)
   staticType: List<T> Function<T>(T)
@@ -606,7 +606,7 @@ FunctionExpression
     expression: IntegerLiteral
       literal: 42
       staticType: int
-  declaredElement: <testLibraryFragment> null@null
+  declaredFragment: <testLibraryFragment> null@null
     element: null@null
       type: int Function()
   staticType: int Function()
@@ -629,7 +629,7 @@ FunctionExpression
     expression: IntegerLiteral
       literal: 42
       staticType: int
-  declaredElement: <testLibraryFragment> null@null
+  declaredFragment: <testLibraryFragment> null@null
     element: null@null
       type: int Function()
   staticType: int Function()

@@ -120,7 +120,7 @@ ConstructorFieldInitializer
                   staticType: int
                 semicolon: ;
             rightBracket: }
-        declaredElement: <testLibraryFragment> null@null
+        declaredFragment: <testLibraryFragment> null@null
           element: null@null
             type: int Function()
         staticType: int Function()
@@ -173,7 +173,7 @@ ConstructorFieldInitializer
             element: dart:core::@class::num::@method::+
             staticInvokeType: num Function(num)
             staticType: int
-        declaredElement: <testLibraryFragment> null@null
+        declaredFragment: <testLibraryFragment> null@null
           element: null@null
             type: int Function()
         staticType: int Function()

@@ -43,7 +43,7 @@ FunctionExpression
             rightBracket: >
           element: dart:core::@class::List
           type: List<T>
-        declaredElement: <testLibraryFragment> T@14
+        declaredFragment: <testLibraryFragment> T@14
           defaultType: List<dynamic>
     rightBracket: >
   parameters: FormalParameterList
@@ -53,7 +53,7 @@ FunctionExpression
     block: Block
       leftBracket: {
       rightBracket: }
-  declaredElement: <testLibraryFragment> null@null
+  declaredFragment: <testLibraryFragment> null@null
     element: null@null
       type: Null Function<T extends List<T>>()
   staticType: Null Function<T extends List<T>>()
@@ -80,7 +80,7 @@ FunctionExpression
           name: num
           element: dart:core::@class::num
           type: num
-        declaredElement: <testLibraryFragment> T@14
+        declaredFragment: <testLibraryFragment> T@14
           defaultType: num
     rightBracket: >
   parameters: FormalParameterList
@@ -90,7 +90,7 @@ FunctionExpression
     block: Block
       leftBracket: {
       rightBracket: }
-  declaredElement: <testLibraryFragment> null@null
+  declaredFragment: <testLibraryFragment> null@null
     element: null@null
       type: Null Function<T extends num>()
   staticType: Null Function<T extends num>()
@@ -117,7 +117,7 @@ FormalParameterList
         element: dart:core::@class::int
         type: int
       name: x
-      declaredElement: <testLibraryFragment> x@14
+      declaredFragment: <testLibraryFragment> x@14
         element: isPublic
           type: int
     separator: =
@@ -125,7 +125,7 @@ FormalParameterList
       token: x
       element: <null>
       staticType: InvalidType
-    declaredElement: <testLibraryFragment> x@14
+    declaredFragment: <testLibraryFragment> x@14
       element: isPublic
         type: int
   rightDelimiter: }
