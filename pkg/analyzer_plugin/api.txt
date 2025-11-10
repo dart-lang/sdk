@@ -1682,8 +1682,7 @@ package:analyzer_plugin/utilities/assist/assist.dart:
     new (constructor: DartAssistRequest Function())
     result (getter: ResolvedUnitResult)
 package:analyzer_plugin/utilities/assist/assist_contributor_mixin.dart:
-  AssistContributorMixin (class extends Object implements AssistContributor):
-    new (constructor: AssistContributorMixin Function())
+  AssistContributorMixin (mixin on AssistContributor):
     collector (getter: AssistCollector)
     addAssist (method: void Function(AssistKind, ChangeBuilder, {List<Object>? args}))
 package:analyzer_plugin/utilities/change_builder/change_builder_core.dart:
