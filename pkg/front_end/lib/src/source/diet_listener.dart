@@ -346,8 +346,59 @@ class DietListener extends StackListenerImpl {
     Token beginToken,
     Token endToken,
   ) {
-    debugEvent("Fields");
-    buildFields(count, beginToken, false);
+    debugEvent("endClassFields");
+    _buildFields(count, beginToken, false);
+  }
+
+  @override
+  void endMixinFields(
+    Token? abstractToken,
+    Token? augmentToken,
+    Token? externalToken,
+    Token? staticToken,
+    Token? covariantToken,
+    Token? lateToken,
+    Token? varFinalOrConst,
+    int count,
+    Token beginToken,
+    Token endToken,
+  ) {
+    debugEvent("endMixinFields");
+    _buildFields(count, beginToken, false);
+  }
+
+  @override
+  void endExtensionFields(
+    Token? abstractToken,
+    Token? augmentToken,
+    Token? externalToken,
+    Token? staticToken,
+    Token? covariantToken,
+    Token? lateToken,
+    Token? varFinalOrConst,
+    int count,
+    Token beginToken,
+    Token endToken,
+  ) {
+    debugEvent("endExtensionFields");
+    _buildFields(count, beginToken, false);
+  }
+
+  @override
+  void endExtensionTypeFields(
+    Token? abstractToken,
+    Token? augmentToken,
+    Token? externalToken,
+    Token? staticToken,
+    Token? covariantToken,
+    Token? lateToken,
+    Token? varFinalOrConst,
+    int count,
+    Token beginToken,
+    Token endToken,
+  ) {
+    debugEvent("endExtensionTypeFields");
+    _buildFields(count, beginToken, false);
   }
 
   @override
@@ -420,7 +471,7 @@ class DietListener extends StackListenerImpl {
     Token endToken,
   ) {
     debugEvent("TopLevelFields");
-    buildFields(count, beginToken, true);
+    _buildFields(count, beginToken, true);
   }
 
   @override
@@ -688,6 +739,15 @@ class DietListener extends StackListenerImpl {
     Token factoryKeyword,
     Token endToken,
   ) {
+    debugEvent("ClassFactoryMethod");
+    _endClassFactoryMethod(beginToken, factoryKeyword, endToken);
+  }
+
+  void _endClassFactoryMethod(
+    Token beginToken,
+    Token factoryKeyword,
+    Token endToken,
+  ) {
     assert(
       checkState(beginToken, [
         /* bodyToken */ ValueKinds.Token,
@@ -695,7 +755,6 @@ class DietListener extends StackListenerImpl {
         /* metadata token */ ValueKinds.TokenOrNull,
       ]),
     );
-    debugEvent("ClassFactoryMethod");
     Token bodyToken = pop() as Token;
     Object? name = pop();
     Token? metadata = pop() as Token?;
@@ -844,6 +903,16 @@ class DietListener extends StackListenerImpl {
   }
 
   @override
+  void endMixinFactoryMethod(
+    Token beginToken,
+    Token factoryKeyword,
+    Token endToken,
+  ) {
+    debugEvent("endMixinFactoryMethod");
+    _endClassFactoryMethod(beginToken, factoryKeyword, endToken);
+  }
+
+  @override
   void endExtensionMethod(
     Token? getOrSet,
     Token beginToken,
@@ -930,7 +999,7 @@ class DietListener extends StackListenerImpl {
     }
   }
 
-  void buildFields(int count, Token token, bool isTopLevel) {
+  void _buildFields(int count, Token token, bool isTopLevel) {
     assert(
       checkState(
         token,
@@ -1242,6 +1311,54 @@ class DietListener extends StackListenerImpl {
   }
 
   @override
+  void endExtensionTypeConstructor(
+    Token? getOrSet,
+    Token beginToken,
+    Token beginParam,
+    Token? beginInitializers,
+    Token endToken,
+  ) {
+    debugEvent("endExtensionTypeConstructor");
+    _endClassMethod(
+      getOrSet,
+      beginToken,
+      beginParam,
+      beginInitializers,
+      endToken,
+      true,
+    );
+  }
+
+  @override
+  void endExtensionTypeMethod(
+    Token? getOrSet,
+    Token beginToken,
+    Token beginParam,
+    Token? beginInitializers,
+    Token endToken,
+  ) {
+    debugEvent("endExtensionTypeFactoryMethod");
+    _endClassMethod(
+      getOrSet,
+      beginToken,
+      beginParam,
+      beginInitializers,
+      endToken,
+      false,
+    );
+  }
+
+  @override
+  void endExtensionTypeFactoryMethod(
+    Token beginToken,
+    Token factoryKeyword,
+    Token endToken,
+  ) {
+    debugEvent("endExtensionTypeFactoryMethod");
+    _endClassFactoryMethod(beginToken, factoryKeyword, endToken);
+  }
+
+  @override
   void beginEnumBody(Token token) {
     assert(checkState(token, [ValueKinds.IdentifierOrParserRecovery]));
     debugEvent("EnumBody");
@@ -1332,6 +1449,16 @@ class DietListener extends StackListenerImpl {
   }
 
   @override
+  void endEnumFactoryMethod(
+    Token beginToken,
+    Token factoryKeyword,
+    Token endToken,
+  ) {
+    debugEvent("endEnumFactoryMethod");
+    _endClassFactoryMethod(beginToken, factoryKeyword, endToken);
+  }
+
+  @override
   void endEnumFields(
     Token? abstractToken,
     Token? augmentToken,
@@ -1345,7 +1472,7 @@ class DietListener extends StackListenerImpl {
     Token endToken,
   ) {
     debugEvent("Fields");
-    buildFields(count, beginToken, false);
+    _buildFields(count, beginToken, false);
   }
 
   @override

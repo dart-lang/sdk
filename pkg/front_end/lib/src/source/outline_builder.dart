@@ -3855,7 +3855,90 @@ class OutlineBuilder extends StackListenerImpl {
   }
 
   @override
+  void endExtensionFields(
+    Token? abstractToken,
+    Token? augmentToken,
+    Token? externalToken,
+    Token? staticToken,
+    Token? covariantToken,
+    Token? lateToken,
+    Token? varFinalOrConst,
+    int count,
+    Token beginToken,
+    Token endToken,
+  ) {
+    debugEvent("ExtensionFields");
+    _endClassFields(
+      abstractToken,
+      augmentToken,
+      externalToken,
+      staticToken,
+      covariantToken,
+      lateToken,
+      varFinalOrConst,
+      count,
+      beginToken,
+      endToken,
+    );
+  }
+
+  @override
+  void endMixinFields(
+    Token? abstractToken,
+    Token? augmentToken,
+    Token? externalToken,
+    Token? staticToken,
+    Token? covariantToken,
+    Token? lateToken,
+    Token? varFinalOrConst,
+    int count,
+    Token beginToken,
+    Token endToken,
+  ) {
+    debugEvent("MixinFields");
+    _endClassFields(
+      abstractToken,
+      augmentToken,
+      externalToken,
+      staticToken,
+      covariantToken,
+      lateToken,
+      varFinalOrConst,
+      count,
+      beginToken,
+      endToken,
+    );
+  }
+
+  @override
   void endClassFields(
+    Token? abstractToken,
+    Token? augmentToken,
+    Token? externalToken,
+    Token? staticToken,
+    Token? covariantToken,
+    Token? lateToken,
+    Token? varFinalOrConst,
+    int count,
+    Token beginToken,
+    Token endToken,
+  ) {
+    debugEvent("ClassFields");
+    _endClassFields(
+      abstractToken,
+      augmentToken,
+      externalToken,
+      staticToken,
+      covariantToken,
+      lateToken,
+      varFinalOrConst,
+      count,
+      beginToken,
+      endToken,
+    );
+  }
+
+  void _endClassFields(
     Token? abstractToken,
     Token? augmentToken,
     Token? externalToken,
@@ -3880,7 +3963,6 @@ class OutlineBuilder extends StackListenerImpl {
         /* metadata = */ ValueKinds.MetadataListOrNull,
       ]),
     );
-    debugEvent("Fields");
     if (staticToken != null && abstractToken != null) {
       handleRecoverableError(
         codeAbstractStaticField,
@@ -4344,6 +4426,45 @@ class OutlineBuilder extends StackListenerImpl {
     debugEvent("endExtensionFactoryMethod");
 
     _endFactoryMethod(beginToken, factoryKeyword, endToken);
+  }
+
+  @override
+  void endExtensionTypeFactoryMethod(
+    Token beginToken,
+    Token factoryKeyword,
+    Token endToken,
+  ) {
+    debugEvent("endExtensionTypeFactoryMethod");
+
+    _endFactoryMethod(beginToken, factoryKeyword, endToken);
+  }
+
+  @override
+  void endExtensionTypeFields(
+    Token? abstractToken,
+    Token? augmentToken,
+    Token? externalToken,
+    Token? staticToken,
+    Token? covariantToken,
+    Token? lateToken,
+    Token? varFinalOrConst,
+    int count,
+    Token beginToken,
+    Token endToken,
+  ) {
+    debugEvent("endExtensionTypeFields");
+    _endClassFields(
+      abstractToken,
+      augmentToken,
+      externalToken,
+      staticToken,
+      covariantToken,
+      lateToken,
+      varFinalOrConst,
+      count,
+      beginToken,
+      endToken,
+    );
   }
 
   @override
