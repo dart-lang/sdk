@@ -4,6 +4,7 @@
 
 import 'package:analysis_server/src/services/correction/assist.dart';
 import 'package:analyzer_plugin/utilities/assist/assist.dart';
+import 'package:linter/src/lint_names.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'assist_processor.dart';
@@ -417,6 +418,44 @@ class A {
   int? i;
 
   A(this.i) : assert(i != null);
+}
+''');
+  }
+
+  Future<void> test_with_ordering_lint() async {
+    createAnalysisOptionsFile(lints: [LintNames.sort_constructors_first]);
+
+    await resolveTestCode('''
+class A {
+  A(int ^i);
+}
+''');
+    await assertHasAssist('''
+class A {
+  A(this.i);
+
+  int i;
+}
+''');
+  }
+
+  Future<void> test_with_ordering_lint_existing_fields() async {
+    createAnalysisOptionsFile(lints: [LintNames.sort_constructors_first]);
+
+    await resolveTestCode('''
+class A {
+  A(int ^i);
+
+  int k = 0;
+}
+''');
+    await assertHasAssist('''
+class A {
+  A(this.i);
+
+  int k = 0;
+
+  int i;
 }
 ''');
   }
