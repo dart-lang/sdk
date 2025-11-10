@@ -21820,7 +21820,7 @@ ParserErrorCode:
   PRIVATE_NAMED_NON_FIELD_PARAMETER:
     parameters: none
     problemMessage: "Named parameters that don't refer to instance variables can't start with underscore."
-    hasPublishedDocs: false
+    hasPublishedDocs: true
     documentation: |-
       #### Description
 
@@ -24106,7 +24106,7 @@ WarningCode:
       Object typeName: the name of the type
     problemMessage: "Mixing in '#typeName' is deprecated."
     correctionMessage: Try removing '#typeName' from the 'with' clause.
-    hasPublishedDocs: false
+    hasPublishedDocs: true
     documentation: |-
       #### Description
 
@@ -24154,7 +24154,7 @@ WarningCode:
       Object parameterName: the name of the parameter
     problemMessage: "Omitting an argument for the '#parameterName' parameter is deprecated."
     correctionMessage: Try passing an argument for '#parameterName'.
-    hasPublishedDocs: false
+    hasPublishedDocs: true
     documentation: |-
       #### Description
 
@@ -24796,7 +24796,7 @@ WarningCode:
       String p0: the name of the collection
     problemMessage: "The type argument(s) of '#p0' can't be inferred."
     correctionMessage: "Use explicit type argument(s) for '#p0'."
-    hasPublishedDocs: false
+    hasPublishedDocs: true
     comment: |-
       When "strict-inference" is enabled, collection literal types must be
       inferred via the context type, or have type arguments.
@@ -24844,7 +24844,7 @@ WarningCode:
       String p0: the name of the function
     problemMessage: "The type argument(s) of the function '#p0' can't be inferred."
     correctionMessage: "Use explicit type argument(s) for '#p0'."
-    hasPublishedDocs: false
+    hasPublishedDocs: true
     comment: |-
       When "strict-inference" is enabled, types in function invocations must be
       inferred via the context type, or have type arguments.
@@ -24899,7 +24899,7 @@ WarningCode:
                  inferred
     problemMessage: "The return type of '#p0' can't be inferred."
     correctionMessage: "Declare the return type of '#p0'."
-    hasPublishedDocs: false
+    hasPublishedDocs: true
     comment: |-
       When "strict-inference" is enabled, recursive local functions, top-level
       functions, methods, and function-typed function parameters must all
@@ -24948,7 +24948,7 @@ WarningCode:
       String p0: the name of the type
     problemMessage: "The type argument(s) of the generic function type '#p0' can't be inferred."
     correctionMessage: "Use explicit type argument(s) for '#p0'."
-    hasPublishedDocs: false
+    hasPublishedDocs: true
     comment: |-
       When "strict-inference" is enabled, types in function invocations must be
       inferred via the context type, or have type arguments.
@@ -24957,7 +24957,7 @@ WarningCode:
       String p0: the name of the constructor
     problemMessage: "The type argument(s) of the constructor '#p0' can't be inferred."
     correctionMessage: "Use explicit type argument(s) for '#p0'."
-    hasPublishedDocs: false
+    hasPublishedDocs: true
     comment: |-
       When "strict-inference" is enabled, types in instance creation
       (constructor calls) must be inferred via the context type, or have type
@@ -24967,7 +24967,7 @@ WarningCode:
       String p0: the name of the variable
     problemMessage: "The type of #p0 can't be inferred without either a type or initializer."
     correctionMessage: Try specifying the type of the variable.
-    hasPublishedDocs: false
+    hasPublishedDocs: true
     comment: |-
       When "strict-inference" in enabled, uninitialized variables must be
       declared with a specific type.
@@ -25206,7 +25206,7 @@ WarningCode:
     parameters: none
     problemMessage: "The annotation '@Deprecated.mixin' can only be applied to classes."
     correctionMessage: Try removing the '@Deprecated.mixin' annotation.
-    hasPublishedDocs: false
+    hasPublishedDocs: true
     comment: |-
       This warning is generated anywhere where `@Deprecated.mixin` annotates
       something other than a mixin class.
@@ -27189,7 +27189,7 @@ WarningCode:
       Type p1: the required pattern type
     problemMessage: "The matched value type '#p0' can never match the required type '#p1'."
     correctionMessage: "Try using a different pattern."
-    hasPublishedDocs: false
+    hasPublishedDocs: true
     documentation: |-
       #### Description
 
@@ -27309,7 +27309,7 @@ WarningCode:
       Object p1: the SDK version in which the lint was removed
     problemMessage: "'#p0' was removed in Dart '#p1'"
     correctionMessage: "Remove the reference to '#p0'."
-    hasPublishedDocs: false
+    hasPublishedDocs: true
     comment: |-
       An error code indicating use of a removed lint rule.
     documentation: |-
@@ -28412,7 +28412,7 @@ WarningCode:
     parameters: none
     problemMessage: Unnecessary cast pattern.
     correctionMessage: Try removing the cast pattern.
-    hasPublishedDocs: false
+    hasPublishedDocs: true
     documentation: |-
       #### Description
 

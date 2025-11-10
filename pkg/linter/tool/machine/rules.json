@@ -143,7 +143,7 @@
     "state": "stable",
     "incompatible": [],
     "sets": [],
-    "fixStatus": "needsFix",
+    "fixStatus": "hasFix",
     "details": "**AVOID** `bool` literals in conditional expressions.\n\n**BAD:**\n```dart\ncondition ? true : boolExpression\ncondition ? false : boolExpression\ncondition ? boolExpression : true\ncondition ? boolExpression : false\n```\n\n**GOOD:**\n```dart\ncondition || boolExpression\n!condition && boolExpression\n!condition || boolExpression\ncondition && boolExpression\n```",
     "sinceDartSdk": "2.0"
   },
@@ -2274,6 +2274,19 @@
     "fixStatus": "noFix",
     "details": "**DON'T** create recursive getters.\n\nRecursive getters are getters which return themselves as a value.  This is\nusually a typo.\n\n**BAD:**\n```dart\nint get field => field; // LINT\n```\n\n**BAD:**\n```dart\nint get otherField {\n  return otherField; // LINT\n}\n```\n\n**GOOD:**\n```dart\nint get field => _field;\n```",
     "sinceDartSdk": "2.0"
+  },
+  {
+    "name": "remove_deprecations_in_breaking_versions",
+    "description": "Deprecation in major version.",
+    "categories": [
+      "publicInterface"
+    ],
+    "state": "stable",
+    "incompatible": [],
+    "sets": [],
+    "fixStatus": "needsFix",
+    "details": "**DO** Remove deprecated elements in breaking version numbers.\nBreaking version numbers are on the form `x.0.0` or `0.x.0`.\n\nFor example given a package with a `pubspec.yaml` file containing:\n\n```yaml\nname: p\nversion: 2.0.0\nenvironment:\n  sdk: ^3.9.0\n```\n\n**BAD:**\n```dart\n@deprecated\nvoid f() {}\n```\n\n**GOOD:**\n```dart\n// (f is removed).\n```\n\n**GOOD:**\n```yaml\nname: p\nversion: 1.0.1\nenvironment:\n  sdk: ^3.9.0\n```",
+    "sinceDartSdk": "3.10"
   },
   {
     "name": "require_trailing_commas",

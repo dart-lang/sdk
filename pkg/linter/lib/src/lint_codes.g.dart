@@ -2652,6 +2652,7 @@ class LinterLintCode extends LintCodeWithExpectedTypes {
         name: LintNames.remove_deprecations_in_breaking_versions,
         problemMessage: "Remove deprecated elements in breaking versions.",
         correctionMessage: "Try removing the deprecated element.",
+        hasPublishedDocs: true,
         uniqueName: 'LintCode.remove_deprecations_in_breaking_versions',
         expectedTypes: [],
       );

@@ -2622,6 +2622,7 @@ class ParserErrorCode extends DiagnosticCodeWithExpectedTypes {
     problemMessage:
         "Named parameters that don't refer to instance variables can't start with "
         "underscore.",
+    hasPublishedDocs: true,
     uniqueName: 'ParserErrorCode.PRIVATE_NAMED_NON_FIELD_PARAMETER',
     expectedTypes: [],
   );
