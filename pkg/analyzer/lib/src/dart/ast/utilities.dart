@@ -5,6 +5,7 @@
 /// @docImport 'package:analyzer/src/lint/linter_visitor.dart';
 library;
 
+import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/exception/exception.dart';
@@ -66,9 +67,17 @@ class NodeLocator2 extends UnifyingAstVisitor<void> {
   void visitClassDeclaration(ClassDeclaration node) {
     // Names do not have AstNodes but offsets at the end should be treated as
     // part of the declaration (not parameter list).
-    if (_startOffset == _endOffset && _startOffset == node.name.end) {
-      _foundNode = node;
-      return;
+    if (useDeclaringConstructorsAst) {
+      if (_startOffset == _endOffset &&
+          _startOffset == node.namePart.typeName.end) {
+        _foundNode = node;
+        return;
+      }
+    } else {
+      if (_startOffset == _endOffset && _startOffset == node.name.end) {
+        _foundNode = node;
+        return;
+      }
     }
 
     super.visitClassDeclaration(node);
