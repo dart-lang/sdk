@@ -751,6 +751,10 @@ class FindNode {
     return _node(search, (n) => n is RelationalPattern);
   }
 
+  RestPatternElement restPatternElement(String search) {
+    return _node(search, (n) => n is RestPatternElement);
+  }
+
   RethrowExpression rethrow_(String search) {
     return _node(search, (n) => n is RethrowExpression);
   }

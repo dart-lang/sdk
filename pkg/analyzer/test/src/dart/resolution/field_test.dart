@@ -43,9 +43,9 @@ FieldDeclaration
         initializer: SuperExpression
           superKeyword: super
           staticType: A
-        declaredElement: <testLibraryFragment> f@24
+        declaredFragment: <testLibraryFragment> f@24
   semicolon: ;
-  declaredElement: <null>
+  declaredFragment: <null>
 ''');
   }
 
@@ -72,9 +72,9 @@ FieldDeclaration
         initializer: ThisExpression
           thisKeyword: this
           staticType: A
-        declaredElement: <testLibraryFragment> f@24
+        declaredFragment: <testLibraryFragment> f@24
   semicolon: ;
-  declaredElement: <null>
+  declaredFragment: <null>
 ''');
   }
 
@@ -106,9 +106,9 @@ FieldDeclaration
           token: a
           element: <testLibrary>::@class::A::@getter::a
           staticType: int
-        declaredElement: <testLibraryFragment> b@41
+        declaredFragment: <testLibraryFragment> b@41
   semicolon: ;
-  declaredElement: <null>
+  declaredFragment: <null>
 ''');
   }
 
@@ -140,9 +140,9 @@ FieldDeclaration
           token: a
           element: <testLibrary>::@class::A::@getter::a
           staticType: int
-        declaredElement: <testLibraryFragment> b@40
+        declaredFragment: <testLibraryFragment> b@40
   semicolon: ;
-  declaredElement: <null>
+  declaredFragment: <null>
 ''');
   }
 
@@ -180,9 +180,9 @@ FieldDeclaration
             rightParenthesis: )
           staticInvokeType: int Function()
           staticType: int
-        declaredElement: <testLibraryFragment> b@38
+        declaredFragment: <testLibraryFragment> b@38
   semicolon: ;
-  declaredElement: <null>
+  declaredFragment: <null>
 ''');
   }
 
@@ -208,9 +208,9 @@ FieldDeclaration
         initializer: ThisExpression
           thisKeyword: this
           staticType: A
-        declaredElement: <testLibraryFragment> a@18
+        declaredFragment: <testLibraryFragment> a@18
   semicolon: ;
-  declaredElement: <null>
+  declaredFragment: <null>
 ''');
   }
 
@@ -291,9 +291,9 @@ FieldDeclaration
           leftBracket: [
           rightBracket: ]
           staticType: List<T>
-        declaredElement: <testLibraryFragment> f@19
+        declaredFragment: <testLibraryFragment> f@19
   semicolon: ;
-  declaredElement: <null>
+  declaredFragment: <null>
 ''');
   }
 }

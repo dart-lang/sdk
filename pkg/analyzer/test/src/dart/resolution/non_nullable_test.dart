@@ -67,9 +67,9 @@ FieldDeclaration
     variables
       VariableDeclaration
         name: f
-        declaredElement: <testLibraryFragment> f@51
+        declaredFragment: <testLibraryFragment> f@51
   semicolon: ;
-  declaredElement: <null>
+  declaredFragment: <null>
 ''');
   }
 
@@ -270,7 +270,7 @@ FormalParameterList
     parameters: FormalParameterList
       leftParenthesis: (
       rightParenthesis: )
-    declaredElement: <testLibraryFragment> p1@13
+    declaredFragment: <testLibraryFragment> p1@13
       element: isPublic
         type: void Function()
   rightParenthesis: )
@@ -290,7 +290,7 @@ FormalParameterList
       leftParenthesis: (
       rightParenthesis: )
     question: ?
-    declaredElement: <testLibraryFragment> p2@35
+    declaredFragment: <testLibraryFragment> p2@35
       element: isPublic
         type: void Function()?
   rightParenthesis: )
@@ -312,10 +312,10 @@ FormalParameterList
         leftParenthesis: (
         rightParenthesis: )
       question: ?
-      declaredElement: <testLibraryFragment> p3@59
+      declaredFragment: <testLibraryFragment> p3@59
         element: isPublic
           type: void Function()?
-    declaredElement: <testLibraryFragment> p3@59
+    declaredFragment: <testLibraryFragment> p3@59
       element: isPublic
         type: void Function()?
   rightDelimiter: }
@@ -350,7 +350,7 @@ FormalParameterList
     parameters: FormalParameterList
       leftParenthesis: (
       rightParenthesis: )
-    declaredElement: <testLibraryFragment> f1@57
+    declaredFragment: <testLibraryFragment> f1@57
       element: isFinal isPublic
         type: void Function()
   rightParenthesis: )
@@ -372,7 +372,7 @@ FormalParameterList
       leftParenthesis: (
       rightParenthesis: )
     question: ?
-    declaredElement: <testLibraryFragment> f2@81
+    declaredFragment: <testLibraryFragment> f2@81
       element: isFinal isPublic
         type: void Function()?
   rightParenthesis: )
@@ -396,10 +396,10 @@ FormalParameterList
         leftParenthesis: (
         rightParenthesis: )
       question: ?
-      declaredElement: <testLibraryFragment> f3@107
+      declaredFragment: <testLibraryFragment> f3@107
         element: isFinal isPublic
           type: void Function()?
-    declaredElement: <testLibraryFragment> f3@107
+    declaredFragment: <testLibraryFragment> f3@107
       element: isFinal isPublic
         type: void Function()?
   rightDelimiter: }
@@ -436,7 +436,7 @@ FormalParameterList
     parameters: FormalParameterList
       leftParenthesis: (
       rightParenthesis: )
-    declaredElement: <testLibraryFragment> p1@21
+    declaredFragment: <testLibraryFragment> p1@21
       element: isPublic
         type: void Function()
   rightParenthesis: )
@@ -456,7 +456,7 @@ FormalParameterList
       leftParenthesis: (
       rightParenthesis: )
     question: ?
-    declaredElement: <testLibraryFragment> p2@45
+    declaredFragment: <testLibraryFragment> p2@45
       element: isPublic
         type: void Function()?
   rightParenthesis: )
@@ -478,10 +478,10 @@ FormalParameterList
         leftParenthesis: (
         rightParenthesis: )
       question: ?
-      declaredElement: <testLibraryFragment> p3@71
+      declaredFragment: <testLibraryFragment> p3@71
         element: isPublic
           type: void Function()?
-    declaredElement: <testLibraryFragment> p3@71
+    declaredFragment: <testLibraryFragment> p3@71
       element: isPublic
         type: void Function()?
   rightDelimiter: }

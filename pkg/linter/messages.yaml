@@ -10918,7 +10918,7 @@ LinterLintCode:
     state:
       stable: "3.10"
     categories: [publicInterface]
-    hasPublishedDocs: false
+    hasPublishedDocs: true
     documentation: |-
       #### Description
 

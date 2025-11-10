@@ -2377,7 +2377,7 @@ library
                               parameters: FormalParameterList
                                 leftParenthesis: ( @94
                                 rightParenthesis: ) @95
-                              declaredElement: GenericFunctionTypeElement
+                              declaredFragment: GenericFunctionTypeElement
                                 parameters
                                 returnType: dynamic
                                 type: dynamic Function()
@@ -7992,11 +7992,11 @@ library
                                   element: dart:core::@class::double
                                   type: double
                                 name: a @78
-                                declaredElement: <testLibraryFragment> a@78
+                                declaredFragment: <testLibraryFragment> a@78
                                   element: isPublic
                                     type: double
                               rightParenthesis: ) @79
-                            declaredElement: GenericFunctionTypeElement
+                            declaredFragment: GenericFunctionTypeElement
                               parameters
                                 a
                                   kind: required positional

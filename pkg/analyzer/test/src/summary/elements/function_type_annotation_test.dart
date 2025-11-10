@@ -409,11 +409,11 @@ library
                           element: dart:core::@class::String
                           type: String
                         name: a @52
-                        declaredElement: <testLibraryFragment> a@52
+                        declaredFragment: <testLibraryFragment> a@52
                           element: isPublic
                             type: String
                       rightParenthesis: ) @53
-                    declaredElement: GenericFunctionTypeElement
+                    declaredFragment: GenericFunctionTypeElement
                       parameters
                         a
                           kind: required positional
@@ -477,11 +477,11 @@ library
                       element: dart:core::@class::String
                       type: String
                     name: a @52
-                    declaredElement: <testLibraryFragment> a@52
+                    declaredFragment: <testLibraryFragment> a@52
                       element: isPublic
                         type: String
                   rightParenthesis: ) @53
-                declaredElement: GenericFunctionTypeElement
+                declaredFragment: GenericFunctionTypeElement
                   parameters
                     a
                       kind: required positional
@@ -572,15 +572,15 @@ library
                                 element: dart:core::@class::int
                                 type: int?
                               name: a @63
-                              declaredElement: <testLibraryFragment> a@63
+                              declaredFragment: <testLibraryFragment> a@63
                                 element: isPublic
                                   type: int?
-                            declaredElement: <testLibraryFragment> a@63
+                            declaredFragment: <testLibraryFragment> a@63
                               element: isPublic
                                 type: int?
                           rightDelimiter: } @64
                           rightParenthesis: ) @65
-                        declaredElement: GenericFunctionTypeElement
+                        declaredFragment: GenericFunctionTypeElement
                           parameters
                             a
                               kind: optional named
@@ -684,15 +684,15 @@ library
                                 element: dart:core::@class::int
                                 type: int?
                               name: a @63
-                              declaredElement: <testLibraryFragment> a@63
+                              declaredFragment: <testLibraryFragment> a@63
                                 element: isPublic
                                   type: int?
-                            declaredElement: <testLibraryFragment> a@63
+                            declaredFragment: <testLibraryFragment> a@63
                               element: isPublic
                                 type: int?
                           rightDelimiter: ] @64
                           rightParenthesis: ) @65
-                        declaredElement: GenericFunctionTypeElement
+                        declaredFragment: GenericFunctionTypeElement
                           parameters
                             a
                               kind: optional positional
@@ -796,15 +796,15 @@ library
                                 element: dart:core::@class::int
                                 type: int
                               name: a @71
-                              declaredElement: <testLibraryFragment> a@71
+                              declaredFragment: <testLibraryFragment> a@71
                                 element: isPublic
                                   type: int
-                            declaredElement: <testLibraryFragment> a@71
+                            declaredFragment: <testLibraryFragment> a@71
                               element: isPublic
                                 type: int
                           rightDelimiter: } @72
                           rightParenthesis: ) @73
-                        declaredElement: GenericFunctionTypeElement
+                        declaredFragment: GenericFunctionTypeElement
                           parameters
                             a
                               kind: required named
@@ -905,11 +905,11 @@ library
                               element: dart:core::@class::int
                               type: int
                             name: a @61
-                            declaredElement: <testLibraryFragment> a@61
+                            declaredFragment: <testLibraryFragment> a@61
                               element: isPublic
                                 type: int
                           rightParenthesis: ) @62
-                        declaredElement: GenericFunctionTypeElement
+                        declaredFragment: GenericFunctionTypeElement
                           parameters
                             a
                               kind: required positional

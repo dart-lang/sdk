@@ -260,35 +260,6 @@ sealed class Conversion {
   String? toCode({required String name, required DiagnosticParameterType type});
 }
 
-/// Information about a class derived from `DiagnosticCode`.
-class DiagnosticClassInfo {
-  static final Map<String, DiagnosticClassInfo> _diagnosticClassesByName = () {
-    var result = <String, DiagnosticClassInfo>{};
-    for (var info in diagnosticClasses) {
-      if (result.containsKey(info.name)) {
-        throw 'Duplicate diagnostic class name: ${json.encode(info.name)}';
-      }
-      result[info.name] = info;
-    }
-    return result;
-  }();
-
-  static String get _allDiagnosticClassNames =>
-      (_diagnosticClassesByName.keys.toList()..sort())
-          .map(json.encode)
-          .join(', ');
-
-  /// The name of this class.
-  final String name;
-
-  const DiagnosticClassInfo({required this.name});
-
-  static DiagnosticClassInfo byName(String name) =>
-      _diagnosticClassesByName[name] ??
-      (throw 'No diagnostic class named ${json.encode(name)}. Possible names: '
-          '$_allDiagnosticClassNames');
-}
-
 /// In-memory representation of a single key/value pair from the `parameters`
 /// map for a diagnostic.
 class DiagnosticParameter {
@@ -478,9 +449,7 @@ class DiagnosticTables {
                 [])
             .add(message);
         var diagnosticClass = analyzerCode.diagnosticClass;
-        if (diagnosticClass is GeneratedDiagnosticClassInfo &&
-            !message.isRemoved &&
-            message is! AliasMessage) {
+        if (!message.isRemoved && message is! AliasMessage) {
           (activeMessagesByPackage[diagnosticClass.package] ??= []).add(
             message,
           );
@@ -536,53 +505,6 @@ class FrontEndMessage extends CfeStyleMessage {
 
   FrontEndMessage(super.messageYaml)
     : pseudoSharedCode = messageYaml.getOptionalString('pseudoSharedCode');
-}
-
-/// Information about a code generated class derived from `DiagnosticCode`.
-class GeneratedDiagnosticClassInfo extends DiagnosticClassInfo {
-  /// The generated file containing this class.
-  final GeneratedDiagnosticFile file;
-
-  /// The type of diagnostics in this class.
-  final String type;
-
-  /// The names of any diagnostics which are relied upon by analyzer clients,
-  /// and therefore will need their "snake case" form preserved (with a
-  /// deprecation notice) after migration to camel case diagnostic codes.
-  final Set<String> deprecatedSnakeCaseNames;
-
-  /// The package into which the diagnostic codes will be generated.
-  final AnalyzerDiagnosticPackage package;
-
-  /// Documentation comment to generate for the diagnostic class.
-  ///
-  /// If no documentation comment is needed, this should be the empty string.
-  final String comment;
-
-  const GeneratedDiagnosticClassInfo({
-    required this.file,
-    required super.name,
-    required this.type,
-    this.deprecatedSnakeCaseNames = const {},
-    this.package = AnalyzerDiagnosticPackage.analyzer,
-    this.comment = '',
-  });
-
-  String get templateName => '${_baseName}Template';
-
-  /// Generates the code to compute the type of diagnostics of this class.
-  String get typeCode => 'DiagnosticType.$type';
-
-  String get withoutArgumentsName => '${_baseName}WithoutArguments';
-
-  String get _baseName {
-    const suffix = 'Code';
-    if (name.endsWith(suffix)) {
-      return name.substring(0, name.length - suffix.length);
-    } else {
-      throw "Can't infer base name for class $name";
-    }
-  }
 }
 
 /// Representation of a single file containing generated diagnostics.

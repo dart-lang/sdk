@@ -3468,7 +3468,7 @@ FunctionDeclaration
       typeParameters
         TypeParameter
           name: T
-          declaredElement: <testLibraryFragment> T@4
+          declaredFragment: <testLibraryFragment> T@4
             defaultType: dynamic
       rightBracket: >
     parameters: FormalParameterList
@@ -3479,7 +3479,7 @@ FunctionDeclaration
           element: #E0 T
           type: T
         name: x
-        declaredElement: <testLibraryFragment> x@9
+        declaredFragment: <testLibraryFragment> x@9
           element: isPublic
             type: T
       rightParenthesis: )
@@ -3489,11 +3489,11 @@ FunctionDeclaration
         literal: null
         staticType: Null
       semicolon: ;
-    declaredElement: <testLibraryFragment> f@2
+    declaredFragment: <testLibraryFragment> f@2
       element: <testLibrary>::@function::f
         type: T Function<T>(T)
     staticType: T Function<T>(T)
-  declaredElement: <testLibraryFragment> f@2
+  declaredFragment: <testLibraryFragment> f@2
     element: <testLibrary>::@function::f
       type: T Function<T>(T)
 ''');
@@ -3523,7 +3523,7 @@ FunctionDeclaration
             name: num
             element: dart:core::@class::num
             type: num
-          declaredElement: <testLibraryFragment> T@4
+          declaredFragment: <testLibraryFragment> T@4
             defaultType: num
       rightBracket: >
     parameters: FormalParameterList
@@ -3534,7 +3534,7 @@ FunctionDeclaration
           element: #E0 T
           type: T
         name: x
-        declaredElement: <testLibraryFragment> x@21
+        declaredFragment: <testLibraryFragment> x@21
           element: isPublic
             type: T
       rightParenthesis: )
@@ -3544,11 +3544,11 @@ FunctionDeclaration
         literal: null
         staticType: Null
       semicolon: ;
-    declaredElement: <testLibraryFragment> f@2
+    declaredFragment: <testLibraryFragment> f@2
       element: <testLibrary>::@function::f
         type: T Function<T extends num>(T)
     staticType: T Function<T extends num>(T)
-  declaredElement: <testLibraryFragment> f@2
+  declaredFragment: <testLibraryFragment> f@2
     element: <testLibrary>::@function::f
       type: T Function<T extends num>(T)
 ''');
@@ -3588,7 +3588,7 @@ MethodDeclaration
     typeParameters
       TypeParameter
         name: T
-        declaredElement: <testLibraryFragment> T@26
+        declaredFragment: <testLibraryFragment> T@26
           defaultType: dynamic
     rightBracket: >
   parameters: FormalParameterList
@@ -3599,7 +3599,7 @@ MethodDeclaration
         element: #E0 T
         type: T
       name: x
-      declaredElement: <testLibraryFragment> x@31
+      declaredFragment: <testLibraryFragment> x@31
         element: isPublic
           type: T
     rightParenthesis: )
@@ -3609,7 +3609,7 @@ MethodDeclaration
       literal: null
       staticType: Null
     semicolon: ;
-  declaredElement: <testLibraryFragment> f@24
+  declaredFragment: <testLibraryFragment> f@24
     element: <testLibrary>::@class::C::@method::f
       type: T Function<T>(T)
 ''');
@@ -4098,7 +4098,7 @@ MethodInvocation
           leftParenthesis: (
           parameter: SimpleFormalParameter
             name: e
-            declaredElement: <testLibraryFragment> e@93
+            declaredFragment: <testLibraryFragment> e@93
               element: hasImplicitType isPublic
                 type: dynamic
           rightParenthesis: )
@@ -4108,7 +4108,7 @@ MethodInvocation
             token: e
             element: e@93
             staticType: dynamic
-        declaredElement: <testLibraryFragment> null@null
+        declaredFragment: <testLibraryFragment> null@null
           element: null@null
             type: dynamic Function(dynamic)
         correspondingParameter: ParameterMember
@@ -4144,7 +4144,7 @@ MethodInvocation
           leftParenthesis: (
           parameter: SimpleFormalParameter
             name: e
-            declaredElement: <testLibraryFragment> e@115
+            declaredFragment: <testLibraryFragment> e@115
               element: hasImplicitType isPublic
                 type: dynamic
           rightParenthesis: )
@@ -4153,7 +4153,7 @@ MethodInvocation
           expression: IntegerLiteral
             literal: 3
             staticType: int
-        declaredElement: <testLibraryFragment> null@null
+        declaredFragment: <testLibraryFragment> null@null
           element: null@null
             type: int Function(dynamic)
         correspondingParameter: ParameterMember
@@ -4448,7 +4448,7 @@ MethodDeclaration
     typeParameters
       TypeParameter
         name: T
-        declaredElement: <testLibraryFragment> T@61
+        declaredFragment: <testLibraryFragment> T@61
           defaultType: dynamic
     rightBracket: >
   parameters: FormalParameterList
@@ -4459,7 +4459,7 @@ MethodDeclaration
         element: #E0 T
         type: T
       name: y
-      declaredElement: <testLibraryFragment> y@66
+      declaredFragment: <testLibraryFragment> y@66
         element: isPublic
           type: T
     rightParenthesis: )
@@ -4469,7 +4469,7 @@ MethodDeclaration
       literal: null
       staticType: Null
     semicolon: ;
-  declaredElement: <testLibraryFragment> f@59
+  declaredFragment: <testLibraryFragment> f@59
     element: <testLibrary>::@class::D::@method::f
       type: T Function<T>(T)
 ''');

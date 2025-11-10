@@ -40,7 +40,7 @@ ExtensionTypeDeclaration
     constructorFragment: <testLibraryFragment> named@17
   leftBracket: {
   rightBracket: }
-  declaredElement: <testLibraryFragment> A@15
+  declaredFragment: <testLibraryFragment> A@15
 ''');
   }
 
@@ -82,17 +82,17 @@ ExtensionTypeDeclaration
           thisKeyword: this
           period: .
           name: it
-          declaredElement: <testLibraryFragment> it@42
+          declaredFragment: <testLibraryFragment> it@42
             element: hasImplicitType isFinal isPublic
               type: int
         rightParenthesis: )
       body: EmptyFunctionBody
         semicolon: ;
-      declaredElement: <testLibraryFragment> named@31
+      declaredFragment: <testLibraryFragment> named@31
         element: <testLibrary>::@extensionType::A::@constructor::named
           type: A Function(int)
   rightBracket: }
-  declaredElement: <testLibraryFragment> A@15
+  declaredFragment: <testLibraryFragment> A@15
 ''');
   }
 
@@ -137,7 +137,7 @@ ExtensionTypeDeclaration
             element: dart:core::@class::int
             type: int
           name: a
-          declaredElement: <testLibraryFragment> a@47
+          declaredFragment: <testLibraryFragment> a@47
             element: isPublic
               type: int
         rightParenthesis: )
@@ -155,11 +155,11 @@ ExtensionTypeDeclaration
             staticType: int
       body: EmptyFunctionBody
         semicolon: ;
-      declaredElement: <testLibraryFragment> named@37
+      declaredFragment: <testLibraryFragment> named@37
         element: <testLibrary>::@extensionType::A::@constructor::named
           type: A Function(int)
   rightBracket: }
-  declaredElement: <testLibraryFragment> A@15
+  declaredFragment: <testLibraryFragment> A@15
 ''');
   }
 
@@ -186,7 +186,7 @@ ExtensionTypeDeclaration
     constructorFragment: <testLibraryFragment> new@null
   leftBracket: {
   rightBracket: }
-  declaredElement: <testLibraryFragment> A@15
+  declaredFragment: <testLibraryFragment> A@15
 ''');
   }
 
@@ -220,7 +220,7 @@ ExtensionTypeDeclaration
         type: num
   leftBracket: {
   rightBracket: }
-  declaredElement: <testLibraryFragment> A@15
+  declaredFragment: <testLibraryFragment> A@15
 ''');
   }
 
@@ -247,7 +247,7 @@ MethodDeclaration
     typeParameters
       TypeParameter
         name: U
-        declaredElement: <testLibraryFragment> U@41
+        declaredFragment: <testLibraryFragment> U@41
           defaultType: dynamic
     rightBracket: >
   parameters: FormalParameterList
@@ -258,7 +258,7 @@ MethodDeclaration
         element: #E0 T
         type: T
       name: t
-      declaredElement: <testLibraryFragment> t@46
+      declaredFragment: <testLibraryFragment> t@46
         element: isPublic
           type: T
     parameter: SimpleFormalParameter
@@ -267,7 +267,7 @@ MethodDeclaration
         element: #E1 U
         type: U
       name: u
-      declaredElement: <testLibraryFragment> u@51
+      declaredFragment: <testLibraryFragment> u@51
         element: isPublic
           type: U
     rightParenthesis: )
@@ -288,7 +288,7 @@ MethodDeclaration
             staticType: Type
           semicolon: ;
       rightBracket: }
-  declaredElement: <testLibraryFragment> foo@37
+  declaredFragment: <testLibraryFragment> foo@37
     element: <testLibrary>::@extensionType::A::@method::foo
       type: void Function<U>(T, U)
 ''');
@@ -310,11 +310,11 @@ ExtensionTypeDeclaration
     typeParameters
       TypeParameter
         name: T
-        declaredElement: <testLibraryFragment> T@17
+        declaredFragment: <testLibraryFragment> T@17
           defaultType: dynamic
       TypeParameter
         name: U
-        declaredElement: <testLibraryFragment> U@20
+        declaredFragment: <testLibraryFragment> U@20
           defaultType: dynamic
     rightBracket: >
   representation: RepresentationDeclaration
@@ -341,7 +341,7 @@ ExtensionTypeDeclaration
     constructorFragment: <testLibraryFragment> new@null
   leftBracket: {
   rightBracket: }
-  declaredElement: <testLibraryFragment> A@15
+  declaredFragment: <testLibraryFragment> A@15
 ''');
   }
 
@@ -361,11 +361,11 @@ ExtensionTypeDeclaration
     typeParameters
       TypeParameter
         name: _
-        declaredElement: <testLibraryFragment> _@18
+        declaredFragment: <testLibraryFragment> _@18
           defaultType: dynamic
       TypeParameter
         name: _
-        declaredElement: <testLibraryFragment> _@21
+        declaredFragment: <testLibraryFragment> _@21
           defaultType: dynamic
       TypeParameter
         name: _
@@ -374,7 +374,7 @@ ExtensionTypeDeclaration
           name: num
           element: dart:core::@class::num
           type: num
-        declaredElement: <testLibraryFragment> _@24
+        declaredFragment: <testLibraryFragment> _@24
           defaultType: num
     rightBracket: >
   representation: RepresentationDeclaration
@@ -389,7 +389,7 @@ ExtensionTypeDeclaration
     constructorFragment: <testLibraryFragment> new@null
   leftBracket: {
   rightBracket: }
-  declaredElement: <testLibraryFragment> ET@15
+  declaredFragment: <testLibraryFragment> ET@15
 ''');
   }
 }

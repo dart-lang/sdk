@@ -732,7 +732,7 @@ void f({a = b?..foo}) {}
 DefaultFormalParameter
   parameter: SimpleFormalParameter
     name: a
-    declaredElement: <testLibraryFragment> a@8
+    declaredFragment: <testLibraryFragment> a@8
       element: hasImplicitType isPublic
         type: dynamic
   separator: =
@@ -750,7 +750,7 @@ DefaultFormalParameter
           staticType: InvalidType
         staticType: InvalidType
     staticType: InvalidType
-  declaredElement: <testLibraryFragment> a@8
+  declaredFragment: <testLibraryFragment> a@8
     element: hasImplicitType isPublic
       type: dynamic
 ''');

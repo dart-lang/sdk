@@ -33,11 +33,8 @@ final List<GeneratedContent> allTargets = _analyzerGeneratedFiles();
 /// Generates a list of [GeneratedContent] objects describing all the analyzer
 /// files that need to be generated.
 List<GeneratedContent> _analyzerGeneratedFiles() {
-  var classesByFile =
-      <GeneratedDiagnosticFile, List<GeneratedDiagnosticClassInfo>>{};
+  var classesByFile = <GeneratedDiagnosticFile, List<DiagnosticClassInfo>>{};
   for (var diagnosticClassInfo in diagnosticClasses) {
-    if (diagnosticClassInfo is! GeneratedDiagnosticClassInfo) continue;
-
     // Lint codes are generated separately.
     if (diagnosticClassInfo == linterLintCodeInfo) continue;
 
@@ -67,7 +64,7 @@ List<GeneratedContent> _analyzerGeneratedFiles() {
 class _AnalyzerDiagnosticGenerator {
   final GeneratedDiagnosticFile file;
 
-  final List<GeneratedDiagnosticClassInfo> diagnosticClasses;
+  final List<DiagnosticClassInfo> diagnosticClasses;
 
   final StringBuffer out = StringBuffer('''
 // Copyright (c) 2021, the Dart project authors. Please see the AUTHORS file
@@ -152,7 +149,7 @@ part of ${json.encode(file.parentLibrary)};
   }
 
   void _outputDerivedClass(
-    GeneratedDiagnosticClassInfo diagnosticClass, {
+    DiagnosticClassInfo diagnosticClass, {
     required bool withArguments,
   }) {
     var className = withArguments

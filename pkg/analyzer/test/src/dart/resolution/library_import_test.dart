@@ -231,9 +231,9 @@ CompilationUnit
                 leftParenthesis: (
                 rightParenthesis: )
               staticType: A
-            declaredElement: <testLibraryFragment> a@96
+            declaredFragment: <testLibraryFragment> a@96
       semicolon: ;
-      declaredElement: <null>
+      declaredFragment: <null>
 ''');
   }
 
@@ -331,9 +331,9 @@ CompilationUnit
                 leftParenthesis: (
                 rightParenthesis: )
               staticType: A
-            declaredElement: <testLibraryFragment> a@96
+            declaredFragment: <testLibraryFragment> a@96
       semicolon: ;
-      declaredElement: <null>
+      declaredFragment: <null>
 ''');
   }
 
@@ -553,9 +553,9 @@ CompilationUnit
                 leftParenthesis: (
                 rightParenthesis: )
               staticType: A
-            declaredElement: <testLibraryFragment> a@96
+            declaredFragment: <testLibraryFragment> a@96
       semicolon: ;
-      declaredElement: <null>
+      declaredFragment: <null>
 ''');
   }
 

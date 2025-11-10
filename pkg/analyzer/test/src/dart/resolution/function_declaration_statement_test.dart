@@ -41,11 +41,11 @@ FunctionDeclarationStatement
         typeParameters
           TypeParameter
             name: T
-            declaredElement: <testLibraryFragment> T@17
+            declaredFragment: <testLibraryFragment> T@17
               defaultType: dynamic
           TypeParameter
             name: U
-            declaredElement: <testLibraryFragment> U@20
+            declaredFragment: <testLibraryFragment> U@20
               defaultType: dynamic
         rightBracket: >
       parameters: FormalParameterList
@@ -56,7 +56,7 @@ FunctionDeclarationStatement
             element: #E0 T
             type: T
           name: a
-          declaredElement: <testLibraryFragment> a@25
+          declaredFragment: <testLibraryFragment> a@25
             element: isPublic
               type: T
         parameter: SimpleFormalParameter
@@ -65,7 +65,7 @@ FunctionDeclarationStatement
             element: #E1 U
             type: U
           name: b
-          declaredElement: <testLibraryFragment> b@30
+          declaredFragment: <testLibraryFragment> b@30
             element: isPublic
               type: U
         rightParenthesis: )
@@ -76,11 +76,11 @@ FunctionDeclarationStatement
           element: a@25
           staticType: T
         semicolon: ;
-      declaredElement: <testLibraryFragment> g@15
+      declaredFragment: <testLibraryFragment> g@15
         element: g@15
           type: T Function<T, U>(T, U)
       staticType: T Function<T, U>(T, U)
-    declaredElement: <testLibraryFragment> g@15
+    declaredFragment: <testLibraryFragment> g@15
       element: g@15
         type: T Function<T, U>(T, U)
 ''');
@@ -116,11 +116,11 @@ FunctionDeclarationStatement
               name: U
               element: #E0 U
               type: U
-            declaredElement: <testLibraryFragment> T@20
+            declaredFragment: <testLibraryFragment> T@20
               defaultType: dynamic
           TypeParameter
             name: U
-            declaredElement: <testLibraryFragment> U@33
+            declaredFragment: <testLibraryFragment> U@33
               defaultType: dynamic
           TypeParameter
             name: V
@@ -129,7 +129,7 @@ FunctionDeclarationStatement
               name: U
               element: #E0 U
               type: U
-            declaredElement: <testLibraryFragment> V@36
+            declaredFragment: <testLibraryFragment> V@36
               defaultType: dynamic
         rightBracket: >
       parameters: FormalParameterList
@@ -140,7 +140,7 @@ FunctionDeclarationStatement
             element: #E1 T
             type: T
           name: x
-          declaredElement: <testLibraryFragment> x@51
+          declaredFragment: <testLibraryFragment> x@51
             element: isPublic
               type: T
         parameter: SimpleFormalParameter
@@ -149,7 +149,7 @@ FunctionDeclarationStatement
             element: #E0 U
             type: U
           name: y
-          declaredElement: <testLibraryFragment> y@56
+          declaredFragment: <testLibraryFragment> y@56
             element: isPublic
               type: U
         parameter: SimpleFormalParameter
@@ -158,7 +158,7 @@ FunctionDeclarationStatement
             element: #E2 V
             type: V
           name: z
-          declaredElement: <testLibraryFragment> z@61
+          declaredFragment: <testLibraryFragment> z@61
             element: isPublic
               type: V
         rightParenthesis: )
@@ -166,11 +166,11 @@ FunctionDeclarationStatement
         block: Block
           leftBracket: {
           rightBracket: }
-      declaredElement: <testLibraryFragment> g@18
+      declaredFragment: <testLibraryFragment> g@18
         element: g@18
           type: void Function<T extends U, U, V extends U>(T, U, V)
       staticType: void Function<T extends U, U, V extends U>(T, U, V)
-    declaredElement: <testLibraryFragment> g@18
+    declaredFragment: <testLibraryFragment> g@18
       element: g@18
         type: void Function<T extends U, U, V extends U>(T, U, V)
 ''');
@@ -201,7 +201,7 @@ FunctionDeclarationStatement
         typeParameters
           TypeParameter
             name: T
-            declaredElement: <testLibraryFragment> T@20
+            declaredFragment: <testLibraryFragment> T@20
               defaultType: dynamic
         rightBracket: >
       parameters: FormalParameterList
@@ -215,10 +215,10 @@ FunctionDeclarationStatement
               element: #E0 T
               type: T?
             name: a
-            declaredElement: <testLibraryFragment> a@27
+            declaredFragment: <testLibraryFragment> a@27
               element: isPublic
                 type: T?
-          declaredElement: <testLibraryFragment> a@27
+          declaredFragment: <testLibraryFragment> a@27
             element: isPublic
               type: T?
         rightDelimiter: }
@@ -227,11 +227,11 @@ FunctionDeclarationStatement
         block: Block
           leftBracket: {
           rightBracket: }
-      declaredElement: <testLibraryFragment> g@18
+      declaredFragment: <testLibraryFragment> g@18
         element: g@18
           type: void Function<T>({T? a})
       staticType: void Function<T>({T? a})
-    declaredElement: <testLibraryFragment> g@18
+    declaredFragment: <testLibraryFragment> g@18
       element: g@18
         type: void Function<T>({T? a})
 ''');
@@ -262,7 +262,7 @@ FunctionDeclarationStatement
         typeParameters
           TypeParameter
             name: T
-            declaredElement: <testLibraryFragment> T@20
+            declaredFragment: <testLibraryFragment> T@20
               defaultType: dynamic
         rightBracket: >
       parameters: FormalParameterList
@@ -276,10 +276,10 @@ FunctionDeclarationStatement
               element: #E0 T
               type: T?
             name: a
-            declaredElement: <testLibraryFragment> a@27
+            declaredFragment: <testLibraryFragment> a@27
               element: isPublic
                 type: T?
-          declaredElement: <testLibraryFragment> a@27
+          declaredFragment: <testLibraryFragment> a@27
             element: isPublic
               type: T?
         rightDelimiter: ]
@@ -288,11 +288,11 @@ FunctionDeclarationStatement
         block: Block
           leftBracket: {
           rightBracket: }
-      declaredElement: <testLibraryFragment> g@18
+      declaredFragment: <testLibraryFragment> g@18
         element: g@18
           type: void Function<T>([T?])
       staticType: void Function<T>([T?])
-    declaredElement: <testLibraryFragment> g@18
+    declaredFragment: <testLibraryFragment> g@18
       element: g@18
         type: void Function<T>([T?])
 ''');
@@ -323,7 +323,7 @@ FunctionDeclarationStatement
         typeParameters
           TypeParameter
             name: T
-            declaredElement: <testLibraryFragment> T@20
+            declaredFragment: <testLibraryFragment> T@20
               defaultType: dynamic
         rightBracket: >
       parameters: FormalParameterList
@@ -338,10 +338,10 @@ FunctionDeclarationStatement
               element: #E0 T
               type: T?
             name: a
-            declaredElement: <testLibraryFragment> a@36
+            declaredFragment: <testLibraryFragment> a@36
               element: isPublic
                 type: T?
-          declaredElement: <testLibraryFragment> a@36
+          declaredFragment: <testLibraryFragment> a@36
             element: isPublic
               type: T?
         rightDelimiter: }
@@ -350,11 +350,11 @@ FunctionDeclarationStatement
         block: Block
           leftBracket: {
           rightBracket: }
-      declaredElement: <testLibraryFragment> g@18
+      declaredFragment: <testLibraryFragment> g@18
         element: g@18
           type: void Function<T>({required T? a})
       staticType: void Function<T>({required T? a})
-    declaredElement: <testLibraryFragment> g@18
+    declaredFragment: <testLibraryFragment> g@18
       element: g@18
         type: void Function<T>({required T? a})
 ''');
@@ -385,7 +385,7 @@ FunctionDeclarationStatement
         typeParameters
           TypeParameter
             name: T
-            declaredElement: <testLibraryFragment> T@20
+            declaredFragment: <testLibraryFragment> T@20
               defaultType: dynamic
         rightBracket: >
       parameters: FormalParameterList
@@ -396,7 +396,7 @@ FunctionDeclarationStatement
             element: #E0 T
             type: T
           name: a
-          declaredElement: <testLibraryFragment> a@25
+          declaredFragment: <testLibraryFragment> a@25
             element: isPublic
               type: T
         rightParenthesis: )
@@ -404,11 +404,11 @@ FunctionDeclarationStatement
         block: Block
           leftBracket: {
           rightBracket: }
-      declaredElement: <testLibraryFragment> g@18
+      declaredFragment: <testLibraryFragment> g@18
         element: g@18
           type: void Function<T>(T)
       staticType: void Function<T>(T)
-    declaredElement: <testLibraryFragment> g@18
+    declaredFragment: <testLibraryFragment> g@18
       element: g@18
         type: void Function<T>(T)
 ''');
@@ -437,11 +437,11 @@ FunctionDeclarationStatement
         block: Block
           leftBracket: {
           rightBracket: }
-      declaredElement: <testLibraryFragment> g@13
+      declaredFragment: <testLibraryFragment> g@13
         element: g@13
           type: Null Function()
       staticType: Null Function()
-    declaredElement: <testLibraryFragment> g@13
+    declaredFragment: <testLibraryFragment> g@13
       element: g@13
         type: Null Function()
 ''');
@@ -472,11 +472,11 @@ FunctionDeclarationStatement
           literal: 0
           staticType: int
         semicolon: ;
-      declaredElement: <testLibraryFragment> g@13
+      declaredFragment: <testLibraryFragment> g@13
         element: g@13
           type: int Function()
       staticType: int Function()
-    declaredElement: <testLibraryFragment> g@13
+    declaredFragment: <testLibraryFragment> g@13
       element: g@13
         type: int Function()
 ''');

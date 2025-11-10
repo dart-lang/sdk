@@ -2,10 +2,14 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+/// @docImport 'package:_fe_analyzer_shared/src/base/errors.dart';
+library;
+
 import 'dart:convert';
 import 'dart:io';
 
 import 'package:analyzer_testing/package_root.dart' as pkg_root;
+import 'package:analyzer_utilities/extensions/string.dart';
 import 'package:analyzer_utilities/messages.dart';
 import 'package:analyzer_utilities/tools.dart';
 import 'package:path/path.dart';
@@ -23,77 +27,77 @@ const codesFile = GeneratedDiagnosticFile(
 /// Note: to look up an error class by name, use [DiagnosticClassInfo.byName].
 const List<DiagnosticClassInfo> diagnosticClasses = [
   linterLintCodeInfo,
-  GeneratedDiagnosticClassInfo(
+  DiagnosticClassInfo(
     file: optionCodesFile,
     name: 'AnalysisOptionsErrorCode',
-    type: 'COMPILE_TIME_ERROR',
+    type: AnalyzerDiagnosticType.compileTimeError,
   ),
-  GeneratedDiagnosticClassInfo(
+  DiagnosticClassInfo(
     file: optionCodesFile,
     name: 'AnalysisOptionsWarningCode',
-    type: 'STATIC_WARNING',
+    type: AnalyzerDiagnosticType.staticWarning,
   ),
-  GeneratedDiagnosticClassInfo(
+  DiagnosticClassInfo(
     file: codesFile,
     name: 'CompileTimeErrorCode',
-    type: 'COMPILE_TIME_ERROR',
+    type: AnalyzerDiagnosticType.compileTimeError,
   ),
-  GeneratedDiagnosticClassInfo(
+  DiagnosticClassInfo(
     file: syntacticErrorsFile,
     name: 'ScannerErrorCode',
-    type: 'SYNTACTIC_ERROR',
+    type: AnalyzerDiagnosticType.syntacticError,
   ),
-  GeneratedDiagnosticClassInfo(
+  DiagnosticClassInfo(
     file: codesFile,
     name: 'StaticWarningCode',
-    type: 'STATIC_WARNING',
+    type: AnalyzerDiagnosticType.staticWarning,
   ),
-  GeneratedDiagnosticClassInfo(
+  DiagnosticClassInfo(
     file: codesFile,
     name: 'WarningCode',
-    type: 'STATIC_WARNING',
+    type: AnalyzerDiagnosticType.staticWarning,
   ),
-  GeneratedDiagnosticClassInfo(
+  DiagnosticClassInfo(
     file: ffiCodesFile,
     name: 'FfiCode',
-    type: 'COMPILE_TIME_ERROR',
+    type: AnalyzerDiagnosticType.compileTimeError,
   ),
-  GeneratedDiagnosticClassInfo(
+  DiagnosticClassInfo(
     file: hintCodesFile,
     name: 'HintCode',
-    type: 'HINT',
+    type: AnalyzerDiagnosticType.hint,
   ),
-  GeneratedDiagnosticClassInfo(
+  DiagnosticClassInfo(
     file: syntacticErrorsFile,
     name: 'ParserErrorCode',
-    type: 'SYNTACTIC_ERROR',
+    type: AnalyzerDiagnosticType.syntacticError,
     deprecatedSnakeCaseNames: {
       'UNEXPECTED_TOKEN', // Referenced by `package:dart_style`.
     },
   ),
-  GeneratedDiagnosticClassInfo(
+  DiagnosticClassInfo(
     file: manifestWarningCodeFile,
     name: 'ManifestWarningCode',
-    type: 'STATIC_WARNING',
+    type: AnalyzerDiagnosticType.staticWarning,
   ),
-  GeneratedDiagnosticClassInfo(
+  DiagnosticClassInfo(
     file: pubspecWarningCodeFile,
     name: 'PubspecWarningCode',
-    type: 'STATIC_WARNING',
+    type: AnalyzerDiagnosticType.staticWarning,
   ),
-  GeneratedDiagnosticClassInfo(
+  DiagnosticClassInfo(
     file: todoCodesFile,
     name: 'TodoCode',
-    type: 'TODO',
+    type: AnalyzerDiagnosticType.todo,
     comment: '''
 The error code indicating a marker in code for work that needs to be finished
 or revisited.
 ''',
   ),
-  GeneratedDiagnosticClassInfo(
+  DiagnosticClassInfo(
     file: transformSetErrorCodeFile,
     name: 'TransformSetErrorCode',
-    type: 'COMPILE_TIME_ERROR',
+    type: AnalyzerDiagnosticType.compileTimeError,
     package: AnalyzerDiagnosticPackage.analysisServer,
     comment: '''
 An error code representing a problem in a file containing an encoding of a
@@ -119,10 +123,10 @@ const lintCodesFile = GeneratedDiagnosticFile(
   parentLibrary: 'package:linter/src/lint_codes.dart',
 );
 
-const linterLintCodeInfo = GeneratedDiagnosticClassInfo(
+const linterLintCodeInfo = DiagnosticClassInfo(
   file: lintCodesFile,
   name: 'LinterLintCode',
-  type: 'LINT',
+  type: AnalyzerDiagnosticType.lint,
   package: AnalyzerDiagnosticPackage.linter,
 );
 
@@ -346,6 +350,19 @@ class AliasMessage extends AnalyzerMessage {
 /// generated.
 enum AnalyzerDiagnosticPackage { analyzer, analysisServer, linter }
 
+/// Enum representing the possible values for the [DiagnosticType] class.
+///
+/// Code generation logic uses this enum rather than [DiagnosticType] to avoid
+/// introducing dependencies between the code generator and the generated code.
+enum AnalyzerDiagnosticType {
+  compileTimeError,
+  hint,
+  lint,
+  staticWarning,
+  syntacticError,
+  todo,
+}
+
 /// In-memory representation of diagnostic information obtained from the
 /// analyzer's `messages.yaml` file.
 class AnalyzerMessage extends Message with MessageWithAnalyzerCode {
@@ -391,11 +408,83 @@ class AnalyzerMessage extends Message with MessageWithAnalyzerCode {
   }
 }
 
+/// Information about a class derived from `DiagnosticCode`.
+class DiagnosticClassInfo {
+  static final Map<String, DiagnosticClassInfo> _diagnosticClassesByName = () {
+    var result = <String, DiagnosticClassInfo>{};
+    for (var info in diagnosticClasses) {
+      if (result.containsKey(info.name)) {
+        throw 'Duplicate diagnostic class name: ${json.encode(info.name)}';
+      }
+      result[info.name] = info;
+    }
+    return result;
+  }();
+
+  static String get _allDiagnosticClassNames =>
+      (_diagnosticClassesByName.keys.toList()..sort())
+          .map(json.encode)
+          .join(', ');
+
+  /// The name of this class.
+  final String name;
+
+  /// The generated file containing this class.
+  final GeneratedDiagnosticFile file;
+
+  /// The type of diagnostics in this class.
+  final AnalyzerDiagnosticType type;
+
+  /// The names of any diagnostics which are relied upon by analyzer clients,
+  /// and therefore will need their "snake case" form preserved (with a
+  /// deprecation notice) after migration to camel case diagnostic codes.
+  final Set<String> deprecatedSnakeCaseNames;
+
+  /// The package into which the diagnostic codes will be generated.
+  final AnalyzerDiagnosticPackage package;
+
+  /// Documentation comment to generate for the diagnostic class.
+  ///
+  /// If no documentation comment is needed, this should be the empty string.
+  final String comment;
+
+  const DiagnosticClassInfo({
+    required this.file,
+    required this.name,
+    required this.type,
+    this.deprecatedSnakeCaseNames = const {},
+    this.package = AnalyzerDiagnosticPackage.analyzer,
+    this.comment = '',
+  });
+
+  String get templateName => '${_baseName}Template';
+
+  /// Generates the code to compute the type of diagnostics of this class.
+  String get typeCode =>
+      'DiagnosticType.${type.name.toSnakeCase().toUpperCase()}';
+
+  String get withoutArgumentsName => '${_baseName}WithoutArguments';
+
+  String get _baseName {
+    const suffix = 'Code';
+    if (name.endsWith(suffix)) {
+      return name.substring(0, name.length - suffix.length);
+    } else {
+      throw "Can't infer base name for class $name";
+    }
+  }
+
+  static DiagnosticClassInfo byName(String name) =>
+      _diagnosticClassesByName[name] ??
+      (throw 'No diagnostic class named ${json.encode(name)}. Possible names: '
+          '$_allDiagnosticClassNames');
+}
+
 /// Interface class for diagnostic messages that have an analyzer code, and thus
 /// can be reported by the analyzer.
 mixin MessageWithAnalyzerCode on Message {
-  late final GeneratedDiagnosticClassInfo diagnosticClassInfo =
-      analyzerCode.diagnosticClass as GeneratedDiagnosticClassInfo;
+  late final DiagnosticClassInfo diagnosticClassInfo =
+      analyzerCode.diagnosticClass;
 
   /// The code used by the analyzer to refer to this diagnostic message.
   AnalyzerCode get analyzerCode;

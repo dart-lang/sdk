@@ -914,7 +914,7 @@ VariableDeclaration
       staticType: int
     rightParenthesis: )
     staticType: int
-  declaredElement: <testLibraryFragment> x@22
+  declaredFragment: <testLibraryFragment> x@22
 ''');
   }
 
@@ -942,7 +942,7 @@ VariableDeclaration
       staticType: int
     rightParenthesis: )
     staticType: int
-  declaredElement: <testLibraryFragment> x@22
+  declaredFragment: <testLibraryFragment> x@22
 ''');
   }
 
@@ -967,7 +967,7 @@ VariableDeclaration
       staticType: int
     rightParenthesis: )
     staticType: int
-  declaredElement: <testLibraryFragment> x@22
+  declaredFragment: <testLibraryFragment> x@22
 ''');
   }
 
@@ -992,7 +992,7 @@ VariableDeclaration
       staticType: int
     rightParenthesis: )
     staticType: int
-  declaredElement: <testLibraryFragment> x@22
+  declaredFragment: <testLibraryFragment> x@22
 ''');
   }
 
@@ -1018,7 +1018,7 @@ VariableDeclaration
       staticType: InvalidType
     rightParenthesis: )
     staticType: InvalidType
-  declaredElement: <testLibraryFragment> x@22
+  declaredFragment: <testLibraryFragment> x@22
 ''');
   }
 

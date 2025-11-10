@@ -2161,7 +2161,16 @@ class DartFileEditBuilderImpl extends FileEditBuilderImpl
   ) => insertIntoUnitMember(
     compilationUnitMember,
     buildEdit,
-    lastMemberFilter: (member) => member is FieldDeclaration,
+    lastMemberFilter: (member) {
+      if (resolvedUnit.session.analysisContext
+          .getAnalysisOptionsForFile(resolvedUnit.file)
+          .codeStyleOptions
+          .sortConstructorsFirst) {
+        return member is ConstructorDeclaration || member is FieldDeclaration;
+      } else {
+        return member is FieldDeclaration;
+      }
+    },
   );
 
   @override

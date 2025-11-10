@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/dart/analysis/code_style_options.dart'
+    show CodeStyleOptions;
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
@@ -621,7 +623,8 @@ abstract class DartFileEditBuilder implements FileEditBuilder {
   /// Inserts the code for a field.
   ///
   /// The field is inserted after the last existing field, or at the beginning
-  /// of [compilationUnitMember], if it has no existing fields.
+  /// of [compilationUnitMember], if it has no existing fields, if not specified
+  /// differently by the [CodeStyleOptions].
   void insertField(
     CompilationUnitMember compilationUnitMember,
     void Function(DartEditBuilder builder) buildEdit,

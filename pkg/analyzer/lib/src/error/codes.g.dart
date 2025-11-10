@@ -12408,6 +12408,7 @@ class WarningCode extends DiagnosticCodeWithExpectedTypes {
     name: 'DEPRECATED_MIXIN',
     problemMessage: "Mixing in '{0}' is deprecated.",
     correctionMessage: "Try removing '{0}' from the 'with' clause.",
+    hasPublishedDocs: true,
     uniqueName: 'WarningCode.DEPRECATED_MIXIN',
     withArguments: _withArgumentsDeprecatedMixin,
     expectedTypes: [ExpectedType.object],
@@ -12446,6 +12447,7 @@ class WarningCode extends DiagnosticCodeWithExpectedTypes {
     problemMessage:
         "Omitting an argument for the '{0}' parameter is deprecated.",
     correctionMessage: "Try passing an argument for '{0}'.",
+    hasPublishedDocs: true,
     uniqueName: 'WarningCode.DEPRECATED_OPTIONAL',
     withArguments: _withArgumentsDeprecatedOptional,
     expectedTypes: [ExpectedType.object],
@@ -12805,6 +12807,7 @@ class WarningCode extends DiagnosticCodeWithExpectedTypes {
     name: 'INFERENCE_FAILURE_ON_COLLECTION_LITERAL',
     problemMessage: "The type argument(s) of '{0}' can't be inferred.",
     correctionMessage: "Use explicit type argument(s) for '{0}'.",
+    hasPublishedDocs: true,
     uniqueName: 'WarningCode.INFERENCE_FAILURE_ON_COLLECTION_LITERAL',
     withArguments: _withArgumentsInferenceFailureOnCollectionLiteral,
     expectedTypes: [ExpectedType.string],
@@ -12823,6 +12826,7 @@ class WarningCode extends DiagnosticCodeWithExpectedTypes {
     problemMessage:
         "The type argument(s) of the function '{0}' can't be inferred.",
     correctionMessage: "Use explicit type argument(s) for '{0}'.",
+    hasPublishedDocs: true,
     uniqueName: 'WarningCode.INFERENCE_FAILURE_ON_FUNCTION_INVOCATION',
     withArguments: _withArgumentsInferenceFailureOnFunctionInvocation,
     expectedTypes: [ExpectedType.string],
@@ -12844,6 +12848,7 @@ class WarningCode extends DiagnosticCodeWithExpectedTypes {
     name: 'INFERENCE_FAILURE_ON_FUNCTION_RETURN_TYPE',
     problemMessage: "The return type of '{0}' can't be inferred.",
     correctionMessage: "Declare the return type of '{0}'.",
+    hasPublishedDocs: true,
     uniqueName: 'WarningCode.INFERENCE_FAILURE_ON_FUNCTION_RETURN_TYPE',
     withArguments: _withArgumentsInferenceFailureOnFunctionReturnType,
     expectedTypes: [ExpectedType.string],
@@ -12863,6 +12868,7 @@ class WarningCode extends DiagnosticCodeWithExpectedTypes {
         "The type argument(s) of the generic function type '{0}' can't be "
         "inferred.",
     correctionMessage: "Use explicit type argument(s) for '{0}'.",
+    hasPublishedDocs: true,
     uniqueName: 'WarningCode.INFERENCE_FAILURE_ON_GENERIC_INVOCATION',
     withArguments: _withArgumentsInferenceFailureOnGenericInvocation,
     expectedTypes: [ExpectedType.string],
@@ -12882,6 +12888,7 @@ class WarningCode extends DiagnosticCodeWithExpectedTypes {
     problemMessage:
         "The type argument(s) of the constructor '{0}' can't be inferred.",
     correctionMessage: "Use explicit type argument(s) for '{0}'.",
+    hasPublishedDocs: true,
     uniqueName: 'WarningCode.INFERENCE_FAILURE_ON_INSTANCE_CREATION',
     withArguments: _withArgumentsInferenceFailureOnInstanceCreation,
     expectedTypes: [ExpectedType.string],
@@ -12900,6 +12907,7 @@ class WarningCode extends DiagnosticCodeWithExpectedTypes {
     problemMessage:
         "The type of {0} can't be inferred without either a type or initializer.",
     correctionMessage: "Try specifying the type of the variable.",
+    hasPublishedDocs: true,
     uniqueName: 'WarningCode.INFERENCE_FAILURE_ON_UNINITIALIZED_VARIABLE',
     withArguments: _withArgumentsInferenceFailureOnUninitializedVariable,
     expectedTypes: [ExpectedType.string],
@@ -12999,6 +13007,7 @@ class WarningCode extends DiagnosticCodeWithExpectedTypes {
     problemMessage:
         "The annotation '@Deprecated.mixin' can only be applied to classes.",
     correctionMessage: "Try removing the '@Deprecated.mixin' annotation.",
+    hasPublishedDocs: true,
     uniqueName: 'WarningCode.INVALID_DEPRECATED_MIXIN_ANNOTATION',
     expectedTypes: [],
   );
@@ -13828,6 +13837,7 @@ class WarningCode extends DiagnosticCodeWithExpectedTypes {
     problemMessage:
         "The matched value type '{0}' can never match the required type '{1}'.",
     correctionMessage: "Try using a different pattern.",
+    hasPublishedDocs: true,
     uniqueName: 'WarningCode.PATTERN_NEVER_MATCHES_VALUE_TYPE',
     withArguments: _withArgumentsPatternNeverMatchesValueType,
     expectedTypes: [ExpectedType.type, ExpectedType.type],
@@ -13888,6 +13898,7 @@ class WarningCode extends DiagnosticCodeWithExpectedTypes {
     name: 'REMOVED_LINT_USE',
     problemMessage: "'{0}' was removed in Dart '{1}'",
     correctionMessage: "Remove the reference to '{0}'.",
+    hasPublishedDocs: true,
     uniqueName: 'WarningCode.REMOVED_LINT_USE',
     withArguments: _withArgumentsRemovedLintUse,
     expectedTypes: [ExpectedType.object, ExpectedType.object],
@@ -14202,6 +14213,7 @@ class WarningCode extends DiagnosticCodeWithExpectedTypes {
         name: 'UNNECESSARY_CAST_PATTERN',
         problemMessage: "Unnecessary cast pattern.",
         correctionMessage: "Try removing the cast pattern.",
+        hasPublishedDocs: true,
         uniqueName: 'WarningCode.UNNECESSARY_CAST_PATTERN',
         expectedTypes: [],
       );

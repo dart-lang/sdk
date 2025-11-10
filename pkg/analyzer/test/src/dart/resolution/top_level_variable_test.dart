@@ -58,7 +58,7 @@ VariableDeclaration
             leftParenthesis: (
             parameter: SimpleFormalParameter
               name: z
-              declaredElement: <testLibraryFragment> z@100
+              declaredFragment: <testLibraryFragment> z@100
                 element: hasImplicitType isPublic
                   type: Object?
             rightParenthesis: )
@@ -76,7 +76,7 @@ VariableDeclaration
                 staticType: InvalidType
               element: <null>
               staticType: InvalidType
-          declaredElement: <testLibraryFragment> null@null
+          declaredFragment: <testLibraryFragment> null@null
             element: null@null
               type: InvalidType Function(Object?)
           correspondingParameter: ParameterMember
@@ -88,7 +88,7 @@ VariableDeclaration
     staticType: String?
     typeArgumentTypes
       String
-  declaredElement: <testLibraryFragment> x@90
+  declaredFragment: <testLibraryFragment> x@90
 ''');
   }
 
@@ -125,7 +125,7 @@ VariableDeclaration
             leftParenthesis: (
             parameter: SimpleFormalParameter
               name: z
-              declaredElement: <testLibraryFragment> z@108
+              declaredFragment: <testLibraryFragment> z@108
                 element: hasImplicitType isPublic
                   type: String
             rightParenthesis: )
@@ -143,7 +143,7 @@ VariableDeclaration
                 staticType: int
               element: dart:core::@class::String::@getter::length
               staticType: int
-          declaredElement: <testLibraryFragment> null@null
+          declaredFragment: <testLibraryFragment> null@null
             element: null@null
               type: int Function(String)
           correspondingParameter: ParameterMember
@@ -155,7 +155,7 @@ VariableDeclaration
     staticType: String?
     typeArgumentTypes
       String
-  declaredElement: <testLibraryFragment> x@98
+  declaredFragment: <testLibraryFragment> x@98
 ''');
   }
 

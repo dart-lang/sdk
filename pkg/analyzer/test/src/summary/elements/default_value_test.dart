@@ -247,7 +247,7 @@ library
                                 parameters: FormalParameterList
                                   leftParenthesis: ( @69
                                   rightParenthesis: ) @70
-                                declaredElement: GenericFunctionTypeElement
+                                declaredFragment: GenericFunctionTypeElement
                                   parameters
                                   returnType: dynamic
                                   type: dynamic Function()
