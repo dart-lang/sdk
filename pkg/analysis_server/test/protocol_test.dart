@@ -64,16 +64,16 @@ class RequestErrorTest {
     expect(error.message, 'msg');
     expect(
       error.toJson(clientUriConverter: null),
-      equals({CODE: 'INVALID_REQUEST', MESSAGE: 'msg'}),
+      equals({codeKey: 'INVALID_REQUEST', messageKey: 'msg'}),
     );
   }
 
   void test_fromJson() {
     var trace = 'a stack trace\r\nfoo';
     var json = {
-      CODE: RequestErrorCode.INVALID_PARAMETER.name,
-      MESSAGE: 'foo',
-      STACK_TRACE: trace,
+      codeKey: RequestErrorCode.INVALID_PARAMETER.name,
+      messageKey: 'foo',
+      stackTraceKey: trace,
     };
     var error = RequestError.fromJson(
       ResponseDecoder(null),
@@ -94,9 +94,9 @@ class RequestErrorTest {
       stackTrace: trace,
     );
     expect(error.toJson(clientUriConverter: null), {
-      CODE: 'UNKNOWN_REQUEST',
-      MESSAGE: 'msg',
-      STACK_TRACE: trace,
+      codeKey: 'UNKNOWN_REQUEST',
+      messageKey: 'msg',
+      stackTraceKey: trace,
     });
   }
 }
