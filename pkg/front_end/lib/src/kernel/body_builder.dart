@@ -7747,7 +7747,8 @@ class BodyBuilderImpl extends StackListenerImpl
 
     if (isClosureContextLoweringEnabled) {
       // TODO(cstefantsova): Add function parameters to the scope.
-      function.scope = new Scope([])..fileOffset = function.fileOffset;
+      function.scope = new Scope(contexts: [])
+        ..fileOffset = function.fileOffset;
     }
 
     if (declaration is FunctionDeclaration) {

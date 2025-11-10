@@ -1946,37 +1946,173 @@ class FunctionDeclaration extends Statement implements LocalFunction {
 /// The statement that marks the declaration of the variable in the source Dart
 /// program. If the [initializer] is `null`, the variable was declared without
 /// an initializer.
-class VariableInitialization extends Statement {
+class VariableInitialization extends Statement implements VariableDeclaration {
   final ExpressionVariable variable;
-  final Expression? initializer;
-
-  VariableInitialization({required this.variable, required this.initializer});
 
   @override
-  R accept<R>(StatementVisitor<R> v) {
-    // TODO(cstefantsova): Implement accept.
-    throw UnimplementedError();
+  Expression? initializer;
+
+  VariableInitialization({required this.variable, required this.initializer}) {
+    variable.variableInitialization = this;
+  }
+
+  static const int FlagHasDeclaredInitializer = 1 << 0;
+  static const int FlagErroneouslyInitialized = 1 << 1;
+
+  @override
+  int flags = 0;
+
+  @override
+  bool get hasDeclaredInitializer => flags & FlagHasDeclaredInitializer != 0;
+
+  @override
+  void set hasDeclaredInitializer(bool value) {
+    flags = value
+        ? (flags | FlagHasDeclaredInitializer)
+        : (flags & ~FlagHasDeclaredInitializer);
   }
 
   @override
-  R accept1<R, A>(StatementVisitor1<R, A> v, A arg) {
-    // TODO(cstefantsova): Implement accept1.
-    throw UnimplementedError();
+  bool get isErroneouslyInitialized => flags & FlagErroneouslyInitialized != 0;
+
+  @override
+  void set isErroneouslyInitialized(bool value) {
+    flags = value
+        ? (flags | FlagErroneouslyInitialized)
+        : (flags & ~FlagErroneouslyInitialized);
   }
+
+  @override
+  bool get isConst => variable.isConst;
+
+  @override
+  void set isConst(bool value) {
+    variable.isConst = value;
+  }
+
+  @override
+  bool get isCovariantByClass => variable.isCovariantByClass;
+
+  @override
+  void set isCovariantByClass(bool value) {
+    variable.isCovariantByClass = value;
+  }
+
+  @override
+  bool get isCovariantByDeclaration => variable.isCovariantByDeclaration;
+
+  @override
+  void set isCovariantByDeclaration(bool value) {
+    variable.isCovariantByDeclaration = value;
+  }
+
+  @override
+  bool get isFinal => variable.isFinal;
+
+  @override
+  void set isFinal(bool value) {
+    variable.isFinal = value;
+  }
+
+  @override
+  bool get isHoisted => variable.isHoisted;
+
+  @override
+  void set isHoisted(bool value) {
+    variable.isHoisted = value;
+  }
+
+  @override
+  bool get isInitializingFormal => variable.isInitializingFormal;
+
+  @override
+  void set isInitializingFormal(bool value) {
+    variable.isInitializingFormal = value;
+  }
+
+  @override
+  bool get isLate => variable.isLate;
+
+  @override
+  void set isLate(bool value) {
+    variable.isLate = value;
+  }
+
+  @override
+  bool get isLowered => variable.isLowered;
+
+  @override
+  void set isLowered(bool value) {
+    variable.isLowered = value;
+  }
+
+  @override
+  bool get isRequired => variable.isRequired;
+
+  @override
+  void set isRequired(bool value) {
+    variable.isRequired = value;
+  }
+
+  @override
+  bool get isSuperInitializingFormal => variable.isSuperInitializingFormal;
+
+  @override
+  void set isSuperInitializingFormal(bool value) {
+    variable.isSuperInitializingFormal = value;
+  }
+
+  @override
+  bool get isSynthesized => variable.isSynthesized;
+
+  @override
+  void set isSynthesized(bool value) {
+    variable.isSynthesized = value;
+  }
+
+  @override
+  bool get isWildcard => variable.isWildcard;
+
+  @override
+  void set isWildcard(bool value) {
+    variable.isWildcard = value;
+  }
+
+  @override
+  R accept<R>(StatementVisitor<R> v) => v.visitVariableInitialization(this);
+
+  @override
+  R accept1<R, A>(StatementVisitor1<R, A> v, A arg) =>
+      v.visitVariableInitialization(this, arg);
 
   @override
   void transformChildren(Transformer v) {
-    // TODO(cstefantsova): Implement transformChildren.
+    // Note that [variable] is not owned by [VariableInitialization], so it's
+    // not visited.
+    v.transformList(annotations, this);
+    if (initializer != null) {
+      initializer = v.transform(initializer!);
+      initializer?.parent = this;
+    }
   }
 
   @override
   void transformOrRemoveChildren(RemovingTransformer v) {
-    // TODO(cstefantsova): Implement transformOrRemoveChildren.
+    // Note that [variable] is not owned by [VariableInitialization], so it's
+    // not visited.
+    v.transformExpressionList(annotations, this);
+    if (initializer != null) {
+      initializer = v.transformOrRemoveExpression(initializer!);
+      initializer?.parent = this;
+    }
   }
 
   @override
   void visitChildren(Visitor v) {
-    // TODO(cstefantsova): Implement visitChildren.
+    // Note that [variable] is not owned by [VariableInitialization], so it's
+    // not visited.
+    visitList(annotations, v);
+    initializer?.accept(v);
   }
 
   @override
@@ -1993,4 +2129,45 @@ class VariableInitialization extends Statement {
     }
     printer.write(';');
   }
+
+  @override
+  List<Expression> annotations = const <Expression>[];
+
+  @override
+  int binaryOffsetNoTag = TreeNode.noOffset;
+
+  @override
+  int fileEqualsOffset = TreeNode.noOffset;
+
+  @override
+  String? get name => variable.cosmeticName;
+
+  @override
+  void set name(String? value) {
+    variable.cosmeticName = value;
+  }
+
+  @override
+  DartType get type => variable.type;
+
+  @override
+  void set type(DartType value) {
+    variable.type = value;
+  }
+
+  @override
+  void addAnnotation(Expression node) {
+    if (annotations.isEmpty) {
+      annotations = <Expression>[];
+    }
+    annotations.add(node..parent = this);
+  }
+
+  @override
+  void clearAnnotations() {
+    annotations = const <Expression>[];
+  }
+
+  @override
+  bool get isAssignable => variable.isAssignable;
 }

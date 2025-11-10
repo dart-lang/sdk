@@ -127,6 +127,7 @@ const Map<String?, Map<String, FieldRule?>> _fieldRuleMap = {
   'VariableGet': {'variable': FieldRule(isDeclaration: false)},
   'VariableSet': {'variable': FieldRule(isDeclaration: false)},
   'LocalFunctionInvocation': {'variable': FieldRule(isDeclaration: false)},
+  'LocalVariable': {'variableInitialization': FieldRule(isDeclaration: false)},
   'BreakStatement': {'target': FieldRule(isDeclaration: false)},
   'ForStatement': {'variables': FieldRule(isDeclaration: true)},
   'ForInStatement': {'variable': FieldRule(isDeclaration: true)},
@@ -140,6 +141,9 @@ const Map<String?, Map<String, FieldRule?>> _fieldRuleMap = {
   'FunctionType': {'typeParameters': FieldRule(isDeclaration: true)},
   'TypeParameterType': {'parameter': FieldRule(isDeclaration: false)},
   'StructuralParameterType': {'parameter': FieldRule(isDeclaration: false)},
+  'SyntheticVariable': {
+    'variableInitialization': FieldRule(isDeclaration: false),
+  },
   'VariableStatement': {'_name': FieldRule(name: 'name')},
   'AssignedVariablePattern': {'variable': FieldRule(isDeclaration: false)},
   'InvalidPattern': {'declaredVariables': FieldRule(isDeclaration: true)},
