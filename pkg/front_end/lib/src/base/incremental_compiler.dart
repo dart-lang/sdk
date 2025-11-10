@@ -35,6 +35,7 @@ import 'package:kernel/kernel.dart'
         DynamicType,
         Expression,
         ExtensionType,
+        Field,
         FunctionNode,
         InterfaceType,
         Library,
@@ -43,6 +44,7 @@ import 'package:kernel/kernel.dart'
         Name,
         NamedNode,
         Node,
+        Nullability,
         Procedure,
         ProcedureKind,
         Reference,
@@ -51,13 +53,12 @@ import 'package:kernel/kernel.dart'
         Supertype,
         TreeNode,
         TypeParameter,
+        TypeParameterType,
         VariableDeclaration,
         VariableGet,
         VariableSet,
         VisitorDefault,
-        VisitorVoidMixin,
-        TypeParameterType,
-        Field;
+        VisitorVoidMixin;
 import 'package:kernel/kernel.dart' as kernel show Combinator;
 import 'package:kernel/reference_from_index.dart';
 import 'package:kernel/target/changed_structure_notifier.dart'
@@ -1947,6 +1948,22 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
               usedDefinitions[def.key] = substitution.substituteType(
                 def.value.type,
               );
+            } else if (existingType is InterfaceType &&
+                existingType.classNode.enclosingLibrary.importUri.isScheme(
+                  "dart",
+                )) {
+              // The VM tells us about a type from the platform.
+              // We use the static type instead because the compiler for
+              // instance special case int in certain places which is - by the
+              // VM - often described as _Smi.
+              DartType usedType = substitution.substituteType(def.value.type);
+              if (existingType.nullability == Nullability.nonNullable &&
+                  usedType.nullability == Nullability.nullable) {
+                // If a statically nullable type is known to be non-null,
+                // we keep that information though.
+                usedType = usedType.toNonNull();
+              }
+              usedDefinitions[def.key] = usedType;
             }
           }
         }

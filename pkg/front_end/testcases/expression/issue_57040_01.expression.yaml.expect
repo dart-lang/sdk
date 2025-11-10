@@ -1,4 +1,4 @@
 Errors: {
 }
-static method /* from org-dartlang-debug:synthetic_debug_expression */ debugExpr(dart.core::_OneByteString str) → dynamic
+static method /* from org-dartlang-debug:synthetic_debug_expression */ debugExpr(dart.core::String str) → dynamic
   return #lib1::_extension#0|get#isNullOrEmpty(str);

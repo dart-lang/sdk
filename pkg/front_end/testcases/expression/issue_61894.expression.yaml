@@ -1,0 +1,31 @@
+# Copyright (c) 2025, the Dart project authors.  Please see the AUTHORS file
+# for details. All rights reserved. Use of this source code is governed by a
+# BSD-style license that can be found in the LICENSE file.
+
+# https://github.com/dart-lang/sdk/issues/61894
+
+sources:
+  main.dart: |
+    import "dart:developer";
+
+    void main() {
+      foo(0);
+    }
+
+    void foo(int a) {
+      if (a > 2) return;
+      debugger();
+      foo(a + 1);
+    }
+
+definitions: ["a"]
+definition_types: ["dart:core", "_Smi", "1", "0"]
+type_definitions: []
+type_bounds: []
+type_defaults: []
+method: "foo"
+static: true
+offset: 102
+scriptUri: main.dart
+expression: |
+  foo(a + 1)
