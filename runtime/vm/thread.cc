@@ -77,17 +77,12 @@ Thread::Thread(bool is_vm_isolate)
       active_exception_(Object::null()),
       active_stacktrace_(Object::null()),
       global_object_pool_(ObjectPool::null()),
-      resume_pc_(0),
-      execution_state_(kThreadInNative),
-      safepoint_state_(0),
-      api_top_scope_(nullptr),
       double_truncate_round_supported_(
           TargetCPUFeatures::double_truncate_round_supported() ? 1 : 0),
       random_(),
       tsan_utils_(DO_IF_TSAN(new TsanUtils()) DO_IF_NOT_TSAN(nullptr)),
       current_tag_(UserTag::null()),
       default_tag_(UserTag::null()),
-      task_kind_(kUnknownTask),
 #if defined(SUPPORT_TIMELINE)
       dart_stream_(ASSERT_NOTNULL(Timeline::GetDartStream())),
 #else
@@ -99,23 +94,12 @@ Thread::Thread(bool is_vm_isolate)
       service_extension_stream_(nullptr),
 #endif
       thread_lock_(),
-      api_reusable_scope_(nullptr),
-      no_callback_scope_depth_(0),
-#if defined(DEBUG)
-      no_safepoint_scope_depth_(0),
-#endif
       reusable_handles_(),
-      stack_overflow_count_(0),
-      hierarchy_info_(nullptr),
-      type_usage_info_(nullptr),
       sticky_error_(Error::null()),
       REUSABLE_HANDLE_LIST(REUSABLE_HANDLE_INITIALIZERS)
           REUSABLE_HANDLE_LIST(REUSABLE_HANDLE_SCOPE_INIT)
-#if defined(USING_SAFE_STACK)
-              saved_safestack_limit_(0),
-#endif
 #if !defined(PRODUCT) || defined(FORCE_INCLUDE_SAMPLING_HEAP_PROFILER)
-      next_(nullptr),
+              next_(nullptr),
       heap_sampler_(this) {
 #else
               next_(nullptr) {
