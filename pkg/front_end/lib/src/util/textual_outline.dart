@@ -827,7 +827,135 @@ class TextualOutlineListener extends Listener {
   }
 
   @override
+  void endClassConstructor(
+    Token? getOrSet,
+    Token beginToken,
+    Token beginParam,
+    Token? beginInitializers,
+    Token endToken,
+  ) {
+    elementStartToChunk[beginToken] = new _ClassMethodChunk(
+      beginToken,
+      endToken,
+    );
+  }
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  void endMixinConstructor(
+    Token? getOrSet,
+    Token beginToken,
+    Token beginParam,
+    Token? beginInitializers,
+    Token endToken,
+  ) {
+    elementStartToChunk[beginToken] = new _ClassMethodChunk(
+      beginToken,
+      endToken,
+    );
+  }
+
+  @override
+  void endEnumConstructor(
+    Token? getOrSet,
+    Token beginToken,
+    Token beginParam,
+    Token? beginInitializers,
+    Token endToken,
+  ) {
+    elementStartToChunk[beginToken] = new _ClassMethodChunk(
+      beginToken,
+      endToken,
+    );
+  }
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  void endExtensionConstructor(
+    Token? getOrSet,
+    Token beginToken,
+    Token beginParam,
+    Token? beginInitializers,
+    Token endToken,
+  ) {
+    elementStartToChunk[beginToken] = new _ClassMethodChunk(
+      beginToken,
+      endToken,
+    );
+  }
+
+  @override
+  void endExtensionTypeConstructor(
+    Token? getOrSet,
+    Token beginToken,
+    Token beginParam,
+    Token? beginInitializers,
+    Token endToken,
+  ) {
+    elementStartToChunk[beginToken] = new _ClassMethodChunk(
+      beginToken,
+      endToken,
+    );
+  }
+
+  @override
   void endClassMethod(
+    Token? getOrSet,
+    Token beginToken,
+    Token beginParam,
+    Token? beginInitializers,
+    Token endToken,
+  ) {
+    elementStartToChunk[beginToken] = new _ClassMethodChunk(
+      beginToken,
+      endToken,
+    );
+  }
+
+  @override
+  void endMixinMethod(
+    Token? getOrSet,
+    Token beginToken,
+    Token beginParam,
+    Token? beginInitializers,
+    Token endToken,
+  ) {
+    elementStartToChunk[beginToken] = new _ClassMethodChunk(
+      beginToken,
+      endToken,
+    );
+  }
+
+  @override
+  void endEnumMethod(
+    Token? getOrSet,
+    Token beginToken,
+    Token beginParam,
+    Token? beginInitializers,
+    Token endToken,
+  ) {
+    elementStartToChunk[beginToken] = new _ClassMethodChunk(
+      beginToken,
+      endToken,
+    );
+  }
+
+  @override
+  void endExtensionMethod(
+    Token? getOrSet,
+    Token beginToken,
+    Token beginParam,
+    Token? beginInitializers,
+    Token endToken,
+  ) {
+    elementStartToChunk[beginToken] = new _ClassMethodChunk(
+      beginToken,
+      endToken,
+    );
+  }
+
+  @override
+  void endExtensionTypeMethod(
     Token? getOrSet,
     Token beginToken,
     Token beginParam,
@@ -861,12 +989,138 @@ class TextualOutlineListener extends Listener {
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
+  void endMixinFactoryMethod(
+    Token beginToken,
+    Token factoryKeyword,
+    Token endToken,
+  ) {
+    elementStartToChunk[beginToken] = new _ClassFactoryMethodChunk(
+      beginToken,
+      endToken,
+    );
+  }
+
+  @override
+  void endEnumFactoryMethod(
+    Token beginToken,
+    Token factoryKeyword,
+    Token endToken,
+  ) {
+    elementStartToChunk[beginToken] = new _ClassFactoryMethodChunk(
+      beginToken,
+      endToken,
+    );
+  }
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  void endExtensionFactoryMethod(
+    Token beginToken,
+    Token factoryKeyword,
+    Token endToken,
+  ) {
+    elementStartToChunk[beginToken] = new _ClassFactoryMethodChunk(
+      beginToken,
+      endToken,
+    );
+  }
+
+  @override
+  void endExtensionTypeFactoryMethod(
+    Token beginToken,
+    Token factoryKeyword,
+    Token endToken,
+  ) {
+    elementStartToChunk[beginToken] = new _ClassFactoryMethodChunk(
+      beginToken,
+      endToken,
+    );
+  }
+
+  @override
   void handleNativeFunctionBodySkipped(Token nativeToken, Token semicolon) {
     // Allow native functions.
   }
 
   @override
   void endClassFields(
+    Token? abstractToken,
+    Token? augmentToken,
+    Token? externalToken,
+    Token? staticToken,
+    Token? covariantToken,
+    Token? lateToken,
+    Token? varFinalOrConst,
+    int count,
+    Token beginToken,
+    Token endToken,
+  ) {
+    elementStartToChunk[beginToken] = new _ClassFieldsChunk(
+      beginToken,
+      endToken,
+    );
+  }
+
+  @override
+  void endMixinFields(
+    Token? abstractToken,
+    Token? augmentToken,
+    Token? externalToken,
+    Token? staticToken,
+    Token? covariantToken,
+    Token? lateToken,
+    Token? varFinalOrConst,
+    int count,
+    Token beginToken,
+    Token endToken,
+  ) {
+    elementStartToChunk[beginToken] = new _ClassFieldsChunk(
+      beginToken,
+      endToken,
+    );
+  }
+
+  @override
+  void endEnumFields(
+    Token? abstractToken,
+    Token? augmentToken,
+    Token? externalToken,
+    Token? staticToken,
+    Token? covariantToken,
+    Token? lateToken,
+    Token? varFinalOrConst,
+    int count,
+    Token beginToken,
+    Token endToken,
+  ) {
+    elementStartToChunk[beginToken] = new _ClassFieldsChunk(
+      beginToken,
+      endToken,
+    );
+  }
+
+  @override
+  void endExtensionFields(
+    Token? abstractToken,
+    Token? augmentToken,
+    Token? externalToken,
+    Token? staticToken,
+    Token? covariantToken,
+    Token? lateToken,
+    Token? varFinalOrConst,
+    int count,
+    Token beginToken,
+    Token endToken,
+  ) {
+    elementStartToChunk[beginToken] = new _ClassFieldsChunk(
+      beginToken,
+      endToken,
+    );
+  }
+
+  @override
+  void endExtensionTypeFields(
     Token? abstractToken,
     Token? augmentToken,
     Token? externalToken,

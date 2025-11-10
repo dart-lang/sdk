@@ -484,14 +484,7 @@ abstract class Listener implements UnescapeErrorListener {
     Token? beginInitializers,
     Token endToken,
   ) {
-    // TODO(johnniwinther): push implementation into subclasses
-    endClassMethod(
-      getOrSet,
-      beginToken,
-      beginParam,
-      beginInitializers,
-      endToken,
-    );
+    logEvent("EnumConstructor");
   }
 
   /// Handle the enum elements. Substructures:
@@ -533,7 +526,7 @@ abstract class Listener implements UnescapeErrorListener {
     Token factoryKeyword,
     Token endToken,
   ) {
-    endClassFactoryMethod(beginToken, factoryKeyword, endToken);
+    logEvent("EnumFactoryMethod");
   }
 
   void beginExport(Token token) {}
@@ -580,8 +573,7 @@ abstract class Listener implements UnescapeErrorListener {
     Token factoryKeyword,
     Token endToken,
   ) {
-    // TODO(johnniwinther): push implementation into subclasses
-    endClassFactoryMethod(beginToken, factoryKeyword, endToken);
+    logEvent("MixinFactoryMethod");
   }
 
   void endExtensionFactoryMethod(
@@ -589,8 +581,7 @@ abstract class Listener implements UnescapeErrorListener {
     Token factoryKeyword,
     Token endToken,
   ) {
-    // TODO(johnniwinther): push implementation into subclasses
-    endClassFactoryMethod(beginToken, factoryKeyword, endToken);
+    logEvent("ExtensionFactoryMethod");
   }
 
   void endExtensionTypeFactoryMethod(
@@ -598,8 +589,7 @@ abstract class Listener implements UnescapeErrorListener {
     Token factoryKeyword,
     Token endToken,
   ) {
-    // TODO(johnniwinther): push implementation into subclasses
-    endClassFactoryMethod(beginToken, factoryKeyword, endToken);
+    logEvent("ExtensionTypeFactoryMethod");
   }
 
   void beginFormalParameter(
@@ -658,7 +648,7 @@ abstract class Listener implements UnescapeErrorListener {
     Token beginToken,
     Token endToken,
   ) {
-    logEvent("Fields");
+    logEvent("ClassFields");
   }
 
   /// Handle the end of a mixin field declaration.  Substructures:
@@ -680,19 +670,7 @@ abstract class Listener implements UnescapeErrorListener {
     Token beginToken,
     Token endToken,
   ) {
-    // TODO(johnniwinther): push implementation into subclasses
-    endClassFields(
-      abstractToken,
-      augmentToken,
-      externalToken,
-      staticToken,
-      covariantToken,
-      lateToken,
-      varFinalOrConst,
-      count,
-      beginToken,
-      endToken,
-    );
+    logEvent("MixinFields");
   }
 
   /// Handle the end of a extension field declaration.  Substructures:
@@ -714,19 +692,7 @@ abstract class Listener implements UnescapeErrorListener {
     Token beginToken,
     Token endToken,
   ) {
-    // TODO(johnniwinther): push implementation into subclasses
-    endClassFields(
-      abstractToken,
-      augmentToken,
-      externalToken,
-      staticToken,
-      covariantToken,
-      lateToken,
-      varFinalOrConst,
-      count,
-      beginToken,
-      endToken,
-    );
+    logEvent("ExtensionFields");
   }
 
   /// Handle the end of a extension type field declaration.  Substructures:
@@ -748,19 +714,7 @@ abstract class Listener implements UnescapeErrorListener {
     Token beginToken,
     Token endToken,
   ) {
-    // TODO(johnniwinther): push implementation into subclasses
-    endClassFields(
-      abstractToken,
-      augmentToken,
-      externalToken,
-      staticToken,
-      covariantToken,
-      lateToken,
-      varFinalOrConst,
-      count,
-      beginToken,
-      endToken,
-    );
+    logEvent("ExtensionTypeFields");
   }
 
   /// Handle the end of an enum field declaration.  Substructures:
@@ -782,18 +736,7 @@ abstract class Listener implements UnescapeErrorListener {
     Token beginToken,
     Token endToken,
   ) {
-    endClassFields(
-      abstractToken,
-      augmentToken,
-      externalToken,
-      staticToken,
-      covariantToken,
-      lateToken,
-      varFinalOrConst,
-      count,
-      beginToken,
-      endToken,
-    );
+    logEvent("EnumFields");
   }
 
   /// Handle the end of an enum method declaration.  Substructures:
@@ -812,13 +755,7 @@ abstract class Listener implements UnescapeErrorListener {
     Token? beginInitializers,
     Token endToken,
   ) {
-    endClassMethod(
-      getOrSet,
-      beginToken,
-      beginParam,
-      beginInitializers,
-      endToken,
-    );
+    logEvent("EnumMethod");
   }
 
   /// Marks that the grammar term `forInitializerStatement` has been parsed and
@@ -1435,14 +1372,7 @@ abstract class Listener implements UnescapeErrorListener {
     Token? beginInitializers,
     Token endToken,
   ) {
-    // TODO(johnniwinther): push implementation into subclasses
-    endClassMethod(
-      getOrSet,
-      beginToken,
-      beginParam,
-      beginInitializers,
-      endToken,
-    );
+    logEvent("MixinMethod");
   }
 
   /// Handle the end of a extension method declaration.  Substructures:
@@ -1461,14 +1391,7 @@ abstract class Listener implements UnescapeErrorListener {
     Token? beginInitializers,
     Token endToken,
   ) {
-    // TODO(johnniwinther): push implementation into subclasses
-    endClassMethod(
-      getOrSet,
-      beginToken,
-      beginParam,
-      beginInitializers,
-      endToken,
-    );
+    logEvent("ExtensionMethod");
   }
 
   /// Handle the end of a extension type method declaration.  Substructures:
@@ -1487,14 +1410,7 @@ abstract class Listener implements UnescapeErrorListener {
     Token? beginInitializers,
     Token endToken,
   ) {
-    // TODO(johnniwinther): push implementation into subclasses
-    endClassMethod(
-      getOrSet,
-      beginToken,
-      beginParam,
-      beginInitializers,
-      endToken,
-    );
+    logEvent("ExtensionTypeMethod");
   }
 
   /// Handle the end of a class constructor declaration.  Substructures:
@@ -1513,14 +1429,7 @@ abstract class Listener implements UnescapeErrorListener {
     Token? beginInitializers,
     Token endToken,
   ) {
-    // TODO(johnniwinther): push implementation into subclasses
-    endClassMethod(
-      getOrSet,
-      beginToken,
-      beginParam,
-      beginInitializers,
-      endToken,
-    );
+    logEvent("ClassConstructor");
   }
 
   /// Handle the end of a mixin constructor declaration.  Substructures:
@@ -1539,14 +1448,7 @@ abstract class Listener implements UnescapeErrorListener {
     Token? beginInitializers,
     Token endToken,
   ) {
-    // TODO(johnniwinther): push implementation into subclasses
-    endClassMethod(
-      getOrSet,
-      beginToken,
-      beginParam,
-      beginInitializers,
-      endToken,
-    );
+    logEvent("MixinConstructor");
   }
 
   /// Handle the end of a extension constructor declaration.  Substructures:
@@ -1565,14 +1467,7 @@ abstract class Listener implements UnescapeErrorListener {
     Token? beginInitializers,
     Token endToken,
   ) {
-    // TODO(johnniwinther): push implementation into subclasses
-    endClassMethod(
-      getOrSet,
-      beginToken,
-      beginParam,
-      beginInitializers,
-      endToken,
-    );
+    logEvent("ExtensionConstructor");
   }
 
   /// Handle the end of an extension type constructor declaration.
@@ -1592,14 +1487,7 @@ abstract class Listener implements UnescapeErrorListener {
     Token? beginInitializers,
     Token endToken,
   ) {
-    // TODO(johnniwinther): push implementation into subclasses
-    endClassConstructor(
-      getOrSet,
-      beginToken,
-      beginParam,
-      beginInitializers,
-      endToken,
-    );
+    logEvent("ExtensionTypeConstructor");
   }
 
   void beginMetadataStar(Token token) {}

@@ -1,4 +1,4 @@
 Errors: {
 }
-method /* from org-dartlang-debug:synthetic_debug_expression */ debugExpr(lowered dart.core::_Smi #this) → dynamic
+method /* from org-dartlang-debug:synthetic_debug_expression */ debugExpr(lowered dart.core::int #this) → dynamic
   return #this;

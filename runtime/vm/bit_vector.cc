@@ -49,6 +49,11 @@ bool BitVector::Equals(const BitVector& other) const {
   return true;
 }
 
+void BitVector::CopyFrom(const BitVector* from) {
+  ASSERT(data_length_ == from->data_length_);
+  memmove(data_, from->data_, data_length_ * sizeof(uword));
+}
+
 bool BitVector::AddAll(const BitVector* from) {
   ASSERT(data_length_ == from->data_length_);
   bool changed = false;
