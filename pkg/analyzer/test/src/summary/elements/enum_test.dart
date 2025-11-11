@@ -4552,6 +4552,14 @@ library
           fields
             #F2 hasInitializer a (nameOffset:46) (firstTokenOffset:11) (offset:46)
               element: <testLibrary>::@enum::E::@field::a
+              metadata
+                Annotation
+                  atSign: @ @32
+                  name: SimpleIdentifier
+                    token: annotation @33
+                    element: <testLibrary>::@getter::annotation
+                    staticType: null
+                  element: <testLibrary>::@getter::annotation
               initializer: expression_0
                 InstanceCreationExpression
                   constructorName: ConstructorName
@@ -4566,6 +4574,14 @@ library
                   staticType: E
             #F3 hasInitializer b (nameOffset:75) (firstTokenOffset:51) (offset:75)
               element: <testLibrary>::@enum::E::@field::b
+              metadata
+                Annotation
+                  atSign: @ @61
+                  name: SimpleIdentifier
+                    token: annotation @62
+                    element: <testLibrary>::@getter::annotation
+                    staticType: null
+                  element: <testLibrary>::@getter::annotation
               initializer: expression_1
                 InstanceCreationExpression
                   constructorName: ConstructorName
@@ -4624,6 +4640,14 @@ library
         static const enumConstant hasImplicitType hasInitializer a
           reference: <testLibrary>::@enum::E::@field::a
           firstFragment: #F2
+          metadata
+            Annotation
+              atSign: @ @32
+              name: SimpleIdentifier
+                token: annotation @33
+                element: <testLibrary>::@getter::annotation
+                staticType: null
+              element: <testLibrary>::@getter::annotation
           type: E
           constantInitializer
             fragment: #F2
@@ -4632,6 +4656,14 @@ library
         static const enumConstant hasImplicitType hasInitializer b
           reference: <testLibrary>::@enum::E::@field::b
           firstFragment: #F3
+          metadata
+            Annotation
+              atSign: @ @61
+              name: SimpleIdentifier
+                token: annotation @62
+                element: <testLibrary>::@getter::annotation
+                staticType: null
+              element: <testLibrary>::@getter::annotation
           type: E
           constantInitializer
             fragment: #F3
@@ -5377,6 +5409,14 @@ library
           fields
             #F2 hasInitializer v (nameOffset:26) (firstTokenOffset:23) (offset:26)
               element: <testLibrary>::@enum::E::@field::v
+              metadata
+                Annotation
+                  atSign: @ @23
+                  name: SimpleIdentifier
+                    token: a @24
+                    element: <testLibrary>::@getter::a
+                    staticType: null
+                  element: <testLibrary>::@getter::a
               initializer: expression_0
                 InstanceCreationExpression
                   constructorName: ConstructorName
@@ -5429,6 +5469,14 @@ library
         static const enumConstant hasImplicitType hasInitializer v
           reference: <testLibrary>::@enum::E::@field::v
           firstFragment: #F2
+          metadata
+            Annotation
+              atSign: @ @23
+              name: SimpleIdentifier
+                token: a @24
+                element: <testLibrary>::@getter::a
+                staticType: null
+              element: <testLibrary>::@getter::a
           type: E
           constantInitializer
             fragment: #F2
@@ -5517,6 +5565,21 @@ library
           fields
             #F7 hasInitializer a (nameOffset:78) (firstTokenOffset:70) (offset:78)
               element: <testLibrary>::@enum::E::@field::a
+              metadata
+                Annotation
+                  atSign: @ @70
+                  name: SimpleIdentifier
+                    token: A @71
+                    element: <testLibrary>::@class::A
+                    staticType: null
+                  arguments: ArgumentList
+                    leftParenthesis: ( @72
+                    arguments
+                      IntegerLiteral
+                        literal: 100 @73
+                        staticType: int
+                    rightParenthesis: ) @76
+                  element: <testLibrary>::@class::A::@constructor::new
               initializer: expression_0
                 InstanceCreationExpression
                   constructorName: ConstructorName
@@ -5545,6 +5608,21 @@ library
                   staticType: E
             #F9 hasInitializer c (nameOffset:96) (firstTokenOffset:88) (offset:96)
               element: <testLibrary>::@enum::E::@field::c
+              metadata
+                Annotation
+                  atSign: @ @88
+                  name: SimpleIdentifier
+                    token: A @89
+                    element: <testLibrary>::@class::A
+                    staticType: null
+                  arguments: ArgumentList
+                    leftParenthesis: ( @90
+                    arguments
+                      IntegerLiteral
+                        literal: 300 @91
+                        staticType: int
+                    rightParenthesis: ) @94
+                  element: <testLibrary>::@class::A::@constructor::new
               initializer: expression_2
                 InstanceCreationExpression
                   constructorName: ConstructorName
@@ -5624,6 +5702,21 @@ library
         static const enumConstant hasImplicitType hasInitializer a
           reference: <testLibrary>::@enum::E::@field::a
           firstFragment: #F7
+          metadata
+            Annotation
+              atSign: @ @70
+              name: SimpleIdentifier
+                token: A @71
+                element: <testLibrary>::@class::A
+                staticType: null
+              arguments: ArgumentList
+                leftParenthesis: ( @72
+                arguments
+                  IntegerLiteral
+                    literal: 100 @73
+                    staticType: int
+                rightParenthesis: ) @76
+              element: <testLibrary>::@class::A::@constructor::new
           type: E
           constantInitializer
             fragment: #F7
@@ -5640,6 +5733,21 @@ library
         static const enumConstant hasImplicitType hasInitializer c
           reference: <testLibrary>::@enum::E::@field::c
           firstFragment: #F9
+          metadata
+            Annotation
+              atSign: @ @88
+              name: SimpleIdentifier
+                token: A @89
+                element: <testLibrary>::@class::A
+                staticType: null
+              arguments: ArgumentList
+                leftParenthesis: ( @90
+                arguments
+                  IntegerLiteral
+                    literal: 300 @91
+                    staticType: int
+                rightParenthesis: ) @94
+              element: <testLibrary>::@class::A::@constructor::new
           type: E
           constantInitializer
             fragment: #F9
@@ -5700,6 +5808,14 @@ library
           fields
             #F2 hasInitializer v (nameOffset:16) (firstTokenOffset:11) (offset:16)
               element: <testLibrary>::@enum::E::@field::v
+              metadata
+                Annotation
+                  atSign: @ @11
+                  name: SimpleIdentifier
+                    token: v @12
+                    element: <testLibrary>::@enum::E::@getter::v
+                    staticType: null
+                  element: <testLibrary>::@enum::E::@getter::v
               initializer: expression_0
                 InstanceCreationExpression
                   constructorName: ConstructorName
@@ -5742,6 +5858,14 @@ library
         static const enumConstant hasImplicitType hasInitializer v
           reference: <testLibrary>::@enum::E::@field::v
           firstFragment: #F2
+          metadata
+            Annotation
+              atSign: @ @11
+              name: SimpleIdentifier
+                token: v @12
+                element: <testLibrary>::@enum::E::@getter::v
+                staticType: null
+              element: <testLibrary>::@enum::E::@getter::v
           type: E
           constantInitializer
             fragment: #F2
