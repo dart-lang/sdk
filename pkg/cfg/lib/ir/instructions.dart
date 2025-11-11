@@ -7,6 +7,7 @@ import 'package:cfg/ir/constant_value.dart';
 import 'package:cfg/ir/flow_graph.dart';
 import 'package:cfg/ir/functions.dart';
 import 'package:cfg/ir/local_variable.dart';
+import 'package:cfg/ir/loops.dart';
 import 'package:cfg/ir/source_position.dart';
 import 'package:cfg/ir/types.dart';
 import 'package:cfg/ir/use_lists.dart';
@@ -242,6 +243,11 @@ abstract base class Instruction {
   bool attributesEqual(Instruction other) =>
       throw 'Not implemented for ${runtimeType}';
 
+  /// Return true if [other] dominates this instruction, i.e. every path from
+  /// graph entry to this instruction goes through [other].
+  bool isDominatedBy(Instruction other) =>
+      graph.dominators.isDominatedBy(this, other);
+
   R accept<R>(InstructionVisitor<R> v);
 }
 
@@ -410,6 +416,17 @@ abstract base class Block extends Instruction
     this.block = this;
     this.lastInstruction = this;
   }
+
+  Block? get dominator {
+    int idom = graph.dominators.idom[preorderNumber];
+    return (idom < 0) ? null : graph.preorder[idom];
+  }
+
+  List<Block> get dominatedBlocks => graph.dominators.dominated[preorderNumber];
+
+  Loop? get loop => graph.loops[this];
+
+  int get loopDepth => loop?.depth ?? 0;
 
   /// Replace [oldPredecessor] with [newPredecessor].
   void replacePredecessor(Block oldPredecessor, Block newPredecessor) {

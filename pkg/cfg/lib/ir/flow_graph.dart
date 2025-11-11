@@ -3,9 +3,11 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:cfg/ir/constant_value.dart';
+import 'package:cfg/ir/dominators.dart';
 import 'package:cfg/ir/functions.dart';
 import 'package:cfg/ir/instructions.dart';
 import 'package:cfg/ir/local_variable.dart';
+import 'package:cfg/ir/loops.dart';
 import 'package:cfg/ir/use_lists.dart';
 import 'package:cfg/utils/arena.dart';
 
@@ -43,6 +45,12 @@ class FlowGraph extends Uint32Arena {
 
   /// Basic block reverse postorder.
   Iterable<Block> get reversePostorder => postorder.reversed;
+
+  /// Computed dominators.
+  Dominators? _dominators;
+
+  /// Computed loops.
+  Loops? _loops;
 
   /// Whether this graph was converted to SSA form.
   bool inSSAForm = false;
@@ -104,6 +112,9 @@ class FlowGraph extends Uint32Arena {
       }
     }
     assert(postorder.length == preorder.length);
+
+    invalidateDominators();
+    invalidateLoops();
   }
 
   /// Detect that a block has been visited as part of the current
@@ -148,5 +159,36 @@ class FlowGraph extends Uint32Arena {
     preorder.add(block);
 
     return true;
+  }
+
+  /// Returns dominators for this graph, computing them if necessary.
+  Dominators get dominators => _dominators ??= computeDominators(this);
+
+  /// Invalidate all information about dominators.
+  /// Dominators will be recalculated once again when needed.
+  ///
+  /// Should be called when blocks have changed.
+  void invalidateDominators() {
+    _dominators = null;
+  }
+
+  /// Invalidate numbering of instructions which is
+  /// used to implement [Instruction.isDominatedBy].
+  /// Numbering of instructions will be recalculated once again when needed.
+  ///
+  /// Should be called when instructions were added or moved.
+  void invalidateInstructionNumbering() {
+    _dominators?.invalidateInstructionNumbering();
+  }
+
+  /// Returns loops for this graph, computing them if necessary.
+  Loops get loops => _loops ??= computeLoops(this);
+
+  /// Invalidate all information about loops.
+  /// Loops will be recalculated once again when needed.
+  ///
+  /// Should be called when blocks have changed.
+  void invalidateLoops() {
+    _loops = null;
   }
 }
