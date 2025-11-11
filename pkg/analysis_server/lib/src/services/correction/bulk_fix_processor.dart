@@ -32,7 +32,6 @@ import 'package:analyzer/source/file_source.dart';
 import 'package:analyzer/source/source.dart';
 import 'package:analyzer/source/source_range.dart';
 import 'package:analyzer/src/analysis_rule/rule_context.dart';
-import 'package:analyzer/src/dart/error/syntactic_errors.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/lint/linter_visitor.dart';
 import 'package:analyzer/src/lint/registry.dart';
@@ -918,9 +917,7 @@ class BulkFixProcessor {
         var diagnostics = unitResult.diagnostics;
         // Check if there are scan/parse errors in the file.
         var hasParseErrors = diagnostics.any(
-          (d) =>
-              d.diagnosticCode is ScannerErrorCode ||
-              d.diagnosticCode is ParserErrorCode,
+          (d) => d.diagnosticCode.type == DiagnosticType.SYNTACTIC_ERROR,
         );
         if (hasParseErrors) {
           // Cannot process files with parse errors.

@@ -6,7 +6,8 @@ import 'package:_fe_analyzer_shared/src/base/errors.dart';
 
 part 'package:analyzer/src/dart/error/todo_codes.g.dart';
 
-/// Static helper methods and properties for working with [TodoCode]s.
+/// Static helper methods and properties for working with [DiagnosticType.TODO]
+/// codes.
 class Todo {
   static const _codes = {
     'TODO': TodoCode.todo,
