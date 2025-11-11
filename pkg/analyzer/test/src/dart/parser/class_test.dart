@@ -1156,6 +1156,108 @@ ClassDeclaration
 ''');
   }
 
+  test_primaryConstructorBody_body_blockFunctionBody() {
+    useDeclaringConstructorsAst = true;
+    var parseResult = parseStringWithErrors(r'''
+class A() {
+  this {
+    0;
+  }
+}
+''');
+    parseResult.assertNoErrors();
+
+    var node = parseResult.findNode.singlePrimaryConstructorBody;
+    assertParsedNodeText(node, r'''
+PrimaryConstructorBody
+  thisKeyword: this
+  body: BlockFunctionBody
+    block: Block
+      leftBracket: {
+      statements
+        ExpressionStatement
+          expression: IntegerLiteral
+            literal: 0
+          semicolon: ;
+      rightBracket: }
+''');
+  }
+
+  test_primaryConstructorBody_comment() {
+    useDeclaringConstructorsAst = true;
+    var parseResult = parseStringWithErrors(r'''
+class A() {
+  /// foo
+  /// bar
+  this;
+}
+''');
+    parseResult.assertNoErrors();
+
+    var node = parseResult.findNode.singlePrimaryConstructorBody;
+    assertParsedNodeText(node, r'''
+PrimaryConstructorBody
+  documentationComment: Comment
+    tokens
+      /// foo
+      /// bar
+  thisKeyword: this
+  body: EmptyFunctionBody
+    semicolon: ;
+''');
+  }
+
+  test_primaryConstructorBody_fieldInitializer() {
+    useDeclaringConstructorsAst = true;
+    var parseResult = parseStringWithErrors(r'''
+class A() {
+  final int x;
+  this : x = 0;
+}
+''');
+    parseResult.assertNoErrors();
+
+    var node = parseResult.findNode.singlePrimaryConstructorBody;
+    assertParsedNodeText(node, r'''
+PrimaryConstructorBody
+  thisKeyword: this
+  colon: :
+  initializers
+    ConstructorFieldInitializer
+      fieldName: SimpleIdentifier
+        token: x
+      equals: =
+      expression: IntegerLiteral
+        literal: 0
+  body: EmptyFunctionBody
+    semicolon: ;
+''');
+  }
+
+  test_primaryConstructorBody_metadata() {
+    useDeclaringConstructorsAst = true;
+    var parseResult = parseStringWithErrors(r'''
+class A() {
+  @deprecated
+  this;
+}
+''');
+    parseResult.assertNoErrors();
+
+    var node = parseResult.findNode.singlePrimaryConstructorBody;
+    assertParsedNodeText(node, r'''
+PrimaryConstructorBody
+  metadata
+    Annotation
+      atSign: @
+      name: SimpleIdentifier
+        token: deprecated
+  thisKeyword: this
+  body: EmptyFunctionBody
+    semicolon: ;
+''');
+  }
+
   test_setter_formalParameters_absent() {
     var parseResult = parseStringWithErrors(r'''
 class A {

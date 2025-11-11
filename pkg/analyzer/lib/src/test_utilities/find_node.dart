@@ -156,6 +156,8 @@ class FindNode {
 
   PrefixExpression get singlePrefixExpression => _single();
 
+  PrimaryConstructorBody get singlePrimaryConstructorBody => _single();
+
   PropertyAccess get singlePropertyAccess => _single();
 
   RecordLiteral get singleRecordLiteral => _single();

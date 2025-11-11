@@ -3953,6 +3953,48 @@ class ToSourceVisitorTest_declaringConstructors extends ToSourceVisitorTest {
     var findNode = _parseStringToFindNode(code);
     _assertSource(code, findNode.extensionTypeDeclaration(code));
   }
+
+  void test_visitPrimaryConstructorBody_block() {
+    var code = 'this {foo();}';
+    var findNode = _parseStringToFindNode('''
+class A() {
+  $code
+}
+''');
+    _assertSource(code, findNode.singlePrimaryConstructorBody);
+  }
+
+  void test_visitPrimaryConstructorBody_initializers() {
+    var code = 'this : x = 0, y = 1;';
+    var findNode = _parseStringToFindNode('''
+class A() {
+  final int x;
+  final int y;
+  $code
+}
+''');
+    _assertSource(code, findNode.singlePrimaryConstructorBody);
+  }
+
+  void test_visitPrimaryConstructorBody_metadata() {
+    var code = '@deprecated this;';
+    var findNode = _parseStringToFindNode('''
+class A() {
+  $code
+}
+''');
+    _assertSource(code, findNode.singlePrimaryConstructorBody);
+  }
+
+  void test_visitPrimaryConstructorBody_simple() {
+    var code = 'this;';
+    var findNode = _parseStringToFindNode('''
+class A() {
+  $code
+}
+''');
+    _assertSource(code, findNode.singlePrimaryConstructorBody);
+  }
 }
 
 @reflectiveTest

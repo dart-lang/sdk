@@ -1152,6 +1152,17 @@ class ToSourceVisitor implements AstVisitor<void> {
   }
 
   @override
+  void visitPrimaryConstructorBody(PrimaryConstructorBody node) {
+    _visitNodeList(node.metadata, separator: ' ', suffix: ' ');
+    _visitToken(node.thisKeyword);
+    if (node.initializers.isNotEmpty) {
+      _visitToken(node.colon, prefix: ' ', suffix: ' ');
+      _visitNodeList(node.initializers, separator: ', ');
+    }
+    _visitFunctionBody(node.body);
+  }
+
+  @override
   void visitPrimaryConstructorDeclaration(PrimaryConstructorDeclaration node) {
     _visitToken(node.constKeyword, suffix: ' ');
     _visitToken(node.typeName);

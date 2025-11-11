@@ -53,7 +53,6 @@ abstract class AbstractLspAnalysisServerTest
         ClientCapabilitiesHelperMixin,
         LspRequestHelpersMixin,
         LspReverseRequestHelpersMixin,
-        LspNotificationHelpersMixin,
         LspEditHelpersMixin,
         LspVerifyEditHelpersMixin,
         LspAnalysisServerTestMixin,
@@ -573,18 +572,6 @@ mixin ClientCapabilitiesHelperMixin {
     });
   }
 
-  void setDartTextDocumentContentProviderSupport([bool supported = true]) {
-    // These are temporarily versioned with a suffix during dev so if we ship
-    // as an experiment (not LSP standard) without the suffix it will only be
-    // active for matching server/clients.
-    const key = dartExperimentalTextDocumentContentProviderKey;
-    if (supported) {
-      experimentalCapabilities[key] = true;
-    } else {
-      experimentalCapabilities.remove(key);
-    }
-  }
-
   void setDiagnosticCodeDescriptionSupport() {
     textDocumentCapabilities = extendTextDocumentCapabilities(
       textDocumentCapabilities,
@@ -801,7 +788,6 @@ mixin LspAnalysisServerTestMixin
     on
         LspRequestHelpersMixin,
         LspReverseRequestHelpersMixin,
-        LspNotificationHelpersMixin,
         LspEditHelpersMixin
     implements ClientCapabilitiesHelperMixin {
   late String projectFolderPath,
@@ -891,7 +877,6 @@ mixin LspAnalysisServerTestMixin
   Uri get nonExistentFileUri => pathContext.toUri(nonExistentFilePath);
 
   /// A stream of [NotificationMessage]s from the server.
-  @override
   Stream<NotificationMessage> get notificationsFromServer {
     return serverToClient
         .where((m) => m is NotificationMessage)

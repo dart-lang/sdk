@@ -5,7 +5,6 @@
 import 'package:analysis_server/lsp_protocol/protocol.dart';
 import 'package:analysis_server/src/lsp/client_capabilities.dart';
 import 'package:analysis_server/src/lsp/client_configuration.dart';
-import 'package:analysis_server/src/lsp/handlers/custom/handler_dart_text_document_content_provider.dart';
 import 'package:analysis_server/src/lsp/handlers/handler_call_hierarchy.dart';
 import 'package:analysis_server/src/lsp/handlers/handler_change_workspace_folders.dart';
 import 'package:analysis_server/src/lsp/handlers/handler_code_actions.dart';
@@ -114,8 +113,6 @@ class LspFeatures {
   final WorkspaceDidChangeConfigurationRegistrations
   workspaceDidChangeConfiguration;
   final WorkspaceSymbolRegistrations workspaceSymbol;
-  final DartTextDocumentContentProviderRegistrations
-  dartTextDocumentContentProvider;
 
   LspFeatures(RegistrationContext context)
     : callHierarchy = CallHierarchyRegistrations(context),
@@ -148,9 +145,7 @@ class LspFeatures {
       willRename = WillRenameFilesRegistrations(context),
       workspaceDidChangeConfiguration =
           WorkspaceDidChangeConfigurationRegistrations(context),
-      workspaceSymbol = WorkspaceSymbolRegistrations(context),
-      dartTextDocumentContentProvider =
-          DartTextDocumentContentProviderRegistrations(context);
+      workspaceSymbol = WorkspaceSymbolRegistrations(context);
 
   List<FeatureRegistration> get allFeatures => [
     callHierarchy,

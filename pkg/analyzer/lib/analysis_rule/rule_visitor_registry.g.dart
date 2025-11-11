@@ -336,6 +336,9 @@ abstract class RuleVisitorRegistry {
   void addPrefixExpression(AbstractAnalysisRule rule, AstVisitor visitor);
 
   @experimental
+  void addPrimaryConstructorBody(AbstractAnalysisRule rule, AstVisitor visitor);
+
+  @experimental
   void addPrimaryConstructorDeclaration(
     AbstractAnalysisRule rule,
     AstVisitor visitor,

@@ -806,6 +806,13 @@ class AnalysisRuleVisitor implements AstVisitor<void> {
 
   @experimental
   @override
+  void visitPrimaryConstructorBody(PrimaryConstructorBody node) {
+    _runSubscriptions(node, _registry._forPrimaryConstructorBody);
+    node.visitChildren(this);
+  }
+
+  @experimental
+  @override
   void visitPrimaryConstructorDeclaration(PrimaryConstructorDeclaration node) {
     _runSubscriptions(node, _registry._forPrimaryConstructorDeclaration);
     node.visitChildren(this);
@@ -1461,6 +1468,9 @@ class RuleVisitorRegistryImpl implements RuleVisitorRegistry {
   final List<_Subscription<PrefixedIdentifier>> _forPrefixedIdentifier = [];
 
   final List<_Subscription<PrefixExpression>> _forPrefixExpression = [];
+
+  final List<_Subscription<PrimaryConstructorBody>> _forPrimaryConstructorBody =
+      [];
 
   final List<_Subscription<PrimaryConstructorDeclaration>>
   _forPrimaryConstructorDeclaration = [];
@@ -2354,6 +2364,16 @@ class RuleVisitorRegistryImpl implements RuleVisitorRegistry {
   @override
   void addPrefixExpression(AbstractAnalysisRule rule, AstVisitor visitor) {
     _forPrefixExpression.add(_Subscription(rule, visitor, _getTimer(rule)));
+  }
+
+  @override
+  void addPrimaryConstructorBody(
+    AbstractAnalysisRule rule,
+    AstVisitor visitor,
+  ) {
+    _forPrimaryConstructorBody.add(
+      _Subscription(rule, visitor, _getTimer(rule)),
+    );
   }
 
   @override

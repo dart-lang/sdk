@@ -1147,14 +1147,6 @@ class InitializationTest extends AbstractLspAnalysisServerTest {
     }, 'ClientCapabilities.experimental.snippetTextEdit must be a bool?');
   }
 
-  Future<void>
-  test_invalidExperimental_supportsDartTextDocumentContentProvider() async {
-    await expectInvalidExperimentalParams(
-      {'supportsDartTextDocumentContentProvider': 1},
-      'ClientCapabilities.experimental.supportsDartTextDocumentContentProvider must be a bool?',
-    );
-  }
-
   Future<void> test_nonFileScheme_rootUri() async {
     // We expect an error notification about the invalid file we try to open.
     failTestOnAnyErrorNotification = false;

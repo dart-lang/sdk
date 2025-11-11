@@ -137,6 +137,10 @@ class _DeclarationGatherer {
               declarations.add(member);
             }
           }
+        // ignore: experimental_member_use
+        case PrimaryConstructorBody():
+          // TODO(scheglov): Handle this case.
+          throw UnimplementedError();
       }
     }
   }

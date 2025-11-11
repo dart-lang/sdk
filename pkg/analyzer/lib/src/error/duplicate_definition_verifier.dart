@@ -477,6 +477,9 @@ class MemberDuplicateDefinitionVerifier {
               _checkValuesDeclarationInEnum(member.name);
             }
           }
+        case PrimaryConstructorBodyImpl():
+          // TODO(scheglov): Handle this case.
+          throw UnimplementedError();
       }
     }
 
