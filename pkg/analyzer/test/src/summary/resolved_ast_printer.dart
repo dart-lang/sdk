@@ -1352,6 +1352,7 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
     _sink.writeln('PrimaryConstructorDeclaration');
     _sink.withIndent(() {
       _writeNamedChildEntities(node);
+      _writeDeclaredFragment(node.declaredFragment);
     });
   }
 
@@ -1863,6 +1864,9 @@ Expected parent: (${parent.runtimeType}) $parent
             });
             _sink.withIndent(() {
               _writeType('type', element.type);
+              if (element is FieldFormalParameterElementImpl) {
+                _elementPrinter.writeNamedElement2('field', element.field);
+              }
             });
           });
         }
@@ -2232,6 +2236,9 @@ Expected parent: (${parent.runtimeType}) $parent
       var declaredFragment = parametersParent.declaredFragment!;
       return declaredFragment.formalParameters;
     } else if (parametersParent is MethodDeclaration) {
+      var declaredFragment = parametersParent.declaredFragment!;
+      return declaredFragment.formalParameters;
+    } else if (parametersParent is PrimaryConstructorDeclaration) {
       var declaredFragment = parametersParent.declaredFragment!;
       return declaredFragment.formalParameters;
     }

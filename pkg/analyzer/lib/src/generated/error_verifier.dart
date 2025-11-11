@@ -10,6 +10,7 @@ import 'package:_fe_analyzer_shared/src/scanner/scanner.dart';
 import 'package:_fe_analyzer_shared/src/types/shared_type.dart';
 import 'package:analyzer/dart/analysis/analysis_options.dart';
 import 'package:analyzer/dart/analysis/features.dart';
+import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/syntactic_entity.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
@@ -498,10 +499,12 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       var declarationElement = augmented.firstFragment;
       _enclosingClass = declarationElement.asElement2;
 
-      List<ClassMember> members = node.members;
+      List<ClassMember> members = useDeclaringConstructorsAst
+          ? node.body.members
+          : node.members;
       if (!declarationElement.element.isDartCoreFunction) {
         _checkForBuiltInIdentifierAsName(
-          node.name,
+          useDeclaringConstructorsAst ? node.namePart.typeName : node.name,
           CompileTimeErrorCode.builtInIdentifierAsTypeName,
         );
       }
@@ -542,7 +545,10 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
         implementsClause: node.implementsClause,
       );
       _checkForWrongTypeParameterVarianceInSuperinterfaces();
-      _checkForMainFunction1(node.name, node.declaredFragment!);
+      _checkForMainFunction1(
+        useDeclaringConstructorsAst ? node.namePart.typeName : node.name,
+        node.declaredFragment!,
+      );
       _checkForMixinClassErrorCodes(node, members, superclass, withClause);
 
       GetterSetterTypesVerifier(
@@ -739,7 +745,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       _enclosingClass = element;
 
       _checkForBuiltInIdentifierAsName(
-        node.name,
+        useDeclaringConstructorsAst ? node.namePart.typeName : node.name,
         CompileTimeErrorCode.builtInIdentifierAsTypeName,
       );
       _checkForConflictingEnumTypeVariableErrorCodes(declaredFragment);
@@ -765,7 +771,9 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
         }
       }
 
-      var members = node.members;
+      var members = useDeclaringConstructorsAst
+          ? node.body.members
+          : node.members;
       libraryContext.constructorFieldsVerifier.addConstructors(
         diagnosticReporter,
         element,
@@ -773,7 +781,10 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       );
       _checkForFinalNotInitializedInClass(declaredFragment, members);
       _checkForWrongTypeParameterVarianceInSuperinterfaces();
-      _checkForMainFunction1(node.name, node.declaredFragment!);
+      _checkForMainFunction1(
+        useDeclaringConstructorsAst ? node.namePart.typeName : node.name,
+        node.declaredFragment!,
+      );
       _checkForEnumInstantiatedToBoundsIsNotWellBounded(node, declaredElement);
 
       GetterSetterTypesVerifier(
@@ -1520,8 +1531,10 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     }
 
     var constructor = node.parentFormalParameterList.parent;
-    if (!(constructor is ConstructorDeclaration &&
-        constructor.isNonRedirectingGenerative)) {
+    if (constructor is ConstructorDeclaration &&
+        constructor.isNonRedirectingGenerative) {
+    } else if (constructor is PrimaryConstructorDeclaration) {
+    } else {
       diagnosticReporter.atToken(
         node.superKeyword,
         CompileTimeErrorCode.invalidSuperFormalParameterLocation,
@@ -3447,6 +3460,8 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
           return;
         }
       }
+    } else if (constructor is PrimaryConstructorDeclaration) {
+      // No additional checks.
     } else {
       diagnosticReporter.atNode(
         parameter,

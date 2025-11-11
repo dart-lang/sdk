@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/analysis/features.dart';
+import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/error/error.dart';
@@ -235,6 +236,22 @@ class DuplicateDefinitionVerifier {
             );
           }
         }
+      } else if (member is ClassDeclarationImpl) {
+        var declaredFragment = member.declaredFragment!;
+        _checkDuplicateIdentifier(
+          definedGetters,
+          useDeclaringConstructorsAst ? member.namePart.typeName : member.name,
+          fragment: declaredFragment,
+          setterScope: definedSetters,
+        );
+      } else if (member is EnumDeclarationImpl) {
+        var declaredFragment = member.declaredFragment!;
+        _checkDuplicateIdentifier(
+          definedGetters,
+          useDeclaringConstructorsAst ? member.namePart.typeName : member.name,
+          fragment: declaredFragment,
+          setterScope: definedSetters,
+        );
       } else if (member is NamedCompilationUnitMemberImpl) {
         var declaredFragment = member.declaredFragment!;
         _checkDuplicateIdentifier(
@@ -382,7 +399,10 @@ class MemberDuplicateDefinitionVerifier {
   );
 
   void _checkClass(ClassDeclarationImpl node) {
-    _checkClassMembers(node.declaredFragment!, node.members);
+    _checkClassMembers(
+      node.declaredFragment!,
+      useDeclaringConstructorsAst ? node.body.members : node.members,
+    );
   }
 
   /// Check that there are no members with the same name.
@@ -638,7 +658,8 @@ class MemberDuplicateDefinitionVerifier {
     var elementContext = _getElementContext(firstFragment);
     var staticScope = elementContext.staticScope;
 
-    for (var constant in node.constants) {
+    for (var constant
+        in useDeclaringConstructorsAst ? node.body.constants : node.constants) {
       if (constant.name.lexeme == declarationName) {
         _diagnosticReporter.atToken(
           constant.name,
@@ -656,7 +677,10 @@ class MemberDuplicateDefinitionVerifier {
       _checkValuesDeclarationInEnum(constant.name);
     }
 
-    _checkClassMembers(fragment, node.members);
+    _checkClassMembers(
+      fragment,
+      useDeclaringConstructorsAst ? node.body.members : node.members,
+    );
 
     if (declarationName == 'values') {
       _diagnosticReporter.atToken(
@@ -846,7 +870,12 @@ class MemberDuplicateDefinitionVerifier {
       switch (declaration) {
         case ClassDeclarationImpl():
           var fragment = declaration.declaredFragment!;
-          _checkClassStatic(fragment, declaration.members);
+          _checkClassStatic(
+            fragment,
+            useDeclaringConstructorsAst
+                ? declaration.body.members
+                : declaration.members,
+          );
         case EnumDeclarationImpl():
           _checkEnumStatic(declaration);
         case ExtensionDeclarationImpl():

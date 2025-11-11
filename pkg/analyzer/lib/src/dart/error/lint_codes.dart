@@ -55,7 +55,7 @@ class LintCode extends DiagnosticCode {
 
 /// Private subtype of [LintCode] that supports runtime checking of parameter
 /// types.
-class LintCodeWithExpectedTypes extends DiagnosticCodeWithExpectedTypes
+abstract class LintCodeWithExpectedTypes extends DiagnosticCodeWithExpectedTypes
     implements LintCode {
   const LintCodeWithExpectedTypes({
     required super.name,

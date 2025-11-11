@@ -17,6 +17,7 @@ import 'package:_fe_analyzer_shared/src/type_inference/type_analyzer_operations.
 import 'package:_fe_analyzer_shared/src/types/shared_type.dart';
 import 'package:analyzer/dart/analysis/analysis_options.dart';
 import 'package:analyzer/dart/analysis/features.dart';
+import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/syntactic_entity.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
@@ -2004,6 +2005,11 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   }
 
   @override
+  void visitBlockClassBody(BlockClassBody node) {
+    node.visitChildren(this);
+  }
+
+  @override
   TypeImpl visitBlockFunctionBody(
     covariant BlockFunctionBodyImpl node, {
     TypeImpl? imposedType,
@@ -2512,6 +2518,9 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   }
 
   @override
+  void visitEmptyClassBody(EmptyClassBody node) {}
+
+  @override
   TypeImpl visitEmptyFunctionBody(
     EmptyFunctionBody node, {
     TypeImpl? imposedType,
@@ -2524,6 +2533,11 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   @override
   void visitEmptyStatement(EmptyStatement node) {
     checkUnreachableNode(node);
+    node.visitChildren(this);
+  }
+
+  @override
+  void visitEnumBody(EnumBody node) {
     node.visitChildren(this);
   }
 
@@ -3465,6 +3479,11 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   }
 
   @override
+  void visitNameWithTypeParameters(NameWithTypeParameters node) {
+    node.visitChildren(this);
+  }
+
+  @override
   void visitNativeClause(NativeClause node) {
     checkUnreachableNode(node);
     node.visitChildren(this);
@@ -3668,6 +3687,16 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
       contextType: contextType,
     );
     inferenceLogWriter?.exitExpression(node);
+  }
+
+  @override
+  void visitPrimaryConstructorDeclaration(PrimaryConstructorDeclaration node) {
+    node.visitChildren(this);
+  }
+
+  @override
+  void visitPrimaryConstructorName(PrimaryConstructorName node) {
+    node.visitChildren(this);
   }
 
   @override
@@ -4891,7 +4920,11 @@ class ScopeResolverVisitor extends UnifyingAstVisitor<void> {
 
       nameScope = TypeParameterScope(nameScope, element.typeParameters);
       node.nameScope = nameScope;
-      node.typeParameters?.accept(this);
+      if (useDeclaringConstructorsAst) {
+        node.namePart.accept(this);
+      } else {
+        node.typeParameters?.accept(this);
+      }
       node.extendsClause?.accept(this);
       node.withClause?.accept(this);
       node.implementsClause?.accept(this);
@@ -4899,7 +4932,11 @@ class ScopeResolverVisitor extends UnifyingAstVisitor<void> {
 
       nameScope = InstanceScope(nameScope, element);
       _visitDocumentationComment(node.documentationComment);
-      node.members.accept(this);
+      if (useDeclaringConstructorsAst) {
+        node.body.accept(this);
+      } else {
+        node.members.accept(this);
+      }
     } finally {
       nameScope = outerScope;
     }
@@ -5000,14 +5037,22 @@ class ScopeResolverVisitor extends UnifyingAstVisitor<void> {
 
       nameScope = TypeParameterScope(nameScope, element.typeParameters);
       node.nameScope = nameScope;
-      node.typeParameters?.accept(this);
+      if (useDeclaringConstructorsAst) {
+        node.namePart.accept(this);
+      } else {
+        node.typeParameters?.accept(this);
+      }
       node.withClause?.accept(this);
       node.implementsClause?.accept(this);
 
       nameScope = InstanceScope(nameScope, element);
       _visitDocumentationComment(node.documentationComment);
-      node.constants.accept(this);
-      node.members.accept(this);
+      if (useDeclaringConstructorsAst) {
+        node.body.accept(this);
+      } else {
+        node.constants.accept(this);
+        node.members.accept(this);
+      }
     } finally {
       nameScope = outerScope;
     }

@@ -85,6 +85,7 @@ ExtensionTypeDeclaration
           declaredFragment: <testLibraryFragment> it@42
             element: hasImplicitType isFinal isPublic
               type: int
+              field: <testLibrary>::@extensionType::A::@field::it
         rightParenthesis: )
       body: EmptyFunctionBody
         semicolon: ;
