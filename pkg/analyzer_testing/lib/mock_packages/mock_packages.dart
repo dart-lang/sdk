@@ -8,7 +8,7 @@ import 'package:analyzer_testing/package_root.dart' as package_root;
 import 'package:analyzer_testing/utilities/extensions/resource_provider.dart';
 import 'package:path/path.dart' as path;
 
-void _cacheFiles(Map<String, String> cachedFiles) {
+Map<String, String> _cacheFiles() {
   var resourceProvider = PhysicalResourceProvider.INSTANCE;
   var pathContext = resourceProvider.pathContext;
   var packageRoot = pathContext.normalize(package_root.packageRoot);
@@ -19,6 +19,8 @@ void _cacheFiles(Map<String, String> cachedFiles) {
     'mock_packages',
     'package_content',
   );
+
+  var cachedFiles = <String, String>{};
 
   void addFiles(Resource resource) {
     if (resource is Folder) {
@@ -32,6 +34,7 @@ void _cacheFiles(Map<String, String> cachedFiles) {
   }
 
   addFiles(resourceProvider.getFolder(mockPath));
+  return cachedFiles;
 }
 
 /// Helper for copying files from "tests/mock_packages" to memory file system
@@ -40,11 +43,9 @@ class BlazeMockPackages {
   static final BlazeMockPackages instance = BlazeMockPackages._();
 
   /// The mapping from relative Posix paths of files to the file contents.
-  final Map<String, String> _cachedFiles = {};
+  final Map<String, String> _cachedFiles = _cacheFiles();
 
-  BlazeMockPackages._() {
-    _cacheFiles(_cachedFiles);
-  }
+  BlazeMockPackages._();
 
   void addFlutter(ResourceProvider provider) {
     _addFiles(provider, 'flutter');
@@ -76,9 +77,7 @@ class BlazeMockPackages {
 /// Helper for copying files from "test/mock_packages" to memory file system.
 mixin MockPackagesMixin {
   /// The mapping from relative Posix paths of files to the file contents.
-  ///
-  /// `null` until the cache is first populated.
-  Map<String, String>? _cachedFiles;
+  late final Map<String, String> _cachedFiles = _cacheFiles();
 
   /// The path to a folder where mock packages can be written.
   String get packagesRootPath;
@@ -161,18 +160,14 @@ mixin MockPackagesMixin {
 
   /// Adds files of the given [packageName] to the [resourceProvider].
   Folder _addFiles(String packageName) {
-    var cachedFiles = _cachedFiles;
-    if (cachedFiles == null) {
-      try {
-        cachedFiles = {};
-        _cacheFiles(cachedFiles);
-        _cachedFiles = cachedFiles;
-      } on StateError catch (e) {
-        throw StateError(
-          '${e.message}\nAdding built-in mock library for "$packageName" is '
-          'not supported when writing a test outside of the Dart SDK source repository.',
-        );
-      }
+    Map<String, String> cachedFiles;
+    try {
+      cachedFiles = _cachedFiles;
+    } on StateError catch (e) {
+      throw StateError(
+        '${e.message}\nAdding built-in mock library for "$packageName" is '
+        'not supported when writing a test outside of the Dart SDK source repository.',
+      );
     }
 
     for (var entry in cachedFiles.entries) {

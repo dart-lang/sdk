@@ -476,7 +476,7 @@ class Thread : public ThreadState, public IntrusiveDListEntry<Thread> {
     return OFFSET_OF(Thread, stack_overflow_flags_);
   }
 
-  int32_t IncrementAndGetStackOverflowCount() {
+  uint32_t IncrementAndGetStackOverflowCount() {
     return ++stack_overflow_count_;
   }
 
@@ -1458,7 +1458,7 @@ class Thread : public ThreadState, public IntrusiveDListEntry<Thread> {
   ObjectPtr active_stacktrace_;
 
   ObjectPoolPtr global_object_pool_;
-  uword resume_pc_;
+  uword resume_pc_ = 0;
   uword saved_shadow_call_stack_ = 0;
 
   /*
@@ -1474,7 +1474,7 @@ class Thread : public ThreadState, public IntrusiveDListEntry<Thread> {
    * to be in [kThreadInNative] and still not be at-safepoint (e.g. due to a
    * pending Dart_TypedDataAcquire() that increases no-callback-scope)
    */
-  uword execution_state_;
+  uword execution_state_ = kThreadInNative;
 
   /*
    * Stores
@@ -1506,14 +1506,14 @@ class Thread : public ThreadState, public IntrusiveDListEntry<Thread> {
    *     entering a reload safepoint
    *     [NoReloadScopeField]
    */
-  std::atomic<uword> safepoint_state_;
+  std::atomic<uword> safepoint_state_ = 0;
   uword exit_through_ffi_ = 0;
 
 #define DECLARE_MEMBERS(returntype, name, ...) uword name##_entry_point_;
   LEAF_RUNTIME_ENTRY_LIST(DECLARE_MEMBERS)
 #undef DECLARE_MEMBERS
 
-  ApiLocalScope* api_top_scope_;
+  ApiLocalScope* api_top_scope_ = nullptr;
   uint8_t double_truncate_round_supported_;
   // Memory locations dedicated for passing unboxed int64 and double
   // values from generated code to runtime.
@@ -1530,6 +1530,8 @@ class Thread : public ThreadState, public IntrusiveDListEntry<Thread> {
   uword user_tag_ = 0;
   UserTagPtr current_tag_;
   UserTagPtr default_tag_;
+  TimelineStream* const dart_stream_;
+  StreamInfo* const service_extension_stream_;
 
   // ---- End accessed from generated code. ----
 
@@ -1539,22 +1541,20 @@ class Thread : public ThreadState, public IntrusiveDListEntry<Thread> {
   // DART_PRECOMPILED_RUNTIME.
 
   uword true_end_ = 0;
-  std::atomic<TaskKind> task_kind_;
-  TimelineStream* const dart_stream_;
-  StreamInfo* const service_extension_stream_;
   mutable Monitor thread_lock_;
-  ApiLocalScope* api_reusable_scope_;
-  int32_t no_callback_scope_depth_;
+  ApiLocalScope* api_reusable_scope_ = nullptr;
+  std::atomic<TaskKind> task_kind_ = kUnknownTask;
+  int32_t no_callback_scope_depth_ = 0;
   int32_t force_growth_scope_depth_ = 0;
-  intptr_t no_reload_scope_depth_ = 0;
-  intptr_t allow_reload_scope_depth_ = 0;
-  intptr_t stopped_mutators_scope_depth_ = 0;
+  int32_t no_reload_scope_depth_ = 0;
+  int32_t allow_reload_scope_depth_ = 0;
+  int32_t stopped_mutators_scope_depth_ = 0;
 #if defined(DEBUG)
-  int32_t no_safepoint_scope_depth_;
+  int32_t no_safepoint_scope_depth_ = 0;
 #endif
-  VMHandles reusable_handles_;
-  int32_t stack_overflow_count_;
+  uint32_t stack_overflow_count_ = 0;
   uint32_t runtime_call_count_ = 0;
+  VMHandles reusable_handles_;
 
   // Deoptimization of stack frames.
   RuntimeCallDeoptAbility runtime_call_deopt_ability_ =
@@ -1563,8 +1563,8 @@ class Thread : public ThreadState, public IntrusiveDListEntry<Thread> {
 
   // Compiler state:
   CompilerState* compiler_state_ = nullptr;
-  HierarchyInfo* hierarchy_info_;
-  TypeUsageInfo* type_usage_info_;
+  HierarchyInfo* hierarchy_info_ = nullptr;
+  TypeUsageInfo* type_usage_info_ = nullptr;
   NoActiveIsolateScope* no_active_isolate_scope_ = nullptr;
 
   CompilerTimings* compiler_timings_ = nullptr;
@@ -1629,7 +1629,7 @@ class Thread : public ThreadState, public IntrusiveDListEntry<Thread> {
   }
 
 #if defined(USING_SAFE_STACK)
-  uword saved_safestack_limit_;
+  uword saved_safestack_limit_ = 0;
 #endif
 
   Thread* next_;  // Used to chain the thread structures in an isolate.

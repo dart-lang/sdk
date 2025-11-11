@@ -12,7 +12,7 @@ abstract class PluginRegistry {
 
   /// Registers this fix [generator] for the given lint [code] with the
   /// analyzer's rule registry.
-  void registerFixForRule(LintCode code, ProducerGenerator generator);
+  void registerFixForRule(DiagnosticCode code, ProducerGenerator generator);
 
   /// Registers this [rule] with the analyzer's rule registry.
   void registerLintRule(AbstractAnalysisRule rule);

@@ -76,35 +76,35 @@ class AnalysisErrorTest {
       engineDiagnostic,
     );
     expect(error.toJson(), {
-      SEVERITY: 'ERROR',
-      TYPE: 'COMPILE_TIME_ERROR',
-      LOCATION: {
-        FILE: 'foo.dart',
-        OFFSET: 10,
-        LENGTH: 20,
-        START_LINE: 3,
-        START_COLUMN: 2,
-        END_LINE: 4,
-        END_COLUMN: 11,
+      severityKey: 'ERROR',
+      typeKey: 'COMPILE_TIME_ERROR',
+      locationKey: {
+        fileKey: 'foo.dart',
+        offsetKey: 10,
+        lengthKey: 20,
+        startLineKey: 3,
+        startColumnKey: 2,
+        endLineKey: 4,
+        endColumnKey: 11,
       },
-      MESSAGE: 'my message',
-      CODE: 'ambiguous_export',
-      URL: 'https://dart.dev/diagnostics/ambiguous_export',
-      CONTEXT_MESSAGES: [
+      messageKey: 'my message',
+      codeKey: 'ambiguous_export',
+      urlKey: 'https://dart.dev/diagnostics/ambiguous_export',
+      contextReferencesKey: [
         {
-          MESSAGE: 'context',
-          LOCATION: {
-            FILE: 'bar.dart',
-            OFFSET: 30,
-            LENGTH: 5,
-            START_LINE: 4,
-            START_COLUMN: 11,
-            END_LINE: 4,
-            END_COLUMN: 16,
+          messageKey: 'context',
+          locationKey: {
+            fileKey: 'bar.dart',
+            offsetKey: 30,
+            lengthKey: 5,
+            startLineKey: 4,
+            startColumnKey: 11,
+            endLineKey: 4,
+            endColumnKey: 16,
           },
         },
       ],
-      HAS_FIX: false,
+      hasFixKey: false,
     });
   }
 
@@ -119,22 +119,22 @@ class AnalysisErrorTest {
     );
     var error = newAnalysisError_fromEngine(result, engineDiagnostic);
     expect(error.toJson(), {
-      SEVERITY: 'ERROR',
-      TYPE: 'COMPILE_TIME_ERROR',
-      LOCATION: {
-        FILE: 'foo.dart',
-        OFFSET: 10,
-        LENGTH: 20,
-        START_LINE: 3,
-        START_COLUMN: 2,
-        END_LINE: 4,
-        END_COLUMN: 11,
+      severityKey: 'ERROR',
+      typeKey: 'COMPILE_TIME_ERROR',
+      locationKey: {
+        fileKey: 'foo.dart',
+        offsetKey: 10,
+        lengthKey: 20,
+        startLineKey: 3,
+        startColumnKey: 2,
+        endLineKey: 4,
+        endColumnKey: 11,
       },
-      MESSAGE: 'my message',
-      CORRECTION: 'my correction',
-      CODE: 'ambiguous_export',
-      URL: 'https://dart.dev/diagnostics/ambiguous_export',
-      HAS_FIX: false,
+      messageKey: 'my message',
+      correctionKey: 'my correction',
+      codeKey: 'ambiguous_export',
+      urlKey: 'https://dart.dev/diagnostics/ambiguous_export',
+      hasFixKey: false,
     });
   }
 
@@ -150,21 +150,21 @@ class AnalysisErrorTest {
     );
     var error = newAnalysisError_fromEngine(result, engineDiagnostic);
     expect(error.toJson(), {
-      SEVERITY: 'ERROR',
-      TYPE: 'COMPILE_TIME_ERROR',
-      LOCATION: {
-        FILE: 'foo.dart',
-        OFFSET: 10,
-        LENGTH: 20,
-        START_LINE: 3,
-        START_COLUMN: 2,
-        END_LINE: 4,
-        END_COLUMN: 11,
+      severityKey: 'ERROR',
+      typeKey: 'COMPILE_TIME_ERROR',
+      locationKey: {
+        fileKey: 'foo.dart',
+        offsetKey: 10,
+        lengthKey: 20,
+        startLineKey: 3,
+        startColumnKey: 2,
+        endLineKey: 4,
+        endColumnKey: 11,
       },
-      MESSAGE: 'my message',
-      CODE: 'test_error',
-      URL: 'http://codes.dartlang.org/TEST_ERROR',
-      HAS_FIX: false,
+      messageKey: 'my message',
+      codeKey: 'test_error',
+      urlKey: 'http://codes.dartlang.org/TEST_ERROR',
+      hasFixKey: false,
     });
   }
 
@@ -183,20 +183,20 @@ class AnalysisErrorTest {
     );
     var error = newAnalysisError_fromEngine(result, engineDiagnostic);
     expect(error.toJson(), {
-      SEVERITY: 'INFO',
-      TYPE: 'LINT',
-      LOCATION: {
-        FILE: 'foo.dart',
-        OFFSET: 10,
-        LENGTH: 20,
-        START_LINE: 3,
-        START_COLUMN: 2,
-        END_LINE: 4,
-        END_COLUMN: 11,
+      severityKey: 'INFO',
+      typeKey: 'LINT',
+      locationKey: {
+        fileKey: 'foo.dart',
+        offsetKey: 10,
+        lengthKey: 20,
+        startLineKey: 3,
+        startColumnKey: 2,
+        endLineKey: 4,
+        endColumnKey: 11,
       },
-      MESSAGE: 'my message',
-      CODE: 'my_lint',
-      HAS_FIX: false,
+      messageKey: 'my message',
+      codeKey: 'my_lint',
+      hasFixKey: false,
     });
   }
 
@@ -210,21 +210,21 @@ class AnalysisErrorTest {
     );
     var error = newAnalysisError_fromEngine(result, engineDiagnostic);
     expect(error.toJson(), {
-      SEVERITY: 'ERROR',
-      TYPE: 'COMPILE_TIME_ERROR',
-      LOCATION: {
-        FILE: 'foo.dart',
-        OFFSET: 10,
-        LENGTH: 20,
-        START_LINE: 3,
-        START_COLUMN: 2,
-        END_LINE: 4,
-        END_COLUMN: 11,
+      severityKey: 'ERROR',
+      typeKey: 'COMPILE_TIME_ERROR',
+      locationKey: {
+        fileKey: 'foo.dart',
+        offsetKey: 10,
+        lengthKey: 20,
+        startLineKey: 3,
+        startColumnKey: 2,
+        endLineKey: 4,
+        endColumnKey: 11,
       },
-      MESSAGE: 'my message',
-      CODE: 'ambiguous_export',
-      URL: 'https://dart.dev/diagnostics/ambiguous_export',
-      HAS_FIX: false,
+      messageKey: 'my message',
+      codeKey: 'ambiguous_export',
+      urlKey: 'https://dart.dev/diagnostics/ambiguous_export',
+      hasFixKey: false,
     });
   }
 }
