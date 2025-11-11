@@ -20046,6 +20046,11 @@ abstract final class PrimaryConstructorDeclaration implements ClassNamePart {
   /// The name of the primary constructor.
   PrimaryConstructorName? get constructorName;
 
+  /// The fragment declared by this declaration.
+  ///
+  /// Returns `null` if the AST structure hasn't been resolved.
+  ConstructorFragment? get declaredFragment;
+
   /// The formal parameters of the constructor, including declaring.
   FormalParameterList get formalParameters;
 }
@@ -20077,6 +20082,9 @@ final class PrimaryConstructorDeclarationImpl extends ClassNamePartImpl
 
   @generated
   FormalParameterListImpl _formalParameters;
+
+  @override
+  ConstructorFragmentImpl? declaredFragment;
 
   @generated
   PrimaryConstructorDeclarationImpl({

@@ -47,6 +47,7 @@ FieldFormalParameter
   declaredFragment: <testLibraryFragment> f@38
     element: isFinal isPublic
       type: void Function(int)
+      field: <testLibrary>::@class::A::@field::f
 ''');
   }
 
@@ -93,6 +94,7 @@ FieldFormalParameter
   declaredFragment: <testLibraryFragment> f@43
     element: isFinal isPublic
       type: U Function<U>(U)
+      field: <testLibrary>::@class::A::@field::f
 ''');
   }
 
@@ -150,6 +152,7 @@ FieldFormalParameter
   declaredFragment: <testLibraryFragment> f@52
     element: isFinal isPublic
       type: T Function<T, U>(U, V)
+      field: <testLibrary>::@class::A::@field::f
 ''');
   }
 
@@ -170,6 +173,7 @@ FieldFormalParameter
   declaredFragment: <testLibraryFragment> f@28
     element: hasImplicitType isFinal isPublic
       type: int
+      field: <testLibrary>::@class::A::@field::f
 ''');
   }
 
@@ -194,6 +198,7 @@ FieldFormalParameter
   declaredFragment: <testLibraryFragment> f@32
     element: isFinal isPublic
       type: int
+      field: <testLibrary>::@class::A::@field::f
 ''');
   }
 
@@ -215,6 +220,7 @@ FieldFormalParameter
   declaredFragment: <testLibraryFragment> f@47
     element: hasImplicitType isFinal isPublic
       type: int
+      field: <testLibrary>::@enum::E::@field::f
 ''');
   }
 }

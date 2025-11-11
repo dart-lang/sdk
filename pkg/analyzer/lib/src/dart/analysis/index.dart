@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/syntactic_entity.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
@@ -712,7 +713,7 @@ class _IndexContributor extends GeneralizingAstVisitor {
   }
 
   @override
-  void visitClassDeclaration(ClassDeclaration node) {
+  void visitClassDeclaration(covariant ClassDeclarationImpl node) {
     _addSubtypeForClassDeclaration(node);
     var declaredElement = node.declaredFragment!.element;
     if (node.extendsClause == null) {
@@ -720,7 +721,9 @@ class _IndexContributor extends GeneralizingAstVisitor {
       recordRelationOffset(
         objectElement,
         IndexRelationKind.IS_EXTENDED_BY,
-        node.name.offset,
+        useDeclaringConstructorsAst
+            ? node.namePart.typeName.offset
+            : node.name.offset,
         0,
         true,
       );
@@ -739,7 +742,7 @@ class _IndexContributor extends GeneralizingAstVisitor {
         recordRelation(
           superConstructor,
           IndexRelationKind.IS_INVOKED_BY,
-          node.name,
+          useDeclaringConstructorsAst ? node.namePart.typeName : node.name,
           true,
         );
       }
@@ -923,10 +926,12 @@ class _IndexContributor extends GeneralizingAstVisitor {
   @override
   void visitEnumDeclaration(EnumDeclaration node) {
     _addSubtype(
-      node.name.lexeme,
+      (useDeclaringConstructorsAst ? node.namePart.typeName : node.name).lexeme,
       withClause: node.withClause,
       implementsClause: node.implementsClause,
-      memberNodes: node.members,
+      memberNodes: useDeclaringConstructorsAst
+          ? node.body.members
+          : node.members,
     );
 
     var declaredElement = node.declaredFragment!.element;
@@ -1335,13 +1340,17 @@ class _IndexContributor extends GeneralizingAstVisitor {
   }
 
   /// Record the given class as a subclass of its direct superclasses.
-  void _addSubtypeForClassDeclaration(ClassDeclaration node) {
+  void _addSubtypeForClassDeclaration(ClassDeclarationImpl node) {
     _addSubtype(
-      node.name.lexeme,
+      useDeclaringConstructorsAst
+          ? node.namePart.typeName.lexeme
+          : node.name.lexeme,
       superclass: node.extendsClause?.superclass,
       withClause: node.withClause,
       implementsClause: node.implementsClause,
-      memberNodes: node.members,
+      memberNodes: useDeclaringConstructorsAst
+          ? node.body.members
+          : node.members,
     );
   }
 

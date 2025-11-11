@@ -43,6 +43,7 @@ FormalParameterList
     declaredFragment: <testLibraryFragment> it@42
       element: hasImplicitType isFinal isPublic
         type: int
+        field: <testLibrary>::@extensionType::E::@field::it
   leftDelimiter: {
   parameter: DefaultFormalParameter
     parameter: SuperFormalParameter
@@ -87,6 +88,7 @@ FormalParameterList
     declaredFragment: <testLibraryFragment> it@42
       element: hasImplicitType isFinal isPublic
         type: int
+        field: <testLibrary>::@extensionType::E::@field::it
   parameter: SuperFormalParameter
     superKeyword: super
     period: .

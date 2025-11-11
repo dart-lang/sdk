@@ -1558,6 +1558,7 @@ package:analyzer/dart/ast/ast.dart:
   PrimaryConstructorDeclaration (class extends Object implements ClassNamePart, experimental):
     constKeyword (getter: Token?)
     constructorName (getter: PrimaryConstructorName?)
+    declaredFragment (getter: ConstructorFragment?)
     formalParameters (getter: FormalParameterList)
   PrimaryConstructorName (class extends Object implements AstNode, experimental):
     name (getter: Token)

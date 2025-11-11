@@ -353,6 +353,7 @@ FormalParameterList
     declaredFragment: <testLibraryFragment> f1@57
       element: isFinal isPublic
         type: void Function()
+        field: <testLibrary>::@class::A::@field::f1
   rightParenthesis: )
 ''');
 
@@ -375,6 +376,7 @@ FormalParameterList
     declaredFragment: <testLibraryFragment> f2@81
       element: isFinal isPublic
         type: void Function()?
+        field: <testLibrary>::@class::A::@field::f2
   rightParenthesis: )
 ''');
 
@@ -399,9 +401,11 @@ FormalParameterList
       declaredFragment: <testLibraryFragment> f3@107
         element: isFinal isPublic
           type: void Function()?
+          field: <testLibrary>::@class::A::@field::f3
     declaredFragment: <testLibraryFragment> f3@107
       element: isFinal isPublic
         type: void Function()?
+        field: <testLibrary>::@class::A::@field::f3
   rightDelimiter: }
   rightParenthesis: )
 ''');

@@ -4,6 +4,7 @@
 
 import 'package:analyzer/dart/analysis/analysis_context.dart';
 import 'package:analyzer/dart/analysis/analysis_context_collection.dart';
+import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/sdk/build_sdk_summary.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/dart/analysis/analysis_context_collection.dart';
@@ -13,6 +14,7 @@ import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer/src/dart/analysis/driver_based_analysis_context.dart';
 import 'package:analyzer/src/dart/analysis/results.dart';
 import 'package:analyzer/src/dart/analysis/unlinked_unit_store.dart';
+import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/test_utilities/mock_sdk.dart';
 import 'package:analyzer/src/util/file_paths.dart' as file_paths;
@@ -337,6 +339,12 @@ class PubPackageResolutionTest extends ContextResolutionTest
       analysisOptionsContent(experiments: experiments),
     );
     writeTestPackageConfig(PackageConfigFileBuilder());
+  }
+
+  @override
+  Future<void> tearDown() async {
+    await super.tearDown();
+    useDeclaringConstructorsAst = default_useDeclaringConstructorsAst;
   }
 
   void writePackageConfig(
