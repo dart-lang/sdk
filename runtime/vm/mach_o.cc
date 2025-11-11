@@ -602,6 +602,16 @@ class MachOSection : public MachOContents {
 
   bool HasName(const char* name) const { return strcmp(name_, name) == 0; }
 
+  intptr_t index() const {
+    // The getter should not be called until after an initial index is assigned.
+    ASSERT(index_ != mach_o::NO_SECT);
+    return index_;
+  }
+  void set_index(intptr_t value) {
+    ASSERT(value != mach_o::NO_SECT);
+    index_ = value;
+  }
+
   struct Portion {
     void Write(MachOWriteStream* stream, intptr_t section_start) const {
       ASSERT(bytes != nullptr);
@@ -718,6 +728,7 @@ class MachOSection : public MachOContents {
   const char* const name_;
   const decltype(SectionType::flags) flags_ = 0;
   const intptr_t alignment_;
+  intptr_t index_ = mach_o::NO_SECT;
   GrowableArray<Portion> portions_;
 
   friend class MachOSegment;
@@ -1283,49 +1294,53 @@ class MachOSymbolTable : public MachOCommand {
   struct Symbol {
     Symbol(intptr_t n_idx,
            intptr_t n_type,
-           intptr_t n_sect,
+           const MachOSection* section,
            intptr_t n_desc,
-           uword n_value)
+           uword section_offset_or_value)
         : name_index(n_idx),
           type(n_type),
-          section_index(n_sect),
+          section(section),
           description(n_desc),
-          value(n_value) {
+          section_offset_or_value(section_offset_or_value) {
       ASSERT(Utils::IsUint(32, n_idx));
       ASSERT(Utils::IsUint(8, n_type));
-      ASSERT(Utils::IsUint(8, n_sect));
       ASSERT(Utils::IsUint(16, n_desc));
-      ASSERT(Utils::IsUint(sizeof(compiler::target::uword) * kBitsPerByte,
-                           n_value));
     }
 
     void Write(MachOWriteStream* stream) const {
       const intptr_t start = stream->Position();
       stream->Write32(name_index);
       stream->WriteByte(type);
-      stream->WriteByte(section_index);
+      stream->WriteByte(section_index());
       stream->Write16(description);
-      stream->WriteWord(value);
+      stream->WriteWord(value());
       ASSERT_EQUAL(stream->Position() - start, sizeof(mach_o::nlist));
+    }
+
+    uint8_t section_index() const {
+      ASSERT(section == nullptr || Utils::IsUint(8, section->index()));
+      return section == nullptr ? mach_o::NO_SECT : section->index();
+    }
+
+    compiler::target::uword value() const {
+      const intptr_t base = section != nullptr ? section->memory_address() : 0;
+      ASSERT(Utils::IsUint(sizeof(compiler::target::uword) * kBitsPerByte,
+                           base + section_offset_or_value));
+      return base + section_offset_or_value;
     }
 
     // The index of the name in the symbol table's string table.
     uint32_t name_index;
     // See the mach_o::N_* constants for the encoding of this field.
     uint8_t type;
-    // The section to which this symbol belongs if not equal to mach_o::NO_SECT.
-    // The sections are indexed by their appearance in the load commands
-    // (e.g., the first section of the first segment command that contains
-    // sections has index 1, and the first section of the second segment command
-    // that contains sections has index [k + 1] if the first segment contains
-    // [k] sections).
-    uint8_t section_index;
+    // The section to which this symbol belongs, if any.
+    const MachOSection* section;
     // See the mach_o::N_* constants for the encoding of this field.
     uint16_t description;
-    // For symbols where section_index != macho_o::NO_SECT, this is the section
-    // offset until finalization, when it is converted to the offset into the
-    // snapshot.
-    compiler::target::uword value;
+    // If section == nullptr, then this is the final value of the symbol.
+    // Otherwise, it is used to calculate the final value, which can be
+    // computed once the section's memory address has been set.
+    intptr_t section_offset_or_value;
 
     DISALLOW_ALLOCATION();
   };
@@ -1336,9 +1351,9 @@ class MachOSymbolTable : public MachOCommand {
 
   void AddSymbol(const char* name,
                  intptr_t type,
-                 intptr_t section_index,
+                 const MachOSection* section,
                  intptr_t description,
-                 uword value,
+                 uword section_offset_or_value,
                  intptr_t label = -1) {
     // Section symbols should always have labels, and other symbols
     // (including symbolic debugging symbols) do not.
@@ -1351,7 +1366,8 @@ class MachOSymbolTable : public MachOCommand {
     auto const name_index = strings_.Add(name);
     ASSERT(*name == '\0' || name_index != 0);
     const intptr_t new_index = num_symbols();
-    symbols_.Add({name_index, type, section_index, description, value});
+    symbols_.Add(
+        {name_index, type, section, description, section_offset_or_value});
     if (label > 0) {
       DEBUG_ONLY(max_label_ = max_label_ > label ? max_label_ : label);
       // Store an 1-based index since 0 is kNoValue for IntMap.
@@ -1370,47 +1386,6 @@ class MachOSymbolTable : public MachOCommand {
   void Initialize(const char* path,
                   const GrowableArray<MachOSection*>& sections,
                   bool is_stripped);
-
-  void UpdateSectionIndices(const GrowableArray<intptr_t>& index_map) {
-    const intptr_t map_size = index_map.length();
-#if defined(DEBUG)
-    for (intptr_t i = 0; i < map_size; i++) {
-      const intptr_t new_index = index_map[i];
-      ASSERT(Utils::IsUint(8, new_index));
-      ASSERT(new_index < map_size);
-      if (i == mach_o::NO_SECT) {
-        ASSERT_EQUAL(new_index, mach_o::NO_SECT);
-      } else {
-        ASSERT(new_index != mach_o::NO_SECT);
-      }
-    }
-#endif
-    for (auto& symbol : symbols_) {
-      const uint8_t old_index = symbol.section_index;
-      ASSERT(old_index < map_size);
-      symbol.section_index = index_map[old_index];
-    }
-  }
-
-  void Finalize(const GrowableArray<uword>& address_map) {
-    const intptr_t map_size = address_map.length();
-#if defined(DEBUG)
-    for (intptr_t i = 0; i < map_size; i++) {
-      if (i == mach_o::NO_SECT) {
-        // The entry for NO_SECT must be 0 so that symbols with that index,
-        // like global symbols, are unchanged.
-        ASSERT_EQUAL(address_map[mach_o::NO_SECT], 0);
-      } else {
-        // No valid section begins at the start of the snapshot.
-        ASSERT(address_map[i] > 0);
-      }
-    }
-#endif
-    for (auto& symbol : symbols_) {
-      ASSERT(symbol.section_index < map_size);
-      symbol.value += address_map[symbol.section_index];
-    }
-  }
 
   uint32_t cmdsize() const override { return sizeof(mach_o::symtab_command); }
 
@@ -1971,7 +1946,7 @@ bool MachOWriteStream::HasValueForLabel(intptr_t label, intptr_t* value) const {
   const auto& symtab = header.relocation_symbol_table();
   auto* const symbol = symtab.FindLabel(label);
   if (symbol == nullptr) return false;
-  *value = symbol->value;
+  *value = symbol->value();
   return true;
 }
 
@@ -2121,12 +2096,12 @@ void MachOWriter::AssertConsistency(const MachOWriter* snapshot,
     if (auto* const snapshot_symbol = snapshot_symtab.FindLabel(i)) {
       auto* const debug_info_symbol = debug_info_symtab.FindLabel(i);
       ASSERT(debug_info_symbol != nullptr);
-      if (snapshot_symbol->value != debug_info_symbol->value) {
+      if (snapshot_symbol->value() != debug_info_symbol->value()) {
         FATAL("Snapshot: %s -> %" Px64 ", %s -> %" Px64 "",
               snapshot_symtab.strings().At(snapshot_symbol->name_index),
-              static_cast<uint64_t>(snapshot_symbol->value),
+              static_cast<uint64_t>(snapshot_symbol->value()),
               debug_info_symtab.strings().At(debug_info_symbol->name_index),
-              static_cast<uint64_t>(debug_info_symbol->value));
+              static_cast<uint64_t>(debug_info_symbol->value()));
       }
     } else {
       ASSERT(debug_info_symtab.FindLabel(i) == nullptr);
@@ -2481,14 +2456,16 @@ void MachOHeader::InitializeSymbolTables() {
   ASSERT_EQUAL(full_symtab_.num_symbols(), 0);
   ASSERT(!HasCommand(MachOSymbolTable::kCommandCode));
 
-  // Grab all the sections in order.
+  // Grab all the sections in order and set their current index.
   GrowableArray<MachOSection*> sections(zone_, 0);
+  intptr_t section_index = 1;  // 1-based.
   for (auto* const command : commands_) {
     // Should be run before ComputeOffsets.
     ASSERT(!command->HasContents() || !command->file_offset_is_set());
     if (auto* const s = command->AsMachOSegment()) {
       for (auto* const c : s->contents()) {
         if (auto* const section = c->AsMachOSection()) {
+          section->set_index(section_index++);
           sections.Add(section);
         }
       }
@@ -2606,24 +2583,10 @@ void MachOHeader::FinalizeCommands() {
   // is created later to contain the non-header contents of these commands.
   GrowableArray<MachOCommand*> linkedit_commands(zone_, 0);
 
-  // Maps segments to the section count and old initial section index for
-  // that segment. (Sections are not reordered during this, so this is
-  // all that's needed to calculate new section indices.)
-  using SegmentMapTrait =
-      RawPointerKeyValueTrait<const MachOSegment,
-                              std::pair<intptr_t, intptr_t>>;
-  DirectChainedHashMap<SegmentMapTrait> section_info(zone_, num_commands);
-  intptr_t num_sections = 0;
   for (auto* const command : commands_) {
     // Check that we're not reordering after offsets have been computed.
     ASSERT(!command->HasContents() || !command->file_offset_is_set());
     if (auto* const s = command->AsMachOSegment()) {
-      const intptr_t count = s->NumSections();
-      if (count != 0) {
-        // Section indices start from 1.
-        section_info.Insert({s, {count, num_sections + 1}});
-        num_sections += count;
-      }
       if (s->HasName(mach_o::SEG_TEXT)) {
         ASSERT(text_segment == s);
       } else if (s->ContainsSymbols()) {
@@ -2673,23 +2636,14 @@ void MachOHeader::FinalizeCommands() {
   // Now populate reordered_commands.
   reordered_commands.AddArray(header_only_commands);
 
-  // While adding segments, also map old section indices to new ones. Include
-  // a map of mach_o::NO_SECT to mach_o::NO_SECT so that changing the section
-  // index on a non-section symbol is a no-op.
-  GrowableArray<intptr_t> index_map(zone_, num_sections + 1);
-  index_map.FillWith(mach_o::NO_SECT, 0, num_sections + 1);
-  // Section indices start from 1.
-  intptr_t current_section_index = 1;
-  for (auto* const s : segments) {
-    reordered_commands.Add(s);
-    auto* const kv = section_info.Lookup(s);
-    if (kv != nullptr) {
-      const auto& [num_sections, old_start] = SegmentMapTrait::ValueOf(*kv);
-      ASSERT(num_sections > 0);  // Otherwise it's not in the map.
-      ASSERT(old_start != mach_o::NO_SECT);
-      for (intptr_t i = 0; i < num_sections; ++i) {
+  // While adding segments, also re-index sections.
+  intptr_t current_section_index = 1;  // 1-based.
+  for (auto* const segment : segments) {
+    reordered_commands.Add(segment);
+    for (auto* const c : segment->contents()) {
+      if (auto* const s = c->AsMachOSection()) {
         ASSERT(current_section_index != mach_o::NO_SECT);
-        index_map[old_start + i] = current_section_index++;
+        s->set_index(current_section_index++);
       }
     }
   }
@@ -2701,29 +2655,10 @@ void MachOHeader::FinalizeCommands() {
   // Replace the content of commands_ with the reordered commands.
   commands_.Clear();
   commands_.AddArray(reordered_commands);
-
-  // This must be true for uses of the map to be correct.
-  ASSERT_EQUAL(index_map[mach_o::NO_SECT], mach_o::NO_SECT);
-#if defined(DEBUG)
-  for (intptr_t i = 1; i < num_sections; ++i) {
-    ASSERT(index_map[i] != mach_o::NO_SECT);
-  }
-#endif
-
-  // Update the section indices of any section-owned symbols.
-  full_symtab_.UpdateSectionIndices(index_map);
-  auto* const table = IncludedSymbolTable();
-  if (table != &full_symtab_) {
-    ASSERT(is_stripped_);
-    table->UpdateSectionIndices(index_map);
-  }
 }
 
 struct ContentOffsetsVisitor : public MachOContents::Visitor {
-  explicit ContentOffsetsVisitor(Zone* zone) : address_map(zone, 1) {
-    // Add NO_SECT -> 0 mapping.
-    address_map.Add(0);
-  }
+  explicit ContentOffsetsVisitor(Zone* zone) {}
 
   void Default(MachOContents* contents) {
     ASSERT_EQUAL(contents->IsMachOHeader(), file_offset == 0);
@@ -2770,17 +2705,6 @@ struct ContentOffsetsVisitor : public MachOContents::Visitor {
                  segment->memory_address() + segment->MemorySize());
   }
 
-  void VisitMachOSection(MachOSection* section) {
-    // Sections do not contain other sections, so the visitor can use the
-    // default behavior without worrying about adding to the address map in
-    // the wrong order.
-    Visitor::VisitMachOSection(section);
-    address_map.Add(section->memory_address());
-  }
-
-  // Maps indices of allocated sections in the section table to memory offsets.
-  // Note that sections are 1-indexed, with 0 (NO_SECT) mapping to 0.
-  GrowableArray<uword> address_map;
   intptr_t file_offset = 0;
   intptr_t memory_address = 0;
 
@@ -2801,20 +2725,6 @@ void MachOHeader::ComputeOffsets() {
   // All commands with non-header content should be part of a segment.
   // In addition, the header is visited during the initial segment.
   VisitSegments(&visitor);
-
-  // Finalize the dynamic symbol table, now that the file offset for the
-  // symbol table has been calculated.
-
-  // Entry for NO_SECT + 1-indexed entries for sections.
-  ASSERT_EQUAL(visitor.address_map.length(), NumSections() + 1);
-
-  // Adjust addresses in symbol tables as we now have section memory offsets.
-  full_symtab_.Finalize(visitor.address_map);
-  auto* const table = IncludedSymbolTable();
-  if (table != &full_symtab_) {
-    ASSERT(is_stripped_);
-    table->Finalize(visitor.address_map);
-  }
 }
 
 void MachOSymbolTable::Initialize(const char* path,
@@ -2833,11 +2743,10 @@ void MachOSymbolTable::Initialize(const char* path,
   if (!is_stripped) {
     for (intptr_t i = 0, n = sections.length(); i < n; ++i) {
       auto* const section = sections[i];
-      const intptr_t section_index = i + 1;  // 1-indexed, as 0 is NO_SECT.
       for (const auto& portion : section->portions()) {
         if (portion.symbols != nullptr) {
           for (const auto& symbol_data : *portion.symbols) {
-            AddSymbol(symbol_data.name, mach_o::N_SECT, section_index, desc,
+            AddSymbol(symbol_data.name, mach_o::N_SECT, section, desc,
                       portion.offset + symbol_data.offset, symbol_data.label);
           }
         }
@@ -2850,45 +2759,43 @@ void MachOSymbolTable::Initialize(const char* path,
       // The value of the OSO symbolic debugging symbol is the mtime of the
       // object file. However, clang may warn about a mismatch if this is not
       // 0 and differs from the actual mtime of the object file, so just use 0.
-      AddSymbol(path, mach_o::N_OSO, /*section_index=*/0,
-                /*description=*/1, /*value=*/0);
+      AddSymbol(path, mach_o::N_OSO, /*section=*/nullptr,
+                /*description=*/1, /*section_offset_or_value=*/0);
     }
-    auto add_symbolic_debugging_symbols =
-        [&](const char* name, Type type, intptr_t section_index,
-            intptr_t offset, intptr_t size, bool is_global) {
-          switch (type) {
-            case Type::Function: {
-              AddSymbol("", mach_o::N_BNSYM, section_index, /*description=*/0,
-                        offset);
-              AddSymbol(name, mach_o::N_FUN, section_index, /*description=*/0,
-                        offset);
-              // The size is output as an unnamed N_FUN symbol with no section
-              // following the actual N_FUN symbol.
-              AddSymbol("", mach_o::N_FUN, mach_o::NO_SECT, /*description=*/0,
-                        size);
-              AddSymbol("", mach_o::N_ENSYM, section_index, /*description=*/0,
-                        offset + size);
+    auto add_symbolic_debugging_symbols = [&](const char* name, Type type,
+                                              const MachOSection* section,
+                                              intptr_t offset, intptr_t size,
+                                              bool is_global) {
+      switch (type) {
+        case Type::Function: {
+          AddSymbol("", mach_o::N_BNSYM, section, /*description=*/0, offset);
+          AddSymbol(name, mach_o::N_FUN, section, /*description=*/0, offset);
+          // The size is output as an unnamed N_FUN symbol with no section
+          // following the actual N_FUN symbol.
+          AddSymbol("", mach_o::N_FUN, /*section=*/nullptr, /*description=*/0,
+                    size);
+          AddSymbol("", mach_o::N_ENSYM, section, /*description=*/0,
+                    offset + size);
 
-              break;
-            }
-            case Type::Section:
-            case Type::Object: {
-              if (is_global) {
-                AddSymbol(name, mach_o::N_GSYM, mach_o::NO_SECT,
-                          /*description=*/0,
-                          /*value=*/0);
-              } else {
-                AddSymbol(name, mach_o::N_STSYM, section_index,
-                          /*description=*/0, offset);
-              }
-              break;
-            }
+          break;
+        }
+        case Type::Section:
+        case Type::Object: {
+          if (is_global) {
+            AddSymbol(name, mach_o::N_GSYM, /*section=*/nullptr,
+                      /*description=*/0,
+                      /*section_offset_or_value=*/0);
+          } else {
+            AddSymbol(name, mach_o::N_STSYM, section,
+                      /*description=*/0, offset);
           }
-        };
+          break;
+        }
+      }
+    };
 
     for (intptr_t i = 0, n = sections.length(); i < n; ++i) {
       auto* const section = sections[i];
-      const intptr_t section_index = i + 1;  // 1-indexed, as 0 is NO_SECT.
       // We handle global symbols for text sections slightly differently than
       // those for other sections.
       const bool is_text_section = section->HasName(mach_o::SECT_TEXT);
@@ -2902,14 +2809,14 @@ void MachOSymbolTable::Initialize(const char* path,
           auto const size = is_text_section && portion.symbols != nullptr
                                 ? portion.symbols->At(0).offset
                                 : portion.size;
-          add_symbolic_debugging_symbols(portion.symbol_name, type,
-                                         section_index, portion.offset, size,
+          add_symbolic_debugging_symbols(portion.symbol_name, type, section,
+                                         portion.offset, size,
                                          /*is_global=*/true);
         }
         if (portion.symbols != nullptr) {
           for (const auto& symbol_data : *portion.symbols) {
             add_symbolic_debugging_symbols(
-                symbol_data.name, symbol_data.type, section_index,
+                symbol_data.name, symbol_data.type, section,
                 portion.offset + symbol_data.offset, symbol_data.size,
                 /*is_global=*/false);
           }
@@ -2923,11 +2830,10 @@ void MachOSymbolTable::Initialize(const char* path,
   // (so added to both stripped and unstripped symbol tables).
   for (intptr_t i = 0, n = sections.length(); i < n; ++i) {
     auto* const section = sections[i];
-    const intptr_t section_index = i + 1;  // 1-indexed, as 0 is NO_SECT.
     for (const auto& portion : section->portions()) {
       if (portion.symbol_name != nullptr) {
-        AddSymbol(portion.symbol_name, mach_o::N_SECT | mach_o::N_EXT,
-                  section_index, desc, portion.offset, portion.label);
+        AddSymbol(portion.symbol_name, mach_o::N_SECT | mach_o::N_EXT, section,
+                  desc, portion.offset, portion.label);
       }
     }
   }
