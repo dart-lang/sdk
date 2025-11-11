@@ -1253,6 +1253,24 @@ abstract class FieldFormalParameterElement implements FormalParameterElement {
   /// Whether this is a declaring formal parameter.
   @experimental
   bool get isDeclaring;
+
+  /// If this field formal parameter is a named parameter with a private name,
+  /// the original private name.
+  ///
+  /// In that case, [name] is the corresponding public name for the parameter
+  /// and [privateName] is the original declared name. Otherwise (the declared
+  /// name wasn't private or was private but has no corresponding public name),
+  /// then, [privateName] is `null`.
+  ///
+  /// The private name is used for:
+  ///
+  /// * Accessing the parameter in the initializer list.
+  ///
+  /// * Finding the corresponding instance variable.
+  ///
+  /// * Referring to the parameter in the constructor's doc comment.
+  @experimental
+  String? get privateName;
 }
 
 /// The portion of a [FieldFormalParameterElement] contributed by a single
@@ -1268,6 +1286,13 @@ abstract class FieldFormalParameterFragment implements FormalParameterFragment {
 
   @override
   FieldFormalParameterFragment? get previousFragment;
+
+  /// If this field formal parameter is a named parameter with a private name,
+  /// the original private name.
+  ///
+  /// In that case, [name] is the corresponding public name for the parameter.
+  @experimental
+  String? get privateName;
 }
 
 /// The portion of a [FieldElement] contributed by a single declaration.

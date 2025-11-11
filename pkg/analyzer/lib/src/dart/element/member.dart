@@ -555,6 +555,9 @@ class SubstitutedFieldFormalParameterElementImpl
 
   @override
   bool get isDeclaring => baseElement.isDeclaring;
+
+  @override
+  String? get privateName => baseElement.privateName;
 }
 
 /// A parameter element defined in a parameterized type where the values of the

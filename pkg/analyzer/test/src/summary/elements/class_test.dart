@@ -879,6 +879,155 @@ library
 ''');
   }
 
+  test_class_constructor_field_formal_named_private() async {
+    var library = await buildLibrary('class C { int? _x; C({this._x}); }');
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      classes
+        #F1 class C (nameOffset:6) (firstTokenOffset:0) (offset:6)
+          element: <testLibrary>::@class::C
+          fields
+            #F2 _x (nameOffset:15) (firstTokenOffset:15) (offset:15)
+              element: <testLibrary>::@class::C::@field::_x
+          constructors
+            #F3 new (nameOffset:<null>) (firstTokenOffset:19) (offset:19)
+              element: <testLibrary>::@class::C::@constructor::new
+              typeName: C
+              typeNameOffset: 19
+              formalParameters
+                #F4 optionalNamed final this.x (nameOffset:27) (firstTokenOffset:22) (offset:27)
+                  element: <testLibrary>::@class::C::@constructor::new::@formalParameter::x
+          getters
+            #F5 synthetic _x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:15)
+              element: <testLibrary>::@class::C::@getter::_x
+          setters
+            #F6 synthetic _x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:15)
+              element: <testLibrary>::@class::C::@setter::_x
+              formalParameters
+                #F7 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:15)
+                  element: <testLibrary>::@class::C::@setter::_x::@formalParameter::value
+  classes
+    hasNonFinalField class C
+      reference: <testLibrary>::@class::C
+      firstFragment: #F1
+      fields
+        _x
+          reference: <testLibrary>::@class::C::@field::_x
+          firstFragment: #F2
+          type: int?
+          getter: <testLibrary>::@class::C::@getter::_x
+          setter: <testLibrary>::@class::C::@setter::_x
+      constructors
+        new
+          reference: <testLibrary>::@class::C::@constructor::new
+          firstFragment: #F3
+          formalParameters
+            #E0 optionalNamed final hasImplicitType this.x
+              firstFragment: #F4
+              type: int?
+              privateName: _x
+              field: <testLibrary>::@class::C::@field::_x
+      getters
+        synthetic _x
+          reference: <testLibrary>::@class::C::@getter::_x
+          firstFragment: #F5
+          returnType: int?
+          variable: <testLibrary>::@class::C::@field::_x
+      setters
+        synthetic _x
+          reference: <testLibrary>::@class::C::@setter::_x
+          firstFragment: #F6
+          formalParameters
+            #E1 requiredPositional value
+              firstFragment: #F7
+              type: int?
+          returnType: void
+          variable: <testLibrary>::@class::C::@field::_x
+  fieldNameNonPromotabilityInfo
+    _x
+      conflictingFields
+        <testLibrary>::@class::C::@field::_x
+''');
+  }
+
+  test_class_constructor_field_formal_named_privateNoCorrespondingPublic() async {
+    var library = await buildLibrary('class C { int? _123; C({this._123}); }');
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      classes
+        #F1 class C (nameOffset:6) (firstTokenOffset:0) (offset:6)
+          element: <testLibrary>::@class::C
+          fields
+            #F2 _123 (nameOffset:15) (firstTokenOffset:15) (offset:15)
+              element: <testLibrary>::@class::C::@field::_123
+          constructors
+            #F3 new (nameOffset:<null>) (firstTokenOffset:21) (offset:21)
+              element: <testLibrary>::@class::C::@constructor::new
+              typeName: C
+              typeNameOffset: 21
+              formalParameters
+                #F4 optionalNamed final this._123 (nameOffset:29) (firstTokenOffset:24) (offset:29)
+                  element: <testLibrary>::@class::C::@constructor::new::@formalParameter::_123
+          getters
+            #F5 synthetic _123 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:15)
+              element: <testLibrary>::@class::C::@getter::_123
+          setters
+            #F6 synthetic _123 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:15)
+              element: <testLibrary>::@class::C::@setter::_123
+              formalParameters
+                #F7 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:15)
+                  element: <testLibrary>::@class::C::@setter::_123::@formalParameter::value
+  classes
+    hasNonFinalField class C
+      reference: <testLibrary>::@class::C
+      firstFragment: #F1
+      fields
+        _123
+          reference: <testLibrary>::@class::C::@field::_123
+          firstFragment: #F2
+          type: int?
+          getter: <testLibrary>::@class::C::@getter::_123
+          setter: <testLibrary>::@class::C::@setter::_123
+      constructors
+        new
+          reference: <testLibrary>::@class::C::@constructor::new
+          firstFragment: #F3
+          formalParameters
+            #E0 optionalNamed final hasImplicitType this._123
+              firstFragment: #F4
+              type: int?
+              field: <testLibrary>::@class::C::@field::_123
+      getters
+        synthetic _123
+          reference: <testLibrary>::@class::C::@getter::_123
+          firstFragment: #F5
+          returnType: int?
+          variable: <testLibrary>::@class::C::@field::_123
+      setters
+        synthetic _123
+          reference: <testLibrary>::@class::C::@setter::_123
+          firstFragment: #F6
+          formalParameters
+            #E1 requiredPositional value
+              firstFragment: #F7
+              type: int?
+          returnType: void
+          variable: <testLibrary>::@class::C::@field::_123
+  fieldNameNonPromotabilityInfo
+    _123
+      conflictingFields
+        <testLibrary>::@class::C::@field::_123
+''');
+  }
+
   test_class_constructor_field_formal_no_matching_field() async {
     // This is a compile-time error but it should still analyze consistently.
     var library = await buildLibrary('class C { C(this.x); }');

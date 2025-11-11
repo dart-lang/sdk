@@ -6032,6 +6032,12 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       return;
     }
 
+    // Must refer to a field.
+    // TODO(rnystrom): Handle primary constructor declaring parameters.
+    if (parameter is! FieldFormalParameter) {
+      return;
+    }
+
     if (correspondingPublicName(name.lexeme) == null) {
       diagnosticReporter.atToken(
         name,

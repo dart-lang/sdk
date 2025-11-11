@@ -626,6 +626,8 @@ class BundleWriter {
     _sink.writeOptionalObject(reference, _writeReference);
   }
 
+  /// Write a formal parameter fragment in the signature of a top-level
+  /// function, constructor, method, getter, or setter declaration.
   // TODO(scheglov): Deduplicate parameter writing implementation.
   void _writeParameterElement(FormalParameterFragmentImpl element) {
     _writeFragmentId(element);
@@ -633,6 +635,11 @@ class BundleWriter {
     _sink.writeBool(element.isInitializingFormal);
     _sink.writeBool(element.isSuperFormal);
     _sink._writeFormalParameterKind(element);
+
+    if (element is FieldFormalParameterFragmentImpl) {
+      _sink.writeOptionalStringReference(element.privateName);
+    }
+
     element.writeModifiers(_sink);
 
     _resolutionSink._writeMetadata(element.metadata);
@@ -1019,6 +1026,7 @@ class ResolutionSink extends BinaryWriter {
     writeOptionalStringReference(element.name);
   }
 
+  /// Write the formal parameter list for a function type alias.
   void _writeFormalParameters(
     List<FormalParameterFragmentImpl> parameters, {
     required bool withAnnotations,
@@ -1030,6 +1038,9 @@ class ResolutionSink extends BinaryWriter {
       _writeTypeParameters(parameter.typeParameters, () {
         writeType(parameter.element.type);
         _writeFragmentName(parameter);
+        if (parameter case FieldFormalParameterElementImpl fieldFormal) {
+          writeOptionalStringReference(fieldFormal.privateName);
+        }
         _writeFormalParameters(
           parameter.formalParameters,
           withAnnotations: withAnnotations,
@@ -1041,6 +1052,7 @@ class ResolutionSink extends BinaryWriter {
     });
   }
 
+  /// Write the formal parameter list for a function type annotation.
   void _writeFormalParameters2(
     List<InternalFormalParameterElement> parameters, {
     required bool withAnnotations,
@@ -1052,6 +1064,10 @@ class ResolutionSink extends BinaryWriter {
       _writeTypeParameters2(parameter.typeParameters, () {
         writeType(parameter.type);
         _writeElementName(parameter);
+        if (parameter.baseElement
+            case FieldFormalParameterElementImpl fieldFormal) {
+          writeOptionalStringReference(fieldFormal.privateName);
+        }
         _writeFormalParameters2(
           parameter.formalParameters.cast(),
           withAnnotations: withAnnotations,

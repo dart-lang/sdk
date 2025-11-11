@@ -335,7 +335,9 @@ class LibraryBuilder {
       for (var constructor in interfaceElement.constructors) {
         for (var parameter in constructor.formalParameters) {
           if (parameter is FieldFormalParameterElementImpl) {
-            parameter.field = interfaceElement.getField(parameter.name ?? '');
+            parameter.field = interfaceElement.getField(
+              parameter.privateName ?? parameter.name ?? '',
+            );
           }
         }
       }

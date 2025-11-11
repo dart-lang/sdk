@@ -60,6 +60,7 @@ import 'package:analyzer/src/utilities/extensions/collection.dart';
 import 'package:analyzer/src/utilities/extensions/element.dart';
 import 'package:analyzer/src/utilities/extensions/object.dart';
 import 'package:collection/collection.dart';
+import 'package:meta/meta.dart';
 import 'package:pub_semver/pub_semver.dart';
 
 part 'element.g.dart';
@@ -2857,6 +2858,9 @@ class FieldFormalParameterElementImpl extends FormalParameterElementImpl
   bool get isDeclaring => _firstFragment.isDeclaring;
 
   @override
+  String? get privateName => _firstFragment.privateName;
+
+  @override
   FieldFormalParameterFragmentImpl get _firstFragment =>
       super._firstFragment as FieldFormalParameterFragmentImpl;
 }
@@ -2865,6 +2869,10 @@ class FieldFormalParameterElementImpl extends FormalParameterElementImpl
 class FieldFormalParameterFragmentImpl extends FormalParameterFragmentImpl
     with _FieldFormalParameterFragmentImplMixin
     implements FieldFormalParameterFragment {
+  @experimental
+  @override
+  final String? privateName;
+
   /// Initialize a newly created parameter element to have the given [name] and
   /// [nameOffset].
   FieldFormalParameterFragmentImpl({
@@ -2872,6 +2880,7 @@ class FieldFormalParameterFragmentImpl extends FormalParameterFragmentImpl
     required super.name,
     required super.nameOffset,
     required super.parameterKind,
+    required this.privateName,
   });
 
   @override
@@ -3110,9 +3119,7 @@ class FormalParameterElementImpl extends PromotableElementImpl
   }
 
   @override
-  String? get name {
-    return _firstFragment.name;
-  }
+  String? get name => _firstFragment.name;
 
   @override
   String get nameShared => _firstFragment.name ?? '';

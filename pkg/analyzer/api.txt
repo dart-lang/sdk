@@ -3642,11 +3642,13 @@ package:analyzer/dart/element/element.dart:
     firstFragment (getter: FieldFormalParameterFragment)
     fragments (getter: List<FieldFormalParameterFragment>)
     isDeclaring (getter: bool, experimental)
+    privateName (getter: String?, experimental)
   FieldFormalParameterFragment (class extends Object implements FormalParameterFragment):
     new (constructor: FieldFormalParameterFragment Function())
     element (getter: FieldFormalParameterElement)
     nextFragment (getter: FieldFormalParameterFragment?)
     previousFragment (getter: FieldFormalParameterFragment?)
+    privateName (getter: String?, experimental)
   FieldFragment (class extends Object implements PropertyInducingFragment):
     new (constructor: FieldFragment Function())
     element (getter: FieldElement)

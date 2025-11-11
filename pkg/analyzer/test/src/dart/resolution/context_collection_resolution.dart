@@ -435,6 +435,11 @@ mixin WithoutEnhancedEnumsMixin on PubPackageResolutionTest {
   String? get testPackageLanguageVersion => '2.16';
 }
 
+mixin WithoutPrivateNamedParametersMixin on PubPackageResolutionTest {
+  @override
+  String? get testPackageLanguageVersion => '3.9';
+}
+
 mixin WithStrictCastsMixin on PubPackageResolutionTest {
   /// Asserts that no errors are reported in [code] when implicit casts are
   /// allowed, and that [expectedErrors] are reported for the same [code] when

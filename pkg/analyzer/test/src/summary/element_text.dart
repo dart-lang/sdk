@@ -705,6 +705,9 @@ class _Element2Writer extends _AbstractElementWriter {
 
       switch (e) {
         case FieldFormalParameterElementImpl():
+          if (e.privateName case var privateName?) {
+            _sink.writelnWithIndent('privateName: $privateName');
+          }
           _elementPrinter.writeNamedElement2('field', e.field);
         case SuperFormalParameterElementImpl():
           _elementPrinter.writeNamedElement2(

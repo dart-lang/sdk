@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/generated/parser.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'context_collection_resolution.dart';
@@ -117,6 +118,126 @@ ConstructorDeclaration
   declaredFragment: <testLibraryFragment> new@null
     element: <testLibrary>::@class::B::@constructor::new
       type: B Function(a)
+''');
+  }
+
+  test_privateNamedParameter_accessInInitializer() async {
+    await assertErrorsInCode(
+      r'''
+class C {
+  int? _x;
+  int? _y;
+  C({this._x}) : _y = _x;
+}
+''',
+      [
+        error(WarningCode.unusedField, 17, 2),
+        error(WarningCode.unusedField, 28, 2),
+      ],
+    );
+
+    var node = findNode.singleConstructorFieldInitializer;
+    assertResolvedNodeText(node, r'''
+ConstructorFieldInitializer
+  fieldName: SimpleIdentifier
+    token: _y
+    element: <testLibrary>::@class::C::@field::_y
+    staticType: null
+  equals: =
+  expression: SimpleIdentifier
+    token: _x
+    element: <testLibrary>::@class::C::@constructor::new::@formalParameter::x
+    staticType: int?
+''');
+  }
+
+  test_privateNamedParameter_fieldFormal() async {
+    await assertErrorsInCode(
+      r'''
+class C {
+  int? _x;
+  C({this._x});
+}
+''',
+      [error(WarningCode.unusedField, 17, 2)],
+    );
+
+    var node = findNode.singleConstructorDeclaration;
+    assertResolvedNodeText(node, r'''
+ConstructorDeclaration
+  returnType: SimpleIdentifier
+    token: C
+    element: <testLibrary>::@class::C
+    staticType: null
+  parameters: FormalParameterList
+    leftParenthesis: (
+    leftDelimiter: {
+    parameter: DefaultFormalParameter
+      parameter: FieldFormalParameter
+        thisKeyword: this
+        period: .
+        name: _x
+        declaredFragment: <testLibraryFragment> x@31
+          element: hasImplicitType isFinal isPublic
+            type: int?
+            field: <testLibrary>::@class::C::@field::_x
+      declaredFragment: <testLibraryFragment> x@31
+        element: hasImplicitType isFinal isPublic
+          type: int?
+          field: <testLibrary>::@class::C::@field::_x
+    rightDelimiter: }
+    rightParenthesis: )
+  body: EmptyFunctionBody
+    semicolon: ;
+  declaredFragment: <testLibraryFragment> new@null
+    element: <testLibrary>::@class::C::@constructor::new
+      type: C Function({int? x})
+''');
+  }
+
+  test_privateNamedParameter_nonFieldFormal() async {
+    // The user is incorrectly using a private named parameter for a non-field
+    // parameter. This is erroneous, but resolve using the private name.
+    await assertErrorsInCode(
+      r'''
+class C {
+  C({int? _x});
+}
+''',
+      [error(ParserErrorCode.privateNamedNonFieldParameter, 20, 2)],
+    );
+
+    var node = findNode.singleConstructorDeclaration;
+    assertResolvedNodeText(node, r'''
+ConstructorDeclaration
+  returnType: SimpleIdentifier
+    token: C
+    element: <testLibrary>::@class::C
+    staticType: null
+  parameters: FormalParameterList
+    leftParenthesis: (
+    leftDelimiter: {
+    parameter: DefaultFormalParameter
+      parameter: SimpleFormalParameter
+        type: NamedType
+          name: int
+          question: ?
+          element: dart:core::@class::int
+          type: int?
+        name: _x
+        declaredFragment: <testLibraryFragment> _x@20
+          element: isPrivate
+            type: int?
+      declaredFragment: <testLibraryFragment> _x@20
+        element: isPrivate
+          type: int?
+    rightDelimiter: }
+    rightParenthesis: )
+  body: EmptyFunctionBody
+    semicolon: ;
+  declaredFragment: <testLibraryFragment> new@null
+    element: <testLibrary>::@class::C::@constructor::new
+      type: C Function({int? _x})
 ''');
   }
 

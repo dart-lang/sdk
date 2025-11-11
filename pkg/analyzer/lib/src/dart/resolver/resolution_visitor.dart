@@ -473,6 +473,7 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
           parameterKind: node.kind,
           name: name2,
           nameOffset: nameOffset2,
+          privateName: null,
         )..constantInitializer = node.defaultValue;
       } else if (node.parameter is SuperFormalParameter) {
         // Only for recovery, this should not happen in valid code.
@@ -667,6 +668,7 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
           name: nameToken.lexeme.nullIfEmpty,
           nameOffset: nameToken.offset.nullIfNegative,
           parameterKind: node.kind,
+          privateName: null,
         );
         _elementHolder.enclose(fragment);
         fragment.isConst = node.isConst;
