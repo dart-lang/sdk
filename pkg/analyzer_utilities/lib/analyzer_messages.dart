@@ -588,13 +588,10 @@ mixin MessageWithAnalyzerCode on Message {
       var templateParameters =
           '<LocatableDiagnostic Function({$withArgumentsParams})>';
       staticType = 'DiagnosticWithArguments$templateParameters';
-      var newIfNeeded = diagnosticClassInfo.file.shouldUseExplicitNewOrConst
-          ? 'new '
-          : '';
       memberAccumulator.staticMethods[withArgumentsName] =
           '''
 static LocatableDiagnostic $withArgumentsName({$withArgumentsParams}) {
-  return ${newIfNeeded}LocatableDiagnosticImpl(
+  return LocatableDiagnosticImpl(
     ${diagnosticClassInfo.name}.$constantName, [$argumentNames]);
 }''';
     } else {
@@ -606,9 +603,6 @@ static LocatableDiagnostic $withArgumentsName({$withArgumentsParams}) {
     var constant = StringBuffer();
     outputConstantHeader(constant);
     constant.writeln('  static const $staticType $constantName =');
-    if (diagnosticClassInfo.file.shouldUseExplicitNewOrConst) {
-      constant.writeln('const ');
-    }
     constant.writeln('$concreteClassName(');
     constant.writeln(
       'name: ${sharedNameReference ?? "'${sharedName ?? diagnosticCode}'"},',
