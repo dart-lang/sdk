@@ -1386,7 +1386,7 @@ class FragmentBuilder extends ThrowingAstVisitor<void> {
     covariant ExtensionTypeDeclarationImpl node,
   ) {
     var nameToken = useDeclaringConstructorsAst
-        ? node.namePart.typeName
+        ? node.primaryConstructor.typeName
         : node.name;
     var fragmentName = _getFragmentName(nameToken);
 
@@ -1402,11 +1402,9 @@ class FragmentBuilder extends ThrowingAstVisitor<void> {
     var holder = _EnclosingContext(fragment: fragment);
     _withEnclosing(holder, () {
       if (useDeclaringConstructorsAst) {
-        node.namePart.typeParameters?.accept(this);
+        node.primaryConstructor.typeParameters?.accept(this);
         _buildExtensionTypePrimaryConstructor(
-          // TODO(scheglov): support for absence of primary constructor
-          primaryConstructor:
-              node.namePart as PrimaryConstructorDeclarationImpl,
+          primaryConstructor: node.primaryConstructor,
           extensionFragment: fragment,
         );
         node.body.accept(this);

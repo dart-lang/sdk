@@ -1029,7 +1029,9 @@ class FileState {
         }
       } else if (declaration is ExtensionTypeDeclaration) {
         if (useDeclaringConstructorsAst) {
-          topLevelDeclarations.add(declaration.namePart.typeName.lexeme);
+          topLevelDeclarations.add(
+            declaration.primaryConstructor.typeName.lexeme,
+          );
         } else {
           topLevelDeclarations.add(declaration.name.lexeme);
         }

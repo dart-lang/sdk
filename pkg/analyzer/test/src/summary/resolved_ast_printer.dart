@@ -664,7 +664,7 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
       expect(() => node.members, throwsUnsupportedError);
       expect(() => node.rightBracket, throwsUnsupportedError);
     } else {
-      expect(() => node.namePart, throwsUnsupportedError);
+      expect(() => node.primaryConstructor, throwsUnsupportedError);
       expect(() => node.body, throwsUnsupportedError);
     }
 

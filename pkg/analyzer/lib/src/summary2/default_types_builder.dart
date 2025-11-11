@@ -61,7 +61,7 @@ class DefaultTypesBuilder {
       } else if (node is ExtensionTypeDeclarationImpl) {
         var element = node.declaredFragment!.element;
         var typeParameters = useDeclaringConstructorsAst
-            ? node.namePart.typeParameters
+            ? node.primaryConstructor.typeParameters
             : node.typeParameters;
         _breakSelfCycles(typeParameters);
         _breakRawTypeCycles(element, typeParameters);
@@ -118,7 +118,7 @@ class DefaultTypesBuilder {
       } else if (node is ExtensionTypeDeclarationImpl) {
         _build(
           useDeclaringConstructorsAst
-              ? node.namePart.typeParameters
+              ? node.primaryConstructor.typeParameters
               : node.typeParameters,
         );
       } else if (node is FunctionTypeAliasImpl) {
