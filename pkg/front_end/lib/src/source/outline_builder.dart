@@ -476,6 +476,10 @@ class OutlineBuilder extends StackListenerImpl {
 
   final bool enableNative;
   bool inAbstractOrSealedClass = false;
+
+  // TODO(johnniwinther): Avoid discrepancy between [inConstructor] and
+  // `endXConstructor` methods. The former is based on the enclosing declaration
+  // name and get/set keyword. The latter also takes initializers into account.
   bool inConstructor = false;
   bool inConstructorName = false;
 
@@ -2284,13 +2288,12 @@ class OutlineBuilder extends StackListenerImpl {
     Token endToken,
   ) {
     debugEvent("endClassConstructor");
-    _endClassMethod(
+    _endClassConstructor(
       getOrSet,
       beginToken,
-      beginParam,
       beginInitializers,
       endToken,
-      _MethodKind.classConstructor,
+      _ConstructorKind.classConstructor,
     );
   }
 
@@ -2360,13 +2363,12 @@ class OutlineBuilder extends StackListenerImpl {
     Token endToken,
   ) {
     debugEvent("endMixinConstructor");
-    _endClassMethod(
+    _endClassConstructor(
       getOrSet,
       beginToken,
-      beginParam,
       beginInitializers,
       endToken,
-      _MethodKind.mixinConstructor,
+      _ConstructorKind.mixinConstructor,
     );
   }
 
@@ -2379,13 +2381,12 @@ class OutlineBuilder extends StackListenerImpl {
     Token endToken,
   ) {
     debugEvent("endExtensionConstructor");
-    _endClassMethod(
+    _endClassConstructor(
       getOrSet,
       beginToken,
-      beginParam,
       beginInitializers,
       endToken,
-      _MethodKind.extensionConstructor,
+      _ConstructorKind.extensionConstructor,
     );
   }
 
@@ -2398,13 +2399,12 @@ class OutlineBuilder extends StackListenerImpl {
     Token endToken,
   ) {
     debugEvent("endExtensionTypeConstructor");
-    _endClassMethod(
+    _endClassConstructor(
       getOrSet,
       beginToken,
-      beginParam,
       beginInitializers,
       endToken,
-      _MethodKind.extensionTypeConstructor,
+      _ConstructorKind.extensionTypeConstructor,
     );
   }
 
@@ -2417,6 +2417,7 @@ class OutlineBuilder extends StackListenerImpl {
     _MethodKind methodKind,
   ) {
     assert(checkState(beginToken, [ValueKinds.MethodBody]));
+    assert(!inConstructor);
     MethodBody bodyKind = pop() as MethodBody;
     if (bodyKind == MethodBody.RedirectingFactoryBody) {
       // This will cause an error later.
@@ -2445,7 +2446,7 @@ class OutlineBuilder extends StackListenerImpl {
     Object? identifier = pop();
     TypeBuilder? returnType = pop() as TypeBuilder?;
     Modifiers modifiers = pop() as Modifiers;
-    int varFinalOrConstOffset = popCharOffset();
+    popCharOffset(); // varFinalOrConstOffset
     List<MetadataBuilder>? metadata = pop() as List<MetadataBuilder>?;
 
     if (identifier is! Identifier) {
@@ -2454,9 +2455,7 @@ class OutlineBuilder extends StackListenerImpl {
         "Unexpected identifier $identifier (${identifier.runtimeType})",
       );
 
-      if (inConstructor) {
-        _builderFactory.endConstructorForParserRecovery(typeParameters);
-      } else if (modifiers.isStatic) {
+      if (modifiers.isStatic) {
         // Coverage-ignore-block(suite): Not run.
         _builderFactory.endStaticMethodForParserRecovery(typeParameters);
       } else {
@@ -2477,7 +2476,7 @@ class OutlineBuilder extends StackListenerImpl {
     }
 
     String name;
-    ProcedureKind? kind;
+    ProcedureKind kind;
     int nameOffset = identifier.qualifierOffset;
     if (operator != null) {
       name = operator.text;
@@ -2561,48 +2560,17 @@ class OutlineBuilder extends StackListenerImpl {
     bool isConst = modifiers.isConst;
     bool isStatic = modifiers.isStatic;
 
-    bool isConstructor = switch (methodKind) {
-      _MethodKind.classConstructor => true,
-      _MethodKind.mixinConstructor => true,
-      _MethodKind.extensionConstructor => true,
-      _MethodKind.extensionTypeConstructor => true,
-      _MethodKind.enumConstructor => true,
-      _MethodKind.classMethod => false,
-      _MethodKind.mixinMethod => false,
-      _MethodKind.extensionMethod => false,
-      _MethodKind.extensionTypeMethod => false,
-      _MethodKind.enumMethod => false,
-    };
-    if (isConstructor) {
-      if (isConst &&
-          bodyKind != MethodBody.Abstract &&
-          !libraryFeatures.constFunctions.isEnabled) {
-        addProblem(codeConstConstructorWithBody, varFinalOrConstOffset, 5);
-        modifiers -= Modifiers.Const;
-      }
-      if (returnType != null) {
-        addProblem(
-          codeConstructorWithReturnType,
-          returnType.charOffset ?? // Coverage-ignore(suite): Not run.
-              beginToken.offset,
-          noLength,
-        );
-        returnType = null;
-      }
-    } else {
-      if (isConst) {
-        // TODO(danrubel): consider removing this
-        // because it is an error to have a const method.
-        modifiers -= Modifiers.Const;
-      }
+    if (isConst) {
+      // TODO(danrubel): consider removing this
+      // because it is an error to have a const method.
+      modifiers -= Modifiers.Const;
     }
 
     int startOffset = metadata?.first.atOffset ?? beginToken.charOffset;
 
     int endOffset = endToken.charOffset;
 
-    bool forAbstractClassOrMixin =
-        inAbstractOrSealedClass || methodKind == _MethodKind.mixinConstructor;
+    bool forAbstractClassOrMixin = inAbstractOrSealedClass;
 
     bool isExtensionMember = methodKind == _MethodKind.extensionMethod;
     bool isExtensionTypeMember = methodKind == _MethodKind.extensionTypeMethod;
@@ -2621,15 +2589,128 @@ class OutlineBuilder extends StackListenerImpl {
       nameOffset: nameOffset,
       formalsOffset: formalsOffset,
       modifiers: modifiers,
-      inConstructor: inConstructor,
       isStatic: isStatic,
-      isConstructor: isConstructor,
       isExtensionMember: isExtensionMember,
       isExtensionTypeMember: isExtensionTypeMember,
       forAbstractClassOrMixin: forAbstractClassOrMixin,
       asyncModifier: asyncModifier,
       nativeMethodName: nativeMethodName,
       kind: kind,
+    );
+
+    nativeMethodName = null;
+    inConstructor = false;
+    popDeclarationContext();
+  }
+
+  void _endClassConstructor(
+    Token? getOrSet,
+    Token beginToken,
+    Token? beginInitializers,
+    Token endToken,
+    _ConstructorKind constructorKind,
+  ) {
+    assert(checkState(beginToken, [ValueKinds.MethodBody]));
+    MethodBody bodyKind = pop() as MethodBody;
+    if (bodyKind == MethodBody.RedirectingFactoryBody) {
+      // This will cause an error later.
+      pop();
+    }
+    assert(
+      checkState(beginToken, [
+        ValueKinds.AsyncModifier,
+        ValueKinds.FormalListOrNull,
+        ValueKinds.Integer, // formals offset
+        ValueKinds.TypeParameterFragmentListOrNull,
+        ValueKinds.IdentifierOrParserRecovery,
+        ValueKinds.TypeBuilderOrNull,
+        ValueKinds.Modifiers,
+        ValueKinds.Integer, // var/final/const offset
+        ValueKinds.MetadataListOrNull,
+      ]),
+    );
+
+    pop() as AsyncMarker;
+    List<FormalParameterBuilder>? formals =
+        pop() as List<FormalParameterBuilder>?;
+    int formalsOffset = popCharOffset();
+    List<TypeParameterFragment>? typeParameters =
+        pop() as List<TypeParameterFragment>?;
+    Object? identifier = pop();
+    TypeBuilder? returnType = pop() as TypeBuilder?;
+    Modifiers modifiers = pop() as Modifiers;
+    int varFinalOrConstOffset = popCharOffset();
+    List<MetadataBuilder>? metadata = pop() as List<MetadataBuilder>?;
+
+    if (identifier is! Identifier) {
+      assert(
+        identifier is ParserRecovery,
+        "Unexpected identifier $identifier (${identifier.runtimeType})",
+      );
+
+      _builderFactory.endConstructorForParserRecovery(typeParameters);
+
+      nativeMethodName = null;
+      inConstructor = false;
+      popDeclarationContext();
+      return;
+    }
+
+    bool isAbstract = bodyKind == MethodBody.Abstract;
+    if (getOrSet != null && getOrSet.isA(Keyword.SET)) {
+      if (formals == null || formals.length != 1) {
+        // This isn't abstract as we'll add an error-recovery node in
+        // [BodyBuilder.finishFunction].
+        isAbstract = false;
+      }
+    }
+
+    if (isAbstract && !modifiers.isExternal) {
+      modifiers |= Modifiers.Abstract;
+    }
+    if (nativeMethodName != null) {
+      modifiers |= Modifiers.External;
+    }
+
+    bool isConst = modifiers.isConst;
+
+    if (isConst &&
+        bodyKind != MethodBody.Abstract &&
+        !libraryFeatures.constFunctions.isEnabled) {
+      addProblem(codeConstConstructorWithBody, varFinalOrConstOffset, 5);
+      modifiers -= Modifiers.Const;
+    }
+    if (returnType != null) {
+      addProblem(
+        codeConstructorWithReturnType,
+        returnType.charOffset ?? // Coverage-ignore(suite): Not run.
+            beginToken.offset,
+        noLength,
+      );
+      returnType = null;
+    }
+
+    int startOffset = metadata?.first.atOffset ?? beginToken.charOffset;
+
+    int endOffset = endToken.charOffset;
+
+    bool forAbstractClassOrMixin =
+        inAbstractOrSealedClass ||
+        constructorKind == _ConstructorKind.mixinConstructor;
+
+    _builderFactory.addConstructor(
+      offsetMap: _offsetMap,
+      metadata: metadata,
+      modifiers: modifiers,
+      identifier: identifier,
+      typeParameters: typeParameters,
+      formals: formals,
+      startOffset: startOffset,
+      formalsOffset: formalsOffset,
+      endOffset: endOffset,
+      nativeMethodName: nativeMethodName,
+      beginInitializers: beginInitializers,
+      forAbstractClassOrMixin: forAbstractClassOrMixin,
     );
 
     nativeMethodName = null;
@@ -4559,13 +4640,12 @@ class OutlineBuilder extends StackListenerImpl {
       noLength,
     );
 
-    _endClassMethod(
+    _endClassConstructor(
       getOrSet,
       beginToken,
-      beginParam,
       beginInitializers,
       endToken,
-      _MethodKind.enumConstructor,
+      _ConstructorKind.enumConstructor,
     );
   }
 
@@ -4831,16 +4911,20 @@ class OutlineBuilder extends StackListenerImpl {
 
 /// TODO(johnniwinther): Use [DeclarationContext] instead of [_MethodKind].
 enum _MethodKind {
-  classConstructor,
   classMethod,
-  mixinConstructor,
   mixinMethod,
-  extensionConstructor,
   extensionMethod,
-  extensionTypeConstructor,
   extensionTypeMethod,
-  enumConstructor,
   enumMethod,
+}
+
+/// TODO(johnniwinther): Use [DeclarationContext] instead of [_ConstructorKind].
+enum _ConstructorKind {
+  classConstructor,
+  mixinConstructor,
+  extensionConstructor,
+  extensionTypeConstructor,
+  enumConstructor,
 }
 
 extension on MemberKind {

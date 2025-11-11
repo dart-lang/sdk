@@ -20,10 +20,6 @@ library;
 //     /
 //     ^
 //
-// pkg/front_end/testcases/general/error_recovery/issue_39230.crash_dart:3:5: Error: Operator '/' should have exactly one parameter.
-//     /
-//     ^
-//
 import self as self;
 import "dart:core" as core;
 

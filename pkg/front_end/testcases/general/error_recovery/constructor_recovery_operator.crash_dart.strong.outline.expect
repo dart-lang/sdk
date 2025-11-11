@@ -20,10 +20,6 @@ library;
 //   Foo() / : super() {}
 //         ^
 //
-// pkg/front_end/testcases/general/error_recovery/constructor_recovery_operator.crash_dart:3:9: Error: Operator '/' should have exactly one parameter.
-//   Foo() / : super() {}
-//         ^
-//
 // pkg/front_end/testcases/general/error_recovery/constructor_recovery_operator.crash_dart:5:8: Error: Expected '{' before this.
 //   Foo()./ : super() {}
 //        ^
@@ -46,10 +42,6 @@ library;
 //   Foo()./ : super() {}
 //         ^
 //
-// pkg/front_end/testcases/general/error_recovery/constructor_recovery_operator.crash_dart:5:9: Error: Operator '/' should have exactly one parameter.
-//   Foo()./ : super() {}
-//         ^
-//
 // pkg/front_end/testcases/general/error_recovery/constructor_recovery_operator.crash_dart:7:9: Error: Expected '{' before this.
 //   foo() / : super() {}
 //         ^
@@ -65,10 +57,6 @@ library;
 //         ^
 //
 // pkg/front_end/testcases/general/error_recovery/constructor_recovery_operator.crash_dart:7:9: Error: The name of a constructor must match the name of the enclosing class.
-//   foo() / : super() {}
-//         ^
-//
-// pkg/front_end/testcases/general/error_recovery/constructor_recovery_operator.crash_dart:7:9: Error: Operator '/' should have exactly one parameter.
 //   foo() / : super() {}
 //         ^
 //
@@ -91,10 +79,6 @@ library;
 //         ^
 //
 // pkg/front_end/testcases/general/error_recovery/constructor_recovery_operator.crash_dart:9:9: Error: The name of a constructor must match the name of the enclosing class.
-//   foo()./ : super() {}
-//         ^
-//
-// pkg/front_end/testcases/general/error_recovery/constructor_recovery_operator.crash_dart:9:9: Error: Operator '/' should have exactly one parameter.
 //   foo()./ : super() {}
 //         ^
 //
