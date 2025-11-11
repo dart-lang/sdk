@@ -175,7 +175,6 @@ class ParserCreatorListener extends Listener {
 
   @override
   void endClassConstructor(
-    Token? getOrSet,
     Token beginToken,
     Token beginParam,
     Token? beginInitializers,

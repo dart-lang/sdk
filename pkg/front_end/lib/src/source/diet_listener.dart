@@ -799,7 +799,6 @@ class DietListener extends StackListenerImpl {
 
   @override
   void endExtensionConstructor(
-    Token? getOrSet,
     Token beginToken,
     Token beginParam,
     Token? beginInitializers,
@@ -861,7 +860,6 @@ class DietListener extends StackListenerImpl {
 
   @override
   void endClassConstructor(
-    Token? getOrSet,
     Token beginToken,
     Token beginParam,
     Token? beginInitializers,
@@ -904,7 +902,6 @@ class DietListener extends StackListenerImpl {
 
   @override
   void endMixinConstructor(
-    Token? getOrSet,
     Token beginToken,
     Token beginParam,
     Token? beginInitializers,
@@ -1295,7 +1292,6 @@ class DietListener extends StackListenerImpl {
 
   @override
   void endExtensionTypeConstructor(
-    Token? getOrSet,
     Token beginToken,
     Token beginParam,
     Token? beginInitializers,
@@ -1383,7 +1379,6 @@ class DietListener extends StackListenerImpl {
 
   @override
   void endEnumConstructor(
-    Token? getOrSet,
     Token beginToken,
     Token beginParam,
     Token? beginInitializers,

@@ -763,7 +763,6 @@ abstract class AbstractParserAstListener implements Listener {
 
   @override
   void endEnumConstructor(
-    Token? getOrSet,
     Token beginToken,
     Token beginParam,
     Token? beginInitializers,
@@ -771,7 +770,6 @@ abstract class AbstractParserAstListener implements Listener {
   ) {
     EnumConstructorEnd data = new EnumConstructorEnd(
       ParserAstType.END,
-      getOrSet: getOrSet,
       beginToken: beginToken,
       beginParam: beginParam,
       beginInitializers: beginInitializers,
@@ -2191,7 +2189,6 @@ abstract class AbstractParserAstListener implements Listener {
 
   @override
   void endClassConstructor(
-    Token? getOrSet,
     Token beginToken,
     Token beginParam,
     Token? beginInitializers,
@@ -2199,7 +2196,6 @@ abstract class AbstractParserAstListener implements Listener {
   ) {
     ClassConstructorEnd data = new ClassConstructorEnd(
       ParserAstType.END,
-      getOrSet: getOrSet,
       beginToken: beginToken,
       beginParam: beginParam,
       beginInitializers: beginInitializers,
@@ -2210,7 +2206,6 @@ abstract class AbstractParserAstListener implements Listener {
 
   @override
   void endMixinConstructor(
-    Token? getOrSet,
     Token beginToken,
     Token beginParam,
     Token? beginInitializers,
@@ -2218,7 +2213,6 @@ abstract class AbstractParserAstListener implements Listener {
   ) {
     MixinConstructorEnd data = new MixinConstructorEnd(
       ParserAstType.END,
-      getOrSet: getOrSet,
       beginToken: beginToken,
       beginParam: beginParam,
       beginInitializers: beginInitializers,
@@ -2229,7 +2223,6 @@ abstract class AbstractParserAstListener implements Listener {
 
   @override
   void endExtensionConstructor(
-    Token? getOrSet,
     Token beginToken,
     Token beginParam,
     Token? beginInitializers,
@@ -2237,7 +2230,6 @@ abstract class AbstractParserAstListener implements Listener {
   ) {
     ExtensionConstructorEnd data = new ExtensionConstructorEnd(
       ParserAstType.END,
-      getOrSet: getOrSet,
       beginToken: beginToken,
       beginParam: beginParam,
       beginInitializers: beginInitializers,
@@ -2248,7 +2240,6 @@ abstract class AbstractParserAstListener implements Listener {
 
   @override
   void endExtensionTypeConstructor(
-    Token? getOrSet,
     Token beginToken,
     Token beginParam,
     Token? beginInitializers,
@@ -2256,7 +2247,6 @@ abstract class AbstractParserAstListener implements Listener {
   ) {
     ExtensionTypeConstructorEnd data = new ExtensionTypeConstructorEnd(
       ParserAstType.END,
-      getOrSet: getOrSet,
       beginToken: beginToken,
       beginParam: beginParam,
       beginInitializers: beginInitializers,
@@ -5442,7 +5432,6 @@ class EnumDeclarationEnd extends ParserAstNode
 
 class EnumConstructorEnd extends ParserAstNode
     implements BeginAndEndTokenParserAstNode {
-  final Token? getOrSet;
   @override
   final Token beginToken;
   final Token beginParam;
@@ -5452,7 +5441,6 @@ class EnumConstructorEnd extends ParserAstNode
 
   EnumConstructorEnd(
     ParserAstType type, {
-    this.getOrSet,
     required this.beginToken,
     required this.beginParam,
     this.beginInitializers,
@@ -5461,7 +5449,6 @@ class EnumConstructorEnd extends ParserAstNode
 
   @override
   Map<String, Object?> get deprecatedArguments => {
-    "getOrSet": getOrSet,
     "beginToken": beginToken,
     "beginParam": beginParam,
     "beginInitializers": beginInitializers,
@@ -7847,7 +7834,6 @@ class ExtensionTypeMethodEnd extends ParserAstNode
 
 class ClassConstructorEnd extends ParserAstNode
     implements BeginAndEndTokenParserAstNode {
-  final Token? getOrSet;
   @override
   final Token beginToken;
   final Token beginParam;
@@ -7857,7 +7843,6 @@ class ClassConstructorEnd extends ParserAstNode
 
   ClassConstructorEnd(
     ParserAstType type, {
-    this.getOrSet,
     required this.beginToken,
     required this.beginParam,
     this.beginInitializers,
@@ -7866,7 +7851,6 @@ class ClassConstructorEnd extends ParserAstNode
 
   @override
   Map<String, Object?> get deprecatedArguments => {
-    "getOrSet": getOrSet,
     "beginToken": beginToken,
     "beginParam": beginParam,
     "beginInitializers": beginInitializers,
@@ -7879,7 +7863,6 @@ class ClassConstructorEnd extends ParserAstNode
 
 class MixinConstructorEnd extends ParserAstNode
     implements BeginAndEndTokenParserAstNode {
-  final Token? getOrSet;
   @override
   final Token beginToken;
   final Token beginParam;
@@ -7889,7 +7872,6 @@ class MixinConstructorEnd extends ParserAstNode
 
   MixinConstructorEnd(
     ParserAstType type, {
-    this.getOrSet,
     required this.beginToken,
     required this.beginParam,
     this.beginInitializers,
@@ -7898,7 +7880,6 @@ class MixinConstructorEnd extends ParserAstNode
 
   @override
   Map<String, Object?> get deprecatedArguments => {
-    "getOrSet": getOrSet,
     "beginToken": beginToken,
     "beginParam": beginParam,
     "beginInitializers": beginInitializers,
@@ -7911,7 +7892,6 @@ class MixinConstructorEnd extends ParserAstNode
 
 class ExtensionConstructorEnd extends ParserAstNode
     implements BeginAndEndTokenParserAstNode {
-  final Token? getOrSet;
   @override
   final Token beginToken;
   final Token beginParam;
@@ -7921,7 +7901,6 @@ class ExtensionConstructorEnd extends ParserAstNode
 
   ExtensionConstructorEnd(
     ParserAstType type, {
-    this.getOrSet,
     required this.beginToken,
     required this.beginParam,
     this.beginInitializers,
@@ -7930,7 +7909,6 @@ class ExtensionConstructorEnd extends ParserAstNode
 
   @override
   Map<String, Object?> get deprecatedArguments => {
-    "getOrSet": getOrSet,
     "beginToken": beginToken,
     "beginParam": beginParam,
     "beginInitializers": beginInitializers,
@@ -7943,7 +7921,6 @@ class ExtensionConstructorEnd extends ParserAstNode
 
 class ExtensionTypeConstructorEnd extends ParserAstNode
     implements BeginAndEndTokenParserAstNode {
-  final Token? getOrSet;
   @override
   final Token beginToken;
   final Token beginParam;
@@ -7953,7 +7930,6 @@ class ExtensionTypeConstructorEnd extends ParserAstNode
 
   ExtensionTypeConstructorEnd(
     ParserAstType type, {
-    this.getOrSet,
     required this.beginToken,
     required this.beginParam,
     this.beginInitializers,
@@ -7962,7 +7938,6 @@ class ExtensionTypeConstructorEnd extends ParserAstNode
 
   @override
   Map<String, Object?> get deprecatedArguments => {
-    "getOrSet": getOrSet,
     "beginToken": beginToken,
     "beginParam": beginParam,
     "beginInitializers": beginInitializers,

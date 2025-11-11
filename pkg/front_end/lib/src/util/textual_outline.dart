@@ -828,7 +828,6 @@ class TextualOutlineListener extends Listener {
 
   @override
   void endClassConstructor(
-    Token? getOrSet,
     Token beginToken,
     Token beginParam,
     Token? beginInitializers,
@@ -843,7 +842,6 @@ class TextualOutlineListener extends Listener {
   @override
   // Coverage-ignore(suite): Not run.
   void endMixinConstructor(
-    Token? getOrSet,
     Token beginToken,
     Token beginParam,
     Token? beginInitializers,
@@ -857,7 +855,6 @@ class TextualOutlineListener extends Listener {
 
   @override
   void endEnumConstructor(
-    Token? getOrSet,
     Token beginToken,
     Token beginParam,
     Token? beginInitializers,
@@ -872,7 +869,6 @@ class TextualOutlineListener extends Listener {
   @override
   // Coverage-ignore(suite): Not run.
   void endExtensionConstructor(
-    Token? getOrSet,
     Token beginToken,
     Token beginParam,
     Token? beginInitializers,
@@ -886,7 +882,6 @@ class TextualOutlineListener extends Listener {
 
   @override
   void endExtensionTypeConstructor(
-    Token? getOrSet,
     Token beginToken,
     Token beginParam,
     Token? beginInitializers,

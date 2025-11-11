@@ -2281,7 +2281,6 @@ class OutlineBuilder extends StackListenerImpl {
 
   @override
   void endClassConstructor(
-    Token? getOrSet,
     Token beginToken,
     Token beginParam,
     Token? beginInitializers,
@@ -2289,7 +2288,6 @@ class OutlineBuilder extends StackListenerImpl {
   ) {
     debugEvent("endClassConstructor");
     _endClassConstructor(
-      getOrSet,
       beginToken,
       beginInitializers,
       endToken,
@@ -2356,7 +2354,6 @@ class OutlineBuilder extends StackListenerImpl {
 
   @override
   void endMixinConstructor(
-    Token? getOrSet,
     Token beginToken,
     Token beginParam,
     Token? beginInitializers,
@@ -2364,7 +2361,6 @@ class OutlineBuilder extends StackListenerImpl {
   ) {
     debugEvent("endMixinConstructor");
     _endClassConstructor(
-      getOrSet,
       beginToken,
       beginInitializers,
       endToken,
@@ -2374,7 +2370,6 @@ class OutlineBuilder extends StackListenerImpl {
 
   @override
   void endExtensionConstructor(
-    Token? getOrSet,
     Token beginToken,
     Token beginParam,
     Token? beginInitializers,
@@ -2382,7 +2377,6 @@ class OutlineBuilder extends StackListenerImpl {
   ) {
     debugEvent("endExtensionConstructor");
     _endClassConstructor(
-      getOrSet,
       beginToken,
       beginInitializers,
       endToken,
@@ -2392,7 +2386,6 @@ class OutlineBuilder extends StackListenerImpl {
 
   @override
   void endExtensionTypeConstructor(
-    Token? getOrSet,
     Token beginToken,
     Token beginParam,
     Token? beginInitializers,
@@ -2400,7 +2393,6 @@ class OutlineBuilder extends StackListenerImpl {
   ) {
     debugEvent("endExtensionTypeConstructor");
     _endClassConstructor(
-      getOrSet,
       beginToken,
       beginInitializers,
       endToken,
@@ -2604,7 +2596,6 @@ class OutlineBuilder extends StackListenerImpl {
   }
 
   void _endClassConstructor(
-    Token? getOrSet,
     Token beginToken,
     Token? beginInitializers,
     Token endToken,
@@ -2657,14 +2648,6 @@ class OutlineBuilder extends StackListenerImpl {
     }
 
     bool isAbstract = bodyKind == MethodBody.Abstract;
-    if (getOrSet != null && getOrSet.isA(Keyword.SET)) {
-      if (formals == null || formals.length != 1) {
-        // This isn't abstract as we'll add an error-recovery node in
-        // [BodyBuilder.finishFunction].
-        isAbstract = false;
-      }
-    }
-
     if (isAbstract && !modifiers.isExternal) {
       modifiers |= Modifiers.Abstract;
     }
@@ -4626,7 +4609,6 @@ class OutlineBuilder extends StackListenerImpl {
 
   @override
   void endEnumConstructor(
-    Token? getOrSet,
     Token beginToken,
     Token beginParam,
     Token? beginInitializers,
@@ -4641,7 +4623,6 @@ class OutlineBuilder extends StackListenerImpl {
     );
 
     _endClassConstructor(
-      getOrSet,
       beginToken,
       beginInitializers,
       endToken,

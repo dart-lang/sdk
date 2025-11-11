@@ -5757,9 +5757,7 @@ class Parser {
 
       switch (kind) {
         case DeclarationKind.Class:
-          // TODO(danrubel): Remove getOrSet from constructor events
           listener.endClassConstructor(
-            getOrSet,
             beforeStart.next!,
             beforeParam.next!,
             beforeInitializers?.next,
@@ -5769,7 +5767,6 @@ class Parser {
         case DeclarationKind.Mixin:
           reportRecoverableError(name, codes.codeMixinDeclaresConstructor);
           listener.endMixinConstructor(
-            getOrSet,
             beforeStart.next!,
             beforeParam.next!,
             beforeInitializers?.next,
@@ -5779,7 +5776,6 @@ class Parser {
         case DeclarationKind.Extension:
           reportRecoverableError(name, codes.codeExtensionDeclaresConstructor);
           listener.endExtensionConstructor(
-            getOrSet,
             beforeStart.next!,
             beforeParam.next!,
             beforeInitializers?.next,
@@ -5788,7 +5784,6 @@ class Parser {
           break;
         case DeclarationKind.ExtensionType:
           listener.endExtensionTypeConstructor(
-            getOrSet,
             beforeStart.next!,
             beforeParam.next!,
             beforeInitializers?.next,
@@ -5799,7 +5794,6 @@ class Parser {
           throw "Internal error: TopLevel constructor.";
         case DeclarationKind.Enum:
           listener.endEnumConstructor(
-            getOrSet,
             beforeStart.next!,
             beforeParam.next!,
             beforeInitializers?.next,

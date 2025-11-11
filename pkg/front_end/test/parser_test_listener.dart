@@ -843,21 +843,18 @@ class ParserTestListener implements Listener {
 
   @override
   void endEnumConstructor(
-    Token? getOrSet,
     Token beginToken,
     Token beginParam,
     Token? beginInitializers,
     Token endToken,
   ) {
     indent--;
-    seen(getOrSet);
     seen(beginToken);
     seen(beginParam);
     seen(beginInitializers);
     seen(endToken);
     doPrint(
       'endEnumConstructor('
-      '$getOrSet, '
       '$beginToken, '
       '$beginParam, '
       '$beginInitializers, '
@@ -2513,21 +2510,18 @@ class ParserTestListener implements Listener {
 
   @override
   void endClassConstructor(
-    Token? getOrSet,
     Token beginToken,
     Token beginParam,
     Token? beginInitializers,
     Token endToken,
   ) {
     indent--;
-    seen(getOrSet);
     seen(beginToken);
     seen(beginParam);
     seen(beginInitializers);
     seen(endToken);
     doPrint(
       'endClassConstructor('
-      '$getOrSet, '
       '$beginToken, '
       '$beginParam, '
       '$beginInitializers, '
@@ -2537,21 +2531,18 @@ class ParserTestListener implements Listener {
 
   @override
   void endMixinConstructor(
-    Token? getOrSet,
     Token beginToken,
     Token beginParam,
     Token? beginInitializers,
     Token endToken,
   ) {
     indent--;
-    seen(getOrSet);
     seen(beginToken);
     seen(beginParam);
     seen(beginInitializers);
     seen(endToken);
     doPrint(
       'endMixinConstructor('
-      '$getOrSet, '
       '$beginToken, '
       '$beginParam, '
       '$beginInitializers, '
@@ -2561,21 +2552,18 @@ class ParserTestListener implements Listener {
 
   @override
   void endExtensionConstructor(
-    Token? getOrSet,
     Token beginToken,
     Token beginParam,
     Token? beginInitializers,
     Token endToken,
   ) {
     indent--;
-    seen(getOrSet);
     seen(beginToken);
     seen(beginParam);
     seen(beginInitializers);
     seen(endToken);
     doPrint(
       'endExtensionConstructor('
-      '$getOrSet, '
       '$beginToken, '
       '$beginParam, '
       '$beginInitializers, '
@@ -2585,21 +2573,18 @@ class ParserTestListener implements Listener {
 
   @override
   void endExtensionTypeConstructor(
-    Token? getOrSet,
     Token beginToken,
     Token beginParam,
     Token? beginInitializers,
     Token endToken,
   ) {
     indent--;
-    seen(getOrSet);
     seen(beginToken);
     seen(beginParam);
     seen(beginInitializers);
     seen(endToken);
     doPrint(
       'endExtensionTypeConstructor('
-      '$getOrSet, '
       '$beginToken, '
       '$beginParam, '
       '$beginInitializers, '
