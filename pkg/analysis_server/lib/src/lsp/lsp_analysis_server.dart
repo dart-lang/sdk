@@ -47,7 +47,6 @@ import 'package:analyzer/src/utilities/extensions/flutter.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart' as plugin;
 import 'package:analyzer_plugin/protocol/protocol_generated.dart' as plugin;
 import 'package:analyzer_plugin/src/protocol/protocol_internal.dart' as plugin;
-import 'package:analyzer_plugin/src/utilities/client_uri_converter.dart';
 import 'package:http/http.dart' as http;
 import 'package:meta/meta.dart';
 
@@ -397,15 +396,6 @@ class LspAnalysisServer extends AnalysisServer {
     _clientInfo = clientInfo;
     var initializationOptions = _initializationOptions =
         LspInitializationOptions(rawInitializationOptions);
-
-    /// Enable virtual file support.
-    var supportsVirtualFiles =
-        _clientCapabilities
-            ?.supportsDartExperimentalTextDocumentContentProvider ??
-        false;
-    if (supportsVirtualFiles) {
-      uriConverter = ClientUriConverter.withVirtualFileSupport(pathContext);
-    }
 
     // Set whether to allow interleaved requests.
     if (initializationOptions.allowOverlappingHandlers

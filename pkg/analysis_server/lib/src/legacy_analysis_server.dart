@@ -482,6 +482,9 @@ class LegacyAnalysisServer extends AnalysisServer {
   set clientCapabilities(ServerSetClientCapabilitiesParams capabilities) {
     _clientCapabilities = capabilities;
 
+    // TODO(dantup): If we can confirm that IntelliJ did not ship code that
+    //  sets supportsUris=true, then we may be able to entirely remove the
+    //  uriConverter and all the calls through it.
     if (capabilities.supportsUris ?? false) {
       // URI support implies LSP, as that's the only way to access (and get
       // change notifications for) custom-scheme files.

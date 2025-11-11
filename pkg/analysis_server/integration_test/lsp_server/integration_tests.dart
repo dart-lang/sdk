@@ -26,7 +26,6 @@ abstract class AbstractLspAnalysisServerIntegrationTest
         ClientCapabilitiesHelperMixin,
         LspRequestHelpersMixin,
         LspReverseRequestHelpersMixin,
-        LspNotificationHelpersMixin,
         LspEditHelpersMixin,
         LspVerifyEditHelpersMixin,
         LspAnalysisServerTestMixin {

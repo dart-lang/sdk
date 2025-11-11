@@ -1246,23 +1246,6 @@ abstract class CommonServerContextManagerCallbacks
     var path = result.path;
     filesToFlush.add(path);
 
-    // If this is a virtual file and the client supports URIs, we need to notify
-    // that it's been updated.
-    var lspUri = analysisServer.uriConverter.toClientUri(result.path);
-    if (!lspUri.isScheme('file')) {
-      // TODO(dantup): Should we do any kind of tracking here to avoid sending
-      //  lots of notifications if there aren't actual changes?
-      // TODO(dantup): We may be able to skip sending this if the file is not
-      //  open (priority) depending on the response to
-      //  https://github.com/microsoft/vscode/issues/202017
-      var message = lsp.NotificationMessage(
-        method: lsp.CustomMethods.dartTextDocumentContentDidChange,
-        params: lsp.DartTextDocumentContentDidChangeParams(uri: lspUri),
-        jsonrpc: lsp.jsonRpcVersion,
-      );
-      analysisServer.sendLspNotification(message);
-    }
-
     if (result is AnalysisResultWithDiagnostics) {
       if (analysisServer.isAnalyzed(path)) {
         var serverErrors = server.doAnalysisError_listFromEngine(result);
