@@ -624,18 +624,34 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
     _setOrCreateMetadataElements(fragment, node.metadata);
 
     if (identical(element.firstFragment, fragment)) {
-      _setOrCreateMetadataElements(
-        element.representation.firstFragment,
-        node.representation.fieldMetadata,
-      );
+      if (useDeclaringConstructorsAst) {
+        var formalParameters = node.primaryConstructor.formalParameters;
+        _setOrCreateMetadataElements(
+          element.representation.firstFragment,
+          formalParameters.parameters.first.metadata,
+        );
+      } else {
+        _setOrCreateMetadataElements(
+          element.representation.firstFragment,
+          node.representation.fieldMetadata,
+        );
+      }
     }
 
     _withElementWalker(ElementWalker.forExtensionType(fragment), () {
       _withNameScope(() {
-        _buildTypeParameterElements(node.typeParameters);
-        node.typeParameters?.accept(this);
+        var typeParameters = useDeclaringConstructorsAst
+            ? node.primaryConstructor.typeParameters
+            : node.typeParameters;
+        _buildTypeParameterElements(typeParameters);
+        typeParameters?.accept(this);
 
-        node.representation.accept(this);
+        if (useDeclaringConstructorsAst) {
+          node.primaryConstructor.accept(this);
+        } else {
+          node.representation.accept(this);
+        }
+
         _resolveImplementsClause(
           declaration: node,
           clause: node.implementsClause,
@@ -644,7 +660,11 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
         _defineElements(element.getters);
         _defineElements(element.setters);
         _defineElements(element.methods);
-        node.members.accept(this);
+        if (useDeclaringConstructorsAst) {
+          node.body.accept(this);
+        } else {
+          node.members.accept(this);
+        }
       });
     });
 

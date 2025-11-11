@@ -252,6 +252,16 @@ class DuplicateDefinitionVerifier {
           fragment: declaredFragment,
           setterScope: definedSetters,
         );
+      } else if (member is ExtensionTypeDeclarationImpl) {
+        var declaredFragment = member.declaredFragment!;
+        _checkDuplicateIdentifier(
+          definedGetters,
+          useDeclaringConstructorsAst
+              ? member.primaryConstructor.typeName
+              : member.name,
+          fragment: declaredFragment,
+          setterScope: definedSetters,
+        );
       } else if (member is NamedCompilationUnitMemberImpl) {
         var declaredFragment = member.declaredFragment!;
         _checkDuplicateIdentifier(
@@ -838,7 +848,10 @@ class MemberDuplicateDefinitionVerifier {
       );
     }
 
-    _checkClassMembers(firstFragment, node.members);
+    _checkClassMembers(
+      firstFragment,
+      useDeclaringConstructorsAst ? node.body.members : node.members,
+    );
   }
 
   void _checkMixin(MixinDeclarationImpl node) {
@@ -885,7 +898,12 @@ class MemberDuplicateDefinitionVerifier {
           _checkExtensionStatic(declaration);
         case ExtensionTypeDeclarationImpl():
           var fragment = declaration.declaredFragment!;
-          _checkClassStatic(fragment, declaration.members);
+          _checkClassStatic(
+            fragment,
+            useDeclaringConstructorsAst
+                ? declaration.body.members
+                : declaration.members,
+          );
         case MixinDeclarationImpl():
           var fragment = declaration.declaredFragment!;
           _checkClassStatic(fragment, declaration.members);

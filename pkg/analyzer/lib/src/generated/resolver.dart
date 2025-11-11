@@ -5095,13 +5095,21 @@ class ScopeResolverVisitor extends UnifyingAstVisitor<void> {
 
       nameScope = TypeParameterScope(nameScope, element.typeParameters);
       node.nameScope = nameScope;
-      node.typeParameters?.accept(this);
-      node.representation.accept(this);
+      if (useDeclaringConstructorsAst) {
+        node.primaryConstructor.accept(this);
+      } else {
+        node.typeParameters?.accept(this);
+        node.representation.accept(this);
+      }
       node.implementsClause?.accept(this);
 
       nameScope = InstanceScope(nameScope, element);
       _visitDocumentationComment(node.documentationComment);
-      node.members.accept(this);
+      if (useDeclaringConstructorsAst) {
+        node.body.accept(this);
+      } else {
+        node.members.accept(this);
+      }
     } finally {
       nameScope = outerScope;
     }
