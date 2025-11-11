@@ -317,7 +317,7 @@ abstract class DiagnosticCode {
   String toString() => uniqueName;
 }
 
-class DiagnosticCodeImpl extends DiagnosticCode {
+abstract class DiagnosticCodeImpl extends DiagnosticCode {
   @override
   final DiagnosticType type;
 
