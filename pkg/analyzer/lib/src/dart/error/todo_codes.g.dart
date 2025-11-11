@@ -26,9 +26,10 @@ class TodoCode extends DiagnosticCodeWithExpectedTypes {
   static const DiagnosticWithArguments<
     LocatableDiagnostic Function({required String message})
   >
-  fixme = TodoTemplate(
+  fixme = DiagnosticWithArguments(
     name: 'FIXME',
     problemMessage: "{0}",
+    type: DiagnosticType.TODO,
     uniqueName: 'TodoCode.FIXME',
     withArguments: _withArgumentsFixme,
     expectedTypes: [ExpectedType.string],
@@ -41,9 +42,10 @@ class TodoCode extends DiagnosticCodeWithExpectedTypes {
   static const DiagnosticWithArguments<
     LocatableDiagnostic Function({required String message})
   >
-  hack = TodoTemplate(
+  hack = DiagnosticWithArguments(
     name: 'HACK',
     problemMessage: "{0}",
+    type: DiagnosticType.TODO,
     uniqueName: 'TodoCode.HACK',
     withArguments: _withArgumentsHack,
     expectedTypes: [ExpectedType.string],
@@ -56,9 +58,10 @@ class TodoCode extends DiagnosticCodeWithExpectedTypes {
   static const DiagnosticWithArguments<
     LocatableDiagnostic Function({required String message})
   >
-  todo = TodoTemplate(
+  todo = DiagnosticWithArguments(
     name: 'TODO',
     problemMessage: "{0}",
+    type: DiagnosticType.TODO,
     uniqueName: 'TodoCode.TODO',
     withArguments: _withArgumentsTodo,
     expectedTypes: [ExpectedType.string],
@@ -71,9 +74,10 @@ class TodoCode extends DiagnosticCodeWithExpectedTypes {
   static const DiagnosticWithArguments<
     LocatableDiagnostic Function({required String message})
   >
-  undone = TodoTemplate(
+  undone = DiagnosticWithArguments(
     name: 'UNDONE',
     problemMessage: "{0}",
+    type: DiagnosticType.TODO,
     uniqueName: 'TodoCode.UNDONE',
     withArguments: _withArgumentsUndone,
     expectedTypes: [ExpectedType.string],
@@ -105,36 +109,4 @@ class TodoCode extends DiagnosticCodeWithExpectedTypes {
   static LocatableDiagnostic _withArgumentsUndone({required String message}) {
     return LocatableDiagnosticImpl(TodoCode.undone, [message]);
   }
-}
-
-final class TodoTemplate<T extends Function> extends TodoCode
-    implements DiagnosticWithArguments<T> {
-  @override
-  final T withArguments;
-
-  /// Initialize a newly created error code to have the given [name].
-  const TodoTemplate({
-    required super.name,
-    required super.problemMessage,
-    super.correctionMessage,
-    super.hasPublishedDocs = false,
-    super.isUnresolvedIdentifier = false,
-    required super.uniqueName,
-    required super.expectedTypes,
-    required this.withArguments,
-  });
-}
-
-final class TodoWithoutArguments extends TodoCode
-    with DiagnosticWithoutArguments {
-  /// Initialize a newly created error code to have the given [name].
-  const TodoWithoutArguments({
-    required super.name,
-    required super.problemMessage,
-    super.correctionMessage,
-    super.hasPublishedDocs = false,
-    super.isUnresolvedIdentifier = false,
-    required super.uniqueName,
-    required super.expectedTypes,
-  });
 }

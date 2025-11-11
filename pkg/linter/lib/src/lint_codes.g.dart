@@ -50,7 +50,7 @@ class LinterLintCode extends LintCodeWithExpectedTypes {
   );
 
   /// No parameters.
-  static const DiagnosticWithoutArguments alwaysPutControlBodyOnNewLine =
+  static const LinterLintWithoutArguments alwaysPutControlBodyOnNewLine =
       LinterLintWithoutArguments(
         name: LintNames.always_put_control_body_on_new_line,
         problemMessage: "Statement should be on a separate line.",
@@ -61,7 +61,7 @@ class LinterLintCode extends LintCodeWithExpectedTypes {
       );
 
   /// No parameters.
-  static const DiagnosticWithoutArguments
+  static const LinterLintWithoutArguments
   alwaysPutRequiredNamedParametersFirst = LinterLintWithoutArguments(
     name: LintNames.always_put_required_named_parameters_first,
     problemMessage:
@@ -75,7 +75,7 @@ class LinterLintCode extends LintCodeWithExpectedTypes {
   );
 
   /// No parameters.
-  static const DiagnosticWithoutArguments alwaysSpecifyTypesAddType =
+  static const LinterLintWithoutArguments alwaysSpecifyTypesAddType =
       LinterLintWithoutArguments(
         name: LintNames.always_specify_types,
         problemMessage: "Missing type annotation.",
@@ -114,7 +114,7 @@ class LinterLintCode extends LintCodeWithExpectedTypes {
   );
 
   /// No parameters.
-  static const DiagnosticWithoutArguments alwaysSpecifyTypesSplitToTypes =
+  static const LinterLintWithoutArguments alwaysSpecifyTypesSplitToTypes =
       LinterLintWithoutArguments(
         name: LintNames.always_specify_types,
         problemMessage: "Missing type annotation.",
@@ -126,7 +126,7 @@ class LinterLintCode extends LintCodeWithExpectedTypes {
       );
 
   /// No parameters.
-  static const DiagnosticWithoutArguments alwaysUsePackageImports =
+  static const LinterLintWithoutArguments alwaysUsePackageImports =
       LinterLintWithoutArguments(
         name: LintNames.always_use_package_imports,
         problemMessage:
@@ -138,7 +138,7 @@ class LinterLintCode extends LintCodeWithExpectedTypes {
       );
 
   /// No parameters.
-  static const DiagnosticWithoutArguments analyzerElementModelTrackingBad =
+  static const LinterLintWithoutArguments analyzerElementModelTrackingBad =
       LinterLintWithoutArguments(
         name: LintNames.analyzer_element_model_tracking_bad,
         problemMessage: "Bad tracking annotation for this member.",
@@ -147,7 +147,7 @@ class LinterLintCode extends LintCodeWithExpectedTypes {
       );
 
   /// No parameters.
-  static const DiagnosticWithoutArguments
+  static const LinterLintWithoutArguments
   analyzerElementModelTrackingMoreThanOne = LinterLintWithoutArguments(
     name: LintNames.analyzer_element_model_tracking_more_than_one,
     problemMessage: "There can be only one tracking annotation.",
@@ -156,7 +156,7 @@ class LinterLintCode extends LintCodeWithExpectedTypes {
   );
 
   /// No parameters.
-  static const DiagnosticWithoutArguments analyzerElementModelTrackingZero =
+  static const LinterLintWithoutArguments analyzerElementModelTrackingZero =
       LinterLintWithoutArguments(
         name: LintNames.analyzer_element_model_tracking_zero,
         problemMessage: "No required tracking annotation.",
@@ -176,7 +176,7 @@ class LinterLintCode extends LintCodeWithExpectedTypes {
   /// supported.
   ///
   /// No parameters.
-  static const DiagnosticWithoutArguments
+  static const LinterLintWithoutArguments
   analyzerPublicApiBadPartDirective = LinterLintWithoutArguments(
     name: LintNames.analyzer_public_api_bad_part_directive,
     problemMessage:
@@ -291,7 +291,7 @@ class LinterLintCode extends LintCodeWithExpectedTypes {
   /// marked with `@AnalyzerPublicApi(...)`, that is almost certainly a mistake.
   ///
   /// No parameters.
-  static const DiagnosticWithoutArguments
+  static const LinterLintWithoutArguments
   analyzerPublicApiImplInPublicApi = LinterLintWithoutArguments(
     name: LintNames.analyzer_public_api_impl_in_public_api,
     problemMessage:
@@ -333,7 +333,7 @@ class LinterLintCode extends LintCodeWithExpectedTypes {
   );
 
   /// No parameters.
-  static const DiagnosticWithoutArguments avoidAnnotatingWithDynamic =
+  static const LinterLintWithoutArguments avoidAnnotatingWithDynamic =
       LinterLintWithoutArguments(
         name: LintNames.avoid_annotating_with_dynamic,
         problemMessage: "Unnecessary 'dynamic' type annotation.",
@@ -343,7 +343,7 @@ class LinterLintCode extends LintCodeWithExpectedTypes {
       );
 
   /// No parameters.
-  static const DiagnosticWithoutArguments
+  static const LinterLintWithoutArguments
   avoidBoolLiteralsInConditionalExpressions = LinterLintWithoutArguments(
     name: LintNames.avoid_bool_literals_in_conditional_expressions,
     problemMessage:
@@ -355,7 +355,7 @@ class LinterLintCode extends LintCodeWithExpectedTypes {
   );
 
   /// No parameters.
-  static const DiagnosticWithoutArguments
+  static const LinterLintWithoutArguments
   avoidCatchesWithoutOnClauses = LinterLintWithoutArguments(
     name: LintNames.avoid_catches_without_on_clauses,
     problemMessage:
@@ -367,7 +367,7 @@ class LinterLintCode extends LintCodeWithExpectedTypes {
   );
 
   /// No parameters.
-  static const DiagnosticWithoutArguments avoidCatchingErrorsClass =
+  static const LinterLintWithoutArguments avoidCatchingErrorsClass =
       LinterLintWithoutArguments(
         name: LintNames.avoid_catching_errors,
         problemMessage: "The type 'Error' should not be caught.",
@@ -394,7 +394,7 @@ class LinterLintCode extends LintCodeWithExpectedTypes {
   );
 
   /// No parameters.
-  static const DiagnosticWithoutArguments
+  static const LinterLintWithoutArguments
   avoidClassesWithOnlyStaticMembers = LinterLintWithoutArguments(
     name: LintNames.avoid_classes_with_only_static_members,
     problemMessage: "Classes should define instance members.",
@@ -405,7 +405,7 @@ class LinterLintCode extends LintCodeWithExpectedTypes {
   );
 
   /// No parameters.
-  static const DiagnosticWithoutArguments avoidDoubleAndIntChecks =
+  static const LinterLintWithoutArguments avoidDoubleAndIntChecks =
       LinterLintWithoutArguments(
         name: LintNames.avoid_double_and_int_checks,
         problemMessage: "Explicit check for double or int.",
@@ -415,7 +415,7 @@ class LinterLintCode extends LintCodeWithExpectedTypes {
       );
 
   /// No parameters.
-  static const DiagnosticWithoutArguments avoidDynamicCalls =
+  static const LinterLintWithoutArguments avoidDynamicCalls =
       LinterLintWithoutArguments(
         name: LintNames.avoid_dynamic_calls,
         problemMessage:
@@ -427,7 +427,7 @@ class LinterLintCode extends LintCodeWithExpectedTypes {
       );
 
   /// No parameters.
-  static const DiagnosticWithoutArguments avoidEmptyElse =
+  static const LinterLintWithoutArguments avoidEmptyElse =
       LinterLintWithoutArguments(
         name: LintNames.avoid_empty_else,
         problemMessage: "Empty statements are not allowed in an 'else' clause.",
@@ -471,7 +471,7 @@ class LinterLintCode extends LintCodeWithExpectedTypes {
   );
 
   /// No parameters.
-  static const DiagnosticWithoutArguments
+  static const LinterLintWithoutArguments
   avoidFieldInitializersInConstClasses = LinterLintWithoutArguments(
     name: LintNames.avoid_field_initializers_in_const_classes,
     problemMessage: "Fields in 'const' classes should not have initializers.",
@@ -483,7 +483,7 @@ class LinterLintCode extends LintCodeWithExpectedTypes {
   );
 
   /// No parameters.
-  static const DiagnosticWithoutArguments avoidFinalParameters =
+  static const LinterLintWithoutArguments avoidFinalParameters =
       LinterLintWithoutArguments(
         name: LintNames.avoid_final_parameters,
         problemMessage: "Parameters should not be marked as 'final'.",
@@ -493,7 +493,7 @@ class LinterLintCode extends LintCodeWithExpectedTypes {
       );
 
   /// No parameters.
-  static const DiagnosticWithoutArguments avoidFunctionLiteralsInForeachCalls =
+  static const LinterLintWithoutArguments avoidFunctionLiteralsInForeachCalls =
       LinterLintWithoutArguments(
         name: LintNames.avoid_function_literals_in_foreach_calls,
         problemMessage: "Function literals shouldn't be passed to 'forEach'.",
@@ -504,7 +504,7 @@ class LinterLintCode extends LintCodeWithExpectedTypes {
       );
 
   /// No parameters.
-  static const DiagnosticWithoutArguments avoidFutureorVoid =
+  static const LinterLintWithoutArguments avoidFutureorVoid =
       LinterLintWithoutArguments(
         name: LintNames.avoid_futureor_void,
         problemMessage: "Don't use the type 'FutureOr<void>'.",
@@ -515,7 +515,7 @@ class LinterLintCode extends LintCodeWithExpectedTypes {
       );
 
   /// No parameters.
-  static const DiagnosticWithoutArguments avoidImplementingValueTypes =
+  static const LinterLintWithoutArguments avoidImplementingValueTypes =
       LinterLintWithoutArguments(
         name: LintNames.avoid_implementing_value_types,
         problemMessage: "Classes that override '==' should not be implemented.",
@@ -526,7 +526,7 @@ class LinterLintCode extends LintCodeWithExpectedTypes {
       );
 
   /// No parameters.
-  static const DiagnosticWithoutArguments avoidInitToNull =
+  static const LinterLintWithoutArguments avoidInitToNull =
       LinterLintWithoutArguments(
         name: LintNames.avoid_init_to_null,
         problemMessage: "Redundant initialization to 'null'.",
@@ -537,7 +537,7 @@ class LinterLintCode extends LintCodeWithExpectedTypes {
       );
 
   /// No parameters.
-  static const DiagnosticWithoutArguments
+  static const LinterLintWithoutArguments
   avoidJsRoundedInts = LinterLintWithoutArguments(
     name: LintNames.avoid_js_rounded_ints,
     problemMessage:
@@ -548,7 +548,7 @@ class LinterLintCode extends LintCodeWithExpectedTypes {
   );
 
   /// No parameters.
-  static const DiagnosticWithoutArguments avoidMultipleDeclarationsPerLine =
+  static const LinterLintWithoutArguments avoidMultipleDeclarationsPerLine =
       LinterLintWithoutArguments(
         name: LintNames.avoid_multiple_declarations_per_line,
         problemMessage: "Multiple variables declared on a single line.",
@@ -559,7 +559,7 @@ class LinterLintCode extends LintCodeWithExpectedTypes {
       );
 
   /// No parameters.
-  static const DiagnosticWithoutArguments avoidNullChecksInEqualityOperators =
+  static const LinterLintWithoutArguments avoidNullChecksInEqualityOperators =
       LinterLintWithoutArguments(
         name: LintNames.avoid_null_checks_in_equality_operators,
         problemMessage:
@@ -570,7 +570,7 @@ class LinterLintCode extends LintCodeWithExpectedTypes {
       );
 
   /// No parameters.
-  static const DiagnosticWithoutArguments avoidPositionalBooleanParameters =
+  static const LinterLintWithoutArguments avoidPositionalBooleanParameters =
       LinterLintWithoutArguments(
         name: LintNames.avoid_positional_boolean_parameters,
         problemMessage: "'bool' parameters should be named parameters.",
@@ -580,7 +580,7 @@ class LinterLintCode extends LintCodeWithExpectedTypes {
       );
 
   /// No parameters.
-  static const DiagnosticWithoutArguments avoidPrint =
+  static const LinterLintWithoutArguments avoidPrint =
       LinterLintWithoutArguments(
         name: LintNames.avoid_print,
         problemMessage: "Don't invoke 'print' in production code.",
@@ -591,7 +591,7 @@ class LinterLintCode extends LintCodeWithExpectedTypes {
       );
 
   /// No parameters.
-  static const DiagnosticWithoutArguments avoidPrivateTypedefFunctions =
+  static const LinterLintWithoutArguments avoidPrivateTypedefFunctions =
       LinterLintWithoutArguments(
         name: LintNames.avoid_private_typedef_functions,
         problemMessage:
@@ -602,7 +602,7 @@ class LinterLintCode extends LintCodeWithExpectedTypes {
       );
 
   /// No parameters.
-  static const DiagnosticWithoutArguments
+  static const LinterLintWithoutArguments
   avoidRedundantArgumentValues = LinterLintWithoutArguments(
     name: LintNames.avoid_redundant_argument_values,
     problemMessage:
@@ -614,7 +614,7 @@ class LinterLintCode extends LintCodeWithExpectedTypes {
   );
 
   /// No parameters.
-  static const DiagnosticWithoutArguments
+  static const LinterLintWithoutArguments
   avoidRelativeLibImports = LinterLintWithoutArguments(
     name: LintNames.avoid_relative_lib_imports,
     problemMessage: "Can't use a relative path to import a library in 'lib'.",
@@ -645,7 +645,7 @@ class LinterLintCode extends LintCodeWithExpectedTypes {
   );
 
   /// No parameters.
-  static const DiagnosticWithoutArguments
+  static const LinterLintWithoutArguments
   avoidReturningNullForVoidFromFunction = LinterLintWithoutArguments(
     name: LintNames.avoid_returning_null_for_void,
     problemMessage:
@@ -657,7 +657,7 @@ class LinterLintCode extends LintCodeWithExpectedTypes {
   );
 
   /// No parameters.
-  static const DiagnosticWithoutArguments avoidReturningNullForVoidFromMethod =
+  static const LinterLintWithoutArguments avoidReturningNullForVoidFromMethod =
       LinterLintWithoutArguments(
         name: LintNames.avoid_returning_null_for_void,
         problemMessage:
@@ -669,7 +669,7 @@ class LinterLintCode extends LintCodeWithExpectedTypes {
       );
 
   /// No parameters.
-  static const DiagnosticWithoutArguments avoidReturningThis =
+  static const LinterLintWithoutArguments avoidReturningThis =
       LinterLintWithoutArguments(
         name: LintNames.avoid_returning_this,
         problemMessage: "Don't return 'this' from a method.",
@@ -680,7 +680,7 @@ class LinterLintCode extends LintCodeWithExpectedTypes {
       );
 
   /// No parameters.
-  static const DiagnosticWithoutArguments avoidReturnTypesOnSetters =
+  static const LinterLintWithoutArguments avoidReturnTypesOnSetters =
       LinterLintWithoutArguments(
         name: LintNames.avoid_return_types_on_setters,
         problemMessage: "Unnecessary return type on a setter.",
@@ -691,7 +691,7 @@ class LinterLintCode extends LintCodeWithExpectedTypes {
       );
 
   /// No parameters.
-  static const DiagnosticWithoutArguments avoidSettersWithoutGetters =
+  static const LinterLintWithoutArguments avoidSettersWithoutGetters =
       LinterLintWithoutArguments(
         name: LintNames.avoid_setters_without_getters,
         problemMessage: "Setter has no corresponding getter.",
@@ -734,7 +734,7 @@ class LinterLintCode extends LintCodeWithExpectedTypes {
   );
 
   /// No parameters.
-  static const DiagnosticWithoutArguments avoidSlowAsyncIo =
+  static const LinterLintWithoutArguments avoidSlowAsyncIo =
       LinterLintWithoutArguments(
         name: LintNames.avoid_slow_async_io,
         problemMessage: "Use of an async 'dart:io' method.",
@@ -779,7 +779,7 @@ class LinterLintCode extends LintCodeWithExpectedTypes {
   );
 
   /// No parameters.
-  static const DiagnosticWithoutArguments avoidTypesOnClosureParameters =
+  static const LinterLintWithoutArguments avoidTypesOnClosureParameters =
       LinterLintWithoutArguments(
         name: LintNames.avoid_types_on_closure_parameters,
         problemMessage:
@@ -790,7 +790,7 @@ class LinterLintCode extends LintCodeWithExpectedTypes {
       );
 
   /// No parameters.
-  static const DiagnosticWithoutArguments avoidTypeToString =
+  static const LinterLintWithoutArguments avoidTypeToString =
       LinterLintWithoutArguments(
         name: LintNames.avoid_type_to_string,
         problemMessage:
@@ -803,7 +803,7 @@ class LinterLintCode extends LintCodeWithExpectedTypes {
       );
 
   /// No parameters.
-  static const DiagnosticWithoutArguments
+  static const LinterLintWithoutArguments
   avoidUnnecessaryContainers = LinterLintWithoutArguments(
     name: LintNames.avoid_unnecessary_containers,
     problemMessage: "Unnecessary instance of 'Container'.",
@@ -830,7 +830,7 @@ class LinterLintCode extends LintCodeWithExpectedTypes {
   );
 
   /// No parameters.
-  static const DiagnosticWithoutArguments
+  static const LinterLintWithoutArguments
   avoidVoidAsync = LinterLintWithoutArguments(
     name: LintNames.avoid_void_async,
     problemMessage:
@@ -842,7 +842,7 @@ class LinterLintCode extends LintCodeWithExpectedTypes {
   );
 
   /// No parameters.
-  static const DiagnosticWithoutArguments avoidWebLibrariesInFlutter =
+  static const LinterLintWithoutArguments avoidWebLibrariesInFlutter =
       LinterLintWithoutArguments(
         name: LintNames.avoid_web_libraries_in_flutter,
         problemMessage:
@@ -903,7 +903,7 @@ class LinterLintCode extends LintCodeWithExpectedTypes {
   );
 
   /// No parameters.
-  static const DiagnosticWithoutArguments cancelSubscriptions =
+  static const LinterLintWithoutArguments cancelSubscriptions =
       LinterLintWithoutArguments(
         name: LintNames.cancel_subscriptions,
         problemMessage: "Uncancelled instance of 'StreamSubscription'.",
@@ -916,7 +916,7 @@ class LinterLintCode extends LintCodeWithExpectedTypes {
       );
 
   /// No parameters.
-  static const DiagnosticWithoutArguments cascadeInvocations =
+  static const LinterLintWithoutArguments cascadeInvocations =
       LinterLintWithoutArguments(
         name: LintNames.cascade_invocations,
         problemMessage: "Unnecessary duplication of receiver.",
@@ -926,7 +926,7 @@ class LinterLintCode extends LintCodeWithExpectedTypes {
       );
 
   /// No parameters.
-  static const DiagnosticWithoutArguments
+  static const LinterLintWithoutArguments
   castNullableToNonNullable = LinterLintWithoutArguments(
     name: LintNames.cast_nullable_to_non_nullable,
     problemMessage: "Don't cast a nullable value to a non-nullable type.",
@@ -937,7 +937,7 @@ class LinterLintCode extends LintCodeWithExpectedTypes {
   );
 
   /// No parameters.
-  static const DiagnosticWithoutArguments
+  static const LinterLintWithoutArguments
   closeSinks = LinterLintWithoutArguments(
     name: LintNames.close_sinks,
     problemMessage: "Unclosed instance of 'Sink'.",
@@ -965,7 +965,7 @@ class LinterLintCode extends LintCodeWithExpectedTypes {
   );
 
   /// No parameters.
-  static const DiagnosticWithoutArguments combinatorsOrdering =
+  static const LinterLintWithoutArguments combinatorsOrdering =
       LinterLintWithoutArguments(
         name: LintNames.combinators_ordering,
         problemMessage: "Sort combinator names alphabetically.",
@@ -975,7 +975,7 @@ class LinterLintCode extends LintCodeWithExpectedTypes {
       );
 
   /// No parameters.
-  static const DiagnosticWithoutArguments commentReferences =
+  static const LinterLintWithoutArguments commentReferences =
       LinterLintWithoutArguments(
         name: LintNames.comment_references,
         problemMessage: "The referenced name isn't visible in scope.",
@@ -1048,7 +1048,7 @@ class LinterLintCode extends LintCodeWithExpectedTypes {
   );
 
   /// No parameters.
-  static const DiagnosticWithoutArguments danglingLibraryDocComments =
+  static const LinterLintWithoutArguments danglingLibraryDocComments =
       LinterLintWithoutArguments(
         name: LintNames.dangling_library_doc_comments,
         problemMessage: "Dangling library doc comment.",
@@ -1077,7 +1077,7 @@ class LinterLintCode extends LintCodeWithExpectedTypes {
   );
 
   /// No parameters.
-  static const DiagnosticWithoutArguments deprecatedConsistencyConstructor =
+  static const LinterLintWithoutArguments deprecatedConsistencyConstructor =
       LinterLintWithoutArguments(
         name: LintNames.deprecated_consistency,
         problemMessage:
@@ -1088,7 +1088,7 @@ class LinterLintCode extends LintCodeWithExpectedTypes {
       );
 
   /// No parameters.
-  static const DiagnosticWithoutArguments deprecatedConsistencyField =
+  static const LinterLintWithoutArguments deprecatedConsistencyField =
       LinterLintWithoutArguments(
         name: LintNames.deprecated_consistency,
         problemMessage:
@@ -1100,7 +1100,7 @@ class LinterLintCode extends LintCodeWithExpectedTypes {
       );
 
   /// No parameters.
-  static const DiagnosticWithoutArguments
+  static const LinterLintWithoutArguments
   deprecatedConsistencyParameter = LinterLintWithoutArguments(
     name: LintNames.deprecated_consistency,
     problemMessage:
@@ -1146,7 +1146,7 @@ class LinterLintCode extends LintCodeWithExpectedTypes {
   );
 
   /// No parameters.
-  static const DiagnosticWithoutArguments
+  static const LinterLintWithoutArguments
   diagnosticDescribeAllProperties = LinterLintWithoutArguments(
     name: LintNames.diagnostic_describe_all_properties,
     problemMessage:
@@ -1159,7 +1159,7 @@ class LinterLintCode extends LintCodeWithExpectedTypes {
   );
 
   /// No parameters.
-  static const DiagnosticWithoutArguments directivesOrderingAlphabetical =
+  static const LinterLintWithoutArguments directivesOrderingAlphabetical =
       LinterLintWithoutArguments(
         name: LintNames.directives_ordering,
         problemMessage: "Sort directive sections alphabetically.",
@@ -1183,7 +1183,7 @@ class LinterLintCode extends LintCodeWithExpectedTypes {
   );
 
   /// No parameters.
-  static const DiagnosticWithoutArguments directivesOrderingExports =
+  static const LinterLintWithoutArguments directivesOrderingExports =
       LinterLintWithoutArguments(
         name: LintNames.directives_ordering,
         problemMessage:
@@ -1208,7 +1208,7 @@ class LinterLintCode extends LintCodeWithExpectedTypes {
   );
 
   /// No parameters.
-  static const DiagnosticWithoutArguments
+  static const LinterLintWithoutArguments
   discardedFutures = LinterLintWithoutArguments(
     name: LintNames.discarded_futures,
     problemMessage: "'Future'-returning calls in a non-'async' function.",
@@ -1220,7 +1220,7 @@ class LinterLintCode extends LintCodeWithExpectedTypes {
   );
 
   /// No parameters.
-  static const DiagnosticWithoutArguments documentIgnores =
+  static const LinterLintWithoutArguments documentIgnores =
       LinterLintWithoutArguments(
         name: LintNames.document_ignores,
         problemMessage:
@@ -1232,7 +1232,7 @@ class LinterLintCode extends LintCodeWithExpectedTypes {
       );
 
   /// No parameters.
-  static const DiagnosticWithoutArguments doNotUseEnvironment =
+  static const LinterLintWithoutArguments doNotUseEnvironment =
       LinterLintWithoutArguments(
         name: LintNames.do_not_use_environment,
         problemMessage: "Invalid use of an environment declaration.",
@@ -1242,7 +1242,7 @@ class LinterLintCode extends LintCodeWithExpectedTypes {
       );
 
   /// No parameters.
-  static const DiagnosticWithoutArguments
+  static const LinterLintWithoutArguments
   emptyCatches = LinterLintWithoutArguments(
     name: LintNames.empty_catches,
     problemMessage: "Empty catch block.",
@@ -1255,7 +1255,7 @@ class LinterLintCode extends LintCodeWithExpectedTypes {
   );
 
   /// No parameters.
-  static const DiagnosticWithoutArguments
+  static const LinterLintWithoutArguments
   emptyConstructorBodies = LinterLintWithoutArguments(
     name: LintNames.empty_constructor_bodies,
     problemMessage:
@@ -1267,7 +1267,7 @@ class LinterLintCode extends LintCodeWithExpectedTypes {
   );
 
   /// No parameters.
-  static const DiagnosticWithoutArguments emptyStatements =
+  static const LinterLintWithoutArguments emptyStatements =
       LinterLintWithoutArguments(
         name: LintNames.empty_statements,
         problemMessage: "Unnecessary empty statement.",
@@ -1279,7 +1279,7 @@ class LinterLintCode extends LintCodeWithExpectedTypes {
       );
 
   /// No parameters.
-  static const DiagnosticWithoutArguments eolAtEndOfFile =
+  static const LinterLintWithoutArguments eolAtEndOfFile =
       LinterLintWithoutArguments(
         name: LintNames.eol_at_end_of_file,
         problemMessage: "Missing a newline at the end of the file.",
@@ -1289,7 +1289,7 @@ class LinterLintCode extends LintCodeWithExpectedTypes {
       );
 
   /// No parameters.
-  static const DiagnosticWithoutArguments
+  static const LinterLintWithoutArguments
   eraseDartTypeExtensionTypes = LinterLintWithoutArguments(
     name: LintNames.erase_dart_type_extension_types,
     problemMessage: "Unsafe use of 'DartType' in an 'is' check.",
@@ -1332,7 +1332,7 @@ class LinterLintCode extends LintCodeWithExpectedTypes {
   );
 
   /// No parameters.
-  static const DiagnosticWithoutArguments flutterStyleTodos =
+  static const LinterLintWithoutArguments flutterStyleTodos =
       LinterLintWithoutArguments(
         name: LintNames.flutter_style_todos,
         problemMessage: "To-do comment doesn't follow the Flutter style.",
@@ -1359,7 +1359,7 @@ class LinterLintCode extends LintCodeWithExpectedTypes {
   );
 
   /// No parameters.
-  static const DiagnosticWithoutArguments
+  static const LinterLintWithoutArguments
   implementationImports = LinterLintWithoutArguments(
     name: LintNames.implementation_imports,
     problemMessage:
@@ -1373,7 +1373,7 @@ class LinterLintCode extends LintCodeWithExpectedTypes {
   );
 
   /// No parameters.
-  static const DiagnosticWithoutArguments implicitCallTearoffs =
+  static const LinterLintWithoutArguments implicitCallTearoffs =
       LinterLintWithoutArguments(
         name: LintNames.implicit_call_tearoffs,
         problemMessage: "Implicit tear-off of the 'call' method.",
@@ -1413,7 +1413,7 @@ class LinterLintCode extends LintCodeWithExpectedTypes {
   );
 
   /// No parameters.
-  static const DiagnosticWithoutArguments invalidCasePatterns =
+  static const LinterLintWithoutArguments invalidCasePatterns =
       LinterLintWithoutArguments(
         name: LintNames.invalid_case_patterns,
         problemMessage:
@@ -1562,7 +1562,7 @@ class LinterLintCode extends LintCodeWithExpectedTypes {
   );
 
   /// No parameters.
-  static const DiagnosticWithoutArguments joinReturnWithAssignment =
+  static const LinterLintWithoutArguments joinReturnWithAssignment =
       LinterLintWithoutArguments(
         name: LintNames.join_return_with_assignment,
         problemMessage: "Assignment could be inlined in 'return' statement.",
@@ -1573,7 +1573,7 @@ class LinterLintCode extends LintCodeWithExpectedTypes {
       );
 
   /// No parameters.
-  static const DiagnosticWithoutArguments
+  static const LinterLintWithoutArguments
   leadingNewlinesInMultilineStrings = LinterLintWithoutArguments(
     name: LintNames.leading_newlines_in_multiline_strings,
     problemMessage: "Missing a newline at the beginning of a multiline string.",
@@ -1583,7 +1583,7 @@ class LinterLintCode extends LintCodeWithExpectedTypes {
   );
 
   /// No parameters.
-  static const DiagnosticWithoutArguments libraryAnnotations =
+  static const LinterLintWithoutArguments libraryAnnotations =
       LinterLintWithoutArguments(
         name: LintNames.library_annotations,
         problemMessage:
@@ -1632,7 +1632,7 @@ class LinterLintCode extends LintCodeWithExpectedTypes {
   );
 
   /// No parameters.
-  static const DiagnosticWithoutArguments
+  static const LinterLintWithoutArguments
   libraryPrivateTypesInPublicApi = LinterLintWithoutArguments(
     name: LintNames.library_private_types_in_public_api,
     problemMessage: "Invalid use of a private type in a public API.",
@@ -1645,7 +1645,7 @@ class LinterLintCode extends LintCodeWithExpectedTypes {
   );
 
   /// No parameters.
-  static const DiagnosticWithoutArguments linesLongerThan80Chars =
+  static const LinterLintWithoutArguments linesLongerThan80Chars =
       LinterLintWithoutArguments(
         name: LintNames.lines_longer_than_80_chars,
         problemMessage: "The line length exceeds the 80-character limit.",
@@ -1655,7 +1655,7 @@ class LinterLintCode extends LintCodeWithExpectedTypes {
       );
 
   /// No parameters.
-  static const DiagnosticWithoutArguments literalOnlyBooleanExpressions =
+  static const LinterLintWithoutArguments literalOnlyBooleanExpressions =
       LinterLintWithoutArguments(
         name: LintNames.literal_only_boolean_expressions,
         problemMessage: "The Boolean expression has a constant value.",
@@ -1685,7 +1685,7 @@ class LinterLintCode extends LintCodeWithExpectedTypes {
   );
 
   /// No parameters.
-  static const DiagnosticWithoutArguments missingCodeBlockLanguageInDocComment =
+  static const LinterLintWithoutArguments missingCodeBlockLanguageInDocComment =
       LinterLintWithoutArguments(
         name: LintNames.missing_code_block_language_in_doc_comment,
         problemMessage: "The code block is missing a specified language.",
@@ -1695,7 +1695,7 @@ class LinterLintCode extends LintCodeWithExpectedTypes {
       );
 
   /// No parameters.
-  static const DiagnosticWithoutArguments
+  static const LinterLintWithoutArguments
   missingWhitespaceBetweenAdjacentStrings = LinterLintWithoutArguments(
     name: LintNames.missing_whitespace_between_adjacent_strings,
     problemMessage: "Missing whitespace between adjacent strings.",
@@ -1706,7 +1706,7 @@ class LinterLintCode extends LintCodeWithExpectedTypes {
   );
 
   /// No parameters.
-  static const DiagnosticWithoutArguments noAdjacentStringsInList =
+  static const LinterLintWithoutArguments noAdjacentStringsInList =
       LinterLintWithoutArguments(
         name: LintNames.no_adjacent_strings_in_list,
         problemMessage: "Don't use adjacent strings in a list literal.",
@@ -1717,7 +1717,7 @@ class LinterLintCode extends LintCodeWithExpectedTypes {
       );
 
   /// No parameters.
-  static const DiagnosticWithoutArguments noDefaultCases =
+  static const LinterLintWithoutArguments noDefaultCases =
       LinterLintWithoutArguments(
         name: LintNames.no_default_cases,
         problemMessage: "Invalid use of 'default' member in a switch.",
@@ -1778,7 +1778,7 @@ class LinterLintCode extends LintCodeWithExpectedTypes {
   );
 
   /// No parameters.
-  static const DiagnosticWithoutArguments
+  static const LinterLintWithoutArguments
   noLiteralBoolComparisons = LinterLintWithoutArguments(
     name: LintNames.no_literal_bool_comparisons,
     problemMessage: "Unnecessary comparison to a boolean literal.",
@@ -1789,7 +1789,7 @@ class LinterLintCode extends LintCodeWithExpectedTypes {
   );
 
   /// No parameters.
-  static const DiagnosticWithoutArguments noLogicInCreateState =
+  static const LinterLintWithoutArguments noLogicInCreateState =
       LinterLintWithoutArguments(
         name: LintNames.no_logic_in_create_state,
         problemMessage: "Don't put any logic in 'createState'.",
@@ -1817,7 +1817,7 @@ class LinterLintCode extends LintCodeWithExpectedTypes {
   );
 
   /// No parameters.
-  static const DiagnosticWithoutArguments noopPrimitiveOperations =
+  static const LinterLintWithoutArguments noopPrimitiveOperations =
       LinterLintWithoutArguments(
         name: LintNames.noop_primitive_operations,
         problemMessage: "The expression has no effect and can be removed.",
@@ -1827,7 +1827,7 @@ class LinterLintCode extends LintCodeWithExpectedTypes {
       );
 
   /// No parameters.
-  static const DiagnosticWithoutArguments noRuntimetypeTostring =
+  static const LinterLintWithoutArguments noRuntimetypeTostring =
       LinterLintWithoutArguments(
         name: LintNames.no_runtimeType_toString,
         problemMessage:
@@ -1839,7 +1839,7 @@ class LinterLintCode extends LintCodeWithExpectedTypes {
       );
 
   /// No parameters.
-  static const DiagnosticWithoutArguments noSelfAssignments =
+  static const LinterLintWithoutArguments noSelfAssignments =
       LinterLintWithoutArguments(
         name: LintNames.no_self_assignments,
         problemMessage: "The variable or property is being assigned to itself.",
@@ -1850,7 +1850,7 @@ class LinterLintCode extends LintCodeWithExpectedTypes {
       );
 
   /// No parameters.
-  static const DiagnosticWithoutArguments noSoloTests =
+  static const LinterLintWithoutArguments noSoloTests =
       LinterLintWithoutArguments(
         name: LintNames.no_solo_tests,
         problemMessage: "Don't commit soloed tests.",
@@ -1862,7 +1862,7 @@ class LinterLintCode extends LintCodeWithExpectedTypes {
       );
 
   /// No parameters.
-  static const DiagnosticWithoutArguments noTrailingSpaces =
+  static const LinterLintWithoutArguments noTrailingSpaces =
       LinterLintWithoutArguments(
         name: LintNames.no_trailing_spaces,
         problemMessage:
@@ -1874,7 +1874,7 @@ class LinterLintCode extends LintCodeWithExpectedTypes {
       );
 
   /// No parameters.
-  static const DiagnosticWithoutArguments noWildcardVariableUses =
+  static const LinterLintWithoutArguments noWildcardVariableUses =
       LinterLintWithoutArguments(
         name: LintNames.no_wildcard_variable_uses,
         problemMessage: "The referenced identifier is a wildcard.",
@@ -1885,7 +1885,7 @@ class LinterLintCode extends LintCodeWithExpectedTypes {
       );
 
   /// No parameters.
-  static const DiagnosticWithoutArguments
+  static const LinterLintWithoutArguments
   nullCheckOnNullableTypeParameter = LinterLintWithoutArguments(
     name: LintNames.null_check_on_nullable_type_parameter,
     problemMessage:
@@ -1898,7 +1898,7 @@ class LinterLintCode extends LintCodeWithExpectedTypes {
   );
 
   /// No parameters.
-  static const DiagnosticWithoutArguments nullClosures =
+  static const LinterLintWithoutArguments nullClosures =
       LinterLintWithoutArguments(
         name: LintNames.null_closures,
         problemMessage: "Closure can't be 'null' because it might be invoked.",
@@ -1908,7 +1908,7 @@ class LinterLintCode extends LintCodeWithExpectedTypes {
       );
 
   /// No parameters.
-  static const DiagnosticWithoutArguments omitLocalVariableTypes =
+  static const LinterLintWithoutArguments omitLocalVariableTypes =
       LinterLintWithoutArguments(
         name: LintNames.omit_local_variable_types,
         problemMessage: "Unnecessary type annotation on a local variable.",
@@ -1918,7 +1918,7 @@ class LinterLintCode extends LintCodeWithExpectedTypes {
       );
 
   /// No parameters.
-  static const DiagnosticWithoutArguments
+  static const LinterLintWithoutArguments
   omitObviousLocalVariableTypes = LinterLintWithoutArguments(
     name: LintNames.omit_obvious_local_variable_types,
     problemMessage:
@@ -1929,7 +1929,7 @@ class LinterLintCode extends LintCodeWithExpectedTypes {
   );
 
   /// No parameters.
-  static const DiagnosticWithoutArguments omitObviousPropertyTypes =
+  static const LinterLintWithoutArguments omitObviousPropertyTypes =
       LinterLintWithoutArguments(
         name: LintNames.omit_obvious_property_types,
         problemMessage:
@@ -1955,7 +1955,7 @@ class LinterLintCode extends LintCodeWithExpectedTypes {
   );
 
   /// No parameters.
-  static const DiagnosticWithoutArguments
+  static const LinterLintWithoutArguments
   onlyThrowErrors = LinterLintWithoutArguments(
     name: LintNames.only_throw_errors,
     problemMessage:
@@ -2034,7 +2034,7 @@ class LinterLintCode extends LintCodeWithExpectedTypes {
   );
 
   /// No parameters.
-  static const DiagnosticWithoutArguments preferAdjacentStringConcatenation =
+  static const LinterLintWithoutArguments preferAdjacentStringConcatenation =
       LinterLintWithoutArguments(
         name: LintNames.prefer_adjacent_string_concatenation,
         problemMessage:
@@ -2046,7 +2046,7 @@ class LinterLintCode extends LintCodeWithExpectedTypes {
       );
 
   /// No parameters.
-  static const DiagnosticWithoutArguments preferAssertsInInitializerLists =
+  static const LinterLintWithoutArguments preferAssertsInInitializerLists =
       LinterLintWithoutArguments(
         name: LintNames.prefer_asserts_in_initializer_lists,
         problemMessage: "Assert should be in the initializer list.",
@@ -2057,7 +2057,7 @@ class LinterLintCode extends LintCodeWithExpectedTypes {
       );
 
   /// No parameters.
-  static const DiagnosticWithoutArguments preferAssertsWithMessage =
+  static const LinterLintWithoutArguments preferAssertsWithMessage =
       LinterLintWithoutArguments(
         name: LintNames.prefer_asserts_with_message,
         problemMessage: "Missing a message in an assert.",
@@ -2068,7 +2068,7 @@ class LinterLintCode extends LintCodeWithExpectedTypes {
       );
 
   /// No parameters.
-  static const DiagnosticWithoutArguments preferCollectionLiterals =
+  static const LinterLintWithoutArguments preferCollectionLiterals =
       LinterLintWithoutArguments(
         name: LintNames.prefer_collection_literals,
         problemMessage: "Unnecessary constructor invocation.",
@@ -2079,7 +2079,7 @@ class LinterLintCode extends LintCodeWithExpectedTypes {
       );
 
   /// No parameters.
-  static const DiagnosticWithoutArguments preferConditionalAssignment =
+  static const LinterLintWithoutArguments preferConditionalAssignment =
       LinterLintWithoutArguments(
         name: LintNames.prefer_conditional_assignment,
         problemMessage:
@@ -2092,7 +2092,7 @@ class LinterLintCode extends LintCodeWithExpectedTypes {
       );
 
   /// No parameters.
-  static const DiagnosticWithoutArguments preferConstConstructors =
+  static const LinterLintWithoutArguments preferConstConstructors =
       LinterLintWithoutArguments(
         name: LintNames.prefer_const_constructors,
         problemMessage:
@@ -2105,7 +2105,7 @@ class LinterLintCode extends LintCodeWithExpectedTypes {
       );
 
   /// No parameters.
-  static const DiagnosticWithoutArguments
+  static const LinterLintWithoutArguments
   preferConstConstructorsInImmutables = LinterLintWithoutArguments(
     name: LintNames.prefer_const_constructors_in_immutables,
     problemMessage:
@@ -2117,7 +2117,7 @@ class LinterLintCode extends LintCodeWithExpectedTypes {
   );
 
   /// No parameters.
-  static const DiagnosticWithoutArguments preferConstDeclarations =
+  static const LinterLintWithoutArguments preferConstDeclarations =
       LinterLintWithoutArguments(
         name: LintNames.prefer_const_declarations,
         problemMessage:
@@ -2129,7 +2129,7 @@ class LinterLintCode extends LintCodeWithExpectedTypes {
       );
 
   /// No parameters.
-  static const DiagnosticWithoutArguments
+  static const LinterLintWithoutArguments
   preferConstLiteralsToCreateImmutables = LinterLintWithoutArguments(
     name: LintNames.prefer_const_literals_to_create_immutables,
     problemMessage:
@@ -2142,7 +2142,7 @@ class LinterLintCode extends LintCodeWithExpectedTypes {
   );
 
   /// No parameters.
-  static const DiagnosticWithoutArguments preferConstructorsOverStaticMethods =
+  static const LinterLintWithoutArguments preferConstructorsOverStaticMethods =
       LinterLintWithoutArguments(
         name: LintNames.prefer_constructors_over_static_methods,
         problemMessage: "Static method should be a constructor.",
@@ -2153,7 +2153,7 @@ class LinterLintCode extends LintCodeWithExpectedTypes {
       );
 
   /// No parameters.
-  static const DiagnosticWithoutArguments
+  static const LinterLintWithoutArguments
   preferContainsAlwaysFalse = LinterLintWithoutArguments(
     name: LintNames.prefer_contains,
     problemMessage:
@@ -2163,7 +2163,7 @@ class LinterLintCode extends LintCodeWithExpectedTypes {
   );
 
   /// No parameters.
-  static const DiagnosticWithoutArguments
+  static const LinterLintWithoutArguments
   preferContainsAlwaysTrue = LinterLintWithoutArguments(
     name: LintNames.prefer_contains,
     problemMessage:
@@ -2173,7 +2173,7 @@ class LinterLintCode extends LintCodeWithExpectedTypes {
   );
 
   /// No parameters.
-  static const DiagnosticWithoutArguments preferContainsUseContains =
+  static const LinterLintWithoutArguments preferContainsUseContains =
       LinterLintWithoutArguments(
         name: LintNames.prefer_contains,
         problemMessage: "Unnecessary use of 'indexOf' to test for containment.",
@@ -2184,7 +2184,7 @@ class LinterLintCode extends LintCodeWithExpectedTypes {
       );
 
   /// No parameters.
-  static const DiagnosticWithoutArguments preferDoubleQuotes =
+  static const LinterLintWithoutArguments preferDoubleQuotes =
       LinterLintWithoutArguments(
         name: LintNames.prefer_double_quotes,
         problemMessage: "Unnecessary use of single quotes.",
@@ -2196,7 +2196,7 @@ class LinterLintCode extends LintCodeWithExpectedTypes {
       );
 
   /// No parameters.
-  static const DiagnosticWithoutArguments preferExpressionFunctionBodies =
+  static const LinterLintWithoutArguments preferExpressionFunctionBodies =
       LinterLintWithoutArguments(
         name: LintNames.prefer_expression_function_bodies,
         problemMessage: "Unnecessary use of a block function body.",
@@ -2222,7 +2222,7 @@ class LinterLintCode extends LintCodeWithExpectedTypes {
   );
 
   /// No parameters.
-  static const DiagnosticWithoutArguments preferFinalInForEachPattern =
+  static const LinterLintWithoutArguments preferFinalInForEachPattern =
       LinterLintWithoutArguments(
         name: LintNames.prefer_final_in_for_each,
         problemMessage: "The pattern should be final.",
@@ -2247,7 +2247,7 @@ class LinterLintCode extends LintCodeWithExpectedTypes {
   );
 
   /// No parameters.
-  static const DiagnosticWithoutArguments preferFinalLocals =
+  static const LinterLintWithoutArguments preferFinalLocals =
       LinterLintWithoutArguments(
         name: LintNames.prefer_final_locals,
         problemMessage: "Local variables should be final.",
@@ -2273,7 +2273,7 @@ class LinterLintCode extends LintCodeWithExpectedTypes {
   );
 
   /// No parameters.
-  static const DiagnosticWithoutArguments
+  static const LinterLintWithoutArguments
   preferForeach = LinterLintWithoutArguments(
     name: LintNames.prefer_foreach,
     problemMessage:
@@ -2287,7 +2287,7 @@ class LinterLintCode extends LintCodeWithExpectedTypes {
   );
 
   /// No parameters.
-  static const DiagnosticWithoutArguments preferForElementsToMapFromiterable =
+  static const LinterLintWithoutArguments preferForElementsToMapFromiterable =
       LinterLintWithoutArguments(
         name: LintNames.prefer_for_elements_to_map_fromIterable,
         problemMessage: "Use 'for' elements when building maps from iterables.",
@@ -2299,7 +2299,7 @@ class LinterLintCode extends LintCodeWithExpectedTypes {
       );
 
   /// No parameters.
-  static const DiagnosticWithoutArguments
+  static const LinterLintWithoutArguments
   preferFunctionDeclarationsOverVariables = LinterLintWithoutArguments(
     name: LintNames.prefer_function_declarations_over_variables,
     problemMessage:
@@ -2328,7 +2328,7 @@ class LinterLintCode extends LintCodeWithExpectedTypes {
   );
 
   /// No parameters.
-  static const DiagnosticWithoutArguments
+  static const LinterLintWithoutArguments
   preferIfElementsToConditionalExpressions = LinterLintWithoutArguments(
     name: LintNames.prefer_if_elements_to_conditional_expressions,
     problemMessage: "Use an 'if' element to conditionally add elements.",
@@ -2339,7 +2339,7 @@ class LinterLintCode extends LintCodeWithExpectedTypes {
   );
 
   /// No parameters.
-  static const DiagnosticWithoutArguments preferIfNullOperators =
+  static const LinterLintWithoutArguments preferIfNullOperators =
       LinterLintWithoutArguments(
         name: LintNames.prefer_if_null_operators,
         problemMessage:
@@ -2368,7 +2368,7 @@ class LinterLintCode extends LintCodeWithExpectedTypes {
   );
 
   /// No parameters.
-  static const DiagnosticWithoutArguments preferInlinedAddsMultiple =
+  static const LinterLintWithoutArguments preferInlinedAddsMultiple =
       LinterLintWithoutArguments(
         name: LintNames.prefer_inlined_adds,
         problemMessage: "The addition of multiple list items could be inlined.",
@@ -2379,7 +2379,7 @@ class LinterLintCode extends LintCodeWithExpectedTypes {
       );
 
   /// No parameters.
-  static const DiagnosticWithoutArguments preferInlinedAddsSingle =
+  static const LinterLintWithoutArguments preferInlinedAddsSingle =
       LinterLintWithoutArguments(
         name: LintNames.prefer_inlined_adds,
         problemMessage: "The addition of a list item could be inlined.",
@@ -2390,7 +2390,7 @@ class LinterLintCode extends LintCodeWithExpectedTypes {
       );
 
   /// No parameters.
-  static const DiagnosticWithoutArguments preferInterpolationToComposeStrings =
+  static const LinterLintWithoutArguments preferInterpolationToComposeStrings =
       LinterLintWithoutArguments(
         name: LintNames.prefer_interpolation_to_compose_strings,
         problemMessage: "Use interpolation to compose strings and values.",
@@ -2402,7 +2402,7 @@ class LinterLintCode extends LintCodeWithExpectedTypes {
       );
 
   /// No parameters.
-  static const DiagnosticWithoutArguments preferIntLiterals =
+  static const LinterLintWithoutArguments preferIntLiterals =
       LinterLintWithoutArguments(
         name: LintNames.prefer_int_literals,
         problemMessage: "Unnecessary use of a 'double' literal.",
@@ -2412,7 +2412,7 @@ class LinterLintCode extends LintCodeWithExpectedTypes {
       );
 
   /// No parameters.
-  static const DiagnosticWithoutArguments
+  static const LinterLintWithoutArguments
   preferIsEmptyAlwaysFalse = LinterLintWithoutArguments(
     name: LintNames.prefer_is_empty,
     problemMessage:
@@ -2423,7 +2423,7 @@ class LinterLintCode extends LintCodeWithExpectedTypes {
   );
 
   /// No parameters.
-  static const DiagnosticWithoutArguments
+  static const LinterLintWithoutArguments
   preferIsEmptyAlwaysTrue = LinterLintWithoutArguments(
     name: LintNames.prefer_is_empty,
     problemMessage:
@@ -2434,7 +2434,7 @@ class LinterLintCode extends LintCodeWithExpectedTypes {
   );
 
   /// No parameters.
-  static const DiagnosticWithoutArguments
+  static const LinterLintWithoutArguments
   preferIsEmptyUseIsEmpty = LinterLintWithoutArguments(
     name: LintNames.prefer_is_empty,
     problemMessage:
@@ -2447,7 +2447,7 @@ class LinterLintCode extends LintCodeWithExpectedTypes {
   );
 
   /// No parameters.
-  static const DiagnosticWithoutArguments
+  static const LinterLintWithoutArguments
   preferIsEmptyUseIsNotEmpty = LinterLintWithoutArguments(
     name: LintNames.prefer_is_empty,
     problemMessage:
@@ -2460,7 +2460,7 @@ class LinterLintCode extends LintCodeWithExpectedTypes {
   );
 
   /// No parameters.
-  static const DiagnosticWithoutArguments preferIsNotEmpty =
+  static const LinterLintWithoutArguments preferIsNotEmpty =
       LinterLintWithoutArguments(
         name: LintNames.prefer_is_not_empty,
         problemMessage:
@@ -2472,7 +2472,7 @@ class LinterLintCode extends LintCodeWithExpectedTypes {
       );
 
   /// No parameters.
-  static const DiagnosticWithoutArguments preferIsNotOperator =
+  static const LinterLintWithoutArguments preferIsNotOperator =
       LinterLintWithoutArguments(
         name: LintNames.prefer_is_not_operator,
         problemMessage:
@@ -2486,7 +2486,7 @@ class LinterLintCode extends LintCodeWithExpectedTypes {
       );
 
   /// No parameters.
-  static const DiagnosticWithoutArguments preferIterableWheretype =
+  static const LinterLintWithoutArguments preferIterableWheretype =
       LinterLintWithoutArguments(
         name: LintNames.prefer_iterable_whereType,
         problemMessage: "Use 'whereType' to select elements of a given type.",
@@ -2511,7 +2511,7 @@ class LinterLintCode extends LintCodeWithExpectedTypes {
   );
 
   /// No parameters.
-  static const DiagnosticWithoutArguments
+  static const LinterLintWithoutArguments
   preferNullAwareMethodCalls = LinterLintWithoutArguments(
     name: LintNames.prefer_null_aware_method_calls,
     problemMessage:
@@ -2523,7 +2523,7 @@ class LinterLintCode extends LintCodeWithExpectedTypes {
   );
 
   /// No parameters.
-  static const DiagnosticWithoutArguments preferNullAwareOperators =
+  static const LinterLintWithoutArguments preferNullAwareOperators =
       LinterLintWithoutArguments(
         name: LintNames.prefer_null_aware_operators,
         problemMessage:
@@ -2536,7 +2536,7 @@ class LinterLintCode extends LintCodeWithExpectedTypes {
       );
 
   /// No parameters.
-  static const DiagnosticWithoutArguments preferRelativeImports =
+  static const LinterLintWithoutArguments preferRelativeImports =
       LinterLintWithoutArguments(
         name: LintNames.prefer_relative_imports,
         problemMessage:
@@ -2548,7 +2548,7 @@ class LinterLintCode extends LintCodeWithExpectedTypes {
       );
 
   /// No parameters.
-  static const DiagnosticWithoutArguments preferSingleQuotes =
+  static const LinterLintWithoutArguments preferSingleQuotes =
       LinterLintWithoutArguments(
         name: LintNames.prefer_single_quotes,
         problemMessage: "Unnecessary use of double quotes.",
@@ -2560,7 +2560,7 @@ class LinterLintCode extends LintCodeWithExpectedTypes {
       );
 
   /// No parameters.
-  static const DiagnosticWithoutArguments preferSpreadCollections =
+  static const LinterLintWithoutArguments preferSpreadCollections =
       LinterLintWithoutArguments(
         name: LintNames.prefer_spread_collections,
         problemMessage: "The addition of multiple elements could be inlined.",
@@ -2571,7 +2571,7 @@ class LinterLintCode extends LintCodeWithExpectedTypes {
       );
 
   /// No parameters.
-  static const DiagnosticWithoutArguments
+  static const LinterLintWithoutArguments
   preferTypingUninitializedVariablesForField = LinterLintWithoutArguments(
     name: LintNames.prefer_typing_uninitialized_variables,
     problemMessage:
@@ -2583,7 +2583,7 @@ class LinterLintCode extends LintCodeWithExpectedTypes {
   );
 
   /// No parameters.
-  static const DiagnosticWithoutArguments
+  static const LinterLintWithoutArguments
   preferTypingUninitializedVariablesForLocalVariable =
       LinterLintWithoutArguments(
         name: LintNames.prefer_typing_uninitialized_variables,
@@ -2597,7 +2597,7 @@ class LinterLintCode extends LintCodeWithExpectedTypes {
       );
 
   /// No parameters.
-  static const DiagnosticWithoutArguments preferVoidToNull =
+  static const LinterLintWithoutArguments preferVoidToNull =
       LinterLintWithoutArguments(
         name: LintNames.prefer_void_to_null,
         problemMessage: "Unnecessary use of the type 'Null'.",
@@ -2608,7 +2608,7 @@ class LinterLintCode extends LintCodeWithExpectedTypes {
       );
 
   /// No parameters.
-  static const DiagnosticWithoutArguments provideDeprecationMessage =
+  static const LinterLintWithoutArguments provideDeprecationMessage =
       LinterLintWithoutArguments(
         name: LintNames.provide_deprecation_message,
         problemMessage: "Missing a deprecation message.",
@@ -2621,7 +2621,7 @@ class LinterLintCode extends LintCodeWithExpectedTypes {
       );
 
   /// No parameters.
-  static const DiagnosticWithoutArguments publicMemberApiDocs =
+  static const LinterLintWithoutArguments publicMemberApiDocs =
       LinterLintWithoutArguments(
         name: LintNames.public_member_api_docs,
         problemMessage: "Missing documentation for a public member.",
@@ -2647,7 +2647,7 @@ class LinterLintCode extends LintCodeWithExpectedTypes {
   );
 
   /// No parameters.
-  static const DiagnosticWithoutArguments removeDeprecationsInBreakingVersions =
+  static const LinterLintWithoutArguments removeDeprecationsInBreakingVersions =
       LinterLintWithoutArguments(
         name: LintNames.remove_deprecations_in_breaking_versions,
         problemMessage: "Remove deprecated elements in breaking versions.",
@@ -2668,7 +2668,7 @@ class LinterLintCode extends LintCodeWithExpectedTypes {
   );
 
   /// No parameters.
-  static const DiagnosticWithoutArguments requireTrailingCommas =
+  static const LinterLintWithoutArguments requireTrailingCommas =
       LinterLintWithoutArguments(
         name: LintNames.require_trailing_commas,
         problemMessage: "Missing a required trailing comma.",
@@ -2694,7 +2694,7 @@ class LinterLintCode extends LintCodeWithExpectedTypes {
   );
 
   /// No parameters.
-  static const DiagnosticWithoutArguments sizedBoxForWhitespace =
+  static const LinterLintWithoutArguments sizedBoxForWhitespace =
       LinterLintWithoutArguments(
         name: LintNames.sized_box_for_whitespace,
         problemMessage: "Use a 'SizedBox' to add whitespace to a layout.",
@@ -2723,7 +2723,7 @@ class LinterLintCode extends LintCodeWithExpectedTypes {
   );
 
   /// No parameters.
-  static const DiagnosticWithoutArguments slashForDocComments =
+  static const LinterLintWithoutArguments slashForDocComments =
       LinterLintWithoutArguments(
         name: LintNames.slash_for_doc_comments,
         problemMessage: "Use the end-of-line form ('///') for doc comments.",
@@ -2751,7 +2751,7 @@ class LinterLintCode extends LintCodeWithExpectedTypes {
   );
 
   /// No parameters.
-  static const DiagnosticWithoutArguments
+  static const LinterLintWithoutArguments
   sortConstructorsFirst = LinterLintWithoutArguments(
     name: LintNames.sort_constructors_first,
     problemMessage:
@@ -2764,7 +2764,7 @@ class LinterLintCode extends LintCodeWithExpectedTypes {
   );
 
   /// No parameters.
-  static const DiagnosticWithoutArguments sortPubDependencies =
+  static const LinterLintWithoutArguments sortPubDependencies =
       LinterLintWithoutArguments(
         name: LintNames.sort_pub_dependencies,
         problemMessage: "Dependencies not sorted alphabetically.",
@@ -2776,7 +2776,7 @@ class LinterLintCode extends LintCodeWithExpectedTypes {
       );
 
   /// No parameters.
-  static const DiagnosticWithoutArguments sortUnnamedConstructorsFirst =
+  static const LinterLintWithoutArguments sortUnnamedConstructorsFirst =
       LinterLintWithoutArguments(
         name: LintNames.sort_unnamed_constructors_first,
         problemMessage: "Invalid location for the unnamed constructor.",
@@ -2788,7 +2788,7 @@ class LinterLintCode extends LintCodeWithExpectedTypes {
       );
 
   /// No parameters.
-  static const DiagnosticWithoutArguments
+  static const LinterLintWithoutArguments
   specifyNonobviousLocalVariableTypes = LinterLintWithoutArguments(
     name: LintNames.specify_nonobvious_local_variable_types,
     problemMessage:
@@ -2799,7 +2799,7 @@ class LinterLintCode extends LintCodeWithExpectedTypes {
   );
 
   /// No parameters.
-  static const DiagnosticWithoutArguments specifyNonobviousPropertyTypes =
+  static const LinterLintWithoutArguments specifyNonobviousPropertyTypes =
       LinterLintWithoutArguments(
         name: LintNames.specify_nonobvious_property_types,
         problemMessage: "A type annotation is needed because it isn't obvious.",
@@ -2809,7 +2809,7 @@ class LinterLintCode extends LintCodeWithExpectedTypes {
       );
 
   /// No parameters.
-  static const DiagnosticWithoutArguments strictTopLevelInferenceAddType =
+  static const LinterLintWithoutArguments strictTopLevelInferenceAddType =
       LinterLintWithoutArguments(
         name: LintNames.strict_top_level_inference,
         problemMessage: "Missing type annotation.",
@@ -2833,7 +2833,7 @@ class LinterLintCode extends LintCodeWithExpectedTypes {
   );
 
   /// No parameters.
-  static const DiagnosticWithoutArguments strictTopLevelInferenceSplitToTypes =
+  static const LinterLintWithoutArguments strictTopLevelInferenceSplitToTypes =
       LinterLintWithoutArguments(
         name: LintNames.strict_top_level_inference,
         problemMessage: "Missing type annotation.",
@@ -2845,7 +2845,7 @@ class LinterLintCode extends LintCodeWithExpectedTypes {
       );
 
   /// No parameters.
-  static const DiagnosticWithoutArguments switchOnType =
+  static const LinterLintWithoutArguments switchOnType =
       LinterLintWithoutArguments(
         name: LintNames.switch_on_type,
         problemMessage: "Avoid switch statements on a 'Type'.",
@@ -2886,7 +2886,7 @@ class LinterLintCode extends LintCodeWithExpectedTypes {
   );
 
   /// No parameters.
-  static const DiagnosticWithoutArguments
+  static const LinterLintWithoutArguments
   tightenTypeOfInitializingFormals = LinterLintWithoutArguments(
     name: LintNames.tighten_type_of_initializing_formals,
     problemMessage:
@@ -2899,7 +2899,7 @@ class LinterLintCode extends LintCodeWithExpectedTypes {
   );
 
   /// No parameters.
-  static const DiagnosticWithoutArguments typeAnnotatePublicApis =
+  static const LinterLintWithoutArguments typeAnnotatePublicApis =
       LinterLintWithoutArguments(
         name: LintNames.type_annotate_public_apis,
         problemMessage: "Missing type annotation on a public API.",
@@ -2910,7 +2910,7 @@ class LinterLintCode extends LintCodeWithExpectedTypes {
       );
 
   /// No parameters.
-  static const DiagnosticWithoutArguments typeInitFormals =
+  static const LinterLintWithoutArguments typeInitFormals =
       LinterLintWithoutArguments(
         name: LintNames.type_init_formals,
         problemMessage: "Don't needlessly type annotate initializing formals.",
@@ -2921,7 +2921,7 @@ class LinterLintCode extends LintCodeWithExpectedTypes {
       );
 
   /// No parameters.
-  static const DiagnosticWithoutArguments typeLiteralInConstantPattern =
+  static const LinterLintWithoutArguments typeLiteralInConstantPattern =
       LinterLintWithoutArguments(
         name: LintNames.type_literal_in_constant_pattern,
         problemMessage: "Use 'TypeName _' instead of a type literal.",
@@ -2932,7 +2932,7 @@ class LinterLintCode extends LintCodeWithExpectedTypes {
       );
 
   /// No parameters.
-  static const DiagnosticWithoutArguments
+  static const LinterLintWithoutArguments
   unawaitedFutures = LinterLintWithoutArguments(
     name: LintNames.unawaited_futures,
     problemMessage:
@@ -2945,7 +2945,7 @@ class LinterLintCode extends LintCodeWithExpectedTypes {
   );
 
   /// No parameters.
-  static const DiagnosticWithoutArguments
+  static const LinterLintWithoutArguments
   unintendedHtmlInDocComment = LinterLintWithoutArguments(
     name: LintNames.unintended_html_in_doc_comment,
     problemMessage: "Angle brackets will be interpreted as HTML.",
@@ -2958,7 +2958,7 @@ class LinterLintCode extends LintCodeWithExpectedTypes {
   );
 
   /// No parameters.
-  static const DiagnosticWithoutArguments unnecessaryAsync =
+  static const LinterLintWithoutArguments unnecessaryAsync =
       LinterLintWithoutArguments(
         name: LintNames.unnecessary_async,
         problemMessage:
@@ -2969,7 +2969,7 @@ class LinterLintCode extends LintCodeWithExpectedTypes {
       );
 
   /// No parameters.
-  static const DiagnosticWithoutArguments unnecessaryAwaitInReturn =
+  static const LinterLintWithoutArguments unnecessaryAwaitInReturn =
       LinterLintWithoutArguments(
         name: LintNames.unnecessary_await_in_return,
         problemMessage: "Unnecessary 'await'.",
@@ -2979,7 +2979,7 @@ class LinterLintCode extends LintCodeWithExpectedTypes {
       );
 
   /// No parameters.
-  static const DiagnosticWithoutArguments unnecessaryBraceInStringInterps =
+  static const LinterLintWithoutArguments unnecessaryBraceInStringInterps =
       LinterLintWithoutArguments(
         name: LintNames.unnecessary_brace_in_string_interps,
         problemMessage: "Unnecessary braces in a string interpolation.",
@@ -2990,7 +2990,7 @@ class LinterLintCode extends LintCodeWithExpectedTypes {
       );
 
   /// No parameters.
-  static const DiagnosticWithoutArguments unnecessaryBreaks =
+  static const LinterLintWithoutArguments unnecessaryBreaks =
       LinterLintWithoutArguments(
         name: LintNames.unnecessary_breaks,
         problemMessage: "Unnecessary 'break' statement.",
@@ -3000,7 +3000,7 @@ class LinterLintCode extends LintCodeWithExpectedTypes {
       );
 
   /// No parameters.
-  static const DiagnosticWithoutArguments unnecessaryConst =
+  static const LinterLintWithoutArguments unnecessaryConst =
       LinterLintWithoutArguments(
         name: LintNames.unnecessary_const,
         problemMessage: "Unnecessary 'const' keyword.",
@@ -3011,7 +3011,7 @@ class LinterLintCode extends LintCodeWithExpectedTypes {
       );
 
   /// No parameters.
-  static const DiagnosticWithoutArguments unnecessaryConstructorName =
+  static const LinterLintWithoutArguments unnecessaryConstructorName =
       LinterLintWithoutArguments(
         name: LintNames.unnecessary_constructor_name,
         problemMessage: "Unnecessary '.new' constructor name.",
@@ -3022,7 +3022,7 @@ class LinterLintCode extends LintCodeWithExpectedTypes {
       );
 
   /// No parameters.
-  static const DiagnosticWithoutArguments unnecessaryFinalWithoutType =
+  static const LinterLintWithoutArguments unnecessaryFinalWithoutType =
       LinterLintWithoutArguments(
         name: LintNames.unnecessary_final,
         problemMessage: "Local variables should not be marked as 'final'.",
@@ -3032,7 +3032,7 @@ class LinterLintCode extends LintCodeWithExpectedTypes {
       );
 
   /// No parameters.
-  static const DiagnosticWithoutArguments unnecessaryFinalWithType =
+  static const LinterLintWithoutArguments unnecessaryFinalWithType =
       LinterLintWithoutArguments(
         name: LintNames.unnecessary_final,
         problemMessage: "Local variables should not be marked as 'final'.",
@@ -3043,7 +3043,7 @@ class LinterLintCode extends LintCodeWithExpectedTypes {
       );
 
   /// No parameters.
-  static const DiagnosticWithoutArguments unnecessaryGettersSetters =
+  static const LinterLintWithoutArguments unnecessaryGettersSetters =
       LinterLintWithoutArguments(
         name: LintNames.unnecessary_getters_setters,
         problemMessage: "Unnecessary use of getter and setter to wrap a field.",
@@ -3120,7 +3120,7 @@ class LinterLintCode extends LintCodeWithExpectedTypes {
   );
 
   /// No parameters.
-  static const DiagnosticWithoutArguments unnecessaryLambdas =
+  static const LinterLintWithoutArguments unnecessaryLambdas =
       LinterLintWithoutArguments(
         name: LintNames.unnecessary_lambdas,
         problemMessage: "Closure should be a tearoff.",
@@ -3131,7 +3131,7 @@ class LinterLintCode extends LintCodeWithExpectedTypes {
       );
 
   /// No parameters.
-  static const DiagnosticWithoutArguments unnecessaryLate =
+  static const LinterLintWithoutArguments unnecessaryLate =
       LinterLintWithoutArguments(
         name: LintNames.unnecessary_late,
         problemMessage: "Unnecessary 'late' modifier.",
@@ -3142,7 +3142,7 @@ class LinterLintCode extends LintCodeWithExpectedTypes {
       );
 
   /// No parameters.
-  static const DiagnosticWithoutArguments
+  static const LinterLintWithoutArguments
   unnecessaryLibraryDirective = LinterLintWithoutArguments(
     name: LintNames.unnecessary_library_directive,
     problemMessage:
@@ -3153,7 +3153,7 @@ class LinterLintCode extends LintCodeWithExpectedTypes {
   );
 
   /// No parameters.
-  static const DiagnosticWithoutArguments unnecessaryLibraryName =
+  static const LinterLintWithoutArguments unnecessaryLibraryName =
       LinterLintWithoutArguments(
         name: LintNames.unnecessary_library_name,
         problemMessage: "Library names are not necessary.",
@@ -3164,7 +3164,7 @@ class LinterLintCode extends LintCodeWithExpectedTypes {
       );
 
   /// No parameters.
-  static const DiagnosticWithoutArguments unnecessaryNew =
+  static const LinterLintWithoutArguments unnecessaryNew =
       LinterLintWithoutArguments(
         name: LintNames.unnecessary_new,
         problemMessage: "Unnecessary 'new' keyword.",
@@ -3175,7 +3175,7 @@ class LinterLintCode extends LintCodeWithExpectedTypes {
       );
 
   /// No parameters.
-  static const DiagnosticWithoutArguments
+  static const LinterLintWithoutArguments
   unnecessaryNullableForFinalVariableDeclarations = LinterLintWithoutArguments(
     name: LintNames.unnecessary_nullable_for_final_variable_declarations,
     problemMessage: "Type could be non-nullable.",
@@ -3186,7 +3186,7 @@ class LinterLintCode extends LintCodeWithExpectedTypes {
   );
 
   /// No parameters.
-  static const DiagnosticWithoutArguments unnecessaryNullAwareAssignments =
+  static const LinterLintWithoutArguments unnecessaryNullAwareAssignments =
       LinterLintWithoutArguments(
         name: LintNames.unnecessary_null_aware_assignments,
         problemMessage: "Unnecessary assignment of 'null'.",
@@ -3197,7 +3197,7 @@ class LinterLintCode extends LintCodeWithExpectedTypes {
       );
 
   /// No parameters.
-  static const DiagnosticWithoutArguments
+  static const LinterLintWithoutArguments
   unnecessaryNullAwareOperatorOnExtensionOnNullable = LinterLintWithoutArguments(
     name: LintNames.unnecessary_null_aware_operator_on_extension_on_nullable,
     problemMessage:
@@ -3211,7 +3211,7 @@ class LinterLintCode extends LintCodeWithExpectedTypes {
   );
 
   /// No parameters.
-  static const DiagnosticWithoutArguments unnecessaryNullChecks =
+  static const LinterLintWithoutArguments unnecessaryNullChecks =
       LinterLintWithoutArguments(
         name: LintNames.unnecessary_null_checks,
         problemMessage: "Unnecessary use of a null check ('!').",
@@ -3222,7 +3222,7 @@ class LinterLintCode extends LintCodeWithExpectedTypes {
       );
 
   /// No parameters.
-  static const DiagnosticWithoutArguments unnecessaryNullInIfNullOperators =
+  static const LinterLintWithoutArguments unnecessaryNullInIfNullOperators =
       LinterLintWithoutArguments(
         name: LintNames.unnecessary_null_in_if_null_operators,
         problemMessage: "Unnecessary use of '??' with 'null'.",
@@ -3234,7 +3234,7 @@ class LinterLintCode extends LintCodeWithExpectedTypes {
       );
 
   /// No parameters.
-  static const DiagnosticWithoutArguments unnecessaryOverrides =
+  static const LinterLintWithoutArguments unnecessaryOverrides =
       LinterLintWithoutArguments(
         name: LintNames.unnecessary_overrides,
         problemMessage: "Unnecessary override.",
@@ -3247,7 +3247,7 @@ class LinterLintCode extends LintCodeWithExpectedTypes {
       );
 
   /// No parameters.
-  static const DiagnosticWithoutArguments unnecessaryParenthesis =
+  static const LinterLintWithoutArguments unnecessaryParenthesis =
       LinterLintWithoutArguments(
         name: LintNames.unnecessary_parenthesis,
         problemMessage: "Unnecessary use of parentheses.",
@@ -3258,7 +3258,7 @@ class LinterLintCode extends LintCodeWithExpectedTypes {
       );
 
   /// No parameters.
-  static const DiagnosticWithoutArguments unnecessaryRawStrings =
+  static const LinterLintWithoutArguments unnecessaryRawStrings =
       LinterLintWithoutArguments(
         name: LintNames.unnecessary_raw_strings,
         problemMessage: "Unnecessary use of a raw string.",
@@ -3269,7 +3269,7 @@ class LinterLintCode extends LintCodeWithExpectedTypes {
       );
 
   /// No parameters.
-  static const DiagnosticWithoutArguments unnecessaryStatements =
+  static const LinterLintWithoutArguments unnecessaryStatements =
       LinterLintWithoutArguments(
         name: LintNames.unnecessary_statements,
         problemMessage: "Unnecessary statement.",
@@ -3280,7 +3280,7 @@ class LinterLintCode extends LintCodeWithExpectedTypes {
       );
 
   /// No parameters.
-  static const DiagnosticWithoutArguments unnecessaryStringEscapes =
+  static const LinterLintWithoutArguments unnecessaryStringEscapes =
       LinterLintWithoutArguments(
         name: LintNames.unnecessary_string_escapes,
         problemMessage: "Unnecessary escape in string literal.",
@@ -3291,7 +3291,7 @@ class LinterLintCode extends LintCodeWithExpectedTypes {
       );
 
   /// No parameters.
-  static const DiagnosticWithoutArguments unnecessaryStringInterpolations =
+  static const LinterLintWithoutArguments unnecessaryStringInterpolations =
       LinterLintWithoutArguments(
         name: LintNames.unnecessary_string_interpolations,
         problemMessage: "Unnecessary use of string interpolation.",
@@ -3303,7 +3303,7 @@ class LinterLintCode extends LintCodeWithExpectedTypes {
       );
 
   /// No parameters.
-  static const DiagnosticWithoutArguments unnecessaryThis =
+  static const LinterLintWithoutArguments unnecessaryThis =
       LinterLintWithoutArguments(
         name: LintNames.unnecessary_this,
         problemMessage: "Unnecessary 'this.' qualifier.",
@@ -3314,7 +3314,7 @@ class LinterLintCode extends LintCodeWithExpectedTypes {
       );
 
   /// No parameters.
-  static const DiagnosticWithoutArguments unnecessaryToListInSpreads =
+  static const LinterLintWithoutArguments unnecessaryToListInSpreads =
       LinterLintWithoutArguments(
         name: LintNames.unnecessary_to_list_in_spreads,
         problemMessage: "Unnecessary use of 'toList' in a spread.",
@@ -3325,7 +3325,7 @@ class LinterLintCode extends LintCodeWithExpectedTypes {
       );
 
   /// No parameters.
-  static const DiagnosticWithoutArguments unnecessaryUnawaited =
+  static const LinterLintWithoutArguments unnecessaryUnawaited =
       LinterLintWithoutArguments(
         name: LintNames.unnecessary_unawaited,
         problemMessage: "Unnecessary use of 'unawaited'.",
@@ -3338,7 +3338,7 @@ class LinterLintCode extends LintCodeWithExpectedTypes {
       );
 
   /// No parameters.
-  static const DiagnosticWithoutArguments unnecessaryUnderscores =
+  static const LinterLintWithoutArguments unnecessaryUnderscores =
       LinterLintWithoutArguments(
         name: LintNames.unnecessary_underscores,
         problemMessage: "Unnecessary use of multiple underscores.",
@@ -3399,7 +3399,7 @@ class LinterLintCode extends LintCodeWithExpectedTypes {
   );
 
   /// No parameters.
-  static const DiagnosticWithoutArguments
+  static const LinterLintWithoutArguments
   unsafeVariance = LinterLintWithoutArguments(
     name: LintNames.unsafe_variance,
     problemMessage:
@@ -3413,7 +3413,7 @@ class LinterLintCode extends LintCodeWithExpectedTypes {
   );
 
   /// No parameters.
-  static const DiagnosticWithoutArguments
+  static const LinterLintWithoutArguments
   useBuildContextSynchronouslyAsyncUse = LinterLintWithoutArguments(
     name: LintNames.use_build_context_synchronously,
     problemMessage: "Don't use 'BuildContext's across async gaps.",
@@ -3426,7 +3426,7 @@ class LinterLintCode extends LintCodeWithExpectedTypes {
   );
 
   /// No parameters.
-  static const DiagnosticWithoutArguments
+  static const LinterLintWithoutArguments
   useBuildContextSynchronouslyWrongMounted = LinterLintWithoutArguments(
     name: LintNames.use_build_context_synchronously,
     problemMessage:
@@ -3441,7 +3441,7 @@ class LinterLintCode extends LintCodeWithExpectedTypes {
   );
 
   /// No parameters.
-  static const DiagnosticWithoutArguments useColoredBox =
+  static const LinterLintWithoutArguments useColoredBox =
       LinterLintWithoutArguments(
         name: LintNames.use_colored_box,
         problemMessage:
@@ -3453,7 +3453,7 @@ class LinterLintCode extends LintCodeWithExpectedTypes {
       );
 
   /// No parameters.
-  static const DiagnosticWithoutArguments
+  static const LinterLintWithoutArguments
   useDecoratedBox = LinterLintWithoutArguments(
     name: LintNames.use_decorated_box,
     problemMessage:
@@ -3465,7 +3465,7 @@ class LinterLintCode extends LintCodeWithExpectedTypes {
   );
 
   /// No parameters.
-  static const DiagnosticWithoutArguments useEnums = LinterLintWithoutArguments(
+  static const LinterLintWithoutArguments useEnums = LinterLintWithoutArguments(
     name: LintNames.use_enums,
     problemMessage: "Class should be an enum.",
     correctionMessage: "Try using an enum rather than a class.",
@@ -3474,7 +3474,7 @@ class LinterLintCode extends LintCodeWithExpectedTypes {
   );
 
   /// No parameters.
-  static const DiagnosticWithoutArguments
+  static const LinterLintWithoutArguments
   useFullHexValuesForFlutterColors = LinterLintWithoutArguments(
     name: LintNames.use_full_hex_values_for_flutter_colors,
     problemMessage:
@@ -3502,7 +3502,7 @@ class LinterLintCode extends LintCodeWithExpectedTypes {
   );
 
   /// No parameters.
-  static const DiagnosticWithoutArguments useIfNullToConvertNullsToBools =
+  static const LinterLintWithoutArguments useIfNullToConvertNullsToBools =
       LinterLintWithoutArguments(
         name: LintNames.use_if_null_to_convert_nulls_to_bools,
         problemMessage:
@@ -3528,7 +3528,7 @@ class LinterLintCode extends LintCodeWithExpectedTypes {
   );
 
   /// No parameters.
-  static const DiagnosticWithoutArguments
+  static const LinterLintWithoutArguments
   useKeyInWidgetConstructors = LinterLintWithoutArguments(
     name: LintNames.use_key_in_widget_constructors,
     problemMessage:
@@ -3540,7 +3540,7 @@ class LinterLintCode extends LintCodeWithExpectedTypes {
   );
 
   /// No parameters.
-  static const DiagnosticWithoutArguments useLateForPrivateFieldsAndVariables =
+  static const LinterLintWithoutArguments useLateForPrivateFieldsAndVariables =
       LinterLintWithoutArguments(
         name: LintNames.use_late_for_private_fields_and_variables,
         problemMessage:
@@ -3569,7 +3569,7 @@ class LinterLintCode extends LintCodeWithExpectedTypes {
   );
 
   /// No parameters.
-  static const DiagnosticWithoutArguments
+  static const LinterLintWithoutArguments
   useNullAwareElements = LinterLintWithoutArguments(
     name: LintNames.use_null_aware_elements,
     problemMessage:
@@ -3581,7 +3581,7 @@ class LinterLintCode extends LintCodeWithExpectedTypes {
   );
 
   /// No parameters.
-  static const DiagnosticWithoutArguments useRawStrings =
+  static const LinterLintWithoutArguments useRawStrings =
       LinterLintWithoutArguments(
         name: LintNames.use_raw_strings,
         problemMessage: "Use a raw string to avoid using escapes.",
@@ -3593,7 +3593,7 @@ class LinterLintCode extends LintCodeWithExpectedTypes {
       );
 
   /// No parameters.
-  static const DiagnosticWithoutArguments useRethrowWhenPossible =
+  static const LinterLintWithoutArguments useRethrowWhenPossible =
       LinterLintWithoutArguments(
         name: LintNames.use_rethrow_when_possible,
         problemMessage: "Use 'rethrow' to rethrow a caught exception.",
@@ -3604,7 +3604,7 @@ class LinterLintCode extends LintCodeWithExpectedTypes {
       );
 
   /// No parameters.
-  static const DiagnosticWithoutArguments useSettersToChangeProperties =
+  static const LinterLintWithoutArguments useSettersToChangeProperties =
       LinterLintWithoutArguments(
         name: LintNames.use_setters_to_change_properties,
         problemMessage: "The method is used to change a property.",
@@ -3615,7 +3615,7 @@ class LinterLintCode extends LintCodeWithExpectedTypes {
       );
 
   /// No parameters.
-  static const DiagnosticWithoutArguments
+  static const LinterLintWithoutArguments
   useStringBuffers = LinterLintWithoutArguments(
     name: LintNames.use_string_buffers,
     problemMessage: "Use a string buffer rather than '+' to compose strings.",
@@ -3626,7 +3626,7 @@ class LinterLintCode extends LintCodeWithExpectedTypes {
   );
 
   /// No parameters.
-  static const DiagnosticWithoutArguments useStringInPartOfDirectives =
+  static const LinterLintWithoutArguments useStringInPartOfDirectives =
       LinterLintWithoutArguments(
         name: LintNames.use_string_in_part_of_directives,
         problemMessage: "The part-of directive uses a library name.",
@@ -3668,7 +3668,7 @@ class LinterLintCode extends LintCodeWithExpectedTypes {
   );
 
   /// No parameters.
-  static const DiagnosticWithoutArguments
+  static const LinterLintWithoutArguments
   useTestThrowsMatchers = LinterLintWithoutArguments(
     name: LintNames.use_test_throws_matchers,
     problemMessage:
@@ -3682,7 +3682,7 @@ class LinterLintCode extends LintCodeWithExpectedTypes {
   );
 
   /// No parameters.
-  static const DiagnosticWithoutArguments useToAndAsIfApplicable =
+  static const LinterLintWithoutArguments useToAndAsIfApplicable =
       LinterLintWithoutArguments(
         name: LintNames.use_to_and_as_if_applicable,
         problemMessage: "Start the name of the method with 'to' or 'as'.",
@@ -3693,7 +3693,7 @@ class LinterLintCode extends LintCodeWithExpectedTypes {
       );
 
   /// No parameters.
-  static const DiagnosticWithoutArguments useTruncatingDivision =
+  static const LinterLintWithoutArguments useTruncatingDivision =
       LinterLintWithoutArguments(
         name: LintNames.use_truncating_division,
         problemMessage: "Use truncating division.",
@@ -3706,7 +3706,7 @@ class LinterLintCode extends LintCodeWithExpectedTypes {
       );
 
   /// No parameters.
-  static const DiagnosticWithoutArguments validRegexps =
+  static const LinterLintWithoutArguments validRegexps =
       LinterLintWithoutArguments(
         name: LintNames.valid_regexps,
         problemMessage: "Invalid regular expression syntax.",
@@ -3717,7 +3717,7 @@ class LinterLintCode extends LintCodeWithExpectedTypes {
       );
 
   /// No parameters.
-  static const DiagnosticWithoutArguments visitRegisteredNodes =
+  static const LinterLintWithoutArguments visitRegisteredNodes =
       LinterLintWithoutArguments(
         name: LintNames.visit_registered_nodes,
         problemMessage:
@@ -3730,7 +3730,7 @@ class LinterLintCode extends LintCodeWithExpectedTypes {
       );
 
   /// No parameters.
-  static const DiagnosticWithoutArguments voidChecks =
+  static const LinterLintWithoutArguments voidChecks =
       LinterLintWithoutArguments(
         name: LintNames.void_checks,
         problemMessage: "Assignment to a variable of type 'void'.",

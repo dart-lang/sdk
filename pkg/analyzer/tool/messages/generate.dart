@@ -140,50 +140,7 @@ part of ${json.encode(file.parentLibrary)};
 
       memberAccumulator.writeTo(out);
       out.writeln('}');
-
-      out.writeln();
-      _outputDerivedClass(diagnosticClass, withArguments: true);
-      out.writeln();
-      _outputDerivedClass(diagnosticClass, withArguments: false);
     }
-  }
-
-  void _outputDerivedClass(
-    DiagnosticClassInfo diagnosticClass, {
-    required bool withArguments,
-  }) {
-    var className = withArguments
-        ? diagnosticClass.templateName
-        : diagnosticClass.withoutArgumentsName;
-    out.writeln('final class $className');
-    if (withArguments) out.writeln('<T extends Function>');
-    out.writeln('    extends ${diagnosticClass.name}');
-    if (withArguments) {
-      out.writeln('    implements DiagnosticWithArguments<T>');
-    } else {
-      out.writeln('    with DiagnosticWithoutArguments');
-    }
-    out.writeln('{');
-    if (withArguments) {
-      out.writeln('@override');
-      out.writeln('final T withArguments;');
-      out.writeln();
-    }
-    out.writeln(
-      '/// Initialize a newly created error code to have the given '
-      '[name].',
-    );
-    out.writeln('const $className({');
-    out.writeln('required super.name,');
-    out.writeln('required super.problemMessage,');
-    out.writeln('super.correctionMessage,');
-    out.writeln('super.hasPublishedDocs = false,');
-    out.writeln('super.isUnresolvedIdentifier = false,');
-    out.writeln('required super.uniqueName,');
-    out.writeln('required super.expectedTypes,');
-    if (withArguments) out.writeln('required this.withArguments,');
-    out.writeln('});');
-    out.writeln('}');
   }
 }
 

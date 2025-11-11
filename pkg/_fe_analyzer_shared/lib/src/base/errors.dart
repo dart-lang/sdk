@@ -337,7 +337,7 @@ abstract class DiagnosticCodeImpl extends DiagnosticCode {
 
 /// Private subtype of [DiagnosticCode] that supports runtime checking of
 /// parameter types.
-abstract class DiagnosticCodeWithExpectedTypes extends DiagnosticCodeImpl {
+class DiagnosticCodeWithExpectedTypes extends DiagnosticCodeImpl {
   final List<ExpectedType>? expectedTypes;
 
   const DiagnosticCodeWithExpectedTypes({
@@ -568,15 +568,27 @@ class DiagnosticType implements Comparable<DiagnosticType> {
 ///
 /// This class provides a [withArguments] getter, which can be used to supply
 /// arguments and produce a [LocatableDiagnostic].
-abstract class DiagnosticWithArguments<T extends Function>
-    implements DiagnosticCode {
+class DiagnosticWithArguments<T extends Function>
+    extends DiagnosticCodeWithExpectedTypes {
   /// Function accepting named arguments and returning [LocatableDiagnostic].
   ///
   /// The value returned by this function can
   /// be associated with a location in the source code using the
   /// [LocatableDiagnostic.at] method, and then the result can be passed to
   /// [DiagnosticReporter.reportError].
-  T get withArguments;
+  final T withArguments;
+
+  const DiagnosticWithArguments({
+    required super.name,
+    required super.problemMessage,
+    super.correctionMessage,
+    super.hasPublishedDocs = false,
+    super.isUnresolvedIdentifier = false,
+    required super.type,
+    required super.uniqueName,
+    required super.expectedTypes,
+    required this.withArguments,
+  });
 }
 
 /// Common functionality for [DiagnosticCode]-derived classes that represent
@@ -607,6 +619,26 @@ base mixin DiagnosticWithoutArguments on DiagnosticCodeImpl
   @override
   LocatableDiagnostic withContextMessages(List<DiagnosticMessage> messages) =>
       new LocatableDiagnosticImpl(code, arguments, contextMessages: messages);
+}
+
+/// Concrete implementation of [DiagnosticWithoutArguments], used for diagnostic
+/// messages that don't take any arguments.
+///
+/// This needs to be a separate class from [DiagnosticWithoutArguments] because
+/// [DiagnosticWithoutArguments] is a mixin.
+final class DiagnosticWithoutArgumentsImpl
+    extends DiagnosticCodeWithExpectedTypes
+    with DiagnosticWithoutArguments {
+  const DiagnosticWithoutArgumentsImpl({
+    required super.name,
+    required super.problemMessage,
+    super.correctionMessage,
+    super.hasPublishedDocs = false,
+    super.isUnresolvedIdentifier = false,
+    required super.type,
+    required super.uniqueName,
+    super.expectedTypes,
+  });
 }
 
 /// Expected type of a diagnostic code's parameter.

@@ -15,6 +15,15 @@ import 'package:analyzer_utilities/tools.dart';
 import 'package:path/path.dart';
 import 'package:yaml/yaml.dart' show YamlMap, YamlScalar, loadYamlNode;
 
+/// Base diagnostic classes used for analyzer messages.
+const analyzerBaseClasses = DiagnosticBaseClasses(
+  requiresTypeArgument: true,
+  withArgumentsClass: 'DiagnosticWithArguments',
+  withExpectedTypesClass: 'DiagnosticCodeWithExpectedTypes',
+  withoutArgumentsClass: 'DiagnosticWithoutArguments',
+  withoutArgumentsImplClass: 'DiagnosticWithoutArgumentsImpl',
+);
+
 const codesFile = GeneratedDiagnosticFile(
   path: 'analyzer/lib/src/error/codes.g.dart',
   parentLibrary: 'package:analyzer/src/error/codes.dart',
@@ -121,6 +130,15 @@ const hintCodesFile = GeneratedDiagnosticFile(
 const lintCodesFile = GeneratedDiagnosticFile(
   path: generatedLintCodesPath,
   parentLibrary: 'package:linter/src/lint_codes.dart',
+);
+
+/// Base diagnostic classes used for lint messages.
+const linterBaseClasses = DiagnosticBaseClasses(
+  requiresTypeArgument: false,
+  withArgumentsClass: 'LinterLintTemplate',
+  withExpectedTypesClass: 'LinterLintCode',
+  withoutArgumentsClass: 'LinterLintWithoutArguments',
+  withoutArgumentsImplClass: 'LinterLintWithoutArguments',
 );
 
 const linterLintCodeInfo = DiagnosticClassInfo(
@@ -357,10 +375,15 @@ enum AnalyzerDiagnosticPackage { analyzer, analysisServer, linter }
 enum AnalyzerDiagnosticType {
   compileTimeError,
   hint,
-  lint,
+  lint(baseClasses: linterBaseClasses),
   staticWarning,
   syntacticError,
-  todo,
+  todo;
+
+  /// Base classes used for messages of this type.
+  final DiagnosticBaseClasses baseClasses;
+
+  const AnalyzerDiagnosticType({this.baseClasses = analyzerBaseClasses});
 }
 
 /// In-memory representation of diagnostic information obtained from the
@@ -406,6 +429,40 @@ class AnalyzerMessage extends Message with MessageWithAnalyzerCode {
       messageYaml.allowExtraKeys({'categories', 'deprecatedDetails', 'state'});
     }
   }
+}
+
+/// Description of the set of base messages classes used for a certain message
+/// type.
+class DiagnosticBaseClasses {
+  /// Whether the constructor argument `type` must be passed to constructors
+  /// when constructing messages of this type.
+  final bool requiresTypeArgument;
+
+  /// The name of the concrete class used for messages of this type that require
+  /// arguments.
+  final String withArgumentsClass;
+
+  /// The name of the concrete class used for messages of this type that require
+  /// arguments but don't yet support the literate API.
+  // TODO(paulberry): finish supporting the literate API in all analyzer
+  // messages and eliminate this.
+  final String withExpectedTypesClass;
+
+  /// The name of the abstract class used for messages of this type that do not
+  /// require arguments.
+  final String withoutArgumentsClass;
+
+  /// The name of the concrete class used for messages of this type that do not
+  /// require arguments.
+  final String withoutArgumentsImplClass;
+
+  const DiagnosticBaseClasses({
+    required this.requiresTypeArgument,
+    required this.withArgumentsClass,
+    required this.withExpectedTypesClass,
+    required this.withoutArgumentsClass,
+    required this.withoutArgumentsImplClass,
+  });
 }
 
 /// Information about a class derived from `DiagnosticCode`.
@@ -457,22 +514,9 @@ class DiagnosticClassInfo {
     this.comment = '',
   });
 
-  String get templateName => '${_baseName}Template';
-
   /// Generates the code to compute the type of diagnostics of this class.
   String get typeCode =>
       'DiagnosticType.${type.name.toSnakeCase().toUpperCase()}';
-
-  String get withoutArgumentsName => '${_baseName}WithoutArguments';
-
-  String get _baseName {
-    const suffix = 'Code';
-    if (name.endsWith(suffix)) {
-      return name.substring(0, name.length - suffix.length);
-    } else {
-      throw "Can't infer base name for class $name";
-    }
-  }
 
   static DiagnosticClassInfo byName(String name) =>
       _diagnosticClassesByName[name] ??
@@ -524,17 +568,18 @@ mixin MessageWithAnalyzerCode on Message {
     String concreteClassName;
     String staticType;
     String? withArgumentsName;
+    var baseClasses = analyzerCode.diagnosticClass.type.baseClasses;
     if (parameters.isNotEmpty && !usesParameters) {
       throw 'Error code declares parameters using a `parameters` entry, but '
           "doesn't use them";
     } else if (parameters.values.any((p) => !p.type.isSupportedByAnalyzer)) {
       // Do not generate literate API yet.
-      concreteClassName = diagnosticClassInfo.name;
+      concreteClassName = baseClasses.withExpectedTypesClass;
       staticType = 'DiagnosticCode';
     } else if (parameters.isNotEmpty) {
       // Parameters are present so generate a diagnostic template (with
       // `.withArguments` support).
-      concreteClassName = diagnosticClassInfo.templateName;
+      concreteClassName = baseClasses.withArgumentsClass;
       var withArgumentsParams = parameters.entries
           .map((p) => 'required ${p.value.type.analyzerName} ${p.key}')
           .join(', ');
@@ -554,8 +599,8 @@ static LocatableDiagnostic $withArgumentsName({$withArgumentsParams}) {
 }''';
     } else {
       // Parameters are not present so generate a "withoutArguments" constant.
-      concreteClassName = diagnosticClassInfo.withoutArgumentsName;
-      staticType = 'DiagnosticWithoutArguments';
+      concreteClassName = baseClasses.withoutArgumentsImplClass;
+      staticType = baseClasses.withoutArgumentsClass;
     }
 
     var constant = StringBuffer();
@@ -589,6 +634,9 @@ static LocatableDiagnostic $withArgumentsName({$withArgumentsParams}) {
     }
     if (isUnresolvedIdentifier) {
       constant.writeln('isUnresolvedIdentifier:true,');
+    }
+    if (baseClasses.requiresTypeArgument) {
+      constant.writeln('type: ${diagnosticClassInfo.typeCode},');
     }
     String uniqueName = analyzerCode.toString().replaceFirst(
       'LinterLintCode.',
