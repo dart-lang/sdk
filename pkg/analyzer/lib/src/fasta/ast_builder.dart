@@ -1229,20 +1229,13 @@ class AstBuilder extends StackListener {
 
   @override
   void endClassConstructor(
-    Token? getOrSet,
     Token beginToken,
     Token beginParam,
     Token? beginInitializers,
     Token endToken,
   ) {
     debugEvent("endClassConstructor");
-    _endClassConstructor(
-      getOrSet,
-      beginToken,
-      beginParam,
-      beginInitializers,
-      endToken,
-    );
+    _endClassConstructor(beginToken, beginParam, beginInitializers, endToken);
   }
 
   @override
@@ -1544,20 +1537,13 @@ class AstBuilder extends StackListener {
 
   @override
   void endEnumConstructor(
-    Token? getOrSet,
     Token beginToken,
     Token beginParam,
     Token? beginInitializers,
     Token endToken,
   ) {
     debugEvent("endEnumConstructor");
-    _endClassConstructor(
-      getOrSet,
-      beginToken,
-      beginParam,
-      beginInitializers,
-      endToken,
-    );
+    _endClassConstructor(beginToken, beginParam, beginInitializers, endToken);
   }
 
   @override
@@ -1659,7 +1645,6 @@ class AstBuilder extends StackListener {
 
   @override
   void endExtensionConstructor(
-    Token? getOrSet,
     Token beginToken,
     Token beginParam,
     Token? beginInitializers,
@@ -1768,20 +1753,13 @@ class AstBuilder extends StackListener {
 
   @override
   void endExtensionTypeConstructor(
-    Token? getOrSet,
     Token beginToken,
     Token beginParam,
     Token? beginInitializers,
     Token endToken,
   ) {
     debugEvent("endExtensionTypeConstructor");
-    _endClassConstructor(
-      getOrSet,
-      beginToken,
-      beginParam,
-      beginInitializers,
-      endToken,
-    );
+    _endClassConstructor(beginToken, beginParam, beginInitializers, endToken);
   }
 
   @override
@@ -2720,7 +2698,6 @@ class AstBuilder extends StackListener {
 
   @override
   void endMixinConstructor(
-    Token? getOrSet,
     Token beginToken,
     Token beginParam,
     Token? beginInitializers,
@@ -6347,18 +6324,11 @@ class AstBuilder extends StackListener {
   }
 
   void _endClassConstructor(
-    Token? getOrSet,
     Token beginToken,
     Token beginParam,
     Token? beginInitializers,
     Token endToken,
   ) {
-    assert(
-      getOrSet == null ||
-          optional('get', getOrSet) ||
-          optional('set', getOrSet),
-    );
-
     _classLikeBuilder?.members.add(
       _buildConstructorDeclaration(beginToken: beginToken, endToken: endToken),
     );

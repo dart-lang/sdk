@@ -799,7 +799,6 @@ class DietListener extends StackListenerImpl {
 
   @override
   void endExtensionConstructor(
-    Token? getOrSet,
     Token beginToken,
     Token beginParam,
     Token? beginInitializers,
@@ -856,32 +855,17 @@ class DietListener extends StackListenerImpl {
     Token? beginInitializers,
     Token endToken,
   ) {
-    _endClassMethod(
-      getOrSet,
-      beginToken,
-      beginParam,
-      beginInitializers,
-      endToken,
-      false,
-    );
+    _endClassMethod(getOrSet, beginToken, beginParam);
   }
 
   @override
   void endClassConstructor(
-    Token? getOrSet,
     Token beginToken,
     Token beginParam,
     Token? beginInitializers,
     Token endToken,
   ) {
-    _endClassMethod(
-      getOrSet,
-      beginToken,
-      beginParam,
-      beginInitializers,
-      endToken,
-      true,
-    );
+    _endClassConstructor(beginToken, beginParam);
   }
 
   @override
@@ -892,14 +876,7 @@ class DietListener extends StackListenerImpl {
     Token? beginInitializers,
     Token endToken,
   ) {
-    _endClassMethod(
-      getOrSet,
-      beginToken,
-      beginParam,
-      beginInitializers,
-      endToken,
-      false,
-    );
+    _endClassMethod(getOrSet, beginToken, beginParam);
   }
 
   @override
@@ -920,42 +897,20 @@ class DietListener extends StackListenerImpl {
     Token? beginInitializers,
     Token endToken,
   ) {
-    _endClassMethod(
-      getOrSet,
-      beginToken,
-      beginParam,
-      beginInitializers,
-      endToken,
-      false,
-    );
+    _endClassMethod(getOrSet, beginToken, beginParam);
   }
 
   @override
   void endMixinConstructor(
-    Token? getOrSet,
     Token beginToken,
     Token beginParam,
     Token? beginInitializers,
     Token endToken,
   ) {
-    _endClassMethod(
-      getOrSet,
-      beginToken,
-      beginParam,
-      beginInitializers,
-      endToken,
-      true,
-    );
+    _endClassConstructor(beginToken, beginParam);
   }
 
-  void _endClassMethod(
-    Token? getOrSet,
-    Token beginToken,
-    Token beginParam,
-    Token? beginInitializers,
-    Token endToken,
-    bool isConstructor,
-  ) {
+  void _endClassMethod(Token? getOrSet, Token beginToken, Token beginParam) {
     debugEvent("Method");
     assert(
       checkState(beginToken, [
@@ -975,23 +930,48 @@ class DietListener extends StackListenerImpl {
     Identifier identifier = name as Identifier;
 
     FunctionFragment functionFragment;
-    if (isConstructor) {
-      functionFragment = _offsetMap.lookupConstructor(identifier);
-    } else {
-      ProcedureKind kind = computeProcedureKind(getOrSet);
-      switch (kind) {
-        case ProcedureKind.Method:
-        case ProcedureKind.Operator:
-          functionFragment = _offsetMap.lookupMethod(identifier);
-        case ProcedureKind.Getter:
-          functionFragment = _offsetMap.lookupGetter(identifier);
-        case ProcedureKind.Setter:
-          functionFragment = _offsetMap.lookupSetter(identifier);
-        // Coverage-ignore(suite): Not run.
-        case ProcedureKind.Factory:
-          throw new UnsupportedError("Unexpected procedure kind: $kind");
-      }
+    ProcedureKind kind = computeProcedureKind(getOrSet);
+    switch (kind) {
+      case ProcedureKind.Method:
+      case ProcedureKind.Operator:
+        functionFragment = _offsetMap.lookupMethod(identifier);
+      case ProcedureKind.Getter:
+        functionFragment = _offsetMap.lookupGetter(identifier);
+      case ProcedureKind.Setter:
+        functionFragment = _offsetMap.lookupSetter(identifier);
+      // Coverage-ignore(suite): Not run.
+      case ProcedureKind.Factory:
+        throw new UnsupportedError("Unexpected procedure kind: $kind");
     }
+    FunctionBodyBuildingContext functionBodyBuildingContext = functionFragment
+        .createFunctionBodyBuildingContext();
+    if (functionBodyBuildingContext.shouldBuild) {
+      buildFunctionBody(functionBodyBuildingContext, beginParam, metadata);
+    }
+  }
+
+  void _endClassConstructor(Token beginToken, Token beginParam) {
+    debugEvent("Method");
+    assert(
+      checkState(beginToken, [
+        /* bodyToken */ ValueKinds.Token,
+        /* name */ ValueKinds.IdentifierOrParserRecovery,
+        /* metadata token */ ValueKinds.TokenOrNull,
+      ]),
+    );
+    // TODO(danrubel): Consider removing the beginParam parameter
+    // and using bodyToken, but pushing a NullValue on the stack
+    // in handleNoFormalParameters rather than the supplied token.
+    pop(); // bodyToken
+    Object? name = pop();
+    Token? metadata = pop() as Token?;
+    checkEmpty(beginToken.charOffset);
+    if (name is ParserRecovery || currentClassIsParserRecovery) return;
+    Identifier identifier = name as Identifier;
+
+    FunctionFragment functionFragment = _offsetMap.lookupConstructor(
+      identifier,
+    );
     FunctionBodyBuildingContext functionBodyBuildingContext = functionFragment
         .createFunctionBodyBuildingContext();
     if (functionBodyBuildingContext.shouldBuild) {
@@ -1312,21 +1292,13 @@ class DietListener extends StackListenerImpl {
 
   @override
   void endExtensionTypeConstructor(
-    Token? getOrSet,
     Token beginToken,
     Token beginParam,
     Token? beginInitializers,
     Token endToken,
   ) {
     debugEvent("endExtensionTypeConstructor");
-    _endClassMethod(
-      getOrSet,
-      beginToken,
-      beginParam,
-      beginInitializers,
-      endToken,
-      true,
-    );
+    _endClassConstructor(beginToken, beginParam);
   }
 
   @override
@@ -1338,14 +1310,7 @@ class DietListener extends StackListenerImpl {
     Token endToken,
   ) {
     debugEvent("endExtensionTypeFactoryMethod");
-    _endClassMethod(
-      getOrSet,
-      beginToken,
-      beginParam,
-      beginInitializers,
-      endToken,
-      false,
-    );
+    _endClassMethod(getOrSet, beginToken, beginParam);
   }
 
   @override
@@ -1414,20 +1379,12 @@ class DietListener extends StackListenerImpl {
 
   @override
   void endEnumConstructor(
-    Token? getOrSet,
     Token beginToken,
     Token beginParam,
     Token? beginInitializers,
     Token endToken,
   ) {
-    _endClassMethod(
-      getOrSet,
-      beginToken,
-      beginParam,
-      beginInitializers,
-      endToken,
-      true,
-    );
+    _endClassConstructor(beginToken, beginParam);
   }
 
   @override
@@ -1438,14 +1395,7 @@ class DietListener extends StackListenerImpl {
     Token? beginInitializers,
     Token endToken,
   ) {
-    _endClassMethod(
-      getOrSet,
-      beginToken,
-      beginParam,
-      beginInitializers,
-      endToken,
-      false,
-    );
+    _endClassMethod(getOrSet, beginToken, beginParam);
   }
 
   @override

@@ -726,14 +726,12 @@ class ForwardingListener implements Listener {
 
   @override
   void endClassConstructor(
-    Token? getOrSet,
     Token beginToken,
     Token beginParam,
     Token? beginInitializers,
     Token endToken,
   ) {
     listener?.endClassConstructor(
-      getOrSet,
       beginToken,
       beginParam,
       beginInitializers,
@@ -902,14 +900,12 @@ class ForwardingListener implements Listener {
 
   @override
   void endEnumConstructor(
-    Token? getOrSet,
     Token beginToken,
     Token beginParam,
     Token? beginInitializers,
     Token endToken,
   ) {
     listener?.endEnumConstructor(
-      getOrSet,
       beginToken,
       beginParam,
       beginInitializers,
@@ -1006,14 +1002,12 @@ class ForwardingListener implements Listener {
 
   @override
   void endExtensionConstructor(
-    Token? getOrSet,
     Token beginToken,
     Token beginParam,
     Token? beginInitializers,
     Token endToken,
   ) {
     listener?.endExtensionConstructor(
-      getOrSet,
       beginToken,
       beginParam,
       beginInitializers,
@@ -1319,14 +1313,12 @@ class ForwardingListener implements Listener {
 
   @override
   void endMixinConstructor(
-    Token? getOrSet,
     Token beginToken,
     Token beginParam,
     Token? beginInitializers,
     Token endToken,
   ) {
     listener?.endMixinConstructor(
-      getOrSet,
       beginToken,
       beginParam,
       beginInitializers,
@@ -2532,14 +2524,12 @@ class ForwardingListener implements Listener {
 
   @override
   void endExtensionTypeConstructor(
-    Token? getOrSet,
     Token beginToken,
     Token beginParam,
     Token? beginInitializers,
     Token endToken,
   ) {
     listener?.endExtensionTypeConstructor(
-      getOrSet,
       beginToken,
       beginParam,
       beginInitializers,

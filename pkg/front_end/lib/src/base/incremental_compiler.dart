@@ -1836,6 +1836,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
       LibraryBuilder libraryBuilder = compilationUnit.libraryBuilder;
       List<VariableDeclarationImpl> extraKnownVariables = [];
       String? usedMethodName = methodName;
+      Substitution? substitution;
       if (scriptUri != null && offset != TreeNode.noOffset) {
         Uri? scriptUriAsUri = Uri.tryParse(scriptUri);
         if (scriptUriAsUri != null) {
@@ -1876,23 +1877,11 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
             );
           }
 
-          Map<TypeParameter, TypeParameterType> substitutionMap = {};
-          Map<String, TypeParameter> typeDefinitionNamesMap = {};
-          for (TypeParameter typeDefinition in typeDefinitions) {
-            if (typeDefinition.name != null) {
-              typeDefinitionNamesMap[typeDefinition.name!] = typeDefinition;
-            }
-          }
-          for (TypeParameter typeParameter in foundScope.typeParameters) {
-            TypeParameter? match = typeDefinitionNamesMap[typeParameter.name];
-            if (match != null) {
-              substitutionMap[typeParameter] = new TypeParameterType(
-                match,
-                match.computeNullabilityFromBound(),
+          substitution =
+              _calculateExpressionEvaluationTypeParameterSubstitution(
+                typeDefinitions,
+                foundScope.typeParameters,
               );
-            }
-          }
-          Substitution substitution = Substitution.fromMap(substitutionMap);
 
           final bool alwaysInlineConstants = lastGoodKernelTarget
               .backendTarget
@@ -2034,7 +2023,19 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
                   // If we setup the extensionType (and later the
                   // `extensionThis`) we should also set the type correctly
                   // (at least in a non-static setting).
-                  usedDefinitions[syntheticThisName] = positionals.first.type;
+                  if (substitution == null || substitution.isEmpty) {
+                    // Re-do substitutions if the old one is empty - in case the
+                    // finding of scope didn't find the right thing (e.g.
+                    // sometimes the VM claims to be on the offset for a method
+                    // name while having data as if it is inside the method).
+                    substitution =
+                        _calculateExpressionEvaluationTypeParameterSubstitution(
+                          typeDefinitions,
+                          subBuilder.invokeTarget?.function?.typeParameters,
+                        );
+                  }
+                  usedDefinitions[syntheticThisName] = substitution
+                      .substituteType(positionals.first.type);
                 }
                 isStatic = false;
               }
@@ -2265,6 +2266,32 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
 
       return procedure;
     });
+  }
+
+  // Coverage-ignore(suite): Not run.
+  Substitution _calculateExpressionEvaluationTypeParameterSubstitution(
+    List<TypeParameter> typeDefinitions,
+    List<TypeParameter>? typeParameters,
+  ) {
+    Map<TypeParameter, TypeParameterType> substitutionMap = {};
+    Map<String, TypeParameter> typeDefinitionNamesMap = {};
+    for (TypeParameter typeDefinition in typeDefinitions) {
+      if (typeDefinition.name != null) {
+        typeDefinitionNamesMap[typeDefinition.name!] = typeDefinition;
+      }
+    }
+    if (typeParameters != null) {
+      for (TypeParameter typeParameter in typeParameters) {
+        TypeParameter? match = typeDefinitionNamesMap[typeParameter.name];
+        if (match != null) {
+          substitutionMap[typeParameter] = new TypeParameterType(
+            match,
+            match.computeNullabilityFromBound(),
+          );
+        }
+      }
+    }
+    return Substitution.fromMap(substitutionMap);
   }
 
   // Coverage-ignore(suite): Not run.

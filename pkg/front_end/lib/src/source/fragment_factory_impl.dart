@@ -1307,123 +1307,80 @@ class FragmentFactoryImpl implements FragmentFactory {
     required int nameOffset,
     required int formalsOffset,
     required Modifiers modifiers,
-    required bool inConstructor,
     required bool isStatic,
-    required bool isConstructor,
     required bool forAbstractClassOrMixin,
     required bool isExtensionMember,
     required bool isExtensionTypeMember,
     required AsyncMarker asyncModifier,
     required String? nativeMethodName,
-    required ProcedureKind? kind,
+    required ProcedureKind kind,
   }) {
-    DeclarationFragmentImpl declarationFragment = _declarationFragments.current;
-    // TODO(johnniwinther): Avoid discrepancy between [inConstructor] and
-    // [isConstructor]. The former is based on the enclosing declaration name
-    // and get/set keyword. The latter also takes initializers into account.
-
-    if (isConstructor) {
-      switch (declarationFragment) {
-        case ExtensionFragment():
-        case ExtensionTypeFragment():
-          // Discard type parameters declared on the constructor. It's not
-          // allowed, an error has already been issued and it will cause
-          // crashes later if they are kept/added to the ones from the parent.
-          // TODO(johnniwinther): This will cause us issuing errors about not
-          // knowing the names of what we discard here. Is there a way to
-          // preserve them?
-          typeParameters = null;
-        case ClassFragment():
-        case MixinFragment():
-        case EnumFragment():
-      }
-      ConstructorName constructorName = computeAndValidateConstructorName(
-        declarationFragment,
-        identifier,
-      );
-      addConstructor(
-        offsetMap: offsetMap,
-        metadata: metadata,
-        modifiers: modifiers,
-        identifier: identifier,
-        constructorName: constructorName,
-        typeParameters: typeParameters,
-        formals: formals,
-        startOffset: startOffset,
-        formalsOffset: formalsOffset,
-        endOffset: endOffset,
-        nativeMethodName: nativeMethodName,
-        beginInitializers: beginInitializers,
-        forAbstractClassOrMixin: forAbstractClassOrMixin,
-      );
-    } else {
-      switch (kind!) {
-        case ProcedureKind.Method:
-        case ProcedureKind.Operator:
-          addMethod(
-            offsetMap: offsetMap,
-            metadata: metadata,
-            modifiers: modifiers,
-            returnType: returnType,
-            identifier: identifier,
-            name: name,
-            typeParameters: typeParameters,
-            formals: formals,
-            isOperator: kind == ProcedureKind.Operator,
-            startOffset: startOffset,
-            nameOffset: nameOffset,
-            formalsOffset: formalsOffset,
-            endOffset: endOffset,
-            nativeMethodName: nativeMethodName,
-            asyncModifier: asyncModifier,
-            isInstanceMember: !isStatic,
-            isExtensionMember: isExtensionMember,
-            isExtensionTypeMember: isExtensionTypeMember,
-          );
-        case ProcedureKind.Getter:
-          addGetter(
-            offsetMap: offsetMap,
-            metadata: metadata,
-            modifiers: modifiers,
-            returnType: returnType,
-            identifier: identifier,
-            name: name,
-            typeParameters: typeParameters,
-            formals: formals,
-            startOffset: startOffset,
-            nameOffset: nameOffset,
-            formalsOffset: formalsOffset,
-            endOffset: endOffset,
-            nativeMethodName: nativeMethodName,
-            asyncModifier: asyncModifier,
-            isInstanceMember: !isStatic,
-            isExtensionMember: isExtensionMember,
-            isExtensionTypeMember: isExtensionTypeMember,
-          );
-        case ProcedureKind.Setter:
-          addSetter(
-            offsetMap: offsetMap,
-            metadata: metadata,
-            modifiers: modifiers,
-            returnType: returnType,
-            identifier: identifier,
-            name: name,
-            typeParameters: typeParameters,
-            formals: formals,
-            startOffset: startOffset,
-            nameOffset: nameOffset,
-            formalsOffset: formalsOffset,
-            endOffset: endOffset,
-            nativeMethodName: nativeMethodName,
-            asyncModifier: asyncModifier,
-            isInstanceMember: !isStatic,
-            isExtensionMember: isExtensionMember,
-            isExtensionTypeMember: isExtensionTypeMember,
-          );
-        // Coverage-ignore(suite): Not run.
-        case ProcedureKind.Factory:
-          throw new UnsupportedError("Unexpected procedure kind: $kind");
-      }
+    switch (kind) {
+      case ProcedureKind.Method:
+      case ProcedureKind.Operator:
+        addMethod(
+          offsetMap: offsetMap,
+          metadata: metadata,
+          modifiers: modifiers,
+          returnType: returnType,
+          identifier: identifier,
+          name: name,
+          typeParameters: typeParameters,
+          formals: formals,
+          isOperator: kind == ProcedureKind.Operator,
+          startOffset: startOffset,
+          nameOffset: nameOffset,
+          formalsOffset: formalsOffset,
+          endOffset: endOffset,
+          nativeMethodName: nativeMethodName,
+          asyncModifier: asyncModifier,
+          isInstanceMember: !isStatic,
+          isExtensionMember: isExtensionMember,
+          isExtensionTypeMember: isExtensionTypeMember,
+        );
+      case ProcedureKind.Getter:
+        addGetter(
+          offsetMap: offsetMap,
+          metadata: metadata,
+          modifiers: modifiers,
+          returnType: returnType,
+          identifier: identifier,
+          name: name,
+          typeParameters: typeParameters,
+          formals: formals,
+          startOffset: startOffset,
+          nameOffset: nameOffset,
+          formalsOffset: formalsOffset,
+          endOffset: endOffset,
+          nativeMethodName: nativeMethodName,
+          asyncModifier: asyncModifier,
+          isInstanceMember: !isStatic,
+          isExtensionMember: isExtensionMember,
+          isExtensionTypeMember: isExtensionTypeMember,
+        );
+      case ProcedureKind.Setter:
+        addSetter(
+          offsetMap: offsetMap,
+          metadata: metadata,
+          modifiers: modifiers,
+          returnType: returnType,
+          identifier: identifier,
+          name: name,
+          typeParameters: typeParameters,
+          formals: formals,
+          startOffset: startOffset,
+          nameOffset: nameOffset,
+          formalsOffset: formalsOffset,
+          endOffset: endOffset,
+          nativeMethodName: nativeMethodName,
+          asyncModifier: asyncModifier,
+          isInstanceMember: !isStatic,
+          isExtensionMember: isExtensionMember,
+          isExtensionTypeMember: isExtensionTypeMember,
+        );
+      // Coverage-ignore(suite): Not run.
+      case ProcedureKind.Factory:
+        throw new UnsupportedError("Unexpected procedure kind: $kind");
     }
   }
 
@@ -1528,7 +1485,6 @@ class FragmentFactoryImpl implements FragmentFactory {
     required List<MetadataBuilder>? metadata,
     required Modifiers modifiers,
     required Identifier identifier,
-    required ConstructorName constructorName,
     required List<TypeParameterFragment>? typeParameters,
     required List<FormalParameterBuilder>? formals,
     required int startOffset,
@@ -1540,6 +1496,26 @@ class FragmentFactoryImpl implements FragmentFactory {
   }) {
     DeclarationFragmentImpl enclosingDeclaration =
         _declarationFragments.current;
+
+    switch (enclosingDeclaration) {
+      case ExtensionFragment():
+      case ExtensionTypeFragment():
+        // Discard type parameters declared on the constructor. It's not
+        // allowed, an error has already been issued and it will cause
+        // crashes later if they are kept/added to the ones from the parent.
+        // TODO(johnniwinther): This will cause us issuing errors about not
+        // knowing the names of what we discard here. Is there a way to
+        // preserve them?
+        typeParameters = null;
+      case ClassFragment():
+      case MixinFragment():
+      case EnumFragment():
+    }
+    ConstructorName constructorName = computeAndValidateConstructorName(
+      enclosingDeclaration,
+      identifier,
+    );
+
     TypeScope typeParameterScope = _typeScopes.pop();
     assert(
       typeParameterScope.kind == TypeScopeKind.memberTypeParameters,

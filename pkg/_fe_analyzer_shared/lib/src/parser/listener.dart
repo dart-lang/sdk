@@ -478,7 +478,6 @@ abstract class Listener implements UnescapeErrorListener {
   /// - async marker
   /// - body
   void endEnumConstructor(
-    Token? getOrSet,
     Token beginToken,
     Token beginParam,
     Token? beginInitializers,
@@ -1423,7 +1422,6 @@ abstract class Listener implements UnescapeErrorListener {
   /// - async marker
   /// - body
   void endClassConstructor(
-    Token? getOrSet,
     Token beginToken,
     Token beginParam,
     Token? beginInitializers,
@@ -1442,7 +1440,6 @@ abstract class Listener implements UnescapeErrorListener {
   /// - async marker
   /// - body
   void endMixinConstructor(
-    Token? getOrSet,
     Token beginToken,
     Token beginParam,
     Token? beginInitializers,
@@ -1461,7 +1458,6 @@ abstract class Listener implements UnescapeErrorListener {
   /// - async marker
   /// - body
   void endExtensionConstructor(
-    Token? getOrSet,
     Token beginToken,
     Token beginParam,
     Token? beginInitializers,
@@ -1481,7 +1477,6 @@ abstract class Listener implements UnescapeErrorListener {
   /// - async marker
   /// - body
   void endExtensionTypeConstructor(
-    Token? getOrSet,
     Token beginToken,
     Token beginParam,
     Token? beginInitializers,

@@ -324,15 +324,13 @@ abstract class FragmentFactory {
     required int nameOffset,
     required int formalsOffset,
     required Modifiers modifiers,
-    required bool inConstructor,
     required bool isStatic,
-    required bool isConstructor,
     required bool forAbstractClassOrMixin,
     required bool isExtensionMember,
     required bool isExtensionTypeMember,
     required AsyncMarker asyncModifier,
     required String? nativeMethodName,
-    required ProcedureKind? kind,
+    required ProcedureKind kind,
   });
 
   void addConstructor({
@@ -340,7 +338,6 @@ abstract class FragmentFactory {
     required List<MetadataBuilder>? metadata,
     required Modifiers modifiers,
     required Identifier identifier,
-    required ConstructorName constructorName,
     required List<TypeParameterFragment>? typeParameters,
     required List<FormalParameterBuilder>? formals,
     required int startOffset,

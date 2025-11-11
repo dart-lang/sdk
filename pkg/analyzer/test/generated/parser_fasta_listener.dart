@@ -709,7 +709,6 @@ class ForwardingTestListener extends ForwardingListener {
 
   @override
   void endClassConstructor(
-    Token? getOrSet,
     Token beginToken,
     Token beginParam,
     Token? beginInitializers,
@@ -717,7 +716,6 @@ class ForwardingTestListener extends ForwardingListener {
   ) {
     end('Method');
     super.endClassConstructor(
-      getOrSet,
       beginToken,
       beginParam,
       beginInitializers,
@@ -882,7 +880,6 @@ class ForwardingTestListener extends ForwardingListener {
 
   @override
   void endEnumConstructor(
-    Token? getOrSet,
     Token beginToken,
     Token beginParam,
     Token? beginInitializers,
@@ -890,7 +887,6 @@ class ForwardingTestListener extends ForwardingListener {
   ) {
     end('Method');
     super.endEnumConstructor(
-      getOrSet,
       beginToken,
       beginParam,
       beginInitializers,
@@ -980,7 +976,6 @@ class ForwardingTestListener extends ForwardingListener {
 
   @override
   void endExtensionConstructor(
-    Token? getOrSet,
     Token beginToken,
     Token beginParam,
     Token? beginInitializers,
@@ -988,7 +983,6 @@ class ForwardingTestListener extends ForwardingListener {
   ) {
     end('Method');
     super.endExtensionConstructor(
-      getOrSet,
       beginToken,
       beginParam,
       beginInitializers,
@@ -1302,7 +1296,6 @@ class ForwardingTestListener extends ForwardingListener {
 
   @override
   void endMixinConstructor(
-    Token? getOrSet,
     Token beginToken,
     Token beginParam,
     Token? beginInitializers,
@@ -1310,7 +1303,6 @@ class ForwardingTestListener extends ForwardingListener {
   ) {
     end('Method');
     super.endMixinConstructor(
-      getOrSet,
       beginToken,
       beginParam,
       beginInitializers,
