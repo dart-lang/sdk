@@ -746,11 +746,15 @@ enum Opcode {
 enum Funct12 {
   ECALL = 0,
   EBREAK = 1,
+
+  SSPOPCHK = 0b110011011100,
+  SSRDP = 0b110011011100,
 };
 
 enum Funct3 {
   F3_0 = 0,
   F3_1 = 1,
+  F3_100 = 0b100,
 
   BEQ = 0b000,
   BNE = 0b001,
@@ -793,6 +797,7 @@ enum Funct3 {
   FENCE = 0b000,
   FENCEI = 0b001,
 
+  PRIV = 0b000,
   CSRRW = 0b001,
   CSRRS = 0b010,
   CSRRC = 0b011,
@@ -913,6 +918,8 @@ enum Funct7 {
   BSET = 0b0010100,
 
   CZERO = 0b0000111,
+
+  SSPUSH = 0b1100111,
 };
 
 enum Funct5 {
@@ -929,6 +936,7 @@ enum Funct5 {
   AMOMAXU = 0b11100,
   LOADORDERED = 0b00110,
   STOREORDERED = 0b00111,
+  SSAMOSWAP = 0b01001,
 };
 
 enum Funct2 {
@@ -1640,6 +1648,9 @@ enum COpcode {
   C_LHU = 0b1000010000000000,
   C_SB = 0b1000100000000000,
   C_SH = 0b1000110000000000,
+
+  C_SSPUSH = 0b0110000010000001,
+  C_SSPOPCHK = 0b0110001010000001,
 };
 
 class CInstr {
@@ -1769,8 +1780,9 @@ static constexpr Extension RV_Zcb(12);     // More compressed instructions
 static constexpr Extension RV_Zfa(13);     // Additional floating-point
 static constexpr ExtensionSet RVA23 =
     RV_GCB | RV_V | RV_Zicond | RV_Zcb | RV_Zfa;
-static constexpr Extension RV_Zabha(14);   // Byte and halfword AMOs
-static constexpr Extension RV_Zalasr(15);  // Load-acquire, store-release
+static constexpr Extension RV_Zicfiss(14);  // Shadow stack
+static constexpr Extension RV_Zabha(15);    // Byte and halfword AMOs
+static constexpr Extension RV_Zalasr(16);   // Load-acquire, store-release
 
 #if defined(DART_TARGET_OS_ANDROID)
 static constexpr ExtensionSet RV_baseline = RVA23;

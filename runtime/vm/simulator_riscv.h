@@ -191,6 +191,7 @@ class Simulator {
   uintx_t get_sp() const { return get_xreg(SP); }
   uintx_t get_fp() const { return get_xreg(FP); }
   uintx_t get_lr() const { return get_xreg(RA); }
+  void set_ss_enabled(bool value) { ss_enabled_ = value; }
   void PrintRegisters();
   void PrintStack();
 
@@ -211,6 +212,7 @@ class Simulator {
   struct PreservedRegisters {
     uintx_t xregs[kNumberOfCpuRegisters];
     double fregs[kNumberOfFpuRegisters];
+    uintx_t ssp;
   };
   void PrepareCall(PreservedRegisters* preserved);
   void ClobberVolatileRegisters();
@@ -357,8 +359,13 @@ class Simulator {
   double fregs_[kNumberOfFpuRegisters];
   uint32_t fcsr_ = 0;
 
+  // Zicfissp state
+  bool ss_enabled_ = false;
+  uintx_t ssp_ = 0;
+
   // Simulator support.
   char* stack_;
+  char* shadow_stack_;
   uword stack_limit_;
   uword overflow_stack_limit_;
   uword stack_base_;
