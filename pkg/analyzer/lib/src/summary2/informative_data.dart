@@ -375,6 +375,12 @@ class InformativeDataApplier {
           representation.firstTokenOffset = infoRep.fieldFirstTokenOffset;
           representation.nameOffset = infoRep.fieldNameOffset;
           representation.setCodeRange(infoRep.codeOffset, infoRep.codeLength);
+          primaryConstructor.deferConstantOffsets(
+            infoRep.fieldConstantOffsets,
+            (applier) {
+              applier.applyToMetadata(representation.metadata);
+            },
+          );
         });
       }
 

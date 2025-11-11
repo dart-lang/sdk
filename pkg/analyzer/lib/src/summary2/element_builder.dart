@@ -2112,7 +2112,7 @@ class FragmentBuilder extends ThrowingAstVisitor<void> {
           )
           ..isDeclaring = true
           ..hasImplicitType = true;
-
+    formalParameterFragment.metadata = _buildMetadata(formalParameter.metadata);
     formalParameter.declaredFragment = formalParameterFragment;
 
     {
@@ -2176,6 +2176,9 @@ class FragmentBuilder extends ThrowingAstVisitor<void> {
           )
           ..isDeclaring = true
           ..hasImplicitType = true;
+    formalParameterFragment.metadata = _buildMetadata(
+      representation.fieldMetadata,
+    );
 
     {
       var constructorFragment =
