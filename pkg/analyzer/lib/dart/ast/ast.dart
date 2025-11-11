@@ -291,7 +291,7 @@ export 'package:analyzer/src/dart/ast/ast.dart'
 ///    visit `typeParameters`.
 ///
 /// For [ExtensionTypeDeclaration], when `true`:
-/// 1. [ExtensionTypeDeclaration.namePart] can be used.
+/// 1. [ExtensionTypeDeclaration.primaryConstructor] can be used.
 /// 2. [ExtensionTypeDeclaration.name] throws [UnsupportedError].
 /// 3. [ExtensionTypeDeclaration.typeParameters] throws [UnsupportedError].
 /// 4. [ExtensionTypeDeclaration.representation] throws [UnsupportedError].

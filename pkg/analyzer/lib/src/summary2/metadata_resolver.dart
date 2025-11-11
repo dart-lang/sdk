@@ -150,7 +150,7 @@ class MetadataResolver extends ThrowingAstVisitor<void> {
   void visitExtensionTypeDeclaration(ExtensionTypeDeclaration node) {
     node.metadata.accept(this);
     if (useDeclaringConstructorsAst) {
-      node.namePart.accept(this);
+      node.primaryConstructor.accept(this);
     } else {
       node.typeParameters?.accept(this);
       node.representation.accept(this);

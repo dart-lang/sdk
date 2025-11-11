@@ -6991,7 +6991,7 @@ class _ExtensionTypeDeclarationBuilder extends _ClassLikeDeclarationBuilder {
       body = ClassBodyImplStub();
     }
 
-    ClassNamePartImpl namePartOrStub;
+    PrimaryConstructorDeclarationImpl primaryConstructorOrStub;
     if (useDeclaringConstructorsAst) {
       PrimaryConstructorNameImpl? primaryConstructorName;
       if (representation.constructorName case var representationName?) {
@@ -7021,12 +7021,12 @@ class _ExtensionTypeDeclarationBuilder extends _ClassLikeDeclarationBuilder {
           rightParenthesis: representation.rightParenthesis,
         ),
       );
-      namePartOrStub = buildClassNamePart(
+      primaryConstructorOrStub = primaryConstructorBuilder.build(
         typeName: name,
-        primaryConstructorBuilder: primaryConstructorBuilder,
+        typeParameters: typeParameters,
       );
     } else {
-      namePartOrStub = ClassNamePartImplStub();
+      primaryConstructorOrStub = PrimaryConstructorDeclarationImplStub();
     }
 
     return ExtensionTypeDeclarationImpl(
@@ -7035,7 +7035,7 @@ class _ExtensionTypeDeclarationBuilder extends _ClassLikeDeclarationBuilder {
       augmentKeyword: augmentKeyword,
       extensionKeyword: extensionKeyword,
       typeKeyword: typeKeyword,
-      namePart: namePartOrStub,
+      primaryConstructor: primaryConstructorOrStub,
       constKeyword: constKeyword,
       name: name,
       typeParameters: typeParameters,

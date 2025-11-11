@@ -1139,7 +1139,7 @@ package:analyzer/dart/ast/ast.dart:
     leftBracket (getter: Token)
     members (getter: NodeList<ClassMember>)
     name (getter: Token)
-    namePart (getter: ClassNamePart, experimental)
+    primaryConstructor (getter: PrimaryConstructorDeclaration, experimental)
     representation (getter: RepresentationDeclaration)
     rightBracket (getter: Token)
     typeKeyword (getter: Token)

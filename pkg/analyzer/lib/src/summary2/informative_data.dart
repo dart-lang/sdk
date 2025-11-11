@@ -922,14 +922,13 @@ class _InfoBuilder {
       return _InfoExtensionTypeDeclaration(
         data: _buildInterfaceData(
           node,
-          name: node.namePart.typeName,
-          typeParameters: node.namePart.typeParameters,
-          primaryConstructor: node.namePart.ifTypeOrNull(),
+          name: node.primaryConstructor.typeName,
+          typeParameters: node.primaryConstructor.typeParameters,
+          primaryConstructor: node.primaryConstructor.ifTypeOrNull(),
           members: node.body.ifTypeOrNull<BlockClassBody>()?.members ?? [],
         ),
-        // TODO(scheglov): support for absence of primary constructor
         representation: _buildExtensionTypeRepresentationFromPrimaryConstructor(
-          node.namePart as PrimaryConstructorDeclaration,
+          node.primaryConstructor,
         ),
       );
     } else {

@@ -62,8 +62,7 @@ class _Node extends graph.Node<_Node> {
 
   TypeImpl get _fieldType {
     if (useDeclaringConstructorsAst) {
-      // TODO(scheglov): support for absence of primary constructor
-      var constructor = node.namePart as PrimaryConstructorDeclarationImpl;
+      var constructor = node.primaryConstructor;
       var formal = constructor.formalParameters.parameters.first;
       return (formal as SimpleFormalParameterImpl).type!.typeOrThrow;
     } else {

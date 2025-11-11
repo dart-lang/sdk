@@ -9182,15 +9182,13 @@ abstract final class ExtensionTypeDeclaration
   @override
   Token get name;
 
-  /// The name of the extension type, as an identifier with type parameters,
-  /// or a primary constructor.
+  /// The primary constructor of the extension type.
   ///
-  /// Will become not `null` when [Feature.declaring_constructors] is
-  /// implemented, replaces [name], [typeParameters], [representation].
+  /// Replaces [name], [typeParameters], [representation].
   ///
   /// Throws [UnsupportedError] if [useDeclaringConstructorsAst] is `false`.
   @experimental
-  ClassNamePart get namePart;
+  PrimaryConstructorDeclaration get primaryConstructor;
 
   /// The representation declaration.
   ///
@@ -9216,7 +9214,7 @@ abstract final class ExtensionTypeDeclaration
     GenerateNodeProperty('augmentKeyword'),
     GenerateNodeProperty('extensionKeyword'),
     GenerateNodeProperty('typeKeyword'),
-    GenerateNodeProperty('namePart'),
+    GenerateNodeProperty('primaryConstructor'),
     GenerateNodeProperty('constKeyword'),
     GenerateNodeProperty('name', isSuper: true),
     GenerateNodeProperty('typeParameters'),
@@ -9247,7 +9245,7 @@ final class ExtensionTypeDeclarationImpl extends NamedCompilationUnitMemberImpl
   ImplementsClauseImpl? _implementsClause;
 
   @DoNotGenerate(reason: 'Support for useDeclaringConstructorsAst')
-  ClassNamePartImpl _namePart;
+  PrimaryConstructorDeclarationImpl _primaryConstructor;
 
   @DoNotGenerate(reason: 'Support for useDeclaringConstructorsAst')
   final Token? _constKeyword;
@@ -9282,7 +9280,7 @@ final class ExtensionTypeDeclarationImpl extends NamedCompilationUnitMemberImpl
     required this.typeKeyword,
     required Token? constKeyword,
     required super.name,
-    required ClassNamePartImpl namePart,
+    required PrimaryConstructorDeclarationImpl primaryConstructor,
     required TypeParameterListImpl? typeParameters,
     required RepresentationDeclarationImpl representation,
     required ImplementsClauseImpl? implementsClause,
@@ -9291,7 +9289,7 @@ final class ExtensionTypeDeclarationImpl extends NamedCompilationUnitMemberImpl
     required List<ClassMemberImpl> members,
     required Token rightBracket,
   }) : _constKeyword = constKeyword,
-       _namePart = namePart,
+       _primaryConstructor = primaryConstructor,
        _typeParameters = typeParameters,
        _representation = representation,
        _implementsClause = implementsClause,
@@ -9299,7 +9297,7 @@ final class ExtensionTypeDeclarationImpl extends NamedCompilationUnitMemberImpl
        _leftBracket = leftBracket,
        _rightBracket = rightBracket {
     if (useDeclaringConstructorsAst) {
-      _becomeParentOf(namePart);
+      _becomeParentOf(primaryConstructor);
     } else {
       _becomeParentOf(typeParameters);
       _becomeParentOf(representation);
@@ -9307,11 +9305,11 @@ final class ExtensionTypeDeclarationImpl extends NamedCompilationUnitMemberImpl
     _becomeParentOf(implementsClause);
     if (useDeclaringConstructorsAst) {
       _becomeParentOf(body);
-      assert(identical(typeParameters, namePart.typeParameters));
+      assert(identical(typeParameters, primaryConstructor.typeParameters));
       assert(representation is RepresentationDeclarationImplStub);
     } else {
       _members._initialize(this, members);
-      assert(namePart is ClassNamePartImplStub);
+      assert(primaryConstructor is PrimaryConstructorDeclarationImplStub);
       assert(body is ClassBodyImplStub);
     }
   }
@@ -9390,16 +9388,16 @@ final class ExtensionTypeDeclarationImpl extends NamedCompilationUnitMemberImpl
 
   @DoNotGenerate(reason: 'Support for useDeclaringConstructorsAst')
   @override
-  ClassNamePartImpl get namePart {
+  PrimaryConstructorDeclarationImpl get primaryConstructor {
     if (!useDeclaringConstructorsAst) {
       throw UnsupportedError('Requires useDeclaringConstructorsAst = true');
     }
-    return _namePart;
+    return _primaryConstructor;
   }
 
   @DoNotGenerate(reason: 'Support for useDeclaringConstructorsAst')
-  set namePart(ClassNamePartImpl namePart) {
-    _namePart = _becomeParentOf(namePart);
+  set primaryConstructor(PrimaryConstructorDeclarationImpl primaryConstructor) {
+    _primaryConstructor = _becomeParentOf(primaryConstructor);
   }
 
   @DoNotGenerate(reason: 'Support for useDeclaringConstructorsAst')
@@ -9443,7 +9441,7 @@ final class ExtensionTypeDeclarationImpl extends NamedCompilationUnitMemberImpl
       ..addToken('typeKeyword', typeKeyword);
 
     if (useDeclaringConstructorsAst) {
-      result.addNode('namePart', namePart);
+      result.addNode('primaryConstructor', primaryConstructor);
     } else {
       result
         ..addToken('constKeyword', constKeyword)
@@ -9476,7 +9474,7 @@ final class ExtensionTypeDeclarationImpl extends NamedCompilationUnitMemberImpl
   void visitChildren(AstVisitor visitor) {
     super.visitChildren(visitor);
     if (useDeclaringConstructorsAst) {
-      namePart.accept(visitor);
+      primaryConstructor.accept(visitor);
     } else {
       typeParameters?.accept(visitor);
       representation.accept(visitor);
@@ -9496,8 +9494,8 @@ final class ExtensionTypeDeclarationImpl extends NamedCompilationUnitMemberImpl
       return result;
     }
     if (useDeclaringConstructorsAst) {
-      if (namePart._containsOffset(rangeOffset, rangeEnd)) {
-        return namePart;
+      if (primaryConstructor._containsOffset(rangeOffset, rangeEnd)) {
+        return primaryConstructor;
       }
     } else {
       if (typeParameters case var typeParameters?) {
@@ -20180,6 +20178,16 @@ final class PrimaryConstructorDeclarationImpl extends ClassNamePartImpl
     }
     return null;
   }
+}
+
+/// Stub of [PrimaryConstructorDeclarationImpl], used to pass to the
+/// [ExtensionTypeDeclarationImpl] constructor, but it never returned through
+/// the API.
+// TODO(scheglov): Remove together with [useDeclaringConstructorsAst].
+final class PrimaryConstructorDeclarationImplStub
+    implements PrimaryConstructorDeclarationImpl {
+  @override
+  noSuchMethod(invocation) => super.noSuchMethod(invocation);
 }
 
 /// The name of a primary constructor.

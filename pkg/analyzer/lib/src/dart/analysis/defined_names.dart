@@ -54,7 +54,7 @@ DefinedNames computeDefinedNames(CompilationUnit unit) {
           }
         case ExtensionTypeDeclarationImpl():
           if (useDeclaringConstructorsAst) {
-            appendName(names.topLevelNames, member.namePart.typeName);
+            appendName(names.topLevelNames, member.primaryConstructor.typeName);
             member.body.members.forEach(appendClassMemberName);
           } else {
             appendName(names.topLevelNames, member.name);

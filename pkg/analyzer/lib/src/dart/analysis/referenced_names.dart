@@ -122,7 +122,7 @@ class _LocalNameScope {
   ) {
     var scope = _LocalNameScope(enclosing);
     if (useDeclaringConstructorsAst) {
-      scope.addTypeParameters(node.namePart.typeParameters);
+      scope.addTypeParameters(node.primaryConstructor.typeParameters);
       for (ClassMember member in node.body.members) {
         if (member is FieldDeclaration) {
           scope.addVariableNames(member.fields);
@@ -190,7 +190,7 @@ class _LocalNameScope {
           }
         case ExtensionTypeDeclaration():
           if (useDeclaringConstructorsAst) {
-            scope.add(declaration.namePart.typeName);
+            scope.add(declaration.primaryConstructor.typeName);
           } else {
             scope.add(declaration.name);
           }
