@@ -1,0 +1,4 @@
+Errors: {
+}
+method /* from org-dartlang-debug:synthetic_debug_expression */ debugExpr<T extends dart.core::Enum>(lowered #lib1::Foo<#lib2::debugExpr::T>% /* erasure=dart.core::int, declared=! */ #this, #lib2::debugExpr::T constant) → dynamic
+  return constant.{dart.core::Enum::index}{dart.core::int};
