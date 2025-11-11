@@ -628,4 +628,23 @@ EnumDeclaration
     rightBracket: }
 ''');
   }
+
+  test_primaryConstructorBody() {
+    useDeclaringConstructorsAst = true;
+    var parseResult = parseStringWithErrors(r'''
+enum E() {
+  v;
+  this;
+}
+''');
+    parseResult.assertNoErrors();
+
+    var node = parseResult.findNode.singlePrimaryConstructorBody;
+    assertParsedNodeText(node, r'''
+PrimaryConstructorBody
+  thisKeyword: this
+  body: EmptyFunctionBody
+    semicolon: ;
+''');
+  }
 }

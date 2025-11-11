@@ -708,6 +708,8 @@ void visitChildren(AstVisitor visitor) {''');
               implClass.doNotGenerateLookupNames.add(memberName);
               continue;
             }
+          case PrimaryConstructorBodyImpl():
+            throw UnimplementedError();
         }
         if (implClass.generatedLookupNames.contains(memberName)) {
           replacements.add(_Replacement(member.offset, member.end, ''));

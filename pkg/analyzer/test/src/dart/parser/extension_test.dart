@@ -289,4 +289,33 @@ ExtensionDeclaration
 ''');
     }
   }
+
+  test_primaryConstructorBody() {
+    useDeclaringConstructorsAst = true;
+    var parseResult = parseStringWithErrors(r'''
+extension A on int {
+  this;
+}
+''');
+    parseResult.assertNoErrors();
+
+    var node = parseResult.findNode.singleExtensionDeclaration;
+    assertParsedNodeText(node, r'''
+ExtensionDeclaration
+  extensionKeyword: extension
+  name: A
+  onClause: ExtensionOnClause
+    onKeyword: on
+    extendedType: NamedType
+      name: int
+  body: BlockClassBody
+    leftBracket: {
+    members
+      PrimaryConstructorBody
+        thisKeyword: this
+        body: EmptyFunctionBody
+          semicolon: ;
+    rightBracket: }
+''');
+  }
 }

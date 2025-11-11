@@ -3167,15 +3167,24 @@ class AstBuilder extends StackListener {
     Token? beginInitializers,
     Token endToken,
   ) {
-    // TODO(declaring-constructors): Implement primary constructor body.
-    // ignore: unused_local_variable
-    var bodyObject = pop();
-    // ignore: unused_local_variable
+    assert(optional('this', beginToken));
+
+    var body = pop() as FunctionBodyImpl;
     var initializers = (pop() as List<ConstructorInitializerImpl>?) ?? const [];
-    // ignore: unused_local_variable
-    var separator = pop() as Token?;
-    // ignore: unused_local_variable
+    var colon = pop() as Token?;
     var metadata = pop() as List<AnnotationImpl>?;
+    var comment = _findComment(metadata, beginToken);
+
+    _classLikeBuilder!.members.add(
+      PrimaryConstructorBodyImpl(
+        comment: comment,
+        metadata: metadata,
+        thisKeyword: beginToken,
+        colon: colon,
+        initializers: initializers,
+        body: body,
+      ),
+    );
   }
 
   @override

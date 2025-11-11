@@ -537,6 +537,11 @@ class GeneralizingAstVisitor<R> implements AstVisitor<R> {
 
   @experimental
   @override
+  R? visitPrimaryConstructorBody(PrimaryConstructorBody node) =>
+      visitClassMember(node);
+
+  @experimental
+  @override
   R? visitPrimaryConstructorDeclaration(PrimaryConstructorDeclaration node) =>
       visitClassNamePart(node);
 
@@ -1531,6 +1536,13 @@ class RecursiveAstVisitor<R> implements AstVisitor<R> {
 
   @experimental
   @override
+  R? visitPrimaryConstructorBody(PrimaryConstructorBody node) {
+    node.visitChildren(this);
+    return null;
+  }
+
+  @experimental
+  @override
   R? visitPrimaryConstructorDeclaration(PrimaryConstructorDeclaration node) {
     node.visitChildren(this);
     return null;
@@ -2247,6 +2259,10 @@ class SimpleAstVisitor<R> implements AstVisitor<R> {
 
   @experimental
   @override
+  R? visitPrimaryConstructorBody(PrimaryConstructorBody node) => null;
+
+  @experimental
+  @override
   R? visitPrimaryConstructorDeclaration(PrimaryConstructorDeclaration node) =>
       null;
 
@@ -2824,6 +2840,10 @@ class ThrowingAstVisitor<R> implements AstVisitor<R> {
 
   @override
   R? visitPrefixExpression(PrefixExpression node) => _throw(node);
+
+  @experimental
+  @override
+  R? visitPrimaryConstructorBody(PrimaryConstructorBody node) => _throw(node);
 
   @experimental
   @override
@@ -4056,6 +4076,15 @@ class TimedAstVisitor<T> implements AstVisitor<T> {
 
   @experimental
   @override
+  T? visitPrimaryConstructorBody(PrimaryConstructorBody node) {
+    stopwatch.start();
+    T? result = _baseVisitor.visitPrimaryConstructorBody(node);
+    stopwatch.stop();
+    return result;
+  }
+
+  @experimental
+  @override
   T? visitPrimaryConstructorDeclaration(PrimaryConstructorDeclaration node) {
     stopwatch.start();
     T? result = _baseVisitor.visitPrimaryConstructorDeclaration(node);
@@ -4900,6 +4929,11 @@ class UnifyingAstVisitor<R> implements AstVisitor<R> {
 
   @override
   R? visitPrefixExpression(PrefixExpression node) => visitNode(node);
+
+  @experimental
+  @override
+  R? visitPrimaryConstructorBody(PrimaryConstructorBody node) =>
+      visitNode(node);
 
   @experimental
   @override

@@ -20035,6 +20035,126 @@ final class PrefixExpressionImpl extends ExpressionImpl
   }
 }
 
+/// The body of a primary constructor.
+@AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
+@experimental
+// TODO(scheglov): This should not be a `Declaration`.
+abstract final class PrimaryConstructorBody implements ClassMember {
+  /// The body of the constructor.
+  FunctionBody get body;
+
+  /// The token for the separator before [initializers], or `null` if there
+  /// are no initializers.
+  Token? get colon;
+
+  /// The initializers associated with the constructor.
+  NodeList<ConstructorInitializer> get initializers;
+
+  /// The token for the `this` keyword.
+  Token get thisKeyword;
+}
+
+@GenerateNodeImpl(
+  childEntitiesOrder: [
+    GenerateNodeProperty('thisKeyword'),
+    GenerateNodeProperty('colon'),
+    GenerateNodeProperty('initializers'),
+    GenerateNodeProperty('body'),
+  ],
+)
+final class PrimaryConstructorBodyImpl extends ClassMemberImpl
+    implements PrimaryConstructorBody {
+  @generated
+  @override
+  final Token thisKeyword;
+
+  @generated
+  @override
+  final Token? colon;
+
+  @generated
+  @override
+  final NodeListImpl<ConstructorInitializerImpl> initializers =
+      NodeListImpl._();
+
+  @generated
+  FunctionBodyImpl _body;
+
+  @generated
+  PrimaryConstructorBodyImpl({
+    required super.comment,
+    required super.metadata,
+    required this.thisKeyword,
+    required this.colon,
+    required List<ConstructorInitializerImpl> initializers,
+    required FunctionBodyImpl body,
+  }) : _body = body {
+    this.initializers._initialize(this, initializers);
+    _becomeParentOf(body);
+  }
+
+  @generated
+  @override
+  FunctionBodyImpl get body => _body;
+
+  @generated
+  set body(FunctionBodyImpl body) {
+    _body = _becomeParentOf(body);
+  }
+
+  @generated
+  @override
+  Token get endToken {
+    return body.endToken;
+  }
+
+  @generated
+  @override
+  Token get firstTokenAfterCommentAndMetadata {
+    return thisKeyword;
+  }
+
+  @generated
+  @override
+  ChildEntities get _childEntities => super._childEntities
+    ..addToken('thisKeyword', thisKeyword)
+    ..addToken('colon', colon)
+    ..addNodeList('initializers', initializers)
+    ..addNode('body', body);
+
+  @generated
+  @override
+  E? accept<E>(AstVisitor<E> visitor) =>
+      visitor.visitPrimaryConstructorBody(this);
+
+  @override
+  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+
+  @generated
+  @override
+  void visitChildren(AstVisitor visitor) {
+    super.visitChildren(visitor);
+    initializers.accept(visitor);
+    body.accept(visitor);
+  }
+
+  @generated
+  @override
+  AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
+    if (super._childContainingRange(rangeOffset, rangeEnd) case var result?) {
+      return result;
+    }
+    if (initializers._elementContainingRange(rangeOffset, rangeEnd)
+        case var result?) {
+      return result;
+    }
+    if (body._containsOffset(rangeOffset, rangeEnd)) {
+      return body;
+    }
+    return null;
+  }
+}
+
 /// The declaration of a primary constructor.
 @AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 @experimental

@@ -160,6 +160,8 @@ class CreateMethod extends ResolvedCorrectionProducer {
             fields: VariableDeclarationList(:var isLate),
           ) =>
             isStatic || !isLate,
+          // ignore: experimental_member_use
+          PrimaryConstructorBody() => false,
         };
       }
     } else {

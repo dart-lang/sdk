@@ -203,6 +203,7 @@ export 'package:analyzer/src/dart/ast/ast.dart'
         PostfixExpression,
         PrefixedIdentifier,
         PrefixExpression,
+        PrimaryConstructorBody,
         PrimaryConstructorDeclaration,
         PrimaryConstructorName,
         PropertyAccess,

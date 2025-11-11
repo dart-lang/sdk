@@ -24,6 +24,7 @@ class _UnitApiSignatureComputer {
   static const int _kindConstructorDeclaration = 1;
   static const int _kindFieldDeclaration = 2;
   static const int _kindMethodDeclaration = 3;
+  static const int _kindPrimaryConstructorBody = 4;
   static const int _nullNode = 0;
   static const int _notNullNode = 1;
   static const int _nullToken = 0;
@@ -89,6 +90,8 @@ class _UnitApiSignatureComputer {
         _addFieldDeclaration(member, hasConstConstructor);
       } else if (member is MethodDeclaration) {
         _addMethodDeclaration(member);
+      } else if (member is PrimaryConstructorBody) {
+        _addPrimaryConstructorBody(member);
       } else {
         throw UnimplementedError('(${member.runtimeType}) $member');
       }
@@ -186,6 +189,11 @@ class _UnitApiSignatureComputer {
     for (var node in nodes) {
       _addNode(node);
     }
+  }
+
+  void _addPrimaryConstructorBody(PrimaryConstructorBody node) {
+    signature.addInt(_kindPrimaryConstructorBody);
+    _addTokens(node.beginToken, node.body.beginToken);
   }
 
   void _addToken(Token? token) {

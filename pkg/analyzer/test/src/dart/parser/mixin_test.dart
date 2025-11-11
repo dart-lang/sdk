@@ -289,4 +289,29 @@ MixinDeclaration
   rightBracket: }
 ''');
   }
+
+  test_primaryConstructorBody() {
+    useDeclaringConstructorsAst = true;
+    var parseResult = parseStringWithErrors(r'''
+mixin A {
+  this;
+}
+''');
+    parseResult.assertNoErrors();
+
+    var node = parseResult.findNode.singleMixinDeclaration;
+    assertParsedNodeText(node, r'''
+MixinDeclaration
+  mixinKeyword: mixin
+  name: A
+  body: BlockClassBody
+    leftBracket: {
+    members
+      PrimaryConstructorBody
+        thisKeyword: this
+        body: EmptyFunctionBody
+          semicolon: ;
+    rightBracket: }
+''');
+  }
 }

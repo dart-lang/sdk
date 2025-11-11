@@ -1348,6 +1348,14 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
   }
 
   @override
+  void visitPrimaryConstructorBody(PrimaryConstructorBody node) {
+    _sink.writeln('PrimaryConstructorBody');
+    _sink.withIndent(() {
+      _writeNamedChildEntities(node);
+    });
+  }
+
+  @override
   void visitPrimaryConstructorDeclaration(PrimaryConstructorDeclaration node) {
     _sink.writeln('PrimaryConstructorDeclaration');
     _sink.withIndent(() {

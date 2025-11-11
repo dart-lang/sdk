@@ -288,6 +288,9 @@ abstract class AstVisitor<R> {
   R? visitPrefixExpression(PrefixExpression node);
 
   @experimental
+  R? visitPrimaryConstructorBody(PrimaryConstructorBody node);
+
+  @experimental
   R? visitPrimaryConstructorDeclaration(PrimaryConstructorDeclaration node);
 
   @experimental

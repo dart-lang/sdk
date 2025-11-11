@@ -151,6 +151,10 @@ class _Visitor extends SimpleAstVisitor<void> {
                   trackingAnnotations.forEach(_reportBad);
                 }
             }
+          // ignore: experimental_member_use
+          case PrimaryConstructorBody():
+            // TODO(scheglov): Handle this case.
+            throw UnimplementedError();
         }
       }
     }

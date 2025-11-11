@@ -105,6 +105,8 @@ class BindToField extends ResolvedCorrectionProducer {
             ConstructorDeclaration() => false,
             FieldDeclaration() => false,
             MethodDeclaration() => member.name.lexeme == parameter.name?.lexeme,
+            // ignore: experimental_member_use
+            PrimaryConstructorBody() => false,
           },
         )) {
       return;

@@ -2159,6 +2159,40 @@ ExtensionTypeDeclaration
     }
   }
 
+  test_primaryConstructorBody() {
+    useDeclaringConstructorsAst = true;
+    var parseResult = parseStringWithErrors(r'''
+extension type A(int it) {
+  this;
+}
+''');
+    parseResult.assertNoErrors();
+
+    var node = parseResult.findNode.singleExtensionTypeDeclaration;
+    assertParsedNodeText(node, r'''
+ExtensionTypeDeclaration
+  extensionKeyword: extension
+  typeKeyword: type
+  primaryConstructor: PrimaryConstructorDeclaration
+    typeName: A
+    formalParameters: FormalParameterList
+      leftParenthesis: (
+      parameter: SimpleFormalParameter
+        type: NamedType
+          name: int
+        name: it
+      rightParenthesis: )
+  body: BlockClassBody
+    leftBracket: {
+    members
+      PrimaryConstructorBody
+        thisKeyword: this
+        body: EmptyFunctionBody
+          semicolon: ;
+    rightBracket: }
+''');
+  }
+
   test_withImplementsClause() {
     var parseResult = parseStringWithErrors(r'''
 extension type A(int it) implements B, C {}
