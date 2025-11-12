@@ -20,3 +20,8 @@ static method main() → void {
 constants  {
   #C1 = null
 }
+
+
+Constructor coverage from constants:
+org-dartlang-testcase:///issue53610.dart:
+- N|constructor# (from org-dartlang-testcase:///issue53610.dart:5:23)
