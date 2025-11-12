@@ -17,6 +17,26 @@ class LiteralOnlyBooleanExpressionsTest extends LintRuleTest {
   @override
   String get lintRule => LintNames.literal_only_boolean_expressions;
 
+  test_adjacent_string_interpolation_constant() async {
+    await assertDiagnostics(
+      r'''
+void f() {
+  const a = 20;
+  if ('$a' '0' == 20) {}
+}
+''',
+      [lint(29, 22)],
+    );
+  }
+
+  test_adjacent_string_interpolation_nonconstant() async {
+    await assertNoDiagnostics(r'''
+void f(int a) {
+  if ('$a' '0' == 20) {}
+}
+''');
+  }
+
   test_doWhile_false() async {
     await assertDiagnostics(
       r'''
