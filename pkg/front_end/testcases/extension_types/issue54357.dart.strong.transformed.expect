@@ -53,3 +53,8 @@ constants  {
   #C13 = <core::int, core::int>{#C1:#C1, #C2:#C2}
   #C14 = <core::int, core::int>{#C2:#C2, #C1:#C1}
 }
+
+
+Constructor coverage from constants:
+org-dartlang-testcase:///issue54357.dart:
+- ExInt|constructor# (from org-dartlang-testcase:///issue54357.dart:32:27)

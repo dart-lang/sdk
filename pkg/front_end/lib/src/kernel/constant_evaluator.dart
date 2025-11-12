@@ -2938,7 +2938,7 @@ class ConstantEvaluator
     return new ConstantCoverage(_constructorCoverage);
   }
 
-  void _recordConstructorCoverage(Constructor constructor, TreeNode caller) {
+  void _recordConstructorCoverage(Member constructor, TreeNode caller) {
     Uri currentUri = getFileUri(caller)!;
     Set<Reference> uriCoverage = _constructorCoverage[currentUri] ??= {};
     uriCoverage.add(constructor.reference);
@@ -5125,6 +5125,7 @@ class ConstantEvaluator
       if (target.isConst) {
         bool oldInExtensionTypeConstructor = inExtensionTypeConstConstructor;
         inExtensionTypeConstConstructor = true;
+        _recordConstructorCoverage(target, node);
         Constant result = _handleFunctionInvocation(
           node.target.function,
           typeArguments,

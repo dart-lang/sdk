@@ -56,3 +56,4 @@ Constructor coverage from constants:
 org-dartlang-testcase:///const_extension_type.dart:
 - Class. (from org-dartlang-testcase:///const_extension_type.dart:6:9)
 - Object. (from org-dartlang-sdk:///sdk/lib/core/object.dart)
+- ExtensionType|constructor# (from org-dartlang-testcase:///const_extension_type.dart:9:38)

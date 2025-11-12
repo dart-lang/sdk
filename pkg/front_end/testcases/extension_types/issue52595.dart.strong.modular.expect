@@ -18,3 +18,8 @@ static extension-type-member synthetic method V|constructor#_#new#tearOff<T exte
 constants  {
   #C1 = 0
 }
+
+
+Constructor coverage from constants:
+org-dartlang-testcase:///issue52595.dart:
+- V|constructor# (from org-dartlang-testcase:///issue52595.dart:5:26)

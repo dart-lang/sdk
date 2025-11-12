@@ -38,5 +38,6 @@ constants  {
 
 Constructor coverage from constants:
 org-dartlang-testcase:///record_named_constant_evaluation.dart:
+- Ex|constructor# (from org-dartlang-testcase:///record_named_constant_evaluation.dart:24:24)
 - Chk. (from org-dartlang-testcase:///record_named_constant_evaluation.dart:20:9)
 - Object. (from org-dartlang-sdk:///sdk/lib/core/object.dart)

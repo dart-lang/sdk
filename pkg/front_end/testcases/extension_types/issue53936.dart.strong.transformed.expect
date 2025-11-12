@@ -45,3 +45,10 @@ static method main() → void {
 constants  {
   #C1 = "a"
 }
+
+
+Constructor coverage from constants:
+org-dartlang-testcase:///issue53936.dart:
+- E|constructor#cast (from org-dartlang-testcase:///issue53936.dart:6:9)
+- E|constructor# (from org-dartlang-testcase:///issue53936.dart:5:26)
+- TypeOf|constructor# (from org-dartlang-testcase:///issue53936.dart:11:31)

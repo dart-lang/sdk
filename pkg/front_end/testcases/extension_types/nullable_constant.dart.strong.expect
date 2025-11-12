@@ -22,3 +22,8 @@ constants  {
   #C2 = 0
   #C3 = <core::int?>[#C1, #C2]
 }
+
+
+Constructor coverage from constants:
+org-dartlang-testcase:///nullable_constant.dart:
+- ET|constructor# (from org-dartlang-testcase:///nullable_constant.dart:5:24)
