@@ -10,7 +10,7 @@ import 'package:analyzer/src/generated/sdk.dart';
 import 'package:meta/meta.dart';
 
 final MockSdkLibrary _LIB_ASYNC = MockSdkLibrary('async', [
-  MockSdkLibraryUnit('async/async.dart', '''
+  MockSdkLibraryUnit('async/async.dart', r'''
 library dart.async;
 
 import 'dart:_internal' show Since;
@@ -126,7 +126,7 @@ abstract class StreamTransformerBase<S, T> implements StreamTransformer<S, T> {}
 ]);
 
 final MockSdkLibrary _LIB_COLLECTION = MockSdkLibrary('collection', [
-  MockSdkLibraryUnit('collection/collection.dart', '''
+  MockSdkLibraryUnit('collection/collection.dart', r'''
 library dart.collection;
 
 abstract final class HashMap<K, V> implements Map<K, V> {
@@ -230,7 +230,7 @@ abstract interface class Queue<E> implements Iterable<E> {
 ]);
 
 final MockSdkLibrary _LIB_CONVERT = MockSdkLibrary('convert', [
-  MockSdkLibraryUnit('convert/convert.dart', '''
+  MockSdkLibraryUnit('convert/convert.dart', r'''
 library dart.convert;
 
 import 'dart:async';
@@ -248,7 +248,8 @@ final class JsonCodec {
     Object? reviver(Object? key, Object? value)?,
     Object? toEncodable(dynamic object)?,
   });
-  String encode(Object? value, {Object? toEncodable(dynamic object)?}) => '';
+  String encode(Object? value, {Object? toEncodable(dynamic object)?}) =>
+      throw 0;
 }
 
 abstract mixin class StringConversionSink {}
@@ -258,12 +259,12 @@ typedef StringConversionSinkMixin = StringConversionSink;
 String jsonEncode(
   Object? object, {
   Object? toEncodable(Object? nonEncodable)?,
-}) => '';
+}) => throw 0;
 '''),
 ]);
 
 final MockSdkLibrary _LIB_CORE = MockSdkLibrary('core', [
-  MockSdkLibraryUnit('core/core.dart', '''
+  MockSdkLibraryUnit('core/core.dart', r'''
 library dart.core;
 
 import "dart:_internal" hide Symbol;
@@ -282,8 +283,7 @@ void print(Object? object) {}
 
 class ArgumentError extends Error {
   ArgumentError([dynamic message, @Since("2.14") String? name]);
-
-  static T checkNotNull<T>(T? argument, [String? name]) => argument!;
+  static T checkNotNull<T>(T? argument, [String? name]) => throw 0;
 }
 
 abstract final class BigInt implements Comparable<BigInt> {
@@ -308,7 +308,7 @@ final class bool {
 
 abstract interface class Comparable<T> {
   int compareTo(T other);
-  static int compare(Comparable a, Comparable b) => a.compareTo(b);
+  static int compare(Comparable a, Comparable b) => throw 0;
 }
 
 typedef Comparator<T> = int Function(T a, T b);
@@ -418,7 +418,7 @@ abstract class _Enum implements Enum {
 
 class Error {
   Error();
-  static String safeToString(Object? object) => '';
+  static String safeToString(Object? object) => throw 0;
   external StackTrace? get stackTrace;
 }
 
@@ -645,10 +645,10 @@ class Object {
   ]) => throw 0;
 
   @Since("2.14")
-  static int hashAll(Iterable<Object?> objects) => 0;
+  static int hashAll(Iterable<Object?> objects) => throw 0;
 
   @Since("2.14")
-  static int hashAllUnordered(Iterable<Object?> objects) => 0;
+  static int hashAllUnordered(Iterable<Object?> objects) => throw 0;
 }
 
 abstract interface class Pattern {
@@ -690,7 +690,7 @@ abstract interface class Set<E> implements Iterable<E> {
   void retainAll(Iterable<Object?> elements);
 
   static Set<T> castFrom<S, T>(Set<S> source, {Set<R> Function<R>()? newSet}) =>
-      throw '';
+      throw 0;
 }
 
 abstract interface class Sink<T> {
@@ -772,9 +772,8 @@ abstract interface class Uri {
     throw 0;
   }
 
-  static List<int> parseIPv6Address(String host, [int start = 0, int? end]) {
-    throw 0;
-  }
+  static List<int> parseIPv6Address(String host, [int start = 0, int? end]) =>
+      throw 0;
 }
 
 class _Override {
@@ -783,13 +782,13 @@ class _Override {
 
 @Since("2.15")
 extension EnumName on Enum {
-  String get name => _name;
+  String get name => throw 0;
 }
 '''),
 ]);
 
 final MockSdkLibrary _LIB_FFI = MockSdkLibrary('ffi', [
-  MockSdkLibraryUnit('ffi/ffi.dart', '''
+  MockSdkLibraryUnit('ffi/ffi.dart', r'''
 @Since('2.6')
 library dart.ffi;
 
@@ -1148,7 +1147,7 @@ extension Uint8ListAddress on Uint8List {
 ]);
 
 final MockSdkLibrary _LIB_HTML_DART2JS = MockSdkLibrary('html', [
-  MockSdkLibraryUnit('html/dart2js/html_dart2js.dart', '''
+  MockSdkLibraryUnit('html/dart2js/html_dart2js.dart', r'''
 library dart.dom.html;
 
 import 'dart:async';
@@ -1174,12 +1173,11 @@ class Element {
     NodeTreeSanitizer? treeSanitizer,
   }) => new HtmlElement();
 
-  /// Stream of `cut` events handled by this [Element].
   ElementStream<ClipboardEvent> get onCut => throw 0;
 
   String get id => throw 0;
 
-  set id(String value) => throw 0;
+  set id(String value) {}
 
   DocumentFragment createFragment(
     String? html, {
@@ -1351,13 +1349,13 @@ class File {}
 ]);
 
 final MockSdkLibrary _LIB_INTERCEPTORS = MockSdkLibrary('_interceptors', [
-  MockSdkLibraryUnit('_internal/js_runtime/lib/interceptors.dart', '''
+  MockSdkLibraryUnit('_internal/js_runtime/lib/interceptors.dart', r'''
 library dart._interceptors;
 '''),
 ]);
 
 final MockSdkLibrary _LIB_INTERNAL = MockSdkLibrary('_internal', [
-  MockSdkLibraryUnit('_internal/internal.dart', '''
+  MockSdkLibraryUnit('_internal/internal.dart', r'''
 library dart._internal;
 
 import 'dart:core' hide Symbol;
@@ -1391,7 +1389,7 @@ class Symbol implements core.Symbol {
 ]);
 
 final MockSdkLibrary _LIB_IO = MockSdkLibrary('io', [
-  MockSdkLibraryUnit('io/io.dart', '''
+  MockSdkLibraryUnit('io/io.dart', r'''
 library dart.io;
 
 import 'dart:convert';
@@ -1426,14 +1424,14 @@ abstract interface class File implements FileSystemEntity {
 }
 
 abstract class FileSystemEntity {
-  static Future<bool> isDirectory(String path) async => true;
-  static bool isDirectorySync(String path) => true;
+  static Future<bool> isDirectory(String path) => throw 0;
+  static bool isDirectorySync(String path) => throw 0;
 
-  static Future<bool> isFile(String path) async => true;
-  static bool isFileSync(String path) => true;
+  static Future<bool> isFile(String path) => throw 0;
+  static bool isFileSync(String path) => throw 0;
 
-  static Future<bool> isLink(String path) async => true;
-  static bool isLinkSync(String path) => true;
+  static Future<bool> isLink(String path) => throw 0;
+  static bool isLinkSync(String path) => throw 0;
 
   static Future<FileSystemEntityType> type(
     String path, {
@@ -1507,7 +1505,7 @@ abstract interface class Socket implements IOSink {
 ]);
 
 final MockSdkLibrary _LIB_ISOLATE = MockSdkLibrary('isolate', [
-  MockSdkLibraryUnit('isolate/isolate.dart', '''
+  MockSdkLibraryUnit('isolate/isolate.dart', r'''
 library dart.isolate;
 
 abstract interface class SendPort {}
@@ -1532,7 +1530,7 @@ final class Isolate {
 ]);
 
 final MockSdkLibrary _LIB_JS = MockSdkLibrary('js', [
-  MockSdkLibraryUnit('js/js.dart', '''
+  MockSdkLibraryUnit('js/js.dart', r'''
 library dart.js;
 
 class JsObject {}
@@ -1540,7 +1538,7 @@ class JsObject {}
 ]);
 
 final MockSdkLibrary _LIB_JS_ANNOTATIONS = MockSdkLibrary('_js_annotations', [
-  MockSdkLibraryUnit('js/_js_annotations.dart', '''
+  MockSdkLibraryUnit('js/_js_annotations.dart', r'''
 library _js_annotations;
 
 export 'dart:js_interop' show staticInterop;
@@ -1553,13 +1551,14 @@ class JS {
 ]);
 
 final MockSdkLibrary _LIB_JS_INTEROP = MockSdkLibrary('js_interop', [
-  MockSdkLibraryUnit('js/js_interop.dart', '''
+  MockSdkLibraryUnit('js/js_interop.dart', r'''
 library;
 
 import 'dart:typed_data';
 
 class JS {
   final String? name;
+
   const JS([this.name]);
 }
 
@@ -1590,7 +1589,7 @@ extension JSAnyUtilityExtension on JSAny? {
 
   external bool instanceof(JSFunction constructor);
 
-  bool instanceOfString(String constructorName) => false;
+  bool instanceOfString(String constructorName) => throw 0;
 
   @Since('3.4')
   external bool isA<T extends JSAny?>();
@@ -1605,7 +1604,7 @@ extension NullableObjectUtilExtension on Object? {
 ]);
 
 final MockSdkLibrary _LIB_MATH = MockSdkLibrary('math', [
-  MockSdkLibraryUnit('math/math.dart', '''
+  MockSdkLibraryUnit('math/math.dart', r'''
 library dart.math;
 
 const double e = 2.718281828459045;
@@ -1632,7 +1631,7 @@ class Point<T extends num> {}
 ]);
 
 final MockSdkLibrary _LIB_TYPED_DATA = MockSdkLibrary('typed_data', [
-  MockSdkLibraryUnit('typed_data/typed_data.dart', '''
+  MockSdkLibraryUnit('typed_data/typed_data.dart', r'''
 library dart.typed_data;
 
 abstract final class Uint8List {
