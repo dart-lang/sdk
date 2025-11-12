@@ -98,7 +98,7 @@ class AnalysisNotificationImplementedTest extends PubPackageAnalysisServerTest {
 
   @override
   void processNotification(Notification notification) {
-    if (notification.event == ANALYSIS_NOTIFICATION_IMPLEMENTED) {
+    if (notification.event == analysisNotificationImplemented) {
       var params = AnalysisImplementedParams.fromNotification(
         notification,
         clientUriConverter: server.uriConverter,

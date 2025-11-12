@@ -203,7 +203,7 @@ class AnalysisNotificationNavigationTest extends AbstractNavigationTest {
 
   @override
   void processNotification(Notification notification) {
-    if (notification.event == ANALYSIS_NOTIFICATION_NAVIGATION) {
+    if (notification.event == analysisNotificationNavigation) {
       var params = AnalysisNavigationParams.fromNotification(
         notification,
         clientUriConverter: server.uriConverter,

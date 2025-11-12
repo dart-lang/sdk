@@ -2467,7 +2467,7 @@ class SetSubscriptionsTest extends PubPackageAnalysisServerTest {
   @override
   void processNotification(Notification notification) {
     super.processNotification(notification);
-    if (notification.event == ANALYSIS_NOTIFICATION_HIGHLIGHTS) {
+    if (notification.event == analysisNotificationHighlights) {
       var params = AnalysisHighlightsParams.fromNotification(
         notification,
         clientUriConverter: server.uriConverter,
@@ -2645,14 +2645,14 @@ class _AnalysisDomainTest extends PubPackageAnalysisServerTest {
 
   @override
   void processNotification(Notification notification) {
-    if (notification.event == ANALYSIS_NOTIFICATION_FLUSH_RESULTS) {
+    if (notification.event == analysisNotificationFlushResults) {
       var decoded = AnalysisFlushResultsParams.fromNotification(
         notification,
         clientUriConverter: server.uriConverter,
       );
       notifications.add((notification.event, decoded));
     }
-    if (notification.event == ANALYSIS_NOTIFICATION_ERRORS) {
+    if (notification.event == analysisNotificationErrors) {
       var decoded = AnalysisErrorsParams.fromNotification(
         notification,
         clientUriConverter: server.uriConverter,

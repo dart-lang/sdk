@@ -93,7 +93,7 @@ final class MessageScheduler {
     if (message is LegacyMessage) {
       var request = message.request;
       var method = request.method;
-      if (method == legacy.SERVER_REQUEST_CANCEL_REQUEST) {
+      if (method == legacy.serverRequestCancelRequest) {
         var id = legacy.ServerCancelRequestParams.fromRequest(
           request,
           clientUriConverter: server.uriConverter,
@@ -103,11 +103,11 @@ final class MessageScheduler {
         // The message needs to be added to the queue of pending messages, but
         // it seems like it shouldn't be necessary and that we ought to return
         // at this point. However, doing so causes some tests to timeout.
-      } else if (method == legacy.ANALYSIS_REQUEST_UPDATE_CONTENT) {
+      } else if (method == legacy.analysisRequestUpdateContent) {
         for (var activeMessage in _activeMessages) {
           if (activeMessage is LegacyMessage) {
             var activeRequest = activeMessage.request;
-            if (activeRequest.method == legacy.LSP_REQUEST_HANDLE) {
+            if (activeRequest.method == legacy.lspRequestHandle) {
               var method = _getLspOverLegacyParams(activeRequest)?['method'];
               if (method == lsp.Method.workspace_willRenameFiles.toString()) {
                 activeMessage.cancellationToken?.cancel(

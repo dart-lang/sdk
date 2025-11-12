@@ -352,7 +352,7 @@ class ServerDomainTest extends PubPackageAnalysisServerTest {
   }
 
   Future<void> test_setSubscriptions_invalidServiceName() async {
-    var request = Request('0', SERVER_REQUEST_SET_SUBSCRIPTIONS, {
+    var request = Request('0', serverRequestSetSubscriptions, {
       subscriptionsKey: ['noSuchService'],
     });
     var response = await handleRequest(request);

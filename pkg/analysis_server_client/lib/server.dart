@@ -173,7 +173,7 @@ class Server extends ServerBase {
       return -1;
     }
 
-    final future = send(SERVER_REQUEST_SHUTDOWN, null);
+    final future = send(serverRequestShutdown, null);
     _process = null;
     await future
         // fall through to wait for exit

@@ -48,7 +48,7 @@ abstract class AbstractLspOverLegacyTest
 
   @override
   Stream<RequestMessage> get requestsFromServer => serverToClientRequests
-      .where((request) => request.method == LSP_REQUEST_HANDLE)
+      .where((request) => request.method == lspRequestHandle)
       .map((request) {
         var params = LspHandleParams.fromRequest(
           request,

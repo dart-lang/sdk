@@ -122,7 +122,7 @@ class AbstractCompletionDomainTest extends PubPackageAnalysisServerTest {
 
   @override
   Future<void> processNotification(Notification notification) async {
-    if (notification.event == SERVER_NOTIFICATION_ERROR) {
+    if (notification.event == serverNotificationError) {
       fail('server error: ${notification.toJson()}');
     }
   }

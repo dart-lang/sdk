@@ -33,21 +33,21 @@ class EventsCollector {
   EventsCollector(this.test) {
     test.notificationListener = (notification) {
       switch (notification.event) {
-        case ANALYSIS_NOTIFICATION_ERRORS:
+        case analysisNotificationErrors:
           events.add(
             AnalysisErrorsParams.fromNotification(
               notification,
               clientUriConverter: test.server.uriConverter,
             ),
           );
-        case ANALYSIS_NOTIFICATION_FLUSH_RESULTS:
+        case analysisNotificationFlushResults:
           events.add(
             AnalysisFlushResultsParams.fromNotification(
               notification,
               clientUriConverter: test.server.uriConverter,
             ),
           );
-        case LSP_NOTIFICATION_NOTIFICATION:
+        case lspNotificationNotification:
           var params = LspNotificationParams.fromNotification(
             notification,
             clientUriConverter: test.server.uriConverter,
@@ -174,7 +174,7 @@ abstract class LspOverLegacyTest extends PubPackageAnalysisServerTest
   @override
   Stream<RequestMessage> get requestsFromServer => serverChannel
       .serverToClientRequests
-      .where((request) => request.method == LSP_REQUEST_HANDLE)
+      .where((request) => request.method == lspRequestHandle)
       .map((request) {
         var params = LspHandleParams.fromRequest(
           request,
@@ -280,7 +280,7 @@ abstract class LspOverLegacyTest extends PubPackageAnalysisServerTest
   @override
   void processNotification(Notification notification) {
     super.processNotification(notification);
-    if (notification.event == LSP_NOTIFICATION_NOTIFICATION) {
+    if (notification.event == lspNotificationNotification) {
       var params = LspNotificationParams.fromNotification(
         notification,
         clientUriConverter: server.uriConverter,

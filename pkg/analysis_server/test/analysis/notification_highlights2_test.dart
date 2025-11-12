@@ -2761,12 +2761,12 @@ class HighlightsTestSupport extends PubPackageAnalysisServerTest {
 
   @override
   void processNotification(Notification notification) {
-    if (notification.event == SERVER_NOTIFICATION_ERROR) {
+    if (notification.event == serverNotificationError) {
       print('SERVER_NOTIFICATION_ERROR: ${notification.toJson()}');
       _resultsAvailable.complete();
       fail('SERVER_NOTIFICATION_ERROR');
     }
-    if (notification.event == ANALYSIS_NOTIFICATION_HIGHLIGHTS) {
+    if (notification.event == analysisNotificationHighlights) {
       var params = AnalysisHighlightsParams.fromNotification(
         notification,
         clientUriConverter: server.uriConverter,
