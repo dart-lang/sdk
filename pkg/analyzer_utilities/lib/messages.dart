@@ -450,7 +450,7 @@ class DiagnosticTables {
             .add(message);
         var diagnosticClass = analyzerCode.diagnosticClass;
         if (!message.isRemoved && message is! AliasMessage) {
-          (activeMessagesByPackage[diagnosticClass.package] ??= []).add(
+          (activeMessagesByPackage[diagnosticClass.file.package] ??= []).add(
             message,
           );
         }
@@ -516,12 +516,13 @@ class GeneratedDiagnosticFile {
   /// The URI of the library that the generated file will be a part of.
   final String parentLibrary;
 
-  final bool shouldIgnorePreferSingleQuotes;
+  /// The package that the generated file will be part of.
+  final AnalyzerDiagnosticPackage package;
 
   const GeneratedDiagnosticFile({
     required this.path,
     required this.parentLibrary,
-    this.shouldIgnorePreferSingleQuotes = false,
+    this.package = AnalyzerDiagnosticPackage.analyzer,
   });
 }
 

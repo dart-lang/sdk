@@ -7,10 +7,6 @@
 // Instead modify 'pkg/analyzer/messages.yaml' and run
 // 'dart run pkg/analyzer/tool/messages/generate.dart' to update.
 
-// While transitioning `HintCodes` to `WarningCodes`, we refer to deprecated
-// codes here.
-// ignore_for_file: deprecated_member_use_from_same_package
-//
 // Generated comments don't quite align with flutter style.
 // ignore_for_file: flutter_style_todos
 
