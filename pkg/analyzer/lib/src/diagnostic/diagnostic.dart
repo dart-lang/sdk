@@ -10,6 +10,5 @@ import 'package:_fe_analyzer_shared/src/base/errors.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
-import 'package:analyzer/src/error/codes.dart';
 
 part 'package:analyzer/src/diagnostic/diagnostic.g.dart';

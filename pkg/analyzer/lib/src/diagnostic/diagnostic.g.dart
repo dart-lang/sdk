@@ -8218,7 +8218,7 @@ invalidHexEscape = DiagnosticWithoutArgumentsImpl(
 );
 
 /// The parameters of this error code must be kept in sync with those of
-/// [CompileTimeErrorCode.invalidOverride].
+/// [diag.invalidOverride].
 ///
 /// Parameters:
 /// Object p0: the name of the declared member that is not a valid override.
@@ -8254,7 +8254,7 @@ invalidImplementationOverride = DiagnosticWithArguments(
 );
 
 /// The parameters of this error code must be kept in sync with those of
-/// [CompileTimeErrorCode.invalidOverride].
+/// [diag.invalidOverride].
 ///
 /// Parameters:
 /// Object p0: the name of the declared setter that is not a valid override.
@@ -14335,7 +14335,7 @@ const DiagnosticWithoutArguments returnWithoutValue =
       expectedTypes: [],
     );
 
-/// There is also a [ParserErrorCode.experimentNotEnabled] code which
+/// There is also a [diag.experimentNotEnabled] code which
 /// catches some cases of constructor tearoff features (like
 /// `List<int>.filled;`). Other constructor tearoff cases are not realized
 /// until resolution (like `List.filled;`).
@@ -15239,7 +15239,7 @@ const DiagnosticWithoutArguments typeParameterReferencedByStatic =
       expectedTypes: [],
     );
 
-/// See [CompileTimeErrorCode.typeArgumentNotMatchingBounds].
+/// See [diag.typeArgumentNotMatchingBounds].
 ///
 /// Parameters:
 /// String p0: the name of the type parameter
@@ -15481,7 +15481,7 @@ undefinedClass = DiagnosticWithArguments(
   expectedTypes: [ExpectedType.string],
 );
 
-/// Same as [CompileTimeErrorCode.undefinedClass], but to catch using
+/// Same as [diag.undefinedClass], but to catch using
 /// "boolean" instead of "bool" in order to improve the correction message.
 ///
 /// Parameters:
