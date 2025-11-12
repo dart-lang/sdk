@@ -2257,8 +2257,8 @@ bool Isolate::AddResumeCapability(const Capability& capability) {
       compiler::target::kSmiMax / (6 * kWordSize);
 
   const GrowableObjectArray& caps = GrowableObjectArray::Handle(
-      current_zone(), isolate_object_store()->resume_capabilities());
-  Capability& current = Capability::Handle(current_zone());
+      isolate_object_store()->resume_capabilities());
+  Capability& current = Capability::Handle();
   intptr_t insertion_index = -1;
   for (intptr_t i = 0; i < caps.Length(); i++) {
     current ^= caps.At(i);
@@ -2286,8 +2286,8 @@ bool Isolate::AddResumeCapability(const Capability& capability) {
 
 bool Isolate::RemoveResumeCapability(const Capability& capability) {
   const GrowableObjectArray& caps = GrowableObjectArray::Handle(
-      current_zone(), isolate_object_store()->resume_capabilities());
-  Capability& current = Capability::Handle(current_zone());
+      isolate_object_store()->resume_capabilities());
+  Capability& current = Capability::Handle();
   for (intptr_t i = 0; i < caps.Length(); i++) {
     current ^= caps.At(i);
     if (!current.IsNull() && (current.Id() == capability.Id())) {
@@ -2307,9 +2307,9 @@ void Isolate::AddExitListener(const SendPort& listener,
   // Ensure a limit for the number of listeners remembered.
   const intptr_t kMaxListeners = compiler::target::kSmiMax / (12 * kWordSize);
 
-  const GrowableObjectArray& listeners = GrowableObjectArray::Handle(
-      current_zone(), isolate_object_store()->exit_listeners());
-  SendPort& current = SendPort::Handle(current_zone());
+  const GrowableObjectArray& listeners =
+      GrowableObjectArray::Handle(isolate_object_store()->exit_listeners());
+  SendPort& current = SendPort::Handle();
   intptr_t insertion_index = -1;
   for (intptr_t i = 0; i < listeners.Length(); i += 2) {
     current ^= listeners.At(i);
@@ -2338,9 +2338,9 @@ void Isolate::AddExitListener(const SendPort& listener,
 }
 
 void Isolate::RemoveExitListener(const SendPort& listener) {
-  const GrowableObjectArray& listeners = GrowableObjectArray::Handle(
-      current_zone(), isolate_object_store()->exit_listeners());
-  SendPort& current = SendPort::Handle(current_zone());
+  const GrowableObjectArray& listeners =
+      GrowableObjectArray::Handle(isolate_object_store()->exit_listeners());
+  SendPort& current = SendPort::Handle();
   for (intptr_t i = 0; i < listeners.Length(); i += 2) {
     current ^= listeners.At(i);
     if (!current.IsNull() && (current.Id() == listener.Id())) {
@@ -2354,12 +2354,12 @@ void Isolate::RemoveExitListener(const SendPort& listener) {
 }
 
 void Isolate::NotifyExitListeners() {
-  const GrowableObjectArray& listeners = GrowableObjectArray::Handle(
-      current_zone(), isolate_object_store()->exit_listeners());
+  const GrowableObjectArray& listeners =
+      GrowableObjectArray::Handle(isolate_object_store()->exit_listeners());
   if (listeners.IsNull()) return;
 
-  SendPort& listener = SendPort::Handle(current_zone());
-  Instance& response = Instance::Handle(current_zone());
+  SendPort& listener = SendPort::Handle();
+  Instance& response = Instance::Handle();
   for (intptr_t i = 0; i < listeners.Length(); i += 2) {
     listener ^= listeners.At(i);
     if (!listener.IsNull()) {
@@ -2374,9 +2374,9 @@ void Isolate::AddErrorListener(const SendPort& listener) {
   // Ensure a limit for the number of listeners remembered.
   const intptr_t kMaxListeners = compiler::target::kSmiMax / (6 * kWordSize);
 
-  const GrowableObjectArray& listeners = GrowableObjectArray::Handle(
-      current_zone(), isolate_object_store()->error_listeners());
-  SendPort& current = SendPort::Handle(current_zone());
+  const GrowableObjectArray& listeners =
+      GrowableObjectArray::Handle(isolate_object_store()->error_listeners());
+  SendPort& current = SendPort::Handle();
   intptr_t insertion_index = -1;
   for (intptr_t i = 0; i < listeners.Length(); i++) {
     current ^= listeners.At(i);
@@ -2402,9 +2402,9 @@ void Isolate::AddErrorListener(const SendPort& listener) {
 }
 
 void Isolate::RemoveErrorListener(const SendPort& listener) {
-  const GrowableObjectArray& listeners = GrowableObjectArray::Handle(
-      current_zone(), isolate_object_store()->error_listeners());
-  SendPort& current = SendPort::Handle(current_zone());
+  const GrowableObjectArray& listeners =
+      GrowableObjectArray::Handle(isolate_object_store()->error_listeners());
+  SendPort& current = SendPort::Handle();
   for (intptr_t i = 0; i < listeners.Length(); i++) {
     current ^= listeners.At(i);
     if (!current.IsNull() && (current.Id() == listener.Id())) {
@@ -2418,8 +2418,8 @@ void Isolate::RemoveErrorListener(const SendPort& listener) {
 
 bool Isolate::NotifyErrorListeners(const char* message,
                                    const char* stacktrace) {
-  const GrowableObjectArray& listeners = GrowableObjectArray::Handle(
-      current_zone(), isolate_object_store()->error_listeners());
+  const GrowableObjectArray& listeners =
+      GrowableObjectArray::Handle(isolate_object_store()->error_listeners());
   if (listeners.IsNull()) return false;
 
   Dart_CObject arr;
@@ -2440,13 +2440,14 @@ bool Isolate::NotifyErrorListeners(const char* message,
   }
   arr_values[1] = &stack;
 
-  SendPort& listener = SendPort::Handle(current_zone());
+  SendPort& listener = SendPort::Handle();
   bool was_somebody_notified = false;
   for (intptr_t i = 0; i < listeners.Length(); i++) {
     listener ^= listeners.At(i);
     if (!listener.IsNull()) {
       Dart_Port port_id = listener.Id();
-      PortMap::PostMessage(SerializeMessage(current_zone(), port_id, &arr));
+      PortMap::PostMessage(
+          SerializeMessage(Thread::Current()->zone(), port_id, &arr));
       was_somebody_notified = true;
     }
   }
