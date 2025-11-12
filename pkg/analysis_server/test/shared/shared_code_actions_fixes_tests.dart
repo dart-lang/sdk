@@ -875,7 +875,6 @@ class _DeprecatedCamelCaseTypes extends AnalysisRule {
     "The type name '{0}' isn't an UpperCamelCase identifier.",
     correctionMessage:
         'Try changing the name to follow the UpperCamelCase style.',
-    hasPublishedDocs: true,
     uniqueName: 'LintCode.camel_case_types',
   );
 

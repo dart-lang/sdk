@@ -159,6 +159,13 @@ abstract class AnalysisRule extends AbstractAnalysisRule {
 
   /// Reports a diagnostic at [node] with message [arguments] and
   /// [contextMessages].
+  ///
+  /// {@template analyzer.lib.analysis_rule.analysis_rule.arguments}
+  /// The [arguments] are interpolated into the [DiagnosticCode.problemMessage]
+  /// and [DiagnosticCode.correctionMessage] text. If present, the first
+  /// argument (at position 0) replaces each instance of `{0}`, the second
+  /// argument (at position 1) replaces each instance of `{1}`, etc.
+  /// {@endtemplate}
   Diagnostic? reportAtNode(
     AstNode? node, {
     List<Object> arguments = const [],
@@ -172,6 +179,8 @@ abstract class AnalysisRule extends AbstractAnalysisRule {
 
   /// Reports a diagnostic at [offset], with [length], with message [arguments]
   /// and [contextMessages].
+  ///
+  /// {@macro analyzer.lib.analysis_rule.analysis_rule.arguments}
   Diagnostic reportAtOffset(
     int offset,
     int length, {
@@ -187,6 +196,8 @@ abstract class AnalysisRule extends AbstractAnalysisRule {
 
   /// Reports a diagnostic at Pubspec [node], with message [arguments] and
   /// [contextMessages].
+  ///
+  /// {@macro analyzer.lib.analysis_rule.analysis_rule.arguments}
   Diagnostic reportAtPubNode(
     PubspecNode node, {
     List<Object> arguments = const [],
@@ -200,6 +211,8 @@ abstract class AnalysisRule extends AbstractAnalysisRule {
 
   /// Reports a diagnostic at [token], with message [arguments] and
   /// [contextMessages].
+  ///
+  /// {@macro analyzer.lib.analysis_rule.analysis_rule.arguments}
   Diagnostic? reportAtToken(
     Token token, {
     List<Object> arguments = const [],
@@ -223,6 +236,8 @@ abstract class MultiAnalysisRule extends AbstractAnalysisRule {
 
   /// Reports [diagnosticCode] at [node] with message [arguments] and
   /// [contextMessages].
+  ///
+  /// {@macro analyzer.lib.analysis_rule.analysis_rule.arguments}
   Diagnostic? reportAtNode(
     AstNode? node, {
     List<Object> arguments = const [],
@@ -237,6 +252,8 @@ abstract class MultiAnalysisRule extends AbstractAnalysisRule {
 
   /// Reports [diagnosticCode] at [offset], with [length], with message [arguments]
   /// and [contextMessages].
+  ///
+  /// {@macro analyzer.lib.analysis_rule.analysis_rule.arguments}
   Diagnostic reportAtOffset(
     int offset,
     int length, {
@@ -253,6 +270,8 @@ abstract class MultiAnalysisRule extends AbstractAnalysisRule {
 
   /// Reports [diagnosticCode] at Pubspec [node], with message [arguments] and
   /// [contextMessages].
+  ///
+  /// {@macro analyzer.lib.analysis_rule.analysis_rule.arguments}
   Diagnostic reportAtPubNode(
     PubspecNode node, {
     required DiagnosticCode diagnosticCode,
@@ -274,6 +293,8 @@ abstract class MultiAnalysisRule extends AbstractAnalysisRule {
 
   /// Reports [diagnosticCode] at [token], with message [arguments] and
   /// [contextMessages].
+  ///
+  /// {@macro analyzer.lib.analysis_rule.analysis_rule.arguments}
   Diagnostic? reportAtToken(
     Token token, {
     required DiagnosticCode diagnosticCode,

@@ -1,5 +1,6 @@
 ## 0.1.8-dev
 
+- Require version `9.0.1` of the `analyzer` package.
 - Change the behavior of `analysisOptionsContent` so that by default, the
   analysis options file used in testing specifies a `true` value for
   `propagate-linter-exceptions`. This ensures that when tests are run,
