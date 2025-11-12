@@ -6,6 +6,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:analysis_server/lsp_protocol/protocol.dart' show jsonRpcVersion;
+import 'package:analysis_server/src/server/driver.dart';
 
 import 'log_entry.dart';
 
@@ -13,6 +14,10 @@ import 'log_entry.dart';
 class ServerDriver {
   /// The protocol being used by the server.
   final ServerProtocol _protocol;
+
+  /// A list of additional arguments from the comman-line used to start the
+  /// server.
+  final List<String> additionalArguments = [];
 
   /// The sink used to send messages from the IDE to the server's stdin, or
   /// `null` if the server has not been started using [start].
@@ -34,9 +39,25 @@ class ServerDriver {
   //  same process as the driver or in a separate process.
   ServerDriver({required ServerProtocol protocol}) : _protocol = protocol;
 
+  /// Returns the list of additional arguments that were passes on the command
+  /// line when the server was started that should be passed to the server
+  /// created by this driver.
+  List<String> get filteredAdditionalArguments {
+    var arguments = <String>[];
+    var nextIndex = 0;
+    while (nextIndex < additionalArguments.length) {
+      var nextArgument = additionalArguments[nextIndex];
+      if (nextArgument == Driver.withFineDependenciesOption) {
+        arguments.add(nextArgument);
+      }
+      nextIndex++;
+    }
+    return arguments;
+  }
+
   /// Returns the path to the `dart` executable.
   String get _dartExecutable {
-    return Platform.executable;
+    return Platform.resolvedExecutable;
   }
 
   /// Create a websocket through which DTD messages can be sent to the server
@@ -132,6 +153,8 @@ class ServerDriver {
     var process = await Process.start(_dartExecutable, [
       'language-server',
       '--protocol=${_protocol.flagValue}',
+      '--suppress-analytics',
+      ...filteredAdditionalArguments,
     ]);
     _stdinSink = process.stdin;
     process.stdout

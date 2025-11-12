@@ -29,19 +29,23 @@ class LogPlayer {
 
   /// Plays the log.
   Future<void> play() async {
-    // TODO(brianwilkerson): This doesn't currently attempt to retain the same
-    //  timing of messages as was recorded in the log.
     var entries = log.entries;
-    // TODO(brianwilkerson): Enhance the log entries to support an optional
-    //  'started server' entry that includes the command-line arguments passed
-    //  in to the server. If the extry is present then check here to see whether
-    //  there are arguments that need to be passed to the server on start-up.
-    for (var entry in entries) {
+    var nextIndex = 0;
+    var entry = entries[nextIndex];
+    if (entry.isCommandLine) {
+      server.additionalArguments.addAll(entry.argList);
+      nextIndex++;
+    }
+    while (nextIndex < entries.length) {
+      // TODO(brianwilkerson): This doesn't currently attempt to retain the same
+      //  timing of messages as was recorded in the log.
+      var entry = entries[nextIndex];
       if (entry.receiver == ProcessId.server) {
         await _sendMessageToServer(entry);
       } else if (entry.sender == ProcessId.server) {
         _handleMessageFromServer(entry);
       }
+      nextIndex++;
     }
     if (!_hasSeenShutdown) {
       server.shutdown();
