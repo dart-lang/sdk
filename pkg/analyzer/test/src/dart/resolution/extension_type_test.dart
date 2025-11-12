@@ -6,10 +6,12 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'context_collection_resolution.dart';
+import 'node_text_expectations.dart';
 
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(ExtensionTypeResolutionTest);
+    defineReflectiveTests(UpdateNodeTextExpectations);
   });
 }
 
@@ -479,6 +481,147 @@ ExtensionTypeDeclaration
     fieldFragment: <testLibraryFragment> it@21
     constructorFragment: <testLibraryFragment> new@null
   leftBracket: {
+  rightBracket: }
+  declaredFragment: <testLibraryFragment> A@15
+''');
+    }
+  }
+
+  test_field_staticConst() async {
+    var code = r'''
+extension type A(String it) {
+  static const int foo = 0;
+  static const int bar = 1;
+}
+''';
+
+    useDeclaringConstructorsAst = true;
+    await assertNoErrorsInCode(code);
+
+    var node = findNode.singleExtensionTypeDeclaration;
+    assertResolvedNodeText(node, r'''
+ExtensionTypeDeclaration
+  extensionKeyword: extension
+  typeKeyword: type
+  primaryConstructor: PrimaryConstructorDeclaration
+    typeName: A
+    formalParameters: FormalParameterList
+      leftParenthesis: (
+      parameter: SimpleFormalParameter
+        type: NamedType
+          name: String
+          element: dart:core::@class::String
+          type: String
+        name: it
+        declaredFragment: <testLibraryFragment> it@24
+          element: hasImplicitType isFinal isPublic
+            type: String
+            field: <testLibrary>::@extensionType::A::@field::it
+      rightParenthesis: )
+    declaredFragment: <testLibraryFragment> new@null
+      element: <testLibrary>::@extensionType::A::@constructor::new
+        type: A Function(String)
+  body: BlockClassBody
+    leftBracket: {
+    members
+      FieldDeclaration
+        staticKeyword: static
+        fields: VariableDeclarationList
+          keyword: const
+          type: NamedType
+            name: int
+            element: dart:core::@class::int
+            type: int
+          variables
+            VariableDeclaration
+              name: foo
+              equals: =
+              initializer: IntegerLiteral
+                literal: 0
+                staticType: int
+              declaredFragment: <testLibraryFragment> foo@49
+        semicolon: ;
+        declaredFragment: <null>
+      FieldDeclaration
+        staticKeyword: static
+        fields: VariableDeclarationList
+          keyword: const
+          type: NamedType
+            name: int
+            element: dart:core::@class::int
+            type: int
+          variables
+            VariableDeclaration
+              name: bar
+              equals: =
+              initializer: IntegerLiteral
+                literal: 1
+                staticType: int
+              declaredFragment: <testLibraryFragment> bar@77
+        semicolon: ;
+        declaredFragment: <null>
+    rightBracket: }
+  declaredFragment: <testLibraryFragment> A@15
+''');
+
+    {
+      useDeclaringConstructorsAst = false;
+      await assertNoErrorsInCode(code);
+
+      var node = findNode.singleExtensionTypeDeclaration;
+      assertResolvedNodeText(node, r'''
+ExtensionTypeDeclaration
+  extensionKeyword: extension
+  typeKeyword: type
+  name: A
+  representation: RepresentationDeclaration
+    leftParenthesis: (
+    fieldType: NamedType
+      name: String
+      element: dart:core::@class::String
+      type: String
+    fieldName: it
+    rightParenthesis: )
+    fieldFragment: <testLibraryFragment> it@24
+    constructorFragment: <testLibraryFragment> new@null
+  leftBracket: {
+  members
+    FieldDeclaration
+      staticKeyword: static
+      fields: VariableDeclarationList
+        keyword: const
+        type: NamedType
+          name: int
+          element: dart:core::@class::int
+          type: int
+        variables
+          VariableDeclaration
+            name: foo
+            equals: =
+            initializer: IntegerLiteral
+              literal: 0
+              staticType: int
+            declaredFragment: <testLibraryFragment> foo@49
+      semicolon: ;
+      declaredFragment: <null>
+    FieldDeclaration
+      staticKeyword: static
+      fields: VariableDeclarationList
+        keyword: const
+        type: NamedType
+          name: int
+          element: dart:core::@class::int
+          type: int
+        variables
+          VariableDeclaration
+            name: bar
+            equals: =
+            initializer: IntegerLiteral
+              literal: 1
+              staticType: int
+            declaredFragment: <testLibraryFragment> bar@77
+      semicolon: ;
+      declaredFragment: <null>
   rightBracket: }
   declaredFragment: <testLibraryFragment> A@15
 ''');

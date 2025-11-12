@@ -484,6 +484,93 @@ ClassDeclaration
 ''');
   }
 
+  test_primaryConstructor_field_staticConst() async {
+    useDeclaringConstructorsAst = true;
+    await assertNoErrorsInCode(r'''
+class A(final String a, final bool b) {
+  static const int foo = 0;
+  static const int bar = 1;
+}
+''');
+
+    var node = findNode.singleClassDeclaration;
+    assertResolvedNodeText(node, r'''
+ClassDeclaration
+  classKeyword: class
+  namePart: PrimaryConstructorDeclaration
+    typeName: A
+    formalParameters: FormalParameterList
+      leftParenthesis: (
+      parameter: SimpleFormalParameter
+        keyword: final
+        type: NamedType
+          name: String
+          element: dart:core::@class::String
+          type: String
+        name: a
+        declaredFragment: <testLibraryFragment> a@21
+          element: isFinal isPublic
+            type: String
+            field: <testLibrary>::@class::A::@field::a
+      parameter: SimpleFormalParameter
+        keyword: final
+        type: NamedType
+          name: bool
+          element: dart:core::@class::bool
+          type: bool
+        name: b
+        declaredFragment: <testLibraryFragment> b@35
+          element: isFinal isPublic
+            type: bool
+            field: <testLibrary>::@class::A::@field::b
+      rightParenthesis: )
+    declaredFragment: <testLibraryFragment> new@null
+      element: <testLibrary>::@class::A::@constructor::new
+        type: A Function(String, bool)
+  body: BlockClassBody
+    leftBracket: {
+    members
+      FieldDeclaration
+        staticKeyword: static
+        fields: VariableDeclarationList
+          keyword: const
+          type: NamedType
+            name: int
+            element: dart:core::@class::int
+            type: int
+          variables
+            VariableDeclaration
+              name: foo
+              equals: =
+              initializer: IntegerLiteral
+                literal: 0
+                staticType: int
+              declaredFragment: <testLibraryFragment> foo@59
+        semicolon: ;
+        declaredFragment: <null>
+      FieldDeclaration
+        staticKeyword: static
+        fields: VariableDeclarationList
+          keyword: const
+          type: NamedType
+            name: int
+            element: dart:core::@class::int
+            type: int
+          variables
+            VariableDeclaration
+              name: bar
+              equals: =
+              initializer: IntegerLiteral
+                literal: 1
+                staticType: int
+              declaredFragment: <testLibraryFragment> bar@87
+        semicolon: ;
+        declaredFragment: <null>
+    rightBracket: }
+  declaredFragment: <testLibraryFragment> A@6
+''');
+  }
+
   test_primaryConstructor_fieldFormalParameter() async {
     useDeclaringConstructorsAst = true;
     await assertNoErrorsInCode(r'''
