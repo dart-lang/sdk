@@ -12,40 +12,20 @@
 
 part of "package:analyzer/src/dart/error/hint_codes.dart";
 
-class HintCode extends DiagnosticCodeWithExpectedTypes {
+class HintCode {
   /// Note: Since this diagnostic is only produced in pre-3.0 code, we do not
   /// plan to go through the exercise of converting it to a Warning.
   ///
   /// No parameters.
-  static const DiagnosticWithoutArguments
-  deprecatedColonForDefaultValue = DiagnosticWithoutArgumentsImpl(
-    name: 'DEPRECATED_COLON_FOR_DEFAULT_VALUE',
-    problemMessage:
-        "Using a colon as the separator before a default value is deprecated and "
-        "will not be supported in language version 3.0 and later.",
-    correctionMessage: "Try replacing the colon with an equal sign.",
-    hasPublishedDocs: true,
-    type: DiagnosticType.HINT,
-    uniqueName: 'HintCode.DEPRECATED_COLON_FOR_DEFAULT_VALUE',
-    expectedTypes: [],
-  );
+  static const DiagnosticWithoutArguments deprecatedColonForDefaultValue =
+      diag.deprecatedColonForDefaultValue;
 
   /// Parameters:
   /// String p0: the name of the member
   static const DiagnosticWithArguments<
     LocatableDiagnostic Function({required String p0})
   >
-  deprecatedMemberUse = DiagnosticWithArguments(
-    name: 'DEPRECATED_MEMBER_USE',
-    problemMessage: "'{0}' is deprecated and shouldn't be used.",
-    correctionMessage:
-        "Try replacing the use of the deprecated member with the replacement.",
-    hasPublishedDocs: true,
-    type: DiagnosticType.HINT,
-    uniqueName: 'HintCode.DEPRECATED_MEMBER_USE',
-    withArguments: _withArgumentsDeprecatedMemberUse,
-    expectedTypes: [ExpectedType.string],
-  );
+  deprecatedMemberUse = diag.deprecatedMemberUse;
 
   /// Parameters:
   /// String p0: the name of the member
@@ -53,33 +33,12 @@ class HintCode extends DiagnosticCodeWithExpectedTypes {
   static const DiagnosticWithArguments<
     LocatableDiagnostic Function({required String p0, required String p1})
   >
-  deprecatedMemberUseWithMessage = DiagnosticWithArguments(
-    name: 'DEPRECATED_MEMBER_USE',
-    problemMessage: "'{0}' is deprecated and shouldn't be used. {1}",
-    correctionMessage:
-        "Try replacing the use of the deprecated member with the replacement.",
-    hasPublishedDocs: true,
-    type: DiagnosticType.HINT,
-    uniqueName: 'HintCode.DEPRECATED_MEMBER_USE_WITH_MESSAGE',
-    withArguments: _withArgumentsDeprecatedMemberUseWithMessage,
-    expectedTypes: [ExpectedType.string, ExpectedType.string],
-  );
+  deprecatedMemberUseWithMessage = diag.deprecatedMemberUseWithMessage;
 
   /// No parameters.
   static const DiagnosticWithoutArguments
-  importDeferredLibraryWithLoadFunction = DiagnosticWithoutArgumentsImpl(
-    name: 'IMPORT_DEFERRED_LIBRARY_WITH_LOAD_FUNCTION',
-    problemMessage:
-        "The imported library defines a top-level function named 'loadLibrary' "
-        "that is hidden by deferring this library.",
-    correctionMessage:
-        "Try changing the import to not be deferred, or rename the function in "
-        "the imported library.",
-    hasPublishedDocs: true,
-    type: DiagnosticType.HINT,
-    uniqueName: 'HintCode.IMPORT_DEFERRED_LIBRARY_WITH_LOAD_FUNCTION',
-    expectedTypes: [],
-  );
+  importDeferredLibraryWithLoadFunction =
+      diag.importDeferredLibraryWithLoadFunction;
 
   /// Parameters:
   /// String p0: the URI that is not necessary
@@ -87,50 +46,8 @@ class HintCode extends DiagnosticCodeWithExpectedTypes {
   static const DiagnosticWithArguments<
     LocatableDiagnostic Function({required String p0, required String p1})
   >
-  unnecessaryImport = DiagnosticWithArguments(
-    name: 'UNNECESSARY_IMPORT',
-    problemMessage:
-        "The import of '{0}' is unnecessary because all of the used elements are "
-        "also provided by the import of '{1}'.",
-    correctionMessage: "Try removing the import directive.",
-    hasPublishedDocs: true,
-    type: DiagnosticType.HINT,
-    uniqueName: 'HintCode.UNNECESSARY_IMPORT',
-    withArguments: _withArgumentsUnnecessaryImport,
-    expectedTypes: [ExpectedType.string, ExpectedType.string],
-  );
+  unnecessaryImport = diag.unnecessaryImport;
 
-  /// Initialize a newly created error code to have the given [name].
-  const HintCode({
-    required super.name,
-    required super.problemMessage,
-    super.correctionMessage,
-    super.hasPublishedDocs = false,
-    super.isUnresolvedIdentifier = false,
-    required super.uniqueName,
-    required super.expectedTypes,
-  }) : super(type: DiagnosticType.HINT);
-
-  static LocatableDiagnostic _withArgumentsDeprecatedMemberUse({
-    required String p0,
-  }) {
-    return LocatableDiagnosticImpl(HintCode.deprecatedMemberUse, [p0]);
-  }
-
-  static LocatableDiagnostic _withArgumentsDeprecatedMemberUseWithMessage({
-    required String p0,
-    required String p1,
-  }) {
-    return LocatableDiagnosticImpl(HintCode.deprecatedMemberUseWithMessage, [
-      p0,
-      p1,
-    ]);
-  }
-
-  static LocatableDiagnostic _withArgumentsUnnecessaryImport({
-    required String p0,
-    required String p1,
-  }) {
-    return LocatableDiagnosticImpl(HintCode.unnecessaryImport, [p0, p1]);
-  }
+  /// Do not construct instances of this class.
+  HintCode._() : assert(false);
 }

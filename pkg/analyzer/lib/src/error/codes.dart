@@ -9,6 +9,7 @@ library;
 import 'package:_fe_analyzer_shared/src/base/errors.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 
 export 'package:_fe_analyzer_shared/src/base/errors.dart'
     show LocatableDiagnosticImpl;

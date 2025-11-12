@@ -3,5 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'analyzer.dart';
+import 'diagnostic.dart' as diag;
 
 part 'lint_codes.g.dart';

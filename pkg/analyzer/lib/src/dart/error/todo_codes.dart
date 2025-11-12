@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:_fe_analyzer_shared/src/base/errors.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 
 part 'package:analyzer/src/dart/error/todo_codes.g.dart';
 

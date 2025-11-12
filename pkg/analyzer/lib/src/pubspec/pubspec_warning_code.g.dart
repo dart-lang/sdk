@@ -12,183 +12,71 @@
 
 part of "package:analyzer/src/pubspec/pubspec_warning_code.dart";
 
-class PubspecWarningCode extends DiagnosticCodeWithExpectedTypes {
+class PubspecWarningCode {
   /// Parameters:
   /// String p0: the path to the asset directory as given in the file.
   static const DiagnosticWithArguments<
     LocatableDiagnostic Function({required String p0})
   >
-  assetDirectoryDoesNotExist = DiagnosticWithArguments(
-    name: 'ASSET_DIRECTORY_DOES_NOT_EXIST',
-    problemMessage: "The asset directory '{0}' doesn't exist.",
-    correctionMessage:
-        "Try creating the directory or fixing the path to the directory.",
-    hasPublishedDocs: true,
-    type: DiagnosticType.STATIC_WARNING,
-    uniqueName: 'PubspecWarningCode.ASSET_DIRECTORY_DOES_NOT_EXIST',
-    withArguments: _withArgumentsAssetDirectoryDoesNotExist,
-    expectedTypes: [ExpectedType.string],
-  );
+  assetDirectoryDoesNotExist = diag.assetDirectoryDoesNotExist;
 
   /// Parameters:
   /// String p0: the path to the asset as given in the file.
   static const DiagnosticWithArguments<
     LocatableDiagnostic Function({required String p0})
   >
-  assetDoesNotExist = DiagnosticWithArguments(
-    name: 'ASSET_DOES_NOT_EXIST',
-    problemMessage: "The asset file '{0}' doesn't exist.",
-    correctionMessage: "Try creating the file or fixing the path to the file.",
-    hasPublishedDocs: true,
-    type: DiagnosticType.STATIC_WARNING,
-    uniqueName: 'PubspecWarningCode.ASSET_DOES_NOT_EXIST',
-    withArguments: _withArgumentsAssetDoesNotExist,
-    expectedTypes: [ExpectedType.string],
-  );
+  assetDoesNotExist = diag.assetDoesNotExist;
 
   /// No parameters.
-  static const DiagnosticWithoutArguments
-  assetFieldNotList = DiagnosticWithoutArgumentsImpl(
-    name: 'ASSET_FIELD_NOT_LIST',
-    problemMessage:
-        "The value of the 'assets' field is expected to be a list of relative file "
-        "paths.",
-    correctionMessage:
-        "Try converting the value to be a list of relative file paths.",
-    hasPublishedDocs: true,
-    type: DiagnosticType.STATIC_WARNING,
-    uniqueName: 'PubspecWarningCode.ASSET_FIELD_NOT_LIST',
-    expectedTypes: [],
-  );
+  static const DiagnosticWithoutArguments assetFieldNotList =
+      diag.assetFieldNotList;
 
   /// No parameters.
   static const DiagnosticWithoutArguments assetMissingPath =
-      DiagnosticWithoutArgumentsImpl(
-        name: 'ASSET_MISSING_PATH',
-        problemMessage: "Asset map entry must contain a 'path' field.",
-        correctionMessage: "Try adding a 'path' field.",
-        hasPublishedDocs: true,
-        type: DiagnosticType.STATIC_WARNING,
-        uniqueName: 'PubspecWarningCode.ASSET_MISSING_PATH',
-        expectedTypes: [],
-      );
+      diag.assetMissingPath;
 
   /// This code is deprecated in favor of the
   /// 'ASSET_NOT_STRING_OR_MAP' code, and will be removed.
   ///
   /// No parameters.
-  static const DiagnosticWithoutArguments assetNotString =
-      DiagnosticWithoutArgumentsImpl(
-        name: 'ASSET_NOT_STRING',
-        problemMessage: "Assets are required to be file paths (strings).",
-        correctionMessage: "Try converting the value to be a string.",
-        hasPublishedDocs: true,
-        type: DiagnosticType.STATIC_WARNING,
-        uniqueName: 'PubspecWarningCode.ASSET_NOT_STRING',
-        expectedTypes: [],
-      );
+  static const DiagnosticWithoutArguments assetNotString = diag.assetNotString;
 
   /// No parameters.
   static const DiagnosticWithoutArguments assetNotStringOrMap =
-      DiagnosticWithoutArgumentsImpl(
-        name: 'ASSET_NOT_STRING_OR_MAP',
-        problemMessage:
-            "An asset value is required to be a file path (string) or map.",
-        correctionMessage: "Try converting the value to be a string or map.",
-        hasPublishedDocs: true,
-        type: DiagnosticType.STATIC_WARNING,
-        uniqueName: 'PubspecWarningCode.ASSET_NOT_STRING_OR_MAP',
-        expectedTypes: [],
-      );
+      diag.assetNotStringOrMap;
 
   /// No parameters.
   static const DiagnosticWithoutArguments assetPathNotString =
-      DiagnosticWithoutArgumentsImpl(
-        name: 'ASSET_PATH_NOT_STRING',
-        problemMessage: "Asset paths are required to be file paths (strings).",
-        correctionMessage: "Try converting the value to be a string.",
-        hasPublishedDocs: true,
-        type: DiagnosticType.STATIC_WARNING,
-        uniqueName: 'PubspecWarningCode.ASSET_PATH_NOT_STRING',
-        expectedTypes: [],
-      );
+      diag.assetPathNotString;
 
   /// Parameters:
   /// String p0: the name of the field
   static const DiagnosticWithArguments<
     LocatableDiagnostic Function({required String p0})
   >
-  dependenciesFieldNotMap = DiagnosticWithArguments(
-    name: 'DEPENDENCIES_FIELD_NOT_MAP',
-    problemMessage: "The value of the '{0}' field is expected to be a map.",
-    correctionMessage: "Try converting the value to be a map.",
-    hasPublishedDocs: true,
-    type: DiagnosticType.STATIC_WARNING,
-    uniqueName: 'PubspecWarningCode.DEPENDENCIES_FIELD_NOT_MAP',
-    withArguments: _withArgumentsDependenciesFieldNotMap,
-    expectedTypes: [ExpectedType.string],
-  );
+  dependenciesFieldNotMap = diag.dependenciesFieldNotMap;
 
   /// Parameters:
   /// String p0: the name of the field
   static const DiagnosticWithArguments<
     LocatableDiagnostic Function({required String p0})
   >
-  deprecatedField = DiagnosticWithArguments(
-    name: 'DEPRECATED_FIELD',
-    problemMessage: "The '{0}' field is no longer used and can be removed.",
-    correctionMessage: "Try removing the field.",
-    hasPublishedDocs: true,
-    type: DiagnosticType.STATIC_WARNING,
-    uniqueName: 'PubspecWarningCode.DEPRECATED_FIELD',
-    withArguments: _withArgumentsDeprecatedField,
-    expectedTypes: [ExpectedType.string],
-  );
+  deprecatedField = diag.deprecatedField;
 
   /// No parameters.
   static const DiagnosticWithoutArguments flutterFieldNotMap =
-      DiagnosticWithoutArgumentsImpl(
-        name: 'FLUTTER_FIELD_NOT_MAP',
-        problemMessage:
-            "The value of the 'flutter' field is expected to be a map.",
-        correctionMessage: "Try converting the value to be a map.",
-        hasPublishedDocs: true,
-        type: DiagnosticType.STATIC_WARNING,
-        uniqueName: 'PubspecWarningCode.FLUTTER_FIELD_NOT_MAP',
-        expectedTypes: [],
-      );
+      diag.flutterFieldNotMap;
 
   /// Parameters:
   /// String p0: the kind of dependency.
   static const DiagnosticWithArguments<
     LocatableDiagnostic Function({required String p0})
   >
-  invalidDependency = DiagnosticWithArguments(
-    name: 'INVALID_DEPENDENCY',
-    problemMessage: "Publishable packages can't have '{0}' dependencies.",
-    correctionMessage:
-        "Try adding a 'publish_to: none' entry to mark the package as not for "
-        "publishing or remove the {0} dependency.",
-    hasPublishedDocs: true,
-    type: DiagnosticType.STATIC_WARNING,
-    uniqueName: 'PubspecWarningCode.INVALID_DEPENDENCY',
-    withArguments: _withArgumentsInvalidDependency,
-    expectedTypes: [ExpectedType.string],
-  );
+  invalidDependency = diag.invalidDependency;
 
   /// No parameters.
-  static const DiagnosticWithoutArguments
-  invalidPlatformsField = DiagnosticWithoutArgumentsImpl(
-    name: 'INVALID_PLATFORMS_FIELD',
-    problemMessage:
-        "The 'platforms' field must be a map with platforms as keys.",
-    correctionMessage:
-        "Try changing the 'platforms' field to a map with platforms as keys.",
-    hasPublishedDocs: true,
-    type: DiagnosticType.STATIC_WARNING,
-    uniqueName: 'PubspecWarningCode.INVALID_PLATFORMS_FIELD',
-    expectedTypes: [],
-  );
+  static const DiagnosticWithoutArguments invalidPlatformsField =
+      diag.invalidPlatformsField;
 
   /// Parameters:
   /// String p0: the list of packages missing from the dependencies and the list
@@ -197,276 +85,68 @@ class PubspecWarningCode extends DiagnosticCodeWithExpectedTypes {
   static const DiagnosticWithArguments<
     LocatableDiagnostic Function({required String p0})
   >
-  missingDependency = DiagnosticWithArguments(
-    name: 'MISSING_DEPENDENCY',
-    problemMessage: "Missing a dependency on imported package '{0}'.",
-    correctionMessage: "Try adding {0}.",
-    hasPublishedDocs: true,
-    type: DiagnosticType.STATIC_WARNING,
-    uniqueName: 'PubspecWarningCode.MISSING_DEPENDENCY',
-    withArguments: _withArgumentsMissingDependency,
-    expectedTypes: [ExpectedType.string],
-  );
+  missingDependency = diag.missingDependency;
 
   /// No parameters.
-  static const DiagnosticWithoutArguments missingName =
-      DiagnosticWithoutArgumentsImpl(
-        name: 'MISSING_NAME',
-        problemMessage: "The 'name' field is required but missing.",
-        correctionMessage: "Try adding a field named 'name'.",
-        hasPublishedDocs: true,
-        type: DiagnosticType.STATIC_WARNING,
-        uniqueName: 'PubspecWarningCode.MISSING_NAME',
-        expectedTypes: [],
-      );
+  static const DiagnosticWithoutArguments missingName = diag.missingName;
 
   /// No parameters.
-  static const DiagnosticWithoutArguments nameNotString =
-      DiagnosticWithoutArgumentsImpl(
-        name: 'NAME_NOT_STRING',
-        problemMessage:
-            "The value of the 'name' field is required to be a string.",
-        correctionMessage: "Try converting the value to be a string.",
-        hasPublishedDocs: true,
-        type: DiagnosticType.STATIC_WARNING,
-        uniqueName: 'PubspecWarningCode.NAME_NOT_STRING',
-        expectedTypes: [],
-      );
+  static const DiagnosticWithoutArguments nameNotString = diag.nameNotString;
 
   /// Parameters:
   /// String p0: the path to the dependency as given in the file.
   static const DiagnosticWithArguments<
     LocatableDiagnostic Function({required String p0})
   >
-  pathDoesNotExist = DiagnosticWithArguments(
-    name: 'PATH_DOES_NOT_EXIST',
-    problemMessage: "The path '{0}' doesn't exist.",
-    correctionMessage:
-        "Try creating the referenced path or using a path that exists.",
-    hasPublishedDocs: true,
-    type: DiagnosticType.STATIC_WARNING,
-    uniqueName: 'PubspecWarningCode.PATH_DOES_NOT_EXIST',
-    withArguments: _withArgumentsPathDoesNotExist,
-    expectedTypes: [ExpectedType.string],
-  );
+  pathDoesNotExist = diag.pathDoesNotExist;
 
   /// Parameters:
   /// String p0: the path as given in the file.
   static const DiagnosticWithArguments<
     LocatableDiagnostic Function({required String p0})
   >
-  pathNotPosix = DiagnosticWithArguments(
-    name: 'PATH_NOT_POSIX',
-    problemMessage: "The path '{0}' isn't a POSIX-style path.",
-    correctionMessage: "Try converting the value to a POSIX-style path.",
-    hasPublishedDocs: true,
-    type: DiagnosticType.STATIC_WARNING,
-    uniqueName: 'PubspecWarningCode.PATH_NOT_POSIX',
-    withArguments: _withArgumentsPathNotPosix,
-    expectedTypes: [ExpectedType.string],
-  );
+  pathNotPosix = diag.pathNotPosix;
 
   /// Parameters:
   /// String p0: the path to the dependency as given in the file.
   static const DiagnosticWithArguments<
     LocatableDiagnostic Function({required String p0})
   >
-  pathPubspecDoesNotExist = DiagnosticWithArguments(
-    name: 'PATH_PUBSPEC_DOES_NOT_EXIST',
-    problemMessage: "The directory '{0}' doesn't contain a pubspec.",
-    correctionMessage:
-        "Try creating a pubspec in the referenced directory or using a path "
-        "that has a pubspec.",
-    hasPublishedDocs: true,
-    type: DiagnosticType.STATIC_WARNING,
-    uniqueName: 'PubspecWarningCode.PATH_PUBSPEC_DOES_NOT_EXIST',
-    withArguments: _withArgumentsPathPubspecDoesNotExist,
-    expectedTypes: [ExpectedType.string],
-  );
+  pathPubspecDoesNotExist = diag.pathPubspecDoesNotExist;
 
   /// No parameters.
   static const DiagnosticWithoutArguments platformValueDisallowed =
-      DiagnosticWithoutArgumentsImpl(
-        name: 'PLATFORM_VALUE_DISALLOWED',
-        problemMessage: "Keys in the `platforms` field can't have values.",
-        correctionMessage: "Try removing the value, while keeping the key.",
-        hasPublishedDocs: true,
-        type: DiagnosticType.STATIC_WARNING,
-        uniqueName: 'PubspecWarningCode.PLATFORM_VALUE_DISALLOWED',
-        expectedTypes: [],
-      );
+      diag.platformValueDisallowed;
 
   /// Parameters:
   /// Object p0: the unknown platform.
   static const DiagnosticWithArguments<
     LocatableDiagnostic Function({required Object p0})
   >
-  unknownPlatform = DiagnosticWithArguments(
-    name: 'UNKNOWN_PLATFORM',
-    problemMessage: "The platform '{0}' is not a recognized platform.",
-    correctionMessage: "Try correcting the platform name or removing it.",
-    hasPublishedDocs: true,
-    type: DiagnosticType.STATIC_WARNING,
-    uniqueName: 'PubspecWarningCode.UNKNOWN_PLATFORM',
-    withArguments: _withArgumentsUnknownPlatform,
-    expectedTypes: [ExpectedType.object],
-  );
+  unknownPlatform = diag.unknownPlatform;
 
   /// Parameters:
   /// String p0: the name of the package in the dev_dependency list.
   static const DiagnosticWithArguments<
     LocatableDiagnostic Function({required String p0})
   >
-  unnecessaryDevDependency = DiagnosticWithArguments(
-    name: 'UNNECESSARY_DEV_DEPENDENCY',
-    problemMessage:
-        "The dev dependency on {0} is unnecessary because there is also a normal "
-        "dependency on that package.",
-    correctionMessage: "Try removing the dev dependency.",
-    hasPublishedDocs: true,
-    type: DiagnosticType.STATIC_WARNING,
-    uniqueName: 'PubspecWarningCode.UNNECESSARY_DEV_DEPENDENCY',
-    withArguments: _withArgumentsUnnecessaryDevDependency,
-    expectedTypes: [ExpectedType.string],
-  );
+  unnecessaryDevDependency = diag.unnecessaryDevDependency;
 
   /// No parameters.
-  static const DiagnosticWithoutArguments
-  workspaceFieldNotList = DiagnosticWithoutArgumentsImpl(
-    name: 'WORKSPACE_FIELD_NOT_LIST',
-    problemMessage:
-        "The value of the 'workspace' field is required to be a list of relative "
-        "file paths.",
-    correctionMessage:
-        "Try converting the value to be a list of relative file paths.",
-    hasPublishedDocs: true,
-    type: DiagnosticType.STATIC_WARNING,
-    uniqueName: 'PubspecWarningCode.WORKSPACE_FIELD_NOT_LIST',
-    expectedTypes: [],
-  );
+  static const DiagnosticWithoutArguments workspaceFieldNotList =
+      diag.workspaceFieldNotList;
 
   /// No parameters.
   static const DiagnosticWithoutArguments workspaceValueNotString =
-      DiagnosticWithoutArgumentsImpl(
-        name: 'WORKSPACE_VALUE_NOT_STRING',
-        problemMessage:
-            "Workspace entries are required to be directory paths (strings).",
-        correctionMessage: "Try converting the value to be a string.",
-        hasPublishedDocs: true,
-        type: DiagnosticType.STATIC_WARNING,
-        uniqueName: 'PubspecWarningCode.WORKSPACE_VALUE_NOT_STRING',
-        expectedTypes: [],
-      );
+      diag.workspaceValueNotString;
 
   /// Parameters:
   /// String p0: the path of the directory that contains the pubspec.yaml file.
   static const DiagnosticWithArguments<
     LocatableDiagnostic Function({required String p0})
   >
-  workspaceValueNotSubdirectory = DiagnosticWithArguments(
-    name: 'WORKSPACE_VALUE_NOT_SUBDIRECTORY',
-    problemMessage:
-        "Workspace values must be a relative path of a subdirectory of '{0}'.",
-    correctionMessage:
-        "Try using a subdirectory of the directory containing the "
-        "'pubspec.yaml' file.",
-    type: DiagnosticType.STATIC_WARNING,
-    uniqueName: 'PubspecWarningCode.WORKSPACE_VALUE_NOT_SUBDIRECTORY',
-    withArguments: _withArgumentsWorkspaceValueNotSubdirectory,
-    expectedTypes: [ExpectedType.string],
-  );
+  workspaceValueNotSubdirectory = diag.workspaceValueNotSubdirectory;
 
-  /// Initialize a newly created error code to have the given [name].
-  const PubspecWarningCode({
-    required super.name,
-    required super.problemMessage,
-    super.correctionMessage,
-    super.hasPublishedDocs = false,
-    super.isUnresolvedIdentifier = false,
-    required super.uniqueName,
-    required super.expectedTypes,
-  }) : super(type: DiagnosticType.STATIC_WARNING);
-
-  static LocatableDiagnostic _withArgumentsAssetDirectoryDoesNotExist({
-    required String p0,
-  }) {
-    return LocatableDiagnosticImpl(
-      PubspecWarningCode.assetDirectoryDoesNotExist,
-      [p0],
-    );
-  }
-
-  static LocatableDiagnostic _withArgumentsAssetDoesNotExist({
-    required String p0,
-  }) {
-    return LocatableDiagnosticImpl(PubspecWarningCode.assetDoesNotExist, [p0]);
-  }
-
-  static LocatableDiagnostic _withArgumentsDependenciesFieldNotMap({
-    required String p0,
-  }) {
-    return LocatableDiagnosticImpl(PubspecWarningCode.dependenciesFieldNotMap, [
-      p0,
-    ]);
-  }
-
-  static LocatableDiagnostic _withArgumentsDeprecatedField({
-    required String p0,
-  }) {
-    return LocatableDiagnosticImpl(PubspecWarningCode.deprecatedField, [p0]);
-  }
-
-  static LocatableDiagnostic _withArgumentsInvalidDependency({
-    required String p0,
-  }) {
-    return LocatableDiagnosticImpl(PubspecWarningCode.invalidDependency, [p0]);
-  }
-
-  static LocatableDiagnostic _withArgumentsMissingDependency({
-    required String p0,
-  }) {
-    return LocatableDiagnosticImpl(PubspecWarningCode.missingDependency, [p0]);
-  }
-
-  static LocatableDiagnostic _withArgumentsPathDoesNotExist({
-    required String p0,
-  }) {
-    return LocatableDiagnosticImpl(PubspecWarningCode.pathDoesNotExist, [p0]);
-  }
-
-  static LocatableDiagnostic _withArgumentsPathNotPosix({required String p0}) {
-    return LocatableDiagnosticImpl(PubspecWarningCode.pathNotPosix, [p0]);
-  }
-
-  static LocatableDiagnostic _withArgumentsPathPubspecDoesNotExist({
-    required String p0,
-  }) {
-    return LocatableDiagnosticImpl(PubspecWarningCode.pathPubspecDoesNotExist, [
-      p0,
-    ]);
-  }
-
-  static LocatableDiagnostic _withArgumentsUnknownPlatform({
-    required Object p0,
-  }) {
-    return LocatableDiagnosticImpl(PubspecWarningCode.unknownPlatform, [p0]);
-  }
-
-  static LocatableDiagnostic _withArgumentsUnnecessaryDevDependency({
-    required String p0,
-  }) {
-    return LocatableDiagnosticImpl(
-      PubspecWarningCode.unnecessaryDevDependency,
-      [p0],
-    );
-  }
-
-  static LocatableDiagnostic _withArgumentsWorkspaceValueNotSubdirectory({
-    required String p0,
-  }) {
-    return LocatableDiagnosticImpl(
-      PubspecWarningCode.workspaceValueNotSubdirectory,
-      [p0],
-    );
-  }
+  /// Do not construct instances of this class.
+  PubspecWarningCode._() : assert(false);
 }

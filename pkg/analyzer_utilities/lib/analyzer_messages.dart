@@ -129,7 +129,7 @@ const String generatedLintCodesPath = 'linter/lib/src/lint_codes.g.dart';
 ///
 /// Otherwise, diagnostic constants will be generated as static constants inside
 /// `DiagnosticCode`-derived classes such as `CompileTimeErrorCode`.
-const bool generateTopLevelConstants = false;
+const bool generateTopLevelConstants = true;
 
 const hintCodesFile = GeneratedDiagnosticFile(
   path: 'analyzer/lib/src/dart/error/hint_codes.g.dart',
