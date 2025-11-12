@@ -829,7 +829,10 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
 
     _enclosingExtension = declaredFragment.asElement2;
     _checkForConflictingExtensionTypeVariableErrorCodes();
-    _checkForFinalNotInitializedInClass(declaredFragment, node.members);
+    _checkForFinalNotInitializedInClass(
+      declaredFragment,
+      useDeclaringConstructorsAst ? node.body.members : node.members,
+    );
 
     GetterSetterTypesVerifier(
       library: _currentLibrary,
@@ -1299,7 +1302,9 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
 
       _enclosingClass = declaredElement;
 
-      List<ClassMember> members = node.members;
+      List<ClassMember> members = useDeclaringConstructorsAst
+          ? node.body.members
+          : node.members;
       _checkForBuiltInIdentifierAsName(
         node.name,
         CompileTimeErrorCode.builtInIdentifierAsTypeName,
