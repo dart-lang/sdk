@@ -160,9 +160,7 @@ part of 'diagnostic_code_values.dart';
     for (var message
         in diagnosticTables.activeMessagesByPackage[AnalyzerDiagnosticPackage
             .analyzer]!) {
-      var analyzerCode = message.analyzerCode;
-      var diagnosticName = analyzerCode.camelCaseName;
-      out.writeln('  ${analyzerCode.diagnosticClass.name}.$diagnosticName,');
+      out.writeln('  ${message.analyzerCode.analyzerCodeReference},');
     }
     out.writeln('];');
     out.writeln();

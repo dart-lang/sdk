@@ -632,7 +632,7 @@ mixin MessageWithAnalyzerCode on Message {
           '''
 static LocatableDiagnostic $withArgumentsName({$withArgumentsParams}) {
   return LocatableDiagnosticImpl(
-    ${diagnosticClassInfo.name}.$constantName, [$argumentNames]);
+    ${analyzerCode.analyzerCodeReference}, [$argumentNames]);
 }''';
     }
 
