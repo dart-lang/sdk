@@ -86,9 +86,6 @@ Extra constant evaluation: evaluated: 35, effectively constant: 6
 
 Constructor coverage from constants:
 org-dartlang-testcase:///issue61222.dart:
-- E|constructor#vn (from org-dartlang-testcase:///issue61222.dart:14:9)
-- E|constructor#_ (from org-dartlang-testcase:///issue61222.dart:13:24)
-- E|constructor#v1 (from org-dartlang-testcase:///issue61222.dart:15:9)
 - C.vn (from org-dartlang-testcase:///issue61222.dart:21:9)
 - C._ (from org-dartlang-testcase:///issue61222.dart:20:9)
 - Object. (from org-dartlang-sdk:///lib/core/object.dart)

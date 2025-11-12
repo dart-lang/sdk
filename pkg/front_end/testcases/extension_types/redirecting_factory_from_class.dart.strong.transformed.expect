@@ -100,6 +100,3 @@ org-dartlang-testcase:///redirecting_factory_from_class.dart:
 - Object. (from org-dartlang-sdk:///sdk/lib/core/object.dart)
 - C2. (from org-dartlang-testcase:///redirecting_factory_from_class.dart:33:9)
 - A1. (from org-dartlang-testcase:///redirecting_factory_from_class.dart:7:9)
-- E1|constructor# (from org-dartlang-testcase:///redirecting_factory_from_class.dart:11:24)
-- E2|constructor#pick (from org-dartlang-testcase:///redirecting_factory_from_class.dart:37:9)
-- E2|constructor# (from org-dartlang-testcase:///redirecting_factory_from_class.dart:36:24)

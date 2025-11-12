@@ -36,8 +36,3 @@ constants  {
   #C5 = eval /* from org-dartlang-testcase:///issue56803.dart */ #C2 ?{core::String?} #C3 : #C4
   #C6 = eval /* from org-dartlang-testcase:///issue56803.dart */ const self::Ext|constructor#()
 }
-
-
-Constructor coverage from constants:
-org-dartlang-testcase:///issue56803.dart:
-- Ext|constructor# (from org-dartlang-testcase:///issue56803.dart:7:9)

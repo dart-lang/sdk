@@ -84,8 +84,3 @@ constants  {
   #C1 = 42
   #C2 = 87
 }
-
-
-Constructor coverage from constants:
-org-dartlang-testcase:///const_constructor.dart:
-- Class|constructor# (from org-dartlang-testcase:///const_constructor.dart:5:27)
