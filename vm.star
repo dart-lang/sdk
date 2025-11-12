@@ -420,7 +420,7 @@ _vm_builder(
     "vm-fuchsia-release-x64",
     category = "vm|misc|f",
     channels = ["try"],
-    dimensions = [noble, {"kvm": "1"}],
+    dimensions = [jammy, {"host_class": "virtualization"}],
     properties = [fuchsia_deps],
 )
 
