@@ -193,21 +193,3 @@ constants  {
   #C2 = "hello world"
   #C3 = null
 }
-
-
-Constructor coverage from constants:
-org-dartlang-testcase:///main_lib.dart:
-- ExtString|constructor# (from org-dartlang-testcase:///main_lib.dart:9:31)
-- ExtString|constructor#named (from org-dartlang-testcase:///main_lib.dart:10:9)
-- ExtNullable|constructor# (from org-dartlang-testcase:///main_lib.dart:17:33)
-- ExtGeneric|constructor# (from org-dartlang-testcase:///main_lib.dart:25:35)
-
-org-dartlang-testcase:///main.dart:
-- SameString|constructor# (from org-dartlang-testcase:///main.dart:11:32)
-- SameString|constructor#named (from org-dartlang-testcase:///main.dart:12:9)
-- SameNullable|constructor# (from org-dartlang-testcase:///main.dart:19:34)
-- SameGeneric|constructor# (from org-dartlang-testcase:///main.dart:27:36)
-- ExtString|constructor# (from org-dartlang-testcase:///main_lib.dart:9:31)
-- ExtString|constructor#named (from org-dartlang-testcase:///main_lib.dart:10:9)
-- ExtNullable|constructor# (from org-dartlang-testcase:///main_lib.dart:17:33)
-- ExtGeneric|constructor# (from org-dartlang-testcase:///main_lib.dart:25:35)

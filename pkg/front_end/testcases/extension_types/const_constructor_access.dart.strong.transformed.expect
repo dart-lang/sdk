@@ -105,8 +105,3 @@ static synthetic method _#Typedef2#new#tearOff<unrelated X extends core::Object?
 constants  {
   #C1 = 0
 }
-
-
-Constructor coverage from constants:
-org-dartlang-testcase:///const_constructor_access.dart:
-- ExtensionType2|constructor# (from org-dartlang-testcase:///const_constructor_access.dart:17:36)

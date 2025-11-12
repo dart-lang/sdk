@@ -1578,13 +1578,6 @@ class Isolate : public IntrusiveDListEntry<Isolate> {
       const GrowableObjectArray& value);
 #endif  // !defined(PRODUCT)
 
-  // DEPRECATED: Use Thread's methods instead. During migration, these default
-  // to using the mutator thread (which must also be the current thread).
-  Zone* current_zone() const {
-    ASSERT(Thread::Current() == mutator_thread());
-    return mutator_thread()->zone();
-  }
-
   // Accessed from generated code.
   // ** This block of fields must come first! **
   // For AOT cross-compilation, we rely on these members having the same offsets

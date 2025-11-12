@@ -43,8 +43,3 @@ Evaluated with empty environment: EqualsNull @ org-dartlang-testcase:///issue568
 Evaluated with empty environment: ConstantExpression @ org-dartlang-testcase:///issue56803.dart:8:16 -> NullConstant(null)
 Evaluated with empty environment: ConstantExpression @ org-dartlang-testcase:///issue56803.dart:5:57 -> NullConstant(null)
 Extra constant evaluation: evaluated: 13, effectively constant: 4
-
-
-Constructor coverage from constants:
-org-dartlang-testcase:///issue56803.dart:
-- Ext|constructor# (from org-dartlang-testcase:///issue56803.dart:7:9)
