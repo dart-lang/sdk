@@ -43,7 +43,7 @@ List<GeneratedContent> _analyzerGeneratedFiles() {
   return [
     for (var entry in classesByFile.entries)
       GeneratedFile(entry.key.path, (pkgRoot) async {
-        var codeGenerator = _AnalyzerDiagnosticGenerator(
+        var codeGenerator = _AnalyzerDiagnosticClassGenerator(
           entry.key,
           entry.value,
         );
@@ -57,11 +57,24 @@ List<GeneratedContent> _analyzerGeneratedFiles() {
       codeGenerator.generate();
       return codeGenerator.out.toString();
     }),
+    for (var package in AnalyzerDiagnosticPackage.values)
+      GeneratedFile(
+        '${package.dirName}/lib/${package.diagnosticPathPart}.g.dart',
+        (pkgRoot) async {
+          var codeGenerator = _AnalyzerDiagnosticGenerator(
+            package: package,
+            parentLibrary:
+                'package:${package.dirName}/${package.diagnosticPathPart}.dart',
+          );
+          codeGenerator.generate();
+          return codeGenerator.out.toString();
+        },
+      ),
   ];
 }
 
 /// Code generator for analyzer diagnostic classes.
-class _AnalyzerDiagnosticGenerator {
+class _AnalyzerDiagnosticClassGenerator {
   final GeneratedDiagnosticFile file;
 
   final List<DiagnosticClassInfo> diagnosticClasses;
@@ -77,7 +90,7 @@ class _AnalyzerDiagnosticGenerator {
 // 'dart run pkg/analyzer/tool/messages/generate.dart' to update.
 ''');
 
-  _AnalyzerDiagnosticGenerator(this.file, this.diagnosticClasses);
+  _AnalyzerDiagnosticClassGenerator(this.file, this.diagnosticClasses);
 
   void generate() {
     file.package.writeIgnoresTo(out);
@@ -94,9 +107,10 @@ part of ${json.encode(file.parentLibrary)};
           out.writeln('/// $line');
         });
       }
-      out.write(
-        'class ${diagnosticClass.name} extends DiagnosticCodeWithExpectedTypes {',
-      );
+      var extends_ = generateTopLevelConstants
+          ? ''
+          : ' extends DiagnosticCodeWithExpectedTypes';
+      out.write('class ${diagnosticClass.name}$extends_ {');
       var memberAccumulator = MemberAccumulator();
 
       for (var message
@@ -106,30 +120,86 @@ part of ${json.encode(file.parentLibrary)};
         if (message.analyzerCode.diagnosticClass != diagnosticClass) continue;
 
         LocatedError.wrap(span: message.keySpan, () {
+          message.toClassMember(memberAccumulator: memberAccumulator);
+        });
+      }
+
+      if (generateTopLevelConstants) {
+        var constructor = StringBuffer();
+        constructor.writeln('/// Do not construct instances of this class.');
+        constructor.writeln('${diagnosticClass.name}._() : assert(false);');
+        memberAccumulator.constructors['_'] = constructor.toString();
+      } else {
+        var constructor = StringBuffer();
+        constructor.writeln(
+          '/// Initialize a newly created error code to have the given '
+          '[name].',
+        );
+        constructor.writeln('const ${diagnosticClass.name}({');
+        constructor.writeln('required super.name,');
+        constructor.writeln('required super.problemMessage,');
+        constructor.writeln('super.correctionMessage,');
+        constructor.writeln('super.hasPublishedDocs = false,');
+        constructor.writeln('super.isUnresolvedIdentifier = false,');
+        constructor.writeln('required super.uniqueName,');
+        constructor.writeln('required super.expectedTypes,');
+        constructor.writeln('}) : super(');
+        constructor.writeln('type: ${diagnosticClass.typeCode},');
+        constructor.writeln(');');
+        memberAccumulator.constructors[''] = constructor.toString();
+      }
+
+      memberAccumulator.writeTo(out);
+      out.writeln('}');
+    }
+  }
+}
+
+/// Code generator for files containing analyzer diagnostics as top level
+/// constants.
+class _AnalyzerDiagnosticGenerator {
+  /// The package into which diagnostic will be generated.
+  final AnalyzerDiagnosticPackage package;
+
+  /// The Uri of the library that the generated file will be a part of.
+  final String parentLibrary;
+
+  final StringBuffer out = StringBuffer('''
+// Copyright (c) 2025, the Dart project authors. Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// THIS FILE IS GENERATED. DO NOT EDIT.
+//
+// Instead modify 'pkg/analyzer/messages.yaml' and run
+// 'dart run pkg/analyzer/tool/messages/generate.dart' to update.
+''');
+
+  _AnalyzerDiagnosticGenerator({
+    required this.package,
+    required this.parentLibrary,
+  });
+
+  void generate() {
+    package.writeIgnoresTo(out);
+    out.writeln();
+    out.write('''
+part of ${json.encode(parentLibrary)};
+''');
+    out.writeln();
+
+    if (generateTopLevelConstants) {
+      var memberAccumulator = MemberAccumulator();
+
+      for (var message in diagnosticTables.activeMessagesByPackage[package]!) {
+        LocatedError.wrap(span: message.keySpan, () {
           message.toAnalyzerCode(memberAccumulator: memberAccumulator);
         });
       }
 
-      var constructor = StringBuffer();
-      constructor.writeln(
-        '/// Initialize a newly created error code to have the given '
-        '[name].',
-      );
-      constructor.writeln('const ${diagnosticClass.name}({');
-      constructor.writeln('required super.name,');
-      constructor.writeln('required super.problemMessage,');
-      constructor.writeln('super.correctionMessage,');
-      constructor.writeln('super.hasPublishedDocs = false,');
-      constructor.writeln('super.isUnresolvedIdentifier = false,');
-      constructor.writeln('required super.uniqueName,');
-      constructor.writeln('required super.expectedTypes,');
-      constructor.writeln('}) : super(');
-      constructor.writeln('type: ${diagnosticClass.typeCode},');
-      constructor.writeln(');');
-      memberAccumulator.constructors[''] = constructor.toString();
-
       memberAccumulator.writeTo(out);
-      out.writeln('}');
+    } else {
+      out.writeln('// Not yet used.');
     }
   }
 }
@@ -160,6 +230,8 @@ part of 'diagnostic_code_values.dart';
     for (var message
         in diagnosticTables.activeMessagesByPackage[AnalyzerDiagnosticPackage
             .analyzer]!) {
+      // TODO(paulberry): after `generateTopLevelConstants` has been changed to
+      // `true`, sort these entries by camelCaseName.
       out.writeln('  ${message.analyzerCode.analyzerCodeReference},');
     }
     out.writeln('];');
@@ -177,6 +249,8 @@ part of 'diagnostic_code_values.dart';
   void _generateSharedAnalyzerCodeList() {
     out.writeln('final sharedAnalyzerCodes = <DiagnosticCode>[');
     for (var entry in diagnosticTables.sortedSharedDiagnostics) {
+      // TODO(paulberry): after `generateTopLevelConstants` has been changed to
+      // `true`, sort these entries by camelCaseName.
       out.writeln('${entry.analyzerCode.analyzerCodeReference},');
     }
     out.writeln('];');

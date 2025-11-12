@@ -164,8 +164,10 @@ class AnalyzerCode implements Comparable<AnalyzerCode> {
 
   /// The string that should be generated into analyzer source code to refer to
   /// this diagnostic code.
-  String get analyzerCodeReference =>
-      [diagnosticClass.name, camelCaseName].join('.');
+  String get analyzerCodeReference {
+    var prefix = generateTopLevelConstants ? 'diag' : diagnosticClass.name;
+    return [prefix, camelCaseName].join('.');
+  }
 
   /// The diagnostic name, converted to camel case.
   String get camelCaseName => snakeCaseName.toCamelCase();

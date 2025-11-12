@@ -51,7 +51,7 @@ class LinterLintCode extends LintCodeWithExpectedTypes {
         var analyzerCode = message.analyzerCode;
         var lintName = message.sharedName ?? analyzerCode.snakeCaseName;
         if (messagesRuleInfo[lintName]!.removed) continue;
-        message.toAnalyzerCode(
+        message.toClassMember(
           sharedNameReference: 'LintNames.$lintName',
           memberAccumulator: memberAccumulator,
         );
