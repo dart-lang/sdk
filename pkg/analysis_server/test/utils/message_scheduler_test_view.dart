@@ -38,8 +38,13 @@ class MessageSchedulerTestView implements MessageSchedulerListener {
   }
 
   @override
-  void messageCompleted(ScheduledMessage message) {
-    messageLog.add('  Complete ${message.runtimeType}: ${message.toString()}');
+  void messageCompleted(
+    ScheduledMessage message, {
+    lsp.Either2<int, String>? id,
+  }) {
+    messageLog.add(
+      '  Complete ${message.runtimeType}: ${message.toString()}${id != null ? ' (id: $id)' : ''}',
+    );
   }
 
   @override

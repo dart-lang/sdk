@@ -257,52 +257,12 @@ class CollectReportPage extends DiagnosticPage {
     collectedData['allowOverlappingHandlers'] =
         MessageScheduler.allowOverlappingHandlers;
 
-    var now = DateTime.now().millisecondsSinceEpoch;
     var listener = server.messageScheduler.listener;
     if (listener is! SchedulerTrackingListener) {
       return;
     }
 
-    Map<String, Object?> buildMessageData(
-      MessageData data, {
-      required bool isActive,
-    }) {
-      Map<String, Object?> messageData = {};
-      messageData['id'] = data.message.id;
-      messageData['pendingMessageCount'] = data.pendingMessageCount;
-      messageData['pendingDuration'] =
-          (data.activeTime ?? now) - data.pendingTime;
-      if (isActive) {
-        messageData['activeMessageCount'] = data.activeMessageCount;
-        messageData['runningDuration'] = now - data.activeTime!;
-      }
-      return messageData;
-    }
-
-    var (:pending, :active) = listener.pendingAndActiveMessages;
-    if (pending.isNotEmpty) {
-      pending.sort(
-        (first, second) => first.pendingTime.compareTo(second.pendingTime),
-      );
-      var pendingMessages = <Map<String, Object?>>[];
-      for (var data in pending) {
-        pendingMessages.add(buildMessageData(data, isActive: false));
-      }
-      collectedData['pendingMessages'] = pendingMessages;
-    }
-
-    if (active.isNotEmpty) {
-      active.sort(
-        (first, second) => first.activeTime!.compareTo(second.activeTime!),
-      );
-      var activeMessages = <Map<String, Object?>>[];
-      for (var data in active) {
-        activeMessages.add(buildMessageData(data, isActive: true));
-      }
-      collectedData['activeMessages'] = activeMessages;
-    }
-
-    collectedData['completedMessageLog'] = listener.completedMessageLog;
+    collectedData['messageLog'] = listener.getMessageLog();
   }
 
   Future<void> _collectObservatoryData(
