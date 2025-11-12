@@ -697,7 +697,7 @@ class MemberDuplicateDefinitionVerifier {
 
     if (declarationName == 'values') {
       _diagnosticReporter.atToken(
-        node.name,
+        useDeclaringConstructorsAst ? node.namePart.typeName : node.name,
         CompileTimeErrorCode.enumWithNameValues,
       );
     }
