@@ -820,6 +820,14 @@ library
           fields
             #F2 it (nameOffset:43) (firstTokenOffset:34) (offset:43)
               element: <testLibrary>::@extensionType::A::@field::it
+              metadata
+                Annotation
+                  atSign: @ @34
+                  name: SimpleIdentifier
+                    token: foo @35
+                    element: package:test/a.dart::@getter::foo
+                    staticType: null
+                  element: package:test/a.dart::@getter::foo
           constructors
             #F3 new (nameOffset:<null>) (firstTokenOffset:32) (offset:32)
               element: <testLibrary>::@extensionType::A::@constructor::new
@@ -828,6 +836,14 @@ library
               formalParameters
                 #F4 requiredPositional final this.it (nameOffset:43) (firstTokenOffset:34) (offset:43)
                   element: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
+                  metadata
+                    Annotation
+                      atSign: @ @34
+                      name: SimpleIdentifier
+                        token: foo @35
+                        element: package:test/a.dart::@getter::foo
+                        staticType: null
+                      element: package:test/a.dart::@getter::foo
           getters
             #F5 synthetic it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:43)
               element: <testLibrary>::@extensionType::A::@getter::it
@@ -842,6 +858,14 @@ library
         final it
           reference: <testLibrary>::@extensionType::A::@field::it
           firstFragment: #F2
+          metadata
+            Annotation
+              atSign: @ @34
+              name: SimpleIdentifier
+                token: foo @35
+                element: package:test/a.dart::@getter::foo
+                staticType: null
+              element: package:test/a.dart::@getter::foo
           type: int
           getter: <testLibrary>::@extensionType::A::@getter::it
           declaringFormalParameter: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
@@ -853,6 +877,14 @@ library
             #E0 requiredPositional final hasImplicitType declaring this.it
               firstFragment: #F4
               type: int
+              metadata
+                Annotation
+                  atSign: @ @34
+                  name: SimpleIdentifier
+                    token: foo @35
+                    element: package:test/a.dart::@getter::foo
+                    staticType: null
+                  element: package:test/a.dart::@getter::foo
               field: <testLibrary>::@extensionType::A::@field::it
       getters
         synthetic isExtensionTypeMember it

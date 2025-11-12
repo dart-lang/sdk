@@ -988,11 +988,18 @@ class _IndexContributor extends GeneralizingAstVisitor {
   }
 
   @override
-  void visitExtensionTypeDeclaration(ExtensionTypeDeclaration node) {
+  void visitExtensionTypeDeclaration(
+    covariant ExtensionTypeDeclarationImpl node,
+  ) {
     _addSubtype(
-      node.name.lexeme,
+      (useDeclaringConstructorsAst
+              ? node.primaryConstructor.typeName
+              : node.name)
+          .lexeme,
       implementsClause: node.implementsClause,
-      memberNodes: node.members,
+      memberNodes: useDeclaringConstructorsAst
+          ? node.body.members
+          : node.members,
     );
 
     var declaredElement = node.declaredFragment!.element;

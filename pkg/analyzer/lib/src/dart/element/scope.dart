@@ -23,7 +23,15 @@ class ConstructorInitializerScope extends EnclosedScope {
       if (formalParameter.name == '_' && hasWildcardVariables) {
         continue;
       }
-      _addGetter(formalParameter);
+
+      // If the parameter is a private named parameter, then the formal
+      // parameter's name is the public name, but in the constructor initializer
+      // list, it is referred to by its private name.
+      if (formalParameter case FieldFormalParameterElement(:var privateName?)) {
+        _getters[privateName] ??= formalParameter;
+      } else {
+        _addGetter(formalParameter);
+      }
     }
   }
 }

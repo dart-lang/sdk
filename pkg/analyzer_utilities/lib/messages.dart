@@ -516,16 +516,11 @@ class GeneratedDiagnosticFile {
   /// The URI of the library that the generated file will be a part of.
   final String parentLibrary;
 
-  /// Whether the generated file should use the `new` and `const` keywords when
-  /// generating constructor invocations.
-  final bool shouldUseExplicitNewOrConst;
-
   final bool shouldIgnorePreferSingleQuotes;
 
   const GeneratedDiagnosticFile({
     required this.path,
     required this.parentLibrary,
-    this.shouldUseExplicitNewOrConst = false,
     this.shouldIgnorePreferSingleQuotes = false,
   });
 }

@@ -22,7 +22,7 @@ class ManifestWarningCode extends DiagnosticCodeWithExpectedTypes {
   ///
   /// No parameters.
   static const DiagnosticWithoutArguments
-  cameraPermissionsIncompatible = ManifestWarningWithoutArguments(
+  cameraPermissionsIncompatible = DiagnosticWithoutArgumentsImpl(
     name: 'CAMERA_PERMISSIONS_INCOMPATIBLE',
     problemMessage:
         "Camera permissions make app incompatible for Chrome OS, consider adding "
@@ -33,6 +33,7 @@ class ManifestWarningCode extends DiagnosticCodeWithExpectedTypes {
         "android:required=\"false\">` `<uses-feature "
         "android:name=\"android.hardware.camera.autofocus\"  "
         "android:required=\"false\">`.",
+    type: DiagnosticType.STATIC_WARNING,
     uniqueName: 'ManifestWarningCode.CAMERA_PERMISSIONS_INCOMPATIBLE',
     expectedTypes: [],
   );
@@ -41,7 +42,7 @@ class ManifestWarningCode extends DiagnosticCodeWithExpectedTypes {
   ///
   /// No parameters.
   static const DiagnosticWithoutArguments
-  nonResizableActivity = ManifestWarningWithoutArguments(
+  nonResizableActivity = DiagnosticWithoutArgumentsImpl(
     name: 'NON_RESIZABLE_ACTIVITY',
     problemMessage:
         "The `<activity>` element should be allowed to be resized to allow users "
@@ -49,6 +50,7 @@ class ManifestWarningCode extends DiagnosticCodeWithExpectedTypes {
     correctionMessage:
         "Consider declaring the corresponding activity element with "
         "`resizableActivity=\"true\"` attribute.",
+    type: DiagnosticType.STATIC_WARNING,
     uniqueName: 'ManifestWarningCode.NON_RESIZABLE_ACTIVITY',
     expectedTypes: [],
   );
@@ -58,7 +60,7 @@ class ManifestWarningCode extends DiagnosticCodeWithExpectedTypes {
   ///
   /// No parameters.
   static const DiagnosticWithoutArguments
-  noTouchscreenFeature = ManifestWarningWithoutArguments(
+  noTouchscreenFeature = DiagnosticWithoutArgumentsImpl(
     name: 'NO_TOUCHSCREEN_FEATURE',
     problemMessage:
         "The default \"android.hardware.touchscreen\" needs to be optional for "
@@ -67,6 +69,7 @@ class ManifestWarningCode extends DiagnosticCodeWithExpectedTypes {
         "Consider adding <uses-feature "
         "android:name=\"android.hardware.touchscreen\" android:required=\"false\" "
         "/> to the manifest.",
+    type: DiagnosticType.STATIC_WARNING,
     uniqueName: 'ManifestWarningCode.NO_TOUCHSCREEN_FEATURE',
     expectedTypes: [],
   );
@@ -79,7 +82,7 @@ class ManifestWarningCode extends DiagnosticCodeWithExpectedTypes {
   static const DiagnosticWithArguments<
     LocatableDiagnostic Function({required Object p0})
   >
-  permissionImpliesUnsupportedHardware = ManifestWarningTemplate(
+  permissionImpliesUnsupportedHardware = DiagnosticWithArguments(
     name: 'PERMISSION_IMPLIES_UNSUPPORTED_HARDWARE',
     problemMessage:
         "Permission makes app incompatible for Chrome OS, consider adding optional "
@@ -87,6 +90,7 @@ class ManifestWarningCode extends DiagnosticCodeWithExpectedTypes {
     correctionMessage:
         " Try adding `<uses-feature android:name=\"{0}\"  "
         "android:required=\"false\">`.",
+    type: DiagnosticType.STATIC_WARNING,
     uniqueName: 'ManifestWarningCode.PERMISSION_IMPLIES_UNSUPPORTED_HARDWARE',
     withArguments: _withArgumentsPermissionImpliesUnsupportedHardware,
     expectedTypes: [ExpectedType.object],
@@ -96,7 +100,7 @@ class ManifestWarningCode extends DiagnosticCodeWithExpectedTypes {
   ///
   /// No parameters.
   static const DiagnosticWithoutArguments
-  settingOrientationOnActivity = ManifestWarningWithoutArguments(
+  settingOrientationOnActivity = DiagnosticWithoutArgumentsImpl(
     name: 'SETTING_ORIENTATION_ON_ACTIVITY',
     problemMessage:
         "The `<activity>` element should not be locked to any orientation so that "
@@ -105,6 +109,7 @@ class ManifestWarningCode extends DiagnosticCodeWithExpectedTypes {
     correctionMessage:
         "Consider declaring the corresponding activity element with "
         "`screenOrientation=\"unspecified\"` or `\"fullSensor\"` attribute.",
+    type: DiagnosticType.STATIC_WARNING,
     uniqueName: 'ManifestWarningCode.SETTING_ORIENTATION_ON_ACTIVITY',
     expectedTypes: [],
   );
@@ -116,13 +121,14 @@ class ManifestWarningCode extends DiagnosticCodeWithExpectedTypes {
   static const DiagnosticWithArguments<
     LocatableDiagnostic Function({required String p0})
   >
-  unsupportedChromeOsFeature = ManifestWarningTemplate(
+  unsupportedChromeOsFeature = DiagnosticWithArguments(
     name: 'UNSUPPORTED_CHROME_OS_FEATURE',
     problemMessage:
         "The feature {0} isn't supported on Chrome OS, consider making it "
         "optional.",
     correctionMessage:
         "Try changing to `android:required=\"false\"` for this feature.",
+    type: DiagnosticType.STATIC_WARNING,
     uniqueName: 'ManifestWarningCode.UNSUPPORTED_CHROME_OS_FEATURE',
     withArguments: _withArgumentsUnsupportedChromeOsFeature,
     expectedTypes: [ExpectedType.string],
@@ -136,13 +142,14 @@ class ManifestWarningCode extends DiagnosticCodeWithExpectedTypes {
   static const DiagnosticWithArguments<
     LocatableDiagnostic Function({required String p0})
   >
-  unsupportedChromeOsHardware = ManifestWarningTemplate(
+  unsupportedChromeOsHardware = DiagnosticWithArguments(
     name: 'UNSUPPORTED_CHROME_OS_HARDWARE',
     problemMessage:
         "The feature {0} isn't supported on Chrome OS, consider making it "
         "optional.",
     correctionMessage:
         "Try adding `android:required=\"false\"` for this feature.",
+    type: DiagnosticType.STATIC_WARNING,
     uniqueName: 'ManifestWarningCode.UNSUPPORTED_CHROME_OS_HARDWARE',
     withArguments: _withArgumentsUnsupportedChromeOsHardware,
     expectedTypes: [ExpectedType.string],
@@ -184,37 +191,4 @@ class ManifestWarningCode extends DiagnosticCodeWithExpectedTypes {
       [p0],
     );
   }
-}
-
-final class ManifestWarningTemplate<T extends Function>
-    extends ManifestWarningCode
-    implements DiagnosticWithArguments<T> {
-  @override
-  final T withArguments;
-
-  /// Initialize a newly created error code to have the given [name].
-  const ManifestWarningTemplate({
-    required super.name,
-    required super.problemMessage,
-    super.correctionMessage,
-    super.hasPublishedDocs = false,
-    super.isUnresolvedIdentifier = false,
-    required super.uniqueName,
-    required super.expectedTypes,
-    required this.withArguments,
-  });
-}
-
-final class ManifestWarningWithoutArguments extends ManifestWarningCode
-    with DiagnosticWithoutArguments {
-  /// Initialize a newly created error code to have the given [name].
-  const ManifestWarningWithoutArguments({
-    required super.name,
-    required super.problemMessage,
-    super.correctionMessage,
-    super.hasPublishedDocs = false,
-    super.isUnresolvedIdentifier = false,
-    required super.uniqueName,
-    required super.expectedTypes,
-  });
 }

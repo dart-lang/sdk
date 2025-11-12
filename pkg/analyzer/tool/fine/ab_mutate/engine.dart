@@ -9,10 +9,10 @@ import 'package:analyzer/dart/analysis/analysis_context_collection.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/diagnostic/diagnostic.dart';
+import 'package:analyzer/error/error.dart';
 import 'package:analyzer/file_system/overlay_file_system.dart';
 import 'package:analyzer/source/error_processor.dart';
 import 'package:analyzer/src/dart/analysis/analysis_context_collection.dart';
-import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/util/performance/operation_performance.dart';
 import 'package:analyzer/src/utilities/extensions/object.dart';
 
@@ -77,7 +77,7 @@ class ABEngine {
       if (errorsResult is ErrorsResult) {
         for (var diagnostic in errorsResult.diagnostics) {
           // Filter TODOs, not interesting for comparison.
-          if (diagnostic.diagnosticCode is TodoCode) {
+          if (diagnostic.diagnosticCode.type == DiagnosticType.TODO) {
             continue;
           }
           var severityName = _getProcessedSeverity(errorsResult, diagnostic);

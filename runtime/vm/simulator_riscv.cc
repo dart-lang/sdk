@@ -192,6 +192,7 @@ Simulator::Simulator() : random_(), memory_(FLAG_sim_buffer_memory) {
   stack_ =
       new char[(OSThread::GetSpecifiedStackSize() +
                 OSThread::kStackSizeBufferMax + kSimulatorStackUnderflowSize)];
+  shadow_stack_ = new char[64 * KB];
   // Low address.
   stack_limit_ = reinterpret_cast<uword>(stack_);
   // Limit for StackOverflowError.
@@ -215,6 +216,8 @@ Simulator::Simulator() : random_(), memory_(FLAG_sim_buffer_memory) {
   // The sp is initialized to point to the bottom (high address) of the
   // allocated stack area.
   set_xreg(SP, stack_base());
+  ssp_ = reinterpret_cast<uintx_t>(shadow_stack_) + 64 * KB;
+  ss_enabled_ = true;
   // The lr and pc are initialized to a known bad value that will cause an
   // access violation if the simulator ever tries to execute it.
   set_xreg(RA, kBadLR);
@@ -223,6 +226,7 @@ Simulator::Simulator() : random_(), memory_(FLAG_sim_buffer_memory) {
 
 Simulator::~Simulator() {
   delete[] stack_;
+  delete[] shadow_stack_;
   Isolate* isolate = Isolate::Current();
   if (isolate != nullptr) {
     isolate->set_simulator(nullptr);
@@ -247,6 +251,7 @@ void Simulator::PrepareCall(PreservedRegisters* preserved) {
       fregs_[i] = bit_cast<double>(kNaNBox);
     }
   }
+  preserved->ssp = ssp_;
 #endif
 }
 
@@ -278,6 +283,7 @@ void Simulator::SavePreservedRegisters(PreservedRegisters* preserved) {
   for (intptr_t i = 0; i < kNumberOfFpuRegisters; i++) {
     preserved->fregs[i] = fregs_[i];
   }
+  preserved->ssp = ssp_;
 #endif
 }
 
@@ -304,6 +310,9 @@ void Simulator::CheckPreservedRegisters(PreservedRegisters* preserved) {
         FATAL("%s was not preserved\n", fpu_reg_names[i]);
       }
     }
+  }
+  if (ssp_ != preserved->ssp) {
+    FATAL("ssp was not preserved\n");
   }
 #endif
 }
@@ -1041,10 +1050,26 @@ void Simulator::Interpret(CInstr instr) {
           set_xreg(instr.rd(),
                    get_xreg(instr.rs1()) + sign_extend(instr.i16_imm()));
         }
-      } else if ((instr.rd() == ZR) || (instr.u_imm() == 0)) {
-        IllegalInstruction(instr);
-      } else {
+      } else if ((instr.rd() != ZR) && (instr.u_imm() != 0)) {
         set_xreg(instr.rd(), sign_extend(instr.u_imm()));
+      } else if (instr.encoding() == C_SSPUSH) {
+        if (ss_enabled_) {
+          uintx_t ra = get_xreg(Register(1));
+          ssp_ -= sizeof(uintx_t);
+          // The shadow stack has special memory protections that only this
+          // write can access.
+          MemoryWrite<uintx_t>(ssp_, ra, ZR);
+        }
+      } else if (instr.encoding() == C_SSPOPCHK) {
+        if (ss_enabled_) {
+          uintx_t ra = MemoryRead<uintx_t>(ssp_, ZR);
+          ssp_ += sizeof(uintx_t);
+          if (ra != get_xreg(Register(5))) {
+            FATAL("Corrupt control flow");
+          }
+        }
+      } else {
+        IllegalInstruction(instr);
       }
       break;
     case C_ADDI:
@@ -1941,7 +1966,7 @@ void Simulator::InterpretMISCMEM(Instr instr) {
 
 void Simulator::InterpretSYSTEM(Instr instr) {
   switch (instr.funct3()) {
-    case 0:
+    case PRIV:
       switch (instr.funct12()) {
         case ECALL:
           InterpretECALL(instr);
@@ -1953,6 +1978,34 @@ void Simulator::InterpretSYSTEM(Instr instr) {
           IllegalInstruction(instr);
       }
       break;
+    case F3_100: {
+      if ((instr.funct7() == SSPUSH) && (instr.rd() == ZR) &&
+          (instr.rs1() == ZR) &&
+          ((instr.rs2() == Register(1)) || (instr.rs2() == Register(5)))) {
+        if (ss_enabled_) {
+          uintx_t ra = get_xreg(instr.rs2());
+          ssp_ -= sizeof(uintx_t);
+          // The shadow stack has special memory protections that only this
+          // write can access.
+          MemoryWrite<uintx_t>(ssp_, ra, ZR);
+        }
+      } else if ((instr.funct12() == SSPOPCHK) && (instr.rd() == ZR) &&
+                 ((instr.rs1() == Register(1)) ||
+                  (instr.rs1() == Register(5)))) {
+        if (ss_enabled_) {
+          uintx_t ra = MemoryRead<uintx_t>(ssp_, ZR);
+          ssp_ += sizeof(uintx_t);
+          if (ra != get_xreg(instr.rs1())) {
+            FATAL("Corrupt control flow");
+          }
+        }
+      } else if ((instr.funct12() == SSRDP) && (instr.rs1() == ZR)) {
+        set_xreg(instr.rd(), ss_enabled_ ? ssp_ : 0);
+      } else {
+        IllegalInstruction(instr);
+      }
+      break;
+    }
     case CSRRW: {
       if (instr.rd() == ZR) {
         // No read effect.
@@ -3407,6 +3460,9 @@ enum ControlStatusRegister {
   fflags = 0x001,
   frm = 0x002,
   fcsr = 0x003,
+
+  ssp = 0x011,
+
   cycle = 0xC00,
   time = 0xC01,
   instret = 0xC02,
@@ -3421,6 +3477,8 @@ intx_t Simulator::CSRRead(uint16_t csr) {
   switch (csr) {
     case fcsr:
       return fcsr_;
+    case ssp:
+      return ssp_;
     case cycle:
       return instret_ / 2;
     case time:
@@ -3441,7 +3499,13 @@ intx_t Simulator::CSRRead(uint16_t csr) {
 }
 
 void Simulator::CSRWrite(uint16_t csr, intx_t value) {
-  UNIMPLEMENTED();
+  switch (csr) {
+    case ssp:
+      ssp_ = value;
+      break;
+    default:
+      UNIMPLEMENTED();
+  }
 }
 
 void Simulator::CSRSet(uint16_t csr, intx_t mask) {

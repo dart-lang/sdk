@@ -1417,6 +1417,9 @@ void StubCodeCompiler::GenerateInvokeDartCodeStub() {
 
 #if defined(DART_TARGET_OS_FUCHSIA) || defined(DART_TARGET_OS_ANDROID)
   __ sx(GP, Address(A3, target::Thread::saved_shadow_call_stack_offset()));
+  // TODO(riscv): Enable once Fuchsia/Android have Zimop in their baseline.
+  // __ ssrdp(TMP);
+  // __ sx(TMP, Address(A3, target::Thread::saved_ss_offset()));
 #elif defined(USING_SHADOW_CALL_STACK)
 #error Unimplemented
 #endif
@@ -3001,6 +3004,12 @@ void StubCodeCompiler::GenerateJumpToFrameStub() {
   // and Exceptions::JumpToFrame, otherwise the shadow call stack might
   // eventually overflow.
   __ lx(GP, Address(THR, target::Thread::saved_shadow_call_stack_offset()));
+  // TODO(riscv): Enable once Fuchsia/Android have Zimop in their baseline.
+  // __ lx(TMP, Address(THR, target::Thread::saved_ss_offset()));
+  // Label ss_disabled;
+  // __ beqz(TMP, &ss_disabled);
+  // __ csrw(0x011, TMP);
+  // __ Bind(&ss_disabled);
 #elif defined(USING_SHADOW_CALL_STACK)
 #error Unimplemented
 #endif

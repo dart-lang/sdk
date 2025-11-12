@@ -573,7 +573,7 @@ void MicroAssembler::fencei() {
 
 void MicroAssembler::ecall() {
   ASSERT(Supports(RV_I));
-  EmitIType(ECALL, ZR, F3_0, ZR, SYSTEM);
+  EmitIType(ECALL, ZR, PRIV, ZR, SYSTEM);
 }
 void MicroAssembler::ebreak() {
   ASSERT(Supports(RV_I));
@@ -581,11 +581,11 @@ void MicroAssembler::ebreak() {
     c_ebreak();
     return;
   }
-  EmitIType(EBREAK, ZR, F3_0, ZR, SYSTEM);
+  EmitIType(EBREAK, ZR, PRIV, ZR, SYSTEM);
 }
 void MicroAssembler::SimulatorPrintObject(Register rs1) {
   ASSERT(Supports(RV_I));
-  EmitIType(ECALL, rs1, F3_0, ZR, SYSTEM);
+  EmitIType(ECALL, rs1, PRIV, ZR, SYSTEM);
 }
 
 void MicroAssembler::csrrw(Register rd, uint32_t csr, Register rs1) {
@@ -1969,6 +1969,51 @@ void MicroAssembler::fleqd(Register rd, FRegister rs1, FRegister rs2) {
   EmitRType(FCMPD, rs2, rs1, FLEQ, rd, OPFP);
 }
 
+void MicroAssembler::sspush(Register rs2) {
+  ASSERT((rs2 == Register(1)) || (rs2 == Register(5)));
+  ASSERT(Supports(RV_Zicfiss));
+  if (Supports(RV_C) && (rs2 == Register(1))) {
+    Emit16(C_SSPUSH);
+  } else {
+    EmitRType(SSPUSH, rs2, ZR, F3_100, ZR, SYSTEM);
+  }
+}
+
+void MicroAssembler::sspopchk(Register rs1) {
+  ASSERT((rs1 == Register(1)) || (rs1 == Register(5)));
+  ASSERT(Supports(RV_Zicfiss));
+  if (Supports(RV_C) && (rs1 == Register(5))) {
+    Emit16(C_SSPOPCHK);
+  } else {
+    EmitIType(SSPOPCHK, rs1, F3_100, ZR, SYSTEM);
+  }
+}
+
+void MicroAssembler::ssrdp(Register rd) {
+  ASSERT(Supports(RV_Zicfiss));
+  EmitIType(SSRDP, ZR, F3_100, rd, SYSTEM);
+}
+
+void MicroAssembler::ssamoswapw(Register rd,
+                                Register rs2,
+                                Address addr,
+                                std::memory_order order) {
+  ASSERT(addr.offset() == 0);
+  ASSERT(Supports(RV_Zicfiss));
+  EmitRType(SSAMOSWAP, order, rs2, addr.base(), WIDTH32, rd, AMO);
+}
+
+#if XLEN >= 64
+void MicroAssembler::ssamoswapd(Register rd,
+                                Register rs2,
+                                Address addr,
+                                std::memory_order order) {
+  ASSERT(addr.offset() == 0);
+  ASSERT(Supports(RV_Zicfiss));
+  EmitRType(SSAMOSWAP, order, rs2, addr.base(), WIDTH64, rd, AMO);
+}
+#endif  // XLEN >= 64
+
 void MicroAssembler::lb(Register rd, Address addr, std::memory_order order) {
   ASSERT(addr.offset() == 0);
   ASSERT((order == std::memory_order_acquire) ||
@@ -2187,6 +2232,7 @@ void MicroAssembler::c_lui(Register rd, uintptr_t imm) {
   ASSERT(Supports(RV_C));
   ASSERT(rd != ZR);
   ASSERT(rd != SP);
+  ASSERT(imm != 0);
   Emit16(C_LUI | EncodeCRd(rd) | EncodeCUImm(imm));
 }
 
@@ -2743,6 +2789,20 @@ void MicroAssembler::EmitR4Type(FRegister rs3,
   e |= EncodeFRs1(rs1);
   e |= EncodeRoundingMode(round);
   e |= EncodeFRd(rd);
+  e |= EncodeOpcode(opcode);
+  Emit32(e);
+}
+
+void MicroAssembler::EmitIType(Funct12 funct12,
+                               Register rs1,
+                               Funct3 funct3,
+                               Register rd,
+                               Opcode opcode) {
+  uint32_t e = 0;
+  e |= EncodeFunct12(funct12);
+  e |= EncodeRs1(rs1);
+  e |= EncodeFunct3(funct3);
+  e |= EncodeRd(rd);
   e |= EncodeOpcode(opcode);
   Emit32(e);
 }

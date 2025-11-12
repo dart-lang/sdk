@@ -294,8 +294,14 @@ void RISCVDisassembler::DisassembleInstruction(CInstr instr) {
     case C_LUI:
       if (instr.rd() == SP) {
         Print("addi 'rd, 'rs1, 'i16imm", instr, RV_C);
-      } else {
+      } else if ((instr.rd() != ZR) && (instr.u_imm() != 0)) {
         Print("lui 'rd, 'uimm", instr, RV_C);
+      } else if (instr.encoding() == C_SSPUSH) {
+        Print("sspush ra", instr, RV_Zicfiss | RV_C);
+      } else if (instr.encoding() == C_SSPOPCHK) {
+        Print("sspopchk t0", instr, RV_Zicfiss | RV_C);
+      } else {
+        UnknownInstruction(instr);
       }
       break;
     case C_ADDI:
@@ -1104,7 +1110,7 @@ void RISCVDisassembler::DisassembleMISCMEM(Instr instr) {
 
 void RISCVDisassembler::DisassembleSYSTEM(Instr instr) {
   switch (instr.funct3()) {
-    case 0:
+    case PRIV:
       switch (instr.funct12()) {
         case ECALL:
           if (instr.rs1() == ZR) {
@@ -1120,6 +1126,22 @@ void RISCVDisassembler::DisassembleSYSTEM(Instr instr) {
           UnknownInstruction(instr);
       }
       break;
+    case F3_100: {
+      if ((instr.funct7() == SSPUSH) && (instr.rd() == ZR) &&
+          (instr.rs1() == ZR) &&
+          ((instr.rs2() == Register(1)) || (instr.rs2() == Register(5)))) {
+        Print("sspush 'rs2", instr, RV_Zicfiss);
+      } else if ((instr.funct12() == SSPOPCHK) && (instr.rd() == ZR) &&
+                 ((instr.rs1() == Register(1)) ||
+                  (instr.rs1() == Register(5)))) {
+        Print("sspopchk 'rs1", instr, RV_Zicfiss);
+      } else if ((instr.funct12() == SSRDP) && (instr.rs1() == ZR)) {
+        Print("ssrdp 'rd", instr, RV_Zicfiss);
+      } else {
+        UnknownInstruction(instr);
+      }
+      break;
+    }
     case CSRRW:
       if (instr.rd() == ZR) {
         Print("csrw 'csr, 'rs1", instr, RV_I);
@@ -1309,6 +1331,9 @@ void RISCVDisassembler::DisassembleAMO32(Instr instr) {
     case STOREORDERED:
       Print("sw'order 'rs2, ('rs1)", instr, RV_Zalasr);
       break;
+    case SSAMOSWAP:
+      Print("ssamoswap.w'order 'rd, 'rs2, ('rs1)", instr, RV_Zicfiss);
+      break;
     default:
       UnknownInstruction(instr);
   }
@@ -1355,6 +1380,9 @@ void RISCVDisassembler::DisassembleAMO64(Instr instr) {
       break;
     case STOREORDERED:
       Print("sd'order 'rs2, ('rs1)", instr, RV_Zalasr);
+      break;
+    case SSAMOSWAP:
+      Print("ssamoswap.d'order 'rd, 'rs2, ('rs1)", instr, RV_Zicfiss);
       break;
 #endif
     default:

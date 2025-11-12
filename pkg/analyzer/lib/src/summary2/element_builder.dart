@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:_fe_analyzer_shared/src/scanner/token_impl.dart';
+import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
@@ -850,6 +852,7 @@ class ElementBuilder {
             name: previousParameter.name,
             nameOffset: null,
             parameterKind: previousParameter.parameterKind,
+            privateName: previousParameter.privateName,
           )..isSynthetic = true;
         case SuperFormalParameterFragmentImpl():
           return SuperFormalParameterFragmentImpl(
@@ -1468,10 +1471,26 @@ class FragmentBuilder extends ThrowingAstVisitor<void> {
     var nameToken = node.name;
     var name2 = _getFragmentName(nameToken);
 
+    // If this is a private named parameter, then use the corresponding public
+    // name as the element name and store the original private name separately.
+    String? privateName;
+    if (name2 != null &&
+        node.isNamed &&
+        _libraryBuilder.element.featureSet.isEnabled(
+          Feature.private_named_parameters,
+        )) {
+      var publicName = correspondingPublicName(name2);
+      if (publicName != null) {
+        privateName = name2;
+        name2 = publicName;
+      }
+    }
+
     var fragment = FieldFormalParameterFragmentImpl(
       name: name2,
       nameOffset: null,
       parameterKind: node.kind,
+      privateName: privateName,
     );
     _linker.elementNodes[fragment] = node;
     _enclosingContext.addParameter(fragment);
@@ -1850,6 +1869,9 @@ class FragmentBuilder extends ThrowingAstVisitor<void> {
           name: name,
           nameOffset: null,
           parameterKind: formalParameter.kind,
+          // TODO(rnystrom): Support private named parameters for declaring
+          // formals.
+          privateName: null,
         );
         formalFragment.isDeclaring = true;
 
@@ -2084,10 +2106,13 @@ class FragmentBuilder extends ThrowingAstVisitor<void> {
             name: _getFragmentName(fieldNameToken),
             nameOffset: null,
             parameterKind: ParameterKind.REQUIRED,
+            // An extension type's representation object parameter is never
+            // named, so can't be a private named parameter.
+            privateName: null,
           )
           ..isDeclaring = true
           ..hasImplicitType = true;
-
+    formalParameterFragment.metadata = _buildMetadata(formalParameter.metadata);
     formalParameter.declaredFragment = formalParameterFragment;
 
     {
@@ -2145,9 +2170,15 @@ class FragmentBuilder extends ThrowingAstVisitor<void> {
             name: _getFragmentName(fieldNameToken),
             nameOffset: null,
             parameterKind: ParameterKind.REQUIRED,
+            // An extension type's representation object parameter is never
+            // named, so can't be a private named parameter.
+            privateName: null,
           )
           ..isDeclaring = true
           ..hasImplicitType = true;
+    formalParameterFragment.metadata = _buildMetadata(
+      representation.fieldMetadata,
+    );
 
     {
       var constructorFragment =

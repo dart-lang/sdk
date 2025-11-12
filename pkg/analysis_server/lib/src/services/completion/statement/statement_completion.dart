@@ -188,8 +188,7 @@ class StatementCompletionProcessor {
     }
     for (var diagnostic in statementContext.resolveResult.diagnostics) {
       if (diagnostic.offset >= node.offset && diagnostic.offset <= node.end) {
-        if (diagnostic.diagnosticCode is! HintCode &&
-            diagnostic.diagnosticCode is! WarningCode) {
+        if (diagnostic.diagnosticCode.type == DiagnosticType.SYNTACTIC_ERROR) {
           diagnostics.add(diagnostic);
         }
       }

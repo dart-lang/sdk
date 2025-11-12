@@ -224,6 +224,14 @@ library
           fields
             #F2 hasInitializer x (nameOffset:34) (firstTokenOffset:34) (offset:34)
               element: <testLibrary>::@class::C::@field::x
+              metadata
+                Annotation
+                  atSign: @ @25
+                  name: SimpleIdentifier
+                    token: a @26
+                    element: <testLibrary>::@getter::a
+                    staticType: null
+                  element: <testLibrary>::@getter::a
           constructors
             #F3 synthetic new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:19)
               element: <testLibrary>::@class::C::@constructor::new
@@ -255,6 +263,14 @@ library
         hasInitializer x
           reference: <testLibrary>::@class::C::@field::x
           firstFragment: #F2
+          metadata
+            Annotation
+              atSign: @ @25
+              name: SimpleIdentifier
+                token: a @26
+                element: <testLibrary>::@getter::a
+                staticType: null
+              element: <testLibrary>::@getter::a
           type: int
           getter: <testLibrary>::@class::C::@getter::x
           setter: <testLibrary>::@class::C::@setter::x
@@ -1741,6 +1757,14 @@ library
           fields
             #F2 x (nameOffset:33) (firstTokenOffset:33) (offset:33)
               element: <testLibrary>::@class::C::@field::x
+              metadata
+                Annotation
+                  atSign: @ @26
+                  name: SimpleIdentifier
+                    token: a @27
+                    element: <testLibrary>::@getter::a
+                    staticType: null
+                  element: <testLibrary>::@getter::a
           constructors
             #F3 synthetic new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:22)
               element: <testLibrary>::@class::C::@constructor::new
@@ -1772,6 +1796,14 @@ library
         x
           reference: <testLibrary>::@class::C::@field::x
           firstFragment: #F2
+          metadata
+            Annotation
+              atSign: @ @26
+              name: SimpleIdentifier
+                token: a @27
+                element: <testLibrary>::@getter::a
+                staticType: null
+              element: <testLibrary>::@getter::a
           type: int
           getter: <testLibrary>::@class::C::@getter::x
           setter: <testLibrary>::@class::C::@setter::x
@@ -4180,6 +4212,14 @@ library
           fields
             #F2 hasInitializer e1 (nameOffset:37) (firstTokenOffset:32) (offset:37)
               element: <testLibrary>::@enum::E::@field::e1
+              metadata
+                Annotation
+                  atSign: @ @32
+                  name: SimpleIdentifier
+                    token: foo @33
+                    element: <testLibrary>::@getter::foo
+                    staticType: null
+                  element: <testLibrary>::@getter::foo
               initializer: expression_0
                 InstanceCreationExpression
                   constructorName: ConstructorName
@@ -4208,6 +4248,14 @@ library
                   staticType: E
             #F4 hasInitializer e3 (nameOffset:54) (firstTokenOffset:49) (offset:54)
               element: <testLibrary>::@enum::E::@field::e3
+              metadata
+                Annotation
+                  atSign: @ @49
+                  name: SimpleIdentifier
+                    token: foo @50
+                    element: <testLibrary>::@getter::foo
+                    staticType: null
+                  element: <testLibrary>::@getter::foo
               initializer: expression_2
                 InstanceCreationExpression
                   constructorName: ConstructorName
@@ -4272,6 +4320,14 @@ library
         static const enumConstant hasImplicitType hasInitializer e1
           reference: <testLibrary>::@enum::E::@field::e1
           firstFragment: #F2
+          metadata
+            Annotation
+              atSign: @ @32
+              name: SimpleIdentifier
+                token: foo @33
+                element: <testLibrary>::@getter::foo
+                staticType: null
+              element: <testLibrary>::@getter::foo
           type: E
           constantInitializer
             fragment: #F2
@@ -4288,6 +4344,14 @@ library
         static const enumConstant hasImplicitType hasInitializer e3
           reference: <testLibrary>::@enum::E::@field::e3
           firstFragment: #F4
+          metadata
+            Annotation
+              atSign: @ @49
+              name: SimpleIdentifier
+                token: foo @50
+                element: <testLibrary>::@getter::foo
+                staticType: null
+              element: <testLibrary>::@getter::foo
           type: E
           constantInitializer
             fragment: #F4
@@ -4443,14 +4507,38 @@ library
           fields
             #F2 hasInitializer isStatic (nameOffset:42) (firstTokenOffset:42) (offset:42)
               element: <testLibrary>::@class::A::@field::isStatic
+              metadata
+                Annotation
+                  atSign: @ @28
+                  name: SimpleIdentifier
+                    token: foo @29
+                    element: <testLibrary>::@getter::foo
+                    staticType: null
+                  element: <testLibrary>::@getter::foo
             #F3 hasInitializer isStaticConst (nameOffset:79) (firstTokenOffset:79) (offset:79)
               element: <testLibrary>::@class::A::@field::isStaticConst
+              metadata
+                Annotation
+                  atSign: @ @59
+                  name: SimpleIdentifier
+                    token: foo @60
+                    element: <testLibrary>::@getter::foo
+                    staticType: null
+                  element: <testLibrary>::@getter::foo
               initializer: expression_0
                 IntegerLiteral
                   literal: 2 @95
                   staticType: int
             #F4 hasInitializer isInstance (nameOffset:112) (firstTokenOffset:112) (offset:112)
               element: <testLibrary>::@class::A::@field::isInstance
+              metadata
+                Annotation
+                  atSign: @ @101
+                  name: SimpleIdentifier
+                    token: foo @102
+                    element: <testLibrary>::@getter::foo
+                    staticType: null
+                  element: <testLibrary>::@getter::foo
           constructors
             #F5 synthetic new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:22)
               element: <testLibrary>::@class::A::@constructor::new
@@ -4491,12 +4579,28 @@ library
         static hasImplicitType hasInitializer isStatic
           reference: <testLibrary>::@class::A::@field::isStatic
           firstFragment: #F2
+          metadata
+            Annotation
+              atSign: @ @28
+              name: SimpleIdentifier
+                token: foo @29
+                element: <testLibrary>::@getter::foo
+                staticType: null
+              element: <testLibrary>::@getter::foo
           type: int
           getter: <testLibrary>::@class::A::@getter::isStatic
           setter: <testLibrary>::@class::A::@setter::isStatic
         static const hasImplicitType hasInitializer isStaticConst
           reference: <testLibrary>::@class::A::@field::isStaticConst
           firstFragment: #F3
+          metadata
+            Annotation
+              atSign: @ @59
+              name: SimpleIdentifier
+                token: foo @60
+                element: <testLibrary>::@getter::foo
+                staticType: null
+              element: <testLibrary>::@getter::foo
           type: int
           constantInitializer
             fragment: #F3
@@ -4505,6 +4609,14 @@ library
         hasImplicitType hasInitializer isInstance
           reference: <testLibrary>::@class::A::@field::isInstance
           firstFragment: #F4
+          metadata
+            Annotation
+              atSign: @ @101
+              name: SimpleIdentifier
+                token: foo @102
+                element: <testLibrary>::@getter::foo
+                staticType: null
+              element: <testLibrary>::@getter::foo
           type: int
           getter: <testLibrary>::@class::A::@getter::isInstance
           setter: <testLibrary>::@class::A::@setter::isInstance
@@ -6953,6 +7065,14 @@ library
           fields
             #F2 hasInitializer foo (nameOffset:44) (firstTokenOffset:44) (offset:44)
               element: <testLibrary>::@extension::0::@field::foo
+              metadata
+                Annotation
+                  atSign: @ @24
+                  name: SimpleIdentifier
+                    token: foo @25
+                    element: <testLibrary>::@extension::0::@getter::foo
+                    staticType: null
+                  element: <testLibrary>::@extension::0::@getter::foo
               initializer: expression_0
                 IntegerLiteral
                   literal: 0 @50
@@ -6970,6 +7090,14 @@ library
         static const hasImplicitType hasInitializer foo
           reference: <testLibrary>::@extension::0::@field::foo
           firstFragment: #F2
+          metadata
+            Annotation
+              atSign: @ @24
+              name: SimpleIdentifier
+                token: foo @25
+                element: <testLibrary>::@extension::0::@getter::foo
+                staticType: null
+              element: <testLibrary>::@extension::0::@getter::foo
           type: int
           constantInitializer
             fragment: #F2

@@ -1110,20 +1110,108 @@ library
               element: <testLibrary>::@class::C::@field::hasDocComment2
             #F4 hasAnnotation (nameOffset:100) (firstTokenOffset:100) (offset:100)
               element: <testLibrary>::@class::C::@field::hasAnnotation
+              metadata
+                Annotation
+                  atSign: @ @84
+                  name: SimpleIdentifier
+                    token: Object @85
+                    element: dart:core::@class::Object
+                    staticType: null
+                  arguments: ArgumentList
+                    leftParenthesis: ( @91
+                    rightParenthesis: ) @92
+                  element: dart:core::@class::Object::@constructor::new
             #F5 hasAnnotation2 (nameOffset:115) (firstTokenOffset:115) (offset:115)
               element: <testLibrary>::@class::C::@field::hasAnnotation2
+              metadata
+                Annotation
+                  atSign: @ @84
+                  name: SimpleIdentifier
+                    token: Object @85
+                    element: dart:core::@class::Object
+                    staticType: null
+                  arguments: ArgumentList
+                    leftParenthesis: ( @91
+                    rightParenthesis: ) @92
+                  element: dart:core::@class::Object::@constructor::new
             #F6 annotationThenComment (nameOffset:184) (firstTokenOffset:184) (offset:184)
               element: <testLibrary>::@class::C::@field::annotationThenComment
+              metadata
+                Annotation
+                  atSign: @ @134
+                  name: SimpleIdentifier
+                    token: Object @135
+                    element: dart:core::@class::Object
+                    staticType: null
+                  arguments: ArgumentList
+                    leftParenthesis: ( @141
+                    rightParenthesis: ) @142
+                  element: dart:core::@class::Object::@constructor::new
             #F7 annotationThenComment2 (nameOffset:207) (firstTokenOffset:207) (offset:207)
               element: <testLibrary>::@class::C::@field::annotationThenComment2
+              metadata
+                Annotation
+                  atSign: @ @134
+                  name: SimpleIdentifier
+                    token: Object @135
+                    element: dart:core::@class::Object
+                    staticType: null
+                  arguments: ArgumentList
+                    leftParenthesis: ( @141
+                    rightParenthesis: ) @142
+                  element: dart:core::@class::Object::@constructor::new
             #F8 commentThenAnnotation (nameOffset:284) (firstTokenOffset:284) (offset:284)
               element: <testLibrary>::@class::C::@field::commentThenAnnotation
+              metadata
+                Annotation
+                  atSign: @ @268
+                  name: SimpleIdentifier
+                    token: Object @269
+                    element: dart:core::@class::Object
+                    staticType: null
+                  arguments: ArgumentList
+                    leftParenthesis: ( @275
+                    rightParenthesis: ) @276
+                  element: dart:core::@class::Object::@constructor::new
             #F9 commentThenAnnotation2 (nameOffset:307) (firstTokenOffset:307) (offset:307)
               element: <testLibrary>::@class::C::@field::commentThenAnnotation2
+              metadata
+                Annotation
+                  atSign: @ @268
+                  name: SimpleIdentifier
+                    token: Object @269
+                    element: dart:core::@class::Object
+                    staticType: null
+                  arguments: ArgumentList
+                    leftParenthesis: ( @275
+                    rightParenthesis: ) @276
+                  element: dart:core::@class::Object::@constructor::new
             #F10 commentAroundAnnotation (nameOffset:384) (firstTokenOffset:384) (offset:384)
               element: <testLibrary>::@class::C::@field::commentAroundAnnotation
+              metadata
+                Annotation
+                  atSign: @ @351
+                  name: SimpleIdentifier
+                    token: Object @352
+                    element: dart:core::@class::Object
+                    staticType: null
+                  arguments: ArgumentList
+                    leftParenthesis: ( @358
+                    rightParenthesis: ) @359
+                  element: dart:core::@class::Object::@constructor::new
             #F11 commentAroundAnnotation2 (nameOffset:409) (firstTokenOffset:409) (offset:409)
               element: <testLibrary>::@class::C::@field::commentAroundAnnotation2
+              metadata
+                Annotation
+                  atSign: @ @351
+                  name: SimpleIdentifier
+                    token: Object @352
+                    element: dart:core::@class::Object
+                    staticType: null
+                  arguments: ArgumentList
+                    leftParenthesis: ( @358
+                    rightParenthesis: ) @359
+                  element: dart:core::@class::Object::@constructor::new
           constructors
             #F12 synthetic new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
               element: <testLibrary>::@class::C::@constructor::new
@@ -1220,48 +1308,136 @@ library
         hasAnnotation
           reference: <testLibrary>::@class::C::@field::hasAnnotation
           firstFragment: #F4
+          metadata
+            Annotation
+              atSign: @ @84
+              name: SimpleIdentifier
+                token: Object @85
+                element: dart:core::@class::Object
+                staticType: null
+              arguments: ArgumentList
+                leftParenthesis: ( @91
+                rightParenthesis: ) @92
+              element: dart:core::@class::Object::@constructor::new
           type: int
           getter: <testLibrary>::@class::C::@getter::hasAnnotation
           setter: <testLibrary>::@class::C::@setter::hasAnnotation
         hasAnnotation2
           reference: <testLibrary>::@class::C::@field::hasAnnotation2
           firstFragment: #F5
+          metadata
+            Annotation
+              atSign: @ @84
+              name: SimpleIdentifier
+                token: Object @85
+                element: dart:core::@class::Object
+                staticType: null
+              arguments: ArgumentList
+                leftParenthesis: ( @91
+                rightParenthesis: ) @92
+              element: dart:core::@class::Object::@constructor::new
           type: int
           getter: <testLibrary>::@class::C::@getter::hasAnnotation2
           setter: <testLibrary>::@class::C::@setter::hasAnnotation2
         annotationThenComment
           reference: <testLibrary>::@class::C::@field::annotationThenComment
           firstFragment: #F6
+          metadata
+            Annotation
+              atSign: @ @134
+              name: SimpleIdentifier
+                token: Object @135
+                element: dart:core::@class::Object
+                staticType: null
+              arguments: ArgumentList
+                leftParenthesis: ( @141
+                rightParenthesis: ) @142
+              element: dart:core::@class::Object::@constructor::new
           type: int
           getter: <testLibrary>::@class::C::@getter::annotationThenComment
           setter: <testLibrary>::@class::C::@setter::annotationThenComment
         annotationThenComment2
           reference: <testLibrary>::@class::C::@field::annotationThenComment2
           firstFragment: #F7
+          metadata
+            Annotation
+              atSign: @ @134
+              name: SimpleIdentifier
+                token: Object @135
+                element: dart:core::@class::Object
+                staticType: null
+              arguments: ArgumentList
+                leftParenthesis: ( @141
+                rightParenthesis: ) @142
+              element: dart:core::@class::Object::@constructor::new
           type: int
           getter: <testLibrary>::@class::C::@getter::annotationThenComment2
           setter: <testLibrary>::@class::C::@setter::annotationThenComment2
         commentThenAnnotation
           reference: <testLibrary>::@class::C::@field::commentThenAnnotation
           firstFragment: #F8
+          metadata
+            Annotation
+              atSign: @ @268
+              name: SimpleIdentifier
+                token: Object @269
+                element: dart:core::@class::Object
+                staticType: null
+              arguments: ArgumentList
+                leftParenthesis: ( @275
+                rightParenthesis: ) @276
+              element: dart:core::@class::Object::@constructor::new
           type: int
           getter: <testLibrary>::@class::C::@getter::commentThenAnnotation
           setter: <testLibrary>::@class::C::@setter::commentThenAnnotation
         commentThenAnnotation2
           reference: <testLibrary>::@class::C::@field::commentThenAnnotation2
           firstFragment: #F9
+          metadata
+            Annotation
+              atSign: @ @268
+              name: SimpleIdentifier
+                token: Object @269
+                element: dart:core::@class::Object
+                staticType: null
+              arguments: ArgumentList
+                leftParenthesis: ( @275
+                rightParenthesis: ) @276
+              element: dart:core::@class::Object::@constructor::new
           type: int
           getter: <testLibrary>::@class::C::@getter::commentThenAnnotation2
           setter: <testLibrary>::@class::C::@setter::commentThenAnnotation2
         commentAroundAnnotation
           reference: <testLibrary>::@class::C::@field::commentAroundAnnotation
           firstFragment: #F10
+          metadata
+            Annotation
+              atSign: @ @351
+              name: SimpleIdentifier
+                token: Object @352
+                element: dart:core::@class::Object
+                staticType: null
+              arguments: ArgumentList
+                leftParenthesis: ( @358
+                rightParenthesis: ) @359
+              element: dart:core::@class::Object::@constructor::new
           type: int
           getter: <testLibrary>::@class::C::@getter::commentAroundAnnotation
           setter: <testLibrary>::@class::C::@setter::commentAroundAnnotation
         commentAroundAnnotation2
           reference: <testLibrary>::@class::C::@field::commentAroundAnnotation2
           firstFragment: #F11
+          metadata
+            Annotation
+              atSign: @ @351
+              name: SimpleIdentifier
+                token: Object @352
+                element: dart:core::@class::Object
+                staticType: null
+              arguments: ArgumentList
+                leftParenthesis: ( @358
+                rightParenthesis: ) @359
+              element: dart:core::@class::Object::@constructor::new
           type: int
           getter: <testLibrary>::@class::C::@getter::commentAroundAnnotation2
           setter: <testLibrary>::@class::C::@setter::commentAroundAnnotation2

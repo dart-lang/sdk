@@ -576,7 +576,7 @@ class _Element2Writer extends _AbstractElementWriter {
         _sink.writelnWithIndent('hasEnclosingTypeParameterReference: true');
       }
       // _writeDocumentation(e.documentationComment);
-      // _writeMetadata(e.metadata);
+      _writeMetadata(e.metadata);
       _writeSinceSdkVersion(e);
       // _writeCodeRange(e);
       _writeTypeInferenceError(e.typeInferenceError);
@@ -638,7 +638,7 @@ class _Element2Writer extends _AbstractElementWriter {
     _sink.withIndent(() {
       _writeElementReference('element', f.element);
       // _writeDocumentation(f.documentationComment);
-      // _writeMetadata(f.metadata);
+      _writeMetadata(f.metadata);
       // _writeSinceSdkVersion(f.sinceSdkVersion);
       // _writeCodeRange(f);
       // _writeType('type', f.type);
@@ -705,6 +705,9 @@ class _Element2Writer extends _AbstractElementWriter {
 
       switch (e) {
         case FieldFormalParameterElementImpl():
+          if (e.privateName case var privateName?) {
+            _sink.writelnWithIndent('privateName: $privateName');
+          }
           _elementPrinter.writeNamedElement2('field', e.field);
         case SuperFormalParameterElementImpl():
           _elementPrinter.writeNamedElement2(

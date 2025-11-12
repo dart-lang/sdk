@@ -123,6 +123,7 @@ extension AstNodeNullableExtension on AstNode? {
   List<ClassMember> get classMembers {
     var self = this;
     return switch (self) {
+      BlockClassBody() => self.members,
       ClassDeclaration() => self.members,
       EnumDeclaration() => self.members,
       ExtensionDeclaration() => self.members,

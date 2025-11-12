@@ -14,6 +14,9 @@ main() {
     defineReflectiveTests(
       InstanceCreationExpressionResolutionTest_WithoutConstructorTearoffs,
     );
+    defineReflectiveTests(
+      InstanceCreationExpressionResolutionTest_WithoutPrivateNamedParameters,
+    );
   });
 }
 
@@ -63,6 +66,58 @@ InstanceCreationExpression
         staticType: int
     rightParenthesis: )
   staticType: A
+''');
+  }
+}
+
+@reflectiveTest
+class InstanceCreationExpressionResolutionTest_WithoutPrivateNamedParameters
+    extends PubPackageResolutionTest
+    with WithoutPrivateNamedParametersMixin {
+  test_preFeature() async {
+    await assertErrorsInCode(
+      '''
+class C {
+  int? _x;
+  C({this._x});
+}
+
+main() {
+  C(x: 123);
+}
+''',
+      [
+        error(WarningCode.unusedField, 17, 2),
+        error(ParserErrorCode.experimentNotEnabledOffByDefault, 31, 2),
+        error(CompileTimeErrorCode.undefinedNamedParameter, 53, 1),
+      ],
+    );
+
+    var node = findNode.singleInstanceCreationExpression;
+    assertResolvedNodeText(node, r'''
+InstanceCreationExpression
+  constructorName: ConstructorName
+    type: NamedType
+      name: C
+      element: <testLibrary>::@class::C
+      type: C
+    element: <testLibrary>::@class::C::@constructor::new
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
+      NamedExpression
+        name: Label
+          label: SimpleIdentifier
+            token: x
+            element: <null>
+            staticType: null
+          colon: :
+        expression: IntegerLiteral
+          literal: 123
+          staticType: int
+        correspondingParameter: <null>
+    rightParenthesis: )
+  staticType: C
 ''');
   }
 }
@@ -1925,6 +1980,95 @@ InstanceCreationExpression
         correspondingParameter: <testLibrary>::@class::X::@constructor::new::@formalParameter::d
     rightParenthesis: )
   staticType: X
+''');
+  }
+
+  test_privateNamedParameter_privateNamedArgument() async {
+    await assertErrorsInCode(
+      r'''
+class C {
+  int? _x;
+  C({this._x});
+}
+
+main() {
+  C(_x: 123);
+}
+''',
+      [
+        error(WarningCode.unusedField, 17, 2),
+        error(CompileTimeErrorCode.undefinedNamedParameter, 53, 2),
+      ],
+    );
+
+    var node = findNode.instanceCreation('C(_x');
+    assertResolvedNodeText(node, r'''
+InstanceCreationExpression
+  constructorName: ConstructorName
+    type: NamedType
+      name: C
+      element: <testLibrary>::@class::C
+      type: C
+    element: <testLibrary>::@class::C::@constructor::new
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
+      NamedExpression
+        name: Label
+          label: SimpleIdentifier
+            token: _x
+            element: <null>
+            staticType: null
+          colon: :
+        expression: IntegerLiteral
+          literal: 123
+          staticType: int
+        correspondingParameter: <null>
+    rightParenthesis: )
+  staticType: C
+''');
+  }
+
+  test_privateNamedParameter_publicNamedArgument() async {
+    await assertErrorsInCode(
+      r'''
+class C {
+  int? _x;
+  C({this._x});
+}
+
+main() {
+  C(x: 123);
+}
+''',
+      [error(WarningCode.unusedField, 17, 2)],
+    );
+
+    var node = findNode.singleInstanceCreationExpression;
+    assertResolvedNodeText(node, r'''
+InstanceCreationExpression
+  constructorName: ConstructorName
+    type: NamedType
+      name: C
+      element: <testLibrary>::@class::C
+      type: C
+    element: <testLibrary>::@class::C::@constructor::new
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
+      NamedExpression
+        name: Label
+          label: SimpleIdentifier
+            token: x
+            element: <testLibrary>::@class::C::@constructor::new::@formalParameter::x
+            staticType: null
+          colon: :
+        expression: IntegerLiteral
+          literal: 123
+          staticType: int
+        correspondingParameter: <testLibrary>::@class::C::@constructor::new::@formalParameter::x
+    rightParenthesis: )
+  staticType: C
 ''');
   }
 

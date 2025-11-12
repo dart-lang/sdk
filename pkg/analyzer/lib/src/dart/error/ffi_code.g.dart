@@ -19,7 +19,7 @@ part of "package:analyzer/src/dart/error/ffi_code.dart";
 class FfiCode extends DiagnosticCodeWithExpectedTypes {
   /// No parameters.
   static const DiagnosticWithoutArguments
-  abiSpecificIntegerInvalid = FfiWithoutArguments(
+  abiSpecificIntegerInvalid = DiagnosticWithoutArgumentsImpl(
     name: 'ABI_SPECIFIC_INTEGER_INVALID',
     problemMessage:
         "Classes extending 'AbiSpecificInteger' must have exactly one const "
@@ -28,13 +28,14 @@ class FfiCode extends DiagnosticCodeWithExpectedTypes {
         "Try removing all type parameters, removing all members, and adding "
         "one const constructor.",
     hasPublishedDocs: true,
+    type: DiagnosticType.COMPILE_TIME_ERROR,
     uniqueName: 'FfiCode.ABI_SPECIFIC_INTEGER_INVALID',
     expectedTypes: [],
   );
 
   /// No parameters.
   static const DiagnosticWithoutArguments
-  abiSpecificIntegerMappingExtra = FfiWithoutArguments(
+  abiSpecificIntegerMappingExtra = DiagnosticWithoutArgumentsImpl(
     name: 'ABI_SPECIFIC_INTEGER_MAPPING_EXTRA',
     problemMessage:
         "Classes extending 'AbiSpecificInteger' must have exactly one "
@@ -42,13 +43,14 @@ class FfiCode extends DiagnosticCodeWithExpectedTypes {
         "ABI to a 'NativeType' integer with a fixed size.",
     correctionMessage: "Try removing the extra annotation.",
     hasPublishedDocs: true,
+    type: DiagnosticType.COMPILE_TIME_ERROR,
     uniqueName: 'FfiCode.ABI_SPECIFIC_INTEGER_MAPPING_EXTRA',
     expectedTypes: [],
   );
 
   /// No parameters.
   static const DiagnosticWithoutArguments
-  abiSpecificIntegerMappingMissing = FfiWithoutArguments(
+  abiSpecificIntegerMappingMissing = DiagnosticWithoutArgumentsImpl(
     name: 'ABI_SPECIFIC_INTEGER_MAPPING_MISSING',
     problemMessage:
         "Classes extending 'AbiSpecificInteger' must have exactly one "
@@ -56,6 +58,7 @@ class FfiCode extends DiagnosticCodeWithExpectedTypes {
         "ABI to a 'NativeType' integer with a fixed size.",
     correctionMessage: "Try adding an annotation.",
     hasPublishedDocs: true,
+    type: DiagnosticType.COMPILE_TIME_ERROR,
     uniqueName: 'FfiCode.ABI_SPECIFIC_INTEGER_MAPPING_MISSING',
     expectedTypes: [],
   );
@@ -65,7 +68,7 @@ class FfiCode extends DiagnosticCodeWithExpectedTypes {
   static const DiagnosticWithArguments<
     LocatableDiagnostic Function({required String p0})
   >
-  abiSpecificIntegerMappingUnsupported = FfiTemplate(
+  abiSpecificIntegerMappingUnsupported = DiagnosticWithArguments(
     name: 'ABI_SPECIFIC_INTEGER_MAPPING_UNSUPPORTED',
     problemMessage:
         "Invalid mapping to '{0}'; only mappings to 'Int8', 'Int16', 'Int32', "
@@ -74,24 +77,28 @@ class FfiCode extends DiagnosticCodeWithExpectedTypes {
         "Try changing the value to 'Int8', 'Int16', 'Int32', 'Int64', 'Uint8', "
         "'Uint16', 'UInt32', or 'Uint64'.",
     hasPublishedDocs: true,
+    type: DiagnosticType.COMPILE_TIME_ERROR,
     uniqueName: 'FfiCode.ABI_SPECIFIC_INTEGER_MAPPING_UNSUPPORTED',
     withArguments: _withArgumentsAbiSpecificIntegerMappingUnsupported,
     expectedTypes: [ExpectedType.string],
   );
 
   /// No parameters.
-  static const DiagnosticWithoutArguments addressPosition = FfiWithoutArguments(
+  static const DiagnosticWithoutArguments
+  addressPosition = DiagnosticWithoutArgumentsImpl(
     name: 'ADDRESS_POSITION',
     problemMessage:
         "The '.address' expression can only be used as argument to a leaf native "
         "external call.",
     hasPublishedDocs: true,
+    type: DiagnosticType.COMPILE_TIME_ERROR,
     uniqueName: 'FfiCode.ADDRESS_POSITION',
     expectedTypes: [],
   );
 
   /// No parameters.
-  static const DiagnosticWithoutArguments addressReceiver = FfiWithoutArguments(
+  static const DiagnosticWithoutArguments
+  addressReceiver = DiagnosticWithoutArgumentsImpl(
     name: 'ADDRESS_RECEIVER',
     problemMessage:
         "The receiver of '.address' must be a concrete 'TypedData', a concrete "
@@ -100,19 +107,21 @@ class FfiCode extends DiagnosticCodeWithExpectedTypes {
     correctionMessage:
         "Change the receiver of '.address' to one of the allowed kinds.",
     hasPublishedDocs: true,
+    type: DiagnosticType.COMPILE_TIME_ERROR,
     uniqueName: 'FfiCode.ADDRESS_RECEIVER',
     expectedTypes: [],
   );
 
   /// No parameters.
   static const DiagnosticWithoutArguments
-  annotationOnPointerField = FfiWithoutArguments(
+  annotationOnPointerField = DiagnosticWithoutArgumentsImpl(
     name: 'ANNOTATION_ON_POINTER_FIELD',
     problemMessage:
         "Fields in a struct class whose type is 'Pointer' shouldn't have any "
         "annotations.",
     correctionMessage: "Try removing the annotation.",
     hasPublishedDocs: true,
+    type: DiagnosticType.COMPILE_TIME_ERROR,
     uniqueName: 'FfiCode.ANNOTATION_ON_POINTER_FIELD',
     expectedTypes: [],
   );
@@ -122,11 +131,12 @@ class FfiCode extends DiagnosticCodeWithExpectedTypes {
   static const DiagnosticWithArguments<
     LocatableDiagnostic Function({required String p0})
   >
-  argumentMustBeAConstant = FfiTemplate(
+  argumentMustBeAConstant = DiagnosticWithArguments(
     name: 'ARGUMENT_MUST_BE_A_CONSTANT',
     problemMessage: "Argument '{0}' must be a constant.",
     correctionMessage: "Try replacing the value with a literal or const.",
     hasPublishedDocs: true,
+    type: DiagnosticType.COMPILE_TIME_ERROR,
     uniqueName: 'FfiCode.ARGUMENT_MUST_BE_A_CONSTANT',
     withArguments: _withArgumentsArgumentMustBeAConstant,
     expectedTypes: [ExpectedType.string],
@@ -134,13 +144,14 @@ class FfiCode extends DiagnosticCodeWithExpectedTypes {
 
   /// No parameters.
   static const DiagnosticWithoutArguments argumentMustBeNative =
-      FfiWithoutArguments(
+      DiagnosticWithoutArgumentsImpl(
         name: 'ARGUMENT_MUST_BE_NATIVE',
         problemMessage:
             "Argument to 'Native.addressOf' must be annotated with @Native",
         correctionMessage:
             "Try passing a static function or field annotated with '@Native'",
         hasPublishedDocs: true,
+        type: DiagnosticType.COMPILE_TIME_ERROR,
         uniqueName: 'FfiCode.ARGUMENT_MUST_BE_NATIVE',
         expectedTypes: [],
       );
@@ -150,11 +161,12 @@ class FfiCode extends DiagnosticCodeWithExpectedTypes {
   static const DiagnosticWithArguments<
     LocatableDiagnostic Function({required String p0})
   >
-  compoundImplementsFinalizable = FfiTemplate(
+  compoundImplementsFinalizable = DiagnosticWithArguments(
     name: 'COMPOUND_IMPLEMENTS_FINALIZABLE',
     problemMessage: "The class '{0}' can't implement Finalizable.",
     correctionMessage: "Try removing the implements clause from '{0}'.",
     hasPublishedDocs: true,
+    type: DiagnosticType.COMPILE_TIME_ERROR,
     uniqueName: 'FfiCode.COMPOUND_IMPLEMENTS_FINALIZABLE',
     withArguments: _withArgumentsCompoundImplementsFinalizable,
     expectedTypes: [ExpectedType.string],
@@ -162,7 +174,7 @@ class FfiCode extends DiagnosticCodeWithExpectedTypes {
 
   /// No parameters.
   static const DiagnosticWithoutArguments
-  creationOfStructOrUnion = FfiWithoutArguments(
+  creationOfStructOrUnion = DiagnosticWithoutArgumentsImpl(
     name: 'CREATION_OF_STRUCT_OR_UNION',
     problemMessage:
         "Subclasses of 'Struct' and 'Union' are backed by native memory, and can't "
@@ -170,6 +182,7 @@ class FfiCode extends DiagnosticCodeWithExpectedTypes {
     correctionMessage:
         "Try allocating it via allocation, or load from a 'Pointer'.",
     hasPublishedDocs: true,
+    type: DiagnosticType.COMPILE_TIME_ERROR,
     uniqueName: 'FfiCode.CREATION_OF_STRUCT_OR_UNION',
     expectedTypes: [],
   );
@@ -180,13 +193,14 @@ class FfiCode extends DiagnosticCodeWithExpectedTypes {
   static const DiagnosticWithArguments<
     LocatableDiagnostic Function({required String p0, required String p1})
   >
-  emptyStruct = FfiTemplate(
+  emptyStruct = DiagnosticWithArguments(
     name: 'EMPTY_STRUCT',
     problemMessage:
         "The class '{0}' can't be empty because it's a subclass of '{1}'.",
     correctionMessage:
         "Try adding a field to '{0}' or use a different superclass.",
     hasPublishedDocs: true,
+    type: DiagnosticType.COMPILE_TIME_ERROR,
     uniqueName: 'FfiCode.EMPTY_STRUCT',
     withArguments: _withArgumentsEmptyStruct,
     expectedTypes: [ExpectedType.string, ExpectedType.string],
@@ -194,76 +208,83 @@ class FfiCode extends DiagnosticCodeWithExpectedTypes {
 
   /// No parameters.
   static const DiagnosticWithoutArguments
-  extraAnnotationOnStructField = FfiWithoutArguments(
+  extraAnnotationOnStructField = DiagnosticWithoutArgumentsImpl(
     name: 'EXTRA_ANNOTATION_ON_STRUCT_FIELD',
     problemMessage:
         "Fields in a struct class must have exactly one annotation indicating the "
         "native type.",
     correctionMessage: "Try removing the extra annotation.",
     hasPublishedDocs: true,
+    type: DiagnosticType.COMPILE_TIME_ERROR,
     uniqueName: 'FfiCode.EXTRA_ANNOTATION_ON_STRUCT_FIELD',
     expectedTypes: [],
   );
 
   /// No parameters.
   static const DiagnosticWithoutArguments extraSizeAnnotationCarray =
-      FfiWithoutArguments(
+      DiagnosticWithoutArgumentsImpl(
         name: 'EXTRA_SIZE_ANNOTATION_CARRAY',
         problemMessage: "'Array's must have exactly one 'Array' annotation.",
         correctionMessage: "Try removing the extra annotation.",
         hasPublishedDocs: true,
+        type: DiagnosticType.COMPILE_TIME_ERROR,
         uniqueName: 'FfiCode.EXTRA_SIZE_ANNOTATION_CARRAY',
         expectedTypes: [],
       );
 
   /// No parameters.
   static const DiagnosticWithoutArguments
-  ffiNativeInvalidDuplicateDefaultAsset = FfiWithoutArguments(
+  ffiNativeInvalidDuplicateDefaultAsset = DiagnosticWithoutArgumentsImpl(
     name: 'FFI_NATIVE_INVALID_DUPLICATE_DEFAULT_ASSET',
     problemMessage:
         "There may be at most one @DefaultAsset annotation on a library.",
     correctionMessage: "Try removing the extra annotation.",
     hasPublishedDocs: true,
+    type: DiagnosticType.COMPILE_TIME_ERROR,
     uniqueName: 'FfiCode.FFI_NATIVE_INVALID_DUPLICATE_DEFAULT_ASSET',
     expectedTypes: [],
   );
 
   /// No parameters.
   static const DiagnosticWithoutArguments
-  ffiNativeInvalidMultipleAnnotations = FfiWithoutArguments(
+  ffiNativeInvalidMultipleAnnotations = DiagnosticWithoutArgumentsImpl(
     name: 'FFI_NATIVE_INVALID_MULTIPLE_ANNOTATIONS',
     problemMessage:
         "Native functions and fields must have exactly one `@Native` annotation.",
     correctionMessage: "Try removing the extra annotation.",
     hasPublishedDocs: true,
+    type: DiagnosticType.COMPILE_TIME_ERROR,
     uniqueName: 'FfiCode.FFI_NATIVE_INVALID_MULTIPLE_ANNOTATIONS',
     expectedTypes: [],
   );
 
   /// No parameters.
   static const DiagnosticWithoutArguments ffiNativeMustBeExternal =
-      FfiWithoutArguments(
+      DiagnosticWithoutArgumentsImpl(
         name: 'FFI_NATIVE_MUST_BE_EXTERNAL',
         problemMessage: "Native functions must be declared external.",
         correctionMessage: "Add the `external` keyword to the function.",
         hasPublishedDocs: true,
+        type: DiagnosticType.COMPILE_TIME_ERROR,
         uniqueName: 'FfiCode.FFI_NATIVE_MUST_BE_EXTERNAL',
         expectedTypes: [],
       );
 
   /// No parameters.
   static const DiagnosticWithoutArguments
-  ffiNativeOnlyClassesExtendingNativefieldwrapperclass1CanBePointer = FfiWithoutArguments(
-    name:
-        'FFI_NATIVE_ONLY_CLASSES_EXTENDING_NATIVEFIELDWRAPPERCLASS1_CAN_BE_POINTER',
-    problemMessage:
-        "Only classes extending NativeFieldWrapperClass1 can be passed as Pointer.",
-    correctionMessage: "Pass as Handle instead.",
-    hasPublishedDocs: true,
-    uniqueName:
-        'FfiCode.FFI_NATIVE_ONLY_CLASSES_EXTENDING_NATIVEFIELDWRAPPERCLASS1_CAN_BE_POINTER',
-    expectedTypes: [],
-  );
+  ffiNativeOnlyClassesExtendingNativefieldwrapperclass1CanBePointer =
+      DiagnosticWithoutArgumentsImpl(
+        name:
+            'FFI_NATIVE_ONLY_CLASSES_EXTENDING_NATIVEFIELDWRAPPERCLASS1_CAN_BE_POINTER',
+        problemMessage:
+            "Only classes extending NativeFieldWrapperClass1 can be passed as Pointer.",
+        correctionMessage: "Pass as Handle instead.",
+        hasPublishedDocs: true,
+        type: DiagnosticType.COMPILE_TIME_ERROR,
+        uniqueName:
+            'FfiCode.FFI_NATIVE_ONLY_CLASSES_EXTENDING_NATIVEFIELDWRAPPERCLASS1_CAN_BE_POINTER',
+        expectedTypes: [],
+      );
 
   /// Parameters:
   /// int p0: the expected number of parameters
@@ -271,13 +292,14 @@ class FfiCode extends DiagnosticCodeWithExpectedTypes {
   static const DiagnosticWithArguments<
     LocatableDiagnostic Function({required int p0, required int p1})
   >
-  ffiNativeUnexpectedNumberOfParameters = FfiTemplate(
+  ffiNativeUnexpectedNumberOfParameters = DiagnosticWithArguments(
     name: 'FFI_NATIVE_UNEXPECTED_NUMBER_OF_PARAMETERS',
     problemMessage:
         "Unexpected number of Native annotation parameters. Expected {0} but has "
         "{1}.",
     correctionMessage: "Make sure parameters match the function annotated.",
     hasPublishedDocs: true,
+    type: DiagnosticType.COMPILE_TIME_ERROR,
     uniqueName: 'FfiCode.FFI_NATIVE_UNEXPECTED_NUMBER_OF_PARAMETERS',
     withArguments: _withArgumentsFfiNativeUnexpectedNumberOfParameters,
     expectedTypes: [ExpectedType.int, ExpectedType.int],
@@ -289,7 +311,7 @@ class FfiCode extends DiagnosticCodeWithExpectedTypes {
   static const DiagnosticWithArguments<
     LocatableDiagnostic Function({required int p0, required int p1})
   >
-  ffiNativeUnexpectedNumberOfParametersWithReceiver = FfiTemplate(
+  ffiNativeUnexpectedNumberOfParametersWithReceiver = DiagnosticWithArguments(
     name: 'FFI_NATIVE_UNEXPECTED_NUMBER_OF_PARAMETERS_WITH_RECEIVER',
     problemMessage:
         "Unexpected number of Native annotation parameters. Expected {0} but has "
@@ -299,6 +321,7 @@ class FfiCode extends DiagnosticCodeWithExpectedTypes {
         "Make sure parameters match the function annotated, including an extra "
         "first parameter for the receiver.",
     hasPublishedDocs: true,
+    type: DiagnosticType.COMPILE_TIME_ERROR,
     uniqueName:
         'FfiCode.FFI_NATIVE_UNEXPECTED_NUMBER_OF_PARAMETERS_WITH_RECEIVER',
     withArguments:
@@ -308,12 +331,13 @@ class FfiCode extends DiagnosticCodeWithExpectedTypes {
 
   /// No parameters.
   static const DiagnosticWithoutArguments
-  fieldMustBeExternalInStruct = FfiWithoutArguments(
+  fieldMustBeExternalInStruct = DiagnosticWithoutArgumentsImpl(
     name: 'FIELD_MUST_BE_EXTERNAL_IN_STRUCT',
     problemMessage:
         "Fields of 'Struct' and 'Union' subclasses must be marked external.",
     correctionMessage: "Try adding the 'external' modifier.",
     hasPublishedDocs: true,
+    type: DiagnosticType.COMPILE_TIME_ERROR,
     uniqueName: 'FfiCode.FIELD_MUST_BE_EXTERNAL_IN_STRUCT',
     expectedTypes: [],
   );
@@ -323,13 +347,14 @@ class FfiCode extends DiagnosticCodeWithExpectedTypes {
   static const DiagnosticWithArguments<
     LocatableDiagnostic Function({required String p0})
   >
-  genericStructSubclass = FfiTemplate(
+  genericStructSubclass = DiagnosticWithArguments(
     name: 'GENERIC_STRUCT_SUBCLASS',
     problemMessage:
         "The class '{0}' can't extend 'Struct' or 'Union' because '{0}' is "
         "generic.",
     correctionMessage: "Try removing the type parameters from '{0}'.",
     hasPublishedDocs: true,
+    type: DiagnosticType.COMPILE_TIME_ERROR,
     uniqueName: 'FfiCode.GENERIC_STRUCT_SUBCLASS',
     withArguments: _withArgumentsGenericStructSubclass,
     expectedTypes: [ExpectedType.string],
@@ -340,7 +365,7 @@ class FfiCode extends DiagnosticCodeWithExpectedTypes {
   static const DiagnosticWithArguments<
     LocatableDiagnostic Function({required String p0})
   >
-  invalidExceptionValue = FfiTemplate(
+  invalidExceptionValue = DiagnosticWithArguments(
     name: 'INVALID_EXCEPTION_VALUE',
     problemMessage:
         "The method {0} can't have an exceptional return value (the second "
@@ -348,6 +373,7 @@ class FfiCode extends DiagnosticCodeWithExpectedTypes {
         "'Handle' or 'Pointer'.",
     correctionMessage: "Try removing the exceptional return value.",
     hasPublishedDocs: true,
+    type: DiagnosticType.COMPILE_TIME_ERROR,
     uniqueName: 'FfiCode.INVALID_EXCEPTION_VALUE',
     withArguments: _withArgumentsInvalidExceptionValue,
     expectedTypes: [ExpectedType.string],
@@ -358,7 +384,7 @@ class FfiCode extends DiagnosticCodeWithExpectedTypes {
   static const DiagnosticWithArguments<
     LocatableDiagnostic Function({required String p0})
   >
-  invalidFieldTypeInStruct = FfiTemplate(
+  invalidFieldTypeInStruct = DiagnosticWithArguments(
     name: 'INVALID_FIELD_TYPE_IN_STRUCT',
     problemMessage:
         "Fields in struct classes can't have the type '{0}'. They can only be "
@@ -368,6 +394,7 @@ class FfiCode extends DiagnosticCodeWithExpectedTypes {
         "Try using 'int', 'double', 'Array', 'Pointer', or subtype of 'Struct' "
         "or 'Union'.",
     hasPublishedDocs: true,
+    type: DiagnosticType.COMPILE_TIME_ERROR,
     uniqueName: 'FfiCode.INVALID_FIELD_TYPE_IN_STRUCT',
     withArguments: _withArgumentsInvalidFieldTypeInStruct,
     expectedTypes: [ExpectedType.string],
@@ -375,31 +402,33 @@ class FfiCode extends DiagnosticCodeWithExpectedTypes {
 
   /// No parameters.
   static const DiagnosticWithoutArguments leafCallMustNotReturnHandle =
-      FfiWithoutArguments(
+      DiagnosticWithoutArgumentsImpl(
         name: 'LEAF_CALL_MUST_NOT_RETURN_HANDLE',
         problemMessage: "FFI leaf call can't return a 'Handle'.",
         correctionMessage:
             "Try changing the return type to primitive or struct.",
         hasPublishedDocs: true,
+        type: DiagnosticType.COMPILE_TIME_ERROR,
         uniqueName: 'FfiCode.LEAF_CALL_MUST_NOT_RETURN_HANDLE',
         expectedTypes: [],
       );
 
   /// No parameters.
   static const DiagnosticWithoutArguments leafCallMustNotTakeHandle =
-      FfiWithoutArguments(
+      DiagnosticWithoutArgumentsImpl(
         name: 'LEAF_CALL_MUST_NOT_TAKE_HANDLE',
         problemMessage: "FFI leaf call can't take arguments of type 'Handle'.",
         correctionMessage:
             "Try changing the argument type to primitive or struct.",
         hasPublishedDocs: true,
+        type: DiagnosticType.COMPILE_TIME_ERROR,
         uniqueName: 'FfiCode.LEAF_CALL_MUST_NOT_TAKE_HANDLE',
         expectedTypes: [],
       );
 
   /// No parameters.
   static const DiagnosticWithoutArguments mismatchedAnnotationOnStructField =
-      FfiWithoutArguments(
+      DiagnosticWithoutArgumentsImpl(
         name: 'MISMATCHED_ANNOTATION_ON_STRUCT_FIELD',
         problemMessage:
             "The annotation doesn't match the declared type of the field.",
@@ -407,6 +436,7 @@ class FfiCode extends DiagnosticCodeWithExpectedTypes {
             "Try using a different annotation or changing the declared type to "
             "match.",
         hasPublishedDocs: true,
+        type: DiagnosticType.COMPILE_TIME_ERROR,
         uniqueName: 'FfiCode.MISMATCHED_ANNOTATION_ON_STRUCT_FIELD',
         expectedTypes: [],
       );
@@ -417,13 +447,14 @@ class FfiCode extends DiagnosticCodeWithExpectedTypes {
   static const DiagnosticWithArguments<
     LocatableDiagnostic Function({required DartType p0, required String p1})
   >
-  missingAnnotationOnStructField = FfiTemplate(
+  missingAnnotationOnStructField = DiagnosticWithArguments(
     name: 'MISSING_ANNOTATION_ON_STRUCT_FIELD',
     problemMessage:
         "Fields of type '{0}' in a subclass of '{1}' must have an annotation "
         "indicating the native type.",
     correctionMessage: "Try adding an annotation.",
     hasPublishedDocs: true,
+    type: DiagnosticType.COMPILE_TIME_ERROR,
     uniqueName: 'FfiCode.MISSING_ANNOTATION_ON_STRUCT_FIELD',
     withArguments: _withArgumentsMissingAnnotationOnStructField,
     expectedTypes: [ExpectedType.type, ExpectedType.string],
@@ -434,7 +465,7 @@ class FfiCode extends DiagnosticCodeWithExpectedTypes {
   static const DiagnosticWithArguments<
     LocatableDiagnostic Function({required String p0})
   >
-  missingExceptionValue = FfiTemplate(
+  missingExceptionValue = DiagnosticWithArguments(
     name: 'MISSING_EXCEPTION_VALUE',
     problemMessage:
         "The method {0} must have an exceptional return value (the second "
@@ -442,6 +473,7 @@ class FfiCode extends DiagnosticCodeWithExpectedTypes {
         "'Handle', nor 'Pointer'.",
     correctionMessage: "Try adding an exceptional return value.",
     hasPublishedDocs: true,
+    type: DiagnosticType.COMPILE_TIME_ERROR,
     uniqueName: 'FfiCode.MISSING_EXCEPTION_VALUE',
     withArguments: _withArgumentsMissingExceptionValue,
     expectedTypes: [ExpectedType.string],
@@ -449,20 +481,21 @@ class FfiCode extends DiagnosticCodeWithExpectedTypes {
 
   /// No parameters.
   static const DiagnosticWithoutArguments
-  missingFieldTypeInStruct = FfiWithoutArguments(
+  missingFieldTypeInStruct = DiagnosticWithoutArgumentsImpl(
     name: 'MISSING_FIELD_TYPE_IN_STRUCT',
     problemMessage:
         "Fields in struct classes must have an explicitly declared type of 'int', "
         "'double' or 'Pointer'.",
     correctionMessage: "Try using 'int', 'double' or 'Pointer'.",
     hasPublishedDocs: true,
+    type: DiagnosticType.COMPILE_TIME_ERROR,
     uniqueName: 'FfiCode.MISSING_FIELD_TYPE_IN_STRUCT',
     expectedTypes: [],
   );
 
   /// No parameters.
   static const DiagnosticWithoutArguments missingSizeAnnotationCarray =
-      FfiWithoutArguments(
+      DiagnosticWithoutArgumentsImpl(
         name: 'MISSING_SIZE_ANNOTATION_CARRAY',
         problemMessage:
             "Fields of type 'Array' must have exactly one 'Array' annotation.",
@@ -470,6 +503,7 @@ class FfiCode extends DiagnosticCodeWithExpectedTypes {
             "Try adding an 'Array' annotation, or removing all but one of the "
             "annotations.",
         hasPublishedDocs: true,
+        type: DiagnosticType.COMPILE_TIME_ERROR,
         uniqueName: 'FfiCode.MISSING_SIZE_ANNOTATION_CARRAY',
         expectedTypes: [],
       );
@@ -481,7 +515,7 @@ class FfiCode extends DiagnosticCodeWithExpectedTypes {
   static const DiagnosticWithArguments<
     LocatableDiagnostic Function({required Object p0, required String p1})
   >
-  mustBeANativeFunctionType = FfiTemplate(
+  mustBeANativeFunctionType = DiagnosticWithArguments(
     name: 'MUST_BE_A_NATIVE_FUNCTION_TYPE',
     problemMessage:
         "The type '{0}' given to '{1}' must be a valid 'dart:ffi' native function "
@@ -489,6 +523,7 @@ class FfiCode extends DiagnosticCodeWithExpectedTypes {
     correctionMessage:
         "Try changing the type to only use members for 'dart:ffi'.",
     hasPublishedDocs: true,
+    type: DiagnosticType.COMPILE_TIME_ERROR,
     uniqueName: 'FfiCode.MUST_BE_A_NATIVE_FUNCTION_TYPE',
     withArguments: _withArgumentsMustBeANativeFunctionType,
     expectedTypes: [ExpectedType.object, ExpectedType.string],
@@ -506,11 +541,12 @@ class FfiCode extends DiagnosticCodeWithExpectedTypes {
       required String p2,
     })
   >
-  mustBeASubtype = FfiTemplate(
+  mustBeASubtype = DiagnosticWithArguments(
     name: 'MUST_BE_A_SUBTYPE',
     problemMessage: "The type '{0}' must be a subtype of '{1}' for '{2}'.",
     correctionMessage: "Try changing one or both of the type arguments.",
     hasPublishedDocs: true,
+    type: DiagnosticType.COMPILE_TIME_ERROR,
     uniqueName: 'FfiCode.MUST_BE_A_SUBTYPE',
     withArguments: _withArgumentsMustBeASubtype,
     expectedTypes: [ExpectedType.type, ExpectedType.type, ExpectedType.string],
@@ -521,13 +557,14 @@ class FfiCode extends DiagnosticCodeWithExpectedTypes {
   static const DiagnosticWithArguments<
     LocatableDiagnostic Function({required DartType p0})
   >
-  mustReturnVoid = FfiTemplate(
+  mustReturnVoid = DiagnosticWithArguments(
     name: 'MUST_RETURN_VOID',
     problemMessage:
         "The return type of the function passed to 'NativeCallable.listener' must "
         "be 'void' rather than '{0}'.",
     correctionMessage: "Try changing the return type to 'void'.",
     hasPublishedDocs: true,
+    type: DiagnosticType.COMPILE_TIME_ERROR,
     uniqueName: 'FfiCode.MUST_RETURN_VOID',
     withArguments: _withArgumentsMustReturnVoid,
     expectedTypes: [ExpectedType.type],
@@ -538,7 +575,7 @@ class FfiCode extends DiagnosticCodeWithExpectedTypes {
   static const DiagnosticWithArguments<
     LocatableDiagnostic Function({required DartType p0})
   >
-  nativeFieldInvalidType = FfiTemplate(
+  nativeFieldInvalidType = DiagnosticWithArguments(
     name: 'NATIVE_FIELD_INVALID_TYPE',
     problemMessage:
         "'{0}' is an unsupported type for native fields. Native fields only "
@@ -547,6 +584,7 @@ class FfiCode extends DiagnosticCodeWithExpectedTypes {
         "Try changing the type in the `@Native` annotation to a numeric FFI "
         "type, a pointer, array, or a compound class.",
     hasPublishedDocs: true,
+    type: DiagnosticType.COMPILE_TIME_ERROR,
     uniqueName: 'FfiCode.NATIVE_FIELD_INVALID_TYPE',
     withArguments: _withArgumentsNativeFieldInvalidType,
     expectedTypes: [ExpectedType.type],
@@ -554,7 +592,7 @@ class FfiCode extends DiagnosticCodeWithExpectedTypes {
 
   /// No parameters.
   static const DiagnosticWithoutArguments
-  nativeFieldMissingType = FfiWithoutArguments(
+  nativeFieldMissingType = DiagnosticWithoutArgumentsImpl(
     name: 'NATIVE_FIELD_MISSING_TYPE',
     problemMessage:
         "The native type of this field could not be inferred and must be specified "
@@ -563,24 +601,26 @@ class FfiCode extends DiagnosticCodeWithExpectedTypes {
         "Try adding a type parameter extending `NativeType` to the `@Native` "
         "annotation.",
     hasPublishedDocs: true,
+    type: DiagnosticType.COMPILE_TIME_ERROR,
     uniqueName: 'FfiCode.NATIVE_FIELD_MISSING_TYPE',
     expectedTypes: [],
   );
 
   /// No parameters.
   static const DiagnosticWithoutArguments nativeFieldNotStatic =
-      FfiWithoutArguments(
+      DiagnosticWithoutArgumentsImpl(
         name: 'NATIVE_FIELD_NOT_STATIC',
         problemMessage: "Native fields must be static.",
         correctionMessage: "Try adding the modifier 'static' to this field.",
         hasPublishedDocs: true,
+        type: DiagnosticType.COMPILE_TIME_ERROR,
         uniqueName: 'FfiCode.NATIVE_FIELD_NOT_STATIC',
         expectedTypes: [],
       );
 
   /// No parameters.
   static const DiagnosticWithoutArguments
-  nativeFunctionMissingType = FfiWithoutArguments(
+  nativeFunctionMissingType = DiagnosticWithoutArgumentsImpl(
     name: 'NATIVE_FUNCTION_MISSING_TYPE',
     problemMessage:
         "The native type of this function couldn't be inferred so it must be "
@@ -589,18 +629,20 @@ class FfiCode extends DiagnosticCodeWithExpectedTypes {
         "Try adding a type parameter extending `NativeType` to the `@Native` "
         "annotation.",
     hasPublishedDocs: true,
+    type: DiagnosticType.COMPILE_TIME_ERROR,
     uniqueName: 'FfiCode.NATIVE_FUNCTION_MISSING_TYPE',
     expectedTypes: [],
   );
 
   /// No parameters.
   static const DiagnosticWithoutArguments
-  negativeVariableDimension = FfiWithoutArguments(
+  negativeVariableDimension = DiagnosticWithoutArgumentsImpl(
     name: 'NEGATIVE_VARIABLE_DIMENSION',
     problemMessage:
         "The variable dimension of a variable-length array must be non-negative.",
     correctionMessage: "Try using a value that is zero or greater.",
     hasPublishedDocs: true,
+    type: DiagnosticType.COMPILE_TIME_ERROR,
     uniqueName: 'FfiCode.NEGATIVE_VARIABLE_DIMENSION',
     expectedTypes: [],
   );
@@ -611,13 +653,14 @@ class FfiCode extends DiagnosticCodeWithExpectedTypes {
   static const DiagnosticWithArguments<
     LocatableDiagnostic Function({required String p0})
   >
-  nonConstantTypeArgument = FfiTemplate(
+  nonConstantTypeArgument = DiagnosticWithArguments(
     name: 'NON_CONSTANT_TYPE_ARGUMENT',
     problemMessage:
         "The type arguments to '{0}' must be known at compile time, so they can't "
         "be type parameters.",
     correctionMessage: "Try changing the type argument to be a constant type.",
     hasPublishedDocs: true,
+    type: DiagnosticType.COMPILE_TIME_ERROR,
     uniqueName: 'FfiCode.NON_CONSTANT_TYPE_ARGUMENT',
     withArguments: _withArgumentsNonConstantTypeArgument,
     expectedTypes: [ExpectedType.string],
@@ -628,7 +671,7 @@ class FfiCode extends DiagnosticCodeWithExpectedTypes {
   static const DiagnosticWithArguments<
     LocatableDiagnostic Function({required DartType p0})
   >
-  nonNativeFunctionTypeArgumentToPointer = FfiTemplate(
+  nonNativeFunctionTypeArgumentToPointer = DiagnosticWithArguments(
     name: 'NON_NATIVE_FUNCTION_TYPE_ARGUMENT_TO_POINTER',
     problemMessage:
         "Can't invoke 'asFunction' because the function signature '{0}' for the "
@@ -637,6 +680,7 @@ class FfiCode extends DiagnosticCodeWithExpectedTypes {
         "Try changing the function argument in 'NativeFunction' to only use "
         "NativeTypes.",
     hasPublishedDocs: true,
+    type: DiagnosticType.COMPILE_TIME_ERROR,
     uniqueName: 'FfiCode.NON_NATIVE_FUNCTION_TYPE_ARGUMENT_TO_POINTER',
     withArguments: _withArgumentsNonNativeFunctionTypeArgumentToPointer,
     expectedTypes: [ExpectedType.type],
@@ -644,11 +688,12 @@ class FfiCode extends DiagnosticCodeWithExpectedTypes {
 
   /// No parameters.
   static const DiagnosticWithoutArguments nonPositiveArrayDimension =
-      FfiWithoutArguments(
+      DiagnosticWithoutArgumentsImpl(
         name: 'NON_POSITIVE_ARRAY_DIMENSION',
         problemMessage: "Array dimensions must be positive numbers.",
         correctionMessage: "Try changing the input to a positive number.",
         hasPublishedDocs: true,
+        type: DiagnosticType.COMPILE_TIME_ERROR,
         uniqueName: 'FfiCode.NON_POSITIVE_ARRAY_DIMENSION',
         expectedTypes: [],
       );
@@ -659,7 +704,7 @@ class FfiCode extends DiagnosticCodeWithExpectedTypes {
   static const DiagnosticWithArguments<
     LocatableDiagnostic Function({required String p0, required DartType p1})
   >
-  nonSizedTypeArgument = FfiTemplate(
+  nonSizedTypeArgument = DiagnosticWithArguments(
     name: 'NON_SIZED_TYPE_ARGUMENT',
     problemMessage:
         "The type '{1}' isn't a valid type argument for '{0}'. The type argument "
@@ -669,6 +714,7 @@ class FfiCode extends DiagnosticCodeWithExpectedTypes {
         "Try using a native integer, 'Float', 'Double', 'Pointer', or subtype "
         "of 'Struct', 'Union', or 'AbiSpecificInteger'.",
     hasPublishedDocs: true,
+    type: DiagnosticType.COMPILE_TIME_ERROR,
     uniqueName: 'FfiCode.NON_SIZED_TYPE_ARGUMENT',
     withArguments: _withArgumentsNonSizedTypeArgument,
     expectedTypes: [ExpectedType.string, ExpectedType.type],
@@ -676,35 +722,38 @@ class FfiCode extends DiagnosticCodeWithExpectedTypes {
 
   /// No parameters.
   static const DiagnosticWithoutArguments packedAnnotation =
-      FfiWithoutArguments(
+      DiagnosticWithoutArgumentsImpl(
         name: 'PACKED_ANNOTATION',
         problemMessage: "Structs must have at most one 'Packed' annotation.",
         correctionMessage: "Try removing extra 'Packed' annotations.",
         hasPublishedDocs: true,
+        type: DiagnosticType.COMPILE_TIME_ERROR,
         uniqueName: 'FfiCode.PACKED_ANNOTATION',
         expectedTypes: [],
       );
 
   /// No parameters.
   static const DiagnosticWithoutArguments
-  packedAnnotationAlignment = FfiWithoutArguments(
+  packedAnnotationAlignment = DiagnosticWithoutArgumentsImpl(
     name: 'PACKED_ANNOTATION_ALIGNMENT',
     problemMessage: "Only packing to 1, 2, 4, 8, and 16 bytes is supported.",
     correctionMessage:
         "Try changing the 'Packed' annotation alignment to 1, 2, 4, 8, or 16.",
     hasPublishedDocs: true,
+    type: DiagnosticType.COMPILE_TIME_ERROR,
     uniqueName: 'FfiCode.PACKED_ANNOTATION_ALIGNMENT',
     expectedTypes: [],
   );
 
   /// No parameters.
   static const DiagnosticWithoutArguments
-  sizeAnnotationDimensions = FfiWithoutArguments(
+  sizeAnnotationDimensions = DiagnosticWithoutArgumentsImpl(
     name: 'SIZE_ANNOTATION_DIMENSIONS',
     problemMessage:
         "'Array's must have an 'Array' annotation that matches the dimensions.",
     correctionMessage: "Try adjusting the arguments in the 'Array' annotation.",
     hasPublishedDocs: true,
+    type: DiagnosticType.COMPILE_TIME_ERROR,
     uniqueName: 'FfiCode.SIZE_ANNOTATION_DIMENSIONS',
     expectedTypes: [],
   );
@@ -715,7 +764,7 @@ class FfiCode extends DiagnosticCodeWithExpectedTypes {
   static const DiagnosticWithArguments<
     LocatableDiagnostic Function({required String p0, required String p1})
   >
-  subtypeOfStructClassInExtends = FfiTemplate(
+  subtypeOfStructClassInExtends = DiagnosticWithArguments(
     name: 'SUBTYPE_OF_STRUCT_CLASS',
     problemMessage:
         "The class '{0}' can't extend '{1}' because '{1}' is a subtype of "
@@ -723,6 +772,7 @@ class FfiCode extends DiagnosticCodeWithExpectedTypes {
     correctionMessage:
         "Try extending 'Struct', 'Union', or 'AbiSpecificInteger' directly.",
     hasPublishedDocs: true,
+    type: DiagnosticType.COMPILE_TIME_ERROR,
     uniqueName: 'FfiCode.SUBTYPE_OF_STRUCT_CLASS_IN_EXTENDS',
     withArguments: _withArgumentsSubtypeOfStructClassInExtends,
     expectedTypes: [ExpectedType.string, ExpectedType.string],
@@ -734,7 +784,7 @@ class FfiCode extends DiagnosticCodeWithExpectedTypes {
   static const DiagnosticWithArguments<
     LocatableDiagnostic Function({required String p0, required String p1})
   >
-  subtypeOfStructClassInImplements = FfiTemplate(
+  subtypeOfStructClassInImplements = DiagnosticWithArguments(
     name: 'SUBTYPE_OF_STRUCT_CLASS',
     problemMessage:
         "The class '{0}' can't implement '{1}' because '{1}' is a subtype of "
@@ -742,6 +792,7 @@ class FfiCode extends DiagnosticCodeWithExpectedTypes {
     correctionMessage:
         "Try extending 'Struct', 'Union', or 'AbiSpecificInteger' directly.",
     hasPublishedDocs: true,
+    type: DiagnosticType.COMPILE_TIME_ERROR,
     uniqueName: 'FfiCode.SUBTYPE_OF_STRUCT_CLASS_IN_IMPLEMENTS',
     withArguments: _withArgumentsSubtypeOfStructClassInImplements,
     expectedTypes: [ExpectedType.string, ExpectedType.string],
@@ -753,7 +804,7 @@ class FfiCode extends DiagnosticCodeWithExpectedTypes {
   static const DiagnosticWithArguments<
     LocatableDiagnostic Function({required String p0, required String p1})
   >
-  subtypeOfStructClassInWith = FfiTemplate(
+  subtypeOfStructClassInWith = DiagnosticWithArguments(
     name: 'SUBTYPE_OF_STRUCT_CLASS',
     problemMessage:
         "The class '{0}' can't mix in '{1}' because '{1}' is a subtype of "
@@ -761,6 +812,7 @@ class FfiCode extends DiagnosticCodeWithExpectedTypes {
     correctionMessage:
         "Try extending 'Struct', 'Union', or 'AbiSpecificInteger' directly.",
     hasPublishedDocs: true,
+    type: DiagnosticType.COMPILE_TIME_ERROR,
     uniqueName: 'FfiCode.SUBTYPE_OF_STRUCT_CLASS_IN_WITH',
     withArguments: _withArgumentsSubtypeOfStructClassInWith,
     expectedTypes: [ExpectedType.string, ExpectedType.string],
@@ -768,12 +820,13 @@ class FfiCode extends DiagnosticCodeWithExpectedTypes {
 
   /// No parameters.
   static const DiagnosticWithoutArguments
-  variableLengthArrayNotLast = FfiWithoutArguments(
+  variableLengthArrayNotLast = DiagnosticWithoutArgumentsImpl(
     name: 'VARIABLE_LENGTH_ARRAY_NOT_LAST',
     problemMessage:
         "Variable length 'Array's must only occur as the last field of Structs.",
     correctionMessage: "Try adjusting the arguments in the 'Array' annotation.",
     hasPublishedDocs: true,
+    type: DiagnosticType.COMPILE_TIME_ERROR,
     uniqueName: 'FfiCode.VARIABLE_LENGTH_ARRAY_NOT_LAST',
     expectedTypes: [],
   );
@@ -949,36 +1002,4 @@ class FfiCode extends DiagnosticCodeWithExpectedTypes {
       p1,
     ]);
   }
-}
-
-final class FfiTemplate<T extends Function> extends FfiCode
-    implements DiagnosticWithArguments<T> {
-  @override
-  final T withArguments;
-
-  /// Initialize a newly created error code to have the given [name].
-  const FfiTemplate({
-    required super.name,
-    required super.problemMessage,
-    super.correctionMessage,
-    super.hasPublishedDocs = false,
-    super.isUnresolvedIdentifier = false,
-    required super.uniqueName,
-    required super.expectedTypes,
-    required this.withArguments,
-  });
-}
-
-final class FfiWithoutArguments extends FfiCode
-    with DiagnosticWithoutArguments {
-  /// Initialize a newly created error code to have the given [name].
-  const FfiWithoutArguments({
-    required super.name,
-    required super.problemMessage,
-    super.correctionMessage,
-    super.hasPublishedDocs = false,
-    super.isUnresolvedIdentifier = false,
-    required super.uniqueName,
-    required super.expectedTypes,
-  });
 }

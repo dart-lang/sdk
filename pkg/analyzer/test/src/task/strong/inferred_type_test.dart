@@ -4,6 +4,7 @@
 
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/error/error.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/utilities/extensions/file_system.dart';
@@ -5906,7 +5907,7 @@ main() {
     assertErrorsInList(
       result.diagnostics.where((e) {
         return e.diagnosticCode != WarningCode.unusedLocalVariable &&
-            e.diagnosticCode is! TodoCode;
+            e.diagnosticCode.type != DiagnosticType.TODO;
       }).toList(),
       expectedDiagnostics,
     );

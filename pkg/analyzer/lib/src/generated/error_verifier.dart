@@ -859,12 +859,16 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       _enclosingClass = firstFragment.asElement2;
 
       _checkForBuiltInIdentifierAsName(
-        node.name,
+        useDeclaringConstructorsAst
+            ? node.primaryConstructor.typeName
+            : node.name,
         CompileTimeErrorCode.builtInIdentifierAsExtensionTypeName,
       );
       _checkForConflictingExtensionTypeTypeVariableErrorCodes(declaredFragment);
 
-      var members = node.members;
+      var members = useDeclaringConstructorsAst
+          ? node.body.members
+          : node.members;
       _checkForRepeatedType(
         libraryContext.setOfImplements(firstFragment.asElement2),
         node.implementsClause?.interfaces,
@@ -3414,7 +3418,8 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   void _checkForExtensionTypeWithAbstractMember(
     ExtensionTypeDeclarationImpl node,
   ) {
-    for (var member in node.members) {
+    for (var member
+        in useDeclaringConstructorsAst ? node.body.members : node.members) {
       if (member is MethodDeclarationImpl && !member.isStatic) {
         if (member.isAbstract) {
           diagnosticReporter.atNode(
@@ -4712,7 +4717,11 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     ExtensionTypeDeclaration node,
     ExtensionTypeFragmentImpl fragment,
   ) {
-    var typeParameters = node.typeParameters?.typeParameters;
+    var typeParameters =
+        (useDeclaringConstructorsAst
+                ? node.primaryConstructor.typeParameters
+                : node.typeParameters)
+            ?.typeParameters;
     if (typeParameters == null) {
       return;
     }
@@ -6029,6 +6038,12 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     // Must be private.
     var name = parameter.name;
     if (name == null || name.isSynthetic || !name.lexeme.startsWith('_')) {
+      return;
+    }
+
+    // Must refer to a field.
+    // TODO(rnystrom): Handle primary constructor declaring parameters.
+    if (parameter is! FieldFormalParameter) {
       return;
     }
 

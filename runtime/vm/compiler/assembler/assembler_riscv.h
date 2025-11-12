@@ -708,6 +708,21 @@ class MicroAssembler : public AssemblerBase {
   void fltqd(Register rd, FRegister rs1, FRegister rs2);
   void fleqd(Register rd, FRegister rs1, FRegister rs2);
 
+  // ==== Zicfiss: Shadow stack ====
+  void sspush(Register rs2);
+  void sspopchk(Register rs1);
+  void ssrdp(Register rd);
+  void ssamoswapw(Register rd,
+                  Register rs2,
+                  Address addr,
+                  std::memory_order order = std::memory_order_relaxed);
+#if XLEN >= 64
+  void ssamoswapd(Register rd,
+                  Register rs2,
+                  Address addr,
+                  std::memory_order order = std::memory_order_relaxed);
+#endif  // XLEN >= 64
+
   // ==== Zalasr: Load-acquire, store-release ====
   void lb(Register rd, Address addr, std::memory_order order);
   void lh(Register rd, Address addr, std::memory_order order);
@@ -889,6 +904,11 @@ class MicroAssembler : public AssemblerBase {
                   FRegister rd,
                   Opcode opcode);
 
+  void EmitIType(Funct12 funct12,
+                 Register rs1,
+                 Funct3 funct3,
+                 Register rd,
+                 Opcode opcode);
   void EmitIType(intptr_t imm,
                  Register rs1,
                  Funct3 funct3,
