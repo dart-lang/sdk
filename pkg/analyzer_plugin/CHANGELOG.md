@@ -2,6 +2,7 @@
 
 - Require version `9.0.1` of the `analyzer` package.
 - `AssistContributorMixin` is now a mixin.
+- Remove deprecated `methodBeingCopied` parameters on various methods.
 
 ## 0.13.11
 
