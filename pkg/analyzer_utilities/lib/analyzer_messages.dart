@@ -9,6 +9,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:analyzer_testing/package_root.dart' as pkg_root;
+import 'package:analyzer_utilities/analyzer_message_constant_style.dart';
 import 'package:analyzer_utilities/extensions/string.dart';
 import 'package:analyzer_utilities/messages.dart';
 import 'package:analyzer_utilities/tools.dart';
@@ -550,6 +551,42 @@ class DiagnosticClassInfo {
 /// Interface class for diagnostic messages that have an analyzer code, and thus
 /// can be reported by the analyzer.
 mixin MessageWithAnalyzerCode on Message {
+  late ConstantStyle constantStyle = () {
+    var usesParameters = [problemMessage, correctionMessage].any(
+      (value) =>
+          value != null && value.any((part) => part is TemplateParameterPart),
+    );
+    var baseClasses = analyzerCode.diagnosticClass.type.baseClasses;
+    if (parameters.isNotEmpty && !usesParameters) {
+      throw 'Error code declares parameters using a `parameters` entry, but '
+          "doesn't use them";
+    } else if (parameters.values.any((p) => !p.type.isSupportedByAnalyzer)) {
+      // Do not generate literate API yet.
+      return OldConstantStyle(
+        concreteClassName: baseClasses.withExpectedTypesClass,
+        staticType: 'DiagnosticCode',
+      );
+    } else if (parameters.isNotEmpty) {
+      // Parameters are present so generate a diagnostic template (with
+      // `.withArguments` support).
+      var withArgumentsParams = parameters.entries
+          .map((p) => 'required ${p.value.type.analyzerName} ${p.key}')
+          .join(', ');
+      var templateParameters =
+          '<LocatableDiagnostic Function({$withArgumentsParams})>';
+      return WithArgumentsConstantStyle(
+        concreteClassName: baseClasses.withArgumentsClass,
+        staticType: 'DiagnosticWithArguments$templateParameters',
+        withArgumentsParams: withArgumentsParams,
+      );
+    } else {
+      return WithoutArgumentsConstantStyle(
+        concreteClassName: baseClasses.withoutArgumentsImplClass,
+        staticType: baseClasses.withoutArgumentsClass,
+      );
+    }
+  }();
+
   late final DiagnosticClassInfo diagnosticClassInfo =
       analyzerCode.diagnosticClass;
 
@@ -583,44 +620,20 @@ mixin MessageWithAnalyzerCode on Message {
   }) {
     var diagnosticCode = analyzerCode.snakeCaseName;
     var correctionMessage = this.correctionMessage;
-    var parameters = this.parameters;
-    var usesParameters = [problemMessage, correctionMessage].any(
-      (value) =>
-          value != null && value.any((part) => part is TemplateParameterPart),
-    );
-    String concreteClassName;
-    String staticType;
     String? withArgumentsName;
     var baseClasses = analyzerCode.diagnosticClass.type.baseClasses;
-    if (parameters.isNotEmpty && !usesParameters) {
-      throw 'Error code declares parameters using a `parameters` entry, but '
-          "doesn't use them";
-    } else if (parameters.values.any((p) => !p.type.isSupportedByAnalyzer)) {
-      // Do not generate literate API yet.
-      concreteClassName = baseClasses.withExpectedTypesClass;
-      staticType = 'DiagnosticCode';
-    } else if (parameters.isNotEmpty) {
-      // Parameters are present so generate a diagnostic template (with
-      // `.withArguments` support).
-      concreteClassName = baseClasses.withArgumentsClass;
-      var withArgumentsParams = parameters.entries
-          .map((p) => 'required ${p.value.type.analyzerName} ${p.key}')
-          .join(', ');
+    var ConstantStyle(:concreteClassName, :staticType) = constantStyle;
+    if (constantStyle case WithArgumentsConstantStyle(
+      :var withArgumentsParams,
+    )) {
       var argumentNames = parameters.keys.join(', ');
       withArgumentsName = '_withArguments${analyzerCode.pascalCaseName}';
-      var templateParameters =
-          '<LocatableDiagnostic Function({$withArgumentsParams})>';
-      staticType = 'DiagnosticWithArguments$templateParameters';
       memberAccumulator.staticMethods[withArgumentsName] =
           '''
 static LocatableDiagnostic $withArgumentsName({$withArgumentsParams}) {
   return LocatableDiagnosticImpl(
     ${diagnosticClassInfo.name}.$constantName, [$argumentNames]);
 }''';
-    } else {
-      // Parameters are not present so generate a "withoutArguments" constant.
-      concreteClassName = baseClasses.withoutArgumentsImplClass;
-      staticType = baseClasses.withoutArgumentsClass;
     }
 
     var constant = StringBuffer();
