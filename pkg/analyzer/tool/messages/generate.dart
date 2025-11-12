@@ -75,23 +75,12 @@ class _AnalyzerDiagnosticGenerator {
 //
 // Instead modify 'pkg/analyzer/messages.yaml' and run
 // 'dart run pkg/analyzer/tool/messages/generate.dart' to update.
-
-// While transitioning `HintCodes` to `WarningCodes`, we refer to deprecated
-// codes here.
 ''');
 
   _AnalyzerDiagnosticGenerator(this.file, this.diagnosticClasses);
 
   void generate() {
-    out.writeln('// ignore_for_file: deprecated_member_use_from_same_package');
-    if (file.shouldIgnorePreferSingleQuotes) {
-      out.writeln('// ignore_for_file: prefer_single_quotes');
-    }
-    out.write('''
-// 
-// Generated comments don't quite align with flutter style.
-// ignore_for_file: flutter_style_todos
-''');
+    file.package.writeIgnoresTo(out);
     out.writeln();
     out.write('''
 part of ${json.encode(file.parentLibrary)};
@@ -112,6 +101,7 @@ part of ${json.encode(file.parentLibrary)};
 
       for (var message
           in diagnosticTables.activeMessagesByPackage[diagnosticClass
+              .file
               .package]!) {
         if (message.analyzerCode.diagnosticClass != diagnosticClass) continue;
 
@@ -154,17 +144,10 @@ class _DiagnosticCodeValuesGenerator {
 //
 // Instead modify 'pkg/analyzer/messages.yaml' and run
 // 'dart run pkg/analyzer/tool/messages/generate.dart' to update.
-
-// We allow some snake_case and SCREAMING_SNAKE_CASE identifiers in generated
-// code, as they match names declared in the source configuration files.
-// ignore_for_file: constant_identifier_names
-
-// While transitioning `HintCodes` to `WarningCodes`, we refer to deprecated
-// codes here.
-// ignore_for_file: deprecated_member_use_from_same_package
 ''');
 
   void generate() {
+    AnalyzerDiagnosticPackage.analyzer.writeIgnoresTo(out);
     out.writeln();
     out.writeln(r'''
 part of 'diagnostic_code_values.dart';

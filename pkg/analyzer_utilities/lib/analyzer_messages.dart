@@ -107,7 +107,6 @@ or revisited.
     file: transformSetErrorCodeFile,
     name: 'TransformSetErrorCode',
     type: AnalyzerDiagnosticType.compileTimeError,
-    package: AnalyzerDiagnosticPackage.analysisServer,
     comment: '''
 An error code representing a problem in a file containing an encoding of a
 transform set.
@@ -130,6 +129,7 @@ const hintCodesFile = GeneratedDiagnosticFile(
 const lintCodesFile = GeneratedDiagnosticFile(
   path: generatedLintCodesPath,
   parentLibrary: 'package:linter/src/lint_codes.dart',
+  package: AnalyzerDiagnosticPackage.linter,
 );
 
 /// Base diagnostic classes used for lint messages.
@@ -145,7 +145,6 @@ const linterLintCodeInfo = DiagnosticClassInfo(
   file: lintCodesFile,
   name: 'LinterLintCode',
   type: AnalyzerDiagnosticType.lint,
-  package: AnalyzerDiagnosticPackage.linter,
 );
 
 const manifestWarningCodeFile = GeneratedDiagnosticFile(
@@ -181,7 +180,7 @@ const transformSetErrorCodeFile = GeneratedDiagnosticFile(
   parentLibrary:
       'package:analysis_server/src/services/correction/fix/data_driven/'
       'transform_set_error_code.dart',
-  shouldIgnorePreferSingleQuotes: true,
+  package: AnalyzerDiagnosticPackage.analysisServer,
 );
 
 /// Decoded messages from the analyzer's `messages.yaml` file.
@@ -366,7 +365,35 @@ class AliasMessage extends AnalyzerMessage {
 
 /// Enum representing the packages into which analyzer diagnostics can be
 /// generated.
-enum AnalyzerDiagnosticPackage { analyzer, analysisServer, linter }
+enum AnalyzerDiagnosticPackage {
+  analyzer,
+  analysisServer(shouldIgnorePreferSingleQuotes: true),
+  linter;
+
+  /// Whether code generated in this package needs an "ignore" comment to ignore
+  /// the `prefer_single_quotes` lint.
+  final bool shouldIgnorePreferSingleQuotes;
+
+  const AnalyzerDiagnosticPackage({
+    this.shouldIgnorePreferSingleQuotes = false,
+  });
+
+  void writeIgnoresTo(StringBuffer out) {
+    if (shouldIgnorePreferSingleQuotes) {
+      out.write('''
+
+// Code generation is easier using double quotes (since we can use json.convert
+// to quote strings).
+// ignore_for_file: prefer_single_quotes
+''');
+    }
+    out.write('''
+
+// Generated comments don't quite align with flutter style.
+// ignore_for_file: flutter_style_todos
+''');
+  }
+}
 
 /// Enum representing the possible values for the [DiagnosticType] class.
 ///
@@ -497,9 +524,6 @@ class DiagnosticClassInfo {
   /// deprecation notice) after migration to camel case diagnostic codes.
   final Set<String> deprecatedSnakeCaseNames;
 
-  /// The package into which the diagnostic codes will be generated.
-  final AnalyzerDiagnosticPackage package;
-
   /// Documentation comment to generate for the diagnostic class.
   ///
   /// If no documentation comment is needed, this should be the empty string.
@@ -510,7 +534,6 @@ class DiagnosticClassInfo {
     required this.name,
     required this.type,
     this.deprecatedSnakeCaseNames = const {},
-    this.package = AnalyzerDiagnosticPackage.analyzer,
     this.comment = '',
   });
 
