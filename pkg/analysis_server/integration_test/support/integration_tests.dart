@@ -7,7 +7,6 @@ import 'dart:collection';
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:analysis_server/protocol/protocol_constants.dart';
 import 'package:analysis_server/src/protocol_server.dart';
 import 'package:analysis_server/src/services/pub/pub_command.dart';
 import 'package:analyzer/file_system/physical_file_system.dart';

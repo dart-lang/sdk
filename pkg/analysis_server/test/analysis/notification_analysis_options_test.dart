@@ -40,7 +40,7 @@ void f() {
 
   @override
   void processNotification(Notification notification) {
-    if (notification.event == ANALYSIS_NOTIFICATION_ERRORS) {
+    if (notification.event == analysisNotificationErrors) {
       var decoded = AnalysisErrorsParams.fromNotification(
         notification,
         clientUriConverter: server.uriConverter,

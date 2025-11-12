@@ -607,7 +607,11 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
         _defineElements(element.getters);
         _defineElements(element.setters);
         _defineElements(element.methods);
-        node.members.accept(this);
+        if (useDeclaringConstructorsAst) {
+          node.body.accept(this);
+        } else {
+          node.members.accept(this);
+        }
       });
     });
   }
@@ -661,6 +665,8 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
         _defineElements(element.setters);
         _defineElements(element.methods);
         if (useDeclaringConstructorsAst) {
+          // Skip the representation field.
+          _elementWalker!.getVariable();
           node.body.accept(this);
         } else {
           node.members.accept(this);
@@ -1181,7 +1187,11 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
         _defineElements(element.getters);
         _defineElements(element.setters);
         _defineElements(element.methods);
-        node.members.accept(this);
+        if (useDeclaringConstructorsAst) {
+          node.body.accept(this);
+        } else {
+          node.members.accept(this);
+        }
       });
     });
   }

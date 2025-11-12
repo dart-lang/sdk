@@ -8756,7 +8756,7 @@ CompileTimeErrorCode:
     hasPublishedDocs: true
     comment: |-
       The parameters of this error code must be kept in sync with those of
-      [CompileTimeErrorCode.invalidOverride].
+      [diag.invalidOverride].
     documentation: |-
       #### Description
 
@@ -8851,7 +8851,7 @@ CompileTimeErrorCode:
     hasPublishedDocs: true
     comment: |-
       The parameters of this error code must be kept in sync with those of
-      [CompileTimeErrorCode.invalidOverride].
+      [diag.invalidOverride].
   INVALID_INLINE_FUNCTION_TYPE:
     parameters: none
     problemMessage: "Inline function types can't be used for parameters in a generic function type."
@@ -16387,7 +16387,7 @@ CompileTimeErrorCode:
     correctionMessage: "Try using a type that is the same as or a subclass of '#p1'."
     hasPublishedDocs: true
     comment: |-
-      See [CompileTimeErrorCode.typeArgumentNotMatchingBounds].
+      See [diag.typeArgumentNotMatchingBounds].
     documentation: |-
       #### Description
 
@@ -16714,7 +16714,7 @@ CompileTimeErrorCode:
     isUnresolvedIdentifier: true
     hasPublishedDocs: true
     comment: |-
-      Same as [CompileTimeErrorCode.undefinedClass], but to catch using
+      Same as [diag.undefinedClass], but to catch using
       "boolean" instead of "bool" in order to improve the correction message.
   UNDEFINED_CONSTRUCTOR_IN_INITIALIZER:
     parameters:
@@ -27572,7 +27572,7 @@ WarningCode:
     correctionMessage: "Try updating your 'pubspec.yaml' to set the minimum SDK constraint to 2.15 or higher, and running 'pub get'."
     hasPublishedDocs: true
     comment: |-
-      There is also a [ParserErrorCode.experimentNotEnabled] code which
+      There is also a [diag.experimentNotEnabled] code which
       catches some cases of constructor tearoff features (like
       `List<int>.filled;`). Other constructor tearoff cases are not realized
       until resolution (like `List.filled;`).

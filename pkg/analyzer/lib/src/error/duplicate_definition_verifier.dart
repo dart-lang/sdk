@@ -697,7 +697,7 @@ class MemberDuplicateDefinitionVerifier {
 
     if (declarationName == 'values') {
       _diagnosticReporter.atToken(
-        node.name,
+        useDeclaringConstructorsAst ? node.namePart.typeName : node.name,
         CompileTimeErrorCode.enumWithNameValues,
       );
     }
@@ -793,7 +793,10 @@ class MemberDuplicateDefinitionVerifier {
   /// Check that there are no members with the same name.
   void _checkExtension(covariant ExtensionDeclarationImpl node) {
     var fragment = node.declaredFragment!;
-    _checkClassMembers(fragment, node.members);
+    _checkClassMembers(
+      fragment,
+      useDeclaringConstructorsAst ? node.body.members : node.members,
+    );
   }
 
   void _checkExtensionStatic(covariant ExtensionDeclarationImpl node) {
@@ -803,7 +806,8 @@ class MemberDuplicateDefinitionVerifier {
     var elementContext = _getElementContext(firstFragment);
     var instanceScope = elementContext.instanceScope;
 
-    for (var member in node.members) {
+    for (var member
+        in useDeclaringConstructorsAst ? node.body.members : node.members) {
       if (member is FieldDeclarationImpl) {
         if (member.isStatic) {
           for (var field in member.fields.variables) {
@@ -855,7 +859,10 @@ class MemberDuplicateDefinitionVerifier {
   }
 
   void _checkMixin(MixinDeclarationImpl node) {
-    _checkClassMembers(node.declaredFragment!, node.members);
+    _checkClassMembers(
+      node.declaredFragment!,
+      useDeclaringConstructorsAst ? node.body.members : node.members,
+    );
   }
 
   void _checkUnit(CompilationUnitImpl node) {
@@ -906,7 +913,12 @@ class MemberDuplicateDefinitionVerifier {
           );
         case MixinDeclarationImpl():
           var fragment = declaration.declaredFragment!;
-          _checkClassStatic(fragment, declaration.members);
+          _checkClassStatic(
+            fragment,
+            useDeclaringConstructorsAst
+                ? declaration.body.members
+                : declaration.members,
+          );
         case ClassTypeAliasImpl():
         case FunctionDeclarationImpl():
         case FunctionTypeAliasImpl():

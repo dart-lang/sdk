@@ -520,6 +520,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
         var moreChecks = _checkClassInheritance(
           declarationElement,
           node,
+          useDeclaringConstructorsAst ? node.namePart.typeName : node.name,
           superclass,
           withClause,
           implementsClause,
@@ -578,6 +579,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       _checkClassInheritance(
         firstFragment,
         node,
+        node.name,
         node.superclass,
         node.withClause,
         node.implementsClause,
@@ -756,6 +758,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
         _checkClassInheritance(
           firstFragment,
           node,
+          useDeclaringConstructorsAst ? node.namePart.typeName : node.name,
           null,
           withClause,
           implementsClause,
@@ -765,7 +768,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       if (!declaredFragment.isAugmentation) {
         if (element.constants.isEmpty) {
           diagnosticReporter.atToken(
-            node.name,
+            useDeclaringConstructorsAst ? node.namePart.typeName : node.name,
             CompileTimeErrorCode.enumWithoutConstants,
           );
         }
@@ -829,7 +832,10 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
 
     _enclosingExtension = declaredFragment.asElement2;
     _checkForConflictingExtensionTypeVariableErrorCodes();
-    _checkForFinalNotInitializedInClass(declaredFragment, node.members);
+    _checkForFinalNotInitializedInClass(
+      declaredFragment,
+      useDeclaringConstructorsAst ? node.body.members : node.members,
+    );
 
     GetterSetterTypesVerifier(
       library: _currentLibrary,
@@ -875,7 +881,12 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
         CompileTimeErrorCode.implementsRepeated,
       );
       _checkForConflictingClassMembers(declaredFragment);
-      _checkForConflictingGenerics(node);
+      _checkForConflictingGenerics(
+        node: node,
+        nameToken: useDeclaringConstructorsAst
+            ? node.primaryConstructor.typeName
+            : node.name,
+      );
       libraryContext.constructorFieldsVerifier.addConstructors(
         diagnosticReporter,
         declaredElement,
@@ -1299,7 +1310,9 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
 
       _enclosingClass = declaredElement;
 
-      List<ClassMember> members = node.members;
+      List<ClassMember> members = useDeclaringConstructorsAst
+          ? node.body.members
+          : node.members;
       _checkForBuiltInIdentifierAsName(
         node.name,
         CompileTimeErrorCode.builtInIdentifierAsTypeName,
@@ -1717,6 +1730,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   bool _checkClassInheritance(
     InterfaceFragmentImpl declarationElement,
     NamedCompilationUnitMember node,
+    Token nameToken,
     NamedType? superclass,
     WithClauseImpl? withClause,
     ImplementsClause? implementsClause,
@@ -1737,7 +1751,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       _checkImplementsSuperClass(implementsClause);
       _checkMixinsSuperClass(withClause);
       _checkForMixinWithConflictingPrivateMember(withClause, superclass);
-      _checkForConflictingGenerics(node);
+      _checkForConflictingGenerics(node: node, nameToken: nameToken);
       _checkForBaseClassOrMixinImplementedOutsideOfLibrary(implementsClause);
       _checkForInterfaceClassOrMixinSuperclassOutsideOfLibrary(
         superclass,
@@ -2524,7 +2538,10 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     }
   }
 
-  void _checkForConflictingGenerics(NamedCompilationUnitMember node) {
+  void _checkForConflictingGenerics({
+    required NamedCompilationUnitMember node,
+    required Token nameToken,
+  }) {
     var fragment = node.declaredFragment as InterfaceFragmentImpl;
 
     // Report only on the declaration.
@@ -2538,7 +2555,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     for (var error in errors) {
       if (error is IncompatibleInterfacesClassHierarchyError) {
         diagnosticReporter.atToken(
-          node.name,
+          nameToken,
           CompileTimeErrorCode.conflictingGenericInterfaces,
           arguments: [
             _enclosingClass!.kind.displayName,
@@ -3409,7 +3426,9 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     var representationType = element.representation.type;
     if (representationType.isBottom) {
       diagnosticReporter.atNode(
-        node.representation.fieldType,
+        useDeclaringConstructorsAst
+            ? node.fieldType
+            : node.representation.fieldType,
         CompileTimeErrorCode.extensionTypeRepresentationTypeBottom,
       );
     }
@@ -5977,7 +5996,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
         implementsClause?.interfaces,
         CompileTimeErrorCode.implementsRepeated,
       );
-      _checkForConflictingGenerics(node);
+      _checkForConflictingGenerics(node: node, nameToken: node.name);
       _checkForBaseClassOrMixinImplementedOutsideOfLibrary(implementsClause);
       _checkForFinalSupertypeOutsideOfLibrary(
         null,

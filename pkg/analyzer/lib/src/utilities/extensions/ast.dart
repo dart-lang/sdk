@@ -125,6 +125,7 @@ extension AstNodeNullableExtension on AstNode? {
     return switch (self) {
       BlockClassBody() => self.members,
       ClassDeclaration() => self.members,
+      EnumBody() => self.members,
       EnumDeclaration() => self.members,
       ExtensionDeclaration() => self.members,
       ExtensionTypeDeclaration() => self.members,

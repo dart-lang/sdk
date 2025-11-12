@@ -12,63 +12,26 @@
 
 part of "package:analyzer/src/manifest/manifest_warning_code.dart";
 
-class ManifestWarningCode extends DiagnosticCodeWithExpectedTypes {
+class ManifestWarningCode {
   /// A code indicating that the camera permissions is not supported on Chrome
   /// OS.
   ///
   /// No parameters.
-  static const DiagnosticWithoutArguments
-  cameraPermissionsIncompatible = DiagnosticWithoutArgumentsImpl(
-    name: 'CAMERA_PERMISSIONS_INCOMPATIBLE',
-    problemMessage:
-        "Camera permissions make app incompatible for Chrome OS, consider adding "
-        "optional features \"android.hardware.camera\" and "
-        "\"android.hardware.camera.autofocus\".",
-    correctionMessage:
-        "Try adding `<uses-feature android:name=\"android.hardware.camera\"  "
-        "android:required=\"false\">` `<uses-feature "
-        "android:name=\"android.hardware.camera.autofocus\"  "
-        "android:required=\"false\">`.",
-    type: DiagnosticType.STATIC_WARNING,
-    uniqueName: 'ManifestWarningCode.CAMERA_PERMISSIONS_INCOMPATIBLE',
-    expectedTypes: [],
-  );
+  static const DiagnosticWithoutArguments cameraPermissionsIncompatible =
+      diag.cameraPermissionsIncompatible;
 
   /// A code indicating that the activity is set to be non resizable.
   ///
   /// No parameters.
-  static const DiagnosticWithoutArguments
-  nonResizableActivity = DiagnosticWithoutArgumentsImpl(
-    name: 'NON_RESIZABLE_ACTIVITY',
-    problemMessage:
-        "The `<activity>` element should be allowed to be resized to allow users "
-        "to take advantage of the multi-window environment on Chrome OS",
-    correctionMessage:
-        "Consider declaring the corresponding activity element with "
-        "`resizableActivity=\"true\"` attribute.",
-    type: DiagnosticType.STATIC_WARNING,
-    uniqueName: 'ManifestWarningCode.NON_RESIZABLE_ACTIVITY',
-    expectedTypes: [],
-  );
+  static const DiagnosticWithoutArguments nonResizableActivity =
+      diag.nonResizableActivity;
 
   /// A code indicating that the touchscreen feature is not specified in the
   /// manifest.
   ///
   /// No parameters.
-  static const DiagnosticWithoutArguments
-  noTouchscreenFeature = DiagnosticWithoutArgumentsImpl(
-    name: 'NO_TOUCHSCREEN_FEATURE',
-    problemMessage:
-        "The default \"android.hardware.touchscreen\" needs to be optional for "
-        "Chrome OS.",
-    correctionMessage:
-        "Consider adding <uses-feature "
-        "android:name=\"android.hardware.touchscreen\" android:required=\"false\" "
-        "/> to the manifest.",
-    type: DiagnosticType.STATIC_WARNING,
-    uniqueName: 'ManifestWarningCode.NO_TOUCHSCREEN_FEATURE',
-    expectedTypes: [],
-  );
+  static const DiagnosticWithoutArguments noTouchscreenFeature =
+      diag.noTouchscreenFeature;
 
   /// A code indicating that a specified permission is not supported on Chrome
   /// OS.
@@ -78,37 +41,14 @@ class ManifestWarningCode extends DiagnosticCodeWithExpectedTypes {
   static const DiagnosticWithArguments<
     LocatableDiagnostic Function({required Object p0})
   >
-  permissionImpliesUnsupportedHardware = DiagnosticWithArguments(
-    name: 'PERMISSION_IMPLIES_UNSUPPORTED_HARDWARE',
-    problemMessage:
-        "Permission makes app incompatible for Chrome OS, consider adding optional "
-        "{0} feature tag,",
-    correctionMessage:
-        " Try adding `<uses-feature android:name=\"{0}\"  "
-        "android:required=\"false\">`.",
-    type: DiagnosticType.STATIC_WARNING,
-    uniqueName: 'ManifestWarningCode.PERMISSION_IMPLIES_UNSUPPORTED_HARDWARE',
-    withArguments: _withArgumentsPermissionImpliesUnsupportedHardware,
-    expectedTypes: [ExpectedType.object],
-  );
+  permissionImpliesUnsupportedHardware =
+      diag.permissionImpliesUnsupportedHardware;
 
   /// A code indicating that the activity is locked to an orientation.
   ///
   /// No parameters.
-  static const DiagnosticWithoutArguments
-  settingOrientationOnActivity = DiagnosticWithoutArgumentsImpl(
-    name: 'SETTING_ORIENTATION_ON_ACTIVITY',
-    problemMessage:
-        "The `<activity>` element should not be locked to any orientation so that "
-        "users can take advantage of the multi-window environments and larger "
-        "screens on Chrome OS",
-    correctionMessage:
-        "Consider declaring the corresponding activity element with "
-        "`screenOrientation=\"unspecified\"` or `\"fullSensor\"` attribute.",
-    type: DiagnosticType.STATIC_WARNING,
-    uniqueName: 'ManifestWarningCode.SETTING_ORIENTATION_ON_ACTIVITY',
-    expectedTypes: [],
-  );
+  static const DiagnosticWithoutArguments settingOrientationOnActivity =
+      diag.settingOrientationOnActivity;
 
   /// A code indicating that a specified feature is not supported on Chrome OS.
   ///
@@ -117,18 +57,7 @@ class ManifestWarningCode extends DiagnosticCodeWithExpectedTypes {
   static const DiagnosticWithArguments<
     LocatableDiagnostic Function({required String p0})
   >
-  unsupportedChromeOsFeature = DiagnosticWithArguments(
-    name: 'UNSUPPORTED_CHROME_OS_FEATURE',
-    problemMessage:
-        "The feature {0} isn't supported on Chrome OS, consider making it "
-        "optional.",
-    correctionMessage:
-        "Try changing to `android:required=\"false\"` for this feature.",
-    type: DiagnosticType.STATIC_WARNING,
-    uniqueName: 'ManifestWarningCode.UNSUPPORTED_CHROME_OS_FEATURE',
-    withArguments: _withArgumentsUnsupportedChromeOsFeature,
-    expectedTypes: [ExpectedType.string],
-  );
+  unsupportedChromeOsFeature = diag.unsupportedChromeOsFeature;
 
   /// A code indicating that a specified hardware feature is not supported on
   /// Chrome OS.
@@ -138,53 +67,8 @@ class ManifestWarningCode extends DiagnosticCodeWithExpectedTypes {
   static const DiagnosticWithArguments<
     LocatableDiagnostic Function({required String p0})
   >
-  unsupportedChromeOsHardware = DiagnosticWithArguments(
-    name: 'UNSUPPORTED_CHROME_OS_HARDWARE',
-    problemMessage:
-        "The feature {0} isn't supported on Chrome OS, consider making it "
-        "optional.",
-    correctionMessage:
-        "Try adding `android:required=\"false\"` for this feature.",
-    type: DiagnosticType.STATIC_WARNING,
-    uniqueName: 'ManifestWarningCode.UNSUPPORTED_CHROME_OS_HARDWARE',
-    withArguments: _withArgumentsUnsupportedChromeOsHardware,
-    expectedTypes: [ExpectedType.string],
-  );
+  unsupportedChromeOsHardware = diag.unsupportedChromeOsHardware;
 
-  /// Initialize a newly created error code to have the given [name].
-  const ManifestWarningCode({
-    required super.name,
-    required super.problemMessage,
-    super.correctionMessage,
-    super.hasPublishedDocs = false,
-    super.isUnresolvedIdentifier = false,
-    required super.uniqueName,
-    required super.expectedTypes,
-  }) : super(type: DiagnosticType.STATIC_WARNING);
-
-  static LocatableDiagnostic
-  _withArgumentsPermissionImpliesUnsupportedHardware({required Object p0}) {
-    return LocatableDiagnosticImpl(
-      ManifestWarningCode.permissionImpliesUnsupportedHardware,
-      [p0],
-    );
-  }
-
-  static LocatableDiagnostic _withArgumentsUnsupportedChromeOsFeature({
-    required String p0,
-  }) {
-    return LocatableDiagnosticImpl(
-      ManifestWarningCode.unsupportedChromeOsFeature,
-      [p0],
-    );
-  }
-
-  static LocatableDiagnostic _withArgumentsUnsupportedChromeOsHardware({
-    required String p0,
-  }) {
-    return LocatableDiagnosticImpl(
-      ManifestWarningCode.unsupportedChromeOsHardware,
-      [p0],
-    );
-  }
+  /// Do not construct instances of this class.
+  ManifestWarningCode._() : assert(false);
 }

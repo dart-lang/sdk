@@ -18,31 +18,18 @@ part of "package:analysis_server/src/services/correction/fix/data_driven/transfo
 
 /// An error code representing a problem in a file containing an encoding of a
 /// transform set.
-class TransformSetErrorCode extends DiagnosticCodeWithExpectedTypes {
+class TransformSetErrorCode {
   /// Parameters:
   /// Object p0: the conflicting key
   /// Object p1: the key that it conflicts with
   static const DiagnosticWithArguments<
     LocatableDiagnostic Function({required Object p0, required Object p1})
   >
-  conflictingKey = DiagnosticWithArguments(
-    name: 'conflicting_key',
-    problemMessage: "The key '{0}' can't be used when '{1}' is also used.",
-    type: DiagnosticType.COMPILE_TIME_ERROR,
-    uniqueName: 'TransformSetErrorCode.conflicting_key',
-    withArguments: _withArgumentsConflictingKey,
-    expectedTypes: [ExpectedType.object, ExpectedType.object],
-  );
+  conflictingKey = diag.conflictingKey;
 
   /// No parameters.
   static const DiagnosticWithoutArguments expectedPrimary =
-      DiagnosticWithoutArgumentsImpl(
-        name: 'expected_primary',
-        problemMessage: "Expected either an identifier or a string literal.",
-        type: DiagnosticType.COMPILE_TIME_ERROR,
-        uniqueName: 'TransformSetErrorCode.expected_primary',
-        expectedTypes: [],
-      );
+      diag.expectedPrimary;
 
   /// Parameters:
   /// Object p0: the old kind
@@ -50,15 +37,7 @@ class TransformSetErrorCode extends DiagnosticCodeWithExpectedTypes {
   static const DiagnosticWithArguments<
     LocatableDiagnostic Function({required Object p0, required Object p1})
   >
-  incompatibleElementKind = DiagnosticWithArguments(
-    name: 'incompatible_element_kind',
-    problemMessage:
-        "An element of kind '{0}' can't be replaced by an element of kind '{1}'.",
-    type: DiagnosticType.COMPILE_TIME_ERROR,
-    uniqueName: 'TransformSetErrorCode.incompatible_element_kind',
-    withArguments: _withArgumentsIncompatibleElementKind,
-    expectedTypes: [ExpectedType.object, ExpectedType.object],
-  );
+  incompatibleElementKind = diag.incompatibleElementKind;
 
   /// Parameters:
   /// Object p0: the change kind that is invalid
@@ -66,68 +45,32 @@ class TransformSetErrorCode extends DiagnosticCodeWithExpectedTypes {
   static const DiagnosticWithArguments<
     LocatableDiagnostic Function({required Object p0, required Object p1})
   >
-  invalidChangeForKind = DiagnosticWithArguments(
-    name: 'invalid_change_for_kind',
-    problemMessage:
-        "A change of type '{0}' can't be used for an element of kind '{1}'.",
-    type: DiagnosticType.COMPILE_TIME_ERROR,
-    uniqueName: 'TransformSetErrorCode.invalid_change_for_kind',
-    withArguments: _withArgumentsInvalidChangeForKind,
-    expectedTypes: [ExpectedType.object, ExpectedType.object],
-  );
+  invalidChangeForKind = diag.invalidChangeForKind;
 
   /// Parameters:
   /// Object p0: the character that is invalid
   static const DiagnosticWithArguments<
     LocatableDiagnostic Function({required Object p0})
   >
-  invalidCharacter = DiagnosticWithArguments(
-    name: 'invalid_character',
-    problemMessage: "Invalid character '{0}'.",
-    type: DiagnosticType.COMPILE_TIME_ERROR,
-    uniqueName: 'TransformSetErrorCode.invalid_character',
-    withArguments: _withArgumentsInvalidCharacter,
-    expectedTypes: [ExpectedType.object],
-  );
+  invalidCharacter = diag.invalidCharacter;
 
   /// Parameters:
   /// Object p0: the actual type of the key
   static const DiagnosticWithArguments<
     LocatableDiagnostic Function({required Object p0})
   >
-  invalidKey = DiagnosticWithArguments(
-    name: 'invalid_key',
-    problemMessage: "Keys must be of type 'String' but found the type '{0}'.",
-    type: DiagnosticType.COMPILE_TIME_ERROR,
-    uniqueName: 'TransformSetErrorCode.invalid_key',
-    withArguments: _withArgumentsInvalidKey,
-    expectedTypes: [ExpectedType.object],
-  );
+  invalidKey = diag.invalidKey;
 
   /// Parameters:
   /// Object p0: the list of valid parameter styles
   static const DiagnosticWithArguments<
     LocatableDiagnostic Function({required Object p0})
   >
-  invalidParameterStyle = DiagnosticWithArguments(
-    name: 'invalid_parameter_style',
-    problemMessage: "The parameter style must be one of the following: {0}.",
-    type: DiagnosticType.COMPILE_TIME_ERROR,
-    uniqueName: 'TransformSetErrorCode.invalid_parameter_style',
-    withArguments: _withArgumentsInvalidParameterStyle,
-    expectedTypes: [ExpectedType.object],
-  );
+  invalidParameterStyle = diag.invalidParameterStyle;
 
   /// No parameters.
-  static const DiagnosticWithoutArguments
-  invalidRequiredIf = DiagnosticWithoutArgumentsImpl(
-    name: 'invalid_required_if',
-    problemMessage:
-        "The key 'requiredIf' can only be used with optional named parameters.",
-    type: DiagnosticType.COMPILE_TIME_ERROR,
-    uniqueName: 'TransformSetErrorCode.invalid_required_if',
-    expectedTypes: [],
-  );
+  static const DiagnosticWithoutArguments invalidRequiredIf =
+      diag.invalidRequiredIf;
 
   /// Parameters:
   /// Object p0: the key with which the value is associated
@@ -140,19 +83,7 @@ class TransformSetErrorCode extends DiagnosticCodeWithExpectedTypes {
       required Object p2,
     })
   >
-  invalidValue = DiagnosticWithArguments(
-    name: 'invalid_value',
-    problemMessage:
-        "The value of '{0}' should be of type '{1}' but is of type '{2}'.",
-    type: DiagnosticType.COMPILE_TIME_ERROR,
-    uniqueName: 'TransformSetErrorCode.invalid_value',
-    withArguments: _withArgumentsInvalidValue,
-    expectedTypes: [
-      ExpectedType.object,
-      ExpectedType.object,
-      ExpectedType.object,
-    ],
-  );
+  invalidValue = diag.invalidValue;
 
   /// Parameters:
   /// Object p0: the key with which the value is associated
@@ -160,154 +91,71 @@ class TransformSetErrorCode extends DiagnosticCodeWithExpectedTypes {
   static const DiagnosticWithArguments<
     LocatableDiagnostic Function({required Object p0, required Object p1})
   >
-  invalidValueOneOf = DiagnosticWithArguments(
-    name: 'invalid_value_one_of',
-    problemMessage: "The value of '{0}' must be one of the following: '{1}'.",
-    type: DiagnosticType.COMPILE_TIME_ERROR,
-    uniqueName: 'TransformSetErrorCode.invalid_value_one_of',
-    withArguments: _withArgumentsInvalidValueOneOf,
-    expectedTypes: [ExpectedType.object, ExpectedType.object],
-  );
+  invalidValueOneOf = diag.invalidValueOneOf;
 
   /// Parameters:
   /// Object p0: the missing key
   static const DiagnosticWithArguments<
     LocatableDiagnostic Function({required Object p0})
   >
-  missingKey = DiagnosticWithArguments(
-    name: 'missing_key',
-    problemMessage: "Missing the required key '{0}'.",
-    type: DiagnosticType.COMPILE_TIME_ERROR,
-    uniqueName: 'TransformSetErrorCode.missing_key',
-    withArguments: _withArgumentsMissingKey,
-    expectedTypes: [ExpectedType.object],
-  );
+  missingKey = diag.missingKey;
 
   /// Parameters:
   /// Object p0: the list of valid keys
   static const DiagnosticWithArguments<
     LocatableDiagnostic Function({required Object p0})
   >
-  missingOneOfMultipleKeys = DiagnosticWithArguments(
-    name: 'missing_one_of_multiple_keys',
-    problemMessage: "Exactly one of the following keys must be provided: {0}.",
-    type: DiagnosticType.COMPILE_TIME_ERROR,
-    uniqueName: 'TransformSetErrorCode.missing_one_of_multiple_keys',
-    withArguments: _withArgumentsMissingOneOfMultipleKeys,
-    expectedTypes: [ExpectedType.object],
-  );
+  missingOneOfMultipleKeys = diag.missingOneOfMultipleKeys;
 
   /// No parameters.
   static const DiagnosticWithoutArguments missingTemplateEnd =
-      DiagnosticWithoutArgumentsImpl(
-        name: 'missing_template_end',
-        problemMessage: "Missing the end brace for the template.",
-        type: DiagnosticType.COMPILE_TIME_ERROR,
-        uniqueName: 'TransformSetErrorCode.missing_template_end',
-        expectedTypes: [],
-      );
+      diag.missingTemplateEnd;
 
   /// Parameters:
   /// Object p0: a description of the expected kinds of tokens
   static const DiagnosticWithArguments<
     LocatableDiagnostic Function({required Object p0})
   >
-  missingToken = DiagnosticWithArguments(
-    name: 'missing_token',
-    problemMessage: "Expected to find {0}.",
-    type: DiagnosticType.COMPILE_TIME_ERROR,
-    uniqueName: 'TransformSetErrorCode.missing_token',
-    withArguments: _withArgumentsMissingToken,
-    expectedTypes: [ExpectedType.object],
-  );
+  missingToken = diag.missingToken;
 
   /// No parameters.
-  static const DiagnosticWithoutArguments missingUri =
-      DiagnosticWithoutArgumentsImpl(
-        name: 'missing_uri',
-        problemMessage: "At least one URI must be provided.",
-        type: DiagnosticType.COMPILE_TIME_ERROR,
-        uniqueName: 'TransformSetErrorCode.missing_uri',
-        expectedTypes: [],
-      );
+  static const DiagnosticWithoutArguments missingUri = diag.missingUri;
 
   /// Parameters:
   /// Object p0: the missing key
   static const DiagnosticWithArguments<
     LocatableDiagnostic Function({required Object p0})
   >
-  undefinedVariable = DiagnosticWithArguments(
-    name: 'undefined_variable',
-    problemMessage: "The variable '{0}' isn't defined.",
-    type: DiagnosticType.COMPILE_TIME_ERROR,
-    uniqueName: 'TransformSetErrorCode.undefined_variable',
-    withArguments: _withArgumentsUndefinedVariable,
-    expectedTypes: [ExpectedType.object],
-  );
+  undefinedVariable = diag.undefinedVariable;
 
   /// Parameters:
   /// Object p0: the token that was unexpectedly found
   static const DiagnosticWithArguments<
     LocatableDiagnostic Function({required Object p0})
   >
-  unexpectedTransformSetToken = DiagnosticWithArguments(
-    name: 'unexpected_transform_set_token',
-    problemMessage: "Didn't expect to find {0}.",
-    type: DiagnosticType.COMPILE_TIME_ERROR,
-    uniqueName: 'TransformSetErrorCode.unexpected_transform_set_token',
-    withArguments: _withArgumentsUnexpectedTransformSetToken,
-    expectedTypes: [ExpectedType.object],
-  );
+  unexpectedTransformSetToken = diag.unexpectedTransformSetToken;
 
   /// Parameters:
   /// Object p0: a description of the expected kind of token
   static const DiagnosticWithArguments<
     LocatableDiagnostic Function({required Object p0})
   >
-  unknownAccessor = DiagnosticWithArguments(
-    name: 'unknown_accessor',
-    problemMessage: "The accessor '{0}' is invalid.",
-    type: DiagnosticType.COMPILE_TIME_ERROR,
-    uniqueName: 'TransformSetErrorCode.unknown_accessor',
-    withArguments: _withArgumentsUnknownAccessor,
-    expectedTypes: [ExpectedType.object],
-  );
+  unknownAccessor = diag.unknownAccessor;
 
   /// Parameters:
   /// Object p0: the unsupported key
   static const DiagnosticWithArguments<
     LocatableDiagnostic Function({required Object p0})
   >
-  unsupportedKey = DiagnosticWithArguments(
-    name: 'unsupported_key',
-    problemMessage: "The key '{0}' isn't supported.",
-    type: DiagnosticType.COMPILE_TIME_ERROR,
-    uniqueName: 'TransformSetErrorCode.unsupported_key',
-    withArguments: _withArgumentsUnsupportedKey,
-    expectedTypes: [ExpectedType.object],
-  );
+  unsupportedKey = diag.unsupportedKey;
 
   /// No parameters.
   static const DiagnosticWithoutArguments unsupportedStatic =
-      DiagnosticWithoutArgumentsImpl(
-        name: 'unsupported_static',
-        problemMessage:
-            "The key 'static' is only supported for elements in a class, enum, "
-            "extension, or mixin.",
-        type: DiagnosticType.COMPILE_TIME_ERROR,
-        uniqueName: 'TransformSetErrorCode.unsupported_static',
-        expectedTypes: [],
-      );
+      diag.unsupportedStatic;
 
   /// No parameters.
   static const DiagnosticWithoutArguments unsupportedVersion =
-      DiagnosticWithoutArgumentsImpl(
-        name: 'unsupported_version',
-        problemMessage: "Only version '1' is supported at this time.",
-        type: DiagnosticType.COMPILE_TIME_ERROR,
-        uniqueName: 'TransformSetErrorCode.unsupported_version',
-        expectedTypes: [],
-      );
+      diag.unsupportedVersion;
 
   /// Parameters:
   /// Object p0: a description of the expected kind of token
@@ -315,169 +163,15 @@ class TransformSetErrorCode extends DiagnosticCodeWithExpectedTypes {
   static const DiagnosticWithArguments<
     LocatableDiagnostic Function({required Object p0, required Object p1})
   >
-  wrongToken = DiagnosticWithArguments(
-    name: 'wrong_token',
-    problemMessage: "Expected to find {0}, but found {1}.",
-    type: DiagnosticType.COMPILE_TIME_ERROR,
-    uniqueName: 'TransformSetErrorCode.wrong_token',
-    withArguments: _withArgumentsWrongToken,
-    expectedTypes: [ExpectedType.object, ExpectedType.object],
-  );
+  wrongToken = diag.wrongToken;
 
   /// Parameters:
   /// Object p0: the message produced by the YAML parser
   static const DiagnosticWithArguments<
     LocatableDiagnostic Function({required Object p0})
   >
-  yamlSyntaxError = DiagnosticWithArguments(
-    name: 'yaml_syntax_error',
-    problemMessage: "Parse error: {0}",
-    type: DiagnosticType.COMPILE_TIME_ERROR,
-    uniqueName: 'TransformSetErrorCode.yaml_syntax_error',
-    withArguments: _withArgumentsYamlSyntaxError,
-    expectedTypes: [ExpectedType.object],
-  );
+  yamlSyntaxError = diag.yamlSyntaxError;
 
-  /// Initialize a newly created error code to have the given [name].
-  const TransformSetErrorCode({
-    required super.name,
-    required super.problemMessage,
-    super.correctionMessage,
-    super.hasPublishedDocs = false,
-    super.isUnresolvedIdentifier = false,
-    required super.uniqueName,
-    required super.expectedTypes,
-  }) : super(type: DiagnosticType.COMPILE_TIME_ERROR);
-
-  static LocatableDiagnostic _withArgumentsConflictingKey({
-    required Object p0,
-    required Object p1,
-  }) {
-    return LocatableDiagnosticImpl(TransformSetErrorCode.conflictingKey, [
-      p0,
-      p1,
-    ]);
-  }
-
-  static LocatableDiagnostic _withArgumentsIncompatibleElementKind({
-    required Object p0,
-    required Object p1,
-  }) {
-    return LocatableDiagnosticImpl(
-      TransformSetErrorCode.incompatibleElementKind,
-      [p0, p1],
-    );
-  }
-
-  static LocatableDiagnostic _withArgumentsInvalidChangeForKind({
-    required Object p0,
-    required Object p1,
-  }) {
-    return LocatableDiagnosticImpl(TransformSetErrorCode.invalidChangeForKind, [
-      p0,
-      p1,
-    ]);
-  }
-
-  static LocatableDiagnostic _withArgumentsInvalidCharacter({
-    required Object p0,
-  }) {
-    return LocatableDiagnosticImpl(TransformSetErrorCode.invalidCharacter, [
-      p0,
-    ]);
-  }
-
-  static LocatableDiagnostic _withArgumentsInvalidKey({required Object p0}) {
-    return LocatableDiagnosticImpl(TransformSetErrorCode.invalidKey, [p0]);
-  }
-
-  static LocatableDiagnostic _withArgumentsInvalidParameterStyle({
-    required Object p0,
-  }) {
-    return LocatableDiagnosticImpl(
-      TransformSetErrorCode.invalidParameterStyle,
-      [p0],
-    );
-  }
-
-  static LocatableDiagnostic _withArgumentsInvalidValue({
-    required Object p0,
-    required Object p1,
-    required Object p2,
-  }) {
-    return LocatableDiagnosticImpl(TransformSetErrorCode.invalidValue, [
-      p0,
-      p1,
-      p2,
-    ]);
-  }
-
-  static LocatableDiagnostic _withArgumentsInvalidValueOneOf({
-    required Object p0,
-    required Object p1,
-  }) {
-    return LocatableDiagnosticImpl(TransformSetErrorCode.invalidValueOneOf, [
-      p0,
-      p1,
-    ]);
-  }
-
-  static LocatableDiagnostic _withArgumentsMissingKey({required Object p0}) {
-    return LocatableDiagnosticImpl(TransformSetErrorCode.missingKey, [p0]);
-  }
-
-  static LocatableDiagnostic _withArgumentsMissingOneOfMultipleKeys({
-    required Object p0,
-  }) {
-    return LocatableDiagnosticImpl(
-      TransformSetErrorCode.missingOneOfMultipleKeys,
-      [p0],
-    );
-  }
-
-  static LocatableDiagnostic _withArgumentsMissingToken({required Object p0}) {
-    return LocatableDiagnosticImpl(TransformSetErrorCode.missingToken, [p0]);
-  }
-
-  static LocatableDiagnostic _withArgumentsUndefinedVariable({
-    required Object p0,
-  }) {
-    return LocatableDiagnosticImpl(TransformSetErrorCode.undefinedVariable, [
-      p0,
-    ]);
-  }
-
-  static LocatableDiagnostic _withArgumentsUnexpectedTransformSetToken({
-    required Object p0,
-  }) {
-    return LocatableDiagnosticImpl(
-      TransformSetErrorCode.unexpectedTransformSetToken,
-      [p0],
-    );
-  }
-
-  static LocatableDiagnostic _withArgumentsUnknownAccessor({
-    required Object p0,
-  }) {
-    return LocatableDiagnosticImpl(TransformSetErrorCode.unknownAccessor, [p0]);
-  }
-
-  static LocatableDiagnostic _withArgumentsUnsupportedKey({
-    required Object p0,
-  }) {
-    return LocatableDiagnosticImpl(TransformSetErrorCode.unsupportedKey, [p0]);
-  }
-
-  static LocatableDiagnostic _withArgumentsWrongToken({
-    required Object p0,
-    required Object p1,
-  }) {
-    return LocatableDiagnosticImpl(TransformSetErrorCode.wrongToken, [p0, p1]);
-  }
-
-  static LocatableDiagnostic _withArgumentsYamlSyntaxError({
-    required Object p0,
-  }) {
-    return LocatableDiagnosticImpl(TransformSetErrorCode.yamlSyntaxError, [p0]);
-  }
+  /// Do not construct instances of this class.
+  TransformSetErrorCode._() : assert(false);
 }

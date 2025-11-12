@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/error/syntactic_errors.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/test_utilities/mock_sdk.dart';
@@ -500,10 +501,14 @@ GenericFunctionType
   }
 
   test_named_onInterface() async {
-    await assertNoErrorsInCode('''
+    var code = '''
 class C { }
 extension E on C {}
-''');
+''';
+
+    useDeclaringConstructorsAst = true;
+    await assertNoErrorsInCode(code);
+
     var extendedType = findNode.typeAnnotation('C {}');
     assertResolvedNodeText(extendedType, r'''
 NamedType
@@ -511,6 +516,19 @@ NamedType
   element: <testLibrary>::@class::C
   type: C
 ''');
+
+    {
+      useDeclaringConstructorsAst = false;
+      await assertNoErrorsInCode(code);
+
+      var extendedType = findNode.typeAnnotation('C {}');
+      assertResolvedNodeText(extendedType, r'''
+NamedType
+  name: C
+  element: <testLibrary>::@class::C
+  type: C
+''');
+    }
   }
 
   test_named_onMixin() async {

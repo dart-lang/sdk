@@ -5078,7 +5078,11 @@ class ScopeResolverVisitor extends UnifyingAstVisitor<void> {
 
       nameScope = ExtensionScope(nameScope, element);
       _visitDocumentationComment(node.documentationComment);
-      node.members.accept(this);
+      if (useDeclaringConstructorsAst) {
+        node.body.accept(this);
+      } else {
+        node.members.accept(this);
+      }
     } finally {
       nameScope = outerScope;
     }
@@ -5439,7 +5443,11 @@ class ScopeResolverVisitor extends UnifyingAstVisitor<void> {
 
       nameScope = InstanceScope(nameScope, element);
       _visitDocumentationComment(node.documentationComment);
-      node.members.accept(this);
+      if (useDeclaringConstructorsAst) {
+        node.body.accept(this);
+      } else {
+        node.members.accept(this);
+      }
     } finally {
       nameScope = outerScope;
     }

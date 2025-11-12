@@ -14,7 +14,7 @@ part of "package:analyzer/src/dart/error/todo_codes.dart";
 
 /// The error code indicating a marker in code for work that needs to be finished
 /// or revisited.
-class TodoCode extends DiagnosticCodeWithExpectedTypes {
+class TodoCode {
   /// A TODO comment marked as FIXME.
   ///
   /// Parameters:
@@ -22,14 +22,7 @@ class TodoCode extends DiagnosticCodeWithExpectedTypes {
   static const DiagnosticWithArguments<
     LocatableDiagnostic Function({required String message})
   >
-  fixme = DiagnosticWithArguments(
-    name: 'FIXME',
-    problemMessage: "{0}",
-    type: DiagnosticType.TODO,
-    uniqueName: 'TodoCode.FIXME',
-    withArguments: _withArgumentsFixme,
-    expectedTypes: [ExpectedType.string],
-  );
+  fixme = diag.fixme;
 
   /// A TODO comment marked as HACK.
   ///
@@ -38,14 +31,7 @@ class TodoCode extends DiagnosticCodeWithExpectedTypes {
   static const DiagnosticWithArguments<
     LocatableDiagnostic Function({required String message})
   >
-  hack = DiagnosticWithArguments(
-    name: 'HACK',
-    problemMessage: "{0}",
-    type: DiagnosticType.TODO,
-    uniqueName: 'TodoCode.HACK',
-    withArguments: _withArgumentsHack,
-    expectedTypes: [ExpectedType.string],
-  );
+  hack = diag.hack;
 
   /// A standard TODO comment marked as TODO.
   ///
@@ -54,14 +40,7 @@ class TodoCode extends DiagnosticCodeWithExpectedTypes {
   static const DiagnosticWithArguments<
     LocatableDiagnostic Function({required String message})
   >
-  todo = DiagnosticWithArguments(
-    name: 'TODO',
-    problemMessage: "{0}",
-    type: DiagnosticType.TODO,
-    uniqueName: 'TodoCode.TODO',
-    withArguments: _withArgumentsTodo,
-    expectedTypes: [ExpectedType.string],
-  );
+  todo = diag.todo;
 
   /// A TODO comment marked as UNDONE.
   ///
@@ -70,39 +49,8 @@ class TodoCode extends DiagnosticCodeWithExpectedTypes {
   static const DiagnosticWithArguments<
     LocatableDiagnostic Function({required String message})
   >
-  undone = DiagnosticWithArguments(
-    name: 'UNDONE',
-    problemMessage: "{0}",
-    type: DiagnosticType.TODO,
-    uniqueName: 'TodoCode.UNDONE',
-    withArguments: _withArgumentsUndone,
-    expectedTypes: [ExpectedType.string],
-  );
+  undone = diag.undone;
 
-  /// Initialize a newly created error code to have the given [name].
-  const TodoCode({
-    required super.name,
-    required super.problemMessage,
-    super.correctionMessage,
-    super.hasPublishedDocs = false,
-    super.isUnresolvedIdentifier = false,
-    required super.uniqueName,
-    required super.expectedTypes,
-  }) : super(type: DiagnosticType.TODO);
-
-  static LocatableDiagnostic _withArgumentsFixme({required String message}) {
-    return LocatableDiagnosticImpl(TodoCode.fixme, [message]);
-  }
-
-  static LocatableDiagnostic _withArgumentsHack({required String message}) {
-    return LocatableDiagnosticImpl(TodoCode.hack, [message]);
-  }
-
-  static LocatableDiagnostic _withArgumentsTodo({required String message}) {
-    return LocatableDiagnosticImpl(TodoCode.todo, [message]);
-  }
-
-  static LocatableDiagnostic _withArgumentsUndone({required String message}) {
-    return LocatableDiagnosticImpl(TodoCode.undone, [message]);
-  }
+  /// Do not construct instances of this class.
+  TodoCode._() : assert(false);
 }

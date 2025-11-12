@@ -9341,6 +9341,13 @@ final class ExtensionTypeDeclarationImpl extends NamedCompilationUnitMemberImpl
     return rightBracket;
   }
 
+  /// The type annotation of the only formal parameter of the primary
+  /// constructor. It is always present, ensured by the AST builder.
+  TypeAnnotationImpl get fieldType {
+    var formal = primaryConstructor.formalParameters.parameters.first;
+    return (formal as SimpleFormalParameterImpl).type!;
+  }
+
   @generated
   @override
   Token get firstTokenAfterCommentAndMetadata {

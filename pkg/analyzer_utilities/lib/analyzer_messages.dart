@@ -122,6 +122,15 @@ const ffiCodesFile = GeneratedDiagnosticFile(
 
 const String generatedLintCodesPath = 'linter/lib/src/lint_codes.g.dart';
 
+/// Whether diagnostic constants should be generated to top level.
+///
+/// If this constant is `true`, diagnostic constants will be generated as top
+/// level constants inside of files called `diagnostic.g.dart`.
+///
+/// Otherwise, diagnostic constants will be generated as static constants inside
+/// `DiagnosticCode`-derived classes such as `CompileTimeErrorCode`.
+const bool generateTopLevelConstants = true;
+
 const hintCodesFile = GeneratedDiagnosticFile(
   path: 'analyzer/lib/src/dart/error/hint_codes.g.dart',
   parentLibrary: 'package:analyzer/src/dart/error/hint_codes.dart',
@@ -358,7 +367,8 @@ class AliasMessage extends AnalyzerMessage {
   }) {
     var constant = StringBuffer();
     outputConstantHeader(constant);
-    constant.writeln('  static const $aliasForClass $constantName =');
+    var static = generateTopLevelConstants ? '' : 'static';
+    constant.writeln('  $static const $aliasForClass $constantName =');
     constant.writeln('$aliasFor;');
     memberAccumulator.constants[constantName] = constant.toString();
   }
@@ -367,19 +377,57 @@ class AliasMessage extends AnalyzerMessage {
 /// Enum representing the packages into which analyzer diagnostics can be
 /// generated.
 enum AnalyzerDiagnosticPackage {
-  analyzer,
-  analysisServer(shouldIgnorePreferSingleQuotes: true),
-  linter;
+  analyzer(
+    diagnosticPathPart: 'src/diagnostic/diagnostic',
+    dirName: 'analyzer',
+  ),
+  analysisServer(
+    diagnosticPathPart: 'src/diagnostic',
+    dirName: 'analysis_server',
+    shouldIgnorePreferSingleQuotes: true,
+  ),
+  linter(
+    diagnosticPathPart: 'src/diagnostic',
+    dirName: 'linter',
+    shouldIgnorePreferExpressionFunctionBodies: true,
+    shouldIgnorePreferSingleQuotes: true,
+  );
+
+  /// The name of the subdirectory of `pkg` containing this package.
+  final String dirName;
+
+  /// The part of the path to the generated `diagnostic.g.dart` file that
+  /// follows the package's `lib` directory and precedes `diagnostic.g.dart`.
+  ///
+  /// For example, if [dirName] is `linter` and [diagnosticPathPart] is
+  /// `src/diagnostic`, then the full path to the generated `diagnostic.g.dart`
+  /// file will be `pkg/linter/lib/src/diagnostic/diagnostic.g.dart`.
+  final String diagnosticPathPart;
+
+  /// Whether code generated in this package needs an "ignore" comment to ignore
+  /// the `prefer_expression_function_bodies` lint.
+  final bool shouldIgnorePreferExpressionFunctionBodies;
 
   /// Whether code generated in this package needs an "ignore" comment to ignore
   /// the `prefer_single_quotes` lint.
   final bool shouldIgnorePreferSingleQuotes;
 
   const AnalyzerDiagnosticPackage({
+    required this.diagnosticPathPart,
+    required this.dirName,
+    this.shouldIgnorePreferExpressionFunctionBodies = false,
     this.shouldIgnorePreferSingleQuotes = false,
   });
 
   void writeIgnoresTo(StringBuffer out) {
+    if (shouldIgnorePreferExpressionFunctionBodies) {
+      out.write('''
+
+// Code generation is easier if we don't have to decide whether to generate an
+// expression function body or a block function body.
+// ignore_for_file: prefer_expression_function_bodies
+''');
+    }
     if (shouldIgnorePreferSingleQuotes) {
       out.write('''
 
@@ -623,6 +671,7 @@ mixin MessageWithAnalyzerCode on Message {
     String? withArgumentsName;
     var baseClasses = analyzerCode.diagnosticClass.type.baseClasses;
     var ConstantStyle(:concreteClassName, :staticType) = constantStyle;
+    var static = generateTopLevelConstants ? '' : 'static';
     if (constantStyle case WithArgumentsConstantStyle(
       :var withArgumentsParams,
     )) {
@@ -630,7 +679,7 @@ mixin MessageWithAnalyzerCode on Message {
       withArgumentsName = '_withArguments${analyzerCode.pascalCaseName}';
       memberAccumulator.staticMethods[withArgumentsName] =
           '''
-static LocatableDiagnostic $withArgumentsName({$withArgumentsParams}) {
+$static LocatableDiagnostic $withArgumentsName({$withArgumentsParams}) {
   return LocatableDiagnosticImpl(
     ${analyzerCode.analyzerCodeReference}, [$argumentNames]);
 }''';
@@ -638,7 +687,7 @@ static LocatableDiagnostic $withArgumentsName({$withArgumentsParams}) {
 
     var constant = StringBuffer();
     outputConstantHeader(constant);
-    constant.writeln('  static const $staticType $constantName =');
+    constant.writeln('$static const $staticType $constantName =');
     constant.writeln('$concreteClassName(');
     constant.writeln(
       'name: ${sharedNameReference ?? "'${sharedName ?? diagnosticCode}'"},',
@@ -683,8 +732,8 @@ static LocatableDiagnostic $withArgumentsName({$withArgumentsParams}) {
     if (diagnosticClassInfo.deprecatedSnakeCaseNames.contains(diagnosticCode)) {
       memberAccumulator.constants[diagnosticCode] =
           '''
-  @Deprecated("Please use $constantName")
-  static const DiagnosticCode $diagnosticCode = $constantName;
+@Deprecated("Please use $constantName")
+$static const DiagnosticCode $diagnosticCode = $constantName;
 ''';
     }
   }
@@ -727,6 +776,46 @@ static LocatableDiagnostic $withArgumentsName({$withArgumentsParams}) {
       out.writeln('$indent///${line.isEmpty ? '' : ' '}$line');
     }
     return out.toString();
+  }
+
+  /// Generates a dart declaration for this diagnostic, suitable for inclusion
+  /// in the diagnostic class [className].
+  ///
+  /// The generated code simply redirects to the primary definition of the
+  /// diagnostic, imported from `diagnostic.g.dart` using the import prefix
+  /// `diag`.
+  void toAnalyzerRedirectCode({required MemberAccumulator memberAccumulator}) {
+    var diagnosticCode = analyzerCode.snakeCaseName;
+    var ConstantStyle(:staticType) = constantStyle;
+    var constant = StringBuffer();
+    outputConstantHeader(constant);
+    constant.writeln('  static const $staticType $constantName =');
+    constant.writeln('    diag.$constantName;');
+    memberAccumulator.constants[constantName] = constant.toString();
+
+    if (diagnosticClassInfo.deprecatedSnakeCaseNames.contains(diagnosticCode)) {
+      memberAccumulator.constants[diagnosticCode] =
+          '''
+  @Deprecated("Please use $constantName")
+  static const DiagnosticCode $diagnosticCode = $constantName;
+''';
+    }
+  }
+
+  /// Generates the appropriate declaration for this diagnostic to include in
+  /// the diagnostic class.
+  void toClassMember({
+    String? sharedNameReference,
+    required MemberAccumulator memberAccumulator,
+  }) {
+    if (generateTopLevelConstants) {
+      toAnalyzerRedirectCode(memberAccumulator: memberAccumulator);
+    } else {
+      toAnalyzerCode(
+        sharedNameReference: sharedNameReference,
+        memberAccumulator: memberAccumulator,
+      );
+    }
   }
 
   String _computeExpectedTypes() {

@@ -120,7 +120,9 @@ class InheritanceOverrideVerifier {
           classNameToken: declaration.name,
           classElement: fragment.element,
           implementsClause: declaration.implementsClause,
-          members: declaration.members,
+          members: useDeclaringConstructorsAst
+              ? declaration.body.members
+              : declaration.members,
           onClause: declaration.onClause,
         );
         if (fragment.isAugmentation) {

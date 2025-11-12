@@ -255,7 +255,7 @@ class AnalyticsManagerTest with ResourceProviderMixin {
     var params = AnalysisSetAnalysisRootsParams(['a', 'b', 'c'], ['d', 'e']);
     var request = Request(
       '1',
-      ANALYSIS_REQUEST_SET_ANALYSIS_ROOTS,
+      analysisRequestSetAnalysisRoots,
       params.toJson(clientUriConverter: null),
     );
     manager.startedRequest(request: request, startTime: _now());
@@ -267,11 +267,11 @@ class AnalyticsManagerTest with ResourceProviderMixin {
       _ExpectedEvent.request(
         eventData: {
           'latency': _IsPercentiles(),
-          'method': ANALYSIS_REQUEST_SET_ANALYSIS_ROOTS,
+          'method': analysisRequestSetAnalysisRoots,
           'duration': _IsPercentiles(),
-          ANALYSIS_REQUEST_SET_ANALYSIS_ROOTS_INCLUDED:
+          analysisRequestSetAnalysisRootsIncluded:
               '{"count":1,"percentiles":[3,3,3,3,3]}',
-          ANALYSIS_REQUEST_SET_ANALYSIS_ROOTS_EXCLUDED:
+          analysisRequestSetAnalysisRootsExcluded:
               '{"count":1,"percentiles":[2,2,2,2,2]}',
         },
       ),
@@ -283,7 +283,7 @@ class AnalyticsManagerTest with ResourceProviderMixin {
     var params = AnalysisSetPriorityFilesParams(['a']);
     var request = Request(
       '1',
-      ANALYSIS_REQUEST_SET_PRIORITY_FILES,
+      analysisRequestSetPriorityFiles,
       params.toJson(clientUriConverter: null),
     );
     manager.startedRequest(request: request, startTime: _now());
@@ -295,9 +295,9 @@ class AnalyticsManagerTest with ResourceProviderMixin {
       _ExpectedEvent.request(
         eventData: {
           'latency': _IsPercentiles(),
-          'method': ANALYSIS_REQUEST_SET_PRIORITY_FILES,
+          'method': analysisRequestSetPriorityFiles,
           'duration': _IsPercentiles(),
-          ANALYSIS_REQUEST_SET_PRIORITY_FILES_FILES:
+          analysisRequestSetPriorityFilesFiles:
               '{"count":1,"percentiles":[1,1,1,1,1]}',
         },
       ),
@@ -316,7 +316,7 @@ class AnalyticsManagerTest with ResourceProviderMixin {
     );
     var request = Request(
       '1',
-      EDIT_REQUEST_GET_REFACTORING,
+      editRequestGetRefactoring,
       params.toJson(clientUriConverter: null),
     );
     manager.startedRequest(request: request, startTime: _now());
@@ -328,9 +328,9 @@ class AnalyticsManagerTest with ResourceProviderMixin {
       _ExpectedEvent.request(
         eventData: {
           'latency': _IsPercentiles(),
-          'method': EDIT_REQUEST_GET_REFACTORING,
+          'method': editRequestGetRefactoring,
           'duration': _IsPercentiles(),
-          EDIT_REQUEST_GET_REFACTORING_KIND: '{"RENAME":1}',
+          editRequestGetRefactoringKind: '{"RENAME":1}',
         },
       ),
     ]);
@@ -389,7 +389,7 @@ class AnalyticsManagerTest with ResourceProviderMixin {
   Future<void> test_server_request_noAdditional() async {
     _defaultStartup();
     manager.startedRequest(
-      request: Request('1', SERVER_REQUEST_SHUTDOWN),
+      request: Request('1', serverRequestShutdown),
       startTime: _now(),
     );
     manager.sentResponse(response: Response('1'));
@@ -399,7 +399,7 @@ class AnalyticsManagerTest with ResourceProviderMixin {
       _ExpectedEvent.request(
         eventData: {
           'latency': _IsPercentiles(),
-          'method': SERVER_REQUEST_SHUTDOWN,
+          'method': serverRequestShutdown,
           'duration': _IsPercentiles(),
         },
       ),

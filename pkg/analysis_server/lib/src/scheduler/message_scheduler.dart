@@ -89,11 +89,11 @@ final class MessageScheduler {
   /// - The incoming [legacy.ANALYSIS_REQUEST_UPDATE_CONTENT] message cancels
   ///   any rename files request that is in progress.
   void add(ScheduledMessage message) {
-    listener?.addPendingMessage(message);
     if (message is LegacyMessage) {
+      listener?.addPendingMessage(message);
       var request = message.request;
       var method = request.method;
-      if (method == legacy.SERVER_REQUEST_CANCEL_REQUEST) {
+      if (method == legacy.serverRequestCancelRequest) {
         var id = legacy.ServerCancelRequestParams.fromRequest(
           request,
           clientUriConverter: server.uriConverter,
@@ -103,11 +103,11 @@ final class MessageScheduler {
         // The message needs to be added to the queue of pending messages, but
         // it seems like it shouldn't be necessary and that we ought to return
         // at this point. However, doing so causes some tests to timeout.
-      } else if (method == legacy.ANALYSIS_REQUEST_UPDATE_CONTENT) {
+      } else if (method == legacy.analysisRequestUpdateContent) {
         for (var activeMessage in _activeMessages) {
           if (activeMessage is LegacyMessage) {
             var activeRequest = activeMessage.request;
-            if (activeRequest.method == legacy.LSP_REQUEST_HANDLE) {
+            if (activeRequest.method == legacy.lspRequestHandle) {
               var method = _getLspOverLegacyParams(activeRequest)?['method'];
               if (method == lsp.Method.workspace_willRenameFiles.toString()) {
                 activeMessage.cancellationToken?.cancel(
@@ -128,11 +128,11 @@ final class MessageScheduler {
         // Responses don't go on the queue because there might be an active
         // message that can't complete until the response is received. If the
         // response was added to the queue then this process could deadlock.
-        listener?.addActiveMessage(message);
         (server as LspAnalysisServer).handleMessage(msg, null);
-        listener?.messageCompleted(message);
         return;
-      } else if (msg is lsp.NotificationMessage) {
+      }
+      listener?.addPendingMessage(message);
+      if (msg is lsp.NotificationMessage) {
         var method = msg.method;
         if (method == lsp.Method.cancelRequest) {
           // Cancellations are handled immediately in order to minimize the
@@ -142,8 +142,8 @@ final class MessageScheduler {
           // a response to be sent back to the client saying that the results
           // aren't provided because the request was cancelled.
           listener?.addActiveMessage(message);
-          _processCancellation(msg);
-          listener?.messageCompleted(message);
+          var id = _processCancellation(msg);
+          listener?.messageCompleted(message, id: id);
           return;
         } else if (method == lsp.Method.textDocument_didChange) {
           // Document change notifications are _not_ handled immediately, but
@@ -259,7 +259,11 @@ final class MessageScheduler {
         // TODO(pq): if not awaited, consider adding a `then` so we can track
         // when the future completes. But note that we may see some flakiness in
         // tests as message handling gets non-deterministically interleaved.
-        listener?.messageCompleted(currentMessage);
+        unawaited(
+          _completer.future.then((_) {
+            listener?.messageCompleted(currentMessage);
+          }),
+        );
       }
     } catch (error, stackTrace) {
       server.instrumentationService.logException(
@@ -374,10 +378,11 @@ final class MessageScheduler {
   ///
   /// The notification doesn't need to be placed on the pending messages queue
   /// after it has been processed.
-  void _processCancellation(lsp.NotificationMessage msg) {
+  /// Returns the id of the request that was canceled.
+  lsp.Either2<int, String>? _processCancellation(lsp.NotificationMessage msg) {
     var params = _getCancelParams(msg);
     if (params == null) {
-      return;
+      return null;
     }
     for (var activeMessage in _activeMessages) {
       if (activeMessage is LspMessage && activeMessage.isRequest) {
@@ -385,7 +390,7 @@ final class MessageScheduler {
         if (request.id == params.id) {
           activeMessage.cancellationToken?.cancel();
           listener?.cancelActiveMessage(activeMessage);
-          return;
+          return params.id;
         }
       }
     }
@@ -395,10 +400,11 @@ final class MessageScheduler {
         if (request.id == params.id) {
           pendingMessage.cancellationToken?.cancel();
           listener?.cancelPendingMessage(pendingMessage);
-          return;
+          return params.id;
         }
       }
     }
+    return null;
   }
 
   /// Cancel the current refactor, if any, for the document changed.
@@ -514,7 +520,10 @@ abstract class MessageSchedulerListener {
   /// Report that the [message] has been completed.
   ///
   /// This implies that the message was active and wasn't cancelled.
-  void messageCompleted(ScheduledMessage message);
+  void messageCompleted(
+    ScheduledMessage message, {
+    lsp.Either2<int, String>? id,
+  });
 
   /// Report that the pause counter was increased to [newPauseCount], and that
   /// processing will be paused.

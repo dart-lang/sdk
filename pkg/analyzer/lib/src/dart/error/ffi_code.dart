@@ -4,5 +4,6 @@
 
 import 'package:_fe_analyzer_shared/src/base/errors.dart';
 import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 
 part 'package:analyzer/src/dart/error/ffi_code.g.dart';

@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -204,11 +205,14 @@ Annotation
   }
 
   test_method() async {
-    await assertNoErrorsInCode(r'''
+    var code = r'''
 mixin M {
   void foo() {}
 }
-''');
+''';
+
+    useDeclaringConstructorsAst = true;
+    await assertNoErrorsInCode(code);
 
     var node = findNode.singleMethodDeclaration;
     assertResolvedNodeText(node, r'''
@@ -229,6 +233,31 @@ MethodDeclaration
     element: <testLibrary>::@mixin::M::@method::foo
       type: void Function()
 ''');
+
+    {
+      useDeclaringConstructorsAst = false;
+      await assertNoErrorsInCode(code);
+
+      var node = findNode.singleMethodDeclaration;
+      assertResolvedNodeText(node, r'''
+MethodDeclaration
+  returnType: NamedType
+    name: void
+    element: <null>
+    type: void
+  name: foo
+  parameters: FormalParameterList
+    leftParenthesis: (
+    rightParenthesis: )
+  body: BlockFunctionBody
+    block: Block
+      leftBracket: {
+      rightBracket: }
+  declaredFragment: <testLibraryFragment> foo@17
+    element: <testLibrary>::@mixin::M::@method::foo
+      type: void Function()
+''');
+    }
   }
 
   test_methodCallTypeInference_mixinType() async {

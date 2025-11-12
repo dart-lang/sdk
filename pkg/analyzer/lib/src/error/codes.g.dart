@@ -12,33 +12,14 @@
 
 part of "package:analyzer/src/error/codes.dart";
 
-class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
+class CompileTimeErrorCode {
   /// No parameters.
-  static const DiagnosticWithoutArguments
-  abstractFieldConstructorInitializer = DiagnosticWithoutArgumentsImpl(
-    name: 'ABSTRACT_FIELD_INITIALIZER',
-    problemMessage: "Abstract fields can't have initializers.",
-    correctionMessage:
-        "Try removing the field initializer or the 'abstract' keyword from the "
-        "field declaration.",
-    hasPublishedDocs: true,
-    type: DiagnosticType.COMPILE_TIME_ERROR,
-    uniqueName: 'CompileTimeErrorCode.ABSTRACT_FIELD_CONSTRUCTOR_INITIALIZER',
-    expectedTypes: [],
-  );
+  static const DiagnosticWithoutArguments abstractFieldConstructorInitializer =
+      diag.abstractFieldConstructorInitializer;
 
   /// No parameters.
   static const DiagnosticWithoutArguments abstractFieldInitializer =
-      DiagnosticWithoutArgumentsImpl(
-        name: 'ABSTRACT_FIELD_INITIALIZER',
-        problemMessage: "Abstract fields can't have initializers.",
-        correctionMessage:
-            "Try removing the initializer or the 'abstract' keyword.",
-        hasPublishedDocs: true,
-        type: DiagnosticType.COMPILE_TIME_ERROR,
-        uniqueName: 'CompileTimeErrorCode.ABSTRACT_FIELD_INITIALIZER',
-        expectedTypes: [],
-      );
+      diag.abstractFieldInitializer;
 
   /// Parameters:
   /// String memberKind: the display name for the kind of the found abstract
@@ -50,15 +31,7 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
       required String name,
     })
   >
-  abstractSuperMemberReference = DiagnosticWithArguments(
-    name: 'ABSTRACT_SUPER_MEMBER_REFERENCE',
-    problemMessage: "The {0} '{1}' is always abstract in the supertype.",
-    hasPublishedDocs: true,
-    type: DiagnosticType.COMPILE_TIME_ERROR,
-    uniqueName: 'CompileTimeErrorCode.ABSTRACT_SUPER_MEMBER_REFERENCE',
-    withArguments: _withArgumentsAbstractSuperMemberReference,
-    expectedTypes: [ExpectedType.string, ExpectedType.string],
-  );
+  abstractSuperMemberReference = diag.abstractSuperMemberReference;
 
   /// Parameters:
   /// String p0: the name of the ambiguous element
@@ -71,19 +44,7 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
       required Uri p2,
     })
   >
-  ambiguousExport = DiagnosticWithArguments(
-    name: 'AMBIGUOUS_EXPORT',
-    problemMessage:
-        "The name '{0}' is defined in the libraries '{1}' and '{2}'.",
-    correctionMessage:
-        "Try removing the export of one of the libraries, or explicitly hiding "
-        "the name in one of the export directives.",
-    hasPublishedDocs: true,
-    type: DiagnosticType.COMPILE_TIME_ERROR,
-    uniqueName: 'CompileTimeErrorCode.AMBIGUOUS_EXPORT',
-    withArguments: _withArgumentsAmbiguousExport,
-    expectedTypes: [ExpectedType.string, ExpectedType.uri, ExpectedType.uri],
-  );
+  ambiguousExport = diag.ambiguousExport;
 
   /// Parameters:
   /// String p0: the name of the member
@@ -91,20 +52,8 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
   static const DiagnosticWithArguments<
     LocatableDiagnostic Function({required String p0, required String p1})
   >
-  ambiguousExtensionMemberAccessThreeOrMore = DiagnosticWithArguments(
-    name: 'AMBIGUOUS_EXTENSION_MEMBER_ACCESS',
-    problemMessage:
-        "A member named '{0}' is defined in {1}, and none are more specific.",
-    correctionMessage:
-        "Try using an extension override to specify the extension you want to "
-        "be chosen.",
-    hasPublishedDocs: true,
-    type: DiagnosticType.COMPILE_TIME_ERROR,
-    uniqueName:
-        'CompileTimeErrorCode.AMBIGUOUS_EXTENSION_MEMBER_ACCESS_THREE_OR_MORE',
-    withArguments: _withArgumentsAmbiguousExtensionMemberAccessThreeOrMore,
-    expectedTypes: [ExpectedType.string, ExpectedType.string],
-  );
+  ambiguousExtensionMemberAccessThreeOrMore =
+      diag.ambiguousExtensionMemberAccessThreeOrMore;
 
   /// Parameters:
   /// String p0: the name of the member
@@ -117,24 +66,7 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
       required Element p2,
     })
   >
-  ambiguousExtensionMemberAccessTwo = DiagnosticWithArguments(
-    name: 'AMBIGUOUS_EXTENSION_MEMBER_ACCESS',
-    problemMessage:
-        "A member named '{0}' is defined in '{1}' and '{2}', and neither is more "
-        "specific.",
-    correctionMessage:
-        "Try using an extension override to specify the extension you want to "
-        "be chosen.",
-    hasPublishedDocs: true,
-    type: DiagnosticType.COMPILE_TIME_ERROR,
-    uniqueName: 'CompileTimeErrorCode.AMBIGUOUS_EXTENSION_MEMBER_ACCESS_TWO',
-    withArguments: _withArgumentsAmbiguousExtensionMemberAccessTwo,
-    expectedTypes: [
-      ExpectedType.string,
-      ExpectedType.element,
-      ExpectedType.element,
-    ],
-  );
+  ambiguousExtensionMemberAccessTwo = diag.ambiguousExtensionMemberAccessTwo;
 
   /// Parameters:
   /// String p0: the name of the ambiguous type
@@ -142,51 +74,15 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
   static const DiagnosticWithArguments<
     LocatableDiagnostic Function({required String p0, required String p1})
   >
-  ambiguousImport = DiagnosticWithArguments(
-    name: 'AMBIGUOUS_IMPORT',
-    problemMessage: "The name '{0}' is defined in the libraries {1}.",
-    correctionMessage:
-        "Try using 'as prefix' for one of the import directives, or hiding the "
-        "name from all but one of the imports.",
-    hasPublishedDocs: true,
-    type: DiagnosticType.COMPILE_TIME_ERROR,
-    uniqueName: 'CompileTimeErrorCode.AMBIGUOUS_IMPORT',
-    withArguments: _withArgumentsAmbiguousImport,
-    expectedTypes: [ExpectedType.string, ExpectedType.string],
-  );
+  ambiguousImport = diag.ambiguousImport;
 
   /// No parameters.
-  static const DiagnosticWithoutArguments
-  ambiguousSetOrMapLiteralBoth = DiagnosticWithoutArgumentsImpl(
-    name: 'AMBIGUOUS_SET_OR_MAP_LITERAL_BOTH',
-    problemMessage:
-        "The literal can't be either a map or a set because it contains at least "
-        "one literal map entry or a spread operator spreading a 'Map', and at "
-        "least one element which is neither of these.",
-    correctionMessage:
-        "Try removing or changing some of the elements so that all of the "
-        "elements are consistent.",
-    hasPublishedDocs: true,
-    type: DiagnosticType.COMPILE_TIME_ERROR,
-    uniqueName: 'CompileTimeErrorCode.AMBIGUOUS_SET_OR_MAP_LITERAL_BOTH',
-    expectedTypes: [],
-  );
+  static const DiagnosticWithoutArguments ambiguousSetOrMapLiteralBoth =
+      diag.ambiguousSetOrMapLiteralBoth;
 
   /// No parameters.
-  static const DiagnosticWithoutArguments
-  ambiguousSetOrMapLiteralEither = DiagnosticWithoutArgumentsImpl(
-    name: 'AMBIGUOUS_SET_OR_MAP_LITERAL_EITHER',
-    problemMessage:
-        "This literal must be either a map or a set, but the elements don't have "
-        "enough information for type inference to work.",
-    correctionMessage:
-        "Try adding type arguments to the literal (one for sets, two for "
-        "maps).",
-    hasPublishedDocs: true,
-    type: DiagnosticType.COMPILE_TIME_ERROR,
-    uniqueName: 'CompileTimeErrorCode.AMBIGUOUS_SET_OR_MAP_LITERAL_EITHER',
-    expectedTypes: [],
-  );
+  static const DiagnosticWithoutArguments ambiguousSetOrMapLiteralEither =
+      diag.ambiguousSetOrMapLiteralEither;
 
   /// Parameters:
   /// Type p0: the name of the actual argument type
@@ -200,77 +96,29 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
       required String p2,
     })
   >
-  argumentTypeNotAssignable = DiagnosticWithArguments(
-    name: 'ARGUMENT_TYPE_NOT_ASSIGNABLE',
-    problemMessage:
-        "The argument type '{0}' can't be assigned to the parameter type '{1}'. "
-        "{2}",
-    hasPublishedDocs: true,
-    type: DiagnosticType.COMPILE_TIME_ERROR,
-    uniqueName: 'CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE',
-    withArguments: _withArgumentsArgumentTypeNotAssignable,
-    expectedTypes: [ExpectedType.type, ExpectedType.type, ExpectedType.string],
-  );
+  argumentTypeNotAssignable = diag.argumentTypeNotAssignable;
 
   /// No parameters.
   static const DiagnosticWithoutArguments assertInRedirectingConstructor =
-      DiagnosticWithoutArgumentsImpl(
-        name: 'ASSERT_IN_REDIRECTING_CONSTRUCTOR',
-        problemMessage:
-            "A redirecting constructor can't have an 'assert' initializer.",
-        hasPublishedDocs: true,
-        type: DiagnosticType.COMPILE_TIME_ERROR,
-        uniqueName: 'CompileTimeErrorCode.ASSERT_IN_REDIRECTING_CONSTRUCTOR',
-        expectedTypes: [],
-      );
+      diag.assertInRedirectingConstructor;
 
   /// No parameters.
-  static const DiagnosticWithoutArguments
-  assignmentToConst = DiagnosticWithoutArgumentsImpl(
-    name: 'ASSIGNMENT_TO_CONST',
-    problemMessage:
-        "Constant variables can't be assigned a value after initialization.",
-    correctionMessage:
-        "Try removing the assignment, or remove the modifier 'const' from the "
-        "variable.",
-    hasPublishedDocs: true,
-    type: DiagnosticType.COMPILE_TIME_ERROR,
-    uniqueName: 'CompileTimeErrorCode.ASSIGNMENT_TO_CONST',
-    expectedTypes: [],
-  );
+  static const DiagnosticWithoutArguments assignmentToConst =
+      diag.assignmentToConst;
 
   /// Parameters:
   /// String p0: the name of the final variable
   static const DiagnosticWithArguments<
     LocatableDiagnostic Function({required String p0})
   >
-  assignmentToFinal = DiagnosticWithArguments(
-    name: 'ASSIGNMENT_TO_FINAL',
-    problemMessage: "'{0}' can't be used as a setter because it's final.",
-    correctionMessage:
-        "Try finding a different setter, or making '{0}' non-final.",
-    hasPublishedDocs: true,
-    type: DiagnosticType.COMPILE_TIME_ERROR,
-    uniqueName: 'CompileTimeErrorCode.ASSIGNMENT_TO_FINAL',
-    withArguments: _withArgumentsAssignmentToFinal,
-    expectedTypes: [ExpectedType.string],
-  );
+  assignmentToFinal = diag.assignmentToFinal;
 
   /// Parameters:
   /// String p0: the name of the variable
   static const DiagnosticWithArguments<
     LocatableDiagnostic Function({required String p0})
   >
-  assignmentToFinalLocal = DiagnosticWithArguments(
-    name: 'ASSIGNMENT_TO_FINAL_LOCAL',
-    problemMessage: "The final variable '{0}' can only be set once.",
-    correctionMessage: "Try making '{0}' non-final.",
-    hasPublishedDocs: true,
-    type: DiagnosticType.COMPILE_TIME_ERROR,
-    uniqueName: 'CompileTimeErrorCode.ASSIGNMENT_TO_FINAL_LOCAL',
-    withArguments: _withArgumentsAssignmentToFinalLocal,
-    expectedTypes: [ExpectedType.string],
-  );
+  assignmentToFinalLocal = diag.assignmentToFinalLocal;
 
   /// Parameters:
   /// String p0: the name of the reference
@@ -278,118 +126,42 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
   static const DiagnosticWithArguments<
     LocatableDiagnostic Function({required String p0, required String p1})
   >
-  assignmentToFinalNoSetter = DiagnosticWithArguments(
-    name: 'ASSIGNMENT_TO_FINAL_NO_SETTER',
-    problemMessage: "There isn't a setter named '{0}' in class '{1}'.",
-    correctionMessage:
-        "Try correcting the name to reference an existing setter, or declare "
-        "the setter.",
-    hasPublishedDocs: true,
-    type: DiagnosticType.COMPILE_TIME_ERROR,
-    uniqueName: 'CompileTimeErrorCode.ASSIGNMENT_TO_FINAL_NO_SETTER',
-    withArguments: _withArgumentsAssignmentToFinalNoSetter,
-    expectedTypes: [ExpectedType.string, ExpectedType.string],
-  );
+  assignmentToFinalNoSetter = diag.assignmentToFinalNoSetter;
 
   /// No parameters.
   static const DiagnosticWithoutArguments assignmentToFunction =
-      DiagnosticWithoutArgumentsImpl(
-        name: 'ASSIGNMENT_TO_FUNCTION',
-        problemMessage: "Functions can't be assigned a value.",
-        hasPublishedDocs: true,
-        type: DiagnosticType.COMPILE_TIME_ERROR,
-        uniqueName: 'CompileTimeErrorCode.ASSIGNMENT_TO_FUNCTION',
-        expectedTypes: [],
-      );
+      diag.assignmentToFunction;
 
   /// No parameters.
   static const DiagnosticWithoutArguments assignmentToMethod =
-      DiagnosticWithoutArgumentsImpl(
-        name: 'ASSIGNMENT_TO_METHOD',
-        problemMessage: "Methods can't be assigned a value.",
-        hasPublishedDocs: true,
-        type: DiagnosticType.COMPILE_TIME_ERROR,
-        uniqueName: 'CompileTimeErrorCode.ASSIGNMENT_TO_METHOD',
-        expectedTypes: [],
-      );
+      diag.assignmentToMethod;
 
   /// No parameters.
   static const DiagnosticWithoutArguments assignmentToType =
-      DiagnosticWithoutArgumentsImpl(
-        name: 'ASSIGNMENT_TO_TYPE',
-        problemMessage: "Types can't be assigned a value.",
-        hasPublishedDocs: true,
-        type: DiagnosticType.COMPILE_TIME_ERROR,
-        uniqueName: 'CompileTimeErrorCode.ASSIGNMENT_TO_TYPE',
-        expectedTypes: [],
-      );
+      diag.assignmentToType;
 
   /// No parameters.
   static const DiagnosticWithoutArguments asyncForInWrongContext =
-      DiagnosticWithoutArgumentsImpl(
-        name: 'ASYNC_FOR_IN_WRONG_CONTEXT',
-        problemMessage:
-            "The async for-in loop can only be used in an async function.",
-        correctionMessage:
-            "Try marking the function body with either 'async' or 'async*', or "
-            "removing the 'await' before the for-in loop.",
-        hasPublishedDocs: true,
-        type: DiagnosticType.COMPILE_TIME_ERROR,
-        uniqueName: 'CompileTimeErrorCode.ASYNC_FOR_IN_WRONG_CONTEXT',
-        expectedTypes: [],
-      );
+      diag.asyncForInWrongContext;
 
   /// No parameters.
   static const DiagnosticWithoutArguments
-  augmentationExtendsClauseAlreadyPresent = DiagnosticWithoutArgumentsImpl(
-    name: 'AUGMENTATION_EXTENDS_CLAUSE_ALREADY_PRESENT',
-    problemMessage:
-        "The augmentation has an 'extends' clause, but an augmentation target "
-        "already includes an 'extends' clause and it isn't allowed to be "
-        "repeated or changed.",
-    correctionMessage:
-        "Try removing the 'extends' clause, either here or in the augmentation "
-        "target.",
-    type: DiagnosticType.COMPILE_TIME_ERROR,
-    uniqueName:
-        'CompileTimeErrorCode.AUGMENTATION_EXTENDS_CLAUSE_ALREADY_PRESENT',
-    expectedTypes: [],
-  );
+  augmentationExtendsClauseAlreadyPresent =
+      diag.augmentationExtendsClauseAlreadyPresent;
 
   /// Parameters:
   /// Object p0: the lexeme of the modifier.
   static const DiagnosticWithArguments<
     LocatableDiagnostic Function({required Object p0})
   >
-  augmentationModifierExtra = DiagnosticWithArguments(
-    name: 'AUGMENTATION_MODIFIER_EXTRA',
-    problemMessage:
-        "The augmentation has the '{0}' modifier that the declaration doesn't "
-        "have.",
-    correctionMessage:
-        "Try removing the '{0}' modifier, or adding it to the declaration.",
-    type: DiagnosticType.COMPILE_TIME_ERROR,
-    uniqueName: 'CompileTimeErrorCode.AUGMENTATION_MODIFIER_EXTRA',
-    withArguments: _withArgumentsAugmentationModifierExtra,
-    expectedTypes: [ExpectedType.object],
-  );
+  augmentationModifierExtra = diag.augmentationModifierExtra;
 
   /// Parameters:
   /// Object p0: the lexeme of the modifier.
   static const DiagnosticWithArguments<
     LocatableDiagnostic Function({required Object p0})
   >
-  augmentationModifierMissing = DiagnosticWithArguments(
-    name: 'AUGMENTATION_MODIFIER_MISSING',
-    problemMessage:
-        "The augmentation is missing the '{0}' modifier that the declaration has.",
-    correctionMessage:
-        "Try adding the '{0}' modifier, or removing it from the declaration.",
-    type: DiagnosticType.COMPILE_TIME_ERROR,
-    uniqueName: 'CompileTimeErrorCode.AUGMENTATION_MODIFIER_MISSING',
-    withArguments: _withArgumentsAugmentationModifierMissing,
-    expectedTypes: [ExpectedType.object],
-  );
+  augmentationModifierMissing = diag.augmentationModifierMissing;
 
   /// Parameters:
   /// Object p0: the name of the declaration kind.
@@ -397,132 +169,43 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
   static const DiagnosticWithArguments<
     LocatableDiagnostic Function({required Object p0, required Object p1})
   >
-  augmentationOfDifferentDeclarationKind = DiagnosticWithArguments(
-    name: 'AUGMENTATION_OF_DIFFERENT_DECLARATION_KIND',
-    problemMessage: "Can't augment a {0} with a {1}.",
-    correctionMessage:
-        "Try changing the augmentation to match the declaration kind.",
-    type: DiagnosticType.COMPILE_TIME_ERROR,
-    uniqueName:
-        'CompileTimeErrorCode.AUGMENTATION_OF_DIFFERENT_DECLARATION_KIND',
-    withArguments: _withArgumentsAugmentationOfDifferentDeclarationKind,
-    expectedTypes: [ExpectedType.object, ExpectedType.object],
-  );
+  augmentationOfDifferentDeclarationKind =
+      diag.augmentationOfDifferentDeclarationKind;
 
   /// No parameters.
   static const DiagnosticWithoutArguments augmentationTypeParameterBound =
-      DiagnosticWithoutArgumentsImpl(
-        name: 'AUGMENTATION_TYPE_PARAMETER_BOUND',
-        problemMessage:
-            "The augmentation type parameter must have the same bound as the "
-            "corresponding type parameter of the declaration.",
-        correctionMessage:
-            "Try changing the augmentation to match the declaration type "
-            "parameters.",
-        type: DiagnosticType.COMPILE_TIME_ERROR,
-        uniqueName: 'CompileTimeErrorCode.AUGMENTATION_TYPE_PARAMETER_BOUND',
-        expectedTypes: [],
-      );
+      diag.augmentationTypeParameterBound;
 
   /// No parameters.
-  static const DiagnosticWithoutArguments
-  augmentationTypeParameterCount = DiagnosticWithoutArgumentsImpl(
-    name: 'AUGMENTATION_TYPE_PARAMETER_COUNT',
-    problemMessage:
-        "The augmentation must have the same number of type parameters as the "
-        "declaration.",
-    correctionMessage:
-        "Try changing the augmentation to match the declaration type "
-        "parameters.",
-    type: DiagnosticType.COMPILE_TIME_ERROR,
-    uniqueName: 'CompileTimeErrorCode.AUGMENTATION_TYPE_PARAMETER_COUNT',
-    expectedTypes: [],
-  );
+  static const DiagnosticWithoutArguments augmentationTypeParameterCount =
+      diag.augmentationTypeParameterCount;
 
   /// No parameters.
   static const DiagnosticWithoutArguments augmentationTypeParameterName =
-      DiagnosticWithoutArgumentsImpl(
-        name: 'AUGMENTATION_TYPE_PARAMETER_NAME',
-        problemMessage:
-            "The augmentation type parameter must have the same name as the "
-            "corresponding type parameter of the declaration.",
-        correctionMessage:
-            "Try changing the augmentation to match the declaration type "
-            "parameters.",
-        type: DiagnosticType.COMPILE_TIME_ERROR,
-        uniqueName: 'CompileTimeErrorCode.AUGMENTATION_TYPE_PARAMETER_NAME',
-        expectedTypes: [],
-      );
+      diag.augmentationTypeParameterName;
 
   /// No parameters.
   static const DiagnosticWithoutArguments augmentationWithoutDeclaration =
-      DiagnosticWithoutArgumentsImpl(
-        name: 'AUGMENTATION_WITHOUT_DECLARATION',
-        problemMessage: "The declaration being augmented doesn't exist.",
-        correctionMessage:
-            "Try changing the augmentation to match an existing declaration.",
-        type: DiagnosticType.COMPILE_TIME_ERROR,
-        uniqueName: 'CompileTimeErrorCode.AUGMENTATION_WITHOUT_DECLARATION',
-        expectedTypes: [],
-      );
+      diag.augmentationWithoutDeclaration;
 
   /// No parameters.
-  static const DiagnosticWithoutArguments
-  augmentedExpressionIsNotSetter = DiagnosticWithoutArgumentsImpl(
-    name: 'AUGMENTED_EXPRESSION_IS_NOT_SETTER',
-    problemMessage:
-        "The augmented declaration is not a setter, it can't be used to write a "
-        "value.",
-    correctionMessage: "Try assigning a value to a setter.",
-    type: DiagnosticType.COMPILE_TIME_ERROR,
-    uniqueName: 'CompileTimeErrorCode.AUGMENTED_EXPRESSION_IS_NOT_SETTER',
-    expectedTypes: [],
-  );
+  static const DiagnosticWithoutArguments augmentedExpressionIsNotSetter =
+      diag.augmentedExpressionIsNotSetter;
 
   /// No parameters.
-  static const DiagnosticWithoutArguments
-  augmentedExpressionIsSetter = DiagnosticWithoutArgumentsImpl(
-    name: 'AUGMENTED_EXPRESSION_IS_SETTER',
-    problemMessage:
-        "The augmented declaration is a setter, it can't be used to read a value.",
-    correctionMessage: "Try assigning a value to the augmented setter.",
-    type: DiagnosticType.COMPILE_TIME_ERROR,
-    uniqueName: 'CompileTimeErrorCode.AUGMENTED_EXPRESSION_IS_SETTER',
-    expectedTypes: [],
-  );
+  static const DiagnosticWithoutArguments augmentedExpressionIsSetter =
+      diag.augmentedExpressionIsSetter;
 
   /// Parameters:
   /// Object p0: the lexeme of the operator.
   static const DiagnosticWithArguments<
     LocatableDiagnostic Function({required Object p0})
   >
-  augmentedExpressionNotOperator = DiagnosticWithArguments(
-    name: 'AUGMENTED_EXPRESSION_NOT_OPERATOR',
-    problemMessage:
-        "The enclosing augmentation doesn't augment the operator '{0}'.",
-    correctionMessage: "Try augmenting or invoking the correct operator.",
-    type: DiagnosticType.COMPILE_TIME_ERROR,
-    uniqueName: 'CompileTimeErrorCode.AUGMENTED_EXPRESSION_NOT_OPERATOR',
-    withArguments: _withArgumentsAugmentedExpressionNotOperator,
-    expectedTypes: [ExpectedType.object],
-  );
+  augmentedExpressionNotOperator = diag.augmentedExpressionNotOperator;
 
   /// No parameters.
   static const DiagnosticWithoutArguments awaitInLateLocalVariableInitializer =
-      DiagnosticWithoutArgumentsImpl(
-        name: 'AWAIT_IN_LATE_LOCAL_VARIABLE_INITIALIZER',
-        problemMessage:
-            "The 'await' expression can't be used in a 'late' local variable's "
-            "initializer.",
-        correctionMessage:
-            "Try removing the 'late' modifier, or rewriting the initializer "
-            "without using the 'await' expression.",
-        hasPublishedDocs: true,
-        type: DiagnosticType.COMPILE_TIME_ERROR,
-        uniqueName:
-            'CompileTimeErrorCode.AWAIT_IN_LATE_LOCAL_VARIABLE_INITIALIZER',
-        expectedTypes: [],
-      );
+      diag.awaitInLateLocalVariableInitializer;
 
   /// 16.30 Await Expressions: It is a compile-time error if the function
   /// immediately enclosing _a_ is not declared asynchronous. (Where _a_ is the
@@ -530,235 +213,96 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
   ///
   /// No parameters.
   static const DiagnosticWithoutArguments awaitInWrongContext =
-      DiagnosticWithoutArgumentsImpl(
-        name: 'AWAIT_IN_WRONG_CONTEXT',
-        problemMessage:
-            "The await expression can only be used in an async function.",
-        correctionMessage:
-            "Try marking the function body with either 'async' or 'async*'.",
-        type: DiagnosticType.COMPILE_TIME_ERROR,
-        uniqueName: 'CompileTimeErrorCode.AWAIT_IN_WRONG_CONTEXT',
-        expectedTypes: [],
-      );
+      diag.awaitInWrongContext;
 
   /// No parameters.
-  static const DiagnosticWithoutArguments
-  awaitOfIncompatibleType = DiagnosticWithoutArgumentsImpl(
-    name: 'AWAIT_OF_INCOMPATIBLE_TYPE',
-    problemMessage:
-        "The 'await' expression can't be used for an expression with an extension "
-        "type that is not a subtype of 'Future'.",
-    correctionMessage:
-        "Try removing the `await`, or updating the extension type to implement "
-        "'Future'.",
-    hasPublishedDocs: true,
-    type: DiagnosticType.COMPILE_TIME_ERROR,
-    uniqueName: 'CompileTimeErrorCode.AWAIT_OF_INCOMPATIBLE_TYPE',
-    expectedTypes: [],
-  );
+  static const DiagnosticWithoutArguments awaitOfIncompatibleType =
+      diag.awaitOfIncompatibleType;
 
   /// Parameters:
   /// String implementedClassName: the name of the base class being implemented
   static const DiagnosticWithArguments<
     LocatableDiagnostic Function({required String implementedClassName})
   >
-  baseClassImplementedOutsideOfLibrary = DiagnosticWithArguments(
-    name: 'INVALID_USE_OF_TYPE_OUTSIDE_LIBRARY',
-    problemMessage:
-        "The class '{0}' can't be implemented outside of its library because it's "
-        "a base class.",
-    hasPublishedDocs: true,
-    type: DiagnosticType.COMPILE_TIME_ERROR,
-    uniqueName:
-        'CompileTimeErrorCode.BASE_CLASS_IMPLEMENTED_OUTSIDE_OF_LIBRARY',
-    withArguments: _withArgumentsBaseClassImplementedOutsideOfLibrary,
-    expectedTypes: [ExpectedType.string],
-  );
+  baseClassImplementedOutsideOfLibrary =
+      diag.baseClassImplementedOutsideOfLibrary;
 
   /// Parameters:
   /// String implementedMixinName: the name of the base mixin being implemented
   static const DiagnosticWithArguments<
     LocatableDiagnostic Function({required String implementedMixinName})
   >
-  baseMixinImplementedOutsideOfLibrary = DiagnosticWithArguments(
-    name: 'INVALID_USE_OF_TYPE_OUTSIDE_LIBRARY',
-    problemMessage:
-        "The mixin '{0}' can't be implemented outside of its library because it's "
-        "a base mixin.",
-    hasPublishedDocs: true,
-    type: DiagnosticType.COMPILE_TIME_ERROR,
-    uniqueName:
-        'CompileTimeErrorCode.BASE_MIXIN_IMPLEMENTED_OUTSIDE_OF_LIBRARY',
-    withArguments: _withArgumentsBaseMixinImplementedOutsideOfLibrary,
-    expectedTypes: [ExpectedType.string],
-  );
+  baseMixinImplementedOutsideOfLibrary =
+      diag.baseMixinImplementedOutsideOfLibrary;
 
   /// Parameters:
   /// Type p0: the name of the return type
   static const DiagnosticWithArguments<
     LocatableDiagnostic Function({required DartType p0})
   >
-  bodyMightCompleteNormally = DiagnosticWithArguments(
-    name: 'BODY_MIGHT_COMPLETE_NORMALLY',
-    problemMessage:
-        "The body might complete normally, causing 'null' to be returned, but the "
-        "return type, '{0}', is a potentially non-nullable type.",
-    correctionMessage:
-        "Try adding either a return or a throw statement at the end.",
-    hasPublishedDocs: true,
-    type: DiagnosticType.COMPILE_TIME_ERROR,
-    uniqueName: 'CompileTimeErrorCode.BODY_MIGHT_COMPLETE_NORMALLY',
-    withArguments: _withArgumentsBodyMightCompleteNormally,
-    expectedTypes: [ExpectedType.type],
-  );
+  bodyMightCompleteNormally = diag.bodyMightCompleteNormally;
 
   /// No parameters.
   static const DiagnosticWithoutArguments breakLabelOnSwitchMember =
-      DiagnosticWithoutArgumentsImpl(
-        name: 'BREAK_LABEL_ON_SWITCH_MEMBER',
-        problemMessage:
-            "A break label resolves to the 'case' or 'default' statement.",
-        hasPublishedDocs: true,
-        type: DiagnosticType.COMPILE_TIME_ERROR,
-        uniqueName: 'CompileTimeErrorCode.BREAK_LABEL_ON_SWITCH_MEMBER',
-        expectedTypes: [],
-      );
+      diag.breakLabelOnSwitchMember;
 
   /// Parameters:
   /// String p0: the built-in identifier that is being used
   static const DiagnosticWithArguments<
     LocatableDiagnostic Function({required String p0})
   >
-  builtInIdentifierAsExtensionName = DiagnosticWithArguments(
-    name: 'BUILT_IN_IDENTIFIER_IN_DECLARATION',
-    problemMessage:
-        "The built-in identifier '{0}' can't be used as an extension name.",
-    correctionMessage: "Try choosing a different name for the extension.",
-    hasPublishedDocs: true,
-    type: DiagnosticType.COMPILE_TIME_ERROR,
-    uniqueName: 'CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_EXTENSION_NAME',
-    withArguments: _withArgumentsBuiltInIdentifierAsExtensionName,
-    expectedTypes: [ExpectedType.string],
-  );
+  builtInIdentifierAsExtensionName = diag.builtInIdentifierAsExtensionName;
 
   /// Parameters:
   /// String p0: the built-in identifier that is being used
   static const DiagnosticWithArguments<
     LocatableDiagnostic Function({required String p0})
   >
-  builtInIdentifierAsExtensionTypeName = DiagnosticWithArguments(
-    name: 'BUILT_IN_IDENTIFIER_IN_DECLARATION',
-    problemMessage:
-        "The built-in identifier '{0}' can't be used as an extension type name.",
-    correctionMessage: "Try choosing a different name for the extension type.",
-    hasPublishedDocs: true,
-    type: DiagnosticType.COMPILE_TIME_ERROR,
-    uniqueName:
-        'CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_EXTENSION_TYPE_NAME',
-    withArguments: _withArgumentsBuiltInIdentifierAsExtensionTypeName,
-    expectedTypes: [ExpectedType.string],
-  );
+  builtInIdentifierAsExtensionTypeName =
+      diag.builtInIdentifierAsExtensionTypeName;
 
   /// Parameters:
   /// String p0: the built-in identifier that is being used
   static const DiagnosticWithArguments<
     LocatableDiagnostic Function({required String p0})
   >
-  builtInIdentifierAsPrefixName = DiagnosticWithArguments(
-    name: 'BUILT_IN_IDENTIFIER_IN_DECLARATION',
-    problemMessage:
-        "The built-in identifier '{0}' can't be used as a prefix name.",
-    correctionMessage: "Try choosing a different name for the prefix.",
-    hasPublishedDocs: true,
-    type: DiagnosticType.COMPILE_TIME_ERROR,
-    uniqueName: 'CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_PREFIX_NAME',
-    withArguments: _withArgumentsBuiltInIdentifierAsPrefixName,
-    expectedTypes: [ExpectedType.string],
-  );
+  builtInIdentifierAsPrefixName = diag.builtInIdentifierAsPrefixName;
 
   /// Parameters:
   /// String p0: the built-in identifier that is being used
   static const DiagnosticWithArguments<
     LocatableDiagnostic Function({required String p0})
   >
-  builtInIdentifierAsType = DiagnosticWithArguments(
-    name: 'BUILT_IN_IDENTIFIER_AS_TYPE',
-    problemMessage: "The built-in identifier '{0}' can't be used as a type.",
-    correctionMessage: "Try correcting the name to match an existing type.",
-    hasPublishedDocs: true,
-    type: DiagnosticType.COMPILE_TIME_ERROR,
-    uniqueName: 'CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE',
-    withArguments: _withArgumentsBuiltInIdentifierAsType,
-    expectedTypes: [ExpectedType.string],
-  );
+  builtInIdentifierAsType = diag.builtInIdentifierAsType;
 
   /// Parameters:
   /// String p0: the built-in identifier that is being used
   static const DiagnosticWithArguments<
     LocatableDiagnostic Function({required String p0})
   >
-  builtInIdentifierAsTypedefName = DiagnosticWithArguments(
-    name: 'BUILT_IN_IDENTIFIER_IN_DECLARATION',
-    problemMessage:
-        "The built-in identifier '{0}' can't be used as a typedef name.",
-    correctionMessage: "Try choosing a different name for the typedef.",
-    hasPublishedDocs: true,
-    type: DiagnosticType.COMPILE_TIME_ERROR,
-    uniqueName: 'CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_TYPEDEF_NAME',
-    withArguments: _withArgumentsBuiltInIdentifierAsTypedefName,
-    expectedTypes: [ExpectedType.string],
-  );
+  builtInIdentifierAsTypedefName = diag.builtInIdentifierAsTypedefName;
 
   /// Parameters:
   /// String p0: the built-in identifier that is being used
   static const DiagnosticWithArguments<
     LocatableDiagnostic Function({required String p0})
   >
-  builtInIdentifierAsTypeName = DiagnosticWithArguments(
-    name: 'BUILT_IN_IDENTIFIER_IN_DECLARATION',
-    problemMessage:
-        "The built-in identifier '{0}' can't be used as a type name.",
-    correctionMessage: "Try choosing a different name for the type.",
-    hasPublishedDocs: true,
-    type: DiagnosticType.COMPILE_TIME_ERROR,
-    uniqueName: 'CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE_NAME',
-    withArguments: _withArgumentsBuiltInIdentifierAsTypeName,
-    expectedTypes: [ExpectedType.string],
-  );
+  builtInIdentifierAsTypeName = diag.builtInIdentifierAsTypeName;
 
   /// Parameters:
   /// String p0: the built-in identifier that is being used
   static const DiagnosticWithArguments<
     LocatableDiagnostic Function({required String p0})
   >
-  builtInIdentifierAsTypeParameterName = DiagnosticWithArguments(
-    name: 'BUILT_IN_IDENTIFIER_IN_DECLARATION',
-    problemMessage:
-        "The built-in identifier '{0}' can't be used as a type parameter name.",
-    correctionMessage: "Try choosing a different name for the type parameter.",
-    hasPublishedDocs: true,
-    type: DiagnosticType.COMPILE_TIME_ERROR,
-    uniqueName:
-        'CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE_PARAMETER_NAME',
-    withArguments: _withArgumentsBuiltInIdentifierAsTypeParameterName,
-    expectedTypes: [ExpectedType.string],
-  );
+  builtInIdentifierAsTypeParameterName =
+      diag.builtInIdentifierAsTypeParameterName;
 
   /// Parameters:
   /// Type p0: the this of the switch case expression
   static const DiagnosticWithArguments<
     LocatableDiagnostic Function({required DartType p0})
   >
-  caseExpressionTypeImplementsEquals = DiagnosticWithArguments(
-    name: 'CASE_EXPRESSION_TYPE_IMPLEMENTS_EQUALS',
-    problemMessage:
-        "The switch case expression type '{0}' can't override the '==' operator.",
-    hasPublishedDocs: true,
-    type: DiagnosticType.COMPILE_TIME_ERROR,
-    uniqueName: 'CompileTimeErrorCode.CASE_EXPRESSION_TYPE_IMPLEMENTS_EQUALS',
-    withArguments: _withArgumentsCaseExpressionTypeImplementsEquals,
-    expectedTypes: [ExpectedType.type],
-  );
+  caseExpressionTypeImplementsEquals = diag.caseExpressionTypeImplementsEquals;
 
   /// Parameters:
   /// Type p0: the type of the case expression
@@ -766,74 +310,31 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
   static const DiagnosticWithArguments<
     LocatableDiagnostic Function({required DartType p0, required DartType p1})
   >
-  caseExpressionTypeIsNotSwitchExpressionSubtype = DiagnosticWithArguments(
-    name: 'CASE_EXPRESSION_TYPE_IS_NOT_SWITCH_EXPRESSION_SUBTYPE',
-    problemMessage:
-        "The switch case expression type '{0}' must be a subtype of the switch "
-        "expression type '{1}'.",
-    hasPublishedDocs: true,
-    type: DiagnosticType.COMPILE_TIME_ERROR,
-    uniqueName:
-        'CompileTimeErrorCode.CASE_EXPRESSION_TYPE_IS_NOT_SWITCH_EXPRESSION_SUBTYPE',
-    withArguments: _withArgumentsCaseExpressionTypeIsNotSwitchExpressionSubtype,
-    expectedTypes: [ExpectedType.type, ExpectedType.type],
-  );
+  caseExpressionTypeIsNotSwitchExpressionSubtype =
+      diag.caseExpressionTypeIsNotSwitchExpressionSubtype;
 
   /// Parameters:
   /// String p0: the name of the type
   static const DiagnosticWithArguments<
     LocatableDiagnostic Function({required String p0})
   >
-  castToNonType = DiagnosticWithArguments(
-    name: 'CAST_TO_NON_TYPE',
-    problemMessage:
-        "The name '{0}' isn't a type, so it can't be used in an 'as' expression.",
-    correctionMessage:
-        "Try changing the name to the name of an existing type, or creating a "
-        "type with the name '{0}'.",
-    hasPublishedDocs: true,
-    type: DiagnosticType.COMPILE_TIME_ERROR,
-    uniqueName: 'CompileTimeErrorCode.CAST_TO_NON_TYPE',
-    withArguments: _withArgumentsCastToNonType,
-    expectedTypes: [ExpectedType.string],
-  );
+  castToNonType = diag.castToNonType;
 
   /// Parameters:
   /// String p0: the name of the member
   static const DiagnosticWithArguments<
     LocatableDiagnostic Function({required String p0})
   >
-  classInstantiationAccessToInstanceMember = DiagnosticWithArguments(
-    name: 'CLASS_INSTANTIATION_ACCESS_TO_MEMBER',
-    problemMessage:
-        "The instance member '{0}' can't be accessed on a class instantiation.",
-    correctionMessage:
-        "Try changing the member name to the name of a constructor.",
-    type: DiagnosticType.COMPILE_TIME_ERROR,
-    uniqueName:
-        'CompileTimeErrorCode.CLASS_INSTANTIATION_ACCESS_TO_INSTANCE_MEMBER',
-    withArguments: _withArgumentsClassInstantiationAccessToInstanceMember,
-    expectedTypes: [ExpectedType.string],
-  );
+  classInstantiationAccessToInstanceMember =
+      diag.classInstantiationAccessToInstanceMember;
 
   /// Parameters:
   /// String p0: the name of the member
   static const DiagnosticWithArguments<
     LocatableDiagnostic Function({required String p0})
   >
-  classInstantiationAccessToStaticMember = DiagnosticWithArguments(
-    name: 'CLASS_INSTANTIATION_ACCESS_TO_MEMBER',
-    problemMessage:
-        "The static member '{0}' can't be accessed on a class instantiation.",
-    correctionMessage:
-        "Try removing the type arguments from the class name, or changing the "
-        "member name to the name of a constructor.",
-    type: DiagnosticType.COMPILE_TIME_ERROR,
-    uniqueName:
-        'CompileTimeErrorCode.CLASS_INSTANTIATION_ACCESS_TO_STATIC_MEMBER',
-    withArguments: _withArgumentsClassInstantiationAccessToStaticMember,
-    expectedTypes: [ExpectedType.string],
-  );
+  classInstantiationAccessToStaticMember =
+      diag.classInstantiationAccessToStaticMember;
 
   /// Parameters:
   /// String p0: the name of the class
@@ -841,48 +342,19 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
   static const DiagnosticWithArguments<
     LocatableDiagnostic Function({required String p0, required String p1})
   >
-  classInstantiationAccessToUnknownMember = DiagnosticWithArguments(
-    name: 'CLASS_INSTANTIATION_ACCESS_TO_MEMBER',
-    problemMessage: "The class '{0}' doesn't have a constructor named '{1}'.",
-    correctionMessage:
-        "Try invoking a different constructor, or defining a constructor named "
-        "'{1}'.",
-    type: DiagnosticType.COMPILE_TIME_ERROR,
-    uniqueName:
-        'CompileTimeErrorCode.CLASS_INSTANTIATION_ACCESS_TO_UNKNOWN_MEMBER',
-    withArguments: _withArgumentsClassInstantiationAccessToUnknownMember,
-    expectedTypes: [ExpectedType.string, ExpectedType.string],
-  );
+  classInstantiationAccessToUnknownMember =
+      diag.classInstantiationAccessToUnknownMember;
 
   /// Parameters:
   /// String p0: the name of the class being used as a mixin
   static const DiagnosticWithArguments<
     LocatableDiagnostic Function({required String p0})
   >
-  classUsedAsMixin = DiagnosticWithArguments(
-    name: 'CLASS_USED_AS_MIXIN',
-    problemMessage:
-        "The class '{0}' can't be used as a mixin because it's neither a mixin "
-        "class nor a mixin.",
-    hasPublishedDocs: true,
-    type: DiagnosticType.COMPILE_TIME_ERROR,
-    uniqueName: 'CompileTimeErrorCode.CLASS_USED_AS_MIXIN',
-    withArguments: _withArgumentsClassUsedAsMixin,
-    expectedTypes: [ExpectedType.string],
-  );
+  classUsedAsMixin = diag.classUsedAsMixin;
 
   /// No parameters.
-  static const DiagnosticWithoutArguments
-  concreteClassHasEnumSuperinterface = DiagnosticWithoutArgumentsImpl(
-    name: 'CONCRETE_CLASS_HAS_ENUM_SUPERINTERFACE',
-    problemMessage: "Concrete classes can't have 'Enum' as a superinterface.",
-    correctionMessage:
-        "Try specifying a different interface, or remove it from the list.",
-    hasPublishedDocs: true,
-    type: DiagnosticType.COMPILE_TIME_ERROR,
-    uniqueName: 'CompileTimeErrorCode.CONCRETE_CLASS_HAS_ENUM_SUPERINTERFACE',
-    expectedTypes: [],
-  );
+  static const DiagnosticWithoutArguments concreteClassHasEnumSuperinterface =
+      diag.concreteClassHasEnumSuperinterface;
 
   /// Parameters:
   /// String p0: the name of the abstract method
@@ -890,92 +362,39 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
   static const DiagnosticWithArguments<
     LocatableDiagnostic Function({required String p0, required String p1})
   >
-  concreteClassWithAbstractMember = DiagnosticWithArguments(
-    name: 'CONCRETE_CLASS_WITH_ABSTRACT_MEMBER',
-    problemMessage:
-        "'{0}' must have a method body because '{1}' isn't abstract.",
-    correctionMessage: "Try making '{1}' abstract, or adding a body to '{0}'.",
-    hasPublishedDocs: true,
-    type: DiagnosticType.COMPILE_TIME_ERROR,
-    uniqueName: 'CompileTimeErrorCode.CONCRETE_CLASS_WITH_ABSTRACT_MEMBER',
-    withArguments: _withArgumentsConcreteClassWithAbstractMember,
-    expectedTypes: [ExpectedType.string, ExpectedType.string],
-  );
+  concreteClassWithAbstractMember = diag.concreteClassWithAbstractMember;
 
   /// Parameters:
   /// String p0: the name of the constructor and field
   static const DiagnosticWithArguments<
     LocatableDiagnostic Function({required String p0})
   >
-  conflictingConstructorAndStaticField = DiagnosticWithArguments(
-    name: 'CONFLICTING_CONSTRUCTOR_AND_STATIC_MEMBER',
-    problemMessage:
-        "'{0}' can't be used to name both a constructor and a static field in this "
-        "class.",
-    correctionMessage: "Try renaming either the constructor or the field.",
-    hasPublishedDocs: true,
-    type: DiagnosticType.COMPILE_TIME_ERROR,
-    uniqueName: 'CompileTimeErrorCode.CONFLICTING_CONSTRUCTOR_AND_STATIC_FIELD',
-    withArguments: _withArgumentsConflictingConstructorAndStaticField,
-    expectedTypes: [ExpectedType.string],
-  );
+  conflictingConstructorAndStaticField =
+      diag.conflictingConstructorAndStaticField;
 
   /// Parameters:
   /// String p0: the name of the constructor and getter
   static const DiagnosticWithArguments<
     LocatableDiagnostic Function({required String p0})
   >
-  conflictingConstructorAndStaticGetter = DiagnosticWithArguments(
-    name: 'CONFLICTING_CONSTRUCTOR_AND_STATIC_MEMBER',
-    problemMessage:
-        "'{0}' can't be used to name both a constructor and a static getter in "
-        "this class.",
-    correctionMessage: "Try renaming either the constructor or the getter.",
-    hasPublishedDocs: true,
-    type: DiagnosticType.COMPILE_TIME_ERROR,
-    uniqueName:
-        'CompileTimeErrorCode.CONFLICTING_CONSTRUCTOR_AND_STATIC_GETTER',
-    withArguments: _withArgumentsConflictingConstructorAndStaticGetter,
-    expectedTypes: [ExpectedType.string],
-  );
+  conflictingConstructorAndStaticGetter =
+      diag.conflictingConstructorAndStaticGetter;
 
   /// Parameters:
   /// String p0: the name of the constructor
   static const DiagnosticWithArguments<
     LocatableDiagnostic Function({required String p0})
   >
-  conflictingConstructorAndStaticMethod = DiagnosticWithArguments(
-    name: 'CONFLICTING_CONSTRUCTOR_AND_STATIC_MEMBER',
-    problemMessage:
-        "'{0}' can't be used to name both a constructor and a static method in "
-        "this class.",
-    correctionMessage: "Try renaming either the constructor or the method.",
-    hasPublishedDocs: true,
-    type: DiagnosticType.COMPILE_TIME_ERROR,
-    uniqueName:
-        'CompileTimeErrorCode.CONFLICTING_CONSTRUCTOR_AND_STATIC_METHOD',
-    withArguments: _withArgumentsConflictingConstructorAndStaticMethod,
-    expectedTypes: [ExpectedType.string],
-  );
+  conflictingConstructorAndStaticMethod =
+      diag.conflictingConstructorAndStaticMethod;
 
   /// Parameters:
   /// String p0: the name of the constructor and setter
   static const DiagnosticWithArguments<
     LocatableDiagnostic Function({required String p0})
   >
-  conflictingConstructorAndStaticSetter = DiagnosticWithArguments(
-    name: 'CONFLICTING_CONSTRUCTOR_AND_STATIC_MEMBER',
-    problemMessage:
-        "'{0}' can't be used to name both a constructor and a static setter in "
-        "this class.",
-    correctionMessage: "Try renaming either the constructor or the setter.",
-    hasPublishedDocs: true,
-    type: DiagnosticType.COMPILE_TIME_ERROR,
-    uniqueName:
-        'CompileTimeErrorCode.CONFLICTING_CONSTRUCTOR_AND_STATIC_SETTER',
-    withArguments: _withArgumentsConflictingConstructorAndStaticSetter,
-    expectedTypes: [ExpectedType.string],
-  );
+  conflictingConstructorAndStaticSetter =
+      diag.conflictingConstructorAndStaticSetter;
 
   /// 10.11 Class Member Conflicts: Let `C` be a class. It is a compile-time
   /// error if `C` declares a getter or a setter with basename `n`, and has a
@@ -993,23 +412,7 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
       required String p2,
     })
   >
-  conflictingFieldAndMethod = DiagnosticWithArguments(
-    name: 'CONFLICTING_FIELD_AND_METHOD',
-    problemMessage:
-        "Class '{0}' can't define field '{1}' and have method '{2}.{1}' with the "
-        "same name.",
-    correctionMessage:
-        "Try converting the getter to a method, or renaming the field to a "
-        "name that doesn't conflict.",
-    type: DiagnosticType.COMPILE_TIME_ERROR,
-    uniqueName: 'CompileTimeErrorCode.CONFLICTING_FIELD_AND_METHOD',
-    withArguments: _withArgumentsConflictingFieldAndMethod,
-    expectedTypes: [
-      ExpectedType.string,
-      ExpectedType.string,
-      ExpectedType.string,
-    ],
-  );
+  conflictingFieldAndMethod = diag.conflictingFieldAndMethod;
 
   /// Parameters:
   /// String p0: the name of the kind of the element implementing the
@@ -1025,22 +428,7 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
       required String p3,
     })
   >
-  conflictingGenericInterfaces = DiagnosticWithArguments(
-    name: 'CONFLICTING_GENERIC_INTERFACES',
-    problemMessage:
-        "The {0} '{1}' can't implement both '{2}' and '{3}' because the type "
-        "arguments are different.",
-    hasPublishedDocs: true,
-    type: DiagnosticType.COMPILE_TIME_ERROR,
-    uniqueName: 'CompileTimeErrorCode.CONFLICTING_GENERIC_INTERFACES',
-    withArguments: _withArgumentsConflictingGenericInterfaces,
-    expectedTypes: [
-      ExpectedType.string,
-      ExpectedType.string,
-      ExpectedType.string,
-      ExpectedType.string,
-    ],
-  );
+  conflictingGenericInterfaces = diag.conflictingGenericInterfaces;
 
   /// 10.11 Class Member Conflicts: Let `C` be a class. It is a compile-time
   /// error if the interface of `C` has an instance method named `n` and an
@@ -1058,19 +446,8 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
       required String p2,
     })
   >
-  conflictingInheritedMethodAndSetter = DiagnosticWithArguments(
-    name: 'CONFLICTING_INHERITED_METHOD_AND_SETTER',
-    problemMessage:
-        "The {0} '{1}' can't inherit both a method and a setter named '{2}'.",
-    type: DiagnosticType.COMPILE_TIME_ERROR,
-    uniqueName: 'CompileTimeErrorCode.CONFLICTING_INHERITED_METHOD_AND_SETTER',
-    withArguments: _withArgumentsConflictingInheritedMethodAndSetter,
-    expectedTypes: [
-      ExpectedType.string,
-      ExpectedType.string,
-      ExpectedType.string,
-    ],
-  );
+  conflictingInheritedMethodAndSetter =
+      diag.conflictingInheritedMethodAndSetter;
 
   /// 10.11 Class Member Conflicts: Let `C` be a class. It is a compile-time
   /// error if `C` declares a method named `n`, and has a getter or a setter
@@ -1088,23 +465,7 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
       required String p2,
     })
   >
-  conflictingMethodAndField = DiagnosticWithArguments(
-    name: 'CONFLICTING_METHOD_AND_FIELD',
-    problemMessage:
-        "Class '{0}' can't define method '{1}' and have field '{2}.{1}' with the "
-        "same name.",
-    correctionMessage:
-        "Try converting the method to a getter, or renaming the method to a "
-        "name that doesn't conflict.",
-    type: DiagnosticType.COMPILE_TIME_ERROR,
-    uniqueName: 'CompileTimeErrorCode.CONFLICTING_METHOD_AND_FIELD',
-    withArguments: _withArgumentsConflictingMethodAndField,
-    expectedTypes: [
-      ExpectedType.string,
-      ExpectedType.string,
-      ExpectedType.string,
-    ],
-  );
+  conflictingMethodAndField = diag.conflictingMethodAndField;
 
   /// 10.11 Class Member Conflicts: Let `C` be a class. It is a compile-time
   /// error if `C` declares a static member with basename `n`, and has an
@@ -1122,241 +483,94 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
       required String p2,
     })
   >
-  conflictingStaticAndInstance = DiagnosticWithArguments(
-    name: 'CONFLICTING_STATIC_AND_INSTANCE',
-    problemMessage:
-        "Class '{0}' can't define static member '{1}' and have instance member "
-        "'{2}.{1}' with the same name.",
-    correctionMessage:
-        "Try renaming the member to a name that doesn't conflict.",
-    type: DiagnosticType.COMPILE_TIME_ERROR,
-    uniqueName: 'CompileTimeErrorCode.CONFLICTING_STATIC_AND_INSTANCE',
-    withArguments: _withArgumentsConflictingStaticAndInstance,
-    expectedTypes: [
-      ExpectedType.string,
-      ExpectedType.string,
-      ExpectedType.string,
-    ],
-  );
+  conflictingStaticAndInstance = diag.conflictingStaticAndInstance;
 
   /// Parameters:
   /// String p0: the name of the type parameter
   static const DiagnosticWithArguments<
     LocatableDiagnostic Function({required String p0})
   >
-  conflictingTypeVariableAndClass = DiagnosticWithArguments(
-    name: 'CONFLICTING_TYPE_VARIABLE_AND_CONTAINER',
-    problemMessage:
-        "'{0}' can't be used to name both a type parameter and the class in which "
-        "the type parameter is defined.",
-    correctionMessage: "Try renaming either the type parameter or the class.",
-    hasPublishedDocs: true,
-    type: DiagnosticType.COMPILE_TIME_ERROR,
-    uniqueName: 'CompileTimeErrorCode.CONFLICTING_TYPE_VARIABLE_AND_CLASS',
-    withArguments: _withArgumentsConflictingTypeVariableAndClass,
-    expectedTypes: [ExpectedType.string],
-  );
+  conflictingTypeVariableAndClass = diag.conflictingTypeVariableAndClass;
 
   /// Parameters:
   /// String p0: the name of the type parameter
   static const DiagnosticWithArguments<
     LocatableDiagnostic Function({required String p0})
   >
-  conflictingTypeVariableAndEnum = DiagnosticWithArguments(
-    name: 'CONFLICTING_TYPE_VARIABLE_AND_CONTAINER',
-    problemMessage:
-        "'{0}' can't be used to name both a type parameter and the enum in which "
-        "the type parameter is defined.",
-    correctionMessage: "Try renaming either the type parameter or the enum.",
-    hasPublishedDocs: true,
-    type: DiagnosticType.COMPILE_TIME_ERROR,
-    uniqueName: 'CompileTimeErrorCode.CONFLICTING_TYPE_VARIABLE_AND_ENUM',
-    withArguments: _withArgumentsConflictingTypeVariableAndEnum,
-    expectedTypes: [ExpectedType.string],
-  );
+  conflictingTypeVariableAndEnum = diag.conflictingTypeVariableAndEnum;
 
   /// Parameters:
   /// String p0: the name of the type parameter
   static const DiagnosticWithArguments<
     LocatableDiagnostic Function({required String p0})
   >
-  conflictingTypeVariableAndExtension = DiagnosticWithArguments(
-    name: 'CONFLICTING_TYPE_VARIABLE_AND_CONTAINER',
-    problemMessage:
-        "'{0}' can't be used to name both a type parameter and the extension in "
-        "which the type parameter is defined.",
-    correctionMessage:
-        "Try renaming either the type parameter or the extension.",
-    hasPublishedDocs: true,
-    type: DiagnosticType.COMPILE_TIME_ERROR,
-    uniqueName: 'CompileTimeErrorCode.CONFLICTING_TYPE_VARIABLE_AND_EXTENSION',
-    withArguments: _withArgumentsConflictingTypeVariableAndExtension,
-    expectedTypes: [ExpectedType.string],
-  );
+  conflictingTypeVariableAndExtension =
+      diag.conflictingTypeVariableAndExtension;
 
   /// Parameters:
   /// String p0: the name of the type parameter
   static const DiagnosticWithArguments<
     LocatableDiagnostic Function({required String p0})
   >
-  conflictingTypeVariableAndExtensionType = DiagnosticWithArguments(
-    name: 'CONFLICTING_TYPE_VARIABLE_AND_CONTAINER',
-    problemMessage:
-        "'{0}' can't be used to name both a type parameter and the extension type "
-        "in which the type parameter is defined.",
-    correctionMessage:
-        "Try renaming either the type parameter or the extension.",
-    hasPublishedDocs: true,
-    type: DiagnosticType.COMPILE_TIME_ERROR,
-    uniqueName:
-        'CompileTimeErrorCode.CONFLICTING_TYPE_VARIABLE_AND_EXTENSION_TYPE',
-    withArguments: _withArgumentsConflictingTypeVariableAndExtensionType,
-    expectedTypes: [ExpectedType.string],
-  );
+  conflictingTypeVariableAndExtensionType =
+      diag.conflictingTypeVariableAndExtensionType;
 
   /// Parameters:
   /// String p0: the name of the type parameter
   static const DiagnosticWithArguments<
     LocatableDiagnostic Function({required String p0})
   >
-  conflictingTypeVariableAndMemberClass = DiagnosticWithArguments(
-    name: 'CONFLICTING_TYPE_VARIABLE_AND_MEMBER',
-    problemMessage:
-        "'{0}' can't be used to name both a type parameter and a member in this "
-        "class.",
-    correctionMessage: "Try renaming either the type parameter or the member.",
-    hasPublishedDocs: true,
-    type: DiagnosticType.COMPILE_TIME_ERROR,
-    uniqueName:
-        'CompileTimeErrorCode.CONFLICTING_TYPE_VARIABLE_AND_MEMBER_CLASS',
-    withArguments: _withArgumentsConflictingTypeVariableAndMemberClass,
-    expectedTypes: [ExpectedType.string],
-  );
+  conflictingTypeVariableAndMemberClass =
+      diag.conflictingTypeVariableAndMemberClass;
 
   /// Parameters:
   /// String p0: the name of the type parameter
   static const DiagnosticWithArguments<
     LocatableDiagnostic Function({required String p0})
   >
-  conflictingTypeVariableAndMemberEnum = DiagnosticWithArguments(
-    name: 'CONFLICTING_TYPE_VARIABLE_AND_MEMBER',
-    problemMessage:
-        "'{0}' can't be used to name both a type parameter and a member in this "
-        "enum.",
-    correctionMessage: "Try renaming either the type parameter or the member.",
-    hasPublishedDocs: true,
-    type: DiagnosticType.COMPILE_TIME_ERROR,
-    uniqueName:
-        'CompileTimeErrorCode.CONFLICTING_TYPE_VARIABLE_AND_MEMBER_ENUM',
-    withArguments: _withArgumentsConflictingTypeVariableAndMemberEnum,
-    expectedTypes: [ExpectedType.string],
-  );
+  conflictingTypeVariableAndMemberEnum =
+      diag.conflictingTypeVariableAndMemberEnum;
 
   /// Parameters:
   /// String p0: the name of the type parameter
   static const DiagnosticWithArguments<
     LocatableDiagnostic Function({required String p0})
   >
-  conflictingTypeVariableAndMemberExtension = DiagnosticWithArguments(
-    name: 'CONFLICTING_TYPE_VARIABLE_AND_MEMBER',
-    problemMessage:
-        "'{0}' can't be used to name both a type parameter and a member in this "
-        "extension.",
-    correctionMessage: "Try renaming either the type parameter or the member.",
-    hasPublishedDocs: true,
-    type: DiagnosticType.COMPILE_TIME_ERROR,
-    uniqueName:
-        'CompileTimeErrorCode.CONFLICTING_TYPE_VARIABLE_AND_MEMBER_EXTENSION',
-    withArguments: _withArgumentsConflictingTypeVariableAndMemberExtension,
-    expectedTypes: [ExpectedType.string],
-  );
+  conflictingTypeVariableAndMemberExtension =
+      diag.conflictingTypeVariableAndMemberExtension;
 
   /// Parameters:
   /// String p0: the name of the type parameter
   static const DiagnosticWithArguments<
     LocatableDiagnostic Function({required String p0})
   >
-  conflictingTypeVariableAndMemberExtensionType = DiagnosticWithArguments(
-    name: 'CONFLICTING_TYPE_VARIABLE_AND_MEMBER',
-    problemMessage:
-        "'{0}' can't be used to name both a type parameter and a member in this "
-        "extension type.",
-    correctionMessage: "Try renaming either the type parameter or the member.",
-    hasPublishedDocs: true,
-    type: DiagnosticType.COMPILE_TIME_ERROR,
-    uniqueName:
-        'CompileTimeErrorCode.CONFLICTING_TYPE_VARIABLE_AND_MEMBER_EXTENSION_TYPE',
-    withArguments: _withArgumentsConflictingTypeVariableAndMemberExtensionType,
-    expectedTypes: [ExpectedType.string],
-  );
+  conflictingTypeVariableAndMemberExtensionType =
+      diag.conflictingTypeVariableAndMemberExtensionType;
 
   /// Parameters:
   /// String p0: the name of the type parameter
   static const DiagnosticWithArguments<
     LocatableDiagnostic Function({required String p0})
   >
-  conflictingTypeVariableAndMemberMixin = DiagnosticWithArguments(
-    name: 'CONFLICTING_TYPE_VARIABLE_AND_MEMBER',
-    problemMessage:
-        "'{0}' can't be used to name both a type parameter and a member in this "
-        "mixin.",
-    correctionMessage: "Try renaming either the type parameter or the member.",
-    hasPublishedDocs: true,
-    type: DiagnosticType.COMPILE_TIME_ERROR,
-    uniqueName:
-        'CompileTimeErrorCode.CONFLICTING_TYPE_VARIABLE_AND_MEMBER_MIXIN',
-    withArguments: _withArgumentsConflictingTypeVariableAndMemberMixin,
-    expectedTypes: [ExpectedType.string],
-  );
+  conflictingTypeVariableAndMemberMixin =
+      diag.conflictingTypeVariableAndMemberMixin;
 
   /// Parameters:
   /// String p0: the name of the type parameter
   static const DiagnosticWithArguments<
     LocatableDiagnostic Function({required String p0})
   >
-  conflictingTypeVariableAndMixin = DiagnosticWithArguments(
-    name: 'CONFLICTING_TYPE_VARIABLE_AND_CONTAINER',
-    problemMessage:
-        "'{0}' can't be used to name both a type parameter and the mixin in which "
-        "the type parameter is defined.",
-    correctionMessage: "Try renaming either the type parameter or the mixin.",
-    hasPublishedDocs: true,
-    type: DiagnosticType.COMPILE_TIME_ERROR,
-    uniqueName: 'CompileTimeErrorCode.CONFLICTING_TYPE_VARIABLE_AND_MIXIN',
-    withArguments: _withArgumentsConflictingTypeVariableAndMixin,
-    expectedTypes: [ExpectedType.string],
-  );
+  conflictingTypeVariableAndMixin = diag.conflictingTypeVariableAndMixin;
 
   /// No parameters.
   static const DiagnosticWithoutArguments
-  constantPatternWithNonConstantExpression = DiagnosticWithoutArgumentsImpl(
-    name: 'CONSTANT_PATTERN_WITH_NON_CONSTANT_EXPRESSION',
-    problemMessage:
-        "The expression of a constant pattern must be a valid constant.",
-    correctionMessage: "Try making the expression a valid constant.",
-    hasPublishedDocs: true,
-    type: DiagnosticType.COMPILE_TIME_ERROR,
-    uniqueName:
-        'CompileTimeErrorCode.CONSTANT_PATTERN_WITH_NON_CONSTANT_EXPRESSION',
-    expectedTypes: [],
-  );
+  constantPatternWithNonConstantExpression =
+      diag.constantPatternWithNonConstantExpression;
 
   /// No parameters.
   static const DiagnosticWithoutArguments
-  constConstructorConstantFromDeferredLibrary = DiagnosticWithoutArgumentsImpl(
-    name: 'COLLECTION_ELEMENT_FROM_DEFERRED_LIBRARY',
-    problemMessage:
-        "Constant values from a deferred library can't be used as values in a "
-        "'const' constructor.",
-    correctionMessage:
-        "Try removing the keyword 'const' from the constructor or removing the "
-        "keyword 'deferred' from the import.",
-    hasPublishedDocs: true,
-    type: DiagnosticType.COMPILE_TIME_ERROR,
-    uniqueName:
-        'CompileTimeErrorCode.CONST_CONSTRUCTOR_CONSTANT_FROM_DEFERRED_LIBRARY',
-    expectedTypes: [],
-  );
+  constConstructorConstantFromDeferredLibrary =
+      diag.constConstructorConstantFromDeferredLibrary;
 
   /// 16.12.2 Const: It is a compile-time error if evaluation of a constant
   /// object results in an uncaught exception being thrown.
@@ -1372,21 +586,7 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
       required Object fieldType,
     })
   >
-  constConstructorFieldTypeMismatch = DiagnosticWithArguments(
-    name: 'CONST_CONSTRUCTOR_FIELD_TYPE_MISMATCH',
-    problemMessage:
-        "In a const constructor, a value of type '{0}' can't be assigned to the "
-        "field '{1}', which has type '{2}'.",
-    correctionMessage: "Try using a subtype, or removing the keyword 'const'.",
-    type: DiagnosticType.COMPILE_TIME_ERROR,
-    uniqueName: 'CompileTimeErrorCode.CONST_CONSTRUCTOR_FIELD_TYPE_MISMATCH',
-    withArguments: _withArgumentsConstConstructorFieldTypeMismatch,
-    expectedTypes: [
-      ExpectedType.object,
-      ExpectedType.object,
-      ExpectedType.object,
-    ],
-  );
+  constConstructorFieldTypeMismatch = diag.constConstructorFieldTypeMismatch;
 
   /// Parameters:
   /// String valueType: the type of the runtime value of the argument
@@ -1397,54 +597,22 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
       required String parameterType,
     })
   >
-  constConstructorParamTypeMismatch = DiagnosticWithArguments(
-    name: 'CONST_CONSTRUCTOR_PARAM_TYPE_MISMATCH',
-    problemMessage:
-        "A value of type '{0}' can't be assigned to a parameter of type '{1}' in a "
-        "const constructor.",
-    correctionMessage: "Try using a subtype, or removing the keyword 'const'.",
-    hasPublishedDocs: true,
-    type: DiagnosticType.COMPILE_TIME_ERROR,
-    uniqueName: 'CompileTimeErrorCode.CONST_CONSTRUCTOR_PARAM_TYPE_MISMATCH',
-    withArguments: _withArgumentsConstConstructorParamTypeMismatch,
-    expectedTypes: [ExpectedType.string, ExpectedType.string],
-  );
+  constConstructorParamTypeMismatch = diag.constConstructorParamTypeMismatch;
 
   /// 16.12.2 Const: It is a compile-time error if evaluation of a constant
   /// object results in an uncaught exception being thrown.
   ///
   /// No parameters.
-  static const DiagnosticWithoutArguments
-  constConstructorThrowsException = DiagnosticWithoutArgumentsImpl(
-    name: 'CONST_CONSTRUCTOR_THROWS_EXCEPTION',
-    problemMessage: "Const constructors can't throw exceptions.",
-    correctionMessage:
-        "Try removing the throw statement, or removing the keyword 'const'.",
-    type: DiagnosticType.COMPILE_TIME_ERROR,
-    uniqueName: 'CompileTimeErrorCode.CONST_CONSTRUCTOR_THROWS_EXCEPTION',
-    expectedTypes: [],
-  );
+  static const DiagnosticWithoutArguments constConstructorThrowsException =
+      diag.constConstructorThrowsException;
 
   /// Parameters:
   /// String p0: the name of the field
   static const DiagnosticWithArguments<
     LocatableDiagnostic Function({required String p0})
   >
-  constConstructorWithFieldInitializedByNonConst = DiagnosticWithArguments(
-    name: 'CONST_CONSTRUCTOR_WITH_FIELD_INITIALIZED_BY_NON_CONST',
-    problemMessage:
-        "Can't define the 'const' constructor because the field '{0}' is "
-        "initialized with a non-constant value.",
-    correctionMessage:
-        "Try initializing the field to a constant value, or removing the "
-        "keyword 'const' from the constructor.",
-    hasPublishedDocs: true,
-    type: DiagnosticType.COMPILE_TIME_ERROR,
-    uniqueName:
-        'CompileTimeErrorCode.CONST_CONSTRUCTOR_WITH_FIELD_INITIALIZED_BY_NON_CONST',
-    withArguments: _withArgumentsConstConstructorWithFieldInitializedByNonConst,
-    expectedTypes: [ExpectedType.string],
-  );
+  constConstructorWithFieldInitializedByNonConst =
+      diag.constConstructorWithFieldInitializedByNonConst;
 
   /// 7.6.3 Constant Constructors: The superinitializer that appears, explicitly
   /// or implicitly, in the initializer list of a constant constructor must
@@ -1461,19 +629,7 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
   static const DiagnosticWithArguments<
     LocatableDiagnostic Function({required String p0})
   >
-  constConstructorWithMixinWithField = DiagnosticWithArguments(
-    name: 'CONST_CONSTRUCTOR_WITH_MIXIN_WITH_FIELD',
-    problemMessage:
-        "This constructor can't be declared 'const' because a mixin adds the "
-        "instance field: {0}.",
-    correctionMessage:
-        "Try removing the 'const' keyword or removing the 'with' clause from "
-        "the class declaration, or removing the field from the mixin class.",
-    type: DiagnosticType.COMPILE_TIME_ERROR,
-    uniqueName: 'CompileTimeErrorCode.CONST_CONSTRUCTOR_WITH_MIXIN_WITH_FIELD',
-    withArguments: _withArgumentsConstConstructorWithMixinWithField,
-    expectedTypes: [ExpectedType.string],
-  );
+  constConstructorWithMixinWithField = diag.constConstructorWithMixinWithField;
 
   /// 7.6.3 Constant Constructors: The superinitializer that appears, explicitly
   /// or implicitly, in the initializer list of a constant constructor must
@@ -1490,152 +646,58 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
   static const DiagnosticWithArguments<
     LocatableDiagnostic Function({required String p0})
   >
-  constConstructorWithMixinWithFields = DiagnosticWithArguments(
-    name: 'CONST_CONSTRUCTOR_WITH_MIXIN_WITH_FIELD',
-    problemMessage:
-        "This constructor can't be declared 'const' because the mixins add the "
-        "instance fields: {0}.",
-    correctionMessage:
-        "Try removing the 'const' keyword or removing the 'with' clause from "
-        "the class declaration, or removing the fields from the mixin classes.",
-    type: DiagnosticType.COMPILE_TIME_ERROR,
-    uniqueName: 'CompileTimeErrorCode.CONST_CONSTRUCTOR_WITH_MIXIN_WITH_FIELDS',
-    withArguments: _withArgumentsConstConstructorWithMixinWithFields,
-    expectedTypes: [ExpectedType.string],
-  );
+  constConstructorWithMixinWithFields =
+      diag.constConstructorWithMixinWithFields;
 
   /// Parameters:
   /// String p0: the name of the superclass
   static const DiagnosticWithArguments<
     LocatableDiagnostic Function({required String p0})
   >
-  constConstructorWithNonConstSuper = DiagnosticWithArguments(
-    name: 'CONST_CONSTRUCTOR_WITH_NON_CONST_SUPER',
-    problemMessage:
-        "A constant constructor can't call a non-constant super constructor of "
-        "'{0}'.",
-    correctionMessage:
-        "Try calling a constant constructor in the superclass, or removing the "
-        "keyword 'const' from the constructor.",
-    hasPublishedDocs: true,
-    type: DiagnosticType.COMPILE_TIME_ERROR,
-    uniqueName: 'CompileTimeErrorCode.CONST_CONSTRUCTOR_WITH_NON_CONST_SUPER',
-    withArguments: _withArgumentsConstConstructorWithNonConstSuper,
-    expectedTypes: [ExpectedType.string],
-  );
+  constConstructorWithNonConstSuper = diag.constConstructorWithNonConstSuper;
 
   /// No parameters.
-  static const DiagnosticWithoutArguments
-  constConstructorWithNonFinalField = DiagnosticWithoutArgumentsImpl(
-    name: 'CONST_CONSTRUCTOR_WITH_NON_FINAL_FIELD',
-    problemMessage:
-        "Can't define a const constructor for a class with non-final fields.",
-    correctionMessage:
-        "Try making all of the fields final, or removing the keyword 'const' "
-        "from the constructor.",
-    hasPublishedDocs: true,
-    type: DiagnosticType.COMPILE_TIME_ERROR,
-    uniqueName: 'CompileTimeErrorCode.CONST_CONSTRUCTOR_WITH_NON_FINAL_FIELD',
-    expectedTypes: [],
-  );
+  static const DiagnosticWithoutArguments constConstructorWithNonFinalField =
+      diag.constConstructorWithNonFinalField;
 
   /// No parameters.
-  static const DiagnosticWithoutArguments
-  constDeferredClass = DiagnosticWithoutArgumentsImpl(
-    name: 'CONST_DEFERRED_CLASS',
-    problemMessage: "Deferred classes can't be created with 'const'.",
-    correctionMessage:
-        "Try using 'new' to create the instance, or changing the import to not "
-        "be deferred.",
-    hasPublishedDocs: true,
-    type: DiagnosticType.COMPILE_TIME_ERROR,
-    uniqueName: 'CompileTimeErrorCode.CONST_DEFERRED_CLASS',
-    expectedTypes: [],
-  );
+  static const DiagnosticWithoutArguments constDeferredClass =
+      diag.constDeferredClass;
 
   /// No parameters.
   static const DiagnosticWithoutArguments constEvalAssertionFailure =
-      DiagnosticWithoutArgumentsImpl(
-        name: 'CONST_EVAL_ASSERTION_FAILURE',
-        problemMessage: "The assertion in this constant expression failed.",
-        type: DiagnosticType.COMPILE_TIME_ERROR,
-        uniqueName: 'CompileTimeErrorCode.CONST_EVAL_ASSERTION_FAILURE',
-        expectedTypes: [],
-      );
+      diag.constEvalAssertionFailure;
 
   /// Parameters:
   /// Object message: the message of the assertion
   static const DiagnosticWithArguments<
     LocatableDiagnostic Function({required Object message})
   >
-  constEvalAssertionFailureWithMessage = DiagnosticWithArguments(
-    name: 'CONST_EVAL_ASSERTION_FAILURE_WITH_MESSAGE',
-    problemMessage: "An assertion failed with message '{0}'.",
-    type: DiagnosticType.COMPILE_TIME_ERROR,
-    uniqueName:
-        'CompileTimeErrorCode.CONST_EVAL_ASSERTION_FAILURE_WITH_MESSAGE',
-    withArguments: _withArgumentsConstEvalAssertionFailureWithMessage,
-    expectedTypes: [ExpectedType.object],
-  );
+  constEvalAssertionFailureWithMessage =
+      diag.constEvalAssertionFailureWithMessage;
 
   /// No parameters.
   static const DiagnosticWithoutArguments constEvalExtensionMethod =
-      DiagnosticWithoutArgumentsImpl(
-        name: 'CONST_EVAL_EXTENSION_METHOD',
-        problemMessage:
-            "Extension methods can't be used in constant expressions.",
-        type: DiagnosticType.COMPILE_TIME_ERROR,
-        uniqueName: 'CompileTimeErrorCode.CONST_EVAL_EXTENSION_METHOD',
-        expectedTypes: [],
-      );
+      diag.constEvalExtensionMethod;
 
   /// No parameters.
   static const DiagnosticWithoutArguments constEvalExtensionTypeMethod =
-      DiagnosticWithoutArgumentsImpl(
-        name: 'CONST_EVAL_EXTENSION_TYPE_METHOD',
-        problemMessage:
-            "Extension type methods can't be used in constant expressions.",
-        type: DiagnosticType.COMPILE_TIME_ERROR,
-        uniqueName: 'CompileTimeErrorCode.CONST_EVAL_EXTENSION_TYPE_METHOD',
-        expectedTypes: [],
-      );
+      diag.constEvalExtensionTypeMethod;
 
   /// No parameters.
-  static const DiagnosticWithoutArguments
-  constEvalForElement = DiagnosticWithoutArgumentsImpl(
-    name: 'CONST_EVAL_FOR_ELEMENT',
-    problemMessage: "Constant expressions don't support 'for' elements.",
-    correctionMessage:
-        "Try replacing the 'for' element with a spread, or removing 'const'.",
-    type: DiagnosticType.COMPILE_TIME_ERROR,
-    uniqueName: 'CompileTimeErrorCode.CONST_EVAL_FOR_ELEMENT',
-    expectedTypes: [],
-  );
+  static const DiagnosticWithoutArguments constEvalForElement =
+      diag.constEvalForElement;
 
   /// No parameters.
   static const DiagnosticWithoutArguments constEvalMethodInvocation =
-      DiagnosticWithoutArgumentsImpl(
-        name: 'CONST_EVAL_METHOD_INVOCATION',
-        problemMessage: "Methods can't be invoked in constant expressions.",
-        type: DiagnosticType.COMPILE_TIME_ERROR,
-        uniqueName: 'CompileTimeErrorCode.CONST_EVAL_METHOD_INVOCATION',
-        expectedTypes: [],
-      );
+      diag.constEvalMethodInvocation;
 
   /// See https://spec.dart.dev/DartLangSpecDraft.pdf#constants, "Constants",
   /// for text about "An expression of the form e1 == e2".
   ///
   /// No parameters.
-  static const DiagnosticWithoutArguments
-  constEvalPrimitiveEquality = DiagnosticWithoutArgumentsImpl(
-    name: 'CONST_EVAL_PRIMITIVE_EQUALITY',
-    problemMessage:
-        "In constant expressions, operands of the equality operator must have "
-        "primitive equality.",
-    type: DiagnosticType.COMPILE_TIME_ERROR,
-    uniqueName: 'CompileTimeErrorCode.CONST_EVAL_PRIMITIVE_EQUALITY',
-    expectedTypes: [],
-  );
+  static const DiagnosticWithoutArguments constEvalPrimitiveEquality =
+      diag.constEvalPrimitiveEquality;
 
   /// Parameters:
   /// String propertyName: the name of the property being accessed
@@ -1646,159 +708,73 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
       required String type,
     })
   >
-  constEvalPropertyAccess = DiagnosticWithArguments(
-    name: 'CONST_EVAL_PROPERTY_ACCESS',
-    problemMessage:
-        "The property '{0}' can't be accessed on the type '{1}' in a constant "
-        "expression.",
-    type: DiagnosticType.COMPILE_TIME_ERROR,
-    uniqueName: 'CompileTimeErrorCode.CONST_EVAL_PROPERTY_ACCESS',
-    withArguments: _withArgumentsConstEvalPropertyAccess,
-    expectedTypes: [ExpectedType.string, ExpectedType.string],
-  );
+  constEvalPropertyAccess = diag.constEvalPropertyAccess;
 
   /// 16.12.2 Const: It is a compile-time error if evaluation of a constant
   /// object results in an uncaught exception being thrown.
   ///
   /// No parameters.
   static const DiagnosticWithoutArguments constEvalThrowsException =
-      DiagnosticWithoutArgumentsImpl(
-        name: 'CONST_EVAL_THROWS_EXCEPTION',
-        problemMessage:
-            "Evaluation of this constant expression throws an exception.",
-        type: DiagnosticType.COMPILE_TIME_ERROR,
-        uniqueName: 'CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION',
-        expectedTypes: [],
-      );
+      diag.constEvalThrowsException;
 
   /// 16.12.2 Const: It is a compile-time error if evaluation of a constant
   /// object results in an uncaught exception being thrown.
   ///
   /// No parameters.
   static const DiagnosticWithoutArguments constEvalThrowsIdbze =
-      DiagnosticWithoutArgumentsImpl(
-        name: 'CONST_EVAL_THROWS_IDBZE',
-        problemMessage:
-            "Evaluation of this constant expression throws an "
-            "IntegerDivisionByZeroException.",
-        type: DiagnosticType.COMPILE_TIME_ERROR,
-        uniqueName: 'CompileTimeErrorCode.CONST_EVAL_THROWS_IDBZE',
-        expectedTypes: [],
-      );
+      diag.constEvalThrowsIdbze;
 
   /// See https://spec.dart.dev/DartLangSpecDraft.pdf#constants, "Constants",
   /// for text about "An expression of the form !e1", "An expression of the form
   /// e1 && e2", and "An expression of the form e1 || e2".
   ///
   /// No parameters.
-  static const DiagnosticWithoutArguments
-  constEvalTypeBool = DiagnosticWithoutArgumentsImpl(
-    name: 'CONST_EVAL_TYPE_BOOL',
-    problemMessage:
-        "In constant expressions, operands of this operator must be of type "
-        "'bool'.",
-    type: DiagnosticType.COMPILE_TIME_ERROR,
-    uniqueName: 'CompileTimeErrorCode.CONST_EVAL_TYPE_BOOL',
-    expectedTypes: [],
-  );
+  static const DiagnosticWithoutArguments constEvalTypeBool =
+      diag.constEvalTypeBool;
 
   /// See https://spec.dart.dev/DartLangSpecDraft.pdf#constants, "Constants",
   /// for text about "An expression of the form e1 & e2".
   ///
   /// No parameters.
-  static const DiagnosticWithoutArguments
-  constEvalTypeBoolInt = DiagnosticWithoutArgumentsImpl(
-    name: 'CONST_EVAL_TYPE_BOOL_INT',
-    problemMessage:
-        "In constant expressions, operands of this operator must be of type 'bool' "
-        "or 'int'.",
-    type: DiagnosticType.COMPILE_TIME_ERROR,
-    uniqueName: 'CompileTimeErrorCode.CONST_EVAL_TYPE_BOOL_INT',
-    expectedTypes: [],
-  );
+  static const DiagnosticWithoutArguments constEvalTypeBoolInt =
+      diag.constEvalTypeBoolInt;
 
   /// See https://spec.dart.dev/DartLangSpecDraft.pdf#constants, "Constants",
   /// for text about "A literal string".
   ///
   /// No parameters.
-  static const DiagnosticWithoutArguments
-  constEvalTypeBoolNumString = DiagnosticWithoutArgumentsImpl(
-    name: 'CONST_EVAL_TYPE_BOOL_NUM_STRING',
-    problemMessage:
-        "In constant expressions, operands of this operator must be of type "
-        "'bool', 'num', 'String' or 'null'.",
-    type: DiagnosticType.COMPILE_TIME_ERROR,
-    uniqueName: 'CompileTimeErrorCode.CONST_EVAL_TYPE_BOOL_NUM_STRING',
-    expectedTypes: [],
-  );
+  static const DiagnosticWithoutArguments constEvalTypeBoolNumString =
+      diag.constEvalTypeBoolNumString;
 
   /// See https://spec.dart.dev/DartLangSpecDraft.pdf#constants, "Constants",
   /// for text about "An expression of the form ~e1", "An expression of one of
   /// the forms e1 >> e2".
   ///
   /// No parameters.
-  static const DiagnosticWithoutArguments
-  constEvalTypeInt = DiagnosticWithoutArgumentsImpl(
-    name: 'CONST_EVAL_TYPE_INT',
-    problemMessage:
-        "In constant expressions, operands of this operator must be of type 'int'.",
-    type: DiagnosticType.COMPILE_TIME_ERROR,
-    uniqueName: 'CompileTimeErrorCode.CONST_EVAL_TYPE_INT',
-    expectedTypes: [],
-  );
+  static const DiagnosticWithoutArguments constEvalTypeInt =
+      diag.constEvalTypeInt;
 
   /// See https://spec.dart.dev/DartLangSpecDraft.pdf#constants, "Constants",
   /// for text about "An expression of the form e1 - e2".
   ///
   /// No parameters.
-  static const DiagnosticWithoutArguments
-  constEvalTypeNum = DiagnosticWithoutArgumentsImpl(
-    name: 'CONST_EVAL_TYPE_NUM',
-    problemMessage:
-        "In constant expressions, operands of this operator must be of type 'num'.",
-    type: DiagnosticType.COMPILE_TIME_ERROR,
-    uniqueName: 'CompileTimeErrorCode.CONST_EVAL_TYPE_NUM',
-    expectedTypes: [],
-  );
+  static const DiagnosticWithoutArguments constEvalTypeNum =
+      diag.constEvalTypeNum;
 
   /// See https://spec.dart.dev/DartLangSpecDraft.pdf#constants, "Constants",
   /// for text about "An expression of the form e1 + e2".
   ///
   /// No parameters.
-  static const DiagnosticWithoutArguments
-  constEvalTypeNumString = DiagnosticWithoutArgumentsImpl(
-    name: 'CONST_EVAL_TYPE_NUM_STRING',
-    problemMessage:
-        "In constant expressions, operands of this operator must be of type 'num' "
-        "or 'String'.",
-    type: DiagnosticType.COMPILE_TIME_ERROR,
-    uniqueName: 'CompileTimeErrorCode.CONST_EVAL_TYPE_NUM_STRING',
-    expectedTypes: [],
-  );
+  static const DiagnosticWithoutArguments constEvalTypeNumString =
+      diag.constEvalTypeNumString;
 
   /// No parameters.
-  static const DiagnosticWithoutArguments
-  constEvalTypeString = DiagnosticWithoutArgumentsImpl(
-    name: 'CONST_EVAL_TYPE_STRING',
-    problemMessage:
-        "In constant expressions, operands of this operator must be of type "
-        "'String'.",
-    type: DiagnosticType.COMPILE_TIME_ERROR,
-    uniqueName: 'CompileTimeErrorCode.CONST_EVAL_TYPE_STRING',
-    expectedTypes: [],
-  );
+  static const DiagnosticWithoutArguments constEvalTypeString =
+      diag.constEvalTypeString;
 
   /// No parameters.
-  static const DiagnosticWithoutArguments
-  constEvalTypeType = DiagnosticWithoutArgumentsImpl(
-    name: 'CONST_EVAL_TYPE_TYPE',
-    problemMessage:
-        "In constant expressions, operands of this operator must be of type "
-        "'Type'.",
-    type: DiagnosticType.COMPILE_TIME_ERROR,
-    uniqueName: 'CompileTimeErrorCode.CONST_EVAL_TYPE_TYPE',
-    expectedTypes: [],
-  );
+  static const DiagnosticWithoutArguments constEvalTypeType =
+      diag.constEvalTypeType;
 
   /// Parameters:
   /// Type p0: the name of the type of the initializer expression
@@ -1806,245 +782,83 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
   static const DiagnosticWithArguments<
     LocatableDiagnostic Function({required DartType p0, required DartType p1})
   >
-  constFieldInitializerNotAssignable = DiagnosticWithArguments(
-    name: 'FIELD_INITIALIZER_NOT_ASSIGNABLE',
-    problemMessage:
-        "The initializer type '{0}' can't be assigned to the field type '{1}' in a "
-        "const constructor.",
-    correctionMessage: "Try using a subtype, or removing the 'const' keyword",
-    hasPublishedDocs: true,
-    type: DiagnosticType.COMPILE_TIME_ERROR,
-    uniqueName: 'CompileTimeErrorCode.CONST_FIELD_INITIALIZER_NOT_ASSIGNABLE',
-    withArguments: _withArgumentsConstFieldInitializerNotAssignable,
-    expectedTypes: [ExpectedType.type, ExpectedType.type],
-  );
+  constFieldInitializerNotAssignable = diag.constFieldInitializerNotAssignable;
 
   /// No parameters.
   static const DiagnosticWithoutArguments constInitializedWithNonConstantValue =
-      DiagnosticWithoutArgumentsImpl(
-        name: 'CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE',
-        problemMessage:
-            "Const variables must be initialized with a constant value.",
-        correctionMessage:
-            "Try changing the initializer to be a constant expression.",
-        hasPublishedDocs: true,
-        type: DiagnosticType.COMPILE_TIME_ERROR,
-        uniqueName:
-            'CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE',
-        expectedTypes: [],
-      );
+      diag.constInitializedWithNonConstantValue;
 
   /// No parameters.
   static const DiagnosticWithoutArguments
   constInitializedWithNonConstantValueFromDeferredLibrary =
-      DiagnosticWithoutArgumentsImpl(
-        name: 'CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE_FROM_DEFERRED_LIBRARY',
-        problemMessage:
-            "Constant values from a deferred library can't be used to initialize a "
-            "'const' variable.",
-        correctionMessage:
-            "Try initializing the variable without referencing members of the "
-            "deferred library, or changing the import to not be deferred.",
-        hasPublishedDocs: true,
-        type: DiagnosticType.COMPILE_TIME_ERROR,
-        uniqueName:
-            'CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE_FROM_DEFERRED_LIBRARY',
-        expectedTypes: [],
-      );
+      diag.constInitializedWithNonConstantValueFromDeferredLibrary;
 
   /// No parameters.
   static const DiagnosticWithoutArguments constInstanceField =
-      DiagnosticWithoutArgumentsImpl(
-        name: 'CONST_INSTANCE_FIELD',
-        problemMessage: "Only static fields can be declared as const.",
-        correctionMessage:
-            "Try declaring the field as final, or adding the keyword 'static'.",
-        hasPublishedDocs: true,
-        type: DiagnosticType.COMPILE_TIME_ERROR,
-        uniqueName: 'CompileTimeErrorCode.CONST_INSTANCE_FIELD',
-        expectedTypes: [],
-      );
+      diag.constInstanceField;
 
   /// Parameters:
   /// Type p0: the type of the entry's key
   static const DiagnosticWithArguments<
     LocatableDiagnostic Function({required DartType p0})
   >
-  constMapKeyNotPrimitiveEquality = DiagnosticWithArguments(
-    name: 'CONST_MAP_KEY_NOT_PRIMITIVE_EQUALITY',
-    problemMessage:
-        "The type of a key in a constant map can't override the '==' operator, or "
-        "'hashCode', but the class '{0}' does.",
-    correctionMessage:
-        "Try using a different value for the key, or removing the keyword "
-        "'const' from the map.",
-    hasPublishedDocs: true,
-    type: DiagnosticType.COMPILE_TIME_ERROR,
-    uniqueName: 'CompileTimeErrorCode.CONST_MAP_KEY_NOT_PRIMITIVE_EQUALITY',
-    withArguments: _withArgumentsConstMapKeyNotPrimitiveEquality,
-    expectedTypes: [ExpectedType.type],
-  );
+  constMapKeyNotPrimitiveEquality = diag.constMapKeyNotPrimitiveEquality;
 
   /// Parameters:
   /// String p0: the name of the uninitialized final variable
   static const DiagnosticWithArguments<
     LocatableDiagnostic Function({required String p0})
   >
-  constNotInitialized = DiagnosticWithArguments(
-    name: 'CONST_NOT_INITIALIZED',
-    problemMessage: "The constant '{0}' must be initialized.",
-    correctionMessage: "Try adding an initialization to the declaration.",
-    hasPublishedDocs: true,
-    type: DiagnosticType.COMPILE_TIME_ERROR,
-    uniqueName: 'CompileTimeErrorCode.CONST_NOT_INITIALIZED',
-    withArguments: _withArgumentsConstNotInitialized,
-    expectedTypes: [ExpectedType.string],
-  );
+  constNotInitialized = diag.constNotInitialized;
 
   /// Parameters:
   /// Type p0: the type of the element
   static const DiagnosticWithArguments<
     LocatableDiagnostic Function({required DartType p0})
   >
-  constSetElementNotPrimitiveEquality = DiagnosticWithArguments(
-    name: 'CONST_SET_ELEMENT_NOT_PRIMITIVE_EQUALITY',
-    problemMessage:
-        "An element in a constant set can't override the '==' operator, or "
-        "'hashCode', but the type '{0}' does.",
-    correctionMessage:
-        "Try using a different value for the element, or removing the keyword "
-        "'const' from the set.",
-    hasPublishedDocs: true,
-    type: DiagnosticType.COMPILE_TIME_ERROR,
-    uniqueName: 'CompileTimeErrorCode.CONST_SET_ELEMENT_NOT_PRIMITIVE_EQUALITY',
-    withArguments: _withArgumentsConstSetElementNotPrimitiveEquality,
-    expectedTypes: [ExpectedType.type],
-  );
+  constSetElementNotPrimitiveEquality =
+      diag.constSetElementNotPrimitiveEquality;
 
   /// No parameters.
   static const DiagnosticWithoutArguments constSpreadExpectedListOrSet =
-      DiagnosticWithoutArgumentsImpl(
-        name: 'CONST_SPREAD_EXPECTED_LIST_OR_SET',
-        problemMessage: "A list or a set is expected in this spread.",
-        hasPublishedDocs: true,
-        type: DiagnosticType.COMPILE_TIME_ERROR,
-        uniqueName: 'CompileTimeErrorCode.CONST_SPREAD_EXPECTED_LIST_OR_SET',
-        expectedTypes: [],
-      );
+      diag.constSpreadExpectedListOrSet;
 
   /// No parameters.
   static const DiagnosticWithoutArguments constSpreadExpectedMap =
-      DiagnosticWithoutArgumentsImpl(
-        name: 'CONST_SPREAD_EXPECTED_MAP',
-        problemMessage: "A map is expected in this spread.",
-        hasPublishedDocs: true,
-        type: DiagnosticType.COMPILE_TIME_ERROR,
-        uniqueName: 'CompileTimeErrorCode.CONST_SPREAD_EXPECTED_MAP',
-        expectedTypes: [],
-      );
+      diag.constSpreadExpectedMap;
 
   /// No parameters.
   static const DiagnosticWithoutArguments constTypeParameter =
-      DiagnosticWithoutArgumentsImpl(
-        name: 'CONST_TYPE_PARAMETER',
-        problemMessage:
-            "Type parameters can't be used in a constant expression.",
-        correctionMessage:
-            "Try replacing the type parameter with a different type.",
-        type: DiagnosticType.COMPILE_TIME_ERROR,
-        uniqueName: 'CompileTimeErrorCode.CONST_TYPE_PARAMETER',
-        expectedTypes: [],
-      );
+      diag.constTypeParameter;
 
   /// No parameters.
-  static const DiagnosticWithoutArguments
-  constWithNonConst = DiagnosticWithoutArgumentsImpl(
-    name: 'CONST_WITH_NON_CONST',
-    problemMessage: "The constructor being called isn't a const constructor.",
-    correctionMessage: "Try removing 'const' from the constructor invocation.",
-    hasPublishedDocs: true,
-    type: DiagnosticType.COMPILE_TIME_ERROR,
-    uniqueName: 'CompileTimeErrorCode.CONST_WITH_NON_CONST',
-    expectedTypes: [],
-  );
+  static const DiagnosticWithoutArguments constWithNonConst =
+      diag.constWithNonConst;
 
   /// No parameters.
-  static const DiagnosticWithoutArguments
-  constWithNonConstantArgument = DiagnosticWithoutArgumentsImpl(
-    name: 'CONST_WITH_NON_CONSTANT_ARGUMENT',
-    problemMessage:
-        "Arguments of a constant creation must be constant expressions.",
-    correctionMessage:
-        "Try making the argument a valid constant, or use 'new' to call the "
-        "constructor.",
-    hasPublishedDocs: true,
-    type: DiagnosticType.COMPILE_TIME_ERROR,
-    uniqueName: 'CompileTimeErrorCode.CONST_WITH_NON_CONSTANT_ARGUMENT',
-    expectedTypes: [],
-  );
+  static const DiagnosticWithoutArguments constWithNonConstantArgument =
+      diag.constWithNonConstantArgument;
 
   /// Parameters:
   /// String p0: the name of the non-type element
   static const DiagnosticWithArguments<
     LocatableDiagnostic Function({required String p0})
   >
-  constWithNonType = DiagnosticWithArguments(
-    name: 'CREATION_WITH_NON_TYPE',
-    problemMessage: "The name '{0}' isn't a class.",
-    correctionMessage: "Try correcting the name to match an existing class.",
-    hasPublishedDocs: true,
-    isUnresolvedIdentifier: true,
-    type: DiagnosticType.COMPILE_TIME_ERROR,
-    uniqueName: 'CompileTimeErrorCode.CONST_WITH_NON_TYPE',
-    withArguments: _withArgumentsConstWithNonType,
-    expectedTypes: [ExpectedType.string],
-  );
+  constWithNonType = diag.constWithNonType;
+
+  /// No parameters.
+  static const DiagnosticWithoutArguments constWithTypeParameters =
+      diag.constWithTypeParameters;
 
   /// No parameters.
   static const DiagnosticWithoutArguments
-  constWithTypeParameters = DiagnosticWithoutArgumentsImpl(
-    name: 'CONST_WITH_TYPE_PARAMETERS',
-    problemMessage:
-        "A constant creation can't use a type parameter as a type argument.",
-    correctionMessage:
-        "Try replacing the type parameter with a different type.",
-    hasPublishedDocs: true,
-    type: DiagnosticType.COMPILE_TIME_ERROR,
-    uniqueName: 'CompileTimeErrorCode.CONST_WITH_TYPE_PARAMETERS',
-    expectedTypes: [],
-  );
+  constWithTypeParametersConstructorTearoff =
+      diag.constWithTypeParametersConstructorTearoff;
 
   /// No parameters.
   static const DiagnosticWithoutArguments
-  constWithTypeParametersConstructorTearoff = DiagnosticWithoutArgumentsImpl(
-    name: 'CONST_WITH_TYPE_PARAMETERS',
-    problemMessage:
-        "A constant constructor tearoff can't use a type parameter as a type "
-        "argument.",
-    correctionMessage:
-        "Try replacing the type parameter with a different type.",
-    hasPublishedDocs: true,
-    type: DiagnosticType.COMPILE_TIME_ERROR,
-    uniqueName:
-        'CompileTimeErrorCode.CONST_WITH_TYPE_PARAMETERS_CONSTRUCTOR_TEAROFF',
-    expectedTypes: [],
-  );
-
-  /// No parameters.
-  static const DiagnosticWithoutArguments
-  constWithTypeParametersFunctionTearoff = DiagnosticWithoutArgumentsImpl(
-    name: 'CONST_WITH_TYPE_PARAMETERS',
-    problemMessage:
-        "A constant function tearoff can't use a type parameter as a type "
-        "argument.",
-    correctionMessage:
-        "Try replacing the type parameter with a different type.",
-    hasPublishedDocs: true,
-    type: DiagnosticType.COMPILE_TIME_ERROR,
-    uniqueName:
-        'CompileTimeErrorCode.CONST_WITH_TYPE_PARAMETERS_FUNCTION_TEAROFF',
-    expectedTypes: [],
-  );
+  constWithTypeParametersFunctionTearoff =
+      diag.constWithTypeParametersFunctionTearoff;
 
   /// 16.12.2 Const: It is a compile-time error if <i>T.id</i> is not the name of
   /// a constant constructor declared by the type <i>T</i>.
@@ -2055,16 +869,7 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
   static const DiagnosticWithArguments<
     LocatableDiagnostic Function({required Object p0, required String p1})
   >
-  constWithUndefinedConstructor = DiagnosticWithArguments(
-    name: 'CONST_WITH_UNDEFINED_CONSTRUCTOR',
-    problemMessage:
-        "The class '{0}' doesn't have a constant constructor '{1}'.",
-    correctionMessage: "Try calling a different constructor.",
-    type: DiagnosticType.COMPILE_TIME_ERROR,
-    uniqueName: 'CompileTimeErrorCode.CONST_WITH_UNDEFINED_CONSTRUCTOR',
-    withArguments: _withArgumentsConstWithUndefinedConstructor,
-    expectedTypes: [ExpectedType.object, ExpectedType.string],
-  );
+  constWithUndefinedConstructor = diag.constWithUndefinedConstructor;
 
   /// 16.12.2 Const: It is a compile-time error if <i>T.id</i> is not the name of
   /// a constant constructor declared by the type <i>T</i>.
@@ -2074,29 +879,12 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
   static const DiagnosticWithArguments<
     LocatableDiagnostic Function({required String p0})
   >
-  constWithUndefinedConstructorDefault = DiagnosticWithArguments(
-    name: 'CONST_WITH_UNDEFINED_CONSTRUCTOR_DEFAULT',
-    problemMessage:
-        "The class '{0}' doesn't have an unnamed constant constructor.",
-    correctionMessage: "Try calling a different constructor.",
-    type: DiagnosticType.COMPILE_TIME_ERROR,
-    uniqueName: 'CompileTimeErrorCode.CONST_WITH_UNDEFINED_CONSTRUCTOR_DEFAULT',
-    withArguments: _withArgumentsConstWithUndefinedConstructorDefault,
-    expectedTypes: [ExpectedType.string],
-  );
+  constWithUndefinedConstructorDefault =
+      diag.constWithUndefinedConstructorDefault;
 
   /// No parameters.
-  static const DiagnosticWithoutArguments
-  continueLabelInvalid = DiagnosticWithoutArgumentsImpl(
-    name: 'CONTINUE_LABEL_INVALID',
-    problemMessage:
-        "The label used in a 'continue' statement must be defined on either a loop "
-        "or a switch member.",
-    hasPublishedDocs: true,
-    type: DiagnosticType.COMPILE_TIME_ERROR,
-    uniqueName: 'CompileTimeErrorCode.CONTINUE_LABEL_INVALID',
-    expectedTypes: [],
-  );
+  static const DiagnosticWithoutArguments continueLabelInvalid =
+      diag.continueLabelInvalid;
 
   /// Parameters:
   /// String p0: the name of the type parameter
@@ -2104,105 +892,37 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
   static const DiagnosticWithArguments<
     LocatableDiagnostic Function({required String p0, required String p1})
   >
-  couldNotInfer = DiagnosticWithArguments(
-    name: 'COULD_NOT_INFER',
-    problemMessage: "Couldn't infer type parameter '{0}'.{1}",
-    type: DiagnosticType.COMPILE_TIME_ERROR,
-    uniqueName: 'CompileTimeErrorCode.COULD_NOT_INFER',
-    withArguments: _withArgumentsCouldNotInfer,
-    expectedTypes: [ExpectedType.string, ExpectedType.string],
-  );
+  couldNotInfer = diag.couldNotInfer;
 
   /// No parameters.
   static const DiagnosticWithoutArguments
-  defaultValueInRedirectingFactoryConstructor = DiagnosticWithoutArgumentsImpl(
-    name: 'DEFAULT_VALUE_IN_REDIRECTING_FACTORY_CONSTRUCTOR',
-    problemMessage:
-        "Default values aren't allowed in factory constructors that redirect to "
-        "another constructor.",
-    correctionMessage: "Try removing the default value.",
-    hasPublishedDocs: true,
-    type: DiagnosticType.COMPILE_TIME_ERROR,
-    uniqueName:
-        'CompileTimeErrorCode.DEFAULT_VALUE_IN_REDIRECTING_FACTORY_CONSTRUCTOR',
-    expectedTypes: [],
-  );
+  defaultValueInRedirectingFactoryConstructor =
+      diag.defaultValueInRedirectingFactoryConstructor;
 
   /// No parameters.
   static const DiagnosticWithoutArguments defaultValueOnRequiredParameter =
-      DiagnosticWithoutArgumentsImpl(
-        name: 'DEFAULT_VALUE_ON_REQUIRED_PARAMETER',
-        problemMessage: "Required named parameters can't have a default value.",
-        correctionMessage:
-            "Try removing either the default value or the 'required' modifier.",
-        hasPublishedDocs: true,
-        type: DiagnosticType.COMPILE_TIME_ERROR,
-        uniqueName: 'CompileTimeErrorCode.DEFAULT_VALUE_ON_REQUIRED_PARAMETER',
-        expectedTypes: [],
-      );
+      diag.defaultValueOnRequiredParameter;
 
   /// No parameters.
   static const DiagnosticWithoutArguments deferredImportOfExtension =
-      DiagnosticWithoutArgumentsImpl(
-        name: 'DEFERRED_IMPORT_OF_EXTENSION',
-        problemMessage:
-            "Imports of deferred libraries must hide all extensions.",
-        correctionMessage:
-            "Try adding either a show combinator listing the names you need to "
-            "reference or a hide combinator listing all of the extensions.",
-        hasPublishedDocs: true,
-        type: DiagnosticType.COMPILE_TIME_ERROR,
-        uniqueName: 'CompileTimeErrorCode.DEFERRED_IMPORT_OF_EXTENSION',
-        expectedTypes: [],
-      );
+      diag.deferredImportOfExtension;
 
   /// Parameters:
   /// String p0: the name of the variable that is invalid
   static const DiagnosticWithArguments<
     LocatableDiagnostic Function({required String p0})
   >
-  definitelyUnassignedLateLocalVariable = DiagnosticWithArguments(
-    name: 'DEFINITELY_UNASSIGNED_LATE_LOCAL_VARIABLE',
-    problemMessage:
-        "The late local variable '{0}' is definitely unassigned at this point.",
-    correctionMessage:
-        "Ensure that it is assigned on necessary execution paths.",
-    hasPublishedDocs: true,
-    type: DiagnosticType.COMPILE_TIME_ERROR,
-    uniqueName:
-        'CompileTimeErrorCode.DEFINITELY_UNASSIGNED_LATE_LOCAL_VARIABLE',
-    withArguments: _withArgumentsDefinitelyUnassignedLateLocalVariable,
-    expectedTypes: [ExpectedType.string],
-  );
+  definitelyUnassignedLateLocalVariable =
+      diag.definitelyUnassignedLateLocalVariable;
 
   /// No parameters.
   static const DiagnosticWithoutArguments
-  disallowedTypeInstantiationExpression = DiagnosticWithoutArgumentsImpl(
-    name: 'DISALLOWED_TYPE_INSTANTIATION_EXPRESSION',
-    problemMessage:
-        "Only a generic type, generic function, generic instance method, or "
-        "generic constructor can have type arguments.",
-    correctionMessage:
-        "Try removing the type arguments, or instantiating the type(s) of a "
-        "generic type, generic function, generic instance method, or generic "
-        "constructor.",
-    hasPublishedDocs: true,
-    type: DiagnosticType.COMPILE_TIME_ERROR,
-    uniqueName: 'CompileTimeErrorCode.DISALLOWED_TYPE_INSTANTIATION_EXPRESSION',
-    expectedTypes: [],
-  );
+  disallowedTypeInstantiationExpression =
+      diag.disallowedTypeInstantiationExpression;
 
   /// No parameters.
   static const DiagnosticWithoutArguments dotShorthandMissingContext =
-      DiagnosticWithoutArgumentsImpl(
-        name: 'DOT_SHORTHAND_MISSING_CONTEXT',
-        problemMessage:
-            "A dot shorthand can't be used where there is no context type.",
-        hasPublishedDocs: true,
-        type: DiagnosticType.COMPILE_TIME_ERROR,
-        uniqueName: 'CompileTimeErrorCode.DOT_SHORTHAND_MISSING_CONTEXT',
-        expectedTypes: [],
-      );
+      diag.dotShorthandMissingContext;
 
   /// Parameters:
   /// String p0: the name of the static getter
@@ -2211,19 +931,7 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
   static const DiagnosticWithArguments<
     LocatableDiagnostic Function({required String p0, required String p1})
   >
-  dotShorthandUndefinedGetter = DiagnosticWithArguments(
-    name: 'DOT_SHORTHAND_UNDEFINED_MEMBER',
-    problemMessage:
-        "The static getter '{0}' isn't defined for the context type '{1}'.",
-    correctionMessage:
-        "Try correcting the name to the name of an existing static getter, or "
-        "defining a getter or field named '{0}'.",
-    hasPublishedDocs: true,
-    type: DiagnosticType.COMPILE_TIME_ERROR,
-    uniqueName: 'CompileTimeErrorCode.DOT_SHORTHAND_UNDEFINED_GETTER',
-    withArguments: _withArgumentsDotShorthandUndefinedGetter,
-    expectedTypes: [ExpectedType.string, ExpectedType.string],
-  );
+  dotShorthandUndefinedGetter = diag.dotShorthandUndefinedGetter;
 
   /// Parameters:
   /// String p0: the name of the static method or constructor
@@ -2232,259 +940,100 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
   static const DiagnosticWithArguments<
     LocatableDiagnostic Function({required String p0, required String p1})
   >
-  dotShorthandUndefinedInvocation = DiagnosticWithArguments(
-    name: 'DOT_SHORTHAND_UNDEFINED_MEMBER',
-    problemMessage:
-        "The static method or constructor '{0}' isn't defined for the context type "
-        "'{1}'.",
-    correctionMessage:
-        "Try correcting the name to the name of an existing static method or "
-        "constructor, or defining a static method or constructor named '{0}'.",
-    hasPublishedDocs: true,
-    type: DiagnosticType.COMPILE_TIME_ERROR,
-    uniqueName: 'CompileTimeErrorCode.DOT_SHORTHAND_UNDEFINED_INVOCATION',
-    withArguments: _withArgumentsDotShorthandUndefinedInvocation,
-    expectedTypes: [ExpectedType.string, ExpectedType.string],
-  );
+  dotShorthandUndefinedInvocation = diag.dotShorthandUndefinedInvocation;
 
   /// No parameters.
   static const DiagnosticWithoutArguments duplicateConstructorDefault =
-      DiagnosticWithoutArgumentsImpl(
-        name: 'DUPLICATE_CONSTRUCTOR',
-        problemMessage: "The unnamed constructor is already defined.",
-        correctionMessage: "Try giving one of the constructors a name.",
-        hasPublishedDocs: true,
-        type: DiagnosticType.COMPILE_TIME_ERROR,
-        uniqueName: 'CompileTimeErrorCode.DUPLICATE_CONSTRUCTOR_DEFAULT',
-        expectedTypes: [],
-      );
+      diag.duplicateConstructorDefault;
 
   /// Parameters:
   /// String p0: the name of the duplicate entity
   static const DiagnosticWithArguments<
     LocatableDiagnostic Function({required String p0})
   >
-  duplicateConstructorName = DiagnosticWithArguments(
-    name: 'DUPLICATE_CONSTRUCTOR',
-    problemMessage: "The constructor with name '{0}' is already defined.",
-    correctionMessage: "Try renaming one of the constructors.",
-    hasPublishedDocs: true,
-    type: DiagnosticType.COMPILE_TIME_ERROR,
-    uniqueName: 'CompileTimeErrorCode.DUPLICATE_CONSTRUCTOR_NAME',
-    withArguments: _withArgumentsDuplicateConstructorName,
-    expectedTypes: [ExpectedType.string],
-  );
+  duplicateConstructorName = diag.duplicateConstructorName;
 
   /// Parameters:
   /// Object p0: the name of the duplicate entity
   static const DiagnosticWithArguments<
     LocatableDiagnostic Function({required Object p0})
   >
-  duplicateDefinition = DiagnosticWithArguments(
-    name: 'DUPLICATE_DEFINITION',
-    problemMessage: "The name '{0}' is already defined.",
-    correctionMessage: "Try renaming one of the declarations.",
-    hasPublishedDocs: true,
-    type: DiagnosticType.COMPILE_TIME_ERROR,
-    uniqueName: 'CompileTimeErrorCode.DUPLICATE_DEFINITION',
-    withArguments: _withArgumentsDuplicateDefinition,
-    expectedTypes: [ExpectedType.object],
-  );
+  duplicateDefinition = diag.duplicateDefinition;
 
   /// Parameters:
   /// Object p0: the name of the field
   static const DiagnosticWithArguments<
     LocatableDiagnostic Function({required Object p0})
   >
-  duplicateFieldFormalParameter = DiagnosticWithArguments(
-    name: 'DUPLICATE_FIELD_FORMAL_PARAMETER',
-    problemMessage:
-        "The field '{0}' can't be initialized by multiple parameters in the same "
-        "constructor.",
-    correctionMessage:
-        "Try removing one of the parameters, or using different fields.",
-    hasPublishedDocs: true,
-    type: DiagnosticType.COMPILE_TIME_ERROR,
-    uniqueName: 'CompileTimeErrorCode.DUPLICATE_FIELD_FORMAL_PARAMETER',
-    withArguments: _withArgumentsDuplicateFieldFormalParameter,
-    expectedTypes: [ExpectedType.object],
-  );
+  duplicateFieldFormalParameter = diag.duplicateFieldFormalParameter;
 
   /// Parameters:
   /// Object p0: the duplicated name
   static const DiagnosticWithArguments<
     LocatableDiagnostic Function({required Object p0})
   >
-  duplicateFieldName = DiagnosticWithArguments(
-    name: 'DUPLICATE_FIELD_NAME',
-    problemMessage: "The field name '{0}' is already used in this record.",
-    correctionMessage: "Try renaming the field.",
-    hasPublishedDocs: true,
-    type: DiagnosticType.COMPILE_TIME_ERROR,
-    uniqueName: 'CompileTimeErrorCode.DUPLICATE_FIELD_NAME',
-    withArguments: _withArgumentsDuplicateFieldName,
-    expectedTypes: [ExpectedType.object],
-  );
+  duplicateFieldName = diag.duplicateFieldName;
 
   /// Parameters:
   /// String p0: the name of the parameter that was duplicated
   static const DiagnosticWithArguments<
     LocatableDiagnostic Function({required String p0})
   >
-  duplicateNamedArgument = DiagnosticWithArguments(
-    name: 'DUPLICATE_NAMED_ARGUMENT',
-    problemMessage:
-        "The argument for the named parameter '{0}' was already specified.",
-    correctionMessage:
-        "Try removing one of the named arguments, or correcting one of the "
-        "names to reference a different named parameter.",
-    hasPublishedDocs: true,
-    type: DiagnosticType.COMPILE_TIME_ERROR,
-    uniqueName: 'CompileTimeErrorCode.DUPLICATE_NAMED_ARGUMENT',
-    withArguments: _withArgumentsDuplicateNamedArgument,
-    expectedTypes: [ExpectedType.string],
-  );
+  duplicateNamedArgument = diag.duplicateNamedArgument;
 
   /// Parameters:
   /// Uri p0: the URI of the duplicate part
   static const DiagnosticWithArguments<
     LocatableDiagnostic Function({required Uri p0})
   >
-  duplicatePart = DiagnosticWithArguments(
-    name: 'DUPLICATE_PART',
-    problemMessage: "The library already contains a part with the URI '{0}'.",
-    correctionMessage:
-        "Try removing all except one of the duplicated part directives.",
-    hasPublishedDocs: true,
-    type: DiagnosticType.COMPILE_TIME_ERROR,
-    uniqueName: 'CompileTimeErrorCode.DUPLICATE_PART',
-    withArguments: _withArgumentsDuplicatePart,
-    expectedTypes: [ExpectedType.uri],
-  );
+  duplicatePart = diag.duplicatePart;
 
   /// Parameters:
   /// Object p0: the name of the variable
   static const DiagnosticWithArguments<
     LocatableDiagnostic Function({required Object p0})
   >
-  duplicatePatternAssignmentVariable = DiagnosticWithArguments(
-    name: 'DUPLICATE_PATTERN_ASSIGNMENT_VARIABLE',
-    problemMessage: "The variable '{0}' is already assigned in this pattern.",
-    correctionMessage: "Try renaming the variable.",
-    hasPublishedDocs: true,
-    type: DiagnosticType.COMPILE_TIME_ERROR,
-    uniqueName: 'CompileTimeErrorCode.DUPLICATE_PATTERN_ASSIGNMENT_VARIABLE',
-    withArguments: _withArgumentsDuplicatePatternAssignmentVariable,
-    expectedTypes: [ExpectedType.object],
-  );
+  duplicatePatternAssignmentVariable = diag.duplicatePatternAssignmentVariable;
 
   /// Parameters:
   /// Object p0: the name of the field
   static const DiagnosticWithArguments<
     LocatableDiagnostic Function({required Object p0})
   >
-  duplicatePatternField = DiagnosticWithArguments(
-    name: 'DUPLICATE_PATTERN_FIELD',
-    problemMessage: "The field '{0}' is already matched in this pattern.",
-    correctionMessage: "Try removing the duplicate field.",
-    hasPublishedDocs: true,
-    type: DiagnosticType.COMPILE_TIME_ERROR,
-    uniqueName: 'CompileTimeErrorCode.DUPLICATE_PATTERN_FIELD',
-    withArguments: _withArgumentsDuplicatePatternField,
-    expectedTypes: [ExpectedType.object],
-  );
+  duplicatePatternField = diag.duplicatePatternField;
 
   /// No parameters.
   static const DiagnosticWithoutArguments duplicateRestElementInPattern =
-      DiagnosticWithoutArgumentsImpl(
-        name: 'DUPLICATE_REST_ELEMENT_IN_PATTERN',
-        problemMessage:
-            "At most one rest element is allowed in a list or map pattern.",
-        correctionMessage: "Try removing the duplicate rest element.",
-        hasPublishedDocs: true,
-        type: DiagnosticType.COMPILE_TIME_ERROR,
-        uniqueName: 'CompileTimeErrorCode.DUPLICATE_REST_ELEMENT_IN_PATTERN',
-        expectedTypes: [],
-      );
+      diag.duplicateRestElementInPattern;
 
   /// Parameters:
   /// Object p0: the name of the variable
   static const DiagnosticWithArguments<
     LocatableDiagnostic Function({required Object p0})
   >
-  duplicateVariablePattern = DiagnosticWithArguments(
-    name: 'DUPLICATE_VARIABLE_PATTERN',
-    problemMessage: "The variable '{0}' is already defined in this pattern.",
-    correctionMessage: "Try renaming the variable.",
-    hasPublishedDocs: true,
-    type: DiagnosticType.COMPILE_TIME_ERROR,
-    uniqueName: 'CompileTimeErrorCode.DUPLICATE_VARIABLE_PATTERN',
-    withArguments: _withArgumentsDuplicateVariablePattern,
-    expectedTypes: [ExpectedType.object],
-  );
+  duplicateVariablePattern = diag.duplicateVariablePattern;
 
   /// No parameters.
   static const DiagnosticWithoutArguments emptyMapPattern =
-      DiagnosticWithoutArgumentsImpl(
-        name: 'EMPTY_MAP_PATTERN',
-        problemMessage: "A map pattern must have at least one entry.",
-        correctionMessage: "Try replacing it with an object pattern 'Map()'.",
-        hasPublishedDocs: true,
-        type: DiagnosticType.COMPILE_TIME_ERROR,
-        uniqueName: 'CompileTimeErrorCode.EMPTY_MAP_PATTERN',
-        expectedTypes: [],
-      );
+      diag.emptyMapPattern;
 
   /// No parameters.
   static const DiagnosticWithoutArguments
-  enumConstantInvokesFactoryConstructor = DiagnosticWithoutArgumentsImpl(
-    name: 'ENUM_CONSTANT_INVOKES_FACTORY_CONSTRUCTOR',
-    problemMessage: "An enum value can't invoke a factory constructor.",
-    correctionMessage: "Try using a generative constructor.",
-    type: DiagnosticType.COMPILE_TIME_ERROR,
-    uniqueName:
-        'CompileTimeErrorCode.ENUM_CONSTANT_INVOKES_FACTORY_CONSTRUCTOR',
-    expectedTypes: [],
-  );
+  enumConstantInvokesFactoryConstructor =
+      diag.enumConstantInvokesFactoryConstructor;
 
   /// No parameters.
   static const DiagnosticWithoutArguments enumConstantSameNameAsEnclosing =
-      DiagnosticWithoutArgumentsImpl(
-        name: 'ENUM_CONSTANT_SAME_NAME_AS_ENCLOSING',
-        problemMessage:
-            "The name of the enum value can't be the same as the enum's name.",
-        correctionMessage: "Try renaming the constant.",
-        hasPublishedDocs: true,
-        type: DiagnosticType.COMPILE_TIME_ERROR,
-        uniqueName: 'CompileTimeErrorCode.ENUM_CONSTANT_SAME_NAME_AS_ENCLOSING',
-        expectedTypes: [],
-      );
+      diag.enumConstantSameNameAsEnclosing;
 
   /// No parameters.
   static const DiagnosticWithoutArguments
-  enumInstantiatedToBoundsIsNotWellBounded = DiagnosticWithoutArgumentsImpl(
-    name: 'ENUM_INSTANTIATED_TO_BOUNDS_IS_NOT_WELL_BOUNDED',
-    problemMessage:
-        "The result of instantiating the enum to bounds is not well-bounded.",
-    correctionMessage: "Try using different bounds for type parameters.",
-    type: DiagnosticType.COMPILE_TIME_ERROR,
-    uniqueName:
-        'CompileTimeErrorCode.ENUM_INSTANTIATED_TO_BOUNDS_IS_NOT_WELL_BOUNDED',
-    expectedTypes: [],
-  );
+  enumInstantiatedToBoundsIsNotWellBounded =
+      diag.enumInstantiatedToBoundsIsNotWellBounded;
 
   /// No parameters.
   static const DiagnosticWithoutArguments enumMixinWithInstanceVariable =
-      DiagnosticWithoutArgumentsImpl(
-        name: 'ENUM_MIXIN_WITH_INSTANCE_VARIABLE',
-        problemMessage:
-            "Mixins applied to enums can't have instance variables.",
-        correctionMessage: "Try replacing the instance variables with getters.",
-        hasPublishedDocs: true,
-        type: DiagnosticType.COMPILE_TIME_ERROR,
-        uniqueName: 'CompileTimeErrorCode.ENUM_MIXIN_WITH_INSTANCE_VARIABLE',
-        expectedTypes: [],
-      );
+      diag.enumMixinWithInstanceVariable;
 
   /// Parameters:
   /// String p0: the name of the abstract method
@@ -2492,347 +1041,129 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
   static const DiagnosticWithArguments<
     LocatableDiagnostic Function({required String p0, required String p1})
   >
-  enumWithAbstractMember = DiagnosticWithArguments(
-    name: 'ENUM_WITH_ABSTRACT_MEMBER',
-    problemMessage: "'{0}' must have a method body because '{1}' is an enum.",
-    correctionMessage: "Try adding a body to '{0}'.",
-    hasPublishedDocs: true,
-    type: DiagnosticType.COMPILE_TIME_ERROR,
-    uniqueName: 'CompileTimeErrorCode.ENUM_WITH_ABSTRACT_MEMBER',
-    withArguments: _withArgumentsEnumWithAbstractMember,
-    expectedTypes: [ExpectedType.string, ExpectedType.string],
-  );
+  enumWithAbstractMember = diag.enumWithAbstractMember;
 
   /// No parameters.
   static const DiagnosticWithoutArguments enumWithNameValues =
-      DiagnosticWithoutArgumentsImpl(
-        name: 'ENUM_WITH_NAME_VALUES',
-        problemMessage: "The name 'values' is not a valid name for an enum.",
-        correctionMessage: "Try using a different name.",
-        hasPublishedDocs: true,
-        type: DiagnosticType.COMPILE_TIME_ERROR,
-        uniqueName: 'CompileTimeErrorCode.ENUM_WITH_NAME_VALUES',
-        expectedTypes: [],
-      );
+      diag.enumWithNameValues;
 
   /// No parameters.
   static const DiagnosticWithoutArguments enumWithoutConstants =
-      DiagnosticWithoutArgumentsImpl(
-        name: 'ENUM_WITHOUT_CONSTANTS',
-        problemMessage: "The enum must have at least one enum constant.",
-        correctionMessage: "Try declaring an enum constant.",
-        type: DiagnosticType.COMPILE_TIME_ERROR,
-        uniqueName: 'CompileTimeErrorCode.ENUM_WITHOUT_CONSTANTS',
-        expectedTypes: [],
-      );
+      diag.enumWithoutConstants;
 
   /// No parameters.
   static const DiagnosticWithoutArguments equalElementsInConstSet =
-      DiagnosticWithoutArgumentsImpl(
-        name: 'EQUAL_ELEMENTS_IN_CONST_SET',
-        problemMessage:
-            "Two elements in a constant set literal can't be equal.",
-        correctionMessage: "Change or remove the duplicate element.",
-        hasPublishedDocs: true,
-        type: DiagnosticType.COMPILE_TIME_ERROR,
-        uniqueName: 'CompileTimeErrorCode.EQUAL_ELEMENTS_IN_CONST_SET',
-        expectedTypes: [],
-      );
+      diag.equalElementsInConstSet;
 
   /// No parameters.
   static const DiagnosticWithoutArguments equalKeysInConstMap =
-      DiagnosticWithoutArgumentsImpl(
-        name: 'EQUAL_KEYS_IN_CONST_MAP',
-        problemMessage: "Two keys in a constant map literal can't be equal.",
-        correctionMessage: "Change or remove the duplicate key.",
-        hasPublishedDocs: true,
-        type: DiagnosticType.COMPILE_TIME_ERROR,
-        uniqueName: 'CompileTimeErrorCode.EQUAL_KEYS_IN_CONST_MAP',
-        expectedTypes: [],
-      );
+      diag.equalKeysInConstMap;
 
   /// No parameters.
   static const DiagnosticWithoutArguments equalKeysInMapPattern =
-      DiagnosticWithoutArgumentsImpl(
-        name: 'EQUAL_KEYS_IN_MAP_PATTERN',
-        problemMessage: "Two keys in a map pattern can't be equal.",
-        correctionMessage: "Change or remove the duplicate key.",
-        hasPublishedDocs: true,
-        type: DiagnosticType.COMPILE_TIME_ERROR,
-        uniqueName: 'CompileTimeErrorCode.EQUAL_KEYS_IN_MAP_PATTERN',
-        expectedTypes: [],
-      );
+      diag.equalKeysInMapPattern;
 
   /// Parameters:
   /// int p0: the number of provided type arguments
   static const DiagnosticWithArguments<
     LocatableDiagnostic Function({required int p0})
   >
-  expectedOneListPatternTypeArguments = DiagnosticWithArguments(
-    name: 'EXPECTED_ONE_LIST_PATTERN_TYPE_ARGUMENTS',
-    problemMessage:
-        "List patterns require one type argument or none, but {0} found.",
-    correctionMessage: "Try adjusting the number of type arguments.",
-    hasPublishedDocs: true,
-    type: DiagnosticType.COMPILE_TIME_ERROR,
-    uniqueName: 'CompileTimeErrorCode.EXPECTED_ONE_LIST_PATTERN_TYPE_ARGUMENTS',
-    withArguments: _withArgumentsExpectedOneListPatternTypeArguments,
-    expectedTypes: [ExpectedType.int],
-  );
+  expectedOneListPatternTypeArguments =
+      diag.expectedOneListPatternTypeArguments;
 
   /// Parameters:
   /// int p0: the number of provided type arguments
   static const DiagnosticWithArguments<
     LocatableDiagnostic Function({required int p0})
   >
-  expectedOneListTypeArguments = DiagnosticWithArguments(
-    name: 'EXPECTED_ONE_LIST_TYPE_ARGUMENTS',
-    problemMessage:
-        "List literals require one type argument or none, but {0} found.",
-    correctionMessage: "Try adjusting the number of type arguments.",
-    hasPublishedDocs: true,
-    type: DiagnosticType.COMPILE_TIME_ERROR,
-    uniqueName: 'CompileTimeErrorCode.EXPECTED_ONE_LIST_TYPE_ARGUMENTS',
-    withArguments: _withArgumentsExpectedOneListTypeArguments,
-    expectedTypes: [ExpectedType.int],
-  );
+  expectedOneListTypeArguments = diag.expectedOneListTypeArguments;
 
   /// Parameters:
   /// int p0: the number of provided type arguments
   static const DiagnosticWithArguments<
     LocatableDiagnostic Function({required int p0})
   >
-  expectedOneSetTypeArguments = DiagnosticWithArguments(
-    name: 'EXPECTED_ONE_SET_TYPE_ARGUMENTS',
-    problemMessage:
-        "Set literals require one type argument or none, but {0} were found.",
-    correctionMessage: "Try adjusting the number of type arguments.",
-    hasPublishedDocs: true,
-    type: DiagnosticType.COMPILE_TIME_ERROR,
-    uniqueName: 'CompileTimeErrorCode.EXPECTED_ONE_SET_TYPE_ARGUMENTS',
-    withArguments: _withArgumentsExpectedOneSetTypeArguments,
-    expectedTypes: [ExpectedType.int],
-  );
+  expectedOneSetTypeArguments = diag.expectedOneSetTypeArguments;
 
   /// Parameters:
   /// int p0: the number of provided type arguments
   static const DiagnosticWithArguments<
     LocatableDiagnostic Function({required int p0})
   >
-  expectedTwoMapPatternTypeArguments = DiagnosticWithArguments(
-    name: 'EXPECTED_TWO_MAP_PATTERN_TYPE_ARGUMENTS',
-    problemMessage:
-        "Map patterns require two type arguments or none, but {0} found.",
-    correctionMessage: "Try adjusting the number of type arguments.",
-    hasPublishedDocs: true,
-    type: DiagnosticType.COMPILE_TIME_ERROR,
-    uniqueName: 'CompileTimeErrorCode.EXPECTED_TWO_MAP_PATTERN_TYPE_ARGUMENTS',
-    withArguments: _withArgumentsExpectedTwoMapPatternTypeArguments,
-    expectedTypes: [ExpectedType.int],
-  );
+  expectedTwoMapPatternTypeArguments = diag.expectedTwoMapPatternTypeArguments;
 
   /// Parameters:
   /// int p0: the number of provided type arguments
   static const DiagnosticWithArguments<
     LocatableDiagnostic Function({required int p0})
   >
-  expectedTwoMapTypeArguments = DiagnosticWithArguments(
-    name: 'EXPECTED_TWO_MAP_TYPE_ARGUMENTS',
-    problemMessage:
-        "Map literals require two type arguments or none, but {0} found.",
-    correctionMessage: "Try adjusting the number of type arguments.",
-    hasPublishedDocs: true,
-    type: DiagnosticType.COMPILE_TIME_ERROR,
-    uniqueName: 'CompileTimeErrorCode.EXPECTED_TWO_MAP_TYPE_ARGUMENTS',
-    withArguments: _withArgumentsExpectedTwoMapTypeArguments,
-    expectedTypes: [ExpectedType.int],
-  );
+  expectedTwoMapTypeArguments = diag.expectedTwoMapTypeArguments;
 
   /// Parameters:
   /// String p0: the URI pointing to a library
   static const DiagnosticWithArguments<
     LocatableDiagnostic Function({required String p0})
   >
-  exportInternalLibrary = DiagnosticWithArguments(
-    name: 'EXPORT_INTERNAL_LIBRARY',
-    problemMessage: "The library '{0}' is internal and can't be exported.",
-    hasPublishedDocs: true,
-    type: DiagnosticType.COMPILE_TIME_ERROR,
-    uniqueName: 'CompileTimeErrorCode.EXPORT_INTERNAL_LIBRARY',
-    withArguments: _withArgumentsExportInternalLibrary,
-    expectedTypes: [ExpectedType.string],
-  );
+  exportInternalLibrary = diag.exportInternalLibrary;
 
   /// Parameters:
   /// String p0: the URI pointing to a non-library declaration
   static const DiagnosticWithArguments<
     LocatableDiagnostic Function({required String p0})
   >
-  exportOfNonLibrary = DiagnosticWithArguments(
-    name: 'EXPORT_OF_NON_LIBRARY',
-    problemMessage:
-        "The exported library '{0}' can't have a part-of directive.",
-    correctionMessage: "Try exporting the library that the part is a part of.",
-    hasPublishedDocs: true,
-    type: DiagnosticType.COMPILE_TIME_ERROR,
-    uniqueName: 'CompileTimeErrorCode.EXPORT_OF_NON_LIBRARY',
-    withArguments: _withArgumentsExportOfNonLibrary,
-    expectedTypes: [ExpectedType.string],
-  );
+  exportOfNonLibrary = diag.exportOfNonLibrary;
 
   /// No parameters.
   static const DiagnosticWithoutArguments expressionInMap =
-      DiagnosticWithoutArgumentsImpl(
-        name: 'EXPRESSION_IN_MAP',
-        problemMessage: "Expressions can't be used in a map literal.",
-        correctionMessage:
-            "Try removing the expression or converting it to be a map entry.",
-        hasPublishedDocs: true,
-        type: DiagnosticType.COMPILE_TIME_ERROR,
-        uniqueName: 'CompileTimeErrorCode.EXPRESSION_IN_MAP',
-        expectedTypes: [],
-      );
+      diag.expressionInMap;
 
   /// No parameters.
   static const DiagnosticWithoutArguments extendsDeferredClass =
-      DiagnosticWithoutArgumentsImpl(
-        name: 'SUBTYPE_OF_DEFERRED_CLASS',
-        problemMessage: "Classes can't extend deferred classes.",
-        correctionMessage:
-            "Try specifying a different superclass, or removing the extends "
-            "clause.",
-        hasPublishedDocs: true,
-        type: DiagnosticType.COMPILE_TIME_ERROR,
-        uniqueName: 'CompileTimeErrorCode.EXTENDS_DEFERRED_CLASS',
-        expectedTypes: [],
-      );
+      diag.extendsDeferredClass;
 
   /// Parameters:
   /// Type p0: the name of the disallowed type
   static const DiagnosticWithArguments<
     LocatableDiagnostic Function({required DartType p0})
   >
-  extendsDisallowedClass = DiagnosticWithArguments(
-    name: 'SUBTYPE_OF_DISALLOWED_TYPE',
-    problemMessage: "Classes can't extend '{0}'.",
-    correctionMessage:
-        "Try specifying a different superclass, or removing the extends "
-        "clause.",
-    hasPublishedDocs: true,
-    type: DiagnosticType.COMPILE_TIME_ERROR,
-    uniqueName: 'CompileTimeErrorCode.EXTENDS_DISALLOWED_CLASS',
-    withArguments: _withArgumentsExtendsDisallowedClass,
-    expectedTypes: [ExpectedType.type],
-  );
+  extendsDisallowedClass = diag.extendsDisallowedClass;
 
   /// No parameters.
   static const DiagnosticWithoutArguments extendsNonClass =
-      DiagnosticWithoutArgumentsImpl(
-        name: 'EXTENDS_NON_CLASS',
-        problemMessage: "Classes can only extend other classes.",
-        correctionMessage:
-            "Try specifying a different superclass, or removing the extends "
-            "clause.",
-        hasPublishedDocs: true,
-        isUnresolvedIdentifier: true,
-        type: DiagnosticType.COMPILE_TIME_ERROR,
-        uniqueName: 'CompileTimeErrorCode.EXTENDS_NON_CLASS',
-        expectedTypes: [],
-      );
+      diag.extendsNonClass;
 
   /// No parameters.
   static const DiagnosticWithoutArguments
-  extendsTypeAliasExpandsToTypeParameter = DiagnosticWithoutArgumentsImpl(
-    name: 'SUPERTYPE_EXPANDS_TO_TYPE_PARAMETER',
-    problemMessage:
-        "A type alias that expands to a type parameter can't be used as a "
-        "superclass.",
-    correctionMessage:
-        "Try specifying a different superclass, or removing the extends "
-        "clause.",
-    hasPublishedDocs: true,
-    type: DiagnosticType.COMPILE_TIME_ERROR,
-    uniqueName:
-        'CompileTimeErrorCode.EXTENDS_TYPE_ALIAS_EXPANDS_TO_TYPE_PARAMETER',
-    expectedTypes: [],
-  );
+  extendsTypeAliasExpandsToTypeParameter =
+      diag.extendsTypeAliasExpandsToTypeParameter;
 
   /// Parameters:
   /// String p0: the name of the extension
   static const DiagnosticWithArguments<
     LocatableDiagnostic Function({required String p0})
   >
-  extensionAsExpression = DiagnosticWithArguments(
-    name: 'EXTENSION_AS_EXPRESSION',
-    problemMessage: "Extension '{0}' can't be used as an expression.",
-    correctionMessage: "Try replacing it with a valid expression.",
-    hasPublishedDocs: true,
-    type: DiagnosticType.COMPILE_TIME_ERROR,
-    uniqueName: 'CompileTimeErrorCode.EXTENSION_AS_EXPRESSION',
-    withArguments: _withArgumentsExtensionAsExpression,
-    expectedTypes: [ExpectedType.string],
-  );
+  extensionAsExpression = diag.extensionAsExpression;
 
   /// Parameters:
   /// String p0: the name of the conflicting static member
   static const DiagnosticWithArguments<
     LocatableDiagnostic Function({required String p0})
   >
-  extensionConflictingStaticAndInstance = DiagnosticWithArguments(
-    name: 'EXTENSION_CONFLICTING_STATIC_AND_INSTANCE',
-    problemMessage:
-        "An extension can't define static member '{0}' and an instance member with "
-        "the same name.",
-    correctionMessage:
-        "Try renaming the member to a name that doesn't conflict.",
-    hasPublishedDocs: true,
-    type: DiagnosticType.COMPILE_TIME_ERROR,
-    uniqueName:
-        'CompileTimeErrorCode.EXTENSION_CONFLICTING_STATIC_AND_INSTANCE',
-    withArguments: _withArgumentsExtensionConflictingStaticAndInstance,
-    expectedTypes: [ExpectedType.string],
-  );
+  extensionConflictingStaticAndInstance =
+      diag.extensionConflictingStaticAndInstance;
 
   /// No parameters.
   static const DiagnosticWithoutArguments extensionDeclaresInstanceField =
-      DiagnosticWithoutArgumentsImpl(
-        name: 'EXTENSION_DECLARES_INSTANCE_FIELD',
-        problemMessage: "Extensions can't declare instance fields.",
-        correctionMessage: "Try replacing the field with a getter.",
-        hasPublishedDocs: true,
-        type: DiagnosticType.COMPILE_TIME_ERROR,
-        uniqueName: 'CompileTimeErrorCode.EXTENSION_DECLARES_INSTANCE_FIELD',
-        expectedTypes: [],
-      );
+      diag.extensionDeclaresInstanceField;
+
+  /// No parameters.
+  static const DiagnosticWithoutArguments extensionDeclaresMemberOfObject =
+      diag.extensionDeclaresMemberOfObject;
 
   /// No parameters.
   static const DiagnosticWithoutArguments
-  extensionDeclaresMemberOfObject = DiagnosticWithoutArgumentsImpl(
-    name: 'EXTENSION_DECLARES_MEMBER_OF_OBJECT',
-    problemMessage:
-        "Extensions can't declare members with the same name as a member declared "
-        "by 'Object'.",
-    correctionMessage: "Try specifying a different name for the member.",
-    hasPublishedDocs: true,
-    type: DiagnosticType.COMPILE_TIME_ERROR,
-    uniqueName: 'CompileTimeErrorCode.EXTENSION_DECLARES_MEMBER_OF_OBJECT',
-    expectedTypes: [],
-  );
-
-  /// No parameters.
-  static const DiagnosticWithoutArguments
-  extensionOverrideAccessToStaticMember = DiagnosticWithoutArgumentsImpl(
-    name: 'EXTENSION_OVERRIDE_ACCESS_TO_STATIC_MEMBER',
-    problemMessage:
-        "An extension override can't be used to access a static member from an "
-        "extension.",
-    correctionMessage: "Try using just the name of the extension.",
-    hasPublishedDocs: true,
-    type: DiagnosticType.COMPILE_TIME_ERROR,
-    uniqueName:
-        'CompileTimeErrorCode.EXTENSION_OVERRIDE_ACCESS_TO_STATIC_MEMBER',
-    expectedTypes: [],
-  );
+  extensionOverrideAccessToStaticMember =
+      diag.extensionOverrideAccessToStaticMember;
 
   /// Parameters:
   /// Type p0: the type of the argument
@@ -2840,131 +1171,46 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
   static const DiagnosticWithArguments<
     LocatableDiagnostic Function({required DartType p0, required DartType p1})
   >
-  extensionOverrideArgumentNotAssignable = DiagnosticWithArguments(
-    name: 'EXTENSION_OVERRIDE_ARGUMENT_NOT_ASSIGNABLE',
-    problemMessage:
-        "The type of the argument to the extension override '{0}' isn't assignable "
-        "to the extended type '{1}'.",
-    hasPublishedDocs: true,
-    type: DiagnosticType.COMPILE_TIME_ERROR,
-    uniqueName:
-        'CompileTimeErrorCode.EXTENSION_OVERRIDE_ARGUMENT_NOT_ASSIGNABLE',
-    withArguments: _withArgumentsExtensionOverrideArgumentNotAssignable,
-    expectedTypes: [ExpectedType.type, ExpectedType.type],
-  );
+  extensionOverrideArgumentNotAssignable =
+      diag.extensionOverrideArgumentNotAssignable;
+
+  /// No parameters.
+  static const DiagnosticWithoutArguments extensionOverrideWithCascade =
+      diag.extensionOverrideWithCascade;
+
+  /// No parameters.
+  static const DiagnosticWithoutArguments extensionOverrideWithoutAccess =
+      diag.extensionOverrideWithoutAccess;
 
   /// No parameters.
   static const DiagnosticWithoutArguments
-  extensionOverrideWithCascade = DiagnosticWithoutArgumentsImpl(
-    name: 'EXTENSION_OVERRIDE_WITH_CASCADE',
-    problemMessage:
-        "Extension overrides have no value so they can't be used as the receiver "
-        "of a cascade expression.",
-    correctionMessage: "Try using '.' instead of '..'.",
-    hasPublishedDocs: true,
-    type: DiagnosticType.COMPILE_TIME_ERROR,
-    uniqueName: 'CompileTimeErrorCode.EXTENSION_OVERRIDE_WITH_CASCADE',
-    expectedTypes: [],
-  );
+  extensionTypeConstructorWithSuperFormalParameter =
+      diag.extensionTypeConstructorWithSuperFormalParameter;
 
   /// No parameters.
   static const DiagnosticWithoutArguments
-  extensionOverrideWithoutAccess = DiagnosticWithoutArgumentsImpl(
-    name: 'EXTENSION_OVERRIDE_WITHOUT_ACCESS',
-    problemMessage:
-        "An extension override can only be used to access instance members.",
-    correctionMessage: "Consider adding an access to an instance member.",
-    hasPublishedDocs: true,
-    type: DiagnosticType.COMPILE_TIME_ERROR,
-    uniqueName: 'CompileTimeErrorCode.EXTENSION_OVERRIDE_WITHOUT_ACCESS',
-    expectedTypes: [],
-  );
-
-  /// No parameters.
-  static const DiagnosticWithoutArguments
-  extensionTypeConstructorWithSuperFormalParameter = DiagnosticWithoutArgumentsImpl(
-    name: 'EXTENSION_TYPE_CONSTRUCTOR_WITH_SUPER_FORMAL_PARAMETER',
-    problemMessage:
-        "Extension type constructors can't declare super formal parameters.",
-    correctionMessage: "Try removing the super formal parameter declaration.",
-    hasPublishedDocs: true,
-    type: DiagnosticType.COMPILE_TIME_ERROR,
-    uniqueName:
-        'CompileTimeErrorCode.EXTENSION_TYPE_CONSTRUCTOR_WITH_SUPER_FORMAL_PARAMETER',
-    expectedTypes: [],
-  );
-
-  /// No parameters.
-  static const DiagnosticWithoutArguments
-  extensionTypeConstructorWithSuperInvocation = DiagnosticWithoutArgumentsImpl(
-    name: 'EXTENSION_TYPE_CONSTRUCTOR_WITH_SUPER_INVOCATION',
-    problemMessage:
-        "Extension type constructors can't include super initializers.",
-    correctionMessage: "Try removing the super constructor invocation.",
-    hasPublishedDocs: true,
-    type: DiagnosticType.COMPILE_TIME_ERROR,
-    uniqueName:
-        'CompileTimeErrorCode.EXTENSION_TYPE_CONSTRUCTOR_WITH_SUPER_INVOCATION',
-    expectedTypes: [],
-  );
+  extensionTypeConstructorWithSuperInvocation =
+      diag.extensionTypeConstructorWithSuperInvocation;
 
   /// No parameters.
   static const DiagnosticWithoutArguments extensionTypeDeclaresInstanceField =
-      DiagnosticWithoutArgumentsImpl(
-        name: 'EXTENSION_TYPE_DECLARES_INSTANCE_FIELD',
-        problemMessage: "Extension types can't declare instance fields.",
-        correctionMessage: "Try replacing the field with a getter.",
-        hasPublishedDocs: true,
-        type: DiagnosticType.COMPILE_TIME_ERROR,
-        uniqueName:
-            'CompileTimeErrorCode.EXTENSION_TYPE_DECLARES_INSTANCE_FIELD',
-        expectedTypes: [],
-      );
+      diag.extensionTypeDeclaresInstanceField;
 
   /// No parameters.
-  static const DiagnosticWithoutArguments
-  extensionTypeDeclaresMemberOfObject = DiagnosticWithoutArgumentsImpl(
-    name: 'EXTENSION_TYPE_DECLARES_MEMBER_OF_OBJECT',
-    problemMessage:
-        "Extension types can't declare members with the same name as a member "
-        "declared by 'Object'.",
-    correctionMessage: "Try specifying a different name for the member.",
-    hasPublishedDocs: true,
-    type: DiagnosticType.COMPILE_TIME_ERROR,
-    uniqueName: 'CompileTimeErrorCode.EXTENSION_TYPE_DECLARES_MEMBER_OF_OBJECT',
-    expectedTypes: [],
-  );
+  static const DiagnosticWithoutArguments extensionTypeDeclaresMemberOfObject =
+      diag.extensionTypeDeclaresMemberOfObject;
 
   /// Parameters:
   /// Type p0: the display string of the disallowed type
   static const DiagnosticWithArguments<
     LocatableDiagnostic Function({required DartType p0})
   >
-  extensionTypeImplementsDisallowedType = DiagnosticWithArguments(
-    name: 'EXTENSION_TYPE_IMPLEMENTS_DISALLOWED_TYPE',
-    problemMessage: "Extension types can't implement '{0}'.",
-    correctionMessage:
-        "Try specifying a different type, or remove the type from the list.",
-    hasPublishedDocs: true,
-    type: DiagnosticType.COMPILE_TIME_ERROR,
-    uniqueName:
-        'CompileTimeErrorCode.EXTENSION_TYPE_IMPLEMENTS_DISALLOWED_TYPE',
-    withArguments: _withArgumentsExtensionTypeImplementsDisallowedType,
-    expectedTypes: [ExpectedType.type],
-  );
+  extensionTypeImplementsDisallowedType =
+      diag.extensionTypeImplementsDisallowedType;
 
   /// No parameters.
-  static const DiagnosticWithoutArguments
-  extensionTypeImplementsItself = DiagnosticWithoutArgumentsImpl(
-    name: 'EXTENSION_TYPE_IMPLEMENTS_ITSELF',
-    problemMessage: "The extension type can't implement itself.",
-    correctionMessage:
-        "Try removing the superinterface that references this extension type.",
-    hasPublishedDocs: true,
-    type: DiagnosticType.COMPILE_TIME_ERROR,
-    uniqueName: 'CompileTimeErrorCode.EXTENSION_TYPE_IMPLEMENTS_ITSELF',
-    expectedTypes: [],
-  );
+  static const DiagnosticWithoutArguments extensionTypeImplementsItself =
+      diag.extensionTypeImplementsItself;
 
   /// Parameters:
   /// Type p0: the implemented not extension type
@@ -2972,18 +1218,8 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
   static const DiagnosticWithArguments<
     LocatableDiagnostic Function({required DartType p0, required DartType p1})
   >
-  extensionTypeImplementsNotSupertype = DiagnosticWithArguments(
-    name: 'EXTENSION_TYPE_IMPLEMENTS_NOT_SUPERTYPE',
-    problemMessage:
-        "'{0}' is not a supertype of '{1}', the representation type.",
-    correctionMessage:
-        "Try specifying a different type, or remove the type from the list.",
-    hasPublishedDocs: true,
-    type: DiagnosticType.COMPILE_TIME_ERROR,
-    uniqueName: 'CompileTimeErrorCode.EXTENSION_TYPE_IMPLEMENTS_NOT_SUPERTYPE',
-    withArguments: _withArgumentsExtensionTypeImplementsNotSupertype,
-    expectedTypes: [ExpectedType.type, ExpectedType.type],
-  );
+  extensionTypeImplementsNotSupertype =
+      diag.extensionTypeImplementsNotSupertype;
 
   /// Parameters:
   /// Type p0: the representation type of the implemented extension type
@@ -2998,26 +1234,8 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
       required String p3,
     })
   >
-  extensionTypeImplementsRepresentationNotSupertype = DiagnosticWithArguments(
-    name: 'EXTENSION_TYPE_IMPLEMENTS_REPRESENTATION_NOT_SUPERTYPE',
-    problemMessage:
-        "'{0}', the representation type of '{1}', is not a supertype of '{2}', the "
-        "representation type of '{3}'.",
-    correctionMessage:
-        "Try specifying a different type, or remove the type from the list.",
-    hasPublishedDocs: true,
-    type: DiagnosticType.COMPILE_TIME_ERROR,
-    uniqueName:
-        'CompileTimeErrorCode.EXTENSION_TYPE_IMPLEMENTS_REPRESENTATION_NOT_SUPERTYPE',
-    withArguments:
-        _withArgumentsExtensionTypeImplementsRepresentationNotSupertype,
-    expectedTypes: [
-      ExpectedType.type,
-      ExpectedType.string,
-      ExpectedType.type,
-      ExpectedType.string,
-    ],
-  );
+  extensionTypeImplementsRepresentationNotSupertype =
+      diag.extensionTypeImplementsRepresentationNotSupertype;
 
   /// Parameters:
   /// String p0: the name of the extension type
@@ -3025,45 +1243,18 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
   static const DiagnosticWithArguments<
     LocatableDiagnostic Function({required String p0, required String p1})
   >
-  extensionTypeInheritedMemberConflict = DiagnosticWithArguments(
-    name: 'EXTENSION_TYPE_INHERITED_MEMBER_CONFLICT',
-    problemMessage:
-        "The extension type '{0}' has more than one distinct member named '{1}' "
-        "from implemented types.",
-    correctionMessage:
-        "Try redeclaring the corresponding member in this extension type.",
-    hasPublishedDocs: true,
-    type: DiagnosticType.COMPILE_TIME_ERROR,
-    uniqueName: 'CompileTimeErrorCode.EXTENSION_TYPE_INHERITED_MEMBER_CONFLICT',
-    withArguments: _withArgumentsExtensionTypeInheritedMemberConflict,
-    expectedTypes: [ExpectedType.string, ExpectedType.string],
-  );
+  extensionTypeInheritedMemberConflict =
+      diag.extensionTypeInheritedMemberConflict;
 
   /// No parameters.
   static const DiagnosticWithoutArguments
-  extensionTypeRepresentationDependsOnItself = DiagnosticWithoutArgumentsImpl(
-    name: 'EXTENSION_TYPE_REPRESENTATION_DEPENDS_ON_ITSELF',
-    problemMessage: "The extension type representation can't depend on itself.",
-    correctionMessage: "Try specifying a different type.",
-    hasPublishedDocs: true,
-    type: DiagnosticType.COMPILE_TIME_ERROR,
-    uniqueName:
-        'CompileTimeErrorCode.EXTENSION_TYPE_REPRESENTATION_DEPENDS_ON_ITSELF',
-    expectedTypes: [],
-  );
+  extensionTypeRepresentationDependsOnItself =
+      diag.extensionTypeRepresentationDependsOnItself;
 
   /// No parameters.
   static const DiagnosticWithoutArguments
-  extensionTypeRepresentationTypeBottom = DiagnosticWithoutArgumentsImpl(
-    name: 'EXTENSION_TYPE_REPRESENTATION_TYPE_BOTTOM',
-    problemMessage: "The representation type can't be a bottom type.",
-    correctionMessage: "Try specifying a different type.",
-    hasPublishedDocs: true,
-    type: DiagnosticType.COMPILE_TIME_ERROR,
-    uniqueName:
-        'CompileTimeErrorCode.EXTENSION_TYPE_REPRESENTATION_TYPE_BOTTOM',
-    expectedTypes: [],
-  );
+  extensionTypeRepresentationTypeBottom =
+      diag.extensionTypeRepresentationTypeBottom;
 
   /// Parameters:
   /// String p0: the name of the abstract method
@@ -3071,57 +1262,19 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
   static const DiagnosticWithArguments<
     LocatableDiagnostic Function({required String p0, required String p1})
   >
-  extensionTypeWithAbstractMember = DiagnosticWithArguments(
-    name: 'EXTENSION_TYPE_WITH_ABSTRACT_MEMBER',
-    problemMessage:
-        "'{0}' must have a method body because '{1}' is an extension type.",
-    correctionMessage: "Try adding a body to '{0}'.",
-    hasPublishedDocs: true,
-    type: DiagnosticType.COMPILE_TIME_ERROR,
-    uniqueName: 'CompileTimeErrorCode.EXTENSION_TYPE_WITH_ABSTRACT_MEMBER',
-    withArguments: _withArgumentsExtensionTypeWithAbstractMember,
-    expectedTypes: [ExpectedType.string, ExpectedType.string],
-  );
+  extensionTypeWithAbstractMember = diag.extensionTypeWithAbstractMember;
 
   /// No parameters.
-  static const DiagnosticWithoutArguments
-  externalFieldConstructorInitializer = DiagnosticWithoutArgumentsImpl(
-    name: 'EXTERNAL_WITH_INITIALIZER',
-    problemMessage: "External fields can't have initializers.",
-    correctionMessage:
-        "Try removing the field initializer or the 'external' keyword from the "
-        "field declaration.",
-    hasPublishedDocs: true,
-    type: DiagnosticType.COMPILE_TIME_ERROR,
-    uniqueName: 'CompileTimeErrorCode.EXTERNAL_FIELD_CONSTRUCTOR_INITIALIZER',
-    expectedTypes: [],
-  );
+  static const DiagnosticWithoutArguments externalFieldConstructorInitializer =
+      diag.externalFieldConstructorInitializer;
 
   /// No parameters.
   static const DiagnosticWithoutArguments externalFieldInitializer =
-      DiagnosticWithoutArgumentsImpl(
-        name: 'EXTERNAL_WITH_INITIALIZER',
-        problemMessage: "External fields can't have initializers.",
-        correctionMessage:
-            "Try removing the initializer or the 'external' keyword.",
-        hasPublishedDocs: true,
-        type: DiagnosticType.COMPILE_TIME_ERROR,
-        uniqueName: 'CompileTimeErrorCode.EXTERNAL_FIELD_INITIALIZER',
-        expectedTypes: [],
-      );
+      diag.externalFieldInitializer;
 
   /// No parameters.
   static const DiagnosticWithoutArguments externalVariableInitializer =
-      DiagnosticWithoutArgumentsImpl(
-        name: 'EXTERNAL_WITH_INITIALIZER',
-        problemMessage: "External variables can't have initializers.",
-        correctionMessage:
-            "Try removing the initializer or the 'external' keyword.",
-        hasPublishedDocs: true,
-        type: DiagnosticType.COMPILE_TIME_ERROR,
-        uniqueName: 'CompileTimeErrorCode.EXTERNAL_VARIABLE_INITIALIZER',
-        expectedTypes: [],
-      );
+      diag.externalVariableInitializer;
 
   /// Parameters:
   /// int p0: the maximum number of positional arguments
@@ -3129,17 +1282,7 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
   static const DiagnosticWithArguments<
     LocatableDiagnostic Function({required int p0, required int p1})
   >
-  extraPositionalArguments = DiagnosticWithArguments(
-    name: 'EXTRA_POSITIONAL_ARGUMENTS',
-    problemMessage:
-        "Too many positional arguments: {0} expected, but {1} found.",
-    correctionMessage: "Try removing the extra arguments.",
-    hasPublishedDocs: true,
-    type: DiagnosticType.COMPILE_TIME_ERROR,
-    uniqueName: 'CompileTimeErrorCode.EXTRA_POSITIONAL_ARGUMENTS',
-    withArguments: _withArgumentsExtraPositionalArguments,
-    expectedTypes: [ExpectedType.int, ExpectedType.int],
-  );
+  extraPositionalArguments = diag.extraPositionalArguments;
 
   /// Parameters:
   /// int p0: the maximum number of positional arguments
@@ -3147,81 +1290,30 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
   static const DiagnosticWithArguments<
     LocatableDiagnostic Function({required int p0, required int p1})
   >
-  extraPositionalArgumentsCouldBeNamed = DiagnosticWithArguments(
-    name: 'EXTRA_POSITIONAL_ARGUMENTS_COULD_BE_NAMED',
-    problemMessage:
-        "Too many positional arguments: {0} expected, but {1} found.",
-    correctionMessage:
-        "Try removing the extra positional arguments, or specifying the name "
-        "for named arguments.",
-    hasPublishedDocs: true,
-    type: DiagnosticType.COMPILE_TIME_ERROR,
-    uniqueName:
-        'CompileTimeErrorCode.EXTRA_POSITIONAL_ARGUMENTS_COULD_BE_NAMED',
-    withArguments: _withArgumentsExtraPositionalArgumentsCouldBeNamed,
-    expectedTypes: [ExpectedType.int, ExpectedType.int],
-  );
+  extraPositionalArgumentsCouldBeNamed =
+      diag.extraPositionalArgumentsCouldBeNamed;
 
   /// Parameters:
   /// String p0: the name of the field being initialized multiple times
   static const DiagnosticWithArguments<
     LocatableDiagnostic Function({required String p0})
   >
-  fieldInitializedByMultipleInitializers = DiagnosticWithArguments(
-    name: 'FIELD_INITIALIZED_BY_MULTIPLE_INITIALIZERS',
-    problemMessage:
-        "The field '{0}' can't be initialized twice in the same constructor.",
-    correctionMessage: "Try removing one of the initializations.",
-    hasPublishedDocs: true,
-    type: DiagnosticType.COMPILE_TIME_ERROR,
-    uniqueName:
-        'CompileTimeErrorCode.FIELD_INITIALIZED_BY_MULTIPLE_INITIALIZERS',
-    withArguments: _withArgumentsFieldInitializedByMultipleInitializers,
-    expectedTypes: [ExpectedType.string],
-  );
+  fieldInitializedByMultipleInitializers =
+      diag.fieldInitializedByMultipleInitializers;
 
   /// No parameters.
   static const DiagnosticWithoutArguments
-  fieldInitializedInInitializerAndDeclaration = DiagnosticWithoutArgumentsImpl(
-    name: 'FIELD_INITIALIZED_IN_INITIALIZER_AND_DECLARATION',
-    problemMessage:
-        "Fields can't be initialized in the constructor if they are final and were "
-        "already initialized at their declaration.",
-    correctionMessage: "Try removing one of the initializations.",
-    hasPublishedDocs: true,
-    type: DiagnosticType.COMPILE_TIME_ERROR,
-    uniqueName:
-        'CompileTimeErrorCode.FIELD_INITIALIZED_IN_INITIALIZER_AND_DECLARATION',
-    expectedTypes: [],
-  );
+  fieldInitializedInInitializerAndDeclaration =
+      diag.fieldInitializedInInitializerAndDeclaration;
 
   /// No parameters.
   static const DiagnosticWithoutArguments
-  fieldInitializedInParameterAndInitializer = DiagnosticWithoutArgumentsImpl(
-    name: 'FIELD_INITIALIZED_IN_PARAMETER_AND_INITIALIZER',
-    problemMessage:
-        "Fields can't be initialized in both the parameter list and the "
-        "initializers.",
-    correctionMessage: "Try removing one of the initializations.",
-    hasPublishedDocs: true,
-    type: DiagnosticType.COMPILE_TIME_ERROR,
-    uniqueName:
-        'CompileTimeErrorCode.FIELD_INITIALIZED_IN_PARAMETER_AND_INITIALIZER',
-    expectedTypes: [],
-  );
+  fieldInitializedInParameterAndInitializer =
+      diag.fieldInitializedInParameterAndInitializer;
 
   /// No parameters.
-  static const DiagnosticWithoutArguments
-  fieldInitializerFactoryConstructor = DiagnosticWithoutArgumentsImpl(
-    name: 'FIELD_INITIALIZER_FACTORY_CONSTRUCTOR',
-    problemMessage:
-        "Initializing formal parameters can't be used in factory constructors.",
-    correctionMessage: "Try using a normal parameter.",
-    hasPublishedDocs: true,
-    type: DiagnosticType.COMPILE_TIME_ERROR,
-    uniqueName: 'CompileTimeErrorCode.FIELD_INITIALIZER_FACTORY_CONSTRUCTOR',
-    expectedTypes: [],
-  );
+  static const DiagnosticWithoutArguments fieldInitializerFactoryConstructor =
+      diag.fieldInitializerFactoryConstructor;
 
   /// Parameters:
   /// Type p0: the name of the type of the initializer expression
@@ -3229,45 +1321,16 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
   static const DiagnosticWithArguments<
     LocatableDiagnostic Function({required DartType p0, required DartType p1})
   >
-  fieldInitializerNotAssignable = DiagnosticWithArguments(
-    name: 'FIELD_INITIALIZER_NOT_ASSIGNABLE',
-    problemMessage:
-        "The initializer type '{0}' can't be assigned to the field type '{1}'.",
-    hasPublishedDocs: true,
-    type: DiagnosticType.COMPILE_TIME_ERROR,
-    uniqueName: 'CompileTimeErrorCode.FIELD_INITIALIZER_NOT_ASSIGNABLE',
-    withArguments: _withArgumentsFieldInitializerNotAssignable,
-    expectedTypes: [ExpectedType.type, ExpectedType.type],
-  );
+  fieldInitializerNotAssignable = diag.fieldInitializerNotAssignable;
 
   /// No parameters.
   static const DiagnosticWithoutArguments fieldInitializerOutsideConstructor =
-      DiagnosticWithoutArgumentsImpl(
-        name: 'FIELD_INITIALIZER_OUTSIDE_CONSTRUCTOR',
-        problemMessage:
-            "Field formal parameters can only be used in a constructor.",
-        correctionMessage: "Try removing 'this.'.",
-        hasPublishedDocs: true,
-        type: DiagnosticType.COMPILE_TIME_ERROR,
-        uniqueName:
-            'CompileTimeErrorCode.FIELD_INITIALIZER_OUTSIDE_CONSTRUCTOR',
-        expectedTypes: [],
-      );
+      diag.fieldInitializerOutsideConstructor;
 
   /// No parameters.
   static const DiagnosticWithoutArguments
-  fieldInitializerRedirectingConstructor = DiagnosticWithoutArgumentsImpl(
-    name: 'FIELD_INITIALIZER_REDIRECTING_CONSTRUCTOR',
-    problemMessage:
-        "The redirecting constructor can't have a field initializer.",
-    correctionMessage:
-        "Try initializing the field in the constructor being redirected to.",
-    hasPublishedDocs: true,
-    type: DiagnosticType.COMPILE_TIME_ERROR,
-    uniqueName:
-        'CompileTimeErrorCode.FIELD_INITIALIZER_REDIRECTING_CONSTRUCTOR',
-    expectedTypes: [],
-  );
+  fieldInitializerRedirectingConstructor =
+      diag.fieldInitializerRedirectingConstructor;
 
   /// Parameters:
   /// Type p0: the name of the type of the field formal parameter
@@ -3275,54 +1338,23 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
   static const DiagnosticWithArguments<
     LocatableDiagnostic Function({required DartType p0, required DartType p1})
   >
-  fieldInitializingFormalNotAssignable = DiagnosticWithArguments(
-    name: 'FIELD_INITIALIZING_FORMAL_NOT_ASSIGNABLE',
-    problemMessage:
-        "The parameter type '{0}' is incompatible with the field type '{1}'.",
-    correctionMessage:
-        "Try changing or removing the parameter's type, or changing the "
-        "field's type.",
-    hasPublishedDocs: true,
-    type: DiagnosticType.COMPILE_TIME_ERROR,
-    uniqueName: 'CompileTimeErrorCode.FIELD_INITIALIZING_FORMAL_NOT_ASSIGNABLE',
-    withArguments: _withArgumentsFieldInitializingFormalNotAssignable,
-    expectedTypes: [ExpectedType.type, ExpectedType.type],
-  );
+  fieldInitializingFormalNotAssignable =
+      diag.fieldInitializingFormalNotAssignable;
 
   /// Parameters:
   /// String p0: the name of the final class being extended.
   static const DiagnosticWithArguments<
     LocatableDiagnostic Function({required String p0})
   >
-  finalClassExtendedOutsideOfLibrary = DiagnosticWithArguments(
-    name: 'INVALID_USE_OF_TYPE_OUTSIDE_LIBRARY',
-    problemMessage:
-        "The class '{0}' can't be extended outside of its library because it's a "
-        "final class.",
-    hasPublishedDocs: true,
-    type: DiagnosticType.COMPILE_TIME_ERROR,
-    uniqueName: 'CompileTimeErrorCode.FINAL_CLASS_EXTENDED_OUTSIDE_OF_LIBRARY',
-    withArguments: _withArgumentsFinalClassExtendedOutsideOfLibrary,
-    expectedTypes: [ExpectedType.string],
-  );
+  finalClassExtendedOutsideOfLibrary = diag.finalClassExtendedOutsideOfLibrary;
 
   /// Parameters:
   /// String p0: the name of the final class being implemented.
   static const DiagnosticWithArguments<
     LocatableDiagnostic Function({required String p0})
   >
-  finalClassImplementedOutsideOfLibrary = DiagnosticWithArguments(
-    name: 'INVALID_USE_OF_TYPE_OUTSIDE_LIBRARY',
-    problemMessage:
-        "The class '{0}' can't be implemented outside of its library because it's "
-        "a final class.",
-    hasPublishedDocs: true,
-    type: DiagnosticType.COMPILE_TIME_ERROR,
-    uniqueName:
-        'CompileTimeErrorCode.FINAL_CLASS_IMPLEMENTED_OUTSIDE_OF_LIBRARY',
-    withArguments: _withArgumentsFinalClassImplementedOutsideOfLibrary,
-    expectedTypes: [ExpectedType.string],
-  );
+  finalClassImplementedOutsideOfLibrary =
+      diag.finalClassImplementedOutsideOfLibrary;
 
   /// Parameters:
   /// String p0: the name of the final class being used as a mixin superclass
@@ -3330,70 +1362,30 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
   static const DiagnosticWithArguments<
     LocatableDiagnostic Function({required String p0})
   >
-  finalClassUsedAsMixinConstraintOutsideOfLibrary = DiagnosticWithArguments(
-    name: 'INVALID_USE_OF_TYPE_OUTSIDE_LIBRARY',
-    problemMessage:
-        "The class '{0}' can't be used as a mixin superclass constraint outside of "
-        "its library because it's a final class.",
-    hasPublishedDocs: true,
-    type: DiagnosticType.COMPILE_TIME_ERROR,
-    uniqueName:
-        'CompileTimeErrorCode.FINAL_CLASS_USED_AS_MIXIN_CONSTRAINT_OUTSIDE_OF_LIBRARY',
-    withArguments:
-        _withArgumentsFinalClassUsedAsMixinConstraintOutsideOfLibrary,
-    expectedTypes: [ExpectedType.string],
-  );
+  finalClassUsedAsMixinConstraintOutsideOfLibrary =
+      diag.finalClassUsedAsMixinConstraintOutsideOfLibrary;
 
   /// Parameters:
   /// String p0: the name of the field in question
   static const DiagnosticWithArguments<
     LocatableDiagnostic Function({required String p0})
   >
-  finalInitializedInDeclarationAndConstructor = DiagnosticWithArguments(
-    name: 'FINAL_INITIALIZED_IN_DECLARATION_AND_CONSTRUCTOR',
-    problemMessage:
-        "'{0}' is final and was given a value when it was declared, so it can't be "
-        "set to a new value.",
-    correctionMessage: "Try removing one of the initializations.",
-    hasPublishedDocs: true,
-    type: DiagnosticType.COMPILE_TIME_ERROR,
-    uniqueName:
-        'CompileTimeErrorCode.FINAL_INITIALIZED_IN_DECLARATION_AND_CONSTRUCTOR',
-    withArguments: _withArgumentsFinalInitializedInDeclarationAndConstructor,
-    expectedTypes: [ExpectedType.string],
-  );
+  finalInitializedInDeclarationAndConstructor =
+      diag.finalInitializedInDeclarationAndConstructor;
 
   /// Parameters:
   /// String p0: the name of the uninitialized final variable
   static const DiagnosticWithArguments<
     LocatableDiagnostic Function({required String p0})
   >
-  finalNotInitialized = DiagnosticWithArguments(
-    name: 'FINAL_NOT_INITIALIZED',
-    problemMessage: "The final variable '{0}' must be initialized.",
-    correctionMessage: "Try initializing the variable.",
-    hasPublishedDocs: true,
-    type: DiagnosticType.COMPILE_TIME_ERROR,
-    uniqueName: 'CompileTimeErrorCode.FINAL_NOT_INITIALIZED',
-    withArguments: _withArgumentsFinalNotInitialized,
-    expectedTypes: [ExpectedType.string],
-  );
+  finalNotInitialized = diag.finalNotInitialized;
 
   /// Parameters:
   /// String p0: the name of the uninitialized final variable
   static const DiagnosticWithArguments<
     LocatableDiagnostic Function({required String p0})
   >
-  finalNotInitializedConstructor1 = DiagnosticWithArguments(
-    name: 'FINAL_NOT_INITIALIZED_CONSTRUCTOR',
-    problemMessage: "All final variables must be initialized, but '{0}' isn't.",
-    correctionMessage: "Try adding an initializer for the field.",
-    hasPublishedDocs: true,
-    type: DiagnosticType.COMPILE_TIME_ERROR,
-    uniqueName: 'CompileTimeErrorCode.FINAL_NOT_INITIALIZED_CONSTRUCTOR_1',
-    withArguments: _withArgumentsFinalNotInitializedConstructor1,
-    expectedTypes: [ExpectedType.string],
-  );
+  finalNotInitializedConstructor1 = diag.finalNotInitializedConstructor1;
 
   /// Parameters:
   /// String p0: the name of the uninitialized final variable
@@ -3401,17 +1393,7 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
   static const DiagnosticWithArguments<
     LocatableDiagnostic Function({required String p0, required String p1})
   >
-  finalNotInitializedConstructor2 = DiagnosticWithArguments(
-    name: 'FINAL_NOT_INITIALIZED_CONSTRUCTOR',
-    problemMessage:
-        "All final variables must be initialized, but '{0}' and '{1}' aren't.",
-    correctionMessage: "Try adding initializers for the fields.",
-    hasPublishedDocs: true,
-    type: DiagnosticType.COMPILE_TIME_ERROR,
-    uniqueName: 'CompileTimeErrorCode.FINAL_NOT_INITIALIZED_CONSTRUCTOR_2',
-    withArguments: _withArgumentsFinalNotInitializedConstructor2,
-    expectedTypes: [ExpectedType.string, ExpectedType.string],
-  );
+  finalNotInitializedConstructor2 = diag.finalNotInitializedConstructor2;
 
   /// Parameters:
   /// String p0: the name of the uninitialized final variable
@@ -3425,18 +1407,8 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
       required int p2,
     })
   >
-  finalNotInitializedConstructor3Plus = DiagnosticWithArguments(
-    name: 'FINAL_NOT_INITIALIZED_CONSTRUCTOR',
-    problemMessage:
-        "All final variables must be initialized, but '{0}', '{1}', and {2} others "
-        "aren't.",
-    correctionMessage: "Try adding initializers for the fields.",
-    hasPublishedDocs: true,
-    type: DiagnosticType.COMPILE_TIME_ERROR,
-    uniqueName: 'CompileTimeErrorCode.FINAL_NOT_INITIALIZED_CONSTRUCTOR_3_PLUS',
-    withArguments: _withArgumentsFinalNotInitializedConstructor3Plus,
-    expectedTypes: [ExpectedType.string, ExpectedType.string, ExpectedType.int],
-  );
+  finalNotInitializedConstructor3Plus =
+      diag.finalNotInitializedConstructor3Plus;
 
   /// Parameters:
   /// Type p0: the type of the iterable expression.
@@ -3450,17 +1422,7 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
       required DartType p2,
     })
   >
-  forInOfInvalidElementType = DiagnosticWithArguments(
-    name: 'FOR_IN_OF_INVALID_ELEMENT_TYPE',
-    problemMessage:
-        "The type '{0}' used in the 'for' loop must implement '{1}' with a type "
-        "argument that can be assigned to '{2}'.",
-    hasPublishedDocs: true,
-    type: DiagnosticType.COMPILE_TIME_ERROR,
-    uniqueName: 'CompileTimeErrorCode.FOR_IN_OF_INVALID_ELEMENT_TYPE',
-    withArguments: _withArgumentsForInOfInvalidElementType,
-    expectedTypes: [ExpectedType.type, ExpectedType.string, ExpectedType.type],
-  );
+  forInOfInvalidElementType = diag.forInOfInvalidElementType;
 
   /// Parameters:
   /// Type p0: the type of the iterable expression.
@@ -3469,81 +1431,31 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
   static const DiagnosticWithArguments<
     LocatableDiagnostic Function({required DartType p0, required String p1})
   >
-  forInOfInvalidType = DiagnosticWithArguments(
-    name: 'FOR_IN_OF_INVALID_TYPE',
-    problemMessage:
-        "The type '{0}' used in the 'for' loop must implement '{1}'.",
-    hasPublishedDocs: true,
-    type: DiagnosticType.COMPILE_TIME_ERROR,
-    uniqueName: 'CompileTimeErrorCode.FOR_IN_OF_INVALID_TYPE',
-    withArguments: _withArgumentsForInOfInvalidType,
-    expectedTypes: [ExpectedType.type, ExpectedType.string],
-  );
+  forInOfInvalidType = diag.forInOfInvalidType;
 
   /// No parameters.
   static const DiagnosticWithoutArguments forInWithConstVariable =
-      DiagnosticWithoutArgumentsImpl(
-        name: 'FOR_IN_WITH_CONST_VARIABLE',
-        problemMessage: "A for-in loop variable can't be a 'const'.",
-        correctionMessage:
-            "Try removing the 'const' modifier from the variable, or use a "
-            "different variable.",
-        hasPublishedDocs: true,
-        type: DiagnosticType.COMPILE_TIME_ERROR,
-        uniqueName: 'CompileTimeErrorCode.FOR_IN_WITH_CONST_VARIABLE',
-        expectedTypes: [],
-      );
+      diag.forInWithConstVariable;
 
   /// It is a compile-time error if a generic function type is used as a bound
   /// for a formal type parameter of a class or a function.
   ///
   /// No parameters.
-  static const DiagnosticWithoutArguments
-  genericFunctionTypeCannotBeBound = DiagnosticWithoutArgumentsImpl(
-    name: 'GENERIC_FUNCTION_TYPE_CANNOT_BE_BOUND',
-    problemMessage:
-        "Generic function types can't be used as type parameter bounds.",
-    correctionMessage:
-        "Try making the free variable in the function type part of the larger "
-        "declaration signature.",
-    type: DiagnosticType.COMPILE_TIME_ERROR,
-    uniqueName: 'CompileTimeErrorCode.GENERIC_FUNCTION_TYPE_CANNOT_BE_BOUND',
-    expectedTypes: [],
-  );
+  static const DiagnosticWithoutArguments genericFunctionTypeCannotBeBound =
+      diag.genericFunctionTypeCannotBeBound;
 
   /// It is a compile-time error if a generic function type is used as an actual
   /// type argument.
   ///
   /// No parameters.
   static const DiagnosticWithoutArguments
-  genericFunctionTypeCannotBeTypeArgument = DiagnosticWithoutArgumentsImpl(
-    name: 'GENERIC_FUNCTION_TYPE_CANNOT_BE_TYPE_ARGUMENT',
-    problemMessage: "A generic function type can't be a type argument.",
-    correctionMessage:
-        "Try removing type parameters from the generic function type, or using "
-        "'dynamic' as the type argument here.",
-    type: DiagnosticType.COMPILE_TIME_ERROR,
-    uniqueName:
-        'CompileTimeErrorCode.GENERIC_FUNCTION_TYPE_CANNOT_BE_TYPE_ARGUMENT',
-    expectedTypes: [],
-  );
+  genericFunctionTypeCannotBeTypeArgument =
+      diag.genericFunctionTypeCannotBeTypeArgument;
 
   /// No parameters.
   static const DiagnosticWithoutArguments
-  genericMethodTypeInstantiationOnDynamic = DiagnosticWithoutArgumentsImpl(
-    name: 'GENERIC_METHOD_TYPE_INSTANTIATION_ON_DYNAMIC',
-    problemMessage:
-        "A method tear-off on a receiver whose type is 'dynamic' can't have type "
-        "arguments.",
-    correctionMessage:
-        "Specify the type of the receiver, or remove the type arguments from "
-        "the method tear-off.",
-    hasPublishedDocs: true,
-    type: DiagnosticType.COMPILE_TIME_ERROR,
-    uniqueName:
-        'CompileTimeErrorCode.GENERIC_METHOD_TYPE_INSTANTIATION_ON_DYNAMIC',
-    expectedTypes: [],
-  );
+  genericMethodTypeInstantiationOnDynamic =
+      diag.genericMethodTypeInstantiationOnDynamic;
 
   /// Parameters:
   /// Object p0: the name of the getter
@@ -3558,22 +1470,7 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
       required Object p3,
     })
   >
-  getterNotAssignableSetterTypes = DiagnosticWithArguments(
-    name: 'GETTER_NOT_ASSIGNABLE_SETTER_TYPES',
-    problemMessage:
-        "The return type of getter '{0}' is '{1}' which isn't assignable to the "
-        "type '{2}' of its setter '{3}'.",
-    correctionMessage: "Try changing the types so that they are compatible.",
-    type: DiagnosticType.COMPILE_TIME_ERROR,
-    uniqueName: 'CompileTimeErrorCode.GETTER_NOT_ASSIGNABLE_SETTER_TYPES',
-    withArguments: _withArgumentsGetterNotAssignableSetterTypes,
-    expectedTypes: [
-      ExpectedType.object,
-      ExpectedType.object,
-      ExpectedType.object,
-      ExpectedType.object,
-    ],
-  );
+  getterNotAssignableSetterTypes = diag.getterNotAssignableSetterTypes;
 
   /// Parameters:
   /// Object p0: the name of the getter
@@ -3588,87 +1485,28 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
       required Object p3,
     })
   >
-  getterNotSubtypeSetterTypes = DiagnosticWithArguments(
-    name: 'GETTER_NOT_SUBTYPE_SETTER_TYPES',
-    problemMessage:
-        "The return type of getter '{0}' is '{1}' which isn't a subtype of the "
-        "type '{2}' of its setter '{3}'.",
-    correctionMessage: "Try changing the types so that they are compatible.",
-    hasPublishedDocs: true,
-    type: DiagnosticType.COMPILE_TIME_ERROR,
-    uniqueName: 'CompileTimeErrorCode.GETTER_NOT_SUBTYPE_SETTER_TYPES',
-    withArguments: _withArgumentsGetterNotSubtypeSetterTypes,
-    expectedTypes: [
-      ExpectedType.object,
-      ExpectedType.object,
-      ExpectedType.object,
-      ExpectedType.object,
-    ],
-  );
+  getterNotSubtypeSetterTypes = diag.getterNotSubtypeSetterTypes;
 
   /// No parameters.
   static const DiagnosticWithoutArguments
-  ifElementConditionFromDeferredLibrary = DiagnosticWithoutArgumentsImpl(
-    name: 'IF_ELEMENT_CONDITION_FROM_DEFERRED_LIBRARY',
-    problemMessage:
-        "Constant values from a deferred library can't be used as values in an if "
-        "condition inside a const collection literal.",
-    correctionMessage: "Try making the deferred import non-deferred.",
-    type: DiagnosticType.COMPILE_TIME_ERROR,
-    uniqueName:
-        'CompileTimeErrorCode.IF_ELEMENT_CONDITION_FROM_DEFERRED_LIBRARY',
-    expectedTypes: [],
-  );
+  ifElementConditionFromDeferredLibrary =
+      diag.ifElementConditionFromDeferredLibrary;
 
   /// No parameters.
-  static const DiagnosticWithoutArguments
-  illegalAsyncGeneratorReturnType = DiagnosticWithoutArgumentsImpl(
-    name: 'ILLEGAL_ASYNC_GENERATOR_RETURN_TYPE',
-    problemMessage:
-        "Functions marked 'async*' must have a return type that is a supertype of "
-        "'Stream<T>' for some type 'T'.",
-    correctionMessage:
-        "Try fixing the return type of the function, or removing the modifier "
-        "'async*' from the function body.",
-    hasPublishedDocs: true,
-    type: DiagnosticType.COMPILE_TIME_ERROR,
-    uniqueName: 'CompileTimeErrorCode.ILLEGAL_ASYNC_GENERATOR_RETURN_TYPE',
-    expectedTypes: [],
-  );
+  static const DiagnosticWithoutArguments illegalAsyncGeneratorReturnType =
+      diag.illegalAsyncGeneratorReturnType;
 
   /// No parameters.
-  static const DiagnosticWithoutArguments
-  illegalAsyncReturnType = DiagnosticWithoutArgumentsImpl(
-    name: 'ILLEGAL_ASYNC_RETURN_TYPE',
-    problemMessage:
-        "Functions marked 'async' must have a return type which is a supertype of "
-        "'Future'.",
-    correctionMessage:
-        "Try fixing the return type of the function, or removing the modifier "
-        "'async' from the function body.",
-    hasPublishedDocs: true,
-    type: DiagnosticType.COMPILE_TIME_ERROR,
-    uniqueName: 'CompileTimeErrorCode.ILLEGAL_ASYNC_RETURN_TYPE',
-    expectedTypes: [],
-  );
+  static const DiagnosticWithoutArguments illegalAsyncReturnType =
+      diag.illegalAsyncReturnType;
 
   /// Parameters:
   /// String p0: the name of member that cannot be declared
   static const DiagnosticWithArguments<
     LocatableDiagnostic Function({required String p0})
   >
-  illegalConcreteEnumMemberDeclaration = DiagnosticWithArguments(
-    name: 'ILLEGAL_CONCRETE_ENUM_MEMBER',
-    problemMessage:
-        "A concrete instance member named '{0}' can't be declared in a class that "
-        "implements 'Enum'.",
-    correctionMessage: "Try using a different name.",
-    hasPublishedDocs: true,
-    type: DiagnosticType.COMPILE_TIME_ERROR,
-    uniqueName: 'CompileTimeErrorCode.ILLEGAL_CONCRETE_ENUM_MEMBER_DECLARATION',
-    withArguments: _withArgumentsIllegalConcreteEnumMemberDeclaration,
-    expectedTypes: [ExpectedType.string],
-  );
+  illegalConcreteEnumMemberDeclaration =
+      diag.illegalConcreteEnumMemberDeclaration;
 
   /// Parameters:
   /// String p0: the name of member that cannot be inherited
@@ -3676,144 +1514,52 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
   static const DiagnosticWithArguments<
     LocatableDiagnostic Function({required String p0, required String p1})
   >
-  illegalConcreteEnumMemberInheritance = DiagnosticWithArguments(
-    name: 'ILLEGAL_CONCRETE_ENUM_MEMBER',
-    problemMessage:
-        "A concrete instance member named '{0}' can't be inherited from '{1}' in a "
-        "class that implements 'Enum'.",
-    correctionMessage: "Try using a different name.",
-    hasPublishedDocs: true,
-    type: DiagnosticType.COMPILE_TIME_ERROR,
-    uniqueName: 'CompileTimeErrorCode.ILLEGAL_CONCRETE_ENUM_MEMBER_INHERITANCE',
-    withArguments: _withArgumentsIllegalConcreteEnumMemberInheritance,
-    expectedTypes: [ExpectedType.string, ExpectedType.string],
-  );
+  illegalConcreteEnumMemberInheritance =
+      diag.illegalConcreteEnumMemberInheritance;
 
   /// No parameters.
-  static const DiagnosticWithoutArguments
-  illegalEnumValuesDeclaration = DiagnosticWithoutArgumentsImpl(
-    name: 'ILLEGAL_ENUM_VALUES',
-    problemMessage:
-        "An instance member named 'values' can't be declared in a class that "
-        "implements 'Enum'.",
-    correctionMessage: "Try using a different name.",
-    hasPublishedDocs: true,
-    type: DiagnosticType.COMPILE_TIME_ERROR,
-    uniqueName: 'CompileTimeErrorCode.ILLEGAL_ENUM_VALUES_DECLARATION',
-    expectedTypes: [],
-  );
+  static const DiagnosticWithoutArguments illegalEnumValuesDeclaration =
+      diag.illegalEnumValuesDeclaration;
 
   /// Parameters:
   /// String p0: the name of the class that declares 'values'
   static const DiagnosticWithArguments<
     LocatableDiagnostic Function({required String p0})
   >
-  illegalEnumValuesInheritance = DiagnosticWithArguments(
-    name: 'ILLEGAL_ENUM_VALUES',
-    problemMessage:
-        "An instance member named 'values' can't be inherited from '{0}' in a "
-        "class that implements 'Enum'.",
-    correctionMessage: "Try using a different name.",
-    hasPublishedDocs: true,
-    type: DiagnosticType.COMPILE_TIME_ERROR,
-    uniqueName: 'CompileTimeErrorCode.ILLEGAL_ENUM_VALUES_INHERITANCE',
-    withArguments: _withArgumentsIllegalEnumValuesInheritance,
-    expectedTypes: [ExpectedType.string],
-  );
+  illegalEnumValuesInheritance = diag.illegalEnumValuesInheritance;
 
   /// Parameters:
   /// String p0: the required language version
   static const DiagnosticWithArguments<
     LocatableDiagnostic Function({required String p0})
   >
-  illegalLanguageVersionOverride = DiagnosticWithArguments(
-    name: 'ILLEGAL_LANGUAGE_VERSION_OVERRIDE',
-    problemMessage: "The language version must be {0}.",
-    correctionMessage:
-        "Try removing the language version override and migrating the code.",
-    type: DiagnosticType.COMPILE_TIME_ERROR,
-    uniqueName: 'CompileTimeErrorCode.ILLEGAL_LANGUAGE_VERSION_OVERRIDE',
-    withArguments: _withArgumentsIllegalLanguageVersionOverride,
-    expectedTypes: [ExpectedType.string],
-  );
+  illegalLanguageVersionOverride = diag.illegalLanguageVersionOverride;
 
   /// No parameters.
-  static const DiagnosticWithoutArguments
-  illegalSyncGeneratorReturnType = DiagnosticWithoutArgumentsImpl(
-    name: 'ILLEGAL_SYNC_GENERATOR_RETURN_TYPE',
-    problemMessage:
-        "Functions marked 'sync*' must have a return type that is a supertype of "
-        "'Iterable<T>' for some type 'T'.",
-    correctionMessage:
-        "Try fixing the return type of the function, or removing the modifier "
-        "'sync*' from the function body.",
-    hasPublishedDocs: true,
-    type: DiagnosticType.COMPILE_TIME_ERROR,
-    uniqueName: 'CompileTimeErrorCode.ILLEGAL_SYNC_GENERATOR_RETURN_TYPE',
-    expectedTypes: [],
-  );
+  static const DiagnosticWithoutArguments illegalSyncGeneratorReturnType =
+      diag.illegalSyncGeneratorReturnType;
 
   /// No parameters.
   static const DiagnosticWithoutArguments implementsDeferredClass =
-      DiagnosticWithoutArgumentsImpl(
-        name: 'SUBTYPE_OF_DEFERRED_CLASS',
-        problemMessage: "Classes and mixins can't implement deferred classes.",
-        correctionMessage:
-            "Try specifying a different interface, removing the class from the "
-            "list, or changing the import to not be deferred.",
-        hasPublishedDocs: true,
-        type: DiagnosticType.COMPILE_TIME_ERROR,
-        uniqueName: 'CompileTimeErrorCode.IMPLEMENTS_DEFERRED_CLASS',
-        expectedTypes: [],
-      );
+      diag.implementsDeferredClass;
 
   /// Parameters:
   /// Type p0: the name of the disallowed type
   static const DiagnosticWithArguments<
     LocatableDiagnostic Function({required DartType p0})
   >
-  implementsDisallowedClass = DiagnosticWithArguments(
-    name: 'SUBTYPE_OF_DISALLOWED_TYPE',
-    problemMessage: "Classes and mixins can't implement '{0}'.",
-    correctionMessage:
-        "Try specifying a different interface, or remove the class from the "
-        "list.",
-    hasPublishedDocs: true,
-    type: DiagnosticType.COMPILE_TIME_ERROR,
-    uniqueName: 'CompileTimeErrorCode.IMPLEMENTS_DISALLOWED_CLASS',
-    withArguments: _withArgumentsImplementsDisallowedClass,
-    expectedTypes: [ExpectedType.type],
-  );
+  implementsDisallowedClass = diag.implementsDisallowedClass;
 
   /// No parameters.
-  static const DiagnosticWithoutArguments
-  implementsNonClass = DiagnosticWithoutArgumentsImpl(
-    name: 'IMPLEMENTS_NON_CLASS',
-    problemMessage:
-        "Classes and mixins can only implement other classes and mixins.",
-    correctionMessage:
-        "Try specifying a class or mixin, or remove the name from the list.",
-    hasPublishedDocs: true,
-    type: DiagnosticType.COMPILE_TIME_ERROR,
-    uniqueName: 'CompileTimeErrorCode.IMPLEMENTS_NON_CLASS',
-    expectedTypes: [],
-  );
+  static const DiagnosticWithoutArguments implementsNonClass =
+      diag.implementsNonClass;
 
   /// Parameters:
   /// String p0: the name of the interface that is implemented more than once
   static const DiagnosticWithArguments<
     LocatableDiagnostic Function({required String p0})
   >
-  implementsRepeated = DiagnosticWithArguments(
-    name: 'IMPLEMENTS_REPEATED',
-    problemMessage: "'{0}' can only be implemented once.",
-    correctionMessage: "Try removing all but one occurrence of the class name.",
-    hasPublishedDocs: true,
-    type: DiagnosticType.COMPILE_TIME_ERROR,
-    uniqueName: 'CompileTimeErrorCode.IMPLEMENTS_REPEATED',
-    withArguments: _withArgumentsImplementsRepeated,
-    expectedTypes: [ExpectedType.string],
-  );
+  implementsRepeated = diag.implementsRepeated;
 
   /// Parameters:
   /// Element p0: the name of the class that appears in both "extends" and
@@ -3821,102 +1567,41 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
   static const DiagnosticWithArguments<
     LocatableDiagnostic Function({required Element p0})
   >
-  implementsSuperClass = DiagnosticWithArguments(
-    name: 'IMPLEMENTS_SUPER_CLASS',
-    problemMessage:
-        "'{0}' can't be used in both the 'extends' and 'implements' clauses.",
-    correctionMessage: "Try removing one of the occurrences.",
-    hasPublishedDocs: true,
-    type: DiagnosticType.COMPILE_TIME_ERROR,
-    uniqueName: 'CompileTimeErrorCode.IMPLEMENTS_SUPER_CLASS',
-    withArguments: _withArgumentsImplementsSuperClass,
-    expectedTypes: [ExpectedType.element],
-  );
+  implementsSuperClass = diag.implementsSuperClass;
 
   /// No parameters.
   static const DiagnosticWithoutArguments
-  implementsTypeAliasExpandsToTypeParameter = DiagnosticWithoutArgumentsImpl(
-    name: 'SUPERTYPE_EXPANDS_TO_TYPE_PARAMETER',
-    problemMessage:
-        "A type alias that expands to a type parameter can't be implemented.",
-    correctionMessage: "Try specifying a class or mixin, or removing the list.",
-    hasPublishedDocs: true,
-    type: DiagnosticType.COMPILE_TIME_ERROR,
-    uniqueName:
-        'CompileTimeErrorCode.IMPLEMENTS_TYPE_ALIAS_EXPANDS_TO_TYPE_PARAMETER',
-    expectedTypes: [],
-  );
+  implementsTypeAliasExpandsToTypeParameter =
+      diag.implementsTypeAliasExpandsToTypeParameter;
 
   /// Parameters:
   /// Type p0: the name of the superclass
   static const DiagnosticWithArguments<
     LocatableDiagnostic Function({required DartType p0})
   >
-  implicitSuperInitializerMissingArguments = DiagnosticWithArguments(
-    name: 'IMPLICIT_SUPER_INITIALIZER_MISSING_ARGUMENTS',
-    problemMessage:
-        "The implicitly invoked unnamed constructor from '{0}' has required "
-        "parameters.",
-    correctionMessage:
-        "Try adding an explicit super parameter with the required arguments.",
-    hasPublishedDocs: true,
-    type: DiagnosticType.COMPILE_TIME_ERROR,
-    uniqueName:
-        'CompileTimeErrorCode.IMPLICIT_SUPER_INITIALIZER_MISSING_ARGUMENTS',
-    withArguments: _withArgumentsImplicitSuperInitializerMissingArguments,
-    expectedTypes: [ExpectedType.type],
-  );
+  implicitSuperInitializerMissingArguments =
+      diag.implicitSuperInitializerMissingArguments;
 
   /// Parameters:
   /// String p0: the name of the instance member
   static const DiagnosticWithArguments<
     LocatableDiagnostic Function({required String p0})
   >
-  implicitThisReferenceInInitializer = DiagnosticWithArguments(
-    name: 'IMPLICIT_THIS_REFERENCE_IN_INITIALIZER',
-    problemMessage:
-        "The instance member '{0}' can't be accessed in an initializer.",
-    correctionMessage:
-        "Try replacing the reference to the instance member with a different "
-        "expression",
-    hasPublishedDocs: true,
-    type: DiagnosticType.COMPILE_TIME_ERROR,
-    uniqueName: 'CompileTimeErrorCode.IMPLICIT_THIS_REFERENCE_IN_INITIALIZER',
-    withArguments: _withArgumentsImplicitThisReferenceInInitializer,
-    expectedTypes: [ExpectedType.string],
-  );
+  implicitThisReferenceInInitializer = diag.implicitThisReferenceInInitializer;
 
   /// Parameters:
   /// String p0: the URI pointing to a library
   static const DiagnosticWithArguments<
     LocatableDiagnostic Function({required String p0})
   >
-  importInternalLibrary = DiagnosticWithArguments(
-    name: 'IMPORT_INTERNAL_LIBRARY',
-    problemMessage: "The library '{0}' is internal and can't be imported.",
-    hasPublishedDocs: true,
-    type: DiagnosticType.COMPILE_TIME_ERROR,
-    uniqueName: 'CompileTimeErrorCode.IMPORT_INTERNAL_LIBRARY',
-    withArguments: _withArgumentsImportInternalLibrary,
-    expectedTypes: [ExpectedType.string],
-  );
+  importInternalLibrary = diag.importInternalLibrary;
 
   /// Parameters:
   /// String p0: the URI pointing to a non-library declaration
   static const DiagnosticWithArguments<
     LocatableDiagnostic Function({required String p0})
   >
-  importOfNonLibrary = DiagnosticWithArguments(
-    name: 'IMPORT_OF_NON_LIBRARY',
-    problemMessage:
-        "The imported library '{0}' can't have a part-of directive.",
-    correctionMessage: "Try importing the library that the part is a part of.",
-    hasPublishedDocs: true,
-    type: DiagnosticType.COMPILE_TIME_ERROR,
-    uniqueName: 'CompileTimeErrorCode.IMPORT_OF_NON_LIBRARY',
-    withArguments: _withArgumentsImportOfNonLibrary,
-    expectedTypes: [ExpectedType.string],
-  );
+  importOfNonLibrary = diag.importOfNonLibrary;
 
   /// 13.9 Switch: It is a compile-time error if values of the expressions
   /// <i>e<sub>k</sub></i> are not instances of the same class <i>C</i>, for all
@@ -3928,15 +1613,7 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
   static const DiagnosticWithArguments<
     LocatableDiagnostic Function({required Object p0, required Object p1})
   >
-  inconsistentCaseExpressionTypes = DiagnosticWithArguments(
-    name: 'INCONSISTENT_CASE_EXPRESSION_TYPES',
-    problemMessage:
-        "Case expressions must have the same types, '{0}' isn't a '{1}'.",
-    type: DiagnosticType.COMPILE_TIME_ERROR,
-    uniqueName: 'CompileTimeErrorCode.INCONSISTENT_CASE_EXPRESSION_TYPES',
-    withArguments: _withArgumentsInconsistentCaseExpressionTypes,
-    expectedTypes: [ExpectedType.object, ExpectedType.object],
-  );
+  inconsistentCaseExpressionTypes = diag.inconsistentCaseExpressionTypes;
 
   /// Parameters:
   /// String p0: the name of the instance member with inconsistent inheritance.
@@ -3944,19 +1621,7 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
   static const DiagnosticWithArguments<
     LocatableDiagnostic Function({required String p0, required String p1})
   >
-  inconsistentInheritance = DiagnosticWithArguments(
-    name: 'INCONSISTENT_INHERITANCE',
-    problemMessage:
-        "Superinterfaces don't have a valid override for '{0}': {1}.",
-    correctionMessage:
-        "Try adding an explicit override that is consistent with all of the "
-        "inherited members.",
-    hasPublishedDocs: true,
-    type: DiagnosticType.COMPILE_TIME_ERROR,
-    uniqueName: 'CompileTimeErrorCode.INCONSISTENT_INHERITANCE',
-    withArguments: _withArgumentsInconsistentInheritance,
-    expectedTypes: [ExpectedType.string, ExpectedType.string],
-  );
+  inconsistentInheritance = diag.inconsistentInheritance;
 
   /// 11.1.1 Inheritance and Overriding. Let `I` be the implicit interface of a
   /// class `C` declared in library `L`. `I` inherits all members of
@@ -3977,58 +1642,20 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
       required String p2,
     })
   >
-  inconsistentInheritanceGetterAndMethod = DiagnosticWithArguments(
-    name: 'INCONSISTENT_INHERITANCE_GETTER_AND_METHOD',
-    problemMessage:
-        "'{0}' is inherited as a getter (from '{1}') and also a method (from "
-        "'{2}').",
-    correctionMessage:
-        "Try adjusting the supertypes of this class to remove the "
-        "inconsistency.",
-    type: DiagnosticType.COMPILE_TIME_ERROR,
-    uniqueName:
-        'CompileTimeErrorCode.INCONSISTENT_INHERITANCE_GETTER_AND_METHOD',
-    withArguments: _withArgumentsInconsistentInheritanceGetterAndMethod,
-    expectedTypes: [
-      ExpectedType.string,
-      ExpectedType.string,
-      ExpectedType.string,
-    ],
-  );
+  inconsistentInheritanceGetterAndMethod =
+      diag.inconsistentInheritanceGetterAndMethod;
 
   /// No parameters.
   static const DiagnosticWithoutArguments inconsistentLanguageVersionOverride =
-      DiagnosticWithoutArgumentsImpl(
-        name: 'INCONSISTENT_LANGUAGE_VERSION_OVERRIDE',
-        problemMessage:
-            "Parts must have exactly the same language version override as the "
-            "library.",
-        hasPublishedDocs: true,
-        type: DiagnosticType.COMPILE_TIME_ERROR,
-        uniqueName:
-            'CompileTimeErrorCode.INCONSISTENT_LANGUAGE_VERSION_OVERRIDE',
-        expectedTypes: [],
-      );
+      diag.inconsistentLanguageVersionOverride;
 
   /// Parameters:
   /// String p0: the name of the pattern variable
   static const DiagnosticWithArguments<
     LocatableDiagnostic Function({required String p0})
   >
-  inconsistentPatternVariableLogicalOr = DiagnosticWithArguments(
-    name: 'INCONSISTENT_PATTERN_VARIABLE_LOGICAL_OR',
-    problemMessage:
-        "The variable '{0}' has a different type and/or finality in this branch of "
-        "the logical-or pattern.",
-    correctionMessage:
-        "Try declaring the variable pattern with the same type and finality in "
-        "both branches.",
-    hasPublishedDocs: true,
-    type: DiagnosticType.COMPILE_TIME_ERROR,
-    uniqueName: 'CompileTimeErrorCode.INCONSISTENT_PATTERN_VARIABLE_LOGICAL_OR',
-    withArguments: _withArgumentsInconsistentPatternVariableLogicalOr,
-    expectedTypes: [ExpectedType.string],
-  );
+  inconsistentPatternVariableLogicalOr =
+      diag.inconsistentPatternVariableLogicalOr;
 
   /// Parameters:
   /// String p0: the name of the initializing formal that is not an instance
@@ -4036,18 +1663,7 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
   static const DiagnosticWithArguments<
     LocatableDiagnostic Function({required String p0})
   >
-  initializerForNonExistentField = DiagnosticWithArguments(
-    name: 'INITIALIZER_FOR_NON_EXISTENT_FIELD',
-    problemMessage: "'{0}' isn't a field in the enclosing class.",
-    correctionMessage:
-        "Try correcting the name to match an existing field, or defining a "
-        "field named '{0}'.",
-    hasPublishedDocs: true,
-    type: DiagnosticType.COMPILE_TIME_ERROR,
-    uniqueName: 'CompileTimeErrorCode.INITIALIZER_FOR_NON_EXISTENT_FIELD',
-    withArguments: _withArgumentsInitializerForNonExistentField,
-    expectedTypes: [ExpectedType.string],
-  );
+  initializerForNonExistentField = diag.initializerForNonExistentField;
 
   /// Parameters:
   /// String p0: the name of the initializing formal that is a static variable
@@ -4055,18 +1671,7 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
   static const DiagnosticWithArguments<
     LocatableDiagnostic Function({required String p0})
   >
-  initializerForStaticField = DiagnosticWithArguments(
-    name: 'INITIALIZER_FOR_STATIC_FIELD',
-    problemMessage:
-        "'{0}' is a static field in the enclosing class. Fields initialized in a "
-        "constructor can't be static.",
-    correctionMessage: "Try removing the initialization.",
-    hasPublishedDocs: true,
-    type: DiagnosticType.COMPILE_TIME_ERROR,
-    uniqueName: 'CompileTimeErrorCode.INITIALIZER_FOR_STATIC_FIELD',
-    withArguments: _withArgumentsInitializerForStaticField,
-    expectedTypes: [ExpectedType.string],
-  );
+  initializerForStaticField = diag.initializerForStaticField;
 
   /// Parameters:
   /// String p0: the name of the initializing formal that is not an instance
@@ -4074,19 +1679,8 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
   static const DiagnosticWithArguments<
     LocatableDiagnostic Function({required String p0})
   >
-  initializingFormalForNonExistentField = DiagnosticWithArguments(
-    name: 'INITIALIZING_FORMAL_FOR_NON_EXISTENT_FIELD',
-    problemMessage: "'{0}' isn't a field in the enclosing class.",
-    correctionMessage:
-        "Try correcting the name to match an existing field, or defining a "
-        "field named '{0}'.",
-    hasPublishedDocs: true,
-    type: DiagnosticType.COMPILE_TIME_ERROR,
-    uniqueName:
-        'CompileTimeErrorCode.INITIALIZING_FORMAL_FOR_NON_EXISTENT_FIELD',
-    withArguments: _withArgumentsInitializingFormalForNonExistentField,
-    expectedTypes: [ExpectedType.string],
-  );
+  initializingFormalForNonExistentField =
+      diag.initializingFormalForNonExistentField;
 
   /// Parameters:
   /// String p0: the name of the static member
@@ -4103,22 +1697,7 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
       required String p3,
     })
   >
-  instanceAccessToStaticMember = DiagnosticWithArguments(
-    name: 'INSTANCE_ACCESS_TO_STATIC_MEMBER',
-    problemMessage:
-        "The static {1} '{0}' can't be accessed through an instance.",
-    correctionMessage: "Try using the {3} '{2}' to access the {1}.",
-    hasPublishedDocs: true,
-    type: DiagnosticType.COMPILE_TIME_ERROR,
-    uniqueName: 'CompileTimeErrorCode.INSTANCE_ACCESS_TO_STATIC_MEMBER',
-    withArguments: _withArgumentsInstanceAccessToStaticMember,
-    expectedTypes: [
-      ExpectedType.string,
-      ExpectedType.string,
-      ExpectedType.string,
-      ExpectedType.string,
-    ],
-  );
+  instanceAccessToStaticMember = diag.instanceAccessToStaticMember;
 
   /// Parameters:
   /// Object p0: the name of the static member
@@ -4127,82 +1706,29 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
   static const DiagnosticWithArguments<
     LocatableDiagnostic Function({required Object p0, required Object p1})
   >
-  instanceAccessToStaticMemberOfUnnamedExtension = DiagnosticWithArguments(
-    name: 'INSTANCE_ACCESS_TO_STATIC_MEMBER',
-    problemMessage:
-        "The static {1} '{0}' can't be accessed through an instance.",
-    hasPublishedDocs: true,
-    type: DiagnosticType.COMPILE_TIME_ERROR,
-    uniqueName:
-        'CompileTimeErrorCode.INSTANCE_ACCESS_TO_STATIC_MEMBER_OF_UNNAMED_EXTENSION',
-    withArguments: _withArgumentsInstanceAccessToStaticMemberOfUnnamedExtension,
-    expectedTypes: [ExpectedType.object, ExpectedType.object],
-  );
+  instanceAccessToStaticMemberOfUnnamedExtension =
+      diag.instanceAccessToStaticMemberOfUnnamedExtension;
 
   /// No parameters.
   static const DiagnosticWithoutArguments instanceMemberAccessFromFactory =
-      DiagnosticWithoutArgumentsImpl(
-        name: 'INSTANCE_MEMBER_ACCESS_FROM_FACTORY',
-        problemMessage:
-            "Instance members can't be accessed from a factory constructor.",
-        correctionMessage: "Try removing the reference to the instance member.",
-        hasPublishedDocs: true,
-        type: DiagnosticType.COMPILE_TIME_ERROR,
-        uniqueName: 'CompileTimeErrorCode.INSTANCE_MEMBER_ACCESS_FROM_FACTORY',
-        expectedTypes: [],
-      );
+      diag.instanceMemberAccessFromFactory;
 
   /// No parameters.
-  static const DiagnosticWithoutArguments
-  instanceMemberAccessFromStatic = DiagnosticWithoutArgumentsImpl(
-    name: 'INSTANCE_MEMBER_ACCESS_FROM_STATIC',
-    problemMessage: "Instance members can't be accessed from a static method.",
-    correctionMessage:
-        "Try removing the reference to the instance member, or removing the "
-        "keyword 'static' from the method.",
-    hasPublishedDocs: true,
-    type: DiagnosticType.COMPILE_TIME_ERROR,
-    uniqueName: 'CompileTimeErrorCode.INSTANCE_MEMBER_ACCESS_FROM_STATIC',
-    expectedTypes: [],
-  );
+  static const DiagnosticWithoutArguments instanceMemberAccessFromStatic =
+      diag.instanceMemberAccessFromStatic;
 
   /// No parameters.
   static const DiagnosticWithoutArguments instantiateAbstractClass =
-      DiagnosticWithoutArgumentsImpl(
-        name: 'INSTANTIATE_ABSTRACT_CLASS',
-        problemMessage: "Abstract classes can't be instantiated.",
-        correctionMessage: "Try creating an instance of a concrete subtype.",
-        hasPublishedDocs: true,
-        type: DiagnosticType.COMPILE_TIME_ERROR,
-        uniqueName: 'CompileTimeErrorCode.INSTANTIATE_ABSTRACT_CLASS',
-        expectedTypes: [],
-      );
+      diag.instantiateAbstractClass;
 
   /// No parameters.
   static const DiagnosticWithoutArguments instantiateEnum =
-      DiagnosticWithoutArgumentsImpl(
-        name: 'INSTANTIATE_ENUM',
-        problemMessage: "Enums can't be instantiated.",
-        correctionMessage: "Try using one of the defined constants.",
-        hasPublishedDocs: true,
-        type: DiagnosticType.COMPILE_TIME_ERROR,
-        uniqueName: 'CompileTimeErrorCode.INSTANTIATE_ENUM',
-        expectedTypes: [],
-      );
+      diag.instantiateEnum;
 
   /// No parameters.
   static const DiagnosticWithoutArguments
-  instantiateTypeAliasExpandsToTypeParameter = DiagnosticWithoutArgumentsImpl(
-    name: 'INSTANTIATE_TYPE_ALIAS_EXPANDS_TO_TYPE_PARAMETER',
-    problemMessage:
-        "Type aliases that expand to a type parameter can't be instantiated.",
-    correctionMessage: "Try replacing it with a class.",
-    hasPublishedDocs: true,
-    type: DiagnosticType.COMPILE_TIME_ERROR,
-    uniqueName:
-        'CompileTimeErrorCode.INSTANTIATE_TYPE_ALIAS_EXPANDS_TO_TYPE_PARAMETER',
-    expectedTypes: [],
-  );
+  instantiateTypeAliasExpandsToTypeParameter =
+      diag.instantiateTypeAliasExpandsToTypeParameter;
 
   /// Parameters:
   /// String p0: the lexeme of the integer
@@ -4210,100 +1736,35 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
   static const DiagnosticWithArguments<
     LocatableDiagnostic Function({required String p0, required String p1})
   >
-  integerLiteralImpreciseAsDouble = DiagnosticWithArguments(
-    name: 'INTEGER_LITERAL_IMPRECISE_AS_DOUBLE',
-    problemMessage:
-        "The integer literal is being used as a double, but can't be represented "
-        "as a 64-bit double without overflow or loss of precision: '{0}'.",
-    correctionMessage:
-        "Try using the class 'BigInt', or switch to the closest valid double: "
-        "'{1}'.",
-    hasPublishedDocs: true,
-    type: DiagnosticType.COMPILE_TIME_ERROR,
-    uniqueName: 'CompileTimeErrorCode.INTEGER_LITERAL_IMPRECISE_AS_DOUBLE',
-    withArguments: _withArgumentsIntegerLiteralImpreciseAsDouble,
-    expectedTypes: [ExpectedType.string, ExpectedType.string],
-  );
+  integerLiteralImpreciseAsDouble = diag.integerLiteralImpreciseAsDouble;
 
   /// Parameters:
   /// String p0: the value of the literal
   static const DiagnosticWithArguments<
     LocatableDiagnostic Function({required String p0})
   >
-  integerLiteralOutOfRange = DiagnosticWithArguments(
-    name: 'INTEGER_LITERAL_OUT_OF_RANGE',
-    problemMessage: "The integer literal {0} can't be represented in 64 bits.",
-    correctionMessage:
-        "Try using the 'BigInt' class if you need an integer larger than "
-        "9,223,372,036,854,775,807 or less than -9,223,372,036,854,775,808.",
-    hasPublishedDocs: true,
-    type: DiagnosticType.COMPILE_TIME_ERROR,
-    uniqueName: 'CompileTimeErrorCode.INTEGER_LITERAL_OUT_OF_RANGE',
-    withArguments: _withArgumentsIntegerLiteralOutOfRange,
-    expectedTypes: [ExpectedType.string],
-  );
+  integerLiteralOutOfRange = diag.integerLiteralOutOfRange;
 
   /// Parameters:
   /// String p0: the name of the interface class being extended.
   static const DiagnosticWithArguments<
     LocatableDiagnostic Function({required String p0})
   >
-  interfaceClassExtendedOutsideOfLibrary = DiagnosticWithArguments(
-    name: 'INVALID_USE_OF_TYPE_OUTSIDE_LIBRARY',
-    problemMessage:
-        "The class '{0}' can't be extended outside of its library because it's an "
-        "interface class.",
-    hasPublishedDocs: true,
-    type: DiagnosticType.COMPILE_TIME_ERROR,
-    uniqueName:
-        'CompileTimeErrorCode.INTERFACE_CLASS_EXTENDED_OUTSIDE_OF_LIBRARY',
-    withArguments: _withArgumentsInterfaceClassExtendedOutsideOfLibrary,
-    expectedTypes: [ExpectedType.string],
-  );
+  interfaceClassExtendedOutsideOfLibrary =
+      diag.interfaceClassExtendedOutsideOfLibrary;
+
+  /// No parameters.
+  static const DiagnosticWithoutArguments invalidAnnotation =
+      diag.invalidAnnotation;
 
   /// No parameters.
   static const DiagnosticWithoutArguments
-  invalidAnnotation = DiagnosticWithoutArgumentsImpl(
-    name: 'INVALID_ANNOTATION',
-    problemMessage:
-        "Annotation must be either a const variable reference or const constructor "
-        "invocation.",
-    hasPublishedDocs: true,
-    type: DiagnosticType.COMPILE_TIME_ERROR,
-    uniqueName: 'CompileTimeErrorCode.INVALID_ANNOTATION',
-    expectedTypes: [],
-  );
+  invalidAnnotationConstantValueFromDeferredLibrary =
+      diag.invalidAnnotationConstantValueFromDeferredLibrary;
 
   /// No parameters.
-  static const DiagnosticWithoutArguments
-  invalidAnnotationConstantValueFromDeferredLibrary = DiagnosticWithoutArgumentsImpl(
-    name: 'INVALID_ANNOTATION_CONSTANT_VALUE_FROM_DEFERRED_LIBRARY',
-    problemMessage:
-        "Constant values from a deferred library can't be used in annotations.",
-    correctionMessage:
-        "Try moving the constant from the deferred library, or removing "
-        "'deferred' from the import.",
-    hasPublishedDocs: true,
-    type: DiagnosticType.COMPILE_TIME_ERROR,
-    uniqueName:
-        'CompileTimeErrorCode.INVALID_ANNOTATION_CONSTANT_VALUE_FROM_DEFERRED_LIBRARY',
-    expectedTypes: [],
-  );
-
-  /// No parameters.
-  static const DiagnosticWithoutArguments
-  invalidAnnotationFromDeferredLibrary = DiagnosticWithoutArgumentsImpl(
-    name: 'INVALID_ANNOTATION_FROM_DEFERRED_LIBRARY',
-    problemMessage:
-        "Constant values from a deferred library can't be used as annotations.",
-    correctionMessage:
-        "Try removing the annotation, or changing the import to not be "
-        "deferred.",
-    hasPublishedDocs: true,
-    type: DiagnosticType.COMPILE_TIME_ERROR,
-    uniqueName: 'CompileTimeErrorCode.INVALID_ANNOTATION_FROM_DEFERRED_LIBRARY',
-    expectedTypes: [],
-  );
+  static const DiagnosticWithoutArguments invalidAnnotationFromDeferredLibrary =
+      diag.invalidAnnotationFromDeferredLibrary;
 
   /// Parameters:
   /// Type p0: the name of the right hand side type
@@ -4311,19 +1772,7 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
   static const DiagnosticWithArguments<
     LocatableDiagnostic Function({required DartType p0, required DartType p1})
   >
-  invalidAssignment = DiagnosticWithArguments(
-    name: 'INVALID_ASSIGNMENT',
-    problemMessage:
-        "A value of type '{0}' can't be assigned to a variable of type '{1}'.",
-    correctionMessage:
-        "Try changing the type of the variable, or casting the right-hand type "
-        "to '{1}'.",
-    hasPublishedDocs: true,
-    type: DiagnosticType.COMPILE_TIME_ERROR,
-    uniqueName: 'CompileTimeErrorCode.INVALID_ASSIGNMENT',
-    withArguments: _withArgumentsInvalidAssignment,
-    expectedTypes: [ExpectedType.type, ExpectedType.type],
-  );
+  invalidAssignment = diag.invalidAssignment;
 
   /// This error is only reported in libraries which are not null safe.
   ///
@@ -4338,20 +1787,7 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
       required Object p2,
     })
   >
-  invalidCastFunction = DiagnosticWithArguments(
-    name: 'INVALID_CAST_FUNCTION',
-    problemMessage:
-        "The function '{0}' has type '{1}' that isn't of expected type '{2}'. This "
-        "means its parameter or return type doesn't match what is expected.",
-    type: DiagnosticType.COMPILE_TIME_ERROR,
-    uniqueName: 'CompileTimeErrorCode.INVALID_CAST_FUNCTION',
-    withArguments: _withArgumentsInvalidCastFunction,
-    expectedTypes: [
-      ExpectedType.object,
-      ExpectedType.object,
-      ExpectedType.object,
-    ],
-  );
+  invalidCastFunction = diag.invalidCastFunction;
 
   /// This error is only reported in libraries which are not null safe.
   ///
@@ -4361,17 +1797,7 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
   static const DiagnosticWithArguments<
     LocatableDiagnostic Function({required Object p0, required Object p1})
   >
-  invalidCastFunctionExpr = DiagnosticWithArguments(
-    name: 'INVALID_CAST_FUNCTION_EXPR',
-    problemMessage:
-        "The function expression type '{0}' isn't of type '{1}'. This means its "
-        "parameter or return type doesn't match what is expected. Consider "
-        "changing parameter type(s) or the returned type(s).",
-    type: DiagnosticType.COMPILE_TIME_ERROR,
-    uniqueName: 'CompileTimeErrorCode.INVALID_CAST_FUNCTION_EXPR',
-    withArguments: _withArgumentsInvalidCastFunctionExpr,
-    expectedTypes: [ExpectedType.object, ExpectedType.object],
-  );
+  invalidCastFunctionExpr = diag.invalidCastFunctionExpr;
 
   /// This error is only reported in libraries which are not null safe.
   ///
@@ -4386,19 +1812,7 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
       required Object p2,
     })
   >
-  invalidCastLiteral = DiagnosticWithArguments(
-    name: 'INVALID_CAST_LITERAL',
-    problemMessage:
-        "The literal '{0}' with type '{1}' isn't of expected type '{2}'.",
-    type: DiagnosticType.COMPILE_TIME_ERROR,
-    uniqueName: 'CompileTimeErrorCode.INVALID_CAST_LITERAL',
-    withArguments: _withArgumentsInvalidCastLiteral,
-    expectedTypes: [
-      ExpectedType.object,
-      ExpectedType.object,
-      ExpectedType.object,
-    ],
-  );
+  invalidCastLiteral = diag.invalidCastLiteral;
 
   /// This error is only reported in libraries which are not null safe.
   ///
@@ -4408,17 +1822,7 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
   static const DiagnosticWithArguments<
     LocatableDiagnostic Function({required Object p0, required Object p1})
   >
-  invalidCastLiteralList = DiagnosticWithArguments(
-    name: 'INVALID_CAST_LITERAL_LIST',
-    problemMessage:
-        "The list literal type '{0}' isn't of expected type '{1}'. The list's type "
-        "can be changed with an explicit generic type argument or by changing "
-        "the element types.",
-    type: DiagnosticType.COMPILE_TIME_ERROR,
-    uniqueName: 'CompileTimeErrorCode.INVALID_CAST_LITERAL_LIST',
-    withArguments: _withArgumentsInvalidCastLiteralList,
-    expectedTypes: [ExpectedType.object, ExpectedType.object],
-  );
+  invalidCastLiteralList = diag.invalidCastLiteralList;
 
   /// This error is only reported in libraries which are not null safe.
   ///
@@ -4428,17 +1832,7 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
   static const DiagnosticWithArguments<
     LocatableDiagnostic Function({required Object p0, required Object p1})
   >
-  invalidCastLiteralMap = DiagnosticWithArguments(
-    name: 'INVALID_CAST_LITERAL_MAP',
-    problemMessage:
-        "The map literal type '{0}' isn't of expected type '{1}'. The map's type "
-        "can be changed with an explicit generic type arguments or by changing "
-        "the key and value types.",
-    type: DiagnosticType.COMPILE_TIME_ERROR,
-    uniqueName: 'CompileTimeErrorCode.INVALID_CAST_LITERAL_MAP',
-    withArguments: _withArgumentsInvalidCastLiteralMap,
-    expectedTypes: [ExpectedType.object, ExpectedType.object],
-  );
+  invalidCastLiteralMap = diag.invalidCastLiteralMap;
 
   /// This error is only reported in libraries which are not null safe.
   ///
@@ -4448,17 +1842,7 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
   static const DiagnosticWithArguments<
     LocatableDiagnostic Function({required Object p0, required Object p1})
   >
-  invalidCastLiteralSet = DiagnosticWithArguments(
-    name: 'INVALID_CAST_LITERAL_SET',
-    problemMessage:
-        "The set literal type '{0}' isn't of expected type '{1}'. The set's type "
-        "can be changed with an explicit generic type argument or by changing "
-        "the element types.",
-    type: DiagnosticType.COMPILE_TIME_ERROR,
-    uniqueName: 'CompileTimeErrorCode.INVALID_CAST_LITERAL_SET',
-    withArguments: _withArgumentsInvalidCastLiteralSet,
-    expectedTypes: [ExpectedType.object, ExpectedType.object],
-  );
+  invalidCastLiteralSet = diag.invalidCastLiteralSet;
 
   /// This error is only reported in libraries which are not null safe.
   ///
@@ -4473,21 +1857,7 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
       required Object p2,
     })
   >
-  invalidCastMethod = DiagnosticWithArguments(
-    name: 'INVALID_CAST_METHOD',
-    problemMessage:
-        "The method tear-off '{0}' has type '{1}' that isn't of expected type "
-        "'{2}'. This means its parameter or return type doesn't match what is "
-        "expected.",
-    type: DiagnosticType.COMPILE_TIME_ERROR,
-    uniqueName: 'CompileTimeErrorCode.INVALID_CAST_METHOD',
-    withArguments: _withArgumentsInvalidCastMethod,
-    expectedTypes: [
-      ExpectedType.object,
-      ExpectedType.object,
-      ExpectedType.object,
-    ],
-  );
+  invalidCastMethod = diag.invalidCastMethod;
 
   /// This error is only reported in libraries which are not null safe.
   ///
@@ -4497,15 +1867,7 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
   static const DiagnosticWithArguments<
     LocatableDiagnostic Function({required Object p0, required Object p1})
   >
-  invalidCastNewExpr = DiagnosticWithArguments(
-    name: 'INVALID_CAST_NEW_EXPR',
-    problemMessage:
-        "The constructor returns type '{0}' that isn't of expected type '{1}'.",
-    type: DiagnosticType.COMPILE_TIME_ERROR,
-    uniqueName: 'CompileTimeErrorCode.INVALID_CAST_NEW_EXPR',
-    withArguments: _withArgumentsInvalidCastNewExpr,
-    expectedTypes: [ExpectedType.object, ExpectedType.object],
-  );
+  invalidCastNewExpr = diag.invalidCastNewExpr;
 
   /// TODO(brianwilkerson): Remove this when we have decided on how to report
   /// errors in compile-time constants. Until then, this acts as a placeholder
@@ -4515,82 +1877,30 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
   ///
   /// No parameters.
   static const DiagnosticWithoutArguments invalidConstant =
-      DiagnosticWithoutArgumentsImpl(
-        name: 'INVALID_CONSTANT',
-        problemMessage: "Invalid constant value.",
-        type: DiagnosticType.COMPILE_TIME_ERROR,
-        uniqueName: 'CompileTimeErrorCode.INVALID_CONSTANT',
-        expectedTypes: [],
-      );
+      diag.invalidConstant;
 
   /// No parameters.
-  static const DiagnosticWithoutArguments
-  invalidExtensionArgumentCount = DiagnosticWithoutArgumentsImpl(
-    name: 'INVALID_EXTENSION_ARGUMENT_COUNT',
-    problemMessage:
-        "Extension overrides must have exactly one argument: the value of 'this' "
-        "in the extension method.",
-    correctionMessage: "Try specifying exactly one argument.",
-    hasPublishedDocs: true,
-    type: DiagnosticType.COMPILE_TIME_ERROR,
-    uniqueName: 'CompileTimeErrorCode.INVALID_EXTENSION_ARGUMENT_COUNT',
-    expectedTypes: [],
-  );
+  static const DiagnosticWithoutArguments invalidExtensionArgumentCount =
+      diag.invalidExtensionArgumentCount;
 
   /// No parameters.
-  static const DiagnosticWithoutArguments
-  invalidFactoryNameNotAClass = DiagnosticWithoutArgumentsImpl(
-    name: 'INVALID_FACTORY_NAME_NOT_A_CLASS',
-    problemMessage:
-        "The name of a factory constructor must be the same as the name of the "
-        "immediately enclosing class.",
-    hasPublishedDocs: true,
-    type: DiagnosticType.COMPILE_TIME_ERROR,
-    uniqueName: 'CompileTimeErrorCode.INVALID_FACTORY_NAME_NOT_A_CLASS',
-    expectedTypes: [],
-  );
+  static const DiagnosticWithoutArguments invalidFactoryNameNotAClass =
+      diag.invalidFactoryNameNotAClass;
 
   /// No parameters.
   static const DiagnosticWithoutArguments invalidFieldNameFromObject =
-      DiagnosticWithoutArgumentsImpl(
-        name: 'INVALID_FIELD_NAME',
-        problemMessage:
-            "Record field names can't be the same as a member from 'Object'.",
-        correctionMessage: "Try using a different name for the field.",
-        hasPublishedDocs: true,
-        type: DiagnosticType.COMPILE_TIME_ERROR,
-        uniqueName: 'CompileTimeErrorCode.INVALID_FIELD_NAME_FROM_OBJECT',
-        expectedTypes: [],
-      );
+      diag.invalidFieldNameFromObject;
 
   /// No parameters.
-  static const DiagnosticWithoutArguments
-  invalidFieldNamePositional = DiagnosticWithoutArgumentsImpl(
-    name: 'INVALID_FIELD_NAME',
-    problemMessage:
-        "Record field names can't be a dollar sign followed by an integer when the "
-        "integer is the index of a positional field.",
-    correctionMessage: "Try using a different name for the field.",
-    hasPublishedDocs: true,
-    type: DiagnosticType.COMPILE_TIME_ERROR,
-    uniqueName: 'CompileTimeErrorCode.INVALID_FIELD_NAME_POSITIONAL',
-    expectedTypes: [],
-  );
+  static const DiagnosticWithoutArguments invalidFieldNamePositional =
+      diag.invalidFieldNamePositional;
 
   /// No parameters.
   static const DiagnosticWithoutArguments invalidFieldNamePrivate =
-      DiagnosticWithoutArgumentsImpl(
-        name: 'INVALID_FIELD_NAME',
-        problemMessage: "Record field names can't be private.",
-        correctionMessage: "Try removing the leading underscore.",
-        hasPublishedDocs: true,
-        type: DiagnosticType.COMPILE_TIME_ERROR,
-        uniqueName: 'CompileTimeErrorCode.INVALID_FIELD_NAME_PRIVATE',
-        expectedTypes: [],
-      );
+      diag.invalidFieldNamePrivate;
 
   /// The parameters of this error code must be kept in sync with those of
-  /// [CompileTimeErrorCode.invalidOverride].
+  /// [diag.invalidOverride].
   ///
   /// Parameters:
   /// Object p0: the name of the declared member that is not a valid override.
@@ -4607,26 +1917,10 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
       required Object p4,
     })
   >
-  invalidImplementationOverride = DiagnosticWithArguments(
-    name: 'INVALID_IMPLEMENTATION_OVERRIDE',
-    problemMessage:
-        "'{1}.{0}' ('{2}') isn't a valid concrete implementation of '{3}.{0}' "
-        "('{4}').",
-    hasPublishedDocs: true,
-    type: DiagnosticType.COMPILE_TIME_ERROR,
-    uniqueName: 'CompileTimeErrorCode.INVALID_IMPLEMENTATION_OVERRIDE',
-    withArguments: _withArgumentsInvalidImplementationOverride,
-    expectedTypes: [
-      ExpectedType.object,
-      ExpectedType.object,
-      ExpectedType.object,
-      ExpectedType.object,
-      ExpectedType.object,
-    ],
-  );
+  invalidImplementationOverride = diag.invalidImplementationOverride;
 
   /// The parameters of this error code must be kept in sync with those of
-  /// [CompileTimeErrorCode.invalidOverride].
+  /// [diag.invalidOverride].
   ///
   /// Parameters:
   /// Object p0: the name of the declared setter that is not a valid override.
@@ -4643,68 +1937,23 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
       required Object p4,
     })
   >
-  invalidImplementationOverrideSetter = DiagnosticWithArguments(
-    name: 'INVALID_IMPLEMENTATION_OVERRIDE',
-    problemMessage:
-        "The setter '{1}.{0}' ('{2}') isn't a valid concrete implementation of "
-        "'{3}.{0}' ('{4}').",
-    hasPublishedDocs: true,
-    type: DiagnosticType.COMPILE_TIME_ERROR,
-    uniqueName: 'CompileTimeErrorCode.INVALID_IMPLEMENTATION_OVERRIDE_SETTER',
-    withArguments: _withArgumentsInvalidImplementationOverrideSetter,
-    expectedTypes: [
-      ExpectedType.object,
-      ExpectedType.object,
-      ExpectedType.object,
-      ExpectedType.object,
-      ExpectedType.object,
-    ],
-  );
+  invalidImplementationOverrideSetter =
+      diag.invalidImplementationOverrideSetter;
 
   /// No parameters.
-  static const DiagnosticWithoutArguments
-  invalidInlineFunctionType = DiagnosticWithoutArgumentsImpl(
-    name: 'INVALID_INLINE_FUNCTION_TYPE',
-    problemMessage:
-        "Inline function types can't be used for parameters in a generic function "
-        "type.",
-    correctionMessage:
-        "Try using a generic function type (returnType 'Function(' parameters "
-        "')').",
-    hasPublishedDocs: true,
-    type: DiagnosticType.COMPILE_TIME_ERROR,
-    uniqueName: 'CompileTimeErrorCode.INVALID_INLINE_FUNCTION_TYPE',
-    expectedTypes: [],
-  );
+  static const DiagnosticWithoutArguments invalidInlineFunctionType =
+      diag.invalidInlineFunctionType;
 
   /// Parameters:
   /// String p0: the invalid modifier
   static const DiagnosticWithArguments<
     LocatableDiagnostic Function({required String p0})
   >
-  invalidModifierOnConstructor = DiagnosticWithArguments(
-    name: 'INVALID_MODIFIER_ON_CONSTRUCTOR',
-    problemMessage:
-        "The modifier '{0}' can't be applied to the body of a constructor.",
-    correctionMessage: "Try removing the modifier.",
-    hasPublishedDocs: true,
-    type: DiagnosticType.COMPILE_TIME_ERROR,
-    uniqueName: 'CompileTimeErrorCode.INVALID_MODIFIER_ON_CONSTRUCTOR',
-    withArguments: _withArgumentsInvalidModifierOnConstructor,
-    expectedTypes: [ExpectedType.string],
-  );
+  invalidModifierOnConstructor = diag.invalidModifierOnConstructor;
 
   /// No parameters.
   static const DiagnosticWithoutArguments invalidModifierOnSetter =
-      DiagnosticWithoutArgumentsImpl(
-        name: 'INVALID_MODIFIER_ON_SETTER',
-        problemMessage: "Setters can't use 'async', 'async*', or 'sync*'.",
-        correctionMessage: "Try removing the modifier.",
-        hasPublishedDocs: true,
-        type: DiagnosticType.COMPILE_TIME_ERROR,
-        uniqueName: 'CompileTimeErrorCode.INVALID_MODIFIER_ON_SETTER',
-        expectedTypes: [],
-      );
+      diag.invalidModifierOnSetter;
 
   /// Parameters:
   /// String p0: the name of the declared member that is not a valid override.
@@ -4721,22 +1970,7 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
       required DartType p4,
     })
   >
-  invalidOverride = DiagnosticWithArguments(
-    name: 'INVALID_OVERRIDE',
-    problemMessage:
-        "'{1}.{0}' ('{2}') isn't a valid override of '{3}.{0}' ('{4}').",
-    hasPublishedDocs: true,
-    type: DiagnosticType.COMPILE_TIME_ERROR,
-    uniqueName: 'CompileTimeErrorCode.INVALID_OVERRIDE',
-    withArguments: _withArgumentsInvalidOverride,
-    expectedTypes: [
-      ExpectedType.string,
-      ExpectedType.string,
-      ExpectedType.type,
-      ExpectedType.string,
-      ExpectedType.type,
-    ],
-  );
+  invalidOverride = diag.invalidOverride;
 
   /// Parameters:
   /// Object p0: the name of the declared setter that is not a valid override.
@@ -4753,287 +1987,103 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
       required Object p4,
     })
   >
-  invalidOverrideSetter = DiagnosticWithArguments(
-    name: 'INVALID_OVERRIDE',
-    problemMessage:
-        "The setter '{1}.{0}' ('{2}') isn't a valid override of '{3}.{0}' ('{4}').",
-    hasPublishedDocs: true,
-    type: DiagnosticType.COMPILE_TIME_ERROR,
-    uniqueName: 'CompileTimeErrorCode.INVALID_OVERRIDE_SETTER',
-    withArguments: _withArgumentsInvalidOverrideSetter,
-    expectedTypes: [
-      ExpectedType.object,
-      ExpectedType.object,
-      ExpectedType.object,
-      ExpectedType.object,
-      ExpectedType.object,
-    ],
-  );
+  invalidOverrideSetter = diag.invalidOverrideSetter;
 
   /// No parameters.
   static const DiagnosticWithoutArguments
-  invalidReferenceToGenerativeEnumConstructor = DiagnosticWithoutArgumentsImpl(
-    name: 'INVALID_REFERENCE_TO_GENERATIVE_ENUM_CONSTRUCTOR',
-    problemMessage:
-        "Generative enum constructors can only be used to create an enum constant.",
-    correctionMessage: "Try using an enum value, or a factory constructor.",
-    hasPublishedDocs: true,
-    type: DiagnosticType.COMPILE_TIME_ERROR,
-    uniqueName:
-        'CompileTimeErrorCode.INVALID_REFERENCE_TO_GENERATIVE_ENUM_CONSTRUCTOR',
-    expectedTypes: [],
-  );
+  invalidReferenceToGenerativeEnumConstructor =
+      diag.invalidReferenceToGenerativeEnumConstructor;
 
   /// No parameters.
   static const DiagnosticWithoutArguments
   invalidReferenceToGenerativeEnumConstructorTearoff =
-      DiagnosticWithoutArgumentsImpl(
-        name: 'INVALID_REFERENCE_TO_GENERATIVE_ENUM_CONSTRUCTOR',
-        problemMessage: "Generative enum constructors can't be torn off.",
-        correctionMessage: "Try using an enum value, or a factory constructor.",
-        hasPublishedDocs: true,
-        type: DiagnosticType.COMPILE_TIME_ERROR,
-        uniqueName:
-            'CompileTimeErrorCode.INVALID_REFERENCE_TO_GENERATIVE_ENUM_CONSTRUCTOR_TEAROFF',
-        expectedTypes: [],
-      );
+      diag.invalidReferenceToGenerativeEnumConstructorTearoff;
 
   /// No parameters.
   static const DiagnosticWithoutArguments invalidReferenceToThis =
-      DiagnosticWithoutArgumentsImpl(
-        name: 'INVALID_REFERENCE_TO_THIS',
-        problemMessage: "Invalid reference to 'this' expression.",
-        hasPublishedDocs: true,
-        type: DiagnosticType.COMPILE_TIME_ERROR,
-        uniqueName: 'CompileTimeErrorCode.INVALID_REFERENCE_TO_THIS',
-        expectedTypes: [],
-      );
+      diag.invalidReferenceToThis;
 
   /// No parameters.
-  static const DiagnosticWithoutArguments
-  invalidSuperFormalParameterLocation = DiagnosticWithoutArgumentsImpl(
-    name: 'INVALID_SUPER_FORMAL_PARAMETER_LOCATION',
-    problemMessage:
-        "Super parameters can only be used in non-redirecting generative "
-        "constructors.",
-    correctionMessage:
-        "Try removing the 'super' modifier, or changing the constructor to be "
-        "non-redirecting and generative.",
-    hasPublishedDocs: true,
-    type: DiagnosticType.COMPILE_TIME_ERROR,
-    uniqueName: 'CompileTimeErrorCode.INVALID_SUPER_FORMAL_PARAMETER_LOCATION',
-    expectedTypes: [],
-  );
+  static const DiagnosticWithoutArguments invalidSuperFormalParameterLocation =
+      diag.invalidSuperFormalParameterLocation;
 
   /// Parameters:
   /// Object p0: the name of the type parameter
   static const DiagnosticWithArguments<
     LocatableDiagnostic Function({required Object p0})
   >
-  invalidTypeArgumentInConstList = DiagnosticWithArguments(
-    name: 'INVALID_TYPE_ARGUMENT_IN_CONST_LITERAL',
-    problemMessage:
-        "Constant list literals can't use a type parameter in a type argument, "
-        "such as '{0}'.",
-    correctionMessage:
-        "Try replacing the type parameter with a different type.",
-    hasPublishedDocs: true,
-    type: DiagnosticType.COMPILE_TIME_ERROR,
-    uniqueName: 'CompileTimeErrorCode.INVALID_TYPE_ARGUMENT_IN_CONST_LIST',
-    withArguments: _withArgumentsInvalidTypeArgumentInConstList,
-    expectedTypes: [ExpectedType.object],
-  );
+  invalidTypeArgumentInConstList = diag.invalidTypeArgumentInConstList;
 
   /// Parameters:
   /// Object p0: the name of the type parameter
   static const DiagnosticWithArguments<
     LocatableDiagnostic Function({required Object p0})
   >
-  invalidTypeArgumentInConstMap = DiagnosticWithArguments(
-    name: 'INVALID_TYPE_ARGUMENT_IN_CONST_LITERAL',
-    problemMessage:
-        "Constant map literals can't use a type parameter in a type argument, such "
-        "as '{0}'.",
-    correctionMessage:
-        "Try replacing the type parameter with a different type.",
-    hasPublishedDocs: true,
-    type: DiagnosticType.COMPILE_TIME_ERROR,
-    uniqueName: 'CompileTimeErrorCode.INVALID_TYPE_ARGUMENT_IN_CONST_MAP',
-    withArguments: _withArgumentsInvalidTypeArgumentInConstMap,
-    expectedTypes: [ExpectedType.object],
-  );
+  invalidTypeArgumentInConstMap = diag.invalidTypeArgumentInConstMap;
 
   /// Parameters:
   /// String p0: the name of the type parameter
   static const DiagnosticWithArguments<
     LocatableDiagnostic Function({required String p0})
   >
-  invalidTypeArgumentInConstSet = DiagnosticWithArguments(
-    name: 'INVALID_TYPE_ARGUMENT_IN_CONST_LITERAL',
-    problemMessage:
-        "Constant set literals can't use a type parameter in a type argument, such "
-        "as '{0}'.",
-    correctionMessage:
-        "Try replacing the type parameter with a different type.",
-    hasPublishedDocs: true,
-    type: DiagnosticType.COMPILE_TIME_ERROR,
-    uniqueName: 'CompileTimeErrorCode.INVALID_TYPE_ARGUMENT_IN_CONST_SET',
-    withArguments: _withArgumentsInvalidTypeArgumentInConstSet,
-    expectedTypes: [ExpectedType.string],
-  );
+  invalidTypeArgumentInConstSet = diag.invalidTypeArgumentInConstSet;
 
   /// Parameters:
   /// String p0: the URI that is invalid
   static const DiagnosticWithArguments<
     LocatableDiagnostic Function({required String p0})
   >
-  invalidUri = DiagnosticWithArguments(
-    name: 'INVALID_URI',
-    problemMessage: "Invalid URI syntax: '{0}'.",
-    hasPublishedDocs: true,
-    type: DiagnosticType.COMPILE_TIME_ERROR,
-    uniqueName: 'CompileTimeErrorCode.INVALID_URI',
-    withArguments: _withArgumentsInvalidUri,
-    expectedTypes: [ExpectedType.string],
-  );
+  invalidUri = diag.invalidUri;
 
   /// The 'covariant' keyword was found in an inappropriate location.
   ///
   /// No parameters.
-  static const DiagnosticWithoutArguments
-  invalidUseOfCovariant = DiagnosticWithoutArgumentsImpl(
-    name: 'INVALID_USE_OF_COVARIANT',
-    problemMessage:
-        "The 'covariant' keyword can only be used for parameters in instance "
-        "methods or before non-final instance fields.",
-    correctionMessage: "Try removing the 'covariant' keyword.",
-    type: DiagnosticType.COMPILE_TIME_ERROR,
-    uniqueName: 'CompileTimeErrorCode.INVALID_USE_OF_COVARIANT',
-    expectedTypes: [],
-  );
+  static const DiagnosticWithoutArguments invalidUseOfCovariant =
+      diag.invalidUseOfCovariant;
 
   /// No parameters.
   static const DiagnosticWithoutArguments invalidUseOfNullValue =
-      DiagnosticWithoutArgumentsImpl(
-        name: 'INVALID_USE_OF_NULL_VALUE',
-        problemMessage:
-            "An expression whose value is always 'null' can't be dereferenced.",
-        correctionMessage: "Try changing the type of the expression.",
-        hasPublishedDocs: true,
-        type: DiagnosticType.COMPILE_TIME_ERROR,
-        uniqueName: 'CompileTimeErrorCode.INVALID_USE_OF_NULL_VALUE',
-        expectedTypes: [],
-      );
+      diag.invalidUseOfNullValue;
 
   /// Parameters:
   /// String p0: the name of the extension
   static const DiagnosticWithArguments<
     LocatableDiagnostic Function({required String p0})
   >
-  invocationOfExtensionWithoutCall = DiagnosticWithArguments(
-    name: 'INVOCATION_OF_EXTENSION_WITHOUT_CALL',
-    problemMessage:
-        "The extension '{0}' doesn't define a 'call' method so the override can't "
-        "be used in an invocation.",
-    hasPublishedDocs: true,
-    type: DiagnosticType.COMPILE_TIME_ERROR,
-    uniqueName: 'CompileTimeErrorCode.INVOCATION_OF_EXTENSION_WITHOUT_CALL',
-    withArguments: _withArgumentsInvocationOfExtensionWithoutCall,
-    expectedTypes: [ExpectedType.string],
-  );
+  invocationOfExtensionWithoutCall = diag.invocationOfExtensionWithoutCall;
 
   /// Parameters:
   /// String p0: the name of the identifier that is not a function type
   static const DiagnosticWithArguments<
     LocatableDiagnostic Function({required String p0})
   >
-  invocationOfNonFunction = DiagnosticWithArguments(
-    name: 'INVOCATION_OF_NON_FUNCTION',
-    problemMessage: "'{0}' isn't a function.",
-    correctionMessage:
-        "Try correcting the name to match an existing function, or define a "
-        "method or function named '{0}'.",
-    hasPublishedDocs: true,
-    type: DiagnosticType.COMPILE_TIME_ERROR,
-    uniqueName: 'CompileTimeErrorCode.INVOCATION_OF_NON_FUNCTION',
-    withArguments: _withArgumentsInvocationOfNonFunction,
-    expectedTypes: [ExpectedType.string],
-  );
+  invocationOfNonFunction = diag.invocationOfNonFunction;
 
   /// No parameters.
-  static const DiagnosticWithoutArguments
-  invocationOfNonFunctionExpression = DiagnosticWithoutArgumentsImpl(
-    name: 'INVOCATION_OF_NON_FUNCTION_EXPRESSION',
-    problemMessage:
-        "The expression doesn't evaluate to a function, so it can't be invoked.",
-    hasPublishedDocs: true,
-    type: DiagnosticType.COMPILE_TIME_ERROR,
-    uniqueName: 'CompileTimeErrorCode.INVOCATION_OF_NON_FUNCTION_EXPRESSION',
-    expectedTypes: [],
-  );
+  static const DiagnosticWithoutArguments invocationOfNonFunctionExpression =
+      diag.invocationOfNonFunctionExpression;
 
   /// Parameters:
   /// String p0: the name of the unresolvable label
   static const DiagnosticWithArguments<
     LocatableDiagnostic Function({required String p0})
   >
-  labelInOuterScope = DiagnosticWithArguments(
-    name: 'LABEL_IN_OUTER_SCOPE',
-    problemMessage: "Can't reference label '{0}' declared in an outer method.",
-    hasPublishedDocs: true,
-    type: DiagnosticType.COMPILE_TIME_ERROR,
-    uniqueName: 'CompileTimeErrorCode.LABEL_IN_OUTER_SCOPE',
-    withArguments: _withArgumentsLabelInOuterScope,
-    expectedTypes: [ExpectedType.string],
-  );
+  labelInOuterScope = diag.labelInOuterScope;
 
   /// Parameters:
   /// String p0: the name of the unresolvable label
   static const DiagnosticWithArguments<
     LocatableDiagnostic Function({required String p0})
   >
-  labelUndefined = DiagnosticWithArguments(
-    name: 'LABEL_UNDEFINED',
-    problemMessage: "Can't reference an undefined label '{0}'.",
-    correctionMessage:
-        "Try defining the label, or correcting the name to match an existing "
-        "label.",
-    hasPublishedDocs: true,
-    type: DiagnosticType.COMPILE_TIME_ERROR,
-    uniqueName: 'CompileTimeErrorCode.LABEL_UNDEFINED',
-    withArguments: _withArgumentsLabelUndefined,
-    expectedTypes: [ExpectedType.string],
-  );
+  labelUndefined = diag.labelUndefined;
 
   /// No parameters.
   static const DiagnosticWithoutArguments lateFinalFieldWithConstConstructor =
-      DiagnosticWithoutArgumentsImpl(
-        name: 'LATE_FINAL_FIELD_WITH_CONST_CONSTRUCTOR',
-        problemMessage:
-            "Can't have a late final field in a class with a generative const "
-            "constructor.",
-        correctionMessage:
-            "Try removing the 'late' modifier, or don't declare 'const' "
-            "constructors.",
-        hasPublishedDocs: true,
-        type: DiagnosticType.COMPILE_TIME_ERROR,
-        uniqueName:
-            'CompileTimeErrorCode.LATE_FINAL_FIELD_WITH_CONST_CONSTRUCTOR',
-        expectedTypes: [],
-      );
+      diag.lateFinalFieldWithConstConstructor;
 
   /// No parameters.
   static const DiagnosticWithoutArguments lateFinalLocalAlreadyAssigned =
-      DiagnosticWithoutArgumentsImpl(
-        name: 'LATE_FINAL_LOCAL_ALREADY_ASSIGNED',
-        problemMessage: "The late final local variable is already assigned.",
-        correctionMessage:
-            "Try removing the 'final' modifier, or don't reassign the value.",
-        hasPublishedDocs: true,
-        type: DiagnosticType.COMPILE_TIME_ERROR,
-        uniqueName: 'CompileTimeErrorCode.LATE_FINAL_LOCAL_ALREADY_ASSIGNED',
-        expectedTypes: [],
-      );
+      diag.lateFinalLocalAlreadyAssigned;
 
   /// Parameters:
   /// Type p0: the actual type of the list element
@@ -5041,16 +2091,7 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
   static const DiagnosticWithArguments<
     LocatableDiagnostic Function({required DartType p0, required DartType p1})
   >
-  listElementTypeNotAssignable = DiagnosticWithArguments(
-    name: 'LIST_ELEMENT_TYPE_NOT_ASSIGNABLE',
-    problemMessage:
-        "The element type '{0}' can't be assigned to the list type '{1}'.",
-    hasPublishedDocs: true,
-    type: DiagnosticType.COMPILE_TIME_ERROR,
-    uniqueName: 'CompileTimeErrorCode.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE',
-    withArguments: _withArgumentsListElementTypeNotAssignable,
-    expectedTypes: [ExpectedType.type, ExpectedType.type],
-  );
+  listElementTypeNotAssignable = diag.listElementTypeNotAssignable;
 
   /// Parameters:
   /// Type p0: the actual type of the list element
@@ -5058,88 +2099,29 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
   static const DiagnosticWithArguments<
     LocatableDiagnostic Function({required DartType p0, required DartType p1})
   >
-  listElementTypeNotAssignableNullability = DiagnosticWithArguments(
-    name: 'LIST_ELEMENT_TYPE_NOT_ASSIGNABLE',
-    problemMessage:
-        "The element type '{0}' can't be assigned to the list type '{1}'.",
-    hasPublishedDocs: true,
-    type: DiagnosticType.COMPILE_TIME_ERROR,
-    uniqueName:
-        'CompileTimeErrorCode.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE_NULLABILITY',
-    withArguments: _withArgumentsListElementTypeNotAssignableNullability,
-    expectedTypes: [ExpectedType.type, ExpectedType.type],
-  );
+  listElementTypeNotAssignableNullability =
+      diag.listElementTypeNotAssignableNullability;
 
   /// No parameters.
-  static const DiagnosticWithoutArguments
-  mainFirstPositionalParameterType = DiagnosticWithoutArgumentsImpl(
-    name: 'MAIN_FIRST_POSITIONAL_PARAMETER_TYPE',
-    problemMessage:
-        "The type of the first positional parameter of the 'main' function must be "
-        "a supertype of 'List<String>'.",
-    correctionMessage: "Try changing the type of the parameter.",
-    hasPublishedDocs: true,
-    type: DiagnosticType.COMPILE_TIME_ERROR,
-    uniqueName: 'CompileTimeErrorCode.MAIN_FIRST_POSITIONAL_PARAMETER_TYPE',
-    expectedTypes: [],
-  );
+  static const DiagnosticWithoutArguments mainFirstPositionalParameterType =
+      diag.mainFirstPositionalParameterType;
 
   /// No parameters.
   static const DiagnosticWithoutArguments mainHasRequiredNamedParameters =
-      DiagnosticWithoutArgumentsImpl(
-        name: 'MAIN_HAS_REQUIRED_NAMED_PARAMETERS',
-        problemMessage:
-            "The function 'main' can't have any required named parameters.",
-        correctionMessage:
-            "Try using a different name for the function, or removing the "
-            "'required' modifier.",
-        hasPublishedDocs: true,
-        type: DiagnosticType.COMPILE_TIME_ERROR,
-        uniqueName: 'CompileTimeErrorCode.MAIN_HAS_REQUIRED_NAMED_PARAMETERS',
-        expectedTypes: [],
-      );
+      diag.mainHasRequiredNamedParameters;
 
   /// No parameters.
   static const DiagnosticWithoutArguments
-  mainHasTooManyRequiredPositionalParameters = DiagnosticWithoutArgumentsImpl(
-    name: 'MAIN_HAS_TOO_MANY_REQUIRED_POSITIONAL_PARAMETERS',
-    problemMessage:
-        "The function 'main' can't have more than two required positional "
-        "parameters.",
-    correctionMessage:
-        "Try using a different name for the function, or removing extra "
-        "parameters.",
-    hasPublishedDocs: true,
-    type: DiagnosticType.COMPILE_TIME_ERROR,
-    uniqueName:
-        'CompileTimeErrorCode.MAIN_HAS_TOO_MANY_REQUIRED_POSITIONAL_PARAMETERS',
-    expectedTypes: [],
-  );
+  mainHasTooManyRequiredPositionalParameters =
+      diag.mainHasTooManyRequiredPositionalParameters;
 
   /// No parameters.
   static const DiagnosticWithoutArguments mainIsNotFunction =
-      DiagnosticWithoutArgumentsImpl(
-        name: 'MAIN_IS_NOT_FUNCTION',
-        problemMessage: "The declaration named 'main' must be a function.",
-        correctionMessage: "Try using a different name for this declaration.",
-        hasPublishedDocs: true,
-        type: DiagnosticType.COMPILE_TIME_ERROR,
-        uniqueName: 'CompileTimeErrorCode.MAIN_IS_NOT_FUNCTION',
-        expectedTypes: [],
-      );
+      diag.mainIsNotFunction;
 
   /// No parameters.
   static const DiagnosticWithoutArguments mapEntryNotInMap =
-      DiagnosticWithoutArgumentsImpl(
-        name: 'MAP_ENTRY_NOT_IN_MAP',
-        problemMessage: "Map entries can only be used in a map literal.",
-        correctionMessage:
-            "Try converting the collection to a map or removing the map entry.",
-        hasPublishedDocs: true,
-        type: DiagnosticType.COMPILE_TIME_ERROR,
-        uniqueName: 'CompileTimeErrorCode.MAP_ENTRY_NOT_IN_MAP',
-        expectedTypes: [],
-      );
+      diag.mapEntryNotInMap;
 
   /// Parameters:
   /// Type p0: the type of the expression being used as a key
@@ -5147,16 +2129,7 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
   static const DiagnosticWithArguments<
     LocatableDiagnostic Function({required DartType p0, required DartType p1})
   >
-  mapKeyTypeNotAssignable = DiagnosticWithArguments(
-    name: 'MAP_KEY_TYPE_NOT_ASSIGNABLE',
-    problemMessage:
-        "The element type '{0}' can't be assigned to the map key type '{1}'.",
-    hasPublishedDocs: true,
-    type: DiagnosticType.COMPILE_TIME_ERROR,
-    uniqueName: 'CompileTimeErrorCode.MAP_KEY_TYPE_NOT_ASSIGNABLE',
-    withArguments: _withArgumentsMapKeyTypeNotAssignable,
-    expectedTypes: [ExpectedType.type, ExpectedType.type],
-  );
+  mapKeyTypeNotAssignable = diag.mapKeyTypeNotAssignable;
 
   /// Parameters:
   /// Type p0: the type of the expression being used as a key
@@ -5164,16 +2137,7 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
   static const DiagnosticWithArguments<
     LocatableDiagnostic Function({required DartType p0, required DartType p1})
   >
-  mapKeyTypeNotAssignableNullability = DiagnosticWithArguments(
-    name: 'MAP_KEY_TYPE_NOT_ASSIGNABLE',
-    problemMessage:
-        "The element type '{0}' can't be assigned to the map key type '{1}'.",
-    hasPublishedDocs: true,
-    type: DiagnosticType.COMPILE_TIME_ERROR,
-    uniqueName: 'CompileTimeErrorCode.MAP_KEY_TYPE_NOT_ASSIGNABLE_NULLABILITY',
-    withArguments: _withArgumentsMapKeyTypeNotAssignableNullability,
-    expectedTypes: [ExpectedType.type, ExpectedType.type],
-  );
+  mapKeyTypeNotAssignableNullability = diag.mapKeyTypeNotAssignableNullability;
 
   /// Parameters:
   /// Type p0: the type of the expression being used as a value
@@ -5181,16 +2145,7 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
   static const DiagnosticWithArguments<
     LocatableDiagnostic Function({required DartType p0, required DartType p1})
   >
-  mapValueTypeNotAssignable = DiagnosticWithArguments(
-    name: 'MAP_VALUE_TYPE_NOT_ASSIGNABLE',
-    problemMessage:
-        "The element type '{0}' can't be assigned to the map value type '{1}'.",
-    hasPublishedDocs: true,
-    type: DiagnosticType.COMPILE_TIME_ERROR,
-    uniqueName: 'CompileTimeErrorCode.MAP_VALUE_TYPE_NOT_ASSIGNABLE',
-    withArguments: _withArgumentsMapValueTypeNotAssignable,
-    expectedTypes: [ExpectedType.type, ExpectedType.type],
-  );
+  mapValueTypeNotAssignable = diag.mapValueTypeNotAssignable;
 
   /// Parameters:
   /// Type p0: the type of the expression being used as a value
@@ -5198,17 +2153,8 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
   static const DiagnosticWithArguments<
     LocatableDiagnostic Function({required DartType p0, required DartType p1})
   >
-  mapValueTypeNotAssignableNullability = DiagnosticWithArguments(
-    name: 'MAP_VALUE_TYPE_NOT_ASSIGNABLE',
-    problemMessage:
-        "The element type '{0}' can't be assigned to the map value type '{1}'.",
-    hasPublishedDocs: true,
-    type: DiagnosticType.COMPILE_TIME_ERROR,
-    uniqueName:
-        'CompileTimeErrorCode.MAP_VALUE_TYPE_NOT_ASSIGNABLE_NULLABILITY',
-    withArguments: _withArgumentsMapValueTypeNotAssignableNullability,
-    expectedTypes: [ExpectedType.type, ExpectedType.type],
-  );
+  mapValueTypeNotAssignableNullability =
+      diag.mapValueTypeNotAssignableNullability;
 
   /// 12.1 Constants: A constant expression is ... a constant list literal.
   ///
@@ -5217,14 +2163,7 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
   ///
   /// No parameters.
   static const DiagnosticWithoutArguments missingConstInListLiteral =
-      DiagnosticWithoutArgumentsImpl(
-        name: 'MISSING_CONST_IN_LIST_LITERAL',
-        problemMessage:
-            "Seeing this message constitutes a bug. Please report it.",
-        type: DiagnosticType.COMPILE_TIME_ERROR,
-        uniqueName: 'CompileTimeErrorCode.MISSING_CONST_IN_LIST_LITERAL',
-        expectedTypes: [],
-      );
+      diag.missingConstInListLiteral;
 
   /// 12.1 Constants: A constant expression is ... a constant map literal.
   ///
@@ -5233,14 +2172,7 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
   ///
   /// No parameters.
   static const DiagnosticWithoutArguments missingConstInMapLiteral =
-      DiagnosticWithoutArgumentsImpl(
-        name: 'MISSING_CONST_IN_MAP_LITERAL',
-        problemMessage:
-            "Seeing this message constitutes a bug. Please report it.",
-        type: DiagnosticType.COMPILE_TIME_ERROR,
-        uniqueName: 'CompileTimeErrorCode.MISSING_CONST_IN_MAP_LITERAL',
-        expectedTypes: [],
-      );
+      diag.missingConstInMapLiteral;
 
   /// 12.1 Constants: A constant expression is ... a constant set literal.
   ///
@@ -5249,136 +2181,52 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
   ///
   /// No parameters.
   static const DiagnosticWithoutArguments missingConstInSetLiteral =
-      DiagnosticWithoutArgumentsImpl(
-        name: 'MISSING_CONST_IN_SET_LITERAL',
-        problemMessage:
-            "Seeing this message constitutes a bug. Please report it.",
-        type: DiagnosticType.COMPILE_TIME_ERROR,
-        uniqueName: 'CompileTimeErrorCode.MISSING_CONST_IN_SET_LITERAL',
-        expectedTypes: [],
-      );
+      diag.missingConstInSetLiteral;
 
   /// Parameters:
   /// Object p0: the name of the library
   static const DiagnosticWithArguments<
     LocatableDiagnostic Function({required Object p0})
   >
-  missingDartLibrary = DiagnosticWithArguments(
-    name: 'MISSING_DART_LIBRARY',
-    problemMessage: "Required library '{0}' is missing.",
-    correctionMessage: "Re-install the Dart or Flutter SDK.",
-    hasPublishedDocs: true,
-    type: DiagnosticType.COMPILE_TIME_ERROR,
-    uniqueName: 'CompileTimeErrorCode.MISSING_DART_LIBRARY',
-    withArguments: _withArgumentsMissingDartLibrary,
-    expectedTypes: [ExpectedType.object],
-  );
+  missingDartLibrary = diag.missingDartLibrary;
 
   /// Parameters:
   /// String p0: the name of the parameter
   static const DiagnosticWithArguments<
     LocatableDiagnostic Function({required String p0})
   >
-  missingDefaultValueForParameter = DiagnosticWithArguments(
-    name: 'MISSING_DEFAULT_VALUE_FOR_PARAMETER',
-    problemMessage:
-        "The parameter '{0}' can't have a value of 'null' because of its type, but "
-        "the implicit default value is 'null'.",
-    correctionMessage:
-        "Try adding either an explicit non-'null' default value or the "
-        "'required' modifier.",
-    hasPublishedDocs: true,
-    type: DiagnosticType.COMPILE_TIME_ERROR,
-    uniqueName: 'CompileTimeErrorCode.MISSING_DEFAULT_VALUE_FOR_PARAMETER',
-    withArguments: _withArgumentsMissingDefaultValueForParameter,
-    expectedTypes: [ExpectedType.string],
-  );
+  missingDefaultValueForParameter = diag.missingDefaultValueForParameter;
 
   /// Parameters:
   /// String p0: the name of the parameter
   static const DiagnosticWithArguments<
     LocatableDiagnostic Function({required String p0})
   >
-  missingDefaultValueForParameterPositional = DiagnosticWithArguments(
-    name: 'MISSING_DEFAULT_VALUE_FOR_PARAMETER',
-    problemMessage:
-        "The parameter '{0}' can't have a value of 'null' because of its type, but "
-        "the implicit default value is 'null'.",
-    correctionMessage: "Try adding an explicit non-'null' default value.",
-    hasPublishedDocs: true,
-    type: DiagnosticType.COMPILE_TIME_ERROR,
-    uniqueName:
-        'CompileTimeErrorCode.MISSING_DEFAULT_VALUE_FOR_PARAMETER_POSITIONAL',
-    withArguments: _withArgumentsMissingDefaultValueForParameterPositional,
-    expectedTypes: [ExpectedType.string],
-  );
+  missingDefaultValueForParameterPositional =
+      diag.missingDefaultValueForParameterPositional;
 
   /// No parameters.
   static const DiagnosticWithoutArguments
-  missingDefaultValueForParameterWithAnnotation = DiagnosticWithoutArgumentsImpl(
-    name: 'MISSING_DEFAULT_VALUE_FOR_PARAMETER',
-    problemMessage:
-        "With null safety, use the 'required' keyword, not the '@required' "
-        "annotation.",
-    correctionMessage: "Try removing the '@'.",
-    hasPublishedDocs: true,
-    type: DiagnosticType.COMPILE_TIME_ERROR,
-    uniqueName:
-        'CompileTimeErrorCode.MISSING_DEFAULT_VALUE_FOR_PARAMETER_WITH_ANNOTATION',
-    expectedTypes: [],
-  );
+  missingDefaultValueForParameterWithAnnotation =
+      diag.missingDefaultValueForParameterWithAnnotation;
 
   /// No parameters.
-  static const DiagnosticWithoutArguments
-  missingNamedPatternFieldName = DiagnosticWithoutArgumentsImpl(
-    name: 'MISSING_NAMED_PATTERN_FIELD_NAME',
-    problemMessage:
-        "The getter name is not specified explicitly, and the pattern is not a "
-        "variable.",
-    correctionMessage:
-        "Try specifying the getter name explicitly, or using a variable "
-        "pattern.",
-    hasPublishedDocs: true,
-    type: DiagnosticType.COMPILE_TIME_ERROR,
-    uniqueName: 'CompileTimeErrorCode.MISSING_NAMED_PATTERN_FIELD_NAME',
-    expectedTypes: [],
-  );
+  static const DiagnosticWithoutArguments missingNamedPatternFieldName =
+      diag.missingNamedPatternFieldName;
 
   /// Parameters:
   /// String p0: the name of the parameter
   static const DiagnosticWithArguments<
     LocatableDiagnostic Function({required String p0})
   >
-  missingRequiredArgument = DiagnosticWithArguments(
-    name: 'MISSING_REQUIRED_ARGUMENT',
-    problemMessage:
-        "The named parameter '{0}' is required, but there's no corresponding "
-        "argument.",
-    correctionMessage: "Try adding the required argument.",
-    hasPublishedDocs: true,
-    type: DiagnosticType.COMPILE_TIME_ERROR,
-    uniqueName: 'CompileTimeErrorCode.MISSING_REQUIRED_ARGUMENT',
-    withArguments: _withArgumentsMissingRequiredArgument,
-    expectedTypes: [ExpectedType.string],
-  );
+  missingRequiredArgument = diag.missingRequiredArgument;
 
   /// Parameters:
   /// String p0: the name of the variable pattern
   static const DiagnosticWithArguments<
     LocatableDiagnostic Function({required String p0})
   >
-  missingVariablePattern = DiagnosticWithArguments(
-    name: 'MISSING_VARIABLE_PATTERN',
-    problemMessage:
-        "Variable pattern '{0}' is missing in this branch of the logical-or "
-        "pattern.",
-    correctionMessage: "Try declaring this variable pattern in the branch.",
-    hasPublishedDocs: true,
-    type: DiagnosticType.COMPILE_TIME_ERROR,
-    uniqueName: 'CompileTimeErrorCode.MISSING_VARIABLE_PATTERN',
-    withArguments: _withArgumentsMissingVariablePattern,
-    expectedTypes: [ExpectedType.string],
-  );
+  missingVariablePattern = diag.missingVariablePattern;
 
   /// Parameters:
   /// String p0: the name of the super-invoked member
@@ -5392,18 +2240,8 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
       required DartType p2,
     })
   >
-  mixinApplicationConcreteSuperInvokedMemberType = DiagnosticWithArguments(
-    name: 'MIXIN_APPLICATION_CONCRETE_SUPER_INVOKED_MEMBER_TYPE',
-    problemMessage:
-        "The super-invoked member '{0}' has the type '{1}', and the concrete "
-        "member in the class has the type '{2}'.",
-    hasPublishedDocs: true,
-    type: DiagnosticType.COMPILE_TIME_ERROR,
-    uniqueName:
-        'CompileTimeErrorCode.MIXIN_APPLICATION_CONCRETE_SUPER_INVOKED_MEMBER_TYPE',
-    withArguments: _withArgumentsMixinApplicationConcreteSuperInvokedMemberType,
-    expectedTypes: [ExpectedType.string, ExpectedType.type, ExpectedType.type],
-  );
+  mixinApplicationConcreteSuperInvokedMemberType =
+      diag.mixinApplicationConcreteSuperInvokedMemberType;
 
   /// Parameters:
   /// String p0: the display name of the member without a concrete
@@ -5411,18 +2249,8 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
   static const DiagnosticWithArguments<
     LocatableDiagnostic Function({required String p0})
   >
-  mixinApplicationNoConcreteSuperInvokedMember = DiagnosticWithArguments(
-    name: 'MIXIN_APPLICATION_NO_CONCRETE_SUPER_INVOKED_MEMBER',
-    problemMessage:
-        "The class doesn't have a concrete implementation of the super-invoked "
-        "member '{0}'.",
-    hasPublishedDocs: true,
-    type: DiagnosticType.COMPILE_TIME_ERROR,
-    uniqueName:
-        'CompileTimeErrorCode.MIXIN_APPLICATION_NO_CONCRETE_SUPER_INVOKED_MEMBER',
-    withArguments: _withArgumentsMixinApplicationNoConcreteSuperInvokedMember,
-    expectedTypes: [ExpectedType.string],
-  );
+  mixinApplicationNoConcreteSuperInvokedMember =
+      diag.mixinApplicationNoConcreteSuperInvokedMember;
 
   /// Parameters:
   /// String p0: the display name of the setter without a concrete
@@ -5430,18 +2258,8 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
   static const DiagnosticWithArguments<
     LocatableDiagnostic Function({required String p0})
   >
-  mixinApplicationNoConcreteSuperInvokedSetter = DiagnosticWithArguments(
-    name: 'MIXIN_APPLICATION_NO_CONCRETE_SUPER_INVOKED_MEMBER',
-    problemMessage:
-        "The class doesn't have a concrete implementation of the super-invoked "
-        "setter '{0}'.",
-    hasPublishedDocs: true,
-    type: DiagnosticType.COMPILE_TIME_ERROR,
-    uniqueName:
-        'CompileTimeErrorCode.MIXIN_APPLICATION_NO_CONCRETE_SUPER_INVOKED_SETTER',
-    withArguments: _withArgumentsMixinApplicationNoConcreteSuperInvokedSetter,
-    expectedTypes: [ExpectedType.string],
-  );
+  mixinApplicationNoConcreteSuperInvokedSetter =
+      diag.mixinApplicationNoConcreteSuperInvokedSetter;
 
   /// Parameters:
   /// Type p0: the display name of the mixin
@@ -5454,152 +2272,59 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
       required DartType p2,
     })
   >
-  mixinApplicationNotImplementedInterface = DiagnosticWithArguments(
-    name: 'MIXIN_APPLICATION_NOT_IMPLEMENTED_INTERFACE',
-    problemMessage:
-        "'{0}' can't be mixed onto '{1}' because '{1}' doesn't implement '{2}'.",
-    correctionMessage: "Try extending the class '{0}'.",
-    hasPublishedDocs: true,
-    type: DiagnosticType.COMPILE_TIME_ERROR,
-    uniqueName:
-        'CompileTimeErrorCode.MIXIN_APPLICATION_NOT_IMPLEMENTED_INTERFACE',
-    withArguments: _withArgumentsMixinApplicationNotImplementedInterface,
-    expectedTypes: [ExpectedType.type, ExpectedType.type, ExpectedType.type],
-  );
+  mixinApplicationNotImplementedInterface =
+      diag.mixinApplicationNotImplementedInterface;
 
   /// Parameters:
   /// String p0: the name of the mixin class that is invalid
   static const DiagnosticWithArguments<
     LocatableDiagnostic Function({required String p0})
   >
-  mixinClassDeclarationExtendsNotObject = DiagnosticWithArguments(
-    name: 'MIXIN_CLASS_DECLARATION_EXTENDS_NOT_OBJECT',
-    problemMessage:
-        "The class '{0}' can't be declared a mixin because it extends a class "
-        "other than 'Object'.",
-    correctionMessage:
-        "Try removing the 'mixin' modifier or changing the superclass to "
-        "'Object'.",
-    hasPublishedDocs: true,
-    type: DiagnosticType.COMPILE_TIME_ERROR,
-    uniqueName:
-        'CompileTimeErrorCode.MIXIN_CLASS_DECLARATION_EXTENDS_NOT_OBJECT',
-    withArguments: _withArgumentsMixinClassDeclarationExtendsNotObject,
-    expectedTypes: [ExpectedType.string],
-  );
+  mixinClassDeclarationExtendsNotObject =
+      diag.mixinClassDeclarationExtendsNotObject;
 
   /// Parameters:
   /// String p0: the name of the mixin that is invalid
   static const DiagnosticWithArguments<
     LocatableDiagnostic Function({required String p0})
   >
-  mixinClassDeclaresConstructor = DiagnosticWithArguments(
-    name: 'MIXIN_CLASS_DECLARES_CONSTRUCTOR',
-    problemMessage:
-        "The class '{0}' can't be used as a mixin because it declares a "
-        "constructor.",
-    hasPublishedDocs: true,
-    type: DiagnosticType.COMPILE_TIME_ERROR,
-    uniqueName: 'CompileTimeErrorCode.MIXIN_CLASS_DECLARES_CONSTRUCTOR',
-    withArguments: _withArgumentsMixinClassDeclaresConstructor,
-    expectedTypes: [ExpectedType.string],
-  );
+  mixinClassDeclaresConstructor = diag.mixinClassDeclaresConstructor;
 
   /// No parameters.
   static const DiagnosticWithoutArguments mixinDeferredClass =
-      DiagnosticWithoutArgumentsImpl(
-        name: 'SUBTYPE_OF_DEFERRED_CLASS',
-        problemMessage: "Classes can't mixin deferred classes.",
-        correctionMessage: "Try changing the import to not be deferred.",
-        hasPublishedDocs: true,
-        type: DiagnosticType.COMPILE_TIME_ERROR,
-        uniqueName: 'CompileTimeErrorCode.MIXIN_DEFERRED_CLASS',
-        expectedTypes: [],
-      );
+      diag.mixinDeferredClass;
 
   /// Parameters:
   /// String p0: the name of the mixin that is invalid
   static const DiagnosticWithArguments<
     LocatableDiagnostic Function({required String p0})
   >
-  mixinInheritsFromNotObject = DiagnosticWithArguments(
-    name: 'MIXIN_INHERITS_FROM_NOT_OBJECT',
-    problemMessage:
-        "The class '{0}' can't be used as a mixin because it extends a class other "
-        "than 'Object'.",
-    hasPublishedDocs: true,
-    type: DiagnosticType.COMPILE_TIME_ERROR,
-    uniqueName: 'CompileTimeErrorCode.MIXIN_INHERITS_FROM_NOT_OBJECT',
-    withArguments: _withArgumentsMixinInheritsFromNotObject,
-    expectedTypes: [ExpectedType.string],
-  );
+  mixinInheritsFromNotObject = diag.mixinInheritsFromNotObject;
 
   /// No parameters.
   static const DiagnosticWithoutArguments mixinInstantiate =
-      DiagnosticWithoutArgumentsImpl(
-        name: 'MIXIN_INSTANTIATE',
-        problemMessage: "Mixins can't be instantiated.",
-        hasPublishedDocs: true,
-        type: DiagnosticType.COMPILE_TIME_ERROR,
-        uniqueName: 'CompileTimeErrorCode.MIXIN_INSTANTIATE',
-        expectedTypes: [],
-      );
+      diag.mixinInstantiate;
 
   /// Parameters:
   /// Type p0: the name of the disallowed type
   static const DiagnosticWithArguments<
     LocatableDiagnostic Function({required DartType p0})
   >
-  mixinOfDisallowedClass = DiagnosticWithArguments(
-    name: 'SUBTYPE_OF_DISALLOWED_TYPE',
-    problemMessage: "Classes can't mixin '{0}'.",
-    correctionMessage:
-        "Try specifying a different class or mixin, or remove the class or "
-        "mixin from the list.",
-    hasPublishedDocs: true,
-    type: DiagnosticType.COMPILE_TIME_ERROR,
-    uniqueName: 'CompileTimeErrorCode.MIXIN_OF_DISALLOWED_CLASS',
-    withArguments: _withArgumentsMixinOfDisallowedClass,
-    expectedTypes: [ExpectedType.type],
-  );
+  mixinOfDisallowedClass = diag.mixinOfDisallowedClass;
 
   /// No parameters.
   static const DiagnosticWithoutArguments mixinOfNonClass =
-      DiagnosticWithoutArgumentsImpl(
-        name: 'MIXIN_OF_NON_CLASS',
-        problemMessage: "Classes can only mix in mixins and classes.",
-        hasPublishedDocs: true,
-        type: DiagnosticType.COMPILE_TIME_ERROR,
-        uniqueName: 'CompileTimeErrorCode.MIXIN_OF_NON_CLASS',
-        expectedTypes: [],
-      );
+      diag.mixinOfNonClass;
 
   /// No parameters.
   static const DiagnosticWithoutArguments
-  mixinOfTypeAliasExpandsToTypeParameter = DiagnosticWithoutArgumentsImpl(
-    name: 'SUPERTYPE_EXPANDS_TO_TYPE_PARAMETER',
-    problemMessage:
-        "A type alias that expands to a type parameter can't be mixed in.",
-    hasPublishedDocs: true,
-    type: DiagnosticType.COMPILE_TIME_ERROR,
-    uniqueName:
-        'CompileTimeErrorCode.MIXIN_OF_TYPE_ALIAS_EXPANDS_TO_TYPE_PARAMETER',
-    expectedTypes: [],
-  );
+  mixinOfTypeAliasExpandsToTypeParameter =
+      diag.mixinOfTypeAliasExpandsToTypeParameter;
 
   /// No parameters.
   static const DiagnosticWithoutArguments
-  mixinOnTypeAliasExpandsToTypeParameter = DiagnosticWithoutArgumentsImpl(
-    name: 'SUPERTYPE_EXPANDS_TO_TYPE_PARAMETER',
-    problemMessage:
-        "A type alias that expands to a type parameter can't be used as a "
-        "superclass constraint.",
-    hasPublishedDocs: true,
-    type: DiagnosticType.COMPILE_TIME_ERROR,
-    uniqueName:
-        'CompileTimeErrorCode.MIXIN_ON_TYPE_ALIAS_EXPANDS_TO_TYPE_PARAMETER',
-    expectedTypes: [],
-  );
+  mixinOnTypeAliasExpandsToTypeParameter =
+      diag.mixinOnTypeAliasExpandsToTypeParameter;
 
   /// Parameters:
   /// Element p0: the name of the class that appears in both "extends" and
@@ -5607,17 +2332,7 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
   static const DiagnosticWithArguments<
     LocatableDiagnostic Function({required Element p0})
   >
-  mixinsSuperClass = DiagnosticWithArguments(
-    name: 'IMPLEMENTS_SUPER_CLASS',
-    problemMessage:
-        "'{0}' can't be used in both the 'extends' and 'with' clauses.",
-    correctionMessage: "Try removing one of the occurrences.",
-    hasPublishedDocs: true,
-    type: DiagnosticType.COMPILE_TIME_ERROR,
-    uniqueName: 'CompileTimeErrorCode.MIXINS_SUPER_CLASS',
-    withArguments: _withArgumentsMixinsSuperClass,
-    expectedTypes: [ExpectedType.element],
-  );
+  mixinsSuperClass = diag.mixinsSuperClass;
 
   /// Parameters:
   /// String p0: the name of the mixin that is not 'base'
@@ -5625,16 +2340,7 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
   static const DiagnosticWithArguments<
     LocatableDiagnostic Function({required String p0, required String p1})
   >
-  mixinSubtypeOfBaseIsNotBase = DiagnosticWithArguments(
-    name: 'SUBTYPE_OF_BASE_OR_FINAL_IS_NOT_BASE_FINAL_OR_SEALED',
-    problemMessage:
-        "The mixin '{0}' must be 'base' because the supertype '{1}' is 'base'.",
-    hasPublishedDocs: true,
-    type: DiagnosticType.COMPILE_TIME_ERROR,
-    uniqueName: 'CompileTimeErrorCode.MIXIN_SUBTYPE_OF_BASE_IS_NOT_BASE',
-    withArguments: _withArgumentsMixinSubtypeOfBaseIsNotBase,
-    expectedTypes: [ExpectedType.string, ExpectedType.string],
-  );
+  mixinSubtypeOfBaseIsNotBase = diag.mixinSubtypeOfBaseIsNotBase;
 
   /// Parameters:
   /// String p0: the name of the mixin that is not 'final'
@@ -5642,117 +2348,48 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
   static const DiagnosticWithArguments<
     LocatableDiagnostic Function({required String p0, required String p1})
   >
-  mixinSubtypeOfFinalIsNotBase = DiagnosticWithArguments(
-    name: 'SUBTYPE_OF_BASE_OR_FINAL_IS_NOT_BASE_FINAL_OR_SEALED',
-    problemMessage:
-        "The mixin '{0}' must be 'base' because the supertype '{1}' is 'final'.",
-    hasPublishedDocs: true,
-    type: DiagnosticType.COMPILE_TIME_ERROR,
-    uniqueName: 'CompileTimeErrorCode.MIXIN_SUBTYPE_OF_FINAL_IS_NOT_BASE',
-    withArguments: _withArgumentsMixinSubtypeOfFinalIsNotBase,
-    expectedTypes: [ExpectedType.string, ExpectedType.string],
-  );
+  mixinSubtypeOfFinalIsNotBase = diag.mixinSubtypeOfFinalIsNotBase;
 
   /// No parameters.
   static const DiagnosticWithoutArguments
-  mixinSuperClassConstraintDeferredClass = DiagnosticWithoutArgumentsImpl(
-    name: 'MIXIN_SUPER_CLASS_CONSTRAINT_DEFERRED_CLASS',
-    problemMessage: "Deferred classes can't be used as superclass constraints.",
-    correctionMessage: "Try changing the import to not be deferred.",
-    hasPublishedDocs: true,
-    type: DiagnosticType.COMPILE_TIME_ERROR,
-    uniqueName:
-        'CompileTimeErrorCode.MIXIN_SUPER_CLASS_CONSTRAINT_DEFERRED_CLASS',
-    expectedTypes: [],
-  );
+  mixinSuperClassConstraintDeferredClass =
+      diag.mixinSuperClassConstraintDeferredClass;
 
   /// Parameters:
   /// Type p0: the name of the disallowed type
   static const DiagnosticWithArguments<
     LocatableDiagnostic Function({required DartType p0})
   >
-  mixinSuperClassConstraintDisallowedClass = DiagnosticWithArguments(
-    name: 'SUBTYPE_OF_DISALLOWED_TYPE',
-    problemMessage: "'{0}' can't be used as a superclass constraint.",
-    correctionMessage:
-        "Try specifying a different super-class constraint, or remove the 'on' "
-        "clause.",
-    hasPublishedDocs: true,
-    type: DiagnosticType.COMPILE_TIME_ERROR,
-    uniqueName:
-        'CompileTimeErrorCode.MIXIN_SUPER_CLASS_CONSTRAINT_DISALLOWED_CLASS',
-    withArguments: _withArgumentsMixinSuperClassConstraintDisallowedClass,
-    expectedTypes: [ExpectedType.type],
-  );
+  mixinSuperClassConstraintDisallowedClass =
+      diag.mixinSuperClassConstraintDisallowedClass;
 
   /// No parameters.
   static const DiagnosticWithoutArguments
-  mixinSuperClassConstraintNonInterface = DiagnosticWithoutArgumentsImpl(
-    name: 'MIXIN_SUPER_CLASS_CONSTRAINT_NON_INTERFACE',
-    problemMessage:
-        "Only classes and mixins can be used as superclass constraints.",
-    hasPublishedDocs: true,
-    type: DiagnosticType.COMPILE_TIME_ERROR,
-    uniqueName:
-        'CompileTimeErrorCode.MIXIN_SUPER_CLASS_CONSTRAINT_NON_INTERFACE',
-    expectedTypes: [],
-  );
+  mixinSuperClassConstraintNonInterface =
+      diag.mixinSuperClassConstraintNonInterface;
 
   /// 9.1 Mixin Application: It is a compile-time error if <i>S</i> does not
   /// denote a class available in the immediately enclosing scope.
   ///
   /// No parameters.
   static const DiagnosticWithoutArguments mixinWithNonClassSuperclass =
-      DiagnosticWithoutArgumentsImpl(
-        name: 'MIXIN_WITH_NON_CLASS_SUPERCLASS',
-        problemMessage: "Mixin can only be applied to class.",
-        type: DiagnosticType.COMPILE_TIME_ERROR,
-        uniqueName: 'CompileTimeErrorCode.MIXIN_WITH_NON_CLASS_SUPERCLASS',
-        expectedTypes: [],
-      );
+      diag.mixinWithNonClassSuperclass;
 
   /// No parameters.
   static const DiagnosticWithoutArguments
-  multipleRedirectingConstructorInvocations = DiagnosticWithoutArgumentsImpl(
-    name: 'MULTIPLE_REDIRECTING_CONSTRUCTOR_INVOCATIONS',
-    problemMessage:
-        "Constructors can have only one 'this' redirection, at most.",
-    correctionMessage: "Try removing all but one of the redirections.",
-    hasPublishedDocs: true,
-    type: DiagnosticType.COMPILE_TIME_ERROR,
-    uniqueName:
-        'CompileTimeErrorCode.MULTIPLE_REDIRECTING_CONSTRUCTOR_INVOCATIONS',
-    expectedTypes: [],
-  );
+  multipleRedirectingConstructorInvocations =
+      diag.multipleRedirectingConstructorInvocations;
 
   /// No parameters.
-  static const DiagnosticWithoutArguments
-  multipleSuperInitializers = DiagnosticWithoutArgumentsImpl(
-    name: 'MULTIPLE_SUPER_INITIALIZERS',
-    problemMessage: "A constructor can have at most one 'super' initializer.",
-    correctionMessage: "Try removing all but one of the 'super' initializers.",
-    hasPublishedDocs: true,
-    type: DiagnosticType.COMPILE_TIME_ERROR,
-    uniqueName: 'CompileTimeErrorCode.MULTIPLE_SUPER_INITIALIZERS',
-    expectedTypes: [],
-  );
+  static const DiagnosticWithoutArguments multipleSuperInitializers =
+      diag.multipleSuperInitializers;
 
   /// Parameters:
   /// String p0: the name of the non-type element
   static const DiagnosticWithArguments<
     LocatableDiagnostic Function({required String p0})
   >
-  newWithNonType = DiagnosticWithArguments(
-    name: 'CREATION_WITH_NON_TYPE',
-    problemMessage: "The name '{0}' isn't a class.",
-    correctionMessage: "Try correcting the name to match an existing class.",
-    hasPublishedDocs: true,
-    isUnresolvedIdentifier: true,
-    type: DiagnosticType.COMPILE_TIME_ERROR,
-    uniqueName: 'CompileTimeErrorCode.NEW_WITH_NON_TYPE',
-    withArguments: _withArgumentsNewWithNonType,
-    expectedTypes: [ExpectedType.string],
-  );
+  newWithNonType = diag.newWithNonType;
 
   /// 12.11.1 New: If <i>T</i> is a class or parameterized type accessible in the
   /// current scope then:
@@ -5772,46 +2409,18 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
   static const DiagnosticWithArguments<
     LocatableDiagnostic Function({required String p0, required String p1})
   >
-  newWithUndefinedConstructor = DiagnosticWithArguments(
-    name: 'NEW_WITH_UNDEFINED_CONSTRUCTOR',
-    problemMessage: "The class '{0}' doesn't have a constructor named '{1}'.",
-    correctionMessage:
-        "Try invoking a different constructor, or define a constructor named "
-        "'{1}'.",
-    type: DiagnosticType.COMPILE_TIME_ERROR,
-    uniqueName: 'CompileTimeErrorCode.NEW_WITH_UNDEFINED_CONSTRUCTOR',
-    withArguments: _withArgumentsNewWithUndefinedConstructor,
-    expectedTypes: [ExpectedType.string, ExpectedType.string],
-  );
+  newWithUndefinedConstructor = diag.newWithUndefinedConstructor;
 
   /// Parameters:
   /// String p0: the name of the class being instantiated
   static const DiagnosticWithArguments<
     LocatableDiagnostic Function({required String p0})
   >
-  newWithUndefinedConstructorDefault = DiagnosticWithArguments(
-    name: 'NEW_WITH_UNDEFINED_CONSTRUCTOR_DEFAULT',
-    problemMessage: "The class '{0}' doesn't have an unnamed constructor.",
-    correctionMessage:
-        "Try using one of the named constructors defined in '{0}'.",
-    hasPublishedDocs: true,
-    type: DiagnosticType.COMPILE_TIME_ERROR,
-    uniqueName: 'CompileTimeErrorCode.NEW_WITH_UNDEFINED_CONSTRUCTOR_DEFAULT',
-    withArguments: _withArgumentsNewWithUndefinedConstructorDefault,
-    expectedTypes: [ExpectedType.string],
-  );
+  newWithUndefinedConstructorDefault = diag.newWithUndefinedConstructorDefault;
 
   /// No parameters.
   static const DiagnosticWithoutArguments noAnnotationConstructorArguments =
-      DiagnosticWithoutArgumentsImpl(
-        name: 'NO_ANNOTATION_CONSTRUCTOR_ARGUMENTS',
-        problemMessage: "Annotation creation must have arguments.",
-        correctionMessage: "Try adding an empty argument list.",
-        hasPublishedDocs: true,
-        type: DiagnosticType.COMPILE_TIME_ERROR,
-        uniqueName: 'CompileTimeErrorCode.NO_ANNOTATION_CONSTRUCTOR_ARGUMENTS',
-        expectedTypes: [],
-      );
+      diag.noAnnotationConstructorArguments;
 
   /// Parameters:
   /// String p0: the name of the class where override error was detected
@@ -5819,19 +2428,7 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
   static const DiagnosticWithArguments<
     LocatableDiagnostic Function({required String p0, required String p1})
   >
-  noCombinedSuperSignature = DiagnosticWithArguments(
-    name: 'NO_COMBINED_SUPER_SIGNATURE',
-    problemMessage:
-        "Can't infer missing types in '{0}' from overridden methods: {1}.",
-    correctionMessage:
-        "Try providing explicit types for this method's parameters and return "
-        "type.",
-    hasPublishedDocs: true,
-    type: DiagnosticType.COMPILE_TIME_ERROR,
-    uniqueName: 'CompileTimeErrorCode.NO_COMBINED_SUPER_SIGNATURE',
-    withArguments: _withArgumentsNoCombinedSuperSignature,
-    expectedTypes: [ExpectedType.string, ExpectedType.string],
-  );
+  noCombinedSuperSignature = diag.noCombinedSuperSignature;
 
   /// Parameters:
   /// Object p0: the name of the superclass that does not define an implicitly
@@ -5839,18 +2436,7 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
   static const DiagnosticWithArguments<
     LocatableDiagnostic Function({required Object p0})
   >
-  noDefaultSuperConstructorExplicit = DiagnosticWithArguments(
-    name: 'NO_DEFAULT_SUPER_CONSTRUCTOR',
-    problemMessage:
-        "The superclass '{0}' doesn't have a zero argument constructor.",
-    correctionMessage:
-        "Try declaring a zero argument constructor in '{0}', or explicitly "
-        "invoking a different constructor in '{0}'.",
-    type: DiagnosticType.COMPILE_TIME_ERROR,
-    uniqueName: 'CompileTimeErrorCode.NO_DEFAULT_SUPER_CONSTRUCTOR_EXPLICIT',
-    withArguments: _withArgumentsNoDefaultSuperConstructorExplicit,
-    expectedTypes: [ExpectedType.object],
-  );
+  noDefaultSuperConstructorExplicit = diag.noDefaultSuperConstructorExplicit;
 
   /// Parameters:
   /// Type p0: the name of the superclass that does not define an implicitly
@@ -5860,18 +2446,7 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
   static const DiagnosticWithArguments<
     LocatableDiagnostic Function({required DartType p0, required String p1})
   >
-  noDefaultSuperConstructorImplicit = DiagnosticWithArguments(
-    name: 'NO_DEFAULT_SUPER_CONSTRUCTOR',
-    problemMessage:
-        "The superclass '{0}' doesn't have a zero argument constructor.",
-    correctionMessage:
-        "Try declaring a zero argument constructor in '{0}', or declaring a "
-        "constructor in {1} that explicitly invokes a constructor in '{0}'.",
-    type: DiagnosticType.COMPILE_TIME_ERROR,
-    uniqueName: 'CompileTimeErrorCode.NO_DEFAULT_SUPER_CONSTRUCTOR_IMPLICIT',
-    withArguments: _withArgumentsNoDefaultSuperConstructorImplicit,
-    expectedTypes: [ExpectedType.type, ExpectedType.string],
-  );
+  noDefaultSuperConstructorImplicit = diag.noDefaultSuperConstructorImplicit;
 
   /// Parameters:
   /// String p0: the name of the subclass
@@ -5879,22 +2454,8 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
   static const DiagnosticWithArguments<
     LocatableDiagnostic Function({required String p0, required String p1})
   >
-  noGenerativeConstructorsInSuperclass = DiagnosticWithArguments(
-    name: 'NO_GENERATIVE_CONSTRUCTORS_IN_SUPERCLASS',
-    problemMessage:
-        "The class '{0}' can't extend '{1}' because '{1}' only has factory "
-        "constructors (no generative constructors), and '{0}' has at least one "
-        "generative constructor.",
-    correctionMessage:
-        "Try implementing the class instead, adding a generative (not factory) "
-        "constructor to the superclass '{1}', or a factory constructor to the "
-        "subclass.",
-    hasPublishedDocs: true,
-    type: DiagnosticType.COMPILE_TIME_ERROR,
-    uniqueName: 'CompileTimeErrorCode.NO_GENERATIVE_CONSTRUCTORS_IN_SUPERCLASS',
-    withArguments: _withArgumentsNoGenerativeConstructorsInSuperclass,
-    expectedTypes: [ExpectedType.string, ExpectedType.string],
-  );
+  noGenerativeConstructorsInSuperclass =
+      diag.noGenerativeConstructorsInSuperclass;
 
   /// Parameters:
   /// String p0: the name of the first member
@@ -5911,26 +2472,8 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
       required int p4,
     })
   >
-  nonAbstractClassInheritsAbstractMemberFivePlus = DiagnosticWithArguments(
-    name: 'NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER',
-    problemMessage:
-        "Missing concrete implementations of '{0}', '{1}', '{2}', '{3}', and {4} "
-        "more.",
-    correctionMessage:
-        "Try implementing the missing methods, or make the class abstract.",
-    hasPublishedDocs: true,
-    type: DiagnosticType.COMPILE_TIME_ERROR,
-    uniqueName:
-        'CompileTimeErrorCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_FIVE_PLUS',
-    withArguments: _withArgumentsNonAbstractClassInheritsAbstractMemberFivePlus,
-    expectedTypes: [
-      ExpectedType.string,
-      ExpectedType.string,
-      ExpectedType.string,
-      ExpectedType.string,
-      ExpectedType.int,
-    ],
-  );
+  nonAbstractClassInheritsAbstractMemberFivePlus =
+      diag.nonAbstractClassInheritsAbstractMemberFivePlus;
 
   /// Parameters:
   /// String p0: the name of the first member
@@ -5945,42 +2488,16 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
       required String p3,
     })
   >
-  nonAbstractClassInheritsAbstractMemberFour = DiagnosticWithArguments(
-    name: 'NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER',
-    problemMessage:
-        "Missing concrete implementations of '{0}', '{1}', '{2}', and '{3}'.",
-    correctionMessage:
-        "Try implementing the missing methods, or make the class abstract.",
-    hasPublishedDocs: true,
-    type: DiagnosticType.COMPILE_TIME_ERROR,
-    uniqueName:
-        'CompileTimeErrorCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_FOUR',
-    withArguments: _withArgumentsNonAbstractClassInheritsAbstractMemberFour,
-    expectedTypes: [
-      ExpectedType.string,
-      ExpectedType.string,
-      ExpectedType.string,
-      ExpectedType.string,
-    ],
-  );
+  nonAbstractClassInheritsAbstractMemberFour =
+      diag.nonAbstractClassInheritsAbstractMemberFour;
 
   /// Parameters:
   /// String p0: the name of the member
   static const DiagnosticWithArguments<
     LocatableDiagnostic Function({required String p0})
   >
-  nonAbstractClassInheritsAbstractMemberOne = DiagnosticWithArguments(
-    name: 'NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER',
-    problemMessage: "Missing concrete implementation of '{0}'.",
-    correctionMessage:
-        "Try implementing the missing method, or make the class abstract.",
-    hasPublishedDocs: true,
-    type: DiagnosticType.COMPILE_TIME_ERROR,
-    uniqueName:
-        'CompileTimeErrorCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_ONE',
-    withArguments: _withArgumentsNonAbstractClassInheritsAbstractMemberOne,
-    expectedTypes: [ExpectedType.string],
-  );
+  nonAbstractClassInheritsAbstractMemberOne =
+      diag.nonAbstractClassInheritsAbstractMemberOne;
 
   /// Parameters:
   /// String p0: the name of the first member
@@ -5993,23 +2510,8 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
       required String p2,
     })
   >
-  nonAbstractClassInheritsAbstractMemberThree = DiagnosticWithArguments(
-    name: 'NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER',
-    problemMessage:
-        "Missing concrete implementations of '{0}', '{1}', and '{2}'.",
-    correctionMessage:
-        "Try implementing the missing methods, or make the class abstract.",
-    hasPublishedDocs: true,
-    type: DiagnosticType.COMPILE_TIME_ERROR,
-    uniqueName:
-        'CompileTimeErrorCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_THREE',
-    withArguments: _withArgumentsNonAbstractClassInheritsAbstractMemberThree,
-    expectedTypes: [
-      ExpectedType.string,
-      ExpectedType.string,
-      ExpectedType.string,
-    ],
-  );
+  nonAbstractClassInheritsAbstractMemberThree =
+      diag.nonAbstractClassInheritsAbstractMemberThree;
 
   /// Parameters:
   /// String p0: the name of the first member
@@ -6017,355 +2519,118 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
   static const DiagnosticWithArguments<
     LocatableDiagnostic Function({required String p0, required String p1})
   >
-  nonAbstractClassInheritsAbstractMemberTwo = DiagnosticWithArguments(
-    name: 'NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER',
-    problemMessage: "Missing concrete implementations of '{0}' and '{1}'.",
-    correctionMessage:
-        "Try implementing the missing methods, or make the class abstract.",
-    hasPublishedDocs: true,
-    type: DiagnosticType.COMPILE_TIME_ERROR,
-    uniqueName:
-        'CompileTimeErrorCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_TWO',
-    withArguments: _withArgumentsNonAbstractClassInheritsAbstractMemberTwo,
-    expectedTypes: [ExpectedType.string, ExpectedType.string],
-  );
+  nonAbstractClassInheritsAbstractMemberTwo =
+      diag.nonAbstractClassInheritsAbstractMemberTwo;
 
   /// No parameters.
   static const DiagnosticWithoutArguments nonBoolCondition =
-      DiagnosticWithoutArgumentsImpl(
-        name: 'NON_BOOL_CONDITION',
-        problemMessage: "Conditions must have a static type of 'bool'.",
-        correctionMessage: "Try changing the condition.",
-        hasPublishedDocs: true,
-        type: DiagnosticType.COMPILE_TIME_ERROR,
-        uniqueName: 'CompileTimeErrorCode.NON_BOOL_CONDITION',
-        expectedTypes: [],
-      );
+      diag.nonBoolCondition;
 
   /// No parameters.
   static const DiagnosticWithoutArguments nonBoolExpression =
-      DiagnosticWithoutArgumentsImpl(
-        name: 'NON_BOOL_EXPRESSION',
-        problemMessage: "The expression in an assert must be of type 'bool'.",
-        correctionMessage: "Try changing the expression.",
-        hasPublishedDocs: true,
-        type: DiagnosticType.COMPILE_TIME_ERROR,
-        uniqueName: 'CompileTimeErrorCode.NON_BOOL_EXPRESSION',
-        expectedTypes: [],
-      );
+      diag.nonBoolExpression;
 
   /// No parameters.
   static const DiagnosticWithoutArguments nonBoolNegationExpression =
-      DiagnosticWithoutArgumentsImpl(
-        name: 'NON_BOOL_NEGATION_EXPRESSION',
-        problemMessage: "A negation operand must have a static type of 'bool'.",
-        correctionMessage: "Try changing the operand to the '!' operator.",
-        hasPublishedDocs: true,
-        type: DiagnosticType.COMPILE_TIME_ERROR,
-        uniqueName: 'CompileTimeErrorCode.NON_BOOL_NEGATION_EXPRESSION',
-        expectedTypes: [],
-      );
+      diag.nonBoolNegationExpression;
 
   /// Parameters:
   /// String p0: the lexeme of the logical operator
   static const DiagnosticWithArguments<
     LocatableDiagnostic Function({required String p0})
   >
-  nonBoolOperand = DiagnosticWithArguments(
-    name: 'NON_BOOL_OPERAND',
-    problemMessage:
-        "The operands of the operator '{0}' must be assignable to 'bool'.",
-    hasPublishedDocs: true,
-    type: DiagnosticType.COMPILE_TIME_ERROR,
-    uniqueName: 'CompileTimeErrorCode.NON_BOOL_OPERAND',
-    withArguments: _withArgumentsNonBoolOperand,
-    expectedTypes: [ExpectedType.string],
-  );
+  nonBoolOperand = diag.nonBoolOperand;
 
   /// No parameters.
   static const DiagnosticWithoutArguments nonConstantAnnotationConstructor =
-      DiagnosticWithoutArgumentsImpl(
-        name: 'NON_CONSTANT_ANNOTATION_CONSTRUCTOR',
-        problemMessage:
-            "Annotation creation can only call a const constructor.",
-        hasPublishedDocs: true,
-        type: DiagnosticType.COMPILE_TIME_ERROR,
-        uniqueName: 'CompileTimeErrorCode.NON_CONSTANT_ANNOTATION_CONSTRUCTOR',
-        expectedTypes: [],
-      );
+      diag.nonConstantAnnotationConstructor;
 
   /// No parameters.
   static const DiagnosticWithoutArguments nonConstantCaseExpression =
-      DiagnosticWithoutArgumentsImpl(
-        name: 'NON_CONSTANT_CASE_EXPRESSION',
-        problemMessage: "Case expressions must be constant.",
-        hasPublishedDocs: true,
-        type: DiagnosticType.COMPILE_TIME_ERROR,
-        uniqueName: 'CompileTimeErrorCode.NON_CONSTANT_CASE_EXPRESSION',
-        expectedTypes: [],
-      );
+      diag.nonConstantCaseExpression;
 
   /// No parameters.
   static const DiagnosticWithoutArguments
-  nonConstantCaseExpressionFromDeferredLibrary = DiagnosticWithoutArgumentsImpl(
-    name: 'NON_CONSTANT_CASE_EXPRESSION_FROM_DEFERRED_LIBRARY',
-    problemMessage:
-        "Constant values from a deferred library can't be used as a case "
-        "expression.",
-    correctionMessage:
-        "Try re-writing the switch as a series of if statements, or changing "
-        "the import to not be deferred.",
-    hasPublishedDocs: true,
-    type: DiagnosticType.COMPILE_TIME_ERROR,
-    uniqueName:
-        'CompileTimeErrorCode.NON_CONSTANT_CASE_EXPRESSION_FROM_DEFERRED_LIBRARY',
-    expectedTypes: [],
-  );
+  nonConstantCaseExpressionFromDeferredLibrary =
+      diag.nonConstantCaseExpressionFromDeferredLibrary;
 
   /// No parameters.
   static const DiagnosticWithoutArguments nonConstantDefaultValue =
-      DiagnosticWithoutArgumentsImpl(
-        name: 'NON_CONSTANT_DEFAULT_VALUE',
-        problemMessage:
-            "The default value of an optional parameter must be constant.",
-        hasPublishedDocs: true,
-        type: DiagnosticType.COMPILE_TIME_ERROR,
-        uniqueName: 'CompileTimeErrorCode.NON_CONSTANT_DEFAULT_VALUE',
-        expectedTypes: [],
-      );
+      diag.nonConstantDefaultValue;
 
   /// No parameters.
   static const DiagnosticWithoutArguments
-  nonConstantDefaultValueFromDeferredLibrary = DiagnosticWithoutArgumentsImpl(
-    name: 'NON_CONSTANT_DEFAULT_VALUE_FROM_DEFERRED_LIBRARY',
-    problemMessage:
-        "Constant values from a deferred library can't be used as a default "
-        "parameter value.",
-    correctionMessage:
-        "Try leaving the default as 'null' and initializing the parameter "
-        "inside the function body.",
-    hasPublishedDocs: true,
-    type: DiagnosticType.COMPILE_TIME_ERROR,
-    uniqueName:
-        'CompileTimeErrorCode.NON_CONSTANT_DEFAULT_VALUE_FROM_DEFERRED_LIBRARY',
-    expectedTypes: [],
-  );
+  nonConstantDefaultValueFromDeferredLibrary =
+      diag.nonConstantDefaultValueFromDeferredLibrary;
 
   /// No parameters.
   static const DiagnosticWithoutArguments nonConstantListElement =
-      DiagnosticWithoutArgumentsImpl(
-        name: 'NON_CONSTANT_LIST_ELEMENT',
-        problemMessage: "The values in a const list literal must be constants.",
-        correctionMessage:
-            "Try removing the keyword 'const' from the list literal.",
-        hasPublishedDocs: true,
-        type: DiagnosticType.COMPILE_TIME_ERROR,
-        uniqueName: 'CompileTimeErrorCode.NON_CONSTANT_LIST_ELEMENT',
-        expectedTypes: [],
-      );
+      diag.nonConstantListElement;
 
   /// No parameters.
   static const DiagnosticWithoutArguments
-  nonConstantListElementFromDeferredLibrary = DiagnosticWithoutArgumentsImpl(
-    name: 'COLLECTION_ELEMENT_FROM_DEFERRED_LIBRARY',
-    problemMessage:
-        "Constant values from a deferred library can't be used as values in a "
-        "'const' list literal.",
-    correctionMessage:
-        "Try removing the keyword 'const' from the list literal or removing "
-        "the keyword 'deferred' from the import.",
-    hasPublishedDocs: true,
-    type: DiagnosticType.COMPILE_TIME_ERROR,
-    uniqueName:
-        'CompileTimeErrorCode.NON_CONSTANT_LIST_ELEMENT_FROM_DEFERRED_LIBRARY',
-    expectedTypes: [],
-  );
+  nonConstantListElementFromDeferredLibrary =
+      diag.nonConstantListElementFromDeferredLibrary;
 
   /// No parameters.
   static const DiagnosticWithoutArguments nonConstantMapElement =
-      DiagnosticWithoutArgumentsImpl(
-        name: 'NON_CONSTANT_MAP_ELEMENT',
-        problemMessage: "The elements in a const map literal must be constant.",
-        correctionMessage:
-            "Try removing the keyword 'const' from the map literal.",
-        hasPublishedDocs: true,
-        type: DiagnosticType.COMPILE_TIME_ERROR,
-        uniqueName: 'CompileTimeErrorCode.NON_CONSTANT_MAP_ELEMENT',
-        expectedTypes: [],
-      );
+      diag.nonConstantMapElement;
 
   /// No parameters.
   static const DiagnosticWithoutArguments nonConstantMapKey =
-      DiagnosticWithoutArgumentsImpl(
-        name: 'NON_CONSTANT_MAP_KEY',
-        problemMessage: "The keys in a const map literal must be constant.",
-        correctionMessage:
-            "Try removing the keyword 'const' from the map literal.",
-        hasPublishedDocs: true,
-        type: DiagnosticType.COMPILE_TIME_ERROR,
-        uniqueName: 'CompileTimeErrorCode.NON_CONSTANT_MAP_KEY',
-        expectedTypes: [],
-      );
+      diag.nonConstantMapKey;
 
   /// No parameters.
-  static const DiagnosticWithoutArguments
-  nonConstantMapKeyFromDeferredLibrary = DiagnosticWithoutArgumentsImpl(
-    name: 'COLLECTION_ELEMENT_FROM_DEFERRED_LIBRARY',
-    problemMessage:
-        "Constant values from a deferred library can't be used as keys in a "
-        "'const' map literal.",
-    correctionMessage:
-        "Try removing the keyword 'const' from the map literal or removing the "
-        "keyword 'deferred' from the import.",
-    hasPublishedDocs: true,
-    type: DiagnosticType.COMPILE_TIME_ERROR,
-    uniqueName:
-        'CompileTimeErrorCode.NON_CONSTANT_MAP_KEY_FROM_DEFERRED_LIBRARY',
-    expectedTypes: [],
-  );
+  static const DiagnosticWithoutArguments nonConstantMapKeyFromDeferredLibrary =
+      diag.nonConstantMapKeyFromDeferredLibrary;
 
   /// No parameters.
   static const DiagnosticWithoutArguments nonConstantMapPatternKey =
-      DiagnosticWithoutArgumentsImpl(
-        name: 'NON_CONSTANT_MAP_PATTERN_KEY',
-        problemMessage: "Key expressions in map patterns must be constants.",
-        correctionMessage: "Try using constants instead.",
-        hasPublishedDocs: true,
-        type: DiagnosticType.COMPILE_TIME_ERROR,
-        uniqueName: 'CompileTimeErrorCode.NON_CONSTANT_MAP_PATTERN_KEY',
-        expectedTypes: [],
-      );
+      diag.nonConstantMapPatternKey;
 
   /// No parameters.
   static const DiagnosticWithoutArguments nonConstantMapValue =
-      DiagnosticWithoutArgumentsImpl(
-        name: 'NON_CONSTANT_MAP_VALUE',
-        problemMessage: "The values in a const map literal must be constant.",
-        correctionMessage:
-            "Try removing the keyword 'const' from the map literal.",
-        hasPublishedDocs: true,
-        type: DiagnosticType.COMPILE_TIME_ERROR,
-        uniqueName: 'CompileTimeErrorCode.NON_CONSTANT_MAP_VALUE',
-        expectedTypes: [],
-      );
+      diag.nonConstantMapValue;
 
   /// No parameters.
   static const DiagnosticWithoutArguments
-  nonConstantMapValueFromDeferredLibrary = DiagnosticWithoutArgumentsImpl(
-    name: 'COLLECTION_ELEMENT_FROM_DEFERRED_LIBRARY',
-    problemMessage:
-        "Constant values from a deferred library can't be used as values in a "
-        "'const' map literal.",
-    correctionMessage:
-        "Try removing the keyword 'const' from the map literal or removing the "
-        "keyword 'deferred' from the import.",
-    hasPublishedDocs: true,
-    type: DiagnosticType.COMPILE_TIME_ERROR,
-    uniqueName:
-        'CompileTimeErrorCode.NON_CONSTANT_MAP_VALUE_FROM_DEFERRED_LIBRARY',
-    expectedTypes: [],
-  );
+  nonConstantMapValueFromDeferredLibrary =
+      diag.nonConstantMapValueFromDeferredLibrary;
 
   /// No parameters.
   static const DiagnosticWithoutArguments nonConstantRecordField =
-      DiagnosticWithoutArgumentsImpl(
-        name: 'NON_CONSTANT_RECORD_FIELD',
-        problemMessage:
-            "The fields in a const record literal must be constants.",
-        correctionMessage:
-            "Try removing the keyword 'const' from the record literal.",
-        type: DiagnosticType.COMPILE_TIME_ERROR,
-        uniqueName: 'CompileTimeErrorCode.NON_CONSTANT_RECORD_FIELD',
-        expectedTypes: [],
-      );
+      diag.nonConstantRecordField;
 
   /// No parameters.
   static const DiagnosticWithoutArguments
-  nonConstantRecordFieldFromDeferredLibrary = DiagnosticWithoutArgumentsImpl(
-    name: 'NON_CONSTANT_RECORD_FIELD_FROM_DEFERRED_LIBRARY',
-    problemMessage:
-        "Constant values from a deferred library can't be used as fields in a "
-        "'const' record literal.",
-    correctionMessage:
-        "Try removing the keyword 'const' from the record literal or removing "
-        "the keyword 'deferred' from the import.",
-    type: DiagnosticType.COMPILE_TIME_ERROR,
-    uniqueName:
-        'CompileTimeErrorCode.NON_CONSTANT_RECORD_FIELD_FROM_DEFERRED_LIBRARY',
-    expectedTypes: [],
-  );
+  nonConstantRecordFieldFromDeferredLibrary =
+      diag.nonConstantRecordFieldFromDeferredLibrary;
 
   /// No parameters.
   static const DiagnosticWithoutArguments
-  nonConstantRelationalPatternExpression = DiagnosticWithoutArgumentsImpl(
-    name: 'NON_CONSTANT_RELATIONAL_PATTERN_EXPRESSION',
-    problemMessage: "The relational pattern expression must be a constant.",
-    correctionMessage: "Try using a constant instead.",
-    hasPublishedDocs: true,
-    type: DiagnosticType.COMPILE_TIME_ERROR,
-    uniqueName:
-        'CompileTimeErrorCode.NON_CONSTANT_RELATIONAL_PATTERN_EXPRESSION',
-    expectedTypes: [],
-  );
+  nonConstantRelationalPatternExpression =
+      diag.nonConstantRelationalPatternExpression;
 
   /// No parameters.
   static const DiagnosticWithoutArguments nonConstantSetElement =
-      DiagnosticWithoutArgumentsImpl(
-        name: 'NON_CONSTANT_SET_ELEMENT',
-        problemMessage: "The values in a const set literal must be constants.",
-        correctionMessage:
-            "Try removing the keyword 'const' from the set literal.",
-        hasPublishedDocs: true,
-        type: DiagnosticType.COMPILE_TIME_ERROR,
-        uniqueName: 'CompileTimeErrorCode.NON_CONSTANT_SET_ELEMENT',
-        expectedTypes: [],
-      );
+      diag.nonConstantSetElement;
 
   /// No parameters.
   static const DiagnosticWithoutArguments nonConstGenerativeEnumConstructor =
-      DiagnosticWithoutArgumentsImpl(
-        name: 'NON_CONST_GENERATIVE_ENUM_CONSTRUCTOR',
-        problemMessage: "Generative enum constructors must be 'const'.",
-        correctionMessage: "Try adding the keyword 'const'.",
-        hasPublishedDocs: true,
-        type: DiagnosticType.COMPILE_TIME_ERROR,
-        uniqueName:
-            'CompileTimeErrorCode.NON_CONST_GENERATIVE_ENUM_CONSTRUCTOR',
-        expectedTypes: [],
-      );
+      diag.nonConstGenerativeEnumConstructor;
 
   /// 13.2 Expression Statements: It is a compile-time error if a non-constant
   /// map literal that has no explicit type arguments appears in a place where a
   /// statement is expected.
   ///
   /// No parameters.
-  static const DiagnosticWithoutArguments
-  nonConstMapAsExpressionStatement = DiagnosticWithoutArgumentsImpl(
-    name: 'NON_CONST_MAP_AS_EXPRESSION_STATEMENT',
-    problemMessage:
-        "A non-constant map or set literal without type arguments can't be used as "
-        "an expression statement.",
-    type: DiagnosticType.COMPILE_TIME_ERROR,
-    uniqueName: 'CompileTimeErrorCode.NON_CONST_MAP_AS_EXPRESSION_STATEMENT',
-    expectedTypes: [],
-  );
+  static const DiagnosticWithoutArguments nonConstMapAsExpressionStatement =
+      diag.nonConstMapAsExpressionStatement;
 
   /// No parameters.
   static const DiagnosticWithoutArguments
-  nonCovariantTypeParameterPositionInRepresentationType = DiagnosticWithoutArgumentsImpl(
-    name: 'NON_COVARIANT_TYPE_PARAMETER_POSITION_IN_REPRESENTATION_TYPE',
-    problemMessage:
-        "An extension type parameter can't be used in a non-covariant position of "
-        "its representation type.",
-    correctionMessage:
-        "Try removing the type parameters from function parameter types and "
-        "type parameter bounds.",
-    hasPublishedDocs: true,
-    type: DiagnosticType.COMPILE_TIME_ERROR,
-    uniqueName:
-        'CompileTimeErrorCode.NON_COVARIANT_TYPE_PARAMETER_POSITION_IN_REPRESENTATION_TYPE',
-    expectedTypes: [],
-  );
+  nonCovariantTypeParameterPositionInRepresentationType =
+      diag.nonCovariantTypeParameterPositionInRepresentationType;
 
   /// Parameters:
   /// Type p0: the type of the switch scrutinee
@@ -6378,23 +2643,7 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
       required String p2,
     })
   >
-  nonExhaustiveSwitchExpression = DiagnosticWithArguments(
-    name: 'NON_EXHAUSTIVE_SWITCH_EXPRESSION',
-    problemMessage:
-        "The type '{0}' isn't exhaustively matched by the switch cases since it "
-        "doesn't match the pattern '{1}'.",
-    correctionMessage:
-        "Try adding a wildcard pattern or cases that match '{2}'.",
-    hasPublishedDocs: true,
-    type: DiagnosticType.COMPILE_TIME_ERROR,
-    uniqueName: 'CompileTimeErrorCode.NON_EXHAUSTIVE_SWITCH_EXPRESSION',
-    withArguments: _withArgumentsNonExhaustiveSwitchExpression,
-    expectedTypes: [
-      ExpectedType.type,
-      ExpectedType.string,
-      ExpectedType.string,
-    ],
-  );
+  nonExhaustiveSwitchExpression = diag.nonExhaustiveSwitchExpression;
 
   /// Parameters:
   /// Type p0: the type of the switch scrutinee
@@ -6407,53 +2656,18 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
       required String p2,
     })
   >
-  nonExhaustiveSwitchStatement = DiagnosticWithArguments(
-    name: 'NON_EXHAUSTIVE_SWITCH_STATEMENT',
-    problemMessage:
-        "The type '{0}' isn't exhaustively matched by the switch cases since it "
-        "doesn't match the pattern '{1}'.",
-    correctionMessage: "Try adding a default case or cases that match '{2}'.",
-    hasPublishedDocs: true,
-    type: DiagnosticType.COMPILE_TIME_ERROR,
-    uniqueName: 'CompileTimeErrorCode.NON_EXHAUSTIVE_SWITCH_STATEMENT',
-    withArguments: _withArgumentsNonExhaustiveSwitchStatement,
-    expectedTypes: [
-      ExpectedType.type,
-      ExpectedType.string,
-      ExpectedType.string,
-    ],
-  );
+  nonExhaustiveSwitchStatement = diag.nonExhaustiveSwitchStatement;
 
   /// No parameters.
   static const DiagnosticWithoutArguments nonFinalFieldInEnum =
-      DiagnosticWithoutArgumentsImpl(
-        name: 'NON_FINAL_FIELD_IN_ENUM',
-        problemMessage: "Enums can only declare final fields.",
-        correctionMessage: "Try making the field final.",
-        hasPublishedDocs: true,
-        type: DiagnosticType.COMPILE_TIME_ERROR,
-        uniqueName: 'CompileTimeErrorCode.NON_FINAL_FIELD_IN_ENUM',
-        expectedTypes: [],
-      );
+      diag.nonFinalFieldInEnum;
 
   /// Parameters:
   /// Element p0: the non-generative constructor
   static const DiagnosticWithArguments<
     LocatableDiagnostic Function({required Element p0})
   >
-  nonGenerativeConstructor = DiagnosticWithArguments(
-    name: 'NON_GENERATIVE_CONSTRUCTOR',
-    problemMessage:
-        "The generative constructor '{0}' is expected, but a factory was found.",
-    correctionMessage:
-        "Try calling a different constructor of the superclass, or making the "
-        "called constructor not be a factory constructor.",
-    hasPublishedDocs: true,
-    type: DiagnosticType.COMPILE_TIME_ERROR,
-    uniqueName: 'CompileTimeErrorCode.NON_GENERATIVE_CONSTRUCTOR',
-    withArguments: _withArgumentsNonGenerativeConstructor,
-    expectedTypes: [ExpectedType.element],
-  );
+  nonGenerativeConstructor = diag.nonGenerativeConstructor;
 
   /// Parameters:
   /// String p0: the name of the superclass
@@ -6466,154 +2680,54 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
       required Element p2,
     })
   >
-  nonGenerativeImplicitConstructor = DiagnosticWithArguments(
-    name: 'NON_GENERATIVE_IMPLICIT_CONSTRUCTOR',
-    problemMessage:
-        "The unnamed constructor of superclass '{0}' (called by the default "
-        "constructor of '{1}') must be a generative constructor, but factory "
-        "found.",
-    correctionMessage:
-        "Try adding an explicit constructor that has a different "
-        "superinitializer or changing the superclass constructor '{2}' to not "
-        "be a factory constructor.",
-    hasPublishedDocs: true,
-    type: DiagnosticType.COMPILE_TIME_ERROR,
-    uniqueName: 'CompileTimeErrorCode.NON_GENERATIVE_IMPLICIT_CONSTRUCTOR',
-    withArguments: _withArgumentsNonGenerativeImplicitConstructor,
-    expectedTypes: [
-      ExpectedType.string,
-      ExpectedType.string,
-      ExpectedType.element,
-    ],
-  );
+  nonGenerativeImplicitConstructor = diag.nonGenerativeImplicitConstructor;
 
   /// No parameters.
-  static const DiagnosticWithoutArguments nonSyncFactory =
-      DiagnosticWithoutArgumentsImpl(
-        name: 'NON_SYNC_FACTORY',
-        problemMessage:
-            "Factory bodies can't use 'async', 'async*', or 'sync*'.",
-        hasPublishedDocs: true,
-        type: DiagnosticType.COMPILE_TIME_ERROR,
-        uniqueName: 'CompileTimeErrorCode.NON_SYNC_FACTORY',
-        expectedTypes: [],
-      );
+  static const DiagnosticWithoutArguments nonSyncFactory = diag.nonSyncFactory;
 
   /// Parameters:
   /// String p0: the name appearing where a type is expected
   static const DiagnosticWithArguments<
     LocatableDiagnostic Function({required String p0})
   >
-  nonTypeAsTypeArgument = DiagnosticWithArguments(
-    name: 'NON_TYPE_AS_TYPE_ARGUMENT',
-    problemMessage:
-        "The name '{0}' isn't a type, so it can't be used as a type argument.",
-    correctionMessage:
-        "Try correcting the name to an existing type, or defining a type named "
-        "'{0}'.",
-    hasPublishedDocs: true,
-    isUnresolvedIdentifier: true,
-    type: DiagnosticType.COMPILE_TIME_ERROR,
-    uniqueName: 'CompileTimeErrorCode.NON_TYPE_AS_TYPE_ARGUMENT',
-    withArguments: _withArgumentsNonTypeAsTypeArgument,
-    expectedTypes: [ExpectedType.string],
-  );
+  nonTypeAsTypeArgument = diag.nonTypeAsTypeArgument;
 
   /// Parameters:
   /// String p0: the name of the non-type element
   static const DiagnosticWithArguments<
     LocatableDiagnostic Function({required String p0})
   >
-  nonTypeInCatchClause = DiagnosticWithArguments(
-    name: 'NON_TYPE_IN_CATCH_CLAUSE',
-    problemMessage:
-        "The name '{0}' isn't a type and can't be used in an on-catch clause.",
-    correctionMessage: "Try correcting the name to match an existing class.",
-    hasPublishedDocs: true,
-    type: DiagnosticType.COMPILE_TIME_ERROR,
-    uniqueName: 'CompileTimeErrorCode.NON_TYPE_IN_CATCH_CLAUSE',
-    withArguments: _withArgumentsNonTypeInCatchClause,
-    expectedTypes: [ExpectedType.string],
-  );
+  nonTypeInCatchClause = diag.nonTypeInCatchClause;
 
   /// No parameters.
   static const DiagnosticWithoutArguments nonVoidReturnForOperator =
-      DiagnosticWithoutArgumentsImpl(
-        name: 'NON_VOID_RETURN_FOR_OPERATOR',
-        problemMessage: "The return type of the operator []= must be 'void'.",
-        correctionMessage: "Try changing the return type to 'void'.",
-        hasPublishedDocs: true,
-        type: DiagnosticType.COMPILE_TIME_ERROR,
-        uniqueName: 'CompileTimeErrorCode.NON_VOID_RETURN_FOR_OPERATOR',
-        expectedTypes: [],
-      );
+      diag.nonVoidReturnForOperator;
 
   /// No parameters.
   static const DiagnosticWithoutArguments nonVoidReturnForSetter =
-      DiagnosticWithoutArgumentsImpl(
-        name: 'NON_VOID_RETURN_FOR_SETTER',
-        problemMessage:
-            "The return type of the setter must be 'void' or absent.",
-        correctionMessage:
-            "Try removing the return type, or define a method rather than a "
-            "setter.",
-        hasPublishedDocs: true,
-        type: DiagnosticType.COMPILE_TIME_ERROR,
-        uniqueName: 'CompileTimeErrorCode.NON_VOID_RETURN_FOR_SETTER',
-        expectedTypes: [],
-      );
+      diag.nonVoidReturnForSetter;
 
   /// Parameters:
   /// String p0: the name of the variable that is invalid
   static const DiagnosticWithArguments<
     LocatableDiagnostic Function({required String p0})
   >
-  notAssignedPotentiallyNonNullableLocalVariable = DiagnosticWithArguments(
-    name: 'NOT_ASSIGNED_POTENTIALLY_NON_NULLABLE_LOCAL_VARIABLE',
-    problemMessage:
-        "The non-nullable local variable '{0}' must be assigned before it can be "
-        "used.",
-    correctionMessage:
-        "Try giving it an initializer expression, or ensure that it's assigned "
-        "on every execution path.",
-    hasPublishedDocs: true,
-    type: DiagnosticType.COMPILE_TIME_ERROR,
-    uniqueName:
-        'CompileTimeErrorCode.NOT_ASSIGNED_POTENTIALLY_NON_NULLABLE_LOCAL_VARIABLE',
-    withArguments: _withArgumentsNotAssignedPotentiallyNonNullableLocalVariable,
-    expectedTypes: [ExpectedType.string],
-  );
+  notAssignedPotentiallyNonNullableLocalVariable =
+      diag.notAssignedPotentiallyNonNullableLocalVariable;
 
   /// Parameters:
   /// String p0: the name that is not a type
   static const DiagnosticWithArguments<
     LocatableDiagnostic Function({required String p0})
   >
-  notAType = DiagnosticWithArguments(
-    name: 'NOT_A_TYPE',
-    problemMessage: "{0} isn't a type.",
-    correctionMessage: "Try correcting the name to match an existing type.",
-    hasPublishedDocs: true,
-    type: DiagnosticType.COMPILE_TIME_ERROR,
-    uniqueName: 'CompileTimeErrorCode.NOT_A_TYPE',
-    withArguments: _withArgumentsNotAType,
-    expectedTypes: [ExpectedType.string],
-  );
+  notAType = diag.notAType;
 
   /// Parameters:
   /// String p0: the name of the operator that is not a binary operator.
   static const DiagnosticWithArguments<
     LocatableDiagnostic Function({required String p0})
   >
-  notBinaryOperator = DiagnosticWithArguments(
-    name: 'NOT_BINARY_OPERATOR',
-    problemMessage: "'{0}' isn't a binary operator.",
-    hasPublishedDocs: true,
-    type: DiagnosticType.COMPILE_TIME_ERROR,
-    uniqueName: 'CompileTimeErrorCode.NOT_BINARY_OPERATOR',
-    withArguments: _withArgumentsNotBinaryOperator,
-    expectedTypes: [ExpectedType.string],
-  );
+  notBinaryOperator = diag.notBinaryOperator;
 
   /// Parameters:
   /// int p0: the expected number of required arguments
@@ -6626,35 +2740,16 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
       required String p2,
     })
   >
-  notEnoughPositionalArgumentsNamePlural = DiagnosticWithArguments(
-    name: 'NOT_ENOUGH_POSITIONAL_ARGUMENTS',
-    problemMessage:
-        "{0} positional arguments expected by '{2}', but {1} found.",
-    correctionMessage: "Try adding the missing arguments.",
-    hasPublishedDocs: true,
-    type: DiagnosticType.COMPILE_TIME_ERROR,
-    uniqueName:
-        'CompileTimeErrorCode.NOT_ENOUGH_POSITIONAL_ARGUMENTS_NAME_PLURAL',
-    withArguments: _withArgumentsNotEnoughPositionalArgumentsNamePlural,
-    expectedTypes: [ExpectedType.int, ExpectedType.int, ExpectedType.string],
-  );
+  notEnoughPositionalArgumentsNamePlural =
+      diag.notEnoughPositionalArgumentsNamePlural;
 
   /// Parameters:
   /// String p0: name of the function or method
   static const DiagnosticWithArguments<
     LocatableDiagnostic Function({required String p0})
   >
-  notEnoughPositionalArgumentsNameSingular = DiagnosticWithArguments(
-    name: 'NOT_ENOUGH_POSITIONAL_ARGUMENTS',
-    problemMessage: "1 positional argument expected by '{0}', but 0 found.",
-    correctionMessage: "Try adding the missing argument.",
-    hasPublishedDocs: true,
-    type: DiagnosticType.COMPILE_TIME_ERROR,
-    uniqueName:
-        'CompileTimeErrorCode.NOT_ENOUGH_POSITIONAL_ARGUMENTS_NAME_SINGULAR',
-    withArguments: _withArgumentsNotEnoughPositionalArgumentsNameSingular,
-    expectedTypes: [ExpectedType.string],
-  );
+  notEnoughPositionalArgumentsNameSingular =
+      diag.notEnoughPositionalArgumentsNameSingular;
 
   /// Parameters:
   /// int p0: the expected number of required arguments
@@ -6662,238 +2757,87 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
   static const DiagnosticWithArguments<
     LocatableDiagnostic Function({required int p0, required int p1})
   >
-  notEnoughPositionalArgumentsPlural = DiagnosticWithArguments(
-    name: 'NOT_ENOUGH_POSITIONAL_ARGUMENTS',
-    problemMessage: "{0} positional arguments expected, but {1} found.",
-    correctionMessage: "Try adding the missing arguments.",
-    hasPublishedDocs: true,
-    type: DiagnosticType.COMPILE_TIME_ERROR,
-    uniqueName: 'CompileTimeErrorCode.NOT_ENOUGH_POSITIONAL_ARGUMENTS_PLURAL',
-    withArguments: _withArgumentsNotEnoughPositionalArgumentsPlural,
-    expectedTypes: [ExpectedType.int, ExpectedType.int],
-  );
+  notEnoughPositionalArgumentsPlural = diag.notEnoughPositionalArgumentsPlural;
 
   /// No parameters.
   static const DiagnosticWithoutArguments notEnoughPositionalArgumentsSingular =
-      DiagnosticWithoutArgumentsImpl(
-        name: 'NOT_ENOUGH_POSITIONAL_ARGUMENTS',
-        problemMessage: "1 positional argument expected, but 0 found.",
-        correctionMessage: "Try adding the missing argument.",
-        hasPublishedDocs: true,
-        type: DiagnosticType.COMPILE_TIME_ERROR,
-        uniqueName:
-            'CompileTimeErrorCode.NOT_ENOUGH_POSITIONAL_ARGUMENTS_SINGULAR',
-        expectedTypes: [],
-      );
+      diag.notEnoughPositionalArgumentsSingular;
 
   /// Parameters:
   /// String p0: the name of the field that is not initialized
   static const DiagnosticWithArguments<
     LocatableDiagnostic Function({required String p0})
   >
-  notInitializedNonNullableInstanceField = DiagnosticWithArguments(
-    name: 'NOT_INITIALIZED_NON_NULLABLE_INSTANCE_FIELD',
-    problemMessage: "Non-nullable instance field '{0}' must be initialized.",
-    correctionMessage:
-        "Try adding an initializer expression, or a generative constructor "
-        "that initializes it, or mark it 'late'.",
-    hasPublishedDocs: true,
-    type: DiagnosticType.COMPILE_TIME_ERROR,
-    uniqueName:
-        'CompileTimeErrorCode.NOT_INITIALIZED_NON_NULLABLE_INSTANCE_FIELD',
-    withArguments: _withArgumentsNotInitializedNonNullableInstanceField,
-    expectedTypes: [ExpectedType.string],
-  );
+  notInitializedNonNullableInstanceField =
+      diag.notInitializedNonNullableInstanceField;
 
   /// Parameters:
   /// String p0: the name of the field that is not initialized
   static const DiagnosticWithArguments<
     LocatableDiagnostic Function({required String p0})
   >
-  notInitializedNonNullableInstanceFieldConstructor = DiagnosticWithArguments(
-    name: 'NOT_INITIALIZED_NON_NULLABLE_INSTANCE_FIELD',
-    problemMessage: "Non-nullable instance field '{0}' must be initialized.",
-    correctionMessage:
-        "Try adding an initializer expression, or add a field initializer in "
-        "this constructor, or mark it 'late'.",
-    hasPublishedDocs: true,
-    type: DiagnosticType.COMPILE_TIME_ERROR,
-    uniqueName:
-        'CompileTimeErrorCode.NOT_INITIALIZED_NON_NULLABLE_INSTANCE_FIELD_CONSTRUCTOR',
-    withArguments:
-        _withArgumentsNotInitializedNonNullableInstanceFieldConstructor,
-    expectedTypes: [ExpectedType.string],
-  );
+  notInitializedNonNullableInstanceFieldConstructor =
+      diag.notInitializedNonNullableInstanceFieldConstructor;
 
   /// Parameters:
   /// String p0: the name of the variable that is invalid
   static const DiagnosticWithArguments<
     LocatableDiagnostic Function({required String p0})
   >
-  notInitializedNonNullableVariable = DiagnosticWithArguments(
-    name: 'NOT_INITIALIZED_NON_NULLABLE_VARIABLE',
-    problemMessage: "The non-nullable variable '{0}' must be initialized.",
-    correctionMessage: "Try adding an initializer expression.",
-    hasPublishedDocs: true,
-    type: DiagnosticType.COMPILE_TIME_ERROR,
-    uniqueName: 'CompileTimeErrorCode.NOT_INITIALIZED_NON_NULLABLE_VARIABLE',
-    withArguments: _withArgumentsNotInitializedNonNullableVariable,
-    expectedTypes: [ExpectedType.string],
-  );
+  notInitializedNonNullableVariable = diag.notInitializedNonNullableVariable;
 
   /// No parameters.
   static const DiagnosticWithoutArguments notInstantiatedBound =
-      DiagnosticWithoutArgumentsImpl(
-        name: 'NOT_INSTANTIATED_BOUND',
-        problemMessage: "Type parameter bound types must be instantiated.",
-        correctionMessage:
-            "Try adding type arguments to the type parameter bound.",
-        type: DiagnosticType.COMPILE_TIME_ERROR,
-        uniqueName: 'CompileTimeErrorCode.NOT_INSTANTIATED_BOUND',
-        expectedTypes: [],
-      );
+      diag.notInstantiatedBound;
 
   /// No parameters.
-  static const DiagnosticWithoutArguments
-  notIterableSpread = DiagnosticWithoutArgumentsImpl(
-    name: 'NOT_ITERABLE_SPREAD',
-    problemMessage:
-        "Spread elements in list or set literals must implement 'Iterable'.",
-    hasPublishedDocs: true,
-    type: DiagnosticType.COMPILE_TIME_ERROR,
-    uniqueName: 'CompileTimeErrorCode.NOT_ITERABLE_SPREAD',
-    expectedTypes: [],
-  );
+  static const DiagnosticWithoutArguments notIterableSpread =
+      diag.notIterableSpread;
 
   /// No parameters.
-  static const DiagnosticWithoutArguments notMapSpread =
-      DiagnosticWithoutArgumentsImpl(
-        name: 'NOT_MAP_SPREAD',
-        problemMessage: "Spread elements in map literals must implement 'Map'.",
-        hasPublishedDocs: true,
-        type: DiagnosticType.COMPILE_TIME_ERROR,
-        uniqueName: 'CompileTimeErrorCode.NOT_MAP_SPREAD',
-        expectedTypes: [],
-      );
+  static const DiagnosticWithoutArguments notMapSpread = diag.notMapSpread;
 
   /// No parameters.
-  static const DiagnosticWithoutArguments
-  notNullAwareNullSpread = DiagnosticWithoutArgumentsImpl(
-    name: 'NOT_NULL_AWARE_NULL_SPREAD',
-    problemMessage:
-        "The Null-typed expression can't be used with a non-null-aware spread.",
-    type: DiagnosticType.COMPILE_TIME_ERROR,
-    uniqueName: 'CompileTimeErrorCode.NOT_NULL_AWARE_NULL_SPREAD',
-    expectedTypes: [],
-  );
+  static const DiagnosticWithoutArguments notNullAwareNullSpread =
+      diag.notNullAwareNullSpread;
 
   /// No parameters.
   static const DiagnosticWithoutArguments nullableTypeInExtendsClause =
-      DiagnosticWithoutArgumentsImpl(
-        name: 'NULLABLE_TYPE_IN_EXTENDS_CLAUSE',
-        problemMessage: "A class can't extend a nullable type.",
-        correctionMessage: "Try removing the question mark.",
-        hasPublishedDocs: true,
-        type: DiagnosticType.COMPILE_TIME_ERROR,
-        uniqueName: 'CompileTimeErrorCode.NULLABLE_TYPE_IN_EXTENDS_CLAUSE',
-        expectedTypes: [],
-      );
+      diag.nullableTypeInExtendsClause;
 
   /// No parameters.
-  static const DiagnosticWithoutArguments
-  nullableTypeInImplementsClause = DiagnosticWithoutArgumentsImpl(
-    name: 'NULLABLE_TYPE_IN_IMPLEMENTS_CLAUSE',
-    problemMessage:
-        "A class, mixin, or extension type can't implement a nullable type.",
-    correctionMessage: "Try removing the question mark.",
-    hasPublishedDocs: true,
-    type: DiagnosticType.COMPILE_TIME_ERROR,
-    uniqueName: 'CompileTimeErrorCode.NULLABLE_TYPE_IN_IMPLEMENTS_CLAUSE',
-    expectedTypes: [],
-  );
+  static const DiagnosticWithoutArguments nullableTypeInImplementsClause =
+      diag.nullableTypeInImplementsClause;
 
   /// No parameters.
   static const DiagnosticWithoutArguments nullableTypeInOnClause =
-      DiagnosticWithoutArgumentsImpl(
-        name: 'NULLABLE_TYPE_IN_ON_CLAUSE',
-        problemMessage:
-            "A mixin can't have a nullable type as a superclass constraint.",
-        correctionMessage: "Try removing the question mark.",
-        hasPublishedDocs: true,
-        type: DiagnosticType.COMPILE_TIME_ERROR,
-        uniqueName: 'CompileTimeErrorCode.NULLABLE_TYPE_IN_ON_CLAUSE',
-        expectedTypes: [],
-      );
+      diag.nullableTypeInOnClause;
 
   /// No parameters.
   static const DiagnosticWithoutArguments nullableTypeInWithClause =
-      DiagnosticWithoutArgumentsImpl(
-        name: 'NULLABLE_TYPE_IN_WITH_CLAUSE',
-        problemMessage: "A class or mixin can't mix in a nullable type.",
-        correctionMessage: "Try removing the question mark.",
-        hasPublishedDocs: true,
-        type: DiagnosticType.COMPILE_TIME_ERROR,
-        uniqueName: 'CompileTimeErrorCode.NULLABLE_TYPE_IN_WITH_CLAUSE',
-        expectedTypes: [],
-      );
+      diag.nullableTypeInWithClause;
 
   /// 7.9 Superclasses: It is a compile-time error to specify an extends clause
   /// for class Object.
   ///
   /// No parameters.
   static const DiagnosticWithoutArguments objectCannotExtendAnotherClass =
-      DiagnosticWithoutArgumentsImpl(
-        name: 'OBJECT_CANNOT_EXTEND_ANOTHER_CLASS',
-        problemMessage: "The class 'Object' can't extend any other class.",
-        type: DiagnosticType.COMPILE_TIME_ERROR,
-        uniqueName: 'CompileTimeErrorCode.OBJECT_CANNOT_EXTEND_ANOTHER_CLASS',
-        expectedTypes: [],
-      );
+      diag.objectCannotExtendAnotherClass;
 
   /// No parameters.
-  static const DiagnosticWithoutArguments
-  obsoleteColonForDefaultValue = DiagnosticWithoutArgumentsImpl(
-    name: 'OBSOLETE_COLON_FOR_DEFAULT_VALUE',
-    problemMessage:
-        "Using a colon as the separator before a default value is no longer "
-        "supported.",
-    correctionMessage: "Try replacing the colon with an equal sign.",
-    hasPublishedDocs: true,
-    type: DiagnosticType.COMPILE_TIME_ERROR,
-    uniqueName: 'CompileTimeErrorCode.OBSOLETE_COLON_FOR_DEFAULT_VALUE',
-    expectedTypes: [],
-  );
+  static const DiagnosticWithoutArguments obsoleteColonForDefaultValue =
+      diag.obsoleteColonForDefaultValue;
 
   /// Parameters:
   /// String p0: the name of the interface that is implemented more than once
   static const DiagnosticWithArguments<
     LocatableDiagnostic Function({required String p0})
   >
-  onRepeated = DiagnosticWithArguments(
-    name: 'ON_REPEATED',
-    problemMessage:
-        "The type '{0}' can be included in the superclass constraints only once.",
-    correctionMessage:
-        "Try removing all except one occurrence of the type name.",
-    hasPublishedDocs: true,
-    type: DiagnosticType.COMPILE_TIME_ERROR,
-    uniqueName: 'CompileTimeErrorCode.ON_REPEATED',
-    withArguments: _withArgumentsOnRepeated,
-    expectedTypes: [ExpectedType.string],
-  );
+  onRepeated = diag.onRepeated;
 
   /// No parameters.
   static const DiagnosticWithoutArguments optionalParameterInOperator =
-      DiagnosticWithoutArgumentsImpl(
-        name: 'OPTIONAL_PARAMETER_IN_OPERATOR',
-        problemMessage:
-            "Optional parameters aren't allowed when defining an operator.",
-        correctionMessage: "Try removing the optional parameters.",
-        hasPublishedDocs: true,
-        type: DiagnosticType.COMPILE_TIME_ERROR,
-        uniqueName: 'CompileTimeErrorCode.OPTIONAL_PARAMETER_IN_OPERATOR',
-        expectedTypes: [],
-      );
+      diag.optionalParameterInOperator;
 
   /// Parameters:
   /// String p0: the name of expected library name
@@ -6902,34 +2846,14 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
   static const DiagnosticWithArguments<
     LocatableDiagnostic Function({required String p0, required String p1})
   >
-  partOfDifferentLibrary = DiagnosticWithArguments(
-    name: 'PART_OF_DIFFERENT_LIBRARY',
-    problemMessage: "Expected this library to be part of '{0}', not '{1}'.",
-    correctionMessage:
-        "Try including a different part, or changing the name of the library "
-        "in the part's part-of directive.",
-    hasPublishedDocs: true,
-    type: DiagnosticType.COMPILE_TIME_ERROR,
-    uniqueName: 'CompileTimeErrorCode.PART_OF_DIFFERENT_LIBRARY',
-    withArguments: _withArgumentsPartOfDifferentLibrary,
-    expectedTypes: [ExpectedType.string, ExpectedType.string],
-  );
+  partOfDifferentLibrary = diag.partOfDifferentLibrary;
 
   /// Parameters:
   /// String p0: the URI pointing to a non-library declaration
   static const DiagnosticWithArguments<
     LocatableDiagnostic Function({required String p0})
   >
-  partOfNonPart = DiagnosticWithArguments(
-    name: 'PART_OF_NON_PART',
-    problemMessage: "The included part '{0}' must have a part-of directive.",
-    correctionMessage: "Try adding a part-of directive to '{0}'.",
-    hasPublishedDocs: true,
-    type: DiagnosticType.COMPILE_TIME_ERROR,
-    uniqueName: 'CompileTimeErrorCode.PART_OF_NON_PART',
-    withArguments: _withArgumentsPartOfNonPart,
-    expectedTypes: [ExpectedType.string],
-  );
+  partOfNonPart = diag.partOfNonPart;
 
   /// Parameters:
   /// String p0: the non-matching actual library name from the "part of"
@@ -6937,47 +2861,15 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
   static const DiagnosticWithArguments<
     LocatableDiagnostic Function({required String p0})
   >
-  partOfUnnamedLibrary = DiagnosticWithArguments(
-    name: 'PART_OF_UNNAMED_LIBRARY',
-    problemMessage:
-        "The library is unnamed. A URI is expected, not a library name '{0}', in "
-        "the part-of directive.",
-    correctionMessage:
-        "Try changing the part-of directive to a URI, or try including a "
-        "different part.",
-    hasPublishedDocs: true,
-    type: DiagnosticType.COMPILE_TIME_ERROR,
-    uniqueName: 'CompileTimeErrorCode.PART_OF_UNNAMED_LIBRARY',
-    withArguments: _withArgumentsPartOfUnnamedLibrary,
-    expectedTypes: [ExpectedType.string],
-  );
+  partOfUnnamedLibrary = diag.partOfUnnamedLibrary;
 
   /// No parameters.
   static const DiagnosticWithoutArguments patternAssignmentNotLocalVariable =
-      DiagnosticWithoutArgumentsImpl(
-        name: 'PATTERN_ASSIGNMENT_NOT_LOCAL_VARIABLE',
-        problemMessage:
-            "Only local variables can be assigned in pattern assignments.",
-        correctionMessage: "Try assigning to a local variable.",
-        hasPublishedDocs: true,
-        type: DiagnosticType.COMPILE_TIME_ERROR,
-        uniqueName:
-            'CompileTimeErrorCode.PATTERN_ASSIGNMENT_NOT_LOCAL_VARIABLE',
-        expectedTypes: [],
-      );
+      diag.patternAssignmentNotLocalVariable;
 
   /// No parameters.
-  static const DiagnosticWithoutArguments
-  patternConstantFromDeferredLibrary = DiagnosticWithoutArgumentsImpl(
-    name: 'PATTERN_CONSTANT_FROM_DEFERRED_LIBRARY',
-    problemMessage:
-        "Constant values from a deferred library can't be used in patterns.",
-    correctionMessage: "Try removing the keyword 'deferred' from the import.",
-    hasPublishedDocs: true,
-    type: DiagnosticType.COMPILE_TIME_ERROR,
-    uniqueName: 'CompileTimeErrorCode.PATTERN_CONSTANT_FROM_DEFERRED_LIBRARY',
-    expectedTypes: [],
-  );
+  static const DiagnosticWithoutArguments patternConstantFromDeferredLibrary =
+      diag.patternConstantFromDeferredLibrary;
 
   /// Parameters:
   /// Type p0: the matched type
@@ -6985,185 +2877,66 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
   static const DiagnosticWithArguments<
     LocatableDiagnostic Function({required DartType p0, required DartType p1})
   >
-  patternTypeMismatchInIrrefutableContext = DiagnosticWithArguments(
-    name: 'PATTERN_TYPE_MISMATCH_IN_IRREFUTABLE_CONTEXT',
-    problemMessage:
-        "The matched value of type '{0}' isn't assignable to the required type "
-        "'{1}'.",
-    correctionMessage:
-        "Try changing the required type of the pattern, or the matched value "
-        "type.",
-    hasPublishedDocs: true,
-    type: DiagnosticType.COMPILE_TIME_ERROR,
-    uniqueName:
-        'CompileTimeErrorCode.PATTERN_TYPE_MISMATCH_IN_IRREFUTABLE_CONTEXT',
-    withArguments: _withArgumentsPatternTypeMismatchInIrrefutableContext,
-    expectedTypes: [ExpectedType.type, ExpectedType.type],
-  );
+  patternTypeMismatchInIrrefutableContext =
+      diag.patternTypeMismatchInIrrefutableContext;
 
   /// No parameters.
-  static const DiagnosticWithoutArguments
-  patternVariableAssignmentInsideGuard = DiagnosticWithoutArgumentsImpl(
-    name: 'PATTERN_VARIABLE_ASSIGNMENT_INSIDE_GUARD',
-    problemMessage:
-        "Pattern variables can't be assigned inside the guard of the enclosing "
-        "guarded pattern.",
-    correctionMessage: "Try assigning to a different variable.",
-    hasPublishedDocs: true,
-    type: DiagnosticType.COMPILE_TIME_ERROR,
-    uniqueName: 'CompileTimeErrorCode.PATTERN_VARIABLE_ASSIGNMENT_INSIDE_GUARD',
-    expectedTypes: [],
-  );
+  static const DiagnosticWithoutArguments patternVariableAssignmentInsideGuard =
+      diag.patternVariableAssignmentInsideGuard;
 
   /// Parameters:
   /// String p0: the name of the pattern variable
   static const DiagnosticWithArguments<
     LocatableDiagnostic Function({required String p0})
   >
-  patternVariableSharedCaseScopeDifferentFinalityOrType = DiagnosticWithArguments(
-    name: 'INVALID_PATTERN_VARIABLE_IN_SHARED_CASE_SCOPE',
-    problemMessage:
-        "The variable '{0}' doesn't have the same type and/or finality in all "
-        "cases that share this body.",
-    correctionMessage:
-        "Try declaring the variable pattern with the same type and finality in "
-        "all cases.",
-    hasPublishedDocs: true,
-    type: DiagnosticType.COMPILE_TIME_ERROR,
-    uniqueName:
-        'CompileTimeErrorCode.PATTERN_VARIABLE_SHARED_CASE_SCOPE_DIFFERENT_FINALITY_OR_TYPE',
-    withArguments:
-        _withArgumentsPatternVariableSharedCaseScopeDifferentFinalityOrType,
-    expectedTypes: [ExpectedType.string],
-  );
+  patternVariableSharedCaseScopeDifferentFinalityOrType =
+      diag.patternVariableSharedCaseScopeDifferentFinalityOrType;
 
   /// Parameters:
   /// String p0: the name of the pattern variable
   static const DiagnosticWithArguments<
     LocatableDiagnostic Function({required String p0})
   >
-  patternVariableSharedCaseScopeHasLabel = DiagnosticWithArguments(
-    name: 'INVALID_PATTERN_VARIABLE_IN_SHARED_CASE_SCOPE',
-    problemMessage:
-        "The variable '{0}' is not available because there is a label or 'default' "
-        "case.",
-    correctionMessage:
-        "Try removing the label, or providing the 'default' case with its own "
-        "body.",
-    hasPublishedDocs: true,
-    type: DiagnosticType.COMPILE_TIME_ERROR,
-    uniqueName:
-        'CompileTimeErrorCode.PATTERN_VARIABLE_SHARED_CASE_SCOPE_HAS_LABEL',
-    withArguments: _withArgumentsPatternVariableSharedCaseScopeHasLabel,
-    expectedTypes: [ExpectedType.string],
-  );
+  patternVariableSharedCaseScopeHasLabel =
+      diag.patternVariableSharedCaseScopeHasLabel;
 
   /// Parameters:
   /// String p0: the name of the pattern variable
   static const DiagnosticWithArguments<
     LocatableDiagnostic Function({required String p0})
   >
-  patternVariableSharedCaseScopeNotAllCases = DiagnosticWithArguments(
-    name: 'INVALID_PATTERN_VARIABLE_IN_SHARED_CASE_SCOPE',
-    problemMessage:
-        "The variable '{0}' is available in some, but not all cases that share "
-        "this body.",
-    correctionMessage:
-        "Try declaring the variable pattern with the same type and finality in "
-        "all cases.",
-    hasPublishedDocs: true,
-    type: DiagnosticType.COMPILE_TIME_ERROR,
-    uniqueName:
-        'CompileTimeErrorCode.PATTERN_VARIABLE_SHARED_CASE_SCOPE_NOT_ALL_CASES',
-    withArguments: _withArgumentsPatternVariableSharedCaseScopeNotAllCases,
-    expectedTypes: [ExpectedType.string],
-  );
+  patternVariableSharedCaseScopeNotAllCases =
+      diag.patternVariableSharedCaseScopeNotAllCases;
 
   /// No parameters.
   static const DiagnosticWithoutArguments positionalFieldInObjectPattern =
-      DiagnosticWithoutArgumentsImpl(
-        name: 'POSITIONAL_FIELD_IN_OBJECT_PATTERN',
-        problemMessage: "Object patterns can only use named fields.",
-        correctionMessage: "Try specifying the field name.",
-        hasPublishedDocs: true,
-        type: DiagnosticType.COMPILE_TIME_ERROR,
-        uniqueName: 'CompileTimeErrorCode.POSITIONAL_FIELD_IN_OBJECT_PATTERN',
-        expectedTypes: [],
-      );
+      diag.positionalFieldInObjectPattern;
 
   /// No parameters.
   static const DiagnosticWithoutArguments
-  positionalSuperFormalParameterWithPositionalArgument = DiagnosticWithoutArgumentsImpl(
-    name: 'POSITIONAL_SUPER_FORMAL_PARAMETER_WITH_POSITIONAL_ARGUMENT',
-    problemMessage:
-        "Positional super parameters can't be used when the super constructor "
-        "invocation has a positional argument.",
-    correctionMessage:
-        "Try making all the positional parameters passed to the super "
-        "constructor be either all super parameters or all normal parameters.",
-    hasPublishedDocs: true,
-    type: DiagnosticType.COMPILE_TIME_ERROR,
-    uniqueName:
-        'CompileTimeErrorCode.POSITIONAL_SUPER_FORMAL_PARAMETER_WITH_POSITIONAL_ARGUMENT',
-    expectedTypes: [],
-  );
+  positionalSuperFormalParameterWithPositionalArgument =
+      diag.positionalSuperFormalParameterWithPositionalArgument;
 
   /// Parameters:
   /// Object p0: the name of the prefix
   static const DiagnosticWithArguments<
     LocatableDiagnostic Function({required Object p0})
   >
-  prefixCollidesWithTopLevelMember = DiagnosticWithArguments(
-    name: 'PREFIX_COLLIDES_WITH_TOP_LEVEL_MEMBER',
-    problemMessage:
-        "The name '{0}' is already used as an import prefix and can't be used to "
-        "name a top-level element.",
-    correctionMessage:
-        "Try renaming either the top-level element or the prefix.",
-    hasPublishedDocs: true,
-    type: DiagnosticType.COMPILE_TIME_ERROR,
-    uniqueName: 'CompileTimeErrorCode.PREFIX_COLLIDES_WITH_TOP_LEVEL_MEMBER',
-    withArguments: _withArgumentsPrefixCollidesWithTopLevelMember,
-    expectedTypes: [ExpectedType.object],
-  );
+  prefixCollidesWithTopLevelMember = diag.prefixCollidesWithTopLevelMember;
 
   /// Parameters:
   /// String p0: the name of the prefix
   static const DiagnosticWithArguments<
     LocatableDiagnostic Function({required String p0})
   >
-  prefixIdentifierNotFollowedByDot = DiagnosticWithArguments(
-    name: 'PREFIX_IDENTIFIER_NOT_FOLLOWED_BY_DOT',
-    problemMessage:
-        "The name '{0}' refers to an import prefix, so it must be followed by '.'.",
-    correctionMessage:
-        "Try correcting the name to refer to something other than a prefix, or "
-        "renaming the prefix.",
-    hasPublishedDocs: true,
-    type: DiagnosticType.COMPILE_TIME_ERROR,
-    uniqueName: 'CompileTimeErrorCode.PREFIX_IDENTIFIER_NOT_FOLLOWED_BY_DOT',
-    withArguments: _withArgumentsPrefixIdentifierNotFollowedByDot,
-    expectedTypes: [ExpectedType.string],
-  );
+  prefixIdentifierNotFollowedByDot = diag.prefixIdentifierNotFollowedByDot;
 
   /// Parameters:
   /// String p0: the prefix being shadowed
   static const DiagnosticWithArguments<
     LocatableDiagnostic Function({required String p0})
   >
-  prefixShadowedByLocalDeclaration = DiagnosticWithArguments(
-    name: 'PREFIX_SHADOWED_BY_LOCAL_DECLARATION',
-    problemMessage:
-        "The prefix '{0}' can't be used here because it's shadowed by a local "
-        "declaration.",
-    correctionMessage:
-        "Try renaming either the prefix or the local declaration.",
-    hasPublishedDocs: true,
-    type: DiagnosticType.COMPILE_TIME_ERROR,
-    uniqueName: 'CompileTimeErrorCode.PREFIX_SHADOWED_BY_LOCAL_DECLARATION',
-    withArguments: _withArgumentsPrefixShadowedByLocalDeclaration,
-    expectedTypes: [ExpectedType.string],
-  );
+  prefixShadowedByLocalDeclaration = diag.prefixShadowedByLocalDeclaration;
 
   /// Parameters:
   /// String p0: the private name that collides
@@ -7176,72 +2949,26 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
       required String p2,
     })
   >
-  privateCollisionInMixinApplication = DiagnosticWithArguments(
-    name: 'PRIVATE_COLLISION_IN_MIXIN_APPLICATION',
-    problemMessage:
-        "The private name '{0}', defined by '{1}', conflicts with the same name "
-        "defined by '{2}'.",
-    correctionMessage: "Try removing '{1}' from the 'with' clause.",
-    hasPublishedDocs: true,
-    type: DiagnosticType.COMPILE_TIME_ERROR,
-    uniqueName: 'CompileTimeErrorCode.PRIVATE_COLLISION_IN_MIXIN_APPLICATION',
-    withArguments: _withArgumentsPrivateCollisionInMixinApplication,
-    expectedTypes: [
-      ExpectedType.string,
-      ExpectedType.string,
-      ExpectedType.string,
-    ],
-  );
+  privateCollisionInMixinApplication = diag.privateCollisionInMixinApplication;
 
   /// No parameters.
   static const DiagnosticWithoutArguments
-  privateNamedParameterWithoutPublicName = DiagnosticWithoutArgumentsImpl(
-    name: 'PRIVATE_NAMED_PARAMETER_WITHOUT_PUBLIC_NAME',
-    problemMessage:
-        "A private named parameter must be a public identifier after removing the "
-        "leading underscore.",
-    type: DiagnosticType.COMPILE_TIME_ERROR,
-    uniqueName:
-        'CompileTimeErrorCode.PRIVATE_NAMED_PARAMETER_WITHOUT_PUBLIC_NAME',
-    expectedTypes: [],
-  );
+  privateNamedParameterWithoutPublicName =
+      diag.privateNamedParameterWithoutPublicName;
 
   /// Parameters:
   /// String p0: the name of the setter
   static const DiagnosticWithArguments<
     LocatableDiagnostic Function({required String p0})
   >
-  privateSetter = DiagnosticWithArguments(
-    name: 'PRIVATE_SETTER',
-    problemMessage:
-        "The setter '{0}' is private and can't be accessed outside the library "
-        "that declares it.",
-    correctionMessage: "Try making it public.",
-    hasPublishedDocs: true,
-    type: DiagnosticType.COMPILE_TIME_ERROR,
-    uniqueName: 'CompileTimeErrorCode.PRIVATE_SETTER',
-    withArguments: _withArgumentsPrivateSetter,
-    expectedTypes: [ExpectedType.string],
-  );
+  privateSetter = diag.privateSetter;
 
   /// Parameters:
   /// String p0: the name of the variable
   static const DiagnosticWithArguments<
     LocatableDiagnostic Function({required String p0})
   >
-  readPotentiallyUnassignedFinal = DiagnosticWithArguments(
-    name: 'READ_POTENTIALLY_UNASSIGNED_FINAL',
-    problemMessage:
-        "The final variable '{0}' can't be read because it's potentially "
-        "unassigned at this point.",
-    correctionMessage:
-        "Ensure that it is assigned on necessary execution paths.",
-    hasPublishedDocs: true,
-    type: DiagnosticType.COMPILE_TIME_ERROR,
-    uniqueName: 'CompileTimeErrorCode.READ_POTENTIALLY_UNASSIGNED_FINAL',
-    withArguments: _withArgumentsReadPotentiallyUnassignedFinal,
-    expectedTypes: [ExpectedType.string],
-  );
+  readPotentiallyUnassignedFinal = diag.readPotentiallyUnassignedFinal;
 
   /// This is similar to
   /// ParserErrorCode.recordLiteralOnePositionalNoTrailingComma, but
@@ -7250,40 +2977,16 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
   ///
   /// No parameters.
   static const DiagnosticWithoutArguments
-  recordLiteralOnePositionalNoTrailingCommaByType = DiagnosticWithoutArgumentsImpl(
-    name: 'RECORD_LITERAL_ONE_POSITIONAL_NO_TRAILING_COMMA',
-    problemMessage:
-        "A record literal with exactly one positional field requires a trailing "
-        "comma.",
-    correctionMessage: "Try adding a trailing comma.",
-    hasPublishedDocs: true,
-    type: DiagnosticType.COMPILE_TIME_ERROR,
-    uniqueName:
-        'CompileTimeErrorCode.RECORD_LITERAL_ONE_POSITIONAL_NO_TRAILING_COMMA_BY_TYPE',
-    expectedTypes: [],
-  );
+  recordLiteralOnePositionalNoTrailingCommaByType =
+      diag.recordLiteralOnePositionalNoTrailingCommaByType;
 
   /// No parameters.
   static const DiagnosticWithoutArguments recursiveCompileTimeConstant =
-      DiagnosticWithoutArgumentsImpl(
-        name: 'RECURSIVE_COMPILE_TIME_CONSTANT',
-        problemMessage:
-            "The compile-time constant expression depends on itself.",
-        hasPublishedDocs: true,
-        type: DiagnosticType.COMPILE_TIME_ERROR,
-        uniqueName: 'CompileTimeErrorCode.RECURSIVE_COMPILE_TIME_CONSTANT',
-        expectedTypes: [],
-      );
+      diag.recursiveCompileTimeConstant;
 
   /// No parameters.
   static const DiagnosticWithoutArguments recursiveConstantConstructor =
-      DiagnosticWithoutArgumentsImpl(
-        name: 'RECURSIVE_CONSTANT_CONSTRUCTOR',
-        problemMessage: "The constant constructor depends on itself.",
-        type: DiagnosticType.COMPILE_TIME_ERROR,
-        uniqueName: 'CompileTimeErrorCode.RECURSIVE_CONSTANT_CONSTRUCTOR',
-        expectedTypes: [],
-      );
+      diag.recursiveConstantConstructor;
 
   /// TODO(scheglov): review this later, there are no explicit "it is a
   /// compile-time error" in specification. But it was added to the co19 and
@@ -7292,32 +2995,12 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
   /// https://code.google.com/p/dart/issues/detail?id=954
   ///
   /// No parameters.
-  static const DiagnosticWithoutArguments
-  recursiveConstructorRedirect = DiagnosticWithoutArgumentsImpl(
-    name: 'RECURSIVE_CONSTRUCTOR_REDIRECT',
-    problemMessage:
-        "Constructors can't redirect to themselves either directly or indirectly.",
-    correctionMessage:
-        "Try changing one of the constructors in the loop to not redirect.",
-    hasPublishedDocs: true,
-    type: DiagnosticType.COMPILE_TIME_ERROR,
-    uniqueName: 'CompileTimeErrorCode.RECURSIVE_CONSTRUCTOR_REDIRECT',
-    expectedTypes: [],
-  );
+  static const DiagnosticWithoutArguments recursiveConstructorRedirect =
+      diag.recursiveConstructorRedirect;
 
   /// No parameters.
-  static const DiagnosticWithoutArguments
-  recursiveFactoryRedirect = DiagnosticWithoutArgumentsImpl(
-    name: 'RECURSIVE_CONSTRUCTOR_REDIRECT',
-    problemMessage:
-        "Constructors can't redirect to themselves either directly or indirectly.",
-    correctionMessage:
-        "Try changing one of the constructors in the loop to not redirect.",
-    hasPublishedDocs: true,
-    type: DiagnosticType.COMPILE_TIME_ERROR,
-    uniqueName: 'CompileTimeErrorCode.RECURSIVE_FACTORY_REDIRECT',
-    expectedTypes: [],
-  );
+  static const DiagnosticWithoutArguments recursiveFactoryRedirect =
+      diag.recursiveFactoryRedirect;
 
   /// Parameters:
   /// String p0: the name of the class that implements itself recursively
@@ -7325,15 +3008,7 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
   static const DiagnosticWithArguments<
     LocatableDiagnostic Function({required String p0, required String p1})
   >
-  recursiveInterfaceInheritance = DiagnosticWithArguments(
-    name: 'RECURSIVE_INTERFACE_INHERITANCE',
-    problemMessage: "'{0}' can't be a superinterface of itself: {1}.",
-    hasPublishedDocs: true,
-    type: DiagnosticType.COMPILE_TIME_ERROR,
-    uniqueName: 'CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE',
-    withArguments: _withArgumentsRecursiveInterfaceInheritance,
-    expectedTypes: [ExpectedType.string, ExpectedType.string],
-  );
+  recursiveInterfaceInheritance = diag.recursiveInterfaceInheritance;
 
   /// 7.10 Superinterfaces: It is a compile-time error if the interface of a
   /// class <i>C</i> is a superinterface of itself.
@@ -7349,15 +3024,8 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
   static const DiagnosticWithArguments<
     LocatableDiagnostic Function({required String p0})
   >
-  recursiveInterfaceInheritanceExtends = DiagnosticWithArguments(
-    name: 'RECURSIVE_INTERFACE_INHERITANCE',
-    problemMessage: "'{0}' can't extend itself.",
-    hasPublishedDocs: true,
-    type: DiagnosticType.COMPILE_TIME_ERROR,
-    uniqueName: 'CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE_EXTENDS',
-    withArguments: _withArgumentsRecursiveInterfaceInheritanceExtends,
-    expectedTypes: [ExpectedType.string],
-  );
+  recursiveInterfaceInheritanceExtends =
+      diag.recursiveInterfaceInheritanceExtends;
 
   /// 7.10 Superinterfaces: It is a compile-time error if the interface of a
   /// class <i>C</i> is a superinterface of itself.
@@ -7373,31 +3041,15 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
   static const DiagnosticWithArguments<
     LocatableDiagnostic Function({required String p0})
   >
-  recursiveInterfaceInheritanceImplements = DiagnosticWithArguments(
-    name: 'RECURSIVE_INTERFACE_INHERITANCE',
-    problemMessage: "'{0}' can't implement itself.",
-    hasPublishedDocs: true,
-    type: DiagnosticType.COMPILE_TIME_ERROR,
-    uniqueName:
-        'CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE_IMPLEMENTS',
-    withArguments: _withArgumentsRecursiveInterfaceInheritanceImplements,
-    expectedTypes: [ExpectedType.string],
-  );
+  recursiveInterfaceInheritanceImplements =
+      diag.recursiveInterfaceInheritanceImplements;
 
   /// Parameters:
   /// String p0: the name of the mixin that constraints itself recursively
   static const DiagnosticWithArguments<
     LocatableDiagnostic Function({required String p0})
   >
-  recursiveInterfaceInheritanceOn = DiagnosticWithArguments(
-    name: 'RECURSIVE_INTERFACE_INHERITANCE',
-    problemMessage: "'{0}' can't use itself as a superclass constraint.",
-    hasPublishedDocs: true,
-    type: DiagnosticType.COMPILE_TIME_ERROR,
-    uniqueName: 'CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE_ON',
-    withArguments: _withArgumentsRecursiveInterfaceInheritanceOn,
-    expectedTypes: [ExpectedType.string],
-  );
+  recursiveInterfaceInheritanceOn = diag.recursiveInterfaceInheritanceOn;
 
   /// 7.10 Superinterfaces: It is a compile-time error if the interface of a
   /// class <i>C</i> is a superinterface of itself.
@@ -7413,15 +3065,7 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
   static const DiagnosticWithArguments<
     LocatableDiagnostic Function({required String p0})
   >
-  recursiveInterfaceInheritanceWith = DiagnosticWithArguments(
-    name: 'RECURSIVE_INTERFACE_INHERITANCE',
-    problemMessage: "'{0}' can't use itself as a mixin.",
-    hasPublishedDocs: true,
-    type: DiagnosticType.COMPILE_TIME_ERROR,
-    uniqueName: 'CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE_WITH',
-    withArguments: _withArgumentsRecursiveInterfaceInheritanceWith,
-    expectedTypes: [ExpectedType.string],
-  );
+  recursiveInterfaceInheritanceWith = diag.recursiveInterfaceInheritanceWith;
 
   /// Parameters:
   /// String p0: the name of the constructor
@@ -7429,33 +3073,13 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
   static const DiagnosticWithArguments<
     LocatableDiagnostic Function({required String p0, required String p1})
   >
-  redirectGenerativeToMissingConstructor = DiagnosticWithArguments(
-    name: 'REDIRECT_GENERATIVE_TO_MISSING_CONSTRUCTOR',
-    problemMessage: "The constructor '{0}' couldn't be found in '{1}'.",
-    correctionMessage:
-        "Try redirecting to a different constructor, or defining the "
-        "constructor named '{0}'.",
-    hasPublishedDocs: true,
-    type: DiagnosticType.COMPILE_TIME_ERROR,
-    uniqueName:
-        'CompileTimeErrorCode.REDIRECT_GENERATIVE_TO_MISSING_CONSTRUCTOR',
-    withArguments: _withArgumentsRedirectGenerativeToMissingConstructor,
-    expectedTypes: [ExpectedType.string, ExpectedType.string],
-  );
+  redirectGenerativeToMissingConstructor =
+      diag.redirectGenerativeToMissingConstructor;
 
   /// No parameters.
   static const DiagnosticWithoutArguments
-  redirectGenerativeToNonGenerativeConstructor = DiagnosticWithoutArgumentsImpl(
-    name: 'REDIRECT_GENERATIVE_TO_NON_GENERATIVE_CONSTRUCTOR',
-    problemMessage:
-        "Generative constructors can't redirect to a factory constructor.",
-    correctionMessage: "Try redirecting to a different constructor.",
-    hasPublishedDocs: true,
-    type: DiagnosticType.COMPILE_TIME_ERROR,
-    uniqueName:
-        'CompileTimeErrorCode.REDIRECT_GENERATIVE_TO_NON_GENERATIVE_CONSTRUCTOR',
-    expectedTypes: [],
-  );
+  redirectGenerativeToNonGenerativeConstructor =
+      diag.redirectGenerativeToNonGenerativeConstructor;
 
   /// Parameters:
   /// String p0: the name of the redirecting constructor
@@ -7464,18 +3088,7 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
   static const DiagnosticWithArguments<
     LocatableDiagnostic Function({required String p0, required String p1})
   >
-  redirectToAbstractClassConstructor = DiagnosticWithArguments(
-    name: 'REDIRECT_TO_ABSTRACT_CLASS_CONSTRUCTOR',
-    problemMessage:
-        "The redirecting constructor '{0}' can't redirect to a constructor of the "
-        "abstract class '{1}'.",
-    correctionMessage: "Try redirecting to a constructor of a different class.",
-    hasPublishedDocs: true,
-    type: DiagnosticType.COMPILE_TIME_ERROR,
-    uniqueName: 'CompileTimeErrorCode.REDIRECT_TO_ABSTRACT_CLASS_CONSTRUCTOR',
-    withArguments: _withArgumentsRedirectToAbstractClassConstructor,
-    expectedTypes: [ExpectedType.string, ExpectedType.string],
-  );
+  redirectToAbstractClassConstructor = diag.redirectToAbstractClassConstructor;
 
   /// Parameters:
   /// Type p0: the name of the redirected constructor
@@ -7483,17 +3096,7 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
   static const DiagnosticWithArguments<
     LocatableDiagnostic Function({required DartType p0, required DartType p1})
   >
-  redirectToInvalidFunctionType = DiagnosticWithArguments(
-    name: 'REDIRECT_TO_INVALID_FUNCTION_TYPE',
-    problemMessage:
-        "The redirected constructor '{0}' has incompatible parameters with '{1}'.",
-    correctionMessage: "Try redirecting to a different constructor.",
-    hasPublishedDocs: true,
-    type: DiagnosticType.COMPILE_TIME_ERROR,
-    uniqueName: 'CompileTimeErrorCode.REDIRECT_TO_INVALID_FUNCTION_TYPE',
-    withArguments: _withArgumentsRedirectToInvalidFunctionType,
-    expectedTypes: [ExpectedType.type, ExpectedType.type],
-  );
+  redirectToInvalidFunctionType = diag.redirectToInvalidFunctionType;
 
   /// Parameters:
   /// Type p0: the name of the redirected constructor's return type
@@ -7501,18 +3104,7 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
   static const DiagnosticWithArguments<
     LocatableDiagnostic Function({required DartType p0, required DartType p1})
   >
-  redirectToInvalidReturnType = DiagnosticWithArguments(
-    name: 'REDIRECT_TO_INVALID_RETURN_TYPE',
-    problemMessage:
-        "The return type '{0}' of the redirected constructor isn't a subtype of "
-        "'{1}'.",
-    correctionMessage: "Try redirecting to a different constructor.",
-    hasPublishedDocs: true,
-    type: DiagnosticType.COMPILE_TIME_ERROR,
-    uniqueName: 'CompileTimeErrorCode.REDIRECT_TO_INVALID_RETURN_TYPE',
-    withArguments: _withArgumentsRedirectToInvalidReturnType,
-    expectedTypes: [ExpectedType.type, ExpectedType.type],
-  );
+  redirectToInvalidReturnType = diag.redirectToInvalidReturnType;
 
   /// Parameters:
   /// String p0: the name of the constructor
@@ -7520,100 +3112,34 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
   static const DiagnosticWithArguments<
     LocatableDiagnostic Function({required String p0, required DartType p1})
   >
-  redirectToMissingConstructor = DiagnosticWithArguments(
-    name: 'REDIRECT_TO_MISSING_CONSTRUCTOR',
-    problemMessage: "The constructor '{0}' couldn't be found in '{1}'.",
-    correctionMessage:
-        "Try redirecting to a different constructor, or define the constructor "
-        "named '{0}'.",
-    hasPublishedDocs: true,
-    type: DiagnosticType.COMPILE_TIME_ERROR,
-    uniqueName: 'CompileTimeErrorCode.REDIRECT_TO_MISSING_CONSTRUCTOR',
-    withArguments: _withArgumentsRedirectToMissingConstructor,
-    expectedTypes: [ExpectedType.string, ExpectedType.type],
-  );
+  redirectToMissingConstructor = diag.redirectToMissingConstructor;
 
   /// Parameters:
   /// String p0: the name of the non-type referenced in the redirect
   static const DiagnosticWithArguments<
     LocatableDiagnostic Function({required String p0})
   >
-  redirectToNonClass = DiagnosticWithArguments(
-    name: 'REDIRECT_TO_NON_CLASS',
-    problemMessage:
-        "The name '{0}' isn't a type and can't be used in a redirected "
-        "constructor.",
-    correctionMessage: "Try redirecting to a different constructor.",
-    hasPublishedDocs: true,
-    type: DiagnosticType.COMPILE_TIME_ERROR,
-    uniqueName: 'CompileTimeErrorCode.REDIRECT_TO_NON_CLASS',
-    withArguments: _withArgumentsRedirectToNonClass,
-    expectedTypes: [ExpectedType.string],
-  );
+  redirectToNonClass = diag.redirectToNonClass;
+
+  /// No parameters.
+  static const DiagnosticWithoutArguments redirectToNonConstConstructor =
+      diag.redirectToNonConstConstructor;
 
   /// No parameters.
   static const DiagnosticWithoutArguments
-  redirectToNonConstConstructor = DiagnosticWithoutArgumentsImpl(
-    name: 'REDIRECT_TO_NON_CONST_CONSTRUCTOR',
-    problemMessage:
-        "A constant redirecting constructor can't redirect to a non-constant "
-        "constructor.",
-    correctionMessage: "Try redirecting to a different constructor.",
-    hasPublishedDocs: true,
-    type: DiagnosticType.COMPILE_TIME_ERROR,
-    uniqueName: 'CompileTimeErrorCode.REDIRECT_TO_NON_CONST_CONSTRUCTOR',
-    expectedTypes: [],
-  );
-
-  /// No parameters.
-  static const DiagnosticWithoutArguments
-  redirectToTypeAliasExpandsToTypeParameter = DiagnosticWithoutArgumentsImpl(
-    name: 'REDIRECT_TO_TYPE_ALIAS_EXPANDS_TO_TYPE_PARAMETER',
-    problemMessage:
-        "A redirecting constructor can't redirect to a type alias that expands to "
-        "a type parameter.",
-    correctionMessage: "Try replacing it with a class.",
-    hasPublishedDocs: true,
-    type: DiagnosticType.COMPILE_TIME_ERROR,
-    uniqueName:
-        'CompileTimeErrorCode.REDIRECT_TO_TYPE_ALIAS_EXPANDS_TO_TYPE_PARAMETER',
-    expectedTypes: [],
-  );
+  redirectToTypeAliasExpandsToTypeParameter =
+      diag.redirectToTypeAliasExpandsToTypeParameter;
 
   /// Parameters:
   /// Object p0: the name of the variable
   static const DiagnosticWithArguments<
     LocatableDiagnostic Function({required Object p0})
   >
-  referencedBeforeDeclaration = DiagnosticWithArguments(
-    name: 'REFERENCED_BEFORE_DECLARATION',
-    problemMessage:
-        "Local variable '{0}' can't be referenced before it is declared.",
-    correctionMessage:
-        "Try moving the declaration to before the first use, or renaming the "
-        "local variable so that it doesn't hide a name from an enclosing "
-        "scope.",
-    hasPublishedDocs: true,
-    type: DiagnosticType.COMPILE_TIME_ERROR,
-    uniqueName: 'CompileTimeErrorCode.REFERENCED_BEFORE_DECLARATION',
-    withArguments: _withArgumentsReferencedBeforeDeclaration,
-    expectedTypes: [ExpectedType.object],
-  );
+  referencedBeforeDeclaration = diag.referencedBeforeDeclaration;
 
   /// No parameters.
-  static const DiagnosticWithoutArguments
-  refutablePatternInIrrefutableContext = DiagnosticWithoutArgumentsImpl(
-    name: 'REFUTABLE_PATTERN_IN_IRREFUTABLE_CONTEXT',
-    problemMessage:
-        "Refutable patterns can't be used in an irrefutable context.",
-    correctionMessage:
-        "Try using an if-case, a 'switch' statement, or a 'switch' expression "
-        "instead.",
-    hasPublishedDocs: true,
-    type: DiagnosticType.COMPILE_TIME_ERROR,
-    uniqueName: 'CompileTimeErrorCode.REFUTABLE_PATTERN_IN_IRREFUTABLE_CONTEXT',
-    expectedTypes: [],
-  );
+  static const DiagnosticWithoutArguments refutablePatternInIrrefutableContext =
+      diag.refutablePatternInIrrefutableContext;
 
   /// Parameters:
   /// Type p0: the operand type
@@ -7626,90 +3152,29 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
       required String p2,
     })
   >
-  relationalPatternOperandTypeNotAssignable = DiagnosticWithArguments(
-    name: 'RELATIONAL_PATTERN_OPERAND_TYPE_NOT_ASSIGNABLE',
-    problemMessage:
-        "The constant expression type '{0}' is not assignable to the parameter "
-        "type '{1}' of the '{2}' operator.",
-    hasPublishedDocs: true,
-    type: DiagnosticType.COMPILE_TIME_ERROR,
-    uniqueName:
-        'CompileTimeErrorCode.RELATIONAL_PATTERN_OPERAND_TYPE_NOT_ASSIGNABLE',
-    withArguments: _withArgumentsRelationalPatternOperandTypeNotAssignable,
-    expectedTypes: [ExpectedType.type, ExpectedType.type, ExpectedType.string],
-  );
+  relationalPatternOperandTypeNotAssignable =
+      diag.relationalPatternOperandTypeNotAssignable;
 
   /// No parameters.
   static const DiagnosticWithoutArguments
   relationalPatternOperatorReturnTypeNotAssignableToBool =
-      DiagnosticWithoutArgumentsImpl(
-        name: 'RELATIONAL_PATTERN_OPERATOR_RETURN_TYPE_NOT_ASSIGNABLE_TO_BOOL',
-        problemMessage:
-            "The return type of operators used in relational patterns must be "
-            "assignable to 'bool'.",
-        correctionMessage:
-            "Try updating the operator declaration to return 'bool'.",
-        hasPublishedDocs: true,
-        type: DiagnosticType.COMPILE_TIME_ERROR,
-        uniqueName:
-            'CompileTimeErrorCode.RELATIONAL_PATTERN_OPERATOR_RETURN_TYPE_NOT_ASSIGNABLE_TO_BOOL',
-        expectedTypes: [],
-      );
+      diag.relationalPatternOperatorReturnTypeNotAssignableToBool;
 
   /// No parameters.
   static const DiagnosticWithoutArguments restElementInMapPattern =
-      DiagnosticWithoutArgumentsImpl(
-        name: 'REST_ELEMENT_IN_MAP_PATTERN',
-        problemMessage: "A map pattern can't contain a rest pattern.",
-        correctionMessage: "Try removing the rest pattern.",
-        hasPublishedDocs: true,
-        type: DiagnosticType.COMPILE_TIME_ERROR,
-        uniqueName: 'CompileTimeErrorCode.REST_ELEMENT_IN_MAP_PATTERN',
-        expectedTypes: [],
-      );
+      diag.restElementInMapPattern;
 
   /// No parameters.
   static const DiagnosticWithoutArguments rethrowOutsideCatch =
-      DiagnosticWithoutArgumentsImpl(
-        name: 'RETHROW_OUTSIDE_CATCH',
-        problemMessage: "A rethrow must be inside of a catch clause.",
-        correctionMessage:
-            "Try moving the expression into a catch clause, or using a 'throw' "
-            "expression.",
-        hasPublishedDocs: true,
-        type: DiagnosticType.COMPILE_TIME_ERROR,
-        uniqueName: 'CompileTimeErrorCode.RETHROW_OUTSIDE_CATCH',
-        expectedTypes: [],
-      );
+      diag.rethrowOutsideCatch;
 
   /// No parameters.
   static const DiagnosticWithoutArguments returnInGenerativeConstructor =
-      DiagnosticWithoutArgumentsImpl(
-        name: 'RETURN_IN_GENERATIVE_CONSTRUCTOR',
-        problemMessage: "Constructors can't return values.",
-        correctionMessage:
-            "Try removing the return statement or using a factory constructor.",
-        hasPublishedDocs: true,
-        type: DiagnosticType.COMPILE_TIME_ERROR,
-        uniqueName: 'CompileTimeErrorCode.RETURN_IN_GENERATIVE_CONSTRUCTOR',
-        expectedTypes: [],
-      );
+      diag.returnInGenerativeConstructor;
 
   /// No parameters.
-  static const DiagnosticWithoutArguments
-  returnInGenerator = DiagnosticWithoutArgumentsImpl(
-    name: 'RETURN_IN_GENERATOR',
-    problemMessage:
-        "Can't return a value from a generator function that uses the 'async*' or "
-        "'sync*' modifier.",
-    correctionMessage:
-        "Try replacing 'return' with 'yield', using a block function body, or "
-        "changing the method body modifier.",
-    hasPublishedDocs: true,
-    type: DiagnosticType.COMPILE_TIME_ERROR,
-    uniqueName: 'CompileTimeErrorCode.RETURN_IN_GENERATOR',
-    expectedTypes: [],
-  );
+  static const DiagnosticWithoutArguments returnInGenerator =
+      diag.returnInGenerator;
 
   /// Parameters:
   /// Type p0: the return type as declared in the return statement
@@ -7717,17 +3182,7 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
   static const DiagnosticWithArguments<
     LocatableDiagnostic Function({required DartType p0, required DartType p1})
   >
-  returnOfInvalidTypeFromClosure = DiagnosticWithArguments(
-    name: 'RETURN_OF_INVALID_TYPE_FROM_CLOSURE',
-    problemMessage:
-        "The returned type '{0}' isn't returnable from a '{1}' function, as "
-        "required by the closure's context.",
-    hasPublishedDocs: true,
-    type: DiagnosticType.COMPILE_TIME_ERROR,
-    uniqueName: 'CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_CLOSURE',
-    withArguments: _withArgumentsReturnOfInvalidTypeFromClosure,
-    expectedTypes: [ExpectedType.type, ExpectedType.type],
-  );
+  returnOfInvalidTypeFromClosure = diag.returnOfInvalidTypeFromClosure;
 
   /// Parameters:
   /// Type p0: the return type as declared in the return statement
@@ -7740,17 +3195,7 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
       required String p2,
     })
   >
-  returnOfInvalidTypeFromConstructor = DiagnosticWithArguments(
-    name: 'RETURN_OF_INVALID_TYPE',
-    problemMessage:
-        "A value of type '{0}' can't be returned from the constructor '{2}' "
-        "because it has a return type of '{1}'.",
-    hasPublishedDocs: true,
-    type: DiagnosticType.COMPILE_TIME_ERROR,
-    uniqueName: 'CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_CONSTRUCTOR',
-    withArguments: _withArgumentsReturnOfInvalidTypeFromConstructor,
-    expectedTypes: [ExpectedType.type, ExpectedType.type, ExpectedType.string],
-  );
+  returnOfInvalidTypeFromConstructor = diag.returnOfInvalidTypeFromConstructor;
 
   /// Parameters:
   /// Type p0: the return type as declared in the return statement
@@ -7763,17 +3208,7 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
       required String p2,
     })
   >
-  returnOfInvalidTypeFromFunction = DiagnosticWithArguments(
-    name: 'RETURN_OF_INVALID_TYPE',
-    problemMessage:
-        "A value of type '{0}' can't be returned from the function '{2}' because "
-        "it has a return type of '{1}'.",
-    hasPublishedDocs: true,
-    type: DiagnosticType.COMPILE_TIME_ERROR,
-    uniqueName: 'CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION',
-    withArguments: _withArgumentsReturnOfInvalidTypeFromFunction,
-    expectedTypes: [ExpectedType.type, ExpectedType.type, ExpectedType.string],
-  );
+  returnOfInvalidTypeFromFunction = diag.returnOfInvalidTypeFromFunction;
 
   /// Parameters:
   /// Type p0: the type of the expression in the return statement
@@ -7786,28 +3221,11 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
       required String p2,
     })
   >
-  returnOfInvalidTypeFromMethod = DiagnosticWithArguments(
-    name: 'RETURN_OF_INVALID_TYPE',
-    problemMessage:
-        "A value of type '{0}' can't be returned from the method '{2}' because it "
-        "has a return type of '{1}'.",
-    hasPublishedDocs: true,
-    type: DiagnosticType.COMPILE_TIME_ERROR,
-    uniqueName: 'CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_METHOD',
-    withArguments: _withArgumentsReturnOfInvalidTypeFromMethod,
-    expectedTypes: [ExpectedType.type, ExpectedType.type, ExpectedType.string],
-  );
+  returnOfInvalidTypeFromMethod = diag.returnOfInvalidTypeFromMethod;
 
   /// No parameters.
   static const DiagnosticWithoutArguments returnWithoutValue =
-      DiagnosticWithoutArgumentsImpl(
-        name: 'RETURN_WITHOUT_VALUE',
-        problemMessage: "The return value is missing after 'return'.",
-        hasPublishedDocs: true,
-        type: DiagnosticType.COMPILE_TIME_ERROR,
-        uniqueName: 'CompileTimeErrorCode.RETURN_WITHOUT_VALUE',
-        expectedTypes: [],
-      );
+      diag.returnWithoutValue;
 
   /// Parameters:
   /// String p0: the name of the sealed class being extended, implemented, or
@@ -7815,33 +3233,11 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
   static const DiagnosticWithArguments<
     LocatableDiagnostic Function({required String p0})
   >
-  sealedClassSubtypeOutsideOfLibrary = DiagnosticWithArguments(
-    name: 'INVALID_USE_OF_TYPE_OUTSIDE_LIBRARY',
-    problemMessage:
-        "The class '{0}' can't be extended, implemented, or mixed in outside of "
-        "its library because it's a sealed class.",
-    hasPublishedDocs: true,
-    type: DiagnosticType.COMPILE_TIME_ERROR,
-    uniqueName: 'CompileTimeErrorCode.SEALED_CLASS_SUBTYPE_OUTSIDE_OF_LIBRARY',
-    withArguments: _withArgumentsSealedClassSubtypeOutsideOfLibrary,
-    expectedTypes: [ExpectedType.string],
-  );
+  sealedClassSubtypeOutsideOfLibrary = diag.sealedClassSubtypeOutsideOfLibrary;
 
   /// No parameters.
-  static const DiagnosticWithoutArguments
-  setElementFromDeferredLibrary = DiagnosticWithoutArgumentsImpl(
-    name: 'COLLECTION_ELEMENT_FROM_DEFERRED_LIBRARY',
-    problemMessage:
-        "Constant values from a deferred library can't be used as values in a "
-        "'const' set literal.",
-    correctionMessage:
-        "Try removing the keyword 'const' from the set literal or removing the "
-        "keyword 'deferred' from the import.",
-    hasPublishedDocs: true,
-    type: DiagnosticType.COMPILE_TIME_ERROR,
-    uniqueName: 'CompileTimeErrorCode.SET_ELEMENT_FROM_DEFERRED_LIBRARY',
-    expectedTypes: [],
-  );
+  static const DiagnosticWithoutArguments setElementFromDeferredLibrary =
+      diag.setElementFromDeferredLibrary;
 
   /// Parameters:
   /// Type p0: the actual type of the set element
@@ -7849,16 +3245,7 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
   static const DiagnosticWithArguments<
     LocatableDiagnostic Function({required DartType p0, required DartType p1})
   >
-  setElementTypeNotAssignable = DiagnosticWithArguments(
-    name: 'SET_ELEMENT_TYPE_NOT_ASSIGNABLE',
-    problemMessage:
-        "The element type '{0}' can't be assigned to the set type '{1}'.",
-    hasPublishedDocs: true,
-    type: DiagnosticType.COMPILE_TIME_ERROR,
-    uniqueName: 'CompileTimeErrorCode.SET_ELEMENT_TYPE_NOT_ASSIGNABLE',
-    withArguments: _withArgumentsSetElementTypeNotAssignable,
-    expectedTypes: [ExpectedType.type, ExpectedType.type],
-  );
+  setElementTypeNotAssignable = diag.setElementTypeNotAssignable;
 
   /// Parameters:
   /// Type p0: the actual type of the set element
@@ -7866,59 +3253,23 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
   static const DiagnosticWithArguments<
     LocatableDiagnostic Function({required DartType p0, required DartType p1})
   >
-  setElementTypeNotAssignableNullability = DiagnosticWithArguments(
-    name: 'SET_ELEMENT_TYPE_NOT_ASSIGNABLE',
-    problemMessage:
-        "The element type '{0}' can't be assigned to the set type '{1}'.",
-    hasPublishedDocs: true,
-    type: DiagnosticType.COMPILE_TIME_ERROR,
-    uniqueName:
-        'CompileTimeErrorCode.SET_ELEMENT_TYPE_NOT_ASSIGNABLE_NULLABILITY',
-    withArguments: _withArgumentsSetElementTypeNotAssignableNullability,
-    expectedTypes: [ExpectedType.type, ExpectedType.type],
-  );
+  setElementTypeNotAssignableNullability =
+      diag.setElementTypeNotAssignableNullability;
 
   /// No parameters.
-  static const DiagnosticWithoutArguments
-  sharedDeferredPrefix = DiagnosticWithoutArgumentsImpl(
-    name: 'SHARED_DEFERRED_PREFIX',
-    problemMessage:
-        "The prefix of a deferred import can't be used in other import directives.",
-    correctionMessage: "Try renaming one of the prefixes.",
-    hasPublishedDocs: true,
-    type: DiagnosticType.COMPILE_TIME_ERROR,
-    uniqueName: 'CompileTimeErrorCode.SHARED_DEFERRED_PREFIX',
-    expectedTypes: [],
-  );
+  static const DiagnosticWithoutArguments sharedDeferredPrefix =
+      diag.sharedDeferredPrefix;
 
   /// No parameters.
-  static const DiagnosticWithoutArguments
-  spreadExpressionFromDeferredLibrary = DiagnosticWithoutArgumentsImpl(
-    name: 'SPREAD_EXPRESSION_FROM_DEFERRED_LIBRARY',
-    problemMessage:
-        "Constant values from a deferred library can't be spread into a const "
-        "literal.",
-    correctionMessage: "Try making the deferred import non-deferred.",
-    type: DiagnosticType.COMPILE_TIME_ERROR,
-    uniqueName: 'CompileTimeErrorCode.SPREAD_EXPRESSION_FROM_DEFERRED_LIBRARY',
-    expectedTypes: [],
-  );
+  static const DiagnosticWithoutArguments spreadExpressionFromDeferredLibrary =
+      diag.spreadExpressionFromDeferredLibrary;
 
   /// Parameters:
   /// String p0: the name of the instance member
   static const DiagnosticWithArguments<
     LocatableDiagnostic Function({required String p0})
   >
-  staticAccessToInstanceMember = DiagnosticWithArguments(
-    name: 'STATIC_ACCESS_TO_INSTANCE_MEMBER',
-    problemMessage:
-        "Instance member '{0}' can't be accessed using static access.",
-    hasPublishedDocs: true,
-    type: DiagnosticType.COMPILE_TIME_ERROR,
-    uniqueName: 'CompileTimeErrorCode.STATIC_ACCESS_TO_INSTANCE_MEMBER',
-    withArguments: _withArgumentsStaticAccessToInstanceMember,
-    expectedTypes: [ExpectedType.string],
-  );
+  staticAccessToInstanceMember = diag.staticAccessToInstanceMember;
 
   /// Parameters:
   /// String p0: the name of the subtype that is not 'base', 'final', or
@@ -7927,18 +3278,8 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
   static const DiagnosticWithArguments<
     LocatableDiagnostic Function({required String p0, required String p1})
   >
-  subtypeOfBaseIsNotBaseFinalOrSealed = DiagnosticWithArguments(
-    name: 'SUBTYPE_OF_BASE_OR_FINAL_IS_NOT_BASE_FINAL_OR_SEALED',
-    problemMessage:
-        "The type '{0}' must be 'base', 'final' or 'sealed' because the supertype "
-        "'{1}' is 'base'.",
-    hasPublishedDocs: true,
-    type: DiagnosticType.COMPILE_TIME_ERROR,
-    uniqueName:
-        'CompileTimeErrorCode.SUBTYPE_OF_BASE_IS_NOT_BASE_FINAL_OR_SEALED',
-    withArguments: _withArgumentsSubtypeOfBaseIsNotBaseFinalOrSealed,
-    expectedTypes: [ExpectedType.string, ExpectedType.string],
-  );
+  subtypeOfBaseIsNotBaseFinalOrSealed =
+      diag.subtypeOfBaseIsNotBaseFinalOrSealed;
 
   /// Parameters:
   /// String p0: the name of the subtype that is not 'base', 'final', or
@@ -7947,18 +3288,8 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
   static const DiagnosticWithArguments<
     LocatableDiagnostic Function({required String p0, required String p1})
   >
-  subtypeOfFinalIsNotBaseFinalOrSealed = DiagnosticWithArguments(
-    name: 'SUBTYPE_OF_BASE_OR_FINAL_IS_NOT_BASE_FINAL_OR_SEALED',
-    problemMessage:
-        "The type '{0}' must be 'base', 'final' or 'sealed' because the supertype "
-        "'{1}' is 'final'.",
-    hasPublishedDocs: true,
-    type: DiagnosticType.COMPILE_TIME_ERROR,
-    uniqueName:
-        'CompileTimeErrorCode.SUBTYPE_OF_FINAL_IS_NOT_BASE_FINAL_OR_SEALED',
-    withArguments: _withArgumentsSubtypeOfFinalIsNotBaseFinalOrSealed,
-    expectedTypes: [ExpectedType.string, ExpectedType.string],
-  );
+  subtypeOfFinalIsNotBaseFinalOrSealed =
+      diag.subtypeOfFinalIsNotBaseFinalOrSealed;
 
   /// Parameters:
   /// Type p0: the type of super-parameter
@@ -7966,101 +3297,34 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
   static const DiagnosticWithArguments<
     LocatableDiagnostic Function({required DartType p0, required DartType p1})
   >
-  superFormalParameterTypeIsNotSubtypeOfAssociated = DiagnosticWithArguments(
-    name: 'SUPER_FORMAL_PARAMETER_TYPE_IS_NOT_SUBTYPE_OF_ASSOCIATED',
-    problemMessage:
-        "The type '{0}' of this parameter isn't a subtype of the type '{1}' of the "
-        "associated super constructor parameter.",
-    correctionMessage:
-        "Try removing the explicit type annotation from the parameter.",
-    hasPublishedDocs: true,
-    type: DiagnosticType.COMPILE_TIME_ERROR,
-    uniqueName:
-        'CompileTimeErrorCode.SUPER_FORMAL_PARAMETER_TYPE_IS_NOT_SUBTYPE_OF_ASSOCIATED',
-    withArguments:
-        _withArgumentsSuperFormalParameterTypeIsNotSubtypeOfAssociated,
-    expectedTypes: [ExpectedType.type, ExpectedType.type],
-  );
+  superFormalParameterTypeIsNotSubtypeOfAssociated =
+      diag.superFormalParameterTypeIsNotSubtypeOfAssociated;
 
   /// No parameters.
   static const DiagnosticWithoutArguments
-  superFormalParameterWithoutAssociatedNamed = DiagnosticWithoutArgumentsImpl(
-    name: 'SUPER_FORMAL_PARAMETER_WITHOUT_ASSOCIATED_NAMED',
-    problemMessage: "No associated named super constructor parameter.",
-    correctionMessage:
-        "Try changing the name to the name of an existing named super "
-        "constructor parameter, or creating such named parameter.",
-    hasPublishedDocs: true,
-    type: DiagnosticType.COMPILE_TIME_ERROR,
-    uniqueName:
-        'CompileTimeErrorCode.SUPER_FORMAL_PARAMETER_WITHOUT_ASSOCIATED_NAMED',
-    expectedTypes: [],
-  );
+  superFormalParameterWithoutAssociatedNamed =
+      diag.superFormalParameterWithoutAssociatedNamed;
 
   /// No parameters.
   static const DiagnosticWithoutArguments
-  superFormalParameterWithoutAssociatedPositional = DiagnosticWithoutArgumentsImpl(
-    name: 'SUPER_FORMAL_PARAMETER_WITHOUT_ASSOCIATED_POSITIONAL',
-    problemMessage: "No associated positional super constructor parameter.",
-    correctionMessage:
-        "Try using a normal parameter, or adding more positional parameters to "
-        "the super constructor.",
-    hasPublishedDocs: true,
-    type: DiagnosticType.COMPILE_TIME_ERROR,
-    uniqueName:
-        'CompileTimeErrorCode.SUPER_FORMAL_PARAMETER_WITHOUT_ASSOCIATED_POSITIONAL',
-    expectedTypes: [],
-  );
+  superFormalParameterWithoutAssociatedPositional =
+      diag.superFormalParameterWithoutAssociatedPositional;
 
   /// No parameters.
   static const DiagnosticWithoutArguments superInEnumConstructor =
-      DiagnosticWithoutArgumentsImpl(
-        name: 'SUPER_IN_ENUM_CONSTRUCTOR',
-        problemMessage:
-            "The enum constructor can't have a 'super' initializer.",
-        correctionMessage: "Try removing the 'super' invocation.",
-        hasPublishedDocs: true,
-        type: DiagnosticType.COMPILE_TIME_ERROR,
-        uniqueName: 'CompileTimeErrorCode.SUPER_IN_ENUM_CONSTRUCTOR',
-        expectedTypes: [],
-      );
+      diag.superInEnumConstructor;
 
   /// No parameters.
-  static const DiagnosticWithoutArguments
-  superInExtension = DiagnosticWithoutArgumentsImpl(
-    name: 'SUPER_IN_EXTENSION',
-    problemMessage:
-        "The 'super' keyword can't be used in an extension because an extension "
-        "doesn't have a superclass.",
-    hasPublishedDocs: true,
-    type: DiagnosticType.COMPILE_TIME_ERROR,
-    uniqueName: 'CompileTimeErrorCode.SUPER_IN_EXTENSION',
-    expectedTypes: [],
-  );
+  static const DiagnosticWithoutArguments superInExtension =
+      diag.superInExtension;
 
   /// No parameters.
   static const DiagnosticWithoutArguments superInExtensionType =
-      DiagnosticWithoutArgumentsImpl(
-        name: 'SUPER_IN_EXTENSION_TYPE',
-        problemMessage:
-            "The 'super' keyword can't be used in an extension type because an "
-            "extension type doesn't have a superclass.",
-        hasPublishedDocs: true,
-        type: DiagnosticType.COMPILE_TIME_ERROR,
-        uniqueName: 'CompileTimeErrorCode.SUPER_IN_EXTENSION_TYPE',
-        expectedTypes: [],
-      );
+      diag.superInExtensionType;
 
   /// No parameters.
   static const DiagnosticWithoutArguments superInInvalidContext =
-      DiagnosticWithoutArgumentsImpl(
-        name: 'SUPER_IN_INVALID_CONTEXT',
-        problemMessage: "Invalid context for 'super' invocation.",
-        hasPublishedDocs: true,
-        type: DiagnosticType.COMPILE_TIME_ERROR,
-        uniqueName: 'CompileTimeErrorCode.SUPER_IN_INVALID_CONTEXT',
-        expectedTypes: [],
-      );
+      diag.superInInvalidContext;
 
   /// 7.6.1 Generative Constructors: Let <i>k</i> be a generative constructor. It
   /// is a compile-time error if a generative constructor of class Object
@@ -8068,86 +3332,34 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
   ///
   /// No parameters.
   static const DiagnosticWithoutArguments superInitializerInObject =
-      DiagnosticWithoutArgumentsImpl(
-        name: 'SUPER_INITIALIZER_IN_OBJECT',
-        problemMessage:
-            "The class 'Object' can't invoke a constructor from a superclass.",
-        type: DiagnosticType.COMPILE_TIME_ERROR,
-        uniqueName: 'CompileTimeErrorCode.SUPER_INITIALIZER_IN_OBJECT',
-        expectedTypes: [],
-      );
+      diag.superInitializerInObject;
 
   /// No parameters.
   static const DiagnosticWithoutArguments superInRedirectingConstructor =
-      DiagnosticWithoutArgumentsImpl(
-        name: 'SUPER_IN_REDIRECTING_CONSTRUCTOR',
-        problemMessage:
-            "The redirecting constructor can't have a 'super' initializer.",
-        hasPublishedDocs: true,
-        type: DiagnosticType.COMPILE_TIME_ERROR,
-        uniqueName: 'CompileTimeErrorCode.SUPER_IN_REDIRECTING_CONSTRUCTOR',
-        expectedTypes: [],
-      );
+      diag.superInRedirectingConstructor;
 
   /// Parameters:
   /// String p0: the superinitializer
   static const DiagnosticWithArguments<
     LocatableDiagnostic Function({required String p0})
   >
-  superInvocationNotLast = DiagnosticWithArguments(
-    name: 'SUPER_INVOCATION_NOT_LAST',
-    problemMessage:
-        "The superconstructor call must be last in an initializer list: '{0}'.",
-    hasPublishedDocs: true,
-    type: DiagnosticType.COMPILE_TIME_ERROR,
-    uniqueName: 'CompileTimeErrorCode.SUPER_INVOCATION_NOT_LAST',
-    withArguments: _withArgumentsSuperInvocationNotLast,
-    expectedTypes: [ExpectedType.string],
-  );
+  superInvocationNotLast = diag.superInvocationNotLast;
 
   /// No parameters.
   static const DiagnosticWithoutArguments switchCaseCompletesNormally =
-      DiagnosticWithoutArgumentsImpl(
-        name: 'SWITCH_CASE_COMPLETES_NORMALLY',
-        problemMessage: "The 'case' shouldn't complete normally.",
-        correctionMessage: "Try adding 'break', 'return', or 'throw'.",
-        hasPublishedDocs: true,
-        type: DiagnosticType.COMPILE_TIME_ERROR,
-        uniqueName: 'CompileTimeErrorCode.SWITCH_CASE_COMPLETES_NORMALLY',
-        expectedTypes: [],
-      );
+      diag.switchCaseCompletesNormally;
 
   /// No parameters.
   static const DiagnosticWithoutArguments
-  tearoffOfGenerativeConstructorOfAbstractClass = DiagnosticWithoutArgumentsImpl(
-    name: 'TEAROFF_OF_GENERATIVE_CONSTRUCTOR_OF_ABSTRACT_CLASS',
-    problemMessage:
-        "A generative constructor of an abstract class can't be torn off.",
-    correctionMessage:
-        "Try tearing off a constructor of a concrete class, or a "
-        "non-generative constructor.",
-    hasPublishedDocs: true,
-    type: DiagnosticType.COMPILE_TIME_ERROR,
-    uniqueName:
-        'CompileTimeErrorCode.TEAROFF_OF_GENERATIVE_CONSTRUCTOR_OF_ABSTRACT_CLASS',
-    expectedTypes: [],
-  );
+  tearoffOfGenerativeConstructorOfAbstractClass =
+      diag.tearoffOfGenerativeConstructorOfAbstractClass;
 
   /// Parameters:
   /// Type p0: the type that can't be thrown
   static const DiagnosticWithArguments<
     LocatableDiagnostic Function({required DartType p0})
   >
-  throwOfInvalidType = DiagnosticWithArguments(
-    name: 'THROW_OF_INVALID_TYPE',
-    problemMessage:
-        "The type '{0}' of the thrown expression must be assignable to 'Object'.",
-    hasPublishedDocs: true,
-    type: DiagnosticType.COMPILE_TIME_ERROR,
-    uniqueName: 'CompileTimeErrorCode.THROW_OF_INVALID_TYPE',
-    withArguments: _withArgumentsThrowOfInvalidType,
-    expectedTypes: [ExpectedType.type],
-  );
+  throwOfInvalidType = diag.throwOfInvalidType;
 
   /// Parameters:
   /// String p0: the element whose type could not be inferred.
@@ -8155,33 +3367,11 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
   static const DiagnosticWithArguments<
     LocatableDiagnostic Function({required String p0, required String p1})
   >
-  topLevelCycle = DiagnosticWithArguments(
-    name: 'TOP_LEVEL_CYCLE',
-    problemMessage:
-        "The type of '{0}' can't be inferred because it depends on itself through "
-        "the cycle: {1}.",
-    correctionMessage:
-        "Try adding an explicit type to one or more of the variables in the "
-        "cycle in order to break the cycle.",
-    hasPublishedDocs: true,
-    type: DiagnosticType.COMPILE_TIME_ERROR,
-    uniqueName: 'CompileTimeErrorCode.TOP_LEVEL_CYCLE',
-    withArguments: _withArgumentsTopLevelCycle,
-    expectedTypes: [ExpectedType.string, ExpectedType.string],
-  );
+  topLevelCycle = diag.topLevelCycle;
 
   /// No parameters.
-  static const DiagnosticWithoutArguments
-  typeAliasCannotReferenceItself = DiagnosticWithoutArgumentsImpl(
-    name: 'TYPE_ALIAS_CANNOT_REFERENCE_ITSELF',
-    problemMessage:
-        "Typedefs can't reference themselves directly or recursively via another "
-        "typedef.",
-    hasPublishedDocs: true,
-    type: DiagnosticType.COMPILE_TIME_ERROR,
-    uniqueName: 'CompileTimeErrorCode.TYPE_ALIAS_CANNOT_REFERENCE_ITSELF',
-    expectedTypes: [],
-  );
+  static const DiagnosticWithoutArguments typeAliasCannotReferenceItself =
+      diag.typeAliasCannotReferenceItself;
 
   /// Parameters:
   /// String p0: the name of the type that is deferred and being used in a type
@@ -8189,20 +3379,7 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
   static const DiagnosticWithArguments<
     LocatableDiagnostic Function({required String p0})
   >
-  typeAnnotationDeferredClass = DiagnosticWithArguments(
-    name: 'TYPE_ANNOTATION_DEFERRED_CLASS',
-    problemMessage:
-        "The deferred type '{0}' can't be used in a declaration, cast, or type "
-        "test.",
-    correctionMessage:
-        "Try using a different type, or changing the import to not be "
-        "deferred.",
-    hasPublishedDocs: true,
-    type: DiagnosticType.COMPILE_TIME_ERROR,
-    uniqueName: 'CompileTimeErrorCode.TYPE_ANNOTATION_DEFERRED_CLASS',
-    withArguments: _withArgumentsTypeAnnotationDeferredClass,
-    expectedTypes: [ExpectedType.string],
-  );
+  typeAnnotationDeferredClass = diag.typeAnnotationDeferredClass;
 
   /// Parameters:
   /// Type p0: the name of the type used in the instance creation that should be
@@ -8216,34 +3393,13 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
       required DartType p2,
     })
   >
-  typeArgumentNotMatchingBounds = DiagnosticWithArguments(
-    name: 'TYPE_ARGUMENT_NOT_MATCHING_BOUNDS',
-    problemMessage:
-        "'{0}' doesn't conform to the bound '{2}' of the type parameter '{1}'.",
-    correctionMessage: "Try using a type that is or is a subclass of '{2}'.",
-    hasPublishedDocs: true,
-    type: DiagnosticType.COMPILE_TIME_ERROR,
-    uniqueName: 'CompileTimeErrorCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS',
-    withArguments: _withArgumentsTypeArgumentNotMatchingBounds,
-    expectedTypes: [ExpectedType.type, ExpectedType.string, ExpectedType.type],
-  );
+  typeArgumentNotMatchingBounds = diag.typeArgumentNotMatchingBounds;
 
   /// No parameters.
   static const DiagnosticWithoutArguments typeParameterReferencedByStatic =
-      DiagnosticWithoutArgumentsImpl(
-        name: 'TYPE_PARAMETER_REFERENCED_BY_STATIC',
-        problemMessage:
-            "Static members can't reference type parameters of the class.",
-        correctionMessage:
-            "Try removing the reference to the type parameter, or making the "
-            "member an instance member.",
-        hasPublishedDocs: true,
-        type: DiagnosticType.COMPILE_TIME_ERROR,
-        uniqueName: 'CompileTimeErrorCode.TYPE_PARAMETER_REFERENCED_BY_STATIC',
-        expectedTypes: [],
-      );
+      diag.typeParameterReferencedByStatic;
 
-  /// See [CompileTimeErrorCode.typeArgumentNotMatchingBounds].
+  /// See [diag.typeArgumentNotMatchingBounds].
   ///
   /// Parameters:
   /// String p0: the name of the type parameter
@@ -8251,228 +3407,84 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
   static const DiagnosticWithArguments<
     LocatableDiagnostic Function({required String p0, required DartType p1})
   >
-  typeParameterSupertypeOfItsBound = DiagnosticWithArguments(
-    name: 'TYPE_PARAMETER_SUPERTYPE_OF_ITS_BOUND',
-    problemMessage: "'{0}' can't be a supertype of its upper bound.",
-    correctionMessage:
-        "Try using a type that is the same as or a subclass of '{1}'.",
-    hasPublishedDocs: true,
-    type: DiagnosticType.COMPILE_TIME_ERROR,
-    uniqueName: 'CompileTimeErrorCode.TYPE_PARAMETER_SUPERTYPE_OF_ITS_BOUND',
-    withArguments: _withArgumentsTypeParameterSupertypeOfItsBound,
-    expectedTypes: [ExpectedType.string, ExpectedType.type],
-  );
+  typeParameterSupertypeOfItsBound = diag.typeParameterSupertypeOfItsBound;
 
   /// Parameters:
   /// String p0: the name of the type
   static const DiagnosticWithArguments<
     LocatableDiagnostic Function({required String p0})
   >
-  typeTestWithNonType = DiagnosticWithArguments(
-    name: 'TYPE_TEST_WITH_NON_TYPE',
-    problemMessage:
-        "The name '{0}' isn't a type and can't be used in an 'is' expression.",
-    correctionMessage: "Try correcting the name to match an existing type.",
-    hasPublishedDocs: true,
-    type: DiagnosticType.COMPILE_TIME_ERROR,
-    uniqueName: 'CompileTimeErrorCode.TYPE_TEST_WITH_NON_TYPE',
-    withArguments: _withArgumentsTypeTestWithNonType,
-    expectedTypes: [ExpectedType.string],
-  );
+  typeTestWithNonType = diag.typeTestWithNonType;
 
   /// Parameters:
   /// String p0: the name of the type
   static const DiagnosticWithArguments<
     LocatableDiagnostic Function({required String p0})
   >
-  typeTestWithUndefinedName = DiagnosticWithArguments(
-    name: 'TYPE_TEST_WITH_UNDEFINED_NAME',
-    problemMessage:
-        "The name '{0}' isn't defined, so it can't be used in an 'is' expression.",
-    correctionMessage:
-        "Try changing the name to the name of an existing type, or creating a "
-        "type with the name '{0}'.",
-    hasPublishedDocs: true,
-    type: DiagnosticType.COMPILE_TIME_ERROR,
-    uniqueName: 'CompileTimeErrorCode.TYPE_TEST_WITH_UNDEFINED_NAME',
-    withArguments: _withArgumentsTypeTestWithUndefinedName,
-    expectedTypes: [ExpectedType.string],
-  );
+  typeTestWithUndefinedName = diag.typeTestWithUndefinedName;
 
   /// No parameters.
-  static const DiagnosticWithoutArguments
-  uncheckedInvocationOfNullableValue = DiagnosticWithoutArgumentsImpl(
-    name: 'UNCHECKED_USE_OF_NULLABLE_VALUE',
-    problemMessage:
-        "The function can't be unconditionally invoked because it can be 'null'.",
-    correctionMessage: "Try adding a null check ('!').",
-    hasPublishedDocs: true,
-    type: DiagnosticType.COMPILE_TIME_ERROR,
-    uniqueName: 'CompileTimeErrorCode.UNCHECKED_INVOCATION_OF_NULLABLE_VALUE',
-    expectedTypes: [],
-  );
+  static const DiagnosticWithoutArguments uncheckedInvocationOfNullableValue =
+      diag.uncheckedInvocationOfNullableValue;
 
   /// Parameters:
   /// String p0: the name of the method
   static const DiagnosticWithArguments<
     LocatableDiagnostic Function({required String p0})
   >
-  uncheckedMethodInvocationOfNullableValue = DiagnosticWithArguments(
-    name: 'UNCHECKED_USE_OF_NULLABLE_VALUE',
-    problemMessage:
-        "The method '{0}' can't be unconditionally invoked because the receiver "
-        "can be 'null'.",
-    correctionMessage:
-        "Try making the call conditional (using '?.') or adding a null check "
-        "to the target ('!').",
-    hasPublishedDocs: true,
-    type: DiagnosticType.COMPILE_TIME_ERROR,
-    uniqueName:
-        'CompileTimeErrorCode.UNCHECKED_METHOD_INVOCATION_OF_NULLABLE_VALUE',
-    withArguments: _withArgumentsUncheckedMethodInvocationOfNullableValue,
-    expectedTypes: [ExpectedType.string],
-  );
+  uncheckedMethodInvocationOfNullableValue =
+      diag.uncheckedMethodInvocationOfNullableValue;
 
   /// Parameters:
   /// String p0: the name of the operator
   static const DiagnosticWithArguments<
     LocatableDiagnostic Function({required String p0})
   >
-  uncheckedOperatorInvocationOfNullableValue = DiagnosticWithArguments(
-    name: 'UNCHECKED_USE_OF_NULLABLE_VALUE',
-    problemMessage:
-        "The operator '{0}' can't be unconditionally invoked because the receiver "
-        "can be 'null'.",
-    correctionMessage: "Try adding a null check to the target ('!').",
-    hasPublishedDocs: true,
-    type: DiagnosticType.COMPILE_TIME_ERROR,
-    uniqueName:
-        'CompileTimeErrorCode.UNCHECKED_OPERATOR_INVOCATION_OF_NULLABLE_VALUE',
-    withArguments: _withArgumentsUncheckedOperatorInvocationOfNullableValue,
-    expectedTypes: [ExpectedType.string],
-  );
+  uncheckedOperatorInvocationOfNullableValue =
+      diag.uncheckedOperatorInvocationOfNullableValue;
 
   /// Parameters:
   /// String p0: the name of the property
   static const DiagnosticWithArguments<
     LocatableDiagnostic Function({required String p0})
   >
-  uncheckedPropertyAccessOfNullableValue = DiagnosticWithArguments(
-    name: 'UNCHECKED_USE_OF_NULLABLE_VALUE',
-    problemMessage:
-        "The property '{0}' can't be unconditionally accessed because the receiver "
-        "can be 'null'.",
-    correctionMessage:
-        "Try making the access conditional (using '?.') or adding a null check "
-        "to the target ('!').",
-    hasPublishedDocs: true,
-    type: DiagnosticType.COMPILE_TIME_ERROR,
-    uniqueName:
-        'CompileTimeErrorCode.UNCHECKED_PROPERTY_ACCESS_OF_NULLABLE_VALUE',
-    withArguments: _withArgumentsUncheckedPropertyAccessOfNullableValue,
-    expectedTypes: [ExpectedType.string],
-  );
+  uncheckedPropertyAccessOfNullableValue =
+      diag.uncheckedPropertyAccessOfNullableValue;
 
   /// No parameters.
   static const DiagnosticWithoutArguments
-  uncheckedUseOfNullableValueAsCondition = DiagnosticWithoutArgumentsImpl(
-    name: 'UNCHECKED_USE_OF_NULLABLE_VALUE',
-    problemMessage: "A nullable expression can't be used as a condition.",
-    correctionMessage:
-        "Try checking that the value isn't 'null' before using it as a "
-        "condition.",
-    hasPublishedDocs: true,
-    type: DiagnosticType.COMPILE_TIME_ERROR,
-    uniqueName:
-        'CompileTimeErrorCode.UNCHECKED_USE_OF_NULLABLE_VALUE_AS_CONDITION',
-    expectedTypes: [],
-  );
+  uncheckedUseOfNullableValueAsCondition =
+      diag.uncheckedUseOfNullableValueAsCondition;
 
   /// No parameters.
   static const DiagnosticWithoutArguments
-  uncheckedUseOfNullableValueAsIterator = DiagnosticWithoutArgumentsImpl(
-    name: 'UNCHECKED_USE_OF_NULLABLE_VALUE',
-    problemMessage:
-        "A nullable expression can't be used as an iterator in a for-in loop.",
-    correctionMessage:
-        "Try checking that the value isn't 'null' before using it as an "
-        "iterator.",
-    hasPublishedDocs: true,
-    type: DiagnosticType.COMPILE_TIME_ERROR,
-    uniqueName:
-        'CompileTimeErrorCode.UNCHECKED_USE_OF_NULLABLE_VALUE_AS_ITERATOR',
-    expectedTypes: [],
-  );
+  uncheckedUseOfNullableValueAsIterator =
+      diag.uncheckedUseOfNullableValueAsIterator;
+
+  /// No parameters.
+  static const DiagnosticWithoutArguments uncheckedUseOfNullableValueInSpread =
+      diag.uncheckedUseOfNullableValueInSpread;
 
   /// No parameters.
   static const DiagnosticWithoutArguments
-  uncheckedUseOfNullableValueInSpread = DiagnosticWithoutArgumentsImpl(
-    name: 'UNCHECKED_USE_OF_NULLABLE_VALUE',
-    problemMessage: "A nullable expression can't be used in a spread.",
-    correctionMessage:
-        "Try checking that the value isn't 'null' before using it in a spread, "
-        "or use a null-aware spread.",
-    hasPublishedDocs: true,
-    type: DiagnosticType.COMPILE_TIME_ERROR,
-    uniqueName:
-        'CompileTimeErrorCode.UNCHECKED_USE_OF_NULLABLE_VALUE_IN_SPREAD',
-    expectedTypes: [],
-  );
-
-  /// No parameters.
-  static const DiagnosticWithoutArguments
-  uncheckedUseOfNullableValueInYieldEach = DiagnosticWithoutArgumentsImpl(
-    name: 'UNCHECKED_USE_OF_NULLABLE_VALUE',
-    problemMessage:
-        "A nullable expression can't be used in a yield-each statement.",
-    correctionMessage:
-        "Try checking that the value isn't 'null' before using it in a "
-        "yield-each statement.",
-    hasPublishedDocs: true,
-    type: DiagnosticType.COMPILE_TIME_ERROR,
-    uniqueName:
-        'CompileTimeErrorCode.UNCHECKED_USE_OF_NULLABLE_VALUE_IN_YIELD_EACH',
-    expectedTypes: [],
-  );
+  uncheckedUseOfNullableValueInYieldEach =
+      diag.uncheckedUseOfNullableValueInYieldEach;
 
   /// Parameters:
   /// String p0: the name of the annotation
   static const DiagnosticWithArguments<
     LocatableDiagnostic Function({required String p0})
   >
-  undefinedAnnotation = DiagnosticWithArguments(
-    name: 'UNDEFINED_ANNOTATION',
-    problemMessage: "Undefined name '{0}' used as an annotation.",
-    correctionMessage:
-        "Try defining the name or importing it from another library.",
-    hasPublishedDocs: true,
-    isUnresolvedIdentifier: true,
-    type: DiagnosticType.COMPILE_TIME_ERROR,
-    uniqueName: 'CompileTimeErrorCode.UNDEFINED_ANNOTATION',
-    withArguments: _withArgumentsUndefinedAnnotation,
-    expectedTypes: [ExpectedType.string],
-  );
+  undefinedAnnotation = diag.undefinedAnnotation;
 
   /// Parameters:
   /// String p0: the name of the undefined class
   static const DiagnosticWithArguments<
     LocatableDiagnostic Function({required String p0})
   >
-  undefinedClass = DiagnosticWithArguments(
-    name: 'UNDEFINED_CLASS',
-    problemMessage: "Undefined class '{0}'.",
-    correctionMessage:
-        "Try changing the name to the name of an existing class, or creating a "
-        "class with the name '{0}'.",
-    hasPublishedDocs: true,
-    isUnresolvedIdentifier: true,
-    type: DiagnosticType.COMPILE_TIME_ERROR,
-    uniqueName: 'CompileTimeErrorCode.UNDEFINED_CLASS',
-    withArguments: _withArgumentsUndefinedClass,
-    expectedTypes: [ExpectedType.string],
-  );
+  undefinedClass = diag.undefinedClass;
 
-  /// Same as [CompileTimeErrorCode.undefinedClass], but to catch using
+  /// Same as [diag.undefinedClass], but to catch using
   /// "boolean" instead of "bool" in order to improve the correction message.
   ///
   /// Parameters:
@@ -8480,17 +3492,7 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
   static const DiagnosticWithArguments<
     LocatableDiagnostic Function({required String p0})
   >
-  undefinedClassBoolean = DiagnosticWithArguments(
-    name: 'UNDEFINED_CLASS',
-    problemMessage: "Undefined class '{0}'.",
-    correctionMessage: "Try using the type 'bool'.",
-    hasPublishedDocs: true,
-    isUnresolvedIdentifier: true,
-    type: DiagnosticType.COMPILE_TIME_ERROR,
-    uniqueName: 'CompileTimeErrorCode.UNDEFINED_CLASS_BOOLEAN',
-    withArguments: _withArgumentsUndefinedClassBoolean,
-    expectedTypes: [ExpectedType.string],
-  );
+  undefinedClassBoolean = diag.undefinedClassBoolean;
 
   /// Parameters:
   /// Type p0: the name of the superclass that does not define the invoked
@@ -8499,18 +3501,7 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
   static const DiagnosticWithArguments<
     LocatableDiagnostic Function({required DartType p0, required String p1})
   >
-  undefinedConstructorInInitializer = DiagnosticWithArguments(
-    name: 'UNDEFINED_CONSTRUCTOR_IN_INITIALIZER',
-    problemMessage: "The class '{0}' doesn't have a constructor named '{1}'.",
-    correctionMessage:
-        "Try defining a constructor named '{1}' in '{0}', or invoking a "
-        "different constructor.",
-    hasPublishedDocs: true,
-    type: DiagnosticType.COMPILE_TIME_ERROR,
-    uniqueName: 'CompileTimeErrorCode.UNDEFINED_CONSTRUCTOR_IN_INITIALIZER',
-    withArguments: _withArgumentsUndefinedConstructorInInitializer,
-    expectedTypes: [ExpectedType.type, ExpectedType.string],
-  );
+  undefinedConstructorInInitializer = diag.undefinedConstructorInInitializer;
 
   /// Parameters:
   /// Object p0: the name of the superclass that does not define the invoked
@@ -8518,19 +3509,8 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
   static const DiagnosticWithArguments<
     LocatableDiagnostic Function({required Object p0})
   >
-  undefinedConstructorInInitializerDefault = DiagnosticWithArguments(
-    name: 'UNDEFINED_CONSTRUCTOR_IN_INITIALIZER',
-    problemMessage: "The class '{0}' doesn't have an unnamed constructor.",
-    correctionMessage:
-        "Try defining an unnamed constructor in '{0}', or invoking a different "
-        "constructor.",
-    hasPublishedDocs: true,
-    type: DiagnosticType.COMPILE_TIME_ERROR,
-    uniqueName:
-        'CompileTimeErrorCode.UNDEFINED_CONSTRUCTOR_IN_INITIALIZER_DEFAULT',
-    withArguments: _withArgumentsUndefinedConstructorInInitializerDefault,
-    expectedTypes: [ExpectedType.object],
-  );
+  undefinedConstructorInInitializerDefault =
+      diag.undefinedConstructorInInitializerDefault;
 
   /// Parameters:
   /// String p0: the name of the enum value that is not defined
@@ -8538,50 +3518,18 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
   static const DiagnosticWithArguments<
     LocatableDiagnostic Function({required String p0, required String p1})
   >
-  undefinedEnumConstant = DiagnosticWithArguments(
-    name: 'UNDEFINED_ENUM_CONSTANT',
-    problemMessage: "There's no constant named '{0}' in '{1}'.",
-    correctionMessage:
-        "Try correcting the name to the name of an existing constant, or "
-        "defining a constant named '{0}'.",
-    hasPublishedDocs: true,
-    type: DiagnosticType.COMPILE_TIME_ERROR,
-    uniqueName: 'CompileTimeErrorCode.UNDEFINED_ENUM_CONSTANT',
-    withArguments: _withArgumentsUndefinedEnumConstant,
-    expectedTypes: [ExpectedType.string, ExpectedType.string],
-  );
+  undefinedEnumConstant = diag.undefinedEnumConstant;
 
   /// Parameters:
   /// String p0: the name of the constructor that is undefined
   static const DiagnosticWithArguments<
     LocatableDiagnostic Function({required String p0})
   >
-  undefinedEnumConstructorNamed = DiagnosticWithArguments(
-    name: 'UNDEFINED_ENUM_CONSTRUCTOR',
-    problemMessage: "The enum doesn't have a constructor named '{0}'.",
-    correctionMessage:
-        "Try correcting the name to the name of an existing constructor, or "
-        "defining constructor with the name '{0}'.",
-    hasPublishedDocs: true,
-    type: DiagnosticType.COMPILE_TIME_ERROR,
-    uniqueName: 'CompileTimeErrorCode.UNDEFINED_ENUM_CONSTRUCTOR_NAMED',
-    withArguments: _withArgumentsUndefinedEnumConstructorNamed,
-    expectedTypes: [ExpectedType.string],
-  );
+  undefinedEnumConstructorNamed = diag.undefinedEnumConstructorNamed;
 
   /// No parameters.
   static const DiagnosticWithoutArguments undefinedEnumConstructorUnnamed =
-      DiagnosticWithoutArgumentsImpl(
-        name: 'UNDEFINED_ENUM_CONSTRUCTOR',
-        problemMessage: "The enum doesn't have an unnamed constructor.",
-        correctionMessage:
-            "Try adding the name of an existing constructor, or defining an "
-            "unnamed constructor.",
-        hasPublishedDocs: true,
-        type: DiagnosticType.COMPILE_TIME_ERROR,
-        uniqueName: 'CompileTimeErrorCode.UNDEFINED_ENUM_CONSTRUCTOR_UNNAMED',
-        expectedTypes: [],
-      );
+      diag.undefinedEnumConstructorUnnamed;
 
   /// Parameters:
   /// String p0: the name of the getter that is undefined
@@ -8589,18 +3537,7 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
   static const DiagnosticWithArguments<
     LocatableDiagnostic Function({required String p0, required String p1})
   >
-  undefinedExtensionGetter = DiagnosticWithArguments(
-    name: 'UNDEFINED_EXTENSION_GETTER',
-    problemMessage: "The getter '{0}' isn't defined for the extension '{1}'.",
-    correctionMessage:
-        "Try correcting the name to the name of an existing getter, or "
-        "defining a getter named '{0}'.",
-    hasPublishedDocs: true,
-    type: DiagnosticType.COMPILE_TIME_ERROR,
-    uniqueName: 'CompileTimeErrorCode.UNDEFINED_EXTENSION_GETTER',
-    withArguments: _withArgumentsUndefinedExtensionGetter,
-    expectedTypes: [ExpectedType.string, ExpectedType.string],
-  );
+  undefinedExtensionGetter = diag.undefinedExtensionGetter;
 
   /// Parameters:
   /// String p0: the name of the method that is undefined
@@ -8608,18 +3545,7 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
   static const DiagnosticWithArguments<
     LocatableDiagnostic Function({required String p0, required String p1})
   >
-  undefinedExtensionMethod = DiagnosticWithArguments(
-    name: 'UNDEFINED_EXTENSION_METHOD',
-    problemMessage: "The method '{0}' isn't defined for the extension '{1}'.",
-    correctionMessage:
-        "Try correcting the name to the name of an existing method, or "
-        "defining a method named '{0}'.",
-    hasPublishedDocs: true,
-    type: DiagnosticType.COMPILE_TIME_ERROR,
-    uniqueName: 'CompileTimeErrorCode.UNDEFINED_EXTENSION_METHOD',
-    withArguments: _withArgumentsUndefinedExtensionMethod,
-    expectedTypes: [ExpectedType.string, ExpectedType.string],
-  );
+  undefinedExtensionMethod = diag.undefinedExtensionMethod;
 
   /// Parameters:
   /// String p0: the name of the operator that is undefined
@@ -8627,16 +3553,7 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
   static const DiagnosticWithArguments<
     LocatableDiagnostic Function({required String p0, required String p1})
   >
-  undefinedExtensionOperator = DiagnosticWithArguments(
-    name: 'UNDEFINED_EXTENSION_OPERATOR',
-    problemMessage: "The operator '{0}' isn't defined for the extension '{1}'.",
-    correctionMessage: "Try defining the operator '{0}'.",
-    hasPublishedDocs: true,
-    type: DiagnosticType.COMPILE_TIME_ERROR,
-    uniqueName: 'CompileTimeErrorCode.UNDEFINED_EXTENSION_OPERATOR',
-    withArguments: _withArgumentsUndefinedExtensionOperator,
-    expectedTypes: [ExpectedType.string, ExpectedType.string],
-  );
+  undefinedExtensionOperator = diag.undefinedExtensionOperator;
 
   /// Parameters:
   /// String p0: the name of the setter that is undefined
@@ -8644,37 +3561,14 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
   static const DiagnosticWithArguments<
     LocatableDiagnostic Function({required String p0, required String p1})
   >
-  undefinedExtensionSetter = DiagnosticWithArguments(
-    name: 'UNDEFINED_EXTENSION_SETTER',
-    problemMessage: "The setter '{0}' isn't defined for the extension '{1}'.",
-    correctionMessage:
-        "Try correcting the name to the name of an existing setter, or "
-        "defining a setter named '{0}'.",
-    hasPublishedDocs: true,
-    type: DiagnosticType.COMPILE_TIME_ERROR,
-    uniqueName: 'CompileTimeErrorCode.UNDEFINED_EXTENSION_SETTER',
-    withArguments: _withArgumentsUndefinedExtensionSetter,
-    expectedTypes: [ExpectedType.string, ExpectedType.string],
-  );
+  undefinedExtensionSetter = diag.undefinedExtensionSetter;
 
   /// Parameters:
   /// String p0: the name of the method that is undefined
   static const DiagnosticWithArguments<
     LocatableDiagnostic Function({required String p0})
   >
-  undefinedFunction = DiagnosticWithArguments(
-    name: 'UNDEFINED_FUNCTION',
-    problemMessage: "The function '{0}' isn't defined.",
-    correctionMessage:
-        "Try importing the library that defines '{0}', correcting the name to "
-        "the name of an existing function, or defining a function named '{0}'.",
-    hasPublishedDocs: true,
-    isUnresolvedIdentifier: true,
-    type: DiagnosticType.COMPILE_TIME_ERROR,
-    uniqueName: 'CompileTimeErrorCode.UNDEFINED_FUNCTION',
-    withArguments: _withArgumentsUndefinedFunction,
-    expectedTypes: [ExpectedType.string],
-  );
+  undefinedFunction = diag.undefinedFunction;
 
   /// Parameters:
   /// String p0: the name of the getter
@@ -8683,19 +3577,7 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
   static const DiagnosticWithArguments<
     LocatableDiagnostic Function({required String p0, required Object p1})
   >
-  undefinedGetter = DiagnosticWithArguments(
-    name: 'UNDEFINED_GETTER',
-    problemMessage: "The getter '{0}' isn't defined for the type '{1}'.",
-    correctionMessage:
-        "Try importing the library that defines '{0}', correcting the name to "
-        "the name of an existing getter, or defining a getter or field named "
-        "'{0}'.",
-    hasPublishedDocs: true,
-    type: DiagnosticType.COMPILE_TIME_ERROR,
-    uniqueName: 'CompileTimeErrorCode.UNDEFINED_GETTER',
-    withArguments: _withArgumentsUndefinedGetter,
-    expectedTypes: [ExpectedType.string, ExpectedType.object],
-  );
+  undefinedGetter = diag.undefinedGetter;
 
   /// Parameters:
   /// String p0: the name of the getter
@@ -8703,52 +3585,18 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
   static const DiagnosticWithArguments<
     LocatableDiagnostic Function({required String p0, required String p1})
   >
-  undefinedGetterOnFunctionType = DiagnosticWithArguments(
-    name: 'UNDEFINED_GETTER',
-    problemMessage:
-        "The getter '{0}' isn't defined for the '{1}' function type.",
-    correctionMessage:
-        "Try wrapping the function type alias in parentheses in order to "
-        "access '{0}' as an extension getter on 'Type'.",
-    hasPublishedDocs: true,
-    type: DiagnosticType.COMPILE_TIME_ERROR,
-    uniqueName: 'CompileTimeErrorCode.UNDEFINED_GETTER_ON_FUNCTION_TYPE',
-    withArguments: _withArgumentsUndefinedGetterOnFunctionType,
-    expectedTypes: [ExpectedType.string, ExpectedType.string],
-  );
+  undefinedGetterOnFunctionType = diag.undefinedGetterOnFunctionType;
 
   /// Parameters:
   /// String p0: the name of the identifier
   static const DiagnosticWithArguments<
     LocatableDiagnostic Function({required String p0})
   >
-  undefinedIdentifier = DiagnosticWithArguments(
-    name: 'UNDEFINED_IDENTIFIER',
-    problemMessage: "Undefined name '{0}'.",
-    correctionMessage:
-        "Try correcting the name to one that is defined, or defining the name.",
-    hasPublishedDocs: true,
-    isUnresolvedIdentifier: true,
-    type: DiagnosticType.COMPILE_TIME_ERROR,
-    uniqueName: 'CompileTimeErrorCode.UNDEFINED_IDENTIFIER',
-    withArguments: _withArgumentsUndefinedIdentifier,
-    expectedTypes: [ExpectedType.string],
-  );
+  undefinedIdentifier = diag.undefinedIdentifier;
 
   /// No parameters.
-  static const DiagnosticWithoutArguments
-  undefinedIdentifierAwait = DiagnosticWithoutArgumentsImpl(
-    name: 'UNDEFINED_IDENTIFIER_AWAIT',
-    problemMessage:
-        "Undefined name 'await' in function body not marked with 'async'.",
-    correctionMessage:
-        "Try correcting the name to one that is defined, defining the name, or "
-        "adding 'async' to the enclosing function body.",
-    hasPublishedDocs: true,
-    type: DiagnosticType.COMPILE_TIME_ERROR,
-    uniqueName: 'CompileTimeErrorCode.UNDEFINED_IDENTIFIER_AWAIT',
-    expectedTypes: [],
-  );
+  static const DiagnosticWithoutArguments undefinedIdentifierAwait =
+      diag.undefinedIdentifierAwait;
 
   /// Parameters:
   /// String p0: the name of the method that is undefined
@@ -8756,18 +3604,7 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
   static const DiagnosticWithArguments<
     LocatableDiagnostic Function({required String p0, required Object p1})
   >
-  undefinedMethod = DiagnosticWithArguments(
-    name: 'UNDEFINED_METHOD',
-    problemMessage: "The method '{0}' isn't defined for the type '{1}'.",
-    correctionMessage:
-        "Try correcting the name to the name of an existing method, or "
-        "defining a method named '{0}'.",
-    hasPublishedDocs: true,
-    type: DiagnosticType.COMPILE_TIME_ERROR,
-    uniqueName: 'CompileTimeErrorCode.UNDEFINED_METHOD',
-    withArguments: _withArgumentsUndefinedMethod,
-    expectedTypes: [ExpectedType.string, ExpectedType.object],
-  );
+  undefinedMethod = diag.undefinedMethod;
 
   /// Parameters:
   /// String p0: the name of the method
@@ -8775,37 +3612,14 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
   static const DiagnosticWithArguments<
     LocatableDiagnostic Function({required String p0, required String p1})
   >
-  undefinedMethodOnFunctionType = DiagnosticWithArguments(
-    name: 'UNDEFINED_METHOD',
-    problemMessage:
-        "The method '{0}' isn't defined for the '{1}' function type.",
-    correctionMessage:
-        "Try wrapping the function type alias in parentheses in order to "
-        "access '{0}' as an extension method on 'Type'.",
-    hasPublishedDocs: true,
-    type: DiagnosticType.COMPILE_TIME_ERROR,
-    uniqueName: 'CompileTimeErrorCode.UNDEFINED_METHOD_ON_FUNCTION_TYPE',
-    withArguments: _withArgumentsUndefinedMethodOnFunctionType,
-    expectedTypes: [ExpectedType.string, ExpectedType.string],
-  );
+  undefinedMethodOnFunctionType = diag.undefinedMethodOnFunctionType;
 
   /// Parameters:
   /// String p0: the name of the requested named parameter
   static const DiagnosticWithArguments<
     LocatableDiagnostic Function({required String p0})
   >
-  undefinedNamedParameter = DiagnosticWithArguments(
-    name: 'UNDEFINED_NAMED_PARAMETER',
-    problemMessage: "The named parameter '{0}' isn't defined.",
-    correctionMessage:
-        "Try correcting the name to an existing named parameter's name, or "
-        "defining a named parameter with the name '{0}'.",
-    hasPublishedDocs: true,
-    type: DiagnosticType.COMPILE_TIME_ERROR,
-    uniqueName: 'CompileTimeErrorCode.UNDEFINED_NAMED_PARAMETER',
-    withArguments: _withArgumentsUndefinedNamedParameter,
-    expectedTypes: [ExpectedType.string],
-  );
+  undefinedNamedParameter = diag.undefinedNamedParameter;
 
   /// Parameters:
   /// String p0: the name of the operator
@@ -8814,16 +3628,7 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
   static const DiagnosticWithArguments<
     LocatableDiagnostic Function({required String p0, required DartType p1})
   >
-  undefinedOperator = DiagnosticWithArguments(
-    name: 'UNDEFINED_OPERATOR',
-    problemMessage: "The operator '{0}' isn't defined for the type '{1}'.",
-    correctionMessage: "Try defining the operator '{0}'.",
-    hasPublishedDocs: true,
-    type: DiagnosticType.COMPILE_TIME_ERROR,
-    uniqueName: 'CompileTimeErrorCode.UNDEFINED_OPERATOR',
-    withArguments: _withArgumentsUndefinedOperator,
-    expectedTypes: [ExpectedType.string, ExpectedType.type],
-  );
+  undefinedOperator = diag.undefinedOperator;
 
   /// Parameters:
   /// String p0: the name of the reference
@@ -8831,20 +3636,7 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
   static const DiagnosticWithArguments<
     LocatableDiagnostic Function({required String p0, required String p1})
   >
-  undefinedPrefixedName = DiagnosticWithArguments(
-    name: 'UNDEFINED_PREFIXED_NAME',
-    problemMessage:
-        "The name '{0}' is being referenced through the prefix '{1}', but it isn't "
-        "defined in any of the libraries imported using that prefix.",
-    correctionMessage:
-        "Try correcting the prefix or importing the library that defines "
-        "'{0}'.",
-    hasPublishedDocs: true,
-    type: DiagnosticType.COMPILE_TIME_ERROR,
-    uniqueName: 'CompileTimeErrorCode.UNDEFINED_PREFIXED_NAME',
-    withArguments: _withArgumentsUndefinedPrefixedName,
-    expectedTypes: [ExpectedType.string, ExpectedType.string],
-  );
+  undefinedPrefixedName = diag.undefinedPrefixedName;
 
   /// Parameters:
   /// String p0: the name of the setter
@@ -8853,19 +3645,7 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
   static const DiagnosticWithArguments<
     LocatableDiagnostic Function({required String p0, required DartType p1})
   >
-  undefinedSetter = DiagnosticWithArguments(
-    name: 'UNDEFINED_SETTER',
-    problemMessage: "The setter '{0}' isn't defined for the type '{1}'.",
-    correctionMessage:
-        "Try importing the library that defines '{0}', correcting the name to "
-        "the name of an existing setter, or defining a setter or field named "
-        "'{0}'.",
-    hasPublishedDocs: true,
-    type: DiagnosticType.COMPILE_TIME_ERROR,
-    uniqueName: 'CompileTimeErrorCode.UNDEFINED_SETTER',
-    withArguments: _withArgumentsUndefinedSetter,
-    expectedTypes: [ExpectedType.string, ExpectedType.type],
-  );
+  undefinedSetter = diag.undefinedSetter;
 
   /// Parameters:
   /// String p0: the name of the setter
@@ -8873,19 +3653,7 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
   static const DiagnosticWithArguments<
     LocatableDiagnostic Function({required String p0, required String p1})
   >
-  undefinedSetterOnFunctionType = DiagnosticWithArguments(
-    name: 'UNDEFINED_SETTER',
-    problemMessage:
-        "The setter '{0}' isn't defined for the '{1}' function type.",
-    correctionMessage:
-        "Try wrapping the function type alias in parentheses in order to "
-        "access '{0}' as an extension getter on 'Type'.",
-    hasPublishedDocs: true,
-    type: DiagnosticType.COMPILE_TIME_ERROR,
-    uniqueName: 'CompileTimeErrorCode.UNDEFINED_SETTER_ON_FUNCTION_TYPE',
-    withArguments: _withArgumentsUndefinedSetterOnFunctionType,
-    expectedTypes: [ExpectedType.string, ExpectedType.string],
-  );
+  undefinedSetterOnFunctionType = diag.undefinedSetterOnFunctionType;
 
   /// Parameters:
   /// String p0: the name of the getter
@@ -8894,18 +3662,7 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
   static const DiagnosticWithArguments<
     LocatableDiagnostic Function({required String p0, required DartType p1})
   >
-  undefinedSuperGetter = DiagnosticWithArguments(
-    name: 'UNDEFINED_SUPER_MEMBER',
-    problemMessage: "The getter '{0}' isn't defined in a superclass of '{1}'.",
-    correctionMessage:
-        "Try correcting the name to the name of an existing getter, or "
-        "defining a getter or field named '{0}' in a superclass.",
-    hasPublishedDocs: true,
-    type: DiagnosticType.COMPILE_TIME_ERROR,
-    uniqueName: 'CompileTimeErrorCode.UNDEFINED_SUPER_GETTER',
-    withArguments: _withArgumentsUndefinedSuperGetter,
-    expectedTypes: [ExpectedType.string, ExpectedType.type],
-  );
+  undefinedSuperGetter = diag.undefinedSuperGetter;
 
   /// Parameters:
   /// String p0: the name of the method that is undefined
@@ -8913,18 +3670,7 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
   static const DiagnosticWithArguments<
     LocatableDiagnostic Function({required String p0, required String p1})
   >
-  undefinedSuperMethod = DiagnosticWithArguments(
-    name: 'UNDEFINED_SUPER_MEMBER',
-    problemMessage: "The method '{0}' isn't defined in a superclass of '{1}'.",
-    correctionMessage:
-        "Try correcting the name to the name of an existing method, or "
-        "defining a method named '{0}' in a superclass.",
-    hasPublishedDocs: true,
-    type: DiagnosticType.COMPILE_TIME_ERROR,
-    uniqueName: 'CompileTimeErrorCode.UNDEFINED_SUPER_METHOD',
-    withArguments: _withArgumentsUndefinedSuperMethod,
-    expectedTypes: [ExpectedType.string, ExpectedType.string],
-  );
+  undefinedSuperMethod = diag.undefinedSuperMethod;
 
   /// Parameters:
   /// String p0: the name of the operator
@@ -8933,17 +3679,7 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
   static const DiagnosticWithArguments<
     LocatableDiagnostic Function({required String p0, required DartType p1})
   >
-  undefinedSuperOperator = DiagnosticWithArguments(
-    name: 'UNDEFINED_SUPER_MEMBER',
-    problemMessage:
-        "The operator '{0}' isn't defined in a superclass of '{1}'.",
-    correctionMessage: "Try defining the operator '{0}' in a superclass.",
-    hasPublishedDocs: true,
-    type: DiagnosticType.COMPILE_TIME_ERROR,
-    uniqueName: 'CompileTimeErrorCode.UNDEFINED_SUPER_OPERATOR',
-    withArguments: _withArgumentsUndefinedSuperOperator,
-    expectedTypes: [ExpectedType.string, ExpectedType.type],
-  );
+  undefinedSuperOperator = diag.undefinedSuperOperator;
 
   /// Parameters:
   /// String p0: the name of the setter
@@ -8952,18 +3688,7 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
   static const DiagnosticWithArguments<
     LocatableDiagnostic Function({required String p0, required DartType p1})
   >
-  undefinedSuperSetter = DiagnosticWithArguments(
-    name: 'UNDEFINED_SUPER_MEMBER',
-    problemMessage: "The setter '{0}' isn't defined in a superclass of '{1}'.",
-    correctionMessage:
-        "Try correcting the name to the name of an existing setter, or "
-        "defining a setter or field named '{0}' in a superclass.",
-    hasPublishedDocs: true,
-    type: DiagnosticType.COMPILE_TIME_ERROR,
-    uniqueName: 'CompileTimeErrorCode.UNDEFINED_SUPER_SETTER',
-    withArguments: _withArgumentsUndefinedSuperSetter,
-    expectedTypes: [ExpectedType.string, ExpectedType.type],
-  );
+  undefinedSuperSetter = diag.undefinedSuperSetter;
 
   /// This is a specialization of [instanceAccessToStaticMember] that is used
   /// when we are able to find the name defined in a supertype. It exists to
@@ -8974,127 +3699,46 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
   static const DiagnosticWithArguments<
     LocatableDiagnostic Function({required String p0})
   >
-  unqualifiedReferenceToNonLocalStaticMember = DiagnosticWithArguments(
-    name: 'UNQUALIFIED_REFERENCE_TO_NON_LOCAL_STATIC_MEMBER',
-    problemMessage:
-        "Static members from supertypes must be qualified by the name of the "
-        "defining type.",
-    correctionMessage: "Try adding '{0}.' before the name.",
-    hasPublishedDocs: true,
-    type: DiagnosticType.COMPILE_TIME_ERROR,
-    uniqueName:
-        'CompileTimeErrorCode.UNQUALIFIED_REFERENCE_TO_NON_LOCAL_STATIC_MEMBER',
-    withArguments: _withArgumentsUnqualifiedReferenceToNonLocalStaticMember,
-    expectedTypes: [ExpectedType.string],
-  );
+  unqualifiedReferenceToNonLocalStaticMember =
+      diag.unqualifiedReferenceToNonLocalStaticMember;
 
   /// Parameters:
   /// String p0: the name of the defining type
   static const DiagnosticWithArguments<
     LocatableDiagnostic Function({required String p0})
   >
-  unqualifiedReferenceToStaticMemberOfExtendedType = DiagnosticWithArguments(
-    name: 'UNQUALIFIED_REFERENCE_TO_STATIC_MEMBER_OF_EXTENDED_TYPE',
-    problemMessage:
-        "Static members from the extended type or one of its superclasses must be "
-        "qualified by the name of the defining type.",
-    correctionMessage: "Try adding '{0}.' before the name.",
-    hasPublishedDocs: true,
-    type: DiagnosticType.COMPILE_TIME_ERROR,
-    uniqueName:
-        'CompileTimeErrorCode.UNQUALIFIED_REFERENCE_TO_STATIC_MEMBER_OF_EXTENDED_TYPE',
-    withArguments:
-        _withArgumentsUnqualifiedReferenceToStaticMemberOfExtendedType,
-    expectedTypes: [ExpectedType.string],
-  );
+  unqualifiedReferenceToStaticMemberOfExtendedType =
+      diag.unqualifiedReferenceToStaticMemberOfExtendedType;
 
   /// Parameters:
   /// String p0: the URI pointing to a nonexistent file
   static const DiagnosticWithArguments<
     LocatableDiagnostic Function({required String p0})
   >
-  uriDoesNotExist = DiagnosticWithArguments(
-    name: 'URI_DOES_NOT_EXIST',
-    problemMessage: "Target of URI doesn't exist: '{0}'.",
-    correctionMessage:
-        "Try creating the file referenced by the URI, or try using a URI for a "
-        "file that does exist.",
-    hasPublishedDocs: true,
-    type: DiagnosticType.COMPILE_TIME_ERROR,
-    uniqueName: 'CompileTimeErrorCode.URI_DOES_NOT_EXIST',
-    withArguments: _withArgumentsUriDoesNotExist,
-    expectedTypes: [ExpectedType.string],
-  );
+  uriDoesNotExist = diag.uriDoesNotExist;
 
   /// Parameters:
   /// String p0: the URI pointing to a nonexistent file
   static const DiagnosticWithArguments<
     LocatableDiagnostic Function({required String p0})
   >
-  uriHasNotBeenGenerated = DiagnosticWithArguments(
-    name: 'URI_HAS_NOT_BEEN_GENERATED',
-    problemMessage: "Target of URI hasn't been generated: '{0}'.",
-    correctionMessage:
-        "Try running the generator that will generate the file referenced by "
-        "the URI.",
-    hasPublishedDocs: true,
-    type: DiagnosticType.COMPILE_TIME_ERROR,
-    uniqueName: 'CompileTimeErrorCode.URI_HAS_NOT_BEEN_GENERATED',
-    withArguments: _withArgumentsUriHasNotBeenGenerated,
-    expectedTypes: [ExpectedType.string],
-  );
+  uriHasNotBeenGenerated = diag.uriHasNotBeenGenerated;
 
   /// No parameters.
   static const DiagnosticWithoutArguments uriWithInterpolation =
-      DiagnosticWithoutArgumentsImpl(
-        name: 'URI_WITH_INTERPOLATION',
-        problemMessage: "URIs can't use string interpolation.",
-        hasPublishedDocs: true,
-        type: DiagnosticType.COMPILE_TIME_ERROR,
-        uniqueName: 'CompileTimeErrorCode.URI_WITH_INTERPOLATION',
-        expectedTypes: [],
-      );
+      diag.uriWithInterpolation;
 
   /// No parameters.
-  static const DiagnosticWithoutArguments
-  useOfNativeExtension = DiagnosticWithoutArgumentsImpl(
-    name: 'USE_OF_NATIVE_EXTENSION',
-    problemMessage:
-        "Dart native extensions are deprecated and aren't available in Dart 2.15.",
-    correctionMessage: "Try using dart:ffi for C interop.",
-    hasPublishedDocs: true,
-    type: DiagnosticType.COMPILE_TIME_ERROR,
-    uniqueName: 'CompileTimeErrorCode.USE_OF_NATIVE_EXTENSION',
-    expectedTypes: [],
-  );
+  static const DiagnosticWithoutArguments useOfNativeExtension =
+      diag.useOfNativeExtension;
 
   /// No parameters.
-  static const DiagnosticWithoutArguments
-  useOfVoidResult = DiagnosticWithoutArgumentsImpl(
-    name: 'USE_OF_VOID_RESULT',
-    problemMessage:
-        "This expression has a type of 'void' so its value can't be used.",
-    correctionMessage:
-        "Try checking to see if you're using the correct API; there might be a "
-        "function or call that returns void you didn't expect. Also check type "
-        "parameters and variables which might also be void.",
-    hasPublishedDocs: true,
-    type: DiagnosticType.COMPILE_TIME_ERROR,
-    uniqueName: 'CompileTimeErrorCode.USE_OF_VOID_RESULT',
-    expectedTypes: [],
-  );
+  static const DiagnosticWithoutArguments useOfVoidResult =
+      diag.useOfVoidResult;
 
   /// No parameters.
   static const DiagnosticWithoutArguments valuesDeclarationInEnum =
-      DiagnosticWithoutArgumentsImpl(
-        name: 'VALUES_DECLARATION_IN_ENUM',
-        problemMessage: "A member named 'values' can't be declared in an enum.",
-        correctionMessage: "Try using a different name.",
-        hasPublishedDocs: true,
-        type: DiagnosticType.COMPILE_TIME_ERROR,
-        uniqueName: 'CompileTimeErrorCode.VALUES_DECLARATION_IN_ENUM',
-        expectedTypes: [],
-      );
+      diag.valuesDeclarationInEnum;
 
   /// Parameters:
   /// Object valueType: the type of the object being assigned.
@@ -9105,18 +3749,7 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
       required Object variableType,
     })
   >
-  variableTypeMismatch = DiagnosticWithArguments(
-    name: 'VARIABLE_TYPE_MISMATCH',
-    problemMessage:
-        "A value of type '{0}' can't be assigned to a const variable of type "
-        "'{1}'.",
-    correctionMessage: "Try using a subtype, or removing the 'const' keyword",
-    hasPublishedDocs: true,
-    type: DiagnosticType.COMPILE_TIME_ERROR,
-    uniqueName: 'CompileTimeErrorCode.VARIABLE_TYPE_MISMATCH',
-    withArguments: _withArgumentsVariableTypeMismatch,
-    expectedTypes: [ExpectedType.object, ExpectedType.object],
-  );
+  variableTypeMismatch = diag.variableTypeMismatch;
 
   /// Let `C` be a generic class that declares a formal type parameter `X`, and
   /// assume that `T` is a direct superinterface of `C`.
@@ -9141,26 +3774,8 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
       required Object p3,
     })
   >
-  wrongExplicitTypeParameterVarianceInSuperinterface = DiagnosticWithArguments(
-    name: 'WRONG_EXPLICIT_TYPE_PARAMETER_VARIANCE_IN_SUPERINTERFACE',
-    problemMessage:
-        "'{0}' is an '{1}' type parameter and can't be used in an '{2}' position "
-        "in '{3}'.",
-    correctionMessage:
-        "Try using 'in' type parameters in 'in' positions and 'out' type "
-        "parameters in 'out' positions in the superinterface.",
-    type: DiagnosticType.COMPILE_TIME_ERROR,
-    uniqueName:
-        'CompileTimeErrorCode.WRONG_EXPLICIT_TYPE_PARAMETER_VARIANCE_IN_SUPERINTERFACE',
-    withArguments:
-        _withArgumentsWrongExplicitTypeParameterVarianceInSuperinterface,
-    expectedTypes: [
-      ExpectedType.object,
-      ExpectedType.object,
-      ExpectedType.object,
-      ExpectedType.object,
-    ],
-  );
+  wrongExplicitTypeParameterVarianceInSuperinterface =
+      diag.wrongExplicitTypeParameterVarianceInSuperinterface;
 
   /// Parameters:
   /// String p0: the name of the declared operator
@@ -9173,16 +3788,7 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
       required int p2,
     })
   >
-  wrongNumberOfParametersForOperator = DiagnosticWithArguments(
-    name: 'WRONG_NUMBER_OF_PARAMETERS_FOR_OPERATOR',
-    problemMessage:
-        "Operator '{0}' should declare exactly {1} parameters, but {2} found.",
-    hasPublishedDocs: true,
-    type: DiagnosticType.COMPILE_TIME_ERROR,
-    uniqueName: 'CompileTimeErrorCode.WRONG_NUMBER_OF_PARAMETERS_FOR_OPERATOR',
-    withArguments: _withArgumentsWrongNumberOfParametersForOperator,
-    expectedTypes: [ExpectedType.string, ExpectedType.int, ExpectedType.int],
-  );
+  wrongNumberOfParametersForOperator = diag.wrongNumberOfParametersForOperator;
 
   /// 7.1.1 Operators: It is a compile time error if the arity of the
   /// user-declared operator - is not 0 or 1.
@@ -9192,17 +3798,8 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
   static const DiagnosticWithArguments<
     LocatableDiagnostic Function({required int p0})
   >
-  wrongNumberOfParametersForOperatorMinus = DiagnosticWithArguments(
-    name: 'WRONG_NUMBER_OF_PARAMETERS_FOR_OPERATOR',
-    problemMessage:
-        "Operator '-' should declare 0 or 1 parameter, but {0} found.",
-    hasPublishedDocs: true,
-    type: DiagnosticType.COMPILE_TIME_ERROR,
-    uniqueName:
-        'CompileTimeErrorCode.WRONG_NUMBER_OF_PARAMETERS_FOR_OPERATOR_MINUS',
-    withArguments: _withArgumentsWrongNumberOfParametersForOperatorMinus,
-    expectedTypes: [ExpectedType.int],
-  );
+  wrongNumberOfParametersForOperatorMinus =
+      diag.wrongNumberOfParametersForOperatorMinus;
 
   /// Parameters:
   /// Object p0: the name of the type being referenced (<i>G</i>)
@@ -9215,20 +3812,7 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
       required int p2,
     })
   >
-  wrongNumberOfTypeArguments = DiagnosticWithArguments(
-    name: 'WRONG_NUMBER_OF_TYPE_ARGUMENTS',
-    problemMessage:
-        "The type '{0}' is declared with {1} type parameters, but {2} type "
-        "arguments were given.",
-    correctionMessage:
-        "Try adjusting the number of type arguments to match the number of "
-        "type parameters.",
-    hasPublishedDocs: true,
-    type: DiagnosticType.COMPILE_TIME_ERROR,
-    uniqueName: 'CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS',
-    withArguments: _withArgumentsWrongNumberOfTypeArguments,
-    expectedTypes: [ExpectedType.object, ExpectedType.int, ExpectedType.int],
-  );
+  wrongNumberOfTypeArguments = diag.wrongNumberOfTypeArguments;
 
   /// Parameters:
   /// int typeParameterCount: the number of type parameters that were declared
@@ -9239,20 +3823,8 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
       required int typeArgumentCount,
     })
   >
-  wrongNumberOfTypeArgumentsAnonymousFunction = DiagnosticWithArguments(
-    name: 'WRONG_NUMBER_OF_TYPE_ARGUMENTS_FUNCTION',
-    problemMessage:
-        "This function is declared with {0} type parameters, but {1} type "
-        "arguments were given.",
-    correctionMessage:
-        "Try adjusting the number of type arguments to match the number of "
-        "type parameters.",
-    type: DiagnosticType.COMPILE_TIME_ERROR,
-    uniqueName:
-        'CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_ANONYMOUS_FUNCTION',
-    withArguments: _withArgumentsWrongNumberOfTypeArgumentsAnonymousFunction,
-    expectedTypes: [ExpectedType.int, ExpectedType.int],
-  );
+  wrongNumberOfTypeArgumentsAnonymousFunction =
+      diag.wrongNumberOfTypeArgumentsAnonymousFunction;
 
   /// Parameters:
   /// String p0: the name of the class being instantiated
@@ -9260,17 +3832,8 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
   static const DiagnosticWithArguments<
     LocatableDiagnostic Function({required String p0, required String p1})
   >
-  wrongNumberOfTypeArgumentsConstructor = DiagnosticWithArguments(
-    name: 'WRONG_NUMBER_OF_TYPE_ARGUMENTS_CONSTRUCTOR',
-    problemMessage: "The constructor '{0}.{1}' doesn't have type parameters.",
-    correctionMessage: "Try moving type arguments to after the type name.",
-    hasPublishedDocs: true,
-    type: DiagnosticType.COMPILE_TIME_ERROR,
-    uniqueName:
-        'CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_CONSTRUCTOR',
-    withArguments: _withArgumentsWrongNumberOfTypeArgumentsConstructor,
-    expectedTypes: [ExpectedType.string, ExpectedType.string],
-  );
+  wrongNumberOfTypeArgumentsConstructor =
+      diag.wrongNumberOfTypeArgumentsConstructor;
 
   /// Parameters:
   /// String p0: the name of the class being instantiated
@@ -9278,20 +3841,8 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
   static const DiagnosticWithArguments<
     LocatableDiagnostic Function({required String p0, required String p1})
   >
-  wrongNumberOfTypeArgumentsDotShorthandConstructor = DiagnosticWithArguments(
-    name: 'WRONG_NUMBER_OF_TYPE_ARGUMENTS_CONSTRUCTOR',
-    problemMessage: "The constructor '{0}.{1}` doesn't have type parameters.",
-    correctionMessage:
-        "Try removing the type arguments, or adding a class name, followed by "
-        "the type arguments, then the constructor name.",
-    hasPublishedDocs: true,
-    type: DiagnosticType.COMPILE_TIME_ERROR,
-    uniqueName:
-        'CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_DOT_SHORTHAND_CONSTRUCTOR',
-    withArguments:
-        _withArgumentsWrongNumberOfTypeArgumentsDotShorthandConstructor,
-    expectedTypes: [ExpectedType.string, ExpectedType.string],
-  );
+  wrongNumberOfTypeArgumentsDotShorthandConstructor =
+      diag.wrongNumberOfTypeArgumentsDotShorthandConstructor;
 
   /// Parameters:
   /// int p0: the number of type parameters that were declared
@@ -9299,18 +3850,7 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
   static const DiagnosticWithArguments<
     LocatableDiagnostic Function({required int p0, required int p1})
   >
-  wrongNumberOfTypeArgumentsEnum = DiagnosticWithArguments(
-    name: 'WRONG_NUMBER_OF_TYPE_ARGUMENTS_ENUM',
-    problemMessage:
-        "The enum is declared with {0} type parameters, but {1} type arguments "
-        "were given.",
-    correctionMessage: "Try adjusting the number of type arguments.",
-    hasPublishedDocs: true,
-    type: DiagnosticType.COMPILE_TIME_ERROR,
-    uniqueName: 'CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_ENUM',
-    withArguments: _withArgumentsWrongNumberOfTypeArgumentsEnum,
-    expectedTypes: [ExpectedType.int, ExpectedType.int],
-  );
+  wrongNumberOfTypeArgumentsEnum = diag.wrongNumberOfTypeArgumentsEnum;
 
   /// Parameters:
   /// String p0: the name of the extension being referenced
@@ -9323,18 +3863,8 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
       required int p2,
     })
   >
-  wrongNumberOfTypeArgumentsExtension = DiagnosticWithArguments(
-    name: 'WRONG_NUMBER_OF_TYPE_ARGUMENTS_EXTENSION',
-    problemMessage:
-        "The extension '{0}' is declared with {1} type parameters, but {2} type "
-        "arguments were given.",
-    correctionMessage: "Try adjusting the number of type arguments.",
-    hasPublishedDocs: true,
-    type: DiagnosticType.COMPILE_TIME_ERROR,
-    uniqueName: 'CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_EXTENSION',
-    withArguments: _withArgumentsWrongNumberOfTypeArgumentsExtension,
-    expectedTypes: [ExpectedType.string, ExpectedType.int, ExpectedType.int],
-  );
+  wrongNumberOfTypeArgumentsExtension =
+      diag.wrongNumberOfTypeArgumentsExtension;
 
   /// Parameters:
   /// String functionName: the name of the function being referenced
@@ -9347,19 +3877,7 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
       required int typeArgumentCount,
     })
   >
-  wrongNumberOfTypeArgumentsFunction = DiagnosticWithArguments(
-    name: 'WRONG_NUMBER_OF_TYPE_ARGUMENTS_FUNCTION',
-    problemMessage:
-        "The function '{0}' is declared with {1} type parameters, but {2} type "
-        "arguments were given.",
-    correctionMessage:
-        "Try adjusting the number of type arguments to match the number of "
-        "type parameters.",
-    type: DiagnosticType.COMPILE_TIME_ERROR,
-    uniqueName: 'CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_FUNCTION',
-    withArguments: _withArgumentsWrongNumberOfTypeArgumentsFunction,
-    expectedTypes: [ExpectedType.string, ExpectedType.int, ExpectedType.int],
-  );
+  wrongNumberOfTypeArgumentsFunction = diag.wrongNumberOfTypeArgumentsFunction;
 
   /// Parameters:
   /// Type p0: the name of the method being referenced (<i>G</i>)
@@ -9372,18 +3890,7 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
       required int p2,
     })
   >
-  wrongNumberOfTypeArgumentsMethod = DiagnosticWithArguments(
-    name: 'WRONG_NUMBER_OF_TYPE_ARGUMENTS_METHOD',
-    problemMessage:
-        "The method '{0}' is declared with {1} type parameters, but {2} type "
-        "arguments are given.",
-    correctionMessage: "Try adjusting the number of type arguments.",
-    hasPublishedDocs: true,
-    type: DiagnosticType.COMPILE_TIME_ERROR,
-    uniqueName: 'CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_METHOD',
-    withArguments: _withArgumentsWrongNumberOfTypeArgumentsMethod,
-    expectedTypes: [ExpectedType.type, ExpectedType.int, ExpectedType.int],
-  );
+  wrongNumberOfTypeArgumentsMethod = diag.wrongNumberOfTypeArgumentsMethod;
 
   /// Let `C` be a generic class that declares a formal type parameter `X`, and
   /// assume that `T` is a direct superinterface of `C`. It is a compile-time
@@ -9395,20 +3902,8 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
   static const DiagnosticWithArguments<
     LocatableDiagnostic Function({required String p0, required DartType p1})
   >
-  wrongTypeParameterVarianceInSuperinterface = DiagnosticWithArguments(
-    name: 'WRONG_TYPE_PARAMETER_VARIANCE_IN_SUPERINTERFACE',
-    problemMessage:
-        "'{0}' can't be used contravariantly or invariantly in '{1}'.",
-    correctionMessage:
-        "Try not using class type parameters in types of formal parameters of "
-        "function types, nor in explicitly contravariant or invariant "
-        "superinterfaces.",
-    type: DiagnosticType.COMPILE_TIME_ERROR,
-    uniqueName:
-        'CompileTimeErrorCode.WRONG_TYPE_PARAMETER_VARIANCE_IN_SUPERINTERFACE',
-    withArguments: _withArgumentsWrongTypeParameterVarianceInSuperinterface,
-    expectedTypes: [ExpectedType.string, ExpectedType.type],
-  );
+  wrongTypeParameterVarianceInSuperinterface =
+      diag.wrongTypeParameterVarianceInSuperinterface;
 
   /// Let `C` be a generic class that declares a formal type parameter `X`.
   ///
@@ -9433,38 +3928,11 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
       required Object p2,
     })
   >
-  wrongTypeParameterVariancePosition = DiagnosticWithArguments(
-    name: 'WRONG_TYPE_PARAMETER_VARIANCE_POSITION',
-    problemMessage:
-        "The '{0}' type parameter '{1}' can't be used in an '{2}' position.",
-    correctionMessage:
-        "Try removing the type parameter or change the explicit variance "
-        "modifier declaration for the type parameter to another one of 'in', "
-        "'out', or 'inout'.",
-    type: DiagnosticType.COMPILE_TIME_ERROR,
-    uniqueName: 'CompileTimeErrorCode.WRONG_TYPE_PARAMETER_VARIANCE_POSITION',
-    withArguments: _withArgumentsWrongTypeParameterVariancePosition,
-    expectedTypes: [
-      ExpectedType.object,
-      ExpectedType.object,
-      ExpectedType.object,
-    ],
-  );
+  wrongTypeParameterVariancePosition = diag.wrongTypeParameterVariancePosition;
 
   /// No parameters.
-  static const DiagnosticWithoutArguments
-  yieldEachInNonGenerator = DiagnosticWithoutArgumentsImpl(
-    name: 'YIELD_IN_NON_GENERATOR',
-    problemMessage:
-        "Yield-each statements must be in a generator function (one marked with "
-        "either 'async*' or 'sync*').",
-    correctionMessage:
-        "Try adding 'async*' or 'sync*' to the enclosing function.",
-    hasPublishedDocs: true,
-    type: DiagnosticType.COMPILE_TIME_ERROR,
-    uniqueName: 'CompileTimeErrorCode.YIELD_EACH_IN_NON_GENERATOR',
-    expectedTypes: [],
-  );
+  static const DiagnosticWithoutArguments yieldEachInNonGenerator =
+      diag.yieldEachInNonGenerator;
 
   /// Parameters:
   /// Type p0: the type of the expression after `yield*`
@@ -9472,35 +3940,14 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
   static const DiagnosticWithArguments<
     LocatableDiagnostic Function({required DartType p0, required DartType p1})
   >
-  yieldEachOfInvalidType = DiagnosticWithArguments(
-    name: 'YIELD_OF_INVALID_TYPE',
-    problemMessage:
-        "The type '{0}' implied by the 'yield*' expression must be assignable to "
-        "'{1}'.",
-    hasPublishedDocs: true,
-    type: DiagnosticType.COMPILE_TIME_ERROR,
-    uniqueName: 'CompileTimeErrorCode.YIELD_EACH_OF_INVALID_TYPE',
-    withArguments: _withArgumentsYieldEachOfInvalidType,
-    expectedTypes: [ExpectedType.type, ExpectedType.type],
-  );
+  yieldEachOfInvalidType = diag.yieldEachOfInvalidType;
 
   /// ?? Yield: It is a compile-time error if a yield statement appears in a
   /// function that is not a generator function.
   ///
   /// No parameters.
-  static const DiagnosticWithoutArguments
-  yieldInNonGenerator = DiagnosticWithoutArgumentsImpl(
-    name: 'YIELD_IN_NON_GENERATOR',
-    problemMessage:
-        "Yield statements must be in a generator function (one marked with either "
-        "'async*' or 'sync*').",
-    correctionMessage:
-        "Try adding 'async*' or 'sync*' to the enclosing function.",
-    hasPublishedDocs: true,
-    type: DiagnosticType.COMPILE_TIME_ERROR,
-    uniqueName: 'CompileTimeErrorCode.YIELD_IN_NON_GENERATOR',
-    expectedTypes: [],
-  );
+  static const DiagnosticWithoutArguments yieldInNonGenerator =
+      diag.yieldInNonGenerator;
 
   /// Parameters:
   /// Type p0: the type of the expression after `yield`
@@ -9508,2958 +3955,28 @@ class CompileTimeErrorCode extends DiagnosticCodeWithExpectedTypes {
   static const DiagnosticWithArguments<
     LocatableDiagnostic Function({required DartType p0, required DartType p1})
   >
-  yieldOfInvalidType = DiagnosticWithArguments(
-    name: 'YIELD_OF_INVALID_TYPE',
-    problemMessage:
-        "A yielded value of type '{0}' must be assignable to '{1}'.",
-    hasPublishedDocs: true,
-    type: DiagnosticType.COMPILE_TIME_ERROR,
-    uniqueName: 'CompileTimeErrorCode.YIELD_OF_INVALID_TYPE',
-    withArguments: _withArgumentsYieldOfInvalidType,
-    expectedTypes: [ExpectedType.type, ExpectedType.type],
-  );
+  yieldOfInvalidType = diag.yieldOfInvalidType;
 
-  /// Initialize a newly created error code to have the given [name].
-  const CompileTimeErrorCode({
-    required super.name,
-    required super.problemMessage,
-    super.correctionMessage,
-    super.hasPublishedDocs = false,
-    super.isUnresolvedIdentifier = false,
-    required super.uniqueName,
-    required super.expectedTypes,
-  }) : super(type: DiagnosticType.COMPILE_TIME_ERROR);
-
-  static LocatableDiagnostic _withArgumentsAbstractSuperMemberReference({
-    required String memberKind,
-    required String name,
-  }) {
-    return LocatableDiagnosticImpl(
-      CompileTimeErrorCode.abstractSuperMemberReference,
-      [memberKind, name],
-    );
-  }
-
-  static LocatableDiagnostic _withArgumentsAmbiguousExport({
-    required String p0,
-    required Uri p1,
-    required Uri p2,
-  }) {
-    return LocatableDiagnosticImpl(CompileTimeErrorCode.ambiguousExport, [
-      p0,
-      p1,
-      p2,
-    ]);
-  }
-
-  static LocatableDiagnostic
-  _withArgumentsAmbiguousExtensionMemberAccessThreeOrMore({
-    required String p0,
-    required String p1,
-  }) {
-    return LocatableDiagnosticImpl(
-      CompileTimeErrorCode.ambiguousExtensionMemberAccessThreeOrMore,
-      [p0, p1],
-    );
-  }
-
-  static LocatableDiagnostic _withArgumentsAmbiguousExtensionMemberAccessTwo({
-    required String p0,
-    required Element p1,
-    required Element p2,
-  }) {
-    return LocatableDiagnosticImpl(
-      CompileTimeErrorCode.ambiguousExtensionMemberAccessTwo,
-      [p0, p1, p2],
-    );
-  }
-
-  static LocatableDiagnostic _withArgumentsAmbiguousImport({
-    required String p0,
-    required String p1,
-  }) {
-    return LocatableDiagnosticImpl(CompileTimeErrorCode.ambiguousImport, [
-      p0,
-      p1,
-    ]);
-  }
-
-  static LocatableDiagnostic _withArgumentsArgumentTypeNotAssignable({
-    required DartType p0,
-    required DartType p1,
-    required String p2,
-  }) {
-    return LocatableDiagnosticImpl(
-      CompileTimeErrorCode.argumentTypeNotAssignable,
-      [p0, p1, p2],
-    );
-  }
-
-  static LocatableDiagnostic _withArgumentsAssignmentToFinal({
-    required String p0,
-  }) {
-    return LocatableDiagnosticImpl(CompileTimeErrorCode.assignmentToFinal, [
-      p0,
-    ]);
-  }
-
-  static LocatableDiagnostic _withArgumentsAssignmentToFinalLocal({
-    required String p0,
-  }) {
-    return LocatableDiagnosticImpl(
-      CompileTimeErrorCode.assignmentToFinalLocal,
-      [p0],
-    );
-  }
-
-  static LocatableDiagnostic _withArgumentsAssignmentToFinalNoSetter({
-    required String p0,
-    required String p1,
-  }) {
-    return LocatableDiagnosticImpl(
-      CompileTimeErrorCode.assignmentToFinalNoSetter,
-      [p0, p1],
-    );
-  }
-
-  static LocatableDiagnostic _withArgumentsAugmentationModifierExtra({
-    required Object p0,
-  }) {
-    return LocatableDiagnosticImpl(
-      CompileTimeErrorCode.augmentationModifierExtra,
-      [p0],
-    );
-  }
-
-  static LocatableDiagnostic _withArgumentsAugmentationModifierMissing({
-    required Object p0,
-  }) {
-    return LocatableDiagnosticImpl(
-      CompileTimeErrorCode.augmentationModifierMissing,
-      [p0],
-    );
-  }
-
-  static LocatableDiagnostic
-  _withArgumentsAugmentationOfDifferentDeclarationKind({
-    required Object p0,
-    required Object p1,
-  }) {
-    return LocatableDiagnosticImpl(
-      CompileTimeErrorCode.augmentationOfDifferentDeclarationKind,
-      [p0, p1],
-    );
-  }
-
-  static LocatableDiagnostic _withArgumentsAugmentedExpressionNotOperator({
-    required Object p0,
-  }) {
-    return LocatableDiagnosticImpl(
-      CompileTimeErrorCode.augmentedExpressionNotOperator,
-      [p0],
-    );
-  }
-
-  static LocatableDiagnostic
-  _withArgumentsBaseClassImplementedOutsideOfLibrary({
-    required String implementedClassName,
-  }) {
-    return LocatableDiagnosticImpl(
-      CompileTimeErrorCode.baseClassImplementedOutsideOfLibrary,
-      [implementedClassName],
-    );
-  }
-
-  static LocatableDiagnostic
-  _withArgumentsBaseMixinImplementedOutsideOfLibrary({
-    required String implementedMixinName,
-  }) {
-    return LocatableDiagnosticImpl(
-      CompileTimeErrorCode.baseMixinImplementedOutsideOfLibrary,
-      [implementedMixinName],
-    );
-  }
-
-  static LocatableDiagnostic _withArgumentsBodyMightCompleteNormally({
-    required DartType p0,
-  }) {
-    return LocatableDiagnosticImpl(
-      CompileTimeErrorCode.bodyMightCompleteNormally,
-      [p0],
-    );
-  }
-
-  static LocatableDiagnostic _withArgumentsBuiltInIdentifierAsExtensionName({
-    required String p0,
-  }) {
-    return LocatableDiagnosticImpl(
-      CompileTimeErrorCode.builtInIdentifierAsExtensionName,
-      [p0],
-    );
-  }
-
-  static LocatableDiagnostic
-  _withArgumentsBuiltInIdentifierAsExtensionTypeName({required String p0}) {
-    return LocatableDiagnosticImpl(
-      CompileTimeErrorCode.builtInIdentifierAsExtensionTypeName,
-      [p0],
-    );
-  }
-
-  static LocatableDiagnostic _withArgumentsBuiltInIdentifierAsPrefixName({
-    required String p0,
-  }) {
-    return LocatableDiagnosticImpl(
-      CompileTimeErrorCode.builtInIdentifierAsPrefixName,
-      [p0],
-    );
-  }
-
-  static LocatableDiagnostic _withArgumentsBuiltInIdentifierAsType({
-    required String p0,
-  }) {
-    return LocatableDiagnosticImpl(
-      CompileTimeErrorCode.builtInIdentifierAsType,
-      [p0],
-    );
-  }
-
-  static LocatableDiagnostic _withArgumentsBuiltInIdentifierAsTypedefName({
-    required String p0,
-  }) {
-    return LocatableDiagnosticImpl(
-      CompileTimeErrorCode.builtInIdentifierAsTypedefName,
-      [p0],
-    );
-  }
-
-  static LocatableDiagnostic _withArgumentsBuiltInIdentifierAsTypeName({
-    required String p0,
-  }) {
-    return LocatableDiagnosticImpl(
-      CompileTimeErrorCode.builtInIdentifierAsTypeName,
-      [p0],
-    );
-  }
-
-  static LocatableDiagnostic
-  _withArgumentsBuiltInIdentifierAsTypeParameterName({required String p0}) {
-    return LocatableDiagnosticImpl(
-      CompileTimeErrorCode.builtInIdentifierAsTypeParameterName,
-      [p0],
-    );
-  }
-
-  static LocatableDiagnostic _withArgumentsCaseExpressionTypeImplementsEquals({
-    required DartType p0,
-  }) {
-    return LocatableDiagnosticImpl(
-      CompileTimeErrorCode.caseExpressionTypeImplementsEquals,
-      [p0],
-    );
-  }
-
-  static LocatableDiagnostic
-  _withArgumentsCaseExpressionTypeIsNotSwitchExpressionSubtype({
-    required DartType p0,
-    required DartType p1,
-  }) {
-    return LocatableDiagnosticImpl(
-      CompileTimeErrorCode.caseExpressionTypeIsNotSwitchExpressionSubtype,
-      [p0, p1],
-    );
-  }
-
-  static LocatableDiagnostic _withArgumentsCastToNonType({required String p0}) {
-    return LocatableDiagnosticImpl(CompileTimeErrorCode.castToNonType, [p0]);
-  }
-
-  static LocatableDiagnostic
-  _withArgumentsClassInstantiationAccessToInstanceMember({required String p0}) {
-    return LocatableDiagnosticImpl(
-      CompileTimeErrorCode.classInstantiationAccessToInstanceMember,
-      [p0],
-    );
-  }
-
-  static LocatableDiagnostic
-  _withArgumentsClassInstantiationAccessToStaticMember({required String p0}) {
-    return LocatableDiagnosticImpl(
-      CompileTimeErrorCode.classInstantiationAccessToStaticMember,
-      [p0],
-    );
-  }
-
-  static LocatableDiagnostic
-  _withArgumentsClassInstantiationAccessToUnknownMember({
-    required String p0,
-    required String p1,
-  }) {
-    return LocatableDiagnosticImpl(
-      CompileTimeErrorCode.classInstantiationAccessToUnknownMember,
-      [p0, p1],
-    );
-  }
-
-  static LocatableDiagnostic _withArgumentsClassUsedAsMixin({
-    required String p0,
-  }) {
-    return LocatableDiagnosticImpl(CompileTimeErrorCode.classUsedAsMixin, [p0]);
-  }
-
-  static LocatableDiagnostic _withArgumentsConcreteClassWithAbstractMember({
-    required String p0,
-    required String p1,
-  }) {
-    return LocatableDiagnosticImpl(
-      CompileTimeErrorCode.concreteClassWithAbstractMember,
-      [p0, p1],
-    );
-  }
-
-  static LocatableDiagnostic
-  _withArgumentsConflictingConstructorAndStaticField({required String p0}) {
-    return LocatableDiagnosticImpl(
-      CompileTimeErrorCode.conflictingConstructorAndStaticField,
-      [p0],
-    );
-  }
-
-  static LocatableDiagnostic
-  _withArgumentsConflictingConstructorAndStaticGetter({required String p0}) {
-    return LocatableDiagnosticImpl(
-      CompileTimeErrorCode.conflictingConstructorAndStaticGetter,
-      [p0],
-    );
-  }
-
-  static LocatableDiagnostic
-  _withArgumentsConflictingConstructorAndStaticMethod({required String p0}) {
-    return LocatableDiagnosticImpl(
-      CompileTimeErrorCode.conflictingConstructorAndStaticMethod,
-      [p0],
-    );
-  }
-
-  static LocatableDiagnostic
-  _withArgumentsConflictingConstructorAndStaticSetter({required String p0}) {
-    return LocatableDiagnosticImpl(
-      CompileTimeErrorCode.conflictingConstructorAndStaticSetter,
-      [p0],
-    );
-  }
-
-  static LocatableDiagnostic _withArgumentsConflictingFieldAndMethod({
-    required String p0,
-    required String p1,
-    required String p2,
-  }) {
-    return LocatableDiagnosticImpl(
-      CompileTimeErrorCode.conflictingFieldAndMethod,
-      [p0, p1, p2],
-    );
-  }
-
-  static LocatableDiagnostic _withArgumentsConflictingGenericInterfaces({
-    required String p0,
-    required String p1,
-    required String p2,
-    required String p3,
-  }) {
-    return LocatableDiagnosticImpl(
-      CompileTimeErrorCode.conflictingGenericInterfaces,
-      [p0, p1, p2, p3],
-    );
-  }
-
-  static LocatableDiagnostic _withArgumentsConflictingInheritedMethodAndSetter({
-    required String p0,
-    required String p1,
-    required String p2,
-  }) {
-    return LocatableDiagnosticImpl(
-      CompileTimeErrorCode.conflictingInheritedMethodAndSetter,
-      [p0, p1, p2],
-    );
-  }
-
-  static LocatableDiagnostic _withArgumentsConflictingMethodAndField({
-    required String p0,
-    required String p1,
-    required String p2,
-  }) {
-    return LocatableDiagnosticImpl(
-      CompileTimeErrorCode.conflictingMethodAndField,
-      [p0, p1, p2],
-    );
-  }
-
-  static LocatableDiagnostic _withArgumentsConflictingStaticAndInstance({
-    required String p0,
-    required String p1,
-    required String p2,
-  }) {
-    return LocatableDiagnosticImpl(
-      CompileTimeErrorCode.conflictingStaticAndInstance,
-      [p0, p1, p2],
-    );
-  }
-
-  static LocatableDiagnostic _withArgumentsConflictingTypeVariableAndClass({
-    required String p0,
-  }) {
-    return LocatableDiagnosticImpl(
-      CompileTimeErrorCode.conflictingTypeVariableAndClass,
-      [p0],
-    );
-  }
-
-  static LocatableDiagnostic _withArgumentsConflictingTypeVariableAndEnum({
-    required String p0,
-  }) {
-    return LocatableDiagnosticImpl(
-      CompileTimeErrorCode.conflictingTypeVariableAndEnum,
-      [p0],
-    );
-  }
-
-  static LocatableDiagnostic _withArgumentsConflictingTypeVariableAndExtension({
-    required String p0,
-  }) {
-    return LocatableDiagnosticImpl(
-      CompileTimeErrorCode.conflictingTypeVariableAndExtension,
-      [p0],
-    );
-  }
-
-  static LocatableDiagnostic
-  _withArgumentsConflictingTypeVariableAndExtensionType({required String p0}) {
-    return LocatableDiagnosticImpl(
-      CompileTimeErrorCode.conflictingTypeVariableAndExtensionType,
-      [p0],
-    );
-  }
-
-  static LocatableDiagnostic
-  _withArgumentsConflictingTypeVariableAndMemberClass({required String p0}) {
-    return LocatableDiagnosticImpl(
-      CompileTimeErrorCode.conflictingTypeVariableAndMemberClass,
-      [p0],
-    );
-  }
-
-  static LocatableDiagnostic
-  _withArgumentsConflictingTypeVariableAndMemberEnum({required String p0}) {
-    return LocatableDiagnosticImpl(
-      CompileTimeErrorCode.conflictingTypeVariableAndMemberEnum,
-      [p0],
-    );
-  }
-
-  static LocatableDiagnostic
-  _withArgumentsConflictingTypeVariableAndMemberExtension({
-    required String p0,
-  }) {
-    return LocatableDiagnosticImpl(
-      CompileTimeErrorCode.conflictingTypeVariableAndMemberExtension,
-      [p0],
-    );
-  }
-
-  static LocatableDiagnostic
-  _withArgumentsConflictingTypeVariableAndMemberExtensionType({
-    required String p0,
-  }) {
-    return LocatableDiagnosticImpl(
-      CompileTimeErrorCode.conflictingTypeVariableAndMemberExtensionType,
-      [p0],
-    );
-  }
-
-  static LocatableDiagnostic
-  _withArgumentsConflictingTypeVariableAndMemberMixin({required String p0}) {
-    return LocatableDiagnosticImpl(
-      CompileTimeErrorCode.conflictingTypeVariableAndMemberMixin,
-      [p0],
-    );
-  }
-
-  static LocatableDiagnostic _withArgumentsConflictingTypeVariableAndMixin({
-    required String p0,
-  }) {
-    return LocatableDiagnosticImpl(
-      CompileTimeErrorCode.conflictingTypeVariableAndMixin,
-      [p0],
-    );
-  }
-
-  static LocatableDiagnostic _withArgumentsConstConstructorFieldTypeMismatch({
-    required Object valueType,
-    required Object fieldName,
-    required Object fieldType,
-  }) {
-    return LocatableDiagnosticImpl(
-      CompileTimeErrorCode.constConstructorFieldTypeMismatch,
-      [valueType, fieldName, fieldType],
-    );
-  }
-
-  static LocatableDiagnostic _withArgumentsConstConstructorParamTypeMismatch({
-    required String valueType,
-    required String parameterType,
-  }) {
-    return LocatableDiagnosticImpl(
-      CompileTimeErrorCode.constConstructorParamTypeMismatch,
-      [valueType, parameterType],
-    );
-  }
-
-  static LocatableDiagnostic
-  _withArgumentsConstConstructorWithFieldInitializedByNonConst({
-    required String p0,
-  }) {
-    return LocatableDiagnosticImpl(
-      CompileTimeErrorCode.constConstructorWithFieldInitializedByNonConst,
-      [p0],
-    );
-  }
-
-  static LocatableDiagnostic _withArgumentsConstConstructorWithMixinWithField({
-    required String p0,
-  }) {
-    return LocatableDiagnosticImpl(
-      CompileTimeErrorCode.constConstructorWithMixinWithField,
-      [p0],
-    );
-  }
-
-  static LocatableDiagnostic _withArgumentsConstConstructorWithMixinWithFields({
-    required String p0,
-  }) {
-    return LocatableDiagnosticImpl(
-      CompileTimeErrorCode.constConstructorWithMixinWithFields,
-      [p0],
-    );
-  }
-
-  static LocatableDiagnostic _withArgumentsConstConstructorWithNonConstSuper({
-    required String p0,
-  }) {
-    return LocatableDiagnosticImpl(
-      CompileTimeErrorCode.constConstructorWithNonConstSuper,
-      [p0],
-    );
-  }
-
-  static LocatableDiagnostic
-  _withArgumentsConstEvalAssertionFailureWithMessage({
-    required Object message,
-  }) {
-    return LocatableDiagnosticImpl(
-      CompileTimeErrorCode.constEvalAssertionFailureWithMessage,
-      [message],
-    );
-  }
-
-  static LocatableDiagnostic _withArgumentsConstEvalPropertyAccess({
-    required String propertyName,
-    required String type,
-  }) {
-    return LocatableDiagnosticImpl(
-      CompileTimeErrorCode.constEvalPropertyAccess,
-      [propertyName, type],
-    );
-  }
-
-  static LocatableDiagnostic _withArgumentsConstFieldInitializerNotAssignable({
-    required DartType p0,
-    required DartType p1,
-  }) {
-    return LocatableDiagnosticImpl(
-      CompileTimeErrorCode.constFieldInitializerNotAssignable,
-      [p0, p1],
-    );
-  }
-
-  static LocatableDiagnostic _withArgumentsConstMapKeyNotPrimitiveEquality({
-    required DartType p0,
-  }) {
-    return LocatableDiagnosticImpl(
-      CompileTimeErrorCode.constMapKeyNotPrimitiveEquality,
-      [p0],
-    );
-  }
-
-  static LocatableDiagnostic _withArgumentsConstNotInitialized({
-    required String p0,
-  }) {
-    return LocatableDiagnosticImpl(CompileTimeErrorCode.constNotInitialized, [
-      p0,
-    ]);
-  }
-
-  static LocatableDiagnostic _withArgumentsConstSetElementNotPrimitiveEquality({
-    required DartType p0,
-  }) {
-    return LocatableDiagnosticImpl(
-      CompileTimeErrorCode.constSetElementNotPrimitiveEquality,
-      [p0],
-    );
-  }
-
-  static LocatableDiagnostic _withArgumentsConstWithNonType({
-    required String p0,
-  }) {
-    return LocatableDiagnosticImpl(CompileTimeErrorCode.constWithNonType, [p0]);
-  }
-
-  static LocatableDiagnostic _withArgumentsConstWithUndefinedConstructor({
-    required Object p0,
-    required String p1,
-  }) {
-    return LocatableDiagnosticImpl(
-      CompileTimeErrorCode.constWithUndefinedConstructor,
-      [p0, p1],
-    );
-  }
-
-  static LocatableDiagnostic
-  _withArgumentsConstWithUndefinedConstructorDefault({required String p0}) {
-    return LocatableDiagnosticImpl(
-      CompileTimeErrorCode.constWithUndefinedConstructorDefault,
-      [p0],
-    );
-  }
-
-  static LocatableDiagnostic _withArgumentsCouldNotInfer({
-    required String p0,
-    required String p1,
-  }) {
-    return LocatableDiagnosticImpl(CompileTimeErrorCode.couldNotInfer, [
-      p0,
-      p1,
-    ]);
-  }
-
-  static LocatableDiagnostic
-  _withArgumentsDefinitelyUnassignedLateLocalVariable({required String p0}) {
-    return LocatableDiagnosticImpl(
-      CompileTimeErrorCode.definitelyUnassignedLateLocalVariable,
-      [p0],
-    );
-  }
-
-  static LocatableDiagnostic _withArgumentsDotShorthandUndefinedGetter({
-    required String p0,
-    required String p1,
-  }) {
-    return LocatableDiagnosticImpl(
-      CompileTimeErrorCode.dotShorthandUndefinedGetter,
-      [p0, p1],
-    );
-  }
-
-  static LocatableDiagnostic _withArgumentsDotShorthandUndefinedInvocation({
-    required String p0,
-    required String p1,
-  }) {
-    return LocatableDiagnosticImpl(
-      CompileTimeErrorCode.dotShorthandUndefinedInvocation,
-      [p0, p1],
-    );
-  }
-
-  static LocatableDiagnostic _withArgumentsDuplicateConstructorName({
-    required String p0,
-  }) {
-    return LocatableDiagnosticImpl(
-      CompileTimeErrorCode.duplicateConstructorName,
-      [p0],
-    );
-  }
-
-  static LocatableDiagnostic _withArgumentsDuplicateDefinition({
-    required Object p0,
-  }) {
-    return LocatableDiagnosticImpl(CompileTimeErrorCode.duplicateDefinition, [
-      p0,
-    ]);
-  }
-
-  static LocatableDiagnostic _withArgumentsDuplicateFieldFormalParameter({
-    required Object p0,
-  }) {
-    return LocatableDiagnosticImpl(
-      CompileTimeErrorCode.duplicateFieldFormalParameter,
-      [p0],
-    );
-  }
-
-  static LocatableDiagnostic _withArgumentsDuplicateFieldName({
-    required Object p0,
-  }) {
-    return LocatableDiagnosticImpl(CompileTimeErrorCode.duplicateFieldName, [
-      p0,
-    ]);
-  }
-
-  static LocatableDiagnostic _withArgumentsDuplicateNamedArgument({
-    required String p0,
-  }) {
-    return LocatableDiagnosticImpl(
-      CompileTimeErrorCode.duplicateNamedArgument,
-      [p0],
-    );
-  }
-
-  static LocatableDiagnostic _withArgumentsDuplicatePart({required Uri p0}) {
-    return LocatableDiagnosticImpl(CompileTimeErrorCode.duplicatePart, [p0]);
-  }
-
-  static LocatableDiagnostic _withArgumentsDuplicatePatternAssignmentVariable({
-    required Object p0,
-  }) {
-    return LocatableDiagnosticImpl(
-      CompileTimeErrorCode.duplicatePatternAssignmentVariable,
-      [p0],
-    );
-  }
-
-  static LocatableDiagnostic _withArgumentsDuplicatePatternField({
-    required Object p0,
-  }) {
-    return LocatableDiagnosticImpl(CompileTimeErrorCode.duplicatePatternField, [
-      p0,
-    ]);
-  }
-
-  static LocatableDiagnostic _withArgumentsDuplicateVariablePattern({
-    required Object p0,
-  }) {
-    return LocatableDiagnosticImpl(
-      CompileTimeErrorCode.duplicateVariablePattern,
-      [p0],
-    );
-  }
-
-  static LocatableDiagnostic _withArgumentsEnumWithAbstractMember({
-    required String p0,
-    required String p1,
-  }) {
-    return LocatableDiagnosticImpl(
-      CompileTimeErrorCode.enumWithAbstractMember,
-      [p0, p1],
-    );
-  }
-
-  static LocatableDiagnostic _withArgumentsExpectedOneListPatternTypeArguments({
-    required int p0,
-  }) {
-    return LocatableDiagnosticImpl(
-      CompileTimeErrorCode.expectedOneListPatternTypeArguments,
-      [p0],
-    );
-  }
-
-  static LocatableDiagnostic _withArgumentsExpectedOneListTypeArguments({
-    required int p0,
-  }) {
-    return LocatableDiagnosticImpl(
-      CompileTimeErrorCode.expectedOneListTypeArguments,
-      [p0],
-    );
-  }
-
-  static LocatableDiagnostic _withArgumentsExpectedOneSetTypeArguments({
-    required int p0,
-  }) {
-    return LocatableDiagnosticImpl(
-      CompileTimeErrorCode.expectedOneSetTypeArguments,
-      [p0],
-    );
-  }
-
-  static LocatableDiagnostic _withArgumentsExpectedTwoMapPatternTypeArguments({
-    required int p0,
-  }) {
-    return LocatableDiagnosticImpl(
-      CompileTimeErrorCode.expectedTwoMapPatternTypeArguments,
-      [p0],
-    );
-  }
-
-  static LocatableDiagnostic _withArgumentsExpectedTwoMapTypeArguments({
-    required int p0,
-  }) {
-    return LocatableDiagnosticImpl(
-      CompileTimeErrorCode.expectedTwoMapTypeArguments,
-      [p0],
-    );
-  }
-
-  static LocatableDiagnostic _withArgumentsExportInternalLibrary({
-    required String p0,
-  }) {
-    return LocatableDiagnosticImpl(CompileTimeErrorCode.exportInternalLibrary, [
-      p0,
-    ]);
-  }
-
-  static LocatableDiagnostic _withArgumentsExportOfNonLibrary({
-    required String p0,
-  }) {
-    return LocatableDiagnosticImpl(CompileTimeErrorCode.exportOfNonLibrary, [
-      p0,
-    ]);
-  }
-
-  static LocatableDiagnostic _withArgumentsExtendsDisallowedClass({
-    required DartType p0,
-  }) {
-    return LocatableDiagnosticImpl(
-      CompileTimeErrorCode.extendsDisallowedClass,
-      [p0],
-    );
-  }
-
-  static LocatableDiagnostic _withArgumentsExtensionAsExpression({
-    required String p0,
-  }) {
-    return LocatableDiagnosticImpl(CompileTimeErrorCode.extensionAsExpression, [
-      p0,
-    ]);
-  }
-
-  static LocatableDiagnostic
-  _withArgumentsExtensionConflictingStaticAndInstance({required String p0}) {
-    return LocatableDiagnosticImpl(
-      CompileTimeErrorCode.extensionConflictingStaticAndInstance,
-      [p0],
-    );
-  }
-
-  static LocatableDiagnostic
-  _withArgumentsExtensionOverrideArgumentNotAssignable({
-    required DartType p0,
-    required DartType p1,
-  }) {
-    return LocatableDiagnosticImpl(
-      CompileTimeErrorCode.extensionOverrideArgumentNotAssignable,
-      [p0, p1],
-    );
-  }
-
-  static LocatableDiagnostic
-  _withArgumentsExtensionTypeImplementsDisallowedType({required DartType p0}) {
-    return LocatableDiagnosticImpl(
-      CompileTimeErrorCode.extensionTypeImplementsDisallowedType,
-      [p0],
-    );
-  }
-
-  static LocatableDiagnostic _withArgumentsExtensionTypeImplementsNotSupertype({
-    required DartType p0,
-    required DartType p1,
-  }) {
-    return LocatableDiagnosticImpl(
-      CompileTimeErrorCode.extensionTypeImplementsNotSupertype,
-      [p0, p1],
-    );
-  }
-
-  static LocatableDiagnostic
-  _withArgumentsExtensionTypeImplementsRepresentationNotSupertype({
-    required DartType p0,
-    required String p1,
-    required DartType p2,
-    required String p3,
-  }) {
-    return LocatableDiagnosticImpl(
-      CompileTimeErrorCode.extensionTypeImplementsRepresentationNotSupertype,
-      [p0, p1, p2, p3],
-    );
-  }
-
-  static LocatableDiagnostic
-  _withArgumentsExtensionTypeInheritedMemberConflict({
-    required String p0,
-    required String p1,
-  }) {
-    return LocatableDiagnosticImpl(
-      CompileTimeErrorCode.extensionTypeInheritedMemberConflict,
-      [p0, p1],
-    );
-  }
-
-  static LocatableDiagnostic _withArgumentsExtensionTypeWithAbstractMember({
-    required String p0,
-    required String p1,
-  }) {
-    return LocatableDiagnosticImpl(
-      CompileTimeErrorCode.extensionTypeWithAbstractMember,
-      [p0, p1],
-    );
-  }
-
-  static LocatableDiagnostic _withArgumentsExtraPositionalArguments({
-    required int p0,
-    required int p1,
-  }) {
-    return LocatableDiagnosticImpl(
-      CompileTimeErrorCode.extraPositionalArguments,
-      [p0, p1],
-    );
-  }
-
-  static LocatableDiagnostic
-  _withArgumentsExtraPositionalArgumentsCouldBeNamed({
-    required int p0,
-    required int p1,
-  }) {
-    return LocatableDiagnosticImpl(
-      CompileTimeErrorCode.extraPositionalArgumentsCouldBeNamed,
-      [p0, p1],
-    );
-  }
-
-  static LocatableDiagnostic
-  _withArgumentsFieldInitializedByMultipleInitializers({required String p0}) {
-    return LocatableDiagnosticImpl(
-      CompileTimeErrorCode.fieldInitializedByMultipleInitializers,
-      [p0],
-    );
-  }
-
-  static LocatableDiagnostic _withArgumentsFieldInitializerNotAssignable({
-    required DartType p0,
-    required DartType p1,
-  }) {
-    return LocatableDiagnosticImpl(
-      CompileTimeErrorCode.fieldInitializerNotAssignable,
-      [p0, p1],
-    );
-  }
-
-  static LocatableDiagnostic
-  _withArgumentsFieldInitializingFormalNotAssignable({
-    required DartType p0,
-    required DartType p1,
-  }) {
-    return LocatableDiagnosticImpl(
-      CompileTimeErrorCode.fieldInitializingFormalNotAssignable,
-      [p0, p1],
-    );
-  }
-
-  static LocatableDiagnostic _withArgumentsFinalClassExtendedOutsideOfLibrary({
-    required String p0,
-  }) {
-    return LocatableDiagnosticImpl(
-      CompileTimeErrorCode.finalClassExtendedOutsideOfLibrary,
-      [p0],
-    );
-  }
-
-  static LocatableDiagnostic
-  _withArgumentsFinalClassImplementedOutsideOfLibrary({required String p0}) {
-    return LocatableDiagnosticImpl(
-      CompileTimeErrorCode.finalClassImplementedOutsideOfLibrary,
-      [p0],
-    );
-  }
-
-  static LocatableDiagnostic
-  _withArgumentsFinalClassUsedAsMixinConstraintOutsideOfLibrary({
-    required String p0,
-  }) {
-    return LocatableDiagnosticImpl(
-      CompileTimeErrorCode.finalClassUsedAsMixinConstraintOutsideOfLibrary,
-      [p0],
-    );
-  }
-
-  static LocatableDiagnostic
-  _withArgumentsFinalInitializedInDeclarationAndConstructor({
-    required String p0,
-  }) {
-    return LocatableDiagnosticImpl(
-      CompileTimeErrorCode.finalInitializedInDeclarationAndConstructor,
-      [p0],
-    );
-  }
-
-  static LocatableDiagnostic _withArgumentsFinalNotInitialized({
-    required String p0,
-  }) {
-    return LocatableDiagnosticImpl(CompileTimeErrorCode.finalNotInitialized, [
-      p0,
-    ]);
-  }
-
-  static LocatableDiagnostic _withArgumentsFinalNotInitializedConstructor1({
-    required String p0,
-  }) {
-    return LocatableDiagnosticImpl(
-      CompileTimeErrorCode.finalNotInitializedConstructor1,
-      [p0],
-    );
-  }
-
-  static LocatableDiagnostic _withArgumentsFinalNotInitializedConstructor2({
-    required String p0,
-    required String p1,
-  }) {
-    return LocatableDiagnosticImpl(
-      CompileTimeErrorCode.finalNotInitializedConstructor2,
-      [p0, p1],
-    );
-  }
-
-  static LocatableDiagnostic _withArgumentsFinalNotInitializedConstructor3Plus({
-    required String p0,
-    required String p1,
-    required int p2,
-  }) {
-    return LocatableDiagnosticImpl(
-      CompileTimeErrorCode.finalNotInitializedConstructor3Plus,
-      [p0, p1, p2],
-    );
-  }
-
-  static LocatableDiagnostic _withArgumentsForInOfInvalidElementType({
-    required DartType p0,
-    required String p1,
-    required DartType p2,
-  }) {
-    return LocatableDiagnosticImpl(
-      CompileTimeErrorCode.forInOfInvalidElementType,
-      [p0, p1, p2],
-    );
-  }
-
-  static LocatableDiagnostic _withArgumentsForInOfInvalidType({
-    required DartType p0,
-    required String p1,
-  }) {
-    return LocatableDiagnosticImpl(CompileTimeErrorCode.forInOfInvalidType, [
-      p0,
-      p1,
-    ]);
-  }
-
-  static LocatableDiagnostic _withArgumentsGetterNotAssignableSetterTypes({
-    required Object p0,
-    required Object p1,
-    required Object p2,
-    required Object p3,
-  }) {
-    return LocatableDiagnosticImpl(
-      CompileTimeErrorCode.getterNotAssignableSetterTypes,
-      [p0, p1, p2, p3],
-    );
-  }
-
-  static LocatableDiagnostic _withArgumentsGetterNotSubtypeSetterTypes({
-    required Object p0,
-    required Object p1,
-    required Object p2,
-    required Object p3,
-  }) {
-    return LocatableDiagnosticImpl(
-      CompileTimeErrorCode.getterNotSubtypeSetterTypes,
-      [p0, p1, p2, p3],
-    );
-  }
-
-  static LocatableDiagnostic
-  _withArgumentsIllegalConcreteEnumMemberDeclaration({required String p0}) {
-    return LocatableDiagnosticImpl(
-      CompileTimeErrorCode.illegalConcreteEnumMemberDeclaration,
-      [p0],
-    );
-  }
-
-  static LocatableDiagnostic
-  _withArgumentsIllegalConcreteEnumMemberInheritance({
-    required String p0,
-    required String p1,
-  }) {
-    return LocatableDiagnosticImpl(
-      CompileTimeErrorCode.illegalConcreteEnumMemberInheritance,
-      [p0, p1],
-    );
-  }
-
-  static LocatableDiagnostic _withArgumentsIllegalEnumValuesInheritance({
-    required String p0,
-  }) {
-    return LocatableDiagnosticImpl(
-      CompileTimeErrorCode.illegalEnumValuesInheritance,
-      [p0],
-    );
-  }
-
-  static LocatableDiagnostic _withArgumentsIllegalLanguageVersionOverride({
-    required String p0,
-  }) {
-    return LocatableDiagnosticImpl(
-      CompileTimeErrorCode.illegalLanguageVersionOverride,
-      [p0],
-    );
-  }
-
-  static LocatableDiagnostic _withArgumentsImplementsDisallowedClass({
-    required DartType p0,
-  }) {
-    return LocatableDiagnosticImpl(
-      CompileTimeErrorCode.implementsDisallowedClass,
-      [p0],
-    );
-  }
-
-  static LocatableDiagnostic _withArgumentsImplementsRepeated({
-    required String p0,
-  }) {
-    return LocatableDiagnosticImpl(CompileTimeErrorCode.implementsRepeated, [
-      p0,
-    ]);
-  }
-
-  static LocatableDiagnostic _withArgumentsImplementsSuperClass({
-    required Element p0,
-  }) {
-    return LocatableDiagnosticImpl(CompileTimeErrorCode.implementsSuperClass, [
-      p0,
-    ]);
-  }
-
-  static LocatableDiagnostic
-  _withArgumentsImplicitSuperInitializerMissingArguments({
-    required DartType p0,
-  }) {
-    return LocatableDiagnosticImpl(
-      CompileTimeErrorCode.implicitSuperInitializerMissingArguments,
-      [p0],
-    );
-  }
-
-  static LocatableDiagnostic _withArgumentsImplicitThisReferenceInInitializer({
-    required String p0,
-  }) {
-    return LocatableDiagnosticImpl(
-      CompileTimeErrorCode.implicitThisReferenceInInitializer,
-      [p0],
-    );
-  }
-
-  static LocatableDiagnostic _withArgumentsImportInternalLibrary({
-    required String p0,
-  }) {
-    return LocatableDiagnosticImpl(CompileTimeErrorCode.importInternalLibrary, [
-      p0,
-    ]);
-  }
-
-  static LocatableDiagnostic _withArgumentsImportOfNonLibrary({
-    required String p0,
-  }) {
-    return LocatableDiagnosticImpl(CompileTimeErrorCode.importOfNonLibrary, [
-      p0,
-    ]);
-  }
-
-  static LocatableDiagnostic _withArgumentsInconsistentCaseExpressionTypes({
-    required Object p0,
-    required Object p1,
-  }) {
-    return LocatableDiagnosticImpl(
-      CompileTimeErrorCode.inconsistentCaseExpressionTypes,
-      [p0, p1],
-    );
-  }
-
-  static LocatableDiagnostic _withArgumentsInconsistentInheritance({
-    required String p0,
-    required String p1,
-  }) {
-    return LocatableDiagnosticImpl(
-      CompileTimeErrorCode.inconsistentInheritance,
-      [p0, p1],
-    );
-  }
-
-  static LocatableDiagnostic
-  _withArgumentsInconsistentInheritanceGetterAndMethod({
-    required String p0,
-    required String p1,
-    required String p2,
-  }) {
-    return LocatableDiagnosticImpl(
-      CompileTimeErrorCode.inconsistentInheritanceGetterAndMethod,
-      [p0, p1, p2],
-    );
-  }
-
-  static LocatableDiagnostic
-  _withArgumentsInconsistentPatternVariableLogicalOr({required String p0}) {
-    return LocatableDiagnosticImpl(
-      CompileTimeErrorCode.inconsistentPatternVariableLogicalOr,
-      [p0],
-    );
-  }
-
-  static LocatableDiagnostic _withArgumentsInitializerForNonExistentField({
-    required String p0,
-  }) {
-    return LocatableDiagnosticImpl(
-      CompileTimeErrorCode.initializerForNonExistentField,
-      [p0],
-    );
-  }
-
-  static LocatableDiagnostic _withArgumentsInitializerForStaticField({
-    required String p0,
-  }) {
-    return LocatableDiagnosticImpl(
-      CompileTimeErrorCode.initializerForStaticField,
-      [p0],
-    );
-  }
-
-  static LocatableDiagnostic
-  _withArgumentsInitializingFormalForNonExistentField({required String p0}) {
-    return LocatableDiagnosticImpl(
-      CompileTimeErrorCode.initializingFormalForNonExistentField,
-      [p0],
-    );
-  }
-
-  static LocatableDiagnostic _withArgumentsInstanceAccessToStaticMember({
-    required String p0,
-    required String p1,
-    required String p2,
-    required String p3,
-  }) {
-    return LocatableDiagnosticImpl(
-      CompileTimeErrorCode.instanceAccessToStaticMember,
-      [p0, p1, p2, p3],
-    );
-  }
-
-  static LocatableDiagnostic
-  _withArgumentsInstanceAccessToStaticMemberOfUnnamedExtension({
-    required Object p0,
-    required Object p1,
-  }) {
-    return LocatableDiagnosticImpl(
-      CompileTimeErrorCode.instanceAccessToStaticMemberOfUnnamedExtension,
-      [p0, p1],
-    );
-  }
-
-  static LocatableDiagnostic _withArgumentsIntegerLiteralImpreciseAsDouble({
-    required String p0,
-    required String p1,
-  }) {
-    return LocatableDiagnosticImpl(
-      CompileTimeErrorCode.integerLiteralImpreciseAsDouble,
-      [p0, p1],
-    );
-  }
-
-  static LocatableDiagnostic _withArgumentsIntegerLiteralOutOfRange({
-    required String p0,
-  }) {
-    return LocatableDiagnosticImpl(
-      CompileTimeErrorCode.integerLiteralOutOfRange,
-      [p0],
-    );
-  }
-
-  static LocatableDiagnostic
-  _withArgumentsInterfaceClassExtendedOutsideOfLibrary({required String p0}) {
-    return LocatableDiagnosticImpl(
-      CompileTimeErrorCode.interfaceClassExtendedOutsideOfLibrary,
-      [p0],
-    );
-  }
-
-  static LocatableDiagnostic _withArgumentsInvalidAssignment({
-    required DartType p0,
-    required DartType p1,
-  }) {
-    return LocatableDiagnosticImpl(CompileTimeErrorCode.invalidAssignment, [
-      p0,
-      p1,
-    ]);
-  }
-
-  static LocatableDiagnostic _withArgumentsInvalidCastFunction({
-    required Object p0,
-    required Object p1,
-    required Object p2,
-  }) {
-    return LocatableDiagnosticImpl(CompileTimeErrorCode.invalidCastFunction, [
-      p0,
-      p1,
-      p2,
-    ]);
-  }
-
-  static LocatableDiagnostic _withArgumentsInvalidCastFunctionExpr({
-    required Object p0,
-    required Object p1,
-  }) {
-    return LocatableDiagnosticImpl(
-      CompileTimeErrorCode.invalidCastFunctionExpr,
-      [p0, p1],
-    );
-  }
-
-  static LocatableDiagnostic _withArgumentsInvalidCastLiteral({
-    required Object p0,
-    required Object p1,
-    required Object p2,
-  }) {
-    return LocatableDiagnosticImpl(CompileTimeErrorCode.invalidCastLiteral, [
-      p0,
-      p1,
-      p2,
-    ]);
-  }
-
-  static LocatableDiagnostic _withArgumentsInvalidCastLiteralList({
-    required Object p0,
-    required Object p1,
-  }) {
-    return LocatableDiagnosticImpl(
-      CompileTimeErrorCode.invalidCastLiteralList,
-      [p0, p1],
-    );
-  }
-
-  static LocatableDiagnostic _withArgumentsInvalidCastLiteralMap({
-    required Object p0,
-    required Object p1,
-  }) {
-    return LocatableDiagnosticImpl(CompileTimeErrorCode.invalidCastLiteralMap, [
-      p0,
-      p1,
-    ]);
-  }
-
-  static LocatableDiagnostic _withArgumentsInvalidCastLiteralSet({
-    required Object p0,
-    required Object p1,
-  }) {
-    return LocatableDiagnosticImpl(CompileTimeErrorCode.invalidCastLiteralSet, [
-      p0,
-      p1,
-    ]);
-  }
-
-  static LocatableDiagnostic _withArgumentsInvalidCastMethod({
-    required Object p0,
-    required Object p1,
-    required Object p2,
-  }) {
-    return LocatableDiagnosticImpl(CompileTimeErrorCode.invalidCastMethod, [
-      p0,
-      p1,
-      p2,
-    ]);
-  }
-
-  static LocatableDiagnostic _withArgumentsInvalidCastNewExpr({
-    required Object p0,
-    required Object p1,
-  }) {
-    return LocatableDiagnosticImpl(CompileTimeErrorCode.invalidCastNewExpr, [
-      p0,
-      p1,
-    ]);
-  }
-
-  static LocatableDiagnostic _withArgumentsInvalidImplementationOverride({
-    required Object p0,
-    required Object p1,
-    required Object p2,
-    required Object p3,
-    required Object p4,
-  }) {
-    return LocatableDiagnosticImpl(
-      CompileTimeErrorCode.invalidImplementationOverride,
-      [p0, p1, p2, p3, p4],
-    );
-  }
-
-  static LocatableDiagnostic _withArgumentsInvalidImplementationOverrideSetter({
-    required Object p0,
-    required Object p1,
-    required Object p2,
-    required Object p3,
-    required Object p4,
-  }) {
-    return LocatableDiagnosticImpl(
-      CompileTimeErrorCode.invalidImplementationOverrideSetter,
-      [p0, p1, p2, p3, p4],
-    );
-  }
-
-  static LocatableDiagnostic _withArgumentsInvalidModifierOnConstructor({
-    required String p0,
-  }) {
-    return LocatableDiagnosticImpl(
-      CompileTimeErrorCode.invalidModifierOnConstructor,
-      [p0],
-    );
-  }
-
-  static LocatableDiagnostic _withArgumentsInvalidOverride({
-    required String p0,
-    required String p1,
-    required DartType p2,
-    required String p3,
-    required DartType p4,
-  }) {
-    return LocatableDiagnosticImpl(CompileTimeErrorCode.invalidOverride, [
-      p0,
-      p1,
-      p2,
-      p3,
-      p4,
-    ]);
-  }
-
-  static LocatableDiagnostic _withArgumentsInvalidOverrideSetter({
-    required Object p0,
-    required Object p1,
-    required Object p2,
-    required Object p3,
-    required Object p4,
-  }) {
-    return LocatableDiagnosticImpl(CompileTimeErrorCode.invalidOverrideSetter, [
-      p0,
-      p1,
-      p2,
-      p3,
-      p4,
-    ]);
-  }
-
-  static LocatableDiagnostic _withArgumentsInvalidTypeArgumentInConstList({
-    required Object p0,
-  }) {
-    return LocatableDiagnosticImpl(
-      CompileTimeErrorCode.invalidTypeArgumentInConstList,
-      [p0],
-    );
-  }
-
-  static LocatableDiagnostic _withArgumentsInvalidTypeArgumentInConstMap({
-    required Object p0,
-  }) {
-    return LocatableDiagnosticImpl(
-      CompileTimeErrorCode.invalidTypeArgumentInConstMap,
-      [p0],
-    );
-  }
-
-  static LocatableDiagnostic _withArgumentsInvalidTypeArgumentInConstSet({
-    required String p0,
-  }) {
-    return LocatableDiagnosticImpl(
-      CompileTimeErrorCode.invalidTypeArgumentInConstSet,
-      [p0],
-    );
-  }
-
-  static LocatableDiagnostic _withArgumentsInvalidUri({required String p0}) {
-    return LocatableDiagnosticImpl(CompileTimeErrorCode.invalidUri, [p0]);
-  }
-
-  static LocatableDiagnostic _withArgumentsInvocationOfExtensionWithoutCall({
-    required String p0,
-  }) {
-    return LocatableDiagnosticImpl(
-      CompileTimeErrorCode.invocationOfExtensionWithoutCall,
-      [p0],
-    );
-  }
-
-  static LocatableDiagnostic _withArgumentsInvocationOfNonFunction({
-    required String p0,
-  }) {
-    return LocatableDiagnosticImpl(
-      CompileTimeErrorCode.invocationOfNonFunction,
-      [p0],
-    );
-  }
-
-  static LocatableDiagnostic _withArgumentsLabelInOuterScope({
-    required String p0,
-  }) {
-    return LocatableDiagnosticImpl(CompileTimeErrorCode.labelInOuterScope, [
-      p0,
-    ]);
-  }
-
-  static LocatableDiagnostic _withArgumentsLabelUndefined({
-    required String p0,
-  }) {
-    return LocatableDiagnosticImpl(CompileTimeErrorCode.labelUndefined, [p0]);
-  }
-
-  static LocatableDiagnostic _withArgumentsListElementTypeNotAssignable({
-    required DartType p0,
-    required DartType p1,
-  }) {
-    return LocatableDiagnosticImpl(
-      CompileTimeErrorCode.listElementTypeNotAssignable,
-      [p0, p1],
-    );
-  }
-
-  static LocatableDiagnostic
-  _withArgumentsListElementTypeNotAssignableNullability({
-    required DartType p0,
-    required DartType p1,
-  }) {
-    return LocatableDiagnosticImpl(
-      CompileTimeErrorCode.listElementTypeNotAssignableNullability,
-      [p0, p1],
-    );
-  }
-
-  static LocatableDiagnostic _withArgumentsMapKeyTypeNotAssignable({
-    required DartType p0,
-    required DartType p1,
-  }) {
-    return LocatableDiagnosticImpl(
-      CompileTimeErrorCode.mapKeyTypeNotAssignable,
-      [p0, p1],
-    );
-  }
-
-  static LocatableDiagnostic _withArgumentsMapKeyTypeNotAssignableNullability({
-    required DartType p0,
-    required DartType p1,
-  }) {
-    return LocatableDiagnosticImpl(
-      CompileTimeErrorCode.mapKeyTypeNotAssignableNullability,
-      [p0, p1],
-    );
-  }
-
-  static LocatableDiagnostic _withArgumentsMapValueTypeNotAssignable({
-    required DartType p0,
-    required DartType p1,
-  }) {
-    return LocatableDiagnosticImpl(
-      CompileTimeErrorCode.mapValueTypeNotAssignable,
-      [p0, p1],
-    );
-  }
-
-  static LocatableDiagnostic
-  _withArgumentsMapValueTypeNotAssignableNullability({
-    required DartType p0,
-    required DartType p1,
-  }) {
-    return LocatableDiagnosticImpl(
-      CompileTimeErrorCode.mapValueTypeNotAssignableNullability,
-      [p0, p1],
-    );
-  }
-
-  static LocatableDiagnostic _withArgumentsMissingDartLibrary({
-    required Object p0,
-  }) {
-    return LocatableDiagnosticImpl(CompileTimeErrorCode.missingDartLibrary, [
-      p0,
-    ]);
-  }
-
-  static LocatableDiagnostic _withArgumentsMissingDefaultValueForParameter({
-    required String p0,
-  }) {
-    return LocatableDiagnosticImpl(
-      CompileTimeErrorCode.missingDefaultValueForParameter,
-      [p0],
-    );
-  }
-
-  static LocatableDiagnostic
-  _withArgumentsMissingDefaultValueForParameterPositional({
-    required String p0,
-  }) {
-    return LocatableDiagnosticImpl(
-      CompileTimeErrorCode.missingDefaultValueForParameterPositional,
-      [p0],
-    );
-  }
-
-  static LocatableDiagnostic _withArgumentsMissingRequiredArgument({
-    required String p0,
-  }) {
-    return LocatableDiagnosticImpl(
-      CompileTimeErrorCode.missingRequiredArgument,
-      [p0],
-    );
-  }
-
-  static LocatableDiagnostic _withArgumentsMissingVariablePattern({
-    required String p0,
-  }) {
-    return LocatableDiagnosticImpl(
-      CompileTimeErrorCode.missingVariablePattern,
-      [p0],
-    );
-  }
-
-  static LocatableDiagnostic
-  _withArgumentsMixinApplicationConcreteSuperInvokedMemberType({
-    required String p0,
-    required DartType p1,
-    required DartType p2,
-  }) {
-    return LocatableDiagnosticImpl(
-      CompileTimeErrorCode.mixinApplicationConcreteSuperInvokedMemberType,
-      [p0, p1, p2],
-    );
-  }
-
-  static LocatableDiagnostic
-  _withArgumentsMixinApplicationNoConcreteSuperInvokedMember({
-    required String p0,
-  }) {
-    return LocatableDiagnosticImpl(
-      CompileTimeErrorCode.mixinApplicationNoConcreteSuperInvokedMember,
-      [p0],
-    );
-  }
-
-  static LocatableDiagnostic
-  _withArgumentsMixinApplicationNoConcreteSuperInvokedSetter({
-    required String p0,
-  }) {
-    return LocatableDiagnosticImpl(
-      CompileTimeErrorCode.mixinApplicationNoConcreteSuperInvokedSetter,
-      [p0],
-    );
-  }
-
-  static LocatableDiagnostic
-  _withArgumentsMixinApplicationNotImplementedInterface({
-    required DartType p0,
-    required DartType p1,
-    required DartType p2,
-  }) {
-    return LocatableDiagnosticImpl(
-      CompileTimeErrorCode.mixinApplicationNotImplementedInterface,
-      [p0, p1, p2],
-    );
-  }
-
-  static LocatableDiagnostic
-  _withArgumentsMixinClassDeclarationExtendsNotObject({required String p0}) {
-    return LocatableDiagnosticImpl(
-      CompileTimeErrorCode.mixinClassDeclarationExtendsNotObject,
-      [p0],
-    );
-  }
-
-  static LocatableDiagnostic _withArgumentsMixinClassDeclaresConstructor({
-    required String p0,
-  }) {
-    return LocatableDiagnosticImpl(
-      CompileTimeErrorCode.mixinClassDeclaresConstructor,
-      [p0],
-    );
-  }
-
-  static LocatableDiagnostic _withArgumentsMixinInheritsFromNotObject({
-    required String p0,
-  }) {
-    return LocatableDiagnosticImpl(
-      CompileTimeErrorCode.mixinInheritsFromNotObject,
-      [p0],
-    );
-  }
-
-  static LocatableDiagnostic _withArgumentsMixinOfDisallowedClass({
-    required DartType p0,
-  }) {
-    return LocatableDiagnosticImpl(
-      CompileTimeErrorCode.mixinOfDisallowedClass,
-      [p0],
-    );
-  }
-
-  static LocatableDiagnostic _withArgumentsMixinsSuperClass({
-    required Element p0,
-  }) {
-    return LocatableDiagnosticImpl(CompileTimeErrorCode.mixinsSuperClass, [p0]);
-  }
-
-  static LocatableDiagnostic _withArgumentsMixinSubtypeOfBaseIsNotBase({
-    required String p0,
-    required String p1,
-  }) {
-    return LocatableDiagnosticImpl(
-      CompileTimeErrorCode.mixinSubtypeOfBaseIsNotBase,
-      [p0, p1],
-    );
-  }
-
-  static LocatableDiagnostic _withArgumentsMixinSubtypeOfFinalIsNotBase({
-    required String p0,
-    required String p1,
-  }) {
-    return LocatableDiagnosticImpl(
-      CompileTimeErrorCode.mixinSubtypeOfFinalIsNotBase,
-      [p0, p1],
-    );
-  }
-
-  static LocatableDiagnostic
-  _withArgumentsMixinSuperClassConstraintDisallowedClass({
-    required DartType p0,
-  }) {
-    return LocatableDiagnosticImpl(
-      CompileTimeErrorCode.mixinSuperClassConstraintDisallowedClass,
-      [p0],
-    );
-  }
-
-  static LocatableDiagnostic _withArgumentsNewWithNonType({
-    required String p0,
-  }) {
-    return LocatableDiagnosticImpl(CompileTimeErrorCode.newWithNonType, [p0]);
-  }
-
-  static LocatableDiagnostic _withArgumentsNewWithUndefinedConstructor({
-    required String p0,
-    required String p1,
-  }) {
-    return LocatableDiagnosticImpl(
-      CompileTimeErrorCode.newWithUndefinedConstructor,
-      [p0, p1],
-    );
-  }
-
-  static LocatableDiagnostic _withArgumentsNewWithUndefinedConstructorDefault({
-    required String p0,
-  }) {
-    return LocatableDiagnosticImpl(
-      CompileTimeErrorCode.newWithUndefinedConstructorDefault,
-      [p0],
-    );
-  }
-
-  static LocatableDiagnostic _withArgumentsNoCombinedSuperSignature({
-    required String p0,
-    required String p1,
-  }) {
-    return LocatableDiagnosticImpl(
-      CompileTimeErrorCode.noCombinedSuperSignature,
-      [p0, p1],
-    );
-  }
-
-  static LocatableDiagnostic _withArgumentsNoDefaultSuperConstructorExplicit({
-    required Object p0,
-  }) {
-    return LocatableDiagnosticImpl(
-      CompileTimeErrorCode.noDefaultSuperConstructorExplicit,
-      [p0],
-    );
-  }
-
-  static LocatableDiagnostic _withArgumentsNoDefaultSuperConstructorImplicit({
-    required DartType p0,
-    required String p1,
-  }) {
-    return LocatableDiagnosticImpl(
-      CompileTimeErrorCode.noDefaultSuperConstructorImplicit,
-      [p0, p1],
-    );
-  }
-
-  static LocatableDiagnostic
-  _withArgumentsNoGenerativeConstructorsInSuperclass({
-    required String p0,
-    required String p1,
-  }) {
-    return LocatableDiagnosticImpl(
-      CompileTimeErrorCode.noGenerativeConstructorsInSuperclass,
-      [p0, p1],
-    );
-  }
-
-  static LocatableDiagnostic
-  _withArgumentsNonAbstractClassInheritsAbstractMemberFivePlus({
-    required String p0,
-    required String p1,
-    required String p2,
-    required String p3,
-    required int p4,
-  }) {
-    return LocatableDiagnosticImpl(
-      CompileTimeErrorCode.nonAbstractClassInheritsAbstractMemberFivePlus,
-      [p0, p1, p2, p3, p4],
-    );
-  }
-
-  static LocatableDiagnostic
-  _withArgumentsNonAbstractClassInheritsAbstractMemberFour({
-    required String p0,
-    required String p1,
-    required String p2,
-    required String p3,
-  }) {
-    return LocatableDiagnosticImpl(
-      CompileTimeErrorCode.nonAbstractClassInheritsAbstractMemberFour,
-      [p0, p1, p2, p3],
-    );
-  }
-
-  static LocatableDiagnostic
-  _withArgumentsNonAbstractClassInheritsAbstractMemberOne({
-    required String p0,
-  }) {
-    return LocatableDiagnosticImpl(
-      CompileTimeErrorCode.nonAbstractClassInheritsAbstractMemberOne,
-      [p0],
-    );
-  }
-
-  static LocatableDiagnostic
-  _withArgumentsNonAbstractClassInheritsAbstractMemberThree({
-    required String p0,
-    required String p1,
-    required String p2,
-  }) {
-    return LocatableDiagnosticImpl(
-      CompileTimeErrorCode.nonAbstractClassInheritsAbstractMemberThree,
-      [p0, p1, p2],
-    );
-  }
-
-  static LocatableDiagnostic
-  _withArgumentsNonAbstractClassInheritsAbstractMemberTwo({
-    required String p0,
-    required String p1,
-  }) {
-    return LocatableDiagnosticImpl(
-      CompileTimeErrorCode.nonAbstractClassInheritsAbstractMemberTwo,
-      [p0, p1],
-    );
-  }
-
-  static LocatableDiagnostic _withArgumentsNonBoolOperand({
-    required String p0,
-  }) {
-    return LocatableDiagnosticImpl(CompileTimeErrorCode.nonBoolOperand, [p0]);
-  }
-
-  static LocatableDiagnostic _withArgumentsNonExhaustiveSwitchExpression({
-    required DartType p0,
-    required String p1,
-    required String p2,
-  }) {
-    return LocatableDiagnosticImpl(
-      CompileTimeErrorCode.nonExhaustiveSwitchExpression,
-      [p0, p1, p2],
-    );
-  }
-
-  static LocatableDiagnostic _withArgumentsNonExhaustiveSwitchStatement({
-    required DartType p0,
-    required String p1,
-    required String p2,
-  }) {
-    return LocatableDiagnosticImpl(
-      CompileTimeErrorCode.nonExhaustiveSwitchStatement,
-      [p0, p1, p2],
-    );
-  }
-
-  static LocatableDiagnostic _withArgumentsNonGenerativeConstructor({
-    required Element p0,
-  }) {
-    return LocatableDiagnosticImpl(
-      CompileTimeErrorCode.nonGenerativeConstructor,
-      [p0],
-    );
-  }
-
-  static LocatableDiagnostic _withArgumentsNonGenerativeImplicitConstructor({
-    required String p0,
-    required String p1,
-    required Element p2,
-  }) {
-    return LocatableDiagnosticImpl(
-      CompileTimeErrorCode.nonGenerativeImplicitConstructor,
-      [p0, p1, p2],
-    );
-  }
-
-  static LocatableDiagnostic _withArgumentsNonTypeAsTypeArgument({
-    required String p0,
-  }) {
-    return LocatableDiagnosticImpl(CompileTimeErrorCode.nonTypeAsTypeArgument, [
-      p0,
-    ]);
-  }
-
-  static LocatableDiagnostic _withArgumentsNonTypeInCatchClause({
-    required String p0,
-  }) {
-    return LocatableDiagnosticImpl(CompileTimeErrorCode.nonTypeInCatchClause, [
-      p0,
-    ]);
-  }
-
-  static LocatableDiagnostic
-  _withArgumentsNotAssignedPotentiallyNonNullableLocalVariable({
-    required String p0,
-  }) {
-    return LocatableDiagnosticImpl(
-      CompileTimeErrorCode.notAssignedPotentiallyNonNullableLocalVariable,
-      [p0],
-    );
-  }
-
-  static LocatableDiagnostic _withArgumentsNotAType({required String p0}) {
-    return LocatableDiagnosticImpl(CompileTimeErrorCode.notAType, [p0]);
-  }
-
-  static LocatableDiagnostic _withArgumentsNotBinaryOperator({
-    required String p0,
-  }) {
-    return LocatableDiagnosticImpl(CompileTimeErrorCode.notBinaryOperator, [
-      p0,
-    ]);
-  }
-
-  static LocatableDiagnostic
-  _withArgumentsNotEnoughPositionalArgumentsNamePlural({
-    required int p0,
-    required int p1,
-    required String p2,
-  }) {
-    return LocatableDiagnosticImpl(
-      CompileTimeErrorCode.notEnoughPositionalArgumentsNamePlural,
-      [p0, p1, p2],
-    );
-  }
-
-  static LocatableDiagnostic
-  _withArgumentsNotEnoughPositionalArgumentsNameSingular({required String p0}) {
-    return LocatableDiagnosticImpl(
-      CompileTimeErrorCode.notEnoughPositionalArgumentsNameSingular,
-      [p0],
-    );
-  }
-
-  static LocatableDiagnostic _withArgumentsNotEnoughPositionalArgumentsPlural({
-    required int p0,
-    required int p1,
-  }) {
-    return LocatableDiagnosticImpl(
-      CompileTimeErrorCode.notEnoughPositionalArgumentsPlural,
-      [p0, p1],
-    );
-  }
-
-  static LocatableDiagnostic
-  _withArgumentsNotInitializedNonNullableInstanceField({required String p0}) {
-    return LocatableDiagnosticImpl(
-      CompileTimeErrorCode.notInitializedNonNullableInstanceField,
-      [p0],
-    );
-  }
-
-  static LocatableDiagnostic
-  _withArgumentsNotInitializedNonNullableInstanceFieldConstructor({
-    required String p0,
-  }) {
-    return LocatableDiagnosticImpl(
-      CompileTimeErrorCode.notInitializedNonNullableInstanceFieldConstructor,
-      [p0],
-    );
-  }
-
-  static LocatableDiagnostic _withArgumentsNotInitializedNonNullableVariable({
-    required String p0,
-  }) {
-    return LocatableDiagnosticImpl(
-      CompileTimeErrorCode.notInitializedNonNullableVariable,
-      [p0],
-    );
-  }
-
-  static LocatableDiagnostic _withArgumentsOnRepeated({required String p0}) {
-    return LocatableDiagnosticImpl(CompileTimeErrorCode.onRepeated, [p0]);
-  }
-
-  static LocatableDiagnostic _withArgumentsPartOfDifferentLibrary({
-    required String p0,
-    required String p1,
-  }) {
-    return LocatableDiagnosticImpl(
-      CompileTimeErrorCode.partOfDifferentLibrary,
-      [p0, p1],
-    );
-  }
-
-  static LocatableDiagnostic _withArgumentsPartOfNonPart({required String p0}) {
-    return LocatableDiagnosticImpl(CompileTimeErrorCode.partOfNonPart, [p0]);
-  }
-
-  static LocatableDiagnostic _withArgumentsPartOfUnnamedLibrary({
-    required String p0,
-  }) {
-    return LocatableDiagnosticImpl(CompileTimeErrorCode.partOfUnnamedLibrary, [
-      p0,
-    ]);
-  }
-
-  static LocatableDiagnostic
-  _withArgumentsPatternTypeMismatchInIrrefutableContext({
-    required DartType p0,
-    required DartType p1,
-  }) {
-    return LocatableDiagnosticImpl(
-      CompileTimeErrorCode.patternTypeMismatchInIrrefutableContext,
-      [p0, p1],
-    );
-  }
-
-  static LocatableDiagnostic
-  _withArgumentsPatternVariableSharedCaseScopeDifferentFinalityOrType({
-    required String p0,
-  }) {
-    return LocatableDiagnosticImpl(
-      CompileTimeErrorCode
-          .patternVariableSharedCaseScopeDifferentFinalityOrType,
-      [p0],
-    );
-  }
-
-  static LocatableDiagnostic
-  _withArgumentsPatternVariableSharedCaseScopeHasLabel({required String p0}) {
-    return LocatableDiagnosticImpl(
-      CompileTimeErrorCode.patternVariableSharedCaseScopeHasLabel,
-      [p0],
-    );
-  }
-
-  static LocatableDiagnostic
-  _withArgumentsPatternVariableSharedCaseScopeNotAllCases({
-    required String p0,
-  }) {
-    return LocatableDiagnosticImpl(
-      CompileTimeErrorCode.patternVariableSharedCaseScopeNotAllCases,
-      [p0],
-    );
-  }
-
-  static LocatableDiagnostic _withArgumentsPrefixCollidesWithTopLevelMember({
-    required Object p0,
-  }) {
-    return LocatableDiagnosticImpl(
-      CompileTimeErrorCode.prefixCollidesWithTopLevelMember,
-      [p0],
-    );
-  }
-
-  static LocatableDiagnostic _withArgumentsPrefixIdentifierNotFollowedByDot({
-    required String p0,
-  }) {
-    return LocatableDiagnosticImpl(
-      CompileTimeErrorCode.prefixIdentifierNotFollowedByDot,
-      [p0],
-    );
-  }
-
-  static LocatableDiagnostic _withArgumentsPrefixShadowedByLocalDeclaration({
-    required String p0,
-  }) {
-    return LocatableDiagnosticImpl(
-      CompileTimeErrorCode.prefixShadowedByLocalDeclaration,
-      [p0],
-    );
-  }
-
-  static LocatableDiagnostic _withArgumentsPrivateCollisionInMixinApplication({
-    required String p0,
-    required String p1,
-    required String p2,
-  }) {
-    return LocatableDiagnosticImpl(
-      CompileTimeErrorCode.privateCollisionInMixinApplication,
-      [p0, p1, p2],
-    );
-  }
-
-  static LocatableDiagnostic _withArgumentsPrivateSetter({required String p0}) {
-    return LocatableDiagnosticImpl(CompileTimeErrorCode.privateSetter, [p0]);
-  }
-
-  static LocatableDiagnostic _withArgumentsReadPotentiallyUnassignedFinal({
-    required String p0,
-  }) {
-    return LocatableDiagnosticImpl(
-      CompileTimeErrorCode.readPotentiallyUnassignedFinal,
-      [p0],
-    );
-  }
-
-  static LocatableDiagnostic _withArgumentsRecursiveInterfaceInheritance({
-    required String p0,
-    required String p1,
-  }) {
-    return LocatableDiagnosticImpl(
-      CompileTimeErrorCode.recursiveInterfaceInheritance,
-      [p0, p1],
-    );
-  }
-
-  static LocatableDiagnostic
-  _withArgumentsRecursiveInterfaceInheritanceExtends({required String p0}) {
-    return LocatableDiagnosticImpl(
-      CompileTimeErrorCode.recursiveInterfaceInheritanceExtends,
-      [p0],
-    );
-  }
-
-  static LocatableDiagnostic
-  _withArgumentsRecursiveInterfaceInheritanceImplements({required String p0}) {
-    return LocatableDiagnosticImpl(
-      CompileTimeErrorCode.recursiveInterfaceInheritanceImplements,
-      [p0],
-    );
-  }
-
-  static LocatableDiagnostic _withArgumentsRecursiveInterfaceInheritanceOn({
-    required String p0,
-  }) {
-    return LocatableDiagnosticImpl(
-      CompileTimeErrorCode.recursiveInterfaceInheritanceOn,
-      [p0],
-    );
-  }
-
-  static LocatableDiagnostic _withArgumentsRecursiveInterfaceInheritanceWith({
-    required String p0,
-  }) {
-    return LocatableDiagnosticImpl(
-      CompileTimeErrorCode.recursiveInterfaceInheritanceWith,
-      [p0],
-    );
-  }
-
-  static LocatableDiagnostic
-  _withArgumentsRedirectGenerativeToMissingConstructor({
-    required String p0,
-    required String p1,
-  }) {
-    return LocatableDiagnosticImpl(
-      CompileTimeErrorCode.redirectGenerativeToMissingConstructor,
-      [p0, p1],
-    );
-  }
-
-  static LocatableDiagnostic _withArgumentsRedirectToAbstractClassConstructor({
-    required String p0,
-    required String p1,
-  }) {
-    return LocatableDiagnosticImpl(
-      CompileTimeErrorCode.redirectToAbstractClassConstructor,
-      [p0, p1],
-    );
-  }
-
-  static LocatableDiagnostic _withArgumentsRedirectToInvalidFunctionType({
-    required DartType p0,
-    required DartType p1,
-  }) {
-    return LocatableDiagnosticImpl(
-      CompileTimeErrorCode.redirectToInvalidFunctionType,
-      [p0, p1],
-    );
-  }
-
-  static LocatableDiagnostic _withArgumentsRedirectToInvalidReturnType({
-    required DartType p0,
-    required DartType p1,
-  }) {
-    return LocatableDiagnosticImpl(
-      CompileTimeErrorCode.redirectToInvalidReturnType,
-      [p0, p1],
-    );
-  }
-
-  static LocatableDiagnostic _withArgumentsRedirectToMissingConstructor({
-    required String p0,
-    required DartType p1,
-  }) {
-    return LocatableDiagnosticImpl(
-      CompileTimeErrorCode.redirectToMissingConstructor,
-      [p0, p1],
-    );
-  }
-
-  static LocatableDiagnostic _withArgumentsRedirectToNonClass({
-    required String p0,
-  }) {
-    return LocatableDiagnosticImpl(CompileTimeErrorCode.redirectToNonClass, [
-      p0,
-    ]);
-  }
-
-  static LocatableDiagnostic _withArgumentsReferencedBeforeDeclaration({
-    required Object p0,
-  }) {
-    return LocatableDiagnosticImpl(
-      CompileTimeErrorCode.referencedBeforeDeclaration,
-      [p0],
-    );
-  }
-
-  static LocatableDiagnostic
-  _withArgumentsRelationalPatternOperandTypeNotAssignable({
-    required DartType p0,
-    required DartType p1,
-    required String p2,
-  }) {
-    return LocatableDiagnosticImpl(
-      CompileTimeErrorCode.relationalPatternOperandTypeNotAssignable,
-      [p0, p1, p2],
-    );
-  }
-
-  static LocatableDiagnostic _withArgumentsReturnOfInvalidTypeFromClosure({
-    required DartType p0,
-    required DartType p1,
-  }) {
-    return LocatableDiagnosticImpl(
-      CompileTimeErrorCode.returnOfInvalidTypeFromClosure,
-      [p0, p1],
-    );
-  }
-
-  static LocatableDiagnostic _withArgumentsReturnOfInvalidTypeFromConstructor({
-    required DartType p0,
-    required DartType p1,
-    required String p2,
-  }) {
-    return LocatableDiagnosticImpl(
-      CompileTimeErrorCode.returnOfInvalidTypeFromConstructor,
-      [p0, p1, p2],
-    );
-  }
-
-  static LocatableDiagnostic _withArgumentsReturnOfInvalidTypeFromFunction({
-    required DartType p0,
-    required DartType p1,
-    required String p2,
-  }) {
-    return LocatableDiagnosticImpl(
-      CompileTimeErrorCode.returnOfInvalidTypeFromFunction,
-      [p0, p1, p2],
-    );
-  }
-
-  static LocatableDiagnostic _withArgumentsReturnOfInvalidTypeFromMethod({
-    required DartType p0,
-    required DartType p1,
-    required String p2,
-  }) {
-    return LocatableDiagnosticImpl(
-      CompileTimeErrorCode.returnOfInvalidTypeFromMethod,
-      [p0, p1, p2],
-    );
-  }
-
-  static LocatableDiagnostic _withArgumentsSealedClassSubtypeOutsideOfLibrary({
-    required String p0,
-  }) {
-    return LocatableDiagnosticImpl(
-      CompileTimeErrorCode.sealedClassSubtypeOutsideOfLibrary,
-      [p0],
-    );
-  }
-
-  static LocatableDiagnostic _withArgumentsSetElementTypeNotAssignable({
-    required DartType p0,
-    required DartType p1,
-  }) {
-    return LocatableDiagnosticImpl(
-      CompileTimeErrorCode.setElementTypeNotAssignable,
-      [p0, p1],
-    );
-  }
-
-  static LocatableDiagnostic
-  _withArgumentsSetElementTypeNotAssignableNullability({
-    required DartType p0,
-    required DartType p1,
-  }) {
-    return LocatableDiagnosticImpl(
-      CompileTimeErrorCode.setElementTypeNotAssignableNullability,
-      [p0, p1],
-    );
-  }
-
-  static LocatableDiagnostic _withArgumentsStaticAccessToInstanceMember({
-    required String p0,
-  }) {
-    return LocatableDiagnosticImpl(
-      CompileTimeErrorCode.staticAccessToInstanceMember,
-      [p0],
-    );
-  }
-
-  static LocatableDiagnostic _withArgumentsSubtypeOfBaseIsNotBaseFinalOrSealed({
-    required String p0,
-    required String p1,
-  }) {
-    return LocatableDiagnosticImpl(
-      CompileTimeErrorCode.subtypeOfBaseIsNotBaseFinalOrSealed,
-      [p0, p1],
-    );
-  }
-
-  static LocatableDiagnostic
-  _withArgumentsSubtypeOfFinalIsNotBaseFinalOrSealed({
-    required String p0,
-    required String p1,
-  }) {
-    return LocatableDiagnosticImpl(
-      CompileTimeErrorCode.subtypeOfFinalIsNotBaseFinalOrSealed,
-      [p0, p1],
-    );
-  }
-
-  static LocatableDiagnostic
-  _withArgumentsSuperFormalParameterTypeIsNotSubtypeOfAssociated({
-    required DartType p0,
-    required DartType p1,
-  }) {
-    return LocatableDiagnosticImpl(
-      CompileTimeErrorCode.superFormalParameterTypeIsNotSubtypeOfAssociated,
-      [p0, p1],
-    );
-  }
-
-  static LocatableDiagnostic _withArgumentsSuperInvocationNotLast({
-    required String p0,
-  }) {
-    return LocatableDiagnosticImpl(
-      CompileTimeErrorCode.superInvocationNotLast,
-      [p0],
-    );
-  }
-
-  static LocatableDiagnostic _withArgumentsThrowOfInvalidType({
-    required DartType p0,
-  }) {
-    return LocatableDiagnosticImpl(CompileTimeErrorCode.throwOfInvalidType, [
-      p0,
-    ]);
-  }
-
-  static LocatableDiagnostic _withArgumentsTopLevelCycle({
-    required String p0,
-    required String p1,
-  }) {
-    return LocatableDiagnosticImpl(CompileTimeErrorCode.topLevelCycle, [
-      p0,
-      p1,
-    ]);
-  }
-
-  static LocatableDiagnostic _withArgumentsTypeAnnotationDeferredClass({
-    required String p0,
-  }) {
-    return LocatableDiagnosticImpl(
-      CompileTimeErrorCode.typeAnnotationDeferredClass,
-      [p0],
-    );
-  }
-
-  static LocatableDiagnostic _withArgumentsTypeArgumentNotMatchingBounds({
-    required DartType p0,
-    required String p1,
-    required DartType p2,
-  }) {
-    return LocatableDiagnosticImpl(
-      CompileTimeErrorCode.typeArgumentNotMatchingBounds,
-      [p0, p1, p2],
-    );
-  }
-
-  static LocatableDiagnostic _withArgumentsTypeParameterSupertypeOfItsBound({
-    required String p0,
-    required DartType p1,
-  }) {
-    return LocatableDiagnosticImpl(
-      CompileTimeErrorCode.typeParameterSupertypeOfItsBound,
-      [p0, p1],
-    );
-  }
-
-  static LocatableDiagnostic _withArgumentsTypeTestWithNonType({
-    required String p0,
-  }) {
-    return LocatableDiagnosticImpl(CompileTimeErrorCode.typeTestWithNonType, [
-      p0,
-    ]);
-  }
-
-  static LocatableDiagnostic _withArgumentsTypeTestWithUndefinedName({
-    required String p0,
-  }) {
-    return LocatableDiagnosticImpl(
-      CompileTimeErrorCode.typeTestWithUndefinedName,
-      [p0],
-    );
-  }
-
-  static LocatableDiagnostic
-  _withArgumentsUncheckedMethodInvocationOfNullableValue({required String p0}) {
-    return LocatableDiagnosticImpl(
-      CompileTimeErrorCode.uncheckedMethodInvocationOfNullableValue,
-      [p0],
-    );
-  }
-
-  static LocatableDiagnostic
-  _withArgumentsUncheckedOperatorInvocationOfNullableValue({
-    required String p0,
-  }) {
-    return LocatableDiagnosticImpl(
-      CompileTimeErrorCode.uncheckedOperatorInvocationOfNullableValue,
-      [p0],
-    );
-  }
-
-  static LocatableDiagnostic
-  _withArgumentsUncheckedPropertyAccessOfNullableValue({required String p0}) {
-    return LocatableDiagnosticImpl(
-      CompileTimeErrorCode.uncheckedPropertyAccessOfNullableValue,
-      [p0],
-    );
-  }
-
-  static LocatableDiagnostic _withArgumentsUndefinedAnnotation({
-    required String p0,
-  }) {
-    return LocatableDiagnosticImpl(CompileTimeErrorCode.undefinedAnnotation, [
-      p0,
-    ]);
-  }
-
-  static LocatableDiagnostic _withArgumentsUndefinedClass({
-    required String p0,
-  }) {
-    return LocatableDiagnosticImpl(CompileTimeErrorCode.undefinedClass, [p0]);
-  }
-
-  static LocatableDiagnostic _withArgumentsUndefinedClassBoolean({
-    required String p0,
-  }) {
-    return LocatableDiagnosticImpl(CompileTimeErrorCode.undefinedClassBoolean, [
-      p0,
-    ]);
-  }
-
-  static LocatableDiagnostic _withArgumentsUndefinedConstructorInInitializer({
-    required DartType p0,
-    required String p1,
-  }) {
-    return LocatableDiagnosticImpl(
-      CompileTimeErrorCode.undefinedConstructorInInitializer,
-      [p0, p1],
-    );
-  }
-
-  static LocatableDiagnostic
-  _withArgumentsUndefinedConstructorInInitializerDefault({required Object p0}) {
-    return LocatableDiagnosticImpl(
-      CompileTimeErrorCode.undefinedConstructorInInitializerDefault,
-      [p0],
-    );
-  }
-
-  static LocatableDiagnostic _withArgumentsUndefinedEnumConstant({
-    required String p0,
-    required String p1,
-  }) {
-    return LocatableDiagnosticImpl(CompileTimeErrorCode.undefinedEnumConstant, [
-      p0,
-      p1,
-    ]);
-  }
-
-  static LocatableDiagnostic _withArgumentsUndefinedEnumConstructorNamed({
-    required String p0,
-  }) {
-    return LocatableDiagnosticImpl(
-      CompileTimeErrorCode.undefinedEnumConstructorNamed,
-      [p0],
-    );
-  }
-
-  static LocatableDiagnostic _withArgumentsUndefinedExtensionGetter({
-    required String p0,
-    required String p1,
-  }) {
-    return LocatableDiagnosticImpl(
-      CompileTimeErrorCode.undefinedExtensionGetter,
-      [p0, p1],
-    );
-  }
-
-  static LocatableDiagnostic _withArgumentsUndefinedExtensionMethod({
-    required String p0,
-    required String p1,
-  }) {
-    return LocatableDiagnosticImpl(
-      CompileTimeErrorCode.undefinedExtensionMethod,
-      [p0, p1],
-    );
-  }
-
-  static LocatableDiagnostic _withArgumentsUndefinedExtensionOperator({
-    required String p0,
-    required String p1,
-  }) {
-    return LocatableDiagnosticImpl(
-      CompileTimeErrorCode.undefinedExtensionOperator,
-      [p0, p1],
-    );
-  }
-
-  static LocatableDiagnostic _withArgumentsUndefinedExtensionSetter({
-    required String p0,
-    required String p1,
-  }) {
-    return LocatableDiagnosticImpl(
-      CompileTimeErrorCode.undefinedExtensionSetter,
-      [p0, p1],
-    );
-  }
-
-  static LocatableDiagnostic _withArgumentsUndefinedFunction({
-    required String p0,
-  }) {
-    return LocatableDiagnosticImpl(CompileTimeErrorCode.undefinedFunction, [
-      p0,
-    ]);
-  }
-
-  static LocatableDiagnostic _withArgumentsUndefinedGetter({
-    required String p0,
-    required Object p1,
-  }) {
-    return LocatableDiagnosticImpl(CompileTimeErrorCode.undefinedGetter, [
-      p0,
-      p1,
-    ]);
-  }
-
-  static LocatableDiagnostic _withArgumentsUndefinedGetterOnFunctionType({
-    required String p0,
-    required String p1,
-  }) {
-    return LocatableDiagnosticImpl(
-      CompileTimeErrorCode.undefinedGetterOnFunctionType,
-      [p0, p1],
-    );
-  }
-
-  static LocatableDiagnostic _withArgumentsUndefinedIdentifier({
-    required String p0,
-  }) {
-    return LocatableDiagnosticImpl(CompileTimeErrorCode.undefinedIdentifier, [
-      p0,
-    ]);
-  }
-
-  static LocatableDiagnostic _withArgumentsUndefinedMethod({
-    required String p0,
-    required Object p1,
-  }) {
-    return LocatableDiagnosticImpl(CompileTimeErrorCode.undefinedMethod, [
-      p0,
-      p1,
-    ]);
-  }
-
-  static LocatableDiagnostic _withArgumentsUndefinedMethodOnFunctionType({
-    required String p0,
-    required String p1,
-  }) {
-    return LocatableDiagnosticImpl(
-      CompileTimeErrorCode.undefinedMethodOnFunctionType,
-      [p0, p1],
-    );
-  }
-
-  static LocatableDiagnostic _withArgumentsUndefinedNamedParameter({
-    required String p0,
-  }) {
-    return LocatableDiagnosticImpl(
-      CompileTimeErrorCode.undefinedNamedParameter,
-      [p0],
-    );
-  }
-
-  static LocatableDiagnostic _withArgumentsUndefinedOperator({
-    required String p0,
-    required DartType p1,
-  }) {
-    return LocatableDiagnosticImpl(CompileTimeErrorCode.undefinedOperator, [
-      p0,
-      p1,
-    ]);
-  }
-
-  static LocatableDiagnostic _withArgumentsUndefinedPrefixedName({
-    required String p0,
-    required String p1,
-  }) {
-    return LocatableDiagnosticImpl(CompileTimeErrorCode.undefinedPrefixedName, [
-      p0,
-      p1,
-    ]);
-  }
-
-  static LocatableDiagnostic _withArgumentsUndefinedSetter({
-    required String p0,
-    required DartType p1,
-  }) {
-    return LocatableDiagnosticImpl(CompileTimeErrorCode.undefinedSetter, [
-      p0,
-      p1,
-    ]);
-  }
-
-  static LocatableDiagnostic _withArgumentsUndefinedSetterOnFunctionType({
-    required String p0,
-    required String p1,
-  }) {
-    return LocatableDiagnosticImpl(
-      CompileTimeErrorCode.undefinedSetterOnFunctionType,
-      [p0, p1],
-    );
-  }
-
-  static LocatableDiagnostic _withArgumentsUndefinedSuperGetter({
-    required String p0,
-    required DartType p1,
-  }) {
-    return LocatableDiagnosticImpl(CompileTimeErrorCode.undefinedSuperGetter, [
-      p0,
-      p1,
-    ]);
-  }
-
-  static LocatableDiagnostic _withArgumentsUndefinedSuperMethod({
-    required String p0,
-    required String p1,
-  }) {
-    return LocatableDiagnosticImpl(CompileTimeErrorCode.undefinedSuperMethod, [
-      p0,
-      p1,
-    ]);
-  }
-
-  static LocatableDiagnostic _withArgumentsUndefinedSuperOperator({
-    required String p0,
-    required DartType p1,
-  }) {
-    return LocatableDiagnosticImpl(
-      CompileTimeErrorCode.undefinedSuperOperator,
-      [p0, p1],
-    );
-  }
-
-  static LocatableDiagnostic _withArgumentsUndefinedSuperSetter({
-    required String p0,
-    required DartType p1,
-  }) {
-    return LocatableDiagnosticImpl(CompileTimeErrorCode.undefinedSuperSetter, [
-      p0,
-      p1,
-    ]);
-  }
-
-  static LocatableDiagnostic
-  _withArgumentsUnqualifiedReferenceToNonLocalStaticMember({
-    required String p0,
-  }) {
-    return LocatableDiagnosticImpl(
-      CompileTimeErrorCode.unqualifiedReferenceToNonLocalStaticMember,
-      [p0],
-    );
-  }
-
-  static LocatableDiagnostic
-  _withArgumentsUnqualifiedReferenceToStaticMemberOfExtendedType({
-    required String p0,
-  }) {
-    return LocatableDiagnosticImpl(
-      CompileTimeErrorCode.unqualifiedReferenceToStaticMemberOfExtendedType,
-      [p0],
-    );
-  }
-
-  static LocatableDiagnostic _withArgumentsUriDoesNotExist({
-    required String p0,
-  }) {
-    return LocatableDiagnosticImpl(CompileTimeErrorCode.uriDoesNotExist, [p0]);
-  }
-
-  static LocatableDiagnostic _withArgumentsUriHasNotBeenGenerated({
-    required String p0,
-  }) {
-    return LocatableDiagnosticImpl(
-      CompileTimeErrorCode.uriHasNotBeenGenerated,
-      [p0],
-    );
-  }
-
-  static LocatableDiagnostic _withArgumentsVariableTypeMismatch({
-    required Object valueType,
-    required Object variableType,
-  }) {
-    return LocatableDiagnosticImpl(CompileTimeErrorCode.variableTypeMismatch, [
-      valueType,
-      variableType,
-    ]);
-  }
-
-  static LocatableDiagnostic
-  _withArgumentsWrongExplicitTypeParameterVarianceInSuperinterface({
-    required Object p0,
-    required Object p1,
-    required Object p2,
-    required Object p3,
-  }) {
-    return LocatableDiagnosticImpl(
-      CompileTimeErrorCode.wrongExplicitTypeParameterVarianceInSuperinterface,
-      [p0, p1, p2, p3],
-    );
-  }
-
-  static LocatableDiagnostic _withArgumentsWrongNumberOfParametersForOperator({
-    required String p0,
-    required int p1,
-    required int p2,
-  }) {
-    return LocatableDiagnosticImpl(
-      CompileTimeErrorCode.wrongNumberOfParametersForOperator,
-      [p0, p1, p2],
-    );
-  }
-
-  static LocatableDiagnostic
-  _withArgumentsWrongNumberOfParametersForOperatorMinus({required int p0}) {
-    return LocatableDiagnosticImpl(
-      CompileTimeErrorCode.wrongNumberOfParametersForOperatorMinus,
-      [p0],
-    );
-  }
-
-  static LocatableDiagnostic _withArgumentsWrongNumberOfTypeArguments({
-    required Object p0,
-    required int p1,
-    required int p2,
-  }) {
-    return LocatableDiagnosticImpl(
-      CompileTimeErrorCode.wrongNumberOfTypeArguments,
-      [p0, p1, p2],
-    );
-  }
-
-  static LocatableDiagnostic
-  _withArgumentsWrongNumberOfTypeArgumentsAnonymousFunction({
-    required int typeParameterCount,
-    required int typeArgumentCount,
-  }) {
-    return LocatableDiagnosticImpl(
-      CompileTimeErrorCode.wrongNumberOfTypeArgumentsAnonymousFunction,
-      [typeParameterCount, typeArgumentCount],
-    );
-  }
-
-  static LocatableDiagnostic
-  _withArgumentsWrongNumberOfTypeArgumentsConstructor({
-    required String p0,
-    required String p1,
-  }) {
-    return LocatableDiagnosticImpl(
-      CompileTimeErrorCode.wrongNumberOfTypeArgumentsConstructor,
-      [p0, p1],
-    );
-  }
-
-  static LocatableDiagnostic
-  _withArgumentsWrongNumberOfTypeArgumentsDotShorthandConstructor({
-    required String p0,
-    required String p1,
-  }) {
-    return LocatableDiagnosticImpl(
-      CompileTimeErrorCode.wrongNumberOfTypeArgumentsDotShorthandConstructor,
-      [p0, p1],
-    );
-  }
-
-  static LocatableDiagnostic _withArgumentsWrongNumberOfTypeArgumentsEnum({
-    required int p0,
-    required int p1,
-  }) {
-    return LocatableDiagnosticImpl(
-      CompileTimeErrorCode.wrongNumberOfTypeArgumentsEnum,
-      [p0, p1],
-    );
-  }
-
-  static LocatableDiagnostic _withArgumentsWrongNumberOfTypeArgumentsExtension({
-    required String p0,
-    required int p1,
-    required int p2,
-  }) {
-    return LocatableDiagnosticImpl(
-      CompileTimeErrorCode.wrongNumberOfTypeArgumentsExtension,
-      [p0, p1, p2],
-    );
-  }
-
-  static LocatableDiagnostic _withArgumentsWrongNumberOfTypeArgumentsFunction({
-    required String functionName,
-    required int typeParameterCount,
-    required int typeArgumentCount,
-  }) {
-    return LocatableDiagnosticImpl(
-      CompileTimeErrorCode.wrongNumberOfTypeArgumentsFunction,
-      [functionName, typeParameterCount, typeArgumentCount],
-    );
-  }
-
-  static LocatableDiagnostic _withArgumentsWrongNumberOfTypeArgumentsMethod({
-    required DartType p0,
-    required int p1,
-    required int p2,
-  }) {
-    return LocatableDiagnosticImpl(
-      CompileTimeErrorCode.wrongNumberOfTypeArgumentsMethod,
-      [p0, p1, p2],
-    );
-  }
-
-  static LocatableDiagnostic
-  _withArgumentsWrongTypeParameterVarianceInSuperinterface({
-    required String p0,
-    required DartType p1,
-  }) {
-    return LocatableDiagnosticImpl(
-      CompileTimeErrorCode.wrongTypeParameterVarianceInSuperinterface,
-      [p0, p1],
-    );
-  }
-
-  static LocatableDiagnostic _withArgumentsWrongTypeParameterVariancePosition({
-    required Object p0,
-    required Object p1,
-    required Object p2,
-  }) {
-    return LocatableDiagnosticImpl(
-      CompileTimeErrorCode.wrongTypeParameterVariancePosition,
-      [p0, p1, p2],
-    );
-  }
-
-  static LocatableDiagnostic _withArgumentsYieldEachOfInvalidType({
-    required DartType p0,
-    required DartType p1,
-  }) {
-    return LocatableDiagnosticImpl(
-      CompileTimeErrorCode.yieldEachOfInvalidType,
-      [p0, p1],
-    );
-  }
-
-  static LocatableDiagnostic _withArgumentsYieldOfInvalidType({
-    required DartType p0,
-    required DartType p1,
-  }) {
-    return LocatableDiagnosticImpl(CompileTimeErrorCode.yieldOfInvalidType, [
-      p0,
-      p1,
-    ]);
-  }
+  /// Do not construct instances of this class.
+  CompileTimeErrorCode._() : assert(false);
 }
 
-class StaticWarningCode extends DiagnosticCodeWithExpectedTypes {
+class StaticWarningCode {
   /// No parameters.
-  static const DiagnosticWithoutArguments
-  deadNullAwareExpression = DiagnosticWithoutArgumentsImpl(
-    name: 'DEAD_NULL_AWARE_EXPRESSION',
-    problemMessage:
-        "The left operand can't be null, so the right operand is never executed.",
-    correctionMessage: "Try removing the operator and the right operand.",
-    hasPublishedDocs: true,
-    type: DiagnosticType.STATIC_WARNING,
-    uniqueName: 'StaticWarningCode.DEAD_NULL_AWARE_EXPRESSION',
-    expectedTypes: [],
-  );
+  static const DiagnosticWithoutArguments deadNullAwareExpression =
+      diag.deadNullAwareExpression;
 
   /// No parameters.
-  static const DiagnosticWithoutArguments
-  invalidNullAwareElement = DiagnosticWithoutArgumentsImpl(
-    name: 'INVALID_NULL_AWARE_OPERATOR',
-    problemMessage:
-        "The element can't be null, so the null-aware operator '?' is unnecessary.",
-    correctionMessage: "Try removing the operator '?'.",
-    hasPublishedDocs: true,
-    type: DiagnosticType.STATIC_WARNING,
-    uniqueName: 'StaticWarningCode.INVALID_NULL_AWARE_ELEMENT',
-    expectedTypes: [],
-  );
+  static const DiagnosticWithoutArguments invalidNullAwareElement =
+      diag.invalidNullAwareElement;
 
   /// No parameters.
-  static const DiagnosticWithoutArguments
-  invalidNullAwareMapEntryKey = DiagnosticWithoutArgumentsImpl(
-    name: 'INVALID_NULL_AWARE_OPERATOR',
-    problemMessage:
-        "The map entry key can't be null, so the null-aware operator '?' is "
-        "unnecessary.",
-    correctionMessage: "Try removing the operator '?'.",
-    hasPublishedDocs: true,
-    type: DiagnosticType.STATIC_WARNING,
-    uniqueName: 'StaticWarningCode.INVALID_NULL_AWARE_MAP_ENTRY_KEY',
-    expectedTypes: [],
-  );
+  static const DiagnosticWithoutArguments invalidNullAwareMapEntryKey =
+      diag.invalidNullAwareMapEntryKey;
 
   /// No parameters.
-  static const DiagnosticWithoutArguments
-  invalidNullAwareMapEntryValue = DiagnosticWithoutArgumentsImpl(
-    name: 'INVALID_NULL_AWARE_OPERATOR',
-    problemMessage:
-        "The map entry value can't be null, so the null-aware operator '?' is "
-        "unnecessary.",
-    correctionMessage: "Try removing the operator '?'.",
-    hasPublishedDocs: true,
-    type: DiagnosticType.STATIC_WARNING,
-    uniqueName: 'StaticWarningCode.INVALID_NULL_AWARE_MAP_ENTRY_VALUE',
-    expectedTypes: [],
-  );
+  static const DiagnosticWithoutArguments invalidNullAwareMapEntryValue =
+      diag.invalidNullAwareMapEntryValue;
 
   /// Parameters:
   /// String p0: the null-aware operator that is invalid
@@ -12468,18 +3985,7 @@ class StaticWarningCode extends DiagnosticCodeWithExpectedTypes {
   static const DiagnosticWithArguments<
     LocatableDiagnostic Function({required String p0, required String p1})
   >
-  invalidNullAwareOperator = DiagnosticWithArguments(
-    name: 'INVALID_NULL_AWARE_OPERATOR',
-    problemMessage:
-        "The receiver can't be null, so the null-aware operator '{0}' is "
-        "unnecessary.",
-    correctionMessage: "Try replacing the operator '{0}' with '{1}'.",
-    hasPublishedDocs: true,
-    type: DiagnosticType.STATIC_WARNING,
-    uniqueName: 'StaticWarningCode.INVALID_NULL_AWARE_OPERATOR',
-    withArguments: _withArgumentsInvalidNullAwareOperator,
-    expectedTypes: [ExpectedType.string, ExpectedType.string],
-  );
+  invalidNullAwareOperator = diag.invalidNullAwareOperator;
 
   /// Parameters:
   /// Object p0: the null-aware operator that is invalid
@@ -12488,141 +3994,41 @@ class StaticWarningCode extends DiagnosticCodeWithExpectedTypes {
   static const DiagnosticWithArguments<
     LocatableDiagnostic Function({required Object p0, required Object p1})
   >
-  invalidNullAwareOperatorAfterShortCircuit = DiagnosticWithArguments(
-    name: 'INVALID_NULL_AWARE_OPERATOR',
-    problemMessage:
-        "The receiver can't be 'null' because of short-circuiting, so the "
-        "null-aware operator '{0}' can't be used.",
-    correctionMessage: "Try replacing the operator '{0}' with '{1}'.",
-    hasPublishedDocs: true,
-    type: DiagnosticType.STATIC_WARNING,
-    uniqueName:
-        'StaticWarningCode.INVALID_NULL_AWARE_OPERATOR_AFTER_SHORT_CIRCUIT',
-    withArguments: _withArgumentsInvalidNullAwareOperatorAfterShortCircuit,
-    expectedTypes: [ExpectedType.object, ExpectedType.object],
-  );
+  invalidNullAwareOperatorAfterShortCircuit =
+      diag.invalidNullAwareOperatorAfterShortCircuit;
 
   /// Parameters:
   /// String p0: the name of the constant that is missing
   static const DiagnosticWithArguments<
     LocatableDiagnostic Function({required String p0})
   >
-  missingEnumConstantInSwitch = DiagnosticWithArguments(
-    name: 'MISSING_ENUM_CONSTANT_IN_SWITCH',
-    problemMessage: "Missing case clause for '{0}'.",
-    correctionMessage:
-        "Try adding a case clause for the missing constant, or adding a "
-        "default clause.",
-    hasPublishedDocs: true,
-    type: DiagnosticType.STATIC_WARNING,
-    uniqueName: 'StaticWarningCode.MISSING_ENUM_CONSTANT_IN_SWITCH',
-    withArguments: _withArgumentsMissingEnumConstantInSwitch,
-    expectedTypes: [ExpectedType.string],
-  );
+  missingEnumConstantInSwitch = diag.missingEnumConstantInSwitch;
 
   /// No parameters.
   static const DiagnosticWithoutArguments unnecessaryNonNullAssertion =
-      DiagnosticWithoutArgumentsImpl(
-        name: 'UNNECESSARY_NON_NULL_ASSERTION',
-        problemMessage:
-            "The '!' will have no effect because the receiver can't be null.",
-        correctionMessage: "Try removing the '!' operator.",
-        hasPublishedDocs: true,
-        type: DiagnosticType.STATIC_WARNING,
-        uniqueName: 'StaticWarningCode.UNNECESSARY_NON_NULL_ASSERTION',
-        expectedTypes: [],
-      );
+      diag.unnecessaryNonNullAssertion;
 
   /// No parameters.
-  static const DiagnosticWithoutArguments
-  unnecessaryNullAssertPattern = DiagnosticWithoutArgumentsImpl(
-    name: 'UNNECESSARY_NULL_ASSERT_PATTERN',
-    problemMessage:
-        "The null-assert pattern will have no effect because the matched type "
-        "isn't nullable.",
-    correctionMessage:
-        "Try replacing the null-assert pattern with its nested pattern.",
-    hasPublishedDocs: true,
-    type: DiagnosticType.STATIC_WARNING,
-    uniqueName: 'StaticWarningCode.UNNECESSARY_NULL_ASSERT_PATTERN',
-    expectedTypes: [],
-  );
+  static const DiagnosticWithoutArguments unnecessaryNullAssertPattern =
+      diag.unnecessaryNullAssertPattern;
 
   /// No parameters.
-  static const DiagnosticWithoutArguments
-  unnecessaryNullCheckPattern = DiagnosticWithoutArgumentsImpl(
-    name: 'UNNECESSARY_NULL_CHECK_PATTERN',
-    problemMessage:
-        "The null-check pattern will have no effect because the matched type isn't "
-        "nullable.",
-    correctionMessage:
-        "Try replacing the null-check pattern with its nested pattern.",
-    hasPublishedDocs: true,
-    type: DiagnosticType.STATIC_WARNING,
-    uniqueName: 'StaticWarningCode.UNNECESSARY_NULL_CHECK_PATTERN',
-    expectedTypes: [],
-  );
+  static const DiagnosticWithoutArguments unnecessaryNullCheckPattern =
+      diag.unnecessaryNullCheckPattern;
 
-  /// Initialize a newly created error code to have the given [name].
-  const StaticWarningCode({
-    required super.name,
-    required super.problemMessage,
-    super.correctionMessage,
-    super.hasPublishedDocs = false,
-    super.isUnresolvedIdentifier = false,
-    required super.uniqueName,
-    required super.expectedTypes,
-  }) : super(type: DiagnosticType.STATIC_WARNING);
-
-  static LocatableDiagnostic _withArgumentsInvalidNullAwareOperator({
-    required String p0,
-    required String p1,
-  }) {
-    return LocatableDiagnosticImpl(StaticWarningCode.invalidNullAwareOperator, [
-      p0,
-      p1,
-    ]);
-  }
-
-  static LocatableDiagnostic
-  _withArgumentsInvalidNullAwareOperatorAfterShortCircuit({
-    required Object p0,
-    required Object p1,
-  }) {
-    return LocatableDiagnosticImpl(
-      StaticWarningCode.invalidNullAwareOperatorAfterShortCircuit,
-      [p0, p1],
-    );
-  }
-
-  static LocatableDiagnostic _withArgumentsMissingEnumConstantInSwitch({
-    required String p0,
-  }) {
-    return LocatableDiagnosticImpl(
-      StaticWarningCode.missingEnumConstantInSwitch,
-      [p0],
-    );
-  }
+  /// Do not construct instances of this class.
+  StaticWarningCode._() : assert(false);
 }
 
-class WarningCode extends DiagnosticCodeWithExpectedTypes {
+class WarningCode {
   /// Parameters:
   /// Type p0: the name of the actual argument type
   /// Type p1: the name of the expected function return type
   static const DiagnosticWithArguments<
     LocatableDiagnostic Function({required DartType p0, required DartType p1})
   >
-  argumentTypeNotAssignableToErrorHandler = DiagnosticWithArguments(
-    name: 'ARGUMENT_TYPE_NOT_ASSIGNABLE_TO_ERROR_HANDLER',
-    problemMessage:
-        "The argument type '{0}' can't be assigned to the parameter type '{1} "
-        "Function(Object)' or '{1} Function(Object, StackTrace)'.",
-    hasPublishedDocs: true,
-    type: DiagnosticType.STATIC_WARNING,
-    uniqueName: 'WarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE_TO_ERROR_HANDLER',
-    withArguments: _withArgumentsArgumentTypeNotAssignableToErrorHandler,
-    expectedTypes: [ExpectedType.type, ExpectedType.type],
-  );
+  argumentTypeNotAssignableToErrorHandler =
+      diag.argumentTypeNotAssignableToErrorHandler;
 
   /// Users should not assign values marked `@doNotStore`.
   ///
@@ -12631,89 +4037,33 @@ class WarningCode extends DiagnosticCodeWithExpectedTypes {
   static const DiagnosticWithArguments<
     LocatableDiagnostic Function({required String p0})
   >
-  assignmentOfDoNotStore = DiagnosticWithArguments(
-    name: 'ASSIGNMENT_OF_DO_NOT_STORE',
-    problemMessage:
-        "'{0}' is marked 'doNotStore' and shouldn't be assigned to a field or "
-        "top-level variable.",
-    correctionMessage: "Try removing the assignment.",
-    hasPublishedDocs: true,
-    type: DiagnosticType.STATIC_WARNING,
-    uniqueName: 'WarningCode.ASSIGNMENT_OF_DO_NOT_STORE',
-    withArguments: _withArgumentsAssignmentOfDoNotStore,
-    expectedTypes: [ExpectedType.string],
-  );
+  assignmentOfDoNotStore = diag.assignmentOfDoNotStore;
 
   /// Parameters:
   /// Type p0: the return type as derived by the type of the [Future].
   static const DiagnosticWithArguments<
     LocatableDiagnostic Function({required DartType p0})
   >
-  bodyMightCompleteNormallyCatchError = DiagnosticWithArguments(
-    name: 'BODY_MIGHT_COMPLETE_NORMALLY_CATCH_ERROR',
-    problemMessage:
-        "This 'onError' handler must return a value assignable to '{0}', but ends "
-        "without returning a value.",
-    correctionMessage: "Try adding a return statement.",
-    hasPublishedDocs: true,
-    type: DiagnosticType.STATIC_WARNING,
-    uniqueName: 'WarningCode.BODY_MIGHT_COMPLETE_NORMALLY_CATCH_ERROR',
-    withArguments: _withArgumentsBodyMightCompleteNormallyCatchError,
-    expectedTypes: [ExpectedType.type],
-  );
+  bodyMightCompleteNormallyCatchError =
+      diag.bodyMightCompleteNormallyCatchError;
 
   /// Parameters:
   /// Type p0: the name of the declared return type
   static const DiagnosticWithArguments<
     LocatableDiagnostic Function({required DartType p0})
   >
-  bodyMightCompleteNormallyNullable = DiagnosticWithArguments(
-    name: 'BODY_MIGHT_COMPLETE_NORMALLY_NULLABLE',
-    problemMessage:
-        "This function has a nullable return type of '{0}', but ends without "
-        "returning a value.",
-    correctionMessage:
-        "Try adding a return statement, or if no value is ever returned, try "
-        "changing the return type to 'void'.",
-    hasPublishedDocs: true,
-    type: DiagnosticType.STATIC_WARNING,
-    uniqueName: 'WarningCode.BODY_MIGHT_COMPLETE_NORMALLY_NULLABLE',
-    withArguments: _withArgumentsBodyMightCompleteNormallyNullable,
-    expectedTypes: [ExpectedType.type],
-  );
+  bodyMightCompleteNormallyNullable = diag.bodyMightCompleteNormallyNullable;
 
   /// Parameters:
   /// String p0: the name of the unassigned variable
   static const DiagnosticWithArguments<
     LocatableDiagnostic Function({required String p0})
   >
-  castFromNullableAlwaysFails = DiagnosticWithArguments(
-    name: 'CAST_FROM_NULLABLE_ALWAYS_FAILS',
-    problemMessage:
-        "This cast will always throw an exception because the nullable local "
-        "variable '{0}' is not assigned.",
-    correctionMessage:
-        "Try giving it an initializer expression, or ensure that it's assigned "
-        "on every execution path.",
-    hasPublishedDocs: true,
-    type: DiagnosticType.STATIC_WARNING,
-    uniqueName: 'WarningCode.CAST_FROM_NULLABLE_ALWAYS_FAILS',
-    withArguments: _withArgumentsCastFromNullableAlwaysFails,
-    expectedTypes: [ExpectedType.string],
-  );
+  castFromNullableAlwaysFails = diag.castFromNullableAlwaysFails;
 
   /// No parameters.
-  static const DiagnosticWithoutArguments
-  castFromNullAlwaysFails = DiagnosticWithoutArgumentsImpl(
-    name: 'CAST_FROM_NULL_ALWAYS_FAILS',
-    problemMessage:
-        "This cast always throws an exception because the expression always "
-        "evaluates to 'null'.",
-    hasPublishedDocs: true,
-    type: DiagnosticType.STATIC_WARNING,
-    uniqueName: 'WarningCode.CAST_FROM_NULL_ALWAYS_FAILS',
-    expectedTypes: [],
-  );
+  static const DiagnosticWithoutArguments castFromNullAlwaysFails =
+      diag.castFromNullAlwaysFails;
 
   /// Parameters:
   /// Type p0: the matched value type
@@ -12721,71 +4071,26 @@ class WarningCode extends DiagnosticCodeWithExpectedTypes {
   static const DiagnosticWithArguments<
     LocatableDiagnostic Function({required DartType p0, required DartType p1})
   >
-  constantPatternNeverMatchesValueType = DiagnosticWithArguments(
-    name: 'CONSTANT_PATTERN_NEVER_MATCHES_VALUE_TYPE',
-    problemMessage:
-        "The matched value type '{0}' can never be equal to this constant of type "
-        "'{1}'.",
-    correctionMessage:
-        "Try a constant of the same type as the matched value type.",
-    hasPublishedDocs: true,
-    type: DiagnosticType.STATIC_WARNING,
-    uniqueName: 'WarningCode.CONSTANT_PATTERN_NEVER_MATCHES_VALUE_TYPE',
-    withArguments: _withArgumentsConstantPatternNeverMatchesValueType,
-    expectedTypes: [ExpectedType.type, ExpectedType.type],
-  );
+  constantPatternNeverMatchesValueType =
+      diag.constantPatternNeverMatchesValueType;
 
   /// Dead code is code that is never reached, this can happen for instance if a
   /// statement follows a return statement.
   ///
   /// No parameters.
-  static const DiagnosticWithoutArguments
-  deadCode = DiagnosticWithoutArgumentsImpl(
-    name: 'DEAD_CODE',
-    problemMessage: "Dead code.",
-    correctionMessage:
-        "Try removing the code, or fixing the code before it so that it can be "
-        "reached.",
-    hasPublishedDocs: true,
-    type: DiagnosticType.STATIC_WARNING,
-    uniqueName: 'WarningCode.DEAD_CODE',
-    expectedTypes: [],
-  );
+  static const DiagnosticWithoutArguments deadCode = diag.deadCode;
 
   /// Dead code is code that is never reached. This case covers cases where the
   /// user has catch clauses after `catch (e)` or `on Object catch (e)`.
   ///
   /// No parameters.
-  static const DiagnosticWithoutArguments
-  deadCodeCatchFollowingCatch = DiagnosticWithoutArgumentsImpl(
-    name: 'DEAD_CODE_CATCH_FOLLOWING_CATCH',
-    problemMessage:
-        "Dead code: Catch clauses after a 'catch (e)' or an 'on Object catch (e)' "
-        "are never reached.",
-    correctionMessage:
-        "Try reordering the catch clauses so that they can be reached, or "
-        "removing the unreachable catch clauses.",
-    hasPublishedDocs: true,
-    type: DiagnosticType.STATIC_WARNING,
-    uniqueName: 'WarningCode.DEAD_CODE_CATCH_FOLLOWING_CATCH',
-    expectedTypes: [],
-  );
+  static const DiagnosticWithoutArguments deadCodeCatchFollowingCatch =
+      diag.deadCodeCatchFollowingCatch;
 
   /// No parameters.
   static const DiagnosticWithoutArguments
-  deadCodeLateWildcardVariableInitializer = DiagnosticWithoutArgumentsImpl(
-    name: 'DEAD_CODE',
-    problemMessage:
-        "Dead code: The assigned-to wildcard variable is marked late and can never "
-        "be referenced so this initializer will never be evaluated.",
-    correctionMessage:
-        "Try removing the code, removing the late modifier or changing the "
-        "variable to a non-wildcard.",
-    hasPublishedDocs: true,
-    type: DiagnosticType.STATIC_WARNING,
-    uniqueName: 'WarningCode.DEAD_CODE_LATE_WILDCARD_VARIABLE_INITIALIZER',
-    expectedTypes: [],
-  );
+  deadCodeLateWildcardVariableInitializer =
+      diag.deadCodeLateWildcardVariableInitializer;
 
   /// Dead code is code that is never reached. This case covers cases where the
   /// user has an on-catch clause such as `on A catch (e)`, where a supertype of
@@ -12797,185 +4102,72 @@ class WarningCode extends DiagnosticCodeWithExpectedTypes {
   static const DiagnosticWithArguments<
     LocatableDiagnostic Function({required DartType p0, required DartType p1})
   >
-  deadCodeOnCatchSubtype = DiagnosticWithArguments(
-    name: 'DEAD_CODE_ON_CATCH_SUBTYPE',
-    problemMessage:
-        "Dead code: This on-catch block won't be executed because '{0}' is a "
-        "subtype of '{1}' and hence will have been caught already.",
-    correctionMessage:
-        "Try reordering the catch clauses so that this block can be reached, "
-        "or removing the unreachable catch clause.",
-    hasPublishedDocs: true,
-    type: DiagnosticType.STATIC_WARNING,
-    uniqueName: 'WarningCode.DEAD_CODE_ON_CATCH_SUBTYPE',
-    withArguments: _withArgumentsDeadCodeOnCatchSubtype,
-    expectedTypes: [ExpectedType.type, ExpectedType.type],
-  );
+  deadCodeOnCatchSubtype = diag.deadCodeOnCatchSubtype;
 
   /// Parameters:
   /// String p0: the name of the element
   static const DiagnosticWithArguments<
     LocatableDiagnostic Function({required String p0})
   >
-  deprecatedExportUse = DiagnosticWithArguments(
-    name: 'DEPRECATED_EXPORT_USE',
-    problemMessage: "The ability to import '{0}' indirectly is deprecated.",
-    correctionMessage: "Try importing '{0}' directly.",
-    hasPublishedDocs: true,
-    type: DiagnosticType.STATIC_WARNING,
-    uniqueName: 'WarningCode.DEPRECATED_EXPORT_USE',
-    withArguments: _withArgumentsDeprecatedExportUse,
-    expectedTypes: [ExpectedType.string],
-  );
+  deprecatedExportUse = diag.deprecatedExportUse;
 
   /// Parameters:
   /// Object typeName: the name of the type
   static const DiagnosticWithArguments<
     LocatableDiagnostic Function({required Object typeName})
   >
-  deprecatedExtend = DiagnosticWithArguments(
-    name: 'DEPRECATED_EXTEND',
-    problemMessage: "Extending '{0}' is deprecated.",
-    correctionMessage: "Try removing the 'extends' clause.",
-    hasPublishedDocs: true,
-    type: DiagnosticType.STATIC_WARNING,
-    uniqueName: 'WarningCode.DEPRECATED_EXTEND',
-    withArguments: _withArgumentsDeprecatedExtend,
-    expectedTypes: [ExpectedType.object],
-  );
+  deprecatedExtend = diag.deprecatedExtend;
 
   /// No parameters.
   static const DiagnosticWithoutArguments deprecatedExtendsFunction =
-      DiagnosticWithoutArgumentsImpl(
-        name: 'DEPRECATED_SUBTYPE_OF_FUNCTION',
-        problemMessage: "Extending 'Function' is deprecated.",
-        correctionMessage: "Try removing 'Function' from the 'extends' clause.",
-        hasPublishedDocs: true,
-        type: DiagnosticType.STATIC_WARNING,
-        uniqueName: 'WarningCode.DEPRECATED_EXTENDS_FUNCTION',
-        expectedTypes: [],
-      );
+      diag.deprecatedExtendsFunction;
 
   /// Parameters:
   /// Object typeName: the name of the type
   static const DiagnosticWithArguments<
     LocatableDiagnostic Function({required Object typeName})
   >
-  deprecatedImplement = DiagnosticWithArguments(
-    name: 'DEPRECATED_IMPLEMENT',
-    problemMessage: "Implementing '{0}' is deprecated.",
-    correctionMessage: "Try removing '{0}' from the 'implements' clause.",
-    hasPublishedDocs: true,
-    type: DiagnosticType.STATIC_WARNING,
-    uniqueName: 'WarningCode.DEPRECATED_IMPLEMENT',
-    withArguments: _withArgumentsDeprecatedImplement,
-    expectedTypes: [ExpectedType.object],
-  );
+  deprecatedImplement = diag.deprecatedImplement;
 
   /// No parameters.
   static const DiagnosticWithoutArguments deprecatedImplementsFunction =
-      DiagnosticWithoutArgumentsImpl(
-        name: 'DEPRECATED_SUBTYPE_OF_FUNCTION',
-        problemMessage: "Implementing 'Function' has no effect.",
-        correctionMessage:
-            "Try removing 'Function' from the 'implements' clause.",
-        hasPublishedDocs: true,
-        type: DiagnosticType.STATIC_WARNING,
-        uniqueName: 'WarningCode.DEPRECATED_IMPLEMENTS_FUNCTION',
-        expectedTypes: [],
-      );
+      diag.deprecatedImplementsFunction;
 
   /// Parameters:
   /// Object typeName: the name of the type
   static const DiagnosticWithArguments<
     LocatableDiagnostic Function({required Object typeName})
   >
-  deprecatedInstantiate = DiagnosticWithArguments(
-    name: 'DEPRECATED_INSTANTIATE',
-    problemMessage: "Instantiating '{0}' is deprecated.",
-    correctionMessage: "Try instantiating a non-abstract class.",
-    hasPublishedDocs: true,
-    type: DiagnosticType.STATIC_WARNING,
-    uniqueName: 'WarningCode.DEPRECATED_INSTANTIATE',
-    withArguments: _withArgumentsDeprecatedInstantiate,
-    expectedTypes: [ExpectedType.object],
-  );
+  deprecatedInstantiate = diag.deprecatedInstantiate;
 
   /// Parameters:
   /// Object typeName: the name of the type
   static const DiagnosticWithArguments<
     LocatableDiagnostic Function({required Object typeName})
   >
-  deprecatedMixin = DiagnosticWithArguments(
-    name: 'DEPRECATED_MIXIN',
-    problemMessage: "Mixing in '{0}' is deprecated.",
-    correctionMessage: "Try removing '{0}' from the 'with' clause.",
-    hasPublishedDocs: true,
-    type: DiagnosticType.STATIC_WARNING,
-    uniqueName: 'WarningCode.DEPRECATED_MIXIN',
-    withArguments: _withArgumentsDeprecatedMixin,
-    expectedTypes: [ExpectedType.object],
-  );
+  deprecatedMixin = diag.deprecatedMixin;
 
   /// No parameters.
   static const DiagnosticWithoutArguments deprecatedMixinFunction =
-      DiagnosticWithoutArgumentsImpl(
-        name: 'DEPRECATED_SUBTYPE_OF_FUNCTION',
-        problemMessage: "Mixing in 'Function' is deprecated.",
-        correctionMessage: "Try removing 'Function' from the 'with' clause.",
-        hasPublishedDocs: true,
-        type: DiagnosticType.STATIC_WARNING,
-        uniqueName: 'WarningCode.DEPRECATED_MIXIN_FUNCTION',
-        expectedTypes: [],
-      );
+      diag.deprecatedMixinFunction;
 
   /// No parameters.
   static const DiagnosticWithoutArguments deprecatedNewInCommentReference =
-      DiagnosticWithoutArgumentsImpl(
-        name: 'DEPRECATED_NEW_IN_COMMENT_REFERENCE',
-        problemMessage:
-            "Using the 'new' keyword in a comment reference is deprecated.",
-        correctionMessage: "Try referring to a constructor by its name.",
-        hasPublishedDocs: true,
-        type: DiagnosticType.STATIC_WARNING,
-        uniqueName: 'WarningCode.DEPRECATED_NEW_IN_COMMENT_REFERENCE',
-        expectedTypes: [],
-      );
+      diag.deprecatedNewInCommentReference;
 
   /// Parameters:
   /// Object parameterName: the name of the parameter
   static const DiagnosticWithArguments<
     LocatableDiagnostic Function({required Object parameterName})
   >
-  deprecatedOptional = DiagnosticWithArguments(
-    name: 'DEPRECATED_OPTIONAL',
-    problemMessage:
-        "Omitting an argument for the '{0}' parameter is deprecated.",
-    correctionMessage: "Try passing an argument for '{0}'.",
-    hasPublishedDocs: true,
-    type: DiagnosticType.STATIC_WARNING,
-    uniqueName: 'WarningCode.DEPRECATED_OPTIONAL',
-    withArguments: _withArgumentsDeprecatedOptional,
-    expectedTypes: [ExpectedType.object],
-  );
+  deprecatedOptional = diag.deprecatedOptional;
 
   /// Parameters:
   /// Object typeName: the name of the type
   static const DiagnosticWithArguments<
     LocatableDiagnostic Function({required Object typeName})
   >
-  deprecatedSubclass = DiagnosticWithArguments(
-    name: 'DEPRECATED_SUBCLASS',
-    problemMessage: "Subclassing '{0}' is deprecated.",
-    correctionMessage:
-        "Try removing the 'extends' clause, or removing '{0}' from the "
-        "'implements' clause.",
-    hasPublishedDocs: true,
-    type: DiagnosticType.STATIC_WARNING,
-    uniqueName: 'WarningCode.DEPRECATED_SUBCLASS',
-    withArguments: _withArgumentsDeprecatedSubclass,
-    expectedTypes: [ExpectedType.object],
-  );
+  deprecatedSubclass = diag.deprecatedSubclass;
 
   /// Parameters:
   /// String p0: the name of the doc directive argument
@@ -12983,15 +4175,7 @@ class WarningCode extends DiagnosticCodeWithExpectedTypes {
   static const DiagnosticWithArguments<
     LocatableDiagnostic Function({required String p0, required String p1})
   >
-  docDirectiveArgumentWrongFormat = DiagnosticWithArguments(
-    name: 'DOC_DIRECTIVE_ARGUMENT_WRONG_FORMAT',
-    problemMessage: "The '{0}' argument must be formatted as {1}.",
-    correctionMessage: "Try formatting '{0}' as {1}.",
-    type: DiagnosticType.STATIC_WARNING,
-    uniqueName: 'WarningCode.DOC_DIRECTIVE_ARGUMENT_WRONG_FORMAT',
-    withArguments: _withArgumentsDocDirectiveArgumentWrongFormat,
-    expectedTypes: [ExpectedType.string, ExpectedType.string],
-  );
+  docDirectiveArgumentWrongFormat = diag.docDirectiveArgumentWrongFormat;
 
   /// Parameters:
   /// String p0: the name of the doc directive
@@ -13004,16 +4188,7 @@ class WarningCode extends DiagnosticCodeWithExpectedTypes {
       required int p2,
     })
   >
-  docDirectiveHasExtraArguments = DiagnosticWithArguments(
-    name: 'DOC_DIRECTIVE_HAS_EXTRA_ARGUMENTS',
-    problemMessage:
-        "The '{0}' directive has '{1}' arguments, but only '{2}' are expected.",
-    correctionMessage: "Try removing the extra arguments.",
-    type: DiagnosticType.STATIC_WARNING,
-    uniqueName: 'WarningCode.DOC_DIRECTIVE_HAS_EXTRA_ARGUMENTS',
-    withArguments: _withArgumentsDocDirectiveHasExtraArguments,
-    expectedTypes: [ExpectedType.string, ExpectedType.int, ExpectedType.int],
-  );
+  docDirectiveHasExtraArguments = diag.docDirectiveHasExtraArguments;
 
   /// Parameters:
   /// String p0: the name of the doc directive
@@ -13021,43 +4196,19 @@ class WarningCode extends DiagnosticCodeWithExpectedTypes {
   static const DiagnosticWithArguments<
     LocatableDiagnostic Function({required String p0, required String p1})
   >
-  docDirectiveHasUnexpectedNamedArgument = DiagnosticWithArguments(
-    name: 'DOC_DIRECTIVE_HAS_UNEXPECTED_NAMED_ARGUMENT',
-    problemMessage:
-        "The '{0}' directive has an unexpected named argument, '{1}'.",
-    correctionMessage: "Try removing the unexpected argument.",
-    type: DiagnosticType.STATIC_WARNING,
-    uniqueName: 'WarningCode.DOC_DIRECTIVE_HAS_UNEXPECTED_NAMED_ARGUMENT',
-    withArguments: _withArgumentsDocDirectiveHasUnexpectedNamedArgument,
-    expectedTypes: [ExpectedType.string, ExpectedType.string],
-  );
+  docDirectiveHasUnexpectedNamedArgument =
+      diag.docDirectiveHasUnexpectedNamedArgument;
 
   /// No parameters.
   static const DiagnosticWithoutArguments docDirectiveMissingClosingBrace =
-      DiagnosticWithoutArgumentsImpl(
-        name: 'DOC_DIRECTIVE_MISSING_CLOSING_BRACE',
-        problemMessage: "Doc directive is missing a closing curly brace ('}').",
-        correctionMessage: "Try closing the directive with a curly brace.",
-        type: DiagnosticType.STATIC_WARNING,
-        uniqueName: 'WarningCode.DOC_DIRECTIVE_MISSING_CLOSING_BRACE',
-        expectedTypes: [],
-      );
+      diag.docDirectiveMissingClosingBrace;
 
   /// Parameters:
   /// String p0: the name of the corresponding doc directive tag
   static const DiagnosticWithArguments<
     LocatableDiagnostic Function({required String p0})
   >
-  docDirectiveMissingClosingTag = DiagnosticWithArguments(
-    name: 'DOC_DIRECTIVE_MISSING_CLOSING_TAG',
-    problemMessage: "Doc directive is missing a closing tag.",
-    correctionMessage:
-        "Try closing the directive with the appropriate closing tag, '{0}'.",
-    type: DiagnosticType.STATIC_WARNING,
-    uniqueName: 'WarningCode.DOC_DIRECTIVE_MISSING_CLOSING_TAG',
-    withArguments: _withArgumentsDocDirectiveMissingClosingTag,
-    expectedTypes: [ExpectedType.string],
-  );
+  docDirectiveMissingClosingTag = diag.docDirectiveMissingClosingTag;
 
   /// Parameters:
   /// String p0: the name of the doc directive
@@ -13065,31 +4216,14 @@ class WarningCode extends DiagnosticCodeWithExpectedTypes {
   static const DiagnosticWithArguments<
     LocatableDiagnostic Function({required String p0, required String p1})
   >
-  docDirectiveMissingOneArgument = DiagnosticWithArguments(
-    name: 'DOC_DIRECTIVE_MISSING_ARGUMENT',
-    problemMessage: "The '{0}' directive is missing a '{1}' argument.",
-    correctionMessage: "Try adding a '{1}' argument before the closing '}'.",
-    type: DiagnosticType.STATIC_WARNING,
-    uniqueName: 'WarningCode.DOC_DIRECTIVE_MISSING_ONE_ARGUMENT',
-    withArguments: _withArgumentsDocDirectiveMissingOneArgument,
-    expectedTypes: [ExpectedType.string, ExpectedType.string],
-  );
+  docDirectiveMissingOneArgument = diag.docDirectiveMissingOneArgument;
 
   /// Parameters:
   /// String p0: the name of the corresponding doc directive tag
   static const DiagnosticWithArguments<
     LocatableDiagnostic Function({required String p0})
   >
-  docDirectiveMissingOpeningTag = DiagnosticWithArguments(
-    name: 'DOC_DIRECTIVE_MISSING_OPENING_TAG',
-    problemMessage: "Doc directive is missing an opening tag.",
-    correctionMessage:
-        "Try opening the directive with the appropriate opening tag, '{0}'.",
-    type: DiagnosticType.STATIC_WARNING,
-    uniqueName: 'WarningCode.DOC_DIRECTIVE_MISSING_OPENING_TAG',
-    withArguments: _withArgumentsDocDirectiveMissingOpeningTag,
-    expectedTypes: [ExpectedType.string],
-  );
+  docDirectiveMissingOpeningTag = diag.docDirectiveMissingOpeningTag;
 
   /// Parameters:
   /// String p0: the name of the doc directive
@@ -13104,22 +4238,7 @@ class WarningCode extends DiagnosticCodeWithExpectedTypes {
       required String p3,
     })
   >
-  docDirectiveMissingThreeArguments = DiagnosticWithArguments(
-    name: 'DOC_DIRECTIVE_MISSING_ARGUMENT',
-    problemMessage:
-        "The '{0}' directive is missing a '{1}', a '{2}', and a '{3}' argument.",
-    correctionMessage:
-        "Try adding the missing arguments before the closing '}'.",
-    type: DiagnosticType.STATIC_WARNING,
-    uniqueName: 'WarningCode.DOC_DIRECTIVE_MISSING_THREE_ARGUMENTS',
-    withArguments: _withArgumentsDocDirectiveMissingThreeArguments,
-    expectedTypes: [
-      ExpectedType.string,
-      ExpectedType.string,
-      ExpectedType.string,
-      ExpectedType.string,
-    ],
-  );
+  docDirectiveMissingThreeArguments = diag.docDirectiveMissingThreeArguments;
 
   /// Parameters:
   /// String p0: the name of the doc directive
@@ -13132,197 +4251,71 @@ class WarningCode extends DiagnosticCodeWithExpectedTypes {
       required String p2,
     })
   >
-  docDirectiveMissingTwoArguments = DiagnosticWithArguments(
-    name: 'DOC_DIRECTIVE_MISSING_ARGUMENT',
-    problemMessage:
-        "The '{0}' directive is missing a '{1}' and a '{2}' argument.",
-    correctionMessage:
-        "Try adding the missing arguments before the closing '}'.",
-    type: DiagnosticType.STATIC_WARNING,
-    uniqueName: 'WarningCode.DOC_DIRECTIVE_MISSING_TWO_ARGUMENTS',
-    withArguments: _withArgumentsDocDirectiveMissingTwoArguments,
-    expectedTypes: [
-      ExpectedType.string,
-      ExpectedType.string,
-      ExpectedType.string,
-    ],
-  );
+  docDirectiveMissingTwoArguments = diag.docDirectiveMissingTwoArguments;
 
   /// Parameters:
   /// String p0: the name of the unknown doc directive.
   static const DiagnosticWithArguments<
     LocatableDiagnostic Function({required String p0})
   >
-  docDirectiveUnknown = DiagnosticWithArguments(
-    name: 'DOC_DIRECTIVE_UNKNOWN',
-    problemMessage: "Doc directive '{0}' is unknown.",
-    correctionMessage: "Try using one of the supported doc directives.",
-    type: DiagnosticType.STATIC_WARNING,
-    uniqueName: 'WarningCode.DOC_DIRECTIVE_UNKNOWN',
-    withArguments: _withArgumentsDocDirectiveUnknown,
-    expectedTypes: [ExpectedType.string],
-  );
+  docDirectiveUnknown = diag.docDirectiveUnknown;
 
   /// No parameters.
   static const DiagnosticWithoutArguments docImportCannotBeDeferred =
-      DiagnosticWithoutArgumentsImpl(
-        name: 'DOC_IMPORT_CANNOT_BE_DEFERRED',
-        problemMessage: "Doc imports can't be deferred.",
-        correctionMessage: "Try removing the 'deferred' keyword.",
-        hasPublishedDocs: true,
-        type: DiagnosticType.STATIC_WARNING,
-        uniqueName: 'WarningCode.DOC_IMPORT_CANNOT_BE_DEFERRED',
-        expectedTypes: [],
-      );
+      diag.docImportCannotBeDeferred;
 
   /// No parameters.
   static const DiagnosticWithoutArguments docImportCannotHaveCombinators =
-      DiagnosticWithoutArgumentsImpl(
-        name: 'DOC_IMPORT_CANNOT_HAVE_COMBINATORS',
-        problemMessage: "Doc imports can't have show or hide combinators.",
-        correctionMessage: "Try removing the combinator.",
-        hasPublishedDocs: true,
-        type: DiagnosticType.STATIC_WARNING,
-        uniqueName: 'WarningCode.DOC_IMPORT_CANNOT_HAVE_COMBINATORS',
-        expectedTypes: [],
-      );
+      diag.docImportCannotHaveCombinators;
 
   /// No parameters.
   static const DiagnosticWithoutArguments docImportCannotHaveConfigurations =
-      DiagnosticWithoutArgumentsImpl(
-        name: 'DOC_IMPORT_CANNOT_HAVE_CONFIGURATIONS',
-        problemMessage: "Doc imports can't have configurations.",
-        correctionMessage: "Try removing the configurations.",
-        hasPublishedDocs: true,
-        type: DiagnosticType.STATIC_WARNING,
-        uniqueName: 'WarningCode.DOC_IMPORT_CANNOT_HAVE_CONFIGURATIONS',
-        expectedTypes: [],
-      );
+      diag.docImportCannotHaveConfigurations;
 
   /// No parameters.
   static const DiagnosticWithoutArguments docImportCannotHavePrefix =
-      DiagnosticWithoutArgumentsImpl(
-        name: 'DOC_IMPORT_CANNOT_HAVE_PREFIX',
-        problemMessage: "Doc imports can't have prefixes.",
-        correctionMessage: "Try removing the prefix.",
-        hasPublishedDocs: true,
-        type: DiagnosticType.STATIC_WARNING,
-        uniqueName: 'WarningCode.DOC_IMPORT_CANNOT_HAVE_PREFIX',
-        expectedTypes: [],
-      );
+      diag.docImportCannotHavePrefix;
 
   /// Duplicate exports.
   ///
   /// No parameters.
   static const DiagnosticWithoutArguments duplicateExport =
-      DiagnosticWithoutArgumentsImpl(
-        name: 'DUPLICATE_EXPORT',
-        problemMessage: "Duplicate export.",
-        correctionMessage: "Try removing all but one export of the library.",
-        hasPublishedDocs: true,
-        type: DiagnosticType.STATIC_WARNING,
-        uniqueName: 'WarningCode.DUPLICATE_EXPORT',
-        expectedTypes: [],
-      );
+      diag.duplicateExport;
 
   /// No parameters.
   static const DiagnosticWithoutArguments duplicateHiddenName =
-      DiagnosticWithoutArgumentsImpl(
-        name: 'DUPLICATE_HIDDEN_NAME',
-        problemMessage: "Duplicate hidden name.",
-        correctionMessage:
-            "Try removing the repeated name from the list of hidden members.",
-        hasPublishedDocs: true,
-        type: DiagnosticType.STATIC_WARNING,
-        uniqueName: 'WarningCode.DUPLICATE_HIDDEN_NAME',
-        expectedTypes: [],
-      );
+      diag.duplicateHiddenName;
 
   /// Parameters:
   /// String p0: the name of the diagnostic being ignored
   static const DiagnosticWithArguments<
     LocatableDiagnostic Function({required String p0})
   >
-  duplicateIgnore = DiagnosticWithArguments(
-    name: 'DUPLICATE_IGNORE',
-    problemMessage:
-        "The diagnostic '{0}' doesn't need to be ignored here because it's already "
-        "being ignored.",
-    correctionMessage:
-        "Try removing the name from the list, or removing the whole comment if "
-        "this is the only name in the list.",
-    hasPublishedDocs: true,
-    type: DiagnosticType.STATIC_WARNING,
-    uniqueName: 'WarningCode.DUPLICATE_IGNORE',
-    withArguments: _withArgumentsDuplicateIgnore,
-    expectedTypes: [ExpectedType.string],
-  );
+  duplicateIgnore = diag.duplicateIgnore;
 
   /// Duplicate imports.
   ///
   /// No parameters.
   static const DiagnosticWithoutArguments duplicateImport =
-      DiagnosticWithoutArgumentsImpl(
-        name: 'DUPLICATE_IMPORT',
-        problemMessage: "Duplicate import.",
-        correctionMessage: "Try removing all but one import of the library.",
-        hasPublishedDocs: true,
-        type: DiagnosticType.STATIC_WARNING,
-        uniqueName: 'WarningCode.DUPLICATE_IMPORT',
-        expectedTypes: [],
-      );
+      diag.duplicateImport;
 
   /// No parameters.
   static const DiagnosticWithoutArguments duplicateShownName =
-      DiagnosticWithoutArgumentsImpl(
-        name: 'DUPLICATE_SHOWN_NAME',
-        problemMessage: "Duplicate shown name.",
-        correctionMessage:
-            "Try removing the repeated name from the list of shown members.",
-        hasPublishedDocs: true,
-        type: DiagnosticType.STATIC_WARNING,
-        uniqueName: 'WarningCode.DUPLICATE_SHOWN_NAME',
-        expectedTypes: [],
-      );
+      diag.duplicateShownName;
 
   /// No parameters.
   static const DiagnosticWithoutArguments equalElementsInSet =
-      DiagnosticWithoutArgumentsImpl(
-        name: 'EQUAL_ELEMENTS_IN_SET',
-        problemMessage: "Two elements in a set literal shouldn't be equal.",
-        correctionMessage: "Change or remove the duplicate element.",
-        hasPublishedDocs: true,
-        type: DiagnosticType.STATIC_WARNING,
-        uniqueName: 'WarningCode.EQUAL_ELEMENTS_IN_SET',
-        expectedTypes: [],
-      );
+      diag.equalElementsInSet;
 
   /// No parameters.
-  static const DiagnosticWithoutArguments equalKeysInMap =
-      DiagnosticWithoutArgumentsImpl(
-        name: 'EQUAL_KEYS_IN_MAP',
-        problemMessage: "Two keys in a map literal shouldn't be equal.",
-        correctionMessage: "Change or remove the duplicate key.",
-        hasPublishedDocs: true,
-        type: DiagnosticType.STATIC_WARNING,
-        uniqueName: 'WarningCode.EQUAL_KEYS_IN_MAP',
-        expectedTypes: [],
-      );
+  static const DiagnosticWithoutArguments equalKeysInMap = diag.equalKeysInMap;
 
   /// Parameters:
   /// String member: the name of the member
   static const DiagnosticWithArguments<
     LocatableDiagnostic Function({required String member})
   >
-  experimentalMemberUse = DiagnosticWithArguments(
-    name: 'EXPERIMENTAL_MEMBER_USE',
-    problemMessage:
-        "'{0}' is experimental and could be removed or changed at any time.",
-    type: DiagnosticType.STATIC_WARNING,
-    uniqueName: 'WarningCode.EXPERIMENTAL_MEMBER_USE',
-    withArguments: _withArgumentsExperimentalMemberUse,
-    expectedTypes: [ExpectedType.string],
-  );
+  experimentalMemberUse = diag.experimentalMemberUse;
 
   /// When "strict-inference" is enabled, collection literal types must be
   /// inferred via the context type, or have type arguments.
@@ -13332,16 +4325,8 @@ class WarningCode extends DiagnosticCodeWithExpectedTypes {
   static const DiagnosticWithArguments<
     LocatableDiagnostic Function({required String p0})
   >
-  inferenceFailureOnCollectionLiteral = DiagnosticWithArguments(
-    name: 'INFERENCE_FAILURE_ON_COLLECTION_LITERAL',
-    problemMessage: "The type argument(s) of '{0}' can't be inferred.",
-    correctionMessage: "Use explicit type argument(s) for '{0}'.",
-    hasPublishedDocs: true,
-    type: DiagnosticType.STATIC_WARNING,
-    uniqueName: 'WarningCode.INFERENCE_FAILURE_ON_COLLECTION_LITERAL',
-    withArguments: _withArgumentsInferenceFailureOnCollectionLiteral,
-    expectedTypes: [ExpectedType.string],
-  );
+  inferenceFailureOnCollectionLiteral =
+      diag.inferenceFailureOnCollectionLiteral;
 
   /// When "strict-inference" is enabled, types in function invocations must be
   /// inferred via the context type, or have type arguments.
@@ -13351,17 +4336,8 @@ class WarningCode extends DiagnosticCodeWithExpectedTypes {
   static const DiagnosticWithArguments<
     LocatableDiagnostic Function({required String p0})
   >
-  inferenceFailureOnFunctionInvocation = DiagnosticWithArguments(
-    name: 'INFERENCE_FAILURE_ON_FUNCTION_INVOCATION',
-    problemMessage:
-        "The type argument(s) of the function '{0}' can't be inferred.",
-    correctionMessage: "Use explicit type argument(s) for '{0}'.",
-    hasPublishedDocs: true,
-    type: DiagnosticType.STATIC_WARNING,
-    uniqueName: 'WarningCode.INFERENCE_FAILURE_ON_FUNCTION_INVOCATION',
-    withArguments: _withArgumentsInferenceFailureOnFunctionInvocation,
-    expectedTypes: [ExpectedType.string],
-  );
+  inferenceFailureOnFunctionInvocation =
+      diag.inferenceFailureOnFunctionInvocation;
 
   /// When "strict-inference" is enabled, recursive local functions, top-level
   /// functions, methods, and function-typed function parameters must all
@@ -13375,16 +4351,8 @@ class WarningCode extends DiagnosticCodeWithExpectedTypes {
   static const DiagnosticWithArguments<
     LocatableDiagnostic Function({required String p0})
   >
-  inferenceFailureOnFunctionReturnType = DiagnosticWithArguments(
-    name: 'INFERENCE_FAILURE_ON_FUNCTION_RETURN_TYPE',
-    problemMessage: "The return type of '{0}' can't be inferred.",
-    correctionMessage: "Declare the return type of '{0}'.",
-    hasPublishedDocs: true,
-    type: DiagnosticType.STATIC_WARNING,
-    uniqueName: 'WarningCode.INFERENCE_FAILURE_ON_FUNCTION_RETURN_TYPE',
-    withArguments: _withArgumentsInferenceFailureOnFunctionReturnType,
-    expectedTypes: [ExpectedType.string],
-  );
+  inferenceFailureOnFunctionReturnType =
+      diag.inferenceFailureOnFunctionReturnType;
 
   /// When "strict-inference" is enabled, types in function invocations must be
   /// inferred via the context type, or have type arguments.
@@ -13394,18 +4362,8 @@ class WarningCode extends DiagnosticCodeWithExpectedTypes {
   static const DiagnosticWithArguments<
     LocatableDiagnostic Function({required String p0})
   >
-  inferenceFailureOnGenericInvocation = DiagnosticWithArguments(
-    name: 'INFERENCE_FAILURE_ON_GENERIC_INVOCATION',
-    problemMessage:
-        "The type argument(s) of the generic function type '{0}' can't be "
-        "inferred.",
-    correctionMessage: "Use explicit type argument(s) for '{0}'.",
-    hasPublishedDocs: true,
-    type: DiagnosticType.STATIC_WARNING,
-    uniqueName: 'WarningCode.INFERENCE_FAILURE_ON_GENERIC_INVOCATION',
-    withArguments: _withArgumentsInferenceFailureOnGenericInvocation,
-    expectedTypes: [ExpectedType.string],
-  );
+  inferenceFailureOnGenericInvocation =
+      diag.inferenceFailureOnGenericInvocation;
 
   /// When "strict-inference" is enabled, types in instance creation
   /// (constructor calls) must be inferred via the context type, or have type
@@ -13416,17 +4374,7 @@ class WarningCode extends DiagnosticCodeWithExpectedTypes {
   static const DiagnosticWithArguments<
     LocatableDiagnostic Function({required String p0})
   >
-  inferenceFailureOnInstanceCreation = DiagnosticWithArguments(
-    name: 'INFERENCE_FAILURE_ON_INSTANCE_CREATION',
-    problemMessage:
-        "The type argument(s) of the constructor '{0}' can't be inferred.",
-    correctionMessage: "Use explicit type argument(s) for '{0}'.",
-    hasPublishedDocs: true,
-    type: DiagnosticType.STATIC_WARNING,
-    uniqueName: 'WarningCode.INFERENCE_FAILURE_ON_INSTANCE_CREATION',
-    withArguments: _withArgumentsInferenceFailureOnInstanceCreation,
-    expectedTypes: [ExpectedType.string],
-  );
+  inferenceFailureOnInstanceCreation = diag.inferenceFailureOnInstanceCreation;
 
   /// When "strict-inference" in enabled, uninitialized variables must be
   /// declared with a specific type.
@@ -13436,17 +4384,8 @@ class WarningCode extends DiagnosticCodeWithExpectedTypes {
   static const DiagnosticWithArguments<
     LocatableDiagnostic Function({required String p0})
   >
-  inferenceFailureOnUninitializedVariable = DiagnosticWithArguments(
-    name: 'INFERENCE_FAILURE_ON_UNINITIALIZED_VARIABLE',
-    problemMessage:
-        "The type of {0} can't be inferred without either a type or initializer.",
-    correctionMessage: "Try specifying the type of the variable.",
-    hasPublishedDocs: true,
-    type: DiagnosticType.STATIC_WARNING,
-    uniqueName: 'WarningCode.INFERENCE_FAILURE_ON_UNINITIALIZED_VARIABLE',
-    withArguments: _withArgumentsInferenceFailureOnUninitializedVariable,
-    expectedTypes: [ExpectedType.string],
-  );
+  inferenceFailureOnUninitializedVariable =
+      diag.inferenceFailureOnUninitializedVariable;
 
   /// When "strict-inference" in enabled, function parameters must be
   /// declared with a specific type, or inherit a type.
@@ -13456,16 +4395,7 @@ class WarningCode extends DiagnosticCodeWithExpectedTypes {
   static const DiagnosticWithArguments<
     LocatableDiagnostic Function({required String p0})
   >
-  inferenceFailureOnUntypedParameter = DiagnosticWithArguments(
-    name: 'INFERENCE_FAILURE_ON_UNTYPED_PARAMETER',
-    problemMessage:
-        "The type of {0} can't be inferred; a type must be explicitly provided.",
-    correctionMessage: "Try specifying the type of the parameter.",
-    type: DiagnosticType.STATIC_WARNING,
-    uniqueName: 'WarningCode.INFERENCE_FAILURE_ON_UNTYPED_PARAMETER',
-    withArguments: _withArgumentsInferenceFailureOnUntypedParameter,
-    expectedTypes: [ExpectedType.string],
-  );
+  inferenceFailureOnUntypedParameter = diag.inferenceFailureOnUntypedParameter;
 
   /// Parameters:
   /// String p0: the name of the annotation
@@ -13473,134 +4403,49 @@ class WarningCode extends DiagnosticCodeWithExpectedTypes {
   static const DiagnosticWithArguments<
     LocatableDiagnostic Function({required String p0, required String p1})
   >
-  invalidAnnotationTarget = DiagnosticWithArguments(
-    name: 'INVALID_ANNOTATION_TARGET',
-    problemMessage: "The annotation '{0}' can only be used on {1}.",
-    hasPublishedDocs: true,
-    type: DiagnosticType.STATIC_WARNING,
-    uniqueName: 'WarningCode.INVALID_ANNOTATION_TARGET',
-    withArguments: _withArgumentsInvalidAnnotationTarget,
-    expectedTypes: [ExpectedType.string, ExpectedType.string],
-  );
+  invalidAnnotationTarget = diag.invalidAnnotationTarget;
 
   /// No parameters.
   static const DiagnosticWithoutArguments invalidAwaitNotRequiredAnnotation =
-      DiagnosticWithoutArgumentsImpl(
-        name: 'INVALID_AWAIT_NOT_REQUIRED_ANNOTATION',
-        problemMessage:
-            "The annotation 'awaitNotRequired' can only be applied to a "
-            "Future-returning function, or a Future-typed field.",
-        hasPublishedDocs: true,
-        type: DiagnosticType.STATIC_WARNING,
-        uniqueName: 'WarningCode.INVALID_AWAIT_NOT_REQUIRED_ANNOTATION',
-        expectedTypes: [],
-      );
+      diag.invalidAwaitNotRequiredAnnotation;
 
   /// No parameters.
-  static const DiagnosticWithoutArguments
-  invalidDeprecatedExtendAnnotation = DiagnosticWithoutArgumentsImpl(
-    name: 'INVALID_DEPRECATED_EXTEND_ANNOTATION',
-    problemMessage:
-        "The annotation '@Deprecated.extend' can only be applied to extendable "
-        "classes.",
-    correctionMessage: "Try removing the '@Deprecated.extend' annotation.",
-    hasPublishedDocs: true,
-    type: DiagnosticType.STATIC_WARNING,
-    uniqueName: 'WarningCode.INVALID_DEPRECATED_EXTEND_ANNOTATION',
-    expectedTypes: [],
-  );
+  static const DiagnosticWithoutArguments invalidDeprecatedExtendAnnotation =
+      diag.invalidDeprecatedExtendAnnotation;
 
   /// No parameters.
   static const DiagnosticWithoutArguments invalidDeprecatedImplementAnnotation =
-      DiagnosticWithoutArgumentsImpl(
-        name: 'INVALID_DEPRECATED_IMPLEMENT_ANNOTATION',
-        problemMessage:
-            "The annotation '@Deprecated.implement' can only be applied to "
-            "implementable classes.",
-        correctionMessage:
-            "Try removing the '@Deprecated.implement' annotation.",
-        hasPublishedDocs: true,
-        type: DiagnosticType.STATIC_WARNING,
-        uniqueName: 'WarningCode.INVALID_DEPRECATED_IMPLEMENT_ANNOTATION',
-        expectedTypes: [],
-      );
+      diag.invalidDeprecatedImplementAnnotation;
 
   /// No parameters.
   static const DiagnosticWithoutArguments
-  invalidDeprecatedInstantiateAnnotation = DiagnosticWithoutArgumentsImpl(
-    name: 'INVALID_DEPRECATED_INSTANTIATE_ANNOTATION',
-    problemMessage:
-        "The annotation '@Deprecated.instantiate' can only be applied to classes.",
-    correctionMessage: "Try removing the '@Deprecated.instantiate' annotation.",
-    hasPublishedDocs: true,
-    type: DiagnosticType.STATIC_WARNING,
-    uniqueName: 'WarningCode.INVALID_DEPRECATED_INSTANTIATE_ANNOTATION',
-    expectedTypes: [],
-  );
+  invalidDeprecatedInstantiateAnnotation =
+      diag.invalidDeprecatedInstantiateAnnotation;
 
   /// This warning is generated anywhere where `@Deprecated.mixin` annotates
   /// something other than a mixin class.
   ///
   /// No parameters.
-  static const DiagnosticWithoutArguments
-  invalidDeprecatedMixinAnnotation = DiagnosticWithoutArgumentsImpl(
-    name: 'INVALID_DEPRECATED_MIXIN_ANNOTATION',
-    problemMessage:
-        "The annotation '@Deprecated.mixin' can only be applied to classes.",
-    correctionMessage: "Try removing the '@Deprecated.mixin' annotation.",
-    hasPublishedDocs: true,
-    type: DiagnosticType.STATIC_WARNING,
-    uniqueName: 'WarningCode.INVALID_DEPRECATED_MIXIN_ANNOTATION',
-    expectedTypes: [],
-  );
+  static const DiagnosticWithoutArguments invalidDeprecatedMixinAnnotation =
+      diag.invalidDeprecatedMixinAnnotation;
 
   /// This warning is generated anywhere where `@Deprecated.optional`
   /// annotates something other than an optional parameter.
   ///
   /// No parameters.
-  static const DiagnosticWithoutArguments
-  invalidDeprecatedOptionalAnnotation = DiagnosticWithoutArgumentsImpl(
-    name: 'INVALID_DEPRECATED_OPTIONAL_ANNOTATION',
-    problemMessage:
-        "The annotation '@Deprecated.optional' can only be applied to optional "
-        "parameters.",
-    correctionMessage: "Try removing the '@Deprecated.optional' annotation.",
-    hasPublishedDocs: true,
-    type: DiagnosticType.STATIC_WARNING,
-    uniqueName: 'WarningCode.INVALID_DEPRECATED_OPTIONAL_ANNOTATION',
-    expectedTypes: [],
-  );
+  static const DiagnosticWithoutArguments invalidDeprecatedOptionalAnnotation =
+      diag.invalidDeprecatedOptionalAnnotation;
 
   /// No parameters.
-  static const DiagnosticWithoutArguments
-  invalidDeprecatedSubclassAnnotation = DiagnosticWithoutArgumentsImpl(
-    name: 'INVALID_DEPRECATED_SUBCLASS_ANNOTATION',
-    problemMessage:
-        "The annotation '@Deprecated.subclass' can only be applied to subclassable "
-        "classes and mixins.",
-    correctionMessage: "Try removing the '@Deprecated.subclass' annotation.",
-    hasPublishedDocs: true,
-    type: DiagnosticType.STATIC_WARNING,
-    uniqueName: 'WarningCode.INVALID_DEPRECATED_SUBCLASS_ANNOTATION',
-    expectedTypes: [],
-  );
+  static const DiagnosticWithoutArguments invalidDeprecatedSubclassAnnotation =
+      diag.invalidDeprecatedSubclassAnnotation;
 
   /// Parameters:
   /// String p0: the name of the element
   static const DiagnosticWithArguments<
     LocatableDiagnostic Function({required String p0})
   >
-  invalidExportOfInternalElement = DiagnosticWithArguments(
-    name: 'INVALID_EXPORT_OF_INTERNAL_ELEMENT',
-    problemMessage:
-        "The member '{0}' can't be exported as a part of a package's public API.",
-    correctionMessage: "Try using a hide clause to hide '{0}'.",
-    hasPublishedDocs: true,
-    type: DiagnosticType.STATIC_WARNING,
-    uniqueName: 'WarningCode.INVALID_EXPORT_OF_INTERNAL_ELEMENT',
-    withArguments: _withArgumentsInvalidExportOfInternalElement,
-    expectedTypes: [ExpectedType.string],
-  );
+  invalidExportOfInternalElement = diag.invalidExportOfInternalElement;
 
   /// Parameters:
   /// String p0: the name of the internal element
@@ -13609,93 +4454,34 @@ class WarningCode extends DiagnosticCodeWithExpectedTypes {
   static const DiagnosticWithArguments<
     LocatableDiagnostic Function({required String p0, required String p1})
   >
-  invalidExportOfInternalElementIndirectly = DiagnosticWithArguments(
-    name: 'INVALID_EXPORT_OF_INTERNAL_ELEMENT_INDIRECTLY',
-    problemMessage:
-        "The member '{0}' can't be exported as a part of a package's public API, "
-        "but is indirectly exported as part of the signature of '{1}'.",
-    correctionMessage: "Try using a hide clause to hide '{0}'.",
-    hasPublishedDocs: true,
-    type: DiagnosticType.STATIC_WARNING,
-    uniqueName: 'WarningCode.INVALID_EXPORT_OF_INTERNAL_ELEMENT_INDIRECTLY',
-    withArguments: _withArgumentsInvalidExportOfInternalElementIndirectly,
-    expectedTypes: [ExpectedType.string, ExpectedType.string],
-  );
+  invalidExportOfInternalElementIndirectly =
+      diag.invalidExportOfInternalElementIndirectly;
 
   /// Parameters:
   /// String p0: The name of the method
   static const DiagnosticWithArguments<
     LocatableDiagnostic Function({required String p0})
   >
-  invalidFactoryMethodDecl = DiagnosticWithArguments(
-    name: 'INVALID_FACTORY_METHOD_DECL',
-    problemMessage: "Factory method '{0}' must have a return type.",
-    hasPublishedDocs: true,
-    type: DiagnosticType.STATIC_WARNING,
-    uniqueName: 'WarningCode.INVALID_FACTORY_METHOD_DECL',
-    withArguments: _withArgumentsInvalidFactoryMethodDecl,
-    expectedTypes: [ExpectedType.string],
-  );
+  invalidFactoryMethodDecl = diag.invalidFactoryMethodDecl;
 
   /// Parameters:
   /// String p0: the name of the method
   static const DiagnosticWithArguments<
     LocatableDiagnostic Function({required String p0})
   >
-  invalidFactoryMethodImpl = DiagnosticWithArguments(
-    name: 'INVALID_FACTORY_METHOD_IMPL',
-    problemMessage:
-        "Factory method '{0}' doesn't return a newly allocated object.",
-    hasPublishedDocs: true,
-    type: DiagnosticType.STATIC_WARNING,
-    uniqueName: 'WarningCode.INVALID_FACTORY_METHOD_IMPL',
-    withArguments: _withArgumentsInvalidFactoryMethodImpl,
-    expectedTypes: [ExpectedType.string],
-  );
+  invalidFactoryMethodImpl = diag.invalidFactoryMethodImpl;
 
   /// No parameters.
-  static const DiagnosticWithoutArguments
-  invalidInternalAnnotation = DiagnosticWithoutArgumentsImpl(
-    name: 'INVALID_INTERNAL_ANNOTATION',
-    problemMessage:
-        "Only public elements in a package's private API can be annotated as being "
-        "internal.",
-    hasPublishedDocs: true,
-    type: DiagnosticType.STATIC_WARNING,
-    uniqueName: 'WarningCode.INVALID_INTERNAL_ANNOTATION',
-    expectedTypes: [],
-  );
+  static const DiagnosticWithoutArguments invalidInternalAnnotation =
+      diag.invalidInternalAnnotation;
 
   /// No parameters.
-  static const DiagnosticWithoutArguments
-  invalidLanguageVersionOverrideAtSign = DiagnosticWithoutArgumentsImpl(
-    name: 'INVALID_LANGUAGE_VERSION_OVERRIDE',
-    problemMessage:
-        "The Dart language version override number must begin with '@dart'.",
-    correctionMessage:
-        "Specify a Dart language version override with a comment like '// "
-        "@dart = 2.0'.",
-    hasPublishedDocs: true,
-    type: DiagnosticType.STATIC_WARNING,
-    uniqueName: 'WarningCode.INVALID_LANGUAGE_VERSION_OVERRIDE_AT_SIGN',
-    expectedTypes: [],
-  );
+  static const DiagnosticWithoutArguments invalidLanguageVersionOverrideAtSign =
+      diag.invalidLanguageVersionOverrideAtSign;
 
   /// No parameters.
-  static const DiagnosticWithoutArguments
-  invalidLanguageVersionOverrideEquals = DiagnosticWithoutArgumentsImpl(
-    name: 'INVALID_LANGUAGE_VERSION_OVERRIDE',
-    problemMessage:
-        "The Dart language version override comment must be specified with an '=' "
-        "character.",
-    correctionMessage:
-        "Specify a Dart language version override with a comment like '// "
-        "@dart = 2.0'.",
-    hasPublishedDocs: true,
-    type: DiagnosticType.STATIC_WARNING,
-    uniqueName: 'WarningCode.INVALID_LANGUAGE_VERSION_OVERRIDE_EQUALS',
-    expectedTypes: [],
-  );
+  static const DiagnosticWithoutArguments invalidLanguageVersionOverrideEquals =
+      diag.invalidLanguageVersionOverrideEquals;
 
   /// Parameters:
   /// Object p0: the latest major version
@@ -13703,144 +4489,47 @@ class WarningCode extends DiagnosticCodeWithExpectedTypes {
   static const DiagnosticWithArguments<
     LocatableDiagnostic Function({required Object p0, required Object p1})
   >
-  invalidLanguageVersionOverrideGreater = DiagnosticWithArguments(
-    name: 'INVALID_LANGUAGE_VERSION_OVERRIDE',
-    problemMessage:
-        "The language version override can't specify a version greater than the "
-        "latest known language version: {0}.{1}.",
-    correctionMessage: "Try removing the language version override.",
-    hasPublishedDocs: true,
-    type: DiagnosticType.STATIC_WARNING,
-    uniqueName: 'WarningCode.INVALID_LANGUAGE_VERSION_OVERRIDE_GREATER',
-    withArguments: _withArgumentsInvalidLanguageVersionOverrideGreater,
-    expectedTypes: [ExpectedType.object, ExpectedType.object],
-  );
+  invalidLanguageVersionOverrideGreater =
+      diag.invalidLanguageVersionOverrideGreater;
 
   /// No parameters.
   static const DiagnosticWithoutArguments
-  invalidLanguageVersionOverrideLocation = DiagnosticWithoutArgumentsImpl(
-    name: 'INVALID_LANGUAGE_VERSION_OVERRIDE',
-    problemMessage:
-        "The language version override must be specified before any declaration or "
-        "directive.",
-    correctionMessage:
-        "Try moving the language version override to the top of the file.",
-    hasPublishedDocs: true,
-    type: DiagnosticType.STATIC_WARNING,
-    uniqueName: 'WarningCode.INVALID_LANGUAGE_VERSION_OVERRIDE_LOCATION',
-    expectedTypes: [],
-  );
+  invalidLanguageVersionOverrideLocation =
+      diag.invalidLanguageVersionOverrideLocation;
 
   /// No parameters.
   static const DiagnosticWithoutArguments
-  invalidLanguageVersionOverrideLowerCase = DiagnosticWithoutArgumentsImpl(
-    name: 'INVALID_LANGUAGE_VERSION_OVERRIDE',
-    problemMessage:
-        "The Dart language version override comment must be specified with the "
-        "word 'dart' in all lower case.",
-    correctionMessage:
-        "Specify a Dart language version override with a comment like '// "
-        "@dart = 2.0'.",
-    hasPublishedDocs: true,
-    type: DiagnosticType.STATIC_WARNING,
-    uniqueName: 'WarningCode.INVALID_LANGUAGE_VERSION_OVERRIDE_LOWER_CASE',
-    expectedTypes: [],
-  );
+  invalidLanguageVersionOverrideLowerCase =
+      diag.invalidLanguageVersionOverrideLowerCase;
 
   /// No parameters.
-  static const DiagnosticWithoutArguments
-  invalidLanguageVersionOverrideNumber = DiagnosticWithoutArgumentsImpl(
-    name: 'INVALID_LANGUAGE_VERSION_OVERRIDE',
-    problemMessage:
-        "The Dart language version override comment must be specified with a "
-        "version number, like '2.0', after the '=' character.",
-    correctionMessage:
-        "Specify a Dart language version override with a comment like '// "
-        "@dart = 2.0'.",
-    hasPublishedDocs: true,
-    type: DiagnosticType.STATIC_WARNING,
-    uniqueName: 'WarningCode.INVALID_LANGUAGE_VERSION_OVERRIDE_NUMBER',
-    expectedTypes: [],
-  );
+  static const DiagnosticWithoutArguments invalidLanguageVersionOverrideNumber =
+      diag.invalidLanguageVersionOverrideNumber;
 
   /// No parameters.
-  static const DiagnosticWithoutArguments
-  invalidLanguageVersionOverridePrefix = DiagnosticWithoutArgumentsImpl(
-    name: 'INVALID_LANGUAGE_VERSION_OVERRIDE',
-    problemMessage:
-        "The Dart language version override number can't be prefixed with a "
-        "letter.",
-    correctionMessage:
-        "Specify a Dart language version override with a comment like '// "
-        "@dart = 2.0'.",
-    hasPublishedDocs: true,
-    type: DiagnosticType.STATIC_WARNING,
-    uniqueName: 'WarningCode.INVALID_LANGUAGE_VERSION_OVERRIDE_PREFIX',
-    expectedTypes: [],
-  );
+  static const DiagnosticWithoutArguments invalidLanguageVersionOverridePrefix =
+      diag.invalidLanguageVersionOverridePrefix;
 
   /// No parameters.
   static const DiagnosticWithoutArguments
   invalidLanguageVersionOverrideTrailingCharacters =
-      DiagnosticWithoutArgumentsImpl(
-        name: 'INVALID_LANGUAGE_VERSION_OVERRIDE',
-        problemMessage:
-            "The Dart language version override comment can't be followed by any "
-            "non-whitespace characters.",
-        correctionMessage:
-            "Specify a Dart language version override with a comment like '// "
-            "@dart = 2.0'.",
-        hasPublishedDocs: true,
-        type: DiagnosticType.STATIC_WARNING,
-        uniqueName:
-            'WarningCode.INVALID_LANGUAGE_VERSION_OVERRIDE_TRAILING_CHARACTERS',
-        expectedTypes: [],
-      );
+      diag.invalidLanguageVersionOverrideTrailingCharacters;
 
   /// No parameters.
   static const DiagnosticWithoutArguments
-  invalidLanguageVersionOverrideTwoSlashes = DiagnosticWithoutArgumentsImpl(
-    name: 'INVALID_LANGUAGE_VERSION_OVERRIDE',
-    problemMessage:
-        "The Dart language version override comment must be specified with exactly "
-        "two slashes.",
-    correctionMessage:
-        "Specify a Dart language version override with a comment like '// "
-        "@dart = 2.0'.",
-    hasPublishedDocs: true,
-    type: DiagnosticType.STATIC_WARNING,
-    uniqueName: 'WarningCode.INVALID_LANGUAGE_VERSION_OVERRIDE_TWO_SLASHES',
-    expectedTypes: [],
-  );
+  invalidLanguageVersionOverrideTwoSlashes =
+      diag.invalidLanguageVersionOverrideTwoSlashes;
 
   /// No parameters.
   static const DiagnosticWithoutArguments invalidLiteralAnnotation =
-      DiagnosticWithoutArgumentsImpl(
-        name: 'INVALID_LITERAL_ANNOTATION',
-        problemMessage:
-            "Only const constructors can have the `@literal` annotation.",
-        hasPublishedDocs: true,
-        type: DiagnosticType.STATIC_WARNING,
-        uniqueName: 'WarningCode.INVALID_LITERAL_ANNOTATION',
-        expectedTypes: [],
-      );
+      diag.invalidLiteralAnnotation;
 
   /// This warning is generated anywhere where `@nonVirtual` annotates something
   /// other than a non-abstract instance member in a class or mixin.
   ///
   /// No parameters.
-  static const DiagnosticWithoutArguments
-  invalidNonVirtualAnnotation = DiagnosticWithoutArgumentsImpl(
-    name: 'INVALID_NON_VIRTUAL_ANNOTATION',
-    problemMessage:
-        "The annotation '@nonVirtual' can only be applied to a concrete instance "
-        "member.",
-    correctionMessage: "Try removing '@nonVirtual'.",
-    hasPublishedDocs: true,
-    type: DiagnosticType.STATIC_WARNING,
-    uniqueName: 'WarningCode.INVALID_NON_VIRTUAL_ANNOTATION',
-    expectedTypes: [],
-  );
+  static const DiagnosticWithoutArguments invalidNonVirtualAnnotation =
+      diag.invalidNonVirtualAnnotation;
 
   /// This warning is generated anywhere where an instance member annotated with
   /// `@nonVirtual` is overridden in a subclass.
@@ -13851,65 +4540,28 @@ class WarningCode extends DiagnosticCodeWithExpectedTypes {
   static const DiagnosticWithArguments<
     LocatableDiagnostic Function({required String p0, required String p1})
   >
-  invalidOverrideOfNonVirtualMember = DiagnosticWithArguments(
-    name: 'INVALID_OVERRIDE_OF_NON_VIRTUAL_MEMBER',
-    problemMessage:
-        "The member '{0}' is declared non-virtual in '{1}' and can't be overridden "
-        "in subclasses.",
-    hasPublishedDocs: true,
-    type: DiagnosticType.STATIC_WARNING,
-    uniqueName: 'WarningCode.INVALID_OVERRIDE_OF_NON_VIRTUAL_MEMBER',
-    withArguments: _withArgumentsInvalidOverrideOfNonVirtualMember,
-    expectedTypes: [ExpectedType.string, ExpectedType.string],
-  );
+  invalidOverrideOfNonVirtualMember = diag.invalidOverrideOfNonVirtualMember;
 
   /// This warning is generated anywhere where `@reopen` annotates a class which
   /// did not reopen any type.
   ///
   /// No parameters.
-  static const DiagnosticWithoutArguments
-  invalidReopenAnnotation = DiagnosticWithoutArgumentsImpl(
-    name: 'INVALID_REOPEN_ANNOTATION',
-    problemMessage:
-        "The annotation '@reopen' can only be applied to a class that opens "
-        "capabilities that the supertype intentionally disallows.",
-    correctionMessage: "Try removing the '@reopen' annotation.",
-    hasPublishedDocs: true,
-    type: DiagnosticType.STATIC_WARNING,
-    uniqueName: 'WarningCode.INVALID_REOPEN_ANNOTATION',
-    expectedTypes: [],
-  );
+  static const DiagnosticWithoutArguments invalidReopenAnnotation =
+      diag.invalidReopenAnnotation;
 
   /// Parameters:
   /// String p0: the name of the member
   static const DiagnosticWithArguments<
     LocatableDiagnostic Function({required String p0})
   >
-  invalidUseOfDoNotSubmitMember = DiagnosticWithArguments(
-    name: 'INVALID_USE_OF_DO_NOT_SUBMIT_MEMBER',
-    problemMessage: "Uses of '{0}' should not be submitted to source control.",
-    correctionMessage: "Try removing the reference to '{0}'.",
-    hasPublishedDocs: true,
-    type: DiagnosticType.STATIC_WARNING,
-    uniqueName: 'WarningCode.INVALID_USE_OF_DO_NOT_SUBMIT_MEMBER',
-    withArguments: _withArgumentsInvalidUseOfDoNotSubmitMember,
-    expectedTypes: [ExpectedType.string],
-  );
+  invalidUseOfDoNotSubmitMember = diag.invalidUseOfDoNotSubmitMember;
 
   /// Parameters:
   /// String p0: the name of the member
   static const DiagnosticWithArguments<
     LocatableDiagnostic Function({required String p0})
   >
-  invalidUseOfInternalMember = DiagnosticWithArguments(
-    name: 'INVALID_USE_OF_INTERNAL_MEMBER',
-    problemMessage: "The member '{0}' can only be used within its package.",
-    hasPublishedDocs: true,
-    type: DiagnosticType.STATIC_WARNING,
-    uniqueName: 'WarningCode.INVALID_USE_OF_INTERNAL_MEMBER',
-    withArguments: _withArgumentsInvalidUseOfInternalMember,
-    expectedTypes: [ExpectedType.string],
-  );
+  invalidUseOfInternalMember = diag.invalidUseOfInternalMember;
 
   /// This warning is generated anywhere where a member annotated with
   /// `@protected` is used outside of an instance member of a subclass.
@@ -13920,32 +4572,15 @@ class WarningCode extends DiagnosticCodeWithExpectedTypes {
   static const DiagnosticWithArguments<
     LocatableDiagnostic Function({required String p0, required String p1})
   >
-  invalidUseOfProtectedMember = DiagnosticWithArguments(
-    name: 'INVALID_USE_OF_PROTECTED_MEMBER',
-    problemMessage:
-        "The member '{0}' can only be used within instance members of subclasses "
-        "of '{1}'.",
-    hasPublishedDocs: true,
-    type: DiagnosticType.STATIC_WARNING,
-    uniqueName: 'WarningCode.INVALID_USE_OF_PROTECTED_MEMBER',
-    withArguments: _withArgumentsInvalidUseOfProtectedMember,
-    expectedTypes: [ExpectedType.string, ExpectedType.string],
-  );
+  invalidUseOfProtectedMember = diag.invalidUseOfProtectedMember;
 
   /// Parameters:
   /// String p0: the name of the member
   static const DiagnosticWithArguments<
     LocatableDiagnostic Function({required String p0})
   >
-  invalidUseOfVisibleForOverridingMember = DiagnosticWithArguments(
-    name: 'INVALID_USE_OF_VISIBLE_FOR_OVERRIDING_MEMBER',
-    problemMessage: "The member '{0}' can only be used for overriding.",
-    hasPublishedDocs: true,
-    type: DiagnosticType.STATIC_WARNING,
-    uniqueName: 'WarningCode.INVALID_USE_OF_VISIBLE_FOR_OVERRIDING_MEMBER',
-    withArguments: _withArgumentsInvalidUseOfVisibleForOverridingMember,
-    expectedTypes: [ExpectedType.string],
-  );
+  invalidUseOfVisibleForOverridingMember =
+      diag.invalidUseOfVisibleForOverridingMember;
 
   /// This warning is generated anywhere where a member annotated with
   /// `@visibleForTemplate` is used outside of a "template" Dart file.
@@ -13956,15 +4591,8 @@ class WarningCode extends DiagnosticCodeWithExpectedTypes {
   static const DiagnosticWithArguments<
     LocatableDiagnostic Function({required String p0, required Uri p1})
   >
-  invalidUseOfVisibleForTemplateMember = DiagnosticWithArguments(
-    name: 'INVALID_USE_OF_VISIBLE_FOR_TEMPLATE_MEMBER',
-    problemMessage:
-        "The member '{0}' can only be used within '{1}' or a template library.",
-    type: DiagnosticType.STATIC_WARNING,
-    uniqueName: 'WarningCode.INVALID_USE_OF_VISIBLE_FOR_TEMPLATE_MEMBER',
-    withArguments: _withArgumentsInvalidUseOfVisibleForTemplateMember,
-    expectedTypes: [ExpectedType.string, ExpectedType.uri],
-  );
+  invalidUseOfVisibleForTemplateMember =
+      diag.invalidUseOfVisibleForTemplateMember;
 
   /// This warning is generated anywhere where a member annotated with
   /// `@visibleForTesting` is used outside the defining library, or a test.
@@ -13975,15 +4603,8 @@ class WarningCode extends DiagnosticCodeWithExpectedTypes {
   static const DiagnosticWithArguments<
     LocatableDiagnostic Function({required String p0, required Uri p1})
   >
-  invalidUseOfVisibleForTestingMember = DiagnosticWithArguments(
-    name: 'INVALID_USE_OF_VISIBLE_FOR_TESTING_MEMBER',
-    problemMessage: "The member '{0}' can only be used within '{1}' or a test.",
-    hasPublishedDocs: true,
-    type: DiagnosticType.STATIC_WARNING,
-    uniqueName: 'WarningCode.INVALID_USE_OF_VISIBLE_FOR_TESTING_MEMBER',
-    withArguments: _withArgumentsInvalidUseOfVisibleForTestingMember,
-    expectedTypes: [ExpectedType.string, ExpectedType.uri],
-  );
+  invalidUseOfVisibleForTestingMember =
+      diag.invalidUseOfVisibleForTestingMember;
 
   /// This warning is generated anywhere where a private declaration is
   /// annotated with `@visibleForTemplate` or `@visibleForTesting`.
@@ -13994,57 +4615,21 @@ class WarningCode extends DiagnosticCodeWithExpectedTypes {
   static const DiagnosticWithArguments<
     LocatableDiagnostic Function({required String p0, required String p1})
   >
-  invalidVisibilityAnnotation = DiagnosticWithArguments(
-    name: 'INVALID_VISIBILITY_ANNOTATION',
-    problemMessage:
-        "The member '{0}' is annotated with '{1}', but this annotation is only "
-        "meaningful on declarations of public members.",
-    hasPublishedDocs: true,
-    type: DiagnosticType.STATIC_WARNING,
-    uniqueName: 'WarningCode.INVALID_VISIBILITY_ANNOTATION',
-    withArguments: _withArgumentsInvalidVisibilityAnnotation,
-    expectedTypes: [ExpectedType.string, ExpectedType.string],
-  );
+  invalidVisibilityAnnotation = diag.invalidVisibilityAnnotation;
 
   /// No parameters.
   static const DiagnosticWithoutArguments
-  invalidVisibleForOverridingAnnotation = DiagnosticWithoutArgumentsImpl(
-    name: 'INVALID_VISIBLE_FOR_OVERRIDING_ANNOTATION',
-    problemMessage:
-        "The annotation 'visibleForOverriding' can only be applied to a public "
-        "instance member that can be overridden.",
-    hasPublishedDocs: true,
-    type: DiagnosticType.STATIC_WARNING,
-    uniqueName: 'WarningCode.INVALID_VISIBLE_FOR_OVERRIDING_ANNOTATION',
-    expectedTypes: [],
-  );
+  invalidVisibleForOverridingAnnotation =
+      diag.invalidVisibleForOverridingAnnotation;
 
   /// No parameters.
   static const DiagnosticWithoutArguments
-  invalidVisibleOutsideTemplateAnnotation = DiagnosticWithoutArgumentsImpl(
-    name: 'INVALID_VISIBLE_OUTSIDE_TEMPLATE_ANNOTATION',
-    problemMessage:
-        "The annotation 'visibleOutsideTemplate' can only be applied to a member "
-        "of a class, enum, or mixin that is annotated with "
-        "'visibleForTemplate'.",
-    hasPublishedDocs: true,
-    type: DiagnosticType.STATIC_WARNING,
-    uniqueName: 'WarningCode.INVALID_VISIBLE_OUTSIDE_TEMPLATE_ANNOTATION',
-    expectedTypes: [],
-  );
+  invalidVisibleOutsideTemplateAnnotation =
+      diag.invalidVisibleOutsideTemplateAnnotation;
 
   /// No parameters.
-  static const DiagnosticWithoutArguments
-  invalidWidgetPreviewApplication = DiagnosticWithoutArgumentsImpl(
-    name: 'INVALID_WIDGET_PREVIEW_APPLICATION',
-    problemMessage:
-        "The '@Preview(...)' annotation can only be applied to public, statically "
-        "accessible constructors and functions.",
-    hasPublishedDocs: true,
-    type: DiagnosticType.STATIC_WARNING,
-    uniqueName: 'WarningCode.INVALID_WIDGET_PREVIEW_APPLICATION',
-    expectedTypes: [],
-  );
+  static const DiagnosticWithoutArguments invalidWidgetPreviewApplication =
+      diag.invalidWidgetPreviewApplication;
 
   /// Parameters:
   /// String p0: the name of the private symbol
@@ -14052,34 +4637,16 @@ class WarningCode extends DiagnosticCodeWithExpectedTypes {
   static const DiagnosticWithArguments<
     LocatableDiagnostic Function({required String p0, required String p1})
   >
-  invalidWidgetPreviewPrivateArgument = DiagnosticWithArguments(
-    name: 'INVALID_WIDGET_PREVIEW_PRIVATE_ARGUMENT',
-    problemMessage:
-        "'@Preview(...)' can only accept arguments that consist of literals and "
-        "public symbols.",
-    correctionMessage: "Rename private symbol '{0}' to '{1}'.",
-    hasPublishedDocs: true,
-    type: DiagnosticType.STATIC_WARNING,
-    uniqueName: 'WarningCode.INVALID_WIDGET_PREVIEW_PRIVATE_ARGUMENT',
-    withArguments: _withArgumentsInvalidWidgetPreviewPrivateArgument,
-    expectedTypes: [ExpectedType.string, ExpectedType.string],
-  );
+  invalidWidgetPreviewPrivateArgument =
+      diag.invalidWidgetPreviewPrivateArgument;
 
   /// Parameters:
   /// String p0: the name of the member
   static const DiagnosticWithArguments<
     LocatableDiagnostic Function({required String p0})
   >
-  missingOverrideOfMustBeOverriddenOne = DiagnosticWithArguments(
-    name: 'MISSING_OVERRIDE_OF_MUST_BE_OVERRIDDEN',
-    problemMessage: "Missing concrete implementation of '{0}'.",
-    correctionMessage: "Try overriding the missing member.",
-    hasPublishedDocs: true,
-    type: DiagnosticType.STATIC_WARNING,
-    uniqueName: 'WarningCode.MISSING_OVERRIDE_OF_MUST_BE_OVERRIDDEN_ONE',
-    withArguments: _withArgumentsMissingOverrideOfMustBeOverriddenOne,
-    expectedTypes: [ExpectedType.string],
-  );
+  missingOverrideOfMustBeOverriddenOne =
+      diag.missingOverrideOfMustBeOverriddenOne;
 
   /// Parameters:
   /// String p0: the name of the first member
@@ -14092,21 +4659,8 @@ class WarningCode extends DiagnosticCodeWithExpectedTypes {
       required String p2,
     })
   >
-  missingOverrideOfMustBeOverriddenThreePlus = DiagnosticWithArguments(
-    name: 'MISSING_OVERRIDE_OF_MUST_BE_OVERRIDDEN',
-    problemMessage:
-        "Missing concrete implementations of '{0}', '{1}', and {2} more.",
-    correctionMessage: "Try overriding the missing members.",
-    hasPublishedDocs: true,
-    type: DiagnosticType.STATIC_WARNING,
-    uniqueName: 'WarningCode.MISSING_OVERRIDE_OF_MUST_BE_OVERRIDDEN_THREE_PLUS',
-    withArguments: _withArgumentsMissingOverrideOfMustBeOverriddenThreePlus,
-    expectedTypes: [
-      ExpectedType.string,
-      ExpectedType.string,
-      ExpectedType.string,
-    ],
-  );
+  missingOverrideOfMustBeOverriddenThreePlus =
+      diag.missingOverrideOfMustBeOverriddenThreePlus;
 
   /// Parameters:
   /// String p0: the name of the first member
@@ -14114,16 +4668,8 @@ class WarningCode extends DiagnosticCodeWithExpectedTypes {
   static const DiagnosticWithArguments<
     LocatableDiagnostic Function({required String p0, required String p1})
   >
-  missingOverrideOfMustBeOverriddenTwo = DiagnosticWithArguments(
-    name: 'MISSING_OVERRIDE_OF_MUST_BE_OVERRIDDEN',
-    problemMessage: "Missing concrete implementations of '{0}' and '{1}'.",
-    correctionMessage: "Try overriding the missing members.",
-    hasPublishedDocs: true,
-    type: DiagnosticType.STATIC_WARNING,
-    uniqueName: 'WarningCode.MISSING_OVERRIDE_OF_MUST_BE_OVERRIDDEN_TWO',
-    withArguments: _withArgumentsMissingOverrideOfMustBeOverriddenTwo,
-    expectedTypes: [ExpectedType.string, ExpectedType.string],
-  );
+  missingOverrideOfMustBeOverriddenTwo =
+      diag.missingOverrideOfMustBeOverriddenTwo;
 
   /// Generates a warning for a constructor, function or method invocation where
   /// a required parameter is missing.
@@ -14133,15 +4679,7 @@ class WarningCode extends DiagnosticCodeWithExpectedTypes {
   static const DiagnosticWithArguments<
     LocatableDiagnostic Function({required String p0})
   >
-  missingRequiredParam = DiagnosticWithArguments(
-    name: 'MISSING_REQUIRED_PARAM',
-    problemMessage: "The parameter '{0}' is required.",
-    hasPublishedDocs: true,
-    type: DiagnosticType.STATIC_WARNING,
-    uniqueName: 'WarningCode.MISSING_REQUIRED_PARAM',
-    withArguments: _withArgumentsMissingRequiredParam,
-    expectedTypes: [ExpectedType.string],
-  );
+  missingRequiredParam = diag.missingRequiredParam;
 
   /// Generates a warning for a constructor, function or method invocation where
   /// a required parameter is missing.
@@ -14152,15 +4690,7 @@ class WarningCode extends DiagnosticCodeWithExpectedTypes {
   static const DiagnosticWithArguments<
     LocatableDiagnostic Function({required String p0, required String p1})
   >
-  missingRequiredParamWithDetails = DiagnosticWithArguments(
-    name: 'MISSING_REQUIRED_PARAM',
-    problemMessage: "The parameter '{0}' is required. {1}.",
-    hasPublishedDocs: true,
-    type: DiagnosticType.STATIC_WARNING,
-    uniqueName: 'WarningCode.MISSING_REQUIRED_PARAM_WITH_DETAILS',
-    withArguments: _withArgumentsMissingRequiredParamWithDetails,
-    expectedTypes: [ExpectedType.string, ExpectedType.string],
-  );
+  missingRequiredParamWithDetails = diag.missingRequiredParamWithDetails;
 
   /// This warning is generated anywhere where a `@sealed` class is used as a
   /// a superclass constraint of a mixin.
@@ -14170,35 +4700,11 @@ class WarningCode extends DiagnosticCodeWithExpectedTypes {
   static const DiagnosticWithArguments<
     LocatableDiagnostic Function({required String p0})
   >
-  mixinOnSealedClass = DiagnosticWithArguments(
-    name: 'MIXIN_ON_SEALED_CLASS',
-    problemMessage:
-        "The class '{0}' shouldn't be used as a mixin constraint because it is "
-        "sealed, and any class mixing in this mixin must have '{0}' as a "
-        "superclass.",
-    correctionMessage:
-        "Try composing with this class, or refer to its documentation for more "
-        "information.",
-    hasPublishedDocs: true,
-    type: DiagnosticType.STATIC_WARNING,
-    uniqueName: 'WarningCode.MIXIN_ON_SEALED_CLASS',
-    withArguments: _withArgumentsMixinOnSealedClass,
-    expectedTypes: [ExpectedType.string],
-  );
+  mixinOnSealedClass = diag.mixinOnSealedClass;
 
   /// No parameters.
-  static const DiagnosticWithoutArguments
-  multipleCombinators = DiagnosticWithoutArgumentsImpl(
-    name: 'MULTIPLE_COMBINATORS',
-    problemMessage:
-        "Using multiple 'hide' or 'show' combinators is never necessary and often "
-        "produces surprising results.",
-    correctionMessage: "Try using a single combinator.",
-    hasPublishedDocs: true,
-    type: DiagnosticType.STATIC_WARNING,
-    uniqueName: 'WarningCode.MULTIPLE_COMBINATORS',
-    expectedTypes: [],
-  );
+  static const DiagnosticWithoutArguments multipleCombinators =
+      diag.multipleCombinators;
 
   /// Generates a warning for classes that inherit from classes annotated with
   /// `@immutable` but that are not immutable.
@@ -14208,51 +4714,21 @@ class WarningCode extends DiagnosticCodeWithExpectedTypes {
   static const DiagnosticWithArguments<
     LocatableDiagnostic Function({required String p0})
   >
-  mustBeImmutable = DiagnosticWithArguments(
-    name: 'MUST_BE_IMMUTABLE',
-    problemMessage:
-        "This class (or a class that this class inherits from) is marked as "
-        "'@immutable', but one or more of its instance fields aren't final: "
-        "{0}",
-    hasPublishedDocs: true,
-    type: DiagnosticType.STATIC_WARNING,
-    uniqueName: 'WarningCode.MUST_BE_IMMUTABLE',
-    withArguments: _withArgumentsMustBeImmutable,
-    expectedTypes: [ExpectedType.string],
-  );
+  mustBeImmutable = diag.mustBeImmutable;
 
   /// Parameters:
   /// String p0: the name of the class declaring the overridden method
   static const DiagnosticWithArguments<
     LocatableDiagnostic Function({required String p0})
   >
-  mustCallSuper = DiagnosticWithArguments(
-    name: 'MUST_CALL_SUPER',
-    problemMessage:
-        "This method overrides a method annotated as '@mustCallSuper' in '{0}', "
-        "but doesn't invoke the overridden method.",
-    hasPublishedDocs: true,
-    type: DiagnosticType.STATIC_WARNING,
-    uniqueName: 'WarningCode.MUST_CALL_SUPER',
-    withArguments: _withArgumentsMustCallSuper,
-    expectedTypes: [ExpectedType.string],
-  );
+  mustCallSuper = diag.mustCallSuper;
 
   /// Parameters:
   /// String p0: the name of the argument
   static const DiagnosticWithArguments<
     LocatableDiagnostic Function({required String p0})
   >
-  nonConstArgumentForConstParameter = DiagnosticWithArguments(
-    name: 'NON_CONST_ARGUMENT_FOR_CONST_PARAMETER',
-    problemMessage: "Argument '{0}' must be a constant.",
-    correctionMessage: "Try replacing the argument with a constant.",
-    hasPublishedDocs: true,
-    type: DiagnosticType.STATIC_WARNING,
-    uniqueName: 'WarningCode.NON_CONST_ARGUMENT_FOR_CONST_PARAMETER',
-    withArguments: _withArgumentsNonConstArgumentForConstParameter,
-    expectedTypes: [ExpectedType.string],
-  );
+  nonConstArgumentForConstParameter = diag.nonConstArgumentForConstParameter;
 
   /// Generates a warning for non-const instance creation using a constructor
   /// annotated with `@literal`.
@@ -14262,18 +4738,7 @@ class WarningCode extends DiagnosticCodeWithExpectedTypes {
   static const DiagnosticWithArguments<
     LocatableDiagnostic Function({required String p0})
   >
-  nonConstCallToLiteralConstructor = DiagnosticWithArguments(
-    name: 'NON_CONST_CALL_TO_LITERAL_CONSTRUCTOR',
-    problemMessage:
-        "This instance creation must be 'const', because the {0} constructor is "
-        "marked as '@literal'.",
-    correctionMessage: "Try adding a 'const' keyword.",
-    hasPublishedDocs: true,
-    type: DiagnosticType.STATIC_WARNING,
-    uniqueName: 'WarningCode.NON_CONST_CALL_TO_LITERAL_CONSTRUCTOR',
-    withArguments: _withArgumentsNonConstCallToLiteralConstructor,
-    expectedTypes: [ExpectedType.string],
-  );
+  nonConstCallToLiteralConstructor = diag.nonConstCallToLiteralConstructor;
 
   /// Generate a warning for non-const instance creation (with the `new` keyword)
   /// using a constructor annotated with `@literal`.
@@ -14283,45 +4748,16 @@ class WarningCode extends DiagnosticCodeWithExpectedTypes {
   static const DiagnosticWithArguments<
     LocatableDiagnostic Function({required String p0})
   >
-  nonConstCallToLiteralConstructorUsingNew = DiagnosticWithArguments(
-    name: 'NON_CONST_CALL_TO_LITERAL_CONSTRUCTOR',
-    problemMessage:
-        "This instance creation must be 'const', because the {0} constructor is "
-        "marked as '@literal'.",
-    correctionMessage: "Try replacing the 'new' keyword with 'const'.",
-    hasPublishedDocs: true,
-    type: DiagnosticType.STATIC_WARNING,
-    uniqueName: 'WarningCode.NON_CONST_CALL_TO_LITERAL_CONSTRUCTOR_USING_NEW',
-    withArguments: _withArgumentsNonConstCallToLiteralConstructorUsingNew,
-    expectedTypes: [ExpectedType.string],
-  );
+  nonConstCallToLiteralConstructorUsingNew =
+      diag.nonConstCallToLiteralConstructorUsingNew;
 
   /// No parameters.
   static const DiagnosticWithoutArguments nonNullableEqualsParameter =
-      DiagnosticWithoutArgumentsImpl(
-        name: 'NON_NULLABLE_EQUALS_PARAMETER',
-        problemMessage:
-            "The parameter type of '==' operators should be non-nullable.",
-        correctionMessage: "Try using a non-nullable type.",
-        hasPublishedDocs: true,
-        type: DiagnosticType.STATIC_WARNING,
-        uniqueName: 'WarningCode.NON_NULLABLE_EQUALS_PARAMETER',
-        expectedTypes: [],
-      );
+      diag.nonNullableEqualsParameter;
 
   /// No parameters.
-  static const DiagnosticWithoutArguments
-  nullableTypeInCatchClause = DiagnosticWithoutArgumentsImpl(
-    name: 'NULLABLE_TYPE_IN_CATCH_CLAUSE',
-    problemMessage:
-        "A potentially nullable type can't be used in an 'on' clause because it "
-        "isn't valid to throw a nullable expression.",
-    correctionMessage: "Try using a non-nullable type.",
-    hasPublishedDocs: true,
-    type: DiagnosticType.STATIC_WARNING,
-    uniqueName: 'WarningCode.NULLABLE_TYPE_IN_CATCH_CLAUSE',
-    expectedTypes: [],
-  );
+  static const DiagnosticWithoutArguments nullableTypeInCatchClause =
+      diag.nullableTypeInCatchClause;
 
   /// Parameters:
   /// String p0: the name of the method being invoked
@@ -14329,96 +4765,35 @@ class WarningCode extends DiagnosticCodeWithExpectedTypes {
   static const DiagnosticWithArguments<
     LocatableDiagnostic Function({required String p0, required String p1})
   >
-  nullArgumentToNonNullType = DiagnosticWithArguments(
-    name: 'NULL_ARGUMENT_TO_NON_NULL_TYPE',
-    problemMessage:
-        "'{0}' shouldn't be called with a 'null' argument for the non-nullable "
-        "type argument '{1}'.",
-    correctionMessage: "Try adding a non-null argument.",
-    hasPublishedDocs: true,
-    type: DiagnosticType.STATIC_WARNING,
-    uniqueName: 'WarningCode.NULL_ARGUMENT_TO_NON_NULL_TYPE',
-    withArguments: _withArgumentsNullArgumentToNonNullType,
-    expectedTypes: [ExpectedType.string, ExpectedType.string],
-  );
+  nullArgumentToNonNullType = diag.nullArgumentToNonNullType;
 
   /// No parameters.
-  static const DiagnosticWithoutArguments
-  nullCheckAlwaysFails = DiagnosticWithoutArgumentsImpl(
-    name: 'NULL_CHECK_ALWAYS_FAILS',
-    problemMessage:
-        "This null-check will always throw an exception because the expression "
-        "will always evaluate to 'null'.",
-    hasPublishedDocs: true,
-    type: DiagnosticType.STATIC_WARNING,
-    uniqueName: 'WarningCode.NULL_CHECK_ALWAYS_FAILS',
-    expectedTypes: [],
-  );
+  static const DiagnosticWithoutArguments nullCheckAlwaysFails =
+      diag.nullCheckAlwaysFails;
 
   /// A field with the override annotation does not override a getter or setter.
   ///
   /// No parameters.
   static const DiagnosticWithoutArguments overrideOnNonOverridingField =
-      DiagnosticWithoutArgumentsImpl(
-        name: 'OVERRIDE_ON_NON_OVERRIDING_MEMBER',
-        problemMessage:
-            "The field doesn't override an inherited getter or setter.",
-        correctionMessage:
-            "Try updating this class to match the superclass, or removing the "
-            "override annotation.",
-        hasPublishedDocs: true,
-        type: DiagnosticType.STATIC_WARNING,
-        uniqueName: 'WarningCode.OVERRIDE_ON_NON_OVERRIDING_FIELD',
-        expectedTypes: [],
-      );
+      diag.overrideOnNonOverridingField;
 
   /// A getter with the override annotation does not override an existing getter.
   ///
   /// No parameters.
   static const DiagnosticWithoutArguments overrideOnNonOverridingGetter =
-      DiagnosticWithoutArgumentsImpl(
-        name: 'OVERRIDE_ON_NON_OVERRIDING_MEMBER',
-        problemMessage: "The getter doesn't override an inherited getter.",
-        correctionMessage:
-            "Try updating this class to match the superclass, or removing the "
-            "override annotation.",
-        hasPublishedDocs: true,
-        type: DiagnosticType.STATIC_WARNING,
-        uniqueName: 'WarningCode.OVERRIDE_ON_NON_OVERRIDING_GETTER',
-        expectedTypes: [],
-      );
+      diag.overrideOnNonOverridingGetter;
 
   /// A method with the override annotation does not override an existing method.
   ///
   /// No parameters.
   static const DiagnosticWithoutArguments overrideOnNonOverridingMethod =
-      DiagnosticWithoutArgumentsImpl(
-        name: 'OVERRIDE_ON_NON_OVERRIDING_MEMBER',
-        problemMessage: "The method doesn't override an inherited method.",
-        correctionMessage:
-            "Try updating this class to match the superclass, or removing the "
-            "override annotation.",
-        hasPublishedDocs: true,
-        type: DiagnosticType.STATIC_WARNING,
-        uniqueName: 'WarningCode.OVERRIDE_ON_NON_OVERRIDING_METHOD',
-        expectedTypes: [],
-      );
+      diag.overrideOnNonOverridingMethod;
 
   /// A setter with the override annotation does not override an existing setter.
   ///
   /// No parameters.
   static const DiagnosticWithoutArguments overrideOnNonOverridingSetter =
-      DiagnosticWithoutArgumentsImpl(
-        name: 'OVERRIDE_ON_NON_OVERRIDING_MEMBER',
-        problemMessage: "The setter doesn't override an inherited setter.",
-        correctionMessage:
-            "Try updating this class to match the superclass, or removing the "
-            "override annotation.",
-        hasPublishedDocs: true,
-        type: DiagnosticType.STATIC_WARNING,
-        uniqueName: 'WarningCode.OVERRIDE_ON_NON_OVERRIDING_SETTER',
-        expectedTypes: [],
-      );
+      diag.overrideOnNonOverridingSetter;
 
   /// Parameters:
   /// Type p0: the matched value type
@@ -14426,17 +4801,7 @@ class WarningCode extends DiagnosticCodeWithExpectedTypes {
   static const DiagnosticWithArguments<
     LocatableDiagnostic Function({required DartType p0, required DartType p1})
   >
-  patternNeverMatchesValueType = DiagnosticWithArguments(
-    name: 'PATTERN_NEVER_MATCHES_VALUE_TYPE',
-    problemMessage:
-        "The matched value type '{0}' can never match the required type '{1}'.",
-    correctionMessage: "Try using a different pattern.",
-    hasPublishedDocs: true,
-    type: DiagnosticType.STATIC_WARNING,
-    uniqueName: 'WarningCode.PATTERN_NEVER_MATCHES_VALUE_TYPE',
-    withArguments: _withArgumentsPatternNeverMatchesValueType,
-    expectedTypes: [ExpectedType.type, ExpectedType.type],
-  );
+  patternNeverMatchesValueType = diag.patternNeverMatchesValueType;
 
   /// It is not an error to call or tear-off a method, setter, or getter, or to
   /// read or write a field, on a receiver of static type `Never`.
@@ -14450,17 +4815,8 @@ class WarningCode extends DiagnosticCodeWithExpectedTypes {
   /// the call are unreachable.
   ///
   /// No parameters.
-  static const DiagnosticWithoutArguments
-  receiverOfTypeNever = DiagnosticWithoutArgumentsImpl(
-    name: 'RECEIVER_OF_TYPE_NEVER',
-    problemMessage:
-        "The receiver is of type 'Never', and will never complete with a value.",
-    correctionMessage:
-        "Try checking for throw expressions or type errors in the receiver",
-    type: DiagnosticType.STATIC_WARNING,
-    uniqueName: 'WarningCode.RECEIVER_OF_TYPE_NEVER',
-    expectedTypes: [],
-  );
+  static const DiagnosticWithoutArguments receiverOfTypeNever =
+      diag.receiverOfTypeNever;
 
   /// An error code indicating the use of a redeclare annotation on a member that does not redeclare.
   ///
@@ -14469,19 +4825,7 @@ class WarningCode extends DiagnosticCodeWithExpectedTypes {
   static const DiagnosticWithArguments<
     LocatableDiagnostic Function({required String p0})
   >
-  redeclareOnNonRedeclaringMember = DiagnosticWithArguments(
-    name: 'REDECLARE_ON_NON_REDECLARING_MEMBER',
-    problemMessage:
-        "The {0} doesn't redeclare a {0} declared in a superinterface.",
-    correctionMessage:
-        "Try updating this member to match a declaration in a superinterface, "
-        "or removing the redeclare annotation.",
-    hasPublishedDocs: true,
-    type: DiagnosticType.STATIC_WARNING,
-    uniqueName: 'WarningCode.REDECLARE_ON_NON_REDECLARING_MEMBER',
-    withArguments: _withArgumentsRedeclareOnNonRedeclaringMember,
-    expectedTypes: [ExpectedType.string],
-  );
+  redeclareOnNonRedeclaringMember = diag.redeclareOnNonRedeclaringMember;
 
   /// An error code indicating use of a removed lint rule.
   ///
@@ -14491,16 +4835,7 @@ class WarningCode extends DiagnosticCodeWithExpectedTypes {
   static const DiagnosticWithArguments<
     LocatableDiagnostic Function({required Object p0, required Object p1})
   >
-  removedLintUse = DiagnosticWithArguments(
-    name: 'REMOVED_LINT_USE',
-    problemMessage: "'{0}' was removed in Dart '{1}'",
-    correctionMessage: "Remove the reference to '{0}'.",
-    hasPublishedDocs: true,
-    type: DiagnosticType.STATIC_WARNING,
-    uniqueName: 'WarningCode.REMOVED_LINT_USE',
-    withArguments: _withArgumentsRemovedLintUse,
-    expectedTypes: [ExpectedType.object, ExpectedType.object],
-  );
+  removedLintUse = diag.removedLintUse;
 
   /// An error code indicating use of a removed lint rule.
   ///
@@ -14515,19 +4850,7 @@ class WarningCode extends DiagnosticCodeWithExpectedTypes {
       required Object p2,
     })
   >
-  replacedLintUse = DiagnosticWithArguments(
-    name: 'REPLACED_LINT_USE',
-    problemMessage: "'{0}' was replaced by '{2}' in Dart '{1}'.",
-    correctionMessage: "Replace '{0}' with '{1}'.",
-    type: DiagnosticType.STATIC_WARNING,
-    uniqueName: 'WarningCode.REPLACED_LINT_USE',
-    withArguments: _withArgumentsReplacedLintUse,
-    expectedTypes: [
-      ExpectedType.object,
-      ExpectedType.object,
-      ExpectedType.object,
-    ],
-  );
+  replacedLintUse = diag.replacedLintUse;
 
   /// Parameters:
   /// String p0: the name of the annotated function being invoked
@@ -14535,18 +4858,7 @@ class WarningCode extends DiagnosticCodeWithExpectedTypes {
   static const DiagnosticWithArguments<
     LocatableDiagnostic Function({required String p0, required String p1})
   >
-  returnOfDoNotStore = DiagnosticWithArguments(
-    name: 'RETURN_OF_DO_NOT_STORE',
-    problemMessage:
-        "'{0}' is annotated with 'doNotStore' and shouldn't be returned unless "
-        "'{1}' is also annotated.",
-    correctionMessage: "Annotate '{1}' with 'doNotStore'.",
-    hasPublishedDocs: true,
-    type: DiagnosticType.STATIC_WARNING,
-    uniqueName: 'WarningCode.RETURN_OF_DO_NOT_STORE',
-    withArguments: _withArgumentsReturnOfDoNotStore,
-    expectedTypes: [ExpectedType.string, ExpectedType.string],
-  );
+  returnOfDoNotStore = diag.returnOfDoNotStore;
 
   /// Parameters:
   /// Type p0: the return type as declared in the return statement
@@ -14554,17 +4866,7 @@ class WarningCode extends DiagnosticCodeWithExpectedTypes {
   static const DiagnosticWithArguments<
     LocatableDiagnostic Function({required DartType p0, required DartType p1})
   >
-  returnOfInvalidTypeFromCatchError = DiagnosticWithArguments(
-    name: 'INVALID_RETURN_TYPE_FOR_CATCH_ERROR',
-    problemMessage:
-        "A value of type '{0}' can't be returned by the 'onError' handler because "
-        "it must be assignable to '{1}'.",
-    hasPublishedDocs: true,
-    type: DiagnosticType.STATIC_WARNING,
-    uniqueName: 'WarningCode.RETURN_OF_INVALID_TYPE_FROM_CATCH_ERROR',
-    withArguments: _withArgumentsReturnOfInvalidTypeFromCatchError,
-    expectedTypes: [ExpectedType.type, ExpectedType.type],
-  );
+  returnOfInvalidTypeFromCatchError = diag.returnOfInvalidTypeFromCatchError;
 
   /// Parameters:
   /// Type p0: the return type of the function
@@ -14572,52 +4874,20 @@ class WarningCode extends DiagnosticCodeWithExpectedTypes {
   static const DiagnosticWithArguments<
     LocatableDiagnostic Function({required DartType p0, required DartType p1})
   >
-  returnTypeInvalidForCatchError = DiagnosticWithArguments(
-    name: 'INVALID_RETURN_TYPE_FOR_CATCH_ERROR',
-    problemMessage:
-        "The return type '{0}' isn't assignable to '{1}', as required by "
-        "'Future.catchError'.",
-    hasPublishedDocs: true,
-    type: DiagnosticType.STATIC_WARNING,
-    uniqueName: 'WarningCode.RETURN_TYPE_INVALID_FOR_CATCH_ERROR',
-    withArguments: _withArgumentsReturnTypeInvalidForCatchError,
-    expectedTypes: [ExpectedType.type, ExpectedType.type],
-  );
+  returnTypeInvalidForCatchError = diag.returnTypeInvalidForCatchError;
 
-  /// There is also a [ParserErrorCode.experimentNotEnabled] code which
+  /// There is also a [diag.experimentNotEnabled] code which
   /// catches some cases of constructor tearoff features (like
   /// `List<int>.filled;`). Other constructor tearoff cases are not realized
   /// until resolution (like `List.filled;`).
   ///
   /// No parameters.
-  static const DiagnosticWithoutArguments
-  sdkVersionConstructorTearoffs = DiagnosticWithoutArgumentsImpl(
-    name: 'SDK_VERSION_CONSTRUCTOR_TEAROFFS',
-    problemMessage:
-        "Tearing off a constructor requires the 'constructor-tearoffs' language "
-        "feature.",
-    correctionMessage:
-        "Try updating your 'pubspec.yaml' to set the minimum SDK constraint to "
-        "2.15 or higher, and running 'pub get'.",
-    hasPublishedDocs: true,
-    type: DiagnosticType.STATIC_WARNING,
-    uniqueName: 'WarningCode.SDK_VERSION_CONSTRUCTOR_TEAROFFS',
-    expectedTypes: [],
-  );
+  static const DiagnosticWithoutArguments sdkVersionConstructorTearoffs =
+      diag.sdkVersionConstructorTearoffs;
 
   /// No parameters.
-  static const DiagnosticWithoutArguments
-  sdkVersionGtGtGtOperator = DiagnosticWithoutArgumentsImpl(
-    name: 'SDK_VERSION_GT_GT_GT_OPERATOR',
-    problemMessage:
-        "The operator '>>>' wasn't supported until version 2.14.0, but this code "
-        "is required to be able to run on earlier versions.",
-    correctionMessage: "Try updating the SDK constraints.",
-    hasPublishedDocs: true,
-    type: DiagnosticType.STATIC_WARNING,
-    uniqueName: 'WarningCode.SDK_VERSION_GT_GT_GT_OPERATOR',
-    expectedTypes: [],
-  );
+  static const DiagnosticWithoutArguments sdkVersionGtGtGtOperator =
+      diag.sdkVersionGtGtGtOperator;
 
   /// Parameters:
   /// String p0: the version specified in the `@Since()` annotation
@@ -14625,17 +4895,7 @@ class WarningCode extends DiagnosticCodeWithExpectedTypes {
   static const DiagnosticWithArguments<
     LocatableDiagnostic Function({required String p0, required String p1})
   >
-  sdkVersionSince = DiagnosticWithArguments(
-    name: 'SDK_VERSION_SINCE',
-    problemMessage:
-        "This API is available since SDK {0}, but constraints '{1}' don't "
-        "guarantee it.",
-    correctionMessage: "Try updating the SDK constraints.",
-    type: DiagnosticType.STATIC_WARNING,
-    uniqueName: 'WarningCode.SDK_VERSION_SINCE',
-    withArguments: _withArgumentsSdkVersionSince,
-    expectedTypes: [ExpectedType.string, ExpectedType.string],
-  );
+  sdkVersionSince = diag.sdkVersionSince;
 
   /// When "strict-raw-types" is enabled, "raw types" must have type arguments.
   ///
@@ -14647,100 +4907,36 @@ class WarningCode extends DiagnosticCodeWithExpectedTypes {
   static const DiagnosticWithArguments<
     LocatableDiagnostic Function({required DartType p0})
   >
-  strictRawType = DiagnosticWithArguments(
-    name: 'STRICT_RAW_TYPE',
-    problemMessage:
-        "The generic type '{0}' should have explicit type arguments but doesn't.",
-    correctionMessage: "Use explicit type arguments for '{0}'.",
-    type: DiagnosticType.STATIC_WARNING,
-    uniqueName: 'WarningCode.STRICT_RAW_TYPE',
-    withArguments: _withArgumentsStrictRawType,
-    expectedTypes: [ExpectedType.type],
-  );
+  strictRawType = diag.strictRawType;
 
   /// Parameters:
   /// String p0: the name of the sealed class
   static const DiagnosticWithArguments<
     LocatableDiagnostic Function({required String p0})
   >
-  subtypeOfSealedClass = DiagnosticWithArguments(
-    name: 'SUBTYPE_OF_SEALED_CLASS',
-    problemMessage:
-        "The class '{0}' shouldn't be extended, mixed in, or implemented because "
-        "it's sealed.",
-    correctionMessage:
-        "Try composing instead of inheriting, or refer to the documentation of "
-        "'{0}' for more information.",
-    hasPublishedDocs: true,
-    type: DiagnosticType.STATIC_WARNING,
-    uniqueName: 'WarningCode.SUBTYPE_OF_SEALED_CLASS',
-    withArguments: _withArgumentsSubtypeOfSealedClass,
-    expectedTypes: [ExpectedType.string],
-  );
+  subtypeOfSealedClass = diag.subtypeOfSealedClass;
 
   /// Parameters:
   /// String p0: the unicode sequence of the code point.
   static const DiagnosticWithArguments<
     LocatableDiagnostic Function({required String p0})
   >
-  textDirectionCodePointInComment = DiagnosticWithArguments(
-    name: 'TEXT_DIRECTION_CODE_POINT_IN_COMMENT',
-    problemMessage:
-        "The Unicode code point 'U+{0}' changes the appearance of text from how "
-        "it's interpreted by the compiler.",
-    correctionMessage:
-        "Try removing the code point or using the Unicode escape sequence "
-        "'\\u{0}'.",
-    hasPublishedDocs: true,
-    type: DiagnosticType.STATIC_WARNING,
-    uniqueName: 'WarningCode.TEXT_DIRECTION_CODE_POINT_IN_COMMENT',
-    withArguments: _withArgumentsTextDirectionCodePointInComment,
-    expectedTypes: [ExpectedType.string],
-  );
+  textDirectionCodePointInComment = diag.textDirectionCodePointInComment;
 
   /// Parameters:
   /// String p0: the unicode sequence of the code point.
   static const DiagnosticWithArguments<
     LocatableDiagnostic Function({required String p0})
   >
-  textDirectionCodePointInLiteral = DiagnosticWithArguments(
-    name: 'TEXT_DIRECTION_CODE_POINT_IN_LITERAL',
-    problemMessage:
-        "The Unicode code point 'U+{0}' changes the appearance of text from how "
-        "it's interpreted by the compiler.",
-    correctionMessage:
-        "Try removing the code point or using the Unicode escape sequence "
-        "'\\u{0}'.",
-    hasPublishedDocs: true,
-    type: DiagnosticType.STATIC_WARNING,
-    uniqueName: 'WarningCode.TEXT_DIRECTION_CODE_POINT_IN_LITERAL',
-    withArguments: _withArgumentsTextDirectionCodePointInLiteral,
-    expectedTypes: [ExpectedType.string],
-  );
+  textDirectionCodePointInLiteral = diag.textDirectionCodePointInLiteral;
 
   /// No parameters.
   static const DiagnosticWithoutArguments typeCheckIsNotNull =
-      DiagnosticWithoutArgumentsImpl(
-        name: 'TYPE_CHECK_WITH_NULL',
-        problemMessage: "Tests for non-null should be done with '!= null'.",
-        correctionMessage: "Try replacing the 'is! Null' check with '!= null'.",
-        hasPublishedDocs: true,
-        type: DiagnosticType.STATIC_WARNING,
-        uniqueName: 'WarningCode.TYPE_CHECK_IS_NOT_NULL',
-        expectedTypes: [],
-      );
+      diag.typeCheckIsNotNull;
 
   /// No parameters.
   static const DiagnosticWithoutArguments typeCheckIsNull =
-      DiagnosticWithoutArgumentsImpl(
-        name: 'TYPE_CHECK_WITH_NULL',
-        problemMessage: "Tests for null should be done with '== null'.",
-        correctionMessage: "Try replacing the 'is Null' check with '== null'.",
-        hasPublishedDocs: true,
-        type: DiagnosticType.STATIC_WARNING,
-        uniqueName: 'WarningCode.TYPE_CHECK_IS_NULL',
-        expectedTypes: [],
-      );
+      diag.typeCheckIsNull;
 
   /// Parameters:
   /// String p0: the name of the library being imported
@@ -14748,17 +4944,7 @@ class WarningCode extends DiagnosticCodeWithExpectedTypes {
   static const DiagnosticWithArguments<
     LocatableDiagnostic Function({required String p0, required String p1})
   >
-  undefinedHiddenName = DiagnosticWithArguments(
-    name: 'UNDEFINED_HIDDEN_NAME',
-    problemMessage:
-        "The library '{0}' doesn't export a member with the hidden name '{1}'.",
-    correctionMessage: "Try removing the name from the list of hidden members.",
-    hasPublishedDocs: true,
-    type: DiagnosticType.STATIC_WARNING,
-    uniqueName: 'WarningCode.UNDEFINED_HIDDEN_NAME',
-    withArguments: _withArgumentsUndefinedHiddenName,
-    expectedTypes: [ExpectedType.string, ExpectedType.string],
-  );
+  undefinedHiddenName = diag.undefinedHiddenName;
 
   /// Parameters:
   /// String p0: the name of the undefined parameter
@@ -14766,15 +4952,7 @@ class WarningCode extends DiagnosticCodeWithExpectedTypes {
   static const DiagnosticWithArguments<
     LocatableDiagnostic Function({required String p0, required String p1})
   >
-  undefinedReferencedParameter = DiagnosticWithArguments(
-    name: 'UNDEFINED_REFERENCED_PARAMETER',
-    problemMessage: "The parameter '{0}' isn't defined by '{1}'.",
-    hasPublishedDocs: true,
-    type: DiagnosticType.STATIC_WARNING,
-    uniqueName: 'WarningCode.UNDEFINED_REFERENCED_PARAMETER',
-    withArguments: _withArgumentsUndefinedReferencedParameter,
-    expectedTypes: [ExpectedType.string, ExpectedType.string],
-  );
+  undefinedReferencedParameter = diag.undefinedReferencedParameter;
 
   /// Parameters:
   /// String p0: the name of the library being imported
@@ -14782,411 +4960,152 @@ class WarningCode extends DiagnosticCodeWithExpectedTypes {
   static const DiagnosticWithArguments<
     LocatableDiagnostic Function({required String p0, required String p1})
   >
-  undefinedShownName = DiagnosticWithArguments(
-    name: 'UNDEFINED_SHOWN_NAME',
-    problemMessage:
-        "The library '{0}' doesn't export a member with the shown name '{1}'.",
-    correctionMessage: "Try removing the name from the list of shown members.",
-    hasPublishedDocs: true,
-    type: DiagnosticType.STATIC_WARNING,
-    uniqueName: 'WarningCode.UNDEFINED_SHOWN_NAME',
-    withArguments: _withArgumentsUndefinedShownName,
-    expectedTypes: [ExpectedType.string, ExpectedType.string],
-  );
+  undefinedShownName = diag.undefinedShownName;
 
   /// Parameters:
   /// Object p0: the name of the non-diagnostic being ignored
   static const DiagnosticWithArguments<
     LocatableDiagnostic Function({required Object p0})
   >
-  unignorableIgnore = DiagnosticWithArguments(
-    name: 'UNIGNORABLE_IGNORE',
-    problemMessage: "The diagnostic '{0}' can't be ignored.",
-    correctionMessage:
-        "Try removing the name from the list, or removing the whole comment if "
-        "this is the only name in the list.",
-    type: DiagnosticType.STATIC_WARNING,
-    uniqueName: 'WarningCode.UNIGNORABLE_IGNORE',
-    withArguments: _withArgumentsUnignorableIgnore,
-    expectedTypes: [ExpectedType.object],
-  );
+  unignorableIgnore = diag.unignorableIgnore;
 
   /// No parameters.
   static const DiagnosticWithoutArguments unnecessaryCast =
-      DiagnosticWithoutArgumentsImpl(
-        name: 'UNNECESSARY_CAST',
-        problemMessage: "Unnecessary cast.",
-        correctionMessage: "Try removing the cast.",
-        hasPublishedDocs: true,
-        type: DiagnosticType.STATIC_WARNING,
-        uniqueName: 'WarningCode.UNNECESSARY_CAST',
-        expectedTypes: [],
-      );
+      diag.unnecessaryCast;
 
   /// No parameters.
   static const DiagnosticWithoutArguments unnecessaryCastPattern =
-      DiagnosticWithoutArgumentsImpl(
-        name: 'UNNECESSARY_CAST_PATTERN',
-        problemMessage: "Unnecessary cast pattern.",
-        correctionMessage: "Try removing the cast pattern.",
-        hasPublishedDocs: true,
-        type: DiagnosticType.STATIC_WARNING,
-        uniqueName: 'WarningCode.UNNECESSARY_CAST_PATTERN',
-        expectedTypes: [],
-      );
+      diag.unnecessaryCastPattern;
 
   /// No parameters.
-  static const DiagnosticWithoutArguments
-  unnecessaryFinal = DiagnosticWithoutArgumentsImpl(
-    name: 'UNNECESSARY_FINAL',
-    problemMessage:
-        "The keyword 'final' isn't necessary because the parameter is implicitly "
-        "'final'.",
-    correctionMessage: "Try removing the 'final'.",
-    hasPublishedDocs: true,
-    type: DiagnosticType.STATIC_WARNING,
-    uniqueName: 'WarningCode.UNNECESSARY_FINAL',
-    expectedTypes: [],
-  );
+  static const DiagnosticWithoutArguments unnecessaryFinal =
+      diag.unnecessaryFinal;
 
   /// No parameters.
-  static const DiagnosticWithoutArguments
-  unnecessaryNanComparisonFalse = DiagnosticWithoutArgumentsImpl(
-    name: 'UNNECESSARY_NAN_COMPARISON',
-    problemMessage:
-        "A double can't equal 'double.nan', so the condition is always 'false'.",
-    correctionMessage: "Try using 'double.isNan', or removing the condition.",
-    hasPublishedDocs: true,
-    type: DiagnosticType.STATIC_WARNING,
-    uniqueName: 'WarningCode.UNNECESSARY_NAN_COMPARISON_FALSE',
-    expectedTypes: [],
-  );
+  static const DiagnosticWithoutArguments unnecessaryNanComparisonFalse =
+      diag.unnecessaryNanComparisonFalse;
 
   /// No parameters.
-  static const DiagnosticWithoutArguments
-  unnecessaryNanComparisonTrue = DiagnosticWithoutArgumentsImpl(
-    name: 'UNNECESSARY_NAN_COMPARISON',
-    problemMessage:
-        "A double can't equal 'double.nan', so the condition is always 'true'.",
-    correctionMessage: "Try using 'double.isNan', or removing the condition.",
-    hasPublishedDocs: true,
-    type: DiagnosticType.STATIC_WARNING,
-    uniqueName: 'WarningCode.UNNECESSARY_NAN_COMPARISON_TRUE',
-    expectedTypes: [],
-  );
+  static const DiagnosticWithoutArguments unnecessaryNanComparisonTrue =
+      diag.unnecessaryNanComparisonTrue;
 
   /// No parameters.
   static const DiagnosticWithoutArguments unnecessaryNoSuchMethod =
-      DiagnosticWithoutArgumentsImpl(
-        name: 'UNNECESSARY_NO_SUCH_METHOD',
-        problemMessage: "Unnecessary 'noSuchMethod' declaration.",
-        correctionMessage: "Try removing the declaration of 'noSuchMethod'.",
-        hasPublishedDocs: true,
-        type: DiagnosticType.STATIC_WARNING,
-        uniqueName: 'WarningCode.UNNECESSARY_NO_SUCH_METHOD',
-        expectedTypes: [],
-      );
+      diag.unnecessaryNoSuchMethod;
 
   /// No parameters.
   static const DiagnosticWithoutArguments
-  unnecessaryNullComparisonAlwaysNullFalse = DiagnosticWithoutArgumentsImpl(
-    name: 'UNNECESSARY_NULL_COMPARISON',
-    problemMessage:
-        "The operand must be 'null', so the condition is always 'false'.",
-    correctionMessage: "Remove the condition.",
-    hasPublishedDocs: true,
-    type: DiagnosticType.STATIC_WARNING,
-    uniqueName: 'WarningCode.UNNECESSARY_NULL_COMPARISON_ALWAYS_NULL_FALSE',
-    expectedTypes: [],
-  );
+  unnecessaryNullComparisonAlwaysNullFalse =
+      diag.unnecessaryNullComparisonAlwaysNullFalse;
 
   /// No parameters.
   static const DiagnosticWithoutArguments
-  unnecessaryNullComparisonAlwaysNullTrue = DiagnosticWithoutArgumentsImpl(
-    name: 'UNNECESSARY_NULL_COMPARISON',
-    problemMessage:
-        "The operand must be 'null', so the condition is always 'true'.",
-    correctionMessage: "Remove the condition.",
-    hasPublishedDocs: true,
-    type: DiagnosticType.STATIC_WARNING,
-    uniqueName: 'WarningCode.UNNECESSARY_NULL_COMPARISON_ALWAYS_NULL_TRUE',
-    expectedTypes: [],
-  );
+  unnecessaryNullComparisonAlwaysNullTrue =
+      diag.unnecessaryNullComparisonAlwaysNullTrue;
 
   /// No parameters.
   static const DiagnosticWithoutArguments
-  unnecessaryNullComparisonNeverNullFalse = DiagnosticWithoutArgumentsImpl(
-    name: 'UNNECESSARY_NULL_COMPARISON',
-    problemMessage:
-        "The operand can't be 'null', so the condition is always 'false'.",
-    correctionMessage:
-        "Try removing the condition, an enclosing condition, or the whole "
-        "conditional statement.",
-    hasPublishedDocs: true,
-    type: DiagnosticType.STATIC_WARNING,
-    uniqueName: 'WarningCode.UNNECESSARY_NULL_COMPARISON_NEVER_NULL_FALSE',
-    expectedTypes: [],
-  );
+  unnecessaryNullComparisonNeverNullFalse =
+      diag.unnecessaryNullComparisonNeverNullFalse;
 
   /// No parameters.
   static const DiagnosticWithoutArguments
-  unnecessaryNullComparisonNeverNullTrue = DiagnosticWithoutArgumentsImpl(
-    name: 'UNNECESSARY_NULL_COMPARISON',
-    problemMessage:
-        "The operand can't be 'null', so the condition is always 'true'.",
-    correctionMessage: "Remove the condition.",
-    hasPublishedDocs: true,
-    type: DiagnosticType.STATIC_WARNING,
-    uniqueName: 'WarningCode.UNNECESSARY_NULL_COMPARISON_NEVER_NULL_TRUE',
-    expectedTypes: [],
-  );
+  unnecessaryNullComparisonNeverNullTrue =
+      diag.unnecessaryNullComparisonNeverNullTrue;
 
   /// Parameters:
   /// String p0: the name of the type
   static const DiagnosticWithArguments<
     LocatableDiagnostic Function({required String p0})
   >
-  unnecessaryQuestionMark = DiagnosticWithArguments(
-    name: 'UNNECESSARY_QUESTION_MARK',
-    problemMessage:
-        "The '?' is unnecessary because '{0}' is nullable without it.",
-    hasPublishedDocs: true,
-    type: DiagnosticType.STATIC_WARNING,
-    uniqueName: 'WarningCode.UNNECESSARY_QUESTION_MARK',
-    withArguments: _withArgumentsUnnecessaryQuestionMark,
-    expectedTypes: [ExpectedType.string],
-  );
+  unnecessaryQuestionMark = diag.unnecessaryQuestionMark;
 
   /// No parameters.
   static const DiagnosticWithoutArguments unnecessarySetLiteral =
-      DiagnosticWithoutArgumentsImpl(
-        name: 'UNNECESSARY_SET_LITERAL',
-        problemMessage:
-            "Braces unnecessarily wrap this expression in a set literal.",
-        correctionMessage:
-            "Try removing the set literal around the expression.",
-        hasPublishedDocs: true,
-        type: DiagnosticType.STATIC_WARNING,
-        uniqueName: 'WarningCode.UNNECESSARY_SET_LITERAL',
-        expectedTypes: [],
-      );
+      diag.unnecessarySetLiteral;
 
   /// No parameters.
   static const DiagnosticWithoutArguments unnecessaryTypeCheckFalse =
-      DiagnosticWithoutArgumentsImpl(
-        name: 'UNNECESSARY_TYPE_CHECK',
-        problemMessage: "Unnecessary type check; the result is always 'false'.",
-        correctionMessage:
-            "Try correcting the type check, or removing the type check.",
-        hasPublishedDocs: true,
-        type: DiagnosticType.STATIC_WARNING,
-        uniqueName: 'WarningCode.UNNECESSARY_TYPE_CHECK_FALSE',
-        expectedTypes: [],
-      );
+      diag.unnecessaryTypeCheckFalse;
 
   /// No parameters.
   static const DiagnosticWithoutArguments unnecessaryTypeCheckTrue =
-      DiagnosticWithoutArgumentsImpl(
-        name: 'UNNECESSARY_TYPE_CHECK',
-        problemMessage: "Unnecessary type check; the result is always 'true'.",
-        correctionMessage:
-            "Try correcting the type check, or removing the type check.",
-        hasPublishedDocs: true,
-        type: DiagnosticType.STATIC_WARNING,
-        uniqueName: 'WarningCode.UNNECESSARY_TYPE_CHECK_TRUE',
-        expectedTypes: [],
-      );
+      diag.unnecessaryTypeCheckTrue;
 
   /// No parameters.
   static const DiagnosticWithoutArguments unnecessaryWildcardPattern =
-      DiagnosticWithoutArgumentsImpl(
-        name: 'UNNECESSARY_WILDCARD_PATTERN',
-        problemMessage: "Unnecessary wildcard pattern.",
-        correctionMessage: "Try removing the wildcard pattern.",
-        hasPublishedDocs: true,
-        type: DiagnosticType.STATIC_WARNING,
-        uniqueName: 'WarningCode.UNNECESSARY_WILDCARD_PATTERN',
-        expectedTypes: [],
-      );
+      diag.unnecessaryWildcardPattern;
 
   /// No parameters.
   static const DiagnosticWithoutArguments unreachableSwitchCase =
-      DiagnosticWithoutArgumentsImpl(
-        name: 'UNREACHABLE_SWITCH_CASE',
-        problemMessage: "This case is covered by the previous cases.",
-        correctionMessage:
-            "Try removing the case clause, or restructuring the preceding "
-            "patterns.",
-        hasPublishedDocs: true,
-        type: DiagnosticType.STATIC_WARNING,
-        uniqueName: 'WarningCode.UNREACHABLE_SWITCH_CASE',
-        expectedTypes: [],
-      );
+      diag.unreachableSwitchCase;
 
   /// No parameters.
   static const DiagnosticWithoutArguments unreachableSwitchDefault =
-      DiagnosticWithoutArgumentsImpl(
-        name: 'UNREACHABLE_SWITCH_DEFAULT',
-        problemMessage: "This default clause is covered by the previous cases.",
-        correctionMessage:
-            "Try removing the default clause, or restructuring the preceding "
-            "patterns.",
-        hasPublishedDocs: true,
-        type: DiagnosticType.STATIC_WARNING,
-        uniqueName: 'WarningCode.UNREACHABLE_SWITCH_DEFAULT',
-        expectedTypes: [],
-      );
+      diag.unreachableSwitchDefault;
 
   /// Parameters:
   /// Object p0: the name of the exception variable
   static const DiagnosticWithArguments<
     LocatableDiagnostic Function({required Object p0})
   >
-  unusedCatchClause = DiagnosticWithArguments(
-    name: 'UNUSED_CATCH_CLAUSE',
-    problemMessage:
-        "The exception variable '{0}' isn't used, so the 'catch' clause can be "
-        "removed.",
-    correctionMessage: "Try removing the catch clause.",
-    hasPublishedDocs: true,
-    type: DiagnosticType.STATIC_WARNING,
-    uniqueName: 'WarningCode.UNUSED_CATCH_CLAUSE',
-    withArguments: _withArgumentsUnusedCatchClause,
-    expectedTypes: [ExpectedType.object],
-  );
+  unusedCatchClause = diag.unusedCatchClause;
 
   /// Parameters:
   /// Object p0: the name of the stack trace variable
   static const DiagnosticWithArguments<
     LocatableDiagnostic Function({required Object p0})
   >
-  unusedCatchStack = DiagnosticWithArguments(
-    name: 'UNUSED_CATCH_STACK',
-    problemMessage:
-        "The stack trace variable '{0}' isn't used and can be removed.",
-    correctionMessage: "Try removing the stack trace variable, or using it.",
-    hasPublishedDocs: true,
-    type: DiagnosticType.STATIC_WARNING,
-    uniqueName: 'WarningCode.UNUSED_CATCH_STACK',
-    withArguments: _withArgumentsUnusedCatchStack,
-    expectedTypes: [ExpectedType.object],
-  );
+  unusedCatchStack = diag.unusedCatchStack;
 
   /// Parameters:
   /// Object p0: the name that is declared but not referenced
   static const DiagnosticWithArguments<
     LocatableDiagnostic Function({required Object p0})
   >
-  unusedElement = DiagnosticWithArguments(
-    name: 'UNUSED_ELEMENT',
-    problemMessage: "The declaration '{0}' isn't referenced.",
-    correctionMessage: "Try removing the declaration of '{0}'.",
-    hasPublishedDocs: true,
-    type: DiagnosticType.STATIC_WARNING,
-    uniqueName: 'WarningCode.UNUSED_ELEMENT',
-    withArguments: _withArgumentsUnusedElement,
-    expectedTypes: [ExpectedType.object],
-  );
+  unusedElement = diag.unusedElement;
 
   /// Parameters:
   /// Object p0: the name of the parameter that is declared but not used
   static const DiagnosticWithArguments<
     LocatableDiagnostic Function({required Object p0})
   >
-  unusedElementParameter = DiagnosticWithArguments(
-    name: 'UNUSED_ELEMENT_PARAMETER',
-    problemMessage: "A value for optional parameter '{0}' isn't ever given.",
-    correctionMessage: "Try removing the unused parameter.",
-    hasPublishedDocs: true,
-    type: DiagnosticType.STATIC_WARNING,
-    uniqueName: 'WarningCode.UNUSED_ELEMENT_PARAMETER',
-    withArguments: _withArgumentsUnusedElementParameter,
-    expectedTypes: [ExpectedType.object],
-  );
+  unusedElementParameter = diag.unusedElementParameter;
 
   /// Parameters:
   /// Object p0: the name of the unused field
   static const DiagnosticWithArguments<
     LocatableDiagnostic Function({required Object p0})
   >
-  unusedField = DiagnosticWithArguments(
-    name: 'UNUSED_FIELD',
-    problemMessage: "The value of the field '{0}' isn't used.",
-    correctionMessage: "Try removing the field, or using it.",
-    hasPublishedDocs: true,
-    type: DiagnosticType.STATIC_WARNING,
-    uniqueName: 'WarningCode.UNUSED_FIELD',
-    withArguments: _withArgumentsUnusedField,
-    expectedTypes: [ExpectedType.object],
-  );
+  unusedField = diag.unusedField;
 
   /// Parameters:
   /// String p0: the content of the unused import's URI
   static const DiagnosticWithArguments<
     LocatableDiagnostic Function({required String p0})
   >
-  unusedImport = DiagnosticWithArguments(
-    name: 'UNUSED_IMPORT',
-    problemMessage: "Unused import: '{0}'.",
-    correctionMessage: "Try removing the import directive.",
-    hasPublishedDocs: true,
-    type: DiagnosticType.STATIC_WARNING,
-    uniqueName: 'WarningCode.UNUSED_IMPORT',
-    withArguments: _withArgumentsUnusedImport,
-    expectedTypes: [ExpectedType.string],
-  );
+  unusedImport = diag.unusedImport;
 
   /// Parameters:
   /// String p0: the label that isn't used
   static const DiagnosticWithArguments<
     LocatableDiagnostic Function({required String p0})
   >
-  unusedLabel = DiagnosticWithArguments(
-    name: 'UNUSED_LABEL',
-    problemMessage: "The label '{0}' isn't used.",
-    correctionMessage:
-        "Try removing the label, or using it in either a 'break' or 'continue' "
-        "statement.",
-    hasPublishedDocs: true,
-    type: DiagnosticType.STATIC_WARNING,
-    uniqueName: 'WarningCode.UNUSED_LABEL',
-    withArguments: _withArgumentsUnusedLabel,
-    expectedTypes: [ExpectedType.string],
-  );
+  unusedLabel = diag.unusedLabel;
 
   /// Parameters:
   /// Object p0: the name of the unused variable
   static const DiagnosticWithArguments<
     LocatableDiagnostic Function({required Object p0})
   >
-  unusedLocalVariable = DiagnosticWithArguments(
-    name: 'UNUSED_LOCAL_VARIABLE',
-    problemMessage: "The value of the local variable '{0}' isn't used.",
-    correctionMessage: "Try removing the variable or using it.",
-    hasPublishedDocs: true,
-    type: DiagnosticType.STATIC_WARNING,
-    uniqueName: 'WarningCode.UNUSED_LOCAL_VARIABLE',
-    withArguments: _withArgumentsUnusedLocalVariable,
-    expectedTypes: [ExpectedType.object],
-  );
+  unusedLocalVariable = diag.unusedLocalVariable;
 
   /// Parameters:
   /// String p0: the name of the annotated method, property or function
   static const DiagnosticWithArguments<
     LocatableDiagnostic Function({required String p0})
   >
-  unusedResult = DiagnosticWithArguments(
-    name: 'UNUSED_RESULT',
-    problemMessage: "The value of '{0}' should be used.",
-    correctionMessage:
-        "Try using the result by invoking a member, passing it to a function, "
-        "or returning it from this function.",
-    hasPublishedDocs: true,
-    type: DiagnosticType.STATIC_WARNING,
-    uniqueName: 'WarningCode.UNUSED_RESULT',
-    withArguments: _withArgumentsUnusedResult,
-    expectedTypes: [ExpectedType.string],
-  );
+  unusedResult = diag.unusedResult;
 
   /// The result of invoking a method, property, or function annotated with
   /// `@useResult` must be used (assigned, passed to a function as an argument,
@@ -15198,769 +5117,22 @@ class WarningCode extends DiagnosticCodeWithExpectedTypes {
   static const DiagnosticWithArguments<
     LocatableDiagnostic Function({required Object p0, required Object p1})
   >
-  unusedResultWithMessage = DiagnosticWithArguments(
-    name: 'UNUSED_RESULT',
-    problemMessage: "'{0}' should be used. {1}.",
-    correctionMessage:
-        "Try using the result by invoking a member, passing it to a function, "
-        "or returning it from this function.",
-    hasPublishedDocs: true,
-    type: DiagnosticType.STATIC_WARNING,
-    uniqueName: 'WarningCode.UNUSED_RESULT_WITH_MESSAGE',
-    withArguments: _withArgumentsUnusedResultWithMessage,
-    expectedTypes: [ExpectedType.object, ExpectedType.object],
-  );
+  unusedResultWithMessage = diag.unusedResultWithMessage;
 
   /// Parameters:
   /// String p0: the name that is shown but not used
   static const DiagnosticWithArguments<
     LocatableDiagnostic Function({required String p0})
   >
-  unusedShownName = DiagnosticWithArguments(
-    name: 'UNUSED_SHOWN_NAME',
-    problemMessage: "The name {0} is shown, but isn't used.",
-    correctionMessage: "Try removing the name from the list of shown members.",
-    hasPublishedDocs: true,
-    type: DiagnosticType.STATIC_WARNING,
-    uniqueName: 'WarningCode.UNUSED_SHOWN_NAME',
-    withArguments: _withArgumentsUnusedShownName,
-    expectedTypes: [ExpectedType.string],
-  );
+  unusedShownName = diag.unusedShownName;
 
   /// Parameters:
   /// String p0: the URI pointing to a nonexistent file
   static const DiagnosticWithArguments<
     LocatableDiagnostic Function({required String p0})
   >
-  uriDoesNotExistInDocImport = DiagnosticWithArguments(
-    name: 'URI_DOES_NOT_EXIST_IN_DOC_IMPORT',
-    problemMessage: "Target of URI doesn't exist: '{0}'.",
-    correctionMessage:
-        "Try creating the file referenced by the URI, or try using a URI for a "
-        "file that does exist.",
-    hasPublishedDocs: true,
-    type: DiagnosticType.STATIC_WARNING,
-    uniqueName: 'WarningCode.URI_DOES_NOT_EXIST_IN_DOC_IMPORT',
-    withArguments: _withArgumentsUriDoesNotExistInDocImport,
-    expectedTypes: [ExpectedType.string],
-  );
+  uriDoesNotExistInDocImport = diag.uriDoesNotExistInDocImport;
 
-  /// Initialize a newly created error code to have the given [name].
-  const WarningCode({
-    required super.name,
-    required super.problemMessage,
-    super.correctionMessage,
-    super.hasPublishedDocs = false,
-    super.isUnresolvedIdentifier = false,
-    required super.uniqueName,
-    required super.expectedTypes,
-  }) : super(type: DiagnosticType.STATIC_WARNING);
-
-  static LocatableDiagnostic
-  _withArgumentsArgumentTypeNotAssignableToErrorHandler({
-    required DartType p0,
-    required DartType p1,
-  }) {
-    return LocatableDiagnosticImpl(
-      WarningCode.argumentTypeNotAssignableToErrorHandler,
-      [p0, p1],
-    );
-  }
-
-  static LocatableDiagnostic _withArgumentsAssignmentOfDoNotStore({
-    required String p0,
-  }) {
-    return LocatableDiagnosticImpl(WarningCode.assignmentOfDoNotStore, [p0]);
-  }
-
-  static LocatableDiagnostic _withArgumentsBodyMightCompleteNormallyCatchError({
-    required DartType p0,
-  }) {
-    return LocatableDiagnosticImpl(
-      WarningCode.bodyMightCompleteNormallyCatchError,
-      [p0],
-    );
-  }
-
-  static LocatableDiagnostic _withArgumentsBodyMightCompleteNormallyNullable({
-    required DartType p0,
-  }) {
-    return LocatableDiagnosticImpl(
-      WarningCode.bodyMightCompleteNormallyNullable,
-      [p0],
-    );
-  }
-
-  static LocatableDiagnostic _withArgumentsCastFromNullableAlwaysFails({
-    required String p0,
-  }) {
-    return LocatableDiagnosticImpl(WarningCode.castFromNullableAlwaysFails, [
-      p0,
-    ]);
-  }
-
-  static LocatableDiagnostic
-  _withArgumentsConstantPatternNeverMatchesValueType({
-    required DartType p0,
-    required DartType p1,
-  }) {
-    return LocatableDiagnosticImpl(
-      WarningCode.constantPatternNeverMatchesValueType,
-      [p0, p1],
-    );
-  }
-
-  static LocatableDiagnostic _withArgumentsDeadCodeOnCatchSubtype({
-    required DartType p0,
-    required DartType p1,
-  }) {
-    return LocatableDiagnosticImpl(WarningCode.deadCodeOnCatchSubtype, [
-      p0,
-      p1,
-    ]);
-  }
-
-  static LocatableDiagnostic _withArgumentsDeprecatedExportUse({
-    required String p0,
-  }) {
-    return LocatableDiagnosticImpl(WarningCode.deprecatedExportUse, [p0]);
-  }
-
-  static LocatableDiagnostic _withArgumentsDeprecatedExtend({
-    required Object typeName,
-  }) {
-    return LocatableDiagnosticImpl(WarningCode.deprecatedExtend, [typeName]);
-  }
-
-  static LocatableDiagnostic _withArgumentsDeprecatedImplement({
-    required Object typeName,
-  }) {
-    return LocatableDiagnosticImpl(WarningCode.deprecatedImplement, [typeName]);
-  }
-
-  static LocatableDiagnostic _withArgumentsDeprecatedInstantiate({
-    required Object typeName,
-  }) {
-    return LocatableDiagnosticImpl(WarningCode.deprecatedInstantiate, [
-      typeName,
-    ]);
-  }
-
-  static LocatableDiagnostic _withArgumentsDeprecatedMixin({
-    required Object typeName,
-  }) {
-    return LocatableDiagnosticImpl(WarningCode.deprecatedMixin, [typeName]);
-  }
-
-  static LocatableDiagnostic _withArgumentsDeprecatedOptional({
-    required Object parameterName,
-  }) {
-    return LocatableDiagnosticImpl(WarningCode.deprecatedOptional, [
-      parameterName,
-    ]);
-  }
-
-  static LocatableDiagnostic _withArgumentsDeprecatedSubclass({
-    required Object typeName,
-  }) {
-    return LocatableDiagnosticImpl(WarningCode.deprecatedSubclass, [typeName]);
-  }
-
-  static LocatableDiagnostic _withArgumentsDocDirectiveArgumentWrongFormat({
-    required String p0,
-    required String p1,
-  }) {
-    return LocatableDiagnosticImpl(
-      WarningCode.docDirectiveArgumentWrongFormat,
-      [p0, p1],
-    );
-  }
-
-  static LocatableDiagnostic _withArgumentsDocDirectiveHasExtraArguments({
-    required String p0,
-    required int p1,
-    required int p2,
-  }) {
-    return LocatableDiagnosticImpl(WarningCode.docDirectiveHasExtraArguments, [
-      p0,
-      p1,
-      p2,
-    ]);
-  }
-
-  static LocatableDiagnostic
-  _withArgumentsDocDirectiveHasUnexpectedNamedArgument({
-    required String p0,
-    required String p1,
-  }) {
-    return LocatableDiagnosticImpl(
-      WarningCode.docDirectiveHasUnexpectedNamedArgument,
-      [p0, p1],
-    );
-  }
-
-  static LocatableDiagnostic _withArgumentsDocDirectiveMissingClosingTag({
-    required String p0,
-  }) {
-    return LocatableDiagnosticImpl(WarningCode.docDirectiveMissingClosingTag, [
-      p0,
-    ]);
-  }
-
-  static LocatableDiagnostic _withArgumentsDocDirectiveMissingOneArgument({
-    required String p0,
-    required String p1,
-  }) {
-    return LocatableDiagnosticImpl(WarningCode.docDirectiveMissingOneArgument, [
-      p0,
-      p1,
-    ]);
-  }
-
-  static LocatableDiagnostic _withArgumentsDocDirectiveMissingOpeningTag({
-    required String p0,
-  }) {
-    return LocatableDiagnosticImpl(WarningCode.docDirectiveMissingOpeningTag, [
-      p0,
-    ]);
-  }
-
-  static LocatableDiagnostic _withArgumentsDocDirectiveMissingThreeArguments({
-    required String p0,
-    required String p1,
-    required String p2,
-    required String p3,
-  }) {
-    return LocatableDiagnosticImpl(
-      WarningCode.docDirectiveMissingThreeArguments,
-      [p0, p1, p2, p3],
-    );
-  }
-
-  static LocatableDiagnostic _withArgumentsDocDirectiveMissingTwoArguments({
-    required String p0,
-    required String p1,
-    required String p2,
-  }) {
-    return LocatableDiagnosticImpl(
-      WarningCode.docDirectiveMissingTwoArguments,
-      [p0, p1, p2],
-    );
-  }
-
-  static LocatableDiagnostic _withArgumentsDocDirectiveUnknown({
-    required String p0,
-  }) {
-    return LocatableDiagnosticImpl(WarningCode.docDirectiveUnknown, [p0]);
-  }
-
-  static LocatableDiagnostic _withArgumentsDuplicateIgnore({
-    required String p0,
-  }) {
-    return LocatableDiagnosticImpl(WarningCode.duplicateIgnore, [p0]);
-  }
-
-  static LocatableDiagnostic _withArgumentsExperimentalMemberUse({
-    required String member,
-  }) {
-    return LocatableDiagnosticImpl(WarningCode.experimentalMemberUse, [member]);
-  }
-
-  static LocatableDiagnostic _withArgumentsInferenceFailureOnCollectionLiteral({
-    required String p0,
-  }) {
-    return LocatableDiagnosticImpl(
-      WarningCode.inferenceFailureOnCollectionLiteral,
-      [p0],
-    );
-  }
-
-  static LocatableDiagnostic
-  _withArgumentsInferenceFailureOnFunctionInvocation({required String p0}) {
-    return LocatableDiagnosticImpl(
-      WarningCode.inferenceFailureOnFunctionInvocation,
-      [p0],
-    );
-  }
-
-  static LocatableDiagnostic
-  _withArgumentsInferenceFailureOnFunctionReturnType({required String p0}) {
-    return LocatableDiagnosticImpl(
-      WarningCode.inferenceFailureOnFunctionReturnType,
-      [p0],
-    );
-  }
-
-  static LocatableDiagnostic _withArgumentsInferenceFailureOnGenericInvocation({
-    required String p0,
-  }) {
-    return LocatableDiagnosticImpl(
-      WarningCode.inferenceFailureOnGenericInvocation,
-      [p0],
-    );
-  }
-
-  static LocatableDiagnostic _withArgumentsInferenceFailureOnInstanceCreation({
-    required String p0,
-  }) {
-    return LocatableDiagnosticImpl(
-      WarningCode.inferenceFailureOnInstanceCreation,
-      [p0],
-    );
-  }
-
-  static LocatableDiagnostic
-  _withArgumentsInferenceFailureOnUninitializedVariable({required String p0}) {
-    return LocatableDiagnosticImpl(
-      WarningCode.inferenceFailureOnUninitializedVariable,
-      [p0],
-    );
-  }
-
-  static LocatableDiagnostic _withArgumentsInferenceFailureOnUntypedParameter({
-    required String p0,
-  }) {
-    return LocatableDiagnosticImpl(
-      WarningCode.inferenceFailureOnUntypedParameter,
-      [p0],
-    );
-  }
-
-  static LocatableDiagnostic _withArgumentsInvalidAnnotationTarget({
-    required String p0,
-    required String p1,
-  }) {
-    return LocatableDiagnosticImpl(WarningCode.invalidAnnotationTarget, [
-      p0,
-      p1,
-    ]);
-  }
-
-  static LocatableDiagnostic _withArgumentsInvalidExportOfInternalElement({
-    required String p0,
-  }) {
-    return LocatableDiagnosticImpl(WarningCode.invalidExportOfInternalElement, [
-      p0,
-    ]);
-  }
-
-  static LocatableDiagnostic
-  _withArgumentsInvalidExportOfInternalElementIndirectly({
-    required String p0,
-    required String p1,
-  }) {
-    return LocatableDiagnosticImpl(
-      WarningCode.invalidExportOfInternalElementIndirectly,
-      [p0, p1],
-    );
-  }
-
-  static LocatableDiagnostic _withArgumentsInvalidFactoryMethodDecl({
-    required String p0,
-  }) {
-    return LocatableDiagnosticImpl(WarningCode.invalidFactoryMethodDecl, [p0]);
-  }
-
-  static LocatableDiagnostic _withArgumentsInvalidFactoryMethodImpl({
-    required String p0,
-  }) {
-    return LocatableDiagnosticImpl(WarningCode.invalidFactoryMethodImpl, [p0]);
-  }
-
-  static LocatableDiagnostic
-  _withArgumentsInvalidLanguageVersionOverrideGreater({
-    required Object p0,
-    required Object p1,
-  }) {
-    return LocatableDiagnosticImpl(
-      WarningCode.invalidLanguageVersionOverrideGreater,
-      [p0, p1],
-    );
-  }
-
-  static LocatableDiagnostic _withArgumentsInvalidOverrideOfNonVirtualMember({
-    required String p0,
-    required String p1,
-  }) {
-    return LocatableDiagnosticImpl(
-      WarningCode.invalidOverrideOfNonVirtualMember,
-      [p0, p1],
-    );
-  }
-
-  static LocatableDiagnostic _withArgumentsInvalidUseOfDoNotSubmitMember({
-    required String p0,
-  }) {
-    return LocatableDiagnosticImpl(WarningCode.invalidUseOfDoNotSubmitMember, [
-      p0,
-    ]);
-  }
-
-  static LocatableDiagnostic _withArgumentsInvalidUseOfInternalMember({
-    required String p0,
-  }) {
-    return LocatableDiagnosticImpl(WarningCode.invalidUseOfInternalMember, [
-      p0,
-    ]);
-  }
-
-  static LocatableDiagnostic _withArgumentsInvalidUseOfProtectedMember({
-    required String p0,
-    required String p1,
-  }) {
-    return LocatableDiagnosticImpl(WarningCode.invalidUseOfProtectedMember, [
-      p0,
-      p1,
-    ]);
-  }
-
-  static LocatableDiagnostic
-  _withArgumentsInvalidUseOfVisibleForOverridingMember({required String p0}) {
-    return LocatableDiagnosticImpl(
-      WarningCode.invalidUseOfVisibleForOverridingMember,
-      [p0],
-    );
-  }
-
-  static LocatableDiagnostic
-  _withArgumentsInvalidUseOfVisibleForTemplateMember({
-    required String p0,
-    required Uri p1,
-  }) {
-    return LocatableDiagnosticImpl(
-      WarningCode.invalidUseOfVisibleForTemplateMember,
-      [p0, p1],
-    );
-  }
-
-  static LocatableDiagnostic _withArgumentsInvalidUseOfVisibleForTestingMember({
-    required String p0,
-    required Uri p1,
-  }) {
-    return LocatableDiagnosticImpl(
-      WarningCode.invalidUseOfVisibleForTestingMember,
-      [p0, p1],
-    );
-  }
-
-  static LocatableDiagnostic _withArgumentsInvalidVisibilityAnnotation({
-    required String p0,
-    required String p1,
-  }) {
-    return LocatableDiagnosticImpl(WarningCode.invalidVisibilityAnnotation, [
-      p0,
-      p1,
-    ]);
-  }
-
-  static LocatableDiagnostic _withArgumentsInvalidWidgetPreviewPrivateArgument({
-    required String p0,
-    required String p1,
-  }) {
-    return LocatableDiagnosticImpl(
-      WarningCode.invalidWidgetPreviewPrivateArgument,
-      [p0, p1],
-    );
-  }
-
-  static LocatableDiagnostic
-  _withArgumentsMissingOverrideOfMustBeOverriddenOne({required String p0}) {
-    return LocatableDiagnosticImpl(
-      WarningCode.missingOverrideOfMustBeOverriddenOne,
-      [p0],
-    );
-  }
-
-  static LocatableDiagnostic
-  _withArgumentsMissingOverrideOfMustBeOverriddenThreePlus({
-    required String p0,
-    required String p1,
-    required String p2,
-  }) {
-    return LocatableDiagnosticImpl(
-      WarningCode.missingOverrideOfMustBeOverriddenThreePlus,
-      [p0, p1, p2],
-    );
-  }
-
-  static LocatableDiagnostic
-  _withArgumentsMissingOverrideOfMustBeOverriddenTwo({
-    required String p0,
-    required String p1,
-  }) {
-    return LocatableDiagnosticImpl(
-      WarningCode.missingOverrideOfMustBeOverriddenTwo,
-      [p0, p1],
-    );
-  }
-
-  static LocatableDiagnostic _withArgumentsMissingRequiredParam({
-    required String p0,
-  }) {
-    return LocatableDiagnosticImpl(WarningCode.missingRequiredParam, [p0]);
-  }
-
-  static LocatableDiagnostic _withArgumentsMissingRequiredParamWithDetails({
-    required String p0,
-    required String p1,
-  }) {
-    return LocatableDiagnosticImpl(
-      WarningCode.missingRequiredParamWithDetails,
-      [p0, p1],
-    );
-  }
-
-  static LocatableDiagnostic _withArgumentsMixinOnSealedClass({
-    required String p0,
-  }) {
-    return LocatableDiagnosticImpl(WarningCode.mixinOnSealedClass, [p0]);
-  }
-
-  static LocatableDiagnostic _withArgumentsMustBeImmutable({
-    required String p0,
-  }) {
-    return LocatableDiagnosticImpl(WarningCode.mustBeImmutable, [p0]);
-  }
-
-  static LocatableDiagnostic _withArgumentsMustCallSuper({required String p0}) {
-    return LocatableDiagnosticImpl(WarningCode.mustCallSuper, [p0]);
-  }
-
-  static LocatableDiagnostic _withArgumentsNonConstArgumentForConstParameter({
-    required String p0,
-  }) {
-    return LocatableDiagnosticImpl(
-      WarningCode.nonConstArgumentForConstParameter,
-      [p0],
-    );
-  }
-
-  static LocatableDiagnostic _withArgumentsNonConstCallToLiteralConstructor({
-    required String p0,
-  }) {
-    return LocatableDiagnosticImpl(
-      WarningCode.nonConstCallToLiteralConstructor,
-      [p0],
-    );
-  }
-
-  static LocatableDiagnostic
-  _withArgumentsNonConstCallToLiteralConstructorUsingNew({required String p0}) {
-    return LocatableDiagnosticImpl(
-      WarningCode.nonConstCallToLiteralConstructorUsingNew,
-      [p0],
-    );
-  }
-
-  static LocatableDiagnostic _withArgumentsNullArgumentToNonNullType({
-    required String p0,
-    required String p1,
-  }) {
-    return LocatableDiagnosticImpl(WarningCode.nullArgumentToNonNullType, [
-      p0,
-      p1,
-    ]);
-  }
-
-  static LocatableDiagnostic _withArgumentsPatternNeverMatchesValueType({
-    required DartType p0,
-    required DartType p1,
-  }) {
-    return LocatableDiagnosticImpl(WarningCode.patternNeverMatchesValueType, [
-      p0,
-      p1,
-    ]);
-  }
-
-  static LocatableDiagnostic _withArgumentsRedeclareOnNonRedeclaringMember({
-    required String p0,
-  }) {
-    return LocatableDiagnosticImpl(
-      WarningCode.redeclareOnNonRedeclaringMember,
-      [p0],
-    );
-  }
-
-  static LocatableDiagnostic _withArgumentsRemovedLintUse({
-    required Object p0,
-    required Object p1,
-  }) {
-    return LocatableDiagnosticImpl(WarningCode.removedLintUse, [p0, p1]);
-  }
-
-  static LocatableDiagnostic _withArgumentsReplacedLintUse({
-    required Object p0,
-    required Object p1,
-    required Object p2,
-  }) {
-    return LocatableDiagnosticImpl(WarningCode.replacedLintUse, [p0, p1, p2]);
-  }
-
-  static LocatableDiagnostic _withArgumentsReturnOfDoNotStore({
-    required String p0,
-    required String p1,
-  }) {
-    return LocatableDiagnosticImpl(WarningCode.returnOfDoNotStore, [p0, p1]);
-  }
-
-  static LocatableDiagnostic _withArgumentsReturnOfInvalidTypeFromCatchError({
-    required DartType p0,
-    required DartType p1,
-  }) {
-    return LocatableDiagnosticImpl(
-      WarningCode.returnOfInvalidTypeFromCatchError,
-      [p0, p1],
-    );
-  }
-
-  static LocatableDiagnostic _withArgumentsReturnTypeInvalidForCatchError({
-    required DartType p0,
-    required DartType p1,
-  }) {
-    return LocatableDiagnosticImpl(WarningCode.returnTypeInvalidForCatchError, [
-      p0,
-      p1,
-    ]);
-  }
-
-  static LocatableDiagnostic _withArgumentsSdkVersionSince({
-    required String p0,
-    required String p1,
-  }) {
-    return LocatableDiagnosticImpl(WarningCode.sdkVersionSince, [p0, p1]);
-  }
-
-  static LocatableDiagnostic _withArgumentsStrictRawType({
-    required DartType p0,
-  }) {
-    return LocatableDiagnosticImpl(WarningCode.strictRawType, [p0]);
-  }
-
-  static LocatableDiagnostic _withArgumentsSubtypeOfSealedClass({
-    required String p0,
-  }) {
-    return LocatableDiagnosticImpl(WarningCode.subtypeOfSealedClass, [p0]);
-  }
-
-  static LocatableDiagnostic _withArgumentsTextDirectionCodePointInComment({
-    required String p0,
-  }) {
-    return LocatableDiagnosticImpl(
-      WarningCode.textDirectionCodePointInComment,
-      [p0],
-    );
-  }
-
-  static LocatableDiagnostic _withArgumentsTextDirectionCodePointInLiteral({
-    required String p0,
-  }) {
-    return LocatableDiagnosticImpl(
-      WarningCode.textDirectionCodePointInLiteral,
-      [p0],
-    );
-  }
-
-  static LocatableDiagnostic _withArgumentsUndefinedHiddenName({
-    required String p0,
-    required String p1,
-  }) {
-    return LocatableDiagnosticImpl(WarningCode.undefinedHiddenName, [p0, p1]);
-  }
-
-  static LocatableDiagnostic _withArgumentsUndefinedReferencedParameter({
-    required String p0,
-    required String p1,
-  }) {
-    return LocatableDiagnosticImpl(WarningCode.undefinedReferencedParameter, [
-      p0,
-      p1,
-    ]);
-  }
-
-  static LocatableDiagnostic _withArgumentsUndefinedShownName({
-    required String p0,
-    required String p1,
-  }) {
-    return LocatableDiagnosticImpl(WarningCode.undefinedShownName, [p0, p1]);
-  }
-
-  static LocatableDiagnostic _withArgumentsUnignorableIgnore({
-    required Object p0,
-  }) {
-    return LocatableDiagnosticImpl(WarningCode.unignorableIgnore, [p0]);
-  }
-
-  static LocatableDiagnostic _withArgumentsUnnecessaryQuestionMark({
-    required String p0,
-  }) {
-    return LocatableDiagnosticImpl(WarningCode.unnecessaryQuestionMark, [p0]);
-  }
-
-  static LocatableDiagnostic _withArgumentsUnusedCatchClause({
-    required Object p0,
-  }) {
-    return LocatableDiagnosticImpl(WarningCode.unusedCatchClause, [p0]);
-  }
-
-  static LocatableDiagnostic _withArgumentsUnusedCatchStack({
-    required Object p0,
-  }) {
-    return LocatableDiagnosticImpl(WarningCode.unusedCatchStack, [p0]);
-  }
-
-  static LocatableDiagnostic _withArgumentsUnusedElement({required Object p0}) {
-    return LocatableDiagnosticImpl(WarningCode.unusedElement, [p0]);
-  }
-
-  static LocatableDiagnostic _withArgumentsUnusedElementParameter({
-    required Object p0,
-  }) {
-    return LocatableDiagnosticImpl(WarningCode.unusedElementParameter, [p0]);
-  }
-
-  static LocatableDiagnostic _withArgumentsUnusedField({required Object p0}) {
-    return LocatableDiagnosticImpl(WarningCode.unusedField, [p0]);
-  }
-
-  static LocatableDiagnostic _withArgumentsUnusedImport({required String p0}) {
-    return LocatableDiagnosticImpl(WarningCode.unusedImport, [p0]);
-  }
-
-  static LocatableDiagnostic _withArgumentsUnusedLabel({required String p0}) {
-    return LocatableDiagnosticImpl(WarningCode.unusedLabel, [p0]);
-  }
-
-  static LocatableDiagnostic _withArgumentsUnusedLocalVariable({
-    required Object p0,
-  }) {
-    return LocatableDiagnosticImpl(WarningCode.unusedLocalVariable, [p0]);
-  }
-
-  static LocatableDiagnostic _withArgumentsUnusedResult({required String p0}) {
-    return LocatableDiagnosticImpl(WarningCode.unusedResult, [p0]);
-  }
-
-  static LocatableDiagnostic _withArgumentsUnusedResultWithMessage({
-    required Object p0,
-    required Object p1,
-  }) {
-    return LocatableDiagnosticImpl(WarningCode.unusedResultWithMessage, [
-      p0,
-      p1,
-    ]);
-  }
-
-  static LocatableDiagnostic _withArgumentsUnusedShownName({
-    required String p0,
-  }) {
-    return LocatableDiagnosticImpl(WarningCode.unusedShownName, [p0]);
-  }
-
-  static LocatableDiagnostic _withArgumentsUriDoesNotExistInDocImport({
-    required String p0,
-  }) {
-    return LocatableDiagnosticImpl(WarningCode.uriDoesNotExistInDocImport, [
-      p0,
-    ]);
-  }
+  /// Do not construct instances of this class.
+  WarningCode._() : assert(false);
 }

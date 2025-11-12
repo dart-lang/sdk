@@ -62,9 +62,7 @@ class _Node extends graph.Node<_Node> {
 
   TypeImpl get _fieldType {
     if (useDeclaringConstructorsAst) {
-      var constructor = node.primaryConstructor;
-      var formal = constructor.formalParameters.parameters.first;
-      return (formal as SimpleFormalParameterImpl).type!.typeOrThrow;
+      return node.fieldType.typeOrThrow;
     } else {
       return node.representation.fieldType.typeOrThrow;
     }

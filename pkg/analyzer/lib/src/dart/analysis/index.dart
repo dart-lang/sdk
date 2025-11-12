@@ -1378,7 +1378,9 @@ class _IndexContributor extends GeneralizingAstVisitor {
       node.name.lexeme,
       onClause: node.onClause,
       implementsClause: node.implementsClause,
-      memberNodes: node.members,
+      memberNodes: useDeclaringConstructorsAst
+          ? node.body.members
+          : node.members,
     );
   }
 

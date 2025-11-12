@@ -37,8 +37,8 @@ void main() async {
           provider.pathContext.relative(file.path, from: packagePath);
 
       test(relativePath, () async {
-        var response = await server.send(EDIT_REQUEST_SORT_MEMBERS,
-            EditSortMembersParams(file.path).toJson());
+        var response = await server.send(
+            editRequestSortMembers, EditSortMembersParams(file.path).toJson());
         var result = EditSortMembersResult.fromJson(
             ResponseDecoder(null), 'result', response);
 
@@ -70,9 +70,9 @@ Future<Server> connectToServer(String packagePath) async {
   }
 
   // start analysis
-  await server.send(SERVER_REQUEST_SET_SUBSCRIPTIONS,
+  await server.send(serverRequestSetSubscriptions,
       ServerSetSubscriptionsParams([ServerService.STATUS]).toJson());
-  await server.send(ANALYSIS_REQUEST_SET_ANALYSIS_ROOTS,
+  await server.send(analysisRequestSetAnalysisRoots,
       AnalysisSetAnalysisRootsParams([packagePath], const []).toJson());
 
   // wait for initial analysis to complete
