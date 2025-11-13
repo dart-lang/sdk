@@ -251,6 +251,7 @@ dart/isolates/thread_pool_test: SkipByDesign # https://dartbug.com/37299 Test us
 dart/reachability_test: SkipByDesign # Test takes too long on the simulator
 dart/regress_41971_test: SkipByDesign # https://dartbug.com/37299 dart:ffi is not supported on simulator
 dart/regress_b_216834909_test: SkipByDesign # No FFI on simulators
+dart/scoped_thread_local_test: SkipByDesign # No FFI on simulators
 dart/sdk_hash_test: SkipSlow # gen_kernel is slow to run on simarm
 dart/sendport_api_test: SkipByDesign # No FFI on simulators
 dart/shared_collect_all_garbage_test: SkipByDesign # No FFI on simulators

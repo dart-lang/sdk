@@ -1383,6 +1383,9 @@ class Thread : public ThreadState, public IntrusiveDListEntry<Thread> {
 
   static void VisitMutators(MutatorThreadVisitor* visitor);
 
+  GrowableObjectArrayPtr thread_locals() const { return thread_locals_; }
+  void set_thread_locals(const GrowableObjectArray& thread_locals);
+
  private:
   template <class T>
   T* AllocateReusableHandle();
@@ -1575,6 +1578,8 @@ class Thread : public ThreadState, public IntrusiveDListEntry<Thread> {
   ObjectPtr* shared_field_table_values() const {
     return shared_field_table_values_;
   }
+
+  GrowableObjectArrayPtr thread_locals_ = nullptr;
 
 // Reusable handles support.
 #define REUSABLE_HANDLE_FIELDS(object) object* object##_handle_;

@@ -853,6 +853,11 @@ class IsolateGroup : public IntrusiveDListEntry<IsolateGroup> {
   GrowableObjectArrayPtr tag_table() const { return tag_table_; }
   void set_tag_table(const GrowableObjectArray& value);
 
+  intptr_t scoped_thread_locals_count() { return scoped_thread_locals_count_; }
+  intptr_t increment_scoped_thread_locals_count() {
+    return scoped_thread_locals_count_.fetch_add(1u, std::memory_order_relaxed);
+  }
+
  private:
   friend class Dart;  // For `object_store_ = ` in Dart::Init
   friend class Heap;
@@ -1013,6 +1018,8 @@ class IsolateGroup : public IntrusiveDListEntry<IsolateGroup> {
 
   SafepointRwLock tag_table_lock_;
   GrowableObjectArrayPtr tag_table_;
+
+  std::atomic<intptr_t> scoped_thread_locals_count_ = 0;
 };
 
 // When an isolate sends-and-exits this class represent things that it passed

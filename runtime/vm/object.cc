@@ -2532,6 +2532,14 @@ ErrorPtr Object::Init(IsolateGroup* isolate_group,
     pending_classes.Add(cls);
     RegisterClass(cls, Symbols::FinalizerEntry(), lib);
 
+    lib = Library::LookupLibrary(thread, Symbols::DartVM());
+    if (lib.IsNull()) {
+      lib = Library::NewLibraryHelper(Symbols::DartVM(), true);
+      lib.SetLoadRequested();
+      lib.Register(thread);
+    }
+    object_store->set_bootstrap_library(ObjectStore::kVM, lib);
+
     // Finish the initialization by compiling the bootstrap scripts containing
     // the base interfaces and the implementation of the internal classes.
     const Error& error = Error::Handle(
@@ -15640,6 +15648,10 @@ LibraryPtr Library::InternalLibrary() {
   return IsolateGroup::Current()->object_store()->_internal_library();
 }
 
+LibraryPtr Library::VMLibrary() {
+  return IsolateGroup::Current()->object_store()->_vm_library();
+}
+
 LibraryPtr Library::IsolateLibrary() {
   return IsolateGroup::Current()->object_store()->isolate_library();
 }
@@ -26631,13 +26643,14 @@ const char* ExternalTypedData::ToCString() const {
 PointerPtr Pointer::New(uword native_address, Heap::Space space) {
   Thread* thread = Thread::Current();
   Zone* zone = thread->zone();
+  IsolateGroup* isolate_group = thread->isolate_group();
 
   const auto& type_args = TypeArguments::Handle(
-      zone, IsolateGroup::Current()->object_store()->type_argument_never());
+      zone, isolate_group->object_store()->type_argument_never());
 
   const Class& cls =
-      Class::Handle(IsolateGroup::Current()->class_table()->At(kPointerCid));
-  cls.EnsureIsAllocateFinalized(Thread::Current());
+      Class::Handle(isolate_group->class_table()->At(kPointerCid));
+  cls.EnsureIsAllocateFinalized(thread);
 
   const auto& result = Pointer::Handle(zone, Object::Allocate<Pointer>(space));
   result.SetTypeArguments(type_args);

@@ -26,10 +26,11 @@ library from "org-dartlang-test:///main.dart" as main {
   }
 }
 
-And 19 platform libraries:
+And 20 platform libraries:
  - dart:_builtin
  - dart:_compact_hash
  - dart:_internal
+ - dart:_vm
  - dart:_vmservice
  - dart:async
  - dart:cli

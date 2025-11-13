@@ -104,6 +104,9 @@
         "uri": "typed_data/typed_data.dart",
         "patches": "_internal/vm/lib/typed_data_patch.dart"
       },
+      "_vm": {
+        "uri": "_vm/_vm.dart"
+      },
       "_vmservice": {
         "uri": "vmservice/vmservice.dart"
       },

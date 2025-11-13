@@ -96,6 +96,7 @@ Thread::Thread(bool is_vm_isolate)
       thread_lock_(),
       reusable_handles_(),
       sticky_error_(Error::null()),
+      thread_locals_(GrowableObjectArray::null()),
       REUSABLE_HANDLE_LIST(REUSABLE_HANDLE_INITIALIZERS)
           REUSABLE_HANDLE_LIST(REUSABLE_HANDLE_SCOPE_INIT)
 #if !defined(PRODUCT) || defined(FORCE_INCLUDE_SAMPLING_HEAP_PROFILER)
@@ -267,6 +268,10 @@ void Thread::set_default_tag(const UserTag& tag) {
   default_tag_ = tag.ptr();
 }
 
+void Thread::set_thread_locals(const GrowableObjectArray& thread_locals) {
+  thread_locals_ = thread_locals.ptr();
+}
+
 ErrorPtr Thread::StealStickyError() {
   NoSafepointScope no_safepoint;
   ErrorPtr return_value = sticky_error_;
@@ -357,6 +362,7 @@ void Thread::AssertEmptyThreadInvariants() {
 
   ASSERT(default_tag_ == UserTag::null());
   ASSERT(current_tag_ == UserTag::null());
+  ASSERT(thread_locals_ == GrowableObjectArray::null());
 
   // Avoid running these asserts for `vm-isolate`.
   if (active_stacktrace_.untag() != 0) {
@@ -768,6 +774,7 @@ void Thread::FreeActiveThread(Thread* thread,
   thread->ResetStateLocked();
   thread->current_tag_ = UserTag::null();
   thread->default_tag_ = UserTag::null();
+  thread->thread_locals_ = GrowableObjectArray::null();
 
   thread->AssertEmptyThreadInvariants();
   thread_registry->ReturnThreadLocked(thread);
@@ -1151,6 +1158,7 @@ void Thread::VisitObjectPointers(ObjectPointerVisitor* visitor,
 
   visitor->VisitPointer(reinterpret_cast<ObjectPtr*>(&current_tag_));
   visitor->VisitPointer(reinterpret_cast<ObjectPtr*>(&default_tag_));
+  visitor->VisitPointer(reinterpret_cast<ObjectPtr*>(&thread_locals_));
 }
 
 class RestoreWriteBarrierInvariantVisitor : public ObjectPointerVisitor {

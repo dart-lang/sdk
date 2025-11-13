@@ -29,6 +29,7 @@ class ObjectPointerVisitor;
   M(Math, math)                                                                \
   M(Mirrors, mirrors)                                                          \
   M(TypedData, typed_data)                                                     \
+  M(VM, _vm)                                                                   \
   M(VMService, _vmservice)                                                     \
   M(Concurrent, concurrent)
 
@@ -162,6 +163,7 @@ class ObjectPointerVisitor;
   RW(Library, native_wrappers_library)                                         \
   RW(Library, root_library)                                                    \
   RW(Library, typed_data_library)                                              \
+  RW(Library, _vm_library)                                                     \
   RW(Library, _vmservice_library)                                              \
   RW(Library, native_assets_library)                                           \
   RW(Array, native_assets_map)                                                 \

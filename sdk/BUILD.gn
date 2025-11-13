@@ -229,6 +229,7 @@ _full_sdk_libraries = [
   "mirrors",
   "svg",
   "typed_data",
+  "_vm",
   "_wasm",
   "web_audio",
   "web_gl",

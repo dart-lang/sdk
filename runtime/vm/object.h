@@ -5439,6 +5439,7 @@ class Library : public Object {
   static LibraryPtr DeveloperLibrary();
   static LibraryPtr FfiLibrary();
   static LibraryPtr InternalLibrary();
+  static LibraryPtr VMLibrary();
   static LibraryPtr IsolateLibrary();
   static LibraryPtr MathLibrary();
 #if !defined(DART_PRECOMPILED_RUNTIME)

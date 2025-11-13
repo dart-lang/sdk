@@ -30,6 +30,7 @@ class FlutterRunnerTarget extends VmTarget {
     'dart:mirrors',
 
     'dart:typed_data',
+    'dart:_vm',
     'dart:nativewrappers',
     'dart:io',
 
