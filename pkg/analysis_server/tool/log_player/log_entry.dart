@@ -5,27 +5,37 @@
 /// @docImport 'log.dart';
 library;
 
+import 'package:analysis_server/src/session_logger/entry_keys.dart' as key;
+import 'package:analysis_server/src/session_logger/entry_kind.dart';
 import 'package:analysis_server/src/session_logger/process_id.dart';
 
 /// A representation of an entry in a [Log].
+///
+/// Every entry has a [time] and a [kind]. Other properties are dependent on the
+/// [kind]. See [EntryKind] for a description of the properties associated with
+/// each [kind].
 extension type LogEntry(JsonMap map) {
-  /// The key used in the [map] to access the message associatd with the entry.
-  static const String messageKey = 'message';
+  /// Returns the command-line arguments used to start the server.
+  List<String> get argList =>
+      (map[key.argList] as List<dynamic>).cast<String>();
 
-  /// The key used in the [map] to access the receiver of a message.
-  static const String receiverKey = 'receiver';
+  /// Whether this entry is a command line entry.
+  bool get isCommandLine => kind == EntryKind.commandLine;
 
-  /// The key used in the [map] to access the sender of a message.
-  static const String senderKey = 'sender';
+  /// Whether this entry is a message entry.
+  bool get isMessage => kind == EntryKind.message;
+
+  /// Returns the kind of this log entry.
+  EntryKind get kind => EntryKind.forName(map[key.kind] as String);
 
   /// Returns the message for this log entry.
-  Message get message => Message(map[messageKey] as JsonMap);
+  Message get message => Message(map[key.message] as JsonMap);
 
   /// Returns the receiver of the message.
-  ProcessId get receiver => ProcessId.forName(map[receiverKey] as String);
+  ProcessId get receiver => ProcessId.forName(map[key.receiver] as String);
 
   /// Returns the sender of the message.
-  ProcessId get sender => ProcessId.forName(map[senderKey] as String);
+  ProcessId get sender => ProcessId.forName(map[key.sender] as String);
 }
 
 /// A representation of a message sent from one process to another.

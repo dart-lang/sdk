@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 /// @docImport 'package:analyzer/src/error/codes.dart';
+/// @docImport 'package:analyzer/analysis_rule/analysis_rule.dart';
 library;
 
 import 'package:_fe_analyzer_shared/src/base/analyzer_public_api.dart';
@@ -26,11 +27,35 @@ class LintCode extends DiagnosticCode {
   final DiagnosticSeverity severity;
 
   /// Initializes a lint code.
+  ///
+  /// The [name] is a "snake_case" name for the reported diagnostic.
+  ///
+  /// The [problemMessage] is a concise, human-readable message indicating
+  /// the problematic behavior.
+  ///
+  /// The [correctionMessage], if given, is a concise, human-readable message
+  /// indicating one or two possible corrections.
+  ///
+  /// The [problemMessage] and [correctionMessage] text is printed with a
+  /// reported diagnostics. For example, `dart analyze` and `flutter analyze`
+  /// will print the [problemMessage] with each diagnostic. The [problemMessage]
+  /// and [correctionMessage] area each printed in an IDE's "problems" panel
+  /// with each diagnostic.
+  ///
+  /// The [problemMessage] and [correctionMessage] text can contain
+  /// interpolation placeholders, in the form of `{0}`, `{1}`, etc. When a
+  /// diagnostic for this LintCode is produced (for example with
+  /// [AnalysisRule.reportAtNode]) with arguments, they are interpolated into
+  /// the [problemMessage] and [correctionMessage]. If present, the first
+  /// argument (at position 0) replaces each instance of `{0}`, the second
+  /// argument (at position 1) replaces each instance of `{1}`, etc.
+  // TODO(srawlins): Add a 'url' parameter for plugin authors.
+  // TODO(srawlins): Document `uniqueName` and `severity`.
   const LintCode(
     String name,
     String problemMessage, {
     super.correctionMessage,
-    super.hasPublishedDocs,
+    @Deprecated('To be removed without replacement') super.hasPublishedDocs,
     String? uniqueName,
     this.severity = DiagnosticSeverity.INFO,
   }) : super(

@@ -1,3 +1,6 @@
+## 9.0.1-dev
+* Deprecate `LintCode.new`'s `hasPublishedDocs` parameter.
+
 ## 9.0.0
 * Remove deprecated field `Diagnostic.data`.
 * In the method `DiagnosticReporter.atOffset` and the constructors

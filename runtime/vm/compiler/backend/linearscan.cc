@@ -1465,9 +1465,8 @@ void FlowGraphAllocator::ProcessOneInstruction(BlockEntryInstr* block,
       // TODO(vegorov): improve allocation when we have enough registers to keep
       // constants used in the loop in them.
       if (HasOnlyUnconstrainedUses(range)) {
-        ConstantInstr* constant_instr = def->AsConstant();
-        range->set_assigned_location(Location::Constant(constant_instr));
-        range->set_spill_slot(Location::Constant(constant_instr));
+        range->set_assigned_location(Location::Constant(const_def));
+        range->set_spill_slot(Location::Constant(const_def));
         range->finger()->Initialize(range);
         ConvertAllUses(range);
 

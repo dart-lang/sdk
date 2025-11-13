@@ -337,6 +337,7 @@ class Driver implements ServerStarter {
     _sessionLogger = SessionLogger();
     if (sessionLogFilePath != null) {
       _sessionLogger.sink = SessionLoggerFileSink(sessionLogFilePath);
+      _sessionLogger.logCommandLine(arguments: arguments);
     }
 
     int? diagnosticServerPort;
