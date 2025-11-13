@@ -33,7 +33,7 @@ class ExportNamer {
   String _getExportName(String name) {
     if (!minify) return name;
     do {
-      name = intToBase64(_nameCounter++);
+      name = intToMinString(_nameCounter++);
     } while (_reservedNames.contains(name));
     return name;
   }

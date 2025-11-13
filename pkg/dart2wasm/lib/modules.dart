@@ -32,13 +32,16 @@ class ModuleMetadataBuilder {
   ModuleMetadata buildModuleMetadata(
       {bool emitAsMain = false, bool skipEmit = false}) {
     final id = _counter++;
+    final moduleImportName =
+        options.translatorOptions.minify ? intToMinString(id) : 'module$id';
     return ModuleMetadata._(
-        id,
+        moduleImportName,
         emitAsMain || id == _mainModuleId
             ? path.basename(options.outputFile)
             : path.basename(
                 path.setExtension(options.outputFile, '_module$id.wasm')),
-        skipEmit: skipEmit);
+        skipEmit: skipEmit,
+        isMain: id == _mainModuleId);
   }
 }
 
@@ -52,16 +55,13 @@ class ModuleMetadataBuilder {
 /// by library, by class or neither. [containsReference] should be used to
 /// determine if a module contains a given class/member reference.
 class ModuleMetadata {
-  /// The ID for the module which will be included in the emitted name.
-  final int _id;
-
   /// The set of libraries contained in this module.
   final Set<Library> libraries = {};
 
-  bool get isMain => _id == _mainModuleId;
+  final bool isMain;
 
   /// The name used to import and export this module.
-  String get moduleImportName => 'module$_id';
+  final String moduleImportName;
 
   /// The name added to the wasm output file for this module.
   final String moduleName;
@@ -69,7 +69,8 @@ class ModuleMetadata {
   /// Whether or not a wasm file should be emitted for this module.
   final bool skipEmit;
 
-  ModuleMetadata._(this._id, this.moduleName, {this.skipEmit = false});
+  ModuleMetadata._(this.moduleImportName, this.moduleName,
+      {this.skipEmit = false, this.isMain = false});
 
   /// Whether or not the provided kernel [Reference] is included in this module.
   bool containsReference(Reference reference) {

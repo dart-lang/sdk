@@ -2030,7 +2030,7 @@ class Translator with KernelNodes {
       internalizedStringsForJSRuntime.add(s);
     } else {
       internalizedString = module.globals.import(
-        'S',
+        '',
         s,
         w.GlobalType(w.RefType.extern(nullable: false), mutable: false),
       );

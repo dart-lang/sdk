@@ -18,7 +18,7 @@
   (global $"C331 _TopType" (import "module0" "global2") (ref $_TopType))
   (global $"C62 WasmArray<_Type>[1]" (import "module0" "global3") (ref $Array<_Type>))
   (global $"C306 WasmArray<_NamedParameter>[0]" (import "module0" "global4") (ref $Array<_NamedParameter>))
-  (global $S.globalH0Foo (import "S" "globalH0Foo") (ref extern))
+  (global $.globalH0Foo (import "" "globalH0Foo") (ref extern))
   (table $module0.constant-table0 (import "module0" "constant-table0") 1 (ref null $_FunctionType))
   (global $global6 (ref $#Vtable-0-1) <...>)
   (global $global3 (ref $#DummyStruct) <...>)
@@ -29,7 +29,7 @@
   (global $"C467 \"globalH0Foo\"" (ref $JSStringImpl)
     (i32.const 4)
     (i32.const 0)
-    (global.get $S.globalH0Foo)
+    (global.get $.globalH0Foo)
     (struct.new $JSStringImpl))
   (func $globalH0Foo (param $var0 i64) (result (ref null $#Top))
     global.get $"C467 \"globalH0Foo\""
