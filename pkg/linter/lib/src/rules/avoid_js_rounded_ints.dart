@@ -10,6 +10,7 @@ import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/error/error.dart';
 
 import '../analyzer.dart';
+import '../diagnostic.dart' as diag;
 
 const _desc = r'Avoid JavaScript rounded ints.';
 
@@ -18,7 +19,7 @@ class AvoidJsRoundedInts extends AnalysisRule {
     : super(name: LintNames.avoid_js_rounded_ints, description: _desc);
 
   @override
-  DiagnosticCode get diagnosticCode => LinterLintCode.avoidJsRoundedInts;
+  DiagnosticCode get diagnosticCode => diag.avoidJsRoundedInts;
 
   @override
   void registerNodeProcessors(

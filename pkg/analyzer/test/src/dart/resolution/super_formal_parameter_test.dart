@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/src/dart/element/member.dart';
-import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:analyzer/src/test_utilities/find_element2.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -102,7 +102,7 @@ SuperFormalParameter
       r'''
 void f(super.a) {}
 ''',
-      [error(CompileTimeErrorCode.invalidSuperFormalParameterLocation, 7, 5)],
+      [error(diag.invalidSuperFormalParameterLocation, 7, 5)],
     );
 
     var node = findNode.superFormalParameter('super.');

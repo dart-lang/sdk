@@ -2,8 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/error/codes.dart';
-import 'package:analyzer/src/generated/parser.dart' show ParserErrorCode;
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
@@ -24,7 +23,7 @@ class A {
   factory A(this.x) => throw 0;
 }
 ''',
-      [error(CompileTimeErrorCode.fieldInitializerFactoryConstructor, 35, 6)],
+      [error(diag.fieldInitializerFactoryConstructor, 35, 6)],
     );
   }
 
@@ -39,8 +38,8 @@ class A {
       [
         // TODO(srawlins): Only report one error. Theoretically change Fasta to
         // report "Field initializer in factory constructor" as a parse error.
-        error(CompileTimeErrorCode.fieldInitializerFactoryConstructor, 43, 12),
-        error(ParserErrorCode.missingFunctionBody, 56, 1),
+        error(diag.fieldInitializerFactoryConstructor, 43, 12),
+        error(diag.missingFunctionBody, 56, 1),
       ],
     );
   }
@@ -59,7 +58,7 @@ void f() {
   E._(0);
 }
 ''',
-      [error(CompileTimeErrorCode.fieldInitializerFactoryConstructor, 60, 6)],
+      [error(diag.fieldInitializerFactoryConstructor, 60, 6)],
     );
   }
 }

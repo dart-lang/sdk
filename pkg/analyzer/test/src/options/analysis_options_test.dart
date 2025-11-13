@@ -7,7 +7,7 @@ import 'package:analyzer/error/error.dart';
 import 'package:analyzer/file_system/memory_file_system.dart';
 import 'package:analyzer/src/analysis_options/analysis_options_provider.dart';
 import 'package:analyzer/src/dart/analysis/analysis_options.dart';
-import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:analyzer/src/file_system/file_system.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/lint/registry.dart';
@@ -117,7 +117,7 @@ analyzer:
       source: TestSource(),
       offset: 0,
       length: 1,
-      diagnosticCode: WarningCode.returnTypeInvalidForCatchError,
+      diagnosticCode: diag.returnTypeInvalidForCatchError,
       arguments: [
         ['x'],
         ['y'],
@@ -142,7 +142,7 @@ analyzer:
       source: TestSource(),
       offset: 0,
       length: 1,
-      diagnosticCode: WarningCode.unusedLocalVariable,
+      diagnosticCode: diag.unusedLocalVariable,
       arguments: [
         ['x'],
       ],
@@ -167,7 +167,7 @@ analyzer:
       source: TestSource(),
       offset: 0,
       length: 1,
-      diagnosticCode: CompileTimeErrorCode.invalidAssignment,
+      diagnosticCode: diag.invalidAssignment,
       arguments: [
         ['x'],
         ['y'],
@@ -193,7 +193,7 @@ analyzer:
       source: TestSource(),
       offset: 0,
       length: 1,
-      diagnosticCode: WarningCode.returnTypeInvalidForCatchError,
+      diagnosticCode: diag.returnTypeInvalidForCatchError,
       arguments: [
         ['x'],
         ['y'],

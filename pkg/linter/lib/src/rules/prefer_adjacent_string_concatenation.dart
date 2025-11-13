@@ -10,6 +10,7 @@ import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/error/error.dart';
 
 import '../analyzer.dart';
+import '../diagnostic.dart' as diag;
 
 const _desc = r'Use adjacent strings to concatenate string literals.';
 
@@ -21,8 +22,7 @@ class PreferAdjacentStringConcatenation extends AnalysisRule {
       );
 
   @override
-  DiagnosticCode get diagnosticCode =>
-      LinterLintCode.preferAdjacentStringConcatenation;
+  DiagnosticCode get diagnosticCode => diag.preferAdjacentStringConcatenation;
 
   @override
   void registerNodeProcessors(

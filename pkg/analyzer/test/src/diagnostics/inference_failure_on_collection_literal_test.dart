@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:analyzer_testing/utilities/utilities.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -38,13 +38,13 @@ void main() {
 }
 ''',
       [
-        error(WarningCode.unusedLocalVariable, 20, 1),
-        error(WarningCode.unusedLocalVariable, 35, 1),
-        error(WarningCode.unusedLocalVariable, 61, 1),
-        error(WarningCode.unusedLocalVariable, 76, 1),
-        error(WarningCode.unusedLocalVariable, 102, 1),
-        error(WarningCode.unusedLocalVariable, 121, 1),
-        error(WarningCode.unusedLocalVariable, 151, 1),
+        error(diag.unusedLocalVariable, 20, 1),
+        error(diag.unusedLocalVariable, 35, 1),
+        error(diag.unusedLocalVariable, 61, 1),
+        error(diag.unusedLocalVariable, 76, 1),
+        error(diag.unusedLocalVariable, 102, 1),
+        error(diag.unusedLocalVariable, 121, 1),
+        error(diag.unusedLocalVariable, 151, 1),
       ],
     );
   }
@@ -57,8 +57,8 @@ void main() {
 }
 ''',
       [
-        error(WarningCode.unusedLocalVariable, 20, 1),
-        error(WarningCode.inferenceFailureOnCollectionLiteral, 49, 2),
+        error(diag.unusedLocalVariable, 20, 1),
+        error(diag.inferenceFailureOnCollectionLiteral, 49, 2),
       ],
     );
   }
@@ -69,8 +69,8 @@ void main() {
 void f([list = const []]) => print(list);
 ''',
       [
-        error(WarningCode.inferenceFailureOnUntypedParameter, 8, 4),
-        error(WarningCode.inferenceFailureOnCollectionLiteral, 15, 8),
+        error(diag.inferenceFailureOnUntypedParameter, 8, 4),
+        error(diag.inferenceFailureOnCollectionLiteral, 15, 8),
       ],
     );
   }
@@ -81,8 +81,8 @@ void f([list = const []]) => print(list);
 void f([map = const {}]) => print(map);
 ''',
       [
-        error(WarningCode.inferenceFailureOnUntypedParameter, 8, 3),
-        error(WarningCode.inferenceFailureOnCollectionLiteral, 14, 8),
+        error(diag.inferenceFailureOnUntypedParameter, 8, 3),
+        error(diag.inferenceFailureOnCollectionLiteral, 14, 8),
       ],
     );
   }
@@ -104,12 +104,12 @@ void main() {
 }
 ''',
       [
-        error(WarningCode.unusedLocalVariable, 30, 1),
-        error(WarningCode.unusedLocalVariable, 53, 1),
-        error(WarningCode.unusedLocalVariable, 85, 1),
-        error(WarningCode.unusedElement, 172, 1),
-        error(WarningCode.unusedElement, 194, 1),
-        error(WarningCode.unusedElement, 221, 1),
+        error(diag.unusedLocalVariable, 30, 1),
+        error(diag.unusedLocalVariable, 53, 1),
+        error(diag.unusedLocalVariable, 85, 1),
+        error(diag.unusedElement, 172, 1),
+        error(diag.unusedElement, 194, 1),
+        error(diag.unusedElement, 221, 1),
       ],
     );
   }
@@ -124,9 +124,9 @@ void main() {
 }
 ''',
       [
-        error(WarningCode.unusedLocalVariable, 20, 1),
-        error(WarningCode.unusedLocalVariable, 43, 1),
-        error(WarningCode.unusedLocalVariable, 66, 1),
+        error(diag.unusedLocalVariable, 20, 1),
+        error(diag.unusedLocalVariable, 43, 1),
+        error(diag.unusedLocalVariable, 66, 1),
       ],
     );
   }
@@ -136,7 +136,7 @@ void main() {
       r'''
 dynamic f() => [];
 ''',
-      [error(WarningCode.inferenceFailureOnCollectionLiteral, 15, 2)],
+      [error(diag.inferenceFailureOnCollectionLiteral, 15, 2)],
     );
   }
 
@@ -159,7 +159,7 @@ void f(List<int>? a) {
   var x = a ?? [];
 }
 ''',
-      [error(WarningCode.unusedLocalVariable, 29, 1)],
+      [error(diag.unusedLocalVariable, 29, 1)],
     );
   }
 
@@ -171,8 +171,8 @@ void main() {
 }
 ''',
       [
-        error(WarningCode.unusedLocalVariable, 22, 1),
-        error(WarningCode.inferenceFailureOnCollectionLiteral, 26, 2),
+        error(diag.unusedLocalVariable, 22, 1),
+        error(diag.inferenceFailureOnCollectionLiteral, 26, 2),
       ],
     );
   }
@@ -185,8 +185,8 @@ void main() {
 }
 ''',
       [
-        error(WarningCode.unusedLocalVariable, 22, 1),
-        error(WarningCode.inferenceFailureOnCollectionLiteral, 26, 2),
+        error(diag.unusedLocalVariable, 22, 1),
+        error(diag.inferenceFailureOnCollectionLiteral, 26, 2),
       ],
     );
   }
@@ -199,8 +199,8 @@ void main() {
 }
 ''',
       [
-        error(WarningCode.unusedLocalVariable, 20, 1),
-        error(WarningCode.inferenceFailureOnCollectionLiteral, 24, 2),
+        error(diag.unusedLocalVariable, 20, 1),
+        error(diag.inferenceFailureOnCollectionLiteral, 24, 2),
       ],
     );
   }
@@ -213,8 +213,8 @@ void main() {
 }
 ''',
       [
-        error(WarningCode.unusedLocalVariable, 20, 1),
-        error(WarningCode.inferenceFailureOnCollectionLiteral, 24, 2),
+        error(diag.unusedLocalVariable, 20, 1),
+        error(diag.inferenceFailureOnCollectionLiteral, 24, 2),
       ],
     );
   }
@@ -227,9 +227,9 @@ void main() {
 }
 ''',
       [
-        error(WarningCode.unusedLocalVariable, 20, 1),
-        error(WarningCode.inferenceFailureOnCollectionLiteral, 25, 2),
-        error(WarningCode.inferenceFailureOnCollectionLiteral, 29, 2),
+        error(diag.unusedLocalVariable, 20, 1),
+        error(diag.inferenceFailureOnCollectionLiteral, 25, 2),
+        error(diag.inferenceFailureOnCollectionLiteral, 29, 2),
       ],
     );
   }
@@ -239,7 +239,7 @@ void main() {
       r'''
 var x = [];
 ''',
-      [error(WarningCode.inferenceFailureOnCollectionLiteral, 8, 2)],
+      [error(diag.inferenceFailureOnCollectionLiteral, 8, 2)],
     );
   }
 

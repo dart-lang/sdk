@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../rule_test_support.dart';
@@ -56,7 +57,7 @@ void f() async {
 ''',
       [
         // No lint.
-        error(CompileTimeErrorCode.awaitOfIncompatibleType, 48, 5),
+        error(diag.awaitOfIncompatibleType, 48, 5),
       ],
     );
   }
@@ -159,7 +160,7 @@ Undefined f() async => await f();
 ''',
       [
         // No lint.
-        error(CompileTimeErrorCode.undefinedClass, 0, 9),
+        error(diag.undefinedClass, 0, 9),
       ],
     );
   }

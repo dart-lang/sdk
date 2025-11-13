@@ -13,6 +13,7 @@ import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/error/error.dart';
 
 import '../analyzer.dart';
+import '../diagnostic.dart' as diag;
 
 const _desc = r'Unnecessary `null` checks.';
 
@@ -147,7 +148,7 @@ class UnnecessaryNullChecks extends AnalysisRule {
       );
 
   @override
-  DiagnosticCode get diagnosticCode => LinterLintCode.unnecessaryNullChecks;
+  DiagnosticCode get diagnosticCode => diag.unnecessaryNullChecks;
 
   @override
   void registerNodeProcessors(

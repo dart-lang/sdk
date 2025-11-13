@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/generated/parser.dart' show ParserErrorCode;
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
@@ -20,7 +20,7 @@ class NativeFunctionBodyInNonSdkCodeTest extends PubPackageResolutionTest {
       '''
 int m(a) native 'string';
 ''',
-      [error(ParserErrorCode.nativeFunctionBodyInNonSdkCode, 9, 16)],
+      [error(diag.nativeFunctionBodyInNonSdkCode, 9, 16)],
     );
   }
 
@@ -31,7 +31,7 @@ class A {
   static int m(a) native 'string';
 }
 ''',
-      [error(ParserErrorCode.nativeFunctionBodyInNonSdkCode, 28, 16)],
+      [error(diag.nativeFunctionBodyInNonSdkCode, 28, 16)],
     );
   }
 
@@ -42,7 +42,7 @@ mixin A {
   static int m(a) native 'string';
 }
 ''',
-      [error(ParserErrorCode.nativeFunctionBodyInNonSdkCode, 28, 16)],
+      [error(diag.nativeFunctionBodyInNonSdkCode, 28, 16)],
     );
   }
 }

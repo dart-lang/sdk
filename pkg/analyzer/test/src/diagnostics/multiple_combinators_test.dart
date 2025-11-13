@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
@@ -27,7 +27,7 @@ export 'dart:async' hide Future, Stream;
       r'''
 export 'dart:async' hide Future, Stream hide Stream;
 ''',
-      [error(WarningCode.multipleCombinators, 20, 31)],
+      [error(diag.multipleCombinators, 20, 31)],
     );
   }
 
@@ -36,7 +36,7 @@ export 'dart:async' hide Future, Stream hide Stream;
       r'''
 export 'dart:async' hide Future, Stream show Stream;
 ''',
-      [error(WarningCode.multipleCombinators, 20, 31)],
+      [error(diag.multipleCombinators, 20, 31)],
     );
   }
 
@@ -57,7 +57,7 @@ export 'dart:async' show Future, Stream;
       r'''
 export 'dart:async' show Future, Stream hide Stream;
 ''',
-      [error(WarningCode.multipleCombinators, 20, 31)],
+      [error(diag.multipleCombinators, 20, 31)],
     );
   }
 
@@ -66,7 +66,7 @@ export 'dart:async' show Future, Stream hide Stream;
       r'''
 export 'dart:async' show Future, Stream show Stream;
 ''',
-      [error(WarningCode.multipleCombinators, 20, 31)],
+      [error(diag.multipleCombinators, 20, 31)],
     );
   }
 }
@@ -86,7 +86,7 @@ import 'dart:async' hide Future, Stream;
 //ignore: unused_import
 import 'dart:async' hide Future, Stream hide Stream;
 ''',
-      [error(WarningCode.multipleCombinators, 44, 31)],
+      [error(diag.multipleCombinators, 44, 31)],
     );
   }
 
@@ -96,7 +96,7 @@ import 'dart:async' hide Future, Stream hide Stream;
 //ignore: unused_import
 import 'dart:async' hide Future, Stream show Stream;
 ''',
-      [error(WarningCode.multipleCombinators, 44, 31)],
+      [error(diag.multipleCombinators, 44, 31)],
     );
   }
 
@@ -113,7 +113,7 @@ import 'dart:async';
 //ignore: unused_import
 import 'dart:async' as async hide Future, Stream show Stream;
 ''',
-      [error(WarningCode.multipleCombinators, 53, 31)],
+      [error(diag.multipleCombinators, 53, 31)],
     );
   }
 
@@ -130,7 +130,7 @@ import 'dart:async' show Future, Stream;
 //ignore: unused_import
 import 'dart:async' show Future, Stream hide Stream;
 ''',
-      [error(WarningCode.multipleCombinators, 44, 31)],
+      [error(diag.multipleCombinators, 44, 31)],
     );
   }
 
@@ -140,7 +140,7 @@ import 'dart:async' show Future, Stream hide Stream;
 //ignore: unused_import
 import 'dart:async' show Future, Stream show Stream;
 ''',
-      [error(WarningCode.multipleCombinators, 44, 31)],
+      [error(diag.multipleCombinators, 44, 31)],
     );
   }
 }

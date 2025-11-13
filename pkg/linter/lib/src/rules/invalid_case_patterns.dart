@@ -14,6 +14,7 @@ import 'package:analyzer/error/error.dart';
 import 'package:analyzer/src/dart/ast/token.dart'; // ignore: implementation_imports
 
 import '../analyzer.dart';
+import '../diagnostic.dart' as diag;
 
 const _desc = r'Use case expressions that are valid in Dart 3.0.';
 
@@ -28,7 +29,7 @@ class InvalidCasePatterns extends AnalysisRule {
   // TODO(pq): update to add specific messages w/ specific corrections
   // https://github.com/dart-lang/linter/issues/4172
   @override
-  DiagnosticCode get diagnosticCode => LinterLintCode.invalidCasePatterns;
+  DiagnosticCode get diagnosticCode => diag.invalidCasePatterns;
 
   @override
   void registerNodeProcessors(

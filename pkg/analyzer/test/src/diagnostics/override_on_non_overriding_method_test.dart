@@ -2,8 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/dart/error/syntactic_errors.dart';
-import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
@@ -26,7 +25,7 @@ class B extends A {
   void foo() {}
 }
 ''',
-      [error(WarningCode.overrideOnNonOverridingMethod, 51, 3)],
+      [error(diag.overrideOnNonOverridingMethod, 51, 3)],
     );
   }
 
@@ -90,9 +89,9 @@ class A {
 }
 ''',
       [
-        error(WarningCode.unusedField, 6, 0),
-        error(WarningCode.overrideOnNonOverridingField, 32, 3),
-        error(ParserErrorCode.missingIdentifier, 36, 1),
+        error(diag.unusedField, 6, 0),
+        error(diag.overrideOnNonOverridingField, 32, 3),
+        error(diag.missingIdentifier, 36, 1),
       ],
     );
   }
@@ -134,7 +133,7 @@ enum E {
   void foo() {}
 }
 ''',
-      [error(WarningCode.overrideOnNonOverridingMethod, 33, 3)],
+      [error(diag.overrideOnNonOverridingMethod, 33, 3)],
     );
   }
 
@@ -146,7 +145,7 @@ extension E on int {
   void foo() {}
 }
 ''',
-      [error(WarningCode.overrideOnNonOverridingMethod, 40, 3)],
+      [error(diag.overrideOnNonOverridingMethod, 40, 3)],
     );
   }
 
@@ -160,7 +159,7 @@ mixin M on A {
   void foo() {}
 }
 ''',
-      [error(WarningCode.overrideOnNonOverridingMethod, 46, 3)],
+      [error(diag.overrideOnNonOverridingMethod, 46, 3)],
     );
   }
 

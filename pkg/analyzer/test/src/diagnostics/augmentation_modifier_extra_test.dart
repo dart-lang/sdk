@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
@@ -29,7 +29,7 @@ part of 'a.dart';
 
 augment abstract class A {}
 ''',
-      [error(CompileTimeErrorCode.augmentationModifierExtra, 27, 8)],
+      [error(diag.augmentationModifierExtra, 27, 8)],
     );
   }
 
@@ -47,8 +47,8 @@ part of 'a.dart';
 augment abstract base class A {}
 ''',
       [
-        error(CompileTimeErrorCode.augmentationModifierExtra, 27, 8),
-        error(CompileTimeErrorCode.augmentationModifierExtra, 36, 4),
+        error(diag.augmentationModifierExtra, 27, 8),
+        error(diag.augmentationModifierExtra, 36, 4),
       ],
     );
   }
@@ -66,7 +66,7 @@ part of 'a.dart';
 
 augment base class A {}
 ''',
-      [error(CompileTimeErrorCode.augmentationModifierExtra, 27, 4)],
+      [error(diag.augmentationModifierExtra, 27, 4)],
     );
   }
 
@@ -83,7 +83,7 @@ part of 'a.dart';
 
 augment final class A {}
 ''',
-      [error(CompileTimeErrorCode.augmentationModifierExtra, 27, 5)],
+      [error(diag.augmentationModifierExtra, 27, 5)],
     );
   }
 
@@ -100,7 +100,7 @@ part of 'a.dart';
 
 augment interface class A {}
 ''',
-      [error(CompileTimeErrorCode.augmentationModifierExtra, 27, 9)],
+      [error(diag.augmentationModifierExtra, 27, 9)],
     );
   }
 
@@ -117,7 +117,7 @@ part of 'a.dart';
 
 augment mixin class A {}
 ''',
-      [error(CompileTimeErrorCode.augmentationModifierExtra, 27, 5)],
+      [error(diag.augmentationModifierExtra, 27, 5)],
     );
   }
 
@@ -134,7 +134,7 @@ part of 'a.dart';
 
 augment sealed class A {}
 ''',
-      [error(CompileTimeErrorCode.augmentationModifierExtra, 27, 6)],
+      [error(diag.augmentationModifierExtra, 27, 6)],
     );
   }
 
@@ -151,7 +151,7 @@ part of 'a.dart';
 
 augment base mixin A {}
 ''',
-      [error(CompileTimeErrorCode.augmentationModifierExtra, 27, 4)],
+      [error(diag.augmentationModifierExtra, 27, 4)],
     );
   }
 }

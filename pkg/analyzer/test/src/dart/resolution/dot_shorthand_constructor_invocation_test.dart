@@ -2,8 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/dart/error/syntactic_errors.dart';
-import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'context_collection_resolution.dart';
@@ -26,7 +25,7 @@ Function getFunction() {
   return .new();
 }
 ''',
-      [error(CompileTimeErrorCode.instantiateAbstractClass, 34, 6)],
+      [error(diag.instantiateAbstractClass, 34, 6)],
     );
   }
 
@@ -254,7 +253,7 @@ void main() {
   print(c);
 }
 ''',
-      [error(CompileTimeErrorCode.constWithNonConst, 69, 5)],
+      [error(diag.constWithNonConst, 69, 5)],
     );
   }
 
@@ -272,7 +271,7 @@ void main() {
   print(c);
 }
 ''',
-      [error(CompileTimeErrorCode.constWithUndefinedConstructor, 107, 2)],
+      [error(diag.constWithUndefinedConstructor, 107, 2)],
     );
   }
 
@@ -364,13 +363,7 @@ void f() {
   print(e);
 }
 ''',
-      [
-        error(
-          CompileTimeErrorCode.invalidReferenceToGenerativeEnumConstructor,
-          65,
-          5,
-        ),
-      ],
+      [error(diag.invalidReferenceToGenerativeEnumConstructor, 65, 5)],
     );
   }
 
@@ -618,8 +611,8 @@ void main() {
 }
 ''',
       [
-        error(CompileTimeErrorCode.dotShorthandUndefinedInvocation, 35, 3),
-        error(ParserErrorCode.illegalAssignmentToNonAssignable, 40, 2),
+        error(diag.dotShorthandUndefinedInvocation, 35, 3),
+        error(diag.illegalAssignmentToNonAssignable, 40, 2),
       ],
     );
   }
@@ -635,8 +628,8 @@ void main() {
 }
 ''',
       [
-        error(CompileTimeErrorCode.dotShorthandUndefinedInvocation, 37, 3),
-        error(ParserErrorCode.missingAssignableSelector, 41, 1),
+        error(diag.dotShorthandUndefinedInvocation, 37, 3),
+        error(diag.missingAssignableSelector, 41, 1),
       ],
     );
   }
@@ -654,7 +647,7 @@ void main() {
   print(c);
 }
 ''',
-      [error(CompileTimeErrorCode.missingRequiredArgument, 69, 3)],
+      [error(diag.missingRequiredArgument, 69, 3)],
     );
   }
 
@@ -670,14 +663,7 @@ void main() {
   print(c);
 }
 ''',
-      [
-        error(
-          CompileTimeErrorCode
-              .wrongNumberOfTypeArgumentsDotShorthandConstructor,
-          46,
-          5,
-        ),
-      ],
+      [error(diag.wrongNumberOfTypeArgumentsDotShorthandConstructor, 46, 5)],
     );
   }
 
@@ -693,14 +679,7 @@ void main() {
   print(c);
 }
 ''',
-      [
-        error(
-          CompileTimeErrorCode
-              .wrongNumberOfTypeArgumentsDotShorthandConstructor,
-          58,
-          5,
-        ),
-      ],
+      [error(diag.wrongNumberOfTypeArgumentsDotShorthandConstructor, 58, 5)],
     );
   }
 
@@ -712,7 +691,7 @@ void main() {
   print(c);
 }
 ''',
-      [error(CompileTimeErrorCode.dotShorthandMissingContext, 24, 17)],
+      [error(diag.dotShorthandMissingContext, 24, 17)],
     );
   }
 }

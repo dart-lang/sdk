@@ -12,6 +12,7 @@ import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/error/error.dart';
 
 import '../analyzer.dart';
+import '../diagnostic.dart' as diag;
 import '../extensions.dart';
 import '../util/flutter_utils.dart';
 
@@ -22,8 +23,7 @@ class UseKeyInWidgetConstructors extends AnalysisRule {
     : super(name: LintNames.use_key_in_widget_constructors, description: _desc);
 
   @override
-  DiagnosticCode get diagnosticCode =>
-      LinterLintCode.useKeyInWidgetConstructors;
+  DiagnosticCode get diagnosticCode => diag.useKeyInWidgetConstructors;
 
   @override
   void registerNodeProcessors(

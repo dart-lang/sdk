@@ -12,6 +12,7 @@ import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/error/error.dart';
 
 import '../analyzer.dart';
+import '../diagnostic.dart' as diag;
 import '../extensions.dart';
 
 const _desc = r'Avoid catches without on clauses.';
@@ -24,8 +25,7 @@ class AvoidCatchesWithoutOnClauses extends AnalysisRule {
       );
 
   @override
-  DiagnosticCode get diagnosticCode =>
-      LinterLintCode.avoidCatchesWithoutOnClauses;
+  DiagnosticCode get diagnosticCode => diag.avoidCatchesWithoutOnClauses;
 
   @override
   void registerNodeProcessors(

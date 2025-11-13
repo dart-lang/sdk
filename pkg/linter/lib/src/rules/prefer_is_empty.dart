@@ -13,6 +13,7 @@ import 'package:analyzer/error/error.dart';
 
 import '../analyzer.dart';
 import '../ast.dart';
+import '../diagnostic.dart' as diag;
 import '../extensions.dart';
 
 const _desc = r'Use `isEmpty` for `Iterable`s and `Map`s.';
@@ -25,10 +26,10 @@ class PreferIsEmpty extends MultiAnalysisRule {
   //  preference.
   @override
   List<DiagnosticCode> get diagnosticCodes => [
-    LinterLintCode.preferIsEmptyAlwaysFalse,
-    LinterLintCode.preferIsEmptyAlwaysTrue,
-    LinterLintCode.preferIsEmptyUseIsEmpty,
-    LinterLintCode.preferIsEmptyUseIsNotEmpty,
+    diag.preferIsEmptyAlwaysFalse,
+    diag.preferIsEmptyAlwaysTrue,
+    diag.preferIsEmptyUseIsEmpty,
+    diag.preferIsEmptyUseIsNotEmpty,
   ];
 
   @override
@@ -95,23 +96,23 @@ class _Visitor extends SimpleAstVisitor<void> {
           operator.type == TokenType.LT_EQ) {
         rule.reportAtNode(
           expression,
-          diagnosticCode: LinterLintCode.preferIsEmptyUseIsEmpty,
+          diagnosticCode: diag.preferIsEmptyUseIsEmpty,
         );
       } else if (operator.type == TokenType.GT ||
           operator.type == TokenType.BANG_EQ) {
         rule.reportAtNode(
           expression,
-          diagnosticCode: LinterLintCode.preferIsEmptyUseIsNotEmpty,
+          diagnosticCode: diag.preferIsEmptyUseIsNotEmpty,
         );
       } else if (operator.type == TokenType.LT) {
         rule.reportAtNode(
           expression,
-          diagnosticCode: LinterLintCode.preferIsEmptyAlwaysFalse,
+          diagnosticCode: diag.preferIsEmptyAlwaysFalse,
         );
       } else if (operator.type == TokenType.GT_EQ) {
         rule.reportAtNode(
           expression,
-          diagnosticCode: LinterLintCode.preferIsEmptyAlwaysTrue,
+          diagnosticCode: diag.preferIsEmptyAlwaysTrue,
         );
       }
     } else if (value == 1) {
@@ -121,12 +122,12 @@ class _Visitor extends SimpleAstVisitor<void> {
         if (operator.type == TokenType.GT_EQ) {
           rule.reportAtNode(
             expression,
-            diagnosticCode: LinterLintCode.preferIsEmptyUseIsNotEmpty,
+            diagnosticCode: diag.preferIsEmptyUseIsNotEmpty,
           );
         } else if (operator.type == TokenType.LT) {
           rule.reportAtNode(
             expression,
-            diagnosticCode: LinterLintCode.preferIsEmptyUseIsEmpty,
+            diagnosticCode: diag.preferIsEmptyUseIsEmpty,
           );
         }
       } else {
@@ -135,12 +136,12 @@ class _Visitor extends SimpleAstVisitor<void> {
         if (operator.type == TokenType.LT_EQ) {
           rule.reportAtNode(
             expression,
-            diagnosticCode: LinterLintCode.preferIsEmptyUseIsNotEmpty,
+            diagnosticCode: diag.preferIsEmptyUseIsNotEmpty,
           );
         } else if (operator.type == TokenType.GT) {
           rule.reportAtNode(
             expression,
-            diagnosticCode: LinterLintCode.preferIsEmptyUseIsEmpty,
+            diagnosticCode: diag.preferIsEmptyUseIsEmpty,
           );
         }
       }
@@ -152,14 +153,14 @@ class _Visitor extends SimpleAstVisitor<void> {
             operator.type == TokenType.LT) {
           rule.reportAtNode(
             expression,
-            diagnosticCode: LinterLintCode.preferIsEmptyAlwaysFalse,
+            diagnosticCode: diag.preferIsEmptyAlwaysFalse,
           );
         } else if (operator.type == TokenType.BANG_EQ ||
             operator.type == TokenType.GT_EQ ||
             operator.type == TokenType.GT) {
           rule.reportAtNode(
             expression,
-            diagnosticCode: LinterLintCode.preferIsEmptyAlwaysTrue,
+            diagnosticCode: diag.preferIsEmptyAlwaysTrue,
           );
         }
       } else {
@@ -169,14 +170,14 @@ class _Visitor extends SimpleAstVisitor<void> {
             operator.type == TokenType.GT) {
           rule.reportAtNode(
             expression,
-            diagnosticCode: LinterLintCode.preferIsEmptyAlwaysFalse,
+            diagnosticCode: diag.preferIsEmptyAlwaysFalse,
           );
         } else if (operator.type == TokenType.BANG_EQ ||
             operator.type == TokenType.LT_EQ ||
             operator.type == TokenType.LT) {
           rule.reportAtNode(
             expression,
-            diagnosticCode: LinterLintCode.preferIsEmptyAlwaysTrue,
+            diagnosticCode: diag.preferIsEmptyAlwaysTrue,
           );
         }
       }

@@ -4,7 +4,7 @@
 
 import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analyzer/diagnostic/diagnostic.dart';
-import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -31,8 +31,7 @@ class AddMissingEnumCaseClausesTest extends FixProcessorTest {
     var hasError = false;
     return (error) {
       if (!hasError &&
-          error.diagnosticCode ==
-              StaticWarningCode.missingEnumConstantInSwitch) {
+          error.diagnosticCode == diag.missingEnumConstantInSwitch) {
         hasError = true;
         return true;
       }

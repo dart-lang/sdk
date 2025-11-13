@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../rule_test_support.dart';
@@ -298,8 +299,8 @@ void f() {
 ''',
       [
         // No lint.
-        error(WarningCode.unnecessaryNullComparisonNeverNullFalse, 23, 7),
-        error(WarningCode.deadCode, 32, 2),
+        error(diag.unnecessaryNullComparisonNeverNullFalse, 23, 7),
+        error(diag.deadCode, 32, 2),
       ],
     );
   }
@@ -323,10 +324,7 @@ String f(int char) {
   };
 }
 ''',
-      [
-        error(CompileTimeErrorCode.nonExhaustiveSwitchExpression, 49, 6),
-        lint(69, 10),
-      ],
+      [error(diag.nonExhaustiveSwitchExpression, 49, 6), lint(69, 10)],
     );
   }
 
@@ -341,7 +339,7 @@ String f(int i) {
 ''',
       [
         // No lint.
-        error(CompileTimeErrorCode.nonExhaustiveSwitchExpression, 27, 6),
+        error(diag.nonExhaustiveSwitchExpression, 27, 6),
       ],
     );
   }
@@ -357,10 +355,7 @@ String f(int char) {
   };
 }
 ''',
-      [
-        error(CompileTimeErrorCode.nonExhaustiveSwitchExpression, 49, 6),
-        lint(69, 10),
-      ],
+      [error(diag.nonExhaustiveSwitchExpression, 49, 6), lint(69, 10)],
     );
   }
 
@@ -375,7 +370,7 @@ String f(String char) {
 ''',
       [
         // No lint.
-        error(CompileTimeErrorCode.nonExhaustiveSwitchExpression, 33, 6),
+        error(diag.nonExhaustiveSwitchExpression, 33, 6),
       ],
     );
   }

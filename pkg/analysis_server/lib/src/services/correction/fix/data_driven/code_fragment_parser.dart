@@ -2,9 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analysis_server/src/diagnostic.dart' as diag;
 import 'package:analysis_server/src/services/correction/fix/data_driven/accessor.dart';
 import 'package:analysis_server/src/services/correction/fix/data_driven/expression.dart';
-import 'package:analysis_server/src/services/correction/fix/data_driven/transform_set_error_code.dart';
 import 'package:analysis_server/src/services/correction/fix/data_driven/variable_scope.dart';
 import 'package:analysis_server/src/services/refactoring/framework/formal_parameter.dart';
 import 'package:analyzer/error/listener.dart';
@@ -86,7 +86,7 @@ class CodeFragmentParser {
         diagnosticReporter.atOffset(
           offset: token.offset + delta,
           length: token.length,
-          diagnosticCode: TransformSetErrorCode.wrongToken,
+          diagnosticCode: diag.wrongToken,
           arguments: ['.', token.kind.displayName],
         );
         return null;
@@ -119,7 +119,7 @@ class CodeFragmentParser {
       diagnosticReporter.atOffset(
         offset: token.offset + delta,
         length: token.length,
-        diagnosticCode: TransformSetErrorCode.unexpectedTransformSetToken,
+        diagnosticCode: diag.unexpectedTransformSetToken,
         arguments: [token.kind.displayName],
       );
       return null;
@@ -157,7 +157,7 @@ class CodeFragmentParser {
       diagnosticReporter.atOffset(
         offset: offset + delta,
         length: length,
-        diagnosticCode: TransformSetErrorCode.missingToken,
+        diagnosticCode: diag.missingToken,
         arguments: [validKindsDisplayString()],
       );
       return null;
@@ -166,7 +166,7 @@ class CodeFragmentParser {
       diagnosticReporter.atOffset(
         offset: token.offset + delta,
         length: token.length,
-        diagnosticCode: TransformSetErrorCode.wrongToken,
+        diagnosticCode: diag.wrongToken,
         arguments: [validKindsDisplayString(), token.kind.displayName],
       );
       return null;
@@ -239,7 +239,7 @@ class CodeFragmentParser {
       diagnosticReporter.atOffset(
         offset: token.offset + delta,
         length: token.length,
-        diagnosticCode: TransformSetErrorCode.unknownAccessor,
+        diagnosticCode: diag.unknownAccessor,
         arguments: [identifier],
       );
       return null;
@@ -320,7 +320,7 @@ class CodeFragmentParser {
           diagnosticReporter.atOffset(
             offset: token.offset + delta,
             length: token.length,
-            diagnosticCode: TransformSetErrorCode.undefinedVariable,
+            diagnosticCode: diag.undefinedVariable,
             arguments: [variableName],
           );
           return null;
@@ -351,7 +351,7 @@ class CodeFragmentParser {
     diagnosticReporter.atOffset(
       offset: offset,
       length: length,
-      diagnosticCode: TransformSetErrorCode.expectedPrimary,
+      diagnosticCode: diag.expectedPrimary,
     );
     return null;
   }
@@ -478,7 +478,7 @@ class _CodeFragmentScanner {
     _diagnosticReporter.atOffset(
       offset: offset + delta,
       length: 1,
-      diagnosticCode: TransformSetErrorCode.invalidCharacter,
+      diagnosticCode: diag.invalidCharacter,
       arguments: [content.substring(offset, offset + 1)],
     );
     return null;

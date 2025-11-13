@@ -8,8 +8,8 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/diagnostic/diagnostic.dart';
 import 'package:analyzer/src/dart/element/element.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:analyzer/src/diagnostic/diagnostic_message.dart';
-import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/error/listener.dart';
 
 /// Helper for verifying that subelements of a base or final element must be
@@ -28,9 +28,9 @@ class BaseOrFinalTypeVerifier {
   /// final, or sealed and that base elements are not implemented outside of its
   /// library. Otherwise, an error is reported on that element.
   ///
-  /// See [CompileTimeErrorCode.subtypeOfBaseIsNotBaseFinalOrSealed],
-  /// [CompileTimeErrorCode.subtypeOfFinalIsNotBaseFinalOrSealed],
-  /// [CompileTimeErrorCode.baseClassImplementedOutsideOfLibrary].
+  /// See [diag.subtypeOfBaseIsNotBaseFinalOrSealed],
+  /// [diag.subtypeOfFinalIsNotBaseFinalOrSealed],
+  /// [diag.baseClassImplementedOutsideOfLibrary].
   void checkElement(
     InterfaceElementImpl element,
     ImplementsClause? implementsClause,
@@ -241,14 +241,12 @@ class BaseOrFinalTypeVerifier {
         baseOrFinalSuperElement.library != element.library) {
       if (baseOrFinalSuperElement.isBase) {
         var error = baseOrFinalSuperElement is MixinElement
-            ? CompileTimeErrorCode.baseMixinImplementedOutsideOfLibrary
-                  .withArguments(
-                    implementedMixinName: baseOrFinalSuperElement.displayName,
-                  )
-            : CompileTimeErrorCode.baseClassImplementedOutsideOfLibrary
-                  .withArguments(
-                    implementedClassName: baseOrFinalSuperElement.displayName,
-                  );
+            ? diag.baseMixinImplementedOutsideOfLibrary.withArguments(
+                implementedMixinName: baseOrFinalSuperElement.displayName,
+              )
+            : diag.baseClassImplementedOutsideOfLibrary.withArguments(
+                implementedClassName: baseOrFinalSuperElement.displayName,
+              );
         _diagnosticReporter.report(
           error.withContextMessages(contextMessages).at(implementsNamedType),
         );
@@ -279,8 +277,8 @@ class BaseOrFinalTypeVerifier {
           }
         }
         var errorCode = element is MixinElement
-            ? CompileTimeErrorCode.mixinSubtypeOfFinalIsNotBase
-            : CompileTimeErrorCode.subtypeOfFinalIsNotBaseFinalOrSealed;
+            ? diag.mixinSubtypeOfFinalIsNotBase
+            : diag.subtypeOfFinalIsNotBaseFinalOrSealed;
         _diagnosticReporter.atElement2(
           element,
           errorCode,
@@ -290,8 +288,8 @@ class BaseOrFinalTypeVerifier {
         return true;
       } else if (baseOrFinalSuperElement.isBase) {
         var errorCode = element is MixinElement
-            ? CompileTimeErrorCode.mixinSubtypeOfBaseIsNotBase
-            : CompileTimeErrorCode.subtypeOfBaseIsNotBaseFinalOrSealed;
+            ? diag.mixinSubtypeOfBaseIsNotBase
+            : diag.subtypeOfBaseIsNotBaseFinalOrSealed;
         _diagnosticReporter.atElement2(
           element,
           errorCode,

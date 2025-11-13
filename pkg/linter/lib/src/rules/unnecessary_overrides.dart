@@ -11,6 +11,7 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/error/error.dart';
 
 import '../analyzer.dart';
+import '../diagnostic.dart' as diag;
 import '../extensions.dart';
 import '../util/dart_type_utilities.dart';
 
@@ -23,7 +24,7 @@ class UnnecessaryOverrides extends AnalysisRule {
     : super(name: LintNames.unnecessary_overrides, description: _desc);
 
   @override
-  DiagnosticCode get diagnosticCode => LinterLintCode.unnecessaryOverrides;
+  DiagnosticCode get diagnosticCode => diag.unnecessaryOverrides;
 
   @override
   void registerNodeProcessors(

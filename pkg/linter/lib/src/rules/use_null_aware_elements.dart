@@ -15,6 +15,7 @@ import 'package:analyzer/error/error.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 
 import '../analyzer.dart';
+import '../diagnostic.dart' as diag;
 import '../extensions.dart';
 
 const _desc =
@@ -25,7 +26,7 @@ class UseNullAwareElements extends AnalysisRule {
     : super(name: LintNames.use_null_aware_elements, description: _desc);
 
   @override
-  DiagnosticCode get diagnosticCode => LinterLintCode.useNullAwareElements;
+  DiagnosticCode get diagnosticCode => diag.useNullAwareElements;
 
   @override
   void registerNodeProcessors(

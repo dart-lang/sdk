@@ -253,6 +253,7 @@ deviation
 dfast
 dfuzz
 di
+diag
 diagnosticable
 dictionaries
 dictionary

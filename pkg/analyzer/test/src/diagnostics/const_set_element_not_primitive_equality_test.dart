@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
@@ -27,7 +27,7 @@ main() {
   const {A.a};
 }
 ''',
-      [error(CompileTimeErrorCode.constSetElementNotPrimitiveEquality, 104, 3)],
+      [error(diag.constSetElementNotPrimitiveEquality, 104, 3)],
     );
   }
 
@@ -42,7 +42,7 @@ main() {
   const {const A()};
 }
 ''',
-      [error(CompileTimeErrorCode.constSetElementNotPrimitiveEquality, 74, 9)],
+      [error(diag.constSetElementNotPrimitiveEquality, 74, 9)],
     );
   }
 
@@ -63,7 +63,7 @@ main() {
   const {B.a};
 }
 ''',
-      [error(CompileTimeErrorCode.constSetElementNotPrimitiveEquality, 116, 3)],
+      [error(diag.constSetElementNotPrimitiveEquality, 116, 3)],
     );
   }
 
@@ -83,7 +83,7 @@ main() {
   print(m);
 }
 ''',
-      [error(CompileTimeErrorCode.constSetElementNotPrimitiveEquality, 128, 9)],
+      [error(diag.constSetElementNotPrimitiveEquality, 128, 9)],
     );
   }
 
@@ -104,7 +104,7 @@ main() {
   const B({A()});
 }
 ''',
-      [error(CompileTimeErrorCode.constSetElementNotPrimitiveEquality, 110, 3)],
+      [error(diag.constSetElementNotPrimitiveEquality, 110, 3)],
     );
   }
 
@@ -120,7 +120,7 @@ const x = {
   (a: 0, b: const A()),
 };
 ''',
-      [error(CompileTimeErrorCode.constSetElementNotPrimitiveEquality, 71, 20)],
+      [error(diag.constSetElementNotPrimitiveEquality, 71, 20)],
     );
   }
 
@@ -136,7 +136,7 @@ const x = {
   (0, const A()),
 };
 ''',
-      [error(CompileTimeErrorCode.constSetElementNotPrimitiveEquality, 71, 14)],
+      [error(diag.constSetElementNotPrimitiveEquality, 71, 14)],
     );
   }
 
@@ -152,7 +152,7 @@ main() {
   const [...{A()}];
 }
 ''',
-      [error(CompileTimeErrorCode.constSetElementNotPrimitiveEquality, 79, 3)],
+      [error(diag.constSetElementNotPrimitiveEquality, 79, 3)],
     );
   }
 
@@ -168,7 +168,7 @@ main() {
   const {...[A()]};
 }
 ''',
-      [error(CompileTimeErrorCode.constSetElementNotPrimitiveEquality, 75, 8)],
+      [error(diag.constSetElementNotPrimitiveEquality, 75, 8)],
     );
   }
 
@@ -184,7 +184,7 @@ main() {
   const {...{A()}};
 }
 ''',
-      [error(CompileTimeErrorCode.constSetElementNotPrimitiveEquality, 79, 3)],
+      [error(diag.constSetElementNotPrimitiveEquality, 79, 3)],
     );
   }
 
@@ -202,7 +202,7 @@ main() {
   const {const B()};
 }
 ''',
-      [error(CompileTimeErrorCode.constSetElementNotPrimitiveEquality, 109, 9)],
+      [error(diag.constSetElementNotPrimitiveEquality, 109, 9)],
     );
   }
 
@@ -216,7 +216,7 @@ class A {
   int get hashCode => 0;
 }
 ''',
-      [error(CompileTimeErrorCode.constSetElementNotPrimitiveEquality, 11, 3)],
+      [error(diag.constSetElementNotPrimitiveEquality, 11, 3)],
     );
   }
 

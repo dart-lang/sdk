@@ -9,6 +9,7 @@ import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/error/error.dart';
 
 import '../analyzer.dart';
+import '../diagnostic.dart' as diag;
 import '../extensions.dart';
 import '../util/leak_detector_visitor.dart';
 
@@ -19,7 +20,7 @@ class CancelSubscriptions extends AnalysisRule {
     : super(name: LintNames.cancel_subscriptions, description: _desc);
 
   @override
-  DiagnosticCode get diagnosticCode => LinterLintCode.cancelSubscriptions;
+  DiagnosticCode get diagnosticCode => diag.cancelSubscriptions;
 
   @override
   void registerNodeProcessors(

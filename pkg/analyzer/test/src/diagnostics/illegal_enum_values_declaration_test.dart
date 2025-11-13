@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
@@ -22,7 +22,7 @@ abstract class A implements Enum {
   int values = 0;
 }
 ''',
-      [error(CompileTimeErrorCode.illegalEnumValuesDeclaration, 41, 6)],
+      [error(diag.illegalEnumValuesDeclaration, 41, 6)],
     );
   }
 
@@ -41,7 +41,7 @@ abstract class A implements Enum {
   int get values => 0;
 }
 ''',
-      [error(CompileTimeErrorCode.illegalEnumValuesDeclaration, 45, 6)],
+      [error(diag.illegalEnumValuesDeclaration, 45, 6)],
     );
   }
 
@@ -60,7 +60,7 @@ abstract class A implements Enum {
   void values() {}
 }
 ''',
-      [error(CompileTimeErrorCode.illegalEnumValuesDeclaration, 42, 6)],
+      [error(diag.illegalEnumValuesDeclaration, 42, 6)],
     );
   }
 
@@ -79,7 +79,7 @@ abstract class A implements Enum {
   set values(int _) {}
 }
 ''',
-      [error(CompileTimeErrorCode.illegalEnumValuesDeclaration, 41, 6)],
+      [error(diag.illegalEnumValuesDeclaration, 41, 6)],
     );
   }
 
@@ -98,7 +98,7 @@ mixin M on Enum {
   int values = 0;
 }
 ''',
-      [error(CompileTimeErrorCode.illegalEnumValuesDeclaration, 24, 6)],
+      [error(diag.illegalEnumValuesDeclaration, 24, 6)],
     );
   }
 
@@ -117,7 +117,7 @@ mixin M on Enum {
   int get values => 0;
 }
 ''',
-      [error(CompileTimeErrorCode.illegalEnumValuesDeclaration, 28, 6)],
+      [error(diag.illegalEnumValuesDeclaration, 28, 6)],
     );
   }
 
@@ -136,7 +136,7 @@ mixin M on Enum {
   void values() {}
 }
 ''',
-      [error(CompileTimeErrorCode.illegalEnumValuesDeclaration, 25, 6)],
+      [error(diag.illegalEnumValuesDeclaration, 25, 6)],
     );
   }
 
@@ -155,7 +155,7 @@ mixin M on Enum {
   set values(int _) {}
 }
 ''',
-      [error(CompileTimeErrorCode.illegalEnumValuesDeclaration, 24, 6)],
+      [error(diag.illegalEnumValuesDeclaration, 24, 6)],
     );
   }
 

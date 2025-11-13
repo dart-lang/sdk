@@ -3,8 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/src/services/correction/fix.dart';
-import 'package:analyzer/src/dart/error/syntactic_errors.dart';
-import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:linter/src/lint_names.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -160,7 +159,7 @@ Future doSomething() => Future.value('');
 void f() async {
   await doSomething()
 }
-''', filter: (error) => error.diagnosticCode != ParserErrorCode.expectedToken);
+''', filter: (error) => error.diagnosticCode != diag.expectedToken);
   }
 
   Future<void> test_nonBoolCondition_futureBool() async {
@@ -312,18 +311,14 @@ void baz() {
   variable = bar();
 }
 ''');
-    await assertHasFix(
-      '''
+    await assertHasFix('''
 Future<String> bar() async => '';
 
 Future<void> baz() async {
   String? variable;
   variable = await bar();
 }
-''',
-      filter: (error) =>
-          error.diagnosticCode == CompileTimeErrorCode.invalidAssignment,
-    );
+''', filter: (error) => error.diagnosticCode == diag.invalidAssignment);
   }
 
   Future<void> test_stringVariable_futureInt() async {
@@ -335,8 +330,7 @@ void baz() {
 }
 ''');
     await assertNoFix(
-      filter: (error) =>
-          error.diagnosticCode == CompileTimeErrorCode.invalidAssignment,
+      filter: (error) => error.diagnosticCode == diag.invalidAssignment,
     );
   }
 
@@ -348,16 +342,12 @@ void baz() {
   String variable = bar();
 }
 ''');
-    await assertHasFix(
-      '''
+    await assertHasFix('''
 Future<String> bar() async => '';
 
 Future<void> baz() async {
   String variable = await bar();
 }
-''',
-      filter: (error) =>
-          error.diagnosticCode == CompileTimeErrorCode.invalidAssignment,
-    );
+''', filter: (error) => error.diagnosticCode == diag.invalidAssignment);
   }
 }

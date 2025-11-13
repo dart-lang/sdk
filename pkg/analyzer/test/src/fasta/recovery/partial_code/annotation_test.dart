@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/dart/error/syntactic_errors.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 
 import 'partial_code_support.dart';
 
@@ -16,16 +16,16 @@ class AnnotationTest extends PartialCodeTest {
       TestDescriptor(
         'ampersand',
         '@',
-        [ParserErrorCode.missingIdentifier, ParserErrorCode.expectedExecutable],
+        [diag.missingIdentifier, diag.expectedExecutable],
         '@_s_',
-        expectedDiagnosticsInValidCode: [ParserErrorCode.expectedExecutable],
+        expectedDiagnosticsInValidCode: [diag.expectedExecutable],
       ),
       TestDescriptor(
         'leftParen',
         '@a(',
-        [ParserErrorCode.expectedToken, ParserErrorCode.expectedExecutable],
+        [diag.expectedToken, diag.expectedExecutable],
         '@a()',
-        expectedDiagnosticsInValidCode: [ParserErrorCode.expectedExecutable],
+        expectedDiagnosticsInValidCode: [diag.expectedExecutable],
       ),
     ], []);
     buildTests(
@@ -34,14 +34,14 @@ class AnnotationTest extends PartialCodeTest {
         TestDescriptor(
           'ampersand',
           '@',
-          [ParserErrorCode.missingIdentifier],
+          [diag.missingIdentifier],
           '@_s_',
           failing: ['typedef', 'functionNonVoid', 'getter', 'mixin', 'setter'],
         ),
         TestDescriptor(
           'leftParen',
           '@a(',
-          [ParserErrorCode.expectedToken],
+          [diag.expectedToken],
           '@a()',
           allFailing: true,
         ),
@@ -56,19 +56,16 @@ class AnnotationTest extends PartialCodeTest {
         TestDescriptor(
           'ampersand',
           '@',
-          [
-            ParserErrorCode.missingIdentifier,
-            ParserErrorCode.expectedClassMember,
-          ],
+          [diag.missingIdentifier, diag.expectedClassMember],
           '@_s_',
-          expectedDiagnosticsInValidCode: [ParserErrorCode.expectedClassMember],
+          expectedDiagnosticsInValidCode: [diag.expectedClassMember],
         ),
         TestDescriptor(
           'leftParen',
           '@a(',
-          [ParserErrorCode.expectedToken, ParserErrorCode.expectedClassMember],
+          [diag.expectedToken, diag.expectedClassMember],
           '@a()',
-          expectedDiagnosticsInValidCode: [ParserErrorCode.expectedClassMember],
+          expectedDiagnosticsInValidCode: [diag.expectedClassMember],
         ),
       ],
       [],
@@ -81,14 +78,14 @@ class AnnotationTest extends PartialCodeTest {
         TestDescriptor(
           'ampersand',
           '@',
-          [ParserErrorCode.missingIdentifier],
+          [diag.missingIdentifier],
           '@_s_',
           failing: ['methodNonVoid', 'getter', 'setter'],
         ),
         TestDescriptor(
           'leftParen',
           '@a(',
-          [ParserErrorCode.expectedToken],
+          [diag.expectedToken],
           '@a()',
           allFailing: true,
         ),
@@ -105,29 +102,21 @@ class AnnotationTest extends PartialCodeTest {
         TestDescriptor(
           'ampersand',
           '@',
-          [
-            ParserErrorCode.missingIdentifier,
-            ParserErrorCode.expectedToken,
-            ParserErrorCode.missingIdentifier,
-          ],
+          [diag.missingIdentifier, diag.expectedToken, diag.missingIdentifier],
           '@_s_',
           expectedDiagnosticsInValidCode: [
-            ParserErrorCode.missingIdentifier,
-            ParserErrorCode.expectedToken,
+            diag.missingIdentifier,
+            diag.expectedToken,
           ],
         ),
         TestDescriptor(
           'leftParen',
           '@a(',
-          [
-            ParserErrorCode.expectedToken,
-            ParserErrorCode.expectedToken,
-            ParserErrorCode.missingIdentifier,
-          ],
+          [diag.expectedToken, diag.expectedToken, diag.missingIdentifier],
           '@a()',
           expectedDiagnosticsInValidCode: [
-            ParserErrorCode.missingIdentifier,
-            ParserErrorCode.expectedToken,
+            diag.missingIdentifier,
+            diag.expectedToken,
           ],
         ),
       ],
@@ -158,14 +147,14 @@ class AnnotationTest extends PartialCodeTest {
         TestDescriptor(
           'ampersand',
           '@',
-          [ParserErrorCode.missingIdentifier],
+          [diag.missingIdentifier],
           '@_s_',
           failing: ['localFunctionNonVoid'],
         ),
         TestDescriptor(
           'leftParen',
           '@a(',
-          [ParserErrorCode.missingIdentifier],
+          [diag.missingIdentifier],
           '@a()',
           allFailing: true,
         ),
@@ -181,30 +170,22 @@ class AnnotationTest extends PartialCodeTest {
         TestDescriptor(
           'ampersand',
           '@',
-          [
-            ParserErrorCode.missingIdentifier,
-            ParserErrorCode.expectedToken,
-            ParserErrorCode.missingIdentifier,
-          ],
+          [diag.missingIdentifier, diag.expectedToken, diag.missingIdentifier],
           '@_s_',
           expectedDiagnosticsInValidCode: [
-            ParserErrorCode.missingIdentifier,
-            ParserErrorCode.expectedToken,
+            diag.missingIdentifier,
+            diag.expectedToken,
           ],
           failing: ['labeled'],
         ),
         TestDescriptor(
           'leftParen',
           '@a(',
-          [
-            ParserErrorCode.expectedToken,
-            ParserErrorCode.expectedToken,
-            ParserErrorCode.missingIdentifier,
-          ],
+          [diag.expectedToken, diag.expectedToken, diag.missingIdentifier],
           '@a()',
           expectedDiagnosticsInValidCode: [
-            ParserErrorCode.missingIdentifier,
-            ParserErrorCode.expectedToken,
+            diag.missingIdentifier,
+            diag.expectedToken,
           ],
           allFailing: true,
         ),

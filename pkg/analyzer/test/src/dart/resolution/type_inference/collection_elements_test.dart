@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../context_collection_resolution.dart';
@@ -26,7 +26,7 @@ void f() async {
 
 T a<T>() => throw '';
 ''',
-      [error(CompileTimeErrorCode.listElementTypeNotAssignable, 50, 1)],
+      [error(diag.listElementTypeNotAssignable, 50, 1)],
     );
 
     var node = findNode.singleMethodInvocation;
@@ -107,7 +107,7 @@ void f() {
 
 T a<T>() => throw '';
 ''',
-      [error(CompileTimeErrorCode.listElementTypeNotAssignable, 38, 1)],
+      [error(diag.listElementTypeNotAssignable, 38, 1)],
     );
 
     var node = findNode.singleMethodInvocation;
@@ -163,8 +163,8 @@ void f() async {
 T a<T>() => throw '';
 ''',
       [
-        error(CompileTimeErrorCode.mapKeyTypeNotAssignable, 55, 1),
-        error(CompileTimeErrorCode.mapValueTypeNotAssignable, 59, 1),
+        error(diag.mapKeyTypeNotAssignable, 55, 1),
+        error(diag.mapValueTypeNotAssignable, 59, 1),
       ],
     );
 
@@ -247,8 +247,8 @@ void f() {
 T a<T>() => throw '';
 ''',
       [
-        error(CompileTimeErrorCode.mapKeyTypeNotAssignable, 43, 1),
-        error(CompileTimeErrorCode.mapValueTypeNotAssignable, 47, 1),
+        error(diag.mapKeyTypeNotAssignable, 43, 1),
+        error(diag.mapValueTypeNotAssignable, 47, 1),
       ],
     );
 
@@ -304,7 +304,7 @@ void f() async {
 
 T a<T>() => throw '';
 ''',
-      [error(CompileTimeErrorCode.setElementTypeNotAssignable, 50, 1)],
+      [error(diag.setElementTypeNotAssignable, 50, 1)],
     );
 
     var node = findNode.singleMethodInvocation;
@@ -385,7 +385,7 @@ void f() {
 
 T a<T>() => throw '';
 ''',
-      [error(CompileTimeErrorCode.setElementTypeNotAssignable, 38, 1)],
+      [error(diag.setElementTypeNotAssignable, 38, 1)],
     );
 
     var node = findNode.singleMethodInvocation;

@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
@@ -22,7 +22,7 @@ extension E on String {
   void hashCode() {}
 }
 ''',
-      [error(CompileTimeErrorCode.extensionDeclaresMemberOfObject, 31, 8)],
+      [error(diag.extensionDeclaresMemberOfObject, 31, 8)],
     );
   }
 
@@ -38,11 +38,11 @@ extension E on String {
 }
 ''',
       [
-        error(CompileTimeErrorCode.extensionDeclaresMemberOfObject, 39, 2),
-        error(CompileTimeErrorCode.extensionDeclaresMemberOfObject, 72, 8),
-        error(CompileTimeErrorCode.extensionDeclaresMemberOfObject, 96, 8),
-        error(CompileTimeErrorCode.extensionDeclaresMemberOfObject, 128, 11),
-        error(CompileTimeErrorCode.extensionDeclaresMemberOfObject, 159, 12),
+        error(diag.extensionDeclaresMemberOfObject, 39, 2),
+        error(diag.extensionDeclaresMemberOfObject, 72, 8),
+        error(diag.extensionDeclaresMemberOfObject, 96, 8),
+        error(diag.extensionDeclaresMemberOfObject, 128, 11),
+        error(diag.extensionDeclaresMemberOfObject, 159, 12),
       ],
     );
   }
@@ -54,7 +54,7 @@ extension E on String {
   static void hashCode() {}
 }
 ''',
-      [error(CompileTimeErrorCode.extensionDeclaresMemberOfObject, 38, 8)],
+      [error(diag.extensionDeclaresMemberOfObject, 38, 8)],
     );
   }
 }

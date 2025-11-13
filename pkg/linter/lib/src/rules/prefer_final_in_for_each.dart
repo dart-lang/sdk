@@ -10,6 +10,7 @@ import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/error/error.dart';
 
 import '../analyzer.dart';
+import '../diagnostic.dart' as diag;
 import '../extensions.dart';
 
 const _desc =
@@ -21,8 +22,8 @@ class PreferFinalInForEach extends MultiAnalysisRule {
 
   @override
   List<DiagnosticCode> get diagnosticCodes => [
-    LinterLintCode.preferFinalInForEachPattern,
-    LinterLintCode.preferFinalInForEachVariable,
+    diag.preferFinalInForEachPattern,
+    diag.preferFinalInForEachVariable,
   ];
 
   @override
@@ -57,7 +58,7 @@ class _Visitor extends SimpleAstVisitor<void> {
       var name = loopVariable.name;
       rule.reportAtToken(
         name,
-        diagnosticCode: LinterLintCode.preferFinalInForEachVariable,
+        diagnosticCode: diag.preferFinalInForEachVariable,
         arguments: [name.lexeme],
       );
     }
@@ -75,21 +76,21 @@ class _Visitor extends SimpleAstVisitor<void> {
       if (!function.potentiallyMutatesAnyField(pattern.fields)) {
         rule.reportAtNode(
           pattern,
-          diagnosticCode: LinterLintCode.preferFinalInForEachPattern,
+          diagnosticCode: diag.preferFinalInForEachPattern,
         );
       }
     } else if (pattern is ObjectPattern) {
       if (!function.potentiallyMutatesAnyField(pattern.fields)) {
         rule.reportAtNode(
           pattern,
-          diagnosticCode: LinterLintCode.preferFinalInForEachPattern,
+          diagnosticCode: diag.preferFinalInForEachPattern,
         );
       }
     } else if (pattern is ListPattern) {
       if (!pattern.elements.any((e) => function.potentiallyMutates(e))) {
         rule.reportAtNode(
           pattern,
-          diagnosticCode: LinterLintCode.preferFinalInForEachPattern,
+          diagnosticCode: diag.preferFinalInForEachPattern,
         );
       }
     } else if (pattern is MapPattern) {
@@ -98,7 +99,7 @@ class _Visitor extends SimpleAstVisitor<void> {
       )) {
         rule.reportAtNode(
           pattern,
-          diagnosticCode: LinterLintCode.preferFinalInForEachPattern,
+          diagnosticCode: diag.preferFinalInForEachPattern,
         );
       }
     }

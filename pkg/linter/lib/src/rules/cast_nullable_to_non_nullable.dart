@@ -11,6 +11,7 @@ import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/error/error.dart';
 
 import '../analyzer.dart';
+import '../diagnostic.dart' as diag;
 
 const _desc = r"Don't cast a nullable value to a non nullable type.";
 
@@ -19,7 +20,7 @@ class CastNullableToNonNullable extends AnalysisRule {
     : super(name: LintNames.cast_nullable_to_non_nullable, description: _desc);
 
   @override
-  DiagnosticCode get diagnosticCode => LinterLintCode.castNullableToNonNullable;
+  DiagnosticCode get diagnosticCode => diag.castNullableToNonNullable;
 
   @override
   void registerNodeProcessors(

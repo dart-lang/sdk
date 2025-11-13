@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:analyzer_testing/analysis_rule/analysis_rule.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -31,7 +31,7 @@ const C b = C(false || a.x);
       [
         // TODO(paulberry): this error range covers the whole subexpression
         // `false || a.x`. Probably it's better to just cover `a.x`.
-        error(CompileTimeErrorCode.constEvalPropertyAccess, 82, 12),
+        error(diag.constEvalPropertyAccess, 82, 12),
       ],
     );
   }
@@ -50,7 +50,7 @@ const a = const A();
 ''',
       [
         error(
-          CompileTimeErrorCode.constEvalPropertyAccess,
+          diag.constEvalPropertyAccess,
           29,
           9,
           contextMessages: [
@@ -79,7 +79,7 @@ const int? c = d.length;''');
       r'''
 const dynamic d = null;
 const int? c = d.length;''',
-      [error(CompileTimeErrorCode.constEvalPropertyAccess, 39, 8)],
+      [error(diag.constEvalPropertyAccess, 39, 8)],
     );
   }
 
@@ -96,7 +96,7 @@ class RequiresNonEmptyList {
 ''',
       [
         error(
-          CompileTimeErrorCode.constEvalPropertyAccess,
+          diag.constEvalPropertyAccess,
           16,
           31,
           contextMessages: [
@@ -124,7 +124,7 @@ class C<T> {
 
 const x = const C().t;
 ''',
-      [error(CompileTimeErrorCode.constEvalPropertyAccess, 59, 11)],
+      [error(diag.constEvalPropertyAccess, 59, 11)],
     );
   }
 
@@ -133,7 +133,7 @@ const x = const C().t;
       r'''
 const int? s = null;
 const bool? c = s?.isEven;''',
-      [error(CompileTimeErrorCode.constEvalPropertyAccess, 37, 9)],
+      [error(diag.constEvalPropertyAccess, 37, 9)],
     );
   }
 
@@ -148,7 +148,7 @@ const int? c = d?.length;''');
       r'''
 const List? l = [];
 const int? c = l?.length;''',
-      [error(CompileTimeErrorCode.constEvalPropertyAccess, 35, 9)],
+      [error(diag.constEvalPropertyAccess, 35, 9)],
     );
   }
 

@@ -10,6 +10,7 @@ import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/error/error.dart';
 
 import '../analyzer.dart';
+import '../diagnostic.dart' as diag;
 
 const _desc = r'Avoid control flow in `finally` blocks.';
 
@@ -18,7 +19,7 @@ class ControlFlowInFinally extends AnalysisRule {
     : super(name: LintNames.control_flow_in_finally, description: _desc);
 
   @override
-  DiagnosticCode get diagnosticCode => LinterLintCode.controlFlowInFinally;
+  DiagnosticCode get diagnosticCode => diag.controlFlowInFinally;
 
   @override
   void registerNodeProcessors(

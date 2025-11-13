@@ -10,10 +10,10 @@ import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/error/error.dart';
-import 'package:linter/src/analyzer.dart';
+import 'package:linter/src/diagnostic.dart' as diag;
 
 class VisitRegisteredNodes extends AnalysisRule {
-  static const DiagnosticCode code = LinterLintCode.visitRegisteredNodes;
+  static const DiagnosticCode code = diag.visitRegisteredNodes;
 
   VisitRegisteredNodes()
     : super(

@@ -13,6 +13,7 @@ import 'package:analyzer/source/line_info.dart';
 import 'package:pub_semver/pub_semver.dart';
 
 import '../analyzer.dart';
+import '../diagnostic.dart' as diag;
 
 const _desc =
     r'Use trailing commas for all parameter lists and argument lists.';
@@ -25,7 +26,7 @@ class RequireTrailingCommas extends AnalysisRule {
     : super(name: LintNames.require_trailing_commas, description: _desc);
 
   @override
-  DiagnosticCode get diagnosticCode => LinterLintCode.requireTrailingCommas;
+  DiagnosticCode get diagnosticCode => diag.requireTrailingCommas;
 
   @override
   void registerNodeProcessors(

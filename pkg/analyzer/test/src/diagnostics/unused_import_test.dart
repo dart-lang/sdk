@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
@@ -300,7 +300,7 @@ extension E on String {
       '''
 import 'lib1.dart' as lib1;
 ''',
-      [error(WarningCode.unusedImport, 7, 11)],
+      [error(diag.unusedImport, 7, 11)],
     );
   }
 
@@ -329,7 +329,7 @@ import 'lib1.dart';
 import 'lib1.dart' hide A;
 A? a;
 ''',
-      [error(WarningCode.unusedImport, 27, 11)],
+      [error(diag.unusedImport, 27, 11)],
     );
   }
 
@@ -374,7 +374,7 @@ f() {
   ''.b();
 }
 ''',
-      [error(WarningCode.unusedImport, 7, 11)],
+      [error(diag.unusedImport, 7, 11)],
     );
   }
 
@@ -391,7 +391,7 @@ void f() {
   A.foo();
 }
 ''',
-      [error(WarningCode.unusedImport, 7, 12)],
+      [error(diag.unusedImport, 7, 12)],
     );
   }
 
@@ -404,7 +404,7 @@ void f() {
   Duration(seconds: 0);
 }
 ''',
-      [error(WarningCode.unusedImport, 7, 11)],
+      [error(diag.unusedImport, 7, 11)],
     );
   }
 
@@ -418,7 +418,7 @@ import 'lib1.dart';
 import 'lib1.dart' as one;
 one.A a = one.A();
 ''',
-      [error(WarningCode.unusedImport, 7, 11)],
+      [error(diag.unusedImport, 7, 11)],
     );
   }
 
@@ -453,7 +453,7 @@ import 'lib1.dart' as one;
 import 'lib2.dart' as one;
 one.A a = one.A();
 ''',
-      [error(WarningCode.unusedImport, 34, 11)],
+      [error(diag.unusedImport, 34, 11)],
     );
   }
 
@@ -518,7 +518,7 @@ class A {
   }
 }
 ''',
-      [error(WarningCode.unusedLocalVariable, 129, 1)],
+      [error(diag.unusedLocalVariable, 129, 1)],
     );
   }
 
@@ -550,7 +550,7 @@ import 'dart:io' as prefix;
 import 'a.dart' as prefix;
 prefix.File? f;
 ''',
-      [error(WarningCode.unusedImport, 7, 9)],
+      [error(diag.unusedImport, 7, 9)],
     );
   }
 
@@ -565,7 +565,7 @@ import 'lib1.dart' show A;
 import 'lib1.dart' show B;
 A a = A();
 ''',
-      [error(WarningCode.unusedImport, 34, 11)],
+      [error(diag.unusedImport, 34, 11)],
     );
   }
 
@@ -579,7 +579,7 @@ import 'dart:io';
 import 'lib1.dart';
 File? f;
 ''',
-      [error(WarningCode.unusedImport, 7, 9)],
+      [error(diag.unusedImport, 7, 9)],
     );
   }
 
@@ -589,7 +589,7 @@ File? f;
       r'''
 import 'lib1.dart';
 ''',
-      [error(WarningCode.unusedImport, 7, 11)],
+      [error(diag.unusedImport, 7, 11)],
     );
   }
 
@@ -680,7 +680,7 @@ import 'dart:math';
 
     await assertErrorsInFile2(a, []);
 
-    await assertErrorsInFile2(b, [error(WarningCode.unusedImport, 25, 11)]);
+    await assertErrorsInFile2(b, [error(diag.unusedImport, 25, 11)]);
   }
 
   test_part_usedLibraryImport() async {
@@ -762,7 +762,7 @@ import 'dart:math';
 void f(Random _) {}
 ''');
 
-    await assertErrorsInFile2(a, [error(WarningCode.unusedImport, 7, 11)]);
+    await assertErrorsInFile2(a, [error(diag.unusedImport, 7, 11)]);
 
     await assertErrorsInFile2(b, []);
   }

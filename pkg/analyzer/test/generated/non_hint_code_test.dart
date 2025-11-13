@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../src/dart/resolution/context_collection_resolution.dart';
@@ -27,7 +27,7 @@ f(var message, var dynamic_) {
   int s = message;
 }
 ''',
-      [error(WarningCode.unusedLocalVariable, 94, 1)],
+      [error(diag.unusedLocalVariable, 94, 1)],
     );
   }
 
@@ -45,7 +45,7 @@ f(var message) {
   int s = message;
 }
 ''',
-      [error(WarningCode.unusedLocalVariable, 119, 1)],
+      [error(diag.unusedLocalVariable, 119, 1)],
     );
   }
 
@@ -62,7 +62,7 @@ f(var message) {
   String s = message;
 }
 ''',
-      [error(WarningCode.unusedLocalVariable, 100, 1)],
+      [error(diag.unusedLocalVariable, 100, 1)],
     );
   }
 
@@ -152,7 +152,7 @@ class PubSuggestionCodeTest extends PubPackageResolutionTest {
       '''
 import 'package:somepackage/other.dart';
 ''',
-      [error(CompileTimeErrorCode.uriDoesNotExist, 0, 0)],
+      [error(diag.uriDoesNotExist, 0, 0)],
     );
   }
 

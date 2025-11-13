@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'context_collection_resolution.dart';
@@ -197,13 +197,7 @@ class A {
 }
 const a = 0;
 ''',
-      [
-        error(
-          CompileTimeErrorCode.fieldInitializedInInitializerAndDeclaration,
-          39,
-          1,
-        ),
-      ],
+      [error(diag.fieldInitializedInInitializerAndDeclaration, 39, 1)],
     );
 
     var node = findNode.singleConstructorFieldInitializer;
@@ -230,7 +224,7 @@ class A {
 const a = 0;
 class X {}
 ''',
-      [error(CompileTimeErrorCode.initializerForNonExistentField, 24, 5)],
+      [error(diag.initializerForNonExistentField, 24, 5)],
     );
 
     var node = findNode.singleConstructorFieldInitializer;
@@ -257,7 +251,7 @@ class A {
 }
 const a = 0;
 ''',
-      [error(CompileTimeErrorCode.initializerForNonExistentField, 18, 5)],
+      [error(diag.initializerForNonExistentField, 18, 5)],
     );
 
     var node = findNode.singleConstructorFieldInitializer;
@@ -285,8 +279,8 @@ class A {
 const a = 0;
 ''',
       [
-        error(WarningCode.unusedImport, 7, 12),
-        error(CompileTimeErrorCode.initializerForNonExistentField, 44, 5),
+        error(diag.unusedImport, 7, 12),
+        error(diag.initializerForNonExistentField, 44, 5),
       ],
     );
 
@@ -314,7 +308,7 @@ class A {
 }
 const a = 0;
 ''',
-      [error(CompileTimeErrorCode.initializerForNonExistentField, 18, 5)],
+      [error(diag.initializerForNonExistentField, 18, 5)],
     );
 
     var node = findNode.singleConstructorFieldInitializer;
@@ -341,7 +335,7 @@ class A {
 }
 const a = 0;
 ''',
-      [error(CompileTimeErrorCode.initializerForNonExistentField, 18, 5)],
+      [error(diag.initializerForNonExistentField, 18, 5)],
     );
 
     var node = findNode.singleConstructorFieldInitializer;
@@ -368,7 +362,7 @@ class A {
 const a = 0;
 void x() {}
 ''',
-      [error(CompileTimeErrorCode.initializerForNonExistentField, 18, 5)],
+      [error(diag.initializerForNonExistentField, 18, 5)],
     );
 
     var node = findNode.singleConstructorFieldInitializer;
@@ -395,7 +389,7 @@ class A {
 const a = 0;
 var x = 0;
 ''',
-      [error(CompileTimeErrorCode.initializerForNonExistentField, 18, 5)],
+      [error(diag.initializerForNonExistentField, 18, 5)],
     );
 
     var node = findNode.singleConstructorFieldInitializer;
@@ -421,7 +415,7 @@ class A<T> {
 }
 const a = 0;
 ''',
-      [error(CompileTimeErrorCode.initializerForNonExistentField, 21, 5)],
+      [error(diag.initializerForNonExistentField, 21, 5)],
     );
 
     var node = findNode.singleConstructorFieldInitializer;
@@ -447,7 +441,7 @@ class A {
 }
 const a = 0;
 ''',
-      [error(CompileTimeErrorCode.initializerForNonExistentField, 18, 5)],
+      [error(diag.initializerForNonExistentField, 18, 5)],
     );
 
     var node = findNode.singleConstructorFieldInitializer;

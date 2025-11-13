@@ -2,8 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/dart/error/syntactic_errors.dart';
-import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'context_collection_resolution.dart';
@@ -81,7 +80,7 @@ void f(dynamic values) {
   for (var v in values) {}
 }
 ''',
-      [error(WarningCode.unusedLocalVariable, 36, 1)],
+      [error(diag.unusedLocalVariable, 36, 1)],
     );
 
     var node = findNode.singleForStatement;
@@ -117,7 +116,7 @@ void f() {
   }
 }
 ''',
-      [error(ParserErrorCode.missingIdentifier, 26, 1)],
+      [error(diag.missingIdentifier, 26, 1)],
     );
 
     var node = findNode.forStatement('for');
@@ -161,8 +160,8 @@ abstract class A implements Iterable<int> {
 }
 ''',
       [
-        error(WarningCode.unusedLocalVariable, 70, 1),
-        error(ParserErrorCode.missingAssignableSelector, 75, 5),
+        error(diag.unusedLocalVariable, 70, 1),
+        error(diag.missingAssignableSelector, 75, 5),
       ],
     );
 
@@ -502,7 +501,7 @@ abstract class A implements Iterable<int> {
   }
 }
 ''',
-      [error(ParserErrorCode.missingAssignableSelector, 76, 5)],
+      [error(diag.missingAssignableSelector, 76, 5)],
     );
     var node = findNode.singleForStatement;
     assertResolvedNodeText(node, r'''
@@ -626,7 +625,7 @@ void f(Object x) {
   }
 }
 ''',
-      [error(CompileTimeErrorCode.forInOfInvalidType, 37, 1)],
+      [error(diag.forInOfInvalidType, 37, 1)],
     );
     var node = findNode.forStatement('for');
     assertResolvedNodeText(node, r'''
@@ -674,8 +673,8 @@ abstract class A implements Iterable<int> {
 }
 ''',
       [
-        error(WarningCode.unusedLocalVariable, 71, 1),
-        error(ParserErrorCode.missingAssignableSelector, 77, 5),
+        error(diag.unusedLocalVariable, 71, 1),
+        error(diag.missingAssignableSelector, 77, 5),
       ],
     );
     var node = findNode.singleForStatement;
@@ -715,7 +714,7 @@ void f() {
 
 T g<T>() => throw 0;
 ''',
-      [error(WarningCode.unusedLocalVariable, 27, 1)],
+      [error(diag.unusedLocalVariable, 27, 1)],
     );
     var node = findNode.forStatement('for');
     assertResolvedNodeText(node, r'''
@@ -767,7 +766,7 @@ void f() {
 
 T g<T>() => throw 0;
 ''',
-      [error(WarningCode.unusedLocalVariable, 23, 1)],
+      [error(diag.unusedLocalVariable, 23, 1)],
     );
     var node = findNode.forStatement('for');
     assertResolvedNodeText(node, r'''
@@ -956,7 +955,7 @@ void f(Object x) async {
   }
 }
 ''',
-      [error(CompileTimeErrorCode.forInOfInvalidType, 49, 1)],
+      [error(diag.forInOfInvalidType, 49, 1)],
     );
     var node = findNode.singleForStatement;
     assertResolvedNodeText(node, r'''
@@ -1341,7 +1340,7 @@ class A {
   }
 }
 ''',
-      [error(ParserErrorCode.missingAssignableSelector, 35, 5)],
+      [error(diag.missingAssignableSelector, 35, 5)],
     );
 
     var node = findNode.singleForStatement;

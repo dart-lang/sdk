@@ -10,6 +10,7 @@ import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/error/error.dart';
 
 import '../analyzer.dart';
+import '../diagnostic.dart' as diag;
 
 const _desc = r'Inline list item declarations where possible.';
 
@@ -19,8 +20,8 @@ class PreferInlinedAdds extends MultiAnalysisRule {
 
   @override
   List<DiagnosticCode> get diagnosticCodes => [
-    LinterLintCode.preferInlinedAddsMultiple,
-    LinterLintCode.preferInlinedAddsSingle,
+    diag.preferInlinedAddsMultiple,
+    diag.preferInlinedAddsSingle,
   ];
 
   @override
@@ -64,8 +65,8 @@ class _Visitor extends SimpleAstVisitor<void> {
     rule.reportAtNode(
       invocation.methodName,
       diagnosticCode: addAll
-          ? LinterLintCode.preferInlinedAddsMultiple
-          : LinterLintCode.preferInlinedAddsSingle,
+          ? diag.preferInlinedAddsMultiple
+          : diag.preferInlinedAddsSingle,
     );
   }
 }

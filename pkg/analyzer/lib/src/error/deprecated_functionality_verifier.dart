@@ -8,7 +8,7 @@ import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/source/source_range.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
-import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:analyzer/src/error/super_formal_parameters_verifier.dart';
 
 class DeprecatedFunctionalityVerifier {
@@ -136,13 +136,13 @@ class DeprecatedFunctionalityVerifier {
       if (element.isDeprecatedWithKind('extend')) {
         _diagnosticReporter.atNode(
           node,
-          WarningCode.deprecatedExtend,
+          diag.deprecatedExtend,
           arguments: [element.name!],
         );
       } else if (element.isDeprecatedWithKind('subclass')) {
         _diagnosticReporter.atNode(
           node,
-          WarningCode.deprecatedSubclass,
+          diag.deprecatedSubclass,
           arguments: [element.name!],
         );
       }
@@ -159,13 +159,13 @@ class DeprecatedFunctionalityVerifier {
         if (element.isDeprecatedWithKind('implement')) {
           _diagnosticReporter.atNode(
             namedType,
-            WarningCode.deprecatedImplement,
+            diag.deprecatedImplement,
             arguments: [element.name!],
           );
         } else if (element.isDeprecatedWithKind('subclass')) {
           _diagnosticReporter.atNode(
             namedType,
-            WarningCode.deprecatedSubclass,
+            diag.deprecatedSubclass,
             arguments: [element.name!],
           );
         }
@@ -180,7 +180,7 @@ class DeprecatedFunctionalityVerifier {
     if (element.isDeprecatedWithKind('instantiate')) {
       _diagnosticReporter.atNode(
         errorNode,
-        WarningCode.deprecatedInstantiate,
+        diag.deprecatedInstantiate,
         arguments: [element.name!],
       );
     }
@@ -195,7 +195,7 @@ class DeprecatedFunctionalityVerifier {
       if (element.isDeprecatedWithKind('mixin')) {
         _diagnosticReporter.atNode(
           mixin,
-          WarningCode.deprecatedMixin,
+          diag.deprecatedMixin,
           arguments: [element.name!],
         );
       }
@@ -217,7 +217,7 @@ class DeprecatedFunctionalityVerifier {
       if (parameter.isDeprecatedWithKind('optional')) {
         _diagnosticReporter.atEntity(
           errorEntity,
-          WarningCode.deprecatedOptional,
+          diag.deprecatedOptional,
           arguments: [parameter.name ?? '<unknown>'],
         );
       }
@@ -257,7 +257,7 @@ class DeprecatedFunctionalityVerifier {
         _diagnosticReporter.atOffset(
           offset: errorOffset,
           length: errorLength,
-          diagnosticCode: WarningCode.deprecatedOptional,
+          diagnosticCode: diag.deprecatedOptional,
           arguments: [parameter.name ?? '<unknown>'],
         );
       }
@@ -351,7 +351,7 @@ class DeprecatedFunctionalityVerifier {
       _diagnosticReporter.atOffset(
         offset: errorOffset,
         length: errorLength,
-        diagnosticCode: WarningCode.deprecatedOptional,
+        diagnosticCode: diag.deprecatedOptional,
         arguments: [parameter.name ?? '<unknown>'],
       );
     }
@@ -367,7 +367,7 @@ class DeprecatedFunctionalityVerifier {
         if (element.isDeprecatedWithKind('subclass')) {
           _diagnosticReporter.atNode(
             namedType,
-            WarningCode.deprecatedSubclass,
+            diag.deprecatedSubclass,
             arguments: [element.name!],
           );
         }

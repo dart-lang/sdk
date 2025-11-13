@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
@@ -23,7 +23,7 @@ class C {
   C.foo();
 }
 ''',
-      [error(CompileTimeErrorCode.duplicateConstructorName, 23, 5)],
+      [error(diag.duplicateConstructorName, 23, 5)],
     );
   }
 
@@ -100,9 +100,7 @@ augment class A {
     assertNoErrorsInResult();
 
     await resolveFile2(a);
-    assertErrorsInResult([
-      error(CompileTimeErrorCode.duplicateConstructorName, 42, 7),
-    ]);
+    assertErrorsInResult([error(diag.duplicateConstructorName, 42, 7)]);
   }
 
   test_enum() async {
@@ -115,8 +113,8 @@ enum E {
 }
 ''',
       [
-        error(CompileTimeErrorCode.duplicateConstructorName, 45, 5),
-        error(WarningCode.unusedElement, 47, 3),
+        error(diag.duplicateConstructorName, 45, 5),
+        error(diag.unusedElement, 47, 3),
       ],
     );
   }
@@ -129,7 +127,7 @@ extension type A(int it) {
   A.foo(this.it);
 }
 ''',
-      [error(CompileTimeErrorCode.duplicateConstructorName, 47, 5)],
+      [error(diag.duplicateConstructorName, 47, 5)],
     );
   }
 
@@ -140,7 +138,7 @@ extension type A.foo(int it) {
   A.foo(this.it);
 }
 ''',
-      [error(CompileTimeErrorCode.duplicateConstructorName, 33, 5)],
+      [error(diag.duplicateConstructorName, 33, 5)],
     );
   }
 }

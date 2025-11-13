@@ -11,6 +11,7 @@ import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/error/error.dart';
 
 import '../analyzer.dart';
+import '../diagnostic.dart' as diag;
 
 const _desc = r'Prefer is! operator.';
 
@@ -19,7 +20,7 @@ class PreferIsNotOperator extends AnalysisRule {
     : super(name: LintNames.prefer_is_not_operator, description: _desc);
 
   @override
-  DiagnosticCode get diagnosticCode => LinterLintCode.preferIsNotOperator;
+  DiagnosticCode get diagnosticCode => diag.preferIsNotOperator;
 
   @override
   void registerNodeProcessors(

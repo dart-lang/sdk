@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
@@ -29,7 +29,7 @@ part of 'a.dart';
 
 augment class A<T extends num> {}
 ''',
-      [error(CompileTimeErrorCode.augmentationTypeParameterBound, 45, 3)],
+      [error(diag.augmentationTypeParameterBound, 45, 3)],
     );
   }
 
@@ -46,7 +46,7 @@ part of 'a.dart';
 
 augment class A<T> {}
 ''',
-      [error(CompileTimeErrorCode.augmentationTypeParameterBound, 35, 1)],
+      [error(diag.augmentationTypeParameterBound, 35, 1)],
     );
   }
 
@@ -77,7 +77,7 @@ part of 'a.dart';
 
 augment class A<T extends Object> {}
 ''',
-      [error(CompileTimeErrorCode.augmentationTypeParameterBound, 45, 6)],
+      [error(diag.augmentationTypeParameterBound, 45, 6)],
     );
   }
 
@@ -94,7 +94,7 @@ part of 'a.dart';
 
 augment enum A<T extends num> {}
 ''',
-      [error(CompileTimeErrorCode.augmentationTypeParameterBound, 44, 3)],
+      [error(diag.augmentationTypeParameterBound, 44, 3)],
     );
   }
 
@@ -111,7 +111,7 @@ part of 'a.dart';
 
 augment extension A<T extends num> {}
 ''',
-      [error(CompileTimeErrorCode.augmentationTypeParameterBound, 49, 3)],
+      [error(diag.augmentationTypeParameterBound, 49, 3)],
     );
   }
 
@@ -128,7 +128,7 @@ part of 'a.dart';
 
 augment extension type A<T extends num>(int it) {}
 ''',
-      [error(CompileTimeErrorCode.augmentationTypeParameterBound, 54, 3)],
+      [error(diag.augmentationTypeParameterBound, 54, 3)],
     );
   }
 
@@ -145,7 +145,7 @@ part of 'a.dart';
 
 augment mixin A<T extends num> {}
 ''',
-      [error(CompileTimeErrorCode.augmentationTypeParameterBound, 45, 3)],
+      [error(diag.augmentationTypeParameterBound, 45, 3)],
     );
   }
 }

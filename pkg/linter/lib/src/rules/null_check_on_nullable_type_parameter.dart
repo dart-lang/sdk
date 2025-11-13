@@ -12,6 +12,7 @@ import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/error/error.dart';
 
 import '../analyzer.dart';
+import '../diagnostic.dart' as diag;
 import 'unnecessary_null_checks.dart';
 
 const _desc =
@@ -25,8 +26,7 @@ class NullCheckOnNullableTypeParameter extends AnalysisRule {
       );
 
   @override
-  DiagnosticCode get diagnosticCode =>
-      LinterLintCode.nullCheckOnNullableTypeParameter;
+  DiagnosticCode get diagnosticCode => diag.nullCheckOnNullableTypeParameter;
 
   @override
   void registerNodeProcessors(

@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
@@ -35,28 +35,18 @@ main() {
 }
 ''',
       [
+        error(diag.notInitializedNonNullableInstanceFieldConstructor, 94, 1),
+        error(diag.notInitializedNonNullableInstanceFieldConstructor, 94, 1),
+        error(diag.couldNotInfer, 154, 3),
+        error(diag.couldNotInfer, 154, 3),
         error(
-          CompileTimeErrorCode
-              .notInitializedNonNullableInstanceFieldConstructor,
-          94,
-          1,
-        ),
-        error(
-          CompileTimeErrorCode
-              .notInitializedNonNullableInstanceFieldConstructor,
-          94,
-          1,
-        ),
-        error(CompileTimeErrorCode.couldNotInfer, 154, 3),
-        error(CompileTimeErrorCode.couldNotInfer, 154, 3),
-        error(
-          CompileTimeErrorCode.typeArgumentNotMatchingBounds,
+          diag.typeArgumentNotMatchingBounds,
           154,
           1,
           contextMessages: [message(testFile, 154, 1)],
         ),
         error(
-          CompileTimeErrorCode.typeArgumentNotMatchingBounds,
+          diag.typeArgumentNotMatchingBounds,
           154,
           1,
           contextMessages: [message(testFile, 154, 1)],
@@ -84,9 +74,9 @@ main() {
 }
 ''',
       [
-        error(CompileTimeErrorCode.returnOfInvalidTypeFromFunction, 98, 4),
-        error(WarningCode.unusedLocalVariable, 120, 1),
-        error(CompileTimeErrorCode.argumentTypeNotAssignable, 126, 3),
+        error(diag.returnOfInvalidTypeFromFunction, 98, 4),
+        error(diag.unusedLocalVariable, 120, 1),
+        error(diag.argumentTypeNotAssignable, 126, 3),
       ],
     );
   }
@@ -107,30 +97,14 @@ main() {
 }
 ''',
       [
-        error(WarningCode.unusedLocalVariable, 93, 1),
-        error(
-          CompileTimeErrorCode.notAssignedPotentiallyNonNullableLocalVariable,
-          101,
-          1,
-        ),
-        error(WarningCode.unusedLocalVariable, 117, 1),
-        error(
-          CompileTimeErrorCode.notAssignedPotentiallyNonNullableLocalVariable,
-          125,
-          1,
-        ),
-        error(WarningCode.unusedLocalVariable, 142, 1),
-        error(
-          CompileTimeErrorCode.notAssignedPotentiallyNonNullableLocalVariable,
-          150,
-          1,
-        ),
-        error(WarningCode.unusedLocalVariable, 163, 1),
-        error(
-          CompileTimeErrorCode.notAssignedPotentiallyNonNullableLocalVariable,
-          171,
-          1,
-        ),
+        error(diag.unusedLocalVariable, 93, 1),
+        error(diag.notAssignedPotentiallyNonNullableLocalVariable, 101, 1),
+        error(diag.unusedLocalVariable, 117, 1),
+        error(diag.notAssignedPotentiallyNonNullableLocalVariable, 125, 1),
+        error(diag.unusedLocalVariable, 142, 1),
+        error(diag.notAssignedPotentiallyNonNullableLocalVariable, 150, 1),
+        error(diag.unusedLocalVariable, 163, 1),
+        error(diag.notAssignedPotentiallyNonNullableLocalVariable, 171, 1),
       ],
     );
   }
@@ -141,7 +115,7 @@ main() {
 T f<T>(T t) => null;
 main() { f(<S>(S s) => s); }
 ''',
-      [error(CompileTimeErrorCode.returnOfInvalidTypeFromFunction, 15, 4)],
+      [error(diag.returnOfInvalidTypeFromFunction, 15, 4)],
     );
   }
 
@@ -154,7 +128,7 @@ void f(X x) {
   foo(x);
 }
 ''',
-      [error(CompileTimeErrorCode.undefinedClass, 40, 1)],
+      [error(diag.undefinedClass, 40, 1)],
     );
   }
 
@@ -189,7 +163,7 @@ void f() {
   foo();
 }
 ''',
-      [error(CompileTimeErrorCode.couldNotInfer, 85, 3)],
+      [error(diag.couldNotInfer, 85, 3)],
     );
   }
 
@@ -205,7 +179,7 @@ main() {
   [f];
 }
 ''',
-      [error(CompileTimeErrorCode.couldNotInfer, 42, 3)],
+      [error(diag.couldNotInfer, 42, 3)],
     );
   }
 
@@ -228,7 +202,7 @@ void main() {
   g(f);
 }
 ''',
-      [error(CompileTimeErrorCode.argumentTypeNotAssignable, 95, 1)],
+      [error(diag.argumentTypeNotAssignable, 95, 1)],
     );
   }
 
@@ -244,7 +218,7 @@ void main() {
   g(a.f);
 }
 ''',
-      [error(CompileTimeErrorCode.argumentTypeNotAssignable, 78, 3)],
+      [error(diag.argumentTypeNotAssignable, 78, 3)],
     );
   }
 
@@ -257,7 +231,7 @@ void main() {
   g(f);
 }
 ''',
-      [error(CompileTimeErrorCode.argumentTypeNotAssignable, 95, 1)],
+      [error(diag.argumentTypeNotAssignable, 95, 1)],
     );
   }
 
@@ -274,7 +248,7 @@ void main() {
   g(C().m);
 }
 ''',
-      [error(CompileTimeErrorCode.argumentTypeNotAssignable, 124, 5)],
+      [error(diag.argumentTypeNotAssignable, 124, 5)],
     );
   }
 
@@ -318,8 +292,8 @@ void main() {
 }
 ''',
       [
-        error(CompileTimeErrorCode.couldNotInfer, 92, 1),
-        error(CompileTimeErrorCode.argumentTypeNotAssignable, 92, 1),
+        error(diag.couldNotInfer, 92, 1),
+        error(diag.argumentTypeNotAssignable, 92, 1),
       ],
     );
   }
@@ -335,7 +309,7 @@ main() {
   new Foo<String>().method(42);
 }
 ''',
-      [error(CompileTimeErrorCode.argumentTypeNotAssignable, 104, 2)],
+      [error(diag.argumentTypeNotAssignable, 104, 2)],
     );
   }
 
@@ -357,9 +331,9 @@ void f() {
 }
 ''',
       [
-        error(CompileTimeErrorCode.couldNotInfer, 152, 1),
-        error(CompileTimeErrorCode.couldNotInfer, 169, 5),
-        error(CompileTimeErrorCode.couldNotInfer, 190, 5),
+        error(diag.couldNotInfer, 152, 1),
+        error(diag.couldNotInfer, 169, 5),
+        error(diag.couldNotInfer, 190, 5),
       ],
     );
   }
@@ -372,7 +346,7 @@ class C {
 }
 main() { new C().f(<S>(S s) => s); }
 ''',
-      [error(CompileTimeErrorCode.returnOfInvalidTypeFromMethod, 27, 4)],
+      [error(diag.returnOfInvalidTypeFromMethod, 27, 4)],
     );
   }
 
@@ -386,7 +360,7 @@ class C<P extends num> {
 
 var c = C([]);
 ''',
-      [error(CompileTimeErrorCode.argumentTypeNotAssignable, 84, 2)],
+      [error(diag.argumentTypeNotAssignable, 84, 2)],
     );
   }
 }

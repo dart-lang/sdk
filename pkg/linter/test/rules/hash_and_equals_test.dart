@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../rule_test_support.dart';
@@ -64,7 +65,7 @@ enum A {
 }
 ''',
       [
-        error(CompileTimeErrorCode.illegalConcreteEnumMemberDeclaration, 46, 2),
+        error(diag.illegalConcreteEnumMemberDeclaration, 46, 2),
         // no lint
       ],
     );
@@ -115,7 +116,7 @@ extension type E(Object o) {
 ''',
       [
         // No lint.
-        error(CompileTimeErrorCode.extensionTypeDeclaresMemberOfObject, 45, 2),
+        error(diag.extensionTypeDeclaresMemberOfObject, 45, 2),
       ],
     );
   }

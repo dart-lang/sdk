@@ -10,6 +10,7 @@ import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/error/error.dart';
 
 import '../analyzer.dart';
+import '../diagnostic.dart' as diag;
 
 const _desc = r'Only use double quotes for strings containing single quotes.';
 
@@ -18,7 +19,7 @@ class PreferSingleQuotes extends AnalysisRule {
     : super(name: LintNames.prefer_single_quotes, description: _desc);
 
   @override
-  DiagnosticCode get diagnosticCode => LinterLintCode.preferSingleQuotes;
+  DiagnosticCode get diagnosticCode => diag.preferSingleQuotes;
 
   @override
   List<String> get incompatibleRules => const [LintNames.prefer_double_quotes];

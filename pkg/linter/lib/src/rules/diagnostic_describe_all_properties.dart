@@ -14,6 +14,7 @@ import 'package:analyzer/error/error.dart';
 import 'package:collection/collection.dart';
 
 import '../analyzer.dart';
+import '../diagnostic.dart' as diag;
 import '../extensions.dart';
 import '../util/flutter_utils.dart';
 
@@ -27,8 +28,7 @@ class DiagnosticDescribeAllProperties extends AnalysisRule {
       );
 
   @override
-  DiagnosticCode get diagnosticCode =>
-      LinterLintCode.diagnosticDescribeAllProperties;
+  DiagnosticCode get diagnosticCode => diag.diagnosticDescribeAllProperties;
 
   @override
   void registerNodeProcessors(

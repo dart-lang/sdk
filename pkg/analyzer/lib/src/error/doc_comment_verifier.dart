@@ -6,7 +6,7 @@ import 'dart:math' as math;
 
 import 'package:analyzer/dart/ast/doc_comment.dart';
 import 'package:analyzer/error/listener.dart';
-import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 
 /// Verifies various data parsed in doc comments.
 class DocCommentVerifier {
@@ -37,7 +37,7 @@ class DocCommentVerifier {
     if (deferredKeyword != null) {
       _diagnosticReporter.atToken(
         deferredKeyword,
-        WarningCode.docImportCannotBeDeferred,
+        diag.docImportCannotBeDeferred,
       );
     }
     var configurations = docImport.import.configurations;
@@ -45,7 +45,7 @@ class DocCommentVerifier {
       _diagnosticReporter.atOffset(
         offset: configurations.first.offset,
         length: configurations.last.end - configurations.first.offset,
-        diagnosticCode: WarningCode.docImportCannotHaveConfigurations,
+        diagnosticCode: diag.docImportCannotHaveConfigurations,
       );
     }
 
@@ -55,7 +55,7 @@ class DocCommentVerifier {
       _diagnosticReporter.atOffset(
         offset: combinators.first.offset,
         length: combinators.last.end - combinators.first.offset,
-        diagnosticCode: WarningCode.docImportCannotHaveCombinators,
+        diagnosticCode: diag.docImportCannotHaveCombinators,
       );
     }
 
@@ -67,7 +67,7 @@ class DocCommentVerifier {
       _diagnosticReporter.atOffset(
         offset: prefix.offset,
         length: prefix.end - prefix.offset,
-        diagnosticCode: WarningCode.docImportCannotHavePrefix,
+        diagnosticCode: diag.docImportCannotHavePrefix,
       );
     }
   }
@@ -83,7 +83,7 @@ class DocCommentVerifier {
         _diagnosticReporter.atOffset(
           offset: tag.offset,
           length: tag.end - tag.offset,
-          diagnosticCode: WarningCode.docDirectiveMissingOneArgument,
+          diagnosticCode: diag.docDirectiveMissingOneArgument,
           arguments: [tag.type.name, required.last.name],
         );
       } else if (gap == 2) {
@@ -94,7 +94,7 @@ class DocCommentVerifier {
         _diagnosticReporter.atOffset(
           offset: tag.offset,
           length: tag.end - tag.offset,
-          diagnosticCode: WarningCode.docDirectiveMissingTwoArguments,
+          diagnosticCode: diag.docDirectiveMissingTwoArguments,
           arguments: [tag.type.name, ...missingArguments],
         );
       } else if (gap == 3) {
@@ -106,7 +106,7 @@ class DocCommentVerifier {
         _diagnosticReporter.atOffset(
           offset: tag.offset,
           length: tag.end - tag.offset,
-          diagnosticCode: WarningCode.docDirectiveMissingThreeArguments,
+          diagnosticCode: diag.docDirectiveMissingThreeArguments,
           arguments: [tag.type.name, ...missingArguments],
         );
       }
@@ -124,7 +124,7 @@ class DocCommentVerifier {
       _diagnosticReporter.atOffset(
         offset: errorOffset,
         length: errorLength,
-        diagnosticCode: WarningCode.docDirectiveHasExtraArguments,
+        diagnosticCode: diag.docDirectiveHasExtraArguments,
         arguments: [tag.type.name, positionalArgumentCount, requiredCount],
       );
     }
@@ -134,7 +134,7 @@ class DocCommentVerifier {
         _diagnosticReporter.atOffset(
           offset: namedArgument.offset,
           length: namedArgument.end - namedArgument.offset,
-          diagnosticCode: WarningCode.docDirectiveHasUnexpectedNamedArgument,
+          diagnosticCode: diag.docDirectiveHasUnexpectedNamedArgument,
           arguments: [tag.type.name, namedArgument.name],
         );
       }
@@ -155,7 +155,7 @@ class DocCommentVerifier {
         _diagnosticReporter.atOffset(
           offset: argument.offset,
           length: argument.end - argument.offset,
-          diagnosticCode: WarningCode.docDirectiveArgumentWrongFormat,
+          diagnosticCode: diag.docDirectiveArgumentWrongFormat,
           arguments: [parameter.name, parameter.expectedFormat.displayString],
         );
       }

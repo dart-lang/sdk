@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
@@ -32,7 +32,7 @@ void f(Future<int> future) {
   });
 }
 ''',
-      [error(CompileTimeErrorCode.returnWithoutValue, 69, 6)],
+      [error(diag.returnWithoutValue, 69, 6)],
     );
   }
 
@@ -65,7 +65,7 @@ void f(Future<int> future) {
   });
 }
 ''',
-      [error(CompileTimeErrorCode.returnWithoutValue, 63, 6)],
+      [error(diag.returnWithoutValue, 63, 6)],
     );
   }
 
@@ -92,7 +92,7 @@ void f(Future<int> future) {
   });
 }
 ''',
-      [error(WarningCode.returnOfInvalidTypeFromCatchError, 119, 3)],
+      [error(diag.returnOfInvalidTypeFromCatchError, 119, 3)],
     );
   }
 
@@ -129,7 +129,7 @@ void f(Future<int> future) {
   future.catchError((e, st) => 'c');
 }
 ''',
-      [error(WarningCode.returnOfInvalidTypeFromCatchError, 60, 3)],
+      [error(diag.returnOfInvalidTypeFromCatchError, 60, 3)],
     );
   }
 
@@ -150,7 +150,7 @@ void f(Future<int?> future) {
   });
 }
 ''',
-      [error(CompileTimeErrorCode.returnWithoutValue, 64, 6)],
+      [error(diag.returnWithoutValue, 64, 6)],
     );
   }
 
@@ -161,7 +161,7 @@ void f(Future<int?> future) {
   future.catchError((e, st) => '');
 }
 ''',
-      [error(WarningCode.returnOfInvalidTypeFromCatchError, 61, 2)],
+      [error(diag.returnOfInvalidTypeFromCatchError, 61, 2)],
     );
   }
 
@@ -188,7 +188,7 @@ void f(Future<int> future, void Function() g) {
   future.catchError((e, st) => g());
 }
 ''',
-      [error(WarningCode.returnOfInvalidTypeFromCatchError, 79, 3)],
+      [error(diag.returnOfInvalidTypeFromCatchError, 79, 3)],
     );
   }
 }

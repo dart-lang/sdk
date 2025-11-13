@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
@@ -62,9 +62,7 @@ augment class A {
     assertNoErrorsInResult();
 
     await resolveFile2(a);
-    assertErrorsInResult([
-      error(CompileTimeErrorCode.duplicateConstructorDefault, 42, 1),
-    ]);
+    assertErrorsInResult([error(diag.duplicateConstructorDefault, 42, 1)]);
   }
 
   test_class_empty_empty() async {
@@ -75,7 +73,7 @@ class C {
   C();
 }
 ''',
-      [error(CompileTimeErrorCode.duplicateConstructorDefault, 19, 1)],
+      [error(diag.duplicateConstructorDefault, 19, 1)],
     );
   }
 
@@ -87,7 +85,7 @@ class C {
   C.new();
 }
 ''',
-      [error(CompileTimeErrorCode.duplicateConstructorDefault, 19, 5)],
+      [error(diag.duplicateConstructorDefault, 19, 5)],
     );
   }
 
@@ -99,7 +97,7 @@ class C {
   C();
 }
 ''',
-      [error(CompileTimeErrorCode.duplicateConstructorDefault, 23, 1)],
+      [error(diag.duplicateConstructorDefault, 23, 1)],
     );
   }
 
@@ -111,7 +109,7 @@ class C {
   C.new();
 }
 ''',
-      [error(CompileTimeErrorCode.duplicateConstructorDefault, 23, 5)],
+      [error(diag.duplicateConstructorDefault, 23, 5)],
     );
   }
 
@@ -124,7 +122,7 @@ enum E {
   const E();
 }
 ''',
-      [error(CompileTimeErrorCode.duplicateConstructorDefault, 35, 1)],
+      [error(diag.duplicateConstructorDefault, 35, 1)],
     );
   }
 
@@ -138,8 +136,8 @@ enum E {
 }
 ''',
       [
-        error(CompileTimeErrorCode.duplicateConstructorDefault, 35, 5),
-        error(WarningCode.unusedElement, 37, 3),
+        error(diag.duplicateConstructorDefault, 35, 5),
+        error(diag.unusedElement, 37, 3),
       ],
     );
   }
@@ -153,7 +151,7 @@ enum E {
   const E();
 }
 ''',
-      [error(CompileTimeErrorCode.duplicateConstructorDefault, 39, 1)],
+      [error(diag.duplicateConstructorDefault, 39, 1)],
     );
   }
 
@@ -167,8 +165,8 @@ enum E {
 }
 ''',
       [
-        error(CompileTimeErrorCode.duplicateConstructorDefault, 39, 5),
-        error(WarningCode.unusedElement, 41, 3),
+        error(diag.duplicateConstructorDefault, 39, 5),
+        error(diag.unusedElement, 41, 3),
       ],
     );
   }
@@ -180,7 +178,7 @@ extension type A(int it) {
   A(this.it);
 }
 ''',
-      [error(CompileTimeErrorCode.duplicateConstructorDefault, 29, 1)],
+      [error(diag.duplicateConstructorDefault, 29, 1)],
     );
   }
 
@@ -191,7 +189,7 @@ extension type A(int it) {
   A.new(this.it);
 }
 ''',
-      [error(CompileTimeErrorCode.duplicateConstructorDefault, 29, 5)],
+      [error(diag.duplicateConstructorDefault, 29, 5)],
     );
   }
 
@@ -202,7 +200,7 @@ extension type A.new(int it) {
   A(this.it);
 }
 ''',
-      [error(CompileTimeErrorCode.duplicateConstructorDefault, 33, 1)],
+      [error(diag.duplicateConstructorDefault, 33, 1)],
     );
   }
 
@@ -213,7 +211,7 @@ extension type A.new(int it) {
   A.new(this.it);
 }
 ''',
-      [error(CompileTimeErrorCode.duplicateConstructorDefault, 33, 5)],
+      [error(diag.duplicateConstructorDefault, 33, 5)],
     );
   }
 }

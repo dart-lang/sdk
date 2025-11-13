@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
@@ -28,7 +28,7 @@ mixin M implements A {
   }
 }
 ''',
-      [error(CompileTimeErrorCode.abstractSuperMemberReference, 82, 3)],
+      [error(diag.abstractSuperMemberReference, 82, 3)],
     );
 
     var node = findNode.methodInvocation('super.foo(0)');
@@ -104,7 +104,7 @@ class B extends Object with A {
   noSuchMethod(im) => 87;
 }
 ''',
-      [error(CompileTimeErrorCode.abstractSuperMemberReference, 107, 3)],
+      [error(diag.abstractSuperMemberReference, 107, 3)],
     );
 
     var node = findNode.methodInvocation('super.foo()');
@@ -141,7 +141,7 @@ abstract class B extends A {
   void foo(int _) {} // does not matter
 }
 ''',
-      [error(CompileTimeErrorCode.abstractSuperMemberReference, 95, 3)],
+      [error(diag.abstractSuperMemberReference, 95, 3)],
     );
 
     var node = findNode.methodInvocation('super.foo(0)');
@@ -285,7 +285,7 @@ abstract class B extends A {
   }
 }
 ''',
-      [error(CompileTimeErrorCode.abstractSuperMemberReference, 86, 3)],
+      [error(diag.abstractSuperMemberReference, 86, 3)],
     );
 
     var node = findNode.singlePropertyAccess;
@@ -316,7 +316,7 @@ mixin M implements A {
   }
 }
 ''',
-      [error(CompileTimeErrorCode.abstractSuperMemberReference, 81, 3)],
+      [error(diag.abstractSuperMemberReference, 81, 3)],
     );
 
     var node = findNode.singlePropertyAccess;
@@ -347,7 +347,7 @@ class B extends Object with A {
   noSuchMethod(im) => 2;
 }
 ''',
-      [error(CompileTimeErrorCode.abstractSuperMemberReference, 108, 3)],
+      [error(diag.abstractSuperMemberReference, 108, 3)],
     );
 
     var node = findNode.singlePropertyAccess;
@@ -407,7 +407,7 @@ class C extends B {
   int get foo => super.foo; // ref
 }
 ''',
-      [error(CompileTimeErrorCode.abstractSuperMemberReference, 111, 3)],
+      [error(diag.abstractSuperMemberReference, 111, 3)],
     );
 
     var node = findNode.singlePropertyAccess;
@@ -468,7 +468,7 @@ abstract class B extends A {
   }
 }
 ''',
-      [error(CompileTimeErrorCode.abstractSuperMemberReference, 90, 3)],
+      [error(diag.abstractSuperMemberReference, 90, 3)],
     );
 
     var node = findNode.singlePropertyAccess;
@@ -499,7 +499,7 @@ abstract class B extends A {
   }
 }
 ''',
-      [error(CompileTimeErrorCode.abstractSuperMemberReference, 94, 3)],
+      [error(diag.abstractSuperMemberReference, 94, 3)],
     );
 
     assertResolvedNodeText(findNode.assignment('foo ='), r'''
@@ -541,7 +541,7 @@ mixin M implements A {
   }
 }
 ''',
-      [error(CompileTimeErrorCode.abstractSuperMemberReference, 81, 3)],
+      [error(diag.abstractSuperMemberReference, 81, 3)],
     );
 
     assertResolvedNodeText(findNode.assignment('foo ='), r'''
@@ -583,7 +583,7 @@ class B extends Object with A {
   noSuchMethod(im) {}
 }
 ''',
-      [error(CompileTimeErrorCode.abstractSuperMemberReference, 111, 3)],
+      [error(diag.abstractSuperMemberReference, 111, 3)],
     );
 
     assertResolvedNodeText(findNode.assignment('foo ='), r'''

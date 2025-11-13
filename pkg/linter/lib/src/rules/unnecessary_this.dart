@@ -12,6 +12,7 @@ import 'package:analyzer/error/error.dart';
 
 import '../analyzer.dart';
 import '../ast.dart';
+import '../diagnostic.dart' as diag;
 import '../util/scope.dart';
 
 const _desc = r"Don't access members with `this` unless avoiding shadowing.";
@@ -21,7 +22,7 @@ class UnnecessaryThis extends AnalysisRule {
     : super(name: LintNames.unnecessary_this, description: _desc);
 
   @override
-  DiagnosticCode get diagnosticCode => LinterLintCode.unnecessaryThis;
+  DiagnosticCode get diagnosticCode => diag.unnecessaryThis;
 
   @override
   void registerNodeProcessors(

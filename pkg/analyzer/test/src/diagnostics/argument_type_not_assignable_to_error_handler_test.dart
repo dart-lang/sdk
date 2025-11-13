@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
@@ -45,7 +45,7 @@ void f(Future<int> future, Future<int> Function({Object a}) callback) {
   future.catchError(callback);
 }
 ''',
-      [error(WarningCode.argumentTypeNotAssignableToErrorHandler, 92, 8)],
+      [error(diag.argumentTypeNotAssignableToErrorHandler, 92, 8)],
     );
   }
 
@@ -80,7 +80,7 @@ void f(Future<void> future) {
   future.catchError(({Object a = 1}) {});
 }
 ''',
-      [error(WarningCode.argumentTypeNotAssignableToErrorHandler, 50, 19)],
+      [error(diag.argumentTypeNotAssignableToErrorHandler, 50, 19)],
     );
   }
 
@@ -115,7 +115,7 @@ void f(Future<void> future) {
   future.catchError(() {});
 }
 ''',
-      [error(WarningCode.argumentTypeNotAssignableToErrorHandler, 50, 5)],
+      [error(diag.argumentTypeNotAssignableToErrorHandler, 50, 5)],
     );
   }
 
@@ -142,7 +142,7 @@ void f(Future<void> future) {
   future.catchError((Object a, {required StackTrace b}) {});
 }
 ''',
-      [error(WarningCode.argumentTypeNotAssignableToErrorHandler, 50, 38)],
+      [error(diag.argumentTypeNotAssignableToErrorHandler, 50, 38)],
     );
   }
 
@@ -169,7 +169,7 @@ void f(Future<void> future) {
   future.catchError((a, b, c) {});
 }
 ''',
-      [error(WarningCode.argumentTypeNotAssignableToErrorHandler, 50, 12)],
+      [error(diag.argumentTypeNotAssignableToErrorHandler, 50, 12)],
     );
   }
 
@@ -180,7 +180,7 @@ void f(Future<void> future) {
   future.catchError((String a) {});
 }
 ''',
-      [error(WarningCode.argumentTypeNotAssignableToErrorHandler, 50, 13)],
+      [error(diag.argumentTypeNotAssignableToErrorHandler, 50, 13)],
     );
   }
 
@@ -191,7 +191,7 @@ void f(Future<void> future) {
   future.catchError((Object a, String b) {});
 }
 ''',
-      [error(WarningCode.argumentTypeNotAssignableToErrorHandler, 50, 23)],
+      [error(diag.argumentTypeNotAssignableToErrorHandler, 50, 23)],
     );
   }
 
@@ -202,7 +202,7 @@ void f(Future<int> future, Future<int> Function() callback) {
   future.catchError(callback);
 }
 ''',
-      [error(WarningCode.argumentTypeNotAssignableToErrorHandler, 82, 8)],
+      [error(diag.argumentTypeNotAssignableToErrorHandler, 82, 8)],
     );
   }
 
@@ -229,7 +229,7 @@ void f(Future<int> future, Future<int> Function(Object a, {StackTrace b}) callba
   future.catchError(callback);
 }
 ''',
-      [error(WarningCode.argumentTypeNotAssignableToErrorHandler, 106, 8)],
+      [error(diag.argumentTypeNotAssignableToErrorHandler, 106, 8)],
     );
   }
 
@@ -240,7 +240,7 @@ void f(Future<int> future, Future<int> Function(int, int, int) callback) {
   future.catchError(callback);
 }
 ''',
-      [error(WarningCode.argumentTypeNotAssignableToErrorHandler, 95, 8)],
+      [error(diag.argumentTypeNotAssignableToErrorHandler, 95, 8)],
     );
   }
 
@@ -251,7 +251,7 @@ void f(Future<int> future, Future<int> Function(String) callback) {
   future.catchError(callback);
 }
 ''',
-      [error(WarningCode.argumentTypeNotAssignableToErrorHandler, 88, 8)],
+      [error(diag.argumentTypeNotAssignableToErrorHandler, 88, 8)],
     );
   }
 
@@ -262,7 +262,7 @@ void f(Future<int> future, Future<int> Function(Object, String) callback) {
   future.catchError(callback);
 }
 ''',
-      [error(WarningCode.argumentTypeNotAssignableToErrorHandler, 96, 8)],
+      [error(diag.argumentTypeNotAssignableToErrorHandler, 96, 8)],
     );
   }
 }
@@ -285,7 +285,7 @@ void f(Future<void> future, Future<int> Function({Object a}) callback) {
   future.then((_) {}, onError: callback);
 }
 ''',
-      [error(WarningCode.argumentTypeNotAssignableToErrorHandler, 95, 17)],
+      [error(diag.argumentTypeNotAssignableToErrorHandler, 95, 17)],
     );
   }
 
@@ -296,7 +296,7 @@ void f(Future<void> future) {
   future.then((_) {}, onError: ({Object a = 1}) {});
 }
 ''',
-      [error(WarningCode.argumentTypeNotAssignableToErrorHandler, 52, 28)],
+      [error(diag.argumentTypeNotAssignableToErrorHandler, 52, 28)],
     );
   }
 
@@ -315,7 +315,7 @@ void f(Future<void> future) {
   future.then((_) {}, onError: () {});
 }
 ''',
-      [error(WarningCode.argumentTypeNotAssignableToErrorHandler, 52, 14)],
+      [error(diag.argumentTypeNotAssignableToErrorHandler, 52, 14)],
     );
   }
 
@@ -326,7 +326,7 @@ void f(Future<void> future) {
   future.then((_) {}, onError: (Object a, {StackTrace? b}) {});
 }
 ''',
-      [error(WarningCode.argumentTypeNotAssignableToErrorHandler, 52, 39)],
+      [error(diag.argumentTypeNotAssignableToErrorHandler, 52, 39)],
     );
   }
 
@@ -345,7 +345,7 @@ void f(Future<void> future) {
   future.then((_) {}, onError: (String a) {});
 }
 ''',
-      [error(WarningCode.argumentTypeNotAssignableToErrorHandler, 52, 22)],
+      [error(diag.argumentTypeNotAssignableToErrorHandler, 52, 22)],
     );
   }
 
@@ -376,7 +376,7 @@ void f(Stream<void> stream, Future<int> Function({Object a}) callback) {
   stream.handleError(callback);
 }
 ''',
-      [error(WarningCode.argumentTypeNotAssignableToErrorHandler, 94, 8)],
+      [error(diag.argumentTypeNotAssignableToErrorHandler, 94, 8)],
     );
   }
 
@@ -387,7 +387,7 @@ void f(Stream<void> stream) {
   stream.handleError(({Object a = 1}) {});
 }
 ''',
-      [error(WarningCode.argumentTypeNotAssignableToErrorHandler, 51, 19)],
+      [error(diag.argumentTypeNotAssignableToErrorHandler, 51, 19)],
     );
   }
 
@@ -406,7 +406,7 @@ void f(Stream<void> stream) {
   stream.handleError(() {});
 }
 ''',
-      [error(WarningCode.argumentTypeNotAssignableToErrorHandler, 51, 5)],
+      [error(diag.argumentTypeNotAssignableToErrorHandler, 51, 5)],
     );
   }
 
@@ -417,7 +417,7 @@ void f(Stream<void> stream) {
   stream.handleError((Object a, {StackTrace? b}) {});
 }
 ''',
-      [error(WarningCode.argumentTypeNotAssignableToErrorHandler, 51, 30)],
+      [error(diag.argumentTypeNotAssignableToErrorHandler, 51, 30)],
     );
   }
 
@@ -436,7 +436,7 @@ void f(Stream<void> stream) {
   stream.handleError((String a) {});
 }
 ''',
-      [error(WarningCode.argumentTypeNotAssignableToErrorHandler, 51, 13)],
+      [error(diag.argumentTypeNotAssignableToErrorHandler, 51, 13)],
     );
   }
 }
@@ -459,7 +459,7 @@ void f(Stream<void> stream, Future<int> Function({Object a}) callback) {
   stream.listen((_) {}, onError: callback);
 }
 ''',
-      [error(WarningCode.argumentTypeNotAssignableToErrorHandler, 97, 17)],
+      [error(diag.argumentTypeNotAssignableToErrorHandler, 97, 17)],
     );
   }
 
@@ -470,7 +470,7 @@ void f(Stream<void> stream) {
   stream.listen((_) {}, onError: ({Object a = 1}) {});
 }
 ''',
-      [error(WarningCode.argumentTypeNotAssignableToErrorHandler, 54, 28)],
+      [error(diag.argumentTypeNotAssignableToErrorHandler, 54, 28)],
     );
   }
 
@@ -489,7 +489,7 @@ void f(Stream<void> stream) {
   stream.listen((_) {}, onError: () {});
 }
 ''',
-      [error(WarningCode.argumentTypeNotAssignableToErrorHandler, 54, 14)],
+      [error(diag.argumentTypeNotAssignableToErrorHandler, 54, 14)],
     );
   }
 
@@ -500,7 +500,7 @@ void f(Stream<void> stream) {
   stream.listen((_) {}, onError: (Object a, {StackTrace? b}) {});
 }
 ''',
-      [error(WarningCode.argumentTypeNotAssignableToErrorHandler, 54, 39)],
+      [error(diag.argumentTypeNotAssignableToErrorHandler, 54, 39)],
     );
   }
 
@@ -519,7 +519,7 @@ void f(Stream<void> stream) {
   stream.listen((_) {}, onError: (String a) {});
 }
 ''',
-      [error(WarningCode.argumentTypeNotAssignableToErrorHandler, 54, 22)],
+      [error(diag.argumentTypeNotAssignableToErrorHandler, 54, 22)],
     );
   }
 }
@@ -547,7 +547,7 @@ void f(
   subscription.onError(callback);
 }
 ''',
-      [error(WarningCode.argumentTypeNotAssignableToErrorHandler, 144, 8)],
+      [error(diag.argumentTypeNotAssignableToErrorHandler, 144, 8)],
     );
   }
 
@@ -559,7 +559,7 @@ void f(StreamSubscription<void> subscription) {
   subscription.onError(({Object a = 1}) {});
 }
 ''',
-      [error(WarningCode.argumentTypeNotAssignableToErrorHandler, 92, 19)],
+      [error(diag.argumentTypeNotAssignableToErrorHandler, 92, 19)],
     );
   }
 
@@ -580,7 +580,7 @@ void f(StreamSubscription<void> subscription) {
   subscription.onError(() {});
 }
 ''',
-      [error(WarningCode.argumentTypeNotAssignableToErrorHandler, 92, 5)],
+      [error(diag.argumentTypeNotAssignableToErrorHandler, 92, 5)],
     );
   }
 
@@ -592,7 +592,7 @@ void f(StreamSubscription<void> subscription) {
   subscription.onError((Object a, {StackTrace? b}) {});
 }
 ''',
-      [error(WarningCode.argumentTypeNotAssignableToErrorHandler, 92, 30)],
+      [error(diag.argumentTypeNotAssignableToErrorHandler, 92, 30)],
     );
   }
 
@@ -613,7 +613,7 @@ void f(StreamSubscription<void> subscription) {
   subscription.onError((String a) {});
 }
 ''',
-      [error(WarningCode.argumentTypeNotAssignableToErrorHandler, 92, 13)],
+      [error(diag.argumentTypeNotAssignableToErrorHandler, 92, 13)],
     );
   }
 }

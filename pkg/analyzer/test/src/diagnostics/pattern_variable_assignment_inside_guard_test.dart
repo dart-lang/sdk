@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
@@ -27,8 +27,8 @@ void f(int x) {
 }
 ''',
       [
-        error(WarningCode.unusedLocalVariable, 33, 1),
-        error(CompileTimeErrorCode.patternVariableAssignmentInsideGuard, 68, 1),
+        error(diag.unusedLocalVariable, 33, 1),
+        error(diag.patternVariableAssignmentInsideGuard, 68, 1),
       ],
     );
   }
@@ -44,8 +44,8 @@ void f(int x) {
 }
 ''',
       [
-        error(WarningCode.unusedLocalVariable, 33, 1),
-        error(CompileTimeErrorCode.patternVariableAssignmentInsideGuard, 49, 1),
+        error(diag.unusedLocalVariable, 33, 1),
+        error(diag.patternVariableAssignmentInsideGuard, 49, 1),
       ],
     );
   }
@@ -58,8 +58,8 @@ void f(int x) {
 }
 ''',
       [
-        error(WarningCode.unusedLocalVariable, 33, 1),
-        error(CompileTimeErrorCode.patternVariableAssignmentInsideGuard, 41, 1),
+        error(diag.unusedLocalVariable, 33, 1),
+        error(diag.patternVariableAssignmentInsideGuard, 41, 1),
       ],
     );
   }
@@ -71,7 +71,7 @@ void f(int x) {
   if (x case var a when (a += 1) > 0) {}
 }
 ''',
-      [error(CompileTimeErrorCode.patternVariableAssignmentInsideGuard, 41, 1)],
+      [error(diag.patternVariableAssignmentInsideGuard, 41, 1)],
     );
   }
 
@@ -83,10 +83,10 @@ void f(int x) {
 }
 ''',
       [
-        error(WarningCode.unusedLocalVariable, 33, 1),
-        error(WarningCode.deadCode, 35, 8),
-        error(WarningCode.unusedLocalVariable, 42, 1),
-        error(CompileTimeErrorCode.patternVariableAssignmentInsideGuard, 50, 1),
+        error(diag.unusedLocalVariable, 33, 1),
+        error(diag.deadCode, 35, 8),
+        error(diag.unusedLocalVariable, 42, 1),
+        error(diag.patternVariableAssignmentInsideGuard, 50, 1),
       ],
     );
   }
@@ -98,7 +98,7 @@ void f(int x) {
   if (x case var a when (a++) > 0) {}
 }
 ''',
-      [error(CompileTimeErrorCode.patternVariableAssignmentInsideGuard, 41, 1)],
+      [error(diag.patternVariableAssignmentInsideGuard, 41, 1)],
     );
   }
 
@@ -109,7 +109,7 @@ void f(int x) {
   if (x case var a when (++a) > 0) {}
 }
 ''',
-      [error(CompileTimeErrorCode.patternVariableAssignmentInsideGuard, 43, 1)],
+      [error(diag.patternVariableAssignmentInsideGuard, 43, 1)],
     );
   }
 
@@ -132,7 +132,7 @@ void f(int x) {
   if (x case var a when (b = 1) > 0) {}
 }
 ''',
-      [error(WarningCode.unusedLocalVariable, 80, 1)],
+      [error(diag.unusedLocalVariable, 80, 1)],
     );
   }
 

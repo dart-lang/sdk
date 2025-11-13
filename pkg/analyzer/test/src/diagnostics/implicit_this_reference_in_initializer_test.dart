@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
@@ -82,7 +82,7 @@ class B extends A {
   B() : assert(f != 0);
 }
 ''',
-      [error(CompileTimeErrorCode.implicitThisReferenceInInitializer, 66, 1)],
+      [error(diag.implicitThisReferenceInInitializer, 66, 1)],
     );
   }
 
@@ -94,7 +94,7 @@ class A {
   int get f => 0;
 }
 ''',
-      [error(CompileTimeErrorCode.implicitThisReferenceInInitializer, 25, 1)],
+      [error(diag.implicitThisReferenceInInitializer, 25, 1)],
     );
   }
 
@@ -107,7 +107,7 @@ class A {
   var f;
 }
 ''',
-      [error(CompileTimeErrorCode.implicitThisReferenceInInitializer, 31, 1)],
+      [error(diag.implicitThisReferenceInInitializer, 31, 1)],
     );
   }
 
@@ -131,7 +131,7 @@ class A {
   final y = x;
 }
 ''',
-      [error(CompileTimeErrorCode.implicitThisReferenceInInitializer, 37, 1)],
+      [error(diag.implicitThisReferenceInInitializer, 37, 1)],
     );
   }
 
@@ -143,7 +143,7 @@ class A {
   final y = x<int>;
 }
 ''',
-      [error(CompileTimeErrorCode.implicitThisReferenceInInitializer, 39, 1)],
+      [error(diag.implicitThisReferenceInInitializer, 39, 1)],
     );
   }
 
@@ -163,7 +163,7 @@ class A {
   void _foo() {}
 }
 ''',
-      [error(CompileTimeErrorCode.implicitThisReferenceInInitializer, 87, 4)],
+      [error(diag.implicitThisReferenceInInitializer, 87, 4)],
     );
   }
 
@@ -176,7 +176,7 @@ class A {
   f() {}
 }
 ''',
-      [error(CompileTimeErrorCode.implicitThisReferenceInInitializer, 31, 1)],
+      [error(diag.implicitThisReferenceInInitializer, 31, 1)],
     );
   }
 
@@ -188,7 +188,7 @@ class A {
   int m() => 0;
 }
 ''',
-      [error(CompileTimeErrorCode.implicitThisReferenceInInitializer, 27, 1)],
+      [error(diag.implicitThisReferenceInInitializer, 27, 1)],
     );
   }
 
@@ -246,7 +246,7 @@ class A {
   var f;
 }
 ''',
-      [error(CompileTimeErrorCode.implicitThisReferenceInInitializer, 39, 1)],
+      [error(diag.implicitThisReferenceInInitializer, 39, 1)],
     );
   }
 
@@ -291,7 +291,7 @@ class B extends A {
   var f;
 }
 ''',
-      [error(CompileTimeErrorCode.implicitThisReferenceInInitializer, 56, 1)],
+      [error(diag.implicitThisReferenceInInitializer, 56, 1)],
     );
   }
 

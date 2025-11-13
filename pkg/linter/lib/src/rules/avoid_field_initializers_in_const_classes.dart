@@ -11,6 +11,7 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/error/error.dart';
 
 import '../analyzer.dart';
+import '../diagnostic.dart' as diag;
 import '../extensions.dart';
 
 const _desc = r'Avoid field initializers in const classes.';
@@ -24,7 +25,7 @@ class AvoidFieldInitializersInConstClasses extends AnalysisRule {
 
   @override
   DiagnosticCode get diagnosticCode =>
-      LinterLintCode.avoidFieldInitializersInConstClasses;
+      diag.avoidFieldInitializersInConstClasses;
 
   @override
   void registerNodeProcessors(

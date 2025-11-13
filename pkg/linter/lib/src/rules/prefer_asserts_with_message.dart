@@ -10,6 +10,7 @@ import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/error/error.dart';
 
 import '../analyzer.dart';
+import '../diagnostic.dart' as diag;
 
 const _desc = r'Prefer asserts with message.';
 
@@ -18,7 +19,7 @@ class PreferAssertsWithMessage extends AnalysisRule {
     : super(name: LintNames.prefer_asserts_with_message, description: _desc);
 
   @override
-  DiagnosticCode get diagnosticCode => LinterLintCode.preferAssertsWithMessage;
+  DiagnosticCode get diagnosticCode => diag.preferAssertsWithMessage;
 
   @override
   void registerNodeProcessors(

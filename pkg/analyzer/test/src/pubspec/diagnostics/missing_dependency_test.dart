@@ -5,7 +5,7 @@
 import 'package:analyzer/diagnostic/diagnostic.dart';
 import 'package:analyzer/source/file_source.dart';
 import 'package:analyzer/source/source.dart';
-import 'package:analyzer/src/pubspec/pubspec_warning_code.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:analyzer/src/pubspec/validators/missing_dependency_validator.dart';
 import 'package:analyzer_testing/resource_provider_mixin.dart';
 import 'package:matcher/expect.dart';
@@ -24,7 +24,7 @@ class MissingDependencyTest with ResourceProviderMixin {
   late Source _source;
 
   /// Asserts that when the validator is used on the given [content], a
-  /// [PubspecWarningCode.missingDependency] warning is produced.
+  /// [diag.missingDependency] warning is produced.
   void assertErrors(
     String content, {
     required Set<String> usedDeps,
@@ -35,7 +35,7 @@ class MissingDependencyTest with ResourceProviderMixin {
   }) {
     var error = _runValidator(content, usedDeps, usedDevDeps).first;
     var data = MissingDependencyData.byDiagnostic[error]!;
-    expect(error.diagnosticCode, PubspecWarningCode.missingDependency);
+    expect(error.diagnosticCode, diag.missingDependency);
     expect(data.addDeps, addDeps);
     expect(data.addDevDeps, addDevDeps);
     expect(data.removeDevDeps, removeDevDeps);

@@ -10,6 +10,7 @@ import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/error/error.dart';
 
 import '../analyzer.dart';
+import '../diagnostic.dart' as diag;
 import '../extensions.dart';
 
 const _desc = r"Unnecessary use of 'unawaited'.";
@@ -19,7 +20,7 @@ class UnnecessaryUnawaited extends AnalysisRule {
     : super(name: LintNames.unnecessary_unawaited, description: _desc);
 
   @override
-  DiagnosticCode get diagnosticCode => LinterLintCode.unnecessaryUnawaited;
+  DiagnosticCode get diagnosticCode => diag.unnecessaryUnawaited;
 
   @override
   void registerNodeProcessors(

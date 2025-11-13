@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:analyzer_testing/utilities/utilities.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -35,7 +35,7 @@ void f() {
   var x = 0;
 }
 ''',
-      [error(WarningCode.duplicateIgnore, 43, 21)],
+      [error(diag.duplicateIgnore, 43, 21)],
     );
   }
 
@@ -47,7 +47,7 @@ void f() {
   var x = 0;
 }
 ''',
-      [error(WarningCode.duplicateIgnore, 47, 21)],
+      [error(diag.duplicateIgnore, 47, 21)],
     );
   }
 
@@ -60,7 +60,7 @@ void f() {
   var x = 0;
 }
 ''',
-      [error(WarningCode.duplicateIgnore, 66, 21)],
+      [error(diag.duplicateIgnore, 66, 21)],
     );
   }
 
@@ -70,7 +70,7 @@ void f() {
 // ignore_for_file: type=lint, TYPE=LINT
 void f(arg1(int)) {} // AVOID_TYPES_AS_PARAMETER_NAMES
 ''',
-      [error(WarningCode.duplicateIgnore, 31, 9)],
+      [error(diag.duplicateIgnore, 31, 9)],
     );
   }
 
@@ -81,7 +81,7 @@ void f() {}
 // ignore: type=lint, TYPE=LINT
 void g(arg1(int)) {} // AVOID_TYPES_AS_PARAMETER_NAMES
 ''',
-      [error(WarningCode.duplicateIgnore, 34, 9)],
+      [error(diag.duplicateIgnore, 34, 9)],
     );
   }
 
@@ -93,7 +93,7 @@ void f() {}
 // ignore: type=lint
 void g(arg1(int)) {} // AVOID_TYPES_AS_PARAMETER_NAMES
 ''',
-      [error(WarningCode.duplicateIgnore, 53, 9)],
+      [error(diag.duplicateIgnore, 53, 9)],
     );
   }
 }

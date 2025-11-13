@@ -15,7 +15,7 @@ import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/dart/resolver/flow_analysis_visitor.dart';
 import 'package:analyzer/src/dart/resolver/scope.dart';
-import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 
 /// State information captured by [NullSafetyDeadCodeVerifier.for_conditionEnd]
 /// for later use by [NullSafetyDeadCodeVerifier.for_updaterBegin].
@@ -77,7 +77,7 @@ class DeadCodeVerifier extends RecursiveAstVisitor<void> {
     if (_wildCardVariablesEnabled &&
         element is LocalFunctionElement &&
         element.name == '_') {
-      _diagnosticReporter.atNode(node, WarningCode.deadCode);
+      _diagnosticReporter.atNode(node, diag.deadCode);
     }
     super.visitFunctionDeclaration(node);
   }
@@ -127,7 +127,7 @@ class DeadCodeVerifier extends RecursiveAstVisitor<void> {
           element.name == '_') {
         _diagnosticReporter.atNode(
           initializer,
-          WarningCode.deadCodeLateWildcardVariableInitializer,
+          diag.deadCodeLateWildcardVariableInitializer,
         );
       }
     }
@@ -143,10 +143,10 @@ class DeadCodeVerifier extends RecursiveAstVisitor<void> {
     DiagnosticCode warningCode;
     if (combinator is HideCombinator) {
       names = combinator.hiddenNames;
-      warningCode = WarningCode.undefinedHiddenName;
+      warningCode = diag.undefinedHiddenName;
     } else {
       names = (combinator as ShowCombinator).shownNames;
-      warningCode = WarningCode.undefinedShownName;
+      warningCode = diag.undefinedShownName;
     }
     for (SimpleIdentifier name in names) {
       String nameStr = name.name;
@@ -171,7 +171,7 @@ class DeadCodeVerifier extends RecursiveAstVisitor<void> {
       for (Label label in labelTracker.unusedLabels()) {
         _diagnosticReporter.atNode(
           label,
-          WarningCode.unusedLabel,
+          diag.unusedLabel,
           arguments: [label.label.name],
         );
       }
@@ -232,7 +232,7 @@ class NullSafetyDeadCodeVerifier {
     }
 
     if (node is SwitchMember && node == firstDeadNode) {
-      _diagnosticReporter.atToken(node.keyword, WarningCode.deadCode);
+      _diagnosticReporter.atToken(node.keyword, diag.deadCode);
       _firstDeadNode = null;
       return;
     }
@@ -282,7 +282,7 @@ class NullSafetyDeadCodeVerifier {
         _diagnosticReporter.atOffset(
           offset: parent.offset,
           length: parent.end - parent.offset,
-          diagnosticCode: WarningCode.deadCode,
+          diagnosticCode: diag.deadCode,
         );
         offset = node.end;
       } else if (parent is DoStatement) {
@@ -295,7 +295,7 @@ class NullSafetyDeadCodeVerifier {
         _diagnosticReporter.atOffset(
           offset: whileOffset,
           length: whileEnd - whileOffset,
-          diagnosticCode: WarningCode.deadCode,
+          diagnosticCode: diag.deadCode,
         );
         offset = parent.semicolon.next!.offset;
         if (parent.hasBreakStatement) {
@@ -316,7 +316,7 @@ class NullSafetyDeadCodeVerifier {
         _diagnosticReporter.atOffset(
           offset: offset,
           length: length,
-          diagnosticCode: WarningCode.deadCode,
+          diagnosticCode: diag.deadCode,
         );
       }
     }
@@ -358,7 +358,7 @@ class NullSafetyDeadCodeVerifier {
         _diagnosticReporter.atOffset(
           offset: beginToken.offset,
           length: endToken.end - beginToken.offset,
-          diagnosticCode: WarningCode.deadCode,
+          diagnosticCode: diag.deadCode,
         );
       }
     }
@@ -496,7 +496,7 @@ class NullSafetyDeadCodeVerifier {
         _diagnosticReporter.atOffset(
           offset: operator.offset,
           length: node.end - operator.offset,
-          diagnosticCode: WarningCode.deadCode,
+          diagnosticCode: diag.deadCode,
         );
       }
     }
@@ -549,7 +549,7 @@ class _CatchClausesVerifier {
         _reportDiagnostic(
           catchClauses[index + 1],
           catchClauses.last,
-          WarningCode.deadCodeCatchFollowingCatch,
+          diag.deadCodeCatchFollowingCatch,
           const [],
         );
         _done = true;
@@ -564,7 +564,7 @@ class _CatchClausesVerifier {
         _reportDiagnostic(
           catchClause,
           catchClauses.last,
-          WarningCode.deadCodeOnCatchSubtype,
+          diag.deadCodeOnCatchSubtype,
           [currentType, type],
         );
         _done = true;

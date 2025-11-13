@@ -4,7 +4,7 @@
 
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type.dart';
-import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -53,8 +53,8 @@ late A a;
 late B b;
 ''',
       [
-        error(CompileTimeErrorCode.recursiveInterfaceInheritance, 6, 1),
-        error(CompileTimeErrorCode.recursiveInterfaceInheritance, 27, 1),
+        error(diag.recursiveInterfaceInheritance, 6, 1),
+        error(diag.recursiveInterfaceInheritance, 27, 1),
       ],
     );
     var aType = findElement2.topVar('a').type;
@@ -82,11 +82,11 @@ late A a;
 late B b;
 ''',
       [
-        error(CompileTimeErrorCode.conflictingGenericInterfaces, 99, 1),
-        error(CompileTimeErrorCode.conflictingGenericInterfaces, 99, 1),
-        error(CompileTimeErrorCode.implementsSuperClass, 133, 12),
-        error(CompileTimeErrorCode.conflictingGenericInterfaces, 195, 1),
-        error(CompileTimeErrorCode.implementsSuperClass, 228, 11),
+        error(diag.conflictingGenericInterfaces, 99, 1),
+        error(diag.conflictingGenericInterfaces, 99, 1),
+        error(diag.implementsSuperClass, 133, 12),
+        error(diag.conflictingGenericInterfaces, 195, 1),
+        error(diag.implementsSuperClass, 228, 11),
       ],
     );
     InterfaceType intType = typeProvider.intType;
@@ -112,10 +112,10 @@ late A a;
 late B b;
 ''',
       [
-        error(CompileTimeErrorCode.conflictingGenericInterfaces, 15, 1),
-        error(CompileTimeErrorCode.implementsSuperClass, 48, 11),
-        error(CompileTimeErrorCode.conflictingGenericInterfaces, 109, 1),
-        error(CompileTimeErrorCode.implementsSuperClass, 142, 11),
+        error(diag.conflictingGenericInterfaces, 15, 1),
+        error(diag.implementsSuperClass, 48, 11),
+        error(diag.conflictingGenericInterfaces, 109, 1),
+        error(diag.implementsSuperClass, 142, 11),
       ],
     );
     InterfaceType intType = typeProvider.intType;
@@ -163,16 +163,16 @@ late A a;
 late B b;
 ''',
       [
-        error(CompileTimeErrorCode.inconsistentInheritance, 15, 1),
-        error(CompileTimeErrorCode.inconsistentInheritance, 15, 1),
-        error(CompileTimeErrorCode.inconsistentInheritance, 15, 1),
-        error(CompileTimeErrorCode.conflictingGenericInterfaces, 15, 1),
-        error(CompileTimeErrorCode.implementsSuperClass, 48, 14),
-        error(CompileTimeErrorCode.inconsistentInheritance, 112, 1),
-        error(CompileTimeErrorCode.inconsistentInheritance, 112, 1),
-        error(CompileTimeErrorCode.conflictingGenericInterfaces, 112, 1),
-        error(CompileTimeErrorCode.inconsistentInheritance, 112, 1),
-        error(CompileTimeErrorCode.implementsSuperClass, 148, 11),
+        error(diag.inconsistentInheritance, 15, 1),
+        error(diag.inconsistentInheritance, 15, 1),
+        error(diag.inconsistentInheritance, 15, 1),
+        error(diag.conflictingGenericInterfaces, 15, 1),
+        error(diag.implementsSuperClass, 48, 14),
+        error(diag.inconsistentInheritance, 112, 1),
+        error(diag.inconsistentInheritance, 112, 1),
+        error(diag.conflictingGenericInterfaces, 112, 1),
+        error(diag.inconsistentInheritance, 112, 1),
+        error(diag.implementsSuperClass, 148, 11),
       ],
     );
     var aType = findElement2.topVar('a').type;

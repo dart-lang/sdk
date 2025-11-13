@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
@@ -30,7 +30,7 @@ abstract class C implements A, B {
   set foo(int _) {}
 }
 ''',
-      [error(CompileTimeErrorCode.conflictingFieldAndMethod, 103, 3)],
+      [error(diag.conflictingFieldAndMethod, 103, 3)],
     );
   }
 
@@ -49,7 +49,7 @@ abstract class C implements A, B {}
 ''',
       [
         error(
-          CompileTimeErrorCode.conflictingInheritedMethodAndSetter,
+          diag.conflictingInheritedMethodAndSetter,
           77,
           1,
           contextMessages: [message(testFile, 17, 3), message(testFile, 45, 3)],
@@ -73,7 +73,7 @@ abstract class C with A implements B {}
 ''',
       [
         error(
-          CompileTimeErrorCode.conflictingInheritedMethodAndSetter,
+          diag.conflictingInheritedMethodAndSetter,
           77,
           1,
           contextMessages: [message(testFile, 17, 3), message(testFile, 45, 3)],
@@ -97,7 +97,7 @@ abstract class C extends A implements B {}
 ''',
       [
         error(
-          CompileTimeErrorCode.conflictingInheritedMethodAndSetter,
+          diag.conflictingInheritedMethodAndSetter,
           77,
           1,
           contextMessages: [message(testFile, 17, 3), message(testFile, 45, 3)],
@@ -121,7 +121,7 @@ abstract class C extends A with B {}
 ''',
       [
         error(
-          CompileTimeErrorCode.conflictingInheritedMethodAndSetter,
+          diag.conflictingInheritedMethodAndSetter,
           77,
           1,
           contextMessages: [message(testFile, 17, 3), message(testFile, 45, 3)],
@@ -145,7 +145,7 @@ extension type C(Object? it) implements A, B {}
 ''',
       [
         error(
-          CompileTimeErrorCode.conflictingInheritedMethodAndSetter,
+          diag.conflictingInheritedMethodAndSetter,
           119,
           1,
           contextMessages: [message(testFile, 38, 3), message(testFile, 87, 3)],

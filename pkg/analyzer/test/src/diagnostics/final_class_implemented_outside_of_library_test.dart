@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
@@ -33,13 +33,7 @@ final class Foo {}
 import 'foo.dart';
 final class Bar implements Foo {}
 ''',
-      [
-        error(
-          CompileTimeErrorCode.finalClassImplementedOutsideOfLibrary,
-          46,
-          3,
-        ),
-      ],
+      [error(diag.finalClassImplementedOutsideOfLibrary, 46, 3)],
     );
   }
 
@@ -64,13 +58,7 @@ final class B implements A {
   int get value => 1;
 }
 ''',
-      [
-        error(
-          CompileTimeErrorCode.finalClassImplementedOutsideOfLibrary,
-          42,
-          1,
-        ),
-      ],
+      [error(diag.finalClassImplementedOutsideOfLibrary, 42, 1)],
     );
   }
 
@@ -85,13 +73,7 @@ typedef FooTypedef = Foo;
 import 'foo.dart';
 final class Bar implements FooTypedef {}
 ''',
-      [
-        error(
-          CompileTimeErrorCode.finalClassImplementedOutsideOfLibrary,
-          46,
-          10,
-        ),
-      ],
+      [error(diag.finalClassImplementedOutsideOfLibrary, 46, 10)],
     );
   }
 
@@ -106,13 +88,7 @@ import 'foo.dart';
 typedef FooTypedef = Foo;
 final class Bar implements FooTypedef {}
 ''',
-      [
-        error(
-          CompileTimeErrorCode.finalClassImplementedOutsideOfLibrary,
-          72,
-          10,
-        ),
-      ],
+      [error(diag.finalClassImplementedOutsideOfLibrary, 72, 10)],
     );
   }
 
@@ -133,13 +109,7 @@ final class Foo {}
 import 'foo.dart';
 enum Bar implements Foo { bar }
 ''',
-      [
-        error(
-          CompileTimeErrorCode.finalClassImplementedOutsideOfLibrary,
-          39,
-          3,
-        ),
-      ],
+      [error(diag.finalClassImplementedOutsideOfLibrary, 39, 3)],
     );
   }
 
@@ -154,13 +124,7 @@ typedef FooTypedef = Foo;
 import 'foo.dart';
 enum Bar implements FooTypedef { bar }
 ''',
-      [
-        error(
-          CompileTimeErrorCode.finalClassImplementedOutsideOfLibrary,
-          39,
-          10,
-        ),
-      ],
+      [error(diag.finalClassImplementedOutsideOfLibrary, 39, 10)],
     );
   }
 
@@ -175,13 +139,7 @@ import 'foo.dart';
 typedef FooTypedef = Foo;
 enum Bar implements FooTypedef { bar }
 ''',
-      [
-        error(
-          CompileTimeErrorCode.finalClassImplementedOutsideOfLibrary,
-          65,
-          10,
-        ),
-      ],
+      [error(diag.finalClassImplementedOutsideOfLibrary, 65, 10)],
     );
   }
 

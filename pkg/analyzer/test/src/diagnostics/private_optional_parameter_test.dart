@@ -2,8 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/error/codes.dart';
-import 'package:analyzer/src/generated/parser.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
@@ -24,7 +23,7 @@ class A {
   A({this._p = 0});
 }
 ''',
-      [error(WarningCode.unusedField, 17, 2)],
+      [error(diag.unusedField, 17, 2)],
     );
   }
 
@@ -33,7 +32,7 @@ class A {
       '''
 f({var _p}) {}
 ''',
-      [error(ParserErrorCode.privateNamedNonFieldParameter, 7, 2)],
+      [error(diag.privateNamedNonFieldParameter, 7, 2)],
     );
   }
 
@@ -44,7 +43,7 @@ class C {
   C({int? _notField});
 }
 ''',
-      [error(ParserErrorCode.privateNamedNonFieldParameter, 20, 9)],
+      [error(diag.privateNamedNonFieldParameter, 20, 9)],
     );
   }
 
@@ -57,12 +56,8 @@ class C {
 }
 ''',
       [
-        error(WarningCode.unusedField, 17, 4),
-        error(
-          CompileTimeErrorCode.privateNamedParameterWithoutPublicName,
-          33,
-          4,
-        ),
+        error(diag.unusedField, 17, 4),
+        error(diag.privateNamedParameterWithoutPublicName, 33, 4),
       ],
     );
   }
@@ -77,8 +72,8 @@ class C {
 }
 ''',
       [
-        error(WarningCode.unusedField, 31, 4),
-        error(ParserErrorCode.experimentNotEnabledOffByDefault, 47, 4),
+        error(diag.unusedField, 31, 4),
+        error(diag.experimentNotEnabledOffByDefault, 47, 4),
       ],
     );
   }
@@ -92,12 +87,8 @@ class C {
 }
 ''',
       [
-        error(WarningCode.unusedField, 17, 4),
-        error(
-          CompileTimeErrorCode.privateNamedParameterWithoutPublicName,
-          33,
-          4,
-        ),
+        error(diag.unusedField, 17, 4),
+        error(diag.privateNamedParameterWithoutPublicName, 33, 4),
       ],
     );
   }
@@ -111,12 +102,8 @@ class C {
 }
 ''',
       [
-        error(WarningCode.unusedField, 17, 14),
-        error(
-          CompileTimeErrorCode.privateNamedParameterWithoutPublicName,
-          43,
-          14,
-        ),
+        error(diag.unusedField, 17, 14),
+        error(diag.privateNamedParameterWithoutPublicName, 43, 14),
       ],
     );
   }
@@ -130,12 +117,8 @@ class C {
 }
 ''',
       [
-        error(WarningCode.unusedField, 17, 1),
-        error(
-          CompileTimeErrorCode.privateNamedParameterWithoutPublicName,
-          30,
-          1,
-        ),
+        error(diag.unusedField, 17, 1),
+        error(diag.privateNamedParameterWithoutPublicName, 30, 1),
       ],
     );
   }
@@ -145,7 +128,7 @@ class C {
       '''
 f({_p = 0}) {}
 ''',
-      [error(ParserErrorCode.privateNamedNonFieldParameter, 3, 2)],
+      [error(diag.privateNamedNonFieldParameter, 3, 2)],
     );
   }
 }

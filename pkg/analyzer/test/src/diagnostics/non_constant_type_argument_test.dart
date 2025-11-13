@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/dart/error/ffi_code.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
@@ -27,7 +27,7 @@ class C<R extends int Function(int)> {
   }
 }
 ''',
-      [error(FfiCode.nonConstantTypeArgument, 147, 1)],
+      [error(diag.nonConstantTypeArgument, 147, 1)],
     );
   }
 }
@@ -75,7 +75,7 @@ import 'dart:ffi';
 T genericRef<T extends Struct>(Pointer<T> p) =>
     p.ref;
 ''',
-      [error(FfiCode.nonConstantTypeArgument, 72, 5)],
+      [error(diag.nonConstantTypeArgument, 72, 5)],
     );
   }
 
@@ -120,7 +120,7 @@ import 'dart:ffi';
 T genericRefWithFinalizer<T extends Struct>(Pointer<T> p) =>
     p.refWithFinalizer(nullptr);
 ''',
-      [error(FfiCode.nonConstantTypeArgument, 85, 27)],
+      [error(diag.nonConstantTypeArgument, 85, 27)],
     );
   }
 }

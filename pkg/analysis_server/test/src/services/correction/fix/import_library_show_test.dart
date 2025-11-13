@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/src/services/correction/fix.dart';
-import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:linter/src/lint_names.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -42,7 +42,7 @@ void f(A a, B b, C c) {
 }
 ''',
       filter: (error) {
-        return error.diagnosticCode == CompileTimeErrorCode.undefinedClass &&
+        return error.diagnosticCode == diag.undefinedClass &&
             testCode.indexOf('B') == error.offset;
       },
     );
@@ -54,7 +54,7 @@ void f(A a, B b, C c) {
 }
 ''',
       filter: (error) {
-        return error.diagnosticCode == CompileTimeErrorCode.undefinedClass &&
+        return error.diagnosticCode == diag.undefinedClass &&
             testCode.indexOf('C') == error.offset;
       },
     );
@@ -88,7 +88,7 @@ void f(String s, lib.C c) {
 }
 ''',
       filter: (error) {
-        return error.diagnosticCode == CompileTimeErrorCode.undefinedMethod;
+        return error.diagnosticCode == diag.undefinedMethod;
       },
     );
   }
@@ -121,7 +121,7 @@ void f(String s, C c) {
 }
 ''',
       filter: (error) {
-        return error.diagnosticCode == CompileTimeErrorCode.undefinedMethod;
+        return error.diagnosticCode == diag.undefinedMethod;
       },
     );
   }
@@ -159,7 +159,7 @@ void f(String s, C c) {
 }
 ''',
       filter: (error) {
-        return error.diagnosticCode == CompileTimeErrorCode.undefinedOperator;
+        return error.diagnosticCode == diag.undefinedOperator;
       },
     );
   }
@@ -193,7 +193,7 @@ void f() {
 }
 ''',
       filter: (error) {
-        return error.diagnosticCode == CompileTimeErrorCode.undefinedClass &&
+        return error.diagnosticCode == diag.undefinedClass &&
             testCode.indexOf('B') == error.offset;
       },
     );
@@ -247,8 +247,7 @@ void f(A a1) {
 }
 ''',
       filter: (error) {
-        return error.diagnosticCode ==
-                CompileTimeErrorCode.undefinedIdentifier &&
+        return error.diagnosticCode == diag.undefinedIdentifier &&
             testCode.indexOf('E') == error.offset;
       },
     );
@@ -260,8 +259,7 @@ void f(A a1) {
 }
 ''',
       filter: (error) {
-        return error.diagnosticCode ==
-                CompileTimeErrorCode.undefinedIdentifier &&
+        return error.diagnosticCode == diag.undefinedIdentifier &&
             testCode.indexOf("a')") == error.offset;
       },
     );

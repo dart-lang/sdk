@@ -12,6 +12,7 @@ import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/error/error.dart';
 
 import '../analyzer.dart';
+import '../diagnostic.dart' as diag;
 import '../util/obvious_types.dart';
 
 const _desc = r'Omit obvious type annotations for local variables.';
@@ -25,8 +26,7 @@ class OmitObviousLocalVariableTypes extends AnalysisRule {
       );
 
   @override
-  DiagnosticCode get diagnosticCode =>
-      LinterLintCode.omitObviousLocalVariableTypes;
+  DiagnosticCode get diagnosticCode => diag.omitObviousLocalVariableTypes;
 
   @override
   List<String> get incompatibleRules => const [LintNames.always_specify_types];

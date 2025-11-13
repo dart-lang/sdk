@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
@@ -28,7 +28,7 @@ class B with A {}
 mixin A {}
 class B with A? {}
 ''',
-      [error(CompileTimeErrorCode.nullableTypeInWithClause, 24, 2)],
+      [error(diag.nullableTypeInWithClause, 24, 2)],
     );
   }
 
@@ -39,7 +39,7 @@ mixin A {}
 typedef B = A;
 class C with B? {}
 ''',
-      [error(CompileTimeErrorCode.nullableTypeInWithClause, 39, 2)],
+      [error(diag.nullableTypeInWithClause, 39, 2)],
     );
   }
 
@@ -50,7 +50,7 @@ mixin A {}
 typedef B = A?;
 class C with B {}
 ''',
-      [error(CompileTimeErrorCode.nullableTypeInWithClause, 40, 1)],
+      [error(diag.nullableTypeInWithClause, 40, 1)],
     );
   }
 
@@ -69,7 +69,7 @@ class A {}
 mixin B {}
 class C = A with B?;
 ''',
-      [error(CompileTimeErrorCode.nullableTypeInWithClause, 39, 2)],
+      [error(diag.nullableTypeInWithClause, 39, 2)],
     );
   }
 
@@ -81,7 +81,7 @@ mixin B {}
 typedef C = B;
 class D = A with C?;
 ''',
-      [error(CompileTimeErrorCode.nullableTypeInWithClause, 54, 2)],
+      [error(diag.nullableTypeInWithClause, 54, 2)],
     );
   }
 
@@ -93,7 +93,7 @@ mixin B {}
 typedef C = B?;
 class D = A with C;
 ''',
-      [error(CompileTimeErrorCode.nullableTypeInWithClause, 55, 1)],
+      [error(diag.nullableTypeInWithClause, 55, 1)],
     );
   }
 
@@ -112,7 +112,7 @@ class A {}
 mixin B {}
 class C = A with B?;
 ''',
-      [error(CompileTimeErrorCode.nullableTypeInWithClause, 39, 2)],
+      [error(diag.nullableTypeInWithClause, 39, 2)],
     );
   }
 
@@ -124,7 +124,7 @@ mixin B {}
 typedef C = B;
 class D = A with C?;
 ''',
-      [error(CompileTimeErrorCode.nullableTypeInWithClause, 54, 2)],
+      [error(diag.nullableTypeInWithClause, 54, 2)],
     );
   }
 
@@ -136,7 +136,7 @@ mixin B {}
 typedef C = B?;
 class D = A with C;
 ''',
-      [error(CompileTimeErrorCode.nullableTypeInWithClause, 55, 1)],
+      [error(diag.nullableTypeInWithClause, 55, 1)],
     );
   }
 }

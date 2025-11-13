@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/src/dart/error/syntactic_errors.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -76,7 +76,7 @@ var f = "foo${bar}
 ;
 ''';
     await assertErrorsInCode(code, [
-      error(ScannerErrorCode.unterminatedStringLiteral, code.indexOf('}'), 1),
+      error(diag.unterminatedStringLiteral, code.indexOf('}'), 1),
     ]);
     var string = findNode.stringInterpolation(r'"foo${bar}');
     expect(string.elements, hasLength(3));
@@ -96,7 +96,7 @@ var f = "foo${bar}'
 ;
 ''';
     await assertErrorsInCode(code, [
-      error(ScannerErrorCode.unterminatedStringLiteral, code.indexOf("'"), 1),
+      error(diag.unterminatedStringLiteral, code.indexOf("'"), 1),
     ]);
     var string = findNode.stringInterpolation('"foo\${bar}\'');
     expect(string.elements, hasLength(3));

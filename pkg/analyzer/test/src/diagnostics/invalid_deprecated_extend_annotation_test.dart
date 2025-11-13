@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
@@ -28,7 +28,7 @@ class C {}
 @Deprecated.extend()
 final class C {}
 ''',
-      [error(WarningCode.invalidDeprecatedExtendAnnotation, 1, 17)],
+      [error(diag.invalidDeprecatedExtendAnnotation, 1, 17)],
     );
   }
 
@@ -38,7 +38,7 @@ final class C {}
 @Deprecated.extend()
 interface class C {}
 ''',
-      [error(WarningCode.invalidDeprecatedExtendAnnotation, 1, 17)],
+      [error(diag.invalidDeprecatedExtendAnnotation, 1, 17)],
     );
   }
 
@@ -50,7 +50,7 @@ class C {
   C._();
 }
 ''',
-      [error(WarningCode.invalidDeprecatedExtendAnnotation, 1, 17)],
+      [error(diag.invalidDeprecatedExtendAnnotation, 1, 17)],
     );
   }
 
@@ -61,8 +61,8 @@ class C {
 class _C {}
 ''',
       [
-        error(WarningCode.invalidDeprecatedExtendAnnotation, 1, 17),
-        error(WarningCode.unusedElement, 27, 2),
+        error(diag.invalidDeprecatedExtendAnnotation, 1, 17),
+        error(diag.unusedElement, 27, 2),
       ],
     );
   }
@@ -73,7 +73,7 @@ class _C {}
 @Deprecated.extend()
 sealed class C {}
 ''',
-      [error(WarningCode.invalidDeprecatedExtendAnnotation, 1, 17)],
+      [error(diag.invalidDeprecatedExtendAnnotation, 1, 17)],
     );
   }
 
@@ -91,7 +91,7 @@ class C = Object with M;
 @Deprecated.extend()
 mixin M {}
 ''',
-      [error(WarningCode.invalidDeprecatedExtendAnnotation, 1, 17)],
+      [error(diag.invalidDeprecatedExtendAnnotation, 1, 17)],
     );
   }
 
@@ -110,7 +110,7 @@ enum E { one; }
 @Deprecated.extend()
 typedef F = E;
 ''',
-      [error(WarningCode.invalidDeprecatedExtendAnnotation, 17, 17)],
+      [error(diag.invalidDeprecatedExtendAnnotation, 17, 17)],
     );
   }
 }

@@ -6,7 +6,7 @@ import 'package:analyzer/diagnostic/diagnostic.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/source/line_info.dart';
-import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:analyzer/src/ignore_comments/ignore_info.dart';
 import 'package:analyzer/src/lint/registry.dart';
 
@@ -173,7 +173,7 @@ class IgnoreValidator {
         _diagnosticReporter.atOffset(
           offset: ignoredElement.offset,
           length: name.length,
-          diagnosticCode: WarningCode.duplicateIgnore,
+          diagnosticCode: diag.duplicateIgnore,
           arguments: [name],
         );
         list.remove(ignoredElement);
@@ -181,7 +181,7 @@ class IgnoreValidator {
         _diagnosticReporter.atOffset(
           offset: ignoredElement.offset,
           length: ignoredElement.length,
-          diagnosticCode: WarningCode.duplicateIgnore,
+          diagnosticCode: diag.duplicateIgnore,
           arguments: [ignoredElement.type],
         );
         list.remove(ignoredElement);
@@ -214,7 +214,7 @@ class IgnoreValidator {
             var replacedBy = state.replacedBy;
             if (replacedBy != null) {
               _diagnosticReporter.atOffset(
-                diagnosticCode: WarningCode.replacedLintUse,
+                diagnosticCode: diag.replacedLintUse,
                 offset: ignoredName.offset,
                 length: name.length,
                 arguments: [name, since, replacedBy],
@@ -222,7 +222,7 @@ class IgnoreValidator {
               continue;
             } else {
               _diagnosticReporter.atOffset(
-                diagnosticCode: WarningCode.removedLintUse,
+                diagnosticCode: diag.removedLintUse,
                 offset: ignoredName.offset,
                 length: name.length,
                 arguments: [name, since],

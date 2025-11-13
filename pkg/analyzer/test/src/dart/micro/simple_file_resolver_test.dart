@@ -6,11 +6,10 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/source/line_info.dart';
 import 'package:analyzer/src/dart/analysis/file_state.dart';
-import 'package:analyzer/src/dart/error/syntactic_errors.dart';
 import 'package:analyzer/src/dart/micro/resolve_file.dart';
 import 'package:analyzer/src/dart/micro/utils.dart';
-import 'package:analyzer/src/error/codes.dart';
-import 'package:linter/src/lint_codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
+import 'package:linter/src/diagnostic.dart' as diag;
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -430,9 +429,7 @@ void f(A a, B b) {}
 ''');
 
     result = await resolveFile(b);
-    assertErrorsInResolvedUnit(result, [
-      error(CompileTimeErrorCode.undefinedClass, 29, 1),
-    ]);
+    assertErrorsInResolvedUnit(result, [error(diag.undefinedClass, 29, 1)]);
 
     newFile(a.path, r'''
 class A {}
@@ -460,9 +457,7 @@ void f(A a) {
 ''');
 
     result = await resolveFile(b);
-    assertErrorsInResolvedUnit(result, [
-      error(CompileTimeErrorCode.assignmentToFinal, 36, 3),
-    ]);
+    assertErrorsInResolvedUnit(result, [error(diag.assignmentToFinal, 36, 3)]);
 
     newFile(a.path, r'''
 class A {
@@ -487,9 +482,7 @@ part of 'a.dart';
 ''');
 
     result = await resolveFile(a);
-    assertErrorsInResolvedUnit(result, [
-      error(CompileTimeErrorCode.undefinedFunction, 24, 1),
-    ]);
+    assertErrorsInResolvedUnit(result, [error(diag.undefinedFunction, 24, 1)]);
 
     // Update a.dart, and notify the resolver. We need this to have at least
     // one change, so that we decided to rebuild the library summary.
@@ -858,7 +851,7 @@ analyzer:
 num a = 0;
 int b = a;
 ''',
-      [error(CompileTimeErrorCode.invalidAssignment, 19, 1)],
+      [error(diag.invalidAssignment, 19, 1)],
     );
   }
 
@@ -874,7 +867,7 @@ analyzer:
 num a = 0;
 int b = a;
 ''',
-      [error(CompileTimeErrorCode.invalidAssignment, 19, 1)],
+      [error(diag.invalidAssignment, 19, 1)],
     );
   }
 
@@ -898,7 +891,7 @@ analyzer:
 num a = 0;
 int b = a;
 ''',
-      [error(CompileTimeErrorCode.invalidAssignment, 19, 1)],
+      [error(diag.invalidAssignment, 19, 1)],
     );
   }
 
@@ -922,7 +915,7 @@ analyzer:
 num a = 0;
 int b = a;
 ''',
-      [error(CompileTimeErrorCode.invalidAssignment, 19, 1)],
+      [error(diag.invalidAssignment, 19, 1)],
     );
   }
 
@@ -940,7 +933,7 @@ main() {
   a;
 }
 ''',
-      [error(LinterLintCode.omitLocalVariableTypes, 11, 3)],
+      [error(diag.omitLocalVariableTypes, 11, 3)],
     );
   }
 
@@ -1047,7 +1040,7 @@ String f(Map<int, String> a) {
 ''',
       [
         error(
-          CompileTimeErrorCode.returnOfInvalidTypeFromFunction,
+          diag.returnOfInvalidTypeFromFunction,
           40,
           4,
           messageContains: ["'String'", 'String?'],
@@ -1372,7 +1365,7 @@ var foo = 0;
     expect(result.path, convertPath('/workspace/dart/test/lib/test.dart'));
     expect(result.uri.toString(), 'package:dart.test/test.dart');
     assertErrorsInList(result.diagnostics, [
-      error(CompileTimeErrorCode.undefinedIdentifier, 8, 1),
+      error(diag.undefinedIdentifier, 8, 1),
     ]);
     expect(result.lineInfo.lineStarts, [0, 11, 24]);
   }
@@ -1396,7 +1389,7 @@ var a = 42
 
     var errorsResult = await fileResolver.getErrors2(path: a.path);
     assertErrorsInList(errorsResult.diagnostics, [
-      error(ParserErrorCode.expectedToken, 8, 2),
+      error(diag.expectedToken, 8, 2),
     ]);
   }
 
@@ -1412,7 +1405,7 @@ var a = 42
 
     var errorsResult = await fileResolver.getErrors2(path: b.path);
     assertErrorsInList(errorsResult.diagnostics, [
-      error(ParserErrorCode.expectedToken, 26, 2),
+      error(diag.expectedToken, 26, 2),
     ]);
   }
 
@@ -1795,7 +1788,7 @@ byteStore
     expect(result.path, testFile.path);
     expect(result.uri.toString(), 'package:dart.test/test.dart');
     assertErrorsInList(result.diagnostics, [
-      error(CompileTimeErrorCode.undefinedIdentifier, 8, 1),
+      error(diag.undefinedIdentifier, 8, 1),
     ]);
     expect(result.lineInfo.lineStarts, [0, 11, 24]);
 
@@ -2583,7 +2576,7 @@ void f(MyEnum myEnum) {
       r'''
 import 'foo:bar';
 ''',
-      [error(CompileTimeErrorCode.uriDoesNotExist, 7, 9)],
+      [error(diag.uriDoesNotExist, 7, 9)],
     );
   }
 
@@ -2592,7 +2585,7 @@ import 'foo:bar';
       r'''
 import 'dart:math';
 ''',
-      [error(WarningCode.unusedImport, 7, 11)],
+      [error(diag.unusedImport, 7, 11)],
     );
   }
 

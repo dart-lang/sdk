@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:analyzer/utilities/package_config_file_builder.dart';
 import 'package:analyzer_testing/utilities/utilities.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -44,7 +45,7 @@ extension type E(int i) {
 ''',
       [
         // No lint.
-        error(CompileTimeErrorCode.extensionTypeDeclaresInstanceField, 42, 1),
+        error(diag.extensionTypeDeclaresInstanceField, 42, 1),
       ],
     );
   }
@@ -248,7 +249,7 @@ class C {
 ''',
       [
         // Technically not in the private API but we can ignore that for testing.
-        error(WarningCode.invalidInternalAnnotation, 35, 8),
+        error(diag.invalidInternalAnnotation, 35, 8),
       ],
     );
   }
@@ -270,7 +271,7 @@ enum E {
 ''',
       [
         // Technically not in the private API but we can ignore that for testing.
-        error(WarningCode.invalidInternalAnnotation, 35, 8),
+        error(diag.invalidInternalAnnotation, 35, 8),
       ],
     );
   }
@@ -290,7 +291,7 @@ extension X on Object {
 ''',
       [
         // Technically not in the private API but we can ignore that for testing.
-        error(WarningCode.invalidInternalAnnotation, 35, 8),
+        error(diag.invalidInternalAnnotation, 35, 8),
       ],
     );
   }
@@ -306,7 +307,7 @@ void f() {}
 ''',
       [
         // Technically not in the private API but we can ignore that for testing.
-        error(WarningCode.invalidInternalAnnotation, 35, 8),
+        error(diag.invalidInternalAnnotation, 35, 8),
       ],
     );
   }
@@ -326,7 +327,7 @@ mixin M {
 ''',
       [
         // Technically not in the private API but we can ignore that for testing.
-        error(WarningCode.invalidInternalAnnotation, 35, 8),
+        error(diag.invalidInternalAnnotation, 35, 8),
       ],
     );
   }

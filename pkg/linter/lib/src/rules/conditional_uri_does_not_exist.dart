@@ -11,6 +11,7 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/error/error.dart';
 
 import '../analyzer.dart';
+import '../diagnostic.dart' as diag;
 
 const _desc = r'Missing conditional import.';
 
@@ -19,8 +20,7 @@ class ConditionalUriDoesNotExist extends AnalysisRule {
     : super(name: LintNames.conditional_uri_does_not_exist, description: _desc);
 
   @override
-  DiagnosticCode get diagnosticCode =>
-      LinterLintCode.conditionalUriDoesNotExist;
+  DiagnosticCode get diagnosticCode => diag.conditionalUriDoesNotExist;
 
   @override
   void registerNodeProcessors(

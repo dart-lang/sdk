@@ -12,6 +12,7 @@ import 'package:analyzer/error/error.dart';
 import 'package:analyzer/src/dart/element/element.dart'; // ignore: implementation_imports
 
 import '../analyzer.dart';
+import '../diagnostic.dart' as diag;
 import '../extensions.dart';
 
 const _desc = r"Don't override fields.";
@@ -21,7 +22,7 @@ class OverriddenFields extends AnalysisRule {
     : super(name: LintNames.overridden_fields, description: _desc);
 
   @override
-  DiagnosticCode get diagnosticCode => LinterLintCode.overriddenFields;
+  DiagnosticCode get diagnosticCode => diag.overriddenFields;
 
   @override
   void registerNodeProcessors(

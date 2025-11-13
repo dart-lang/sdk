@@ -10,6 +10,7 @@ import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/error/error.dart';
 
 import '../analyzer.dart';
+import '../diagnostic.dart' as diag;
 
 const _desc = r'Sort unnamed constructor declarations first.';
 
@@ -21,8 +22,7 @@ class SortUnnamedConstructorsFirst extends AnalysisRule {
       );
 
   @override
-  DiagnosticCode get diagnosticCode =>
-      LinterLintCode.sortUnnamedConstructorsFirst;
+  DiagnosticCode get diagnosticCode => diag.sortUnnamedConstructorsFirst;
 
   @override
   void registerNodeProcessors(

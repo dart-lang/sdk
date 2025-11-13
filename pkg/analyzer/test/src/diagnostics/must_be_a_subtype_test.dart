@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/dart/error/ffi_code.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
@@ -25,7 +25,7 @@ void g() {
   Pointer.fromFunction<T>(f, 5);
 }
 ''',
-      [error(FfiCode.mustBeASubtype, 122, 1)],
+      [error(diag.mustBeASubtype, 122, 1)],
     );
   }
 
@@ -39,7 +39,7 @@ void g() {
   Pointer.fromFunction<T>(f, '');
 }
 ''',
-      [error(FfiCode.mustBeASubtype, 115, 2)],
+      [error(diag.mustBeASubtype, 115, 2)],
     );
   }
 
@@ -87,7 +87,7 @@ class C<F extends int Function(int)> {
   }
 }
 ''',
-      [error(FfiCode.mustBeASubtype, 166, 1)],
+      [error(diag.mustBeASubtype, 166, 1)],
     );
   }
 }

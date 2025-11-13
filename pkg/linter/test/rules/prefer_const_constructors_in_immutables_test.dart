@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../rule_test_support.dart';
@@ -401,13 +402,7 @@ class B extends A {
   B();
 }
 ''',
-      [
-        error(
-          CompileTimeErrorCode.undefinedConstructorInInitializerDefault,
-          99,
-          1,
-        ),
-      ],
+      [error(diag.undefinedConstructorInInitializerDefault, 99, 1)],
     );
   }
 
@@ -438,7 +433,7 @@ class F {
 ''',
       [
         // No lint
-        error(CompileTimeErrorCode.returnOfInvalidTypeFromConstructor, 75, 4),
+        error(diag.returnOfInvalidTypeFromConstructor, 75, 4),
       ],
     );
   }

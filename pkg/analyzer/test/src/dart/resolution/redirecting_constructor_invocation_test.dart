@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'context_collection_resolution.dart';
@@ -52,13 +52,7 @@ class C {
   C.other() : this.named(0);
 }
 ''',
-      [
-        error(
-          CompileTimeErrorCode.redirectGenerativeToMissingConstructor,
-          24,
-          13,
-        ),
-      ],
+      [error(diag.redirectGenerativeToMissingConstructor, 24, 13)],
     );
 
     var node = findNode.singleRedirectingConstructorInvocation;
@@ -114,13 +108,7 @@ class C {
   C.other() : this(0);
 }
 ''',
-      [
-        error(
-          CompileTimeErrorCode.redirectGenerativeToMissingConstructor,
-          37,
-          7,
-        ),
-      ],
+      [error(diag.redirectGenerativeToMissingConstructor, 37, 7)],
     );
 
     var node = findNode.singleRedirectingConstructorInvocation;

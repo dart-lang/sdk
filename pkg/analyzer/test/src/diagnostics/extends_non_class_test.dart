@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
@@ -20,7 +20,7 @@ class ExtendsNonClassTest extends PubPackageResolutionTest {
       r'''
 class A extends dynamic {}
 ''',
-      [error(CompileTimeErrorCode.extendsNonClass, 16, 7)],
+      [error(diag.extendsNonClass, 16, 7)],
     );
 
     var node = findNode.singleExtendsClause;
@@ -40,7 +40,7 @@ ExtendsClause
 enum E { ONE }
 class A extends E {}
 ''',
-      [error(CompileTimeErrorCode.extendsNonClass, 31, 1)],
+      [error(diag.extendsNonClass, 31, 1)],
     );
 
     var node = findNode.singleExtendsClause;
@@ -60,7 +60,7 @@ ExtendsClause
 extension type A(int it) {}
 class B extends A {}
 ''',
-      [error(CompileTimeErrorCode.extendsNonClass, 44, 1)],
+      [error(diag.extendsNonClass, 44, 1)],
     );
 
     var node = findNode.singleExtendsClause;
@@ -80,7 +80,7 @@ ExtendsClause
 mixin M {}
 class A extends M {}
 ''',
-      [error(CompileTimeErrorCode.extendsNonClass, 27, 1)],
+      [error(diag.extendsNonClass, 27, 1)],
     );
 
     var node = findNode.singleExtendsClause;
@@ -100,7 +100,7 @@ ExtendsClause
 int v = 0;
 class A extends v {}
 ''',
-      [error(CompileTimeErrorCode.extendsNonClass, 27, 1)],
+      [error(diag.extendsNonClass, 27, 1)],
     );
 
     var node = findNode.singleExtendsClause;
@@ -120,7 +120,7 @@ ExtendsClause
 int v = 0;
 class A extends v<int> {}
 ''',
-      [error(CompileTimeErrorCode.extendsNonClass, 27, 1)],
+      [error(diag.extendsNonClass, 27, 1)],
     );
 
     var node = findNode.singleExtendsClause;
@@ -147,7 +147,7 @@ ExtendsClause
       '''
 class A extends Never {}
 ''',
-      [error(CompileTimeErrorCode.extendsNonClass, 16, 5)],
+      [error(diag.extendsNonClass, 16, 5)],
     );
 
     var node = findNode.singleExtendsClause;
@@ -166,7 +166,7 @@ ExtendsClause
       r'''
 class C extends A {}
 ''',
-      [error(CompileTimeErrorCode.extendsNonClass, 16, 1)],
+      [error(diag.extendsNonClass, 16, 1)],
     );
 
     var node = findNode.singleExtendsClause;
@@ -187,7 +187,7 @@ import 'a.dart' as p;
 
 class C extends p.A {}
 ''',
-      [error(CompileTimeErrorCode.uriDoesNotExist, 7, 8)],
+      [error(diag.uriDoesNotExist, 7, 8)],
     );
 
     var node = findNode.singleExtendsClause;
@@ -242,7 +242,7 @@ part of 'a.dart';
 import 'x.dart' as p;
 class C extends p.A {}
 ''',
-      [error(CompileTimeErrorCode.uriDoesNotExist, 25, 8)],
+      [error(diag.uriDoesNotExist, 25, 8)],
     );
 
     var node = findNode.singleExtendsClause;
@@ -267,7 +267,7 @@ import 'a.dart' show A;
 
 class C extends A {}
 ''',
-      [error(CompileTimeErrorCode.uriDoesNotExist, 7, 8)],
+      [error(diag.uriDoesNotExist, 7, 8)],
     );
   }
 
@@ -294,7 +294,7 @@ part of 'a.dart';
 import 'x.dart' show A;
 class C extends A {}
 ''',
-      [error(CompileTimeErrorCode.uriDoesNotExist, 25, 8)],
+      [error(diag.uriDoesNotExist, 25, 8)],
     );
   }
 
@@ -333,7 +333,7 @@ import 'x.dart' show A;
 part of 'a.dart';
 class C extends A {}
 ''',
-      [error(CompileTimeErrorCode.extendsNonClass, 34, 1)],
+      [error(diag.extendsNonClass, 34, 1)],
     );
   }
 
@@ -344,10 +344,7 @@ import 'a.dart' show B;
 
 class C extends A {}
 ''',
-      [
-        error(CompileTimeErrorCode.uriDoesNotExist, 7, 8),
-        error(CompileTimeErrorCode.extendsNonClass, 41, 1),
-      ],
+      [error(diag.uriDoesNotExist, 7, 8), error(diag.extendsNonClass, 41, 1)],
     );
   }
 
@@ -362,7 +359,7 @@ part 'a.g.dart';
 
 class C extends _$A {}
 ''',
-      [error(CompileTimeErrorCode.extendsNonClass, 34, 3)],
+      [error(diag.extendsNonClass, 34, 3)],
     );
   }
 
@@ -373,7 +370,7 @@ part 'a.g.dart';
 
 class C extends _$A {}
 ''',
-      [error(CompileTimeErrorCode.uriHasNotBeenGenerated, 5, 10)],
+      [error(diag.uriHasNotBeenGenerated, 5, 10)],
     );
   }
 
@@ -385,8 +382,8 @@ part 'a.g.dart';
 class C extends A {}
 ''',
       [
-        error(CompileTimeErrorCode.uriHasNotBeenGenerated, 5, 10),
-        error(CompileTimeErrorCode.extendsNonClass, 34, 1),
+        error(diag.uriHasNotBeenGenerated, 5, 10),
+        error(diag.extendsNonClass, 34, 1),
       ],
     );
   }
@@ -398,10 +395,7 @@ part 'a.dart';
 
 class C extends _$A {}
 ''',
-      [
-        error(CompileTimeErrorCode.uriDoesNotExist, 5, 8),
-        error(CompileTimeErrorCode.extendsNonClass, 32, 3),
-      ],
+      [error(diag.uriDoesNotExist, 5, 8), error(diag.extendsNonClass, 32, 3)],
     );
   }
 
@@ -412,10 +406,7 @@ part 'a.dart';
 
 class C extends A {}
 ''',
-      [
-        error(CompileTimeErrorCode.uriDoesNotExist, 5, 8),
-        error(CompileTimeErrorCode.extendsNonClass, 32, 1),
-      ],
+      [error(diag.uriDoesNotExist, 5, 8), error(diag.extendsNonClass, 32, 1)],
     );
   }
 
@@ -426,7 +417,7 @@ import 'dart:math' as p;
 
 class C extends p.A {}
 ''',
-      [error(CompileTimeErrorCode.extendsNonClass, 42, 3)],
+      [error(diag.extendsNonClass, 42, 3)],
     );
 
     var node = findNode.singleExtendsClause;

@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'context_collection_resolution.dart';
@@ -25,7 +25,7 @@ void f(x) {
   }
 }
 ''',
-      [error(WarningCode.unusedLocalVariable, 47, 1)],
+      [error(diag.unusedLocalVariable, 47, 1)],
     );
     var node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
@@ -63,7 +63,7 @@ void f(x) {
   }
 }
 ''',
-      [error(WarningCode.unusedLocalVariable, 44, 1)],
+      [error(diag.unusedLocalVariable, 44, 1)],
     );
     var node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
@@ -98,7 +98,7 @@ void f(x) {
   }
 }
 ''',
-      [error(WarningCode.unusedLocalVariable, 57, 1)],
+      [error(diag.unusedLocalVariable, 57, 1)],
     );
     var node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
@@ -142,7 +142,7 @@ void f(Map<int, String> x) {
   if (x case {}) {}
 }
 ''',
-      [error(CompileTimeErrorCode.emptyMapPattern, 42, 2)],
+      [error(diag.emptyMapPattern, 42, 2)],
     );
     var node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
@@ -161,7 +161,7 @@ void f(Map<int, String> x) {
   if (x case {..., 0: ''}) {}
 }
 ''',
-      [error(CompileTimeErrorCode.restElementInMapPattern, 43, 3)],
+      [error(diag.restElementInMapPattern, 43, 3)],
     );
     var node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
@@ -192,7 +192,7 @@ void f(Map<int, String> x) {
   if (x case {0: '', ...}) {}
 }
 ''',
-      [error(CompileTimeErrorCode.restElementInMapPattern, 50, 3)],
+      [error(diag.restElementInMapPattern, 50, 3)],
     );
     var node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
@@ -224,8 +224,8 @@ void f(Map<int, String> x) {
 }
 ''',
       [
-        error(CompileTimeErrorCode.restElementInMapPattern, 43, 3),
-        error(CompileTimeErrorCode.restElementInMapPattern, 55, 3),
+        error(diag.restElementInMapPattern, 43, 3),
+        error(diag.restElementInMapPattern, 55, 3),
       ],
     );
     var node = findNode.singleGuardedPattern.pattern;
@@ -260,8 +260,8 @@ void f(Map<int, String> x) {
 }
 ''',
       [
-        error(CompileTimeErrorCode.restElementInMapPattern, 50, 11),
-        error(WarningCode.unusedLocalVariable, 57, 4),
+        error(diag.restElementInMapPattern, 50, 11),
+        error(diag.unusedLocalVariable, 57, 4),
       ],
     );
     var node = findNode.singleGuardedPattern.pattern;
@@ -300,7 +300,7 @@ void f(Map<int, String> x) {
   if (x case {0: var a}) {}
 }
 ''',
-      [error(WarningCode.unusedLocalVariable, 50, 1)],
+      [error(diag.unusedLocalVariable, 50, 1)],
     );
     var node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
@@ -332,7 +332,7 @@ void f(Map<bool, num> x) {
   if (x case <bool, int>{true: var a}) {}
 }
 ''',
-      [error(WarningCode.unusedLocalVariable, 62, 1)],
+      [error(diag.unusedLocalVariable, 62, 1)],
     );
     var node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
@@ -403,7 +403,7 @@ void f(Object x) {
   if (x case {}) {}
 }
 ''',
-      [error(CompileTimeErrorCode.emptyMapPattern, 32, 2)],
+      [error(diag.emptyMapPattern, 32, 2)],
     );
     var node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
@@ -422,7 +422,7 @@ void f(Object x) {
   if (x case {true: int a}) {}
 }
 ''',
-      [error(WarningCode.unusedLocalVariable, 43, 1)],
+      [error(diag.unusedLocalVariable, 43, 1)],
     );
     var node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
@@ -457,7 +457,7 @@ void f(Object x) {
   if (x case {true: var a}) {}
 }
 ''',
-      [error(WarningCode.unusedLocalVariable, 43, 1)],
+      [error(diag.unusedLocalVariable, 43, 1)],
     );
     var node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
@@ -528,7 +528,7 @@ void f(Object x) {
   if (x case <bool, int>{true: var a}) {}
 }
 ''',
-      [error(WarningCode.unusedLocalVariable, 54, 1)],
+      [error(diag.unusedLocalVariable, 54, 1)],
     );
     var node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
@@ -572,7 +572,7 @@ void f(x, bool Function() a) {
   if (x case {a(): 0}) {}
 }
 ''',
-      [error(CompileTimeErrorCode.nonConstantMapPatternKey, 45, 3)],
+      [error(diag.nonConstantMapPatternKey, 45, 3)],
     );
     var node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
@@ -610,7 +610,7 @@ void f(Map<bool, int> x) {
   var {true: a} = x;
 }
 ''',
-      [error(WarningCode.unusedLocalVariable, 40, 1)],
+      [error(diag.unusedLocalVariable, 40, 1)],
     );
     var node = findNode.singlePatternVariableDeclaration;
     assertResolvedNodeText(node, r'''
@@ -651,7 +651,7 @@ void f() {
 
 T g<T>() => throw 0;
 ''',
-      [error(WarningCode.unusedLocalVariable, 35, 1)],
+      [error(diag.unusedLocalVariable, 35, 1)],
     );
     var node = findNode.singlePatternVariableDeclaration;
     assertResolvedNodeText(node, r'''
@@ -712,7 +712,7 @@ void f() {
 
 T g<T>() => throw 0;
 ''',
-      [error(WarningCode.unusedLocalVariable, 28, 1)],
+      [error(diag.unusedLocalVariable, 28, 1)],
     );
     var node = findNode.singlePatternVariableDeclaration;
     assertResolvedNodeText(node, r'''

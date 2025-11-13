@@ -8,7 +8,7 @@ import 'package:_fe_analyzer_shared/src/scanner/token.dart'
     show Token, TokenType;
 import 'package:_fe_analyzer_shared/src/scanner/token_constants.dart';
 import 'package:analyzer/error/error.dart';
-import 'package:analyzer/src/dart/scanner/scanner.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 
 /// Translates the given error [token] into an analyzer error and reports it
 /// using [reportError].
@@ -30,51 +30,43 @@ void translateErrorToken(ErrorToken token, ReportError reportError) {
   Code errorCode = token.errorCode;
   switch (errorCode.pseudoSharedCode) {
     case PseudoSharedCode.encoding:
-      reportError(ScannerErrorCode.encoding, charOffset, null);
+      reportError(diag.encoding, charOffset, null);
       return;
 
     case PseudoSharedCode.unterminatedStringLiteral:
       // TODO(paulberry): Fasta reports the error location as the entire
       // string; analyzer expects the end of the string.
-      reportError(
-        ScannerErrorCode.unterminatedStringLiteral,
-        endOffset - 1,
-        null,
-      );
+      reportError(diag.unterminatedStringLiteral, endOffset - 1, null);
       return;
 
     case PseudoSharedCode.unterminatedMultiLineComment:
       // TODO(paulberry): Fasta reports the error location as the entire
       // comment; analyzer expects the end of the comment.
-      reportError(
-        ScannerErrorCode.unterminatedMultiLineComment,
-        endOffset - 1,
-        null,
-      );
+      reportError(diag.unterminatedMultiLineComment, endOffset - 1, null);
       return;
 
     case PseudoSharedCode.missingDigit:
       // TODO(paulberry): Fasta reports the error location as the entire
       // number; analyzer expects the end of the number.
       charOffset = endOffset - 1;
-      return makeError(ScannerErrorCode.missingDigit, null);
+      return makeError(diag.missingDigit, null);
 
     case PseudoSharedCode.missingHexDigit:
       // TODO(paulberry): Fasta reports the error location as the entire
       // number; analyzer expects the end of the number.
       charOffset = endOffset - 1;
-      return makeError(ScannerErrorCode.missingHexDigit, null);
+      return makeError(diag.missingHexDigit, null);
 
     case PseudoSharedCode.illegalCharacter:
       // We can safely assume `token.character` is non-`null` because this error
       // is only reported when there is a character associated with the token.
-      return makeError(ScannerErrorCode.illegalCharacter, [token.character!]);
+      return makeError(diag.illegalCharacter, [token.character!]);
 
     case PseudoSharedCode.unexpectedSeparatorInNumber:
-      return makeError(ScannerErrorCode.unexpectedSeparatorInNumber, null);
+      return makeError(diag.unexpectedSeparatorInNumber, null);
 
     case PseudoSharedCode.unsupportedOperator:
-      return makeError(ScannerErrorCode.unsupportedOperator, [
+      return makeError(diag.unsupportedOperator, [
         (token as UnsupportedOperator).token.lexeme,
       ]);
 
@@ -84,19 +76,19 @@ void translateErrorToken(ErrorToken token, ReportError reportError) {
         TokenType type = token.begin!.type;
         if (type == TokenType.OPEN_CURLY_BRACKET ||
             type == TokenType.STRING_INTERPOLATION_EXPRESSION) {
-          return makeError(ParserErrorCode.expectedToken, ['}']);
+          return makeError(diag.expectedToken, ['}']);
         }
         if (type == TokenType.OPEN_SQUARE_BRACKET) {
-          return makeError(ParserErrorCode.expectedToken, [']']);
+          return makeError(diag.expectedToken, [']']);
         }
         if (type == TokenType.OPEN_PAREN) {
-          return makeError(ParserErrorCode.expectedToken, [')']);
+          return makeError(diag.expectedToken, [')']);
         }
         if (type == TokenType.LT) {
-          return makeError(ParserErrorCode.expectedToken, ['>']);
+          return makeError(diag.expectedToken, ['>']);
         }
       } else if (errorCode == codeUnexpectedDollarInString) {
-        return makeError(ParserErrorCode.missingIdentifier, null);
+        return makeError(diag.missingIdentifier, null);
       }
       throw UnimplementedError('$errorCode "${errorCode.pseudoSharedCode}"');
   }

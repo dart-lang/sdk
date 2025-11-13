@@ -10,6 +10,7 @@ import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/error/error.dart';
 
 import '../analyzer.dart';
+import '../diagnostic.dart' as diag;
 
 const _desc = r'Avoid escaping inner quotes by converting surrounding quotes.';
 
@@ -18,7 +19,7 @@ class AvoidEscapingInnerQuotes extends AnalysisRule {
     : super(name: LintNames.avoid_escaping_inner_quotes, description: _desc);
 
   @override
-  DiagnosticCode get diagnosticCode => LinterLintCode.avoidEscapingInnerQuotes;
+  DiagnosticCode get diagnosticCode => diag.avoidEscapingInnerQuotes;
 
   @override
   void registerNodeProcessors(

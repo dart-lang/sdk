@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:analyzer_testing/analysis_rule/analysis_rule.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -25,7 +25,7 @@ class B extends A {}
 ''',
       [
         this.error(
-          CompileTimeErrorCode.subtypeOfFinalIsNotBaseFinalOrSealed,
+          diag.subtypeOfFinalIsNotBaseFinalOrSealed,
           23,
           1,
           text:
@@ -50,7 +50,7 @@ class B {}
 ''',
       [
         this.error(
-          CompileTimeErrorCode.subtypeOfFinalIsNotBaseFinalOrSealed,
+          diag.subtypeOfFinalIsNotBaseFinalOrSealed,
           38,
           1,
           text:
@@ -72,7 +72,7 @@ final class A {}
 import 'a.dart';
 class B extends A {}
 ''',
-      [error(CompileTimeErrorCode.finalClassExtendedOutsideOfLibrary, 33, 1)],
+      [error(diag.finalClassExtendedOutsideOfLibrary, 33, 1)],
     );
   }
 
@@ -99,7 +99,7 @@ class B extends A {
 ''',
       [
         this.error(
-          CompileTimeErrorCode.subtypeOfFinalIsNotBaseFinalOrSealed,
+          diag.subtypeOfFinalIsNotBaseFinalOrSealed,
           23,
           1,
           text:
@@ -117,7 +117,7 @@ class B implements A {}
 ''',
       [
         this.error(
-          CompileTimeErrorCode.subtypeOfFinalIsNotBaseFinalOrSealed,
+          diag.subtypeOfFinalIsNotBaseFinalOrSealed,
           23,
           1,
           text:
@@ -139,13 +139,7 @@ final class A {}
 import 'a.dart';
 class B implements A {}
 ''',
-      [
-        error(
-          CompileTimeErrorCode.finalClassImplementedOutsideOfLibrary,
-          36,
-          1,
-        ),
-      ],
+      [error(diag.finalClassImplementedOutsideOfLibrary, 36, 1)],
     );
   }
 
@@ -173,13 +167,7 @@ class B implements A {
   int get value => 1;
 }
 ''',
-      [
-        error(
-          CompileTimeErrorCode.finalClassImplementedOutsideOfLibrary,
-          36,
-          1,
-        ),
-      ],
+      [error(diag.finalClassImplementedOutsideOfLibrary, 36, 1)],
     );
   }
 
@@ -195,13 +183,7 @@ final class A {}
 import 'a.dart';
 mixin B on A {}
 ''',
-      [
-        error(
-          CompileTimeErrorCode.finalClassUsedAsMixinConstraintOutsideOfLibrary,
-          28,
-          1,
-        ),
-      ],
+      [error(diag.finalClassUsedAsMixinConstraintOutsideOfLibrary, 28, 1)],
     );
   }
 
@@ -214,7 +196,7 @@ class C extends B {}
 ''',
       [
         this.error(
-          CompileTimeErrorCode.subtypeOfFinalIsNotBaseFinalOrSealed,
+          diag.subtypeOfFinalIsNotBaseFinalOrSealed,
           51,
           1,
           text:
@@ -244,7 +226,7 @@ class D extends C {}
 ''',
       [
         this.error(
-          CompileTimeErrorCode.subtypeOfFinalIsNotBaseFinalOrSealed,
+          diag.subtypeOfFinalIsNotBaseFinalOrSealed,
           79,
           1,
           text:
@@ -277,7 +259,7 @@ import 'a.dart';
 sealed class B extends A {}
 class C extends B {}
 ''',
-      [error(CompileTimeErrorCode.finalClassExtendedOutsideOfLibrary, 40, 1)],
+      [error(diag.finalClassExtendedOutsideOfLibrary, 40, 1)],
     );
   }
 
@@ -290,7 +272,7 @@ final class A {}
 ''',
       [
         this.error(
-          CompileTimeErrorCode.subtypeOfFinalIsNotBaseFinalOrSealed,
+          diag.subtypeOfFinalIsNotBaseFinalOrSealed,
           6,
           1,
           text:
@@ -319,7 +301,7 @@ class C implements B {}
 ''',
       [
         this.error(
-          CompileTimeErrorCode.subtypeOfFinalIsNotBaseFinalOrSealed,
+          diag.subtypeOfFinalIsNotBaseFinalOrSealed,
           54,
           1,
           text:
@@ -349,7 +331,7 @@ class D extends C {}
 ''',
       [
         this.error(
-          CompileTimeErrorCode.subtypeOfFinalIsNotBaseFinalOrSealed,
+          diag.subtypeOfFinalIsNotBaseFinalOrSealed,
           69,
           1,
           text:
@@ -378,7 +360,7 @@ class C = Object with B implements A;
 ''',
       [
         this.error(
-          CompileTimeErrorCode.subtypeOfFinalIsNotBaseFinalOrSealed,
+          diag.subtypeOfFinalIsNotBaseFinalOrSealed,
           34,
           1,
           text:
@@ -397,7 +379,7 @@ interface class C = Object with B implements A;
 ''',
       [
         this.error(
-          CompileTimeErrorCode.subtypeOfFinalIsNotBaseFinalOrSealed,
+          diag.subtypeOfFinalIsNotBaseFinalOrSealed,
           44,
           1,
           text:
@@ -417,7 +399,7 @@ class C = Object with B implements AA;
 ''',
       [
         this.error(
-          CompileTimeErrorCode.subtypeOfFinalIsNotBaseFinalOrSealed,
+          diag.subtypeOfFinalIsNotBaseFinalOrSealed,
           63,
           1,
           text:
@@ -447,7 +429,7 @@ interface class C = Object with B implements AA;
 ''',
       [
         this.error(
-          CompileTimeErrorCode.subtypeOfFinalIsNotBaseFinalOrSealed,
+          diag.subtypeOfFinalIsNotBaseFinalOrSealed,
           73,
           1,
           text:

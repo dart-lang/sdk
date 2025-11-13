@@ -2,8 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/dart/error/syntactic_errors.dart';
-import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
@@ -27,13 +26,7 @@ typedef TA<T> = A<T>;
 
 var x = TA<int>.i;
 ''',
-      [
-        error(
-          CompileTimeErrorCode.classInstantiationAccessToInstanceMember,
-          60,
-          9,
-        ),
-      ],
+      [error(diag.classInstantiationAccessToInstanceMember, 60, 9)],
     );
   }
 
@@ -48,13 +41,7 @@ extension E on A {
 
 var x = A<int>.i;
 ''',
-      [
-        error(
-          CompileTimeErrorCode.classInstantiationAccessToUnknownMember,
-          63,
-          8,
-        ),
-      ],
+      [error(diag.classInstantiationAccessToUnknownMember, 63, 8)],
     );
   }
 
@@ -67,13 +54,7 @@ class A<T> {
 
 var x = A<int>.i;
 ''',
-      [
-        error(
-          CompileTimeErrorCode.classInstantiationAccessToInstanceMember,
-          37,
-          8,
-        ),
-      ],
+      [error(diag.classInstantiationAccessToInstanceMember, 37, 8)],
     );
   }
 
@@ -88,13 +69,7 @@ void foo() {
   A<int>.i = 7;
 }
 ''',
-      [
-        error(
-          CompileTimeErrorCode.classInstantiationAccessToInstanceMember,
-          53,
-          8,
-        ),
-      ],
+      [error(diag.classInstantiationAccessToInstanceMember, 53, 8)],
     );
   }
 
@@ -107,13 +82,7 @@ class A<T> {
 
 var x = A<int>.i;
 ''',
-      [
-        error(
-          CompileTimeErrorCode.classInstantiationAccessToStaticMember,
-          44,
-          8,
-        ),
-      ],
+      [error(diag.classInstantiationAccessToStaticMember, 44, 8)],
     );
   }
 
@@ -128,13 +97,7 @@ void bar() {
   A<int>.i = 7;
 }
 ''',
-      [
-        error(
-          CompileTimeErrorCode.classInstantiationAccessToStaticMember,
-          60,
-          8,
-        ),
-      ],
+      [error(diag.classInstantiationAccessToStaticMember, 60, 8)],
     );
   }
 
@@ -147,7 +110,7 @@ class A<T> {
 
 var x = A<int>.;
 ''',
-      [error(ParserErrorCode.missingIdentifier, 42, 1)],
+      [error(diag.missingIdentifier, 42, 1)],
     );
   }
 }

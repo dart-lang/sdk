@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
@@ -23,13 +23,7 @@ typedef F<X> = void Function(X);
 class A<X> {}
 class B<X> extends A<F<X>> {}
 ''',
-      [
-        error(
-          CompileTimeErrorCode.wrongTypeParameterVarianceInSuperinterface,
-          55,
-          1,
-        ),
-      ],
+      [error(diag.wrongTypeParameterVarianceInSuperinterface, 55, 1)],
     );
   }
 
@@ -50,13 +44,7 @@ typedef F2<X> = void Function(F1<X>);
 class A<X> {}
 class B<X> extends A<F2<X>> {}
 ''',
-      [
-        error(
-          CompileTimeErrorCode.wrongTypeParameterVarianceInSuperinterface,
-          90,
-          1,
-        ),
-      ],
+      [error(diag.wrongTypeParameterVarianceInSuperinterface, 90, 1)],
     );
   }
 
@@ -76,13 +64,7 @@ typedef F2<X> = F1<X> Function();
 class A<X> {}
 class B<X> extends A<F2<X>> {}
 ''',
-      [
-        error(
-          CompileTimeErrorCode.wrongTypeParameterVarianceInSuperinterface,
-          90,
-          1,
-        ),
-      ],
+      [error(diag.wrongTypeParameterVarianceInSuperinterface, 90, 1)],
     );
   }
 
@@ -100,13 +82,7 @@ typedef F<X> = void Function(X);
 class A<X> {}
 class B<X> implements A<F<X>> {}
 ''',
-      [
-        error(
-          CompileTimeErrorCode.wrongTypeParameterVarianceInSuperinterface,
-          55,
-          1,
-        ),
-      ],
+      [error(diag.wrongTypeParameterVarianceInSuperinterface, 55, 1)],
     );
   }
 
@@ -132,13 +108,7 @@ typedef F<X> = void Function(X);
 mixin A<X> {}
 class B<X> extends Object with A<F<X>> {}
 ''',
-      [
-        error(
-          CompileTimeErrorCode.wrongTypeParameterVarianceInSuperinterface,
-          55,
-          1,
-        ),
-      ],
+      [error(diag.wrongTypeParameterVarianceInSuperinterface, 55, 1)],
     );
   }
 
@@ -165,13 +135,7 @@ class A<X> {}
 mixin M {}
 class B<X> = A<F<X>> with M;
 ''',
-      [
-        error(
-          CompileTimeErrorCode.wrongTypeParameterVarianceInSuperinterface,
-          63,
-          1,
-        ),
-      ],
+      [error(diag.wrongTypeParameterVarianceInSuperinterface, 63, 1)],
     );
   }
 
@@ -183,13 +147,7 @@ class A<X> {}
 mixin M {}
 class B<X> = A<F<X>> with M;
 ''',
-      [
-        error(
-          CompileTimeErrorCode.wrongTypeParameterVarianceInSuperinterface,
-          66,
-          1,
-        ),
-      ],
+      [error(diag.wrongTypeParameterVarianceInSuperinterface, 66, 1)],
     );
   }
 
@@ -218,13 +176,7 @@ class A<X> {}
 mixin M {}
 class B<X> = Object with M implements A<F<X>>;
 ''',
-      [
-        error(
-          CompileTimeErrorCode.wrongTypeParameterVarianceInSuperinterface,
-          66,
-          1,
-        ),
-      ],
+      [error(diag.wrongTypeParameterVarianceInSuperinterface, 66, 1)],
     );
   }
 
@@ -252,13 +204,7 @@ typedef F<X> = void Function(X);
 mixin M<X> {}
 class B<X> = Object with M<F<X>>;
 ''',
-      [
-        error(
-          CompileTimeErrorCode.wrongTypeParameterVarianceInSuperinterface,
-          55,
-          1,
-        ),
-      ],
+      [error(diag.wrongTypeParameterVarianceInSuperinterface, 55, 1)],
     );
   }
 
@@ -286,13 +232,7 @@ enum E<X> implements A<F<X>> {
   v
 }
 ''',
-      [
-        error(
-          CompileTimeErrorCode.wrongTypeParameterVarianceInSuperinterface,
-          54,
-          1,
-        ),
-      ],
+      [error(diag.wrongTypeParameterVarianceInSuperinterface, 54, 1)],
     );
   }
 
@@ -324,13 +264,7 @@ enum E<X> with A<F<X>> {
   v
 }
 ''',
-      [
-        error(
-          CompileTimeErrorCode.wrongTypeParameterVarianceInSuperinterface,
-          54,
-          1,
-        ),
-      ],
+      [error(diag.wrongTypeParameterVarianceInSuperinterface, 54, 1)],
     );
   }
 
@@ -360,13 +294,7 @@ class A<T> {}
 extension type B<T>(A<void Function(Object?)> it)
   implements A<void Function(T)> {}
 ''',
-      [
-        error(
-          CompileTimeErrorCode.wrongTypeParameterVarianceInSuperinterface,
-          31,
-          1,
-        ),
-      ],
+      [error(diag.wrongTypeParameterVarianceInSuperinterface, 31, 1)],
     );
   }
 
@@ -385,13 +313,7 @@ class A<T> {}
 extension type B<T>(A<Never Function(Object?)> it)
   implements A<T Function(T)> {}
 ''',
-      [
-        error(
-          CompileTimeErrorCode.wrongTypeParameterVarianceInSuperinterface,
-          31,
-          1,
-        ),
-      ],
+      [error(diag.wrongTypeParameterVarianceInSuperinterface, 31, 1)],
     );
   }
 
@@ -402,13 +324,7 @@ typedef F<X> = void Function(X);
 class A<X> {}
 mixin B<X> implements A<F<X>> {}
 ''',
-      [
-        error(
-          CompileTimeErrorCode.wrongTypeParameterVarianceInSuperinterface,
-          55,
-          1,
-        ),
-      ],
+      [error(diag.wrongTypeParameterVarianceInSuperinterface, 55, 1)],
     );
   }
 
@@ -434,13 +350,7 @@ typedef F<X> = void Function(X);
 class A<X> {}
 mixin B<X> on A<F<X>> {}
 ''',
-      [
-        error(
-          CompileTimeErrorCode.wrongTypeParameterVarianceInSuperinterface,
-          55,
-          1,
-        ),
-      ],
+      [error(diag.wrongTypeParameterVarianceInSuperinterface, 55, 1)],
     );
   }
 
@@ -465,13 +375,7 @@ mixin B<X> on A<X> {}
 class A<X> {}
 class B<X> extends A<void Function<Y extends X>()> {}
 ''',
-      [
-        error(
-          CompileTimeErrorCode.wrongTypeParameterVarianceInSuperinterface,
-          22,
-          1,
-        ),
-      ],
+      [error(diag.wrongTypeParameterVarianceInSuperinterface, 22, 1)],
     );
   }
 }

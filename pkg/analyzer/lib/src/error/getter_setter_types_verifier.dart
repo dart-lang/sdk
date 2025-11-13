@@ -9,7 +9,7 @@ import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
-import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 
 /// Verifies that the return type of the getter matches the parameter type
 /// of the corresponding setter. Where "match" means "subtype" in non-nullable,
@@ -98,7 +98,7 @@ class GetterSetterTypesVerifier {
 
             _diagnosticReporter.atElement2(
               errorElement,
-              CompileTimeErrorCode.getterNotSubtypeSetterTypes,
+              diag.getterNotSubtypeSetterTypes,
               arguments: [getterName, getterType, setterType, setterName],
             );
           }
@@ -139,7 +139,7 @@ class GetterSetterTypesVerifier {
     if (!_typeSystem.isSubtypeOf(getterType, setterType)) {
       _diagnosticReporter.atElement2(
         getter,
-        CompileTimeErrorCode.getterNotSubtypeSetterTypes,
+        diag.getterNotSubtypeSetterTypes,
         arguments: [name, getterType, setterType, name],
       );
     }

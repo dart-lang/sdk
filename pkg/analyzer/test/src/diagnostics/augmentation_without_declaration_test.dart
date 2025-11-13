@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
@@ -27,7 +27,7 @@ part of 'a.dart';
 
 augment class A {}
 ''',
-      [error(CompileTimeErrorCode.augmentationWithoutDeclaration, 19, 7)],
+      [error(diag.augmentationWithoutDeclaration, 19, 7)],
     );
   }
 
@@ -46,7 +46,7 @@ augment class A {
   augment A.named();
 }
 ''',
-      [error(CompileTimeErrorCode.augmentationWithoutDeclaration, 39, 7)],
+      [error(diag.augmentationWithoutDeclaration, 39, 7)],
     );
   }
 
@@ -65,7 +65,7 @@ augment class A {
   augment int foo = 0;
 }
 ''',
-      [error(CompileTimeErrorCode.augmentationWithoutDeclaration, 39, 7)],
+      [error(diag.augmentationWithoutDeclaration, 39, 7)],
     );
   }
 
@@ -84,7 +84,7 @@ augment class A {
   augment static int foo = 0;
 }
 ''',
-      [error(CompileTimeErrorCode.augmentationWithoutDeclaration, 39, 7)],
+      [error(diag.augmentationWithoutDeclaration, 39, 7)],
     );
   }
 
@@ -103,7 +103,7 @@ augment class A {
   augment int get foo => 0;
 }
 ''',
-      [error(CompileTimeErrorCode.augmentationWithoutDeclaration, 39, 7)],
+      [error(diag.augmentationWithoutDeclaration, 39, 7)],
     );
   }
 
@@ -122,7 +122,7 @@ augment class A {
   augment static int get foo => 0;
 }
 ''',
-      [error(CompileTimeErrorCode.augmentationWithoutDeclaration, 39, 7)],
+      [error(diag.augmentationWithoutDeclaration, 39, 7)],
     );
   }
 
@@ -141,7 +141,7 @@ augment class A {
   augment void foo() {}
 }
 ''',
-      [error(CompileTimeErrorCode.augmentationWithoutDeclaration, 39, 7)],
+      [error(diag.augmentationWithoutDeclaration, 39, 7)],
     );
   }
 
@@ -160,7 +160,7 @@ augment class A {
   augment static void foo() {}
 }
 ''',
-      [error(CompileTimeErrorCode.augmentationWithoutDeclaration, 39, 7)],
+      [error(diag.augmentationWithoutDeclaration, 39, 7)],
     );
   }
 
@@ -197,7 +197,7 @@ augment class A {
   augment set foo(int _) {}
 }
 ''',
-      [error(CompileTimeErrorCode.augmentationWithoutDeclaration, 39, 7)],
+      [error(diag.augmentationWithoutDeclaration, 39, 7)],
     );
   }
 
@@ -216,7 +216,7 @@ augment class A {
   augment static set foo(int _) {}
 }
 ''',
-      [error(CompileTimeErrorCode.augmentationWithoutDeclaration, 39, 7)],
+      [error(diag.augmentationWithoutDeclaration, 39, 7)],
     );
   }
 
@@ -231,7 +231,7 @@ part of 'a.dart';
 
 augment enum A {}
 ''',
-      [error(CompileTimeErrorCode.augmentationWithoutDeclaration, 19, 7)],
+      [error(diag.augmentationWithoutDeclaration, 19, 7)],
     );
   }
 
@@ -250,7 +250,7 @@ augment enum A {;
   augment const A.named();
 }
 ''',
-      [error(CompileTimeErrorCode.augmentationWithoutDeclaration, 39, 7)],
+      [error(diag.augmentationWithoutDeclaration, 39, 7)],
     );
   }
 
@@ -269,7 +269,7 @@ augment enum A {;
   augment final int foo = 0;
 }
 ''',
-      [error(CompileTimeErrorCode.augmentationWithoutDeclaration, 39, 7)],
+      [error(diag.augmentationWithoutDeclaration, 39, 7)],
     );
   }
 
@@ -288,7 +288,7 @@ augment enum A {;
   augment int get foo => 0;
 }
 ''',
-      [error(CompileTimeErrorCode.augmentationWithoutDeclaration, 39, 7)],
+      [error(diag.augmentationWithoutDeclaration, 39, 7)],
     );
   }
 
@@ -307,7 +307,7 @@ augment enum A {;
   augment void foo() {}
 }
 ''',
-      [error(CompileTimeErrorCode.augmentationWithoutDeclaration, 39, 7)],
+      [error(diag.augmentationWithoutDeclaration, 39, 7)],
     );
   }
 
@@ -326,7 +326,7 @@ augment enum A {;
   augment set foo(int _) {}
 }
 ''',
-      [error(CompileTimeErrorCode.augmentationWithoutDeclaration, 39, 7)],
+      [error(diag.augmentationWithoutDeclaration, 39, 7)],
     );
   }
 
@@ -341,7 +341,7 @@ part of 'a.dart';
 
 augment extension A {}
 ''',
-      [error(CompileTimeErrorCode.augmentationWithoutDeclaration, 19, 7)],
+      [error(diag.augmentationWithoutDeclaration, 19, 7)],
     );
   }
 
@@ -360,7 +360,7 @@ augment extension A {
   augment int get foo => 0;
 }
 ''',
-      [error(CompileTimeErrorCode.augmentationWithoutDeclaration, 43, 7)],
+      [error(diag.augmentationWithoutDeclaration, 43, 7)],
     );
   }
 
@@ -379,7 +379,7 @@ augment extension A {
   augment void foo() {}
 }
 ''',
-      [error(CompileTimeErrorCode.augmentationWithoutDeclaration, 43, 7)],
+      [error(diag.augmentationWithoutDeclaration, 43, 7)],
     );
   }
 
@@ -398,7 +398,7 @@ augment extension A {
   augment set foo(int _) {}
 }
 ''',
-      [error(CompileTimeErrorCode.augmentationWithoutDeclaration, 43, 7)],
+      [error(diag.augmentationWithoutDeclaration, 43, 7)],
     );
   }
 
@@ -413,7 +413,7 @@ part of 'a.dart';
 
 augment extension type A(int it) {}
 ''',
-      [error(CompileTimeErrorCode.augmentationWithoutDeclaration, 19, 7)],
+      [error(diag.augmentationWithoutDeclaration, 19, 7)],
     );
   }
 
@@ -432,7 +432,7 @@ augment extension type A(int it) {
   augment A.named() : this(0);
 }
 ''',
-      [error(CompileTimeErrorCode.augmentationWithoutDeclaration, 56, 7)],
+      [error(diag.augmentationWithoutDeclaration, 56, 7)],
     );
   }
 
@@ -451,7 +451,7 @@ augment extension type A(int it) {
   augment int get foo => 0;
 }
 ''',
-      [error(CompileTimeErrorCode.augmentationWithoutDeclaration, 56, 7)],
+      [error(diag.augmentationWithoutDeclaration, 56, 7)],
     );
   }
 
@@ -470,7 +470,7 @@ augment extension type A(int it) {
   augment void foo() {}
 }
 ''',
-      [error(CompileTimeErrorCode.augmentationWithoutDeclaration, 56, 7)],
+      [error(diag.augmentationWithoutDeclaration, 56, 7)],
     );
   }
 
@@ -489,7 +489,7 @@ augment extension type A(int it) {
   augment set foo(int _) {}
 }
 ''',
-      [error(CompileTimeErrorCode.augmentationWithoutDeclaration, 56, 7)],
+      [error(diag.augmentationWithoutDeclaration, 56, 7)],
     );
   }
 
@@ -504,7 +504,7 @@ part of 'a.dart';
 
 augment mixin A {}
 ''',
-      [error(CompileTimeErrorCode.augmentationWithoutDeclaration, 19, 7)],
+      [error(diag.augmentationWithoutDeclaration, 19, 7)],
     );
   }
 
@@ -523,7 +523,7 @@ augment mixin A {
   augment int foo = 0;
 }
 ''',
-      [error(CompileTimeErrorCode.augmentationWithoutDeclaration, 39, 7)],
+      [error(diag.augmentationWithoutDeclaration, 39, 7)],
     );
   }
 
@@ -542,7 +542,7 @@ augment mixin A {
   augment int get foo => 0;
 }
 ''',
-      [error(CompileTimeErrorCode.augmentationWithoutDeclaration, 39, 7)],
+      [error(diag.augmentationWithoutDeclaration, 39, 7)],
     );
   }
 
@@ -561,7 +561,7 @@ augment mixin A {
   augment void foo() {}
 }
 ''',
-      [error(CompileTimeErrorCode.augmentationWithoutDeclaration, 39, 7)],
+      [error(diag.augmentationWithoutDeclaration, 39, 7)],
     );
   }
 
@@ -598,7 +598,7 @@ augment mixin A {
   augment set foo(int _) {}
 }
 ''',
-      [error(CompileTimeErrorCode.augmentationWithoutDeclaration, 39, 7)],
+      [error(diag.augmentationWithoutDeclaration, 39, 7)],
     );
   }
 
@@ -613,7 +613,7 @@ part of 'a.dart';
 
 augment void foo() {}
 ''',
-      [error(CompileTimeErrorCode.augmentationWithoutDeclaration, 19, 7)],
+      [error(diag.augmentationWithoutDeclaration, 19, 7)],
     );
   }
 
@@ -642,7 +642,7 @@ part of 'a.dart';
 
 augment int get foo => 0;
 ''',
-      [error(CompileTimeErrorCode.augmentationWithoutDeclaration, 19, 7)],
+      [error(diag.augmentationWithoutDeclaration, 19, 7)],
     );
   }
 
@@ -657,7 +657,7 @@ part of 'a.dart';
 
 augment set foo(int _) {}
 ''',
-      [error(CompileTimeErrorCode.augmentationWithoutDeclaration, 19, 7)],
+      [error(diag.augmentationWithoutDeclaration, 19, 7)],
     );
   }
 
@@ -672,7 +672,7 @@ part of 'a.dart';
 
 augment int foo = 0;
 ''',
-      [error(CompileTimeErrorCode.augmentationWithoutDeclaration, 19, 7)],
+      [error(diag.augmentationWithoutDeclaration, 19, 7)],
     );
   }
 
@@ -687,7 +687,7 @@ part of 'a.dart';
 
 augment typedef A = int;
 ''',
-      [error(CompileTimeErrorCode.augmentationWithoutDeclaration, 19, 7)],
+      [error(diag.augmentationWithoutDeclaration, 19, 7)],
     );
   }
 }

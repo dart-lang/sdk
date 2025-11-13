@@ -11,6 +11,7 @@ import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/error/error.dart';
 
 import '../analyzer.dart';
+import '../diagnostic.dart' as diag;
 import '../extensions.dart';
 import '../util/ascii_utils.dart';
 import '../utils.dart';
@@ -22,8 +23,7 @@ class NonConstantIdentifierNames extends AnalysisRule {
     : super(name: LintNames.non_constant_identifier_names, description: _desc);
 
   @override
-  DiagnosticCode get diagnosticCode =>
-      LinterLintCode.nonConstantIdentifierNames;
+  DiagnosticCode get diagnosticCode => diag.nonConstantIdentifierNames;
 
   @override
   void registerNodeProcessors(

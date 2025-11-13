@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/dart/error/hint_codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
@@ -36,7 +36,7 @@ class B extends A {
   B({super.a : ''});
 }
 ''',
-      [error(HintCode.deprecatedColonForDefaultValue, 74, 1)],
+      [error(diag.deprecatedColonForDefaultValue, 74, 1)],
     );
   }
 
@@ -45,7 +45,7 @@ class B extends A {
       '''
 void f({int x : 0}) {}
 ''',
-      [error(HintCode.deprecatedColonForDefaultValue, 14, 1)],
+      [error(diag.deprecatedColonForDefaultValue, 14, 1)],
     );
   }
 

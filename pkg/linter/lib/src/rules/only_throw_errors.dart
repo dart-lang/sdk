@@ -11,6 +11,7 @@ import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/error/error.dart';
 
 import '../analyzer.dart';
+import '../diagnostic.dart' as diag;
 import '../extensions.dart';
 import '../util/dart_type_utilities.dart';
 
@@ -35,7 +36,7 @@ class OnlyThrowErrors extends AnalysisRule {
     : super(name: LintNames.only_throw_errors, description: _desc);
 
   @override
-  DiagnosticCode get diagnosticCode => LinterLintCode.onlyThrowErrors;
+  DiagnosticCode get diagnosticCode => diag.onlyThrowErrors;
 
   @override
   void registerNodeProcessors(

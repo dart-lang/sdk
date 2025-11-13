@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/dart/error/syntactic_errors.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 
 import 'partial_code_support.dart';
 
@@ -18,12 +18,12 @@ class ReturnStatementTest extends PartialCodeTest {
         TestDescriptor(
           'keyword',
           'return',
-          [ParserErrorCode.expectedToken],
+          [diag.expectedToken],
           "return;",
           allFailing: true,
         ),
         TestDescriptor('expression', 'return a', [
-          ParserErrorCode.expectedToken,
+          diag.expectedToken,
         ], "return a;"),
       ],
       PartialCodeTest.statementSuffixes,

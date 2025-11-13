@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
@@ -70,7 +70,7 @@ class A {
   }
 }
 ''',
-      [error(CompileTimeErrorCode.returnOfInvalidTypeFromMethod, 95, 3)],
+      [error(diag.returnOfInvalidTypeFromMethod, 95, 3)],
     );
   }
 
@@ -87,7 +87,7 @@ String f() {
   return v();
 }
 ''',
-      [error(WarningCode.returnOfDoNotStore, 97, 2)],
+      [error(diag.returnOfDoNotStore, 97, 2)],
     );
   }
 
@@ -109,13 +109,8 @@ String getV2() => v;
 String getV3() => v;
 ''',
       [
-        error(WarningCode.returnOfDoNotStore, 92, 1, messageContains: ['getV']),
-        error(
-          WarningCode.returnOfDoNotStore,
-          116,
-          1,
-          messageContains: ['getV2'],
-        ),
+        error(diag.returnOfDoNotStore, 92, 1, messageContains: ['getV']),
+        error(diag.returnOfDoNotStore, 116, 1, messageContains: ['getV2']),
       ],
     );
   }
@@ -138,8 +133,8 @@ String get v2 => _v;
 String get v3 => _v;
 ''',
       [
-        error(WarningCode.returnOfDoNotStore, 92, 2, messageContains: ['v']),
-        error(WarningCode.returnOfDoNotStore, 116, 2, messageContains: ['v2']),
+        error(diag.returnOfDoNotStore, 92, 2, messageContains: ['v']),
+        error(diag.returnOfDoNotStore, 116, 2, messageContains: ['v2']),
       ],
     );
   }
@@ -158,8 +153,8 @@ String? get _v2 => '';
 String? get v => _v ?? _v2;
 ''',
       [
-        error(WarningCode.returnOfDoNotStore, 122, 2, messageContains: ['_v']),
-        error(WarningCode.returnOfDoNotStore, 128, 3, messageContains: ['_v2']),
+        error(diag.returnOfDoNotStore, 122, 2, messageContains: ['_v']),
+        error(diag.returnOfDoNotStore, 128, 3, messageContains: ['_v2']),
       ],
     );
   }
@@ -189,8 +184,8 @@ var b = true;
 String get v => b ? _v : _v2;
 ''',
       [
-        error(WarningCode.returnOfDoNotStore, 138, 2),
-        error(WarningCode.returnOfDoNotStore, 143, 3),
+        error(diag.returnOfDoNotStore, 138, 2),
+        error(diag.returnOfDoNotStore, 143, 3),
       ],
     );
   }
@@ -215,18 +210,8 @@ class A {
 }
 ''',
       [
-        error(
-          WarningCode.returnOfDoNotStore,
-          111,
-          2,
-          messageContains: ['getV'],
-        ),
-        error(
-          WarningCode.returnOfDoNotStore,
-          140,
-          2,
-          messageContains: ['getV2'],
-        ),
+        error(diag.returnOfDoNotStore, 111, 2, messageContains: ['getV']),
+        error(diag.returnOfDoNotStore, 140, 2, messageContains: ['getV2']),
       ],
     );
   }

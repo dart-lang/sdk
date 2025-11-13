@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/src/dart/error/syntactic_errors.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../../diagnostics/parser_diagnostics.dart';
@@ -61,7 +61,7 @@ ExtensionDeclaration
 augment extension E on int {}
 ''');
     parseResult.assertErrors([
-      error(ParserErrorCode.extensionAugmentationHasOnClause, 20, 2),
+      error(diag.extensionAugmentationHasOnClause, 20, 2),
     ]);
 
     var node = parseResult.findNode.singleExtensionDeclaration;

@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
@@ -25,7 +25,7 @@ final dynamic a = 0;
 const cond = true;
 var v = const {if (cond) 'a': 'b', 'c' : a};
 ''',
-      [error(CompileTimeErrorCode.nonConstantMapValue, 81, 1)],
+      [error(diag.nonConstantMapValue, 81, 1)],
     );
   }
 
@@ -36,7 +36,7 @@ final dynamic a = 0;
 const cond = true;
 var v = const {if (cond) 'a' : a};
 ''',
-      [error(CompileTimeErrorCode.nonConstantMapValue, 71, 1)],
+      [error(diag.nonConstantMapValue, 71, 1)],
     );
   }
 
@@ -46,7 +46,7 @@ var v = const {if (cond) 'a' : a};
 final dynamic a = 0;
 var v = const {'a' : a};
 ''',
-      [error(CompileTimeErrorCode.nonConstantMapValue, 42, 1)],
+      [error(diag.nonConstantMapValue, 42, 1)],
     );
   }
 }

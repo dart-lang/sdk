@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
@@ -22,7 +22,7 @@ class C {
   const int f = 0;
 }
 ''',
-      [error(CompileTimeErrorCode.constInstanceField, 12, 5)],
+      [error(diag.constInstanceField, 12, 5)],
     );
   }
 
@@ -33,7 +33,7 @@ mixin C {
   const int f = 0;
 }
 ''',
-      [error(CompileTimeErrorCode.constInstanceField, 12, 5)],
+      [error(diag.constInstanceField, 12, 5)],
     );
   }
 }

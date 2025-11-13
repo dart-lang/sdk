@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
@@ -63,7 +63,7 @@ void f<T extends List<int>?>(T a) {
 var a = 0;
 var v = [...a];
 ''',
-      [error(CompileTimeErrorCode.notIterableSpread, 23, 1)],
+      [error(diag.notIterableSpread, 23, 1)],
     );
   }
 
@@ -74,8 +74,8 @@ var a = 0;
 var v = [for (var i in []) ...a];
 ''',
       [
-        error(WarningCode.unusedLocalVariable, 29, 1),
-        error(CompileTimeErrorCode.notIterableSpread, 41, 1),
+        error(diag.unusedLocalVariable, 29, 1),
+        error(diag.notIterableSpread, 41, 1),
       ],
     );
   }
@@ -86,7 +86,7 @@ var v = [for (var i in []) ...a];
 var a = 0;
 var v = [if (1 > 0) ...[] else ...a];
 ''',
-      [error(CompileTimeErrorCode.notIterableSpread, 45, 1)],
+      [error(diag.notIterableSpread, 45, 1)],
     );
   }
 
@@ -96,7 +96,7 @@ var v = [if (1 > 0) ...[] else ...a];
 var a = 0;
 var v = [if (1 > 0) ...a];
 ''',
-      [error(CompileTimeErrorCode.notIterableSpread, 34, 1)],
+      [error(diag.notIterableSpread, 34, 1)],
     );
   }
 
@@ -108,7 +108,7 @@ void f<T extends num>(T a) {
   v;
 }
 ''',
-      [error(CompileTimeErrorCode.notIterableSpread, 43, 1)],
+      [error(diag.notIterableSpread, 43, 1)],
     );
   }
 
@@ -117,7 +117,7 @@ void f<T extends num>(T a) {
       '''
 List<int> f() => [...{1: 2, 3: 4}];
 ''',
-      [error(CompileTimeErrorCode.notIterableSpread, 21, 12)],
+      [error(diag.notIterableSpread, 21, 12)],
     );
   }
 }
@@ -132,7 +132,7 @@ void f(dynamic a) {
   [...a];
 }
 ''',
-      [error(CompileTimeErrorCode.notIterableSpread, 26, 1)],
+      [error(diag.notIterableSpread, 26, 1)],
     );
   }
 
@@ -143,7 +143,7 @@ void f(dynamic a) {
   <int>{...a};
 }
 ''',
-      [error(CompileTimeErrorCode.notIterableSpread, 31, 1)],
+      [error(diag.notIterableSpread, 31, 1)],
     );
   }
 }

@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
@@ -21,8 +21,8 @@ class NotNullAwareNullSpreadTest extends PubPackageResolutionTest {
 var v = [...null];
 ''',
       [
-        error(CompileTimeErrorCode.invalidUseOfNullValue, 12, 4),
-        error(CompileTimeErrorCode.notNullAwareNullSpread, 12, 4),
+        error(diag.invalidUseOfNullValue, 12, 4),
+        error(diag.notNullAwareNullSpread, 12, 4),
       ],
     );
   }
@@ -34,8 +34,8 @@ Null a = null;
 var v = [...a];
 ''',
       [
-        error(CompileTimeErrorCode.invalidUseOfNullValue, 27, 1),
-        error(CompileTimeErrorCode.notNullAwareNullSpread, 27, 1),
+        error(diag.invalidUseOfNullValue, 27, 1),
+        error(diag.notNullAwareNullSpread, 27, 1),
       ],
     );
   }
@@ -59,8 +59,8 @@ var v = [...?a];
 var v = <int, int>{...null};
 ''',
       [
-        error(CompileTimeErrorCode.invalidUseOfNullValue, 22, 4),
-        error(CompileTimeErrorCode.notNullAwareNullSpread, 22, 4),
+        error(diag.invalidUseOfNullValue, 22, 4),
+        error(diag.notNullAwareNullSpread, 22, 4),
       ],
     );
   }
@@ -72,8 +72,8 @@ Null a = null;
 var v = <int, int>{...a};
 ''',
       [
-        error(CompileTimeErrorCode.invalidUseOfNullValue, 37, 1),
-        error(CompileTimeErrorCode.notNullAwareNullSpread, 37, 1),
+        error(diag.invalidUseOfNullValue, 37, 1),
+        error(diag.notNullAwareNullSpread, 37, 1),
       ],
     );
   }
@@ -97,8 +97,8 @@ var v = <int, int>{...?a};
 var v = <int>{...null};
 ''',
       [
-        error(CompileTimeErrorCode.invalidUseOfNullValue, 17, 4),
-        error(CompileTimeErrorCode.notNullAwareNullSpread, 17, 4),
+        error(diag.invalidUseOfNullValue, 17, 4),
+        error(diag.notNullAwareNullSpread, 17, 4),
       ],
     );
   }
@@ -110,8 +110,8 @@ Null a = null;
 var v = <int>{...a};
 ''',
       [
-        error(CompileTimeErrorCode.invalidUseOfNullValue, 32, 1),
-        error(CompileTimeErrorCode.notNullAwareNullSpread, 32, 1),
+        error(diag.invalidUseOfNullValue, 32, 1),
+        error(diag.notNullAwareNullSpread, 32, 1),
       ],
     );
   }

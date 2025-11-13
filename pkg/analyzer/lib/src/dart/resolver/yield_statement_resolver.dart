@@ -11,7 +11,7 @@ import 'package:analyzer/src/dart/element/type_provider.dart';
 import 'package:analyzer/src/dart/element/type_schema.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/dart/resolver/body_inference_context.dart';
-import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:analyzer/src/generated/resolver.dart';
 
 /// Helper for resolving [YieldStatement]s.
@@ -40,7 +40,7 @@ class YieldStatementResolver {
   /// it returns 'void'. Or, in rare cases, when other types of expressions are
   /// void, such as identifiers.
   ///
-  /// See [CompileTimeErrorCode.useOfVoidResult].
+  /// See [diag.useOfVoidResult].
   ///
   // TODO(scheglov): This is duplicate
   // TODO(scheglov): Also in [BoolExpressionVerifier]
@@ -50,15 +50,9 @@ class YieldStatementResolver {
     }
 
     if (expression is MethodInvocation) {
-      _diagnosticReporter.atNode(
-        expression.methodName,
-        CompileTimeErrorCode.useOfVoidResult,
-      );
+      _diagnosticReporter.atNode(expression.methodName, diag.useOfVoidResult);
     } else {
-      _diagnosticReporter.atNode(
-        expression,
-        CompileTimeErrorCode.useOfVoidResult,
-      );
+      _diagnosticReporter.atNode(expression, diag.useOfVoidResult);
     }
 
     return true;
@@ -95,7 +89,7 @@ class YieldStatementResolver {
         )) {
           _diagnosticReporter.atNode(
             expression,
-            CompileTimeErrorCode.yieldEachOfInvalidType,
+            diag.yieldEachOfInvalidType,
             arguments: [impliedReturnType, imposedReturnType],
           );
           return;
@@ -115,7 +109,7 @@ class YieldStatementResolver {
           )) {
             _diagnosticReporter.atNode(
               expression,
-              CompileTimeErrorCode.yieldOfInvalidType,
+              diag.yieldOfInvalidType,
               arguments: [expressionType, imposedValueType],
             );
             return;
@@ -142,7 +136,7 @@ class YieldStatementResolver {
       )) {
         _diagnosticReporter.atNode(
           expression,
-          CompileTimeErrorCode.yieldEachOfInvalidType,
+          diag.yieldEachOfInvalidType,
           arguments: [impliedReturnType, requiredReturnType],
         );
       }
@@ -179,7 +173,7 @@ class YieldStatementResolver {
 
     if (node.star != null) {
       _resolver.nullableDereferenceVerifier.expression(
-        CompileTimeErrorCode.uncheckedUseOfNullableValueInYieldEach,
+        diag.uncheckedUseOfNullableValueInYieldEach,
         node.expression,
       );
     }
@@ -204,8 +198,8 @@ class YieldStatementResolver {
     _diagnosticReporter.atNode(
       node,
       node.star != null
-          ? CompileTimeErrorCode.yieldEachInNonGenerator
-          : CompileTimeErrorCode.yieldInNonGenerator,
+          ? diag.yieldEachInNonGenerator
+          : diag.yieldInNonGenerator,
     );
 
     _checkForUseOfVoidResult(node.expression);

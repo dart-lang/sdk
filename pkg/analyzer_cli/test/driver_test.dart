@@ -9,7 +9,7 @@ import 'package:analyzer/error/error.dart';
 import 'package:analyzer/source/error_processor.dart';
 import 'package:analyzer/source/source.dart';
 import 'package:analyzer/src/analysis_options/analysis_options_provider.dart';
-import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/util/file_paths.dart' as file_paths;
 import 'package:analyzer/src/util/sdk.dart';
@@ -432,7 +432,7 @@ class OptionsTest extends BaseTest {
       source: TestSource(),
       offset: 0,
       length: 1,
-      diagnosticCode: WarningCode.unusedLocalVariable,
+      diagnosticCode: diag.unusedLocalVariable,
       arguments: [
         ['x'],
       ],
@@ -444,7 +444,7 @@ class OptionsTest extends BaseTest {
       source: TestSource(),
       offset: 0,
       length: 1,
-      diagnosticCode: WarningCode.assignmentOfDoNotStore,
+      diagnosticCode: diag.assignmentOfDoNotStore,
       arguments: [
         ['x'],
       ],

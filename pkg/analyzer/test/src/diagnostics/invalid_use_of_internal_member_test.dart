@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:analyzer/utilities/package_config_file_builder.dart';
 import 'package:analyzer_testing/utilities/utilities.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -81,7 +81,7 @@ import 'package:foo/src/a.dart';
 
 A a = A();
 ''',
-      [error(WarningCode.invalidUseOfInternalMember, 34, 1)],
+      [error(diag.invalidUseOfInternalMember, 34, 1)],
     );
   }
 
@@ -100,7 +100,7 @@ void f(Object o) {
   o as A;
 }
 ''',
-      [error(WarningCode.invalidUseOfInternalMember, 60, 1)],
+      [error(diag.invalidUseOfInternalMember, 60, 1)],
     );
   }
 
@@ -119,7 +119,7 @@ void f(Object a, Object b) {
   (b as A, ) = (a, );
 }
 ''',
-      [error(WarningCode.invalidUseOfInternalMember, 71, 1)],
+      [error(diag.invalidUseOfInternalMember, 71, 1)],
     );
   }
 
@@ -138,7 +138,7 @@ void f(Object o) {
   o is A;
 }
 ''',
-      [error(WarningCode.invalidUseOfInternalMember, 60, 1)],
+      [error(diag.invalidUseOfInternalMember, 60, 1)],
     );
   }
 
@@ -159,7 +159,7 @@ void f(Object a, Object b) {
   }
 }
 ''',
-      [error(WarningCode.invalidUseOfInternalMember, 87, 1)],
+      [error(diag.invalidUseOfInternalMember, 87, 1)],
     );
   }
 
@@ -176,7 +176,7 @@ import 'package:foo/src/a.dart';
 
 A? a;
 ''',
-      [error(WarningCode.invalidUseOfInternalMember, 34, 1)],
+      [error(diag.invalidUseOfInternalMember, 34, 1)],
     );
   }
 
@@ -195,7 +195,7 @@ import 'package:foo/src/a.dart';
 
 C a = C.named();
 ''',
-      [error(WarningCode.invalidUseOfInternalMember, 40, 7)],
+      [error(diag.invalidUseOfInternalMember, 40, 7)],
     );
   }
 
@@ -214,7 +214,7 @@ import 'package:foo/src/a.dart';
 
 C a = C();
 ''',
-      [error(WarningCode.invalidUseOfInternalMember, 40, 1)],
+      [error(diag.invalidUseOfInternalMember, 40, 1)],
     );
   }
 
@@ -231,7 +231,7 @@ import 'package:foo/src/a.dart';
 
 void f(E value) {}
 ''',
-      [error(WarningCode.invalidUseOfInternalMember, 41, 1)],
+      [error(diag.invalidUseOfInternalMember, 41, 1)],
     );
   }
 
@@ -247,7 +247,7 @@ import 'package:foo/src/a.dart';
 
 E f() => E.one;
 ''',
-      [error(WarningCode.invalidUseOfInternalMember, 45, 3)],
+      [error(diag.invalidUseOfInternalMember, 45, 3)],
     );
   }
 
@@ -266,7 +266,7 @@ import 'package:foo/src/a.dart';
 
 int a = 'hello'.f();
 ''',
-      [error(WarningCode.invalidUseOfInternalMember, 50, 1)],
+      [error(diag.invalidUseOfInternalMember, 50, 1)],
     );
   }
 
@@ -283,7 +283,7 @@ import 'package:foo/src/a.dart';
 
 E e = E(1);
 ''',
-      [error(WarningCode.invalidUseOfInternalMember, 34, 1)],
+      [error(diag.invalidUseOfInternalMember, 34, 1)],
     );
   }
 
@@ -306,7 +306,7 @@ void f(Object o) {
   }
 }
 ''',
-      [error(WarningCode.invalidUseOfInternalMember, 79, 1)],
+      [error(diag.invalidUseOfInternalMember, 79, 1)],
     );
   }
 
@@ -323,7 +323,7 @@ import 'package:foo/src/a.dart';
 
 int b = a() + 1;
 ''',
-      [error(WarningCode.invalidUseOfInternalMember, 42, 1)],
+      [error(diag.invalidUseOfInternalMember, 42, 1)],
     );
   }
 
@@ -340,7 +340,7 @@ import 'package:foo/src/a.dart';
 
 int b = a<void>() + 1;
 ''',
-      [error(WarningCode.invalidUseOfInternalMember, 42, 1)],
+      [error(diag.invalidUseOfInternalMember, 42, 1)],
     );
   }
 
@@ -357,7 +357,7 @@ import 'package:foo/src/a.dart';
 
 int Function() b = a;
 ''',
-      [error(WarningCode.invalidUseOfInternalMember, 53, 1)],
+      [error(diag.invalidUseOfInternalMember, 53, 1)],
     );
   }
 
@@ -374,7 +374,7 @@ import 'package:foo/src/a.dart';
 
 int Function() b = a;
 ''',
-      [error(WarningCode.invalidUseOfInternalMember, 53, 1)],
+      [error(diag.invalidUseOfInternalMember, 53, 1)],
     );
   }
 
@@ -419,8 +419,8 @@ import 'package:meta/meta.dart';
 import 'package:foo/src/a.dart';
 ''',
       [
-        error(WarningCode.invalidUseOfInternalMember, 0, 32),
-        error(WarningCode.unusedImport, 7, 24),
+        error(diag.invalidUseOfInternalMember, 0, 32),
+        error(diag.unusedImport, 7, 24),
       ],
     );
   }
@@ -440,7 +440,7 @@ import 'package:foo/src/a.dart';
 
 int a = C().m();
 ''',
-      [error(WarningCode.invalidUseOfInternalMember, 46, 1)],
+      [error(diag.invalidUseOfInternalMember, 46, 1)],
     );
   }
 
@@ -459,7 +459,7 @@ import 'package:foo/src/a.dart';
 
 int a = C().m<void>();
 ''',
-      [error(WarningCode.invalidUseOfInternalMember, 46, 1)],
+      [error(diag.invalidUseOfInternalMember, 46, 1)],
     );
   }
 
@@ -479,7 +479,7 @@ import 'package:foo/src/a.dart';
 
 int a = D().f();
 ''',
-      [error(WarningCode.invalidUseOfInternalMember, 46, 1)],
+      [error(diag.invalidUseOfInternalMember, 46, 1)],
     );
   }
 
@@ -517,7 +517,7 @@ import 'package:foo/src/a.dart';
 
 int Function() a = C().m;
 ''',
-      [error(WarningCode.invalidUseOfInternalMember, 57, 1)],
+      [error(diag.invalidUseOfInternalMember, 57, 1)],
     );
   }
 
@@ -535,7 +535,7 @@ import 'package:foo/src/a.dart';
 
 int a = C().m(a: 5);
 ''',
-      [error(WarningCode.invalidUseOfInternalMember, 48, 1)],
+      [error(diag.invalidUseOfInternalMember, 48, 1)],
     );
   }
 
@@ -554,7 +554,7 @@ import 'package:foo/src/a.dart';
 
 int a = C().m(5);
 ''',
-      [error(WarningCode.invalidUseOfInternalMember, 48, 1)],
+      [error(diag.invalidUseOfInternalMember, 48, 1)],
     );
   }
 
@@ -571,7 +571,7 @@ import 'package:foo/src/a.dart';
 
 class C with A {}
 ''',
-      [error(WarningCode.invalidUseOfInternalMember, 47, 1)],
+      [error(diag.invalidUseOfInternalMember, 47, 1)],
     );
   }
 
@@ -593,7 +593,7 @@ class D extends C {
   void g() => f();
 }
 ''',
-      [error(WarningCode.invalidUseOfInternalMember, 68, 1)],
+      [error(diag.invalidUseOfInternalMember, 68, 1)],
     );
   }
 
@@ -614,7 +614,7 @@ class C {
   factory C() = D;
 }
 ''',
-      [error(WarningCode.invalidUseOfInternalMember, 60, 1)],
+      [error(diag.invalidUseOfInternalMember, 60, 1)],
     );
   }
 
@@ -635,7 +635,7 @@ f() {
   C().s = 7;
 }
 ''',
-      [error(WarningCode.invalidUseOfInternalMember, 46, 1)],
+      [error(diag.invalidUseOfInternalMember, 46, 1)],
     );
   }
 
@@ -658,7 +658,7 @@ f() {
   C().s += 7;
 }
 ''',
-      [error(WarningCode.invalidUseOfInternalMember, 46, 1)],
+      [error(diag.invalidUseOfInternalMember, 46, 1)],
     );
   }
 
@@ -681,7 +681,7 @@ f() {
   C().s ??= 7;
 }
 ''',
-      [error(WarningCode.invalidUseOfInternalMember, 46, 1)],
+      [error(diag.invalidUseOfInternalMember, 46, 1)],
     );
   }
 
@@ -701,7 +701,7 @@ class D extends C {
   D() : super();
 }
 ''',
-      [error(WarningCode.invalidUseOfInternalMember, 62, 7)],
+      [error(diag.invalidUseOfInternalMember, 62, 7)],
     );
   }
 
@@ -721,7 +721,7 @@ class D extends C {
   D() : super.named();
 }
 ''',
-      [error(WarningCode.invalidUseOfInternalMember, 68, 5)],
+      [error(diag.invalidUseOfInternalMember, 68, 5)],
     );
   }
 
@@ -738,7 +738,7 @@ import 'package:foo/src/a.dart';
 
 int b = a + 1;
 ''',
-      [error(WarningCode.invalidUseOfInternalMember, 42, 1)],
+      [error(diag.invalidUseOfInternalMember, 42, 1)],
     );
   }
 
@@ -755,7 +755,7 @@ import 'package:foo/src/a.dart';
 
 t func = () {};
 ''',
-      [error(WarningCode.invalidUseOfInternalMember, 34, 1)],
+      [error(diag.invalidUseOfInternalMember, 34, 1)],
     );
   }
 
@@ -772,7 +772,7 @@ import 'package:foo/src/a.dart';
 
 void f(T t) => t(a: 5);
 ''',
-      [error(WarningCode.invalidUseOfInternalMember, 42, 1)],
+      [error(diag.invalidUseOfInternalMember, 42, 1)],
     );
   }
 
@@ -789,7 +789,7 @@ import 'package:foo/src/a.dart';
 
 int b = a + 1;
 ''',
-      [error(WarningCode.invalidUseOfInternalMember, 42, 1)],
+      [error(diag.invalidUseOfInternalMember, 42, 1)],
     );
   }
 
@@ -806,7 +806,7 @@ import 'package:foo/src/a.dart' as foo;
 
 int b = foo.a + 1;
 ''',
-      [error(WarningCode.invalidUseOfInternalMember, 53, 1)],
+      [error(diag.invalidUseOfInternalMember, 53, 1)],
     );
   }
 }

@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
@@ -25,7 +25,7 @@ class C<T> {
 const int y = 1;
 var v = const C<int>();
 ''',
-      [error(CompileTimeErrorCode.invalidAssignment, 27, 1)],
+      [error(diag.invalidAssignment, 27, 1)],
     );
   }
 
@@ -38,7 +38,7 @@ class A {
 }
 var v = const A(0);
 ''',
-      [error(CompileTimeErrorCode.undefinedClass, 40, 10)],
+      [error(diag.undefinedClass, 40, 10)],
     );
   }
 
@@ -51,7 +51,7 @@ class A {
 }
 var v = const A(null);
 ''',
-      [error(CompileTimeErrorCode.undefinedClass, 40, 10)],
+      [error(diag.undefinedClass, 40, 10)],
     );
   }
 }

@@ -4,7 +4,7 @@
 
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/element.dart';
-import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../resolution/context_collection_resolution.dart';
@@ -292,8 +292,8 @@ class A extends B {}
 class B extends A {}
 ''',
       [
-        error(CompileTimeErrorCode.recursiveInterfaceInheritance, 6, 1),
-        error(CompileTimeErrorCode.recursiveInterfaceInheritance, 27, 1),
+        error(diag.recursiveInterfaceInheritance, 6, 1),
+        error(diag.recursiveInterfaceInheritance, 27, 1),
       ],
     );
     var B = findElement2.class_('B');
@@ -583,8 +583,8 @@ class A extends B {}
 class B extends A {}
 ''',
       [
-        error(CompileTimeErrorCode.recursiveInterfaceInheritance, 6, 1),
-        error(CompileTimeErrorCode.recursiveInterfaceInheritance, 27, 1),
+        error(diag.recursiveInterfaceInheritance, 6, 1),
+        error(diag.recursiveInterfaceInheritance, 27, 1),
       ],
     );
     var B = findElement2.class_('B');
@@ -874,8 +874,8 @@ class A extends B {}
 class B extends A {}
 ''',
       [
-        error(CompileTimeErrorCode.recursiveInterfaceInheritance, 6, 1),
-        error(CompileTimeErrorCode.recursiveInterfaceInheritance, 27, 1),
+        error(diag.recursiveInterfaceInheritance, 6, 1),
+        error(diag.recursiveInterfaceInheritance, 27, 1),
       ],
     );
     var B = findElement2.class_('B');
@@ -1135,8 +1135,8 @@ class A extends B {}
 class B extends A {}
 ''',
       [
-        error(CompileTimeErrorCode.recursiveInterfaceInheritance, 6, 1),
-        error(CompileTimeErrorCode.recursiveInterfaceInheritance, 27, 1),
+        error(diag.recursiveInterfaceInheritance, 6, 1),
+        error(diag.recursiveInterfaceInheritance, 27, 1),
       ],
     );
     var B = findElement2.class_('B');

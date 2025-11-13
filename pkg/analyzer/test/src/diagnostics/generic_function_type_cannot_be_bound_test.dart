@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
@@ -41,7 +41,7 @@ typedef F = S Function<S>(S);
 import 'a.dart';
 late T Function<T extends F>(T) fun;
 ''',
-      [error(CompileTimeErrorCode.genericFunctionTypeCannotBeBound, 57, 1)],
+      [error(diag.genericFunctionTypeCannotBeBound, 57, 1)],
     );
   }
 
@@ -74,7 +74,7 @@ class GenericFunctionTypeCannotBeBoundWithoutGenericMetadataTest
 class C<T extends S Function<S>(S)> {
 }
 ''',
-      [error(CompileTimeErrorCode.genericFunctionTypeCannotBeBound, 32, 16)],
+      [error(diag.genericFunctionTypeCannotBeBound, 32, 16)],
     );
   }
 
@@ -84,7 +84,7 @@ class C<T extends S Function<S>(S)> {
 // @dart=2.12
 late T Function<T extends S Function<S>(S)>(T) fun;
 ''',
-      [error(CompileTimeErrorCode.genericFunctionTypeCannotBeBound, 40, 16)],
+      [error(diag.genericFunctionTypeCannotBeBound, 40, 16)],
     );
   }
 
@@ -94,7 +94,7 @@ late T Function<T extends S Function<S>(S)>(T) fun;
 // @dart=2.12
 typedef foo = T Function<T extends S Function<S>(S)>(T t);
 ''',
-      [error(CompileTimeErrorCode.genericFunctionTypeCannotBeBound, 49, 16)],
+      [error(diag.genericFunctionTypeCannotBeBound, 49, 16)],
     );
   }
 
@@ -110,7 +110,7 @@ class C<T extends void Function(S Function<S>(S))> {}
 // @dart=2.12
 typedef T foo<T extends S Function<S>(S)>(T t);
 ''',
-      [error(CompileTimeErrorCode.genericFunctionTypeCannotBeBound, 38, 16)],
+      [error(diag.genericFunctionTypeCannotBeBound, 38, 16)],
     );
   }
 }

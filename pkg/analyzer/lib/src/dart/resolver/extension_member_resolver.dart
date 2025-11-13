@@ -18,7 +18,7 @@ import 'package:analyzer/src/dart/element/type_schema.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/dart/resolver/applicable_extensions.dart';
 import 'package:analyzer/src/dart/resolver/resolution_result.dart';
-import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:analyzer/src/error/listener.dart';
 import 'package:analyzer/src/generated/inference_log.dart';
 import 'package:analyzer/src/generated/resolver.dart';
@@ -129,7 +129,7 @@ class ExtensionMemberResolver {
     if (mostSpecific.length == 2) {
       _diagnosticReporter.atEntity(
         nameEntity,
-        CompileTimeErrorCode.ambiguousExtensionMemberAccessTwo,
+        diag.ambiguousExtensionMemberAccessTwo,
         arguments: [
           name.name,
           mostSpecific[0].extension,
@@ -140,7 +140,7 @@ class ExtensionMemberResolver {
       var extensions = mostSpecific.map((e) => e.extension).toList();
       _diagnosticReporter.atEntity(
         nameEntity,
-        CompileTimeErrorCode.ambiguousExtensionMemberAccessThreeOrMore,
+        diag.ambiguousExtensionMemberAccessThreeOrMore,
         arguments: [
           name.name,
           mostSpecific.map((e) {
@@ -244,10 +244,7 @@ class ExtensionMemberResolver {
 
     if (!_isValidContext(node)) {
       if (!_isCascadeTarget(node)) {
-        _diagnosticReporter.atNode(
-          node,
-          CompileTimeErrorCode.extensionOverrideWithoutAccess,
-        );
+        _diagnosticReporter.atNode(node, diag.extensionOverrideWithoutAccess);
       }
       nodeImpl.setPseudoExpressionStaticType(DynamicTypeImpl.instance);
     }
@@ -256,7 +253,7 @@ class ExtensionMemberResolver {
     if (arguments.length != 1) {
       _diagnosticReporter.atNode(
         node.argumentList,
-        CompileTimeErrorCode.invalidExtensionArgumentCount,
+        diag.invalidExtensionArgumentCount,
       );
       nodeImpl.typeArgumentTypes = _listOfDynamic(typeParameters);
       nodeImpl.extendedType = DynamicTypeImpl.instance;
@@ -295,10 +292,7 @@ class ExtensionMemberResolver {
     );
 
     if (receiverType is VoidType) {
-      _diagnosticReporter.atNode(
-        receiverExpression,
-        CompileTimeErrorCode.useOfVoidResult,
-      );
+      _diagnosticReporter.atNode(receiverExpression, diag.useOfVoidResult);
     } else if (!_typeSystem.isAssignableTo(
       receiverType,
       extendedType,
@@ -309,7 +303,7 @@ class ExtensionMemberResolver {
           : whyNotPromotedArguments[0];
       _diagnosticReporter.atNode(
         receiverExpression,
-        CompileTimeErrorCode.extensionOverrideArgumentNotAssignable,
+        diag.extensionOverrideArgumentNotAssignable,
         arguments: [receiverType, extendedType],
         contextMessages: _resolver.computeWhyNotPromotedMessages(
           receiverExpression,
@@ -336,7 +330,7 @@ class ExtensionMemberResolver {
           if (!_typeSystem.isSubtypeOf(argument, parameterBound)) {
             _diagnosticReporter.atNode(
               typeArgumentList.arguments[i],
-              CompileTimeErrorCode.typeArgumentNotMatchingBounds,
+              diag.typeArgumentNotMatchingBounds,
               arguments: [argument, name, parameterBound],
             );
           }
@@ -419,7 +413,7 @@ class ExtensionMemberResolver {
         // explicit extension overrides cannot refer to unnamed extensions.
         _diagnosticReporter.atNode(
           typeArguments,
-          CompileTimeErrorCode.wrongNumberOfTypeArgumentsExtension,
+          diag.wrongNumberOfTypeArgumentsExtension,
           arguments: [element.name!, typeParameters.length, arguments.length],
         );
         return _listOfDynamic(typeParameters);

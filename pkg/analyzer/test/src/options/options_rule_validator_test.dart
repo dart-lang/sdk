@@ -7,7 +7,7 @@ import 'package:analyzer/analysis_rule/rule_state.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/analysis_options/analysis_options_provider.dart';
-import 'package:analyzer/src/analysis_options/error/option_codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:analyzer/src/lint/options_rule_validator.dart';
 import 'package:analyzer/src/string_source.dart';
 import 'package:analyzer/src/test_utilities/test_code_format.dart';
@@ -106,7 +106,7 @@ include:
 ''');
     await assertErrorsInCode(testCode.code, [
       error(
-        AnalysisOptionsWarningCode.incompatibleLintIncluded,
+        diag.incompatibleLintIncluded,
         testCode.range.sourceRange.offset,
         testCode.range.sourceRange.length,
         contextMessages: [
@@ -167,7 +167,7 @@ include:
 ''');
     await assertErrorsInCode(testCode.code, [
       error(
-        AnalysisOptionsWarningCode.incompatibleLintIncluded,
+        diag.incompatibleLintIncluded,
         testCode.range.sourceRange.offset,
         testCode.range.sourceRange.length,
         contextMessages: [
@@ -206,7 +206,7 @@ include:
 linter:
   rules:
 ''',
-      [AnalysisOptionsWarningCode.incompatibleLintIncluded],
+      [diag.incompatibleLintIncluded],
     );
   }
 
@@ -242,7 +242,7 @@ linter:
 ''');
     await assertErrorsInCode(testCode.code, [
       error(
-        AnalysisOptionsWarningCode.incompatibleLintFiles,
+        diag.incompatibleLintFiles,
         testCode.range.sourceRange.offset,
         testCode.range.sourceRange.length,
         contextMessages: [
@@ -287,7 +287,7 @@ linter:
     rule_neg:
     rule_pos: true
 ''',
-      [AnalysisOptionsWarningCode.incompatibleLintFiles],
+      [diag.incompatibleLintFiles],
     );
   }
 
@@ -305,7 +305,7 @@ linter:
   rules:
     rule_pos: invalid_value
 ''',
-      [AnalysisOptionsWarningCode.unsupportedValue],
+      [diag.unsupportedValue],
     );
   }
 
@@ -325,7 +325,7 @@ linter:
   rules:
     rule_neg: true
 ''',
-      [AnalysisOptionsWarningCode.incompatibleLintFiles],
+      [diag.incompatibleLintFiles],
     );
   }
 
@@ -348,7 +348,7 @@ linter:
   rules:
     - removed_in_2_12_lint
 ''',
-      [AnalysisOptionsWarningCode.removedLint],
+      [diag.removedLint],
       sdk: dart3_3,
     );
   }
@@ -364,7 +364,7 @@ linter:
   rules:
     - deprecated_lint
 ''',
-      [AnalysisOptionsWarningCode.deprecatedLint],
+      [diag.deprecatedLint],
     );
   }
 
@@ -375,7 +375,7 @@ linter:
   rules:
     deprecated_lint: false
 ''',
-      [AnalysisOptionsWarningCode.deprecatedLint],
+      [diag.deprecatedLint],
     );
   }
 
@@ -386,7 +386,7 @@ linter:
   rules:
     - deprecated_since_3_lint
 ''',
-      [AnalysisOptionsWarningCode.deprecatedLint],
+      [diag.deprecatedLint],
       sdk: dart3_3,
     );
   }
@@ -398,7 +398,7 @@ linter:
   rules:
     - deprecated_lint_with_replacement
 ''',
-      [AnalysisOptionsWarningCode.deprecatedLintWithReplacement],
+      [diag.deprecatedLintWithReplacement],
     );
   }
 
@@ -409,7 +409,7 @@ linter:
   rules:
     - deprecated_since_3_lint
 ''',
-      [AnalysisOptionsWarningCode.deprecatedLint],
+      [diag.deprecatedLint],
       sdk: dart3,
     );
   }
@@ -438,7 +438,7 @@ linter:
     - stable_lint
     - stable_lint
 ''',
-      [AnalysisOptionsWarningCode.duplicateRule],
+      [diag.duplicateRule],
     );
   }
 
@@ -451,7 +451,7 @@ linter:
 ''');
     await assertErrorsInCode(testCode.code, [
       error(
-        AnalysisOptionsWarningCode.incompatibleLint,
+        diag.incompatibleLint,
         testCode.ranges.last.sourceRange.offset,
         testCode.ranges.last.sourceRange.length,
         contextMessages: [
@@ -474,7 +474,7 @@ linter:
 ''');
     await assertErrorsInCode(testCode.code, [
       error(
-        AnalysisOptionsWarningCode.incompatibleLint,
+        diag.incompatibleLint,
         testCode.ranges.last.sourceRange.offset,
         testCode.ranges.last.sourceRange.length,
         contextMessages: [
@@ -519,7 +519,7 @@ linter:
   rules:
     - removed_in_2_12_lint
 ''',
-      [AnalysisOptionsWarningCode.removedLint],
+      [diag.removedLint],
       sdk: dart2_12,
     );
   }
@@ -539,7 +539,7 @@ linter:
   rules:
     - replaced_lint
 ''',
-      [AnalysisOptionsWarningCode.replacedLint],
+      [diag.replacedLint],
       sdk: dart3,
     );
   }
@@ -567,7 +567,7 @@ linter:
   rules:
     - this_rule_does_not_exist
 ''',
-      [AnalysisOptionsWarningCode.undefinedLint],
+      [diag.undefinedLint],
     );
   }
 
@@ -578,7 +578,7 @@ linter:
   rules:
     this_rule_does_not_exist: false
 ''',
-      [AnalysisOptionsWarningCode.undefinedLint],
+      [diag.undefinedLint],
     );
   }
 }
@@ -645,7 +645,7 @@ linter:
   rules:
     rule_pos: invalid_value
 ''',
-      [AnalysisOptionsWarningCode.unsupportedValue],
+      [diag.unsupportedValue],
     );
   }
 

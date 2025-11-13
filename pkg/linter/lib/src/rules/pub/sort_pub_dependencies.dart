@@ -8,6 +8,7 @@ import 'package:analyzer/error/error.dart';
 import 'package:source_span/source_span.dart';
 
 import '../../analyzer.dart';
+import '../../diagnostic.dart' as diag;
 
 const _desc = r'Sort pub dependencies alphabetically.';
 
@@ -16,7 +17,7 @@ class SortPubDependencies extends AnalysisRule {
     : super(name: LintNames.sort_pub_dependencies, description: _desc);
 
   @override
-  DiagnosticCode get diagnosticCode => LinterLintCode.sortPubDependencies;
+  DiagnosticCode get diagnosticCode => diag.sortPubDependencies;
 
   @override
   PubspecVisitor<void> get pubspecVisitor => Visitor(this);

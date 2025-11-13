@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/dart/error/syntactic_errors.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 
 import 'partial_code_support.dart';
 
@@ -28,7 +28,7 @@ class PartOfDirectivesTest extends PartialCodeTest {
       TestDescriptor(
         'keyword',
         'part of',
-        [ParserErrorCode.expectedStringLiteral, ParserErrorCode.expectedToken],
+        [diag.expectedStringLiteral, diag.expectedToken],
         'part of "";',
         failing: ['mixin'],
       ),
@@ -39,7 +39,7 @@ class PartOfDirectivesTest extends PartialCodeTest {
         TestDescriptor(
           'keyword',
           'part of',
-          [ParserErrorCode.missingIdentifier, ParserErrorCode.expectedToken],
+          [diag.missingIdentifier, diag.expectedToken],
           'part of _s_;',
           failing: ['functionNonVoid', 'getter'],
         ),
@@ -51,25 +51,25 @@ class PartOfDirectivesTest extends PartialCodeTest {
       TestDescriptor(
         'name',
         'part of lib',
-        [ParserErrorCode.expectedToken],
+        [diag.expectedToken],
         'library lib;',
         allFailing: true,
       ),
       TestDescriptor(
         'nameDot',
         'part of lib.',
-        [ParserErrorCode.missingIdentifier, ParserErrorCode.expectedToken],
+        [diag.missingIdentifier, diag.expectedToken],
         'part of lib._s_;',
         failing: ['functionNonVoid', 'getter'],
       ),
       TestDescriptor('nameDotName', 'part of lib.a', [
-        ParserErrorCode.expectedToken,
+        diag.expectedToken,
       ], 'part of lib.a;'),
       TestDescriptor('emptyUri', "part of ''", [
-        ParserErrorCode.expectedToken,
+        diag.expectedToken,
       ], "part of '';"),
       TestDescriptor('uri', "part of 'a.dart'", [
-        ParserErrorCode.expectedToken,
+        diag.expectedToken,
       ], "part of 'a.dart';"),
     ], PartialCodeTest.declarationSuffixes);
   }

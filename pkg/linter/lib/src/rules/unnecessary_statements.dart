@@ -12,6 +12,7 @@ import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/error/error.dart';
 
 import '../analyzer.dart';
+import '../diagnostic.dart' as diag;
 
 const _desc = r'Avoid using unnecessary statements.';
 
@@ -20,7 +21,7 @@ class UnnecessaryStatements extends AnalysisRule {
     : super(name: LintNames.unnecessary_statements, description: _desc);
 
   @override
-  DiagnosticCode get diagnosticCode => LinterLintCode.unnecessaryStatements;
+  DiagnosticCode get diagnosticCode => diag.unnecessaryStatements;
 
   @override
   void registerNodeProcessors(

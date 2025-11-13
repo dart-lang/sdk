@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../rule_test_support.dart';
@@ -29,7 +30,7 @@ class C {
   }
 }
 ''',
-      [error(WarningCode.nonNullableEqualsParameter, 52, 2)],
+      [error(diag.nonNullableEqualsParameter, 52, 2)],
     );
   }
 
@@ -42,7 +43,7 @@ class C {
   operator ==(dynamic other) => other is C && foo == other.foo;
 }
 ''',
-      [error(WarningCode.nonNullableEqualsParameter, 52, 2)],
+      [error(diag.nonNullableEqualsParameter, 52, 2)],
     );
   }
 
@@ -58,7 +59,7 @@ class C {
   }
 }
 ''',
-      [error(WarningCode.unnecessaryNullComparisonNeverNullTrue, 88, 7)],
+      [error(diag.unnecessaryNullComparisonNeverNullTrue, 88, 7)],
     );
   }
 
@@ -72,7 +73,7 @@ class C {
           !(other == null) && other is C && foo == other.foo;
 }
 ''',
-      [error(WarningCode.nonNullableEqualsParameter, 52, 2), lint(85, 13)],
+      [error(diag.nonNullableEqualsParameter, 52, 2), lint(85, 13)],
     );
   }
 
@@ -86,7 +87,7 @@ class C {
           !((other) == null) && (other) is C && foo == (other.foo);
 }
 ''',
-      [error(WarningCode.nonNullableEqualsParameter, 52, 2), lint(85, 15)],
+      [error(diag.nonNullableEqualsParameter, 52, 2), lint(85, 15)],
     );
   }
 
@@ -108,10 +109,10 @@ class C {
 }
 ''',
       [
-        error(WarningCode.nonNullableEqualsParameter, 62, 2),
+        error(diag.nonNullableEqualsParameter, 62, 2),
         lint(126, 14),
-        error(WarningCode.deadCode, 132, 8),
-        error(StaticWarningCode.deadNullAwareExpression, 135, 5),
+        error(diag.deadCode, 132, 8),
+        error(diag.deadNullAwareExpression, 135, 5),
       ],
     );
   }
@@ -126,7 +127,7 @@ class C {
           other != null && other is C && foo == other.foo;
 }
 ''',
-      [error(WarningCode.nonNullableEqualsParameter, 52, 2), lint(83, 13)],
+      [error(diag.nonNullableEqualsParameter, 52, 2), lint(83, 13)],
     );
   }
 
@@ -140,9 +141,9 @@ class C {
 }
 ''',
       [
-        error(WarningCode.nonNullableEqualsParameter, 52, 2),
+        error(diag.nonNullableEqualsParameter, 52, 2),
         lint(94, 10),
-        error(StaticWarningCode.invalidNullAwareOperator, 99, 2),
+        error(diag.invalidNullAwareOperator, 99, 2),
       ],
     );
   }

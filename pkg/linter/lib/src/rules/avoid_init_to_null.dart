@@ -12,6 +12,7 @@ import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/error/error.dart';
 
 import '../analyzer.dart';
+import '../diagnostic.dart' as diag;
 import '../extensions.dart';
 
 const _desc = r"Don't explicitly initialize variables to `null`.";
@@ -21,7 +22,7 @@ class AvoidInitToNull extends AnalysisRule {
     : super(name: LintNames.avoid_init_to_null, description: _desc);
 
   @override
-  DiagnosticCode get diagnosticCode => LinterLintCode.avoidInitToNull;
+  DiagnosticCode get diagnosticCode => diag.avoidInitToNull;
 
   @override
   void registerNodeProcessors(

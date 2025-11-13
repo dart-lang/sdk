@@ -11,6 +11,7 @@ import 'package:analyzer/dart/constant/value.dart';
 import 'package:analyzer/error/error.dart';
 
 import '../analyzer.dart';
+import '../diagnostic.dart' as diag;
 
 const _desc = r"Don't use more than one case with same value.";
 
@@ -19,7 +20,7 @@ class NoDuplicateCaseValues extends AnalysisRule {
     : super(name: LintNames.no_duplicate_case_values, description: _desc);
 
   @override
-  DiagnosticCode get diagnosticCode => LinterLintCode.noDuplicateCaseValues;
+  DiagnosticCode get diagnosticCode => diag.noDuplicateCaseValues;
 
   @override
   void registerNodeProcessors(

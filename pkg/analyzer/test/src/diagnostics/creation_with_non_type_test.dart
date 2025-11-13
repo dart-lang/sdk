@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
@@ -25,7 +25,7 @@ f() {
 ''',
       [
         error(
-          CompileTimeErrorCode.prefixShadowedByLocalDeclaration,
+          diag.prefixShadowedByLocalDeclaration,
           34,
           9,
           messageContains: ["'nonPrefix'"],
@@ -44,7 +44,7 @@ f() {
 ''',
       [
         error(
-          CompileTimeErrorCode.prefixShadowedByLocalDeclaration,
+          diag.prefixShadowedByLocalDeclaration,
           34,
           9,
           messageContains: ["'nonPrefix'"],
@@ -63,7 +63,7 @@ f() {
 ''',
       [
         error(
-          CompileTimeErrorCode.prefixShadowedByLocalDeclaration,
+          diag.prefixShadowedByLocalDeclaration,
           34,
           9,
           messageContains: ["'nonPrefix'"],
@@ -82,7 +82,7 @@ f() {
 ''',
       [
         error(
-          CompileTimeErrorCode.prefixShadowedByLocalDeclaration,
+          diag.prefixShadowedByLocalDeclaration,
           34,
           9,
           messageContains: ["'nonPrefix"],
@@ -101,7 +101,7 @@ f() {
 ''',
       [
         error(
-          CompileTimeErrorCode.constWithNonType,
+          diag.constWithNonType,
           35,
           7,
           text: "The name 'NonType' isn't a class.",
@@ -120,7 +120,7 @@ f() {
 ''',
       [
         error(
-          CompileTimeErrorCode.constWithNonType,
+          diag.constWithNonType,
           35,
           7,
           text: "The name 'NonType' isn't a class.",
@@ -139,7 +139,7 @@ f() {
 ''',
       [
         error(
-          CompileTimeErrorCode.prefixShadowedByLocalDeclaration,
+          diag.prefixShadowedByLocalDeclaration,
           32,
           7,
           messageContains: ["'NonType"],
@@ -160,7 +160,7 @@ f() {
 ''',
       [
         error(
-          CompileTimeErrorCode.constWithNonType,
+          diag.constWithNonType,
           70,
           7,
           text: "The name 'NonType' isn't a class.",
@@ -181,7 +181,7 @@ f() {
 ''',
       [
         error(
-          CompileTimeErrorCode.constWithNonType,
+          diag.constWithNonType,
           73,
           7,
           text: "The name 'NonType' isn't a class.",
@@ -202,7 +202,7 @@ f() {
 ''',
       [
         error(
-          CompileTimeErrorCode.constWithNonType,
+          diag.constWithNonType,
           73,
           7,
           text: "The name 'NonType' isn't a class.",
@@ -223,7 +223,7 @@ f() {
 ''',
       [
         error(
-          CompileTimeErrorCode.constWithNonType,
+          diag.constWithNonType,
           70,
           7,
           text: "The name 'NonType' isn't a class.",
@@ -242,7 +242,7 @@ f() {
 ''',
       [
         error(
-          CompileTimeErrorCode.constWithNonType,
+          diag.constWithNonType,
           32,
           7,
           text: "The name 'NonType' isn't a class.",
@@ -260,7 +260,7 @@ f() {
 ''',
       [
         error(
-          CompileTimeErrorCode.constWithNonType,
+          diag.constWithNonType,
           14,
           15,
           text: "The name 'UnresolvedClass' isn't a class.",
@@ -278,7 +278,7 @@ f() {
 ''',
       [
         error(
-          CompileTimeErrorCode.constWithNonType,
+          diag.constWithNonType,
           14,
           15,
           text: "The name 'UnresolvedClass' isn't a class.",
@@ -296,7 +296,7 @@ f() {
 ''',
       [
         error(
-          CompileTimeErrorCode.undefinedIdentifier,
+          diag.undefinedIdentifier,
           14,
           21,
           text: "Undefined name 'UnresolvedClass'.",
@@ -316,7 +316,7 @@ f() {
 ''',
       [
         error(
-          CompileTimeErrorCode.constWithNonType,
+          diag.constWithNonType,
           52,
           15,
           text: "The name 'UnresolvedClass' isn't a class.",
@@ -336,7 +336,7 @@ f() {
 ''',
       [
         error(
-          CompileTimeErrorCode.constWithNonType,
+          diag.constWithNonType,
           52,
           15,
           text: "The name 'UnresolvedClass' isn't a class.",
@@ -356,7 +356,7 @@ f() {
 ''',
       [
         error(
-          CompileTimeErrorCode.constWithNonType,
+          diag.constWithNonType,
           52,
           15,
           text: "The name 'UnresolvedClass' isn't a class.",
@@ -376,7 +376,7 @@ f() {
 ''',
       [
         error(
-          CompileTimeErrorCode.constWithNonType,
+          diag.constWithNonType,
           52,
           15,
           text: "The name 'UnresolvedClass' isn't a class.",
@@ -394,7 +394,7 @@ f() {
 ''',
       [
         error(
-          CompileTimeErrorCode.constWithNonType,
+          diag.constWithNonType,
           14,
           15,
           text: "The name 'UnresolvedClass' isn't a class.",
@@ -412,7 +412,7 @@ f() {
 ''',
       [
         error(
-          CompileTimeErrorCode.undefinedIdentifier,
+          diag.undefinedIdentifier,
           14,
           16,
           text: "Undefined name 'unresolved'.",
@@ -432,7 +432,7 @@ f() {
         error(
           // TODO(johnniwinther): This could be
           //  "Undefined prefix 'unresolved'.".
-          CompileTimeErrorCode.undefinedIdentifier,
+          diag.undefinedIdentifier,
           14,
           16,
           text: "Undefined name 'unresolved'.",
@@ -452,7 +452,7 @@ f() {
         error(
           // TODO(johnniwinther): This could be
           //  "Undefined prefix 'unresolved'.".
-          CompileTimeErrorCode.undefinedIdentifier,
+          diag.undefinedIdentifier,
           14,
           16,
           text: "Undefined name 'unresolved'.",
@@ -470,7 +470,7 @@ f() {
 ''',
       [
         error(
-          CompileTimeErrorCode.undefinedIdentifier,
+          diag.undefinedIdentifier,
           14,
           16,
           text: "Undefined name 'unresolved'.",
@@ -488,12 +488,7 @@ f() {
 }
 ''',
       [
-        error(
-          CompileTimeErrorCode.undefinedMethod,
-          38,
-          5,
-          messageContains: ["'Class'"],
-        ),
+        error(diag.undefinedMethod, 38, 5, messageContains: ["'Class'"]),
       ],
     );
   }
@@ -507,12 +502,7 @@ f() {
 }
 ''',
       [
-        error(
-          CompileTimeErrorCode.undefinedGetter,
-          38,
-          5,
-          messageContains: ["'Class'"],
-        ),
+        error(diag.undefinedGetter, 38, 5, messageContains: ["'Class'"]),
       ],
     );
   }
@@ -526,12 +516,7 @@ f() {
 }
 ''',
       [
-        error(
-          CompileTimeErrorCode.undefinedGetter,
-          38,
-          5,
-          messageContains: ["'Class'"],
-        ),
+        error(diag.undefinedGetter, 38, 5, messageContains: ["'Class'"]),
       ],
     );
   }
@@ -545,12 +530,7 @@ f() {
 }
 ''',
       [
-        error(
-          CompileTimeErrorCode.undefinedMethod,
-          38,
-          5,
-          messageContains: ["'Class'"],
-        ),
+        error(diag.undefinedMethod, 38, 5, messageContains: ["'Class'"]),
       ],
     );
   }
@@ -573,12 +553,7 @@ f() {
 }
 ''',
       [
-        error(
-          CompileTimeErrorCode.undefinedMethod,
-          42,
-          5,
-          messageContains: ["'named"],
-        ),
+        error(diag.undefinedMethod, 42, 5, messageContains: ["'named"]),
       ],
     );
   }
@@ -592,12 +567,7 @@ f() {
 }
 ''',
       [
-        error(
-          CompileTimeErrorCode.undefinedMethod,
-          34,
-          5,
-          messageContains: ["'named'"],
-        ),
+        error(diag.undefinedMethod, 34, 5, messageContains: ["'named'"]),
       ],
     );
   }
@@ -635,12 +605,7 @@ f() {
 }
 ''',
       [
-        error(
-          CompileTimeErrorCode.undefinedMethod,
-          80,
-          5,
-          messageContains: ["'named'"],
-        ),
+        error(diag.undefinedMethod, 80, 5, messageContains: ["'named'"]),
       ],
     );
   }
@@ -656,12 +621,7 @@ f() {
 }
 ''',
       [
-        error(
-          CompileTimeErrorCode.undefinedMethod,
-          72,
-          5,
-          messageContains: ["'named'"],
-        ),
+        error(diag.undefinedMethod, 72, 5, messageContains: ["'named'"]),
       ],
     );
   }
@@ -684,7 +644,7 @@ f() {
 ''',
       [
         error(
-          CompileTimeErrorCode.undefinedFunction,
+          diag.undefinedFunction,
           8,
           15,
           text: "The function 'UnresolvedClass' isn't defined.",
@@ -702,7 +662,7 @@ f() {
 ''',
       [
         error(
-          CompileTimeErrorCode.newWithNonType,
+          diag.newWithNonType,
           8,
           15,
           text: "The name 'UnresolvedClass' isn't a class.",
@@ -720,7 +680,7 @@ f() {
 ''',
       [
         error(
-          CompileTimeErrorCode.undefinedIdentifier,
+          diag.undefinedIdentifier,
           8,
           15,
           text: "Undefined name 'UnresolvedClass'.",
@@ -740,7 +700,7 @@ f() {
 ''',
       [
         error(
-          CompileTimeErrorCode.undefinedFunction,
+          diag.undefinedFunction,
           46,
           15,
           text: "The function 'UnresolvedClass' isn't defined.",
@@ -760,7 +720,7 @@ f() {
 ''',
       [
         error(
-          CompileTimeErrorCode.undefinedFunction,
+          diag.undefinedFunction,
           46,
           15,
           text: "The function 'UnresolvedClass' isn't defined.",
@@ -780,7 +740,7 @@ f() {
 ''',
       [
         error(
-          CompileTimeErrorCode.newWithNonType,
+          diag.newWithNonType,
           46,
           15,
           text: "The name 'UnresolvedClass' isn't a class.",
@@ -800,7 +760,7 @@ f() {
 ''',
       [
         error(
-          CompileTimeErrorCode.undefinedPrefixedName,
+          diag.undefinedPrefixedName,
           46,
           15,
           messageContains: ["'UnresolvedClass'"],
@@ -818,7 +778,7 @@ f() {
 ''',
       [
         error(
-          CompileTimeErrorCode.undefinedFunction,
+          diag.undefinedFunction,
           8,
           15,
           text: "The function 'UnresolvedClass' isn't defined.",
@@ -836,7 +796,7 @@ f() {
 ''',
       [
         error(
-          CompileTimeErrorCode.undefinedIdentifier,
+          diag.undefinedIdentifier,
           8,
           10,
           text: "Undefined name 'unresolved'.",
@@ -854,7 +814,7 @@ f() {
 ''',
       [
         error(
-          CompileTimeErrorCode.undefinedIdentifier,
+          diag.undefinedIdentifier,
           8,
           10,
           text: "Undefined name 'unresolved'.",
@@ -872,7 +832,7 @@ f() {
 ''',
       [
         error(
-          CompileTimeErrorCode.undefinedIdentifier,
+          diag.undefinedIdentifier,
           8,
           10,
           text: "Undefined name 'unresolved'.",
@@ -890,7 +850,7 @@ f() {
 ''',
       [
         error(
-          CompileTimeErrorCode.undefinedIdentifier,
+          diag.undefinedIdentifier,
           8,
           10,
           text: "Undefined name 'unresolved'.",
@@ -909,7 +869,7 @@ f() {
 ''',
       [
         error(
-          CompileTimeErrorCode.prefixShadowedByLocalDeclaration,
+          diag.prefixShadowedByLocalDeclaration,
           32,
           9,
           messageContains: ["'nonPrefix'"],
@@ -928,7 +888,7 @@ f() {
 ''',
       [
         error(
-          CompileTimeErrorCode.prefixShadowedByLocalDeclaration,
+          diag.prefixShadowedByLocalDeclaration,
           32,
           9,
           messageContains: ["'nonPrefix'"],
@@ -947,7 +907,7 @@ f() {
 ''',
       [
         error(
-          CompileTimeErrorCode.prefixShadowedByLocalDeclaration,
+          diag.prefixShadowedByLocalDeclaration,
           32,
           9,
           messageContains: ["'nonPrefix'"],
@@ -966,7 +926,7 @@ f() {
 ''',
       [
         error(
-          CompileTimeErrorCode.prefixShadowedByLocalDeclaration,
+          diag.prefixShadowedByLocalDeclaration,
           32,
           9,
           messageContains: ["nonPrefix"],
@@ -985,7 +945,7 @@ f() {
 ''',
       [
         error(
-          CompileTimeErrorCode.newWithNonType,
+          diag.newWithNonType,
           32,
           7,
           text: "The name 'NonType' isn't a class.",
@@ -1004,7 +964,7 @@ f() {
 ''',
       [
         error(
-          CompileTimeErrorCode.newWithNonType,
+          diag.newWithNonType,
           33,
           7,
           text: "The name 'NonType' isn't a class.",
@@ -1023,7 +983,7 @@ f() {
 ''',
       [
         error(
-          CompileTimeErrorCode.prefixShadowedByLocalDeclaration,
+          diag.prefixShadowedByLocalDeclaration,
           30,
           7,
           messageContains: ["'NonType'"],
@@ -1044,7 +1004,7 @@ f() {
 ''',
       [
         error(
-          CompileTimeErrorCode.newWithNonType,
+          diag.newWithNonType,
           68,
           7,
           text: "The name 'NonType' isn't a class.",
@@ -1065,7 +1025,7 @@ f() {
 ''',
       [
         error(
-          CompileTimeErrorCode.newWithNonType,
+          diag.newWithNonType,
           71,
           7,
           text: "The name 'NonType' isn't a class.",
@@ -1086,7 +1046,7 @@ f() {
 ''',
       [
         error(
-          CompileTimeErrorCode.newWithNonType,
+          diag.newWithNonType,
           71,
           7,
           text: "The name 'NonType' isn't a class.",
@@ -1107,7 +1067,7 @@ f() {
 ''',
       [
         error(
-          CompileTimeErrorCode.newWithNonType,
+          diag.newWithNonType,
           68,
           7,
           text: "The name 'NonType' isn't a class.",
@@ -1126,7 +1086,7 @@ f() {
 ''',
       [
         error(
-          CompileTimeErrorCode.newWithNonType,
+          diag.newWithNonType,
           30,
           7,
           text: "The name 'NonType' isn't a class.",
@@ -1144,7 +1104,7 @@ f() {
 ''',
       [
         error(
-          CompileTimeErrorCode.newWithNonType,
+          diag.newWithNonType,
           12,
           15,
           text: "The name 'UnresolvedClass' isn't a class.",
@@ -1162,7 +1122,7 @@ f() {
 ''',
       [
         error(
-          CompileTimeErrorCode.newWithNonType,
+          diag.newWithNonType,
           12,
           15,
           text: "The name 'UnresolvedClass' isn't a class.",
@@ -1180,7 +1140,7 @@ f() {
 ''',
       [
         error(
-          CompileTimeErrorCode.undefinedIdentifier,
+          diag.undefinedIdentifier,
           12,
           21,
           text: "Undefined name 'UnresolvedClass'.",
@@ -1200,7 +1160,7 @@ f() {
 ''',
       [
         error(
-          CompileTimeErrorCode.newWithNonType,
+          diag.newWithNonType,
           50,
           15,
           text: "The name 'UnresolvedClass' isn't a class.",
@@ -1220,7 +1180,7 @@ f() {
 ''',
       [
         error(
-          CompileTimeErrorCode.newWithNonType,
+          diag.newWithNonType,
           50,
           15,
           text: "The name 'UnresolvedClass' isn't a class.",
@@ -1240,7 +1200,7 @@ f() {
 ''',
       [
         error(
-          CompileTimeErrorCode.newWithNonType,
+          diag.newWithNonType,
           50,
           15,
           text: "The name 'UnresolvedClass' isn't a class.",
@@ -1260,7 +1220,7 @@ f() {
 ''',
       [
         error(
-          CompileTimeErrorCode.newWithNonType,
+          diag.newWithNonType,
           50,
           15,
           text: "The name 'UnresolvedClass' isn't a class.",
@@ -1278,7 +1238,7 @@ f() {
 ''',
       [
         error(
-          CompileTimeErrorCode.newWithNonType,
+          diag.newWithNonType,
           12,
           15,
           text: "The name 'UnresolvedClass' isn't a class.",
@@ -1296,7 +1256,7 @@ f() {
 ''',
       [
         error(
-          CompileTimeErrorCode.undefinedIdentifier,
+          diag.undefinedIdentifier,
           12,
           16,
           text: "Undefined name 'unresolved'.",
@@ -1314,7 +1274,7 @@ f() {
 ''',
       [
         error(
-          CompileTimeErrorCode.undefinedIdentifier,
+          diag.undefinedIdentifier,
           12,
           16,
           // TODO(johnniwinther): This could be
@@ -1334,7 +1294,7 @@ f() {
 ''',
       [
         error(
-          CompileTimeErrorCode.undefinedIdentifier,
+          diag.undefinedIdentifier,
           12,
           16,
           // TODO(johnniwinther): This could be
@@ -1354,7 +1314,7 @@ f() {
 ''',
       [
         error(
-          CompileTimeErrorCode.undefinedIdentifier,
+          diag.undefinedIdentifier,
           12,
           16,
           text: "Undefined name 'unresolved'.",

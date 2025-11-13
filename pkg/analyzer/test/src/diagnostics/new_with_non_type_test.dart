@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
@@ -24,7 +24,7 @@ void foo() {
   new F();
 }
 ''',
-      [error(CompileTimeErrorCode.newWithNonType, 49, 1)],
+      [error(diag.newWithNonType, 49, 1)],
     );
 
     var node = findNode.namedType('F()');
@@ -48,7 +48,7 @@ void f() {
 }
 lib.B b = lib.B();
 ''',
-      [error(CompileTimeErrorCode.newWithNonType, 47, 1)],
+      [error(diag.newWithNonType, 47, 1)],
     );
   }
 
@@ -60,7 +60,7 @@ void f() {
   new A();
 }
 ''',
-      [error(CompileTimeErrorCode.newWithNonType, 28, 1)],
+      [error(diag.newWithNonType, 28, 1)],
     );
 
     var node = findNode.namedType('A()');
@@ -80,7 +80,7 @@ void f() {
   new A<int>();
 }
 ''',
-      [error(CompileTimeErrorCode.newWithNonType, 28, 1)],
+      [error(diag.newWithNonType, 28, 1)],
     );
 
     var node = findNode.namedType('A<int>()');
@@ -110,7 +110,7 @@ main() {
   new C.x.y();
 }
 ''',
-      [error(CompileTimeErrorCode.newWithNonType, 36, 3)],
+      [error(diag.newWithNonType, 36, 3)],
     );
   }
 
@@ -121,7 +121,7 @@ void foo<T>() {
   new T();
 }
 ''',
-      [error(CompileTimeErrorCode.newWithNonType, 22, 1)],
+      [error(diag.newWithNonType, 22, 1)],
     );
   }
 }

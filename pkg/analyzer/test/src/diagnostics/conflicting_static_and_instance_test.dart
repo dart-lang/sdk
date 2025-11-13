@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
@@ -26,7 +26,7 @@ class C {
   static void foo() {}
 }
 ''',
-      [error(CompileTimeErrorCode.conflictingStaticAndInstance, 40, 3)],
+      [error(diag.conflictingStaticAndInstance, 40, 3)],
     );
   }
 
@@ -42,7 +42,7 @@ augment class A {
   static void foo() {}
 }
 ''',
-      [error(CompileTimeErrorCode.conflictingStaticAndInstance, 61, 3)],
+      [error(diag.conflictingStaticAndInstance, 61, 3)],
     );
   }
 
@@ -54,7 +54,7 @@ class C {
   int get foo => 0;
 }
 ''',
-      [error(CompileTimeErrorCode.conflictingStaticAndInstance, 27, 3)],
+      [error(diag.conflictingStaticAndInstance, 27, 3)],
     );
   }
 
@@ -66,7 +66,7 @@ class C {
   void foo() {}
 }
 ''',
-      [error(CompileTimeErrorCode.conflictingStaticAndInstance, 27, 3)],
+      [error(diag.conflictingStaticAndInstance, 27, 3)],
     );
   }
 
@@ -78,7 +78,7 @@ class C {
   set foo(_) {}
 }
 ''',
-      [error(CompileTimeErrorCode.conflictingStaticAndInstance, 27, 3)],
+      [error(diag.conflictingStaticAndInstance, 27, 3)],
     );
   }
 
@@ -90,7 +90,7 @@ class C {
   int get foo => 0;
 }
 ''',
-      [error(CompileTimeErrorCode.conflictingStaticAndInstance, 24, 3)],
+      [error(diag.conflictingStaticAndInstance, 24, 3)],
     );
   }
 
@@ -102,7 +102,7 @@ class C {
   void foo() {}
 }
 ''',
-      [error(CompileTimeErrorCode.conflictingStaticAndInstance, 24, 3)],
+      [error(diag.conflictingStaticAndInstance, 24, 3)],
     );
   }
 
@@ -118,7 +118,7 @@ augment class A {
   void foo() {}
 }
 ''',
-      [error(CompileTimeErrorCode.conflictingStaticAndInstance, 24, 3)],
+      [error(diag.conflictingStaticAndInstance, 24, 3)],
     );
   }
 
@@ -130,7 +130,7 @@ class C {
   set foo(_) {}
 }
 ''',
-      [error(CompileTimeErrorCode.conflictingStaticAndInstance, 24, 3)],
+      [error(diag.conflictingStaticAndInstance, 24, 3)],
     );
   }
 
@@ -142,7 +142,7 @@ class C {
   int get foo => 0;
 }
 ''',
-      [error(CompileTimeErrorCode.conflictingStaticAndInstance, 23, 3)],
+      [error(diag.conflictingStaticAndInstance, 23, 3)],
     );
   }
 
@@ -154,7 +154,7 @@ class C {
   void foo() {}
 }
 ''',
-      [error(CompileTimeErrorCode.conflictingStaticAndInstance, 23, 3)],
+      [error(diag.conflictingStaticAndInstance, 23, 3)],
     );
   }
 
@@ -166,7 +166,7 @@ class C {
   set foo(_) {}
 }
 ''',
-      [error(CompileTimeErrorCode.conflictingStaticAndInstance, 23, 3)],
+      [error(diag.conflictingStaticAndInstance, 23, 3)],
     );
   }
 
@@ -180,7 +180,7 @@ abstract class B implements A {
   static int get foo => 0;
 }
 ''',
-      [error(CompileTimeErrorCode.conflictingStaticAndInstance, 81, 3)],
+      [error(diag.conflictingStaticAndInstance, 81, 3)],
     );
   }
 
@@ -194,7 +194,7 @@ abstract class B implements A {
   static void foo() {}
 }
 ''',
-      [error(CompileTimeErrorCode.conflictingStaticAndInstance, 78, 3)],
+      [error(diag.conflictingStaticAndInstance, 78, 3)],
     );
   }
 
@@ -208,7 +208,7 @@ abstract class B implements A {
   static void foo() {}
 }
 ''',
-      [error(CompileTimeErrorCode.conflictingStaticAndInstance, 74, 3)],
+      [error(diag.conflictingStaticAndInstance, 74, 3)],
     );
   }
 
@@ -222,7 +222,7 @@ abstract class B implements A {
   static set foo(_) {}
 }
 ''',
-      [error(CompileTimeErrorCode.conflictingStaticAndInstance, 73, 3)],
+      [error(diag.conflictingStaticAndInstance, 73, 3)],
     );
   }
 
@@ -236,7 +236,7 @@ abstract class B implements A {
   static int get foo => 0;
 }
 ''',
-      [error(CompileTimeErrorCode.conflictingStaticAndInstance, 77, 3)],
+      [error(diag.conflictingStaticAndInstance, 77, 3)],
     );
   }
 
@@ -250,7 +250,7 @@ abstract class B implements A {
   static void foo() {}
 }
 ''',
-      [error(CompileTimeErrorCode.conflictingStaticAndInstance, 74, 3)],
+      [error(diag.conflictingStaticAndInstance, 74, 3)],
     );
   }
 
@@ -264,7 +264,7 @@ abstract class B implements A {
   static set foo(_) {}
 }
 ''',
-      [error(CompileTimeErrorCode.conflictingStaticAndInstance, 73, 3)],
+      [error(diag.conflictingStaticAndInstance, 73, 3)],
     );
   }
 
@@ -278,7 +278,7 @@ class B extends Object with A {
   static int get foo => 0;
 }
 ''',
-      [error(CompileTimeErrorCode.conflictingStaticAndInstance, 81, 3)],
+      [error(diag.conflictingStaticAndInstance, 81, 3)],
     );
   }
 
@@ -292,7 +292,7 @@ class B extends Object with A {
   static void foo() {}
 }
 ''',
-      [error(CompileTimeErrorCode.conflictingStaticAndInstance, 78, 3)],
+      [error(diag.conflictingStaticAndInstance, 78, 3)],
     );
   }
 
@@ -306,7 +306,7 @@ class B extends Object with A {
   static void foo() {}
 }
 ''',
-      [error(CompileTimeErrorCode.conflictingStaticAndInstance, 74, 3)],
+      [error(diag.conflictingStaticAndInstance, 74, 3)],
     );
   }
 
@@ -322,7 +322,7 @@ augment mixin A {
   static void foo() {}
 }
 ''',
-      [error(CompileTimeErrorCode.conflictingStaticAndInstance, 61, 3)],
+      [error(diag.conflictingStaticAndInstance, 61, 3)],
     );
   }
 
@@ -336,7 +336,7 @@ class B extends Object with A {
   static set foo(_) {}
 }
 ''',
-      [error(CompileTimeErrorCode.conflictingStaticAndInstance, 73, 3)],
+      [error(diag.conflictingStaticAndInstance, 73, 3)],
     );
   }
 
@@ -350,7 +350,7 @@ class B extends Object with A {
   static int get foo => 0;
 }
 ''',
-      [error(CompileTimeErrorCode.conflictingStaticAndInstance, 77, 3)],
+      [error(diag.conflictingStaticAndInstance, 77, 3)],
     );
   }
 
@@ -364,7 +364,7 @@ class B extends Object with A {
   static void foo() {}
 }
 ''',
-      [error(CompileTimeErrorCode.conflictingStaticAndInstance, 74, 3)],
+      [error(diag.conflictingStaticAndInstance, 74, 3)],
     );
   }
 
@@ -378,7 +378,7 @@ class B extends Object with A {
   static set foo(_) {}
 }
 ''',
-      [error(CompileTimeErrorCode.conflictingStaticAndInstance, 73, 3)],
+      [error(diag.conflictingStaticAndInstance, 73, 3)],
     );
   }
 
@@ -394,7 +394,7 @@ augment mixin A {
   void foo() {}
 }
 ''',
-      [error(CompileTimeErrorCode.conflictingStaticAndInstance, 24, 3)],
+      [error(diag.conflictingStaticAndInstance, 24, 3)],
     );
   }
 
@@ -405,7 +405,7 @@ class A {
   static String runtimeType() => 'x';
 }
 ''',
-      [error(CompileTimeErrorCode.conflictingStaticAndInstance, 26, 11)],
+      [error(diag.conflictingStaticAndInstance, 26, 11)],
     );
   }
 
@@ -416,7 +416,7 @@ class A {
   static String toString() => 'x';
 }
 ''',
-      [error(CompileTimeErrorCode.conflictingStaticAndInstance, 26, 8)],
+      [error(diag.conflictingStaticAndInstance, 26, 8)],
     );
   }
 
@@ -430,7 +430,7 @@ class B extends A {
   static int get foo => 0;
 }
 ''',
-      [error(CompileTimeErrorCode.conflictingStaticAndInstance, 69, 3)],
+      [error(diag.conflictingStaticAndInstance, 69, 3)],
     );
   }
 
@@ -444,7 +444,7 @@ class B extends A {
   static void foo() {}
 }
 ''',
-      [error(CompileTimeErrorCode.conflictingStaticAndInstance, 66, 3)],
+      [error(diag.conflictingStaticAndInstance, 66, 3)],
     );
   }
 
@@ -458,7 +458,7 @@ class B extends A {
   static void foo() {}
 }
 ''',
-      [error(CompileTimeErrorCode.conflictingStaticAndInstance, 66, 3)],
+      [error(diag.conflictingStaticAndInstance, 66, 3)],
     );
   }
 
@@ -472,7 +472,7 @@ class B extends A {
   static void foo() {}
 }
 ''',
-      [error(CompileTimeErrorCode.conflictingStaticAndInstance, 62, 3)],
+      [error(diag.conflictingStaticAndInstance, 62, 3)],
     );
   }
 
@@ -486,7 +486,7 @@ class B extends A {
   static set foo(_) {}
 }
 ''',
-      [error(CompileTimeErrorCode.conflictingStaticAndInstance, 61, 3)],
+      [error(diag.conflictingStaticAndInstance, 61, 3)],
     );
   }
 
@@ -500,7 +500,7 @@ class B extends A {
   static int get foo => 0;
 }
 ''',
-      [error(CompileTimeErrorCode.conflictingStaticAndInstance, 65, 3)],
+      [error(diag.conflictingStaticAndInstance, 65, 3)],
     );
   }
 
@@ -514,7 +514,7 @@ class B extends A {
   static void foo() {}
 }
 ''',
-      [error(CompileTimeErrorCode.conflictingStaticAndInstance, 62, 3)],
+      [error(diag.conflictingStaticAndInstance, 62, 3)],
     );
   }
 
@@ -528,7 +528,7 @@ class B extends A {
   static set foo(_) {}
 }
 ''',
-      [error(CompileTimeErrorCode.conflictingStaticAndInstance, 61, 3)],
+      [error(diag.conflictingStaticAndInstance, 61, 3)],
     );
   }
 }
@@ -542,7 +542,7 @@ enum E {
   a, hashCode, b
 }
 ''',
-      [error(CompileTimeErrorCode.conflictingStaticAndInstance, 14, 8)],
+      [error(diag.conflictingStaticAndInstance, 14, 8)],
     );
   }
 
@@ -553,7 +553,7 @@ enum E {
   a, index, b
 }
 ''',
-      [error(CompileTimeErrorCode.conflictingStaticAndInstance, 14, 5)],
+      [error(diag.conflictingStaticAndInstance, 14, 5)],
     );
   }
 
@@ -565,7 +565,7 @@ enum E {
   set foo(_) {}
 }
 ''',
-      [error(CompileTimeErrorCode.conflictingStaticAndInstance, 11, 3)],
+      [error(diag.conflictingStaticAndInstance, 11, 3)],
     );
   }
 
@@ -576,7 +576,7 @@ enum E {
   a, noSuchMethod, b
 }
 ''',
-      [error(CompileTimeErrorCode.conflictingStaticAndInstance, 14, 12)],
+      [error(diag.conflictingStaticAndInstance, 14, 12)],
     );
   }
 
@@ -587,7 +587,7 @@ enum E {
   a, runtimeType, b
 }
 ''',
-      [error(CompileTimeErrorCode.conflictingStaticAndInstance, 14, 11)],
+      [error(diag.conflictingStaticAndInstance, 14, 11)],
     );
   }
 
@@ -599,7 +599,7 @@ enum E {
   void foo() {}
 }
 ''',
-      [error(CompileTimeErrorCode.conflictingStaticAndInstance, 11, 3)],
+      [error(diag.conflictingStaticAndInstance, 11, 3)],
     );
   }
 
@@ -610,7 +610,7 @@ enum E {
   a, toString, b
 }
 ''',
-      [error(CompileTimeErrorCode.conflictingStaticAndInstance, 14, 8)],
+      [error(diag.conflictingStaticAndInstance, 14, 8)],
     );
   }
 
@@ -622,7 +622,7 @@ enum E {
   static final int hashCode = 0;
 }
 ''',
-      [error(CompileTimeErrorCode.conflictingStaticAndInstance, 33, 8)],
+      [error(diag.conflictingStaticAndInstance, 33, 8)],
     );
   }
 
@@ -638,7 +638,7 @@ enum E with M {
   static final int foo = 0;
 }
 ''',
-      [error(CompileTimeErrorCode.conflictingStaticAndInstance, 73, 3)],
+      [error(diag.conflictingStaticAndInstance, 73, 3)],
     );
   }
 
@@ -654,7 +654,7 @@ enum E with M {
   static final int foo = 0;
 }
 ''',
-      [error(CompileTimeErrorCode.conflictingStaticAndInstance, 69, 3)],
+      [error(diag.conflictingStaticAndInstance, 69, 3)],
     );
   }
 
@@ -670,7 +670,7 @@ enum E with M {
   static final int foo = 0;
 }
 ''',
-      [error(CompileTimeErrorCode.conflictingStaticAndInstance, 73, 3)],
+      [error(diag.conflictingStaticAndInstance, 73, 3)],
     );
   }
 
@@ -682,7 +682,7 @@ enum E {
   int get foo => 0;
 }
 ''',
-      [error(CompileTimeErrorCode.conflictingStaticAndInstance, 11, 3)],
+      [error(diag.conflictingStaticAndInstance, 11, 3)],
     );
   }
 
@@ -695,7 +695,7 @@ enum E {
   int get foo => 0;
 }
 ''',
-      [error(CompileTimeErrorCode.conflictingStaticAndInstance, 33, 3)],
+      [error(diag.conflictingStaticAndInstance, 33, 3)],
     );
   }
 
@@ -708,7 +708,7 @@ enum E {
   void foo() {}
 }
 ''',
-      [error(CompileTimeErrorCode.conflictingStaticAndInstance, 33, 3)],
+      [error(diag.conflictingStaticAndInstance, 33, 3)],
     );
   }
 
@@ -721,7 +721,7 @@ enum E {
   set foo(int _) {}
 }
 ''',
-      [error(CompileTimeErrorCode.conflictingStaticAndInstance, 33, 3)],
+      [error(diag.conflictingStaticAndInstance, 33, 3)],
     );
   }
 
@@ -733,7 +733,7 @@ enum E {
   static int hashCode() => 0;
 }
 ''',
-      [error(CompileTimeErrorCode.conflictingStaticAndInstance, 27, 8)],
+      [error(diag.conflictingStaticAndInstance, 27, 8)],
     );
   }
 
@@ -749,7 +749,7 @@ enum E with M {
   static void foo() {}
 }
 ''',
-      [error(CompileTimeErrorCode.conflictingStaticAndInstance, 68, 3)],
+      [error(diag.conflictingStaticAndInstance, 68, 3)],
     );
   }
 
@@ -765,7 +765,7 @@ enum E with M {
   static void foo() {}
 }
 ''',
-      [error(CompileTimeErrorCode.conflictingStaticAndInstance, 64, 3)],
+      [error(diag.conflictingStaticAndInstance, 64, 3)],
     );
   }
 
@@ -781,7 +781,7 @@ enum E with M {
   static void foo() {}
 }
 ''',
-      [error(CompileTimeErrorCode.conflictingStaticAndInstance, 68, 3)],
+      [error(diag.conflictingStaticAndInstance, 68, 3)],
     );
   }
 
@@ -794,7 +794,7 @@ enum E {
   set foo(_) {}
 }
 ''',
-      [error(CompileTimeErrorCode.conflictingStaticAndInstance, 31, 3)],
+      [error(diag.conflictingStaticAndInstance, 31, 3)],
     );
   }
 
@@ -807,7 +807,7 @@ enum E {
   int get foo => 0;
 }
 ''',
-      [error(CompileTimeErrorCode.conflictingStaticAndInstance, 28, 3)],
+      [error(diag.conflictingStaticAndInstance, 28, 3)],
     );
   }
 
@@ -820,7 +820,7 @@ enum E {
   void foo() {}
 }
 ''',
-      [error(CompileTimeErrorCode.conflictingStaticAndInstance, 28, 3)],
+      [error(diag.conflictingStaticAndInstance, 28, 3)],
     );
   }
 
@@ -833,7 +833,7 @@ enum E {
   set foo(int _) {}
 }
 ''',
-      [error(CompileTimeErrorCode.conflictingStaticAndInstance, 28, 3)],
+      [error(diag.conflictingStaticAndInstance, 28, 3)],
     );
   }
 
@@ -846,7 +846,7 @@ enum E {
   int get foo => 0;
 }
 ''',
-      [error(CompileTimeErrorCode.conflictingStaticAndInstance, 27, 3)],
+      [error(diag.conflictingStaticAndInstance, 27, 3)],
     );
   }
 }
@@ -862,7 +862,7 @@ extension type A(int it) {
   int get foo => 0;
 }
 ''',
-      [error(CompileTimeErrorCode.conflictingStaticAndInstance, 44, 3)],
+      [error(diag.conflictingStaticAndInstance, 44, 3)],
     );
   }
 
@@ -874,7 +874,7 @@ extension type A(int t) {
   void foo() {}
 }
 ''',
-      [error(CompileTimeErrorCode.conflictingStaticAndInstance, 43, 3)],
+      [error(diag.conflictingStaticAndInstance, 43, 3)],
     );
   }
 
@@ -886,7 +886,7 @@ extension type A(int it) {
   set foo(_) {}
 }
 ''',
-      [error(CompileTimeErrorCode.conflictingStaticAndInstance, 44, 3)],
+      [error(diag.conflictingStaticAndInstance, 44, 3)],
     );
   }
 
@@ -898,7 +898,7 @@ extension type A(int it) {
   int get foo => 0;
 }
 ''',
-      [error(CompileTimeErrorCode.conflictingStaticAndInstance, 41, 3)],
+      [error(diag.conflictingStaticAndInstance, 41, 3)],
     );
   }
 
@@ -910,7 +910,7 @@ extension type A(int it) {
   void foo() {}
 }
 ''',
-      [error(CompileTimeErrorCode.conflictingStaticAndInstance, 41, 3)],
+      [error(diag.conflictingStaticAndInstance, 41, 3)],
     );
   }
 
@@ -922,7 +922,7 @@ extension type A(int it) {
   set foo(_) {}
 }
 ''',
-      [error(CompileTimeErrorCode.conflictingStaticAndInstance, 41, 3)],
+      [error(diag.conflictingStaticAndInstance, 41, 3)],
     );
   }
 
@@ -934,7 +934,7 @@ extension type A(int it) {
   int get foo => 0;
 }
 ''',
-      [error(CompileTimeErrorCode.conflictingStaticAndInstance, 40, 3)],
+      [error(diag.conflictingStaticAndInstance, 40, 3)],
     );
   }
 
@@ -946,7 +946,7 @@ extension type A(int it) {
   void foo() {}
 }
 ''',
-      [error(CompileTimeErrorCode.conflictingStaticAndInstance, 40, 3)],
+      [error(diag.conflictingStaticAndInstance, 40, 3)],
     );
   }
 
@@ -958,7 +958,7 @@ extension type A(int it) {
   set foo(_) {}
 }
 ''',
-      [error(CompileTimeErrorCode.conflictingStaticAndInstance, 40, 3)],
+      [error(diag.conflictingStaticAndInstance, 40, 3)],
     );
   }
 
@@ -973,7 +973,7 @@ extension type B(int it) implements A {
   static int get foo => 0;
 }
 ''',
-      [error(CompileTimeErrorCode.conflictingStaticAndInstance, 107, 3)],
+      [error(diag.conflictingStaticAndInstance, 107, 3)],
     );
   }
 
@@ -988,7 +988,7 @@ extension type B(int it) implements A {
   static void foo() {}
 }
 ''',
-      [error(CompileTimeErrorCode.conflictingStaticAndInstance, 104, 3)],
+      [error(diag.conflictingStaticAndInstance, 104, 3)],
     );
   }
 
@@ -1003,7 +1003,7 @@ extension type B(int it) implements A {
   static void foo() {}
 }
 ''',
-      [error(CompileTimeErrorCode.conflictingStaticAndInstance, 104, 3)],
+      [error(diag.conflictingStaticAndInstance, 104, 3)],
     );
   }
 
@@ -1018,7 +1018,7 @@ extension type B(int it) implements A {
   static void foo() {}
 }
 ''',
-      [error(CompileTimeErrorCode.conflictingStaticAndInstance, 100, 3)],
+      [error(diag.conflictingStaticAndInstance, 100, 3)],
     );
   }
 
@@ -1033,7 +1033,7 @@ extension type B(int it) implements A {
   static set foo(_) {}
 }
 ''',
-      [error(CompileTimeErrorCode.conflictingStaticAndInstance, 99, 3)],
+      [error(diag.conflictingStaticAndInstance, 99, 3)],
     );
   }
 
@@ -1048,7 +1048,7 @@ extension type B(int it) implements A {
   static int get foo => 0;
 }
 ''',
-      [error(CompileTimeErrorCode.conflictingStaticAndInstance, 103, 3)],
+      [error(diag.conflictingStaticAndInstance, 103, 3)],
     );
   }
 
@@ -1063,7 +1063,7 @@ extension type B(int it) implements A {
   static void foo() {}
 }
 ''',
-      [error(CompileTimeErrorCode.conflictingStaticAndInstance, 100, 3)],
+      [error(diag.conflictingStaticAndInstance, 100, 3)],
     );
   }
 
@@ -1078,7 +1078,7 @@ extension type B(int it) implements A {
   static set foo(_) {}
 }
 ''',
-      [error(CompileTimeErrorCode.conflictingStaticAndInstance, 99, 3)],
+      [error(diag.conflictingStaticAndInstance, 99, 3)],
     );
   }
 }
@@ -1092,7 +1092,7 @@ mixin M on Enum {
   static int index = 0;
 }
 ''',
-      [error(CompileTimeErrorCode.conflictingStaticAndInstance, 31, 5)],
+      [error(diag.conflictingStaticAndInstance, 31, 5)],
     );
   }
 
@@ -1103,7 +1103,7 @@ mixin M on Enum {
   static int get index => 0;
 }
 ''',
-      [error(CompileTimeErrorCode.conflictingStaticAndInstance, 35, 5)],
+      [error(diag.conflictingStaticAndInstance, 35, 5)],
     );
   }
 
@@ -1114,7 +1114,7 @@ mixin M on Enum {
   static int index() => 0;
 }
 ''',
-      [error(CompileTimeErrorCode.conflictingStaticAndInstance, 31, 5)],
+      [error(diag.conflictingStaticAndInstance, 31, 5)],
     );
   }
 
@@ -1125,7 +1125,7 @@ mixin M on Enum {
   static set index(int _) {}
 }
 ''',
-      [error(CompileTimeErrorCode.conflictingStaticAndInstance, 31, 5)],
+      [error(diag.conflictingStaticAndInstance, 31, 5)],
     );
   }
 
@@ -1136,7 +1136,7 @@ mixin M {
   static String runtimeType() => 'x';
 }
 ''',
-      [error(CompileTimeErrorCode.conflictingStaticAndInstance, 26, 11)],
+      [error(diag.conflictingStaticAndInstance, 26, 11)],
     );
   }
 
@@ -1147,7 +1147,7 @@ mixin M {
   static String toString() => 'x';
 }
 ''',
-      [error(CompileTimeErrorCode.conflictingStaticAndInstance, 26, 8)],
+      [error(diag.conflictingStaticAndInstance, 26, 8)],
     );
   }
 
@@ -1161,7 +1161,7 @@ mixin M on A {
   static int get foo => 0;
 }
 ''',
-      [error(CompileTimeErrorCode.conflictingStaticAndInstance, 64, 3)],
+      [error(diag.conflictingStaticAndInstance, 64, 3)],
     );
   }
 
@@ -1175,7 +1175,7 @@ mixin M on A {
   static void foo() {}
 }
 ''',
-      [error(CompileTimeErrorCode.conflictingStaticAndInstance, 61, 3)],
+      [error(diag.conflictingStaticAndInstance, 61, 3)],
     );
   }
 
@@ -1189,7 +1189,7 @@ mixin M on A {
   static void foo() {}
 }
 ''',
-      [error(CompileTimeErrorCode.conflictingStaticAndInstance, 57, 3)],
+      [error(diag.conflictingStaticAndInstance, 57, 3)],
     );
   }
 
@@ -1203,7 +1203,7 @@ mixin M on A {
   static set foo(_) {}
 }
 ''',
-      [error(CompileTimeErrorCode.conflictingStaticAndInstance, 56, 3)],
+      [error(diag.conflictingStaticAndInstance, 56, 3)],
     );
   }
 
@@ -1217,7 +1217,7 @@ mixin M on A {
   static int get foo => 0;
 }
 ''',
-      [error(CompileTimeErrorCode.conflictingStaticAndInstance, 60, 3)],
+      [error(diag.conflictingStaticAndInstance, 60, 3)],
     );
   }
 
@@ -1231,7 +1231,7 @@ mixin M on A {
   static void foo() {}
 }
 ''',
-      [error(CompileTimeErrorCode.conflictingStaticAndInstance, 57, 3)],
+      [error(diag.conflictingStaticAndInstance, 57, 3)],
     );
   }
 
@@ -1245,7 +1245,7 @@ mixin M on A {
   static set foo(_) {}
 }
 ''',
-      [error(CompileTimeErrorCode.conflictingStaticAndInstance, 56, 3)],
+      [error(diag.conflictingStaticAndInstance, 56, 3)],
     );
   }
 
@@ -1259,7 +1259,7 @@ mixin M implements A {
   static int get foo => 0;
 }
 ''',
-      [error(CompileTimeErrorCode.conflictingStaticAndInstance, 72, 3)],
+      [error(diag.conflictingStaticAndInstance, 72, 3)],
     );
   }
 
@@ -1273,7 +1273,7 @@ mixin M implements A {
   static void foo() {}
 }
 ''',
-      [error(CompileTimeErrorCode.conflictingStaticAndInstance, 69, 3)],
+      [error(diag.conflictingStaticAndInstance, 69, 3)],
     );
   }
 
@@ -1287,7 +1287,7 @@ mixin M implements A {
   static void foo() {}
 }
 ''',
-      [error(CompileTimeErrorCode.conflictingStaticAndInstance, 69, 3)],
+      [error(diag.conflictingStaticAndInstance, 69, 3)],
     );
   }
 
@@ -1301,7 +1301,7 @@ mixin M implements A {
   static void foo() {}
 }
 ''',
-      [error(CompileTimeErrorCode.conflictingStaticAndInstance, 65, 3)],
+      [error(diag.conflictingStaticAndInstance, 65, 3)],
     );
   }
 
@@ -1315,7 +1315,7 @@ mixin M implements A {
   static set foo(_) {}
 }
 ''',
-      [error(CompileTimeErrorCode.conflictingStaticAndInstance, 64, 3)],
+      [error(diag.conflictingStaticAndInstance, 64, 3)],
     );
   }
 
@@ -1329,7 +1329,7 @@ mixin M implements A {
   static int get foo => 0;
 }
 ''',
-      [error(CompileTimeErrorCode.conflictingStaticAndInstance, 68, 3)],
+      [error(diag.conflictingStaticAndInstance, 68, 3)],
     );
   }
 
@@ -1343,7 +1343,7 @@ mixin M implements A {
   static void foo() {}
 }
 ''',
-      [error(CompileTimeErrorCode.conflictingStaticAndInstance, 65, 3)],
+      [error(diag.conflictingStaticAndInstance, 65, 3)],
     );
   }
 
@@ -1357,7 +1357,7 @@ mixin M implements A {
   static set foo(_) {}
 }
 ''',
-      [error(CompileTimeErrorCode.conflictingStaticAndInstance, 64, 3)],
+      [error(diag.conflictingStaticAndInstance, 64, 3)],
     );
   }
 
@@ -1369,7 +1369,7 @@ mixin M {
   int get foo => 0;
 }
 ''',
-      [error(CompileTimeErrorCode.conflictingStaticAndInstance, 27, 3)],
+      [error(diag.conflictingStaticAndInstance, 27, 3)],
     );
   }
 
@@ -1381,7 +1381,7 @@ mixin M {
   void foo() {}
 }
 ''',
-      [error(CompileTimeErrorCode.conflictingStaticAndInstance, 27, 3)],
+      [error(diag.conflictingStaticAndInstance, 27, 3)],
     );
   }
 
@@ -1393,7 +1393,7 @@ mixin M {
   set foo(_) {}
 }
 ''',
-      [error(CompileTimeErrorCode.conflictingStaticAndInstance, 27, 3)],
+      [error(diag.conflictingStaticAndInstance, 27, 3)],
     );
   }
 
@@ -1405,7 +1405,7 @@ mixin M {
   int get foo => 0;
 }
 ''',
-      [error(CompileTimeErrorCode.conflictingStaticAndInstance, 24, 3)],
+      [error(diag.conflictingStaticAndInstance, 24, 3)],
     );
   }
 
@@ -1417,7 +1417,7 @@ mixin M {
   void foo() {}
 }
 ''',
-      [error(CompileTimeErrorCode.conflictingStaticAndInstance, 24, 3)],
+      [error(diag.conflictingStaticAndInstance, 24, 3)],
     );
   }
 
@@ -1429,7 +1429,7 @@ mixin M {
   set foo(_) {}
 }
 ''',
-      [error(CompileTimeErrorCode.conflictingStaticAndInstance, 24, 3)],
+      [error(diag.conflictingStaticAndInstance, 24, 3)],
     );
   }
 
@@ -1441,7 +1441,7 @@ mixin M {
   int get foo => 0;
 }
 ''',
-      [error(CompileTimeErrorCode.conflictingStaticAndInstance, 23, 3)],
+      [error(diag.conflictingStaticAndInstance, 23, 3)],
     );
   }
 
@@ -1453,7 +1453,7 @@ mixin M {
   void foo() {}
 }
 ''',
-      [error(CompileTimeErrorCode.conflictingStaticAndInstance, 23, 3)],
+      [error(diag.conflictingStaticAndInstance, 23, 3)],
     );
   }
 
@@ -1465,7 +1465,7 @@ mixin M {
   set foo(_) {}
 }
 ''',
-      [error(CompileTimeErrorCode.conflictingStaticAndInstance, 23, 3)],
+      [error(diag.conflictingStaticAndInstance, 23, 3)],
     );
   }
 }

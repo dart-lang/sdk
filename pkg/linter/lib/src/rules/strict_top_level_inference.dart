@@ -16,6 +16,7 @@ import 'package:analyzer/src/dart/element/element.dart';
 import 'package:collection/collection.dart';
 
 import '../analyzer.dart';
+import '../diagnostic.dart' as diag;
 import '../extensions.dart';
 
 const _desc = r'Specify type annotations.';
@@ -26,9 +27,9 @@ class StrictTopLevelInference extends MultiAnalysisRule {
 
   @override
   List<DiagnosticCode> get diagnosticCodes => [
-    LinterLintCode.strictTopLevelInferenceAddType,
-    LinterLintCode.strictTopLevelInferenceReplaceKeyword,
-    LinterLintCode.strictTopLevelInferenceSplitToTypes,
+    diag.strictTopLevelInferenceAddType,
+    diag.strictTopLevelInferenceReplaceKeyword,
+    diag.strictTopLevelInferenceSplitToTypes,
   ];
 
   @override
@@ -124,7 +125,7 @@ class _Visitor extends SimpleAstVisitor<void> {
         if (overriddenMember == null) {
           rule.reportAtToken(
             variable.name,
-            diagnosticCode: LinterLintCode.strictTopLevelInferenceSplitToTypes,
+            diagnosticCode: diag.strictTopLevelInferenceSplitToTypes,
           );
         }
       }
@@ -184,7 +185,7 @@ class _Visitor extends SimpleAstVisitor<void> {
     if (!_isOverride(node, element)) {
       rule.reportAtToken(
         node.name,
-        diagnosticCode: LinterLintCode.strictTopLevelInferenceAddType,
+        diagnosticCode: diag.strictTopLevelInferenceAddType,
       );
     }
   }
@@ -207,7 +208,7 @@ class _Visitor extends SimpleAstVisitor<void> {
       if (node.returnType == null) {
         rule.reportAtToken(
           node.name,
-          diagnosticCode: LinterLintCode.strictTopLevelInferenceAddType,
+          diagnosticCode: diag.strictTopLevelInferenceAddType,
         );
       }
       if (node.parameters case var parameters?) {
@@ -240,7 +241,7 @@ class _Visitor extends SimpleAstVisitor<void> {
     if (!_isOverride(node, element)) {
       rule.reportAtToken(
         node.name,
-        diagnosticCode: LinterLintCode.strictTopLevelInferenceAddType,
+        diagnosticCode: diag.strictTopLevelInferenceAddType,
       );
     }
   }
@@ -258,13 +259,13 @@ class _Visitor extends SimpleAstVisitor<void> {
     if (keyword == null || keyword.type == Keyword.FINAL) {
       rule.reportAtToken(
         errorToken,
-        diagnosticCode: LinterLintCode.strictTopLevelInferenceAddType,
+        diagnosticCode: diag.strictTopLevelInferenceAddType,
       );
     } else if (keyword.type == Keyword.VAR) {
       rule.reportAtToken(
         errorToken,
         arguments: [keyword.lexeme],
-        diagnosticCode: LinterLintCode.strictTopLevelInferenceReplaceKeyword,
+        diagnosticCode: diag.strictTopLevelInferenceReplaceKeyword,
       );
     }
   }

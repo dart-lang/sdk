@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
@@ -31,7 +31,7 @@ base mixin M {}
 @reopen
 base class B with M {}
 ''',
-      [error(WarningCode.invalidReopenAnnotation, 52, 6)],
+      [error(diag.invalidReopenAnnotation, 52, 6)],
     );
   }
 
@@ -45,7 +45,7 @@ class A {}
 @reopen
 base class B extends A {}
 ''',
-      [error(WarningCode.invalidReopenAnnotation, 47, 6)],
+      [error(diag.invalidReopenAnnotation, 47, 6)],
     );
   }
 
@@ -59,7 +59,7 @@ base class A {}
 @reopen
 base class B extends A {}
 ''',
-      [error(WarningCode.invalidReopenAnnotation, 52, 6)],
+      [error(diag.invalidReopenAnnotation, 52, 6)],
     );
   }
 
@@ -95,7 +95,7 @@ sealed class A {}
 @reopen
 base class B extends A {}
 ''',
-      [error(WarningCode.invalidReopenAnnotation, 54, 6)],
+      [error(diag.invalidReopenAnnotation, 54, 6)],
     );
   }
 
@@ -109,7 +109,7 @@ final class A {}
 @reopen
 base mixin class B implements A {}
 ''',
-      [error(WarningCode.invalidReopenAnnotation, 53, 6)],
+      [error(diag.invalidReopenAnnotation, 53, 6)],
     );
   }
 
@@ -123,7 +123,7 @@ extension type E(int i) {
   void m() { }
 }
 ''',
-      [error(WarningCode.invalidAnnotationTarget, 35, 6)],
+      [error(diag.invalidAnnotationTarget, 35, 6)],
     );
   }
 
@@ -137,7 +137,7 @@ final class A {}
 @reopen
 final class B extends A {}
 ''',
-      [error(WarningCode.invalidReopenAnnotation, 53, 6)],
+      [error(diag.invalidReopenAnnotation, 53, 6)],
     );
   }
 
@@ -152,7 +152,7 @@ mixin M {}
 @reopen
 final class B = A with M;
 ''',
-      [error(WarningCode.invalidReopenAnnotation, 64, 6)],
+      [error(diag.invalidReopenAnnotation, 64, 6)],
     );
   }
 
@@ -164,7 +164,7 @@ import 'package:meta/meta.dart';
 @reopen
 class A {}
 ''',
-      [error(WarningCode.invalidReopenAnnotation, 35, 6)],
+      [error(diag.invalidReopenAnnotation, 35, 6)],
     );
   }
 
@@ -180,7 +180,7 @@ import 'lib.dart';
 @reopen
 class B implements A {}
 ''',
-      [error(WarningCode.invalidReopenAnnotation, 54, 6)],
+      [error(diag.invalidReopenAnnotation, 54, 6)],
     );
   }
 
@@ -205,7 +205,7 @@ base mixin M {}
 @reopen
 sealed class B with M {}
 ''',
-      [error(WarningCode.invalidReopenAnnotation, 52, 6)],
+      [error(diag.invalidReopenAnnotation, 52, 6)],
     );
   }
 
@@ -219,7 +219,7 @@ final class A {}
 @reopen
 sealed class B extends A {}
 ''',
-      [error(WarningCode.invalidReopenAnnotation, 53, 6)],
+      [error(diag.invalidReopenAnnotation, 53, 6)],
     );
   }
 }

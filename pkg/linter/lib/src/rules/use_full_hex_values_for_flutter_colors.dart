@@ -10,6 +10,7 @@ import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/error/error.dart';
 
 import '../analyzer.dart';
+import '../diagnostic.dart' as diag;
 import '../extensions.dart';
 
 const _desc =
@@ -24,8 +25,7 @@ class UseFullHexValuesForFlutterColors extends AnalysisRule {
       );
 
   @override
-  DiagnosticCode get diagnosticCode =>
-      LinterLintCode.useFullHexValuesForFlutterColors;
+  DiagnosticCode get diagnosticCode => diag.useFullHexValuesForFlutterColors;
 
   @override
   void registerNodeProcessors(

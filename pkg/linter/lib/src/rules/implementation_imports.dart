@@ -12,6 +12,7 @@ import 'package:analyzer/error/error.dart';
 import 'package:analyzer/utilities/extensions/uri.dart';
 
 import '../analyzer.dart';
+import '../diagnostic.dart' as diag;
 
 const _desc = r"Don't import implementation files from another package.";
 
@@ -20,7 +21,7 @@ class ImplementationImports extends AnalysisRule {
     : super(name: LintNames.implementation_imports, description: _desc);
 
   @override
-  DiagnosticCode get diagnosticCode => LinterLintCode.implementationImports;
+  DiagnosticCode get diagnosticCode => diag.implementationImports;
 
   @override
   void registerNodeProcessors(

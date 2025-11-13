@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
@@ -21,7 +21,7 @@ class UndefinedHiddenNameTest extends PubPackageResolutionTest {
       r'''
 export 'lib1.dart' hide a;
 ''',
-      [error(WarningCode.undefinedHiddenName, 24, 1)],
+      [error(diag.undefinedHiddenName, 24, 1)],
     );
   }
 
@@ -31,10 +31,7 @@ export 'lib1.dart' hide a;
       r'''
 import 'lib1.dart' hide a;
 ''',
-      [
-        error(WarningCode.unusedImport, 7, 11),
-        error(WarningCode.undefinedHiddenName, 24, 1),
-      ],
+      [error(diag.unusedImport, 7, 11), error(diag.undefinedHiddenName, 24, 1)],
     );
   }
 }

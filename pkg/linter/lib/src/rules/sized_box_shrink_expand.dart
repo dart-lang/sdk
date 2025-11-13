@@ -10,6 +10,7 @@ import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/error/error.dart';
 
 import '../analyzer.dart';
+import '../diagnostic.dart' as diag;
 import '../util/flutter_utils.dart';
 
 class SizedBoxShrinkExpand extends AnalysisRule {
@@ -20,7 +21,7 @@ class SizedBoxShrinkExpand extends AnalysisRule {
       );
 
   @override
-  DiagnosticCode get diagnosticCode => LinterLintCode.sizedBoxShrinkExpand;
+  DiagnosticCode get diagnosticCode => diag.sizedBoxShrinkExpand;
 
   @override
   void registerNodeProcessors(

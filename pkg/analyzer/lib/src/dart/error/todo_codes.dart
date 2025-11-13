@@ -11,10 +11,10 @@ part 'package:analyzer/src/dart/error/todo_codes.g.dart';
 /// codes.
 class Todo {
   static const _codes = {
-    'TODO': TodoCode.todo,
-    'FIXME': TodoCode.fixme,
-    'HACK': TodoCode.hack,
-    'UNDONE': TodoCode.undone,
+    'TODO': diag.todo,
+    'FIXME': diag.fixme,
+    'HACK': diag.hack,
+    'UNDONE': diag.undone,
   };
 
   /// This matches the two common Dart task styles
@@ -50,6 +50,6 @@ class Todo {
     throw UnimplementedError('Do not construct');
   }
 
-  /// Returns the TodoCode for [kind], falling back to [TodoCode.todo].
-  static DiagnosticCode forKind(String kind) => _codes[kind] ?? TodoCode.todo;
+  /// Returns the TodoCode for [kind], falling back to [diag.todo].
+  static DiagnosticCode forKind(String kind) => _codes[kind] ?? diag.todo;
 }

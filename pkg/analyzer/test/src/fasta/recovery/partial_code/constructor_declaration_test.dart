@@ -4,7 +4,7 @@
 
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
-import 'package:analyzer/src/dart/error/syntactic_errors.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 
 import 'partial_code_support.dart';
 
@@ -20,10 +20,7 @@ class ConstructorTest extends PartialCodeTest {
         TestDescriptor(
           'colon',
           'C() :',
-          [
-            ParserErrorCode.missingInitializer,
-            ParserErrorCode.missingFunctionBody,
-          ],
+          [diag.missingInitializer, diag.missingFunctionBody],
           'C() : _s_ = _s_ {}',
           adjustValidUnitBeforeComparison: setSeparator,
           failing: ['methodNonVoid', 'getter', 'setter'],
@@ -31,30 +28,21 @@ class ConstructorTest extends PartialCodeTest {
         TestDescriptor(
           'colon_field',
           'C() : f',
-          [
-            ParserErrorCode.missingAssignmentInInitializer,
-            ParserErrorCode.missingFunctionBody,
-          ],
+          [diag.missingAssignmentInInitializer, diag.missingFunctionBody],
           'C() : f = _s_ {}',
           adjustValidUnitBeforeComparison: setSeparator,
         ),
         TestDescriptor(
           'colon_field_increment',
           'C() : f++',
-          [
-            ParserErrorCode.missingAssignmentInInitializer,
-            ParserErrorCode.missingFunctionBody,
-          ],
+          [diag.missingAssignmentInInitializer, diag.missingFunctionBody],
           'C() : _s_ = f++ {}',
           adjustValidUnitBeforeComparison: setSeparator,
         ),
         TestDescriptor(
           'colon_field_comma',
           'C() : f = 0,',
-          [
-            ParserErrorCode.missingInitializer,
-            ParserErrorCode.missingFunctionBody,
-          ],
+          [diag.missingInitializer, diag.missingFunctionBody],
           'C() : f = 0, _s_ = _s_ {}',
           adjustValidUnitBeforeComparison: setSeparator,
           failing: ['methodNonVoid', 'getter', 'setter'],
@@ -62,28 +50,28 @@ class ConstructorTest extends PartialCodeTest {
         TestDescriptor(
           'colon_block',
           'C() : {}',
-          [ParserErrorCode.missingInitializer],
+          [diag.missingInitializer],
           'C() : _s_ = _s_ {}',
           adjustValidUnitBeforeComparison: setSeparator,
         ),
         TestDescriptor(
           'colon_semicolon',
           'C() : ;',
-          [ParserErrorCode.missingInitializer],
+          [diag.missingInitializer],
           'C() : _s_ = _s_ ;',
           adjustValidUnitBeforeComparison: setSeparator,
         ),
         TestDescriptor('super', 'C() : super', [
-          ParserErrorCode.expectedToken,
-          ParserErrorCode.missingFunctionBody,
+          diag.expectedToken,
+          diag.missingFunctionBody,
         ], 'C() : super() {}'),
         TestDescriptor(
           'super_dot',
           'C() : super.',
           [
-            ParserErrorCode.expectedToken,
-            ParserErrorCode.missingIdentifier,
-            ParserErrorCode.missingFunctionBody,
+            diag.expectedToken,
+            diag.missingIdentifier,
+            diag.missingFunctionBody,
           ],
           'C() : super._s_() {}',
           failing: ['fieldConst', 'methodNonVoid', 'getter', 'setter'],
@@ -92,13 +80,13 @@ class ConstructorTest extends PartialCodeTest {
           'super_qdot',
           'C() : super?.',
           [
-            ParserErrorCode.invalidOperatorQuestionmarkPeriodForSuper,
-            ParserErrorCode.expectedToken,
-            ParserErrorCode.missingFunctionBody,
+            diag.invalidOperatorQuestionmarkPeriodForSuper,
+            diag.expectedToken,
+            diag.missingFunctionBody,
           ],
           'C() : super?._s_() {}',
           expectedDiagnosticsInValidCode: [
-            ParserErrorCode.invalidOperatorQuestionmarkPeriodForSuper,
+            diag.invalidOperatorQuestionmarkPeriodForSuper,
           ],
           failing: ['methodNonVoid', 'getter', 'setter'],
         ),

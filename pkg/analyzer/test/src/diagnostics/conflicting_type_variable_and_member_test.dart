@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
@@ -27,7 +27,7 @@ class A<T> {
   A.T();
 }
 ''',
-      [error(CompileTimeErrorCode.conflictingTypeVariableAndMemberClass, 8, 1)],
+      [error(diag.conflictingTypeVariableAndMemberClass, 8, 1)],
     );
   }
 
@@ -38,7 +38,7 @@ class A<T> {
   var T;
 }
 ''',
-      [error(CompileTimeErrorCode.conflictingTypeVariableAndMemberClass, 8, 1)],
+      [error(diag.conflictingTypeVariableAndMemberClass, 8, 1)],
     );
   }
 
@@ -49,7 +49,7 @@ class A<T> {
   get T => null;
 }
 ''',
-      [error(CompileTimeErrorCode.conflictingTypeVariableAndMemberClass, 8, 1)],
+      [error(diag.conflictingTypeVariableAndMemberClass, 8, 1)],
     );
   }
 
@@ -60,7 +60,7 @@ class A<T> {
   T() {}
 }
 ''',
-      [error(CompileTimeErrorCode.conflictingTypeVariableAndMemberClass, 8, 1)],
+      [error(diag.conflictingTypeVariableAndMemberClass, 8, 1)],
     );
   }
 
@@ -71,7 +71,7 @@ class A<T> {
   static T() {}
 }
 ''',
-      [error(CompileTimeErrorCode.conflictingTypeVariableAndMemberClass, 8, 1)],
+      [error(diag.conflictingTypeVariableAndMemberClass, 8, 1)],
     );
   }
 
@@ -82,7 +82,7 @@ class A<_> {
   _() {}
 }
 ''',
-      [error(WarningCode.unusedElement, 15, 1)],
+      [error(diag.unusedElement, 15, 1)],
     );
   }
 
@@ -97,12 +97,8 @@ class A<_> {
 }
 ''',
       [
-        error(
-          CompileTimeErrorCode.conflictingTypeVariableAndMemberClass,
-          52,
-          1,
-        ),
-        error(WarningCode.unusedElement, 59, 1),
+        error(diag.conflictingTypeVariableAndMemberClass, 52, 1),
+        error(diag.unusedElement, 59, 1),
       ],
     );
   }
@@ -114,7 +110,7 @@ class A<T> {
   set T(x) {}
 }
 ''',
-      [error(CompileTimeErrorCode.conflictingTypeVariableAndMemberClass, 8, 1)],
+      [error(diag.conflictingTypeVariableAndMemberClass, 8, 1)],
     );
   }
 }
@@ -130,7 +126,7 @@ enum A<T> {
   get T => null;
 }
 ''',
-      [error(CompileTimeErrorCode.conflictingTypeVariableAndMemberEnum, 7, 1)],
+      [error(diag.conflictingTypeVariableAndMemberEnum, 7, 1)],
     );
   }
 
@@ -142,7 +138,7 @@ enum A<T> {
   void T() {}
 }
 ''',
-      [error(CompileTimeErrorCode.conflictingTypeVariableAndMemberEnum, 7, 1)],
+      [error(diag.conflictingTypeVariableAndMemberEnum, 7, 1)],
     );
   }
 
@@ -154,7 +150,7 @@ enum A<T> {
   set T(x) {}
 }
 ''',
-      [error(CompileTimeErrorCode.conflictingTypeVariableAndMemberEnum, 7, 1)],
+      [error(diag.conflictingTypeVariableAndMemberEnum, 7, 1)],
     );
   }
 }
@@ -169,13 +165,7 @@ extension A<T> on String {
   get T => null;
 }
 ''',
-      [
-        error(
-          CompileTimeErrorCode.conflictingTypeVariableAndMemberExtension,
-          12,
-          1,
-        ),
-      ],
+      [error(diag.conflictingTypeVariableAndMemberExtension, 12, 1)],
     );
   }
 
@@ -186,13 +176,7 @@ extension A<T> on String {
   T() {}
 }
 ''',
-      [
-        error(
-          CompileTimeErrorCode.conflictingTypeVariableAndMemberExtension,
-          12,
-          1,
-        ),
-      ],
+      [error(diag.conflictingTypeVariableAndMemberExtension, 12, 1)],
     );
   }
 
@@ -203,13 +187,7 @@ extension A<T> on String {
   set T(x) {}
 }
 ''',
-      [
-        error(
-          CompileTimeErrorCode.conflictingTypeVariableAndMemberExtension,
-          12,
-          1,
-        ),
-      ],
+      [error(diag.conflictingTypeVariableAndMemberExtension, 12, 1)],
     );
   }
 }
@@ -224,13 +202,7 @@ extension type A<T>(int it) {
   A.T(int it) : this(it);
 }
 ''',
-      [
-        error(
-          CompileTimeErrorCode.conflictingTypeVariableAndMemberExtensionType,
-          17,
-          1,
-        ),
-      ],
+      [error(diag.conflictingTypeVariableAndMemberExtensionType, 17, 1)],
     );
   }
 
@@ -239,13 +211,7 @@ extension type A<T>(int it) {
       r'''
 extension type A<T>.T(int it) {}
 ''',
-      [
-        error(
-          CompileTimeErrorCode.conflictingTypeVariableAndMemberExtensionType,
-          17,
-          1,
-        ),
-      ],
+      [error(diag.conflictingTypeVariableAndMemberExtensionType, 17, 1)],
     );
   }
 
@@ -256,13 +222,7 @@ extension type A<T>(int it) {
   get T => null;
 }
 ''',
-      [
-        error(
-          CompileTimeErrorCode.conflictingTypeVariableAndMemberExtensionType,
-          17,
-          1,
-        ),
-      ],
+      [error(diag.conflictingTypeVariableAndMemberExtensionType, 17, 1)],
     );
   }
 
@@ -273,13 +233,7 @@ extension type A<T>(int it) {
   T() {}
 }
 ''',
-      [
-        error(
-          CompileTimeErrorCode.conflictingTypeVariableAndMemberExtensionType,
-          17,
-          1,
-        ),
-      ],
+      [error(diag.conflictingTypeVariableAndMemberExtensionType, 17, 1)],
     );
   }
 
@@ -290,13 +244,7 @@ extension type A<T>(int it) {
   set T(x) {}
 }
 ''',
-      [
-        error(
-          CompileTimeErrorCode.conflictingTypeVariableAndMemberExtensionType,
-          17,
-          1,
-        ),
-      ],
+      [error(diag.conflictingTypeVariableAndMemberExtensionType, 17, 1)],
     );
   }
 }
@@ -311,7 +259,7 @@ mixin M<T> {
   var T;
 }
 ''',
-      [error(CompileTimeErrorCode.conflictingTypeVariableAndMemberMixin, 8, 1)],
+      [error(diag.conflictingTypeVariableAndMemberMixin, 8, 1)],
     );
   }
 
@@ -322,7 +270,7 @@ mixin M<T> {
   get T => null;
 }
 ''',
-      [error(CompileTimeErrorCode.conflictingTypeVariableAndMemberMixin, 8, 1)],
+      [error(diag.conflictingTypeVariableAndMemberMixin, 8, 1)],
     );
   }
 
@@ -333,7 +281,7 @@ mixin M<T> {
   T() {}
 }
 ''',
-      [error(CompileTimeErrorCode.conflictingTypeVariableAndMemberMixin, 8, 1)],
+      [error(diag.conflictingTypeVariableAndMemberMixin, 8, 1)],
     );
   }
 
@@ -344,7 +292,7 @@ mixin M<T> {
   static T() {}
 }
 ''',
-      [error(CompileTimeErrorCode.conflictingTypeVariableAndMemberMixin, 8, 1)],
+      [error(diag.conflictingTypeVariableAndMemberMixin, 8, 1)],
     );
   }
 
@@ -355,7 +303,7 @@ mixin M<T> {
   set T(x) {}
 }
 ''',
-      [error(CompileTimeErrorCode.conflictingTypeVariableAndMemberMixin, 8, 1)],
+      [error(diag.conflictingTypeVariableAndMemberMixin, 8, 1)],
     );
   }
 }

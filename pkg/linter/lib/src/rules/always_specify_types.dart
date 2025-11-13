@@ -13,6 +13,7 @@ import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/error/error.dart';
 
 import '../analyzer.dart';
+import '../diagnostic.dart' as diag;
 import '../util/ascii_utils.dart';
 
 const _desc = r'Specify type annotations.';
@@ -23,10 +24,10 @@ class AlwaysSpecifyTypes extends MultiAnalysisRule {
 
   @override
   List<DiagnosticCode> get diagnosticCodes => [
-    LinterLintCode.alwaysSpecifyTypesAddType,
-    LinterLintCode.alwaysSpecifyTypesReplaceKeyword,
-    LinterLintCode.alwaysSpecifyTypesSpecifyType,
-    LinterLintCode.alwaysSpecifyTypesSplitToTypes,
+    diag.alwaysSpecifyTypesAddType,
+    diag.alwaysSpecifyTypesReplaceKeyword,
+    diag.alwaysSpecifyTypesSpecifyType,
+    diag.alwaysSpecifyTypesSplitToTypes,
   ];
 
   @override
@@ -62,7 +63,7 @@ class _Visitor extends SimpleAstVisitor<void> {
     if (literal.typeArguments == null) {
       rule.reportAtToken(
         literal.beginToken,
-        diagnosticCode: LinterLintCode.alwaysSpecifyTypesAddType,
+        diagnosticCode: diag.alwaysSpecifyTypesAddType,
       );
     }
   }
@@ -76,13 +77,13 @@ class _Visitor extends SimpleAstVisitor<void> {
         if (keyword.keyword == Keyword.VAR) {
           rule.reportAtToken(
             keyword,
-            diagnosticCode: LinterLintCode.alwaysSpecifyTypesReplaceKeyword,
+            diagnosticCode: diag.alwaysSpecifyTypesReplaceKeyword,
             arguments: [keyword.lexeme, element!.type],
           );
         } else {
           rule.reportAtToken(
             keyword,
-            diagnosticCode: LinterLintCode.alwaysSpecifyTypesSpecifyType,
+            diagnosticCode: diag.alwaysSpecifyTypesSpecifyType,
             arguments: [element!.type],
           );
         }
@@ -100,13 +101,13 @@ class _Visitor extends SimpleAstVisitor<void> {
         rule.reportAtToken(
           tokenToLint,
           arguments: [keyword.lexeme, type],
-          diagnosticCode: LinterLintCode.alwaysSpecifyTypesReplaceKeyword,
+          diagnosticCode: diag.alwaysSpecifyTypesReplaceKeyword,
         );
       } else {
         rule.reportAtToken(
           tokenToLint,
           arguments: [type],
-          diagnosticCode: LinterLintCode.alwaysSpecifyTypesSpecifyType,
+          diagnosticCode: diag.alwaysSpecifyTypesSpecifyType,
         );
       }
     }
@@ -129,7 +130,7 @@ class _Visitor extends SimpleAstVisitor<void> {
           !element.metadata.hasOptionalTypeArgs) {
         rule.reportAtNode(
           namedType,
-          diagnosticCode: LinterLintCode.alwaysSpecifyTypesAddType,
+          diagnosticCode: diag.alwaysSpecifyTypesAddType,
         );
       }
     }
@@ -153,25 +154,25 @@ class _Visitor extends SimpleAstVisitor<void> {
           rule.reportAtToken(
             keyword,
             arguments: [keyword.lexeme, type],
-            diagnosticCode: LinterLintCode.alwaysSpecifyTypesReplaceKeyword,
+            diagnosticCode: diag.alwaysSpecifyTypesReplaceKeyword,
           );
         } else {
           rule.reportAtToken(
             keyword,
-            diagnosticCode: LinterLintCode.alwaysSpecifyTypesAddType,
+            diagnosticCode: diag.alwaysSpecifyTypesAddType,
           );
         }
       } else if (type != null) {
         if (type is DynamicType) {
           rule.reportAtNode(
             param,
-            diagnosticCode: LinterLintCode.alwaysSpecifyTypesAddType,
+            diagnosticCode: diag.alwaysSpecifyTypesAddType,
           );
         } else {
           rule.reportAtNode(
             param,
             arguments: [type],
-            diagnosticCode: LinterLintCode.alwaysSpecifyTypesSpecifyType,
+            diagnosticCode: diag.alwaysSpecifyTypesSpecifyType,
           );
         }
       }
@@ -202,22 +203,22 @@ class _Visitor extends SimpleAstVisitor<void> {
       DiagnosticCode lintCode;
       if (types.isEmpty) {
         arguments = [];
-        lintCode = LinterLintCode.alwaysSpecifyTypesAddType;
+        lintCode = diag.alwaysSpecifyTypesAddType;
       } else if (keyword.type == Keyword.VAR) {
         if (singleType) {
           arguments = [keyword.lexeme, types.first];
-          lintCode = LinterLintCode.alwaysSpecifyTypesReplaceKeyword;
+          lintCode = diag.alwaysSpecifyTypesReplaceKeyword;
         } else {
           arguments = [];
-          lintCode = LinterLintCode.alwaysSpecifyTypesSplitToTypes;
+          lintCode = diag.alwaysSpecifyTypesSplitToTypes;
         }
       } else {
         if (singleType) {
           arguments = [types.first];
-          lintCode = LinterLintCode.alwaysSpecifyTypesSpecifyType;
+          lintCode = diag.alwaysSpecifyTypesSpecifyType;
         } else {
           arguments = [];
-          lintCode = LinterLintCode.alwaysSpecifyTypesAddType;
+          lintCode = diag.alwaysSpecifyTypesAddType;
         }
       }
       rule.reportAtToken(

@@ -10,6 +10,7 @@ import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/error/error.dart';
 
 import '../analyzer.dart';
+import '../diagnostic.dart' as diag;
 import '../util/dart_type_utilities.dart' as type_utils;
 
 const _desc = r'Join return statement with assignment when possible.';
@@ -36,7 +37,7 @@ class JoinReturnWithAssignment extends AnalysisRule {
     : super(name: LintNames.join_return_with_assignment, description: _desc);
 
   @override
-  DiagnosticCode get diagnosticCode => LinterLintCode.joinReturnWithAssignment;
+  DiagnosticCode get diagnosticCode => diag.joinReturnWithAssignment;
 
   @override
   void registerNodeProcessors(

@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/pubspec/pubspec_warning_code.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../pubspec_test_support.dart';
@@ -33,7 +33,7 @@ platforms:
   - ios
   - web
 ''',
-      [PubspecWarningCode.invalidPlatformsField],
+      [diag.invalidPlatformsField],
     );
   }
 
@@ -44,7 +44,7 @@ name: foo
 version: 1.0.0
 platforms: true
 ''',
-      [PubspecWarningCode.invalidPlatformsField],
+      [diag.invalidPlatformsField],
     );
   }
 
@@ -55,7 +55,7 @@ name: foo
 version: 1.0.0
 platforms: []
 ''',
-      [PubspecWarningCode.invalidPlatformsField],
+      [diag.invalidPlatformsField],
     );
   }
 
@@ -66,7 +66,7 @@ name: foo
 version: 1.0.0
 platforms: 42
 ''',
-      [PubspecWarningCode.invalidPlatformsField],
+      [diag.invalidPlatformsField],
     );
   }
 
@@ -103,7 +103,7 @@ version: 1.0.0
 platforms:
   windåse:
 ''',
-      [PubspecWarningCode.unknownPlatform],
+      [diag.unknownPlatform],
     );
   }
 
@@ -115,7 +115,7 @@ version: 1.0.0
 platforms:
   Windows:
 ''',
-      [PubspecWarningCode.unknownPlatform],
+      [diag.unknownPlatform],
     );
   }
 }

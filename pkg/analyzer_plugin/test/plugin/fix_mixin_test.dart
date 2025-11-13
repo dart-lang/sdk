@@ -4,7 +4,7 @@
 
 import 'package:analyzer/diagnostic/diagnostic.dart';
 import 'package:analyzer/source/line_info.dart';
-import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:analyzer_plugin/plugin/fix_mixin.dart';
 import 'package:analyzer_plugin/plugin/plugin.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart'
@@ -98,7 +98,7 @@ class _TestServerPlugin extends MockServerPlugin with FixesMixin {
       source: MockSource(),
       offset: 0,
       length: 0,
-      diagnosticCode: CompileTimeErrorCode.awaitInWrongContext,
+      diagnosticCode: diag.awaitInWrongContext,
     );
     var result = MockResolvedUnitResult(
       lineInfo: LineInfo([0, 20]),

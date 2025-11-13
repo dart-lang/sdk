@@ -2,8 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/dart/error/syntactic_errors.dart';
-import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
@@ -28,7 +27,7 @@ var f = ({int a = 0}) {};
       '''
 var f = ({int a}) {};
 ''',
-      [error(CompileTimeErrorCode.missingDefaultValueForParameter, 14, 1)],
+      [error(diag.missingDefaultValueForParameter, 14, 1)],
     );
   }
 
@@ -43,13 +42,7 @@ var f = ([int a = 0]) {};
       '''
 var f = ([int a]) {};
 ''',
-      [
-        error(
-          CompileTimeErrorCode.missingDefaultValueForParameterPositional,
-          14,
-          1,
-        ),
-      ],
+      [error(diag.missingDefaultValueForParameterPositional, 14, 1)],
     );
   }
 
@@ -85,7 +78,7 @@ class C {
   C._();
 }
 ''',
-      [error(CompileTimeErrorCode.missingDefaultValueForParameter, 27, 1)],
+      [error(diag.missingDefaultValueForParameter, 27, 1)],
     );
   }
 
@@ -97,13 +90,7 @@ class C {
   C._();
 }
 ''',
-      [
-        error(
-          CompileTimeErrorCode.missingDefaultValueForParameterPositional,
-          27,
-          1,
-        ),
-      ],
+      [error(diag.missingDefaultValueForParameterPositional, 27, 1)],
     );
   }
 
@@ -123,7 +110,7 @@ class C {
   C({int a});
 }
 ''',
-      [error(CompileTimeErrorCode.missingDefaultValueForParameter, 19, 1)],
+      [error(diag.missingDefaultValueForParameter, 19, 1)],
     );
   }
 
@@ -173,7 +160,7 @@ class B extends A{
   B({int super.a});
 }
 ''',
-      [error(CompileTimeErrorCode.missingDefaultValueForParameter, 61, 1)],
+      [error(diag.missingDefaultValueForParameter, 61, 1)],
     );
   }
 
@@ -187,7 +174,7 @@ class B extends A{
   B({int super.a});
 }
 ''',
-      [error(CompileTimeErrorCode.missingDefaultValueForParameter, 66, 1)],
+      [error(diag.missingDefaultValueForParameter, 66, 1)],
     );
   }
 
@@ -198,13 +185,7 @@ class C {
   C([int a]);
 }
 ''',
-      [
-        error(
-          CompileTimeErrorCode.missingDefaultValueForParameterPositional,
-          19,
-          1,
-        ),
-      ],
+      [error(diag.missingDefaultValueForParameterPositional, 19, 1)],
     );
   }
 
@@ -240,13 +221,7 @@ class B extends A{
   B([int super.a]);
 }
 ''',
-      [
-        error(
-          CompileTimeErrorCode.missingDefaultValueForParameterPositional,
-          61,
-          1,
-        ),
-      ],
+      [error(diag.missingDefaultValueForParameterPositional, 61, 1)],
     );
   }
 
@@ -260,13 +235,7 @@ class B extends A{
   B([int super.a]);
 }
 ''',
-      [
-        error(
-          CompileTimeErrorCode.missingDefaultValueForParameterPositional,
-          66,
-          1,
-        ),
-      ],
+      [error(diag.missingDefaultValueForParameterPositional, 66, 1)],
     );
   }
 
@@ -303,7 +272,7 @@ class C extends B {
   C({super.a});
 }
 ''',
-      [error(CompileTimeErrorCode.missingDefaultValueForParameter, 126, 1)],
+      [error(diag.missingDefaultValueForParameter, 126, 1)],
     );
   }
 
@@ -431,7 +400,7 @@ external void f([int? a]);
       '''
 void f({int a = 0}) native;
 ''',
-      [error(ParserErrorCode.nativeFunctionBodyInNonSdkCode, 20, 7)],
+      [error(diag.nativeFunctionBodyInNonSdkCode, 20, 7)],
     );
   }
 
@@ -440,7 +409,7 @@ void f({int a = 0}) native;
       '''
 void f({int a}) native;
 ''',
-      [error(ParserErrorCode.nativeFunctionBodyInNonSdkCode, 16, 7)],
+      [error(diag.nativeFunctionBodyInNonSdkCode, 16, 7)],
     );
   }
 
@@ -449,7 +418,7 @@ void f({int a}) native;
       '''
 void f([int a = 0]) native;
 ''',
-      [error(ParserErrorCode.nativeFunctionBodyInNonSdkCode, 20, 7)],
+      [error(diag.nativeFunctionBodyInNonSdkCode, 20, 7)],
     );
   }
 
@@ -458,7 +427,7 @@ void f([int a = 0]) native;
       '''
 void f([int a]) native;
 ''',
-      [error(ParserErrorCode.nativeFunctionBodyInNonSdkCode, 16, 7)],
+      [error(diag.nativeFunctionBodyInNonSdkCode, 16, 7)],
     );
   }
 
@@ -473,7 +442,7 @@ void f({int a = 0}) {}
       '''
 void f({int a}) {}
 ''',
-      [error(CompileTimeErrorCode.missingDefaultValueForParameter, 12, 1)],
+      [error(diag.missingDefaultValueForParameter, 12, 1)],
     );
   }
 
@@ -494,13 +463,7 @@ void f([int a = 0]) {}
       '''
 void f([int a]) {}
 ''',
-      [
-        error(
-          CompileTimeErrorCode.missingDefaultValueForParameterPositional,
-          12,
-          1,
-        ),
-      ],
+      [error(diag.missingDefaultValueForParameterPositional, 12, 1)],
     );
   }
 
@@ -675,7 +638,7 @@ class C {
   void foo({int a}) native;
 }
 ''',
-      [error(ParserErrorCode.nativeFunctionBodyInNonSdkCode, 30, 7)],
+      [error(diag.nativeFunctionBodyInNonSdkCode, 30, 7)],
     );
   }
 
@@ -686,7 +649,7 @@ class C {
   void foo([int a]) native;
 }
 ''',
-      [error(ParserErrorCode.nativeFunctionBodyInNonSdkCode, 30, 7)],
+      [error(diag.nativeFunctionBodyInNonSdkCode, 30, 7)],
     );
   }
 
@@ -697,7 +660,7 @@ class C {
   void foo({int? a}) native;
 }
 ''',
-      [error(ParserErrorCode.nativeFunctionBodyInNonSdkCode, 31, 7)],
+      [error(diag.nativeFunctionBodyInNonSdkCode, 31, 7)],
     );
   }
 
@@ -708,7 +671,7 @@ class A<T> {
   void foo({T a}) native;
 }
 ''',
-      [error(ParserErrorCode.nativeFunctionBodyInNonSdkCode, 31, 7)],
+      [error(diag.nativeFunctionBodyInNonSdkCode, 31, 7)],
     );
   }
 
@@ -719,7 +682,7 @@ class A<T extends Object?> {
   void foo([T a]) native;
 }
 ''',
-      [error(ParserErrorCode.nativeFunctionBodyInNonSdkCode, 47, 7)],
+      [error(diag.nativeFunctionBodyInNonSdkCode, 47, 7)],
     );
   }
 
@@ -730,7 +693,7 @@ class C {
   void foo({int a}) {}
 }
 ''',
-      [error(CompileTimeErrorCode.missingDefaultValueForParameter, 26, 1)],
+      [error(diag.missingDefaultValueForParameter, 26, 1)],
     );
   }
 
@@ -741,13 +704,7 @@ class C {
   void foo([int a]) {}
 }
 ''',
-      [
-        error(
-          CompileTimeErrorCode.missingDefaultValueForParameterPositional,
-          26,
-          1,
-        ),
-      ],
+      [error(diag.missingDefaultValueForParameterPositional, 26, 1)],
     );
   }
 
@@ -766,7 +723,7 @@ class A<T extends Object?> {
   void foo({T a}) {}
 }
 ''',
-      [error(CompileTimeErrorCode.missingDefaultValueForParameter, 43, 1)],
+      [error(diag.missingDefaultValueForParameter, 43, 1)],
     );
   }
 
@@ -777,13 +734,7 @@ class A<T extends Object?> {
   void foo([T a]) {}
 }
 ''',
-      [
-        error(
-          CompileTimeErrorCode.missingDefaultValueForParameterPositional,
-          43,
-          1,
-        ),
-      ],
+      [error(diag.missingDefaultValueForParameterPositional, 43, 1)],
     );
   }
 
@@ -815,13 +766,7 @@ class C {
   void foo({@required int a}) {}
 }
 ''',
-      [
-        error(
-          CompileTimeErrorCode.missingDefaultValueForParameterWithAnnotation,
-          70,
-          1,
-        ),
-      ],
+      [error(diag.missingDefaultValueForParameterWithAnnotation, 70, 1)],
     );
   }
 }

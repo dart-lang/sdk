@@ -14,6 +14,7 @@ import 'package:analyzer/src/dart/element/extensions.dart';
 import 'package:meta/meta_meta.dart';
 
 import '../analyzer.dart';
+import '../diagnostic.dart' as diag;
 
 const _desc = r'Attach library annotations to library directives.';
 
@@ -22,7 +23,7 @@ class LibraryAnnotations extends AnalysisRule {
     : super(name: LintNames.library_annotations, description: _desc);
 
   @override
-  DiagnosticCode get diagnosticCode => LinterLintCode.libraryAnnotations;
+  DiagnosticCode get diagnosticCode => diag.libraryAnnotations;
 
   @override
   void registerNodeProcessors(

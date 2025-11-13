@@ -10,6 +10,7 @@ import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/error/error.dart';
 
 import '../analyzer.dart';
+import '../diagnostic.dart' as diag;
 import '../util/flutter_utils.dart';
 
 const _desc = r'`SizedBox` for whitespace.';
@@ -19,7 +20,7 @@ class SizedBoxForWhitespace extends AnalysisRule {
     : super(name: LintNames.sized_box_for_whitespace, description: _desc);
 
   @override
-  DiagnosticCode get diagnosticCode => LinterLintCode.sizedBoxForWhitespace;
+  DiagnosticCode get diagnosticCode => diag.sizedBoxForWhitespace;
 
   @override
   void registerNodeProcessors(

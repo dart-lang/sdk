@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/dart/error/syntactic_errors.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 
 import 'partial_code_support.dart';
 
@@ -18,44 +18,44 @@ class LocalVariableTest extends PartialCodeTest {
         TestDescriptor(
           'const',
           'const',
-          [ParserErrorCode.missingIdentifier, ParserErrorCode.expectedToken],
+          [diag.missingIdentifier, diag.expectedToken],
           "const _s_;",
           allFailing: true,
         ),
         TestDescriptor(
           'constName',
           'const a',
-          [ParserErrorCode.expectedToken],
+          [diag.expectedToken],
           "const a;",
           failing: <String>['eof', 'labeled', 'localFunctionNonVoid'],
         ),
         TestDescriptor('constTypeName', 'const int a', [
-          ParserErrorCode.expectedToken,
+          diag.expectedToken,
         ], "const int a;"),
         TestDescriptor(
           'constNameComma',
           'const a,',
-          [ParserErrorCode.missingIdentifier, ParserErrorCode.expectedToken],
+          [diag.missingIdentifier, diag.expectedToken],
           "const a, _s_;",
           failing: <String>['labeled', 'localFunctionNonVoid'],
         ),
         TestDescriptor(
           'constTypeNameComma',
           'const int a,',
-          [ParserErrorCode.missingIdentifier, ParserErrorCode.expectedToken],
+          [diag.missingIdentifier, diag.expectedToken],
           "const int a, _s_;",
           failing: ['labeled', 'localFunctionNonVoid'],
         ),
         TestDescriptor('constNameCommaName', 'const a, b', [
-          ParserErrorCode.expectedToken,
+          diag.expectedToken,
         ], "const a, b;"),
         TestDescriptor('constTypeNameCommaName', 'const int a, b', [
-          ParserErrorCode.expectedToken,
+          diag.expectedToken,
         ], "const int a, b;"),
         TestDescriptor(
           'final',
           'final',
-          [ParserErrorCode.missingIdentifier, ParserErrorCode.expectedToken],
+          [diag.missingIdentifier, diag.expectedToken],
           "final _s_;",
           failing: [
             'labeled',
@@ -67,27 +67,25 @@ class LocalVariableTest extends PartialCodeTest {
         TestDescriptor(
           'finalName',
           'final a',
-          [ParserErrorCode.expectedToken],
+          [diag.expectedToken],
           "final a;",
           failing: ['labeled', 'localFunctionNonVoid'],
         ),
         TestDescriptor('finalTypeName', 'final int a', [
-          ParserErrorCode.expectedToken,
+          diag.expectedToken,
         ], "final int a;"),
         TestDescriptor(
           'type',
           'int',
-          [ParserErrorCode.missingIdentifier, ParserErrorCode.expectedToken],
+          [diag.missingIdentifier, diag.expectedToken],
           "int _s_;",
           allFailing: true,
         ),
-        TestDescriptor('typeName', 'int a', [
-          ParserErrorCode.expectedToken,
-        ], "int a;"),
+        TestDescriptor('typeName', 'int a', [diag.expectedToken], "int a;"),
         TestDescriptor(
           'var',
           'var',
-          [ParserErrorCode.missingIdentifier, ParserErrorCode.expectedToken],
+          [diag.missingIdentifier, diag.expectedToken],
           "var _s_;",
           failing: [
             'labeled',
@@ -99,14 +97,14 @@ class LocalVariableTest extends PartialCodeTest {
         TestDescriptor(
           'varName',
           'var a',
-          [ParserErrorCode.expectedToken],
+          [diag.expectedToken],
           "var a;",
           failing: ['labeled', 'localFunctionNonVoid'],
         ),
         TestDescriptor(
           'varNameEquals',
           'var a =',
-          [ParserErrorCode.missingIdentifier, ParserErrorCode.expectedToken],
+          [diag.missingIdentifier, diag.expectedToken],
           "var a = _s_;",
           failing: [
             'block',
@@ -119,7 +117,7 @@ class LocalVariableTest extends PartialCodeTest {
           ],
         ),
         TestDescriptor('varNameEqualsExpression', 'var a = b', [
-          ParserErrorCode.expectedToken,
+          diag.expectedToken,
         ], "var a = b;"),
       ],
       PartialCodeTest.statementSuffixes,

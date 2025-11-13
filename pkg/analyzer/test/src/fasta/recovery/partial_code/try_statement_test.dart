@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/dart/error/syntactic_errors.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 
 import 'partial_code_support.dart';
 
@@ -21,17 +21,14 @@ class TryStatementTest extends PartialCodeTest {
         TestDescriptor(
           'keyword',
           'try',
-          [
-            ParserErrorCode.expectedTryStatementBody,
-            ParserErrorCode.missingCatchOrFinally,
-          ],
+          [diag.expectedTryStatementBody, diag.missingCatchOrFinally],
           "try {} finally {}",
           allFailing: true,
         ),
         TestDescriptor(
           'noCatchOrFinally',
           'try {}',
-          [ParserErrorCode.missingCatchOrFinally],
+          [diag.missingCatchOrFinally],
           "try {} finally {}",
           allFailing: true,
         ),
@@ -41,10 +38,7 @@ class TryStatementTest extends PartialCodeTest {
         TestDescriptor(
           'on',
           'try {} on',
-          [
-            ParserErrorCode.expectedTypeName,
-            ParserErrorCode.expectedCatchClauseBody,
-          ],
+          [diag.expectedTypeName, diag.expectedCatchClauseBody],
           "try {} on _s_ {}",
           failing: [
             'block',
@@ -56,7 +50,7 @@ class TryStatementTest extends PartialCodeTest {
         TestDescriptor(
           'on_identifier',
           'try {} on A',
-          [ParserErrorCode.expectedCatchClauseBody],
+          [diag.expectedCatchClauseBody],
           "try {} on A {}",
           failing: ['block'],
         ),
@@ -66,43 +60,28 @@ class TryStatementTest extends PartialCodeTest {
         TestDescriptor(
           'catch',
           'try {} catch',
-          [
-            ParserErrorCode.catchSyntax,
-            ParserErrorCode.expectedCatchClauseBody,
-          ],
+          [diag.catchSyntax, diag.expectedCatchClauseBody],
           "try {} catch (_s_) {}",
           failing: ['block'],
         ),
         TestDescriptor(
           'catch_leftParen',
           'try {} catch (',
-          [
-            ParserErrorCode.expectedToken,
-            ParserErrorCode.catchSyntax,
-            ParserErrorCode.expectedCatchClauseBody,
-          ],
+          [diag.expectedToken, diag.catchSyntax, diag.expectedCatchClauseBody],
           "try {} catch (_s_) {}",
           failing: ['block', 'labeled', 'localFunctionNonVoid'],
         ),
         TestDescriptor(
           'catch_identifier',
           'try {} catch (e',
-          [
-            ParserErrorCode.catchSyntax,
-            ParserErrorCode.expectedCatchClauseBody,
-            ParserErrorCode.expectedToken,
-          ],
+          [diag.catchSyntax, diag.expectedCatchClauseBody, diag.expectedToken],
           "try {} catch (e) {}",
           failing: ['eof', 'block'],
         ),
         TestDescriptor(
           'catch_identifierComma',
           'try {} catch (e, ',
-          [
-            ParserErrorCode.catchSyntax,
-            ParserErrorCode.expectedCatchClauseBody,
-            ParserErrorCode.expectedToken,
-          ],
+          [diag.catchSyntax, diag.expectedCatchClauseBody, diag.expectedToken],
           "try {} catch (e, _s_) {}",
           failing: ['block', 'labeled', 'localFunctionNonVoid'],
         ),
@@ -112,9 +91,9 @@ class TryStatementTest extends PartialCodeTest {
           [
             // TODO(danrubel): Update parser to generate CATCH_SYNTAX
             // because in this situation there are not any extra parameters.
-            ParserErrorCode.catchSyntaxExtraParameters,
-            ParserErrorCode.expectedCatchClauseBody,
-            ParserErrorCode.expectedToken,
+            diag.catchSyntaxExtraParameters,
+            diag.expectedCatchClauseBody,
+            diag.expectedToken,
           ],
           "try {} catch (e, s) {}",
           failing: ['eof', 'block'],
@@ -122,7 +101,7 @@ class TryStatementTest extends PartialCodeTest {
         TestDescriptor(
           'catch_rightParen',
           'try {} catch (e, s)',
-          [ParserErrorCode.expectedCatchClauseBody],
+          [diag.expectedCatchClauseBody],
           "try {} catch (e, s) {}",
           failing: ['block'],
         ),
@@ -132,43 +111,28 @@ class TryStatementTest extends PartialCodeTest {
         TestDescriptor(
           'on_catch',
           'try {} on A catch',
-          [
-            ParserErrorCode.catchSyntax,
-            ParserErrorCode.expectedCatchClauseBody,
-          ],
+          [diag.catchSyntax, diag.expectedCatchClauseBody],
           "try {} on A catch (_s_) {}",
           failing: ['block'],
         ),
         TestDescriptor(
           'on_catch_leftParen',
           'try {} on A catch (',
-          [
-            ParserErrorCode.catchSyntax,
-            ParserErrorCode.expectedCatchClauseBody,
-            ParserErrorCode.expectedToken,
-          ],
+          [diag.catchSyntax, diag.expectedCatchClauseBody, diag.expectedToken],
           "try {} on A catch (_s_) {}",
           failing: ['block', 'labeled', 'localFunctionNonVoid'],
         ),
         TestDescriptor(
           'on_catch_identifier',
           'try {} on A catch (e',
-          [
-            ParserErrorCode.catchSyntax,
-            ParserErrorCode.expectedCatchClauseBody,
-            ParserErrorCode.expectedToken,
-          ],
+          [diag.catchSyntax, diag.expectedCatchClauseBody, diag.expectedToken],
           "try {} on A catch (e) {}",
           failing: ['eof', 'block'],
         ),
         TestDescriptor(
           'on_catch_identifierComma',
           'try {} on A catch (e, ',
-          [
-            ParserErrorCode.catchSyntax,
-            ParserErrorCode.expectedCatchClauseBody,
-            ParserErrorCode.expectedToken,
-          ],
+          [diag.catchSyntax, diag.expectedCatchClauseBody, diag.expectedToken],
           "try {} on A catch (e, _s_) {}",
           failing: ['block', 'labeled', 'localFunctionNonVoid'],
         ),
@@ -178,9 +142,9 @@ class TryStatementTest extends PartialCodeTest {
           [
             // TODO(danrubel): Update parser to generate CATCH_SYNTAX
             // because in this situation there are not any extra parameters.
-            ParserErrorCode.catchSyntaxExtraParameters,
-            ParserErrorCode.expectedCatchClauseBody,
-            ParserErrorCode.expectedToken,
+            diag.catchSyntaxExtraParameters,
+            diag.expectedCatchClauseBody,
+            diag.expectedToken,
           ],
           "try {} on A catch (e, s) {}",
           failing: ['eof', 'block'],
@@ -188,7 +152,7 @@ class TryStatementTest extends PartialCodeTest {
         TestDescriptor(
           'on_catch_rightParen',
           'try {} on A catch (e, s)',
-          [ParserErrorCode.expectedCatchClauseBody],
+          [diag.expectedCatchClauseBody],
           "try {} on A catch (e, s) {}",
           failing: ['block'],
         ),
@@ -198,7 +162,7 @@ class TryStatementTest extends PartialCodeTest {
         TestDescriptor(
           'finally_noCatch_noBlock',
           'try {} finally',
-          [ParserErrorCode.expectedFinallyClauseBody],
+          [diag.expectedFinallyClauseBody],
           "try {} finally {}",
           failing: ['block'],
         ),
@@ -208,7 +172,7 @@ class TryStatementTest extends PartialCodeTest {
         TestDescriptor(
           'finally_catch_noBlock',
           'try {} catch (e) {} finally',
-          [ParserErrorCode.expectedFinallyClauseBody],
+          [diag.expectedFinallyClauseBody],
           "try {} catch (e) {} finally {}",
           failing: ['block'],
         ),

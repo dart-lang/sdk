@@ -10,6 +10,7 @@ import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/error/error.dart';
 
 import '../analyzer.dart';
+import '../diagnostic.dart' as diag;
 import '../util/flutter_utils.dart';
 
 const _desc = r'Use `DecoratedBox`.';
@@ -19,7 +20,7 @@ class UseDecoratedBox extends AnalysisRule {
     : super(name: LintNames.use_decorated_box, description: _desc);
 
   @override
-  DiagnosticCode get diagnosticCode => LinterLintCode.useDecoratedBox;
+  DiagnosticCode get diagnosticCode => diag.useDecoratedBox;
 
   @override
   void registerNodeProcessors(

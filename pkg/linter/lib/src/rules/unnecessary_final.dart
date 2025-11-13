@@ -11,6 +11,7 @@ import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/error/error.dart';
 
 import '../analyzer.dart';
+import '../diagnostic.dart' as diag;
 import '../extensions.dart';
 
 const _desc = "Don't use `final` for local variables.";
@@ -21,8 +22,8 @@ class UnnecessaryFinal extends MultiAnalysisRule {
 
   @override
   List<DiagnosticCode> get diagnosticCodes => [
-    LinterLintCode.unnecessaryFinalWithType,
-    LinterLintCode.unnecessaryFinalWithoutType,
+    diag.unnecessaryFinalWithType,
+    diag.unnecessaryFinalWithoutType,
   ];
 
   @override
@@ -52,8 +53,8 @@ class _Visitor extends SimpleAstVisitor<void> {
   _Visitor(this.rule);
 
   DiagnosticCode getErrorCode(Object? type) => type == null
-      ? LinterLintCode.unnecessaryFinalWithoutType
-      : LinterLintCode.unnecessaryFinalWithType;
+      ? diag.unnecessaryFinalWithoutType
+      : diag.unnecessaryFinalWithType;
 
   (Token?, AstNode?) getParameterDetails(FormalParameter node) {
     var parameter = node is DefaultFormalParameter ? node.parameter : node;
@@ -110,7 +111,7 @@ class _Visitor extends SimpleAstVisitor<void> {
       if (keyword.isFinal) {
         rule.reportAtToken(
           keyword,
-          diagnosticCode: LinterLintCode.unnecessaryFinalWithoutType,
+          diagnosticCode: diag.unnecessaryFinalWithoutType,
         );
       }
     }

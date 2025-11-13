@@ -17,6 +17,7 @@ import 'package:collection/collection.dart';
 import 'package:pub_semver/pub_semver.dart';
 
 import '../analyzer.dart';
+import '../diagnostic.dart' as diag;
 import '../extensions.dart';
 
 const _desc = 'Unreachable top-level members in executable libraries.';
@@ -30,7 +31,7 @@ class UnreachableFromMain extends AnalysisRule {
       );
 
   @override
-  DiagnosticCode get diagnosticCode => LinterLintCode.unreachableFromMain;
+  DiagnosticCode get diagnosticCode => diag.unreachableFromMain;
 
   @override
   void registerNodeProcessors(

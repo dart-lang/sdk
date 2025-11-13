@@ -11,6 +11,7 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/error/error.dart';
 
 import '../analyzer.dart';
+import '../diagnostic.dart' as diag;
 
 const _desc = r'Avoid defining a class that contains only static members.';
 
@@ -22,8 +23,7 @@ class AvoidClassesWithOnlyStaticMembers extends AnalysisRule {
       );
 
   @override
-  DiagnosticCode get diagnosticCode =>
-      LinterLintCode.avoidClassesWithOnlyStaticMembers;
+  DiagnosticCode get diagnosticCode => diag.avoidClassesWithOnlyStaticMembers;
 
   @override
   void registerNodeProcessors(

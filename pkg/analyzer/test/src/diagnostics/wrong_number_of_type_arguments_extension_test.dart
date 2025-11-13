@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
@@ -26,7 +26,7 @@ void f() {
   E<int>(0).foo();
 }
 ''',
-      [error(CompileTimeErrorCode.wrongNumberOfTypeArgumentsExtension, 54, 5)],
+      [error(diag.wrongNumberOfTypeArgumentsExtension, 54, 5)],
     );
 
     var node = findNode.extensionOverride('E<int>');
@@ -66,7 +66,7 @@ void f() {
   E<bool>(0).foo();
 }
 ''',
-      [error(CompileTimeErrorCode.wrongNumberOfTypeArgumentsExtension, 60, 6)],
+      [error(diag.wrongNumberOfTypeArgumentsExtension, 60, 6)],
     );
 
     var node = findNode.extensionOverride('E<bool>');
@@ -109,7 +109,7 @@ void f() {
   E<bool, int>(0).foo();
 }
 ''',
-      [error(CompileTimeErrorCode.wrongNumberOfTypeArgumentsExtension, 57, 11)],
+      [error(diag.wrongNumberOfTypeArgumentsExtension, 57, 11)],
     );
 
     var node = findNode.extensionOverride('E<bool, int>');

@@ -20,7 +20,7 @@ import 'package:analyzer/src/dart/analysis/file_state.dart';
 import 'package:analyzer/src/dart/analysis/status.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/element/element.dart';
-import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:analyzer/src/test_utilities/lint_registration_mixin.dart';
 import 'package:analyzer/src/utilities/extensions/async.dart';
 import 'package:analyzer/utilities/package_config_file_builder.dart';
@@ -2948,7 +2948,7 @@ linter:
 library my.lib;
 part 'a.dart';
 ''',
-      [error(CompileTimeErrorCode.uriDoesNotExist, 21, 8)],
+      [error(diag.uriDoesNotExist, 21, 8)],
     );
   }
 
@@ -2966,7 +2966,7 @@ linter:
 library my.lib;
 part 'a.dart';
 ''',
-      [error(CompileTimeErrorCode.partOfNonPart, 21, 8)],
+      [error(diag.partOfNonPart, 21, 8)],
     );
   }
 
@@ -2986,7 +2986,7 @@ part of other.lib;
 library my.lib;
 part 'a.dart';
 ''',
-      [error(CompileTimeErrorCode.partOfDifferentLibrary, 21, 8)],
+      [error(diag.partOfDifferentLibrary, 21, 8)],
     );
   }
 
@@ -3006,7 +3006,7 @@ part of 'not_test.dart';
 library my.lib;
 part 'a.dart';
 ''',
-      [error(CompileTimeErrorCode.partOfDifferentLibrary, 21, 8)],
+      [error(diag.partOfDifferentLibrary, 21, 8)],
     );
   }
 

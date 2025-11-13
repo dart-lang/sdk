@@ -11,6 +11,7 @@ import 'package:analyzer/error/error.dart';
 import 'package:analyzer/src/dart/element/extensions.dart'; //ignore: implementation_imports
 
 import '../analyzer.dart';
+import '../diagnostic.dart' as diag;
 
 const _desc =
     r'Prefer final for parameter declarations if they are not reassigned.';
@@ -20,7 +21,7 @@ class PreferFinalParameters extends AnalysisRule {
     : super(name: LintNames.prefer_final_parameters, description: _desc);
 
   @override
-  DiagnosticCode get diagnosticCode => LinterLintCode.preferFinalParameters;
+  DiagnosticCode get diagnosticCode => diag.preferFinalParameters;
 
   @override
   List<String> get incompatibleRules => const [

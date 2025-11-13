@@ -10,9 +10,9 @@ import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/source/source.dart';
 import 'package:analyzer/src/analysis_options/analysis_options_file.dart';
 import 'package:analyzer/src/analysis_options/analysis_options_provider.dart';
-import 'package:analyzer/src/analysis_options/error/option_codes.dart';
 import 'package:analyzer/src/analysis_options/options_validator.dart';
 import 'package:analyzer/src/dart/analysis/experiments.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:analyzer/src/generated/source.dart' show SourceFactory;
 import 'package:analyzer/src/generated/utilities_general.dart';
 import 'package:analyzer/src/lint/options_rule_validator.dart';
@@ -64,7 +64,7 @@ List<Diagnostic> analyzeAnalysisOptions(
             source: initialSource,
             offset: initialIncludeSpan!.start.offset,
             length: initialIncludeSpan!.length,
-            diagnosticCode: AnalysisOptionsWarningCode.includedFileWarning,
+            diagnosticCode: diag.includedFileWarning,
             arguments: args,
           ),
         );
@@ -127,7 +127,7 @@ List<Diagnostic> analyzeAnalysisOptions(
             source: initialSource,
             offset: initialIncludeSpan!.start.offset,
             length: initialIncludeSpan!.length,
-            diagnosticCode: AnalysisOptionsWarningCode.recursiveIncludeFile,
+            diagnosticCode: diag.recursiveIncludeFile,
             arguments: [includeUri, source.fullName],
           ),
         );
@@ -139,7 +139,7 @@ List<Diagnostic> analyzeAnalysisOptions(
             source: initialSource,
             offset: initialIncludeSpan!.start.offset,
             length: initialIncludeSpan!.length,
-            diagnosticCode: AnalysisOptionsWarningCode.includeFileNotFound,
+            diagnosticCode: diag.includeFileNotFound,
             arguments: [includeUri, source.fullName, contextRoot],
           ),
         );
@@ -152,7 +152,7 @@ List<Diagnostic> analyzeAnalysisOptions(
             source: initialSource,
             offset: initialIncludeSpan!.start.offset,
             length: initialIncludeSpan!.length,
-            diagnosticCode: AnalysisOptionsWarningCode.includedFileWarning,
+            diagnosticCode: diag.includedFileWarning,
             arguments: [
               includedSource,
               spanInChain.start.offset,
@@ -196,7 +196,7 @@ List<Diagnostic> analyzeAnalysisOptions(
             source: initialSource,
             offset: initialIncludeSpan!.start.offset,
             length: initialIncludeSpan!.length,
-            diagnosticCode: AnalysisOptionsErrorCode.includedFileParseError,
+            diagnosticCode: diag.includedFileParseError,
             arguments: args,
           ),
         );
@@ -231,7 +231,7 @@ List<Diagnostic> analyzeAnalysisOptions(
         source: source,
         offset: span.start.offset,
         length: span.length,
-        diagnosticCode: AnalysisOptionsErrorCode.parseError,
+        diagnosticCode: diag.parseError,
         arguments: [e.message],
       ),
     );
@@ -379,7 +379,7 @@ class _CannotIgnoreOptionValidator extends OptionsValidator {
                 !_removedDiagnosticCodes.contains(upperCaseName)) {
               reporter.atSourceSpan(
                 unignorableNameNode.span,
-                AnalysisOptionsWarningCode.unrecognizedErrorCode,
+                diag.unrecognizedErrorCode,
                 arguments: [unignorableName],
               );
             } else if (listedNames.contains(upperCaseName)) {
@@ -391,7 +391,7 @@ class _CannotIgnoreOptionValidator extends OptionsValidator {
           } else {
             reporter.atSourceSpan(
               unignorableNameNode.span,
-              AnalysisOptionsWarningCode.invalidSectionFormat,
+              diag.invalidSectionFormat,
               arguments: [AnalysisOptionsFile.cannotIgnore],
             );
           }
@@ -399,7 +399,7 @@ class _CannotIgnoreOptionValidator extends OptionsValidator {
       } else if (unignorableNames != null) {
         reporter.atSourceSpan(
           unignorableNames.span,
-          AnalysisOptionsWarningCode.invalidSectionFormat,
+          diag.invalidSectionFormat,
           arguments: [AnalysisOptionsFile.cannotIgnore],
         );
       }
@@ -420,7 +420,7 @@ class _CodeStyleOptionsValidator extends OptionsValidator {
         } else {
           reporter.atSourceSpan(
             keyNode.span,
-            AnalysisOptionsWarningCode.unsupportedOptionWithoutValues,
+            diag.unsupportedOptionWithoutValues,
             arguments: [AnalysisOptionsFile.codeStyle, keyNode.toString()],
           );
         }
@@ -428,13 +428,13 @@ class _CodeStyleOptionsValidator extends OptionsValidator {
     } else if (codeStyle is YamlScalar && codeStyle.value != null) {
       reporter.atSourceSpan(
         codeStyle.span,
-        AnalysisOptionsWarningCode.invalidSectionFormat,
+        diag.invalidSectionFormat,
         arguments: [AnalysisOptionsFile.codeStyle],
       );
     } else if (codeStyle is YamlList) {
       reporter.atSourceSpan(
         codeStyle.span,
-        AnalysisOptionsWarningCode.invalidSectionFormat,
+        diag.invalidSectionFormat,
         arguments: [AnalysisOptionsFile.codeStyle],
       );
     }
@@ -444,7 +444,7 @@ class _CodeStyleOptionsValidator extends OptionsValidator {
     if (format is! YamlScalar) {
       reporter.atSourceSpan(
         format.span,
-        AnalysisOptionsWarningCode.invalidSectionFormat,
+        diag.invalidSectionFormat,
         arguments: [AnalysisOptionsFile.format],
       );
       return;
@@ -453,7 +453,7 @@ class _CodeStyleOptionsValidator extends OptionsValidator {
     if (formatValue == null) {
       reporter.atSourceSpan(
         format.span,
-        AnalysisOptionsWarningCode.unsupportedValue,
+        diag.unsupportedValue,
         arguments: [
           AnalysisOptionsFile.format,
           format.valueOrThrow,
@@ -497,7 +497,7 @@ class _EnableExperimentsValidator extends OptionsValidator {
           if (validationResult is UnrecognizedFlag) {
             reporter.atSourceSpan(
               span,
-              AnalysisOptionsWarningCode.unsupportedOptionWithoutValues,
+              diag.unsupportedOptionWithoutValues,
               arguments: [
                 AnalysisOptionsFile.enableExperiment,
                 flags[flagIndex],
@@ -506,7 +506,7 @@ class _EnableExperimentsValidator extends OptionsValidator {
           } else {
             reporter.atSourceSpan(
               span,
-              AnalysisOptionsWarningCode.invalidOption,
+              diag.invalidOption,
               arguments: [
                 AnalysisOptionsFile.enableExperiment,
                 validationResult.message,
@@ -517,7 +517,7 @@ class _EnableExperimentsValidator extends OptionsValidator {
       } else if (experimentNames != null) {
         reporter.atSourceSpan(
           experimentNames.span,
-          AnalysisOptionsWarningCode.invalidSectionFormat,
+          diag.invalidSectionFormat,
           arguments: [AnalysisOptionsFile.enableExperiment],
         );
       }
@@ -528,13 +528,13 @@ class _EnableExperimentsValidator extends OptionsValidator {
 /// Builds error reports with value proposals.
 class _ErrorBuilder {
   static DiagnosticCode get noProposalCode =>
-      AnalysisOptionsWarningCode.unsupportedOptionWithoutValues;
+      diag.unsupportedOptionWithoutValues;
 
   static DiagnosticCode get pluralProposalCode =>
-      AnalysisOptionsWarningCode.unsupportedOptionWithLegalValues;
+      diag.unsupportedOptionWithLegalValues;
 
   static DiagnosticCode get singularProposalCode =>
-      AnalysisOptionsWarningCode.unsupportedOptionWithLegalValue;
+      diag.unsupportedOptionWithLegalValue;
 
   final String proposal;
 
@@ -619,7 +619,7 @@ class _ErrorFilterOptionValidator extends OptionsValidator {
                 !_removedDiagnosticCodes.contains(value)) {
               reporter.atSourceSpan(
                 k.span,
-                AnalysisOptionsWarningCode.unrecognizedErrorCode,
+                diag.unrecognizedErrorCode,
                 arguments: [k.value.toString()],
               );
             }
@@ -629,7 +629,7 @@ class _ErrorFilterOptionValidator extends OptionsValidator {
             if (!legalValues.contains(value)) {
               reporter.atSourceSpan(
                 v.span,
-                AnalysisOptionsWarningCode.unsupportedOptionWithLegalValues,
+                diag.unsupportedOptionWithLegalValues,
                 arguments: [
                   AnalysisOptionsFile.errors,
                   v.value.toString(),
@@ -640,7 +640,7 @@ class _ErrorFilterOptionValidator extends OptionsValidator {
           } else {
             reporter.atSourceSpan(
               v.span,
-              AnalysisOptionsWarningCode.invalidSectionFormat,
+              diag.invalidSectionFormat,
               arguments: [AnalysisOptionsFile.enableExperiment],
             );
           }
@@ -648,7 +648,7 @@ class _ErrorFilterOptionValidator extends OptionsValidator {
       } else if (filters != null) {
         reporter.atSourceSpan(
           filters.span,
-          AnalysisOptionsWarningCode.invalidSectionFormat,
+          diag.invalidSectionFormat,
           arguments: [AnalysisOptionsFile.enableExperiment],
         );
       }
@@ -675,7 +675,7 @@ class _FormatterOptionsValidator extends OptionsValidator {
         } else {
           reporter.atSourceSpan(
             keyNode.span,
-            AnalysisOptionsWarningCode.unsupportedOptionWithoutValues,
+            diag.unsupportedOptionWithoutValues,
             arguments: [AnalysisOptionsFile.formatter, keyNode.toString()],
           );
         }
@@ -683,7 +683,7 @@ class _FormatterOptionsValidator extends OptionsValidator {
     } else if (formatter.value != null) {
       reporter.atSourceSpan(
         formatter.span,
-        AnalysisOptionsWarningCode.invalidSectionFormat,
+        diag.invalidSectionFormat,
         arguments: [AnalysisOptionsFile.formatter],
       );
     }
@@ -698,7 +698,7 @@ class _FormatterOptionsValidator extends OptionsValidator {
     if (value is! int || value <= 0) {
       reporter.atSourceSpan(
         valueNode.span,
-        AnalysisOptionsWarningCode.invalidOption,
+        diag.invalidOption,
         arguments: [
           keyNode.toString(),
           '"page_width" must be a positive integer.',
@@ -717,7 +717,7 @@ class _FormatterOptionsValidator extends OptionsValidator {
     if (!TrailingCommas.values.any((item) => item.name == value)) {
       reporter.atSourceSpan(
         valueNode.span,
-        AnalysisOptionsWarningCode.invalidOption,
+        diag.invalidOption,
         arguments: [
           keyNode.toString(),
           '"trailing_commas" must be "automate" or "preserve".',
@@ -758,7 +758,7 @@ class _LanguageOptionValidator extends OptionsValidator {
             if (!AnalysisOptionsFile.trueOrFalse.contains(value)) {
               reporter.atSourceSpan(
                 v.span,
-                AnalysisOptionsWarningCode.unsupportedValue,
+                diag.unsupportedValue,
                 arguments: [
                   key!,
                   v.valueOrThrow,
@@ -771,13 +771,13 @@ class _LanguageOptionValidator extends OptionsValidator {
       } else if (language is YamlScalar && language.value != null) {
         reporter.atSourceSpan(
           language.span,
-          AnalysisOptionsWarningCode.invalidSectionFormat,
+          diag.invalidSectionFormat,
           arguments: [AnalysisOptionsFile.language],
         );
       } else if (language is YamlList) {
         reporter.atSourceSpan(
           language.span,
-          AnalysisOptionsWarningCode.invalidSectionFormat,
+          diag.invalidSectionFormat,
           arguments: [AnalysisOptionsFile.language],
         );
       }
@@ -806,7 +806,7 @@ class _LegacyPluginsOptionValidator extends OptionsValidator {
           _firstIncludedPluginName != plugins.value) {
         reporter.atSourceSpan(
           plugins.span,
-          AnalysisOptionsWarningCode.multiplePlugins,
+          diag.multiplePlugins,
           arguments: [_firstIncludedPluginName],
         );
       }
@@ -818,7 +818,7 @@ class _LegacyPluginsOptionValidator extends OptionsValidator {
           if (plugin.value != _firstIncludedPluginName) {
             reporter.atSourceSpan(
               plugin.span,
-              AnalysisOptionsWarningCode.multiplePlugins,
+              diag.multiplePlugins,
               arguments: [_firstIncludedPluginName],
             );
           }
@@ -838,7 +838,7 @@ class _LegacyPluginsOptionValidator extends OptionsValidator {
           } else if (plugin.value != firstPlugin) {
             reporter.atSourceSpan(
               plugin.span,
-              AnalysisOptionsWarningCode.multiplePlugins,
+              diag.multiplePlugins,
               arguments: [firstPlugin],
             );
           }
@@ -852,7 +852,7 @@ class _LegacyPluginsOptionValidator extends OptionsValidator {
           if (plugin != null && plugin.value != _firstIncludedPluginName) {
             reporter.atSourceSpan(
               plugin.span,
-              AnalysisOptionsWarningCode.multiplePlugins,
+              diag.multiplePlugins,
               arguments: [_firstIncludedPluginName],
             );
           }
@@ -872,7 +872,7 @@ class _LegacyPluginsOptionValidator extends OptionsValidator {
           } else if (plugin != null && plugin.value != firstPlugin) {
             reporter.atSourceSpan(
               plugin.span,
-              AnalysisOptionsWarningCode.multiplePlugins,
+              diag.multiplePlugins,
               arguments: [firstPlugin],
             );
           }
@@ -928,7 +928,7 @@ class _OptionalChecksValueValidator extends OptionsValidator {
               if (!AnalysisOptionsFile.trueOrFalse.contains(value)) {
                 reporter.atSourceSpan(
                   v.span,
-                  AnalysisOptionsWarningCode.unsupportedValue,
+                  diag.unsupportedValue,
                   arguments: [
                     key!,
                     v.valueOrThrow,
@@ -942,7 +942,7 @@ class _OptionalChecksValueValidator extends OptionsValidator {
       } else if (v != null) {
         reporter.atSourceSpan(
           v.span,
-          AnalysisOptionsWarningCode.invalidSectionFormat,
+          diag.invalidSectionFormat,
           arguments: [AnalysisOptionsFile.enableExperiment],
         );
       }
@@ -984,7 +984,7 @@ class _PluginsOptionsValidator extends OptionsValidator {
         if (!isAtContextRoot && _isPrimarySource) {
           reporter.atSourceSpan(
             plugins.span,
-            AnalysisOptionsWarningCode.pluginsInInnerOptions,
+            diag.pluginsInInnerOptions,
             arguments: [_contextRoot],
           );
         }
@@ -1002,7 +1002,7 @@ class _PluginsOptionsValidator extends OptionsValidator {
             default:
               reporter.atSourceSpan(
                 plugins.span,
-                AnalysisOptionsWarningCode.invalidSectionFormat,
+                diag.invalidSectionFormat,
                 arguments: ['${AnalysisOptionsFile.plugins}/$pluginName'],
               );
           }
@@ -1010,14 +1010,14 @@ class _PluginsOptionsValidator extends OptionsValidator {
       case YamlList():
         reporter.atSourceSpan(
           plugins.span,
-          AnalysisOptionsWarningCode.invalidSectionFormat,
+          diag.invalidSectionFormat,
           arguments: [AnalysisOptionsFile.plugins],
         );
       case YamlScalar(:var value):
         if (value != null) {
           reporter.atSourceSpan(
             plugins.span,
-            AnalysisOptionsWarningCode.invalidSectionFormat,
+            diag.invalidSectionFormat,
             arguments: [AnalysisOptionsFile.plugins],
           );
         }
@@ -1062,7 +1062,7 @@ class _StrongModeOptionValueValidator extends OptionsValidator {
       } else if (strongModeNode != null) {
         reporter.atSourceSpan(
           strongModeNode.span,
-          AnalysisOptionsWarningCode.invalidSectionFormat,
+          diag.invalidSectionFormat,
           arguments: [AnalysisOptionsFile.strongMode],
         );
       }
@@ -1081,7 +1081,7 @@ class _StrongModeOptionValueValidator extends OptionsValidator {
         } else if (key == AnalysisOptionsFile.declarationCasts) {
           reporter.atSourceSpan(
             v.span,
-            AnalysisOptionsWarningCode.unsupportedValue,
+            diag.unsupportedValue,
             arguments: [
               AnalysisOptionsFile.strongMode,
               v.valueOrThrow,
@@ -1095,7 +1095,7 @@ class _StrongModeOptionValueValidator extends OptionsValidator {
             if (!AnalysisOptionsFile.trueOrFalse.contains(value)) {
               reporter.atSourceSpan(
                 v.span,
-                AnalysisOptionsWarningCode.unsupportedValue,
+                diag.unsupportedValue,
                 arguments: [
                   key!,
                   v.valueOrThrow,
@@ -1127,8 +1127,8 @@ class _TopLevelOptionValidator extends OptionsValidator {
     : assert(supportedOptions.isNotEmpty),
       _valueProposal = supportedOptions.quotedAndCommaSeparatedWithAnd,
       _warningCode = supportedOptions.length == 1
-          ? AnalysisOptionsWarningCode.unsupportedOptionWithLegalValue
-          : AnalysisOptionsWarningCode.unsupportedOptionWithLegalValues;
+          ? diag.unsupportedOptionWithLegalValue
+          : diag.unsupportedOptionWithLegalValues;
 
   @override
   void validate(DiagnosticReporter reporter, YamlMap options) {
@@ -1139,7 +1139,7 @@ class _TopLevelOptionValidator extends OptionsValidator {
     if (node is! YamlMap) {
       reporter.atSourceSpan(
         node.span,
-        AnalysisOptionsWarningCode.invalidSectionFormat,
+        diag.invalidSectionFormat,
         arguments: [AnalysisOptionsFile.cannotIgnore],
       );
       return;

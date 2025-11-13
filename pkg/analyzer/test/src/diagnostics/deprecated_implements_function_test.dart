@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
@@ -20,13 +20,7 @@ class DeprecatedImplementsFunctionTest extends PubPackageResolutionTest {
       '''
 class A implements Function {}
 ''',
-      [
-        error(
-          CompileTimeErrorCode.finalClassImplementedOutsideOfLibrary,
-          19,
-          8,
-        ),
-      ],
+      [error(diag.finalClassImplementedOutsideOfLibrary, 19, 8)],
     );
   }
 
@@ -36,17 +30,9 @@ class A implements Function {}
 class A implements Function, Function {}
 ''',
       [
-        error(
-          CompileTimeErrorCode.finalClassImplementedOutsideOfLibrary,
-          19,
-          8,
-        ),
-        error(CompileTimeErrorCode.implementsRepeated, 29, 8),
-        error(
-          CompileTimeErrorCode.finalClassImplementedOutsideOfLibrary,
-          29,
-          8,
-        ),
+        error(diag.finalClassImplementedOutsideOfLibrary, 19, 8),
+        error(diag.implementsRepeated, 29, 8),
+        error(diag.finalClassImplementedOutsideOfLibrary, 29, 8),
       ],
     );
   }
@@ -58,8 +44,8 @@ class A implements Function, Function {}
 class A implements Function, Function {}
 ''',
       [
-        error(WarningCode.deprecatedImplementsFunction, 35, 8),
-        error(CompileTimeErrorCode.implementsRepeated, 45, 8),
+        error(diag.deprecatedImplementsFunction, 35, 8),
+        error(diag.implementsRepeated, 45, 8),
       ],
     );
   }
@@ -70,7 +56,7 @@ class A implements Function, Function {}
 // @dart = 2.19
 class A implements Function {}
 ''',
-      [error(WarningCode.deprecatedImplementsFunction, 35, 8)],
+      [error(diag.deprecatedImplementsFunction, 35, 8)],
     );
   }
 
@@ -81,7 +67,7 @@ class A implements Function {}
 typedef F = Function;
 class A implements F {}
 ''',
-      [error(WarningCode.deprecatedImplementsFunction, 57, 1)],
+      [error(diag.deprecatedImplementsFunction, 57, 1)],
     );
   }
 
@@ -91,7 +77,7 @@ class A implements F {}
 class Function {}
 class A implements Function {}
 ''',
-      [error(CompileTimeErrorCode.builtInIdentifierAsTypeName, 6, 8)],
+      [error(diag.builtInIdentifierAsTypeName, 6, 8)],
     );
   }
 
@@ -102,7 +88,7 @@ class A implements Function {}
 mixin M {}
 class A = Object with M implements Function;
 ''',
-      [error(WarningCode.deprecatedImplementsFunction, 62, 8)],
+      [error(diag.deprecatedImplementsFunction, 62, 8)],
     );
   }
 
@@ -114,7 +100,7 @@ mixin M {}
 typedef F = Function;
 class A = Object with M implements F;
 ''',
-      [error(WarningCode.deprecatedImplementsFunction, 84, 1)],
+      [error(diag.deprecatedImplementsFunction, 84, 1)],
     );
   }
 }

@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
@@ -21,7 +21,7 @@ class DocDirectiveArgumentWrongFormatTest extends PubPackageResolutionTest {
 /// {@animation 600 nan http://google.com}
 class C {}
 ''',
-      [error(WarningCode.docDirectiveArgumentWrongFormat, 20, 3)],
+      [error(diag.docDirectiveArgumentWrongFormat, 20, 3)],
     );
   }
 
@@ -38,7 +38,7 @@ class C {}
 /// {@animation nan 400 http://google.com}
 class C {}
 ''',
-      [error(WarningCode.docDirectiveArgumentWrongFormat, 16, 3)],
+      [error(diag.docDirectiveArgumentWrongFormat, 16, 3)],
     );
   }
 
@@ -48,7 +48,7 @@ class C {}
 /// {@youtube 600 nan https://www.youtube.com/watch?v=123}
 class C {}
 ''',
-      [error(WarningCode.docDirectiveArgumentWrongFormat, 18, 3)],
+      [error(diag.docDirectiveArgumentWrongFormat, 18, 3)],
     );
   }
 
@@ -58,7 +58,7 @@ class C {}
 /// {@youtube 600 400 http://google.com}
 class C {}
 ''',
-      [error(WarningCode.docDirectiveArgumentWrongFormat, 22, 17)],
+      [error(diag.docDirectiveArgumentWrongFormat, 22, 17)],
     );
   }
 
@@ -68,7 +68,7 @@ class C {}
 /// {@youtube nan 400 https://www.youtube.com/watch?v=123}
 class C {}
 ''',
-      [error(WarningCode.docDirectiveArgumentWrongFormat, 14, 3)],
+      [error(diag.docDirectiveArgumentWrongFormat, 14, 3)],
     );
   }
 }

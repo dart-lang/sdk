@@ -8,7 +8,7 @@ import 'package:analyzer/analysis_rule/rule_visitor_registry.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/error/error.dart';
-import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:analyzer/src/test_utilities/lint_registration_mixin.dart';
 import 'package:analyzer_testing/utilities/utilities.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -39,7 +39,7 @@ class UnignorableIgnoreTest extends PubPackageResolutionTest
 // ignore_for_file: undefined_annotation
 @x int a = 0;
 ''',
-      [error(CompileTimeErrorCode.undefinedAnnotation, 41, 2)],
+      [error(diag.undefinedAnnotation, 41, 2)],
     );
   }
 
@@ -52,7 +52,7 @@ class UnignorableIgnoreTest extends PubPackageResolutionTest
 // ignore_for_file: UNDEFINED_ANNOTATION
 @x int a = 0;
 ''',
-      [error(CompileTimeErrorCode.undefinedAnnotation, 41, 2)],
+      [error(diag.undefinedAnnotation, 41, 2)],
     );
   }
 
@@ -65,7 +65,7 @@ class UnignorableIgnoreTest extends PubPackageResolutionTest
 // ignore: undefined_annotation
 @x int a = 0;
 ''',
-      [error(CompileTimeErrorCode.undefinedAnnotation, 32, 2)],
+      [error(diag.undefinedAnnotation, 32, 2)],
     );
   }
 

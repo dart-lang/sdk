@@ -14,8 +14,8 @@ import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/extensions.dart';
 import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:analyzer/src/diagnostic/diagnostic_factory.dart';
-import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/error_verifier.dart';
 import 'package:analyzer/src/utilities/extensions/element.dart';
 
@@ -45,7 +45,7 @@ class DuplicateDefinitionVerifier {
         _diagnosticReporter.reportError(
           _diagnosticFactory.duplicateDefinitionForNodes(
             _diagnosticReporter.source,
-            CompileTimeErrorCode.duplicateDefinition,
+            diag.duplicateDefinition,
             stackTraceParameter,
             exceptionParameter,
             [exceptionName],
@@ -203,7 +203,7 @@ class DuplicateDefinitionVerifier {
         if (libraryDeclarations.withName(name) case var existing?) {
           _diagnosticReporter.reportError(
             _diagnosticFactory.duplicateDefinition(
-              CompileTimeErrorCode.prefixCollidesWithTopLevelMember,
+              diag.prefixCollidesWithTopLevelMember,
               importPrefix.firstFragment,
               existing as ElementImpl,
               [name],
@@ -332,9 +332,9 @@ class DuplicateDefinitionVerifier {
     DiagnosticCode getDiagnostic(ElementImpl previous, FragmentImpl current) {
       if (previous is FieldFormalParameterElement &&
           current is FieldFormalParameterFragment) {
-        return CompileTimeErrorCode.duplicateFieldFormalParameter;
+        return diag.duplicateFieldFormalParameter;
       }
-      return CompileTimeErrorCode.duplicateDefinition;
+      return diag.duplicateDefinition;
     }
 
     if (fragment is SetterFragment) {
@@ -443,12 +443,12 @@ class MemberDuplicateDefinitionVerifier {
             if (name == 'new') {
               _diagnosticReporter.atConstructorDeclaration(
                 member,
-                CompileTimeErrorCode.duplicateConstructorDefault,
+                diag.duplicateConstructorDefault,
               );
             } else {
               _diagnosticReporter.atConstructorDeclaration(
                 member,
-                CompileTimeErrorCode.duplicateConstructorName,
+                diag.duplicateConstructorName,
                 arguments: [name],
               );
             }
@@ -524,7 +524,7 @@ class MemberDuplicateDefinitionVerifier {
                 String className = firstFragment.name ?? '';
                 _diagnosticReporter.atToken(
                   identifier,
-                  CompileTimeErrorCode.conflictingStaticAndInstance,
+                  diag.conflictingStaticAndInstance,
                   arguments: [className, name, className],
                 );
               }
@@ -540,7 +540,7 @@ class MemberDuplicateDefinitionVerifier {
               String className = firstFragment.name ?? '';
               _diagnosticReporter.atToken(
                 identifier,
-                CompileTimeErrorCode.conflictingStaticAndInstance,
+                diag.conflictingStaticAndInstance,
                 arguments: [className, name, className],
               );
             }
@@ -572,14 +572,11 @@ class MemberDuplicateDefinitionVerifier {
         ):
           DiagnosticCode errorCode;
           if (staticMember2.isSynthetic) {
-            errorCode =
-                CompileTimeErrorCode.conflictingConstructorAndStaticField;
+            errorCode = diag.conflictingConstructorAndStaticField;
           } else if (staticMember2 is GetterElementImpl) {
-            errorCode =
-                CompileTimeErrorCode.conflictingConstructorAndStaticGetter;
+            errorCode = diag.conflictingConstructorAndStaticGetter;
           } else {
-            errorCode =
-                CompileTimeErrorCode.conflictingConstructorAndStaticSetter;
+            errorCode = diag.conflictingConstructorAndStaticSetter;
           }
           _diagnosticReporter.atElement2(
             constructor.asElement2,
@@ -589,15 +586,15 @@ class MemberDuplicateDefinitionVerifier {
         case _ScopeEntryElement(element: MethodElementImpl()):
           _diagnosticReporter.atElement2(
             constructor.asElement2,
-            CompileTimeErrorCode.conflictingConstructorAndStaticMethod,
+            diag.conflictingConstructorAndStaticMethod,
             arguments: [name],
           );
         case _ScopeEntryGetterSetterPair():
           _diagnosticReporter.atElement2(
             constructor.asElement2,
             state.getter.isSynthetic
-                ? CompileTimeErrorCode.conflictingConstructorAndStaticField
-                : CompileTimeErrorCode.conflictingConstructorAndStaticGetter,
+                ? diag.conflictingConstructorAndStaticField
+                : diag.conflictingConstructorAndStaticGetter,
             arguments: [name],
           );
         case _ScopeEntryElement(:var element):
@@ -652,7 +649,7 @@ class MemberDuplicateDefinitionVerifier {
         if (!identical(previous, fragment.element)) {
           _diagnosticReporter.reportError(
             _diagnosticFactory.duplicateDefinition(
-              CompileTimeErrorCode.duplicateDefinition,
+              diag.duplicateDefinition,
               originFragment ?? fragment,
               previous,
               [name],
@@ -676,7 +673,7 @@ class MemberDuplicateDefinitionVerifier {
       if (constant.name.lexeme == declarationName) {
         _diagnosticReporter.atToken(
           constant.name,
-          CompileTimeErrorCode.enumConstantSameNameAsEnclosing,
+          diag.enumConstantSameNameAsEnclosing,
         );
       }
       var constantFragment = constant.declaredFragment!;
@@ -698,7 +695,7 @@ class MemberDuplicateDefinitionVerifier {
     if (declarationName == 'values') {
       _diagnosticReporter.atToken(
         useDeclaringConstructorsAst ? node.namePart.typeName : node.name,
-        CompileTimeErrorCode.enumWithNameValues,
+        diag.enumWithNameValues,
       );
     }
 
@@ -714,7 +711,7 @@ class MemberDuplicateDefinitionVerifier {
       if (inherited is InternalMethodElement) {
         _diagnosticReporter.atElement2(
           accessor.asElement2,
-          CompileTimeErrorCode.conflictingFieldAndMethod,
+          diag.conflictingFieldAndMethod,
           arguments: [
             firstFragment.displayName,
             baseName,
@@ -736,7 +733,7 @@ class MemberDuplicateDefinitionVerifier {
       if (inherited is InternalPropertyAccessorElement) {
         _diagnosticReporter.atElement2(
           method.asElement2,
-          CompileTimeErrorCode.conflictingMethodAndField,
+          diag.conflictingMethodAndField,
           arguments: [
             firstFragment.displayName,
             baseName,
@@ -765,7 +762,7 @@ class MemberDuplicateDefinitionVerifier {
         if (instance != null && baseName != 'values') {
           _diagnosticReporter.atElement2(
             accessor.asElement2,
-            CompileTimeErrorCode.conflictingStaticAndInstance,
+            diag.conflictingStaticAndInstance,
             arguments: [declarationName, baseName, declarationName],
           );
         }
@@ -782,7 +779,7 @@ class MemberDuplicateDefinitionVerifier {
         if (instance != null) {
           _diagnosticReporter.atElement2(
             method.asElement2,
-            CompileTimeErrorCode.conflictingStaticAndInstance,
+            diag.conflictingStaticAndInstance,
             arguments: [declarationName, baseName, declarationName],
           );
         }
@@ -816,7 +813,7 @@ class MemberDuplicateDefinitionVerifier {
             if (instanceScope.containsKey(name)) {
               _diagnosticReporter.atToken(
                 identifier,
-                CompileTimeErrorCode.extensionConflictingStaticAndInstance,
+                diag.extensionConflictingStaticAndInstance,
                 arguments: [name],
               );
             }
@@ -829,7 +826,7 @@ class MemberDuplicateDefinitionVerifier {
           if (instanceScope.containsKey(name)) {
             _diagnosticReporter.atToken(
               identifier,
-              CompileTimeErrorCode.extensionConflictingStaticAndInstance,
+              diag.extensionConflictingStaticAndInstance,
               arguments: [name],
             );
           }
@@ -931,10 +928,7 @@ class MemberDuplicateDefinitionVerifier {
 
   void _checkValuesDeclarationInEnum(Token name) {
     if (name.lexeme == 'values') {
-      _diagnosticReporter.atToken(
-        name,
-        CompileTimeErrorCode.valuesDeclarationInEnum,
-      );
+      _diagnosticReporter.atToken(name, diag.valuesDeclarationInEnum);
     }
   }
 

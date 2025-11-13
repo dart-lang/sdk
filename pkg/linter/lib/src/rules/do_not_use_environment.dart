@@ -11,6 +11,7 @@ import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/error/error.dart';
 
 import '../analyzer.dart';
+import '../diagnostic.dart' as diag;
 
 const _desc = r'Do not use environment declared variables.';
 
@@ -19,7 +20,7 @@ class DoNotUseEnvironment extends AnalysisRule {
     : super(name: LintNames.do_not_use_environment, description: _desc);
 
   @override
-  DiagnosticCode get diagnosticCode => LinterLintCode.doNotUseEnvironment;
+  DiagnosticCode get diagnosticCode => diag.doNotUseEnvironment;
 
   @override
   void registerNodeProcessors(

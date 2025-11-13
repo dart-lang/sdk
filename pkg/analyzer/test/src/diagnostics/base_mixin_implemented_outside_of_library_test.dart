@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
@@ -33,7 +33,7 @@ base mixin Foo {}
 import 'foo.dart';
 base class Bar implements Foo {}
 ''',
-      [error(CompileTimeErrorCode.baseMixinImplementedOutsideOfLibrary, 45, 3)],
+      [error(diag.baseMixinImplementedOutsideOfLibrary, 45, 3)],
     );
   }
 
@@ -51,7 +51,7 @@ class C implements B {}
 ''',
       [
         error(
-          CompileTimeErrorCode.baseMixinImplementedOutsideOfLibrary,
+          diag.baseMixinImplementedOutsideOfLibrary,
           77,
           1,
           contextMessages: [message(a, 11, 1)],
@@ -71,13 +71,7 @@ typedef FooTypedef = Foo;
 import 'foo.dart';
 base class Bar implements FooTypedef {}
 ''',
-      [
-        error(
-          CompileTimeErrorCode.baseMixinImplementedOutsideOfLibrary,
-          45,
-          10,
-        ),
-      ],
+      [error(diag.baseMixinImplementedOutsideOfLibrary, 45, 10)],
     );
   }
 
@@ -92,13 +86,7 @@ import 'foo.dart';
 typedef FooTypedef = Foo;
 base class Bar implements FooTypedef {}
 ''',
-      [
-        error(
-          CompileTimeErrorCode.baseMixinImplementedOutsideOfLibrary,
-          71,
-          10,
-        ),
-      ],
+      [error(diag.baseMixinImplementedOutsideOfLibrary, 71, 10)],
     );
   }
 
@@ -119,7 +107,7 @@ base mixin Foo {}
 import 'foo.dart';
 enum Bar implements Foo { bar }
 ''',
-      [error(CompileTimeErrorCode.baseMixinImplementedOutsideOfLibrary, 39, 3)],
+      [error(diag.baseMixinImplementedOutsideOfLibrary, 39, 3)],
     );
   }
 
@@ -134,13 +122,7 @@ typedef FooTypedef = Foo;
 import 'foo.dart';
 enum Bar implements FooTypedef { bar }
 ''',
-      [
-        error(
-          CompileTimeErrorCode.baseMixinImplementedOutsideOfLibrary,
-          39,
-          10,
-        ),
-      ],
+      [error(diag.baseMixinImplementedOutsideOfLibrary, 39, 10)],
     );
   }
 
@@ -155,13 +137,7 @@ import 'foo.dart';
 typedef FooTypedef = Foo;
 enum Bar implements FooTypedef { bar }
 ''',
-      [
-        error(
-          CompileTimeErrorCode.baseMixinImplementedOutsideOfLibrary,
-          65,
-          10,
-        ),
-      ],
+      [error(diag.baseMixinImplementedOutsideOfLibrary, 65, 10)],
     );
   }
 
@@ -182,7 +158,7 @@ base mixin Foo {}
 import 'foo.dart';
 base mixin Bar implements Foo {}
 ''',
-      [error(CompileTimeErrorCode.baseMixinImplementedOutsideOfLibrary, 45, 3)],
+      [error(diag.baseMixinImplementedOutsideOfLibrary, 45, 3)],
     );
   }
 
@@ -197,13 +173,7 @@ typedef FooTypedef = Foo;
 import 'foo.dart';
 base mixin Bar implements FooTypedef {}
 ''',
-      [
-        error(
-          CompileTimeErrorCode.baseMixinImplementedOutsideOfLibrary,
-          45,
-          10,
-        ),
-      ],
+      [error(diag.baseMixinImplementedOutsideOfLibrary, 45, 10)],
     );
   }
 
@@ -218,13 +188,7 @@ import 'foo.dart';
 typedef FooTypedef = Foo;
 base mixin Bar implements FooTypedef {}
 ''',
-      [
-        error(
-          CompileTimeErrorCode.baseMixinImplementedOutsideOfLibrary,
-          71,
-          10,
-        ),
-      ],
+      [error(diag.baseMixinImplementedOutsideOfLibrary, 71, 10)],
     );
   }
 }

@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
@@ -33,7 +33,7 @@ class A {
 
 class B extends A {}
 ''',
-      [error(WarningCode.missingOverrideOfMustBeOverriddenOne, 86, 1)],
+      [error(diag.missingOverrideOfMustBeOverriddenOne, 86, 1)],
     );
   }
 
@@ -54,7 +54,7 @@ class B extends A {}
 ''',
       [
         error(
-          WarningCode.missingOverrideOfMustBeOverriddenTwo,
+          diag.missingOverrideOfMustBeOverriddenTwo,
           121,
           1,
           messageContains: ["'f'", "'m'"],
@@ -109,7 +109,7 @@ class B extends A {
   int get f => 0;
 }
 ''',
-      [error(WarningCode.missingOverrideOfMustBeOverriddenOne, 86, 1)],
+      [error(diag.missingOverrideOfMustBeOverriddenOne, 86, 1)],
     );
   }
 
@@ -140,7 +140,7 @@ class A {
 
 class B extends A {}
 ''',
-      [error(WarningCode.missingOverrideOfMustBeOverriddenOne, 91, 1)],
+      [error(diag.missingOverrideOfMustBeOverriddenOne, 91, 1)],
     );
   }
 
@@ -186,7 +186,7 @@ mixin M {
 
 class A with M {}
 ''',
-      [error(WarningCode.missingOverrideOfMustBeOverriddenOne, 87, 1)],
+      [error(diag.missingOverrideOfMustBeOverriddenOne, 87, 1)],
     );
   }
 
@@ -202,7 +202,7 @@ class A {
 
 class B extends A {}
 ''',
-      [error(WarningCode.missingOverrideOfMustBeOverriddenOne, 87, 1)],
+      [error(diag.missingOverrideOfMustBeOverriddenOne, 87, 1)],
     );
   }
 
@@ -224,7 +224,7 @@ class A {
 
 class B extends A {}
 ''',
-      [error(WarningCode.missingOverrideOfMustBeOverriddenThreePlus, 157, 1)],
+      [error(diag.missingOverrideOfMustBeOverriddenThreePlus, 157, 1)],
     );
   }
 
@@ -243,7 +243,7 @@ class A {
 
 class B extends A {}
 ''',
-      [error(WarningCode.missingOverrideOfMustBeOverriddenTwo, 122, 1)],
+      [error(diag.missingOverrideOfMustBeOverriddenTwo, 122, 1)],
     );
   }
 
@@ -308,7 +308,7 @@ class A with M {
 
 class B extends A {}
 ''',
-      [error(WarningCode.missingOverrideOfMustBeOverriddenOne, 121, 1)],
+      [error(diag.missingOverrideOfMustBeOverriddenOne, 121, 1)],
     );
   }
 
@@ -328,7 +328,7 @@ class B extends A {
 
 class C extends B {}
 ''',
-      [error(WarningCode.missingOverrideOfMustBeOverriddenOne, 124, 1)],
+      [error(diag.missingOverrideOfMustBeOverriddenOne, 124, 1)],
     );
   }
 
@@ -349,7 +349,7 @@ class B extends A {
 
 class C extends B {}
 ''',
-      [error(WarningCode.missingOverrideOfMustBeOverriddenOne, 144, 1)],
+      [error(diag.missingOverrideOfMustBeOverriddenOne, 144, 1)],
     );
   }
 
@@ -365,7 +365,7 @@ mixin A {
 
 class B = Object with A;
 ''',
-      [error(WarningCode.missingOverrideOfMustBeOverriddenOne, 87, 1)],
+      [error(diag.missingOverrideOfMustBeOverriddenOne, 87, 1)],
     );
   }
 
@@ -459,7 +459,7 @@ class A {
 
 class B extends A {}
 ''',
-      [error(WarningCode.missingOverrideOfMustBeOverriddenOne, 107, 1)],
+      [error(diag.missingOverrideOfMustBeOverriddenOne, 107, 1)],
     );
   }
 
@@ -475,7 +475,7 @@ class A {
 
 class B extends A {}
 ''',
-      [error(WarningCode.missingOverrideOfMustBeOverriddenOne, 100, 1)],
+      [error(diag.missingOverrideOfMustBeOverriddenOne, 100, 1)],
     );
   }
 }

@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../context_collection_resolution.dart';
@@ -83,7 +83,7 @@ void f() async {
 }
 T a<T>() => throw '';
 ''',
-      [error(WarningCode.unusedLocalVariable, 34, 1)],
+      [error(diag.unusedLocalVariable, 34, 1)],
     );
 
     var node = findNode.singleMethodInvocation;
@@ -111,7 +111,7 @@ void f() async {
 }
 T a<T>() => throw '';
 ''',
-      [error(WarningCode.unusedLocalVariable, 34, 1)],
+      [error(diag.unusedLocalVariable, 34, 1)],
     );
 
     var node = findNode.singleMethodInvocation;
@@ -175,7 +175,7 @@ void f() {
 }
 T a<T>() => throw '';
 ''',
-      [error(WarningCode.unusedLocalVariable, 22, 1)],
+      [error(diag.unusedLocalVariable, 22, 1)],
     );
 
     var node = findNode.singleMethodInvocation;
@@ -203,7 +203,7 @@ void f() {
 }
 T a<T>() => throw '';
 ''',
-      [error(WarningCode.unusedLocalVariable, 22, 1)],
+      [error(diag.unusedLocalVariable, 22, 1)],
     );
 
     var node = findNode.singleMethodInvocation;

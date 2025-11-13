@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/src/services/correction/fix.dart';
-import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -1074,8 +1074,7 @@ extension E on int {
   }
 }
 ''');
-    await assertHasFix(
-      '''
+    await assertHasFix('''
 extension E on int {
   void f(int i) {
     i -= foo();
@@ -1083,10 +1082,7 @@ extension E on int {
 
   int foo() {}
 }
-''',
-      filter: (diagnostic) =>
-          diagnostic.diagnosticCode == CompileTimeErrorCode.undefinedMethod,
-    );
+''', filter: (diagnostic) => diagnostic.diagnosticCode == diag.undefinedMethod);
   }
 
   Future<void> test_operatorAssignment_neverAssignable() async {
@@ -1102,12 +1098,11 @@ extension E on A {
 }
 ''');
     await assertNoFix(
-      filter: (diagnostic) =>
-          diagnostic.diagnosticCode == CompileTimeErrorCode.undefinedMethod,
+      filter: (diagnostic) => diagnostic.diagnosticCode == diag.undefinedMethod,
     );
     await assertNoFix(
       filter: (diagnostic) =>
-          diagnostic.diagnosticCode == CompileTimeErrorCode.invalidAssignment,
+          diagnostic.diagnosticCode == diag.invalidAssignment,
     );
   }
 
@@ -1156,8 +1151,7 @@ extension E on int {
   }
 }
 ''');
-    await assertHasFix(
-      '''
+    await assertHasFix('''
 extension E on int {
   void f(int i) {
     i += foo();
@@ -1165,10 +1159,7 @@ extension E on int {
 
   int foo() {}
 }
-''',
-      filter: (diagnostic) =>
-          diagnostic.diagnosticCode == CompileTimeErrorCode.undefinedMethod,
-    );
+''', filter: (diagnostic) => diagnostic.diagnosticCode == diag.undefinedMethod);
   }
 
   Future<void> test_operatorAssignment_slash_int() async {
@@ -1180,8 +1171,7 @@ extension E on int {
 }
 ''');
     await assertNoFix(
-      filter: (diagnostic) =>
-          diagnostic.diagnosticCode == CompileTimeErrorCode.undefinedMethod,
+      filter: (diagnostic) => diagnostic.diagnosticCode == diag.undefinedMethod,
     );
   }
 
@@ -1193,8 +1183,7 @@ extension E on int {
   }
 }
 ''');
-    await assertHasFix(
-      '''
+    await assertHasFix('''
 extension E on int {
   void f(int i) {
     i *= foo();
@@ -1202,10 +1191,7 @@ extension E on int {
 
   int foo() {}
 }
-''',
-      filter: (diagnostic) =>
-          diagnostic.diagnosticCode == CompileTimeErrorCode.undefinedMethod,
-    );
+''', filter: (diagnostic) => diagnostic.diagnosticCode == diag.undefinedMethod);
   }
 
   Future<void> test_operatorAssignment_subtype() async {
@@ -1223,8 +1209,7 @@ extension E on B {
 }
 ''');
     await assertNoFix(
-      filter: (diagnostic) =>
-          diagnostic.diagnosticCode == CompileTimeErrorCode.undefinedMethod,
+      filter: (diagnostic) => diagnostic.diagnosticCode == diag.undefinedMethod,
     );
   }
 

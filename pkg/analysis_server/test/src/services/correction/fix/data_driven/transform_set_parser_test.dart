@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analysis_server/src/diagnostic.dart' as diag;
 import 'package:analysis_server/src/services/correction/fix/data_driven/accessor.dart';
 import 'package:analysis_server/src/services/correction/fix/data_driven/add_type_parameter.dart';
 import 'package:analysis_server/src/services/correction/fix/data_driven/change.dart';
@@ -14,7 +15,6 @@ import 'package:analysis_server/src/services/correction/fix/data_driven/modify_p
 import 'package:analysis_server/src/services/correction/fix/data_driven/rename.dart';
 import 'package:analysis_server/src/services/correction/fix/data_driven/replaced_by.dart';
 import 'package:analysis_server/src/services/correction/fix/data_driven/transform.dart';
-import 'package:analysis_server/src/services/correction/fix/data_driven/transform_set_error_code.dart';
 import 'package:analysis_server/src/services/correction/fix/data_driven/value_generator.dart';
 import 'package:analysis_server/src/services/refactoring/framework/formal_parameter.dart';
 import 'package:test/test.dart';
@@ -476,7 +476,7 @@ transforms:
       argumentValue:
         expression: "'newValue'"
 ''',
-      [error(TransformSetErrorCode.missingKey, 145, 98)],
+      [error(diag.missingKey, 145, 98)],
     );
   }
 
@@ -498,7 +498,7 @@ transforms:
       argumentValue:
         expression: "'newValue'"
 ''',
-      [error(TransformSetErrorCode.conflictingKey, 195, 5)],
+      [error(diag.conflictingKey, 195, 5)],
     );
   }
 
@@ -561,7 +561,7 @@ transforms:
             kind: 'fragment'
             value: args
 ''',
-      [error(TransformSetErrorCode.unknownAccessor, 361, 4)],
+      [error(diag.unknownAccessor, 361, 4)],
     );
   }
 
@@ -689,7 +689,7 @@ transforms:
 version: 1
 transforms:
 ''',
-      [error(TransformSetErrorCode.invalidValue, 21, 0)],
+      [error(diag.invalidValue, 21, 0)],
     );
     expect(result, null);
   }
@@ -699,7 +699,7 @@ transforms:
       '''
 [
 ''',
-      [error(TransformSetErrorCode.yamlSyntaxError, 2, 0)],
+      [error(diag.yamlSyntaxError, 2, 0)],
     );
     expect(result, null);
   }

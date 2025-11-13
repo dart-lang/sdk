@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
@@ -24,7 +24,7 @@ class A {
 ''',
       [
         error(
-          CompileTimeErrorCode.concreteClassWithAbstractMember,
+          diag.concreteClassWithAbstractMember,
           12,
           16,
           text: "'x' must have a method body because 'A' isn't abstract.",
@@ -42,7 +42,7 @@ class A {
 ''',
       [
         error(
-          CompileTimeErrorCode.concreteClassWithAbstractMember,
+          diag.concreteClassWithAbstractMember,
           12,
           22,
           text: "'x' must have a method body because 'A' isn't abstract.",
@@ -57,7 +57,7 @@ class A {
 class A {
   m();
 }''',
-      [error(CompileTimeErrorCode.concreteClassWithAbstractMember, 12, 4)],
+      [error(diag.concreteClassWithAbstractMember, 12, 4)],
     );
   }
 
@@ -86,7 +86,7 @@ class I {
 class A implements I {
   m();
 }''',
-      [error(CompileTimeErrorCode.concreteClassWithAbstractMember, 62, 4)],
+      [error(diag.concreteClassWithAbstractMember, 62, 4)],
     );
   }
 
@@ -99,7 +99,7 @@ class A {
 ''',
       [
         error(
-          CompileTimeErrorCode.concreteClassWithAbstractMember,
+          diag.concreteClassWithAbstractMember,
           12,
           13,
           text: "'s' must have a method body because 'A' isn't abstract.",

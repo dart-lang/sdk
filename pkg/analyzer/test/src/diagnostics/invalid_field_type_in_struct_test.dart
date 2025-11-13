@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/dart/error/ffi_code.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
@@ -27,7 +27,7 @@ final class C extends Struct {
   external Pointer notEmpty;
 }
 ''',
-      [error(FfiCode.invalidFieldTypeInStruct, 61, 6)],
+      [error(diag.invalidFieldTypeInStruct, 61, 6)],
     );
   }
 
@@ -43,7 +43,7 @@ final class C extends Union {
   external Pointer notEmpty;
 }
 ''',
-      [error(FfiCode.invalidFieldTypeInStruct, 60, 6)],
+      [error(diag.invalidFieldTypeInStruct, 60, 6)],
     );
   }
 
@@ -55,7 +55,7 @@ final class C extends Struct {
   external Pointer? p;
 }
 ''',
-      [error(FfiCode.invalidFieldTypeInStruct, 61, 8)],
+      [error(diag.invalidFieldTypeInStruct, 61, 8)],
     );
   }
 

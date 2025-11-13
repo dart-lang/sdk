@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analysis_server/src/services/correction/fix/data_driven/transform_set_error_code.dart';
+import 'package:analysis_server/src/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../transform_set_parser_test_support.dart';
@@ -26,7 +26,7 @@ transforms:
     uris: ['test.dart']
   changes: []
 ''',
-      [error(TransformSetErrorCode.missingOneOfMultipleKeys, 69, 22)],
+      [error(diag.missingOneOfMultipleKeys, 69, 22)],
     );
   }
 
@@ -42,7 +42,7 @@ transforms:
     method: 'm'
   changes: []
 ''',
-      [error(TransformSetErrorCode.missingOneOfMultipleKeys, 69, 38)],
+      [error(diag.missingOneOfMultipleKeys, 69, 38)],
     );
   }
 
@@ -59,7 +59,7 @@ transforms:
   changes:
     - kind: removeParameter
 ''',
-      [error(TransformSetErrorCode.missingOneOfMultipleKeys, 124, 22)],
+      [error(diag.missingOneOfMultipleKeys, 124, 22)],
     );
   }
 
@@ -74,7 +74,7 @@ transforms:
     uris: ['test.dart']
     function: 'f'
 ''',
-      [error(TransformSetErrorCode.missingOneOfMultipleKeys, 0, 107)],
+      [error(diag.missingOneOfMultipleKeys, 0, 107)],
     );
   }
 }

@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
@@ -20,7 +20,7 @@ class IllegalAsyncGeneratorReturnTypeTest extends PubPackageResolutionTest {
       '''
 int f() async* {}
 ''',
-      [error(CompileTimeErrorCode.illegalAsyncGeneratorReturnType, 0, 3)],
+      [error(diag.illegalAsyncGeneratorReturnType, 0, 3)],
     );
   }
 
@@ -36,7 +36,7 @@ Stream<void> f() async* {}
 abstract class SubStream<T> implements Stream<T> {}
 SubStream<int> f() async* {}
 ''',
-      [error(CompileTimeErrorCode.illegalAsyncGeneratorReturnType, 52, 14)],
+      [error(diag.illegalAsyncGeneratorReturnType, 52, 14)],
     );
   }
 
@@ -45,7 +45,7 @@ SubStream<int> f() async* {}
       '''
 void f() async* {}
 ''',
-      [error(CompileTimeErrorCode.illegalAsyncGeneratorReturnType, 0, 4)],
+      [error(diag.illegalAsyncGeneratorReturnType, 0, 4)],
     );
   }
 
@@ -56,7 +56,7 @@ class C {
   int f() async* {}
 }
 ''',
-      [error(CompileTimeErrorCode.illegalAsyncGeneratorReturnType, 12, 3)],
+      [error(diag.illegalAsyncGeneratorReturnType, 12, 3)],
     );
   }
 
@@ -68,7 +68,7 @@ class C {
   SubStream<int> f() async* {}
 }
 ''',
-      [error(CompileTimeErrorCode.illegalAsyncGeneratorReturnType, 64, 14)],
+      [error(diag.illegalAsyncGeneratorReturnType, 64, 14)],
     );
   }
 
@@ -79,7 +79,7 @@ class C {
   void f() async* {}
 }
 ''',
-      [error(CompileTimeErrorCode.illegalAsyncGeneratorReturnType, 12, 4)],
+      [error(diag.illegalAsyncGeneratorReturnType, 12, 4)],
     );
   }
 }

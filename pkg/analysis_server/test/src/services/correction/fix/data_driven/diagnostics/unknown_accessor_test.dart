@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analysis_server/src/services/correction/fix/data_driven/transform_set_error_code.dart';
+import 'package:analysis_server/src/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../code_fragment_parser_test.dart';
@@ -17,13 +17,11 @@ void main() {
 class UnknownAccessorTest extends AbstractCodeFragmentParserTest {
   void test_afterPeriod() {
     assertErrors('arguments[0].argument[1]', [
-      error(TransformSetErrorCode.unknownAccessor, 13, 8),
+      error(diag.unknownAccessor, 13, 8),
     ]);
   }
 
   void test_initial() {
-    assertErrors('argument[0]', [
-      error(TransformSetErrorCode.unknownAccessor, 0, 8),
-    ]);
+    assertErrors('argument[0]', [error(diag.unknownAccessor, 0, 8)]);
   }
 }

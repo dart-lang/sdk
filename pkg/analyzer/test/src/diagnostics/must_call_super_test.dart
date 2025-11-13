@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
@@ -50,7 +50,7 @@ class B extends A {
   void a() {}
 }
 ''',
-      [error(WarningCode.mustCallSuper, 115, 1)],
+      [error(diag.mustCallSuper, 115, 1)],
     );
   }
 
@@ -95,7 +95,7 @@ class B extends A<int> {
   void a() {}
 }
 ''',
-      [error(WarningCode.mustCallSuper, 123, 1)],
+      [error(diag.mustCallSuper, 123, 1)],
     );
   }
 
@@ -112,7 +112,7 @@ class B extends A {
   void a<T>() {}
 }
 ''',
-      [error(WarningCode.mustCallSuper, 118, 1)],
+      [error(diag.mustCallSuper, 118, 1)],
     );
   }
 
@@ -129,7 +129,7 @@ class B extends A {
   int get a => 2;
 }
 ''',
-      [error(WarningCode.mustCallSuper, 122, 1)],
+      [error(diag.mustCallSuper, 122, 1)],
     );
   }
 
@@ -169,7 +169,7 @@ class B extends A {
   }
 }
 ''',
-      [error(WarningCode.mustCallSuper, 135, 3)],
+      [error(diag.mustCallSuper, 135, 3)],
     );
   }
 
@@ -186,7 +186,7 @@ class B extends A {
   operator ==(Object o) => o is B;
 }
 ''',
-      [error(WarningCode.mustCallSuper, 140, 2)],
+      [error(diag.mustCallSuper, 140, 2)],
     );
   }
 
@@ -217,7 +217,7 @@ class B extends A {
   set a(int value) {}
 }
 ''',
-      [error(WarningCode.mustCallSuper, 122, 1)],
+      [error(diag.mustCallSuper, 122, 1)],
     );
   }
 
@@ -255,7 +255,7 @@ class B extends A {
   }
 }
 ''',
-      [error(WarningCode.mustCallSuper, 131, 3)],
+      [error(diag.mustCallSuper, 131, 3)],
     );
   }
 
@@ -286,7 +286,7 @@ class C with Mixin {
   void a() {}
 }
 ''',
-      [error(WarningCode.mustCallSuper, 120, 1)],
+      [error(diag.mustCallSuper, 120, 1)],
     );
   }
 
@@ -303,7 +303,7 @@ class C with Mixin {
   void set a(int value) {}
 }
 ''',
-      [error(WarningCode.mustCallSuper, 137, 1)],
+      [error(diag.mustCallSuper, 137, 1)],
     );
   }
 
@@ -321,7 +321,7 @@ class D extends C {
   void a() {}
 }
 ''',
-      [error(WarningCode.mustCallSuper, 133, 1)],
+      [error(diag.mustCallSuper, 133, 1)],
     );
   }
 
@@ -344,7 +344,7 @@ class D extends C {
   void a() {}
 }
 ''',
-      [error(WarningCode.mustCallSuper, 181, 1)],
+      [error(diag.mustCallSuper, 181, 1)],
     );
   }
 
@@ -362,7 +362,7 @@ class D extends C {
   void b() {}
 }
 ''',
-      [error(WarningCode.mustCallSuper, 156, 1)],
+      [error(diag.mustCallSuper, 156, 1)],
     );
   }
 
@@ -379,7 +379,7 @@ mixin C on A {
   void a() {}
 }
 ''',
-      [error(WarningCode.mustCallSuper, 110, 1)],
+      [error(diag.mustCallSuper, 110, 1)],
     );
   }
 

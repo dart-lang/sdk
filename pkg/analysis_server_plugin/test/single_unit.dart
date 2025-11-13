@@ -8,7 +8,7 @@ import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/dart/analysis/analysis_context_collection.dart';
 import 'package:analyzer/src/dart/analysis/byte_store.dart';
 import 'package:analyzer/src/dart/analysis/driver_based_analysis_context.dart';
-import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:analyzer/src/generated/engine.dart' show AnalysisEngine;
 import 'package:analyzer/src/test_utilities/find_node.dart';
 import 'package:analyzer/src/test_utilities/mock_sdk.dart';
@@ -79,13 +79,13 @@ class SingleUnitTest with ResourceProviderMixin {
 
     expect(
       result.diagnostics.where((d) {
-        return d.diagnosticCode != WarningCode.deadCode &&
-            d.diagnosticCode != WarningCode.unusedCatchClause &&
-            d.diagnosticCode != WarningCode.unusedCatchStack &&
-            d.diagnosticCode != WarningCode.unusedElement &&
-            d.diagnosticCode != WarningCode.unusedField &&
-            d.diagnosticCode != WarningCode.unusedImport &&
-            d.diagnosticCode != WarningCode.unusedLocalVariable;
+        return d.diagnosticCode != diag.deadCode &&
+            d.diagnosticCode != diag.unusedCatchClause &&
+            d.diagnosticCode != diag.unusedCatchStack &&
+            d.diagnosticCode != diag.unusedElement &&
+            d.diagnosticCode != diag.unusedField &&
+            d.diagnosticCode != diag.unusedImport &&
+            d.diagnosticCode != diag.unusedLocalVariable;
       }),
       isEmpty,
     );

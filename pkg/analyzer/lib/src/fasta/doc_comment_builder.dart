@@ -17,7 +17,7 @@ import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/source/line_info.dart';
 import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
-import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:analyzer/src/fasta/ast_builder.dart';
 
 /// Given a comment reference without a closing `]`, search for a possible
@@ -206,7 +206,7 @@ final class DocCommentBuilder {
             _diagnosticReporter?.atOffset(
               offset: openingTag.offset,
               length: openingTag.end - openingTag.offset,
-              diagnosticCode: WarningCode.docDirectiveMissingClosingTag,
+              diagnosticCode: diag.docDirectiveMissingClosingTag,
               arguments: [openingTag.type.opposingName!],
             );
           }
@@ -223,7 +223,7 @@ final class DocCommentBuilder {
     _diagnosticReporter?.atOffset(
       offset: closingTag.offset,
       length: closingTag.end - closingTag.offset,
-      diagnosticCode: WarningCode.docDirectiveMissingOpeningTag,
+      diagnosticCode: diag.docDirectiveMissingOpeningTag,
       arguments: [closingTag.type.name],
     );
     _pushDocDirective(SimpleDocDirective(closingTag));
@@ -305,7 +305,7 @@ final class DocCommentBuilder {
         _diagnosticReporter?.atOffset(
           offset: openingTag.offset,
           length: openingTag.end - openingTag.offset,
-          diagnosticCode: WarningCode.docDirectiveMissingClosingTag,
+          diagnosticCode: diag.docDirectiveMissingClosingTag,
           arguments: [openingTag.type.opposingName!],
         );
       }
@@ -396,7 +396,7 @@ final class DocCommentBuilder {
     _diagnosticReporter?.atOffset(
       offset: _characterSequence._offset + nameIndex,
       length: nameEnd - nameIndex,
-      diagnosticCode: WarningCode.docDirectiveUnknown,
+      diagnosticCode: diag.docDirectiveUnknown,
       arguments: [name],
     );
     return false;
@@ -1218,7 +1218,7 @@ final class _DirectiveParser {
     _diagnosticReporter?.atOffset(
       offset: _offset + index - 1,
       length: 1,
-      diagnosticCode: WarningCode.docDirectiveMissingClosingBrace,
+      diagnosticCode: diag.docDirectiveMissingClosingBrace,
     );
     return (positionalArguments, namedArguments);
   }
@@ -1253,7 +1253,7 @@ final class _DirectiveParser {
         _diagnosticReporter?.atOffset(
           offset: _offset + index - 1,
           length: 1,
-          diagnosticCode: WarningCode.docDirectiveMissingClosingBrace,
+          diagnosticCode: diag.docDirectiveMissingClosingBrace,
         );
         break;
       }
@@ -1263,7 +1263,7 @@ final class _DirectiveParser {
     _diagnosticReporter?.atOffset(
       offset: extraArgumentsOffset,
       length: errorLength,
-      diagnosticCode: WarningCode.docDirectiveHasExtraArguments,
+      diagnosticCode: diag.docDirectiveHasExtraArguments,
     );
     _end = _offset + index;
   }

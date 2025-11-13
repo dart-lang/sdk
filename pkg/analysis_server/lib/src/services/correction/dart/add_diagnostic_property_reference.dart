@@ -15,7 +15,7 @@ import 'package:analyzer_plugin/utilities/assist/assist.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_dart.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
-import 'package:linter/src/lint_codes.dart';
+import 'package:linter/src/diagnostic.dart' as diag;
 import 'package:linter/src/lint_names.dart';
 
 class AddDiagnosticPropertyReference extends ResolvedCorrectionProducer {
@@ -322,7 +322,7 @@ class AddDiagnosticPropertyReference extends ResolvedCorrectionProducer {
   }
 
   /// Returns a list of all the [Diagnostic]s of type
-  /// [LinterLintCode.diagnosticDescribeAllProperties] for the given
+  /// [diag.diagnosticDescribeAllProperties] for the given
   /// [declaration].
   List<Diagnostic> _getAllDiagnosticsInClass(ClassDeclaration declaration) {
     var propertyDiagnostics = <Diagnostic>[];
@@ -331,7 +331,7 @@ class AddDiagnosticPropertyReference extends ResolvedCorrectionProducer {
     for (var diagnostic in unitResult.diagnostics) {
       var diagnosticCode = diagnostic.diagnosticCode;
       if (diagnosticCode.type == DiagnosticType.LINT &&
-          diagnosticCode == LinterLintCode.diagnosticDescribeAllProperties &&
+          diagnosticCode == diag.diagnosticDescribeAllProperties &&
           diagnostic.offset > startOffset &&
           diagnostic.offset < endOffset) {
         propertyDiagnostics.add(diagnostic);

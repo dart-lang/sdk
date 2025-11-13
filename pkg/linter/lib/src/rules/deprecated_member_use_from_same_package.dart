@@ -23,6 +23,7 @@ import 'package:analyzer/src/utilities/extensions/ast.dart'; // ignore: implemen
 import 'package:analyzer/workspace/workspace.dart';
 
 import '../analyzer.dart';
+import '../diagnostic.dart' as diag;
 
 const _desc =
     'Avoid using deprecated elements from within the package in which they are '
@@ -37,8 +38,8 @@ class DeprecatedMemberUseFromSamePackage extends MultiAnalysisRule {
 
   @override
   List<DiagnosticCode> get diagnosticCodes => [
-    LinterLintCode.deprecatedMemberUseFromSamePackageWithMessage,
-    LinterLintCode.deprecatedMemberUseFromSamePackageWithoutMessage,
+    diag.deprecatedMemberUseFromSamePackageWithMessage,
+    diag.deprecatedMemberUseFromSamePackageWithoutMessage,
   ];
 
   @override
@@ -74,16 +75,14 @@ class _DeprecatedElementUsageReporter extends ElementUsageReporter<String> {
         usageSite.offset,
         usageSite.length,
         arguments: [displayName, message],
-        diagnosticCode:
-            LinterLintCode.deprecatedMemberUseFromSamePackageWithMessage,
+        diagnosticCode: diag.deprecatedMemberUseFromSamePackageWithMessage,
       );
     } else {
       _rule.reportAtOffset(
         usageSite.offset,
         usageSite.length,
         arguments: [displayName],
-        diagnosticCode:
-            LinterLintCode.deprecatedMemberUseFromSamePackageWithoutMessage,
+        diagnosticCode: diag.deprecatedMemberUseFromSamePackageWithoutMessage,
       );
     }
   }

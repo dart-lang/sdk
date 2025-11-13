@@ -13,6 +13,7 @@ import 'package:analyzer/dart/element/type_system.dart';
 import 'package:analyzer/error/error.dart';
 
 import '../analyzer.dart';
+import '../diagnostic.dart' as diag;
 
 const _desc = r"Don't assign to `void`.";
 
@@ -20,7 +21,7 @@ class VoidChecks extends AnalysisRule {
   VoidChecks() : super(name: LintNames.void_checks, description: _desc);
 
   @override
-  DiagnosticCode get diagnosticCode => LinterLintCode.voidChecks;
+  DiagnosticCode get diagnosticCode => diag.voidChecks;
 
   @override
   void registerNodeProcessors(

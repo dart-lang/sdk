@@ -13,6 +13,7 @@ import 'package:analyzer/dart/element/type_provider.dart';
 import 'package:analyzer/error/error.dart';
 
 import '../analyzer.dart';
+import '../diagnostic.dart' as diag;
 
 const _desc = r'Omit type annotations for local variables.';
 
@@ -21,7 +22,7 @@ class OmitLocalVariableTypes extends AnalysisRule {
     : super(name: LintNames.omit_local_variable_types, description: _desc);
 
   @override
-  DiagnosticCode get diagnosticCode => LinterLintCode.omitLocalVariableTypes;
+  DiagnosticCode get diagnosticCode => diag.omitLocalVariableTypes;
 
   @override
   List<String> get incompatibleRules => const [

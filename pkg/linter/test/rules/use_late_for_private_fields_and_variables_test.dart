@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../rule_test_support.dart';
@@ -26,7 +27,7 @@ extension type E(int i) {
 ''',
       [
         // No lint.
-        error(CompileTimeErrorCode.extensionTypeDeclaresInstanceField, 33, 2),
+        error(diag.extensionTypeDeclaresInstanceField, 33, 2),
       ],
     );
   }
@@ -116,7 +117,7 @@ class C {
 ''',
       [
         // No lint.
-        error(CompileTimeErrorCode.patternAssignmentNotLocalVariable, 54, 2),
+        error(diag.patternAssignmentNotLocalVariable, 54, 2),
       ],
     );
   }
@@ -133,7 +134,7 @@ m() {
 ''',
       [
         // No lint.
-        error(CompileTimeErrorCode.patternAssignmentNotLocalVariable, 31, 2),
+        error(diag.patternAssignmentNotLocalVariable, 31, 2),
       ],
     );
   }

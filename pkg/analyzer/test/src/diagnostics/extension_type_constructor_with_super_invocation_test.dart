@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
@@ -23,13 +23,7 @@ extension type E(int it) {
   E.named() : it = 0, super.named();
 }
 ''',
-      [
-        error(
-          CompileTimeErrorCode.extensionTypeConstructorWithSuperInvocation,
-          49,
-          5,
-        ),
-      ],
+      [error(diag.extensionTypeConstructorWithSuperInvocation, 49, 5)],
     );
 
     var node = findNode.singleSuperConstructorInvocation;
@@ -56,12 +50,8 @@ extension type const E._(int it) {
 }
 ''',
       [
-        error(CompileTimeErrorCode.finalNotInitializedConstructor1, 43, 1),
-        error(
-          CompileTimeErrorCode.extensionTypeConstructorWithSuperInvocation,
-          55,
-          5,
-        ),
+        error(diag.finalNotInitializedConstructor1, 43, 1),
+        error(diag.extensionTypeConstructorWithSuperInvocation, 55, 5),
       ],
     );
   }
@@ -73,13 +63,7 @@ extension type E(int it) {
   E.named() : it = 0, super();
 }
 ''',
-      [
-        error(
-          CompileTimeErrorCode.extensionTypeConstructorWithSuperInvocation,
-          49,
-          5,
-        ),
-      ],
+      [error(diag.extensionTypeConstructorWithSuperInvocation, 49, 5)],
     );
 
     var node = findNode.singleSuperConstructorInvocation;

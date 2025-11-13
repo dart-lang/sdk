@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
@@ -62,7 +62,7 @@ class A {
   static int x = 0, y, z = 2;
 }
 ''',
-      [error(CompileTimeErrorCode.notInitializedNonNullableVariable, 30, 1)],
+      [error(diag.notInitializedNonNullableVariable, 30, 1)],
     );
   }
 
@@ -74,7 +74,7 @@ class A {
   A();
 }
 ''',
-      [error(CompileTimeErrorCode.notInitializedNonNullableVariable, 30, 1)],
+      [error(diag.notInitializedNonNullableVariable, 30, 1)],
     );
   }
 
@@ -86,7 +86,7 @@ class A {
   A();
 }
 ''',
-      [error(CompileTimeErrorCode.notInitializedNonNullableVariable, 36, 1)],
+      [error(diag.notInitializedNonNullableVariable, 36, 1)],
     );
   }
 
@@ -121,7 +121,7 @@ class A {
   static Never v;
 }
 ''',
-      [error(CompileTimeErrorCode.notInitializedNonNullableVariable, 25, 1)],
+      [error(diag.notInitializedNonNullableVariable, 25, 1)],
     );
   }
 
@@ -152,7 +152,7 @@ int v = 0;
       '''
 int x = 0, y, z = 2;
 ''',
-      [error(CompileTimeErrorCode.notInitializedNonNullableVariable, 11, 1)],
+      [error(diag.notInitializedNonNullableVariable, 11, 1)],
     );
   }
 
@@ -179,7 +179,7 @@ var v;
       '''
 Never v;
 ''',
-      [error(CompileTimeErrorCode.notInitializedNonNullableVariable, 6, 1)],
+      [error(diag.notInitializedNonNullableVariable, 6, 1)],
     );
   }
 

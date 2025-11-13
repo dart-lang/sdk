@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
@@ -29,7 +29,7 @@ import 'package:meta/meta.dart';
 @nonVirtual
 class C {}
 ''',
-      [error(WarningCode.invalidNonVirtualAnnotation, 35, 10)],
+      [error(diag.invalidNonVirtualAnnotation, 35, 10)],
     );
   }
 
@@ -43,7 +43,7 @@ abstract class C {
   void m();
 }
 ''',
-      [error(WarningCode.invalidNonVirtualAnnotation, 56, 10)],
+      [error(diag.invalidNonVirtualAnnotation, 56, 10)],
     );
   }
 
@@ -102,7 +102,7 @@ class C {
    static int f = 0;
 }
 ''',
-      [error(WarningCode.invalidNonVirtualAnnotation, 48, 10)],
+      [error(diag.invalidNonVirtualAnnotation, 48, 10)],
     );
   }
 
@@ -116,7 +116,7 @@ class C {
    static void m() {}
 }
 ''',
-      [error(WarningCode.invalidNonVirtualAnnotation, 48, 10)],
+      [error(diag.invalidNonVirtualAnnotation, 48, 10)],
     );
   }
 
@@ -130,7 +130,7 @@ enum E {
   a, b, c
 }
 ''',
-      [error(WarningCode.invalidNonVirtualAnnotation, 35, 10)],
+      [error(diag.invalidNonVirtualAnnotation, 35, 10)],
     );
   }
 
@@ -145,7 +145,7 @@ enum E {
   b, c
 }
 ''',
-      [error(WarningCode.invalidNonVirtualAnnotation, 46, 10)],
+      [error(diag.invalidNonVirtualAnnotation, 46, 10)],
     );
   }
 
@@ -157,7 +157,7 @@ import 'package:meta/meta.dart';
 @nonVirtual
 extension E on Object {}
 ''',
-      [error(WarningCode.invalidNonVirtualAnnotation, 35, 10)],
+      [error(diag.invalidNonVirtualAnnotation, 35, 10)],
     );
   }
 
@@ -171,7 +171,7 @@ extension E on Object {
    void m() {}
 }
 ''',
-      [error(WarningCode.invalidNonVirtualAnnotation, 62, 10)],
+      [error(diag.invalidNonVirtualAnnotation, 62, 10)],
     );
   }
 
@@ -185,7 +185,7 @@ extension type E(int i) {
   void m() { }
 }
 ''',
-      [error(WarningCode.invalidNonVirtualAnnotation, 63, 10)],
+      [error(diag.invalidNonVirtualAnnotation, 63, 10)],
     );
   }
 
@@ -195,7 +195,7 @@ extension type E(int i) {
 @nonVirtual
 import 'package:meta/meta.dart';
 ''',
-      [error(WarningCode.invalidNonVirtualAnnotation, 1, 10)],
+      [error(diag.invalidNonVirtualAnnotation, 1, 10)],
     );
   }
 
@@ -207,7 +207,7 @@ import 'package:meta/meta.dart';
 @nonVirtual
 mixin M {}
 ''',
-      [error(WarningCode.invalidNonVirtualAnnotation, 35, 10)],
+      [error(diag.invalidNonVirtualAnnotation, 35, 10)],
     );
   }
 
@@ -232,7 +232,7 @@ mixin M {
   static int f = 0;
 }
 ''',
-      [error(WarningCode.invalidNonVirtualAnnotation, 47, 10)],
+      [error(diag.invalidNonVirtualAnnotation, 47, 10)],
     );
   }
 
@@ -246,7 +246,7 @@ mixin M {
   static void m() {}
 }
 ''',
-      [error(WarningCode.invalidNonVirtualAnnotation, 47, 10)],
+      [error(diag.invalidNonVirtualAnnotation, 47, 10)],
     );
   }
 
@@ -258,7 +258,7 @@ import 'package:meta/meta.dart';
 @nonVirtual
 m() {}
 ''',
-      [error(WarningCode.invalidNonVirtualAnnotation, 35, 10)],
+      [error(diag.invalidNonVirtualAnnotation, 35, 10)],
     );
   }
 
@@ -270,7 +270,7 @@ import 'package:meta/meta.dart';
 @nonVirtual
 int get g =>  0;
 ''',
-      [error(WarningCode.invalidNonVirtualAnnotation, 35, 10)],
+      [error(diag.invalidNonVirtualAnnotation, 35, 10)],
     );
   }
 
@@ -282,7 +282,7 @@ import 'package:meta/meta.dart';
 @nonVirtual
 set s(int v) {}
 ''',
-      [error(WarningCode.invalidNonVirtualAnnotation, 35, 10)],
+      [error(diag.invalidNonVirtualAnnotation, 35, 10)],
     );
   }
 
@@ -294,7 +294,7 @@ import 'package:meta/meta.dart';
 @nonVirtual
 int x = 0;
 ''',
-      [error(WarningCode.invalidNonVirtualAnnotation, 35, 10)],
+      [error(diag.invalidNonVirtualAnnotation, 35, 10)],
     );
   }
 
@@ -306,7 +306,7 @@ import 'package:meta/meta.dart';
 @nonVirtual
 typedef bool predicate(Object o);
 ''',
-      [error(WarningCode.invalidNonVirtualAnnotation, 35, 10)],
+      [error(diag.invalidNonVirtualAnnotation, 35, 10)],
     );
   }
 }

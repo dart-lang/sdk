@@ -10,6 +10,7 @@ import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/error/error.dart';
 
 import '../analyzer.dart';
+import '../diagnostic.dart' as diag;
 import '../util/flutter_utils.dart';
 
 const _desc = r'Sort child properties last in widget instance creations.';
@@ -19,7 +20,7 @@ class SortChildPropertiesLast extends AnalysisRule {
     : super(name: LintNames.sort_child_properties_last, description: _desc);
 
   @override
-  DiagnosticCode get diagnosticCode => LinterLintCode.sortChildPropertiesLast;
+  DiagnosticCode get diagnosticCode => diag.sortChildPropertiesLast;
 
   @override
   void registerNodeProcessors(

@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/src/dart/error/syntactic_errors.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../../diagnostics/parser_diagnostics.dart';
@@ -274,9 +274,7 @@ mixin A {
   A.named();
 }
 ''');
-    parseResult.assertErrors([
-      error(ParserErrorCode.mixinDeclaresConstructor, 12, 1),
-    ]);
+    parseResult.assertErrors([error(diag.mixinDeclaresConstructor, 12, 1)]);
 
     // Mixins cannot have constructors.
     // So, we don't put them into AST at all.

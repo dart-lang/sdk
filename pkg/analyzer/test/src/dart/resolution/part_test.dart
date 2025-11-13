@@ -3,8 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/src/dart/element/element.dart';
-import 'package:analyzer/src/dart/error/syntactic_errors.dart';
-import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -37,7 +36,7 @@ part 'a.dart';
       r'''
 part 'a.dart';
 ''',
-      [error(CompileTimeErrorCode.uriDoesNotExist, 5, 8)],
+      [error(diag.uriDoesNotExist, 5, 8)],
     );
 
     var node = findNode.singlePartDirective;
@@ -58,7 +57,7 @@ PartDirective
       '''
 part 'part.g.dart';
 ''',
-      [error(CompileTimeErrorCode.uriHasNotBeenGenerated, 5, 13)],
+      [error(diag.uriHasNotBeenGenerated, 5, 13)],
     );
   }
 
@@ -67,7 +66,7 @@ part 'part.g.dart';
       r'''
 part ':net';
 ''',
-      [error(CompileTimeErrorCode.invalidUri, 5, 6)],
+      [error(diag.invalidUri, 5, 6)],
     );
 
     var node = findNode.singlePartDirective;
@@ -88,7 +87,7 @@ PartDirective
       r'''
 part '${'foo'}.dart';
 ''',
-      [error(CompileTimeErrorCode.uriWithInterpolation, 5, 15)],
+      [error(diag.uriWithInterpolation, 5, 15)],
     );
 
     var node = findNode.singlePartDirective;
@@ -119,7 +118,7 @@ PartDirective
       r'''
 part 'foo:bar';
 ''',
-      [error(CompileTimeErrorCode.uriDoesNotExist, 5, 9)],
+      [error(diag.uriDoesNotExist, 5, 9)],
     );
 
     var node = findNode.singlePartDirective;
@@ -213,9 +212,7 @@ part of bar;
     assertNoErrorsInResult();
 
     await resolveFile2(a);
-    assertErrorsInResult([
-      error(CompileTimeErrorCode.partOfDifferentLibrary, 33, 8),
-    ]);
+    assertErrorsInResult([error(diag.partOfDifferentLibrary, 33, 8)]);
 
     var node = findNode.singlePartDirective;
     assertResolvedNodeText(node, r'''
@@ -261,7 +258,7 @@ part of 'x.dart';
       r'''
 part 'a.dart';
 ''',
-      [error(CompileTimeErrorCode.partOfDifferentLibrary, 5, 8)],
+      [error(diag.partOfDifferentLibrary, 5, 8)],
     );
 
     var node = findNode.singlePartDirective;
@@ -314,7 +311,7 @@ PartDirective
       r'''
 part 'a.dart';
 ''',
-      [error(CompileTimeErrorCode.partOfNonPart, 5, 8)],
+      [error(diag.partOfNonPart, 5, 8)],
     );
 
     var node = findNode.singlePartDirective;
@@ -341,7 +338,7 @@ part 'c.dart';
 ''');
 
     await resolveFile2(b);
-    assertErrorsInResult([error(CompileTimeErrorCode.uriDoesNotExist, 23, 8)]);
+    assertErrorsInResult([error(diag.uriDoesNotExist, 23, 8)]);
 
     var node = findNode.singlePartDirective;
     assertResolvedNodeText(node, r'''
@@ -367,7 +364,7 @@ part ':net';
 ''');
 
     await resolveFile2(b);
-    assertErrorsInResult([error(CompileTimeErrorCode.invalidUri, 23, 6)]);
+    assertErrorsInResult([error(diag.invalidUri, 23, 6)]);
 
     var node = findNode.singlePartDirective;
     assertResolvedNodeText(node, r'''
@@ -393,9 +390,7 @@ part '${'foo'}.dart';
 ''');
 
     await resolveFile2(b);
-    assertErrorsInResult([
-      error(CompileTimeErrorCode.uriWithInterpolation, 23, 15),
-    ]);
+    assertErrorsInResult([error(diag.uriWithInterpolation, 23, 15)]);
 
     var node = findNode.singlePartDirective;
     assertResolvedNodeText(node, r'''
@@ -431,7 +426,7 @@ part 'foo:bar';
 ''');
 
     await resolveFile2(b);
-    assertErrorsInResult([error(CompileTimeErrorCode.uriDoesNotExist, 23, 9)]);
+    assertErrorsInResult([error(diag.uriDoesNotExist, 23, 9)]);
 
     var node = findNode.singlePartDirective;
     assertResolvedNodeText(node, r'''
@@ -461,7 +456,7 @@ part of my.lib;
 ''');
 
     await resolveFile2(c);
-    assertErrorsInResult([error(ParserErrorCode.partOfName, 8, 6)]);
+    assertErrorsInResult([error(diag.partOfName, 8, 6)]);
 
     // We already reported an error above.
     await resolveFile2(b);
@@ -525,9 +520,7 @@ part of 'a.dart';
 ''');
 
     await resolveFile2(b);
-    assertErrorsInResult([
-      error(CompileTimeErrorCode.partOfDifferentLibrary, 23, 8),
-    ]);
+    assertErrorsInResult([error(diag.partOfDifferentLibrary, 23, 8)]);
 
     var node = findNode.singlePartDirective;
     assertResolvedNodeText(node, r'''
@@ -555,7 +548,7 @@ part 'c.dart';
     newFile('$testPackageLibPath/c.dart', '');
 
     await resolveFile2(b);
-    assertErrorsInResult([error(CompileTimeErrorCode.partOfNonPart, 23, 8)]);
+    assertErrorsInResult([error(diag.partOfNonPart, 23, 8)]);
 
     var node = findNode.singlePartDirective;
     assertResolvedNodeText(node, r'''

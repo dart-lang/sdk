@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
@@ -16,8 +16,7 @@ main() {
 @reflectiveTest
 class FinalInitializedByMultipleInitializersTest
     extends PubPackageResolutionTest {
-  static const _errorCode =
-      CompileTimeErrorCode.fieldInitializedByMultipleInitializers;
+  static const _errorCode = diag.fieldInitializedByMultipleInitializers;
 
   @SkippedTest() // TODO(scheglov): implement augmentation
   test_class_augmentation2_bothInitialize() async {
@@ -202,10 +201,7 @@ enum E {
   const E() : x = 0, x = 1;
 }
 ''',
-      [
-        error(CompileTimeErrorCode.constEvalThrowsException, 11, 1),
-        error(_errorCode, 50, 1),
-      ],
+      [error(diag.constEvalThrowsException, 11, 1), error(_errorCode, 50, 1)],
     );
   }
 }

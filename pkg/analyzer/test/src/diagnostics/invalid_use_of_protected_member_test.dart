@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
@@ -42,7 +42,7 @@ void main() {
     await assertErrorsInFile2(lib1, []);
     await assertErrorsInFile2(lib2, [
       error(
-        WarningCode.invalidUseOfProtectedMember,
+        diag.invalidUseOfProtectedMember,
         56,
         1,
         text:
@@ -82,7 +82,7 @@ extension E on A {
 
     await assertErrorsInFile2(lib1, []);
     await assertErrorsInFile2(lib2, [
-      error(WarningCode.invalidUseOfProtectedMember, 51, 1),
+      error(diag.invalidUseOfProtectedMember, 51, 1),
     ]);
   }
 
@@ -118,7 +118,7 @@ void main() {
 ''');
     await assertErrorsInFile2(lib1, []);
     await assertErrorsInFile2(lib2, [
-      error(WarningCode.invalidUseOfProtectedMember, 43, 1),
+      error(diag.invalidUseOfProtectedMember, 43, 1),
     ]);
   }
 
@@ -151,7 +151,7 @@ void main() {
 ''');
     await assertErrorsInFile2(lib1, []);
     await assertErrorsInFile2(lib2, [
-      error(WarningCode.invalidUseOfProtectedMember, 41, 1),
+      error(diag.invalidUseOfProtectedMember, 41, 1),
     ]);
   }
 
@@ -185,7 +185,7 @@ abstract class B {
 
     await assertErrorsInFile2(lib1, []);
     await assertErrorsInFile2(lib2, [
-      error(WarningCode.invalidUseOfProtectedMember, 60, 1),
+      error(diag.invalidUseOfProtectedMember, 60, 1),
     ]);
   }
 
@@ -241,7 +241,7 @@ main() {
 
     await assertErrorsInFile2(lib1, []);
     await assertErrorsInFile2(lib2, [
-      error(WarningCode.invalidUseOfProtectedMember, 40, 1),
+      error(diag.invalidUseOfProtectedMember, 40, 1),
     ]);
   }
 
@@ -301,7 +301,7 @@ class B {
 
     await assertErrorsInFile2(lib1, []);
     await assertErrorsInFile2(lib2, [
-      error(WarningCode.invalidUseOfProtectedMember, 58, 1),
+      error(diag.invalidUseOfProtectedMember, 58, 1),
     ]);
   }
 
@@ -324,7 +324,7 @@ void f(Object o) {
 
     await assertErrorsInFile2(lib1, []);
     await assertErrorsInFile2(lib2, [
-      error(WarningCode.invalidUseOfProtectedMember, 65, 1),
+      error(diag.invalidUseOfProtectedMember, 65, 1),
     ]);
   }
 
@@ -383,7 +383,7 @@ class B {
 
     await assertErrorsInFile2(lib1, []);
     await assertErrorsInFile2(lib2, [
-      error(WarningCode.invalidUseOfProtectedMember, 53, 1),
+      error(diag.invalidUseOfProtectedMember, 53, 1),
     ]);
   }
 
@@ -471,7 +471,7 @@ class B {
 
     await assertErrorsInFile2(lib1, []);
     await assertErrorsInFile2(lib2, [
-      error(WarningCode.invalidUseOfProtectedMember, 62, 1),
+      error(diag.invalidUseOfProtectedMember, 62, 1),
     ]);
   }
 
@@ -488,7 +488,7 @@ class A {
   }
 }
 ''',
-      [error(WarningCode.unusedField, 49, 2)],
+      [error(diag.unusedField, 49, 2)],
     );
   }
 

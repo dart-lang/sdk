@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
@@ -26,7 +26,7 @@ class Foo {}
 import 'foo.dart';
 var x = Foo();
 ''',
-      [error(WarningCode.deprecatedInstantiate, 27, 3)],
+      [error(diag.deprecatedInstantiate, 27, 3)],
     );
   }
 
@@ -40,7 +40,7 @@ class Foo {}
 import 'foo.dart';
 Foo x = .new();
 ''',
-      [error(WarningCode.deprecatedInstantiate, 28, 3)],
+      [error(diag.deprecatedInstantiate, 28, 3)],
     );
   }
 
@@ -56,7 +56,7 @@ class Foo {
 import 'foo.dart';
 Foo x = .named();
 ''',
-      [error(WarningCode.deprecatedInstantiate, 28, 5)],
+      [error(diag.deprecatedInstantiate, 28, 5)],
     );
   }
 
@@ -77,7 +77,7 @@ class Bar {
   factory Bar.one() = Foo.two;
 }
 ''',
-      [error(WarningCode.deprecatedInstantiate, 62, 7)],
+      [error(diag.deprecatedInstantiate, 62, 7)],
     );
   }
 
@@ -98,7 +98,7 @@ class Bar {
   factory Bar.one() = Foo;
 }
 ''',
-      [error(WarningCode.deprecatedInstantiate, 62, 3)],
+      [error(diag.deprecatedInstantiate, 62, 3)],
     );
   }
 
@@ -142,7 +142,7 @@ class Foo {}
 import 'foo.dart';
 var x = Foo.new;
 ''',
-      [error(WarningCode.deprecatedInstantiate, 27, 7)],
+      [error(diag.deprecatedInstantiate, 27, 7)],
     );
   }
 
@@ -171,7 +171,7 @@ typedef Foo2 = Foo;
 import 'foo.dart';
 Foo2 x = .new();
 ''',
-      [error(WarningCode.deprecatedInstantiate, 29, 3)],
+      [error(diag.deprecatedInstantiate, 29, 3)],
     );
   }
 
@@ -200,7 +200,7 @@ mixin M {}
 import 'foo.dart';
 var x = Foo();
 ''',
-      [error(WarningCode.deprecatedInstantiate, 27, 3)],
+      [error(diag.deprecatedInstantiate, 27, 3)],
     );
   }
 

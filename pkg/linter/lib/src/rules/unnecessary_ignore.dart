@@ -7,7 +7,7 @@ import 'package:analyzer/error/error.dart';
 // ignore: implementation_imports
 import 'package:analyzer/src/error/ignore_validator.dart';
 
-import '../analyzer.dart';
+import '../diagnostic.dart' as diag;
 
 const _desc = r"Don't ignore a diagnostic code that is not produced.";
 
@@ -16,22 +16,20 @@ class UnnecessaryIgnore extends MultiAnalysisRule {
     // Register the unnecessary_ignore lint codes with the analyzer's validator.
     // We do this here to avoid having to introduce a dependency from the analyzer
     // on the linter.
-    IgnoreValidator.unnecessaryIgnoreFileLintCode =
-        LinterLintCode.unnecessaryIgnoreFile;
-    IgnoreValidator.unnecessaryIgnoreLocationLintCode =
-        LinterLintCode.unnecessaryIgnore;
+    IgnoreValidator.unnecessaryIgnoreFileLintCode = diag.unnecessaryIgnoreFile;
+    IgnoreValidator.unnecessaryIgnoreLocationLintCode = diag.unnecessaryIgnore;
     IgnoreValidator.unnecessaryIgnoreNameFileLintCode =
-        LinterLintCode.unnecessaryIgnoreNameFile;
+        diag.unnecessaryIgnoreNameFile;
     IgnoreValidator.unnecessaryIgnoreNameLocationLintCode =
-        LinterLintCode.unnecessaryIgnoreName;
+        diag.unnecessaryIgnoreName;
   }
 
   @override
   List<DiagnosticCode> get diagnosticCodes => const [
-    LinterLintCode.unnecessaryIgnore,
-    LinterLintCode.unnecessaryIgnoreFile,
-    LinterLintCode.unnecessaryIgnoreName,
-    LinterLintCode.unnecessaryIgnoreNameFile,
+    diag.unnecessaryIgnore,
+    diag.unnecessaryIgnoreFile,
+    diag.unnecessaryIgnoreName,
+    diag.unnecessaryIgnoreNameFile,
   ];
 
   /// Note that there is intentionally no registration logic as there is no visiting or

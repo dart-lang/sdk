@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
@@ -44,12 +44,8 @@ int f() {
 }
 ''',
       [
-        error(CompileTimeErrorCode.constEvalMethodInvocation, 26, 3),
-        error(
-          CompileTimeErrorCode.constConstructorWithFieldInitializedByNonConst,
-          33,
-          5,
-        ),
+        error(diag.constEvalMethodInvocation, 26, 3),
+        error(diag.constConstructorWithFieldInitializedByNonConst, 33, 5),
       ],
     );
   }
@@ -63,13 +59,7 @@ class A {
   final x = y as num;
 }
 ''',
-      [
-        error(
-          CompileTimeErrorCode.constConstructorWithFieldInitializedByNonConst,
-          27,
-          5,
-        ),
-      ],
+      [error(diag.constConstructorWithFieldInitializedByNonConst, 27, 5)],
     );
   }
 
@@ -114,12 +104,8 @@ enum E {
 int f() => 0;
 ''',
       [
-        error(CompileTimeErrorCode.constEvalMethodInvocation, 30, 3),
-        error(
-          CompileTimeErrorCode.constConstructorWithFieldInitializedByNonConst,
-          37,
-          5,
-        ),
+        error(diag.constEvalMethodInvocation, 30, 3),
+        error(diag.constConstructorWithFieldInitializedByNonConst, 37, 5),
       ],
     );
   }

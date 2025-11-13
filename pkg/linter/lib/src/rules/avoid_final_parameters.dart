@@ -10,6 +10,7 @@ import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/error/error.dart';
 
 import '../analyzer.dart';
+import '../diagnostic.dart' as diag;
 
 const _desc = r'Avoid `final` for parameter declarations.';
 
@@ -18,7 +19,7 @@ class AvoidFinalParameters extends AnalysisRule {
     : super(name: LintNames.avoid_final_parameters, description: _desc);
 
   @override
-  DiagnosticCode get diagnosticCode => LinterLintCode.avoidFinalParameters;
+  DiagnosticCode get diagnosticCode => diag.avoidFinalParameters;
 
   @override
   List<String> get incompatibleRules => const [

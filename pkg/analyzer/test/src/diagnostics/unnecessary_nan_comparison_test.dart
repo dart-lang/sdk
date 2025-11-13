@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
@@ -24,7 +24,7 @@ void f(List<double> list) {
   }
 }
 ''',
-      [error(WarningCode.unnecessaryNanComparisonFalse, 56, 10)],
+      [error(diag.unnecessaryNanComparisonFalse, 56, 10)],
     );
   }
 
@@ -35,7 +35,7 @@ void f(double d) {
   d == double.nan;
 }
 ''',
-      [error(WarningCode.unnecessaryNanComparisonFalse, 23, 13)],
+      [error(diag.unnecessaryNanComparisonFalse, 23, 13)],
     );
   }
 
@@ -46,7 +46,7 @@ void f(double d) {
   double.nan == d;
 }
 ''',
-      [error(WarningCode.unnecessaryNanComparisonFalse, 21, 13)],
+      [error(diag.unnecessaryNanComparisonFalse, 21, 13)],
     );
   }
 
@@ -57,7 +57,7 @@ void f(double d) {
   d != double.nan;
 }
 ''',
-      [error(WarningCode.unnecessaryNanComparisonTrue, 23, 13)],
+      [error(diag.unnecessaryNanComparisonTrue, 23, 13)],
     );
   }
 
@@ -68,7 +68,7 @@ void f(double d) {
   double.nan != d;
 }
 ''',
-      [error(WarningCode.unnecessaryNanComparisonTrue, 21, 13)],
+      [error(diag.unnecessaryNanComparisonTrue, 21, 13)],
     );
   }
 }

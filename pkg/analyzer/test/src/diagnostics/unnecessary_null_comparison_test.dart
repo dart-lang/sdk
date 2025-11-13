@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
@@ -36,8 +36,8 @@ f(int a) {
 }
 ''',
       [
-        error(WarningCode.unnecessaryNullComparisonNeverNullFalse, 15, 7),
-        error(WarningCode.unnecessaryNullComparisonNeverNullFalse, 26, 7),
+        error(diag.unnecessaryNullComparisonNeverNullFalse, 15, 7),
+        error(diag.unnecessaryNullComparisonNeverNullFalse, 26, 7),
       ],
     );
   }
@@ -61,8 +61,8 @@ f() {
 }
 ''',
       [
-        error(WarningCode.unnecessaryNullComparisonAlwaysNullFalse, 18, 4),
-        error(WarningCode.unnecessaryNullComparisonAlwaysNullFalse, 36, 4),
+        error(diag.unnecessaryNullComparisonAlwaysNullFalse, 18, 4),
+        error(diag.unnecessaryNullComparisonAlwaysNullFalse, 36, 4),
       ],
     );
   }
@@ -77,8 +77,8 @@ f() {
 }
 ''',
       [
-        error(WarningCode.unnecessaryNullComparisonAlwaysNullTrue, 18, 4),
-        error(WarningCode.unnecessaryNullComparisonAlwaysNullTrue, 36, 4),
+        error(diag.unnecessaryNullComparisonAlwaysNullTrue, 18, 4),
+        error(diag.unnecessaryNullComparisonAlwaysNullTrue, 36, 4),
       ],
     );
   }
@@ -95,7 +95,7 @@ f(Unresolved o) {
   null == i;
 }
 ''',
-      [error(CompileTimeErrorCode.undefinedClass, 2, 10)],
+      [error(diag.undefinedClass, 2, 10)],
     );
   }
 
@@ -108,7 +108,7 @@ f(Unresolved o) {
   null == i;
 }
 ''',
-      [error(CompileTimeErrorCode.undefinedClass, 2, 10)],
+      [error(diag.undefinedClass, 2, 10)],
     );
   }
 
@@ -132,7 +132,7 @@ f(Unresolved o) {
   null != i;
 }
 ''',
-      [error(CompileTimeErrorCode.undefinedClass, 2, 10)],
+      [error(diag.undefinedClass, 2, 10)],
     );
   }
 
@@ -145,7 +145,7 @@ f(Unresolved o) {
   null != i;
 }
 ''',
-      [error(CompileTimeErrorCode.undefinedClass, 2, 10)],
+      [error(diag.undefinedClass, 2, 10)],
     );
   }
 
@@ -158,8 +158,8 @@ f(int a) {
 }
 ''',
       [
-        error(WarningCode.unnecessaryNullComparisonNeverNullTrue, 15, 7),
-        error(WarningCode.unnecessaryNullComparisonNeverNullTrue, 26, 7),
+        error(diag.unnecessaryNullComparisonNeverNullTrue, 15, 7),
+        error(diag.unnecessaryNullComparisonNeverNullTrue, 26, 7),
       ],
     );
   }

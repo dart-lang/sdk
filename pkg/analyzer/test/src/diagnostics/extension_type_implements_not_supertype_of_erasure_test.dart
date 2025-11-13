@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
@@ -21,7 +21,7 @@ class ExtensionTypeImplementsNotSupertypeTest extends PubPackageResolutionTest {
 extension type A(int it) {}
 extension type B(A it) implements num {}
 ''',
-      [error(CompileTimeErrorCode.extensionTypeImplementsNotSupertype, 62, 3)],
+      [error(diag.extensionTypeImplementsNotSupertype, 62, 3)],
     );
   }
 
@@ -30,7 +30,7 @@ extension type B(A it) implements num {}
       '''
 extension type A(int it) implements String {}
 ''',
-      [error(CompileTimeErrorCode.extensionTypeImplementsNotSupertype, 36, 6)],
+      [error(diag.extensionTypeImplementsNotSupertype, 36, 6)],
     );
   }
 

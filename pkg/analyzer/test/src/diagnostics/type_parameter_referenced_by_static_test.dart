@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
@@ -22,7 +22,7 @@ class A<T> {
   static T? foo;
 }
 ''',
-      [error(CompileTimeErrorCode.typeParameterReferencedByStatic, 22, 1)],
+      [error(diag.typeParameterReferencedByStatic, 22, 1)],
     );
   }
 
@@ -33,7 +33,7 @@ class A<T> {
   static T? get foo => null;
 }
 ''',
-      [error(CompileTimeErrorCode.typeParameterReferencedByStatic, 22, 1)],
+      [error(diag.typeParameterReferencedByStatic, 22, 1)],
     );
   }
 
@@ -47,7 +47,7 @@ class A<T> {
   }
 }
 ''',
-      [error(CompileTimeErrorCode.typeParameterReferencedByStatic, 70, 1)],
+      [error(diag.typeParameterReferencedByStatic, 70, 1)],
     );
   }
 
@@ -60,7 +60,7 @@ class A<T> {
   }
 }
 ''',
-      [error(CompileTimeErrorCode.typeParameterReferencedByStatic, 49, 1)],
+      [error(diag.typeParameterReferencedByStatic, 49, 1)],
     );
   }
 
@@ -71,7 +71,7 @@ class A<T> {
   static foo(T a) {}
 }
 ''',
-      [error(CompileTimeErrorCode.typeParameterReferencedByStatic, 26, 1)],
+      [error(diag.typeParameterReferencedByStatic, 26, 1)],
     );
   }
 
@@ -84,7 +84,7 @@ class A<T> {
   }
 }
 ''',
-      [error(CompileTimeErrorCode.typeParameterReferencedByStatic, 22, 1)],
+      [error(diag.typeParameterReferencedByStatic, 22, 1)],
     );
   }
 
@@ -95,7 +95,7 @@ class A<T> {
   static set foo(T _) {}
 }
 ''',
-      [error(CompileTimeErrorCode.typeParameterReferencedByStatic, 30, 1)],
+      [error(diag.typeParameterReferencedByStatic, 30, 1)],
     );
   }
 
@@ -108,7 +108,7 @@ class A<T> {
   }
 }
 ''',
-      [error(CompileTimeErrorCode.typeParameterReferencedByStatic, 34, 1)],
+      [error(diag.typeParameterReferencedByStatic, 34, 1)],
     );
   }
 
@@ -119,7 +119,7 @@ extension E<T> on int {
   static T? foo;
 }
 ''',
-      [error(CompileTimeErrorCode.typeParameterReferencedByStatic, 33, 1)],
+      [error(diag.typeParameterReferencedByStatic, 33, 1)],
     );
   }
 
@@ -130,7 +130,7 @@ extension E<T> on int {
   static T foo() => throw 0;
 }
 ''',
-      [error(CompileTimeErrorCode.typeParameterReferencedByStatic, 33, 1)],
+      [error(diag.typeParameterReferencedByStatic, 33, 1)],
     );
   }
 
@@ -141,7 +141,7 @@ mixin A<T> {
   static T? foo;
 }
 ''',
-      [error(CompileTimeErrorCode.typeParameterReferencedByStatic, 22, 1)],
+      [error(diag.typeParameterReferencedByStatic, 22, 1)],
     );
   }
 }

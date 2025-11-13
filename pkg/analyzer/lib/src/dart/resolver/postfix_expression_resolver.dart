@@ -13,11 +13,10 @@ import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
-import 'package:analyzer/src/dart/error/syntactic_errors.dart';
 import 'package:analyzer/src/dart/resolver/assignment_expression_resolver.dart';
 import 'package:analyzer/src/dart/resolver/invocation_inferrer.dart';
 import 'package:analyzer/src/dart/resolver/type_property_resolver.dart';
-import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:analyzer/src/generated/resolver.dart';
 
 /// Helper for resolving [PostfixExpression]s.
@@ -86,7 +85,7 @@ class PostfixExpressionResolver {
     )) {
       _resolver.diagnosticReporter.atNode(
         node,
-        CompileTimeErrorCode.invalidAssignment,
+        diag.invalidAssignment,
         arguments: [type, operandWriteType],
       );
     }
@@ -131,10 +130,7 @@ class PostfixExpressionResolver {
     ExpressionImpl operand = node.operand;
 
     if (identical(receiverType, NeverTypeImpl.instance)) {
-      _resolver.diagnosticReporter.atNode(
-        operand,
-        WarningCode.receiverOfTypeNever,
-      );
+      _resolver.diagnosticReporter.atNode(operand, diag.receiverOfTypeNever);
       return;
     }
 
@@ -153,13 +149,13 @@ class PostfixExpressionResolver {
       if (operand is SuperExpression) {
         _diagnosticReporter.atToken(
           node.operator,
-          CompileTimeErrorCode.undefinedSuperOperator,
+          diag.undefinedSuperOperator,
           arguments: [methodName, receiverType],
         );
       } else {
         _diagnosticReporter.atToken(
           node.operator,
-          CompileTimeErrorCode.undefinedOperator,
+          diag.undefinedOperator,
           arguments: [methodName, receiverType],
         );
       }
@@ -213,10 +209,7 @@ class PostfixExpressionResolver {
     var operand = node.operand;
 
     if (operand is SuperExpression) {
-      _resolver.diagnosticReporter.atNode(
-        node,
-        ParserErrorCode.missingAssignableSelector,
-      );
+      _resolver.diagnosticReporter.atNode(node, diag.missingAssignableSelector);
       operand.setPseudoExpressionStaticType(DynamicTypeImpl.instance);
       node.recordStaticType(DynamicTypeImpl.instance, resolver: _resolver);
       return;

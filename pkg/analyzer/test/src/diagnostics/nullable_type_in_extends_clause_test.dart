@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
@@ -28,7 +28,7 @@ class B extends A {}
 class A {}
 class B extends A? {}
 ''',
-      [error(CompileTimeErrorCode.nullableTypeInExtendsClause, 27, 2)],
+      [error(diag.nullableTypeInExtendsClause, 27, 2)],
     );
   }
 
@@ -39,7 +39,7 @@ class A {}
 typedef B = A;
 class C extends B? {}
 ''',
-      [error(CompileTimeErrorCode.nullableTypeInExtendsClause, 42, 2)],
+      [error(diag.nullableTypeInExtendsClause, 42, 2)],
     );
   }
 
@@ -50,7 +50,7 @@ class A {}
 typedef B = A?;
 class C extends B {}
 ''',
-      [error(CompileTimeErrorCode.nullableTypeInExtendsClause, 43, 1)],
+      [error(diag.nullableTypeInExtendsClause, 43, 1)],
     );
   }
 
@@ -69,7 +69,7 @@ class A {}
 mixin B {}
 class C = A? with B;
 ''',
-      [error(CompileTimeErrorCode.nullableTypeInExtendsClause, 32, 2)],
+      [error(diag.nullableTypeInExtendsClause, 32, 2)],
     );
   }
 
@@ -81,7 +81,7 @@ mixin B {}
 typedef C = A;
 class D = C? with B;
 ''',
-      [error(CompileTimeErrorCode.nullableTypeInExtendsClause, 47, 2)],
+      [error(diag.nullableTypeInExtendsClause, 47, 2)],
     );
   }
 
@@ -93,7 +93,7 @@ mixin B {}
 typedef C = A?;
 class D = C with B;
 ''',
-      [error(CompileTimeErrorCode.nullableTypeInExtendsClause, 48, 1)],
+      [error(diag.nullableTypeInExtendsClause, 48, 1)],
     );
   }
 
@@ -112,7 +112,7 @@ class A {}
 mixin B {}
 class C = A? with B;
 ''',
-      [error(CompileTimeErrorCode.nullableTypeInExtendsClause, 32, 2)],
+      [error(diag.nullableTypeInExtendsClause, 32, 2)],
     );
   }
 
@@ -124,7 +124,7 @@ mixin B {}
 typedef C = A;
 class D = C? with B;
 ''',
-      [error(CompileTimeErrorCode.nullableTypeInExtendsClause, 47, 2)],
+      [error(diag.nullableTypeInExtendsClause, 47, 2)],
     );
   }
 
@@ -136,7 +136,7 @@ mixin B {}
 typedef C = A?;
 class D = C with B;
 ''',
-      [error(CompileTimeErrorCode.nullableTypeInExtendsClause, 48, 1)],
+      [error(diag.nullableTypeInExtendsClause, 48, 1)],
     );
   }
 }

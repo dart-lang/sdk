@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
@@ -60,14 +60,7 @@ void f() {
   E.named;
 }
 ''',
-      [
-        error(
-          CompileTimeErrorCode
-              .invalidReferenceToGenerativeEnumConstructorTearoff,
-          58,
-          7,
-        ),
-      ],
+      [error(diag.invalidReferenceToGenerativeEnumConstructorTearoff, 58, 7)],
     );
   }
 
@@ -84,13 +77,7 @@ void f() {
   E.named();
 }
 ''',
-      [
-        error(
-          CompileTimeErrorCode.invalidReferenceToGenerativeEnumConstructor,
-          58,
-          7,
-        ),
-      ],
+      [error(diag.invalidReferenceToGenerativeEnumConstructor, 58, 7)],
     );
   }
 
@@ -116,16 +103,8 @@ enum E {
 }
 ''',
       [
-        error(
-          CompileTimeErrorCode.enumConstantInvokesFactoryConstructor,
-          11,
-          1,
-        ),
-        error(
-          CompileTimeErrorCode.invalidReferenceToGenerativeEnumConstructor,
-          37,
-          7,
-        ),
+        error(diag.enumConstantInvokesFactoryConstructor, 11, 1),
+        error(diag.invalidReferenceToGenerativeEnumConstructor, 37, 7),
       ],
     );
   }
@@ -141,14 +120,7 @@ void f() {
   E.new;
 }
 ''',
-      [
-        error(
-          CompileTimeErrorCode
-              .invalidReferenceToGenerativeEnumConstructorTearoff,
-          29,
-          5,
-        ),
-      ],
+      [error(diag.invalidReferenceToGenerativeEnumConstructorTearoff, 29, 5)],
     );
   }
 
@@ -163,13 +135,7 @@ void f() {
   const E();
 }
 ''',
-      [
-        error(
-          CompileTimeErrorCode.invalidReferenceToGenerativeEnumConstructor,
-          35,
-          1,
-        ),
-      ],
+      [error(diag.invalidReferenceToGenerativeEnumConstructor, 35, 1)],
     );
   }
 
@@ -184,13 +150,7 @@ void f() {
   new E();
 }
 ''',
-      [
-        error(
-          CompileTimeErrorCode.invalidReferenceToGenerativeEnumConstructor,
-          33,
-          1,
-        ),
-      ],
+      [error(diag.invalidReferenceToGenerativeEnumConstructor, 33, 1)],
     );
   }
 
@@ -205,13 +165,7 @@ void f() {
   E();
 }
 ''',
-      [
-        error(
-          CompileTimeErrorCode.invalidReferenceToGenerativeEnumConstructor,
-          29,
-          1,
-        ),
-      ],
+      [error(diag.invalidReferenceToGenerativeEnumConstructor, 29, 1)],
     );
   }
 
@@ -237,13 +191,7 @@ enum E {
   const E();
 }
 ''',
-      [
-        error(
-          CompileTimeErrorCode.invalidReferenceToGenerativeEnumConstructor,
-          43,
-          1,
-        ),
-      ],
+      [error(diag.invalidReferenceToGenerativeEnumConstructor, 43, 1)],
     );
   }
 }

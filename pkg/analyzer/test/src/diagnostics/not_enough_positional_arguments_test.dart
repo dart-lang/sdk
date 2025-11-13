@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
@@ -27,7 +27,7 @@ void f() {
 ''',
       [
         error(
-          CompileTimeErrorCode.notEnoughPositionalArgumentsNameSingular,
+          diag.notEnoughPositionalArgumentsNameSingular,
           45,
           1,
           messageContains: ["expected by 'named'"],
@@ -48,7 +48,7 @@ void f() {
 ''',
       [
         error(
-          CompileTimeErrorCode.notEnoughPositionalArgumentsNameSingular,
+          diag.notEnoughPositionalArgumentsNameSingular,
           33,
           1,
           messageContains: ["expected by 'A.new'"],
@@ -70,7 +70,7 @@ void f() {
 ''',
       [
         error(
-          CompileTimeErrorCode.notEnoughPositionalArgumentsNameSingular,
+          diag.notEnoughPositionalArgumentsNameSingular,
           42,
           1,
           messageContains: ["expected by 'A.new'"],
@@ -89,7 +89,7 @@ enum E {
 ''',
       [
         error(
-          CompileTimeErrorCode.notEnoughPositionalArgumentsNameSingular,
+          diag.notEnoughPositionalArgumentsNameSingular,
           13,
           1,
           messageContains: ["expected by 'E'"],
@@ -108,7 +108,7 @@ enum E {
 ''',
       [
         error(
-          CompileTimeErrorCode.notEnoughPositionalArgumentsNameSingular,
+          diag.notEnoughPositionalArgumentsNameSingular,
           11,
           1,
           messageContains: ["expected by 'E'"],
@@ -127,7 +127,7 @@ main() {
 }''',
       [
         error(
-          CompileTimeErrorCode.notEnoughPositionalArgumentsNameSingular,
+          diag.notEnoughPositionalArgumentsNameSingular,
           66,
           1,
           messageContains: ["expected by 'getter'"],
@@ -142,7 +142,7 @@ main() {
 main() {
   (int x, int y) {} ();
 }''',
-      [error(CompileTimeErrorCode.notEnoughPositionalArgumentsPlural, 30, 1)],
+      [error(diag.notEnoughPositionalArgumentsPlural, 30, 1)],
     );
   }
 
@@ -152,7 +152,7 @@ main() {
 main() {
   (int x) {} ();
 }''',
-      [error(CompileTimeErrorCode.notEnoughPositionalArgumentsSingular, 23, 1)],
+      [error(diag.notEnoughPositionalArgumentsSingular, 23, 1)],
     );
   }
 
@@ -168,7 +168,7 @@ main() {
 ''',
       [
         error(
-          CompileTimeErrorCode.notEnoughPositionalArgumentsNameSingular,
+          diag.notEnoughPositionalArgumentsNameSingular,
           49,
           1,
           messageContains: ["expected by 'A.new'"],
@@ -188,12 +188,8 @@ main() {
 }
 ''',
       [
-        error(
-          CompileTimeErrorCode.notEnoughPositionalArgumentsNameSingular,
-          49,
-          1,
-        ),
-        error(CompileTimeErrorCode.undefinedNamedParameter, 49, 1),
+        error(diag.notEnoughPositionalArgumentsNameSingular, 49, 1),
+        error(diag.undefinedNamedParameter, 49, 1),
       ],
     );
   }
@@ -211,7 +207,7 @@ void f() {
 ''',
       [
         error(
-          CompileTimeErrorCode.notEnoughPositionalArgumentsNamePlural,
+          diag.notEnoughPositionalArgumentsNamePlural,
           70,
           1,
           messageContains: ["expected by 'named'"],
@@ -233,7 +229,7 @@ void f() {
 ''',
       [
         error(
-          CompileTimeErrorCode.notEnoughPositionalArgumentsNamePlural,
+          diag.notEnoughPositionalArgumentsNamePlural,
           58,
           1,
           messageContains: [
@@ -253,7 +249,7 @@ main() {
 }''',
       [
         error(
-          CompileTimeErrorCode.notEnoughPositionalArgumentsNamePlural,
+          diag.notEnoughPositionalArgumentsNamePlural,
           35,
           1,
           messageContains: ["expected by 'f'"],
@@ -272,7 +268,7 @@ class A {
 ''',
       [
         error(
-          CompileTimeErrorCode.notEnoughPositionalArgumentsNameSingular,
+          diag.notEnoughPositionalArgumentsNameSingular,
           58,
           1,
           messageContains: ["expected by 'A.new'"],
@@ -291,7 +287,7 @@ class A {
 ''',
       [
         error(
-          CompileTimeErrorCode.notEnoughPositionalArgumentsNameSingular,
+          diag.notEnoughPositionalArgumentsNameSingular,
           64,
           1,
           messageContains: ["expected by 'named'"],
@@ -312,7 +308,7 @@ class B extends A {
 ''',
       [
         error(
-          CompileTimeErrorCode.notEnoughPositionalArgumentsNameSingular,
+          diag.notEnoughPositionalArgumentsNameSingular,
           70,
           1,
           messageContains: ["expected by 'A.new'"],
@@ -333,7 +329,7 @@ class B extends A {
 ''',
       [
         error(
-          CompileTimeErrorCode.notEnoughPositionalArgumentsNameSingular,
+          diag.notEnoughPositionalArgumentsNameSingular,
           82,
           1,
           messageContains: ["expected by 'named'"],

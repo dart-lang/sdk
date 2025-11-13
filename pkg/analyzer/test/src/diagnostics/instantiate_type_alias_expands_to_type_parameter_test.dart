@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/error/error.dart';
-import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
@@ -18,7 +18,7 @@ main() {
 class InstantiateTypeAliasExpandsToTypeParameterTest
     extends PubPackageResolutionTest {
   DiagnosticCode get _errorCode =>
-      CompileTimeErrorCode.instantiateTypeAliasExpandsToTypeParameter;
+      diag.instantiateTypeAliasExpandsToTypeParameter;
 
   test_const_generic_noArguments_unnamed_typeParameter() async {
     await assertErrorsInCode(

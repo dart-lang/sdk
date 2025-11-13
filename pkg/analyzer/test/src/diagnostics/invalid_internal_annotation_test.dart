@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
@@ -33,7 +33,7 @@ import 'package:meta/meta.dart';
 @internal class One {}
 ''');
 
-    assertErrorsInResult([error(WarningCode.invalidInternalAnnotation, 34, 8)]);
+    assertErrorsInResult([error(diag.invalidInternalAnnotation, 34, 8)]);
   }
 
   void test_annotationInLib_onLibrary() async {
@@ -43,7 +43,7 @@ library foo;
 import 'package:meta/meta.dart';
 ''');
 
-    assertErrorsInResult([error(WarningCode.invalidInternalAnnotation, 1, 8)]);
+    assertErrorsInResult([error(diag.invalidInternalAnnotation, 1, 8)]);
   }
 
   void test_annotationInLibSrc() async {
@@ -70,7 +70,7 @@ import 'package:meta/meta.dart';
 @internal class One {}
 ''');
 
-    assertErrorsInResult([error(WarningCode.invalidInternalAnnotation, 34, 8)]);
+    assertErrorsInResult([error(diag.invalidInternalAnnotation, 34, 8)]);
   }
 
   void test_annotationInTest() async {
@@ -98,8 +98,8 @@ import 'package:meta/meta.dart';
 ''');
 
     assertErrorsInResult([
-      error(WarningCode.invalidInternalAnnotation, 34, 8),
-      error(WarningCode.unusedElement, 49, 4),
+      error(diag.invalidInternalAnnotation, 34, 8),
+      error(diag.unusedElement, 49, 4),
     ]);
   }
 
@@ -112,8 +112,8 @@ class _C {
 ''');
 
     assertErrorsInResult([
-      error(WarningCode.unusedElement, 39, 2),
-      error(WarningCode.invalidInternalAnnotation, 47, 8),
+      error(diag.unusedElement, 39, 2),
+      error(diag.invalidInternalAnnotation, 47, 8),
     ]);
   }
 
@@ -126,8 +126,8 @@ class _C {
 ''');
 
     assertErrorsInResult([
-      error(WarningCode.unusedElement, 39, 2),
-      error(WarningCode.invalidInternalAnnotation, 47, 8),
+      error(diag.unusedElement, 39, 2),
+      error(diag.invalidInternalAnnotation, 47, 8),
     ]);
   }
 
@@ -139,7 +139,7 @@ class C {
 }
 ''');
 
-    assertErrorsInResult([error(WarningCode.invalidInternalAnnotation, 46, 8)]);
+    assertErrorsInResult([error(diag.invalidInternalAnnotation, 46, 8)]);
   }
 
   void test_privateEnum() async {
@@ -149,9 +149,9 @@ import 'package:meta/meta.dart';
 ''');
 
     assertErrorsInResult([
-      error(WarningCode.invalidInternalAnnotation, 34, 8),
-      error(WarningCode.unusedElement, 48, 2),
-      error(WarningCode.unusedField, 52, 3),
+      error(diag.invalidInternalAnnotation, 34, 8),
+      error(diag.unusedElement, 48, 2),
+      error(diag.unusedField, 52, 3),
     ]);
   }
 
@@ -162,8 +162,8 @@ enum E {@internal _one}
 ''');
 
     assertErrorsInResult([
-      error(WarningCode.invalidInternalAnnotation, 42, 8),
-      error(WarningCode.unusedField, 51, 4),
+      error(diag.invalidInternalAnnotation, 42, 8),
+      error(diag.unusedField, 51, 4),
     ]);
   }
 
@@ -173,7 +173,7 @@ import 'package:meta/meta.dart';
 @internal extension _One on String {}
 ''');
 
-    assertErrorsInResult([error(WarningCode.invalidInternalAnnotation, 34, 8)]);
+    assertErrorsInResult([error(diag.invalidInternalAnnotation, 34, 8)]);
   }
 
   void test_privateExtension_unnamed() async {
@@ -182,7 +182,7 @@ import 'package:meta/meta.dart';
 @internal extension on String {}
 ''');
 
-    assertErrorsInResult([error(WarningCode.invalidInternalAnnotation, 34, 8)]);
+    assertErrorsInResult([error(diag.invalidInternalAnnotation, 34, 8)]);
   }
 
   void test_privateExtensionType() async {
@@ -192,8 +192,8 @@ import 'package:meta/meta.dart';
 ''');
 
     assertErrorsInResult([
-      error(WarningCode.invalidInternalAnnotation, 34, 8),
-      error(WarningCode.unusedElement, 58, 2),
+      error(diag.invalidInternalAnnotation, 34, 8),
+      error(diag.unusedElement, 58, 2),
     ]);
   }
 
@@ -206,8 +206,8 @@ class C {
 ''');
 
     assertErrorsInResult([
-      error(WarningCode.unusedField, 59, 2),
-      error(WarningCode.invalidInternalAnnotation, 59, 6),
+      error(diag.unusedField, 59, 2),
+      error(diag.invalidInternalAnnotation, 59, 6),
     ]);
   }
 
@@ -220,8 +220,8 @@ class C {
 ''');
 
     assertErrorsInResult([
-      error(WarningCode.unusedField, 66, 2),
-      error(WarningCode.invalidInternalAnnotation, 66, 6),
+      error(diag.unusedField, 66, 2),
+      error(diag.invalidInternalAnnotation, 66, 6),
     ]);
   }
 
@@ -234,8 +234,8 @@ class C {
 ''');
 
     assertErrorsInResult([
-      error(WarningCode.invalidInternalAnnotation, 46, 8),
-      error(WarningCode.unusedElement, 63, 2),
+      error(diag.invalidInternalAnnotation, 46, 8),
+      error(diag.unusedElement, 63, 2),
     ]);
   }
 
@@ -248,8 +248,8 @@ class C {
 ''');
 
     assertErrorsInResult([
-      error(WarningCode.invalidInternalAnnotation, 46, 8),
-      error(WarningCode.unusedElement, 60, 2),
+      error(diag.invalidInternalAnnotation, 46, 8),
+      error(diag.unusedElement, 60, 2),
     ]);
   }
 
@@ -262,8 +262,8 @@ class C {
 ''');
 
     assertErrorsInResult([
-      error(WarningCode.invalidInternalAnnotation, 46, 8),
-      error(WarningCode.unusedElement, 67, 2),
+      error(diag.invalidInternalAnnotation, 46, 8),
+      error(diag.unusedElement, 67, 2),
     ]);
   }
 
@@ -274,8 +274,8 @@ import 'package:meta/meta.dart';
 ''');
 
     assertErrorsInResult([
-      error(WarningCode.invalidInternalAnnotation, 34, 8),
-      error(WarningCode.unusedElement, 49, 4),
+      error(diag.invalidInternalAnnotation, 34, 8),
+      error(diag.unusedElement, 49, 4),
     ]);
   }
 
@@ -286,8 +286,8 @@ import 'package:meta/meta.dart';
 ''');
 
     assertErrorsInResult([
-      error(WarningCode.invalidInternalAnnotation, 34, 8),
-      error(WarningCode.unusedElement, 48, 2),
+      error(diag.invalidInternalAnnotation, 34, 8),
+      error(diag.unusedElement, 48, 2),
     ]);
   }
 
@@ -298,8 +298,8 @@ import 'package:meta/meta.dart';
 ''');
 
     assertErrorsInResult([
-      error(WarningCode.invalidInternalAnnotation, 47, 6),
-      error(WarningCode.unusedElement, 47, 2),
+      error(diag.invalidInternalAnnotation, 47, 6),
+      error(diag.unusedElement, 47, 2),
     ]);
   }
 
@@ -310,8 +310,8 @@ import 'package:meta/meta.dart';
 ''');
 
     assertErrorsInResult([
-      error(WarningCode.invalidInternalAnnotation, 34, 8),
-      error(WarningCode.unusedElement, 51, 2),
+      error(diag.invalidInternalAnnotation, 34, 8),
+      error(diag.unusedElement, 51, 2),
     ]);
   }
 
@@ -323,7 +323,7 @@ class _C {
 }
 ''');
 
-    assertErrorsInResult([error(WarningCode.unusedElement, 39, 2)]);
+    assertErrorsInResult([error(diag.unusedElement, 39, 2)]);
   }
 
   void test_publicMethod_privateClass_static() async {
@@ -335,8 +335,8 @@ class _C {
 ''');
 
     assertErrorsInResult([
-      error(WarningCode.unusedElement, 39, 2),
-      error(WarningCode.unusedElement, 68, 1),
+      error(diag.unusedElement, 39, 2),
+      error(diag.unusedElement, 68, 1),
     ]);
   }
 
@@ -348,6 +348,6 @@ extension type _E(int i) {
 }
 ''');
 
-    assertErrorsInResult([error(WarningCode.unusedElement, 48, 2)]);
+    assertErrorsInResult([error(diag.unusedElement, 48, 2)]);
   }
 }

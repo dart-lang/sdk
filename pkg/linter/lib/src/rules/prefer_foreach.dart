@@ -11,6 +11,7 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/error/error.dart';
 
 import '../analyzer.dart';
+import '../diagnostic.dart' as diag;
 import '../extensions.dart';
 
 const _desc = r'Use `forEach` to only apply a function to all the elements.';
@@ -19,7 +20,7 @@ class PreferForeach extends AnalysisRule {
   PreferForeach() : super(name: LintNames.prefer_foreach, description: _desc);
 
   @override
-  DiagnosticCode get diagnosticCode => LinterLintCode.preferForeach;
+  DiagnosticCode get diagnosticCode => diag.preferForeach;
 
   @override
   void registerNodeProcessors(

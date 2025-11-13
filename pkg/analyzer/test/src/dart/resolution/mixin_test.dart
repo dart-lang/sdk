@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'context_collection_resolution.dart';
@@ -163,13 +163,9 @@ mixin M on A {
 abstract class X extends A with U1, U2, M {}
 ''',
       [
-        error(CompileTimeErrorCode.mixinOfNonClass, 121, 2),
-        error(CompileTimeErrorCode.mixinOfNonClass, 125, 2),
-        error(
-          CompileTimeErrorCode.mixinApplicationNoConcreteSuperInvokedMember,
-          129,
-          1,
-        ),
+        error(diag.mixinOfNonClass, 121, 2),
+        error(diag.mixinOfNonClass, 125, 2),
+        error(diag.mixinApplicationNoConcreteSuperInvokedMember, 129, 1),
       ],
     );
   }
@@ -271,7 +267,7 @@ class C<T> {}
 
 mixin M<T> on C<T> {}
 ''',
-      [error(WarningCode.unusedLocalVariable, 26, 1)],
+      [error(diag.unusedLocalVariable, 26, 1)],
     );
 
     var node = findNode.functionExpressionInvocation('f()');

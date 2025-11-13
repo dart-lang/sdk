@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/src/services/correction/fix.dart';
-import 'package:analyzer/src/generated/parser.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -75,7 +75,7 @@ typedef F = var Function();
 typedef F = Function();
 ''',
       filter: (error) {
-        return error.diagnosticCode == ParserErrorCode.varReturnType;
+        return error.diagnosticCode == diag.varReturnType;
       },
     );
   }

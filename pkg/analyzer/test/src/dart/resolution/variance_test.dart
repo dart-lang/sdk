@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'context_collection_resolution.dart';
@@ -59,7 +59,7 @@ main() {
   B<int> b = B(<num>[])..x=2.2;
 }
 ''',
-      [error(WarningCode.unusedLocalVariable, 76, 1)],
+      [error(diag.unusedLocalVariable, 76, 1)],
     );
 
     var node = findNode.instanceCreation('B(<num>');
@@ -92,9 +92,9 @@ main() {
 }
 ''',
       [
-        error(CompileTimeErrorCode.couldNotInfer, 147, 11),
-        error(CompileTimeErrorCode.argumentTypeNotAssignable, 159, 19),
-        error(CompileTimeErrorCode.argumentTypeNotAssignable, 180, 16),
+        error(diag.couldNotInfer, 147, 11),
+        error(diag.argumentTypeNotAssignable, 159, 19),
+        error(diag.argumentTypeNotAssignable, 180, 16),
       ],
     );
 

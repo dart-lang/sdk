@@ -2,8 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/dart/error/syntactic_errors.dart';
-import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:analyzer/utilities/package_config_file_builder.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -32,7 +31,7 @@ class Foo {}
       code: r'''
 class Bar extends Foo {}
 ''',
-      [error(WarningCode.experimentalMemberUse, 47, 3)],
+      [error(diag.experimentalMemberUse, 47, 3)],
     );
   }
 
@@ -78,7 +77,7 @@ mixin M {}
       code: r'''
 class Bar extends Foo {}
 ''',
-      [error(WarningCode.experimentalMemberUse, 47, 3)],
+      [error(diag.experimentalMemberUse, 47, 3)],
     );
   }
 
@@ -94,7 +93,7 @@ class Foo {}
 mixin M {}
 class Bar = Foo with M;
 ''',
-      [error(WarningCode.experimentalMemberUse, 52, 3)],
+      [error(diag.experimentalMemberUse, 52, 3)],
     );
   }
 
@@ -137,7 +136,7 @@ class Foo {}
       code: r'''
 class Bar implements Foo {}
 ''',
-      [error(WarningCode.experimentalMemberUse, 50, 3)],
+      [error(diag.experimentalMemberUse, 50, 3)],
     );
   }
 
@@ -183,7 +182,7 @@ mixin M {}
       code: r'''
 class Bar implements Foo {}
 ''',
-      [error(WarningCode.experimentalMemberUse, 50, 3)],
+      [error(diag.experimentalMemberUse, 50, 3)],
     );
   }
 
@@ -199,7 +198,7 @@ class Foo {}
 mixin M {}
 class Bar = Object with M implements Foo;
 ''',
-      [error(WarningCode.experimentalMemberUse, 77, 3)],
+      [error(diag.experimentalMemberUse, 77, 3)],
     );
   }
 
@@ -214,7 +213,7 @@ class Foo {}
       code: r'''
 enum Bar implements Foo { one; }
 ''',
-      [error(WarningCode.experimentalMemberUse, 49, 3)],
+      [error(diag.experimentalMemberUse, 49, 3)],
     );
   }
 
@@ -239,7 +238,7 @@ class Foo {}
       code: r'''
 mixin Bar implements Foo {}
 ''',
-      [error(WarningCode.experimentalMemberUse, 50, 3)],
+      [error(diag.experimentalMemberUse, 50, 3)],
     );
   }
 
@@ -254,7 +253,7 @@ class Foo {}
       code: r'''
 mixin Bar on Foo {}
 ''',
-      [error(WarningCode.experimentalMemberUse, 42, 3)],
+      [error(diag.experimentalMemberUse, 42, 3)],
     );
   }
 
@@ -283,7 +282,7 @@ class Foo {}
       code: r'''
 var x = Foo();
 ''',
-      [error(WarningCode.experimentalMemberUse, 37, 3)],
+      [error(diag.experimentalMemberUse, 37, 3)],
     );
   }
 
@@ -298,7 +297,7 @@ class Foo {}
       code: r'''
 var x = Foo.new;
 ''',
-      [error(WarningCode.experimentalMemberUse, 37, 3)],
+      [error(diag.experimentalMemberUse, 37, 3)],
     );
   }
 
@@ -344,7 +343,7 @@ mixin M {}
       code: r'''
 var x = Foo();
 ''',
-      [error(WarningCode.experimentalMemberUse, 37, 3)],
+      [error(diag.experimentalMemberUse, 37, 3)],
     );
   }
 
@@ -385,7 +384,7 @@ void f() {
   x += 2;
 }
 ''',
-      [error(WarningCode.experimentalMemberUse, 42, 1)],
+      [error(diag.experimentalMemberUse, 42, 1)],
     );
   }
 
@@ -404,7 +403,7 @@ void f() {
   x += 2;
 }
 ''',
-      [error(WarningCode.experimentalMemberUse, 42, 1)],
+      [error(diag.experimentalMemberUse, 42, 1)],
     );
   }
 
@@ -439,7 +438,7 @@ void f() {
   x = 0;
 }
 ''',
-      [error(WarningCode.experimentalMemberUse, 42, 1)],
+      [error(diag.experimentalMemberUse, 42, 1)],
     );
   }
 
@@ -458,7 +457,7 @@ void f() {
   x = 0;
 }
 ''',
-      [error(WarningCode.experimentalMemberUse, 42, 1)],
+      [error(diag.experimentalMemberUse, 42, 1)],
     );
   }
 
@@ -477,7 +476,7 @@ void f(A a) {
   a();
 }
 ''',
-      [error(WarningCode.experimentalMemberUse, 45, 3)],
+      [error(diag.experimentalMemberUse, 45, 3)],
     );
   }
 
@@ -492,7 +491,7 @@ class A {}
       code: r'''
 void f(A a) {}
 ''',
-      [error(WarningCode.experimentalMemberUse, 36, 1)],
+      [error(diag.experimentalMemberUse, 36, 1)],
     );
   }
 
@@ -545,7 +544,7 @@ f(A a, A b) {
   a += b;
 }
 ''',
-      [error(WarningCode.experimentalMemberUse, 45, 6)],
+      [error(diag.experimentalMemberUse, 45, 6)],
     );
   }
 
@@ -569,9 +568,9 @@ void f() {
 }
 ''',
       [
-        error(WarningCode.experimentalMemberUse, 43, 1),
-        error(WarningCode.unusedLocalVariable, 45, 1),
-        error(WarningCode.experimentalMemberUse, 50, 3),
+        error(diag.experimentalMemberUse, 43, 1),
+        error(diag.unusedLocalVariable, 45, 1),
+        error(diag.experimentalMemberUse, 50, 3),
       ],
     );
   }
@@ -595,8 +594,8 @@ void f() {
 }
 ''',
       [
-        error(WarningCode.experimentalMemberUse, 43, 1),
-        error(WarningCode.unusedLocalVariable, 45, 1),
+        error(diag.experimentalMemberUse, 43, 1),
+        error(diag.unusedLocalVariable, 45, 1),
       ],
     );
   }
@@ -620,8 +619,8 @@ void f() {
 }
 ''',
       [
-        error(WarningCode.experimentalMemberUse, 43, 1),
-        error(WarningCode.unusedLocalVariable, 45, 1),
+        error(diag.experimentalMemberUse, 43, 1),
+        error(diag.unusedLocalVariable, 45, 1),
       ],
     );
   }
@@ -642,9 +641,9 @@ f() {
 }
 ''',
       [
-        error(WarningCode.unusedLocalVariable, 39, 1),
+        error(diag.unusedLocalVariable, 39, 1),
         error(
-          WarningCode.experimentalMemberUse,
+          diag.experimentalMemberUse,
           44,
           5,
           messageContains: [
@@ -674,8 +673,8 @@ void f() {
 }
 ''',
       [
-        error(WarningCode.unusedLocalVariable, 45, 1),
-        error(WarningCode.experimentalMemberUse, 50, 3),
+        error(diag.unusedLocalVariable, 45, 1),
+        error(diag.experimentalMemberUse, 50, 3),
       ],
     );
   }
@@ -697,7 +696,7 @@ int g(Object s) =>
     _ => 7,
   };
 ''',
-      [error(WarningCode.experimentalMemberUse, 69, 3)],
+      [error(diag.experimentalMemberUse, 69, 3)],
     );
   }
 
@@ -718,7 +717,7 @@ int g(Object s) =>
     _ => 7,
   };
 ''',
-      [error(WarningCode.experimentalMemberUse, 74, 3)],
+      [error(diag.experimentalMemberUse, 74, 3)],
     );
   }
 
@@ -734,7 +733,7 @@ library a;
       '''
 export 'package:aaa/a.dart';
 ''',
-      [error(WarningCode.experimentalMemberUse, 0, 28)],
+      [error(diag.experimentalMemberUse, 0, 28)],
     );
   }
 
@@ -766,7 +765,7 @@ void f() {
   E(0).foo;
 }
 ''',
-      [error(WarningCode.experimentalMemberUse, 42, 1)],
+      [error(diag.experimentalMemberUse, 42, 1)],
     );
   }
 
@@ -788,7 +787,7 @@ void f(A a) {
   a.foo;
 }
 ''',
-      [error(WarningCode.experimentalMemberUse, 48, 3)],
+      [error(diag.experimentalMemberUse, 48, 3)],
     );
   }
 
@@ -810,7 +809,7 @@ void f(A a) {
   a.foo = 0;
 }
 ''',
-      [error(WarningCode.experimentalMemberUse, 48, 3)],
+      [error(diag.experimentalMemberUse, 48, 3)],
     );
   }
 
@@ -866,7 +865,7 @@ import 'package:aaa/a.dart';
 ''',
       [
         error(
-          WarningCode.experimentalMemberUse,
+          diag.experimentalMemberUse,
           24,
           28,
           messageContains: ['package:aaa/a.dart'],
@@ -893,9 +892,9 @@ class C {
 const z = C(x: '');
 ''',
       [
-        error(CompileTimeErrorCode.finalNotInitializedConstructor1, 53, 1),
-        error(ParserErrorCode.missingIdentifier, 82, 1),
-        error(ParserErrorCode.expectedToken, 82, 1),
+        error(diag.finalNotInitializedConstructor1, 53, 1),
+        error(diag.missingIdentifier, 82, 1),
+        error(diag.expectedToken, 82, 1),
       ],
     );
   }
@@ -915,7 +914,7 @@ void f(A a) {
   return a[1];
 }
 ''',
-      [error(WarningCode.experimentalMemberUse, 52, 4)],
+      [error(diag.experimentalMemberUse, 52, 4)],
     );
   }
 
@@ -936,7 +935,7 @@ enum E {
   }
 }
 ''',
-      [error(WarningCode.experimentalMemberUse, 68, 1)],
+      [error(diag.experimentalMemberUse, 68, 1)],
     );
   }
 
@@ -1273,7 +1272,7 @@ extension E on int {
   }
 }
 ''',
-      [error(WarningCode.experimentalMemberUse, 67, 1)],
+      [error(diag.experimentalMemberUse, 67, 1)],
     );
   }
 
@@ -1296,7 +1295,7 @@ void f() {
   A();
 }
 ''',
-      [error(WarningCode.experimentalMemberUse, 43, 1)],
+      [error(diag.experimentalMemberUse, 43, 1)],
     );
   }
 
@@ -1318,7 +1317,7 @@ void f() {
   A();
 }
 ''',
-      [error(WarningCode.experimentalMemberUse, 43, 1)],
+      [error(diag.experimentalMemberUse, 43, 1)],
     );
   }
 
@@ -1343,7 +1342,7 @@ void f() {
       [
         // https://github.com/dart-lang/linter/issues/4752
         // Highlights `A`.
-        error(WarningCode.experimentalMemberUse, 43, 1),
+        error(diag.experimentalMemberUse, 43, 1),
       ],
     );
   }
@@ -1365,7 +1364,7 @@ f() {
 ''',
       [
         error(
-          WarningCode.experimentalMemberUse,
+          diag.experimentalMemberUse,
           48,
           7,
           messageContains: [
@@ -1394,7 +1393,7 @@ void f() {
   A();
 }
 ''',
-      [error(WarningCode.experimentalMemberUse, 43, 1)],
+      [error(diag.experimentalMemberUse, 43, 1)],
     );
   }
 
@@ -1413,7 +1412,7 @@ f() {
   return new A(1);
 }
 ''',
-      [error(WarningCode.experimentalMemberUse, 48, 1)],
+      [error(diag.experimentalMemberUse, 48, 1)],
     );
   }
 
@@ -1435,7 +1434,7 @@ void f(A a) {
   a.foo();
 }
 ''',
-      [error(WarningCode.experimentalMemberUse, 48, 3)],
+      [error(diag.experimentalMemberUse, 48, 3)],
     );
   }
 
@@ -1450,7 +1449,7 @@ int f() => 0;
       code: r'''
 var x = f();
 ''',
-      [error(WarningCode.experimentalMemberUse, 37, 1)],
+      [error(diag.experimentalMemberUse, 37, 1)],
     );
   }
 
@@ -1467,7 +1466,7 @@ var x = f();
 ''',
       [
         error(
-          WarningCode.experimentalMemberUse,
+          diag.experimentalMemberUse,
           37,
           1,
           text:
@@ -1540,13 +1539,9 @@ class C {
 var z = C(x: '');
 ''',
       [
-        error(
-          CompileTimeErrorCode.initializingFormalForNonExistentField,
-          21,
-          5,
-        ),
-        error(ParserErrorCode.missingIdentifier, 26, 1),
-        error(CompileTimeErrorCode.undefinedNamedParameter, 42, 1),
+        error(diag.initializingFormalForNonExistentField, 21, 5),
+        error(diag.missingIdentifier, 26, 1),
+        error(diag.undefinedNamedParameter, 42, 1),
       ],
     );
   }
@@ -1566,7 +1561,7 @@ f(A a, A b) {
   return a + b;
 }
 ''',
-      [error(WarningCode.experimentalMemberUse, 52, 5)],
+      [error(diag.experimentalMemberUse, 52, 5)],
     );
   }
 
@@ -1580,7 +1575,7 @@ void f({@experimental int x = 0}) {}
       code: r'''
 void g() => f(x: 1);
 ''',
-      [error(WarningCode.experimentalMemberUse, 43, 1)],
+      [error(diag.experimentalMemberUse, 43, 1)],
     );
   }
 
@@ -1636,7 +1631,7 @@ class C {
   C({B this.a = instance});
 }
 ''',
-      [error(WarningCode.experimentalMemberUse, 57, 1)],
+      [error(diag.experimentalMemberUse, 57, 1)],
     );
   }
 
@@ -1705,7 +1700,7 @@ void f() {
   foo(a: 0);
 }
 ''',
-      [error(WarningCode.experimentalMemberUse, 47, 1)],
+      [error(diag.experimentalMemberUse, 47, 1)],
     );
   }
 
@@ -1726,7 +1721,7 @@ void f(A a) {
   a.foo(a: 0);
 }
 ''',
-      [error(WarningCode.experimentalMemberUse, 52, 1)],
+      [error(diag.experimentalMemberUse, 52, 1)],
     );
   }
 
@@ -1744,7 +1739,7 @@ void f(A a) {
   a.foo(0);
 }
 ''',
-      [error(WarningCode.experimentalMemberUse, 51, 1)],
+      [error(diag.experimentalMemberUse, 51, 1)],
     );
   }
 
@@ -1820,7 +1815,7 @@ void f() {
   x++;
 }
 ''',
-      [error(WarningCode.experimentalMemberUse, 42, 1)],
+      [error(diag.experimentalMemberUse, 42, 1)],
     );
   }
 
@@ -1854,7 +1849,7 @@ void f() {
   x++;
 }
 ''',
-      [error(WarningCode.experimentalMemberUse, 42, 1)],
+      [error(diag.experimentalMemberUse, 42, 1)],
     );
   }
 
@@ -1873,7 +1868,7 @@ void f() {
   A.foo;
 }
 ''',
-      [error(WarningCode.experimentalMemberUse, 44, 3)],
+      [error(diag.experimentalMemberUse, 44, 3)],
     );
   }
 
@@ -1892,7 +1887,7 @@ void f() {
   A.foo;
 }
 ''',
-      [error(WarningCode.experimentalMemberUse, 42, 1)],
+      [error(diag.experimentalMemberUse, 42, 1)],
     );
   }
 
@@ -1911,7 +1906,7 @@ void f() {
   ++x;
 }
 ''',
-      [error(WarningCode.experimentalMemberUse, 44, 1)],
+      [error(diag.experimentalMemberUse, 44, 1)],
     );
   }
 
@@ -1930,7 +1925,7 @@ void f() {
   ++x;
 }
 ''',
-      [error(WarningCode.experimentalMemberUse, 44, 1)],
+      [error(diag.experimentalMemberUse, 44, 1)],
     );
   }
 
@@ -1951,7 +1946,7 @@ class B extends A {
   }
 }
 ''',
-      [error(WarningCode.experimentalMemberUse, 74, 3)],
+      [error(diag.experimentalMemberUse, 74, 3)],
     );
   }
 
@@ -1984,7 +1979,7 @@ void f(A a) {
   a.foo = 0;
 }
 ''',
-      [error(WarningCode.experimentalMemberUse, 48, 3)],
+      [error(diag.experimentalMemberUse, 48, 3)],
     );
   }
 
@@ -2000,7 +1995,7 @@ class A {}
 // ignore: unused_import
 import '$externalLibUri' show A;
 ''',
-      [error(WarningCode.experimentalMemberUse, 58, 1)],
+      [error(diag.experimentalMemberUse, 58, 1)],
     );
   }
 
@@ -2021,7 +2016,7 @@ class B extends A {
 ''',
       [
         error(
-          WarningCode.experimentalMemberUse,
+          diag.experimentalMemberUse,
           57,
           13,
           text:
@@ -2048,7 +2043,7 @@ class B extends A {
 ''',
       [
         error(
-          WarningCode.experimentalMemberUse,
+          diag.experimentalMemberUse,
           57,
           7,
           text:
@@ -2071,7 +2066,7 @@ void f() {
   print(x);
 }
 ''',
-      [error(WarningCode.experimentalMemberUse, 48, 1)],
+      [error(diag.experimentalMemberUse, 48, 1)],
     );
   }
 
@@ -2088,7 +2083,7 @@ void f(int a) {
   a = x;
 }
 ''',
-      [error(WarningCode.experimentalMemberUse, 51, 1)],
+      [error(diag.experimentalMemberUse, 51, 1)],
     );
   }
 
@@ -2105,7 +2100,7 @@ void f() {
   x + 1;
 }
 ''',
-      [error(WarningCode.experimentalMemberUse, 42, 1)],
+      [error(diag.experimentalMemberUse, 42, 1)],
     );
   }
 
@@ -2123,7 +2118,7 @@ class A {
   A() : f = x;
 }
 ''',
-      [error(WarningCode.experimentalMemberUse, 66, 1)],
+      [error(diag.experimentalMemberUse, 66, 1)],
     );
   }
 
@@ -2138,7 +2133,7 @@ int x = 1;
       code: r'''
 int f() => x;
 ''',
-      [error(WarningCode.experimentalMemberUse, 40, 1)],
+      [error(diag.experimentalMemberUse, 40, 1)],
     );
   }
 
@@ -2155,7 +2150,7 @@ void f() {
   x;
 }
 ''',
-      [error(WarningCode.experimentalMemberUse, 42, 1)],
+      [error(diag.experimentalMemberUse, 42, 1)],
     );
   }
 
@@ -2172,7 +2167,7 @@ void f() {
   [for (;x;) 0];
 }
 ''',
-      [error(WarningCode.experimentalMemberUse, 49, 1)],
+      [error(diag.experimentalMemberUse, 49, 1)],
     );
   }
 
@@ -2189,7 +2184,7 @@ void f() {
   for (;x;) {}
 }
 ''',
-      [error(WarningCode.experimentalMemberUse, 48, 1)],
+      [error(diag.experimentalMemberUse, 48, 1)],
     );
   }
 
@@ -2206,7 +2201,7 @@ void f() {
   [if (x) 0];
 }
 ''',
-      [error(WarningCode.experimentalMemberUse, 47, 1)],
+      [error(diag.experimentalMemberUse, 47, 1)],
     );
   }
 
@@ -2223,7 +2218,7 @@ void f() {
   if (x) {}
 }
 ''',
-      [error(WarningCode.experimentalMemberUse, 46, 1)],
+      [error(diag.experimentalMemberUse, 46, 1)],
     );
   }
 
@@ -2240,7 +2235,7 @@ void f() {
   [x];
 }
 ''',
-      [error(WarningCode.experimentalMemberUse, 43, 1)],
+      [error(diag.experimentalMemberUse, 43, 1)],
     );
   }
 
@@ -2258,8 +2253,8 @@ void f() {
 }
 ''',
       [
-        error(WarningCode.experimentalMemberUse, 47, 1),
-        error(WarningCode.experimentalMemberUse, 50, 1),
+        error(diag.experimentalMemberUse, 47, 1),
+        error(diag.experimentalMemberUse, 50, 1),
       ],
     );
   }
@@ -2278,7 +2273,7 @@ void f() {
   g(a: x);
 }
 ''',
-      [error(WarningCode.experimentalMemberUse, 70, 1)],
+      [error(diag.experimentalMemberUse, 70, 1)],
     );
   }
 
@@ -2295,7 +2290,7 @@ int f() {
   return x;
 }
 ''',
-      [error(WarningCode.experimentalMemberUse, 48, 1)],
+      [error(diag.experimentalMemberUse, 48, 1)],
     );
   }
 
@@ -2312,7 +2307,7 @@ void f() {
   ({x});
 }
 ''',
-      [error(WarningCode.experimentalMemberUse, 44, 1)],
+      [error(diag.experimentalMemberUse, 44, 1)],
     );
   }
 
@@ -2329,7 +2324,7 @@ void f() {
   [...x];
 }
 ''',
-      [error(WarningCode.experimentalMemberUse, 46, 1)],
+      [error(diag.experimentalMemberUse, 46, 1)],
     );
   }
 
@@ -2349,7 +2344,7 @@ void f(int a) {
   }
 }
 ''',
-      [error(WarningCode.experimentalMemberUse, 69, 1)],
+      [error(diag.experimentalMemberUse, 69, 1)],
     );
   }
 
@@ -2371,7 +2366,7 @@ void f(int a) {
   }
 }
 ''',
-      [error(WarningCode.experimentalMemberUse, 85, 1)],
+      [error(diag.experimentalMemberUse, 85, 1)],
     );
   }
 
@@ -2388,7 +2383,7 @@ void f() {
   switch (x) {}
 }
 ''',
-      [error(WarningCode.experimentalMemberUse, 50, 1)],
+      [error(diag.experimentalMemberUse, 50, 1)],
     );
   }
 
@@ -2407,7 +2402,7 @@ void f() {
   switch (x) {}
 }
 ''',
-      [error(WarningCode.experimentalMemberUse, 66, 1)],
+      [error(diag.experimentalMemberUse, 66, 1)],
     );
   }
 
@@ -2424,7 +2419,7 @@ void f() {
   -x;
 }
 ''',
-      [error(WarningCode.experimentalMemberUse, 43, 1)],
+      [error(diag.experimentalMemberUse, 43, 1)],
     );
   }
 
@@ -2442,7 +2437,7 @@ void f() {
   var v = x;
 }
 ''',
-      [error(WarningCode.experimentalMemberUse, 85, 1)],
+      [error(diag.experimentalMemberUse, 85, 1)],
     );
   }
 
@@ -2459,7 +2454,7 @@ void f() {
   while (x) {}
 }
 ''',
-      [error(WarningCode.experimentalMemberUse, 49, 1)],
+      [error(diag.experimentalMemberUse, 49, 1)],
     );
   }
 
@@ -2484,7 +2479,7 @@ typedef Foo2 = Foo;
       code: r'''
 class Bar with Foo {}
 ''',
-      [error(WarningCode.experimentalMemberUse, 44, 3)],
+      [error(diag.experimentalMemberUse, 44, 3)],
     );
   }
 
@@ -2500,7 +2495,7 @@ mixin class Foo = Object with M;
       code: r'''
 class Bar with Foo {}
 ''',
-      [error(WarningCode.experimentalMemberUse, 44, 3)],
+      [error(diag.experimentalMemberUse, 44, 3)],
     );
   }
 
@@ -2515,7 +2510,7 @@ mixin class Foo {}
       code: r'''
 class Bar with Foo {}
 ''',
-      [error(WarningCode.experimentalMemberUse, 44, 3)],
+      [error(diag.experimentalMemberUse, 44, 3)],
     );
   }
 
@@ -2530,7 +2525,7 @@ mixin class Foo {}
       code: r'''
 class Bar = Object with Foo;
 ''',
-      [error(WarningCode.experimentalMemberUse, 53, 3)],
+      [error(diag.experimentalMemberUse, 53, 3)],
     );
   }
 
@@ -2547,7 +2542,7 @@ enum Bar with Foo {
   one, two;
 }
 ''',
-      [error(WarningCode.experimentalMemberUse, 43, 3)],
+      [error(diag.experimentalMemberUse, 43, 3)],
     );
   }
 

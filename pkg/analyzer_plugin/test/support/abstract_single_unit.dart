@@ -6,7 +6,7 @@ import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/dart/ast/element_locator.dart';
-import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:analyzer/src/test_utilities/find_element2.dart';
 import 'package:analyzer/src/test_utilities/find_node.dart';
 import 'package:test/test.dart';
@@ -104,13 +104,13 @@ class AbstractSingleUnitTest extends AbstractContextTest {
     if (verifyNoTestUnitErrors) {
       expect(
         result.diagnostics.where((d) {
-          return d.diagnosticCode != WarningCode.deadCode &&
-              d.diagnosticCode != WarningCode.unusedCatchClause &&
-              d.diagnosticCode != WarningCode.unusedCatchStack &&
-              d.diagnosticCode != WarningCode.unusedElement &&
-              d.diagnosticCode != WarningCode.unusedField &&
-              d.diagnosticCode != WarningCode.unusedImport &&
-              d.diagnosticCode != WarningCode.unusedLocalVariable;
+          return d.diagnosticCode != diag.deadCode &&
+              d.diagnosticCode != diag.unusedCatchClause &&
+              d.diagnosticCode != diag.unusedCatchStack &&
+              d.diagnosticCode != diag.unusedElement &&
+              d.diagnosticCode != diag.unusedField &&
+              d.diagnosticCode != diag.unusedImport &&
+              d.diagnosticCode != diag.unusedLocalVariable;
         }),
         isEmpty,
       );

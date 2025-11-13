@@ -12,6 +12,7 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/error/error.dart';
 
 import '../analyzer.dart';
+import '../diagnostic.dart' as diag;
 import '../extensions.dart';
 
 const _desc = r'Annotate overridden members.';
@@ -21,7 +22,7 @@ class AnnotateOverrides extends AnalysisRule {
     : super(name: LintNames.annotate_overrides, description: _desc);
 
   @override
-  DiagnosticCode get diagnosticCode => LinterLintCode.annotateOverrides;
+  DiagnosticCode get diagnosticCode => diag.annotateOverrides;
 
   @override
   void registerNodeProcessors(

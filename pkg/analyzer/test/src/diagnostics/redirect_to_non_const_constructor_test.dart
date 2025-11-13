@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
@@ -23,7 +23,7 @@ class A {
   const factory A.b() = A.a;
 }
 ''',
-      [error(CompileTimeErrorCode.redirectToMissingConstructor, 34, 3)],
+      [error(diag.redirectToMissingConstructor, 34, 3)],
     );
   }
 
@@ -67,7 +67,7 @@ class A {
   const factory A.b() = A.a;
 }
 ''',
-      [error(CompileTimeErrorCode.redirectToNonConstConstructor, 43, 3)],
+      [error(diag.redirectToNonConstConstructor, 43, 3)],
     );
   }
 
@@ -79,7 +79,7 @@ class A {
   const A.b() : this.a();
 }
 ''',
-      [error(CompileTimeErrorCode.redirectToNonConstConstructor, 40, 1)],
+      [error(diag.redirectToNonConstConstructor, 40, 1)],
     );
   }
 
@@ -91,7 +91,7 @@ class A {
   const A.named() : this();
 }
 ''',
-      [error(CompileTimeErrorCode.redirectToNonConstConstructor, 37, 4)],
+      [error(diag.redirectToNonConstConstructor, 37, 4)],
     );
   }
 
@@ -103,13 +103,7 @@ class A {
   const A.b() : this.a();
 }
 ''',
-      [
-        error(
-          CompileTimeErrorCode.redirectGenerativeToMissingConstructor,
-          26,
-          8,
-        ),
-      ],
+      [error(diag.redirectGenerativeToMissingConstructor, 26, 8)],
     );
   }
 

@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
@@ -31,7 +31,7 @@ const dynamic a = 0;
 const dynamic b = 'b';
 var v = const <int>[if (1 < 0) a else b];
 ''',
-      [error(CompileTimeErrorCode.listElementTypeNotAssignable, 82, 1)],
+      [error(diag.listElementTypeNotAssignable, 82, 1)],
     );
   }
 
@@ -40,7 +40,7 @@ var v = const <int>[if (1 < 0) a else b];
       '''
 var v = const <int>[if (1 < 0) 'a'];
 ''',
-      [error(CompileTimeErrorCode.listElementTypeNotAssignable, 31, 3)],
+      [error(diag.listElementTypeNotAssignable, 31, 3)],
     );
   }
 
@@ -64,7 +64,7 @@ var v = const <int>[if (true) a];
 const dynamic a = 'a';
 var v = const <int>[if (true) a];
 ''',
-      [error(CompileTimeErrorCode.listElementTypeNotAssignable, 53, 1)],
+      [error(diag.listElementTypeNotAssignable, 53, 1)],
     );
   }
 
@@ -81,13 +81,7 @@ var v2 = const <int> [42];
 const a = null;
 var v = const <int>[a];
 ''',
-      [
-        error(
-          CompileTimeErrorCode.listElementTypeNotAssignableNullability,
-          36,
-          1,
-        ),
-      ],
+      [error(diag.listElementTypeNotAssignableNullability, 36, 1)],
     );
   }
 
@@ -96,13 +90,7 @@ var v = const <int>[a];
       '''
 var v = const <int>[null];
 ''',
-      [
-        error(
-          CompileTimeErrorCode.listElementTypeNotAssignableNullability,
-          20,
-          4,
-        ),
-      ],
+      [error(diag.listElementTypeNotAssignableNullability, 20, 4)],
     );
   }
 
@@ -117,7 +105,7 @@ var v = const <int>[...[0, 1]];
       '''
 var v = const <String>[42];
 ''',
-      [error(CompileTimeErrorCode.listElementTypeNotAssignable, 23, 2)],
+      [error(diag.listElementTypeNotAssignable, 23, 2)],
     );
   }
 
@@ -127,7 +115,7 @@ var v = const <String>[42];
 const dynamic x = 42;
 var v = const <String>[x];
 ''',
-      [error(CompileTimeErrorCode.listElementTypeNotAssignable, 45, 1)],
+      [error(diag.listElementTypeNotAssignable, 45, 1)],
     );
   }
 
@@ -158,7 +146,7 @@ List<U Function<U>(U, int)> foo(T Function<T>(T a) f) {
   return [f];
 }
 ''',
-      [error(CompileTimeErrorCode.listElementTypeNotAssignable, 66, 1)],
+      [error(diag.listElementTypeNotAssignable, 66, 1)],
     );
   }
 
@@ -177,7 +165,7 @@ List<int Function(int, int)> foo(T Function<T>(T a) f) {
   return [f];
 }
 ''',
-      [error(CompileTimeErrorCode.listElementTypeNotAssignable, 67, 1)],
+      [error(diag.listElementTypeNotAssignable, 67, 1)],
     );
   }
 
@@ -202,7 +190,7 @@ var v = <int>[if (1 < 0) a else b];
       '''
 var v = <int>[if (1 < 0) 'a'];
 ''',
-      [error(CompileTimeErrorCode.listElementTypeNotAssignable, 25, 3)],
+      [error(diag.listElementTypeNotAssignable, 25, 3)],
     );
   }
 
@@ -231,7 +219,7 @@ var v = <int>[...[0, 1]];
       '''
 var v = <String>[42];
 ''',
-      [error(CompileTimeErrorCode.listElementTypeNotAssignable, 17, 2)],
+      [error(diag.listElementTypeNotAssignable, 17, 2)],
     );
   }
 
@@ -260,7 +248,7 @@ void f(bool c, dynamic a) {
   <int>[if (c) 0 else a];
 }
 ''',
-      [error(CompileTimeErrorCode.listElementTypeNotAssignable, 50, 1)],
+      [error(diag.listElementTypeNotAssignable, 50, 1)],
     );
   }
 
@@ -271,7 +259,7 @@ void f(bool c, dynamic a) {
   <int>[if (c) a];
 }
 ''',
-      [error(CompileTimeErrorCode.listElementTypeNotAssignable, 43, 1)],
+      [error(diag.listElementTypeNotAssignable, 43, 1)],
     );
   }
 
@@ -282,7 +270,7 @@ void f(Iterable<dynamic> a) {
   <int>[...a];
 }
 ''',
-      [error(CompileTimeErrorCode.listElementTypeNotAssignable, 41, 1)],
+      [error(diag.listElementTypeNotAssignable, 41, 1)],
     );
   }
 }

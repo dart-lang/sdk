@@ -13,6 +13,7 @@ import 'package:collection/collection.dart';
 
 import '../analyzer.dart';
 import '../ast.dart';
+import '../diagnostic.dart' as diag;
 
 const _desc = r'Always override `hashCode` if overriding `==`.';
 
@@ -20,7 +21,7 @@ class HashAndEquals extends AnalysisRule {
   HashAndEquals() : super(name: LintNames.hash_and_equals, description: _desc);
 
   @override
-  DiagnosticCode get diagnosticCode => LinterLintCode.hashAndEquals;
+  DiagnosticCode get diagnosticCode => diag.hashAndEquals;
 
   @override
   void registerNodeProcessors(

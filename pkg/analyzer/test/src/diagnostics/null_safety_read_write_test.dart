@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -44,7 +44,7 @@ void f(final x) {
   x += 1;
 }
 ''',
-      [error(CompileTimeErrorCode.assignmentToFinalLocal, 20, 1)],
+      [error(diag.assignmentToFinalLocal, 20, 1)],
     );
     _assertAssigned('x +=', assigned: true, unassigned: false);
   }
@@ -56,7 +56,7 @@ void f(final x) {
   x++;
 }
 ''',
-      [error(CompileTimeErrorCode.assignmentToFinalLocal, 20, 1)],
+      [error(diag.assignmentToFinalLocal, 20, 1)],
     );
     _assertAssigned('x++', assigned: true, unassigned: false);
   }
@@ -68,7 +68,7 @@ void f(final x) {
   ++x;
 }
 ''',
-      [error(CompileTimeErrorCode.assignmentToFinalLocal, 22, 1)],
+      [error(diag.assignmentToFinalLocal, 22, 1)],
     );
     _assertAssigned('x;', assigned: true, unassigned: false);
   }
@@ -80,7 +80,7 @@ void f(final x) {
   x = 0;
 }
 ''',
-      [error(CompileTimeErrorCode.assignmentToFinalLocal, 20, 1)],
+      [error(diag.assignmentToFinalLocal, 20, 1)],
     );
     _assertAssigned('x =', assigned: true, unassigned: false);
   }
@@ -94,7 +94,7 @@ void f(final x) {
   }
 }
 ''',
-      [error(CompileTimeErrorCode.assignmentToFinalLocal, 25, 1)],
+      [error(diag.assignmentToFinalLocal, 25, 1)],
     );
     _assertAssigned('x in', assigned: true, unassigned: false);
   }
@@ -109,8 +109,8 @@ void f() {
 }
 ''',
       [
-        error(CompileTimeErrorCode.readPotentiallyUnassignedFinal, 24, 1),
-        error(CompileTimeErrorCode.readPotentiallyUnassignedFinal, 34, 1),
+        error(diag.readPotentiallyUnassignedFinal, 24, 1),
+        error(diag.readPotentiallyUnassignedFinal, 34, 1),
       ],
     );
     _assertAssigned('x; // 0', assigned: false, unassigned: true);
@@ -126,7 +126,7 @@ void f() {
   x += 1;
 }
 ''',
-      [error(CompileTimeErrorCode.readPotentiallyUnassignedFinal, 58, 1)],
+      [error(diag.readPotentiallyUnassignedFinal, 58, 1)],
     );
     _assertAssigned('x +=', assigned: false, unassigned: true);
   }
@@ -140,7 +140,7 @@ void f() {
   x++;
 }
 ''',
-      [error(CompileTimeErrorCode.readPotentiallyUnassignedFinal, 58, 1)],
+      [error(diag.readPotentiallyUnassignedFinal, 58, 1)],
     );
     _assertAssigned('x++', assigned: false, unassigned: true);
   }
@@ -154,7 +154,7 @@ void f() {
   ++x; // 0
 }
 ''',
-      [error(CompileTimeErrorCode.readPotentiallyUnassignedFinal, 60, 1)],
+      [error(diag.readPotentiallyUnassignedFinal, 60, 1)],
     );
     _assertAssigned('x; // 0', assigned: false, unassigned: true);
   }
@@ -179,7 +179,7 @@ void f(bool b) {
   x; // 0
 }
 ''',
-      [error(CompileTimeErrorCode.readPotentiallyUnassignedFinal, 46, 1)],
+      [error(diag.readPotentiallyUnassignedFinal, 46, 1)],
     );
     _assertAssigned('x; // 0', assigned: false, unassigned: false);
   }
@@ -195,8 +195,8 @@ void f(bool b) {
 }
 ''',
       [
-        error(CompileTimeErrorCode.assignmentToFinalLocal, 80, 1),
-        error(CompileTimeErrorCode.readPotentiallyUnassignedFinal, 80, 1),
+        error(diag.assignmentToFinalLocal, 80, 1),
+        error(diag.readPotentiallyUnassignedFinal, 80, 1),
       ],
     );
     _assertAssigned('x +=', assigned: false, unassigned: false);
@@ -213,8 +213,8 @@ void f(bool b) {
 }
 ''',
       [
-        error(CompileTimeErrorCode.assignmentToFinalLocal, 80, 1),
-        error(CompileTimeErrorCode.readPotentiallyUnassignedFinal, 80, 1),
+        error(diag.assignmentToFinalLocal, 80, 1),
+        error(diag.readPotentiallyUnassignedFinal, 80, 1),
       ],
     );
     _assertAssigned('x++', assigned: false, unassigned: false);
@@ -231,8 +231,8 @@ void f(bool b) {
 }
 ''',
       [
-        error(CompileTimeErrorCode.assignmentToFinalLocal, 82, 1),
-        error(CompileTimeErrorCode.readPotentiallyUnassignedFinal, 82, 1),
+        error(diag.assignmentToFinalLocal, 82, 1),
+        error(diag.readPotentiallyUnassignedFinal, 82, 1),
       ],
     );
     _assertAssigned('x; // 0', assigned: false, unassigned: false);
@@ -248,7 +248,7 @@ void f(bool b) {
   x = 1;
 }
 ''',
-      [error(CompileTimeErrorCode.assignmentToFinalLocal, 80, 1)],
+      [error(diag.assignmentToFinalLocal, 80, 1)],
     );
     _assertAssigned('x = 1', assigned: false, unassigned: false);
   }
@@ -274,7 +274,7 @@ void f() {
   x += 1;
 }
 ''',
-      [error(CompileTimeErrorCode.lateFinalLocalAlreadyAssigned, 72, 1)],
+      [error(diag.lateFinalLocalAlreadyAssigned, 72, 1)],
     );
     _assertAssigned('x +=', assigned: true, unassigned: false);
   }
@@ -289,7 +289,7 @@ void f() {
   x++;
 }
 ''',
-      [error(CompileTimeErrorCode.lateFinalLocalAlreadyAssigned, 72, 1)],
+      [error(diag.lateFinalLocalAlreadyAssigned, 72, 1)],
     );
     _assertAssigned('x++', assigned: true, unassigned: false);
   }
@@ -304,7 +304,7 @@ void f() {
   ++x; // 0
 }
 ''',
-      [error(CompileTimeErrorCode.lateFinalLocalAlreadyAssigned, 74, 1)],
+      [error(diag.lateFinalLocalAlreadyAssigned, 74, 1)],
     );
     _assertAssigned('x; // 0', assigned: true, unassigned: false);
   }
@@ -319,7 +319,7 @@ void f() {
   x = 1;
 }
 ''',
-      [error(CompileTimeErrorCode.lateFinalLocalAlreadyAssigned, 72, 1)],
+      [error(diag.lateFinalLocalAlreadyAssigned, 72, 1)],
     );
     _assertAssigned('x = 1', assigned: true, unassigned: false);
   }
@@ -332,13 +332,7 @@ void f() {
   x; // 0
 }
 ''',
-      [
-        error(
-          CompileTimeErrorCode.definitelyUnassignedLateLocalVariable,
-          29,
-          1,
-        ),
-      ],
+      [error(diag.definitelyUnassignedLateLocalVariable, 29, 1)],
     );
     _assertAssigned('x; // 0', assigned: false, unassigned: true);
   }
@@ -352,13 +346,7 @@ void f() {
   x += 1;
 }
 ''',
-      [
-        error(
-          CompileTimeErrorCode.definitelyUnassignedLateLocalVariable,
-          63,
-          1,
-        ),
-      ],
+      [error(diag.definitelyUnassignedLateLocalVariable, 63, 1)],
     );
     _assertAssigned('x +=', assigned: false, unassigned: true);
   }
@@ -372,13 +360,7 @@ void f() {
   x++;
 }
 ''',
-      [
-        error(
-          CompileTimeErrorCode.definitelyUnassignedLateLocalVariable,
-          63,
-          1,
-        ),
-      ],
+      [error(diag.definitelyUnassignedLateLocalVariable, 63, 1)],
     );
     _assertAssigned('x++', assigned: false, unassigned: true);
   }
@@ -392,13 +374,7 @@ void f() {
   ++x; // 0
 }
 ''',
-      [
-        error(
-          CompileTimeErrorCode.definitelyUnassignedLateLocalVariable,
-          65,
-          1,
-        ),
-      ],
+      [error(diag.definitelyUnassignedLateLocalVariable, 65, 1)],
     );
     _assertAssigned('x; // 0', assigned: false, unassigned: true);
   }
@@ -494,7 +470,7 @@ void f() {
   x += 1;
 }
 ''',
-      [error(CompileTimeErrorCode.lateFinalLocalAlreadyAssigned, 77, 1)],
+      [error(diag.lateFinalLocalAlreadyAssigned, 77, 1)],
     );
     _assertAssigned('x +=', assigned: true, unassigned: false);
   }
@@ -509,7 +485,7 @@ void f() {
   x++;
 }
 ''',
-      [error(CompileTimeErrorCode.lateFinalLocalAlreadyAssigned, 77, 1)],
+      [error(diag.lateFinalLocalAlreadyAssigned, 77, 1)],
     );
     _assertAssigned('x++', assigned: true, unassigned: false);
   }
@@ -524,7 +500,7 @@ void f() {
   ++x; // 0
 }
 ''',
-      [error(CompileTimeErrorCode.lateFinalLocalAlreadyAssigned, 79, 1)],
+      [error(diag.lateFinalLocalAlreadyAssigned, 79, 1)],
     );
     _assertAssigned('x; // 0', assigned: true, unassigned: false);
   }
@@ -539,7 +515,7 @@ void f() {
   x = 1;
 }
 ''',
-      [error(CompileTimeErrorCode.lateFinalLocalAlreadyAssigned, 77, 1)],
+      [error(diag.lateFinalLocalAlreadyAssigned, 77, 1)],
     );
     _assertAssigned('x = 1', assigned: true, unassigned: false);
   }
@@ -552,13 +528,7 @@ void f() {
   x; // 0
 }
 ''',
-      [
-        error(
-          CompileTimeErrorCode.definitelyUnassignedLateLocalVariable,
-          34,
-          1,
-        ),
-      ],
+      [error(diag.definitelyUnassignedLateLocalVariable, 34, 1)],
     );
     _assertAssigned('x; // 0', assigned: false, unassigned: true);
   }
@@ -573,16 +543,8 @@ void f() {
 }
 ''',
       [
-        error(
-          CompileTimeErrorCode.definitelyUnassignedLateLocalVariable,
-          68,
-          1,
-        ),
-        error(
-          CompileTimeErrorCode.uncheckedMethodInvocationOfNullableValue,
-          70,
-          2,
-        ),
+        error(diag.definitelyUnassignedLateLocalVariable, 68, 1),
+        error(diag.uncheckedMethodInvocationOfNullableValue, 70, 2),
       ],
     );
     _assertAssigned('x +=', assigned: false, unassigned: true);
@@ -598,16 +560,8 @@ void f() {
 }
 ''',
       [
-        error(
-          CompileTimeErrorCode.definitelyUnassignedLateLocalVariable,
-          68,
-          1,
-        ),
-        error(
-          CompileTimeErrorCode.uncheckedMethodInvocationOfNullableValue,
-          69,
-          2,
-        ),
+        error(diag.definitelyUnassignedLateLocalVariable, 68, 1),
+        error(diag.uncheckedMethodInvocationOfNullableValue, 69, 2),
       ],
     );
     _assertAssigned('x++', assigned: false, unassigned: true);
@@ -623,16 +577,8 @@ void f() {
 }
 ''',
       [
-        error(
-          CompileTimeErrorCode.definitelyUnassignedLateLocalVariable,
-          70,
-          1,
-        ),
-        error(
-          CompileTimeErrorCode.uncheckedMethodInvocationOfNullableValue,
-          68,
-          2,
-        ),
+        error(diag.definitelyUnassignedLateLocalVariable, 70, 1),
+        error(diag.uncheckedMethodInvocationOfNullableValue, 68, 2),
       ],
     );
     _assertAssigned('x; // 0', assigned: false, unassigned: true);
@@ -670,13 +616,7 @@ void f(bool b) {
   x += 1;
 }
 ''',
-      [
-        error(
-          CompileTimeErrorCode.uncheckedMethodInvocationOfNullableValue,
-          92,
-          2,
-        ),
-      ],
+      [error(diag.uncheckedMethodInvocationOfNullableValue, 92, 2)],
     );
     _assertAssigned('x +=', assigned: false, unassigned: false);
   }
@@ -691,13 +631,7 @@ void f(bool b) {
   x++;
 }
 ''',
-      [
-        error(
-          CompileTimeErrorCode.uncheckedMethodInvocationOfNullableValue,
-          91,
-          2,
-        ),
-      ],
+      [error(diag.uncheckedMethodInvocationOfNullableValue, 91, 2)],
     );
     _assertAssigned('x++', assigned: false, unassigned: false);
   }
@@ -712,13 +646,7 @@ void f(bool b) {
   ++x; // 0
 }
 ''',
-      [
-        error(
-          CompileTimeErrorCode.uncheckedMethodInvocationOfNullableValue,
-          90,
-          2,
-        ),
-      ],
+      [error(diag.uncheckedMethodInvocationOfNullableValue, 90, 2)],
     );
     _assertAssigned('x; // 0', assigned: false, unassigned: false);
   }
@@ -756,7 +684,7 @@ void f<T>(T t, T t2) {
   x = t2;
 }
 ''',
-      [error(CompileTimeErrorCode.lateFinalLocalAlreadyAssigned, 86, 1)],
+      [error(diag.lateFinalLocalAlreadyAssigned, 86, 1)],
     );
     _assertAssigned('x = t2', assigned: true, unassigned: false);
   }
@@ -769,13 +697,7 @@ void f<T>() {
   x; // 0
 }
 ''',
-      [
-        error(
-          CompileTimeErrorCode.definitelyUnassignedLateLocalVariable,
-          34,
-          1,
-        ),
-      ],
+      [error(diag.definitelyUnassignedLateLocalVariable, 34, 1)],
     );
     _assertAssigned('x; // 0', assigned: false, unassigned: true);
   }
@@ -833,13 +755,7 @@ void f() {
   x; // 0
 }
 ''',
-      [
-        error(
-          CompileTimeErrorCode.definitelyUnassignedLateLocalVariable,
-          28,
-          1,
-        ),
-      ],
+      [error(diag.definitelyUnassignedLateLocalVariable, 28, 1)],
     );
     _assertAssigned('x; // 0', assigned: false, unassigned: true);
   }
@@ -874,13 +790,7 @@ void f<T>() {
   x; // 0
 }
 ''',
-      [
-        error(
-          CompileTimeErrorCode.definitelyUnassignedLateLocalVariable,
-          28,
-          1,
-        ),
-      ],
+      [error(diag.definitelyUnassignedLateLocalVariable, 28, 1)],
     );
     _assertAssigned('x; // 0', assigned: false, unassigned: true);
   }
@@ -963,13 +873,7 @@ void f() {
   x; // 0
 }
 ''',
-      [
-        error(
-          CompileTimeErrorCode.definitelyUnassignedLateLocalVariable,
-          27,
-          1,
-        ),
-      ],
+      [error(diag.definitelyUnassignedLateLocalVariable, 27, 1)],
     );
     _assertAssigned('x; // 0', assigned: false, unassigned: true);
   }
@@ -1134,13 +1038,7 @@ void f<T>() {
   x; // 0
 }
 ''',
-      [
-        error(
-          CompileTimeErrorCode.notAssignedPotentiallyNonNullableLocalVariable,
-          23,
-          1,
-        ),
-      ],
+      [error(diag.notAssignedPotentiallyNonNullableLocalVariable, 23, 1)],
     );
     _assertAssigned('x; // 0', assigned: false, unassigned: true);
   }
@@ -1165,13 +1063,7 @@ void f<T>(bool b, T t) {
   x; // 0
 }
 ''',
-      [
-        error(
-          CompileTimeErrorCode.notAssignedPotentiallyNonNullableLocalVariable,
-          50,
-          1,
-        ),
-      ],
+      [error(diag.notAssignedPotentiallyNonNullableLocalVariable, 50, 1)],
     );
     _assertAssigned('x; // 0', assigned: false, unassigned: false);
   }

@@ -12,6 +12,7 @@ import 'package:analyzer/error/error.dart';
 
 import '../analyzer.dart';
 import '../ast.dart';
+import '../diagnostic.dart' as diag;
 
 const _desc = r'Prefer `const` over `final` for declarations.';
 
@@ -20,7 +21,7 @@ class PreferConstDeclarations extends AnalysisRule {
     : super(name: LintNames.prefer_const_declarations, description: _desc);
 
   @override
-  DiagnosticCode get diagnosticCode => LinterLintCode.preferConstDeclarations;
+  DiagnosticCode get diagnosticCode => diag.preferConstDeclarations;
 
   @override
   void registerNodeProcessors(

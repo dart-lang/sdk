@@ -11,7 +11,7 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/diagnostic/diagnostic.dart';
 import 'package:analyzer/src/dart/analysis/testing_data.dart';
 import 'package:analyzer/src/dart/resolver/flow_analysis_visitor.dart';
-import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:analyzer/src/util/ast_data_extractor.dart';
 
 import '../util/id_testing_helper.dart';
@@ -53,10 +53,7 @@ class _DefiniteAssignmentDataComputer extends DataComputer<String> {
   ) {
     var diagnosticCodes = diagnostics
         .map((e) => e.diagnosticCode)
-        .where(
-          (c) =>
-              c != CompileTimeErrorCode.definitelyUnassignedLateLocalVariable,
-        );
+        .where((c) => c != diag.definitelyUnassignedLateLocalVariable);
     return diagnosticCodes.isNotEmpty ? diagnosticCodes.join(',') : null;
   }
 

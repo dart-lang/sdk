@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../rule_test_support.dart';
@@ -607,7 +608,7 @@ f() {
 ''',
       [
         // No lint.
-        error(WarningCode.unnecessaryWildcardPattern, 79, 5),
+        error(diag.unnecessaryWildcardPattern, 79, 5),
       ],
     );
   }

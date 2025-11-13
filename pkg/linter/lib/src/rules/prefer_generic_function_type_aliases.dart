@@ -10,6 +10,7 @@ import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/error/error.dart';
 
 import '../analyzer.dart';
+import '../diagnostic.dart' as diag;
 
 const _desc = r'Prefer generic function type aliases.';
 
@@ -24,8 +25,7 @@ class PreferGenericFunctionTypeAliases extends AnalysisRule {
   bool get canUseParsedResult => true;
 
   @override
-  DiagnosticCode get diagnosticCode =>
-      LinterLintCode.preferGenericFunctionTypeAliases;
+  DiagnosticCode get diagnosticCode => diag.preferGenericFunctionTypeAliases;
 
   @override
   void registerNodeProcessors(

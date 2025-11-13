@@ -11,6 +11,7 @@ import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/error/error.dart';
 
 import '../analyzer.dart';
+import '../diagnostic.dart' as diag;
 
 const _desc = r'Boolean expression composed only with literals.';
 
@@ -41,8 +42,7 @@ class LiteralOnlyBooleanExpressions extends AnalysisRule {
       );
 
   @override
-  DiagnosticCode get diagnosticCode =>
-      LinterLintCode.literalOnlyBooleanExpressions;
+  DiagnosticCode get diagnosticCode => diag.literalOnlyBooleanExpressions;
 
   @override
   void registerNodeProcessors(

@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
@@ -60,10 +60,10 @@ void f(A a) {
 }
 ''',
       [
-        error(CompileTimeErrorCode.assignmentToFinal, 64, 1),
-        error(CompileTimeErrorCode.assignmentToFinal, 75, 1),
-        error(CompileTimeErrorCode.assignmentToFinal, 89, 1),
-        error(CompileTimeErrorCode.assignmentToFinal, 96, 1),
+        error(diag.assignmentToFinal, 64, 1),
+        error(diag.assignmentToFinal, 75, 1),
+        error(diag.assignmentToFinal, 89, 1),
+        error(diag.assignmentToFinal, 96, 1),
       ],
     );
   }
@@ -98,10 +98,10 @@ void f(A a) {
 }
 ''',
       [
-        error(CompileTimeErrorCode.assignmentToFinal, 64, 1),
-        error(CompileTimeErrorCode.assignmentToFinal, 75, 1),
-        error(CompileTimeErrorCode.assignmentToFinal, 89, 1),
-        error(CompileTimeErrorCode.assignmentToFinal, 96, 1),
+        error(diag.assignmentToFinal, 64, 1),
+        error(diag.assignmentToFinal, 75, 1),
+        error(diag.assignmentToFinal, 89, 1),
+        error(diag.assignmentToFinal, 96, 1),
       ],
     );
   }
@@ -121,10 +121,10 @@ void f(A a) {
 }
 ''',
       [
-        error(CompileTimeErrorCode.assignmentToFinal, 46, 1),
-        error(CompileTimeErrorCode.assignmentToFinal, 57, 1),
-        error(CompileTimeErrorCode.assignmentToFinal, 71, 1),
-        error(CompileTimeErrorCode.assignmentToFinal, 78, 1),
+        error(diag.assignmentToFinal, 46, 1),
+        error(diag.assignmentToFinal, 57, 1),
+        error(diag.assignmentToFinal, 71, 1),
+        error(diag.assignmentToFinal, 78, 1),
       ],
     );
   }
@@ -159,10 +159,10 @@ void f(A a) {
 }
 ''',
       [
-        error(CompileTimeErrorCode.assignmentToFinal, 64, 1),
-        error(CompileTimeErrorCode.assignmentToFinal, 75, 1),
-        error(CompileTimeErrorCode.assignmentToFinal, 89, 1),
-        error(CompileTimeErrorCode.assignmentToFinal, 96, 1),
+        error(diag.assignmentToFinal, 64, 1),
+        error(diag.assignmentToFinal, 75, 1),
+        error(diag.assignmentToFinal, 89, 1),
+        error(diag.assignmentToFinal, 96, 1),
       ],
     );
   }
@@ -182,10 +182,10 @@ void f() {
 }
 ''',
       [
-        error(CompileTimeErrorCode.assignmentToFinal, 68, 1),
-        error(CompileTimeErrorCode.assignmentToFinal, 79, 1),
-        error(CompileTimeErrorCode.assignmentToFinal, 93, 1),
-        error(CompileTimeErrorCode.assignmentToFinal, 100, 1),
+        error(diag.assignmentToFinal, 68, 1),
+        error(diag.assignmentToFinal, 79, 1),
+        error(diag.assignmentToFinal, 93, 1),
+        error(diag.assignmentToFinal, 100, 1),
       ],
     );
   }
@@ -220,10 +220,10 @@ void f() {
 }
 ''',
       [
-        error(CompileTimeErrorCode.assignmentToFinal, 68, 1),
-        error(CompileTimeErrorCode.assignmentToFinal, 79, 1),
-        error(CompileTimeErrorCode.assignmentToFinal, 93, 1),
-        error(CompileTimeErrorCode.assignmentToFinal, 100, 1),
+        error(diag.assignmentToFinal, 68, 1),
+        error(diag.assignmentToFinal, 79, 1),
+        error(diag.assignmentToFinal, 93, 1),
+        error(diag.assignmentToFinal, 100, 1),
       ],
     );
   }
@@ -258,10 +258,10 @@ void f(A a) {
 }
 ''',
       [
-        error(CompileTimeErrorCode.assignmentToFinal, 66, 1),
-        error(CompileTimeErrorCode.assignmentToFinal, 79, 1),
-        error(CompileTimeErrorCode.assignmentToFinal, 95, 1),
-        error(CompileTimeErrorCode.assignmentToFinal, 104, 1),
+        error(diag.assignmentToFinal, 66, 1),
+        error(diag.assignmentToFinal, 79, 1),
+        error(diag.assignmentToFinal, 95, 1),
+        error(diag.assignmentToFinal, 104, 1),
       ],
     );
   }
@@ -281,7 +281,7 @@ class B extends A {
   }
 }
 ''',
-      [error(CompileTimeErrorCode.assignmentToFinal, 96, 3)],
+      [error(diag.assignmentToFinal, 96, 3)],
     );
   }
 
@@ -315,10 +315,10 @@ abstract class A {
 }
 ''',
       [
-        error(CompileTimeErrorCode.assignmentToFinal, 61, 1),
-        error(CompileTimeErrorCode.assignmentToFinal, 72, 1),
-        error(CompileTimeErrorCode.assignmentToFinal, 86, 1),
-        error(CompileTimeErrorCode.assignmentToFinal, 93, 1),
+        error(diag.assignmentToFinal, 61, 1),
+        error(diag.assignmentToFinal, 72, 1),
+        error(diag.assignmentToFinal, 86, 1),
+        error(diag.assignmentToFinal, 93, 1),
       ],
     );
   }
@@ -353,10 +353,10 @@ abstract class A {
 }
 ''',
       [
-        error(CompileTimeErrorCode.assignmentToFinal, 68, 1),
-        error(CompileTimeErrorCode.assignmentToFinal, 79, 1),
-        error(CompileTimeErrorCode.assignmentToFinal, 93, 1),
-        error(CompileTimeErrorCode.assignmentToFinal, 100, 1),
+        error(diag.assignmentToFinal, 68, 1),
+        error(diag.assignmentToFinal, 79, 1),
+        error(diag.assignmentToFinal, 93, 1),
+        error(diag.assignmentToFinal, 100, 1),
       ],
     );
   }
@@ -374,10 +374,10 @@ void f() {
 }
 ''',
       [
-        error(CompileTimeErrorCode.assignmentToFinal, 30, 1),
-        error(CompileTimeErrorCode.assignmentToFinal, 39, 1),
-        error(CompileTimeErrorCode.assignmentToFinal, 51, 1),
-        error(CompileTimeErrorCode.assignmentToFinal, 56, 1),
+        error(diag.assignmentToFinal, 30, 1),
+        error(diag.assignmentToFinal, 39, 1),
+        error(diag.assignmentToFinal, 51, 1),
+        error(diag.assignmentToFinal, 56, 1),
       ],
     );
   }
@@ -421,10 +421,10 @@ void f() {
 }
 ''',
       [
-        error(CompileTimeErrorCode.assignmentToFinal, 32, 1),
-        error(CompileTimeErrorCode.assignmentToFinal, 41, 1),
-        error(CompileTimeErrorCode.assignmentToFinal, 53, 1),
-        error(CompileTimeErrorCode.assignmentToFinal, 58, 1),
+        error(diag.assignmentToFinal, 32, 1),
+        error(diag.assignmentToFinal, 41, 1),
+        error(diag.assignmentToFinal, 53, 1),
+        error(diag.assignmentToFinal, 58, 1),
       ],
     );
   }
@@ -442,10 +442,10 @@ void f() {
 }
 ''',
       [
-        error(CompileTimeErrorCode.assignmentToFinal, 27, 1),
-        error(CompileTimeErrorCode.assignmentToFinal, 36, 1),
-        error(CompileTimeErrorCode.assignmentToFinal, 48, 1),
-        error(CompileTimeErrorCode.assignmentToFinal, 53, 1),
+        error(diag.assignmentToFinal, 27, 1),
+        error(diag.assignmentToFinal, 36, 1),
+        error(diag.assignmentToFinal, 48, 1),
+        error(diag.assignmentToFinal, 53, 1),
       ],
     );
   }
@@ -476,10 +476,10 @@ void f() {
 }
 ''',
       [
-        error(CompileTimeErrorCode.assignmentToFinal, 36, 1),
-        error(CompileTimeErrorCode.assignmentToFinal, 45, 1),
-        error(CompileTimeErrorCode.assignmentToFinal, 57, 1),
-        error(CompileTimeErrorCode.assignmentToFinal, 62, 1),
+        error(diag.assignmentToFinal, 36, 1),
+        error(diag.assignmentToFinal, 45, 1),
+        error(diag.assignmentToFinal, 57, 1),
+        error(diag.assignmentToFinal, 62, 1),
       ],
     );
   }

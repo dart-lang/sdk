@@ -17,7 +17,7 @@ import 'package:analyzer/src/dart/element/type_provider.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/dart/resolver/extension_member_resolver.dart';
 import 'package:analyzer/src/dart/resolver/resolution_result.dart';
-import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:analyzer/src/generated/resolver.dart';
 
 /// Helper for resolving properties (getters, setters, or methods).
@@ -128,27 +128,24 @@ class TypePropertyResolver {
       DiagnosticCode errorCode;
       List<String> arguments;
       if (parentNode == null) {
-        errorCode = CompileTimeErrorCode.uncheckedInvocationOfNullableValue;
+        errorCode = diag.uncheckedInvocationOfNullableValue;
         arguments = [];
       } else {
         if (parentNode is CascadeExpression) {
           parentNode = parentNode.cascadeSections.first;
         }
         if (parentNode is BinaryExpression || parentNode is RelationalPattern) {
-          errorCode =
-              CompileTimeErrorCode.uncheckedOperatorInvocationOfNullableValue;
+          errorCode = diag.uncheckedOperatorInvocationOfNullableValue;
           arguments = [name];
         } else if (parentNode is MethodInvocation ||
             parentNode is MethodReferenceExpression) {
-          errorCode =
-              CompileTimeErrorCode.uncheckedMethodInvocationOfNullableValue;
+          errorCode = diag.uncheckedMethodInvocationOfNullableValue;
           arguments = [name];
         } else if (parentNode is FunctionExpressionInvocation) {
-          errorCode = CompileTimeErrorCode.uncheckedInvocationOfNullableValue;
+          errorCode = diag.uncheckedInvocationOfNullableValue;
           arguments = [];
         } else {
-          errorCode =
-              CompileTimeErrorCode.uncheckedPropertyAccessOfNullableValue;
+          errorCode = diag.uncheckedPropertyAccessOfNullableValue;
           arguments = [name];
         }
       }

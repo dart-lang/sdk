@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
@@ -34,7 +34,7 @@ f() {
   E(0).foo = 1;
 }
 ''',
-      [error(CompileTimeErrorCode.undefinedExtensionSetter, 35, 3)],
+      [error(diag.undefinedExtensionSetter, 35, 3)],
     );
   }
 
@@ -48,7 +48,7 @@ f() {
   E(0).foo = 1;
 }
 ''',
-      [error(CompileTimeErrorCode.undefinedExtensionSetter, 56, 3)],
+      [error(diag.undefinedExtensionSetter, 56, 3)],
     );
   }
 
@@ -62,7 +62,7 @@ f() {
   E(0).foo += 1;
 }
 ''',
-      [error(CompileTimeErrorCode.undefinedExtensionSetter, 56, 3)],
+      [error(diag.undefinedExtensionSetter, 56, 3)],
     );
   }
 
@@ -82,7 +82,7 @@ f(C c) {
   Ext(c).id++;
 }
 ''',
-      [error(CompileTimeErrorCode.undefinedExtensionSetter, 117, 2)],
+      [error(diag.undefinedExtensionSetter, 117, 2)],
     );
   }
 
@@ -94,7 +94,7 @@ void f() {
   E.foo = 3;
 }
 ''',
-      [error(CompileTimeErrorCode.undefinedExtensionSetter, 37, 3)],
+      [error(diag.undefinedExtensionSetter, 37, 3)],
     );
   }
 }

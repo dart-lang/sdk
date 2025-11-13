@@ -3,8 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/element/type.dart';
-import 'package:analyzer/src/dart/error/syntactic_errors.dart';
-import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -91,13 +90,7 @@ import 'a.dart';
 class C<T> {}
 C<G>? x;
 ''',
-      [
-        error(
-          CompileTimeErrorCode.genericFunctionTypeCannotBeTypeArgument,
-          47,
-          1,
-        ),
-      ],
+      [error(diag.genericFunctionTypeCannotBeTypeArgument, 47, 1)],
     );
   }
 }
@@ -116,13 +109,7 @@ typedef G = Function<S>();
 
 C<G>? x;
 ''',
-      [
-        error(
-          CompileTimeErrorCode.genericFunctionTypeCannotBeTypeArgument,
-          59,
-          1,
-        ),
-      ],
+      [error(diag.genericFunctionTypeCannotBeTypeArgument, 59, 1)],
     );
   }
 
@@ -134,13 +121,7 @@ class C<T> {}
 
 C<Function<S>()>? x;
 ''',
-      [
-        error(
-          CompileTimeErrorCode.genericFunctionTypeCannotBeTypeArgument,
-          31,
-          13,
-        ),
-      ],
+      [error(diag.genericFunctionTypeCannotBeTypeArgument, 31, 13)],
     );
   }
 
@@ -154,13 +135,7 @@ main() {
   f<Function<S>()>(null);
 }
 ''',
-      [
-        error(
-          CompileTimeErrorCode.genericFunctionTypeCannotBeTypeArgument,
-          44,
-          13,
-        ),
-      ],
+      [error(diag.genericFunctionTypeCannotBeTypeArgument, 44, 13)],
     );
   }
 
@@ -174,13 +149,7 @@ main() {
   f<Function<S>()>(null);
 }
 ''',
-      [
-        error(
-          CompileTimeErrorCode.genericFunctionTypeCannotBeTypeArgument,
-          54,
-          13,
-        ),
-      ],
+      [error(diag.genericFunctionTypeCannotBeTypeArgument, 54, 13)],
     );
   }
 
@@ -196,13 +165,7 @@ main() {
   new C().f<Function<S>()>(null);
 }
 ''',
-      [
-        error(
-          CompileTimeErrorCode.genericFunctionTypeCannotBeTypeArgument,
-          66,
-          13,
-        ),
-      ],
+      [error(diag.genericFunctionTypeCannotBeTypeArgument, 66, 13)],
     );
   }
 
@@ -214,13 +177,7 @@ typedef T F<T>(T t);
 
 F<Function<S>()>? x;
 ''',
-      [
-        error(
-          CompileTimeErrorCode.genericFunctionTypeCannotBeTypeArgument,
-          38,
-          13,
-        ),
-      ],
+      [error(diag.genericFunctionTypeCannotBeTypeArgument, 38, 13)],
     );
   }
 }
@@ -253,10 +210,7 @@ void f() {
   F.a;
 }
 ''',
-      [
-        error(ParserErrorCode.expectedTypeName, 15, 1),
-        error(CompileTimeErrorCode.undefinedGetter, 33, 1),
-      ],
+      [error(diag.expectedTypeName, 15, 1), error(diag.undefinedGetter, 33, 1)],
     );
   }
 
@@ -272,7 +226,7 @@ void f() {
   p.F.a;
 }
 ''',
-      [error(CompileTimeErrorCode.undefinedGetter, 40, 1)],
+      [error(diag.undefinedGetter, 40, 1)],
     );
   }
 
