@@ -96,10 +96,11 @@ void main() async {
 
     addTearDown(() async {
       await process!.kill();
-      // Delete [tmpDir] after [process] is killed. Otherwise, the call to
-      // `tmpDir.deleteSync` may fail with an error: "The process cannot access
-      // the file because it is being used by another process."
-      tmpDir.deleteSync(recursive: true);
+      await process!.exitCode;
+      // Delete [tmpDir] after [process] is killed and exited to reduce the
+      // chance of the delete failoing with "The process cannot access the file
+      // because it is being used by another process" and requiring retries.
+      await deleteDirectory(tmpDir);
     });
 
     String? uri;
@@ -149,4 +150,26 @@ extension OutputProcessExtension on Process {
 
 Matcher throwsAnRpcError(int code) {
   return throwsA(predicate((p0) => (p0 is RpcException) && (p0.code == code)));
+}
+
+/// Deletes [dir] with some retries to reduce the chances of file locking errors
+/// on Windows where files may fail to delete for a short period after the
+/// process that locked them terminates.
+Future<void> deleteDirectory(Directory dir) async {
+  var deleteAttempts = 5;
+  while (deleteAttempts >= 0) {
+    deleteAttempts--;
+    try {
+      if (!dir.existsSync()) {
+        return;
+      }
+      dir.deleteSync(recursive: true);
+    } catch (e) {
+      if (deleteAttempts <= 0) {
+        rethrow;
+      }
+      await Future<void>.delayed(const Duration(milliseconds: 500));
+      print('Got $e while deleting $dir. Trying again...');
+    }
+  }
 }

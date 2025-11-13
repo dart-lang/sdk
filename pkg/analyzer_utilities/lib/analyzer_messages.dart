@@ -122,15 +122,6 @@ const ffiCodesFile = GeneratedDiagnosticFile(
 
 const String generatedLintCodesPath = 'linter/lib/src/lint_codes.g.dart';
 
-/// Whether diagnostic constants should be generated to top level.
-///
-/// If this constant is `true`, diagnostic constants will be generated as top
-/// level constants inside of files called `diagnostic.g.dart`.
-///
-/// Otherwise, diagnostic constants will be generated as static constants inside
-/// `DiagnosticCode`-derived classes such as `CompileTimeErrorCode`.
-const bool generateTopLevelConstants = true;
-
 const hintCodesFile = GeneratedDiagnosticFile(
   path: 'analyzer/lib/src/dart/error/hint_codes.g.dart',
   parentLibrary: 'package:analyzer/src/dart/error/hint_codes.dart',
@@ -367,8 +358,7 @@ class AliasMessage extends AnalyzerMessage {
   }) {
     var constant = StringBuffer();
     outputConstantHeader(constant);
-    var static = generateTopLevelConstants ? '' : 'static';
-    constant.writeln('  $static const $aliasForClass $constantName =');
+    constant.writeln('const $aliasForClass $constantName =');
     constant.writeln('$aliasFor;');
     memberAccumulator.constants[constantName] = constant.toString();
   }
@@ -671,7 +661,6 @@ mixin MessageWithAnalyzerCode on Message {
     String? withArgumentsName;
     var baseClasses = analyzerCode.diagnosticClass.type.baseClasses;
     var ConstantStyle(:concreteClassName, :staticType) = constantStyle;
-    var static = generateTopLevelConstants ? '' : 'static';
     if (constantStyle case WithArgumentsConstantStyle(
       :var withArgumentsParams,
     )) {
@@ -679,7 +668,7 @@ mixin MessageWithAnalyzerCode on Message {
       withArgumentsName = '_withArguments${analyzerCode.pascalCaseName}';
       memberAccumulator.staticMethods[withArgumentsName] =
           '''
-$static LocatableDiagnostic $withArgumentsName({$withArgumentsParams}) {
+LocatableDiagnostic $withArgumentsName({$withArgumentsParams}) {
   return LocatableDiagnosticImpl(
     ${analyzerCode.analyzerCodeReference}, [$argumentNames]);
 }''';
@@ -687,7 +676,7 @@ $static LocatableDiagnostic $withArgumentsName({$withArgumentsParams}) {
 
     var constant = StringBuffer();
     outputConstantHeader(constant);
-    constant.writeln('$static const $staticType $constantName =');
+    constant.writeln('const $staticType $constantName =');
     constant.writeln('$concreteClassName(');
     constant.writeln(
       'name: ${sharedNameReference ?? "'${sharedName ?? diagnosticCode}'"},',
@@ -733,7 +722,7 @@ $static LocatableDiagnostic $withArgumentsName({$withArgumentsParams}) {
       memberAccumulator.constants[diagnosticCode] =
           '''
 @Deprecated("Please use $constantName")
-$static const DiagnosticCode $diagnosticCode = $constantName;
+const DiagnosticCode $diagnosticCode = $constantName;
 ''';
     }
   }
@@ -808,14 +797,7 @@ $static const DiagnosticCode $diagnosticCode = $constantName;
     String? sharedNameReference,
     required MemberAccumulator memberAccumulator,
   }) {
-    if (generateTopLevelConstants) {
-      toAnalyzerRedirectCode(memberAccumulator: memberAccumulator);
-    } else {
-      toAnalyzerCode(
-        sharedNameReference: sharedNameReference,
-        memberAccumulator: memberAccumulator,
-      );
-    }
+    toAnalyzerRedirectCode(memberAccumulator: memberAccumulator);
   }
 
   String _computeExpectedTypes() {
