@@ -107,10 +107,7 @@ part of ${json.encode(file.parentLibrary)};
           out.writeln('/// $line');
         });
       }
-      var extends_ = generateTopLevelConstants
-          ? ''
-          : ' extends DiagnosticCodeWithExpectedTypes';
-      out.write('class ${diagnosticClass.name}$extends_ {');
+      out.write('class ${diagnosticClass.name} {');
       var memberAccumulator = MemberAccumulator();
 
       for (var message
@@ -124,30 +121,10 @@ part of ${json.encode(file.parentLibrary)};
         });
       }
 
-      if (generateTopLevelConstants) {
-        var constructor = StringBuffer();
-        constructor.writeln('/// Do not construct instances of this class.');
-        constructor.writeln('${diagnosticClass.name}._() : assert(false);');
-        memberAccumulator.constructors['_'] = constructor.toString();
-      } else {
-        var constructor = StringBuffer();
-        constructor.writeln(
-          '/// Initialize a newly created error code to have the given '
-          '[name].',
-        );
-        constructor.writeln('const ${diagnosticClass.name}({');
-        constructor.writeln('required super.name,');
-        constructor.writeln('required super.problemMessage,');
-        constructor.writeln('super.correctionMessage,');
-        constructor.writeln('super.hasPublishedDocs = false,');
-        constructor.writeln('super.isUnresolvedIdentifier = false,');
-        constructor.writeln('required super.uniqueName,');
-        constructor.writeln('required super.expectedTypes,');
-        constructor.writeln('}) : super(');
-        constructor.writeln('type: ${diagnosticClass.typeCode},');
-        constructor.writeln(');');
-        memberAccumulator.constructors[''] = constructor.toString();
-      }
+      var constructor = StringBuffer();
+      constructor.writeln('/// Do not construct instances of this class.');
+      constructor.writeln('${diagnosticClass.name}._() : assert(false);');
+      memberAccumulator.constructors['_'] = constructor.toString();
 
       memberAccumulator.writeTo(out);
       out.writeln('}');
@@ -188,19 +165,15 @@ part of ${json.encode(parentLibrary)};
 ''');
     out.writeln();
 
-    if (generateTopLevelConstants) {
-      var memberAccumulator = MemberAccumulator();
+    var memberAccumulator = MemberAccumulator();
 
-      for (var message in diagnosticTables.activeMessagesByPackage[package]!) {
-        LocatedError.wrap(span: message.keySpan, () {
-          message.toAnalyzerCode(memberAccumulator: memberAccumulator);
-        });
-      }
-
-      memberAccumulator.writeTo(out);
-    } else {
-      out.writeln('// Not yet used.');
+    for (var message in diagnosticTables.activeMessagesByPackage[package]!) {
+      LocatedError.wrap(span: message.keySpan, () {
+        message.toAnalyzerCode(memberAccumulator: memberAccumulator);
+      });
     }
+
+    memberAccumulator.writeTo(out);
   }
 }
 
