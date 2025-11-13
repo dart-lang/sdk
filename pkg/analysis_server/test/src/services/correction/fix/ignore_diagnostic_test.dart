@@ -210,6 +210,23 @@ void f() {
 ''');
   }
 
+  Future<void> test_docCommentsAtStart() async {
+    await resolveTestCode('''
+/// some comment
+void f() {
+  var a = 1;
+}
+''');
+    await assertHasFix('''
+// ignore_for_file: unused_local_variable
+
+/// some comment
+void f() {
+  var a = 1;
+}
+''');
+  }
+
   Future<void> test_existingIgnores() async {
     await resolveTestCode('''
 // Copyright header.

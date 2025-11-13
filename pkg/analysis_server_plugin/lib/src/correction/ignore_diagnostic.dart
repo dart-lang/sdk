@@ -4,6 +4,7 @@
 
 import 'package:analysis_server_plugin/edit/dart/correction_producer.dart';
 import 'package:analysis_server_plugin/edit/dart/dart_fix_kind_priority.dart';
+import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/diagnostic/diagnostic.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/dart/analysis/analysis_options.dart';
@@ -172,6 +173,14 @@ class IgnoreDiagnosticInFile extends _DartIgnoreDiagnostic {
         if (trimmedLine.startsWith('#!') || trimmedLine.startsWith('//')) {
           // Skip comment/hash-bang.
           continue;
+        }
+
+        if (utils.findNode(lineStart) case var node?) {
+          var unitMember = node.thisOrAncestorOfType<CompilationUnitMember>();
+          var reference = unitMember?.documentationComment ?? node;
+          lineStart = reference.offset;
+          // Found code with possible doc-comment; insert before that.
+          break;
         }
 
         // We found some code.
