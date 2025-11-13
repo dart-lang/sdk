@@ -34,12 +34,46 @@ suggestions
 ''');
   }
 
+  Future<void> test_constructor_class_named_equality_withPrefix() async {
+    allowedIdentifiers = {'named'};
+    await computeSuggestions('''
+class C {
+  C.named();
+}
+void f() {
+  print(C.named() == .n^);
+}
+''');
+    assertResponse(r'''
+replacement
+  left: 1
+suggestions
+  named
+    kind: constructorInvocation
+''');
+  }
+
   Future<void> test_constructor_class_unnamed() async {
     allowedIdentifiers = {'new'};
     await computeSuggestions('''
 class C {}
 void f() {
   C c = .^
+}
+''');
+    assertResponse(r'''
+suggestions
+  new
+    kind: constructorInvocation
+''');
+  }
+
+  Future<void> test_constructor_class_unnamed_equality() async {
+    allowedIdentifiers = {'new'};
+    await computeSuggestions('''
+class C {}
+void f() {
+  print(C() == .^);
 }
 ''');
     assertResponse(r'''
@@ -181,6 +215,21 @@ suggestions
 ''');
   }
 
+  Future<void> test_constructor_extensionType_unnamed_equality() async {
+    allowedIdentifiers = {'new'};
+    await computeSuggestions('''
+extension type C(int x) {}
+void f() {
+  print(C() == .^);
+}
+''');
+    assertResponse(r'''
+suggestions
+  new
+    kind: constructorInvocation
+''');
+  }
+
   Future<void> test_constructor_extensionType_withPrefix_named() async {
     allowedIdentifiers = {'named'};
     await computeSuggestions('''
@@ -281,6 +330,24 @@ suggestions
 ''');
   }
 
+  Future<void> test_method_class_equality() async {
+    allowedIdentifiers = {'method', 'notStatic'};
+    await computeSuggestions('''
+class C {
+  static C method() => C();
+  C notStatic() => C();
+}
+void f() {
+  print(C() == .^);
+}
+''');
+    assertResponse(r'''
+suggestions
+  method
+    kind: methodInvocation
+''');
+  }
+
   Future<void> test_method_class_withParentheses() async {
     allowedIdentifiers = {'method', 'notStatic'};
     await computeSuggestions('''
@@ -329,6 +396,24 @@ extension type C(int x) {
 }
 void f() {
   C c = .^
+}
+''');
+    assertResponse(r'''
+suggestions
+  method
+    kind: methodInvocation
+''');
+  }
+
+  Future<void> test_method_extensionType_equality() async {
+    allowedIdentifiers = {'method', 'notStatic'};
+    await computeSuggestions('''
+extension type C(int x) {
+  static C method() => C(1);
+  C notStatic() => C(1);
+}
+void f() {
+  print(C(1) == .^);
 }
 ''');
     assertResponse(r'''

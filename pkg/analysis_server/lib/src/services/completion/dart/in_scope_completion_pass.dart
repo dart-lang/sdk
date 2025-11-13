@@ -933,6 +933,7 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
     var period = node.period;
     if (offset >= period.end && offset <= node.constructorName.end) {
       var contextType = _computeContextType(node);
+      contextType = _resolveFutureOrType(contextType);
       if (contextType is! InterfaceType) return;
       declarationHelper(
         mustBeConstant: node.isConst,
@@ -947,6 +948,7 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
     var period = node.period;
     if (offset >= period.end && offset <= node.memberName.end) {
       var contextType = _computeContextType(node);
+      contextType = _resolveFutureOrType(contextType);
       if (contextType == null) return;
 
       var element = contextType.element;
@@ -963,6 +965,7 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
   @override
   void visitDotShorthandPropertyAccess(DotShorthandPropertyAccess node) {
     var contextType = _computeContextType(node);
+    contextType = _resolveFutureOrType(contextType);
     if (contextType == null) return;
 
     var element = contextType.element;
@@ -4062,6 +4065,13 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
     return 'ArgumentList_${context}_$argumentKind';
   }
 
+  DartType? _resolveFutureOrType(DartType? contextType) {
+    if (contextType is InterfaceType && contextType.isDartAsyncFutureOr) {
+      return contextType.typeArguments.firstOrNull;
+    }
+    return contextType;
+  }
+
   /// Suggests overrides in the context of the given [element].
   ///
   /// If the budget has been exceeded, then the results are marked as incomplete
@@ -4090,9 +4100,7 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
     required RecordLiteral? recordLiteral,
     required bool isNewField,
   }) {
-    if (contextType != null && (contextType.isDartAsyncFutureOr)) {
-      contextType = (contextType as InterfaceType).typeArguments.firstOrNull;
-    }
+    contextType = _resolveFutureOrType(contextType);
     RecordType recordType;
     if (contextType is RecordType) {
       recordType = contextType;

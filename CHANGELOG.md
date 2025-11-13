@@ -1,3 +1,13 @@
+## 3.10.1
+
+This is a patch release that:
+
+- Fixes an issue with dot shorthand code completion for the `==` operator,
+  `FutureOr` types, switch expressions, and switch statements.
+  (issue [dart-lang/sdk#61872][]).
+
+[dart-lang/sdk#61872]: https://github.com/dart-lang/sdk/issues/61872
+
 ## 3.10.0
 
 **Released on:** 2025-11-12
