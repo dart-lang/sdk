@@ -7,6 +7,7 @@ import 'package:analyzer/analysis_rule/rule_state.dart';
 import 'package:analyzer/error/error.dart';
 
 import '../analyzer.dart';
+import '../diagnostic.dart' as diag;
 
 const _desc = r'Prefer using a boolean as the assert condition.';
 
@@ -19,5 +20,5 @@ class PreferBoolInAsserts extends AnalysisRule {
       );
 
   @override
-  DiagnosticCode get diagnosticCode => LinterLintCode.removedLint;
+  DiagnosticCode get diagnosticCode => diag.removedLint;
 }

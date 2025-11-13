@@ -57,20 +57,6 @@ class LinterLintCode extends LintCodeWithExpectedTypes {
         );
       }
 
-      var removedLintName = 'removedLint';
-      memberAccumulator.constants[removedLintName] =
-          '''
-  /// A lint code that removed lints can specify as their `lintCode`.
-  ///
-  /// Avoid other usages as it should be made unnecessary and removed.
-  static const LintCode $removedLintName = LinterLintCode(
-    name: 'removed_lint',
-    problemMessage: 'Removed lint.',
-    expectedTypes: [],
-    uniqueName: 'LintCode.removed_lint',
-  );
-''';
-
       memberAccumulator.constructors[''] = '''
   const LinterLintCode({
     required super.name,

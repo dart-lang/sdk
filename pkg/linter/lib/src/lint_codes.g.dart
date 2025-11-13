@@ -1103,16 +1103,6 @@ class LinterLintCode extends LintCodeWithExpectedTypes {
   static const LinterLintWithoutArguments removeDeprecationsInBreakingVersions =
       diag.removeDeprecationsInBreakingVersions;
 
-  /// A lint code that removed lints can specify as their `lintCode`.
-  ///
-  /// Avoid other usages as it should be made unnecessary and removed.
-  static const LintCode removedLint = LinterLintCode(
-    name: 'removed_lint',
-    problemMessage: 'Removed lint.',
-    expectedTypes: [],
-    uniqueName: 'LintCode.removed_lint',
-  );
-
   /// No parameters.
   static const LinterLintWithoutArguments requireTrailingCommas =
       diag.requireTrailingCommas;

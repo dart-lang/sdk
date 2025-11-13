@@ -8,6 +8,7 @@ import 'package:analyzer/error/error.dart';
 import 'package:pub_semver/pub_semver.dart';
 
 import '../analyzer.dart';
+import '../diagnostic.dart' as diag;
 
 class UnsafeHtml extends AnalysisRule {
   UnsafeHtml()
@@ -18,5 +19,5 @@ class UnsafeHtml extends AnalysisRule {
       );
 
   @override
-  DiagnosticCode get diagnosticCode => LinterLintCode.removedLint;
+  DiagnosticCode get diagnosticCode => diag.removedLint;
 }
