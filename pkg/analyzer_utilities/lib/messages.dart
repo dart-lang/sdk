@@ -416,7 +416,7 @@ class DiagnosticTables {
   /// A message is considered active is [MessageWithAnalyzerCode.isRemoved] is
   /// `false` and the message is not an [AliasMessage].
   ///
-  /// Each list is sorted by analyzer code.
+  /// Each list is sorted by [AnalyzerCode.camelCaseName].
   final Map<AnalyzerDiagnosticPackage, List<MessageWithAnalyzerCode>>
   activeMessagesByPackage = {};
 
@@ -467,7 +467,7 @@ class DiagnosticTables {
     sortedSharedDiagnostics.sortBy((e) => e.analyzerCode.camelCaseName);
     sortedFrontEndDiagnostics.sortBy((e) => e.frontEndCode);
     for (var value in activeMessagesByPackage.values) {
-      value.sortBy((e) => e.analyzerCode);
+      value.sortBy((e) => e.analyzerCode.camelCaseName);
     }
   }
 

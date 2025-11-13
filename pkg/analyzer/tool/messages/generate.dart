@@ -230,8 +230,6 @@ part of 'diagnostic_code_values.dart';
     for (var message
         in diagnosticTables.activeMessagesByPackage[AnalyzerDiagnosticPackage
             .analyzer]!) {
-      // TODO(paulberry): after `generateTopLevelConstants` has been changed to
-      // `true`, sort these entries by camelCaseName.
       out.writeln('  ${message.analyzerCode.analyzerCodeReference},');
     }
     out.writeln('];');
