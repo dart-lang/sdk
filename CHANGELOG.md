@@ -139,7 +139,7 @@ instead.
 Support for **hooks** -- formerly know as _native assets_ -- are now stable.
 
 You can currently use hooks to do things such as compile or download native assets
-(code written in other languages that are compiled into machine code), 
+(code written in other languages that are compiled into machine code),
 and then call these assets from the Dart code of a package.
 
 For more details see the [hooks documentation](https://dart.dev/tools/hooks).
