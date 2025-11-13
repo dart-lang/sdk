@@ -2,6 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+/// @docImport 'dart:io';
+library;
+
 import 'dart:async';
 
 import 'package:analyzer/dart/analysis/session.dart';
@@ -23,16 +26,11 @@ abstract class ChangeBuilder {
   ///
   /// [defaultEol] is the default EOL to be used for new files and files that do
   /// not have EOLs. Existing files with EOL markers will always have the same
-  /// EOL in inserted text. If not specified, Platform.lineTerminator will be
+  /// EOL in inserted text. If not specified, [Platform.lineTerminator] will be
   /// used.
   factory ChangeBuilder({
     AnalysisSession session,
     ChangeWorkspace workspace,
-    @Deprecated(
-      'Use defaultEol instead, as this is only a '
-      'default for files without existing EOLs',
-    )
-    String? eol,
     String? defaultEol,
   }) = ChangeBuilderImpl;
 
@@ -62,8 +60,6 @@ abstract class ChangeBuilder {
   Future<void> addDartFileEdit(
     String path,
     FutureOr<void> Function(DartFileEditBuilder builder) buildFileEdit, {
-    @Deprecated('No longer supported')
-    ImportPrefixGenerator importPrefixGenerator,
     bool createEditsForImports = true,
   });
 
@@ -88,14 +84,6 @@ abstract class ChangeBuilder {
     String path,
     void Function(YamlFileEditBuilder builder) buildFileEdit,
   );
-
-  /// Return a copy of this change builder that is constructed in such as was
-  /// that changes to the copy will not effect this change builder.
-  @Deprecated(
-    'Copying change builders is expensive, so it is no longer '
-    'supported. There is no replacement.',
-  )
-  ChangeBuilder copy();
 
   /// Return `true` if this builder already has edits for the file with the
   /// given [path].

@@ -80,22 +80,17 @@ class ChangeBuilderImpl implements ChangeBuilder {
   /// called.
   final _ChangeBuilderRevertData _revertData = _ChangeBuilderRevertData();
 
-  /// Initialize a newly created change builder. If the builder will be used to
-  /// create changes for Dart files, then either a [session] or a [workspace]
-  /// must be provided (but not both).
+  /// Initializes a newly created change builder.
+  ///
+  /// If the builder will be used to create changes for Dart files, then either
+  /// a [session] or a [workspace] must be provided (but not both).
   ChangeBuilderImpl({
     AnalysisSession? session,
     ChangeWorkspace? workspace,
-    @Deprecated(
-      'Use defaultEol instead, as this is only a '
-      'default for files without existing EOLs',
-    )
-    String? eol,
     String? defaultEol,
   }) : assert(session == null || workspace == null),
-       assert(eol == null || defaultEol == null),
        workspace = workspace ?? _SingleSessionWorkspace(session!),
-       defaultEol = defaultEol ?? eol ?? Platform.lineTerminator;
+       defaultEol = defaultEol ?? Platform.lineTerminator;
 
   /// Return `true` if this builder has edits to be applied.
   bool get hasEdits {
@@ -146,8 +141,6 @@ class ChangeBuilderImpl implements ChangeBuilder {
   Future<void> addDartFileEdit(
     String path,
     FutureOr<void> Function(DartFileEditBuilder builder) buildFileEdit, {
-    @Deprecated('No longer supported')
-    ImportPrefixGenerator? importPrefixGenerator,
     bool createEditsForImports = true,
   }) async {
     assert(file_paths.isDart(workspace.resourceProvider.pathContext, path));
@@ -183,7 +176,6 @@ class ChangeBuilderImpl implements ChangeBuilder {
       }
     }
     if (builder != null) {
-      builder.importPrefixGenerator = importPrefixGenerator;
       builder.currentChangeDescription = currentChangeDescription;
       await buildFileEdit(builder);
     }
@@ -301,56 +293,6 @@ class ChangeBuilderImpl implements ChangeBuilder {
     }
   }
 
-  @Deprecated(
-    'Copying change builders is expensive. Internal users of this '
-    'method now use `commit` and `revert` instead.',
-  )
-  @override
-  ChangeBuilder copy() {
-    var copy = ChangeBuilderImpl(workspace: workspace, defaultEol: defaultEol);
-    for (var entry in _linkedEditGroups.entries) {
-      copy._linkedEditGroups[entry.key] = _copyLinkedEditGroup(entry.value);
-    }
-    var selection = _selection;
-    if (selection != null) {
-      copy._selection = _copyPosition(selection);
-    }
-    copy._selectionRange = _selectionRange;
-    copy._lockedPositions.addAll(_lockedPositions);
-    for (var entry in _genericFileEditBuilders.entries) {
-      copy._genericFileEditBuilders[entry.key] = entry.value.copyWith(copy);
-    }
-    //
-    // The file edit builders for libraries (those whose [libraryChangeBuilder]
-    // is `null`) are copied first so that the copies exist when we copy the
-    // builders for parts and the structure can be preserved.
-    //
-    var editBuilderMap = <DartFileEditBuilderImpl, DartFileEditBuilderImpl>{};
-    for (var entry in _dartFileEditBuilders.entries) {
-      var oldBuilder = entry.value;
-      if (oldBuilder.libraryChangeBuilder == null) {
-        var newBuilder = oldBuilder.copyWith(copy);
-        copy._dartFileEditBuilders[entry.key] = newBuilder;
-        editBuilderMap[oldBuilder] = newBuilder;
-      }
-    }
-    for (var entry in _dartFileEditBuilders.entries) {
-      var oldBuilder = entry.value;
-      if (oldBuilder.libraryChangeBuilder != null) {
-        var newBuilder = oldBuilder.copyWith(
-          copy,
-          editBuilderMap: editBuilderMap,
-        );
-        copy._dartFileEditBuilders[entry.key] = newBuilder;
-      }
-    }
-    for (var entry in _yamlFileEditBuilders.entries) {
-      copy._yamlFileEditBuilders[entry.key] = entry.value.copyWith(copy);
-    }
-    copy.modificationCount = modificationCount;
-    return copy;
-  }
-
   /// Return the linked edit group with the given [groupName], creating it if it
   /// did not already exist.
   LinkedEditGroup getLinkedEditGroup(String groupName) {
@@ -434,20 +376,6 @@ class ChangeBuilderImpl implements ChangeBuilder {
     _selection = position;
     // Clear any existing selection range, since it is no long valid.
     _selectionRange = null;
-  }
-
-  /// Return a copy of the linked edit [group].
-  LinkedEditGroup _copyLinkedEditGroup(LinkedEditGroup group) {
-    return LinkedEditGroup(
-      group.positions.map(_copyPosition).toList(),
-      group.length,
-      group.suggestions.toList(),
-    );
-  }
-
-  /// Return a copy of the [position].
-  Position _copyPosition(Position position) {
-    return Position(position.file, position.offset);
   }
 
   /// Create and return a [DartFileEditBuilder] that can be used to build edits
@@ -797,22 +725,6 @@ class FileEditBuilderImpl implements FileEditBuilder {
     _revertData._currentChangeDescription = currentChangeDescription;
 
     _revertData._addedEdits.clear();
-  }
-
-  @Deprecated(
-    'Copying change builders is expensive. Internal users of this '
-    'method now use `commit` and `revert` instead.',
-  )
-  FileEditBuilderImpl copyWith(ChangeBuilderImpl changeBuilder) {
-    var copy = FileEditBuilderImpl(
-      changeBuilder,
-      fileEdit.file,
-      fileEdit.fileStamp,
-      eol: eol,
-    );
-    copy.fileEdit.edits.addAll(fileEdit.edits);
-    copy.currentChangeDescription = currentChangeDescription;
-    return copy;
   }
 
   EditBuilderImpl createEditBuilder(int offset, int length) {

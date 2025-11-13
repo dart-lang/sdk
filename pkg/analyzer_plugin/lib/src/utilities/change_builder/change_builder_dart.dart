@@ -1672,9 +1672,6 @@ class DartFileEditBuilderImpl extends FileEditBuilderImpl
   /// not already imported.
   final bool _createEditsForImports;
 
-  /// The optional generator of prefixes for new imports.
-  ImportPrefixGenerator? importPrefixGenerator;
-
   /// A mapping from libraries that need to be imported in order to make visible
   /// the names used in generated code, to information about these imports.
   final Map<Uri, _LibraryImport> _librariesToImport = {};
@@ -1804,36 +1801,6 @@ class DartFileEditBuilderImpl extends FileEditBuilderImpl
       typeSystem: typeSystem,
       typeProvider: typeProvider,
     );
-  }
-
-  @Deprecated(
-    'Copying change builders is expensive. Internal users of this '
-    'method now use `commit` and `revert` instead.',
-  )
-  @override
-  DartFileEditBuilderImpl copyWith(
-    ChangeBuilderImpl changeBuilder, {
-    Map<DartFileEditBuilderImpl, DartFileEditBuilderImpl> editBuilderMap =
-        const {},
-  }) {
-    var copy = DartFileEditBuilderImpl(
-      changeBuilder,
-      resolvedLibrary,
-      resolvedUnit,
-      fileEdit.fileStamp,
-      editBuilderMap[libraryChangeBuilder],
-      eol: eol,
-      createEditsForImports: _createEditsForImports,
-    );
-    copy.fileEdit.edits.addAll(fileEdit.edits);
-    copy.importPrefixGenerator = importPrefixGenerator;
-    for (var entry in _librariesToImport.entries) {
-      copy._librariesToImport[entry.key] = entry.value;
-    }
-    for (var entry in _elementLibrariesToImport.entries) {
-      copy._elementLibrariesToImport[entry.key] = entry.value;
-    }
-    return copy;
   }
 
   @override
@@ -2580,9 +2547,6 @@ class DartFileEditBuilderImpl extends FileEditBuilderImpl
   }
 
   String _defaultImportPrefixFor(Uri uri) {
-    if (importPrefixGenerator != null) {
-      return importPrefixGenerator!(uri);
-    }
     // TODO(FMorschel): Think of a way to identify if the current editing range
     // already contains a variable with the same name as the generated prefix.
     // This only accounts for top-level names.
@@ -2733,8 +2697,6 @@ class DartFileEditBuilderImpl extends FileEditBuilderImpl
   /// `true`.
   ///
   /// If [prefix] is an empty string, adds the import without a prefix.
-  /// If [prefix] is null, will use [importPrefixGenerator] to generate one or
-  /// reuse an existing prefix for this import.
   ///
   /// If [showName] is supplied then any new import will show only this
   /// element, or if an import already exists it will be added to 'show' or
@@ -2799,9 +2761,6 @@ class DartFileEditBuilderImpl extends FileEditBuilderImpl
           }
         }
       }
-      prefix ??= importPrefixGenerator != null
-          ? importPrefixGenerator!(uri)
-          : null;
       import = _LibraryImport(
         uriText: uriText,
         prefix: prefix ?? '',

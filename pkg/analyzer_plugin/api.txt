@@ -1687,14 +1687,13 @@ package:analyzer_plugin/utilities/assist/assist_contributor_mixin.dart:
     addAssist (method: void Function(AssistKind, ChangeBuilder, {List<Object>? args}))
 package:analyzer_plugin/utilities/change_builder/change_builder_core.dart:
   ChangeBuilder (class extends Object):
-    new (constructor: ChangeBuilder Function({String? defaultEol, deprecated String? eol, AnalysisSession session, ChangeWorkspace workspace}))
+    new (constructor: ChangeBuilder Function({String? defaultEol, AnalysisSession session, ChangeWorkspace workspace}))
     defaultEol (getter: String)
     selectionRange (getter: SourceRange?)
     sourceChange (getter: SourceChange)
-    addDartFileEdit (method: Future<void> Function(String, FutureOr<void> Function(DartFileEditBuilder), {bool createEditsForImports, deprecated String Function(Uri) importPrefixGenerator}))
+    addDartFileEdit (method: Future<void> Function(String, FutureOr<void> Function(DartFileEditBuilder), {bool createEditsForImports}))
     addGenericFileEdit (method: Future<void> Function(String, void Function(FileEditBuilder)))
     addYamlFileEdit (method: Future<void> Function(String, void Function(YamlFileEditBuilder)))
-    copy (method: ChangeBuilder Function(), deprecated)
     hasEditsFor (method: bool Function(String))
     setSelection (method: void Function(Position))
   EditBuilder (class extends Object):
@@ -1774,7 +1773,7 @@ package:analyzer_plugin/utilities/change_builder/change_builder_dart.dart:
   ImportLibraryElementResult (class extends Object):
     new (constructor: ImportLibraryElementResult Function())
     prefix (getter: String?)
-  ImportPrefixGenerator (type alias for String Function(Uri))
+  ImportPrefixGenerator (type alias for String Function(Uri), deprecated)
 package:analyzer_plugin/utilities/change_builder/change_builder_yaml.dart:
   YamlEditBuilder (class extends Object implements EditBuilder):
     new (constructor: YamlEditBuilder Function())
@@ -2028,7 +2027,6 @@ package:analyzer_plugin/utilities/range_factory.dart:
     endLength (method: SourceRange Function(SyntacticEntity, int))
     endStart (method: SourceRange Function(SyntacticEntity, SyntacticEntity))
     entity (method: SourceRange Function(SyntacticEntity))
-    error (method: SourceRange Function(Diagnostic), deprecated)
     fragmentName (method: SourceRange? Function(Fragment))
     node (method: SourceRange Function(AstNode))
     nodeInList (method: SourceRange Function<T extends AstNode>(NodeList<T>, T))

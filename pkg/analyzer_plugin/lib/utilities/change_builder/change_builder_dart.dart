@@ -14,6 +14,7 @@ import 'package:analyzer/source/source_range.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 
 /// The optional generator for prefix that should be used for new imports.
+@Deprecated('This type is no longer used or necessary')
 typedef ImportPrefixGenerator = String Function(Uri);
 
 /// An [EditBuilder] used to build edits in Dart files.
