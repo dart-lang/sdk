@@ -2,8 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/dart/error/syntactic_errors.dart';
-import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'context_collection_resolution.dart';
@@ -25,7 +24,7 @@ Stream<int> f() async* {
   return 0;
 }
 ''',
-      [error(CompileTimeErrorCode.returnInGenerator, 49, 6)],
+      [error(diag.returnInGenerator, 49, 6)],
     );
 
     var node = findNode.singleFunctionDeclaration;
@@ -78,7 +77,7 @@ import 'dart:async';
 
 Stream<int> f() async* => 0;
 ''',
-      [error(CompileTimeErrorCode.returnInGenerator, 45, 2)],
+      [error(diag.returnInGenerator, 45, 2)],
     );
 
     var node = findNode.singleFunctionDeclaration;
@@ -265,7 +264,7 @@ void f() {
   void m<T extends List<T>>() {}
 }
 ''',
-      [error(WarningCode.unusedElement, 18, 1)],
+      [error(diag.unusedElement, 18, 1)],
     );
 
     var node = findNode.singleFunctionDeclarationStatement.functionDeclaration;
@@ -322,7 +321,7 @@ void f() {
   void m<T extends num>() {}
 }
 ''',
-      [error(WarningCode.unusedElement, 18, 1)],
+      [error(diag.unusedElement, 18, 1)],
     );
 
     var node = findNode.singleFunctionDeclarationStatement.functionDeclaration;
@@ -369,7 +368,7 @@ FunctionDeclaration
       '''
 int get foo(double a) => 0;
 ''',
-      [error(ParserErrorCode.getterWithParameters, 11, 1)],
+      [error(diag.getterWithParameters, 11, 1)],
     );
 
     var node = findNode.singleFunctionDeclaration;
@@ -417,7 +416,7 @@ Iterable<int> f() sync* {
   return 0;
 }
 ''',
-      [error(CompileTimeErrorCode.returnInGenerator, 28, 6)],
+      [error(diag.returnInGenerator, 28, 6)],
     );
 
     var node = findNode.singleFunctionDeclaration;
@@ -468,7 +467,7 @@ FunctionDeclaration
       '''
 Iterable<int> f() sync* => 0;
 ''',
-      [error(CompileTimeErrorCode.returnInGenerator, 24, 2)],
+      [error(diag.returnInGenerator, 24, 2)],
     );
 
     var node = findNode.singleFunctionDeclaration;
@@ -514,7 +513,7 @@ FunctionDeclaration
       '''
 _() {}
 ''',
-      [error(WarningCode.unusedElement, 0, 1)],
+      [error(diag.unusedElement, 0, 1)],
     );
 
     var node = findNode.singleFunctionDeclaration;
@@ -547,7 +546,7 @@ FunctionDeclaration
 
 _() {}
 ''',
-      [error(WarningCode.unusedElement, 44, 1)],
+      [error(diag.unusedElement, 44, 1)],
     );
 
     var node = findNode.singleFunctionDeclaration;
@@ -580,10 +579,7 @@ FunctionDeclaration
       r'''
 void f<_ extends void Function<_>(_, _), _>() {}
 ''',
-      [
-        error(CompileTimeErrorCode.undefinedClass, 34, 1),
-        error(CompileTimeErrorCode.undefinedClass, 37, 1),
-      ],
+      [error(diag.undefinedClass, 34, 1), error(diag.undefinedClass, 37, 1)],
     );
 
     var node = findNode.typeParameter('<_>');

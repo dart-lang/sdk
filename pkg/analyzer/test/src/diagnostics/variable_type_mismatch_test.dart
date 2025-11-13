@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
@@ -26,7 +26,7 @@ const int? x = null;
       '''
 const Unresolved x = null;
 ''',
-      [error(CompileTimeErrorCode.undefinedClass, 6, 10)],
+      [error(diag.undefinedClass, 6, 10)],
     );
   }
 
@@ -35,7 +35,7 @@ const Unresolved x = null;
       '''
 const int x = 'foo';
 ''',
-      [error(CompileTimeErrorCode.invalidAssignment, 14, 5)],
+      [error(diag.invalidAssignment, 14, 5)],
     );
   }
 
@@ -44,7 +44,7 @@ const int x = 'foo';
       '''
 const Unresolved x = 'foo';
 ''',
-      [error(CompileTimeErrorCode.undefinedClass, 6, 10)],
+      [error(diag.undefinedClass, 6, 10)],
     );
   }
 
@@ -57,7 +57,7 @@ const Unresolved x = 'foo';
 const dynamic x = 0;
 const double y = x;
 ''',
-      [error(CompileTimeErrorCode.variableTypeMismatch, 38, 1)],
+      [error(diag.variableTypeMismatch, 38, 1)],
     );
   }
 
@@ -67,7 +67,7 @@ const double y = x;
 const dynamic x = [1];
 const List<String> y = x;
 ''',
-      [error(CompileTimeErrorCode.variableTypeMismatch, 46, 1)],
+      [error(diag.variableTypeMismatch, 46, 1)],
     );
   }
 
@@ -77,7 +77,7 @@ const List<String> y = x;
 const dynamic x = {1: 1};
 const Map<String, dynamic> y = x;
 ''',
-      [error(CompileTimeErrorCode.variableTypeMismatch, 57, 1)],
+      [error(diag.variableTypeMismatch, 57, 1)],
     );
   }
 
@@ -87,7 +87,7 @@ const Map<String, dynamic> y = x;
 const dynamic x = {1: 1};
 const Map<dynamic, String> y = x;
 ''',
-      [error(CompileTimeErrorCode.variableTypeMismatch, 57, 1)],
+      [error(diag.variableTypeMismatch, 57, 1)],
     );
   }
 }

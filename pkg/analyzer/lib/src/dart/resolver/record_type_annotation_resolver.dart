@@ -12,8 +12,8 @@ import 'package:analyzer/src/dart/element/extensions.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_provider.dart';
 import 'package:analyzer/src/dart/resolver/record_literal_resolver.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:analyzer/src/diagnostic/diagnostic_factory.dart';
-import 'package:analyzer/src/error/codes.dart';
 
 /// Helper for resolving [RecordTypeAnnotation]s.
 class RecordTypeAnnotationResolver {
@@ -74,7 +74,7 @@ class RecordTypeAnnotationResolver {
           if (!isPositionalWildCard(field, name)) {
             _diagnosticReporter.atToken(
               nameToken,
-              CompileTimeErrorCode.invalidFieldNamePrivate,
+              diag.invalidFieldNamePrivate,
             );
           }
         } else {
@@ -84,7 +84,7 @@ class RecordTypeAnnotationResolver {
                 positionalFields.indexOf(field) != index) {
               _diagnosticReporter.atToken(
                 nameToken,
-                CompileTimeErrorCode.invalidFieldNamePositional,
+                diag.invalidFieldNamePositional,
               );
             }
           } else if (RecordLiteralResolver.isForbiddenNameForRecordField(
@@ -92,7 +92,7 @@ class RecordTypeAnnotationResolver {
           )) {
             _diagnosticReporter.atToken(
               nameToken,
-              CompileTimeErrorCode.invalidFieldNameFromObject,
+              diag.invalidFieldNameFromObject,
             );
           }
         }

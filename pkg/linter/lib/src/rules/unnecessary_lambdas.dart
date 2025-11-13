@@ -13,6 +13,7 @@ import 'package:analyzer/dart/element/type_system.dart';
 import 'package:analyzer/error/error.dart';
 
 import '../analyzer.dart';
+import '../diagnostic.dart' as diag;
 import '../extensions.dart';
 import '../util/dart_type_utilities.dart';
 
@@ -26,7 +27,7 @@ class UnnecessaryLambdas extends AnalysisRule {
     : super(name: LintNames.unnecessary_lambdas, description: _desc);
 
   @override
-  DiagnosticCode get diagnosticCode => LinterLintCode.unnecessaryLambdas;
+  DiagnosticCode get diagnosticCode => diag.unnecessaryLambdas;
 
   @override
   void registerNodeProcessors(

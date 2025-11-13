@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -47,7 +47,7 @@ ExportDirective
       r'''
 export 'dart:math' hide Unresolved;
 ''',
-      [error(WarningCode.undefinedHiddenName, 24, 10)],
+      [error(diag.undefinedHiddenName, 24, 10)],
     );
 
     var node = findNode.singleExportDirective;
@@ -102,7 +102,7 @@ ExportDirective
       r'''
 export 'dart:math' show Unresolved;
 ''',
-      [error(WarningCode.undefinedShownName, 24, 10)],
+      [error(diag.undefinedShownName, 24, 10)],
     );
 
     var node = findNode.singleExportDirective;
@@ -373,7 +373,7 @@ ExportDirective
       r'''
 export 'a.dart';
 ''',
-      [error(CompileTimeErrorCode.uriDoesNotExist, 7, 8)],
+      [error(diag.uriDoesNotExist, 7, 8)],
     );
 
     var node = findNode.export('a.dart');
@@ -431,7 +431,7 @@ export 'a.dart';
       r'''
 export ':net';
 ''',
-      [error(CompileTimeErrorCode.invalidUri, 7, 6)],
+      [error(diag.invalidUri, 7, 6)],
     );
 
     var node = findNode.export('export');
@@ -452,7 +452,7 @@ ExportDirective
       r'''
 export '${'foo'}.dart';
 ''',
-      [error(CompileTimeErrorCode.uriWithInterpolation, 7, 15)],
+      [error(diag.uriWithInterpolation, 7, 15)],
     );
 
     var node = findNode.export('export');
@@ -483,7 +483,7 @@ ExportDirective
       r'''
 export 'foo:bar';
 ''',
-      [error(CompileTimeErrorCode.uriDoesNotExist, 7, 9)],
+      [error(diag.uriDoesNotExist, 7, 9)],
     );
 
     var node = findNode.export('export');
@@ -508,7 +508,7 @@ part of my.lib;
       r'''
 export 'a.dart';
 ''',
-      [error(CompileTimeErrorCode.exportOfNonLibrary, 7, 8)],
+      [error(diag.exportOfNonLibrary, 7, 8)],
     );
 
     var node = findNode.export('a.dart');
@@ -533,7 +533,7 @@ part of 'test.dart';
       r'''
 export 'a.dart';
 ''',
-      [error(CompileTimeErrorCode.exportOfNonLibrary, 7, 8)],
+      [error(diag.exportOfNonLibrary, 7, 8)],
     );
 
     var node = findNode.export('a.dart');
@@ -564,7 +564,7 @@ ExportDirective
       r'''
 export 'package:foo/foo2.dart';
 ''',
-      [error(CompileTimeErrorCode.exportOfNonLibrary, 7, 23)],
+      [error(diag.exportOfNonLibrary, 7, 23)],
     );
 
     var node = findNode.export('package:foo');
@@ -619,7 +619,7 @@ export 'c.dart';
 ''');
 
     await resolveFile2(b);
-    assertErrorsInResult([error(CompileTimeErrorCode.uriDoesNotExist, 25, 8)]);
+    assertErrorsInResult([error(diag.uriDoesNotExist, 25, 8)]);
 
     var node = findNode.export('c.dart');
     assertResolvedNodeText(node, r'''
@@ -645,7 +645,7 @@ export ':net';
 ''');
 
     await resolveFile2(b);
-    assertErrorsInResult([error(CompileTimeErrorCode.invalidUri, 25, 6)]);
+    assertErrorsInResult([error(diag.invalidUri, 25, 6)]);
 
     var node = findNode.export('export');
     assertResolvedNodeText(node, r'''
@@ -671,9 +671,7 @@ export '${'foo'}.dart';
 ''');
 
     await resolveFile2(b);
-    assertErrorsInResult([
-      error(CompileTimeErrorCode.uriWithInterpolation, 25, 15),
-    ]);
+    assertErrorsInResult([error(diag.uriWithInterpolation, 25, 15)]);
 
     var node = findNode.export('export');
     assertResolvedNodeText(node, r'''
@@ -709,7 +707,7 @@ export 'foo:bar';
 ''');
 
     await resolveFile2(b);
-    assertErrorsInResult([error(CompileTimeErrorCode.uriDoesNotExist, 25, 9)]);
+    assertErrorsInResult([error(diag.uriDoesNotExist, 25, 9)]);
 
     var node = findNode.export('export');
     assertResolvedNodeText(node, r'''
@@ -739,9 +737,7 @@ part of my.lib;
 ''');
 
     await resolveFile2(b);
-    assertErrorsInResult([
-      error(CompileTimeErrorCode.exportOfNonLibrary, 25, 8),
-    ]);
+    assertErrorsInResult([error(diag.exportOfNonLibrary, 25, 8)]);
 
     var node = findNode.export('c.dart');
     assertResolvedNodeText(node, r'''
@@ -771,9 +767,7 @@ part of 'b.dart';
 ''');
 
     await resolveFile2(b);
-    assertErrorsInResult([
-      error(CompileTimeErrorCode.exportOfNonLibrary, 25, 8),
-    ]);
+    assertErrorsInResult([error(diag.exportOfNonLibrary, 25, 8)]);
 
     var node = findNode.export('c.dart');
     assertResolvedNodeText(node, r'''

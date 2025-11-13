@@ -10,6 +10,7 @@ import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/error/error.dart';
 
 import '../analyzer.dart';
+import '../diagnostic.dart' as diag;
 
 const _desc = r'Test type of argument in `operator ==(Object other)`.';
 
@@ -18,7 +19,7 @@ class TestTypesInEquals extends AnalysisRule {
     : super(name: LintNames.test_types_in_equals, description: _desc);
 
   @override
-  DiagnosticCode get diagnosticCode => LinterLintCode.testTypesInEquals;
+  DiagnosticCode get diagnosticCode => diag.testTypesInEquals;
 
   @override
   void registerNodeProcessors(

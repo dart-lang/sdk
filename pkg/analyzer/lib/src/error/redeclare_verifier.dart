@@ -6,7 +6,7 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/error/listener.dart';
-import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 
 /// Instances of the class `RedeclareVerifier` visit all of the members of any
 /// extension type declarations in a compilation unit to verify that if they
@@ -42,19 +42,19 @@ class RedeclareVerifier extends RecursiveAstVisitor<void> {
         case MethodElement():
           _errorReporter.atToken(
             node.name,
-            WarningCode.redeclareOnNonRedeclaringMember,
+            diag.redeclareOnNonRedeclaringMember,
             arguments: ['method'],
           );
         case GetterElement():
           _errorReporter.atToken(
             node.name,
-            WarningCode.redeclareOnNonRedeclaringMember,
+            diag.redeclareOnNonRedeclaringMember,
             arguments: ['getter'],
           );
         case SetterElement():
           _errorReporter.atToken(
             node.name,
-            WarningCode.redeclareOnNonRedeclaringMember,
+            diag.redeclareOnNonRedeclaringMember,
             arguments: ['setter'],
           );
       }

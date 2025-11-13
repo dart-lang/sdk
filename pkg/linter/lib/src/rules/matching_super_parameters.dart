@@ -11,6 +11,7 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/error/error.dart';
 
 import '../analyzer.dart';
+import '../diagnostic.dart' as diag;
 
 const _desc = r'Use matching super parameter names.';
 
@@ -19,7 +20,7 @@ class MatchingSuperParameters extends AnalysisRule {
     : super(name: LintNames.matching_super_parameters, description: _desc);
 
   @override
-  DiagnosticCode get diagnosticCode => LinterLintCode.matchingSuperParameters;
+  DiagnosticCode get diagnosticCode => diag.matchingSuperParameters;
 
   @override
   void registerNodeProcessors(

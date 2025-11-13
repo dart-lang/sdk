@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -268,7 +268,7 @@ enum E {
   const E(int a);
 }
 ''',
-      [error(CompileTimeErrorCode.undefinedEnumConstructorNamed, 13, 5)],
+      [error(diag.undefinedEnumConstructorNamed, 13, 5)],
     );
 
     var node = findNode.enumConstantDeclaration('v.');
@@ -303,7 +303,7 @@ enum E {
   const E.named(int a);
 }
 ''',
-      [error(CompileTimeErrorCode.undefinedEnumConstructorUnnamed, 11, 1)],
+      [error(diag.undefinedEnumConstructorUnnamed, 11, 1)],
     );
 
     var node = findNode.enumConstantDeclaration('v(');

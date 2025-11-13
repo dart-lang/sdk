@@ -17,6 +17,7 @@ import 'package:analyzer/src/utilities/extensions/string.dart' // ignore: implem
     show IntExtension;
 
 import '../analyzer.dart';
+import '../diagnostic.dart' as diag;
 
 const _desc = r'Document ignore comments.';
 
@@ -25,7 +26,7 @@ class DocumentIgnores extends AnalysisRule {
     : super(name: LintNames.document_ignores, description: _desc);
 
   @override
-  DiagnosticCode get diagnosticCode => LinterLintCode.documentIgnores;
+  DiagnosticCode get diagnosticCode => diag.documentIgnores;
 
   @override
   void registerNodeProcessors(

@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
@@ -114,13 +114,7 @@ class B extends A {
   B();
 }
 ''',
-      [
-        error(
-          CompileTimeErrorCode.implicitSuperInitializerMissingArguments,
-          58,
-          1,
-        ),
-      ],
+      [error(diag.implicitSuperInitializerMissingArguments, 58, 1)],
     );
   }
 
@@ -132,7 +126,7 @@ class A {
 }
 class B extends A {}
 ''',
-      [error(CompileTimeErrorCode.noDefaultSuperConstructorImplicit, 42, 1)],
+      [error(diag.noDefaultSuperConstructorImplicit, 42, 1)],
     );
   }
 
@@ -157,13 +151,7 @@ class B extends A {
   B({required super.a});
 }
 ''',
-      [
-        error(
-          CompileTimeErrorCode.implicitSuperInitializerMissingArguments,
-          75,
-          1,
-        ),
-      ],
+      [error(diag.implicitSuperInitializerMissingArguments, 75, 1)],
     );
   }
 
@@ -199,13 +187,7 @@ class B extends A {
   B();
 }
 ''',
-      [
-        error(
-          CompileTimeErrorCode.implicitSuperInitializerMissingArguments,
-          42,
-          1,
-        ),
-      ],
+      [error(diag.implicitSuperInitializerMissingArguments, 42, 1)],
     );
   }
 
@@ -228,7 +210,7 @@ class A {
 }
 class B extends A {}
 ''',
-      [error(CompileTimeErrorCode.noDefaultSuperConstructorImplicit, 26, 1)],
+      [error(diag.noDefaultSuperConstructorImplicit, 26, 1)],
     );
   }
 

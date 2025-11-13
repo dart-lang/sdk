@@ -5,7 +5,7 @@
 import 'package:analyzer/analysis_rule/analysis_rule.dart';
 import 'package:analyzer/analysis_rule/rule_state.dart';
 import 'package:analyzer/error/error.dart';
-import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:analyzer/src/test_utilities/lint_registration_mixin.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -55,7 +55,7 @@ class ReplacedLintUseTest extends PubPackageResolutionTest
 
 void f() { }
 ''',
-      [error(WarningCode.removedLintUse, 20, 12)],
+      [error(diag.removedLintUse, 20, 12)],
     );
   }
 
@@ -69,7 +69,7 @@ void f() { }
 // ignore: removed_lint
 void f() { }
 ''',
-      [error(WarningCode.removedLintUse, 11, 12)],
+      [error(diag.removedLintUse, 11, 12)],
     );
   }
 }

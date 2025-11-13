@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
@@ -24,7 +24,7 @@ enum E {
   const E() : this.named(), super();
 }
 ''',
-      [error(CompileTimeErrorCode.superInEnumConstructor, 61, 5)],
+      [error(diag.superInEnumConstructor, 61, 5)],
     );
   }
 
@@ -36,7 +36,7 @@ enum E {
   const E() : super();
 }
 ''',
-      [error(CompileTimeErrorCode.superInEnumConstructor, 28, 5)],
+      [error(diag.superInEnumConstructor, 28, 5)],
     );
   }
 
@@ -49,8 +49,8 @@ enum E {
 }
 ''',
       [
-        error(CompileTimeErrorCode.superInEnumConstructor, 28, 5),
-        error(CompileTimeErrorCode.superInEnumConstructor, 37, 5),
+        error(diag.superInEnumConstructor, 28, 5),
+        error(diag.superInEnumConstructor, 37, 5),
       ],
     );
   }

@@ -5,9 +5,9 @@
 import 'package:analyzer/diagnostic/diagnostic.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/source/file_source.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:analyzer/src/manifest/manifest_validator.dart';
 import 'package:analyzer/src/manifest/manifest_values.dart';
-import 'package:analyzer/src/manifest/manifest_warning_code.dart';
 import 'package:analyzer_testing/resource_provider_mixin.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -467,7 +467,7 @@ class ManifestValidatorTest with ResourceProviderMixin {
     <uses-permission android:name="android.permission.CAMERA" />
 </manifest>
 ''',
-      [ManifestWarningCode.cameraPermissionsIncompatible],
+      [diag.cameraPermissionsIncompatible],
     );
   }
 
@@ -491,7 +491,7 @@ class ManifestValidatorTest with ResourceProviderMixin {
     <uses-feature android:name="android.hardware.touchscreen" />
 </manifest>
 ''',
-      [ManifestWarningCode.unsupportedChromeOsHardware],
+      [diag.unsupportedChromeOsHardware],
     );
   }
 
@@ -504,7 +504,7 @@ class ManifestValidatorTest with ResourceProviderMixin {
     <uses-feature android:name="android.software.home_screen" />
 </manifest>
 ''',
-      [ManifestWarningCode.unsupportedChromeOsHardware],
+      [diag.unsupportedChromeOsHardware],
     );
   }
 
@@ -528,7 +528,7 @@ class ManifestValidatorTest with ResourceProviderMixin {
     xmlns:android="http://schemas.android.com/apk/res/android">
 </manifest>
 ''',
-      [ManifestWarningCode.noTouchscreenFeature],
+      [diag.noTouchscreenFeature],
     );
   }
 
@@ -546,7 +546,7 @@ class ManifestValidatorTest with ResourceProviderMixin {
   </application>
 </manifest>
 ''',
-      [ManifestWarningCode.nonResizableActivity],
+      [diag.nonResizableActivity],
     );
   }
 
@@ -564,7 +564,7 @@ class ManifestValidatorTest with ResourceProviderMixin {
   </application>
 </manifest>
 ''',
-      [ManifestWarningCode.settingOrientationOnActivity],
+      [diag.settingOrientationOnActivity],
     );
   }
 
@@ -576,7 +576,7 @@ class ManifestValidatorTest with ResourceProviderMixin {
     <uses-feature android:name="android.hardware.touchscreen" android:required="true"/>
 </manifest>
 ''',
-      [ManifestWarningCode.unsupportedChromeOsFeature],
+      [diag.unsupportedChromeOsFeature],
     );
   }
 }

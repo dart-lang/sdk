@@ -10,6 +10,7 @@ import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/error/error.dart';
 
 import '../analyzer.dart';
+import '../diagnostic.dart' as diag;
 
 const _desc = r'Prefer using `///` for doc comments.';
 
@@ -30,7 +31,7 @@ class SlashForDocComments extends AnalysisRule {
   bool get canUseParsedResult => true;
 
   @override
-  DiagnosticCode get diagnosticCode => LinterLintCode.slashForDocComments;
+  DiagnosticCode get diagnosticCode => diag.slashForDocComments;
 
   @override
   void registerNodeProcessors(

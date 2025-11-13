@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
@@ -27,7 +27,7 @@ import 'lib1.dart' deferred as a;
 mixin M {}
 class C = a.A with M;
 ''',
-      [error(CompileTimeErrorCode.extendsDeferredClass, 69, 3)],
+      [error(diag.extendsDeferredClass, 69, 3)],
     );
   }
 
@@ -42,7 +42,7 @@ library root;
 import 'lib1.dart' deferred as a;
 class B extends a.A {}
 ''',
-      [error(CompileTimeErrorCode.extendsDeferredClass, 64, 3)],
+      [error(diag.extendsDeferredClass, 64, 3)],
     );
   }
 
@@ -58,7 +58,7 @@ library root;
 import 'lib1.dart' deferred as a;
 class B extends a.B {}
 ''',
-      [error(CompileTimeErrorCode.extendsDeferredClass, 64, 3)],
+      [error(diag.extendsDeferredClass, 64, 3)],
     );
   }
 }

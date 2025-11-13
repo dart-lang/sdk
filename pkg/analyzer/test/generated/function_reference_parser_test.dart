@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/src/dart/error/syntactic_errors.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -42,9 +42,7 @@ class FunctionReferenceParserTest extends FastaParserTestCase {
               as ExpressionStatement)
           .expression,
     );
-    listener.assertErrors([
-      expectedError(ParserErrorCode.experimentNotEnabled, 1, 6),
-    ]);
+    listener.assertErrors([expectedError(diag.experimentNotEnabled, 1, 6)]);
   }
 
   void test_followingToken_accepted_closeBrace() {
@@ -140,9 +138,7 @@ class FunctionReferenceParserTest extends FastaParserTestCase {
     expect_two_args(
       parseExpression(
             'f(a<b,c>&d)',
-            diagnostics: [
-              expectedError(ParserErrorCode.missingIdentifier, 8, 1),
-            ],
+            diagnostics: [expectedError(diag.missingIdentifier, 8, 1)],
           )
           as MethodInvocation,
     );
@@ -156,9 +152,7 @@ class FunctionReferenceParserTest extends FastaParserTestCase {
     expect_two_args(
       parseExpression(
             'f(a<b,c>*d)',
-            diagnostics: [
-              expectedError(ParserErrorCode.missingIdentifier, 8, 1),
-            ],
+            diagnostics: [expectedError(diag.missingIdentifier, 8, 1)],
           )
           as MethodInvocation,
     );
@@ -176,9 +170,7 @@ class FunctionReferenceParserTest extends FastaParserTestCase {
     expect_two_args(
       parseExpression(
             'f(a<b,c>|d)',
-            diagnostics: [
-              expectedError(ParserErrorCode.missingIdentifier, 8, 1),
-            ],
+            diagnostics: [expectedError(diag.missingIdentifier, 8, 1)],
           )
           as MethodInvocation,
     );
@@ -188,9 +180,7 @@ class FunctionReferenceParserTest extends FastaParserTestCase {
     expect_two_args(
       parseExpression(
             'f(a<b,c>^d)',
-            diagnostics: [
-              expectedError(ParserErrorCode.missingIdentifier, 8, 1),
-            ],
+            diagnostics: [expectedError(diag.missingIdentifier, 8, 1)],
           )
           as MethodInvocation,
     );
@@ -200,9 +190,7 @@ class FunctionReferenceParserTest extends FastaParserTestCase {
     var methodInvocation =
         parseExpression(
               'f(a<b,c> is int)',
-              diagnostics: [
-                expectedError(ParserErrorCode.missingIdentifier, 9, 2),
-              ],
+              diagnostics: [expectedError(diag.missingIdentifier, 9, 2)],
             )
             as MethodInvocation;
     var arguments = methodInvocation.argumentList.arguments;
@@ -218,8 +206,8 @@ class FunctionReferenceParserTest extends FastaParserTestCase {
     parseExpression(
       'f<a><b>',
       diagnostics: [
-        expectedError(ParserErrorCode.equalityCannotBeEqualityOperand, 3, 1),
-        expectedError(ParserErrorCode.expectedToken, 7, 0),
+        expectedError(diag.equalityCannotBeEqualityOperand, 3, 1),
+        expectedError(diag.expectedToken, 7, 0),
       ],
     );
   }
@@ -241,11 +229,7 @@ class FunctionReferenceParserTest extends FastaParserTestCase {
       parseExpression(
             'f(a<b,c>[d]>e)',
             diagnostics: [
-              expectedError(
-                ParserErrorCode.equalityCannotBeEqualityOperand,
-                11,
-                1,
-              ),
+              expectedError(diag.equalityCannotBeEqualityOperand, 11, 1),
             ],
           )
           as MethodInvocation,
@@ -260,9 +244,7 @@ class FunctionReferenceParserTest extends FastaParserTestCase {
     expect_two_args(
       parseExpression(
             'f(a<b,c>%d)',
-            diagnostics: [
-              expectedError(ParserErrorCode.missingIdentifier, 8, 1),
-            ],
+            diagnostics: [expectedError(diag.missingIdentifier, 8, 1)],
           )
           as MethodInvocation,
     );
@@ -272,9 +254,7 @@ class FunctionReferenceParserTest extends FastaParserTestCase {
     var methodInvocation =
         parseExpression(
               'f(a<b,c>..toString())',
-              diagnostics: [
-                expectedError(ParserErrorCode.missingIdentifier, 8, 2),
-              ],
+              diagnostics: [expectedError(diag.missingIdentifier, 8, 2)],
             )
             as MethodInvocation;
     var arguments = methodInvocation.argumentList.arguments;
@@ -287,9 +267,7 @@ class FunctionReferenceParserTest extends FastaParserTestCase {
     expect_two_args(
       parseExpression(
             'f(a<b,c>+d)',
-            diagnostics: [
-              expectedError(ParserErrorCode.missingIdentifier, 8, 1),
-            ],
+            diagnostics: [expectedError(diag.missingIdentifier, 8, 1)],
           )
           as MethodInvocation,
     );
@@ -299,9 +277,7 @@ class FunctionReferenceParserTest extends FastaParserTestCase {
     var methodInvocation =
         parseExpression(
               'f(a<b,c> ? null : null)',
-              diagnostics: [
-                expectedError(ParserErrorCode.missingIdentifier, 9, 1),
-              ],
+              diagnostics: [expectedError(diag.missingIdentifier, 9, 1)],
             )
             as MethodInvocation;
     var arguments = methodInvocation.argumentList.arguments;
@@ -314,9 +290,7 @@ class FunctionReferenceParserTest extends FastaParserTestCase {
     expect_two_args(
       parseExpression(
             'f(a<b,c>?.toString())',
-            diagnostics: [
-              expectedError(ParserErrorCode.missingIdentifier, 8, 2),
-            ],
+            diagnostics: [expectedError(diag.missingIdentifier, 8, 2)],
           )
           as MethodInvocation,
     );
@@ -326,9 +300,7 @@ class FunctionReferenceParserTest extends FastaParserTestCase {
     expect_two_args(
       parseExpression(
             'f(a<b,c>?.foo<c>())',
-            diagnostics: [
-              expectedError(ParserErrorCode.missingIdentifier, 8, 2),
-            ],
+            diagnostics: [expectedError(diag.missingIdentifier, 8, 2)],
           )
           as MethodInvocation,
     );
@@ -339,8 +311,8 @@ class FunctionReferenceParserTest extends FastaParserTestCase {
         parseExpression(
               'f(a<b,c>?..toString())',
               diagnostics: [
-                expectedError(ParserErrorCode.missingIdentifier, 8, 3),
-                expectedError(ParserErrorCode.expectedToken, 11, 8),
+                expectedError(diag.missingIdentifier, 8, 3),
+                expectedError(diag.expectedToken, 11, 8),
               ],
             )
             as MethodInvocation;
@@ -355,9 +327,7 @@ class FunctionReferenceParserTest extends FastaParserTestCase {
     expect_two_args(
       parseExpression(
             'f(a<b,c>?.hashCode)',
-            diagnostics: [
-              expectedError(ParserErrorCode.missingIdentifier, 8, 2),
-            ],
+            diagnostics: [expectedError(diag.missingIdentifier, 8, 2)],
           )
           as MethodInvocation,
     );
@@ -367,9 +337,7 @@ class FunctionReferenceParserTest extends FastaParserTestCase {
     expect_two_args(
       parseExpression(
             'f(a<b,c> ?? d)',
-            diagnostics: [
-              expectedError(ParserErrorCode.missingIdentifier, 9, 2),
-            ],
+            diagnostics: [expectedError(diag.missingIdentifier, 9, 2)],
           )
           as MethodInvocation,
     );
@@ -379,9 +347,7 @@ class FunctionReferenceParserTest extends FastaParserTestCase {
     expect_two_args(
       parseExpression(
             'f(a<b,c>/d)',
-            diagnostics: [
-              expectedError(ParserErrorCode.missingIdentifier, 8, 1),
-            ],
+            diagnostics: [expectedError(diag.missingIdentifier, 8, 1)],
           )
           as MethodInvocation,
     );
@@ -391,9 +357,7 @@ class FunctionReferenceParserTest extends FastaParserTestCase {
     expect_two_args(
       parseExpression(
             'f(a<b,c>~/d)',
-            diagnostics: [
-              expectedError(ParserErrorCode.missingIdentifier, 8, 2),
-            ],
+            diagnostics: [expectedError(diag.missingIdentifier, 8, 2)],
           )
           as MethodInvocation,
     );

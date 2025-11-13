@@ -2,8 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:analyzer/src/pubspec/pubspec_validator.dart';
-import 'package:analyzer/src/pubspec/pubspec_warning_code.dart';
 import 'package:analyzer/src/util/yaml.dart';
 import 'package:path/path.dart' as p;
 import 'package:yaml/yaml.dart';
@@ -29,7 +29,7 @@ void screenshotsValidator(PubspecValidationContext ctx) {
     if (entryValue is! YamlScalar) continue;
     var path = entryValue.value;
     if (path is String && !fileExistsAtPath(path)) {
-      ctx.reportErrorForNode(entryValue, PubspecWarningCode.pathDoesNotExist, [
+      ctx.reportErrorForNode(entryValue, diag.pathDoesNotExist, [
         entryValue.valueOrThrow,
       ]);
     }

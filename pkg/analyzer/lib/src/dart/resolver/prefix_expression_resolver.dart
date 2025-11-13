@@ -17,7 +17,7 @@ import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/dart/resolver/assignment_expression_resolver.dart';
 import 'package:analyzer/src/dart/resolver/invocation_inferrer.dart';
 import 'package:analyzer/src/dart/resolver/type_property_resolver.dart';
-import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:analyzer/src/generated/resolver.dart';
 
 /// Helper for resolving [PrefixExpression]s.
@@ -104,7 +104,7 @@ class PrefixExpressionResolver {
     )) {
       _resolver.diagnosticReporter.atNode(
         node,
-        CompileTimeErrorCode.invalidAssignment,
+        diag.invalidAssignment,
         arguments: [type, operandWriteType],
       );
     }
@@ -162,7 +162,7 @@ class PrefixExpressionResolver {
           // safely assume `element.name` is non-`null`.
           _diagnosticReporter.atToken(
             node.operator,
-            CompileTimeErrorCode.undefinedExtensionOperator,
+            diag.undefinedExtensionOperator,
             arguments: [methodName, element.name!],
           );
         }
@@ -175,10 +175,7 @@ class PrefixExpressionResolver {
         return;
       }
       if (identical(readType, NeverTypeImpl.instance)) {
-        _resolver.diagnosticReporter.atNode(
-          operand,
-          WarningCode.receiverOfTypeNever,
-        );
+        _resolver.diagnosticReporter.atNode(operand, diag.receiverOfTypeNever);
         return;
       }
 
@@ -196,13 +193,13 @@ class PrefixExpressionResolver {
         if (operand is SuperExpression) {
           _diagnosticReporter.atToken(
             operator,
-            CompileTimeErrorCode.undefinedSuperOperator,
+            diag.undefinedSuperOperator,
             arguments: [methodName, readType],
           );
         } else {
           _diagnosticReporter.atToken(
             operator,
-            CompileTimeErrorCode.undefinedOperator,
+            diag.undefinedOperator,
             arguments: [methodName, readType],
           );
         }

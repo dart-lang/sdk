@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:analyzer_testing/analysis_rule/analysis_rule.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -34,7 +34,7 @@ base class Foo {}
 import 'foo.dart';
 base class Bar implements Foo {}
 ''',
-      [error(CompileTimeErrorCode.baseClassImplementedOutsideOfLibrary, 45, 3)],
+      [error(diag.baseClassImplementedOutsideOfLibrary, 45, 3)],
     );
   }
 
@@ -51,7 +51,7 @@ base class C implements B {}
 ''',
       [
         this.error(
-          CompileTimeErrorCode.baseClassImplementedOutsideOfLibrary,
+          diag.baseClassImplementedOutsideOfLibrary,
           69,
           1,
           text:
@@ -86,7 +86,7 @@ class C implements B {}
 ''',
       [
         this.error(
-          CompileTimeErrorCode.baseClassImplementedOutsideOfLibrary,
+          diag.baseClassImplementedOutsideOfLibrary,
           64,
           1,
           text:
@@ -117,7 +117,7 @@ import 'a.dart';
 base class B extends A {}
 base class C implements B {}
 ''',
-      [error(CompileTimeErrorCode.baseClassImplementedOutsideOfLibrary, 67, 1)],
+      [error(diag.baseClassImplementedOutsideOfLibrary, 67, 1)],
     );
   }
 
@@ -132,13 +132,7 @@ typedef FooTypedef = Foo;
 import 'foo.dart';
 base class Bar implements FooTypedef {}
 ''',
-      [
-        error(
-          CompileTimeErrorCode.baseClassImplementedOutsideOfLibrary,
-          45,
-          10,
-        ),
-      ],
+      [error(diag.baseClassImplementedOutsideOfLibrary, 45, 10)],
     );
   }
 
@@ -153,13 +147,7 @@ import 'foo.dart';
 typedef FooTypedef = Foo;
 base class Bar implements FooTypedef {}
 ''',
-      [
-        error(
-          CompileTimeErrorCode.baseClassImplementedOutsideOfLibrary,
-          71,
-          10,
-        ),
-      ],
+      [error(diag.baseClassImplementedOutsideOfLibrary, 71, 10)],
     );
   }
 
@@ -186,7 +174,7 @@ base class C = Object with M implements B;
 ''',
       [
         this.error(
-          CompileTimeErrorCode.baseClassImplementedOutsideOfLibrary,
+          diag.baseClassImplementedOutsideOfLibrary,
           96,
           1,
           text:
@@ -223,7 +211,7 @@ base class Foo {}
 import 'foo.dart';
 enum Bar implements Foo { bar }
 ''',
-      [error(CompileTimeErrorCode.baseClassImplementedOutsideOfLibrary, 39, 3)],
+      [error(diag.baseClassImplementedOutsideOfLibrary, 39, 3)],
     );
   }
 
@@ -238,13 +226,7 @@ typedef FooTypedef = Foo;
 import 'foo.dart';
 enum Bar implements FooTypedef { bar }
 ''',
-      [
-        error(
-          CompileTimeErrorCode.baseClassImplementedOutsideOfLibrary,
-          39,
-          10,
-        ),
-      ],
+      [error(diag.baseClassImplementedOutsideOfLibrary, 39, 10)],
     );
   }
 
@@ -259,13 +241,7 @@ import 'foo.dart';
 typedef FooTypedef = Foo;
 enum Bar implements FooTypedef { bar }
 ''',
-      [
-        error(
-          CompileTimeErrorCode.baseClassImplementedOutsideOfLibrary,
-          65,
-          10,
-        ),
-      ],
+      [error(diag.baseClassImplementedOutsideOfLibrary, 65, 10)],
     );
   }
 
@@ -286,7 +262,7 @@ base class Foo {}
 import 'foo.dart';
 base mixin Bar implements Foo {}
 ''',
-      [error(CompileTimeErrorCode.baseClassImplementedOutsideOfLibrary, 45, 3)],
+      [error(diag.baseClassImplementedOutsideOfLibrary, 45, 3)],
     );
   }
 
@@ -301,13 +277,7 @@ typedef FooTypedef = Foo;
 import 'foo.dart';
 base mixin Bar implements FooTypedef {}
 ''',
-      [
-        error(
-          CompileTimeErrorCode.baseClassImplementedOutsideOfLibrary,
-          45,
-          10,
-        ),
-      ],
+      [error(diag.baseClassImplementedOutsideOfLibrary, 45, 10)],
     );
   }
 
@@ -322,13 +292,7 @@ import 'foo.dart';
 typedef FooTypedef = Foo;
 base mixin Bar implements FooTypedef {}
 ''',
-      [
-        error(
-          CompileTimeErrorCode.baseClassImplementedOutsideOfLibrary,
-          71,
-          10,
-        ),
-      ],
+      [error(diag.baseClassImplementedOutsideOfLibrary, 71, 10)],
     );
   }
 }

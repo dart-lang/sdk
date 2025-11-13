@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
@@ -21,7 +21,7 @@ class InvalidDeprecatedOptionalAnnotationTest extends PubPackageResolutionTest {
 @Deprecated.optional()
 void f([int p = 0]) {}
 ''',
-      [error(WarningCode.invalidDeprecatedOptionalAnnotation, 1, 19)],
+      [error(diag.invalidDeprecatedOptionalAnnotation, 1, 19)],
     );
   }
 
@@ -40,7 +40,7 @@ void f(void cb([@Deprecated.optional() int? p])) {
   cb();
 }
 ''',
-      [error(WarningCode.invalidDeprecatedOptionalAnnotation, 17, 19)],
+      [error(diag.invalidDeprecatedOptionalAnnotation, 17, 19)],
     );
   }
 
@@ -51,7 +51,7 @@ void f(void Function([@Deprecated.optional() int? p]) cb) {
   cb();
 }
 ''',
-      [error(WarningCode.invalidDeprecatedOptionalAnnotation, 23, 19)],
+      [error(diag.invalidDeprecatedOptionalAnnotation, 23, 19)],
     );
   }
 
@@ -63,7 +63,7 @@ void f() {
   g();
 }
 ''',
-      [error(WarningCode.invalidDeprecatedOptionalAnnotation, 22, 19)],
+      [error(diag.invalidDeprecatedOptionalAnnotation, 22, 19)],
     );
   }
 
@@ -83,7 +83,7 @@ void f(Cb cb) {
   cb();
 }
 ''',
-      [error(WarningCode.invalidDeprecatedOptionalAnnotation, 29, 19)],
+      [error(diag.invalidDeprecatedOptionalAnnotation, 29, 19)],
     );
   }
 
@@ -126,7 +126,7 @@ void f(
   {@Deprecated.optional() required int? p}
 ) {}
 ''',
-      [error(WarningCode.invalidDeprecatedOptionalAnnotation, 12, 19)],
+      [error(diag.invalidDeprecatedOptionalAnnotation, 12, 19)],
     );
   }
 
@@ -137,7 +137,7 @@ void f(
   @Deprecated.optional() int? p
 ) {}
 ''',
-      [error(WarningCode.invalidDeprecatedOptionalAnnotation, 11, 19)],
+      [error(diag.invalidDeprecatedOptionalAnnotation, 11, 19)],
     );
   }
 }

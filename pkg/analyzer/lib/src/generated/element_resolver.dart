@@ -12,7 +12,7 @@ import 'package:analyzer/src/dart/element/type_provider.dart';
 import 'package:analyzer/src/dart/resolver/comment_reference_resolver.dart';
 import 'package:analyzer/src/dart/resolver/method_invocation_resolver.dart';
 import 'package:analyzer/src/dart/resolver/scope.dart';
-import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/super_context.dart';
 
@@ -348,13 +348,13 @@ class ElementResolver {
       if (name != null) {
         _diagnosticReporter.atNode(
           node,
-          CompileTimeErrorCode.undefinedConstructorInInitializer,
+          diag.undefinedConstructorInInitializer,
           arguments: [superType, name.name],
         );
       } else {
         _diagnosticReporter.atNode(
           node,
-          CompileTimeErrorCode.undefinedConstructorInInitializerDefault,
+          diag.undefinedConstructorInInitializerDefault,
           arguments: [superType],
         );
       }
@@ -367,7 +367,7 @@ class ElementResolver {
           )) {
         _diagnosticReporter.atNode(
           node,
-          CompileTimeErrorCode.nonGenerativeConstructor,
+          diag.nonGenerativeConstructor,
           arguments: [element],
         );
       }
@@ -402,17 +402,11 @@ class ElementResolver {
     switch (context) {
       case SuperContext.annotation:
       case SuperContext.static:
-        _diagnosticReporter.atNode(
-          node,
-          CompileTimeErrorCode.superInInvalidContext,
-        );
+        _diagnosticReporter.atNode(node, diag.superInInvalidContext);
       case SuperContext.extension:
-        _diagnosticReporter.atNode(node, CompileTimeErrorCode.superInExtension);
+        _diagnosticReporter.atNode(node, diag.superInExtension);
       case SuperContext.extensionType:
-        _diagnosticReporter.atNode(
-          node,
-          CompileTimeErrorCode.superInExtensionType,
-        );
+        _diagnosticReporter.atNode(node, diag.superInExtensionType);
     }
   }
 

@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
@@ -27,7 +27,7 @@ class N {}
 export 'lib1.dart';
 export 'lib2.dart';
 ''',
-      [error(CompileTimeErrorCode.ambiguousExport, 27, 11)],
+      [error(diag.ambiguousExport, 27, 11)],
     );
   }
 
@@ -43,7 +43,7 @@ extension E on String {}
 export 'lib1.dart';
 export 'lib2.dart';
 ''',
-      [error(CompileTimeErrorCode.ambiguousExport, 27, 11)],
+      [error(diag.ambiguousExport, 27, 11)],
     );
   }
 
@@ -79,9 +79,7 @@ export 'lib2.dart';
 
     await assertErrorsInFile2(a, []);
 
-    await assertErrorsInFile2(b, [
-      error(CompileTimeErrorCode.ambiguousExport, 25, 11),
-    ]);
+    await assertErrorsInFile2(b, [error(diag.ambiguousExport, 25, 11)]);
   }
 
   test_part_part() async {
@@ -112,8 +110,6 @@ export 'lib2.dart';
 
     await assertErrorsInFile2(b, []);
 
-    await assertErrorsInFile2(c, [
-      error(CompileTimeErrorCode.ambiguousExport, 25, 11),
-    ]);
+    await assertErrorsInFile2(c, [error(diag.ambiguousExport, 25, 11)]);
   }
 }

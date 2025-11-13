@@ -2,8 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/dart/error/syntactic_errors.dart';
-import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'context_collection_resolution.dart';
@@ -81,7 +80,7 @@ TypeLiteral
 class C<T, U> {}
 var t = C<int>;
 ''',
-      [error(CompileTimeErrorCode.wrongNumberOfTypeArguments, 26, 5)],
+      [error(diag.wrongNumberOfTypeArguments, 26, 5)],
     );
 
     var node = findNode.typeLiteral('C<int>;');
@@ -109,7 +108,7 @@ TypeLiteral
 class C<T> {}
 var t = C<int, int>;
 ''',
-      [error(CompileTimeErrorCode.wrongNumberOfTypeArguments, 23, 10)],
+      [error(diag.wrongNumberOfTypeArguments, 23, 10)],
     );
 
     var node = findNode.typeLiteral('C<int, int>;');
@@ -143,7 +142,7 @@ var t = C<String>;
 ''',
       [
         error(
-          CompileTimeErrorCode.typeArgumentNotMatchingBounds,
+          diag.typeArgumentNotMatchingBounds,
           36,
           6,
           contextMessages: [message(testFile, 34, 9)],
@@ -312,7 +311,7 @@ var t = CA<String>;
 ''',
       [
         error(
-          CompileTimeErrorCode.typeArgumentNotMatchingBounds,
+          diag.typeArgumentNotMatchingBounds,
           59,
           6,
           contextMessages: [message(testFile, 56, 10)],
@@ -476,7 +475,7 @@ extension E on Type {
   void foo() {}
 }
 ''',
-      [error(CompileTimeErrorCode.undefinedMethodOnFunctionType, 58, 3)],
+      [error(diag.undefinedMethodOnFunctionType, 58, 3)],
     );
 
     var node = findNode.typeLiteral('Fn<int>');
@@ -517,7 +516,7 @@ extension E on Type {
   void foo() {}
 }
 ''',
-      [error(CompileTimeErrorCode.undefinedMethodOnFunctionType, 48, 3)],
+      [error(diag.undefinedMethodOnFunctionType, 48, 3)],
     );
 
     var node = findNode.typeLiteral('Fn<int>');
@@ -594,7 +593,7 @@ extension E on Type {
   int get foo => 1;
 }
 ''',
-      [error(CompileTimeErrorCode.undefinedGetterOnFunctionType, 58, 3)],
+      [error(diag.undefinedGetterOnFunctionType, 58, 3)],
     );
 
     var node = findNode.typeLiteral('Fn<int>');
@@ -667,7 +666,7 @@ extension E on Type {
   set foo(int value) {}
 }
 ''',
-      [error(CompileTimeErrorCode.undefinedSetterOnFunctionType, 58, 3)],
+      [error(diag.undefinedSetterOnFunctionType, 58, 3)],
     );
 
     var node = findNode.typeLiteral('Fn<int>');
@@ -733,7 +732,7 @@ TypeLiteral
 typedef Fn<T, U> = void Function(T, U);
 var t = Fn<int>;
 ''',
-      [error(CompileTimeErrorCode.wrongNumberOfTypeArguments, 50, 5)],
+      [error(diag.wrongNumberOfTypeArguments, 50, 5)],
     );
 
     var node = findNode.typeLiteral('Fn<int>;');
@@ -765,7 +764,7 @@ TypeLiteral
 typedef Fn<T> = void Function(T);
 var t = Fn<int, String>;
 ''',
-      [error(CompileTimeErrorCode.wrongNumberOfTypeArguments, 44, 13)],
+      [error(diag.wrongNumberOfTypeArguments, 44, 13)],
     );
 
     var node = findNode.typeLiteral('Fn<int, String>;');
@@ -802,7 +801,7 @@ var t = Fn<String>;
 ''',
       [
         error(
-          CompileTimeErrorCode.typeArgumentNotMatchingBounds,
+          diag.typeArgumentNotMatchingBounds,
           57,
           6,
           contextMessages: [message(testFile, 54, 10)],
@@ -934,7 +933,7 @@ class TypeLiteralResolutionTest_WithoutConstructorTearoffs
 class C<T> {}
 var t = C<int>;
 ''',
-      [error(ParserErrorCode.experimentNotEnabled, 23, 5)],
+      [error(diag.experimentNotEnabled, 23, 5)],
     );
   }
 
@@ -947,7 +946,7 @@ class C<T> {}
 import 'a.dart' as a;
 var t = a.C<int>;
 ''',
-      [error(ParserErrorCode.experimentNotEnabled, 33, 5)],
+      [error(diag.experimentNotEnabled, 33, 5)],
     );
   }
 }

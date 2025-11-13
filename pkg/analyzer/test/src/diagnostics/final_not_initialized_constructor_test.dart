@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
@@ -23,7 +23,7 @@ class A {
   A() {}
 }
 ''',
-      [error(CompileTimeErrorCode.finalNotInitializedConstructor1, 27, 1)],
+      [error(diag.finalNotInitializedConstructor1, 27, 1)],
     );
   }
 
@@ -36,7 +36,7 @@ class A {
   A() {}
 }
 ''',
-      [error(CompileTimeErrorCode.finalNotInitializedConstructor2, 42, 1)],
+      [error(diag.finalNotInitializedConstructor2, 42, 1)],
     );
   }
 
@@ -50,7 +50,7 @@ class A {
   A() {}
 }
 ''',
-      [error(CompileTimeErrorCode.finalNotInitializedConstructor3Plus, 57, 1)],
+      [error(diag.finalNotInitializedConstructor3Plus, 57, 1)],
     );
   }
 
@@ -142,7 +142,7 @@ augment class A {
     await resolveFile2(testFile);
     assertErrorsInResult([
       error(
-        CompileTimeErrorCode.finalNotInitializedConstructor1,
+        diag.finalNotInitializedConstructor1,
         60,
         1,
         messageContains: ['f2'],
@@ -201,9 +201,7 @@ augment class A {
     assertNoErrorsInResult();
 
     await resolveFile2(a);
-    assertErrorsInResult([
-      error(CompileTimeErrorCode.finalNotInitializedConstructor1, 42, 1),
-    ]);
+    assertErrorsInResult([error(diag.finalNotInitializedConstructor1, 42, 1)]);
   }
 
   Future<void> test_class_redirecting_error() async {
@@ -215,7 +213,7 @@ class A {
   A._();
 }
 ''',
-      [error(CompileTimeErrorCode.finalNotInitializedConstructor1, 45, 1)],
+      [error(diag.finalNotInitializedConstructor1, 45, 1)],
     );
   }
 
@@ -248,7 +246,7 @@ enum E {
   const E();
 }
 ''',
-      [error(CompileTimeErrorCode.finalNotInitializedConstructor1, 37, 1)],
+      [error(diag.finalNotInitializedConstructor1, 37, 1)],
     );
   }
 
@@ -262,7 +260,7 @@ enum E {
   const E();
 }
 ''',
-      [error(CompileTimeErrorCode.finalNotInitializedConstructor2, 52, 1)],
+      [error(diag.finalNotInitializedConstructor2, 52, 1)],
     );
   }
 
@@ -277,7 +275,7 @@ enum E {
   const E();
 }
 ''',
-      [error(CompileTimeErrorCode.finalNotInitializedConstructor3Plus, 67, 1)],
+      [error(diag.finalNotInitializedConstructor3Plus, 67, 1)],
     );
   }
 
@@ -291,7 +289,7 @@ enum E {
   const E._();
 }
 ''',
-      [error(CompileTimeErrorCode.finalNotInitializedConstructor1, 70, 1)],
+      [error(diag.finalNotInitializedConstructor1, 70, 1)],
     );
   }
 
@@ -324,7 +322,7 @@ extension type A(int it) {
   A.named();
 }
 ''',
-      [error(CompileTimeErrorCode.finalNotInitializedConstructor1, 29, 1)],
+      [error(diag.finalNotInitializedConstructor1, 29, 1)],
     );
   }
 

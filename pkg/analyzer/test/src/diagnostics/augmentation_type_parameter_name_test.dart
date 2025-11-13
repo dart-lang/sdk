@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
@@ -29,7 +29,7 @@ part of 'a.dart';
 
 augment class A<U> {}
 ''',
-      [error(CompileTimeErrorCode.augmentationTypeParameterName, 35, 1)],
+      [error(diag.augmentationTypeParameterName, 35, 1)],
     );
   }
 
@@ -46,7 +46,7 @@ part of 'a.dart';
 
 augment enum A<U> {}
 ''',
-      [error(CompileTimeErrorCode.augmentationTypeParameterName, 34, 1)],
+      [error(diag.augmentationTypeParameterName, 34, 1)],
     );
   }
 
@@ -63,7 +63,7 @@ part of 'a.dart';
 
 augment extension A<U> {}
 ''',
-      [error(CompileTimeErrorCode.augmentationTypeParameterName, 39, 1)],
+      [error(diag.augmentationTypeParameterName, 39, 1)],
     );
   }
 
@@ -80,7 +80,7 @@ part of 'a.dart';
 
 augment extension type A<U>(int it) {}
 ''',
-      [error(CompileTimeErrorCode.augmentationTypeParameterName, 44, 1)],
+      [error(diag.augmentationTypeParameterName, 44, 1)],
     );
   }
 
@@ -97,7 +97,7 @@ part of 'a.dart';
 
 augment mixin A<U> {}
 ''',
-      [error(CompileTimeErrorCode.augmentationTypeParameterName, 35, 1)],
+      [error(diag.augmentationTypeParameterName, 35, 1)],
     );
   }
 }

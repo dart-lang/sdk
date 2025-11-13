@@ -2,8 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:analyzer/src/pubspec/pubspec_validator.dart';
-import 'package:analyzer/src/pubspec/pubspec_warning_code.dart';
 import 'package:analyzer/src/util/yaml.dart';
 import 'package:path/path.dart' as path;
 import 'package:yaml/yaml.dart';
@@ -15,10 +15,7 @@ void workspaceValidator(PubspecValidationContext ctx) {
   var workspaceField = contents.nodes[PubspecField.WORKSPACE_FIELD];
   if (workspaceField == null) return;
   if (workspaceField is! YamlList) {
-    ctx.reportErrorForNode(
-      workspaceField,
-      PubspecWarningCode.workspaceFieldNotList,
-    );
+    ctx.reportErrorForNode(workspaceField, diag.workspaceFieldNotList);
     return;
   }
 
@@ -26,18 +23,12 @@ void workspaceValidator(PubspecValidationContext ctx) {
     if (directoryField is YamlScalar) {
       var entry = directoryField.valueOrThrow;
       if (entry is! String) {
-        ctx.reportErrorForNode(
-          directoryField,
-          PubspecWarningCode.workspaceValueNotString,
-        );
+        ctx.reportErrorForNode(directoryField, diag.workspaceValueNotString);
         return;
       }
       _validateDirectoryPath(ctx, entry, directoryField);
     } else {
-      ctx.reportErrorForNode(
-        directoryField,
-        PubspecWarningCode.workspaceValueNotString,
-      );
+      ctx.reportErrorForNode(directoryField, diag.workspaceValueNotString);
     }
   }
 }
@@ -57,17 +48,13 @@ void _validateDirectoryPath(
   var dirPath = context.join(packageRoot, normalizedEntry);
   // Check if given path is a sub directory of the package root.
   if (!packageRootFolder.contains(dirPath)) {
-    ctx.reportErrorForNode(
-      errorField,
-      PubspecWarningCode.workspaceValueNotSubdirectory,
-      [packageRoot],
-    );
+    ctx.reportErrorForNode(errorField, diag.workspaceValueNotSubdirectory, [
+      packageRoot,
+    ]);
     return;
   }
   var subDirectory = ctx.provider.getFolder(dirPath);
   if (!subDirectory.exists) {
-    ctx.reportErrorForNode(errorField, PubspecWarningCode.pathDoesNotExist, [
-      pathValue,
-    ]);
+    ctx.reportErrorForNode(errorField, diag.pathDoesNotExist, [pathValue]);
   }
 }

@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'context_collection_resolution.dart';
@@ -23,7 +23,7 @@ void f() {
   T g<T, U>(T a, U b) => a;
 }
 ''',
-      [error(WarningCode.unusedElement, 15, 1)],
+      [error(diag.unusedElement, 15, 1)],
     );
 
     var node = findNode.singleFunctionDeclarationStatement;
@@ -93,7 +93,7 @@ void f() {
   void g<T extends U, U, V extends U>(T x, U y, V z) {}
 }
 ''',
-      [error(WarningCode.unusedElement, 18, 1)],
+      [error(diag.unusedElement, 18, 1)],
     );
 
     var node = findNode.singleFunctionDeclarationStatement;
@@ -183,7 +183,7 @@ void f() {
   void g<T>({T? a}) {}
 }
 ''',
-      [error(WarningCode.unusedElement, 18, 1)],
+      [error(diag.unusedElement, 18, 1)],
     );
 
     var node = findNode.singleFunctionDeclarationStatement;
@@ -244,7 +244,7 @@ void f() {
   void g<T>([T? a]) {}
 }
 ''',
-      [error(WarningCode.unusedElement, 18, 1)],
+      [error(diag.unusedElement, 18, 1)],
     );
 
     var node = findNode.singleFunctionDeclarationStatement;
@@ -305,7 +305,7 @@ void f() {
   void g<T>({required T? a}) {}
 }
 ''',
-      [error(WarningCode.unusedElement, 18, 1)],
+      [error(diag.unusedElement, 18, 1)],
     );
 
     var node = findNode.singleFunctionDeclarationStatement;
@@ -367,7 +367,7 @@ void f() {
   void g<T>(T a) {}
 }
 ''',
-      [error(WarningCode.unusedElement, 18, 1)],
+      [error(diag.unusedElement, 18, 1)],
     );
 
     var node = findNode.singleFunctionDeclarationStatement;
@@ -421,7 +421,7 @@ void f() {
   g() {}
 }
 ''',
-      [error(WarningCode.unusedElement, 13, 1)],
+      [error(diag.unusedElement, 13, 1)],
     );
 
     var node = findNode.singleFunctionDeclarationStatement;
@@ -454,7 +454,7 @@ void f() {
   g() => 0;
 }
 ''',
-      [error(WarningCode.unusedElement, 13, 1)],
+      [error(diag.unusedElement, 13, 1)],
     );
 
     var node = findNode.singleFunctionDeclarationStatement;

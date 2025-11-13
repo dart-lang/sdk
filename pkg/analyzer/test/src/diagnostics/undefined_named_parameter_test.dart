@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
@@ -25,7 +25,7 @@ main() {
   const A(p: 0);
 }
 ''',
-      [error(CompileTimeErrorCode.undefinedNamedParameter, 44, 1)],
+      [error(diag.undefinedNamedParameter, 44, 1)],
     );
   }
 
@@ -39,7 +39,7 @@ main() {
   A(p: 0);
 }
 ''',
-      [error(CompileTimeErrorCode.undefinedNamedParameter, 32, 1)],
+      [error(diag.undefinedNamedParameter, 32, 1)],
     );
   }
 
@@ -51,7 +51,7 @@ enum E {
   const E();
 }
 ''',
-      [error(CompileTimeErrorCode.undefinedNamedParameter, 13, 1)],
+      [error(diag.undefinedNamedParameter, 13, 1)],
     );
   }
 
@@ -62,7 +62,7 @@ f({a, b}) {}
 main() {
   f(c: 1);
 }''',
-      [error(CompileTimeErrorCode.undefinedNamedParameter, 26, 1)],
+      [error(diag.undefinedNamedParameter, 26, 1)],
     );
   }
 
@@ -76,7 +76,7 @@ main() {
   A().m(p: 0);
 }
 ''',
-      [error(CompileTimeErrorCode.undefinedNamedParameter, 38, 1)],
+      [error(diag.undefinedNamedParameter, 38, 1)],
     );
   }
 }

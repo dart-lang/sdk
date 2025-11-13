@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../context_collection_resolution.dart';
@@ -26,7 +26,7 @@ FutureOr<void> Function() v = () async {
   return 0;
 };
 ''',
-      [error(CompileTimeErrorCode.returnOfInvalidTypeFromClosure, 72, 1)],
+      [error(diag.returnOfInvalidTypeFromClosure, 72, 1)],
     );
     _assertReturnType('() async {', 'Future<void>');
   }
@@ -38,7 +38,7 @@ Future<void> Function() v = () async {
   return 0;
 };
 ''',
-      [error(CompileTimeErrorCode.returnOfInvalidTypeFromClosure, 48, 1)],
+      [error(diag.returnOfInvalidTypeFromClosure, 48, 1)],
     );
     _assertReturnType('() async {', 'Future<void>');
   }
@@ -327,7 +327,7 @@ void Function() v = () {
   return 0;
 };
 ''',
-      [error(CompileTimeErrorCode.returnOfInvalidTypeFromClosure, 34, 1)],
+      [error(diag.returnOfInvalidTypeFromClosure, 34, 1)],
     );
     _assertReturnType('() {', 'void');
   }
@@ -536,7 +536,7 @@ void f() {
   final v = <T>(T a) => <T>[a];
 }
 ''',
-      [error(WarningCode.unusedLocalVariable, 19, 1)],
+      [error(diag.unusedLocalVariable, 19, 1)],
     );
 
     var node = findNode.functionExpression('<T>(');
@@ -980,7 +980,7 @@ int test<T extends int Function(int)>(T Function() createT) {
   return createT()('');
 }
 ''',
-      [error(CompileTimeErrorCode.argumentTypeNotAssignable, 81, 2)],
+      [error(diag.argumentTypeNotAssignable, 81, 2)],
     );
 
     var node = findNode.functionExpressionInvocation("('')");

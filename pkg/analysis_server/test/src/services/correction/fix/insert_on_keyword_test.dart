@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/src/services/correction/fix.dart';
-import 'package:analyzer/src/dart/error/syntactic_errors.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:test/expect.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -25,7 +25,7 @@ extension String {}
 extension String {}
 ''');
     var fixes = await getFixesForFirst(
-      (e) => e.diagnosticCode == ParserErrorCode.expectedToken,
+      (e) => e.diagnosticCode == diag.expectedToken,
     );
     expect(fixes, hasLength(1));
     assertProduces(fixes.first, r'''
@@ -49,7 +49,7 @@ extension int {}
 extension on int {}
 ''',
       filter: (error) {
-        return error.diagnosticCode == ParserErrorCode.expectedToken;
+        return error.diagnosticCode == diag.expectedToken;
       },
     );
   }
@@ -90,7 +90,7 @@ extension List<int> {}
 extension on List<int> {}
 ''',
       filter: (error) {
-        return error.diagnosticCode == ParserErrorCode.expectedToken;
+        return error.diagnosticCode == diag.expectedToken;
       },
     );
   }

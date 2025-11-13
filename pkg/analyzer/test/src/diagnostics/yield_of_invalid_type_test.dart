@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
@@ -31,7 +31,7 @@ int f() async* {
   yield 0;
 }
 ''',
-      [error(CompileTimeErrorCode.illegalAsyncGeneratorReturnType, 0, 3)],
+      [error(diag.illegalAsyncGeneratorReturnType, 0, 3)],
     );
   }
 
@@ -50,7 +50,7 @@ Iterable<int> f() async* {
   yield 0;
 }
 ''',
-      [error(CompileTimeErrorCode.illegalAsyncGeneratorReturnType, 0, 13)],
+      [error(diag.illegalAsyncGeneratorReturnType, 0, 13)],
     );
   }
 
@@ -77,7 +77,7 @@ Stream<String> f() async* {
   yield 0;
 }
 ''',
-      [error(CompileTimeErrorCode.yieldOfInvalidType, 36, 1)],
+      [error(diag.yieldOfInvalidType, 36, 1)],
     );
   }
 
@@ -91,7 +91,7 @@ void f() {
   };
 }
 ''',
-      [error(CompileTimeErrorCode.yieldOfInvalidType, 99, 1)],
+      [error(diag.yieldOfInvalidType, 99, 1)],
     );
   }
 
@@ -110,7 +110,7 @@ Stream<int> f() async* {
   yield null;
 }
 ''',
-      [error(CompileTimeErrorCode.yieldOfInvalidType, 33, 4)],
+      [error(diag.yieldOfInvalidType, 33, 4)],
     );
   }
 
@@ -129,7 +129,7 @@ int f() sync* {
   yield 0;
 }
 ''',
-      [error(CompileTimeErrorCode.illegalSyncGeneratorReturnType, 0, 3)],
+      [error(diag.illegalSyncGeneratorReturnType, 0, 3)],
     );
   }
 
@@ -164,7 +164,7 @@ Iterable<String> f() sync* {
   yield 0;
 }
 ''',
-      [error(CompileTimeErrorCode.yieldOfInvalidType, 37, 1)],
+      [error(diag.yieldOfInvalidType, 37, 1)],
     );
   }
 
@@ -178,7 +178,7 @@ void f() {
   };
 }
 ''',
-      [error(CompileTimeErrorCode.yieldOfInvalidType, 100, 1)],
+      [error(diag.yieldOfInvalidType, 100, 1)],
     );
   }
 
@@ -189,7 +189,7 @@ Stream<int> f() sync* {
   yield 0;
 }
 ''',
-      [error(CompileTimeErrorCode.illegalSyncGeneratorReturnType, 0, 11)],
+      [error(diag.illegalSyncGeneratorReturnType, 0, 11)],
     );
   }
 
@@ -238,7 +238,7 @@ f() async* {
   yield* 0;
 }
 ''',
-      [error(CompileTimeErrorCode.yieldEachOfInvalidType, 22, 1)],
+      [error(diag.yieldEachOfInvalidType, 22, 1)],
     );
   }
 
@@ -250,7 +250,7 @@ f() async* {
   yield* a;
 }
 ''',
-      [error(CompileTimeErrorCode.yieldEachOfInvalidType, 41, 1)],
+      [error(diag.yieldEachOfInvalidType, 41, 1)],
     );
   }
 
@@ -262,7 +262,7 @@ Stream<int> f() async* {
   yield* a;
 }
 ''',
-      [error(CompileTimeErrorCode.yieldEachOfInvalidType, 53, 1)],
+      [error(diag.yieldEachOfInvalidType, 53, 1)],
     );
   }
 
@@ -274,7 +274,7 @@ Stream<int> f() async* {
   yield* a;
 }
 ''',
-      [error(CompileTimeErrorCode.yieldEachOfInvalidType, 56, 1)],
+      [error(diag.yieldEachOfInvalidType, 56, 1)],
     );
   }
 
@@ -297,7 +297,7 @@ Stream<int> f() async* {
 
 Stream g() => throw 0;
 ''',
-      [error(CompileTimeErrorCode.yieldEachOfInvalidType, 34, 3)],
+      [error(diag.yieldEachOfInvalidType, 34, 3)],
     );
   }
 
@@ -330,7 +330,7 @@ Stream<int> f() async* {
 
 Stream<String> g() => throw 0;
 ''',
-      [error(CompileTimeErrorCode.yieldEachOfInvalidType, 34, 3)],
+      [error(diag.yieldEachOfInvalidType, 34, 3)],
     );
   }
 
@@ -371,7 +371,7 @@ f() sync* {
   yield* 0;
 }
 ''',
-      [error(CompileTimeErrorCode.yieldEachOfInvalidType, 21, 1)],
+      [error(diag.yieldEachOfInvalidType, 21, 1)],
     );
   }
 
@@ -385,7 +385,7 @@ main() {
   f;
 }
 ''',
-      [error(CompileTimeErrorCode.yieldEachOfInvalidType, 41, 1)],
+      [error(diag.yieldEachOfInvalidType, 41, 1)],
     );
   }
 
@@ -408,7 +408,7 @@ Iterable<int> f() sync* {
 
 Iterable g() => throw 0;
 ''',
-      [error(CompileTimeErrorCode.yieldEachOfInvalidType, 35, 3)],
+      [error(diag.yieldEachOfInvalidType, 35, 3)],
     );
   }
 
@@ -441,7 +441,7 @@ Iterable<int> f() sync* {
 
 Iterable<String> g() => throw 0;
 ''',
-      [error(CompileTimeErrorCode.yieldEachOfInvalidType, 35, 3)],
+      [error(diag.yieldEachOfInvalidType, 35, 3)],
     );
   }
 }
@@ -456,7 +456,7 @@ f(dynamic a) async* {
   yield* a;
 }
 ''',
-      [error(CompileTimeErrorCode.yieldEachOfInvalidType, 31, 1)],
+      [error(diag.yieldEachOfInvalidType, 31, 1)],
     );
   }
 
@@ -467,7 +467,7 @@ f(dynamic a) sync* {
   yield* a;
 }
 ''',
-      [error(CompileTimeErrorCode.yieldEachOfInvalidType, 30, 1)],
+      [error(diag.yieldEachOfInvalidType, 30, 1)],
     );
   }
 }

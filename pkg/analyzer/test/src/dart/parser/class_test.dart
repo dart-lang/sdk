@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/src/dart/error/syntactic_errors.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../../diagnostics/parser_diagnostics.dart';
@@ -73,7 +73,7 @@ class A {
 }
 ''');
     parseResult.assertErrors([
-      error(ParserErrorCode.externalConstructorWithFieldInitializers, 39, 4),
+      error(diag.externalConstructorWithFieldInitializers, 39, 4),
     ]);
 
     var node = parseResult.findNode.singleConstructorDeclaration;
@@ -108,7 +108,7 @@ class A {
 }
 ''');
     parseResult.assertErrors([
-      error(ParserErrorCode.externalConstructorWithFieldInitializers, 38, 4),
+      error(diag.externalConstructorWithFieldInitializers, 38, 4),
     ]);
 
     var node = parseResult.findNode.singleConstructorDeclaration;
@@ -137,7 +137,7 @@ class A {
 }
 ''');
     parseResult.assertErrors([
-      error(ParserErrorCode.externalConstructorWithInitializer, 40, 1),
+      error(diag.externalConstructorWithInitializer, 40, 1),
     ]);
 
     var node = parseResult.findNode.singleConstructorDeclaration;
@@ -169,8 +169,8 @@ class A {
 }
 ''');
     parseResult.assertErrors([
-      error(ParserErrorCode.extraneousModifier, 14, 5),
-      error(ParserErrorCode.functionTypedParameterVar, 14, 5),
+      error(diag.extraneousModifier, 14, 5),
+      error(diag.functionTypedParameterVar, 14, 5),
     ]);
 
     var node = parseResult.findNode.singleConstructorDeclaration;
@@ -203,9 +203,7 @@ class A {
   A(final int a(String x));
 }
 ''');
-    parseResult.assertErrors([
-      error(ParserErrorCode.functionTypedParameterVar, 14, 5),
-    ]);
+    parseResult.assertErrors([error(diag.functionTypedParameterVar, 14, 5)]);
 
     var node = parseResult.findNode.singleConstructorDeclaration;
     assertParsedNodeText(node, r'''
@@ -238,9 +236,7 @@ class A {
   A(const int a);
 }
 ''');
-    parseResult.assertErrors([
-      error(ParserErrorCode.extraneousModifier, 14, 5),
-    ]);
+    parseResult.assertErrors([error(diag.extraneousModifier, 14, 5)]);
 
     var node = parseResult.findNode.singleConstructorDeclaration;
     assertParsedNodeText(node, r'''
@@ -446,7 +442,7 @@ mixin M {}
 class const C = Object with M;
 ''');
     parseResult.assertErrors([
-      error(ParserErrorCode.constWithoutPrimaryConstructor, 17, 5),
+      error(diag.constWithoutPrimaryConstructor, 17, 5),
     ]);
   }
 
@@ -505,7 +501,7 @@ ClassDeclaration
 class const A {}
 ''');
     parseResult.assertErrors([
-      error(ParserErrorCode.constWithoutPrimaryConstructor, 6, 5),
+      error(diag.constWithoutPrimaryConstructor, 6, 5),
     ]);
 
     var node = parseResult.findNode.singleClassDeclaration;
@@ -752,7 +748,7 @@ ClassDeclaration
     var parseResult = parseStringWithErrors(r'''
 class A(const int a(String x)) {}
 ''');
-    parseResult.assertErrors([error(ParserErrorCode.extraneousModifier, 8, 5)]);
+    parseResult.assertErrors([error(diag.extraneousModifier, 8, 5)]);
 
     var node = parseResult.findNode.singleClassDeclaration;
     assertParsedNodeText(node, r'''
@@ -853,7 +849,7 @@ ClassDeclaration
     var parseResult = parseStringWithErrors(r'''
 class A(const int a) {}
 ''');
-    parseResult.assertErrors([error(ParserErrorCode.extraneousModifier, 8, 5)]);
+    parseResult.assertErrors([error(diag.extraneousModifier, 8, 5)]);
 
     var node = parseResult.findNode.singleClassDeclaration;
     assertParsedNodeText(node, r'''
@@ -1132,7 +1128,7 @@ ClassDeclaration
     var parseResult = parseStringWithErrors(r'''
 class A(var int super.a) {}
 ''');
-    parseResult.assertErrors([error(ParserErrorCode.extraneousModifier, 8, 3)]);
+    parseResult.assertErrors([error(diag.extraneousModifier, 8, 3)]);
 
     var node = parseResult.findNode.singleClassDeclaration;
     assertParsedNodeText(node, r'''
@@ -1264,9 +1260,7 @@ class A {
   set foo {}
 }
 ''');
-    parseResult.assertErrors([
-      error(ParserErrorCode.missingMethodParameters, 16, 3),
-    ]);
+    parseResult.assertErrors([error(diag.missingMethodParameters, 16, 3)]);
 
     var node = parseResult.findNode.singleMethodDeclaration;
     assertParsedNodeText(node, withOffsets: true, r'''
@@ -1292,7 +1286,7 @@ class A {
 }
 ''');
     parseResult.assertErrors([
-      error(ParserErrorCode.wrongNumberOfParametersForSetter, 16, 3),
+      error(diag.wrongNumberOfParametersForSetter, 16, 3),
     ]);
 
     var node = parseResult.findNode.singleMethodDeclaration;
@@ -1319,7 +1313,7 @@ class A {
 }
 ''');
     parseResult.assertErrors([
-      error(ParserErrorCode.wrongNumberOfParametersForSetter, 16, 3),
+      error(diag.wrongNumberOfParametersForSetter, 16, 3),
     ]);
 
     var node = parseResult.findNode.singleMethodDeclaration;
@@ -1346,7 +1340,7 @@ class A {
 }
 ''');
     parseResult.assertErrors([
-      error(ParserErrorCode.wrongNumberOfParametersForSetter, 16, 3),
+      error(diag.wrongNumberOfParametersForSetter, 16, 3),
     ]);
 
     var node = parseResult.findNode.singleMethodDeclaration;
@@ -1373,7 +1367,7 @@ class A {
 }
 ''');
     parseResult.assertErrors([
-      error(ParserErrorCode.wrongNumberOfParametersForSetter, 16, 3),
+      error(diag.wrongNumberOfParametersForSetter, 16, 3),
     ]);
 
     var node = parseResult.findNode.singleMethodDeclaration;

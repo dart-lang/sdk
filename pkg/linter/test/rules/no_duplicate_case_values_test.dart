@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/dart/error/syntactic_errors.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../rule_test_support.dart';
@@ -41,7 +41,7 @@ void switchConstClass() {
   }
 }
 ''',
-      [error(WarningCode.unreachableSwitchCase, 237, 4)],
+      [error(diag.unreachableSwitchCase, 237, 4)],
     );
   }
 
@@ -68,8 +68,8 @@ void switchEnum() {
 ''',
       [
         // No lint.
-        error(WarningCode.unreachableSwitchCase, 139, 4),
-        error(WarningCode.unreachableSwitchDefault, 155, 7),
+        error(diag.unreachableSwitchCase, 139, 4),
+        error(diag.unreachableSwitchDefault, 155, 7),
       ],
     );
   }
@@ -93,8 +93,8 @@ void switchInt() {
 ''',
       [
         // No lint.
-        error(WarningCode.unreachableSwitchCase, 95, 4),
-        error(WarningCode.unreachableSwitchCase, 107, 4),
+        error(diag.unreachableSwitchCase, 95, 4),
+        error(diag.unreachableSwitchCase, 107, 4),
       ],
     );
   }
@@ -118,10 +118,10 @@ void switchString() {
 ''',
       [
         // No lint.
-        error(WarningCode.unreachableSwitchCase, 115, 4),
-        error(ParserErrorCode.invalidConstantPatternBinary, 122, 1),
-        error(WarningCode.unreachableSwitchCase, 131, 4),
-        error(ParserErrorCode.invalidConstantPatternBinary, 153, 1),
+        error(diag.unreachableSwitchCase, 115, 4),
+        error(diag.invalidConstantPatternBinary, 122, 1),
+        error(diag.unreachableSwitchCase, 131, 4),
+        error(diag.invalidConstantPatternBinary, 153, 1),
       ],
     );
   }

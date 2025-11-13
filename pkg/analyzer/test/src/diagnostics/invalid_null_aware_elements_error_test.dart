@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
@@ -21,7 +21,7 @@ class InvalidNullAwareElementsErrorTest extends PubPackageResolutionTest {
 const stringConst = "";
 const list = [0, ?stringConst];
 ''',
-      [error(StaticWarningCode.invalidNullAwareElement, 41, 1)],
+      [error(diag.invalidNullAwareElement, 41, 1)],
     );
   }
 
@@ -31,7 +31,7 @@ const list = [0, ?stringConst];
 const stringConst = "";
 const set = {0, ?stringConst};
 ''',
-      [error(StaticWarningCode.invalidNullAwareElement, 40, 1)],
+      [error(diag.invalidNullAwareElement, 40, 1)],
     );
   }
 
@@ -41,7 +41,7 @@ const set = {0, ?stringConst};
 const intConst = 0;
 const map = {?0: intConst};
 ''',
-      [error(StaticWarningCode.invalidNullAwareMapEntryKey, 33, 1)],
+      [error(diag.invalidNullAwareMapEntryKey, 33, 1)],
     );
   }
 
@@ -51,7 +51,7 @@ const map = {?0: intConst};
 const intConst = 0;
 const map = {0: ?intConst};
 ''',
-      [error(StaticWarningCode.invalidNullAwareMapEntryValue, 36, 1)],
+      [error(diag.invalidNullAwareMapEntryValue, 36, 1)],
     );
   }
 }

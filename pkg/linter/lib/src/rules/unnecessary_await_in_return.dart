@@ -12,6 +12,7 @@ import 'package:analyzer/dart/element/type_system.dart';
 import 'package:analyzer/error/error.dart';
 
 import '../analyzer.dart';
+import '../diagnostic.dart' as diag;
 
 const _desc = r'Unnecessary `await` keyword in return.';
 
@@ -20,7 +21,7 @@ class UnnecessaryAwaitInReturn extends AnalysisRule {
     : super(name: LintNames.unnecessary_await_in_return, description: _desc);
 
   @override
-  DiagnosticCode get diagnosticCode => LinterLintCode.unnecessaryAwaitInReturn;
+  DiagnosticCode get diagnosticCode => diag.unnecessaryAwaitInReturn;
 
   @override
   void registerNodeProcessors(

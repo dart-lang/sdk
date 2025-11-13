@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'context_collection_resolution.dart';
@@ -68,7 +68,7 @@ ClassTypeAlias
 mixin class A {}
 class X = Function with A;
 ''',
-      [error(CompileTimeErrorCode.finalClassExtendedOutsideOfLibrary, 27, 8)],
+      [error(diag.finalClassExtendedOutsideOfLibrary, 27, 8)],
     );
     var x = findElement2.class_('X');
     assertType(x.supertype, 'Object');
@@ -81,13 +81,7 @@ mixin class A {}
 class B {}
 class X = Object with A implements A, Function, B;
 ''',
-      [
-        error(
-          CompileTimeErrorCode.finalClassImplementedOutsideOfLibrary,
-          66,
-          8,
-        ),
-      ],
+      [error(diag.finalClassImplementedOutsideOfLibrary, 66, 8)],
     );
     var x = findElement2.class_('X');
     assertElementTypes(x.interfaces, ['A', 'B']);
@@ -100,7 +94,7 @@ mixin class A {}
 mixin class B {}
 class X = Object with A, Function, B;
 ''',
-      [error(CompileTimeErrorCode.classUsedAsMixin, 59, 8)],
+      [error(diag.classUsedAsMixin, 59, 8)],
     );
     var x = findElement2.class_('X');
     assertElementTypes(x.mixins, ['A', 'B']);
@@ -136,8 +130,8 @@ class C = A with M;
 const x = const C();
 ''',
       [
-        error(CompileTimeErrorCode.constWithNonConst, 83, 5),
-        error(CompileTimeErrorCode.constInitializedWithNonConstantValue, 83, 5),
+        error(diag.constWithNonConst, 83, 5),
+        error(diag.constInitializedWithNonConstantValue, 83, 5),
       ],
     );
   }

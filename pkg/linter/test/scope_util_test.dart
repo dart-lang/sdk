@@ -8,6 +8,7 @@
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:analyzer/src/test_utilities/find_element2.dart';
 import 'package:analyzer/src/test_utilities/find_node.dart';
 import 'package:analyzer_testing/src/analysis_rule/pub_package_resolution.dart';
@@ -73,7 +74,7 @@ class B extends A {
   }
 }
 ''',
-      [error(WarningCode.unusedImport, 7, 8)],
+      [error(diag.unusedImport, 7, 8)],
     );
     var import = findElement.importFind('package:test/a.dart');
     _checkGetterDifferent(import.topSet('foo'));
@@ -140,7 +141,7 @@ class B extends A {
   }
 }
 ''',
-      [error(WarningCode.unusedImport, 7, 8)],
+      [error(diag.unusedImport, 7, 8)],
     );
     var import = findElement.importFind('package:test/a.dart');
     _checkGetterRequested(import.topGet('foo'));
@@ -301,7 +302,7 @@ class B extends A {
   }
 }
 ''',
-      [error(WarningCode.unusedImport, 7, 8)],
+      [error(diag.unusedImport, 7, 8)],
     );
     var import = findElement.importFind('package:test/a.dart');
     _checkMethodRequested(import.topFunction('foo'));
@@ -609,7 +610,7 @@ class B extends A {
   }
 }
 ''',
-      [error(WarningCode.unusedImport, 7, 8)],
+      [error(diag.unusedImport, 7, 8)],
     );
     var import = findElement.importFind('package:test/a.dart');
     _checkSetterRequested(import.topSet('foo'));

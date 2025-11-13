@@ -11,6 +11,7 @@ import 'package:analyzer/error/error.dart';
 import 'package:analyzer/source/line_info.dart';
 
 import '../analyzer.dart';
+import '../diagnostic.dart' as diag;
 
 const _desc = r'Start multiline strings with a newline.';
 
@@ -22,8 +23,7 @@ class LeadingNewlinesInMultilineStrings extends AnalysisRule {
       );
 
   @override
-  DiagnosticCode get diagnosticCode =>
-      LinterLintCode.leadingNewlinesInMultilineStrings;
+  DiagnosticCode get diagnosticCode => diag.leadingNewlinesInMultilineStrings;
 
   @override
   void registerNodeProcessors(

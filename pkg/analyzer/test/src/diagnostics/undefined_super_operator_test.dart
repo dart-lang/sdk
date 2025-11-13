@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
@@ -25,7 +25,7 @@ class B extends A {
   }
 }
 ''',
-      [error(CompileTimeErrorCode.undefinedSuperOperator, 70, 1)],
+      [error(diag.undefinedSuperOperator, 70, 1)],
     );
   }
 
@@ -40,8 +40,8 @@ class B extends A {
 }
 ''',
       [
-        error(CompileTimeErrorCode.undefinedSuperOperator, 70, 7),
-        error(CompileTimeErrorCode.undefinedSuperOperator, 70, 7),
+        error(diag.undefinedSuperOperator, 70, 7),
+        error(diag.undefinedSuperOperator, 70, 7),
       ],
     );
   }
@@ -56,7 +56,7 @@ class B extends A {
   }
 }
 ''',
-      [error(CompileTimeErrorCode.undefinedSuperOperator, 70, 11)],
+      [error(diag.undefinedSuperOperator, 70, 11)],
     );
   }
 
@@ -70,7 +70,7 @@ class B extends A {
   }
 }
 ''',
-      [error(CompileTimeErrorCode.undefinedSuperOperator, 71, 7)],
+      [error(diag.undefinedSuperOperator, 71, 7)],
     );
   }
 
@@ -84,7 +84,7 @@ enum E {
   }
 }
 ''',
-      [error(CompileTimeErrorCode.undefinedSuperOperator, 37, 1)],
+      [error(diag.undefinedSuperOperator, 37, 1)],
     );
   }
 
@@ -114,8 +114,8 @@ enum E {
 }
 ''',
       [
-        error(CompileTimeErrorCode.undefinedSuperOperator, 36, 3),
-        error(CompileTimeErrorCode.undefinedSuperOperator, 36, 3),
+        error(diag.undefinedSuperOperator, 36, 3),
+        error(diag.undefinedSuperOperator, 36, 3),
       ],
     );
   }
@@ -146,7 +146,7 @@ enum E {
   }
 }
 ''',
-      [error(CompileTimeErrorCode.undefinedSuperOperator, 36, 3)],
+      [error(diag.undefinedSuperOperator, 36, 3)],
     );
   }
 
@@ -160,7 +160,7 @@ enum E {
   }
 }
 ''',
-      [error(CompileTimeErrorCode.undefinedSuperOperator, 36, 3)],
+      [error(diag.undefinedSuperOperator, 36, 3)],
     );
   }
 }

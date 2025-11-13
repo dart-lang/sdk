@@ -11,6 +11,7 @@ import 'package:analyzer/error/error.dart';
 import 'package:collection/collection.dart';
 
 import '../analyzer.dart';
+import '../diagnostic.dart' as diag;
 
 const _desc = r'Sort combinator names alphabetically.';
 
@@ -19,7 +20,7 @@ class CombinatorsOrdering extends AnalysisRule {
     : super(name: LintNames.combinators_ordering, description: _desc);
 
   @override
-  DiagnosticCode get diagnosticCode => LinterLintCode.combinatorsOrdering;
+  DiagnosticCode get diagnosticCode => diag.combinatorsOrdering;
 
   @override
   void registerNodeProcessors(

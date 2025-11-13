@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/src/services/correction/fix.dart';
-import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -54,7 +54,7 @@ class A {
   int v2;
 }
 ''');
-    await assertHasFixAllFix(WarningCode.unnecessaryFinal, '''
+    await assertHasFixAllFix(diag.unnecessaryFinal, '''
 class A {
   A(this.v1, this.v2);
   int v1;

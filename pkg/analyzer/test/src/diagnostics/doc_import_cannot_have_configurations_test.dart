@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
@@ -21,7 +21,7 @@ class DocImportCannotHaveConfigurationsTest extends PubPackageResolutionTest {
 /// @docImport 'dart:math' if (dart.library.html) 'dart:html';
 class C {}
 ''',
-      [error(WarningCode.docImportCannotHaveConfigurations, 27, 34)],
+      [error(diag.docImportCannotHaveConfigurations, 27, 34)],
     );
   }
 

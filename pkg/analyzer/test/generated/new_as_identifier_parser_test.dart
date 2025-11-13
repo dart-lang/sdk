@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/src/dart/error/syntactic_errors.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -29,16 +29,16 @@ class C {
 }
 ''',
       diagnostics: [
-        expectedError(ParserErrorCode.missingAssignmentInInitializer, 18, 4),
-        expectedError(ParserErrorCode.missingIdentifier, 23, 3),
-        expectedError(ParserErrorCode.missingFunctionBody, 23, 3),
-        expectedError(ParserErrorCode.expectedClassMember, 23, 3),
-        expectedError(ParserErrorCode.missingKeywordOperator, 27, 1),
-        expectedError(ParserErrorCode.invalidOperator, 27, 1),
-        expectedError(ParserErrorCode.missingMethodParameters, 27, 1),
-        expectedError(ParserErrorCode.missingFunctionBody, 29, 4),
-        expectedError(ParserErrorCode.expectedClassMember, 29, 4),
-        expectedError(ParserErrorCode.expectedClassMember, 33, 1),
+        expectedError(diag.missingAssignmentInInitializer, 18, 4),
+        expectedError(diag.missingIdentifier, 23, 3),
+        expectedError(diag.missingFunctionBody, 23, 3),
+        expectedError(diag.expectedClassMember, 23, 3),
+        expectedError(diag.missingKeywordOperator, 27, 1),
+        expectedError(diag.invalidOperator, 27, 1),
+        expectedError(diag.missingMethodParameters, 27, 1),
+        expectedError(diag.missingFunctionBody, 29, 4),
+        expectedError(diag.expectedClassMember, 29, 4),
+        expectedError(diag.expectedClassMember, 33, 1),
       ],
     );
   }
@@ -315,7 +315,7 @@ class C {
 }
 ''',
       featureSet: FeatureSets.language_2_13,
-      diagnostics: [expectedError(ParserErrorCode.experimentNotEnabled, 14, 3)],
+      diagnostics: [expectedError(diag.experimentNotEnabled, 14, 3)],
     );
     var classDeclaration = unit.declarations.single as ClassDeclaration;
     var constructorDeclaration =

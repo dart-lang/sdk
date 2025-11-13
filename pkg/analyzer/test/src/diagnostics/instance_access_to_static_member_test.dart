@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
@@ -28,7 +28,7 @@ f(C c) {
 ''',
       [
         error(
-          CompileTimeErrorCode.instanceAccessToStaticMember,
+          diag.instanceAccessToStaticMember,
           47,
           1,
           correctionContains: "class 'C'",
@@ -73,7 +73,7 @@ test(int i) {
 ''',
       [
         error(
-          CompileTimeErrorCode.instanceAccessToStaticMember,
+          diag.instanceAccessToStaticMember,
           71,
           1,
           correctionContains: "class 'C'",
@@ -94,7 +94,7 @@ f(A a) {
 ''',
       [
         error(
-          CompileTimeErrorCode.instanceAccessToStaticMember,
+          diag.instanceAccessToStaticMember,
           41,
           1,
           correctionContains: "class 'A'",
@@ -113,7 +113,7 @@ f(int a) {
   a.m<int>;
 }
 ''',
-      [error(CompileTimeErrorCode.undefinedGetter, 57, 1)],
+      [error(diag.undefinedGetter, 57, 1)],
     );
   }
 
@@ -129,7 +129,7 @@ f(A a) {
 ''',
       [
         error(
-          CompileTimeErrorCode.instanceAccessToStaticMember,
+          diag.instanceAccessToStaticMember,
           41,
           1,
           correctionContains: "mixin 'A'",
@@ -150,7 +150,7 @@ f(A a) {
 ''',
       [
         error(
-          CompileTimeErrorCode.instanceAccessToStaticMember,
+          diag.instanceAccessToStaticMember,
           44,
           1,
           correctionContains: "class 'A'",
@@ -171,7 +171,7 @@ f(A a) {
 ''',
       [
         error(
-          CompileTimeErrorCode.instanceAccessToStaticMember,
+          diag.instanceAccessToStaticMember,
           44,
           1,
           correctionContains: "mixin 'A'",
@@ -193,7 +193,7 @@ f(A a) {
 ''',
       [
         error(
-          CompileTimeErrorCode.instanceAccessToStaticMember,
+          diag.instanceAccessToStaticMember,
           47,
           1,
           correctionContains: "mixin 'A'",
@@ -231,7 +231,7 @@ f(A a) {
   a.f;
 }
 ''',
-      [error(CompileTimeErrorCode.instanceAccessToStaticMember, 41, 1)],
+      [error(diag.instanceAccessToStaticMember, 41, 1)],
     );
   }
 
@@ -245,7 +245,7 @@ f(A a) {
   a.f;
 }
 ''',
-      [error(CompileTimeErrorCode.instanceAccessToStaticMember, 47, 1)],
+      [error(diag.instanceAccessToStaticMember, 47, 1)],
     );
   }
 
@@ -259,7 +259,7 @@ f(A a) {
   a.f = 42;
 }
 ''',
-      [error(CompileTimeErrorCode.instanceAccessToStaticMember, 46, 1)],
+      [error(diag.instanceAccessToStaticMember, 46, 1)],
     );
   }
 }

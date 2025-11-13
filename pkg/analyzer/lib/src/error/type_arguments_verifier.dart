@@ -17,8 +17,8 @@ import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_algebra.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:analyzer/src/diagnostic/diagnostic_message.dart';
-import 'package:analyzer/src/error/codes.dart';
 
 class TypeArgumentsVerifier {
   final AnalysisOptions _options;
@@ -93,7 +93,7 @@ class TypeArgumentsVerifier {
             : node;
         _diagnosticReporter.atNode(
           errorNode,
-          CompileTimeErrorCode.typeArgumentNotMatchingBounds,
+          diag.typeArgumentNotMatchingBounds,
           arguments: [typeArgument, typeParameter.name!, bound],
         );
       }
@@ -122,7 +122,7 @@ class TypeArgumentsVerifier {
         typeArgumentNodes.length != typeParameters.length) {
       _diagnosticReporter.atNode(
         typeArgumentList,
-        CompileTimeErrorCode.wrongNumberOfTypeArgumentsEnum,
+        diag.wrongNumberOfTypeArgumentsEnum,
         arguments: [typeParameters.length, typeArgumentNodes.length],
       );
     }
@@ -149,7 +149,7 @@ class TypeArgumentsVerifier {
         var errorTarget = typeArgumentNodes?[i] ?? node.name;
         _diagnosticReporter.atEntity(
           errorTarget,
-          CompileTimeErrorCode.typeArgumentNotMatchingBounds,
+          diag.typeArgumentNotMatchingBounds,
           arguments: [typeArgument, typeParameter.name!, bound],
         );
       }
@@ -185,14 +185,14 @@ class TypeArgumentsVerifier {
         for (var argument in typeArguments.arguments) {
           _checkTypeArgumentConst(
             argument,
-            CompileTimeErrorCode.invalidTypeArgumentInConstList,
+            diag.invalidTypeArgumentInConstList,
           );
         }
       }
       _checkTypeArgumentCount(
         typeArguments,
         1,
-        CompileTimeErrorCode.expectedOneListTypeArguments,
+        diag.expectedOneListTypeArguments,
       );
     }
   }
@@ -202,16 +202,13 @@ class TypeArgumentsVerifier {
     if (typeArguments != null) {
       if (node.isConst) {
         for (var argument in typeArguments.arguments) {
-          _checkTypeArgumentConst(
-            argument,
-            CompileTimeErrorCode.invalidTypeArgumentInConstMap,
-          );
+          _checkTypeArgumentConst(argument, diag.invalidTypeArgumentInConstMap);
         }
       }
       _checkTypeArgumentCount(
         typeArguments,
         2,
-        CompileTimeErrorCode.expectedTwoMapTypeArguments,
+        diag.expectedTwoMapTypeArguments,
       );
     }
   }
@@ -238,16 +235,13 @@ class TypeArgumentsVerifier {
     if (typeArguments != null) {
       if (node.isConst) {
         for (var argument in typeArguments.arguments) {
-          _checkTypeArgumentConst(
-            argument,
-            CompileTimeErrorCode.invalidTypeArgumentInConstSet,
-          );
+          _checkTypeArgumentConst(argument, diag.invalidTypeArgumentInConstSet);
         }
       }
       _checkTypeArgumentCount(
         typeArguments,
         1,
-        CompileTimeErrorCode.expectedOneSetTypeArguments,
+        diag.expectedOneSetTypeArguments,
       );
     }
   }
@@ -257,7 +251,7 @@ class TypeArgumentsVerifier {
   ///
   /// This checks if [node] refers to a generic type and does not have explicit
   /// or inferred type arguments. When that happens, it reports error code
-  /// [WarningCode.strictRawType].
+  /// [diag.strictRawType].
   void _checkForRawTypeName(NamedType node) {
     AstNode parentEscapingTypeArguments(NamedType node) {
       var parent = node.parent!;
@@ -286,11 +280,7 @@ class TypeArgumentsVerifier {
         // Do not report a "Strict raw type" error in this case; too noisy.
         // See https://github.com/dart-lang/language/blob/master/resources/type-system/strict-raw-types.md#conditions-for-a-raw-type-hint
       } else {
-        _diagnosticReporter.atNode(
-          node,
-          WarningCode.strictRawType,
-          arguments: [type],
-        );
+        _diagnosticReporter.atNode(node, diag.strictRawType, arguments: [type]);
       }
     }
   }
@@ -344,7 +334,7 @@ class TypeArgumentsVerifier {
         if (!_libraryElement.featureSet.isEnabled(Feature.generic_metadata)) {
           _diagnosticReporter.atNode(
             _typeArgumentErrorNode(namedType, i),
-            CompileTimeErrorCode.genericFunctionTypeCannotBeTypeArgument,
+            diag.genericFunctionTypeCannotBeTypeArgument,
           );
           continue;
         }
@@ -422,7 +412,7 @@ class TypeArgumentsVerifier {
       for (var issue in issues) {
         _diagnosticReporter.atNode(
           _typeArgumentErrorNode(namedType, issue.index),
-          CompileTimeErrorCode.typeArgumentNotMatchingBounds,
+          diag.typeArgumentNotMatchingBounds,
           arguments: [
             issue.argument,
             issue.parameterName,
@@ -470,7 +460,7 @@ class TypeArgumentsVerifier {
       if (!_typeSystem.isSubtypeOf(typeArgument, bound)) {
         _diagnosticReporter.atNode(
           _typeArgumentErrorNode(namedType, i),
-          CompileTimeErrorCode.typeArgumentNotMatchingBounds,
+          diag.typeArgumentNotMatchingBounds,
           arguments: [typeArgument, typeParameterName, bound],
           contextMessages: buildContextMessages(
             invertedTypeArguments: invertedTypeArguments,
@@ -520,7 +510,7 @@ class TypeArgumentsVerifier {
         if (!_libraryElement.featureSet.isEnabled(Feature.generic_metadata)) {
           _diagnosticReporter.atNode(
             typeArgumentList[i],
-            CompileTimeErrorCode.genericFunctionTypeCannotBeTypeArgument,
+            diag.genericFunctionTypeCannotBeTypeArgument,
           );
           continue;
         }
@@ -542,7 +532,7 @@ class TypeArgumentsVerifier {
       if (!_typeSystem.isSubtypeOf(argType, bound)) {
         _diagnosticReporter.atNode(
           typeArgumentList[i],
-          CompileTimeErrorCode.typeArgumentNotMatchingBounds,
+          diag.typeArgumentNotMatchingBounds,
           arguments: [argType, fnTypeParamName, bound],
         );
       }
@@ -552,9 +542,9 @@ class TypeArgumentsVerifier {
   /// Checks whether the given [typeAnnotation] contains a type parameter.
   ///
   /// The [errorCode] is either
-  /// [CompileTimeErrorCode.invalidTypeArgumentInConstList],
-  /// [CompileTimeErrorCode.invalidTypeArgumentInConstMap], or
-  /// [CompileTimeErrorCode.invalidTypeArgumentInConstSet].
+  /// [diag.invalidTypeArgumentInConstList],
+  /// [diag.invalidTypeArgumentInConstMap], or
+  /// [diag.invalidTypeArgumentInConstSet].
   void _checkTypeArgumentConst(
     TypeAnnotation typeAnnotation,
     DiagnosticCode errorCode,

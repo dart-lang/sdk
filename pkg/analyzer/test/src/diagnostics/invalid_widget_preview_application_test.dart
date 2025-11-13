@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:analyzer/utilities/package_config_file_builder.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -39,7 +39,7 @@ abstract class B extends StatelessWidget {
   }
 }
 ''',
-      [error(WarningCode.invalidWidgetPreviewApplication, 133, 7)],
+      [error(diag.invalidWidgetPreviewApplication, 133, 7)],
     );
   }
 
@@ -55,7 +55,7 @@ class B extends StatelessWidget {
   B();
 }
 ''',
-      [error(CompileTimeErrorCode.noAnnotationConstructorArguments, 123, 8)],
+      [error(diag.noAnnotationConstructorArguments, 123, 8)],
     );
   }
 
@@ -78,9 +78,9 @@ class B extends StatelessWidget {
 }
 ''',
       [
-        error(WarningCode.invalidWidgetPreviewApplication, 88, 7),
-        error(WarningCode.invalidWidgetPreviewApplication, 159, 7),
-        error(WarningCode.invalidWidgetPreviewApplication, 189, 7),
+        error(diag.invalidWidgetPreviewApplication, 88, 7),
+        error(diag.invalidWidgetPreviewApplication, 159, 7),
+        error(diag.invalidWidgetPreviewApplication, 189, 7),
       ],
     );
   }
@@ -99,7 +99,7 @@ class B {
   }
 }
 ''',
-      [error(WarningCode.invalidWidgetPreviewApplication, 100, 7)],
+      [error(diag.invalidWidgetPreviewApplication, 100, 7)],
     );
   }
 
@@ -129,8 +129,8 @@ class B {
 }
 ''',
       [
-        error(WarningCode.invalidWidgetPreviewApplication, 105, 7),
-        error(WarningCode.invalidWidgetPreviewApplication, 223, 7),
+        error(diag.invalidWidgetPreviewApplication, 105, 7),
+        error(diag.invalidWidgetPreviewApplication, 223, 7),
       ],
     );
   }
@@ -177,11 +177,11 @@ extension type FooExtensionType(Foo foo) {
 }
 ''',
       [
-        error(WarningCode.invalidWidgetPreviewApplication, 219, 7),
-        error(WarningCode.invalidWidgetPreviewApplication, 267, 7),
-        error(WarningCode.unusedElement, 286, 23),
-        error(WarningCode.invalidWidgetPreviewApplication, 359, 7),
-        error(WarningCode.invalidWidgetPreviewApplication, 469, 7),
+        error(diag.invalidWidgetPreviewApplication, 219, 7),
+        error(diag.invalidWidgetPreviewApplication, 267, 7),
+        error(diag.unusedElement, 286, 23),
+        error(diag.invalidWidgetPreviewApplication, 359, 7),
+        error(diag.invalidWidgetPreviewApplication, 469, 7),
       ],
     );
   }
@@ -210,12 +210,12 @@ class _B extends StatelessWidget {
 }
 ''',
       [
-        error(WarningCode.unusedElement, 93, 2),
-        error(WarningCode.invalidWidgetPreviewApplication, 125, 7),
-        error(WarningCode.invalidWidgetPreviewApplication, 147, 7),
-        error(WarningCode.unusedElement, 170, 3),
-        error(WarningCode.invalidWidgetPreviewApplication, 189, 7),
-        error(WarningCode.unusedElement, 215, 3),
+        error(diag.unusedElement, 93, 2),
+        error(diag.invalidWidgetPreviewApplication, 125, 7),
+        error(diag.invalidWidgetPreviewApplication, 147, 7),
+        error(diag.unusedElement, 170, 3),
+        error(diag.invalidWidgetPreviewApplication, 189, 7),
+        error(diag.unusedElement, 215, 3),
       ],
     );
   }
@@ -243,10 +243,10 @@ class B extends StatelessWidget {
 }
 ''',
       [
-        error(WarningCode.invalidWidgetPreviewApplication, 124, 7),
-        error(WarningCode.unusedElement, 138, 1),
-        error(WarningCode.invalidWidgetPreviewApplication, 147, 7),
-        error(WarningCode.unusedElement, 169, 4),
+        error(diag.invalidWidgetPreviewApplication, 124, 7),
+        error(diag.unusedElement, 138, 1),
+        error(diag.invalidWidgetPreviewApplication, 147, 7),
+        error(diag.unusedElement, 169, 4),
       ],
     );
   }
@@ -271,8 +271,8 @@ class B extends StatelessWidget {
 }
 ''',
       [
-        error(WarningCode.invalidWidgetPreviewApplication, 124, 7),
-        error(WarningCode.unusedElement, 150, 4),
+        error(diag.invalidWidgetPreviewApplication, 124, 7),
+        error(diag.unusedElement, 150, 4),
       ],
     );
   }
@@ -290,8 +290,8 @@ Widget _foo() {
 }
 ''',
       [
-        error(WarningCode.invalidWidgetPreviewApplication, 88, 7),
-        error(WarningCode.unusedElement, 105, 4),
+        error(diag.invalidWidgetPreviewApplication, 88, 7),
+        error(diag.unusedElement, 105, 4),
       ],
     );
   }

@@ -10,6 +10,7 @@ import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/error/error.dart';
 
 import '../analyzer.dart';
+import '../diagnostic.dart' as diag;
 
 const _desc =
     r'Explicitly tear-off `call` methods when using an object as a Function.';
@@ -19,7 +20,7 @@ class ImplicitCallTearoffs extends AnalysisRule {
     : super(name: LintNames.implicit_call_tearoffs, description: _desc);
 
   @override
-  DiagnosticCode get diagnosticCode => LinterLintCode.implicitCallTearoffs;
+  DiagnosticCode get diagnosticCode => diag.implicitCallTearoffs;
 
   @override
   void registerNodeProcessors(

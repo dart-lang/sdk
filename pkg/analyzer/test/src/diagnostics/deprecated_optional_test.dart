@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
@@ -154,7 +154,7 @@ void g() {
   f();
 }
 ''',
-      [error(WarningCode.deprecatedOptional, 57, 1)],
+      [error(diag.deprecatedOptional, 57, 1)],
     );
   }
 
@@ -169,7 +169,7 @@ C f() {
   return .m();
 }
 ''',
-      [error(WarningCode.deprecatedOptional, 85, 1)],
+      [error(diag.deprecatedOptional, 85, 1)],
     );
   }
 
@@ -184,7 +184,7 @@ C f() {
   return .new();
 }
 ''',
-      [error(WarningCode.deprecatedOptional, 69, 3)],
+      [error(diag.deprecatedOptional, 69, 3)],
     );
   }
 
@@ -199,7 +199,7 @@ class D extends C {
   D();
 }
 ''',
-      [error(WarningCode.deprecatedOptional, 73, 1)],
+      [error(diag.deprecatedOptional, 73, 1)],
     );
   }
 
@@ -214,7 +214,7 @@ class D extends C {
   D();
 }
 ''',
-      [error(WarningCode.deprecatedOptional, 73, 1)],
+      [error(diag.deprecatedOptional, 73, 1)],
     );
   }
 
@@ -229,7 +229,7 @@ void f() {
   C();
 }
 ''',
-      [error(WarningCode.deprecatedOptional, 64, 1)],
+      [error(diag.deprecatedOptional, 64, 1)],
     );
   }
 
@@ -244,7 +244,7 @@ void f(C c) {
   c.m();
 }
 ''',
-      [error(WarningCode.deprecatedOptional, 76, 1)],
+      [error(diag.deprecatedOptional, 76, 1)],
     );
   }
 
@@ -257,7 +257,7 @@ void g() {
   f();
 }
 ''',
-      [error(WarningCode.deprecatedOptional, 57, 1)],
+      [error(diag.deprecatedOptional, 57, 1)],
     );
   }
 
@@ -286,7 +286,7 @@ class C {
   C.two() : this();
 }
 ''',
-      [error(WarningCode.deprecatedOptional, 60, 4)],
+      [error(diag.deprecatedOptional, 60, 4)],
     );
   }
 
@@ -306,7 +306,7 @@ class C {
   C.three() : this.two();
 }
 ''',
-      [error(WarningCode.deprecatedOptional, 60, 4)],
+      [error(diag.deprecatedOptional, 60, 4)],
     );
   }
 
@@ -318,7 +318,7 @@ class C {
   C.two() : this.one();
 }
 ''',
-      [error(WarningCode.deprecatedOptional, 69, 3)],
+      [error(diag.deprecatedOptional, 69, 3)],
     );
   }
 
@@ -334,7 +334,7 @@ class D extends C {
   D({@Deprecated.optional() int? p});
 }
 ''',
-      [error(WarningCode.deprecatedOptional, 27, 5)],
+      [error(diag.deprecatedOptional, 27, 5)],
     );
   }
 
@@ -350,7 +350,7 @@ class D extends C {
   D([@Deprecated.optional() int? p]);
 }
 ''',
-      [error(WarningCode.deprecatedOptional, 27, 5)],
+      [error(diag.deprecatedOptional, 27, 5)],
     );
   }
 
@@ -379,7 +379,7 @@ class E extends D {
   E({@Deprecated.optional() int? p});
 }
 ''',
-      [error(WarningCode.deprecatedOptional, 84, 5)],
+      [error(diag.deprecatedOptional, 84, 5)],
     );
   }
 
@@ -394,7 +394,7 @@ class D extends C {
   D() : super();
 }
 ''',
-      [error(WarningCode.deprecatedOptional, 79, 5)],
+      [error(diag.deprecatedOptional, 79, 5)],
     );
   }
 
@@ -419,7 +419,7 @@ class E extends D {
   E() : super();
 }
 ''',
-      [error(WarningCode.deprecatedOptional, 79, 5)],
+      [error(diag.deprecatedOptional, 79, 5)],
     );
   }
 
@@ -434,7 +434,7 @@ class D extends C {
   D() : super();
 }
 ''',
-      [error(WarningCode.deprecatedOptional, 79, 5)],
+      [error(diag.deprecatedOptional, 79, 5)],
     );
   }
 
@@ -449,7 +449,7 @@ class D extends C {
   D() : super.named();
 }
 ''',
-      [error(WarningCode.deprecatedOptional, 91, 5)],
+      [error(diag.deprecatedOptional, 91, 5)],
     );
   }
 

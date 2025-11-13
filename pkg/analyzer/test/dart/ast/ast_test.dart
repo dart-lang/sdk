@@ -7,7 +7,7 @@ import 'package:analyzer/dart/analysis/utilities.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
-import 'package:analyzer/src/dart/error/syntactic_errors.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:analyzer/src/test_utilities/find_node.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -52,8 +52,8 @@ class A {
 }
 ''');
     parseResult.assertErrors([
-      error(ParserErrorCode.modifierOutOfOrder, 20, 5),
-      error(ParserErrorCode.modifierOutOfOrder, 26, 8),
+      error(diag.modifierOutOfOrder, 20, 5),
+      error(diag.modifierOutOfOrder, 26, 8),
     ]);
 
     var node = parseResult.findNode.constructor('A()');

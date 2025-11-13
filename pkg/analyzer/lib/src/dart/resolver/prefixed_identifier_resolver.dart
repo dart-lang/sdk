@@ -10,7 +10,7 @@ import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_provider.dart';
 import 'package:analyzer/src/dart/resolver/invocation_inference_helper.dart';
 import 'package:analyzer/src/dart/resolver/property_element_resolver.dart';
-import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:analyzer/src/generated/inference_log.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 
@@ -181,7 +181,7 @@ class PrefixedIdentifierResolver {
 
     _resolver.diagnosticReporter.atNode(
       node,
-      CompileTimeErrorCode.extensionAsExpression,
+      diag.extensionAsExpression,
       arguments: [node.name],
     );
 

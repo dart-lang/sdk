@@ -2,8 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/dart/error/syntactic_errors.dart';
-import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'context_collection_resolution.dart';
@@ -96,7 +95,7 @@ void f(A a) {
 
 T g<T>() => throw 0;
 ''',
-      [error(CompileTimeErrorCode.argumentTypeNotAssignable, 107, 3)],
+      [error(diag.argumentTypeNotAssignable, 107, 3)],
     );
 
     var node = findNode.methodInvocation('g()');
@@ -309,7 +308,7 @@ class A {
   int operator[](Object index) => 0;
 }
 ''',
-      [error(ParserErrorCode.missingAssignableSelector, 32, 5)],
+      [error(diag.missingAssignableSelector, 32, 5)],
     );
 
     var node = findNode.singleIndexExpression;
@@ -335,7 +334,7 @@ void f(List<int> a) {
   a[b];
 }
 ''',
-      [error(CompileTimeErrorCode.undefinedIdentifier, 26, 1)],
+      [error(diag.undefinedIdentifier, 26, 1)],
     );
 
     var node = findNode.singleIndexExpression;
@@ -545,7 +544,7 @@ void f() {
   a[0];
 }
 ''',
-      [error(CompileTimeErrorCode.undefinedIdentifier, 13, 1)],
+      [error(diag.undefinedIdentifier, 13, 1)],
     );
 
     var node = findNode.singleIndexExpression;

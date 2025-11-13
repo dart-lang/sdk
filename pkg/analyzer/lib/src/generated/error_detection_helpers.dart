@@ -20,7 +20,7 @@ import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
-import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:analyzer/src/utilities/extensions/object.dart';
 
 /// Methods useful in detecting errors.  This mixin exists to allow code to be
@@ -63,7 +63,7 @@ mixin ErrorDetectionHelpers {
   /// Verify that the given [argument] can be assigned to its corresponding
   /// parameter.
   ///
-  /// See [CompileTimeErrorCode.argumentTypeNotAssignable].
+  /// See [diag.argumentTypeNotAssignable].
   void checkForArgumentTypeNotAssignableForArgument(
     ExpressionImpl argument, {
     bool promoteParameterToNullable = false,
@@ -138,13 +138,12 @@ mixin ErrorDetectionHelpers {
         )) {
           diagnosticReporter.atNode(
             expression,
-            CompileTimeErrorCode
-                .recordLiteralOnePositionalNoTrailingCommaByType,
+            diag.recordLiteralOnePositionalNoTrailingCommaByType,
           );
           return;
         }
       }
-      if (diagnosticCode == CompileTimeErrorCode.argumentTypeNotAssignable) {
+      if (diagnosticCode == diag.argumentTypeNotAssignable) {
         var additionalInfo = <String>[];
         if (expectedStaticType is RecordTypeImpl &&
             actualStaticType is RecordTypeImpl) {
@@ -210,8 +209,8 @@ mixin ErrorDetectionHelpers {
   /// and initializer expression types. The [fieldElement] is the static element
   /// from the name in the [ConstructorFieldInitializer].
   ///
-  /// See [CompileTimeErrorCode.constFieldInitializerNotAssignable], and
-  /// [CompileTimeErrorCode.fieldInitializerNotAssignable].
+  /// See [diag.constFieldInitializerNotAssignable], and
+  /// [diag.fieldInitializerNotAssignable].
   void checkForFieldInitializerNotAssignable(
     ConstructorFieldInitializerImpl initializer,
     InternalFieldElement fieldElement, {
@@ -244,14 +243,14 @@ mixin ErrorDetectionHelpers {
       // constant, not the static type.  See dartbug.com/21119.
       diagnosticReporter.atNode(
         expression,
-        CompileTimeErrorCode.constFieldInitializerNotAssignable,
+        diag.constFieldInitializerNotAssignable,
         arguments: [staticType, fieldType],
         contextMessages: messages,
       );
     } else {
       diagnosticReporter.atNode(
         expression,
-        CompileTimeErrorCode.fieldInitializerNotAssignable,
+        diag.fieldInitializerNotAssignable,
         arguments: [staticType, fieldType],
         contextMessages: messages,
       );
@@ -285,7 +284,7 @@ mixin ErrorDetectionHelpers {
   /// when it returns 'void'. Or, in rare cases, when other types of expressions
   /// are void, such as identifiers.
   ///
-  /// See [CompileTimeErrorCode.useOfVoidResult].
+  /// See [diag.useOfVoidResult].
   bool checkForUseOfVoidResult(Expression expression) {
     if (!identical(expression.staticType, VoidTypeImpl.instance)) {
       return false;
@@ -293,15 +292,9 @@ mixin ErrorDetectionHelpers {
 
     if (expression is MethodInvocation) {
       SimpleIdentifier methodName = expression.methodName;
-      diagnosticReporter.atNode(
-        methodName,
-        CompileTimeErrorCode.useOfVoidResult,
-      );
+      diagnosticReporter.atNode(methodName, diag.useOfVoidResult);
     } else {
-      diagnosticReporter.atNode(
-        expression,
-        CompileTimeErrorCode.useOfVoidResult,
-      );
+      diagnosticReporter.atNode(expression, diag.useOfVoidResult);
     }
 
     return true;
@@ -421,7 +414,7 @@ mixin ErrorDetectionHelpers {
       argument,
       staticParameterType,
       argument.typeOrThrow,
-      CompileTimeErrorCode.argumentTypeNotAssignable,
+      diag.argumentTypeNotAssignable,
       whyNotPromoted: whyNotPromoted,
     );
   }

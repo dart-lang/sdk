@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:analyzer_testing/utilities/utilities.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -35,7 +35,7 @@ void f(void Function<T>() m) {
   m();
 }
 ''',
-      [error(WarningCode.inferenceFailureOnFunctionInvocation, 33, 1)],
+      [error(diag.inferenceFailureOnFunctionInvocation, 33, 1)],
     );
   }
 
@@ -102,7 +102,7 @@ void f(C c) {
   c.m();
 }
 ''',
-      [error(WarningCode.inferenceFailureOnFunctionInvocation, 55, 1)],
+      [error(diag.inferenceFailureOnFunctionInvocation, 55, 1)],
     );
   }
 
@@ -143,7 +143,7 @@ C f() {
   return .m();
 }
 ''',
-      [error(WarningCode.inferenceFailureOnFunctionInvocation, 57, 1)],
+      [error(diag.inferenceFailureOnFunctionInvocation, 57, 1)],
     );
   }
 
@@ -170,7 +170,7 @@ void f() {
   C.m();
 }
 ''',
-      [error(WarningCode.inferenceFailureOnFunctionInvocation, 52, 1)],
+      [error(diag.inferenceFailureOnFunctionInvocation, 52, 1)],
     );
   }
 
@@ -182,7 +182,7 @@ void g(Fn fn) {
   fn();
 }
 ''',
-      [error(WarningCode.inferenceFailureOnFunctionInvocation, 51, 2)],
+      [error(diag.inferenceFailureOnFunctionInvocation, 51, 2)],
     );
   }
 
@@ -205,7 +205,7 @@ void f() {
   g();
 }
 ''',
-      [error(WarningCode.inferenceFailureOnFunctionInvocation, 30, 1)],
+      [error(diag.inferenceFailureOnFunctionInvocation, 30, 1)],
     );
   }
 
@@ -217,7 +217,7 @@ void f() {
   m();
 }
 ''',
-      [error(WarningCode.inferenceFailureOnFunctionInvocation, 33, 1)],
+      [error(diag.inferenceFailureOnFunctionInvocation, 33, 1)],
     );
   }
 
@@ -242,7 +242,7 @@ void g() {
   f();
 }
 ''',
-      [error(WarningCode.inferenceFailureOnFunctionInvocation, 29, 1)],
+      [error(diag.inferenceFailureOnFunctionInvocation, 29, 1)],
     );
   }
 
@@ -257,7 +257,7 @@ void g() {
   a.f();
 }
 ''',
-      [error(WarningCode.inferenceFailureOnFunctionInvocation, 37, 1)],
+      [error(diag.inferenceFailureOnFunctionInvocation, 37, 1)],
     );
   }
 

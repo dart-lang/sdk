@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/src/services/correction/fix.dart';
-import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:linter/src/lint_names.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -390,7 +390,7 @@ void g() {
 ''');
     await assertNoFix(
       filter: (diagnostic) =>
-          diagnostic.diagnosticCode == CompileTimeErrorCode.invalidAssignment,
+          diagnostic.diagnosticCode == diag.invalidAssignment,
     );
   }
 
@@ -403,8 +403,7 @@ void g(int i) {
 ''');
     await assertNoFix(
       filter: (error) {
-        return error.diagnosticCode ==
-            CompileTimeErrorCode.argumentTypeNotAssignable;
+        return error.diagnosticCode == diag.argumentTypeNotAssignable;
       },
     );
   }
@@ -446,8 +445,7 @@ void g(int i, int? x) {
 }
 ''',
       filter: (error) {
-        return error.diagnosticCode ==
-            CompileTimeErrorCode.argumentTypeNotAssignable;
+        return error.diagnosticCode == diag.argumentTypeNotAssignable;
       },
     );
   }
@@ -461,8 +459,7 @@ void g(int i, int x) {
 ''');
     await assertNoFix(
       filter: (error) {
-        return error.diagnosticCode ==
-            CompileTimeErrorCode.argumentTypeNotAssignable;
+        return error.diagnosticCode == diag.argumentTypeNotAssignable;
       },
     );
   }
@@ -476,8 +473,7 @@ void g(int i, int? x) {
 ''');
     await assertNoFix(
       filter: (error) {
-        return error.diagnosticCode ==
-            CompileTimeErrorCode.argumentTypeNotAssignable;
+        return error.diagnosticCode == diag.argumentTypeNotAssignable;
       },
     );
   }
@@ -567,8 +563,7 @@ void f (List<int>? args) {
 ''');
     await assertNoFix(
       filter: (diagnostic) =>
-          diagnostic.diagnosticCode !=
-          CompileTimeErrorCode.listElementTypeNotAssignable,
+          diagnostic.diagnosticCode != diag.listElementTypeNotAssignable,
     );
   }
 
@@ -617,8 +612,7 @@ f(List<String>? args) {
 }
 ''',
       filter: (diagnostic) =>
-          diagnostic.diagnosticCode !=
-          CompileTimeErrorCode.yieldEachOfInvalidType,
+          diagnostic.diagnosticCode != diag.yieldEachOfInvalidType,
     );
   }
 
@@ -640,7 +634,7 @@ g() {
 ''',
       filter: (diagnostic) =>
           diagnostic.diagnosticCode ==
-          CompileTimeErrorCode.uncheckedUseOfNullableValueInYieldEach,
+          diag.uncheckedUseOfNullableValueInYieldEach,
     );
   }
 
@@ -661,8 +655,7 @@ class C {
 }
 ''',
       filter: (diagnostic) =>
-          diagnostic.diagnosticCode !=
-          CompileTimeErrorCode.yieldEachOfInvalidType,
+          diagnostic.diagnosticCode != diag.yieldEachOfInvalidType,
     );
   }
 
@@ -679,8 +672,7 @@ Iterable<String> f(List<String>? args) sync* {
 }
 ''',
       filter: (diagnostic) =>
-          diagnostic.diagnosticCode !=
-          CompileTimeErrorCode.yieldEachOfInvalidType,
+          diagnostic.diagnosticCode != diag.yieldEachOfInvalidType,
     );
   }
 }

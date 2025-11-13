@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
@@ -44,7 +44,7 @@ class Stateful {
 }
 class State { }
 ''',
-      [error(WarningCode.invalidFactoryMethodImpl, 96, 11)],
+      [error(diag.invalidFactoryMethodImpl, 96, 11)],
     );
   }
 
@@ -59,7 +59,7 @@ extension type E(int i) {
   }  
 }
 ''',
-      [error(WarningCode.invalidFactoryMethodImpl, 79, 6)],
+      [error(diag.invalidFactoryMethodImpl, 79, 6)],
     );
   }
 
@@ -165,7 +165,7 @@ class Stateful {
   void createState() {}
 }
 ''',
-      [error(WarningCode.invalidFactoryMethodDecl, 69, 11)],
+      [error(diag.invalidFactoryMethodDecl, 69, 11)],
     );
   }
 }

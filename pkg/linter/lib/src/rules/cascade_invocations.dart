@@ -12,6 +12,7 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/error/error.dart';
 
 import '../analyzer.dart';
+import '../diagnostic.dart' as diag;
 import '../extensions.dart';
 
 const _desc = r'Cascade consecutive method invocations on the same reference.';
@@ -76,7 +77,7 @@ class CascadeInvocations extends AnalysisRule {
     : super(name: LintNames.cascade_invocations, description: _desc);
 
   @override
-  DiagnosticCode get diagnosticCode => LinterLintCode.cascadeInvocations;
+  DiagnosticCode get diagnosticCode => diag.cascadeInvocations;
 
   @override
   void registerNodeProcessors(

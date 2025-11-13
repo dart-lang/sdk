@@ -6,7 +6,7 @@ import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/token.dart' show TokenType;
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
-import 'package:analyzer/src/dart/scanner/scanner.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:analyzer_testing/src/analysis_rule/pub_package_resolution.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -155,9 +155,7 @@ main() {
   void test_cascade_withNullCheck_invalid() {
     parseCompilationUnit(
       'main() { a..[27]?..x; }',
-      diagnostics: [
-        expectedError(ParserErrorCode.nullAwareCascadeOutOfOrder, 16, 3),
-      ],
+      diagnostics: [expectedError(diag.nullAwareCascadeOutOfOrder, 16, 3)],
     );
   }
 
@@ -195,9 +193,9 @@ main() {
     parseCompilationUnit(
       'D? foo(X? x) { X ? ? x2 = x + bar(7) : y; }',
       diagnostics: [
-        expectedError(ParserErrorCode.missingIdentifier, 19, 1),
-        expectedError(ParserErrorCode.expectedToken, 40, 1),
-        expectedError(ParserErrorCode.missingIdentifier, 40, 1),
+        expectedError(diag.missingIdentifier, 19, 1),
+        expectedError(diag.expectedToken, 40, 1),
+        expectedError(diag.missingIdentifier, 40, 1),
       ],
     );
   }
@@ -231,11 +229,11 @@ main() {
     parseCompilationUnit(
       r'+t{{r?this}}',
       diagnostics: [
-        expectedError(ParserErrorCode.expectedExecutable, 0, 1),
-        expectedError(ParserErrorCode.missingFunctionParameters, 1, 1),
-        expectedError(ParserErrorCode.expectedToken, 6, 4),
-        expectedError(ParserErrorCode.expectedToken, 10, 1),
-        expectedError(ParserErrorCode.missingIdentifier, 10, 1),
+        expectedError(diag.expectedExecutable, 0, 1),
+        expectedError(diag.missingFunctionParameters, 1, 1),
+        expectedError(diag.expectedToken, 6, 4),
+        expectedError(diag.expectedToken, 10, 1),
+        expectedError(diag.missingIdentifier, 10, 1),
       ],
     );
   }

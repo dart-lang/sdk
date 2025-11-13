@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
@@ -23,7 +23,7 @@ class SubtypeOfFfiClassInExtendsTest extends PubPackageResolutionTest {
 import 'dart:ffi';
 final class C extends Double {}
 ''',
-      [error(CompileTimeErrorCode.finalClassExtendedOutsideOfLibrary, 41, 6)],
+      [error(diag.finalClassExtendedOutsideOfLibrary, 41, 6)],
     );
   }
 
@@ -34,7 +34,7 @@ final class C extends Double {}
 import 'dart:ffi';
 class C extends Double {}
 ''',
-      [error(CompileTimeErrorCode.finalClassExtendedOutsideOfLibrary, 49, 6)],
+      [error(diag.finalClassExtendedOutsideOfLibrary, 49, 6)],
     );
   }
 
@@ -44,13 +44,7 @@ class C extends Double {}
 import 'dart:ffi';
 class C extends Finalizable {}
 ''',
-      [
-        error(
-          CompileTimeErrorCode.noGenerativeConstructorsInSuperclass,
-          35,
-          11,
-        ),
-      ],
+      [error(diag.noGenerativeConstructorsInSuperclass, 35, 11)],
     );
   }
 
@@ -60,7 +54,7 @@ class C extends Finalizable {}
 import 'dart:ffi';
 class C extends Float {}
 ''',
-      [error(CompileTimeErrorCode.finalClassExtendedOutsideOfLibrary, 35, 5)],
+      [error(diag.finalClassExtendedOutsideOfLibrary, 35, 5)],
     );
   }
 
@@ -70,7 +64,7 @@ class C extends Float {}
 import 'dart:ffi';
 class C extends Int16 {}
 ''',
-      [error(CompileTimeErrorCode.finalClassExtendedOutsideOfLibrary, 35, 5)],
+      [error(diag.finalClassExtendedOutsideOfLibrary, 35, 5)],
     );
   }
 
@@ -80,7 +74,7 @@ class C extends Int16 {}
 import 'dart:ffi';
 class C extends Int32 {}
 ''',
-      [error(CompileTimeErrorCode.finalClassExtendedOutsideOfLibrary, 35, 5)],
+      [error(diag.finalClassExtendedOutsideOfLibrary, 35, 5)],
     );
   }
 
@@ -90,7 +84,7 @@ class C extends Int32 {}
 import 'dart:ffi';
 class C extends Int64 {}
 ''',
-      [error(CompileTimeErrorCode.finalClassExtendedOutsideOfLibrary, 35, 5)],
+      [error(diag.finalClassExtendedOutsideOfLibrary, 35, 5)],
     );
   }
 
@@ -100,7 +94,7 @@ class C extends Int64 {}
 import 'dart:ffi';
 class C extends Int8 {}
 ''',
-      [error(CompileTimeErrorCode.finalClassExtendedOutsideOfLibrary, 35, 4)],
+      [error(diag.finalClassExtendedOutsideOfLibrary, 35, 4)],
     );
   }
 
@@ -112,7 +106,7 @@ class C extends Pointer {
   external factory C();
 }
 ''',
-      [error(CompileTimeErrorCode.finalClassExtendedOutsideOfLibrary, 35, 7)],
+      [error(diag.finalClassExtendedOutsideOfLibrary, 35, 7)],
     );
   }
 
@@ -131,7 +125,7 @@ final class C extends Struct {
 import 'dart:ffi';
 class C extends Uint16 {}
 ''',
-      [error(CompileTimeErrorCode.finalClassExtendedOutsideOfLibrary, 35, 6)],
+      [error(diag.finalClassExtendedOutsideOfLibrary, 35, 6)],
     );
   }
 
@@ -141,7 +135,7 @@ class C extends Uint16 {}
 import 'dart:ffi';
 class C extends Uint32 {}
 ''',
-      [error(CompileTimeErrorCode.finalClassExtendedOutsideOfLibrary, 35, 6)],
+      [error(diag.finalClassExtendedOutsideOfLibrary, 35, 6)],
     );
   }
 
@@ -151,7 +145,7 @@ class C extends Uint32 {}
 import 'dart:ffi';
 class C extends Uint64 {}
 ''',
-      [error(CompileTimeErrorCode.finalClassExtendedOutsideOfLibrary, 35, 6)],
+      [error(diag.finalClassExtendedOutsideOfLibrary, 35, 6)],
     );
   }
 
@@ -161,7 +155,7 @@ class C extends Uint64 {}
 import 'dart:ffi';
 class C extends Uint8 {}
 ''',
-      [error(CompileTimeErrorCode.finalClassExtendedOutsideOfLibrary, 35, 5)],
+      [error(diag.finalClassExtendedOutsideOfLibrary, 35, 5)],
     );
   }
 
@@ -180,7 +174,7 @@ final class C extends Union {
 import 'dart:ffi';
 class C extends Void {}
 ''',
-      [error(CompileTimeErrorCode.finalClassExtendedOutsideOfLibrary, 35, 4)],
+      [error(diag.finalClassExtendedOutsideOfLibrary, 35, 4)],
     );
   }
 }
@@ -193,13 +187,7 @@ class SubtypeOfFfiClassInImplementsTest extends PubPackageResolutionTest {
 import 'dart:ffi';
 class C implements Double {}
 ''',
-      [
-        error(
-          CompileTimeErrorCode.finalClassImplementedOutsideOfLibrary,
-          38,
-          6,
-        ),
-      ],
+      [error(diag.finalClassImplementedOutsideOfLibrary, 38, 6)],
     );
   }
 
@@ -210,13 +198,7 @@ class C implements Double {}
 import 'dart:ffi';
 class C implements Double {}
 ''',
-      [
-        error(
-          CompileTimeErrorCode.finalClassImplementedOutsideOfLibrary,
-          52,
-          6,
-        ),
-      ],
+      [error(diag.finalClassImplementedOutsideOfLibrary, 52, 6)],
     );
   }
 
@@ -226,13 +208,7 @@ class C implements Double {}
 import 'dart:ffi' as ffi;
 class C implements ffi.Double {}
 ''',
-      [
-        error(
-          CompileTimeErrorCode.finalClassImplementedOutsideOfLibrary,
-          45,
-          10,
-        ),
-      ],
+      [error(diag.finalClassImplementedOutsideOfLibrary, 45, 10)],
     );
   }
 
@@ -249,13 +225,7 @@ class C implements Finalizable {}
 import 'dart:ffi';
 class C implements Float {}
 ''',
-      [
-        error(
-          CompileTimeErrorCode.finalClassImplementedOutsideOfLibrary,
-          38,
-          5,
-        ),
-      ],
+      [error(diag.finalClassImplementedOutsideOfLibrary, 38, 5)],
     );
   }
 
@@ -265,13 +235,7 @@ class C implements Float {}
 import 'dart:ffi';
 class C implements Int16 {}
 ''',
-      [
-        error(
-          CompileTimeErrorCode.finalClassImplementedOutsideOfLibrary,
-          38,
-          5,
-        ),
-      ],
+      [error(diag.finalClassImplementedOutsideOfLibrary, 38, 5)],
     );
   }
 
@@ -281,13 +245,7 @@ class C implements Int16 {}
 import 'dart:ffi';
 class C implements Int32 {}
 ''',
-      [
-        error(
-          CompileTimeErrorCode.finalClassImplementedOutsideOfLibrary,
-          38,
-          5,
-        ),
-      ],
+      [error(diag.finalClassImplementedOutsideOfLibrary, 38, 5)],
     );
   }
 
@@ -297,13 +255,7 @@ class C implements Int32 {}
 import 'dart:ffi';
 class C implements Int64 {}
 ''',
-      [
-        error(
-          CompileTimeErrorCode.finalClassImplementedOutsideOfLibrary,
-          38,
-          5,
-        ),
-      ],
+      [error(diag.finalClassImplementedOutsideOfLibrary, 38, 5)],
     );
   }
 
@@ -313,13 +265,7 @@ class C implements Int64 {}
 import 'dart:ffi';
 class C implements Int8 {}
 ''',
-      [
-        error(
-          CompileTimeErrorCode.finalClassImplementedOutsideOfLibrary,
-          38,
-          4,
-        ),
-      ],
+      [error(diag.finalClassImplementedOutsideOfLibrary, 38, 4)],
     );
   }
 
@@ -330,16 +276,8 @@ import 'dart:ffi';
 class C implements Pointer {}
 ''',
       [
-        error(
-          CompileTimeErrorCode.finalClassImplementedOutsideOfLibrary,
-          38,
-          7,
-        ),
-        error(
-          CompileTimeErrorCode.nonAbstractClassInheritsAbstractMemberOne,
-          25,
-          1,
-        ),
+        error(diag.finalClassImplementedOutsideOfLibrary, 38, 7),
+        error(diag.nonAbstractClassInheritsAbstractMemberOne, 25, 1),
       ],
     );
   }
@@ -350,7 +288,7 @@ class C implements Pointer {}
 import 'dart:ffi';
 final class C implements Struct {}
 ''',
-      [error(CompileTimeErrorCode.baseClassImplementedOutsideOfLibrary, 44, 6)],
+      [error(diag.baseClassImplementedOutsideOfLibrary, 44, 6)],
     );
   }
 
@@ -360,13 +298,7 @@ final class C implements Struct {}
 import 'dart:ffi';
 class C implements Uint16 {}
 ''',
-      [
-        error(
-          CompileTimeErrorCode.finalClassImplementedOutsideOfLibrary,
-          38,
-          6,
-        ),
-      ],
+      [error(diag.finalClassImplementedOutsideOfLibrary, 38, 6)],
     );
   }
 
@@ -376,13 +308,7 @@ class C implements Uint16 {}
 import 'dart:ffi';
 class C implements Uint32 {}
 ''',
-      [
-        error(
-          CompileTimeErrorCode.finalClassImplementedOutsideOfLibrary,
-          38,
-          6,
-        ),
-      ],
+      [error(diag.finalClassImplementedOutsideOfLibrary, 38, 6)],
     );
   }
 
@@ -392,13 +318,7 @@ class C implements Uint32 {}
 import 'dart:ffi';
 class C implements Uint64 {}
 ''',
-      [
-        error(
-          CompileTimeErrorCode.finalClassImplementedOutsideOfLibrary,
-          38,
-          6,
-        ),
-      ],
+      [error(diag.finalClassImplementedOutsideOfLibrary, 38, 6)],
     );
   }
 
@@ -408,13 +328,7 @@ class C implements Uint64 {}
 import 'dart:ffi';
 class C implements Uint8 {}
 ''',
-      [
-        error(
-          CompileTimeErrorCode.finalClassImplementedOutsideOfLibrary,
-          38,
-          5,
-        ),
-      ],
+      [error(diag.finalClassImplementedOutsideOfLibrary, 38, 5)],
     );
   }
 
@@ -424,7 +338,7 @@ class C implements Uint8 {}
 import 'dart:ffi';
 final class C implements Union {}
 ''',
-      [error(CompileTimeErrorCode.baseClassImplementedOutsideOfLibrary, 44, 5)],
+      [error(diag.baseClassImplementedOutsideOfLibrary, 44, 5)],
     );
   }
 
@@ -434,13 +348,7 @@ final class C implements Union {}
 import 'dart:ffi';
 class C implements Void {}
 ''',
-      [
-        error(
-          CompileTimeErrorCode.finalClassImplementedOutsideOfLibrary,
-          38,
-          4,
-        ),
-      ],
+      [error(diag.finalClassImplementedOutsideOfLibrary, 38, 4)],
     );
   }
 }
@@ -453,7 +361,7 @@ class SubtypeOfFfiClassInWithTest extends PubPackageResolutionTest {
 import 'dart:ffi';
 class C with Double {}
 ''',
-      [error(CompileTimeErrorCode.mixinClassDeclaresConstructor, 32, 6)],
+      [error(diag.mixinClassDeclaresConstructor, 32, 6)],
     );
   }
 
@@ -464,7 +372,7 @@ class C with Double {}
 import 'dart:ffi';
 class C with Double {}
 ''',
-      [error(CompileTimeErrorCode.mixinClassDeclaresConstructor, 46, 6)],
+      [error(diag.mixinClassDeclaresConstructor, 46, 6)],
     );
   }
 
@@ -474,7 +382,7 @@ class C with Double {}
 import 'dart:ffi' as ffi;
 class C with ffi.Double {}
 ''',
-      [error(CompileTimeErrorCode.mixinClassDeclaresConstructor, 39, 10)],
+      [error(diag.mixinClassDeclaresConstructor, 39, 10)],
     );
   }
 
@@ -484,7 +392,7 @@ class C with ffi.Double {}
 import 'dart:ffi';
 class C with Float {}
 ''',
-      [error(CompileTimeErrorCode.mixinClassDeclaresConstructor, 32, 5)],
+      [error(diag.mixinClassDeclaresConstructor, 32, 5)],
     );
   }
 
@@ -494,7 +402,7 @@ class C with Float {}
 import 'dart:ffi';
 class C with Int16 {}
 ''',
-      [error(CompileTimeErrorCode.mixinClassDeclaresConstructor, 32, 5)],
+      [error(diag.mixinClassDeclaresConstructor, 32, 5)],
     );
   }
 
@@ -504,7 +412,7 @@ class C with Int16 {}
 import 'dart:ffi';
 class C with Int32 {}
 ''',
-      [error(CompileTimeErrorCode.mixinClassDeclaresConstructor, 32, 5)],
+      [error(diag.mixinClassDeclaresConstructor, 32, 5)],
     );
   }
 
@@ -514,7 +422,7 @@ class C with Int32 {}
 import 'dart:ffi';
 class C with Int64 {}
 ''',
-      [error(CompileTimeErrorCode.mixinClassDeclaresConstructor, 32, 5)],
+      [error(diag.mixinClassDeclaresConstructor, 32, 5)],
     );
   }
 
@@ -524,7 +432,7 @@ class C with Int64 {}
 import 'dart:ffi';
 class C with Int8 {}
 ''',
-      [error(CompileTimeErrorCode.mixinClassDeclaresConstructor, 32, 4)],
+      [error(diag.mixinClassDeclaresConstructor, 32, 4)],
     );
   }
 
@@ -534,7 +442,7 @@ class C with Int8 {}
 import 'dart:ffi';
 class C with Pointer {}
 ''',
-      [error(CompileTimeErrorCode.classUsedAsMixin, 32, 7)],
+      [error(diag.classUsedAsMixin, 32, 7)],
     );
   }
 
@@ -544,7 +452,7 @@ class C with Pointer {}
 import 'dart:ffi';
 final class C with Struct {}
 ''',
-      [error(CompileTimeErrorCode.mixinInheritsFromNotObject, 38, 6)],
+      [error(diag.mixinInheritsFromNotObject, 38, 6)],
     );
   }
 
@@ -554,7 +462,7 @@ final class C with Struct {}
 import 'dart:ffi';
 class C with Uint16 {}
 ''',
-      [error(CompileTimeErrorCode.mixinClassDeclaresConstructor, 32, 6)],
+      [error(diag.mixinClassDeclaresConstructor, 32, 6)],
     );
   }
 
@@ -564,7 +472,7 @@ class C with Uint16 {}
 import 'dart:ffi';
 class C with Uint32 {}
 ''',
-      [error(CompileTimeErrorCode.mixinClassDeclaresConstructor, 32, 6)],
+      [error(diag.mixinClassDeclaresConstructor, 32, 6)],
     );
   }
 
@@ -574,7 +482,7 @@ class C with Uint32 {}
 import 'dart:ffi';
 class C with Uint64 {}
 ''',
-      [error(CompileTimeErrorCode.mixinClassDeclaresConstructor, 32, 6)],
+      [error(diag.mixinClassDeclaresConstructor, 32, 6)],
     );
   }
 
@@ -584,7 +492,7 @@ class C with Uint64 {}
 import 'dart:ffi';
 class C with Uint8 {}
 ''',
-      [error(CompileTimeErrorCode.mixinClassDeclaresConstructor, 32, 5)],
+      [error(diag.mixinClassDeclaresConstructor, 32, 5)],
     );
   }
 
@@ -594,7 +502,7 @@ class C with Uint8 {}
 import 'dart:ffi';
 final class C with Union {}
 ''',
-      [error(CompileTimeErrorCode.mixinInheritsFromNotObject, 38, 5)],
+      [error(diag.mixinInheritsFromNotObject, 38, 5)],
     );
   }
 
@@ -604,7 +512,7 @@ final class C with Union {}
 import 'dart:ffi';
 class C with Void {}
 ''',
-      [error(CompileTimeErrorCode.classUsedAsMixin, 32, 4)],
+      [error(diag.classUsedAsMixin, 32, 4)],
     );
   }
 }

@@ -10,6 +10,7 @@ import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/error/error.dart';
 
 import '../analyzer.dart';
+import '../diagnostic.dart' as diag;
 import '../extensions.dart';
 
 const _desc = r'Use rethrow to rethrow a caught exception.';
@@ -19,7 +20,7 @@ class UseRethrowWhenPossible extends AnalysisRule {
     : super(name: LintNames.use_rethrow_when_possible, description: _desc);
 
   @override
-  DiagnosticCode get diagnosticCode => LinterLintCode.useRethrowWhenPossible;
+  DiagnosticCode get diagnosticCode => diag.useRethrowWhenPossible;
 
   @override
   void registerNodeProcessors(

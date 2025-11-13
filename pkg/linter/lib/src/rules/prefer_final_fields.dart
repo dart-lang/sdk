@@ -12,6 +12,7 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/error/error.dart';
 
 import '../analyzer.dart';
+import '../diagnostic.dart' as diag;
 import '../extensions.dart';
 
 const _desc = r'Private field could be `final`.';
@@ -21,7 +22,7 @@ class PreferFinalFields extends AnalysisRule {
     : super(name: LintNames.prefer_final_fields, description: _desc);
 
   @override
-  DiagnosticCode get diagnosticCode => LinterLintCode.preferFinalFields;
+  DiagnosticCode get diagnosticCode => diag.preferFinalFields;
 
   @override
   void registerNodeProcessors(

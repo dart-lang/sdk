@@ -2,8 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/error/codes.dart';
-import 'package:analyzer/src/generated/parser.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'context_collection_resolution.dart';
@@ -56,7 +55,7 @@ class A {
   A(var _) : v = _;
 }
 ''',
-      [error(CompileTimeErrorCode.implicitThisReferenceInInitializer, 45, 1)],
+      [error(diag.implicitThisReferenceInInitializer, 45, 1)],
     );
 
     var node = findNode.constructorFieldInitializer('v = _');
@@ -130,10 +129,7 @@ class C {
   C({this._x}) : _y = _x;
 }
 ''',
-      [
-        error(WarningCode.unusedField, 17, 2),
-        error(WarningCode.unusedField, 28, 2),
-      ],
+      [error(diag.unusedField, 17, 2), error(diag.unusedField, 28, 2)],
     );
 
     var node = findNode.singleConstructorFieldInitializer;
@@ -159,7 +155,7 @@ class C {
   C({this._x});
 }
 ''',
-      [error(WarningCode.unusedField, 17, 2)],
+      [error(diag.unusedField, 17, 2)],
     );
 
     var node = findNode.singleConstructorDeclaration;
@@ -204,7 +200,7 @@ class C {
   C({int? _x});
 }
 ''',
-      [error(ParserErrorCode.privateNamedNonFieldParameter, 20, 2)],
+      [error(diag.privateNamedNonFieldParameter, 20, 2)],
     );
 
     var node = findNode.singleConstructorDeclaration;
@@ -348,7 +344,7 @@ class B {
   factory B() = A.named;
 }
 ''',
-      [error(CompileTimeErrorCode.redirectToMissingConstructor, 59, 7)],
+      [error(diag.redirectToMissingConstructor, 59, 7)],
     );
 
     var node = findNode.constructorDeclaration('factory B');
@@ -481,7 +477,7 @@ class B {
   factory B.named() = A;
 }
 ''',
-      [error(CompileTimeErrorCode.redirectToMissingConstructor, 71, 1)],
+      [error(diag.redirectToMissingConstructor, 71, 1)],
     );
 
     var node = findNode.constructorDeclaration('factory B');

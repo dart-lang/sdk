@@ -6,7 +6,7 @@ import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/resolver/invocation_inferrer.dart';
-import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:analyzer/src/generated/resolver.dart';
 
 /// A resolver for [InstanceCreationExpression] and
@@ -87,7 +87,7 @@ class InstanceCreationExpressionResolver {
         } else {
           _resolver.diagnosticReporter.atNode(
             node.constructorName,
-            CompileTimeErrorCode.constWithUndefinedConstructor,
+            diag.constWithUndefinedConstructor,
             arguments: [contextType, node.constructorName.name],
           );
         }
@@ -99,14 +99,13 @@ class InstanceCreationExpressionResolver {
         if (constructorElement != null && !constructorElement.isFactory) {
           _resolver.diagnosticReporter.atNode(
             node,
-            CompileTimeErrorCode.instantiateAbstractClass,
+            diag.instantiateAbstractClass,
           );
         }
       } else if (typeArguments != null) {
         _resolver.diagnosticReporter.atNode(
           typeArguments,
-          CompileTimeErrorCode
-              .wrongNumberOfTypeArgumentsDotShorthandConstructor,
+          diag.wrongNumberOfTypeArgumentsDotShorthandConstructor,
           arguments: [
             dotShorthandContextType.getDisplayString(),
             node.constructorName.name,
@@ -116,7 +115,7 @@ class InstanceCreationExpressionResolver {
     } else {
       _resolver.diagnosticReporter.atNode(
         node,
-        CompileTimeErrorCode.dotShorthandMissingContext,
+        diag.dotShorthandMissingContext,
       );
     }
 

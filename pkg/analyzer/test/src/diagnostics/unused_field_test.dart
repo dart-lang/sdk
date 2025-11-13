@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
@@ -220,7 +220,7 @@ class A {
   }
 }
 ''',
-      [error(WarningCode.unusedField, 16, 2)],
+      [error(diag.unusedField, 16, 2)],
     );
   }
 
@@ -232,7 +232,7 @@ class A {
   A() : _f = 0;
 }
 ''',
-      [error(WarningCode.unusedField, 16, 2)],
+      [error(diag.unusedField, 16, 2)],
     );
   }
 
@@ -244,7 +244,7 @@ extension Bar on Foo {
   static final _baz = 7;
 }
 ''',
-      [error(WarningCode.unusedField, 51, 4)],
+      [error(diag.unusedField, 51, 4)],
     );
   }
 
@@ -256,7 +256,7 @@ class A {
   A(this._f);
 }
 ''',
-      [error(WarningCode.unusedField, 16, 2)],
+      [error(diag.unusedField, 16, 2)],
     );
   }
 
@@ -268,7 +268,7 @@ mixin M {
 }
 class Bar with M {}
 ''',
-      [error(WarningCode.unusedField, 16, 2)],
+      [error(diag.unusedField, 16, 2)],
     );
   }
 
@@ -280,7 +280,7 @@ class Foo {
 }
 mixin M on Foo {}
 ''',
-      [error(WarningCode.unusedField, 18, 2)],
+      [error(diag.unusedField, 18, 2)],
     );
   }
 
@@ -291,7 +291,7 @@ class A {
   int _f = 0;
 }
 ''',
-      [error(WarningCode.unusedField, 16, 2)],
+      [error(diag.unusedField, 16, 2)],
     );
   }
 
@@ -302,7 +302,7 @@ class A {
   int _ = 0;
 }
 ''',
-      [error(WarningCode.unusedField, 16, 1)],
+      [error(diag.unusedField, 16, 1)],
     );
   }
 
@@ -316,7 +316,7 @@ class A {
   int _ = 0;
 }
 ''',
-      [error(WarningCode.unusedField, 60, 1)],
+      [error(diag.unusedField, 60, 1)],
     );
   }
 
@@ -342,7 +342,7 @@ class A {
   }
 }
 ''',
-      [error(WarningCode.unusedField, 16, 2)],
+      [error(diag.unusedField, 16, 2)],
     );
   }
 
@@ -356,7 +356,7 @@ class A {
   }
 }
 ''',
-      [error(WarningCode.unusedField, 16, 2)],
+      [error(diag.unusedField, 16, 2)],
     );
   }
 
@@ -368,7 +368,7 @@ class _A {
 }
 void main() => print(_A);
 ''',
-      [error(WarningCode.unusedField, 27, 2)],
+      [error(diag.unusedField, 27, 2)],
     );
   }
 
@@ -379,7 +379,7 @@ extension _A on String {
   static String f1 = "x";
 }
 ''',
-      [error(WarningCode.unusedField, 41, 2)],
+      [error(diag.unusedField, 41, 2)],
     );
   }
 
@@ -391,7 +391,7 @@ mixin _A {
 }
 void main() => print(_A);
 ''',
-      [error(WarningCode.unusedField, 27, 2)],
+      [error(diag.unusedField, 27, 2)],
     );
   }
 
@@ -403,7 +403,7 @@ class A {
   int _f = 0;
 }
 ''',
-      [error(WarningCode.unusedField, 37, 2)],
+      [error(diag.unusedField, 37, 2)],
     );
   }
 
@@ -420,7 +420,7 @@ f(A a) {
   a._f = 2;
 }
 ''',
-      [error(WarningCode.unusedField, 16, 2)],
+      [error(diag.unusedField, 16, 2)],
     );
   }
 
@@ -447,7 +447,7 @@ void f() {
   _E;
 }
 ''',
-      [error(WarningCode.unusedField, 12, 1)],
+      [error(diag.unusedField, 12, 1)],
     );
   }
 
@@ -490,7 +490,7 @@ void f() {
   _E.v;
 }
 ''',
-      [error(WarningCode.unusedField, 34, 3)],
+      [error(diag.unusedField, 34, 3)],
     );
   }
 
@@ -538,7 +538,7 @@ enum E {
   _v
 }
 ''',
-      [error(WarningCode.unusedField, 11, 2)],
+      [error(diag.unusedField, 11, 2)],
     );
   }
 
@@ -563,7 +563,7 @@ enum E {
   final int _foo = 0;
 }
 ''',
-      [error(WarningCode.unusedField, 26, 4)],
+      [error(diag.unusedField, 26, 4)],
     );
   }
 }

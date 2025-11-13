@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../rule_test_support.dart';
@@ -28,11 +29,7 @@ class A {
 ''',
       [
         // No lint
-        error(
-          CompileTimeErrorCode.fieldInitializingFormalNotAssignable,
-          49,
-          24,
-        ),
+        error(diag.fieldInitializingFormalNotAssignable, 49, 24),
       ],
     );
   }
@@ -46,11 +43,7 @@ class Invalid {
 ''',
       [
         // No lint
-        error(
-          CompileTimeErrorCode.initializingFormalForNonExistentField,
-          26,
-          10,
-        ),
+        error(diag.initializingFormalForNonExistentField, 26, 10),
       ],
     );
   }

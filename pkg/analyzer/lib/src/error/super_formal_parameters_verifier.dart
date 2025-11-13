@@ -5,7 +5,7 @@
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
-import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 
 VerifySuperFormalParametersResult verifySuperFormalParameters({
   required ConstructorDeclaration constructor,
@@ -27,8 +27,7 @@ VerifySuperFormalParametersResult verifySuperFormalParameters({
         if (hasExplicitPositionalArguments) {
           diagnosticReporter?.atToken(
             parameter.name,
-            CompileTimeErrorCode
-                .positionalSuperFormalParameterWithPositionalArgument,
+            diag.positionalSuperFormalParameterWithPositionalArgument,
           );
         }
       }

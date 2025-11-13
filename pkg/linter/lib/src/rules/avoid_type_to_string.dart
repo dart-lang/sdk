@@ -13,6 +13,7 @@ import 'package:analyzer/dart/element/type_system.dart';
 import 'package:analyzer/error/error.dart';
 
 import '../analyzer.dart';
+import '../diagnostic.dart' as diag;
 
 const _desc =
     r'Avoid <Type>.toString() in production code since results may be minified.';
@@ -22,7 +23,7 @@ class AvoidTypeToString extends AnalysisRule {
     : super(name: LintNames.avoid_type_to_string, description: _desc);
 
   @override
-  DiagnosticCode get diagnosticCode => LinterLintCode.avoidTypeToString;
+  DiagnosticCode get diagnosticCode => diag.avoidTypeToString;
 
   @override
   void registerNodeProcessors(

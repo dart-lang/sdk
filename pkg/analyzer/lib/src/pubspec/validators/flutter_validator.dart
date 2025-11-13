@@ -3,8 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/file_system/file_system.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:analyzer/src/pubspec/pubspec_validator.dart';
-import 'package:analyzer/src/pubspec/pubspec_warning_code.dart';
 import 'package:analyzer/src/util/yaml.dart';
 import 'package:path/path.dart' as path;
 import 'package:yaml/yaml.dart';
@@ -20,10 +20,7 @@ void flutterValidator(PubspecValidationContext ctx) {
     // non-map one.
     if (flutterField.value == null) {
     } else {
-      ctx.reportErrorForNode(
-        flutterField,
-        PubspecWarningCode.flutterFieldNotMap,
-      );
+      ctx.reportErrorForNode(flutterField, diag.flutterFieldNotMap);
     }
     return;
   }
@@ -31,7 +28,7 @@ void flutterValidator(PubspecValidationContext ctx) {
   var assetsField = flutterField.nodes[PubspecField.ASSETS_FIELD];
   if (assetsField == null) return;
   if (assetsField is! YamlList) {
-    ctx.reportErrorForNode(assetsField, PubspecWarningCode.assetFieldNotList);
+    ctx.reportErrorForNode(assetsField, diag.assetFieldNotList);
     return;
   }
 
@@ -39,10 +36,7 @@ void flutterValidator(PubspecValidationContext ctx) {
     if (assetField is YamlScalar) {
       var entry = assetField.valueOrThrow;
       if (entry is! String) {
-        ctx.reportErrorForNode(
-          assetField,
-          PubspecWarningCode.assetNotStringOrMap,
-        );
+        ctx.reportErrorForNode(assetField, diag.assetNotStringOrMap);
         return;
       }
 
@@ -50,26 +44,20 @@ void flutterValidator(PubspecValidationContext ctx) {
     } else if (assetField is YamlMap) {
       var pathField = assetField.nodes[PubspecField.ASSET_PATH_FIELD];
       if (pathField == null) {
-        ctx.reportErrorForNode(assetField, PubspecWarningCode.assetMissingPath);
+        ctx.reportErrorForNode(assetField, diag.assetMissingPath);
       } else if (pathField is! YamlScalar) {
-        ctx.reportErrorForNode(
-          pathField,
-          PubspecWarningCode.assetPathNotString,
-        );
+        ctx.reportErrorForNode(pathField, diag.assetPathNotString);
       } else {
         var entry = pathField.valueOrThrow;
         if (entry is! String) {
-          ctx.reportErrorForNode(pathField, PubspecWarningCode.assetNotString);
+          ctx.reportErrorForNode(pathField, diag.assetNotString);
           return;
         }
 
         _validateAssetPath(ctx, entry, pathField);
       }
     } else {
-      ctx.reportErrorForNode(
-        assetField,
-        PubspecWarningCode.assetNotStringOrMap,
-      );
+      ctx.reportErrorForNode(assetField, diag.assetNotStringOrMap);
     }
   }
 
@@ -126,8 +114,8 @@ void _validateAssetPath(
     var assetPath = context.join(packageRoot, normalizedEntry);
     if (!_assetExistsAtPath(ctx, assetPath)) {
       var errorCode = isDirectoryEntry
-          ? PubspecWarningCode.assetDirectoryDoesNotExist
-          : PubspecWarningCode.assetDoesNotExist;
+          ? diag.assetDirectoryDoesNotExist
+          : diag.assetDoesNotExist;
       ctx.reportErrorForNode(errorField, errorCode, [pathValue]);
     }
   }

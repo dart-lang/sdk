@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/dart/error/ffi_code.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
@@ -26,7 +26,7 @@ void g() {
   NativeCallable<Int32 Function(Int32)>.isolateLocal(f, exceptionalReturn: e);
 }
 ''',
-      [error(FfiCode.argumentMustBeAConstant, 143, 1)],
+      [error(diag.argumentMustBeAConstant, 143, 1)],
     );
   }
 
@@ -39,7 +39,7 @@ void g() {
   NativeCallable<Int32 Function(Int32)>.isolateLocal(f, exceptionalReturn: '?');
 }
 ''',
-      [error(FfiCode.mustBeASubtype, 128, 3)],
+      [error(diag.mustBeASubtype, 128, 3)],
     );
   }
 
@@ -64,7 +64,7 @@ void g() {
   NativeCallable<Void Function(Int32)>.isolateLocal(f, exceptionalReturn: 4);
 }
 ''',
-      [error(FfiCode.invalidExceptionValue, 109, 20)],
+      [error(diag.invalidExceptionValue, 109, 20)],
     );
   }
 
@@ -77,7 +77,7 @@ void g() {
   NativeCallable<Int32 Function(Int32)>.isolateLocal(f);
 }
 ''',
-      [error(FfiCode.missingExceptionValue, 55, 53)],
+      [error(diag.missingExceptionValue, 55, 53)],
     );
   }
 
@@ -90,7 +90,7 @@ void g() {
   NativeCallable<int Function(int)>.isolateLocal(f, exceptionalReturn: 4);
 }
 ''',
-      [error(FfiCode.mustBeANativeFunctionType, 55, 46)],
+      [error(diag.mustBeANativeFunctionType, 55, 46)],
     );
   }
 
@@ -103,7 +103,7 @@ void g() {
   NativeCallable<Int32 Function(Double)>.isolateLocal(f, exceptionalReturn: 4);
 }
 ''',
-      [error(FfiCode.mustBeASubtype, 107, 1)],
+      [error(diag.mustBeASubtype, 107, 1)],
     );
   }
 
@@ -116,7 +116,7 @@ void g() {
   NativeCallable.isolateLocal(f, exceptionalReturn: 4);
 }
 ''',
-      [error(FfiCode.mustBeANativeFunctionType, 55, 27)],
+      [error(diag.mustBeANativeFunctionType, 55, 27)],
     );
   }
 
@@ -171,7 +171,7 @@ void g() {
   NativeCallable<void Function(int)>.listener(f);
 }
 ''',
-      [error(FfiCode.mustBeANativeFunctionType, 56, 43)],
+      [error(diag.mustBeANativeFunctionType, 56, 43)],
     );
   }
 
@@ -184,7 +184,7 @@ void g() {
   NativeCallable<Void Function(Double)>.listener(f);
 }
 ''',
-      [error(FfiCode.mustBeASubtype, 103, 1)],
+      [error(diag.mustBeASubtype, 103, 1)],
     );
   }
 
@@ -197,7 +197,7 @@ void g() {
   NativeCallable.listener(f);
 }
 ''',
-      [error(FfiCode.mustBeANativeFunctionType, 55, 23)],
+      [error(diag.mustBeANativeFunctionType, 55, 23)],
     );
   }
 
@@ -210,7 +210,7 @@ void g() {
   NativeCallable<Int32 Function(Int32)>.listener(f);
 }
 ''',
-      [error(FfiCode.mustReturnVoid, 102, 1)],
+      [error(diag.mustReturnVoid, 102, 1)],
     );
   }
 

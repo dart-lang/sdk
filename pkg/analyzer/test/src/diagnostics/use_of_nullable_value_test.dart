@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
@@ -26,7 +26,7 @@ m() {
   x as int;
 }
 ''',
-      [error(WarningCode.castFromNullAlwaysFails, 18, 8)],
+      [error(diag.castFromNullAlwaysFails, 18, 8)],
     );
   }
 
@@ -56,7 +56,7 @@ m() {
   x == null;
 }
 ''',
-      [error(WarningCode.unnecessaryNullComparisonAlwaysNullTrue, 18, 4)],
+      [error(diag.unnecessaryNullComparisonAlwaysNullTrue, 18, 4)],
     );
   }
 
@@ -69,8 +69,8 @@ m() {
 }
 ''',
       [
-        error(WarningCode.unusedLocalVariable, 27, 1),
-        error(CompileTimeErrorCode.invalidUseOfNullValue, 32, 1),
+        error(diag.unusedLocalVariable, 27, 1),
+        error(diag.invalidUseOfNullValue, 32, 1),
       ],
     );
   }
@@ -110,7 +110,7 @@ m() {
   x != null;
 }
 ''',
-      [error(WarningCode.unnecessaryNullComparisonAlwaysNullFalse, 18, 4)],
+      [error(diag.unnecessaryNullComparisonAlwaysNullFalse, 18, 4)],
     );
   }
 
@@ -174,16 +174,8 @@ extension E on A? {
 }
 ''',
       [
-        error(
-          CompileTimeErrorCode.uncheckedMethodInvocationOfNullableValue,
-          130,
-          1,
-        ),
-        error(
-          CompileTimeErrorCode.uncheckedMethodInvocationOfNullableValue,
-          158,
-          1,
-        ),
+        error(diag.uncheckedMethodInvocationOfNullableValue, 130, 1),
+        error(diag.uncheckedMethodInvocationOfNullableValue, 158, 1),
       ],
     );
   }
@@ -226,16 +218,8 @@ extension E on A? {
 }
 ''',
       [
-        error(
-          CompileTimeErrorCode.uncheckedMethodInvocationOfNullableValue,
-          68,
-          3,
-        ),
-        error(
-          CompileTimeErrorCode.uncheckedMethodInvocationOfNullableValue,
-          84,
-          3,
-        ),
+        error(diag.uncheckedMethodInvocationOfNullableValue, 68, 3),
+        error(diag.uncheckedMethodInvocationOfNullableValue, 84, 3),
       ],
     );
   }
@@ -279,13 +263,7 @@ extension E on A? {
   }
 }
 ''',
-      [
-        error(
-          CompileTimeErrorCode.uncheckedMethodInvocationOfNullableValue,
-          77,
-          1,
-        ),
-      ],
+      [error(diag.uncheckedMethodInvocationOfNullableValue, 77, 1)],
     );
   }
 
@@ -331,16 +309,8 @@ extension E on A? {
 }
 ''',
       [
-        error(
-          CompileTimeErrorCode.uncheckedPropertyAccessOfNullableValue,
-          93,
-          3,
-        ),
-        error(
-          CompileTimeErrorCode.uncheckedPropertyAccessOfNullableValue,
-          107,
-          3,
-        ),
+        error(diag.uncheckedPropertyAccessOfNullableValue, 93, 3),
+        error(diag.uncheckedPropertyAccessOfNullableValue, 107, 3),
       ],
     );
   }
@@ -387,16 +357,8 @@ extension E on A? {
 }
 ''',
       [
-        error(
-          CompileTimeErrorCode.uncheckedMethodInvocationOfNullableValue,
-          93,
-          3,
-        ),
-        error(
-          CompileTimeErrorCode.uncheckedPropertyAccessOfNullableValue,
-          111,
-          3,
-        ),
+        error(diag.uncheckedMethodInvocationOfNullableValue, 93, 3),
+        error(diag.uncheckedPropertyAccessOfNullableValue, 111, 3),
       ],
     );
   }
@@ -421,13 +383,7 @@ m() {
   if(x && true) {}
 }
 ''',
-      [
-        error(
-          CompileTimeErrorCode.uncheckedUseOfNullableValueAsCondition,
-          22,
-          1,
-        ),
-      ],
+      [error(diag.uncheckedUseOfNullableValueAsCondition, 22, 1)],
     );
   }
 
@@ -439,7 +395,7 @@ void f() {
   x as int;
 }
 ''',
-      [error(WarningCode.castFromNullableAlwaysFails, 23, 1)],
+      [error(diag.castFromNullableAlwaysFails, 23, 1)],
     );
   }
 
@@ -469,13 +425,7 @@ m() {
   assert(x);
 }
 ''',
-      [
-        error(
-          CompileTimeErrorCode.uncheckedUseOfNullableValueAsCondition,
-          26,
-          1,
-        ),
-      ],
+      [error(diag.uncheckedUseOfNullableValueAsCondition, 26, 1)],
     );
   }
 
@@ -497,13 +447,7 @@ m(B b) {
   b.a.x = 2;
 }
 ''',
-      [
-        error(
-          CompileTimeErrorCode.uncheckedPropertyAccessOfNullableValue,
-          104,
-          1,
-        ),
-      ],
+      [error(diag.uncheckedPropertyAccessOfNullableValue, 104, 1)],
     );
 
     assertResolvedNodeText(findNode.assignment('x = 1'), r'''
@@ -641,13 +585,7 @@ m(B b) {
   b.a.y += 0;
 }
 ''',
-      [
-        error(
-          CompileTimeErrorCode.uncheckedMethodInvocationOfNullableValue,
-          115,
-          2,
-        ),
-      ],
+      [error(diag.uncheckedMethodInvocationOfNullableValue, 115, 2)],
     );
 
     assertResolvedNodeText(findNode.assignment('x +='), r'''
@@ -737,13 +675,7 @@ m(B b) {
   b.a.x += 2;
 }
 ''',
-      [
-        error(
-          CompileTimeErrorCode.uncheckedPropertyAccessOfNullableValue,
-          105,
-          1,
-        ),
-      ],
+      [error(diag.uncheckedPropertyAccessOfNullableValue, 105, 1)],
     );
 
     assertResolvedNodeText(findNode.assignment('x += 1'), r'''
@@ -823,13 +755,7 @@ m(int x, int? y) {
   y += 0;
 }
 ''',
-      [
-        error(
-          CompileTimeErrorCode.uncheckedMethodInvocationOfNullableValue,
-          33,
-          2,
-        ),
-      ],
+      [error(diag.uncheckedMethodInvocationOfNullableValue, 33, 2)],
     );
 
     assertResolvedNodeText(findNode.assignment('x +='), r'''
@@ -905,13 +831,7 @@ f(List<int>? x) {
   x..[0] = 1;
 }
 ''',
-      [
-        error(
-          CompileTimeErrorCode.uncheckedMethodInvocationOfNullableValue,
-          23,
-          1,
-        ),
-      ],
+      [error(diag.uncheckedMethodInvocationOfNullableValue, 23, 1)],
     );
   }
 
@@ -931,13 +851,7 @@ m() {
   x..abs();
 }
 ''',
-      [
-        error(
-          CompileTimeErrorCode.uncheckedMethodInvocationOfNullableValue,
-          21,
-          3,
-        ),
-      ],
+      [error(diag.uncheckedMethodInvocationOfNullableValue, 21, 3)],
     );
   }
 
@@ -956,13 +870,7 @@ f(int? x) {
   x..isEven;
 }
 ''',
-      [
-        error(
-          CompileTimeErrorCode.uncheckedPropertyAccessOfNullableValue,
-          17,
-          6,
-        ),
-      ],
+      [error(diag.uncheckedPropertyAccessOfNullableValue, 17, 6)],
     );
   }
 
@@ -982,7 +890,7 @@ m() {
   x == null;
 }
 ''',
-      [error(WarningCode.unnecessaryNullComparisonAlwaysNullTrue, 18, 4)],
+      [error(diag.unnecessaryNullComparisonAlwaysNullTrue, 18, 4)],
     );
   }
 
@@ -994,7 +902,7 @@ m() {
   for (var y in x) {}
 }
 ''',
-      [error(WarningCode.unusedLocalVariable, 32, 1)],
+      [error(diag.unusedLocalVariable, 32, 1)],
     );
   }
 
@@ -1007,12 +915,8 @@ m() {
 }
 ''',
       [
-        error(WarningCode.unusedLocalVariable, 28, 1),
-        error(
-          CompileTimeErrorCode.uncheckedUseOfNullableValueAsIterator,
-          33,
-          1,
-        ),
+        error(diag.unusedLocalVariable, 28, 1),
+        error(diag.uncheckedUseOfNullableValueAsIterator, 33, 1),
       ],
     );
   }
@@ -1026,12 +930,8 @@ m() {
 }
 ''',
       [
-        error(WarningCode.unusedLocalVariable, 29, 1),
-        error(
-          CompileTimeErrorCode.uncheckedUseOfNullableValueAsIterator,
-          35,
-          1,
-        ),
+        error(diag.unusedLocalVariable, 29, 1),
+        error(diag.uncheckedUseOfNullableValueAsIterator, 35, 1),
       ],
     );
   }
@@ -1047,13 +947,7 @@ m(int? x) {
   x.foo;
 }
 ''',
-      [
-        error(
-          CompileTimeErrorCode.uncheckedPropertyAccessOfNullableValue,
-          60,
-          3,
-        ),
-      ],
+      [error(diag.uncheckedPropertyAccessOfNullableValue, 60, 3)],
     );
   }
 
@@ -1074,13 +968,7 @@ m() {
   if (x) {}
 }
 ''',
-      [
-        error(
-          CompileTimeErrorCode.uncheckedUseOfNullableValueAsCondition,
-          23,
-          1,
-        ),
-      ],
+      [error(diag.uncheckedUseOfNullableValueAsCondition, 23, 1)],
     );
   }
 
@@ -1101,13 +989,7 @@ m() {
   x[0];
 }
 ''',
-      [
-        error(
-          CompileTimeErrorCode.uncheckedMethodInvocationOfNullableValue,
-          20,
-          1,
-        ),
-      ],
+      [error(diag.uncheckedMethodInvocationOfNullableValue, 20, 1)],
     );
   }
 
@@ -1128,7 +1010,7 @@ m() {
   x();
 }
 ''',
-      [error(CompileTimeErrorCode.uncheckedInvocationOfNullableValue, 23, 1)],
+      [error(diag.uncheckedInvocationOfNullableValue, 23, 1)],
     );
   }
 
@@ -1139,7 +1021,7 @@ void f<F extends Function>(List<F?> funcList) {
   funcList[0]();
 }
 ''',
-      [error(CompileTimeErrorCode.uncheckedInvocationOfNullableValue, 50, 11)],
+      [error(diag.uncheckedInvocationOfNullableValue, 50, 11)],
     );
   }
 
@@ -1160,7 +1042,7 @@ m() {
   x();
 }
 ''',
-      [error(CompileTimeErrorCode.uncheckedInvocationOfNullableValue, 25, 1)],
+      [error(diag.uncheckedInvocationOfNullableValue, 25, 1)],
     );
   }
 
@@ -1217,13 +1099,7 @@ m() {
   x.isEven;
 }
 ''',
-      [
-        error(
-          CompileTimeErrorCode.uncheckedPropertyAccessOfNullableValue,
-          20,
-          6,
-        ),
-      ],
+      [error(diag.uncheckedPropertyAccessOfNullableValue, 20, 6)],
     );
 
     var node = findNode.simple('isEven');
@@ -1252,13 +1128,7 @@ m() {
   (x).isEven;
 }
 ''',
-      [
-        error(
-          CompileTimeErrorCode.uncheckedPropertyAccessOfNullableValue,
-          22,
-          6,
-        ),
-      ],
+      [error(diag.uncheckedPropertyAccessOfNullableValue, 22, 6)],
     );
   }
 
@@ -1278,13 +1148,7 @@ m<T extends int?>(T x) {
   x.isEven;
 }
 ''',
-      [
-        error(
-          CompileTimeErrorCode.uncheckedPropertyAccessOfNullableValue,
-          29,
-          6,
-        ),
-      ],
+      [error(diag.uncheckedPropertyAccessOfNullableValue, 29, 6)],
     );
   }
 
@@ -1295,7 +1159,7 @@ m<T extends Function>(List<T?> x) {
   x.first();
 }
 ''',
-      [error(CompileTimeErrorCode.uncheckedInvocationOfNullableValue, 38, 7)],
+      [error(diag.uncheckedInvocationOfNullableValue, 38, 7)],
     );
   }
 
@@ -1341,13 +1205,7 @@ m() {
   x.round();
 }
 ''',
-      [
-        error(
-          CompileTimeErrorCode.uncheckedMethodInvocationOfNullableValue,
-          20,
-          5,
-        ),
-      ],
+      [error(diag.uncheckedMethodInvocationOfNullableValue, 20, 5)],
     );
   }
 
@@ -1362,13 +1220,7 @@ m(int? x) {
   x.foo();
 }
 ''',
-      [
-        error(
-          CompileTimeErrorCode.uncheckedMethodInvocationOfNullableValue,
-          56,
-          3,
-        ),
-      ],
+      [error(diag.uncheckedMethodInvocationOfNullableValue, 56, 3)],
     );
   }
 
@@ -1403,13 +1255,7 @@ m(Function? x) {
   x.call();
 }
 ''',
-      [
-        error(
-          CompileTimeErrorCode.uncheckedMethodInvocationOfNullableValue,
-          21,
-          4,
-        ),
-      ],
+      [error(diag.uncheckedMethodInvocationOfNullableValue, 21, 4)],
     );
   }
 
@@ -1421,7 +1267,7 @@ m() {
   x -= 1;
 }
 ''',
-      [error(WarningCode.unusedLocalVariable, 12, 1)],
+      [error(diag.unusedLocalVariable, 12, 1)],
     );
   }
 
@@ -1434,12 +1280,8 @@ m() {
 }
 ''',
       [
-        error(WarningCode.unusedLocalVariable, 13, 1),
-        error(
-          CompileTimeErrorCode.uncheckedMethodInvocationOfNullableValue,
-          20,
-          2,
-        ),
+        error(diag.unusedLocalVariable, 13, 1),
+        error(diag.uncheckedMethodInvocationOfNullableValue, 20, 2),
       ],
     );
   }
@@ -1452,7 +1294,7 @@ m() {
   if(!x) {}
 }
 ''',
-      [error(WarningCode.deadCode, 32, 2)],
+      [error(diag.deadCode, 32, 2)],
     );
   }
 
@@ -1464,13 +1306,7 @@ m() {
   if(!x) {}
 }
 ''',
-      [
-        error(
-          CompileTimeErrorCode.uncheckedUseOfNullableValueAsCondition,
-          23,
-          1,
-        ),
-      ],
+      [error(diag.uncheckedUseOfNullableValueAsCondition, 23, 1)],
     );
   }
 
@@ -1482,7 +1318,7 @@ m() {
   x != null;
 }
 ''',
-      [error(WarningCode.unnecessaryNullComparisonAlwaysNullFalse, 18, 4)],
+      [error(diag.unnecessaryNullComparisonAlwaysNullFalse, 18, 4)],
     );
   }
 
@@ -1531,13 +1367,7 @@ m() {
   x - 3;
 }
 ''',
-      [
-        error(
-          CompileTimeErrorCode.uncheckedOperatorInvocationOfNullableValue,
-          20,
-          1,
-        ),
-      ],
+      [error(diag.uncheckedOperatorInvocationOfNullableValue, 20, 1)],
     );
   }
 
@@ -1558,13 +1388,7 @@ m() {
   x + 3;
 }
 ''',
-      [
-        error(
-          CompileTimeErrorCode.uncheckedOperatorInvocationOfNullableValue,
-          20,
-          1,
-        ),
-      ],
+      [error(diag.uncheckedOperatorInvocationOfNullableValue, 20, 1)],
     );
   }
 
@@ -1576,7 +1400,7 @@ m() {
   x--;
 }
 ''',
-      [error(WarningCode.unusedLocalVariable, 12, 1)],
+      [error(diag.unusedLocalVariable, 12, 1)],
     );
   }
 
@@ -1589,12 +1413,8 @@ m() {
 }
 ''',
       [
-        error(WarningCode.unusedLocalVariable, 13, 1),
-        error(
-          CompileTimeErrorCode.uncheckedMethodInvocationOfNullableValue,
-          19,
-          2,
-        ),
+        error(diag.unusedLocalVariable, 13, 1),
+        error(diag.uncheckedMethodInvocationOfNullableValue, 19, 2),
       ],
     );
   }
@@ -1614,13 +1434,7 @@ m(int? x) {
   x++;
 }
 ''',
-      [
-        error(
-          CompileTimeErrorCode.uncheckedMethodInvocationOfNullableValue,
-          15,
-          2,
-        ),
-      ],
+      [error(diag.uncheckedMethodInvocationOfNullableValue, 15, 2)],
     );
   }
 
@@ -1637,13 +1451,7 @@ m(A? x) {
   x++;
 }
 ''',
-      [
-        error(
-          CompileTimeErrorCode.uncheckedMethodInvocationOfNullableValue,
-          78,
-          2,
-        ),
-      ],
+      [error(diag.uncheckedMethodInvocationOfNullableValue, 78, 2)],
     );
   }
 
@@ -1655,7 +1463,7 @@ m() {
   --x;
 }
 ''',
-      [error(WarningCode.unusedLocalVariable, 12, 1)],
+      [error(diag.unusedLocalVariable, 12, 1)],
     );
   }
 
@@ -1668,12 +1476,8 @@ m() {
 }
 ''',
       [
-        error(WarningCode.unusedLocalVariable, 13, 1),
-        error(
-          CompileTimeErrorCode.uncheckedMethodInvocationOfNullableValue,
-          18,
-          2,
-        ),
+        error(diag.unusedLocalVariable, 13, 1),
+        error(diag.uncheckedMethodInvocationOfNullableValue, 18, 2),
       ],
     );
   }
@@ -1693,13 +1497,7 @@ m(int? x) {
   ++x;
 }
 ''',
-      [
-        error(
-          CompileTimeErrorCode.uncheckedMethodInvocationOfNullableValue,
-          14,
-          2,
-        ),
-      ],
+      [error(diag.uncheckedMethodInvocationOfNullableValue, 14, 2)],
     );
   }
 
@@ -1711,7 +1509,7 @@ m() {
   -x;
 }
 ''',
-      [error(WarningCode.unusedLocalVariable, 12, 1)],
+      [error(diag.unusedLocalVariable, 12, 1)],
     );
   }
 
@@ -1724,12 +1522,8 @@ m() {
 }
 ''',
       [
-        error(WarningCode.unusedLocalVariable, 13, 1),
-        error(
-          CompileTimeErrorCode.uncheckedMethodInvocationOfNullableValue,
-          18,
-          1,
-        ),
+        error(diag.unusedLocalVariable, 13, 1),
+        error(diag.uncheckedMethodInvocationOfNullableValue, 18, 1),
       ],
     );
   }
@@ -1747,13 +1541,7 @@ m(A? x) {
   -x;
 }
 ''',
-      [
-        error(
-          CompileTimeErrorCode.uncheckedMethodInvocationOfNullableValue,
-          72,
-          1,
-        ),
-      ],
+      [error(diag.uncheckedMethodInvocationOfNullableValue, 72, 1)],
     );
   }
 
@@ -1765,7 +1553,7 @@ m() {
   if(x || false) {}
 }
 ''',
-      [error(WarningCode.deadCode, 30, 8)],
+      [error(diag.deadCode, 30, 8)],
     );
   }
 
@@ -1777,13 +1565,7 @@ m() {
   if(x || false) {}
 }
 ''',
-      [
-        error(
-          CompileTimeErrorCode.uncheckedUseOfNullableValueAsCondition,
-          22,
-          1,
-        ),
-      ],
+      [error(diag.uncheckedUseOfNullableValueAsCondition, 22, 1)],
     );
   }
 
@@ -1802,13 +1584,7 @@ m(int? x) {
   x += 1;
 }
 ''',
-      [
-        error(
-          CompileTimeErrorCode.uncheckedMethodInvocationOfNullableValue,
-          16,
-          2,
-        ),
-      ],
+      [error(diag.uncheckedMethodInvocationOfNullableValue, 16, 2)],
     );
   }
 
@@ -1825,13 +1601,7 @@ m(A? a) {
   a.x; // 2
 }
 ''',
-      [
-        error(
-          CompileTimeErrorCode.uncheckedPropertyAccessOfNullableValue,
-          68,
-          1,
-        ),
-      ],
+      [error(diag.uncheckedPropertyAccessOfNullableValue, 68, 1)],
     );
     var propertyAccess1 = findNode.propertyAccess('a?.x; // 1');
     var propertyAccess2 = findNode.prefixed('a.x; // 2');
@@ -1863,13 +1633,7 @@ m(B b) {
   b.a.x; // 2
 }
 ''',
-      [
-        error(
-          CompileTimeErrorCode.uncheckedPropertyAccessOfNullableValue,
-          105,
-          1,
-        ),
-      ],
+      [error(diag.uncheckedPropertyAccessOfNullableValue, 105, 1)],
     );
     var propertyAccess1 = findNode.propertyAccess('b.a?.x; // 1');
     var propertyAccess2 = findNode.propertyAccess('b.a.x; // 2');
@@ -1901,13 +1665,7 @@ m(B? b) {
   b.a.x; // 2
 }
 ''',
-      [
-        error(
-          CompileTimeErrorCode.uncheckedPropertyAccessOfNullableValue,
-          103,
-          1,
-        ),
-      ],
+      [error(diag.uncheckedPropertyAccessOfNullableValue, 103, 1)],
     );
     var propertyAccess1 = findNode.propertyAccess('x; // 1');
     var propertyAccess2 = findNode.propertyAccess('x; // 2');
@@ -1944,13 +1702,7 @@ m(C c) {
   c.b.a.x; // 2
 }
 ''',
-      [
-        error(
-          CompileTimeErrorCode.uncheckedPropertyAccessOfNullableValue,
-          148,
-          1,
-        ),
-      ],
+      [error(diag.uncheckedPropertyAccessOfNullableValue, 148, 1)],
     );
     var propertyAccess1 = findNode.propertyAccess('x; // 1');
     var propertyAccess2 = findNode.propertyAccess('x; // 2');
@@ -1987,13 +1739,7 @@ m(C c) {
   c.b.a.x; // 2
 }
 ''',
-      [
-        error(
-          CompileTimeErrorCode.uncheckedPropertyAccessOfNullableValue,
-          152,
-          1,
-        ),
-      ],
+      [error(diag.uncheckedPropertyAccessOfNullableValue, 152, 1)],
     );
     var propertyAccess1 = findNode.propertyAccess('x; // 1');
     var propertyAccess2 = findNode.propertyAccess('x; // 2');
@@ -2028,7 +1774,7 @@ m() {
   [...list];
 }
 ''',
-      [error(CompileTimeErrorCode.uncheckedUseOfNullableValueInSpread, 26, 4)],
+      [error(diag.uncheckedUseOfNullableValueInSpread, 26, 4)],
     );
   }
 
@@ -2049,13 +1795,7 @@ m() {
   x ? 0 : 1;
 }
 ''',
-      [
-        error(
-          CompileTimeErrorCode.uncheckedUseOfNullableValueAsCondition,
-          19,
-          1,
-        ),
-      ],
+      [error(diag.uncheckedUseOfNullableValueAsCondition, 19, 1)],
     );
   }
 
@@ -2084,13 +1824,7 @@ m(String? s) {
   s?.length >>> 2;
 }
 ''',
-      [
-        error(
-          CompileTimeErrorCode.uncheckedOperatorInvocationOfNullableValue,
-          27,
-          3,
-        ),
-      ],
+      [error(diag.uncheckedOperatorInvocationOfNullableValue, 27, 3)],
     );
   }
 
@@ -2101,13 +1835,7 @@ void f(int? x) {
   if (x case > 0) {}
 }
 ''',
-      [
-        error(
-          CompileTimeErrorCode.uncheckedOperatorInvocationOfNullableValue,
-          30,
-          1,
-        ),
-      ],
+      [error(diag.uncheckedOperatorInvocationOfNullableValue, 30, 1)],
     );
   }
 
@@ -2141,12 +1869,8 @@ m() sync* {
 }
 ''',
       [
-        error(CompileTimeErrorCode.yieldEachOfInvalidType, 37, 1),
-        error(
-          CompileTimeErrorCode.uncheckedUseOfNullableValueInYieldEach,
-          37,
-          1,
-        ),
+        error(diag.yieldEachOfInvalidType, 37, 1),
+        error(diag.uncheckedUseOfNullableValueInYieldEach, 37, 1),
       ],
     );
   }

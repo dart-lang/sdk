@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -87,21 +87,15 @@ example(List<int> list) {
 }
 ''';
     if (_isEnabled) {
-      await assertErrorsInCode(code, [
-        error(WarningCode.unusedLocalVariable, 32, 1),
-      ]);
+      await assertErrorsInCode(code, [error(diag.unusedLocalVariable, 32, 1)]);
       assertType(findElement2.localVar('a').type, 'int');
       assertType(findElement2.parameter('x').type, 'int');
       assertType(findElement2.parameter('y').type, 'int');
       expect(findNode.binary('x + y').element!.enclosingElement!.name, 'num');
     } else {
       await assertErrorsInCode(code, [
-        error(WarningCode.unusedLocalVariable, 32, 1),
-        error(
-          CompileTimeErrorCode.uncheckedOperatorInvocationOfNullableValue,
-          61,
-          1,
-        ),
+        error(diag.unusedLocalVariable, 32, 1),
+        error(diag.uncheckedOperatorInvocationOfNullableValue, 61, 1),
       ]);
     }
   }
@@ -118,9 +112,8 @@ test() {
 }
 ''',
       [
-        error(WarningCode.unusedLocalVariable, 60, 1),
-        if (!_isEnabled)
-          error(CompileTimeErrorCode.uncheckedInvocationOfNullableValue, 83, 1),
+        error(diag.unusedLocalVariable, 60, 1),
+        if (!_isEnabled) error(diag.uncheckedInvocationOfNullableValue, 83, 1),
       ],
     );
     assertType(
@@ -160,13 +153,9 @@ test(List<int> list) {
 }
 ''',
       [
-        error(WarningCode.unusedLocalVariable, 29, 1),
+        error(diag.unusedLocalVariable, 29, 1),
         if (!_isEnabled)
-          error(
-            CompileTimeErrorCode.uncheckedOperatorInvocationOfNullableValue,
-            62,
-            1,
-          ),
+          error(diag.uncheckedOperatorInvocationOfNullableValue, 62, 1),
       ],
     );
     assertType(
@@ -192,7 +181,7 @@ test() {
   var a = f((x) => [x], () => 0);
 }
 ''',
-      [error(WarningCode.unusedLocalVariable, 71, 1)],
+      [error(diag.unusedLocalVariable, 71, 1)],
     );
     assertType(findNode.methodInvocation('f(').typeArgumentTypes![0], 'int');
     assertType(
@@ -223,7 +212,7 @@ test() {
   var a = f(() => 0, (x) => [x]);
 }
 ''',
-      [error(WarningCode.unusedLocalVariable, 71, 1)],
+      [error(diag.unusedLocalVariable, 71, 1)],
     );
     assertType(findNode.methodInvocation('f(').typeArgumentTypes![0], 'int');
     assertType(
@@ -254,7 +243,7 @@ test() {
   var a = f(0, (x) => [x]);
 }
 ''',
-      [error(WarningCode.unusedLocalVariable, 60, 1)],
+      [error(diag.unusedLocalVariable, 60, 1)],
     );
     assertType(findNode.methodInvocation('f(').typeArgumentTypes![0], 'int');
     assertType(
@@ -400,7 +389,7 @@ test(List<int> list) {
   var a = list.fold(null, (int? x, y) => (x ?? 0) + y);
 }
 ''',
-      [error(WarningCode.unusedLocalVariable, 29, 1)],
+      [error(diag.unusedLocalVariable, 29, 1)],
     );
     assertType(findElement2.localVar('a').type, 'int?');
     assertType(findElement2.parameter('x').type, 'int?');
@@ -418,7 +407,7 @@ test() {
   var a = f(null, ({int? x, required y}) => (x ?? 0) + y);
 }
 ''',
-      [error(WarningCode.unusedLocalVariable, 86, 1)],
+      [error(diag.unusedLocalVariable, 86, 1)],
     );
     assertType(findElement2.localVar('a').type, 'int?');
     assertType(findElement2.parameter('x').type, 'int?');

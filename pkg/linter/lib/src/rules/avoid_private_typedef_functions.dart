@@ -11,6 +11,7 @@ import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/error/error.dart';
 
 import '../analyzer.dart';
+import '../diagnostic.dart' as diag;
 
 const _desc = r'Avoid private typedef functions.';
 
@@ -22,8 +23,7 @@ class AvoidPrivateTypedefFunctions extends AnalysisRule {
       );
 
   @override
-  DiagnosticCode get diagnosticCode =>
-      LinterLintCode.avoidPrivateTypedefFunctions;
+  DiagnosticCode get diagnosticCode => diag.avoidPrivateTypedefFunctions;
 
   @override
   void registerNodeProcessors(

@@ -11,7 +11,7 @@ import 'package:analyzer/diagnostic/diagnostic.dart';
 import 'package:analyzer/source/line_info.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/element/extensions.dart';
-import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:analyzer/src/ignore_comments/ignore_info.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart'
     hide AnalysisError, Element;
@@ -65,9 +65,9 @@ class ImportOrganizer {
 
   bool _isUnusedImport(UriBasedDirective directive) {
     for (var diagnostic in diagnostics) {
-      if ((diagnostic.diagnosticCode == WarningCode.duplicateImport ||
-              diagnostic.diagnosticCode == WarningCode.unusedImport ||
-              diagnostic.diagnosticCode == HintCode.unnecessaryImport) &&
+      if ((diagnostic.diagnosticCode == diag.duplicateImport ||
+              diagnostic.diagnosticCode == diag.unusedImport ||
+              diagnostic.diagnosticCode == diag.unnecessaryImport) &&
           directive.uri.offset == diagnostic.offset) {
         return true;
       }
@@ -77,7 +77,7 @@ class ImportOrganizer {
 
   bool _isUnusedShowName(SimpleIdentifier name) {
     for (var diagnostic in diagnostics) {
-      if ((diagnostic.diagnosticCode == WarningCode.unusedShownName) &&
+      if ((diagnostic.diagnosticCode == diag.unusedShownName) &&
           name.offset == diagnostic.offset) {
         return true;
       }

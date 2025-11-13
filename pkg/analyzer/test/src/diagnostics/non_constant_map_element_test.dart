@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
@@ -53,7 +53,7 @@ void main() {
   const {1: null, if (notConst) null: null};
 }
 ''',
-      [error(CompileTimeErrorCode.nonConstantMapElement, 60, 8)],
+      [error(diag.nonConstantMapElement, 60, 8)],
     );
   }
 
@@ -65,7 +65,7 @@ void main() {
   const {1: null, if (isTrue) null: null else null: null};
 }
 ''',
-      [error(WarningCode.deadCode, 83, 10)],
+      [error(diag.deadCode, 83, 10)],
     );
   }
 
@@ -85,7 +85,7 @@ void main() {
   const {1: null, ...notConst};
 }
 ''',
-      [error(CompileTimeErrorCode.nonConstantMapElement, 56, 8)],
+      [error(diag.nonConstantMapElement, 56, 8)],
     );
   }
 }
@@ -102,7 +102,7 @@ mixin NonConstantMapKeyTestCases on PubPackageResolutionTest {
 final dynamic a = 0;
 var v = const <int, int>{if (1 < 0) 0: 0 else a: 0};
 ''',
-      [error(CompileTimeErrorCode.nonConstantMapKey, 67, 1)],
+      [error(diag.nonConstantMapKey, 67, 1)],
     );
   }
 
@@ -112,7 +112,7 @@ var v = const <int, int>{if (1 < 0) 0: 0 else a: 0};
 final dynamic a = 0;
 var v = const <int, int>{if (1 < 0) a: 0 else 0: 0};
 ''',
-      [error(CompileTimeErrorCode.nonConstantMapKey, 57, 1)],
+      [error(diag.nonConstantMapKey, 57, 1)],
     );
   }
 
@@ -122,7 +122,7 @@ var v = const <int, int>{if (1 < 0) a: 0 else 0: 0};
 final dynamic a = 0;
 var v = const <int, int>{if (1 > 0) 0: 0 else a: 0};
 ''',
-      [error(CompileTimeErrorCode.nonConstantMapKey, 67, 1)],
+      [error(diag.nonConstantMapKey, 67, 1)],
     );
   }
 
@@ -132,7 +132,7 @@ var v = const <int, int>{if (1 > 0) 0: 0 else a: 0};
 final dynamic a = 0;
 var v = const <int, int>{if (1 > 0) a: 0 else 0: 0};
 ''',
-      [error(CompileTimeErrorCode.nonConstantMapKey, 57, 1)],
+      [error(diag.nonConstantMapKey, 57, 1)],
     );
   }
 
@@ -149,7 +149,7 @@ var v = const <int, int>{if (1 < 0) a: 0};
 final dynamic a = 0;
 var v = const <int, int>{if (1 < 0) a: 0};
 ''',
-      [error(CompileTimeErrorCode.nonConstantMapKey, 57, 1)],
+      [error(diag.nonConstantMapKey, 57, 1)],
     );
   }
 
@@ -166,7 +166,7 @@ var v = const <int, int>{if (1 > 0) a: 0};
 final dynamic a = 0;
 var v = const <int, int>{if (1 > 0) a: 0};
 ''',
-      [error(CompileTimeErrorCode.nonConstantMapKey, 57, 1)],
+      [error(diag.nonConstantMapKey, 57, 1)],
     );
   }
 
@@ -176,7 +176,7 @@ var v = const <int, int>{if (1 > 0) a: 0};
 final dynamic a = 0;
 var v = const <int, int>{a: 0};
 ''',
-      [error(CompileTimeErrorCode.nonConstantMapKey, 46, 1)],
+      [error(diag.nonConstantMapKey, 46, 1)],
     );
   }
 
@@ -199,7 +199,7 @@ mixin NonConstantMapValueTestCases on PubPackageResolutionTest {
 final dynamic a = 0;
 var v = const <int, int>{if (1 < 0) 0: 0 else 0: a};
 ''',
-      [error(CompileTimeErrorCode.nonConstantMapValue, 70, 1)],
+      [error(diag.nonConstantMapValue, 70, 1)],
     );
   }
 
@@ -209,7 +209,7 @@ var v = const <int, int>{if (1 < 0) 0: 0 else 0: a};
 final dynamic a = 0;
 var v = const <int, int>{if (1 < 0) 0: a else 0: 0};
 ''',
-      [error(CompileTimeErrorCode.nonConstantMapValue, 60, 1)],
+      [error(diag.nonConstantMapValue, 60, 1)],
     );
   }
 
@@ -219,7 +219,7 @@ var v = const <int, int>{if (1 < 0) 0: a else 0: 0};
 final dynamic a = 0;
 var v = const <int, int>{if (1 > 0) 0: 0 else 0: a};
 ''',
-      [error(CompileTimeErrorCode.nonConstantMapValue, 70, 1)],
+      [error(diag.nonConstantMapValue, 70, 1)],
     );
   }
 
@@ -229,7 +229,7 @@ var v = const <int, int>{if (1 > 0) 0: 0 else 0: a};
 final dynamic a = 0;
 var v = const <int, int>{if (1 > 0) 0: a else 0: 0};
 ''',
-      [error(CompileTimeErrorCode.nonConstantMapValue, 60, 1)],
+      [error(diag.nonConstantMapValue, 60, 1)],
     );
   }
 
@@ -246,7 +246,7 @@ var v = const <int, int>{if (1 < 0) 0: a};
 final dynamic a = 0;
 var v = const <int, int>{if (1 < 0) 0: a};
 ''',
-      [error(CompileTimeErrorCode.nonConstantMapValue, 60, 1)],
+      [error(diag.nonConstantMapValue, 60, 1)],
     );
   }
 
@@ -263,7 +263,7 @@ var v = const <int, int>{if (1 > 0) 0: a};
 final dynamic a = 0;
 var v = const <int, int>{if (1 > 0) 0: a};
 ''',
-      [error(CompileTimeErrorCode.nonConstantMapValue, 60, 1)],
+      [error(diag.nonConstantMapValue, 60, 1)],
     );
   }
 
@@ -273,7 +273,7 @@ var v = const <int, int>{if (1 > 0) 0: a};
 final dynamic a = 0;
 var v = const <int, int>{0: a};
 ''',
-      [error(CompileTimeErrorCode.nonConstantMapValue, 49, 1)],
+      [error(diag.nonConstantMapValue, 49, 1)],
     );
   }
 

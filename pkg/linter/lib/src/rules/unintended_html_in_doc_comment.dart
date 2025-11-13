@@ -11,6 +11,7 @@ import 'package:analyzer/error/error.dart';
 import 'package:collection/collection.dart';
 
 import '../analyzer.dart';
+import '../diagnostic.dart' as diag;
 
 const _desc =
     r'Use of angle brackets in a doc comment is treated as HTML by '
@@ -126,8 +127,7 @@ class UnintendedHtmlInDocComment extends AnalysisRule {
     : super(name: LintNames.unintended_html_in_doc_comment, description: _desc);
 
   @override
-  DiagnosticCode get diagnosticCode =>
-      LinterLintCode.unintendedHtmlInDocComment;
+  DiagnosticCode get diagnosticCode => diag.unintendedHtmlInDocComment;
 
   @override
   void registerNodeProcessors(

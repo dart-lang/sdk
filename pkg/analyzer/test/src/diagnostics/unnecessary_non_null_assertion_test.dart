@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
@@ -24,7 +24,7 @@ void f() {
   g!();
 }
 ''',
-      [error(StaticWarningCode.unnecessaryNonNullAssertion, 27, 1)],
+      [error(diag.unnecessaryNonNullAssertion, 27, 1)],
     );
   }
 
@@ -39,7 +39,7 @@ void f() {
   A.foo!();
 }
 ''',
-      [error(StaticWarningCode.unnecessaryNonNullAssertion, 54, 1)],
+      [error(diag.unnecessaryNonNullAssertion, 54, 1)],
     );
   }
 
@@ -50,7 +50,7 @@ f(int x) {
   x!;
 }
 ''',
-      [error(StaticWarningCode.unnecessaryNonNullAssertion, 14, 1)],
+      [error(diag.unnecessaryNonNullAssertion, 14, 1)],
     );
   }
 

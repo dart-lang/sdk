@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/src/dart/error/syntactic_errors.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../../diagnostics/parser_diagnostics.dart';
@@ -109,9 +109,7 @@ ExtensionTypeDeclaration
     var parseResult = parseStringWithErrors(r'''
 extension type A(const int it) {}
 ''');
-    parseResult.assertErrors([
-      error(ParserErrorCode.extraneousModifier, 17, 5),
-    ]);
+    parseResult.assertErrors([error(diag.extraneousModifier, 17, 5)]);
 
     var node = parseResult.findNode.singleExtensionTypeDeclaration;
     assertParsedNodeText(node, r'''
@@ -137,9 +135,7 @@ ExtensionTypeDeclaration
       var parseResult = parseStringWithErrors(r'''
 extension type A(const int it) {}
 ''');
-      parseResult.assertErrors([
-        error(ParserErrorCode.extraneousModifier, 17, 5),
-      ]);
+      parseResult.assertErrors([error(diag.extraneousModifier, 17, 5)]);
 
       var node = parseResult.findNode.singleExtensionTypeDeclaration;
       assertParsedNodeText(node, r'''
@@ -165,7 +161,7 @@ ExtensionTypeDeclaration
 extension type A(covariant int it) {}
 ''');
     parseResult.assertErrors([
-      error(ParserErrorCode.extraneousModifierInPrimaryConstructor, 17, 9),
+      error(diag.extraneousModifierInPrimaryConstructor, 17, 9),
     ]);
 
     var node = parseResult.findNode.singleExtensionTypeDeclaration;
@@ -193,7 +189,7 @@ ExtensionTypeDeclaration
 extension type A(covariant int it) {}
 ''');
       parseResult.assertErrors([
-        error(ParserErrorCode.extraneousModifierInPrimaryConstructor, 17, 9),
+        error(diag.extraneousModifierInPrimaryConstructor, 17, 9),
       ]);
 
       var node = parseResult.findNode.singleExtensionTypeDeclaration;
@@ -220,7 +216,7 @@ ExtensionTypeDeclaration
 extension type A(covariant final int it) {}
 ''');
     parseResult.assertErrors([
-      error(ParserErrorCode.extraneousModifierInPrimaryConstructor, 17, 9),
+      error(diag.extraneousModifierInPrimaryConstructor, 17, 9),
     ]);
 
     var node = parseResult.findNode.singleExtensionTypeDeclaration;
@@ -248,7 +244,7 @@ ExtensionTypeDeclaration
 extension type A(covariant final int it) {}
 ''');
       parseResult.assertErrors([
-        error(ParserErrorCode.extraneousModifierInPrimaryConstructor, 17, 9),
+        error(diag.extraneousModifierInPrimaryConstructor, 17, 9),
       ]);
 
       var node = parseResult.findNode.singleExtensionTypeDeclaration;
@@ -326,9 +322,7 @@ ExtensionTypeDeclaration
 // @dart = 3.10
 extension type A(final int it) {}
 ''');
-    parseResult.assertErrors([
-      error(ParserErrorCode.representationFieldModifier, 33, 5),
-    ]);
+    parseResult.assertErrors([error(diag.representationFieldModifier, 33, 5)]);
 
     var node = parseResult.findNode.singleExtensionTypeDeclaration;
     assertParsedNodeText(node, r'''
@@ -356,7 +350,7 @@ ExtensionTypeDeclaration
 extension type A(final int it) {}
 ''');
       parseResult.assertErrors([
-        error(ParserErrorCode.representationFieldModifier, 33, 5),
+        error(diag.representationFieldModifier, 33, 5),
       ]);
 
       var node = parseResult.findNode.singleExtensionTypeDeclaration;
@@ -382,9 +376,7 @@ ExtensionTypeDeclaration
     var parseResult = parseStringWithErrors(r'''
 extension type A(required int it) {}
 ''');
-    parseResult.assertErrors([
-      error(ParserErrorCode.extraneousModifier, 17, 8),
-    ]);
+    parseResult.assertErrors([error(diag.extraneousModifier, 17, 8)]);
 
     var node = parseResult.findNode.singleExtensionTypeDeclaration;
     assertParsedNodeText(node, r'''
@@ -410,9 +402,7 @@ ExtensionTypeDeclaration
       var parseResult = parseStringWithErrors(r'''
 extension type A(required int it) {}
 ''');
-      parseResult.assertErrors([
-        error(ParserErrorCode.extraneousModifier, 17, 8),
-      ]);
+      parseResult.assertErrors([error(diag.extraneousModifier, 17, 8)]);
 
       var node = parseResult.findNode.singleExtensionTypeDeclaration;
       assertParsedNodeText(node, r'''
@@ -437,9 +427,7 @@ ExtensionTypeDeclaration
     var parseResult = parseStringWithErrors(r'''
 extension type A(static int it) {}
 ''');
-    parseResult.assertErrors([
-      error(ParserErrorCode.extraneousModifier, 17, 6),
-    ]);
+    parseResult.assertErrors([error(diag.extraneousModifier, 17, 6)]);
 
     var node = parseResult.findNode.singleExtensionTypeDeclaration;
     assertParsedNodeText(node, r'''
@@ -465,9 +453,7 @@ ExtensionTypeDeclaration
       var parseResult = parseStringWithErrors(r'''
 extension type A(static int it) {}
 ''');
-      parseResult.assertErrors([
-        error(ParserErrorCode.extraneousModifier, 17, 6),
-      ]);
+      parseResult.assertErrors([error(diag.extraneousModifier, 17, 6)]);
 
       var node = parseResult.findNode.singleExtensionTypeDeclaration;
       assertParsedNodeText(node, r'''
@@ -492,9 +478,7 @@ ExtensionTypeDeclaration
     var parseResult = parseStringWithErrors(r'''
 extension type A(int A) {}
 ''');
-    parseResult.assertErrors([
-      error(ParserErrorCode.memberWithClassName, 21, 1),
-    ]);
+    parseResult.assertErrors([error(diag.memberWithClassName, 21, 1)]);
 
     var node = parseResult.findNode.singleExtensionTypeDeclaration;
     assertParsedNodeText(node, r'''
@@ -520,9 +504,7 @@ ExtensionTypeDeclaration
       var parseResult = parseStringWithErrors(r'''
 extension type A(int A) {}
 ''');
-      parseResult.assertErrors([
-        error(ParserErrorCode.memberWithClassName, 21, 1),
-      ]);
+      parseResult.assertErrors([error(diag.memberWithClassName, 21, 1)]);
 
       var node = parseResult.findNode.singleExtensionTypeDeclaration;
       assertParsedNodeText(node, r'''
@@ -550,7 +532,7 @@ extension type A(int it) {
 }
 ''');
     parseResult.assertErrors([
-      error(ParserErrorCode.extraneousModifierInExtensionType, 38, 9),
+      error(diag.extraneousModifierInExtensionType, 38, 9),
     ]);
 
     var node = parseResult.findNode.singleExtensionTypeDeclaration;
@@ -597,7 +579,7 @@ extension type A(int it) {
 }
 ''');
       parseResult.assertErrors([
-        error(ParserErrorCode.extraneousModifierInExtensionType, 38, 9),
+        error(diag.extraneousModifierInExtensionType, 38, 9),
       ]);
 
       var node = parseResult.findNode.singleExtensionTypeDeclaration;
@@ -643,7 +625,7 @@ extension type A(int it) {
 }
 ''');
     parseResult.assertErrors([
-      error(ParserErrorCode.extraneousModifierInExtensionType, 45, 9),
+      error(diag.extraneousModifierInExtensionType, 45, 9),
     ]);
 
     var node = parseResult.findNode.singleExtensionTypeDeclaration;
@@ -691,7 +673,7 @@ extension type A(int it) {
 }
 ''');
       parseResult.assertErrors([
-        error(ParserErrorCode.extraneousModifierInExtensionType, 45, 9),
+        error(diag.extraneousModifierInExtensionType, 45, 9),
       ]);
 
       var node = parseResult.findNode.singleExtensionTypeDeclaration;
@@ -735,9 +717,7 @@ ExtensionTypeDeclaration
     var parseResult = parseStringWithErrors(r'''
 extension type A(int a, String b) {}
 ''');
-    parseResult.assertErrors([
-      error(ParserErrorCode.multipleRepresentationFields, 22, 1),
-    ]);
+    parseResult.assertErrors([error(diag.multipleRepresentationFields, 22, 1)]);
 
     var node = parseResult.findNode.singleExtensionTypeDeclaration;
     assertParsedNodeText(node, r'''
@@ -764,7 +744,7 @@ ExtensionTypeDeclaration
 extension type A(int a, String b) {}
 ''');
       parseResult.assertErrors([
-        error(ParserErrorCode.multipleRepresentationFields, 22, 1),
+        error(diag.multipleRepresentationFields, 22, 1),
       ]);
 
       var node = parseResult.findNode.singleExtensionTypeDeclaration;
@@ -790,9 +770,7 @@ ExtensionTypeDeclaration
     var parseResult = parseStringWithErrors(r'''
 extension type A() {}
 ''');
-    parseResult.assertErrors([
-      error(ParserErrorCode.expectedRepresentationField, 17, 1),
-    ]);
+    parseResult.assertErrors([error(diag.expectedRepresentationField, 17, 1)]);
 
     var node = parseResult.findNode.singleExtensionTypeDeclaration;
     assertParsedNodeText(node, r'''
@@ -819,7 +797,7 @@ ExtensionTypeDeclaration
 extension type A() {}
 ''');
       parseResult.assertErrors([
-        error(ParserErrorCode.expectedRepresentationField, 17, 1),
+        error(diag.expectedRepresentationField, 17, 1),
       ]);
 
       var node = parseResult.findNode.singleExtensionTypeDeclaration;
@@ -845,9 +823,7 @@ ExtensionTypeDeclaration
     var parseResult = parseStringWithErrors(r'''
 extension type A(it) {}
 ''');
-    parseResult.assertErrors([
-      error(ParserErrorCode.expectedRepresentationType, 17, 2),
-    ]);
+    parseResult.assertErrors([error(diag.expectedRepresentationType, 17, 2)]);
 
     var node = parseResult.findNode.singleExtensionTypeDeclaration;
     assertParsedNodeText(node, r'''
@@ -873,9 +849,7 @@ ExtensionTypeDeclaration
       var parseResult = parseStringWithErrors(r'''
 extension type A(it) {}
 ''');
-      parseResult.assertErrors([
-        error(ParserErrorCode.expectedRepresentationType, 17, 2),
-      ]);
+      parseResult.assertErrors([error(diag.expectedRepresentationType, 17, 2)]);
 
       var node = parseResult.findNode.singleExtensionTypeDeclaration;
       assertParsedNodeText(node, r'''
@@ -901,8 +875,8 @@ ExtensionTypeDeclaration
 extension type A(var it) {}
 ''');
     parseResult.assertErrors([
-      error(ParserErrorCode.expectedRepresentationType, 17, 3),
-      error(ParserErrorCode.representationFieldModifier, 17, 3),
+      error(diag.expectedRepresentationType, 17, 3),
+      error(diag.representationFieldModifier, 17, 3),
     ]);
 
     var node = parseResult.findNode.singleExtensionTypeDeclaration;
@@ -930,8 +904,8 @@ ExtensionTypeDeclaration
 extension type A(var it) {}
 ''');
       parseResult.assertErrors([
-        error(ParserErrorCode.expectedRepresentationType, 17, 3),
-        error(ParserErrorCode.representationFieldModifier, 17, 3),
+        error(diag.expectedRepresentationType, 17, 3),
+        error(diag.representationFieldModifier, 17, 3),
       ]);
 
       var node = parseResult.findNode.singleExtensionTypeDeclaration;
@@ -957,9 +931,7 @@ ExtensionTypeDeclaration
     var parseResult = parseStringWithErrors(r'''
 extension type A(super.it) {}
 ''');
-    parseResult.assertErrors([
-      error(ParserErrorCode.expectedRepresentationField, 17, 5),
-    ]);
+    parseResult.assertErrors([error(diag.expectedRepresentationField, 17, 5)]);
 
     var node = parseResult.findNode.singleExtensionTypeDeclaration;
     assertParsedNodeText(node, r'''
@@ -986,7 +958,7 @@ ExtensionTypeDeclaration
 extension type A(super.it) {}
 ''');
       parseResult.assertErrors([
-        error(ParserErrorCode.expectedRepresentationField, 17, 5),
+        error(diag.expectedRepresentationField, 17, 5),
       ]);
 
       var node = parseResult.findNode.singleExtensionTypeDeclaration;
@@ -1013,7 +985,7 @@ ExtensionTypeDeclaration
 extension type A(int it,) {}
 ''');
     parseResult.assertErrors([
-      error(ParserErrorCode.representationFieldTrailingComma, 23, 1),
+      error(diag.representationFieldTrailingComma, 23, 1),
     ]);
 
     var node = parseResult.findNode.singleExtensionTypeDeclaration;
@@ -1041,7 +1013,7 @@ ExtensionTypeDeclaration
 extension type A(int it,) {}
 ''');
       parseResult.assertErrors([
-        error(ParserErrorCode.representationFieldTrailingComma, 23, 1),
+        error(diag.representationFieldTrailingComma, 23, 1),
       ]);
 
       var node = parseResult.findNode.singleExtensionTypeDeclaration;
@@ -1068,13 +1040,13 @@ ExtensionTypeDeclaration
 extension type A._<T>(T _) {}
 ''');
     parseResult.assertErrors([
-      error(ParserErrorCode.expectedRepresentationField, 16, 0),
-      error(ParserErrorCode.missingPrimaryConstructorParameters, 17, 1),
-      error(ParserErrorCode.expectedExtensionTypeBody, 17, 1),
-      error(ParserErrorCode.expectedExecutable, 18, 1),
-      error(ParserErrorCode.missingConstFinalVarOrType, 19, 1),
-      error(ParserErrorCode.expectedToken, 19, 1),
-      error(ParserErrorCode.topLevelOperator, 20, 1),
+      error(diag.expectedRepresentationField, 16, 0),
+      error(diag.missingPrimaryConstructorParameters, 17, 1),
+      error(diag.expectedExtensionTypeBody, 17, 1),
+      error(diag.expectedExecutable, 18, 1),
+      error(diag.missingConstFinalVarOrType, 19, 1),
+      error(diag.expectedToken, 19, 1),
+      error(diag.topLevelOperator, 20, 1),
     ]);
 
     var node = parseResult.findNode.singleExtensionTypeDeclaration;
@@ -1105,13 +1077,13 @@ ExtensionTypeDeclaration
 extension type A._<T>(T _) {}
 ''');
       parseResult.assertErrors([
-        error(ParserErrorCode.expectedRepresentationField, 16, 0),
-        error(ParserErrorCode.missingPrimaryConstructorParameters, 17, 1),
-        error(ParserErrorCode.expectedExtensionTypeBody, 17, 1),
-        error(ParserErrorCode.expectedExecutable, 18, 1),
-        error(ParserErrorCode.missingConstFinalVarOrType, 19, 1),
-        error(ParserErrorCode.expectedToken, 19, 1),
-        error(ParserErrorCode.topLevelOperator, 20, 1),
+        error(diag.expectedRepresentationField, 16, 0),
+        error(diag.missingPrimaryConstructorParameters, 17, 1),
+        error(diag.expectedExtensionTypeBody, 17, 1),
+        error(diag.expectedExecutable, 18, 1),
+        error(diag.missingConstFinalVarOrType, 19, 1),
+        error(diag.expectedToken, 19, 1),
+        error(diag.topLevelOperator, 20, 1),
       ]);
 
       var node = parseResult.findNode.singleExtensionTypeDeclaration;
@@ -1142,9 +1114,7 @@ class A {}
 extension type B(int it) {}
 class C {}
 ''');
-    parseResult.assertErrors([
-      error(ParserErrorCode.experimentNotEnabled, 36, 4),
-    ]);
+    parseResult.assertErrors([error(diag.experimentNotEnabled, 36, 4)]);
 
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
@@ -1831,9 +1801,7 @@ ExtensionTypeDeclaration
     var parseResult = parseStringWithErrors(r'''
 extension type const E {}
 ''');
-    parseResult.assertErrors([
-      error(ParserErrorCode.missingPrimaryConstructor, 21, 1),
-    ]);
+    parseResult.assertErrors([error(diag.missingPrimaryConstructor, 21, 1)]);
 
     var node = parseResult.findNode.singleExtensionTypeDeclaration;
     assertParsedNodeText(node, r'''
@@ -1861,9 +1829,7 @@ ExtensionTypeDeclaration
     var parseResult = parseStringWithErrors(r'''
 extension type E {}
 ''');
-    parseResult.assertErrors([
-      error(ParserErrorCode.missingPrimaryConstructor, 15, 1),
-    ]);
+    parseResult.assertErrors([error(diag.missingPrimaryConstructor, 15, 1)]);
 
     var node = parseResult.findNode.extensionTypeDeclaration('E');
     assertParsedNodeText(node, r'''
@@ -1889,9 +1855,7 @@ ExtensionTypeDeclaration
       var parseResult = parseStringWithErrors(r'''
 extension type E {}
 ''');
-      parseResult.assertErrors([
-        error(ParserErrorCode.missingPrimaryConstructor, 15, 1),
-      ]);
+      parseResult.assertErrors([error(diag.missingPrimaryConstructor, 15, 1)]);
 
       var node = parseResult.findNode.extensionTypeDeclaration('E');
       assertParsedNodeText(node, r'''

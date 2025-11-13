@@ -10,8 +10,8 @@ import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/element/extensions.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_schema.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:analyzer/src/diagnostic/diagnostic_factory.dart';
-import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 
 /// Helper for resolving [RecordLiteral]s.
@@ -111,23 +111,20 @@ class RecordLiteralResolver {
         var nameNode = field.name.label;
         var name = nameNode.name;
         if (name.startsWith('_')) {
-          _diagnosticReporter.atNode(
-            nameNode,
-            CompileTimeErrorCode.invalidFieldNamePrivate,
-          );
+          _diagnosticReporter.atNode(nameNode, diag.invalidFieldNamePrivate);
         } else {
           var index = RecordTypeExtension.positionalFieldIndex(name);
           if (index != null) {
             if (index < positionalCount) {
               _diagnosticReporter.atNode(
                 nameNode,
-                CompileTimeErrorCode.invalidFieldNamePositional,
+                diag.invalidFieldNamePositional,
               );
             }
           } else if (isForbiddenNameForRecordField(name)) {
             _diagnosticReporter.atNode(
               nameNode,
-              CompileTimeErrorCode.invalidFieldNameFromObject,
+              diag.invalidFieldNameFromObject,
             );
           }
         }
@@ -155,7 +152,7 @@ class RecordLiteralResolver {
     }
 
     if (staticType is VoidType) {
-      _diagnosticReporter.atNode(field, CompileTimeErrorCode.useOfVoidResult);
+      _diagnosticReporter.atNode(field, diag.useOfVoidResult);
     }
 
     return staticType;

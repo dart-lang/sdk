@@ -5,7 +5,7 @@
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/analysis/experiments.dart';
-import 'package:analyzer/src/dart/error/syntactic_errors.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -35,7 +35,7 @@ class C {
   m() => new A<@annotation C>();
 }
 ''',
-      [ParserErrorCode.annotationOnTypeArgument],
+      [diag.annotationOnTypeArgument],
       '''
 const annotation = null;
 class A<E> {}
@@ -56,7 +56,7 @@ class MiscellaneousTest extends AbstractRecoveryTest {
 class B = Object with A {}
 ''',
       // TODO(danrubel): Consolidate and improve error message.
-      [ParserErrorCode.expectedExecutable, ParserErrorCode.expectedToken],
+      [diag.expectedExecutable, diag.expectedToken],
       '''
 class B = Object with A;
 ''',
@@ -69,7 +69,7 @@ int get g(x) => 0;
 ''';
     var unit = parseCompilationUnit(
       content,
-      codes: [ParserErrorCode.getterWithParameters],
+      codes: [diag.getterWithParameters],
     );
     validateTokenStream(unit.beginToken);
 
@@ -103,7 +103,7 @@ f(x) {
   while (1 < x < 3) {}
 }
 ''',
-      codes: [ParserErrorCode.equalityCannotBeEqualityOperand],
+      codes: [diag.equalityCannotBeEqualityOperand],
     );
   }
 
@@ -141,7 +141,7 @@ Map<int, int> map = <int, int>{};
 mixin M {}
 mixin N with M {}
 ''',
-      [ParserErrorCode.mixinWithClause],
+      [diag.mixinWithClause],
       '''
 mixin M {}
 mixin N {}
@@ -181,7 +181,7 @@ final Map v = {
   'c': () => new C(),
 };
 ''',
-      [ParserErrorCode.unexpectedToken],
+      [diag.unexpectedToken],
       '''
 class C {}
 final Map v = {
@@ -202,7 +202,7 @@ class ModifiersTest extends AbstractRecoveryTest {
       '''
 static class A {}
 ''',
-      [ParserErrorCode.extraneousModifier],
+      [diag.extraneousModifier],
       '''
 class A {}
 ''',
@@ -215,7 +215,7 @@ class A {}
 main() {}
 const int get foo => 499;
 ''',
-      [ParserErrorCode.extraneousModifier],
+      [diag.extraneousModifier],
       '''
 main() {}
 int get foo => 499;
@@ -229,7 +229,7 @@ int get foo => 499;
 main() {}
 const int foo() => 499;
 ''',
-      [ParserErrorCode.extraneousModifier],
+      [diag.extraneousModifier],
       '''
 main() {}
 int foo() => 499;
@@ -243,7 +243,7 @@ int foo() => 499;
 main() {}
 const set foo(v) => 499;
 ''',
-      [ParserErrorCode.extraneousModifier],
+      [diag.extraneousModifier],
       '''
 main() {}
 set foo(v) => 499;
@@ -265,7 +265,7 @@ class MultipleTypeTest extends AbstractRecoveryTest {
       '''
 String void bar() { }
 ''',
-      [ParserErrorCode.unexpectedToken],
+      [diag.unexpectedToken],
       '''
 String bar() { }
 ''',
@@ -287,7 +287,7 @@ class Foo extends A, B {
   Foo() { }
 }
 ''',
-      [ParserErrorCode.unexpectedToken, ParserErrorCode.unexpectedToken],
+      [diag.unexpectedToken, diag.unexpectedToken],
       '''
 class A { }
 class B { }
@@ -305,7 +305,7 @@ class C {
   foo() {};
 }
 ''',
-      [ParserErrorCode.expectedClassMember],
+      [diag.expectedClassMember],
       '''
 class C {
   foo() {}
@@ -319,7 +319,7 @@ class C {
       '''
 foo() {};
 ''',
-      [ParserErrorCode.unexpectedToken],
+      [diag.unexpectedToken],
       '''
 foo() {}
 ''',
@@ -333,7 +333,7 @@ class C {
   ;foo() {}
 }
 ''',
-      [ParserErrorCode.expectedClassMember],
+      [diag.expectedClassMember],
       '''
 class C {
   foo() {}
@@ -350,7 +350,7 @@ class C {
       '''
 ;foo() {}
 ''',
-      [ParserErrorCode.expectedExecutable],
+      [diag.expectedExecutable],
       '''
 foo() {}
 ''',
@@ -365,7 +365,7 @@ class C {
   bar() {}
 }
 ''',
-      [ParserErrorCode.expectedClassMember],
+      [diag.expectedClassMember],
       '''
 class C {
   foo() {}
@@ -381,7 +381,7 @@ class C {
 foo() {};
 bar() {}
 ''',
-      [ParserErrorCode.unexpectedToken],
+      [diag.unexpectedToken],
       '''
 foo() {}
 bar() {}
@@ -398,7 +398,7 @@ class VarianceModifierTest extends AbstractRecoveryTest {
       '''
 class A<in out X> {}
 ''',
-      [ParserErrorCode.multipleVarianceModifiers],
+      [diag.multipleVarianceModifiers],
       '''
 class A<in X> {}
 ''',

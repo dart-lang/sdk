@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
@@ -34,7 +34,7 @@ class A {
 const a = A();
 const b = a == 0;
 ''',
-      [error(CompileTimeErrorCode.constEvalTypeBoolNumString, 67, 6)],
+      [error(diag.constEvalTypeBoolNumString, 67, 6)],
     );
   }
 
@@ -57,7 +57,7 @@ class A {
 const a = A();
 const b = a != 0;
 ''',
-      [error(CompileTimeErrorCode.constEvalTypeBoolNumString, 67, 6)],
+      [error(diag.constEvalTypeBoolNumString, 67, 6)],
     );
   }
 
@@ -66,7 +66,7 @@ const b = a != 0;
       r'''
 const x = '${const [2]}';
 ''',
-      [error(CompileTimeErrorCode.constEvalTypeBoolNumString, 11, 12)],
+      [error(diag.constEvalTypeBoolNumString, 11, 12)],
     );
   }
 }

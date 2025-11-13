@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
@@ -24,7 +24,7 @@ class ConflictingTypeVariableAndClassTest extends PubPackageResolutionTest {
       r'''
 class T<T> {}
 ''',
-      [error(CompileTimeErrorCode.conflictingTypeVariableAndClass, 8, 1)],
+      [error(diag.conflictingTypeVariableAndClass, 8, 1)],
     );
   }
 }
@@ -38,7 +38,7 @@ enum E<E> {
   v
 }
 ''',
-      [error(CompileTimeErrorCode.conflictingTypeVariableAndEnum, 7, 1)],
+      [error(diag.conflictingTypeVariableAndEnum, 7, 1)],
     );
   }
 }
@@ -50,7 +50,7 @@ class ConflictingTypeVariableAndExtensionTest extends PubPackageResolutionTest {
       r'''
 extension T<T> on String {}
 ''',
-      [error(CompileTimeErrorCode.conflictingTypeVariableAndExtension, 12, 1)],
+      [error(diag.conflictingTypeVariableAndExtension, 12, 1)],
     );
   }
 }
@@ -63,13 +63,7 @@ class ConflictingTypeVariableAndExtensionTypeTest
       r'''
 extension type T<T>(int it) {}
 ''',
-      [
-        error(
-          CompileTimeErrorCode.conflictingTypeVariableAndExtensionType,
-          17,
-          1,
-        ),
-      ],
+      [error(diag.conflictingTypeVariableAndExtensionType, 17, 1)],
     );
   }
 }
@@ -81,7 +75,7 @@ class ConflictingTypeVariableAndMixinTest extends PubPackageResolutionTest {
       r'''
 mixin T<T> {}
 ''',
-      [error(CompileTimeErrorCode.conflictingTypeVariableAndMixin, 8, 1)],
+      [error(diag.conflictingTypeVariableAndMixin, 8, 1)],
     );
   }
 }

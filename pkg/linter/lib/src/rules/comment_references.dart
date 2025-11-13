@@ -10,6 +10,7 @@ import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/error/error.dart';
 
 import '../analyzer.dart';
+import '../diagnostic.dart' as diag;
 
 const _desc = r'Only reference in-scope identifiers in doc comments.';
 
@@ -18,7 +19,7 @@ class CommentReferences extends AnalysisRule {
     : super(name: LintNames.comment_references, description: _desc);
 
   @override
-  DiagnosticCode get diagnosticCode => LinterLintCode.commentReferences;
+  DiagnosticCode get diagnosticCode => diag.commentReferences;
 
   @override
   void registerNodeProcessors(

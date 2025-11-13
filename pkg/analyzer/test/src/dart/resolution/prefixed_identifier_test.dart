@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'context_collection_resolution.dart';
@@ -424,7 +424,7 @@ int Function() foo() {
   return a;
 }
 ''',
-      [error(CompileTimeErrorCode.returnOfInvalidTypeFromFunction, 50, 1)],
+      [error(diag.returnOfInvalidTypeFromFunction, 50, 1)],
     );
 
     var node = findNode.simple('a;');
@@ -569,7 +569,7 @@ void f() {
   prefix.foo;
 }
 ''',
-      [error(CompileTimeErrorCode.undefinedPrefixedName, 48, 3)],
+      [error(diag.undefinedPrefixedName, 48, 3)],
     );
 
     var node = findNode.prefixed('prefix.');
@@ -885,13 +885,7 @@ void f(A? a) {
   a.foo;
 }
 ''',
-      [
-        error(
-          CompileTimeErrorCode.uncheckedPropertyAccessOfNullableValue,
-          69,
-          3,
-        ),
-      ],
+      [error(diag.uncheckedPropertyAccessOfNullableValue, 69, 3)],
     );
 
     var node = findNode.singlePrefixedIdentifier;
@@ -1150,7 +1144,7 @@ void f(int a) {
   a.foo;
 }
 ''',
-      [error(CompileTimeErrorCode.undefinedGetter, 20, 3)],
+      [error(diag.undefinedGetter, 20, 3)],
     );
 
     var node = findNode.prefixed('foo;');

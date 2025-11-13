@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
@@ -34,7 +34,7 @@ void f() {
   g(D());
 }
 ''',
-      [error(CompileTimeErrorCode.uriDoesNotExist, 24, 11)],
+      [error(diag.uriDoesNotExist, 24, 11)],
     );
   }
 
@@ -43,7 +43,7 @@ void f() {
       '''
 export 'unknown.dart';
 ''',
-      [error(CompileTimeErrorCode.uriDoesNotExist, 7, 14)],
+      [error(diag.uriDoesNotExist, 7, 14)],
     );
   }
 
@@ -52,7 +52,7 @@ export 'unknown.dart';
       r'''
 export 'dart:foo';
 ''',
-      [error(CompileTimeErrorCode.uriDoesNotExist, 7, 10)],
+      [error(diag.uriDoesNotExist, 7, 10)],
     );
   }
 
@@ -61,7 +61,7 @@ export 'dart:foo';
       '''
 export 'dart:math/bar.dart';
 ''',
-      [error(CompileTimeErrorCode.uriDoesNotExist, 7, 20)],
+      [error(diag.uriDoesNotExist, 7, 20)],
     );
   }
 
@@ -70,7 +70,7 @@ export 'dart:math/bar.dart';
       '''
 import 'unknown.dart';
 ''',
-      [error(CompileTimeErrorCode.uriDoesNotExist, 7, 14)],
+      [error(diag.uriDoesNotExist, 7, 14)],
     );
   }
 
@@ -81,7 +81,7 @@ import 'unknown.dart';
       '''
 import 'target.dart';
 ''',
-      [error(WarningCode.unusedImport, 7, 13)],
+      [error(diag.unusedImport, 7, 13)],
     );
 
     // Remove the overlay in the same way as AnalysisServer.
@@ -92,7 +92,7 @@ import 'target.dart';
     await analysisDriver.applyPendingFileChanges();
 
     await resolveTestFile();
-    assertErrorsInResult([error(CompileTimeErrorCode.uriDoesNotExist, 7, 13)]);
+    assertErrorsInResult([error(diag.uriDoesNotExist, 7, 13)]);
   }
 
   test_libraryImport_cannotResolve() async {
@@ -100,7 +100,7 @@ import 'target.dart';
       r'''
 import 'dart:foo';
 ''',
-      [error(CompileTimeErrorCode.uriDoesNotExist, 7, 10)],
+      [error(diag.uriDoesNotExist, 7, 10)],
     );
   }
 
@@ -109,7 +109,7 @@ import 'dart:foo';
       '''
 import 'dart:math/bar.dart';
 ''',
-      [error(CompileTimeErrorCode.uriDoesNotExist, 7, 20)],
+      [error(diag.uriDoesNotExist, 7, 20)],
     );
   }
 
@@ -121,7 +121,7 @@ main() {
   p.loadLibrary();
 }
 ''',
-      [error(CompileTimeErrorCode.uriDoesNotExist, 7, 15)],
+      [error(diag.uriDoesNotExist, 7, 15)],
     );
   }
 
@@ -131,7 +131,7 @@ main() {
       '''
 import 'target.dart';
 ''',
-      [error(CompileTimeErrorCode.uriDoesNotExist, 7, 13)],
+      [error(diag.uriDoesNotExist, 7, 13)],
     );
 
     newFile('$testPackageLibPath/target.dart', '');
@@ -140,7 +140,7 @@ import 'target.dart';
     // TODO(brianwilkerson): The error does not go away, possibly because the
     //  file is not being reanalyzed.
     await resolveTestFile();
-    assertErrorsInResult([error(WarningCode.unusedImport, 0, 0)]);
+    assertErrorsInResult([error(diag.unusedImport, 0, 0)]);
   }
 
   test_part() async {
@@ -149,7 +149,7 @@ import 'target.dart';
 library lib;
 part 'unknown.dart';
 ''',
-      [error(CompileTimeErrorCode.uriDoesNotExist, 18, 14)],
+      [error(diag.uriDoesNotExist, 18, 14)],
     );
   }
 
@@ -158,7 +158,7 @@ part 'unknown.dart';
       r'''
 part 'dart:foo';
 ''',
-      [error(CompileTimeErrorCode.uriDoesNotExist, 5, 10)],
+      [error(diag.uriDoesNotExist, 5, 10)],
     );
   }
 }

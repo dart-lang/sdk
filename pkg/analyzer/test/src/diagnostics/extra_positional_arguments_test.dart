@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
@@ -27,7 +27,7 @@ main() {
   const A(0);
 }
 ''',
-      [error(CompileTimeErrorCode.extraPositionalArgumentsCouldBeNamed, 55, 1)],
+      [error(diag.extraPositionalArgumentsCouldBeNamed, 55, 1)],
     );
   }
 
@@ -41,7 +41,7 @@ class B extends A {
   const B() : super(0);
 }
 ''',
-      [error(CompileTimeErrorCode.extraPositionalArgumentsCouldBeNamed, 76, 1)],
+      [error(diag.extraPositionalArgumentsCouldBeNamed, 76, 1)],
     );
   }
 
@@ -56,7 +56,7 @@ main() {
   const B(0);
 }
 ''',
-      [error(CompileTimeErrorCode.extraPositionalArgumentsCouldBeNamed, 70, 1)],
+      [error(diag.extraPositionalArgumentsCouldBeNamed, 70, 1)],
     );
   }
 
@@ -71,7 +71,7 @@ main() {
   g(f());
 }
 ''',
-      [error(CompileTimeErrorCode.extraPositionalArgumentsCouldBeNamed, 56, 3)],
+      [error(diag.extraPositionalArgumentsCouldBeNamed, 56, 3)],
     );
     assertType(
       findNode.methodInvocation('f()').typeArgumentTypes!.single,
@@ -86,7 +86,7 @@ main() {
   (int x, {int y = 0}) {} (0, 1);
 }
 ''',
-      [error(CompileTimeErrorCode.extraPositionalArgumentsCouldBeNamed, 39, 1)],
+      [error(diag.extraPositionalArgumentsCouldBeNamed, 39, 1)],
     );
   }
 
@@ -99,8 +99,8 @@ enum E {
 }
 ''',
       [
-        error(CompileTimeErrorCode.extraPositionalArgumentsCouldBeNamed, 13, 1),
-        error(WarningCode.unusedElementParameter, 33, 1),
+        error(diag.extraPositionalArgumentsCouldBeNamed, 13, 1),
+        error(diag.unusedElementParameter, 33, 1),
       ],
     );
   }
@@ -113,7 +113,7 @@ extension type const A(int it) {}
 @A(0, 1)
 void f() {}
 ''',
-      [error(CompileTimeErrorCode.extraPositionalArguments, 41, 1)],
+      [error(diag.extraPositionalArguments, 41, 1)],
     );
   }
 
@@ -125,7 +125,7 @@ main() {
   f(0, 1, '2');
 }
 ''',
-      [error(CompileTimeErrorCode.extraPositionalArgumentsCouldBeNamed, 26, 1)],
+      [error(diag.extraPositionalArgumentsCouldBeNamed, 26, 1)],
     );
   }
 
@@ -139,8 +139,8 @@ main() {
 }
 ''',
       [
-        error(CompileTimeErrorCode.extraPositionalArgumentsCouldBeNamed, 71, 1),
-        error(CompileTimeErrorCode.undefinedIdentifier, 71, 1),
+        error(diag.extraPositionalArgumentsCouldBeNamed, 71, 1),
+        error(diag.undefinedIdentifier, 71, 1),
       ],
     );
   }
@@ -158,7 +158,7 @@ main() {
   const A(0);
 }
 ''',
-      [error(CompileTimeErrorCode.extraPositionalArguments, 44, 1)],
+      [error(diag.extraPositionalArguments, 44, 1)],
     );
   }
 
@@ -172,7 +172,7 @@ class B extends A {
   const B() : super(0);
 }
 ''',
-      [error(CompileTimeErrorCode.extraPositionalArguments, 65, 1)],
+      [error(diag.extraPositionalArguments, 65, 1)],
     );
   }
 
@@ -183,7 +183,7 @@ enum E {
   v(0)
 }
 ''',
-      [error(CompileTimeErrorCode.extraPositionalArguments, 13, 1)],
+      [error(diag.extraPositionalArguments, 13, 1)],
     );
   }
 
@@ -194,7 +194,7 @@ main() {
   (int x) {} (0, 1);
 }
 ''',
-      [error(CompileTimeErrorCode.extraPositionalArguments, 26, 1)],
+      [error(diag.extraPositionalArguments, 26, 1)],
     );
   }
 
@@ -206,7 +206,7 @@ main() {
   f(0, 1, '2');
 }
 ''',
-      [error(CompileTimeErrorCode.extraPositionalArguments, 20, 1)],
+      [error(diag.extraPositionalArguments, 20, 1)],
     );
   }
 }

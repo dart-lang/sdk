@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/src/dart/scanner/scanner.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -21,10 +21,10 @@ class ExtensionMethodsParserTest extends FastaParserTestCase {
     var unit = parseCompilationUnit(
       'extension E extends A with B, C implements D { }',
       diagnostics: [
-        expectedError(ParserErrorCode.expectedInstead, 12, 7),
-        expectedError(ParserErrorCode.unexpectedToken, 22, 4),
-        expectedError(ParserErrorCode.unexpectedToken, 28, 1),
-        expectedError(ParserErrorCode.unexpectedToken, 32, 10),
+        expectedError(diag.expectedInstead, 12, 7),
+        expectedError(diag.unexpectedToken, 22, 4),
+        expectedError(diag.unexpectedToken, 28, 1),
+        expectedError(diag.unexpectedToken, 32, 10),
       ],
     );
     expect(unit.declarations, hasLength(1));
@@ -39,8 +39,8 @@ class ExtensionMethodsParserTest extends FastaParserTestCase {
     var unit = parseCompilationUnit(
       'extension E implements C, D { }',
       diagnostics: [
-        expectedError(ParserErrorCode.expectedInstead, 12, 10),
-        expectedError(ParserErrorCode.unexpectedToken, 24, 1),
+        expectedError(diag.expectedInstead, 12, 10),
+        expectedError(diag.unexpectedToken, 24, 1),
       ],
     );
     expect(unit.declarations, hasLength(1));
@@ -95,9 +95,7 @@ extension E on C {
 }
 class C {}
 ''',
-      diagnostics: [
-        expectedError(ParserErrorCode.extensionDeclaresConstructor, 21, 1),
-      ],
+      diagnostics: [expectedError(diag.extensionDeclaresConstructor, 21, 1)],
     );
     expect(unit.declarations, hasLength(2));
     var extension = unit.declarations[0] as ExtensionDeclaration;
@@ -112,9 +110,7 @@ extension E on C {
 }
 class C {}
 ''',
-      diagnostics: [
-        expectedError(ParserErrorCode.extensionDeclaresConstructor, 21, 1),
-      ],
+      diagnostics: [expectedError(diag.extensionDeclaresConstructor, 21, 1)],
     );
     expect(unit.declarations, hasLength(2));
     var extension = unit.declarations[0] as ExtensionDeclaration;
@@ -125,9 +121,9 @@ class C {}
     var unit = parseCompilationUnit(
       'extension E',
       diagnostics: [
-        expectedError(ParserErrorCode.expectedToken, 10, 1),
-        expectedError(ParserErrorCode.expectedTypeName, 11, 0),
-        expectedError(ParserErrorCode.expectedExtensionBody, 11, 0),
+        expectedError(diag.expectedToken, 10, 1),
+        expectedError(diag.expectedTypeName, 11, 0),
+        expectedError(diag.expectedExtensionBody, 11, 0),
       ],
     );
     expect(unit.declarations, hasLength(1));
@@ -142,8 +138,8 @@ class C {}
     var unit = parseCompilationUnit(
       'extension E {}',
       diagnostics: [
-        expectedError(ParserErrorCode.expectedToken, 10, 1),
-        expectedError(ParserErrorCode.expectedTypeName, 12, 1),
+        expectedError(diag.expectedToken, 10, 1),
+        expectedError(diag.expectedTypeName, 12, 1),
       ],
     );
     expect(unit.declarations, hasLength(1));
@@ -157,7 +153,7 @@ class C {}
   void test_missing_on_withClassAndBlock() {
     var unit = parseCompilationUnit(
       'extension E C {}',
-      diagnostics: [expectedError(ParserErrorCode.expectedToken, 10, 1)],
+      diagnostics: [expectedError(diag.expectedToken, 10, 1)],
     );
     expect(unit.declarations, hasLength(1));
     var extension = unit.declarations[0] as ExtensionDeclaration;
@@ -201,7 +197,7 @@ class C {}
   void test_simple_extends() {
     var unit = parseCompilationUnit(
       'extension E extends C { }',
-      diagnostics: [expectedError(ParserErrorCode.expectedInstead, 12, 7)],
+      diagnostics: [expectedError(diag.expectedInstead, 12, 7)],
     );
     expect(unit.declarations, hasLength(1));
     var extension = unit.declarations[0] as ExtensionDeclaration;
@@ -214,7 +210,7 @@ class C {}
   void test_simple_implements() {
     var unit = parseCompilationUnit(
       'extension E implements C { }',
-      diagnostics: [expectedError(ParserErrorCode.expectedInstead, 12, 10)],
+      diagnostics: [expectedError(diag.expectedInstead, 12, 10)],
     );
     expect(unit.declarations, hasLength(1));
     var extension = unit.declarations[0] as ExtensionDeclaration;
@@ -240,7 +236,7 @@ class C {}
   void test_simple_with() {
     var unit = parseCompilationUnit(
       'extension E with C { }',
-      diagnostics: [expectedError(ParserErrorCode.expectedInstead, 12, 4)],
+      diagnostics: [expectedError(diag.expectedInstead, 12, 4)],
     );
     expect(unit.declarations, hasLength(1));
     var extension = unit.declarations[0] as ExtensionDeclaration;

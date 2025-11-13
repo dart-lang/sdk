@@ -11,6 +11,7 @@ import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/error/error.dart';
 
 import '../analyzer.dart';
+import '../diagnostic.dart' as diag;
 
 const _desc = 'Prefer int literals over double literals.';
 
@@ -19,7 +20,7 @@ class PreferIntLiterals extends AnalysisRule {
     : super(name: LintNames.prefer_int_literals, description: _desc);
 
   @override
-  DiagnosticCode get diagnosticCode => LinterLintCode.preferIntLiterals;
+  DiagnosticCode get diagnosticCode => diag.preferIntLiterals;
 
   @override
   void registerNodeProcessors(

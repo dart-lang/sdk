@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
@@ -34,10 +34,10 @@ void f(C c) {
 }
 ''',
       [
-        error(CompileTimeErrorCode.assignmentToMethod, 94, 3),
-        error(CompileTimeErrorCode.assignmentToMethod, 107, 3),
-        error(CompileTimeErrorCode.assignmentToMethod, 121, 3),
-        error(CompileTimeErrorCode.assignmentToMethod, 134, 3),
+        error(diag.assignmentToMethod, 94, 3),
+        error(diag.assignmentToMethod, 107, 3),
+        error(diag.assignmentToMethod, 121, 3),
+        error(diag.assignmentToMethod, 134, 3),
       ],
     );
   }
@@ -57,10 +57,10 @@ void f(A a) {
 }
 ''',
       [
-        error(CompileTimeErrorCode.assignmentToMethod, 47, 3),
-        error(CompileTimeErrorCode.assignmentToMethod, 60, 3),
-        error(CompileTimeErrorCode.assignmentToMethod, 74, 3),
-        error(CompileTimeErrorCode.assignmentToMethod, 87, 3),
+        error(diag.assignmentToMethod, 47, 3),
+        error(diag.assignmentToMethod, 60, 3),
+        error(diag.assignmentToMethod, 74, 3),
+        error(diag.assignmentToMethod, 87, 3),
       ],
     );
   }
@@ -80,10 +80,10 @@ void f(A a) {
 }
 ''',
       [
-        error(CompileTimeErrorCode.assignmentToMethod, 49, 3),
-        error(CompileTimeErrorCode.assignmentToMethod, 64, 3),
-        error(CompileTimeErrorCode.assignmentToMethod, 80, 3),
-        error(CompileTimeErrorCode.assignmentToMethod, 95, 3),
+        error(diag.assignmentToMethod, 49, 3),
+        error(diag.assignmentToMethod, 64, 3),
+        error(diag.assignmentToMethod, 80, 3),
+        error(diag.assignmentToMethod, 95, 3),
       ],
     );
   }
@@ -103,7 +103,7 @@ extension E on C {
   }
 }
 ''',
-      [error(CompileTimeErrorCode.assignmentToMethod, 91, 3)],
+      [error(diag.assignmentToMethod, 91, 3)],
     );
   }
 }

@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
@@ -20,7 +20,7 @@ class IllegalSyncGeneratorReturnTypeTest extends PubPackageResolutionTest {
       '''
 Iterable<void> f() sync* => [];
 ''',
-      [error(CompileTimeErrorCode.returnInGenerator, 25, 2)],
+      [error(diag.returnInGenerator, 25, 2)],
     );
   }
 
@@ -35,7 +35,7 @@ Iterable<void> f() sync* {}
       '''
 int f() sync* {}
 ''',
-      [error(CompileTimeErrorCode.illegalSyncGeneratorReturnType, 0, 3)],
+      [error(diag.illegalSyncGeneratorReturnType, 0, 3)],
     );
   }
 
@@ -45,7 +45,7 @@ int f() sync* {}
 abstract class SubIterator<T> implements Iterator<T> {}
 SubIterator<int> f() sync* {}
 ''',
-      [error(CompileTimeErrorCode.illegalSyncGeneratorReturnType, 56, 16)],
+      [error(diag.illegalSyncGeneratorReturnType, 56, 16)],
     );
   }
 
@@ -54,7 +54,7 @@ SubIterator<int> f() sync* {}
       '''
 void f() sync* {}
 ''',
-      [error(CompileTimeErrorCode.illegalSyncGeneratorReturnType, 0, 4)],
+      [error(diag.illegalSyncGeneratorReturnType, 0, 4)],
     );
   }
 
@@ -65,7 +65,7 @@ class C {
   int f() sync* {}
 }
 ''',
-      [error(CompileTimeErrorCode.illegalSyncGeneratorReturnType, 12, 3)],
+      [error(diag.illegalSyncGeneratorReturnType, 12, 3)],
     );
   }
 
@@ -77,7 +77,7 @@ class C {
   SubIterator<int> f() sync* {}
 }
 ''',
-      [error(CompileTimeErrorCode.illegalSyncGeneratorReturnType, 68, 16)],
+      [error(diag.illegalSyncGeneratorReturnType, 68, 16)],
     );
   }
 
@@ -88,7 +88,7 @@ class C {
   void f() sync* {}
 }
 ''',
-      [error(CompileTimeErrorCode.illegalSyncGeneratorReturnType, 12, 4)],
+      [error(diag.illegalSyncGeneratorReturnType, 12, 4)],
     );
   }
 }

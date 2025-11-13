@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:analyzer/src/test_utilities/mock_sdk.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -37,7 +37,7 @@ void f() {
   A(foo: 0);
 }
 ''',
-      expectedDiagnostics: [error(WarningCode.sdkVersionSince, 35, 3)],
+      expectedDiagnostics: [error(diag.sdkVersionSince, 35, 3)],
     );
   }
 
@@ -59,7 +59,7 @@ void f() {
   A(42);
 }
 ''',
-      expectedDiagnostics: [error(WarningCode.sdkVersionSince, 35, 2)],
+      expectedDiagnostics: [error(diag.sdkVersionSince, 35, 2)],
     );
   }
 
@@ -82,7 +82,7 @@ void f() {
   A<int>.named();
 }
 ''',
-      expectedDiagnostics: [error(WarningCode.sdkVersionSince, 40, 5)],
+      expectedDiagnostics: [error(diag.sdkVersionSince, 40, 5)],
     );
   }
 
@@ -105,7 +105,7 @@ void f() {
   A<int>.named;
 }
 ''',
-      expectedDiagnostics: [error(WarningCode.sdkVersionSince, 40, 5)],
+      expectedDiagnostics: [error(diag.sdkVersionSince, 40, 5)],
     );
   }
 
@@ -128,7 +128,7 @@ void f() {
   A<int>();
 }
 ''',
-      expectedDiagnostics: [error(WarningCode.sdkVersionSince, 33, 1)],
+      expectedDiagnostics: [error(diag.sdkVersionSince, 33, 1)],
     );
   }
 
@@ -153,8 +153,8 @@ void f(A a) {
 }
 ''',
       expectedDiagnostics: [
-        error(WarningCode.sdkVersionSince, 40, 3),
-        error(WarningCode.sdkVersionSince, 49, 3),
+        error(diag.sdkVersionSince, 40, 3),
+        error(diag.sdkVersionSince, 49, 3),
       ],
     );
   }
@@ -180,8 +180,8 @@ void f(A a) {
 }
 ''',
       expectedDiagnostics: [
-        error(WarningCode.sdkVersionSince, 40, 3),
-        error(WarningCode.sdkVersionSince, 54, 3),
+        error(diag.sdkVersionSince, 40, 3),
+        error(diag.sdkVersionSince, 54, 3),
       ],
     );
   }
@@ -207,8 +207,8 @@ void f(A a) {
 }
 ''',
       expectedDiagnostics: [
-        error(WarningCode.sdkVersionSince, 40, 3),
-        error(WarningCode.sdkVersionSince, 53, 3),
+        error(diag.sdkVersionSince, 40, 3),
+        error(diag.sdkVersionSince, 53, 3),
       ],
     );
   }
@@ -234,8 +234,8 @@ void f(A a) {
 }
 ''',
       expectedDiagnostics: [
-        error(WarningCode.sdkVersionSince, 40, 3),
-        error(WarningCode.sdkVersionSince, 49, 3),
+        error(diag.sdkVersionSince, 40, 3),
+        error(diag.sdkVersionSince, 49, 3),
       ],
     );
   }
@@ -261,7 +261,7 @@ void f(A a) {
   a.foo += 0;
 }
 ''',
-      expectedDiagnostics: [error(WarningCode.sdkVersionSince, 38, 3)],
+      expectedDiagnostics: [error(diag.sdkVersionSince, 38, 3)],
     );
   }
 
@@ -285,7 +285,7 @@ void f(A a) {
   a.foo += 0;
 }
 ''',
-      expectedDiagnostics: [error(WarningCode.sdkVersionSince, 38, 3)],
+      expectedDiagnostics: [error(diag.sdkVersionSince, 38, 3)],
     );
   }
 
@@ -309,7 +309,7 @@ void f(A a) {
   a.foo += 0;
 }
 ''',
-      expectedDiagnostics: [error(WarningCode.sdkVersionSince, 38, 3)],
+      expectedDiagnostics: [error(diag.sdkVersionSince, 38, 3)],
     );
   }
 
@@ -332,7 +332,7 @@ void f(A a) {
   a[0];
 }
 ''',
-      expectedDiagnostics: [error(WarningCode.sdkVersionSince, 37, 1)],
+      expectedDiagnostics: [error(diag.sdkVersionSince, 37, 1)],
     );
   }
 
@@ -355,7 +355,7 @@ void f(A a) {
   a[0] = 0;
 }
 ''',
-      expectedDiagnostics: [error(WarningCode.sdkVersionSince, 37, 1)],
+      expectedDiagnostics: [error(diag.sdkVersionSince, 37, 1)],
     );
   }
 
@@ -376,7 +376,7 @@ void f() {
   foo.A<int>();
 }
 ''',
-      expectedDiagnostics: [error(WarningCode.sdkVersionSince, 44, 1)],
+      expectedDiagnostics: [error(diag.sdkVersionSince, 44, 1)],
     );
   }
 
@@ -397,7 +397,7 @@ void f() {
   A<int>();
 }
 ''',
-      expectedDiagnostics: [error(WarningCode.sdkVersionSince, 33, 1)],
+      expectedDiagnostics: [error(diag.sdkVersionSince, 33, 1)],
     );
   }
 
@@ -420,7 +420,7 @@ void f(A a) {
   a();
 }
 ''',
-      expectedDiagnostics: [error(WarningCode.sdkVersionSince, 37, 2)],
+      expectedDiagnostics: [error(diag.sdkVersionSince, 37, 2)],
     );
   }
 
@@ -444,7 +444,7 @@ void f() {
   foo(0, bar: 1);
 }
 ''',
-      expectedDiagnostics: [error(WarningCode.sdkVersionSince, 40, 3)],
+      expectedDiagnostics: [error(diag.sdkVersionSince, 40, 3)],
     );
   }
 
@@ -468,7 +468,7 @@ void f() {
   foo(0, 42);
 }
 ''',
-      expectedDiagnostics: [error(WarningCode.sdkVersionSince, 40, 2)],
+      expectedDiagnostics: [error(diag.sdkVersionSince, 40, 2)],
     );
   }
 
@@ -491,7 +491,7 @@ void f(A a) {
   a.foo();
 }
 ''',
-      expectedDiagnostics: [error(WarningCode.sdkVersionSince, 38, 3)],
+      expectedDiagnostics: [error(diag.sdkVersionSince, 38, 3)],
     );
   }
 
@@ -514,7 +514,7 @@ void f(A a) {
   a.foo;
 }
 ''',
-      expectedDiagnostics: [error(WarningCode.sdkVersionSince, 38, 3)],
+      expectedDiagnostics: [error(diag.sdkVersionSince, 38, 3)],
     );
 
     var node = findNode.prefixed('.foo');
@@ -553,7 +553,7 @@ void f(A a) {
   (a).foo;
 }
 ''',
-      expectedDiagnostics: [error(WarningCode.sdkVersionSince, 40, 3)],
+      expectedDiagnostics: [error(diag.sdkVersionSince, 40, 3)],
     );
 
     var node = findNode.propertyAccess('.foo');
@@ -597,8 +597,8 @@ void f(A a) {
 }
 ''',
       expectedDiagnostics: [
-        error(WarningCode.sdkVersionSince, 40, 3),
-        error(WarningCode.sdkVersionSince, 53, 3),
+        error(diag.sdkVersionSince, 40, 3),
+        error(diag.sdkVersionSince, 53, 3),
       ],
     );
   }
@@ -618,7 +618,7 @@ import 'dart:foo' as foo;
 
 void f(foo.A<int> a) {}
 ''',
-      expectedDiagnostics: [error(WarningCode.sdkVersionSince, 38, 1)],
+      expectedDiagnostics: [error(diag.sdkVersionSince, 38, 1)],
     );
   }
 
@@ -637,7 +637,7 @@ import 'dart:foo';
 
 void f(A<int> a) {}
 ''',
-      expectedDiagnostics: [error(WarningCode.sdkVersionSince, 27, 1)],
+      expectedDiagnostics: [error(diag.sdkVersionSince, 27, 1)],
     );
   }
 
@@ -686,7 +686,7 @@ import 'dart:foo';
 
 void f(A a) {}
 ''',
-      expectedDiagnostics: [error(WarningCode.sdkVersionSince, 27, 1)],
+      expectedDiagnostics: [error(diag.sdkVersionSince, 27, 1)],
     );
   }
 
@@ -765,7 +765,7 @@ import 'dart:foo';
 
 void f(A a) {}
 ''',
-      expectedDiagnostics: [error(WarningCode.sdkVersionSince, 27, 1)],
+      expectedDiagnostics: [error(diag.sdkVersionSince, 27, 1)],
     );
   }
 
@@ -789,7 +789,7 @@ void f() {
   E.v2;
 }
 ''',
-      expectedDiagnostics: [error(WarningCode.sdkVersionSince, 35, 2)],
+      expectedDiagnostics: [error(diag.sdkVersionSince, 35, 2)],
     );
   }
 
@@ -812,8 +812,8 @@ void f(Enum e) {
 }
 ''',
       expectedDiagnostics: [
-        error(WarningCode.sdkVersionSince, 7, 4),
-        error(WarningCode.sdkVersionSince, 21, 5),
+        error(diag.sdkVersionSince, 7, 4),
+        error(diag.sdkVersionSince, 21, 5),
       ],
     );
   }
@@ -832,7 +832,7 @@ void f() {
   myEnum.index;
 }
 ''',
-      expectedDiagnostics: [error(WarningCode.sdkVersionSince, 38, 5)],
+      expectedDiagnostics: [error(diag.sdkVersionSince, 38, 5)],
     );
   }
 
@@ -853,7 +853,7 @@ import 'dart:foo';
 
 void f(E a) {}
 ''',
-      expectedDiagnostics: [error(WarningCode.sdkVersionSince, 27, 1)],
+      expectedDiagnostics: [error(diag.sdkVersionSince, 27, 1)],
     );
   }
 
@@ -876,7 +876,7 @@ void f() {
   0.foo;
 }
 ''',
-      expectedDiagnostics: [error(WarningCode.sdkVersionSince, 35, 3)],
+      expectedDiagnostics: [error(diag.sdkVersionSince, 35, 3)],
     );
   }
 
@@ -899,7 +899,7 @@ void f() {
   E(0).foo();
 }
 ''',
-      expectedDiagnostics: [error(WarningCode.sdkVersionSince, 38, 3)],
+      expectedDiagnostics: [error(diag.sdkVersionSince, 38, 3)],
     );
   }
 
@@ -922,7 +922,7 @@ void f() {
   0.foo();
 }
 ''',
-      expectedDiagnostics: [error(WarningCode.sdkVersionSince, 35, 3)],
+      expectedDiagnostics: [error(diag.sdkVersionSince, 35, 3)],
     );
   }
 
@@ -945,7 +945,7 @@ void f() {
   0.foo();
 }
 ''',
-      expectedDiagnostics: [error(WarningCode.sdkVersionSince, 35, 3)],
+      expectedDiagnostics: [error(diag.sdkVersionSince, 35, 3)],
     );
   }
 
@@ -968,7 +968,7 @@ void f() {
   0.foo = 1;
 }
 ''',
-      expectedDiagnostics: [error(WarningCode.sdkVersionSince, 35, 3)],
+      expectedDiagnostics: [error(diag.sdkVersionSince, 35, 3)],
     );
   }
 
@@ -987,7 +987,7 @@ import 'dart:foo';
 
 void f(X a) {}
 ''',
-      expectedDiagnostics: [error(WarningCode.sdkVersionSince, 27, 1)],
+      expectedDiagnostics: [error(diag.sdkVersionSince, 27, 1)],
     );
   }
 
@@ -1006,7 +1006,7 @@ import 'dart:foo';
 
 void f(X a) {}
 ''',
-      expectedDiagnostics: [error(WarningCode.sdkVersionSince, 27, 1)],
+      expectedDiagnostics: [error(diag.sdkVersionSince, 27, 1)],
     );
   }
 
@@ -1025,7 +1025,7 @@ import 'dart:foo';
 
 void f(M<int> a) {}
 ''',
-      expectedDiagnostics: [error(WarningCode.sdkVersionSince, 27, 1)],
+      expectedDiagnostics: [error(diag.sdkVersionSince, 27, 1)],
     );
   }
 
@@ -1046,7 +1046,7 @@ void f() {
   foo.bar();
 }
 ''',
-      expectedDiagnostics: [error(WarningCode.sdkVersionSince, 44, 3)],
+      expectedDiagnostics: [error(diag.sdkVersionSince, 44, 3)],
     );
   }
 
@@ -1067,7 +1067,7 @@ void f() {
   foo();
 }
 ''',
-      expectedDiagnostics: [error(WarningCode.sdkVersionSince, 33, 3)],
+      expectedDiagnostics: [error(diag.sdkVersionSince, 33, 3)],
     );
   }
 
@@ -1088,7 +1088,7 @@ void f() {
   foo.v;
 }
 ''',
-      expectedDiagnostics: [error(WarningCode.sdkVersionSince, 44, 1)],
+      expectedDiagnostics: [error(diag.sdkVersionSince, 44, 1)],
     );
   }
 
@@ -1109,7 +1109,7 @@ void f() {
   v;
 }
 ''',
-      expectedDiagnostics: [error(WarningCode.sdkVersionSince, 33, 1)],
+      expectedDiagnostics: [error(diag.sdkVersionSince, 33, 1)],
     );
   }
 

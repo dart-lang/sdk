@@ -11,6 +11,7 @@ import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/error/error.dart';
 
 import '../analyzer.dart';
+import '../diagnostic.dart' as diag;
 
 const desc =
     'Prefer const literals as parameters of constructors on @immutable classes.';
@@ -24,7 +25,7 @@ class PreferConstLiteralsToCreateImmutables extends AnalysisRule {
 
   @override
   DiagnosticCode get diagnosticCode =>
-      LinterLintCode.preferConstLiteralsToCreateImmutables;
+      diag.preferConstLiteralsToCreateImmutables;
 
   @override
   void registerNodeProcessors(

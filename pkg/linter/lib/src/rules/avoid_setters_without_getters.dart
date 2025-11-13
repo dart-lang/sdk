@@ -11,6 +11,7 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/error/error.dart';
 
 import '../analyzer.dart';
+import '../diagnostic.dart' as diag;
 
 const _desc = r'Avoid setters without getters.';
 
@@ -19,8 +20,7 @@ class AvoidSettersWithoutGetters extends AnalysisRule {
     : super(name: LintNames.avoid_setters_without_getters, description: _desc);
 
   @override
-  DiagnosticCode get diagnosticCode =>
-      LinterLintCode.avoidSettersWithoutGetters;
+  DiagnosticCode get diagnosticCode => diag.avoidSettersWithoutGetters;
 
   @override
   void registerNodeProcessors(

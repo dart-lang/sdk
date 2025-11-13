@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
@@ -27,7 +27,7 @@ class A {
 
 abstract class B extends A implements Enum {}
 ''',
-      [error(CompileTimeErrorCode.illegalConcreteEnumMemberInheritance, 48, 1)],
+      [error(diag.illegalConcreteEnumMemberInheritance, 48, 1)],
     );
   }
 
@@ -50,7 +50,7 @@ mixin M {
 
 abstract class B with M implements Enum {}
 ''',
-      [error(CompileTimeErrorCode.illegalConcreteEnumMemberInheritance, 48, 1)],
+      [error(diag.illegalConcreteEnumMemberInheritance, 48, 1)],
     );
   }
 
@@ -63,7 +63,7 @@ class A {
 
 abstract class B extends A implements Enum {}
 ''',
-      [error(CompileTimeErrorCode.illegalConcreteEnumMemberInheritance, 53, 1)],
+      [error(diag.illegalConcreteEnumMemberInheritance, 53, 1)],
     );
   }
 
@@ -96,7 +96,7 @@ class A {
 
 abstract class B extends A implements Enum {}
 ''',
-      [error(CompileTimeErrorCode.illegalConcreteEnumMemberInheritance, 71, 1)],
+      [error(diag.illegalConcreteEnumMemberInheritance, 71, 1)],
     );
   }
 
@@ -119,7 +119,7 @@ mixin M {
 
 abstract class B with M implements Enum {}
 ''',
-      [error(CompileTimeErrorCode.illegalConcreteEnumMemberInheritance, 71, 1)],
+      [error(diag.illegalConcreteEnumMemberInheritance, 71, 1)],
     );
   }
 }
@@ -150,7 +150,7 @@ enum E with M {
   v;
 }
 ''',
-      [error(CompileTimeErrorCode.illegalConcreteEnumMemberInheritance, 43, 1)],
+      [error(diag.illegalConcreteEnumMemberInheritance, 43, 1)],
     );
   }
 
@@ -189,7 +189,7 @@ enum E with M {
   v;
 }
 ''',
-      [error(CompileTimeErrorCode.illegalConcreteEnumMemberInheritance, 40, 1)],
+      [error(diag.illegalConcreteEnumMemberInheritance, 40, 1)],
     );
   }
 
@@ -228,7 +228,7 @@ enum E with M {
   v;
 }
 ''',
-      [error(CompileTimeErrorCode.illegalConcreteEnumMemberInheritance, 61, 1)],
+      [error(diag.illegalConcreteEnumMemberInheritance, 61, 1)],
     );
   }
 }

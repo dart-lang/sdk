@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
@@ -22,13 +22,7 @@ class MixinClassDeclarationExtendsNotObjectTest
 class A {}
 mixin class B extends A {}
 ''',
-      [
-        error(
-          CompileTimeErrorCode.mixinClassDeclarationExtendsNotObject,
-          33,
-          1,
-        ),
-      ],
+      [error(diag.mixinClassDeclarationExtendsNotObject, 33, 1)],
     );
   }
 
@@ -44,13 +38,7 @@ mixin class A extends Object {}
 mixin M {}
 mixin class A extends Object with M {}
 ''',
-      [
-        error(
-          CompileTimeErrorCode.mixinClassDeclarationExtendsNotObject,
-          40,
-          6,
-        ),
-      ],
+      [error(diag.mixinClassDeclarationExtendsNotObject, 40, 6)],
     );
   }
 
@@ -68,13 +56,7 @@ mixin M1 {}
 mixin M2 {}
 mixin class A = Object with M1, M2;
 ''',
-      [
-        error(
-          CompileTimeErrorCode.mixinClassDeclarationExtendsNotObject,
-          47,
-          11,
-        ),
-      ],
+      [error(diag.mixinClassDeclarationExtendsNotObject, 47, 11)],
     );
   }
 }

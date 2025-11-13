@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:analyzer/utilities/package_config_file_builder.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -38,7 +38,7 @@ class C {
   C();
 }
 ''',
-      [error(WarningCode.invalidVisibleOutsideTemplateAnnotation, 63, 22)],
+      [error(diag.invalidVisibleOutsideTemplateAnnotation, 63, 22)],
     );
   }
 
@@ -50,7 +50,7 @@ import 'package:angular_meta/angular_meta.dart';
 @visibleOutsideTemplate
 class C {}
 ''',
-      [error(WarningCode.invalidVisibleOutsideTemplateAnnotation, 51, 22)],
+      [error(diag.invalidVisibleOutsideTemplateAnnotation, 51, 22)],
     );
   }
 
@@ -64,7 +64,7 @@ class C {
   int a = 0;
 }
 ''',
-      [error(WarningCode.invalidVisibleOutsideTemplateAnnotation, 63, 22)],
+      [error(diag.invalidVisibleOutsideTemplateAnnotation, 63, 22)],
     );
   }
 
@@ -78,7 +78,7 @@ class C {
   void m() {}
 }
 ''',
-      [error(WarningCode.invalidVisibleOutsideTemplateAnnotation, 63, 22)],
+      [error(diag.invalidVisibleOutsideTemplateAnnotation, 63, 22)],
     );
   }
 
@@ -93,7 +93,7 @@ enum E {
   void test() {}
 }
 ''',
-      [error(WarningCode.invalidVisibleOutsideTemplateAnnotation, 67, 22)],
+      [error(diag.invalidVisibleOutsideTemplateAnnotation, 67, 22)],
     );
   }
 
@@ -108,7 +108,7 @@ enum E {
   b,
 }
 ''',
-      [error(WarningCode.invalidVisibleOutsideTemplateAnnotation, 62, 22)],
+      [error(diag.invalidVisibleOutsideTemplateAnnotation, 62, 22)],
     );
   }
 
@@ -120,7 +120,7 @@ import 'package:angular_meta/angular_meta.dart';
 @visibleOutsideTemplate
 mixin class M2 {}
 ''',
-      [error(WarningCode.invalidVisibleOutsideTemplateAnnotation, 51, 22)],
+      [error(diag.invalidVisibleOutsideTemplateAnnotation, 51, 22)],
     );
   }
 
@@ -134,7 +134,7 @@ mixin class M2 {
   int m() => 1;
 }
 ''',
-      [error(WarningCode.invalidVisibleOutsideTemplateAnnotation, 70, 22)],
+      [error(diag.invalidVisibleOutsideTemplateAnnotation, 70, 22)],
     );
   }
 
@@ -147,7 +147,7 @@ import 'package:angular_meta/angular_meta.dart';
 mixin M {}
 class C2 with M {}
 ''',
-      [error(WarningCode.invalidVisibleOutsideTemplateAnnotation, 51, 22)],
+      [error(diag.invalidVisibleOutsideTemplateAnnotation, 51, 22)],
     );
   }
 
@@ -162,7 +162,7 @@ mixin M {
 }
 class C2 with M {}
 ''',
-      [error(WarningCode.invalidVisibleOutsideTemplateAnnotation, 63, 22)],
+      [error(diag.invalidVisibleOutsideTemplateAnnotation, 63, 22)],
     );
   }
 
@@ -174,7 +174,7 @@ import 'package:angular_meta/angular_meta.dart';
 @visibleOutsideTemplate
 void foo() {}
 ''',
-      [error(WarningCode.invalidVisibleOutsideTemplateAnnotation, 51, 22)],
+      [error(diag.invalidVisibleOutsideTemplateAnnotation, 51, 22)],
     );
   }
 
@@ -186,7 +186,7 @@ import 'package:angular_meta/angular_meta.dart';
 @visibleOutsideTemplate
 final a = 1;
 ''',
-      [error(WarningCode.invalidVisibleOutsideTemplateAnnotation, 51, 22)],
+      [error(diag.invalidVisibleOutsideTemplateAnnotation, 51, 22)],
     );
   }
 
@@ -198,7 +198,7 @@ import 'package:angular_meta/angular_meta.dart';
 @visibleOutsideTemplate
 var a = 1, b;
 ''',
-      [error(WarningCode.invalidVisibleOutsideTemplateAnnotation, 51, 22)],
+      [error(diag.invalidVisibleOutsideTemplateAnnotation, 51, 22)],
     );
   }
 

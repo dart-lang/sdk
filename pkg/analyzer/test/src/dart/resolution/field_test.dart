@@ -2,8 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/dart/error/syntactic_errors.dart';
-import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -24,7 +23,7 @@ class A {
   late Object f = super;
 }
 ''',
-      [error(ParserErrorCode.missingAssignableSelector, 28, 5)],
+      [error(diag.missingAssignableSelector, 28, 5)],
     );
 
     var node = findNode.singleFieldDeclaration;
@@ -86,7 +85,7 @@ class A {
   final int b = a;
 }
 ''',
-      [error(CompileTimeErrorCode.implicitThisReferenceInInitializer, 45, 1)],
+      [error(diag.implicitThisReferenceInInitializer, 45, 1)],
     );
 
     var node = findNode.fieldDeclaration('b =');
@@ -120,7 +119,7 @@ class A {
   final int b = a;
 }
 ''',
-      [error(CompileTimeErrorCode.implicitThisReferenceInInitializer, 44, 1)],
+      [error(diag.implicitThisReferenceInInitializer, 44, 1)],
     );
 
     var node = findNode.fieldDeclaration('b =');
@@ -154,7 +153,7 @@ class A {
   final int b = a();
 }
 ''',
-      [error(CompileTimeErrorCode.implicitThisReferenceInInitializer, 42, 1)],
+      [error(diag.implicitThisReferenceInInitializer, 42, 1)],
     );
 
     var node = findNode.fieldDeclaration('b =');
@@ -193,7 +192,7 @@ class A {
   final a = this;
 }
 ''',
-      [error(CompileTimeErrorCode.invalidReferenceToThis, 22, 4)],
+      [error(diag.invalidReferenceToThis, 22, 4)],
     );
 
     var node = findNode.singleFieldDeclaration;

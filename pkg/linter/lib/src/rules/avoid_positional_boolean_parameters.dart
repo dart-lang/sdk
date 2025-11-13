@@ -13,6 +13,7 @@ import 'package:analyzer/error/error.dart';
 import 'package:collection/collection.dart';
 
 import '../analyzer.dart';
+import '../diagnostic.dart' as diag;
 import '../extensions.dart';
 
 const _desc = r'Avoid positional boolean parameters.';
@@ -25,8 +26,7 @@ class AvoidPositionalBooleanParameters extends AnalysisRule {
       );
 
   @override
-  DiagnosticCode get diagnosticCode =>
-      LinterLintCode.avoidPositionalBooleanParameters;
+  DiagnosticCode get diagnosticCode => diag.avoidPositionalBooleanParameters;
 
   @override
   void registerNodeProcessors(

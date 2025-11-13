@@ -12,6 +12,7 @@ import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/error/error.dart';
 
 import '../analyzer.dart';
+import '../diagnostic.dart' as diag;
 import '../extensions.dart';
 
 const _desc = r'Define case clauses for all constants in enum-like classes.';
@@ -21,7 +22,7 @@ class ExhaustiveCases extends AnalysisRule {
     : super(name: LintNames.exhaustive_cases, description: _desc);
 
   @override
-  DiagnosticCode get diagnosticCode => LinterLintCode.exhaustiveCases;
+  DiagnosticCode get diagnosticCode => diag.exhaustiveCases;
 
   @override
   void registerNodeProcessors(

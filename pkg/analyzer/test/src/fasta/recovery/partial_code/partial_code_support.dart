@@ -5,7 +5,7 @@
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
-import 'package:analyzer/src/dart/error/syntactic_errors.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test/test.dart';
 
 import '../../../../generated/test_support.dart';
@@ -191,11 +191,9 @@ abstract class PartialCodeTest extends AbstractRecoveryTest {
       parseCompilationUnit2(base.toString(), listener, featureSet: featureSet);
       var baseDiagnosticCodes = <DiagnosticCode>[];
       for (var diagnostic in listener.diagnostics) {
-        if (diagnostic.diagnosticCode == ParserErrorCode.breakOutsideOfLoop ||
-            diagnostic.diagnosticCode ==
-                ParserErrorCode.continueOutsideOfLoop ||
-            diagnostic.diagnosticCode ==
-                ParserErrorCode.continueWithoutLabelInCase) {
+        if (diagnostic.diagnosticCode == diag.breakOutsideOfLoop ||
+            diagnostic.diagnosticCode == diag.continueOutsideOfLoop ||
+            diagnostic.diagnosticCode == diag.continueWithoutLabelInCase) {
           baseDiagnosticCodes.add(diagnostic.diagnosticCode);
         }
       }

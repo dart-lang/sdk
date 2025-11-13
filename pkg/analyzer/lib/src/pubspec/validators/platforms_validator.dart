@@ -2,8 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:analyzer/src/pubspec/pubspec_validator.dart';
-import 'package:analyzer/src/pubspec/pubspec_warning_code.dart';
 import 'package:analyzer/src/util/yaml.dart';
 import 'package:yaml/yaml.dart';
 
@@ -27,13 +27,13 @@ void platformsValidator(PubspecValidationContext ctx) {
   }
   // The 'platforms' field must be a map
   if (platforms is! YamlMap) {
-    ctx.reportErrorForNode(platforms, PubspecWarningCode.invalidPlatformsField);
+    ctx.reportErrorForNode(platforms, diag.invalidPlatformsField);
     return;
   }
   // Each key under 'platforms' must be a supported platform.
   for (var platform in platforms.nodeMap.keys) {
     if (platform is! YamlScalar || !_knownPlatforms.contains(platform.value)) {
-      ctx.reportErrorForNode(platform, PubspecWarningCode.unknownPlatform, [
+      ctx.reportErrorForNode(platform, diag.unknownPlatform, [
         switch (platform.value) {
           (String s) => s,
           (num n) => n,
@@ -45,7 +45,7 @@ void platformsValidator(PubspecValidationContext ctx) {
   // Values under the platforms keys are not allowed.
   for (var v in platforms.nodeMap.values) {
     if (v is! YamlScalar || v.value != null) {
-      ctx.reportErrorForNode(v, PubspecWarningCode.platformValueDisallowed);
+      ctx.reportErrorForNode(v, diag.platformValueDisallowed);
     }
   }
 }

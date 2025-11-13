@@ -12,6 +12,7 @@ import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/error/error.dart';
 
 import '../analyzer.dart';
+import '../diagnostic.dart' as diag;
 import '../extensions.dart';
 
 const _desc = r'Avoid using private types in public APIs.';
@@ -24,8 +25,7 @@ class LibraryPrivateTypesInPublicApi extends AnalysisRule {
       );
 
   @override
-  DiagnosticCode get diagnosticCode =>
-      LinterLintCode.libraryPrivateTypesInPublicApi;
+  DiagnosticCode get diagnosticCode => diag.libraryPrivateTypesInPublicApi;
 
   @override
   void registerNodeProcessors(

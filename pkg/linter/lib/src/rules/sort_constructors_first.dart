@@ -10,6 +10,7 @@ import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/error/error.dart';
 
 import '../analyzer.dart';
+import '../diagnostic.dart' as diag;
 
 const _desc = r'Sort constructor declarations before other members.';
 
@@ -18,7 +19,7 @@ class SortConstructorsFirst extends AnalysisRule {
     : super(name: LintNames.sort_constructors_first, description: _desc);
 
   @override
-  DiagnosticCode get diagnosticCode => LinterLintCode.sortConstructorsFirst;
+  DiagnosticCode get diagnosticCode => diag.sortConstructorsFirst;
 
   @override
   void registerNodeProcessors(

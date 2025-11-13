@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../context_collection_resolution.dart';
@@ -63,7 +63,7 @@ f() {
   foo(x: 1);
 }
 ''',
-      [error(CompileTimeErrorCode.missingRequiredArgument, 54, 3)],
+      [error(diag.missingRequiredArgument, 54, 3)],
     );
 
     var node = findNode.methodInvocation('foo(');
@@ -108,13 +108,7 @@ f() {
   foo(1);
 }
 ''',
-      [
-        error(
-          CompileTimeErrorCode.notEnoughPositionalArgumentsNamePlural,
-          39,
-          1,
-        ),
-      ],
+      [error(diag.notEnoughPositionalArgumentsNamePlural, 39, 1)],
     );
 
     var node = findNode.methodInvocation('foo(');
@@ -150,7 +144,7 @@ f() {
   foo(1, 2, 3);
 }
 ''',
-      [error(CompileTimeErrorCode.extraPositionalArguments, 44, 1)],
+      [error(diag.extraPositionalArguments, 44, 1)],
     );
 
     var node = findNode.methodInvocation('foo(');
@@ -196,7 +190,7 @@ f() {
   foo(1, 2, z: 3);
 }
 ''',
-      [error(CompileTimeErrorCode.undefinedNamedParameter, 44, 1)],
+      [error(diag.undefinedNamedParameter, 44, 1)],
     );
 
     var node = findNode.methodInvocation('foo(');

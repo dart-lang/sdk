@@ -10,6 +10,7 @@ import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/error/error.dart';
 
 import '../analyzer.dart';
+import '../diagnostic.dart' as diag;
 
 const _desc = r'DO use curly braces for all flow control structures.';
 
@@ -24,8 +25,7 @@ class CurlyBracesInFlowControlStructures extends AnalysisRule {
   bool get canUseParsedResult => true;
 
   @override
-  DiagnosticCode get diagnosticCode =>
-      LinterLintCode.curlyBracesInFlowControlStructures;
+  DiagnosticCode get diagnosticCode => diag.curlyBracesInFlowControlStructures;
 
   @override
   void registerNodeProcessors(

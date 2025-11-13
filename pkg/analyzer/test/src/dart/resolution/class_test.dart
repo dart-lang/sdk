@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'context_collection_resolution.dart';
@@ -98,9 +98,9 @@ class C extends A {}
 class X extends A {}
 ''',
       [
-        error(CompileTimeErrorCode.recursiveInterfaceInheritance, 6, 1),
-        error(CompileTimeErrorCode.recursiveInterfaceInheritance, 27, 1),
-        error(CompileTimeErrorCode.recursiveInterfaceInheritance, 48, 1),
+        error(diag.recursiveInterfaceInheritance, 6, 1),
+        error(diag.recursiveInterfaceInheritance, 27, 1),
+        error(diag.recursiveInterfaceInheritance, 48, 1),
       ],
     );
 
@@ -112,7 +112,7 @@ class X extends A {}
       r'''
 class A extends Function {}
 ''',
-      [error(CompileTimeErrorCode.finalClassExtendedOutsideOfLibrary, 16, 8)],
+      [error(diag.finalClassExtendedOutsideOfLibrary, 16, 8)],
     );
     var a = findElement2.class_('A');
     assertType(a.supertype, 'Object');
@@ -124,7 +124,7 @@ class A extends Function {}
 // @dart = 2.19
 class A extends Function {}
 ''',
-      [error(WarningCode.deprecatedExtendsFunction, 32, 8)],
+      [error(diag.deprecatedExtendsFunction, 32, 8)],
     );
     var a = findElement2.class_('A');
     assertType(a.supertype, 'Object');
@@ -137,7 +137,7 @@ mixin A {}
 mixin B {}
 class C extends Object with A, Function, B {}
 ''',
-      [error(CompileTimeErrorCode.classUsedAsMixin, 53, 8)],
+      [error(diag.classUsedAsMixin, 53, 8)],
     );
 
     assertElementTypes(findElement2.class_('C').mixins, ['A', 'B']);
@@ -151,7 +151,7 @@ mixin A {}
 mixin B {}
 class C extends Object with A, Function, B {}
 ''',
-      [error(WarningCode.deprecatedMixinFunction, 69, 8)],
+      [error(diag.deprecatedMixinFunction, 69, 8)],
     );
 
     assertElementTypes(findElement2.class_('C').mixins, ['A', 'B']);
@@ -171,9 +171,9 @@ main() {
 }
 ''',
       [
-        error(CompileTimeErrorCode.recursiveInterfaceInheritance, 6, 1),
-        error(CompileTimeErrorCode.recursiveInterfaceInheritance, 33, 1),
-        error(WarningCode.unusedLocalVariable, 150, 1),
+        error(diag.recursiveInterfaceInheritance, 6, 1),
+        error(diag.recursiveInterfaceInheritance, 33, 1),
+        error(diag.unusedLocalVariable, 150, 1),
       ],
     );
   }

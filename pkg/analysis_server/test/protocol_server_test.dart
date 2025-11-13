@@ -16,8 +16,8 @@ import 'package:analyzer/source/line_info.dart' as engine;
 import 'package:analyzer/source/source.dart' as engine;
 import 'package:analyzer/src/dart/analysis/results.dart' as engine;
 import 'package:analyzer/src/dart/error/lint_codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:analyzer/src/diagnostic/diagnostic_message.dart' as engine;
-import 'package:analyzer/src/error/codes.dart' as engine;
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -43,7 +43,7 @@ class AnalysisErrorTest {
     // prepare AnalysisError
     engineDiagnostic = MockDiagnostic(
       source: source,
-      diagnosticCode: engine.CompileTimeErrorCode.ambiguousExport,
+      diagnosticCode: diag.ambiguousExport,
       offset: 10,
       length: 20,
       message: 'my message',
@@ -111,7 +111,7 @@ class AnalysisErrorTest {
   void test_fromEngine_hasCorrection() {
     engineDiagnostic = MockDiagnostic(
       source: source,
-      diagnosticCode: engine.CompileTimeErrorCode.ambiguousExport,
+      diagnosticCode: diag.ambiguousExport,
       offset: 10,
       length: 20,
       message: 'my message',
@@ -203,7 +203,7 @@ class AnalysisErrorTest {
   void test_fromEngine_noCorrection() {
     engineDiagnostic = MockDiagnostic(
       source: source,
-      diagnosticCode: engine.CompileTimeErrorCode.ambiguousExport,
+      diagnosticCode: diag.ambiguousExport,
       offset: 10,
       length: 20,
       message: 'my message',

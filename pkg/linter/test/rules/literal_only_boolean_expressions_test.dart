@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../rule_test_support.dart';
@@ -77,7 +78,7 @@ void f() {
   if (!true) {}
 }
 ''',
-      [lint(13, 13), error(WarningCode.deadCode, 24, 2)],
+      [lint(13, 13), error(diag.deadCode, 24, 2)],
     );
   }
 
@@ -140,7 +141,7 @@ void bad() {
   if (true && false) {}
 }
 ''',
-      [lint(15, 21), error(WarningCode.deadCode, 34, 2)],
+      [lint(15, 21), error(diag.deadCode, 34, 2)],
     );
   }
 
@@ -166,7 +167,7 @@ void f() {
 ''',
       [
         // No lint
-        error(WarningCode.patternNeverMatchesValueType, 24, 5),
+        error(diag.patternNeverMatchesValueType, 24, 5),
       ],
     );
   }
@@ -269,7 +270,7 @@ void f() {
   }
 }
 ''',
-      [error(WarningCode.patternNeverMatchesValueType, 35, 7), lint(43, 9)],
+      [error(diag.patternNeverMatchesValueType, 35, 7), lint(43, 9)],
     );
   }
 
@@ -280,7 +281,7 @@ void f() {
   while (!true) {}
 }
 ''',
-      [lint(13, 16), error(WarningCode.deadCode, 27, 2)],
+      [lint(13, 16), error(diag.deadCode, 27, 2)],
     );
   }
 

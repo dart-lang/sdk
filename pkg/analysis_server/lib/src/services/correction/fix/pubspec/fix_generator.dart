@@ -13,8 +13,8 @@ import 'package:analyzer/error/error.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/source/line_info.dart';
 import 'package:analyzer/source/source_range.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:analyzer/src/generated/java_core.dart';
-import 'package:analyzer/src/pubspec/pubspec_warning_code.dart';
 import 'package:analyzer/src/pubspec/validators/missing_dependency_validator.dart';
 import 'package:analyzer/src/util/yaml.dart';
 import 'package:analyzer_plugin/src/utilities/extensions/string_extension.dart';
@@ -25,8 +25,8 @@ import 'package:yaml/yaml.dart';
 /// The generator used to generate fixes in pubspec.yaml files.
 class PubspecFixGenerator {
   static const List<DiagnosticCode> codesWithFixes = [
-    PubspecWarningCode.missingDependency,
-    PubspecWarningCode.missingName,
+    diag.missingDependency,
+    diag.missingName,
   ];
 
   /// The resource provider used to access the file system.
@@ -93,37 +93,36 @@ class PubspecFixGenerator {
       return fixes;
     }
 
-    if (diagnosticCode == PubspecWarningCode.assetDoesNotExist) {
+    if (diagnosticCode == diag.assetDoesNotExist) {
       // Consider replacing the path with a valid path.
-    } else if (diagnosticCode ==
-        PubspecWarningCode.assetDirectoryDoesNotExist) {
+    } else if (diagnosticCode == diag.assetDirectoryDoesNotExist) {
       // Consider replacing the path with a valid path.
       // Consider creating the directory.
-    } else if (diagnosticCode == PubspecWarningCode.assetFieldNotList) {
+    } else if (diagnosticCode == diag.assetFieldNotList) {
       // Not sure how to fix a structural issue.
-    } else if (diagnosticCode == PubspecWarningCode.assetNotString) {
+    } else if (diagnosticCode == diag.assetNotString) {
       // Not sure how to fix a structural issue.
-    } else if (diagnosticCode == PubspecWarningCode.dependenciesFieldNotMap) {
+    } else if (diagnosticCode == diag.dependenciesFieldNotMap) {
       // Not sure how to fix a structural issue.
-    } else if (diagnosticCode == PubspecWarningCode.deprecatedField) {
+    } else if (diagnosticCode == diag.deprecatedField) {
       // Consider removing the field.
-    } else if (diagnosticCode == PubspecWarningCode.flutterFieldNotMap) {
+    } else if (diagnosticCode == diag.flutterFieldNotMap) {
       // Not sure how to fix a structural issue.
-    } else if (diagnosticCode == PubspecWarningCode.invalidDependency) {
+    } else if (diagnosticCode == diag.invalidDependency) {
       // Consider adding `publish_to: none`.
-    } else if (diagnosticCode == PubspecWarningCode.missingName) {
+    } else if (diagnosticCode == diag.missingName) {
       await _addNameEntry();
-    } else if (diagnosticCode == PubspecWarningCode.nameNotString) {
+    } else if (diagnosticCode == diag.nameNotString) {
       // Not sure how to fix a structural issue.
-    } else if (diagnosticCode == PubspecWarningCode.pathDoesNotExist) {
+    } else if (diagnosticCode == diag.pathDoesNotExist) {
       // Consider replacing the path with a valid path.
-    } else if (diagnosticCode == PubspecWarningCode.pathNotPosix) {
+    } else if (diagnosticCode == diag.pathNotPosix) {
       // Consider converting to a POSIX-style path.
-    } else if (diagnosticCode == PubspecWarningCode.pathPubspecDoesNotExist) {
+    } else if (diagnosticCode == diag.pathPubspecDoesNotExist) {
       // Consider replacing the path with a valid path.
-    } else if (diagnosticCode == PubspecWarningCode.unnecessaryDevDependency) {
+    } else if (diagnosticCode == diag.unnecessaryDevDependency) {
       // Consider removing the dependency.
-    } else if (diagnosticCode == PubspecWarningCode.missingDependency) {
+    } else if (diagnosticCode == diag.missingDependency) {
       await _addMissingDependency(diagnosticCode);
     }
     return fixes;

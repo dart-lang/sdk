@@ -12,6 +12,7 @@ import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/error/error.dart';
 
 import '../analyzer.dart';
+import '../diagnostic.dart' as diag;
 import '../util/variance_checker.dart';
 
 const _desc = r"Avoid using 'FutureOr<void>' as the type of a result.";
@@ -25,7 +26,7 @@ class AvoidFutureOrVoid extends AnalysisRule {
       );
 
   @override
-  DiagnosticCode get diagnosticCode => LinterLintCode.avoidFutureorVoid;
+  DiagnosticCode get diagnosticCode => diag.avoidFutureorVoid;
 
   @override
   void registerNodeProcessors(

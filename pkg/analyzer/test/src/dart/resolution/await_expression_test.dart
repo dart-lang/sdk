@@ -2,8 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/dart/error/syntactic_errors.dart';
-import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'context_collection_resolution.dart';
@@ -69,7 +68,7 @@ class A {
   }
 }
 ''',
-      [error(ParserErrorCode.missingAssignableSelector, 39, 5)],
+      [error(diag.missingAssignableSelector, 39, 5)],
     );
 
     var node = findNode.singleAwaitExpression;
@@ -117,7 +116,7 @@ void f() async {
   await unresolved;
 }
 ''',
-      [error(CompileTimeErrorCode.undefinedIdentifier, 25, 10)],
+      [error(diag.undefinedIdentifier, 25, 10)],
     );
 
     var node = findNode.singleAwaitExpression;
@@ -141,7 +140,7 @@ void f() async {
   await prefix.unresolved;
 }
 ''',
-      [error(CompileTimeErrorCode.undefinedPrefixedName, 63, 10)],
+      [error(diag.undefinedPrefixedName, 63, 10)],
     );
 
     var node = findNode.singleAwaitExpression;
@@ -171,7 +170,7 @@ void f() async {
   await 0.isEven.unresolved;
 }
 ''',
-      [error(CompileTimeErrorCode.undefinedGetter, 34, 10)],
+      [error(diag.undefinedGetter, 34, 10)],
     );
 
     var node = findNode.singleAwaitExpression;

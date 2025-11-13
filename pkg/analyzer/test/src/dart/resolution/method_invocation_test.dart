@@ -3,8 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/src/dart/error/syntactic_errors.dart';
-import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test/expect.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -31,7 +30,7 @@ class A {
 
 void g(Object a) {}
 ''',
-      [error(ParserErrorCode.missingAssignableSelector, 29, 5)],
+      [error(diag.missingAssignableSelector, 29, 5)],
     );
 
     var node = findNode.singleMethodInvocation;
@@ -63,8 +62,8 @@ void f() {
 void g(int a, int b) {}
 ''',
       [
-        error(ParserErrorCode.missingIdentifier, 15, 1),
-        error(ParserErrorCode.missingIdentifier, 16, 1),
+        error(diag.missingIdentifier, 15, 1),
+        error(diag.missingIdentifier, 16, 1),
       ],
     );
 
@@ -217,7 +216,7 @@ g(double a) {
 }
 h(int x) {}
 ''',
-      [error(CompileTimeErrorCode.argumentTypeNotAssignable, 45, 17)],
+      [error(diag.argumentTypeNotAssignable, 45, 17)],
     );
 
     var node = findNode.methodInvocation('h(a');
@@ -495,7 +494,7 @@ g(int a) {
 }
 h(double x) {}
 ''',
-      [error(CompileTimeErrorCode.argumentTypeNotAssignable, 42, 17)],
+      [error(diag.argumentTypeNotAssignable, 42, 17)],
     );
 
     var node = findNode.methodInvocation('h(a');
@@ -1114,7 +1113,7 @@ f(int a, Never b, int c) {
   a.clamp(b, c);
 }
 ''',
-      [error(WarningCode.deadCode, 40, 3)],
+      [error(diag.deadCode, 40, 3)],
     );
 
     var node = findNode.methodInvocation('clamp');
@@ -1155,10 +1154,7 @@ f(Never a, int b, int c) {
   a.clamp(b, c);
 }
 ''',
-      [
-        error(WarningCode.receiverOfTypeNever, 29, 1),
-        error(WarningCode.deadCode, 36, 7),
-      ],
+      [error(diag.receiverOfTypeNever, 29, 1), error(diag.deadCode, 36, 7)],
     );
 
     var node = findNode.methodInvocation('clamp');
@@ -1204,7 +1200,7 @@ g(A a) {
 }
 h(int x) {}
 ''',
-      [error(CompileTimeErrorCode.argumentTypeNotAssignable, 94, 17)],
+      [error(diag.argumentTypeNotAssignable, 94, 17)],
     );
 
     var node = findNode.methodInvocation('h(a');
@@ -1650,7 +1646,7 @@ main() {
   foo(0);
 }
 ''',
-      [error(CompileTimeErrorCode.ambiguousImport, 46, 3)],
+      [error(diag.ambiguousImport, 46, 3)],
     );
 
     var node = findNode.methodInvocation('foo(0)');
@@ -1692,7 +1688,7 @@ main() {
   p.foo(0);
 }
 ''',
-      [error(CompileTimeErrorCode.ambiguousImport, 58, 3)],
+      [error(diag.ambiguousImport, 58, 3)],
     );
 
     var node = findNode.methodInvocation('foo(0)');
@@ -1733,7 +1729,7 @@ void f(A a) {
   a.foo(0);
 }
 ''',
-      [error(CompileTimeErrorCode.instanceAccessToStaticMember, 59, 3)],
+      [error(diag.instanceAccessToStaticMember, 59, 3)],
     );
 
     var node = findNode.methodInvocation('a.foo(0)');
@@ -1772,7 +1768,7 @@ void f(C c) {
   c();
 }
 ''',
-      [error(CompileTimeErrorCode.invocationOfNonFunctionExpression, 69, 1)],
+      [error(diag.invocationOfNonFunctionExpression, 69, 1)],
     );
 
     var node = findNode.functionExpressionInvocation('c();');
@@ -1956,7 +1952,7 @@ main(Object foo) {
   foo();
 }
 ''',
-      [error(CompileTimeErrorCode.invocationOfNonFunctionExpression, 21, 3)],
+      [error(diag.invocationOfNonFunctionExpression, 21, 3)],
     );
 
     var node = findNode.functionExpressionInvocation('foo();');
@@ -2009,7 +2005,7 @@ main() {
   C.foo();
 }
 ''',
-      [error(CompileTimeErrorCode.invocationOfNonFunctionExpression, 46, 5)],
+      [error(diag.invocationOfNonFunctionExpression, 46, 5)],
     );
 
     var node = findNode.functionExpressionInvocation('foo();');
@@ -2046,7 +2042,7 @@ class C {
   }
 }
 ''',
-      [error(CompileTimeErrorCode.invocationOfNonFunctionExpression, 48, 3)],
+      [error(diag.invocationOfNonFunctionExpression, 48, 3)],
     );
 
     var node = findNode.functionExpressionInvocation('foo();');
@@ -2078,7 +2074,7 @@ class B extends A {
   }
 }
 ''',
-      [error(CompileTimeErrorCode.invocationOfNonFunctionExpression, 68, 9)],
+      [error(diag.invocationOfNonFunctionExpression, 68, 9)],
     );
 
     var node = findNode.functionExpressionInvocation('foo();');
@@ -2116,7 +2112,7 @@ main() {
   prefix?.foo();
 }
 ''',
-      [error(CompileTimeErrorCode.prefixIdentifierNotFollowedByDot, 39, 6)],
+      [error(diag.prefixIdentifierNotFollowedByDot, 39, 6)],
     );
 
     var node = findNode.methodInvocation('foo();');
@@ -2148,7 +2144,7 @@ main() {
   math?.loadLibrary();
 }
 ''',
-      [error(CompileTimeErrorCode.prefixIdentifierNotFollowedByDot, 49, 4)],
+      [error(diag.prefixIdentifierNotFollowedByDot, 49, 4)],
     );
 
     var node = findNode.methodInvocation('loadLibrary()');
@@ -2180,7 +2176,7 @@ main() {
   foo();
 }
 ''',
-      [error(CompileTimeErrorCode.prefixIdentifierNotFollowedByDot, 39, 3)],
+      [error(diag.prefixIdentifierNotFollowedByDot, 39, 3)],
     );
 
     var node = findNode.methodInvocation('foo()');
@@ -2205,7 +2201,7 @@ main() {
   foo(0);
 }
 ''',
-      [error(CompileTimeErrorCode.undefinedFunction, 11, 3)],
+      [error(diag.undefinedFunction, 11, 3)],
     );
 
     var node = findNode.methodInvocation('foo(0)');
@@ -2237,7 +2233,7 @@ main() {
   math.foo(0);
 }
 ''',
-      [error(CompileTimeErrorCode.undefinedFunction, 45, 3)],
+      [error(diag.undefinedFunction, 45, 3)],
     );
 
     var node = findNode.methodInvocation('foo(0);');
@@ -2272,7 +2268,7 @@ main() {
   bar.foo(0);
 }
 ''',
-      [error(CompileTimeErrorCode.undefinedIdentifier, 11, 3)],
+      [error(diag.undefinedIdentifier, 11, 3)],
     );
 
     var node = findNode.methodInvocation('foo(0);');
@@ -2308,7 +2304,7 @@ main() {
   C.foo(0);
 }
 ''',
-      [error(CompileTimeErrorCode.undefinedMethod, 24, 3)],
+      [error(diag.undefinedMethod, 24, 3)],
     );
 
     var node = findNode.methodInvocation('foo(0);');
@@ -2346,7 +2342,7 @@ main() {
   C.foo(x);
 }
 ''',
-      [error(CompileTimeErrorCode.undefinedMethod, 36, 3)],
+      [error(diag.undefinedMethod, 36, 3)],
     );
 
     var node = findNode.methodInvocation('foo(x);');
@@ -2388,7 +2384,7 @@ main() {
   C.foo(0);
 }
 ''',
-      [error(CompileTimeErrorCode.undefinedMethod, 76, 3)],
+      [error(diag.undefinedMethod, 76, 3)],
     );
 
     var node = findNode.methodInvocation('foo(0);');
@@ -2425,7 +2421,7 @@ main() {
   C.foo<int>();
 }
 ''',
-      [error(CompileTimeErrorCode.undefinedMethod, 25, 3)],
+      [error(diag.undefinedMethod, 25, 3)],
     );
 
     var node = findNode.methodInvocation('foo<int>();');
@@ -2465,7 +2461,7 @@ class C<T> {
   static main() => C.T();
 }
 ''',
-      [error(CompileTimeErrorCode.undefinedMethod, 34, 1)],
+      [error(diag.undefinedMethod, 34, 1)],
     );
 
     var node = findNode.methodInvocation('C.T();');
@@ -2495,7 +2491,7 @@ main() {
   42.foo(0);
 }
 ''',
-      [error(CompileTimeErrorCode.undefinedMethod, 14, 3)],
+      [error(diag.undefinedMethod, 14, 3)],
     );
 
     var node = findNode.methodInvocation('foo(0);');
@@ -2530,7 +2526,7 @@ main() {
   v.foo(0);
 }
 ''',
-      [error(CompileTimeErrorCode.undefinedMethod, 30, 3)],
+      [error(diag.undefinedMethod, 30, 3)],
     );
 
     var node = findNode.methodInvocation('foo(0);');
@@ -2567,7 +2563,7 @@ class C {
   }
 }
 ''',
-      [error(CompileTimeErrorCode.undefinedMethod, 25, 3)],
+      [error(diag.undefinedMethod, 25, 3)],
     );
 
     var node = findNode.methodInvocation('foo(0);');
@@ -2599,7 +2595,7 @@ class {
   }
 }
 ''',
-      [error(ParserErrorCode.missingIdentifier, 6, 1)],
+      [error(diag.missingIdentifier, 6, 1)],
     );
 
     var node = findNode.methodInvocation('foo(0);');
@@ -2629,7 +2625,7 @@ main() {
   null.foo();
 }
 ''',
-      [error(CompileTimeErrorCode.invalidUseOfNullValue, 16, 3)],
+      [error(diag.invalidUseOfNullValue, 16, 3)],
     );
 
     var node = findNode.methodInvocation('foo();');
@@ -2658,7 +2654,7 @@ main(Object o) {
   o.call();
 }
 ''',
-      [error(CompileTimeErrorCode.undefinedMethod, 21, 4)],
+      [error(diag.undefinedMethod, 21, 4)],
     );
   }
 
@@ -2678,7 +2674,7 @@ class B extends A {
   }
 }
 ''',
-      [error(CompileTimeErrorCode.undefinedMethod, 53, 4)],
+      [error(diag.undefinedMethod, 53, 4)],
     );
 
     var node = findNode.methodInvocation('_foo(0);');
@@ -2712,7 +2708,7 @@ main() {
   C..foo();
 }
 ''',
-      [error(CompileTimeErrorCode.undefinedMethod, 50, 3)],
+      [error(diag.undefinedMethod, 50, 3)],
     );
   }
 
@@ -2725,8 +2721,8 @@ main() {
 }
 ''',
       [
-        error(StaticWarningCode.invalidNullAwareOperator, 23, 2),
-        error(CompileTimeErrorCode.undefinedMethod, 25, 8),
+        error(diag.invalidNullAwareOperator, 23, 2),
+        error(diag.undefinedMethod, 25, 8),
       ],
     );
   }
@@ -2745,12 +2741,8 @@ class B extends A {
 }
 ''',
       [
-        error(
-          CompileTimeErrorCode.unqualifiedReferenceToNonLocalStaticMember,
-          71,
-          3,
-        ),
-        error(CompileTimeErrorCode.extraPositionalArguments, 75, 1),
+        error(diag.unqualifiedReferenceToNonLocalStaticMember, 71, 3),
+        error(diag.extraPositionalArguments, 75, 1),
       ],
     );
 
@@ -2787,7 +2779,7 @@ main() {
   p.bar(2);
 }
 ''',
-      [error(CompileTimeErrorCode.uriDoesNotExist, 7, 14)],
+      [error(diag.uriDoesNotExist, 7, 14)],
     );
 
     var node = findNode.methodInvocation('foo(1);');
@@ -2828,7 +2820,7 @@ main() {
   bar(2);
 }
 ''',
-      [error(CompileTimeErrorCode.uriDoesNotExist, 7, 14)],
+      [error(diag.uriDoesNotExist, 7, 14)],
     );
 
     var node = findNode.methodInvocation('foo(1);');
@@ -2863,7 +2855,7 @@ void f(C<void> c) {
   c.foo();
 }
 ''',
-      [error(CompileTimeErrorCode.useOfVoidResult, 61, 5)],
+      [error(diag.useOfVoidResult, 61, 5)],
     );
 
     var node = findNode.functionExpressionInvocation('foo();');
@@ -2899,7 +2891,7 @@ main() {
   foo();
 }
 ''',
-      [error(CompileTimeErrorCode.useOfVoidResult, 23, 3)],
+      [error(diag.useOfVoidResult, 23, 3)],
     );
 
     var node = findNode.functionExpressionInvocation('foo();');
@@ -2927,7 +2919,7 @@ main() {
   foo()();
 }
 ''',
-      [error(CompileTimeErrorCode.useOfVoidResult, 26, 3)],
+      [error(diag.useOfVoidResult, 26, 3)],
     );
 
     var node = findNode.methodInvocation('foo()()');
@@ -2954,7 +2946,7 @@ main() {
   foo();
 }
 ''',
-      [error(CompileTimeErrorCode.useOfVoidResult, 22, 3)],
+      [error(diag.useOfVoidResult, 22, 3)],
     );
 
     var node = findNode.functionExpressionInvocation('foo();');
@@ -2981,7 +2973,7 @@ main() {
   foo.toString();
 }
 ''',
-      [error(CompileTimeErrorCode.useOfVoidResult, 23, 3)],
+      [error(diag.useOfVoidResult, 23, 3)],
     );
 
     var node = findNode.methodInvocation('toString()');
@@ -3012,7 +3004,7 @@ main() {
   foo..toString();
 }
 ''',
-      [error(CompileTimeErrorCode.useOfVoidResult, 23, 3)],
+      [error(diag.useOfVoidResult, 23, 3)],
     );
 
     var node = findNode.methodInvocation('toString()');
@@ -3039,7 +3031,7 @@ main() {
   foo?.toString();
 }
 ''',
-      [error(CompileTimeErrorCode.useOfVoidResult, 23, 3)],
+      [error(diag.useOfVoidResult, 23, 3)],
     );
 
     var node = findNode.methodInvocation('toString()');
@@ -3071,7 +3063,7 @@ main() {
   foo<int>();
 }
 ''',
-      [error(CompileTimeErrorCode.wrongNumberOfTypeArgumentsMethod, 29, 5)],
+      [error(diag.wrongNumberOfTypeArgumentsMethod, 29, 5)],
     );
 
     var node = findNode.methodInvocation('foo<int>()');
@@ -3106,7 +3098,7 @@ main() {
   foo<int>();
 }
 ''',
-      [error(CompileTimeErrorCode.wrongNumberOfTypeArgumentsMethod, 67, 5)],
+      [error(diag.wrongNumberOfTypeArgumentsMethod, 67, 5)],
     );
 
     var node = findNode.methodInvocation('foo<int>()');
@@ -3427,7 +3419,7 @@ main() {
   math.loadLibrary();
 }
 ''',
-      [error(WarningCode.unusedImport, 7, 11)],
+      [error(diag.unusedImport, 7, 11)],
     );
 
     var node = findNode.methodInvocation('loadLibrary()');
@@ -3460,8 +3452,8 @@ main() {
 }
 ''',
       [
-        error(WarningCode.unusedImport, 7, 11),
-        error(CompileTimeErrorCode.extraPositionalArguments, 66, 5),
+        error(diag.unusedImport, 7, 11),
+        error(diag.extraPositionalArguments, 66, 5),
       ],
     );
 
@@ -4279,13 +4271,7 @@ void f(Function? foo) {
   foo.call();
 }
 ''',
-      [
-        error(
-          CompileTimeErrorCode.uncheckedMethodInvocationOfNullableValue,
-          30,
-          4,
-        ),
-      ],
+      [error(diag.uncheckedMethodInvocationOfNullableValue, 30, 4)],
     );
 
     var node = findNode.methodInvocation('foo.call()');
@@ -4615,13 +4601,7 @@ void f(A? a) {
   a.foo();
 }
 ''',
-      [
-        error(
-          CompileTimeErrorCode.uncheckedMethodInvocationOfNullableValue,
-          67,
-          3,
-        ),
-      ],
+      [error(diag.uncheckedMethodInvocationOfNullableValue, 67, 3)],
     );
 
     var node = findNode.singleMethodInvocation;
@@ -4725,7 +4705,7 @@ void f(X x) {
   x.foo();
 }
 ''',
-      [error(CompileTimeErrorCode.undefinedMethod, 109, 3)],
+      [error(diag.undefinedMethod, 109, 3)],
     );
 
     var node = findNode.singleMethodInvocation;
@@ -5062,13 +5042,7 @@ void f(A? a) {
   a.foo();
 }
 ''',
-      [
-        error(
-          CompileTimeErrorCode.uncheckedMethodInvocationOfNullableValue,
-          48,
-          3,
-        ),
-      ],
+      [error(diag.uncheckedMethodInvocationOfNullableValue, 48, 3)],
     );
 
     var node = findNode.methodInvocation('a.foo()');
@@ -5106,13 +5080,7 @@ void f(A? a) {
   a.foo();
 }
 ''',
-      [
-        error(
-          CompileTimeErrorCode.uncheckedMethodInvocationOfNullableValue,
-          86,
-          3,
-        ),
-      ],
+      [error(diag.uncheckedMethodInvocationOfNullableValue, 86, 3)],
     );
 
     var node = findNode.methodInvocation('a.foo()');
@@ -5212,13 +5180,7 @@ void f(A? a) {
   a.foo();
 }
 ''',
-      [
-        error(
-          CompileTimeErrorCode.uncheckedMethodInvocationOfNullableValue,
-          31,
-          3,
-        ),
-      ],
+      [error(diag.uncheckedMethodInvocationOfNullableValue, 31, 3)],
     );
 
     var node = findNode.methodInvocation('a.foo()');
@@ -5254,13 +5216,7 @@ void f(A? a) {
   a.foo();
 }
 ''',
-      [
-        error(
-          CompileTimeErrorCode.uncheckedMethodInvocationOfNullableValue,
-          69,
-          3,
-        ),
-      ],
+      [error(diag.uncheckedMethodInvocationOfNullableValue, 69, 3)],
     );
 
     var node = findNode.methodInvocation('a.foo()');
@@ -5498,13 +5454,7 @@ void f((int, String)? r) {
   r.foo(0);
 }
 ''',
-      [
-        error(
-          CompileTimeErrorCode.uncheckedMethodInvocationOfNullableValue,
-          86,
-          3,
-        ),
-      ],
+      [error(diag.uncheckedMethodInvocationOfNullableValue, 86, 3)],
     );
 
     var node = findNode.methodInvocation('r.foo(0)');
@@ -5975,7 +5925,7 @@ class A {
   }
 }
 ''',
-      [error(CompileTimeErrorCode.invocationOfNonFunctionExpression, 45, 3)],
+      [error(diag.invocationOfNonFunctionExpression, 45, 3)],
     );
 
     var node = findNode.functionExpressionInvocation('foo(0)');
@@ -6102,7 +6052,7 @@ void f() {
   foo(p: 0, p: a);
 }
 ''',
-      [error(CompileTimeErrorCode.duplicateNamedArgument, 60, 1)],
+      [error(diag.duplicateNamedArgument, 60, 1)],
     );
 
     var node = findNode.singleMethodInvocation;
@@ -6153,7 +6103,7 @@ void f() {
   foo(0);
 }
 ''',
-      [error(CompileTimeErrorCode.invocationOfNonFunctionExpression, 29, 3)],
+      [error(diag.invocationOfNonFunctionExpression, 29, 3)],
     );
 
     var node = findNode.functionExpressionInvocation('foo(0)');
@@ -6395,7 +6345,7 @@ class A {
 const a = 0;
 const b = A.foo(a);
 ''',
-      [error(CompileTimeErrorCode.constEvalMethodInvocation, 66, 8)],
+      [error(diag.constEvalMethodInvocation, 66, 8)],
     );
 
     var node = findNode.singleMethodInvocation;
@@ -6430,7 +6380,7 @@ MethodInvocation
 const a = 0;
 const b = 'abc'.codeUnitAt(a);
 ''',
-      [error(CompileTimeErrorCode.constEvalMethodInvocation, 23, 19)],
+      [error(diag.constEvalMethodInvocation, 23, 19)],
     );
 
     var node = findNode.singleMethodInvocation;
@@ -6944,7 +6894,7 @@ main() {
   math();
 }
 ''',
-      [error(CompileTimeErrorCode.prefixIdentifierNotFollowedByDot, 40, 4)],
+      [error(diag.prefixIdentifierNotFollowedByDot, 40, 4)],
     );
 
     var node = findNode.methodInvocation('math()');
@@ -7636,7 +7586,7 @@ g(int a) {
 }
 h(int x) {}
 ''',
-      [error(CompileTimeErrorCode.argumentTypeNotAssignable, 98, 19)],
+      [error(diag.argumentTypeNotAssignable, 98, 19)],
     );
 
     var node = findNode.methodInvocation('f()');
@@ -7802,7 +7752,7 @@ g(A a) {
 }
 h(int x) {}
 ''',
-      [error(CompileTimeErrorCode.argumentTypeNotAssignable, 105, 19)],
+      [error(diag.argumentTypeNotAssignable, 105, 19)],
     );
 
     var node = findNode.methodInvocation('f()');
@@ -7836,7 +7786,7 @@ g(A a) {
 }
 h(int x) {}
 ''',
-      [error(CompileTimeErrorCode.argumentTypeNotAssignable, 105, 16)],
+      [error(diag.argumentTypeNotAssignable, 105, 16)],
     );
 
     var node = findNode.methodInvocation('f()');
@@ -8017,7 +7967,7 @@ class B extends A {
   }
 }
 ''',
-      [error(CompileTimeErrorCode.undefinedSuperMethod, 62, 3)],
+      [error(diag.undefinedSuperMethod, 62, 3)],
     );
 
     var node = findNode.methodInvocation('foo(0);');
@@ -8054,7 +8004,7 @@ enum E {
   }
 }
 ''',
-      [error(CompileTimeErrorCode.undefinedSuperMethod, 37, 3)],
+      [error(diag.undefinedSuperMethod, 37, 3)],
     );
 
     var node = findNode.methodInvocation('foo(0);');
@@ -8092,7 +8042,7 @@ mixin M on A {
   }
 }
 ''',
-      [error(CompileTimeErrorCode.undefinedSuperMethod, 52, 3)],
+      [error(diag.undefinedSuperMethod, 52, 3)],
     );
 
     var node = findNode.methodInvocation('foo(0);');
@@ -8130,8 +8080,8 @@ class A {
 }
 ''',
       [
-        error(ParserErrorCode.missingAssignmentInInitializer, 18, 1),
-        error(CompileTimeErrorCode.initializerForNonExistentField, 18, 13),
+        error(diag.missingAssignmentInInitializer, 18, 1),
+        error(diag.initializerForNonExistentField, 18, 13),
       ],
     );
 
@@ -8225,7 +8175,7 @@ main() {
   bool v = foo(0);
 }
 ''',
-      [error(WarningCode.unusedLocalVariable, 52, 1)],
+      [error(diag.unusedLocalVariable, 52, 1)],
     );
 
     var node = findNode.methodInvocation('foo(0)');
@@ -8356,7 +8306,7 @@ main() {
   foo<bool>();
 }
 ''',
-      [error(CompileTimeErrorCode.typeArgumentNotMatchingBounds, 45, 4)],
+      [error(diag.typeArgumentNotMatchingBounds, 45, 4)],
     );
 
     var node = findNode.methodInvocation('foo<bool>();');
@@ -8393,7 +8343,7 @@ main() {
   foo<int, double>();
 }
 ''',
-      [error(CompileTimeErrorCode.wrongNumberOfTypeArgumentsMethod, 32, 13)],
+      [error(diag.wrongNumberOfTypeArgumentsMethod, 32, 13)],
     );
 
     var node = findNode.methodInvocation('foo<int, double>();');

@@ -12,6 +12,7 @@ import 'package:analyzer/error/error.dart';
 import 'package:collection/collection.dart';
 
 import '../analyzer.dart';
+import '../diagnostic.dart' as diag;
 
 const _desc = r'Avoid redundant argument values.';
 
@@ -23,8 +24,7 @@ class AvoidRedundantArgumentValues extends AnalysisRule {
       );
 
   @override
-  DiagnosticCode get diagnosticCode =>
-      LinterLintCode.avoidRedundantArgumentValues;
+  DiagnosticCode get diagnosticCode => diag.avoidRedundantArgumentValues;
 
   @override
   void registerNodeProcessors(

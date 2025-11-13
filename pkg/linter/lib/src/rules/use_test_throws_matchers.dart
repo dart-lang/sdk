@@ -11,6 +11,7 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/error/error.dart';
 
 import '../analyzer.dart';
+import '../diagnostic.dart' as diag;
 
 const _desc = r'Use throwsA matcher instead of fail().';
 
@@ -19,7 +20,7 @@ class UseTestThrowsMatchers extends AnalysisRule {
     : super(name: LintNames.use_test_throws_matchers, description: _desc);
 
   @override
-  DiagnosticCode get diagnosticCode => LinterLintCode.useTestThrowsMatchers;
+  DiagnosticCode get diagnosticCode => diag.useTestThrowsMatchers;
 
   @override
   void registerNodeProcessors(

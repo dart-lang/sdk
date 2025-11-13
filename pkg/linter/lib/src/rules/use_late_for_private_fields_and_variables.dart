@@ -14,6 +14,7 @@ import 'package:analyzer/error/error.dart';
 import 'package:collection/collection.dart';
 
 import '../analyzer.dart';
+import '../diagnostic.dart' as diag;
 import '../extensions.dart';
 
 const _desc = r'Use late for private members with a non-nullable type.';
@@ -35,8 +36,7 @@ class UseLateForPrivateFieldsAndVariables extends AnalysisRule {
       );
 
   @override
-  DiagnosticCode get diagnosticCode =>
-      LinterLintCode.useLateForPrivateFieldsAndVariables;
+  DiagnosticCode get diagnosticCode => diag.useLateForPrivateFieldsAndVariables;
 
   @override
   void registerNodeProcessors(

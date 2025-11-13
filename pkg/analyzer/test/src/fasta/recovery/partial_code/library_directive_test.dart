@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/dart/error/syntactic_errors.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 
 import 'partial_code_support.dart';
 
@@ -16,22 +16,22 @@ class LibraryDirectivesTest extends PartialCodeTest {
       TestDescriptor(
         'keyword',
         'library',
-        [ParserErrorCode.missingIdentifier, ParserErrorCode.expectedToken],
+        [diag.missingIdentifier, diag.expectedToken],
         'library _s_;',
         failing: ['functionNonVoid', 'getter'],
       ),
       TestDescriptor('name', 'library lib', [
-        ParserErrorCode.expectedToken,
+        diag.expectedToken,
       ], 'library lib;'),
       TestDescriptor(
         'nameDot',
         'library lib.',
-        [ParserErrorCode.missingIdentifier, ParserErrorCode.expectedToken],
+        [diag.missingIdentifier, diag.expectedToken],
         'library lib._s_;',
         failing: ['functionNonVoid', 'getter'],
       ),
       TestDescriptor('nameDotName', 'library lib.a', [
-        ParserErrorCode.expectedToken,
+        diag.expectedToken,
       ], 'library lib.a;'),
     ], PartialCodeTest.prePartSuffixes);
   }

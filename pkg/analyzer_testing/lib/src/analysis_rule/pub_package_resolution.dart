@@ -12,7 +12,8 @@ import 'package:analyzer/src/dart/analysis/analysis_context_collection.dart'; //
 import 'package:analyzer/src/dart/analysis/byte_store.dart'; // ignore: implementation_imports
 import 'package:analyzer/src/dart/analysis/driver_based_analysis_context.dart'; // ignore: implementation_imports
 import 'package:analyzer/src/dart/analysis/experiments.dart'; // ignore: implementation_imports
-import 'package:analyzer/src/error/codes.dart'; // ignore: implementation_imports
+import 'package:analyzer/src/diagnostic/diagnostic.dart' // ignore: implementation_imports
+    as diag;
 import 'package:analyzer/src/test_utilities/mock_sdk.dart'; // ignore: implementation_imports
 import 'package:analyzer/utilities/package_config_file_builder.dart';
 import 'package:analyzer_testing/experiments/experiments.dart';
@@ -264,9 +265,9 @@ class PubPackageResolutionTest with MockPackagesMixin, ResourceProviderMixin {
 
   /// Error codes that by default should be ignored in test expectations.
   List<DiagnosticCode> get ignoredDiagnosticCodes => [
-    WarningCode.unusedElement,
-    WarningCode.unusedField,
-    WarningCode.unusedLocalVariable,
+    diag.unusedElement,
+    diag.unusedField,
+    diag.unusedLocalVariable,
   ];
 
   /// The path to the root of the external packages.

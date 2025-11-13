@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
@@ -35,7 +35,7 @@ void f() {
   A;
 }
 ''',
-      [error(WarningCode.deprecatedExportUse, 31, 1)],
+      [error(diag.deprecatedExportUse, 31, 1)],
     );
   }
 
@@ -59,7 +59,7 @@ void f() {
   prefix.A;
 }
 ''',
-      [error(WarningCode.deprecatedExportUse, 48, 1)],
+      [error(diag.deprecatedExportUse, 48, 1)],
     );
   }
 
@@ -81,7 +81,7 @@ import 'b.dart';
 
 void f(A a) {}
 ''',
-      [error(WarningCode.deprecatedExportUse, 25, 1)],
+      [error(diag.deprecatedExportUse, 25, 1)],
     );
   }
 
@@ -103,7 +103,7 @@ import 'b.dart' as prefix;
 
 void f(prefix.A a) {}
 ''',
-      [error(WarningCode.deprecatedExportUse, 42, 1)],
+      [error(diag.deprecatedExportUse, 42, 1)],
     );
   }
 
@@ -125,7 +125,7 @@ import 'b.dart' show A;
 
 void f(A a) {}
 ''',
-      [error(WarningCode.deprecatedExportUse, 32, 1)],
+      [error(diag.deprecatedExportUse, 32, 1)],
     );
   }
 
@@ -149,7 +149,7 @@ void f() {
   foo();
 }
 ''',
-      [error(WarningCode.deprecatedExportUse, 31, 3)],
+      [error(diag.deprecatedExportUse, 31, 3)],
     );
   }
 
@@ -173,7 +173,7 @@ void f() {
   prefix.foo();
 }
 ''',
-      [error(WarningCode.deprecatedExportUse, 48, 3)],
+      [error(diag.deprecatedExportUse, 48, 3)],
     );
   }
 
@@ -200,7 +200,7 @@ void f() {
   foo;
 }
 ''',
-      [error(WarningCode.deprecatedExportUse, 31, 3)],
+      [error(diag.deprecatedExportUse, 31, 3)],
     );
   }
 
@@ -227,7 +227,7 @@ void f() {
   prefix.foo;
 }
 ''',
-      [error(WarningCode.deprecatedExportUse, 48, 3)],
+      [error(diag.deprecatedExportUse, 48, 3)],
     );
   }
 
@@ -261,7 +261,7 @@ void f() {
   foo();
 }
 ''',
-      [error(WarningCode.deprecatedExportUse, 31, 3)],
+      [error(diag.deprecatedExportUse, 31, 3)],
     );
   }
 
@@ -288,7 +288,7 @@ void f() {
   foo = 0;
 }
 ''',
-      [error(WarningCode.deprecatedExportUse, 31, 3)],
+      [error(diag.deprecatedExportUse, 31, 3)],
     );
   }
 
@@ -315,7 +315,7 @@ void f() {
   prefix.foo = 0;
 }
 ''',
-      [error(WarningCode.deprecatedExportUse, 48, 3)],
+      [error(diag.deprecatedExportUse, 48, 3)],
     );
   }
 
@@ -339,7 +339,7 @@ void f() {
   foo;
 }
 ''',
-      [error(WarningCode.deprecatedExportUse, 31, 3)],
+      [error(diag.deprecatedExportUse, 31, 3)],
     );
   }
 

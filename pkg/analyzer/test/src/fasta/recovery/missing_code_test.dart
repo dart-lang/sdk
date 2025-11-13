@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/dart/error/syntactic_errors.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'recovery_test_support.dart';
@@ -25,7 +25,7 @@ class ListLiteralTest extends AbstractRecoveryTest {
       '''
 f() => [a, , b];
 ''',
-      [ParserErrorCode.missingIdentifier],
+      [diag.missingIdentifier],
       '''
 f() => [a, _s_, b];
 ''',
@@ -37,7 +37,7 @@ f() => [a, _s_, b];
       '''
 f() => [a, b c];
 ''',
-      [ParserErrorCode.expectedToken],
+      [diag.expectedToken],
       '''
 f() => [a, b, c];
 ''',
@@ -49,7 +49,7 @@ f() => [a, b, c];
       '''
 f() => [a, if (x) b c];
 ''',
-      [ParserErrorCode.expectedElseOrComma],
+      [diag.expectedElseOrComma],
       '''
 f() => [a, if (x) b, c];
 ''',
@@ -61,7 +61,7 @@ f() => [a, if (x) b, c];
       '''
 f() => [a, if (x) b else y c];
 ''',
-      [ParserErrorCode.expectedToken],
+      [diag.expectedToken],
       '''
 f() => [a, if (x) b else y, c];
 ''',
@@ -77,7 +77,7 @@ class MapLiteralTest extends AbstractRecoveryTest {
       '''
 f() => {a: b, c: d e: f};
 ''',
-      [ParserErrorCode.expectedToken],
+      [diag.expectedToken],
       '''
 f() => {a: b, c: d, e: f};
 ''',
@@ -89,7 +89,7 @@ f() => {a: b, c: d, e: f};
       '''
 f() => {a: b, if (x) c: d e: f};
 ''',
-      [ParserErrorCode.expectedElseOrComma],
+      [diag.expectedElseOrComma],
       '''
 f() => {a: b, if (x) c: d, e: f};
 ''',
@@ -101,7 +101,7 @@ f() => {a: b, if (x) c: d, e: f};
       '''
 f() => {a: b, if (x) c: d else y: z e: f};
 ''',
-      [ParserErrorCode.expectedToken],
+      [diag.expectedToken],
       '''
 f() => {a: b, if (x) c: d else y: z, e: f};
 ''',
@@ -113,7 +113,7 @@ f() => {a: b, if (x) c: d else y: z, e: f};
       '''
 f() => {: b};
 ''',
-      [ParserErrorCode.missingIdentifier],
+      [diag.missingIdentifier],
       '''
 f() => {_s_: b};
 ''',
@@ -125,7 +125,7 @@ f() => {_s_: b};
       '''
 f() => {a: };
 ''',
-      [ParserErrorCode.missingIdentifier],
+      [diag.missingIdentifier],
       '''
 f() => {a: _s_};
 ''',
@@ -137,7 +137,7 @@ f() => {a: _s_};
       '''
 f() => {a: , b: c};
 ''',
-      [ParserErrorCode.missingIdentifier],
+      [diag.missingIdentifier],
       '''
 f() => {a: _s_, b: c};
 ''',
@@ -162,7 +162,7 @@ class MissingCodeTest extends AbstractRecoveryTest {
       '''
 convert(x) => as T;
 ''',
-      [ParserErrorCode.expectedTypeName],
+      [diag.expectedTypeName],
       '''
 convert(x) => _s_ as T;
 ''',
@@ -174,7 +174,7 @@ convert(x) => _s_ as T;
       '''
 convert(x) => x as ;
 ''',
-      [ParserErrorCode.expectedTypeName],
+      [diag.expectedTypeName],
       '''
 convert(x) => x as _s_;
 ''',
@@ -189,7 +189,7 @@ f() {
   x =
 }
 ''',
-      [ParserErrorCode.missingIdentifier, ParserErrorCode.expectedToken],
+      [diag.missingIdentifier, diag.expectedToken],
       '''
 f() {
   var x;
@@ -214,7 +214,7 @@ f(x) {
   x..
 }
 ''',
-      [ParserErrorCode.missingIdentifier, ParserErrorCode.expectedToken],
+      [diag.missingIdentifier, diag.expectedToken],
       '''
 f(x) {
   x.. _s_;
@@ -228,7 +228,7 @@ f(x) {
       '''
 class {}
 ''',
-      [ParserErrorCode.missingIdentifier],
+      [diag.missingIdentifier],
       '''
 class _s_ {}
 ''',
@@ -242,7 +242,7 @@ class _s_ {}
       '''
 import 'bar.dart' deferred;
 ''',
-      [ParserErrorCode.missingPrefixInDeferredImport],
+      [diag.missingPrefixInDeferredImport],
       '''
 import 'bar.dart' deferred as _s_;
 ''',
@@ -254,7 +254,7 @@ import 'bar.dart' deferred as _s_;
       '''
 f(int a int b) { }
 ''',
-      [ParserErrorCode.expectedToken],
+      [diag.expectedToken],
       '''
 f(int a, int b) { }
 ''',
@@ -266,7 +266,7 @@ f(int a, int b) { }
       '''
 f() => x ? y :
 ''',
-      [ParserErrorCode.missingIdentifier, ParserErrorCode.expectedToken],
+      [diag.missingIdentifier, diag.expectedToken],
       '''
 f() => x ? y : _s_;
 ''',
@@ -278,7 +278,7 @@ f() => x ? y : _s_;
       '''
 f() => x ? : z
 ''',
-      [ParserErrorCode.missingIdentifier, ParserErrorCode.expectedToken],
+      [diag.missingIdentifier, diag.expectedToken],
       '''
 f() => x ? _s_ : z;
 ''',
@@ -298,7 +298,7 @@ f() => x ? _s_ : z;
       '''
 f(x) = x;
 ''',
-      [ParserErrorCode.missingFunctionBody],
+      [diag.missingFunctionBody],
       '''
 f(x) => x;
 ''',
@@ -310,7 +310,7 @@ f(x) => x;
       '''
 f(x) return x;
 ''',
-      [ParserErrorCode.missingFunctionBody],
+      [diag.missingFunctionBody],
       '''
 f(x) => x;
 ''',
@@ -359,7 +359,7 @@ class Test {
       assert(true);
 }
 ''',
-      [ParserErrorCode.expectedToken],
+      [diag.expectedToken],
       '''
 class Test {
   Test()
@@ -380,7 +380,7 @@ class Test {
       x = 2;
 }
 ''',
-      [ParserErrorCode.expectedToken],
+      [diag.expectedToken],
       '''
 class Test {
   Test()
@@ -401,7 +401,7 @@ class Test {
       this.x = 2;
 }
 ''',
-      [ParserErrorCode.expectedToken],
+      [diag.expectedToken],
       '''
 class Test {
   Test()
@@ -420,7 +420,7 @@ f() {
   }
 }
 ''',
-      [ParserErrorCode.missingIdentifier],
+      [diag.missingIdentifier],
       '''
 f() {
   if (_s_ is String) {
@@ -437,7 +437,7 @@ f(x) {
   if (x is ) {}
 }
 ''',
-      [ParserErrorCode.expectedTypeName],
+      [diag.expectedTypeName],
       '''
 f(x) {
   if (x is _s_) {}
@@ -486,7 +486,7 @@ class Bar {
   int foo => 0;
 }
 ''',
-      [ParserErrorCode.missingGet],
+      [diag.missingGet],
       '''
 class Bar {
   int get foo => 0;
@@ -502,7 +502,7 @@ class Bar {
       '''
 int f int x, int y) {}
 ''',
-      [ParserErrorCode.expectedToken],
+      [diag.expectedToken],
       '''
 int f (int x, int y) {}
 ''',
@@ -516,7 +516,7 @@ int f (int x, int y) {}
       '''
 f(x) => x ?? throw 0;
 ''',
-      [ParserErrorCode.expectedToken, ParserErrorCode.expectedToken],
+      [diag.expectedToken, diag.expectedToken],
       '''
 f(x) => x ?? (throw 0);
 ''',
@@ -547,7 +547,7 @@ f() {
   v.
 }
 ''',
-      [ParserErrorCode.missingIdentifier, ParserErrorCode.expectedToken],
+      [diag.missingIdentifier, diag.expectedToken],
       '''
 f() {
   var v = 'String';
@@ -589,12 +589,12 @@ f() {
 }
 ''',
       [
-        ParserErrorCode.expectedToken,
-        ParserErrorCode.expectedToken,
-        ParserErrorCode.expectedToken,
-        ParserErrorCode.expectedToken,
-        ScannerErrorCode.unterminatedStringLiteral,
-        ScannerErrorCode.unterminatedStringLiteral,
+        diag.expectedToken,
+        diag.expectedToken,
+        diag.expectedToken,
+        diag.expectedToken,
+        diag.unterminatedStringLiteral,
+        diag.unterminatedStringLiteral,
       ],
       r'''
 f() {
@@ -617,7 +617,7 @@ f() {
       '''
 f() => x $operator
 ''',
-      [ParserErrorCode.missingIdentifier, ParserErrorCode.expectedToken],
+      [diag.missingIdentifier, diag.expectedToken],
       '''
 f() => x $operator _s_;
 ''',
@@ -631,7 +631,7 @@ class C {
   int operator $operator(x) => super $operator
 }
 ''',
-      [ParserErrorCode.missingIdentifier, ParserErrorCode.expectedToken],
+      [diag.missingIdentifier, diag.expectedToken],
       '''
 class C {
   int operator $operator(x) => super $operator _s_;
@@ -651,7 +651,7 @@ class ParameterListTest extends AbstractRecoveryTest {
       '''
 f({a, }) {}
 ''',
-      [ParserErrorCode.missingIdentifier],
+      [diag.missingIdentifier],
       '''
 f({a, _s_}) {}
 ''',
@@ -663,13 +663,13 @@ f({a, _s_}) {}
       '''
 f({a, , b}) {}
 ''',
-      [ParserErrorCode.missingIdentifier],
+      [diag.missingIdentifier],
       '''
 f({a, _s_, b}) {}
 ''',
       expectedDiagnosticsInValidCode: [
         // The synthesized identifier has a private name which isn't valid here.
-        ParserErrorCode.privateOptionalParameter,
+        diag.privateOptionalParameter,
       ],
     );
   }
@@ -680,7 +680,7 @@ f({a, _s_, b}) {}
       '''
 f([a, ]) {}
 ''',
-      [ParserErrorCode.missingIdentifier],
+      [diag.missingIdentifier],
       '''
 f([a, _s_]) {}
 ''',
@@ -692,7 +692,7 @@ f([a, _s_]) {}
       '''
 f([a, , b]) {}
 ''',
-      [ParserErrorCode.missingIdentifier],
+      [diag.missingIdentifier],
       '''
 f([a, _s_, b]) {}
 ''',
@@ -705,7 +705,7 @@ f([a, _s_, b]) {}
       '''
 f(a, ) {}
 ''',
-      [ParserErrorCode.missingIdentifier],
+      [diag.missingIdentifier],
       '''
 f(a, _s_) {}
 ''',
@@ -717,7 +717,7 @@ f(a, _s_) {}
       '''
 f(a, , b) {}
 ''',
-      [ParserErrorCode.missingIdentifier],
+      [diag.missingIdentifier],
       '''
 f(a, _s_, b) {}
 ''',
@@ -732,7 +732,7 @@ class C {
   C(this);
 }
 ''',
-      [ParserErrorCode.expectedIdentifierButGotKeyword],
+      [diag.expectedIdentifierButGotKeyword],
       '''
 class C {
   int f;
@@ -750,7 +750,7 @@ class C {
   C(this, p);
 }
 ''',
-      [ParserErrorCode.expectedIdentifierButGotKeyword],
+      [diag.expectedIdentifierButGotKeyword],
       '''
 class C {
   int f;
@@ -768,7 +768,7 @@ class C {
   C(this.);
 }
 ''',
-      [ParserErrorCode.missingIdentifier],
+      [diag.missingIdentifier],
       '''
 class C {
   int f;
@@ -786,7 +786,7 @@ class C {
   C(this., p);
 }
 ''',
-      [ParserErrorCode.missingIdentifier],
+      [diag.missingIdentifier],
       '''
 class C {
   int f;
@@ -801,7 +801,7 @@ class C {
       '''
 f({a: 0) {}
 ''',
-      [ParserErrorCode.expectedToken],
+      [diag.expectedToken],
       '''
 f({a: 0}) {}
 ''',
@@ -813,7 +813,7 @@ f({a: 0}) {}
       '''
 f({a: 0]) {}
 ''',
-      [ParserErrorCode.expectedToken, ParserErrorCode.expectedToken],
+      [diag.expectedToken, diag.expectedToken],
       '''
 f({a: 0}) {}
 ''',
@@ -825,7 +825,7 @@ f({a: 0}) {}
       '''
 f(a}) {}
 ''',
-      [ParserErrorCode.expectedToken],
+      [diag.expectedToken],
       '''
 f(a) {}
 ''',
@@ -837,7 +837,7 @@ f(a) {}
       '''
 f(a]) {}
 ''',
-      [ParserErrorCode.expectedToken],
+      [diag.expectedToken],
       '''
 f(a) {}
 ''',
@@ -849,7 +849,7 @@ f(a) {}
       '''
 f([a = 0}) {}
 ''',
-      [ParserErrorCode.expectedToken, ParserErrorCode.expectedToken],
+      [diag.expectedToken, diag.expectedToken],
       '''
 f([a = 0]) {}
 ''',
@@ -862,7 +862,7 @@ f([a = 0]) {}
       '''
 f([a = 0) {}
 ''',
-      [ParserErrorCode.expectedToken],
+      [diag.expectedToken],
       '''
 f([a = 0]) {}
 ''',
@@ -878,7 +878,7 @@ h(v1, v2, v) {
   g(v1 == v2 || v1 == v 3, true);
 }
 ''',
-      [ParserErrorCode.expectedToken],
+      [diag.expectedToken],
       '''
 g(a, b, c) {}
 h(v1, v2, v) {
@@ -893,7 +893,7 @@ h(v1, v2, v) {
       '''
 f({a: }) {}
 ''',
-      [ParserErrorCode.missingIdentifier],
+      [diag.missingIdentifier],
       '''
 f({a: _s_}) {}
 ''',
@@ -905,7 +905,7 @@ f({a: _s_}) {}
       '''
 f({a: , b}) {}
 ''',
-      [ParserErrorCode.missingIdentifier],
+      [diag.missingIdentifier],
       '''
 f({a: _s_, b}) {}
 ''',
@@ -917,7 +917,7 @@ f({a: _s_, b}) {}
       '''
 f([a = ]) {}
 ''',
-      [ParserErrorCode.missingIdentifier],
+      [diag.missingIdentifier],
       '''
 f([a = _s_]) {}
 ''',
@@ -929,7 +929,7 @@ f([a = _s_]) {}
       '''
 f([a = , b]) {}
 ''',
-      [ParserErrorCode.missingIdentifier],
+      [diag.missingIdentifier],
       '''
 f([a = _s_, b]) {}
 ''',
@@ -942,7 +942,7 @@ f([a = _s_, b]) {}
       '''
 f([a = 0], {b: 1}) {}
 ''',
-      [ParserErrorCode.expectedToken],
+      [diag.expectedToken],
       '''
 f([a = 0]) {}
 ''',
@@ -956,7 +956,7 @@ f([a = 0]) {}
       '''
 f([a = 0], {b: 1}, [c = 2]) {}
 ''',
-      [ParserErrorCode.mixedParameterGroups],
+      [diag.mixedParameterGroups],
       '''
 f([a = 0, c = 2]) {}
 ''',
@@ -969,7 +969,7 @@ f([a = 0, c = 2]) {}
       '''
 f({a: 0}, {b: 1}) {}
 ''',
-      [ParserErrorCode.multipleNamedParameterGroups],
+      [diag.multipleNamedParameterGroups],
       '''
 f({a: 0, b: 1}) {}
 ''',
@@ -982,7 +982,7 @@ f({a: 0, b: 1}) {}
       '''
 f([a = 0], [b = 1]) {}
 ''',
-      [ParserErrorCode.multiplePositionalParameterGroups],
+      [diag.multiplePositionalParameterGroups],
       '''
 f([a = 0, b = 1]) {}
 ''',
@@ -995,7 +995,7 @@ f([a = 0, b = 1]) {}
       '''
 f(a: 0) {}
 ''',
-      [ParserErrorCode.namedParameterOutsideGroup],
+      [diag.namedParameterOutsideGroup],
       '''
 f({a: 0}) {}
 ''',
@@ -1008,7 +1008,7 @@ f({a: 0}) {}
       '''
 f(a = 0) {}
 ''',
-      [ParserErrorCode.positionalParameterOutsideGroup],
+      [diag.positionalParameterOutsideGroup],
       '''
 f([a = 0]) {}
 ''',
@@ -1025,7 +1025,7 @@ class TypedefTest extends AbstractRecoveryTest {
       '''
 typedef Predicate = bool <E>(E element);
 ''',
-      [ParserErrorCode.missingIdentifier],
+      [diag.missingIdentifier],
       '''
 typedef Predicate = bool Function<E>(E element);
 ''',

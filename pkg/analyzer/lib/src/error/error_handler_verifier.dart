@@ -12,7 +12,7 @@ import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_provider.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
-import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:analyzer/src/error/return_type_verifier.dart';
 import 'package:analyzer/src/generated/error_verifier.dart';
 import 'package:collection/collection.dart';
@@ -203,7 +203,7 @@ class ErrorHandlerVerifier {
     void report() {
       _diagnosticReporter.atNode(
         expression,
-        WarningCode.argumentTypeNotAssignableToErrorHandler,
+        diag.argumentTypeNotAssignableToErrorHandler,
         arguments: [expressionType, expectedFunctionReturnType],
       );
     }
@@ -292,7 +292,7 @@ class ErrorHandlerVerifier {
     )) {
       _diagnosticReporter.atNode(
         callback,
-        WarningCode.returnTypeInvalidForCatchError,
+        diag.returnTypeInvalidForCatchError,
         arguments: [functionReturnType, expectedType],
       );
     }

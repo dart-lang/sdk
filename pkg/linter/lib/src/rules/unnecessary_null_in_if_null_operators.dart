@@ -11,6 +11,7 @@ import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/error/error.dart';
 
 import '../analyzer.dart';
+import '../diagnostic.dart' as diag;
 import '../extensions.dart';
 
 const _desc = r'Avoid using `null` in `??` operators.';
@@ -23,8 +24,7 @@ class UnnecessaryNullInIfNullOperators extends AnalysisRule {
       );
 
   @override
-  DiagnosticCode get diagnosticCode =>
-      LinterLintCode.unnecessaryNullInIfNullOperators;
+  DiagnosticCode get diagnosticCode => diag.unnecessaryNullInIfNullOperators;
 
   @override
   void registerNodeProcessors(

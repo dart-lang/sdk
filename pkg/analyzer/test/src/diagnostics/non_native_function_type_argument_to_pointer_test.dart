@@ -2,8 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/dart/error/ffi_code.dart';
-import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
@@ -31,7 +30,7 @@ class C {
       [
         // This changed from a method to a extension method, uses Dart semantics
         // instead of manual check now.
-        error(CompileTimeErrorCode.undefinedMethod, 98, 10),
+        error(diag.undefinedMethod, 98, 10),
       ],
     );
   }
@@ -48,7 +47,7 @@ class C {
   }
 }
 ''',
-      [error(FfiCode.nonNativeFunctionTypeArgumentToPointer, 165, 1)],
+      [error(diag.nonNativeFunctionTypeArgumentToPointer, 165, 1)],
     );
   }
 
@@ -63,7 +62,7 @@ class C<T extends Function> {
   }
 }
 ''',
-      [error(FfiCode.nonConstantTypeArgument, 125, 1)],
+      [error(diag.nonConstantTypeArgument, 125, 1)],
     );
   }
 

@@ -29,8 +29,8 @@ import 'package:analyzer/src/dart/element/least_greatest_closure.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_provider.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:analyzer/src/diagnostic/diagnostic_factory.dart';
-import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/error/listener.dart';
 import 'package:analyzer/src/generated/exhaustiveness.dart';
 import 'package:analyzer/src/utilities/extensions/ast.dart';
@@ -110,19 +110,13 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
     if (element is ConstructorElement) {
       // should be 'const' constructor
       if (!element.isConst) {
-        _diagnosticReporter.atNode(
-          node,
-          CompileTimeErrorCode.nonConstantAnnotationConstructor,
-        );
+        _diagnosticReporter.atNode(node, diag.nonConstantAnnotationConstructor);
         return;
       }
       // should have arguments
       var argumentList = node.arguments;
       if (argumentList == null) {
-        _diagnosticReporter.atNode(
-          node,
-          CompileTimeErrorCode.noAnnotationConstructorArguments,
-        );
+        _diagnosticReporter.atNode(node, diag.noAnnotationConstructorArguments);
         return;
       }
       // arguments should be constants
@@ -139,7 +133,7 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
 
     var value = _evaluateAndReportError(
       expression,
-      CompileTimeErrorCode.constantPatternWithNonConstantExpression,
+      diag.constantPatternWithNonConstantExpression,
     );
     if (value is DartObjectImpl) {
       if (_currentLibrary.featureSet.isEnabled(Feature.patterns)) {
@@ -152,7 +146,7 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
             if (!_canBeEqual(constantType, matchedValueType)) {
               _diagnosticReporter.atNode(
                 node,
-                WarningCode.constantPatternNeverMatchesValueType,
+                diag.constantPatternNeverMatchesValueType,
                 arguments: [matchedValueType, constantType],
               );
               return;
@@ -175,7 +169,7 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
       if (!element.isCycleFree && !element.isFactory) {
         _diagnosticReporter.atNode(
           node.returnType,
-          CompileTimeErrorCode.recursiveConstantConstructor,
+          diag.recursiveConstantConstructor,
         );
       }
 
@@ -198,7 +192,7 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
     if (node.inConstantContext || node.inConstantExpression) {
       _checkForConstWithTypeParameters(
         node.constructorName.type,
-        CompileTimeErrorCode.constWithTypeParametersConstructorTearoff,
+        diag.constWithTypeParametersConstructorTearoff,
       );
     }
   }
@@ -250,7 +244,7 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
       for (var typeArgument in typeArguments.arguments) {
         _checkForConstWithTypeParameters(
           typeArgument,
-          CompileTimeErrorCode.constWithTypeParametersFunctionTearoff,
+          diag.constWithTypeParametersFunctionTearoff,
         );
       }
     }
@@ -263,10 +257,7 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
     var parent = node.parent;
     if ((parent is AsExpression || parent is IsExpression) &&
         (parent as Expression).inConstantContext) {
-      _checkForConstWithTypeParameters(
-        node,
-        CompileTimeErrorCode.constWithTypeParameters,
-      );
+      _checkForConstWithTypeParameters(node, diag.constWithTypeParameters);
     }
   }
 
@@ -276,10 +267,7 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
   ) {
     if (node.isConst) {
       var namedType = node.constructorName.type;
-      _checkForConstWithTypeParameters(
-        namedType,
-        CompileTimeErrorCode.constWithTypeParameters,
-      );
+      _checkForConstWithTypeParameters(namedType, diag.constWithTypeParameters);
 
       var constructor = node.constructorName.element;
       if (constructor != null) {
@@ -298,7 +286,7 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
       var elementType = nodeType.typeArguments[0];
       var verifier = _ConstLiteralVerifier(
         this,
-        diagnosticCode: CompileTimeErrorCode.nonConstantListElement,
+        diagnosticCode: diag.nonConstantListElement,
         listElementType: elementType,
       );
       for (var element in node.elements) {
@@ -332,7 +320,7 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
         var key = element.key;
         var keyValue = _evaluateAndReportError(
           key,
-          CompileTimeErrorCode.nonConstantMapPatternKey,
+          diag.nonConstantMapPatternKey,
         );
         if (keyValue is DartObjectImpl) {
           _mapPatternKeyValues?[key] = keyValue;
@@ -369,10 +357,7 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
 
     if (node.isConst) {
       for (var field in node.fields) {
-        _evaluateAndReportError(
-          field,
-          CompileTimeErrorCode.nonConstantRecordField,
-        );
+        _evaluateAndReportError(field, diag.nonConstantRecordField);
       }
     }
   }
@@ -383,7 +368,7 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
 
     _evaluateAndReportError(
       node.operand,
-      CompileTimeErrorCode.nonConstantRelationalPatternExpression,
+      diag.nonConstantRelationalPatternExpression,
     );
   }
 
@@ -397,7 +382,7 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
         var config = _SetVerifierConfig(elementType: elementType);
         var verifier = _ConstLiteralVerifier(
           this,
-          diagnosticCode: CompileTimeErrorCode.nonConstantSetElement,
+          diagnosticCode: diag.nonConstantSetElement,
           setConfig: config,
         );
         for (CollectionElement element in node.elements) {
@@ -421,7 +406,7 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
         var config = _MapVerifierConfig(keyType: keyType, valueType: valueType);
         var verifier = _ConstLiteralVerifier(
           this,
-          diagnosticCode: CompileTimeErrorCode.nonConstantMapElement,
+          diagnosticCode: diag.nonConstantMapElement,
           mapConfig: config,
         );
         for (var entry in node.elements) {
@@ -510,10 +495,7 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
       }
       if (result is InvalidConstant) {
         if (node.isConst) {
-          _reportError(
-            result,
-            CompileTimeErrorCode.constInitializedWithNonConstantValue,
-          );
+          _reportError(result, diag.constInitializedWithNonConstantValue);
         } else {
           _reportError(result, null);
         }
@@ -560,7 +542,7 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
   ///
   /// A generic function type is allowed to reference its own type parameter(s).
   ///
-  /// See [CompileTimeErrorCode.constWithTypeParameters].
+  /// See [diag.constWithTypeParameters].
   void _checkForConstWithTypeParameters(
     TypeAnnotation type,
     DiagnosticCode diagnosticCode, {
@@ -674,135 +656,75 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
     // These error codes are more specific than the [defaultErrorCode] so they
     // will overwrite and replace the default when we report the error.
     DiagnosticCode diagnosticCode = error.locatableDiagnostic.code;
-    if (identical(
+    if (identical(diagnosticCode, diag.constEvalExtensionMethod) ||
+        identical(diagnosticCode, diag.constEvalExtensionTypeMethod) ||
+        identical(diagnosticCode, diag.constEvalForElement) ||
+        identical(diagnosticCode, diag.constEvalMethodInvocation) ||
+        identical(diagnosticCode, diag.constEvalPrimitiveEquality) ||
+        identical(diagnosticCode, diag.constEvalPropertyAccess) ||
+        identical(diagnosticCode, diag.constEvalThrowsException) ||
+        identical(diagnosticCode, diag.constEvalThrowsIdbze) ||
+        identical(diagnosticCode, diag.constEvalTypeBoolNumString) ||
+        identical(diagnosticCode, diag.constEvalTypeBool) ||
+        identical(diagnosticCode, diag.constEvalTypeBoolInt) ||
+        identical(diagnosticCode, diag.constEvalTypeInt) ||
+        identical(diagnosticCode, diag.constEvalTypeNum) ||
+        identical(diagnosticCode, diag.constEvalTypeNumString) ||
+        identical(diagnosticCode, diag.constEvalTypeString) ||
+        identical(diagnosticCode, diag.recursiveCompileTimeConstant) ||
+        identical(diagnosticCode, diag.constConstructorFieldTypeMismatch) ||
+        identical(diagnosticCode, diag.constConstructorParamTypeMismatch) ||
+        identical(diagnosticCode, diag.constTypeParameter) ||
+        identical(
           diagnosticCode,
-          CompileTimeErrorCode.constEvalExtensionMethod,
+          diag.constWithTypeParametersFunctionTearoff,
+        ) ||
+        identical(diagnosticCode, diag.constSpreadExpectedListOrSet) ||
+        identical(diagnosticCode, diag.constSpreadExpectedMap) ||
+        identical(diagnosticCode, diag.expressionInMap) ||
+        identical(diagnosticCode, diag.variableTypeMismatch) ||
+        identical(diagnosticCode, diag.nonBoolCondition) ||
+        identical(
+          diagnosticCode,
+          diag.nonConstantDefaultValueFromDeferredLibrary,
+        ) ||
+        identical(diagnosticCode, diag.nonConstantMapKeyFromDeferredLibrary) ||
+        identical(
+          diagnosticCode,
+          diag.nonConstantMapValueFromDeferredLibrary,
+        ) ||
+        identical(diagnosticCode, diag.setElementFromDeferredLibrary) ||
+        identical(diagnosticCode, diag.spreadExpressionFromDeferredLibrary) ||
+        identical(
+          diagnosticCode,
+          diag.nonConstantCaseExpressionFromDeferredLibrary,
         ) ||
         identical(
           diagnosticCode,
-          CompileTimeErrorCode.constEvalExtensionTypeMethod,
+          diag.invalidAnnotationConstantValueFromDeferredLibrary,
         ) ||
-        identical(diagnosticCode, CompileTimeErrorCode.constEvalForElement) ||
+        identical(diagnosticCode, diag.ifElementConditionFromDeferredLibrary) ||
         identical(
           diagnosticCode,
-          CompileTimeErrorCode.constEvalMethodInvocation,
-        ) ||
-        identical(
-          diagnosticCode,
-          CompileTimeErrorCode.constEvalPrimitiveEquality,
+          diag.constInitializedWithNonConstantValueFromDeferredLibrary,
         ) ||
         identical(
           diagnosticCode,
-          CompileTimeErrorCode.constEvalPropertyAccess,
+          diag.nonConstantListElementFromDeferredLibrary,
         ) ||
         identical(
           diagnosticCode,
-          CompileTimeErrorCode.constEvalThrowsException,
-        ) ||
-        identical(diagnosticCode, CompileTimeErrorCode.constEvalThrowsIdbze) ||
-        identical(
-          diagnosticCode,
-          CompileTimeErrorCode.constEvalTypeBoolNumString,
-        ) ||
-        identical(diagnosticCode, CompileTimeErrorCode.constEvalTypeBool) ||
-        identical(diagnosticCode, CompileTimeErrorCode.constEvalTypeBoolInt) ||
-        identical(diagnosticCode, CompileTimeErrorCode.constEvalTypeInt) ||
-        identical(diagnosticCode, CompileTimeErrorCode.constEvalTypeNum) ||
-        identical(
-          diagnosticCode,
-          CompileTimeErrorCode.constEvalTypeNumString,
-        ) ||
-        identical(diagnosticCode, CompileTimeErrorCode.constEvalTypeString) ||
-        identical(
-          diagnosticCode,
-          CompileTimeErrorCode.recursiveCompileTimeConstant,
+          diag.nonConstantRecordFieldFromDeferredLibrary,
         ) ||
         identical(
           diagnosticCode,
-          CompileTimeErrorCode.constConstructorFieldTypeMismatch,
+          diag.constInitializedWithNonConstantValueFromDeferredLibrary,
         ) ||
+        identical(diagnosticCode, diag.patternConstantFromDeferredLibrary) ||
+        identical(diagnosticCode, diag.wrongNumberOfTypeArgumentsFunction) ||
         identical(
           diagnosticCode,
-          CompileTimeErrorCode.constConstructorParamTypeMismatch,
-        ) ||
-        identical(diagnosticCode, CompileTimeErrorCode.constTypeParameter) ||
-        identical(
-          diagnosticCode,
-          CompileTimeErrorCode.constWithTypeParametersFunctionTearoff,
-        ) ||
-        identical(
-          diagnosticCode,
-          CompileTimeErrorCode.constSpreadExpectedListOrSet,
-        ) ||
-        identical(
-          diagnosticCode,
-          CompileTimeErrorCode.constSpreadExpectedMap,
-        ) ||
-        identical(diagnosticCode, CompileTimeErrorCode.expressionInMap) ||
-        identical(diagnosticCode, CompileTimeErrorCode.variableTypeMismatch) ||
-        identical(diagnosticCode, CompileTimeErrorCode.nonBoolCondition) ||
-        identical(
-          diagnosticCode,
-          CompileTimeErrorCode.nonConstantDefaultValueFromDeferredLibrary,
-        ) ||
-        identical(
-          diagnosticCode,
-          CompileTimeErrorCode.nonConstantMapKeyFromDeferredLibrary,
-        ) ||
-        identical(
-          diagnosticCode,
-          CompileTimeErrorCode.nonConstantMapValueFromDeferredLibrary,
-        ) ||
-        identical(
-          diagnosticCode,
-          CompileTimeErrorCode.setElementFromDeferredLibrary,
-        ) ||
-        identical(
-          diagnosticCode,
-          CompileTimeErrorCode.spreadExpressionFromDeferredLibrary,
-        ) ||
-        identical(
-          diagnosticCode,
-          CompileTimeErrorCode.nonConstantCaseExpressionFromDeferredLibrary,
-        ) ||
-        identical(
-          diagnosticCode,
-          CompileTimeErrorCode
-              .invalidAnnotationConstantValueFromDeferredLibrary,
-        ) ||
-        identical(
-          diagnosticCode,
-          CompileTimeErrorCode.ifElementConditionFromDeferredLibrary,
-        ) ||
-        identical(
-          diagnosticCode,
-          CompileTimeErrorCode
-              .constInitializedWithNonConstantValueFromDeferredLibrary,
-        ) ||
-        identical(
-          diagnosticCode,
-          CompileTimeErrorCode.nonConstantListElementFromDeferredLibrary,
-        ) ||
-        identical(
-          diagnosticCode,
-          CompileTimeErrorCode.nonConstantRecordFieldFromDeferredLibrary,
-        ) ||
-        identical(
-          diagnosticCode,
-          CompileTimeErrorCode
-              .constInitializedWithNonConstantValueFromDeferredLibrary,
-        ) ||
-        identical(
-          diagnosticCode,
-          CompileTimeErrorCode.patternConstantFromDeferredLibrary,
-        ) ||
-        identical(
-          diagnosticCode,
-          CompileTimeErrorCode.wrongNumberOfTypeArgumentsFunction,
-        ) ||
-        identical(
-          diagnosticCode,
-          CompileTimeErrorCode.wrongNumberOfTypeArgumentsAnonymousFunction,
+          diag.wrongNumberOfTypeArgumentsAnonymousFunction,
         )) {
       _diagnosticReporter.report(
         error.locatableDiagnostic.atOffset(
@@ -830,10 +752,7 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
     if (notPotentiallyConstants.isEmpty) return;
 
     for (var notConst in notPotentiallyConstants) {
-      _diagnosticReporter.atNode(
-        notConst,
-        CompileTimeErrorCode.invalidConstant,
-      );
+      _diagnosticReporter.atNode(notConst, diag.invalidConstant);
     }
   }
 
@@ -857,10 +776,7 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
       Expression realArgument = argument is NamedExpression
           ? argument.expression
           : argument;
-      _evaluateAndReportError(
-        realArgument,
-        CompileTimeErrorCode.constWithNonConstantArgument,
-      );
+      _evaluateAndReportError(realArgument, diag.constWithNonConstantArgument);
     }
   }
 
@@ -942,7 +858,7 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
         } else {
           result = _evaluateAndReportError(
             defaultValue,
-            CompileTimeErrorCode.nonConstantDefaultValue,
+            diag.nonConstantDefaultValue,
           );
         }
         var element = parameter.declaredFragment!.element;
@@ -988,8 +904,7 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
             if (result is! DartObjectImpl) {
               _diagnosticReporter.atToken(
                 constKeyword,
-                CompileTimeErrorCode
-                    .constConstructorWithFieldInitializedByNonConst,
+                diag.constConstructorWithFieldInitializedByNonConst,
                 arguments: [variableDeclaration.name.lexeme],
               );
             }
@@ -1066,10 +981,7 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
           SwitchExpressionCaseImpl() => caseNode.arrow,
           SwitchPatternCaseImpl() => caseNode.keyword,
         };
-        _diagnosticReporter.atToken(
-          errorToken,
-          WarningCode.unreachableSwitchCase,
-        );
+        _diagnosticReporter.atToken(errorToken, diag.unreachableSwitchCase);
       }
       if (nonExhaustiveness != null) {
         if (reportNonExhaustive) {
@@ -1095,8 +1007,8 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
           var diagnostic = _diagnosticReporter.atToken(
             switchKeyword,
             isSwitchExpression
-                ? CompileTimeErrorCode.nonExhaustiveSwitchExpression
-                : CompileTimeErrorCode.nonExhaustiveSwitchStatement,
+                ? diag.nonExhaustiveSwitchExpression
+                : diag.nonExhaustiveSwitchStatement,
             arguments: [
               scrutineeType,
               errorBuffer.toString(),
@@ -1112,7 +1024,7 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
           // Default node is unreachable
           _diagnosticReporter.atToken(
             defaultNode.keyword,
-            WarningCode.unreachableSwitchDefault,
+            diag.unreachableSwitchDefault,
           );
         }
       }
@@ -1143,7 +1055,7 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
     void validateExpression(Expression expression) {
       var expressionValue = _evaluateAndReportError(
         expression,
-        CompileTimeErrorCode.nonConstantCaseExpression,
+        diag.nonConstantCaseExpression,
       );
       if (expressionValue is! DartObjectImpl) {
         return;
@@ -1155,7 +1067,7 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
         if (!expressionValue.hasPrimitiveEquality(featureSet)) {
           _diagnosticReporter.atNode(
             expression,
-            CompileTimeErrorCode.caseExpressionTypeImplementsEquals,
+            diag.caseExpressionTypeImplementsEquals,
             arguments: [expressionType],
           );
         }
@@ -1228,10 +1140,7 @@ class _ConstLiteralVerifier {
 
       return true;
     } else if (element is ForElement) {
-      verifier._diagnosticReporter.atNode(
-        element,
-        CompileTimeErrorCode.constEvalForElement,
-      );
+      verifier._diagnosticReporter.atNode(element, diag.constEvalForElement);
       return false;
     } else if (element is IfElement) {
       var conditionConstant = verifier._evaluateAndReportError(
@@ -1336,9 +1245,9 @@ class _ConstLiteralVerifier {
     for (var notConst in notPotentiallyConstants) {
       DiagnosticCode errorCode;
       if (listElementType != null) {
-        errorCode = CompileTimeErrorCode.nonConstantListElement;
+        errorCode = diag.nonConstantListElement;
       } else if (mapConfig != null) {
-        errorCode = CompileTimeErrorCode.nonConstantMapElement;
+        errorCode = diag.nonConstantMapElement;
         for (
           AstNode? parent = notConst;
           parent != null;
@@ -1346,15 +1255,15 @@ class _ConstLiteralVerifier {
         ) {
           if (parent is MapLiteralEntry) {
             if (parent.key == notConst) {
-              errorCode = CompileTimeErrorCode.nonConstantMapKey;
+              errorCode = diag.nonConstantMapKey;
             } else {
-              errorCode = CompileTimeErrorCode.nonConstantMapValue;
+              errorCode = diag.nonConstantMapValue;
             }
             break;
           }
         }
       } else if (setConfig != null) {
-        errorCode = CompileTimeErrorCode.nonConstantSetElement;
+        errorCode = diag.nonConstantSetElement;
       } else {
         throw UnimplementedError();
       }
@@ -1376,13 +1285,13 @@ class _ConstLiteralVerifier {
       )) {
         verifier._diagnosticReporter.atNode(
           expression,
-          CompileTimeErrorCode.listElementTypeNotAssignableNullability,
+          diag.listElementTypeNotAssignableNullability,
           arguments: [value.type, listElementType],
         );
       } else {
         verifier._diagnosticReporter.atNode(
           expression,
-          CompileTimeErrorCode.listElementTypeNotAssignable,
+          diag.listElementTypeNotAssignable,
           arguments: [value.type, listElementType],
         );
       }
@@ -1406,7 +1315,7 @@ class _ConstLiteralVerifier {
       // _addElementsTo methods..
       verifier._diagnosticReporter.atNode(
         element.expression,
-        CompileTimeErrorCode.constSpreadExpectedListOrSet,
+        diag.constSpreadExpectedListOrSet,
       );
       return false;
     }
@@ -1421,7 +1330,7 @@ class _ConstLiteralVerifier {
       if (!listValue.every((e) => e.hasPrimitiveEquality(featureSet))) {
         verifier._diagnosticReporter.atNode(
           element,
-          CompileTimeErrorCode.constSetElementNotPrimitiveEquality,
+          diag.constSetElementNotPrimitiveEquality,
           arguments: [value.type],
         );
         return false;
@@ -1453,11 +1362,11 @@ class _ConstLiteralVerifier {
 
     var keyValue = verifier._evaluateAndReportError(
       keyExpression,
-      CompileTimeErrorCode.nonConstantMapKey,
+      diag.nonConstantMapKey,
     );
     var valueValue = verifier._evaluateAndReportError(
       valueExpression,
-      CompileTimeErrorCode.nonConstantMapValue,
+      diag.nonConstantMapValue,
     );
 
     if (keyValue is DartObjectImpl) {
@@ -1475,13 +1384,13 @@ class _ConstLiteralVerifier {
             )) {
           verifier._diagnosticReporter.atNode(
             keyExpression,
-            CompileTimeErrorCode.mapKeyTypeNotAssignableNullability,
+            diag.mapKeyTypeNotAssignableNullability,
             arguments: [keyType, expectedKeyType],
           );
         } else {
           verifier._diagnosticReporter.atNode(
             keyExpression,
-            CompileTimeErrorCode.mapKeyTypeNotAssignable,
+            diag.mapKeyTypeNotAssignable,
             arguments: [keyType, expectedKeyType],
           );
         }
@@ -1491,7 +1400,7 @@ class _ConstLiteralVerifier {
       if (!keyValue.hasPrimitiveEquality(featureSet)) {
         verifier._diagnosticReporter.atNode(
           keyExpression,
-          CompileTimeErrorCode.constMapKeyNotPrimitiveEquality,
+          diag.constMapKeyNotPrimitiveEquality,
           arguments: [keyType],
         );
       }
@@ -1525,13 +1434,13 @@ class _ConstLiteralVerifier {
             )) {
           verifier._diagnosticReporter.atNode(
             valueExpression,
-            CompileTimeErrorCode.mapValueTypeNotAssignableNullability,
+            diag.mapValueTypeNotAssignableNullability,
             arguments: [valueValue.type, expectedValueType],
           );
         } else {
           verifier._diagnosticReporter.atNode(
             valueExpression,
-            CompileTimeErrorCode.mapValueTypeNotAssignable,
+            diag.mapValueTypeNotAssignable,
             arguments: [valueValue.type, expectedValueType],
           );
         }
@@ -1567,7 +1476,7 @@ class _ConstLiteralVerifier {
     }
     verifier._diagnosticReporter.atNode(
       element.expression,
-      CompileTimeErrorCode.constSpreadExpectedMap,
+      diag.constSpreadExpectedMap,
     );
     return false;
   }
@@ -1584,13 +1493,13 @@ class _ConstLiteralVerifier {
       )) {
         verifier._diagnosticReporter.atNode(
           expression,
-          CompileTimeErrorCode.setElementTypeNotAssignableNullability,
+          diag.setElementTypeNotAssignableNullability,
           arguments: [value.type, config.elementType],
         );
       } else {
         verifier._diagnosticReporter.atNode(
           expression,
-          CompileTimeErrorCode.setElementTypeNotAssignable,
+          diag.setElementTypeNotAssignable,
           arguments: [value.type, config.elementType],
         );
       }
@@ -1601,7 +1510,7 @@ class _ConstLiteralVerifier {
     if (!value.hasPrimitiveEquality(featureSet)) {
       verifier._diagnosticReporter.atNode(
         expression,
-        CompileTimeErrorCode.constSetElementNotPrimitiveEquality,
+        diag.constSetElementNotPrimitiveEquality,
         arguments: [value.type],
       );
       return false;

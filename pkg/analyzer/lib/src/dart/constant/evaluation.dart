@@ -27,8 +27,8 @@ import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_algebra.dart';
 import 'package:analyzer/src/dart/element/type_provider.dart';
 import 'package:analyzer/src/dart/element/type_system.dart' show TypeSystemImpl;
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:analyzer/src/diagnostic/diagnostic_message.dart';
-import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/error/listener.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/java_core.dart';
@@ -134,11 +134,10 @@ class ConstantEvaluationEngine {
               )) {
                 constant.evaluationResult = InvalidConstant.forEntity(
                   entity: constantInitializer,
-                  locatableDiagnostic: CompileTimeErrorCode.variableTypeMismatch
-                      .withArguments(
-                        valueType: dartConstant.type.getDisplayString(),
-                        variableType: constant.type.getDisplayString(),
-                      ),
+                  locatableDiagnostic: diag.variableTypeMismatch.withArguments(
+                    valueType: dartConstant.type.getDisplayString(),
+                    variableType: constant.type.getDisplayString(),
+                  ),
                 );
                 return;
               }
@@ -390,11 +389,10 @@ class ConstantEvaluationEngine {
       var errorNode = configuration.errorNode(node);
       result = InvalidConstant.forEntity(
         entity: errorNode,
-        locatableDiagnostic: CompileTimeErrorCode.constEvalThrowsException
-            .withContextMessages([
-              ...result.locatableDiagnostic.contextMessages,
-              contextMessage,
-            ]),
+        locatableDiagnostic: diag.constEvalThrowsException.withContextMessages([
+          ...result.locatableDiagnostic.contextMessages,
+          contextMessage,
+        ]),
       );
     }
 
@@ -441,11 +439,11 @@ class ConstantEvaluationEngine {
       // description of the cycle.
       diagnosticReporter.atElement2(
         constant,
-        CompileTimeErrorCode.recursiveCompileTimeConstant,
+        diag.recursiveCompileTimeConstant,
       );
       constant.evaluationResult = InvalidConstant.forElement(
         element: constant,
-        locatableDiagnostic: CompileTimeErrorCode.recursiveCompileTimeConstant,
+        locatableDiagnostic: diag.recursiveCompileTimeConstant,
       );
     } else if (constant is ConstructorElementImpl) {
       // We don't report cycle errors on constructor declarations here since
@@ -654,13 +652,12 @@ class ConstantVisitor extends UnifyingAstVisitor<Constant> {
       case ExtensionElement():
         return InvalidConstant.forEntity(
           entity: node,
-          locatableDiagnostic: CompileTimeErrorCode.constEvalExtensionMethod,
+          locatableDiagnostic: diag.constEvalExtensionMethod,
         );
       case ExtensionTypeElement():
         return InvalidConstant.forEntity(
           entity: node,
-          locatableDiagnostic:
-              CompileTimeErrorCode.constEvalExtensionTypeMethod,
+          locatableDiagnostic: diag.constEvalExtensionTypeMethod,
         );
     }
 
@@ -788,7 +785,7 @@ class ConstantVisitor extends UnifyingAstVisitor<Constant> {
     if (!conditionConstant.isBool) {
       return InvalidConstant.forEntity(
         entity: condition,
-        locatableDiagnostic: CompileTimeErrorCode.constEvalTypeBool,
+        locatableDiagnostic: diag.constEvalTypeBool,
       );
     }
     conditionConstant = _dartObjectComputer.applyBooleanConversion(
@@ -831,7 +828,7 @@ class ConstantVisitor extends UnifyingAstVisitor<Constant> {
     if (constructorFunctionType is! FunctionTypeImpl) {
       return InvalidConstant.forEntity(
         entity: node,
-        locatableDiagnostic: CompileTimeErrorCode.invalidConstant,
+        locatableDiagnostic: diag.invalidConstant,
       );
     }
     var classType = constructorFunctionType.returnType as InterfaceTypeImpl;
@@ -856,7 +853,7 @@ class ConstantVisitor extends UnifyingAstVisitor<Constant> {
     if (constructorElement == null) {
       return InvalidConstant.forEntity(
         entity: node,
-        locatableDiagnostic: CompileTimeErrorCode.invalidConstant,
+        locatableDiagnostic: diag.invalidConstant,
       );
     }
 
@@ -899,7 +896,7 @@ class ConstantVisitor extends UnifyingAstVisitor<Constant> {
     // problem - the error has already been reported.
     return InvalidConstant.forEntity(
       entity: node,
-      locatableDiagnostic: CompileTimeErrorCode.invalidConstant,
+      locatableDiagnostic: diag.invalidConstant,
     );
   }
 
@@ -953,8 +950,7 @@ class ConstantVisitor extends UnifyingAstVisitor<Constant> {
         if (instantiatedTypeArgumentTypes.any(hasTypeParameterReference)) {
           return InvalidConstant.forEntity(
             entity: node,
-            locatableDiagnostic:
-                CompileTimeErrorCode.constWithTypeParametersFunctionTearoff,
+            locatableDiagnostic: diag.constWithTypeParametersFunctionTearoff,
           );
         }
       }
@@ -969,15 +965,12 @@ class ConstantVisitor extends UnifyingAstVisitor<Constant> {
     for (var typeArgument in typeArgumentList.arguments) {
       var typeArgumentConstant = evaluateConstant(typeArgument);
       switch (typeArgumentConstant) {
-        case InvalidConstant(
-          locatableDiagnostic: CompileTimeErrorCode.constTypeParameter,
-        ):
+        case InvalidConstant(locatableDiagnostic: diag.constTypeParameter):
           // If there's a type parameter error in the evaluated constant, we
           // convert the message to a more specific function reference error.
           return InvalidConstant.forEntity(
             entity: typeArgument,
-            locatableDiagnostic:
-                CompileTimeErrorCode.constWithTypeParametersFunctionTearoff,
+            locatableDiagnostic: diag.constWithTypeParametersFunctionTearoff,
           );
         case InvalidConstant():
           return typeArgumentConstant;
@@ -986,7 +979,7 @@ class ConstantVisitor extends UnifyingAstVisitor<Constant> {
           if (typeArgumentType == null) {
             return InvalidConstant.forEntity(
               entity: typeArgument,
-              locatableDiagnostic: CompileTimeErrorCode.invalidConstant,
+              locatableDiagnostic: diag.invalidConstant,
             );
           }
           // TODO(srawlins): Test type alias types (`typedef i = int`) used as
@@ -1028,7 +1021,7 @@ class ConstantVisitor extends UnifyingAstVisitor<Constant> {
       // TODO(kallentu): Use a better error code for this.
       return InvalidConstant.forEntity(
         entity: node,
-        locatableDiagnostic: CompileTimeErrorCode.invalidConstant,
+        locatableDiagnostic: diag.invalidConstant,
       );
     }
 
@@ -1068,7 +1061,7 @@ class ConstantVisitor extends UnifyingAstVisitor<Constant> {
     if (!result.isBoolNumStringOrNull) {
       return InvalidConstant.forEntity(
         entity: node,
-        locatableDiagnostic: CompileTimeErrorCode.constEvalTypeBoolNumString,
+        locatableDiagnostic: diag.constEvalTypeBoolNumString,
       );
     }
     return _dartObjectComputer.performToString(node, result);
@@ -1101,7 +1094,7 @@ class ConstantVisitor extends UnifyingAstVisitor<Constant> {
     if (!node.isConst) {
       return InvalidConstant.forEntity(
         entity: node,
-        locatableDiagnostic: CompileTimeErrorCode.missingConstInListLiteral,
+        locatableDiagnostic: diag.missingConstInListLiteral,
       );
     }
     var nodeType = node.staticType;
@@ -1151,7 +1144,7 @@ class ConstantVisitor extends UnifyingAstVisitor<Constant> {
         hasTypeParameterReference(type)) {
       return InvalidConstant.forEntity(
         entity: node,
-        locatableDiagnostic: CompileTimeErrorCode.constTypeParameter,
+        locatableDiagnostic: diag.constTypeParameter,
       );
     } else if (node.isDeferred) {
       return _getDeferredLibraryError(node, node.name);
@@ -1233,13 +1226,12 @@ class ConstantVisitor extends UnifyingAstVisitor<Constant> {
       case ExtensionElement():
         return InvalidConstant.forEntity(
           entity: node,
-          locatableDiagnostic: CompileTimeErrorCode.constEvalExtensionMethod,
+          locatableDiagnostic: diag.constEvalExtensionMethod,
         );
       case ExtensionTypeElement():
         return InvalidConstant.forEntity(
           entity: node,
-          locatableDiagnostic:
-              CompileTimeErrorCode.constEvalExtensionTypeMethod,
+          locatableDiagnostic: diag.constEvalExtensionTypeMethod,
         );
     }
 
@@ -1359,7 +1351,7 @@ class ConstantVisitor extends UnifyingAstVisitor<Constant> {
       if (!node.isConst) {
         return InvalidConstant.forEntity(
           entity: node,
-          locatableDiagnostic: CompileTimeErrorCode.missingConstInMapLiteral,
+          locatableDiagnostic: diag.missingConstInMapLiteral,
         );
       }
       var keyType = _typeProvider.dynamicType;
@@ -1387,7 +1379,7 @@ class ConstantVisitor extends UnifyingAstVisitor<Constant> {
       if (!node.isConst) {
         return InvalidConstant.forEntity(
           entity: node,
-          locatableDiagnostic: CompileTimeErrorCode.missingConstInSetLiteral,
+          locatableDiagnostic: diag.missingConstInSetLiteral,
         );
       }
       var nodeType = node.staticType;
@@ -1475,7 +1467,7 @@ class ConstantVisitor extends UnifyingAstVisitor<Constant> {
         case ForElement():
           return InvalidConstant.forEntity(
             entity: element,
-            locatableDiagnostic: CompileTimeErrorCode.constEvalForElement,
+            locatableDiagnostic: diag.constEvalForElement,
           );
         case IfElement():
           var condition = evaluateConstant(element.expression);
@@ -1497,7 +1489,7 @@ class ConstantVisitor extends UnifyingAstVisitor<Constant> {
               if (conditionValue == null) {
                 return InvalidConstant.forEntity(
                   entity: element.expression,
-                  locatableDiagnostic: CompileTimeErrorCode.nonBoolCondition,
+                  locatableDiagnostic: diag.nonBoolCondition,
                 );
               } else if (conditionValue) {
                 branchResult = _buildListConstant(
@@ -1521,7 +1513,7 @@ class ConstantVisitor extends UnifyingAstVisitor<Constant> {
         case MapLiteralEntry():
           return InvalidConstant.forEntity(
             entity: element,
-            locatableDiagnostic: CompileTimeErrorCode.mapEntryNotInMap,
+            locatableDiagnostic: diag.mapEntryNotInMap,
           );
         case SpreadElement():
           var spread = evaluateConstant(element.expression);
@@ -1537,8 +1529,7 @@ class ConstantVisitor extends UnifyingAstVisitor<Constant> {
               if (listValue == null) {
                 return InvalidConstant.forEntity(
                   entity: element.expression,
-                  locatableDiagnostic:
-                      CompileTimeErrorCode.constSpreadExpectedListOrSet,
+                  locatableDiagnostic: diag.constSpreadExpectedListOrSet,
                 );
               }
               list.addAll(listValue);
@@ -1588,12 +1579,12 @@ class ConstantVisitor extends UnifyingAstVisitor<Constant> {
         case Expression():
           return InvalidConstant.forEntity(
             entity: element,
-            locatableDiagnostic: CompileTimeErrorCode.expressionInMap,
+            locatableDiagnostic: diag.expressionInMap,
           );
         case ForElement():
           return InvalidConstant.forEntity(
             entity: element,
-            locatableDiagnostic: CompileTimeErrorCode.constEvalForElement,
+            locatableDiagnostic: diag.constEvalForElement,
           );
         case IfElement():
           var condition = evaluateConstant(element.expression);
@@ -1616,7 +1607,7 @@ class ConstantVisitor extends UnifyingAstVisitor<Constant> {
               if (conditionValue == null) {
                 return InvalidConstant.forEntity(
                   entity: element.expression,
-                  locatableDiagnostic: CompileTimeErrorCode.nonBoolCondition,
+                  locatableDiagnostic: diag.nonBoolCondition,
                 );
               } else if (conditionValue) {
                 branchResult = _buildMapConstant(
@@ -1665,8 +1656,7 @@ class ConstantVisitor extends UnifyingAstVisitor<Constant> {
               if (mapValue == null) {
                 return InvalidConstant.forEntity(
                   entity: element.expression,
-                  locatableDiagnostic:
-                      CompileTimeErrorCode.constSpreadExpectedMap,
+                  locatableDiagnostic: diag.constSpreadExpectedMap,
                 );
               }
               map.addAll(mapValue);
@@ -1676,7 +1666,7 @@ class ConstantVisitor extends UnifyingAstVisitor<Constant> {
           // `CompileTimeErrorCode.NULL_AWARE_ELEMENT_IN_MAP`?
           return InvalidConstant.forEntity(
             entity: element,
-            locatableDiagnostic: CompileTimeErrorCode.expressionInMap,
+            locatableDiagnostic: diag.expressionInMap,
           );
       }
     }
@@ -1715,7 +1705,7 @@ class ConstantVisitor extends UnifyingAstVisitor<Constant> {
         case ForElement():
           return InvalidConstant.forEntity(
             entity: element,
-            locatableDiagnostic: CompileTimeErrorCode.constEvalForElement,
+            locatableDiagnostic: diag.constEvalForElement,
           );
         case IfElement():
           var condition = evaluateConstant(element.expression);
@@ -1737,7 +1727,7 @@ class ConstantVisitor extends UnifyingAstVisitor<Constant> {
               if (conditionValue == null) {
                 return InvalidConstant.forEntity(
                   entity: element.expression,
-                  locatableDiagnostic: CompileTimeErrorCode.nonBoolCondition,
+                  locatableDiagnostic: diag.nonBoolCondition,
                 );
               } else if (conditionValue) {
                 branchResult = _buildSetConstant(
@@ -1761,7 +1751,7 @@ class ConstantVisitor extends UnifyingAstVisitor<Constant> {
         case MapLiteralEntry():
           return InvalidConstant.forEntity(
             entity: element,
-            locatableDiagnostic: CompileTimeErrorCode.mapEntryNotInMap,
+            locatableDiagnostic: diag.mapEntryNotInMap,
           );
         case SpreadElement():
           var spread = evaluateConstant(element.expression);
@@ -1777,8 +1767,7 @@ class ConstantVisitor extends UnifyingAstVisitor<Constant> {
               if (setValue == null) {
                 return InvalidConstant.forEntity(
                   entity: element.expression,
-                  locatableDiagnostic:
-                      CompileTimeErrorCode.constSpreadExpectedListOrSet,
+                  locatableDiagnostic: diag.constSpreadExpectedListOrSet,
                 );
               }
               set.addAll(setValue);
@@ -1864,13 +1853,12 @@ class ConstantVisitor extends UnifyingAstVisitor<Constant> {
       case ExtensionElement():
         return InvalidConstant.forEntity(
           entity: errorNode,
-          locatableDiagnostic: CompileTimeErrorCode.constEvalExtensionMethod,
+          locatableDiagnostic: diag.constEvalExtensionMethod,
         );
       case ExtensionTypeElement():
         return InvalidConstant.forEntity(
           entity: errorNode,
-          locatableDiagnostic:
-              CompileTimeErrorCode.constEvalExtensionTypeMethod,
+          locatableDiagnostic: diag.constEvalExtensionTypeMethod,
         );
     }
 
@@ -1893,11 +1881,10 @@ class ConstantVisitor extends UnifyingAstVisitor<Constant> {
     // No other property access is allowed except for `.length` of a `String`.
     return InvalidConstant.forEntity(
       entity: errorNode,
-      locatableDiagnostic: CompileTimeErrorCode.constEvalPropertyAccess
-          .withArguments(
-            propertyName: identifier.name,
-            type: targetType.getDisplayString(),
-          ),
+      locatableDiagnostic: diag.constEvalPropertyAccess.withArguments(
+        propertyName: identifier.name,
+        type: targetType.getDisplayString(),
+      ),
     );
   }
 
@@ -1929,7 +1916,7 @@ class ConstantVisitor extends UnifyingAstVisitor<Constant> {
             false)) {
       return InvalidConstant.forEntity(
         entity: expression,
-        locatableDiagnostic: CompileTimeErrorCode.constTypeParameter,
+        locatableDiagnostic: diag.constTypeParameter,
       );
     }
 
@@ -1954,7 +1941,7 @@ class ConstantVisitor extends UnifyingAstVisitor<Constant> {
             if (identifier == null) {
               return InvalidConstant.forEntity(
                 entity: errorNode,
-                locatableDiagnostic: CompileTimeErrorCode.invalidConstant,
+                locatableDiagnostic: diag.invalidConstant,
               );
             }
             return _instantiateFunctionTypeForSimpleIdentifier(
@@ -1966,7 +1953,7 @@ class ConstantVisitor extends UnifyingAstVisitor<Constant> {
             // if we remove `avoidReporting`.
             return InvalidConstant.forEntity(
               entity: errorNode,
-              locatableDiagnostic: CompileTimeErrorCode.invalidConstant,
+              locatableDiagnostic: diag.invalidConstant,
               avoidReporting: true,
               isUnresolved: true,
             );
@@ -1989,7 +1976,7 @@ class ConstantVisitor extends UnifyingAstVisitor<Constant> {
         if (identifier == null) {
           return InvalidConstant.forEntity(
             entity: errorNode,
-            locatableDiagnostic: CompileTimeErrorCode.invalidConstant,
+            locatableDiagnostic: diag.invalidConstant,
           );
         }
         return _instantiateFunctionTypeForSimpleIdentifier(identifier, rawType);
@@ -2048,7 +2035,7 @@ class ConstantVisitor extends UnifyingAstVisitor<Constant> {
         }
         return InvalidConstant.forEntity(
           entity: errorNode2,
-          locatableDiagnostic: CompileTimeErrorCode.constTypeParameter,
+          locatableDiagnostic: diag.constTypeParameter,
         );
       }
     }
@@ -2068,7 +2055,7 @@ class ConstantVisitor extends UnifyingAstVisitor<Constant> {
   /// library.
   ///
   /// If no specific error can be chosen, an [InvalidConstant] error using
-  /// [CompileTimeErrorCode.invalidConstant] is returned.
+  /// [diag.invalidConstant] is returned.
   InvalidConstant _getDeferredLibraryError(
     AstNode node,
     SyntacticEntity errorTarget,
@@ -2077,41 +2064,35 @@ class ConstantVisitor extends UnifyingAstVisitor<Constant> {
       AstNode? previous;
       for (AstNode? current = node; current != null;) {
         if (current is Annotation) {
-          return CompileTimeErrorCode
-              .invalidAnnotationConstantValueFromDeferredLibrary;
+          return diag.invalidAnnotationConstantValueFromDeferredLibrary;
         } else if (current is ConstantContextForExpressionImpl) {
-          return CompileTimeErrorCode
-              .constInitializedWithNonConstantValueFromDeferredLibrary;
+          return diag.constInitializedWithNonConstantValueFromDeferredLibrary;
         } else if (current is DefaultFormalParameter) {
-          return CompileTimeErrorCode
-              .nonConstantDefaultValueFromDeferredLibrary;
+          return diag.nonConstantDefaultValueFromDeferredLibrary;
         } else if (current is IfElement && current.expression == node) {
-          return CompileTimeErrorCode.ifElementConditionFromDeferredLibrary;
+          return diag.ifElementConditionFromDeferredLibrary;
         } else if (current is InstanceCreationExpression) {
-          return CompileTimeErrorCode
-              .constConstructorConstantFromDeferredLibrary;
+          return diag.constConstructorConstantFromDeferredLibrary;
         } else if (current is ListLiteral) {
-          return CompileTimeErrorCode.nonConstantListElementFromDeferredLibrary;
+          return diag.nonConstantListElementFromDeferredLibrary;
         } else if (current is MapLiteralEntry) {
           if (previous == current.key) {
-            return CompileTimeErrorCode.nonConstantMapKeyFromDeferredLibrary;
+            return diag.nonConstantMapKeyFromDeferredLibrary;
           } else {
-            return CompileTimeErrorCode.nonConstantMapValueFromDeferredLibrary;
+            return diag.nonConstantMapValueFromDeferredLibrary;
           }
         } else if (current is RecordLiteral) {
-          return CompileTimeErrorCode.nonConstantRecordFieldFromDeferredLibrary;
+          return diag.nonConstantRecordFieldFromDeferredLibrary;
         } else if (current is SetOrMapLiteral) {
-          return CompileTimeErrorCode.setElementFromDeferredLibrary;
+          return diag.setElementFromDeferredLibrary;
         } else if (current is SpreadElement) {
-          return CompileTimeErrorCode.spreadExpressionFromDeferredLibrary;
+          return diag.spreadExpressionFromDeferredLibrary;
         } else if (current is SwitchCase) {
-          return CompileTimeErrorCode
-              .nonConstantCaseExpressionFromDeferredLibrary;
+          return diag.nonConstantCaseExpressionFromDeferredLibrary;
         } else if (current is SwitchPatternCase) {
-          return CompileTimeErrorCode.patternConstantFromDeferredLibrary;
+          return diag.patternConstantFromDeferredLibrary;
         } else if (current is VariableDeclaration) {
-          return CompileTimeErrorCode
-              .constInitializedWithNonConstantValueFromDeferredLibrary;
+          return diag.constInitializedWithNonConstantValueFromDeferredLibrary;
         }
         previous = current;
         current = current.parent;
@@ -2125,7 +2106,7 @@ class ConstantVisitor extends UnifyingAstVisitor<Constant> {
     }
     return InvalidConstant.forEntity(
       entity: node,
-      locatableDiagnostic: CompileTimeErrorCode.invalidConstant,
+      locatableDiagnostic: diag.invalidConstant,
     );
   }
 
@@ -2201,14 +2182,14 @@ class ConstantVisitor extends UnifyingAstVisitor<Constant> {
     if (node.staticType is InvalidType) {
       return InvalidConstant.forEntity(
         entity: node,
-        locatableDiagnostic: CompileTimeErrorCode.invalidConstant,
+        locatableDiagnostic: diag.invalidConstant,
         isUnresolved: true,
       );
     }
 
     return InvalidConstant.forEntity(
       entity: node,
-      locatableDiagnostic: CompileTimeErrorCode.constEvalMethodInvocation,
+      locatableDiagnostic: diag.constEvalMethodInvocation,
     );
   }
 
@@ -2224,7 +2205,7 @@ class ConstantVisitor extends UnifyingAstVisitor<Constant> {
     // Only report the first invalid constant we see.
     return InvalidConstant.forEntity(
       entity: notPotentiallyConstants.first,
-      locatableDiagnostic: CompileTimeErrorCode.invalidConstant,
+      locatableDiagnostic: diag.invalidConstant,
     );
   }
 
@@ -2704,8 +2685,7 @@ class DartObjectComputer {
         if (node is SimpleIdentifier) {
           return InvalidConstant.forEntity(
             entity: typeArgumentsErrorNode,
-            locatableDiagnostic: CompileTimeErrorCode
-                .wrongNumberOfTypeArgumentsFunction
+            locatableDiagnostic: diag.wrongNumberOfTypeArgumentsFunction
                 .withArguments(
                   functionName: node.name,
                   typeParameterCount: rawType.typeParameters.length,
@@ -2715,8 +2695,7 @@ class DartObjectComputer {
         }
         return InvalidConstant.forEntity(
           entity: typeArgumentsErrorNode,
-          locatableDiagnostic: CompileTimeErrorCode
-              .wrongNumberOfTypeArgumentsAnonymousFunction
+          locatableDiagnostic: diag.wrongNumberOfTypeArgumentsAnonymousFunction
               .withArguments(
                 typeParameterCount: rawType.typeParameters.length,
                 typeArgumentCount: typeArguments.length,
@@ -2728,7 +2707,7 @@ class DartObjectComputer {
     } else {
       return InvalidConstant.forEntity(
         entity: node,
-        locatableDiagnostic: CompileTimeErrorCode.invalidConstant,
+        locatableDiagnostic: diag.invalidConstant,
       );
     }
   }
@@ -2893,7 +2872,7 @@ class _InstanceCreationEvaluator {
       if (!_checkFromEnvironmentArguments(arguments, definingType)) {
         return InvalidConstant.forEntity(
           entity: _errorNode,
-          locatableDiagnostic: CompileTimeErrorCode.constEvalThrowsException,
+          locatableDiagnostic: diag.constEvalThrowsException,
         );
       }
       String? variableName = argumentCount < 1
@@ -2937,7 +2916,7 @@ class _InstanceCreationEvaluator {
       if (!_checkSymbolArguments(arguments)) {
         return InvalidConstant.forEntity(
           entity: _errorNode,
-          locatableDiagnostic: CompileTimeErrorCode.constEvalThrowsException,
+          locatableDiagnostic: diag.constEvalThrowsException,
         );
       }
       return DartObjectImpl(
@@ -3061,8 +3040,7 @@ class _InstanceCreationEvaluator {
           var errorNode = field.constantInitializer ?? _errorNode;
           return InvalidConstant.forEntity(
             entity: errorNode,
-            locatableDiagnostic: CompileTimeErrorCode
-                .constConstructorFieldTypeMismatch
+            locatableDiagnostic: diag.constConstructorFieldTypeMismatch
                 .withArguments(
                   valueType: fieldValue.type.getDisplayString(),
                   fieldName: field.name ?? '',
@@ -3139,8 +3117,7 @@ class _InstanceCreationEvaluator {
               return _InitializersEvaluationResult(
                 InvalidConstant.forEntity(
                   entity: _errorNode,
-                  locatableDiagnostic:
-                      CompileTimeErrorCode.constEvalThrowsException,
+                  locatableDiagnostic: diag.constEvalThrowsException,
                 ),
                 evaluationIsComplete: true,
               );
@@ -3163,8 +3140,7 @@ class _InstanceCreationEvaluator {
                 return _InitializersEvaluationResult(
                   InvalidConstant.forEntity(
                     entity: errorNode,
-                    locatableDiagnostic: CompileTimeErrorCode
-                        .constConstructorFieldTypeMismatch
+                    locatableDiagnostic: diag.constConstructorFieldTypeMismatch
                         .withArguments(
                           valueType: evaluationResult.type.getDisplayString(),
                           fieldName: fieldName,
@@ -3260,7 +3236,7 @@ class _InstanceCreationEvaluator {
                   if (messageConstant.toStringValue() case var assertMessage?) {
                     invalidConstant = InvalidConstant.forEntity(
                       entity: initializer,
-                      locatableDiagnostic: CompileTimeErrorCode
+                      locatableDiagnostic: diag
                           .constEvalAssertionFailureWithMessage
                           .withArguments(message: assertMessage),
                       isRuntimeException: true,
@@ -3271,8 +3247,7 @@ class _InstanceCreationEvaluator {
 
               invalidConstant ??= InvalidConstant.forEntity(
                 entity: initializer,
-                locatableDiagnostic:
-                    CompileTimeErrorCode.constEvalAssertionFailure,
+                locatableDiagnostic: diag.constEvalAssertionFailure,
                 isRuntimeException: true,
               );
               return _InitializersEvaluationResult(
@@ -3379,8 +3354,7 @@ class _InstanceCreationEvaluator {
               );
           return InvalidConstant.forEntity(
             entity: errorTarget,
-            locatableDiagnostic: CompileTimeErrorCode
-                .constConstructorParamTypeMismatch
+            locatableDiagnostic: diag.constConstructorParamTypeMismatch
                 .withArguments(
                   valueType: argumentValue.type.getDisplayString(),
                   parameterType: parameter.type.getDisplayString(),
@@ -3400,8 +3374,7 @@ class _InstanceCreationEvaluator {
                   !typeSystem.runtimeTypeMatch(argumentValue, fieldType)) {
                 return InvalidConstant.forEntity(
                   entity: errorTarget,
-                  locatableDiagnostic: CompileTimeErrorCode
-                      .constConstructorParamTypeMismatch
+                  locatableDiagnostic: diag.constConstructorParamTypeMismatch
                       .withArguments(
                         valueType: argumentValue.type.getDisplayString(),
                         parameterType: fieldType.getDisplayString(),
@@ -3413,8 +3386,7 @@ class _InstanceCreationEvaluator {
             if (_fieldMap.containsKey(fieldName)) {
               return InvalidConstant.forEntity(
                 entity: _errorNode,
-                locatableDiagnostic:
-                    CompileTimeErrorCode.constEvalThrowsException,
+                locatableDiagnostic: diag.constEvalThrowsException,
               );
             }
             _fieldMap[fieldName] = argumentValue;
@@ -3581,7 +3553,7 @@ class _InstanceCreationEvaluator {
       }
       return InvalidConstant.forEntity(
         entity: keyword ?? node,
-        locatableDiagnostic: CompileTimeErrorCode.constWithNonConst,
+        locatableDiagnostic: diag.constWithNonConst,
       );
     }
 

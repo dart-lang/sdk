@@ -12,6 +12,7 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/error/error.dart';
 
 import '../analyzer.dart';
+import '../diagnostic.dart' as diag;
 
 const _desc = r"Don't implicitly reopen classes.";
 
@@ -24,7 +25,7 @@ class ImplicitReopen extends AnalysisRule {
       );
 
   @override
-  DiagnosticCode get diagnosticCode => LinterLintCode.implicitReopen;
+  DiagnosticCode get diagnosticCode => diag.implicitReopen;
 
   @override
   void registerNodeProcessors(

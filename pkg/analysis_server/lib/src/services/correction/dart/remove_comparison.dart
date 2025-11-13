@@ -8,11 +8,11 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/diagnostic/diagnostic.dart';
 import 'package:analyzer/source/source_range.dart';
-import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
-import 'package:linter/src/lint_codes.dart';
+import 'package:linter/src/diagnostic.dart' as diag;
 
 class RemoveComparison extends ResolvedCorrectionProducer {
   @override
@@ -38,21 +38,20 @@ class RemoveComparison extends ResolvedCorrectionProducer {
   /// Whether the condition will always return `false`.
   bool get _conditionIsFalse {
     var diagnosticCode = (diagnostic as Diagnostic).diagnosticCode;
-    return diagnosticCode == WarningCode.unnecessaryNanComparisonFalse ||
-        diagnosticCode ==
-            WarningCode.unnecessaryNullComparisonAlwaysNullFalse ||
-        diagnosticCode == WarningCode.unnecessaryNullComparisonNeverNullFalse ||
-        diagnosticCode == WarningCode.unnecessaryTypeCheckFalse;
+    return diagnosticCode == diag.unnecessaryNanComparisonFalse ||
+        diagnosticCode == diag.unnecessaryNullComparisonAlwaysNullFalse ||
+        diagnosticCode == diag.unnecessaryNullComparisonNeverNullFalse ||
+        diagnosticCode == diag.unnecessaryTypeCheckFalse;
   }
 
   /// Whether the condition will always return `true`.
   bool get _conditionIsTrue {
     var errorCode = (diagnostic as Diagnostic).diagnosticCode;
-    return errorCode == WarningCode.unnecessaryNanComparisonTrue ||
-        errorCode == WarningCode.unnecessaryNullComparisonAlwaysNullTrue ||
-        errorCode == WarningCode.unnecessaryNullComparisonNeverNullTrue ||
-        errorCode == WarningCode.unnecessaryTypeCheckTrue ||
-        errorCode == LinterLintCode.avoidNullChecksInEqualityOperators;
+    return errorCode == diag.unnecessaryNanComparisonTrue ||
+        errorCode == diag.unnecessaryNullComparisonAlwaysNullTrue ||
+        errorCode == diag.unnecessaryNullComparisonNeverNullTrue ||
+        errorCode == diag.unnecessaryTypeCheckTrue ||
+        errorCode == diag.avoidNullChecksInEqualityOperators;
   }
 
   @override

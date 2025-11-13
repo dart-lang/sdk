@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/error/error.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../rule_test_support.dart';
@@ -17,7 +18,7 @@ void main() {
 class NoLeadingUnderscoresForLocalIdentifiersTest extends LintRuleTest {
   @override
   List<DiagnosticCode> get ignoredDiagnosticCodes => [
-    WarningCode.unusedCatchStack,
+    diag.unusedCatchStack,
     ...super.ignoredDiagnosticCodes,
   ];
 

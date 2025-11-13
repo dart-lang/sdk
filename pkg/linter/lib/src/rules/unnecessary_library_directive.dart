@@ -10,6 +10,7 @@ import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/error/error.dart';
 
 import '../analyzer.dart';
+import '../diagnostic.dart' as diag;
 
 const _desc =
     'Avoid library directives unless they have documentation comments or '
@@ -20,8 +21,7 @@ class UnnecessaryLibraryDirective extends AnalysisRule {
     : super(name: LintNames.unnecessary_library_directive, description: _desc);
 
   @override
-  DiagnosticCode get diagnosticCode =>
-      LinterLintCode.unnecessaryLibraryDirective;
+  DiagnosticCode get diagnosticCode => diag.unnecessaryLibraryDirective;
 
   @override
   void registerNodeProcessors(

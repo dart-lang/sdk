@@ -12,6 +12,7 @@ import 'package:analyzer/error/error.dart';
 import 'package:analyzer/src/dart/element/extensions.dart'; // ignore: implementation_imports
 
 import '../analyzer.dart';
+import '../diagnostic.dart' as diag;
 import '../extensions.dart';
 
 const _desc =
@@ -22,7 +23,7 @@ class PreferFinalLocals extends AnalysisRule {
     : super(name: LintNames.prefer_final_locals, description: _desc);
 
   @override
-  DiagnosticCode get diagnosticCode => LinterLintCode.preferFinalLocals;
+  DiagnosticCode get diagnosticCode => diag.preferFinalLocals;
 
   @override
   List<String> get incompatibleRules => const [LintNames.unnecessary_final];

@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/error/error.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../rule_test_support.dart';
@@ -16,9 +17,7 @@ void main() {
 @reflectiveTest
 class DeprecatedMemberUseFromSamePackageTest extends LintRuleTest {
   @override
-  List<DiagnosticCode> get ignoredDiagnosticCodes => [
-    WarningCode.unusedLocalVariable,
-  ];
+  List<DiagnosticCode> get ignoredDiagnosticCodes => [diag.unusedLocalVariable];
 
   @override
   String get lintRule => LintNames.deprecated_member_use_from_same_package;
@@ -296,7 +295,7 @@ import 'lib.dart' hide C;
 ''',
       [
         // No lint.
-        error(WarningCode.unusedImport, 7, 10),
+        error(diag.unusedImport, 7, 10),
       ],
     );
   }
@@ -310,7 +309,7 @@ class C {}
       r'''
 import 'lib.dart' show C;
 ''',
-      [error(WarningCode.unusedImport, 7, 10), lint(23, 1)],
+      [error(diag.unusedImport, 7, 10), lint(23, 1)],
     );
   }
 
@@ -650,7 +649,7 @@ library a;
       r'''
 import 'lib.dart';
 ''',
-      [lint(0, 18), error(WarningCode.unusedImport, 7, 10)],
+      [lint(0, 18), error(diag.unusedImport, 7, 10)],
     );
   }
 

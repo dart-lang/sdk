@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
@@ -22,7 +22,7 @@ class A {
   external A(super.a);
 }
 ''',
-      [error(CompileTimeErrorCode.invalidSuperFormalParameterLocation, 23, 5)],
+      [error(diag.invalidSuperFormalParameterLocation, 23, 5)],
     );
   }
 
@@ -36,7 +36,7 @@ class A {
   A._();
 }
 ''',
-      [error(CompileTimeErrorCode.invalidSuperFormalParameterLocation, 22, 5)],
+      [error(diag.invalidSuperFormalParameterLocation, 22, 5)],
     );
   }
 
@@ -48,7 +48,7 @@ class A {
   A._();
 }
 ''',
-      [error(CompileTimeErrorCode.invalidSuperFormalParameterLocation, 14, 5)],
+      [error(diag.invalidSuperFormalParameterLocation, 14, 5)],
     );
   }
 
@@ -59,7 +59,7 @@ class A {
   void foo(super.a) {}
 }
 ''',
-      [error(CompileTimeErrorCode.invalidSuperFormalParameterLocation, 21, 5)],
+      [error(diag.invalidSuperFormalParameterLocation, 21, 5)],
     );
   }
 
@@ -70,7 +70,7 @@ extension E on int {
   void foo(super.a) {}
 }
 ''',
-      [error(CompileTimeErrorCode.invalidSuperFormalParameterLocation, 32, 5)],
+      [error(diag.invalidSuperFormalParameterLocation, 32, 5)],
     );
   }
 
@@ -82,7 +82,7 @@ void f() {
   void g(super.a) {}
 }
 ''',
-      [error(CompileTimeErrorCode.invalidSuperFormalParameterLocation, 47, 5)],
+      [error(diag.invalidSuperFormalParameterLocation, 47, 5)],
     );
   }
 
@@ -93,7 +93,7 @@ mixin M {
   void foo(super.a) {}
 }
 ''',
-      [error(CompileTimeErrorCode.invalidSuperFormalParameterLocation, 21, 5)],
+      [error(diag.invalidSuperFormalParameterLocation, 21, 5)],
     );
   }
 
@@ -102,7 +102,7 @@ mixin M {
       r'''
 void f(super.a) {}
 ''',
-      [error(CompileTimeErrorCode.invalidSuperFormalParameterLocation, 7, 5)],
+      [error(diag.invalidSuperFormalParameterLocation, 7, 5)],
     );
   }
 

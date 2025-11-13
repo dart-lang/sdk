@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'context_collection_resolution.dart';
@@ -127,7 +127,7 @@ void f(A x) {
   }
 }
 ''',
-      [error(CompileTimeErrorCode.undefinedOperator, 50, 1)],
+      [error(diag.undefinedOperator, 50, 1)],
     );
     var node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
@@ -205,7 +205,7 @@ void f(A x) {
   }
 }
 ''',
-      [error(CompileTimeErrorCode.undefinedOperator, 50, 2)],
+      [error(diag.undefinedOperator, 50, 2)],
     );
     var node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
@@ -305,7 +305,7 @@ void f(A x) {
   }
 }
 ''',
-      [error(CompileTimeErrorCode.undefinedOperator, 50, 1)],
+      [error(diag.undefinedOperator, 50, 1)],
     );
     var node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
@@ -383,7 +383,7 @@ void f(A x) {
   }
 }
 ''',
-      [error(CompileTimeErrorCode.undefinedOperator, 50, 2)],
+      [error(diag.undefinedOperator, 50, 2)],
     );
     var node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
@@ -455,13 +455,7 @@ void f(x, int Function() a) {
   }
 }
 ''',
-      [
-        error(
-          CompileTimeErrorCode.nonConstantRelationalPatternExpression,
-          57,
-          3,
-        ),
-      ],
+      [error(diag.nonConstantRelationalPatternExpression, 57, 3)],
     );
     var node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''

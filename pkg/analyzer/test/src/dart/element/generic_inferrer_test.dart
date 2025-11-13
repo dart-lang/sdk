@@ -10,7 +10,7 @@ import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/token.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_schema.dart';
-import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:analyzer/src/generated/source.dart';
 import 'package:path/path.dart' show toUri;
 import 'package:test/test.dart';
@@ -600,7 +600,7 @@ class GenericFunctionInferenceTest extends AbstractTypeSystemTest {
     if (expectError) {
       expect(
         listener.diagnostics.map((e) => e.diagnosticCode).toList(),
-        [CompileTimeErrorCode.couldNotInfer],
+        [diag.couldNotInfer],
         reason: 'expected exactly 1 could not infer error.',
       );
     } else {

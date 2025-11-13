@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
@@ -33,13 +33,7 @@ final class A {}
 import 'a.dart';
 base mixin B on A {}
 ''',
-      [
-        error(
-          CompileTimeErrorCode.finalClassUsedAsMixinConstraintOutsideOfLibrary,
-          33,
-          1,
-        ),
-      ],
+      [error(diag.finalClassUsedAsMixinConstraintOutsideOfLibrary, 33, 1)],
     );
   }
 
@@ -55,16 +49,8 @@ import 'a.dart';
 base mixin C on A, B {}
 ''',
       [
-        error(
-          CompileTimeErrorCode.finalClassUsedAsMixinConstraintOutsideOfLibrary,
-          33,
-          1,
-        ),
-        error(
-          CompileTimeErrorCode.finalClassUsedAsMixinConstraintOutsideOfLibrary,
-          36,
-          1,
-        ),
+        error(diag.finalClassUsedAsMixinConstraintOutsideOfLibrary, 33, 1),
+        error(diag.finalClassUsedAsMixinConstraintOutsideOfLibrary, 36, 1),
       ],
     );
   }
@@ -81,13 +67,7 @@ final class A {}
 import 'a.dart';
 mixin B on A {}
 ''',
-      [
-        error(
-          CompileTimeErrorCode.finalClassUsedAsMixinConstraintOutsideOfLibrary,
-          28,
-          1,
-        ),
-      ],
+      [error(diag.finalClassUsedAsMixinConstraintOutsideOfLibrary, 28, 1)],
     );
   }
 
@@ -102,13 +82,7 @@ typedef ATypedef = A;
 import 'a.dart';
 base mixin B on ATypedef {}
 ''',
-      [
-        error(
-          CompileTimeErrorCode.finalClassUsedAsMixinConstraintOutsideOfLibrary,
-          33,
-          8,
-        ),
-      ],
+      [error(diag.finalClassUsedAsMixinConstraintOutsideOfLibrary, 33, 8)],
     );
   }
 
@@ -123,13 +97,7 @@ import 'a.dart';
 typedef ATypedef = A;
 base mixin B on ATypedef {}
 ''',
-      [
-        error(
-          CompileTimeErrorCode.finalClassUsedAsMixinConstraintOutsideOfLibrary,
-          55,
-          8,
-        ),
-      ],
+      [error(diag.finalClassUsedAsMixinConstraintOutsideOfLibrary, 55, 8)],
     );
   }
 }

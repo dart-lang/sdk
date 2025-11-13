@@ -13,6 +13,7 @@ import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/error/error.dart';
 
 import '../analyzer.dart';
+import '../diagnostic.dart' as diag;
 import '../extensions.dart';
 
 const _desc =
@@ -26,8 +27,7 @@ class UseSettersToChangeProperties extends AnalysisRule {
       );
 
   @override
-  DiagnosticCode get diagnosticCode =>
-      LinterLintCode.useSettersToChangeProperties;
+  DiagnosticCode get diagnosticCode => diag.useSettersToChangeProperties;
 
   @override
   void registerNodeProcessors(

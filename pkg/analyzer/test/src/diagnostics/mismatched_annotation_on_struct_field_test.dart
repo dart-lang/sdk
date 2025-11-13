@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/dart/error/ffi_code.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
@@ -24,7 +24,7 @@ final class C extends Struct {
   external int x;
 }
 ''',
-      [error(FfiCode.mismatchedAnnotationOnStructField, 52, 9)],
+      [error(diag.mismatchedAnnotationOnStructField, 52, 9)],
     );
   }
 
@@ -37,7 +37,7 @@ final class C extends Struct {
   external double x;
 }
 ''',
-      [error(FfiCode.mismatchedAnnotationOnStructField, 52, 8)],
+      [error(diag.mismatchedAnnotationOnStructField, 52, 8)],
     );
   }
 }

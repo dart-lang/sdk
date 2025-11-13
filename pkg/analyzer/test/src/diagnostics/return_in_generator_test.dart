@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
@@ -30,7 +30,7 @@ f() async* {
   return 0;
 }
 ''',
-      [error(CompileTimeErrorCode.returnInGenerator, 15, 6)],
+      [error(diag.returnInGenerator, 15, 6)],
     );
   }
 
@@ -47,7 +47,7 @@ Stream<int> f() async* {
       r'''
 f() async* => 0;
 ''',
-      [error(CompileTimeErrorCode.returnInGenerator, 11, 2)],
+      [error(diag.returnInGenerator, 11, 2)],
     );
   }
 
@@ -66,7 +66,7 @@ f() sync* {
   return 0;
 }
 ''',
-      [error(CompileTimeErrorCode.returnInGenerator, 14, 6)],
+      [error(diag.returnInGenerator, 14, 6)],
     );
   }
 
@@ -83,7 +83,7 @@ Iterable<int> f() sync* {
       r'''
 f() sync* => 0;
 ''',
-      [error(CompileTimeErrorCode.returnInGenerator, 10, 2)],
+      [error(diag.returnInGenerator, 10, 2)],
     );
   }
 }

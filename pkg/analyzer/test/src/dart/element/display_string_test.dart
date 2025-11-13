@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/src/dart/element/element.dart';
-import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -307,7 +307,7 @@ final class A {}
       r'''
 import 'src/f.dart';
 ''',
-      [error(CompileTimeErrorCode.uriDoesNotExist, 7, 12)],
+      [error(diag.uriDoesNotExist, 7, 12)],
     );
     var import =
         findElement2.libraryFragment.libraryImports[0] as LibraryImportImpl;
@@ -410,7 +410,7 @@ void f() {
   f: 0;
 }
 ''',
-      [error(WarningCode.unusedLabel, 13, 2)],
+      [error(diag.unusedLabel, 13, 2)],
     );
     var element = findElement2.label('f');
     expect(element.displayString(), 'f');
@@ -429,7 +429,7 @@ library f;
       r'''
 export 'src/f.dart';
 ''',
-      [error(CompileTimeErrorCode.uriDoesNotExist, 7, 12)],
+      [error(diag.uriDoesNotExist, 7, 12)],
     );
     var export =
         findElement2.libraryFragment.libraryExports.single as LibraryExportImpl;
@@ -441,7 +441,7 @@ export 'src/f.dart';
       r'''
 import 'src/f.dart';
 ''',
-      [error(CompileTimeErrorCode.uriDoesNotExist, 7, 12)],
+      [error(diag.uriDoesNotExist, 7, 12)],
     );
     var import =
         findElement2.libraryFragment.libraryImports[0] as LibraryImportImpl;
@@ -455,7 +455,7 @@ void f() {
   void g() {}
 }
 ''',
-      [error(WarningCode.unusedElement, 18, 1)],
+      [error(diag.unusedElement, 18, 1)],
     );
     var element = findElement2.localFunction('g');
     expect(element.displayString(), "void g()");
@@ -468,7 +468,7 @@ void f() {
   void g(int a, bool b, {String? c}) {}
 }
 ''',
-      [error(WarningCode.unusedElement, 18, 1)],
+      [error(diag.unusedElement, 18, 1)],
     );
     var element = findElement2.localFunction('g');
     expect(element.displayString(), "void g(int a, bool b, {String? c})");
@@ -481,7 +481,7 @@ void f() {
   void g<T, S extends num>() {}
 }
 ''',
-      [error(WarningCode.unusedElement, 18, 1)],
+      [error(diag.unusedElement, 18, 1)],
     );
     var element = findElement2.localFunction('g');
     expect(element.displayString(), "void g<T, S extends num>()");
@@ -530,7 +530,7 @@ mixin M<T, S extends num> {}
       r'''
 Never a;
 ''',
-      [error(CompileTimeErrorCode.notInitializedNonNullableVariable, 6, 1)],
+      [error(diag.notInitializedNonNullableVariable, 6, 1)],
     );
     var element = findElement2.topVar('a');
     expect(element.displayString(), "Never a");
@@ -541,7 +541,7 @@ Never a;
       r'''
 part 'src/f.dart';
 ''',
-      [error(CompileTimeErrorCode.uriDoesNotExist, 5, 12)],
+      [error(diag.uriDoesNotExist, 5, 12)],
     );
     var element =
         findElement2.libraryFragment.partIncludes.single as PartIncludeImpl;
@@ -554,10 +554,7 @@ part 'src/f.dart';
 import 'src/f.dart' as a;
 import 'src/bar.dart' as a;
 ''',
-      [
-        error(CompileTimeErrorCode.uriDoesNotExist, 7, 12),
-        error(CompileTimeErrorCode.uriDoesNotExist, 33, 14),
-      ],
+      [error(diag.uriDoesNotExist, 7, 12), error(diag.uriDoesNotExist, 33, 14)],
     );
     var prefix = findElement2.prefix('a');
     expect(
@@ -571,7 +568,7 @@ import 'src/bar.dart' as a;
       r'''
 import 'src/f.dart' as a;
 ''',
-      [error(CompileTimeErrorCode.uriDoesNotExist, 7, 12)],
+      [error(diag.uriDoesNotExist, 7, 12)],
     );
     var prefix = findElement2.prefix('a');
     expect(prefix.displayString(), "import 'src/f.dart' as a;");

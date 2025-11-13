@@ -10,6 +10,7 @@ import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/error/error.dart';
 
 import '../analyzer.dart';
+import '../diagnostic.dart' as diag;
 import '../util/flutter_utils.dart';
 
 const _desc = r'Avoid unnecessary containers.';
@@ -19,8 +20,7 @@ class AvoidUnnecessaryContainers extends AnalysisRule {
     : super(name: LintNames.avoid_unnecessary_containers, description: _desc);
 
   @override
-  DiagnosticCode get diagnosticCode =>
-      LinterLintCode.avoidUnnecessaryContainers;
+  DiagnosticCode get diagnosticCode => diag.avoidUnnecessaryContainers;
 
   @override
   void registerNodeProcessors(

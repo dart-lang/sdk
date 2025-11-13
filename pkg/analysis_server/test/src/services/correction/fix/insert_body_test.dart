@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/src/services/correction/fix.dart';
-import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -122,12 +122,8 @@ f() {
 enum E
 ''');
     // TODO(pq): consider special casing enums to improve the insertion offset
-    await assertHasFix(
-      '''
+    await assertHasFix('''
 enum E
- {}''',
-      filter: (error) =>
-          error.diagnosticCode != CompileTimeErrorCode.enumWithoutConstants,
-    );
+ {}''', filter: (error) => error.diagnosticCode != diag.enumWithoutConstants);
   }
 }

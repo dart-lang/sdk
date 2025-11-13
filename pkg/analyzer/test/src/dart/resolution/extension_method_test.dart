@@ -3,8 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/src/dart/error/syntactic_errors.dart';
-import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:analyzer/src/test_utilities/mock_sdk.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -51,9 +50,9 @@ extension E {
 }
 ''',
       [
-        error(ParserErrorCode.expectedToken, 10, 1),
-        error(ParserErrorCode.expectedTypeName, 12, 1),
-        error(ParserErrorCode.extensionDeclaresConstructor, 16, 1),
+        error(diag.expectedToken, 10, 1),
+        error(diag.expectedTypeName, 12, 1),
+        error(diag.extensionDeclaresConstructor, 16, 1),
       ],
     );
   }
@@ -66,9 +65,9 @@ extension E {
 }
 ''',
       [
-        error(ParserErrorCode.expectedToken, 10, 1),
-        error(ParserErrorCode.expectedTypeName, 12, 1),
-        error(ParserErrorCode.extensionDeclaresConstructor, 16, 7),
+        error(diag.expectedToken, 10, 1),
+        error(diag.expectedTypeName, 12, 1),
+        error(diag.extensionDeclaresConstructor, 16, 7),
       ],
     );
   }
@@ -173,7 +172,7 @@ f(C c) {
   c.a;
 }
 ''',
-      [error(CompileTimeErrorCode.undefinedGetter, 40, 1)],
+      [error(diag.undefinedGetter, 40, 1)],
     );
   }
 
@@ -192,7 +191,7 @@ f(C c) {
   c.a;
 }
 ''',
-      [error(CompileTimeErrorCode.undefinedGetter, 40, 1)],
+      [error(diag.undefinedGetter, 40, 1)],
     );
   }
 
@@ -211,7 +210,7 @@ f(C c) {
   c._a;
 }
 ''',
-      [error(CompileTimeErrorCode.undefinedGetter, 33, 2)],
+      [error(diag.undefinedGetter, 33, 2)],
     );
   }
 
@@ -298,7 +297,7 @@ f(C c) {
   c.a;
 }
 ''',
-      [error(WarningCode.unusedLocalVariable, 38, 1)],
+      [error(diag.unusedLocalVariable, 38, 1)],
     );
     var access = findNode.prefixed('c.a');
     assertResolvedNodeText(access, r'''
@@ -329,7 +328,7 @@ f(C c) {
   c.a;
 }
 ''',
-      [error(WarningCode.unusedLocalVariable, 68, 1)],
+      [error(diag.unusedLocalVariable, 68, 1)],
     );
     var access = findNode.prefixed('c.a');
     assertResolvedNodeText(access, r'''
@@ -1022,7 +1021,7 @@ f(Never a) {
   a.foo;
 }
 ''',
-      [error(WarningCode.deadCode, 63, 4)],
+      [error(diag.deadCode, 63, 4)],
     );
     var access = findNode.prefixed('a.foo');
     assertResolvedNodeText(access, r'''
@@ -1451,10 +1450,7 @@ f(Never a) {
   a.foo();
 }
 ''',
-      [
-        error(WarningCode.receiverOfTypeNever, 57, 1),
-        error(WarningCode.deadCode, 62, 3),
-      ],
+      [error(diag.receiverOfTypeNever, 57, 1), error(diag.deadCode, 62, 3)],
     );
 
     var node = findNode.methodInvocation('a.foo()');
@@ -1868,8 +1864,8 @@ extension on Object {}
 var a = b + c;
 ''',
       [
-        error(CompileTimeErrorCode.undefinedIdentifier, 31, 1),
-        error(CompileTimeErrorCode.undefinedIdentifier, 35, 1),
+        error(diag.undefinedIdentifier, 31, 1),
+        error(diag.undefinedIdentifier, 35, 1),
       ],
     );
   }
@@ -2780,7 +2776,7 @@ void f() {
   dynamic.foo;
 }
 ''',
-      [error(CompileTimeErrorCode.undefinedGetter, 76, 3)],
+      [error(diag.undefinedGetter, 76, 3)],
     );
   }
 
@@ -2797,7 +2793,7 @@ void f() {
   FutureOr.foo;
 }
 ''',
-      [error(CompileTimeErrorCode.undefinedGetter, 105, 3)],
+      [error(diag.undefinedGetter, 105, 3)],
     );
   }
 
@@ -2812,7 +2808,7 @@ void f() {
   Never.foo;
 }
 ''',
-      [error(CompileTimeErrorCode.undefinedGetter, 72, 3)],
+      [error(diag.undefinedGetter, 72, 3)],
     );
   }
 
@@ -2827,7 +2823,7 @@ void f() {
   String.foo;
 }
 ''',
-      [error(CompileTimeErrorCode.undefinedGetter, 87, 3)],
+      [error(diag.undefinedGetter, 87, 3)],
     );
   }
 
@@ -3346,7 +3342,7 @@ void f() {
   dynamic.foo = 0;
 }
 ''',
-      [error(CompileTimeErrorCode.undefinedSetter, 85, 3)],
+      [error(diag.undefinedSetter, 85, 3)],
     );
   }
 
@@ -3363,7 +3359,7 @@ void f() {
   FutureOr.foo = 0;
 }
 ''',
-      [error(CompileTimeErrorCode.undefinedSetter, 114, 3)],
+      [error(diag.undefinedSetter, 114, 3)],
     );
   }
 
@@ -3378,7 +3374,7 @@ void f() {
   Never.foo = 0;
 }
 ''',
-      [error(CompileTimeErrorCode.undefinedSetter, 81, 3)],
+      [error(diag.undefinedSetter, 81, 3)],
     );
   }
 
@@ -3393,7 +3389,7 @@ void f() {
   String.foo = 0;
 }
 ''',
-      [error(CompileTimeErrorCode.undefinedSetter, 96, 3)],
+      [error(diag.undefinedSetter, 96, 3)],
     );
   }
 
@@ -4097,7 +4093,7 @@ extension E2 on int {
   }
 }
 ''',
-      [error(CompileTimeErrorCode.assignmentToFinalNoSetter, 104, 3)],
+      [error(diag.assignmentToFinalNoSetter, 104, 3)],
     );
     var assignment = findNode.assignment('foo = 0');
     assertResolvedNodeText(assignment, r'''
@@ -4508,7 +4504,7 @@ extension E2 on int {
   }
 }
 ''',
-      [error(CompileTimeErrorCode.undefinedIdentifier, 104, 3)],
+      [error(diag.undefinedIdentifier, 104, 3)],
     );
     var node = findNode.simple('foo;');
     assertResolvedNodeText(node, r'''

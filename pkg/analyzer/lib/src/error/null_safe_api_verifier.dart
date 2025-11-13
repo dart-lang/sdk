@@ -7,7 +7,7 @@ import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
-import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 
 /// Verifies usages of `Future.value` and `Completer.complete` when null-safety
 /// is enabled.
@@ -83,7 +83,7 @@ class NullSafeApiVerifier {
     if (argumentIsNull) {
       _diagnosticReporter.atNode(
         argument ?? node,
-        WarningCode.nullArgumentToNonNullType,
+        diag.nullArgumentToNonNullType,
         arguments: [memberName, type.getDisplayString()],
       );
     }

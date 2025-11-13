@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:analyzer_testing/analysis_rule/analysis_rule.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -24,7 +24,7 @@ mixin B implements A {}
 ''',
       [
         this.error(
-          CompileTimeErrorCode.mixinSubtypeOfBaseIsNotBase,
+          diag.mixinSubtypeOfBaseIsNotBase,
           22,
           1,
           text:
@@ -43,7 +43,7 @@ mixin C implements B {}
 ''',
       [
         this.error(
-          CompileTimeErrorCode.mixinSubtypeOfBaseIsNotBase,
+          diag.mixinSubtypeOfBaseIsNotBase,
           53,
           1,
           text:
@@ -71,7 +71,7 @@ mixin B on A {}
 ''',
       [
         this.error(
-          CompileTimeErrorCode.mixinSubtypeOfBaseIsNotBase,
+          diag.mixinSubtypeOfBaseIsNotBase,
           22,
           1,
           text:
@@ -89,7 +89,7 @@ mixin B implements A {}
 ''',
       [
         this.error(
-          CompileTimeErrorCode.mixinSubtypeOfBaseIsNotBase,
+          diag.mixinSubtypeOfBaseIsNotBase,
           22,
           1,
           text:

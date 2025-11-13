@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
@@ -133,7 +133,7 @@ void f() {
   E([]).m();
 }
 ''',
-      [error(WarningCode.invalidUseOfVisibleForTestingMember, 39, 1)],
+      [error(diag.invalidUseOfVisibleForTestingMember, 39, 1)],
     );
   }
 
@@ -170,7 +170,7 @@ void f() {
   A().a;
 }
 ''',
-      [error(WarningCode.invalidUseOfVisibleForTestingMember, 37, 1)],
+      [error(diag.invalidUseOfVisibleForTestingMember, 37, 1)],
     );
   }
 
@@ -192,7 +192,7 @@ void f(Object o) {
 ''');
 
     await assertErrorsInFile2(lib2, [
-      error(WarningCode.invalidUseOfVisibleForTestingMember, 65, 1),
+      error(diag.invalidUseOfVisibleForTestingMember, 65, 1),
     ]);
   }
 
@@ -230,8 +230,8 @@ import 'a.dart' show A;
 void f(A _) {}
 ''',
       [
-        error(WarningCode.invalidUseOfVisibleForTestingMember, 21, 1),
-        error(WarningCode.invalidUseOfVisibleForTestingMember, 32, 1),
+        error(diag.invalidUseOfVisibleForTestingMember, 21, 1),
+        error(diag.invalidUseOfVisibleForTestingMember, 32, 1),
       ],
     );
   }
@@ -250,7 +250,7 @@ class A {
 import 'lib1.dart';
 void f() => A().a();
 ''',
-      [error(WarningCode.invalidUseOfVisibleForTestingMember, 36, 1)],
+      [error(diag.invalidUseOfVisibleForTestingMember, 36, 1)],
     );
   }
 
@@ -288,7 +288,7 @@ void f() {
   E(1).m();
 }
 ''',
-      [error(WarningCode.invalidUseOfVisibleForTestingMember, 38, 1)],
+      [error(diag.invalidUseOfVisibleForTestingMember, 38, 1)],
     );
   }
 
@@ -327,7 +327,7 @@ void f(A a) {
   a.m();
 }
 ''',
-      [error(WarningCode.invalidUseOfVisibleForTestingMember, 38, 1)],
+      [error(diag.invalidUseOfVisibleForTestingMember, 38, 1)],
     );
   }
 
@@ -349,7 +349,7 @@ void f() {
 ''',
       [
         error(
-          WarningCode.invalidUseOfVisibleForTestingMember,
+          diag.invalidUseOfVisibleForTestingMember,
           33,
           12,
           messageContains: ['A.forTesting'],
@@ -412,7 +412,7 @@ void f() {
   A().b = 6;
 }
 ''',
-      [error(WarningCode.invalidUseOfVisibleForTestingMember, 37, 1)],
+      [error(diag.invalidUseOfVisibleForTestingMember, 37, 1)],
     );
   }
 
@@ -430,7 +430,7 @@ void g() {
   f();
 }
 ''',
-      [error(WarningCode.invalidUseOfVisibleForTestingMember, 33, 1)],
+      [error(diag.invalidUseOfVisibleForTestingMember, 33, 1)],
     );
   }
 
@@ -448,7 +448,7 @@ void f() {
   a;
 }
 ''',
-      [error(WarningCode.invalidUseOfVisibleForTestingMember, 33, 1)],
+      [error(diag.invalidUseOfVisibleForTestingMember, 33, 1)],
     );
   }
 
@@ -468,7 +468,7 @@ void f() {
   A();
 }
 ''',
-      [error(WarningCode.invalidUseOfVisibleForTestingMember, 33, 1)],
+      [error(diag.invalidUseOfVisibleForTestingMember, 33, 1)],
     );
   }
 }

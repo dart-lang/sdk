@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/dart/error/syntactic_errors.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 
 import 'partial_code_support.dart';
 
@@ -16,7 +16,7 @@ class ParameterTest extends PartialCodeTest {
       TestDescriptor(
         'functionType_noIdentifier',
         'f(Function(void)) {}',
-        [ParserErrorCode.expectedToken],
+        [diag.expectedToken],
         'f(Function(void) _s_) {}',
         failing: ['eof'],
       ),
@@ -26,7 +26,7 @@ class ParameterTest extends PartialCodeTest {
           class C<E> {}
           f(C<int Function(int, int) c) {}
           ''',
-        [ParserErrorCode.expectedToken],
+        [diag.expectedToken],
         '''
           class C<E> {}
           f(C<int Function(int, int)> c) {}

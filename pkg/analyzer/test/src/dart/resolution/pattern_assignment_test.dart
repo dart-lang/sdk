@@ -2,8 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/dart/error/syntactic_errors.dart';
-import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'context_collection_resolution.dart';
@@ -26,7 +25,7 @@ void f() {
   a;
 }
 ''',
-      [error(CompileTimeErrorCode.assignmentToFinalLocal, 38, 1)],
+      [error(diag.assignmentToFinalLocal, 38, 1)],
     );
   }
 
@@ -52,7 +51,7 @@ void f(bool flag) {
   a;
 }
 ''',
-      [error(CompileTimeErrorCode.assignmentToFinalLocal, 67, 1)],
+      [error(diag.assignmentToFinalLocal, 67, 1)],
     );
   }
 
@@ -66,7 +65,7 @@ void f() {
   a;
 }
 ''',
-      [error(CompileTimeErrorCode.lateFinalLocalAlreadyAssigned, 43, 1)],
+      [error(diag.lateFinalLocalAlreadyAssigned, 43, 1)],
     );
   }
 
@@ -353,9 +352,9 @@ void f(a, y) {
       [
         // The reference doesn't resolve so the errors include
         // UNUSED_LOCAL_VARIABLE and UNDEFINED_IDENTIFIER.
-        error(ParserErrorCode.patternAssignmentDeclaresVariable, 25, 1),
-        error(WarningCode.unusedLocalVariable, 25, 1),
-        error(CompileTimeErrorCode.undefinedIdentifier, 35, 1),
+        error(diag.patternAssignmentDeclaresVariable, 25, 1),
+        error(diag.unusedLocalVariable, 25, 1),
+        error(diag.undefinedIdentifier, 35, 1),
       ],
     );
   }
@@ -371,8 +370,8 @@ void f(a, y) {
 }
 ''',
       [
-        error(ParserErrorCode.patternAssignmentDeclaresVariable, 25, 1),
-        error(WarningCode.unusedLocalVariable, 25, 1),
+        error(diag.patternAssignmentDeclaresVariable, 25, 1),
+        error(diag.unusedLocalVariable, 25, 1),
       ],
     );
   }
@@ -387,7 +386,7 @@ void f() {
   a = 1;
 }
 ''',
-      [error(CompileTimeErrorCode.assignmentToFinalLocal, 44, 1)],
+      [error(diag.assignmentToFinalLocal, 44, 1)],
     );
   }
 

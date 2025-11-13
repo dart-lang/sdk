@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
@@ -28,7 +28,7 @@ extension E on Type {
   set foo(int value) {}
 }
 ''',
-      [error(CompileTimeErrorCode.undefinedSetterOnFunctionType, 58, 3)],
+      [error(diag.undefinedSetterOnFunctionType, 58, 3)],
     );
   }
 
@@ -65,12 +65,7 @@ class T {}
 f(T e1) { e1.m = 0; }
 ''',
       [
-        error(
-          CompileTimeErrorCode.undefinedSetter,
-          24,
-          1,
-          messageContains: ["the type 'T'"],
-        ),
+        error(diag.undefinedSetter, 24, 1, messageContains: ["the type 'T'"]),
       ],
     );
   }
@@ -82,7 +77,7 @@ mixin M {
   f() { this.m = 0; }
 }
 ''',
-      [error(CompileTimeErrorCode.undefinedSetter, 23, 1)],
+      [error(diag.undefinedSetter, 23, 1)],
     );
   }
 
@@ -99,7 +94,7 @@ f(var a) {
   }
 }
 ''',
-      [error(CompileTimeErrorCode.undefinedSetter, 80, 1)],
+      [error(diag.undefinedSetter, 80, 1)],
     );
   }
 
@@ -113,7 +108,7 @@ f(var a) {
   }
 }
 ''',
-      [error(CompileTimeErrorCode.undefinedSetter, 43, 1)],
+      [error(diag.undefinedSetter, 43, 1)],
     );
   }
 
@@ -126,7 +121,7 @@ f(C? c) {
   c..new = 1;
 }
 ''',
-      [error(CompileTimeErrorCode.undefinedSetter, 27, 3)],
+      [error(diag.undefinedSetter, 27, 3)],
     );
   }
 
@@ -137,7 +132,7 @@ f(dynamic d) {
   d.new = 1;
 }
 ''',
-      [error(CompileTimeErrorCode.undefinedSetter, 19, 3)],
+      [error(diag.undefinedSetter, 19, 3)],
     );
   }
 
@@ -150,7 +145,7 @@ f(C c) {
   c.new = 1;
 }
 ''',
-      [error(CompileTimeErrorCode.undefinedSetter, 25, 3)],
+      [error(diag.undefinedSetter, 25, 3)],
     );
   }
 
@@ -163,7 +158,7 @@ f() {
   C.new = 1;
 }
 ''',
-      [error(CompileTimeErrorCode.undefinedSetter, 22, 3)],
+      [error(diag.undefinedSetter, 22, 3)],
     );
   }
 
@@ -176,7 +171,7 @@ f(C? c) {
   c?.new = 1;
 }
 ''',
-      [error(CompileTimeErrorCode.undefinedSetter, 27, 3)],
+      [error(diag.undefinedSetter, 27, 3)],
     );
   }
 
@@ -187,7 +182,7 @@ f<T>(T t) {
   t.new = 1;
 }
 ''',
-      [error(CompileTimeErrorCode.undefinedSetter, 16, 3)],
+      [error(diag.undefinedSetter, 16, 3)],
     );
   }
 
@@ -232,7 +227,7 @@ class A {
 }
 f() { A?.x = 1; }
 ''',
-      [error(StaticWarningCode.invalidNullAwareOperator, 35, 2)],
+      [error(diag.invalidNullAwareOperator, 35, 2)],
     );
   }
 
@@ -247,12 +242,7 @@ f(var p) {
   f(C.s = 1);
 }''',
       [
-        error(
-          CompileTimeErrorCode.undefinedSetter,
-          75,
-          1,
-          messageContains: ["type 'C'"],
-        ),
+        error(diag.undefinedSetter, 75, 1, messageContains: ["type 'C'"]),
       ],
     );
   }
@@ -270,7 +260,7 @@ f(C c) {
   c.a = 2;
 }
 ''',
-      [error(CompileTimeErrorCode.undefinedSetter, 72, 1)],
+      [error(diag.undefinedSetter, 72, 1)],
     );
 
     assertResolvedNodeText(findNode.assignment('a ='), r'''
@@ -307,7 +297,7 @@ AssignmentExpression
 class A {}
 f() { A.B = 0;}
 ''',
-      [error(CompileTimeErrorCode.undefinedSetter, 19, 1)],
+      [error(diag.undefinedSetter, 19, 1)],
     );
   }
 
@@ -321,7 +311,7 @@ main() {
   T..foo = 42;
 }
 ''',
-      [error(CompileTimeErrorCode.undefinedSetter, 54, 3)],
+      [error(diag.undefinedSetter, 54, 3)],
     );
   }
 
@@ -336,7 +326,7 @@ f(C c) {
   c.a = 1;
 }
 ''',
-      [error(CompileTimeErrorCode.undefinedSetter, 46, 1)],
+      [error(diag.undefinedSetter, 46, 1)],
     );
   }
 }

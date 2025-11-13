@@ -14,6 +14,7 @@ import 'package:analyzer/error/error.dart';
 import 'package:analyzer/src/utilities/extensions/collection.dart';
 
 import '../analyzer.dart';
+import '../diagnostic.dart' as diag;
 import '../util/ascii_utils.dart';
 
 const _desc = r'Unnecessary underscores can be removed.';
@@ -23,7 +24,7 @@ class UnnecessaryUnderscores extends AnalysisRule {
     : super(name: LintNames.unnecessary_underscores, description: _desc);
 
   @override
-  DiagnosticCode get diagnosticCode => LinterLintCode.unnecessaryUnderscores;
+  DiagnosticCode get diagnosticCode => diag.unnecessaryUnderscores;
 
   @override
   void registerNodeProcessors(

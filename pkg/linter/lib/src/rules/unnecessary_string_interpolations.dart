@@ -11,6 +11,7 @@ import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/error/error.dart';
 
 import '../analyzer.dart';
+import '../diagnostic.dart' as diag;
 
 const _desc = r'Unnecessary string interpolation.';
 
@@ -22,8 +23,7 @@ class UnnecessaryStringInterpolations extends AnalysisRule {
       );
 
   @override
-  DiagnosticCode get diagnosticCode =>
-      LinterLintCode.unnecessaryStringInterpolations;
+  DiagnosticCode get diagnosticCode => diag.unnecessaryStringInterpolations;
 
   @override
   void registerNodeProcessors(

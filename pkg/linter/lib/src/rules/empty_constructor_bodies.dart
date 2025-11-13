@@ -10,6 +10,7 @@ import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/error/error.dart';
 
 import '../analyzer.dart';
+import '../diagnostic.dart' as diag;
 
 const _desc = r'Use `;` instead of `{}` for empty constructor bodies.';
 
@@ -18,7 +19,7 @@ class EmptyConstructorBodies extends AnalysisRule {
     : super(name: LintNames.empty_constructor_bodies, description: _desc);
 
   @override
-  DiagnosticCode get diagnosticCode => LinterLintCode.emptyConstructorBodies;
+  DiagnosticCode get diagnosticCode => diag.emptyConstructorBodies;
 
   @override
   void registerNodeProcessors(

@@ -14,6 +14,7 @@ import 'package:analyzer/src/dart/element/extensions.dart' // ignore: implementa
     show Element2Extension;
 
 import '../analyzer.dart';
+import '../diagnostic.dart' as diag;
 import '../util/scope.dart';
 
 const _desc = r'Avoid types as parameter names.';
@@ -24,8 +25,8 @@ class AvoidTypesAsParameterNames extends MultiAnalysisRule {
 
   @override
   List<DiagnosticCode> get diagnosticCodes => [
-    LinterLintCode.avoidTypesAsParameterNamesTypeParameter,
-    LinterLintCode.avoidTypesAsParameterNamesFormalParameter,
+    diag.avoidTypesAsParameterNamesTypeParameter,
+    diag.avoidTypesAsParameterNamesFormalParameter,
   ];
 
   @override
@@ -53,8 +54,7 @@ class _Visitor extends SimpleAstVisitor<void> {
       rule.reportAtNode(
         parameter,
         arguments: [parameter.name.lexeme],
-        diagnosticCode:
-            LinterLintCode.avoidTypesAsParameterNamesFormalParameter,
+        diagnosticCode: diag.avoidTypesAsParameterNamesFormalParameter,
       );
     }
   }
@@ -72,8 +72,7 @@ class _Visitor extends SimpleAstVisitor<void> {
         rule.reportAtToken(
           name,
           arguments: [name.lexeme],
-          diagnosticCode:
-              LinterLintCode.avoidTypesAsParameterNamesFormalParameter,
+          diagnosticCode: diag.avoidTypesAsParameterNamesFormalParameter,
         );
       }
     }
@@ -113,8 +112,7 @@ class _Visitor extends SimpleAstVisitor<void> {
         rule.reportAtToken(
           name,
           arguments: [name.lexeme],
-          diagnosticCode:
-              LinterLintCode.avoidTypesAsParameterNamesTypeParameter,
+          diagnosticCode: diag.avoidTypesAsParameterNamesTypeParameter,
         );
       }
     }

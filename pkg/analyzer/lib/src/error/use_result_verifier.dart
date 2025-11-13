@@ -6,7 +6,7 @@ import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
-import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 
 class UseResultVerifier {
   final DiagnosticReporter _diagnosticReporter;
@@ -109,13 +109,13 @@ class UseResultVerifier {
     if (message == null || message.isEmpty) {
       _diagnosticReporter.atNode(
         toAnnotate,
-        WarningCode.unusedResult,
+        diag.unusedResult,
         arguments: [displayName],
       );
     } else {
       _diagnosticReporter.atNode(
         toAnnotate,
-        WarningCode.unusedResultWithMessage,
+        diag.unusedResultWithMessage,
         arguments: [displayName, message],
       );
     }

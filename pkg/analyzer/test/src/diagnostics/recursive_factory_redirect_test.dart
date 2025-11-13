@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
@@ -22,7 +22,7 @@ class A {
   factory A() = A;
 }
 ''',
-      [error(CompileTimeErrorCode.recursiveFactoryRedirect, 26, 1)],
+      [error(diag.recursiveFactoryRedirect, 26, 1)],
     );
   }
 
@@ -39,7 +39,7 @@ main() {
   const C<int>();
 }
 ''',
-      [error(CompileTimeErrorCode.recursiveFactoryRedirect, 35, 7)],
+      [error(diag.recursiveFactoryRedirect, 35, 7)],
     );
   }
 
@@ -57,12 +57,12 @@ class C<T> implements A<T> {
 }
 ''',
       [
-        error(CompileTimeErrorCode.recursiveInterfaceInheritance, 6, 1),
-        error(CompileTimeErrorCode.recursiveFactoryRedirect, 45, 1),
-        error(CompileTimeErrorCode.recursiveInterfaceInheritance, 56, 1),
-        error(CompileTimeErrorCode.recursiveFactoryRedirect, 95, 1),
-        error(CompileTimeErrorCode.recursiveInterfaceInheritance, 106, 1),
-        error(CompileTimeErrorCode.recursiveFactoryRedirect, 145, 1),
+        error(diag.recursiveInterfaceInheritance, 6, 1),
+        error(diag.recursiveFactoryRedirect, 45, 1),
+        error(diag.recursiveInterfaceInheritance, 56, 1),
+        error(diag.recursiveFactoryRedirect, 95, 1),
+        error(diag.recursiveInterfaceInheritance, 106, 1),
+        error(diag.recursiveFactoryRedirect, 145, 1),
       ],
     );
   }
@@ -81,12 +81,12 @@ class C implements A {
 }
 ''',
       [
-        error(CompileTimeErrorCode.recursiveInterfaceInheritance, 6, 1),
-        error(CompileTimeErrorCode.recursiveFactoryRedirect, 39, 1),
-        error(CompileTimeErrorCode.recursiveInterfaceInheritance, 50, 1),
-        error(CompileTimeErrorCode.recursiveFactoryRedirect, 83, 1),
-        error(CompileTimeErrorCode.recursiveInterfaceInheritance, 94, 1),
-        error(CompileTimeErrorCode.recursiveFactoryRedirect, 127, 1),
+        error(diag.recursiveInterfaceInheritance, 6, 1),
+        error(diag.recursiveFactoryRedirect, 39, 1),
+        error(diag.recursiveInterfaceInheritance, 50, 1),
+        error(diag.recursiveFactoryRedirect, 83, 1),
+        error(diag.recursiveInterfaceInheritance, 94, 1),
+        error(diag.recursiveFactoryRedirect, 127, 1),
       ],
     );
   }
@@ -105,12 +105,12 @@ class C implements A {
 }
 ''',
       [
-        error(CompileTimeErrorCode.recursiveInterfaceInheritance, 6, 1),
-        error(CompileTimeErrorCode.recursiveFactoryRedirect, 45, 7),
-        error(CompileTimeErrorCode.recursiveInterfaceInheritance, 62, 1),
-        error(CompileTimeErrorCode.recursiveFactoryRedirect, 101, 7),
-        error(CompileTimeErrorCode.recursiveInterfaceInheritance, 118, 1),
-        error(CompileTimeErrorCode.recursiveFactoryRedirect, 157, 7),
+        error(diag.recursiveInterfaceInheritance, 6, 1),
+        error(diag.recursiveFactoryRedirect, 45, 7),
+        error(diag.recursiveInterfaceInheritance, 62, 1),
+        error(diag.recursiveFactoryRedirect, 101, 7),
+        error(diag.recursiveInterfaceInheritance, 118, 1),
+        error(diag.recursiveFactoryRedirect, 157, 7),
       ],
     );
   }
@@ -131,11 +131,11 @@ class C implements A, B {
 }
 ''',
       [
-        error(CompileTimeErrorCode.redirectToInvalidReturnType, 26, 1),
-        error(CompileTimeErrorCode.recursiveInterfaceInheritance, 37, 1),
-        error(CompileTimeErrorCode.recursiveFactoryRedirect, 70, 1),
-        error(CompileTimeErrorCode.recursiveInterfaceInheritance, 81, 1),
-        error(CompileTimeErrorCode.recursiveFactoryRedirect, 117, 1),
+        error(diag.redirectToInvalidReturnType, 26, 1),
+        error(diag.recursiveInterfaceInheritance, 37, 1),
+        error(diag.recursiveFactoryRedirect, 70, 1),
+        error(diag.recursiveInterfaceInheritance, 81, 1),
+        error(diag.recursiveFactoryRedirect, 117, 1),
       ],
     );
   }

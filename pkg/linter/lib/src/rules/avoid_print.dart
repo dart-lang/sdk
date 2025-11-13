@@ -10,6 +10,7 @@ import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/error/error.dart';
 
 import '../analyzer.dart';
+import '../diagnostic.dart' as diag;
 import '../extensions.dart';
 import '../util/flutter_utils.dart';
 
@@ -19,7 +20,7 @@ class AvoidPrint extends AnalysisRule {
   AvoidPrint() : super(name: LintNames.avoid_print, description: _desc);
 
   @override
-  DiagnosticCode get diagnosticCode => LinterLintCode.avoidPrint;
+  DiagnosticCode get diagnosticCode => diag.avoidPrint;
 
   @override
   void registerNodeProcessors(

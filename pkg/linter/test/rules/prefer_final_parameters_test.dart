@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/generated/parser.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../rule_test_support.dart';
@@ -340,7 +340,7 @@ void f({final String? _}) { }
       [
         // No lint.
         // https://github.com/dart-lang/language/blob/main/working/wildcards/feature-specification.md#declarations-that-are-capable-of-declaring-a-wildcard
-        error(ParserErrorCode.privateNamedNonFieldParameter, 22, 1),
+        error(diag.privateNamedNonFieldParameter, 22, 1),
       ],
     );
   }
@@ -372,7 +372,7 @@ void f({required String _}) { }
       [
         // No lint.
         // https://github.com/dart-lang/language/blob/main/working/wildcards/feature-specification.md#declarations-that-are-capable-of-declaring-a-wildcard
-        error(ParserErrorCode.privateNamedNonFieldParameter, 24, 1),
+        error(diag.privateNamedNonFieldParameter, 24, 1),
       ],
     );
   }

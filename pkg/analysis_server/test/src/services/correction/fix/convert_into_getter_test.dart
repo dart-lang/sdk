@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/src/services/correction/fix.dart';
-import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:linter/src/lint_names.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -36,8 +36,7 @@ extension E on int {
 }
 ''',
       filter: (error) =>
-          error.diagnosticCode ==
-          CompileTimeErrorCode.extensionDeclaresInstanceField,
+          error.diagnosticCode == diag.extensionDeclaresInstanceField,
     );
   }
 
@@ -240,8 +239,7 @@ class A {
 }
 ''',
       filter: (error) {
-        return error.diagnosticCode ==
-            CompileTimeErrorCode.implicitThisReferenceInInitializer;
+        return error.diagnosticCode == diag.implicitThisReferenceInInitializer;
       },
     );
   }
@@ -264,8 +262,7 @@ class A {
 }
 ''',
       filter: (error) {
-        return error.diagnosticCode ==
-            CompileTimeErrorCode.implicitThisReferenceInInitializer;
+        return error.diagnosticCode == diag.implicitThisReferenceInInitializer;
       },
     );
   }
@@ -288,8 +285,7 @@ class A {
 }
 ''',
       filter: (error) {
-        return error.diagnosticCode ==
-            CompileTimeErrorCode.implicitThisReferenceInInitializer;
+        return error.diagnosticCode == diag.implicitThisReferenceInInitializer;
       },
     );
   }

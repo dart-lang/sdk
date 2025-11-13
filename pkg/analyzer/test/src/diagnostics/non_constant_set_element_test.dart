@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
@@ -24,7 +24,7 @@ mixin NonConstantSetElementTestCases on PubPackageResolutionTest {
 final dynamic a = 0;
 var v = const <int>{if (1 < 0) 0 else a};
 ''',
-      [error(CompileTimeErrorCode.nonConstantSetElement, 59, 1)],
+      [error(diag.nonConstantSetElement, 59, 1)],
     );
   }
 
@@ -34,7 +34,7 @@ var v = const <int>{if (1 < 0) 0 else a};
 final dynamic a = 0;
 var v = const <int>{if (1 < 0) a else 0};
 ''',
-      [error(CompileTimeErrorCode.nonConstantSetElement, 52, 1)],
+      [error(diag.nonConstantSetElement, 52, 1)],
     );
   }
 
@@ -44,7 +44,7 @@ var v = const <int>{if (1 < 0) a else 0};
 final dynamic a = 0;
 var v = const <int>{if (1 > 0) 0 else a};
 ''',
-      [error(CompileTimeErrorCode.nonConstantSetElement, 59, 1)],
+      [error(diag.nonConstantSetElement, 59, 1)],
     );
   }
 
@@ -54,7 +54,7 @@ var v = const <int>{if (1 > 0) 0 else a};
 final dynamic a = 0;
 var v = const <int>{if (1 > 0) a else 0};
 ''',
-      [error(CompileTimeErrorCode.nonConstantSetElement, 52, 1)],
+      [error(diag.nonConstantSetElement, 52, 1)],
     );
   }
 
@@ -71,7 +71,7 @@ var v = const <int>{if (1 < 0) a};
 final dynamic a = 0;
 var v = const <int>{if (1 < 0) a};
 ''',
-      [error(CompileTimeErrorCode.nonConstantSetElement, 52, 1)],
+      [error(diag.nonConstantSetElement, 52, 1)],
     );
   }
 
@@ -88,7 +88,7 @@ var v = const <int>{if (1 > 0) a};
 final dynamic a = 0;
 var v = const <int>{if (1 > 0) a};
 ''',
-      [error(CompileTimeErrorCode.nonConstantSetElement, 52, 1)],
+      [error(diag.nonConstantSetElement, 52, 1)],
     );
   }
 
@@ -98,7 +98,7 @@ var v = const <int>{if (1 > 0) a};
 f(a) {
   return const {a};
 }''',
-      [error(CompileTimeErrorCode.nonConstantSetElement, 23, 1)],
+      [error(diag.nonConstantSetElement, 23, 1)],
     );
   }
 
@@ -108,7 +108,7 @@ f(a) {
 final Set x = {};
 var v = const {...x};
 ''',
-      [error(CompileTimeErrorCode.nonConstantSetElement, 36, 1)],
+      [error(diag.nonConstantSetElement, 36, 1)],
     );
   }
 
@@ -118,7 +118,7 @@ var v = const {...x};
 final dynamic a = 0;
 var v = const <int>{a};
 ''',
-      [error(CompileTimeErrorCode.nonConstantSetElement, 41, 1)],
+      [error(diag.nonConstantSetElement, 41, 1)],
     );
   }
 

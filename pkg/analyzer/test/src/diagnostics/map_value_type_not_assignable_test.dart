@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
@@ -31,7 +31,7 @@ const dynamic a = 0;
 const dynamic b = 'b';
 var v = const <bool, int>{if (1 < 0) true: a else false: b};
 ''',
-      [error(CompileTimeErrorCode.mapValueTypeNotAssignable, 101, 1)],
+      [error(diag.mapValueTypeNotAssignable, 101, 1)],
     );
   }
 
@@ -47,7 +47,7 @@ var v = const <bool, int>{if (1 < 0) true: a};
       '''
 var v = const <bool, int>{if (1 < 0) true: 'a'};
 ''',
-      [error(CompileTimeErrorCode.mapValueTypeNotAssignable, 43, 3)],
+      [error(diag.mapValueTypeNotAssignable, 43, 3)],
     );
   }
 
@@ -64,7 +64,7 @@ var v = const <bool, int>{if (true) true: a};
 const dynamic a = 'a';
 var v = const <bool, int>{if (true) true: a};
 ''',
-      [error(CompileTimeErrorCode.mapValueTypeNotAssignable, 65, 1)],
+      [error(diag.mapValueTypeNotAssignable, 65, 1)],
     );
   }
 
@@ -74,7 +74,7 @@ var v = const <bool, int>{if (true) true: a};
 final a = 0;
 var v = const <bool, int>{if (1 < 2) true: a};
 ''',
-      [error(CompileTimeErrorCode.nonConstantMapValue, 56, 1)],
+      [error(diag.nonConstantMapValue, 56, 1)],
     );
   }
 
@@ -91,7 +91,7 @@ var v = const <bool, int>{true: a};
 const dynamic a = null;
 var v = const <bool, int>{true: a};
 ''',
-      [error(CompileTimeErrorCode.mapValueTypeNotAssignableNullability, 56, 1)],
+      [error(diag.mapValueTypeNotAssignableNullability, 56, 1)],
     );
   }
 
@@ -100,7 +100,7 @@ var v = const <bool, int>{true: a};
       '''
 var v = const <bool, int>{true: null};
 ''',
-      [error(CompileTimeErrorCode.mapValueTypeNotAssignableNullability, 32, 4)],
+      [error(diag.mapValueTypeNotAssignableNullability, 32, 4)],
     );
   }
 
@@ -123,7 +123,7 @@ var v = const <bool, int?>{true: null};
 const dynamic a = 'a';
 var v = const <bool, int>{true: a};
 ''',
-      [error(CompileTimeErrorCode.mapValueTypeNotAssignable, 55, 1)],
+      [error(diag.mapValueTypeNotAssignable, 55, 1)],
     );
   }
 
@@ -132,7 +132,7 @@ var v = const <bool, int>{true: a};
       '''
 var v = const <bool, int>{true: 'a'};
 ''',
-      [error(CompileTimeErrorCode.mapValueTypeNotAssignable, 32, 3)],
+      [error(diag.mapValueTypeNotAssignable, 32, 3)],
     );
   }
 
@@ -148,7 +148,7 @@ var v = const <bool, int>{...{true: 1}};
 const dynamic a = 'a';
 var v = const <bool, int>{...{true: a}};
 ''',
-      [error(CompileTimeErrorCode.mapValueTypeNotAssignable, 59, 1)],
+      [error(diag.mapValueTypeNotAssignable, 59, 1)],
     );
   }
 
@@ -173,7 +173,7 @@ var v = <bool, int>{if (1 < 0) true: a else false: b};
       '''
 var v = <bool, int>{if (1 < 0) true: 'a'};
 ''',
-      [error(CompileTimeErrorCode.mapValueTypeNotAssignable, 37, 3)],
+      [error(diag.mapValueTypeNotAssignable, 37, 3)],
     );
   }
 
@@ -210,7 +210,7 @@ var v = <bool, int>{true: a};
       '''
 var v = <bool, int>{true: 'a'};
 ''',
-      [error(CompileTimeErrorCode.mapValueTypeNotAssignable, 26, 3)],
+      [error(diag.mapValueTypeNotAssignable, 26, 3)],
     );
   }
 
@@ -225,7 +225,7 @@ var v = <bool, int>{...{true: 1}};
       '''
 var v = <bool, int>{...{true: 'a'}};
 ''',
-      [error(CompileTimeErrorCode.mapValueTypeNotAssignable, 30, 3)],
+      [error(diag.mapValueTypeNotAssignable, 30, 3)],
     );
   }
 
@@ -248,7 +248,7 @@ void f(bool c, dynamic a) {
   <int, int>{if (c) 0: 0 else 0: a};
 }
 ''',
-      [error(CompileTimeErrorCode.mapValueTypeNotAssignable, 61, 1)],
+      [error(diag.mapValueTypeNotAssignable, 61, 1)],
     );
   }
 
@@ -259,7 +259,7 @@ void f(bool c, dynamic a) {
   <int, int>{if (c) 0: a};
 }
 ''',
-      [error(CompileTimeErrorCode.mapValueTypeNotAssignable, 51, 1)],
+      [error(diag.mapValueTypeNotAssignable, 51, 1)],
     );
   }
 
@@ -270,7 +270,7 @@ void f(Map<int, dynamic> a) {
   <int, int>{...a};
 }
 ''',
-      [error(CompileTimeErrorCode.mapValueTypeNotAssignable, 46, 1)],
+      [error(diag.mapValueTypeNotAssignable, 46, 1)],
     );
   }
 }

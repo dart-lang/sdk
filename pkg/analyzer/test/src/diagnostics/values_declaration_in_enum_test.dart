@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
@@ -22,7 +22,7 @@ enum E {
   values
 }
 ''',
-      [error(CompileTimeErrorCode.valuesDeclarationInEnum, 11, 6)],
+      [error(diag.valuesDeclarationInEnum, 11, 6)],
     );
   }
 
@@ -34,7 +34,7 @@ enum E {
   final int values = 0;
 }
 ''',
-      [error(CompileTimeErrorCode.valuesDeclarationInEnum, 26, 6)],
+      [error(diag.valuesDeclarationInEnum, 26, 6)],
     );
   }
 
@@ -46,7 +46,7 @@ enum E {
   static int values = 0;
 }
 ''',
-      [error(CompileTimeErrorCode.valuesDeclarationInEnum, 27, 6)],
+      [error(diag.valuesDeclarationInEnum, 27, 6)],
     );
   }
 
@@ -59,7 +59,7 @@ enum E {
   const E();
 }
 ''',
-      [error(CompileTimeErrorCode.valuesDeclarationInEnum, 22, 6)],
+      [error(diag.valuesDeclarationInEnum, 22, 6)],
     );
   }
 
@@ -71,7 +71,7 @@ enum E {
   int get values => 0;
 }
 ''',
-      [error(CompileTimeErrorCode.valuesDeclarationInEnum, 24, 6)],
+      [error(diag.valuesDeclarationInEnum, 24, 6)],
     );
   }
 
@@ -83,7 +83,7 @@ enum E {
   static int get values => 0;
 }
 ''',
-      [error(CompileTimeErrorCode.valuesDeclarationInEnum, 31, 6)],
+      [error(diag.valuesDeclarationInEnum, 31, 6)],
     );
   }
 
@@ -95,7 +95,7 @@ enum E {
   void values() {}
 }
 ''',
-      [error(CompileTimeErrorCode.valuesDeclarationInEnum, 21, 6)],
+      [error(diag.valuesDeclarationInEnum, 21, 6)],
     );
   }
 
@@ -107,7 +107,7 @@ enum E {
   static void values() {}
 }
 ''',
-      [error(CompileTimeErrorCode.valuesDeclarationInEnum, 28, 6)],
+      [error(diag.valuesDeclarationInEnum, 28, 6)],
     );
   }
 
@@ -119,7 +119,7 @@ enum E {
   set values(_) {}
 }
 ''',
-      [error(CompileTimeErrorCode.valuesDeclarationInEnum, 20, 6)],
+      [error(diag.valuesDeclarationInEnum, 20, 6)],
     );
   }
 

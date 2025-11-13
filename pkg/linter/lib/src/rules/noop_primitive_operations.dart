@@ -10,6 +10,7 @@ import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/error/error.dart';
 
 import '../analyzer.dart';
+import '../diagnostic.dart' as diag;
 import '../extensions.dart';
 
 const _desc = r'Noop primitive operations.';
@@ -19,7 +20,7 @@ class NoopPrimitiveOperations extends AnalysisRule {
     : super(name: LintNames.noop_primitive_operations, description: _desc);
 
   @override
-  DiagnosticCode get diagnosticCode => LinterLintCode.noopPrimitiveOperations;
+  DiagnosticCode get diagnosticCode => diag.noopPrimitiveOperations;
 
   @override
   void registerNodeProcessors(

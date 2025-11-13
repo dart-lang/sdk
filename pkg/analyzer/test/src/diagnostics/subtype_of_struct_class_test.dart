@@ -2,8 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/dart/error/ffi_code.dart';
-import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
@@ -27,7 +26,7 @@ final class S extends Struct {
 }
 final class C extends S {}
 ''',
-      [error(FfiCode.subtypeOfStructClassInExtends, 103, 1)],
+      [error(diag.subtypeOfStructClassInExtends, 103, 1)],
     );
   }
 
@@ -40,7 +39,7 @@ final class S extends Union {
 }
 final class C extends S {}
 ''',
-      [error(FfiCode.subtypeOfStructClassInExtends, 102, 1)],
+      [error(diag.subtypeOfStructClassInExtends, 102, 1)],
     );
   }
 }
@@ -62,12 +61,8 @@ final class AbiSpecificInteger4 implements AbiSpecificInteger1 {
 }
 ''',
       [
-        error(
-          CompileTimeErrorCode.baseClassImplementedOutsideOfLibrary,
-          216,
-          19,
-        ),
-        error(FfiCode.subtypeOfStructClassInImplements, 216, 19),
+        error(diag.baseClassImplementedOutsideOfLibrary, 216, 19),
+        error(diag.subtypeOfStructClassInImplements, 216, 19),
       ],
     );
   }
@@ -80,9 +75,9 @@ final class S extends Struct {}
 final class C implements S {}
 ''',
       [
-        error(FfiCode.emptyStruct, 31, 1),
-        error(CompileTimeErrorCode.baseClassImplementedOutsideOfLibrary, 76, 1),
-        error(FfiCode.subtypeOfStructClassInImplements, 76, 1),
+        error(diag.emptyStruct, 31, 1),
+        error(diag.baseClassImplementedOutsideOfLibrary, 76, 1),
+        error(diag.subtypeOfStructClassInImplements, 76, 1),
       ],
     );
   }
@@ -98,13 +93,9 @@ import 'lib1.dart' as lib1;
 class C implements lib1.S {}
 ''',
       [
-        error(CompileTimeErrorCode.baseClassImplementedOutsideOfLibrary, 47, 6),
-        error(
-          CompileTimeErrorCode.finalClassImplementedOutsideOfLibrary,
-          47,
-          6,
-        ),
-        error(FfiCode.subtypeOfStructClassInImplements, 47, 6),
+        error(diag.baseClassImplementedOutsideOfLibrary, 47, 6),
+        error(diag.finalClassImplementedOutsideOfLibrary, 47, 6),
+        error(diag.subtypeOfStructClassInImplements, 47, 6),
       ],
     );
   }
@@ -117,9 +108,9 @@ final class S extends Union {}
 final class C implements S {}
 ''',
       [
-        error(FfiCode.emptyStruct, 31, 1),
-        error(CompileTimeErrorCode.baseClassImplementedOutsideOfLibrary, 75, 1),
-        error(FfiCode.subtypeOfStructClassInImplements, 75, 1),
+        error(diag.emptyStruct, 31, 1),
+        error(diag.baseClassImplementedOutsideOfLibrary, 75, 1),
+        error(diag.subtypeOfStructClassInImplements, 75, 1),
       ],
     );
   }
@@ -135,10 +126,10 @@ final class S extends Struct {}
 final class C with S {}
 ''',
       [
-        error(FfiCode.emptyStruct, 31, 1),
-        error(CompileTimeErrorCode.mixinInheritsFromNotObject, 70, 1),
+        error(diag.emptyStruct, 31, 1),
+        error(diag.mixinInheritsFromNotObject, 70, 1),
         error(
-          FfiCode.subtypeOfStructClassInWith,
+          diag.subtypeOfStructClassInWith,
           70,
           1,
           messageContains: ["class 'C'", "mix in 'S'"],
@@ -159,9 +150,9 @@ import 'lib1.dart' as lib1;
 class C with lib1.S {}
 ''',
       [
-        error(CompileTimeErrorCode.mixinInheritsFromNotObject, 42, 6),
+        error(diag.mixinInheritsFromNotObject, 42, 6),
         error(
-          FfiCode.subtypeOfStructClassInWith,
+          diag.subtypeOfStructClassInWith,
           42,
           6,
           messageContains: ["class 'C'", "mix in 'S'"],
@@ -178,9 +169,9 @@ final class S extends Union {}
 final class C with S {}
 ''',
       [
-        error(FfiCode.emptyStruct, 31, 1),
-        error(CompileTimeErrorCode.mixinInheritsFromNotObject, 69, 1),
-        error(FfiCode.subtypeOfStructClassInWith, 69, 1),
+        error(diag.emptyStruct, 31, 1),
+        error(diag.mixinInheritsFromNotObject, 69, 1),
+        error(diag.subtypeOfStructClassInWith, 69, 1),
       ],
     );
   }

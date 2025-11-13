@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analysis_server/src/services/correction/fix/data_driven/transform_set_error_code.dart';
+import 'package:analysis_server/src/diagnostic.dart' as diag;
 import 'package:analysis_server/src/services/correction/fix/data_driven/transform_set_parser.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -23,7 +23,7 @@ class UnsupportedVersionTest extends AbstractTransformSetParserTest {
 version: $version
 transforms: []
 ''',
-      [error(TransformSetErrorCode.unsupportedVersion, 9, version.length)],
+      [error(diag.unsupportedVersion, 9, version.length)],
     );
   }
 
@@ -34,7 +34,7 @@ transforms: []
 version: $version
 transforms: []
 ''',
-      [error(TransformSetErrorCode.unsupportedVersion, 9, 1)],
+      [error(diag.unsupportedVersion, 9, 1)],
     );
   }
 }

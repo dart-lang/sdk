@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -169,7 +169,7 @@ import 'lib1.dart' as p;
 import 'lib2.dart' as p;
 f(p.A a, p.B b) {}
 ''',
-      [error(HintCode.unnecessaryImport, 7, 11)],
+      [error(diag.unnecessaryImport, 7, 11)],
     );
   }
 
@@ -235,7 +235,7 @@ void f() {
   0.bar();
 }
 ''',
-      [error(HintCode.unnecessaryImport, 7, 11)],
+      [error(diag.unnecessaryImport, 7, 11)],
     );
   }
 
@@ -281,7 +281,7 @@ void f() {
   0.bar();
 }
 ''',
-      [error(HintCode.unnecessaryImport, 7, 11)],
+      [error(diag.unnecessaryImport, 7, 11)],
     );
   }
 
@@ -339,7 +339,7 @@ import 'c.dart';
 
 void f(A _, B _) {}
 ''',
-      [error(HintCode.unnecessaryImport, 41, 8)],
+      [error(diag.unnecessaryImport, 41, 8)],
     );
   }
 
@@ -368,7 +368,7 @@ import 'c.dart';
 
 void f(A _, B _) {}
 ''',
-      [error(WarningCode.deprecatedExportUse, 47, 1)],
+      [error(diag.deprecatedExportUse, 47, 1)],
     );
   }
 
@@ -438,7 +438,7 @@ import 'a.dart';
 import 'b.dart';
 void f(A _, B _, C _) {}
 ''',
-      [error(CompileTimeErrorCode.undefinedClass, 51, 1)],
+      [error(diag.undefinedClass, 51, 1)],
     );
   }
 
@@ -456,7 +456,7 @@ import 'lib1.dart';
 import 'lib2.dart';
 f(A a, B b) {}
 ''',
-      [error(HintCode.unnecessaryImport, 7, 11)],
+      [error(diag.unnecessaryImport, 7, 11)],
     );
   }
 
@@ -474,7 +474,7 @@ import 'dart:async';
 import 'dart:async' show Completer;
 f(FutureOr<int> a, Completer<int> b) {}
 ''',
-      [error(HintCode.unnecessaryImport, 28, 12)],
+      [error(diag.unnecessaryImport, 28, 12)],
     );
   }
 
@@ -489,7 +489,7 @@ import 'a.dart';
 import 'b.dart';
 void f(A _) {}
 ''',
-      [error(CompileTimeErrorCode.uriDoesNotExist, 24, 8)],
+      [error(diag.uriDoesNotExist, 24, 8)],
     );
   }
 
@@ -512,7 +512,7 @@ void f(A _, B _) {}
 
     await assertErrorsInFile2(a, []);
 
-    await assertErrorsInFile2(b, [error(HintCode.unnecessaryImport, 25, 8)]);
+    await assertErrorsInFile2(b, [error(diag.unnecessaryImport, 25, 8)]);
   }
 
   test_part_inside_unnecessary_prefixed() async {
@@ -534,6 +534,6 @@ void f(prefix.A _, prefix.B _) {}
 
     await assertErrorsInFile2(a, []);
 
-    await assertErrorsInFile2(b, [error(HintCode.unnecessaryImport, 25, 8)]);
+    await assertErrorsInFile2(b, [error(diag.unnecessaryImport, 25, 8)]);
   }
 }

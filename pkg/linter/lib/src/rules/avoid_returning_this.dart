@@ -11,6 +11,7 @@ import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/error/error.dart';
 
 import '../analyzer.dart';
+import '../diagnostic.dart' as diag;
 import '../extensions.dart';
 
 const _desc =
@@ -23,7 +24,7 @@ class AvoidReturningThis extends AnalysisRule {
     : super(name: LintNames.avoid_returning_this, description: _desc);
 
   @override
-  DiagnosticCode get diagnosticCode => LinterLintCode.avoidReturningThis;
+  DiagnosticCode get diagnosticCode => diag.avoidReturningThis;
 
   @override
   void registerNodeProcessors(

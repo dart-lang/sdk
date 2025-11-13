@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
@@ -24,8 +24,8 @@ f(p) {
 }
 ''',
       [
-        error(WarningCode.unusedLocalVariable, 15, 1),
-        error(CompileTimeErrorCode.constInitializedWithNonConstantValue, 19, 1),
+        error(diag.unusedLocalVariable, 15, 1),
+        error(diag.constInitializedWithNonConstantValue, 19, 1),
       ],
     );
   }
@@ -39,7 +39,7 @@ class Foo {
   foo([int x = field]) {}
 }
 ''',
-      [error(CompileTimeErrorCode.nonConstantDefaultValue, 46, 5)],
+      [error(diag.nonConstantDefaultValue, 46, 5)],
     );
   }
 
@@ -48,7 +48,7 @@ class Foo {
       '''
 const a = () {};
 ''',
-      [error(CompileTimeErrorCode.constInitializedWithNonConstantValue, 10, 5)],
+      [error(diag.constInitializedWithNonConstantValue, 10, 5)],
     );
   }
 
@@ -72,7 +72,7 @@ class A {
 }
 const a = new A();
 ''',
-      [error(CompileTimeErrorCode.constInitializedWithNonConstantValue, 35, 7)],
+      [error(diag.constInitializedWithNonConstantValue, 35, 7)],
     );
   }
 
@@ -97,7 +97,7 @@ class A {
 final a = const A();
 const c = a.m;
 ''',
-      [error(CompileTimeErrorCode.constInitializedWithNonConstantValue, 72, 1)],
+      [error(diag.constInitializedWithNonConstantValue, 72, 1)],
     );
   }
 

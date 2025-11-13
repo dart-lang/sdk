@@ -10,6 +10,7 @@ import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/error/error.dart';
 
 import '../analyzer.dart';
+import '../diagnostic.dart' as diag;
 
 const _desc = r'Unnecessary raw string.';
 
@@ -18,7 +19,7 @@ class UnnecessaryRawStrings extends AnalysisRule {
     : super(name: LintNames.unnecessary_raw_strings, description: _desc);
 
   @override
-  DiagnosticCode get diagnosticCode => LinterLintCode.unnecessaryRawStrings;
+  DiagnosticCode get diagnosticCode => diag.unnecessaryRawStrings;
 
   @override
   void registerNodeProcessors(

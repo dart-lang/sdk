@@ -10,6 +10,7 @@ import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/error/error.dart';
 
 import '../analyzer.dart';
+import '../diagnostic.dart' as diag;
 
 const _desc = r"Don't declare multiple variables on a single line.";
 
@@ -21,8 +22,7 @@ class AvoidMultipleDeclarationsPerLine extends AnalysisRule {
       );
 
   @override
-  DiagnosticCode get diagnosticCode =>
-      LinterLintCode.avoidMultipleDeclarationsPerLine;
+  DiagnosticCode get diagnosticCode => diag.avoidMultipleDeclarationsPerLine;
 
   @override
   void registerNodeProcessors(

@@ -12,6 +12,7 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/error/error.dart';
 
 import '../analyzer.dart';
+import '../diagnostic.dart' as diag;
 
 const _desc = r'Annotate redeclared members.';
 
@@ -24,7 +25,7 @@ class AnnotateRedeclares extends AnalysisRule {
       );
 
   @override
-  DiagnosticCode get diagnosticCode => LinterLintCode.annotateRedeclares;
+  DiagnosticCode get diagnosticCode => diag.annotateRedeclares;
 
   @override
   void registerNodeProcessors(

@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
@@ -19,7 +19,7 @@ class MainIsNotFunctionTest extends PubPackageResolutionTest {
     await resolveTestCode('''
 class main {}
 ''');
-    assertErrorsInResult([error(CompileTimeErrorCode.mainIsNotFunction, 6, 4)]);
+    assertErrorsInResult([error(diag.mainIsNotFunction, 6, 4)]);
   }
 
   test_classAlias() async {
@@ -28,9 +28,7 @@ class A {}
 mixin M {}
 class main = A with M;
 ''');
-    assertErrorsInResult([
-      error(CompileTimeErrorCode.mainIsNotFunction, 28, 4),
-    ]);
+    assertErrorsInResult([error(diag.mainIsNotFunction, 28, 4)]);
   }
 
   test_enum() async {
@@ -39,7 +37,7 @@ enum main {
   v
 }
 ''');
-    assertErrorsInResult([error(CompileTimeErrorCode.mainIsNotFunction, 5, 4)]);
+    assertErrorsInResult([error(diag.mainIsNotFunction, 5, 4)]);
   }
 
   test_function() async {
@@ -52,7 +50,7 @@ void main() {}
     await resolveTestCode('''
 int get main => 0;
 ''');
-    assertErrorsInResult([error(CompileTimeErrorCode.mainIsNotFunction, 8, 4)]);
+    assertErrorsInResult([error(diag.mainIsNotFunction, 8, 4)]);
   }
 
   test_mixin() async {
@@ -60,31 +58,27 @@ int get main => 0;
 class A {}
 mixin main on A {}
 ''');
-    assertErrorsInResult([
-      error(CompileTimeErrorCode.mainIsNotFunction, 17, 4),
-    ]);
+    assertErrorsInResult([error(diag.mainIsNotFunction, 17, 4)]);
   }
 
   test_typedef() async {
     await resolveTestCode('''
 typedef main = void Function();
 ''');
-    assertErrorsInResult([error(CompileTimeErrorCode.mainIsNotFunction, 8, 4)]);
+    assertErrorsInResult([error(diag.mainIsNotFunction, 8, 4)]);
   }
 
   test_typedef_legacy() async {
     await resolveTestCode('''
 typedef void main();
 ''');
-    assertErrorsInResult([
-      error(CompileTimeErrorCode.mainIsNotFunction, 13, 4),
-    ]);
+    assertErrorsInResult([error(diag.mainIsNotFunction, 13, 4)]);
   }
 
   test_variable() async {
     await resolveTestCode('''
 var main = 0;
 ''');
-    assertErrorsInResult([error(CompileTimeErrorCode.mainIsNotFunction, 4, 4)]);
+    assertErrorsInResult([error(diag.mainIsNotFunction, 4, 4)]);
   }
 }

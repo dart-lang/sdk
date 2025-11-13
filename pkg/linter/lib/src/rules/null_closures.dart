@@ -12,6 +12,7 @@ import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/error/error.dart';
 
 import '../analyzer.dart';
+import '../diagnostic.dart' as diag;
 import '../extensions.dart';
 
 const _desc = r'Do not pass `null` as an argument where a closure is expected.';
@@ -193,7 +194,7 @@ class NullClosures extends AnalysisRule {
   NullClosures() : super(name: LintNames.null_closures, description: _desc);
 
   @override
-  DiagnosticCode get diagnosticCode => LinterLintCode.nullClosures;
+  DiagnosticCode get diagnosticCode => diag.nullClosures;
 
   @override
   void registerNodeProcessors(

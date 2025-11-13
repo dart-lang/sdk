@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
@@ -22,13 +22,7 @@ class ExtensionTypeImplementsDisallowedTypeTest
 extension type A(int it) implements X {}
 typedef X = dynamic;
 ''',
-      [
-        error(
-          CompileTimeErrorCode.extensionTypeImplementsDisallowedType,
-          36,
-          1,
-        ),
-      ],
+      [error(diag.extensionTypeImplementsDisallowedType, 36, 1)],
     );
   }
 
@@ -38,13 +32,7 @@ typedef X = dynamic;
 extension type A(int it) implements X {}
 typedef X = void Function();
 ''',
-      [
-        error(
-          CompileTimeErrorCode.extensionTypeImplementsDisallowedType,
-          36,
-          1,
-        ),
-      ],
+      [error(diag.extensionTypeImplementsDisallowedType, 36, 1)],
     );
   }
 
@@ -60,13 +48,7 @@ extension type X(num it) {}
       '''
 extension type A(int it) implements Function {}
 ''',
-      [
-        error(
-          CompileTimeErrorCode.extensionTypeImplementsDisallowedType,
-          36,
-          8,
-        ),
-      ],
+      [error(diag.extensionTypeImplementsDisallowedType, 36, 8)],
     );
   }
 
@@ -75,13 +57,7 @@ extension type A(int it) implements Function {}
       '''
 extension type A(int it) implements FutureOr<int> {}
 ''',
-      [
-        error(
-          CompileTimeErrorCode.extensionTypeImplementsDisallowedType,
-          36,
-          13,
-        ),
-      ],
+      [error(diag.extensionTypeImplementsDisallowedType, 36, 13)],
     );
   }
 
@@ -91,7 +67,7 @@ extension type A(int it) implements FutureOr<int> {}
 extension type A(int it) implements X {}
 typedef X = num?;
 ''',
-      [error(CompileTimeErrorCode.nullableTypeInImplementsClause, 36, 1)],
+      [error(diag.nullableTypeInImplementsClause, 36, 1)],
     );
   }
 
@@ -107,13 +83,7 @@ extension type A(int it) implements num {}
 extension type A(int it) implements X {}
 typedef X = (int, String);
 ''',
-      [
-        error(
-          CompileTimeErrorCode.extensionTypeImplementsDisallowedType,
-          36,
-          1,
-        ),
-      ],
+      [error(diag.extensionTypeImplementsDisallowedType, 36, 1)],
     );
   }
 
@@ -122,13 +92,7 @@ typedef X = (int, String);
       '''
 extension type A<T>(int it) implements T {}
 ''',
-      [
-        error(
-          CompileTimeErrorCode.extensionTypeImplementsDisallowedType,
-          39,
-          1,
-        ),
-      ],
+      [error(diag.extensionTypeImplementsDisallowedType, 39, 1)],
     );
   }
 
@@ -138,13 +102,7 @@ extension type A<T>(int it) implements T {}
 extension type A(int it) implements X {}
 typedef X = void;
 ''',
-      [
-        error(
-          CompileTimeErrorCode.extensionTypeImplementsDisallowedType,
-          36,
-          1,
-        ),
-      ],
+      [error(diag.extensionTypeImplementsDisallowedType, 36, 1)],
     );
   }
 }

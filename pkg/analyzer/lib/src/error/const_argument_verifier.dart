@@ -10,7 +10,7 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
-import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 
 /// Checks if the arguments for a parameter annotated with `@mustBeConst` are
 /// actually constant.
@@ -33,7 +33,7 @@ class ConstArgumentsVerifier extends SimpleAstVisitor<void> {
       // depends on the value of the left hand side.
       _diagnosticReporter.atNode(
         node.rightHandSide,
-        WarningCode.nonConstArgumentForConstParameter,
+        diag.nonConstArgumentForConstParameter,
         arguments: [node.rightHandSide],
       );
     }
@@ -113,7 +113,7 @@ class ConstArgumentsVerifier extends SimpleAstVisitor<void> {
         if (!_isConst(resolvedArgument)) {
           _diagnosticReporter.atNode(
             argument,
-            WarningCode.nonConstArgumentForConstParameter,
+            diag.nonConstArgumentForConstParameter,
             arguments: [parameterName],
           );
         }

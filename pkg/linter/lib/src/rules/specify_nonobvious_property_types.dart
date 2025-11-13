@@ -12,6 +12,7 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/error/error.dart';
 
 import '../analyzer.dart';
+import '../diagnostic.dart' as diag;
 import '../util/obvious_types.dart';
 
 const _desc =
@@ -26,8 +27,7 @@ class SpecifyNonObviousPropertyTypes extends AnalysisRule {
       );
 
   @override
-  DiagnosticCode get diagnosticCode =>
-      LinterLintCode.specifyNonobviousPropertyTypes;
+  DiagnosticCode get diagnosticCode => diag.specifyNonobviousPropertyTypes;
 
   @override
   List<String> get incompatibleRules => const [];

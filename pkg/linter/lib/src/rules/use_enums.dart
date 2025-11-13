@@ -13,6 +13,7 @@ import 'package:analyzer/error/error.dart';
 
 import '../analyzer.dart';
 import '../ast.dart';
+import '../diagnostic.dart' as diag;
 import '../extensions.dart';
 
 const _desc = r'Use enums rather than classes that behave like enums.';
@@ -21,7 +22,7 @@ class UseEnums extends AnalysisRule {
   UseEnums() : super(name: LintNames.use_enums, description: _desc);
 
   @override
-  DiagnosticCode get diagnosticCode => LinterLintCode.useEnums;
+  DiagnosticCode get diagnosticCode => diag.useEnums;
 
   @override
   void registerNodeProcessors(

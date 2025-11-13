@@ -11,6 +11,7 @@ import 'package:analyzer/error/error.dart';
 
 import '../analyzer.dart';
 import '../ast.dart';
+import '../diagnostic.dart' as diag;
 import '../extensions.dart';
 
 const _desc =
@@ -21,7 +22,7 @@ class UnnecessaryGettersSetters extends AnalysisRule {
     : super(name: LintNames.unnecessary_getters_setters, description: _desc);
 
   @override
-  DiagnosticCode get diagnosticCode => LinterLintCode.unnecessaryGettersSetters;
+  DiagnosticCode get diagnosticCode => diag.unnecessaryGettersSetters;
 
   @override
   void registerNodeProcessors(

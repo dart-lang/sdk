@@ -11,6 +11,7 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/error/error.dart';
 
 import '../analyzer.dart';
+import '../diagnostic.dart' as diag;
 
 const _desc =
     r"Don't reassign references to parameters of functions or methods.";
@@ -32,7 +33,7 @@ class ParameterAssignments extends AnalysisRule {
     : super(name: LintNames.parameter_assignments, description: _desc);
 
   @override
-  DiagnosticCode get diagnosticCode => LinterLintCode.parameterAssignments;
+  DiagnosticCode get diagnosticCode => diag.parameterAssignments;
 
   @override
   void registerNodeProcessors(

@@ -21,6 +21,7 @@ import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/extensions.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/utilities/extensions/object.dart';
 import 'package:meta/meta.dart';
@@ -355,7 +356,7 @@ class DartObjectImpl implements DartObject, Constant {
 
     if (!typeSystem.isSubtypeOf(type, resultType)) {
       // TODO(kallentu): Make a more specific error for casting.
-      throw EvaluationException(CompileTimeErrorCode.constEvalThrowsException);
+      throw EvaluationException(diag.constEvalThrowsException);
     }
     return this;
   }
@@ -437,7 +438,7 @@ class DartObjectImpl implements DartObject, Constant {
         state.bitAnd(rightOperand.state),
       );
     }
-    throw EvaluationException(CompileTimeErrorCode.constEvalTypeBoolInt);
+    throw EvaluationException(diag.constEvalTypeBoolInt);
   }
 
   /// Return the result of invoking the '|' operator on this object with the
@@ -462,7 +463,7 @@ class DartObjectImpl implements DartObject, Constant {
         state.bitOr(rightOperand.state),
       );
     }
-    throw EvaluationException(CompileTimeErrorCode.constEvalTypeBoolInt);
+    throw EvaluationException(diag.constEvalTypeBoolInt);
   }
 
   /// Return the result of invoking the '^' operator on this object with the
@@ -487,7 +488,7 @@ class DartObjectImpl implements DartObject, Constant {
         state.bitXor(rightOperand.state),
       );
     }
-    throw EvaluationException(CompileTimeErrorCode.constEvalTypeBoolInt);
+    throw EvaluationException(diag.constEvalTypeBoolInt);
   }
 
   /// Returns the result of invoking the '==' operator on this object with the
@@ -528,8 +529,8 @@ class DartObjectImpl implements DartObject, Constant {
     }
     throw EvaluationException(
       featureSet.isEnabled(Feature.patterns)
-          ? CompileTimeErrorCode.constEvalPrimitiveEquality
-          : CompileTimeErrorCode.constEvalTypeBoolNumString,
+          ? diag.constEvalPrimitiveEquality
+          : diag.constEvalTypeBoolNumString,
     );
   }
 
@@ -1047,7 +1048,7 @@ class DartObjectImpl implements DartObject, Constant {
   /// value.
   void _assertType(DartObjectImpl object) {
     if (object.state is! TypeState) {
-      throw EvaluationException(CompileTimeErrorCode.constEvalTypeType);
+      throw EvaluationException(diag.constEvalTypeType);
     }
   }
 }
@@ -1096,7 +1097,7 @@ class DoubleState extends NumState {
       }
       return DoubleState(value! + rightValue);
     }
-    throw EvaluationException(CompileTimeErrorCode.constEvalThrowsException);
+    throw EvaluationException(diag.constEvalThrowsException);
   }
 
   @override
@@ -1126,7 +1127,7 @@ class DoubleState extends NumState {
       }
       return DoubleState(value! / rightValue);
     }
-    throw EvaluationException(CompileTimeErrorCode.constEvalThrowsException);
+    throw EvaluationException(diag.constEvalThrowsException);
   }
 
   @override
@@ -1148,7 +1149,7 @@ class DoubleState extends NumState {
       }
       return BoolState.from(value! > rightValue);
     }
-    throw EvaluationException(CompileTimeErrorCode.constEvalThrowsException);
+    throw EvaluationException(diag.constEvalThrowsException);
   }
 
   @override
@@ -1170,7 +1171,7 @@ class DoubleState extends NumState {
       }
       return BoolState.from(value! >= rightValue);
     }
-    throw EvaluationException(CompileTimeErrorCode.constEvalThrowsException);
+    throw EvaluationException(diag.constEvalThrowsException);
   }
 
   @override
@@ -1198,7 +1199,7 @@ class DoubleState extends NumState {
         return IntState(result.toInt());
       }
     }
-    throw EvaluationException(CompileTimeErrorCode.constEvalThrowsException);
+    throw EvaluationException(diag.constEvalThrowsException);
   }
 
   @override
@@ -1248,7 +1249,7 @@ class DoubleState extends NumState {
       }
       return BoolState.from(value! < rightValue);
     }
-    throw EvaluationException(CompileTimeErrorCode.constEvalThrowsException);
+    throw EvaluationException(diag.constEvalThrowsException);
   }
 
   @override
@@ -1270,7 +1271,7 @@ class DoubleState extends NumState {
       }
       return BoolState.from(value! <= rightValue);
     }
-    throw EvaluationException(CompileTimeErrorCode.constEvalThrowsException);
+    throw EvaluationException(diag.constEvalThrowsException);
   }
 
   @override
@@ -1292,7 +1293,7 @@ class DoubleState extends NumState {
       }
       return DoubleState(value! - rightValue);
     }
-    throw EvaluationException(CompileTimeErrorCode.constEvalThrowsException);
+    throw EvaluationException(diag.constEvalThrowsException);
   }
 
   @override
@@ -1322,7 +1323,7 @@ class DoubleState extends NumState {
       }
       return DoubleState(value! % rightValue);
     }
-    throw EvaluationException(CompileTimeErrorCode.constEvalThrowsException);
+    throw EvaluationException(diag.constEvalThrowsException);
   }
 
   @override
@@ -1344,7 +1345,7 @@ class DoubleState extends NumState {
       }
       return DoubleState(value! * rightValue);
     }
-    throw EvaluationException(CompileTimeErrorCode.constEvalThrowsException);
+    throw EvaluationException(diag.constEvalThrowsException);
   }
 
   @override
@@ -1633,14 +1634,14 @@ abstract class InstanceState {
     }
     assertNumStringOrNull(this);
     assertNumStringOrNull(rightOperand);
-    throw EvaluationException(CompileTimeErrorCode.constEvalThrowsException);
+    throw EvaluationException(diag.constEvalThrowsException);
   }
 
   /// Throws an exception if the given [state] does not represent a `bool`
   /// value.
   void assertBool(InstanceState? state) {
     if (state is! BoolState) {
-      throw EvaluationException(CompileTimeErrorCode.constEvalTypeBool);
+      throw EvaluationException(diag.constEvalTypeBool);
     }
   }
 
@@ -1648,7 +1649,7 @@ abstract class InstanceState {
   /// `null` value.
   void assertIntOrNull(InstanceState state) {
     if (!(state is IntState || state is NullState)) {
-      throw EvaluationException(CompileTimeErrorCode.constEvalTypeInt);
+      throw EvaluationException(diag.constEvalTypeInt);
     }
   }
 
@@ -1656,7 +1657,7 @@ abstract class InstanceState {
   /// `null` value.
   void assertNumOrNull(InstanceState state) {
     if (!(state is NumState || state is NullState)) {
-      throw EvaluationException(CompileTimeErrorCode.constEvalTypeNum);
+      throw EvaluationException(diag.constEvalTypeNum);
     }
   }
 
@@ -1664,7 +1665,7 @@ abstract class InstanceState {
   /// `String`, or `null` value.
   void assertNumStringOrNull(InstanceState state) {
     if (!(state is NumState || state is StringState || state is NullState)) {
-      throw EvaluationException(CompileTimeErrorCode.constEvalTypeNumString);
+      throw EvaluationException(diag.constEvalTypeNumString);
     }
   }
 
@@ -1672,7 +1673,7 @@ abstract class InstanceState {
   /// value.
   void assertString(InstanceState state) {
     if (state is! StringState) {
-      throw EvaluationException(CompileTimeErrorCode.constEvalTypeString);
+      throw EvaluationException(diag.constEvalTypeString);
     }
   }
 
@@ -1684,7 +1685,7 @@ abstract class InstanceState {
   IntState bitAnd(InstanceState rightOperand) {
     assertIntOrNull(this);
     assertIntOrNull(rightOperand);
-    throw EvaluationException(CompileTimeErrorCode.constEvalThrowsException);
+    throw EvaluationException(diag.constEvalThrowsException);
   }
 
   /// Return the result of invoking the '~' operator on this object.
@@ -1693,7 +1694,7 @@ abstract class InstanceState {
   /// object of this kind.
   IntState bitNot() {
     assertIntOrNull(this);
-    throw EvaluationException(CompileTimeErrorCode.constEvalThrowsException);
+    throw EvaluationException(diag.constEvalThrowsException);
   }
 
   /// Return the result of invoking the '|' operator on this object with the
@@ -1704,7 +1705,7 @@ abstract class InstanceState {
   IntState bitOr(InstanceState rightOperand) {
     assertIntOrNull(this);
     assertIntOrNull(rightOperand);
-    throw EvaluationException(CompileTimeErrorCode.constEvalThrowsException);
+    throw EvaluationException(diag.constEvalThrowsException);
   }
 
   /// Return the result of invoking the '^' operator on this object with the
@@ -1715,7 +1716,7 @@ abstract class InstanceState {
   IntState bitXor(InstanceState rightOperand) {
     assertIntOrNull(this);
     assertIntOrNull(rightOperand);
-    throw EvaluationException(CompileTimeErrorCode.constEvalThrowsException);
+    throw EvaluationException(diag.constEvalThrowsException);
   }
 
   /// Return the result of invoking the ' ' operator on this object with the
@@ -1725,7 +1726,7 @@ abstract class InstanceState {
   /// object of this kind.
   StringState concatenate(InstanceState rightOperand) {
     assertString(rightOperand);
-    throw EvaluationException(CompileTimeErrorCode.constEvalThrowsException);
+    throw EvaluationException(diag.constEvalThrowsException);
   }
 
   /// Return the result of applying boolean conversion to this object.
@@ -1748,7 +1749,7 @@ abstract class InstanceState {
   NumState divide(InstanceState rightOperand) {
     assertNumOrNull(this);
     assertNumOrNull(rightOperand);
-    throw EvaluationException(CompileTimeErrorCode.constEvalThrowsException);
+    throw EvaluationException(diag.constEvalThrowsException);
   }
 
   /// Return the result of invoking the '==' operator on this object with the
@@ -1766,7 +1767,7 @@ abstract class InstanceState {
   BoolState greaterThan(InstanceState rightOperand) {
     assertNumOrNull(this);
     assertNumOrNull(rightOperand);
-    throw EvaluationException(CompileTimeErrorCode.constEvalThrowsException);
+    throw EvaluationException(diag.constEvalThrowsException);
   }
 
   /// Return the result of invoking the '&gt;=' operator on this object with the
@@ -1777,7 +1778,7 @@ abstract class InstanceState {
   BoolState greaterThanOrEqual(InstanceState rightOperand) {
     assertNumOrNull(this);
     assertNumOrNull(rightOperand);
-    throw EvaluationException(CompileTimeErrorCode.constEvalThrowsException);
+    throw EvaluationException(diag.constEvalThrowsException);
   }
 
   /// Returns `true` if this value, inside a library with the [featureSet],
@@ -1792,7 +1793,7 @@ abstract class InstanceState {
   IntState integerDivide(InstanceState rightOperand) {
     assertNumOrNull(this);
     assertNumOrNull(rightOperand);
-    throw EvaluationException(CompileTimeErrorCode.constEvalThrowsException);
+    throw EvaluationException(diag.constEvalThrowsException);
   }
 
   /// Return the result of invoking the identical function on this object with
@@ -1837,7 +1838,7 @@ abstract class InstanceState {
   BoolState lessThan(InstanceState rightOperand) {
     assertNumOrNull(this);
     assertNumOrNull(rightOperand);
-    throw EvaluationException(CompileTimeErrorCode.constEvalThrowsException);
+    throw EvaluationException(diag.constEvalThrowsException);
   }
 
   /// Return the result of invoking the '&lt;=' operator on this object with the
@@ -1848,7 +1849,7 @@ abstract class InstanceState {
   BoolState lessThanOrEqual(InstanceState rightOperand) {
     assertNumOrNull(this);
     assertNumOrNull(rightOperand);
-    throw EvaluationException(CompileTimeErrorCode.constEvalThrowsException);
+    throw EvaluationException(diag.constEvalThrowsException);
   }
 
   /// Return the result of invoking the '&' operator on this object with the
@@ -1900,7 +1901,7 @@ abstract class InstanceState {
   IntState logicalShiftRight(InstanceState rightOperand) {
     assertIntOrNull(this);
     assertIntOrNull(rightOperand);
-    throw EvaluationException(CompileTimeErrorCode.constEvalThrowsException);
+    throw EvaluationException(diag.constEvalThrowsException);
   }
 
   /// Return the result of invoking the '^' operator on this object with the
@@ -1927,7 +1928,7 @@ abstract class InstanceState {
   NumState minus(InstanceState rightOperand) {
     assertNumOrNull(this);
     assertNumOrNull(rightOperand);
-    throw EvaluationException(CompileTimeErrorCode.constEvalThrowsException);
+    throw EvaluationException(diag.constEvalThrowsException);
   }
 
   /// Return the result of invoking the '-' operator on this object.
@@ -1936,7 +1937,7 @@ abstract class InstanceState {
   /// object of this kind.
   NumState negated() {
     assertNumOrNull(this);
-    throw EvaluationException(CompileTimeErrorCode.constEvalThrowsException);
+    throw EvaluationException(diag.constEvalThrowsException);
   }
 
   /// Return the result of invoking the '%' operator on this object with the
@@ -1947,7 +1948,7 @@ abstract class InstanceState {
   NumState remainder(InstanceState rightOperand) {
     assertNumOrNull(this);
     assertNumOrNull(rightOperand);
-    throw EvaluationException(CompileTimeErrorCode.constEvalThrowsException);
+    throw EvaluationException(diag.constEvalThrowsException);
   }
 
   /// Return the result of invoking the '&lt;&lt;' operator on this object with
@@ -1958,7 +1959,7 @@ abstract class InstanceState {
   IntState shiftLeft(InstanceState rightOperand) {
     assertIntOrNull(this);
     assertIntOrNull(rightOperand);
-    throw EvaluationException(CompileTimeErrorCode.constEvalThrowsException);
+    throw EvaluationException(diag.constEvalThrowsException);
   }
 
   /// Return the result of invoking the '&gt;&gt;' operator on this object with
@@ -1969,7 +1970,7 @@ abstract class InstanceState {
   IntState shiftRight(InstanceState rightOperand) {
     assertIntOrNull(this);
     assertIntOrNull(rightOperand);
-    throw EvaluationException(CompileTimeErrorCode.constEvalThrowsException);
+    throw EvaluationException(diag.constEvalThrowsException);
   }
 
   /// Return the result of invoking the 'length' getter on this object.
@@ -1978,7 +1979,7 @@ abstract class InstanceState {
   /// object of this kind.
   IntState stringLength() {
     assertString(this);
-    throw EvaluationException(CompileTimeErrorCode.constEvalThrowsException);
+    throw EvaluationException(diag.constEvalThrowsException);
   }
 
   /// Return the result of invoking the '*' operator on this object with the
@@ -1989,7 +1990,7 @@ abstract class InstanceState {
   NumState times(InstanceState rightOperand) {
     assertNumOrNull(this);
     assertNumOrNull(rightOperand);
-    throw EvaluationException(CompileTimeErrorCode.constEvalThrowsException);
+    throw EvaluationException(diag.constEvalThrowsException);
   }
 }
 
@@ -2042,7 +2043,7 @@ class IntState extends NumState {
       }
       return DoubleState(value!.toDouble() + rightValue);
     }
-    throw EvaluationException(CompileTimeErrorCode.constEvalThrowsException);
+    throw EvaluationException(diag.constEvalThrowsException);
   }
 
   @override
@@ -2058,7 +2059,7 @@ class IntState extends NumState {
       }
       return IntState(value! & rightValue);
     }
-    throw EvaluationException(CompileTimeErrorCode.constEvalThrowsException);
+    throw EvaluationException(diag.constEvalThrowsException);
   }
 
   @override
@@ -2082,7 +2083,7 @@ class IntState extends NumState {
       }
       return IntState(value! | rightValue);
     }
-    throw EvaluationException(CompileTimeErrorCode.constEvalThrowsException);
+    throw EvaluationException(diag.constEvalThrowsException);
   }
 
   @override
@@ -2098,7 +2099,7 @@ class IntState extends NumState {
       }
       return IntState(value! ^ rightValue);
     }
-    throw EvaluationException(CompileTimeErrorCode.constEvalThrowsException);
+    throw EvaluationException(diag.constEvalThrowsException);
   }
 
   @override
@@ -2129,7 +2130,7 @@ class IntState extends NumState {
       }
       return DoubleState(value!.toDouble() / rightValue);
     }
-    throw EvaluationException(CompileTimeErrorCode.constEvalThrowsException);
+    throw EvaluationException(diag.constEvalThrowsException);
   }
 
   @override
@@ -2151,7 +2152,7 @@ class IntState extends NumState {
       }
       return BoolState.from(value!.toDouble() > rightValue);
     }
-    throw EvaluationException(CompileTimeErrorCode.constEvalThrowsException);
+    throw EvaluationException(diag.constEvalThrowsException);
   }
 
   @override
@@ -2173,7 +2174,7 @@ class IntState extends NumState {
       }
       return BoolState.from(value!.toDouble() >= rightValue);
     }
-    throw EvaluationException(CompileTimeErrorCode.constEvalThrowsException);
+    throw EvaluationException(diag.constEvalThrowsException);
   }
 
   @override
@@ -2191,7 +2192,7 @@ class IntState extends NumState {
         return UNKNOWN_VALUE;
       } else if (rightValue == 0) {
         throw EvaluationException(
-          CompileTimeErrorCode.constEvalThrowsIdbze,
+          diag.constEvalThrowsIdbze,
           isRuntimeException: true,
         );
       }
@@ -2206,7 +2207,7 @@ class IntState extends NumState {
         return IntState(result.toInt());
       }
     }
-    throw EvaluationException(CompileTimeErrorCode.constEvalThrowsException);
+    throw EvaluationException(diag.constEvalThrowsException);
   }
 
   @override
@@ -2249,7 +2250,7 @@ class IntState extends NumState {
       }
       return BoolState.from(value!.toDouble() < rightValue);
     }
-    throw EvaluationException(CompileTimeErrorCode.constEvalThrowsException);
+    throw EvaluationException(diag.constEvalThrowsException);
   }
 
   @override
@@ -2271,7 +2272,7 @@ class IntState extends NumState {
       }
       return BoolState.from(value!.toDouble() <= rightValue);
     }
-    throw EvaluationException(CompileTimeErrorCode.constEvalThrowsException);
+    throw EvaluationException(diag.constEvalThrowsException);
   }
 
   @override
@@ -2294,7 +2295,7 @@ class IntState extends NumState {
         );
       }
     }
-    throw EvaluationException(CompileTimeErrorCode.constEvalThrowsException);
+    throw EvaluationException(diag.constEvalThrowsException);
   }
 
   @override
@@ -2319,7 +2320,7 @@ class IntState extends NumState {
       }
       return DoubleState(value!.toDouble() - rightValue);
     }
-    throw EvaluationException(CompileTimeErrorCode.constEvalThrowsException);
+    throw EvaluationException(diag.constEvalThrowsException);
   }
 
   @override
@@ -2354,7 +2355,7 @@ class IntState extends NumState {
       }
       return DoubleState(value!.toDouble() % rightValue);
     }
-    throw EvaluationException(CompileTimeErrorCode.constEvalThrowsException);
+    throw EvaluationException(diag.constEvalThrowsException);
   }
 
   @override
@@ -2374,7 +2375,7 @@ class IntState extends NumState {
         return IntState(value! << rightValue);
       }
     }
-    throw EvaluationException(CompileTimeErrorCode.constEvalThrowsException);
+    throw EvaluationException(diag.constEvalThrowsException);
   }
 
   @override
@@ -2394,7 +2395,7 @@ class IntState extends NumState {
         return IntState(value! >> rightValue);
       }
     }
-    throw EvaluationException(CompileTimeErrorCode.constEvalThrowsException);
+    throw EvaluationException(diag.constEvalThrowsException);
   }
 
   @override
@@ -2419,7 +2420,7 @@ class IntState extends NumState {
       }
       return DoubleState(value!.toDouble() * rightValue);
     }
-    throw EvaluationException(CompileTimeErrorCode.constEvalThrowsException);
+    throw EvaluationException(diag.constEvalThrowsException);
   }
 
   @override
@@ -2456,7 +2457,7 @@ class InvalidConstant implements Constant {
   ///
   /// In [ConstantEvaluationEngine.evaluateAndFormatErrorsInConstructorCall],
   /// we convert this error into a
-  /// [CompileTimeErrorCode.constEvalThrowsException] with a context message
+  /// [diag.constEvalThrowsException] with a context message
   /// pointing to where the exception was thrown.
   final bool isRuntimeException;
 
@@ -2522,13 +2523,13 @@ class InvalidConstant implements Constant {
         parent2.isConst) {
       return InvalidConstant.forEntity(
         entity: node,
-        locatableDiagnostic: CompileTimeErrorCode.constWithNonConstantArgument,
+        locatableDiagnostic: diag.constWithNonConstantArgument,
         isUnresolved: isUnresolved,
       );
     }
     return InvalidConstant.forEntity(
       entity: node,
-      locatableDiagnostic: CompileTimeErrorCode.invalidConstant,
+      locatableDiagnostic: diag.invalidConstant,
       isUnresolved: isUnresolved,
     );
   }
@@ -2781,7 +2782,7 @@ class NullState extends InstanceState {
 
   @override
   BoolState convertToBool() {
-    throw EvaluationException(CompileTimeErrorCode.constEvalThrowsException);
+    throw EvaluationException(diag.constEvalThrowsException);
   }
 
   @override
@@ -2802,7 +2803,7 @@ class NullState extends InstanceState {
 
   @override
   BoolState logicalNot() {
-    throw EvaluationException(CompileTimeErrorCode.constEvalThrowsException);
+    throw EvaluationException(diag.constEvalThrowsException);
   }
 
   @override

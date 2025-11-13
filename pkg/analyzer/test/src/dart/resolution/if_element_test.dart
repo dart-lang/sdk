@@ -2,8 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/dart/error/syntactic_errors.dart';
-import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'context_collection_resolution.dart';
@@ -104,13 +103,9 @@ void f(Object x) {
 }
 ''',
       [
+        error(diag.nonConstantRelationalPatternExpression, 62, 1),
         error(
-          CompileTimeErrorCode.nonConstantRelationalPatternExpression,
-          62,
-          1,
-        ),
-        error(
-          CompileTimeErrorCode.referencedBeforeDeclaration,
+          diag.referencedBeforeDeclaration,
           62,
           1,
           contextMessages: [message(testFile, 56, 1)],
@@ -194,7 +189,7 @@ void f(Object x) {
   ];
 }
 ''',
-      [error(CompileTimeErrorCode.undefinedIdentifier, 79, 1)],
+      [error(diag.undefinedIdentifier, 79, 1)],
     );
 
     var node = findNode.ifElement('if');
@@ -257,8 +252,8 @@ class A {
 }
 ''',
       [
-        error(ParserErrorCode.missingAssignableSelector, 32, 5),
-        error(CompileTimeErrorCode.nonBoolCondition, 32, 5),
+        error(diag.missingAssignableSelector, 32, 5),
+        error(diag.nonBoolCondition, 32, 5),
       ],
     );
 

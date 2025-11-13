@@ -4,7 +4,7 @@
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
-import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:analyzer/src/wolf/ir/ast_to_ir.dart';
 import 'package:analyzer/src/wolf/ir/call_descriptor.dart';
 import 'package:analyzer/src/wolf/ir/coded_ir.dart';
@@ -1788,13 +1788,7 @@ test() {
   return i; // UNSOUND
 }
 ''',
-      [
-        error(
-          CompileTimeErrorCode.notAssignedPotentiallyNonNullableLocalVariable,
-          27,
-          1,
-        ),
-      ],
+      [error(diag.notAssignedPotentiallyNonNullableLocalVariable, 27, 1)],
     );
     analyze(findNode.singleFunctionDeclaration);
     check(astNodes)[findNode.variableDeclarationList('int i')].not(

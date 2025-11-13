@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
@@ -25,7 +25,7 @@ abstract class A implements Enum {
   int hashCode = 0;
 }
 ''',
-      [error(CompileTimeErrorCode.illegalConcreteEnumMemberDeclaration, 41, 8)],
+      [error(diag.illegalConcreteEnumMemberDeclaration, 41, 8)],
     );
   }
 
@@ -36,7 +36,7 @@ abstract class A implements Enum {
   int get hashCode => 0;
 }
 ''',
-      [error(CompileTimeErrorCode.illegalConcreteEnumMemberDeclaration, 45, 8)],
+      [error(diag.illegalConcreteEnumMemberDeclaration, 45, 8)],
     );
   }
 
@@ -63,7 +63,7 @@ abstract class A implements Enum {
   int index = 0;
 }
 ''',
-      [error(CompileTimeErrorCode.illegalConcreteEnumMemberDeclaration, 41, 5)],
+      [error(diag.illegalConcreteEnumMemberDeclaration, 41, 5)],
     );
   }
 
@@ -74,7 +74,7 @@ abstract class A implements Enum {
   int get index => 0;
 }
 ''',
-      [error(CompileTimeErrorCode.illegalConcreteEnumMemberDeclaration, 45, 5)],
+      [error(diag.illegalConcreteEnumMemberDeclaration, 45, 5)],
     );
   }
 
@@ -101,7 +101,7 @@ abstract class A implements Enum {
   bool operator ==(Object other) => false;
 }
 ''',
-      [error(CompileTimeErrorCode.illegalConcreteEnumMemberDeclaration, 51, 2)],
+      [error(diag.illegalConcreteEnumMemberDeclaration, 51, 2)],
     );
   }
 }
@@ -117,7 +117,7 @@ enum E {
   final int index = 0;
 }
 ''',
-      [error(CompileTimeErrorCode.illegalConcreteEnumMemberDeclaration, 26, 5)],
+      [error(diag.illegalConcreteEnumMemberDeclaration, 26, 5)],
     );
   }
 
@@ -130,7 +130,7 @@ enum E {
   const E();
 }
 ''',
-      [error(CompileTimeErrorCode.illegalConcreteEnumMemberDeclaration, 26, 5)],
+      [error(diag.illegalConcreteEnumMemberDeclaration, 26, 5)],
     );
   }
 
@@ -142,7 +142,7 @@ enum E {
   int get index => 0;
 }
 ''',
-      [error(CompileTimeErrorCode.illegalConcreteEnumMemberDeclaration, 24, 5)],
+      [error(diag.illegalConcreteEnumMemberDeclaration, 24, 5)],
     );
   }
 
@@ -172,7 +172,7 @@ enum E {
   bool operator ==(Object other) => false;
 }
 ''',
-      [error(CompileTimeErrorCode.illegalConcreteEnumMemberDeclaration, 30, 2)],
+      [error(diag.illegalConcreteEnumMemberDeclaration, 30, 2)],
     );
   }
 }
@@ -187,7 +187,7 @@ mixin M on Enum {
   int index = 0;
 }
 ''',
-      [error(CompileTimeErrorCode.illegalConcreteEnumMemberDeclaration, 24, 5)],
+      [error(diag.illegalConcreteEnumMemberDeclaration, 24, 5)],
     );
   }
 
@@ -198,7 +198,7 @@ mixin M on Enum {
   int get index => 0;
 }
 ''',
-      [error(CompileTimeErrorCode.illegalConcreteEnumMemberDeclaration, 28, 5)],
+      [error(diag.illegalConcreteEnumMemberDeclaration, 28, 5)],
     );
   }
 
@@ -225,7 +225,7 @@ mixin M on Enum {
   bool operator ==(Object other) => false;
 }
 ''',
-      [error(CompileTimeErrorCode.illegalConcreteEnumMemberDeclaration, 34, 2)],
+      [error(diag.illegalConcreteEnumMemberDeclaration, 34, 2)],
     );
   }
 }

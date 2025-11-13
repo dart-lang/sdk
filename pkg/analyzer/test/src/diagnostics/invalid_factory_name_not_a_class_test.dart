@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
@@ -23,7 +23,7 @@ class A {
   factory B() => throw 0;
 }
 ''',
-      [error(CompileTimeErrorCode.invalidFactoryNameNotAClass, 31, 1)],
+      [error(diag.invalidFactoryNameNotAClass, 31, 1)],
     );
   }
 
@@ -34,7 +34,7 @@ class A {
   factory B() => throw 0;
 }
 ''',
-      [error(CompileTimeErrorCode.invalidFactoryNameNotAClass, 20, 1)],
+      [error(diag.invalidFactoryNameNotAClass, 20, 1)],
     );
   }
 
@@ -55,9 +55,7 @@ augment class A {
 ''');
 
     await resolveFile2(b);
-    assertErrorsInResult([
-      error(CompileTimeErrorCode.invalidFactoryNameNotAClass, 47, 1),
-    ]);
+    assertErrorsInResult([error(diag.invalidFactoryNameNotAClass, 47, 1)]);
   }
 
   test_valid() async {

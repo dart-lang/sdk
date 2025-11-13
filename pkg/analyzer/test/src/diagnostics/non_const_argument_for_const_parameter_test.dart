@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
@@ -33,8 +33,8 @@ class C {
 }
 ''',
       [
-        error(WarningCode.experimentalMemberUse, 37, 11),
-        error(WarningCode.experimentalMemberUse, 92, 11),
+        error(diag.experimentalMemberUse, 37, 11),
+        error(diag.experimentalMemberUse, 92, 11),
       ],
     );
   }
@@ -54,9 +54,9 @@ class A {
 }
 ''',
       [
-        error(WarningCode.experimentalMemberUse, 37, 11),
-        error(WarningCode.nonConstArgumentForConstParameter, 86, 1),
-        error(WarningCode.experimentalMemberUse, 121, 11),
+        error(diag.experimentalMemberUse, 37, 11),
+        error(diag.nonConstArgumentForConstParameter, 86, 1),
+        error(diag.experimentalMemberUse, 121, 11),
       ],
     );
   }
@@ -78,8 +78,8 @@ class A {
 }
 ''',
       [
-        error(WarningCode.experimentalMemberUse, 37, 11),
-        error(WarningCode.experimentalMemberUse, 137, 11),
+        error(diag.experimentalMemberUse, 37, 11),
+        error(diag.experimentalMemberUse, 137, 11),
       ],
     );
   }
@@ -100,8 +100,8 @@ class C {
 }
 ''',
       [
-        error(WarningCode.experimentalMemberUse, 37, 11),
-        error(WarningCode.experimentalMemberUse, 89, 11),
+        error(diag.experimentalMemberUse, 37, 11),
+        error(diag.experimentalMemberUse, 89, 11),
       ],
     );
   }
@@ -118,8 +118,8 @@ class C {
 }
 ''',
       [
-        error(WarningCode.experimentalMemberUse, 37, 11),
-        error(WarningCode.experimentalMemberUse, 83, 11),
+        error(diag.experimentalMemberUse, 37, 11),
+        error(diag.experimentalMemberUse, 83, 11),
       ],
     );
   }
@@ -138,9 +138,9 @@ class C {
 }
 ''',
       [
-        error(WarningCode.experimentalMemberUse, 37, 11),
-        error(WarningCode.nonConstArgumentForConstParameter, 77, 1),
-        error(WarningCode.experimentalMemberUse, 97, 11),
+        error(diag.experimentalMemberUse, 37, 11),
+        error(diag.nonConstArgumentForConstParameter, 77, 1),
+        error(diag.experimentalMemberUse, 97, 11),
       ],
     );
   }
@@ -156,8 +156,8 @@ void f() {
 }
 ''',
       [
-        error(WarningCode.experimentalMemberUse, 37, 11),
-        error(WarningCode.experimentalMemberUse, 74, 11),
+        error(diag.experimentalMemberUse, 37, 11),
+        error(diag.experimentalMemberUse, 74, 11),
       ],
     );
   }
@@ -173,9 +173,9 @@ void f(int x) {
 }
 ''',
       [
-        error(WarningCode.experimentalMemberUse, 37, 11),
-        error(WarningCode.experimentalMemberUse, 79, 11),
-        error(WarningCode.nonConstArgumentForConstParameter, 106, 1),
+        error(diag.experimentalMemberUse, 37, 11),
+        error(diag.experimentalMemberUse, 79, 11),
+        error(diag.nonConstArgumentForConstParameter, 106, 1),
       ],
     );
   }
@@ -190,8 +190,8 @@ void f(void g(@mustBeConst int i)) {
 }
 ''',
       [
-        error(WarningCode.experimentalMemberUse, 37, 11),
-        error(WarningCode.experimentalMemberUse, 66, 11),
+        error(diag.experimentalMemberUse, 37, 11),
+        error(diag.experimentalMemberUse, 66, 11),
       ],
     );
   }
@@ -206,9 +206,9 @@ void f(void g(@mustBeConst int i), int x) {
 }
 ''',
       [
-        error(WarningCode.experimentalMemberUse, 37, 11),
-        error(WarningCode.experimentalMemberUse, 66, 11),
-        error(WarningCode.nonConstArgumentForConstParameter, 99, 1),
+        error(diag.experimentalMemberUse, 37, 11),
+        error(diag.experimentalMemberUse, 66, 11),
+        error(diag.nonConstArgumentForConstParameter, 99, 1),
       ],
     );
   }
@@ -230,9 +230,9 @@ class A {
 }
 ''',
       [
-        error(WarningCode.experimentalMemberUse, 37, 11),
-        error(WarningCode.experimentalMemberUse, 142, 11),
-        error(WarningCode.experimentalMemberUse, 162, 11),
+        error(diag.experimentalMemberUse, 37, 11),
+        error(diag.experimentalMemberUse, 142, 11),
+        error(diag.experimentalMemberUse, 162, 11),
       ],
     );
   }
@@ -253,10 +253,10 @@ class A {
 }
 ''',
       [
-        error(WarningCode.experimentalMemberUse, 37, 11),
-        error(WarningCode.nonConstArgumentForConstParameter, 74, 3),
-        error(WarningCode.experimentalMemberUse, 127, 11),
-        error(WarningCode.experimentalMemberUse, 147, 11),
+        error(diag.experimentalMemberUse, 37, 11),
+        error(diag.nonConstArgumentForConstParameter, 74, 3),
+        error(diag.experimentalMemberUse, 127, 11),
+        error(diag.experimentalMemberUse, 147, 11),
       ],
     );
   }
@@ -275,9 +275,9 @@ class C {
 }
 ''',
       [
-        error(WarningCode.experimentalMemberUse, 37, 11),
-        error(WarningCode.nonConstArgumentForConstParameter, 82, 5),
-        error(WarningCode.experimentalMemberUse, 106, 11),
+        error(diag.experimentalMemberUse, 37, 11),
+        error(diag.nonConstArgumentForConstParameter, 82, 5),
+        error(diag.experimentalMemberUse, 106, 11),
       ],
     );
   }
@@ -293,8 +293,8 @@ void f() {
 }
 ''',
       [
-        error(WarningCode.experimentalMemberUse, 37, 11),
-        error(WarningCode.experimentalMemberUse, 72, 11),
+        error(diag.experimentalMemberUse, 37, 11),
+        error(diag.experimentalMemberUse, 72, 11),
       ],
     );
   }
@@ -310,9 +310,9 @@ void f(int x) {
 }
 ''',
       [
-        error(WarningCode.experimentalMemberUse, 37, 11),
-        error(WarningCode.experimentalMemberUse, 77, 11),
-        error(WarningCode.nonConstArgumentForConstParameter, 103, 1),
+        error(diag.experimentalMemberUse, 37, 11),
+        error(diag.experimentalMemberUse, 77, 11),
+        error(diag.nonConstArgumentForConstParameter, 103, 1),
       ],
     );
   }
@@ -329,8 +329,8 @@ class C {
 }
 ''',
       [
-        error(WarningCode.experimentalMemberUse, 37, 11),
-        error(WarningCode.experimentalMemberUse, 96, 11),
+        error(diag.experimentalMemberUse, 37, 11),
+        error(diag.experimentalMemberUse, 96, 11),
       ],
     );
   }
@@ -349,9 +349,9 @@ class C {
 }
 ''',
       [
-        error(WarningCode.experimentalMemberUse, 37, 11),
-        error(WarningCode.nonConstArgumentForConstParameter, 84, 1),
-        error(WarningCode.experimentalMemberUse, 110, 11),
+        error(diag.experimentalMemberUse, 37, 11),
+        error(diag.nonConstArgumentForConstParameter, 84, 1),
+        error(diag.experimentalMemberUse, 110, 11),
       ],
     );
   }
@@ -368,8 +368,8 @@ void f() => g(value: v);
 void g({@mustBeConst int? value}) {}
 ''',
       [
-        error(WarningCode.experimentalMemberUse, 37, 11),
-        error(WarningCode.experimentalMemberUse, 100, 11),
+        error(diag.experimentalMemberUse, 37, 11),
+        error(diag.experimentalMemberUse, 100, 11),
       ],
     );
   }
@@ -384,8 +384,8 @@ void f() => g();
 void g({@mustBeConst int? value}) {}
 ''',
       [
-        error(WarningCode.experimentalMemberUse, 37, 11),
-        error(WarningCode.experimentalMemberUse, 78, 11),
+        error(diag.experimentalMemberUse, 37, 11),
+        error(diag.experimentalMemberUse, 78, 11),
       ],
     );
   }
@@ -402,9 +402,9 @@ void f() => g(value: v);
 void g({@mustBeConst int? value}) {}
 ''',
       [
-        error(WarningCode.experimentalMemberUse, 37, 11),
-        error(WarningCode.nonConstArgumentForConstParameter, 79, 8),
-        error(WarningCode.experimentalMemberUse, 100, 11),
+        error(diag.experimentalMemberUse, 37, 11),
+        error(diag.nonConstArgumentForConstParameter, 79, 8),
+        error(diag.experimentalMemberUse, 100, 11),
       ],
     );
   }
@@ -421,8 +421,8 @@ void f() => g(v);
 void g([@mustBeConst int? value]) {}
 ''',
       [
-        error(WarningCode.experimentalMemberUse, 37, 11),
-        error(WarningCode.experimentalMemberUse, 93, 11),
+        error(diag.experimentalMemberUse, 37, 11),
+        error(diag.experimentalMemberUse, 93, 11),
       ],
     );
   }
@@ -437,8 +437,8 @@ void f() => g();
 void g([@mustBeConst int? value]) {}
 ''',
       [
-        error(WarningCode.experimentalMemberUse, 37, 11),
-        error(WarningCode.experimentalMemberUse, 78, 11),
+        error(diag.experimentalMemberUse, 37, 11),
+        error(diag.experimentalMemberUse, 78, 11),
       ],
     );
   }
@@ -455,9 +455,9 @@ void f() => g(v);
 void g([@mustBeConst int? value]) {}
 ''',
       [
-        error(WarningCode.experimentalMemberUse, 37, 11),
-        error(WarningCode.nonConstArgumentForConstParameter, 79, 1),
-        error(WarningCode.experimentalMemberUse, 93, 11),
+        error(diag.experimentalMemberUse, 37, 11),
+        error(diag.nonConstArgumentForConstParameter, 79, 1),
+        error(diag.experimentalMemberUse, 93, 11),
       ],
     );
   }
@@ -473,9 +473,9 @@ class A {
 }
 ''',
       [
-        error(WarningCode.experimentalMemberUse, 37, 11),
-        error(WarningCode.experimentalMemberUse, 66, 11),
-        error(WarningCode.nonConstArgumentForConstParameter, 110, 1),
+        error(diag.experimentalMemberUse, 37, 11),
+        error(diag.experimentalMemberUse, 66, 11),
+        error(diag.nonConstArgumentForConstParameter, 110, 1),
       ],
     );
   }
@@ -499,8 +499,8 @@ final v = 3;
 var a = A.named(v);
 ''',
       [
-        error(WarningCode.experimentalMemberUse, 37, 11),
-        error(WarningCode.experimentalMemberUse, 66, 11),
+        error(diag.experimentalMemberUse, 37, 11),
+        error(diag.experimentalMemberUse, 66, 11),
       ],
     );
   }
@@ -515,8 +515,8 @@ void f() => g(value: 3);
 void g({@mustBeConst required int value}) {}
 ''',
       [
-        error(WarningCode.experimentalMemberUse, 37, 11),
-        error(WarningCode.experimentalMemberUse, 86, 11),
+        error(diag.experimentalMemberUse, 37, 11),
+        error(diag.experimentalMemberUse, 86, 11),
       ],
     );
   }
@@ -533,8 +533,8 @@ void f() => g(value: v);
 void g({@mustBeConst required int value}) {}
 ''',
       [
-        error(WarningCode.experimentalMemberUse, 37, 11),
-        error(WarningCode.experimentalMemberUse, 100, 11),
+        error(diag.experimentalMemberUse, 37, 11),
+        error(diag.experimentalMemberUse, 100, 11),
       ],
     );
   }
@@ -551,8 +551,8 @@ void f() => g(v);
 void g(@mustBeConst int value) {}
 ''',
       [
-        error(WarningCode.experimentalMemberUse, 37, 11),
-        error(WarningCode.experimentalMemberUse, 92, 11),
+        error(diag.experimentalMemberUse, 37, 11),
+        error(diag.experimentalMemberUse, 92, 11),
       ],
     );
   }
@@ -569,8 +569,8 @@ void f() => g(v);
 void g(@mustBeConst List<int> value) {}
 ''',
       [
-        error(WarningCode.experimentalMemberUse, 37, 11),
-        error(WarningCode.experimentalMemberUse, 96, 11),
+        error(diag.experimentalMemberUse, 37, 11),
+        error(diag.experimentalMemberUse, 96, 11),
       ],
     );
   }
@@ -585,9 +585,9 @@ void f(int value) => g(value);
 void g(@mustBeConst int value) {}
 ''',
       [
-        error(WarningCode.experimentalMemberUse, 37, 11),
-        error(WarningCode.nonConstArgumentForConstParameter, 74, 5),
-        error(WarningCode.experimentalMemberUse, 91, 11),
+        error(diag.experimentalMemberUse, 37, 11),
+        error(diag.nonConstArgumentForConstParameter, 74, 5),
+        error(diag.experimentalMemberUse, 91, 11),
       ],
     );
   }
@@ -604,8 +604,8 @@ void f() => g(v);
 void g(@mustBeConst Map<String, int> value) {}
 ''',
       [
-        error(WarningCode.experimentalMemberUse, 37, 11),
-        error(WarningCode.experimentalMemberUse, 109, 11),
+        error(diag.experimentalMemberUse, 37, 11),
+        error(diag.experimentalMemberUse, 109, 11),
       ],
     );
   }
@@ -622,9 +622,9 @@ void f() => g(v);
 void g(@mustBeConst int value) {}
 ''',
       [
-        error(WarningCode.experimentalMemberUse, 37, 11),
-        error(WarningCode.nonConstArgumentForConstParameter, 79, 1),
-        error(WarningCode.experimentalMemberUse, 92, 11),
+        error(diag.experimentalMemberUse, 37, 11),
+        error(diag.nonConstArgumentForConstParameter, 79, 1),
+        error(diag.experimentalMemberUse, 92, 11),
       ],
     );
   }
@@ -642,9 +642,9 @@ void f() {
 set i(@mustBeConst int? value) {}
 ''',
       [
-        error(WarningCode.experimentalMemberUse, 37, 11),
-        error(WarningCode.nonConstArgumentForConstParameter, 83, 1),
-        error(WarningCode.experimentalMemberUse, 96, 11),
+        error(diag.experimentalMemberUse, 37, 11),
+        error(diag.nonConstArgumentForConstParameter, 83, 1),
+        error(diag.experimentalMemberUse, 96, 11),
       ],
     );
   }
@@ -661,8 +661,8 @@ void f() {
 set i(@mustBeConst int? value) {}
 ''',
       [
-        error(WarningCode.experimentalMemberUse, 37, 11),
-        error(WarningCode.experimentalMemberUse, 81, 11),
+        error(diag.experimentalMemberUse, 37, 11),
+        error(diag.experimentalMemberUse, 81, 11),
       ],
     );
   }
@@ -686,8 +686,8 @@ class B extends A {
 }
 ''',
       [
-        error(WarningCode.experimentalMemberUse, 37, 11),
-        error(WarningCode.experimentalMemberUse, 115, 11),
+        error(diag.experimentalMemberUse, 37, 11),
+        error(diag.experimentalMemberUse, 115, 11),
       ],
     );
   }
@@ -711,8 +711,8 @@ class B extends A {
 }
 ''',
       [
-        error(WarningCode.experimentalMemberUse, 37, 11),
-        error(WarningCode.experimentalMemberUse, 174, 11),
+        error(diag.experimentalMemberUse, 37, 11),
+        error(diag.experimentalMemberUse, 174, 11),
       ],
     );
   }
@@ -736,9 +736,9 @@ class B extends A {
 }
 ''',
       [
-        error(WarningCode.experimentalMemberUse, 37, 11),
-        error(WarningCode.nonConstArgumentForConstParameter, 81, 1),
-        error(WarningCode.experimentalMemberUse, 167, 11),
+        error(diag.experimentalMemberUse, 37, 11),
+        error(diag.nonConstArgumentForConstParameter, 81, 1),
+        error(diag.experimentalMemberUse, 167, 11),
       ],
     );
   }
@@ -757,9 +757,9 @@ class B extends A {
 }
 ''',
       [
-        error(WarningCode.experimentalMemberUse, 37, 11),
-        error(WarningCode.experimentalMemberUse, 66, 11),
-        error(WarningCode.nonConstArgumentForConstParameter, 128, 1),
+        error(diag.experimentalMemberUse, 37, 11),
+        error(diag.experimentalMemberUse, 66, 11),
+        error(diag.nonConstArgumentForConstParameter, 128, 1),
       ],
     );
   }
@@ -779,8 +779,8 @@ class B extends A {
 }
 ''',
       [
-        error(WarningCode.experimentalMemberUse, 37, 11),
-        error(WarningCode.experimentalMemberUse, 66, 11),
+        error(diag.experimentalMemberUse, 37, 11),
+        error(diag.experimentalMemberUse, 66, 11),
       ],
     );
   }
@@ -797,8 +797,8 @@ void f(Td td) {
 }
 ''',
       [
-        error(WarningCode.experimentalMemberUse, 37, 11),
-        error(WarningCode.experimentalMemberUse, 79, 11),
+        error(diag.experimentalMemberUse, 37, 11),
+        error(diag.experimentalMemberUse, 79, 11),
       ],
     );
   }
@@ -816,8 +816,8 @@ void f(int x, Td td) {
 }
 ''',
       [
-        error(WarningCode.experimentalMemberUse, 37, 11),
-        error(WarningCode.experimentalMemberUse, 79, 11),
+        error(diag.experimentalMemberUse, 37, 11),
+        error(diag.experimentalMemberUse, 79, 11),
       ],
     );
   }
@@ -836,9 +836,9 @@ class C {
 void g(int x) => T(x);
 ''',
       [
-        error(WarningCode.experimentalMemberUse, 37, 11),
-        error(WarningCode.experimentalMemberUse, 82, 11),
-        error(WarningCode.nonConstArgumentForConstParameter, 124, 1),
+        error(diag.experimentalMemberUse, 37, 11),
+        error(diag.experimentalMemberUse, 82, 11),
+        error(diag.nonConstArgumentForConstParameter, 124, 1),
       ],
     );
   }

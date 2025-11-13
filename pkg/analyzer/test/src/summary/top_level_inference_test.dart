@@ -4,7 +4,7 @@
 
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/src/dart/element/element.dart';
-import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/node_text_expectations.dart';
@@ -98,10 +98,7 @@ var t = b
 var a = b;
 var b = a;
 ''',
-      [
-        error(CompileTimeErrorCode.topLevelCycle, 4, 1),
-        error(CompileTimeErrorCode.topLevelCycle, 15, 1),
-      ],
+      [error(diag.topLevelCycle, 4, 1), error(diag.topLevelCycle, 15, 1)],
     );
   }
 
@@ -314,13 +311,13 @@ class C implements A, B {
 ''',
       [
         error(
-          CompileTimeErrorCode.invalidOverride,
+          diag.invalidOverride,
           109,
           3,
           contextMessages: [message(testFile, 64, 3)],
         ),
         error(
-          CompileTimeErrorCode.invalidOverride,
+          diag.invalidOverride,
           109,
           3,
           contextMessages: [message(testFile, 25, 3)],
@@ -342,7 +339,7 @@ class C implements A, B {
   void mmm(a) {}
 }
 ''',
-      [error(CompileTimeErrorCode.noCombinedSuperSignature, 116, 3)],
+      [error(diag.noCombinedSuperSignature, 116, 3)],
     );
   }
 

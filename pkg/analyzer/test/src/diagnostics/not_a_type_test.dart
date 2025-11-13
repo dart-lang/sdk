@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
@@ -26,7 +26,7 @@ A.foo bar() {}
 ''',
       [
         error(
-          CompileTimeErrorCode.notAType,
+          diag.notAType,
           24,
           5,
           contextMessages: [message(testFile, 14, 3)],
@@ -46,7 +46,7 @@ A.foo bar() {}
 ''',
       [
         error(
-          CompileTimeErrorCode.notAType,
+          diag.notAType,
           36,
           5,
           contextMessages: [message(testFile, 24, 3)],
@@ -63,7 +63,7 @@ E a;
 ''',
       [
         error(
-          CompileTimeErrorCode.notAType,
+          diag.notAType,
           22,
           1,
           contextMessages: [message(testFile, 10, 1)],
@@ -88,13 +88,8 @@ main() {
   f v = null;
 }''',
       [
-        error(
-          CompileTimeErrorCode.notAType,
-          18,
-          1,
-          contextMessages: [message(testFile, 0, 1)],
-        ),
-        error(WarningCode.unusedLocalVariable, 20, 1),
+        error(diag.notAType, 18, 1, contextMessages: [message(testFile, 0, 1)]),
+        error(diag.unusedLocalVariable, 20, 1),
       ],
     );
   }

@@ -11,6 +11,7 @@ import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/error/error.dart';
 
 import '../analyzer.dart';
+import '../diagnostic.dart' as diag;
 import '../extensions.dart';
 
 // TODO(nshahan): update description as scope increases.
@@ -25,8 +26,7 @@ class EraseDartTypeExtensionTypes extends AnalysisRule {
       );
 
   @override
-  DiagnosticCode get diagnosticCode =>
-      LinterLintCode.eraseDartTypeExtensionTypes;
+  DiagnosticCode get diagnosticCode => diag.eraseDartTypeExtensionTypes;
 
   @override
   void registerNodeProcessors(

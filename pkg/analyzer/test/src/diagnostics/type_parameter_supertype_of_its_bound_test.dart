@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
@@ -21,7 +21,7 @@ class TypeParameterSupertypeOfItsBoundTest extends PubPackageResolutionTest {
 class A<T extends T> {
 }
 ''',
-      [error(CompileTimeErrorCode.typeParameterSupertypeOfItsBound, 8, 1)],
+      [error(diag.typeParameterSupertypeOfItsBound, 8, 1)],
     );
   }
 
@@ -33,7 +33,7 @@ void m() {
   local;
 }
 ''',
-      [error(CompileTimeErrorCode.typeParameterSupertypeOfItsBound, 24, 1)],
+      [error(diag.typeParameterSupertypeOfItsBound, 24, 1)],
     );
   }
 
@@ -47,7 +47,7 @@ void m() {
   local;
 }
 ''',
-      [error(CompileTimeErrorCode.typeParameterSupertypeOfItsBound, 54, 1)],
+      [error(diag.typeParameterSupertypeOfItsBound, 54, 1)],
     );
   }
 
@@ -60,7 +60,7 @@ class A<T extends T> {
   }
 }
 ''',
-      [error(CompileTimeErrorCode.typeParameterSupertypeOfItsBound, 8, 1)],
+      [error(diag.typeParameterSupertypeOfItsBound, 8, 1)],
     );
   }
 
@@ -71,7 +71,7 @@ extension type A<T>(T it) {}
 
 class B<U extends A<U>> {}
 ''',
-      [error(CompileTimeErrorCode.typeParameterSupertypeOfItsBound, 38, 1)],
+      [error(diag.typeParameterSupertypeOfItsBound, 38, 1)],
     );
   }
 
@@ -86,8 +86,8 @@ void m() {
 }
 ''',
       [
-        error(CompileTimeErrorCode.typeParameterSupertypeOfItsBound, 54, 2),
-        error(CompileTimeErrorCode.typeParameterSupertypeOfItsBound, 72, 2),
+        error(diag.typeParameterSupertypeOfItsBound, 54, 2),
+        error(diag.typeParameterSupertypeOfItsBound, 72, 2),
       ],
     );
   }
@@ -100,8 +100,8 @@ extension type A<T>(T it) {}
 class B<T1 extends A<T2>, T2 extends T1> {}
 ''',
       [
-        error(CompileTimeErrorCode.typeParameterSupertypeOfItsBound, 38, 2),
-        error(CompileTimeErrorCode.typeParameterSupertypeOfItsBound, 56, 2),
+        error(diag.typeParameterSupertypeOfItsBound, 38, 2),
+        error(diag.typeParameterSupertypeOfItsBound, 56, 2),
       ],
     );
   }
@@ -113,8 +113,8 @@ class A<T1 extends T3, T2, T3 extends T1> {
 }
 ''',
       [
-        error(CompileTimeErrorCode.typeParameterSupertypeOfItsBound, 8, 2),
-        error(CompileTimeErrorCode.typeParameterSupertypeOfItsBound, 27, 2),
+        error(diag.typeParameterSupertypeOfItsBound, 8, 2),
+        error(diag.typeParameterSupertypeOfItsBound, 27, 2),
       ],
     );
   }
@@ -128,8 +128,8 @@ void m() {
 }
 ''',
       [
-        error(CompileTimeErrorCode.typeParameterSupertypeOfItsBound, 24, 2),
-        error(CompileTimeErrorCode.typeParameterSupertypeOfItsBound, 43, 2),
+        error(diag.typeParameterSupertypeOfItsBound, 24, 2),
+        error(diag.typeParameterSupertypeOfItsBound, 43, 2),
       ],
     );
   }

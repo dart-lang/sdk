@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:analyzer_testing/analysis_rule/analysis_rule.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -24,7 +24,7 @@ class B extends A {}
 ''',
       [
         this.error(
-          CompileTimeErrorCode.subtypeOfBaseIsNotBaseFinalOrSealed,
+          diag.subtypeOfBaseIsNotBaseFinalOrSealed,
           22,
           1,
           text:
@@ -43,7 +43,7 @@ class C extends A {}
 ''',
       [
         this.error(
-          CompileTimeErrorCode.subtypeOfBaseIsNotBaseFinalOrSealed,
+          diag.subtypeOfBaseIsNotBaseFinalOrSealed,
           48,
           1,
           text:
@@ -65,7 +65,7 @@ class B extends A {}
 ''',
       [
         this.error(
-          CompileTimeErrorCode.subtypeOfBaseIsNotBaseFinalOrSealed,
+          diag.subtypeOfBaseIsNotBaseFinalOrSealed,
           23,
           1,
           text:
@@ -92,7 +92,7 @@ abstract class B extends A {}
 ''',
       [
         this.error(
-          CompileTimeErrorCode.subtypeOfBaseIsNotBaseFinalOrSealed,
+          diag.subtypeOfBaseIsNotBaseFinalOrSealed,
           32,
           1,
           text:
@@ -110,7 +110,7 @@ class B implements A {}
 ''',
       [
         this.error(
-          CompileTimeErrorCode.subtypeOfBaseIsNotBaseFinalOrSealed,
+          diag.subtypeOfBaseIsNotBaseFinalOrSealed,
           22,
           1,
           text:
@@ -132,17 +132,13 @@ class B implements A {}
 ''',
       [
         this.error(
-          CompileTimeErrorCode.subtypeOfBaseIsNotBaseFinalOrSealed,
+          diag.subtypeOfBaseIsNotBaseFinalOrSealed,
           23,
           1,
           text:
               "The type 'B' must be 'base', 'final' or 'sealed' because the supertype 'A' is 'base'.",
         ),
-        this.error(
-          CompileTimeErrorCode.baseClassImplementedOutsideOfLibrary,
-          36,
-          1,
-        ),
+        this.error(diag.baseClassImplementedOutsideOfLibrary, 36, 1),
       ],
     );
   }
@@ -164,17 +160,13 @@ abstract class B implements A {}
 ''',
       [
         this.error(
-          CompileTimeErrorCode.subtypeOfBaseIsNotBaseFinalOrSealed,
+          diag.subtypeOfBaseIsNotBaseFinalOrSealed,
           32,
           1,
           text:
               "The type 'B' must be 'base', 'final' or 'sealed' because the supertype 'LinkedListEntry' is 'base'.",
         ),
-        this.error(
-          CompileTimeErrorCode.baseClassImplementedOutsideOfLibrary,
-          45,
-          1,
-        ),
+        this.error(diag.baseClassImplementedOutsideOfLibrary, 45, 1),
       ],
     );
   }
@@ -188,7 +180,7 @@ class C extends B {}
 ''',
       [
         this.error(
-          CompileTimeErrorCode.subtypeOfBaseIsNotBaseFinalOrSealed,
+          diag.subtypeOfBaseIsNotBaseFinalOrSealed,
           50,
           1,
           text:
@@ -218,7 +210,7 @@ class D extends C {}
 ''',
       [
         this.error(
-          CompileTimeErrorCode.subtypeOfBaseIsNotBaseFinalOrSealed,
+          diag.subtypeOfBaseIsNotBaseFinalOrSealed,
           84,
           1,
           text:
@@ -248,7 +240,7 @@ class D extends C {}
 ''',
       [
         this.error(
-          CompileTimeErrorCode.subtypeOfBaseIsNotBaseFinalOrSealed,
+          diag.subtypeOfBaseIsNotBaseFinalOrSealed,
           78,
           1,
           text:
@@ -278,7 +270,7 @@ class D extends C {}
 ''',
       [
         this.error(
-          CompileTimeErrorCode.subtypeOfBaseIsNotBaseFinalOrSealed,
+          diag.subtypeOfBaseIsNotBaseFinalOrSealed,
           78,
           1,
           text:
@@ -311,7 +303,7 @@ class C extends B {}
 ''',
       [
         this.error(
-          CompileTimeErrorCode.subtypeOfBaseIsNotBaseFinalOrSealed,
+          diag.subtypeOfBaseIsNotBaseFinalOrSealed,
           51,
           1,
           text:
@@ -340,7 +332,7 @@ base class A {}
 ''',
       [
         this.error(
-          CompileTimeErrorCode.subtypeOfBaseIsNotBaseFinalOrSealed,
+          diag.subtypeOfBaseIsNotBaseFinalOrSealed,
           6,
           1,
           text:
@@ -369,7 +361,7 @@ class C implements B {}
 ''',
       [
         this.error(
-          CompileTimeErrorCode.subtypeOfBaseIsNotBaseFinalOrSealed,
+          diag.subtypeOfBaseIsNotBaseFinalOrSealed,
           53,
           1,
           text:
@@ -398,7 +390,7 @@ class C = Object with B implements A;
 ''',
       [
         this.error(
-          CompileTimeErrorCode.subtypeOfBaseIsNotBaseFinalOrSealed,
+          diag.subtypeOfBaseIsNotBaseFinalOrSealed,
           33,
           1,
           text:
@@ -417,7 +409,7 @@ interface class C = Object with B implements A;
 ''',
       [
         this.error(
-          CompileTimeErrorCode.subtypeOfBaseIsNotBaseFinalOrSealed,
+          diag.subtypeOfBaseIsNotBaseFinalOrSealed,
           43,
           1,
           text:
@@ -437,7 +429,7 @@ class C = Object with B implements AA;
 ''',
       [
         this.error(
-          CompileTimeErrorCode.subtypeOfBaseIsNotBaseFinalOrSealed,
+          diag.subtypeOfBaseIsNotBaseFinalOrSealed,
           62,
           1,
           text:
@@ -467,7 +459,7 @@ interface class C = Object with B implements AA;
 ''',
       [
         this.error(
-          CompileTimeErrorCode.subtypeOfBaseIsNotBaseFinalOrSealed,
+          diag.subtypeOfBaseIsNotBaseFinalOrSealed,
           72,
           1,
           text:
@@ -496,7 +488,7 @@ class C extends B {}
 ''',
       [
         this.error(
-          CompileTimeErrorCode.subtypeOfBaseIsNotBaseFinalOrSealed,
+          diag.subtypeOfBaseIsNotBaseFinalOrSealed,
           53,
           1,
           text:
@@ -529,7 +521,7 @@ class C extends B {}
 ''',
       [
         this.error(
-          CompileTimeErrorCode.subtypeOfBaseIsNotBaseFinalOrSealed,
+          diag.subtypeOfBaseIsNotBaseFinalOrSealed,
           48,
           1,
           text:
@@ -557,7 +549,7 @@ class B with A {}
 ''',
       [
         this.error(
-          CompileTimeErrorCode.subtypeOfBaseIsNotBaseFinalOrSealed,
+          diag.subtypeOfBaseIsNotBaseFinalOrSealed,
           28,
           1,
           text:
@@ -579,7 +571,7 @@ class B with A {}
 ''',
       [
         this.error(
-          CompileTimeErrorCode.subtypeOfBaseIsNotBaseFinalOrSealed,
+          diag.subtypeOfBaseIsNotBaseFinalOrSealed,
           23,
           1,
           text:

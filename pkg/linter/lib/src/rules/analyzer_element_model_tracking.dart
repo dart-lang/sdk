@@ -12,7 +12,7 @@ import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/error/error.dart';
 
-import '../lint_codes.dart';
+import '../diagnostic.dart' as diag;
 
 const _desc = 'Specify element model tracking annotation.';
 
@@ -28,9 +28,9 @@ class AnalyzerElementModelTracking extends MultiAnalysisRule {
 
   @override
   List<DiagnosticCode> get diagnosticCodes => [
-    LinterLintCode.analyzerElementModelTrackingBad,
-    LinterLintCode.analyzerElementModelTrackingMoreThanOne,
-    LinterLintCode.analyzerElementModelTrackingZero,
+    diag.analyzerElementModelTrackingBad,
+    diag.analyzerElementModelTrackingMoreThanOne,
+    diag.analyzerElementModelTrackingZero,
   ];
 
   @override
@@ -163,21 +163,21 @@ class _Visitor extends SimpleAstVisitor<void> {
   void _reportBad(_TrackingAnnotation annotation) {
     rule.reportAtNode(
       annotation.node,
-      diagnosticCode: LinterLintCode.analyzerElementModelTrackingBad,
+      diagnosticCode: diag.analyzerElementModelTrackingBad,
     );
   }
 
   void _reportMissing(Token name) {
     rule.reportAtToken(
       name,
-      diagnosticCode: LinterLintCode.analyzerElementModelTrackingZero,
+      diagnosticCode: diag.analyzerElementModelTrackingZero,
     );
   }
 
   void _reportMoreThanOne(_TrackingAnnotation annotation) {
     rule.reportAtNode(
       annotation.node,
-      diagnosticCode: LinterLintCode.analyzerElementModelTrackingMoreThanOne,
+      diagnosticCode: diag.analyzerElementModelTrackingMoreThanOne,
     );
   }
 }

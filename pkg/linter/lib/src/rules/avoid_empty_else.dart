@@ -10,6 +10,7 @@ import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/error/error.dart';
 
 import '../analyzer.dart';
+import '../diagnostic.dart' as diag;
 
 const _desc = r'Avoid empty statements in else clauses.';
 
@@ -18,7 +19,7 @@ class AvoidEmptyElse extends AnalysisRule {
     : super(name: LintNames.avoid_empty_else, description: _desc);
 
   @override
-  DiagnosticCode get diagnosticCode => LinterLintCode.avoidEmptyElse;
+  DiagnosticCode get diagnosticCode => diag.avoidEmptyElse;
 
   @override
   void registerNodeProcessors(

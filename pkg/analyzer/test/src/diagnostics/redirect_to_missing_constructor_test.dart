@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
@@ -24,7 +24,7 @@ class A implements B{
 class B {
   factory B() = A.name;
 }''',
-      [error(CompileTimeErrorCode.redirectToMissingConstructor, 59, 6)],
+      [error(diag.redirectToMissingConstructor, 59, 6)],
     );
   }
 
@@ -37,7 +37,7 @@ class A implements B{
 class B {
   factory B() = A;
 }''',
-      [error(CompileTimeErrorCode.redirectToMissingConstructor, 64, 1)],
+      [error(diag.redirectToMissingConstructor, 64, 1)],
     );
   }
 }

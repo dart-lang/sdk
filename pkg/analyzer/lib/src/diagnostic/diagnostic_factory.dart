@@ -10,8 +10,8 @@ import 'package:analyzer/error/error.dart';
 import 'package:analyzer/source/source.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/element/element.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:analyzer/src/diagnostic/diagnostic_message.dart';
-import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/utilities/extensions/string.dart';
 import 'package:yaml/yaml.dart';
 
@@ -32,7 +32,7 @@ class DiagnosticFactory {
       source: source,
       offset: duplicate.offset,
       length: duplicate.length,
-      diagnosticCode: CompileTimeErrorCode.duplicatePatternAssignmentVariable,
+      diagnosticCode: diag.duplicatePatternAssignmentVariable,
       arguments: [variable.name!],
       contextMessages: [
         DiagnosticMessageImpl(
@@ -113,7 +113,7 @@ class DiagnosticFactory {
       source: source,
       offset: duplicateNode.offset,
       length: duplicateNode.length,
-      diagnosticCode: CompileTimeErrorCode.duplicateFieldName,
+      diagnosticCode: diag.duplicateFieldName,
       arguments: [duplicateName],
       contextMessages: [
         DiagnosticMessageImpl(
@@ -143,7 +143,7 @@ class DiagnosticFactory {
       source: source,
       offset: duplicateNode.offset,
       length: duplicateNode.length,
-      diagnosticCode: CompileTimeErrorCode.duplicateFieldName,
+      diagnosticCode: diag.duplicateFieldName,
       arguments: [duplicateName],
       contextMessages: [
         DiagnosticMessageImpl(
@@ -173,7 +173,7 @@ class DiagnosticFactory {
       source: source,
       offset: duplicateTarget.offset,
       length: duplicateTarget.length,
-      diagnosticCode: CompileTimeErrorCode.duplicatePatternField,
+      diagnosticCode: diag.duplicatePatternField,
       arguments: [name],
       contextMessages: [
         DiagnosticMessageImpl(
@@ -198,7 +198,7 @@ class DiagnosticFactory {
       source: source,
       offset: duplicateElement.offset,
       length: duplicateElement.length,
-      diagnosticCode: CompileTimeErrorCode.duplicateRestElementInPattern,
+      diagnosticCode: diag.duplicateRestElementInPattern,
       contextMessages: [
         DiagnosticMessageImpl(
           filePath: source.fullName,
@@ -222,7 +222,7 @@ class DiagnosticFactory {
       source: source,
       offset: duplicateElement.offset,
       length: duplicateElement.length,
-      diagnosticCode: CompileTimeErrorCode.equalElementsInConstSet,
+      diagnosticCode: diag.equalElementsInConstSet,
       contextMessages: [
         DiagnosticMessageImpl(
           filePath: source.fullName,
@@ -246,7 +246,7 @@ class DiagnosticFactory {
       source: source,
       offset: duplicateKey.offset,
       length: duplicateKey.length,
-      diagnosticCode: CompileTimeErrorCode.equalKeysInConstMap,
+      diagnosticCode: diag.equalKeysInConstMap,
       contextMessages: [
         DiagnosticMessageImpl(
           filePath: source.fullName,
@@ -270,7 +270,7 @@ class DiagnosticFactory {
       source: source,
       offset: duplicateKey.offset,
       length: duplicateKey.length,
-      diagnosticCode: CompileTimeErrorCode.equalKeysInMapPattern,
+      diagnosticCode: diag.equalKeysInMapPattern,
       contextMessages: [
         DiagnosticMessageImpl(
           filePath: source.fullName,
@@ -294,7 +294,7 @@ class DiagnosticFactory {
       source: source,
       offset: reference.span.start.offset,
       length: reference.span.length,
-      diagnosticCode: AnalysisOptionsWarningCode.incompatibleLint,
+      diagnosticCode: diag.incompatibleLint,
       arguments: [
         reference.value as String,
         incompatibleRules.values
@@ -329,7 +329,7 @@ class DiagnosticFactory {
       source: source,
       offset: reference.span.start.offset,
       length: reference.span.length,
-      diagnosticCode: AnalysisOptionsWarningCode.incompatibleLintFiles,
+      diagnosticCode: diag.incompatibleLintFiles,
       arguments: [
         reference.value as String,
         incompatibleRules.values
@@ -367,7 +367,7 @@ class DiagnosticFactory {
       source: source,
       offset: reference.span.start.offset,
       length: reference.span.length,
-      diagnosticCode: AnalysisOptionsWarningCode.incompatibleLintIncluded,
+      diagnosticCode: diag.incompatibleLintIncluded,
       arguments: [
         reference.value as String,
         incompatibleRules.values
@@ -403,8 +403,7 @@ class DiagnosticFactory {
       source: source,
       offset: offset,
       length: length,
-      diagnosticCode:
-          StaticWarningCode.invalidNullAwareOperatorAfterShortCircuit,
+      diagnosticCode: diag.invalidNullAwareOperatorAfterShortCircuit,
       arguments: arguments,
       contextMessages: [
         DiagnosticMessageImpl(
@@ -451,7 +450,7 @@ class DiagnosticFactory {
         // INVALID_IMPLEMENTATION_OVERRIDE may provide the subclass as superMember
         // if the subclass has an abstract member and the superclass has the
         // concrete).
-        if (code == CompileTimeErrorCode.invalidOverride)
+        if (code == diag.invalidOverride)
           DiagnosticMessageImpl(
             filePath: superLocation.libraryFragment!.source.fullName,
             message: "The member being overridden.",
@@ -459,7 +458,7 @@ class DiagnosticFactory {
             length: superLocation.name!.length,
             url: null,
           ),
-        if (code == CompileTimeErrorCode.invalidOverrideSetter)
+        if (code == diag.invalidOverrideSetter)
           DiagnosticMessageImpl(
             filePath: superLocation.libraryFragment!.source.fullName,
             message: "The setter being overridden.",
@@ -496,7 +495,7 @@ class DiagnosticFactory {
       source: source,
       offset: nameToken.offset,
       length: nameToken.length,
-      diagnosticCode: CompileTimeErrorCode.referencedBeforeDeclaration,
+      diagnosticCode: diag.referencedBeforeDeclaration,
       arguments: [name],
       contextMessages: contextMessages ?? const [],
     );

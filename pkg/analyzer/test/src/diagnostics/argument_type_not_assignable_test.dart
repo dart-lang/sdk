@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -29,7 +29,7 @@ class _A {}
 f() {
   g((_A a) {});
 }''',
-      [error(CompileTimeErrorCode.argumentTypeNotAssignable, 42, 9)],
+      [error(diag.argumentTypeNotAssignable, 42, 9)],
     );
     // The name _A is private to the library it's defined in, so this is a type
     // mismatch. Furthermore, the error message should mention both _A and the
@@ -46,7 +46,7 @@ extension type const A(String _) {}
 @A(0)
 void f() {}
 ''',
-      [error(CompileTimeErrorCode.argumentTypeNotAssignable, 40, 1)],
+      [error(diag.argumentTypeNotAssignable, 40, 1)],
     );
   }
 
@@ -59,7 +59,7 @@ class A {
 @A.fromInt('0')
 main() {}
 ''',
-      [error(CompileTimeErrorCode.argumentTypeNotAssignable, 49, 3)],
+      [error(diag.argumentTypeNotAssignable, 49, 3)],
     );
   }
 
@@ -72,7 +72,7 @@ class A<T> {
 @A<int>.fromInt('0')
 main() {
 }''',
-      [error(CompileTimeErrorCode.argumentTypeNotAssignable, 55, 3)],
+      [error(diag.argumentTypeNotAssignable, 55, 3)],
     );
   }
 
@@ -96,7 +96,7 @@ class A {
 @A('0')
 main() {
 }''',
-      [error(CompileTimeErrorCode.argumentTypeNotAssignable, 33, 3)],
+      [error(diag.argumentTypeNotAssignable, 33, 3)],
     );
   }
 
@@ -109,7 +109,7 @@ class A {
 f(A a) {
   a + '0';
 }''',
-      [error(CompileTimeErrorCode.argumentTypeNotAssignable, 50, 3)],
+      [error(diag.argumentTypeNotAssignable, 50, 3)],
     );
   }
 
@@ -128,8 +128,8 @@ void f(A a, A? aq) {
 }
 ''',
       [
-        error(CompileTimeErrorCode.argumentTypeNotAssignable, 88, 1),
-        error(CompileTimeErrorCode.argumentTypeNotAssignable, 99, 1),
+        error(diag.argumentTypeNotAssignable, 88, 1),
+        error(diag.argumentTypeNotAssignable, 99, 1),
       ],
     );
   }
@@ -144,7 +144,7 @@ Predicate<String> f() => (String s) => false;
 void main() {
   f().call(3);
 }''',
-      [error(CompileTimeErrorCode.argumentTypeNotAssignable, 110, 1)],
+      [error(diag.argumentTypeNotAssignable, 110, 1)],
     );
   }
 
@@ -163,7 +163,7 @@ main() {
   A a = new A();
   a..  ma().mb(0);
 }''',
-      [error(CompileTimeErrorCode.argumentTypeNotAssignable, 186, 1)],
+      [error(diag.argumentTypeNotAssignable, 186, 1)],
     );
   }
 
@@ -177,8 +177,8 @@ main() {
   const A(42);
 }''',
       [
-        error(CompileTimeErrorCode.argumentTypeNotAssignable, 52, 2),
-        error(CompileTimeErrorCode.constConstructorParamTypeMismatch, 52, 2),
+        error(diag.argumentTypeNotAssignable, 52, 2),
+        error(diag.constConstructorParamTypeMismatch, 52, 2),
       ],
     );
   }
@@ -192,7 +192,7 @@ class A {
 class B extends A {
   const B() : super(42);
 }''',
-      [error(CompileTimeErrorCode.argumentTypeNotAssignable, 73, 2)],
+      [error(diag.argumentTypeNotAssignable, 73, 2)],
     );
   }
 
@@ -205,7 +205,7 @@ m() {
 }
 n(int x) {}
 ''',
-      [error(CompileTimeErrorCode.argumentTypeNotAssignable, 23, 1)],
+      [error(diag.argumentTypeNotAssignable, 23, 1)],
     );
   }
 
@@ -218,7 +218,7 @@ m() {
 }
 n(int x) {}
 ''',
-      [error(CompileTimeErrorCode.argumentTypeNotAssignable, 20, 1)],
+      [error(diag.argumentTypeNotAssignable, 20, 1)],
     );
   }
 
@@ -241,8 +241,8 @@ enum E {
 }
 ''',
       [
-        error(CompileTimeErrorCode.argumentTypeNotAssignable, 13, 1),
-        error(CompileTimeErrorCode.constConstructorParamTypeMismatch, 13, 1),
+        error(diag.argumentTypeNotAssignable, 13, 1),
+        error(diag.constConstructorParamTypeMismatch, 13, 1),
       ],
     );
   }
@@ -288,7 +288,7 @@ class C<T> {
 var g = C<int>.new;
 var x = g('Hello');
 ''',
-      [error(CompileTimeErrorCode.argumentTypeNotAssignable, 56, 7)],
+      [error(diag.argumentTypeNotAssignable, 56, 7)],
     );
   }
 
@@ -318,7 +318,7 @@ void f<T>(T a) {}
 var g = f<int>;
 var x = g('Hello');
 ''',
-      [error(CompileTimeErrorCode.argumentTypeNotAssignable, 45, 7)],
+      [error(diag.argumentTypeNotAssignable, 45, 7)],
     );
   }
 
@@ -350,7 +350,7 @@ void f<T>(Iterable<T> Function() g, void Function(T) h) {
 main() {
   (int x) {} ('');
 }''',
-      [error(CompileTimeErrorCode.argumentTypeNotAssignable, 23, 2)],
+      [error(diag.argumentTypeNotAssignable, 23, 2)],
     );
   }
 
@@ -365,7 +365,7 @@ class A {
   n(void f(int i)) {}
 }
 ''',
-      [error(CompileTimeErrorCode.argumentTypeNotAssignable, 31, 7)],
+      [error(diag.argumentTypeNotAssignable, 31, 7)],
     );
   }
 
@@ -428,7 +428,7 @@ class A {
 f(A a) {
   a['0'];
 }''',
-      [error(CompileTimeErrorCode.argumentTypeNotAssignable, 60, 3)],
+      [error(diag.argumentTypeNotAssignable, 60, 3)],
     );
   }
 
@@ -445,9 +445,9 @@ f(A a) {
   a['0']++;
 }''',
       [
-        error(CompileTimeErrorCode.argumentTypeNotAssignable, 103, 3),
-        error(CompileTimeErrorCode.argumentTypeNotAssignable, 120, 3),
-        error(CompileTimeErrorCode.argumentTypeNotAssignable, 130, 3),
+        error(diag.argumentTypeNotAssignable, 103, 3),
+        error(diag.argumentTypeNotAssignable, 120, 3),
+        error(diag.argumentTypeNotAssignable, 130, 3),
       ],
     );
   }
@@ -461,7 +461,7 @@ class A {
 f(A a) {
   a['0'] = 0;
 }''',
-      [error(CompileTimeErrorCode.argumentTypeNotAssignable, 65, 3)],
+      [error(diag.argumentTypeNotAssignable, 65, 3)],
     );
   }
 
@@ -478,9 +478,9 @@ f(A a) {
   a['0']++;
 }''',
       [
-        error(CompileTimeErrorCode.argumentTypeNotAssignable, 103, 3),
-        error(CompileTimeErrorCode.argumentTypeNotAssignable, 120, 3),
-        error(CompileTimeErrorCode.argumentTypeNotAssignable, 130, 3),
+        error(diag.argumentTypeNotAssignable, 103, 3),
+        error(diag.argumentTypeNotAssignable, 120, 3),
+        error(diag.argumentTypeNotAssignable, 130, 3),
       ],
     );
   }
@@ -494,7 +494,7 @@ m() {
 }
 n(int i) {}
 ''',
-      [error(CompileTimeErrorCode.argumentTypeNotAssignable, 24, 1)],
+      [error(diag.argumentTypeNotAssignable, 24, 1)],
     );
   }
 
@@ -507,7 +507,7 @@ class A {
 f(A a) {
   a('0');
 }''',
-      [error(CompileTimeErrorCode.argumentTypeNotAssignable, 42, 3)],
+      [error(diag.argumentTypeNotAssignable, 42, 3)],
     );
   }
 
@@ -521,7 +521,7 @@ main() {
   A a = new A();
   a('0');
 }''',
-      [error(CompileTimeErrorCode.argumentTypeNotAssignable, 59, 3)],
+      [error(diag.argumentTypeNotAssignable, 59, 3)],
     );
   }
 
@@ -531,7 +531,7 @@ main() {
 a(b(int p)) {
   b('0');
 }''',
-      [error(CompileTimeErrorCode.argumentTypeNotAssignable, 18, 3)],
+      [error(diag.argumentTypeNotAssignable, 18, 3)],
     );
   }
 
@@ -543,7 +543,7 @@ class A<K, V> {
     f(v);
   }
 }''',
-      [error(CompileTimeErrorCode.argumentTypeNotAssignable, 41, 1)],
+      [error(diag.argumentTypeNotAssignable, 41, 1)],
     );
   }
 
@@ -555,7 +555,7 @@ void funBool(bool b) {}
 main() {
   acceptFunOptBool(funBool);
 }''',
-      [error(CompileTimeErrorCode.argumentTypeNotAssignable, 107, 7)],
+      [error(diag.argumentTypeNotAssignable, 107, 7)],
     );
   }
 
@@ -569,7 +569,7 @@ class C {
 main() {
   acceptFunOptBool(C.funBool);
 }''',
-      [error(CompileTimeErrorCode.argumentTypeNotAssignable, 125, 9)],
+      [error(diag.argumentTypeNotAssignable, 125, 9)],
     );
   }
 
@@ -582,7 +582,7 @@ class A<T> {
 f(A<String> a) {
   a.m(1);
 }''',
-      [error(CompileTimeErrorCode.argumentTypeNotAssignable, 50, 1)],
+      [error(diag.argumentTypeNotAssignable, 50, 1)],
     );
   }
 
@@ -593,7 +593,7 @@ f({String p = ''}) {}
 main() {
   f(p: 42);
 }''',
-      [error(CompileTimeErrorCode.argumentTypeNotAssignable, 38, 2)],
+      [error(diag.argumentTypeNotAssignable, 38, 2)],
     );
   }
 
@@ -604,7 +604,7 @@ f([String p = '']) {}
 main() {
   f(42);
 }''',
-      [error(CompileTimeErrorCode.argumentTypeNotAssignable, 35, 2)],
+      [error(diag.argumentTypeNotAssignable, 35, 2)],
     );
   }
 
@@ -615,7 +615,7 @@ f(String p) {}
 main() {
   f(42);
 }''',
-      [error(CompileTimeErrorCode.argumentTypeNotAssignable, 28, 2)],
+      [error(diag.argumentTypeNotAssignable, 28, 2)],
     );
   }
 
@@ -626,7 +626,7 @@ typedef A<T>(T p);
 f(A<int> a) {
   a('1');
 }''',
-      [error(CompileTimeErrorCode.argumentTypeNotAssignable, 37, 3)],
+      [error(diag.argumentTypeNotAssignable, 37, 3)],
     );
   }
 
@@ -639,7 +639,7 @@ main() {
   A a = getA();
   a('1');
 }''',
-      [error(CompileTimeErrorCode.argumentTypeNotAssignable, 69, 3)],
+      [error(diag.argumentTypeNotAssignable, 69, 3)],
     );
   }
 
@@ -650,7 +650,7 @@ typedef A(int p);
 f(A a) {
   a('1');
 }''',
-      [error(CompileTimeErrorCode.argumentTypeNotAssignable, 31, 3)],
+      [error(diag.argumentTypeNotAssignable, 31, 3)],
     );
   }
 
@@ -673,7 +673,7 @@ main() {
   m['x'] = 0;
 }
 ''',
-      [error(CompileTimeErrorCode.argumentTypeNotAssignable, 47, 3)],
+      [error(diag.argumentTypeNotAssignable, 47, 3)],
     );
   }
 
@@ -686,7 +686,7 @@ main() {
   m['x'] ??= 0;
 }
 ''',
-      [error(CompileTimeErrorCode.argumentTypeNotAssignable, 47, 3)],
+      [error(diag.argumentTypeNotAssignable, 47, 3)],
     );
   }
 
@@ -699,7 +699,7 @@ class A<T> {
 main() {
   new A<String>(42);
 }''',
-      [error(CompileTimeErrorCode.argumentTypeNotAssignable, 52, 2)],
+      [error(diag.argumentTypeNotAssignable, 52, 2)],
     );
   }
 
@@ -712,7 +712,7 @@ class A {
 main() {
   new A(42);
 }''',
-      [error(CompileTimeErrorCode.argumentTypeNotAssignable, 53, 2)],
+      [error(diag.argumentTypeNotAssignable, 53, 2)],
     );
   }
 
@@ -725,7 +725,7 @@ class A {
 main() {
   new A(42);
 }''',
-      [error(CompileTimeErrorCode.argumentTypeNotAssignable, 46, 2)],
+      [error(diag.argumentTypeNotAssignable, 46, 2)],
     );
   }
 
@@ -740,7 +740,7 @@ void g() {
 ''',
       [
         error(
-          CompileTimeErrorCode.argumentTypeNotAssignable,
+          diag.argumentTypeNotAssignable,
           44,
           12,
           messageContains: [
@@ -767,7 +767,7 @@ main() {
 ''',
       [
         error(
-          CompileTimeErrorCode.argumentTypeNotAssignable,
+          diag.argumentTypeNotAssignable,
           74,
           11,
           messageContains: ['Unexpected named argument `bb` with type `int`.'],
@@ -792,7 +792,7 @@ main() {
 ''',
       [
         error(
-          CompileTimeErrorCode.argumentTypeNotAssignable,
+          diag.argumentTypeNotAssignable,
           74,
           5,
           messageContains: ['Expected 2 named arguments, but got 1 instead.'],
@@ -817,7 +817,7 @@ main() {
 ''',
       [
         error(
-          CompileTimeErrorCode.argumentTypeNotAssignable,
+          diag.argumentTypeNotAssignable,
           72,
           9,
           messageContains: [
@@ -840,7 +840,7 @@ g(C c) {
   print(h('s'));
 }
 ''',
-      [error(CompileTimeErrorCode.argumentTypeNotAssignable, 99, 1)],
+      [error(diag.argumentTypeNotAssignable, 99, 1)],
     );
   }
 }
@@ -857,7 +857,7 @@ extension type E(int i) {}
 dynamic a;
 var e = E(a);
 ''',
-      [error(CompileTimeErrorCode.argumentTypeNotAssignable, 49, 1)],
+      [error(diag.argumentTypeNotAssignable, 49, 1)],
     );
   }
 
@@ -869,7 +869,7 @@ void foo(dynamic a) {
   f(a);
 }
 ''',
-      [error(CompileTimeErrorCode.argumentTypeNotAssignable, 43, 1)],
+      [error(diag.argumentTypeNotAssignable, 43, 1)],
     );
   }
 
@@ -880,7 +880,7 @@ void foo(int i, dynamic a) {
   i + a;
 }
 ''',
-      [error(CompileTimeErrorCode.argumentTypeNotAssignable, 35, 1)],
+      [error(diag.argumentTypeNotAssignable, 35, 1)],
     );
   }
 }

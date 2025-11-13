@@ -12,6 +12,7 @@ import 'package:analyzer/src/workspace/pub.dart'; // ignore: implementation_impo
 
 import '../../analyzer.dart';
 import '../../ast.dart';
+import '../../diagnostic.dart' as diag;
 
 const _desc = r'Depend on referenced packages.';
 
@@ -20,8 +21,7 @@ class DependOnReferencedPackages extends AnalysisRule {
     : super(name: LintNames.depend_on_referenced_packages, description: _desc);
 
   @override
-  DiagnosticCode get diagnosticCode =>
-      LinterLintCode.dependOnReferencedPackages;
+  DiagnosticCode get diagnosticCode => diag.dependOnReferencedPackages;
 
   @override
   void registerNodeProcessors(

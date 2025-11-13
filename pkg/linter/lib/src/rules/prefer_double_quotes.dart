@@ -8,6 +8,7 @@ import 'package:analyzer/analysis_rule/rule_visitor_registry.dart';
 import 'package:analyzer/error/error.dart';
 
 import '../analyzer.dart';
+import '../diagnostic.dart' as diag;
 import '../rules/prefer_single_quotes.dart';
 
 const _desc =
@@ -18,7 +19,7 @@ class PreferDoubleQuotes extends AnalysisRule {
     : super(name: LintNames.prefer_double_quotes, description: _desc);
 
   @override
-  DiagnosticCode get diagnosticCode => LinterLintCode.preferDoubleQuotes;
+  DiagnosticCode get diagnosticCode => diag.preferDoubleQuotes;
 
   @override
   List<String> get incompatibleRules => const [LintNames.prefer_single_quotes];

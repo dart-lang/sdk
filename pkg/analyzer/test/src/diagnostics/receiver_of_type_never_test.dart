@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
@@ -22,10 +22,7 @@ void f() {
   (throw '') == 1 + 2;
 }
 ''',
-      [
-        error(WarningCode.receiverOfTypeNever, 13, 10),
-        error(WarningCode.deadCode, 24, 8),
-      ],
+      [error(diag.receiverOfTypeNever, 13, 10), error(diag.deadCode, 24, 8)],
     );
 
     assertResolvedNodeText(findNode.binary('=='), r'''
@@ -66,10 +63,7 @@ void f(Never x) {
   x == 1 + 2;
 }
 ''',
-      [
-        error(WarningCode.receiverOfTypeNever, 20, 1),
-        error(WarningCode.deadCode, 22, 8),
-      ],
+      [error(diag.receiverOfTypeNever, 20, 1), error(diag.deadCode, 22, 8)],
     );
 
     assertResolvedNodeText(findNode.binary('x =='), r'''
@@ -105,10 +99,7 @@ void f(Never x) {
   x + (1 + 2);
 }
 ''',
-      [
-        error(WarningCode.receiverOfTypeNever, 20, 1),
-        error(WarningCode.deadCode, 22, 9),
-      ],
+      [error(diag.receiverOfTypeNever, 20, 1), error(diag.deadCode, 22, 9)],
     );
 
     assertResolvedNodeText(findNode.binary('x +'), r'''
@@ -181,13 +172,7 @@ void f(Never? x) {
   x + (1 + 2);
 }
 ''',
-      [
-        error(
-          CompileTimeErrorCode.uncheckedOperatorInvocationOfNullableValue,
-          23,
-          1,
-        ),
-      ],
+      [error(diag.uncheckedOperatorInvocationOfNullableValue, 23, 1)],
     );
 
     assertResolvedNodeText(findNode.binary('x +'), r'''
@@ -227,10 +212,7 @@ void f() {
   (throw '') + (1 + 2);
 }
 ''',
-      [
-        error(WarningCode.receiverOfTypeNever, 13, 10),
-        error(WarningCode.deadCode, 24, 9),
-      ],
+      [error(diag.receiverOfTypeNever, 13, 10), error(diag.deadCode, 24, 9)],
     );
 
     assertResolvedNodeText(findNode.binary('+ ('), r'''
@@ -293,10 +275,7 @@ void f(Never x) {
   x();
 }
 ''',
-      [
-        error(WarningCode.receiverOfTypeNever, 20, 1),
-        error(WarningCode.deadCode, 21, 3),
-      ],
+      [error(diag.receiverOfTypeNever, 20, 1), error(diag.deadCode, 21, 3)],
     );
   }
 
@@ -307,7 +286,7 @@ void f(Never? x) {
   x();
 }
 ''',
-      [error(CompileTimeErrorCode.uncheckedInvocationOfNullableValue, 21, 1)],
+      [error(diag.uncheckedInvocationOfNullableValue, 21, 1)],
     );
   }
 
@@ -318,10 +297,7 @@ void f(Never x) {
   x[0];
 }
 ''',
-      [
-        error(WarningCode.receiverOfTypeNever, 20, 1),
-        error(WarningCode.deadCode, 22, 3),
-      ],
+      [error(diag.receiverOfTypeNever, 20, 1), error(diag.deadCode, 22, 3)],
     );
 
     assertResolvedNodeText(findNode.index('x[0]'), r'''
@@ -348,10 +324,7 @@ void f(Never x) {
   x[0] += 1 + 2;
 }
 ''',
-      [
-        error(WarningCode.receiverOfTypeNever, 20, 1),
-        error(WarningCode.deadCode, 22, 12),
-      ],
+      [error(diag.receiverOfTypeNever, 20, 1), error(diag.deadCode, 22, 12)],
     );
 
     var assignment = findNode.assignment('[0] +=');
@@ -400,10 +373,7 @@ void f(Never x) {
   x[0] = 1 + 2;
 }
 ''',
-      [
-        error(WarningCode.receiverOfTypeNever, 20, 1),
-        error(WarningCode.deadCode, 22, 11),
-      ],
+      [error(diag.receiverOfTypeNever, 20, 1), error(diag.deadCode, 22, 11)],
     );
 
     assertResolvedNodeText(findNode.assignment('x[0]'), r'''
@@ -451,13 +421,7 @@ void f(Never? x) {
   x[0];
 }
 ''',
-      [
-        error(
-          CompileTimeErrorCode.uncheckedMethodInvocationOfNullableValue,
-          22,
-          1,
-        ),
-      ],
+      [error(diag.uncheckedMethodInvocationOfNullableValue, 22, 1)],
     );
 
     assertResolvedNodeText(findNode.index('x[0]'), r'''
@@ -484,13 +448,7 @@ void f(Never? x) {
   x[0] += 1 + 2;
 }
 ''',
-      [
-        error(
-          CompileTimeErrorCode.uncheckedMethodInvocationOfNullableValue,
-          22,
-          1,
-        ),
-      ],
+      [error(diag.uncheckedMethodInvocationOfNullableValue, 22, 1)],
     );
 
     var assignment = findNode.assignment('[0] +=');
@@ -539,13 +497,7 @@ void f(Never? x) {
   x[0] = 1 + 2;
 }
 ''',
-      [
-        error(
-          CompileTimeErrorCode.uncheckedMethodInvocationOfNullableValue,
-          22,
-          1,
-        ),
-      ],
+      [error(diag.uncheckedMethodInvocationOfNullableValue, 22, 1)],
     );
 
     assertResolvedNodeText(findNode.assignment('x[0]'), r'''
@@ -601,10 +553,7 @@ void f(Never x) {
   x.foo(1 + 2);
 }
 ''',
-      [
-        error(WarningCode.receiverOfTypeNever, 20, 1),
-        error(WarningCode.deadCode, 25, 8),
-      ],
+      [error(diag.receiverOfTypeNever, 20, 1), error(diag.deadCode, 25, 8)],
     );
 
     var node = findNode.methodInvocation('.foo(1 + 2)');
@@ -648,10 +597,7 @@ void f(Never x) {
   x.toString(1 + 2);
 }
 ''',
-      [
-        error(WarningCode.receiverOfTypeNever, 20, 1),
-        error(WarningCode.deadCode, 30, 8),
-      ],
+      [error(diag.receiverOfTypeNever, 20, 1), error(diag.deadCode, 30, 8)],
     );
 
     var node = findNode.methodInvocation('.toString(1 + 2)');
@@ -695,7 +641,7 @@ void f(Never? x) {
   x.toString(1 + 2);
 }
 ''',
-      [error(CompileTimeErrorCode.extraPositionalArguments, 32, 5)],
+      [error(diag.extraPositionalArguments, 32, 5)],
     );
 
     var node = findNode.methodInvocation('.toString(1 + 2)');
@@ -739,10 +685,7 @@ void f() {
   (throw '').toString();
 }
 ''',
-      [
-        error(WarningCode.receiverOfTypeNever, 13, 10),
-        error(WarningCode.deadCode, 32, 3),
-      ],
+      [error(diag.receiverOfTypeNever, 13, 10), error(diag.deadCode, 32, 3)],
     );
 
     var node = findNode.methodInvocation('toString()');
@@ -777,7 +720,7 @@ void f(Never x) {
   x++;
 }
 ''',
-      [error(WarningCode.receiverOfTypeNever, 20, 1)],
+      [error(diag.receiverOfTypeNever, 20, 1)],
     );
 
     assertResolvedNodeText(findNode.postfix('x++'), r'''
@@ -803,13 +746,7 @@ void f(Never? x) {
   x++;
 }
 ''',
-      [
-        error(
-          CompileTimeErrorCode.uncheckedMethodInvocationOfNullableValue,
-          22,
-          2,
-        ),
-      ],
+      [error(diag.uncheckedMethodInvocationOfNullableValue, 22, 2)],
     );
 
     assertResolvedNodeText(findNode.postfix('x++'), r'''
@@ -836,7 +773,7 @@ void f(Never x) {
   ++x;
 }
 ''',
-      [error(WarningCode.receiverOfTypeNever, 22, 1)],
+      [error(diag.receiverOfTypeNever, 22, 1)],
     );
 
     assertResolvedNodeText(findNode.prefix('++x'), r'''
@@ -862,13 +799,7 @@ void f(Never? x) {
   ++x;
 }
 ''',
-      [
-        error(
-          CompileTimeErrorCode.uncheckedMethodInvocationOfNullableValue,
-          21,
-          2,
-        ),
-      ],
+      [error(diag.uncheckedMethodInvocationOfNullableValue, 21, 2)],
     );
 
     assertResolvedNodeText(findNode.prefix('++x'), r'''
@@ -894,7 +825,7 @@ void f(Never x) {
   x.foo;
 }
 ''',
-      [error(WarningCode.deadCode, 22, 4)],
+      [error(diag.deadCode, 22, 4)],
     );
 
     var node = findNode.singlePrefixedIdentifier;
@@ -921,7 +852,7 @@ void f(Never x) {
   x.hashCode;
 }
 ''',
-      [error(WarningCode.deadCode, 22, 9)],
+      [error(diag.deadCode, 22, 9)],
     );
 
     var node = findNode.singlePrefixedIdentifier;
@@ -948,7 +879,7 @@ void f(Never x) {
   x.foo += 0;
 }
 ''',
-      [error(WarningCode.deadCode, 29, 2)],
+      [error(diag.deadCode, 29, 2)],
     );
 
     var assignment = findNode.assignment('foo += 0');
@@ -987,7 +918,7 @@ void f(Never x) {
   x.toString;
 }
 ''',
-      [error(WarningCode.deadCode, 22, 9)],
+      [error(diag.deadCode, 22, 9)],
     );
 
     var node = findNode.singlePrefixedIdentifier;
@@ -1014,7 +945,7 @@ void f(Never x) {
   x.foo = 0;
 }
 ''',
-      [error(WarningCode.deadCode, 28, 2)],
+      [error(diag.deadCode, 28, 2)],
     );
 
     var assignment = findNode.assignment('foo = 0');
@@ -1053,13 +984,7 @@ void f(Never? x) {
   x.foo;
 }
 ''',
-      [
-        error(
-          CompileTimeErrorCode.uncheckedPropertyAccessOfNullableValue,
-          23,
-          3,
-        ),
-      ],
+      [error(diag.uncheckedPropertyAccessOfNullableValue, 23, 3)],
     );
 
     var node = findNode.singlePrefixedIdentifier;
@@ -1134,7 +1059,7 @@ void f() {
   (throw '').toString;
 }
 ''',
-      [error(WarningCode.deadCode, 24, 9)],
+      [error(diag.deadCode, 24, 9)],
     );
 
     var node = findNode.singlePropertyAccess;
@@ -1165,7 +1090,7 @@ void f() {
   (throw '').hashCode;
 }
 ''',
-      [error(WarningCode.deadCode, 24, 9)],
+      [error(diag.deadCode, 24, 9)],
     );
 
     var node = findNode.singlePropertyAccess;

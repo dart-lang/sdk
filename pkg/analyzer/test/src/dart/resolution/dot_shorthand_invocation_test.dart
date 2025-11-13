@@ -2,8 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/dart/error/syntactic_errors.dart';
-import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'context_collection_resolution.dart';
@@ -31,7 +30,7 @@ class CAssert {
     : assert(const .named(1) == ctor);
 }
 ''',
-      [error(CompileTimeErrorCode.dotShorthandMissingContext, 114, 15)],
+      [error(diag.dotShorthandMissingContext, 114, 15)],
     );
   }
 
@@ -199,7 +198,7 @@ void main() {
   print(c1);
 }
 ''',
-      [error(CompileTimeErrorCode.invocationOfNonFunctionExpression, 77, 4)],
+      [error(diag.invocationOfNonFunctionExpression, 77, 4)],
     );
   }
 
@@ -381,7 +380,7 @@ void main() {
   print(c);
 }
 ''',
-      [error(CompileTimeErrorCode.dotShorthandUndefinedInvocation, 47, 6)],
+      [error(diag.dotShorthandUndefinedInvocation, 47, 6)],
     );
   }
 
@@ -393,7 +392,7 @@ void main() {
   print(c);
 }
 ''',
-      [error(CompileTimeErrorCode.dotShorthandUndefinedInvocation, 25, 6)],
+      [error(diag.dotShorthandUndefinedInvocation, 25, 6)],
     );
   }
 
@@ -407,7 +406,7 @@ void main() {
   print(c);
 }
 ''',
-      [error(CompileTimeErrorCode.dotShorthandUndefinedInvocation, 36, 6)],
+      [error(diag.dotShorthandUndefinedInvocation, 36, 6)],
     );
   }
 
@@ -423,7 +422,7 @@ void main() {
   print(c);
 }
 ''',
-      [error(CompileTimeErrorCode.dotShorthandUndefinedInvocation, 49, 3)],
+      [error(diag.dotShorthandUndefinedInvocation, 49, 3)],
     );
   }
 
@@ -645,8 +644,8 @@ void main() {
 }
 ''',
       [
-        error(CompileTimeErrorCode.dotShorthandUndefinedInvocation, 87, 6),
-        error(ParserErrorCode.illegalAssignmentToNonAssignable, 95, 2),
+        error(diag.dotShorthandUndefinedInvocation, 87, 6),
+        error(diag.illegalAssignmentToNonAssignable, 95, 2),
       ],
     );
   }
@@ -666,8 +665,8 @@ void main() {
 }
 ''',
       [
-        error(CompileTimeErrorCode.dotShorthandUndefinedInvocation, 89, 6),
-        error(ParserErrorCode.missingAssignableSelector, 96, 1),
+        error(diag.dotShorthandUndefinedInvocation, 89, 6),
+        error(diag.missingAssignableSelector, 96, 1),
       ],
     );
   }
@@ -686,7 +685,7 @@ void main() {
   print(c);
 }
 ''',
-      [error(CompileTimeErrorCode.missingRequiredArgument, 103, 6)],
+      [error(diag.missingRequiredArgument, 103, 6)],
     );
   }
 
@@ -740,7 +739,7 @@ void main() {
 }
 
 ''',
-      [error(CompileTimeErrorCode.invalidAssignment, 105, 9)],
+      [error(diag.invalidAssignment, 105, 9)],
     );
   }
 }

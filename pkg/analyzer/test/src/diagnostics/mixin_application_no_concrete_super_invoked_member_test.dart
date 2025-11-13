@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
@@ -31,13 +31,7 @@ mixin M on A {
 
 abstract class X extends A with M {}
 ''',
-      [
-        error(
-          CompileTimeErrorCode.mixinApplicationNoConcreteSuperInvokedMember,
-          121,
-          1,
-        ),
-      ],
+      [error(diag.mixinApplicationNoConcreteSuperInvokedMember, 121, 1)],
     );
   }
 
@@ -60,13 +54,7 @@ mixin M2 on A {
 
 class X extends A with M1, M2 {}
 ''',
-      [
-        error(
-          CompileTimeErrorCode.mixinApplicationNoConcreteSuperInvokedMember,
-          149,
-          2,
-        ),
-      ],
+      [error(diag.mixinApplicationNoConcreteSuperInvokedMember, 149, 2)],
     );
   }
 
@@ -85,13 +73,7 @@ mixin M on A {
 
 class X extends A with M {}
 ''',
-      [
-        error(
-          CompileTimeErrorCode.mixinApplicationNoConcreteSuperInvokedMember,
-          113,
-          1,
-        ),
-      ],
+      [error(diag.mixinApplicationNoConcreteSuperInvokedMember, 113, 1)],
     );
   }
 
@@ -110,13 +92,7 @@ mixin M on A {
 
 abstract class X extends A with M {}
 ''',
-      [
-        error(
-          CompileTimeErrorCode.mixinApplicationNoConcreteSuperInvokedMember,
-          122,
-          1,
-        ),
-      ],
+      [error(diag.mixinApplicationNoConcreteSuperInvokedMember, 122, 1)],
     );
   }
 
@@ -253,13 +229,7 @@ mixin M on A {
 
 abstract class X extends A with M {}
 ''',
-      [
-        error(
-          CompileTimeErrorCode.mixinApplicationNoConcreteSuperInvokedSetter,
-          129,
-          1,
-        ),
-      ],
+      [error(diag.mixinApplicationNoConcreteSuperInvokedSetter, 129, 1)],
     );
   }
 
@@ -281,13 +251,7 @@ enum E with M1, M2 {
   int get foo => 0;
 }
 ''',
-      [
-        error(
-          CompileTimeErrorCode.mixinApplicationNoConcreteSuperInvokedMember,
-          99,
-          2,
-        ),
-      ],
+      [error(diag.mixinApplicationNoConcreteSuperInvokedMember, 99, 2)],
     );
   }
 
@@ -341,13 +305,7 @@ enum E with M1, M2 {
   void foo() {}
 }
 ''',
-      [
-        error(
-          CompileTimeErrorCode.mixinApplicationNoConcreteSuperInvokedMember,
-          100,
-          2,
-        ),
-      ],
+      [error(diag.mixinApplicationNoConcreteSuperInvokedMember, 100, 2)],
     );
   }
 
@@ -405,13 +363,7 @@ enum E with M1, M2 {
   set foo(int _) {}
 }
 ''',
-      [
-        error(
-          CompileTimeErrorCode.mixinApplicationNoConcreteSuperInvokedSetter,
-          106,
-          2,
-        ),
-      ],
+      [error(diag.mixinApplicationNoConcreteSuperInvokedSetter, 106, 2)],
     );
   }
 }

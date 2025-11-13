@@ -2,8 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/dart/error/syntactic_errors.dart';
-import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'context_collection_resolution.dart';
@@ -23,7 +22,7 @@ void f() {
   try {} catch () {}
 }
 ''',
-      [error(ParserErrorCode.catchSyntax, 27, 1)],
+      [error(diag.catchSyntax, 27, 1)],
     );
 
     var node = findNode.singleTryStatement;
@@ -57,8 +56,8 @@ void f() {
 }
 ''',
       [
-        error(WarningCode.unusedCatchStack, 30, 1),
-        error(ParserErrorCode.catchSyntaxExtraParameters, 31, 1),
+        error(diag.unusedCatchStack, 30, 1),
+        error(diag.catchSyntaxExtraParameters, 31, 1),
       ],
     );
 
@@ -98,10 +97,7 @@ void f() {
   try {} catch (x, {st}) {}
 }
 ''',
-      [
-        error(ParserErrorCode.catchSyntax, 30, 1),
-        error(WarningCode.unusedCatchStack, 31, 2),
-      ],
+      [error(diag.catchSyntax, 30, 1), error(diag.unusedCatchStack, 31, 2)],
     );
 
     var node = findNode.singleTryStatement;
@@ -140,10 +136,7 @@ void f() {
   try {} catch (x, [st]) {}
 }
 ''',
-      [
-        error(ParserErrorCode.catchSyntax, 30, 1),
-        error(WarningCode.unusedCatchStack, 31, 2),
-      ],
+      [error(diag.catchSyntax, 30, 1), error(diag.unusedCatchStack, 31, 2)],
     );
 
     var node = findNode.singleTryStatement;
@@ -182,7 +175,7 @@ void f() {
   try {} catch (e, st) {}
 }
 ''',
-      [error(WarningCode.unusedCatchStack, 30, 2)],
+      [error(diag.unusedCatchStack, 30, 2)],
     );
 
     var node = findNode.singleTryStatement;
@@ -221,7 +214,7 @@ void f() {
   try {} on int catch (e, st) {}
 }
 ''',
-      [error(WarningCode.unusedCatchStack, 37, 2)],
+      [error(diag.unusedCatchStack, 37, 2)],
     );
 
     var node = findNode.singleTryStatement;

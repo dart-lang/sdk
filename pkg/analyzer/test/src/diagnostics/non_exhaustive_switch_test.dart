@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
@@ -25,7 +25,7 @@ Object f(bool x) {
   };
 }
 ''',
-      [error(CompileTimeErrorCode.nonExhaustiveSwitchExpression, 28, 6)],
+      [error(diag.nonExhaustiveSwitchExpression, 28, 6)],
     );
   }
 
@@ -78,7 +78,7 @@ Object f(E x) {
 ''',
       [
         error(
-          CompileTimeErrorCode.nonExhaustiveSwitchExpression,
+          diag.nonExhaustiveSwitchExpression,
           44,
           6,
           correctionContains: 'E.a',
@@ -92,7 +92,7 @@ Object f(E x) {
       r'''
 void f(Unresolved x) => switch (x) {};
 ''',
-      [error(CompileTimeErrorCode.undefinedClass, 7, 10)],
+      [error(diag.undefinedClass, 7, 10)],
     );
   }
 }
@@ -109,7 +109,7 @@ void f(bool x) {
   }
 }
 ''',
-      [error(CompileTimeErrorCode.nonExhaustiveSwitchStatement, 19, 6)],
+      [error(diag.nonExhaustiveSwitchStatement, 19, 6)],
     );
   }
 
@@ -147,8 +147,8 @@ void f(bool x) {
 }
 ''',
       [
-        error(CompileTimeErrorCode.nonExhaustiveSwitchStatement, 19, 6),
-        error(WarningCode.patternNeverMatchesValueType, 41, 3),
+        error(diag.nonExhaustiveSwitchStatement, 19, 6),
+        error(diag.patternNeverMatchesValueType, 41, 3),
       ],
     );
   }
@@ -175,7 +175,7 @@ void f(bool? x) {
   }
 }
 ''',
-      [error(CompileTimeErrorCode.nonExhaustiveSwitchStatement, 20, 6)],
+      [error(diag.nonExhaustiveSwitchStatement, 20, 6)],
     );
   }
 
@@ -206,7 +206,7 @@ void f(E x) {
   }
 }
 ''',
-      [error(CompileTimeErrorCode.nonExhaustiveSwitchStatement, 35, 6)],
+      [error(diag.nonExhaustiveSwitchStatement, 35, 6)],
     );
   }
 
@@ -243,7 +243,7 @@ void f(E x) {
 ''',
       [
         error(
-          CompileTimeErrorCode.nonExhaustiveSwitchStatement,
+          diag.nonExhaustiveSwitchStatement,
           35,
           6,
           correctionContains: 'E.a',
@@ -284,8 +284,8 @@ void f(E x) {
 }
 ''',
       [
-        error(CompileTimeErrorCode.recursiveCompileTimeConstant, 11, 2),
-        error(CompileTimeErrorCode.recursiveCompileTimeConstant, 19, 2),
+        error(diag.recursiveCompileTimeConstant, 11, 2),
+        error(diag.recursiveCompileTimeConstant, 19, 2),
       ],
     );
   }
@@ -297,7 +297,7 @@ void f(Null x) {
   switch (x) {}
 }
 ''',
-      [error(CompileTimeErrorCode.nonExhaustiveSwitchStatement, 19, 6)],
+      [error(diag.nonExhaustiveSwitchStatement, 19, 6)],
     );
   }
 
@@ -340,7 +340,7 @@ void f(A x) {
   }
 }
 ''',
-      [error(CompileTimeErrorCode.nonExhaustiveSwitchStatement, 77, 6)],
+      [error(diag.nonExhaustiveSwitchStatement, 77, 6)],
     );
   }
 
@@ -394,7 +394,7 @@ void f(A x) {
   }
 }
 ''',
-      [error(CompileTimeErrorCode.nonExhaustiveSwitchStatement, 74, 6)],
+      [error(diag.nonExhaustiveSwitchStatement, 74, 6)],
     );
   }
 
@@ -428,7 +428,7 @@ void f(A x) {
   }
 }
 ''',
-      [error(CompileTimeErrorCode.nonExhaustiveSwitchStatement, 117, 6)],
+      [error(diag.nonExhaustiveSwitchStatement, 117, 6)],
     );
   }
 
@@ -451,7 +451,7 @@ void f(A x) {
   }
 }
 ''',
-      [error(CompileTimeErrorCode.nonExhaustiveSwitchStatement, 92, 6)],
+      [error(diag.nonExhaustiveSwitchStatement, 92, 6)],
     );
   }
 
@@ -492,7 +492,7 @@ void f(A x) {
   }
 }
 ''',
-      [error(CompileTimeErrorCode.nonExhaustiveSwitchStatement, 85, 6)],
+      [error(diag.nonExhaustiveSwitchStatement, 85, 6)],
     );
   }
 
@@ -527,7 +527,7 @@ void f(A x) {
   }
 }
 ''',
-      [error(CompileTimeErrorCode.undefinedIdentifier, 78, 10)],
+      [error(diag.undefinedIdentifier, 78, 10)],
     );
   }
 
@@ -544,7 +544,7 @@ void f(A x) {
   }
 }
 ''',
-      [error(CompileTimeErrorCode.undefinedClass, 78, 10)],
+      [error(diag.undefinedClass, 78, 10)],
     );
   }
 
@@ -558,7 +558,7 @@ void f<T extends bool>(T x) {
   }
 }
 ''',
-      [error(CompileTimeErrorCode.nonExhaustiveSwitchStatement, 32, 6)],
+      [error(diag.nonExhaustiveSwitchStatement, 32, 6)],
     );
   }
 
@@ -586,7 +586,7 @@ void f<T>(T x) {
   }
 }
 ''',
-      [error(CompileTimeErrorCode.nonExhaustiveSwitchStatement, 40, 6)],
+      [error(diag.nonExhaustiveSwitchStatement, 40, 6)],
     );
   }
 
@@ -611,7 +611,7 @@ void f(Unresolved x) {
   switch (x) {}
 }
 ''',
-      [error(CompileTimeErrorCode.undefinedClass, 7, 10)],
+      [error(diag.undefinedClass, 7, 10)],
     );
   }
 

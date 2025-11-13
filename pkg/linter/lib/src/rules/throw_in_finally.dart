@@ -10,6 +10,7 @@ import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/error/error.dart';
 
 import '../analyzer.dart';
+import '../diagnostic.dart' as diag;
 import '../rules/control_flow_in_finally.dart';
 
 const _desc = r'Avoid `throw` in `finally` block.';
@@ -19,7 +20,7 @@ class ThrowInFinally extends AnalysisRule {
     : super(name: LintNames.throw_in_finally, description: _desc);
 
   @override
-  DiagnosticCode get diagnosticCode => LinterLintCode.throwInFinally;
+  DiagnosticCode get diagnosticCode => diag.throwInFinally;
 
   @override
   void registerNodeProcessors(

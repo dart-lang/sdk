@@ -2,8 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/dart/error/syntactic_errors.dart';
-import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
@@ -34,7 +33,7 @@ f() {
 ''',
       [
         error(
-          CompileTimeErrorCode.newWithUndefinedConstructorDefault,
+          diag.newWithUndefinedConstructorDefault,
           38,
           1,
           messageContains: ["'A'"],
@@ -53,7 +52,7 @@ f() {
   A();
 }
 ''',
-      [error(CompileTimeErrorCode.newWithUndefinedConstructorDefault, 34, 1)],
+      [error(diag.newWithUndefinedConstructorDefault, 34, 1)],
     );
   }
 
@@ -73,7 +72,7 @@ f() {
 ''',
       [
         error(
-          CompileTimeErrorCode.newWithUndefinedConstructorDefault,
+          diag.newWithUndefinedConstructorDefault,
           41,
           6,
           messageContains: ["'lib1.A'"],
@@ -92,7 +91,7 @@ f() {
   A.new();
 }
 ''',
-      [error(CompileTimeErrorCode.newWithUndefinedConstructorDefault, 36, 3)],
+      [error(diag.newWithUndefinedConstructorDefault, 36, 3)],
     );
   }
 
@@ -141,7 +140,7 @@ f() {
 ''',
       [
         error(
-          CompileTimeErrorCode.newWithUndefinedConstructor,
+          diag.newWithUndefinedConstructor,
           35,
           4,
           messageContains: ["class 'A'", "named 'name'"],
@@ -165,7 +164,7 @@ f() {
 ''',
       [
         error(
-          CompileTimeErrorCode.newWithUndefinedConstructor,
+          diag.newWithUndefinedConstructor,
           47,
           4,
           messageContains: ["class 'lib1.A'", "named 'name'"],
@@ -187,7 +186,7 @@ void f() {
   new A._named();
 }
 ''',
-      [error(CompileTimeErrorCode.newWithUndefinedConstructor, 36, 6)],
+      [error(diag.newWithUndefinedConstructor, 36, 6)],
     );
   }
 
@@ -204,7 +203,7 @@ void f() {
   new A._named();
 }
 ''',
-      [error(CompileTimeErrorCode.newWithUndefinedConstructor, 36, 6)],
+      [error(diag.newWithUndefinedConstructor, 36, 6)],
     );
   }
 
@@ -221,7 +220,7 @@ void f() {
   new A<int>._named();
 }
 ''',
-      [error(CompileTimeErrorCode.newWithUndefinedConstructor, 41, 6)],
+      [error(diag.newWithUndefinedConstructor, 41, 6)],
     );
   }
 }
@@ -240,7 +239,7 @@ f() {
   A();
 }
 ''',
-      [error(ParserErrorCode.experimentNotEnabled, 14, 3)],
+      [error(diag.experimentNotEnabled, 14, 3)],
     );
   }
 
@@ -254,7 +253,7 @@ f() {
   A.new();
 }
 ''',
-      [error(ParserErrorCode.experimentNotEnabled, 37, 3)],
+      [error(diag.experimentNotEnabled, 37, 3)],
     );
   }
 }

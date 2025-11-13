@@ -12,6 +12,7 @@ import 'package:analyzer/error/error.dart';
 
 import '../analyzer.dart';
 import '../ast.dart';
+import '../diagnostic.dart' as diag;
 import '../extensions.dart';
 
 const _desc = r'Document all public members.';
@@ -25,7 +26,7 @@ class PublicMemberApiDocs extends AnalysisRule {
     : super(name: LintNames.public_member_api_docs, description: _desc);
 
   @override
-  DiagnosticCode get diagnosticCode => LinterLintCode.publicMemberApiDocs;
+  DiagnosticCode get diagnosticCode => diag.publicMemberApiDocs;
 
   @override
   void registerNodeProcessors(

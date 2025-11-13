@@ -11,6 +11,7 @@ import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/error/error.dart';
 
 import '../analyzer.dart';
+import '../diagnostic.dart' as diag;
 import '../util/flutter_utils.dart';
 
 const _desc = r'Use `ColoredBox`.';
@@ -19,7 +20,7 @@ class UseColoredBox extends AnalysisRule {
   UseColoredBox() : super(name: LintNames.use_colored_box, description: _desc);
 
   @override
-  DiagnosticCode get diagnosticCode => LinterLintCode.useColoredBox;
+  DiagnosticCode get diagnosticCode => diag.useColoredBox;
 
   @override
   void registerNodeProcessors(

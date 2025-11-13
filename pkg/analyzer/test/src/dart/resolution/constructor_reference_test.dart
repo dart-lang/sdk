@@ -2,8 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/dart/error/syntactic_errors.dart';
-import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'context_collection_resolution.dart';
@@ -62,13 +61,7 @@ foo() {
   A.new;
 }
 ''',
-      [
-        error(
-          CompileTimeErrorCode.tearoffOfGenerativeConstructorOfAbstractClass,
-          39,
-          5,
-        ),
-      ],
+      [error(diag.tearoffOfGenerativeConstructorOfAbstractClass, 39, 5)],
     );
 
     var node = findNode.constructorReference('A.new;');
@@ -102,13 +95,7 @@ foo() {
   A.new;
 }
 ''',
-      [
-        error(
-          CompileTimeErrorCode.tearoffOfGenerativeConstructorOfAbstractClass,
-          63,
-          5,
-        ),
-      ],
+      [error(diag.tearoffOfGenerativeConstructorOfAbstractClass, 63, 5)],
     );
 
     var node = findNode.constructorReference('A.new;');
@@ -142,7 +129,7 @@ A<String> Function() bar() {
 ''',
       [
         error(
-          CompileTimeErrorCode.typeArgumentNotMatchingBounds,
+          diag.typeArgumentNotMatchingBounds,
           41,
           6,
           contextMessages: [message(testFile, 39, 9)],
@@ -826,7 +813,7 @@ void main() {
   var x = const <C<int> Function(int)>[Direct.new];
 }
 ''',
-      [error(WarningCode.unusedLocalVariable, 87, 1)],
+      [error(diag.unusedLocalVariable, 87, 1)],
     );
   }
 
@@ -884,7 +871,7 @@ void bar() {
   TA<String>.new;
 }
 ''',
-      [error(CompileTimeErrorCode.typeArgumentNotMatchingBounds, 75, 6)],
+      [error(diag.typeArgumentNotMatchingBounds, 75, 6)],
     );
 
     var node = findNode.constructorReference('TA<String>.new;');
@@ -1009,9 +996,9 @@ void bar() {
 }
 ''',
       [
-        error(CompileTimeErrorCode.undefinedOperator, 43, 1),
-        error(ParserErrorCode.equalityCannotBeEqualityOperand, 47, 1),
-        error(ParserErrorCode.missingIdentifier, 48, 2),
+        error(diag.undefinedOperator, 43, 1),
+        error(diag.equalityCannotBeEqualityOperand, 47, 1),
+        error(diag.missingIdentifier, 48, 2),
       ],
     );
     // The parser produces nonsense here because the `<` disambiguates as a
@@ -1031,9 +1018,9 @@ void bar() {
 }
 ''',
       [
-        error(CompileTimeErrorCode.undefinedOperator, 43, 1),
-        error(ParserErrorCode.equalityCannotBeEqualityOperand, 47, 1),
-        error(ParserErrorCode.missingIdentifier, 48, 2),
+        error(diag.undefinedOperator, 43, 1),
+        error(diag.equalityCannotBeEqualityOperand, 47, 1),
+        error(diag.missingIdentifier, 48, 2),
       ],
     );
     // The parser produces nonsense here because the `<` disambiguates as a
@@ -1054,7 +1041,7 @@ void bar() {
 ''',
       [
         error(
-          CompileTimeErrorCode.wrongNumberOfTypeArgumentsConstructor,
+          diag.wrongNumberOfTypeArgumentsConstructor,
           52,
           5,
           messageContains: ["The constructor 'A.foo'"],
@@ -1105,7 +1092,7 @@ void bar() {
 ''',
       [
         error(
-          CompileTimeErrorCode.wrongNumberOfTypeArgumentsConstructor,
+          diag.wrongNumberOfTypeArgumentsConstructor,
           52,
           5,
           messageContains: ["The constructor 'A.new'"],
@@ -1154,13 +1141,7 @@ void bar() {
   A<int>.i;
 }
 ''',
-      [
-        error(
-          CompileTimeErrorCode.classInstantiationAccessToStaticMember,
-          51,
-          8,
-        ),
-      ],
+      [error(diag.classInstantiationAccessToStaticMember, 51, 8)],
     );
 
     var node = findNode.constructorReference('A<int>.i;');
@@ -1200,7 +1181,7 @@ void bar() {
   A<int>.;
 }
 ''',
-      [error(ParserErrorCode.missingIdentifier, 49, 1)],
+      [error(diag.missingIdentifier, 49, 1)],
     );
 
     var node = findNode.constructorReference('A<int>.;');
@@ -1363,7 +1344,7 @@ void bar() {
   A<String>.new;
 }
 ''',
-      [error(CompileTimeErrorCode.typeArgumentNotMatchingBounds, 52, 6)],
+      [error(diag.typeArgumentNotMatchingBounds, 52, 6)],
     );
 
     var node = findNode.constructorReference('A<String>.new;');
@@ -1604,7 +1585,7 @@ void bar() {
   A<int>.i;
 }
 ''',
-      [error(ParserErrorCode.experimentNotEnabled, 52, 5)],
+      [error(diag.experimentNotEnabled, 52, 5)],
     );
 
     var node = findNode.constructorReference('A<int>.i;');
@@ -1644,7 +1625,7 @@ void bar() {
   A.foo;
 }
 ''',
-      [error(WarningCode.sdkVersionConstructorTearoffs, 39, 5)],
+      [error(diag.sdkVersionConstructorTearoffs, 39, 5)],
     );
 
     var node = findNode.constructorReference('A.foo;');

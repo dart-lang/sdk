@@ -10,6 +10,7 @@ import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/error/error.dart';
 
 import '../analyzer.dart';
+import '../diagnostic.dart' as diag;
 
 const _desc =
     r'Use => for short members whose body is a single return statement.';
@@ -22,8 +23,7 @@ class PreferExpressionFunctionBodies extends AnalysisRule {
       );
 
   @override
-  DiagnosticCode get diagnosticCode =>
-      LinterLintCode.preferExpressionFunctionBodies;
+  DiagnosticCode get diagnosticCode => diag.preferExpressionFunctionBodies;
 
   @override
   void registerNodeProcessors(

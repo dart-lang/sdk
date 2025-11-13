@@ -7,7 +7,7 @@ library;
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/error/error.dart';
-import 'package:analyzer/src/dart/scanner/scanner.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -124,9 +124,7 @@ class ComplexParserTest extends FastaParserTestCase {
     var expression =
         parseExpression(
               'x xor y',
-              diagnostics: [
-                expectedError(ParserErrorCode.binaryOperatorWrittenOut, 2, 3),
-              ],
+              diagnostics: [expectedError(diag.binaryOperatorWrittenOut, 2, 3)],
             )
             as BinaryExpression;
     var lhs = expression.leftOperand as SimpleIdentifier;
@@ -140,9 +138,7 @@ class ComplexParserTest extends FastaParserTestCase {
     var expression =
         parseExpression(
               'x > 0 and y > 1',
-              diagnostics: [
-                expectedError(ParserErrorCode.binaryOperatorWrittenOut, 6, 3),
-              ],
+              diagnostics: [expectedError(diag.binaryOperatorWrittenOut, 6, 3)],
             )
             as BinaryExpression;
     var lhs = expression.leftOperand as BinaryExpression;
@@ -420,7 +416,7 @@ class C {
     var expression =
         parseExpression(
               "x == y != z",
-              codes: [ParserErrorCode.equalityCannotBeEqualityOperand],
+              codes: [diag.equalityCannotBeEqualityOperand],
             )
             as BinaryExpression;
     expect(expression.leftOperand, isBinaryExpression);
@@ -440,7 +436,7 @@ class C {
     var expression =
         parseExpression(
               "super == y != z",
-              codes: [ParserErrorCode.equalityCannotBeEqualityOperand],
+              codes: [diag.equalityCannotBeEqualityOperand],
             )
             as BinaryExpression;
     expect(expression.leftOperand, isBinaryExpression);

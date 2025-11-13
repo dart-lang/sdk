@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
@@ -26,7 +26,7 @@ library root;
 import 'lib1.dart' deferred as a;
 class B implements a.A {}
 ''',
-      [error(CompileTimeErrorCode.implementsDeferredClass, 67, 3)],
+      [error(diag.implementsDeferredClass, 67, 3)],
     );
 
     var node = findNode.singleImplementsClause;
@@ -57,7 +57,7 @@ library root;
 import 'lib1.dart' deferred as a;
 class C implements a.B {}
 ''',
-      [error(CompileTimeErrorCode.implementsDeferredClass, 67, 3)],
+      [error(diag.implementsDeferredClass, 67, 3)],
     );
 
     var node = findNode.singleImplementsClause;
@@ -90,7 +90,7 @@ class B {}
 class M {}
 class C = B with M implements a.A;
 ''',
-      [error(CompileTimeErrorCode.implementsDeferredClass, 100, 3)],
+      [error(diag.implementsDeferredClass, 100, 3)],
     );
 
     var node = findNode.singleImplementsClause;
@@ -119,7 +119,7 @@ class A {}
 import 'a.dart' deferred as a;
 extension type B(a.A it) implements a.A {}
 ''',
-      [error(CompileTimeErrorCode.implementsDeferredClass, 67, 3)],
+      [error(diag.implementsDeferredClass, 67, 3)],
     );
 
     var node = findNode.singleImplementsClause;
@@ -148,7 +148,7 @@ extension type A(int it) {}
 import 'a.dart' deferred as a;
 extension type B(int it) implements a.A {}
 ''',
-      [error(CompileTimeErrorCode.implementsDeferredClass, 67, 3)],
+      [error(diag.implementsDeferredClass, 67, 3)],
     );
 
     var node = findNode.singleImplementsClause;
@@ -173,7 +173,7 @@ ImplementsClause
 import 'dart:math' deferred as math;
 mixin M implements math.Random {}
 ''',
-      [error(CompileTimeErrorCode.implementsDeferredClass, 56, 11)],
+      [error(diag.implementsDeferredClass, 56, 11)],
     );
 
     var node = findNode.singleImplementsClause;

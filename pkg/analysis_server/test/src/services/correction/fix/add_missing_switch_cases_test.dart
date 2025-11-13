@@ -4,7 +4,7 @@
 
 import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analyzer/diagnostic/diagnostic.dart';
-import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:analyzer/utilities/package_config_file_builder.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:linter/src/lint_names.dart';
@@ -234,8 +234,7 @@ int f(E x) {
   };
 }
 ''');
-    await assertHasFix(
-      '''
+    await assertHasFix('''
 enum E {
   first, second, _unknown
 }
@@ -249,11 +248,7 @@ int f(E x) {
     E._unknown => throw UnimplementedError(),
   };
 }
-''',
-      filter: (e) =>
-          e.diagnosticCode ==
-          CompileTimeErrorCode.nonExhaustiveSwitchExpression,
-    );
+''', filter: (e) => e.diagnosticCode == diag.nonExhaustiveSwitchExpression);
   }
 
   Future<void> test_num_anyDouble_intProperty() async {
@@ -460,8 +455,7 @@ class AddMissingSwitchCasesTest_SwitchStatement extends FixProcessorTest {
     var hasError = false;
     return (diagnostic) {
       if (!hasError &&
-          diagnostic.diagnosticCode ==
-              CompileTimeErrorCode.nonExhaustiveSwitchStatement) {
+          diagnostic.diagnosticCode == diag.nonExhaustiveSwitchStatement) {
         hasError = true;
         return true;
       }
@@ -594,8 +588,7 @@ void f(E e) {
   }
 }
 ''');
-    await assertHasFix(
-      '''
+    await assertHasFix('''
 enum E {a, b, _c}
 void f(E e) {
   switch (e) {
@@ -610,10 +603,7 @@ void f(E e) {
       throw UnimplementedError();
   }
 }
-''',
-      filter: (e) =>
-          e.diagnosticCode == CompileTimeErrorCode.nonExhaustiveSwitchStatement,
-    );
+''', filter: (e) => e.diagnosticCode == diag.nonExhaustiveSwitchStatement);
   }
 
   Future<void> test_final() async {

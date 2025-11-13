@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../rule_test_support.dart';
@@ -30,7 +31,7 @@ class C {
       [
         // TODO(srawlins): Do not report this lint rule here, as it is redundant
         // with the Warning.
-        error(WarningCode.unnecessaryFinal, 23, 5),
+        error(diag.unnecessaryFinal, 23, 5),
         lint(23, 12),
       ],
     );
@@ -214,8 +215,8 @@ class B extends A {
       [
         // TODO(srawlins): Do not report this lint rule here, as it is redundant
         // with the Hint.
-        error(WarningCode.unnecessaryFinal, 83, 5),
-        error(WarningCode.unnecessaryFinal, 98, 5),
+        error(diag.unnecessaryFinal, 83, 5),
+        error(diag.unnecessaryFinal, 98, 5),
         lint(83, 13),
         lint(98, 13),
       ],

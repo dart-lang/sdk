@@ -2,8 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/dart/error/syntactic_errors.dart';
-import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'context_collection_resolution.dart';
@@ -22,7 +21,7 @@ class AsExpressionResolutionTest extends PubPackageResolutionTest {
 const num a = 1.2;
 const int b = a as int;
 ''',
-      [error(CompileTimeErrorCode.constEvalThrowsException, 33, 8)],
+      [error(diag.constEvalThrowsException, 33, 8)],
     );
 
     var node = findNode.asExpression('as int');
@@ -74,7 +73,7 @@ class A<T> {
   }
 }
 ''',
-      [error(ParserErrorCode.missingAssignableSelector, 30, 5)],
+      [error(diag.missingAssignableSelector, 30, 5)],
     );
 
     var node = findNode.singleAsExpression;

@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:analyzer/utilities/package_config_file_builder.dart';
 import 'package:test/expect.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -197,10 +197,7 @@ class _A {
   }
 }
 ''',
-      [
-        error(WarningCode.unusedElement, 6, 2),
-        error(WarningCode.unusedElement, 20, 12),
-      ],
+      [error(diag.unusedElement, 6, 2), error(diag.unusedElement, 20, 12)],
     );
   }
 
@@ -212,10 +209,7 @@ class _A {
   _A.named() {}
 }
 ''',
-      [
-        error(WarningCode.unusedElement, 6, 2),
-        error(WarningCode.unusedElement, 26, 5),
-      ],
+      [error(diag.unusedElement, 6, 2), error(diag.unusedElement, 26, 5)],
     );
   }
 
@@ -228,7 +222,7 @@ main(p) {
   }
 }
 ''',
-      [error(WarningCode.unusedElement, 6, 2)],
+      [error(diag.unusedElement, 6, 2)],
     );
   }
 
@@ -241,7 +235,7 @@ void f(Object p) {
   }
 }
 ''',
-      [error(WarningCode.unusedElement, 6, 2)],
+      [error(diag.unusedElement, 6, 2)],
     );
   }
 
@@ -254,7 +248,7 @@ void f(Object p) {
   }
 }
 ''',
-      [error(WarningCode.unusedElement, 6, 2)],
+      [error(diag.unusedElement, 6, 2)],
     );
   }
 
@@ -267,7 +261,7 @@ void f(Object p) {
   }
 }
 ''',
-      [error(WarningCode.unusedElement, 6, 2)],
+      [error(diag.unusedElement, 6, 2)],
     );
   }
 
@@ -278,7 +272,7 @@ class _A {}
 main() {
 }
 ''',
-      [error(WarningCode.unusedElement, 6, 2)],
+      [error(diag.unusedElement, 6, 2)],
     );
   }
 
@@ -292,7 +286,7 @@ void f() {
 }
 print(x) {}
 ''',
-      [error(WarningCode.unusedElement, 6, 2)],
+      [error(diag.unusedElement, 6, 2)],
     );
   }
 
@@ -306,7 +300,7 @@ main() {
 }
 print(x) {}
 ''',
-      [error(WarningCode.unusedElement, 6, 2)],
+      [error(diag.unusedElement, 6, 2)],
     );
   }
 
@@ -382,7 +376,7 @@ class A {
   A();
 }
 ''',
-      [error(WarningCode.unusedElement, 14, 12)],
+      [error(diag.unusedElement, 14, 12)],
     );
   }
 
@@ -406,7 +400,7 @@ class B extends A {
   B._named() : super._constructor();
 }
 ''',
-      [error(WarningCode.unusedElement, 87, 6)],
+      [error(diag.unusedElement, 87, 6)],
     );
   }
 
@@ -428,7 +422,7 @@ class _A {
 }
 var a = _A();
 ''',
-      [error(WarningCode.unusedElement, 16, 5)],
+      [error(diag.unusedElement, 16, 5)],
     );
   }
 
@@ -449,7 +443,7 @@ enum E {
   const E({int? a});
 }
 ''',
-      [error(WarningCode.unusedElementParameter, 37, 1)],
+      [error(diag.unusedElementParameter, 37, 1)],
     );
   }
 
@@ -470,7 +464,7 @@ enum E {
   const E([int? a]);
 }
 ''',
-      [error(WarningCode.unusedElementParameter, 37, 1)],
+      [error(diag.unusedElementParameter, 37, 1)],
     );
   }
 
@@ -492,7 +486,7 @@ void f(d) {
   d.B;
 }
 ''',
-      [error(WarningCode.unusedElement, 5, 7)],
+      [error(diag.unusedElement, 5, 7)],
     );
   }
 
@@ -553,7 +547,7 @@ extension type E(int i) {
   void _f() {}
 }
 ''',
-      [error(WarningCode.unusedElement, 33, 2)],
+      [error(diag.unusedElement, 33, 2)],
     );
   }
 
@@ -562,7 +556,7 @@ extension type E(int i) {
       r'''
 extension type _E(int i) {}
 ''',
-      [error(WarningCode.unusedElement, 15, 2)],
+      [error(diag.unusedElement, 15, 2)],
     );
   }
 
@@ -576,7 +570,7 @@ void f() {
   print(v);
 }
 ''',
-      [error(WarningCode.unusedElement, 15, 2)],
+      [error(diag.unusedElement, 15, 2)],
     );
   }
 
@@ -590,7 +584,7 @@ void f() {
   print(v);
 }
 ''',
-      [error(WarningCode.unusedElement, 15, 2)],
+      [error(diag.unusedElement, 15, 2)],
     );
   }
 
@@ -601,7 +595,7 @@ extension type E(int i) {
   E._named(this.i);
 }
 ''',
-      [error(WarningCode.unusedElement, 30, 6)],
+      [error(diag.unusedElement, 30, 6)],
     );
   }
 
@@ -613,7 +607,7 @@ extension type E(int i) {
 }
 typedef A = E;
 ''',
-      [error(WarningCode.unusedElement, 30, 6)],
+      [error(diag.unusedElement, 30, 6)],
     );
   }
 
@@ -624,7 +618,7 @@ extension type _E(int i) {
   _E.named(this.i);
 }
 ''',
-      [error(WarningCode.unusedElement, 32, 5)],
+      [error(diag.unusedElement, 32, 5)],
     );
   }
 
@@ -655,7 +649,7 @@ class A {
   A();
 }
 ''',
-      [error(WarningCode.unusedElement, 22, 8)],
+      [error(diag.unusedElement, 22, 8)],
     );
   }
 
@@ -681,7 +675,7 @@ class A {
       r'''
 _(){}
 ''',
-      [error(WarningCode.unusedElement, 0, 1)],
+      [error(diag.unusedElement, 0, 1)],
     );
   }
 
@@ -690,7 +684,7 @@ _(){}
       r'''
 __(){}
 ''',
-      [error(WarningCode.unusedElement, 0, 2)],
+      [error(diag.unusedElement, 0, 2)],
     );
   }
 
@@ -729,7 +723,7 @@ main() {
   f() {}
 }
 ''',
-      [error(WarningCode.unusedElement, 11, 1)],
+      [error(diag.unusedElement, 11, 1)],
     );
   }
 
@@ -742,7 +736,7 @@ main() {
   }
 }
 ''',
-      [error(WarningCode.unusedElement, 11, 2)],
+      [error(diag.unusedElement, 11, 2)],
     );
   }
 
@@ -791,7 +785,7 @@ typedef _F(a, b);
 main() {
 }
 ''',
-      [error(WarningCode.unusedElement, 8, 2)],
+      [error(diag.unusedElement, 8, 2)],
     );
   }
 
@@ -826,7 +820,7 @@ class A {
   }
 }
 ''',
-      [error(WarningCode.unusedLocalVariable, 52, 1)],
+      [error(diag.unusedLocalVariable, 52, 1)],
     );
   }
 
@@ -876,7 +870,7 @@ void f(A a) {
   var v = a._g;
 }
 ''',
-      [error(WarningCode.unusedLocalVariable, 50, 1)],
+      [error(diag.unusedLocalVariable, 50, 1)],
     );
   }
 
@@ -890,7 +884,7 @@ main() {
   var v = new A()._g;
 }
 ''',
-      [error(WarningCode.unusedLocalVariable, 45, 1)],
+      [error(diag.unusedLocalVariable, 45, 1)],
     );
   }
 
@@ -927,10 +921,7 @@ class B extends A {
   int get _a => 3;
 }
 ''',
-      [
-        error(WarningCode.unusedElement, 35, 2),
-        error(WarningCode.unusedElement, 155, 2),
-      ],
+      [error(diag.unusedElement, 35, 2), error(diag.unusedElement, 155, 2)],
     );
   }
 
@@ -941,7 +932,7 @@ class A {
   get _g => null;
 }
 ''',
-      [error(WarningCode.unusedElement, 16, 2)],
+      [error(diag.unusedElement, 16, 2)],
     );
   }
 
@@ -954,7 +945,7 @@ class A {
   }
 }
 ''',
-      [error(WarningCode.unusedElement, 16, 2)],
+      [error(diag.unusedElement, 16, 2)],
     );
   }
 
@@ -967,7 +958,7 @@ m() {
 ''',
       [
         // Code is dead but not unused.
-        error(WarningCode.deadCode, 8, 5),
+        error(diag.deadCode, 8, 5),
       ],
     );
   }
@@ -982,7 +973,7 @@ main() {
   _(){}
 }
 ''',
-      [error(WarningCode.unusedElement, 55, 1)],
+      [error(diag.unusedElement, 55, 1)],
     );
   }
 
@@ -995,7 +986,7 @@ class C {
   }
 }
 ''',
-      [error(WarningCode.unusedElement, 22, 2)],
+      [error(diag.unusedElement, 22, 2)],
     );
   }
 
@@ -1010,7 +1001,7 @@ class C {
 ''',
       [
         // Code is dead but not unused.
-        error(WarningCode.deadCode, 22, 5),
+        error(diag.deadCode, 22, 5),
       ],
     );
   }
@@ -1027,7 +1018,7 @@ class C {
   }
 }
 ''',
-      [error(WarningCode.unusedElement, 66, 1)],
+      [error(diag.unusedElement, 66, 1)],
     );
   }
 
@@ -1038,7 +1029,7 @@ main() {
   __(){}
 }
 ''',
-      [error(WarningCode.unusedElement, 11, 2)],
+      [error(diag.unusedElement, 11, 2)],
     );
   }
 
@@ -1436,7 +1427,7 @@ extension<T> on T {
   void call() {}
 }
 ''',
-      [error(WarningCode.unusedElement, 27, 4)],
+      [error(diag.unusedElement, 27, 4)],
     );
   }
 
@@ -1451,7 +1442,7 @@ class B {
   void _m1() {}
 }
 ''',
-      [error(WarningCode.unusedElement, 17, 3)],
+      [error(diag.unusedElement, 17, 3)],
     );
   }
 
@@ -1462,7 +1453,7 @@ class A {
   static _m() {}
 }
 ''',
-      [error(WarningCode.unusedElement, 19, 2)],
+      [error(diag.unusedElement, 19, 2)],
     );
   }
 
@@ -1473,7 +1464,7 @@ extension _A on String {
   void m() {}
 }
 ''',
-      [error(WarningCode.unusedElement, 32, 1)],
+      [error(diag.unusedElement, 32, 1)],
     );
   }
 
@@ -1486,7 +1477,7 @@ extension _A on bool {
   operator []=(int index, int value) {}
 }
 ''',
-      [error(WarningCode.unusedElement, 34, 3)],
+      [error(diag.unusedElement, 34, 3)],
     );
   }
 
@@ -1497,7 +1488,7 @@ extension _A on bool {
   int operator [](int index) => 7;
 }
 ''',
-      [error(WarningCode.unusedElement, 38, 2)],
+      [error(diag.unusedElement, 38, 2)],
     );
   }
 
@@ -1508,7 +1499,7 @@ extension _E on int {
   void call() {}
 }
 ''',
-      [error(WarningCode.unusedElement, 29, 4)],
+      [error(diag.unusedElement, 29, 4)],
     );
   }
 
@@ -1521,7 +1512,7 @@ extension _A on String {
   int operator -(int other) => other;
 }
 ''',
-      [error(WarningCode.unusedElement, 40, 1)],
+      [error(diag.unusedElement, 40, 1)],
     );
   }
 
@@ -1532,7 +1523,7 @@ extension _A on String {
   int operator ~() => 7;
 }
 ''',
-      [error(WarningCode.unusedElement, 40, 1)],
+      [error(diag.unusedElement, 40, 1)],
     );
   }
 
@@ -1545,7 +1536,7 @@ class A {
   }
 }
 ''',
-      [error(WarningCode.unusedElement, 19, 2)],
+      [error(diag.unusedElement, 19, 2)],
     );
   }
 
@@ -1557,7 +1548,7 @@ class A {
   int _f(int p) => 7;
 }
 ''',
-      [error(WarningCode.unusedElement, 44, 2)],
+      [error(diag.unusedElement, 44, 2)],
     );
   }
 
@@ -1570,7 +1561,7 @@ class A {
 /// This is similar to [A._f].
 int g() => 7;
 ''',
-      [error(WarningCode.unusedElement, 16, 2)],
+      [error(diag.unusedElement, 16, 2)],
     );
   }
 
@@ -1581,7 +1572,7 @@ extension on String {
   void m() {}
 }
 ''',
-      [error(WarningCode.unusedElement, 29, 1)],
+      [error(diag.unusedElement, 29, 1)],
     );
   }
 
@@ -1592,7 +1583,7 @@ extension on String {
   int operator -(int other) => other;
 }
 ''',
-      [error(WarningCode.unusedElement, 37, 1)],
+      [error(diag.unusedElement, 37, 1)],
     );
   }
 
@@ -1608,7 +1599,7 @@ class C with _M {}
       r'''
 mixin _M {}
 ''',
-      [error(WarningCode.unusedElement, 6, 2)],
+      [error(diag.unusedElement, 6, 2)],
     );
   }
 
@@ -1702,7 +1693,7 @@ f() {
   B()._m(0);
 }
 ''',
-      [error(WarningCode.unusedElementParameter, 26, 1)],
+      [error(diag.unusedElementParameter, 26, 1)],
     );
   }
 
@@ -1827,7 +1818,7 @@ class A {
 }
 f() => A._();
 ''',
-      [error(WarningCode.unusedElementParameter, 22, 1)],
+      [error(diag.unusedElementParameter, 22, 1)],
     );
   }
 
@@ -1839,7 +1830,7 @@ class _A {
 }
 f() => _A();
 ''',
-      [error(WarningCode.unusedElementParameter, 22, 1)],
+      [error(diag.unusedElementParameter, 22, 1)],
     );
   }
 
@@ -1851,7 +1842,7 @@ extension E on String {
 }
 f() => "hello"._m();
 ''',
-      [error(WarningCode.unusedElementParameter, 40, 1)],
+      [error(diag.unusedElementParameter, 40, 1)],
     );
   }
 
@@ -1906,7 +1897,7 @@ class A {
 }
 f() => A()._m();
 ''',
-      [error(WarningCode.unusedElementParameter, 26, 1)],
+      [error(diag.unusedElementParameter, 26, 1)],
     );
   }
 
@@ -1921,7 +1912,7 @@ class B implements A {
 }
 f() => A()._m();
 ''',
-      [error(WarningCode.unusedElementParameter, 66, 1)],
+      [error(diag.unusedElementParameter, 66, 1)],
     );
   }
 
@@ -1957,7 +1948,7 @@ class A {
 }
 f() => A()._m();
 ''',
-      [error(WarningCode.unusedElementParameter, 26, 1)],
+      [error(diag.unusedElementParameter, 26, 1)],
     );
   }
 
@@ -1969,7 +1960,7 @@ extension _E on String {
 }
 f() => "hello".m();
 ''',
-      [error(WarningCode.unusedElementParameter, 40, 1)],
+      [error(diag.unusedElementParameter, 40, 1)],
     );
   }
 
@@ -1981,7 +1972,7 @@ extension on String {
 }
 f() => "hello".m();
 ''',
-      [error(WarningCode.unusedElementParameter, 37, 1)],
+      [error(diag.unusedElementParameter, 37, 1)],
     );
   }
 
@@ -1993,7 +1984,7 @@ class A {
 }
 f() => A._m();
 ''',
-      [error(WarningCode.unusedElementParameter, 33, 1)],
+      [error(diag.unusedElementParameter, 33, 1)],
     );
   }
 
@@ -2005,7 +1996,7 @@ class _A {
 }
 f() => _A.m();
 ''',
-      [error(WarningCode.unusedElementParameter, 33, 1)],
+      [error(diag.unusedElementParameter, 33, 1)],
     );
   }
 
@@ -2022,7 +2013,7 @@ f() => _m(1);
 void _m([int? a]) {}
 f() => _m();
 ''',
-      [error(WarningCode.unusedElementParameter, 14, 1)],
+      [error(diag.unusedElementParameter, 14, 1)],
     );
   }
 
@@ -2087,7 +2078,7 @@ class _A {
 }
 f() => _A();
 ''',
-      [error(WarningCode.unusedElementParameter, 38, 1)],
+      [error(diag.unusedElementParameter, 38, 1)],
     );
   }
 
@@ -2101,7 +2092,7 @@ class _A {
 }
 f() => _A.named();
 ''',
-      [error(WarningCode.unusedElementParameter, 38, 1)],
+      [error(diag.unusedElementParameter, 38, 1)],
     );
   }
 
@@ -2161,7 +2152,7 @@ class _A {
 }
 f() => _A();
 ''',
-      [error(WarningCode.unusedElementParameter, 38, 1)],
+      [error(diag.unusedElementParameter, 38, 1)],
     );
   }
 
@@ -2175,7 +2166,7 @@ class _A {
 }
 f() => _A.named();
 ''',
-      [error(WarningCode.unusedElementParameter, 38, 1)],
+      [error(diag.unusedElementParameter, 38, 1)],
     );
   }
 
@@ -2218,7 +2209,7 @@ void f() {
   _E.v;
 }
 ''',
-      [error(WarningCode.unusedElement, 52, 4)],
+      [error(diag.unusedElement, 52, 4)],
     );
   }
 
@@ -2247,7 +2238,7 @@ void f() {
   _E.v;
 }
 ''',
-      [error(WarningCode.unusedElement, 25, 4)],
+      [error(diag.unusedElement, 25, 4)],
     );
   }
 
@@ -2276,7 +2267,7 @@ void f() {
   _E.v;
 }
 ''',
-      [error(WarningCode.unusedElement, 22, 4)],
+      [error(diag.unusedElement, 22, 4)],
     );
   }
 
@@ -2305,7 +2296,7 @@ void f() {
   _E.v._foo();
 }
 ''',
-      [error(WarningCode.unusedElementParameter, 33, 1)],
+      [error(diag.unusedElementParameter, 33, 1)],
     );
   }
 
@@ -2334,7 +2325,7 @@ void f() {
   _E.v._foo();
 }
 ''',
-      [error(WarningCode.unusedElementParameter, 33, 1)],
+      [error(diag.unusedElementParameter, 33, 1)],
     );
   }
 
@@ -2363,7 +2354,7 @@ void f() {
   _E.v;
 }
 ''',
-      [error(WarningCode.unusedElement, 21, 4)],
+      [error(diag.unusedElement, 21, 4)],
     );
   }
 
@@ -2393,7 +2384,7 @@ void f() {
   _E.v;
 }
 ''',
-      [error(WarningCode.unusedElement, 32, 4)],
+      [error(diag.unusedElement, 32, 4)],
     );
   }
 
@@ -2423,7 +2414,7 @@ void f() {
   _E.v;
 }
 ''',
-      [error(WarningCode.unusedElement, 29, 4)],
+      [error(diag.unusedElement, 29, 4)],
     );
   }
 
@@ -2453,7 +2444,7 @@ void f() {
   _E.v;
 }
 ''',
-      [error(WarningCode.unusedElement, 28, 4)],
+      [error(diag.unusedElement, 28, 4)],
     );
   }
 
@@ -2470,7 +2461,7 @@ void f() {
   _E.v;
 }
 ''',
-      [error(WarningCode.unusedElement, 50, 3)],
+      [error(diag.unusedElement, 50, 3)],
     );
   }
 
@@ -2565,7 +2556,7 @@ void f() {
   _E.v;
 }
 ''',
-      [error(WarningCode.unusedElement, 32, 3)],
+      [error(diag.unusedElement, 32, 3)],
     );
   }
 
@@ -2595,7 +2586,7 @@ void f() {
   _E.v;
 }
 ''',
-      [error(WarningCode.unusedElement, 29, 3)],
+      [error(diag.unusedElement, 29, 3)],
     );
   }
 
@@ -2625,7 +2616,7 @@ void f() {
   _E.v;
 }
 ''',
-      [error(WarningCode.unusedElement, 28, 3)],
+      [error(diag.unusedElement, 28, 3)],
     );
   }
 
@@ -2663,7 +2654,7 @@ enum E {
   const E._bar();
 }
 ''',
-      [error(WarningCode.unusedElement, 49, 4)],
+      [error(diag.unusedElement, 49, 4)],
     );
   }
 
@@ -2688,7 +2679,7 @@ enum E {
   static int get _foo => 0;
 }
 ''',
-      [error(WarningCode.unusedElement, 31, 4)],
+      [error(diag.unusedElement, 31, 4)],
     );
   }
 
@@ -2713,7 +2704,7 @@ enum E {
   static void _foo() {}
 }
 ''',
-      [error(WarningCode.unusedElement, 28, 4)],
+      [error(diag.unusedElement, 28, 4)],
     );
   }
 
@@ -2738,7 +2729,7 @@ enum E {
   static set _foo(int _) {}
 }
 ''',
-      [error(WarningCode.unusedElement, 27, 4)],
+      [error(diag.unusedElement, 27, 4)],
     );
   }
 
@@ -2773,7 +2764,7 @@ enum E {
   const E.bar();
 }
 ''',
-      [error(WarningCode.unusedElement, 47, 3)],
+      [error(diag.unusedElement, 47, 3)],
     );
   }
 
@@ -2823,7 +2814,7 @@ class _A {
 }
 void f(_A a) {}
 ''',
-      [error(WarningCode.unusedElement, 25, 1)],
+      [error(diag.unusedElement, 25, 1)],
     );
   }
 
@@ -2845,7 +2836,7 @@ extension _A on String {
   static void m() {}
 }
 ''',
-      [error(WarningCode.unusedElement, 39, 1)],
+      [error(diag.unusedElement, 39, 1)],
     );
   }
 
@@ -2870,7 +2861,7 @@ void main() {
   _A;
 }
 ''',
-      [error(WarningCode.unusedElement, 25, 1)],
+      [error(diag.unusedElement, 25, 1)],
     );
   }
 
@@ -2920,7 +2911,7 @@ class A {
   set _s(x) {}
 }
 ''',
-      [error(WarningCode.unusedElement, 16, 2)],
+      [error(diag.unusedElement, 16, 2)],
     );
   }
 
@@ -2935,7 +2926,7 @@ class A {
   }
 }
 ''',
-      [error(WarningCode.unusedElement, 16, 2)],
+      [error(diag.unusedElement, 16, 2)],
     );
   }
 
@@ -2982,7 +2973,7 @@ _f() {}
 main() {
 }
 ''',
-      [error(WarningCode.unusedElement, 0, 2)],
+      [error(diag.unusedElement, 0, 2)],
     );
   }
 
@@ -2995,7 +2986,7 @@ _f(int p) {
 main() {
 }
 ''',
-      [error(WarningCode.unusedElement, 0, 2)],
+      [error(diag.unusedElement, 0, 2)],
     );
   }
 
@@ -3005,7 +2996,7 @@ main() {
 /// [_f] is a great function.
 _f(int p) => 7;
 ''',
-      [error(WarningCode.unusedElement, 30, 2)],
+      [error(diag.unusedElement, 30, 2)],
     );
   }
 
@@ -3057,7 +3048,7 @@ void f() {
       r'''
 set _foo(int _) {}
 ''',
-      [error(WarningCode.unusedElement, 4, 4)],
+      [error(diag.unusedElement, 4, 4)],
     );
   }
 
@@ -3097,7 +3088,7 @@ main() {
   _a = 2;
 }
 ''',
-      [error(WarningCode.unusedElement, 4, 2)],
+      [error(diag.unusedElement, 4, 2)],
     );
   }
 
@@ -3109,7 +3100,7 @@ f() {
   _a += 1;
 }
 ''',
-      [error(WarningCode.unusedElement, 4, 2)],
+      [error(diag.unusedElement, 4, 2)],
     );
   }
 
@@ -3119,7 +3110,7 @@ f() {
 /// [_a] is a great variable.
 int _a = 7;
 ''',
-      [error(WarningCode.unusedElement, 34, 2)],
+      [error(diag.unusedElement, 34, 2)],
     );
   }
 
@@ -3168,7 +3159,7 @@ typedef _F = void Function();
 main() {
 }
 ''',
-      [error(WarningCode.unusedElement, 8, 2)],
+      [error(diag.unusedElement, 8, 2)],
     );
   }
 
@@ -3205,7 +3196,7 @@ void f() {
       r'''
 typedef _A = List<int>;
 ''',
-      [error(WarningCode.unusedElement, 8, 2)],
+      [error(diag.unusedElement, 8, 2)],
     );
   }
 }

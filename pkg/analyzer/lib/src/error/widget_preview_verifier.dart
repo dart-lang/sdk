@@ -7,7 +7,7 @@ import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
-import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:analyzer/src/utilities/extensions/flutter.dart';
 
 /// Helper for verifying the validity of @Preview(...) applications.
@@ -66,7 +66,7 @@ class WidgetPreviewVerifier {
     if (!isValidApplication) {
       _diagnosticReporter.atNode(
         node.name,
-        WarningCode.invalidWidgetPreviewApplication,
+        diag.invalidWidgetPreviewApplication,
       );
     }
 
@@ -232,7 +232,7 @@ class _InvalidWidgetPreviewArgumentDetectorVisitor extends RecursiveAstVisitor {
     if (Identifier.isPrivateName(node.name)) {
       errorReporter.atNode(
         rootArgument!,
-        WarningCode.invalidWidgetPreviewPrivateArgument,
+        diag.invalidWidgetPreviewPrivateArgument,
         arguments: [node.name, node.name.replaceFirst(RegExp('_*'), '')],
       );
     }

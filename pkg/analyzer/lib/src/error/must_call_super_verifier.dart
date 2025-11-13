@@ -9,7 +9,7 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/dart/element/element.dart';
-import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 
 class MustCallSuperVerifier {
   final DiagnosticReporter _diagnosticReporter;
@@ -186,7 +186,7 @@ class MustCallSuperVerifier {
       // safe to assume [overriddenEnclosingName] is non-`null`.
       _diagnosticReporter.atToken(
         node.name,
-        WarningCode.mustCallSuper,
+        diag.mustCallSuper,
         arguments: [overriddenEnclosingName!],
       );
     }

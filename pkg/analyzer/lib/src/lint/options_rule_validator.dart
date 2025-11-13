@@ -7,9 +7,9 @@ import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/source/file_source.dart';
 import 'package:analyzer/src/analysis_options/analysis_options_provider.dart';
-import 'package:analyzer/src/analysis_options/error/option_codes.dart';
 import 'package:analyzer/src/analysis_options/options_validator.dart';
 import 'package:analyzer/src/analysis_rule/rule_context.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:analyzer/src/diagnostic/diagnostic_factory.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/lint/registry.dart';
@@ -262,7 +262,7 @@ class LinterRuleOptionsValidator extends OptionsValidator {
     if (rules[null]!.map((e) => e.value).contains(ruleData.node.value)) {
       reporter.atSourceSpan(
         ruleData.node.span,
-        AnalysisOptionsWarningCode.duplicateRule,
+        diag.duplicateRule,
         arguments: [value],
       );
     }
@@ -382,7 +382,7 @@ class LinterRuleOptionsValidator extends OptionsValidator {
       if (rule == null) {
         reporter.atSourceSpan(
           node.span,
-          AnalysisOptionsWarningCode.undefinedLint,
+          diag.undefinedLint,
           arguments: [value],
         );
         return null;
@@ -410,7 +410,7 @@ class LinterRuleOptionsValidator extends OptionsValidator {
         var warningNode = enabled is YamlNode ? enabled : node;
         reporter.atSourceSpan(
           warningNode.span,
-          AnalysisOptionsWarningCode.unsupportedValue,
+          diag.unsupportedValue,
           arguments: [
             value,
             ruleValue,
@@ -428,13 +428,13 @@ class LinterRuleOptionsValidator extends OptionsValidator {
           if (replacedBy != null) {
             reporter.atSourceSpan(
               node.span,
-              AnalysisOptionsWarningCode.deprecatedLintWithReplacement,
+              diag.deprecatedLintWithReplacement,
               arguments: [value, replacedBy],
             );
           } else {
             reporter.atSourceSpan(
               node.span,
-              AnalysisOptionsWarningCode.deprecatedLint,
+              diag.deprecatedLint,
               arguments: [value],
             );
           }
@@ -444,13 +444,13 @@ class LinterRuleOptionsValidator extends OptionsValidator {
           if (replacedBy != null) {
             reporter.atSourceSpan(
               node.span,
-              AnalysisOptionsWarningCode.replacedLint,
+              diag.replacedLint,
               arguments: [value, since, replacedBy],
             );
           } else {
             reporter.atSourceSpan(
               node.span,
-              AnalysisOptionsWarningCode.removedLint,
+              diag.removedLint,
               arguments: [value, since],
             );
           }

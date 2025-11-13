@@ -5,8 +5,7 @@
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/member.dart';
-import 'package:analyzer/src/error/codes.dart';
-import 'package:analyzer/src/generated/parser.dart' show ParserErrorCode;
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -83,7 +82,7 @@ library L;
 export 'lib.dart';
 export 'lib.dart';
 ''',
-      [error(WarningCode.duplicateExport, 37, 10)],
+      [error(diag.duplicateExport, 37, 10)],
     );
   }
 
@@ -149,7 +148,7 @@ main() {
   new N2();
 }
 ''',
-      [error(WarningCode.unusedShownName, 44, 1)],
+      [error(diag.unusedShownName, 44, 1)],
     );
   }
 
@@ -350,7 +349,7 @@ f() {
   -x;
 }
 ''',
-      [error(WarningCode.unusedLocalVariable, 14, 1)],
+      [error(diag.unusedLocalVariable, 14, 1)],
     );
   }
 
@@ -436,7 +435,7 @@ main() {
   F f = (int i) async => i;
 }
 ''',
-      [error(WarningCode.unusedLocalVariable, 43, 1)],
+      [error(diag.unusedLocalVariable, 43, 1)],
     );
   }
 
@@ -564,7 +563,7 @@ f(list) async {
   }
 }
 ''',
-      [error(WarningCode.unusedLocalVariable, 33, 1)],
+      [error(diag.unusedLocalVariable, 33, 1)],
     );
   }
 
@@ -576,7 +575,7 @@ f(list) async* {
   }
 }
 ''',
-      [error(WarningCode.unusedLocalVariable, 34, 1)],
+      [error(diag.unusedLocalVariable, 34, 1)],
     );
   }
 
@@ -670,7 +669,7 @@ f() {
   dynamic x;
 }
 ''',
-      [error(WarningCode.unusedLocalVariable, 16, 1)],
+      [error(diag.unusedLocalVariable, 16, 1)],
     );
   }
 
@@ -689,7 +688,7 @@ void testNewSet(Set<C> setEls) {
       newSet: <T>() => customNewSet = new Set<T>());
 }
 ''',
-      [error(WarningCode.unusedLocalVariable, 51, 12)],
+      [error(diag.unusedLocalVariable, 51, 12)],
     );
   }
 
@@ -812,13 +811,7 @@ class B extends A {
   const B(): super();
 }
 ''',
-      [
-        error(
-          CompileTimeErrorCode.undefinedConstructorInInitializerDefault,
-          54,
-          7,
-        ),
-      ],
+      [error(diag.undefinedConstructorInInitializerDefault, 54, 7)],
     );
   }
 
@@ -995,7 +988,7 @@ main() {
   const int x = 0;
 }
 ''',
-      [error(WarningCode.unusedLocalVariable, 21, 1)],
+      [error(diag.unusedLocalVariable, 21, 1)],
     );
   }
 
@@ -1113,7 +1106,7 @@ main() {
   var v = dynamic;
 }
 ''',
-      [error(WarningCode.unusedLocalVariable, 15, 1)],
+      [error(diag.unusedLocalVariable, 15, 1)],
     );
   }
 
@@ -1301,7 +1294,7 @@ class A native 'something' {
   A() {}
 }
 ''',
-      [error(ParserErrorCode.nativeClauseInNonSdkCode, 8, 18)],
+      [error(diag.nativeClauseInNonSdkCode, 8, 18)],
     );
   }
 
@@ -1312,7 +1305,7 @@ class A native 'something' {
   final int x;
 }
 ''',
-      [error(ParserErrorCode.nativeClauseInNonSdkCode, 8, 18)],
+      [error(diag.nativeClauseInNonSdkCode, 8, 18)],
     );
   }
 
@@ -1663,9 +1656,9 @@ import 'lib.dart';
 import 'lib.dart';
 ''',
       [
-        error(WarningCode.unusedImport, 21, 10),
-        error(WarningCode.unusedImport, 40, 10),
-        error(WarningCode.duplicateImport, 40, 10),
+        error(diag.unusedImport, 21, 10),
+        error(diag.unusedImport, 40, 10),
+        error(diag.duplicateImport, 40, 10),
       ],
     );
   }
@@ -1680,10 +1673,7 @@ library test;
 import 'lib1.dart';
 import 'lib2.dart';
 ''',
-      [
-        error(WarningCode.unusedImport, 21, 11),
-        error(WarningCode.unusedImport, 41, 11),
-      ],
+      [error(diag.unusedImport, 21, 11), error(diag.unusedImport, 41, 11)],
     );
   }
 
@@ -1883,7 +1873,7 @@ class B extends A {
   _m() {}
 }
 ''',
-      [error(WarningCode.unusedElement, 41, 2)],
+      [error(diag.unusedElement, 41, 2)],
     );
   }
 
@@ -1901,7 +1891,7 @@ class B extends A {
   _m() {}
 }
 ''',
-      [error(WarningCode.unusedElement, 41, 2)],
+      [error(diag.unusedElement, 41, 2)],
     );
   }
 
@@ -2055,9 +2045,9 @@ class A {
 }
 ''',
       [
-        error(WarningCode.unusedLocalVariable, 26, 5),
-        error(WarningCode.unusedLocalVariable, 41, 5),
-        error(WarningCode.unusedLocalVariable, 56, 5),
+        error(diag.unusedLocalVariable, 26, 5),
+        error(diag.unusedLocalVariable, 41, 5),
+        error(diag.unusedLocalVariable, 56, 5),
       ],
     );
   }
@@ -2254,8 +2244,8 @@ void main() {
 }
 ''',
       [
-        error(WarningCode.unusedLocalVariable, 93, 1),
-        error(CompileTimeErrorCode.invalidAssignment, 97, 1),
+        error(diag.unusedLocalVariable, 93, 1),
+        error(diag.invalidAssignment, 97, 1),
       ],
     );
     var z = result.unit.declaredFragment!.element.topLevelVariables
@@ -2313,7 +2303,7 @@ h(bool b) {
   Map<num, String> m = (b ? f : g)('x');
 }
 ''',
-      [error(WarningCode.unusedLocalVariable, 104, 1)],
+      [error(diag.unusedLocalVariable, 104, 1)],
     );
     var parameter = findNode.stringLiteral("'x'").correspondingParameter;
     expect(parameter!.library, isNull);
@@ -2570,7 +2560,7 @@ f2() {
   !dynamic;
 }
 ''',
-      [error(WarningCode.unusedLocalVariable, 47, 7)],
+      [error(diag.unusedLocalVariable, 47, 7)],
     );
   }
 
@@ -2703,7 +2693,7 @@ f() {
   var m = {'a' : 0, 'b' : 1};
 }
 ''',
-      [error(WarningCode.unusedLocalVariable, 12, 1)],
+      [error(diag.unusedLocalVariable, 12, 1)],
     );
   }
 
@@ -2734,7 +2724,7 @@ class A {
   const A.b2(bool p) : v = true || p;
 }
 ''',
-      [error(WarningCode.deadCode, 167, 4)],
+      [error(diag.deadCode, 167, 4)],
     );
   }
 
@@ -2862,10 +2852,7 @@ main() {
   null[0];
 }
 ''',
-      [
-        error(CompileTimeErrorCode.undefinedMethod, 0, 0),
-        error(CompileTimeErrorCode.undefinedMethod, 0, 0),
-      ],
+      [error(diag.undefinedMethod, 0, 0), error(diag.undefinedMethod, 0, 0)],
     );
   }
 
@@ -2987,7 +2974,7 @@ f() {
 }
 h(x) {}
 ''',
-      [error(WarningCode.unusedElement, 8, 1)],
+      [error(diag.unusedElement, 8, 1)],
     );
   }
 
@@ -3060,7 +3047,7 @@ f() {
   var x = new A.x();
 }
 ''',
-      [error(WarningCode.unusedLocalVariable, 35, 1)],
+      [error(diag.unusedLocalVariable, 35, 1)],
     );
   }
 
@@ -3074,7 +3061,7 @@ f(A a) {
   var x = a.x();
 }
 ''',
-      [error(WarningCode.unusedLocalVariable, 36, 1)],
+      [error(diag.unusedLocalVariable, 36, 1)],
     );
   }
 
@@ -3088,7 +3075,7 @@ f(A a) {
   var x = a.x;
 }
 ''',
-      [error(WarningCode.unusedLocalVariable, 36, 1)],
+      [error(diag.unusedLocalVariable, 36, 1)],
     );
   }
 
@@ -3307,7 +3294,7 @@ main() {
   };
 }
 ''',
-      [error(WarningCode.unusedElement, 11, 1)],
+      [error(diag.unusedElement, 11, 1)],
     );
   }
 

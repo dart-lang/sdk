@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/src/services/correction/fix.dart';
-import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -264,14 +264,10 @@ void f() {
   var v = 1;
 }
 ''');
-    await assertHasFix(
-      r'''
+    await assertHasFix(r'''
 void f() {
 }
-''',
-      filter: (e) =>
-          e.diagnosticCode != CompileTimeErrorCode.referencedBeforeDeclaration,
-    );
+''', filter: (e) => e.diagnosticCode != diag.referencedBeforeDeclaration);
   }
 }
 

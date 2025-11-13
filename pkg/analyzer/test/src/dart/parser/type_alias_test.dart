@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/dart/error/syntactic_errors.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../../diagnostics/parser_diagnostics.dart';
@@ -61,7 +61,7 @@ GenericTypeAlias
     var parseResult = parseStringWithErrors(r'''
 typedef = int;
 ''');
-    parseResult.assertErrors([error(ParserErrorCode.missingIdentifier, 8, 1)]);
+    parseResult.assertErrors([error(diag.missingIdentifier, 8, 1)]);
 
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''

@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analysis_server/src/services/correction/fix/data_driven/transform_set_error_code.dart';
+import 'package:analysis_server/src/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../transform_set_parser_test_support.dart';
@@ -28,7 +28,7 @@ transforms:
     static: true
   changes: []
 ''',
-      [error(TransformSetErrorCode.unsupportedStatic, 108, 6)],
+      [error(diag.unsupportedStatic, 108, 6)],
     );
   }
 
@@ -60,7 +60,7 @@ transforms:
     static: true
   changes: []
 ''',
-      [error(TransformSetErrorCode.unsupportedStatic, 109, 6)],
+      [error(diag.unsupportedStatic, 109, 6)],
     );
   }
 }

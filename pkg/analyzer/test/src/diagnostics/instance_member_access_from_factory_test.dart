@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
@@ -27,7 +27,7 @@ class A {
   }
 }
 ''',
-      [error(CompileTimeErrorCode.instanceMemberAccessFromFactory, 56, 3)],
+      [error(diag.instanceMemberAccessFromFactory, 56, 3)],
     );
   }
 
@@ -46,7 +46,7 @@ class A {
   }
 }
 ''',
-      [error(CompileTimeErrorCode.instanceMemberAccessFromFactory, 73, 3)],
+      [error(diag.instanceMemberAccessFromFactory, 73, 3)],
     );
   }
 
@@ -62,7 +62,7 @@ class A {
   }
 }
 ''',
-      [error(CompileTimeErrorCode.instanceMemberAccessFromFactory, 52, 3)],
+      [error(diag.instanceMemberAccessFromFactory, 52, 3)],
     );
   }
 
@@ -78,7 +78,7 @@ class A {
   }
 }
 ''',
-      [error(CompileTimeErrorCode.instanceMemberAccessFromFactory, 58, 3)],
+      [error(diag.instanceMemberAccessFromFactory, 58, 3)],
     );
   }
 
@@ -95,7 +95,7 @@ class A {
   }
 }
 ''',
-      [error(CompileTimeErrorCode.instanceMemberAccessFromFactory, 102, 3)],
+      [error(diag.instanceMemberAccessFromFactory, 102, 3)],
     );
   }
 
@@ -111,7 +111,7 @@ class A {
   }
 }
 ''',
-      [error(CompileTimeErrorCode.instanceMemberAccessFromFactory, 47, 3)],
+      [error(diag.instanceMemberAccessFromFactory, 47, 3)],
     );
   }
 }

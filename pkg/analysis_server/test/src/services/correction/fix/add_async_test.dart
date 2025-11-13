@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/src/services/correction/fix.dart';
-import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:linter/src/lint_names.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -71,8 +71,7 @@ Future<int> f() async {
 }
 ''',
       filter: (error) {
-        return error.diagnosticCode ==
-            CompileTimeErrorCode.undefinedIdentifierAwait;
+        return error.diagnosticCode == diag.undefinedIdentifierAwait;
       },
     );
   }
@@ -90,8 +89,7 @@ void takeFutureCallback(Future callback()) {}
 void doStuff() => takeFutureCallback(() async => await 1);
 ''',
       filter: (error) {
-        return error.diagnosticCode ==
-            CompileTimeErrorCode.undefinedIdentifierAwait;
+        return error.diagnosticCode == diag.undefinedIdentifierAwait;
       },
     );
   }
@@ -467,7 +465,7 @@ Future<int> f() async {
 }
 ''',
       filter: (error) {
-        return error.diagnosticCode == CompileTimeErrorCode.awaitInWrongContext;
+        return error.diagnosticCode == diag.awaitInWrongContext;
       },
     );
   }

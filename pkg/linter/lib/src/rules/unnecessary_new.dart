@@ -11,6 +11,7 @@ import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/error/error.dart';
 
 import '../analyzer.dart';
+import '../diagnostic.dart' as diag;
 
 const _desc = r'Unnecessary new keyword.';
 
@@ -21,7 +22,7 @@ class UnnecessaryNew extends AnalysisRule {
   bool get canUseParsedResult => true;
 
   @override
-  DiagnosticCode get diagnosticCode => LinterLintCode.unnecessaryNew;
+  DiagnosticCode get diagnosticCode => diag.unnecessaryNew;
 
   @override
   void registerNodeProcessors(
