@@ -306,6 +306,9 @@ class TestProject {
   }
 }
 
+/// Deletes [dir] with some retries to reduce the chances of file locking errors
+/// on Windows where files may fail to delete for a short period after the
+/// process that locked them terminates.
 Future<void> deleteDirectory(Directory dir) async {
   int deleteAttempts = 5;
   while (deleteAttempts >= 0) {
