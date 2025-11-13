@@ -7,6 +7,7 @@ import 'package:analyzer/analysis_rule/rule_state.dart';
 import 'package:analyzer/error/error.dart';
 
 import '../analyzer.dart';
+import '../diagnostic.dart' as diag;
 
 const _desc =
     r'Avoid returning null from members whose return type is bool, double, int,'
@@ -21,5 +22,5 @@ class AvoidReturningNull extends AnalysisRule {
       );
 
   @override
-  DiagnosticCode get diagnosticCode => LinterLintCode.removedLint;
+  DiagnosticCode get diagnosticCode => diag.removedLint;
 }

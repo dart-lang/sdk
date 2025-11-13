@@ -26557,9 +26557,9 @@ WarningCode:
       ```
   MISSING_OVERRIDE_OF_MUST_BE_OVERRIDDEN_ONE:
     parameters:
-      String p0: the name of the member
+      String member: the name of the member
     sharedName: MISSING_OVERRIDE_OF_MUST_BE_OVERRIDDEN
-    problemMessage: "Missing concrete implementation of '#p0'."
+    problemMessage: "Missing a required override of '#member'."
     correctionMessage: Try overriding the missing member.
     hasPublishedDocs: true
     documentation: |-
@@ -26616,19 +26616,19 @@ WarningCode:
       ```
   MISSING_OVERRIDE_OF_MUST_BE_OVERRIDDEN_TWO:
     parameters:
-      String p0: the name of the first member
-      String p1: the name of the second member
+      String firstMember: the name of the first member
+      String secondMember: the name of the second member
     sharedName: MISSING_OVERRIDE_OF_MUST_BE_OVERRIDDEN
-    problemMessage: "Missing concrete implementations of '#p0' and '#p1'."
+    problemMessage: "Missing a required override of '#firstMember' and '#secondMember'."
     correctionMessage: Try overriding the missing members.
     hasPublishedDocs: true
   MISSING_OVERRIDE_OF_MUST_BE_OVERRIDDEN_THREE_PLUS:
     parameters:
-      String p0: the name of the first member
-      String p1: the name of the second member
-      String p2: the number of additional missing members that aren't listed
+      String firstMember: the name of the first member
+      String secondMember: the name of the second member
+      String additionalCount: the number of additional missing members that aren't listed
     sharedName: MISSING_OVERRIDE_OF_MUST_BE_OVERRIDDEN
-    problemMessage: "Missing concrete implementations of '#p0', '#p1', and #p2 more."
+    problemMessage: "Missing a required override of '#firstMember', '#secondMember', and #additionalCount more."
     correctionMessage: Try overriding the missing members.
     hasPublishedDocs: true
   MISSING_REQUIRED_PARAM:

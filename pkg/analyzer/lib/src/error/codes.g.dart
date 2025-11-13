@@ -4641,32 +4641,36 @@ class WarningCode {
       diag.invalidWidgetPreviewPrivateArgument;
 
   /// Parameters:
-  /// String p0: the name of the member
+  /// String member: the name of the member
   static const DiagnosticWithArguments<
-    LocatableDiagnostic Function({required String p0})
+    LocatableDiagnostic Function({required String member})
   >
   missingOverrideOfMustBeOverriddenOne =
       diag.missingOverrideOfMustBeOverriddenOne;
 
   /// Parameters:
-  /// String p0: the name of the first member
-  /// String p1: the name of the second member
-  /// String p2: the number of additional missing members that aren't listed
+  /// String firstMember: the name of the first member
+  /// String secondMember: the name of the second member
+  /// String additionalCount: the number of additional missing members that
+  ///                         aren't listed
   static const DiagnosticWithArguments<
     LocatableDiagnostic Function({
-      required String p0,
-      required String p1,
-      required String p2,
+      required String firstMember,
+      required String secondMember,
+      required String additionalCount,
     })
   >
   missingOverrideOfMustBeOverriddenThreePlus =
       diag.missingOverrideOfMustBeOverriddenThreePlus;
 
   /// Parameters:
-  /// String p0: the name of the first member
-  /// String p1: the name of the second member
+  /// String firstMember: the name of the first member
+  /// String secondMember: the name of the second member
   static const DiagnosticWithArguments<
-    LocatableDiagnostic Function({required String p0, required String p1})
+    LocatableDiagnostic Function({
+      required String firstMember,
+      required String secondMember,
+    })
   >
   missingOverrideOfMustBeOverriddenTwo =
       diag.missingOverrideOfMustBeOverriddenTwo;

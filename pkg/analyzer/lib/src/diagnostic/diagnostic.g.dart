@@ -10186,13 +10186,13 @@ const DiagnosticWithoutArguments missingNameInPartOfDirective =
     );
 
 /// Parameters:
-/// String p0: the name of the member
+/// String member: the name of the member
 const DiagnosticWithArguments<
-  LocatableDiagnostic Function({required String p0})
+  LocatableDiagnostic Function({required String member})
 >
 missingOverrideOfMustBeOverriddenOne = DiagnosticWithArguments(
   name: 'MISSING_OVERRIDE_OF_MUST_BE_OVERRIDDEN',
-  problemMessage: "Missing concrete implementation of '{0}'.",
+  problemMessage: "Missing a required override of '{0}'.",
   correctionMessage: "Try overriding the missing member.",
   hasPublishedDocs: true,
   type: DiagnosticType.STATIC_WARNING,
@@ -10202,20 +10202,20 @@ missingOverrideOfMustBeOverriddenOne = DiagnosticWithArguments(
 );
 
 /// Parameters:
-/// String p0: the name of the first member
-/// String p1: the name of the second member
-/// String p2: the number of additional missing members that aren't listed
+/// String firstMember: the name of the first member
+/// String secondMember: the name of the second member
+/// String additionalCount: the number of additional missing members that
+///                         aren't listed
 const DiagnosticWithArguments<
   LocatableDiagnostic Function({
-    required String p0,
-    required String p1,
-    required String p2,
+    required String firstMember,
+    required String secondMember,
+    required String additionalCount,
   })
 >
 missingOverrideOfMustBeOverriddenThreePlus = DiagnosticWithArguments(
   name: 'MISSING_OVERRIDE_OF_MUST_BE_OVERRIDDEN',
-  problemMessage:
-      "Missing concrete implementations of '{0}', '{1}', and {2} more.",
+  problemMessage: "Missing a required override of '{0}', '{1}', and {2} more.",
   correctionMessage: "Try overriding the missing members.",
   hasPublishedDocs: true,
   type: DiagnosticType.STATIC_WARNING,
@@ -10229,14 +10229,17 @@ missingOverrideOfMustBeOverriddenThreePlus = DiagnosticWithArguments(
 );
 
 /// Parameters:
-/// String p0: the name of the first member
-/// String p1: the name of the second member
+/// String firstMember: the name of the first member
+/// String secondMember: the name of the second member
 const DiagnosticWithArguments<
-  LocatableDiagnostic Function({required String p0, required String p1})
+  LocatableDiagnostic Function({
+    required String firstMember,
+    required String secondMember,
+  })
 >
 missingOverrideOfMustBeOverriddenTwo = DiagnosticWithArguments(
   name: 'MISSING_OVERRIDE_OF_MUST_BE_OVERRIDDEN',
-  problemMessage: "Missing concrete implementations of '{0}' and '{1}'.",
+  problemMessage: "Missing a required override of '{0}' and '{1}'.",
   correctionMessage: "Try overriding the missing members.",
   hasPublishedDocs: true,
   type: DiagnosticType.STATIC_WARNING,
@@ -19537,31 +19540,31 @@ LocatableDiagnostic _withArgumentsMissingExceptionValue({required String p0}) {
 }
 
 LocatableDiagnostic _withArgumentsMissingOverrideOfMustBeOverriddenOne({
-  required String p0,
+  required String member,
 }) {
   return LocatableDiagnosticImpl(diag.missingOverrideOfMustBeOverriddenOne, [
-    p0,
+    member,
   ]);
 }
 
 LocatableDiagnostic _withArgumentsMissingOverrideOfMustBeOverriddenThreePlus({
-  required String p0,
-  required String p1,
-  required String p2,
+  required String firstMember,
+  required String secondMember,
+  required String additionalCount,
 }) {
   return LocatableDiagnosticImpl(
     diag.missingOverrideOfMustBeOverriddenThreePlus,
-    [p0, p1, p2],
+    [firstMember, secondMember, additionalCount],
   );
 }
 
 LocatableDiagnostic _withArgumentsMissingOverrideOfMustBeOverriddenTwo({
-  required String p0,
-  required String p1,
+  required String firstMember,
+  required String secondMember,
 }) {
   return LocatableDiagnosticImpl(diag.missingOverrideOfMustBeOverriddenTwo, [
-    p0,
-    p1,
+    firstMember,
+    secondMember,
   ]);
 }
 

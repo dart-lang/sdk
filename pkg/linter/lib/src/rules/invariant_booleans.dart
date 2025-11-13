@@ -7,6 +7,7 @@ import 'package:analyzer/analysis_rule/rule_state.dart';
 import 'package:analyzer/error/error.dart';
 
 import '../analyzer.dart';
+import '../diagnostic.dart' as diag;
 
 const _desc =
     r'Conditions should not unconditionally evaluate to `true` or to `false`.';
@@ -20,5 +21,5 @@ class InvariantBooleans extends AnalysisRule {
       );
 
   @override
-  DiagnosticCode get diagnosticCode => LinterLintCode.removedLint;
+  DiagnosticCode get diagnosticCode => diag.removedLint;
 }
