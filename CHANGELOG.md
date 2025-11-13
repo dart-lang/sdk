@@ -134,6 +134,16 @@ instead.
 [writing an analyzer plugin]: https://github.com/dart-lang/sdk/blob/main/pkg/analysis_server_plugin/doc/writing_a_plugin.md
 [using analyzer plugins]: https://github.com/dart-lang/sdk/blob/main/pkg/analysis_server_plugin/doc/using_plugins.md
 
+#### Hooks
+
+Support for **hooks** -- formerly know as _native assets_ -- are now stable.
+
+You can currently use hooks to do things such as compile or download native assets
+(code written in other languages that are compiled into machine code),
+and then call these assets from the Dart code of a package.
+
+For more details see the [hooks documentation](https://dart.dev/tools/hooks).
+
 #### Dart CLI and Dart VM
 
 - The Dart CLI and Dart VM have been split into two separate executables.
