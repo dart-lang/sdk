@@ -617,7 +617,7 @@ class BodyBuilderImpl extends StackListenerImpl
   }
 
   @override
-  void registerVariableAssignment(VariableDeclaration variable) {
+  void registerVariableAssignment(ExpressionVariable variable) {
     assignedVariables.write(variable);
   }
 
@@ -10738,7 +10738,7 @@ class BodyBuilderImpl extends StackListenerImpl
       variable,
     ).buildSimpleRead();
     if (variableUse is VariableGet) {
-      VariableDeclaration variableDeclaration = variableUse.variable;
+      ExpressionVariable variableDeclaration = variableUse.variable;
       pattern = forest.createAssignedVariablePattern(
         variable.charOffset,
         variableDeclaration,

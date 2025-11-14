@@ -29,17 +29,20 @@ sealed class ExpressionVariable extends Variable {
   /// Initialization node for the variable, if available.
   abstract VariableInitialization? variableInitialization;
 
+  /// Derived from [variableInitialization], if available.
+  abstract Expression? initializer;
+
   abstract bool isFinal;
   abstract bool isConst;
-  abstract bool isHasDeclaredInitializer;
-  abstract bool isInitializingFormal;
-  abstract bool isCovariantByClass;
   abstract bool isLate;
+  abstract bool isInitializingFormal;
+  abstract bool isSynthesized;
+  abstract bool isHoisted;
+  abstract bool hasDeclaredInitializer;
+  abstract bool isCovariantByClass;
   abstract bool isRequired;
   abstract bool isCovariantByDeclaration;
   abstract bool isLowered;
-  abstract bool isSynthesized;
-  abstract bool isHoisted;
   abstract bool isWildcard;
   abstract bool isSuperInitializingFormal;
   abstract bool isErroneouslyInitialized;
@@ -150,12 +153,12 @@ class LocalVariable extends ExpressionVariable {
   }
 
   @override
-  bool get isHasDeclaredInitializer {
+  bool get hasDeclaredInitializer {
     throw new UnsupportedError("${this.runtimeType}");
   }
 
   @override
-  void set isHasDeclaredInitializer(bool value) {
+  void set hasDeclaredInitializer(bool value) {
     throw new UnsupportedError("${this.runtimeType}");
   }
 
@@ -229,6 +232,20 @@ class LocalVariable extends ExpressionVariable {
   String toString() {
     return "LocalVariable(${toStringInternal()})";
   }
+
+  @override
+  Expression? get initializer => variableInitialization?.initializer;
+
+  @override
+  void set initializer(Expression? value) {
+    if (value != null && variableInitialization == null) {
+      throw new StateError("Attempt to assign initializer to variable "
+          "without an initialization node.");
+    }
+    variableInitialization!.initializer = value;
+  }
+
+  String? get name => cosmeticName;
 }
 
 /// Abstract parameter class, the parent for positional and named parameters.
@@ -329,12 +346,12 @@ sealed class FunctionParameter extends ExpressionVariable {
   }
 
   @override
-  bool get isHasDeclaredInitializer {
+  bool get hasDeclaredInitializer {
     throw new UnsupportedError("${this.runtimeType}");
   }
 
   @override
-  void set isHasDeclaredInitializer(bool value) {
+  void set hasDeclaredInitializer(bool value) {
     throw new UnsupportedError("${this.runtimeType}");
   }
 
@@ -430,6 +447,18 @@ class PositionalParameter extends FunctionParameter {
   String toString() {
     return "PositionalParameter(${toStringInternal()})";
   }
+
+  @override
+  Expression? get initializer {
+    throw new UnsupportedError("${this.runtimeType}");
+  }
+
+  @override
+  void set initializer(Expression? value) {
+    throw new UnsupportedError("${this.runtimeType}");
+  }
+
+  String? get name => cosmeticName;
 }
 
 /// Named parameters. The [name] field is mandatory.
@@ -468,6 +497,16 @@ class NamedParameter extends FunctionParameter {
   @override
   String toString() {
     return "NamedParameter(${toStringInternal()})";
+  }
+
+  @override
+  Expression? get initializer {
+    throw new UnsupportedError("${this.runtimeType}");
+  }
+
+  @override
+  void set initializer(Expression? value) {
+    throw new UnsupportedError("${this.runtimeType}");
   }
 }
 
@@ -561,12 +600,12 @@ class ThisVariable extends ExpressionVariable {
   }
 
   @override
-  bool get isHasDeclaredInitializer {
+  bool get hasDeclaredInitializer {
     throw new UnsupportedError("${this.runtimeType}");
   }
 
   @override
-  void set isHasDeclaredInitializer(bool value) {
+  void set hasDeclaredInitializer(bool value) {
     throw new UnsupportedError("${this.runtimeType}");
   }
 
@@ -653,6 +692,18 @@ class ThisVariable extends ExpressionVariable {
 
   @override
   bool get isAssignable => false;
+
+  @override
+  Expression? get initializer {
+    throw new UnsupportedError("${this.runtimeType}");
+  }
+
+  @override
+  void set initializer(Expression? value) {
+    throw new UnsupportedError("${this.runtimeType}");
+  }
+
+  String? get name => cosmeticName;
 }
 
 /// A variable introduced during desugaring. Such variables don't correspond to
@@ -728,12 +779,12 @@ class SyntheticVariable extends ExpressionVariable {
   }
 
   @override
-  bool get isHasDeclaredInitializer {
+  bool get hasDeclaredInitializer {
     throw new UnsupportedError("${this.runtimeType}");
   }
 
   @override
-  void set isHasDeclaredInitializer(bool value) {
+  void set hasDeclaredInitializer(bool value) {
     throw new UnsupportedError("${this.runtimeType}");
   }
 
@@ -830,6 +881,20 @@ class SyntheticVariable extends ExpressionVariable {
 
   @override
   bool get isAssignable => !isConst && !isFinal;
+
+  @override
+  Expression? get initializer => variableInitialization?.initializer;
+
+  @override
+  void set initializer(Expression? value) {
+    if (value != null && variableInitialization == null) {
+      throw new StateError("Attempt to assign initializer to variable "
+          "without an initialization node.");
+    }
+    variableInitialization!.initializer = value;
+  }
+
+  String? get name => cosmeticName;
 }
 
 /// The enum reflecting the kind of a variable context. A context is

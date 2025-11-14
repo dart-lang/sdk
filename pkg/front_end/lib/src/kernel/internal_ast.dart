@@ -39,7 +39,7 @@ typedef SharedMatchContext =
       Expression,
       Pattern,
       SharedTypeView,
-      VariableDeclaration
+      ExpressionVariable
     >;
 
 mixin InternalTreeNode implements TreeNode {
@@ -398,7 +398,7 @@ class Cascade extends InternalExpression {
       printer.newLine();
     }
     printer.write('} => ');
-    printer.write(printer.getVariableDeclarationName(variable));
+    printer.write(printer.getVariableName(variable));
   }
 }
 

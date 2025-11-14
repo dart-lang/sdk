@@ -611,7 +611,7 @@ class EffectExpression implements DelayedExpression {
 /// to [_target].
 class DelayedAssignment extends DelayedExpression {
   final MatchingCache _cache;
-  final VariableDeclaration _target;
+  final ExpressionVariable _target;
   final DartType _type;
   final DelayedExpression _value;
   final bool hasEffect;

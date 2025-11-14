@@ -993,18 +993,6 @@ class CoverageVisitor implements Visitor<void> {
   }
 
   @override
-  void visitNominalParameter(NominalParameter node) {
-    visited.add(NodeKind.NominalParameter);
-    node.visitChildren(this);
-  }
-
-  @override
-  void visitTypeVariable(TypeVariable node) {
-    visited.add(NodeKind.TypeVariable);
-    node.visitChildren(this);
-  }
-
-  @override
   void visitLocalVariable(LocalVariable node) {
     visited.add(NodeKind.LocalVariable);
     node.visitChildren(this);
@@ -1031,6 +1019,18 @@ class CoverageVisitor implements Visitor<void> {
   @override
   void visitSyntheticVariable(SyntheticVariable node) {
     visited.add(NodeKind.SyntheticVariable);
+    node.visitChildren(this);
+  }
+
+  @override
+  void visitTypeVariable(TypeVariable node) {
+    visited.add(NodeKind.TypeVariable);
+    node.visitChildren(this);
+  }
+
+  @override
+  void visitNominalParameter(NominalParameter node) {
+    visited.add(NodeKind.NominalParameter);
     node.visitChildren(this);
   }
 

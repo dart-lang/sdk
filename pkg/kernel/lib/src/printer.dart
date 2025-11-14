@@ -203,15 +203,6 @@ class AstPrinter {
     return _labelNames[node] ??= 'label${_labelNames.length}';
   }
 
-  String getVariableDeclarationName(VariableDeclaration node) {
-    String? name = node.name;
-    if (name != null) {
-      return name;
-    }
-    return _variableDeclarationNames[node] ??=
-        '#${_variableDeclarationNames.length}';
-  }
-
   String getVariableName(Variable node) {
     switch (node) {
       case NamedParameter(:var name):
@@ -225,6 +216,13 @@ class AstPrinter {
       case SyntheticVariable():
       case LocalVariable():
         return _variableNames[node] ??= '#${_variableNames.length}';
+      case VariableDeclaration():
+        String? name = node.name;
+        if (name != null) {
+          return name;
+        }
+        return _variableDeclarationNames[node] ??=
+            '#${_variableDeclarationNames.length}';
     }
   }
 
@@ -497,7 +495,7 @@ class AstPrinter {
       writeType(type ?? node.type);
       _sb.write(' ');
     }
-    _sb.write(getVariableDeclarationName(node));
+    _sb.write(getVariableName(node));
     if (includeInitializer && node.initializer != null && !node.isRequired) {
       _sb.write(' = ');
       writeExpression(node.initializer!);
