@@ -555,6 +555,14 @@ abstract class Target {
 
   /// Should this target-specific pragma be recognized by annotation parsers?
   bool isSupportedPragma(String pragmaName) => false;
+
+  /// When `true` the incremental compiler will always include libraries that
+  /// apply invalidated mixins in the output of a recompile.
+  ///
+  /// They will be included even when only the mixin was edited, and even if the
+  /// invalidation was only within the body of the mixin member.
+  bool get incrementalCompilerIncludeMixinApplicationInvalidatedLibraries =>
+      false;
 }
 
 class NoneConstantsBackend extends ConstantsBackend {

@@ -332,6 +332,10 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
             reusedResult,
             c,
             uriTranslator,
+            context
+                .options
+                .target
+                .incrementalCompilerIncludeMixinApplicationInvalidatedLibraries,
           );
       recorderForTesting?.recordRebuildBodiesCount(
         experimentalInvalidation?.missingSources.length ?? 0,
@@ -528,6 +532,14 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
             c,
             cleanedUpBuilders: cleanedUpBuilders,
           );
+      if (experimentalInvalidation != null &&
+          experimentalInvalidation.invalidatedMixinApplicationLibraries !=
+              null) {
+        outputLibraries = {
+          ...outputLibraries,
+          ...experimentalInvalidation.invalidatedMixinApplicationLibraries!,
+        }.toList();
+      }
       List<String> problemsAsJson = _componentProblems.reissueProblems(
         context,
         currentKernelTarget,
@@ -1118,6 +1130,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
     ReusageResult reusedResult,
     CompilerContext c,
     UriTranslator uriTranslator,
+    bool collectMixinsToo,
   ) async {
     Set<DillLibraryBuilder>? rebuildBodies;
     Set<DillLibraryBuilder> originalNotReusedLibraries;
@@ -1232,6 +1245,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
     // procedures, if the changed file is used as a mixin anywhere else
     // we can't only recompile the changed file.
     // TODO(jensj): Check for mixins in a smarter and faster way.
+    Set<Library>? invalidatedMixinApplicationLibraries;
     if (!skipExperimentalInvalidationChecksForTesting) {
       for (LibraryBuilder builder in reusedResult.notReusedLibraries) {
         if (missingSources!.contains(builder.fileUri)) {
@@ -1255,6 +1269,13 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
               );
               return null;
             }
+          }
+          if (collectMixinsToo &&
+              c.mixedInClass != null &&
+              missingSources.contains(c.mixedInClass!.fileUri)) {
+            (invalidatedMixinApplicationLibraries ??= {}).add(
+              c.enclosingLibrary,
+            );
           }
         }
       }
@@ -1324,6 +1345,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
       rebuildBodies,
       originalNotReusedLibraries,
       missingSources,
+      invalidatedMixinApplicationLibraries,
     );
   }
 
@@ -2727,11 +2749,13 @@ class ExperimentalInvalidation {
   final Set<DillLibraryBuilder> rebuildBodies;
   final Set<DillLibraryBuilder> originalNotReusedLibraries;
   final Set<Uri> missingSources;
+  final Set<Library>? invalidatedMixinApplicationLibraries;
 
   ExperimentalInvalidation(
     this.rebuildBodies,
     this.originalNotReusedLibraries,
     this.missingSources,
+    this.invalidatedMixinApplicationLibraries,
   );
 }
 
