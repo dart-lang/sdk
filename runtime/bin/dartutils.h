@@ -337,6 +337,7 @@ class DartUtils {
   static constexpr const char* kCLILibPatchURL = "dart:cli-patch";
   static constexpr const char* kUriLibURL = "dart:uri";
   static constexpr const char* kHttpScheme = "http:";
+  static constexpr const char* kVMLibURL = "dart:_vm";
   static constexpr const char* kVMServiceLibURL = "dart:vmservice";
 
   static void SetEnvironment(dart::SimpleHashMap* environment);

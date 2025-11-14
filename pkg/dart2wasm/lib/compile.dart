@@ -578,6 +578,7 @@ Future<CompilationResult> _runCodegenPhase(
           translator.options.requireJsStringBuiltin,
           translator.internalizedStringsForJSRuntime)
       : jsRuntimeFinalizer.generate(
+          moduleOutputData.mainModule.moduleImportName,
           translator.functions.translatedProcedures,
           translator.internalizedStringsForJSRuntime,
           translator.options.requireJsStringBuiltin,

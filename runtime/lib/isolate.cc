@@ -1278,6 +1278,84 @@ DEFINE_NATIVE_ENTRY(Isolate_sendOOB, 0, 2) {
   return Object::null();
 }
 
+static void EnsureThreadLocalsTableExistsAndBigEnough(Thread* thread,
+                                                      intptr_t index) {
+  GrowableObjectArray& locals =
+      GrowableObjectArray::Handle(thread->thread_locals());
+  if (locals.IsNull()) {
+    locals = GrowableObjectArray::New();
+    thread->set_thread_locals(locals);
+  }
+  if (index >= locals.Length()) {
+    locals.Grow(index + 1);
+    intptr_t old_length = locals.Length();
+    locals.SetLength(locals.Capacity());
+    for (intptr_t i = old_length; i < locals.Capacity(); i++) {
+      locals.SetAt(i, Object::sentinel());
+    }
+  }
+}
+
+DEFINE_NATIVE_ENTRY(ScopedThreadLocal_allocateId, 0, 0) {
+  auto isolate_group = thread->isolate_group();
+  isolate_group->increment_scoped_thread_locals_count();
+  intptr_t new_index = isolate_group->scoped_thread_locals_count() - 1;
+  EnsureThreadLocalsTableExistsAndBigEnough(thread, new_index);
+  GrowableObjectArray& locals =
+      GrowableObjectArray::Handle(thread->thread_locals());
+  locals.SetAt(new_index, Object::sentinel());
+  return Integer::New(new_index);
+}
+
+static void ValidateScopedThreadLocalId(Thread* thread, intptr_t id) {
+  if (id < 0 || id >= thread->isolate_group()->scoped_thread_locals_count()) {
+    const String& msg = String::Handle(String::New("Invalid local id."));
+    Exceptions::ThrowStateError(msg);
+    UNREACHABLE();
+  }
+  EnsureThreadLocalsTableExistsAndBigEnough(thread, id);
+}
+
+DEFINE_NATIVE_ENTRY(ScopedThreadLocal_hasValue, 0, 1) {
+  GET_NON_NULL_NATIVE_ARGUMENT(Integer, id_obj, arguments->NativeArgAt(0));
+  intptr_t id = id_obj.Value();
+  ValidateScopedThreadLocalId(thread, id);
+  GrowableObjectArray& locals =
+      GrowableObjectArray::Handle(thread->thread_locals());
+  return locals.At(id) == Object::sentinel().ptr() ? Bool::False().ptr()
+                                                   : Bool::True().ptr();
+}
+
+DEFINE_NATIVE_ENTRY(ScopedThreadLocal_getValue, 0, 1) {
+  GET_NON_NULL_NATIVE_ARGUMENT(Integer, id_obj, arguments->NativeArgAt(0));
+  intptr_t id = id_obj.Value();
+  ValidateScopedThreadLocalId(thread, id);
+  GrowableObjectArray& locals =
+      GrowableObjectArray::Handle(thread->thread_locals());
+  return locals.At(id);
+}
+
+DEFINE_NATIVE_ENTRY(ScopedThreadLocal_setValue, 0, 2) {
+  GET_NON_NULL_NATIVE_ARGUMENT(Integer, id_obj, arguments->NativeArgAt(0));
+  intptr_t id = id_obj.Value();
+  ValidateScopedThreadLocalId(thread, id);
+  GET_NON_NULL_NATIVE_ARGUMENT(Instance, value, arguments->NativeArgAt(1));
+  GrowableObjectArray& locals =
+      GrowableObjectArray::Handle(thread->thread_locals());
+  locals.SetAt(id, value);
+  return Object::null();
+}
+
+DEFINE_NATIVE_ENTRY(ScopedThreadLocal_clearValue, 0, 1) {
+  GET_NON_NULL_NATIVE_ARGUMENT(Integer, id_obj, arguments->NativeArgAt(0));
+  intptr_t id = id_obj.Value();
+  ValidateScopedThreadLocalId(thread, id);
+  GrowableObjectArray& locals =
+      GrowableObjectArray::Handle(thread->thread_locals());
+  locals.SetAt(id, Object::sentinel());
+  return Object::null();
+}
+
 static void ExternalTypedDataFinalizer(void* isolate_callback_data,
                                        void* peer) {
   free(peer);

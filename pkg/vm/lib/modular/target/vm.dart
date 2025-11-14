@@ -98,6 +98,7 @@ class VmTarget extends Target {
     'dart:mirrors',
 
     'dart:typed_data',
+    'dart:_vm',
     'dart:vmservice_io',
     'dart:_vmservice',
     'dart:_builtin',

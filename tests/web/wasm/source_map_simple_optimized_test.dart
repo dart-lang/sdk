@@ -12,8 +12,8 @@ void main() {
 
 const List<(String?, int?, int?, String?)?> frameDetails = [
   ('errors_patch.dart', null, null, '_throwWithCurrentStackTrace'),
-  ('source_map_simple_lib.dart', 16, 3, 'g'),
-  ('source_map_simple_lib.dart', 12, 3, 'f'),
+  ('source_map_simple_lib.dart', 18, 3, 'g'),
+  ('source_map_simple_lib.dart', 14, 3, 'f'),
 ];
 
 /*

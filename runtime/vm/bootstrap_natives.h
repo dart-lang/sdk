@@ -281,6 +281,11 @@ namespace dart {
   V(Internal_allocateObjectInstructionsEnd, 0)                                 \
   V(InvocationMirror_unpackTypeArguments, 2)                                   \
   V(NoSuchMethodError_existingMethodSignature, 3)                              \
+  V(ScopedThreadLocal_allocateId, 0)                                           \
+  V(ScopedThreadLocal_clearValue, 1)                                           \
+  V(ScopedThreadLocal_getValue, 1)                                             \
+  V(ScopedThreadLocal_hasValue, 1)                                             \
+  V(ScopedThreadLocal_setValue, 2)                                             \
   V(Uri_isWindowsPlatform, 0)                                                  \
   V(UserTag_new, 2)                                                            \
   V(UserTag_label, 1)                                                          \

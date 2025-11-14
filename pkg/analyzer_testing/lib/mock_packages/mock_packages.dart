@@ -5,6 +5,13 @@
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/file_system/physical_file_system.dart';
 import 'package:analyzer_testing/package_root.dart' as package_root;
+import 'package:analyzer_testing/src/mock_packages/fixnum/fixnum.dart'
+    as mock_fixnum;
+import 'package:analyzer_testing/src/mock_packages/mock_library.dart';
+import 'package:analyzer_testing/src/mock_packages/test_reflective_loader/test_reflective_loader.dart'
+    as test_reflective_loader;
+import 'package:analyzer_testing/src/mock_packages/vector_math/vector_math.dart'
+    as mock_vector_math;
 import 'package:analyzer_testing/utilities/extensions/resource_provider.dart';
 import 'package:path/path.dart' as path;
 
@@ -97,7 +104,7 @@ mixin MockPackagesMixin {
   }
 
   Folder addFixnum() {
-    var packageFolder = _addFiles('fixnum');
+    var packageFolder = _addFiles2('fixnum', mock_fixnum.units);
     return packageFolder.getChildAssumingFolder('lib');
   }
 
@@ -144,7 +151,10 @@ mixin MockPackagesMixin {
   }
 
   Folder addTestReflectiveLoader() {
-    var packageFolder = _addFiles('test_reflective_loader');
+    var packageFolder = _addFiles2(
+      'test_reflective_loader',
+      test_reflective_loader.units,
+    );
     return packageFolder.getChildAssumingFolder('lib');
   }
 
@@ -154,11 +164,15 @@ mixin MockPackagesMixin {
   }
 
   Folder addVectorMath() {
-    var packageFolder = _addFiles('vector_math');
+    var packageFolder = _addFiles2('vector_math', mock_vector_math.units);
     return packageFolder.getChildAssumingFolder('lib');
   }
 
   /// Adds files of the given [packageName] to the [resourceProvider].
+  ///
+  /// This method adds files from the sources found in
+  /// [package_root.packageRoot]. The mock sources are being moved to
+  /// `lib/src/mock_sources/`, accessible via [_addFiles2].
   Folder _addFiles(String packageName) {
     Map<String, String> cachedFiles;
     try {
@@ -186,5 +200,22 @@ mixin MockPackagesMixin {
       resourceProvider.convertPath(packagesRootPath),
     );
     return packagesFolder.getChildAssumingFolder(packageName);
+  }
+
+  /// Adds files of the given [packageName] to the [resourceProvider].
+  Folder _addFiles2(String packageName, List<MockLibraryUnit> units) {
+    var absolutePackagePath = resourceProvider.convertPath(
+      '$packagesRootPath/$packageName/$packageName',
+    );
+    for (var unit in units) {
+      var absoluteUnitPath = resourceProvider.convertPath(
+        '$absolutePackagePath/${unit.path}',
+      );
+      resourceProvider
+          .getFile(absoluteUnitPath)
+          .writeAsStringSync(unit.content);
+    }
+
+    return resourceProvider.getFolder(absolutePackagePath);
   }
 }

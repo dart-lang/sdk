@@ -12,8 +12,8 @@
     (field $field0 i32)
     (field $field1 (mut i32))
     (field $b (ref $JSStringImpl)))))
-  (global $S.shared-const (import "S" "shared-const") (ref extern))
-  (global $S.h0-nonshared-const (import "S" "h0-nonshared-const") (ref extern))
+  (global $.shared-const (import "" "shared-const") (ref extern))
+  (global $.h0-nonshared-const (import "" "h0-nonshared-const") (ref extern))
   (table $module0.constant-table0 (import "module0" "constant-table0") 1 (ref null $JSStringImpl))
   (table $module0.constant-table1 (import "module0" "constant-table1") 1 (ref null $MyConstClass))
   (global $"C492 MyConstClass" (ref $MyConstClass)
@@ -21,7 +21,7 @@
     (i32.const 0)
     (i32.const 4)
     (i32.const 0)
-    (global.get $S.h0-nonshared-const)
+    (global.get $.h0-nonshared-const)
     (struct.new $JSStringImpl)
     (struct.new $MyConstClass))
   (func $"modH0Use <noInline>" (param $var0 i32) (result (ref $MyConstClass))
@@ -45,7 +45,7 @@
           i32.const 0
           i32.const 4
           i32.const 0
-          global.get $S.shared-const
+          global.get $.shared-const
           struct.new $JSStringImpl
           local.tee $var1
           table.set $module0.constant-table0

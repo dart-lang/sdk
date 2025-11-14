@@ -200,7 +200,7 @@ final moduleLoadingHelperTemplate = Template(r'''
             ...baseImports,
             ...additionalImports,
             <<JS_POLYFILL_IMPORT>>
-            "module0": dartInstance.exports,
+            "<<MAIN_MODULE_NAME>>": dartInstance.exports,
           });
         }
         const promises = [];
@@ -222,7 +222,7 @@ final moduleLoadingHelperTemplate = Template(r'''
             ...baseImports,
             ...additionalImports,
             <<JS_POLYFILL_IMPORT>>
-            "module0": dartInstance.exports,
+            "<<MAIN_MODULE_NAME>>": dartInstance.exports,
           });
         }
       },
@@ -235,7 +235,7 @@ final moduleLoadingHelperTemplate = Template(r'''
             ? WebAssembly.compileStreaming(source, this.builtins)
             : WebAssembly.compile(source, this.builtins));
         const loadedModule = await WebAssembly.instantiate(module, {
-          "module0": dartInstance.exports,
+          "<<MAIN_MODULE_NAME>>": dartInstance.exports,
           ...jsModule.imports(finalizeWrapper),
         });
         return loadedModule.exports.$invokeEntryPoint;
