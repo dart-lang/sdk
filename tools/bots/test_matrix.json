@@ -823,7 +823,7 @@
             "-j2"
           ],
           "fileset": "vm",
-          "shards": 10
+          "shards": 16
         }
       ]
     },
