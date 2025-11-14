@@ -172,6 +172,7 @@ class AbstractContextTest with MockPackagesMixin, ResourceProviderMixin {
       includedPaths: collectionIncludedPaths.map(convertPath).toList(),
       resourceProvider: resourceProvider,
       sdkPath: sdkRoot.path,
+      withFineDependencies: true,
     );
   }
 }
