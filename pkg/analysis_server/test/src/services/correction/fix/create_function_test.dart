@@ -442,7 +442,7 @@ void f() {
   test(throw 42);
 }
 
-void test(param0) {
+void test(Object? object) {
 }
 ''');
   }
@@ -731,7 +731,7 @@ void f() {
   test(null);
 }
 
-void test(param0) {
+void test(Object? object) {
 }
 ''');
   }

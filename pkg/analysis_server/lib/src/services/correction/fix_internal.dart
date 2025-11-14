@@ -731,6 +731,7 @@ final _builtInNonLintGenerators = <DiagnosticCode, List<ProducerGenerator>>{
   ],
   diag.superFormalParameterWithoutAssociatedNamed: [
     ChangeTo.superFormalParameter,
+    AddMissingParameterNamed.new,
   ],
   diag.superInvocationNotLast: [MakeSuperInvocationLast.new],
   diag.switchCaseCompletesNormally: [AddSwitchCaseBreak.new],
@@ -1104,6 +1105,12 @@ final _builtInNonLintMultiGenerators = {
     CreateClass.new,
     CreateMixin.new,
     ImportLibrary.forType,
+  ],
+  diag.positionalSuperFormalParameterWithPositionalArgument: [
+    AddMissingParameter.new,
+  ],
+  diag.superFormalParameterWithoutAssociatedPositional: [
+    AddMissingParameter.new,
   ],
   diag.uncheckedMethodInvocationOfNullableValue: [
     ImportLibrary.forExtensionMember,

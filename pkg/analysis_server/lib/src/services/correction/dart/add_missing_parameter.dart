@@ -6,6 +6,10 @@ import 'package:analysis_server/src/services/correction/executable_parameters.da
 import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analysis_server_plugin/edit/dart/correction_producer.dart';
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/nullability_suffix.dart';
+import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 
@@ -15,19 +19,28 @@ class AddMissingParameter extends MultiCorrectionProducer {
   @override
   Future<List<ResolvedCorrectionProducer>> get producers async {
     // `node` is the unmatched argument.
-    var argumentList = node.parent;
-    if (argumentList is! ArgumentList) {
-      return const [];
+    var parent = node.parent;
+    AstNode? invocation;
+    Element? element;
+    if (parent is DefaultFormalParameter) {
+      parent = parent.parent;
+    }
+    if (parent case FormalParameterList(
+      parent: ConstructorDeclaration(:var declaredFragment?),
+    )) {
+      element = declaredFragment.element.superConstructor;
+    } else if (parent case ArgumentList(:var parent)) {
+      invocation = parent;
     }
 
-    var invocation = argumentList.parent;
-    if (invocation == null) {
+    if (invocation == null && element == null) {
       return const [];
     }
 
     var executableParameters = ExecutableParameters.forInvocation(
       sessionHelper,
       invocation,
+      element: element,
     );
     if (executableParameters == null) {
       return const [];
@@ -62,6 +75,9 @@ class _AddMissingOptionalPositionalParameter extends _AddMissingParameter {
   FixKind get fixKind => DartFixKind.addMissingParameterPositional;
 
   @override
+  bool get isOptional => true;
+
+  @override
   Future<void> compute(ChangeBuilder builder) async {
     var prefix = _executableParameters.required.isNotEmpty ? ', [' : '[';
     if (_executableParameters.required.isNotEmpty) {
@@ -90,6 +106,8 @@ abstract class _AddMissingParameter extends ResolvedCorrectionProducer {
       // TODO(applicability): comment on why.
       CorrectionApplicability.singleLocation;
 
+  bool get isOptional;
+
   Future<void> _addParameter(
     ChangeBuilder builder,
     int? offset,
@@ -97,17 +115,16 @@ abstract class _AddMissingParameter extends ResolvedCorrectionProducer {
     String suffix,
   ) async {
     // node is the unmatched argument.
-    var argumentList = node.parent;
-    if (argumentList is! ArgumentList) {
+    if (offset == null) {
       return;
     }
-    List<Expression> arguments = argumentList.arguments;
-    var numRequired = _executableParameters.required.length;
-    if (numRequired >= arguments.length) {
-      return;
-    }
-    var argument = arguments[numRequired];
-    if (offset != null) {
+    var parent = node.parent;
+    if (parent case ArgumentList(:var arguments)) {
+      var numRequired = _executableParameters.required.length;
+      if (numRequired >= arguments.length) {
+        return;
+      }
+      var argument = arguments[numRequired];
       await builder.addDartFileEdit(_executableParameters.file, (builder) {
         builder.addInsertion(offset, (builder) {
           builder.write(prefix);
@@ -115,7 +132,44 @@ abstract class _AddMissingParameter extends ResolvedCorrectionProducer {
             argument,
             numRequired,
             <String>{},
+            isOptional: isOptional,
           );
+          builder.write(suffix);
+        });
+      });
+    }
+    if (parent is DefaultFormalParameter) {
+      parent = parent.parent;
+    }
+    if (parent case FormalParameterList(:var parameters)) {
+      var numRequired = _executableParameters.required.length;
+      if (numRequired >= parameters.length) {
+        return;
+      }
+      var parameter = parameters[numRequired];
+      await builder.addDartFileEdit(_executableParameters.file, (builder) {
+        SuperFormalParameter formalParameter;
+        DartType? type;
+        if (parameter case DefaultFormalParameter(
+          :var defaultValue,
+          :SuperFormalParameter parameter,
+        )) {
+          formalParameter = parameter;
+          type = parameter.type?.type ?? defaultValue?.staticType;
+        } else if (parameter is SuperFormalParameter) {
+          formalParameter = parameter;
+          type = formalParameter.type?.type;
+        } else {
+          return;
+        }
+        if (isOptional &&
+            type is TypeImpl &&
+            type.nullabilitySuffix != NullabilitySuffix.question) {
+          type = type.withNullability(NullabilitySuffix.question);
+        }
+        builder.addInsertion(offset, (builder) {
+          builder.write(prefix);
+          builder.writeFormalParameter(formalParameter.name.lexeme, type: type);
           builder.write(suffix);
         });
       });
@@ -133,6 +187,9 @@ class _AddMissingRequiredPositionalParameter extends _AddMissingParameter {
 
   @override
   FixKind get fixKind => DartFixKind.addMissingParameterRequired;
+
+  @override
+  bool get isOptional => false;
 
   @override
   Future<void> compute(ChangeBuilder builder) async {
