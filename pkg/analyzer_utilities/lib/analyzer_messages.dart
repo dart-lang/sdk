@@ -187,6 +187,7 @@ const transformSetErrorCodeFile = GeneratedDiagnosticFile(
 /// Decoded messages from the analysis server's `messages.yaml` file.
 final List<AnalyzerMessage> analysisServerMessages = decodeAnalyzerMessagesYaml(
   analysisServerPkgPath,
+  package: AnalyzerDiagnosticPackage.analysisServer,
 );
 
 /// The path to the `analysis_server` package.
@@ -197,6 +198,7 @@ final String analysisServerPkgPath = normalize(
 /// Decoded messages from the analyzer's `messages.yaml` file.
 final List<AnalyzerMessage> analyzerMessages = decodeAnalyzerMessagesYaml(
   analyzerPkgPath,
+  package: AnalyzerDiagnosticPackage.analyzer,
 );
 
 /// The path to the `analyzer` package.
@@ -211,6 +213,7 @@ final String linterPkgPath = normalize(join(pkg_root.packageRoot, 'linter'));
 final List<AnalyzerMessage> lintMessages = decodeAnalyzerMessagesYaml(
   linterPkgPath,
   allowLinterKeys: true,
+  package: AnalyzerDiagnosticPackage.linter,
 );
 
 /// Decodes a YAML object (in analyzer style `messages.yaml` format) into a list
@@ -221,6 +224,7 @@ final List<AnalyzerMessage> lintMessages = decodeAnalyzerMessagesYaml(
 List<AnalyzerMessage> decodeAnalyzerMessagesYaml(
   String packagePath, {
   bool allowLinterKeys = false,
+  required AnalyzerDiagnosticPackage package,
 }) {
   var path = join(packagePath, 'messages.yaml');
   var yaml = loadYamlNode(
@@ -277,6 +281,7 @@ List<AnalyzerMessage> decodeAnalyzerMessagesYaml(
             messageYaml,
             analyzerCode: analyzerCode,
             allowLinterKeys: allowLinterKeys,
+            package: package,
           );
         },
       );
@@ -357,6 +362,7 @@ class AliasMessage extends AnalyzerMessage {
     required this.aliasFor,
     required super.analyzerCode,
     required super.allowLinterKeys,
+    required super.package,
   }) : super._();
 
   String get aliasForClass => aliasFor.split('.').first;
@@ -471,10 +477,14 @@ class AnalyzerMessage extends Message with MessageWithAnalyzerCode {
   @override
   final bool hasPublishedDocs;
 
+  @override
+  final AnalyzerDiagnosticPackage package;
+
   factory AnalyzerMessage(
     MessageYaml messageYaml, {
     required AnalyzerCode analyzerCode,
     required bool allowLinterKeys,
+    required AnalyzerDiagnosticPackage package,
   }) {
     if (messageYaml.getOptionalString('aliasFor') case var aliasFor?) {
       return AliasMessage(
@@ -482,12 +492,14 @@ class AnalyzerMessage extends Message with MessageWithAnalyzerCode {
         aliasFor: aliasFor,
         analyzerCode: analyzerCode,
         allowLinterKeys: allowLinterKeys,
+        package: package,
       );
     } else {
       return AnalyzerMessage._(
         messageYaml,
         analyzerCode: analyzerCode,
         allowLinterKeys: allowLinterKeys,
+        package: package,
       );
     }
   }
@@ -496,6 +508,7 @@ class AnalyzerMessage extends Message with MessageWithAnalyzerCode {
     MessageYaml messageYaml, {
     required this.analyzerCode,
     required bool allowLinterKeys,
+    required this.package,
   }) : hasPublishedDocs = messageYaml.getBool('hasPublishedDocs'),
        super(messageYaml) {
     // Ignore extra keys related to analyzer example-based tests.
@@ -650,6 +663,9 @@ mixin MessageWithAnalyzerCode on Message {
   ///
   /// `null` if the YAML doesn't contain this information.
   bool get hasPublishedDocs;
+
+  /// The package into which this error code will be generated.
+  AnalyzerDiagnosticPackage get package;
 
   void outputConstantHeader(StringSink out) {
     out.write(toAnalyzerComments(indent: '  '));

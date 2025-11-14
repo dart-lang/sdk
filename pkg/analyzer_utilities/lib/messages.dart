@@ -448,11 +448,18 @@ class DiagnosticTables {
                     analyzerCode.snakeCaseName] ??=
                 [])
             .add(message);
-        var diagnosticClass = analyzerCode.diagnosticClass;
-        if (!message.isRemoved && message is! AliasMessage) {
-          (activeMessagesByPackage[diagnosticClass.file.package] ??= []).add(
-            message,
+        var package = message.package;
+        if (analyzerCode.diagnosticClass.file.package != package) {
+          throw LocatedError(
+            'Expected to generate this analyzer code to '
+            'package:${package.dirName}, but its diagnostic class '
+            '(${analyzerCode.diagnosticClass.name}) lives in '
+            'package:${analyzerCode.diagnosticClass.file.package.dirName}',
+            span: message.keySpan,
           );
+        }
+        if (!message.isRemoved && message is! AliasMessage) {
+          (activeMessagesByPackage[package] ??= []).add(message);
         }
       }
     }
@@ -979,6 +986,9 @@ class SharedMessage extends CfeStyleMessage with MessageWithAnalyzerCode {
         decode: _decodeAnalyzerCode,
       ),
       hasPublishedDocs = messageYaml.getBool('hasPublishedDocs');
+
+  @override
+  AnalyzerDiagnosticPackage get package => AnalyzerDiagnosticPackage.analyzer;
 
   static AnalyzerCode _decodeAnalyzerCode(YamlNode node) {
     switch (node) {
