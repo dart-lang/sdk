@@ -18,9 +18,9 @@
   (func $"dart2wasm._275 (import)" (import "dart2wasm" "_275") (param externref) (result externref))
   (func $"dart2wasm._147 (import)" (import "dart2wasm" "_147") (param externref) (result f64))
   (func $"dart2wasm._148 (import)" (import "dart2wasm" "_148") (param f64) (result externref))
-  (table $dtable1 666 funcref)
-  (global $"C66 WasmArray<WasmArray<_Type>>[727]" (ref $Array<WasmArray<_Type>>) <...>)
-  (global $"C311 _TopType" (ref $_TopType) <...>)
+  (table $dtable1 745 funcref)
+  (global $"C66 WasmArray<WasmArray<_Type>>[729]" (ref $Array<WasmArray<_Type>>) <...>)
+  (global $"C319 _TopType" (ref $_TopType) <...>)
   (global $"numValueNullable initialized" (mut i32) <...>)
   (global $numValueNullable (mut (ref null $#Top)) <...>)
   (global $"ktrue initialized" (mut i32) <...>)
@@ -71,7 +71,7 @@
     if (result (ref null $BoxedDouble))
       ref.null none
     else
-      i32.const 76
+      i32.const 84
       local.get $var0
       call $"dart2wasm._147 (import)"
       struct.new $BoxedDouble
@@ -99,12 +99,12 @@
     call $"sinkNum <noInline>"
   )
   (func $"testNumValueNullable <noInline>"
-    (local $var0 i32)
-    (local $var1 (ref null $#Top))
-    (local $var2 (ref $#Top))
-    (local $var3 (ref $_TopType))
-    (local $var4 (ref $Array<_Type>))
-    (local $var5 externref)
+    (local $var0 (ref null $#Top))
+    (local $var1 (ref $#Top))
+    (local $var2 (ref $_TopType))
+    (local $var3 (ref $Array<_Type>))
+    (local $var4 externref)
+    (local $var5 i32)
     global.get $"numValueNullable initialized"
     i32.eqz
     if
@@ -128,137 +128,154 @@
       global.set $"numValueNullable initialized"
     end
     global.get $numValueNullable
-    local.tee $var1
+    local.tee $var0
     ref.is_null
     if (result externref)
       ref.null noextern
     else
       block $label1 (result externref)
         ref.null noextern
-        local.get $var1
+        local.get $var0
         ref.is_null
         br_if $label1
         drop
         block $label2 (result i32)
           i32.const 1
-          local.get $var1
+          local.get $var0
           struct.get $#Top $field0
-          local.tee $var0
-          i32.const 63
+          local.tee $var5
+          i32.const 65
           i32.eq
           br_if $label2
           drop
           i32.const 1
-          local.get $var0
-          i32.const 76
+          local.get $var5
+          i32.const 84
           i32.eq
           br_if $label2
           drop
           i32.const 0
         end $label2
         if
-          local.get $var1
+          local.get $var0
           ref.as_non_null
           call $jsifyNum
           br $label1
         end
-        local.get $var1
-        struct.get $#Top $field0
-        i32.const 90
-        i32.sub
-        local.tee $var0
-        i32.const 9
-        i32.ge_u
         local.get $var0
+        struct.get $#Top $field0
+        i32.const 86
+        i32.sub
         i32.const 10
         i32.ge_u
-        i32.and
         if
-          local.get $var1
-          ref.as_non_null
-          local.tee $var2
-          struct.get $#Top $field0
-          local.tee $var0
-          i32.const 167
-          i32.eq
-          if (result i32)
-            i32.const 0
-          else
+          block $label3 (result i32)
+            i32.const 1
             local.get $var0
-            i32.const 167
-            call $_TypeUniverse._checkSubclassRelationshipViaTable
-          end
-          local.tee $var0
-          i32.const -1
-          i32.eq
-          if (result i32)
+            struct.get $#Top $field0
+            local.tee $var5
+            i32.const 70
+            i32.eq
+            br_if $label3
+            drop
+            i32.const 1
+            local.get $var5
+            i32.const 86
+            i32.sub
+            i32.const 10
+            i32.lt_u
+            br_if $label3
+            drop
             i32.const 0
-          else
-            global.get $"C311 _TopType"
-            local.set $var3
-            block $label3 (result i32)
-              local.get $var2
-              local.get $var2
-              struct.get $#Top $field0
-              i32.const 327
-              i32.add
-              call_indirect (param (ref $#Top)) (result (ref $Array<_Type>))
-              local.set $var4
-              local.get $var0
-              i32.eqz
-              if
-                local.get $var4
+          end $label3
+          i32.eqz
+          if
+            local.get $var0
+            ref.as_non_null
+            local.tee $var1
+            struct.get $#Top $field0
+            local.tee $var5
+            i32.const 180
+            i32.eq
+            if (result i32)
+              i32.const 0
+            else
+              local.get $var5
+              i32.const 180
+              call $_TypeUniverse._checkSubclassRelationshipViaTable
+            end
+            local.tee $var5
+            i32.const -1
+            i32.eq
+            if (result i32)
+              i32.const 0
+            else
+              global.get $"C319 _TopType"
+              local.set $var2
+              block $label4 (result i32)
+                local.get $var1
+                local.get $var1
+                struct.get $#Top $field0
+                i32.const 354
+                i32.add
+                call_indirect (param (ref $#Top)) (result (ref $Array<_Type>))
+                local.set $var3
+                local.get $var5
+                i32.eqz
+                if
+                  local.get $var3
+                  i32.const 0
+                  array.get $Array<_Type>
+                  ref.null none
+                  local.get $var2
+                  ref.null none
+                  call $_TypeUniverse.isSubtype
+                  br $label4
+                end
+                global.get $"C66 WasmArray<WasmArray<_Type>>[729]"
+                local.get $var5
+                array.get $Array<WasmArray<_Type>>
                 i32.const 0
                 array.get $Array<_Type>
-                ref.null none
                 local.get $var3
+                call $_TypeUniverse.substituteTypeArgument
+                ref.null none
+                local.get $var2
                 ref.null none
                 call $_TypeUniverse.isSubtype
-                br $label3
-              end
-              global.get $"C66 WasmArray<WasmArray<_Type>>[727]"
-              local.get $var0
-              array.get $Array<WasmArray<_Type>>
-              i32.const 0
-              array.get $Array<_Type>
-              local.get $var4
-              call $_TypeUniverse.substituteTypeArgument
-              ref.null none
-              local.get $var3
-              ref.null none
-              call $_TypeUniverse.isSubtype
-            end $label3
-          end
-          if
-            unreachable
-          else
-            local.get $var2
-            struct.get $#Top $field0
-            i32.const 89
-            i32.eq
+              end $label4
+            end
             if
               unreachable
             else
-              local.get $var2
-              extern.externalize
-              ref.as_non_null
-              br $label1
+              local.get $var1
+              struct.get $#Top $field0
+              i32.const 64
+              i32.eq
+              if
+                unreachable
+              else
+                local.get $var1
+                extern.externalize
+                ref.as_non_null
+                br $label1
+              end
+              unreachable
             end
             unreachable
           end
-          unreachable
         end
         ref.null noextern
       end $label1
     end
     call $"dart2wasm._275 (import)"
-    local.tee $var5
+    local.tee $var4
     call $isDartNull
     if (result (ref null $BoxedDouble))
       ref.null none
     else
-      i32.const 76
-      local.get $var5
+      i32.const 84
+      local.get $var4
       call $"dart2wasm._147 (import)"
       struct.new $BoxedDouble
     end
