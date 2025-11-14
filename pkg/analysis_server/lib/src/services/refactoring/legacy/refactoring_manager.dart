@@ -40,7 +40,7 @@ bool test_simulateRefactoringReset_afterInitialConditions = false;
 /// Once new set of parameters is received, the previous [Refactoring] instance
 /// is invalidated and a new one is created and initialized.
 class RefactoringManager {
-  static const List<RefactoringProblem> EMPTY_PROBLEM_LIST =
+  static const List<RefactoringProblem> _emptyProblemList =
       <RefactoringProblem>[];
 
   final LegacyAnalysisServer server;
@@ -104,9 +104,9 @@ class RefactoringManager {
     // prepare for processing the request
     this.request = request;
     var result = this.result = EditGetRefactoringResult(
-      EMPTY_PROBLEM_LIST,
-      EMPTY_PROBLEM_LIST,
-      EMPTY_PROBLEM_LIST,
+      _emptyProblemList,
+      _emptyProblemList,
+      _emptyProblemList,
     );
 
     // process the request

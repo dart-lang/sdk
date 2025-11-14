@@ -50,23 +50,23 @@ analyzer:
     String import = "import '$nextFile' as nextFile;";
     String export = "export '$nextFile';";
     switch (copyType) {
-      case CodeType.ImportCycle:
+      case CodeType.importCycle:
         export = '';
-      case CodeType.ImportChain:
+      case CodeType.importChain:
         export = '';
         if (i == numFiles) {
           import = '';
         }
-      case CodeType.ImportExportChain:
+      case CodeType.importExportChain:
         if (i == numFiles) {
           import = '';
           export = '';
         }
-      case CodeType.ImportCycleExportChain:
+      case CodeType.importCycleExportChain:
         if (i == numFiles) {
           export = '';
         }
-      case CodeType.ImportExportCycle:
+      case CodeType.importExportCycle:
       // As default values.
     }
 
@@ -241,11 +241,11 @@ String getFilenameFor(int i) {
 }
 
 enum CodeType {
-  ImportCycle,
-  ImportChain,
-  ImportExportCycle,
-  ImportExportChain,
-  ImportCycleExportChain,
+  importCycle,
+  importChain,
+  importExportCycle,
+  importExportChain,
+  importCycleExportChain,
 }
 
 class FileContentPair {

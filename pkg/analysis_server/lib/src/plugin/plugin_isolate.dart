@@ -239,11 +239,11 @@ class PluginIsolate {
 class PluginSession {
   /// The maximum number of milliseconds that server should wait for a response
   /// from a plugin before deciding that the plugin is hung.
-  static const Duration MAXIMUM_RESPONSE_TIME = Duration(minutes: 2);
+  static const Duration _maximumResponseTime = Duration(minutes: 2);
 
   /// The length of time to wait after sending a 'plugin.shutdown' request
   /// before a failure to terminate will cause the isolate to be killed.
-  static const Duration WAIT_FOR_SHUTDOWN_DURATION = Duration(seconds: 10);
+  static const Duration _waitForShutdownDuration = Duration(seconds: 10);
 
   /// The information about the plugin being executed.
   final PluginIsolate _isolate;
@@ -349,7 +349,7 @@ class PluginSession {
     // identify non-responsive plugins and kill them.
     var cutOffTime =
         DateTime.now().millisecondsSinceEpoch -
-        MAXIMUM_RESPONSE_TIME.inMilliseconds;
+        _maximumResponseTime.inMilliseconds;
     for (var requestData in pendingRequests.values) {
       if (requestData.requestTime < cutOffTime) {
         return true;
@@ -476,7 +476,7 @@ class PluginSession {
       throw StateError('Cannot stop a plugin that is not running.');
     }
     sendRequest(PluginShutdownParams());
-    Future.delayed(WAIT_FOR_SHUTDOWN_DURATION, () {
+    Future.delayed(_waitForShutdownDuration, () {
       if (channel != null) {
         channel?.kill();
         channel = null;

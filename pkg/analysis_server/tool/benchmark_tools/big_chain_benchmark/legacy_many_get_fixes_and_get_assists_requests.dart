@@ -45,7 +45,7 @@ class LegacyManyGetFixesAndGetAssisstRequestsBenchmark
   ) : super(useLspProtocol: false);
 
   @override
-  LaunchFrom get launchFrom => LaunchFrom.Dart;
+  LaunchFrom get launchFrom => LaunchFrom.dart;
 
   @override
   Future<void> afterInitialization() async {

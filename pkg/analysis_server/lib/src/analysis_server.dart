@@ -572,12 +572,12 @@ abstract class AnalysisServer {
     bool registerExperimentalHandlers = false,
   }) async {
     switch (dtd?.state) {
-      case DtdConnectionState.Connecting || DtdConnectionState.Connected:
+      case DtdConnectionState.connecting || DtdConnectionState.connected:
         return lsp.error(
           lsp.ServerErrorCodes.stateError,
           'Server is already connected to DTD',
         );
-      case DtdConnectionState.Disconnected || DtdConnectionState.Error || null:
+      case DtdConnectionState.disconnected || DtdConnectionState.error || null:
         var connectResult = await DtdServices.connect(
           this,
           dtdUri,

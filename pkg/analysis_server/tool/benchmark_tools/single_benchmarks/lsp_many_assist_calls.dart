@@ -15,18 +15,18 @@ Future<void> main(List<String> args) async {
   await runHelper(
     args,
     LspManyAssistCalls.new,
-    createData,
+    _createData,
     sizeOptions: [2000, 4000, 8000],
-    extraIterations: getExtraIterations,
+    extraIterations: _getExtraIterations,
     runAsLsp: true,
   );
 }
 
-RunDetails createData(
+RunDetails _createData(
   Uri packageDirUri,
   Uri outerDirForAdditionalData,
   int size,
-  LineEndings? lineEnding,
+  _LineEndings? lineEnding,
   List<String> args, {
   // unused
   required dynamic extraInformation,
@@ -46,7 +46,7 @@ RunDetails createData(
     content.add('  }');
     content.add('}');
   }
-  var lineEndingString = lineEnding == LineEndings.Windows ? '\r\n' : '\n';
+  var lineEndingString = lineEnding == _LineEndings.windows ? '\r\n' : '\n';
   var contentString = content.join(lineEndingString);
   File.fromUri(uri).writeAsStringSync(contentString);
   return RunDetails(
@@ -55,14 +55,14 @@ RunDetails createData(
   );
 }
 
-List<LineEndings> getExtraIterations(List<String> args) {
-  var lineEndings = LineEndings.values;
+List<_LineEndings> _getExtraIterations(List<String> args) {
+  var lineEndings = _LineEndings.values;
   for (String arg in args) {
     if (arg.startsWith('--types=')) {
       lineEndings = [];
       for (var type in arg.substring('--types='.length).split(',')) {
         type = type.toLowerCase();
-        for (var value in LineEndings.values) {
+        for (var value in _LineEndings.values) {
           if (value.name.toLowerCase().contains(type)) {
             lineEndings.add(value);
           }
@@ -80,8 +80,6 @@ class FileContentPair {
   FileContentPair(this.uri, this.content);
 }
 
-enum LineEndings { Windows, Unix }
-
 class LspManyAssistCalls extends DartLanguageServerBenchmark {
   @override
   final Uri rootUri;
@@ -98,7 +96,7 @@ class LspManyAssistCalls extends DartLanguageServerBenchmark {
   ) : super(useLspProtocol: true);
 
   @override
-  LaunchFrom get launchFrom => LaunchFrom.Dart;
+  LaunchFrom get launchFrom => LaunchFrom.dart;
 
   @override
   Future<void> afterInitialization() async {
@@ -159,3 +157,5 @@ class RunDetails {
 
   RunDetails({required this.mainFile, required this.lineEnding});
 }
+
+enum _LineEndings { windows, unix }
