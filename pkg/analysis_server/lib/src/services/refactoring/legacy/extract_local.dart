@@ -27,7 +27,7 @@ import 'package:analyzer/src/generated/java_core.dart';
 import 'package:analyzer/src/utilities/dot_shorthands.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
 
-const String _TOKEN_SEPARATOR = '\uFFFF';
+const String _tokenSeparator = '\uFFFF';
 
 /// [ExtractLocalRefactoring] implementation.
 class ExtractLocalRefactoringImpl extends RefactoringImpl
@@ -440,8 +440,8 @@ class ExtractLocalRefactoringImpl extends RefactoringImpl
           // done
           return tokenString;
         })
-        .join(_TOKEN_SEPARATOR);
-    return result + _TOKEN_SEPARATOR;
+        .join(_tokenSeparator);
+    return result + _tokenSeparator;
   }
 
   /// Return the [AstNode] to defined the variable before.

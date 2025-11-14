@@ -296,6 +296,40 @@ suggestions
 ''');
   }
 
+  Future<void> test_dotShorthands_constructor() async {
+    await computeSuggestions('''
+class A {
+  A({int? foo01, int? foo02});
+}
+
+A a = .new(^);
+''');
+    assertResponse(r'''
+suggestions
+  |foo01: |
+    kind: namedArgument
+  |foo02: |
+    kind: namedArgument
+''');
+  }
+
+  Future<void> test_dotShorthands_method() async {
+    await computeSuggestions('''
+class A {
+  static A foo({int? foo01, int? foo02}) => A();
+}
+
+A a = .foo(^);
+''');
+    assertResponse(r'''
+suggestions
+  |foo01: |
+    kind: namedArgument
+  |foo02: |
+    kind: namedArgument
+''');
+  }
+
   Future<void> test_nullableClosure() async {
     await computeSuggestions('''
 void f(void Function(int i)? x) {

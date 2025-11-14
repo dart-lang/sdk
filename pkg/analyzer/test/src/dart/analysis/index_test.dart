@@ -1290,8 +1290,8 @@ void f() {
 ''');
     var element = findElement2.unnamedConstructor('A');
     assertElementIndexText(element, r'''
-31 3:10 |new| IS_INVOKED_BY qualified
-58 4:16 |new| IS_REFERENCED_BY_CONSTRUCTOR_TEAR_OFF qualified
+31 3:10 |new| IS_INVOKED_BY_DOT_SHORTHANDS_CONSTRUCTOR qualified
+58 4:16 |new| IS_REFERENCED_BY_DOT_SHORTHAND_CONSTRUCTOR_TEAR_OFF qualified
 ''');
   }
 

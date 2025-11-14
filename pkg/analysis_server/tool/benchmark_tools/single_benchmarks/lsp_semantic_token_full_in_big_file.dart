@@ -77,7 +77,7 @@ class LspRequestSemanticTokenFull extends DartLanguageServerBenchmark {
   ) : super(useLspProtocol: true);
 
   @override
-  LaunchFrom get launchFrom => LaunchFrom.Dart;
+  LaunchFrom get launchFrom => LaunchFrom.dart;
 
   @override
   Future<void> afterInitialization() async {

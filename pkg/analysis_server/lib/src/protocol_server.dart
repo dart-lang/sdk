@@ -341,7 +341,8 @@ SearchResultKind newSearchResultKind_fromEngine(engine.MatchKind kind) {
     return SearchResultKind.WRITE;
   }
   if (kind == engine.MatchKind.INVOCATION ||
-      kind == engine.MatchKind.INVOCATION_BY_ENUM_CONSTANT_WITHOUT_ARGUMENTS) {
+      kind == engine.MatchKind.INVOCATION_BY_ENUM_CONSTANT_WITHOUT_ARGUMENTS ||
+      kind == engine.MatchKind.DOT_SHORTHANDS_CONSTRUCTOR_INVOCATION) {
     return SearchResultKind.INVOCATION;
   }
   if (kind.isReference) {

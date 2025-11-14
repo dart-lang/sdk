@@ -202,7 +202,7 @@ Future<CompilationResult> compile(
 
       case compiler.CompilerPhase.tfa:
         lastResult = await _runTfaPhase(
-          cfeResult ?? await _loadCfeResult(options),
+          cfeResult ?? await _loadCfeResult(options, fileSystem),
           options,
           target,
           fileSystem,
@@ -222,9 +222,11 @@ Future<CompilationResult> compile(
   return lastResult!;
 }
 
-Future<CfeResult> _loadCfeResult(compiler.WasmCompilerOptions options) async {
-  final component =
-      loadComponentFromBytes(await File.fromUri(options.mainUri).readAsBytes());
+Future<CfeResult> _loadCfeResult(
+    compiler.WasmCompilerOptions options, FileSystem fileSystem) async {
+  final component = loadComponentFromBytes(
+      await File.fromUri((await _resolveUri(fileSystem, options.mainUri))!)
+          .readAsBytes());
   final coreTypes = CoreTypes(component);
   return CfeResult(component, coreTypes);
 }
@@ -337,7 +339,9 @@ Future<TfaResult> _loadTfaResult(compiler.WasmCompilerOptions options,
   component.addMetadataRepository(recordClassesRepository);
   component.addMetadataRepository(interopMethodsRepository);
 
-  BinaryBuilderWithMetadata(await File.fromUri(options.mainUri).readAsBytes())
+  BinaryBuilderWithMetadata(
+          await File.fromUri((await _resolveUri(fileSystem, options.mainUri))!)
+              .readAsBytes())
       .readComponent(component);
   final coreTypes = CoreTypes(component);
   final libraryIndex = LibraryIndex(component, _librariesToIndex);

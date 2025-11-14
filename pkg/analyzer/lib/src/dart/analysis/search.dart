@@ -775,11 +775,15 @@ class Search {
     List<SearchResult> results = <SearchResult>[];
     await _addResults(results, element, searchedFiles, const {
       IndexRelationKind.IS_INVOKED_BY: SearchResultKind.INVOCATION,
+      IndexRelationKind.IS_INVOKED_BY_DOT_SHORTHANDS_CONSTRUCTOR:
+          SearchResultKind.DOT_SHORTHANDS_CONSTRUCTOR_INVOCATION,
       IndexRelationKind.IS_INVOKED_BY_ENUM_CONSTANT_WITHOUT_ARGUMENTS:
           SearchResultKind.INVOCATION_BY_ENUM_CONSTANT_WITHOUT_ARGUMENTS,
       IndexRelationKind.IS_REFERENCED_BY: SearchResultKind.REFERENCE,
       IndexRelationKind.IS_REFERENCED_BY_CONSTRUCTOR_TEAR_OFF:
           SearchResultKind.REFERENCE_BY_CONSTRUCTOR_TEAR_OFF,
+      IndexRelationKind.IS_REFERENCED_BY_DOT_SHORTHAND_CONSTRUCTOR_TEAR_OFF:
+          SearchResultKind.DOT_SHORTHANDS_CONSTRUCTOR_TEAR_OFF,
     });
     return results;
   }
@@ -1117,6 +1121,8 @@ enum SearchResultKind {
   WRITE,
   INVOCATION,
   INVOCATION_BY_ENUM_CONSTANT_WITHOUT_ARGUMENTS,
+  DOT_SHORTHANDS_CONSTRUCTOR_INVOCATION,
+  DOT_SHORTHANDS_CONSTRUCTOR_TEAR_OFF,
   REFERENCE,
   REFERENCE_BY_CONSTRUCTOR_TEAR_OFF,
   REFERENCE_IN_EXTENDS_CLAUSE,

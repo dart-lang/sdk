@@ -2783,6 +2783,181 @@ e() {
       });
     });
 
+    group('changes to mixin body invalidate libraries that apply the mixin',
+        () {
+      Future<void> runTests(
+          {required String moduleFormat, bool canary = false}) async {
+        new File('${tempDir.path}/main.dart')
+          ..createSync()
+          ..writeAsStringSync("import 'class2.dart';"
+              "import 'helper.dart';"
+              "final h = new Helper();"
+              "final c = new C2();"
+              "main() {"
+              "  print(c.fn1());"
+              "  print(c.gn1());"
+              "  print(c.fn2());"
+              "  print(c.gn2());"
+              "  print(h.x());"
+              "}");
+        new File('${tempDir.path}/helper.dart')
+          ..createSync()
+          ..writeAsStringSync(
+              "class Helper { String x() { return 'Helper'; } }");
+        new File('${tempDir.path}/class2.dart')
+          ..createSync()
+          ..writeAsStringSync("import 'mixin2.dart';\n"
+              "import 'class1.dart';\n"
+              "class C2 extends C1 with M2 {}\n");
+        new File('${tempDir.path}/class1.dart')
+          ..createSync()
+          ..writeAsStringSync("import 'mixin1.dart';\n"
+              "class C1 with M1 {}\n");
+        new File('${tempDir.path}/mixin1.dart')
+          ..createSync()
+          ..writeAsStringSync("mixin M1 {\n"
+              "  String fn1() { return 'hello'; }\n"
+              "  String gn1() => 'hello';\n"
+              "}\n");
+        new File('${tempDir.path}/mixin2.dart')
+          ..createSync()
+          ..writeAsStringSync("mixin M2 {\n"
+              "  String fn2() { return 'hello'; }\n"
+              "  String gn2() => 'hello';\n"
+              "}\n");
+        File packageConfig =
+            new File('${tempDir.path}/.dart_tool/package_config.json')
+              ..createSync(recursive: true)
+              ..writeAsStringSync('{\n'
+                  '  "configVersion": 2,\n'
+                  '  "packages": [\n'
+                  '    {\n'
+                  '      "name": "hello",\n'
+                  '      "rootUri": "../",\n'
+                  '      "packageUri": "./"\n'
+                  '    }\n'
+                  '  ]\n'
+                  '}\n');
+        final String entrypoint = 'package:hello/main.dart';
+        final File dillFile = new File('${tempDir.path}/out.dill');
+        final List<String> args = <String>[
+          '--sdk-root=${sdkRoot.toFilePath()}',
+          '--incremental',
+          '--platform=${ddcPlatformKernel.path}',
+          '--output-dill=${dillFile.path}',
+          '--target=dartdevc',
+          '--dartdevc-module-format=$moduleFormat',
+          if (canary) '--dartdevc-canary',
+          '--packages=${packageConfig.path}',
+        ];
+        final FrontendServer frontendServer = new FrontendServer();
+        final Future<int> result = frontendServer.open(args);
+        frontendServer.compile(entrypoint);
+        int count = 0;
+        final Completer<bool> expectationCompleter = new Completer<bool>();
+        frontendServer.listen((Result compiledResult) {
+          if (count == 0) {
+            compiledResult.expectNoErrors(filename: dillFile.path);
+            // Should find all files in the output for the initial compile.
+            final File manifestFile = new File('${dillFile.path}.json');
+            expect(manifestFile.existsSync(), true);
+            frontendServer.accept();
+            count++;
+            final Map<String, dynamic> manifest =
+                json.decode(utf8.decode(manifestFile.readAsBytesSync()));
+            expect(
+                manifest.keys,
+                unorderedEquals([
+                  '/packages/hello/main.dart.lib.js',
+                  '/packages/hello/helper.dart.lib.js',
+                  '/packages/hello/class1.dart.lib.js',
+                  '/packages/hello/mixin1.dart.lib.js',
+                  '/packages/hello/class2.dart.lib.js',
+                  '/packages/hello/mixin2.dart.lib.js',
+                ]));
+            // Modify the body expression of an arrow function in the M1 mixin.
+            final File mixinFile = new File('${tempDir.path}/mixin1.dart')
+              ..createSync()
+              ..writeAsStringSync("mixin M1 {\n"
+                  "  String fn1() { return 'hello'; }\n"
+                  "  String gn1() => 'goodbye';\n"
+                  "}\n");
+
+            frontendServer.recompile(mixinFile.uri, entryPoint: entrypoint);
+          } else if (count == 1) {
+            final File dillIncFile =
+                new File('${dillFile.path}.incremental.dill');
+            compiledResult.expectNoErrors(filename: dillIncFile.path);
+            frontendServer.accept();
+            count++;
+            // Find four output files have been invalidated corresponding to the
+            // library that contains the modified mixin and the reverse imports
+            // back to the main entrypoint.
+            //
+            // This is a side effect of the arrow function body expressions
+            // being present in the  incremental compilers "textual outline" so
+            // changes to the body will invalidate the "public" API. This is
+            // more than DDC needs for correctness.
+            final File manifestFile = new File('${dillIncFile.path}.json');
+            final Map<String, dynamic> manifest =
+                json.decode(utf8.decode(manifestFile.readAsBytesSync()));
+            expect(
+                manifest.keys,
+                unorderedEquals([
+                  '/packages/hello/main.dart.lib.js',
+                  '/packages/hello/class2.dart.lib.js',
+                  '/packages/hello/class1.dart.lib.js',
+                  '/packages/hello/mixin1.dart.lib.js'
+                ]));
+            // Modify an expression in the block body of a method in the mixin
+            // M1.
+            final File mixinFile = new File('${tempDir.path}/mixin1.dart')
+              ..createSync()
+              ..writeAsStringSync("mixin M1 {\n"
+                  "  String fn1() { return 'goodbye'; }\n"
+                  "  String gn1() => 'goodbye';\n"
+                  "}\n");
+
+            frontendServer.recompile(mixinFile.uri, entryPoint: entrypoint);
+          } else if (count == 2) {
+            final File dillIncFile =
+                new File('${dillFile.path}.incremental.dill');
+            compiledResult.expectNoErrors(filename: dillIncFile.path);
+            frontendServer.accept();
+            count++;
+            // Find two output files have been invalidated corresponding to the
+            // library that contains the modified mixin and the library contains
+            // an application of the modified mixin.
+            //
+            // DDC needs to reevaluate the library with the mixin application to
+            // ensure the mixin method body is applied.
+            final File manifestFile = new File('${dillIncFile.path}.json');
+            final Map<String, dynamic> manifest =
+                json.decode(utf8.decode(manifestFile.readAsBytesSync()));
+            expect(
+                manifest.keys,
+                unorderedEquals([
+                  '/packages/hello/class1.dart.lib.js',
+                  '/packages/hello/mixin1.dart.lib.js'
+                ]));
+            frontendServer.quit();
+            expectationCompleter.complete(true);
+          }
+        });
+        expect(await result, 0);
+        await expectationCompleter.future;
+        frontendServer.close();
+      }
+
+      test('AMD module format', () async {
+        await runTests(moduleFormat: 'amd');
+      });
+
+      test('DDC module format and canary', () async {
+        await runTests(moduleFormat: 'ddc', canary: true);
+      });
+    });
+
     group('compile expression to JavaScript', () {
       Future<void> runTests(
           {required String moduleFormat, bool canary = false}) async {

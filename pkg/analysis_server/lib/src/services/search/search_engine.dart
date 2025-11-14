@@ -37,6 +37,12 @@ enum MatchKind {
   /// arguments.
   INVOCATION_BY_ENUM_CONSTANT_WITHOUT_ARGUMENTS(),
 
+  /// A dot shorthand invocation.
+  DOT_SHORTHANDS_CONSTRUCTOR_INVOCATION(),
+
+  /// A dot shorthand tear-off.
+  DOT_SHORTHANDS_CONSTRUCTOR_TEAR_OFF(isReference: true),
+
   /// A reference to an element in which it is referenced.
   REFERENCE(isReference: true),
 

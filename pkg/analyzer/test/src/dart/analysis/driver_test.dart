@@ -3588,13 +3588,13 @@ files
     uri: package:test/a.dart
     current
       id: file_0
-      kind: library_6
+      kind: library_7
         libraryImports
           library_1 dart:core synthetic
-        fileKinds: library_6
+        fileKinds: library_7
         cycle_2
           dependencies: dart:core
-          libraries: library_6
+          libraries: library_7
           apiSignature_1
       unlinkedKey: k02
 libraryCycles

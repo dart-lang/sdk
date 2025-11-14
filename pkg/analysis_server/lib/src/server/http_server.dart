@@ -27,7 +27,7 @@ abstract class AbstractHttpHandler {
 /// - serves diagnostic information as html pages
 class HttpAnalysisServer {
   /// Number of lines of print output to capture.
-  static const int MAX_PRINT_BUFFER_LENGTH = 1000;
+  static const int _maxPrintBufferLength = 1000;
 
   /// An object that can handle either a WebSocket connection or a connection
   /// to the client over stdio.
@@ -62,11 +62,8 @@ class HttpAnalysisServer {
   /// Record that the given line was printed out by the analysis server.
   void recordPrint(String line) {
     _printBuffer.add(line);
-    if (_printBuffer.length > MAX_PRINT_BUFFER_LENGTH) {
-      _printBuffer.removeRange(
-        0,
-        _printBuffer.length - MAX_PRINT_BUFFER_LENGTH,
-      );
+    if (_printBuffer.length > _maxPrintBufferLength) {
+      _printBuffer.removeRange(0, _printBuffer.length - _maxPrintBufferLength);
     }
   }
 

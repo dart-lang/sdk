@@ -2745,4 +2745,21 @@ extension type E<NewName>(int it) {
 }
 ''');
   }
+
+  Future<void> test_dotShorthandInvocation() async {
+    await indexTestUnit('''
+class A {
+  static A ^foo() => A();
+}
+A a = .foo();
+''');
+    createRenameRefactoring();
+    refactoring.newName = 'newName';
+    await assertSuccessfulRefactoring('''
+class A {
+  static A newName() => A();
+}
+A a = .newName();
+''');
+  }
 }

@@ -2,8 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// It is an error to have a declaring constructor in the class body, but
-// no declaring parameter list, neither in the header nor in the body.
+// It is an error if a class does not have a primary constructor, but the body
+// of the class contains a primary constructor body.
 
 // SharedOptions=--enable-experiment=declaring-constructors
 
