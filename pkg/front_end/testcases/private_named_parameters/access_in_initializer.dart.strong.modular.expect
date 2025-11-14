@@ -1,0 +1,19 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+class C extends core::Object {
+  field core::int? _x;
+  field core::int? _y;
+  constructor •({core::int? x = #C1}) → self::C
+    : self::C::_x = x, self::C::_y = x, super core::Object::•()
+    ;
+}
+static method main() → dynamic {
+  self::C c = new self::C::•(x: 1);
+  core::print(c.{self::C::_y}{core::int?});
+}
+
+constants  {
+  #C1 = null
+}

@@ -464,6 +464,7 @@ abstract class FragmentFactory {
     Modifiers modifiers,
     TypeBuilder type,
     String name,
+    String? publicName,
     bool hasThis,
     bool hasSuper,
     int charOffset,

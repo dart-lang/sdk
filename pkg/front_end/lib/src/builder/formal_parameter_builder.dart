@@ -72,6 +72,20 @@ class FormalParameterBuilder extends NamedBuilderImpl
   @override
   final String name;
 
+  /// If this parameter is a private named parameter that refers to an instance
+  /// field, then this is the corresponding public name for the parameter.
+  ///
+  /// For example:
+  ///
+  ///     class C {
+  ///       int? _x;
+  ///       C({this._x});
+  ///     }
+  ///
+  /// Here, [publicName] for `_x` will be `x`. If the formal parameter isn't a
+  /// private named parameter that refers to a field, then this is `null`.
+  final String? publicName;
+
   @override
   final Uri fileUri;
 
@@ -113,6 +127,7 @@ class FormalParameterBuilder extends NamedBuilderImpl
     Token? initializerToken,
     required this.hasImmediatelyDeclaredInitializer,
     this.isWildcard = false,
+    this.publicName,
   }) : this.hasDeclaredInitializer = hasImmediatelyDeclaredInitializer,
        this._initializerToken = initializerToken {
     type.registerInferredTypeListener(this);
@@ -172,10 +187,18 @@ class FormalParameterBuilder extends NamedBuilderImpl
     if (variable == null) {
       bool isTypeOmitted = type is OmittedTypeBuilder;
       DartType? builtType = type.build(library, TypeUse.parameterType);
+
+      String? variableName = switch (name) {
+        noNameSentinel => null,
+        // If the parameter is a private named parameter, use the public name
+        // for the corresponding variable.
+        _ when publicName != null => publicName,
+        _ => name,
+      };
+
       variable = new VariableDeclarationImpl(
-        name == noNameSentinel ? null : name,
-        // `null` is used in [VariableDeclarationImpl] to signal an omitted
-        // type.
+        variableName,
+        // [VariableDeclarationImpl] uses `null` to signal an omitted type.
         type: isTypeOmitted ? null : builtType,
         isFinal: modifiers.isFinal,
         isConst: false,
@@ -210,6 +233,7 @@ class FormalParameterBuilder extends NamedBuilderImpl
       isExtensionThis: isExtensionThis,
       initializerToken: _takeInitializerToken(),
       hasImmediatelyDeclaredInitializer: hasImmediatelyDeclaredInitializer,
+      publicName: publicName,
     )..variable = variable;
   }
 
@@ -224,6 +248,7 @@ class FormalParameterBuilder extends NamedBuilderImpl
         fileUri: fileUri,
         isExtensionThis: isExtensionThis,
         hasImmediatelyDeclaredInitializer: hasImmediatelyDeclaredInitializer,
+        publicName: publicName,
       )..variable = variable;
     } else if (isSuperInitializingFormal) {
       return new FormalParameterBuilder(
@@ -235,6 +260,7 @@ class FormalParameterBuilder extends NamedBuilderImpl
         fileUri: fileUri,
         isExtensionThis: isExtensionThis,
         hasImmediatelyDeclaredInitializer: hasImmediatelyDeclaredInitializer,
+        publicName: publicName,
       )..variable = variable;
     } else {
       return this;

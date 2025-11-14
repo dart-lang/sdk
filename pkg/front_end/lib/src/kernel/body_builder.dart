@@ -5406,6 +5406,7 @@ class BodyBuilderImpl extends StackListenerImpl
     Identifier? name = nameNode as Identifier?;
 
     // If it's a private named parameter, handle the public name.
+    String? publicName;
     if (libraryFeatures.privateNamedParameters.isEnabled &&
         kind.isNamed &&
         name != null &&
@@ -5413,10 +5414,13 @@ class BodyBuilderImpl extends StackListenerImpl
       // TODO(rnystrom): Also handle declaring field parameters.
       bool refersToField = thisKeyword != null;
 
-      // If you can't even use a private named parameter here at all, the
-      // parser has already reported an error about that. Don't bother reporting
-      // a second error about it being a bad private name.
-      if (refersToField && correspondingPublicName(name.name) == null) {
+      publicName = correspondingPublicName(name.name);
+
+      // Only report the error for no corresponding public name if this is a
+      // parameter that could be private and named. Otherwise, that's already
+      // an error (which has been reported by the parser), so don't report a
+      // second error on top.
+      if (refersToField && publicName == null) {
         handleRecoverableError(
           cfe.codePrivateNamedParameterWithoutPublicName,
           nameToken,
@@ -5466,6 +5470,7 @@ class BodyBuilderImpl extends StackListenerImpl
         fileUri: uri,
         hasImmediatelyDeclaredInitializer: initializerStart != null,
         isWildcard: isWildcard,
+        publicName: publicName,
       );
     }
     VariableDeclaration variable = parameter.build(libraryBuilder);
