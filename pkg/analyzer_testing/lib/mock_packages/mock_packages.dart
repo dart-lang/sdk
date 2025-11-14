@@ -93,6 +93,10 @@ mixin MockPackagesMixin {
 
   ResourceProvider get resourceProvider;
 
+  @Deprecated(
+    'The mock angular_meta package is deprecated; use '
+    '`PubPackageResolutionTest.newPackage` to make a custom mock',
+  )
   Folder addAngularMeta() {
     var packageFolder = _addFiles('angular_meta');
     return packageFolder.getChildAssumingFolder('lib');

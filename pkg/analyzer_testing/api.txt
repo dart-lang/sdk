@@ -24,7 +24,7 @@ package:analyzer_testing/mock_packages/mock_packages.dart:
     packagesRootPath (getter: String)
     pathContext (getter: Context)
     resourceProvider (getter: ResourceProvider)
-    addAngularMeta (method: Folder Function())
+    addAngularMeta (method: Folder Function(), deprecated)
     addFfi (method: Folder Function())
     addFixnum (method: Folder Function())
     addFlutter (method: Folder Function())
