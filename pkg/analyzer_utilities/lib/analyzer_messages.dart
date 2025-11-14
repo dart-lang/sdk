@@ -184,6 +184,16 @@ const transformSetErrorCodeFile = GeneratedDiagnosticFile(
   package: AnalyzerDiagnosticPackage.analysisServer,
 );
 
+/// Decoded messages from the analysis server's `messages.yaml` file.
+final List<AnalyzerMessage> analysisServerMessages = decodeAnalyzerMessagesYaml(
+  analysisServerPkgPath,
+);
+
+/// The path to the `analysis_server` package.
+final String analysisServerPkgPath = normalize(
+  join(pkg_root.packageRoot, 'analysis_server'),
+);
+
 /// Decoded messages from the analyzer's `messages.yaml` file.
 final List<AnalyzerMessage> analyzerMessages = decodeAnalyzerMessagesYaml(
   analyzerPkgPath,

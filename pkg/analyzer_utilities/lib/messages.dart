@@ -33,6 +33,7 @@ final DiagnosticTables diagnosticTables = DiagnosticTables._([
   ...frontEndMessages,
   ...feAnalyzerSharedMessages,
   ...analyzerMessages,
+  ...analysisServerMessages,
   ...lintMessages,
 ]);
 
