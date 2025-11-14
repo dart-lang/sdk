@@ -315,6 +315,14 @@ class AnalyzerTypeOperations implements TypeOperations<TypeImpl> {
   }
 
   @override
+  bool isEnum(TypeImpl type) {
+    if (type is InterfaceTypeImpl) {
+      return type.element is EnumElement;
+    }
+    return false;
+  }
+
+  @override
   bool isGeneric(TypeImpl type) {
     return type is InterfaceTypeImpl && type.typeArguments.isNotEmpty;
   }
@@ -356,6 +364,11 @@ class AnalyzerTypeOperations implements TypeOperations<TypeImpl> {
   @override
   bool isSubtypeOf(TypeImpl s, TypeImpl t) {
     return _typeSystem.isSubtypeOf(s, t);
+  }
+
+  @override
+  Uri? libraryUri(TypeImpl type) {
+    return type.element?.library?.uri;
   }
 
   @override

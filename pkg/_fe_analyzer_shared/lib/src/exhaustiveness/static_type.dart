@@ -66,6 +66,21 @@ abstract class StaticType {
   /// one of those two types*.
   bool get isSealed;
 
+  /// Returns `true` if this is a private type.
+  ///
+  /// This is used to determine whether a missing pattern part is not accessible
+  /// due to being private.
+  bool get isPrivate;
+
+  /// Returns `true` if this is a subtype of `Enum`.
+  ///
+  /// This is used along with [isPrivate] to determine whether we should suggest
+  /// enum values as missing pattern parts or only a default case.
+  bool get isEnumSubtype;
+
+  /// Returns the library URI for this type, or `null`.
+  Uri? get libraryUri;
+
   /// Returns `true` if this is a record type.
   ///
   /// This is only used for print the type as part of a [Witness].
@@ -255,6 +270,15 @@ class _NonNullableObject extends _BaseStaticType with _ObjectFieldMixin {
   void typeToDart(DartTemplateBuffer buffer) {
     buffer.writeCoreType(name);
   }
+
+  @override
+  bool get isEnumSubtype => false;
+
+  @override
+  Uri? get libraryUri => null;
+
+  @override
+  bool get isPrivate => false;
 }
 
 class _NeverType extends _BaseStaticType with _ObjectFieldMixin {
@@ -285,6 +309,15 @@ class _NeverType extends _BaseStaticType with _ObjectFieldMixin {
   void typeToDart(DartTemplateBuffer buffer) {
     buffer.writeCoreType(name);
   }
+
+  @override
+  bool get isEnumSubtype => false;
+
+  @override
+  Uri? get libraryUri => null;
+
+  @override
+  bool get isPrivate => false;
 }
 
 class _NullType extends NullableStaticType with _ObjectFieldMixin {
@@ -367,6 +400,15 @@ class NullableStaticType extends _BaseStaticType with _ObjectFieldMixin {
       buffer.write('?');
     }
   }
+
+  @override
+  bool get isEnumSubtype => underlying.isEnumSubtype;
+
+  @override
+  Uri? get libraryUri => underlying.libraryUri;
+
+  @override
+  bool get isPrivate => name.startsWith('_');
 }
 
 abstract class NonNullableStaticType extends _BaseStaticType {
@@ -510,6 +552,15 @@ class WrappedStaticType extends _BaseStaticType {
   void typeToDart(DartTemplateBuffer buffer) {
     wrappedType.typeToDart(buffer);
   }
+
+  @override
+  bool get isEnumSubtype => wrappedType.isEnumSubtype;
+
+  @override
+  Uri? get libraryUri => wrappedType.libraryUri;
+
+  @override
+  bool get isPrivate => wrappedType.isPrivate;
 }
 
 /// Interface for accessing the members defined on `Object`.

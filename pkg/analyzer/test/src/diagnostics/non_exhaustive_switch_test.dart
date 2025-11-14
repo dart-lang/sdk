@@ -95,6 +95,116 @@ void f(Unresolved x) => switch (x) {};
       [error(diag.undefinedClass, 7, 10)],
     );
   }
+
+  test_private_enum() async {
+    newFile(join(testPackageLibPath, 'private_enum.dart'), r'''
+enum _E { a, b }
+_E e() => _E.a;
+''');
+    await assertErrorsInCode(
+      '''
+import 'private_enum.dart';
+
+Object f() {
+  return switch (e()) {
+  };
+}
+''',
+      [error(diag.nonExhaustiveSwitchExpressionPrivate, 51, 6)],
+    );
+  }
+
+  test_private_enum_sameLibrary() async {
+    await assertErrorsInCode(
+      '''
+enum _E { a, b }
+
+Object f(_E e) {
+  return switch (e) {
+  };
+}
+''',
+      [
+        error(diag.unusedField, 10, 1),
+        error(diag.unusedField, 13, 1),
+        error(diag.nonExhaustiveSwitchExpression, 44, 6),
+      ],
+    );
+  }
+
+  test_private_enumConstant() async {
+    newFile(join(testPackageLibPath, 'private_enum.dart'), r'''
+enum E { a, b, _c }
+''');
+    await assertErrorsInCode(
+      '''
+import 'private_enum.dart';
+
+Object f(E e) {
+  return switch (e) {
+    E.a => 0,
+  };
+}
+''',
+      [error(diag.nonExhaustiveSwitchExpression, 54, 6)],
+    );
+  }
+
+  test_private_enumConstant_only() async {
+    newFile(join(testPackageLibPath, 'private_enum.dart'), r'''
+enum E { a, b, _c }
+''');
+    await assertErrorsInCode(
+      '''
+import 'private_enum.dart';
+
+Object f(E e) {
+  return switch (e) {
+    E.a => 0,
+    E.b => 1,
+  };
+}
+''',
+      [error(diag.nonExhaustiveSwitchExpressionPrivate, 54, 6)],
+    );
+  }
+
+  test_private_enumConstant_sameLibrary() async {
+    await assertErrorsInCode(
+      '''
+enum E { a, b, _c }
+Object f(E e) {
+  return switch (e) {
+    E.a => 0,
+    E.b => 1,
+  };
+}
+''',
+      [
+        error(diag.unusedField, 15, 2),
+        error(diag.nonExhaustiveSwitchExpression, 45, 6),
+      ],
+    );
+  }
+
+  test_private_sealed() async {
+    newFile(join(testPackageLibPath, 'private_sealed.dart'), r'''
+sealed class _A {}
+class B extends _A {}
+_A a() => B();
+''');
+    await assertErrorsInCode(
+      '''
+import 'private_sealed.dart';
+
+Object f() {
+  return switch (a()) {
+  };
+}
+''',
+      [error(diag.nonExhaustiveSwitchExpression, 53, 6)],
+    );
+  }
 }
 
 @reflectiveTest
@@ -624,5 +734,81 @@ void f(int x) {
   }
 }
 ''');
+  }
+
+  test_private_enum() async {
+    newFile(join(testPackageLibPath, 'private_enum.dart'), r'''
+enum _E { a, b }
+_E e() => _E.a;
+''');
+    await assertErrorsInCode(
+      '''
+import 'private_enum.dart';
+
+void f() {
+  switch (e()) {
+  }
+}
+''',
+      [error(diag.nonExhaustiveSwitchStatementPrivate, 42, 6)],
+    );
+  }
+
+  test_private_enumConstant() async {
+    newFile(join(testPackageLibPath, 'private_enum.dart'), r'''
+enum E { a, b, _c }
+''');
+    await assertErrorsInCode(
+      '''
+import 'private_enum.dart';
+
+void f(E e) {
+  switch (e) {
+    case E.a:
+      break;
+  }
+}
+''',
+      [error(diag.nonExhaustiveSwitchStatement, 45, 6)],
+    );
+  }
+
+  test_private_enumConstant_only() async {
+    newFile(join(testPackageLibPath, 'private_enum.dart'), r'''
+enum E { a, b, _c }
+''');
+    await assertErrorsInCode(
+      '''
+import 'private_enum.dart';
+
+void f(E e) {
+  switch (e) {
+    case E.a:
+    case E.b:
+      break;
+  }
+}
+''',
+      [error(diag.nonExhaustiveSwitchStatementPrivate, 45, 6)],
+    );
+  }
+
+  test_private_sealed() async {
+    newFile(join(testPackageLibPath, 'private_sealed.dart'), r'''
+sealed class _A {}
+class B extends _A {}
+_A a() => B();
+''');
+    await assertErrorsInCode(
+      '''
+import 'private_sealed.dart';
+
+Object f() {
+  switch (a()) {
+  }
+}
+''',
+      [error(diag.nonExhaustiveSwitchStatement, 46, 6)],
+    );
   }
 }

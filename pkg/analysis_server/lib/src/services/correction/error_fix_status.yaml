@@ -1256,7 +1256,11 @@ CompileTimeErrorCode.NON_CONSTANT_SET_ELEMENT:
 : status: noFix
 CompileTimeErrorCode.NON_EXHAUSTIVE_SWITCH_EXPRESSION:
   status: hasFix
+CompileTimeErrorCode.NON_EXHAUSTIVE_SWITCH_EXPRESSION_PRIVATE:
+  status: hasFix
 CompileTimeErrorCode.NON_EXHAUSTIVE_SWITCH_STATEMENT:
+  status: hasFix
+CompileTimeErrorCode.NON_EXHAUSTIVE_SWITCH_STATEMENT_PRIVATE:
   status: hasFix
 CompileTimeErrorCode.NON_FINAL_FIELD_IN_ENUM:
   status: hasFix

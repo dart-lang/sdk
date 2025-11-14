@@ -2633,30 +2633,46 @@ class CompileTimeErrorCode {
       diag.nonCovariantTypeParameterPositionInRepresentationType;
 
   /// Parameters:
-  /// Type p0: the type of the switch scrutinee
-  /// String p1: the witness pattern for the unmatched value
-  /// String p2: the suggested pattern for the unmatched value
+  /// Type type: the type of the switch scrutinee
+  /// String unmatchedPattern: the witness pattern for the unmatched value
+  /// String suggestedPattern: the suggested pattern for the unmatched value
   static const DiagnosticWithArguments<
     LocatableDiagnostic Function({
-      required DartType p0,
-      required String p1,
-      required String p2,
+      required DartType type,
+      required String unmatchedPattern,
+      required String suggestedPattern,
     })
   >
   nonExhaustiveSwitchExpression = diag.nonExhaustiveSwitchExpression;
 
   /// Parameters:
-  /// Type p0: the type of the switch scrutinee
-  /// String p1: the witness pattern for the unmatched value
-  /// String p2: the suggested pattern for the unmatched value
+  /// Type type: the type of the switch scrutinee
+  static const DiagnosticWithArguments<
+    LocatableDiagnostic Function({required DartType type})
+  >
+  nonExhaustiveSwitchExpressionPrivate =
+      diag.nonExhaustiveSwitchExpressionPrivate;
+
+  /// Parameters:
+  /// Type type: the type of the switch scrutinee
+  /// String unmatchedPattern: the witness pattern for the unmatched value
+  /// String suggestedPattern: the suggested pattern for the unmatched value
   static const DiagnosticWithArguments<
     LocatableDiagnostic Function({
-      required DartType p0,
-      required String p1,
-      required String p2,
+      required DartType type,
+      required String unmatchedPattern,
+      required String suggestedPattern,
     })
   >
   nonExhaustiveSwitchStatement = diag.nonExhaustiveSwitchStatement;
+
+  /// Parameters:
+  /// Type type: the type of the switch scrutinee
+  static const DiagnosticWithArguments<
+    LocatableDiagnostic Function({required DartType type})
+  >
+  nonExhaustiveSwitchStatementPrivate =
+      diag.nonExhaustiveSwitchStatementPrivate;
 
   /// No parameters.
   static const DiagnosticWithoutArguments nonFinalFieldInEnum =

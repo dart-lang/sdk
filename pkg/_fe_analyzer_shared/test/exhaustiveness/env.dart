@@ -456,6 +456,20 @@ class _TypeOperations implements TypeOperations<_Type> {
     // TODO(johnniwinther): Support extension types in testing.
     return type;
   }
+
+  @override
+  bool isEnum(_Type type) {
+    if (type is _InterfaceType) {
+      return type.cls is _EnumClass;
+    }
+    return false;
+  }
+
+  @override
+  Uri? libraryUri(_Type type) {
+    // TODO(FMorschel): Support library URIs in testing.
+    return null;
+  }
 }
 
 class _EnumOperations

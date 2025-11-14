@@ -353,6 +353,43 @@ class CfeTypeOperations implements TypeOperations<DartType> {
   DartType getExtensionTypeErasure(DartType type) {
     return type.extensionTypeErasure;
   }
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  bool isEnum(DartType type) {
+    if (type is InterfaceType) {
+      return type.classNode.isEnum;
+    }
+    return false;
+  }
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  Uri? libraryUri(DartType type) {
+    switch (type) {
+      case InterfaceType():
+        return type.classNode.enclosingLibrary.importUri;
+      case ExtensionType():
+        return type.extensionTypeDeclaration.enclosingLibrary.importUri;
+      case TypedefType():
+        return type.typedefNode.enclosingLibrary.importUri;
+      case IntersectionType():
+      case TypeParameterType():
+      case StructuralParameterType():
+      case FunctionTypeParameterType():
+      case ClassTypeParameterType():
+      case AuxiliaryType():
+      case InvalidType():
+      case DynamicType():
+      case VoidType():
+      case NeverType():
+      case NullType():
+      case FunctionType():
+      case FutureOrType():
+      case RecordType():
+        return null;
+    }
+  }
 }
 
 class EnumValue {

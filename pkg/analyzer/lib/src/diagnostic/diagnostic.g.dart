@@ -12051,14 +12051,14 @@ nonCovariantTypeParameterPositionInRepresentationType = DiagnosticWithoutArgumen
 );
 
 /// Parameters:
-/// Type p0: the type of the switch scrutinee
-/// String p1: the witness pattern for the unmatched value
-/// String p2: the suggested pattern for the unmatched value
+/// Type type: the type of the switch scrutinee
+/// String unmatchedPattern: the witness pattern for the unmatched value
+/// String suggestedPattern: the suggested pattern for the unmatched value
 const DiagnosticWithArguments<
   LocatableDiagnostic Function({
-    required DartType p0,
-    required String p1,
-    required String p2,
+    required DartType type,
+    required String unmatchedPattern,
+    required String suggestedPattern,
   })
 >
 nonExhaustiveSwitchExpression = DiagnosticWithArguments(
@@ -12075,14 +12075,32 @@ nonExhaustiveSwitchExpression = DiagnosticWithArguments(
 );
 
 /// Parameters:
-/// Type p0: the type of the switch scrutinee
-/// String p1: the witness pattern for the unmatched value
-/// String p2: the suggested pattern for the unmatched value
+/// Type type: the type of the switch scrutinee
+const DiagnosticWithArguments<
+  LocatableDiagnostic Function({required DartType type})
+>
+nonExhaustiveSwitchExpressionPrivate = DiagnosticWithArguments(
+  name: 'NON_EXHAUSTIVE_SWITCH_EXPRESSION',
+  problemMessage:
+      "The enum '{0}' isn't exhaustively matched by the switch cases because "
+      "some of the enum constants are private.",
+  correctionMessage: "Try adding a wildcard pattern.",
+  hasPublishedDocs: true,
+  type: DiagnosticType.COMPILE_TIME_ERROR,
+  uniqueName: 'CompileTimeErrorCode.NON_EXHAUSTIVE_SWITCH_EXPRESSION_PRIVATE',
+  withArguments: _withArgumentsNonExhaustiveSwitchExpressionPrivate,
+  expectedTypes: [ExpectedType.type],
+);
+
+/// Parameters:
+/// Type type: the type of the switch scrutinee
+/// String unmatchedPattern: the witness pattern for the unmatched value
+/// String suggestedPattern: the suggested pattern for the unmatched value
 const DiagnosticWithArguments<
   LocatableDiagnostic Function({
-    required DartType p0,
-    required String p1,
-    required String p2,
+    required DartType type,
+    required String unmatchedPattern,
+    required String suggestedPattern,
   })
 >
 nonExhaustiveSwitchStatement = DiagnosticWithArguments(
@@ -12096,6 +12114,24 @@ nonExhaustiveSwitchStatement = DiagnosticWithArguments(
   uniqueName: 'CompileTimeErrorCode.NON_EXHAUSTIVE_SWITCH_STATEMENT',
   withArguments: _withArgumentsNonExhaustiveSwitchStatement,
   expectedTypes: [ExpectedType.type, ExpectedType.string, ExpectedType.string],
+);
+
+/// Parameters:
+/// Type type: the type of the switch scrutinee
+const DiagnosticWithArguments<
+  LocatableDiagnostic Function({required DartType type})
+>
+nonExhaustiveSwitchStatementPrivate = DiagnosticWithArguments(
+  name: 'NON_EXHAUSTIVE_SWITCH_STATEMENT',
+  problemMessage:
+      "The enum '{0}' isn't exhaustively matched by the switch cases because "
+      "some of the enum constants are private.",
+  correctionMessage: "Try adding a default case.",
+  hasPublishedDocs: true,
+  type: DiagnosticType.COMPILE_TIME_ERROR,
+  uniqueName: 'CompileTimeErrorCode.NON_EXHAUSTIVE_SWITCH_STATEMENT_PRIVATE',
+  withArguments: _withArgumentsNonExhaustiveSwitchStatementPrivate,
+  expectedTypes: [ExpectedType.type],
 );
 
 /// No parameters.
@@ -19892,26 +19928,42 @@ LocatableDiagnostic _withArgumentsNonConstCallToLiteralConstructorUsingNew({
 }
 
 LocatableDiagnostic _withArgumentsNonExhaustiveSwitchExpression({
-  required DartType p0,
-  required String p1,
-  required String p2,
+  required DartType type,
+  required String unmatchedPattern,
+  required String suggestedPattern,
 }) {
   return LocatableDiagnosticImpl(diag.nonExhaustiveSwitchExpression, [
-    p0,
-    p1,
-    p2,
+    type,
+    unmatchedPattern,
+    suggestedPattern,
+  ]);
+}
+
+LocatableDiagnostic _withArgumentsNonExhaustiveSwitchExpressionPrivate({
+  required DartType type,
+}) {
+  return LocatableDiagnosticImpl(diag.nonExhaustiveSwitchExpressionPrivate, [
+    type,
   ]);
 }
 
 LocatableDiagnostic _withArgumentsNonExhaustiveSwitchStatement({
-  required DartType p0,
-  required String p1,
-  required String p2,
+  required DartType type,
+  required String unmatchedPattern,
+  required String suggestedPattern,
 }) {
   return LocatableDiagnosticImpl(diag.nonExhaustiveSwitchStatement, [
-    p0,
-    p1,
-    p2,
+    type,
+    unmatchedPattern,
+    suggestedPattern,
+  ]);
+}
+
+LocatableDiagnostic _withArgumentsNonExhaustiveSwitchStatementPrivate({
+  required DartType type,
+}) {
+  return LocatableDiagnosticImpl(diag.nonExhaustiveSwitchStatementPrivate, [
+    type,
   ]);
 }
 
