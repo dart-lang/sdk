@@ -11828,11 +11828,11 @@ CompileTimeErrorCode:
       ```
   NON_EXHAUSTIVE_SWITCH_EXPRESSION:
     parameters:
-      Type p0: the type of the switch scrutinee
-      String p1: the witness pattern for the unmatched value
-      String p2: the suggested pattern for the unmatched value
-    problemMessage: "The type '#p0' isn't exhaustively matched by the switch cases since it doesn't match the pattern '#p1'."
-    correctionMessage: "Try adding a wildcard pattern or cases that match '#p2'."
+      Type type: the type of the switch scrutinee
+      String unmatchedPattern: the witness pattern for the unmatched value
+      String suggestedPattern: the suggested pattern for the unmatched value
+    problemMessage: "The type '#type' isn't exhaustively matched by the switch cases since it doesn't match the pattern '#unmatchedPattern'."
+    correctionMessage: "Try adding a wildcard pattern or cases that match '#suggestedPattern'."
     hasPublishedDocs: true
     documentation: |-
       #### Description
@@ -11886,13 +11886,20 @@ CompileTimeErrorCode:
       Be aware that a wildcard pattern will handle any values added to the type
       in the future. You will lose the ability to have the compiler warn you if
       the `switch` needs to be updated to account for newly added types.
+  NON_EXHAUSTIVE_SWITCH_EXPRESSION_PRIVATE:
+    sharedName: NON_EXHAUSTIVE_SWITCH_EXPRESSION
+    parameters:
+      Type type: the type of the switch scrutinee
+    problemMessage: "The enum '#type' isn't exhaustively matched by the switch cases because some of the enum constants are private."
+    correctionMessage: "Try adding a wildcard pattern."
+    hasPublishedDocs: true
   NON_EXHAUSTIVE_SWITCH_STATEMENT:
     parameters:
-      Type p0: the type of the switch scrutinee
-      String p1: the witness pattern for the unmatched value
-      String p2: the suggested pattern for the unmatched value
-    problemMessage: "The type '#p0' isn't exhaustively matched by the switch cases since it doesn't match the pattern '#p1'."
-    correctionMessage: "Try adding a default case or cases that match '#p2'."
+      Type type: the type of the switch scrutinee
+      String unmatchedPattern: the witness pattern for the unmatched value
+      String suggestedPattern: the suggested pattern for the unmatched value
+    problemMessage: "The type '#type' isn't exhaustively matched by the switch cases since it doesn't match the pattern '#unmatchedPattern'."
+    correctionMessage: "Try adding a default case or cases that match '#suggestedPattern'."
     hasPublishedDocs: true
     documentation: |-
       #### Description
@@ -11955,6 +11962,13 @@ CompileTimeErrorCode:
       any future values of the exhaustive type to also be handled, so you will
       have lost the ability for the compiler to warn you if the `switch` needs
       to be updated.
+  NON_EXHAUSTIVE_SWITCH_STATEMENT_PRIVATE:
+    sharedName: NON_EXHAUSTIVE_SWITCH_STATEMENT
+    parameters:
+      Type type: the type of the switch scrutinee
+    problemMessage: "The enum '#type' isn't exhaustively matched by the switch cases because some of the enum constants are private."
+    correctionMessage: "Try adding a default case."
+    hasPublishedDocs: true
   NON_FINAL_FIELD_IN_ENUM:
     parameters: none
     problemMessage: Enums can only declare final fields.

@@ -407,6 +407,34 @@ int g(E e) {
 ''');
   }
 
+  Future<void> test_privateEnumConstant_privateMissing() async {
+    newFile('$testPackageLibPath/enum.dart', r'''
+enum E { first, second, _unknown }
+''');
+    await resolveTestCode('''
+import 'enum.dart';
+
+int g(E e) {
+  return switch (e) {
+    E.first => 0,
+    E.second => 1,
+  };
+}
+''');
+    await assertHasFix('''
+import 'enum.dart';
+
+int g(E e) {
+  return switch (e) {
+    E.first => 0,
+    E.second => 1,
+    // TODO: Handle this case.
+    _ => throw UnimplementedError(),
+  };
+}
+''');
+  }
+
   Future<void> test_sealed_impl() async {
     var otherRoot = getFolder('$packagesRootPath/other');
     newFile('$otherRoot/lib/src/private.dart', '''
@@ -978,6 +1006,37 @@ int g(E e) {
     case E.second:
       // TODO: Handle this case.
       throw UnimplementedError();
+    default:
+      // TODO: Handle this case.
+      throw UnimplementedError();
+  }
+}
+''');
+  }
+
+  Future<void> test_privateEnumConstant_privateMissing() async {
+    newFile('$testPackageLibPath/enum.dart', r'''
+enum E { first, second, _unknown }
+''');
+    await resolveTestCode('''
+import 'enum.dart';
+
+int g(E e) {
+  switch (e) {
+    case E.first:
+    case E.second:
+      return 0;
+  }
+}
+''');
+    await assertHasFix('''
+import 'enum.dart';
+
+int g(E e) {
+  switch (e) {
+    case E.first:
+    case E.second:
+      return 0;
     default:
       // TODO: Handle this case.
       throw UnimplementedError();

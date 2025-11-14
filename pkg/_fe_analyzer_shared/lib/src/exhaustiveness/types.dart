@@ -119,6 +119,15 @@ class TypeBasedStaticType<Type extends Object> extends NonNullableStaticType {
   void typeToDart(DartTemplateBuffer buffer) {
     buffer.writeGeneralType(_type, name);
   }
+
+  @override
+  bool get isEnumSubtype => _typeOperations.isEnum(_type);
+
+  @override
+  Uri? get libraryUri => _typeOperations.libraryUri(_type);
+
+  @override
+  bool get isPrivate => name.startsWith('_');
 }
 
 /// [StaticType] for an object restricted by its [restriction].

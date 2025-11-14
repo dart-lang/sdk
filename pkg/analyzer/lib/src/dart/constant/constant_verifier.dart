@@ -1004,17 +1004,35 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
               correctionData.add(correctionDataBuffer.parts);
             }
           }
-          var diagnostic = _diagnosticReporter.atToken(
-            switchKeyword,
-            isSwitchExpression
-                ? diag.nonExhaustiveSwitchExpression
-                : diag.nonExhaustiveSwitchStatement,
-            arguments: [
-              scrutineeType,
-              errorBuffer.toString(),
-              correctionTextBuffer.toString(),
-            ],
-          );
+
+          Diagnostic diagnostic;
+          _currentLibrary;
+          if (nonExhaustiveness.valueType.isEnumSubtype &&
+              nonExhaustiveness.valueType.libraryUri != _currentLibrary.uri &&
+              (nonExhaustiveness.valueType.isPrivate ||
+                  nonExhaustiveness.witnesses.every(
+                    (witness) => witness.asWitness.contains('._'),
+                  ))) {
+            diagnostic = _diagnosticReporter.atToken(
+              switchKeyword,
+              isSwitchExpression
+                  ? diag.nonExhaustiveSwitchExpressionPrivate
+                  : diag.nonExhaustiveSwitchStatementPrivate,
+              arguments: [scrutineeType],
+            );
+          } else {
+            diagnostic = _diagnosticReporter.atToken(
+              switchKeyword,
+              isSwitchExpression
+                  ? diag.nonExhaustiveSwitchExpression
+                  : diag.nonExhaustiveSwitchStatement,
+              arguments: [
+                scrutineeType,
+                errorBuffer.toString(),
+                correctionTextBuffer.toString(),
+              ],
+            );
+          }
           if (correctionData.isNotEmpty) {
             MissingPatternPart.byDiagnostic[diagnostic] = correctionData;
           }

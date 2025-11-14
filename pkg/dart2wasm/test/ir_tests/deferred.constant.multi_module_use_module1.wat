@@ -16,8 +16,8 @@
   (global $.shared-const (import "" "shared-const") (ref extern))
   (table $module0.constant-table0 (import "module0" "constant-table0") 1 (ref null $JSStringImpl))
   (table $module0.constant-table1 (import "module0" "constant-table1") 1 (ref null $MyConstClass))
-  (global $"C488 MyConstClass" (ref $MyConstClass)
-    (i32.const 107)
+  (global $"C496 MyConstClass" (ref $MyConstClass)
+    (i32.const 116)
     (i32.const 0)
     (i32.const 4)
     (i32.const 0)
@@ -29,14 +29,14 @@
     (local $var2 (ref $MyConstClass))
     local.get $var0
     if (result (ref $MyConstClass))
-      global.get $"C488 MyConstClass"
+      global.get $"C496 MyConstClass"
     else
       block $label0 (result (ref $MyConstClass))
         i32.const 0
         table.get $module0.constant-table1
         br_on_non_null $label0
         i32.const 0
-        i32.const 107
+        i32.const 116
         i32.const 0
         block $label1 (result (ref $JSStringImpl))
           i32.const 0

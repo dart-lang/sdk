@@ -38,7 +38,7 @@
     if (result (ref null $BoxedDouble))
       ref.null none
     else
-      i32.const 76
+      i32.const 84
       local.get $var0
       call $"dart2wasm._147 (import)"
       struct.new $BoxedDouble
@@ -78,7 +78,7 @@
         call $"ktrue implicit getter"
       end
       if (result (ref null $BoxedDouble))
-        i32.const 76
+        i32.const 84
         global.get $"doubleValue initialized"
         if (result f64)
           global.get $doubleValue
@@ -115,7 +115,7 @@
     if (result (ref null $BoxedDouble))
       ref.null none
     else
-      i32.const 76
+      i32.const 84
       local.get $var1
       call $"dart2wasm._147 (import)"
       struct.new $BoxedDouble
