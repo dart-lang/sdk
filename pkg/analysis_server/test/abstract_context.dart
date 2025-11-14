@@ -279,6 +279,7 @@ class AbstractContextTest
       includedPaths: collectionIncludedPaths.map(convertPath).toList(),
       resourceProvider: resourceProvider,
       sdkPath: sdkRoot.path,
+      withFineDependencies: true,
     );
 
     _addAnalyzedFilesToDrivers();

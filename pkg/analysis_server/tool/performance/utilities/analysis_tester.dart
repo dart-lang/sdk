@@ -115,6 +115,7 @@ class AnalysisTester {
       includedPaths: packagePaths.toList(),
       scheduler: scheduler,
       performanceLog: log,
+      withFineDependencies: true,
     );
     for (var context in collection.contexts) {
       var contextRoot = context.contextRoot;
