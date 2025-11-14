@@ -1839,6 +1839,8 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor<void> {
         return 'annotation';
       } else if (parent is DotShorthandConstructorInvocation) {
         return 'constructor';
+      } else if (parent is DotShorthandInvocation) {
+        return 'method';
       } else if (parent is EnumConstantArguments) {
         return 'enumConstantArguments';
       } else if (parent is ExtensionOverride) {
