@@ -1247,7 +1247,7 @@ class MethodInvocationResolver with ScopeHelpers {
   }) {
     var element = _resolveElement(receiver, node.memberName);
     if (element != null) {
-      if (element is InternalExecutableElement) {
+      if (element is InternalExecutableElement && element.isStatic) {
         node.memberName.element = element;
         if (element is InternalPropertyAccessorElement) {
           return _rewriteAsFunctionExpressionInvocation(

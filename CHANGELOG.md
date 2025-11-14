@@ -5,8 +5,11 @@ This is a patch release that:
 - Fixes an issue with dot shorthand code completion for the `==` operator,
   `FutureOr` types, switch expressions, and switch statements.
   (issue [dart-lang/sdk#61872][]).
+- Fixes an issue with the analyzer not reporting an error when invoking an
+  instance method with a dot shorthand. (issue [dart-lang/sdk#61954][]).
 
 [dart-lang/sdk#61872]: https://github.com/dart-lang/sdk/issues/61872
+[dart-lang/sdk#61954]: https://github.com/dart-lang/sdk/issues/61954
 
 ## 3.10.0
 

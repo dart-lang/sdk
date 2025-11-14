@@ -397,6 +397,22 @@ void main() {
     );
   }
 
+  test_error_notStatic() async {
+    await assertErrorsInCode(
+      r'''
+class C {
+  C foo() => C();
+}
+
+void main() {
+  final C c = .foo();
+  print(c);
+}
+''',
+      [error(CompileTimeErrorCode.dotShorthandUndefinedInvocation, 60, 3)],
+    );
+  }
+
   test_error_unresolved() async {
     await assertErrorsInCode(
       r'''
