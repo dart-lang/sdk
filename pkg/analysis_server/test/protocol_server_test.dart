@@ -275,8 +275,12 @@ class EnumTest {
     EnumTester<MatchKind, SearchResultKind>().run(
       newSearchResultKind_fromEngine,
       exceptions: {
+        MatchKind.DOT_SHORTHANDS_CONSTRUCTOR_INVOCATION:
+            SearchResultKind.INVOCATION,
         MatchKind.INVOCATION_BY_ENUM_CONSTANT_WITHOUT_ARGUMENTS:
             SearchResultKind.INVOCATION,
+        MatchKind.DOT_SHORTHANDS_CONSTRUCTOR_TEAR_OFF:
+            SearchResultKind.REFERENCE,
         MatchKind.REFERENCE_BY_CONSTRUCTOR_TEAR_OFF: SearchResultKind.REFERENCE,
         MatchKind.REFERENCE_IN_EXTENDS_CLAUSE: SearchResultKind.REFERENCE,
         MatchKind.REFERENCE_IN_IMPLEMENTS_CLAUSE: SearchResultKind.REFERENCE,

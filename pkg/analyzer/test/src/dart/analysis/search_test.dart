@@ -1318,8 +1318,8 @@ void main() {
     var element = findElement2.unnamedConstructor('A');
     await assertElementReferencesText(element, r'''
 <testLibraryFragment> main@16
-  34 3:10 |new| INVOCATION qualified
-  61 4:16 |new| REFERENCE_BY_CONSTRUCTOR_TEAR_OFF qualified
+  34 3:10 |new| DOT_SHORTHANDS_CONSTRUCTOR_INVOCATION qualified
+  61 4:16 |new| DOT_SHORTHANDS_CONSTRUCTOR_TEAR_OFF qualified
 ''');
   }
 
