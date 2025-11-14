@@ -2,14 +2,21 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// It is an error if a class does not have a primary constructor, but the body
-// of the class contains a primary constructor body.
+// `factory() => C();` is a factory constructor whose name is the name of the
+// enclosing class, and not a method.
 
 // SharedOptions=--enable-experiment=declaring-constructors
 
 class C {
-  this : assert(1 != 2);
-  // ^
+  final int x;
+  C.named(this.x);
+  factory() => C.named(1); // Equivalent to `factory C() => C.named();`
+}
+
+void main() {
+  var c = C.named(1);
+  c.factory();
+  //^
   // [analyzer] unspecified
   // [cfe] unspecified
 }
