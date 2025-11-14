@@ -60,6 +60,7 @@ class TranslatorOptions {
   bool generateSourceMaps = true;
   bool enableDeferredLoading = false;
   bool enableMultiModuleStressTestMode = false;
+  bool enableProtobufTreeShaker = false;
   int inliningLimit = 0;
   int? sharedMemoryMaxPages;
   bool requireJsStringBuiltin = false;
@@ -84,6 +85,7 @@ class TranslatorOptions {
     sink.writeBool(generateSourceMaps);
     sink.writeBool(enableDeferredLoading);
     sink.writeBool(enableMultiModuleStressTestMode);
+    sink.writeBool(enableProtobufTreeShaker);
     sink.writeInt(inliningLimit);
     sink.writeInt(
         sharedMemoryMaxPages == null ? 0 : (sharedMemoryMaxPages! + 1));
@@ -109,6 +111,7 @@ class TranslatorOptions {
     options.generateSourceMaps = source.readBool();
     options.enableDeferredLoading = source.readBool();
     options.enableMultiModuleStressTestMode = source.readBool();
+    options.enableProtobufTreeShaker = source.readBool();
     options.inliningLimit = source.readInt();
     final int sharedMemoryMaxPages = source.readInt();
     options.sharedMemoryMaxPages =

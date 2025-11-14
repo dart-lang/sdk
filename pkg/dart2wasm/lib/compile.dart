@@ -477,7 +477,8 @@ Future<CompilationResult> _runTfaPhase(
     // Keep the flags in-sync with
     // pkg/vm/test/transformations/type_flow/transformer_test.dart
     globalTypeFlow.transformComponent(target, coreTypes, component,
-        useRapidTypeAnalysis: true);
+        useRapidTypeAnalysis: true,
+        treeShakeProtobufs: options.translatorOptions.enableProtobufTreeShaker);
 
     // TFA may have tree shaken members that are in the library index cache.
     // To avoid having dangling references in the index, we create a new one.
