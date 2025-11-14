@@ -11,11 +11,11 @@ import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dar
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:collection/collection.dart';
 
-/// The boolean value indicates whether the field is required.
-/// The string value is the field/parameter name.
-typedef _FieldRecord = ({bool isRequired, String parameter});
-
 class AddFieldFormalParameters extends ResolvedCorrectionProducer {
+  static final _charAfterUnderscore = RegExp('[^_]');
+
+  static final _startsWithNumber = RegExp('^[0-9]');
+
   final _Style _style;
 
   @override
@@ -27,8 +27,7 @@ class AddFieldFormalParameters extends ResolvedCorrectionProducer {
 
   AddFieldFormalParameters.requiredNamed({required super.context})
     : _style = _Style.requiredNamed,
-      fixKind = DartFixKind.addInitializingFormalNamesParameters;
-
+      fixKind = DartFixKind.addInitializingFormalNamedParameters;
   @override
   CorrectionApplicability get applicability =>
       // TODO(applicability): comment on why.
@@ -61,96 +60,149 @@ class AddFieldFormalParameters extends ResolvedCorrectionProducer {
         .map((pair) => pair.$1)
         .toList();
 
+    if (fields.isEmpty) {
+      assert(false, 'How can this trigger with no fields?');
+      return;
+    }
+
     // Prepare the last required parameter.
-    FormalParameter? lastRequiredParameter;
+    FormalParameter? lastRequiredPositionalParameter;
     FormalParameter? firstNamedParameter;
+    var containsOptionalPositional = false;
     for (var parameter in parameters) {
       if (parameter.isRequiredPositional) {
-        lastRequiredParameter = parameter;
-      } else if (_style == _Style.base) {
-        break;
+        lastRequiredPositionalParameter = parameter;
       } else if (parameter.isOptionalPositional) {
-        // If there are optional positional parameters, we can't add required
-        // named parameters.
-        return;
+        if (_style == _Style.requiredNamed) {
+          // If there are optional positional parameters, we can't add required
+          // named parameters.
+          return;
+        } else {
+          containsOptionalPositional = true;
+        }
       } else if (parameter.isNamed) {
         firstNamedParameter = parameter;
         break;
       }
     }
 
-    var fieldsRecords = fields.map(_parameterForField).toList();
-    var requiredFirst = getCodeStyleOptions(
-      unitResult.file,
-    ).requiredNamedParametersFirst;
-    if (requiredFirst) {
-      fieldsRecords.sort((a, b) {
-        if (a.isRequired && !b.isRequired) {
-          return -1;
-        } else if (!a.isRequired && b.isRequired) {
-          return 1;
-        }
-        return a.parameter.compareTo(b.parameter);
-      });
-    }
-    var requiredParameters = fieldsRecords.where((r) => r.isRequired);
-    var optionalParameters = fieldsRecords
-        .where((r) => !r.isRequired)
-        .map((r) => r.parameter);
-    var fieldParametersCode = fieldsRecords.map((r) => r.parameter).join(', ');
     await builder.addDartFileEdit(file, (builder) {
-      if (firstNamedParameter != null &&
-          requiredFirst &&
-          requiredParameters.isNotEmpty) {
-        builder.addSimpleInsertion(
-          firstNamedParameter.offset,
-          '${requiredParameters.map((r) => r.parameter).join(', ')}, ',
-        );
-        if (optionalParameters.isNotEmpty) {
-          fieldParametersCode = optionalParameters.join(', ');
+      var insertOffset =
+          (lastRequiredPositionalParameter ??
+                  constructor.parameters.leftParenthesis)
+              .end;
+      var mappedFields = fields.map(
+        (field) => (field, isRequired: _isFieldRequired(field)),
+      );
+      var initializer = <({String publicName, FieldElement field})>[];
+      var addCurlyBraces =
+          firstNamedParameter == null && _style == _Style.requiredNamed;
+      var parametersAtCurly = getCodeStyleOptions(
+        unitResult.file,
+      ).requiredNamedParametersFirst;
+      var curlyOpen = lastRequiredPositionalParameter == null ? '{' : ', {';
+      if (addCurlyBraces && !parametersAtCurly) {
+        builder.addSimpleInsertion(insertOffset, curlyOpen);
+      }
+      if (!addCurlyBraces && _style == _Style.requiredNamed) {
+        if (parametersAtCurly) {
+          insertOffset = firstNamedParameter!.offset;
         } else {
-          return; // No optional parameters to add.
+          insertOffset =
+              parameters.lastOrNull?.end ??
+              constructor.parameters.rightParenthesis.offset;
         }
       }
-      if (_style == _Style.requiredNamed) {
-        var lastParameter = parameters.lastOrNull;
-        if (lastParameter != null) {
-          var write = ', ';
-          if (!lastParameter.isNamed) {
-            write += '{$fieldParametersCode}';
-          } else {
-            write += fieldParametersCode;
+      if (parametersAtCurly) {
+        mappedFields.sorted((r1, r2) {
+          return r1.isRequired == r2.isRequired ? 0 : (r1.isRequired ? -1 : 1);
+        });
+      }
+      var requiredFirst =
+          firstNamedParameter != null &&
+          firstNamedParameter.isRequiredNamed &&
+          parametersAtCurly;
+      builder.addInsertion(insertOffset, (builder) {
+        var addComma = _style == _Style.base
+            ? lastRequiredPositionalParameter != null
+            : !parametersAtCurly && !addCurlyBraces;
+        for (var (field, :isRequired) in mappedFields) {
+          // If we have a required named parameter already, don't add
+          // non-required parameters yet.
+          if (requiredFirst && !isRequired) {
+            continue;
           }
-          builder.addSimpleInsertion(parameters.last.end, write);
-        } else {
-          var offset = constructor.parameters.leftParenthesis.end;
-          builder.addSimpleInsertion(offset, '{$fieldParametersCode}');
+          if (addComma) {
+            builder.write(', ');
+          }
+          addComma = true;
+          if (isRequired) {
+            builder.write('required ');
+          }
+          if (field.isPrivate) {
+            var nameIndex = field.displayName.indexOf(_charAfterUnderscore);
+            var publicName = field.displayName.substring(nameIndex);
+            if (_startsWithNumber.hasMatch(publicName)) {
+              // Like we do for closures suggesting p0, p1, etc.
+              publicName = 'p$publicName';
+            }
+            builder.writeType(field.type);
+            builder.write(' $publicName');
+            initializer.add((field: field, publicName: publicName));
+          } else {
+            builder.write('this.${field.name}');
+          }
         }
-      } else if (lastRequiredParameter != null) {
-        return builder.addSimpleInsertion(
-          lastRequiredParameter.end,
-          ', $fieldParametersCode',
-        );
-      } else {
-        var offset = constructor.parameters.leftParenthesis.end;
-        if (parameters.isNotEmpty) {
-          fieldParametersCode += ', ';
+        if (_style == _Style.base
+            ? containsOptionalPositional || firstNamedParameter != null
+            : firstNamedParameter != null && parametersAtCurly) {
+          builder.write(', ');
         }
-        builder.addSimpleInsertion(offset, fieldParametersCode);
+      });
+      insertOffset =
+          parameters.lastOrNull?.end ??
+          constructor.parameters.rightParenthesis.offset;
+      if (requiredFirst) {
+        builder.addInsertion(insertOffset, (builder) {
+          for (var (field, :isRequired) in mappedFields) {
+            if (isRequired) {
+              continue;
+            }
+            builder.write(', this.${field.name}');
+          }
+        });
+      }
+      if (addCurlyBraces) {
+        builder.addSimpleInsertion(insertOffset, '}');
+      }
+
+      if (initializer.isNotEmpty) {
+        var colonOffset =
+            constructor.separator?.end ??
+            constructor.parameters.rightParenthesis.end;
+        builder.addInsertion(colonOffset, (builder) {
+          if (constructor.separator == null) {
+            builder.write(' :');
+          }
+          var writeComma = false;
+          for (var (:field, :publicName) in initializer) {
+            if (writeComma) {
+              builder.write(',');
+            }
+            writeComma = true;
+            builder.write(' ${field.name} = $publicName');
+          }
+          if (constructor.initializers.isNotEmpty) {
+            builder.write(',');
+          }
+        });
       }
     });
   }
 
-  _FieldRecord _parameterForField(FieldElement field) {
-    var prefix = '';
-    var isRequired = false;
-    if (typeSystem.isPotentiallyNonNullable(field.type) &&
-        _style == _Style.requiredNamed) {
-      isRequired = true;
-      prefix = 'required ';
-    }
-    return (isRequired: isRequired, parameter: '${prefix}this.${field.name}');
-  }
+  bool _isFieldRequired(FieldElement field) =>
+      _style == _Style.requiredNamed &&
+      typeSystem.isPotentiallyNonNullable(field.type);
 }
 
 enum _Style { base, requiredNamed }
