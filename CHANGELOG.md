@@ -7,9 +7,12 @@ This is a patch release that:
   (issue [dart-lang/sdk#61872][]).
 - Fixes an issue with the analyzer not reporting an error when invoking an
   instance method with a dot shorthand. (issue [dart-lang/sdk#61954][]).
+- Fixes a crash with the `ExitDetector` in the analyzer missing a few visitor
+  methods for dot shorthand AST nodes. (issue [dart-lang/sdk#61963])
 
 [dart-lang/sdk#61872]: https://github.com/dart-lang/sdk/issues/61872
 [dart-lang/sdk#61954]: https://github.com/dart-lang/sdk/issues/61954
+[dart-lang/sdk#61963]: https://github.com/dart-lang/sdk/issues/61963
 
 ## 3.10.0
 
