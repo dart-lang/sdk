@@ -38,7 +38,7 @@ class DiagnosticDomainTest extends PubPackageAnalysisServerTest {
     );
     expect(context.explicitFileCount, 1); /* test.dart */
 
-    expect(context.implicitFileCount, 5);
+    expect(context.implicitFileCount, 6);
 
     expect(context.workItemQueueLength, isNotNull);
   }

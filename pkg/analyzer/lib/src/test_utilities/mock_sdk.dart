@@ -19,25 +19,16 @@ import 'dart:math';
 part 'stream.dart';
 
 abstract class Future<T> {
-  factory Future(FutureOr<T> computation()) {
-    throw 0;
-  }
+  factory Future(FutureOr<T> computation()) => throw 0;
 
-  factory Future.delayed(Duration duration, [FutureOr<T> computation()?]) {
-    throw 0;
-  }
+  factory Future.delayed(Duration duration, [FutureOr<T> computation()?]) =>
+      throw 0;
 
-  factory Future.error(Object error, [StackTrace? stackTrace]) {
-    throw 0;
-  }
+  factory Future.error(Object error, [StackTrace? stackTrace]) => throw 0;
 
-  factory Future.microtask(FutureOr<T> computation()) {
-    throw 0;
-  }
+  factory Future.microtask(FutureOr<T> computation()) => throw 0;
 
-  factory Future.value([FutureOr<T>? value]) {
-    throw 0;
-  }
+  factory Future.value([FutureOr<T>? value]) => throw 0;
 
   Future<T> catchError(Function onError, {bool test(Object error)?});
 
@@ -55,25 +46,18 @@ abstract class Future<T> {
 abstract class FutureOr<T> {}
 
 abstract interface class Completer<T> {
-  factory Completer() {
-    throw 0;
-  }
+  factory Completer() => throw 0;
 
-  factory Completer.sync() {
-    throw 0;
-  }
+  factory Completer.sync() => throw 0;
 
   Future<T> get future;
   bool get isCompleted;
-
   void complete([FutureOr<T>? value]);
   void completeError(Object error, [StackTrace? stackTrace]);
 }
 
 abstract interface class Timer {
-  factory Timer(Duration duration, void Function() callback) {
-    throw 0;
-  }
+  factory Timer(Duration duration, void Function() callback) => throw 0;
   static void run(void Function() callback) {}
 }
 
@@ -85,13 +69,9 @@ part of dart.async;
 
 abstract mixin class Stream<T> {
   const Stream();
-  factory Stream.fromIterable(Iterable<T> elements) {
-    throw 0;
-  }
+  factory Stream.fromIterable(Iterable<T> elements) => throw 0;
 
-  factory Stream.value(T value) {
-    throw 0;
-  }
+  factory Stream.value(T value) => throw 0;
 
   Future<T> get first;
 
@@ -138,13 +118,9 @@ abstract final class HashMap<K, V> implements Map<K, V> {
 
   external factory HashMap.identity();
 
-  factory HashMap.from(Map<dynamic, dynamic> other) {
-    throw 0;
-  }
+  factory HashMap.from(Map<dynamic, dynamic> other) => throw 0;
 
-  factory HashMap.of(Map<K, V> other) {
-    throw 0;
-  }
+  factory HashMap.of(Map<K, V> other) => throw 0;
 
   factory HashMap.fromIterable(
     Iterable iterable, {
@@ -152,14 +128,10 @@ abstract final class HashMap<K, V> implements Map<K, V> {
     V Function(dynamic element)? value,
   }) => throw 0;
 
-  factory HashMap.fromIterables(Iterable<K> keys, Iterable<V> values) {
-    throw 0;
-  }
+  factory HashMap.fromIterables(Iterable<K> keys, Iterable<V> values) =>
+      throw 0;
 
-  @Since("2.1")
-  factory HashMap.fromEntries(Iterable<MapEntry<K, V>> entries) {
-    throw 0;
-  }
+  factory HashMap.fromEntries(Iterable<MapEntry<K, V>> entries) => throw 0;
 }
 
 abstract mixin class IterableMixin<E> implements Iterable<E> { }
@@ -173,13 +145,9 @@ abstract final class LinkedHashMap<K, V> implements Map<K, V> {
 
   external factory LinkedHashMap.identity();
 
-  factory LinkedHashMap.from(Map<dynamic, dynamic> other) {
-    throw 0;
-  }
+  factory LinkedHashMap.from(Map<dynamic, dynamic> other) => throw 0;
 
-  factory LinkedHashMap.of(Map<K, V> other) {
-    throw 0;
-  }
+  factory LinkedHashMap.of(Map<K, V> other) => throw 0;
 
   factory LinkedHashMap.fromIterable(
     Iterable iterable, {
@@ -187,14 +155,11 @@ abstract final class LinkedHashMap<K, V> implements Map<K, V> {
     V Function(dynamic element)? value,
   }) => throw 0;
 
-  factory LinkedHashMap.fromIterables(Iterable<K> keys, Iterable<V> values) {
-    throw 0;
-  }
+  factory LinkedHashMap.fromIterables(Iterable<K> keys, Iterable<V> values) =>
+      throw 0;
 
-  @Since("2.1")
-  factory LinkedHashMap.fromEntries(Iterable<MapEntry<K, V>> entries) {
-    throw 0;
-  }
+  factory LinkedHashMap.fromEntries(Iterable<MapEntry<K, V>> entries) =>
+      throw 0;
 }
 
 abstract final class LinkedHashSet<E> implements Set<E> {
@@ -206,13 +171,9 @@ abstract final class LinkedHashSet<E> implements Set<E> {
 
   external factory LinkedHashSet.identity();
 
-  factory LinkedHashSet.from(Iterable<dynamic> elements) {
-    throw 0;
-  }
+  factory LinkedHashSet.from(Iterable<dynamic> elements) => throw 0;
 
-  factory LinkedHashSet.of(Iterable<E> elements) {
-    throw 0;
-  }
+  factory LinkedHashSet.of(Iterable<E> elements) => throw 0;
 }
 
 abstract base mixin class LinkedListEntry<E extends LinkedListEntry<E>> {}
@@ -267,6 +228,7 @@ final MockSdkLibrary _LIB_CORE = MockSdkLibrary('core', [
   MockSdkLibraryUnit('core/core.dart', r'''
 library dart.core;
 
+import "dart:collection";
 import "dart:_internal" hide Symbol;
 import "dart:_internal" as internal show Symbol;
 
@@ -423,9 +385,7 @@ class Error {
 }
 
 abstract interface class Exception {
-  factory Exception([var message]) {
-    throw 0;
-  }
+  factory Exception([var message]) => throw 0;
 }
 
 class FormatException implements Exception {}
@@ -534,19 +494,21 @@ abstract interface class List<E> implements Iterable<E> {
 
 abstract interface class Map<K, V> {
   external factory Map();
-  external factory Map.from(Map other);
-  external Map.of(Map<K, V> other);
+  factory Map.from(Map other) = LinkedHashMap<K, V>.from;
+  factory Map.of(Map<K, V> other) = LinkedHashMap<K, V>.of;
   external factory Map.unmodifiable(Map<dynamic, dynamic> other);
-  external factory Map.identity();
+  factory Map.identity() = LinkedHashMap<K, V>.identity;
 
-  external factory Map.fromIterable(
+  factory Map.fromIterable(
     Iterable iterable, {
     K key(dynamic element)?,
     V value(dynamic element)?,
-  });
+  }) = LinkedHashMap<K, V>.fromIterable;
 
-  external factory Map.fromIterables(Iterable<K> keys, Iterable<V> values);
-  external factory Map.fromEntries(Iterable<MapEntry<K, V>> entries);
+  factory Map.fromIterables(Iterable<K> keys, Iterable<V> values) =
+      LinkedHashMap<K, V>.fromIterables;
+
+  factory Map.fromEntries(Iterable<MapEntry<K, V>> entries) => throw 0;
 
   Iterable<K> get keys;
   bool get isEmpty;
@@ -568,9 +530,7 @@ abstract interface class Map<K, V> {
 }
 
 final class Null {
-  factory Null._uninstantiable() {
-    throw 0;
-  }
+  factory Null._uninstantiable() => throw 0;
 }
 
 final class MapEntry<K, V> {
@@ -672,10 +632,10 @@ abstract interface class RegExp implements Pattern {
 }
 
 abstract interface class Set<E> implements Iterable<E> {
-  external factory Set();
-  external factory Set.identity();
-  external factory Set.from(Iterable elements);
-  external factory Set.of(Iterable<E> elements);
+  factory Set() = LinkedHashSet<E>;
+  factory Set.identity() = LinkedHashSet<E>.identity;
+  factory Set.from(Iterable elements) = LinkedHashSet<E>.from;
+  factory Set.of(Iterable<E> elements) = LinkedHashSet<E>.of;
 
   Set<R> cast<R>();
 
@@ -1120,7 +1080,7 @@ final class Int extends AbiSpecificInteger {
 
 @Since('2.17')
 abstract interface class Finalizable {
-  factory Finalizable._() => throw UnsupportedError("");
+  factory Finalizable._() => throw 0;
 }
 
 typedef NativeFinalizerFunction =
@@ -1171,7 +1131,7 @@ class Element {
     String? html, {
     NodeValidator? validator,
     NodeTreeSanitizer? treeSanitizer,
-  }) => new HtmlElement();
+  }) => throw 0;
 
   ElementStream<ClipboardEvent> get onCut => throw 0;
 
@@ -1217,16 +1177,15 @@ class AnchorElement extends HtmlElement {
 }
 
 class BodyElement extends HtmlElement {
-  factory BodyElement() => document.createElement("body");
+  factory BodyElement() => throw 0;
 
   ElementStream<Event> get onUnload => throw 0;
 }
 
 class ButtonElement extends HtmlElement {
-  factory ButtonElement._() {
-    throw new UnsupportedError("Not supported");
-  }
-  factory ButtonElement() => document.createElement("button");
+  factory ButtonElement._() => throw 0;
+
+  factory ButtonElement() => throw 0;
 
   bool get autofocus => throw 0;
   set autofocus(bool value) {}
@@ -1238,12 +1197,10 @@ class EmbedElement extends HtmlElement {
 }
 
 class HeadingElement extends HtmlElement {
-  factory HeadingElement._() {
-    throw new UnsupportedError("Not supported");
-  }
-  factory HeadingElement.h1() => document.createElement("h1");
-  factory HeadingElement.h2() => document.createElement("h2");
-  factory HeadingElement.h3() => document.createElement("h3");
+  factory HeadingElement._() => throw 0;
+  factory HeadingElement.h1() => throw 0;
+  factory HeadingElement.h2() => throw 0;
+  factory HeadingElement.h3() => throw 0;
 }
 
 class ImageElement extends HtmlElement {
@@ -1252,19 +1209,15 @@ class ImageElement extends HtmlElement {
 }
 
 class InputElement extends HtmlElement {
-  factory InputElement._() {
-    throw new UnsupportedError("Not supported");
-  }
-  factory InputElement({String? type}) => document.createElement("input");
+  factory InputElement._() => throw 0;
+  factory InputElement({String? type}) => throw 0;
   String? get value => throw 0;
   set value(String? value) {}
   String get validationMessage => throw 0;
 }
 
 class IFrameElement extends HtmlElement {
-  factory IFrameElement._() {
-    throw new UnsupportedError("Not supported");
-  }
+  factory IFrameElement._() => throw 0;
   factory IFrameElement() => throw 0;
   String? get src => throw 0;
   set src(String? value) {}
@@ -1301,16 +1254,12 @@ class TableSectionElement extends HtmlElement {
 
   TableRowElement insertRow(int index) => throw 0;
 
-  factory TableSectionElement._() {
-    throw new UnsupportedError("Not supported");
-  }
+  factory TableSectionElement._() => throw 0;
 }
 
 class TemplateElement extends HtmlElement {
-  factory TemplateElement._() {
-    throw new UnsupportedError("Not supported");
-  }
-  factory TemplateElement() => document.createElement("template");
+  factory TemplateElement._() => throw 0;
+  factory TemplateElement() => throw 0;
 }
 
 class AudioElement extends MediaElement {
@@ -1401,9 +1350,7 @@ int get exitCode => 0;
 void set exitCode(int code) {}
 
 abstract interface class Directory implements FileSystemEntity {
-  factory Directory(String path) {
-    throw 0;
-  }
+  factory Directory(String path) => throw 0;
 }
 
 class FileMode {
@@ -1415,9 +1362,7 @@ class FileMode {
 }
 
 abstract interface class File implements FileSystemEntity {
-  factory File(String path) {
-    throw 0;
-  }
+  factory File(String path) => throw 0;
   Future<DateTime> lastModified();
   DateTime lastModifiedSync();
   IOSink openWrite({FileMode mode = FileMode.write, Encoding encoding = utf8});
