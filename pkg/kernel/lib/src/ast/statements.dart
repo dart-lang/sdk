@@ -1405,7 +1405,8 @@ class YieldStatement extends Statement {
   }
 }
 
-abstract interface class VariableDeclaration implements Annotatable, Statement {
+abstract interface class VariableDeclaration
+    implements Annotatable, Statement, ExpressionVariable {
   /// The name of the variable as provided in the source code.
   ///
   /// The name of a variable can only be omitted if the variable is synthesized.
@@ -1413,17 +1414,21 @@ abstract interface class VariableDeclaration implements Annotatable, Statement {
   abstract String? name;
 
   /// The declared or inferred type of the variable.
+  @override
   abstract DartType type;
 
   /// For locals, this is the initial value.
   /// For parameters, this is the default value.
   ///
   /// Should be null in other cases.
+  @override
   abstract Expression? initializer;
 
+  @override
   abstract int flags;
 
   /// Whether the parameter is declared with the `covariant` keyword.
+  @override
   abstract bool isCovariantByDeclaration;
 
   /// If this [VariableDeclaration] is a parameter of a method, indicates
@@ -1431,24 +1436,29 @@ abstract interface class VariableDeclaration implements Annotatable, Statement {
   /// deal with generic covariance.
   ///
   /// When `true`, runtime checks may need to be performed.
+  @override
   abstract bool isCovariantByClass;
 
   /// Whether the variable is declared with the `const` keyword.
+  @override
   abstract bool isConst;
 
   /// Whether the variable is declared with the `late` keyword.
   ///
   /// The `late` modifier is only supported on local variables and not on
   /// parameters.
+  @override
   abstract bool isLate;
 
   /// Whether the variable is declared with the `final` keyword.
+  @override
   abstract bool isFinal;
 
   /// Whether the parameter is declared with the `required` keyword.
   ///
   /// The `required` modifier is only supported on named parameters and not on
   /// positional parameters and local variables.
+  @override
   abstract bool isRequired;
 
   /// Whether the variable is part of a lowering.
@@ -1459,6 +1469,7 @@ abstract interface class VariableDeclaration implements Annotatable, Statement {
   ///
   /// Lowering is used for instance of encoding of 'this' in extension instance
   /// members and encoding of late locals.
+  @override
   abstract bool isLowered;
 
   /// Whether the declaration of this variable is has been moved to an earlier
@@ -1467,6 +1478,7 @@ abstract interface class VariableDeclaration implements Annotatable, Statement {
   /// This is for instance the case for variables declared in a pattern, where
   /// the lowering requires the variable to be declared before the expression
   /// that performs that matching in which its initialization occurs.
+  @override
   abstract bool isHoisted;
 
   /// Whether this variable is synthesized, that is, it is _not_ declared in
@@ -1474,25 +1486,30 @@ abstract interface class VariableDeclaration implements Annotatable, Statement {
   ///
   /// The name of a variable can only be omitted if the variable is synthesized.
   /// Otherwise, its name is as provided in the source code.
+  @override
   abstract bool isSynthesized;
 
   /// Whether the variable is assignable.
   ///
   /// This is `true` if the variable is neither constant nor final, or if it
   /// is late final without an initializer.
+  @override
   bool get isAssignable;
 
   /// Whether the variable is declared as an initializing formal parameter of
   /// a constructor.
   @informative
+  @override
   abstract bool isInitializingFormal;
 
   /// Whether the variable is declared as a super initializing formal parameter
   /// of a constructor.
   @informative
+  @override
   abstract bool isSuperInitializingFormal;
 
   @informative
+  @override
   abstract bool isErroneouslyInitialized;
 
   /// Whether the variable has an initializer, either by declaration or copied
@@ -1502,11 +1519,13 @@ abstract interface class VariableDeclaration implements Annotatable, Statement {
   /// so `hasDeclaredInitializer == false` doesn't imply `initializer == null`.
   /// For instance, for duplicate variable names, an invalid expression is set
   /// as the initializer of the second variable.
+  @override
   abstract bool hasDeclaredInitializer;
 
   /// Whether this variable is a wildcard variable.
   ///
   /// Wildcard variables have the name `_`.
+  @override
   abstract bool isWildcard;
 
   /// Offset of the equals sign in the source file it comes from.
@@ -1880,6 +1899,29 @@ class VariableStatement extends Statement implements VariableDeclaration {
     printer.writeVariableDeclaration(this);
     printer.write(';');
   }
+
+  @override
+  String? get cosmeticName => name;
+
+  @override
+  void set cosmeticName(String? value) {
+    name = value;
+  }
+
+  @override
+  VariableInitialization? get variableInitialization {
+    throw new UnsupportedError("${this.runtimeType}");
+  }
+
+  @override
+  void set variableInitialization(VariableInitialization? value) {
+    throw new UnsupportedError("${this.runtimeType}");
+  }
+
+  @override
+  VariableContext get context {
+    throw new UnsupportedError("${this.runtimeType}");
+  }
 }
 
 /// Declaration a local function.
@@ -1935,8 +1977,7 @@ class FunctionDeclaration extends Statement implements LocalFunction {
 
   @override
   void toTextInternal(AstPrinter printer) {
-    printer.writeFunctionNode(
-        function, printer.getVariableDeclarationName(variable));
+    printer.writeFunctionNode(function, printer.getVariableName(variable));
     if (function.body is ReturnStatement) {
       printer.write(';');
     }
@@ -2170,4 +2211,23 @@ class VariableInitialization extends Statement implements VariableDeclaration {
 
   @override
   bool get isAssignable => variable.isAssignable;
+
+  @override
+  String? get cosmeticName => variable.cosmeticName;
+
+  @override
+  void set cosmeticName(String? value) {
+    variable.cosmeticName = value;
+  }
+
+  @override
+  VariableInitialization? get variableInitialization => this;
+
+  @override
+  void set variableInitialization(VariableInitialization? value) {
+    throw new UnsupportedError("${this.runtimeType}");
+  }
+
+  @override
+  VariableContext get context => variable.context;
 }

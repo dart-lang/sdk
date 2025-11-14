@@ -181,7 +181,7 @@ abstract class StackListener extends Listener with StackChecker {
     if (tokenOrNull == null) stack.push(nullValue);
   }
 
-  Object? peek() => stack.isNotEmpty ? stack.last : null;
+  Object? peek([NullValue? nullValue]) => stack.peek(nullValue);
 
   Object? pop([NullValue? nullValue]) {
     return stack.pop(nullValue);
@@ -488,6 +488,8 @@ abstract class Stack {
 
   List<Object?> get values;
 
+  Object? peek(NullValue? nullValue);
+
   Object? pop(NullValue? nullValue);
 
   int get length;
@@ -525,6 +527,22 @@ class StackImpl implements Stack {
     array[arrayLength++] = value;
     if (array.length == arrayLength) {
       _grow();
+    }
+  }
+
+  @override
+  Object? peek(NullValue? nullValue) {
+    if (isNotEmpty) {
+      Object? value = last;
+      if (value is! NullValue) {
+        return value;
+      } else if (nullValue == null || value == nullValue) {
+        return null;
+      } else {
+        return value;
+      }
+    } else {
+      return null;
     }
   }
 
@@ -637,6 +655,11 @@ class DebugStack implements Stack {
 
   @override
   int get length => realStack.length;
+
+  @override
+  Object? peek(NullValue? nullValue) {
+    return realStack.peek(nullValue);
+  }
 
   @override
   Object? pop(NullValue? nullValue) {

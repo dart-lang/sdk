@@ -34,6 +34,7 @@ import 'package:kernel/kernel.dart'
         DartType,
         DynamicType,
         Expression,
+        ExpressionVariable,
         ExtensionType,
         Field,
         FunctionNode,
@@ -2569,7 +2570,7 @@ class ExpressionEvaluationHelperImpl implements ExpressionEvaluationHelper {
 
   ExpressionInferenceResult _returnKnownVariableUnavailable(
     Expression node,
-    VariableDeclaration variable,
+    ExpressionVariable variable,
     ProblemReporting problemReporting,
     CompilerContext compilerContext,
     Uri fileUri,
@@ -2580,10 +2581,10 @@ class ExpressionEvaluationHelperImpl implements ExpressionEvaluationHelper {
         compilerContext: compilerContext,
         expression: node,
         message: codeExpressionEvaluationKnownVariableUnavailable
-            .withArgumentsOld(variable.name!),
+            .withArgumentsOld(variable.cosmeticName!),
         fileUri: fileUri,
         fileOffset: node.fileOffset,
-        length: variable.name!.length,
+        length: variable.cosmeticName!.length,
         errorHasBeenReported: false,
         includeExpression: false,
       ),

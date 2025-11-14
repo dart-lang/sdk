@@ -107,7 +107,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
           TreeNode,
           Statement,
           Expression,
-          VariableDeclaration,
+          ExpressionVariable,
           Pattern,
           InvalidExpression,
           TypeDeclarationType,
@@ -116,7 +116,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
         NullShortingMixin<
           NullAwareGuard,
           Expression,
-          VariableDeclaration,
+          ExpressionVariable,
           SharedTypeView
         >,
         StackChecker,
@@ -14401,7 +14401,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     TreeNode,
     Statement,
     Expression,
-    VariableDeclaration,
+    ExpressionVariable,
     SharedTypeView
   >
   get flow => flowAnalysis;
@@ -14595,7 +14595,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
   void handleCase_afterCaseHeads(
     Statement node,
     int caseIndex,
-    Iterable<VariableDeclaration> variables,
+    Iterable<ExpressionVariable> variables,
   ) {}
 
   @override
@@ -14671,7 +14671,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
   }
 
   @override
-  void setVariableType(VariableDeclaration variable, SharedTypeView type) {
+  void setVariableType(ExpressionVariable variable, SharedTypeView type) {
     variable.type = type.unwrapTypeView();
   }
 
@@ -16202,7 +16202,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
 
   @override
   void finishJoinedPatternVariable(
-    VariableDeclaration variable, {
+    ExpressionVariable variable, {
     required JoinedPatternVariableLocation location,
     required JoinedPatternVariableInconsistency inconsistency,
     required bool isFinal,

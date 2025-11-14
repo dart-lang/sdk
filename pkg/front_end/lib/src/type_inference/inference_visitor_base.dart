@@ -146,7 +146,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
     this.expressionEvaluationHelper,
   );
 
-  AssignedVariables<TreeNode, VariableDeclaration> get assignedVariables =>
+  AssignedVariables<TreeNode, ExpressionVariable> get assignedVariables =>
       _inferrer.assignedVariables;
 
   InterfaceType? get thisType => _inferrer.thisType;
@@ -161,7 +161,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
     TreeNode,
     Statement,
     Expression,
-    VariableDeclaration,
+    ExpressionVariable,
     SharedTypeView
   >
   get flowAnalysis => _inferrer.flowAnalysis;
@@ -2928,16 +2928,16 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
         functionType: null,
       )..fileOffset = fileOffset;
     } else if (receiver is VariableGet) {
-      VariableDeclaration variable = receiver.variable;
+      ExpressionVariable variable = receiver.variable;
       TreeNode? parent = variable.parent;
       if (parent is FunctionDeclaration) {
         assert(
           invocationTargetType is InvocationTargetFunctionType,
           "Unknown function type for local function invocation.",
         );
-        localName = variable.name!;
+        localName = variable.cosmeticName!;
         expression = new LocalFunctionInvocation(
-          variable,
+          variable as VariableDeclaration,
           arguments,
           functionType: inferredFunctionType as FunctionType,
         )..fileOffset = receiver.fileOffset;
@@ -4882,7 +4882,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
       }
     }
     if (expression is VariableGet) {
-      VariableDeclaration variable = expression.variable;
+      ExpressionVariable variable = expression.variable;
       if (variable is VariableDeclarationImpl && variable.isLocalFunction) {
         return codeInvalidCastLocalFunction;
       }
@@ -5607,7 +5607,7 @@ class _WhyNotPromotedVisitor
         NonPromotionReasonVisitor<
           List<LocatedMessage>,
           Node,
-          VariableDeclaration
+          ExpressionVariable
         > {
   final InferenceVisitorBase inferrer;
 
@@ -5617,7 +5617,7 @@ class _WhyNotPromotedVisitor
 
   @override
   List<LocatedMessage> visitDemoteViaExplicitWrite(
-    DemoteViaExplicitWrite<VariableDeclaration> reason,
+    DemoteViaExplicitWrite<ExpressionVariable> reason,
   ) {
     TreeNode node = reason.node as TreeNode;
     if (inferrer.dataForTesting != null) {
@@ -5631,7 +5631,10 @@ class _WhyNotPromotedVisitor
     int offset = node.fileOffset;
     return [
       codeVariableCouldBeNullDueToWrite
-          .withArgumentsOld(reason.variable.name!, reason.documentationLink.url)
+          .withArgumentsOld(
+            reason.variable.cosmeticName!,
+            reason.documentationLink.url,
+          )
           .withLocation(inferrer.fileUri, offset, noLength),
     ];
   }

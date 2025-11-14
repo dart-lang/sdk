@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:collection';
-
 import 'package:collection/collection.dart';
 import '../ir/ir.dart' as ir;
 import 'builder.dart';
@@ -130,22 +128,16 @@ class _RecGroupBuilder {
     // (1) group length
     // (2) length of first struct
     // (3) group structural equality
-    final equivalenceGroups =
-        LinkedHashMap<(int, int, List<ir.DefType>), List<List<ir.DefType>>>(
-      hashCode: (a) => Object.hash(a.$1, a.$2),
-      equals: (a, b) =>
-          a.$1 == b.$1 &&
-          a.$2 == b.$2 &&
-          _areGroupsStructurallyEqual(a.$3, b.$3),
-    );
+    final equivalenceGroups = <_RecursionGroupKey, List<List<ir.DefType>>>{};
 
     for (final group in groups) {
       final structIndex = group.indexWhere((g) => g is ir.StructType);
       // Skip groups with no struct types.
       if (structIndex == -1) continue;
       final structType = group[structIndex] as ir.StructType;
-      equivalenceGroups.putIfAbsent(
-          (group.length, structType.fields.length, group), () => []).add(group);
+      final key =
+          _RecursionGroupKey(group.length, structType.fields.length, group);
+      equivalenceGroups.putIfAbsent(key, () => []).add(group);
     }
 
     for (final equalGroups in equivalenceGroups.values) {
@@ -349,5 +341,24 @@ class _FunctionTypeKey {
       outputHash = outputHash * 29 + output.hashCode;
     }
     return (inputHash * 2 + 1) * (outputHash * 2 + 1);
+  }
+}
+
+class _RecursionGroupKey {
+  final int groupLength;
+  final int lengthOfFirstStruct;
+  final List<ir.DefType> types;
+
+  _RecursionGroupKey(this.groupLength, this.lengthOfFirstStruct, this.types);
+
+  @override
+  int get hashCode => Object.hash(groupLength, lengthOfFirstStruct);
+
+  @override
+  bool operator ==(other) {
+    if (other is! _RecursionGroupKey) return false;
+    if (groupLength != other.groupLength) return false;
+    if (lengthOfFirstStruct != other.lengthOfFirstStruct) return false;
+    return _RecGroupBuilder._areGroupsStructurallyEqual(types, other.types);
   }
 }

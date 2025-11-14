@@ -49,7 +49,7 @@ class LocalForInVariable implements ForInVariable {
 
   @override
   DartType computeElementType(InferenceVisitorBase visitor) {
-    VariableDeclaration variable = variableSet.variable;
+    ExpressionVariable variable = variableSet.variable;
     DartType? promotedType = visitor.flowAnalysis
         .promotedType(variable)
         // Coverage-ignore(suite): Not run.

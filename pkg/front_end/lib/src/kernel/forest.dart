@@ -941,7 +941,7 @@ class Forest {
 
   AssignedVariablePattern createAssignedVariablePattern(
     int fileOffset,
-    VariableDeclaration variable,
+    ExpressionVariable variable,
   ) {
     return new AssignedVariablePattern(variable)..fileOffset = fileOffset;
   }

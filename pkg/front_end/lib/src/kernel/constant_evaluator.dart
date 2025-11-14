@@ -2181,7 +2181,7 @@ class ConstantsTransformer extends RemovingTransformer {
 
   @override
   TreeNode visitVariableGet(VariableGet node, TreeNode? removalSentinel) {
-    final VariableDeclaration variable = node.variable;
+    final ExpressionVariable variable = node.variable;
     if (variable.isConst) {
       variable.initializer = evaluateAndTransformWithContext(
         variable,
@@ -4749,13 +4749,15 @@ class ConstantEvaluator
     //
     // TODO(kustermann): The heuristic of allowing all [VariableGet]s on [Let]
     // variables might allow more than it should.
-    final VariableDeclaration variable = node.variable;
+    final ExpressionVariable variable = node.variable;
     if (enableConstFunctions || inExtensionTypeConstConstructor) {
       return env.lookupVariable(variable) ??
           // Coverage-ignore(suite): Not run.
           createEvaluationErrorConstant(
             node,
-            codeConstEvalGetterNotFound.withArgumentsOld(variable.name ?? ''),
+            codeConstEvalGetterNotFound.withArgumentsOld(
+              variable.cosmeticName ?? '',
+            ),
           );
     } else {
       if (variable.parent is Let ||
@@ -4765,7 +4767,7 @@ class ConstantEvaluator
             createEvaluationErrorConstant(
               node,
               codeConstEvalNonConstantVariableGet.withArgumentsOld(
-                variable.name ?? '',
+                variable.cosmeticName ?? '',
               ),
             );
       }
@@ -4784,7 +4786,7 @@ class ConstantEvaluator
   @override
   Constant visitVariableSet(VariableSet node) {
     if (enableConstFunctions || inExtensionTypeConstConstructor) {
-      final VariableDeclaration variable = node.variable;
+      final ExpressionVariable variable = node.variable;
       Constant value = _evaluateSubexpression(node.value);
       if (value is AbortConstant) return value;
       Constant? result = env.updateVariableValue(variable, value);
@@ -6397,7 +6399,7 @@ class EvaluationEnvironment {
     }
   }
 
-  Constant? updateVariableValue(VariableDeclaration variable, Constant value) {
+  Constant? updateVariableValue(ExpressionVariable variable, Constant value) {
     EvaluationReference? reference = _variables[variable];
     if (reference != null) {
       reference.value = value;
@@ -6406,7 +6408,7 @@ class EvaluationEnvironment {
     return _parent?.updateVariableValue(variable, value);
   }
 
-  Constant? lookupVariable(VariableDeclaration variable) {
+  Constant? lookupVariable(ExpressionVariable variable) {
     Constant? value = _variables[variable]?.value;
     if (value is UnevaluatedConstant) {
       _unreadUnevaluatedVariables.remove(variable);
@@ -6819,7 +6821,7 @@ class HasUninstantiatedVisitor extends FindTypeVisitor {
   }
 }
 
-bool _isFormalParameter(VariableDeclaration variable) {
+bool _isFormalParameter(ExpressionVariable variable) {
   final TreeNode? parent = variable.parent;
   if (parent is FunctionNode) {
     return parent.positionalParameters.contains(variable) ||

@@ -41,7 +41,7 @@ abstract class TypeInferrer {
     TreeNode,
     Statement,
     Expression,
-    VariableDeclaration,
+    ExpressionVariable,
     SharedTypeView
   >
   get flowAnalysis;
@@ -116,7 +116,7 @@ class TypeInferrerImpl implements TypeInferrer {
     TreeNode,
     Statement,
     Expression,
-    VariableDeclaration,
+    ExpressionVariable,
     SharedTypeView
   >
   flowAnalysis = new FlowAnalysis(
@@ -414,7 +414,7 @@ class TypeInferrerImplBenchmarked implements TypeInferrer {
     TreeNode,
     Statement,
     Expression,
-    VariableDeclaration,
+    ExpressionVariable,
     SharedTypeView
   >
   get flowAnalysis => impl.flowAnalysis;

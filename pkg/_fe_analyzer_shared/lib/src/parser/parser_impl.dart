@@ -5507,6 +5507,78 @@ class Parser {
     return token;
   }
 
+  /// Returns `true` if a method-like declaration is determined to be a
+  /// constructor.
+  ///
+  /// [name] is the token for the (first) name of the declaration or the
+  /// `operator` token if [isOperator] is `true`.
+  ///
+  /// [getOrSet] is the token for `get` or `set` if this occurred prior to the
+  /// [name].
+  ///
+  /// [enclosingDeclarationName] is the name of the enclosing class, mixin,
+  /// enum, extension or extension type.
+  bool _isConstructor(
+    Token name,
+    Token? getOrSet,
+    String? enclosingDeclarationName,
+    bool isOperator,
+  ) {
+    // TODO(johnniwinther): Update this to match what we want and not what we
+    //  happened to do during error recovery.
+    Token afterName;
+    if (name.isKeywordOrIdentifier) {
+      afterName = name.next!;
+    } else {
+      // Recovery (identifier is synthesized)
+      afterName = name;
+    }
+    if (afterName.isA(TokenType.PERIOD)) {
+      // This is only legal for constructors.
+      return true;
+    }
+
+    if (isOperator) {
+      if (afterName.isOperator) {
+        afterName = afterName.next!;
+      } else if (isUnaryMinus(afterName)) {
+        afterName = afterName.next!.next!;
+      }
+    }
+    if (afterName.isA(TokenType.BANG)) {
+      // Recovery
+      afterName = afterName.next!;
+    }
+    if (afterName.isA(TokenType.LT)) {
+      if (afterName.endGroup != null) {
+        afterName = afterName.endGroup!.next!;
+        if (afterName.isA(TokenType.EQ)) {
+          // Recovery
+          afterName = afterName.next!;
+        }
+      }
+    }
+
+    if (afterName.isA(TokenType.OPEN_PAREN)) {
+      Token afterParen = afterName.endGroup!.next!;
+      if (afterParen.isA(TokenType.COLON)) {
+        return true;
+      }
+    } else if (afterName.isA(TokenType.COLON)) {
+      return true;
+    }
+
+    if (getOrSet != null) {
+      return false;
+    }
+
+    if (name.lexeme == enclosingDeclarationName) {
+      return true;
+    }
+
+    return false;
+  }
+
   Token parseMethod(
     Token beforeStart,
     Token? abstractToken,
@@ -5555,6 +5627,13 @@ class Parser {
         }
       }
     }
+
+    bool isConstructor = _isConstructor(
+      name,
+      getOrSet,
+      enclosingDeclarationName,
+      isOperator,
+    );
 
     if (staticToken != null) {
       if (isOperator) {
@@ -5710,20 +5789,26 @@ class Parser {
     }
     asyncState = savedAsyncModifier;
 
-    bool isConstructor = false;
-    if (name.next!.isA(TokenType.PERIOD) || beforeInitializers != null) {
-      // This is only legal for constructors.
-      isConstructor = true;
-    } else if (name.lexeme == enclosingDeclarationName) {
-      if (getOrSet != null) {
-        // Recovery: The (simple) get/set member name is invalid.
-        // Report an error and continue with invalid name
-        // (keeping it as a getter/setter).
-        reportRecoverableError(name, codes.codeMemberWithSameNameAsClass);
-      } else {
-        isConstructor = true;
-      }
-    }
+    // TODO(johnniwinther): Remove this when [_isConstructor] is updated.
+    assert(
+      () {
+            bool isConstructor = false;
+            if (name.next!.isA(TokenType.PERIOD) ||
+                beforeInitializers != null) {
+              // This is only legal for constructors.
+              isConstructor = true;
+            } else if (name.lexeme == enclosingDeclarationName) {
+              if (getOrSet != null) {
+                // Recovery: The (simple) get/set member name is invalid.
+              } else {
+                isConstructor = true;
+              }
+            }
+            return isConstructor;
+          }() ==
+          isConstructor,
+      "Unexpected constructor state: $isConstructor.",
+    );
 
     if (isConstructor) {
       //
@@ -5805,6 +5890,12 @@ class Parser {
       //
       // method
       //
+      if (name.lexeme == enclosingDeclarationName && getOrSet != null) {
+        // Recovery: The (simple) get/set member name is invalid.
+        // Report an error and continue with invalid name
+        // (keeping it as a getter/setter).
+        reportRecoverableError(name, codes.codeMemberWithSameNameAsClass);
+      }
       if (varFinalOrConst != null) {
         assert(varFinalOrConst.isA(Keyword.CONST));
         reportRecoverableError(varFinalOrConst, codes.codeConstMethod);
