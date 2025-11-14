@@ -478,4 +478,35 @@ class B extends A {}
       [error(diag.missingOverrideOfMustBeOverriddenOne, 100, 1)],
     );
   }
+
+  test_unary_operator() async {
+    await assertErrorsInCode(
+      '''
+import 'package:meta/meta.dart';
+
+class A {
+  @mustBeOverridden
+  void operator -() {}
+}
+
+class B extends A {}
+''',
+      [error(diag.missingOverrideOfMustBeOverriddenOne, 96, 1)],
+    );
+  }
+
+  test_unary_operator_overriden() async {
+    await assertNoErrorsInCode('''
+import 'package:meta/meta.dart';
+class A {
+  @mustBeOverridden
+  void operator -() {}
+}
+
+class B extends A {
+  @override
+  void operator -() {}
+}
+''');
+  }
 }
