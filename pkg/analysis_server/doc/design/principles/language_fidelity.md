@@ -69,7 +69,7 @@ enum, mixin, or extension type declaration.
 <dt>Structural types</dt>
 <dd>
 A structural type is a type identified only by the structure of the type. This
-includes both function types (such as `int Function(int, int))` and record types
+includes both function types (such as `int Function(int, int)`) and record types
 (such as `({int x, int y})`).
 </dd>
 <dt>Other types</dt>
@@ -136,23 +136,33 @@ example above about the `point` and `pair` variables.) The same is true of
 parameters in a function type.
 
 But what about cases where we know that it's the same field because it's the
-same variable, and hence the types are not just equal, but are the same? For
-example, consider
+same variable, and hence the types are not just equal, but are more
+fundamentally the same? For example, consider
 ```dart
-({int x, int y}) point1 = (x: 1, y: 2);
-({int x, int y}) point2 = (x: 3, y: 4);
+void f(({String latitude, String longitude}) coordinate) {
+  print(coordinate.latitude);
+  print(coordinate.latitude);
+}
 ```
-Because the variables have similar names, human readers are likely to assume
-that the types are somehow "the same".
 
 The problem is that while human readers understand what we mean by "the same",
-the language spec doesn't define that concept. The two record types are equal,
-but not any more equal than the types of `point` and `pair` above. And because
-there's no definition of the concept, there's no reliable way to confirm whether
-two identifiers should be considered to refer to the same declaration.
+the language spec doesn't define that concept. The type is the same, and hence
+equal to itself, but not any more equal than the types of `point` and `pair`
+above. And because there's no definition of the concept, there's no reliable way
+to confirm whether two identifiers should be considered to refer to the same
+declaration.
 
-In fact, there is no single declaration, there are potentially multiple
-declarations of the same field (or parameter).
+And that's the root of the problem. Because this is a structural type there is
+no single declaration; there are potentially multiple declarations of the "same"
+field (or parameter). When there's an expression of the form `o.m`, where the
+type of `o` is a nominal type, the analyzer can match `m` to a single
+declaration. When the type of `o` is a structural type, the analyzer can't.
+
+Occurrences are discovered by finding references to a declaration, so in the
+case of a structural type the server doesn't have the information it needs. It
+_could_ do something beyond what the language specifies, and it kind of seems
+reasonable in this case, but it can't support every case where a user would know
+that the fields are the same.
 
 So, we're left with a decision: either we don't highlight occurrences of members
 of structural types, or we have a feature that is inconsistent, highlighting
@@ -163,8 +173,32 @@ Combining the principle that the tools shouldn't misrepresent the language
 semantics and the principle that the tools should be self-consistent, we decided
 to not highlight occurrences of members of structural types.
 
-### Navigation
+### Go to declaration
 
 The same reasoning that led us to not highlight occurrences of members of
 structural types led us to not support navigation from references to a member
 and the declaration(s) of the member.
+
+## Multiple elements from a single declaration
+
+TBD
+
+### Fields, getters, and setters
+
+TBD
+
+### Declaring parameters
+
+TBD
+
+## A single element from multiple declarations
+
+TBD
+
+### Augmentations
+
+TBD
+
+### Primary constructors
+
+TBD
