@@ -66,6 +66,7 @@ class TestLinter implements DiagnosticListener {
         analysisOptions.lintRules = _rules;
       },
       enableLintRuleTiming: true,
+      withFineDependencies: true,
     );
 
     var result = <Diagnostic>[];
