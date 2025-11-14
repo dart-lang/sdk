@@ -5,6 +5,7 @@
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:analysis_server/src/session_logger/log_entry.dart';
 import 'package:analysis_server/src/session_logger/process_id.dart';
 
 /// A sink for a session logger that will write entries to a file.
@@ -32,27 +33,87 @@ class SessionLoggerFileSink extends SessionLoggerSink {
 }
 
 /// A sink for a session logger that will write entries to an in-memory buffer.
-class SessionLoggerMemorySink extends SessionLoggerSink {
-  /// The maximum number of entries stored in the [buffer].
+class SessionLoggerInMemorySink extends SessionLoggerSink {
+  /// The maximum number of entries stored in the [_sessionBuffer].
   int maxBufferLength;
 
-  /// The buffer in which entries are stored.
-  List<JsonMap> buffer = [];
+  /// Whether entries should be captured in the buffer.
+  bool _capturingEntries = false;
+
+  /// A session logger to which requests should be forwarded, or `null` if there
+  /// is no logger to forward requests to.
+  SessionLoggerSink? nextLogger;
+
+  /// The buffer in which initialization related entries are stored.
+  final List<LogEntry> _initializationBuffer = [];
+
+  /// The buffer in which normal entries are stored.
+  final List<LogEntry> _sessionBuffer = [];
 
   /// Initialize a newly created sink to store up to [maxBufferLength] entries.
-  SessionLoggerMemorySink(this.maxBufferLength);
+  SessionLoggerInMemorySink({required this.maxBufferLength});
 
   @override
   Future<void> close() async {
-    // There's nothing to do in this case.
+    await nextLogger?.close();
+  }
+
+  /// Stops the capturing of entries.
+  void startCapture() {
+    _capturingEntries = true;
+  }
+
+  /// Stops the capturing of entries and returns a list of the entries that were
+  /// captured.
+  ///
+  /// The list includes necessary initialization entries that might have
+  /// occurred before the capture was started.
+  List<LogEntry> stopCapture() {
+    _capturingEntries = false;
+    var capturedEntries = [..._initializationBuffer, ..._sessionBuffer];
+    _sessionBuffer.clear();
+    return capturedEntries;
   }
 
   @override
   void writeLogEntry(JsonMap entry) {
-    if (buffer.length > maxBufferLength) {
-      buffer.removeAt(0);
+    nextLogger?.writeLogEntry(entry);
+    var logEntry = LogEntry(entry);
+    if (_isInitializationEntry(logEntry)) {
+      _initializationBuffer.add(logEntry);
+      return;
     }
-    buffer.add(entry);
+    if (_capturingEntries) {
+      if (_sessionBuffer.length > maxBufferLength) {
+        _sessionBuffer.removeAt(0);
+      }
+      _sessionBuffer.add(logEntry);
+    } else {
+      // TODO(brianwilkerson): We also need to collect the most recent messages
+      //  related to which directories are open in the workspace and which files
+      //  are priority files. These should be in separate lists so that we can
+      //  flush messages that are no longer required in order to reproduce the
+      //  captured messages.
+    }
+  }
+
+  /// Returns whether the [entry] is an initialization entry.
+  ///
+  /// An initialization entry is defined as an entry that would need to be
+  /// replayed in order to make the captured entries make sense.
+  ///
+  /// Initialization entries are captured even when [captureEntries] is `false`.
+  bool _isInitializationEntry(LogEntry entry) {
+    if (entry.isCommandLine) return true;
+    if (entry.isMessage) {
+      // TODO(brianwilkerson): This list is incomplete in two ways.
+      //  1. It does not support the legacy protocol.
+      //  2. It does not capture entries that indicate the state of either the
+      //     workspace or the priority files.
+      var message = entry.message;
+      return message.isInitialize || message.isInitialized;
+    }
+    return false;
   }
 }
 

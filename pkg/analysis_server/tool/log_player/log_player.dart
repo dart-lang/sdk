@@ -2,10 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analysis_server/src/session_logger/log_entry.dart';
 import 'package:analysis_server/src/session_logger/process_id.dart';
 
 import 'log.dart';
-import 'log_entry.dart';
 import 'server_driver.dart';
 
 /// An object used to play back the messages in a log.

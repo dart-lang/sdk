@@ -17,7 +17,7 @@ class SessionLogger {
   void logCommandLine({required List<String> arguments}) {
     sink?.writeLogEntry({
       key.time: DateTime.now().millisecondsSinceEpoch,
-      key.kind: EntryKind.message.name,
+      key.kind: EntryKind.commandLine.name,
       key.argList: arguments,
     });
   }

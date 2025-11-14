@@ -4,9 +4,8 @@
 
 import 'dart:convert';
 
+import 'package:analysis_server/src/session_logger/log_entry.dart';
 import 'package:analyzer/file_system/file_system.dart';
-
-import 'log_entry.dart';
 
 /// The content of a log file.
 class Log {

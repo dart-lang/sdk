@@ -7,8 +7,7 @@ import 'dart:io';
 
 import 'package:analysis_server/lsp_protocol/protocol.dart' show jsonRpcVersion;
 import 'package:analysis_server/src/server/driver.dart';
-
-import 'log_entry.dart';
+import 'package:analysis_server/src/session_logger/log_entry.dart';
 
 /// The driver used to communicate with the analysis server.
 class ServerDriver {
