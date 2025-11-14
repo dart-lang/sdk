@@ -702,6 +702,7 @@ class PubPackageResolutionTest with MockPackagesMixin, ResourceProviderMixin {
       includedPaths: _collectionIncludedPaths.map(convertPath).toList(),
       resourceProvider: resourceProvider,
       sdkPath: _sdkRoot.path,
+      withFineDependencies: true,
     );
   }
 
