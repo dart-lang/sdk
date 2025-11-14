@@ -44,7 +44,6 @@ class Gen {
   Object? operator >>> <T>(T arg1) => arg1;
   //                   ^^^
   // [analyzer] SYNTACTIC_ERROR.TYPE_PARAMETER_ON_OPERATOR
-  //                    ^
   // [cfe] Types parameters aren't allowed when defining an operator.
 }
 
