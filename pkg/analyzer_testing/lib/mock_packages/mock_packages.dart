@@ -5,6 +5,7 @@
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/file_system/physical_file_system.dart';
 import 'package:analyzer_testing/package_root.dart' as package_root;
+import 'package:analyzer_testing/src/mock_packages/ffi/ffi.dart' as mock_ffi;
 import 'package:analyzer_testing/src/mock_packages/fixnum/fixnum.dart'
     as mock_fixnum;
 import 'package:analyzer_testing/src/mock_packages/mock_library.dart';
@@ -103,7 +104,7 @@ mixin MockPackagesMixin {
   }
 
   Folder addFfi() {
-    var packageFolder = _addFiles('ffi');
+    var packageFolder = _addFiles2('ffi', mock_ffi.units);
     return packageFolder.getChildAssumingFolder('lib');
   }
 

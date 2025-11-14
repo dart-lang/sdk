@@ -754,6 +754,13 @@ library dart.ffi;
 
 import 'dart:typed_data';
 
+@Since('2.12')
+abstract class Allocator {
+  Pointer<T> allocate<T extends NativeType>(int byteCount, {int? alignment});
+
+  void free(Pointer pointer);
+}
+
 abstract final class NativeType {}
 
 @Since('3.4')
