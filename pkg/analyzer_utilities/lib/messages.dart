@@ -401,7 +401,7 @@ enum DiagnosticParameterType {
 /// A set of tables derived from shared, CFE, analyzer, and linter diagnostics.
 class DiagnosticTables {
   /// List of shared diagnostics for which analyzer diagnostics should be
-  /// automatically generated, sorted by analyzer code.
+  /// automatically generated, sorted by [AnalyzerCode.camelCaseName].
   final List<SharedMessage> sortedSharedDiagnostics = [];
 
   /// List of front end diagnostics, sorted by front end code.

@@ -220,8 +220,6 @@ part of 'diagnostic_code_values.dart';
   void _generateSharedAnalyzerCodeList() {
     out.writeln('final sharedAnalyzerCodes = <DiagnosticCode>[');
     for (var entry in diagnosticTables.sortedSharedDiagnostics) {
-      // TODO(paulberry): after `generateTopLevelConstants` has been changed to
-      // `true`, sort these entries by camelCaseName.
       out.writeln('${entry.analyzerCode.analyzerCodeReference},');
     }
     out.writeln('];');
