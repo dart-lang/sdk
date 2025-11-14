@@ -16,6 +16,12 @@
   but `false` on Windows. Use `FileSystemEntity.typeSync()` instead to get
   portable behavior.
 
+#### `dart:js_interop`
+
+- Added a constructor to `JSSymbol`, as well as `JSSymbol.key`,
+  `JSSymbol.description`, and static methods for all well-known ECMAScript
+  symbols.
+
 #### `dart:js_util`
 
 - dart2wasm no longer supports `dart:js_util`. Any code that imports
