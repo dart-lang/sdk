@@ -936,7 +936,7 @@ class _ClassVerifier {
           continue;
         }
         if (method.metadata.hasMustBeOverridden) {
-          var methodDeclaration = classElement.getMethod(method.name!);
+          var methodDeclaration = classElement.getMethod(method.lookupName!);
           if (methodDeclaration == null || methodDeclaration.isAbstract) {
             notOverridden.add(method.baseElement);
           }

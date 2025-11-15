@@ -23,6 +23,55 @@ class AddMissingParameterRequiredTest extends FixProcessorTest {
   @override
   FixKind get kind => DartFixKind.addMissingParameterRequired;
 
+  Future<void> test_constructor_callingViaSuperParameter() async {
+    await resolveTestCode('''
+class A {
+  A(int a);
+}
+class B extends A {
+  B(super.a, int super.b);
+}
+''');
+    await assertHasFix('''
+class A {
+  A(int a, int b);
+}
+class B extends A {
+  B(super.a, int super.b);
+}
+''');
+  }
+
+  Future<void> test_constructor_callingViaSuperParameter_default() async {
+    await resolveTestCode('''
+class A {
+  A(int a);
+}
+class B extends A {
+  B(super.a, super.b);
+}
+''');
+    await assertHasFix('''
+class A {
+  A(int a, Object? b);
+}
+class B extends A {
+  B(super.a, super.b);
+}
+''');
+  }
+
+  Future<void> test_constructor_implicitSuper() async {
+    // https://github.com/dart-lang/sdk/issues/61927
+    await resolveTestCode('''
+class A {}
+class B extends A {
+  B(super.other);
+}
+''');
+    await assertNoFix();
+  }
+
   Future<void> test_constructor_named_hasOne() async {
     await resolveTestCode('''
 class A {
@@ -38,6 +87,27 @@ class A {
 }
 void f() {
   new A.named(1, 2.0);
+}
+''');
+  }
+
+  Future<void> test_constructor_superParameter_differentConstructor() async {
+    await resolveTestCode('''
+class A {
+  A();
+  A.foo();
+}
+class B extends A {
+  B(super.other) : super.foo();
+}
+''');
+    await assertHasFix('''
+class A {
+  A();
+  A.foo(Object? other);
+}
+class B extends A {
+  B(super.other) : super.foo();
 }
 ''');
   }

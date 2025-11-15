@@ -2,9 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/// @docImport 'log.dart';
-library;
-
 import 'package:analysis_server/src/session_logger/entry_keys.dart' as key;
 import 'package:analysis_server/src/session_logger/entry_kind.dart';
 import 'package:analysis_server/src/session_logger/process_id.dart';
@@ -42,6 +39,13 @@ extension type LogEntry(JsonMap map) {
 extension type Message(JsonMap map) {
   /// Whether this message is a request for the server to exit.
   bool get isExit => method == 'exit';
+
+  /// Whether this message is a request for the server to initialize itself.
+  bool get isInitialize => method == 'initialize';
+
+  /// Whether this message is a notification to the server indicating that the
+  /// client is initialized.
+  bool get isInitialized => method == 'initialized';
 
   /// Whether this message is a request from the server to log a message.
   bool get isLogMessage => method == 'window/logMessage';

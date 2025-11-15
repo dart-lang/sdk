@@ -157,7 +157,7 @@ abstract final class DartFixKind {
     DartFixKindPriority.standard + 20,
     'Add final initializing formal parameters',
   );
-  static const addInitializingFormalNamesParameters = FixKind(
+  static const addInitializingFormalNamedParameters = FixKind(
     'dart.fix.add.initializingFormalNamedParameters',
     DartFixKindPriority.standard + 21,
     'Add final initializing formal required named parameters',

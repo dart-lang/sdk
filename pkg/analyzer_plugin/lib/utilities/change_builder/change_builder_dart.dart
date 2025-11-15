@@ -319,6 +319,7 @@ abstract class DartEditBuilder implements EditBuilder {
     int index,
     Set<String> usedNames, {
     List<TypeParameterElement>? typeParametersInScope,
+    bool isOptional = false,
   });
 
   /// Writes the code for a list of parameters that would match the given list

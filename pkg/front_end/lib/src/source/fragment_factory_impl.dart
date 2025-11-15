@@ -2151,6 +2151,7 @@ class FragmentFactoryImpl implements FragmentFactory {
     Modifiers modifiers,
     TypeBuilder type,
     String name,
+    String? publicName,
     bool hasThis,
     bool hasSuper,
     int charOffset,
@@ -2184,6 +2185,7 @@ class FragmentFactoryImpl implements FragmentFactory {
       initializerToken: initializerToken,
       hasImmediatelyDeclaredInitializer: initializerToken != null,
       isWildcard: isWildcard,
+      publicName: publicName,
     );
     return formal;
   }

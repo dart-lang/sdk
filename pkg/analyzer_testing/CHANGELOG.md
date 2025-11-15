@@ -5,6 +5,8 @@
   analysis options file used in testing specifies a `true` value for
   `propagate-linter-exceptions`. This ensures that when tests are run,
   exceptions that occur while processing lint rules will cause the test to fail.
+- Deprecate `MockPackagesMixin.addAngularMeta`. A mock `angular_meta` package
+  can still be written with `PubPackageResolutionTest.newPackage`.
 - Deprecate `MockPackagesMixin.addJs` and
   `PubPackageResolutionTest.addJsPackageDep`. A mock js package can still be
   written with `PubPackageResolutionTest.newPackage`.

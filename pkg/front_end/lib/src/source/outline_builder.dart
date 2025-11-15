@@ -15,6 +15,8 @@ import 'package:_fe_analyzer_shared/src/parser/parser.dart'
 import 'package:_fe_analyzer_shared/src/parser/quote.dart' show unescapeString;
 import 'package:_fe_analyzer_shared/src/parser/stack_listener.dart'
     show FixedNullableList, NullValues, ParserRecovery;
+import 'package:_fe_analyzer_shared/src/scanner/token_impl.dart'
+    show correspondingPublicName;
 import 'package:_fe_analyzer_shared/src/scanner/token.dart'
     show Keyword, Token, TokenIsAExtension, TokenType;
 import 'package:_fe_analyzer_shared/src/types/shared_type.dart' show Variance;
@@ -3052,6 +3054,24 @@ class OutlineBuilder extends StackListenerImpl {
       push(name);
     } else {
       Identifier? identifier = name as Identifier?;
+
+      String parameterName = identifier == null
+          ? FormalParameterBuilder.noNameSentinel
+          : identifier.name;
+
+      // If we're building a private named parameter, then calculate the
+      // corresponding public name. The variable declared by the parameter will
+      // use that name instead.
+      String? publicName;
+      // TODO(rnystrom): Also handle declaring field parameters.
+      bool refersToField = thisKeyword != null;
+      if (refersToField &&
+          libraryFeatures.privateNamedParameters.isEnabled &&
+          kind.isNamed &&
+          parameterName.startsWith('_')) {
+        publicName = correspondingPublicName(parameterName);
+      }
+
       push(
         _builderFactory.addFormalParameter(
           metadata,
@@ -3061,9 +3081,8 @@ class OutlineBuilder extends StackListenerImpl {
               (memberKind.isParameterInferable
                   ? _builderFactory.addInferableType()
                   : const ImplicitTypeBuilder()),
-          identifier == null
-              ? FormalParameterBuilder.noNameSentinel
-              : identifier.name,
+          parameterName,
+          publicName,
           thisKeyword != null,
           superKeyword != null,
           identifier?.nameOffset ?? nameToken.charOffset,

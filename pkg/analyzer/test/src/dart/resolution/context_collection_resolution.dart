@@ -386,8 +386,24 @@ class PubPackageResolutionTest extends ContextResolutionTest
     );
 
     if (angularMeta) {
-      var angularMetaPath = addAngularMeta().parent.path;
-      config.add(name: 'angular_meta', rootPath: angularMetaPath);
+      var angularMetaRootPath = '/packages/angular_meta';
+      newFile('$angularMetaRootPath/lib/angular_meta.dart', r'''
+library angular.meta;
+
+const _VisibleForTemplate visibleForTemplate = const _VisibleForTemplate();
+
+const _VisibleOutsideTemplate visibleOutsideTemplate =
+    const _VisibleOutsideTemplate();
+
+class _VisibleForTemplate {
+  const _VisibleForTemplate();
+}
+
+class _VisibleOutsideTemplate {
+  const _VisibleOutsideTemplate();
+}
+''');
+      config.add(name: 'angular_meta', rootPath: angularMetaRootPath);
     }
 
     if (ffi) {

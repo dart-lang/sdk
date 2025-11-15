@@ -5,6 +5,7 @@
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/file_system/physical_file_system.dart';
 import 'package:analyzer_testing/package_root.dart' as package_root;
+import 'package:analyzer_testing/src/mock_packages/ffi/ffi.dart' as mock_ffi;
 import 'package:analyzer_testing/src/mock_packages/fixnum/fixnum.dart'
     as mock_fixnum;
 import 'package:analyzer_testing/src/mock_packages/mock_library.dart';
@@ -93,13 +94,17 @@ mixin MockPackagesMixin {
 
   ResourceProvider get resourceProvider;
 
+  @Deprecated(
+    'The mock angular_meta package is deprecated; use '
+    '`PubPackageResolutionTest.newPackage` to make a custom mock',
+  )
   Folder addAngularMeta() {
     var packageFolder = _addFiles('angular_meta');
     return packageFolder.getChildAssumingFolder('lib');
   }
 
   Folder addFfi() {
-    var packageFolder = _addFiles('ffi');
+    var packageFolder = _addFiles2('ffi', mock_ffi.units);
     return packageFolder.getChildAssumingFolder('lib');
   }
 

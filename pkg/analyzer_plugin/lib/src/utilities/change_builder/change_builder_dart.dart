@@ -298,15 +298,12 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
     if (isRequiredNamed) {
       write('required ');
     }
-    if (type != null) {
-      var hasType = writeType();
-      if (name.isNotEmpty) {
-        if (hasType) {
-          write(' ');
-        }
-        writeName();
+    type ??= _typeProvider.objectQuestionType;
+    var hasType = writeType();
+    if (name.isNotEmpty) {
+      if (hasType) {
+        write(' ');
       }
-    } else {
       writeName();
     }
   }
@@ -763,15 +760,22 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
     int index,
     Set<String> usedNames, {
     List<TypeParameterElement>? typeParametersInScope,
+    bool isOptional = false,
   }) {
     // Append type name.
     var type = argument.staticType;
     if (type == null || type.isBottom || type.isDartCoreNull) {
-      type = DynamicTypeImpl.instance;
+      type = _typeProvider.objectQuestionType;
     }
     if (argument is NamedExpression &&
-        type.nullabilitySuffix == NullabilitySuffix.none) {
+        type.nullabilitySuffix == NullabilitySuffix.none &&
+        !isOptional) {
       write('required ');
+    }
+    if (isOptional &&
+        type is TypeImpl &&
+        type.nullabilitySuffix != NullabilitySuffix.question) {
+      type = type.withNullability(NullabilitySuffix.question);
     }
     if (writeType(
       type,

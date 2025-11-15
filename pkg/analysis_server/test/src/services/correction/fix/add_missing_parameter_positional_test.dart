@@ -30,7 +30,7 @@ class B extends A {
 ''');
     await assertHasFix('''
 class A {
-  A(int a, [double d]);
+  A(int a, [double? d]);
 }
 class B extends A {
   B() : super(1, 2.0);
@@ -38,22 +38,40 @@ class B extends A {
 ''');
   }
 
-  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/48359')
   Future<void> test_constructor_callingViaSuperParameter() async {
     await resolveTestCode('''
 class A {
   A(int a);
 }
 class B extends A {
-  B(super.a, super.b);
+  B(super.a, int super.b);
 }
 ''');
     await assertHasFix('''
 class A {
-  A(int a, [double b]);
+  A(int a, [int? b]);
 }
 class B extends A {
-  B(super.a, super.b);
+  B(super.a, int super.b);
+}
+''');
+  }
+
+  Future<void> test_constructor_callingViaSuperParameter_default() async {
+    await resolveTestCode('''
+class A {
+  A(int a);
+}
+class B extends A {
+  B(super.a, [super.b = 0]);
+}
+''');
+    await assertHasFix('''
+class A {
+  A(int a, [int? b]);
+}
+class B extends A {
+  B(super.a, [super.b = 0]);
 }
 ''');
   }
@@ -69,7 +87,7 @@ void f() {
 ''');
     await assertHasFix('''
 class A {
-  A(int a, [double d]);
+  A(int a, [double? d]);
 }
 void f() {
   A(1, 2.0);
@@ -90,7 +108,7 @@ void f() {
     await assertHasFix('''
 class A {
   int a;
-  A(this.a, [double d]);
+  A(this.a, [double? d]);
 }
 void f() {
   A(1, 2.0);
@@ -115,10 +133,61 @@ class A {
   A(int a);
 }
 class B extends A {
-  B(super.a, [double d]);
+  B(super.a, [double? d]);
 }
 void f() {
   B(1, 2.0);
+}
+''');
+  }
+
+  Future<void> test_constructor_implicitSuper() async {
+    // https://github.com/dart-lang/sdk/issues/61927
+    await resolveTestCode('''
+class A {}
+class B extends A {
+  B([super.other]);
+}
+''');
+    await assertNoFix();
+  }
+
+  Future<void> test_constructor_superParameter() async {
+    await resolveTestCode('''
+class A {
+  A();
+}
+class B extends A {
+  B([super.other]);
+}
+''');
+    await assertHasFix('''
+class A {
+  A([Object? other]);
+}
+class B extends A {
+  B([super.other]);
+}
+''');
+  }
+
+  Future<void> test_constructor_superParameter_differentConstructor() async {
+    await resolveTestCode('''
+class A {
+  A();
+  A.foo();
+}
+class B extends A {
+  B([super.other]) : super.foo();
+}
+''');
+    await assertHasFix('''
+class A {
+  A();
+  A.foo([Object? other]);
+}
+class B extends A {
+  B([super.other]) : super.foo();
 }
 ''');
   }
@@ -140,10 +209,8 @@ void f() {
   test(1);
 }
 ''');
-    // TODO(brianwilkerson): The fix needs to make the parameter nullable, but
-    //  I'm leaving the test as is to keep it passing.
     await assertHasFix('''
-test([int i]) {}
+test([int? i]) {}
 void f() {
   test(1);
 }
@@ -161,7 +228,7 @@ class A {
 ''');
     await assertHasFix('''
 class A {
-  test(int a, [double d]) {}
+  test(int a, [double? d]) {}
   void f() {
     test(1, 2.0);
   }

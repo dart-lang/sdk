@@ -1738,7 +1738,7 @@ package:analyzer_plugin/utilities/change_builder/change_builder_dart.dart:
     writeMixinDeclaration (method: void Function(String, {Iterable<DartType>? interfaces, void Function()? membersWriter, String? nameGroupName, Iterable<DartType>? superclassConstraints}))
     writeOverride (method: void Function(ExecutableElement, {StringBuffer? displayTextBuffer, bool invokeSuper, bool setSelection}))
     writeParameter (method: void Function(String, {bool isCovariant, bool isRequiredNamed, bool isRequiredType, String? nameGroupName, DartType? type, String? typeGroupName, List<TypeParameterElement>? typeParametersInScope}))
-    writeParameterMatchingArgument (method: void Function(Expression, int, Set<String>, {List<TypeParameterElement>? typeParametersInScope}))
+    writeParameterMatchingArgument (method: void Function(Expression, int, Set<String>, {bool isOptional, List<TypeParameterElement>? typeParametersInScope}))
     writeParametersMatchingArguments (method: void Function(ArgumentList, {List<TypeParameterElement>? typeParametersInScope}))
     writeReference (method: void Function(Element@2))
     writeSetterDeclaration (method: void Function(String, {void Function()? bodyWriter, bool isStatic, String? nameGroupName, DartType? parameterType, String? parameterTypeGroupName, List<TypeParameterElement>? typeParametersInScope}))

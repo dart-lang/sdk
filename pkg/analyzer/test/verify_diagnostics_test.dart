@@ -220,6 +220,7 @@ class DocumentationValidator {
   Future<void> validate() async {
     await _validateMessages(feAnalyzerSharedMessages);
     await _validateMessages(analyzerMessages);
+    await _validateMessages(analysisServerMessages);
     await _validateMessages(lintMessages);
     if (buffer.isNotEmpty) {
       fail(buffer.toString());

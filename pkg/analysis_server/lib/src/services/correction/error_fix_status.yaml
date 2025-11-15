@@ -1372,7 +1372,7 @@ CompileTimeErrorCode.PATTERN_VARIABLE_SHARED_CASE_SCOPE_NOT_ALL_CASES:
 CompileTimeErrorCode.POSITIONAL_FIELD_IN_OBJECT_PATTERN:
   status: noFix
 CompileTimeErrorCode.POSITIONAL_SUPER_FORMAL_PARAMETER_WITH_POSITIONAL_ARGUMENT:
-  status: needsFix
+  status: hasFix
   since: 2.17
 CompileTimeErrorCode.PREFIX_COLLIDES_WITH_TOP_LEVEL_MEMBER:
   status: noFix
@@ -1486,8 +1486,7 @@ CompileTimeErrorCode.SUPER_FORMAL_PARAMETER_TYPE_IS_NOT_SUBTYPE_OF_ASSOCIATED:
 CompileTimeErrorCode.SUPER_FORMAL_PARAMETER_WITHOUT_ASSOCIATED_NAMED:
   status: hasFix
 CompileTimeErrorCode.SUPER_FORMAL_PARAMETER_WITHOUT_ASSOCIATED_POSITIONAL:
-  status: needsFix
-  issue: https://github.com/dart-lang/sdk/issues/48359
+  status: hasFix
 CompileTimeErrorCode.SUPER_IN_ENUM_CONSTRUCTOR:
   status: noFix
   since: 2.17
