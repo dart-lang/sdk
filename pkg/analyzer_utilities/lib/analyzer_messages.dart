@@ -466,6 +466,9 @@ enum AnalyzerDiagnosticType {
   final DiagnosticBaseClasses baseClasses;
 
   const AnalyzerDiagnosticType({this.baseClasses = analyzerBaseClasses});
+
+  /// The representation of this type in analyzer source code.
+  String get code => 'DiagnosticType.${name.toSnakeCase().toUpperCase()}';
 }
 
 /// In-memory representation of diagnostic information obtained from the
@@ -599,10 +602,6 @@ class DiagnosticClassInfo {
     this.comment = '',
   });
 
-  /// Generates the code to compute the type of diagnostics of this class.
-  String get typeCode =>
-      'DiagnosticType.${type.name.toSnakeCase().toUpperCase()}';
-
   static DiagnosticClassInfo byName(String name) =>
       _diagnosticClassesByName[name] ??
       (throw 'No diagnostic class named ${json.encode(name)}. Possible names: '
@@ -730,7 +729,7 @@ LocatableDiagnostic $withArgumentsName({$withArgumentsParams}) {
       constant.writeln('isUnresolvedIdentifier:true,');
     }
     if (baseClasses.requiresTypeArgument) {
-      constant.writeln('type: ${diagnosticClassInfo.typeCode},');
+      constant.writeln('type: ${diagnosticClassInfo.type.code},');
     }
     String uniqueName = analyzerCode.toString().replaceFirst(
       'LinterLintCode.',
