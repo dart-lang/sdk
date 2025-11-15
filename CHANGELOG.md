@@ -9,10 +9,13 @@ This is a patch release that:
   instance method with a dot shorthand. (issue [dart-lang/sdk#61954][]).
 - Fixes a crash with the `ExitDetector` in the analyzer missing a few visitor
   methods for dot shorthand AST nodes. (issue [dart-lang/sdk#61963])
+- Fixes an analyzer crash that would sometimes occur when the
+  `prefer_const_constructors` lint was enabled (issue [dart-lang/sdk#61953][]).
 
 [dart-lang/sdk#61872]: https://github.com/dart-lang/sdk/issues/61872
 [dart-lang/sdk#61954]: https://github.com/dart-lang/sdk/issues/61954
 [dart-lang/sdk#61963]: https://github.com/dart-lang/sdk/issues/61963
+[dart-lang/sdk#61953]: https://github.com/dart-lang/sdk/issues/61953
 
 ## 3.10.0
 
