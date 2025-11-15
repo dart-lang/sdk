@@ -54,6 +54,7 @@ abstract class CompletionMetricsComputer {
       includedPaths: root.includedPaths.toList(),
       excludedPaths: root.excludedPaths.toList(),
       resourceProvider: provider,
+      withFineDependencies: true,
     );
 
     var context = collection.contexts[0];
@@ -93,6 +94,7 @@ abstract class CompletionMetricsComputer {
     var collection = AnalysisContextCollectionImpl(
       includedPaths: [rootPath],
       resourceProvider: PhysicalResourceProvider.INSTANCE,
+      withFineDependencies: true,
     );
     for (var context in collection.contexts) {
       await computeInContext(context.contextRoot);

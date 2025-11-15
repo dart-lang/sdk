@@ -63,6 +63,7 @@ class LintFixTester {
       resourceProvider: _resourceProvider,
       sdkPath: sdkPath,
       packagesFile: packageConfigPath,
+      withFineDependencies: true,
     );
     var analysisContext = collection.contextFor(path);
     var analysisSession = analysisContext.currentSession;
