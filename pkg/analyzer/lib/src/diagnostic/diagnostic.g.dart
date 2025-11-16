@@ -16094,9 +16094,6 @@ undone = DiagnosticWithArguments(
   expectedTypes: [ExpectedType.string],
 );
 
-@Deprecated("Please use unexpectedToken")
-const DiagnosticCode UNEXPECTED_TOKEN = unexpectedToken;
-
 /// No parameters.
 const DiagnosticWithoutArguments
 unexpectedDollarInString = DiagnosticWithoutArgumentsImpl(

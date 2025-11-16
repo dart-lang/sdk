@@ -81,9 +81,6 @@ const List<DiagnosticClassInfo> diagnosticClasses = [
     file: syntacticErrorsFile,
     name: 'ParserErrorCode',
     type: AnalyzerDiagnosticType.syntacticError,
-    deprecatedSnakeCaseNames: {
-      'UNEXPECTED_TOKEN', // Referenced by `package:dart_style`.
-    },
   ),
   DiagnosticClassInfo(
     file: manifestWarningCodeFile,
@@ -584,11 +581,6 @@ class DiagnosticClassInfo {
   /// The type of diagnostics in this class.
   final AnalyzerDiagnosticType type;
 
-  /// The names of any diagnostics which are relied upon by analyzer clients,
-  /// and therefore will need their "snake case" form preserved (with a
-  /// deprecation notice) after migration to camel case diagnostic codes.
-  final Set<String> deprecatedSnakeCaseNames;
-
   /// Documentation comment to generate for the diagnostic class.
   ///
   /// If no documentation comment is needed, this should be the empty string.
@@ -598,7 +590,6 @@ class DiagnosticClassInfo {
     required this.file,
     required this.name,
     required this.type,
-    this.deprecatedSnakeCaseNames = const {},
     this.comment = '',
   });
 
@@ -742,14 +733,6 @@ LocatableDiagnostic $withArgumentsName({$withArgumentsParams}) {
     constant.writeln('expectedTypes: ${_computeExpectedTypes()},');
     constant.writeln(');');
     memberAccumulator.constants[constantName] = constant.toString();
-
-    if (diagnosticClassInfo.deprecatedSnakeCaseNames.contains(diagnosticCode)) {
-      memberAccumulator.constants[diagnosticCode] =
-          '''
-@Deprecated("Please use $constantName")
-const DiagnosticCode $diagnosticCode = $constantName;
-''';
-    }
   }
 
   /// Generates doc comments for this error code.
@@ -799,21 +782,12 @@ const DiagnosticCode $diagnosticCode = $constantName;
   /// diagnostic, imported from `diagnostic.g.dart` using the import prefix
   /// `diag`.
   void toAnalyzerRedirectCode({required MemberAccumulator memberAccumulator}) {
-    var diagnosticCode = analyzerCode.snakeCaseName;
     var ConstantStyle(:staticType) = constantStyle;
     var constant = StringBuffer();
     outputConstantHeader(constant);
     constant.writeln('  static const $staticType $constantName =');
     constant.writeln('    diag.$constantName;');
     memberAccumulator.constants[constantName] = constant.toString();
-
-    if (diagnosticClassInfo.deprecatedSnakeCaseNames.contains(diagnosticCode)) {
-      memberAccumulator.constants[diagnosticCode] =
-          '''
-  @Deprecated("Please use $constantName")
-  static const DiagnosticCode $diagnosticCode = $constantName;
-''';
-    }
   }
 
   /// Generates the appropriate declaration for this diagnostic to include in
