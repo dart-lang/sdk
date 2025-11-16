@@ -1116,9 +1116,6 @@ class ParserErrorCode {
   static const DiagnosticWithoutArguments typeParameterOnOperator =
       diag.typeParameterOnOperator;
 
-  @Deprecated("Please use unexpectedToken")
-  static const DiagnosticCode UNEXPECTED_TOKEN = unexpectedToken;
-
   /// Parameters:
   /// Object p0: the starting character that was missing
   static const DiagnosticWithArguments<
