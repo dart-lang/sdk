@@ -1,6 +1,6 @@
 ## 0.14.0-dev
 
-- Require version `9.0.1` of the `analyzer` package.
+- Require version `10.0.0` of the `analyzer` package.
 - `AssistContributorMixin` is now a mixin.
 - Remove deprecated `methodBeingCopied` parameters on various methods.
 - Remove `ChangeBuilder.new`'s deprecated `eol` parameter.

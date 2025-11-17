@@ -1,7 +1,7 @@
 ## 0.3.5-dev
 
-- Require version `9.0.1` of the `analyzer` package.
-- Require version `0.14.0` of the `analyzer` package.
+- Require version `10.0.0` of the `analyzer` package.
+- Require version `0.14.0` of the `analyzer_plugin` package.
 - `PluginRegistry.registerFixForRule` now accepts a `DiagnosticCode` (a
   supertype of the old parameter type, `LintCode`).
 
