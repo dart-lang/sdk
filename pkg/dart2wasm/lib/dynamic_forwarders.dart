@@ -463,15 +463,22 @@ class _DynamicForwarderCodeGenerator extends CodeGenerator {
             targetMemberParamInfo.positional.length) {
           b.local_get(positionalArgsLocal);
         } else {
+          final targetPositionals = targetFunction.positionalParameters;
           for (int i = 0; i < targetMemberParamInfo.positional.length; ++i) {
             if (i < callerShape.positionalCount) {
               b.local_get(function.locals[1 + callerShape.typeCount + i]);
               continue;
             }
             final defaultValue = targetMemberParamInfo.positional[i];
-            final defaultFunctionValue = (targetFunction
-                    .positionalParameters[i].initializer as ConstantExpression?)
-                ?.constant;
+            // The target (a type checker function) has a signature that is
+            // created based on the union/merged of all members of the selector.
+            //
+            // Some implementations of the selector may have more positionals
+            // than others, hence the `i < targetPositionals.length`.
+            final defaultFunctionValue = i < targetPositionals.length
+                ? (targetPositionals[i].initializer as ConstantExpression?)
+                    ?.constant
+                : null;
             translator.constants.instantiateConstant(
                 b, defaultFunctionValue ?? defaultValue!, translator.topType);
           }
