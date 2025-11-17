@@ -38,6 +38,7 @@ import 'package:analysis_server/src/status/pages/message_scheduler_page.dart';
 import 'package:analysis_server/src/status/pages/not_found_page.dart';
 import 'package:analysis_server/src/status/pages/plugins_page.dart';
 import 'package:analysis_server/src/status/pages/refactorings_page.dart';
+import 'package:analysis_server/src/status/pages/session_log_page.dart';
 import 'package:analysis_server/src/status/pages/status_page.dart';
 import 'package:analysis_server/src/status/pages/subscriptions_page.dart';
 import 'package:analysis_server/src/status/pages/timing_page.dart';
@@ -181,7 +182,7 @@ abstract class DiagnosticPage extends Page {
       </span>
 
       <nav class="masthead-nav">
-        <a href="/status" ${isNavPage ? ' class="active"' : ''}>Diagnostics</a>
+        <a href="/status" ${isNavPage ? ' class="active"' : ''}>Insights</a>
         <a href="/collect-report" ${isCurrentPage('/collect-report') ? ' class="active"' : ''}>Collect Report</a>
         <a href="/feedback" ${isCurrentPage('/feedback') ? ' class="active"' : ''}>Feedback</a>
         <a href="https://dart.dev/tools/dart-analyze" target="_blank">Docs</a>
@@ -473,6 +474,9 @@ td.pre {
     pages.add(AstPage(this));
     pages.add(ElementModelPage(this));
     pages.add(ContentsPage(this));
+
+    // Add logging pages
+    pages.add(SessionLogPage(this));
 
     // Add timing pages
     pages.add(TimingPage(this));
