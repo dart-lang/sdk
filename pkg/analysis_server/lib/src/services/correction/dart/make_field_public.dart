@@ -10,6 +10,8 @@ import 'package:analyzer_plugin/utilities/change_builder/change_builder_dart.dar
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
 
+import '../../../utilities/extensions/ast.dart';
+
 class MakeFieldPublic extends ResolvedCorrectionProducer {
   late String _fieldName;
 
@@ -35,12 +37,12 @@ class MakeFieldPublic extends ResolvedCorrectionProducer {
     var getterName = declaration.name.lexeme;
     _fieldName = '_$getterName';
     if (declaration.name == token && declaration.isGetter) {
-      NodeList<ClassMember> members;
-      var container = declaration.parent;
+      List<ClassMember> members;
+      var container = declaration.parent?.parent;
       if (container is ClassDeclaration) {
-        members = container.members;
+        members = container.members2;
       } else if (container is MixinDeclaration) {
-        members = container.members;
+        members = container.body.members;
       } else {
         return;
       }
@@ -73,7 +75,7 @@ class MakeFieldPublic extends ResolvedCorrectionProducer {
 }
 
 extension on DartFileEditBuilder {
-  void removeMember(NodeList<ClassMember> members, ClassMember member) {
+  void removeMember(List<ClassMember> members, ClassMember member) {
     // TODO(brianwilkerson): Consider moving this to DartFileEditBuilder.
     var index = members.indexOf(member);
     if (index == 0) {

@@ -263,18 +263,19 @@ class MoveTopLevelToFile extends RefactoringProducer {
     var sealedDeclarations = <CompilationUnitMember>[];
     for (var node in selectedNodes) {
       String? name;
-      if (node is ClassDeclaration && validSelection(node.name)) {
+      if (node is ClassDeclaration && validSelection(node.namePart.typeName)) {
         if (node.sealedKeyword != null) {
           sealedDeclarations.add(node);
         }
-        name = node.name.lexeme;
-      } else if (node is EnumDeclaration && validSelection(node.name)) {
-        name = node.name.lexeme;
+        name = node.namePart.typeName.lexeme;
+      } else if (node is EnumDeclaration &&
+          validSelection(node.namePart.typeName)) {
+        name = node.namePart.typeName.lexeme;
       } else if (node is ExtensionDeclaration && validSelection(node.name)) {
         name = node.name?.lexeme;
       } else if (node is ExtensionTypeDeclaration &&
-          validSelection(node.name)) {
-        name = node.name.lexeme;
+          validSelection(node.primaryConstructor.typeName)) {
+        name = node.primaryConstructor.typeName.lexeme;
       } else if (node is FunctionDeclaration &&
           node.parent is CompilationUnit &&
           validSelection(node.name)) {
@@ -375,6 +376,8 @@ class MoveTopLevelToFile extends RefactoringProducer {
       }
     } else if (node is CompilationUnitMember) {
       return [node];
+    } else if (node is ClassNamePart) {
+      return [node.parent as CompilationUnitMember];
     }
     return null;
   }

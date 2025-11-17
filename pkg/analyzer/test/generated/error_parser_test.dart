@@ -900,7 +900,7 @@ class Foo {
     expect(semicolon, isNotNull);
     expect(semicolon.isSynthetic, isTrue);
     ClassDeclaration clazz = unit.declarations[0] as ClassDeclaration;
-    expect(clazz.name.lexeme, 'A');
+    expect(clazz.namePart.typeName.lexeme, 'A');
   }
 
   void test_expectedToken_semicolonMissingAfterExpression() {
@@ -941,7 +941,7 @@ class Foo {
     expect(semicolon, isNotNull);
     expect(semicolon.isSynthetic, isTrue);
     ClassDeclaration clazz = unit.declarations[0] as ClassDeclaration;
-    expect(clazz.name.lexeme, 'A');
+    expect(clazz.namePart.typeName.lexeme, 'A');
   }
 
   void test_expectedToken_whileMissingInDoStatement() {
@@ -1860,8 +1860,9 @@ class Wrong<T> {
     );
     expect(unit.declarations, hasLength(1));
     var declaration = unit.declarations[0] as ClassDeclaration;
-    expect(declaration.members, hasLength(1));
-    var member = declaration.members[0] as MethodDeclaration;
+    var classBody = declaration.body as BlockClassBody;
+    expect(classBody.members, hasLength(1));
+    var member = classBody.members[0] as MethodDeclaration;
     var body = member.body as BlockFunctionBody;
     expect(body.block.statements, hasLength(1));
     var statement = body.block.statements[0] as FunctionDeclarationStatement;

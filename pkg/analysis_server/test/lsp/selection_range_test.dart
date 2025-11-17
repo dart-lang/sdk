@@ -168,7 +168,8 @@ class Foo {
         '0',
         '=> 0;',
         'void a() => 0;',
-        code.code.trim(), // Whole content minus the trailing newline
+        '{\n  void a() => 0;\n  void b() => 1;\n}',
+        'class Foo {\n  void a() => 0;\n  void b() => 1;\n}',
       ]),
     );
     expect(
@@ -177,7 +178,8 @@ class Foo {
         '1',
         '=> 1;',
         'void b() => 1;',
-        code.code.trim(), // Whole content minus the trailing newline
+        '{\n  void a() => 0;\n  void b() => 1;\n}',
+        'class Foo {\n  void a() => 0;\n  void b() => 1;\n}',
       ]),
     );
   }
@@ -219,6 +221,7 @@ class Foo<T> {
         'return [?(1 + 2) * 3];',
         '{\n    return [?(1 + 2) * 3];\n  }',
         'List<int> a(String b) {\n    return [?(1 + 2) * 3];\n  }',
+        '{\n  List<int> a(String b) {\n    return [?(1 + 2) * 3];\n  }\n}',
         'class Foo<T> {\n  List<int> a(String b) {\n    return [?(1 + 2) * 3];\n  }\n}',
       ]),
     );
@@ -261,6 +264,7 @@ class Foo<T> {
         'return {?(1 + 2) * 3: b};',
         '{\n    return {?(1 + 2) * 3: b};\n  }',
         'Map<int, String> a(String b) {\n    return {?(1 + 2) * 3: b};\n  }',
+        '{\n  Map<int, String> a(String b) {\n    return {?(1 + 2) * 3: b};\n  }\n}',
         'class Foo<T> {\n  Map<int, String> a(String b) {\n    return {?(1 + 2) * 3: b};\n  }\n}',
       ]),
     );
@@ -303,6 +307,7 @@ class Foo<T> {
         'return {b: ?(1 + 2) * 3};',
         '{\n    return {b: ?(1 + 2) * 3};\n  }',
         'Map<String, int> a(String b) {\n    return {b: ?(1 + 2) * 3};\n  }',
+        '{\n  Map<String, int> a(String b) {\n    return {b: ?(1 + 2) * 3};\n  }\n}',
         'class Foo<T> {\n  Map<String, int> a(String b) {\n    return {b: ?(1 + 2) * 3};\n  }\n}',
       ]),
     );
@@ -345,6 +350,7 @@ class Foo<T> {
         'return {?(1 + 2) * 3};',
         '{\n    return {?(1 + 2) * 3};\n  }',
         'Set<int> a(String b) {\n    return {?(1 + 2) * 3};\n  }',
+        '{\n  Set<int> a(String b) {\n    return {?(1 + 2) * 3};\n  }\n}',
         'class Foo<T> {\n  Set<int> a(String b) {\n    return {?(1 + 2) * 3};\n  }\n}',
       ]),
     );
@@ -387,6 +393,7 @@ class Foo<T> {
         'print((1 + 2) * 3);',
         '{\n    print((1 + 2) * 3);\n  }',
         'void a(String b) {\n    print((1 + 2) * 3);\n  }',
+        '{\n  void a(String b) {\n    print((1 + 2) * 3);\n  }\n}',
         'class Foo<T> {\n  void a(String b) {\n    print((1 + 2) * 3);\n  }\n}',
       ]),
     );

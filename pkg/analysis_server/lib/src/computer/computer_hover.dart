@@ -196,6 +196,7 @@ class DartUnitHoverComputer {
       FormalParameter() => node.name,
       MethodDeclaration() => node.name,
       NamedType() => node.name,
+      NameWithTypeParameters() => node.typeName,
       ConstructorDeclaration() => node.name ?? node.returnType,
       DeclaredIdentifier() => node.name,
       VariableDeclaration() => node.name,
@@ -230,14 +231,16 @@ class DartUnitHoverComputer {
   /// Adjusts the target node for constructors.
   AstNode? _targetNode(AstNode node) {
     var parent = node.parent;
-    var grandParent = parent?.parent;
-    if (parent is NamedType &&
-        grandParent is ConstructorName &&
-        grandParent.parent is InstanceCreationExpression) {
-      return grandParent.parent;
+    var parent2 = parent?.parent;
+    if (node is ClassNamePart) {
+      return parent;
+    } else if (parent is NamedType &&
+        parent2 is ConstructorName &&
+        parent2.parent is InstanceCreationExpression) {
+      return parent2.parent;
     } else if (parent is ConstructorName &&
-        grandParent is InstanceCreationExpression) {
-      return grandParent;
+        parent2 is InstanceCreationExpression) {
+      return parent2;
     } else if (node is SimpleIdentifier &&
         parent is ConstructorDeclaration &&
         parent.name != null) {

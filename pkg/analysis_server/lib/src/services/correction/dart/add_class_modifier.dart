@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/src/services/correction/fix.dart';
+import 'package:analysis_server/src/utilities/extensions/object.dart';
 import 'package:analysis_server_plugin/edit/dart/correction_producer.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
@@ -53,11 +54,14 @@ class AddClassModifier extends ResolvedCorrectionProducer {
   @override
   Future<void> compute(ChangeBuilder builder) async {
     var node = this.node;
-    if (node is! NamedCompilationUnitMember) return;
+
+    var declaration =
+        node.ifTypeOrNull<NamedCompilationUnitMember>() ?? node.parent;
+    if (declaration is! NamedCompilationUnitMember) return;
 
     await builder.addDartFileEdit(file, (builder) {
       builder.addSimpleInsertion(
-        node.firstTokenAfterCommentAndMetadata.offset,
+        declaration.firstTokenAfterCommentAndMetadata.offset,
         '$modifier ',
       );
     });

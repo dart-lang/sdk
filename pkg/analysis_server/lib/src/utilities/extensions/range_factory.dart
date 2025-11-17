@@ -98,7 +98,7 @@ extension RangeFactoryExtensions on RangeFactory {
   /// Return a list of the ranges that cover all of the elements in the [list]
   /// whose index is in the list of [indexes].
   List<SourceRange> nodesInList<T extends AstNode>(
-    NodeList<T> list,
+    List<T> list,
     List<int> indexes,
   ) {
     var ranges = <SourceRange>[];

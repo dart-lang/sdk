@@ -1428,7 +1428,7 @@ class C {
   void b() {}
 }
 ''');
-    node as ClassDeclaration;
+    node as ClassBody;
   }
 
   Future<void> test_between_colonAndIdentifier_namedExpression() async {
@@ -1599,7 +1599,7 @@ class C {
     var node = await coveringNode('''
 class C^<T> {}
 ''');
-    node as ClassDeclaration;
+    node as NameWithTypeParameters;
   }
 
   Future<void> test_between_modifierAndFunctionBody() async {
@@ -1679,7 +1679,7 @@ class C {}
     var node = await coveringNode('''
 class A^B {}
 ''');
-    node as ClassDeclaration;
+    node as NameWithTypeParameters;
   }
 
   Future<void> test_inName_function() async {

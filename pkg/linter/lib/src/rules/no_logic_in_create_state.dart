@@ -43,7 +43,7 @@ class _Visitor extends SimpleAstVisitor<void> {
       return;
     }
 
-    var parent = node.parent;
+    var parent = node.parent?.parent;
     if (parent is! ClassDeclaration ||
         !isStatefulWidget(parent.declaredFragment?.element)) {
       return;

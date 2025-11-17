@@ -123,7 +123,7 @@ Expected a SimpleToken; found nothing
 Expected a keyword
 But found token "C"
   type=IDENTIFIER, length=1
-  path: ((root as CompilationUnit).declarations[0] as ClassDeclaration).name
+  path: (((root as CompilationUnit).declarations[0] as ClassDeclaration).namePart as NameWithTypeParameters).typeName
 ''',
     );
   }
@@ -151,7 +151,7 @@ Expected token "foo"
   type=IDENTIFIER, length=3
 But found token "this"
   type=THIS, length=4
-  path: (((((root as CompilationUnit).declarations[0] as ClassDeclaration).members[0] as ConstructorDeclaration).parameters as FormalParameterList).parameters[0] as SimpleFormalParameter).name
+  path: ((((((root as CompilationUnit).declarations[0] as ClassDeclaration).body as BlockClassBody).members[0] as ConstructorDeclaration).parameters as FormalParameterList).parameters[0] as SimpleFormalParameter).name
 ''',
     );
   }
@@ -365,7 +365,7 @@ Expected token "X"
   type=IDENTIFIER, length=1
 But found token "C"
   type=IDENTIFIER, length=1
-  path: ((root as CompilationUnit).declarations[0] as ClassDeclaration).name
+  path: (((root as CompilationUnit).declarations[0] as ClassDeclaration).namePart as NameWithTypeParameters).typeName
 ''',
     );
   }

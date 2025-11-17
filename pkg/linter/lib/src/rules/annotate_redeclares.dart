@@ -44,12 +44,14 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   @override
   void visitExtensionTypeDeclaration(ExtensionTypeDeclaration node) {
-    node.members.whereType<MethodDeclaration>().forEach(_check);
+    if (node.body case BlockClassBody body) {
+      body.members.whereType<MethodDeclaration>().forEach(_check);
+    }
   }
 
   void _check(MethodDeclaration node) {
     if (node.isStatic) return;
-    var parent = node.parent;
+    var parent = node.parent?.parent;
     // Shouldn't happen.
     if (parent is! ExtensionTypeDeclaration) return;
 

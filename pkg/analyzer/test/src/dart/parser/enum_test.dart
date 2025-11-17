@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -29,12 +28,14 @@ augment enum E {
 EnumDeclaration
   augmentKeyword: augment
   enumKeyword: enum
-  name: E
-  leftBracket: {
-  constants
-    EnumConstantDeclaration
-      name: v
-  rightBracket: }
+  namePart: NameWithTypeParameters
+    typeName: E
+  body: EnumBody
+    leftBracket: {
+    constants
+      EnumConstantDeclaration
+        name: v
+    rightBracket: }
 ''');
   }
 
@@ -51,13 +52,15 @@ augment enum E {
 EnumDeclaration
   augmentKeyword: augment
   enumKeyword: enum
-  name: E
-  leftBracket: {
-  constants
-    EnumConstantDeclaration
-      augmentKeyword: augment
-      name: v
-  rightBracket: }
+  namePart: NameWithTypeParameters
+    typeName: E
+  body: EnumBody
+    leftBracket: {
+    constants
+      EnumConstantDeclaration
+        augmentKeyword: augment
+        name: v
+    rightBracket: }
 ''');
   }
 
@@ -74,21 +77,23 @@ augment enum E {
 EnumDeclaration
   augmentKeyword: augment
   enumKeyword: enum
-  name: E
-  leftBracket: {
-  constants
-    EnumConstantDeclaration
-      augmentKeyword: augment
-      name: v
-      arguments: EnumConstantArguments
-        constructorSelector: ConstructorSelector
-          period: .
-          name: SimpleIdentifier
-            token: foo
-        argumentList: ArgumentList
-          leftParenthesis: (
-          rightParenthesis: )
-  rightBracket: }
+  namePart: NameWithTypeParameters
+    typeName: E
+  body: EnumBody
+    leftBracket: {
+    constants
+      EnumConstantDeclaration
+        augmentKeyword: augment
+        name: v
+        arguments: EnumConstantArguments
+          constructorSelector: ConstructorSelector
+            period: .
+            name: SimpleIdentifier
+              token: foo
+          argumentList: ArgumentList
+            leftParenthesis: (
+            rightParenthesis: )
+    rightBracket: }
 ''');
   }
 
@@ -105,22 +110,24 @@ augment enum E {;
 EnumDeclaration
   augmentKeyword: augment
   enumKeyword: enum
-  name: E
-  leftBracket: {
-  semicolon: ;
-  members
-    MethodDeclaration
-      returnType: NamedType
-        name: void
-      name: foo
-      parameters: FormalParameterList
-        leftParenthesis: (
-        rightParenthesis: )
-      body: BlockFunctionBody
-        block: Block
-          leftBracket: {
-          rightBracket: }
-  rightBracket: }
+  namePart: NameWithTypeParameters
+    typeName: E
+  body: EnumBody
+    leftBracket: {
+    semicolon: ;
+    members
+      MethodDeclaration
+        returnType: NamedType
+          name: void
+        name: foo
+        parameters: FormalParameterList
+          leftParenthesis: (
+          rightParenthesis: )
+        body: BlockFunctionBody
+          block: Block
+            leftBracket: {
+            rightBracket: }
+    rightBracket: }
 ''');
   }
 
@@ -134,9 +141,11 @@ enum E {}
     assertParsedNodeText(node, r'''
 EnumDeclaration
   enumKeyword: enum
-  name: E
-  leftBracket: {
-  rightBracket: }
+  namePart: NameWithTypeParameters
+    typeName: E
+  body: EnumBody
+    leftBracket: {
+    rightBracket: }
 ''');
   }
 
@@ -150,10 +159,12 @@ enum E {;}
     assertParsedNodeText(node, r'''
 EnumDeclaration
   enumKeyword: enum
-  name: E
-  leftBracket: {
-  semicolon: ;
-  rightBracket: }
+  namePart: NameWithTypeParameters
+    typeName: E
+  body: EnumBody
+    leftBracket: {
+    semicolon: ;
+    rightBracket: }
 ''');
   }
 
@@ -169,27 +180,28 @@ enum E {;
     assertParsedNodeText(node, r'''
 EnumDeclaration
   enumKeyword: enum
-  name: E
-  leftBracket: {
-  semicolon: ;
-  members
-    MethodDeclaration
-      returnType: NamedType
-        name: void
-      name: foo
-      parameters: FormalParameterList
-        leftParenthesis: (
-        rightParenthesis: )
-      body: BlockFunctionBody
-        block: Block
-          leftBracket: {
-          rightBracket: }
-  rightBracket: }
+  namePart: NameWithTypeParameters
+    typeName: E
+  body: EnumBody
+    leftBracket: {
+    semicolon: ;
+    members
+      MethodDeclaration
+        returnType: NamedType
+          name: void
+        name: foo
+        parameters: FormalParameterList
+          leftParenthesis: (
+          rightParenthesis: )
+        body: BlockFunctionBody
+          block: Block
+            leftBracket: {
+            rightBracket: }
+    rightBracket: }
 ''');
   }
 
   test_nameWithTypeParameters_hasTypeParameters() {
-    useDeclaringConstructorsAst = true;
     var parseResult = parseStringWithErrors(r'''
 enum E<T, U> {v}
 ''');
@@ -216,38 +228,9 @@ EnumDeclaration
         name: v
     rightBracket: }
 ''');
-
-    {
-      useDeclaringConstructorsAst = false;
-      var parseResult = parseStringWithErrors(r'''
-enum E<T, U> {v}
-''');
-      parseResult.assertNoErrors();
-
-      var node = parseResult.findNode.singleEnumDeclaration;
-      assertParsedNodeText(node, r'''
-EnumDeclaration
-  enumKeyword: enum
-  name: E
-  typeParameters: TypeParameterList
-    leftBracket: <
-    typeParameters
-      TypeParameter
-        name: T
-      TypeParameter
-        name: U
-    rightBracket: >
-  leftBracket: {
-  constants
-    EnumConstantDeclaration
-      name: v
-  rightBracket: }
-''');
-    }
   }
 
   test_nameWithTypeParameters_noTypeParameters() {
-    useDeclaringConstructorsAst = true;
     var parseResult = parseStringWithErrors(r'''
 enum E {v}
 ''');
@@ -266,30 +249,9 @@ EnumDeclaration
         name: v
     rightBracket: }
 ''');
-
-    {
-      useDeclaringConstructorsAst = false;
-      var parseResult = parseStringWithErrors(r'''
-enum E {v}
-''');
-      parseResult.assertNoErrors();
-
-      var node = parseResult.findNode.singleEnumDeclaration;
-      assertParsedNodeText(node, r'''
-EnumDeclaration
-  enumKeyword: enum
-  name: E
-  leftBracket: {
-  constants
-    EnumConstantDeclaration
-      name: v
-  rightBracket: }
-''');
-    }
   }
 
   test_primaryConstructor_const_hasTypeParameters_named() {
-    useDeclaringConstructorsAst = true;
     var parseResult = parseStringWithErrors(r'''
 enum const E<T, U>.named() {v}
 ''');
@@ -326,7 +288,6 @@ EnumDeclaration
   }
 
   test_primaryConstructor_const_hasTypeParameters_unnamed() {
-    useDeclaringConstructorsAst = true;
     var parseResult = parseStringWithErrors(r'''
 enum const E<T, U>() {v}
 ''');
@@ -360,7 +321,6 @@ EnumDeclaration
   }
 
   test_primaryConstructor_const_noTypeParameters_named() {
-    useDeclaringConstructorsAst = true;
     var parseResult = parseStringWithErrors(r'''
 enum const E.named() {v}
 ''');
@@ -389,7 +349,6 @@ EnumDeclaration
   }
 
   test_primaryConstructor_const_noTypeParameters_unnamed() {
-    useDeclaringConstructorsAst = true;
     var parseResult = parseStringWithErrors(r'''
 enum const E() {v}
 ''');
@@ -415,7 +374,6 @@ EnumDeclaration
   }
 
   test_primaryConstructor_const_typeName_noFormalParameters() {
-    useDeclaringConstructorsAst = true;
     var parseResult = parseStringWithErrors(r'''
 enum const E {v}
 ''');
@@ -439,7 +397,6 @@ EnumDeclaration
   }
 
   test_primaryConstructor_declaringFormalParameter_default_namedRequired_final() {
-    useDeclaringConstructorsAst = true;
     var parseResult = parseStringWithErrors(r'''
 enum const E({required final int a = 0}) {v}
 ''');
@@ -477,7 +434,6 @@ EnumDeclaration
   }
 
   test_primaryConstructor_declaringFormalParameter_simple_final() {
-    useDeclaringConstructorsAst = true;
     var parseResult = parseStringWithErrors(r'''
 enum const E(final int a) {v}
 ''');
@@ -508,7 +464,6 @@ EnumDeclaration
   }
 
   test_primaryConstructor_notConst_hasTypeParameters_named() {
-    useDeclaringConstructorsAst = true;
     var parseResult = parseStringWithErrors(r'''
 enum E<T, U>.named() {v}
 ''');
@@ -544,7 +499,6 @@ EnumDeclaration
   }
 
   test_primaryConstructor_notConst_hasTypeParameters_unnamed() {
-    useDeclaringConstructorsAst = true;
     var parseResult = parseStringWithErrors(r'''
 enum E<T, U>() {v}
 ''');
@@ -577,7 +531,6 @@ EnumDeclaration
   }
 
   test_primaryConstructor_notConst_noTypeParameters_named() {
-    useDeclaringConstructorsAst = true;
     var parseResult = parseStringWithErrors(r'''
 enum E.named() {v}
 ''');
@@ -605,7 +558,6 @@ EnumDeclaration
   }
 
   test_primaryConstructor_notConst_noTypeParameters_unnamed() {
-    useDeclaringConstructorsAst = true;
     var parseResult = parseStringWithErrors(r'''
 enum E() {v}
 ''');
@@ -630,7 +582,6 @@ EnumDeclaration
   }
 
   test_primaryConstructorBody() {
-    useDeclaringConstructorsAst = true;
     var parseResult = parseStringWithErrors(r'''
 enum E() {
   v;

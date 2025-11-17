@@ -6,7 +6,6 @@ import 'package:_fe_analyzer_shared/src/type_inference/type_analyzer.dart'
     as shared;
 import 'package:_fe_analyzer_shared/src/type_inference/variable_bindings.dart';
 import 'package:analyzer/dart/analysis/features.dart';
-import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
@@ -301,13 +300,8 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
 
     _withElementWalker(ElementWalker.forClass(fragment), () {
       _withNameScope(() {
-        if (useDeclaringConstructorsAst) {
-          _buildTypeParameterElements(node.namePart.typeParameters);
-          node.namePart.accept(this);
-        } else {
-          _buildTypeParameterElements(node.typeParameters);
-          node.typeParameters?.accept(this);
-        }
+        _buildTypeParameterElements(node.namePart.typeParameters);
+        node.namePart.accept(this);
 
         var extendsClause = node.extendsClause;
         var withClause = node.withClause;
@@ -329,11 +323,7 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
         _defineElements(element.getters);
         _defineElements(element.setters);
         _defineElements(element.methods);
-        if (useDeclaringConstructorsAst) {
-          node.body.accept(this);
-        } else {
-          node.members.accept(this);
-        }
+        node.body.accept(this);
       });
     });
 
@@ -549,13 +539,8 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
 
     _withElementWalker(ElementWalker.forEnum(fragment), () {
       _withNameScope(() {
-        if (useDeclaringConstructorsAst) {
-          _buildTypeParameterElements(node.namePart.typeParameters);
-          node.namePart.accept(this);
-        } else {
-          _buildTypeParameterElements(node.typeParameters);
-          node.typeParameters?.accept(this);
-        }
+        _buildTypeParameterElements(node.namePart.typeParameters);
+        node.namePart.accept(this);
 
         _resolveWithClause(declaration: node, clause: node.withClause);
         _resolveImplementsClause(
@@ -566,12 +551,7 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
         _defineElements(element.getters);
         _defineElements(element.setters);
         _defineElements(element.methods);
-        if (useDeclaringConstructorsAst) {
-          node.body.accept(this);
-        } else {
-          node.constants.accept(this);
-          node.members.accept(this);
-        }
+        node.body.accept(this);
       });
     });
 
@@ -607,11 +587,7 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
         _defineElements(element.getters);
         _defineElements(element.setters);
         _defineElements(element.methods);
-        if (useDeclaringConstructorsAst) {
-          node.body.accept(this);
-        } else {
-          node.members.accept(this);
-        }
+        node.body.accept(this);
       });
     });
   }
@@ -628,33 +604,20 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
     _setOrCreateMetadataElements(fragment, node.metadata);
 
     if (identical(element.firstFragment, fragment)) {
-      if (useDeclaringConstructorsAst) {
-        var formalParameters = node.primaryConstructor.formalParameters;
-        _setOrCreateMetadataElements(
-          element.representation.firstFragment,
-          formalParameters.parameters.first.metadata,
-        );
-      } else {
-        _setOrCreateMetadataElements(
-          element.representation.firstFragment,
-          node.representation.fieldMetadata,
-        );
-      }
+      var formalParameters = node.primaryConstructor.formalParameters;
+      _setOrCreateMetadataElements(
+        element.representation.firstFragment,
+        formalParameters.parameters.first.metadata,
+      );
     }
 
     _withElementWalker(ElementWalker.forExtensionType(fragment), () {
       _withNameScope(() {
-        var typeParameters = useDeclaringConstructorsAst
-            ? node.primaryConstructor.typeParameters
-            : node.typeParameters;
+        var typeParameters = node.primaryConstructor.typeParameters;
         _buildTypeParameterElements(typeParameters);
         typeParameters?.accept(this);
 
-        if (useDeclaringConstructorsAst) {
-          node.primaryConstructor.accept(this);
-        } else {
-          node.representation.accept(this);
-        }
+        node.primaryConstructor.accept(this);
 
         _resolveImplementsClause(
           declaration: node,
@@ -664,13 +627,9 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
         _defineElements(element.getters);
         _defineElements(element.setters);
         _defineElements(element.methods);
-        if (useDeclaringConstructorsAst) {
-          // Skip the representation field.
-          _elementWalker!.getVariable();
-          node.body.accept(this);
-        } else {
-          node.members.accept(this);
-        }
+        // Skip the representation field.
+        _elementWalker!.getVariable();
+        node.body.accept(this);
       });
     });
 
@@ -1184,11 +1143,7 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
         _defineElements(element.getters);
         _defineElements(element.setters);
         _defineElements(element.methods);
-        if (useDeclaringConstructorsAst) {
-          node.body.accept(this);
-        } else {
-          node.members.accept(this);
-        }
+        node.body.accept(this);
       });
     });
   }

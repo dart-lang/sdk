@@ -11,6 +11,8 @@ import 'package:analyzer/source/line_info.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart' hide Element;
 import 'package:analyzer_plugin/utilities/range_factory.dart';
 
+import '../../utilities/extensions/ast.dart';
+
 /// Sorter for unit/class members.
 class MemberSorter {
   final String _initialCode;
@@ -99,15 +101,15 @@ class MemberSorter {
   void _sortClassesMembers() {
     for (var unitMember in _unit.declarations) {
       if (unitMember is ClassDeclaration) {
-        _sortClassMembers(unitMember.members);
+        _sortClassMembers(unitMember.members2);
       } else if (unitMember is EnumDeclaration) {
-        _sortClassMembers(unitMember.members);
+        _sortClassMembers(unitMember.body.members);
       } else if (unitMember is ExtensionDeclaration) {
-        _sortClassMembers(unitMember.members);
+        _sortClassMembers(unitMember.body.members);
       } else if (unitMember is ExtensionTypeDeclaration) {
-        _sortClassMembers(unitMember.members);
+        _sortClassMembers(unitMember.members2);
       } else if (unitMember is MixinDeclaration) {
-        _sortClassMembers(unitMember.members);
+        _sortClassMembers(unitMember.body.members);
       }
     }
   }
@@ -176,16 +178,16 @@ class MemberSorter {
       switch (member) {
         case ClassDeclaration():
           kind = _MemberKind.unitClass;
-          name = member.name.lexeme;
+          name = member.namePart.typeName.lexeme;
         case ClassTypeAlias():
           kind = _MemberKind.unitClass;
           name = member.name.lexeme;
         case EnumDeclaration():
           kind = _MemberKind.unitClass;
-          name = member.name.lexeme;
+          name = member.namePart.typeName.lexeme;
         case ExtensionTypeDeclaration():
           kind = _MemberKind.unitExtensionType;
-          name = member.name.lexeme;
+          name = member.primaryConstructor.typeName.lexeme;
         case ExtensionDeclaration():
           kind = _MemberKind.unitExtension;
           name = member.name?.lexeme ?? '';

@@ -30,7 +30,7 @@ class MakeClassAbstract extends ResolvedCorrectionProducer {
     if (enclosingClass == null) {
       return;
     }
-    _className = enclosingClass.name.lexeme;
+    _className = enclosingClass.namePart.typeName.lexeme;
 
     await builder.addDartFileEdit(file, (builder) {
       builder.addSimpleInsertion(

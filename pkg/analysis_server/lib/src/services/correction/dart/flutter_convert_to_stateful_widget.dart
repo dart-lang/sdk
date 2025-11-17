@@ -16,6 +16,8 @@ import 'package:analyzer_plugin/utilities/assist/assist.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
 
+import '../../../utilities/extensions/ast.dart';
+
 class FlutterConvertToStatefulWidget extends ResolvedCorrectionProducer {
   FlutterConvertToStatefulWidget({required super.context});
 
@@ -35,9 +37,14 @@ class FlutterConvertToStatefulWidget extends ResolvedCorrectionProducer {
       return;
     }
 
+    var body = widgetClass.body;
+    if (body is! BlockClassBody) {
+      return;
+    }
+
     // Don't spam, activate only from the `class` keyword to the class body.
     if (selectionOffset < widgetClass.classKeyword.offset ||
-        selectionOffset > widgetClass.leftBracket.end) {
+        selectionOffset > body.leftBracket.end) {
       return;
     }
 
@@ -60,7 +67,7 @@ class FlutterConvertToStatefulWidget extends ResolvedCorrectionProducer {
 
     // Find fields assigned in constructors.
     var visitor = _FieldFinder();
-    for (var member in widgetClass.members) {
+    for (var member in body.members) {
       if (member is ConstructorDeclaration) {
         member.accept(visitor);
       }
@@ -70,7 +77,7 @@ class FlutterConvertToStatefulWidget extends ResolvedCorrectionProducer {
     // Prepare nodes to move.
     var nodesToMove = <ClassMember>{};
     var elementsToMove = <Element>{};
-    for (var member in widgetClass.members) {
+    for (var member in body.members) {
       if (member is FieldDeclaration && !member.isStatic) {
         for (var fieldNode in member.fields.variables) {
           var fieldFragment = fieldNode.declaredFragment as FieldFragment;
@@ -131,7 +138,7 @@ class FlutterConvertToStatefulWidget extends ResolvedCorrectionProducer {
       var hasBuildMethod = false;
 
       var typeParams = '';
-      var typeParameters = widgetClass.typeParameters;
+      var typeParameters = widgetClass.namePart.typeParameters;
       if (typeParameters != null) {
         typeParams = utils.getNodeText(typeParameters);
       }
@@ -155,7 +162,9 @@ class FlutterConvertToStatefulWidget extends ResolvedCorrectionProducer {
             builder.writeln('  @override');
             builder.write('  ');
             builder.writeReference(stateClass);
-            builder.write('<${widgetClass.name.lexeme}$typeParams>');
+            builder.write(
+              '<${widgetClass.namePart.typeName.lexeme}$typeParams>',
+            );
             builder.writeln(' createState() => $stateName$typeParams();');
             if (hasEmptyLineAfterCreateState) {
               builder.writeln();
@@ -171,7 +180,7 @@ class FlutterConvertToStatefulWidget extends ResolvedCorrectionProducer {
       // Remove continuous ranges of lines of nodes being moved.
       var lastToRemoveIsField = false;
       var endOfLastNodeToKeep = 0;
-      for (var node in widgetClass.members) {
+      for (var node in body.members) {
         if (nodesToMove.contains(node)) {
           if (replaceOffset == 0) {
             var comments = node.beginToken.precedingComments;
@@ -202,7 +211,7 @@ class FlutterConvertToStatefulWidget extends ResolvedCorrectionProducer {
           replaceOffset = endOfLastNodeToKeep;
         }
         replaceInterval(
-          widgetClass.rightBracket.offset,
+          body.rightBracket.offset,
           hasEmptyLineBeforeCreateState: endOfLastNodeToKeep != 0,
           hasEmptyLineAfterCreateState: false,
         );
@@ -217,7 +226,7 @@ class FlutterConvertToStatefulWidget extends ResolvedCorrectionProducer {
         builder.writeReference(stateClass);
 
         // Write just param names (and not bounds, metadata and docs).
-        builder.write('<${widgetClass.name.lexeme}');
+        builder.write('<${widgetClass.namePart.typeName.lexeme}');
         if (typeParameters != null) {
           builder.write('<');
           var first = true;
@@ -258,7 +267,7 @@ class FlutterConvertToStatefulWidget extends ResolvedCorrectionProducer {
   }
 
   MethodDeclaration? _findBuildMethod(ClassDeclaration widgetClass) {
-    for (var member in widgetClass.members) {
+    for (var member in widgetClass.members2) {
       if (member is MethodDeclaration && member.name.lexeme == 'build') {
         var parameters = member.parameters;
         if (parameters != null && parameters.parameters.length == 1) {

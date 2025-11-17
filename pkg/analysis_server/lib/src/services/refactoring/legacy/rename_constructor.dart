@@ -66,10 +66,10 @@ class RenameConstructorRefactoringImpl extends RenameRefactoringImpl {
       // Handle implicit references.
       var coveringNode = await _nodeCoveringReference(reference);
       var coveringParent = coveringNode?.parent;
-      if (coveringNode is ClassDeclaration) {
+      if (coveringParent is ClassDeclaration) {
         _addDefaultConstructorToClass(
           reference: reference,
-          classDeclaration: coveringNode,
+          classDeclaration: coveringParent,
         );
         continue;
       } else if (coveringParent is ConstructorDeclaration &&
@@ -121,10 +121,15 @@ class RenameConstructorRefactoringImpl extends RenameRefactoringImpl {
     required SourceReference reference,
     required ClassDeclaration classDeclaration,
   }) {
-    var className = classDeclaration.name.lexeme;
+    var body = classDeclaration.body;
+    if (body is! BlockClassBody) {
+      return;
+    }
+
+    var className = classDeclaration.namePart.typeName.lexeme;
     _replaceInReferenceFile(
       reference: reference,
-      range: range.endLength(classDeclaration.leftBracket, 0),
+      range: range.endLength(body.leftBracket, 0),
       replacement: '${utils.endOfLine}  $className() : super.$newName();',
     );
   }

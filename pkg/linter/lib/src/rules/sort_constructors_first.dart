@@ -54,16 +54,20 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   @override
   void visitClassDeclaration(ClassDeclaration node) {
-    check(node.members);
+    if (node.body case BlockClassBody body) {
+      check(body.members);
+    }
   }
 
   @override
   void visitEnumDeclaration(EnumDeclaration node) {
-    check(node.members);
+    check(node.body.members);
   }
 
   @override
   void visitExtensionTypeDeclaration(ExtensionTypeDeclaration node) {
-    check(node.members);
+    if (node.body case BlockClassBody body) {
+      check(body.members);
+    }
   }
 }

@@ -3724,9 +3724,11 @@ CompilationUnit
   declarations
     ClassDeclaration
       classKeyword: class
-      name: A
-      leftBracket: {
-      rightBracket: }
+      namePart: NameWithTypeParameters
+        typeName: A
+      body: BlockClassBody
+        leftBracket: {
+        rightBracket: }
 ''');
     }
   }
@@ -3771,9 +3773,11 @@ CompilationUnit
   declarations
     ClassDeclaration
       classKeyword: class
-      name: A
-      leftBracket: {
-      rightBracket: }
+      namePart: NameWithTypeParameters
+        typeName: A
+      body: BlockClassBody
+        leftBracket: {
+        rightBracket: }
 ''');
 
     expect(driver.knownFiles.resources, unorderedEquals([a]));

@@ -88,7 +88,6 @@ class AnalysisRuleVisitor implements AstVisitor<void> {
     node.visitChildren(this);
   }
 
-  @experimental
   @override
   void visitBlockClassBody(BlockClassBody node) {
     _runSubscriptions(node, _registry._forBlockClassBody);
@@ -283,7 +282,6 @@ class AnalysisRuleVisitor implements AstVisitor<void> {
     node.visitChildren(this);
   }
 
-  @experimental
   @override
   void visitEmptyClassBody(EmptyClassBody node) {
     _runSubscriptions(node, _registry._forEmptyClassBody);
@@ -302,7 +300,6 @@ class AnalysisRuleVisitor implements AstVisitor<void> {
     node.visitChildren(this);
   }
 
-  @experimental
   @override
   void visitEnumBody(EnumBody node) {
     _runSubscriptions(node, _registry._forEnumBody);
@@ -681,7 +678,6 @@ class AnalysisRuleVisitor implements AstVisitor<void> {
     node.visitChildren(this);
   }
 
-  @experimental
   @override
   void visitNameWithTypeParameters(NameWithTypeParameters node) {
     _runSubscriptions(node, _registry._forNameWithTypeParameters);
@@ -804,21 +800,18 @@ class AnalysisRuleVisitor implements AstVisitor<void> {
     node.visitChildren(this);
   }
 
-  @experimental
   @override
   void visitPrimaryConstructorBody(PrimaryConstructorBody node) {
     _runSubscriptions(node, _registry._forPrimaryConstructorBody);
     node.visitChildren(this);
   }
 
-  @experimental
   @override
   void visitPrimaryConstructorDeclaration(PrimaryConstructorDeclaration node) {
     _runSubscriptions(node, _registry._forPrimaryConstructorDeclaration);
     node.visitChildren(this);
   }
 
-  @experimental
   @override
   void visitPrimaryConstructorName(PrimaryConstructorName node) {
     _runSubscriptions(node, _registry._forPrimaryConstructorName);

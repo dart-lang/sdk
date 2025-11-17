@@ -97,7 +97,7 @@ class DartUnitOccurrencesComputerVisitor extends GeneralizingAstVisitor<void> {
 
   @override
   void visitClassDeclaration(ClassDeclaration node) {
-    _addOccurrence(node.declaredFragment!.element, node.name);
+    _addOccurrence(node.declaredFragment!.element, node.namePart.typeName);
 
     super.visitClassDeclaration(node);
   }
@@ -182,7 +182,7 @@ class DartUnitOccurrencesComputerVisitor extends GeneralizingAstVisitor<void> {
 
   @override
   void visitEnumDeclaration(EnumDeclaration node) {
-    _addOccurrence(node.declaredFragment!.element, node.name);
+    _addOccurrence(node.declaredFragment!.element, node.namePart.typeName);
 
     super.visitEnumDeclaration(node);
   }
@@ -205,7 +205,10 @@ class DartUnitOccurrencesComputerVisitor extends GeneralizingAstVisitor<void> {
 
   @override
   void visitExtensionTypeDeclaration(ExtensionTypeDeclaration node) {
-    _addOccurrence(node.declaredFragment!.element, node.name);
+    _addOccurrence(
+      node.declaredFragment!.element,
+      node.primaryConstructor.typeName,
+    );
 
     super.visitExtensionTypeDeclaration(node);
   }
@@ -303,6 +306,15 @@ class DartUnitOccurrencesComputerVisitor extends GeneralizingAstVisitor<void> {
       _addOccurrence(element, name);
     }
     super.visitPatternField(node);
+  }
+
+  @override
+  void visitPrimaryConstructorName(PrimaryConstructorName node) {
+    if (node.parent case PrimaryConstructorDeclaration primary) {
+      _addOccurrence(primary.declaredFragment!.element, node.name);
+    }
+
+    super.visitPrimaryConstructorName(node);
   }
 
   @override

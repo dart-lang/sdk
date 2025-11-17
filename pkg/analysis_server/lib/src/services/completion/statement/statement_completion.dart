@@ -392,7 +392,11 @@ class StatementCompletionProcessor {
     if (node is! ClassDeclaration) {
       return false;
     }
-    if (node.leftBracket.isSynthetic && diagnostics.length == 1) {
+    var body = node.body;
+    if (body is! BlockClassBody) {
+      return false;
+    }
+    if (body.leftBracket.isSynthetic && diagnostics.length == 1) {
       // The space before the left brace is assumed to exist, even if it does not.
       var sb = SourceBuilder(file, node.end - eol.length);
       sb.append(' ');

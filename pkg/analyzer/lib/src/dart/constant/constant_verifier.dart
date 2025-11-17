@@ -178,7 +178,7 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
         _validateFieldInitializers(
           node.parent.classMembers,
           constKeyword,
-          isEnumDeclaration: node.parent is EnumDeclaration,
+          isEnumDeclaration: node.parent?.parent is EnumDeclaration,
         );
       }
     }
@@ -1580,14 +1580,17 @@ extension on Expression {
           var declarationListParent = declarationList.parent;
           if (declarationListParent is FieldDeclaration &&
               !declarationListParent.isStatic) {
-            var container = declarationListParent.parent;
-            if (container is ClassDeclaration) {
-              var enclosingClass = container.declaredFragment!.element;
-              if (enclosingClass is ClassElementImpl) {
-                // A field initializer of a class with at least one generative
-                // const constructor does not constitute a constant context, but
-                // must be a constant expression.
-                return enclosingClass.hasGenerativeConstConstructor;
+            var body = declarationListParent.parent;
+            if (body is BlockClassBody) {
+              var container = body.parent;
+              if (container is ClassDeclaration) {
+                var enclosingClass = container.declaredFragment!.element;
+                if (enclosingClass is ClassElementImpl) {
+                  // A field initializer of a class with at least one generative
+                  // const constructor does not constitute a constant context, but
+                  // must be a constant expression.
+                  return enclosingClass.hasGenerativeConstConstructor;
+                }
               }
             }
           }

@@ -24,35 +24,42 @@ class DartUnitOutlineComputer {
     var unitContents = <Outline>[];
     for (var unitMember in unit.declarations) {
       if (unitMember is ClassDeclaration) {
-        unitContents.add(
-          _newClassOutline(unitMember, _outlinesForMembers(unitMember.members)),
-        );
+        if (unitMember.body case BlockClassBody body) {
+          unitContents.add(
+            _newClassOutline(unitMember, _outlinesForMembers(body.members)),
+          );
+        }
       } else if (unitMember is MixinDeclaration) {
         unitContents.add(
-          _newMixinOutline(unitMember, _outlinesForMembers(unitMember.members)),
+          _newMixinOutline(
+            unitMember,
+            _outlinesForMembers(unitMember.body.members),
+          ),
         );
       } else if (unitMember is EnumDeclaration) {
         unitContents.add(
           _newEnumOutline(unitMember, [
-            for (var constant in unitMember.constants)
+            for (var constant in unitMember.body.constants)
               _newEnumConstant(constant),
-            ..._outlinesForMembers(unitMember.members),
+            ..._outlinesForMembers(unitMember.body.members),
           ]),
         );
       } else if (unitMember is ExtensionDeclaration) {
         unitContents.add(
           _newExtensionOutline(
             unitMember,
-            _outlinesForMembers(unitMember.members),
+            _outlinesForMembers(unitMember.body.members),
           ),
         );
       } else if (unitMember is ExtensionTypeDeclaration) {
-        unitContents.add(
-          _newExtensionTypeOutline(
-            unitMember,
-            _outlinesForMembers(unitMember.members),
-          ),
-        );
+        if (unitMember.body case BlockClassBody body) {
+          unitContents.add(
+            _newExtensionTypeOutline(
+              unitMember,
+              _outlinesForMembers(body.members),
+            ),
+          );
+        }
       } else if (unitMember is TopLevelVariableDeclaration) {
         var fieldDeclaration = unitMember;
         var fields = fieldDeclaration.variables;
@@ -122,7 +129,7 @@ class DartUnitOutlineComputer {
   }
 
   Outline _newClassOutline(ClassDeclaration node, List<Outline> classContents) {
-    var nameToken = node.name;
+    var nameToken = node.namePart.typeName;
     var name = nameToken.lexeme;
     var element = Element(
       ElementKind.CLASS,
@@ -133,7 +140,7 @@ class DartUnitOutlineComputer {
         isAbstract: node.abstractKeyword != null,
       ),
       location: _getLocationToken(nameToken),
-      typeParameters: _getTypeParametersStr(node.typeParameters),
+      typeParameters: _getTypeParametersStr(node.namePart.typeParameters),
     );
     return _nodeOutline(node, element, classContents);
   }
@@ -201,7 +208,7 @@ class DartUnitOutlineComputer {
   }
 
   Outline _newEnumOutline(EnumDeclaration node, List<Outline> children) {
-    var nameToken = node.name;
+    var nameToken = node.namePart.typeName;
     var name = nameToken.lexeme;
     var element = Element(
       ElementKind.ENUM,
@@ -246,7 +253,7 @@ class DartUnitOutlineComputer {
     ExtensionTypeDeclaration node,
     List<Outline> extensionContents,
   ) {
-    var nameToken = node.name;
+    var nameToken = node.primaryConstructor.typeName;
     var name = nameToken.lexeme;
     var element = Element(
       ElementKind.EXTENSION_TYPE,
@@ -256,7 +263,9 @@ class DartUnitOutlineComputer {
         isDeprecated: _hasDeprecated(node.metadata),
       ),
       location: _getLocationToken(nameToken),
-      typeParameters: _getTypeParametersStr(node.typeParameters),
+      typeParameters: _getTypeParametersStr(
+        node.primaryConstructor.typeParameters,
+      ),
     );
     return _nodeOutline(node, element, extensionContents);
   }

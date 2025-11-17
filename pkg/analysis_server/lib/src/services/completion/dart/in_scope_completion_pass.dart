@@ -157,6 +157,13 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
   /// Computes the candidate suggestions associated with this pass.
   void computeSuggestions() {
     var completionNode = _completionNode;
+    // TODO(scheglov): update the visitor properly
+    if (completionNode is BlockClassBody) {
+      completionNode = completionNode.parent!;
+    }
+    if (completionNode is EnumBody) {
+      completionNode = completionNode.parent!;
+    }
     completionNode.accept(this);
   }
 
@@ -257,7 +264,7 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
     // So, it is not an annotation for a method, but override request.
     if (node.constructorName == null) {
       if (node.name case SimpleIdentifier name) {
-        var classNode = node.parent.parent;
+        var classNode = node.parent.parent?.parent;
         if (classNode is Declaration) {
           var lineInfo = state.request.unit.lineInfo;
           var nameLocation = lineInfo.getLocation(name.offset);
@@ -613,12 +620,17 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
 
   @override
   void visitClassDeclaration(ClassDeclaration node) {
+    var body = node.body;
+    if (body is! BlockClassBody) {
+      return;
+    }
+
     // `class X { final String in^; }` is parsed as
     // `final <NoType> String ; in^`, where `in` is dropped.
     var dropped = state.request.target.droppedToken;
     if (dropped != null && dropped.end == offset) {
       if (dropped.type.isKeyword) {
-        for (var fieldDeclaration in node.members) {
+        for (var fieldDeclaration in body.members) {
           if (fieldDeclaration is FieldDeclaration) {
             var fields = fieldDeclaration.fields;
             if (fields.type == null) {
@@ -649,24 +661,24 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
       keywordHelper.addClassModifiers(node);
     } else if (offset <= node.classKeyword.end) {
       keywordHelper.addKeyword(Keyword.CLASS);
-    } else if (offset <= node.name.end) {
+    } else if (offset <= node.namePart.typeName.end) {
       var hasSyntheticBody =
-          node.leftBracket.isSynthetic && node.rightBracket.isSynthetic;
+          body.leftBracket.isSynthetic && body.rightBracket.isSynthetic;
       identifierHelper(
         includePrivateIdentifiers: false,
       ).addTopLevelName(includeBody: hasSyntheticBody);
-    } else if (offset <= node.leftBracket.offset) {
+    } else if (offset <= body.leftBracket.offset) {
       keywordHelper.addClassDeclarationKeywords(node);
-    } else if (offset >= node.leftBracket.end &&
-        offset <= node.rightBracket.offset) {
+    } else if (offset >= body.leftBracket.end &&
+        offset <= body.rightBracket.offset) {
       if (_tryAnnotationAtEndOfClassBody(node)) {
         return;
       }
 
       collector.completionLocation = 'ClassDeclaration_member';
-      var members = node.members;
+      var members = body.members;
       var precedingMember = members.elementBefore(offset);
-      var token = precedingMember?.beginToken ?? node.leftBracket.next!;
+      var token = precedingMember?.beginToken ?? body.leftBracket.next!;
       if (token.keyword == Keyword.FINAL) {
         // The user is completing after the keyword `final`, so they're likely
         // trying to declare a field.
@@ -674,7 +686,7 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
         return;
       }
       _forClassMember(node);
-      var element = node.members.elementBefore(offset);
+      var element = body.members.elementBefore(offset);
       if (element is MethodDeclaration) {
         var body = element.body;
         if (body.isEmpty) {
@@ -737,7 +749,7 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
   void visitConstructorDeclaration(ConstructorDeclaration node) {
     if (offset <= node.returnType.end) {
       collector.completionLocation = 'ClassDeclaration_member';
-      var parent = node.parent;
+      var parent = node.parent?.parent;
       if (parent != null) {
         _forClassLikeMember(parent);
       }
@@ -857,7 +869,7 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
       return;
     }
 
-    var enumDeclaration = enumConstant.parent;
+    var enumDeclaration = enumConstant.parent?.parent;
     if (enumDeclaration is! EnumDeclaration) {
       return;
     }
@@ -1051,23 +1063,24 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
       keywordHelper.addKeyword(Keyword.ENUM);
       return;
     }
-    if (offset <= node.name.end) {
+    if (offset <= node.namePart.typeName.end) {
       var hasSyntheticBody =
-          node.leftBracket.isSynthetic && node.rightBracket.isSynthetic;
+          node.body.leftBracket.isSynthetic &&
+          node.body.rightBracket.isSynthetic;
       identifierHelper(
         includePrivateIdentifiers: false,
       ).addTopLevelName(includeBody: hasSyntheticBody);
       return;
     }
-    if (offset <= node.leftBracket.offset) {
+    if (offset <= node.body.leftBracket.offset) {
       keywordHelper.addEnumDeclarationKeywords(node);
       return;
     }
-    var rightBracket = node.rightBracket;
+    var rightBracket = node.body.rightBracket;
     if (!rightBracket.isSynthetic && offset >= rightBracket.end) {
       return;
     }
-    var semicolon = node.semicolon;
+    var semicolon = node.body.semicolon;
     if (semicolon != null && offset >= semicolon.end) {
       collector.completionLocation = 'EnumDeclaration_member';
       _forEnumMember(node);
@@ -1233,7 +1246,7 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
         includePrivateIdentifiers: false,
       ).addTopLevelName(includeBody: false);
     }
-    if (offset <= node.leftBracket.offset) {
+    if (offset <= node.body.leftBracket.offset) {
       collector.completionLocation = 'ExtensionDeclaration_onClause';
       if (node.onClause case var onClause?) {
         if (onClause.onKeyword.isSynthetic) {
@@ -1242,7 +1255,8 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
       }
       return;
     }
-    if (offset >= node.leftBracket.end && offset <= node.rightBracket.offset) {
+    if (offset >= node.body.leftBracket.end &&
+        offset <= node.body.rightBracket.offset) {
       collector.completionLocation = 'ExtensionDeclaration_member';
       _forExtensionMember(node);
     }
@@ -1266,19 +1280,24 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
 
   @override
   void visitExtensionTypeDeclaration(ExtensionTypeDeclaration node) {
+    var body = node.body;
+    if (body is! BlockClassBody) {
+      return;
+    }
+
     if (offset == node.offset) {
       _forCompilationUnitMemberBefore(node);
-    } else if (offset <= node.name.end) {
+    } else if (offset <= node.primaryConstructor.typeName.end) {
       var hasSyntheticBody =
-          node.leftBracket.isSynthetic && node.rightBracket.isSynthetic;
+          body.leftBracket.isSynthetic && body.rightBracket.isSynthetic;
       identifierHelper(
         includePrivateIdentifiers: false,
       ).addTopLevelName(includeBody: hasSyntheticBody);
-    } else if (offset >= node.representation.end &&
-        (offset <= node.leftBracket.offset || node.leftBracket.isSynthetic)) {
+    } else if (offset >= node.primaryConstructor.end &&
+        (offset <= body.leftBracket.offset || body.leftBracket.isSynthetic)) {
       keywordHelper.addKeyword(Keyword.IMPLEMENTS);
-    } else if (offset >= node.leftBracket.end &&
-        offset <= node.rightBracket.offset) {
+    } else if (offset >= body.leftBracket.end &&
+        offset <= body.rightBracket.offset) {
       collector.completionLocation = 'ExtensionTypeDeclaration_member';
       _forExtensionTypeMember(node);
     }
@@ -1321,7 +1340,7 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
       var precedingMember = node.precedingMember;
       if (offset <= type.offset &&
           (precedingMember == null || offset >= precedingMember.end)) {
-        var parent = node.parent;
+        var parent = node.parent?.parent;
         if (parent != null) {
           _forClassLikeMember(parent);
         }
@@ -1396,6 +1415,11 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
 
   @override
   void visitFormalParameterList(FormalParameterList node) {
+    if (node.parent case PrimaryConstructorDeclaration primary) {
+      primary.accept(this);
+      return;
+    }
+
     if (offset >= node.end) {
       var parent = node.parent;
       if (parent is FunctionExpression) {
@@ -2048,23 +2072,25 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
     }
     if (offset <= node.name.end) {
       var hasSyntheticBody =
-          node.leftBracket.isSynthetic && node.rightBracket.isSynthetic;
+          node.body.leftBracket.isSynthetic &&
+          node.body.rightBracket.isSynthetic;
       identifierHelper(
         includePrivateIdentifiers: false,
       ).addTopLevelName(includeBody: hasSyntheticBody);
       return;
     }
-    if (offset <= node.leftBracket.offset) {
+    if (offset <= node.body.leftBracket.offset) {
       keywordHelper.addMixinDeclarationKeywords(node);
       return;
     }
-    if (offset >= node.leftBracket.end && offset <= node.rightBracket.offset) {
+    if (offset >= node.body.leftBracket.end &&
+        offset <= node.body.rightBracket.offset) {
       collector.completionLocation = 'MixinDeclaration_member';
       if (_tryAnnotationAtEndOfClassBody(node)) {
         return;
       }
       _forMixinMember(node);
-      var element = node.members.elementBefore(offset);
+      var element = node.body.members.elementBefore(offset);
       if (element is MethodDeclaration) {
         var body = element.body;
         if (body.isEmpty) {
@@ -2406,6 +2432,76 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
   }
 
   @override
+  void visitPrimaryConstructorDeclaration(PrimaryConstructorDeclaration node) {
+    var formalParameters = node.formalParameters;
+    var parameter = formalParameters.parameters.firstOrNull;
+    if (parameter == null) {
+      return;
+    }
+
+    NormalFormalParameter? normalParameter;
+    switch (parameter) {
+      case DefaultFormalParameter(:var parameter):
+        normalParameter = parameter;
+      case NormalFormalParameter():
+        normalParameter = parameter;
+    }
+
+    var nameToken = normalParameter.name;
+    if (nameToken == null) {
+      return;
+    }
+
+    TypeAnnotation? parameterType;
+    switch (normalParameter) {
+      case FieldFormalParameter(:var type):
+        parameterType = type;
+      case FunctionTypedFormalParameter(:var returnType):
+        parameterType = returnType;
+      case SimpleFormalParameter(:var type):
+        parameterType = type;
+      case SuperFormalParameter(:var type):
+        parameterType = type;
+    }
+
+    bool hasIncompleteAnnotation() {
+      var next = formalParameters.leftParenthesis.next;
+      if (next == null) {
+        return false;
+      }
+      var following = next.next;
+      return next.type == TokenType.AT ||
+          (next.isSynthetic && following?.type == TokenType.AT);
+    }
+
+    if (offset <= nameToken.end) {
+      if (parameterType == null || parameterType.isFullySynthetic) {
+        if (nameToken.isSynthetic && hasIncompleteAnnotation()) {
+          collector.completionLocation = 'Annotation_name';
+          _forAnnotation(normalParameter);
+        } else {
+          collector.completionLocation =
+              'PrimaryConstructorDeclaration_fieldType';
+          declarationHelper(
+            mustBeType: true,
+          ).addLexicalDeclarations(normalParameter);
+        }
+      } else {
+        collector.completionLocation =
+            'PrimaryConstructorDeclaration_fieldName';
+        identifierHelper(
+          includePrivateIdentifiers: true,
+        ).addVariable(parameterType);
+      }
+    } else {
+      collector.completionLocation = 'PrimaryConstructorDeclaration_fieldName';
+      identifierHelper(
+        includePrivateIdentifiers: true,
+      ).addSuggestionsFromTypeName(nameToken.lexeme);
+    }
+  }
+
+  @override
   void visitPropertyAccess(PropertyAccess node) {
     var operator = node.operator;
     if (offset <= operator.offset) {
@@ -2657,6 +2753,11 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
 
   @override
   void visitSimpleFormalParameter(SimpleFormalParameter node) {
+    if (node.parent?.parent case PrimaryConstructorDeclaration primary) {
+      primary.accept(this);
+      return;
+    }
+
     var name = node.name;
     var noRequired = node.requiredKeyword == null;
     bool suggestCovariant = true;
@@ -2790,7 +2891,7 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
     if (period != null &&
         offset >= period.end &&
         offset <= node.argumentList.offset) {
-      var container = constructor.parent;
+      var container = constructor.parent?.parent;
       var superType = switch (container) {
         ClassDeclaration() => container.declaredFragment?.element.supertype,
         EnumDeclaration() => container.declaredFragment?.element.supertype,
@@ -3159,6 +3260,9 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
     if (offset <= node.name.end) {
       var constAdded = false;
       var container = grandparent?.parent;
+      if (container is BlockClassBody) {
+        container = container.parent;
+      }
       var keyword = parent.keyword;
       var type = parent.type;
       if (type == null) {
@@ -3861,7 +3965,7 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
   void _forRedirectingConstructorInvocation(
     ConstructorDeclaration constructor,
   ) {
-    var container = constructor.parent;
+    var container = constructor.parent?.parent;
     var thisType = switch (container) {
       ClassDeclaration() => container.declaredFragment?.element.thisType,
       EnumDeclaration() => container.declaredFragment?.element.thisType,
@@ -4277,11 +4381,11 @@ extension on AstNode {
       AdjacentStrings(:var strings) => strings.contains(child),
       ArgumentList(:var arguments) => arguments.contains(child),
       Block(:var statements) => statements.contains(child),
+      BlockClassBody(:var members) => members.contains(child),
       CascadeExpression(:var cascadeSections) => cascadeSections.contains(
         child,
       ),
-      ClassDeclaration(:var members, :var metadata) =>
-        members.contains(child) || metadata.contains(child),
+      ClassDeclaration(:var metadata) => metadata.contains(child),
       ClassTypeAlias(:var metadata) => metadata.contains(child),
       Comment(:var references) => references.contains(child),
       CompilationUnit(:var directives, :var declarations) =>
@@ -4291,18 +4395,15 @@ extension on AstNode {
       DeclaredIdentifier(:var metadata) => metadata.contains(child),
       DottedName(:var components) => components.contains(child),
       EnumConstantDeclaration(:var metadata) => metadata.contains(child),
-      EnumDeclaration(:var constants, :var members, :var metadata) =>
-        constants.contains(child) ||
-            members.contains(child) ||
-            metadata.contains(child),
+      EnumBody(:var constants, :var members) =>
+        constants.contains(child) || members.contains(child),
+      EnumDeclaration(:var metadata) => metadata.contains(child),
       ExportDirective(:var combinators, :var configurations, :var metadata) =>
         combinators.contains(child) ||
             configurations.contains(child) ||
             metadata.contains(child),
-      ExtensionDeclaration(:var members, :var metadata) =>
-        members.contains(child) || metadata.contains(child),
-      ExtensionTypeDeclaration(:var members, :var metadata) =>
-        members.contains(child) || metadata.contains(child),
+      ExtensionDeclaration(:var metadata) => metadata.contains(child),
+      ExtensionTypeDeclaration(:var metadata) => metadata.contains(child),
       FieldDeclaration(:var metadata) => metadata.contains(child),
       ForEachPartsWithPattern(:var metadata) => metadata.contains(child),
       FormalParameter(:var metadata) => metadata.contains(child),
@@ -4324,8 +4425,7 @@ extension on AstNode {
       ListPattern(:var elements) => elements.contains(child),
       MapPattern(:var elements) => elements.contains(child),
       MethodDeclaration(:var metadata) => metadata.contains(child),
-      MixinDeclaration(:var members, :var metadata) =>
-        members.contains(child) || metadata.contains(child),
+      MixinDeclaration(:var metadata) => metadata.contains(child),
       MixinOnClause(:var superclassConstraints) =>
         superclassConstraints.contains(child),
       ObjectPattern(:var fields) => fields.contains(child),
@@ -4365,7 +4465,12 @@ extension on AstNode {
 extension on ClassDeclaration {
   /// Whether this class declaration doesn't have a body.
   bool get hasNoBody {
-    return leftBracket.isSynthetic && rightBracket.isSynthetic;
+    switch (body) {
+      case BlockClassBody body:
+        return body.leftBracket.isSynthetic && body.rightBracket.isSynthetic;
+      default:
+        return true;
+    }
   }
 }
 
@@ -4373,13 +4478,13 @@ extension on ClassMember {
   /// Returns the member before `this`, or `null` if this is the first member in
   /// the body.
   ClassMember? get precedingMember {
-    var parent = this.parent;
+    var parent = this.parent?.parent;
     var members = switch (parent) {
-      ClassDeclaration() => parent.members,
-      EnumDeclaration() => parent.members,
-      ExtensionDeclaration() => parent.members,
-      ExtensionTypeDeclaration() => parent.members,
-      MixinDeclaration() => parent.members,
+      ClassDeclaration(:BlockClassBody body) => body.members,
+      EnumDeclaration() => parent.body.members,
+      ExtensionDeclaration() => parent.body.members,
+      ExtensionTypeDeclaration(:BlockClassBody body) => body.members,
+      MixinDeclaration() => parent.body.members,
       _ => null,
     };
     if (members == null) {
@@ -4569,7 +4674,12 @@ extension on ExpressionStatement {
 extension on ExtensionTypeDeclaration {
   /// Whether this class declaration doesn't have a body.
   bool get hasNoBody {
-    return leftBracket.isSynthetic && rightBracket.isSynthetic;
+    switch (body) {
+      case BlockClassBody body:
+        return body.leftBracket.isSynthetic && body.rightBracket.isSynthetic;
+      default:
+        return true;
+    }
   }
 }
 

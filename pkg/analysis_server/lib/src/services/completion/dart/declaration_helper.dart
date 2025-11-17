@@ -419,6 +419,15 @@ class DeclarationHelper {
       return;
     }
     AstNode? parent = containingMember.parent ?? containingMember;
+    if (parent is ClassNamePart) {
+      parent = parent.parent;
+    }
+    switch (parent) {
+      case BlockClassBody():
+        parent = parent.parent;
+      case EnumBody():
+        parent = parent.parent;
+    }
     if (parent is EnumConstantDeclaration) {
       assert(node is CommentReference);
       parent = parent.parent;
@@ -429,6 +438,12 @@ class DeclarationHelper {
       parent = parent.parent;
     } else if (parent is CompilationUnit) {
       parent = containingMember;
+    }
+    switch (parent) {
+      case BlockClassBody():
+        parent = parent.parent;
+      case EnumBody():
+        parent = parent.parent;
     }
     CompilationUnitMember? topLevelMember;
     if (parent is CompilationUnitMember) {

@@ -319,7 +319,7 @@ class RefactoringManager {
         if (node is RepresentationDeclaration) {
           var extensionType = node.parent;
           if (extensionType is ExtensionTypeDeclaration &&
-              extensionType.name.end == offset) {
+              extensionType.primaryConstructor.typeName.end == offset) {
             element = extensionType.declaredFragment?.element;
           }
         }

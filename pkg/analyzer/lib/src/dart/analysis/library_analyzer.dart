@@ -220,8 +220,10 @@ class LibraryAnalyzer {
       );
 
       var nodeToResolve = node?.thisOrAncestorMatching((e) {
-        return e.parent is ClassDeclaration ||
+        return e.parent is ClassBody ||
+            e.parent is ClassDeclaration ||
             e.parent is CompilationUnit ||
+            e.parent is EnumBody ||
             e.parent is ExtensionDeclaration ||
             e.parent is MixinDeclaration;
       });

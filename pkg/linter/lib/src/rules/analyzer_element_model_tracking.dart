@@ -59,102 +59,103 @@ class _Visitor extends SimpleAstVisitor<void> {
   void visitClassDeclaration(ClassDeclaration node) {
     var element = node.declaredFragment!.element;
     if (element.isElementClass) {
-      for (var member in node.members) {
-        var trackingAnnotations = member.metadata
-            .map((node) => node.asTrackingAnnotation)
-            .nonNulls
-            .toList();
+      if (node.body case BlockClassBody body) {
+        for (var member in body.members) {
+          var trackingAnnotations = member.metadata
+              .map((node) => node.asTrackingAnnotation)
+              .nonNulls
+              .toList();
 
-        switch (member) {
-          case ConstructorDeclaration():
-            trackingAnnotations.forEach(_reportBad);
-          case FieldDeclaration fieldDeclaration:
-            for (var field in fieldDeclaration.fields.variables) {
-              var fieldElement =
-                  field.declaredFragment!.element as FieldElement;
-              if (fieldElement.isPublic && fieldElement.isInstance) {
-                var hasRequired = false;
-                for (var annotation in trackingAnnotations) {
-                  if (annotation.element.isTrackedIncludedInId ||
-                      annotation.element.isTrackedIndirectly ||
-                      annotation.element.isTrackedInternal) {
-                    if (hasRequired) {
-                      _reportMoreThanOne(annotation);
+          switch (member) {
+            case ConstructorDeclaration():
+              trackingAnnotations.forEach(_reportBad);
+            case FieldDeclaration fieldDeclaration:
+              for (var field in fieldDeclaration.fields.variables) {
+                var fieldElement =
+                    field.declaredFragment!.element as FieldElement;
+                if (fieldElement.isPublic && fieldElement.isInstance) {
+                  var hasRequired = false;
+                  for (var annotation in trackingAnnotations) {
+                    if (annotation.element.isTrackedIncludedInId ||
+                        annotation.element.isTrackedIndirectly ||
+                        annotation.element.isTrackedInternal) {
+                      if (hasRequired) {
+                        _reportMoreThanOne(annotation);
+                      }
+                      hasRequired = true;
+                    } else {
+                      _reportBad(annotation);
                     }
-                    hasRequired = true;
-                  } else {
-                    _reportBad(annotation);
                   }
+                  if (!hasRequired) {
+                    _reportMissing(field.name);
+                  }
+                } else {
+                  trackingAnnotations.forEach(_reportBad);
                 }
-                if (!hasRequired) {
-                  _reportMissing(field.name);
-                }
-              } else {
-                trackingAnnotations.forEach(_reportBad);
               }
-            }
-          case MethodDeclaration methodDeclaration:
-            var element = methodDeclaration.declaredFragment!.element;
-            switch (element) {
-              case GetterElement getterElement:
-                if (getterElement.isPublic &&
-                    getterElement.isInstance &&
-                    !getterElement.isAbstract) {
-                  var hasRequired = false;
-                  for (var annotation in trackingAnnotations) {
-                    if (annotation.element.isTrackedDirectly ||
-                        annotation.element.isTrackedDirectlyExpensive ||
-                        annotation.element.isTrackedDirectlyOpaque ||
-                        annotation.element.isTrackedIncludedInId ||
-                        annotation.element.isTrackedIndirectly ||
-                        annotation.element.isTrackedInternal) {
-                      if (hasRequired) {
-                        _reportMoreThanOne(annotation);
+            case MethodDeclaration methodDeclaration:
+              var element = methodDeclaration.declaredFragment!.element;
+              switch (element) {
+                case GetterElement getterElement:
+                  if (getterElement.isPublic &&
+                      getterElement.isInstance &&
+                      !getterElement.isAbstract) {
+                    var hasRequired = false;
+                    for (var annotation in trackingAnnotations) {
+                      if (annotation.element.isTrackedDirectly ||
+                          annotation.element.isTrackedDirectlyExpensive ||
+                          annotation.element.isTrackedDirectlyOpaque ||
+                          annotation.element.isTrackedIncludedInId ||
+                          annotation.element.isTrackedIndirectly ||
+                          annotation.element.isTrackedInternal) {
+                        if (hasRequired) {
+                          _reportMoreThanOne(annotation);
+                        }
+                        hasRequired = true;
+                      } else {
+                        _reportBad(annotation);
                       }
-                      hasRequired = true;
-                    } else {
-                      _reportBad(annotation);
                     }
+                    if (!hasRequired) {
+                      _reportMissing(methodDeclaration.name);
+                    }
+                  } else {
+                    trackingAnnotations.forEach(_reportBad);
                   }
-                  if (!hasRequired) {
-                    _reportMissing(methodDeclaration.name);
-                  }
-                } else {
+                case SetterElement():
                   trackingAnnotations.forEach(_reportBad);
-                }
-              case SetterElement():
-                trackingAnnotations.forEach(_reportBad);
-              case MethodElement methodElement:
-                if (methodElement.isPublic &&
-                    methodElement.isInstance &&
-                    !methodElement.isAbstract) {
-                  var hasRequired = false;
-                  for (var annotation in trackingAnnotations) {
-                    if (annotation.element.isTrackedDirectly ||
-                        annotation.element.isTrackedDirectlyExpensive ||
-                        annotation.element.isTrackedDirectlyOpaque ||
-                        annotation.element.isTrackedIncludedInId ||
-                        annotation.element.isTrackedIndirectly ||
-                        annotation.element.isTrackedInternal) {
-                      if (hasRequired) {
-                        _reportMoreThanOne(annotation);
+                case MethodElement methodElement:
+                  if (methodElement.isPublic &&
+                      methodElement.isInstance &&
+                      !methodElement.isAbstract) {
+                    var hasRequired = false;
+                    for (var annotation in trackingAnnotations) {
+                      if (annotation.element.isTrackedDirectly ||
+                          annotation.element.isTrackedDirectlyExpensive ||
+                          annotation.element.isTrackedDirectlyOpaque ||
+                          annotation.element.isTrackedIncludedInId ||
+                          annotation.element.isTrackedIndirectly ||
+                          annotation.element.isTrackedInternal) {
+                        if (hasRequired) {
+                          _reportMoreThanOne(annotation);
+                        }
+                        hasRequired = true;
+                      } else {
+                        _reportBad(annotation);
                       }
-                      hasRequired = true;
-                    } else {
-                      _reportBad(annotation);
                     }
+                    if (!hasRequired) {
+                      _reportMissing(methodDeclaration.name);
+                    }
+                  } else {
+                    trackingAnnotations.forEach(_reportBad);
                   }
-                  if (!hasRequired) {
-                    _reportMissing(methodDeclaration.name);
-                  }
-                } else {
-                  trackingAnnotations.forEach(_reportBad);
-                }
-            }
-          // ignore: experimental_member_use
-          case PrimaryConstructorBody():
-            // TODO(scheglov): Handle this case.
-            throw UnimplementedError();
+              }
+            case PrimaryConstructorBody():
+              // TODO(scheglov): Handle this case.
+              throw UnimplementedError();
+          }
         }
       }
     }

@@ -71,14 +71,6 @@ class ParserDiagnosticsTest {
     );
   }
 
-  void setUp() {
-    useDeclaringConstructorsAst = default_useDeclaringConstructorsAst;
-  }
-
-  void tearDown() {
-    useDeclaringConstructorsAst = default_useDeclaringConstructorsAst;
-  }
-
   String _parsedNodeText(
     AstNode node, {
     required bool withOffsets,

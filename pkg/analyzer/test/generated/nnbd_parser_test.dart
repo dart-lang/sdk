@@ -358,7 +358,8 @@ class Foo {
 }
 ''');
     var classDeclaration = unit.declarations.first as ClassDeclaration;
-    var constructor = classDeclaration.members
+    var classBody = classDeclaration.body as BlockClassBody;
+    var constructor = classBody.members
         .whereType<ConstructorDeclaration>()
         .single;
 
@@ -405,7 +406,8 @@ class Foo {
 }
 ''');
     var classDeclaration = unit.declarations.first as ClassDeclaration;
-    var constructor = classDeclaration.members
+    var classBody = classDeclaration.body as BlockClassBody;
+    var constructor = classBody.members
         .whereType<ConstructorDeclaration>()
         .single;
 
@@ -459,7 +461,8 @@ class Foo {
 }
 ''');
     var classDeclaration = unit.declarations.first as ClassDeclaration;
-    var constructor = classDeclaration.members
+    var classBody = classDeclaration.body as BlockClassBody;
+    var constructor = classBody.members
         .whereType<ConstructorDeclaration>()
         .single;
 

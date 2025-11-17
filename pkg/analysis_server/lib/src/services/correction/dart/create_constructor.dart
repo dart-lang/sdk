@@ -226,7 +226,7 @@ class CreateConstructor extends ResolvedCorrectionProducer {
     Token name,
     EnumConstantDeclaration parent,
   ) async {
-    var grandParent = parent.parent;
+    var grandParent = parent.parent?.parent;
     if (grandParent is! EnumDeclaration) {
       return;
     }
@@ -255,7 +255,7 @@ class CreateConstructor extends ResolvedCorrectionProducer {
 
     var arguments = parent.arguments;
     _constructorName =
-        '${targetNode.name.lexeme}${arguments?.constructorSelector ?? ''}';
+        '${targetNode.namePart.typeName.lexeme}${arguments?.constructorSelector ?? ''}';
 
     await _write(
       builder,

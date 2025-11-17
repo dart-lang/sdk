@@ -107,8 +107,14 @@ class _Visitor extends SimpleAstVisitor<void> {
     }
 
     // extension type N(Null _) ...
-    if (parent is RepresentationDeclaration) {
-      return;
+    if (parent is SimpleFormalParameter) {
+      if (parent.parent case FormalParameterList parent2) {
+        if (parent2.parent case PrimaryConstructorDeclaration parent3) {
+          if (parent3.parent is ExtensionTypeDeclaration) {
+            return;
+          }
+        }
+      }
     }
 
     // https://github.com/dart-lang/linter/issues/2792

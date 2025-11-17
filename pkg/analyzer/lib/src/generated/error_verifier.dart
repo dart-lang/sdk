@@ -10,7 +10,6 @@ import 'package:_fe_analyzer_shared/src/scanner/scanner.dart';
 import 'package:_fe_analyzer_shared/src/types/shared_type.dart';
 import 'package:analyzer/dart/analysis/analysis_options.dart';
 import 'package:analyzer/dart/analysis/features.dart';
-import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/syntactic_entity.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
@@ -493,12 +492,10 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       var declarationElement = augmented.firstFragment;
       _enclosingClass = declarationElement.asElement2;
 
-      List<ClassMember> members = useDeclaringConstructorsAst
-          ? node.body.members
-          : node.members;
+      List<ClassMember> members = node.body.members;
       if (!declarationElement.element.isDartCoreFunction) {
         _checkForBuiltInIdentifierAsName(
-          useDeclaringConstructorsAst ? node.namePart.typeName : node.name,
+          node.namePart.typeName,
           diag.builtInIdentifierAsTypeName,
         );
       }
@@ -514,7 +511,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
         var moreChecks = _checkClassInheritance(
           declarationElement,
           node,
-          useDeclaringConstructorsAst ? node.namePart.typeName : node.name,
+          node.namePart.typeName,
           superclass,
           withClause,
           implementsClause,
@@ -540,10 +537,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
         implementsClause: node.implementsClause,
       );
       _checkForWrongTypeParameterVarianceInSuperinterfaces();
-      _checkForMainFunction1(
-        useDeclaringConstructorsAst ? node.namePart.typeName : node.name,
-        node.declaredFragment!,
-      );
+      _checkForMainFunction1(node.namePart.typeName, node.declaredFragment!);
       _checkForMixinClassErrorCodes(node, members, superclass, withClause);
 
       GetterSetterTypesVerifier(
@@ -741,7 +735,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       _enclosingClass = element;
 
       _checkForBuiltInIdentifierAsName(
-        useDeclaringConstructorsAst ? node.namePart.typeName : node.name,
+        node.namePart.typeName,
         diag.builtInIdentifierAsTypeName,
       );
       _checkForConflictingEnumTypeVariableErrorCodes(declaredFragment);
@@ -752,7 +746,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
         _checkClassInheritance(
           firstFragment,
           node,
-          useDeclaringConstructorsAst ? node.namePart.typeName : node.name,
+          node.namePart.typeName,
           null,
           withClause,
           implementsClause,
@@ -762,15 +756,13 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       if (!declaredFragment.isAugmentation) {
         if (element.constants.isEmpty) {
           diagnosticReporter.atToken(
-            useDeclaringConstructorsAst ? node.namePart.typeName : node.name,
+            node.namePart.typeName,
             diag.enumWithoutConstants,
           );
         }
       }
 
-      var members = useDeclaringConstructorsAst
-          ? node.body.members
-          : node.members;
+      var members = node.body.members;
       libraryContext.constructorFieldsVerifier.addConstructors(
         diagnosticReporter,
         element,
@@ -778,10 +770,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       );
       _checkForFinalNotInitializedInClass(declaredFragment, members);
       _checkForWrongTypeParameterVarianceInSuperinterfaces();
-      _checkForMainFunction1(
-        useDeclaringConstructorsAst ? node.namePart.typeName : node.name,
-        node.declaredFragment!,
-      );
+      _checkForMainFunction1(node.namePart.typeName, node.declaredFragment!);
       _checkForEnumInstantiatedToBoundsIsNotWellBounded(node, declaredElement);
 
       GetterSetterTypesVerifier(
@@ -826,10 +815,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
 
     _enclosingExtension = declaredFragment.asElement2;
     _checkForConflictingExtensionTypeVariableErrorCodes();
-    _checkForFinalNotInitializedInClass(
-      declaredFragment,
-      useDeclaringConstructorsAst ? node.body.members : node.members,
-    );
+    _checkForFinalNotInitializedInClass(declaredFragment, node.body.members);
 
     GetterSetterTypesVerifier(
       library: _currentLibrary,
@@ -859,16 +845,12 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       _enclosingClass = firstFragment.asElement2;
 
       _checkForBuiltInIdentifierAsName(
-        useDeclaringConstructorsAst
-            ? node.primaryConstructor.typeName
-            : node.name,
+        node.primaryConstructor.typeName,
         diag.builtInIdentifierAsExtensionTypeName,
       );
       _checkForConflictingExtensionTypeTypeVariableErrorCodes(declaredFragment);
 
-      var members = useDeclaringConstructorsAst
-          ? node.body.members
-          : node.members;
+      var members = node.body.members;
       _checkForRepeatedType(
         libraryContext.setOfImplements(firstFragment.asElement2),
         node.implementsClause?.interfaces,
@@ -877,9 +859,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       _checkForConflictingClassMembers(declaredFragment);
       _checkForConflictingGenerics(
         node: node,
-        nameToken: useDeclaringConstructorsAst
-            ? node.primaryConstructor.typeName
-            : node.name,
+        nameToken: node.primaryConstructor.typeName,
       );
       libraryContext.constructorFieldsVerifier.addConstructors(
         diagnosticReporter,
@@ -1301,9 +1281,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
 
       _enclosingClass = declaredElement;
 
-      List<ClassMember> members = useDeclaringConstructorsAst
-          ? node.body.members
-          : node.members;
+      List<ClassMember> members = node.body.members;
       _checkForBuiltInIdentifierAsName(
         node.name,
         diag.builtInIdentifierAsTypeName,
@@ -3104,7 +3082,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       );
       if (isWellBounded is NotWellBoundedTypeResult) {
         diagnosticReporter.atToken(
-          node.name,
+          node.namePart.typeName,
           diag.enumInstantiatedToBoundsIsNotWellBounded,
         );
       }
@@ -3221,7 +3199,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   }
 
   void _checkForExtensionDeclaresInstanceField(FieldDeclaration node) {
-    if (node.parent is! ExtensionDeclaration) {
+    if (node.parent?.parent is! ExtensionDeclaration) {
       return;
     }
 
@@ -3306,7 +3284,10 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     ExtensionTypeFragmentImpl fragment,
   ) {
     if (fragment.element.hasImplementsSelfReference) {
-      diagnosticReporter.atToken(node.name, diag.extensionTypeImplementsItself);
+      diagnosticReporter.atToken(
+        node.primaryConstructor.typeName,
+        diag.extensionTypeImplementsItself,
+      );
     }
   }
 
@@ -3327,9 +3308,9 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
         );
       }).toList();
       diagnosticReporter.atToken(
-        node.name,
+        node.primaryConstructor.typeName,
         diag.extensionTypeInheritedMemberConflict,
-        arguments: [node.name.lexeme, memberName],
+        arguments: [node.primaryConstructor.typeName.lexeme, memberName],
         contextMessages: contextMessages,
       );
     }
@@ -3356,7 +3337,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   ) {
     if (fragment.element.hasRepresentationSelfReference) {
       diagnosticReporter.atToken(
-        node.name,
+        node.primaryConstructor.typeName,
         diag.extensionTypeRepresentationDependsOnItself,
       );
     }
@@ -3370,9 +3351,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     var representationType = element.representation.type;
     if (representationType.isBottom) {
       diagnosticReporter.atNode(
-        useDeclaringConstructorsAst
-            ? node.fieldType
-            : node.representation.fieldType,
+        node.fieldType,
         diag.extensionTypeRepresentationTypeBottom,
       );
     }
@@ -3381,14 +3360,16 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   void _checkForExtensionTypeWithAbstractMember(
     ExtensionTypeDeclarationImpl node,
   ) {
-    for (var member
-        in useDeclaringConstructorsAst ? node.body.members : node.members) {
+    for (var member in node.body.members) {
       if (member is MethodDeclarationImpl && !member.isStatic) {
         if (member.isAbstract) {
           diagnosticReporter.atNode(
             member,
             diag.extensionTypeWithAbstractMember,
-            arguments: [member.name.lexeme, node.name.lexeme],
+            arguments: [
+              member.name.lexeme,
+              node.primaryConstructor.typeName.lexeme,
+            ],
           );
         }
       }
@@ -4663,11 +4644,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     ExtensionTypeDeclaration node,
     ExtensionTypeFragmentImpl fragment,
   ) {
-    var typeParameters =
-        (useDeclaringConstructorsAst
-                ? node.primaryConstructor.typeParameters
-                : node.typeParameters)
-            ?.typeParameters;
+    var typeParameters = node.primaryConstructor.typeParameters?.typeParameters;
     if (typeParameters == null) {
       return;
     }
@@ -6334,7 +6311,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   ) {
     var fields = <FieldElement>{};
     var unitMemberDeclaration =
-        constructor.parent as NamedCompilationUnitMember;
+        constructor.parent?.parent as NamedCompilationUnitMember;
     late NodeList<ClassMember> membersList;
     switch (unitMemberDeclaration) {
       case TypeAlias() || FunctionDeclaration():

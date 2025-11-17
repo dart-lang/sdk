@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -572,7 +571,6 @@ WithClause
 enum A<T extends int> {v}
 ''';
 
-    useDeclaringConstructorsAst = true;
     await assertNoErrorsInCode(code);
 
     var node = findNode.singleEnumDeclaration;
@@ -606,41 +604,6 @@ EnumDeclaration
     rightBracket: }
   declaredFragment: <testLibraryFragment> A@5
 ''');
-
-    {
-      useDeclaringConstructorsAst = false;
-      await assertNoErrorsInCode(code);
-
-      var node = findNode.singleEnumDeclaration;
-      assertResolvedNodeText(node, r'''
-EnumDeclaration
-  enumKeyword: enum
-  name: A
-  typeParameters: TypeParameterList
-    leftBracket: <
-    typeParameters
-      TypeParameter
-        name: T
-        extendsKeyword: extends
-        bound: NamedType
-          name: int
-          element: dart:core::@class::int
-          type: int
-        declaredFragment: <testLibraryFragment> T@7
-          defaultType: int
-    rightBracket: >
-  leftBracket: {
-  constants
-    EnumConstantDeclaration
-      name: v
-      constructorElement: ConstructorMember
-        baseElement: <testLibrary>::@enum::A::@constructor::new
-        substitution: {T: int}
-      declaredFragment: <testLibraryFragment> v@23
-  rightBracket: }
-  declaredFragment: <testLibraryFragment> A@5
-''');
-    }
   }
 
   test_nameWithTypeParameters_noTypeParameters() async {
@@ -648,7 +611,6 @@ EnumDeclaration
 enum A {v}
 ''';
 
-    useDeclaringConstructorsAst = true;
     await assertNoErrorsInCode(code);
 
     var node = findNode.singleEnumDeclaration;
@@ -667,30 +629,9 @@ EnumDeclaration
     rightBracket: }
   declaredFragment: <testLibraryFragment> A@5
 ''');
-
-    {
-      useDeclaringConstructorsAst = false;
-      await assertNoErrorsInCode(code);
-
-      var node = findNode.singleEnumDeclaration;
-      assertResolvedNodeText(node, r'''
-EnumDeclaration
-  enumKeyword: enum
-  name: A
-  leftBracket: {
-  constants
-    EnumConstantDeclaration
-      name: v
-      constructorElement: <testLibrary>::@enum::A::@constructor::new
-      declaredFragment: <testLibraryFragment> v@8
-  rightBracket: }
-  declaredFragment: <testLibraryFragment> A@5
-''');
-    }
   }
 
   test_primaryConstructor_declaringFormalParameter_default_namedOptional_final() async {
-    useDeclaringConstructorsAst = true;
     await assertNoErrorsInCode(r'''
 enum A({final int a = 0}) { v(a: 1) }
 ''');
@@ -758,7 +699,6 @@ EnumDeclaration
   }
 
   test_primaryConstructor_declaringFormalParameter_default_namedRequired_final() async {
-    useDeclaringConstructorsAst = true;
     await assertNoErrorsInCode(r'''
 enum A({required final int a}) { v(a: 0) }
 ''');
@@ -823,7 +763,6 @@ EnumDeclaration
   }
 
   test_primaryConstructor_declaringFormalParameter_functionTyped_final() async {
-    useDeclaringConstructorsAst = true;
     await assertNoErrorsInCode(r'''
 enum A(final int a(String x)) { v(foo) }
 int foo(String _) => 0;
@@ -887,7 +826,6 @@ EnumDeclaration
   }
 
   test_primaryConstructor_declaringFormalParameter_simple_final() async {
-    useDeclaringConstructorsAst = true;
     await assertNoErrorsInCode(r'''
 enum A(final int a) { v(0) }
 ''');
@@ -937,7 +875,6 @@ EnumDeclaration
   }
 
   test_primaryConstructor_fieldFormalParameter() async {
-    useDeclaringConstructorsAst = true;
     await assertNoErrorsInCode(r'''
 enum A(int this.a) {
   v(0);
@@ -1006,7 +943,6 @@ EnumDeclaration
   }
 
   test_primaryConstructor_hasTypeParameters_named() async {
-    useDeclaringConstructorsAst = true;
     await assertNoErrorsInCode(r'''
 enum A<T>.named(T t) { v.named(0) }
 ''');
@@ -1075,7 +1011,6 @@ EnumDeclaration
   }
 
   test_primaryConstructor_hasTypeParameters_unnamed() async {
-    useDeclaringConstructorsAst = true;
     await assertNoErrorsInCode(r'''
 enum A<T>(T t) { v(0) }
 ''');
@@ -1135,7 +1070,6 @@ EnumDeclaration
   }
 
   test_primaryConstructor_noTypeParameters_named() async {
-    useDeclaringConstructorsAst = true;
     await assertNoErrorsInCode(r'''
 enum A.named(int a) { v.named(0) }
 ''');
@@ -1192,7 +1126,6 @@ EnumDeclaration
   }
 
   test_primaryConstructor_noTypeParameters_unnamed() async {
-    useDeclaringConstructorsAst = true;
     await assertNoErrorsInCode(r'''
 enum A(int a) { v(0) }
 ''');

@@ -41,7 +41,8 @@ class ExtendClassForMixin extends ResolvedCorrectionProducer {
       _typeName = message.substring(startIndex, endIndex);
       await builder.addDartFileEdit(file, (builder) {
         builder.addSimpleInsertion(
-          declaration.typeParameters?.end ?? declaration.name.end,
+          declaration.namePart.typeParameters?.end ??
+              declaration.namePart.typeName.end,
           ' extends $_typeName',
         );
       });

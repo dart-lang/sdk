@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
@@ -76,23 +75,12 @@ class _LocalNameScope {
     ClassDeclarationImpl node,
   ) {
     _LocalNameScope scope = _LocalNameScope(enclosing);
-    if (useDeclaringConstructorsAst) {
-      scope.addTypeParameters(node.namePart.typeParameters);
-      for (ClassMember member in node.body.members) {
-        if (member is FieldDeclaration) {
-          scope.addVariableNames(member.fields);
-        } else if (member is MethodDeclaration) {
-          scope.add(member.name);
-        }
-      }
-    } else {
-      scope.addTypeParameters(node.typeParameters);
-      for (ClassMember member in node.members) {
-        if (member is FieldDeclaration) {
-          scope.addVariableNames(member.fields);
-        } else if (member is MethodDeclaration) {
-          scope.add(member.name);
-        }
+    scope.addTypeParameters(node.namePart.typeParameters);
+    for (ClassMember member in node.body.members) {
+      if (member is FieldDeclaration) {
+        scope.addVariableNames(member.fields);
+      } else if (member is MethodDeclaration) {
+        scope.add(member.name);
       }
     }
     return scope;
@@ -121,23 +109,12 @@ class _LocalNameScope {
     ExtensionTypeDeclarationImpl node,
   ) {
     var scope = _LocalNameScope(enclosing);
-    if (useDeclaringConstructorsAst) {
-      scope.addTypeParameters(node.primaryConstructor.typeParameters);
-      for (ClassMember member in node.body.members) {
-        if (member is FieldDeclaration) {
-          scope.addVariableNames(member.fields);
-        } else if (member is MethodDeclaration) {
-          scope.add(member.name);
-        }
-      }
-    } else {
-      scope.addTypeParameters(node.typeParameters);
-      for (var member in node.members) {
-        if (member is FieldDeclarationImpl) {
-          scope.addVariableNames(member.fields);
-        } else if (member is MethodDeclarationImpl) {
-          scope.add(member.name);
-        }
+    scope.addTypeParameters(node.primaryConstructor.typeParameters);
+    for (ClassMember member in node.body.members) {
+      if (member is FieldDeclaration) {
+        scope.addVariableNames(member.fields);
+      } else if (member is MethodDeclaration) {
+        scope.add(member.name);
       }
     }
     return scope;
@@ -177,23 +154,11 @@ class _LocalNameScope {
     for (CompilationUnitMember declaration in node.declarations) {
       switch (declaration) {
         case ClassDeclaration():
-          if (useDeclaringConstructorsAst) {
-            scope.add(declaration.namePart.typeName);
-          } else {
-            scope.add(declaration.name);
-          }
+          scope.add(declaration.namePart.typeName);
         case EnumDeclaration():
-          if (useDeclaringConstructorsAst) {
-            scope.add(declaration.namePart.typeName);
-          } else {
-            scope.add(declaration.name);
-          }
+          scope.add(declaration.namePart.typeName);
         case ExtensionTypeDeclaration():
-          if (useDeclaringConstructorsAst) {
-            scope.add(declaration.primaryConstructor.typeName);
-          } else {
-            scope.add(declaration.name);
-          }
+          scope.add(declaration.primaryConstructor.typeName);
         case NamedCompilationUnitMember():
           scope.add(declaration.name);
         case TopLevelVariableDeclaration():

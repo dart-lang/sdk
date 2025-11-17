@@ -15,10 +15,10 @@ void main(List<String> arguments) {
 class GenericClassVisitor extends ScrapeVisitor {
   @override
   void visitClassDeclaration(ClassDeclaration node) {
-    if (node.typeParameters == null) {
+    if (node.namePart.typeParameters == null) {
       record('Classes', 0);
     } else {
-      record('Classes', node.typeParameters!.typeParameters.length);
+      record('Classes', node.namePart.typeParameters!.typeParameters.length);
     }
     super.visitClassDeclaration(node);
   }

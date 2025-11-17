@@ -257,6 +257,11 @@ class _ElementMapper2 extends GeneralizingAstVisitor<Element> {
   }
 
   @override
+  Element? visitNameWithTypeParameters(NameWithTypeParameters node) {
+    return node.parent!.accept(this);
+  }
+
+  @override
   Element? visitPartOfDirective(PartOfDirective node) {
     return node.libraryName?.element;
   }
@@ -289,6 +294,24 @@ class _ElementMapper2 extends GeneralizingAstVisitor<Element> {
   @override
   Element? visitPrefixExpression(PrefixExpression node) {
     return node.element;
+  }
+
+  @override
+  Element? visitPrimaryConstructorDeclaration(
+    PrimaryConstructorDeclaration node,
+  ) {
+    if (node.constructorName != null) {
+      return node.declaredFragment?.element;
+    }
+    if (node.parent case ExtensionTypeDeclaration extensionType) {
+      return extensionType.declaredFragment?.element;
+    }
+    return null;
+  }
+
+  @override
+  Element? visitPrimaryConstructorName(PrimaryConstructorName node) {
+    return node.parent!.accept(this);
   }
 
   @override

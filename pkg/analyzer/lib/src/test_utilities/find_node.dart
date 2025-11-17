@@ -158,6 +158,9 @@ class FindNode {
 
   PrimaryConstructorBody get singlePrimaryConstructorBody => _single();
 
+  PrimaryConstructorDeclaration get singlePrimaryConstructorDeclaration =>
+      _single();
+
   PropertyAccess get singlePropertyAccess => _single();
 
   RecordLiteral get singleRecordLiteral => _single();
@@ -168,6 +171,7 @@ class FindNode {
   RepresentationConstructorName get singleRepresentationConstructorName =>
       _single();
 
+  @Deprecated('Use primaryConstructor instead')
   RepresentationDeclaration get singleRepresentationDeclaration => _single();
 
   RethrowExpression get singleRethrowExpression => _single();

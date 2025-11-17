@@ -56,7 +56,7 @@ class _Visitor extends SimpleAstVisitor<void> {
   void visitClassDeclaration(ClassDeclaration node) {
     if (node.isAugmentation) return;
 
-    check(node.name);
+    check(node.namePart.typeName);
   }
 
   @override
@@ -68,14 +68,14 @@ class _Visitor extends SimpleAstVisitor<void> {
   void visitEnumDeclaration(EnumDeclaration node) {
     if (node.isAugmentation) return;
 
-    check(node.name);
+    check(node.namePart.typeName);
   }
 
   @override
   void visitExtensionTypeDeclaration(ExtensionTypeDeclaration node) {
     if (node.isAugmentation) return;
 
-    check(node.name);
+    check(node.primaryConstructor.typeName);
   }
 
   @override

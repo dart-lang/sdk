@@ -15,6 +15,9 @@ Element? getElementOfNode2(AstNode? node) {
   if (node == null) {
     return null;
   }
+  if (node is NameWithTypeParameters) {
+    node = node.parent;
+  }
   if (node is SimpleIdentifier && node.parent is LibraryIdentifier) {
     node = node.parent;
   }

@@ -195,8 +195,9 @@ class C {
 }
 ''');
     var classDeclaration = unit.declarations.single as ClassDeclaration;
+    var classBody = classDeclaration.body as BlockClassBody;
     var constructorDeclaration =
-        classDeclaration.members.single as ConstructorDeclaration;
+        classBody.members.single as ConstructorDeclaration;
     expect(constructorDeclaration.name!.lexeme, 'new');
   }
 
@@ -208,8 +209,8 @@ class C {
 }
 ''');
     var classDeclaration = unit.declarations.single as ClassDeclaration;
-    var constructorDeclaration =
-        classDeclaration.members[0] as ConstructorDeclaration;
+    var classBody = classDeclaration.body as BlockClassBody;
+    var constructorDeclaration = classBody.members[0] as ConstructorDeclaration;
     expect(constructorDeclaration.name!.lexeme, 'new');
   }
 
@@ -318,8 +319,9 @@ class C {
       diagnostics: [expectedError(diag.experimentNotEnabled, 14, 3)],
     );
     var classDeclaration = unit.declarations.single as ClassDeclaration;
+    var classBody = classDeclaration.body as BlockClassBody;
     var constructorDeclaration =
-        classDeclaration.members.single as ConstructorDeclaration;
+        classBody.members.single as ConstructorDeclaration;
     expect(constructorDeclaration.name!.lexeme, 'new');
   }
 
@@ -330,8 +332,9 @@ class C {
 }
 ''');
     var classDeclaration = unit.declarations.single as ClassDeclaration;
+    var classBody = classDeclaration.body as BlockClassBody;
     var constructorDeclaration =
-        classDeclaration.members.single as ConstructorDeclaration;
+        classBody.members.single as ConstructorDeclaration;
     expect(constructorDeclaration.initializers, isEmpty);
     // Parsing treats `new` as an identifier, so `D.new` is classified as a
     // type.  Resolution will change the type to `D` and the name to `new` if
@@ -351,8 +354,9 @@ class C {
 }
 ''');
     var classDeclaration = unit.declarations.single as ClassDeclaration;
+    var classBody = classDeclaration.body as BlockClassBody;
     var constructorDeclaration =
-        classDeclaration.members.single as ConstructorDeclaration;
+        classBody.members.single as ConstructorDeclaration;
     expect(constructorDeclaration.initializers, isEmpty);
     var redirectedConstructor = constructorDeclaration.redirectedConstructor!;
     var type = redirectedConstructor.type;
@@ -368,8 +372,9 @@ class C {
 }
 ''');
     var classDeclaration = unit.declarations.single as ClassDeclaration;
+    var classBody = classDeclaration.body as BlockClassBody;
     var constructorDeclaration =
-        classDeclaration.members.single as ConstructorDeclaration;
+        classBody.members.single as ConstructorDeclaration;
     expect(constructorDeclaration.initializers, isEmpty);
     var redirectedConstructor = constructorDeclaration.redirectedConstructor!;
     var type = redirectedConstructor.type;
@@ -386,8 +391,9 @@ class C {
 }
 ''');
     var classDeclaration = unit.declarations.single as ClassDeclaration;
+    var classBody = classDeclaration.body as BlockClassBody;
     var constructorDeclaration =
-        classDeclaration.members.single as ConstructorDeclaration;
+        classBody.members.single as ConstructorDeclaration;
     expect(constructorDeclaration.initializers, isEmpty);
     var redirectedConstructor = constructorDeclaration.redirectedConstructor!;
     var type = redirectedConstructor.type;
@@ -404,8 +410,9 @@ class C extends B {
 }
 ''');
     var classDeclaration = unit.declarations.single as ClassDeclaration;
+    var classBody = classDeclaration.body as BlockClassBody;
     var constructorDeclaration =
-        classDeclaration.members.single as ConstructorDeclaration;
+        classBody.members.single as ConstructorDeclaration;
     expect(constructorDeclaration.redirectedConstructor, isNull);
     var superConstructorInvocation =
         constructorDeclaration.initializers.single
@@ -421,8 +428,8 @@ class C {
 }
 ''');
     var classDeclaration = unit.declarations.single as ClassDeclaration;
-    var constructorDeclaration =
-        classDeclaration.members[0] as ConstructorDeclaration;
+    var classBody = classDeclaration.body as BlockClassBody;
+    var constructorDeclaration = classBody.members[0] as ConstructorDeclaration;
     expect(constructorDeclaration.redirectedConstructor, isNull);
     var redirectingConstructorInvocation =
         constructorDeclaration.initializers.single

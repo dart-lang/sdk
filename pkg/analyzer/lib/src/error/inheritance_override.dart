@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/analysis/features.dart';
-import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/syntactic_entity.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
@@ -51,14 +50,10 @@ class InheritanceOverrideVerifier {
           reporter: _reporter,
           featureSet: unit.featureSet,
           library: library,
-          classNameToken: useDeclaringConstructorsAst
-              ? declaration.namePart.typeName
-              : declaration.name,
+          classNameToken: declaration.namePart.typeName,
           classElement: fragment.element,
           implementsClause: declaration.implementsClause,
-          members: useDeclaringConstructorsAst
-              ? declaration.body.members
-              : declaration.members,
+          members: declaration.body.members,
           superclass: declaration.extendsClause?.superclass,
           withClause: declaration.withClause,
         );
@@ -94,14 +89,10 @@ class InheritanceOverrideVerifier {
           reporter: _reporter,
           featureSet: unit.featureSet,
           library: library,
-          classNameToken: useDeclaringConstructorsAst
-              ? declaration.namePart.typeName
-              : declaration.name,
+          classNameToken: declaration.namePart.typeName,
           classElement: fragment.element,
           implementsClause: declaration.implementsClause,
-          members: useDeclaringConstructorsAst
-              ? declaration.body.members
-              : declaration.members,
+          members: declaration.body.members,
           withClause: declaration.withClause,
         );
         if (fragment.isAugmentation) {
@@ -120,9 +111,7 @@ class InheritanceOverrideVerifier {
           classNameToken: declaration.name,
           classElement: fragment.element,
           implementsClause: declaration.implementsClause,
-          members: useDeclaringConstructorsAst
-              ? declaration.body.members
-              : declaration.members,
+          members: declaration.body.members,
           onClause: declaration.onClause,
         );
         if (fragment.isAugmentation) {

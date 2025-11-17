@@ -373,6 +373,11 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor<void> {
   }
 
   @override
+  void visitBlockClassBody(BlockClassBody node) {
+    node.parent?.accept(this);
+  }
+
+  @override
   void visitBreakStatement(BreakStatement node) {
     if (node.label == null || identical(entity, node.label)) {
       optype.includeStatementLabelSuggestions = true;
@@ -437,8 +442,10 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor<void> {
   void visitClassDeclaration(ClassDeclaration node) {
     // Make suggestions in the body of the class declaration
     final entity = this.entity;
-    var isMember = node.members.contains(entity);
-    var isClosingBrace = identical(entity, node.rightBracket);
+    var body = node.body;
+    var isMember = body is BlockClassBody && body.members.contains(entity);
+    var isClosingBrace =
+        body is BlockClassBody && identical(entity, body.rightBracket);
     var isAnnotation =
         isClosingBrace &&
         entity is Token &&
@@ -634,10 +641,15 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor<void> {
   }
 
   @override
+  void visitEnumBody(EnumBody node) {
+    node.parent?.accept(this);
+  }
+
+  @override
   void visitEnumDeclaration(EnumDeclaration node) {
-    if (node.semicolon != null) {
-      if (node.members.contains(entity) ||
-          identical(entity, node.rightBracket)) {
+    if (node.body.semicolon != null) {
+      if (node.body.members.contains(entity) ||
+          identical(entity, node.body.rightBracket)) {
         optype.completionLocation = 'EnumDeclaration_member';
         optype.includeTypeNameSuggestions = true;
       }
@@ -721,8 +733,8 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor<void> {
     if (identical(entity, node.onClause)) {
       optype.completionLocation = 'ExtensionDeclaration_onClause';
       optype.includeTypeNameSuggestions = true;
-    } else if (node.members.contains(entity) ||
-        identical(entity, node.rightBracket)) {
+    } else if (node.body.members.contains(entity) ||
+        identical(entity, node.body.rightBracket)) {
       // Make suggestions in the body of the extension declaration
       optype.completionLocation = 'ExtensionDeclaration_member';
       optype.includeTypeNameSuggestions = true;
@@ -739,8 +751,10 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor<void> {
   void visitExtensionTypeDeclaration(ExtensionTypeDeclaration node) {
     // Make suggestions in the body of the extension type declaration
     final entity = this.entity;
-    var isMember = node.members.contains(entity);
-    var isClosingBrace = identical(entity, node.rightBracket);
+    var body = node.body;
+    var isMember = body is BlockClassBody && body.members.contains(entity);
+    var isClosingBrace =
+        body is BlockClassBody && identical(entity, body.rightBracket);
     var isAnnotation =
         isClosingBrace &&
         entity is Token &&
@@ -1190,7 +1204,8 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor<void> {
   @override
   void visitMixinDeclaration(MixinDeclaration node) {
     // Make suggestions in the body of the mixin declaration
-    if (node.members.contains(entity) || identical(entity, node.rightBracket)) {
+    if (node.body.members.contains(entity) ||
+        identical(entity, node.body.rightBracket)) {
       optype.completionLocation = 'MixinDeclaration_member';
       optype.includeTypeNameSuggestions = true;
     }

@@ -2,10 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/utilities/extensions/object.dart';
 
@@ -124,12 +124,12 @@ extension AstNodeNullableExtension on AstNode? {
     var self = this;
     return switch (self) {
       BlockClassBody() => self.members,
-      ClassDeclaration() => self.members,
+      ClassDeclarationImpl() => self.body.members,
       EnumBody() => self.members,
-      EnumDeclaration() => self.members,
-      ExtensionDeclaration() => self.members,
-      ExtensionTypeDeclaration() => self.members,
-      MixinDeclaration() => self.members,
+      EnumDeclaration() => self.body.members,
+      ExtensionDeclaration() => self.body.members,
+      ExtensionTypeDeclarationImpl() => self.body.members,
+      MixinDeclaration() => self.body.members,
       _ => throw UnimplementedError('(${self.runtimeType}) $self'),
     };
   }

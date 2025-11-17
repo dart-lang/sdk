@@ -50,7 +50,7 @@ class _DeclarationsCollector extends RecursiveAstVisitor<void> {
   @override
   void visitFieldDeclaration(FieldDeclaration node) {
     if (node.isInvalidExtensionTypeField) return;
-    if (node.parent is EnumDeclaration) return;
+    if (node.parent?.parent is EnumDeclaration) return;
     if (node.fields.isFinal || node.fields.isConst) {
       return;
     }
@@ -129,10 +129,15 @@ class _Visitor extends SimpleAstVisitor<void> {
       // TODO(srawlins): We could look at the constructors once and store a set
       // of which fields are initialized by any, and a set of which fields are
       // initialized by all. This would conceivably improve performance.
-      var classDeclaration = variable.parent?.parent?.parent;
-      var constructors = classDeclaration is ClassDeclaration
-          ? classDeclaration.members.whereType<ConstructorDeclaration>()
-          : <ConstructorDeclaration>[];
+      var classDeclaration = variable.parent?.parent?.parent?.parent;
+      var constructors = <ConstructorDeclaration>[];
+      if (classDeclaration is ClassDeclaration) {
+        if (classDeclaration.body case BlockClassBody body) {
+          constructors = body.members
+              .whereType<ConstructorDeclaration>()
+              .toList();
+        }
+      }
 
       var isSetInAnyConstructor = constructors.any(
         (constructor) => field.isSetInConstructor(constructor),

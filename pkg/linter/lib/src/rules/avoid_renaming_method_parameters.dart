@@ -68,7 +68,7 @@ class _Visitor extends SimpleAstVisitor<void> {
     var previousFragment = node.declaredFragment?.previousFragment;
     if (previousFragment == null) {
       // If it's the first fragment, check for an inherited member.
-      var parentNode = node.parent;
+      var parentNode = node.parent?.parent;
       if (parentNode is! Declaration) return;
 
       var parentElement = parentNode.declaredFragment?.element;

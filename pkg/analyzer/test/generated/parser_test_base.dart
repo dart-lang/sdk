@@ -501,7 +501,8 @@ class FastaParserTestCase
     CompilationUnit unit = parserProxy.parseCompilationUnit2();
     assertNoErrors();
     var clazz = unit.declarations[0] as ClassDeclaration;
-    var constructor = clazz.members[0] as ConstructorDeclaration;
+    var classBody = clazz.body as BlockClassBody;
+    var constructor = classBody.members[0] as ConstructorDeclaration;
     return constructor.initializers.single;
   }
 
@@ -1336,7 +1337,8 @@ class ParserTestCase with ParserTestHelpers implements AbstractParserTestCase {
     createParser('class __Test { __Test() : $code; }');
     CompilationUnit unit = parser.parseCompilationUnit2();
     var clazz = unit.declarations[0] as ClassDeclaration;
-    var constructor = clazz.members[0] as ConstructorDeclaration;
+    var classBody = clazz.body as BlockClassBody;
+    var constructor = classBody.members[0] as ConstructorDeclaration;
     return constructor.initializers.single;
   }
 

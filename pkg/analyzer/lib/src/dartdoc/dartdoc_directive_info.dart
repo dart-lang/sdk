@@ -216,47 +216,25 @@ class DartdocDirectiveInfo {
       var rawText = getCommentNodeRawText(comment);
       result.extractTemplate(rawText);
 
-      if (useDeclaringConstructorsAst) {
-        var members = switch (declaration) {
-          ClassDeclaration() =>
-            declaration.body.ifTypeOrNull<BlockClassBody>()?.members,
-          EnumDeclaration() => [
-            ...declaration.body.constants,
-            ...declaration.body.members,
-          ],
-          MixinDeclaration() => declaration.body.members,
-          ExtensionDeclaration() => declaration.body.members,
-          ExtensionTypeDeclaration() =>
-            declaration.body.ifTypeOrNull<BlockClassBody>()?.members,
-          _ => null,
-        };
+      var members = switch (declaration) {
+        ClassDeclaration() =>
+          declaration.body.ifTypeOrNull<BlockClassBody>()?.members,
+        EnumDeclaration() => [
+          ...declaration.body.constants,
+          ...declaration.body.members,
+        ],
+        MixinDeclaration() => declaration.body.members,
+        ExtensionDeclaration() => declaration.body.members,
+        ExtensionTypeDeclaration() =>
+          declaration.body.ifTypeOrNull<BlockClassBody>()?.members,
+        _ => null,
+      };
 
-        if (members != null) {
-          for (var member in members) {
-            var comment = member.documentationComment;
-            var rawText = getCommentNodeRawText(comment);
-            result.extractTemplate(rawText);
-          }
-        }
-      } else {
-        var members = switch (declaration) {
-          ClassDeclaration() => declaration.members,
-          EnumDeclaration() => [
-            ...declaration.members,
-            ...declaration.constants,
-          ],
-          MixinDeclaration() => declaration.members,
-          ExtensionDeclaration() => declaration.members,
-          ExtensionTypeDeclaration() => declaration.members,
-          _ => null,
-        };
-
-        if (members != null) {
-          for (var member in members) {
-            var comment = member.documentationComment;
-            var rawText = getCommentNodeRawText(comment);
-            result.extractTemplate(rawText);
-          }
+      if (members != null) {
+        for (var member in members) {
+          var comment = member.documentationComment;
+          var rawText = getCommentNodeRawText(comment);
+          result.extractTemplate(rawText);
         }
       }
     }

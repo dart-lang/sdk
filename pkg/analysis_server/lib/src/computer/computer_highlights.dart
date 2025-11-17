@@ -868,7 +868,7 @@ class _DartUnitHighlightsComputerVisitor extends RecursiveAstVisitor<void> {
     computer._addRegion_token(node.mixinKeyword, HighlightRegionType.BUILT_IN);
     computer._addRegion_token(node.classKeyword, HighlightRegionType.KEYWORD);
     computer._addRegion_token(
-      node.name,
+      node.namePart.typeName,
       HighlightRegionType.CLASS,
       semanticTokenModifiers: {SemanticTokenModifiers.declaration},
     );
@@ -1042,7 +1042,7 @@ class _DartUnitHighlightsComputerVisitor extends RecursiveAstVisitor<void> {
     // computer._addRegion_token(
     //     node.augmentKeyword, HighlightRegionType.BUILT_IN);
     computer._addRegion_token(node.enumKeyword, HighlightRegionType.KEYWORD);
-    computer._addRegion_token(node.name, HighlightRegionType.ENUM);
+    computer._addRegion_token(node.namePart.typeName, HighlightRegionType.ENUM);
     super.visitEnumDeclaration(node);
   }
 
@@ -1102,10 +1102,13 @@ class _DartUnitHighlightsComputerVisitor extends RecursiveAstVisitor<void> {
 
     computer._addRegion_token(node.typeKeyword, HighlightRegionType.BUILT_IN);
 
-    computer._addRegion_token(node.constKeyword, HighlightRegionType.BUILT_IN);
-
+    var primaryConstructor = node.primaryConstructor;
     computer._addRegion_token(
-      node.name,
+      primaryConstructor.constKeyword,
+      HighlightRegionType.BUILT_IN,
+    );
+    computer._addRegion_token(
+      primaryConstructor.typeName,
       HighlightRegionType.EXTENSION_TYPE,
       semanticTokenModifiers: {SemanticTokenModifiers.declaration},
     );
@@ -1588,6 +1591,12 @@ class _DartUnitHighlightsComputerVisitor extends RecursiveAstVisitor<void> {
   void visitPatternVariableDeclaration(PatternVariableDeclaration node) {
     computer._addRegion_token(node.keyword, HighlightRegionType.KEYWORD);
     super.visitPatternVariableDeclaration(node);
+  }
+
+  @override
+  void visitPrimaryConstructorName(PrimaryConstructorName node) {
+    computer._addRegion_token(node.name, HighlightRegionType.CONSTRUCTOR);
+    super.visitPrimaryConstructorName(node);
   }
 
   @override

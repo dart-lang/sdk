@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:meta/meta.dart';
@@ -188,22 +187,11 @@ class ToSourceVisitor implements AstVisitor<void> {
     _visitToken(node.finalKeyword, suffix: ' ');
     _visitToken(node.mixinKeyword, suffix: ' ');
     sink.write('class ');
-    if (useDeclaringConstructorsAst) {
-      _visitNode(node.namePart);
-    } else {
-      _visitToken(node.name);
-      _visitNode(node.typeParameters);
-    }
+    _visitNode(node.namePart);
     _visitNode(node.extendsClause, prefix: ' ');
     _visitNode(node.withClause, prefix: ' ');
     _visitNode(node.implementsClause, prefix: ' ');
-    if (useDeclaringConstructorsAst) {
-      _visitNode(node.body);
-    } else {
-      sink.write(' {');
-      _visitNodeList(node.members, separator: ' ');
-      sink.write('}');
-    }
+    _visitNode(node.body);
   }
 
   @override
@@ -431,23 +419,10 @@ class ToSourceVisitor implements AstVisitor<void> {
   void visitEnumDeclaration(EnumDeclaration node) {
     _visitNodeList(node.metadata, separator: ' ', suffix: ' ');
     sink.write('enum ');
-    if (useDeclaringConstructorsAst) {
-      _visitNode(node.namePart);
-    } else {
-      _visitToken(node.name);
-      _visitNode(node.typeParameters);
-    }
+    _visitNode(node.namePart);
     _visitNode(node.withClause, prefix: ' ');
     _visitNode(node.implementsClause, prefix: ' ');
-    if (useDeclaringConstructorsAst) {
-      _visitNode(node.body);
-    } else {
-      sink.write(' {');
-      _visitNodeList(node.constants, separator: ', ');
-      _visitToken(node.semicolon);
-      _visitNodeList(node.members, prefix: ' ', separator: ' ');
-      sink.write('}');
-    }
+    _visitNode(node.body);
   }
 
   @override
@@ -498,13 +473,7 @@ class ToSourceVisitor implements AstVisitor<void> {
     _visitToken(node.name);
     _visitNode(node.typeParameters);
     _visitNode(node.onClause, prefix: ' ');
-    if (useDeclaringConstructorsAst) {
-      _visitNode(node.body);
-    } else {
-      _visitToken(node.leftBracket, prefix: ' ');
-      _visitNodeList(node.members, separator: ' ');
-      _visitToken(node.rightBracket);
-    }
+    _visitNode(node.body);
   }
 
   @override
@@ -526,20 +495,9 @@ class ToSourceVisitor implements AstVisitor<void> {
     _visitNodeList(node.metadata, separator: ' ', suffix: ' ');
     _visitToken(node.extensionKeyword, suffix: ' ');
     _visitToken(node.typeKeyword, suffix: ' ');
-    if (useDeclaringConstructorsAst) {
-      _visitNode(node.primaryConstructor);
-      _visitNode(node.implementsClause, prefix: ' ');
-      _visitNode(node.body);
-    } else {
-      _visitToken(node.constKeyword, suffix: ' ');
-      _visitToken(node.name);
-      _visitNode(node.typeParameters);
-      _visitNode(node.representation, suffix: ' ');
-      _visitNode(node.implementsClause, suffix: ' ');
-      _visitToken(node.leftBracket);
-      _visitNodeList(node.members, separator: ' ');
-      _visitToken(node.rightBracket);
-    }
+    _visitNode(node.primaryConstructor);
+    _visitNode(node.implementsClause, prefix: ' ');
+    _visitNode(node.body);
   }
 
   @override
@@ -983,13 +941,7 @@ class ToSourceVisitor implements AstVisitor<void> {
     _visitNode(node.typeParameters);
     _visitNode(node.onClause, prefix: ' ');
     _visitNode(node.implementsClause, prefix: ' ');
-    if (useDeclaringConstructorsAst) {
-      _visitNode(node.body);
-    } else {
-      sink.write(' {');
-      _visitNodeList(node.members, separator: ' ');
-      sink.write('}');
-    }
+    _visitNode(node.body);
   }
 
   @override

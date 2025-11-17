@@ -66,7 +66,7 @@ class DeclarationByElementLocator extends UnifyingAstVisitor<void> {
 
     if (fragment is InterfaceFragment) {
       if (node is ClassDeclaration) {
-        if (_hasOffset2(node.name)) {
+        if (_hasOffset2(node.namePart.typeName)) {
           result = node;
         }
       } else if (node is ClassTypeAlias) {
@@ -74,7 +74,7 @@ class DeclarationByElementLocator extends UnifyingAstVisitor<void> {
           result = node;
         }
       } else if (node is EnumDeclaration) {
-        if (_hasOffset2(node.name)) {
+        if (_hasOffset2(node.namePart.typeName)) {
           result = node;
         }
       } else if (node is MixinDeclaration) {
@@ -82,7 +82,7 @@ class DeclarationByElementLocator extends UnifyingAstVisitor<void> {
           result = node;
         }
       } else if (node is ExtensionTypeDeclaration) {
-        if (_hasOffset2(node.name)) {
+        if (_hasOffset2(node.primaryConstructor.typeName)) {
           result = node;
         }
       }

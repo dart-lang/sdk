@@ -85,6 +85,9 @@ class _Generator {
         .map((entity) {
           var propertyName = entity.getField('name')!.toStringValue()!;
           var isSuper = entity.getField('isSuper')!.toBoolValue()!;
+          var includeIntoChildEntities = entity
+              .getField('includeIntoChildEntities')!
+              .toBoolValue()!;
           var withOverride = entity.getField('withOverride')!.toBoolValue()!;
           var isNodeListFinal = entity
               .getField('isNodeListFinal')!
@@ -120,6 +123,7 @@ class _Generator {
           return _Property(
             name: propertyName,
             isSuper: isSuper,
+            includeIntoChildEntities: includeIntoChildEntities,
             withOverride: withOverride,
             withOverrideSuperNotNull: superNullAssertOverride,
             type: type,
@@ -129,11 +133,12 @@ class _Generator {
         .nonNulls
         .toList();
 
+    var nodeBody = nodeImpl.body as BlockClassBodyImpl;
     return _ImplClass(
       node: nodeImpl,
       interfaceElement: interfaceElement,
       properties: properties,
-      leftBracketOffset: nodeImpl.leftBracket.offset,
+      leftBracketOffset: nodeBody.leftBracket.offset,
     );
   }
 
@@ -349,6 +354,9 @@ ChildEntities get _childEntities =>''');
     }
 
     for (var property in implClass.properties) {
+      if (!property.includeIntoChildEntities) {
+        continue;
+      }
       var propertyName = property.name;
       switch (property.typeKind) {
         case _PropertyTypeKindToken():
@@ -683,7 +691,7 @@ void visitChildren(AstVisitor visitor) {''');
   void _removeGeneratedMembers(ResolvedUnitResult astUnitResult) {
     var replacements = <_Replacement>[];
     for (var implClass in implClasses) {
-      for (var member in implClass.node.members) {
+      for (var member in implClass.members) {
         String memberName;
         switch (member) {
           case ConstructorDeclarationImpl():
@@ -846,8 +854,12 @@ class _ImplClass {
     );
   }
 
+  NodeListImpl<ClassMemberImpl> get members {
+    return (node.body as BlockClassBodyImpl).members;
+  }
+
   String get name {
-    return node.name.lexeme;
+    return node.namePart.typeName.lexeme;
   }
 }
 
@@ -856,6 +868,7 @@ class _Property {
   final InterfaceType type;
   final _PropertyTypeKind typeKind;
   final bool isSuper;
+  final bool includeIntoChildEntities;
   final bool withOverride;
   final bool withOverrideSuperNotNull;
 
@@ -864,6 +877,7 @@ class _Property {
     required this.type,
     required this.typeKind,
     required this.isSuper,
+    required this.includeIntoChildEntities,
     required this.withOverride,
     required this.withOverrideSuperNotNull,
   });

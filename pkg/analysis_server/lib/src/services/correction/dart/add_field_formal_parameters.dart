@@ -41,10 +41,9 @@ class AddFieldFormalParameters extends ResolvedCorrectionProducer {
     }
     List<FormalParameter> parameters = constructor.parameters.parameters;
 
-    var instanceNodeDeclaration = constructor.parent;
-    if (instanceNodeDeclaration is! NamedCompilationUnitMember ||
-        instanceNodeDeclaration is TypeAlias ||
-        instanceNodeDeclaration is FunctionDeclaration) {
+    if (constructor.parent is BlockClassBody ||
+        constructor.parent is EnumBody) {
+    } else {
       return;
     }
 

@@ -119,7 +119,10 @@ class A {}
 import 'a.dart' deferred as a;
 extension type B(a.A it) implements a.A {}
 ''',
-      [error(diag.implementsDeferredClass, 67, 3)],
+      [
+        error(diag.typeAnnotationDeferredClass, 48, 3),
+        error(diag.implementsDeferredClass, 67, 3),
+      ],
     );
 
     var node = findNode.singleImplementsClause;

@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:_fe_analyzer_shared/src/types/shared_type.dart';
-import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
@@ -34,9 +33,7 @@ class DefaultTypesBuilder {
     for (var node in nodes) {
       if (node is ClassDeclarationImpl) {
         var element = node.declaredFragment!.element;
-        var typeParameters = useDeclaringConstructorsAst
-            ? node.namePart.typeParameters
-            : node.typeParameters;
+        var typeParameters = node.namePart.typeParameters;
         _breakSelfCycles(typeParameters);
         _breakRawTypeCycles(element, typeParameters);
         _computeBounds(element, typeParameters);
@@ -47,9 +44,7 @@ class DefaultTypesBuilder {
         _computeBounds(element, node.typeParameters);
       } else if (node is EnumDeclarationImpl) {
         var element = node.declaredFragment!.element;
-        var typeParameters = useDeclaringConstructorsAst
-            ? node.namePart.typeParameters
-            : node.typeParameters;
+        var typeParameters = node.namePart.typeParameters;
         _breakSelfCycles(typeParameters);
         _breakRawTypeCycles(element, typeParameters);
         _computeBounds(element, typeParameters);
@@ -60,9 +55,7 @@ class DefaultTypesBuilder {
         _computeBounds(element, node.typeParameters);
       } else if (node is ExtensionTypeDeclarationImpl) {
         var element = node.declaredFragment!.element;
-        var typeParameters = useDeclaringConstructorsAst
-            ? node.primaryConstructor.typeParameters
-            : node.typeParameters;
+        var typeParameters = node.primaryConstructor.typeParameters;
         _breakSelfCycles(typeParameters);
         _breakRawTypeCycles(element, typeParameters);
         _computeBounds(element, typeParameters);
@@ -100,27 +93,15 @@ class DefaultTypesBuilder {
     }
     for (var node in nodes) {
       if (node is ClassDeclarationImpl) {
-        _build(
-          useDeclaringConstructorsAst
-              ? node.namePart.typeParameters
-              : node.typeParameters,
-        );
+        _build(node.namePart.typeParameters);
       } else if (node is ClassTypeAliasImpl) {
         _build(node.typeParameters);
       } else if (node is EnumDeclarationImpl) {
-        _build(
-          useDeclaringConstructorsAst
-              ? node.namePart.typeParameters
-              : node.typeParameters,
-        );
+        _build(node.namePart.typeParameters);
       } else if (node is ExtensionDeclarationImpl) {
         _build(node.typeParameters);
       } else if (node is ExtensionTypeDeclarationImpl) {
-        _build(
-          useDeclaringConstructorsAst
-              ? node.primaryConstructor.typeParameters
-              : node.typeParameters,
-        );
+        _build(node.primaryConstructor.typeParameters);
       } else if (node is FunctionTypeAliasImpl) {
         _build(node.typeParameters);
       } else if (node is GenericTypeAliasImpl) {

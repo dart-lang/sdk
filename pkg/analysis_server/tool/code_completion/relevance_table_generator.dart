@@ -8,6 +8,7 @@ import 'dart:io' as io;
 import 'package:_fe_analyzer_shared/src/base/syntactic_entity.dart';
 import 'package:analysis_server/src/protocol_server.dart' show ElementKind;
 import 'package:analysis_server/src/services/completion/dart/feature_computer.dart';
+import 'package:analysis_server/src/utilities/extensions/ast.dart';
 import 'package:analyzer/dart/analysis/analysis_context_collection.dart';
 import 'package:analyzer/dart/analysis/context_root.dart';
 import 'package:analyzer/dart/analysis/results.dart';
@@ -492,7 +493,7 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
       allowedKeywords: [Keyword.IMPLEMENTS],
     );
 
-    for (var member in node.members) {
+    for (var member in node.members2) {
       _recordDataForNode(
         'ClassDeclaration_member',
         member,
@@ -729,7 +730,7 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
   @override
   void visitExtensionDeclaration(ExtensionDeclaration node) {
     _recordDataForNode('ExtensionDeclaration_onClause', node.onClause);
-    for (var member in node.members) {
+    for (var member in node.body.members) {
       _recordDataForNode(
         'ExtensionDeclaration_member',
         member,
@@ -1116,7 +1117,7 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
       allowedKeywords: [Keyword.IMPLEMENTS],
     );
 
-    for (var member in node.members) {
+    for (var member in node.body.members) {
       _recordDataForNode(
         'MixinDeclaration_member',
         member,

@@ -66,7 +66,7 @@ class C {}
     checkOffset<ClassFragment>(
       classDeclaration,
       classDeclaration.declaredFragment!,
-      classDeclaration.name.offset,
+      classDeclaration.namePart.typeName.offset,
     );
   }
 
@@ -126,7 +126,7 @@ class C {}
           .element
           .unnamedConstructor!
           .firstFragment,
-      classDeclaration.name.offset,
+      classDeclaration.namePart.typeName.offset,
     );
   }
 
@@ -194,7 +194,7 @@ enum E { e1 }
     checkOffset<EnumFragment>(
       enumDeclaration,
       enumDeclaration.declaredFragment!,
-      enumDeclaration.name.offset,
+      enumDeclaration.namePart.typeName.offset,
     );
   }
 
@@ -249,7 +249,7 @@ extension type E(int i) {}
     checkOffset<ExtensionTypeFragment>(
       extensionTypeDeclaration,
       extensionTypeDeclaration.declaredFragment!,
-      extensionTypeDeclaration.name.offset,
+      extensionTypeDeclaration.primaryConstructor.typeName.offset,
     );
   }
 
@@ -371,21 +371,7 @@ enum E { e1 }
       enumDeclaration.declaredFragment!.element
           .getField('values')!
           .firstFragment,
-      enumDeclaration.name.offset,
-    );
-  }
-
-  test_fieldFragment_extensionTypeRepresentationField() async {
-    await assertNoErrorsInCode(r'''
-extension type E(int i) {}
-''');
-    var representationDeclaration = findNode
-        .extensionTypeDeclaration('int i')
-        .representation;
-    checkOffset<FieldFragment>(
-      representationDeclaration,
-      representationDeclaration.fieldFragment!,
-      representationDeclaration.fieldName.offset,
+      enumDeclaration.namePart.typeName.offset,
     );
   }
 

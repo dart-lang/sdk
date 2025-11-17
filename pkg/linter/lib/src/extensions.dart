@@ -29,6 +29,12 @@ extension AstNodeExtension on AstNode {
   /// Whether this is the child of a private compilation unit member.
   bool get inPrivateMember {
     var parent = this.parent;
+    if (parent is BlockClassBody) {
+      parent = parent.parent;
+    } else if (parent is EnumBody) {
+      parent = parent.parent;
+    }
+
     return switch (parent) {
       NamedCompilationUnitMember() => parent.name.isPrivate,
       ExtensionDeclaration() => parent.name == null || parent.name.isPrivate,
@@ -460,7 +466,7 @@ extension ExpressionNullableExtension on Expression? {
 
 extension FieldDeclarationExtension on FieldDeclaration {
   bool get isInvalidExtensionTypeField =>
-      !isStatic && parent is ExtensionTypeDeclaration;
+      !isStatic && parent?.parent is ExtensionTypeDeclaration;
 }
 
 extension FunctionBodyExtension on FunctionBody? {

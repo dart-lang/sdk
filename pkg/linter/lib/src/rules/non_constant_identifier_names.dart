@@ -88,7 +88,7 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   @override
   void visitExtensionTypeDeclaration(ExtensionTypeDeclaration node) {
-    checkIdentifier(node.representation.constructorName?.name);
+    checkIdentifier(node.primaryConstructor.constructorName?.name);
   }
 
   @override

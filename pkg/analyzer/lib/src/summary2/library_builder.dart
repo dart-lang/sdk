@@ -4,7 +4,6 @@
 
 import 'package:_fe_analyzer_shared/src/field_promotability.dart';
 import 'package:analyzer/dart/analysis/features.dart';
-import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/dart/analysis/file_state.dart' as file_state;
 import 'package:analyzer/src/dart/analysis/file_state.dart' hide DirectiveUri;
@@ -265,10 +264,7 @@ class LibraryBuilder {
         if (declaration is ast.MixinDeclarationImpl) {
           var names = <String>{};
           var collector = MixinSuperInvokedNamesCollector(names);
-          for (var executable
-              in useDeclaringConstructorsAst
-                  ? declaration.body.members
-                  : declaration.members) {
+          for (var executable in declaration.body.members) {
             if (executable is ast.MethodDeclarationImpl) {
               executable.body.accept(collector);
             }

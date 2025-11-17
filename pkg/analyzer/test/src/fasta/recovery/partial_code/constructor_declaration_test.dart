@@ -99,7 +99,8 @@ class ConstructorTest extends PartialCodeTest {
 
   CompilationUnitImpl setSeparator(CompilationUnitImpl unit) {
     var declaration = unit.declarations[0] as ClassDeclaration;
-    var member = declaration.members[0] as ConstructorDeclarationImpl;
+    var classBody = declaration.body as BlockClassBody;
+    var member = classBody.members[0] as ConstructorDeclarationImpl;
     member.separator = Token(
       TokenType.COLON,
       member.parameters.endToken.charOffset + 1,

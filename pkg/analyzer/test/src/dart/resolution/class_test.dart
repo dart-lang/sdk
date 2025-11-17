@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -183,7 +182,6 @@ main() {
 class A<T extends int> {}
 ''';
 
-    useDeclaringConstructorsAst = true;
     await assertNoErrorsInCode(code);
 
     var node = findNode.singleClassDeclaration;
@@ -210,34 +208,6 @@ ClassDeclaration
     rightBracket: }
   declaredFragment: <testLibraryFragment> A@6
 ''');
-
-    {
-      useDeclaringConstructorsAst = false;
-      await assertNoErrorsInCode(code);
-
-      var node = findNode.singleClassDeclaration;
-      assertResolvedNodeText(node, r'''
-ClassDeclaration
-  classKeyword: class
-  name: A
-  typeParameters: TypeParameterList
-    leftBracket: <
-    typeParameters
-      TypeParameter
-        name: T
-        extendsKeyword: extends
-        bound: NamedType
-          name: int
-          element: dart:core::@class::int
-          type: int
-        declaredFragment: <testLibraryFragment> T@8
-          defaultType: int
-    rightBracket: >
-  leftBracket: {
-  rightBracket: }
-  declaredFragment: <testLibraryFragment> A@6
-''');
-    }
   }
 
   test_nameWithTypeParameters_noTypeParameters() async {
@@ -245,7 +215,6 @@ ClassDeclaration
 class A {}
 ''';
 
-    useDeclaringConstructorsAst = true;
     await assertNoErrorsInCode(code);
 
     var node = findNode.singleClassDeclaration;
@@ -259,25 +228,9 @@ ClassDeclaration
     rightBracket: }
   declaredFragment: <testLibraryFragment> A@6
 ''');
-
-    {
-      useDeclaringConstructorsAst = false;
-      await assertNoErrorsInCode(code);
-
-      var node = findNode.singleClassDeclaration;
-      assertResolvedNodeText(node, r'''
-ClassDeclaration
-  classKeyword: class
-  name: A
-  leftBracket: {
-  rightBracket: }
-  declaredFragment: <testLibraryFragment> A@6
-''');
-    }
   }
 
   test_primaryConstructor_declaringFormalParameter_default_namedOptional_final() async {
-    useDeclaringConstructorsAst = true;
     await assertNoErrorsInCode(r'''
 class A({final int a = 0});
 ''');
@@ -323,7 +276,6 @@ ClassDeclaration
   }
 
   test_primaryConstructor_declaringFormalParameter_default_namedRequired_final() async {
-    useDeclaringConstructorsAst = true;
     await assertNoErrorsInCode(r'''
 class A({required final int a});
 ''');
@@ -366,7 +318,6 @@ ClassDeclaration
   }
 
   test_primaryConstructor_declaringFormalParameter_functionTyped_final() async {
-    useDeclaringConstructorsAst = true;
     await assertNoErrorsInCode(r'''
 class A(final int a(String x));
 ''');
@@ -413,7 +364,6 @@ ClassDeclaration
   }
 
   test_primaryConstructor_declaringFormalParameter_simple_final() async {
-    useDeclaringConstructorsAst = true;
     await assertNoErrorsInCode(r'''
 class A(final int a) {}
 ''');
@@ -449,7 +399,6 @@ ClassDeclaration
   }
 
   test_primaryConstructor_declaringFormalParameter_simple_var() async {
-    useDeclaringConstructorsAst = true;
     await assertNoErrorsInCode(r'''
 class A(var int a) {}
 ''');
@@ -485,7 +434,6 @@ ClassDeclaration
   }
 
   test_primaryConstructor_field_staticConst() async {
-    useDeclaringConstructorsAst = true;
     await assertNoErrorsInCode(r'''
 class A(final String a, final bool b) {
   static const int foo = 0;
@@ -572,7 +520,6 @@ ClassDeclaration
   }
 
   test_primaryConstructor_fieldFormalParameter() async {
-    useDeclaringConstructorsAst = true;
     await assertNoErrorsInCode(r'''
 class A(int this.a) {
   final int a;
@@ -625,7 +572,6 @@ ClassDeclaration
   }
 
   test_primaryConstructor_hasTypeParameters_named() async {
-    useDeclaringConstructorsAst = true;
     await assertNoErrorsInCode(r'''
 class A<T>.named(T t) {}
 ''');
@@ -670,7 +616,6 @@ ClassDeclaration
   }
 
   test_primaryConstructor_hasTypeParameters_unnamed() async {
-    useDeclaringConstructorsAst = true;
     await assertNoErrorsInCode(r'''
 class A<T>(T t) {}
 ''');
@@ -712,7 +657,6 @@ ClassDeclaration
   }
 
   test_primaryConstructor_noTypeParameters_named() async {
-    useDeclaringConstructorsAst = true;
     await assertNoErrorsInCode(r'''
 class A.named(int a) {}
 ''');
@@ -749,7 +693,6 @@ ClassDeclaration
   }
 
   test_primaryConstructor_noTypeParameters_unnamed() async {
-    useDeclaringConstructorsAst = true;
     await assertNoErrorsInCode(r'''
 class A(int a) {}
 ''');
@@ -783,7 +726,6 @@ ClassDeclaration
   }
 
   test_primaryConstructor_superFormalParameter() async {
-    useDeclaringConstructorsAst = true;
     await assertNoErrorsInCode(r'''
 class A(final int a);
 class B(super.a) extends A;

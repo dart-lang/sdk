@@ -76,6 +76,12 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   @override
   void visitFormalParameterList(FormalParameterList node) {
+    if (node.parent case PrimaryConstructorDeclaration primary) {
+      if (primary.parent is ExtensionTypeDeclaration) {
+        return;
+      }
+    }
+
     for (var parameter in node.parameters) {
       if (parameter is DefaultFormalParameter) {
         parameter = parameter.parameter;

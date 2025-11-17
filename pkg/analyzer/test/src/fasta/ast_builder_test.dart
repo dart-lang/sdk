@@ -34,9 +34,11 @@ ClassDeclaration
   baseKeyword: base
   finalKeyword: final
   classKeyword: class
-  name: A
-  leftBracket: {
-  rightBracket: }
+  namePart: NameWithTypeParameters
+    typeName: A
+  body: BlockClassBody
+    leftBracket: {
+    rightBracket: }
 ''');
   }
 
@@ -57,9 +59,11 @@ ClassDeclaration
   interfaceKeyword: interface
   finalKeyword: final
   classKeyword: class
-  name: A
-  leftBracket: {
-  rightBracket: }
+  namePart: NameWithTypeParameters
+    typeName: A
+  body: BlockClassBody
+    leftBracket: {
+    rightBracket: }
 ''');
   }
 
@@ -79,9 +83,11 @@ ClassDeclaration
   abstractKeyword: abstract
   sealedKeyword: sealed
   classKeyword: class
-  name: A
-  leftBracket: {
-  rightBracket: }
+  namePart: NameWithTypeParameters
+    typeName: A
+  body: BlockClassBody
+    leftBracket: {
+    rightBracket: }
 ''');
   }
 
@@ -100,9 +106,11 @@ ClassDeclaration
       /// text
   baseKeyword: base
   classKeyword: class
-  name: A
-  leftBracket: {
-  rightBracket: }
+  namePart: NameWithTypeParameters
+    typeName: A
+  body: BlockClassBody
+    leftBracket: {
+    rightBracket: }
 ''');
   }
 
@@ -125,9 +133,11 @@ ClassDeclaration
         offset: 0
   abstractKeyword: abstract @16
   classKeyword: class @25
-  name: A @31
-  leftBracket: { @33
-  rightBracket: } @34
+  namePart: NameWithTypeParameters
+    typeName: A @31
+  body: BlockClassBody
+    leftBracket: { @33
+    rightBracket: } @34
 ''', withOffsets: true);
   }
 
@@ -166,9 +176,11 @@ ClassDeclaration
         token: Annotation @46
   abstractKeyword: abstract @57
   classKeyword: class @66
-  name: A @72
-  leftBracket: { @74
-  rightBracket: } @75
+  namePart: NameWithTypeParameters
+    typeName: A @72
+  body: BlockClassBody
+    leftBracket: { @74
+    rightBracket: } @75
 ''', withOffsets: true);
   }
 
@@ -238,9 +250,11 @@ ClassDeclaration
         token: Annotation @46
   abstractKeyword: abstract @249
   classKeyword: class @258
-  name: A @264
-  leftBracket: { @266
-  rightBracket: } @267
+  namePart: NameWithTypeParameters
+    typeName: A @264
+  body: BlockClassBody
+    leftBracket: { @266
+    rightBracket: } @267
 ''', withOffsets: true);
   }
 
@@ -298,9 +312,11 @@ class C extends (int, int) {}
     assertParsedNodeText(node, r'''
 ClassDeclaration
   classKeyword: class @0
-  name: C @6
-  leftBracket: { @27
-  rightBracket: } @28
+  namePart: NameWithTypeParameters
+    typeName: C @6
+  body: BlockClassBody
+    leftBracket: { @27
+    rightBracket: } @28
 ''', withOffsets: true);
   }
 
@@ -319,9 +335,11 @@ ClassDeclaration
       /// text
   finalKeyword: final
   classKeyword: class
-  name: A
-  leftBracket: {
-  rightBracket: }
+  namePart: NameWithTypeParameters
+    typeName: A
+  body: BlockClassBody
+    leftBracket: {
+    rightBracket: }
 ''');
   }
 
@@ -337,9 +355,11 @@ ClassDeclaration
   finalKeyword: final
   mixinKeyword: mixin
   classKeyword: class
-  name: A
-  leftBracket: {
-  rightBracket: }
+  namePart: NameWithTypeParameters
+    typeName: A
+  body: BlockClassBody
+    leftBracket: {
+    rightBracket: }
 ''');
   }
 
@@ -353,7 +373,8 @@ class C implements A, (int, int), B {}
     assertParsedNodeText(node, r'''
 ClassDeclaration
   classKeyword: class @0
-  name: C @6
+  namePart: NameWithTypeParameters
+    typeName: C @6
   implementsClause: ImplementsClause
     implementsKeyword: implements @8
     interfaces
@@ -361,8 +382,9 @@ ClassDeclaration
         name: A @19
       NamedType
         name: B @34
-  leftBracket: { @36
-  rightBracket: } @37
+  body: BlockClassBody
+    leftBracket: { @36
+    rightBracket: } @37
 ''', withOffsets: true);
   }
 
@@ -381,9 +403,11 @@ ClassDeclaration
       /// text
   interfaceKeyword: interface
   classKeyword: class
-  name: A
-  leftBracket: {
-  rightBracket: }
+  namePart: NameWithTypeParameters
+    typeName: A
+  body: BlockClassBody
+    leftBracket: {
+    rightBracket: }
 ''');
   }
 
@@ -399,9 +423,11 @@ ClassDeclaration
   interfaceKeyword: interface
   mixinKeyword: mixin
   classKeyword: class
-  name: A
-  leftBracket: {
-  rightBracket: }
+  namePart: NameWithTypeParameters
+    typeName: A
+  body: BlockClassBody
+    leftBracket: {
+    rightBracket: }
 ''');
   }
 
@@ -420,9 +446,11 @@ ClassDeclaration
       /// text
   mixinKeyword: mixin
   classKeyword: class
-  name: A
-  leftBracket: {
-  rightBracket: }
+  namePart: NameWithTypeParameters
+    typeName: A
+  body: BlockClassBody
+    leftBracket: {
+    rightBracket: }
 ''');
   }
 
@@ -441,9 +469,11 @@ ClassDeclaration
       /// text
   sealedKeyword: sealed
   classKeyword: class
-  name: A
-  leftBracket: {
-  rightBracket: }
+  namePart: NameWithTypeParameters
+    typeName: A
+  body: BlockClassBody
+    leftBracket: {
+    rightBracket: }
 ''');
   }
 
@@ -463,9 +493,11 @@ ClassDeclaration
   abstractKeyword: abstract
   sealedKeyword: sealed
   classKeyword: class
-  name: A
-  leftBracket: {
-  rightBracket: }
+  namePart: NameWithTypeParameters
+    typeName: A
+  body: BlockClassBody
+    leftBracket: {
+    rightBracket: }
 ''');
   }
 
@@ -481,9 +513,11 @@ ClassDeclaration
   sealedKeyword: sealed
   mixinKeyword: mixin
   classKeyword: class
-  name: A
-  leftBracket: {
-  rightBracket: }
+  namePart: NameWithTypeParameters
+    typeName: A
+  body: BlockClassBody
+    leftBracket: {
+    rightBracket: }
 ''');
   }
 
@@ -497,7 +531,8 @@ class C with A, (int, int), B {}
     assertParsedNodeText(node, r'''
 ClassDeclaration
   classKeyword: class
-  name: C
+  namePart: NameWithTypeParameters
+    typeName: C
   withClause: WithClause
     withKeyword: with
     mixinTypes
@@ -505,8 +540,9 @@ ClassDeclaration
         name: A
       NamedType
         name: B
-  leftBracket: {
-  rightBracket: }
+  body: BlockClassBody
+    leftBracket: {
+    rightBracket: }
 ''');
   }
 
@@ -908,12 +944,14 @@ base enum E { v }
     assertParsedNodeText(node, r'''
 EnumDeclaration
   enumKeyword: enum
-  name: E
-  leftBracket: {
-  constants
-    EnumConstantDeclaration
-      name: v
-  rightBracket: }
+  namePart: NameWithTypeParameters
+    typeName: E
+  body: EnumBody
+    leftBracket: {
+    constants
+      EnumConstantDeclaration
+        name: v
+    rightBracket: }
 ''');
   }
 
@@ -1091,12 +1129,14 @@ final enum E { v }
     assertParsedNodeText(node, r'''
 EnumDeclaration
   enumKeyword: enum
-  name: E
-  leftBracket: {
-  constants
-    EnumConstantDeclaration
-      name: v
-  rightBracket: }
+  namePart: NameWithTypeParameters
+    typeName: E
+  body: EnumBody
+    leftBracket: {
+    constants
+      EnumConstantDeclaration
+        name: v
+    rightBracket: }
 ''');
   }
 
@@ -1110,12 +1150,14 @@ interface enum E { v }
     assertParsedNodeText(node, r'''
 EnumDeclaration
   enumKeyword: enum
-  name: E
-  leftBracket: {
-  constants
-    EnumConstantDeclaration
-      name: v
-  rightBracket: }
+  namePart: NameWithTypeParameters
+    typeName: E
+  body: EnumBody
+    leftBracket: {
+    constants
+      EnumConstantDeclaration
+        name: v
+    rightBracket: }
 ''');
   }
 
@@ -1129,12 +1171,14 @@ sealed enum E { v }
     assertParsedNodeText(node, r'''
 EnumDeclaration
   enumKeyword: enum
-  name: E
-  leftBracket: {
-  constants
-    EnumConstantDeclaration
-      name: v
-  rightBracket: }
+  namePart: NameWithTypeParameters
+    typeName: E
+  body: EnumBody
+    leftBracket: {
+    constants
+      EnumConstantDeclaration
+        name: v
+    rightBracket: }
 ''');
   }
 
@@ -1150,12 +1194,14 @@ enum E {
     assertParsedNodeText(node, r'''
 EnumDeclaration
   enumKeyword: enum
-  name: E
-  leftBracket: {
-  constants
-    EnumConstantDeclaration
-      name: v
-  rightBracket: }
+  namePart: NameWithTypeParameters
+    typeName: E
+  body: EnumBody
+    leftBracket: {
+    constants
+      EnumConstantDeclaration
+        name: v
+    rightBracket: }
 ''');
   }
 
@@ -1171,13 +1217,15 @@ enum E {
     assertParsedNodeText(node, r'''
 EnumDeclaration
   enumKeyword: enum
-  name: E
-  leftBracket: {
-  constants
-    EnumConstantDeclaration
-      name: v
-  semicolon: ;
-  rightBracket: }
+  namePart: NameWithTypeParameters
+    typeName: E
+  body: EnumBody
+    leftBracket: {
+    constants
+      EnumConstantDeclaration
+        name: v
+    semicolon: ;
+    rightBracket: }
 ''');
   }
 
@@ -1204,8 +1252,9 @@ ExtensionDeclaration
           type: NamedType
             name: int @21
       rightParenthesis: ) @24
-  leftBracket: { @26
-  rightBracket: } @27
+  body: BlockClassBody
+    leftBracket: { @26
+    rightBracket: } @27
 ''', withOffsets: true);
   }
 
@@ -1282,8 +1331,9 @@ MixinDeclaration
   baseKeyword: base
   mixinKeyword: mixin
   name: M
-  leftBracket: {
-  rightBracket: }
+  body: BlockClassBody
+    leftBracket: {
+    rightBracket: }
 ''');
   }
 
@@ -1298,8 +1348,9 @@ final mixin M {}
 MixinDeclaration
   mixinKeyword: mixin
   name: M
-  leftBracket: {
-  rightBracket: }
+  body: BlockClassBody
+    leftBracket: {
+    rightBracket: }
 ''');
   }
 
@@ -1327,8 +1378,9 @@ MixinDeclaration
         name: A @35
       NamedType
         name: B @50
-  leftBracket: { @52
-  rightBracket: } @53
+  body: BlockClassBody
+    leftBracket: { @52
+    rightBracket: } @53
 ''', withOffsets: true);
   }
 
@@ -1343,8 +1395,9 @@ interface mixin M {}
 MixinDeclaration
   mixinKeyword: mixin
   name: M
-  leftBracket: {
-  rightBracket: }
+  body: BlockClassBody
+    leftBracket: {
+    rightBracket: }
 ''');
   }
 
@@ -1366,8 +1419,9 @@ MixinDeclaration
         name: A @11
       NamedType
         name: B @26
-  leftBracket: { @28
-  rightBracket: } @29
+  body: BlockClassBody
+    leftBracket: { @28
+    rightBracket: } @29
 ''', withOffsets: true);
   }
 
@@ -1382,8 +1436,9 @@ sealed mixin M {}
 MixinDeclaration
   mixinKeyword: mixin
   name: M
-  leftBracket: {
-  rightBracket: }
+  body: BlockClassBody
+    leftBracket: {
+    rightBracket: }
 ''');
   }
 
