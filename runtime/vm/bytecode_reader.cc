@@ -334,7 +334,8 @@ void BytecodeReaderHelper::ReadCoveredConstConstructors(const Script& script,
   auto& function = Function::Handle(Z);
   for (intptr_t i = 0; i < len; i++) {
     function ^= ReadObject();
-    ASSERT(function.IsConstructor() && function.is_const());
+    // Const constructors from extension types can be desugared into procedures.
+    ASSERT(function.IsFunction() && function.is_const());
     constant_coverage.SetAt(i, function);
   }
   script.set_collected_constant_coverage(constant_coverage);
