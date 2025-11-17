@@ -26,7 +26,7 @@ extension type E(int it) {
       [error(diag.extensionTypeConstructorWithSuperFormalParameter, 47, 5)],
     );
 
-    var node = findNode.singleFormalParameterList;
+    var node = findNode.formalParameterList('super.foo');
     assertResolvedNodeText(node, r'''
 FormalParameterList
   leftParenthesis: (
@@ -65,7 +65,7 @@ extension type E(int it) {
       [error(diag.extensionTypeConstructorWithSuperFormalParameter, 46, 5)],
     );
 
-    var node = findNode.singleFormalParameterList;
+    var node = findNode.formalParameterList('super.foo');
     assertResolvedNodeText(node, r'''
 FormalParameterList
   leftParenthesis: (

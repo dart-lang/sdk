@@ -4,6 +4,7 @@
 
 import 'package:analysis_server/src/services/correction/assist.dart';
 import 'package:analysis_server/src/services/correction/fix.dart';
+import 'package:analysis_server/src/utilities/extensions/object.dart';
 import 'package:analysis_server_plugin/edit/dart/correction_producer.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
@@ -464,7 +465,9 @@ class _PropertyInfo {
 }
 
 extension on ClassDeclaration {
-  MethodDeclaration? get debugFillPropertiesDeclaration => members
+  MethodDeclaration? get debugFillPropertiesDeclaration => body
+      .ifTypeOrNull<BlockClassBody>()
+      ?.members
       .whereType<MethodDeclaration>()
       .where((e) => e.name.lexeme == 'debugFillProperties')
       .singleOrNull;

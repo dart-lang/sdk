@@ -902,6 +902,7 @@ class Driver implements ServerStarter {
     parser.addFlag(
       withFineDependenciesOption,
       help: 'Enable fine-grained dependencies.',
+      defaultsTo: true,
       hide: true,
     );
     parser.addFlag(

@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/analysis/features.dart';
-import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/error/error.dart';
@@ -240,7 +239,7 @@ class DuplicateDefinitionVerifier {
         var declaredFragment = member.declaredFragment!;
         _checkDuplicateIdentifier(
           definedGetters,
-          useDeclaringConstructorsAst ? member.namePart.typeName : member.name,
+          member.namePart.typeName,
           fragment: declaredFragment,
           setterScope: definedSetters,
         );
@@ -248,7 +247,7 @@ class DuplicateDefinitionVerifier {
         var declaredFragment = member.declaredFragment!;
         _checkDuplicateIdentifier(
           definedGetters,
-          useDeclaringConstructorsAst ? member.namePart.typeName : member.name,
+          member.namePart.typeName,
           fragment: declaredFragment,
           setterScope: definedSetters,
         );
@@ -256,9 +255,7 @@ class DuplicateDefinitionVerifier {
         var declaredFragment = member.declaredFragment!;
         _checkDuplicateIdentifier(
           definedGetters,
-          useDeclaringConstructorsAst
-              ? member.primaryConstructor.typeName
-              : member.name,
+          member.primaryConstructor.typeName,
           fragment: declaredFragment,
           setterScope: definedSetters,
         );
@@ -409,10 +406,7 @@ class MemberDuplicateDefinitionVerifier {
   );
 
   void _checkClass(ClassDeclarationImpl node) {
-    _checkClassMembers(
-      node.declaredFragment!,
-      useDeclaringConstructorsAst ? node.body.members : node.members,
-    );
+    _checkClassMembers(node.declaredFragment!, node.body.members);
   }
 
   /// Check that there are no members with the same name.
@@ -668,8 +662,7 @@ class MemberDuplicateDefinitionVerifier {
     var elementContext = _getElementContext(firstFragment);
     var staticScope = elementContext.staticScope;
 
-    for (var constant
-        in useDeclaringConstructorsAst ? node.body.constants : node.constants) {
+    for (var constant in node.body.constants) {
       if (constant.name.lexeme == declarationName) {
         _diagnosticReporter.atToken(
           constant.name,
@@ -687,14 +680,11 @@ class MemberDuplicateDefinitionVerifier {
       _checkValuesDeclarationInEnum(constant.name);
     }
 
-    _checkClassMembers(
-      fragment,
-      useDeclaringConstructorsAst ? node.body.members : node.members,
-    );
+    _checkClassMembers(fragment, node.body.members);
 
     if (declarationName == 'values') {
       _diagnosticReporter.atToken(
-        useDeclaringConstructorsAst ? node.namePart.typeName : node.name,
+        node.namePart.typeName,
         diag.enumWithNameValues,
       );
     }
@@ -790,10 +780,7 @@ class MemberDuplicateDefinitionVerifier {
   /// Check that there are no members with the same name.
   void _checkExtension(covariant ExtensionDeclarationImpl node) {
     var fragment = node.declaredFragment!;
-    _checkClassMembers(
-      fragment,
-      useDeclaringConstructorsAst ? node.body.members : node.members,
-    );
+    _checkClassMembers(fragment, node.body.members);
   }
 
   void _checkExtensionStatic(covariant ExtensionDeclarationImpl node) {
@@ -803,8 +790,7 @@ class MemberDuplicateDefinitionVerifier {
     var elementContext = _getElementContext(firstFragment);
     var instanceScope = elementContext.instanceScope;
 
-    for (var member
-        in useDeclaringConstructorsAst ? node.body.members : node.members) {
+    for (var member in node.body.members) {
       if (member is FieldDeclarationImpl) {
         if (member.isStatic) {
           for (var field in member.fields.variables) {
@@ -849,17 +835,11 @@ class MemberDuplicateDefinitionVerifier {
       );
     }
 
-    _checkClassMembers(
-      firstFragment,
-      useDeclaringConstructorsAst ? node.body.members : node.members,
-    );
+    _checkClassMembers(firstFragment, node.body.members);
   }
 
   void _checkMixin(MixinDeclarationImpl node) {
-    _checkClassMembers(
-      node.declaredFragment!,
-      useDeclaringConstructorsAst ? node.body.members : node.members,
-    );
+    _checkClassMembers(node.declaredFragment!, node.body.members);
   }
 
   void _checkUnit(CompilationUnitImpl node) {
@@ -890,32 +870,17 @@ class MemberDuplicateDefinitionVerifier {
       switch (declaration) {
         case ClassDeclarationImpl():
           var fragment = declaration.declaredFragment!;
-          _checkClassStatic(
-            fragment,
-            useDeclaringConstructorsAst
-                ? declaration.body.members
-                : declaration.members,
-          );
+          _checkClassStatic(fragment, declaration.body.members);
         case EnumDeclarationImpl():
           _checkEnumStatic(declaration);
         case ExtensionDeclarationImpl():
           _checkExtensionStatic(declaration);
         case ExtensionTypeDeclarationImpl():
           var fragment = declaration.declaredFragment!;
-          _checkClassStatic(
-            fragment,
-            useDeclaringConstructorsAst
-                ? declaration.body.members
-                : declaration.members,
-          );
+          _checkClassStatic(fragment, declaration.body.members);
         case MixinDeclarationImpl():
           var fragment = declaration.declaredFragment!;
-          _checkClassStatic(
-            fragment,
-            useDeclaringConstructorsAst
-                ? declaration.body.members
-                : declaration.members,
-          );
+          _checkClassStatic(fragment, declaration.body.members);
         case ClassTypeAliasImpl():
         case FunctionDeclarationImpl():
         case FunctionTypeAliasImpl():

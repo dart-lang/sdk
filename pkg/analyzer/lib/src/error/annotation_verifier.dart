@@ -414,8 +414,8 @@ class AnnotationVerifier {
         _diagnosticReporter.atNode(node.name, diag.invalidNonVirtualAnnotation);
       }
     } else if (parent is MethodDeclaration) {
-      if (parent.parent is ExtensionDeclaration ||
-          parent.parent is ExtensionTypeDeclaration ||
+      if (parent.parent?.parent is ExtensionDeclaration ||
+          parent.parent?.parent is ExtensionTypeDeclaration ||
           parent.isStatic ||
           parent.isAbstract) {
         _diagnosticReporter.atNode(node.name, diag.invalidNonVirtualAnnotation);
@@ -429,7 +429,10 @@ class AnnotationVerifier {
   /// `@redeclare` annotation.
   void _checkRedeclare(Annotation node) {
     var parent = node.parent;
-    if (parent.parent is! ExtensionTypeDeclaration ||
+    var parent2 = parent.parent;
+    var parent3 = parent2?.parent;
+    if (parent2 is! BlockClassBody ||
+        parent3 is! ExtensionTypeDeclaration ||
         parent is MethodDeclaration && parent.isStatic) {
       _diagnosticReporter.atNode(
         node.name,
@@ -614,7 +617,7 @@ class AnnotationVerifier {
     }
 
     InterfaceElement? declaredElement;
-    switch (containedDeclaration.parent) {
+    switch (containedDeclaration.parent?.parent) {
       case ClassDeclaration classDeclaration:
         declaredElement = classDeclaration.declaredFragment?.element;
       case EnumDeclaration enumDeclaration:
@@ -707,9 +710,11 @@ class AnnotationVerifier {
       if ((target is FieldDeclaration && !target.isStatic) ||
           target is MethodDeclaration && !target.isStatic) {
         var parent = target.parent;
-        if (parent is ClassDeclaration ||
-            parent is ExtensionTypeDeclaration ||
-            parent is MixinDeclaration) {
+        var parent2 = parent?.parent;
+        if (parent is BlockClassBody &&
+            (parent2 is ClassDeclaration ||
+                parent2 is ExtensionTypeDeclaration ||
+                parent2 is MixinDeclaration)) {
           // Members of `EnumDeclaration`s and `ExtensionDeclaration`s are not
           // overridable.
           return true;

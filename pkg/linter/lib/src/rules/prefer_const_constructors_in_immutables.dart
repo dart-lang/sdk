@@ -67,11 +67,11 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   @override
   void visitExtensionTypeDeclaration(ExtensionTypeDeclaration node) {
-    if (node.constKeyword != null) return;
+    if (node.primaryConstructor.constKeyword != null) return;
     var element = node.declaredFragment?.element;
     if (element == null) return;
     if (element.metadata.hasImmutable) {
-      rule.reportAtToken(node.name);
+      rule.reportAtToken(node.primaryConstructor.typeName);
     }
   }
 

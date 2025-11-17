@@ -47,7 +47,7 @@ SyntacticEntity getNodeToAnnotate(Declaration node) {
   // TODO(srawlins): Convert to a switch expression over `Declaration` subtypes,
   // assuming `Declaration` becomes an exhaustive type.
   if (node is ClassDeclaration) {
-    return node.name;
+    return node.namePart.typeName;
   }
   if (node is ClassTypeAlias) {
     return node.name;
@@ -59,7 +59,7 @@ SyntacticEntity getNodeToAnnotate(Declaration node) {
     return node.name;
   }
   if (node is EnumDeclaration) {
-    return node.name;
+    return node.namePart.typeName;
   }
   if (node is ExtensionDeclaration) {
     return node.name ?? node;
@@ -92,7 +92,7 @@ SyntacticEntity getNodeToAnnotate(Declaration node) {
     return node.name;
   }
   if (node is ExtensionTypeDeclaration) {
-    return node.name;
+    return node.primaryConstructor.typeName;
   }
   assert(false, "Unaccounted for Declaration subtype: '${node.runtimeType}'");
   return node;

@@ -43,7 +43,7 @@ class RenameMethodParameter extends ResolvedCorrectionProducer {
     if (methodParameters == null) return;
 
     Fragment? declaredFragment;
-    if (method.parent case Declaration declaration) {
+    if (method.parent?.parent case Declaration declaration) {
       declaredFragment = declaration.declaredFragment;
     }
 

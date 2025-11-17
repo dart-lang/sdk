@@ -7598,26 +7598,28 @@ class C {
     assertParsedNodeText(node, r'''
 ClassDeclaration
   classKeyword: class
-  name: C
-  leftBracket: {
-  members
-    FieldDeclaration
-      fields: VariableDeclarationList
-        keyword: var
-        variables
-          VariableDeclaration
-            name: <empty> <synthetic>
-            equals: =
-            initializer: RecordLiteral
-              leftParenthesis: (
-              fields
-                IntegerLiteral
-                  literal: 0
-                IntegerLiteral
-                  literal: 1
-              rightParenthesis: )
-      semicolon: ;
-  rightBracket: }
+  namePart: NameWithTypeParameters
+    typeName: C
+  body: BlockClassBody
+    leftBracket: {
+    members
+      FieldDeclaration
+        fields: VariableDeclarationList
+          keyword: var
+          variables
+            VariableDeclaration
+              name: <empty> <synthetic>
+              equals: =
+              initializer: RecordLiteral
+                leftParenthesis: (
+                fields
+                  IntegerLiteral
+                    literal: 0
+                  IntegerLiteral
+                    literal: 1
+                rightParenthesis: )
+        semicolon: ;
+    rightBracket: }
 ''');
   }
 

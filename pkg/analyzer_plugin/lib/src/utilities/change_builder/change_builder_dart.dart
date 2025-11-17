@@ -2950,7 +2950,7 @@ class _EnclosingElementFinder {
 
   void find(CompilationUnit target, int offset) {
     var node = target.nodeCovering(offset: offset);
-    if (node != null && offset == node.end) {
+    while (node != null && offset == node.end) {
       // If the offset is just outside the node, then the element declared by
       // the node isn't actually enclosing the offset.
       node = node.parent;
@@ -3024,11 +3024,11 @@ class _InsertionPreparer {
     final declaration = _declaration;
     if (declaration is EnumDeclaration) {
       // After the last enum value.
-      var semicolon = declaration.semicolon;
+      var semicolon = declaration.body.semicolon;
       if (semicolon != null) {
         return semicolon.end;
-      } else if (declaration.constants.isNotEmpty) {
-        var lastConstant = declaration.constants.last;
+      } else if (declaration.body.constants.isNotEmpty) {
+        var lastConstant = declaration.body.constants.last;
         return lastConstant.end;
       }
     }
@@ -3058,7 +3058,7 @@ class _InsertionPreparer {
       builder.write(' {');
     }
     var declaration = _declaration;
-    if (declaration is EnumDeclaration && declaration.semicolon == null) {
+    if (declaration is EnumDeclaration && declaration.body.semicolon == null) {
       builder.write(';');
     }
 
@@ -3068,7 +3068,7 @@ class _InsertionPreparer {
       builder.writeln();
       builder.writeIndent();
     } else if (declaration is EnumDeclaration &&
-        declaration.constants.isNotEmpty) {
+        declaration.body.constants.isNotEmpty) {
       // After the last constant (and the semicolon), write two newlines.
       builder.writeln();
       builder.writeln();
@@ -3091,7 +3091,8 @@ class _InsertionPreparer {
     }
 
     var declaration = _declaration;
-    if (declaration is EnumDeclaration && declaration.constants.isNotEmpty) {
+    if (declaration is EnumDeclaration &&
+        declaration.body.constants.isNotEmpty) {
       return;
     }
 
@@ -3220,43 +3221,71 @@ extension on CompilationUnitMember {
   /// and `null` otherwise.
   Token? get leftBracket {
     var self = this;
-    return switch (self) {
-      ClassDeclaration() => self.leftBracket,
-      EnumDeclaration() => self.leftBracket,
-      ExtensionDeclaration() => self.leftBracket,
-      ExtensionTypeDeclaration() => self.leftBracket,
-      MixinDeclaration() => self.leftBracket,
-      _ => null,
-    };
+    switch (self) {
+      case ClassDeclaration():
+        if (self.body case BlockClassBody body) {
+          return body.leftBracket;
+        }
+      case EnumDeclaration():
+        return self.body.leftBracket;
+      case ExtensionDeclaration():
+        return self.body.leftBracket;
+      case ExtensionTypeDeclaration():
+        if (self.body case BlockClassBody body) {
+          return body.leftBracket;
+        }
+      case MixinDeclaration():
+        return self.body.leftBracket;
+      default:
+    }
+    return null;
   }
 
   /// The members of a [CompilationUnitMember] with a known list of members, and
   /// `null` otherwise.
   List<ClassMember>? get members {
     var self = this;
-    return switch (self) {
-      ClassDeclaration() => self.members,
-      // Enum constants are handled separately; not considered members.
-      EnumDeclaration() => self.members,
-      ExtensionDeclaration() => self.members,
-      ExtensionTypeDeclaration() => self.members,
-      MixinDeclaration() => self.members,
-      _ => null,
-    };
+    switch (self) {
+      case ClassDeclaration():
+        if (self.body case BlockClassBody body) {
+          return body.members;
+        }
+      case EnumDeclaration():
+        // Enum constants are handled separately; not considered members.
+        return self.body.members;
+      case ExtensionDeclaration():
+        return self.body.members;
+      case ExtensionTypeDeclaration():
+        if (self.body case BlockClassBody body) {
+          return body.members;
+        }
+      case MixinDeclaration():
+        return self.body.members;
+    }
+    return null;
   }
 
   /// The right bracket of a [CompilationUnitMember] with a known right bracket,
   /// and `null` otherwise.
   Token? get rightBracket {
     var self = this;
-    return switch (self) {
-      ClassDeclaration() => self.rightBracket,
-      EnumDeclaration() => self.rightBracket,
-      ExtensionDeclaration() => self.rightBracket,
-      ExtensionTypeDeclaration() => self.rightBracket,
-      MixinDeclaration() => self.rightBracket,
-      _ => null,
-    };
+    switch (self) {
+      case ClassDeclaration():
+        if (self.body case BlockClassBody body) {
+          return body.rightBracket;
+        }
+      case EnumDeclaration():
+        return self.body.rightBracket;
+      case ExtensionDeclaration():
+        return self.body.rightBracket;
+      case ExtensionTypeDeclaration():
+        if (self.body case BlockClassBody body) {
+          return body.rightBracket;
+        }
+      case MixinDeclaration():
+        return self.body.rightBracket;
+    }
+    return null;
   }
 }
 

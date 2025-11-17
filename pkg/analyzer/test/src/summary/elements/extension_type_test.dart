@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../../dart/resolution/node_text_expectations.dart';
@@ -13,12 +11,6 @@ main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(ExtensionTypeElementTest_keepLinking);
     defineReflectiveTests(ExtensionTypeElementTest_fromBytes);
-    defineReflectiveTests(
-      ExtensionTypeElementTest_declaringConstructors_keepLinking,
-    );
-    defineReflectiveTests(
-      ExtensionTypeElementTest_declaringConstructors_fromBytes,
-    );
     defineReflectiveTests(ExtensionTypeElementTest_augmentation_keepLinking);
     defineReflectiveTests(ExtensionTypeElementTest_augmentation_fromBytes);
     defineReflectiveTests(UpdateNodeTextExpectations);
@@ -6890,47 +6882,6 @@ class ExtensionTypeElementTest_augmentation_keepLinking
     extends ExtensionTypeElementTest_augmentation {
   @override
   bool get keepLinkingLibraries => true;
-}
-
-abstract class ExtensionTypeElementTest_declaringConstructors
-    extends ExtensionTypeElementTest {}
-
-@reflectiveTest
-class ExtensionTypeElementTest_declaringConstructors_fromBytes
-    extends ExtensionTypeElementTest_declaringConstructors {
-  @override
-  bool get keepLinkingLibraries => false;
-
-  @override
-  void setUp() {
-    useDeclaringConstructorsAst = true;
-    super.setUp();
-  }
-
-  @override
-  Future<void> tearDown() {
-    useDeclaringConstructorsAst = default_useDeclaringConstructorsAst;
-    return super.tearDown();
-  }
-}
-
-@reflectiveTest
-class ExtensionTypeElementTest_declaringConstructors_keepLinking
-    extends ExtensionTypeElementTest_declaringConstructors {
-  @override
-  bool get keepLinkingLibraries => true;
-
-  @override
-  void setUp() {
-    useDeclaringConstructorsAst = true;
-    super.setUp();
-  }
-
-  @override
-  Future<void> tearDown() {
-    useDeclaringConstructorsAst = default_useDeclaringConstructorsAst;
-    return super.tearDown();
-  }
 }
 
 @reflectiveTest

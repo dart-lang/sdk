@@ -53,6 +53,17 @@ class SessionLoggerInMemorySink extends SessionLoggerSink {
   /// Initialize a newly created sink to store up to [maxBufferLength] entries.
   SessionLoggerInMemorySink({required this.maxBufferLength});
 
+  /// Returns a list of the entries that have been captured.
+  ///
+  /// The list includes necessary initialization entries that might have
+  /// occurred before the capture was started.
+  List<LogEntry> get capturedEntries {
+    return [..._initializationBuffer, ..._sessionBuffer];
+  }
+
+  /// Whether entries are currently being captured in the buffer.
+  bool get isCapturingEntries => _capturingEntries;
+
   @override
   Future<void> close() async {
     await nextLogger?.close();
@@ -60,19 +71,13 @@ class SessionLoggerInMemorySink extends SessionLoggerSink {
 
   /// Stops the capturing of entries.
   void startCapture() {
+    _sessionBuffer.clear();
     _capturingEntries = true;
   }
 
-  /// Stops the capturing of entries and returns a list of the entries that were
-  /// captured.
-  ///
-  /// The list includes necessary initialization entries that might have
-  /// occurred before the capture was started.
-  List<LogEntry> stopCapture() {
+  /// Stops the capturing of entries.
+  void stopCapture() {
     _capturingEntries = false;
-    var capturedEntries = [..._initializationBuffer, ..._sessionBuffer];
-    _sessionBuffer.clear();
-    return capturedEntries;
   }
 
   @override

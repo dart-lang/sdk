@@ -22,7 +22,7 @@ AstNode? _tweakLocatedNode(AstNode? node, int offset) {
   if (node is RepresentationDeclaration) {
     var extensionTypeDeclaration = node.parent;
     if (extensionTypeDeclaration is ExtensionTypeDeclaration) {
-      if (extensionTypeDeclaration.name.end == offset) {
+      if (extensionTypeDeclaration.primaryConstructor.typeName.end == offset) {
         node = extensionTypeDeclaration;
       }
     }

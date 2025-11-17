@@ -120,11 +120,14 @@ class TopLevelParserTest extends FastaParserTestCase {
     expect(declaration.extendsClause, isNull);
     expect(declaration.implementsClause, isNull);
     expect(declaration.classKeyword, isNotNull);
-    expect(declaration.leftBracket, isNotNull);
-    expect(declaration.name, isNotNull);
-    expect(declaration.members, hasLength(0));
-    expect(declaration.rightBracket, isNotNull);
-    expect(declaration.typeParameters, isNull);
+
+    expect(declaration.namePart.typeName, isNotNull);
+    expect(declaration.namePart.typeParameters, isNull);
+
+    var classBody = declaration.body as BlockClassBody;
+    expect(classBody.leftBracket, isNotNull);
+    expect(classBody.members, hasLength(0));
+    expect(classBody.rightBracket, isNotNull);
   }
 
   void test_parseClassDeclaration_empty() {
@@ -139,11 +142,14 @@ class TopLevelParserTest extends FastaParserTestCase {
     expect(declaration.extendsClause, isNull);
     expect(declaration.implementsClause, isNull);
     expect(declaration.classKeyword, isNotNull);
-    expect(declaration.leftBracket, isNotNull);
-    expect(declaration.name, isNotNull);
-    expect(declaration.members, hasLength(0));
-    expect(declaration.rightBracket, isNotNull);
-    expect(declaration.typeParameters, isNull);
+
+    expect(declaration.namePart.typeName, isNotNull);
+    expect(declaration.namePart.typeParameters, isNull);
+
+    var classBody = declaration.body as BlockClassBody;
+    expect(classBody.leftBracket, isNotNull);
+    expect(classBody.members, hasLength(0));
+    expect(classBody.rightBracket, isNotNull);
   }
 
   void test_parseClassDeclaration_extends() {
@@ -158,11 +164,14 @@ class TopLevelParserTest extends FastaParserTestCase {
     expect(declaration.extendsClause, isNotNull);
     expect(declaration.implementsClause, isNull);
     expect(declaration.classKeyword, isNotNull);
-    expect(declaration.leftBracket, isNotNull);
-    expect(declaration.name, isNotNull);
-    expect(declaration.members, hasLength(0));
-    expect(declaration.rightBracket, isNotNull);
-    expect(declaration.typeParameters, isNull);
+
+    expect(declaration.namePart.typeName, isNotNull);
+    expect(declaration.namePart.typeParameters, isNull);
+
+    var classBody = declaration.body as BlockClassBody;
+    expect(classBody.leftBracket, isNotNull);
+    expect(classBody.members, hasLength(0));
+    expect(classBody.rightBracket, isNotNull);
   }
 
   void test_parseClassDeclaration_extendsAndImplements() {
@@ -177,11 +186,14 @@ class TopLevelParserTest extends FastaParserTestCase {
     expect(declaration.extendsClause, isNotNull);
     expect(declaration.implementsClause, isNotNull);
     expect(declaration.classKeyword, isNotNull);
-    expect(declaration.leftBracket, isNotNull);
-    expect(declaration.name, isNotNull);
-    expect(declaration.members, hasLength(0));
-    expect(declaration.rightBracket, isNotNull);
-    expect(declaration.typeParameters, isNull);
+
+    expect(declaration.namePart.typeName, isNotNull);
+    expect(declaration.namePart.typeParameters, isNull);
+
+    var classBody = declaration.body as BlockClassBody;
+    expect(classBody.leftBracket, isNotNull);
+    expect(classBody.members, hasLength(0));
+    expect(classBody.rightBracket, isNotNull);
   }
 
   void test_parseClassDeclaration_extendsAndWith() {
@@ -194,14 +206,17 @@ class TopLevelParserTest extends FastaParserTestCase {
     expect(declaration.documentationComment, isNull);
     expect(declaration.abstractKeyword, isNull);
     expect(declaration.classKeyword, isNotNull);
-    expect(declaration.name, isNotNull);
-    expect(declaration.typeParameters, isNull);
     expect(declaration.extendsClause, isNotNull);
     expect(declaration.withClause, isNotNull);
     expect(declaration.implementsClause, isNull);
-    expect(declaration.leftBracket, isNotNull);
-    expect(declaration.members, hasLength(0));
-    expect(declaration.rightBracket, isNotNull);
+
+    expect(declaration.namePart.typeName, isNotNull);
+    expect(declaration.namePart.typeParameters, isNull);
+
+    var classBody = declaration.body as BlockClassBody;
+    expect(classBody.leftBracket, isNotNull);
+    expect(classBody.members, hasLength(0));
+    expect(classBody.rightBracket, isNotNull);
   }
 
   void test_parseClassDeclaration_extendsAndWithAndImplements() {
@@ -214,14 +229,17 @@ class TopLevelParserTest extends FastaParserTestCase {
     expect(declaration.documentationComment, isNull);
     expect(declaration.abstractKeyword, isNull);
     expect(declaration.classKeyword, isNotNull);
-    expect(declaration.name, isNotNull);
-    expect(declaration.typeParameters, isNull);
     expect(declaration.extendsClause, isNotNull);
     expect(declaration.withClause, isNotNull);
     expect(declaration.implementsClause, isNotNull);
-    expect(declaration.leftBracket, isNotNull);
-    expect(declaration.members, hasLength(0));
-    expect(declaration.rightBracket, isNotNull);
+
+    expect(declaration.namePart.typeName, isNotNull);
+    expect(declaration.namePart.typeParameters, isNull);
+
+    var classBody = declaration.body as BlockClassBody;
+    expect(classBody.leftBracket, isNotNull);
+    expect(classBody.members, hasLength(0));
+    expect(classBody.rightBracket, isNotNull);
   }
 
   void test_parseClassDeclaration_implements() {
@@ -236,11 +254,14 @@ class TopLevelParserTest extends FastaParserTestCase {
     expect(declaration.extendsClause, isNull);
     expect(declaration.implementsClause, isNotNull);
     expect(declaration.classKeyword, isNotNull);
-    expect(declaration.leftBracket, isNotNull);
-    expect(declaration.name, isNotNull);
-    expect(declaration.members, hasLength(0));
-    expect(declaration.rightBracket, isNotNull);
-    expect(declaration.typeParameters, isNull);
+
+    expect(declaration.namePart.typeName, isNotNull);
+    expect(declaration.namePart.typeParameters, isNull);
+
+    var classBody = declaration.body as BlockClassBody;
+    expect(classBody.leftBracket, isNotNull);
+    expect(classBody.members, hasLength(0));
+    expect(classBody.rightBracket, isNotNull);
   }
 
   void test_parseClassDeclaration_metadata() {
@@ -374,11 +395,14 @@ class A native 'something' {
     expect(declaration.extendsClause, isNull);
     expect(declaration.implementsClause, isNull);
     expect(declaration.classKeyword, isNotNull);
-    expect(declaration.leftBracket, isNotNull);
-    expect(declaration.name, isNotNull);
-    expect(declaration.members, hasLength(1));
-    expect(declaration.rightBracket, isNotNull);
-    expect(declaration.typeParameters, isNull);
+
+    expect(declaration.namePart.typeName, isNotNull);
+    expect(declaration.namePart.typeParameters, isNull);
+
+    var classBody = declaration.body as BlockClassBody;
+    expect(classBody.leftBracket, isNotNull);
+    expect(classBody.members, hasLength(1));
+    expect(classBody.rightBracket, isNotNull);
   }
 
   void test_parseClassDeclaration_typeAlias_implementsC() {
@@ -427,12 +451,14 @@ class A native 'something' {
     expect(declaration.extendsClause, isNull);
     expect(declaration.implementsClause, isNull);
     expect(declaration.classKeyword, isNotNull);
-    expect(declaration.leftBracket, isNotNull);
-    expect(declaration.name, isNotNull);
-    expect(declaration.members, hasLength(0));
-    expect(declaration.rightBracket, isNotNull);
-    expect(declaration.typeParameters, isNotNull);
-    expect(declaration.typeParameters!.typeParameters, hasLength(1));
+
+    expect(declaration.namePart.typeName, isNotNull);
+    expect(declaration.namePart.typeParameters!.typeParameters, hasLength(1));
+
+    var classBody = declaration.body as BlockClassBody;
+    expect(classBody.leftBracket, isNotNull);
+    expect(classBody.members, hasLength(0));
+    expect(classBody.rightBracket, isNotNull);
   }
 
   void test_parseClassDeclaration_typeParameters_extends_void() {
@@ -653,8 +679,9 @@ class A native 'something' {
     assertNoErrors();
     expect(member, isClassDeclaration);
     var declaration = member as ClassDeclaration;
-    expect(declaration.name.lexeme, "A");
-    expect(declaration.members, hasLength(0));
+
+    expect(declaration.namePart.typeName, isNotNull);
+    expect(declaration.namePart.typeParameters, isNull);
   }
 
   void test_parseCompilationUnitMember_classTypeAlias() {
@@ -1314,10 +1341,10 @@ Function(int, String) v;
     assertNoErrors();
     expect(declaration.documentationComment, isNull);
     expect(declaration.enumKeyword, isNotNull);
-    expect(declaration.leftBracket, isNotNull);
-    expect(declaration.name, isNotNull);
-    expect(declaration.constants, hasLength(1));
-    expect(declaration.rightBracket, isNotNull);
+    expect(declaration.body.leftBracket, isNotNull);
+    expect(declaration.namePart.typeName, isNotNull);
+    expect(declaration.body.constants, hasLength(1));
+    expect(declaration.body.rightBracket, isNotNull);
   }
 
   void test_parseEnumDeclaration_trailingComma() {
@@ -1327,10 +1354,10 @@ Function(int, String) v;
     assertNoErrors();
     expect(declaration.documentationComment, isNull);
     expect(declaration.enumKeyword, isNotNull);
-    expect(declaration.leftBracket, isNotNull);
-    expect(declaration.name, isNotNull);
-    expect(declaration.constants, hasLength(1));
-    expect(declaration.rightBracket, isNotNull);
+    expect(declaration.body.leftBracket, isNotNull);
+    expect(declaration.namePart.typeName, isNotNull);
+    expect(declaration.body.constants, hasLength(1));
+    expect(declaration.body.rightBracket, isNotNull);
   }
 
   void test_parseEnumDeclaration_two() {
@@ -1340,10 +1367,10 @@ Function(int, String) v;
     assertNoErrors();
     expect(declaration.documentationComment, isNull);
     expect(declaration.enumKeyword, isNotNull);
-    expect(declaration.leftBracket, isNotNull);
-    expect(declaration.name, isNotNull);
-    expect(declaration.constants, hasLength(2));
-    expect(declaration.rightBracket, isNotNull);
+    expect(declaration.body.leftBracket, isNotNull);
+    expect(declaration.namePart.typeName, isNotNull);
+    expect(declaration.body.constants, hasLength(2));
+    expect(declaration.body.rightBracket, isNotNull);
   }
 
   void test_parseEnumDeclaration_withDocComment_onEnum() {
@@ -1359,7 +1386,7 @@ enum E {
   ONE
 }''');
     var declaration = parseFullCompilationUnitMember() as EnumDeclaration;
-    var value = declaration.constants[0];
+    var value = declaration.body.constants[0];
     expectCommentText(value.documentationComment, '/// Doc');
   }
 
@@ -1372,7 +1399,7 @@ enum E {
 }
 ''');
     var declaration = parseFullCompilationUnitMember() as EnumDeclaration;
-    var value = declaration.constants[0];
+    var value = declaration.body.constants[0];
     expectCommentText(value.documentationComment, '/// Doc');
     expect(value.metadata, hasLength(1));
   }
@@ -1924,10 +1951,10 @@ enum E {
     expect(declaration.onClause, isNull);
     expect(declaration.implementsClause, isNull);
     expect(declaration.mixinKeyword, isNotNull);
-    expect(declaration.leftBracket, isNotNull);
+    expect(declaration.body.leftBracket, isNotNull);
     expect(declaration.name.lexeme, 'A');
-    expect(declaration.members, hasLength(0));
-    expect(declaration.rightBracket, isNotNull);
+    expect(declaration.body.members, hasLength(0));
+    expect(declaration.body.rightBracket, isNotNull);
     expect(declaration.typeParameters, isNull);
   }
 
@@ -1946,10 +1973,10 @@ enum E {
     expect(interfaces[0].name.lexeme, 'B');
     expect(interfaces[0].typeArguments, isNull);
     expect(declaration.mixinKeyword, isNotNull);
-    expect(declaration.leftBracket, isNotNull);
+    expect(declaration.body.leftBracket, isNotNull);
     expect(declaration.name.lexeme, 'A');
-    expect(declaration.members, hasLength(0));
-    expect(declaration.rightBracket, isNotNull);
+    expect(declaration.body.members, hasLength(0));
+    expect(declaration.body.rightBracket, isNotNull);
     expect(declaration.typeParameters, isNull);
   }
 
@@ -1970,10 +1997,10 @@ enum E {
     expect(interfaces[1].name.lexeme, 'C');
     expect(interfaces[1].typeArguments, isNull);
     expect(declaration.mixinKeyword, isNotNull);
-    expect(declaration.leftBracket, isNotNull);
+    expect(declaration.body.leftBracket, isNotNull);
     expect(declaration.name.lexeme, 'A');
-    expect(declaration.members, hasLength(0));
-    expect(declaration.rightBracket, isNotNull);
+    expect(declaration.body.members, hasLength(0));
+    expect(declaration.body.rightBracket, isNotNull);
     expect(declaration.typeParameters, isNull);
   }
 
@@ -1989,10 +2016,10 @@ enum E {
     expect(declaration.onClause, isNull);
     expect(declaration.implementsClause, isNull);
     expect(declaration.mixinKeyword, isNotNull);
-    expect(declaration.leftBracket, isNotNull);
+    expect(declaration.body.leftBracket, isNotNull);
     expect(declaration.name.lexeme, 'A');
-    expect(declaration.members, hasLength(0));
-    expect(declaration.rightBracket, isNotNull);
+    expect(declaration.body.members, hasLength(0));
+    expect(declaration.body.rightBracket, isNotNull);
     expect(declaration.typeParameters, isNull);
   }
 
@@ -2011,10 +2038,10 @@ enum E {
     expect(constraints[0].typeArguments, isNull);
     expect(declaration.implementsClause, isNull);
     expect(declaration.mixinKeyword, isNotNull);
-    expect(declaration.leftBracket, isNotNull);
+    expect(declaration.body.leftBracket, isNotNull);
     expect(declaration.name.lexeme, 'A');
-    expect(declaration.members, hasLength(0));
-    expect(declaration.rightBracket, isNotNull);
+    expect(declaration.body.members, hasLength(0));
+    expect(declaration.body.rightBracket, isNotNull);
     expect(declaration.typeParameters, isNull);
   }
 
@@ -2035,10 +2062,10 @@ enum E {
     expect(constraints[1].typeArguments!.arguments, hasLength(1));
     expect(declaration.implementsClause, isNull);
     expect(declaration.mixinKeyword, isNotNull);
-    expect(declaration.leftBracket, isNotNull);
+    expect(declaration.body.leftBracket, isNotNull);
     expect(declaration.name.lexeme, 'A');
-    expect(declaration.members, hasLength(0));
-    expect(declaration.rightBracket, isNotNull);
+    expect(declaration.body.members, hasLength(0));
+    expect(declaration.body.rightBracket, isNotNull);
     expect(declaration.typeParameters, isNull);
   }
 
@@ -2062,10 +2089,10 @@ enum E {
     expect(interfaces[0].name.lexeme, 'C');
     expect(interfaces[0].typeArguments, isNull);
     expect(declaration.mixinKeyword, isNotNull);
-    expect(declaration.leftBracket, isNotNull);
+    expect(declaration.body.leftBracket, isNotNull);
     expect(declaration.name.lexeme, 'A');
-    expect(declaration.members, hasLength(0));
-    expect(declaration.rightBracket, isNotNull);
+    expect(declaration.body.members, hasLength(0));
+    expect(declaration.body.rightBracket, isNotNull);
     expect(declaration.typeParameters, isNull);
   }
 
@@ -2085,10 +2112,10 @@ mixin A {
     expect(declaration.onClause, isNull);
     expect(declaration.implementsClause, isNull);
     expect(declaration.mixinKeyword, isNotNull);
-    expect(declaration.leftBracket, isNotNull);
+    expect(declaration.body.leftBracket, isNotNull);
     expect(declaration.name.lexeme, 'A');
-    expect(declaration.members, hasLength(4));
-    expect(declaration.rightBracket, isNotNull);
+    expect(declaration.body.members, hasLength(4));
+    expect(declaration.body.rightBracket, isNotNull);
     expect(declaration.typeParameters, isNull);
   }
 
@@ -2497,7 +2524,8 @@ class A<
     B> {}
 ''');
     var classDeclaration = parseFullCompilationUnitMember() as ClassDeclaration;
-    var typeVariable = classDeclaration.typeParameters!.typeParameters[0];
+    var typeVariable =
+        classDeclaration.namePart.typeParameters!.typeParameters[0];
     expectCommentText(typeVariable.documentationComment, '/// Doc');
   }
 }

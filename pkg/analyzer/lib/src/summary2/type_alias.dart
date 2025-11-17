@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/dart/element/element.dart';
@@ -102,11 +101,7 @@ class _Finder {
           }
           if (typeNode is ClassDeclaration) {
             if (visited.add(typeNode)) {
-              _typeParameterList(
-                useDeclaringConstructorsAst
-                    ? typeNode.namePart.typeParameters
-                    : typeNode.typeParameters,
-              );
+              _typeParameterList(typeNode.namePart.typeParameters);
             }
           } else if (typeNode is ClassTypeAlias) {
             if (visited.add(typeNode)) {

@@ -277,7 +277,10 @@ class _DartNavigationComputerVisitor extends RecursiveAstVisitor<void> {
 
   @override
   void visitClassDeclaration(ClassDeclaration node) {
-    computer._addRegionForFragment(node.name, node.declaredFragment);
+    computer._addRegionForFragment(
+      node.namePart.typeName,
+      node.declaredFragment,
+    );
     super.visitClassDeclaration(node);
   }
 
@@ -421,7 +424,10 @@ class _DartNavigationComputerVisitor extends RecursiveAstVisitor<void> {
 
   @override
   void visitEnumDeclaration(EnumDeclaration node) {
-    computer._addRegionForFragment(node.name, node.declaredFragment);
+    computer._addRegionForFragment(
+      node.namePart.typeName,
+      node.declaredFragment,
+    );
     super.visitEnumDeclaration(node);
   }
 
@@ -439,7 +445,10 @@ class _DartNavigationComputerVisitor extends RecursiveAstVisitor<void> {
 
   @override
   void visitExtensionTypeDeclaration(ExtensionTypeDeclaration node) {
-    computer._addRegionForFragment(node.name, node.declaredFragment);
+    computer._addRegionForFragment(
+      node.primaryConstructor.typeName,
+      node.declaredFragment,
+    );
     super.visitExtensionTypeDeclaration(node);
   }
 
@@ -534,6 +543,23 @@ class _DartNavigationComputerVisitor extends RecursiveAstVisitor<void> {
   }
 
   @override
+  void visitNameWithTypeParameters(NameWithTypeParameters node) {
+    if (node.parent case ClassDeclaration declaration) {
+      computer._addRegionForFragment(
+        node.typeName,
+        declaration.declaredFragment,
+      );
+    }
+    if (node.parent case EnumDeclaration declaration) {
+      computer._addRegionForFragment(
+        node.typeName,
+        declaration.declaredFragment,
+      );
+    }
+    super.visitNameWithTypeParameters(node);
+  }
+
+  @override
   void visitPartDirective(PartDirective node) {
     var include = node.partInclude;
     if (include != null) {
@@ -598,6 +624,25 @@ class _DartNavigationComputerVisitor extends RecursiveAstVisitor<void> {
   void visitPrefixExpression(PrefixExpression node) {
     computer._addRegionForElement(node.operator, node.element);
     super.visitPrefixExpression(node);
+  }
+
+  @override
+  void visitPrimaryConstructorDeclaration(PrimaryConstructorDeclaration node) {
+    if (node.parent case ExtensionTypeDeclaration declaration) {
+      computer._addRegionForFragment(
+        node.typeName,
+        declaration.declaredFragment,
+      );
+    }
+    super.visitPrimaryConstructorDeclaration(node);
+  }
+
+  @override
+  void visitPrimaryConstructorName(PrimaryConstructorName node) {
+    if (node.parent case PrimaryConstructorDeclaration primary) {
+      computer._addRegionForFragment(node.name, primary.declaredFragment);
+    }
+    super.visitPrimaryConstructorName(node);
   }
 
   @override

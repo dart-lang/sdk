@@ -3090,7 +3090,8 @@ class B<T2, U2> {
     await assertNoErrorsInCode(code);
 
     var b = unit.declarations[1] as ClassDeclaration;
-    var bConstructor = b.members[0] as ConstructorDeclaration;
+    var classBody = b.body as BlockClassBody;
+    var bConstructor = classBody.members[0] as ConstructorDeclaration;
     var redirected = bConstructor.redirectedConstructor as ConstructorName;
 
     var typeName = redirected.type;
@@ -3123,7 +3124,8 @@ class B<T2, U2> {
 ''');
 
     var b = result.unit.declarations[1] as ClassDeclaration;
-    var bConstructor = b.members[0] as ConstructorDeclaration;
+    var classBody = b.body as BlockClassBody;
+    var bConstructor = classBody.members[0] as ConstructorDeclaration;
     var redirected = bConstructor.redirectedConstructor as ConstructorName;
 
     var typeName = redirected.type;

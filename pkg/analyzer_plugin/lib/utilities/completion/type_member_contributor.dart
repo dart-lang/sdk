@@ -149,7 +149,7 @@ class _LocalBestTypeVisitor extends LocalDeclarationVisitor {
 
   @override
   void declaredClass(ClassDeclaration declaration) {
-    if (declaration.name.lexeme == targetName) {
+    if (declaration.namePart.typeName.lexeme == targetName) {
       // no type
       finished();
     }

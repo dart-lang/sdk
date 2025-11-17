@@ -29,7 +29,7 @@ class UnnecessaryConstructorName extends AnalysisRule {
   ) {
     var visitor = _Visitor(this);
     registry.addConstructorDeclaration(this, visitor);
-    registry.addRepresentationConstructorName(this, visitor);
+    registry.addPrimaryConstructorName(this, visitor);
     registry.addInstanceCreationExpression(this, visitor);
   }
 }
@@ -41,9 +41,9 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   @override
   void visitConstructorDeclaration(ConstructorDeclaration node) {
-    var parent = node.parent;
+    var parent = node.parent?.parent;
     if (parent is ExtensionTypeDeclaration &&
-        parent.representation.constructorName == null) {
+        parent.primaryConstructor.constructorName == null) {
       return;
     }
 
@@ -56,7 +56,7 @@ class _Visitor extends SimpleAstVisitor<void> {
   }
 
   @override
-  void visitRepresentationConstructorName(RepresentationConstructorName node) {
+  void visitPrimaryConstructorName(PrimaryConstructorName node) {
     _check(node.name);
   }
 

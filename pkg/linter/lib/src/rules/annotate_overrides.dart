@@ -55,7 +55,7 @@ class _Visitor extends SimpleAstVisitor<void> {
   void visitFieldDeclaration(FieldDeclaration node) {
     if (node.isAugmentation) return;
     if (node.isStatic) return;
-    if (node.parent is ExtensionTypeDeclaration) return;
+    if (node.parent?.parent is ExtensionTypeDeclaration) return;
 
     for (var field in node.fields.variables) {
       check(field.declaredFragment?.element, field.name);
@@ -66,7 +66,7 @@ class _Visitor extends SimpleAstVisitor<void> {
   void visitMethodDeclaration(MethodDeclaration node) {
     if (node.isAugmentation) return;
     if (node.isStatic) return;
-    if (node.parent is ExtensionTypeDeclaration) return;
+    if (node.parent?.parent is ExtensionTypeDeclaration) return;
 
     check(node.declaredFragment?.element, node.name);
   }

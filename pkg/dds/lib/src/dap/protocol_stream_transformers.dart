@@ -78,7 +78,7 @@ class PacketTransformer extends StreamTransformerBase<List<int>, String> {
 
   /// Whether [buffer] ends in '\r\n\r\n'.
   static bool _endsWithCrLfCrLf(List<int> buffer) {
-    var l = buffer.length;
+    final l = buffer.length;
     return l > 4 &&
         buffer[l - 1] == 10 &&
         buffer[l - 2] == 13 &&

@@ -4,7 +4,6 @@
 
 import 'dart:typed_data';
 
-import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
@@ -361,39 +360,9 @@ class InformativeDataApplier {
     });
 
     DeferredResolutionReadingHelper.withoutLoadingResolution(() {
-      if (!useDeclaringConstructorsAst) {
-        var primaryConstructor = element.constructors.first;
-        primaryConstructor.setCodeRange(infoRep.codeOffset, infoRep.codeLength);
-        primaryConstructor.typeNameOffset = info.nameOffset;
-        primaryConstructor.periodOffset = infoRep.constructorPeriodOffset;
-        primaryConstructor.firstTokenOffset = infoRep.firstTokenOffset;
-        primaryConstructor.nameOffset = infoRep.constructorNameOffset;
-        primaryConstructor.nameEnd = infoRep.constructorNameEnd;
-
-        DeferredResolutionReadingHelper.withoutLoadingResolution(() {
-          var representation = primaryConstructor.formalParameters.first;
-          representation.firstTokenOffset = infoRep.fieldFirstTokenOffset;
-          representation.nameOffset = infoRep.fieldNameOffset;
-          representation.setCodeRange(infoRep.codeOffset, infoRep.codeLength);
-          primaryConstructor.deferConstantOffsets(
-            infoRep.fieldConstantOffsets,
-            (applier) {
-              applier.applyToMetadata(representation.metadata);
-            },
-          );
-        });
-      }
-
       var restFields = element.fields.skip(1).toList();
       _applyToFields(restFields, info.fields);
-
-      if (useDeclaringConstructorsAst) {
-        _applyToConstructors(element.constructors, info.constructors);
-      } else {
-        var restConstructors = element.constructors.skip(1).toList();
-        _applyToConstructors(restConstructors, info.constructors);
-      }
-
+      _applyToConstructors(element.constructors, info.constructors);
       _applyToAccessors(element.getters, info.getters);
       _applyToAccessors(element.setters, info.setters);
       _applyToMethods(element.methods, info.methods);
@@ -682,26 +651,15 @@ class _InfoBuilder {
   }
 
   _InfoClassDeclaration _buildClass(ClassDeclaration node) {
-    if (useDeclaringConstructorsAst) {
-      return _InfoClassDeclaration(
-        data: _buildInterfaceData(
-          node,
-          name: node.namePart.typeName,
-          typeParameters: node.namePart.typeParameters,
-          primaryConstructor: node.namePart.ifTypeOrNull(),
-          members: node.body.ifTypeOrNull<BlockClassBody>()?.members ?? [],
-        ),
-      );
-    } else {
-      return _InfoClassDeclaration(
-        data: _buildInterfaceData(
-          node,
-          name: node.name,
-          typeParameters: node.typeParameters,
-          members: node.members,
-        ),
-      );
-    }
+    return _InfoClassDeclaration(
+      data: _buildInterfaceData(
+        node,
+        name: node.namePart.typeName,
+        typeParameters: node.namePart.typeParameters,
+        primaryConstructor: node.namePart.ifTypeOrNull(),
+        members: node.body.ifTypeOrNull<BlockClassBody>()?.members ?? [],
+      ),
+    );
   }
 
   List<_InfoClassDeclaration> _buildClasses(CompilationUnit unit) {
@@ -831,40 +789,22 @@ class _InfoBuilder {
   }
 
   _InfoEnumDeclaration _buildEnum(EnumDeclaration node) {
-    if (useDeclaringConstructorsAst) {
-      return _InfoEnumDeclaration(
-        data: _buildInterfaceData(
-          node,
-          name: node.namePart.typeName,
-          typeParameters: node.namePart.typeParameters,
-          primaryConstructor: node.namePart.ifTypeOrNull(),
-          members: node.body.members,
-          fields: [
-            ...node.body.constants.map(_buildEnumConstant),
-            ...node.body.members
-                .whereType<FieldDeclaration>()
-                .expand((node) => node.fields.variables)
-                .map((node) => _buildField(node)),
-          ],
-        ),
-      );
-    } else {
-      return _InfoEnumDeclaration(
-        data: _buildInterfaceData(
-          node,
-          name: node.name,
-          typeParameters: node.typeParameters,
-          members: node.members,
-          fields: [
-            ...node.constants.map(_buildEnumConstant),
-            ...node.members
-                .whereType<FieldDeclaration>()
-                .expand((node) => node.fields.variables)
-                .map((node) => _buildField(node)),
-          ],
-        ),
-      );
-    }
+    return _InfoEnumDeclaration(
+      data: _buildInterfaceData(
+        node,
+        name: node.namePart.typeName,
+        typeParameters: node.namePart.typeParameters,
+        primaryConstructor: node.namePart.ifTypeOrNull(),
+        members: node.body.members,
+        fields: [
+          ...node.body.constants.map(_buildEnumConstant),
+          ...node.body.members
+              .whereType<FieldDeclaration>()
+              .expand((node) => node.fields.variables)
+              .map((node) => _buildField(node)),
+        ],
+      ),
+    );
   }
 
   _InfoFieldDeclaration _buildEnumConstant(EnumConstantDeclaration node) {
@@ -909,7 +849,7 @@ class _InfoBuilder {
         node,
         name: node.name,
         typeParameters: node.typeParameters,
-        members: useDeclaringConstructorsAst ? node.body.members : node.members,
+        members: node.body.members,
       ),
     );
   }
@@ -924,30 +864,18 @@ class _InfoBuilder {
   _InfoExtensionTypeDeclaration _buildExtensionType(
     ExtensionTypeDeclaration node,
   ) {
-    if (useDeclaringConstructorsAst) {
-      return _InfoExtensionTypeDeclaration(
-        data: _buildInterfaceData(
-          node,
-          name: node.primaryConstructor.typeName,
-          typeParameters: node.primaryConstructor.typeParameters,
-          primaryConstructor: node.primaryConstructor.ifTypeOrNull(),
-          members: node.body.ifTypeOrNull<BlockClassBody>()?.members ?? [],
-        ),
-        representation: _buildExtensionTypeRepresentationFromPrimaryConstructor(
-          node.primaryConstructor,
-        ),
-      );
-    } else {
-      return _InfoExtensionTypeDeclaration(
-        data: _buildInterfaceData(
-          node,
-          name: node.name,
-          typeParameters: node.typeParameters,
-          members: node.members,
-        ),
-        representation: _buildRepresentation(node, node.representation),
-      );
-    }
+    return _InfoExtensionTypeDeclaration(
+      data: _buildInterfaceData(
+        node,
+        name: node.primaryConstructor.typeName,
+        typeParameters: node.primaryConstructor.typeParameters,
+        primaryConstructor: node.primaryConstructor.ifTypeOrNull(),
+        members: node.body.ifTypeOrNull<BlockClassBody>()?.members ?? [],
+      ),
+      representation: _buildExtensionTypeRepresentationFromPrimaryConstructor(
+        node.primaryConstructor,
+      ),
+    );
   }
 
   _InfoExtensionTypeRepresentation
@@ -1223,7 +1151,7 @@ class _InfoBuilder {
         node,
         name: node.name,
         typeParameters: node.typeParameters,
-        members: useDeclaringConstructorsAst ? node.body.members : node.members,
+        members: node.body.members,
       ),
     );
   }
@@ -1260,28 +1188,6 @@ class _InfoBuilder {
       typeNameOffset: node.typeName.offset,
       periodOffset: node.constructorName?.period.offset,
       nameEnd: (node.constructorName?.name ?? node.typeName).end,
-    );
-  }
-
-  _InfoExtensionTypeRepresentation _buildRepresentation(
-    ExtensionTypeDeclaration extension,
-    RepresentationDeclaration node,
-  ) {
-    var constructorName = node.constructorName;
-    var firstTokenOffset =
-        extension.constKeyword?.offset ?? extension.name.offset;
-    var endOffset = node.end;
-    return _InfoExtensionTypeRepresentation(
-      firstTokenOffset: firstTokenOffset,
-      codeOffset: firstTokenOffset,
-      codeLength: endOffset - firstTokenOffset,
-      constructorPeriodOffset: constructorName?.period.offset,
-      constructorNameOffset: constructorName?.name.offsetIfNotEmpty,
-      constructorNameEnd: node.leftParenthesis.offset,
-      fieldFirstTokenOffset:
-          node.fieldMetadata.firstOrNull?.offset ?? node.fieldType.offset,
-      fieldNameOffset: node.fieldName.offsetIfNotEmpty,
-      fieldConstantOffsets: _buildConstantOffsets(metadata: node.fieldMetadata),
     );
   }
 

@@ -44,12 +44,12 @@ A f(var p) {
       nodes,
     );
     visitor.visitAllNodes(unit);
-    expect(nodes, hasLength(47));
+    expect(nodes, hasLength(51));
     expect(nodes[0], isCompilationUnit);
     expect(nodes[2], isClassDeclaration);
     expect(nodes[3], isFunctionDeclaration);
-    expect(nodes[19], isFunctionDeclarationStatement);
-    expect(nodes[46], isIntegerLiteral); // 3
+    expect(nodes[24], isFunctionDeclarationStatement);
+    expect(nodes[50], isIntegerLiteral); // 3
   }
 }
 

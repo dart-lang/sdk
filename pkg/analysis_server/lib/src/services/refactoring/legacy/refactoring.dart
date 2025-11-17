@@ -539,6 +539,10 @@ abstract class RenameRefactoring implements Refactoring {
     AstNode node,
     Element? element,
   ) {
+    if (node is ClassNamePart) {
+      node = node.parent!;
+    }
+
     // TODO(scheglov): This is bad code.
     SyntacticEntity? nameNode;
     if (node is AssignedVariablePattern) {
@@ -572,6 +576,8 @@ abstract class RenameRefactoring implements Refactoring {
     } else if (node is NamedCompilationUnitMember) {
       nameNode = node.name;
     } else if (node is NamedType) {
+      nameNode = node.name;
+    } else if (node is PrimaryConstructorName) {
       nameNode = node.name;
     } else if (node is RepresentationConstructorName) {
       nameNode = node.name;

@@ -16,6 +16,8 @@ import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
 import 'package:collection/collection.dart';
 
+import '../../../utilities/extensions/ast.dart';
+
 class AddKeyToConstructors extends ResolvedCorrectionProducer {
   AddKeyToConstructors({required super.context});
 
@@ -33,8 +35,8 @@ class AddKeyToConstructors extends ResolvedCorrectionProducer {
   Future<void> compute(ChangeBuilder builder) async {
     var node = this.node;
     var parent = node.parent;
-    if (node is ClassDeclaration) {
-      await _computeClassDeclaration(builder, node);
+    if (parent is ClassDeclaration) {
+      await _computeClassDeclaration(builder, parent);
     } else if (node is ConstructorDeclaration) {
       await _computeConstructorDeclaration(builder, node);
     } else if (parent is ConstructorDeclaration) {
@@ -53,7 +55,7 @@ class AddKeyToConstructors extends ResolvedCorrectionProducer {
       }
     }
 
-    for (var member in classDeclaration.members) {
+    for (var member in classDeclaration.members2) {
       if (member is FieldDeclaration && !member.isStatic) {
         if (!member.fields.isFinal) {
           return false;
@@ -79,7 +81,7 @@ class AddKeyToConstructors extends ResolvedCorrectionProducer {
     if (keyType == null) {
       return;
     }
-    var className = node.name.lexeme;
+    var className = node.namePart.typeName.lexeme;
     var constructors = node.declaredFragment!.element.supertype?.constructors;
     if (constructors == null) {
       return;

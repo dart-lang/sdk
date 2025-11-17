@@ -15,12 +15,90 @@ import '../../diagnostics/parser_diagnostics.dart';
 
 main() {
   defineReflectiveSuite(() {
-    defineReflectiveTests(ToSourceVisitorTest_not_declaringConstructors);
-    defineReflectiveTests(ToSourceVisitorTest_declaringConstructors);
+    defineReflectiveTests(ToSourceVisitorTest);
   });
 }
 
+@reflectiveTest
 class ToSourceVisitorTest extends ParserDiagnosticsTest {
+  test_class_emptyBody() {
+    var code = 'class A;';
+    var findNode = _parseStringToFindNode(code);
+    _assertSource(code, findNode.classDeclaration(code));
+  }
+
+  test_class_primaryConstructor_const_named() {
+    var code = 'class const A<T>.named() {}';
+    var findNode = _parseStringToFindNode(code);
+    _assertSource(code, findNode.classDeclaration(code));
+  }
+
+  test_class_primaryConstructor_const_unnamed() {
+    var code = 'class A() {}';
+    var findNode = _parseStringToFindNode(code);
+    _assertSource(code, findNode.classDeclaration(code));
+  }
+
+  test_class_primaryConstructor_declaringFormalParameter_optionalNamed() {
+    var code = 'class A({final int a = 0}) {}';
+    var findNode = _parseStringToFindNode(code);
+    _assertSource(code, findNode.classDeclaration(code));
+  }
+
+  test_class_primaryConstructor_declaringFormalParameter_requiredPositional() {
+    var code = 'class A(final int a) {}';
+    var findNode = _parseStringToFindNode(code);
+    _assertSource(code, findNode.classDeclaration(code));
+  }
+
+  test_class_primaryConstructor_fieldFormalParameter() {
+    var code = 'class A(int this.a) {}';
+    var findNode = _parseStringToFindNode(code);
+    _assertSource(code, findNode.classDeclaration(code));
+  }
+
+  test_class_primaryConstructor_notConst_named() {
+    var code = 'class A<T>.named() {}';
+    var findNode = _parseStringToFindNode(code);
+    _assertSource(code, findNode.classDeclaration(code));
+  }
+
+  test_class_primaryConstructor_superFormalParameter() {
+    var code = 'class A(int super.a) {}';
+    var findNode = _parseStringToFindNode(code);
+    _assertSource(code, findNode.classDeclaration(code));
+  }
+
+  test_enum_primaryConstructor_named() {
+    var code = 'enum const E<T>.named(final int a) {}';
+    var findNode = _parseStringToFindNode(code);
+    _assertSource(code, findNode.enumDeclaration(code));
+  }
+
+  test_enum_primaryConstructor_unnamed() {
+    var code = 'enum E<T>(final int a) {}';
+    var findNode = _parseStringToFindNode(code);
+    _assertSource(code, findNode.enumDeclaration(code));
+  }
+
+  test_extensionType_emptyBody() {
+    var code = 'extension type A(int it);';
+    var findNode = _parseStringToFindNode(code);
+    _assertSource(code, findNode.extensionTypeDeclaration(code));
+  }
+
+  test_extensionType_primaryConstructor_named() {
+    var code = 'extension type const A<T>.named(int it) {}';
+    var findNode = _parseStringToFindNode(code);
+    _assertSource(code, findNode.extensionTypeDeclaration(code));
+  }
+
+  test_extensionType_primaryConstructor_unnamed() {
+    var code = 'extension type A<T>(int it) {}';
+    var findNode = _parseStringToFindNode(code);
+    _assertSource(code, findNode.extensionTypeDeclaration(code));
+  }
+
   void test_visitAdjacentStrings() {
     var findNode = _parseStringToFindNode(r'''
 var v = 'a' 'b';
@@ -2935,6 +3013,48 @@ var v = !(a == b);
     _assertSource('!(a == b)', findNode.prefix('!'));
   }
 
+  void test_visitPrimaryConstructorBody_block() {
+    var code = 'this {foo();}';
+    var findNode = _parseStringToFindNode('''
+class A() {
+  $code
+}
+''');
+    _assertSource(code, findNode.singlePrimaryConstructorBody);
+  }
+
+  void test_visitPrimaryConstructorBody_initializers() {
+    var code = 'this : x = 0, y = 1;';
+    var findNode = _parseStringToFindNode('''
+class A() {
+  final int x;
+  final int y;
+  $code
+}
+''');
+    _assertSource(code, findNode.singlePrimaryConstructorBody);
+  }
+
+  void test_visitPrimaryConstructorBody_metadata() {
+    var code = '@deprecated this;';
+    var findNode = _parseStringToFindNode('''
+class A() {
+  $code
+}
+''');
+    _assertSource(code, findNode.singlePrimaryConstructorBody);
+  }
+
+  void test_visitPrimaryConstructorBody_simple() {
+    var code = 'this;';
+    var findNode = _parseStringToFindNode('''
+class A() {
+  $code
+}
+''');
+    _assertSource(code, findNode.singlePrimaryConstructorBody);
+  }
+
   void test_visitPropertyAccess() {
     var code = '(foo).bar';
     var findNode = _parseStringToFindNode('''
@@ -3865,152 +3985,5 @@ void f() sync* {
       featureSet: featureSet ?? FeatureSets.latestWithExperiments,
     );
     return FindNode(parseResult.content, parseResult.unit);
-  }
-}
-
-@reflectiveTest
-class ToSourceVisitorTest_declaringConstructors extends ToSourceVisitorTest {
-  @override
-  void setUp() {
-    super.setUp();
-    useDeclaringConstructorsAst = true;
-  }
-
-  test_class_emptyBody() {
-    var code = 'class A;';
-    var findNode = _parseStringToFindNode(code);
-    _assertSource(code, findNode.classDeclaration(code));
-  }
-
-  test_class_primaryConstructor_const_named() {
-    var code = 'class const A<T>.named() {}';
-    var findNode = _parseStringToFindNode(code);
-    _assertSource(code, findNode.classDeclaration(code));
-  }
-
-  test_class_primaryConstructor_const_unnamed() {
-    var code = 'class A() {}';
-    var findNode = _parseStringToFindNode(code);
-    _assertSource(code, findNode.classDeclaration(code));
-  }
-
-  test_class_primaryConstructor_declaringFormalParameter_optionalNamed() {
-    var code = 'class A({final int a = 0}) {}';
-    var findNode = _parseStringToFindNode(code);
-    _assertSource(code, findNode.classDeclaration(code));
-  }
-
-  test_class_primaryConstructor_declaringFormalParameter_requiredPositional() {
-    var code = 'class A(final int a) {}';
-    var findNode = _parseStringToFindNode(code);
-    _assertSource(code, findNode.classDeclaration(code));
-  }
-
-  test_class_primaryConstructor_fieldFormalParameter() {
-    var code = 'class A(int this.a) {}';
-    var findNode = _parseStringToFindNode(code);
-    _assertSource(code, findNode.classDeclaration(code));
-  }
-
-  test_class_primaryConstructor_notConst_named() {
-    var code = 'class A<T>.named() {}';
-    var findNode = _parseStringToFindNode(code);
-    _assertSource(code, findNode.classDeclaration(code));
-  }
-
-  test_class_primaryConstructor_superFormalParameter() {
-    var code = 'class A(int super.a) {}';
-    var findNode = _parseStringToFindNode(code);
-    _assertSource(code, findNode.classDeclaration(code));
-  }
-
-  test_enum_primaryConstructor_named() {
-    var code = 'enum const E<T>.named(final int a) {}';
-    var findNode = _parseStringToFindNode(code);
-    _assertSource(code, findNode.enumDeclaration(code));
-  }
-
-  test_enum_primaryConstructor_unnamed() {
-    var code = 'enum E<T>(final int a) {}';
-    var findNode = _parseStringToFindNode(code);
-    _assertSource(code, findNode.enumDeclaration(code));
-  }
-
-  test_extensionType_emptyBody() {
-    var code = 'extension type A(int it);';
-    var findNode = _parseStringToFindNode(code);
-    _assertSource(code, findNode.extensionTypeDeclaration(code));
-  }
-
-  test_extensionType_primaryConstructor_named() {
-    var code = 'extension type const A<T>.named(int it) {}';
-    var findNode = _parseStringToFindNode(code);
-    _assertSource(code, findNode.extensionTypeDeclaration(code));
-  }
-
-  test_extensionType_primaryConstructor_unnamed() {
-    var code = 'extension type A<T>(int it) {}';
-    var findNode = _parseStringToFindNode(code);
-    _assertSource(code, findNode.extensionTypeDeclaration(code));
-  }
-
-  void test_visitPrimaryConstructorBody_block() {
-    var code = 'this {foo();}';
-    var findNode = _parseStringToFindNode('''
-class A() {
-  $code
-}
-''');
-    _assertSource(code, findNode.singlePrimaryConstructorBody);
-  }
-
-  void test_visitPrimaryConstructorBody_initializers() {
-    var code = 'this : x = 0, y = 1;';
-    var findNode = _parseStringToFindNode('''
-class A() {
-  final int x;
-  final int y;
-  $code
-}
-''');
-    _assertSource(code, findNode.singlePrimaryConstructorBody);
-  }
-
-  void test_visitPrimaryConstructorBody_metadata() {
-    var code = '@deprecated this;';
-    var findNode = _parseStringToFindNode('''
-class A() {
-  $code
-}
-''');
-    _assertSource(code, findNode.singlePrimaryConstructorBody);
-  }
-
-  void test_visitPrimaryConstructorBody_simple() {
-    var code = 'this;';
-    var findNode = _parseStringToFindNode('''
-class A() {
-  $code
-}
-''');
-    _assertSource(code, findNode.singlePrimaryConstructorBody);
-  }
-}
-
-@reflectiveTest
-class ToSourceVisitorTest_not_declaringConstructors
-    extends ToSourceVisitorTest {
-  @override
-  void setUp() {
-    super.setUp();
-    useDeclaringConstructorsAst = false;
-  }
-
-  void test_representationDeclaration() {
-    var code = '(@foo int it)';
-    var findNode = _parseStringToFindNode('''
-extension type E$code {}
-''');
-    _assertSource(code, findNode.singleRepresentationDeclaration);
   }
 }

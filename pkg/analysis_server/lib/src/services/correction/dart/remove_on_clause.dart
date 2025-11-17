@@ -32,7 +32,7 @@ class RemoveOnClause extends ResolvedCorrectionProducer {
       builder.addDeletion(
         range.startStart(
           extensionDeclaration.onClause!,
-          extensionDeclaration.leftBracket,
+          extensionDeclaration.body.leftBracket,
         ),
       );
     });

@@ -778,7 +778,7 @@ class CompletionTargetTest extends _Base {
   Future<void> test_MethodDeclaration_returnType() async {
     // ClassDeclaration  CompilationUnit
     await createTarget('class C2 {^ zoo(z) { } String name; }');
-    assertTarget('zoo(z) {}', 'class C2 {zoo(z) {} String name;}');
+    assertTarget('zoo(z) {}', ' {zoo(z) {} String name;}');
   }
 
   Future<void> test_MethodDeclaration_returnType_afterLineComment() async {
@@ -787,7 +787,7 @@ class CompletionTargetTest extends _Base {
       class C2 {
         // normal comment
         ^ zoo(z) {} String name;}''');
-    assertTarget('zoo(z) {}', 'class C2 {zoo(z) {} String name;}');
+    assertTarget('zoo(z) {}', ' {zoo(z) {} String name;}');
   }
 
   Future<void> test_MethodDeclaration_returnType_afterLineComment2() async {
@@ -797,7 +797,7 @@ class CompletionTargetTest extends _Base {
 class C2 {
   // normal comment
 ^ zoo(z) {} String name;}''');
-    assertTarget('zoo(z) {}', 'class C2 {zoo(z) {} String name;}');
+    assertTarget('zoo(z) {}', ' {zoo(z) {} String name;}');
   }
 
   Future<void> test_MethodDeclaration_returnType_afterLineDocComment() async {
@@ -821,13 +821,13 @@ class C2 {
   Future<void> test_MethodDeclaration_returnType_afterStarComment() async {
     // ClassDeclaration  CompilationUnit
     await createTarget('class C2 {/* */ ^ zoo(z) { } String name; }');
-    assertTarget('zoo(z) {}', 'class C2 {zoo(z) {} String name;}');
+    assertTarget('zoo(z) {}', ' {zoo(z) {} String name;}');
   }
 
   Future<void> test_MethodDeclaration_returnType_afterStarComment2() async {
     // ClassDeclaration  CompilationUnit
     await createTarget('class C2 {/* */^ zoo(z) { } String name; }');
-    assertTarget('zoo(z) {}', 'class C2 {zoo(z) {} String name;}');
+    assertTarget('zoo(z) {}', ' {zoo(z) {} String name;}');
   }
 
   Future<void> test_MethodDeclaration_returnType_afterStarDocComment() async {

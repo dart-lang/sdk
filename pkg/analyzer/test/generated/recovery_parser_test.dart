@@ -451,7 +451,7 @@ class B = Object with A {}''',
     expect(unit.declarations, hasLength(1));
     var classDecl = unit.childEntities.first as ClassDeclaration;
     expect(classDecl, isNotNull);
-    expect(classDecl.name.lexeme, 'foo');
+    expect(classDecl.namePart.typeName.lexeme, 'foo');
   }
 
   void test_dotShorthand_missing_identifier() {
@@ -573,7 +573,8 @@ class B = Object with A {}''',
     );
     // Make sure we recovered and parsed "var v" correctly
     ClassDeclaration declaration = unit.declarations[0] as ClassDeclaration;
-    NodeList<ClassMember> members = declaration.members;
+    var classBody = declaration.body as BlockClassBody;
+    NodeList<ClassMember> members = classBody.members;
     ClassMember fieldDecl = members[1];
     expect(fieldDecl, isFieldDeclaration);
     NodeList<VariableDeclaration> vars =
@@ -818,7 +819,8 @@ class C {
     expect(declarations, hasLength(1));
     CompilationUnitMember unitMember = declarations[0];
     expect(unitMember, isClassDeclaration);
-    NodeList<ClassMember> members = (unitMember as ClassDeclaration).members;
+    NodeList<ClassMember> members =
+        ((unitMember as ClassDeclaration).body as BlockClassBody).members;
     expect(members, hasLength(1));
     ClassMember classMember = members[0];
     expect(classMember, isFieldDeclaration);
@@ -843,7 +845,8 @@ class C {
     expect(declarations, hasLength(1));
     CompilationUnitMember unitMember = declarations[0];
     expect(unitMember, isClassDeclaration);
-    NodeList<ClassMember> members = (unitMember as ClassDeclaration).members;
+    NodeList<ClassMember> members =
+        ((unitMember as ClassDeclaration).body as BlockClassBody).members;
     expect(members, hasLength(1));
     ClassMember classMember = members[0];
     expect(classMember, isFieldDeclaration);
@@ -868,7 +871,8 @@ class C {
     expect(declarations, hasLength(1));
     CompilationUnitMember unitMember = declarations[0];
     expect(unitMember, isClassDeclaration);
-    NodeList<ClassMember> members = (unitMember as ClassDeclaration).members;
+    NodeList<ClassMember> members =
+        ((unitMember as ClassDeclaration).body as BlockClassBody).members;
     expect(members, hasLength(1));
     ClassMember classMember = members[0];
     expect(classMember, isFieldDeclaration);
@@ -894,7 +898,8 @@ class C {
     expect(declarations, hasLength(1));
     CompilationUnitMember unitMember = declarations[0];
     expect(unitMember, isClassDeclaration);
-    NodeList<ClassMember> members = (unitMember as ClassDeclaration).members;
+    NodeList<ClassMember> members =
+        ((unitMember as ClassDeclaration).body as BlockClassBody).members;
     expect(members, hasLength(1));
     ClassMember classMember = members[0];
     expect(classMember, isFieldDeclaration);
@@ -920,7 +925,8 @@ class C {
     expect(declarations, hasLength(1));
     CompilationUnitMember unitMember = declarations[0];
     expect(unitMember, isClassDeclaration);
-    NodeList<ClassMember> members = (unitMember as ClassDeclaration).members;
+    NodeList<ClassMember> members =
+        ((unitMember as ClassDeclaration).body as BlockClassBody).members;
     expect(members, hasLength(1));
     ClassMember classMember = members[0];
     expect(classMember, isFieldDeclaration);
@@ -946,7 +952,8 @@ class C {
     expect(declarations, hasLength(1));
     CompilationUnitMember unitMember = declarations[0];
     expect(unitMember, isClassDeclaration);
-    NodeList<ClassMember> members = (unitMember as ClassDeclaration).members;
+    NodeList<ClassMember> members =
+        ((unitMember as ClassDeclaration).body as BlockClassBody).members;
     expect(members, hasLength(1));
     ClassMember classMember = members[0];
     expect(classMember, isFieldDeclaration);
@@ -1057,7 +1064,7 @@ class C {
     expect(declarations, hasLength(1));
     ClassDeclaration classDecl = declarations[0] as ClassDeclaration;
     // one field declaration
-    List<ClassMember> members = classDecl.members;
+    List<ClassMember> members = (classDecl.body as BlockClassBody).members;
     expect(members, hasLength(1));
     FieldDeclaration fieldDecl = members[0] as FieldDeclaration;
     // one field
@@ -1087,7 +1094,7 @@ class C<K {
     expect(declarations, hasLength(1));
     ClassDeclaration classDecl = declarations[0] as ClassDeclaration;
     // validate the type parameters
-    var typeParameters = classDecl.typeParameters!;
+    var typeParameters = classDecl.namePart.typeParameters!;
     expect(typeParameters.typeParameters, hasLength(1));
     // synthetic '>'
     Token token = typeParameters.endToken;
@@ -1107,7 +1114,7 @@ class C<K extends L<T> {
     expect(declarations, hasLength(1));
     ClassDeclaration classDecl = declarations[0] as ClassDeclaration;
     // validate the type parameters
-    var typeParameters = classDecl.typeParameters!;
+    var typeParameters = classDecl.namePart.typeParameters!;
     expect(typeParameters.typeParameters, hasLength(1));
     // synthetic '>'
     Token token = typeParameters.endToken;
@@ -1127,7 +1134,7 @@ class C<K extends L<T {
     expect(declarations, hasLength(1));
     ClassDeclaration classDecl = declarations[0] as ClassDeclaration;
     // validate the type parameters
-    var typeParameters = classDecl.typeParameters!;
+    var typeParameters = classDecl.namePart.typeParameters!;
     expect(typeParameters.typeParameters, hasLength(1));
     // synthetic '>'
     Token token = typeParameters.endToken;
@@ -1167,8 +1174,9 @@ class C {
     expect(declarations, hasLength(1));
     // validate members
     ClassDeclaration classDecl = declarations[0] as ClassDeclaration;
-    expect(classDecl.members, hasLength(1));
-    var fields = classDecl.members.first as FieldDeclaration;
+    var classBody = classDecl.body as BlockClassBody;
+    expect(classBody.members, hasLength(1));
+    var fields = classBody.members.first as FieldDeclaration;
     expect(fields.fields.variables, hasLength(1));
     VariableDeclaration field = fields.fields.variables.first;
     expect(field.name.lexeme, 'g');
@@ -1192,7 +1200,8 @@ class C {
       ],
     );
     ClassDeclaration declaration = unit.declarations[0] as ClassDeclaration;
-    MethodDeclaration method = declaration.members[0] as MethodDeclaration;
+    var classBody = declaration.body as BlockClassBody;
+    MethodDeclaration method = classBody.members[0] as MethodDeclaration;
     BlockFunctionBody body = method.body as BlockFunctionBody;
     IfStatement ifStatement = body.block.statements[1] as IfStatement;
     IsExpression expression = ifStatement.expression as IsExpression;
@@ -1217,7 +1226,8 @@ class C {
       ],
     );
     var declaration = unit.declarations[0] as ClassDeclaration;
-    var method = declaration.members[0] as ConstructorDeclaration;
+    var classBody = declaration.body as BlockClassBody;
+    var method = classBody.members[0] as ConstructorDeclaration;
     expect(method.name!.lexeme, 'named');
     expect(method.parameters, isNotNull);
   }
@@ -1228,7 +1238,8 @@ class C {
       diagnostics: [expectedError(diag.missingMethodParameters, 10, 1)],
     );
     var declaration = unit.declarations[0] as ClassDeclaration;
-    var constructor = declaration.members[0] as ConstructorDeclaration;
+    var classBody = declaration.body as BlockClassBody;
+    var constructor = classBody.members[0] as ConstructorDeclaration;
     expect(constructor.name!.lexeme, 'named');
     expect(constructor.parameters, isNotNull);
     expect(constructor.parameters.parameters, hasLength(0));
@@ -1240,7 +1251,8 @@ class C {
       diagnostics: [expectedError(diag.missingMethodParameters, 10, 1)],
     );
     var declaration = unit.declarations[0] as ClassDeclaration;
-    var constructor = declaration.members[0] as ConstructorDeclaration;
+    var classBody = declaration.body as BlockClassBody;
+    var constructor = classBody.members[0] as ConstructorDeclaration;
     expect(constructor.name, isNull);
     expect(constructor.parameters, isNotNull);
     expect(constructor.parameters.parameters, hasLength(0));
@@ -1252,7 +1264,8 @@ class C {
       diagnostics: [expectedError(diag.missingMethodParameters, 10, 1)],
     );
     var declaration = unit.declarations[0] as ClassDeclaration;
-    var constructor = declaration.members[0] as ConstructorDeclaration;
+    var classBody = declaration.body as BlockClassBody;
+    var constructor = classBody.members[0] as ConstructorDeclaration;
     expect(constructor.name!.lexeme, 'named');
     expect(constructor.parameters, isNotNull);
     expect(constructor.parameters.parameters, hasLength(0));
@@ -1267,7 +1280,8 @@ class C {
       ],
     );
     var declaration = unit.declarations[0] as ClassDeclaration;
-    var method = declaration.members[0] as ConstructorDeclaration;
+    var classBody = declaration.body as BlockClassBody;
+    var method = classBody.members[0] as ConstructorDeclaration;
     expect(method.name!.lexeme, 'named');
     expect(method.parameters, isNotNull);
     expect(method.parameters.parameters, hasLength(0));
@@ -1433,7 +1447,8 @@ class C {
     expect(unit, isNotNull);
     ClassDeclaration classDeclaration =
         unit.declarations[0] as ClassDeclaration;
-    NodeList<ClassMember> members = classDeclaration.members;
+    var classBody = classDeclaration.body as BlockClassBody;
+    NodeList<ClassMember> members = classBody.members;
     expect(members, hasLength(2));
     expect(members[0], isMethodDeclaration);
     ClassMember member = members[1];
@@ -1564,8 +1579,9 @@ class C {
     );
     expect(unit.declarations, hasLength(1));
     var classA = unit.declarations[0] as ClassDeclaration;
-    expect(classA.members, hasLength(1));
-    var method = classA.members[0] as MethodDeclaration;
+    var classBody = classA.body as BlockClassBody;
+    expect(classBody.members, hasLength(1));
+    var method = classBody.members[0] as MethodDeclaration;
     List<FormalParameter> parameters = method.parameters!.parameters;
     expect(parameters, hasLength(3));
     expect(parameters[0].isNamed, isTrue);

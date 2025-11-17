@@ -55,7 +55,6 @@ import 'package:_fe_analyzer_shared/src/scanner/token.dart'
 import 'package:_fe_analyzer_shared/src/scanner/token_constants.dart';
 import 'package:_fe_analyzer_shared/src/util/null_value.dart';
 import 'package:analyzer/dart/analysis/features.dart';
-import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart' show Token, TokenType;
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/error/error.dart';
@@ -6469,18 +6468,14 @@ class _ClassDeclarationBuilder extends _ClassLikeDeclarationBuilder {
 
   ClassDeclarationImpl build() {
     ClassBodyImpl body;
-    if (useDeclaringConstructorsAst) {
-      if (emptyClassBodySemicolon case var semicolon?) {
-        body = EmptyClassBodyImpl(semicolon: semicolon);
-      } else {
-        body = BlockClassBodyImpl(
-          leftBracket: leftBracket,
-          members: members,
-          rightBracket: rightBracket,
-        );
-      }
+    if (emptyClassBodySemicolon case var semicolon?) {
+      body = EmptyClassBodyImpl(semicolon: semicolon);
     } else {
-      body = ClassBodyImplStub();
+      body = BlockClassBodyImpl(
+        leftBracket: leftBracket,
+        members: members,
+        rightBracket: rightBracket,
+      );
     }
 
     return ClassDeclarationImpl(
@@ -6499,15 +6494,11 @@ class _ClassDeclarationBuilder extends _ClassLikeDeclarationBuilder {
         typeName: name,
         primaryConstructorBuilder: primaryConstructorBuilder,
       ),
-      typeParameters: typeParameters,
       extendsClause: extendsClause,
       withClause: withClause,
       implementsClause: implementsClause,
       nativeClause: nativeClause,
       body: body,
-      leftBracket: leftBracket,
-      members: members,
-      rightBracket: rightBracket,
     );
   }
 }
@@ -6534,20 +6525,13 @@ class _ClassLikeDeclarationBuilder {
     required Token typeName,
     required _PrimaryConstructorBuilder? primaryConstructorBuilder,
   }) {
-    if (useDeclaringConstructorsAst) {
-      if (primaryConstructorBuilder case var builder?) {
-        return builder.build(
-          typeName: typeName,
-          typeParameters: typeParameters,
-        );
-      } else {
-        return NameWithTypeParametersImpl(
-          typeName: typeName,
-          typeParameters: typeParameters,
-        );
-      }
+    if (primaryConstructorBuilder case var builder?) {
+      return builder.build(typeName: typeName, typeParameters: typeParameters);
     } else {
-      return ClassNamePartImplStub();
+      return NameWithTypeParametersImpl(
+        typeName: typeName,
+        typeParameters: typeParameters,
+      );
     }
   }
 }
@@ -6585,18 +6569,13 @@ class _EnumDeclarationBuilder extends _ClassLikeDeclarationBuilder {
   });
 
   EnumDeclarationImpl build() {
-    EnumBodyImpl body;
-    if (useDeclaringConstructorsAst) {
-      body = EnumBodyImpl(
-        leftBracket: leftBracket,
-        constants: constants,
-        semicolon: semicolon,
-        members: members,
-        rightBracket: rightBracket,
-      );
-    } else {
-      body = EnumBodyImplStub();
-    }
+    var body = EnumBodyImpl(
+      leftBracket: leftBracket,
+      constants: constants,
+      semicolon: semicolon,
+      members: members,
+      rightBracket: rightBracket,
+    );
 
     return EnumDeclarationImpl(
       comment: comment,
@@ -6608,15 +6587,9 @@ class _EnumDeclarationBuilder extends _ClassLikeDeclarationBuilder {
         primaryConstructorBuilder: primaryConstructorBuilder,
       ),
       name: name,
-      typeParameters: typeParameters,
       withClause: withClause,
       implementsClause: implementsClause,
       body: body,
-      leftBracket: leftBracket,
-      constants: constants,
-      semicolon: semicolon,
-      members: members,
-      rightBracket: rightBracket,
     );
   }
 }
@@ -6641,16 +6614,11 @@ class _ExtensionDeclarationBuilder extends _ClassLikeDeclarationBuilder {
     required Token? typeKeyword,
     required ExtensionOnClauseImpl? onClause,
   }) {
-    BlockClassBodyImpl body;
-    if (useDeclaringConstructorsAst) {
-      body = BlockClassBodyImpl(
-        leftBracket: leftBracket,
-        members: members,
-        rightBracket: rightBracket,
-      );
-    } else {
-      body = BlockClassBodyImplStub();
-    }
+    var body = BlockClassBodyImpl(
+      leftBracket: leftBracket,
+      members: members,
+      rightBracket: rightBracket,
+    );
 
     return ExtensionDeclarationImpl(
       comment: comment,
@@ -6662,9 +6630,6 @@ class _ExtensionDeclarationBuilder extends _ClassLikeDeclarationBuilder {
       typeParameters: typeParameters,
       onClause: onClause,
       body: body,
-      leftBracket: leftBracket,
-      members: members,
-      rightBracket: rightBracket,
     );
   }
 }
@@ -6692,57 +6657,48 @@ class _ExtensionTypeDeclarationBuilder extends _ClassLikeDeclarationBuilder {
     required ImplementsClauseImpl? implementsClause,
   }) {
     ClassBodyImpl body;
-    if (useDeclaringConstructorsAst) {
-      if (emptyClassBodySemicolon case var semicolon?) {
-        body = EmptyClassBodyImpl(semicolon: semicolon);
-      } else {
-        body = BlockClassBodyImpl(
-          leftBracket: leftBracket,
-          members: members,
-          rightBracket: rightBracket,
-        );
-      }
+    if (emptyClassBodySemicolon case var semicolon?) {
+      body = EmptyClassBodyImpl(semicolon: semicolon);
     } else {
-      body = ClassBodyImplStub();
+      body = BlockClassBodyImpl(
+        leftBracket: leftBracket,
+        members: members,
+        rightBracket: rightBracket,
+      );
     }
 
-    PrimaryConstructorDeclarationImpl primaryConstructorOrStub;
-    if (useDeclaringConstructorsAst) {
-      PrimaryConstructorNameImpl? primaryConstructorName;
-      if (representation.constructorName case var representationName?) {
-        primaryConstructorName = PrimaryConstructorNameImpl(
-          period: representationName.period,
-          name: representationName.name,
-        );
-      }
-      var primaryConstructorBuilder = _PrimaryConstructorBuilder(
-        constKeyword: constKeyword,
-        constructorName: primaryConstructorName,
-        formalParameterList: FormalParameterListImpl(
-          leftParenthesis: representation.leftParenthesis,
-          parameters: [
-            SimpleFormalParameterImpl(
-              comment: null,
-              metadata: representation.fieldMetadata,
-              covariantKeyword: null,
-              requiredKeyword: null,
-              keyword: null,
-              type: representation.fieldType,
-              name: representation.fieldName,
-            ),
-          ],
-          leftDelimiter: null,
-          rightDelimiter: null,
-          rightParenthesis: representation.rightParenthesis,
-        ),
+    PrimaryConstructorNameImpl? primaryConstructorName;
+    if (representation.constructorName case var representationName?) {
+      primaryConstructorName = PrimaryConstructorNameImpl(
+        period: representationName.period,
+        name: representationName.name,
       );
-      primaryConstructorOrStub = primaryConstructorBuilder.build(
-        typeName: name,
-        typeParameters: typeParameters,
-      );
-    } else {
-      primaryConstructorOrStub = PrimaryConstructorDeclarationImplStub();
     }
+    var primaryConstructorBuilder = _PrimaryConstructorBuilder(
+      constKeyword: constKeyword,
+      constructorName: primaryConstructorName,
+      formalParameterList: FormalParameterListImpl(
+        leftParenthesis: representation.leftParenthesis,
+        parameters: [
+          SimpleFormalParameterImpl(
+            comment: null,
+            metadata: representation.fieldMetadata,
+            covariantKeyword: null,
+            requiredKeyword: null,
+            keyword: null,
+            type: representation.fieldType,
+            name: representation.fieldName,
+          ),
+        ],
+        leftDelimiter: null,
+        rightDelimiter: null,
+        rightParenthesis: representation.rightParenthesis,
+      ),
+    );
+    var primaryConstructor = primaryConstructorBuilder.build(
+      typeName: name,
+      typeParameters: typeParameters,
+    );
 
     return ExtensionTypeDeclarationImpl(
       comment: comment,
@@ -6750,18 +6706,10 @@ class _ExtensionTypeDeclarationBuilder extends _ClassLikeDeclarationBuilder {
       augmentKeyword: augmentKeyword,
       extensionKeyword: extensionKeyword,
       typeKeyword: typeKeyword,
-      primaryConstructor: primaryConstructorOrStub,
-      constKeyword: constKeyword,
+      primaryConstructor: primaryConstructor,
       name: name,
-      typeParameters: typeParameters,
-      representation: useDeclaringConstructorsAst
-          ? RepresentationDeclarationImplStub()
-          : representation,
       implementsClause: implementsClause,
       body: body,
-      leftBracket: leftBracket,
-      members: members,
-      rightBracket: rightBracket,
     );
   }
 }
@@ -6789,16 +6737,11 @@ class _MixinDeclarationBuilder extends _ClassLikeDeclarationBuilder {
   });
 
   MixinDeclarationImpl build() {
-    BlockClassBodyImpl body;
-    if (useDeclaringConstructorsAst) {
-      body = BlockClassBodyImpl(
-        leftBracket: leftBracket,
-        members: members,
-        rightBracket: rightBracket,
-      );
-    } else {
-      body = BlockClassBodyImplStub();
-    }
+    var body = BlockClassBodyImpl(
+      leftBracket: leftBracket,
+      members: members,
+      rightBracket: rightBracket,
+    );
 
     return MixinDeclarationImpl(
       comment: comment,
@@ -6811,9 +6754,6 @@ class _MixinDeclarationBuilder extends _ClassLikeDeclarationBuilder {
       onClause: onClause,
       implementsClause: implementsClause,
       body: body,
-      leftBracket: leftBracket,
-      members: members,
-      rightBracket: rightBracket,
     );
   }
 }

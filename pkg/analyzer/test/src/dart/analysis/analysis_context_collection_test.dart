@@ -124,7 +124,10 @@ linter:
 
   test_new_includedPaths_notAbsolute() {
     expect(
-      () => AnalysisContextCollectionImpl(includedPaths: ['root']),
+      () => AnalysisContextCollectionImpl(
+        includedPaths: ['root'],
+        withFineDependencies: true,
+      ),
       throwsArgumentError,
     );
   }
@@ -133,6 +136,7 @@ linter:
     expect(
       () => AnalysisContextCollectionImpl(
         includedPaths: [convertPath('/root/lib/../lib')],
+        withFineDependencies: true,
       ),
       throwsArgumentError,
     );
@@ -155,6 +159,7 @@ linter:
       () => AnalysisContextCollectionImpl(
         includedPaths: ['/root'],
         sdkPath: 'sdk',
+        withFineDependencies: true,
       ),
       throwsArgumentError,
     );
@@ -165,6 +170,7 @@ linter:
       () => AnalysisContextCollectionImpl(
         includedPaths: [convertPath('/root')],
         sdkPath: '/home/sdk/../sdk',
+        withFineDependencies: true,
       ),
       throwsArgumentError,
     );
@@ -177,6 +183,7 @@ linter:
       resourceProvider: resourceProvider,
       includedPaths: includedPaths,
       sdkPath: sdkRoot.path,
+      withFineDependencies: true,
     );
   }
 }
@@ -1126,6 +1133,7 @@ resolution: workspace
       resourceProvider: resourceProvider,
       sdkPath: sdkRoot.path,
       includedPaths: [getFolder(package1RootPath).path],
+      withFineDependencies: true,
     );
 
     _assertCollectionText(collection, r'''
@@ -1194,6 +1202,7 @@ resolution: workspace
         getFolder(package1RootPath).path,
         getFolder(package2RootPath).path,
       ],
+      withFineDependencies: true,
     );
 
     _assertCollectionText(collection, r'''
@@ -1279,6 +1288,7 @@ resolution: workspace
         getFolder(package1RootPath).path,
         getFolder(package2RootPath).path,
       ],
+      withFineDependencies: true,
     );
 
     _assertCollectionText(collection, r'''
@@ -1353,6 +1363,7 @@ resolution: workspace
       resourceProvider: resourceProvider,
       sdkPath: sdkRoot.path,
       includedPaths: [getFolder(workspaceRootPath).path],
+      withFineDependencies: true,
     );
 
     _assertCollectionText(collection, r'''
@@ -1432,6 +1443,7 @@ resolution: workspace
         getFolder(workspaceRootPath).path,
         getFolder(package1RootPath).path,
       ],
+      withFineDependencies: true,
     );
 
     _assertCollectionText(collection, r'''
@@ -1507,6 +1519,7 @@ resolution: workspace
         getFolder(package1RootPath).path,
         getFolder(package2RootPath).path,
       ],
+      withFineDependencies: true,
     );
 
     _assertCollectionText(collection, r'''
@@ -1565,6 +1578,7 @@ workspaces
       includedPaths: [getFolder(workspaceRootPath).path],
       optionsFile: optionsFile?.path,
       updateAnalysisOptions4: updateAnalysisOptions,
+      withFineDependencies: true,
     );
 
     _assertCollectionText(collection, expected);

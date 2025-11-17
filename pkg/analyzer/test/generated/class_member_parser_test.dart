@@ -88,7 +88,8 @@ class ClassMemberParserTest extends FastaParserTestCase
       'class C { void late() { new C().late(); } }',
     );
     var declaration = unit.declarations[0] as ClassDeclaration;
-    var method = declaration.members[0] as MethodDeclaration;
+    var classBody = declaration.body as BlockClassBody;
+    var method = classBody.members[0] as MethodDeclaration;
 
     expect(method.documentationComment, isNull);
     expect(method.externalKeyword, isNull);
@@ -1214,7 +1215,8 @@ void Function<A>(core.List<core.int> x) m() => null;
     var unit = parseCompilationUnit('class C { static void m() {} }');
 
     var c = unit.declarations[0] as ClassDeclaration;
-    var method = c.members[0] as MethodDeclaration;
+    var classBody = c.body as BlockClassBody;
+    var method = classBody.members[0] as MethodDeclaration;
     expect(method.documentationComment, isNull);
     expect(method.externalKeyword, isNull);
     expect(method.modifierKeyword, isNotNull);
@@ -1230,7 +1232,7 @@ void Function<A>(core.List<core.int> x) m() => null;
   void test_parseClassMember_method_static_mixin() {
     var unit = parseCompilationUnit('mixin C { static void m() {} }');
     var c = unit.declarations[0] as MixinDeclaration;
-    var method = c.members[0] as MethodDeclaration;
+    var method = c.body.members[0] as MethodDeclaration;
     expect(method.documentationComment, isNull);
     expect(method.externalKeyword, isNull);
     expect(method.modifierKeyword, isNotNull);
@@ -1292,7 +1294,8 @@ void Function<A>(core.List<core.int> x) m() => null;
       'class C { bool operator >>>(other) => false; }',
     );
     var declaration = unit.declarations[0] as ClassDeclaration;
-    var method = declaration.members[0] as MethodDeclaration;
+    var classBody = declaration.body as BlockClassBody;
+    var method = classBody.members[0] as MethodDeclaration;
 
     expect(method.documentationComment, isNull);
     expect(method.externalKeyword, isNull);
@@ -1311,7 +1314,8 @@ void Function<A>(core.List<core.int> x) m() => null;
       'class C { foo(int value) { x >>>= value; } }',
     );
     var declaration = unit.declarations[0] as ClassDeclaration;
-    var method = declaration.members[0] as MethodDeclaration;
+    var classBody = declaration.body as BlockClassBody;
+    var method = classBody.members[0] as MethodDeclaration;
     var blockFunctionBody = method.body as BlockFunctionBody;
     NodeList<Statement> statements = blockFunctionBody.block.statements;
     expect(statements, hasLength(1));
@@ -1572,7 +1576,8 @@ void Function<A>(core.List<core.int> x) m() => null;
       ],
     );
     var classDeclaration = unit.declarations[0] as ClassDeclaration;
-    var constructor = classDeclaration.members[0] as ConstructorDeclaration;
+    var classBody = classDeclaration.body as BlockClassBody;
+    var constructor = classBody.members[0] as ConstructorDeclaration;
     var invocation = constructor.initializers[0] as SuperConstructorInvocation;
     expect(invocation.argumentList.arguments, hasLength(0));
   }
@@ -1583,7 +1588,8 @@ void Function<A>(core.List<core.int> x) m() => null;
       diagnostics: [expectedError(diag.invalidConstructorName, 10, 8)],
     );
     var classDeclaration = unit.declarations[0] as ClassDeclaration;
-    var constructor = classDeclaration.members[0] as ConstructorDeclaration;
+    var classBody = classDeclaration.body as BlockClassBody;
+    var constructor = classBody.members[0] as ConstructorDeclaration;
     var invocation = constructor.initializers[0] as SuperConstructorInvocation;
     expect(invocation.argumentList.arguments, hasLength(0));
   }

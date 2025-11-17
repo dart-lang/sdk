@@ -210,6 +210,17 @@ extension BinaryExpressionExtension on BinaryExpression {
   }
 }
 
+extension ClassDeclarationExtension on ClassDeclaration {
+  List<ClassMember> get members2 {
+    switch (body) {
+      case BlockClassBody body:
+        return body.members;
+      default:
+        return [];
+    }
+  }
+}
+
 extension CompilationUnitExtension on CompilationUnit {
   /// Return the list of tokens that comprise the file header comment for this
   /// compilation unit.
@@ -329,6 +340,17 @@ extension ExpressionExtension on Expression {
     }
     var precedence = self.operator.type.precedence;
     return precedence < TokenClass.LOGICAL_AND_OPERATOR.precedence;
+  }
+}
+
+extension ExtensionTypeDeclarationExtension on ExtensionTypeDeclaration {
+  List<ClassMember> get members2 {
+    switch (body) {
+      case BlockClassBody body:
+        return body.members;
+      default:
+        return [];
+    }
   }
 }
 

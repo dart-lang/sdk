@@ -44,14 +44,18 @@ class _Visitor extends SimpleAstVisitor<void> {
   void visitClassDeclaration(ClassDeclaration node) {
     if (node.isAugmentation) return;
 
-    _check(node.members);
+    if (node.body case BlockClassBody body) {
+      _check(body.members);
+    }
   }
 
   @override
   void visitExtensionTypeDeclaration(ExtensionTypeDeclaration node) {
     if (node.isAugmentation) return;
 
-    _check(node.members);
+    if (node.body case BlockClassBody body) {
+      _check(body.members);
+    }
   }
 
   void _check(NodeList<ClassMember> members) {

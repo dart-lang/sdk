@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -29,26 +28,27 @@ augment class A {
 ClassDeclaration
   augmentKeyword: augment
   classKeyword: class
-  name: A
-  leftBracket: {
-  members
-    ConstructorDeclaration
-      augmentKeyword: augment
-      returnType: SimpleIdentifier
-        token: A
-      period: .
-      name: named
-      parameters: FormalParameterList
-        leftParenthesis: (
-        rightParenthesis: )
-      body: EmptyFunctionBody
-        semicolon: ;
-  rightBracket: }
+  namePart: NameWithTypeParameters
+    typeName: A
+  body: BlockClassBody
+    leftBracket: {
+    members
+      ConstructorDeclaration
+        augmentKeyword: augment
+        returnType: SimpleIdentifier
+          token: A
+        period: .
+        name: named
+        parameters: FormalParameterList
+          leftParenthesis: (
+          rightParenthesis: )
+        body: EmptyFunctionBody
+          semicolon: ;
+    rightBracket: }
 ''');
   }
 
   test_body_empty() {
-    useDeclaringConstructorsAst = true;
     var parseResult = parseStringWithErrors(r'''
 class A;
 ''');
@@ -283,7 +283,6 @@ ConstructorDeclaration
   }
 
   test_nameWithTypeParameters_hasTypeParameters() {
-    useDeclaringConstructorsAst = true;
     var parseResult = parseStringWithErrors(r'''
 class A<T, U> {}
 ''');
@@ -307,35 +306,9 @@ ClassDeclaration
     leftBracket: {
     rightBracket: }
 ''');
-
-    {
-      useDeclaringConstructorsAst = false;
-      var parseResult = parseStringWithErrors(r'''
-class A<T, U> {}
-''');
-      parseResult.assertNoErrors();
-
-      var node = parseResult.findNode.singleClassDeclaration;
-      assertParsedNodeText(node, r'''
-ClassDeclaration
-  classKeyword: class
-  name: A
-  typeParameters: TypeParameterList
-    leftBracket: <
-    typeParameters
-      TypeParameter
-        name: T
-      TypeParameter
-        name: U
-    rightBracket: >
-  leftBracket: {
-  rightBracket: }
-''');
-    }
   }
 
   test_nameWithTypeParameters_noTypeParameters() {
-    useDeclaringConstructorsAst = true;
     var parseResult = parseStringWithErrors(r'''
 class A {}
 ''');
@@ -351,27 +324,9 @@ ClassDeclaration
     leftBracket: {
     rightBracket: }
 ''');
-
-    {
-      useDeclaringConstructorsAst = false;
-      var parseResult = parseStringWithErrors(r'''
-class A {}
-''');
-      parseResult.assertNoErrors();
-
-      var node = parseResult.findNode.singleClassDeclaration;
-      assertParsedNodeText(node, r'''
-ClassDeclaration
-  classKeyword: class
-  name: A
-  leftBracket: {
-  rightBracket: }
-''');
-    }
   }
 
   test_primaryConstructor_const_hasTypeParameters_named() {
-    useDeclaringConstructorsAst = true;
     var parseResult = parseStringWithErrors(r'''
 class const A<T, U>.named() {}
 ''');
@@ -405,7 +360,6 @@ ClassDeclaration
   }
 
   test_primaryConstructor_const_hasTypeParameters_unnamed() {
-    useDeclaringConstructorsAst = true;
     var parseResult = parseStringWithErrors(r'''
 class const A<T, U>() {}
 ''');
@@ -436,7 +390,6 @@ ClassDeclaration
   }
 
   test_primaryConstructor_const_namedMixinApplication() {
-    useDeclaringConstructorsAst = true;
     var parseResult = parseStringWithErrors(r'''
 mixin M {}
 class const C = Object with M;
@@ -447,7 +400,6 @@ class const C = Object with M;
   }
 
   test_primaryConstructor_const_noTypeParameters_named() {
-    useDeclaringConstructorsAst = true;
     var parseResult = parseStringWithErrors(r'''
 class const A.named() {}
 ''');
@@ -473,7 +425,6 @@ ClassDeclaration
   }
 
   test_primaryConstructor_const_noTypeParameters_unnamed() {
-    useDeclaringConstructorsAst = true;
     var parseResult = parseStringWithErrors(r'''
 class const A() {}
 ''');
@@ -496,7 +447,6 @@ ClassDeclaration
   }
 
   test_primaryConstructor_const_typeName_noFormalParameters() {
-    useDeclaringConstructorsAst = true;
     var parseResult = parseStringWithErrors(r'''
 class const A {}
 ''');
@@ -517,7 +467,6 @@ ClassDeclaration
   }
 
   test_primaryConstructor_const_typeName_periodName_noFormalParameters() {
-    useDeclaringConstructorsAst = true;
     var parseResult = parseStringWithErrors(r'''
 class const A.named {}
 ''');
@@ -544,7 +493,6 @@ ClassDeclaration
   }
 
   test_primaryConstructor_declaringFormalParameter_default_namedOptional_final() {
-    useDeclaringConstructorsAst = true;
     var parseResult = parseStringWithErrors(r'''
 class A({final int a = 0}) {}
 ''');
@@ -577,7 +525,6 @@ ClassDeclaration
   }
 
   test_primaryConstructor_declaringFormalParameter_default_namedOptional_var() {
-    useDeclaringConstructorsAst = true;
     var parseResult = parseStringWithErrors(r'''
 class A({var int a = 0}) {}
 ''');
@@ -610,7 +557,6 @@ ClassDeclaration
   }
 
   test_primaryConstructor_declaringFormalParameter_default_namedRequired_final() {
-    useDeclaringConstructorsAst = true;
     var parseResult = parseStringWithErrors(r'''
 class A({required final int a = 0}) {}
 ''');
@@ -644,7 +590,6 @@ ClassDeclaration
   }
 
   test_primaryConstructor_declaringFormalParameter_default_namedRequired_var() {
-    useDeclaringConstructorsAst = true;
     var parseResult = parseStringWithErrors(r'''
 class A({required var int a = 0}) {}
 ''');
@@ -678,7 +623,6 @@ ClassDeclaration
   }
 
   test_primaryConstructor_declaringFormalParameter_default_positional_final() {
-    useDeclaringConstructorsAst = true;
     var parseResult = parseStringWithErrors(r'''
 class A([final int a = 0]) {}
 ''');
@@ -711,7 +655,6 @@ ClassDeclaration
   }
 
   test_primaryConstructor_declaringFormalParameter_default_positional_var() {
-    useDeclaringConstructorsAst = true;
     var parseResult = parseStringWithErrors(r'''
 class A([var int a = 0]) {}
 ''');
@@ -744,7 +687,6 @@ ClassDeclaration
   }
 
   test_primaryConstructor_declaringFormalParameter_functionTyped_const() {
-    useDeclaringConstructorsAst = true;
     var parseResult = parseStringWithErrors(r'''
 class A(const int a(String x)) {}
 ''');
@@ -777,7 +719,6 @@ ClassDeclaration
   }
 
   test_primaryConstructor_declaringFormalParameter_functionTyped_final() {
-    useDeclaringConstructorsAst = true;
     var parseResult = parseStringWithErrors(r'''
 class A(final int a(String x)) {}
 ''');
@@ -811,7 +752,6 @@ ClassDeclaration
   }
 
   test_primaryConstructor_declaringFormalParameter_functionTyped_var() {
-    useDeclaringConstructorsAst = true;
     var parseResult = parseStringWithErrors(r'''
 class A(var int a(String x)) {}
 ''');
@@ -845,7 +785,6 @@ ClassDeclaration
   }
 
   test_primaryConstructor_declaringFormalParameter_simple_const() {
-    useDeclaringConstructorsAst = true;
     var parseResult = parseStringWithErrors(r'''
 class A(const int a) {}
 ''');
@@ -872,7 +811,6 @@ ClassDeclaration
   }
 
   test_primaryConstructor_declaringFormalParameter_simple_final() {
-    useDeclaringConstructorsAst = true;
     var parseResult = parseStringWithErrors(r'''
 class A(final int a) {}
 ''');
@@ -899,7 +837,6 @@ ClassDeclaration
   }
 
   test_primaryConstructor_declaringFormalParameter_simple_var() {
-    useDeclaringConstructorsAst = true;
     var parseResult = parseStringWithErrors(r'''
 class A(var int a) {}
 ''');
@@ -926,7 +863,6 @@ ClassDeclaration
   }
 
   test_primaryConstructor_fieldFormalParameter_final() {
-    useDeclaringConstructorsAst = true;
     var parseResult = parseStringWithErrors(r'''
 class A(final int this.a) {}
 ''');
@@ -955,7 +891,6 @@ ClassDeclaration
   }
 
   test_primaryConstructor_fieldFormalParameter_var() {
-    useDeclaringConstructorsAst = true;
     var parseResult = parseStringWithErrors(r'''
 class A(var int this.a) {}
 ''');
@@ -984,7 +919,6 @@ ClassDeclaration
   }
 
   test_primaryConstructor_notConst_hasTypeParameters_named() {
-    useDeclaringConstructorsAst = true;
     var parseResult = parseStringWithErrors(r'''
 class A<T, U>.named() {}
 ''');
@@ -1017,7 +951,6 @@ ClassDeclaration
   }
 
   test_primaryConstructor_notConst_hasTypeParameters_unnamed() {
-    useDeclaringConstructorsAst = true;
     var parseResult = parseStringWithErrors(r'''
 class A<T, U>() {}
 ''');
@@ -1047,7 +980,6 @@ ClassDeclaration
   }
 
   test_primaryConstructor_notConst_noTypeParameters_named() {
-    useDeclaringConstructorsAst = true;
     var parseResult = parseStringWithErrors(r'''
 class A.named() {}
 ''');
@@ -1072,7 +1004,6 @@ ClassDeclaration
   }
 
   test_primaryConstructor_notConst_noTypeParameters_unnamed() {
-    useDeclaringConstructorsAst = true;
     var parseResult = parseStringWithErrors(r'''
 class A() {}
 ''');
@@ -1094,7 +1025,6 @@ ClassDeclaration
   }
 
   test_primaryConstructor_superFormalParameter_final_namedType() {
-    useDeclaringConstructorsAst = true;
     var parseResult = parseStringWithErrors(r'''
 class A(final int super.a) {}
 ''');
@@ -1124,7 +1054,6 @@ ClassDeclaration
   }
 
   test_primaryConstructor_superFormalParameter_var_namedType() {
-    useDeclaringConstructorsAst = true;
     var parseResult = parseStringWithErrors(r'''
 class A(var int super.a) {}
 ''');
@@ -1153,7 +1082,6 @@ ClassDeclaration
   }
 
   test_primaryConstructorBody_body_blockFunctionBody() {
-    useDeclaringConstructorsAst = true;
     var parseResult = parseStringWithErrors(r'''
 class A() {
   this {
@@ -1180,7 +1108,6 @@ PrimaryConstructorBody
   }
 
   test_primaryConstructorBody_comment() {
-    useDeclaringConstructorsAst = true;
     var parseResult = parseStringWithErrors(r'''
 class A() {
   /// foo
@@ -1204,7 +1131,6 @@ PrimaryConstructorBody
   }
 
   test_primaryConstructorBody_fieldInitializer() {
-    useDeclaringConstructorsAst = true;
     var parseResult = parseStringWithErrors(r'''
 class A() {
   final int x;
@@ -1231,7 +1157,6 @@ PrimaryConstructorBody
   }
 
   test_primaryConstructorBody_metadata() {
-    useDeclaringConstructorsAst = true;
     var parseResult = parseStringWithErrors(r'''
 class A() {
   @deprecated

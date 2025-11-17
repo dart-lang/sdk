@@ -30,8 +30,9 @@ mixin M {
 MixinDeclaration
   mixinKeyword: mixin
   name: M
-  leftBracket: {
-  rightBracket: }
+  body: BlockClassBody
+    leftBracket: {
+    rightBracket: }
   declaredFragment: <testLibraryFragment> M@6
 ''');
   }
@@ -51,8 +52,9 @@ mixin M {
 MixinDeclaration
   mixinKeyword: mixin
   name: M
-  leftBracket: {
-  rightBracket: }
+  body: BlockClassBody
+    leftBracket: {
+    rightBracket: }
   declaredFragment: <testLibraryFragment> M@6
 ''');
   }
@@ -72,8 +74,9 @@ mixin M {
 MixinDeclaration
   mixinKeyword: mixin
   name: M
-  leftBracket: {
-  rightBracket: }
+  body: BlockClassBody
+    leftBracket: {
+    rightBracket: }
   declaredFragment: <testLibraryFragment> M@6
 ''');
   }
@@ -93,8 +96,9 @@ mixin M {
 MixinDeclaration
   mixinKeyword: mixin
   name: M
-  leftBracket: {
-  rightBracket: }
+  body: BlockClassBody
+    leftBracket: {
+    rightBracket: }
   declaredFragment: <testLibraryFragment> M@6
 ''');
   }

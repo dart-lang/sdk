@@ -154,9 +154,14 @@ class _Visitor extends SimpleAstVisitor<void> {
       return;
     }
 
+    var body = node.body;
+    if (body is! BlockClassBody) {
+      return;
+    }
+
     var candidateConstants = <VariableDeclaration>[];
 
-    for (var member in node.members) {
+    for (var member in body.members) {
       if (isHashCode(member)) return;
       if (isIndex(member)) return;
       if (isEquals(member)) return;
@@ -201,6 +206,6 @@ class _Visitor extends SimpleAstVisitor<void> {
       return;
     }
 
-    rule.reportAtToken(node.name);
+    rule.reportAtToken(node.namePart.typeName);
   }
 }

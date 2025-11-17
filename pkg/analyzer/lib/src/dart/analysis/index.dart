@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/syntactic_entity.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
@@ -721,9 +720,7 @@ class _IndexContributor extends GeneralizingAstVisitor {
       recordRelationOffset(
         objectElement,
         IndexRelationKind.IS_EXTENDED_BY,
-        useDeclaringConstructorsAst
-            ? node.namePart.typeName.offset
-            : node.name.offset,
+        node.namePart.typeName.offset,
         0,
         true,
       );
@@ -742,7 +739,7 @@ class _IndexContributor extends GeneralizingAstVisitor {
         recordRelation(
           superConstructor,
           IndexRelationKind.IS_INVOKED_BY,
-          useDeclaringConstructorsAst ? node.namePart.typeName : node.name,
+          node.namePart.typeName,
           true,
         );
       }
@@ -927,12 +924,10 @@ class _IndexContributor extends GeneralizingAstVisitor {
   @override
   void visitEnumDeclaration(EnumDeclaration node) {
     _addSubtype(
-      (useDeclaringConstructorsAst ? node.namePart.typeName : node.name).lexeme,
+      node.namePart.typeName.lexeme,
       withClause: node.withClause,
       implementsClause: node.implementsClause,
-      memberNodes: useDeclaringConstructorsAst
-          ? node.body.members
-          : node.members,
+      memberNodes: node.body.members,
     );
 
     var declaredElement = node.declaredFragment!.element;
@@ -993,14 +988,9 @@ class _IndexContributor extends GeneralizingAstVisitor {
     covariant ExtensionTypeDeclarationImpl node,
   ) {
     _addSubtype(
-      (useDeclaringConstructorsAst
-              ? node.primaryConstructor.typeName
-              : node.name)
-          .lexeme,
+      node.primaryConstructor.typeName.lexeme,
       implementsClause: node.implementsClause,
-      memberNodes: useDeclaringConstructorsAst
-          ? node.body.members
-          : node.members,
+      memberNodes: node.body.members,
     );
 
     var declaredElement = node.declaredFragment!.element;
@@ -1350,15 +1340,11 @@ class _IndexContributor extends GeneralizingAstVisitor {
   /// Record the given class as a subclass of its direct superclasses.
   void _addSubtypeForClassDeclaration(ClassDeclarationImpl node) {
     _addSubtype(
-      useDeclaringConstructorsAst
-          ? node.namePart.typeName.lexeme
-          : node.name.lexeme,
+      node.namePart.typeName.lexeme,
       superclass: node.extendsClause?.superclass,
       withClause: node.withClause,
       implementsClause: node.implementsClause,
-      memberNodes: useDeclaringConstructorsAst
-          ? node.body.members
-          : node.members,
+      memberNodes: node.body.members,
     );
   }
 
@@ -1379,9 +1365,7 @@ class _IndexContributor extends GeneralizingAstVisitor {
       node.name.lexeme,
       onClause: node.onClause,
       implementsClause: node.implementsClause,
-      memberNodes: useDeclaringConstructorsAst
-          ? node.body.members
-          : node.members,
+      memberNodes: node.body.members,
     );
   }
 

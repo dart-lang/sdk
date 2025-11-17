@@ -93,6 +93,13 @@ class _Visitor extends SimpleAstVisitor<void> {
   @override
   void visitFormalParameterList(FormalParameterList node) {
     super.visitFormalParameterList(node);
+
+    if (node.parent case PrimaryConstructorDeclaration primary) {
+      if (primary.parent is ExtensionTypeDeclaration) {
+        return;
+      }
+    }
+
     if (node.parameters.isEmpty) return;
     _checkTrailingComma(
       openingToken: node.leftParenthesis,

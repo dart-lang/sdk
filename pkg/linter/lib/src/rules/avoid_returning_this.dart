@@ -75,7 +75,7 @@ class _Visitor extends SimpleAstVisitor<void> {
   void visitMethodDeclaration(MethodDeclaration node) {
     if (node.isOperator) return;
 
-    var parent = node.parent;
+    var parent = node.parent?.parent;
     if (parent is ClassDeclaration ||
         parent is EnumDeclaration ||
         parent is MixinDeclaration) {

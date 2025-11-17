@@ -919,12 +919,93 @@ Type: `String`
     await assertStringContents(content, equals(expectedHoverContent));
   }
 
+  Future<void> test_range_binaryOperator() async {
+    var content = '''
+var i = 1;
+var a = i [!+^!] i;
+''';
+    var expected = '''
+```dart
+num +(num other)
+```
+Declared in `num` in _dart:core_.''';
+    await assertStringContents(content, equals(expected));
+  }
+
+  Future<void> test_range_compoundAssignment() async {
+    var content = '''
+void f(int i) {
+  i [!+=^!] 1;
+}
+''';
+    var expected = '''
+```dart
+num +(num other)
+```
+Declared in `num` in _dart:core_.''';
+    await assertStringContents(content, equals(expected));
+  }
+
+  Future<void> test_range_conditional_colon() async {
+    var content = '''
+var i = 1;
+int f(bool a, int x) {
+  return a
+    ? x
+    [!:^!] x + 1;
+}
+''';
+    var expected = 'Type: `int`';
+    await assertStringContents(content, equals(expected));
+  }
+
+  Future<void> test_range_conditional_question() async {
+    var content = '''
+var i = 1;
+int f(bool a, int x) {
+  return a
+    [!?^!] x
+    : x + 1;
+}
+''';
+    var expected = 'Type: `int`';
+    await assertStringContents(content, equals(expected));
+  }
+
   Future<void> test_range_multiLineConstructorCall() => assertStringContents('''
     final a = new [!Str^ing.fromCharCodes!]([
       1,
       2,
     ]);
     ''', contains('String.fromCharCodes('));
+
+  Future<void> test_range_postfix() async {
+    var content = '''
+int f(int i) {
+  return i[!+^+!];
+}
+''';
+    var expected = '''
+```dart
+num +(num other)
+```
+Declared in `num` in _dart:core_.''';
+    await assertStringContents(content, equals(expected));
+  }
+
+  Future<void> test_range_prefix() async {
+    var content = '''
+int f(int i) {
+  return [!+^+!]i;
+}
+''';
+    var expected = '''
+```dart
+num +(num other)
+```
+Declared in `num` in _dart:core_.''';
+    await assertStringContents(content, equals(expected));
+  }
 
   Future<void> test_recordLiteral_named() => assertStringContents(r'''
 void f(({int f1, int f2}) r) {

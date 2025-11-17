@@ -44,7 +44,7 @@ class AvoidFutureOrVoid extends AnalysisRule {
     registry.addMethodDeclaration(this, visitor);
     registry.addMixinOnClause(this, visitor);
     registry.addObjectPattern(this, visitor);
-    registry.addRepresentationDeclaration(this, visitor);
+    registry.addPrimaryConstructorDeclaration(this, visitor);
     registry.addTypeParameter(this, visitor);
     registry.addVariableDeclarationList(this, visitor);
     registry.addWithClause(this, visitor);
@@ -128,8 +128,13 @@ class _Visitor extends SimpleAstVisitor<void> {
   void visitObjectPattern(ObjectPattern node) => checker.checkOut(node.type);
 
   @override
-  void visitRepresentationDeclaration(RepresentationDeclaration node) =>
-      checker.checkOut(node.fieldType);
+  void visitPrimaryConstructorDeclaration(PrimaryConstructorDeclaration node) {
+    for (var formalParameter in node.formalParameters.parameters) {
+      if (formalParameter is SimpleFormalParameter) {
+        checker.checkOut(formalParameter.type);
+      }
+    }
+  }
 
   @override
   void visitTypeParameter(TypeParameter node) => checker.checkInOut(node.bound);

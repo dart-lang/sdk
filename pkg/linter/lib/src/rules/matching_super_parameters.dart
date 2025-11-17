@@ -54,7 +54,7 @@ class _Visitor extends SimpleAstVisitor<void> {
         .firstOrNull;
     var superConstructor = superInvocation?.element;
     if (superConstructor == null) {
-      var class_ = node.parent;
+      var class_ = node.parent?.parent;
       if (class_ is ClassDeclaration) {
         superConstructor = class_
             .declaredFragment

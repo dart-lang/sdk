@@ -160,16 +160,18 @@ class VerifyTests {
         }
         for (var declaration in result.unit.declarations) {
           if (declaration is ClassDeclaration) {
-            for (var member in declaration.members) {
-              if (member is MethodDeclaration) {
-                var name = member.name.lexeme;
-                // Handle both 'solo_test_' and 'solo_fail_'.
-                if (name.startsWith('solo_')) {
-                  fail("Solo test: $name in '$testFilePath'");
-                }
-                for (var annotation in member.metadata) {
-                  if (annotation.name.name == 'soloTest') {
+            if (declaration.body case BlockClassBody body) {
+              for (var member in body.members) {
+                if (member is MethodDeclaration) {
+                  var name = member.name.lexeme;
+                  // Handle both 'solo_test_' and 'solo_fail_'.
+                  if (name.startsWith('solo_')) {
                     fail("Solo test: $name in '$testFilePath'");
+                  }
+                  for (var annotation in member.metadata) {
+                    if (annotation.name.name == 'soloTest') {
+                      fail("Solo test: $name in '$testFilePath'");
+                    }
                   }
                 }
               }

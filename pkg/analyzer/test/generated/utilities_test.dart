@@ -577,6 +577,30 @@ void f({int a = 0, double b = 1}) {}
     );
   }
 
+  void test_enumBody_constants() {
+    var findNode = _parseStringToFindNode(r'''
+enum E1 {one}
+enum E2 {two}
+''');
+    _assertReplaceInList(
+      destination: findNode.enumDeclaration('enum E1').body,
+      child: findNode.enumConstantDeclaration('one'),
+      replacement: findNode.enumConstantDeclaration('two'),
+    );
+  }
+
+  void test_enumBody_members() {
+    var findNode = _parseStringToFindNode(r'''
+enum E1 {one; void foo() {}}
+enum E2 {two; void bar() {}}
+''');
+    _assertReplaceInList(
+      destination: findNode.enumDeclaration('enum E1').body,
+      child: findNode.methodDeclaration('foo'),
+      replacement: findNode.methodDeclaration('bar'),
+    );
+  }
+
   void test_enumConstantDeclaration() {
     var findNode = _parseStringToFindNode(r'''
 enum E {
@@ -598,34 +622,9 @@ enum E2<U> with M2 implements I2 {one, two}
       destination: findNode.enumDeclaration('enum E1'),
       source: findNode.enumDeclaration('enum E2'),
       childAccessors: [
-        (node) => node.typeParameters!,
         (node) => node.withClause!,
         (node) => node.implementsClause!,
       ],
-    );
-  }
-
-  void test_enumDeclaration_constants() {
-    var findNode = _parseStringToFindNode(r'''
-enum E1 {one}
-enum E2 {two}
-''');
-    _assertReplaceInList(
-      destination: findNode.enumDeclaration('enum E1'),
-      child: findNode.enumConstantDeclaration('one'),
-      replacement: findNode.enumConstantDeclaration('two'),
-    );
-  }
-
-  void test_enumDeclaration_members() {
-    var findNode = _parseStringToFindNode(r'''
-enum E1 {one; void foo() {}}
-enum E2 {two; void bar() {}}
-''');
-    _assertReplaceInList(
-      destination: findNode.enumDeclaration('enum E1'),
-      child: findNode.methodDeclaration('foo'),
-      replacement: findNode.methodDeclaration('bar'),
     );
   }
 

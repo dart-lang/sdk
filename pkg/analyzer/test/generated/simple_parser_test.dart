@@ -110,9 +110,10 @@ class SimpleParserTest extends FastaParserTestCase {
 class C<@Foo.bar(const [], const [1], const{"":r""}, 0xFF + 2, .3, 4.5) T> {}
 ''');
     var clazz = unit.declarations[0] as ClassDeclaration;
-    expect(clazz.name.lexeme, 'C');
-    expect(clazz.typeParameters!.typeParameters, hasLength(1));
-    TypeParameter typeParameter = clazz.typeParameters!.typeParameters[0];
+    expect(clazz.namePart.typeName.lexeme, 'C');
+    expect(clazz.namePart.typeParameters!.typeParameters, hasLength(1));
+    TypeParameter typeParameter =
+        clazz.namePart.typeParameters!.typeParameters[0];
     expect(typeParameter.name.lexeme, 'T');
     expect(typeParameter.metadata, hasLength(1));
     Annotation metadata = typeParameter.metadata[0];
@@ -158,7 +159,8 @@ class C {
       diagnostics: [expectedError(diag.missingIdentifier, 12, 1)],
     );
     var classDeclaration = unit.declarations[0] as ClassDeclaration;
-    var method = classDeclaration.members[0] as MethodDeclaration;
+    var classBody = classDeclaration.body as BlockClassBody;
+    var method = classBody.members[0] as MethodDeclaration;
     expect(method.parameters!.parameters, hasLength(1));
     var parameter =
         method.parameters!.parameters[0] as FunctionTypedFormalParameter;

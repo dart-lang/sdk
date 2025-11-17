@@ -63,23 +63,30 @@ class _DeclarationGatherer {
           continue;
         }
         if (declaration is ClassDeclaration) {
-          _addMembers(
-            containerElement: declaration.declaredFragment?.element,
-            members: declaration.members,
-          );
+          if (declaration.body case BlockClassBody body) {
+            _addMembers(
+              containerElement: declaration.declaredFragment?.element,
+              members: body.members,
+            );
+          }
         } else if (declaration is EnumDeclaration) {
           _addMembers(
             containerElement: declaration.declaredFragment?.element,
-            members: declaration.members,
+            members: declaration.body.members,
           );
         } else if (declaration is ExtensionDeclaration) {
-          _addMembers(containerElement: null, members: declaration.members);
+          _addMembers(
+            containerElement: null,
+            members: declaration.body.members,
+          );
         } else if (declaration is ExtensionTypeDeclaration) {
-          _addMembers(containerElement: null, members: declaration.members);
+          if (declaration.body case BlockClassBody body) {
+            _addMembers(containerElement: null, members: body.members);
+          }
         } else if (declaration is MixinDeclaration) {
           _addMembers(
             containerElement: declaration.declaredFragment?.element,
-            members: declaration.members,
+            members: declaration.body.members,
           );
         }
       }
@@ -111,7 +118,9 @@ class _DeclarationGatherer {
       switch (member) {
         case ConstructorDeclaration():
           var e = member.declaredFragment?.element;
-          if (e != null && e.isPublic && member.parent is! EnumDeclaration) {
+          if (e != null &&
+              e.isPublic &&
+              member.parent?.parent is! EnumDeclaration) {
             declarations.add(member);
           }
         case FieldDeclaration():
@@ -138,7 +147,6 @@ class _DeclarationGatherer {
               declarations.add(member);
             }
           }
-        // ignore: experimental_member_use
         case PrimaryConstructorBody():
           // TODO(scheglov): Handle this case.
           throw UnimplementedError();
@@ -185,9 +193,10 @@ class _ReferenceVisitor extends RecursiveAstVisitor<void> {
     var element = node.declaredFragment?.element;
 
     if (element != null) {
-      var hasConstructors = node.members.any(
-        (e) => e is ConstructorDeclaration,
-      );
+      var body = node.body;
+      var hasConstructors =
+          body is BlockClassBody &&
+          body.members.any((e) => e is ConstructorDeclaration);
       if (!hasConstructors) {
         // The default constructor will have an implicit super-initializer to
         // the super-type's unnamed constructor.
@@ -232,7 +241,7 @@ class _ReferenceVisitor extends RecursiveAstVisitor<void> {
       (e) => e is SuperConstructorInvocation,
     );
     if (!hasSuperInitializer) {
-      var enclosingClass = node.parent;
+      var enclosingClass = node.parent?.parent;
       if (enclosingClass is ClassDeclaration) {
         _addDefaultSuperConstructorDeclaration(enclosingClass);
       }

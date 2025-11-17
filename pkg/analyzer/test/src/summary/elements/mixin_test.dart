@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -14,8 +12,6 @@ main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(MixinElementTest_keepLinking);
     defineReflectiveTests(MixinElementTest_fromBytes);
-    defineReflectiveTests(MixinElementTest_declaringConstructors_keepLinking);
-    defineReflectiveTests(MixinElementTest_declaringConstructors_fromBytes);
     defineReflectiveTests(MixinElementTest_augmentation_fromBytes);
     defineReflectiveTests(MixinElementTest_augmentation_keepLinking);
     defineReflectiveTests(UpdateNodeTextExpectations);
@@ -5794,47 +5790,6 @@ class MixinElementTest_augmentation_keepLinking
     extends MixinElementTest_augmentation {
   @override
   bool get keepLinkingLibraries => true;
-}
-
-abstract class MixinElementTest_declaringConstructors
-    extends MixinElementTest {}
-
-@reflectiveTest
-class MixinElementTest_declaringConstructors_fromBytes
-    extends MixinElementTest_declaringConstructors {
-  @override
-  bool get keepLinkingLibraries => false;
-
-  @override
-  void setUp() {
-    useDeclaringConstructorsAst = true;
-    super.setUp();
-  }
-
-  @override
-  Future<void> tearDown() {
-    useDeclaringConstructorsAst = default_useDeclaringConstructorsAst;
-    return super.tearDown();
-  }
-}
-
-@reflectiveTest
-class MixinElementTest_declaringConstructors_keepLinking
-    extends MixinElementTest_declaringConstructors {
-  @override
-  bool get keepLinkingLibraries => true;
-
-  @override
-  void setUp() {
-    useDeclaringConstructorsAst = true;
-    super.setUp();
-  }
-
-  @override
-  Future<void> tearDown() {
-    useDeclaringConstructorsAst = default_useDeclaringConstructorsAst;
-    return super.tearDown();
-  }
 }
 
 @reflectiveTest

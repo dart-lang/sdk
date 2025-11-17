@@ -17,6 +17,8 @@ import 'package:analyzer_plugin/utilities/assist/assist.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
 
+import '../../../utilities/extensions/ast.dart';
+
 class FlutterConvertToStatelessWidget extends ResolvedCorrectionProducer {
   FlutterConvertToStatelessWidget({required super.context});
 
@@ -34,9 +36,14 @@ class FlutterConvertToStatelessWidget extends ResolvedCorrectionProducer {
     var superclass = widgetClass?.extendsClause?.superclass;
     if (widgetClass == null || superclass == null) return;
 
+    var widgetClassBody = widgetClass.body;
+    if (widgetClassBody is! BlockClassBody) {
+      return;
+    }
+
     // Don't spam, activate only from the `class` keyword to the class body.
     if (selectionOffset < widgetClass.classKeyword.offset ||
-        selectionOffset > widgetClass.leftBracket.end) {
+        selectionOffset > widgetClassBody.leftBracket.end) {
       return;
     }
 
@@ -55,7 +62,7 @@ class FlutterConvertToStatelessWidget extends ResolvedCorrectionProducer {
     var stateClassElement = stateClass?.declaredFragment!.element;
     if (stateClass == null ||
         stateClassElement == null ||
-        !Identifier.isPrivateName(stateClass.name.lexeme) ||
+        !Identifier.isPrivateName(stateClass.namePart.typeName.lexeme) ||
         !_isSameTypeParameters(widgetClass, stateClass)) {
       return;
     }
@@ -63,7 +70,7 @@ class FlutterConvertToStatelessWidget extends ResolvedCorrectionProducer {
     var verifier = _StatelessVerifier();
     var fieldFinder = _FieldFinder();
 
-    for (var member in stateClass.members) {
+    for (var member in stateClass.members2) {
       if (member is ConstructorDeclaration) {
         member.accept(fieldFinder);
       } else if (member is MethodDeclaration) {
@@ -86,7 +93,7 @@ class FlutterConvertToStatelessWidget extends ResolvedCorrectionProducer {
     // Prepare nodes to move.
     var nodesToMove = <ClassMember>[];
     var elementsToMove = <Element>{};
-    for (var member in stateClass.members) {
+    for (var member in stateClass.members2) {
       if (member is FieldDeclaration) {
         if (member.isStatic) {
           return;
@@ -182,7 +189,7 @@ class FlutterConvertToStatelessWidget extends ResolvedCorrectionProducer {
   }
 
   MethodDeclaration? _findCreateStateMethod(ClassDeclaration widgetClass) {
-    for (var member in widgetClass.members) {
+    for (var member in widgetClass.members2) {
       if (member is MethodDeclaration && member.name.lexeme == 'createState') {
         var parameters = member.parameters;
         if (parameters?.parameters.isEmpty ?? false) {
@@ -212,7 +219,7 @@ class FlutterConvertToStatelessWidget extends ResolvedCorrectionProducer {
     ClassDeclaration stateClass,
   ) {
     List<TypeParameter>? parameters(ClassDeclaration declaration) =>
-        declaration.typeParameters?.typeParameters;
+        declaration.namePart.typeParameters?.typeParameters;
 
     var widgetParams = parameters(widgetClass);
     var stateParams = parameters(stateClass);

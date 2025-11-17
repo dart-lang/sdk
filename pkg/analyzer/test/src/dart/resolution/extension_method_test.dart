@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:analyzer/src/test_utilities/mock_sdk.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -505,7 +504,6 @@ class C { }
 extension E on C {}
 ''';
 
-    useDeclaringConstructorsAst = true;
     await assertNoErrorsInCode(code);
 
     var extendedType = findNode.typeAnnotation('C {}');
@@ -515,19 +513,6 @@ NamedType
   element: <testLibrary>::@class::C
   type: C
 ''');
-
-    {
-      useDeclaringConstructorsAst = false;
-      await assertNoErrorsInCode(code);
-
-      var extendedType = findNode.typeAnnotation('C {}');
-      assertResolvedNodeText(extendedType, r'''
-NamedType
-  name: C
-  element: <testLibrary>::@class::C
-  type: C
-''');
-    }
   }
 
   test_named_onMixin() async {

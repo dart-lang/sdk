@@ -39,7 +39,7 @@ main() {
       int? col,
     ]) {
       for (var input in inputs) {
-        var frame = parseDartStackFrame(input);
+        final frame = parseDartStackFrame(input);
         expect(frame, isNotNull, reason: 'Failed to parse "$input"');
         expect(frame!.uri, uri, reason: 'Failed to parse URI from "$input"');
         expect(frame.line, line, reason: 'Failed to parse line from "$input"');
@@ -141,30 +141,6 @@ main() {
       });
     });
 
-    group('Posix dart-macro+file URIs', () {
-      test('without line/col', () {
-        expectFrames(
-          [
-            '#1        A.b (dart-macro+file:///a/b/c/d.dart)',
-            'flutter: #1        A.b (dart-macro+file:///a/b/c/d.dart)',
-          ],
-          Uri.parse('dart-macro+file:///a/b/c/d.dart'),
-        );
-      });
-
-      test('with line/col', () {
-        expectFrames(
-          [
-            '#1        A.b (dart-macro+file:///a/b/c/d.dart:1:2)',
-            'flutter: #1        A.b (dart-macro+file:///a/b/c/d.dart:1:2)',
-          ],
-          Uri.parse('dart-macro+file:///a/b/c/d.dart'),
-          1,
-          2,
-        );
-      });
-    });
-
     group('Posix relative paths', () {
       test('without line/col', () {
         expectFrames(
@@ -221,30 +197,6 @@ main() {
             'flutter: #1        A.b (file:///a:/b/c/d.dart:1:2)',
           ],
           Uri.parse('file:///a:/b/c/d.dart'),
-          1,
-          2,
-        );
-      });
-    });
-
-    group('Windows dart-macro+file URIs', () {
-      test('without line/col', () {
-        expectFrames(
-          [
-            '#1        A.b (dart-macro+file:///a:/b/c/d.dart)',
-            'flutter: #1        A.b (dart-macro+file:///a:/b/c/d.dart)',
-          ],
-          Uri.parse('dart-macro+file:///a:/b/c/d.dart'),
-        );
-      });
-
-      test('with line/col', () {
-        expectFrames(
-          [
-            '#1        A.b (dart-macro+file:///a:/b/c/d.dart:1:2)',
-            'flutter: #1        A.b (dart-macro+file:///a:/b/c/d.dart:1:2)',
-          ],
-          Uri.parse('dart-macro+file:///a:/b/c/d.dart'),
           1,
           2,
         );

@@ -3,9 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/analysis/utilities.dart';
-import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/analysis/unlinked_api_signature.dart';
-import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -19,10 +17,6 @@ main() {
 
 @reflectiveTest
 class UnitApiSignatureTest {
-  void tearDown() {
-    useDeclaringConstructorsAst = default_useDeclaringConstructorsAst;
-  }
-
   test_class_annotation() async {
     _assertNotSameSignature(
       r'''
@@ -510,7 +504,6 @@ abstract class C {}
   }
 
   test_class_primaryConstructorBody_body() {
-    useDeclaringConstructorsAst = true;
     _assertSameSignature(
       r'''
 class C() {
@@ -526,7 +519,6 @@ class C() {
   }
 
   test_class_primaryConstructorBody_initializer_const() {
-    useDeclaringConstructorsAst = true;
     _assertNotSameSignature(
       r'''
 class const C() {
@@ -544,7 +536,6 @@ class const C() {
   }
 
   test_class_primaryConstructorBody_metadata() {
-    useDeclaringConstructorsAst = true;
     _assertNotSameSignature(
       r'''
 class C() {

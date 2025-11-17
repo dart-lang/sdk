@@ -147,6 +147,7 @@ Future<TestResult<T>> runTestForConfig<T>(
     updateAnalysisOptions4: ({required analysisOptions}) {
       analysisOptions.contextFeatures = config.featureSet;
     },
+    withFineDependencies: true,
   );
   var analysisContext = contextCollection.contexts.single;
   var analysisSession = analysisContext.currentSession;
@@ -258,21 +259,23 @@ class AnalyzerCompiledData<T> extends CompiledData<T> {
       if (className != null) {
         for (var declaration in unit.declarations) {
           if (declaration is ClassDeclaration &&
-              declaration.name.lexeme == className) {
-            for (var member in declaration.members) {
-              if (member is ConstructorDeclaration) {
-                if (member.name!.lexeme == name) {
-                  return member.offset;
-                }
-              } else if (member is FieldDeclaration) {
-                for (var variable in member.fields.variables) {
-                  if (variable.name.lexeme == name) {
-                    return variable.offset;
+              declaration.namePart.typeName.lexeme == className) {
+            if (declaration.body case BlockClassBody body) {
+              for (var member in body.members) {
+                if (member is ConstructorDeclaration) {
+                  if (member.name!.lexeme == name) {
+                    return member.offset;
                   }
-                }
-              } else if (member is MethodDeclaration) {
-                if (member.name.lexeme == name) {
-                  return member.offset;
+                } else if (member is FieldDeclaration) {
+                  for (var variable in member.fields.variables) {
+                    if (variable.name.lexeme == name) {
+                      return variable.offset;
+                    }
+                  }
+                } else if (member is MethodDeclaration) {
+                  if (member.name.lexeme == name) {
+                    return member.offset;
+                  }
                 }
               }
             }
@@ -304,7 +307,7 @@ class AnalyzerCompiledData<T> extends CompiledData<T> {
       ).unit;
       for (var declaration in unit.declarations) {
         if (declaration is ClassDeclaration &&
-            declaration.name.lexeme == className) {
+            declaration.namePart.typeName.lexeme == className) {
           return declaration.offset;
         }
       }

@@ -40,9 +40,14 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   @override
   void visitClassDeclaration(ClassDeclaration node) {
+    var body = node.body;
+    if (body is! BlockClassBody) {
+      return;
+    }
+
     MethodDeclaration? eq;
     ClassMember? hash;
-    for (var member in node.members) {
+    for (var member in body.members) {
       if (isEquals(member)) {
         eq = member as MethodDeclaration;
       } else if (isHashCode(member)) {

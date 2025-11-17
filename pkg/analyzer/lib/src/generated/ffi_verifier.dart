@@ -133,9 +133,9 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
           compound = node;
           if (node.declaredFragment!.element.isEmptyStruct) {
             _diagnosticReporter.atToken(
-              node.name,
+              node.namePart.typeName,
               diag.emptyStruct,
-              arguments: [node.name.lexeme, className ?? '<null>'],
+              arguments: [node.namePart.typeName.lexeme, className ?? '<null>'],
             );
           }
           if (className == _structClassName) {
@@ -144,7 +144,7 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
         } else if (className == _abiSpecificIntegerClassName) {
           _validateAbiSpecificIntegerAnnotation(node);
           _validateAbiSpecificIntegerMappingAnnotation(
-            node.name,
+            node.namePart.typeName,
             node.metadata,
           );
         }
@@ -153,7 +153,7 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
         _diagnosticReporter.atNode(
           superclass,
           diag.subtypeOfStructClassInExtends,
-          arguments: [node.name.lexeme, superclass.name.lexeme],
+          arguments: [node.namePart.typeName.lexeme, superclass.name.lexeme],
         );
       }
     }
@@ -172,7 +172,7 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
         _diagnosticReporter.atNode(
           typename,
           subtypeOfStructCode,
-          arguments: [node.name.lexeme, typename.name.lexeme],
+          arguments: [node.namePart.typeName.lexeme, typename.name.lexeme],
         );
       }
     }
@@ -193,9 +193,9 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
     if (inCompound) {
       if (node.declaredFragment!.element.typeParameters.isNotEmpty) {
         _diagnosticReporter.atToken(
-          node.name,
+          node.namePart.typeName,
           diag.genericStructSubclass,
-          arguments: [node.name.lexeme],
+          arguments: [node.namePart.typeName.lexeme],
         );
       }
       var implementsClause = node.implementsClause;
@@ -207,9 +207,9 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
         var finalizableType = finalizableElement.thisType;
         if (typeSystem.isSubtypeOf(compoundType, finalizableType)) {
           _diagnosticReporter.atToken(
-            node.name,
+            node.namePart.typeName,
             diag.compoundImplementsFinalizable,
-            arguments: [node.name.lexeme],
+            arguments: [node.namePart.typeName.lexeme],
           );
         }
       }
@@ -970,12 +970,16 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
     return _PrimitiveDartType.none;
   }
 
-  void _validateAbiSpecificIntegerAnnotation(ClassDeclaration node) {
-    if ((node.typeParameters?.length ?? 0) != 0 ||
-        node.members.length != 1 ||
-        node.members.single is! ConstructorDeclaration ||
-        (node.members.single as ConstructorDeclaration).constKeyword == null) {
-      _diagnosticReporter.atToken(node.name, diag.abiSpecificIntegerInvalid);
+  void _validateAbiSpecificIntegerAnnotation(ClassDeclarationImpl node) {
+    if ((node.namePart.typeParameters?.length ?? 0) != 0 ||
+        node.body.members.length != 1 ||
+        node.body.members.single is! ConstructorDeclaration ||
+        (node.body.members.single as ConstructorDeclaration).constKeyword ==
+            null) {
+      _diagnosticReporter.atToken(
+        node.namePart.typeName,
+        diag.abiSpecificIntegerInvalid,
+      );
     }
   }
 

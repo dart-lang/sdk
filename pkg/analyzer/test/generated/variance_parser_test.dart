@@ -67,9 +67,9 @@ class VarianceParserTest extends FastaParserTestCase {
     var unit = parseCompilationUnit('class A<in T, inout U, out V, W> { }');
     expect(unit.declarations, hasLength(1));
     var classDecl = unit.declarations[0] as ClassDeclaration;
-    expect(classDecl.name.lexeme, 'A');
+    expect(classDecl.namePart.typeName.lexeme, 'A');
 
-    var typeParameters = classDecl.typeParameters!;
+    var typeParameters = classDecl.namePart.typeParameters!;
     expect(typeParameters.typeParameters, hasLength(4));
     expect(typeParameters.typeParameters[0].name.lexeme, 'T');
     expect(typeParameters.typeParameters[1].name.lexeme, 'U');
@@ -117,9 +117,9 @@ class VarianceParserTest extends FastaParserTestCase {
     );
     expect(unit.declarations, hasLength(1));
     var classDecl = unit.declarations[0] as ClassDeclaration;
-    expect(classDecl.name.lexeme, 'A');
+    expect(classDecl.namePart.typeName.lexeme, 'A');
 
-    var typeParameters = classDecl.typeParameters!;
+    var typeParameters = classDecl.namePart.typeParameters!;
     expect(typeParameters.typeParameters, hasLength(1));
     expect(typeParameters.typeParameters[0].name.lexeme, 'T');
   }
@@ -128,9 +128,9 @@ class VarianceParserTest extends FastaParserTestCase {
     var unit = parseCompilationUnit('class A<in T> { }');
     expect(unit.declarations, hasLength(1));
     var classDecl = unit.declarations[0] as ClassDeclaration;
-    expect(classDecl.name.lexeme, 'A');
+    expect(classDecl.namePart.typeName.lexeme, 'A');
 
-    var typeParameters = classDecl.typeParameters!;
+    var typeParameters = classDecl.namePart.typeParameters!;
     expect(typeParameters.typeParameters, hasLength(1));
     expect(typeParameters.typeParameters[0].name.lexeme, 'T');
 

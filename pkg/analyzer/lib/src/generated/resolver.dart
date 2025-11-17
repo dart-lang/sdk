@@ -17,7 +17,6 @@ import 'package:_fe_analyzer_shared/src/type_inference/type_analyzer_operations.
 import 'package:_fe_analyzer_shared/src/types/shared_type.dart';
 import 'package:analyzer/dart/analysis/analysis_options.dart';
 import 'package:analyzer/dart/analysis/features.dart';
-import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/syntactic_entity.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
@@ -1306,6 +1305,10 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
           node is ExtensionDeclaration ||
           node is FunctionDeclaration ||
           node is TopLevelVariableDeclaration;
+    }
+
+    if (parent is ClassBody) {
+      parent = parent.parent;
     }
 
     if (parent is ClassDeclarationImpl) {
@@ -4912,11 +4915,7 @@ class ScopeResolverVisitor extends UnifyingAstVisitor<void> {
 
       nameScope = TypeParameterScope(nameScope, element.typeParameters);
       node.nameScope = nameScope;
-      if (useDeclaringConstructorsAst) {
-        node.namePart.accept(this);
-      } else {
-        node.typeParameters?.accept(this);
-      }
+      node.namePart.accept(this);
       node.extendsClause?.accept(this);
       node.withClause?.accept(this);
       node.implementsClause?.accept(this);
@@ -4924,11 +4923,7 @@ class ScopeResolverVisitor extends UnifyingAstVisitor<void> {
 
       nameScope = InstanceScope(nameScope, element);
       _visitDocumentationComment(node.documentationComment);
-      if (useDeclaringConstructorsAst) {
-        node.body.accept(this);
-      } else {
-        node.members.accept(this);
-      }
+      node.body.accept(this);
     } finally {
       nameScope = outerScope;
     }
@@ -5029,22 +5024,13 @@ class ScopeResolverVisitor extends UnifyingAstVisitor<void> {
 
       nameScope = TypeParameterScope(nameScope, element.typeParameters);
       node.nameScope = nameScope;
-      if (useDeclaringConstructorsAst) {
-        node.namePart.accept(this);
-      } else {
-        node.typeParameters?.accept(this);
-      }
+      node.namePart.accept(this);
       node.withClause?.accept(this);
       node.implementsClause?.accept(this);
 
       nameScope = InstanceScope(nameScope, element);
       _visitDocumentationComment(node.documentationComment);
-      if (useDeclaringConstructorsAst) {
-        node.body.accept(this);
-      } else {
-        node.constants.accept(this);
-        node.members.accept(this);
-      }
+      node.body.accept(this);
     } finally {
       nameScope = outerScope;
     }
@@ -5070,11 +5056,7 @@ class ScopeResolverVisitor extends UnifyingAstVisitor<void> {
 
       nameScope = ExtensionScope(nameScope, element);
       _visitDocumentationComment(node.documentationComment);
-      if (useDeclaringConstructorsAst) {
-        node.body.accept(this);
-      } else {
-        node.members.accept(this);
-      }
+      node.body.accept(this);
     } finally {
       nameScope = outerScope;
     }
@@ -5091,21 +5073,12 @@ class ScopeResolverVisitor extends UnifyingAstVisitor<void> {
 
       nameScope = TypeParameterScope(nameScope, element.typeParameters);
       node.nameScope = nameScope;
-      if (useDeclaringConstructorsAst) {
-        node.primaryConstructor.accept(this);
-      } else {
-        node.typeParameters?.accept(this);
-        node.representation.accept(this);
-      }
+      node.primaryConstructor.accept(this);
       node.implementsClause?.accept(this);
 
       nameScope = InstanceScope(nameScope, element);
       _visitDocumentationComment(node.documentationComment);
-      if (useDeclaringConstructorsAst) {
-        node.body.accept(this);
-      } else {
-        node.members.accept(this);
-      }
+      node.body.accept(this);
     } finally {
       nameScope = outerScope;
     }
@@ -5435,11 +5408,7 @@ class ScopeResolverVisitor extends UnifyingAstVisitor<void> {
 
       nameScope = InstanceScope(nameScope, element);
       _visitDocumentationComment(node.documentationComment);
-      if (useDeclaringConstructorsAst) {
-        node.body.accept(this);
-      } else {
-        node.members.accept(this);
-      }
+      node.body.accept(this);
     } finally {
       nameScope = outerScope;
     }

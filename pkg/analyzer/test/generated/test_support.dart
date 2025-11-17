@@ -499,10 +499,9 @@ extension on DiagnosticCode {
   /// to change test expectations to match the current behavior.
   ///
   /// For example, if the unique name is `TestClass.MY_ERROR`, this method will
-  /// return `TestClass.myError`.
+  /// return `diag.myError`.
   String get constantName => switch (uniqueName.split('.')) {
-    [var className, var snakeCaseName] =>
-      '$className.${snakeCaseName.toCamelCase()}',
+    [_, var snakeCaseName] => 'diag.${snakeCaseName.toCamelCase()}',
     _ => throw StateError('Malformed DiagnosticCode: $uniqueName'),
   };
 }

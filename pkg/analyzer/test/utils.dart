@@ -32,7 +32,7 @@ class AstFinder {
     NodeList<CompilationUnitMember> unitMembers = unit.declarations;
     for (CompilationUnitMember unitMember in unitMembers) {
       if (unitMember is ClassDeclaration &&
-          unitMember.name.lexeme == className) {
+          unitMember.namePart.typeName.lexeme == className) {
         return unitMember;
       }
     }
@@ -49,7 +49,8 @@ class AstFinder {
     String? constructorName,
   ) {
     ClassDeclaration unitMember = getClass(unit, className);
-    NodeList<ClassMember> classMembers = unitMember.members;
+    var classBody = unitMember.body as BlockClassBody;
+    NodeList<ClassMember> classMembers = classBody.members;
     for (ClassMember classMember in classMembers) {
       if (classMember is ConstructorDeclaration) {
         if (classMember.name?.lexeme == constructorName) {
@@ -68,7 +69,8 @@ class AstFinder {
     String fieldName,
   ) {
     ClassDeclaration unitMember = getClass(unit, className);
-    NodeList<ClassMember> classMembers = unitMember.members;
+    var classBody = unitMember.body as BlockClassBody;
+    NodeList<ClassMember> classMembers = classBody.members;
     for (ClassMember classMember in classMembers) {
       if (classMember is FieldDeclaration) {
         NodeList<VariableDeclaration> fields = classMember.fields.variables;
@@ -90,7 +92,8 @@ class AstFinder {
     String methodName,
   ) {
     ClassDeclaration unitMember = getClass(unit, className);
-    NodeList<ClassMember> classMembers = unitMember.members;
+    var classBody = unitMember.body as BlockClassBody;
+    NodeList<ClassMember> classMembers = classBody.members;
     for (ClassMember classMember in classMembers) {
       if (classMember is MethodDeclaration) {
         if (classMember.name.lexeme == methodName) {

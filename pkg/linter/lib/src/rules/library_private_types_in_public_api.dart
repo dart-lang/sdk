@@ -44,11 +44,13 @@ class Validator extends SimpleAstVisitor<void> {
 
   @override
   void visitClassDeclaration(ClassDeclaration node) {
-    if (Identifier.isPrivateName(node.name.lexeme)) {
+    if (Identifier.isPrivateName(node.namePart.typeName.lexeme)) {
       return;
     }
-    node.typeParameters?.accept(this);
-    node.members.accept(this);
+    node.namePart.typeParameters?.accept(this);
+    if (node.body case BlockClassBody body) {
+      body.members.accept(this);
+    }
   }
 
   @override
@@ -67,7 +69,7 @@ class Validator extends SimpleAstVisitor<void> {
       return;
     }
 
-    var parent = node.parent;
+    var parent = node.parent?.parent;
 
     // Enum constructors are effectively private so don't visit their params.
     if (parent is EnumDeclaration) return;
@@ -85,11 +87,11 @@ class Validator extends SimpleAstVisitor<void> {
 
   @override
   void visitEnumDeclaration(EnumDeclaration node) {
-    if (Identifier.isPrivateName(node.name.lexeme)) {
+    if (Identifier.isPrivateName(node.namePart.typeName.lexeme)) {
       return;
     }
-    node.typeParameters?.accept(this);
-    node.members.accept(this);
+    node.namePart.typeParameters?.accept(this);
+    node.body.members.accept(this);
   }
 
   @override
@@ -100,18 +102,29 @@ class Validator extends SimpleAstVisitor<void> {
     }
     node.typeParameters?.accept(this);
     node.onClause?.extendedType.accept(this);
-    node.members.accept(this);
+    node.body.members.accept(this);
   }
 
   @override
   void visitExtensionTypeDeclaration(ExtensionTypeDeclaration node) {
-    if (Identifier.isPrivateName(node.name.lexeme)) return;
-    node.typeParameters?.accept(this);
-    var representation = node.representation;
-    if (!Identifier.isPrivateName(representation.fieldName.lexeme)) {
-      representation.fieldType.accept(this);
+    if (Identifier.isPrivateName(node.primaryConstructor.typeName.lexeme)) {
+      return;
     }
-    node.members.accept(this);
+    node.primaryConstructor.typeParameters?.accept(this);
+
+    for (var formalParameter
+        in node.primaryConstructor.formalParameters.parameters) {
+      if (formalParameter is SimpleFormalParameter) {
+        var name = formalParameter.name;
+        if (name != null && !Identifier.isPrivateName(name.lexeme)) {
+          formalParameter.type!.accept(this);
+        }
+      }
+    }
+
+    if (node.body case BlockClassBody body) {
+      body.members.accept(this);
+    }
   }
 
   @override
@@ -214,7 +227,7 @@ class Validator extends SimpleAstVisitor<void> {
     }
     node.onClause?.superclassConstraints.accept(this);
     node.typeParameters?.accept(this);
-    node.members.accept(this);
+    node.body.members.accept(this);
   }
 
   @override
