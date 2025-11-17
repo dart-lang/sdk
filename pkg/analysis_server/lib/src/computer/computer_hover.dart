@@ -39,7 +39,7 @@ class DartUnitHoverComputer {
       return null;
     }
 
-    var locationEntity = _locationEntity(node);
+    var locationEntity = _locationEntity(node, _offset);
     node = _targetNode(node);
     if (node == null || locationEntity == null) {
       return null;
@@ -187,8 +187,18 @@ class DartUnitHoverComputer {
   /// hover.
   ///
   /// Returns `null` if there is no valid entity for this hover.
-  SyntacticEntity? _locationEntity(AstNode node) {
+  SyntacticEntity? _locationEntity(AstNode node, int offset) {
     return switch (node) {
+      BinaryExpression() => node.operator,
+      ConditionalExpression()
+          when offset >= node.question.offset && offset <= node.question.end =>
+        node.question,
+      ConditionalExpression()
+          when offset >= node.colon.offset && offset <= node.colon.end =>
+        node.colon,
+      AssignmentExpression() => node.operator,
+      PrefixExpression() => node.operator,
+      PostfixExpression() => node.operator,
       CatchClauseParameter() => node.name,
       NamedCompilationUnitMember() => node.name,
       Expression() => node,
