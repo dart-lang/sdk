@@ -1,6 +1,6 @@
 Class: Foo
-Class method: Foo.foo_method1
-Class method: Foo.foo_method2
+Method: Foo.foo_method1
+Method: Foo.foo_method2
 Class: Bar
-Class method: Bar.bar_method1
-Class method: Bar.bar_method2
+Method: Bar.bar_method1
+Method: Bar.bar_method2

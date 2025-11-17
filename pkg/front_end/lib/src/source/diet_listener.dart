@@ -127,7 +127,9 @@ class DietListener extends StackListenerImpl {
     bool hasName,
   ) {
     debugEvent("PartOf");
-    if (hasName) discard(1);
+    if (hasName) {
+      discard(1);
+    }
     discard(1); // Metadata.
   }
 
@@ -326,7 +328,9 @@ class DietListener extends StackListenerImpl {
     );
     debugEvent("FunctionTypeAlias");
 
-    if (equals == null) pop(); // endToken
+    if (equals == null) {
+      pop(); // endToken
+    }
     pop(); // name
     // Metadata is handled in [SourceTypeAliasBuilder.buildOutlineExpressions].
     pop(); // metadata
@@ -334,7 +338,8 @@ class DietListener extends StackListenerImpl {
   }
 
   @override
-  void endClassFields(
+  void endFields(
+    DeclarationKind kind,
     Token? abstractToken,
     Token? augmentToken,
     Token? externalToken,
@@ -346,58 +351,7 @@ class DietListener extends StackListenerImpl {
     Token beginToken,
     Token endToken,
   ) {
-    debugEvent("endClassFields");
-    _buildFields(count, beginToken, false);
-  }
-
-  @override
-  void endMixinFields(
-    Token? abstractToken,
-    Token? augmentToken,
-    Token? externalToken,
-    Token? staticToken,
-    Token? covariantToken,
-    Token? lateToken,
-    Token? varFinalOrConst,
-    int count,
-    Token beginToken,
-    Token endToken,
-  ) {
-    debugEvent("endMixinFields");
-    _buildFields(count, beginToken, false);
-  }
-
-  @override
-  void endExtensionFields(
-    Token? abstractToken,
-    Token? augmentToken,
-    Token? externalToken,
-    Token? staticToken,
-    Token? covariantToken,
-    Token? lateToken,
-    Token? varFinalOrConst,
-    int count,
-    Token beginToken,
-    Token endToken,
-  ) {
-    debugEvent("endExtensionFields");
-    _buildFields(count, beginToken, false);
-  }
-
-  @override
-  void endExtensionTypeFields(
-    Token? abstractToken,
-    Token? augmentToken,
-    Token? externalToken,
-    Token? staticToken,
-    Token? covariantToken,
-    Token? lateToken,
-    Token? varFinalOrConst,
-    int count,
-    Token beginToken,
-    Token endToken,
-  ) {
-    debugEvent("endExtensionTypeFields");
+    debugEvent("endFields");
     _buildFields(count, beginToken, false);
   }
 
@@ -734,13 +688,30 @@ class DietListener extends StackListenerImpl {
   }
 
   @override
-  void endClassFactoryMethod(
+  void endFactory(
+    DeclarationKind kind,
     Token beginToken,
     Token factoryKeyword,
     Token endToken,
   ) {
-    debugEvent("ClassFactoryMethod");
-    _endClassFactoryMethod(beginToken, factoryKeyword, endToken);
+    debugEvent("Factory");
+    switch (kind) {
+      case DeclarationKind.Class:
+      case DeclarationKind.Enum:
+      case DeclarationKind.ExtensionType:
+      case DeclarationKind.Mixin:
+        _endClassFactoryMethod(beginToken, factoryKeyword, endToken);
+      case DeclarationKind.Extension:
+        // Skip the declaration. An error as already been produced by the
+        // parser.
+        pop(); // bodyToken
+        pop(); // name
+        pop(); // metadata
+        checkEmpty(beginToken.charOffset);
+      // Coverage-ignore(suite): Not run.
+      case DeclarationKind.TopLevel:
+        throw new UnsupportedError("Unexpected factory kind $kind.");
+    }
   }
 
   void _endClassFactoryMethod(
@@ -784,35 +755,6 @@ class DietListener extends StackListenerImpl {
   }
 
   @override
-  void endExtensionFactoryMethod(
-    Token beginToken,
-    Token factoryKeyword,
-    Token endToken,
-  ) {
-    debugEvent("ExtensionFactoryMethod");
-    pop(); // bodyToken
-    pop(); // name
-    pop(); // metadata
-    checkEmpty(beginToken.charOffset);
-    // Skip the declaration. An error as already been produced by the parser.
-  }
-
-  @override
-  void endExtensionConstructor(
-    Token beginToken,
-    Token beginParam,
-    Token? beginInitializers,
-    Token endToken,
-  ) {
-    debugEvent("ExtensionConstructor");
-    pop(); // bodyToken
-    pop(); // name
-    pop(); // metadata
-    checkEmpty(beginToken.charOffset);
-    // Skip the declaration. An error as already been produced by the parser.
-  }
-
-  @override
   void endRedirectingFactoryBody(Token beginToken, Token endToken) {
     debugEvent("RedirectingFactoryBody");
     discard(1); // ConstructorReference.
@@ -848,7 +790,8 @@ class DietListener extends StackListenerImpl {
   }
 
   @override
-  void endClassMethod(
+  void endMethod(
+    DeclarationKind kind,
     Token? getOrSet,
     Token beginToken,
     Token beginParam,
@@ -859,55 +802,30 @@ class DietListener extends StackListenerImpl {
   }
 
   @override
-  void endClassConstructor(
+  void endConstructor(
+    DeclarationKind kind,
     Token beginToken,
     Token beginParam,
     Token? beginInitializers,
     Token endToken,
   ) {
-    _endClassConstructor(beginToken, beginParam);
-  }
-
-  @override
-  void endMixinMethod(
-    Token? getOrSet,
-    Token beginToken,
-    Token beginParam,
-    Token? beginInitializers,
-    Token endToken,
-  ) {
-    _endClassMethod(getOrSet, beginToken, beginParam);
-  }
-
-  @override
-  void endMixinFactoryMethod(
-    Token beginToken,
-    Token factoryKeyword,
-    Token endToken,
-  ) {
-    debugEvent("endMixinFactoryMethod");
-    _endClassFactoryMethod(beginToken, factoryKeyword, endToken);
-  }
-
-  @override
-  void endExtensionMethod(
-    Token? getOrSet,
-    Token beginToken,
-    Token beginParam,
-    Token? beginInitializers,
-    Token endToken,
-  ) {
-    _endClassMethod(getOrSet, beginToken, beginParam);
-  }
-
-  @override
-  void endMixinConstructor(
-    Token beginToken,
-    Token beginParam,
-    Token? beginInitializers,
-    Token endToken,
-  ) {
-    _endClassConstructor(beginToken, beginParam);
+    switch (kind) {
+      case DeclarationKind.Class:
+      case DeclarationKind.Enum:
+      case DeclarationKind.ExtensionType:
+      case DeclarationKind.Mixin:
+        _endClassConstructor(beginToken, beginParam);
+      case DeclarationKind.Extension:
+        // Skip the declaration. An error as already been produced by the
+        // parser.
+        pop(); // bodyToken
+        pop(); // name
+        pop(); // metadata
+        checkEmpty(beginToken.charOffset);
+      // Coverage-ignore(suite): Not run.
+      case DeclarationKind.TopLevel:
+        throw new UnsupportedError("Unexpected constructor kind $kind.");
+    }
   }
 
   void _endClassMethod(Token? getOrSet, Token beginToken, Token beginParam) {
@@ -1291,39 +1209,6 @@ class DietListener extends StackListenerImpl {
   }
 
   @override
-  void endExtensionTypeConstructor(
-    Token beginToken,
-    Token beginParam,
-    Token? beginInitializers,
-    Token endToken,
-  ) {
-    debugEvent("endExtensionTypeConstructor");
-    _endClassConstructor(beginToken, beginParam);
-  }
-
-  @override
-  void endExtensionTypeMethod(
-    Token? getOrSet,
-    Token beginToken,
-    Token beginParam,
-    Token? beginInitializers,
-    Token endToken,
-  ) {
-    debugEvent("endExtensionTypeFactoryMethod");
-    _endClassMethod(getOrSet, beginToken, beginParam);
-  }
-
-  @override
-  void endExtensionTypeFactoryMethod(
-    Token beginToken,
-    Token factoryKeyword,
-    Token endToken,
-  ) {
-    debugEvent("endExtensionTypeFactoryMethod");
-    _endClassFactoryMethod(beginToken, factoryKeyword, endToken);
-  }
-
-  @override
   void beginEnumBody(Token token) {
     assert(checkState(token, [ValueKinds.IdentifierOrParserRecovery]));
     debugEvent("EnumBody");
@@ -1375,54 +1260,6 @@ class DietListener extends StackListenerImpl {
     Token leftBrace,
   ) {
     debugEvent("EnumHeader");
-  }
-
-  @override
-  void endEnumConstructor(
-    Token beginToken,
-    Token beginParam,
-    Token? beginInitializers,
-    Token endToken,
-  ) {
-    _endClassConstructor(beginToken, beginParam);
-  }
-
-  @override
-  void endEnumMethod(
-    Token? getOrSet,
-    Token beginToken,
-    Token beginParam,
-    Token? beginInitializers,
-    Token endToken,
-  ) {
-    _endClassMethod(getOrSet, beginToken, beginParam);
-  }
-
-  @override
-  void endEnumFactoryMethod(
-    Token beginToken,
-    Token factoryKeyword,
-    Token endToken,
-  ) {
-    debugEvent("endEnumFactoryMethod");
-    _endClassFactoryMethod(beginToken, factoryKeyword, endToken);
-  }
-
-  @override
-  void endEnumFields(
-    Token? abstractToken,
-    Token? augmentToken,
-    Token? externalToken,
-    Token? staticToken,
-    Token? covariantToken,
-    Token? lateToken,
-    Token? varFinalOrConst,
-    int count,
-    Token beginToken,
-    Token endToken,
-  ) {
-    debugEvent("Fields");
-    _buildFields(count, beginToken, false);
   }
 
   @override

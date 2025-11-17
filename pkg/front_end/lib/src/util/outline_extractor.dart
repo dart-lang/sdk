@@ -700,41 +700,41 @@ class _ParserAstVisitor extends IgnoreSomeForCompatibilityAstVisitor {
   }
 
   @override
-  void visitClassConstructorEnd(ClassConstructorEnd node) {
-    assert(currentContainer is Class);
+  void visitConstructorEnd(ConstructorEnd node) {
+    assert(currentContainer is! TopLevel);
     List<IdentifierHandle> ids = node.getIdentifiers();
     if (ids.length == 1) {
-      ClassConstructor classConstructor = new ClassConstructor(
+      Constructor constructor = new Constructor(
         node,
         ids.single.token.lexeme,
         node.beginToken,
         node.endToken,
       );
-      currentContainer.addChild(classConstructor, map);
+      currentContainer.addChild(constructor, map);
       log("Hello from constructor ${ids.single.token}");
     } else if (ids.length == 2) {
-      ClassConstructor classConstructor = new ClassConstructor(
+      Constructor constructor = new Constructor(
         node,
         "${ids.first.token}.${ids.last.token}",
         node.beginToken,
         node.endToken,
       );
-      map[node] = classConstructor;
-      currentContainer.addChild(classConstructor, map);
+      map[node] = constructor;
+      currentContainer.addChild(constructor, map);
       log("Hello from constructor ${ids.first.token}.${ids.last.token}");
     } else {
       throw "Unexpected identifiers in class constructor";
     }
 
-    super.visitClassConstructorEnd(node);
+    super.visitConstructorEnd(node);
   }
 
   @override
-  void visitClassFactoryMethodEnd(ClassFactoryMethodEnd node) {
+  void visitFactoryEnd(FactoryEnd node) {
     assert(currentContainer is Class);
     List<IdentifierHandle> ids = node.getIdentifiers();
     if (ids.length == 1) {
-      ClassFactoryMethod classFactoryMethod = new ClassFactoryMethod(
+      Factory classFactoryMethod = new Factory(
         node,
         ids.single.token.lexeme,
         node.beginToken,
@@ -743,7 +743,7 @@ class _ParserAstVisitor extends IgnoreSomeForCompatibilityAstVisitor {
       currentContainer.addChild(classFactoryMethod, map);
       log("Hello from factory method ${ids.single.token}");
     } else if (ids.length == 2) {
-      ClassFactoryMethod classFactoryMethod = new ClassFactoryMethod(
+      Factory classFactoryMethod = new Factory(
         node,
         "${ids.first.token}.${ids.last.token}",
         node.beginToken,
@@ -762,41 +762,41 @@ class _ParserAstVisitor extends IgnoreSomeForCompatibilityAstVisitor {
       );
     }
 
-    super.visitClassFactoryMethodEnd(node);
+    super.visitFactoryEnd(node);
   }
 
   @override
-  void visitClassFieldsEnd(ClassFieldsEnd node) {
-    assert(currentContainer is Class);
+  void visitFieldsEnd(FieldsEnd node) {
+    assert(currentContainer is! TopLevel);
     List<String> fields = node
         .getFieldIdentifiers()
         .map((e) => e.token.lexeme)
         .toList();
-    ClassFields classFields = new ClassFields(
+    Fields classFields = new Fields(
       node,
       fields,
       node.beginToken,
       node.endToken,
     );
     currentContainer.addChild(classFields, map);
-    log("Hello from class fields ${fields.join(", ")}");
-    super.visitClassFieldsEnd(node);
+    log("Hello from fields ${fields.join(", ")}");
+    super.visitFieldsEnd(node);
   }
 
   @override
-  void visitClassMethodEnd(ClassMethodEnd node) {
-    assert(currentContainer is Class);
+  void visitMethodEnd(MethodEnd node) {
+    assert(currentContainer is! TopLevel);
 
     String identifier = node.getNameIdentifier();
-    ClassMethod classMethod = new ClassMethod(
+    Method classMethod = new Method(
       node,
       identifier,
       node.beginToken,
       node.endToken,
     );
     currentContainer.addChild(classMethod, map);
-    log("Hello from class method $identifier");
-    super.visitClassMethodEnd(node);
+    log("Hello from method $identifier");
+    super.visitMethodEnd(node);
   }
 
   @override
@@ -865,50 +865,6 @@ class _ParserAstVisitor extends IgnoreSomeForCompatibilityAstVisitor {
     currentContainer = extension;
     super.visitExtensionDeclarationEnd(node);
     currentContainer = previousContainer;
-  }
-
-  @override
-  void visitExtensionConstructorEnd(ExtensionConstructorEnd node) {
-    // TODO: implement visitExtensionConstructorEnd
-    throw node;
-  }
-
-  @override
-  void visitExtensionFactoryMethodEnd(ExtensionFactoryMethodEnd node) {
-    // TODO: implement visitExtensionFactoryMethodEnd
-    throw node;
-  }
-
-  @override
-  void visitExtensionFieldsEnd(ExtensionFieldsEnd node) {
-    assert(currentContainer is Extension);
-    List<String> fields = node
-        .getFieldIdentifiers()
-        .map((e) => e.token.lexeme)
-        .toList();
-    ExtensionFields classFields = new ExtensionFields(
-      node,
-      fields,
-      node.beginToken,
-      node.endToken,
-    );
-    currentContainer.addChild(classFields, map);
-    log("Hello from extension fields ${fields.join(", ")}");
-    super.visitExtensionFieldsEnd(node);
-  }
-
-  @override
-  void visitExtensionMethodEnd(ExtensionMethodEnd node) {
-    assert(currentContainer is Extension);
-    ExtensionMethod extensionMethod = new ExtensionMethod(
-      node,
-      node.getNameIdentifier(),
-      node.beginToken,
-      node.endToken,
-    );
-    currentContainer.addChild(extensionMethod, map);
-    log("Hello from extension method ${node.getNameIdentifier()}");
-    super.visitExtensionMethodEnd(node);
   }
 
   void debugDumpSource(
@@ -998,38 +954,6 @@ class _ParserAstVisitor extends IgnoreSomeForCompatibilityAstVisitor {
     currentContainer = mixin;
     super.visitMixinDeclarationEnd(node);
     currentContainer = previousContainer;
-  }
-
-  @override
-  void visitMixinFieldsEnd(MixinFieldsEnd node) {
-    assert(currentContainer is Mixin);
-    List<String> fields = node
-        .getFieldIdentifiers()
-        .map((e) => e.token.lexeme)
-        .toList();
-    MixinFields mixinFields = new MixinFields(
-      node,
-      fields,
-      node.beginToken,
-      node.endToken,
-    );
-    currentContainer.addChild(mixinFields, map);
-    log("Hello from mixin fields ${fields.join(", ")}");
-    super.visitMixinFieldsEnd(node);
-  }
-
-  @override
-  void visitMixinMethodEnd(MixinMethodEnd node) {
-    assert(currentContainer is Mixin);
-    MixinMethod classMethod = new MixinMethod(
-      node,
-      node.getNameIdentifier(),
-      node.beginParam,
-      node.endToken,
-    );
-    currentContainer.addChild(classMethod, map);
-    log("Hello from mixin method ${node.getNameIdentifier()}");
-    super.visitMixinMethodEnd(node);
   }
 
   @override

@@ -762,23 +762,6 @@ abstract class AbstractParserAstListener implements Listener {
   }
 
   @override
-  void endEnumConstructor(
-    Token beginToken,
-    Token beginParam,
-    Token? beginInitializers,
-    Token endToken,
-  ) {
-    EnumConstructorEnd data = new EnumConstructorEnd(
-      ParserAstType.END,
-      beginToken: beginToken,
-      beginParam: beginParam,
-      beginInitializers: beginInitializers,
-      endToken: endToken,
-    );
-    seen(data);
-  }
-
-  @override
   void handleEnumElements(Token elementsEndToken, int elementsCount) {
     EnumElementsHandle data = new EnumElementsHandle(
       ParserAstType.HANDLE,
@@ -830,21 +813,6 @@ abstract class AbstractParserAstListener implements Listener {
   }
 
   @override
-  void endEnumFactoryMethod(
-    Token beginToken,
-    Token factoryKeyword,
-    Token endToken,
-  ) {
-    EnumFactoryMethodEnd data = new EnumFactoryMethodEnd(
-      ParserAstType.END,
-      beginToken: beginToken,
-      factoryKeyword: factoryKeyword,
-      endToken: endToken,
-    );
-    seen(data);
-  }
-
-  @override
   void beginExport(Token token) {
     ExportBegin data = new ExportBegin(ParserAstType.BEGIN, token: token);
     seen(data);
@@ -881,13 +849,13 @@ abstract class AbstractParserAstListener implements Listener {
   }
 
   @override
-  void beginFactoryMethod(
+  void beginFactory(
     DeclarationKind declarationKind,
     Token lastConsumed,
     Token? externalToken,
     Token? constToken,
   ) {
-    FactoryMethodBegin data = new FactoryMethodBegin(
+    FactoryBegin data = new FactoryBegin(
       ParserAstType.BEGIN,
       declarationKind: declarationKind,
       lastConsumed: lastConsumed,
@@ -898,58 +866,15 @@ abstract class AbstractParserAstListener implements Listener {
   }
 
   @override
-  void endClassFactoryMethod(
+  void endFactory(
+    DeclarationKind kind,
     Token beginToken,
     Token factoryKeyword,
     Token endToken,
   ) {
-    ClassFactoryMethodEnd data = new ClassFactoryMethodEnd(
+    FactoryEnd data = new FactoryEnd(
       ParserAstType.END,
-      beginToken: beginToken,
-      factoryKeyword: factoryKeyword,
-      endToken: endToken,
-    );
-    seen(data);
-  }
-
-  @override
-  void endMixinFactoryMethod(
-    Token beginToken,
-    Token factoryKeyword,
-    Token endToken,
-  ) {
-    MixinFactoryMethodEnd data = new MixinFactoryMethodEnd(
-      ParserAstType.END,
-      beginToken: beginToken,
-      factoryKeyword: factoryKeyword,
-      endToken: endToken,
-    );
-    seen(data);
-  }
-
-  @override
-  void endExtensionFactoryMethod(
-    Token beginToken,
-    Token factoryKeyword,
-    Token endToken,
-  ) {
-    ExtensionFactoryMethodEnd data = new ExtensionFactoryMethodEnd(
-      ParserAstType.END,
-      beginToken: beginToken,
-      factoryKeyword: factoryKeyword,
-      endToken: endToken,
-    );
-    seen(data);
-  }
-
-  @override
-  void endExtensionTypeFactoryMethod(
-    Token beginToken,
-    Token factoryKeyword,
-    Token endToken,
-  ) {
-    ExtensionTypeFactoryMethodEnd data = new ExtensionTypeFactoryMethodEnd(
-      ParserAstType.END,
+      kind: kind,
       beginToken: beginToken,
       factoryKeyword: factoryKeyword,
       endToken: endToken,
@@ -1041,7 +966,8 @@ abstract class AbstractParserAstListener implements Listener {
   }
 
   @override
-  void endClassFields(
+  void endFields(
+    DeclarationKind kind,
     Token? abstractToken,
     Token? augmentToken,
     Token? externalToken,
@@ -1053,8 +979,9 @@ abstract class AbstractParserAstListener implements Listener {
     Token beginToken,
     Token endToken,
   ) {
-    ClassFieldsEnd data = new ClassFieldsEnd(
+    FieldsEnd data = new FieldsEnd(
       ParserAstType.END,
+      kind: kind,
       abstractToken: abstractToken,
       augmentToken: augmentToken,
       externalToken: externalToken,
@@ -1064,141 +991,6 @@ abstract class AbstractParserAstListener implements Listener {
       varFinalOrConst: varFinalOrConst,
       count: count,
       beginToken: beginToken,
-      endToken: endToken,
-    );
-    seen(data);
-  }
-
-  @override
-  void endMixinFields(
-    Token? abstractToken,
-    Token? augmentToken,
-    Token? externalToken,
-    Token? staticToken,
-    Token? covariantToken,
-    Token? lateToken,
-    Token? varFinalOrConst,
-    int count,
-    Token beginToken,
-    Token endToken,
-  ) {
-    MixinFieldsEnd data = new MixinFieldsEnd(
-      ParserAstType.END,
-      abstractToken: abstractToken,
-      augmentToken: augmentToken,
-      externalToken: externalToken,
-      staticToken: staticToken,
-      covariantToken: covariantToken,
-      lateToken: lateToken,
-      varFinalOrConst: varFinalOrConst,
-      count: count,
-      beginToken: beginToken,
-      endToken: endToken,
-    );
-    seen(data);
-  }
-
-  @override
-  void endExtensionFields(
-    Token? abstractToken,
-    Token? augmentToken,
-    Token? externalToken,
-    Token? staticToken,
-    Token? covariantToken,
-    Token? lateToken,
-    Token? varFinalOrConst,
-    int count,
-    Token beginToken,
-    Token endToken,
-  ) {
-    ExtensionFieldsEnd data = new ExtensionFieldsEnd(
-      ParserAstType.END,
-      abstractToken: abstractToken,
-      augmentToken: augmentToken,
-      externalToken: externalToken,
-      staticToken: staticToken,
-      covariantToken: covariantToken,
-      lateToken: lateToken,
-      varFinalOrConst: varFinalOrConst,
-      count: count,
-      beginToken: beginToken,
-      endToken: endToken,
-    );
-    seen(data);
-  }
-
-  @override
-  void endExtensionTypeFields(
-    Token? abstractToken,
-    Token? augmentToken,
-    Token? externalToken,
-    Token? staticToken,
-    Token? covariantToken,
-    Token? lateToken,
-    Token? varFinalOrConst,
-    int count,
-    Token beginToken,
-    Token endToken,
-  ) {
-    ExtensionTypeFieldsEnd data = new ExtensionTypeFieldsEnd(
-      ParserAstType.END,
-      abstractToken: abstractToken,
-      augmentToken: augmentToken,
-      externalToken: externalToken,
-      staticToken: staticToken,
-      covariantToken: covariantToken,
-      lateToken: lateToken,
-      varFinalOrConst: varFinalOrConst,
-      count: count,
-      beginToken: beginToken,
-      endToken: endToken,
-    );
-    seen(data);
-  }
-
-  @override
-  void endEnumFields(
-    Token? abstractToken,
-    Token? augmentToken,
-    Token? externalToken,
-    Token? staticToken,
-    Token? covariantToken,
-    Token? lateToken,
-    Token? varFinalOrConst,
-    int count,
-    Token beginToken,
-    Token endToken,
-  ) {
-    EnumFieldsEnd data = new EnumFieldsEnd(
-      ParserAstType.END,
-      abstractToken: abstractToken,
-      augmentToken: augmentToken,
-      externalToken: externalToken,
-      staticToken: staticToken,
-      covariantToken: covariantToken,
-      lateToken: lateToken,
-      varFinalOrConst: varFinalOrConst,
-      count: count,
-      beginToken: beginToken,
-      endToken: endToken,
-    );
-    seen(data);
-  }
-
-  @override
-  void endEnumMethod(
-    Token? getOrSet,
-    Token beginToken,
-    Token beginParam,
-    Token? beginInitializers,
-    Token endToken,
-  ) {
-    EnumMethodEnd data = new EnumMethodEnd(
-      ParserAstType.END,
-      getOrSet: getOrSet,
-      beginToken: beginToken,
-      beginParam: beginParam,
-      beginInitializers: beginInitializers,
       endToken: endToken,
     );
     seen(data);
@@ -2112,15 +1904,17 @@ abstract class AbstractParserAstListener implements Listener {
   }
 
   @override
-  void endClassMethod(
+  void endMethod(
+    DeclarationKind kind,
     Token? getOrSet,
     Token beginToken,
     Token beginParam,
     Token? beginInitializers,
     Token endToken,
   ) {
-    ClassMethodEnd data = new ClassMethodEnd(
+    MethodEnd data = new MethodEnd(
       ParserAstType.END,
+      kind: kind,
       getOrSet: getOrSet,
       beginToken: beginToken,
       beginParam: beginParam,
@@ -2131,122 +1925,16 @@ abstract class AbstractParserAstListener implements Listener {
   }
 
   @override
-  void endMixinMethod(
-    Token? getOrSet,
+  void endConstructor(
+    DeclarationKind kind,
     Token beginToken,
     Token beginParam,
     Token? beginInitializers,
     Token endToken,
   ) {
-    MixinMethodEnd data = new MixinMethodEnd(
+    ConstructorEnd data = new ConstructorEnd(
       ParserAstType.END,
-      getOrSet: getOrSet,
-      beginToken: beginToken,
-      beginParam: beginParam,
-      beginInitializers: beginInitializers,
-      endToken: endToken,
-    );
-    seen(data);
-  }
-
-  @override
-  void endExtensionMethod(
-    Token? getOrSet,
-    Token beginToken,
-    Token beginParam,
-    Token? beginInitializers,
-    Token endToken,
-  ) {
-    ExtensionMethodEnd data = new ExtensionMethodEnd(
-      ParserAstType.END,
-      getOrSet: getOrSet,
-      beginToken: beginToken,
-      beginParam: beginParam,
-      beginInitializers: beginInitializers,
-      endToken: endToken,
-    );
-    seen(data);
-  }
-
-  @override
-  void endExtensionTypeMethod(
-    Token? getOrSet,
-    Token beginToken,
-    Token beginParam,
-    Token? beginInitializers,
-    Token endToken,
-  ) {
-    ExtensionTypeMethodEnd data = new ExtensionTypeMethodEnd(
-      ParserAstType.END,
-      getOrSet: getOrSet,
-      beginToken: beginToken,
-      beginParam: beginParam,
-      beginInitializers: beginInitializers,
-      endToken: endToken,
-    );
-    seen(data);
-  }
-
-  @override
-  void endClassConstructor(
-    Token beginToken,
-    Token beginParam,
-    Token? beginInitializers,
-    Token endToken,
-  ) {
-    ClassConstructorEnd data = new ClassConstructorEnd(
-      ParserAstType.END,
-      beginToken: beginToken,
-      beginParam: beginParam,
-      beginInitializers: beginInitializers,
-      endToken: endToken,
-    );
-    seen(data);
-  }
-
-  @override
-  void endMixinConstructor(
-    Token beginToken,
-    Token beginParam,
-    Token? beginInitializers,
-    Token endToken,
-  ) {
-    MixinConstructorEnd data = new MixinConstructorEnd(
-      ParserAstType.END,
-      beginToken: beginToken,
-      beginParam: beginParam,
-      beginInitializers: beginInitializers,
-      endToken: endToken,
-    );
-    seen(data);
-  }
-
-  @override
-  void endExtensionConstructor(
-    Token beginToken,
-    Token beginParam,
-    Token? beginInitializers,
-    Token endToken,
-  ) {
-    ExtensionConstructorEnd data = new ExtensionConstructorEnd(
-      ParserAstType.END,
-      beginToken: beginToken,
-      beginParam: beginParam,
-      beginInitializers: beginInitializers,
-      endToken: endToken,
-    );
-    seen(data);
-  }
-
-  @override
-  void endExtensionTypeConstructor(
-    Token beginToken,
-    Token beginParam,
-    Token? beginInitializers,
-    Token endToken,
-  ) {
-    ExtensionTypeConstructorEnd data = new ExtensionTypeConstructorEnd(
-      ParserAstType.END,
+      kind: kind,
       beginToken: beginToken,
       beginParam: beginParam,
       beginInitializers: beginInitializers,
@@ -5430,35 +5118,6 @@ class EnumDeclarationEnd extends ParserAstNode
   R accept<R>(ParserAstVisitor<R> v) => v.visitEnumDeclarationEnd(this);
 }
 
-class EnumConstructorEnd extends ParserAstNode
-    implements BeginAndEndTokenParserAstNode {
-  @override
-  final Token beginToken;
-  final Token beginParam;
-  final Token? beginInitializers;
-  @override
-  final Token endToken;
-
-  EnumConstructorEnd(
-    ParserAstType type, {
-    required this.beginToken,
-    required this.beginParam,
-    this.beginInitializers,
-    required this.endToken,
-  }) : super("EnumConstructor", type);
-
-  @override
-  Map<String, Object?> get deprecatedArguments => {
-    "beginToken": beginToken,
-    "beginParam": beginParam,
-    "beginInitializers": beginInitializers,
-    "endToken": endToken,
-  };
-
-  @override
-  R accept<R>(ParserAstVisitor<R> v) => v.visitEnumConstructorEnd(this);
-}
-
 class EnumElementsHandle extends ParserAstNode {
   final Token elementsEndToken;
   final int elementsCount;
@@ -5558,32 +5217,6 @@ class EnumElementHandle extends ParserAstNode {
   R accept<R>(ParserAstVisitor<R> v) => v.visitEnumElementHandle(this);
 }
 
-class EnumFactoryMethodEnd extends ParserAstNode
-    implements BeginAndEndTokenParserAstNode {
-  @override
-  final Token beginToken;
-  final Token factoryKeyword;
-  @override
-  final Token endToken;
-
-  EnumFactoryMethodEnd(
-    ParserAstType type, {
-    required this.beginToken,
-    required this.factoryKeyword,
-    required this.endToken,
-  }) : super("EnumFactoryMethod", type);
-
-  @override
-  Map<String, Object?> get deprecatedArguments => {
-    "beginToken": beginToken,
-    "factoryKeyword": factoryKeyword,
-    "endToken": endToken,
-  };
-
-  @override
-  R accept<R>(ParserAstVisitor<R> v) => v.visitEnumFactoryMethodEnd(this);
-}
-
 class ExportBegin extends ParserAstNode {
   final Token token;
 
@@ -5660,19 +5293,19 @@ class ExpressionStatementHandle extends ParserAstNode
   R accept<R>(ParserAstVisitor<R> v) => v.visitExpressionStatementHandle(this);
 }
 
-class FactoryMethodBegin extends ParserAstNode {
+class FactoryBegin extends ParserAstNode {
   final DeclarationKind declarationKind;
   final Token lastConsumed;
   final Token? externalToken;
   final Token? constToken;
 
-  FactoryMethodBegin(
+  FactoryBegin(
     ParserAstType type, {
     required this.declarationKind,
     required this.lastConsumed,
     this.externalToken,
     this.constToken,
-  }) : super("FactoryMethod", type);
+  }) : super("Factory", type);
 
   @override
   Map<String, Object?> get deprecatedArguments => {
@@ -5683,112 +5316,36 @@ class FactoryMethodBegin extends ParserAstNode {
   };
 
   @override
-  R accept<R>(ParserAstVisitor<R> v) => v.visitFactoryMethodBegin(this);
+  R accept<R>(ParserAstVisitor<R> v) => v.visitFactoryBegin(this);
 }
 
-class ClassFactoryMethodEnd extends ParserAstNode
+class FactoryEnd extends ParserAstNode
     implements BeginAndEndTokenParserAstNode {
+  final DeclarationKind kind;
   @override
   final Token beginToken;
   final Token factoryKeyword;
   @override
   final Token endToken;
 
-  ClassFactoryMethodEnd(
+  FactoryEnd(
     ParserAstType type, {
+    required this.kind,
     required this.beginToken,
     required this.factoryKeyword,
     required this.endToken,
-  }) : super("ClassFactoryMethod", type);
+  }) : super("Factory", type);
 
   @override
   Map<String, Object?> get deprecatedArguments => {
+    "kind": kind,
     "beginToken": beginToken,
     "factoryKeyword": factoryKeyword,
     "endToken": endToken,
   };
 
   @override
-  R accept<R>(ParserAstVisitor<R> v) => v.visitClassFactoryMethodEnd(this);
-}
-
-class MixinFactoryMethodEnd extends ParserAstNode
-    implements BeginAndEndTokenParserAstNode {
-  @override
-  final Token beginToken;
-  final Token factoryKeyword;
-  @override
-  final Token endToken;
-
-  MixinFactoryMethodEnd(
-    ParserAstType type, {
-    required this.beginToken,
-    required this.factoryKeyword,
-    required this.endToken,
-  }) : super("MixinFactoryMethod", type);
-
-  @override
-  Map<String, Object?> get deprecatedArguments => {
-    "beginToken": beginToken,
-    "factoryKeyword": factoryKeyword,
-    "endToken": endToken,
-  };
-
-  @override
-  R accept<R>(ParserAstVisitor<R> v) => v.visitMixinFactoryMethodEnd(this);
-}
-
-class ExtensionFactoryMethodEnd extends ParserAstNode
-    implements BeginAndEndTokenParserAstNode {
-  @override
-  final Token beginToken;
-  final Token factoryKeyword;
-  @override
-  final Token endToken;
-
-  ExtensionFactoryMethodEnd(
-    ParserAstType type, {
-    required this.beginToken,
-    required this.factoryKeyword,
-    required this.endToken,
-  }) : super("ExtensionFactoryMethod", type);
-
-  @override
-  Map<String, Object?> get deprecatedArguments => {
-    "beginToken": beginToken,
-    "factoryKeyword": factoryKeyword,
-    "endToken": endToken,
-  };
-
-  @override
-  R accept<R>(ParserAstVisitor<R> v) => v.visitExtensionFactoryMethodEnd(this);
-}
-
-class ExtensionTypeFactoryMethodEnd extends ParserAstNode
-    implements BeginAndEndTokenParserAstNode {
-  @override
-  final Token beginToken;
-  final Token factoryKeyword;
-  @override
-  final Token endToken;
-
-  ExtensionTypeFactoryMethodEnd(
-    ParserAstType type, {
-    required this.beginToken,
-    required this.factoryKeyword,
-    required this.endToken,
-  }) : super("ExtensionTypeFactoryMethod", type);
-
-  @override
-  Map<String, Object?> get deprecatedArguments => {
-    "beginToken": beginToken,
-    "factoryKeyword": factoryKeyword,
-    "endToken": endToken,
-  };
-
-  @override
-  R accept<R>(ParserAstVisitor<R> v) =>
-      v.visitExtensionTypeFactoryMethodEnd(this);
+  R accept<R>(ParserAstVisitor<R> v) => v.visitFactoryEnd(this);
 }
 
 class FormalParameterBegin extends ParserAstNode {
@@ -5930,8 +5487,8 @@ class FormalParametersEnd extends ParserAstNode
   R accept<R>(ParserAstVisitor<R> v) => v.visitFormalParametersEnd(this);
 }
 
-class ClassFieldsEnd extends ParserAstNode
-    implements BeginAndEndTokenParserAstNode {
+class FieldsEnd extends ParserAstNode implements BeginAndEndTokenParserAstNode {
+  final DeclarationKind kind;
   final Token? abstractToken;
   final Token? augmentToken;
   final Token? externalToken;
@@ -5945,8 +5502,9 @@ class ClassFieldsEnd extends ParserAstNode
   @override
   final Token endToken;
 
-  ClassFieldsEnd(
+  FieldsEnd(
     ParserAstType type, {
+    required this.kind,
     this.abstractToken,
     this.augmentToken,
     this.externalToken,
@@ -5957,10 +5515,11 @@ class ClassFieldsEnd extends ParserAstNode
     required this.count,
     required this.beginToken,
     required this.endToken,
-  }) : super("ClassFields", type);
+  }) : super("Fields", type);
 
   @override
   Map<String, Object?> get deprecatedArguments => {
+    "kind": kind,
     "abstractToken": abstractToken,
     "augmentToken": augmentToken,
     "externalToken": externalToken,
@@ -5974,227 +5533,7 @@ class ClassFieldsEnd extends ParserAstNode
   };
 
   @override
-  R accept<R>(ParserAstVisitor<R> v) => v.visitClassFieldsEnd(this);
-}
-
-class MixinFieldsEnd extends ParserAstNode
-    implements BeginAndEndTokenParserAstNode {
-  final Token? abstractToken;
-  final Token? augmentToken;
-  final Token? externalToken;
-  final Token? staticToken;
-  final Token? covariantToken;
-  final Token? lateToken;
-  final Token? varFinalOrConst;
-  final int count;
-  @override
-  final Token beginToken;
-  @override
-  final Token endToken;
-
-  MixinFieldsEnd(
-    ParserAstType type, {
-    this.abstractToken,
-    this.augmentToken,
-    this.externalToken,
-    this.staticToken,
-    this.covariantToken,
-    this.lateToken,
-    this.varFinalOrConst,
-    required this.count,
-    required this.beginToken,
-    required this.endToken,
-  }) : super("MixinFields", type);
-
-  @override
-  Map<String, Object?> get deprecatedArguments => {
-    "abstractToken": abstractToken,
-    "augmentToken": augmentToken,
-    "externalToken": externalToken,
-    "staticToken": staticToken,
-    "covariantToken": covariantToken,
-    "lateToken": lateToken,
-    "varFinalOrConst": varFinalOrConst,
-    "count": count,
-    "beginToken": beginToken,
-    "endToken": endToken,
-  };
-
-  @override
-  R accept<R>(ParserAstVisitor<R> v) => v.visitMixinFieldsEnd(this);
-}
-
-class ExtensionFieldsEnd extends ParserAstNode
-    implements BeginAndEndTokenParserAstNode {
-  final Token? abstractToken;
-  final Token? augmentToken;
-  final Token? externalToken;
-  final Token? staticToken;
-  final Token? covariantToken;
-  final Token? lateToken;
-  final Token? varFinalOrConst;
-  final int count;
-  @override
-  final Token beginToken;
-  @override
-  final Token endToken;
-
-  ExtensionFieldsEnd(
-    ParserAstType type, {
-    this.abstractToken,
-    this.augmentToken,
-    this.externalToken,
-    this.staticToken,
-    this.covariantToken,
-    this.lateToken,
-    this.varFinalOrConst,
-    required this.count,
-    required this.beginToken,
-    required this.endToken,
-  }) : super("ExtensionFields", type);
-
-  @override
-  Map<String, Object?> get deprecatedArguments => {
-    "abstractToken": abstractToken,
-    "augmentToken": augmentToken,
-    "externalToken": externalToken,
-    "staticToken": staticToken,
-    "covariantToken": covariantToken,
-    "lateToken": lateToken,
-    "varFinalOrConst": varFinalOrConst,
-    "count": count,
-    "beginToken": beginToken,
-    "endToken": endToken,
-  };
-
-  @override
-  R accept<R>(ParserAstVisitor<R> v) => v.visitExtensionFieldsEnd(this);
-}
-
-class ExtensionTypeFieldsEnd extends ParserAstNode
-    implements BeginAndEndTokenParserAstNode {
-  final Token? abstractToken;
-  final Token? augmentToken;
-  final Token? externalToken;
-  final Token? staticToken;
-  final Token? covariantToken;
-  final Token? lateToken;
-  final Token? varFinalOrConst;
-  final int count;
-  @override
-  final Token beginToken;
-  @override
-  final Token endToken;
-
-  ExtensionTypeFieldsEnd(
-    ParserAstType type, {
-    this.abstractToken,
-    this.augmentToken,
-    this.externalToken,
-    this.staticToken,
-    this.covariantToken,
-    this.lateToken,
-    this.varFinalOrConst,
-    required this.count,
-    required this.beginToken,
-    required this.endToken,
-  }) : super("ExtensionTypeFields", type);
-
-  @override
-  Map<String, Object?> get deprecatedArguments => {
-    "abstractToken": abstractToken,
-    "augmentToken": augmentToken,
-    "externalToken": externalToken,
-    "staticToken": staticToken,
-    "covariantToken": covariantToken,
-    "lateToken": lateToken,
-    "varFinalOrConst": varFinalOrConst,
-    "count": count,
-    "beginToken": beginToken,
-    "endToken": endToken,
-  };
-
-  @override
-  R accept<R>(ParserAstVisitor<R> v) => v.visitExtensionTypeFieldsEnd(this);
-}
-
-class EnumFieldsEnd extends ParserAstNode
-    implements BeginAndEndTokenParserAstNode {
-  final Token? abstractToken;
-  final Token? augmentToken;
-  final Token? externalToken;
-  final Token? staticToken;
-  final Token? covariantToken;
-  final Token? lateToken;
-  final Token? varFinalOrConst;
-  final int count;
-  @override
-  final Token beginToken;
-  @override
-  final Token endToken;
-
-  EnumFieldsEnd(
-    ParserAstType type, {
-    this.abstractToken,
-    this.augmentToken,
-    this.externalToken,
-    this.staticToken,
-    this.covariantToken,
-    this.lateToken,
-    this.varFinalOrConst,
-    required this.count,
-    required this.beginToken,
-    required this.endToken,
-  }) : super("EnumFields", type);
-
-  @override
-  Map<String, Object?> get deprecatedArguments => {
-    "abstractToken": abstractToken,
-    "augmentToken": augmentToken,
-    "externalToken": externalToken,
-    "staticToken": staticToken,
-    "covariantToken": covariantToken,
-    "lateToken": lateToken,
-    "varFinalOrConst": varFinalOrConst,
-    "count": count,
-    "beginToken": beginToken,
-    "endToken": endToken,
-  };
-
-  @override
-  R accept<R>(ParserAstVisitor<R> v) => v.visitEnumFieldsEnd(this);
-}
-
-class EnumMethodEnd extends ParserAstNode
-    implements BeginAndEndTokenParserAstNode {
-  final Token? getOrSet;
-  @override
-  final Token beginToken;
-  final Token beginParam;
-  final Token? beginInitializers;
-  @override
-  final Token endToken;
-
-  EnumMethodEnd(
-    ParserAstType type, {
-    this.getOrSet,
-    required this.beginToken,
-    required this.beginParam,
-    this.beginInitializers,
-    required this.endToken,
-  }) : super("EnumMethod", type);
-
-  @override
-  Map<String, Object?> get deprecatedArguments => {
-    "getOrSet": getOrSet,
-    "beginToken": beginToken,
-    "beginParam": beginParam,
-    "beginInitializers": beginInitializers,
-    "endToken": endToken,
-  };
-
-  @override
-  R accept<R>(ParserAstVisitor<R> v) => v.visitEnumMethodEnd(this);
+  R accept<R>(ParserAstVisitor<R> v) => v.visitFieldsEnd(this);
 }
 
 class ForInitializerEmptyStatementHandle extends ParserAstNode {
@@ -7704,8 +7043,8 @@ class MethodBegin extends ParserAstNode {
   R accept<R>(ParserAstVisitor<R> v) => v.visitMethodBegin(this);
 }
 
-class ClassMethodEnd extends ParserAstNode
-    implements BeginAndEndTokenParserAstNode {
+class MethodEnd extends ParserAstNode implements BeginAndEndTokenParserAstNode {
+  final DeclarationKind kind;
   final Token? getOrSet;
   @override
   final Token beginToken;
@@ -7714,17 +7053,19 @@ class ClassMethodEnd extends ParserAstNode
   @override
   final Token endToken;
 
-  ClassMethodEnd(
+  MethodEnd(
     ParserAstType type, {
+    required this.kind,
     this.getOrSet,
     required this.beginToken,
     required this.beginParam,
     this.beginInitializers,
     required this.endToken,
-  }) : super("ClassMethod", type);
+  }) : super("Method", type);
 
   @override
   Map<String, Object?> get deprecatedArguments => {
+    "kind": kind,
     "getOrSet": getOrSet,
     "beginToken": beginToken,
     "beginParam": beginParam,
@@ -7733,12 +7074,12 @@ class ClassMethodEnd extends ParserAstNode
   };
 
   @override
-  R accept<R>(ParserAstVisitor<R> v) => v.visitClassMethodEnd(this);
+  R accept<R>(ParserAstVisitor<R> v) => v.visitMethodEnd(this);
 }
 
-class MixinMethodEnd extends ParserAstNode
+class ConstructorEnd extends ParserAstNode
     implements BeginAndEndTokenParserAstNode {
-  final Token? getOrSet;
+  final DeclarationKind kind;
   @override
   final Token beginToken;
   final Token beginParam;
@@ -7746,18 +7087,18 @@ class MixinMethodEnd extends ParserAstNode
   @override
   final Token endToken;
 
-  MixinMethodEnd(
+  ConstructorEnd(
     ParserAstType type, {
-    this.getOrSet,
+    required this.kind,
     required this.beginToken,
     required this.beginParam,
     this.beginInitializers,
     required this.endToken,
-  }) : super("MixinMethod", type);
+  }) : super("Constructor", type);
 
   @override
   Map<String, Object?> get deprecatedArguments => {
-    "getOrSet": getOrSet,
+    "kind": kind,
     "beginToken": beginToken,
     "beginParam": beginParam,
     "beginInitializers": beginInitializers,
@@ -7765,188 +7106,7 @@ class MixinMethodEnd extends ParserAstNode
   };
 
   @override
-  R accept<R>(ParserAstVisitor<R> v) => v.visitMixinMethodEnd(this);
-}
-
-class ExtensionMethodEnd extends ParserAstNode
-    implements BeginAndEndTokenParserAstNode {
-  final Token? getOrSet;
-  @override
-  final Token beginToken;
-  final Token beginParam;
-  final Token? beginInitializers;
-  @override
-  final Token endToken;
-
-  ExtensionMethodEnd(
-    ParserAstType type, {
-    this.getOrSet,
-    required this.beginToken,
-    required this.beginParam,
-    this.beginInitializers,
-    required this.endToken,
-  }) : super("ExtensionMethod", type);
-
-  @override
-  Map<String, Object?> get deprecatedArguments => {
-    "getOrSet": getOrSet,
-    "beginToken": beginToken,
-    "beginParam": beginParam,
-    "beginInitializers": beginInitializers,
-    "endToken": endToken,
-  };
-
-  @override
-  R accept<R>(ParserAstVisitor<R> v) => v.visitExtensionMethodEnd(this);
-}
-
-class ExtensionTypeMethodEnd extends ParserAstNode
-    implements BeginAndEndTokenParserAstNode {
-  final Token? getOrSet;
-  @override
-  final Token beginToken;
-  final Token beginParam;
-  final Token? beginInitializers;
-  @override
-  final Token endToken;
-
-  ExtensionTypeMethodEnd(
-    ParserAstType type, {
-    this.getOrSet,
-    required this.beginToken,
-    required this.beginParam,
-    this.beginInitializers,
-    required this.endToken,
-  }) : super("ExtensionTypeMethod", type);
-
-  @override
-  Map<String, Object?> get deprecatedArguments => {
-    "getOrSet": getOrSet,
-    "beginToken": beginToken,
-    "beginParam": beginParam,
-    "beginInitializers": beginInitializers,
-    "endToken": endToken,
-  };
-
-  @override
-  R accept<R>(ParserAstVisitor<R> v) => v.visitExtensionTypeMethodEnd(this);
-}
-
-class ClassConstructorEnd extends ParserAstNode
-    implements BeginAndEndTokenParserAstNode {
-  @override
-  final Token beginToken;
-  final Token beginParam;
-  final Token? beginInitializers;
-  @override
-  final Token endToken;
-
-  ClassConstructorEnd(
-    ParserAstType type, {
-    required this.beginToken,
-    required this.beginParam,
-    this.beginInitializers,
-    required this.endToken,
-  }) : super("ClassConstructor", type);
-
-  @override
-  Map<String, Object?> get deprecatedArguments => {
-    "beginToken": beginToken,
-    "beginParam": beginParam,
-    "beginInitializers": beginInitializers,
-    "endToken": endToken,
-  };
-
-  @override
-  R accept<R>(ParserAstVisitor<R> v) => v.visitClassConstructorEnd(this);
-}
-
-class MixinConstructorEnd extends ParserAstNode
-    implements BeginAndEndTokenParserAstNode {
-  @override
-  final Token beginToken;
-  final Token beginParam;
-  final Token? beginInitializers;
-  @override
-  final Token endToken;
-
-  MixinConstructorEnd(
-    ParserAstType type, {
-    required this.beginToken,
-    required this.beginParam,
-    this.beginInitializers,
-    required this.endToken,
-  }) : super("MixinConstructor", type);
-
-  @override
-  Map<String, Object?> get deprecatedArguments => {
-    "beginToken": beginToken,
-    "beginParam": beginParam,
-    "beginInitializers": beginInitializers,
-    "endToken": endToken,
-  };
-
-  @override
-  R accept<R>(ParserAstVisitor<R> v) => v.visitMixinConstructorEnd(this);
-}
-
-class ExtensionConstructorEnd extends ParserAstNode
-    implements BeginAndEndTokenParserAstNode {
-  @override
-  final Token beginToken;
-  final Token beginParam;
-  final Token? beginInitializers;
-  @override
-  final Token endToken;
-
-  ExtensionConstructorEnd(
-    ParserAstType type, {
-    required this.beginToken,
-    required this.beginParam,
-    this.beginInitializers,
-    required this.endToken,
-  }) : super("ExtensionConstructor", type);
-
-  @override
-  Map<String, Object?> get deprecatedArguments => {
-    "beginToken": beginToken,
-    "beginParam": beginParam,
-    "beginInitializers": beginInitializers,
-    "endToken": endToken,
-  };
-
-  @override
-  R accept<R>(ParserAstVisitor<R> v) => v.visitExtensionConstructorEnd(this);
-}
-
-class ExtensionTypeConstructorEnd extends ParserAstNode
-    implements BeginAndEndTokenParserAstNode {
-  @override
-  final Token beginToken;
-  final Token beginParam;
-  final Token? beginInitializers;
-  @override
-  final Token endToken;
-
-  ExtensionTypeConstructorEnd(
-    ParserAstType type, {
-    required this.beginToken,
-    required this.beginParam,
-    this.beginInitializers,
-    required this.endToken,
-  }) : super("ExtensionTypeConstructor", type);
-
-  @override
-  Map<String, Object?> get deprecatedArguments => {
-    "beginToken": beginToken,
-    "beginParam": beginParam,
-    "beginInitializers": beginInitializers,
-    "endToken": endToken,
-  };
-
-  @override
-  R accept<R>(ParserAstVisitor<R> v) =>
-      v.visitExtensionTypeConstructorEnd(this);
+  R accept<R>(ParserAstVisitor<R> v) => v.visitConstructorEnd(this);
 }
 
 class MetadataStarBegin extends ParserAstNode {
@@ -11438,33 +10598,23 @@ abstract class ParserAstVisitor<R> {
   R visitEnumDeclarationPreludeBegin(EnumDeclarationPreludeBegin node);
   R visitEnumDeclarationBegin(EnumDeclarationBegin node);
   R visitEnumDeclarationEnd(EnumDeclarationEnd node);
-  R visitEnumConstructorEnd(EnumConstructorEnd node);
   R visitEnumElementsHandle(EnumElementsHandle node);
   R visitEnumHeaderHandle(EnumHeaderHandle node);
   R visitEnumBodyBegin(EnumBodyBegin node);
   R visitEnumBodyEnd(EnumBodyEnd node);
   R visitEnumElementHandle(EnumElementHandle node);
-  R visitEnumFactoryMethodEnd(EnumFactoryMethodEnd node);
   R visitExportBegin(ExportBegin node);
   R visitExportEnd(ExportEnd node);
   R visitExtraneousExpressionHandle(ExtraneousExpressionHandle node);
   R visitExpressionStatementHandle(ExpressionStatementHandle node);
-  R visitFactoryMethodBegin(FactoryMethodBegin node);
-  R visitClassFactoryMethodEnd(ClassFactoryMethodEnd node);
-  R visitMixinFactoryMethodEnd(MixinFactoryMethodEnd node);
-  R visitExtensionFactoryMethodEnd(ExtensionFactoryMethodEnd node);
-  R visitExtensionTypeFactoryMethodEnd(ExtensionTypeFactoryMethodEnd node);
+  R visitFactoryBegin(FactoryBegin node);
+  R visitFactoryEnd(FactoryEnd node);
   R visitFormalParameterBegin(FormalParameterBegin node);
   R visitFormalParameterEnd(FormalParameterEnd node);
   R visitNoFormalParametersHandle(NoFormalParametersHandle node);
   R visitFormalParametersBegin(FormalParametersBegin node);
   R visitFormalParametersEnd(FormalParametersEnd node);
-  R visitClassFieldsEnd(ClassFieldsEnd node);
-  R visitMixinFieldsEnd(MixinFieldsEnd node);
-  R visitExtensionFieldsEnd(ExtensionFieldsEnd node);
-  R visitExtensionTypeFieldsEnd(ExtensionTypeFieldsEnd node);
-  R visitEnumFieldsEnd(EnumFieldsEnd node);
-  R visitEnumMethodEnd(EnumMethodEnd node);
+  R visitFieldsEnd(FieldsEnd node);
   R visitForInitializerEmptyStatementHandle(
     ForInitializerEmptyStatementHandle node,
   );
@@ -11565,14 +10715,8 @@ abstract class ParserAstVisitor<R> {
   R visitInvalidMemberHandle(InvalidMemberHandle node);
   R visitMemberEnd(MemberEnd node);
   R visitMethodBegin(MethodBegin node);
-  R visitClassMethodEnd(ClassMethodEnd node);
-  R visitMixinMethodEnd(MixinMethodEnd node);
-  R visitExtensionMethodEnd(ExtensionMethodEnd node);
-  R visitExtensionTypeMethodEnd(ExtensionTypeMethodEnd node);
-  R visitClassConstructorEnd(ClassConstructorEnd node);
-  R visitMixinConstructorEnd(MixinConstructorEnd node);
-  R visitExtensionConstructorEnd(ExtensionConstructorEnd node);
-  R visitExtensionTypeConstructorEnd(ExtensionTypeConstructorEnd node);
+  R visitMethodEnd(MethodEnd node);
+  R visitConstructorEnd(ConstructorEnd node);
   R visitMetadataStarBegin(MetadataStarBegin node);
   R visitMetadataStarEnd(MetadataStarEnd node);
   R visitMetadataBegin(MetadataBegin node);
@@ -12036,10 +11180,6 @@ class RecursiveParserAstVisitor implements ParserAstVisitor<void> {
       node.visitChildren(this);
 
   @override
-  void visitEnumConstructorEnd(EnumConstructorEnd node) =>
-      node.visitChildren(this);
-
-  @override
   void visitEnumElementsHandle(EnumElementsHandle node) =>
       node.visitChildren(this);
 
@@ -12057,10 +11197,6 @@ class RecursiveParserAstVisitor implements ParserAstVisitor<void> {
       node.visitChildren(this);
 
   @override
-  void visitEnumFactoryMethodEnd(EnumFactoryMethodEnd node) =>
-      node.visitChildren(this);
-
-  @override
   void visitExportBegin(ExportBegin node) => node.visitChildren(this);
 
   @override
@@ -12075,24 +11211,10 @@ class RecursiveParserAstVisitor implements ParserAstVisitor<void> {
       node.visitChildren(this);
 
   @override
-  void visitFactoryMethodBegin(FactoryMethodBegin node) =>
-      node.visitChildren(this);
+  void visitFactoryBegin(FactoryBegin node) => node.visitChildren(this);
 
   @override
-  void visitClassFactoryMethodEnd(ClassFactoryMethodEnd node) =>
-      node.visitChildren(this);
-
-  @override
-  void visitMixinFactoryMethodEnd(MixinFactoryMethodEnd node) =>
-      node.visitChildren(this);
-
-  @override
-  void visitExtensionFactoryMethodEnd(ExtensionFactoryMethodEnd node) =>
-      node.visitChildren(this);
-
-  @override
-  void visitExtensionTypeFactoryMethodEnd(ExtensionTypeFactoryMethodEnd node) =>
-      node.visitChildren(this);
+  void visitFactoryEnd(FactoryEnd node) => node.visitChildren(this);
 
   @override
   void visitFormalParameterBegin(FormalParameterBegin node) =>
@@ -12115,24 +11237,7 @@ class RecursiveParserAstVisitor implements ParserAstVisitor<void> {
       node.visitChildren(this);
 
   @override
-  void visitClassFieldsEnd(ClassFieldsEnd node) => node.visitChildren(this);
-
-  @override
-  void visitMixinFieldsEnd(MixinFieldsEnd node) => node.visitChildren(this);
-
-  @override
-  void visitExtensionFieldsEnd(ExtensionFieldsEnd node) =>
-      node.visitChildren(this);
-
-  @override
-  void visitExtensionTypeFieldsEnd(ExtensionTypeFieldsEnd node) =>
-      node.visitChildren(this);
-
-  @override
-  void visitEnumFieldsEnd(EnumFieldsEnd node) => node.visitChildren(this);
-
-  @override
-  void visitEnumMethodEnd(EnumMethodEnd node) => node.visitChildren(this);
+  void visitFieldsEnd(FieldsEnd node) => node.visitChildren(this);
 
   @override
   void visitForInitializerEmptyStatementHandle(
@@ -12473,34 +11578,10 @@ class RecursiveParserAstVisitor implements ParserAstVisitor<void> {
   void visitMethodBegin(MethodBegin node) => node.visitChildren(this);
 
   @override
-  void visitClassMethodEnd(ClassMethodEnd node) => node.visitChildren(this);
+  void visitMethodEnd(MethodEnd node) => node.visitChildren(this);
 
   @override
-  void visitMixinMethodEnd(MixinMethodEnd node) => node.visitChildren(this);
-
-  @override
-  void visitExtensionMethodEnd(ExtensionMethodEnd node) =>
-      node.visitChildren(this);
-
-  @override
-  void visitExtensionTypeMethodEnd(ExtensionTypeMethodEnd node) =>
-      node.visitChildren(this);
-
-  @override
-  void visitClassConstructorEnd(ClassConstructorEnd node) =>
-      node.visitChildren(this);
-
-  @override
-  void visitMixinConstructorEnd(MixinConstructorEnd node) =>
-      node.visitChildren(this);
-
-  @override
-  void visitExtensionConstructorEnd(ExtensionConstructorEnd node) =>
-      node.visitChildren(this);
-
-  @override
-  void visitExtensionTypeConstructorEnd(ExtensionTypeConstructorEnd node) =>
-      node.visitChildren(this);
+  void visitConstructorEnd(ConstructorEnd node) => node.visitChildren(this);
 
   @override
   void visitMetadataStarBegin(MetadataStarBegin node) =>
@@ -13514,10 +12595,6 @@ class RecursiveParserAstVisitorWithDefaultNodeAsync
       defaultNode(node);
 
   @override
-  Future<void> visitEnumConstructorEnd(EnumConstructorEnd node) =>
-      defaultNode(node);
-
-  @override
   Future<void> visitEnumElementsHandle(EnumElementsHandle node) =>
       defaultNode(node);
 
@@ -13536,10 +12613,6 @@ class RecursiveParserAstVisitorWithDefaultNodeAsync
       defaultNode(node);
 
   @override
-  Future<void> visitEnumFactoryMethodEnd(EnumFactoryMethodEnd node) =>
-      defaultNode(node);
-
-  @override
   Future<void> visitExportBegin(ExportBegin node) => defaultNode(node);
 
   @override
@@ -13555,25 +12628,10 @@ class RecursiveParserAstVisitorWithDefaultNodeAsync
       defaultNode(node);
 
   @override
-  Future<void> visitFactoryMethodBegin(FactoryMethodBegin node) =>
-      defaultNode(node);
+  Future<void> visitFactoryBegin(FactoryBegin node) => defaultNode(node);
 
   @override
-  Future<void> visitClassFactoryMethodEnd(ClassFactoryMethodEnd node) =>
-      defaultNode(node);
-
-  @override
-  Future<void> visitMixinFactoryMethodEnd(MixinFactoryMethodEnd node) =>
-      defaultNode(node);
-
-  @override
-  Future<void> visitExtensionFactoryMethodEnd(ExtensionFactoryMethodEnd node) =>
-      defaultNode(node);
-
-  @override
-  Future<void> visitExtensionTypeFactoryMethodEnd(
-    ExtensionTypeFactoryMethodEnd node,
-  ) => defaultNode(node);
+  Future<void> visitFactoryEnd(FactoryEnd node) => defaultNode(node);
 
   @override
   Future<void> visitFormalParameterBegin(FormalParameterBegin node) =>
@@ -13596,24 +12654,7 @@ class RecursiveParserAstVisitorWithDefaultNodeAsync
       defaultNode(node);
 
   @override
-  Future<void> visitClassFieldsEnd(ClassFieldsEnd node) => defaultNode(node);
-
-  @override
-  Future<void> visitMixinFieldsEnd(MixinFieldsEnd node) => defaultNode(node);
-
-  @override
-  Future<void> visitExtensionFieldsEnd(ExtensionFieldsEnd node) =>
-      defaultNode(node);
-
-  @override
-  Future<void> visitExtensionTypeFieldsEnd(ExtensionTypeFieldsEnd node) =>
-      defaultNode(node);
-
-  @override
-  Future<void> visitEnumFieldsEnd(EnumFieldsEnd node) => defaultNode(node);
-
-  @override
-  Future<void> visitEnumMethodEnd(EnumMethodEnd node) => defaultNode(node);
+  Future<void> visitFieldsEnd(FieldsEnd node) => defaultNode(node);
 
   @override
   Future<void> visitForInitializerEmptyStatementHandle(
@@ -13972,35 +13013,10 @@ class RecursiveParserAstVisitorWithDefaultNodeAsync
   Future<void> visitMethodBegin(MethodBegin node) => defaultNode(node);
 
   @override
-  Future<void> visitClassMethodEnd(ClassMethodEnd node) => defaultNode(node);
+  Future<void> visitMethodEnd(MethodEnd node) => defaultNode(node);
 
   @override
-  Future<void> visitMixinMethodEnd(MixinMethodEnd node) => defaultNode(node);
-
-  @override
-  Future<void> visitExtensionMethodEnd(ExtensionMethodEnd node) =>
-      defaultNode(node);
-
-  @override
-  Future<void> visitExtensionTypeMethodEnd(ExtensionTypeMethodEnd node) =>
-      defaultNode(node);
-
-  @override
-  Future<void> visitClassConstructorEnd(ClassConstructorEnd node) =>
-      defaultNode(node);
-
-  @override
-  Future<void> visitMixinConstructorEnd(MixinConstructorEnd node) =>
-      defaultNode(node);
-
-  @override
-  Future<void> visitExtensionConstructorEnd(ExtensionConstructorEnd node) =>
-      defaultNode(node);
-
-  @override
-  Future<void> visitExtensionTypeConstructorEnd(
-    ExtensionTypeConstructorEnd node,
-  ) => defaultNode(node);
+  Future<void> visitConstructorEnd(ConstructorEnd node) => defaultNode(node);
 
   @override
   Future<void> visitMetadataStarBegin(MetadataStarBegin node) =>

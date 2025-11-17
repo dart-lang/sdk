@@ -231,10 +231,8 @@ class ExtractSomeMembers extends RecursiveParserAstVisitor {
   }
 
   @override
-  void visitClassMethodEnd(ClassMethodEnd node) {
-    sb.writeln(
-      "Class method: $currentContainerName.${node.getNameIdentifier()}",
-    );
+  void visitMethodEnd(MethodEnd node) {
+    sb.writeln("Method: $currentContainerName.${node.getNameIdentifier()}");
   }
 }
 
