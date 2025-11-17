@@ -1,3 +1,7 @@
+## 1.5.0-wip
+
+- Removed the `supportsDartUris` flag from `DartInitializeRequestArguments` because it was only required to support the (now removed) Dart macros experiment.
+
 ## 1.4.0
 
 - Updated all generated classes using the latest published version of the DAP spec.

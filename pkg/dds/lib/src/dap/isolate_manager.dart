@@ -922,7 +922,7 @@ class IsolateManager {
     var userMessage = error is vm.RPCError
         ? error.details ?? error.toString()
         : error.toString();
-    var terseMessageMatch =
+    final terseMessageMatch =
         _terseBreakpointFailureRegex.firstMatch(userMessage);
     if (terseMessageMatch != null) {
       userMessage = terseMessageMatch.group(1) ?? userMessage;
@@ -1298,13 +1298,13 @@ class ThreadInfo with FileUtils {
   /// tokenPos) can share the same response.
   final _scripts = <String, Future<vm.Script>>{};
 
-  /// A cache of requests (Futures) to resolve URIs to their file-like URIs.
+  /// A cache of requests (Futures) to resolve URIs to their file URIs.
   ///
   /// Used so that multiple requests that require them (for example looking up
   /// locations for stack frames from tokenPos) can share the same response.
   ///
   /// Keys are URIs in string form.
-  /// Values are file-like URIs (file: or similar, such as dart-macro+file:).
+  /// Values are file URIs.
   final _resolvedPaths = <String, Future<Uri?>>{};
 
   /// Whether this isolate has an in-flight user-initiated resume request that
@@ -1370,7 +1370,7 @@ class ThreadInfo with FileUtils {
   ///
   /// sdk-path/lib/core/print.dart -> dart:core/print.dart
   /// c:\foo\bar -> package:foo/bar
-  /// dart-macro+file:///c:/foo/bar -> dart-macro+package:foo/bar
+  /// file:///c:/foo/bar -> package:foo/bar
   ///
   /// This is required so that when the user sets a breakpoint in an SDK source
   /// (which they may have navigated to via the Analysis Server) we generate a
@@ -1417,7 +1417,7 @@ class ThreadInfo with FileUtils {
     }
   }
 
-  /// Batch resolves source URIs from the VM to a file-like URI for the package
+  /// Batch resolves source URIs from the VM to a file URI for the package
   /// lib folder.
   ///
   /// This method is more performant than repeatedly calling
@@ -1437,7 +1437,7 @@ class ThreadInfo with FileUtils {
         .toList();
   }
 
-  /// Batch resolves source URIs from the VM to a file-like URI.
+  /// Batch resolves source URIs from the VM to a file URI.
   ///
   /// This method is more performant than repeatedly calling [resolveUriToPath]
   /// because it resolves multiple URIs in a single request to the VM.
@@ -1513,7 +1513,7 @@ class ThreadInfo with FileUtils {
     // because they were either filtered out of [requiredUris] because they were
     // already there, or we then populated completers for them above.
     final futures = uris.map((uri) async {
-      if (_manager._adapter.isSupportedFileScheme(uri)) {
+      if (uri.isScheme('file')) {
         return uri;
       } else {
         return await _resolvedPaths[uri.toString()];
@@ -1562,11 +1562,10 @@ class ThreadInfo with FileUtils {
   /// would not be changed.
   final _libraryIsDebuggableById = <String, bool>{};
 
-  /// Resolves a source URI to a file-like URI for the lib folder of its
+  /// Resolves a source URI to a file URI for the lib folder of its
   /// package.
   ///
   /// package:foo/a/b/c/d.dart -> file:///code/packages/foo/lib
-  /// dart-macro+package:foo/a/b/c/d.dart -> dart-macro+file:///code/packages/foo/lib
   ///
   /// This method is an optimisation over calling [resolveUriToPath] where only
   /// the package root is required (for example when determining whether a
@@ -1578,7 +1577,7 @@ class ThreadInfo with FileUtils {
     return result.first;
   }
 
-  /// Resolves a source URI from the VM to a file-like URI.
+  /// Resolves a source URI from the VM to a file URI.
   ///
   /// dart:core/print.dart -> sdk-path/lib/core/print.dart
   ///
@@ -1596,8 +1595,6 @@ class ThreadInfo with FileUtils {
   int storeData(Object data) => _manager.storeData(this, data);
 
   Uri? _convertPathToGoogle3Uri(Uri input) {
-    // TODO(dantup): Do we need to handle non-file here? Eg. can we have
-    //  dart-macro+file:/// for a google3 path?
     if (!input.isScheme('file')) {
       return null;
     }
@@ -1605,8 +1602,8 @@ class ThreadInfo with FileUtils {
 
     const search = '/google3/';
     if (inputPath.startsWith('/google') && inputPath.contains(search)) {
-      var idx = inputPath.indexOf(search);
-      var remainingPath = inputPath.substring(idx + search.length);
+      final idx = inputPath.indexOf(search);
+      final remainingPath = inputPath.substring(idx + search.length);
       return Uri(
         scheme: 'google3',
         host: '',
@@ -1617,17 +1614,17 @@ class ThreadInfo with FileUtils {
     return null;
   }
 
-  /// Converts a VM-returned URI to a file-like URI, taking org-dartlang-sdk
+  /// Converts a VM-returned URI to a file URI, taking org-dartlang-sdk
   /// schemes into account.
   ///
-  /// Supports file-like URIs and org-dartlang-sdk:// URIs.
+  /// Supports file URIs and org-dartlang-sdk:// URIs.
   Uri? _convertUriToFilePath(Uri? input) {
     if (input == null) {
       return null;
-    } else if (_manager._adapter.isSupportedFileScheme(input)) {
+    } else if (input.isScheme('file')) {
       return input;
     } else {
-      // TODO(dantup): UriConverter should be upgraded to use file-like URIs
+      // TODO(dantup): UriConverter should be upgraded to use file URIs
       //  instead of paths, but that might be breaking because it's used
       //  outside of this package?
       final uriConverter = _manager._adapter.uriConverter();
@@ -1644,8 +1641,8 @@ class ThreadInfo with FileUtils {
   ///
   /// [uri] should be the equivalent package: URI and is used to know how many
   /// segments to remove from the file path to get to the lib folder.
-  Uri? _trimPathToLibFolder(Uri? fileLikeUri, Uri uri) {
-    if (fileLikeUri == null) {
+  Uri? _trimPathToLibFolder(Uri? fileUri, Uri uri) {
+    if (fileUri == null) {
       return null;
     }
 
@@ -1657,14 +1654,14 @@ class ThreadInfo with FileUtils {
     // least as many segments as the path of the URI.
     assert(uri.pathSegments.length > libraryPathSegments);
     if (uri.pathSegments.length <= libraryPathSegments) {
-      return fileLikeUri;
+      return fileUri;
     }
 
     // Strip off the correct number of segments to the resulting path points
     // to the root of the package:/ URI.
-    final keepSegments = fileLikeUri.pathSegments.length - libraryPathSegments;
-    return fileLikeUri.replace(
-        pathSegments: fileLikeUri.pathSegments.sublist(0, keepSegments));
+    final keepSegments = fileUri.pathSegments.length - libraryPathSegments;
+    return fileUri.replace(
+        pathSegments: fileUri.pathSegments.sublist(0, keepSegments));
   }
 
   /// Clears all temporary stored for this thread. This includes:

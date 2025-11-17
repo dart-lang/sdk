@@ -260,13 +260,6 @@ mixin FileUtils {
       final filePath = uri.toFilePath();
       final normalizedPath = normalizePath(filePath);
       return Uri.file(normalizedPath);
-    } else if (uri.scheme.endsWith('+file')) {
-      // For virtual file schemes, we need to replace the scheme to use
-      // toFilePath() so we can normalise the path, then convert back.
-      final originalScheme = uri.scheme;
-      final filePath = uri.replace(scheme: 'file').toFilePath();
-      final normalizedPath = normalizePath(filePath);
-      return Uri.file(normalizedPath).replace(scheme: originalScheme);
     } else {
       return uri;
     }

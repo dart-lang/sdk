@@ -9,12 +9,10 @@ import 'package:vm_service/vm_service.dart' as vm;
 
 import '../rpc_error_codes.dart';
 
-/// Returns whether this URI is something that can be resolved to a file-like
+/// Returns whether this URI is something that can be resolved to a file
 /// URI via the VM Service.
 bool isResolvableUri(Uri uri) {
   return !uri.isScheme('file') &&
-      // Custom-scheme versions of file, like `dart-macro+file://`
-      !uri.scheme.endsWith('+file') &&
       !uri.isScheme('http') &&
       !uri.isScheme('https') &&
       // Parsed stack frames may have URIs with no scheme and the text
@@ -62,9 +60,7 @@ bool _isDartUri(Uri uri) {
   // Only accept package: and file: URIs if they end with .dart.
   // - package:foo/foo.dart
   // - file:///c:/foo/bar.dart
-  if (uri.isScheme('package') ||
-      uri.isScheme('file') ||
-      uri.scheme.endsWith('+file')) {
+  if (uri.isScheme('package') || uri.isScheme('file')) {
     return uri.path.endsWith('.dart');
   }
 
@@ -101,16 +97,16 @@ final _stackFrameLocationPattern =
 /// It should not be assumed that if a value is returned that the input
 /// was necessarily a stack frame.
 StackFrameLocation? _parseStackFrame(String input) {
-  var match = _stackFrameLocationPattern.firstMatch(input);
+  final match = _stackFrameLocationPattern.firstMatch(input);
   if (match == null) return null;
 
-  var uriMatch = match.group(1);
-  var lineMatch = match.group(2);
-  var colMatch = match.group(3);
+  final uriMatch = match.group(1);
+  final lineMatch = match.group(2);
+  final colMatch = match.group(3);
 
   var uri = uriMatch != null ? Uri.tryParse(uriMatch) : null;
-  var line = lineMatch != null ? int.tryParse(lineMatch) : null;
-  var col = colMatch != null ? int.tryParse(colMatch) : null;
+  final line = lineMatch != null ? int.tryParse(lineMatch) : null;
+  final col = colMatch != null ? int.tryParse(colMatch) : null;
 
   if (uriMatch == null || uri == null) {
     return null;
@@ -118,7 +114,7 @@ StackFrameLocation? _parseStackFrame(String input) {
 
   // If the URI has no scheme, assume a relative path from Directory.current.
   if (!uri.hasScheme && path.isRelative(uriMatch)) {
-    var currentDirectoryPath = Directory.current.path;
+    final currentDirectoryPath = Directory.current.path;
     if (currentDirectoryPath.isNotEmpty) {
       uri = Uri.file(path.join(currentDirectoryPath, uriMatch));
     }
