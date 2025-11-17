@@ -147,6 +147,7 @@ Future<TestResult<T>> runTestForConfig<T>(
     updateAnalysisOptions4: ({required analysisOptions}) {
       analysisOptions.contextFeatures = config.featureSet;
     },
+    withFineDependencies: true,
   );
   var analysisContext = contextCollection.contexts.single;
   var analysisSession = analysisContext.currentSession;
