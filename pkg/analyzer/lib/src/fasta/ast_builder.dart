@@ -404,7 +404,7 @@ class AstBuilder extends StackListener {
   }
 
   @override
-  void beginFactoryMethod(
+  void beginFactory(
     DeclarationKind declarationKind,
     Token lastConsumed,
     Token? externalToken,
@@ -1228,17 +1228,6 @@ class AstBuilder extends StackListener {
   }
 
   @override
-  void endClassConstructor(
-    Token beginToken,
-    Token beginParam,
-    Token? beginInitializers,
-    Token endToken,
-  ) {
-    debugEvent("endClassConstructor");
-    _endClassConstructor(beginToken, beginParam, beginInitializers, endToken);
-  }
-
-  @override
   void endClassDeclaration(Token beginToken, Token endToken) {
     debugEvent("ClassDeclaration");
 
@@ -1246,62 +1235,6 @@ class AstBuilder extends StackListener {
     declarations.add(builder.build());
 
     _classLikeBuilder = null;
-  }
-
-  @override
-  void endClassFactoryMethod(
-    Token beginToken,
-    Token factoryKeyword,
-    Token endToken,
-  ) {
-    debugEvent("endClassFactoryMethod");
-    _endFactoryMethod(beginToken, factoryKeyword, endToken);
-  }
-
-  @override
-  void endClassFields(
-    Token? abstractToken,
-    Token? augmentToken,
-    Token? externalToken,
-    Token? staticToken,
-    Token? covariantToken,
-    Token? lateToken,
-    Token? varFinalOrConst,
-    int count,
-    Token beginToken,
-    Token endToken,
-  ) {
-    debugEvent("endClassFields");
-    _endClassFields(
-      abstractToken,
-      augmentToken,
-      externalToken,
-      staticToken,
-      covariantToken,
-      lateToken,
-      varFinalOrConst,
-      count,
-      beginToken,
-      endToken,
-    );
-  }
-
-  @override
-  void endClassMethod(
-    Token? getOrSet,
-    Token beginToken,
-    Token beginParam,
-    Token? beginInitializers,
-    Token endToken,
-  ) {
-    debugEvent("endClassMethod");
-    _endClassMethod(
-      getOrSet,
-      beginToken,
-      beginParam,
-      beginInitializers,
-      endToken,
-    );
   }
 
   @override
@@ -1475,6 +1408,38 @@ class AstBuilder extends StackListener {
   }
 
   @override
+  void endConstructor(
+    DeclarationKind kind,
+    Token beginToken,
+    Token beginParam,
+    Token? beginInitializers,
+    Token endToken,
+  ) {
+    debugEvent("endConstructor");
+    switch (kind) {
+      case DeclarationKind.Class:
+      case DeclarationKind.ExtensionType:
+      case DeclarationKind.Enum:
+        _endClassConstructor(
+          beginToken,
+          beginParam,
+          beginInitializers,
+          endToken,
+        );
+      case DeclarationKind.Mixin:
+      case DeclarationKind.Extension:
+        invalidNodes.add(
+          _buildConstructorDeclaration(
+            beginToken: beginToken,
+            endToken: endToken,
+          ),
+        );
+      case DeclarationKind.TopLevel:
+        throw UnsupportedError("Unexpected constructor kind $kind.");
+    }
+  }
+
+  @override
   void endConstructorReference(
     Token start,
     Token? periodBeforeName,
@@ -1536,17 +1501,6 @@ class AstBuilder extends StackListener {
   }
 
   @override
-  void endEnumConstructor(
-    Token beginToken,
-    Token beginParam,
-    Token? beginInitializers,
-    Token endToken,
-  ) {
-    debugEvent("endEnumConstructor");
-    _endClassConstructor(beginToken, beginParam, beginInitializers, endToken);
-  }
-
-  @override
   void endEnumDeclaration(
     Token beginToken,
     Token enumKeyword,
@@ -1561,62 +1515,6 @@ class AstBuilder extends StackListener {
     var builder = _classLikeBuilder as _EnumDeclarationBuilder;
     declarations.add(builder.build());
     _classLikeBuilder = null;
-  }
-
-  @override
-  void endEnumFactoryMethod(
-    Token beginToken,
-    Token factoryKeyword,
-    Token endToken,
-  ) {
-    debugEvent("endEnumFactoryMethod");
-    _endFactoryMethod(beginToken, factoryKeyword, endToken);
-  }
-
-  @override
-  void endEnumFields(
-    Token? abstractToken,
-    Token? augmentToken,
-    Token? externalToken,
-    Token? staticToken,
-    Token? covariantToken,
-    Token? lateToken,
-    Token? varFinalOrConst,
-    int count,
-    Token beginToken,
-    Token endToken,
-  ) {
-    debugEvent("endEnumFields");
-    _endClassFields(
-      abstractToken,
-      augmentToken,
-      externalToken,
-      staticToken,
-      covariantToken,
-      lateToken,
-      varFinalOrConst,
-      count,
-      beginToken,
-      endToken,
-    );
-  }
-
-  @override
-  void endEnumMethod(
-    Token? getOrSet,
-    Token beginToken,
-    Token beginParam,
-    Token? beginInitializers,
-    Token endToken,
-  ) {
-    debugEvent("endEnumMethod");
-    _endClassMethod(
-      getOrSet,
-      beginToken,
-      beginParam,
-      beginInitializers,
-      endToken,
-    );
   }
 
   @override
@@ -1644,20 +1542,6 @@ class AstBuilder extends StackListener {
   }
 
   @override
-  void endExtensionConstructor(
-    Token beginToken,
-    Token beginParam,
-    Token? beginInitializers,
-    Token endToken,
-  ) {
-    debugEvent("ExtensionConstructor");
-
-    invalidNodes.add(
-      _buildConstructorDeclaration(beginToken: beginToken, endToken: endToken),
-    );
-  }
-
-  @override
   void endExtensionDeclaration(
     Token beginToken,
     Token extensionKeyword,
@@ -1678,88 +1562,6 @@ class AstBuilder extends StackListener {
     declarations.add(builder.build(typeKeyword: null, onClause: onClause));
 
     _classLikeBuilder = null;
-  }
-
-  @override
-  void endExtensionFactoryMethod(
-    Token beginToken,
-    Token factoryKeyword,
-    Token endToken,
-  ) {
-    assert(optional('factory', factoryKeyword));
-    assert(optional(';', endToken) || optional('}', endToken));
-    debugEvent("ExtensionFactoryMethod");
-
-    invalidNodes.add(
-      _buildFactoryConstructorDeclaration(
-        beginToken: beginToken,
-        factoryKeyword: factoryKeyword,
-        endToken: endToken,
-      ),
-    );
-  }
-
-  @override
-  void endExtensionFields(
-    Token? abstractToken,
-    Token? augmentToken,
-    Token? externalToken,
-    Token? staticToken,
-    Token? covariantToken,
-    Token? lateToken,
-    Token? varFinalOrConst,
-    int count,
-    Token beginToken,
-    Token endToken,
-  ) {
-    debugEvent("endExtensionFields");
-    if (staticToken == null) {
-      // TODO(danrubel): Decide how to handle instance field declarations
-      // within extensions. They are invalid and the parser has already reported
-      // an error at this point, but we include them in order to get navigation,
-      // search, etc.
-    }
-    _endClassFields(
-      abstractToken,
-      augmentToken,
-      externalToken,
-      staticToken,
-      covariantToken,
-      lateToken,
-      varFinalOrConst,
-      count,
-      beginToken,
-      endToken,
-    );
-  }
-
-  @override
-  void endExtensionMethod(
-    Token? getOrSet,
-    Token beginToken,
-    Token beginParam,
-    Token? beginInitializers,
-    Token endToken,
-  ) {
-    debugEvent("ExtensionMethod");
-    endClassMethod(
-      getOrSet,
-      beginToken,
-      beginParam,
-      beginInitializers,
-      endToken,
-    );
-  }
-
-  @override
-  void endExtensionTypeConstructor(
-    Token beginToken,
-    Token beginParam,
-    Token? beginInitializers,
-    Token endToken,
-  ) {
-    debugEvent("endExtensionTypeConstructor");
-    _endClassConstructor(beginToken, beginParam, beginInitializers, endToken);
   }
 
   @override
@@ -1825,59 +1627,33 @@ class AstBuilder extends StackListener {
   }
 
   @override
-  void endExtensionTypeFactoryMethod(
+  void endFactory(
+    DeclarationKind kind,
     Token beginToken,
     Token factoryKeyword,
     Token endToken,
   ) {
-    debugEvent("endExtensionTypeFactoryMethod");
-    _endFactoryMethod(beginToken, factoryKeyword, endToken);
-  }
+    assert(optional('factory', factoryKeyword));
+    assert(optional(';', endToken) || optional('}', endToken));
+    debugEvent("endFactory");
 
-  @override
-  void endExtensionTypeFields(
-    Token? abstractToken,
-    Token? augmentToken,
-    Token? externalToken,
-    Token? staticToken,
-    Token? covariantToken,
-    Token? lateToken,
-    Token? varFinalOrConst,
-    int count,
-    Token beginToken,
-    Token endToken,
-  ) {
-    debugEvent("endExtensionTypeFields");
-    _endClassFields(
-      abstractToken,
-      augmentToken,
-      externalToken,
-      staticToken,
-      covariantToken,
-      lateToken,
-      varFinalOrConst,
-      count,
-      beginToken,
-      endToken,
-    );
-  }
-
-  @override
-  void endExtensionTypeMethod(
-    Token? getOrSet,
-    Token beginToken,
-    Token beginParam,
-    Token? beginInitializers,
-    Token endToken,
-  ) {
-    debugEvent("endExtensionTypeMethod");
-    _endClassMethod(
-      getOrSet,
-      beginToken,
-      beginParam,
-      beginInitializers,
-      endToken,
-    );
+    switch (kind) {
+      case DeclarationKind.Class:
+      case DeclarationKind.Enum:
+      case DeclarationKind.ExtensionType:
+        _endFactoryMethod(beginToken, factoryKeyword, endToken);
+      case DeclarationKind.Mixin:
+      case DeclarationKind.Extension:
+        invalidNodes.add(
+          _buildFactoryConstructorDeclaration(
+            beginToken: beginToken,
+            factoryKeyword: factoryKeyword,
+            endToken: endToken,
+          ),
+        );
+      case DeclarationKind.TopLevel:
+        throw UnsupportedError("Unexpected factory kind $kind.");
+    }
   }
 
   @override
@@ -1896,6 +1672,35 @@ class AstBuilder extends StackListener {
         equals: equals,
         initializer: initializer,
       ),
+    );
+  }
+
+  @override
+  void endFields(
+    DeclarationKind kind,
+    Token? abstractToken,
+    Token? augmentToken,
+    Token? externalToken,
+    Token? staticToken,
+    Token? covariantToken,
+    Token? lateToken,
+    Token? varFinalOrConst,
+    int count,
+    Token beginToken,
+    Token endToken,
+  ) {
+    debugEvent("endFields");
+    _endClassFields(
+      abstractToken,
+      augmentToken,
+      externalToken,
+      staticToken,
+      covariantToken,
+      lateToken,
+      varFinalOrConst,
+      count,
+      beginToken,
+      endToken,
     );
   }
 
@@ -2697,16 +2502,21 @@ class AstBuilder extends StackListener {
   }
 
   @override
-  void endMixinConstructor(
+  void endMethod(
+    DeclarationKind kind,
+    Token? getOrSet,
     Token beginToken,
     Token beginParam,
     Token? beginInitializers,
     Token endToken,
   ) {
-    debugEvent("MixinConstructor");
-
-    invalidNodes.add(
-      _buildConstructorDeclaration(beginToken: beginToken, endToken: endToken),
+    debugEvent("endMethod");
+    _endClassMethod(
+      getOrSet,
+      beginToken,
+      beginParam,
+      beginInitializers,
+      endToken,
     );
   }
 
@@ -2718,69 +2528,6 @@ class AstBuilder extends StackListener {
     declarations.add(builder.build());
 
     _classLikeBuilder = null;
-  }
-
-  @override
-  void endMixinFactoryMethod(
-    Token beginToken,
-    Token factoryKeyword,
-    Token endToken,
-  ) {
-    debugEvent("MixinFactoryMethod");
-
-    invalidNodes.add(
-      _buildFactoryConstructorDeclaration(
-        beginToken: beginToken,
-        factoryKeyword: factoryKeyword,
-        endToken: endToken,
-      ),
-    );
-  }
-
-  @override
-  void endMixinFields(
-    Token? abstractToken,
-    Token? augmentToken,
-    Token? externalToken,
-    Token? staticToken,
-    Token? covariantToken,
-    Token? lateToken,
-    Token? varFinalOrConst,
-    int count,
-    Token beginToken,
-    Token endToken,
-  ) {
-    debugEvent("endMixinFields");
-    _endClassFields(
-      abstractToken,
-      augmentToken,
-      externalToken,
-      staticToken,
-      covariantToken,
-      lateToken,
-      varFinalOrConst,
-      count,
-      beginToken,
-      endToken,
-    );
-  }
-
-  @override
-  void endMixinMethod(
-    Token? getOrSet,
-    Token beginToken,
-    Token beginParam,
-    Token? beginInitializers,
-    Token endToken,
-  ) {
-    debugEvent("MixinMethod");
-    endClassMethod(
-      getOrSet,
-      beginToken,
-      beginParam,
-      beginInitializers,
-      endToken,
-    );
   }
 
   @override

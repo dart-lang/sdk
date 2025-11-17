@@ -2516,17 +2516,53 @@ class _ClosureArgumentsToVtableEntryDispatcherGenerator
 
     // Check for each name whether it's there or not.
     final allCombinations = representation.nameCombinations.toList();
-    final sortedNames = allCombinations.expand((nc) => nc.names).toList()
-      ..sort();
+    final sortedNames =
+        allCombinations.expand((nc) => nc.names).toSet().toList()..sort();
     final nameIndexVar = b.addLocal(w.NumType.i32);
 
-    void codeGenNamedHandling(
-        List<String> currentNames, List<w.ValueType> typeStack, int nameIndex) {
-      final currentCombination = NameCombination(currentNames);
-      final isValidCombination = currentNames.isEmpty ||
-          allCombinations.any((nc) => nc.compareTo(currentCombination) == 0);
+    int matchingCombinations(List<String> currentNames, int nextNameIndex) {
+      int prefixMatches = 0;
+      bool exactMatch = false;
+      if (nextNameIndex == 0) {
+        assert(currentNames.isEmpty);
+        exactMatch = true;
+        prefixMatches = 1 + allCombinations.length;
+      } else {
+        for (final nc in allCombinations) {
+          if (currentNames.length <= nc.names.length) {
+            bool found = true;
+            for (int i = 0; i < currentNames.length; ++i) {
+              if (currentNames[i] != nc.names[i]) {
+                found = false;
+                break;
+              }
+            }
+            if (found) {
+              if (currentNames.length == nc.names.length) {
+                prefixMatches++;
+                exactMatch = true;
+              } else {
+                if (sortedNames[nextNameIndex - 1]
+                        .compareTo(nc.names[currentNames.length]) <
+                    0) {
+                  prefixMatches++;
+                }
+              }
+            }
+          }
+        }
+      }
+      return exactMatch ? prefixMatches : -prefixMatches;
+    }
 
-      if (isValidCombination) {
+    final currentNames = <String>[];
+
+    void generateNameHandling(int nextNameIndex) {
+      final match = matchingCombinations(currentNames, nextNameIndex);
+      final hasExactMatch = match > 0;
+      final hasNonExactMatches = match < 0 || match > 1;
+      final hasMoreMatches = match != 0;
+      if (hasExactMatch) {
         b.comment('Check whether all named are loaded');
         b.local_get(namedArgsLocal);
         b.array_len();
@@ -2543,31 +2579,33 @@ class _ClosureArgumentsToVtableEntryDispatcherGenerator
             .heapType as w.FunctionType);
         b.return_();
         b.end();
-      } else {
-        if (util.compilerAssertsEnabled) {
-          b.comment('Check there are more names passed by the caller,');
-          b.comment('because the currently processed name set');
-          b.comment('(which are: ${currentNames.join('-')}) does not');
-          b.comment(' correspond to a valid name combination.');
-          b.local_get(namedArgsLocal);
-          b.array_len();
-          b.local_get(nameIndexVar);
-          b.i32_eq();
-          b.if_();
-          b.comment('Unsupported name combination.');
-          b.comment('Maybe bug in closure representation building');
+        if (!hasNonExactMatches) {
+          b.comment('More names passed than expected.');
           b.unreachable();
-          b.end();
+          return;
         }
-      }
-
-      if (nameIndex == sortedNames.length) {
-        b.comment('More names passed then expected.');
+      } else if (hasMoreMatches && util.compilerAssertsEnabled) {
+        b.comment('Check there are more names passed by the caller,');
+        b.comment('because the currently processed name set');
+        b.comment('(which are: ${currentNames.join('-')}) does not');
+        b.comment(' correspond to a valid name combination.');
+        b.local_get(namedArgsLocal);
+        b.array_len();
+        b.local_get(nameIndexVar);
+        b.i32_eq();
+        b.if_();
+        b.comment('Unsupported name combination.');
+        b.comment('May be bug in closure representation building');
+        b.unreachable();
+        b.end();
+      } else {
+        b.comment('The names "${currentNames.join('-')}" are not part '
+            'of a used name combination.');
         b.unreachable();
         return;
       }
 
-      final newName = sortedNames[nameIndex];
+      final newName = sortedNames[nextNameIndex];
       final symbol = translator.symbols.symbolForNamedParameter(newName);
 
       b.comment('Load next name and see if it corresponds to "$newName"');
@@ -2592,16 +2630,19 @@ class _ClosureArgumentsToVtableEntryDispatcherGenerator
         b.i32_add();
         b.local_set(nameIndexVar);
 
-        codeGenNamedHandling([...currentNames, newName],
-            [...typeStack, translator.topType], nameIndex + 1);
+        currentNames.add(newName);
+        typeStack.add(translator.topType);
+        generateNameHandling(nextNameIndex + 1);
+        typeStack.removeLast();
+        currentNames.removeLast();
       }
       b.end();
 
       b.comment('Name "$newName" was *not* provided by caller.');
-      codeGenNamedHandling(currentNames, typeStack, nameIndex + 1);
+      generateNameHandling(nextNameIndex + 1);
     }
 
-    codeGenNamedHandling([], typeStack, 0);
+    generateNameHandling(0);
   }
 
   // This function is purely used for checking assumptions made by the code this

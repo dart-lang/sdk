@@ -65,8 +65,8 @@ void main(List<String> args) {
     Set<String> namedClassConstructors = {};
     Set<String> namedFields = {};
     for (MemberEnd member in classOrMixinBody.getMembers()) {
-      if (member.isClassConstructor()) {
-        ClassConstructorEnd constructor = member.getClassConstructor();
+      if (member.isConstructor()) {
+        ConstructorEnd constructor = member.getConstructor();
         Token nameToken = constructor.beginToken;
         // String name = nameToken.lexeme;
         if (nameToken.next!.lexeme == ".") {
@@ -77,9 +77,9 @@ void main(List<String> args) {
         if (nameToken.next!.lexeme == ".") {
           throw "Unexpected";
         }
-      } else if (member.isClassFields()) {
-        ClassFieldsEnd classFields = member.getClassFields();
-        Token identifierToken = classFields.getFieldIdentifiers().single.token;
+      } else if (member.isFields()) {
+        FieldsEnd fields = member.getFields();
+        Token identifierToken = fields.getFieldIdentifiers().single.token;
         String identifier = identifierToken.toString();
         namedFields.add(identifier);
       }
@@ -97,14 +97,14 @@ void main(List<String> args) {
     }
 
     for (MemberEnd member in classOrMixinBody.getMembers()) {
-      if (member.isClassConstructor()) {
+      if (member.isConstructor()) {
         processConstructor(
           member,
           replacements,
           namedClassConstructors,
           namedFields,
         );
-      } else if (member.isClassFields()) {
+      } else if (member.isFields()) {
         processField(member, entry, replacements);
       }
     }
@@ -152,26 +152,26 @@ void processField(
   MapEntry<String, TopLevelDeclarationEnd> entry,
   Map<Token, Replacement> replacements,
 ) {
-  ClassFieldsEnd classFields = member.getClassFields();
+  FieldsEnd fields = member.getFields();
 
-  if (classFields.count != 1) {
-    throw "Notice ${classFields.count}";
+  if (fields.count != 1) {
+    throw "Notice ${fields.count}";
   }
 
-  Token identifierToken = classFields.getFieldIdentifiers().single.token;
+  Token identifierToken = fields.getFieldIdentifiers().single.token;
   String identifier = identifierToken.toString();
 
   if (identifier == "frozen" && entry.key == "TreeNode") return;
 
-  if (classFields.staticToken != null) {
+  if (fields.staticToken != null) {
     return;
   }
   bool isFinal = false;
-  if (classFields.varFinalOrConst?.toString() == "final") {
+  if (fields.varFinalOrConst?.toString() == "final") {
     isFinal = true;
   }
 
-  TypeHandle? type = classFields.getFirstType();
+  TypeHandle? type = fields.getFirstType();
   String typeString = "dynamic";
   if (type != null) {
     Token token = type.beginToken;
@@ -183,7 +183,7 @@ void processField(
     typeString = typeString.trim();
   }
 
-  FieldInitializerEnd? initializer = classFields.getFieldInitializer();
+  FieldInitializerEnd? initializer = fields.getFieldInitializer();
   String initializerString = "";
   if (initializer != null) {
     Token token = initializer.assignment;
@@ -195,8 +195,8 @@ void processField(
     initializerString = initializerString.trim();
   }
 
-  Token beginToken = classFields.beginToken;
-  Token endToken = classFields.endToken;
+  Token beginToken = fields.beginToken;
+  Token endToken = fields.endToken;
 
   String frozenCheckCode =
       """if (frozen) throw "Trying to modify frozen node!";""";
@@ -247,7 +247,7 @@ void processConstructor(
   Set<String> namedClassConstructors,
   Set<String> namedFields,
 ) {
-  ClassConstructorEnd constructor = member.getClassConstructor();
+  ConstructorEnd constructor = member.getConstructor();
   FormalParametersEnd formalParameters = constructor.getFormalParameters();
   List<FormalParameterEnd> parameters = formalParameters.getFormalParameters();
 

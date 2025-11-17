@@ -227,9 +227,11 @@ class BytecodeGenerator extends RecursiveVisitor {
         if (source == null) {
           final importUri =
               objectTable.getConstStringHandle(astSource.importUri.toString());
+          // Use asMember instead of asConstructor because some const
+          // constructors from extension types are desugared to procedures.
           final coveredConstConstructors = astSource
               .constantCoverageConstructors
-              ?.map((r) => objectTable.getHandle(r.asConstructor)!)
+              ?.map((r) => objectTable.getHandle(r.asMember)!)
               .toList();
           source = new SourceFile(importUri, coveredConstConstructors);
           bytecodeComponent.sourceFiles.add(source);

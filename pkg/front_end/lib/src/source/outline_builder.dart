@@ -2270,7 +2270,8 @@ class OutlineBuilder extends StackListenerImpl {
   }
 
   @override
-  void endClassMethod(
+  void endMethod(
+    DeclarationKind kind,
     Token? getOrSet,
     Token beginToken,
     Token beginParam,
@@ -2278,134 +2279,69 @@ class OutlineBuilder extends StackListenerImpl {
     Token endToken,
   ) {
     debugEvent("endClassMethod");
+
+    if (kind == DeclarationKind.Enum) {
+      reportIfNotEnabled(
+        libraryFeatures.enhancedEnums,
+        beginToken.charOffset,
+        noLength,
+      );
+    }
+
     _endClassMethod(
       getOrSet,
       beginToken,
       beginParam,
       beginInitializers,
       endToken,
-      _MethodKind.classMethod,
+      switch (kind) {
+        DeclarationKind.Class => _MethodKind.classMethod,
+        DeclarationKind.Mixin => _MethodKind.mixinMethod,
+        DeclarationKind.Extension => _MethodKind.extensionMethod,
+        DeclarationKind.ExtensionType => _MethodKind.extensionTypeMethod,
+        DeclarationKind.Enum => _MethodKind.enumMethod,
+        // Coverage-ignore(suite): Not run.
+        DeclarationKind.TopLevel => throw new UnsupportedError(
+          "Unexpected method kind $kind.",
+        ),
+      },
     );
   }
 
   @override
-  void endClassConstructor(
+  void endConstructor(
+    DeclarationKind kind,
     Token beginToken,
     Token beginParam,
     Token? beginInitializers,
     Token endToken,
   ) {
-    debugEvent("endClassConstructor");
+    debugEvent("endConstructor");
+
+    if (kind == DeclarationKind.Enum) {
+      reportIfNotEnabled(
+        libraryFeatures.enhancedEnums,
+        beginToken.charOffset,
+        noLength,
+      );
+    }
+
     _endClassConstructor(
       beginToken,
       beginInitializers,
       endToken,
-      _ConstructorKind.classConstructor,
-    );
-  }
-
-  @override
-  void endMixinMethod(
-    Token? getOrSet,
-    Token beginToken,
-    Token beginParam,
-    Token? beginInitializers,
-    Token endToken,
-  ) {
-    debugEvent("endMixinMethod");
-    _endClassMethod(
-      getOrSet,
-      beginToken,
-      beginParam,
-      beginInitializers,
-      endToken,
-      _MethodKind.mixinMethod,
-    );
-  }
-
-  @override
-  void endExtensionMethod(
-    Token? getOrSet,
-    Token beginToken,
-    Token beginParam,
-    Token? beginInitializers,
-    Token endToken,
-  ) {
-    debugEvent("endExtensionMethod");
-    _endClassMethod(
-      getOrSet,
-      beginToken,
-      beginParam,
-      beginInitializers,
-      endToken,
-      _MethodKind.extensionMethod,
-    );
-  }
-
-  @override
-  void endExtensionTypeMethod(
-    Token? getOrSet,
-    Token beginToken,
-    Token beginParam,
-    Token? beginInitializers,
-    Token endToken,
-  ) {
-    debugEvent("endExtensionTypeMethod");
-    _endClassMethod(
-      getOrSet,
-      beginToken,
-      beginParam,
-      beginInitializers,
-      endToken,
-      _MethodKind.extensionTypeMethod,
-    );
-  }
-
-  @override
-  void endMixinConstructor(
-    Token beginToken,
-    Token beginParam,
-    Token? beginInitializers,
-    Token endToken,
-  ) {
-    debugEvent("endMixinConstructor");
-    _endClassConstructor(
-      beginToken,
-      beginInitializers,
-      endToken,
-      _ConstructorKind.mixinConstructor,
-    );
-  }
-
-  @override
-  void endExtensionConstructor(
-    Token beginToken,
-    Token beginParam,
-    Token? beginInitializers,
-    Token endToken,
-  ) {
-    debugEvent("endExtensionConstructor");
-    _endClassConstructor(
-      beginToken,
-      beginInitializers,
-      endToken,
-      _ConstructorKind.extensionConstructor,
-    );
-  }
-
-  @override
-  void endExtensionTypeConstructor(
-    Token beginToken,
-    Token beginParam,
-    Token? beginInitializers,
-    Token endToken,
-  ) {
-    debugEvent("endExtensionTypeConstructor");
-    _endClassConstructor(
-      beginToken,
-      beginInitializers,
-      endToken,
-      _ConstructorKind.extensionTypeConstructor,
+      switch (kind) {
+        DeclarationKind.Class => _ConstructorKind.classConstructor,
+        DeclarationKind.Mixin => _ConstructorKind.mixinConstructor,
+        DeclarationKind.Extension => _ConstructorKind.extensionConstructor,
+        DeclarationKind.ExtensionType =>
+          _ConstructorKind.extensionTypeConstructor,
+        DeclarationKind.Enum => _ConstructorKind.enumConstructor,
+        // Coverage-ignore(suite): Not run.
+        DeclarationKind.TopLevel => throw new UnsupportedError(
+          "Unexpected constructor kind $kind.",
+        ),
+      },
     );
   }
 
@@ -3967,7 +3903,8 @@ class OutlineBuilder extends StackListenerImpl {
   }
 
   @override
-  void endExtensionFields(
+  void endFields(
+    DeclarationKind kind,
     Token? abstractToken,
     Token? augmentToken,
     Token? externalToken,
@@ -3979,63 +3916,14 @@ class OutlineBuilder extends StackListenerImpl {
     Token beginToken,
     Token endToken,
   ) {
-    debugEvent("ExtensionFields");
-    _endClassFields(
-      abstractToken,
-      augmentToken,
-      externalToken,
-      staticToken,
-      covariantToken,
-      lateToken,
-      varFinalOrConst,
-      count,
-      beginToken,
-      endToken,
-    );
-  }
-
-  @override
-  void endMixinFields(
-    Token? abstractToken,
-    Token? augmentToken,
-    Token? externalToken,
-    Token? staticToken,
-    Token? covariantToken,
-    Token? lateToken,
-    Token? varFinalOrConst,
-    int count,
-    Token beginToken,
-    Token endToken,
-  ) {
-    debugEvent("MixinFields");
-    _endClassFields(
-      abstractToken,
-      augmentToken,
-      externalToken,
-      staticToken,
-      covariantToken,
-      lateToken,
-      varFinalOrConst,
-      count,
-      beginToken,
-      endToken,
-    );
-  }
-
-  @override
-  void endClassFields(
-    Token? abstractToken,
-    Token? augmentToken,
-    Token? externalToken,
-    Token? staticToken,
-    Token? covariantToken,
-    Token? lateToken,
-    Token? varFinalOrConst,
-    int count,
-    Token beginToken,
-    Token endToken,
-  ) {
-    debugEvent("ClassFields");
+    debugEvent("Fields");
+    if (kind == DeclarationKind.Enum) {
+      reportIfNotEnabled(
+        libraryFeatures.enhancedEnums,
+        beginToken.charOffset,
+        noLength,
+      );
+    }
     _endClassFields(
       abstractToken,
       augmentToken,
@@ -4412,7 +4300,7 @@ class OutlineBuilder extends StackListenerImpl {
   }
 
   @override
-  void beginFactoryMethod(
+  void beginFactory(
     DeclarationKind declarationKind,
     Token lastConsumed,
     Token? externalToken,
@@ -4526,174 +4414,23 @@ class OutlineBuilder extends StackListenerImpl {
   }
 
   @override
-  void endClassFactoryMethod(
+  void endFactory(
+    DeclarationKind kind,
     Token beginToken,
     Token factoryKeyword,
     Token endToken,
   ) {
     debugEvent("endClassFactoryMethod");
 
-    _endFactoryMethod(beginToken, factoryKeyword, endToken);
-  }
-
-  @override
-  void endMixinFactoryMethod(
-    Token beginToken,
-    Token factoryKeyword,
-    Token endToken,
-  ) {
-    debugEvent("endMixinFactoryMethod");
+    if (kind == DeclarationKind.Enum) {
+      reportIfNotEnabled(
+        libraryFeatures.enhancedEnums,
+        beginToken.charOffset,
+        noLength,
+      );
+    }
 
     _endFactoryMethod(beginToken, factoryKeyword, endToken);
-  }
-
-  @override
-  void endExtensionFactoryMethod(
-    Token beginToken,
-    Token factoryKeyword,
-    Token endToken,
-  ) {
-    debugEvent("endExtensionFactoryMethod");
-
-    _endFactoryMethod(beginToken, factoryKeyword, endToken);
-  }
-
-  @override
-  void endExtensionTypeFactoryMethod(
-    Token beginToken,
-    Token factoryKeyword,
-    Token endToken,
-  ) {
-    debugEvent("endExtensionTypeFactoryMethod");
-
-    _endFactoryMethod(beginToken, factoryKeyword, endToken);
-  }
-
-  @override
-  void endExtensionTypeFields(
-    Token? abstractToken,
-    Token? augmentToken,
-    Token? externalToken,
-    Token? staticToken,
-    Token? covariantToken,
-    Token? lateToken,
-    Token? varFinalOrConst,
-    int count,
-    Token beginToken,
-    Token endToken,
-  ) {
-    debugEvent("endExtensionTypeFields");
-    _endClassFields(
-      abstractToken,
-      augmentToken,
-      externalToken,
-      staticToken,
-      covariantToken,
-      lateToken,
-      varFinalOrConst,
-      count,
-      beginToken,
-      endToken,
-    );
-  }
-
-  @override
-  void endEnumFactoryMethod(
-    Token beginToken,
-    Token factoryKeyword,
-    Token endToken,
-  ) {
-    debugEvent("endEnumFactoryMethod");
-
-    reportIfNotEnabled(
-      libraryFeatures.enhancedEnums,
-      beginToken.charOffset,
-      noLength,
-    );
-
-    _endFactoryMethod(beginToken, factoryKeyword, endToken);
-  }
-
-  @override
-  void endEnumMethod(
-    Token? getOrSet,
-    Token beginToken,
-    Token beginParam,
-    Token? beginInitializers,
-    Token endToken,
-  ) {
-    debugEvent("endEnumMethod");
-
-    reportIfNotEnabled(
-      libraryFeatures.enhancedEnums,
-      beginToken.charOffset,
-      noLength,
-    );
-
-    _endClassMethod(
-      getOrSet,
-      beginToken,
-      beginParam,
-      beginInitializers,
-      endToken,
-      _MethodKind.enumMethod,
-    );
-  }
-
-  @override
-  void endEnumFields(
-    Token? abstractToken,
-    Token? augmentToken,
-    Token? externalToken,
-    Token? staticToken,
-    Token? covariantToken,
-    Token? lateToken,
-    Token? varFinalOrConst,
-    int count,
-    Token beginToken,
-    Token endToken,
-  ) {
-    reportIfNotEnabled(
-      libraryFeatures.enhancedEnums,
-      beginToken.charOffset,
-      noLength,
-    );
-
-    endClassFields(
-      abstractToken,
-      augmentToken,
-      externalToken,
-      staticToken,
-      covariantToken,
-      lateToken,
-      varFinalOrConst,
-      count,
-      beginToken,
-      endToken,
-    );
-  }
-
-  @override
-  void endEnumConstructor(
-    Token beginToken,
-    Token beginParam,
-    Token? beginInitializers,
-    Token endToken,
-  ) {
-    debugEvent("endEnumConstructor");
-
-    reportIfNotEnabled(
-      libraryFeatures.enhancedEnums,
-      beginToken.charOffset,
-      noLength,
-    );
-
-    _endClassConstructor(
-      beginToken,
-      beginInitializers,
-      endToken,
-      _ConstructorKind.enumConstructor,
-    );
   }
 
   @override

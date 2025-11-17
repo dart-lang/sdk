@@ -7,12 +7,12 @@
   (func $"dart2wasm._150 (import)" (import "dart2wasm" "_150") (param i32) (result externref))
   (global $"C2 false" (ref $#Top) <...>)
   (global $"C40 true" (ref $#Top) <...>)
+  (global $ktrue (mut i32) <...>)
+  (global $boolValue (mut i32) <...>)
+  (global $"ktrue initialized" (mut i32) <...>)
+  (global $"boolValue initialized" (mut i32) <...>)
   (global $"boolValueNullable initialized" (mut i32) <...>)
   (global $boolValueNullable (mut (ref null $#Top)) <...>)
-  (global $"ktrue initialized" (mut i32) <...>)
-  (global $ktrue (mut i32) <...>)
-  (global $"boolValue initialized" (mut i32) <...>)
-  (global $boolValue (mut i32) <...>)
   (func $"testBoolConstant <noInline>"
     (local $var0 externref)
     i32.const 1

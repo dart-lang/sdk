@@ -242,49 +242,6 @@ class MiniAstBuilder extends StackListener {
   }
 
   @override
-  void endClassFactoryMethod(
-    Token beginToken,
-    Token factoryKeyword,
-    Token endToken,
-  ) {
-    debugEvent("ClassFactoryMethod");
-    pop(); // Body
-    pop(); // Type variables
-    var name = pop() as String;
-    var metadata = popTypedList() as List<Annotation>?;
-    var comment = pop() as Comment?;
-    push(ConstructorDeclaration(comment, metadata, name));
-  }
-
-  @override
-  void endClassMethod(
-    Token? getOrSet,
-    Token beginToken,
-    Token beginParam,
-    Token? beginInitializers,
-    Token endToken,
-  ) {
-    debugEvent("Method");
-    pop(); // Body
-    pop(); // Initializers
-    pop(); // Formal parameters
-    pop(); // Type variables
-    var name = pop() as String;
-    var returnType = pop() as TypeName?;
-    var metadata = popTypedList<Annotation>();
-    var comment = pop() as Comment?;
-    push(
-      MethodDeclaration(
-        comment,
-        metadata,
-        getOrSet?.lexeme == 'get',
-        name,
-        returnType,
-      ),
-    );
-  }
-
-  @override
   void endClassOrMixinOrExtensionBody(
     DeclarationKind kind,
     int memberCount,
@@ -336,6 +293,22 @@ class MiniAstBuilder extends StackListener {
     Token endToken,
   ) {
     debugEvent("Enum");
+  }
+
+  @override
+  void endFactory(
+    DeclarationKind kind,
+    Token beginToken,
+    Token factoryKeyword,
+    Token endToken,
+  ) {
+    debugEvent("Factory");
+    pop(); // Body
+    pop(); // Type variables
+    var name = pop() as String;
+    var metadata = popTypedList() as List<Annotation>?;
+    var comment = pop() as Comment?;
+    push(ConstructorDeclaration(comment, metadata, name));
   }
 
   @override
@@ -421,6 +394,35 @@ class MiniAstBuilder extends StackListener {
     push(
       popList(count, List<Annotation?>.filled(count, null, growable: true)) ??
           NullValues.Metadata,
+    );
+  }
+
+  @override
+  void endMethod(
+    DeclarationKind kind,
+    Token? getOrSet,
+    Token beginToken,
+    Token beginParam,
+    Token? beginInitializers,
+    Token endToken,
+  ) {
+    debugEvent("Method");
+    pop(); // Body
+    pop(); // Initializers
+    pop(); // Formal parameters
+    pop(); // Type variables
+    var name = pop() as String;
+    var returnType = pop() as TypeName?;
+    var metadata = popTypedList<Annotation>();
+    var comment = pop() as Comment?;
+    push(
+      MethodDeclaration(
+        comment,
+        metadata,
+        getOrSet?.lexeme == 'get',
+        name,
+        returnType,
+      ),
     );
   }
 

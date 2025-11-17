@@ -4326,45 +4326,10 @@ class Parser {
     switch (kind) {
       case DeclarationKind.TopLevel:
         assert(abstractToken == null);
-        listener.endTopLevelFields(
-          augmentToken,
-          externalToken,
-          staticToken,
-          covariantToken,
-          lateToken,
-          varFinalOrConst,
-          fieldCount,
-          beforeStart.next!,
-          token,
-        );
         break;
       case DeclarationKind.Class:
-        listener.endClassFields(
-          abstractToken,
-          augmentToken,
-          externalToken,
-          staticToken,
-          covariantToken,
-          lateToken,
-          varFinalOrConst,
-          fieldCount,
-          beforeStart.next!,
-          token,
-        );
-        break;
       case DeclarationKind.Mixin:
-        listener.endMixinFields(
-          abstractToken,
-          augmentToken,
-          externalToken,
-          staticToken,
-          covariantToken,
-          lateToken,
-          varFinalOrConst,
-          fieldCount,
-          beforeStart.next!,
-          token,
-        );
+      case DeclarationKind.Enum:
         break;
       case DeclarationKind.Extension:
         if (abstractToken != null) {
@@ -4376,18 +4341,6 @@ class Parser {
             codes.codeExtensionDeclaresInstanceField,
           );
         }
-        listener.endExtensionFields(
-          abstractToken,
-          augmentToken,
-          externalToken,
-          staticToken,
-          covariantToken,
-          lateToken,
-          varFinalOrConst,
-          fieldCount,
-          beforeStart.next!,
-          token,
-        );
         break;
       case DeclarationKind.ExtensionType:
         if (staticToken == null && externalToken == null) {
@@ -4396,33 +4349,34 @@ class Parser {
             codes.codeExtensionTypeDeclaresInstanceField,
           );
         }
-        listener.endExtensionTypeFields(
-          abstractToken,
-          augmentToken,
-          externalToken,
-          staticToken,
-          covariantToken,
-          lateToken,
-          varFinalOrConst,
-          fieldCount,
-          beforeStart.next!,
-          token,
-        );
         break;
-      case DeclarationKind.Enum:
-        listener.endEnumFields(
-          abstractToken,
-          augmentToken,
-          externalToken,
-          staticToken,
-          covariantToken,
-          lateToken,
-          varFinalOrConst,
-          fieldCount,
-          beforeStart.next!,
-          token,
-        );
-        break;
+    }
+    if (kind == DeclarationKind.TopLevel) {
+      listener.endTopLevelFields(
+        augmentToken,
+        externalToken,
+        staticToken,
+        covariantToken,
+        lateToken,
+        varFinalOrConst,
+        fieldCount,
+        beforeStart.next!,
+        token,
+      );
+    } else {
+      listener.endFields(
+        kind,
+        abstractToken,
+        augmentToken,
+        externalToken,
+        staticToken,
+        covariantToken,
+        lateToken,
+        varFinalOrConst,
+        fieldCount,
+        beforeStart.next!,
+        token,
+      );
     }
     return token;
   }
@@ -5841,51 +5795,26 @@ class Parser {
       }
 
       switch (kind) {
-        case DeclarationKind.Class:
-          listener.endClassConstructor(
-            beforeStart.next!,
-            beforeParam.next!,
-            beforeInitializers?.next,
-            token,
-          );
-          break;
         case DeclarationKind.Mixin:
           reportRecoverableError(name, codes.codeMixinDeclaresConstructor);
-          listener.endMixinConstructor(
-            beforeStart.next!,
-            beforeParam.next!,
-            beforeInitializers?.next,
-            token,
-          );
           break;
         case DeclarationKind.Extension:
           reportRecoverableError(name, codes.codeExtensionDeclaresConstructor);
-          listener.endExtensionConstructor(
-            beforeStart.next!,
-            beforeParam.next!,
-            beforeInitializers?.next,
-            token,
-          );
           break;
+        case DeclarationKind.Class:
         case DeclarationKind.ExtensionType:
-          listener.endExtensionTypeConstructor(
-            beforeStart.next!,
-            beforeParam.next!,
-            beforeInitializers?.next,
-            token,
-          );
+        case DeclarationKind.Enum:
           break;
         case DeclarationKind.TopLevel:
           throw "Internal error: TopLevel constructor.";
-        case DeclarationKind.Enum:
-          listener.endEnumConstructor(
-            beforeStart.next!,
-            beforeParam.next!,
-            beforeInitializers?.next,
-            token,
-          );
-          break;
       }
+      listener.endConstructor(
+        kind,
+        beforeStart.next!,
+        beforeParam.next!,
+        beforeInitializers?.next,
+        token,
+      );
     } else {
       //
       // method
@@ -5902,23 +5831,8 @@ class Parser {
       }
       switch (kind) {
         case DeclarationKind.Class:
-          // TODO(danrubel): Remove beginInitializers token from method events
-          listener.endClassMethod(
-            getOrSet,
-            beforeStart.next!,
-            beforeParam.next!,
-            beforeInitializers?.next,
-            token,
-          );
-          break;
         case DeclarationKind.Mixin:
-          listener.endMixinMethod(
-            getOrSet,
-            beforeStart.next!,
-            beforeParam.next!,
-            beforeInitializers?.next,
-            token,
-          );
+        case DeclarationKind.Enum:
           break;
         case DeclarationKind.Extension:
           if (bodyStart.isA(TokenType.SEMICOLON) && externalToken == null) {
@@ -5927,13 +5841,6 @@ class Parser {
               codes.codeExtensionDeclaresAbstractMember,
             );
           }
-          listener.endExtensionMethod(
-            getOrSet,
-            beforeStart.next!,
-            beforeParam.next!,
-            beforeInitializers?.next,
-            token,
-          );
           break;
         case DeclarationKind.ExtensionType:
           if (bodyStart.isA(TokenType.SEMICOLON) && externalToken == null) {
@@ -5942,26 +5849,19 @@ class Parser {
               codes.codeExtensionTypeDeclaresAbstractMember,
             );
           }
-          listener.endExtensionTypeMethod(
-            getOrSet,
-            beforeStart.next!,
-            beforeParam.next!,
-            beforeInitializers?.next,
-            token,
-          );
           break;
         case DeclarationKind.TopLevel:
           throw "Internal error: TopLevel method.";
-        case DeclarationKind.Enum:
-          listener.endEnumMethod(
-            getOrSet,
-            beforeStart.next!,
-            beforeParam.next!,
-            beforeInitializers?.next,
-            token,
-          );
-          break;
       }
+      // TODO(danrubel): Remove beginInitializers token from method events
+      listener.endMethod(
+        kind,
+        getOrSet,
+        beforeStart.next!,
+        beforeParam.next!,
+        beforeInitializers?.next,
+        token,
+      );
     }
     return token;
   }
@@ -6006,12 +5906,7 @@ class Parser {
       varFinalOrConst = null;
     }
 
-    listener.beginFactoryMethod(
-      kind,
-      beforeStart,
-      externalToken,
-      varFinalOrConst,
-    );
+    listener.beginFactory(kind, beforeStart, externalToken, varFinalOrConst);
     if (!hasName) {
       listener.handleNoIdentifier(token);
     } else {
@@ -6057,21 +5952,13 @@ class Parser {
     }
     switch (kind) {
       case DeclarationKind.Class:
-        listener.endClassFactoryMethod(
-          beforeStart.next!,
-          factoryKeyword,
-          token,
-        );
+      case DeclarationKind.Enum:
+      case DeclarationKind.ExtensionType:
         break;
       case DeclarationKind.Mixin:
         reportRecoverableError(
           factoryKeyword,
           codes.codeMixinDeclaresConstructor,
-        );
-        listener.endMixinFactoryMethod(
-          beforeStart.next!,
-          factoryKeyword,
-          token,
         );
         break;
       case DeclarationKind.Extension:
@@ -6079,25 +5966,11 @@ class Parser {
           factoryKeyword,
           codes.codeExtensionDeclaresConstructor,
         );
-        listener.endExtensionFactoryMethod(
-          beforeStart.next!,
-          factoryKeyword,
-          token,
-        );
-        break;
-      case DeclarationKind.ExtensionType:
-        listener.endExtensionTypeFactoryMethod(
-          beforeStart.next!,
-          factoryKeyword,
-          token,
-        );
         break;
       case DeclarationKind.TopLevel:
         throw "Internal error: TopLevel factory.";
-      case DeclarationKind.Enum:
-        listener.endEnumFactoryMethod(beforeStart.next!, factoryKeyword, token);
-        break;
     }
+    listener.endFactory(kind, beforeStart.next!, factoryKeyword, token);
     return token;
   }
 

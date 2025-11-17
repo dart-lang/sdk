@@ -10706,7 +10706,8 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     if (unaryTarget.isNullable) {
       List<LocatedMessage>? context = getWhyNotPromotedContext(
         whyNotPromoted(),
-        unary, // Coverage-ignore(suite): Not run.
+        unary,
+        // Coverage-ignore(suite): Not run.
         (type) => !type.isPotentiallyNullable,
       );
       // TODO(johnniwinther): Special case 'unary-' in messages. It should

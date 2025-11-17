@@ -16,7 +16,8 @@ import 'package:_fe_analyzer_shared/src/parser/parser.dart'
         intFromToken,
         lengthForToken,
         lengthOfSpan,
-        stripSeparators;
+        stripSeparators,
+        DeclarationKind;
 import 'package:_fe_analyzer_shared/src/parser/quote.dart'
     show
         Quote,
@@ -1028,7 +1029,8 @@ class BodyBuilderImpl extends StackListenerImpl
   }
 
   @override
-  void endClassFields(
+  void endFields(
+    DeclarationKind kind,
     Token? abstractToken,
     Token? augmentToken,
     Token? externalToken,

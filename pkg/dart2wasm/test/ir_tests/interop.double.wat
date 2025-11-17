@@ -8,12 +8,12 @@
   (func $"dart2wasm._275 (import)" (import "dart2wasm" "_275") (param externref) (result externref))
   (func $"dart2wasm._147 (import)" (import "dart2wasm" "_147") (param externref) (result f64))
   (func $"dart2wasm._148 (import)" (import "dart2wasm" "_148") (param f64) (result externref))
+  (global $ktrue (mut i32) <...>)
+  (global $doubleValue (mut f64) <...>)
+  (global $"ktrue initialized" (mut i32) <...>)
+  (global $"doubleValue initialized" (mut i32) <...>)
   (global $"doubleValueNullable initialized" (mut i32) <...>)
   (global $doubleValueNullable (mut (ref null $BoxedDouble)) <...>)
-  (global $"ktrue initialized" (mut i32) <...>)
-  (global $ktrue (mut i32) <...>)
-  (global $"doubleValue initialized" (mut i32) <...>)
-  (global $doubleValue (mut f64) <...>)
   (func $"testDoubleConstant <noInline>"
     (local $var0 externref)
     f64.const 1.1

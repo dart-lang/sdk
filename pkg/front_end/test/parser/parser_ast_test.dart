@@ -185,11 +185,11 @@ void testClassStuff() {
   expect(null, withClauseDecl);
   List<MemberEnd> members = cls.getClassOrMixinOrExtensionBody().getMembers();
   expect(5, members.length);
-  expect(members[0].isClassConstructor(), true);
-  expect(members[1].isClassFactoryMethod(), true);
-  expect(members[2].isClassMethod(), true);
-  expect(members[3].isClassMethod(), true);
-  expect(members[4].isClassFields(), true);
+  expect(members[0].isConstructor(), true);
+  expect(members[1].isFactory(), true);
+  expect(members[2].isMethod(), true);
+  expect(members[3].isMethod(), true);
+  expect(members[4].isFields(), true);
 
   List<String> chunks = splitIntoChunks(
     cls.getClassOrMixinOrExtensionBody(),
@@ -209,25 +209,19 @@ void testClassStuff() {
   expect("int field1, field2 = 42;", chunks[4]);
 
   chunks = processItem(
-    members[0].getClassConstructor().getBlockFunctionBody()!,
+    members[0].getConstructor().getBlockFunctionBody()!,
     data,
   );
   expect(1, chunks.length);
   expect("""{
     // Constructor
   }""", chunks[0]);
-  chunks = processItem(
-    members[2].getClassMethod().getBlockFunctionBody()!,
-    data,
-  );
+  chunks = processItem(members[2].getMethod().getBlockFunctionBody()!, data);
   expect(1, chunks.length);
   expect("""{
     // instance method.
   }""", chunks[0]);
-  chunks = processItem(
-    members[3].getClassMethod().getBlockFunctionBody()!,
-    data,
-  );
+  chunks = processItem(members[3].getMethod().getBlockFunctionBody()!, data);
   expect(1, chunks.length);
   expect("""{
     // static method.
@@ -235,10 +229,10 @@ void testClassStuff() {
 
   // TODO: Move (something like) this into the check-all-files-thing.
   for (MemberEnd member in cls.getClassOrMixinOrExtensionBody().getMembers()) {
-    if (member.isClassConstructor()) continue;
-    if (member.isClassFactoryMethod()) continue;
-    if (member.isClassFields()) continue;
-    if (member.isClassMethod()) continue;
+    if (member.isConstructor()) continue;
+    if (member.isFactory()) continue;
+    if (member.isFields()) continue;
+    if (member.isMethod()) continue;
     throw "$member --- ${member.children}";
   }
 
@@ -272,10 +266,10 @@ void testMixinStuff() {
 
   List<MemberEnd> members = mxn.getClassOrMixinOrExtensionBody().getMembers();
   expect(4, members.length);
-  expect(members[0].isMixinFields(), true);
-  expect(members[1].isMixinMethod(), true);
-  expect(members[2].isMixinFactoryMethod(), true);
-  expect(members[3].isMixinConstructor(), true);
+  expect(members[0].isFields(), true);
+  expect(members[1].isMethod(), true);
+  expect(members[2].isFactory(), true);
+  expect(members[3].isConstructor(), true);
 
   List<String> chunks = splitIntoChunks(
     mxn.getClassOrMixinOrExtensionBody(),
@@ -484,8 +478,8 @@ List<String> processItem(ParserAstNode item, List<int> data) {
       ),
     ];
   } else if (item is MemberEnd) {
-    if (item.isClassConstructor()) {
-      ClassConstructorEnd decl = item.getClassConstructor();
+    if (item.isConstructor()) {
+      ConstructorEnd decl = item.getConstructor();
       // Check that we can get the identifiers without throwing.
       decl.getIdentifiers();
       return [
@@ -495,8 +489,8 @@ List<String> processItem(ParserAstNode item, List<int> data) {
           decl.endToken.offset + decl.endToken.length,
         ),
       ];
-    } else if (item.isClassFactoryMethod()) {
-      ClassFactoryMethodEnd decl = item.getClassFactoryMethod();
+    } else if (item.isFactory()) {
+      FactoryEnd decl = item.getFactory();
       // Check that we can get the identifiers without throwing.
       decl.getIdentifiers();
       return [
@@ -506,8 +500,8 @@ List<String> processItem(ParserAstNode item, List<int> data) {
           decl.endToken.offset + decl.endToken.length,
         ),
       ];
-    } else if (item.isClassMethod()) {
-      ClassMethodEnd decl = item.getClassMethod();
+    } else if (item.isMethod()) {
+      MethodEnd decl = item.getMethod();
       // Check that we can get the identifier without throwing.
       decl.getNameIdentifier();
       return [
@@ -517,186 +511,10 @@ List<String> processItem(ParserAstNode item, List<int> data) {
           decl.endToken.offset + decl.endToken.length,
         ),
       ];
-    } else if (item.isClassFields()) {
-      ClassFieldsEnd decl = item.getClassFields();
+    } else if (item.isFields()) {
+      FieldsEnd decl = item.getFields();
       // Check that we can get the identifiers without throwing.
       decl.getFieldIdentifiers();
-      return [
-        getCutContent(
-          data,
-          decl.beginToken.offset,
-          decl.endToken.offset + decl.endToken.length,
-        ),
-      ];
-    } else if (item.isMixinFields()) {
-      MixinFieldsEnd decl = item.getMixinFields();
-      // Check that we can get the identifiers without throwing.
-      decl.getFieldIdentifiers();
-      return [
-        getCutContent(
-          data,
-          decl.beginToken.offset,
-          decl.endToken.offset + decl.endToken.length,
-        ),
-      ];
-    } else if (item.isMixinMethod()) {
-      MixinMethodEnd decl = item.getMixinMethod();
-      // Check that we can get the identifier without throwing.
-      decl.getNameIdentifier();
-      return [
-        getCutContent(
-          data,
-          decl.beginToken.offset,
-          decl.endToken.offset + decl.endToken.length,
-        ),
-      ];
-    } else if (item.isMixinFactoryMethod()) {
-      MixinFactoryMethodEnd decl = item.getMixinFactoryMethod();
-      // Check that we can get the identifiers without throwing.
-      decl.getIdentifiers();
-      return [
-        getCutContent(
-          data,
-          decl.beginToken.offset,
-          decl.endToken.offset + decl.endToken.length,
-        ),
-      ];
-    } else if (item.isMixinConstructor()) {
-      MixinConstructorEnd decl = item.getMixinConstructor();
-      // Check that we can get the identifiers without throwing.
-      decl.getIdentifiers();
-      return [
-        getCutContent(
-          data,
-          decl.beginToken.offset,
-          decl.endToken.offset + decl.endToken.length,
-        ),
-      ];
-    } else if (item.isExtensionMethod()) {
-      ExtensionMethodEnd decl = item.getExtensionMethod();
-      // Check that we can get the identifier without throwing.
-      decl.getNameIdentifier();
-      return [
-        getCutContent(
-          data,
-          decl.beginToken.offset,
-          decl.endToken.offset + decl.endToken.length,
-        ),
-      ];
-    } else if (item.isExtensionFields()) {
-      ExtensionFieldsEnd decl = item.getExtensionFields();
-      // Check that we can get the identifiers without throwing.
-      decl.getFieldIdentifiers();
-      return [
-        getCutContent(
-          data,
-          decl.beginToken.offset,
-          decl.endToken.offset + decl.endToken.length,
-        ),
-      ];
-    } else if (item.isExtensionConstructor()) {
-      ExtensionConstructorEnd decl = item.getExtensionConstructor();
-      // Check that we can get the identifiers without throwing.
-      decl.getIdentifiers();
-      return [
-        getCutContent(
-          data,
-          decl.beginToken.offset,
-          decl.endToken.offset + decl.endToken.length,
-        ),
-      ];
-    } else if (item.isExtensionFactoryMethod()) {
-      ExtensionFactoryMethodEnd decl = item.getExtensionFactoryMethod();
-      // Check that we can get the identifiers without throwing.
-      decl.getIdentifiers();
-      return [
-        getCutContent(
-          data,
-          decl.beginToken.offset,
-          decl.endToken.offset + decl.endToken.length,
-        ),
-      ];
-    } else if (item.isExtensionTypeMethod()) {
-      ExtensionTypeMethodEnd decl = item.getExtensionTypeMethod();
-      // Check that we can get the identifier without throwing.
-      decl.getNameIdentifier();
-      return [
-        getCutContent(
-          data,
-          decl.beginToken.offset,
-          decl.endToken.offset + decl.endToken.length,
-        ),
-      ];
-    } else if (item.isExtensionTypeFields()) {
-      ExtensionTypeFieldsEnd decl = item.getExtensionTypeFields();
-      // Check that we can get the identifiers without throwing.
-      decl.getFieldIdentifiers();
-      return [
-        getCutContent(
-          data,
-          decl.beginToken.offset,
-          decl.endToken.offset + decl.endToken.length,
-        ),
-      ];
-    } else if (item.isExtensionTypeConstructor()) {
-      ExtensionTypeConstructorEnd decl = item.getExtensionTypeConstructor();
-      // Check that we can get the identifiers without throwing.
-      decl.getIdentifiers();
-      return [
-        getCutContent(
-          data,
-          decl.beginToken.offset,
-          decl.endToken.offset + decl.endToken.length,
-        ),
-      ];
-    } else if (item.isExtensionTypeFactoryMethod()) {
-      ExtensionTypeFactoryMethodEnd decl = item.getExtensionTypeFactoryMethod();
-      // Check that we can get the identifiers without throwing.
-      decl.getIdentifiers();
-      return [
-        getCutContent(
-          data,
-          decl.beginToken.offset,
-          decl.endToken.offset + decl.endToken.length,
-        ),
-      ];
-    } else if (item.isEnumMethod()) {
-      EnumMethodEnd decl = item.getEnumMethod();
-      // Check that we can get the identifier without throwing.
-      decl.getNameIdentifier();
-      return [
-        getCutContent(
-          data,
-          decl.beginToken.offset,
-          decl.endToken.offset + decl.endToken.length,
-        ),
-      ];
-    } else if (item.isEnumFields()) {
-      EnumFieldsEnd decl = item.getEnumFields();
-      // Check that we can get the identifiers without throwing.
-      decl.getFieldIdentifiers();
-      return [
-        getCutContent(
-          data,
-          decl.beginToken.offset,
-          decl.endToken.offset + decl.endToken.length,
-        ),
-      ];
-    } else if (item.isEnumConstructor()) {
-      EnumConstructorEnd decl = item.getEnumConstructor();
-      // Check that we can get the identifiers without throwing.
-      decl.getIdentifiers();
-      return [
-        getCutContent(
-          data,
-          decl.beginToken.offset,
-          decl.endToken.offset + decl.endToken.length,
-        ),
-      ];
-    } else if (item.isEnumFactoryMethod()) {
-      EnumFactoryMethodEnd decl = item.getEnumFactoryMethod();
-      // Check that we can get the identifiers without throwing.
-      decl.getIdentifiers();
       return [
         getCutContent(
           data,
