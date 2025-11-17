@@ -133,3 +133,7 @@ part 'stream_pipe.dart';
 part 'stream_transformers.dart';
 part 'timer.dart';
 part 'zone.dart';
+part 'zone_api.dart';
+part 'zone_delegate.dart';
+part 'zone_root.dart';
+part 'zone_specification.dart';
