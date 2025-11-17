@@ -24,6 +24,7 @@ def _dart2wasm_builder(name, category = None, properties = [], **kwargs):
         category = category,
         properties = union(default_properties, properties),
         triggered_by = ["dart2wasm-gitiles-trigger-%s"],
+        location_filters = paths.to_location_filters(paths.dart2wasm),
         **kwargs
     )
 
@@ -35,7 +36,6 @@ dart.poller(
 _dart2wasm_builder(
     "dart2wasm-linux-d8",
     category = "d2w|d",
-    location_filters = paths.to_location_filters(paths.dart2wasm),
 )
 
 _dart2wasm_builder(
@@ -53,21 +53,18 @@ _dart2wasm_builder(
     "dart2wasm-asserts-linux-chrome",
     category = "d2w|ca",
     properties = [chrome],
-    location_filters = paths.to_location_filters(paths.dart2wasm),
 )
 
 _dart2wasm_builder(
     "dart2wasm-linux-chrome",
     category = "d2w|c",
     properties = [chrome],
-    location_filters = paths.to_location_filters(paths.dart2wasm),
 )
 
 _dart2wasm_builder(
     "dart2wasm-linux-jscm-chrome",
     category = "d2w|cm",
     properties = [chrome],
-    location_filters = paths.to_location_filters(paths.dart2wasm),
 )
 
 _dart2wasm_builder(
