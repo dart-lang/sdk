@@ -802,6 +802,27 @@ class C {
     );
   }
 
+  test_primaryConstructor_lowerCase() async {
+    await assertNoDiagnostics(r'''
+class C.named();
+''');
+  }
+
+  test_primaryConstructor_underscores() async {
+    await assertNoDiagnostics(r'''
+class C.___();
+    ''');
+  }
+
+  test_primaryConstructor_upperCase() async {
+    await assertDiagnostics(
+      r'''
+class C.Named();
+''',
+      [lint(8, 5)],
+    );
+  }
+
   test_topLevelFunction() async {
     await assertDiagnostics(
       r'''
