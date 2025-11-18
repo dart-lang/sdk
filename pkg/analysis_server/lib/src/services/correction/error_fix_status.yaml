@@ -1110,6 +1110,7 @@ CompileTimeErrorCode.MIXIN_APPLICATION_NOT_IMPLEMENTED_INTERFACE:
 CompileTimeErrorCode.MIXIN_CLASS_DECLARATION_EXTENDS_NOT_OBJECT:
   status: hasFix
 CompileTimeErrorCode.MIXIN_CLASS_DECLARES_CONSTRUCTOR:
+  status: needsFix
   notes: |-
     Remove the constructor.
 CompileTimeErrorCode.MIXIN_DEFERRED_CLASS:
@@ -1117,6 +1118,7 @@ CompileTimeErrorCode.MIXIN_DEFERRED_CLASS:
   notes: |-
     Remove the `deferred` keyword from the import.
 CompileTimeErrorCode.MIXIN_INHERITS_FROM_NOT_OBJECT:
+  status: needsFix
   notes: |-
     Remove the extends clause.
 CompileTimeErrorCode.MIXIN_INSTANTIATE:
