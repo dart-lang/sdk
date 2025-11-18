@@ -164,6 +164,32 @@ class ForwardingTestListener extends ForwardingListener {
   }
 
   @override
+  void beginConstructor(
+    DeclarationKind declarationKind,
+    Token? augmentToken,
+    Token? externalToken,
+    Token? staticToken,
+    Token? covariantToken,
+    Token? varFinalOrConst,
+    Token? getOrSet,
+    Token name,
+    String? enclosingDeclarationName,
+  ) {
+    super.beginConstructor(
+      declarationKind,
+      augmentToken,
+      externalToken,
+      staticToken,
+      covariantToken,
+      varFinalOrConst,
+      getOrSet,
+      name,
+      enclosingDeclarationName,
+    );
+    begin('Method');
+  }
+
+  @override
   void beginConstructorReference(Token start) {
     super.beginConstructorReference(start);
     begin('ConstructorReference');

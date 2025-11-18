@@ -1160,7 +1160,6 @@ abstract class Listener implements UnescapeErrorListener {
 
   /// Handle the beginning of a class-like method declaration.  Substructures:
   /// - metadata
-  /// Note that this is ended with [endConstructor] or [endMethod].
   void beginMethod(
     DeclarationKind declarationKind,
     Token? augmentToken,
@@ -1193,6 +1192,20 @@ abstract class Listener implements UnescapeErrorListener {
   ) {
     logEvent("Method");
   }
+
+  /// Handle the beginning of a constructor declaration.  Substructures:
+  /// - metadata
+  void beginConstructor(
+    DeclarationKind declarationKind,
+    Token? augmentToken,
+    Token? externalToken,
+    Token? staticToken,
+    Token? covariantToken,
+    Token? varFinalOrConst,
+    Token? getOrSet,
+    Token name,
+    String? enclosingDeclarationName,
+  ) {}
 
   /// Handle the end of a constructor declaration.  Substructures:
   /// - metadata

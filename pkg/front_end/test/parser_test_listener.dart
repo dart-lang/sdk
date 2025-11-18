@@ -2174,6 +2174,40 @@ class ParserTestListener implements Listener {
   }
 
   @override
+  void beginConstructor(
+    DeclarationKind declarationKind,
+    Token? augmentToken,
+    Token? externalToken,
+    Token? staticToken,
+    Token? covariantToken,
+    Token? varFinalOrConst,
+    Token? getOrSet,
+    Token name,
+    String? enclosingDeclarationName,
+  ) {
+    seen(augmentToken);
+    seen(externalToken);
+    seen(staticToken);
+    seen(covariantToken);
+    seen(varFinalOrConst);
+    seen(getOrSet);
+    seen(name);
+    doPrint(
+      'beginConstructor('
+      '$declarationKind, '
+      '$augmentToken, '
+      '$externalToken, '
+      '$staticToken, '
+      '$covariantToken, '
+      '$varFinalOrConst, '
+      '$getOrSet, '
+      '$name, '
+      '$enclosingDeclarationName)',
+    );
+    indent++;
+  }
+
+  @override
   void endConstructor(
     DeclarationKind kind,
     Token beginToken,

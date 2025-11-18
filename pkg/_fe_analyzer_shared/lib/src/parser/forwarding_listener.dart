@@ -136,6 +136,31 @@ class ForwardingListener implements Listener {
   }
 
   @override
+  void beginConstructor(
+    DeclarationKind declarationKind,
+    Token? augmentToken,
+    Token? externalToken,
+    Token? staticToken,
+    Token? covariantToken,
+    Token? varFinalOrConst,
+    Token? getOrSet,
+    Token name,
+    String? enclosingDeclarationName,
+  ) {
+    listener?.beginConstructor(
+      declarationKind,
+      augmentToken,
+      externalToken,
+      staticToken,
+      covariantToken,
+      varFinalOrConst,
+      getOrSet,
+      name,
+      enclosingDeclarationName,
+    );
+  }
+
+  @override
   void beginConstructorReference(Token start) {
     listener?.beginConstructorReference(start);
   }

@@ -1776,8 +1776,6 @@ class ParserASTListener extends AbstractParserAstListener {
           // beginExtensionDeclarationPrelude,
           // beginClassOrNamedMixinApplicationPrelude
           // beginTopLevelMember or beginUncategorizedTopLevelDeclaration.
-        } else if (begin == "Method" && end == "Constructor") {
-          // beginMethod is ended by one of endMethod or endConstructor.
         } else if (begin == "Fields" && end == "TopLevelFields") {
           // beginFields is ended by one of endTopLevelFields or endFields.
         } else if (begin == "ForStatement" && end == "ForIn") {
