@@ -49,30 +49,30 @@
 # - 500 "hasFix"
 # - 498 "noFix"
 
-AnalysisOptionsErrorCode.INCLUDED_FILE_PARSE_ERROR:
+INCLUDED_FILE_PARSE_ERROR:
   status: noFix
   notes: |-
     The fix needs to be made in the included file.
-AnalysisOptionsErrorCode.PARSE_ERROR:
+PARSE_ERROR:
   status: noFix
   notes: |-
     Because of the way the YAML parser works, there isn't enough information to
     be able to provide a fix.
-AnalysisOptionsWarningCode.ANALYSIS_OPTION_DEPRECATED:
+ANALYSIS_OPTION_DEPRECATED:
   status: needsFix
   notes: |-
     The fix is to remove the deprecated option.
-AnalysisOptionsWarningCode.ANALYSIS_OPTION_DEPRECATED_WITH_REPLACEMENT:
+ANALYSIS_OPTION_DEPRECATED_WITH_REPLACEMENT:
   status: hasFix
-AnalysisOptionsWarningCode.DEPRECATED_LINT:
+DEPRECATED_LINT:
   status: hasFix
-AnalysisOptionsWarningCode.DEPRECATED_LINT_WITH_REPLACEMENT:
+DEPRECATED_LINT_WITH_REPLACEMENT:
   status: needsFix
   notes: |-
     We should be able to replace the deprecated lint rule with its replacement.
-AnalysisOptionsWarningCode.DUPLICATE_RULE:
+DUPLICATE_RULE:
   status: hasFix
-AnalysisOptionsWarningCode.INCLUDE_FILE_NOT_FOUND:
+INCLUDE_FILE_NOT_FOUND:
   status: noFix
   notes: |-
     It would not be performant to search the disk for analysis options files
@@ -81,244 +81,244 @@ AnalysisOptionsWarningCode.INCLUDE_FILE_NOT_FOUND:
     We could potentially have a fix to create the referenced file that currently
     doesn't exist, but that would only be useful if the missing file is in the
     same repository as the including file.
-AnalysisOptionsWarningCode.INCLUDED_FILE_WARNING:
+INCLUDED_FILE_WARNING:
   status: noFix
   notes: |-
     The fix needs to be made in the included file.
-AnalysisOptionsWarningCode.INCOMPATIBLE_LINT:
+INCOMPATIBLE_LINT:
   status: needsFix
   notes: |-
     Allowing the user to select which rule they would prefer to use so we can
     remove the incompatible ones.
-AnalysisOptionsWarningCode.INCOMPATIBLE_LINT_FILES:
+INCOMPATIBLE_LINT_FILES:
   status: needsFix
   notes: |-
     Allowing the user to select which rule they would prefer to use so we can
     disable the incompatible ones.
-AnalysisOptionsWarningCode.INCOMPATIBLE_LINT_INCLUDED:
+INCOMPATIBLE_LINT_INCLUDED:
   status: needsFix
   notes: |-
     Allowing the user to select which rule they would prefer to use so we can
     disable the incompatible ones.
-AnalysisOptionsWarningCode.INVALID_OPTION:
+INVALID_OPTION:
   status: needsFix
   notes: |-
     We could look for valid options that are similar in spelling to the invalid
     option and replace the invalid option with the selected replacement.
-AnalysisOptionsWarningCode.INVALID_SECTION_FORMAT:
+INVALID_SECTION_FORMAT:
   status: noFix
   notes: |-
     It isn't worth the cost to try to figure out how to convert
     a list, map, or string to a different format.
-AnalysisOptionsWarningCode.MULTIPLE_PLUGINS:
+MULTIPLE_PLUGINS:
   status: needsFix
   notes: |-
     The fix is to remove the plugin name. Might not be worth the cost if we
     can address the question of if/how we're supporting plugins.
-AnalysisOptionsWarningCode.PLUGINS_IN_INNER_OPTIONS:
+PLUGINS_IN_INNER_OPTIONS:
   status: needsFix
   notes: |-
     The fix is to delete the 'plugins' section.
-AnalysisOptionsWarningCode.RECURSIVE_INCLUDE_FILE:
+RECURSIVE_INCLUDE_FILE:
   status: noFix
   notes: |-
     It isn't possible to know the right place to break the recursion. The best
     we could do is to remove the include in the file that the diagnostic is
     reported on.
-AnalysisOptionsWarningCode.REMOVED_LINT:
+REMOVED_LINT:
   status: hasFix
-AnalysisOptionsWarningCode.REPLACED_LINT:
+REPLACED_LINT:
   status: needsFix
   notes: |-
     We should be able to replace the deprecated lint rule with its replacement.
-AnalysisOptionsWarningCode.UNDEFINED_LINT:
+UNDEFINED_LINT:
   status: hasFix
-AnalysisOptionsWarningCode.UNRECOGNIZED_ERROR_CODE:
+UNRECOGNIZED_ERROR_CODE:
   status: needsFix
   notes: |-
     The fix would be to replace the code with a valid code whose name is similar
     to the unrecognized code.
-AnalysisOptionsWarningCode.UNSUPPORTED_OPTION_WITH_LEGAL_VALUE:
+UNSUPPORTED_OPTION_WITH_LEGAL_VALUE:
   status: needsFix
   notes: |-
     The fix is to replace the unsupported option with the one legal value.
-AnalysisOptionsWarningCode.UNSUPPORTED_OPTION_WITH_LEGAL_VALUES:
+UNSUPPORTED_OPTION_WITH_LEGAL_VALUES:
   status: needsFix
   notes: |-
     The fix is to replace the unsupported option with one of the legal values.
-AnalysisOptionsWarningCode.UNSUPPORTED_OPTION_WITHOUT_VALUES:
+UNSUPPORTED_OPTION_WITHOUT_VALUES:
   status: hasFix
-AnalysisOptionsWarningCode.UNSUPPORTED_VALUE:
+UNSUPPORTED_VALUE:
   status: needsFix
   notes: |-
     The fix is to replace the unsupported option with one of the legal values.
-CompileTimeErrorCode.ABSTRACT_FIELD_CONSTRUCTOR_INITIALIZER:
+ABSTRACT_FIELD_CONSTRUCTOR_INITIALIZER:
   status: hasFix
-CompileTimeErrorCode.ABSTRACT_FIELD_INITIALIZER:
+ABSTRACT_FIELD_INITIALIZER:
   status: hasFix
-CompileTimeErrorCode.ABSTRACT_SUPER_MEMBER_REFERENCE:
+ABSTRACT_SUPER_MEMBER_REFERENCE:
   status: noFix
   notes: |-
     The only fix we could automate is to remove the call to super, which is
     unlikely to be the right solution.
-CompileTimeErrorCode.AMBIGUOUS_EXPORT:
+AMBIGUOUS_EXPORT:
   status: needsFix
   notes: |-
     For each exported name, add a fix to hide the name.
-CompileTimeErrorCode.AMBIGUOUS_EXTENSION_MEMBER_ACCESS_THREE_OR_MORE:
+AMBIGUOUS_EXTENSION_MEMBER_ACCESS_THREE_OR_MORE:
   status: hasFix
-CompileTimeErrorCode.AMBIGUOUS_EXTENSION_MEMBER_ACCESS_TWO:
+AMBIGUOUS_EXTENSION_MEMBER_ACCESS_TWO:
   status: hasFix
-CompileTimeErrorCode.AMBIGUOUS_IMPORT:
+AMBIGUOUS_IMPORT:
   status: hasFix
   notes: |-
     For each imported name, add a fix to add a prefix. We wouldn't be able to
     add the prefix everywhere, but could add it wherever the name was already
     unambiguous.
-CompileTimeErrorCode.AMBIGUOUS_SET_OR_MAP_LITERAL_BOTH:
+AMBIGUOUS_SET_OR_MAP_LITERAL_BOTH:
   status: noFix
   notes: |-
     We could potentially have a pair of fixes: one to remove the elements that
     force it to be a set and one to remove the map related elements. I doubt
     that either is the right solution.
-CompileTimeErrorCode.AMBIGUOUS_SET_OR_MAP_LITERAL_EITHER:
+AMBIGUOUS_SET_OR_MAP_LITERAL_EITHER:
   status: noFix
   notes: |-
     We don't have enough information to add type arguments for the user.
-CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE:
+ARGUMENT_TYPE_NOT_ASSIGNABLE:
   status: hasFix
-CompileTimeErrorCode.ASSERT_IN_REDIRECTING_CONSTRUCTOR:
+ASSERT_IN_REDIRECTING_CONSTRUCTOR:
   status: hasFix
-CompileTimeErrorCode.ASSIGNMENT_TO_CONST:
+ASSIGNMENT_TO_CONST:
   status: noFix
   notes: |-
     Making the field non-const doesn't seem to be a good choice, but it is a
     possibility.
-CompileTimeErrorCode.ASSIGNMENT_TO_FINAL:
+ASSIGNMENT_TO_FINAL:
   status: hasFix
-CompileTimeErrorCode.ASSIGNMENT_TO_FINAL_LOCAL:
+ASSIGNMENT_TO_FINAL_LOCAL:
   status: hasFix
-CompileTimeErrorCode.ASSIGNMENT_TO_FINAL_NO_SETTER:
+ASSIGNMENT_TO_FINAL_NO_SETTER:
   status: needsFix
   notes: |-
     The fix is to create the missing setter.
-CompileTimeErrorCode.ASSIGNMENT_TO_FUNCTION:
+ASSIGNMENT_TO_FUNCTION:
   status: noFix
   notes: |-
     Theoretically we could replace the function with a function valued variable
     if the value being assigned is a function with the same signature, but that
     case is likely rare enough to not be worth supporting.
-CompileTimeErrorCode.ASSIGNMENT_TO_METHOD:
+ASSIGNMENT_TO_METHOD:
   status: noFix
   notes: |-
     Theoretically we could replace the method with a function valued variable
     if the value being assigned is a function with the same signature, but that
     case is likely rare enough to not be worth supporting.
-CompileTimeErrorCode.ASSIGNMENT_TO_TYPE:
+ASSIGNMENT_TO_TYPE:
   status: noFix
-CompileTimeErrorCode.ASYNC_FOR_IN_WRONG_CONTEXT:
+ASYNC_FOR_IN_WRONG_CONTEXT:
   status: hasFix
-CompileTimeErrorCode.AUGMENTATION_EXTENDS_CLAUSE_ALREADY_PRESENT:
+AUGMENTATION_EXTENDS_CLAUSE_ALREADY_PRESENT:
   status: needsEvaluation
-CompileTimeErrorCode.AUGMENTATION_MODIFIER_EXTRA:
+AUGMENTATION_MODIFIER_EXTRA:
   status: hasFix
-CompileTimeErrorCode.AUGMENTATION_MODIFIER_MISSING:
+AUGMENTATION_MODIFIER_MISSING:
   status: needsFix
-CompileTimeErrorCode.AUGMENTATION_OF_DIFFERENT_DECLARATION_KIND:
+AUGMENTATION_OF_DIFFERENT_DECLARATION_KIND:
   status: noFix
-CompileTimeErrorCode.AUGMENTATION_TYPE_PARAMETER_BOUND:
+AUGMENTATION_TYPE_PARAMETER_BOUND:
   status: noFix
-CompileTimeErrorCode.AUGMENTATION_TYPE_PARAMETER_COUNT:
+AUGMENTATION_TYPE_PARAMETER_COUNT:
   status: noFix
-CompileTimeErrorCode.AUGMENTATION_TYPE_PARAMETER_NAME:
+AUGMENTATION_TYPE_PARAMETER_NAME:
   status: needsFix
   notes: |-
     We could rename the type parameter, this is purely local operation.
-CompileTimeErrorCode.AUGMENTATION_WITHOUT_DECLARATION:
+AUGMENTATION_WITHOUT_DECLARATION:
   status: noFix
-CompileTimeErrorCode.AUGMENTED_EXPRESSION_IS_NOT_SETTER:
+AUGMENTED_EXPRESSION_IS_NOT_SETTER:
   status: noFix
-CompileTimeErrorCode.AUGMENTED_EXPRESSION_IS_SETTER:
+AUGMENTED_EXPRESSION_IS_SETTER:
   status: noFix
-CompileTimeErrorCode.AUGMENTED_EXPRESSION_NOT_OPERATOR:
+AUGMENTED_EXPRESSION_NOT_OPERATOR:
   status: noFix
-CompileTimeErrorCode.AWAIT_IN_LATE_LOCAL_VARIABLE_INITIALIZER:
+AWAIT_IN_LATE_LOCAL_VARIABLE_INITIALIZER:
   status: hasFix
-CompileTimeErrorCode.AWAIT_IN_WRONG_CONTEXT:
+AWAIT_IN_WRONG_CONTEXT:
   status: hasFix
-CompileTimeErrorCode.AWAIT_OF_INCOMPATIBLE_TYPE:
+AWAIT_OF_INCOMPATIBLE_TYPE:
   status: noFix
-CompileTimeErrorCode.BASE_CLASS_IMPLEMENTED_OUTSIDE_OF_LIBRARY:
+BASE_CLASS_IMPLEMENTED_OUTSIDE_OF_LIBRARY:
   status: noFix
   notes: |-
     Theoretically we could remove the `base` modifier, but that's unlikely to be
     the right fix most of the time.
-CompileTimeErrorCode.BASE_MIXIN_IMPLEMENTED_OUTSIDE_OF_LIBRARY:
+BASE_MIXIN_IMPLEMENTED_OUTSIDE_OF_LIBRARY:
   status: noFix
   notes: |-
     Theoretically we could remove the `base` modifier, but that's unlikely to be
     the right fix most of the time.
-CompileTimeErrorCode.BODY_MIGHT_COMPLETE_NORMALLY:
+BODY_MIGHT_COMPLETE_NORMALLY:
   status: hasFix
-CompileTimeErrorCode.BREAK_LABEL_ON_SWITCH_MEMBER:
+BREAK_LABEL_ON_SWITCH_MEMBER:
   status: noFix
   notes: |-
     Theoretically we could replace the `break` with a `continue`, but this
     probably occurs rarely enough to not be worth the cost.
-CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_EXTENSION_NAME:
+BUILT_IN_IDENTIFIER_AS_EXTENSION_NAME:
   status: noFix
   notes: |-
     The correction is to change the name.
-CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_EXTENSION_TYPE_NAME:
+BUILT_IN_IDENTIFIER_AS_EXTENSION_TYPE_NAME:
   status: noFix
   notes: |-
     The correction is to change the name.
-CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_PREFIX_NAME:
+BUILT_IN_IDENTIFIER_AS_PREFIX_NAME:
   status: noFix
   notes: |-
     The correction is to change the name.
-CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE:
+BUILT_IN_IDENTIFIER_AS_TYPE:
   status: noFix
   notes: |-
     The correction is to change the name.
-CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE_NAME:
+BUILT_IN_IDENTIFIER_AS_TYPE_NAME:
   status: noFix
   notes: |-
     The correction is to change the name.
-CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE_PARAMETER_NAME:
+BUILT_IN_IDENTIFIER_AS_TYPE_PARAMETER_NAME:
   status: noFix
   notes: |-
     The correction is to change the name.
-CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_TYPEDEF_NAME:
+BUILT_IN_IDENTIFIER_AS_TYPEDEF_NAME:
   status: noFix
   notes: |-
     The correction is to change the name.
-CompileTimeErrorCode.CASE_EXPRESSION_TYPE_IMPLEMENTS_EQUALS:
+CASE_EXPRESSION_TYPE_IMPLEMENTS_EQUALS:
   status: needsFix
   notes: |-
     The fix could be to change the switch expression to an if statement.
-CompileTimeErrorCode.CASE_EXPRESSION_TYPE_IS_NOT_SWITCH_EXPRESSION_SUBTYPE:
+CASE_EXPRESSION_TYPE_IS_NOT_SWITCH_EXPRESSION_SUBTYPE:
   status: noFix
-CompileTimeErrorCode.CAST_TO_NON_TYPE:
+CAST_TO_NON_TYPE:
   status: hasFix
-CompileTimeErrorCode.CLASS_USED_AS_MIXIN:
+CLASS_USED_AS_MIXIN:
   status: noFix
   notes: |-
     Theoretically we could add the mixin modifier to the class if the class if
     doing so would be valid.
-CompileTimeErrorCode.CLASS_INSTANTIATION_ACCESS_TO_INSTANCE_MEMBER:
+CLASS_INSTANTIATION_ACCESS_TO_INSTANCE_MEMBER:
   status: noFix
   since: 2.15
-CompileTimeErrorCode.CLASS_INSTANTIATION_ACCESS_TO_STATIC_MEMBER:
+CLASS_INSTANTIATION_ACCESS_TO_STATIC_MEMBER:
   status: hasFix
-CompileTimeErrorCode.CLASS_INSTANTIATION_ACCESS_TO_UNKNOWN_MEMBER:
+CLASS_INSTANTIATION_ACCESS_TO_UNKNOWN_MEMBER:
   status: noFix
   notes: |-
     Theoretically we could look for static members whose name is similar in
     spelling and suggest them (and remove the type arguments), but it's probably
     not valuable often enough to warrant the cost.
   since: in 2.15
-CompileTimeErrorCode.CONCRETE_CLASS_HAS_ENUM_SUPERINTERFACE:
+CONCRETE_CLASS_HAS_ENUM_SUPERINTERFACE:
   status: noFix
   since: 2.17
   notes: |-
@@ -326,1610 +326,1610 @@ CompileTimeErrorCode.CONCRETE_CLASS_HAS_ENUM_SUPERINTERFACE:
     class header that are or implement `Enum`, but I think it would be more
     likely that the user needed to restructure the super interfaces so that
     `Enum` wasn't included but the rest of the interfaces could be.
-CompileTimeErrorCode.CONCRETE_CLASS_WITH_ABSTRACT_MEMBER:
+CONCRETE_CLASS_WITH_ABSTRACT_MEMBER:
   status: hasFix
-CompileTimeErrorCode.CONFLICTING_CONSTRUCTOR_AND_STATIC_FIELD:
+CONFLICTING_CONSTRUCTOR_AND_STATIC_FIELD:
   status: noFix
   notes: |-
     The fix is to rename one of the two, but we can't know what name to use.
-CompileTimeErrorCode.CONFLICTING_CONSTRUCTOR_AND_STATIC_GETTER:
+CONFLICTING_CONSTRUCTOR_AND_STATIC_GETTER:
   status: noFix
   since: 2.15
   notes: |-
     The fix is to rename one of the two, but we can't know what name to use.
-CompileTimeErrorCode.CONFLICTING_CONSTRUCTOR_AND_STATIC_METHOD:
+CONFLICTING_CONSTRUCTOR_AND_STATIC_METHOD:
   status: noFix
   notes: |-
     The fix is to rename one of the two, but we can't know what name to use.
-CompileTimeErrorCode.CONFLICTING_CONSTRUCTOR_AND_STATIC_SETTER:
+CONFLICTING_CONSTRUCTOR_AND_STATIC_SETTER:
   status: noFix
   since: 2.15
   notes: |-
     The fix is to rename one of the two, but we can't know what name to use.
-CompileTimeErrorCode.CONFLICTING_FIELD_AND_METHOD:
+CONFLICTING_FIELD_AND_METHOD:
   status: noFix
   notes: |-
     The fix is to rename one of the two, but we can't know what name to use.
-CompileTimeErrorCode.CONFLICTING_GENERIC_INTERFACES:
+CONFLICTING_GENERIC_INTERFACES:
   status: noFix
-CompileTimeErrorCode.CONFLICTING_INHERITED_METHOD_AND_SETTER:
+CONFLICTING_INHERITED_METHOD_AND_SETTER:
   status: needsEvaluation
-CompileTimeErrorCode.CONFLICTING_METHOD_AND_FIELD:
+CONFLICTING_METHOD_AND_FIELD:
   status: noFix
   notes: |-
     The fix is to rename one of the two, but we can't know what name to use.
-CompileTimeErrorCode.CONFLICTING_STATIC_AND_INSTANCE:
+CONFLICTING_STATIC_AND_INSTANCE:
   status: noFix
   notes: |-
     The fix is to rename one of the two, but we can't know what name to use.
-CompileTimeErrorCode.CONFLICTING_TYPE_VARIABLE_AND_CLASS:
+CONFLICTING_TYPE_VARIABLE_AND_CLASS:
   status: noFix
   notes: |-
     The fix is to rename one of the two, but we can't know what name to use.
-CompileTimeErrorCode.CONFLICTING_TYPE_VARIABLE_AND_ENUM:
+CONFLICTING_TYPE_VARIABLE_AND_ENUM:
   status: noFix
   since: 2.17
   notes: |-
     The fix is to rename one of the two, but we can't know what name to use.
-CompileTimeErrorCode.CONFLICTING_TYPE_VARIABLE_AND_EXTENSION:
+CONFLICTING_TYPE_VARIABLE_AND_EXTENSION:
   status: noFix
   notes: |-
     The fix is to rename one of the two, but we can't know what name to use.
-CompileTimeErrorCode.CONFLICTING_TYPE_VARIABLE_AND_EXTENSION_TYPE:
+CONFLICTING_TYPE_VARIABLE_AND_EXTENSION_TYPE:
   status: noFix
   notes: |-
     The fix is to rename one of the two, but we can't know what name to use.
-CompileTimeErrorCode.CONFLICTING_TYPE_VARIABLE_AND_MEMBER_CLASS:
+CONFLICTING_TYPE_VARIABLE_AND_MEMBER_CLASS:
   status: noFix
   notes: |-
     The fix is to rename one of the two, but we can't know what name to use.
-CompileTimeErrorCode.CONFLICTING_TYPE_VARIABLE_AND_MEMBER_ENUM:
+CONFLICTING_TYPE_VARIABLE_AND_MEMBER_ENUM:
   status: noFix
   since: 2.17
   notes: |-
     The fix is to rename one of the two, but we can't know what name to use.
-CompileTimeErrorCode.CONFLICTING_TYPE_VARIABLE_AND_MEMBER_EXTENSION:
+CONFLICTING_TYPE_VARIABLE_AND_MEMBER_EXTENSION:
   status: noFix
   notes: |-
     The fix is to rename one of the two, but we can't know what name to use.
-CompileTimeErrorCode.CONFLICTING_TYPE_VARIABLE_AND_MEMBER_EXTENSION_TYPE:
+CONFLICTING_TYPE_VARIABLE_AND_MEMBER_EXTENSION_TYPE:
   status: noFix
   notes: |-
     The fix is to rename one of the two, but we can't know what name to use.
-CompileTimeErrorCode.CONFLICTING_TYPE_VARIABLE_AND_MEMBER_MIXIN:
+CONFLICTING_TYPE_VARIABLE_AND_MEMBER_MIXIN:
   status: noFix
   notes: |-
     The fix is to rename one of the two, but we can't know what name to use.
-CompileTimeErrorCode.CONFLICTING_TYPE_VARIABLE_AND_MIXIN:
+CONFLICTING_TYPE_VARIABLE_AND_MIXIN:
   status: noFix
   notes: |-
     The fix is to rename one of the two, but we can't know what name to use.
-CompileTimeErrorCode.CONST_CONSTRUCTOR_CONSTANT_FROM_DEFERRED_LIBRARY:
+CONST_CONSTRUCTOR_CONSTANT_FROM_DEFERRED_LIBRARY:
   status: needsFix
   notes: |-
     Remove the `deferred` keyword from the import.
-CompileTimeErrorCode.CONST_CONSTRUCTOR_FIELD_TYPE_MISMATCH:
+CONST_CONSTRUCTOR_FIELD_TYPE_MISMATCH:
   status: noFix
-CompileTimeErrorCode.CONST_CONSTRUCTOR_PARAM_TYPE_MISMATCH:
+CONST_CONSTRUCTOR_PARAM_TYPE_MISMATCH:
   status: noFix
-CompileTimeErrorCode.CONST_CONSTRUCTOR_THROWS_EXCEPTION:
+CONST_CONSTRUCTOR_THROWS_EXCEPTION:
   status: noFix
-CompileTimeErrorCode.CONST_CONSTRUCTOR_WITH_FIELD_INITIALIZED_BY_NON_CONST:
+CONST_CONSTRUCTOR_WITH_FIELD_INITIALIZED_BY_NON_CONST:
   status: noFix
-CompileTimeErrorCode.CONST_CONSTRUCTOR_WITH_MIXIN_WITH_FIELD:
+CONST_CONSTRUCTOR_WITH_MIXIN_WITH_FIELD:
   status: noFix
-CompileTimeErrorCode.CONST_CONSTRUCTOR_WITH_MIXIN_WITH_FIELDS:
+CONST_CONSTRUCTOR_WITH_MIXIN_WITH_FIELDS:
   status: noFix
-CompileTimeErrorCode.CONST_CONSTRUCTOR_WITH_NON_CONST_SUPER:
+CONST_CONSTRUCTOR_WITH_NON_CONST_SUPER:
   status: noFix
-CompileTimeErrorCode.CONST_CONSTRUCTOR_WITH_NON_FINAL_FIELD:
+CONST_CONSTRUCTOR_WITH_NON_FINAL_FIELD:
   status: noFix
-CompileTimeErrorCode.CONST_DEFERRED_CLASS:
+CONST_DEFERRED_CLASS:
   status: needsFix
   notes: |-
     Remove the `deferred` keyword from the import.
-CompileTimeErrorCode.CONST_EVAL_ASSERTION_FAILURE:
+CONST_EVAL_ASSERTION_FAILURE:
   status: needsEvaluation
-CompileTimeErrorCode.CONST_EVAL_ASSERTION_FAILURE_WITH_MESSAGE:
+CONST_EVAL_ASSERTION_FAILURE_WITH_MESSAGE:
   status: needsEvaluation
-CompileTimeErrorCode.CONST_EVAL_EXTENSION_METHOD:
+CONST_EVAL_EXTENSION_METHOD:
   status: needsEvaluation
-CompileTimeErrorCode.CONST_EVAL_EXTENSION_TYPE_METHOD:
+CONST_EVAL_EXTENSION_TYPE_METHOD:
   status: needsEvaluation
-CompileTimeErrorCode.CONST_EVAL_FOR_ELEMENT:
+CONST_EVAL_FOR_ELEMENT:
   status: needsEvaluation
-CompileTimeErrorCode.CONST_EVAL_METHOD_INVOCATION:
+CONST_EVAL_METHOD_INVOCATION:
   status: hasFix
-CompileTimeErrorCode.CONST_EVAL_PRIMITIVE_EQUALITY:
+CONST_EVAL_PRIMITIVE_EQUALITY:
   status: needsEvaluation
-CompileTimeErrorCode.CONST_EVAL_PROPERTY_ACCESS:
+CONST_EVAL_PROPERTY_ACCESS:
   status: needsEvaluation
-CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION:
+CONST_EVAL_THROWS_EXCEPTION:
   status: noFix
-CompileTimeErrorCode.CONST_EVAL_THROWS_IDBZE:
+CONST_EVAL_THROWS_IDBZE:
   status: noFix
-CompileTimeErrorCode.CONST_EVAL_TYPE_BOOL:
+CONST_EVAL_TYPE_BOOL:
   status: noFix
-CompileTimeErrorCode.CONST_EVAL_TYPE_BOOL_INT:
+CONST_EVAL_TYPE_BOOL_INT:
   status: noFix
-CompileTimeErrorCode.CONST_EVAL_TYPE_BOOL_NUM_STRING:
+CONST_EVAL_TYPE_BOOL_NUM_STRING:
   status: noFix
-CompileTimeErrorCode.CONST_EVAL_TYPE_INT:
+CONST_EVAL_TYPE_INT:
   status: noFix
-CompileTimeErrorCode.CONST_EVAL_TYPE_NUM:
+CONST_EVAL_TYPE_NUM:
   status: noFix
-CompileTimeErrorCode.CONST_EVAL_TYPE_NUM_STRING:
+CONST_EVAL_TYPE_NUM_STRING:
   status: noFix
-CompileTimeErrorCode.CONST_EVAL_TYPE_STRING:
+CONST_EVAL_TYPE_STRING:
   status: noFix
-CompileTimeErrorCode.CONST_EVAL_TYPE_TYPE:
+CONST_EVAL_TYPE_TYPE:
   status: noFix
-CompileTimeErrorCode.CONST_FIELD_INITIALIZER_NOT_ASSIGNABLE:
+CONST_FIELD_INITIALIZER_NOT_ASSIGNABLE:
   status: noFix
-CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE:
+CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE:
   status: hasFix
-? CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE_FROM_DEFERRED_LIBRARY
-: status: needsFix
+CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE_FROM_DEFERRED_LIBRARY:
+  status: needsFix
   notes: |-
     Remove the `deferred` keyword from the import.
-CompileTimeErrorCode.CONST_INSTANCE_FIELD:
+CONST_INSTANCE_FIELD:
   status: hasFix
-CompileTimeErrorCode.CONST_MAP_KEY_NOT_PRIMITIVE_EQUALITY:
+CONST_MAP_KEY_NOT_PRIMITIVE_EQUALITY:
   status: noFix
-CompileTimeErrorCode.CONST_NOT_INITIALIZED:
+CONST_NOT_INITIALIZED:
   status: noFix
-CompileTimeErrorCode.CONST_SET_ELEMENT_NOT_PRIMITIVE_EQUALITY:
+CONST_SET_ELEMENT_NOT_PRIMITIVE_EQUALITY:
   status: noFix
-CompileTimeErrorCode.CONST_SPREAD_EXPECTED_LIST_OR_SET:
+CONST_SPREAD_EXPECTED_LIST_OR_SET:
   status: noFix
-CompileTimeErrorCode.CONST_SPREAD_EXPECTED_MAP:
+CONST_SPREAD_EXPECTED_MAP:
   status: noFix
-CompileTimeErrorCode.CONST_TYPE_PARAMETER:
+CONST_TYPE_PARAMETER:
   status: needsEvaluation
-CompileTimeErrorCode.CONST_WITH_NON_CONST:
+CONST_WITH_NON_CONST:
   status: hasFix
-CompileTimeErrorCode.CONST_WITH_NON_CONSTANT_ARGUMENT:
+CONST_WITH_NON_CONSTANT_ARGUMENT:
   status: noFix
-CompileTimeErrorCode.CONST_WITH_NON_TYPE:
+CONST_WITH_NON_TYPE:
   status: hasFix
-CompileTimeErrorCode.CONST_WITH_TYPE_PARAMETERS:
+CONST_WITH_TYPE_PARAMETERS:
   status: noFix
-CompileTimeErrorCode.CONST_WITH_TYPE_PARAMETERS_CONSTRUCTOR_TEAROFF:
+CONST_WITH_TYPE_PARAMETERS_CONSTRUCTOR_TEAROFF:
   status: noFix
   since: 2.15
-CompileTimeErrorCode.CONST_WITH_TYPE_PARAMETERS_FUNCTION_TEAROFF:
+CONST_WITH_TYPE_PARAMETERS_FUNCTION_TEAROFF:
   status: noFix
   since: 2.15
-CompileTimeErrorCode.CONST_WITH_UNDEFINED_CONSTRUCTOR:
+CONST_WITH_UNDEFINED_CONSTRUCTOR:
   status: noFix
-CompileTimeErrorCode.CONST_WITH_UNDEFINED_CONSTRUCTOR_DEFAULT:
+CONST_WITH_UNDEFINED_CONSTRUCTOR_DEFAULT:
   status: noFix
-CompileTimeErrorCode.CONSTANT_PATTERN_WITH_NON_CONSTANT_EXPRESSION:
+CONSTANT_PATTERN_WITH_NON_CONSTANT_EXPRESSION:
   status: hasFix
   notes: |-
     Has fix for expression that can be made constant. More cases to be
     implemented as per the tests.
-CompileTimeErrorCode.CONTINUE_LABEL_INVALID:
+CONTINUE_LABEL_INVALID:
   status: noFix
-CompileTimeErrorCode.COULD_NOT_INFER:
+COULD_NOT_INFER:
   status: noFix
-CompileTimeErrorCode.DEFAULT_VALUE_IN_REDIRECTING_FACTORY_CONSTRUCTOR:
+DEFAULT_VALUE_IN_REDIRECTING_FACTORY_CONSTRUCTOR:
   status: needsFix
   notes: |-
     Remove the default value.
-CompileTimeErrorCode.DEFAULT_VALUE_ON_REQUIRED_PARAMETER:
+DEFAULT_VALUE_ON_REQUIRED_PARAMETER:
   status: hasFix
-CompileTimeErrorCode.DEFERRED_IMPORT_OF_EXTENSION:
+DEFERRED_IMPORT_OF_EXTENSION:
   status: needsFix
   notes: |-
     Remove the `deferred` keyword from the import.
-CompileTimeErrorCode.DEFINITELY_UNASSIGNED_LATE_LOCAL_VARIABLE:
+DEFINITELY_UNASSIGNED_LATE_LOCAL_VARIABLE:
   status: noFix
-CompileTimeErrorCode.DISALLOWED_TYPE_INSTANTIATION_EXPRESSION:
+DISALLOWED_TYPE_INSTANTIATION_EXPRESSION:
   status: needsFix
   since: 2.15
-CompileTimeErrorCode.DOT_SHORTHAND_MISSING_CONTEXT:
+DOT_SHORTHAND_MISSING_CONTEXT:
   status: needsEvaluation
-CompileTimeErrorCode.DOT_SHORTHAND_UNDEFINED_GETTER:
+DOT_SHORTHAND_UNDEFINED_GETTER:
   status: hasFix
-CompileTimeErrorCode.DOT_SHORTHAND_UNDEFINED_INVOCATION:
+DOT_SHORTHAND_UNDEFINED_INVOCATION:
   status: hasFix
-CompileTimeErrorCode.DUPLICATE_CONSTRUCTOR_DEFAULT:
+DUPLICATE_CONSTRUCTOR_DEFAULT:
   status: noFix
   notes: |-
     Theoretically we could remove all but one of the constructors, but we have
     no way of knowing which should not be removed.
-CompileTimeErrorCode.DUPLICATE_CONSTRUCTOR_NAME:
+DUPLICATE_CONSTRUCTOR_NAME:
   status: noFix
   notes: |-
     Theoretically we could remove all but one of the constructors, but we have
     no way of knowing which should not be removed.
-CompileTimeErrorCode.DUPLICATE_DEFINITION:
+DUPLICATE_DEFINITION:
   status: noFix
   notes: |-
     Theoretically we could remove all but one of the constructors, but we have
     no way of knowing which should not be removed.
-CompileTimeErrorCode.DUPLICATE_FIELD_NAME:
+DUPLICATE_FIELD_NAME:
   status: noFix
   notes: |-
     Theoretically we could remove all but one of the constructors, but we have
     no way of knowing which should not be removed.
-CompileTimeErrorCode.DUPLICATE_FIELD_FORMAL_PARAMETER:
+DUPLICATE_FIELD_FORMAL_PARAMETER:
   status: noFix
   notes: |-
     Theoretically we could remove all but one of the constructors, but we have
     no way of knowing which should not be removed.
-CompileTimeErrorCode.DUPLICATE_NAMED_ARGUMENT:
+DUPLICATE_NAMED_ARGUMENT:
   status: needsFix
   notes: |-
     Look for other named parameters with similar name and suggest renaming the
     argument. If there are none that are similar enough, then we could just
     suggest all of the names that aren't already being used.
-CompileTimeErrorCode.DUPLICATE_PART:
+DUPLICATE_PART:
   status: needsFix
   notes: |-
     Remove the duplicated import.
-CompileTimeErrorCode.DUPLICATE_PATTERN_ASSIGNMENT_VARIABLE:
+DUPLICATE_PATTERN_ASSIGNMENT_VARIABLE:
   status: needsFix
   notes: |-
     We can suggest names from the context, as in did you mean this?
-CompileTimeErrorCode.DUPLICATE_PATTERN_FIELD:
+DUPLICATE_PATTERN_FIELD:
   status: needsFix
   notes: |-
     Look for other named parameters with similar name and suggest renaming the
     argument. If there are none that are similar enough, then we could just
     suggest all of the names that aren't already being used.
-CompileTimeErrorCode.DUPLICATE_REST_ELEMENT_IN_PATTERN:
+DUPLICATE_REST_ELEMENT_IN_PATTERN:
   status: noFix
   notes: |-
     We do not know which one of the rest elements is to be removed.
-CompileTimeErrorCode.DUPLICATE_VARIABLE_PATTERN:
+DUPLICATE_VARIABLE_PATTERN:
   status: noFix
   notes: |-
     We cannot figure out the intent of the user to suggest the right fix.
-CompileTimeErrorCode.EMPTY_MAP_PATTERN:
+EMPTY_MAP_PATTERN:
   status: hasFix
-CompileTimeErrorCode.ENUM_CONSTANT_INVOKES_FACTORY_CONSTRUCTOR:
+ENUM_CONSTANT_INVOKES_FACTORY_CONSTRUCTOR:
   status: noFix
   since: 3.3
-CompileTimeErrorCode.ENUM_CONSTANT_SAME_NAME_AS_ENCLOSING:
+ENUM_CONSTANT_SAME_NAME_AS_ENCLOSING:
   status: noFix
   notes: |-
     The fix is to rename one of the two, but we can't know what name to use.
-CompileTimeErrorCode.ENUM_INSTANTIATED_TO_BOUNDS_IS_NOT_WELL_BOUNDED:
+ENUM_INSTANTIATED_TO_BOUNDS_IS_NOT_WELL_BOUNDED:
   status: noFix
   since: 2.17
-CompileTimeErrorCode.ENUM_MIXIN_WITH_INSTANCE_VARIABLE:
+ENUM_MIXIN_WITH_INSTANCE_VARIABLE:
   status: noFix
   since: 2.17
   notes: |-
     We could potentially offer a fix that would remove the mixin, but I think it
     would be more likely that the user needed to restructure the mixin so that
     part of it could be included here.
-CompileTimeErrorCode.ENUM_WITH_ABSTRACT_MEMBER:
+ENUM_WITH_ABSTRACT_MEMBER:
   status: hasFix
   since: 2.17
-CompileTimeErrorCode.ENUM_WITH_NAME_VALUES:
+ENUM_WITH_NAME_VALUES:
   status: noFix
   since: 2.17
   notes: |-
     Requires a rename.
-CompileTimeErrorCode.ENUM_WITHOUT_CONSTANTS:
+ENUM_WITHOUT_CONSTANTS:
   status: noFix
-CompileTimeErrorCode.EQUAL_ELEMENTS_IN_CONST_SET:
+EQUAL_ELEMENTS_IN_CONST_SET:
   status: needsFix
   notes: |-
     Remove the duplicates.
-CompileTimeErrorCode.EQUAL_KEYS_IN_CONST_MAP:
+EQUAL_KEYS_IN_CONST_MAP:
   status: needsFix
   notes: |-
     Remove the duplicates.
-CompileTimeErrorCode.EQUAL_KEYS_IN_MAP_PATTERN:
+EQUAL_KEYS_IN_MAP_PATTERN:
   status: needsFix
   notes: |-
     Remove the duplicates.
-CompileTimeErrorCode.EXPECTED_ONE_LIST_PATTERN_TYPE_ARGUMENTS:
+EXPECTED_ONE_LIST_PATTERN_TYPE_ARGUMENTS:
   status: noFix
-CompileTimeErrorCode.EXPECTED_ONE_LIST_TYPE_ARGUMENTS:
+EXPECTED_ONE_LIST_TYPE_ARGUMENTS:
   status: noFix
-CompileTimeErrorCode.EXPECTED_ONE_SET_TYPE_ARGUMENTS:
+EXPECTED_ONE_SET_TYPE_ARGUMENTS:
   status: noFix
-CompileTimeErrorCode.EXPECTED_TWO_MAP_TYPE_ARGUMENTS:
+EXPECTED_TWO_MAP_TYPE_ARGUMENTS:
   status: noFix
-CompileTimeErrorCode.EXPECTED_TWO_MAP_PATTERN_TYPE_ARGUMENTS:
+EXPECTED_TWO_MAP_PATTERN_TYPE_ARGUMENTS:
   status: noFix
   notes: |-
     We do not know the user's intent here and so cannot figure out what to
     add or delete.
-CompileTimeErrorCode.EXPORT_INTERNAL_LIBRARY:
+EXPORT_INTERNAL_LIBRARY:
   status: needsFix
   notes: |-
     Remove the export.
-CompileTimeErrorCode.EXPORT_OF_NON_LIBRARY:
+EXPORT_OF_NON_LIBRARY:
   status: needsFix
   notes: |-
     Find the library containing the part being export, update the export to the
     library, and add a show combinator (if there isn't one already) that limits
     the export to the names defined in the part.
-CompileTimeErrorCode.EXPRESSION_IN_MAP:
+EXPRESSION_IN_MAP:
   status: needsFix
   notes: |-
     Based on the type, add the separator either before or after the expression.
-CompileTimeErrorCode.EXTENDS_DEFERRED_CLASS:
+EXTENDS_DEFERRED_CLASS:
   status: needsFix
   notes: |-
     Remove the `deferred` keyword from the import.
-CompileTimeErrorCode.EXTENDS_DISALLOWED_CLASS:
+EXTENDS_DISALLOWED_CLASS:
   status: hasFix
-CompileTimeErrorCode.EXTENDS_NON_CLASS:
+EXTENDS_NON_CLASS:
   status: hasFix
-CompileTimeErrorCode.EXTENDS_TYPE_ALIAS_EXPANDS_TO_TYPE_PARAMETER:
+EXTENDS_TYPE_ALIAS_EXPANDS_TO_TYPE_PARAMETER:
   status: hasFix
-CompileTimeErrorCode.EXTENSION_AS_EXPRESSION:
+EXTENSION_AS_EXPRESSION:
   status: noFix
-CompileTimeErrorCode.EXTENSION_CONFLICTING_STATIC_AND_INSTANCE:
+EXTENSION_CONFLICTING_STATIC_AND_INSTANCE:
   status: noFix
-CompileTimeErrorCode.EXTENSION_DECLARES_MEMBER_OF_OBJECT:
+EXTENSION_DECLARES_MEMBER_OF_OBJECT:
   status: hasFix
-CompileTimeErrorCode.EXTENSION_DECLARES_INSTANCE_FIELD:
+EXTENSION_DECLARES_INSTANCE_FIELD:
   status: hasFix
   notes: |-
     Remove the field, or add `static`.
-CompileTimeErrorCode.EXTENSION_OVERRIDE_ACCESS_TO_STATIC_MEMBER:
+EXTENSION_OVERRIDE_ACCESS_TO_STATIC_MEMBER:
   status: hasFix
-CompileTimeErrorCode.EXTENSION_OVERRIDE_ARGUMENT_NOT_ASSIGNABLE:
+EXTENSION_OVERRIDE_ARGUMENT_NOT_ASSIGNABLE:
   status: noFix
-CompileTimeErrorCode.EXTENSION_OVERRIDE_WITH_CASCADE:
+EXTENSION_OVERRIDE_WITH_CASCADE:
   status: hasFix
-CompileTimeErrorCode.EXTENSION_OVERRIDE_WITHOUT_ACCESS:
+EXTENSION_OVERRIDE_WITHOUT_ACCESS:
   status: noFix
-CompileTimeErrorCode.EXTENSION_TYPE_CONSTRUCTOR_WITH_SUPER_FORMAL_PARAMETER:
+EXTENSION_TYPE_CONSTRUCTOR_WITH_SUPER_FORMAL_PARAMETER:
   status: needsFix
   notes: |-
     Remove it.
-CompileTimeErrorCode.EXTENSION_TYPE_CONSTRUCTOR_WITH_SUPER_INVOCATION:
+EXTENSION_TYPE_CONSTRUCTOR_WITH_SUPER_INVOCATION:
   status: needsFix
-CompileTimeErrorCode.EXTENSION_TYPE_DECLARES_INSTANCE_FIELD:
+EXTENSION_TYPE_DECLARES_INSTANCE_FIELD:
   status: hasFix
   notes: |-
     Remove the field, or add `static`.
-CompileTimeErrorCode.EXTENSION_TYPE_DECLARES_MEMBER_OF_OBJECT:
+EXTENSION_TYPE_DECLARES_MEMBER_OF_OBJECT:
   status: hasFix
-CompileTimeErrorCode.EXTENSION_TYPE_IMPLEMENTS_DISALLOWED_TYPE:
+EXTENSION_TYPE_IMPLEMENTS_DISALLOWED_TYPE:
   status: noFix
-CompileTimeErrorCode.EXTENSION_TYPE_IMPLEMENTS_ITSELF:
+EXTENSION_TYPE_IMPLEMENTS_ITSELF:
   status: noFix
-CompileTimeErrorCode.EXTENSION_TYPE_IMPLEMENTS_NOT_SUPERTYPE:
+EXTENSION_TYPE_IMPLEMENTS_NOT_SUPERTYPE:
   status: noFix
-CompileTimeErrorCode.EXTENSION_TYPE_IMPLEMENTS_REPRESENTATION_NOT_SUPERTYPE:
+EXTENSION_TYPE_IMPLEMENTS_REPRESENTATION_NOT_SUPERTYPE:
   status: noFix
-CompileTimeErrorCode.EXTENSION_TYPE_INHERITED_MEMBER_CONFLICT:
+EXTENSION_TYPE_INHERITED_MEMBER_CONFLICT:
   status: noFix
-CompileTimeErrorCode.EXTENSION_TYPE_REPRESENTATION_DEPENDS_ON_ITSELF:
+EXTENSION_TYPE_REPRESENTATION_DEPENDS_ON_ITSELF:
   status: noFix
-CompileTimeErrorCode.EXTENSION_TYPE_REPRESENTATION_TYPE_BOTTOM:
+EXTENSION_TYPE_REPRESENTATION_TYPE_BOTTOM:
   status: noFix
-CompileTimeErrorCode.EXTENSION_TYPE_WITH_ABSTRACT_MEMBER:
+EXTENSION_TYPE_WITH_ABSTRACT_MEMBER:
   status: hasFix
-CompileTimeErrorCode.EXTERNAL_FIELD_CONSTRUCTOR_INITIALIZER:
+EXTERNAL_FIELD_CONSTRUCTOR_INITIALIZER:
   status: needsFix
   notes: |-
     Remove the `external` keyword. Remove the initializer.
-CompileTimeErrorCode.EXTERNAL_FIELD_INITIALIZER:
+EXTERNAL_FIELD_INITIALIZER:
   status: needsFix
   notes: |-
     Remove the `external` keyword. Remove the initializer.
-CompileTimeErrorCode.EXTERNAL_VARIABLE_INITIALIZER:
+EXTERNAL_VARIABLE_INITIALIZER:
   status: needsFix
   notes: |-
     Remove the `external` keyword. Remove the initializer.
-CompileTimeErrorCode.EXTRA_POSITIONAL_ARGUMENTS:
+EXTRA_POSITIONAL_ARGUMENTS:
   status: hasFix
-CompileTimeErrorCode.EXTRA_POSITIONAL_ARGUMENTS_COULD_BE_NAMED:
+EXTRA_POSITIONAL_ARGUMENTS_COULD_BE_NAMED:
   status: hasFix
-CompileTimeErrorCode.FIELD_INITIALIZED_BY_MULTIPLE_INITIALIZERS:
+FIELD_INITIALIZED_BY_MULTIPLE_INITIALIZERS:
   status: needsFix
   notes: |-
     Remove all but one of the initializers.
     Replace the field name with the name of a different field (from the
     enclosing class).
-CompileTimeErrorCode.FIELD_INITIALIZED_IN_INITIALIZER_AND_DECLARATION:
+FIELD_INITIALIZED_IN_INITIALIZER_AND_DECLARATION:
   status: needsFix
   notes: |-
     Remove all but one of the initializers.
-CompileTimeErrorCode.FIELD_INITIALIZED_IN_PARAMETER_AND_INITIALIZER:
+FIELD_INITIALIZED_IN_PARAMETER_AND_INITIALIZER:
   status: needsFix
   notes: |-
     Remove all but one of the initializers.
-CompileTimeErrorCode.FIELD_INITIALIZER_FACTORY_CONSTRUCTOR:
+FIELD_INITIALIZER_FACTORY_CONSTRUCTOR:
   status: needsFix
   notes: |-
     Replace the initializing formal parameter with a normal parameter.
-CompileTimeErrorCode.FIELD_INITIALIZER_NOT_ASSIGNABLE:
+FIELD_INITIALIZER_NOT_ASSIGNABLE:
   status: noFix
-CompileTimeErrorCode.FIELD_INITIALIZER_OUTSIDE_CONSTRUCTOR:
+FIELD_INITIALIZER_OUTSIDE_CONSTRUCTOR:
   status: needsFix
   notes: |-
     Replace the initializing formal parameter with a normal parameter and
     add an assignment to the field in the method.
-CompileTimeErrorCode.FIELD_INITIALIZER_REDIRECTING_CONSTRUCTOR:
+FIELD_INITIALIZER_REDIRECTING_CONSTRUCTOR:
   status: needsFix
   notes: |-
     Replace the initializing formal parameter with a normal parameter.
-CompileTimeErrorCode.FIELD_INITIALIZING_FORMAL_NOT_ASSIGNABLE:
+FIELD_INITIALIZING_FORMAL_NOT_ASSIGNABLE:
   status: noFix
-CompileTimeErrorCode.FINAL_CLASS_EXTENDED_OUTSIDE_OF_LIBRARY:
+FINAL_CLASS_EXTENDED_OUTSIDE_OF_LIBRARY:
   status: hasFix
-CompileTimeErrorCode.FINAL_CLASS_IMPLEMENTED_OUTSIDE_OF_LIBRARY:
+FINAL_CLASS_IMPLEMENTED_OUTSIDE_OF_LIBRARY:
   status: hasFix
-CompileTimeErrorCode.FINAL_CLASS_USED_AS_MIXIN_CONSTRAINT_OUTSIDE_OF_LIBRARY:
+FINAL_CLASS_USED_AS_MIXIN_CONSTRAINT_OUTSIDE_OF_LIBRARY:
   status: noFix
-CompileTimeErrorCode.FINAL_INITIALIZED_IN_DECLARATION_AND_CONSTRUCTOR:
+FINAL_INITIALIZED_IN_DECLARATION_AND_CONSTRUCTOR:
   status: needsFix
   notes: |-
     Remove all but one of the initializers.
-CompileTimeErrorCode.FINAL_NOT_INITIALIZED:
+FINAL_NOT_INITIALIZED:
   status: hasFix
-CompileTimeErrorCode.FINAL_NOT_INITIALIZED_CONSTRUCTOR_1:
+FINAL_NOT_INITIALIZED_CONSTRUCTOR_1:
   status: hasFix
-CompileTimeErrorCode.FINAL_NOT_INITIALIZED_CONSTRUCTOR_2:
+FINAL_NOT_INITIALIZED_CONSTRUCTOR_2:
   status: hasFix
-CompileTimeErrorCode.FINAL_NOT_INITIALIZED_CONSTRUCTOR_3_PLUS:
+FINAL_NOT_INITIALIZED_CONSTRUCTOR_3_PLUS:
   status: hasFix
-CompileTimeErrorCode.FOR_IN_OF_INVALID_ELEMENT_TYPE:
+FOR_IN_OF_INVALID_ELEMENT_TYPE:
   status: noFix
-CompileTimeErrorCode.FOR_IN_OF_INVALID_TYPE:
+FOR_IN_OF_INVALID_TYPE:
   status: hasFix
-CompileTimeErrorCode.FOR_IN_WITH_CONST_VARIABLE:
+FOR_IN_WITH_CONST_VARIABLE:
   status: noFix
-CompileTimeErrorCode.GENERIC_FUNCTION_TYPE_CANNOT_BE_BOUND:
+GENERIC_FUNCTION_TYPE_CANNOT_BE_BOUND:
   status: noFix
-CompileTimeErrorCode.GENERIC_FUNCTION_TYPE_CANNOT_BE_TYPE_ARGUMENT:
+GENERIC_FUNCTION_TYPE_CANNOT_BE_TYPE_ARGUMENT:
   status: noFix
-CompileTimeErrorCode.GENERIC_METHOD_TYPE_INSTANTIATION_ON_DYNAMIC:
+GENERIC_METHOD_TYPE_INSTANTIATION_ON_DYNAMIC:
   status: needsFix
   since: 2.15
-CompileTimeErrorCode.GETTER_NOT_ASSIGNABLE_SETTER_TYPES:
+GETTER_NOT_ASSIGNABLE_SETTER_TYPES:
   status: noFix
-CompileTimeErrorCode.GETTER_NOT_SUBTYPE_SETTER_TYPES:
+GETTER_NOT_SUBTYPE_SETTER_TYPES:
   status: noFix
-CompileTimeErrorCode.IF_ELEMENT_CONDITION_FROM_DEFERRED_LIBRARY:
+IF_ELEMENT_CONDITION_FROM_DEFERRED_LIBRARY:
   status: needsFix
   notes: |-
     Remove the `deferred` keyword from the import.
-CompileTimeErrorCode.ILLEGAL_ASYNC_GENERATOR_RETURN_TYPE:
+ILLEGAL_ASYNC_GENERATOR_RETURN_TYPE:
   status: hasFix
-CompileTimeErrorCode.ILLEGAL_ASYNC_RETURN_TYPE:
+ILLEGAL_ASYNC_RETURN_TYPE:
   status: hasFix
-CompileTimeErrorCode.ILLEGAL_CONCRETE_ENUM_MEMBER_DECLARATION:
+ILLEGAL_CONCRETE_ENUM_MEMBER_DECLARATION:
   status: noFix
   since: 2.17
   notes: |-
     We could potentially offer to remove the member, but the user probably needs
     to think about what they were trying to do and it seems more likely that the
     right fix is to rename the member.
-CompileTimeErrorCode.ILLEGAL_CONCRETE_ENUM_MEMBER_INHERITANCE:
+ILLEGAL_CONCRETE_ENUM_MEMBER_INHERITANCE:
   status: noFix
   since: 2.17
   notes: |-
     We could potentially offer to remove the member, but the user probably needs
     to think about what they were trying to do and it seems more likely that the
     right fix is to rename the member.
-CompileTimeErrorCode.ILLEGAL_ENUM_VALUES_DECLARATION:
+ILLEGAL_ENUM_VALUES_DECLARATION:
   status: noFix
   since: 2.17
   notes: |-
     While we could have a fix to remove the declaration, it seems more likely
     that the user would want to rename it.
-CompileTimeErrorCode.ILLEGAL_ENUM_VALUES_INHERITANCE:
+ILLEGAL_ENUM_VALUES_INHERITANCE:
   status: noFix
   since: 2.17
-CompileTimeErrorCode.ILLEGAL_LANGUAGE_VERSION_OVERRIDE:
+ILLEGAL_LANGUAGE_VERSION_OVERRIDE:
   status: noFix
   since: 2.17
   notes: |-
     We could potentially offer to remove the override, or to update it to the
     lowest legal value, but it isn't clear that either of these is the right
     fix without knowing why the language override was added.
-CompileTimeErrorCode.ILLEGAL_SYNC_GENERATOR_RETURN_TYPE:
+ILLEGAL_SYNC_GENERATOR_RETURN_TYPE:
   status: hasFix
-CompileTimeErrorCode.IMPLEMENTS_DEFERRED_CLASS:
+IMPLEMENTS_DEFERRED_CLASS:
   status: needsFix
   notes: |-
     Remove the `deferred` keyword from the import.
-CompileTimeErrorCode.IMPLEMENTS_DISALLOWED_CLASS:
+IMPLEMENTS_DISALLOWED_CLASS:
   status: hasFix
-CompileTimeErrorCode.IMPLEMENTS_NON_CLASS:
+IMPLEMENTS_NON_CLASS:
   status: hasFix
-CompileTimeErrorCode.IMPLEMENTS_REPEATED:
+IMPLEMENTS_REPEATED:
   status: hasFix
-CompileTimeErrorCode.IMPLEMENTS_SUPER_CLASS:
+IMPLEMENTS_SUPER_CLASS:
   status: hasFix
-CompileTimeErrorCode.IMPLEMENTS_TYPE_ALIAS_EXPANDS_TO_TYPE_PARAMETER:
+IMPLEMENTS_TYPE_ALIAS_EXPANDS_TO_TYPE_PARAMETER:
   status: hasFix
-CompileTimeErrorCode.IMPLICIT_THIS_REFERENCE_IN_INITIALIZER:
+IMPLICIT_THIS_REFERENCE_IN_INITIALIZER:
   status: hasFix
-CompileTimeErrorCode.IMPLICIT_SUPER_INITIALIZER_MISSING_ARGUMENTS:
+IMPLICIT_SUPER_INITIALIZER_MISSING_ARGUMENTS:
   status: hasFix
-CompileTimeErrorCode.IMPORT_INTERNAL_LIBRARY:
+IMPORT_INTERNAL_LIBRARY:
   status: hasFix
-CompileTimeErrorCode.IMPORT_OF_NON_LIBRARY:
+IMPORT_OF_NON_LIBRARY:
   status: hasFix
-CompileTimeErrorCode.INCONSISTENT_CASE_EXPRESSION_TYPES:
+INCONSISTENT_CASE_EXPRESSION_TYPES:
   status: noFix
-CompileTimeErrorCode.INCONSISTENT_INHERITANCE:
+INCONSISTENT_INHERITANCE:
   status: needsFix
   notes: |-
     Add a stub of the method that needs to be implemented.
-CompileTimeErrorCode.INCONSISTENT_INHERITANCE_GETTER_AND_METHOD:
+INCONSISTENT_INHERITANCE_GETTER_AND_METHOD:
   status: noFix
-CompileTimeErrorCode.INCONSISTENT_LANGUAGE_VERSION_OVERRIDE:
+INCONSISTENT_LANGUAGE_VERSION_OVERRIDE:
   status: needsFix
   notes: |-
     Replace (or add) the language override in the parts to match the library.
-CompileTimeErrorCode.INCONSISTENT_PATTERN_VARIABLE_LOGICAL_OR:
+INCONSISTENT_PATTERN_VARIABLE_LOGICAL_OR:
   status: noFix
   notes: |-
     We cannot figure out the user's intent here, and so cannot generate a
     fix that would be right.
-CompileTimeErrorCode.INITIALIZER_FOR_NON_EXISTENT_FIELD:
+INITIALIZER_FOR_NON_EXISTENT_FIELD:
   status: needsFix
   notes: |-
     Suggest a different field whose name is similar.
-CompileTimeErrorCode.INITIALIZER_FOR_STATIC_FIELD:
+INITIALIZER_FOR_STATIC_FIELD:
   status: needsFix
   notes: |-
     Suggest a different field whose name is similar.
-CompileTimeErrorCode.INITIALIZING_FORMAL_FOR_NON_EXISTENT_FIELD:
+INITIALIZING_FORMAL_FOR_NON_EXISTENT_FIELD:
   status: hasFix
-CompileTimeErrorCode.INSTANCE_ACCESS_TO_STATIC_MEMBER:
+INSTANCE_ACCESS_TO_STATIC_MEMBER:
   status: hasFix
-CompileTimeErrorCode.INSTANCE_ACCESS_TO_STATIC_MEMBER_OF_UNNAMED_EXTENSION:
+INSTANCE_ACCESS_TO_STATIC_MEMBER_OF_UNNAMED_EXTENSION:
   status: noFix
   notes: |-
     Theoretically, we could give the extension a name and then use the name to
     access the static member.
-CompileTimeErrorCode.INSTANCE_MEMBER_ACCESS_FROM_FACTORY:
+INSTANCE_MEMBER_ACCESS_FROM_FACTORY:
   status: noFix
-CompileTimeErrorCode.INSTANCE_MEMBER_ACCESS_FROM_STATIC:
+INSTANCE_MEMBER_ACCESS_FROM_STATIC:
   status: noFix
-CompileTimeErrorCode.INSTANTIATE_ABSTRACT_CLASS:
+INSTANTIATE_ABSTRACT_CLASS:
   status: noFix
   notes: |-
     Theoretically we could remove the `abstract` modifier.
-CompileTimeErrorCode.INSTANTIATE_ENUM:
+INSTANTIATE_ENUM:
   status: noFix
-CompileTimeErrorCode.INSTANTIATE_TYPE_ALIAS_EXPANDS_TO_TYPE_PARAMETER:
+INSTANTIATE_TYPE_ALIAS_EXPANDS_TO_TYPE_PARAMETER:
   status: noFix
-CompileTimeErrorCode.INTEGER_LITERAL_IMPRECISE_AS_DOUBLE:
+INTEGER_LITERAL_IMPRECISE_AS_DOUBLE:
   status: hasFix
-CompileTimeErrorCode.INTEGER_LITERAL_OUT_OF_RANGE:
+INTEGER_LITERAL_OUT_OF_RANGE:
   status: needsFix
   notes: |-
     Replace the literal with a constructor for `BigInt`.
-CompileTimeErrorCode.INTERFACE_CLASS_EXTENDED_OUTSIDE_OF_LIBRARY:
+INTERFACE_CLASS_EXTENDED_OUTSIDE_OF_LIBRARY:
   status: noFix
   notes: |-
     Theoretically we could remove the `interface` modifier from the superclass.
-CompileTimeErrorCode.INVALID_ANNOTATION:
+INVALID_ANNOTATION:
   status: hasFix
-CompileTimeErrorCode.INVALID_ANNOTATION_CONSTANT_VALUE_FROM_DEFERRED_LIBRARY:
+INVALID_ANNOTATION_CONSTANT_VALUE_FROM_DEFERRED_LIBRARY:
   status: needsFix
   notes: |-
     Remove the `deferred` keyword from the import.
-CompileTimeErrorCode.INVALID_ANNOTATION_FROM_DEFERRED_LIBRARY:
+INVALID_ANNOTATION_FROM_DEFERRED_LIBRARY:
   status: needsFix
   notes: |-
     Remove the `deferred` keyword from the import.
-CompileTimeErrorCode.INVALID_ASSIGNMENT:
+INVALID_ASSIGNMENT:
   status: hasFix
-CompileTimeErrorCode.INVALID_CAST_FUNCTION:
+INVALID_CAST_FUNCTION:
   status: noFix
   notes: |-
     Removed in Dart 3.0
-CompileTimeErrorCode.INVALID_CAST_FUNCTION_EXPR:
+INVALID_CAST_FUNCTION_EXPR:
   status: noFix
   notes: |-
     Removed in Dart 3.0
-CompileTimeErrorCode.INVALID_CAST_LITERAL:
+INVALID_CAST_LITERAL:
   status: noFix
   notes: |-
     Removed in Dart 3.0
-CompileTimeErrorCode.INVALID_CAST_LITERAL_LIST:
+INVALID_CAST_LITERAL_LIST:
   status: noFix
   notes: |-
     Removed in Dart 3.0
-CompileTimeErrorCode.INVALID_CAST_LITERAL_MAP:
+INVALID_CAST_LITERAL_MAP:
   status: noFix
   notes: |-
     Removed in Dart 3.0
-CompileTimeErrorCode.INVALID_CAST_LITERAL_SET:
+INVALID_CAST_LITERAL_SET:
   status: noFix
   notes: |-
     Removed in Dart 3.0
-CompileTimeErrorCode.INVALID_CAST_METHOD:
+INVALID_CAST_METHOD:
   status: noFix
   notes: |-
     Removed in Dart 3.0
-CompileTimeErrorCode.INVALID_CAST_NEW_EXPR:
+INVALID_CAST_NEW_EXPR:
   status: noFix
   notes: |-
     Removed in Dart 3.0
-CompileTimeErrorCode.INVALID_CONSTANT:
+INVALID_CONSTANT:
   status: hasFix
   notes: |-
     The diagnostic is too general. It needs to be replaced with multiple more
     specific diagnostics.
-CompileTimeErrorCode.INVALID_EXTENSION_ARGUMENT_COUNT:
+INVALID_EXTENSION_ARGUMENT_COUNT:
   status: needsFix
   notes: |-
     Remove all but one of the arguments. Not clear how much value that adds.
-CompileTimeErrorCode.INVALID_FACTORY_NAME_NOT_A_CLASS:
+INVALID_FACTORY_NAME_NOT_A_CLASS:
   status: needsFix
   notes: |-
     Replace the name of the factory with the name of the class (or prefix it
     with the name of the class if it's lowercase?).
-CompileTimeErrorCode.INVALID_FIELD_NAME_FROM_OBJECT:
+INVALID_FIELD_NAME_FROM_OBJECT:
   status: noFix
-CompileTimeErrorCode.INVALID_FIELD_NAME_PRIVATE:
+INVALID_FIELD_NAME_PRIVATE:
   status: needsFix
   notes: |-
     Make the name public.
-CompileTimeErrorCode.INVALID_FIELD_NAME_POSITIONAL:
+INVALID_FIELD_NAME_POSITIONAL:
   status: noFix
-CompileTimeErrorCode.INVALID_IMPLEMENTATION_OVERRIDE:
+INVALID_IMPLEMENTATION_OVERRIDE:
   status: needsFix
   notes: |-
     Replace the signature with the valid signature.
-CompileTimeErrorCode.INVALID_IMPLEMENTATION_OVERRIDE_SETTER:
+INVALID_IMPLEMENTATION_OVERRIDE_SETTER:
   status: needsFix
   notes: |-
     Replace the signature with the valid signature.
-CompileTimeErrorCode.INVALID_INLINE_FUNCTION_TYPE:
+INVALID_INLINE_FUNCTION_TYPE:
   status: needsFix
   notes: |-
     Replace with the equivalent generic function type.
-CompileTimeErrorCode.INVALID_MODIFIER_ON_CONSTRUCTOR:
+INVALID_MODIFIER_ON_CONSTRUCTOR:
   status: hasFix
-CompileTimeErrorCode.INVALID_MODIFIER_ON_SETTER:
+INVALID_MODIFIER_ON_SETTER:
   status: hasFix
-CompileTimeErrorCode.INVALID_OVERRIDE:
+INVALID_OVERRIDE:
   status: hasFix
-CompileTimeErrorCode.INVALID_OVERRIDE_SETTER:
+INVALID_OVERRIDE_SETTER:
   status: hasFix
-CompileTimeErrorCode.INVALID_REFERENCE_TO_GENERATIVE_ENUM_CONSTRUCTOR:
+INVALID_REFERENCE_TO_GENERATIVE_ENUM_CONSTRUCTOR:
   status: noFix
   since: 2.17
-CompileTimeErrorCode.INVALID_REFERENCE_TO_GENERATIVE_ENUM_CONSTRUCTOR_TEAROFF:
+INVALID_REFERENCE_TO_GENERATIVE_ENUM_CONSTRUCTOR_TEAROFF:
   status: noFix
   since: 2.17
-CompileTimeErrorCode.INVALID_REFERENCE_TO_THIS:
+INVALID_REFERENCE_TO_THIS:
   status: noFix
-CompileTimeErrorCode.INVALID_SUPER_FORMAL_PARAMETER_LOCATION:
+INVALID_SUPER_FORMAL_PARAMETER_LOCATION:
   status: needsFix
   since: 2.17
-CompileTimeErrorCode.INVALID_TYPE_ARGUMENT_IN_CONST_LIST:
+INVALID_TYPE_ARGUMENT_IN_CONST_LIST:
   status: noFix
-CompileTimeErrorCode.INVALID_TYPE_ARGUMENT_IN_CONST_MAP:
+INVALID_TYPE_ARGUMENT_IN_CONST_MAP:
   status: noFix
-CompileTimeErrorCode.INVALID_TYPE_ARGUMENT_IN_CONST_SET:
+INVALID_TYPE_ARGUMENT_IN_CONST_SET:
   status: noFix
-CompileTimeErrorCode.INVALID_URI:
+INVALID_URI:
   status: noFix
-CompileTimeErrorCode.INVALID_USE_OF_COVARIANT:
+INVALID_USE_OF_COVARIANT:
   status: hasFix
-CompileTimeErrorCode.INVALID_USE_OF_NULL_VALUE:
+INVALID_USE_OF_NULL_VALUE:
   status: noFix
-CompileTimeErrorCode.INVOCATION_OF_EXTENSION_WITHOUT_CALL:
+INVOCATION_OF_EXTENSION_WITHOUT_CALL:
   status: needsFix
   notes: |-
     Add a call method to the extension.
-CompileTimeErrorCode.INVOCATION_OF_NON_FUNCTION:
+INVOCATION_OF_NON_FUNCTION:
   status: needsFix
   notes: |-
     Suggest similarly named functions.
-CompileTimeErrorCode.INVOCATION_OF_NON_FUNCTION_EXPRESSION:
+INVOCATION_OF_NON_FUNCTION_EXPRESSION:
   status: hasFix
-CompileTimeErrorCode.LABEL_IN_OUTER_SCOPE:
+LABEL_IN_OUTER_SCOPE:
   status: noFix
-CompileTimeErrorCode.LABEL_UNDEFINED:
+LABEL_UNDEFINED:
   status: needsFix
   notes: |-
     Suggest similarly named label.
-CompileTimeErrorCode.LATE_FINAL_FIELD_WITH_CONST_CONSTRUCTOR:
+LATE_FINAL_FIELD_WITH_CONST_CONSTRUCTOR:
   status: needsFix
   notes: |-
     Remove `late`.
     Remove `const`.
-CompileTimeErrorCode.LATE_FINAL_LOCAL_ALREADY_ASSIGNED:
+LATE_FINAL_LOCAL_ALREADY_ASSIGNED:
   status: hasFix
-CompileTimeErrorCode.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE_NULLABILITY:
+LIST_ELEMENT_TYPE_NOT_ASSIGNABLE_NULLABILITY:
   status: hasFix
-CompileTimeErrorCode.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE:
+LIST_ELEMENT_TYPE_NOT_ASSIGNABLE:
   status: needsEvaluation
-CompileTimeErrorCode.MAIN_FIRST_POSITIONAL_PARAMETER_TYPE:
+MAIN_FIRST_POSITIONAL_PARAMETER_TYPE:
   status: needsFix
   notes: |-
     Replace the type of the first parameter.
-CompileTimeErrorCode.MAIN_HAS_REQUIRED_NAMED_PARAMETERS:
+MAIN_HAS_REQUIRED_NAMED_PARAMETERS:
   status: needsFix
   notes: |-
     Remove the named parameters.
-CompileTimeErrorCode.MAIN_HAS_TOO_MANY_REQUIRED_POSITIONAL_PARAMETERS:
+MAIN_HAS_TOO_MANY_REQUIRED_POSITIONAL_PARAMETERS:
   status: needsFix
   notes: |-
     Remove the invalid parameters.
-CompileTimeErrorCode.MAIN_IS_NOT_FUNCTION:
+MAIN_IS_NOT_FUNCTION:
   status: noFix
-CompileTimeErrorCode.MAP_ENTRY_NOT_IN_MAP:
+MAP_ENTRY_NOT_IN_MAP:
   status: noFix
-CompileTimeErrorCode.MAP_KEY_TYPE_NOT_ASSIGNABLE_NULLABILITY:
+MAP_KEY_TYPE_NOT_ASSIGNABLE_NULLABILITY:
   status: hasFix
-CompileTimeErrorCode.MAP_KEY_TYPE_NOT_ASSIGNABLE:
+MAP_KEY_TYPE_NOT_ASSIGNABLE:
   status: noFix
-CompileTimeErrorCode.MAP_VALUE_TYPE_NOT_ASSIGNABLE_NULLABILITY:
+MAP_VALUE_TYPE_NOT_ASSIGNABLE_NULLABILITY:
   status: hasFix
-CompileTimeErrorCode.MAP_VALUE_TYPE_NOT_ASSIGNABLE:
+MAP_VALUE_TYPE_NOT_ASSIGNABLE:
   status: noFix
-CompileTimeErrorCode.MISSING_CONST_IN_LIST_LITERAL:
+MISSING_CONST_IN_LIST_LITERAL:
   status: noFix
   notes: |-
     Not displayed to users.
-CompileTimeErrorCode.MISSING_CONST_IN_MAP_LITERAL:
+MISSING_CONST_IN_MAP_LITERAL:
   status: noFix
   notes: |-
     Not displayed to users.
-CompileTimeErrorCode.MISSING_CONST_IN_SET_LITERAL:
+MISSING_CONST_IN_SET_LITERAL:
   status: noFix
   notes: |-
     Not displayed to users.
-CompileTimeErrorCode.MISSING_DART_LIBRARY:
+MISSING_DART_LIBRARY:
   status: noFix
-CompileTimeErrorCode.MISSING_DEFAULT_VALUE_FOR_PARAMETER:
+MISSING_DEFAULT_VALUE_FOR_PARAMETER:
   status: hasFix
-CompileTimeErrorCode.MISSING_DEFAULT_VALUE_FOR_PARAMETER_POSITIONAL:
+MISSING_DEFAULT_VALUE_FOR_PARAMETER_POSITIONAL:
   status: hasFix
-CompileTimeErrorCode.MISSING_DEFAULT_VALUE_FOR_PARAMETER_WITH_ANNOTATION:
+MISSING_DEFAULT_VALUE_FOR_PARAMETER_WITH_ANNOTATION:
   status: hasFix
-CompileTimeErrorCode.MISSING_NAMED_PATTERN_FIELD_NAME:
+MISSING_NAMED_PATTERN_FIELD_NAME:
   status: noFix
-CompileTimeErrorCode.MISSING_REQUIRED_ARGUMENT:
+MISSING_REQUIRED_ARGUMENT:
   status: hasFix
-CompileTimeErrorCode.MISSING_VARIABLE_PATTERN:
+MISSING_VARIABLE_PATTERN:
   status: noFix
-CompileTimeErrorCode.MIXIN_APPLICATION_CONCRETE_SUPER_INVOKED_MEMBER_TYPE:
+MIXIN_APPLICATION_CONCRETE_SUPER_INVOKED_MEMBER_TYPE:
   status: needsFix
   notes: |-
     Update the type in the mixin.
-CompileTimeErrorCode.MIXIN_APPLICATION_NO_CONCRETE_SUPER_INVOKED_MEMBER:
+MIXIN_APPLICATION_NO_CONCRETE_SUPER_INVOKED_MEMBER:
   status: noFix
-CompileTimeErrorCode.MIXIN_APPLICATION_NO_CONCRETE_SUPER_INVOKED_SETTER:
+MIXIN_APPLICATION_NO_CONCRETE_SUPER_INVOKED_SETTER:
   status: noFix
-CompileTimeErrorCode.MIXIN_APPLICATION_NOT_IMPLEMENTED_INTERFACE:
+MIXIN_APPLICATION_NOT_IMPLEMENTED_INTERFACE:
   status: hasFix
-CompileTimeErrorCode.MIXIN_CLASS_DECLARATION_EXTENDS_NOT_OBJECT:
+MIXIN_CLASS_DECLARATION_EXTENDS_NOT_OBJECT:
   status: hasFix
-CompileTimeErrorCode.MIXIN_CLASS_DECLARES_CONSTRUCTOR:
+MIXIN_CLASS_DECLARES_CONSTRUCTOR:
   status: needsFix
   notes: |-
     Remove the constructor.
-CompileTimeErrorCode.MIXIN_DEFERRED_CLASS:
+MIXIN_DEFERRED_CLASS:
   status: needsFix
   notes: |-
     Remove the `deferred` keyword from the import.
-CompileTimeErrorCode.MIXIN_INHERITS_FROM_NOT_OBJECT:
+MIXIN_INHERITS_FROM_NOT_OBJECT:
   status: needsFix
   notes: |-
     Remove the extends clause.
-CompileTimeErrorCode.MIXIN_INSTANTIATE:
+MIXIN_INSTANTIATE:
   status: noFix
-CompileTimeErrorCode.MIXIN_OF_DISALLOWED_CLASS:
+MIXIN_OF_DISALLOWED_CLASS:
   status: hasFix
-CompileTimeErrorCode.MIXIN_OF_NON_CLASS:
+MIXIN_OF_NON_CLASS:
   status: hasFix
-CompileTimeErrorCode.MIXIN_OF_TYPE_ALIAS_EXPANDS_TO_TYPE_PARAMETER:
+MIXIN_OF_TYPE_ALIAS_EXPANDS_TO_TYPE_PARAMETER:
   status: noFix
-CompileTimeErrorCode.MIXIN_ON_TYPE_ALIAS_EXPANDS_TO_TYPE_PARAMETER:
+MIXIN_ON_TYPE_ALIAS_EXPANDS_TO_TYPE_PARAMETER:
   status: noFix
-CompileTimeErrorCode.MIXIN_SUBTYPE_OF_BASE_IS_NOT_BASE:
+MIXIN_SUBTYPE_OF_BASE_IS_NOT_BASE:
   status: hasFix
-CompileTimeErrorCode.MIXIN_SUBTYPE_OF_FINAL_IS_NOT_BASE:
+MIXIN_SUBTYPE_OF_FINAL_IS_NOT_BASE:
   status: hasFix
-CompileTimeErrorCode.MIXIN_SUPER_CLASS_CONSTRAINT_DEFERRED_CLASS:
+MIXIN_SUPER_CLASS_CONSTRAINT_DEFERRED_CLASS:
   status: needsFix
   notes: |-
     Remove the `deferred` keyword from the import.
-CompileTimeErrorCode.MIXIN_SUPER_CLASS_CONSTRAINT_DISALLOWED_CLASS:
+MIXIN_SUPER_CLASS_CONSTRAINT_DISALLOWED_CLASS:
   status: hasFix
-CompileTimeErrorCode.MIXIN_SUPER_CLASS_CONSTRAINT_NON_INTERFACE:
+MIXIN_SUPER_CLASS_CONSTRAINT_NON_INTERFACE:
   status: hasFix
-CompileTimeErrorCode.MIXIN_WITH_NON_CLASS_SUPERCLASS:
+MIXIN_WITH_NON_CLASS_SUPERCLASS:
   status: hasFix
-CompileTimeErrorCode.MIXINS_SUPER_CLASS:
+MIXINS_SUPER_CLASS:
   status: needsFix
   notes: |-
     Remove one of the uses of the class.
-CompileTimeErrorCode.MULTIPLE_REDIRECTING_CONSTRUCTOR_INVOCATIONS:
+MULTIPLE_REDIRECTING_CONSTRUCTOR_INVOCATIONS:
   status: needsFix
   notes: |-
     Remove all but one of the redirecting constructor invocations.
-CompileTimeErrorCode.MULTIPLE_SUPER_INITIALIZERS:
+MULTIPLE_SUPER_INITIALIZERS:
   status: needsFix
   notes: |-
     Remove all but one of the redirecting constructor invocations.
-CompileTimeErrorCode.NEW_WITH_NON_TYPE:
+NEW_WITH_NON_TYPE:
   status: hasFix
-CompileTimeErrorCode.NEW_WITH_UNDEFINED_CONSTRUCTOR:
+NEW_WITH_UNDEFINED_CONSTRUCTOR:
   status: hasFix
-CompileTimeErrorCode.NEW_WITH_UNDEFINED_CONSTRUCTOR_DEFAULT:
+NEW_WITH_UNDEFINED_CONSTRUCTOR_DEFAULT:
   status: hasFix
-CompileTimeErrorCode.NO_ANNOTATION_CONSTRUCTOR_ARGUMENTS:
+NO_ANNOTATION_CONSTRUCTOR_ARGUMENTS:
   status: hasFix
-CompileTimeErrorCode.NO_COMBINED_SUPER_SIGNATURE:
+NO_COMBINED_SUPER_SIGNATURE:
   status: noFix
-CompileTimeErrorCode.NO_DEFAULT_SUPER_CONSTRUCTOR_EXPLICIT:
+NO_DEFAULT_SUPER_CONSTRUCTOR_EXPLICIT:
   status: hasFix
-CompileTimeErrorCode.NO_DEFAULT_SUPER_CONSTRUCTOR_IMPLICIT:
+NO_DEFAULT_SUPER_CONSTRUCTOR_IMPLICIT:
   status: hasFix
-CompileTimeErrorCode.NO_GENERATIVE_CONSTRUCTORS_IN_SUPERCLASS:
+NO_GENERATIVE_CONSTRUCTORS_IN_SUPERCLASS:
   status: noFix
-CompileTimeErrorCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_FIVE_PLUS:
+NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_FIVE_PLUS:
   status: hasFix
-CompileTimeErrorCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_FOUR:
+NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_FOUR:
   status: hasFix
-CompileTimeErrorCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_ONE:
+NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_ONE:
   status: hasFix
-CompileTimeErrorCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_THREE:
+NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_THREE:
   status: hasFix
-CompileTimeErrorCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_TWO:
+NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_TWO:
   status: hasFix
-CompileTimeErrorCode.NON_BOOL_CONDITION:
+NON_BOOL_CONDITION:
   status: hasFix
-CompileTimeErrorCode.NON_BOOL_EXPRESSION:
+NON_BOOL_EXPRESSION:
   status: noFix
-CompileTimeErrorCode.NON_BOOL_NEGATION_EXPRESSION:
+NON_BOOL_NEGATION_EXPRESSION:
   status: noFix
-CompileTimeErrorCode.NON_BOOL_OPERAND:
+NON_BOOL_OPERAND:
   status: noFix
-CompileTimeErrorCode.NON_CONST_GENERATIVE_ENUM_CONSTRUCTOR:
+NON_CONST_GENERATIVE_ENUM_CONSTRUCTOR:
   status: hasFix
   since: 2.17
-CompileTimeErrorCode.NON_CONST_MAP_AS_EXPRESSION_STATEMENT:
+NON_CONST_MAP_AS_EXPRESSION_STATEMENT:
   status: needsFix
   notes: |-
     Add `const` keyword.
-CompileTimeErrorCode.NON_CONSTANT_ANNOTATION_CONSTRUCTOR:
+NON_CONSTANT_ANNOTATION_CONSTRUCTOR:
   status: needsFix
   notes: |-
     Add `const` to the constructor (if doing so would be valid).
-CompileTimeErrorCode.NON_CONSTANT_CASE_EXPRESSION:
+NON_CONSTANT_CASE_EXPRESSION:
   status: noFix
   notes: |-
     I think this is a pre-3.0 only issue, so might not be worth supporting. If
     it is worth supporting, then we could potentially add `const` to make it a
     constant expression.
-CompileTimeErrorCode.NON_CONSTANT_CASE_EXPRESSION_FROM_DEFERRED_LIBRARY:
+NON_CONSTANT_CASE_EXPRESSION_FROM_DEFERRED_LIBRARY:
   status: needsFix
   notes: |-
     Remove the `deferred` keyword from the import.
-CompileTimeErrorCode.NON_CONSTANT_DEFAULT_VALUE:
+NON_CONSTANT_DEFAULT_VALUE:
   status: needsFix
   notes: |-
     Add `const` if the expression can be a constant expression.
-CompileTimeErrorCode.NON_CONSTANT_DEFAULT_VALUE_FROM_DEFERRED_LIBRARY:
+NON_CONSTANT_DEFAULT_VALUE_FROM_DEFERRED_LIBRARY:
   status: needsFix
   notes: |-
     Remove the `deferred` keyword from the import.
-CompileTimeErrorCode.NON_CONSTANT_LIST_ELEMENT:
+NON_CONSTANT_LIST_ELEMENT:
   status: hasFix
-CompileTimeErrorCode.NON_CONSTANT_LIST_ELEMENT_FROM_DEFERRED_LIBRARY:
-  status: hasFix
-  notes: |-
-    Remove the `deferred` keyword from the import.
-CompileTimeErrorCode.NON_CONSTANT_MAP_ELEMENT:
-  status: hasFix
-CompileTimeErrorCode.NON_CONSTANT_MAP_KEY:
-  status: hasFix
-CompileTimeErrorCode.NON_CONSTANT_MAP_KEY_FROM_DEFERRED_LIBRARY:
+NON_CONSTANT_LIST_ELEMENT_FROM_DEFERRED_LIBRARY:
   status: hasFix
   notes: |-
     Remove the `deferred` keyword from the import.
-CompileTimeErrorCode.NON_CONSTANT_MAP_PATTERN_KEY:
+NON_CONSTANT_MAP_ELEMENT:
   status: hasFix
-CompileTimeErrorCode.NON_CONSTANT_MAP_VALUE:
+NON_CONSTANT_MAP_KEY:
   status: hasFix
-CompileTimeErrorCode.NON_CONSTANT_MAP_VALUE_FROM_DEFERRED_LIBRARY:
+NON_CONSTANT_MAP_KEY_FROM_DEFERRED_LIBRARY:
   status: hasFix
   notes: |-
     Remove the `deferred` keyword from the import.
-CompileTimeErrorCode.NON_CONSTANT_RECORD_FIELD:
+NON_CONSTANT_MAP_PATTERN_KEY:
+  status: hasFix
+NON_CONSTANT_MAP_VALUE:
+  status: hasFix
+NON_CONSTANT_MAP_VALUE_FROM_DEFERRED_LIBRARY:
+  status: hasFix
+  notes: |-
+    Remove the `deferred` keyword from the import.
+NON_CONSTANT_RECORD_FIELD:
   status: noFix
-CompileTimeErrorCode.NON_CONSTANT_RECORD_FIELD_FROM_DEFERRED_LIBRARY:
+NON_CONSTANT_RECORD_FIELD_FROM_DEFERRED_LIBRARY:
   status: needsFix
   notes: |-
     Remove the `deferred` keyword from the import.
-CompileTimeErrorCode.NON_CONSTANT_RELATIONAL_PATTERN_EXPRESSION:
+NON_CONSTANT_RELATIONAL_PATTERN_EXPRESSION:
   status: hasFix
   notes: |-
     Make the pattern expression a constant.
-CompileTimeErrorCode.NON_CONSTANT_SET_ELEMENT:
+NON_CONSTANT_SET_ELEMENT:
   status: hasFix
-? CompileTimeErrorCode.NON_COVARIANT_TYPE_PARAMETER_POSITION_IN_REPRESENTATION_TYPE
-: status: noFix
-CompileTimeErrorCode.NON_EXHAUSTIVE_SWITCH_EXPRESSION:
+NON_COVARIANT_TYPE_PARAMETER_POSITION_IN_REPRESENTATION_TYPE:
+  status: noFix
+NON_EXHAUSTIVE_SWITCH_EXPRESSION:
   status: hasFix
-CompileTimeErrorCode.NON_EXHAUSTIVE_SWITCH_EXPRESSION_PRIVATE:
+NON_EXHAUSTIVE_SWITCH_EXPRESSION_PRIVATE:
   status: hasFix
-CompileTimeErrorCode.NON_EXHAUSTIVE_SWITCH_STATEMENT:
+NON_EXHAUSTIVE_SWITCH_STATEMENT:
   status: hasFix
-CompileTimeErrorCode.NON_EXHAUSTIVE_SWITCH_STATEMENT_PRIVATE:
+NON_EXHAUSTIVE_SWITCH_STATEMENT_PRIVATE:
   status: hasFix
-CompileTimeErrorCode.NON_FINAL_FIELD_IN_ENUM:
+NON_FINAL_FIELD_IN_ENUM:
   status: hasFix
   since: 2.17
-CompileTimeErrorCode.NON_GENERATIVE_CONSTRUCTOR:
+NON_GENERATIVE_CONSTRUCTOR:
   status: needsFix
   notes: |-
     Suggest generative constructors that could be invoked.
-CompileTimeErrorCode.NON_GENERATIVE_IMPLICIT_CONSTRUCTOR:
+NON_GENERATIVE_IMPLICIT_CONSTRUCTOR:
   status: needsFix
   notes: |-
     Suggest generative constructors that could be invoked.
-CompileTimeErrorCode.NON_SYNC_FACTORY:
+NON_SYNC_FACTORY:
   status: needsFix
   notes: |-
     Remove the modifier on the body.
-CompileTimeErrorCode.NON_TYPE_AS_TYPE_ARGUMENT:
+NON_TYPE_AS_TYPE_ARGUMENT:
   status: hasFix
-CompileTimeErrorCode.NON_TYPE_IN_CATCH_CLAUSE:
+NON_TYPE_IN_CATCH_CLAUSE:
   status: hasFix
-CompileTimeErrorCode.NON_VOID_RETURN_FOR_OPERATOR:
+NON_VOID_RETURN_FOR_OPERATOR:
   status: needsFix
   notes: |-
     Change the return type to `void`.
-CompileTimeErrorCode.NON_VOID_RETURN_FOR_SETTER:
+NON_VOID_RETURN_FOR_SETTER:
   status: needsFix
   notes: |-
     Remove the return type.
     Change the return type to `void`.
-CompileTimeErrorCode.NOT_A_TYPE:
+NOT_A_TYPE:
   status: hasFix
-CompileTimeErrorCode.NOT_ASSIGNED_POTENTIALLY_NON_NULLABLE_LOCAL_VARIABLE:
+NOT_ASSIGNED_POTENTIALLY_NON_NULLABLE_LOCAL_VARIABLE:
   status: noFix
-CompileTimeErrorCode.NOT_BINARY_OPERATOR:
+NOT_BINARY_OPERATOR:
   status: noFix
-CompileTimeErrorCode.NOT_ENOUGH_POSITIONAL_ARGUMENTS_NAME_PLURAL:
+NOT_ENOUGH_POSITIONAL_ARGUMENTS_NAME_PLURAL:
   status: hasFix
-CompileTimeErrorCode.NOT_ENOUGH_POSITIONAL_ARGUMENTS_NAME_SINGULAR:
+NOT_ENOUGH_POSITIONAL_ARGUMENTS_NAME_SINGULAR:
   status: hasFix
-CompileTimeErrorCode.NOT_ENOUGH_POSITIONAL_ARGUMENTS_PLURAL:
+NOT_ENOUGH_POSITIONAL_ARGUMENTS_PLURAL:
   status: hasFix
-CompileTimeErrorCode.NOT_ENOUGH_POSITIONAL_ARGUMENTS_SINGULAR:
+NOT_ENOUGH_POSITIONAL_ARGUMENTS_SINGULAR:
   status: hasFix
-CompileTimeErrorCode.NOT_INITIALIZED_NON_NULLABLE_INSTANCE_FIELD:
+NOT_INITIALIZED_NON_NULLABLE_INSTANCE_FIELD:
   status: hasFix
-CompileTimeErrorCode.NOT_INITIALIZED_NON_NULLABLE_INSTANCE_FIELD_CONSTRUCTOR:
+NOT_INITIALIZED_NON_NULLABLE_INSTANCE_FIELD_CONSTRUCTOR:
   status: noFix
-CompileTimeErrorCode.NOT_INITIALIZED_NON_NULLABLE_VARIABLE:
+NOT_INITIALIZED_NON_NULLABLE_VARIABLE:
   status: noFix
-CompileTimeErrorCode.NOT_INSTANTIATED_BOUND:
+NOT_INSTANTIATED_BOUND:
   status: noFix
-CompileTimeErrorCode.NOT_ITERABLE_SPREAD:
+NOT_ITERABLE_SPREAD:
   status: noFix
-CompileTimeErrorCode.NOT_MAP_SPREAD:
+NOT_MAP_SPREAD:
   status: noFix
-CompileTimeErrorCode.NOT_NULL_AWARE_NULL_SPREAD:
+NOT_NULL_AWARE_NULL_SPREAD:
   status: needsFix
   notes: |-
     Convert to a null-aware spread operator.
-CompileTimeErrorCode.NULLABLE_TYPE_IN_EXTENDS_CLAUSE:
+NULLABLE_TYPE_IN_EXTENDS_CLAUSE:
   status: hasFix
-CompileTimeErrorCode.NULLABLE_TYPE_IN_IMPLEMENTS_CLAUSE:
+NULLABLE_TYPE_IN_IMPLEMENTS_CLAUSE:
   status: hasFix
-CompileTimeErrorCode.NULLABLE_TYPE_IN_ON_CLAUSE:
+NULLABLE_TYPE_IN_ON_CLAUSE:
   status: hasFix
-CompileTimeErrorCode.NULLABLE_TYPE_IN_WITH_CLAUSE:
+NULLABLE_TYPE_IN_WITH_CLAUSE:
   status: hasFix
-CompileTimeErrorCode.OBJECT_CANNOT_EXTEND_ANOTHER_CLASS:
+OBJECT_CANNOT_EXTEND_ANOTHER_CLASS:
   status: noFix
-CompileTimeErrorCode.OBSOLETE_COLON_FOR_DEFAULT_VALUE:
+OBSOLETE_COLON_FOR_DEFAULT_VALUE:
   status: hasFix
-CompileTimeErrorCode.ON_REPEATED:
+ON_REPEATED:
   status: needsFix
   notes: |-
     Remove the repeated type.
-CompileTimeErrorCode.OPTIONAL_PARAMETER_IN_OPERATOR:
+OPTIONAL_PARAMETER_IN_OPERATOR:
   status: noFix
-CompileTimeErrorCode.PART_OF_DIFFERENT_LIBRARY:
+PART_OF_DIFFERENT_LIBRARY:
   status: noFix
-CompileTimeErrorCode.PART_OF_NON_PART:
+PART_OF_NON_PART:
   status: noFix
-CompileTimeErrorCode.PART_OF_UNNAMED_LIBRARY:
+PART_OF_UNNAMED_LIBRARY:
   status: needsFix
   notes: |-
     Replace the library name with a URI.
-CompileTimeErrorCode.PATTERN_ASSIGNMENT_NOT_LOCAL_VARIABLE:
+PATTERN_ASSIGNMENT_NOT_LOCAL_VARIABLE:
   status: noFix
-CompileTimeErrorCode.PATTERN_CONSTANT_FROM_DEFERRED_LIBRARY:
+PATTERN_CONSTANT_FROM_DEFERRED_LIBRARY:
   status: needsFix
   notes: |-
     Remove the `deferred` keyword from the import.
-CompileTimeErrorCode.PATTERN_TYPE_MISMATCH_IN_IRREFUTABLE_CONTEXT:
+PATTERN_TYPE_MISMATCH_IN_IRREFUTABLE_CONTEXT:
   status: noFix
-CompileTimeErrorCode.PATTERN_VARIABLE_ASSIGNMENT_INSIDE_GUARD:
+PATTERN_VARIABLE_ASSIGNMENT_INSIDE_GUARD:
   status: noFix
   notes: |-
     We do not have enough information to figure out the user's intent with the
     use of the variable in the pattern.
-? CompileTimeErrorCode.PATTERN_VARIABLE_SHARED_CASE_SCOPE_DIFFERENT_FINALITY_OR_TYPE
-: status: needsFix
+PATTERN_VARIABLE_SHARED_CASE_SCOPE_DIFFERENT_FINALITY_OR_TYPE:
+  status: needsFix
   notes: |-
     Make all of the types / finalities the same.
-CompileTimeErrorCode.PATTERN_VARIABLE_SHARED_CASE_SCOPE_HAS_LABEL:
+PATTERN_VARIABLE_SHARED_CASE_SCOPE_HAS_LABEL:
   status: needsFix
   notes: |-
     If the problem is a default, split the case group into two pieces.
-CompileTimeErrorCode.PATTERN_VARIABLE_SHARED_CASE_SCOPE_NOT_ALL_CASES:
+PATTERN_VARIABLE_SHARED_CASE_SCOPE_NOT_ALL_CASES:
   status: noFix
-CompileTimeErrorCode.POSITIONAL_FIELD_IN_OBJECT_PATTERN:
+POSITIONAL_FIELD_IN_OBJECT_PATTERN:
   status: noFix
-CompileTimeErrorCode.POSITIONAL_SUPER_FORMAL_PARAMETER_WITH_POSITIONAL_ARGUMENT:
+POSITIONAL_SUPER_FORMAL_PARAMETER_WITH_POSITIONAL_ARGUMENT:
   status: hasFix
   since: 2.17
-CompileTimeErrorCode.PREFIX_COLLIDES_WITH_TOP_LEVEL_MEMBER:
+PREFIX_COLLIDES_WITH_TOP_LEVEL_MEMBER:
   status: noFix
-CompileTimeErrorCode.PREFIX_IDENTIFIER_NOT_FOLLOWED_BY_DOT:
+PREFIX_IDENTIFIER_NOT_FOLLOWED_BY_DOT:
   status: noFix
-CompileTimeErrorCode.PREFIX_SHADOWED_BY_LOCAL_DECLARATION:
+PREFIX_SHADOWED_BY_LOCAL_DECLARATION:
   status: noFix
-CompileTimeErrorCode.PRIVATE_COLLISION_IN_MIXIN_APPLICATION:
+PRIVATE_COLLISION_IN_MIXIN_APPLICATION:
   status: noFix
-CompileTimeErrorCode.PRIVATE_NAMED_PARAMETER_WITHOUT_PUBLIC_NAME:
+PRIVATE_NAMED_PARAMETER_WITHOUT_PUBLIC_NAME:
   status: noFix
-CompileTimeErrorCode.PRIVATE_SETTER:
+PRIVATE_SETTER:
   status: noFix
-CompileTimeErrorCode.READ_POTENTIALLY_UNASSIGNED_FINAL:
+READ_POTENTIALLY_UNASSIGNED_FINAL:
   status: noFix
-CompileTimeErrorCode.RECORD_LITERAL_ONE_POSITIONAL_NO_TRAILING_COMMA_BY_TYPE:
+RECORD_LITERAL_ONE_POSITIONAL_NO_TRAILING_COMMA_BY_TYPE:
   status: hasFix
-CompileTimeErrorCode.RECURSIVE_CONSTANT_CONSTRUCTOR:
+RECURSIVE_CONSTANT_CONSTRUCTOR:
   status: noFix
-CompileTimeErrorCode.RECURSIVE_COMPILE_TIME_CONSTANT:
+RECURSIVE_COMPILE_TIME_CONSTANT:
   status: noFix
-CompileTimeErrorCode.RECURSIVE_CONSTRUCTOR_REDIRECT:
+RECURSIVE_CONSTRUCTOR_REDIRECT:
   status: noFix
-CompileTimeErrorCode.RECURSIVE_FACTORY_REDIRECT:
+RECURSIVE_FACTORY_REDIRECT:
   status: noFix
-CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE:
+RECURSIVE_INTERFACE_INHERITANCE:
   status: noFix
-CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE_EXTENDS:
+RECURSIVE_INTERFACE_INHERITANCE_EXTENDS:
   status: noFix
-CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE_IMPLEMENTS:
+RECURSIVE_INTERFACE_INHERITANCE_IMPLEMENTS:
   status: noFix
-CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE_ON:
+RECURSIVE_INTERFACE_INHERITANCE_ON:
   status: noFix
-CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE_WITH:
+RECURSIVE_INTERFACE_INHERITANCE_WITH:
   status: noFix
-CompileTimeErrorCode.REDIRECT_GENERATIVE_TO_MISSING_CONSTRUCTOR:
+REDIRECT_GENERATIVE_TO_MISSING_CONSTRUCTOR:
   status: noFix
-CompileTimeErrorCode.REDIRECT_GENERATIVE_TO_NON_GENERATIVE_CONSTRUCTOR:
+REDIRECT_GENERATIVE_TO_NON_GENERATIVE_CONSTRUCTOR:
   status: noFix
-CompileTimeErrorCode.REDIRECT_TO_ABSTRACT_CLASS_CONSTRUCTOR:
+REDIRECT_TO_ABSTRACT_CLASS_CONSTRUCTOR:
   status: noFix
-CompileTimeErrorCode.REDIRECT_TO_INVALID_FUNCTION_TYPE:
+REDIRECT_TO_INVALID_FUNCTION_TYPE:
   status: noFix
-CompileTimeErrorCode.REDIRECT_TO_INVALID_RETURN_TYPE:
+REDIRECT_TO_INVALID_RETURN_TYPE:
   status: noFix
-CompileTimeErrorCode.REDIRECT_TO_MISSING_CONSTRUCTOR:
+REDIRECT_TO_MISSING_CONSTRUCTOR:
   status: noFix
-CompileTimeErrorCode.REDIRECT_TO_NON_CLASS:
+REDIRECT_TO_NON_CLASS:
   status: noFix
-CompileTimeErrorCode.REDIRECT_TO_NON_CONST_CONSTRUCTOR:
+REDIRECT_TO_NON_CONST_CONSTRUCTOR:
   status: noFix
-CompileTimeErrorCode.REDIRECT_TO_TYPE_ALIAS_EXPANDS_TO_TYPE_PARAMETER:
+REDIRECT_TO_TYPE_ALIAS_EXPANDS_TO_TYPE_PARAMETER:
   status: noFix
-CompileTimeErrorCode.REFERENCED_BEFORE_DECLARATION:
+REFERENCED_BEFORE_DECLARATION:
   status: noFix
-CompileTimeErrorCode.REFUTABLE_PATTERN_IN_IRREFUTABLE_CONTEXT:
+REFUTABLE_PATTERN_IN_IRREFUTABLE_CONTEXT:
   status: noFix
-CompileTimeErrorCode.RELATIONAL_PATTERN_OPERAND_TYPE_NOT_ASSIGNABLE:
+RELATIONAL_PATTERN_OPERAND_TYPE_NOT_ASSIGNABLE:
   status: noFix
-? CompileTimeErrorCode.RELATIONAL_PATTERN_OPERATOR_RETURN_TYPE_NOT_ASSIGNABLE_TO_BOOL
-: status: noFix
-CompileTimeErrorCode.REST_ELEMENT_IN_MAP_PATTERN:
+RELATIONAL_PATTERN_OPERATOR_RETURN_TYPE_NOT_ASSIGNABLE_TO_BOOL:
+  status: noFix
+REST_ELEMENT_IN_MAP_PATTERN:
   status: needsFix
   issue: https://github.com/dart-lang/sdk/issues/51892
-CompileTimeErrorCode.RETHROW_OUTSIDE_CATCH:
+RETHROW_OUTSIDE_CATCH:
   status: noFix
-CompileTimeErrorCode.RETURN_IN_GENERATIVE_CONSTRUCTOR:
+RETURN_IN_GENERATIVE_CONSTRUCTOR:
   status: needsFix
   notes: |-
     Remove the return.
     Convert to a factory constructor.
-CompileTimeErrorCode.RETURN_IN_GENERATOR:
+RETURN_IN_GENERATOR:
   status: needsFix
   notes: |-
     Replace with a yield.
-CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_CLOSURE:
+RETURN_OF_INVALID_TYPE_FROM_CLOSURE:
   status: hasFix
-CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_CONSTRUCTOR:
+RETURN_OF_INVALID_TYPE_FROM_CONSTRUCTOR:
   status: noFix
-CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION:
+RETURN_OF_INVALID_TYPE_FROM_FUNCTION:
   status: hasFix
-CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_METHOD:
+RETURN_OF_INVALID_TYPE_FROM_METHOD:
   status: hasFix
-CompileTimeErrorCode.RETURN_WITHOUT_VALUE:
+RETURN_WITHOUT_VALUE:
   status: noFix
-CompileTimeErrorCode.SEALED_CLASS_SUBTYPE_OUTSIDE_OF_LIBRARY:
+SEALED_CLASS_SUBTYPE_OUTSIDE_OF_LIBRARY:
   status: noFix
-CompileTimeErrorCode.SET_ELEMENT_FROM_DEFERRED_LIBRARY:
+SET_ELEMENT_FROM_DEFERRED_LIBRARY:
   status: hasFix
   notes: |-
     Remove the `deferred` keyword from the import.
-CompileTimeErrorCode.SET_ELEMENT_TYPE_NOT_ASSIGNABLE_NULLABILITY:
+SET_ELEMENT_TYPE_NOT_ASSIGNABLE_NULLABILITY:
   status: hasFix
-CompileTimeErrorCode.SET_ELEMENT_TYPE_NOT_ASSIGNABLE:
+SET_ELEMENT_TYPE_NOT_ASSIGNABLE:
   status: noFix
-CompileTimeErrorCode.SHARED_DEFERRED_PREFIX:
+SHARED_DEFERRED_PREFIX:
   status: noFix
-CompileTimeErrorCode.SPREAD_EXPRESSION_FROM_DEFERRED_LIBRARY:
+SPREAD_EXPRESSION_FROM_DEFERRED_LIBRARY:
   status: hasFix
   notes: |-
     Remove the `deferred` keyword from the import.
-CompileTimeErrorCode.STATIC_ACCESS_TO_INSTANCE_MEMBER:
+STATIC_ACCESS_TO_INSTANCE_MEMBER:
   status: noFix
-CompileTimeErrorCode.SUBTYPE_OF_BASE_IS_NOT_BASE_FINAL_OR_SEALED:
+SUBTYPE_OF_BASE_IS_NOT_BASE_FINAL_OR_SEALED:
   status: hasFix
-CompileTimeErrorCode.SUBTYPE_OF_FINAL_IS_NOT_BASE_FINAL_OR_SEALED:
+SUBTYPE_OF_FINAL_IS_NOT_BASE_FINAL_OR_SEALED:
   status: hasFix
-CompileTimeErrorCode.SUPER_FORMAL_PARAMETER_TYPE_IS_NOT_SUBTYPE_OF_ASSOCIATED:
+SUPER_FORMAL_PARAMETER_TYPE_IS_NOT_SUBTYPE_OF_ASSOCIATED:
   status: hasFix
   since: 2.17
-CompileTimeErrorCode.SUPER_FORMAL_PARAMETER_WITHOUT_ASSOCIATED_NAMED:
+SUPER_FORMAL_PARAMETER_WITHOUT_ASSOCIATED_NAMED:
   status: hasFix
-CompileTimeErrorCode.SUPER_FORMAL_PARAMETER_WITHOUT_ASSOCIATED_POSITIONAL:
+SUPER_FORMAL_PARAMETER_WITHOUT_ASSOCIATED_POSITIONAL:
   status: hasFix
-CompileTimeErrorCode.SUPER_IN_ENUM_CONSTRUCTOR:
+SUPER_IN_ENUM_CONSTRUCTOR:
   status: noFix
   since: 2.17
   notes: |-
     We could potentially offer a fix to remove the super invocation, but the
     user really needs to think about what constructor they were trying to invoke
     and why in order to really fix the issue.
-CompileTimeErrorCode.SUPER_IN_EXTENSION:
+SUPER_IN_EXTENSION:
   status: noFix
   notes: |-
     We could potentially offer a fix to remove the super invocation, but the
     user really needs to think about what function they were trying to invoke
     and why in order to really fix the issue.
-CompileTimeErrorCode.SUPER_IN_EXTENSION_TYPE:
+SUPER_IN_EXTENSION_TYPE:
   status: noFix
   notes: |-
     We could potentially offer a fix to remove the super invocation, but the
     user really needs to think about what function they were trying to invoke
     and why in order to really fix the issue.
-CompileTimeErrorCode.SUPER_IN_INVALID_CONTEXT:
+SUPER_IN_INVALID_CONTEXT:
   status: noFix
   notes: |-
     We could potentially offer a fix to remove the super invocation, but the
     user really needs to think about what member they were trying to invoke
     and why in order to really fix the issue.
-CompileTimeErrorCode.SUPER_IN_REDIRECTING_CONSTRUCTOR:
+SUPER_IN_REDIRECTING_CONSTRUCTOR:
   status: needsFix
   notes: |-
     Remove the super initialize.
     Remove the redirection.
-CompileTimeErrorCode.SUPER_INITIALIZER_IN_OBJECT:
+SUPER_INITIALIZER_IN_OBJECT:
   status: noFix
   notes: |-
     Object is only declared in SDK code; those developers do OK without fixes.
-CompileTimeErrorCode.SUPER_INVOCATION_NOT_LAST:
+SUPER_INVOCATION_NOT_LAST:
   status: hasFix
-CompileTimeErrorCode.SWITCH_CASE_COMPLETES_NORMALLY:
+SWITCH_CASE_COMPLETES_NORMALLY:
   status: hasFix
-CompileTimeErrorCode.TEAROFF_OF_GENERATIVE_CONSTRUCTOR_OF_ABSTRACT_CLASS:
+TEAROFF_OF_GENERATIVE_CONSTRUCTOR_OF_ABSTRACT_CLASS:
   status: noFix
   since: 2.15
-CompileTimeErrorCode.THROW_OF_INVALID_TYPE:
+THROW_OF_INVALID_TYPE:
   status: noFix
-CompileTimeErrorCode.TOP_LEVEL_CYCLE:
+TOP_LEVEL_CYCLE:
   status: noFix
-CompileTimeErrorCode.TYPE_ALIAS_CANNOT_REFERENCE_ITSELF:
+TYPE_ALIAS_CANNOT_REFERENCE_ITSELF:
   status: noFix
-CompileTimeErrorCode.TYPE_ANNOTATION_DEFERRED_CLASS:
+TYPE_ANNOTATION_DEFERRED_CLASS:
   status: needsFix
   notes: |-
     Remove the `deferred` keyword from the import.
-CompileTimeErrorCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS:
+TYPE_ARGUMENT_NOT_MATCHING_BOUNDS:
   status: noFix
-CompileTimeErrorCode.TYPE_PARAMETER_REFERENCED_BY_STATIC:
+TYPE_PARAMETER_REFERENCED_BY_STATIC:
   status: needsFix
   notes: |-
     Fixes could include (1) removing the 'static' keyword, (2) changing the type
     variable to its bound, (3) looking for similarly spelled types.
-CompileTimeErrorCode.TYPE_PARAMETER_SUPERTYPE_OF_ITS_BOUND:
+TYPE_PARAMETER_SUPERTYPE_OF_ITS_BOUND:
   status: noFix
-CompileTimeErrorCode.TYPE_TEST_WITH_NON_TYPE:
+TYPE_TEST_WITH_NON_TYPE:
   status: needsFix
   notes: |-
     Fixes could include: (1) changing ` is ` to ` == ` and (2) changing the
     right operand to the static type of the left.
-CompileTimeErrorCode.TYPE_TEST_WITH_UNDEFINED_NAME:
+TYPE_TEST_WITH_UNDEFINED_NAME:
   status: hasFix
-CompileTimeErrorCode.UNCHECKED_INVOCATION_OF_NULLABLE_VALUE:
+UNCHECKED_INVOCATION_OF_NULLABLE_VALUE:
   status: hasFix
-CompileTimeErrorCode.UNCHECKED_METHOD_INVOCATION_OF_NULLABLE_VALUE:
+UNCHECKED_METHOD_INVOCATION_OF_NULLABLE_VALUE:
   status: hasFix
-CompileTimeErrorCode.UNCHECKED_OPERATOR_INVOCATION_OF_NULLABLE_VALUE:
+UNCHECKED_OPERATOR_INVOCATION_OF_NULLABLE_VALUE:
   status: hasFix
-CompileTimeErrorCode.UNCHECKED_PROPERTY_ACCESS_OF_NULLABLE_VALUE:
+UNCHECKED_PROPERTY_ACCESS_OF_NULLABLE_VALUE:
   status: hasFix
-CompileTimeErrorCode.UNCHECKED_USE_OF_NULLABLE_VALUE_AS_CONDITION:
+UNCHECKED_USE_OF_NULLABLE_VALUE_AS_CONDITION:
   status: hasFix
-CompileTimeErrorCode.UNCHECKED_USE_OF_NULLABLE_VALUE_AS_ITERATOR:
+UNCHECKED_USE_OF_NULLABLE_VALUE_AS_ITERATOR:
   status: hasFix
-CompileTimeErrorCode.UNCHECKED_USE_OF_NULLABLE_VALUE_IN_SPREAD:
+UNCHECKED_USE_OF_NULLABLE_VALUE_IN_SPREAD:
   status: hasFix
-CompileTimeErrorCode.UNCHECKED_USE_OF_NULLABLE_VALUE_IN_YIELD_EACH:
+UNCHECKED_USE_OF_NULLABLE_VALUE_IN_YIELD_EACH:
   status: hasFix
-CompileTimeErrorCode.UNDEFINED_ANNOTATION:
+UNDEFINED_ANNOTATION:
   status: hasFix
-CompileTimeErrorCode.UNDEFINED_CLASS:
+UNDEFINED_CLASS:
   status: hasFix
-CompileTimeErrorCode.UNDEFINED_CLASS_BOOLEAN:
+UNDEFINED_CLASS_BOOLEAN:
   status: hasFix
-CompileTimeErrorCode.UNDEFINED_CONSTRUCTOR_IN_INITIALIZER:
+UNDEFINED_CONSTRUCTOR_IN_INITIALIZER:
   status: needsFix
   notes: |-
     Fixes could include (1) adding a declaration for such constructor, (2) look
     for closely named constructors.
-CompileTimeErrorCode.UNDEFINED_CONSTRUCTOR_IN_INITIALIZER_DEFAULT:
+UNDEFINED_CONSTRUCTOR_IN_INITIALIZER_DEFAULT:
   status: hasFix
-CompileTimeErrorCode.UNDEFINED_ENUM_CONSTANT:
+UNDEFINED_ENUM_CONSTANT:
   status: hasFix
-CompileTimeErrorCode.UNDEFINED_ENUM_CONSTRUCTOR_NAMED:
-  status: hasFix
-  since: 2.17
-CompileTimeErrorCode.UNDEFINED_ENUM_CONSTRUCTOR_UNNAMED:
+UNDEFINED_ENUM_CONSTRUCTOR_NAMED:
   status: hasFix
   since: 2.17
-CompileTimeErrorCode.UNDEFINED_EXTENSION_GETTER:
+UNDEFINED_ENUM_CONSTRUCTOR_UNNAMED:
   status: hasFix
-CompileTimeErrorCode.UNDEFINED_EXTENSION_METHOD:
+  since: 2.17
+UNDEFINED_EXTENSION_GETTER:
   status: hasFix
-CompileTimeErrorCode.UNDEFINED_EXTENSION_OPERATOR:
+UNDEFINED_EXTENSION_METHOD:
   status: hasFix
-CompileTimeErrorCode.UNDEFINED_EXTENSION_SETTER:
+UNDEFINED_EXTENSION_OPERATOR:
   status: hasFix
-CompileTimeErrorCode.UNDEFINED_FUNCTION:
+UNDEFINED_EXTENSION_SETTER:
   status: hasFix
-CompileTimeErrorCode.UNDEFINED_GETTER:
+UNDEFINED_FUNCTION:
   status: hasFix
-CompileTimeErrorCode.UNDEFINED_GETTER_ON_FUNCTION_TYPE:
+UNDEFINED_GETTER:
+  status: hasFix
+UNDEFINED_GETTER_ON_FUNCTION_TYPE:
   status: needsFix
   since: 2.15
-CompileTimeErrorCode.UNDEFINED_IDENTIFIER:
+UNDEFINED_IDENTIFIER:
   status: hasFix
-CompileTimeErrorCode.UNDEFINED_IDENTIFIER_AWAIT:
+UNDEFINED_IDENTIFIER_AWAIT:
   status: hasFix
-CompileTimeErrorCode.UNDEFINED_METHOD:
+UNDEFINED_METHOD:
   status: hasFix
-CompileTimeErrorCode.UNDEFINED_METHOD_ON_FUNCTION_TYPE:
+UNDEFINED_METHOD_ON_FUNCTION_TYPE:
   status: needsFix
   since: 2.15
-CompileTimeErrorCode.UNDEFINED_NAMED_PARAMETER:
+UNDEFINED_NAMED_PARAMETER:
   status: hasFix
-CompileTimeErrorCode.UNDEFINED_OPERATOR:
+UNDEFINED_OPERATOR:
   status: hasFix
-CompileTimeErrorCode.UNDEFINED_PREFIXED_NAME:
+UNDEFINED_PREFIXED_NAME:
   status: hasFix
-CompileTimeErrorCode.UNDEFINED_SETTER:
+UNDEFINED_SETTER:
   status: hasFix
-CompileTimeErrorCode.UNDEFINED_SETTER_ON_FUNCTION_TYPE:
+UNDEFINED_SETTER_ON_FUNCTION_TYPE:
   status: needsFix
   since: 2.15
-CompileTimeErrorCode.UNDEFINED_SUPER_GETTER:
+UNDEFINED_SUPER_GETTER:
   status: needsFix
   notes: |-
     The fix is to create the getter, assuming the superclass is editable.
-CompileTimeErrorCode.UNDEFINED_SUPER_METHOD:
+UNDEFINED_SUPER_METHOD:
   status: needsFix
   notes: |-
     The fix is to create the method, assuming the superclass is editable.
-CompileTimeErrorCode.UNDEFINED_SUPER_OPERATOR:
+UNDEFINED_SUPER_OPERATOR:
   status: needsFix
   notes: |-
     The fix is to create the operator, assuming the superclass is editable.
-CompileTimeErrorCode.UNDEFINED_SUPER_SETTER:
+UNDEFINED_SUPER_SETTER:
   status: needsFix
   notes: |-
     The fix is to create the setter, assuming the superclass is editable.
-CompileTimeErrorCode.UNQUALIFIED_REFERENCE_TO_NON_LOCAL_STATIC_MEMBER:
+UNQUALIFIED_REFERENCE_TO_NON_LOCAL_STATIC_MEMBER:
   status: hasFix
-CompileTimeErrorCode.UNQUALIFIED_REFERENCE_TO_STATIC_MEMBER_OF_EXTENDED_TYPE:
+UNQUALIFIED_REFERENCE_TO_STATIC_MEMBER_OF_EXTENDED_TYPE:
   status: hasFix
-CompileTimeErrorCode.URI_DOES_NOT_EXIST:
+URI_DOES_NOT_EXIST:
   status: hasFix
-CompileTimeErrorCode.URI_HAS_NOT_BEEN_GENERATED:
+URI_HAS_NOT_BEEN_GENERATED:
   status: noFix
-CompileTimeErrorCode.URI_WITH_INTERPOLATION:
+URI_WITH_INTERPOLATION:
   status: noFix
-CompileTimeErrorCode.USE_OF_NATIVE_EXTENSION:
+USE_OF_NATIVE_EXTENSION:
   status: noFix
   since: ~2.15
-CompileTimeErrorCode.USE_OF_VOID_RESULT:
+USE_OF_VOID_RESULT:
   status: noFix
-CompileTimeErrorCode.VALUES_DECLARATION_IN_ENUM:
+VALUES_DECLARATION_IN_ENUM:
   status: noFix
   since: 2.17
   notes: |-
     We could potentially offer to remove the member, but the user probably needs
     to think about what they were trying to do and it seems more likely that the
     right fix is to rename the member.
-CompileTimeErrorCode.VARIABLE_TYPE_MISMATCH:
+VARIABLE_TYPE_MISMATCH:
   status: noFix
-CompileTimeErrorCode.WRONG_EXPLICIT_TYPE_PARAMETER_VARIANCE_IN_SUPERINTERFACE:
+WRONG_EXPLICIT_TYPE_PARAMETER_VARIANCE_IN_SUPERINTERFACE:
   status: noFix
-CompileTimeErrorCode.WRONG_NUMBER_OF_PARAMETERS_FOR_OPERATOR:
+WRONG_NUMBER_OF_PARAMETERS_FOR_OPERATOR:
   status: needsFix
   notes: |-
     Fixes could include (1) removing all past the first parameter, and (2)
     removing all but a singular used parameter, if only one is used.
-CompileTimeErrorCode.WRONG_NUMBER_OF_PARAMETERS_FOR_OPERATOR_MINUS:
+WRONG_NUMBER_OF_PARAMETERS_FOR_OPERATOR_MINUS:
   status: needsFix
   notes: |-
     Fixes could include (1) removing all past the first parameter, and (2)
     removing all but a singular used parameter, if only one is used.
-CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS:
+WRONG_NUMBER_OF_TYPE_ARGUMENTS:
   status: hasFix
-CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_ANONYMOUS_FUNCTION:
+WRONG_NUMBER_OF_TYPE_ARGUMENTS_ANONYMOUS_FUNCTION:
   status: needsFix
   since: 2.15
-CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_CONSTRUCTOR:
+WRONG_NUMBER_OF_TYPE_ARGUMENTS_CONSTRUCTOR:
   status: hasFix
-CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_DOT_SHORTHAND_CONSTRUCTOR:
+WRONG_NUMBER_OF_TYPE_ARGUMENTS_DOT_SHORTHAND_CONSTRUCTOR:
   status: needsEvaluation
-CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_ENUM:
+WRONG_NUMBER_OF_TYPE_ARGUMENTS_ENUM:
   status: noFix
   since: 2.17
   notes: |-
     We can't know which type arguments to add or remove. (We do have a fix to
     remove all type arguments that would work here, it just isn't a very good
     fix to suggest.)
-CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_EXTENSION:
+WRONG_NUMBER_OF_TYPE_ARGUMENTS_EXTENSION:
   status: hasFix
-CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_FUNCTION:
+WRONG_NUMBER_OF_TYPE_ARGUMENTS_FUNCTION:
   status: needsFix
   since: ~2.15
-CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_METHOD:
+WRONG_NUMBER_OF_TYPE_ARGUMENTS_METHOD:
   status: hasFix
-CompileTimeErrorCode.WRONG_TYPE_PARAMETER_VARIANCE_IN_SUPERINTERFACE:
+WRONG_TYPE_PARAMETER_VARIANCE_IN_SUPERINTERFACE:
   status: noFix
-CompileTimeErrorCode.WRONG_TYPE_PARAMETER_VARIANCE_POSITION:
+WRONG_TYPE_PARAMETER_VARIANCE_POSITION:
   status: noFix
-CompileTimeErrorCode.YIELD_EACH_IN_NON_GENERATOR:
+YIELD_EACH_IN_NON_GENERATOR:
   status: needsFix
   notes: |-
     Fixes could include: (1) change `yield` to `return` (maybe only if it
     matches the return type) and (2) change function signature from implicit
     sync to `sync*` or `async` to `async*`.
-CompileTimeErrorCode.YIELD_IN_NON_GENERATOR:
+YIELD_IN_NON_GENERATOR:
   status: needsFix
   notes: |-
     Fixes could include: (1) change `yield` to `return` (maybe only if it
     matches the return type)  and (2) change function signature from implicit
     sync to `sync*` or `async` to `async*`.
-CompileTimeErrorCode.YIELD_EACH_OF_INVALID_TYPE:
+YIELD_EACH_OF_INVALID_TYPE:
   status: noFix
-CompileTimeErrorCode.YIELD_OF_INVALID_TYPE:
+YIELD_OF_INVALID_TYPE:
   status: hasFix
-FfiCode.ABI_SPECIFIC_INTEGER_INVALID:
+ABI_SPECIFIC_INTEGER_INVALID:
   status: noFix
   since: ~2.16
-FfiCode.ABI_SPECIFIC_INTEGER_MAPPING_EXTRA:
+ABI_SPECIFIC_INTEGER_MAPPING_EXTRA:
   status: needsFix
   since: ~2.16
-FfiCode.ABI_SPECIFIC_INTEGER_MAPPING_MISSING:
+ABI_SPECIFIC_INTEGER_MAPPING_MISSING:
   status: noFix
   since: ~2.16
-FfiCode.ABI_SPECIFIC_INTEGER_MAPPING_UNSUPPORTED:
+ABI_SPECIFIC_INTEGER_MAPPING_UNSUPPORTED:
   status: noFix
   since: ~2.16
-FfiCode.ADDRESS_POSITION:
+ADDRESS_POSITION:
   status: needsEvaluation
   since: ~3.5
-FfiCode.ADDRESS_RECEIVER:
+ADDRESS_RECEIVER:
   status: needsEvaluation
   since: ~3.5
-FfiCode.ANNOTATION_ON_POINTER_FIELD:
+ANNOTATION_ON_POINTER_FIELD:
   status: needsFix
-FfiCode.ARGUMENT_MUST_BE_A_CONSTANT:
+ARGUMENT_MUST_BE_A_CONSTANT:
   status: noFix
-FfiCode.ARGUMENT_MUST_BE_NATIVE:
+ARGUMENT_MUST_BE_NATIVE:
   status: needsEvaluation
-FfiCode.COMPOUND_IMPLEMENTS_FINALIZABLE:
+COMPOUND_IMPLEMENTS_FINALIZABLE:
   status: noFix
-FfiCode.CREATION_OF_STRUCT_OR_UNION:
+CREATION_OF_STRUCT_OR_UNION:
   status: noFix
   since: ~2.15
-FfiCode.EMPTY_STRUCT:
+EMPTY_STRUCT:
   status: noFix
-FfiCode.EXTRA_ANNOTATION_ON_STRUCT_FIELD:
+EXTRA_ANNOTATION_ON_STRUCT_FIELD:
   status: needsFix
-FfiCode.EXTRA_SIZE_ANNOTATION_CARRAY:
+EXTRA_SIZE_ANNOTATION_CARRAY:
   status: needsFix
-FfiCode.FFI_NATIVE_MUST_BE_EXTERNAL:
+FFI_NATIVE_MUST_BE_EXTERNAL:
   status: needsFix
   since: ~2.15
   notes: |-
     The fix is to add the `external` keyword.
-FfiCode.FFI_NATIVE_ONLY_CLASSES_EXTENDING_NATIVEFIELDWRAPPERCLASS1_CAN_BE_POINTER:
+FFI_NATIVE_ONLY_CLASSES_EXTENDING_NATIVEFIELDWRAPPERCLASS1_CAN_BE_POINTER:
   status: noFix
   since: ~2.15
-FfiCode.FFI_NATIVE_UNEXPECTED_NUMBER_OF_PARAMETERS:
+FFI_NATIVE_UNEXPECTED_NUMBER_OF_PARAMETERS:
   status: noFix
   since: ~2.15
-FfiCode.FFI_NATIVE_UNEXPECTED_NUMBER_OF_PARAMETERS_WITH_RECEIVER:
+FFI_NATIVE_UNEXPECTED_NUMBER_OF_PARAMETERS_WITH_RECEIVER:
   status: noFix
   since: ~2.15
-FfiCode.FFI_NATIVE_INVALID_DUPLICATE_DEFAULT_ASSET:
+FFI_NATIVE_INVALID_DUPLICATE_DEFAULT_ASSET:
   status: needsEvaluation
-FfiCode.FFI_NATIVE_INVALID_MULTIPLE_ANNOTATIONS:
+FFI_NATIVE_INVALID_MULTIPLE_ANNOTATIONS:
   status: needsEvaluation
-FfiCode.FIELD_MUST_BE_EXTERNAL_IN_STRUCT:
+FIELD_MUST_BE_EXTERNAL_IN_STRUCT:
   status: needsFix
   since: ~2.15
   notes: |-
     The fix is to add the `external` keyword.
-FfiCode.GENERIC_STRUCT_SUBCLASS:
+GENERIC_STRUCT_SUBCLASS:
   status: noFix
-FfiCode.INVALID_EXCEPTION_VALUE:
+INVALID_EXCEPTION_VALUE:
   status: noFix
-FfiCode.INVALID_FIELD_TYPE_IN_STRUCT:
+INVALID_FIELD_TYPE_IN_STRUCT:
   status: noFix
-FfiCode.LEAF_CALL_MUST_NOT_RETURN_HANDLE:
+LEAF_CALL_MUST_NOT_RETURN_HANDLE:
   status: noFix
-FfiCode.LEAF_CALL_MUST_NOT_TAKE_HANDLE:
+LEAF_CALL_MUST_NOT_TAKE_HANDLE:
   status: noFix
-FfiCode.MISMATCHED_ANNOTATION_ON_STRUCT_FIELD:
+MISMATCHED_ANNOTATION_ON_STRUCT_FIELD:
   status: noFix
-FfiCode.MISSING_ANNOTATION_ON_STRUCT_FIELD:
+MISSING_ANNOTATION_ON_STRUCT_FIELD:
   status: noFix
-FfiCode.MISSING_EXCEPTION_VALUE:
+MISSING_EXCEPTION_VALUE:
   status: noFix
-FfiCode.MISSING_FIELD_TYPE_IN_STRUCT:
+MISSING_FIELD_TYPE_IN_STRUCT:
   status: noFix
-FfiCode.MISSING_SIZE_ANNOTATION_CARRAY:
+MISSING_SIZE_ANNOTATION_CARRAY:
   status: noFix
-FfiCode.MUST_BE_A_NATIVE_FUNCTION_TYPE:
+MUST_BE_A_NATIVE_FUNCTION_TYPE:
   status: noFix
-FfiCode.MUST_BE_A_SUBTYPE:
+MUST_BE_A_SUBTYPE:
   status: noFix
-FfiCode.MUST_RETURN_VOID:
+MUST_RETURN_VOID:
   status: noFix
-FfiCode.NATIVE_FIELD_INVALID_TYPE:
+NATIVE_FIELD_INVALID_TYPE:
   status: needsEvaluation
-FfiCode.NATIVE_FIELD_MISSING_TYPE:
+NATIVE_FIELD_MISSING_TYPE:
   status: needsEvaluation
-FfiCode.NATIVE_FIELD_NOT_STATIC:
+NATIVE_FIELD_NOT_STATIC:
   status: needsEvaluation
-FfiCode.NATIVE_FUNCTION_MISSING_TYPE:
+NATIVE_FUNCTION_MISSING_TYPE:
   status: needsEvaluation
-FfiCode.NEGATIVE_VARIABLE_DIMENSION:
+NEGATIVE_VARIABLE_DIMENSION:
   status: noFix
-FfiCode.NON_CONSTANT_TYPE_ARGUMENT:
+NON_CONSTANT_TYPE_ARGUMENT:
   status: noFix
-FfiCode.NON_NATIVE_FUNCTION_TYPE_ARGUMENT_TO_POINTER:
+NON_NATIVE_FUNCTION_TYPE_ARGUMENT_TO_POINTER:
   status: noFix
-FfiCode.NON_POSITIVE_ARRAY_DIMENSION:
+NON_POSITIVE_ARRAY_DIMENSION:
   status: noFix
-FfiCode.NON_SIZED_TYPE_ARGUMENT:
+NON_SIZED_TYPE_ARGUMENT:
   status: noFix
-FfiCode.PACKED_ANNOTATION:
+PACKED_ANNOTATION:
   status: needsFix
   notes: |-
     The fix is to remove the extra annotation.
-FfiCode.PACKED_ANNOTATION_ALIGNMENT:
+PACKED_ANNOTATION_ALIGNMENT:
   status: noFix
-FfiCode.SIZE_ANNOTATION_DIMENSIONS:
+SIZE_ANNOTATION_DIMENSIONS:
   status: noFix
-FfiCode.VARIABLE_LENGTH_ARRAY_NOT_LAST:
+VARIABLE_LENGTH_ARRAY_NOT_LAST:
   status: noFix
-FfiCode.SUBTYPE_OF_STRUCT_CLASS_IN_EXTENDS:
+SUBTYPE_OF_STRUCT_CLASS_IN_EXTENDS:
   status: hasFix
-FfiCode.SUBTYPE_OF_STRUCT_CLASS_IN_IMPLEMENTS:
+SUBTYPE_OF_STRUCT_CLASS_IN_IMPLEMENTS:
   status: hasFix
-FfiCode.SUBTYPE_OF_STRUCT_CLASS_IN_WITH:
+SUBTYPE_OF_STRUCT_CLASS_IN_WITH:
   status: hasFix
-HintCode.DEPRECATED_COLON_FOR_DEFAULT_VALUE:
+DEPRECATED_COLON_FOR_DEFAULT_VALUE:
   status: hasFix
-HintCode.DEPRECATED_MEMBER_USE:
+DEPRECATED_MEMBER_USE:
   status: hasFix
-HintCode.DEPRECATED_MEMBER_USE_WITH_MESSAGE:
+DEPRECATED_MEMBER_USE_WITH_MESSAGE:
   status: hasFix
-HintCode.IMPORT_DEFERRED_LIBRARY_WITH_LOAD_FUNCTION:
+IMPORT_DEFERRED_LIBRARY_WITH_LOAD_FUNCTION:
   status: noFix
-HintCode.UNNECESSARY_IMPORT:
+UNNECESSARY_IMPORT:
   status: hasFix
-LintCode.always_declare_return_types_of_functions:
+always_declare_return_types_of_functions:
   status: hasFix
-LintCode.always_declare_return_types_of_methods:
+always_declare_return_types_of_methods:
   status: hasFix
-LintCode.always_put_control_body_on_new_line:
+always_put_control_body_on_new_line:
   status: hasFix
-LintCode.always_put_required_named_parameters_first:
+always_put_required_named_parameters_first:
   status: hasFix
-LintCode.always_specify_types_add_type:
+always_specify_types_add_type:
   status: hasFix
-LintCode.always_specify_types_replace_keyword:
+always_specify_types_replace_keyword:
   status: hasFix
-LintCode.always_specify_types_specify_type:
+always_specify_types_specify_type:
   status: hasFix
-LintCode.always_specify_types_split_to_types:
+always_specify_types_split_to_types:
   status: hasFix
-LintCode.always_use_package_imports:
+always_use_package_imports:
   status: hasFix
-LintCode.analyzer_element_model_tracking_bad:
+analyzer_element_model_tracking_bad:
   status: noFix
-LintCode.analyzer_element_model_tracking_more_than_one:
+analyzer_element_model_tracking_more_than_one:
   status: noFix
-LintCode.analyzer_element_model_tracking_zero:
+analyzer_element_model_tracking_zero:
   status: noFix
-LintCode.analyzer_public_api_bad_part_directive:
+analyzer_public_api_bad_part_directive:
   status: noFix
-LintCode.analyzer_public_api_bad_type:
+analyzer_public_api_bad_type:
   status: noFix
-LintCode.analyzer_public_api_experimental_inconsistency:
+analyzer_public_api_experimental_inconsistency:
   status: noFix
-LintCode.analyzer_public_api_exports_non_public_name:
+analyzer_public_api_exports_non_public_name:
   status: noFix
-LintCode.analyzer_public_api_impl_in_public_api:
+analyzer_public_api_impl_in_public_api:
   status: noFix
-LintCode.annotate_overrides:
+annotate_overrides:
   status: hasFix
-LintCode.annotate_redeclares:
+annotate_redeclares:
   status: hasFix
-LintCode.avoid_annotating_with_dynamic:
+avoid_annotating_with_dynamic:
   status: hasFix
-LintCode.avoid_bool_literals_in_conditional_expressions:
+avoid_bool_literals_in_conditional_expressions:
   status: hasFix
-LintCode.avoid_catches_without_on_clauses:
+avoid_catches_without_on_clauses:
   status: noFix
   notes: |-
     There's no way to know which type to use in the on clause.
-LintCode.avoid_catching_errors_class:
+avoid_catching_errors_class:
   status: noFix
-LintCode.avoid_catching_errors_subclass:
+avoid_catching_errors_subclass:
   status: noFix
-LintCode.avoid_classes_with_only_static_members:
+avoid_classes_with_only_static_members:
   status: noFix
   notes: |-
     The fix would be to convert the static members to top-level members, but
     that would require a refactoring.
-LintCode.avoid_double_and_int_checks:
+avoid_double_and_int_checks:
   status: needsFix
   notes: |-
     The fix is to replace the type name with `num`.
-LintCode.avoid_dynamic_calls:
+avoid_dynamic_calls:
   status: noFix
-LintCode.avoid_empty_else:
+avoid_empty_else:
   status: hasFix
-LintCode.avoid_equals_and_hash_code_on_mutable_classes:
+avoid_equals_and_hash_code_on_mutable_classes:
   status: noFix
   notes: |-
     Theoretically we could remove the methods, but the fix is probably
     appropriate so seldom that it isn't worth offering it.
-LintCode.avoid_escaping_inner_quotes:
+avoid_escaping_inner_quotes:
   status: hasFix
-LintCode.avoid_field_initializers_in_const_classes:
+avoid_field_initializers_in_const_classes:
   status: noFix
-LintCode.avoid_final_parameters:
+avoid_final_parameters:
   status: needsFix
   notes: |-
     The fix is to remove the `final` keyword.
-LintCode.avoid_function_literals_in_foreach_calls:
+avoid_function_literals_in_foreach_calls:
   status: hasFix
-LintCode.avoid_futureor_void:
+avoid_futureor_void:
   status: noFix
   notes: |-
     The type 'FutureOr<void>' is inherently problematic, but there is
@@ -1938,239 +1938,239 @@ LintCode.avoid_futureor_void:
     a need for some implementation changes, or it might be a breaking
     change. Another possibility is to use 'void', but this could also
     be breaking.
-LintCode.avoid_implementing_value_types:
+avoid_implementing_value_types:
   status: noFix
   notes: |-
     This lint should probably be retired in favor of explicitly marking the
     value type class as being `base`. We might want a new lint to flag classes
     that implement `==` but aren't marked as `base`
     (`non_base_class_with_equals`?).
-LintCode.avoid_init_to_null:
+avoid_init_to_null:
   status: hasFix
-LintCode.avoid_js_rounded_ints:
+avoid_js_rounded_ints:
   status: noFix
-LintCode.avoid_multiple_declarations_per_line:
+avoid_multiple_declarations_per_line:
   status: hasFix
-LintCode.avoid_null_checks_in_equality_operators:
+avoid_null_checks_in_equality_operators:
   status: hasFix
-LintCode.avoid_positional_boolean_parameters:
+avoid_positional_boolean_parameters:
   status: noFix
   notes: |-
     The fix is to make bool parameter be named parameters, but that requires a
     refactoring.
-LintCode.avoid_print:
+avoid_print:
   status: hasFix
-LintCode.avoid_private_typedef_functions:
+avoid_private_typedef_functions:
   status: hasFix
-LintCode.avoid_redundant_argument_values:
+avoid_redundant_argument_values:
   status: hasFix
-LintCode.avoid_relative_lib_imports:
+avoid_relative_lib_imports:
   status: hasFix
-LintCode.avoid_renaming_method_parameters:
+avoid_renaming_method_parameters:
   status: hasFix
-LintCode.avoid_return_types_on_setters:
+avoid_return_types_on_setters:
   status: hasFix
-LintCode.avoid_returning_null_for_void_from_function:
+avoid_returning_null_for_void_from_function:
   status: hasFix
-LintCode.avoid_returning_null_for_void_from_method:
+avoid_returning_null_for_void_from_method:
   status: hasFix
-LintCode.avoid_returning_this:
+avoid_returning_this:
   status: noFix
   notes: |-
     The fix would be to change the return type to `void`, but that requires a
     refactoring. (It might not be possible to clean up all invocation sites, but
     we could handle some of them.)
-LintCode.avoid_setters_without_getters:
+avoid_setters_without_getters:
   status: needsFix
   notes: |-
     The fix is to either add a corresponding getter or to remove the setter.
-LintCode.avoid_shadowing_type_parameters:
+avoid_shadowing_type_parameters:
   status: noFix
   notes: |-
     The fix is to rename the type parameter, which is a refactoring.
-LintCode.avoid_single_cascade_in_expression_statements:
+avoid_single_cascade_in_expression_statements:
   status: hasFix
-LintCode.avoid_slow_async_io:
+avoid_slow_async_io:
   status: needsFix
   notes: |-
     The fix is to use the corresponding sync method and to remove the `await`,
     but it's probably very seldom needed, so it's low priority.
-LintCode.avoid_type_to_string:
+avoid_type_to_string:
   status: noFix
   notes: |-
     Theoretically we could replace some uses with `is` checks, but it's probably
     uncommon enough to not be worth the cost.
-LintCode.avoid_types_as_parameter_names_type_parameter:
+avoid_types_as_parameter_names_type_parameter:
   status: noFix
   notes: |-
     The type variable needs to be renamed, but that's a refactoring.
-LintCode.avoid_types_as_parameter_names_formal_parameter:
+avoid_types_as_parameter_names_formal_parameter:
   status: hasFix
-LintCode.avoid_types_on_closure_parameters:
+avoid_types_on_closure_parameters:
   status: hasFix
-LintCode.avoid_unnecessary_containers:
+avoid_unnecessary_containers:
   status: hasFix
-LintCode.avoid_unused_constructor_parameters:
+avoid_unused_constructor_parameters:
   status: hasFix
-LintCode.avoid_void_async:
+avoid_void_async:
   status: hasFix
-LintCode.avoid_web_libraries_in_flutter:
+avoid_web_libraries_in_flutter:
   status: noFix
-LintCode.await_only_futures:
+await_only_futures:
   status: hasFix
-LintCode.camel_case_extensions:
+camel_case_extensions:
   status: noFix
   notes: |-
     The fix is to rename the extension, but that's a refactoring.
-LintCode.camel_case_types:
+camel_case_types:
   status: noFix
   notes: |-
     The fix is to rename the type, but that's a refactoring.
-LintCode.cancel_subscriptions:
+cancel_subscriptions:
   status: noFix
-LintCode.cascade_invocations:
+cascade_invocations:
   status: hasFix
-LintCode.cast_nullable_to_non_nullable:
+cast_nullable_to_non_nullable:
   status: hasFix
-LintCode.close_sinks:
+close_sinks:
   status: noFix
-LintCode.collection_methods_unrelated_type:
+collection_methods_unrelated_type:
   status: noFix
-LintCode.combinators_ordering:
+combinators_ordering:
   status: hasFix
-LintCode.comment_references:
+comment_references:
   status: hasFix
   notes: |-
     This lint should be deprecated when we have a doc-only form of import. At
     that point this will be a warning rather than a lint.
-LintCode.conditional_uri_does_not_exist:
+conditional_uri_does_not_exist:
   status: noFix
   notes: |-
     The fix is to create the file, but typically that means running a generator,
     which is outside the scope of fixes.
-LintCode.constant_identifier_names:
+constant_identifier_names:
   status: hasFix
   notes: |-
     Supported for local variables.
     Not supported for fields and top-level variables, has to be a refactoring.
-LintCode.control_flow_in_finally:
+control_flow_in_finally:
   status: noFix
-LintCode.curly_braces_in_flow_control_structures:
+curly_braces_in_flow_control_structures:
   status: hasFix
-LintCode.dangling_library_doc_comments:
+dangling_library_doc_comments:
   status: hasFix
-LintCode.depend_on_referenced_packages:
+depend_on_referenced_packages:
   status: needsFix
-LintCode.deprecated_consistency_constructor:
-  status: needsFix
-  notes: |-
-    The fix is to either remove deprecated or to add it in the missing places.
-LintCode.deprecated_consistency_field:
+deprecated_consistency_constructor:
   status: needsFix
   notes: |-
     The fix is to either remove deprecated or to add it in the missing places.
-LintCode.deprecated_consistency_parameter:
+deprecated_consistency_field:
   status: needsFix
   notes: |-
     The fix is to either remove deprecated or to add it in the missing places.
-LintCode.deprecated_member_use_from_same_package_without_message:
+deprecated_consistency_parameter:
+  status: needsFix
+  notes: |-
+    The fix is to either remove deprecated or to add it in the missing places.
+deprecated_member_use_from_same_package_without_message:
   status: hasFix
-LintCode.deprecated_member_use_from_same_package_with_message:
+deprecated_member_use_from_same_package_with_message:
   status: hasFix
-LintCode.diagnostic_describe_all_properties:
+diagnostic_describe_all_properties:
   status: hasFix
-LintCode.directives_ordering_alphabetical:
+directives_ordering_alphabetical:
   status: hasFix
-LintCode.directives_ordering_dart:
+directives_ordering_dart:
   status: hasFix
-LintCode.directives_ordering_exports:
+directives_ordering_exports:
   status: hasFix
-LintCode.directives_ordering_package_before_relative:
+directives_ordering_package_before_relative:
   status: hasFix
-LintCode.discarded_futures:
+discarded_futures:
   status: hasFix
-LintCode.do_not_use_environment:
+do_not_use_environment:
   status: noFix
-LintCode.document_ignores:
+document_ignores:
   status: needsFix
   notes: |-
     We of course cannot generate a fix including appropriate text, but we can
     insert a stub comment in the correct position.
-LintCode.empty_catches:
+empty_catches:
   status: hasFix
-LintCode.empty_constructor_bodies:
+empty_constructor_bodies:
   status: hasFix
-LintCode.empty_statements:
+empty_statements:
   status: hasFix
-LintCode.eol_at_end_of_file:
+eol_at_end_of_file:
   status: hasFix
-LintCode.erase_dart_type_extension_types:
+erase_dart_type_extension_types:
   status: needsEvaluation
-LintCode.exhaustive_cases:
+exhaustive_cases:
   status: hasFix
-LintCode.file_names:
+file_names:
   status: noFix
   notes: |-
     The fix is to rename the file, but that's a refactoring.
-LintCode.flutter_style_todos:
+flutter_style_todos:
   status: hasFix
-LintCode.hash_and_equals:
+hash_and_equals:
   status: hasFix
-LintCode.implementation_imports:
+implementation_imports:
   status: noFix
   notes: |-
     Theoretically, once analyzer can share dartdoc's method for finding public
     libraries that export a private one, we could offer the public libraries as
     a replacement. But a fix is blocked on having that support available.
-LintCode.implicit_call_tearoffs:
+implicit_call_tearoffs:
   status: hasFix
-LintCode.implicit_reopen:
+implicit_reopen:
   status: hasFix
-LintCode.invalid_case_patterns:
+invalid_case_patterns:
   status: hasFix
-LintCode.invalid_runtime_check_with_js_interop_types_dart_as_js:
+invalid_runtime_check_with_js_interop_types_dart_as_js:
   status: needsEvaluation
   notes: |-
     The fix is dependent on the specific types that are being used. In some
     cases, the type test is incorrect and has no fix besides removing the test.
     In other cases, JS interop helpers may be used to do the type test instead.
-LintCode.invalid_runtime_check_with_js_interop_types_dart_is_js:
+invalid_runtime_check_with_js_interop_types_dart_is_js:
   status: needsEvaluation
-LintCode.invalid_runtime_check_with_js_interop_types_js_as_dart:
+invalid_runtime_check_with_js_interop_types_js_as_dart:
   status: needsEvaluation
-LintCode.invalid_runtime_check_with_js_interop_types_js_as_incompatible_js:
+invalid_runtime_check_with_js_interop_types_js_as_incompatible_js:
   status: needsEvaluation
-LintCode.invalid_runtime_check_with_js_interop_types_js_is_dart:
+invalid_runtime_check_with_js_interop_types_js_is_dart:
   status: needsEvaluation
-LintCode.invalid_runtime_check_with_js_interop_types_js_is_inconsistent_js:
+invalid_runtime_check_with_js_interop_types_js_is_inconsistent_js:
   status: needsEvaluation
-LintCode.invalid_runtime_check_with_js_interop_types_js_is_unrelated_js:
+invalid_runtime_check_with_js_interop_types_js_is_unrelated_js:
   status: needsEvaluation
-LintCode.join_return_with_assignment:
+join_return_with_assignment:
   status: needsFix
-LintCode.leading_newlines_in_multiline_strings:
+leading_newlines_in_multiline_strings:
   status: hasFix
-LintCode.library_annotations:
+library_annotations:
   status: hasFix
-LintCode.library_names:
+library_names:
   status: noFix
   notes: |-
     The fix is to rename the library (possibly to an empty name), but that's a
     refactoring.
-LintCode.library_prefixes:
+library_prefixes:
   status: noFix
   notes: |-
     The fix is to rename the prefix, but that's a refactoring.
-LintCode.library_private_types_in_public_api:
+library_private_types_in_public_api:
   status: noFix
   notes: |-
     The fix is to either change the type in the API (which we can't automate) or
     to make the private type public, which (sort of) requires a refactoring.
-LintCode.lines_longer_than_80_chars:
+lines_longer_than_80_chars:
   status: noFix
-LintCode.literal_only_boolean_expressions:
+literal_only_boolean_expressions:
   status: noFix
-LintCode.matching_super_parameters:
+matching_super_parameters:
   status: needsFix
   notes: |-
     A little tricky, but two (non-conflicting) ideas:
@@ -2178,44 +2178,44 @@ LintCode.matching_super_parameters:
        parameter name.
     2. Transpose two super parameters if doing so would match up their
        super-constructor parameters.
-LintCode.missing_code_block_language_in_doc_comment:
+missing_code_block_language_in_doc_comment:
   status: needsEvaluation
-LintCode.missing_whitespace_between_adjacent_strings:
+missing_whitespace_between_adjacent_strings:
   status: needsFix
   notes: |-
     The fix is to add the whitespace. Might require a preference to know which
     string to add it to.
-LintCode.no_adjacent_strings_in_list:
+no_adjacent_strings_in_list:
   status: needsFix
   notes: |-
     The fix is to either add a comma or join the strings.
-LintCode.no_default_cases:
+no_default_cases:
   status: needsFix
   notes: |-
     The fix is to replace the `default` with a list of cases for the existing
     values that the default would have matched.
-LintCode.no_duplicate_case_values:
+no_duplicate_case_values:
   status: hasFix
-LintCode.no_leading_underscores_for_library_prefixes:
+no_leading_underscores_for_library_prefixes:
   status: hasFix
-LintCode.no_leading_underscores_for_local_identifiers:
+no_leading_underscores_for_local_identifiers:
   status: hasFix
-LintCode.no_literal_bool_comparisons:
+no_literal_bool_comparisons:
   status: hasFix
-LintCode.no_logic_in_create_state:
+no_logic_in_create_state:
   status: noFix
-LintCode.no_runtimeType_toString:
+no_runtimeType_toString:
   status: noFix
-LintCode.no_self_assignments:
+no_self_assignments:
   status: needsEvaluation
-LintCode.non_constant_identifier_names:
+non_constant_identifier_names:
   status: hasFix
   notes: |-
     Supported for local variables.
     Not supported for fields and top-level variables, has to be a refactoring.
-LintCode.noop_primitive_operations:
+noop_primitive_operations:
   status: hasFix
-LintCode.null_check_on_nullable_type_parameter:
+null_check_on_nullable_type_parameter:
   status: hasFix
   notes: |-
     A second fix is possible, in which we make the type parameter not
@@ -2224,1396 +2224,1396 @@ LintCode.null_check_on_nullable_type_parameter:
     `T foo<T extends num>()`. This is particularly valuable in the first
     case, where the choice to implicitly bound the type to `dynamic` may not
     have been intentional.
-LintCode.null_closures:
+null_closures:
   status: hasFix
-LintCode.omit_local_variable_types:
+omit_local_variable_types:
   status: hasFix
-LintCode.omit_obvious_local_variable_types:
+omit_obvious_local_variable_types:
   status: hasFix
-LintCode.omit_obvious_property_types:
+omit_obvious_property_types:
   status: hasFix
-LintCode.one_member_abstracts:
+one_member_abstracts:
   status: noFix
   notes: |-
     Theoretically we could convert the member to a top-level function, but that
     would require a refactoring.
-LintCode.only_throw_errors:
+only_throw_errors:
   status: noFix
-LintCode.overridden_fields:
+overridden_fields:
   status: noFix
-LintCode.package_names:
+package_names:
   status: noFix
   notes: |-
     The fix is to rename the package, but that's a refactoring.
-LintCode.package_prefixed_library_names:
+package_prefixed_library_names:
   status: noFix
   notes: |-
     The fix is to rename the library, but that's a refactoring.
-LintCode.parameter_assignments:
+parameter_assignments:
   status: noFix
   notes: |-
     Theoretically we could assign the parameter to a local variable and replace
     all references to the parameter with a reference to the variable, but that
     would require choosing a name for the local variable.
-LintCode.prefer_adjacent_string_concatenation:
+prefer_adjacent_string_concatenation:
   status: hasFix
-LintCode.prefer_asserts_in_initializer_lists:
+prefer_asserts_in_initializer_lists:
   status: needsFix
   notes: |-
     The fix is to move the assert to the initializer list.
-LintCode.prefer_asserts_with_message:
+prefer_asserts_with_message:
   status: noFix
-LintCode.prefer_collection_literals:
+prefer_collection_literals:
   status: hasFix
-LintCode.prefer_conditional_assignment:
+prefer_conditional_assignment:
   status: hasFix
-LintCode.prefer_const_constructors:
+prefer_const_constructors:
   status: hasFix
-LintCode.prefer_const_constructors_in_immutables:
+prefer_const_constructors_in_immutables:
   status: hasFix
-LintCode.prefer_const_declarations:
+prefer_const_declarations:
   status: hasFix
-LintCode.prefer_const_literals_to_create_immutables:
+prefer_const_literals_to_create_immutables:
   status: hasFix
-LintCode.prefer_constructors_over_static_methods:
+prefer_constructors_over_static_methods:
   status: needsFix
   notes: |-
     The fix is to rewrite the static method as a factory constructor.
-LintCode.prefer_contains_always_false:
+prefer_contains_always_false:
   status: hasFix
-LintCode.prefer_contains_always_true:
+prefer_contains_always_true:
   status: hasFix
-LintCode.prefer_contains_use_contains:
+prefer_contains_use_contains:
   status: hasFix
-LintCode.prefer_double_quotes:
+prefer_double_quotes:
   status: hasFix
-LintCode.prefer_expression_function_bodies:
+prefer_expression_function_bodies:
   status: hasFix
-LintCode.prefer_final_fields:
+prefer_final_fields:
   status: hasFix
-LintCode.prefer_final_in_for_each_pattern:
+prefer_final_in_for_each_pattern:
   status: hasFix
-LintCode.prefer_final_in_for_each_variable:
+prefer_final_in_for_each_variable:
   status: hasFix
-LintCode.prefer_final_locals:
+prefer_final_locals:
   status: hasFix
-LintCode.prefer_final_parameters:
+prefer_final_parameters:
   status: hasFix
-LintCode.prefer_for_elements_to_map_fromIterable:
+prefer_for_elements_to_map_fromIterable:
   status: hasFix
-LintCode.prefer_foreach:
+prefer_foreach:
   status: hasFix
-LintCode.prefer_function_declarations_over_variables:
+prefer_function_declarations_over_variables:
   status: hasFix
-LintCode.prefer_generic_function_type_aliases:
+prefer_generic_function_type_aliases:
   status: hasFix
-LintCode.prefer_if_elements_to_conditional_expressions:
+prefer_if_elements_to_conditional_expressions:
   status: hasFix
-LintCode.prefer_if_null_operators:
+prefer_if_null_operators:
   status: hasFix
-LintCode.prefer_initializing_formals:
+prefer_initializing_formals:
   status: hasFix
-LintCode.prefer_inlined_adds_multiple:
+prefer_inlined_adds_multiple:
   status: hasFix
-LintCode.prefer_inlined_adds_single:
+prefer_inlined_adds_single:
   status: hasFix
-LintCode.prefer_int_literals:
+prefer_int_literals:
   status: hasFix
-LintCode.prefer_interpolation_to_compose_strings:
+prefer_interpolation_to_compose_strings:
   status: hasFix
-LintCode.prefer_is_empty_always_false:
+prefer_is_empty_always_false:
   status: hasFix
-LintCode.prefer_is_empty_always_true:
+prefer_is_empty_always_true:
   status: hasFix
-LintCode.prefer_is_empty_use_is_empty:
+prefer_is_empty_use_is_empty:
   status: hasFix
-LintCode.prefer_is_empty_use_is_not_empty:
+prefer_is_empty_use_is_not_empty:
   status: hasFix
-LintCode.prefer_is_not_empty:
+prefer_is_not_empty:
   status: hasFix
-LintCode.prefer_is_not_operator:
+prefer_is_not_operator:
   status: hasFix
-LintCode.prefer_iterable_whereType:
+prefer_iterable_whereType:
   status: hasFix
-LintCode.prefer_mixin:
+prefer_mixin:
   status: needsFix
   notes: |-
     The fix is to either rewrite the class as a mixin or add the mixin modifier.
-LintCode.prefer_null_aware_method_calls:
+prefer_null_aware_method_calls:
   status: needsFix
   notes: |-
     The fix is to rewrite the invocation to use `?.`.
-LintCode.prefer_null_aware_operators:
+prefer_null_aware_operators:
   status: hasFix
-LintCode.prefer_relative_imports:
+prefer_relative_imports:
   status: hasFix
-LintCode.prefer_single_quotes:
+prefer_single_quotes:
   status: hasFix
-LintCode.prefer_spread_collections:
+prefer_spread_collections:
   status: hasFix
-LintCode.prefer_typing_uninitialized_variables_for_field:
+prefer_typing_uninitialized_variables_for_field:
   status: hasFix
-LintCode.prefer_typing_uninitialized_variables_for_local_variable:
+prefer_typing_uninitialized_variables_for_local_variable:
   status: hasFix
-LintCode.prefer_void_to_null:
+prefer_void_to_null:
   status: hasFix
-LintCode.provide_deprecation_message:
+provide_deprecation_message:
   status: noFix
   notes: |-
     Theoretically we could identify common patterns of messages in doc comments
     and move them into the annotation, but we'll never recognize all of the
     possible patterns.
-LintCode.public_member_api_docs:
+public_member_api_docs:
   status: noFix
-LintCode.recursive_getters:
+recursive_getters:
   status: noFix
-LintCode.removed_lint:
+removed_lint:
   status: noFix
-LintCode.remove_deprecations_in_breaking_versions:
+remove_deprecations_in_breaking_versions:
   status: needsFix
   notes: |-
     We can implement the fixes indicated in the messages.yaml.
-LintCode.require_trailing_commas:
+require_trailing_commas:
   status: hasFix
-LintCode.secure_pubspec_urls:
+secure_pubspec_urls:
   status: noFix
-LintCode.sized_box_for_whitespace:
+sized_box_for_whitespace:
   status: hasFix
-LintCode.sized_box_shrink_expand:
+sized_box_shrink_expand:
   status: needsFix
   notes: |-
     The fix is to invoke a different constructor.
-LintCode.slash_for_doc_comments:
+slash_for_doc_comments:
   status: hasFix
-LintCode.sort_child_properties_last:
+sort_child_properties_last:
   status: hasFix
-LintCode.sort_constructors_first:
+sort_constructors_first:
   status: hasFix
-LintCode.sort_pub_dependencies:
+sort_pub_dependencies:
   status: needsFix
-LintCode.sort_unnamed_constructors_first:
+sort_unnamed_constructors_first:
   status: hasFix
-LintCode.specify_nonobvious_local_variable_types:
+specify_nonobvious_local_variable_types:
   status: hasFix
-LintCode.specify_nonobvious_property_types:
+specify_nonobvious_property_types:
   status: hasFix
-LintCode.strict_top_level_inference_add_type:
+strict_top_level_inference_add_type:
   status: hasFix
-LintCode.strict_top_level_inference_replace_keyword:
+strict_top_level_inference_replace_keyword:
   status: noFix
   notes: |-
     Conceivably for variable declarations we can search some space (like the
     library or the compilation unit) for what values are assigned, and suggest
     the LUB of those value(s)' type(s).
-LintCode.strict_top_level_inference_split_to_types:
+strict_top_level_inference_split_to_types:
   status: noFix
   notes: |-
     Conceivably for variable declarations we can search some space (like the
     library or the compilation unit) for what values are assigned, and suggest
     the LUB of those value(s)' type(s).
-LintCode.switch_on_type:
+switch_on_type:
   status: noFix
-LintCode.test_types_in_equals:
+test_types_in_equals:
   status: noFix
-LintCode.throw_in_finally:
+throw_in_finally:
   status: noFix
-LintCode.tighten_type_of_initializing_formals:
+tighten_type_of_initializing_formals:
   status: needsFix
-LintCode.type_annotate_public_apis:
+type_annotate_public_apis:
   status: hasFix
-LintCode.type_init_formals:
+type_init_formals:
   status: hasFix
-LintCode.type_literal_in_constant_pattern:
+type_literal_in_constant_pattern:
   status: hasFix
-LintCode.unawaited_futures:
+unawaited_futures:
   status: hasFix
-LintCode.unintended_html_in_doc_comment:
+unintended_html_in_doc_comment:
   status: needsFix
   notes: |-
     The fix is to encode the angle brackets.
-LintCode.unnecessary_async:
+unnecessary_async:
   status: hasFix
-LintCode.unnecessary_await_in_return:
+unnecessary_await_in_return:
   status: hasFix
-LintCode.unnecessary_brace_in_string_interps:
+unnecessary_brace_in_string_interps:
   status: hasFix
-LintCode.unnecessary_breaks:
+unnecessary_breaks:
   status: hasFix
-LintCode.unnecessary_const:
+unnecessary_const:
   status: hasFix
-LintCode.unnecessary_constructor_name:
+unnecessary_constructor_name:
   status: hasFix
-LintCode.unnecessary_final_with_type:
+unnecessary_final_with_type:
   status: hasFix
-LintCode.unnecessary_final_without_type:
+unnecessary_final_without_type:
   status: hasFix
-LintCode.unnecessary_getters_setters:
+unnecessary_getters_setters:
   status: hasFix
-LintCode.unnecessary_ignore:
+unnecessary_ignore:
   status: hasFix
-LintCode.unnecessary_ignore_file:
+unnecessary_ignore_file:
   status: hasFix
-LintCode.unnecessary_ignore_name:
+unnecessary_ignore_name:
   status: hasFix
-LintCode.unnecessary_ignore_name_file:
+unnecessary_ignore_name_file:
   status: hasFix
-LintCode.unnecessary_lambdas:
+unnecessary_lambdas:
   status: hasFix
-LintCode.unnecessary_late:
+unnecessary_late:
   status: hasFix
-LintCode.unnecessary_library_directive:
+unnecessary_library_directive:
   status: hasFix
-LintCode.unnecessary_library_name:
+unnecessary_library_name:
   status: hasFix
-LintCode.unnecessary_new:
+unnecessary_new:
   status: hasFix
-LintCode.no_wildcard_variable_uses:
+no_wildcard_variable_uses:
   status: needsEvaluation
-LintCode.unnecessary_null_aware_assignments:
+unnecessary_null_aware_assignments:
   status: hasFix
-LintCode.unnecessary_null_aware_operator_on_extension_on_nullable:
+unnecessary_null_aware_operator_on_extension_on_nullable:
   status: needsFix
-LintCode.unnecessary_null_checks:
+unnecessary_null_checks:
   status: hasFix
-LintCode.unnecessary_null_in_if_null_operators:
+unnecessary_null_in_if_null_operators:
   status: hasFix
-LintCode.unnecessary_nullable_for_final_variable_declarations:
+unnecessary_nullable_for_final_variable_declarations:
   status: hasFix
-LintCode.unnecessary_overrides:
+unnecessary_overrides:
   status: hasFix
-LintCode.unnecessary_parenthesis:
+unnecessary_parenthesis:
   status: hasFix
-LintCode.unnecessary_raw_strings:
+unnecessary_raw_strings:
   status: hasFix
-LintCode.unnecessary_statements:
+unnecessary_statements:
   status: noFix
-LintCode.unnecessary_string_escapes:
+unnecessary_string_escapes:
   status: hasFix
-LintCode.unnecessary_string_interpolations:
+unnecessary_string_interpolations:
   status: hasFix
-LintCode.unnecessary_this:
+unnecessary_this:
   status: hasFix
-LintCode.unnecessary_to_list_in_spreads:
+unnecessary_to_list_in_spreads:
   status: hasFix
-LintCode.unnecessary_unawaited:
+unnecessary_unawaited:
   status: hasFix
-LintCode.unnecessary_underscores:
+unnecessary_underscores:
   status: hasFix
-LintCode.unreachable_from_main:
+unreachable_from_main:
   status: hasFix
-LintCode.unrelated_type_equality_checks_in_expression:
+unrelated_type_equality_checks_in_expression:
   status: needsEvaluation
-LintCode.unrelated_type_equality_checks_in_pattern:
+unrelated_type_equality_checks_in_pattern:
   status: needsEvaluation
-LintCode.unsafe_variance:
+unsafe_variance:
   status: noFix
   notes: |-
     A type like `X Function([X])` could be replaced by `X Function()`,
     or by `X Function([Never])`, or by `Function`, depending on the
     situation and the preferences of the developer. There is no
     universally applicable fix.
-LintCode.use_build_context_synchronously_async_use:
+use_build_context_synchronously_async_use:
   status: noFix
-LintCode.use_build_context_synchronously_wrong_mounted:
+use_build_context_synchronously_wrong_mounted:
   status: needsFix
   notes: |-
     We could have a fix that would replace a mounted check on the wrong element
     to a mounted check on the right element.
-LintCode.use_colored_box:
+use_colored_box:
   status: hasFix
-LintCode.use_decorated_box:
+use_decorated_box:
   status: hasFix
-LintCode.use_enums:
+use_enums:
   status: hasFix
-LintCode.use_full_hex_values_for_flutter_colors:
+use_full_hex_values_for_flutter_colors:
   status: hasFix
-LintCode.use_function_type_syntax_for_parameters:
+use_function_type_syntax_for_parameters:
   status: hasFix
-LintCode.use_if_null_to_convert_nulls_to_bools:
+use_if_null_to_convert_nulls_to_bools:
   status: hasFix
-LintCode.use_is_even_rather_than_modulo:
+use_is_even_rather_than_modulo:
   status: needsFix
-LintCode.use_key_in_widget_constructors:
+use_key_in_widget_constructors:
   status: hasFix
-LintCode.use_late_for_private_fields_and_variables:
+use_late_for_private_fields_and_variables:
   status: needsFix
-LintCode.use_named_constants:
+use_named_constants:
   status: hasFix
-LintCode.use_null_aware_elements:
+use_null_aware_elements:
   status: hasFix
-LintCode.use_raw_strings:
+use_raw_strings:
   status: hasFix
-LintCode.use_rethrow_when_possible:
+use_rethrow_when_possible:
   status: hasFix
-LintCode.use_setters_to_change_properties:
+use_setters_to_change_properties:
   status: noFix
   notes: |-
     Theoretically we could rewrite the method to a setter, but that would
     require a refactoring.
-LintCode.use_string_buffers:
+use_string_buffers:
   status: needsFix
   notes: |-
     It isn't clear that this occurs often enough to justify the cost.
-LintCode.use_string_in_part_of_directives:
+use_string_in_part_of_directives:
   status: hasFix
-LintCode.use_test_throws_matchers:
+use_test_throws_matchers:
   status: needsFix
-LintCode.use_super_parameters_multiple:
+use_super_parameters_multiple:
   status: hasFix
-LintCode.use_super_parameters_single:
+use_super_parameters_single:
   status: hasFix
-LintCode.use_to_and_as_if_applicable:
+use_to_and_as_if_applicable:
   status: noFix
   notes: |-
     This would require renaming the method, which is a refactoring.
-LintCode.use_truncating_division:
+use_truncating_division:
   status: hasFix
-LintCode.valid_regexps:
+valid_regexps:
   status: noFix
-LintCode.void_checks:
+void_checks:
   status: noFix
-ManifestWarningCode.CAMERA_PERMISSIONS_INCOMPATIBLE:
+CAMERA_PERMISSIONS_INCOMPATIBLE:
   status: noFix
-ManifestWarningCode.NO_TOUCHSCREEN_FEATURE:
+NO_TOUCHSCREEN_FEATURE:
   status: noFix
-ManifestWarningCode.NON_RESIZABLE_ACTIVITY:
+NON_RESIZABLE_ACTIVITY:
   status: noFix
-ManifestWarningCode.PERMISSION_IMPLIES_UNSUPPORTED_HARDWARE:
+PERMISSION_IMPLIES_UNSUPPORTED_HARDWARE:
   status: noFix
-ManifestWarningCode.SETTING_ORIENTATION_ON_ACTIVITY:
+SETTING_ORIENTATION_ON_ACTIVITY:
   status: noFix
-ManifestWarningCode.UNSUPPORTED_CHROME_OS_FEATURE:
+UNSUPPORTED_CHROME_OS_FEATURE:
   status: noFix
-ManifestWarningCode.UNSUPPORTED_CHROME_OS_HARDWARE:
+UNSUPPORTED_CHROME_OS_HARDWARE:
   status: noFix
-ParserErrorCode.ABSTRACT_CLASS_MEMBER:
+ABSTRACT_CLASS_MEMBER:
   status: hasFix
-ParserErrorCode.ABSTRACT_EXTERNAL_FIELD:
+ABSTRACT_EXTERNAL_FIELD:
   status: needsFix
   notes: |-
     Remove either the `abstract` or the `external` keyword.
-ParserErrorCode.ABSTRACT_FINAL_BASE_CLASS:
+ABSTRACT_FINAL_BASE_CLASS:
   status: needsFix
   notes: |-
     Remove either the `final` or `base` keyword.
-ParserErrorCode.ABSTRACT_FINAL_INTERFACE_CLASS:
+ABSTRACT_FINAL_INTERFACE_CLASS:
   status: needsFix
   notes: |-
     Remove either the `final` or `interface` keyword.
-ParserErrorCode.ABSTRACT_LATE_FIELD:
+ABSTRACT_LATE_FIELD:
   status: needsFix
   notes: |-
     Remove either the `abstract` or the `late` keyword.
-ParserErrorCode.ABSTRACT_SEALED_CLASS:
+ABSTRACT_SEALED_CLASS:
   status: needsFix
   notes: |-
     Remove either the `abstract` or the `sealed` keyword.
-ParserErrorCode.ABSTRACT_STATIC_FIELD:
+ABSTRACT_STATIC_FIELD:
   status: hasFix
-ParserErrorCode.ABSTRACT_STATIC_METHOD:
+ABSTRACT_STATIC_METHOD:
   status: hasFix
-ParserErrorCode.ANNOTATION_ON_TYPE_ARGUMENT:
+ANNOTATION_ON_TYPE_ARGUMENT:
   status: needsFix
   notes: |-
     Remove the annotation.
-ParserErrorCode.ANNOTATION_SPACE_BEFORE_PARENTHESIS:
+ANNOTATION_SPACE_BEFORE_PARENTHESIS:
   status: needsFix
   notes: |-
     Remove the extra spaces
-ParserErrorCode.ANNOTATION_WITH_TYPE_ARGUMENTS:
+ANNOTATION_WITH_TYPE_ARGUMENTS:
   status: needsFix
   notes: |-
     Remove the type arguments.
-ParserErrorCode.ANNOTATION_WITH_TYPE_ARGUMENTS_UNINSTANTIATED:
+ANNOTATION_WITH_TYPE_ARGUMENTS_UNINSTANTIATED:
   status: needsFix
   notes: |-
     Add the parens.
-ParserErrorCode.ASYNC_KEYWORD_USED_AS_IDENTIFIER:
+ASYNC_KEYWORD_USED_AS_IDENTIFIER:
   status: noFix
-ParserErrorCode.BASE_ENUM:
+BASE_ENUM:
   status: needsEvaluation
-ParserErrorCode.BINARY_OPERATOR_WRITTEN_OUT:
+BINARY_OPERATOR_WRITTEN_OUT:
   status: needsFix
   notes: |-
     Replace with the real operand.
-ParserErrorCode.BREAK_OUTSIDE_OF_LOOP:
+BREAK_OUTSIDE_OF_LOOP:
   status: noFix
-ParserErrorCode.CATCH_SYNTAX:
+CATCH_SYNTAX:
   status: needsFix
   notes: |-
     Add `(exception)`. (The longer form is suggested as a learning aid.)
-ParserErrorCode.CATCH_SYNTAX_EXTRA_PARAMETERS:
+CATCH_SYNTAX_EXTRA_PARAMETERS:
   status: noFix
-ParserErrorCode.CLASS_IN_CLASS:
+CLASS_IN_CLASS:
   status: needsFix
   notes: |-
     Move the inner class to the top-level.
-ParserErrorCode.COLON_IN_PLACE_OF_IN:
+COLON_IN_PLACE_OF_IN:
   status: hasFix
-ParserErrorCode.CONFLICTING_MODIFIERS:
+CONFLICTING_MODIFIERS:
   status: needsFix
   notes: |-
     Remove either the left or right modifier.
-ParserErrorCode.CONST_AND_FINAL:
+CONST_AND_FINAL:
   status: needsFix
   notes: |-
     Remove either `const` or `final`.
-ParserErrorCode.CONST_CLASS:
+CONST_CLASS:
   status: hasFix
-ParserErrorCode.CONST_CONSTRUCTOR_WITH_BODY:
+CONST_CONSTRUCTOR_WITH_BODY:
   status: noFix
-ParserErrorCode.CONST_FACTORY:
+CONST_FACTORY:
   status: hasFix
-ParserErrorCode.CONST_METHOD:
+CONST_METHOD:
   status: hasFix
-ParserErrorCode.CONST_WITHOUT_PRIMARY_CONSTRUCTOR:
+CONST_WITHOUT_PRIMARY_CONSTRUCTOR:
   status: needsFix
   notes: |-
     Remove the keyword.
     Add a primary constructor.
-ParserErrorCode.CONSTRUCTOR_WITH_RETURN_TYPE:
+CONSTRUCTOR_WITH_RETURN_TYPE:
   status: needsFix
   notes: |-
     Remove the return type
-ParserErrorCode.CONSTRUCTOR_WITH_TYPE_ARGUMENTS:
+CONSTRUCTOR_WITH_TYPE_ARGUMENTS:
   status: needsFix
   notes: |-
     Move the type arguments to after the class name.
   since: ~2.15
-ParserErrorCode.CONTINUE_OUTSIDE_OF_LOOP:
+CONTINUE_OUTSIDE_OF_LOOP:
   status: noFix
-ParserErrorCode.CONTINUE_WITHOUT_LABEL_IN_CASE:
+CONTINUE_WITHOUT_LABEL_IN_CASE:
   status: needsFix
   notes: |-
     Suggest each of the labels that are valid.
-ParserErrorCode.COVARIANT_AND_STATIC:
+COVARIANT_AND_STATIC:
   status: needsFix
   notes: |-
     Remove either `covariant` or `static`.
-ParserErrorCode.COVARIANT_CONSTRUCTOR:
+COVARIANT_CONSTRUCTOR:
   status: noFix
   notes: |-
     This error code is currently unreported and constructors
     are treated the same as members (see `COVARIANT_MEMBER`).
-ParserErrorCode.COVARIANT_MEMBER:
+COVARIANT_MEMBER:
   status: hasFix
-ParserErrorCode.DEFAULT_IN_SWITCH_EXPRESSION:
+DEFAULT_IN_SWITCH_EXPRESSION:
   status: hasFix
-ParserErrorCode.DEFAULT_VALUE_IN_FUNCTION_TYPE:
+DEFAULT_VALUE_IN_FUNCTION_TYPE:
   status: needsFix
   notes: |-
     Remove the default value.
-ParserErrorCode.DEFERRED_AFTER_PREFIX:
+DEFERRED_AFTER_PREFIX:
   status: needsFix
   notes: |-
     Move the `deferred` keyword before the prefix.
-ParserErrorCode.DIRECTIVE_AFTER_DECLARATION:
+DIRECTIVE_AFTER_DECLARATION:
   status: needsFix
   notes: |-
     Move the directive to the directive section.
-ParserErrorCode.DUPLICATE_DEFERRED:
+DUPLICATE_DEFERRED:
   status: needsFix
   notes: |-
     Remove the second `deferred`.
-ParserErrorCode.DUPLICATE_LABEL_IN_SWITCH_STATEMENT:
+DUPLICATE_LABEL_IN_SWITCH_STATEMENT:
   status: noFix
-ParserErrorCode.DUPLICATE_PREFIX:
+DUPLICATE_PREFIX:
   status: needsFix
   notes: |-
     Remove the duplicate.
-ParserErrorCode.DUPLICATED_MODIFIER:
+DUPLICATED_MODIFIER:
   status: hasFix
-ParserErrorCode.EMPTY_ENUM_BODY:
+EMPTY_ENUM_BODY:
   status: noFix
   notes: |-
     We can't guess at the names or number of the enum constants that should be
     added.
-ParserErrorCode.EMPTY_RECORD_LITERAL_WITH_COMMA:
+EMPTY_RECORD_LITERAL_WITH_COMMA:
   status: hasFix
-ParserErrorCode.EMPTY_RECORD_TYPE_NAMED_FIELDS_LIST:
+EMPTY_RECORD_TYPE_NAMED_FIELDS_LIST:
   status: noFix
   notes: |-
     It's likely that the user just hasn't provided a named field yet, and
     offering to remove the braces would be counter-productive.
-ParserErrorCode.EMPTY_RECORD_TYPE_WITH_COMMA:
+EMPTY_RECORD_TYPE_WITH_COMMA:
   status: hasFix
-ParserErrorCode.ENUM_IN_CLASS:
+ENUM_IN_CLASS:
   status: needsFix
   notes: |-
     Move the nested enum to the top level.
-ParserErrorCode.EQUALITY_CANNOT_BE_EQUALITY_OPERAND:
+EQUALITY_CANNOT_BE_EQUALITY_OPERAND:
   status: noFix
-ParserErrorCode.EXPECTED_CASE_OR_DEFAULT:
+EXPECTED_CASE_OR_DEFAULT:
   status: noFix
-ParserErrorCode.EXPECTED_CATCH_CLAUSE_BODY:
+EXPECTED_CATCH_CLAUSE_BODY:
   status: hasFix
-ParserErrorCode.EXPECTED_CLASS_BODY:
+EXPECTED_CLASS_BODY:
   status: hasFix
-ParserErrorCode.EXPECTED_CLASS_MEMBER:
+EXPECTED_CLASS_MEMBER:
   status: noFix
-ParserErrorCode.EXPECTED_ELSE_OR_COMMA:
+EXPECTED_ELSE_OR_COMMA:
   status: noFix
-ParserErrorCode.EXPECTED_EXECUTABLE:
+EXPECTED_EXECUTABLE:
   status: noFix
-ParserErrorCode.EXPECTED_EXTENSION_BODY:
+EXPECTED_EXTENSION_BODY:
   status: hasFix
-ParserErrorCode.EXPECTED_EXTENSION_TYPE_BODY:
+EXPECTED_EXTENSION_TYPE_BODY:
   status: hasFix
-ParserErrorCode.EXPECTED_FINALLY_CLAUSE_BODY:
+EXPECTED_FINALLY_CLAUSE_BODY:
   status: hasFix
-ParserErrorCode.EXPECTED_IDENTIFIER_BUT_GOT_KEYWORD:
+EXPECTED_IDENTIFIER_BUT_GOT_KEYWORD:
   status: noFix
-ParserErrorCode.EXPECTED_INSTEAD:
+EXPECTED_INSTEAD:
   status: noFix
-ParserErrorCode.EXPECTED_LIST_OR_MAP_LITERAL:
+EXPECTED_LIST_OR_MAP_LITERAL:
   status: needsFix
   notes: |-
     Add the braces or brackets for the literal.
-ParserErrorCode.EXPECTED_MIXIN_BODY:
+EXPECTED_MIXIN_BODY:
   status: hasFix
-ParserErrorCode.EXPECTED_NAMED_TYPE_EXTENDS:
+EXPECTED_NAMED_TYPE_EXTENDS:
   status: noFix
-ParserErrorCode.EXPECTED_NAMED_TYPE_IMPLEMENTS:
+EXPECTED_NAMED_TYPE_IMPLEMENTS:
   status: noFix
-ParserErrorCode.EXPECTED_NAMED_TYPE_ON:
+EXPECTED_NAMED_TYPE_ON:
   status: noFix
-ParserErrorCode.EXPECTED_NAMED_TYPE_WITH:
+EXPECTED_NAMED_TYPE_WITH:
   status: noFix
-ParserErrorCode.EXPECTED_REPRESENTATION_FIELD:
+EXPECTED_REPRESENTATION_FIELD:
   status: noFix
-ParserErrorCode.EXPECTED_REPRESENTATION_TYPE:
+EXPECTED_REPRESENTATION_TYPE:
   status: noFix
-ParserErrorCode.EXPECTED_STRING_LITERAL:
+EXPECTED_STRING_LITERAL:
   status: noFix
-ParserErrorCode.EXPECTED_SWITCH_EXPRESSION_BODY:
+EXPECTED_SWITCH_EXPRESSION_BODY:
   status: hasFix
-ParserErrorCode.EXPECTED_SWITCH_STATEMENT_BODY:
+EXPECTED_SWITCH_STATEMENT_BODY:
   status: hasFix
-ParserErrorCode.EXPECTED_TOKEN:
+EXPECTED_TOKEN:
   status: hasFix
-ParserErrorCode.EXPECTED_TRY_STATEMENT_BODY:
+EXPECTED_TRY_STATEMENT_BODY:
   status: hasFix
-ParserErrorCode.EXPECTED_TYPE_NAME:
+EXPECTED_TYPE_NAME:
   status: noFix
-ParserErrorCode.EXPERIMENT_NOT_ENABLED:
+EXPERIMENT_NOT_ENABLED:
   status: needsFix
   notes: |-
     Update the sdk constraints.
-ParserErrorCode.EXPERIMENT_NOT_ENABLED_OFF_BY_DEFAULT:
+EXPERIMENT_NOT_ENABLED_OFF_BY_DEFAULT:
   status: needsFix
   notes: |-
     Add the experiment to the analysis options file.
-ParserErrorCode.EXPORT_DIRECTIVE_AFTER_PART_DIRECTIVE:
+EXPORT_DIRECTIVE_AFTER_PART_DIRECTIVE:
   status: needsFix
   notes: |-
     Move the directive to a valid place.
-ParserErrorCode.EXTENSION_AUGMENTATION_HAS_ON_CLAUSE:
+EXTENSION_AUGMENTATION_HAS_ON_CLAUSE:
   status: hasFix
-ParserErrorCode.EXTENSION_DECLARES_ABSTRACT_MEMBER:
+EXTENSION_DECLARES_ABSTRACT_MEMBER:
   status: needsFix
   notes: |-
     Provide an empty body for the member.
-ParserErrorCode.EXTENSION_DECLARES_CONSTRUCTOR:
+EXTENSION_DECLARES_CONSTRUCTOR:
   status: hasFix
-ParserErrorCode.EXTENSION_TYPE_EXTENDS:
+EXTENSION_TYPE_EXTENDS:
   status: needsEvaluation
-ParserErrorCode.EXTENSION_TYPE_WITH:
+EXTENSION_TYPE_WITH:
   status: needsEvaluation
-ParserErrorCode.EXTERNAL_CLASS:
+EXTERNAL_CLASS:
   status: hasFix
-ParserErrorCode.EXTERNAL_CONSTRUCTOR_WITH_FIELD_INITIALIZERS:
+EXTERNAL_CONSTRUCTOR_WITH_FIELD_INITIALIZERS:
   status: needsFix
   notes: |-
     Remove the `external` keyword or remove the initializers.
-ParserErrorCode.EXTERNAL_CONSTRUCTOR_WITH_INITIALIZER:
+EXTERNAL_CONSTRUCTOR_WITH_INITIALIZER:
   status: needsFix
   notes: |-
     Remove the `external` keyword or remove the initializers.
-ParserErrorCode.EXTERNAL_ENUM:
+EXTERNAL_ENUM:
   status: hasFix
-ParserErrorCode.EXTERNAL_FACTORY_REDIRECTION:
+EXTERNAL_FACTORY_REDIRECTION:
   status: needsFix
   notes: |-
     Remove the `external` keyword.
-ParserErrorCode.EXTERNAL_FACTORY_WITH_BODY:
+EXTERNAL_FACTORY_WITH_BODY:
   status: needsFix
   notes: |-
     Remove the `external` keyword, or remove the body of the factory.
-ParserErrorCode.EXTERNAL_GETTER_WITH_BODY:
+EXTERNAL_GETTER_WITH_BODY:
   status: needsFix
   notes: |-
     Remove the `external` keyword, or remove the body.
-ParserErrorCode.EXTERNAL_LATE_FIELD:
+EXTERNAL_LATE_FIELD:
   status: needsFix
   notes: |-
     Remove the `external` keyword.
-ParserErrorCode.EXTERNAL_METHOD_WITH_BODY:
+EXTERNAL_METHOD_WITH_BODY:
   status: needsFix
   notes: |-
     Remove the `external` keyword, or remove the body.
-ParserErrorCode.EXTERNAL_OPERATOR_WITH_BODY:
+EXTERNAL_OPERATOR_WITH_BODY:
   status: needsFix
   notes: |-
     Remove the `external` keyword, or remove the body.
-ParserErrorCode.EXTERNAL_SETTER_WITH_BODY:
+EXTERNAL_SETTER_WITH_BODY:
   status: needsFix
   notes: |-
     Remove the `external` keyword, or remove the body.
-ParserErrorCode.EXTERNAL_TYPEDEF:
+EXTERNAL_TYPEDEF:
   status: hasFix
-ParserErrorCode.EXTRANEOUS_MODIFIER:
+EXTRANEOUS_MODIFIER:
   status: hasFix
-ParserErrorCode.EXTRANEOUS_MODIFIER_IN_EXTENSION_TYPE:
+EXTRANEOUS_MODIFIER_IN_EXTENSION_TYPE:
   status: needsEvaluation
-ParserErrorCode.EXTRANEOUS_MODIFIER_IN_PRIMARY_CONSTRUCTOR:
+EXTRANEOUS_MODIFIER_IN_PRIMARY_CONSTRUCTOR:
   status: needsEvaluation
-ParserErrorCode.FACTORY_TOP_LEVEL_DECLARATION:
+FACTORY_TOP_LEVEL_DECLARATION:
   status: hasFix
-ParserErrorCode.FACTORY_WITH_INITIALIZERS:
+FACTORY_WITH_INITIALIZERS:
   status: needsFix
   notes: |-
     Remove the `factory` keyword or remove the initializers.
-ParserErrorCode.FACTORY_WITHOUT_BODY:
+FACTORY_WITHOUT_BODY:
   status: noFix
-ParserErrorCode.FIELD_INITIALIZED_OUTSIDE_DECLARING_CLASS:
+FIELD_INITIALIZED_OUTSIDE_DECLARING_CLASS:
   status: noFix
-ParserErrorCode.FINAL_AND_COVARIANT:
+FINAL_AND_COVARIANT:
   status: needsFix
   notes: |-
     Remove either `final` or `covariant`.
-ParserErrorCode.FINAL_AND_COVARIANT_LATE_WITH_INITIALIZER:
+FINAL_AND_COVARIANT_LATE_WITH_INITIALIZER:
   status: needsFix
   notes: |-
     Remove either `final` or `covariant`, or remove the initializer.
-ParserErrorCode.FINAL_AND_VAR:
+FINAL_AND_VAR:
   status: needsFix
   notes: |-
     Remove either `final` or `var`.
-ParserErrorCode.FINAL_CONSTRUCTOR:
+FINAL_CONSTRUCTOR:
   status: hasFix
-ParserErrorCode.FINAL_ENUM:
+FINAL_ENUM:
   status: hasFix
-ParserErrorCode.FINAL_METHOD:
+FINAL_METHOD:
   status: hasFix
-ParserErrorCode.FINAL_MIXIN:
+FINAL_MIXIN:
   status: hasFix
-ParserErrorCode.FINAL_MIXIN_CLASS:
+FINAL_MIXIN_CLASS:
   status: hasFix
-ParserErrorCode.FUNCTION_TYPED_PARAMETER_VAR:
+FUNCTION_TYPED_PARAMETER_VAR:
   status: noFix
-ParserErrorCode.GETTER_CONSTRUCTOR:
+GETTER_CONSTRUCTOR:
   status: hasFix
-ParserErrorCode.GETTER_IN_FUNCTION:
+GETTER_IN_FUNCTION:
   status: needsFix
   notes: |-
     Move the getter outside the function, or convert the getter to a function.
-ParserErrorCode.GETTER_WITH_PARAMETERS:
+GETTER_WITH_PARAMETERS:
   status: hasFix
-ParserErrorCode.ILLEGAL_ASSIGNMENT_TO_NON_ASSIGNABLE:
+ILLEGAL_ASSIGNMENT_TO_NON_ASSIGNABLE:
   status: noFix
-ParserErrorCode.ILLEGAL_PATTERN_ASSIGNMENT_VARIABLE_NAME:
+ILLEGAL_PATTERN_ASSIGNMENT_VARIABLE_NAME:
   status: needsEvaluation
-ParserErrorCode.ILLEGAL_PATTERN_IDENTIFIER_NAME:
+ILLEGAL_PATTERN_IDENTIFIER_NAME:
   status: needsEvaluation
-ParserErrorCode.ILLEGAL_PATTERN_VARIABLE_NAME:
+ILLEGAL_PATTERN_VARIABLE_NAME:
   status: needsEvaluation
-ParserErrorCode.IMPLEMENTS_BEFORE_EXTENDS:
+IMPLEMENTS_BEFORE_EXTENDS:
   status: needsFix
   notes: |-
     Move the extends clause first.
-ParserErrorCode.IMPLEMENTS_BEFORE_ON:
+IMPLEMENTS_BEFORE_ON:
   status: needsFix
   notes: |-
     Move the implements after the on.
-ParserErrorCode.IMPLEMENTS_BEFORE_WITH:
+IMPLEMENTS_BEFORE_WITH:
   status: needsFix
   notes: |-
     Move the implements after the with.
-ParserErrorCode.IMPORT_DIRECTIVE_AFTER_PART_DIRECTIVE:
+IMPORT_DIRECTIVE_AFTER_PART_DIRECTIVE:
   status: needsFix
   notes: |-
     Move the directive to a valid location.
-ParserErrorCode.INITIALIZED_VARIABLE_IN_FOR_EACH:
+INITIALIZED_VARIABLE_IN_FOR_EACH:
   status: needsFix
   notes: |-
     Remove the initializer.
-ParserErrorCode.INTERFACE_ENUM:
+INTERFACE_ENUM:
   status: needsEvaluation
-ParserErrorCode.INTERFACE_MIXIN:
+INTERFACE_MIXIN:
   status: hasFix
-ParserErrorCode.INTERFACE_MIXIN_CLASS:
+INTERFACE_MIXIN_CLASS:
   status: hasFix
-ParserErrorCode.INVALID_AWAIT_IN_FOR:
+INVALID_AWAIT_IN_FOR:
   status: noFix
   notes: |-
     We could potentially remove the await, but we can't convert the loop and it
     seems wrong to hide the second option.
-ParserErrorCode.INVALID_CODE_POINT:
+INVALID_CODE_POINT:
   status: noFix
-ParserErrorCode.INVALID_COMMENT_REFERENCE:
+INVALID_COMMENT_REFERENCE:
   status: noFix
-ParserErrorCode.INVALID_CONSTANT_CONST_PREFIX:
+INVALID_CONSTANT_CONST_PREFIX:
   status: needsFix
   notes: |-
     Add parents around the expression following `const`.
-ParserErrorCode.INVALID_CONSTANT_PATTERN_BINARY:
+INVALID_CONSTANT_PATTERN_BINARY:
   status: hasFix
-ParserErrorCode.INVALID_CONSTANT_PATTERN_DUPLICATE_CONST:
+INVALID_CONSTANT_PATTERN_DUPLICATE_CONST:
   status: needsFix
   notes: |-
     Remove all but the first `const`.
-ParserErrorCode.INVALID_CONSTANT_PATTERN_EMPTY_RECORD_LITERAL:
+INVALID_CONSTANT_PATTERN_EMPTY_RECORD_LITERAL:
   status: noFix
-ParserErrorCode.INVALID_CONSTANT_PATTERN_GENERIC:
+INVALID_CONSTANT_PATTERN_GENERIC:
   status: hasFix
-ParserErrorCode.INVALID_CONSTANT_PATTERN_NEGATION:
+INVALID_CONSTANT_PATTERN_NEGATION:
   status: hasFix
-ParserErrorCode.INVALID_CONSTANT_PATTERN_UNARY:
+INVALID_CONSTANT_PATTERN_UNARY:
   status: needsFix
   notes: |-
     Use `AddConst.new`.
-ParserErrorCode.INVALID_CONSTRUCTOR_NAME:
+INVALID_CONSTRUCTOR_NAME:
   status: noFix
-ParserErrorCode.INVALID_GENERIC_FUNCTION_TYPE:
+INVALID_GENERIC_FUNCTION_TYPE:
   status: noFix
-ParserErrorCode.INVALID_HEX_ESCAPE:
+INVALID_HEX_ESCAPE:
   status: noFix
-ParserErrorCode.INVALID_INITIALIZER:
+INVALID_INITIALIZER:
   status: noFix
-ParserErrorCode.INVALID_INSIDE_UNARY_PATTERN:
+INVALID_INSIDE_UNARY_PATTERN:
   status: hasFix
-ParserErrorCode.INVALID_LITERAL_IN_CONFIGURATION:
+INVALID_LITERAL_IN_CONFIGURATION:
   status: noFix
-ParserErrorCode.INVALID_OPERATOR:
+INVALID_OPERATOR:
   status: noFix
-ParserErrorCode.INVALID_OPERATOR_FOR_SUPER:
+INVALID_OPERATOR_FOR_SUPER:
   status: noFix
-ParserErrorCode.INVALID_OPERATOR_QUESTIONMARK_PERIOD_FOR_SUPER:
+INVALID_OPERATOR_QUESTIONMARK_PERIOD_FOR_SUPER:
   status: needsFix
   notes: |-
     Replace `?.` with `.`.
-ParserErrorCode.INVALID_STAR_AFTER_ASYNC:
+INVALID_STAR_AFTER_ASYNC:
   status: needsFix
   notes: |-
     Convert to a block body (already an assist, maybe no work needed).
-ParserErrorCode.INVALID_SUPER_IN_INITIALIZER:
+INVALID_SUPER_IN_INITIALIZER:
   status: noFix
-ParserErrorCode.INVALID_SYNC:
+INVALID_SYNC:
   status: needsFix
   notes: |-
     Convert to a block body (already an assist, maybe no work needed).
-ParserErrorCode.INVALID_THIS_IN_INITIALIZER:
+INVALID_THIS_IN_INITIALIZER:
   status: noFix
-ParserErrorCode.INVALID_UNICODE_ESCAPE_STARTED:
+INVALID_UNICODE_ESCAPE_STARTED:
   status: noFix
-ParserErrorCode.INVALID_UNICODE_ESCAPE_U_BRACKET:
+INVALID_UNICODE_ESCAPE_U_BRACKET:
   status: noFix
-ParserErrorCode.INVALID_UNICODE_ESCAPE_U_NO_BRACKET:
+INVALID_UNICODE_ESCAPE_U_NO_BRACKET:
   status: noFix
-ParserErrorCode.INVALID_UNICODE_ESCAPE_U_STARTED:
+INVALID_UNICODE_ESCAPE_U_STARTED:
   status: noFix
-ParserErrorCode.INVALID_USE_OF_COVARIANT_IN_EXTENSION:
+INVALID_USE_OF_COVARIANT_IN_EXTENSION:
   status: hasFix
-ParserErrorCode.INVALID_USE_OF_IDENTIFIER_AUGMENTED:
+INVALID_USE_OF_IDENTIFIER_AUGMENTED:
   status: noFix
-ParserErrorCode.LATE_PATTERN_VARIABLE_DECLARATION:
+LATE_PATTERN_VARIABLE_DECLARATION:
   status: hasFix
-ParserErrorCode.LIBRARY_DIRECTIVE_NOT_FIRST:
+LIBRARY_DIRECTIVE_NOT_FIRST:
   status: needsFix
   notes: |-
     Move the directive.
-ParserErrorCode.LITERAL_WITH_CLASS_AND_NEW:
+LITERAL_WITH_CLASS_AND_NEW:
   status: needsFix
   notes: |-
     Remove `new List.`.
-ParserErrorCode.LITERAL_WITH_CLASS:
+LITERAL_WITH_CLASS:
   status: needsFix
   notes: |-
     Remove the `List.`.
-ParserErrorCode.LITERAL_WITH_NEW:
+LITERAL_WITH_NEW:
   status: hasFix
-ParserErrorCode.LOCAL_FUNCTION_DECLARATION_MODIFIER:
+LOCAL_FUNCTION_DECLARATION_MODIFIER:
   status: noFix
-ParserErrorCode.MEMBER_WITH_CLASS_NAME:
+MEMBER_WITH_CLASS_NAME:
   status: noFix
-ParserErrorCode.MISSING_ASSIGNABLE_SELECTOR:
+MISSING_ASSIGNABLE_SELECTOR:
   status: noFix
-ParserErrorCode.MISSING_ASSIGNMENT_IN_INITIALIZER:
+MISSING_ASSIGNMENT_IN_INITIALIZER:
   status: needsFix
   notes: |-
     Add the `=`.
-ParserErrorCode.MISSING_CATCH_OR_FINALLY:
+MISSING_CATCH_OR_FINALLY:
   status: noFix
-ParserErrorCode.MISSING_CLOSING_PARENTHESIS:
+MISSING_CLOSING_PARENTHESIS:
   status: noFix
   notes: |-
     The targeted location isn't likely to be the right place for the paren.
-ParserErrorCode.MISSING_CONST_FINAL_VAR_OR_TYPE:
+MISSING_CONST_FINAL_VAR_OR_TYPE:
   status: hasFix
-ParserErrorCode.MISSING_ENUM_BODY:
+MISSING_ENUM_BODY:
   status: hasFix
-ParserErrorCode.MISSING_EXPRESSION_IN_INITIALIZER:
+MISSING_EXPRESSION_IN_INITIALIZER:
   status: noFix
-ParserErrorCode.MISSING_EXPRESSION_IN_THROW:
+MISSING_EXPRESSION_IN_THROW:
   status: noFix
-ParserErrorCode.MISSING_FUNCTION_BODY:
+MISSING_FUNCTION_BODY:
   status: hasFix
-ParserErrorCode.MISSING_FUNCTION_KEYWORD:
+MISSING_FUNCTION_KEYWORD:
   status: noFix
-ParserErrorCode.MISSING_FUNCTION_PARAMETERS:
+MISSING_FUNCTION_PARAMETERS:
   status: noFix
-ParserErrorCode.MISSING_GET:
+MISSING_GET:
   status: needsFix
   notes: |-
     Add the `get`.
-ParserErrorCode.MISSING_IDENTIFIER:
+MISSING_IDENTIFIER:
   status: noFix
-ParserErrorCode.MISSING_INITIALIZER:
+MISSING_INITIALIZER:
   status: noFix
-ParserErrorCode.MISSING_KEYWORD_OPERATOR:
+MISSING_KEYWORD_OPERATOR:
   status: needsFix
   notes: |-
     Add `operator`.
-ParserErrorCode.MISSING_METHOD_PARAMETERS:
+MISSING_METHOD_PARAMETERS:
   status: needsFix
   notes: |-
     Add an empty parameter list.
-ParserErrorCode.MISSING_NAME_FOR_NAMED_PARAMETER:
+MISSING_NAME_FOR_NAMED_PARAMETER:
   status: noFix
-ParserErrorCode.MISSING_NAME_IN_LIBRARY_DIRECTIVE:
+MISSING_NAME_IN_LIBRARY_DIRECTIVE:
   status: noFix
-ParserErrorCode.MISSING_NAME_IN_PART_OF_DIRECTIVE:
+MISSING_NAME_IN_PART_OF_DIRECTIVE:
   status: noFix
-ParserErrorCode.MISSING_PREFIX_IN_DEFERRED_IMPORT:
+MISSING_PREFIX_IN_DEFERRED_IMPORT:
   status: noFix
-ParserErrorCode.MISSING_PRIMARY_CONSTRUCTOR:
+MISSING_PRIMARY_CONSTRUCTOR:
   status: needsEvaluation
-ParserErrorCode.MISSING_PRIMARY_CONSTRUCTOR_PARAMETERS:
+MISSING_PRIMARY_CONSTRUCTOR_PARAMETERS:
   status: needsEvaluation
-ParserErrorCode.MISSING_STAR_AFTER_SYNC:
+MISSING_STAR_AFTER_SYNC:
   status: needsFix
   notes: |-
     Remove the `sync` keyword. Add a `*`.
-ParserErrorCode.MISSING_STATEMENT:
+MISSING_STATEMENT:
   status: noFix
-ParserErrorCode.MISSING_TERMINATOR_FOR_PARAMETER_GROUP:
+MISSING_TERMINATOR_FOR_PARAMETER_GROUP:
   status: needsFix
   notes: |-
     Add the missing terminator.
-ParserErrorCode.MISSING_TYPEDEF_PARAMETERS:
+MISSING_TYPEDEF_PARAMETERS:
   status: hasFix
-ParserErrorCode.MISSING_VARIABLE_IN_FOR_EACH:
+MISSING_VARIABLE_IN_FOR_EACH:
   status: noFix
-ParserErrorCode.MIXED_PARAMETER_GROUPS:
+MIXED_PARAMETER_GROUPS:
   status: noFix
-ParserErrorCode.MIXIN_DECLARES_CONSTRUCTOR:
+MIXIN_DECLARES_CONSTRUCTOR:
   status: hasFix
-ParserErrorCode.MIXIN_WITH_CLAUSE:
+MIXIN_WITH_CLAUSE:
   status: needsEvaluation
-ParserErrorCode.MODIFIER_OUT_OF_ORDER:
+MODIFIER_OUT_OF_ORDER:
   status: noFix
   notes: |-
     There isn't enough information to reorder them correctly. Consider making
     this diagnostic less general so that we'll have information for a fix.
-ParserErrorCode.MULTIPLE_CLAUSES:
+MULTIPLE_CLAUSES:
   status: noFix
   notes: |-
     There isn't enough information to know how to fix it. Consider making this
     diagnostic less general so that we'll have information for a fix.
-ParserErrorCode.MULTIPLE_EXTENDS_CLAUSES:
+MULTIPLE_EXTENDS_CLAUSES:
   status: noFix
-ParserErrorCode.MULTIPLE_IMPLEMENTS_CLAUSES:
+MULTIPLE_IMPLEMENTS_CLAUSES:
   status: needsFix
   notes: |-
     Merge the two clauses.
-ParserErrorCode.MULTIPLE_LIBRARY_DIRECTIVES:
+MULTIPLE_LIBRARY_DIRECTIVES:
   status: noFix
-ParserErrorCode.MULTIPLE_NAMED_PARAMETER_GROUPS:
+MULTIPLE_NAMED_PARAMETER_GROUPS:
   status: needsFix
   notes: |-
     Merge the groups.
-ParserErrorCode.MULTIPLE_ON_CLAUSES:
+MULTIPLE_ON_CLAUSES:
   status: needsFix
   notes: |-
     Merge the clauses.
-ParserErrorCode.MULTIPLE_PART_OF_DIRECTIVES:
+MULTIPLE_PART_OF_DIRECTIVES:
   status: noFix
-ParserErrorCode.MULTIPLE_POSITIONAL_PARAMETER_GROUPS:
+MULTIPLE_POSITIONAL_PARAMETER_GROUPS:
   status: needsFix
   notes: |-
     Merge the groups.
-ParserErrorCode.MULTIPLE_REPRESENTATION_FIELDS:
+MULTIPLE_REPRESENTATION_FIELDS:
   status: needsFix
   notes: |-
     Remove extra fields.
     Maybe wrap into a record.
-ParserErrorCode.MULTIPLE_VARIABLES_IN_FOR_EACH:
+MULTIPLE_VARIABLES_IN_FOR_EACH:
   status: noFix
-ParserErrorCode.MULTIPLE_VARIANCE_MODIFIERS:
+MULTIPLE_VARIANCE_MODIFIERS:
   status: noFix
-ParserErrorCode.MULTIPLE_WITH_CLAUSES:
+MULTIPLE_WITH_CLAUSES:
   status: needsFix
   notes: |-
     Merge the two clauses.
-ParserErrorCode.NAMED_FUNCTION_EXPRESSION:
+NAMED_FUNCTION_EXPRESSION:
   status: needsFix
   notes: |-
     Remove the name.
-ParserErrorCode.NAMED_FUNCTION_TYPE:
+NAMED_FUNCTION_TYPE:
   status: needsFix
   notes: |-
     Replace the name with `Function`.
-ParserErrorCode.NAMED_PARAMETER_OUTSIDE_GROUP:
+NAMED_PARAMETER_OUTSIDE_GROUP:
   status: needsFix
   notes: |-
     Move it inside a group, creating the group if it doesn't already exist.
-ParserErrorCode.NATIVE_CLAUSE_IN_NON_SDK_CODE:
+NATIVE_CLAUSE_IN_NON_SDK_CODE:
   status: needsFix
   notes: |-
     Remove the native clause.
-ParserErrorCode.NATIVE_CLAUSE_SHOULD_BE_ANNOTATION:
+NATIVE_CLAUSE_SHOULD_BE_ANNOTATION:
   status: noFix
-ParserErrorCode.NATIVE_FUNCTION_BODY_IN_NON_SDK_CODE:
+NATIVE_FUNCTION_BODY_IN_NON_SDK_CODE:
   status: needsFix
   notes: |-
     Remove the `native` keyword.
-ParserErrorCode.NON_CONSTRUCTOR_FACTORY:
+NON_CONSTRUCTOR_FACTORY:
   status: needsFix
   notes: |-
     Remove the keyword `factory`.
-ParserErrorCode.NON_IDENTIFIER_LIBRARY_NAME:
+NON_IDENTIFIER_LIBRARY_NAME:
   status: noFix
-ParserErrorCode.NON_PART_OF_DIRECTIVE_IN_PART:
+NON_PART_OF_DIRECTIVE_IN_PART:
   status: needsFix
   notes: |-
     Remove the directive. Move the directive to the library.
-ParserErrorCode.NON_STRING_LITERAL_AS_URI:
+NON_STRING_LITERAL_AS_URI:
   status: noFix
-ParserErrorCode.NON_USER_DEFINABLE_OPERATOR:
+NON_USER_DEFINABLE_OPERATOR:
   status: noFix
-ParserErrorCode.NORMAL_BEFORE_OPTIONAL_PARAMETERS:
+NORMAL_BEFORE_OPTIONAL_PARAMETERS:
   status: needsFix
   notes: |-
     Move the normal parameters before the optional.
-ParserErrorCode.NULL_AWARE_CASCADE_OUT_OF_ORDER:
+NULL_AWARE_CASCADE_OUT_OF_ORDER:
   status: needsFix
   notes: |-
     Move the `?..` to the first operator in the chain.
-ParserErrorCode.OUT_OF_ORDER_CLAUSES:
+OUT_OF_ORDER_CLAUSES:
   status: noFix
   notes: |-
     There isn't enough information for a fix. Consider splitting this diagnostic
     so that each variant has enough information.
-ParserErrorCode.PATTERN_ASSIGNMENT_DECLARES_VARIABLE:
+PATTERN_ASSIGNMENT_DECLARES_VARIABLE:
   status: hasFix
-ParserErrorCode.PART_OF_NAME:
+PART_OF_NAME:
   status: needsFix
   notes: |-
     Convert to URI.
-ParserErrorCode.PATTERN_VARIABLE_DECLARATION_OUTSIDE_FUNCTION_OR_METHOD:
+PATTERN_VARIABLE_DECLARATION_OUTSIDE_FUNCTION_OR_METHOD:
   status: noFix
-ParserErrorCode.POSITIONAL_AFTER_NAMED_ARGUMENT:
+POSITIONAL_AFTER_NAMED_ARGUMENT:
   status: noFix
   notes: |-
     This probably isn't produced anymore.
-ParserErrorCode.POSITIONAL_PARAMETER_OUTSIDE_GROUP:
+POSITIONAL_PARAMETER_OUTSIDE_GROUP:
   status: needsFix
   notes: |-
     Add the square brackets.
-ParserErrorCode.PREFIX_AFTER_COMBINATOR:
+PREFIX_AFTER_COMBINATOR:
   status: needsFix
   notes: |-
     Move the prefix before the combinators.
-ParserErrorCode.PRIVATE_OPTIONAL_PARAMETER:
+PRIVATE_OPTIONAL_PARAMETER:
   status: needsFix
   notes: |-
     Remove the underscore
-ParserErrorCode.PRIVATE_NAMED_NON_FIELD_PARAMETER:
+PRIVATE_NAMED_NON_FIELD_PARAMETER:
   status: needsEvaluation
-ParserErrorCode.RECORD_LITERAL_ONE_POSITIONAL_NO_TRAILING_COMMA:
+RECORD_LITERAL_ONE_POSITIONAL_NO_TRAILING_COMMA:
   status: hasFix
-ParserErrorCode.RECORD_TYPE_ONE_POSITIONAL_NO_TRAILING_COMMA:
+RECORD_TYPE_ONE_POSITIONAL_NO_TRAILING_COMMA:
   status: hasFix
-ParserErrorCode.REDIRECTING_CONSTRUCTOR_WITH_BODY:
+REDIRECTING_CONSTRUCTOR_WITH_BODY:
   status: needsFix
   notes: |-
     Remove the body. Remove the redirection.
-ParserErrorCode.REDIRECTION_IN_NON_FACTORY_CONSTRUCTOR:
+REDIRECTION_IN_NON_FACTORY_CONSTRUCTOR:
   status: needsFix
   notes: |-
     Remove the redirection.
-ParserErrorCode.REPRESENTATION_FIELD_MODIFIER:
+REPRESENTATION_FIELD_MODIFIER:
   status: needsFix
   notes: Remove it.
-ParserErrorCode.REPRESENTATION_FIELD_TRAILING_COMMA:
+REPRESENTATION_FIELD_TRAILING_COMMA:
   status: hasFix
-ParserErrorCode.SEALED_ENUM:
+SEALED_ENUM:
   status: needsEvaluation
-ParserErrorCode.SEALED_MIXIN:
+SEALED_MIXIN:
   status: hasFix
-ParserErrorCode.SEALED_MIXIN_CLASS:
+SEALED_MIXIN_CLASS:
   status: hasFix
-ParserErrorCode.SETTER_CONSTRUCTOR:
+SETTER_CONSTRUCTOR:
   status: hasFix
-ParserErrorCode.SETTER_IN_FUNCTION:
+SETTER_IN_FUNCTION:
   status: needsFix
   notes: |-
     Move the setter outside the function. Convert the setter to a function.
-ParserErrorCode.STACK_OVERFLOW:
+STACK_OVERFLOW:
   status: noFix
-ParserErrorCode.STATIC_CONSTRUCTOR:
+STATIC_CONSTRUCTOR:
   status: hasFix
-ParserErrorCode.STATIC_GETTER_WITHOUT_BODY:
+STATIC_GETTER_WITHOUT_BODY:
   status: hasFix
-ParserErrorCode.STATIC_OPERATOR:
+STATIC_OPERATOR:
   status: hasFix
-ParserErrorCode.STATIC_SETTER_WITHOUT_BODY:
+STATIC_SETTER_WITHOUT_BODY:
   status: hasFix
-ParserErrorCode.SWITCH_HAS_CASE_AFTER_DEFAULT_CASE:
+SWITCH_HAS_CASE_AFTER_DEFAULT_CASE:
   status: needsFix
   notes: |-
     Move the default case to the end.
-ParserErrorCode.SWITCH_HAS_MULTIPLE_DEFAULT_CASES:
+SWITCH_HAS_MULTIPLE_DEFAULT_CASES:
   status: needsFix
   notes: |-
     Merge the bodies.
-ParserErrorCode.TOP_LEVEL_OPERATOR:
+TOP_LEVEL_OPERATOR:
   status: noFix
-ParserErrorCode.TYPE_ARGUMENTS_ON_TYPE_VARIABLE:
+TYPE_ARGUMENTS_ON_TYPE_VARIABLE:
   status: needsFix
   notes: |-
     Remove the type arguments
-ParserErrorCode.TYPE_BEFORE_FACTORY:
+TYPE_BEFORE_FACTORY:
   status: needsFix
   notes: |-
     Move the `factory` before the type.
-ParserErrorCode.TYPE_PARAMETER_ON_CONSTRUCTOR:
+TYPE_PARAMETER_ON_CONSTRUCTOR:
   status: needsFix
   notes: |-
     Remove the type parameters.
-ParserErrorCode.TYPE_PARAMETER_ON_OPERATOR:
+TYPE_PARAMETER_ON_OPERATOR:
   status: needsFix
   notes: |-
     Remove the type parameters.
-ParserErrorCode.TYPEDEF_IN_CLASS:
+TYPEDEF_IN_CLASS:
   status: needsFix
   notes: |-
     Move the typedef to the top level.
-ParserErrorCode.UNEXPECTED_TERMINATOR_FOR_PARAMETER_GROUP:
+UNEXPECTED_TERMINATOR_FOR_PARAMETER_GROUP:
   status: needsFix
   notes: |-
     Remove the terminator.
-ParserErrorCode.UNEXPECTED_TOKEN:
+UNEXPECTED_TOKEN:
   status: noFix
-ParserErrorCode.UNEXPECTED_TOKENS:
+UNEXPECTED_TOKENS:
   status: noFix
-ParserErrorCode.VAR_AND_TYPE:
+VAR_AND_TYPE:
   status: hasFix
-ParserErrorCode.VAR_AS_TYPE_NAME:
+VAR_AS_TYPE_NAME:
   status: hasFix
-ParserErrorCode.VAR_CLASS:
+VAR_CLASS:
   status: needsFix
   notes: |-
     Remove `var`.
-ParserErrorCode.VAR_ENUM:
+VAR_ENUM:
   status: needsFix
   notes: |-
     Remove `var`.
-ParserErrorCode.VAR_RETURN_TYPE:
+VAR_RETURN_TYPE:
   status: hasFix
-ParserErrorCode.VAR_TYPEDEF:
+VAR_TYPEDEF:
   status: needsFix
   notes: |-
     Remove `var`.
-ParserErrorCode.VARIABLE_PATTERN_KEYWORD_IN_DECLARATION_CONTEXT:
+VARIABLE_PATTERN_KEYWORD_IN_DECLARATION_CONTEXT:
   status: hasFix
-ParserErrorCode.VOID_WITH_TYPE_ARGUMENTS:
+VOID_WITH_TYPE_ARGUMENTS:
   status: needsFix
   notes: |-
     Remove the type arguments.
-ParserErrorCode.WITH_BEFORE_EXTENDS:
+WITH_BEFORE_EXTENDS:
   status: needsFix
   notes: |-
     Move the extends clause.
-ParserErrorCode.WRONG_NUMBER_OF_PARAMETERS_FOR_SETTER:
+WRONG_NUMBER_OF_PARAMETERS_FOR_SETTER:
   status: needsFix
-ParserErrorCode.WRONG_SEPARATOR_FOR_POSITIONAL_PARAMETER:
+WRONG_SEPARATOR_FOR_POSITIONAL_PARAMETER:
   status: hasFix
-ParserErrorCode.WRONG_TERMINATOR_FOR_PARAMETER_GROUP:
+WRONG_TERMINATOR_FOR_PARAMETER_GROUP:
   status: needsFix
   notes: |-
     Replace the terminator with the correct terminator.
-PubspecWarningCode.ASSET_DOES_NOT_EXIST:
+ASSET_DOES_NOT_EXIST:
   status: noFix
   since: ~2.15
-PubspecWarningCode.ASSET_DIRECTORY_DOES_NOT_EXIST:
+ASSET_DIRECTORY_DOES_NOT_EXIST:
   status: noFix
   since: ~2.15
   notes: |-
     Theoretically we could offer to create the directory, but I suspect that
     this occurs more frequently as a result of mistyping the directory path.
-PubspecWarningCode.ASSET_FIELD_NOT_LIST:
+ASSET_FIELD_NOT_LIST:
   status: noFix
   since: ~2.15
-PubspecWarningCode.ASSET_MISSING_PATH:
+ASSET_MISSING_PATH:
   status: needsFix
   notes: We could add a path field with a blank value.
-PubspecWarningCode.ASSET_NOT_STRING:
+ASSET_NOT_STRING:
   status: noFix
   since: ~2.15
-PubspecWarningCode.ASSET_NOT_STRING_OR_MAP:
+ASSET_NOT_STRING_OR_MAP:
   status: noFix
-PubspecWarningCode.ASSET_PATH_NOT_STRING:
+ASSET_PATH_NOT_STRING:
   status: noFix
-PubspecWarningCode.DEPENDENCIES_FIELD_NOT_MAP:
+DEPENDENCIES_FIELD_NOT_MAP:
   status: noFix
   since: ~2.15
-PubspecWarningCode.DEPRECATED_FIELD:
+DEPRECATED_FIELD:
   status: needsFix
   since: ~2.15
-PubspecWarningCode.FLUTTER_FIELD_NOT_MAP:
+FLUTTER_FIELD_NOT_MAP:
   status: noFix
   since: ~2.15
-PubspecWarningCode.INVALID_DEPENDENCY:
+INVALID_DEPENDENCY:
   status: noFix
-PubspecWarningCode.INVALID_PLATFORMS_FIELD:
+INVALID_PLATFORMS_FIELD:
   status: needsEvaluation
-PubspecWarningCode.MISSING_DEPENDENCY:
+MISSING_DEPENDENCY:
   status: hasFix
-PubspecWarningCode.MISSING_NAME:
+MISSING_NAME:
   status: hasFix
-PubspecWarningCode.NAME_NOT_STRING:
+NAME_NOT_STRING:
   status: noFix
   since: ~2.15
-PubspecWarningCode.PATH_DOES_NOT_EXIST:
+PATH_DOES_NOT_EXIST:
   status: noFix
-PubspecWarningCode.PATH_NOT_POSIX:
+PATH_NOT_POSIX:
   status: needsFix
   since: ~2.15
   notes: |-
     If the path is a windows path, then we should be able to convert it.
-PubspecWarningCode.PATH_PUBSPEC_DOES_NOT_EXIST:
+PATH_PUBSPEC_DOES_NOT_EXIST:
   status: noFix
-PubspecWarningCode.PLATFORM_VALUE_DISALLOWED:
+PLATFORM_VALUE_DISALLOWED:
   status: needsEvaluation
-PubspecWarningCode.UNKNOWN_PLATFORM:
+UNKNOWN_PLATFORM:
   status: needsEvaluation
-PubspecWarningCode.UNNECESSARY_DEV_DEPENDENCY:
+UNNECESSARY_DEV_DEPENDENCY:
   status: needsFix
   since: ~2.15
   notes: |-
     The fix is to remove the dependency
-PubspecWarningCode.WORKSPACE_FIELD_NOT_LIST:
+WORKSPACE_FIELD_NOT_LIST:
   status: needsEvaluation
-PubspecWarningCode.WORKSPACE_VALUE_NOT_STRING:
+WORKSPACE_VALUE_NOT_STRING:
   status: needsEvaluation
-PubspecWarningCode.WORKSPACE_VALUE_NOT_SUBDIRECTORY:
+WORKSPACE_VALUE_NOT_SUBDIRECTORY:
   status: needsEvaluation
-ScannerErrorCode.ENCODING:
+ENCODING:
   status: needsEvaluation
-ScannerErrorCode.ILLEGAL_CHARACTER:
+ILLEGAL_CHARACTER:
   status: noFix
-ScannerErrorCode.MISSING_DIGIT:
+MISSING_DIGIT:
   status: noFix
-ScannerErrorCode.MISSING_HEX_DIGIT:
+MISSING_HEX_DIGIT:
   status: noFix
-ScannerErrorCode.MISSING_QUOTE:
+MISSING_QUOTE:
   status: noFix
-ScannerErrorCode.UNABLE_GET_CONTENT:
+UNABLE_GET_CONTENT:
   status: noFix
-ScannerErrorCode.UNEXPECTED_DOLLAR_IN_STRING:
+UNEXPECTED_DOLLAR_IN_STRING:
   status: noFix
-ScannerErrorCode.UNEXPECTED_SEPARATOR_IN_NUMBER:
+UNEXPECTED_SEPARATOR_IN_NUMBER:
   status: hasFix
-ScannerErrorCode.UNSUPPORTED_OPERATOR:
+UNSUPPORTED_OPERATOR:
   status: noFix
-ScannerErrorCode.UNTERMINATED_MULTI_LINE_COMMENT:
+UNTERMINATED_MULTI_LINE_COMMENT:
   status: noFix
-ScannerErrorCode.UNTERMINATED_STRING_LITERAL:
+UNTERMINATED_STRING_LITERAL:
   status: noFix
-StaticWarningCode.DEAD_NULL_AWARE_EXPRESSION:
+DEAD_NULL_AWARE_EXPRESSION:
   status: hasFix
-StaticWarningCode.INVALID_NULL_AWARE_OPERATOR:
+INVALID_NULL_AWARE_OPERATOR:
   status: hasFix
-StaticWarningCode.INVALID_NULL_AWARE_OPERATOR_AFTER_SHORT_CIRCUIT:
+INVALID_NULL_AWARE_OPERATOR_AFTER_SHORT_CIRCUIT:
   status: hasFix
-StaticWarningCode.INVALID_NULL_AWARE_ELEMENT:
+INVALID_NULL_AWARE_ELEMENT:
   status: hasFix
-StaticWarningCode.INVALID_NULL_AWARE_MAP_ENTRY_KEY:
+INVALID_NULL_AWARE_MAP_ENTRY_KEY:
   status: hasFix
-StaticWarningCode.INVALID_NULL_AWARE_MAP_ENTRY_VALUE:
+INVALID_NULL_AWARE_MAP_ENTRY_VALUE:
   status: hasFix
-StaticWarningCode.MISSING_ENUM_CONSTANT_IN_SWITCH:
+MISSING_ENUM_CONSTANT_IN_SWITCH:
   status: hasFix
-StaticWarningCode.UNNECESSARY_NON_NULL_ASSERTION:
+UNNECESSARY_NON_NULL_ASSERTION:
   status: hasFix
-StaticWarningCode.UNNECESSARY_NULL_ASSERT_PATTERN:
+UNNECESSARY_NULL_ASSERT_PATTERN:
   status: hasFix
-StaticWarningCode.UNNECESSARY_NULL_CHECK_PATTERN:
+UNNECESSARY_NULL_CHECK_PATTERN:
   status: hasFix
-WarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE_TO_ERROR_HANDLER:
+ARGUMENT_TYPE_NOT_ASSIGNABLE_TO_ERROR_HANDLER:
   status: noFix
   notes: |-
     Fix depends on user's intent, which can't be known.
-WarningCode.ASSIGNMENT_OF_DO_NOT_STORE:
+ASSIGNMENT_OF_DO_NOT_STORE:
   status: noFix
   notes: |-
     Fix depends on user's intent, which can't be known.
-WarningCode.BODY_MIGHT_COMPLETE_NORMALLY_CATCH_ERROR:
+BODY_MIGHT_COMPLETE_NORMALLY_CATCH_ERROR:
   status: needsFix
-WarningCode.CAST_FROM_NULL_ALWAYS_FAILS:
+CAST_FROM_NULL_ALWAYS_FAILS:
   status: noFix
-WarningCode.CAST_FROM_NULLABLE_ALWAYS_FAILS:
+CAST_FROM_NULLABLE_ALWAYS_FAILS:
   status: noFix
-WarningCode.CONSTANT_PATTERN_NEVER_MATCHES_VALUE_TYPE:
+CONSTANT_PATTERN_NEVER_MATCHES_VALUE_TYPE:
   status: noFix
-WarningCode.BODY_MIGHT_COMPLETE_NORMALLY_NULLABLE:
+BODY_MIGHT_COMPLETE_NORMALLY_NULLABLE:
   status: hasFix
-WarningCode.DEAD_CODE:
+DEAD_CODE:
   status: hasFix
-WarningCode.DEAD_CODE_CATCH_FOLLOWING_CATCH:
+DEAD_CODE_CATCH_FOLLOWING_CATCH:
   status: hasFix
-WarningCode.DEAD_CODE_LATE_WILDCARD_VARIABLE_INITIALIZER:
+DEAD_CODE_LATE_WILDCARD_VARIABLE_INITIALIZER:
   status: hasFix
-WarningCode.DEAD_CODE_ON_CATCH_SUBTYPE:
+DEAD_CODE_ON_CATCH_SUBTYPE:
   status: hasFix
-WarningCode.DEPRECATED_EXPORT_USE:
+DEPRECATED_EXPORT_USE:
   status: hasFix
   notes: |-
     A data driven fix using `replacedBy`.
-WarningCode.DEPRECATED_EXTEND:
+DEPRECATED_EXTEND:
   status: hasFix
-WarningCode.DEPRECATED_EXTENDS_FUNCTION:
+DEPRECATED_EXTENDS_FUNCTION:
   status: needsFix
   notes: |-
     The fix is to remove the class from the implements list.
-WarningCode.DEPRECATED_IMPLEMENT:
+DEPRECATED_IMPLEMENT:
   status: hasFix
-WarningCode.DEPRECATED_IMPLEMENTS_FUNCTION:
+DEPRECATED_IMPLEMENTS_FUNCTION:
   status: hasFix
-WarningCode.DEPRECATED_INSTANTIATE:
+DEPRECATED_INSTANTIATE:
   status: noFix
   notes: |-
     The only fix would be to delete the whole instance creation expression, or
     follow the directions in the deprecation message.
-WarningCode.DEPRECATED_MIXIN:
+DEPRECATED_MIXIN:
   status: needsFix
-WarningCode.DEPRECATED_MIXIN_FUNCTION:
+DEPRECATED_MIXIN_FUNCTION:
   status: needsFix
   notes: |-
     The fix is to remove `Function` from where it's referenced.
-WarningCode.DEPRECATED_NEW_IN_COMMENT_REFERENCE:
+DEPRECATED_NEW_IN_COMMENT_REFERENCE:
   status: hasFix
-WarningCode.DEPRECATED_OPTIONAL:
+DEPRECATED_OPTIONAL:
   status: needsEvaluation
-WarningCode.DEPRECATED_SUBCLASS:
+DEPRECATED_SUBCLASS:
   status: hasFix
-WarningCode.DOC_DIRECTIVE_ARGUMENT_WRONG_FORMAT:
+DOC_DIRECTIVE_ARGUMENT_WRONG_FORMAT:
   status: noFix
-WarningCode.DOC_DIRECTIVE_HAS_EXTRA_ARGUMENTS:
+DOC_DIRECTIVE_HAS_EXTRA_ARGUMENTS:
   status: needsFix
   notes: |-
     The fix is to remove the extra arguments.
-WarningCode.DOC_DIRECTIVE_HAS_UNEXPECTED_NAMED_ARGUMENT:
+DOC_DIRECTIVE_HAS_UNEXPECTED_NAMED_ARGUMENT:
   status: needsFix
   notes: |-
     The fix is to remove the unexpected named argument.
-WarningCode.DOC_DIRECTIVE_MISSING_CLOSING_BRACE:
+DOC_DIRECTIVE_MISSING_CLOSING_BRACE:
   status: needsFix
   notes: Add the closing brace at the end of the line.
-WarningCode.DOC_DIRECTIVE_MISSING_CLOSING_TAG:
+DOC_DIRECTIVE_MISSING_CLOSING_TAG:
   status: needsFix
   notes: Add the appropriate closing tag, perhaps on the line just following.
-WarningCode.DOC_DIRECTIVE_MISSING_ONE_ARGUMENT:
+DOC_DIRECTIVE_MISSING_ONE_ARGUMENT:
   status: noFix
-WarningCode.DOC_DIRECTIVE_MISSING_OPENING_TAG:
+DOC_DIRECTIVE_MISSING_OPENING_TAG:
   status: needsFix
   notes: |-
     I can think of two: Offer to insert the appropriate starting tag (maybe
     on the preceding line), and offer to change the end-tag to the start-tag.
-WarningCode.DOC_DIRECTIVE_MISSING_THREE_ARGUMENTS:
+DOC_DIRECTIVE_MISSING_THREE_ARGUMENTS:
   status: noFix
-WarningCode.DOC_DIRECTIVE_MISSING_TWO_ARGUMENTS:
+DOC_DIRECTIVE_MISSING_TWO_ARGUMENTS:
   status: noFix
-WarningCode.DOC_DIRECTIVE_UNKNOWN:
+DOC_DIRECTIVE_UNKNOWN:
   status: noFix
-WarningCode.DOC_IMPORT_CANNOT_BE_DEFERRED:
+DOC_IMPORT_CANNOT_BE_DEFERRED:
   status: needsFix
-WarningCode.DOC_IMPORT_CANNOT_HAVE_COMBINATORS:
+DOC_IMPORT_CANNOT_HAVE_COMBINATORS:
   status: needsFix
-WarningCode.DOC_IMPORT_CANNOT_HAVE_CONFIGURATIONS:
+DOC_IMPORT_CANNOT_HAVE_CONFIGURATIONS:
   status: needsFix
-WarningCode.DOC_IMPORT_CANNOT_HAVE_PREFIX:
+DOC_IMPORT_CANNOT_HAVE_PREFIX:
   status: needsFix
-WarningCode.DUPLICATE_EXPORT:
+DUPLICATE_EXPORT:
   status: needsFix
   notes: |-
     One fix is to remove the duplicated export.
-WarningCode.DUPLICATE_HIDDEN_NAME:
+DUPLICATE_HIDDEN_NAME:
   status: hasFix
-WarningCode.DUPLICATE_IGNORE:
+DUPLICATE_IGNORE:
   status: needsFix
   notes: |-
     One fix is to remove the duplicated error code.
-WarningCode.DUPLICATE_IMPORT:
+DUPLICATE_IMPORT:
   status: hasFix
-WarningCode.DUPLICATE_SHOWN_NAME:
+DUPLICATE_SHOWN_NAME:
   status: hasFix
-WarningCode.EQUAL_ELEMENTS_IN_SET:
+EQUAL_ELEMENTS_IN_SET:
   status: noFix
   notes: |-
     Fix depends on user's intent, which can't be known.
-WarningCode.EQUAL_KEYS_IN_MAP:
+EQUAL_KEYS_IN_MAP:
   status: noFix
   notes: |-
     Fix depends on user's intent, which can't be known.
-WarningCode.EXPERIMENTAL_MEMBER_USE:
+EXPERIMENTAL_MEMBER_USE:
   status: needsEvaluation
-WarningCode.INFERENCE_FAILURE_ON_COLLECTION_LITERAL:
+INFERENCE_FAILURE_ON_COLLECTION_LITERAL:
   status: noFix
-WarningCode.INFERENCE_FAILURE_ON_FUNCTION_INVOCATION:
+INFERENCE_FAILURE_ON_FUNCTION_INVOCATION:
   status: noFix
-WarningCode.INFERENCE_FAILURE_ON_FUNCTION_RETURN_TYPE:
+INFERENCE_FAILURE_ON_FUNCTION_RETURN_TYPE:
   status: noFix
-WarningCode.INFERENCE_FAILURE_ON_GENERIC_INVOCATION:
+INFERENCE_FAILURE_ON_GENERIC_INVOCATION:
   status: noFix
-WarningCode.INFERENCE_FAILURE_ON_INSTANCE_CREATION:
+INFERENCE_FAILURE_ON_INSTANCE_CREATION:
   status: noFix
-WarningCode.INFERENCE_FAILURE_ON_UNINITIALIZED_VARIABLE:
+INFERENCE_FAILURE_ON_UNINITIALIZED_VARIABLE:
   status: noFix
-WarningCode.INFERENCE_FAILURE_ON_UNTYPED_PARAMETER:
+INFERENCE_FAILURE_ON_UNTYPED_PARAMETER:
   status: noFix
-WarningCode.INVALID_ANNOTATION_TARGET:
+INVALID_ANNOTATION_TARGET:
   status: hasFix
-WarningCode.INVALID_AWAIT_NOT_REQUIRED_ANNOTATION:
+INVALID_AWAIT_NOT_REQUIRED_ANNOTATION:
   status: needsFix
   notes: The fix is to remove the annotation.
-WarningCode.INVALID_DEPRECATED_EXTEND_ANNOTATION:
+INVALID_DEPRECATED_EXTEND_ANNOTATION:
   status: needsFix
   notes: The fix is to remove the annotation.
-WarningCode.INVALID_DEPRECATED_IMPLEMENT_ANNOTATION:
+INVALID_DEPRECATED_IMPLEMENT_ANNOTATION:
   status: needsFix
   notes: The fix is to remove the annotation.
-WarningCode.INVALID_DEPRECATED_INSTANTIATE_ANNOTATION:
+INVALID_DEPRECATED_INSTANTIATE_ANNOTATION:
   status: needsFix
   notes: The fix is to remove the annotation.
-WarningCode.INVALID_DEPRECATED_MIXIN_ANNOTATION:
+INVALID_DEPRECATED_MIXIN_ANNOTATION:
   status: needsFix
   notes: The fix is to remove the annotation.
-WarningCode.INVALID_DEPRECATED_OPTIONAL_ANNOTATION:
+INVALID_DEPRECATED_OPTIONAL_ANNOTATION:
   status: needsFix
   notes: The fix is to remove the annotation.
-WarningCode.INVALID_DEPRECATED_SUBCLASS_ANNOTATION:
+INVALID_DEPRECATED_SUBCLASS_ANNOTATION:
   status: needsFix
   notes: The fix is to remove the annotation.
-WarningCode.INVALID_EXPORT_OF_INTERNAL_ELEMENT:
+INVALID_EXPORT_OF_INTERNAL_ELEMENT:
   status: needsFix
   notes: |-
     Low priority, because this is likely not encountered often.
 
     The fix is to update the export directive so that the name is no longer
     exported.
-WarningCode.INVALID_EXPORT_OF_INTERNAL_ELEMENT_INDIRECTLY:
+INVALID_EXPORT_OF_INTERNAL_ELEMENT_INDIRECTLY:
   status: needsFix
   notes: |-
     Low priority, because this is likely not encountered often and the only fix
@@ -3621,272 +3621,272 @@ WarningCode.INVALID_EXPORT_OF_INTERNAL_ELEMENT_INDIRECTLY:
 
     The fix is to update the export directive so that the member using the name
     is no longer exported.
-WarningCode.INVALID_FACTORY_METHOD_DECL:
+INVALID_FACTORY_METHOD_DECL:
   status: noFix
-WarningCode.INVALID_FACTORY_METHOD_IMPL:
+INVALID_FACTORY_METHOD_IMPL:
   status: noFix
-WarningCode.INVALID_INTERNAL_ANNOTATION:
+INVALID_INTERNAL_ANNOTATION:
   status: hasFix
-WarningCode.INVALID_LITERAL_ANNOTATION:
+INVALID_LITERAL_ANNOTATION:
   status: hasFix
-WarningCode.INVALID_LANGUAGE_VERSION_OVERRIDE_AT_SIGN:
+INVALID_LANGUAGE_VERSION_OVERRIDE_AT_SIGN:
   status: needsFix
   notes: |-
     If we can identify enough information to do so, the fix is to rewrite the
     comment into a valid form.
-WarningCode.INVALID_LANGUAGE_VERSION_OVERRIDE_EQUALS:
+INVALID_LANGUAGE_VERSION_OVERRIDE_EQUALS:
   status: needsFix
   notes: |-
     If we can identify enough information to do so, the fix is to rewrite the
     comment into a valid form.
-WarningCode.INVALID_LANGUAGE_VERSION_OVERRIDE_GREATER:
+INVALID_LANGUAGE_VERSION_OVERRIDE_GREATER:
   status: needsFix
   notes: |-
     If we can identify enough information to do so, the fix is to rewrite the
     comment into a valid form.
-WarningCode.INVALID_LANGUAGE_VERSION_OVERRIDE_LOCATION:
+INVALID_LANGUAGE_VERSION_OVERRIDE_LOCATION:
   status: needsFix
   notes: |-
     If we can identify enough information to do so, the fix is to rewrite the
     comment into a valid form.
-WarningCode.INVALID_LANGUAGE_VERSION_OVERRIDE_LOWER_CASE:
+INVALID_LANGUAGE_VERSION_OVERRIDE_LOWER_CASE:
   status: needsFix
   notes: |-
     If we can identify enough information to do so, the fix is to rewrite the
     comment into a valid form.
-WarningCode.INVALID_LANGUAGE_VERSION_OVERRIDE_NUMBER:
+INVALID_LANGUAGE_VERSION_OVERRIDE_NUMBER:
   status: needsFix
   notes: |-
     If we can identify enough information to do so, the fix is to rewrite the
     comment into a valid form.
-WarningCode.INVALID_LANGUAGE_VERSION_OVERRIDE_PREFIX:
+INVALID_LANGUAGE_VERSION_OVERRIDE_PREFIX:
   status: needsFix
   notes: |-
     If we can identify enough information to do so, the fix is to rewrite the
     comment into a valid form.
-WarningCode.INVALID_LANGUAGE_VERSION_OVERRIDE_TRAILING_CHARACTERS:
+INVALID_LANGUAGE_VERSION_OVERRIDE_TRAILING_CHARACTERS:
   status: needsFix
   notes: |-
     If we can identify enough information to do so, the fix is to rewrite the
     comment into a valid form.
-WarningCode.INVALID_LANGUAGE_VERSION_OVERRIDE_TWO_SLASHES:
+INVALID_LANGUAGE_VERSION_OVERRIDE_TWO_SLASHES:
   status: needsFix
   notes: |-
     If we can identify enough information to do so, the fix is to rewrite the
     comment into a valid form.
-WarningCode.INVALID_NON_VIRTUAL_ANNOTATION:
+INVALID_NON_VIRTUAL_ANNOTATION:
   status: hasFix
-WarningCode.INVALID_OVERRIDE_OF_NON_VIRTUAL_MEMBER:
+INVALID_OVERRIDE_OF_NON_VIRTUAL_MEMBER:
   status: noFix
-WarningCode.INVALID_REOPEN_ANNOTATION:
+INVALID_REOPEN_ANNOTATION:
   status: hasFix
-WarningCode.INVALID_USE_OF_DO_NOT_SUBMIT_MEMBER:
+INVALID_USE_OF_DO_NOT_SUBMIT_MEMBER:
   status: needsEvaluation
-WarningCode.INVALID_USE_OF_INTERNAL_MEMBER:
+INVALID_USE_OF_INTERNAL_MEMBER:
   status: noFix
-WarningCode.INVALID_USE_OF_PROTECTED_MEMBER:
+INVALID_USE_OF_PROTECTED_MEMBER:
   status: noFix
-WarningCode.INVALID_USE_OF_VISIBLE_FOR_OVERRIDING_MEMBER:
+INVALID_USE_OF_VISIBLE_FOR_OVERRIDING_MEMBER:
   status: noFix
   since: ~2.15
-WarningCode.INVALID_USE_OF_VISIBLE_FOR_TEMPLATE_MEMBER:
+INVALID_USE_OF_VISIBLE_FOR_TEMPLATE_MEMBER:
   status: noFix
-WarningCode.INVALID_USE_OF_VISIBLE_FOR_TESTING_MEMBER:
+INVALID_USE_OF_VISIBLE_FOR_TESTING_MEMBER:
   status: noFix
-WarningCode.INVALID_WIDGET_PREVIEW_APPLICATION:
+INVALID_WIDGET_PREVIEW_APPLICATION:
   status: needsEvaluation
-WarningCode.INVALID_WIDGET_PREVIEW_PRIVATE_ARGUMENT:
+INVALID_WIDGET_PREVIEW_PRIVATE_ARGUMENT:
   status: needsEvaluation
-WarningCode.INVALID_VISIBILITY_ANNOTATION:
+INVALID_VISIBILITY_ANNOTATION:
   status: hasFix
-WarningCode.INVALID_VISIBLE_FOR_OVERRIDING_ANNOTATION:
+INVALID_VISIBLE_FOR_OVERRIDING_ANNOTATION:
   status: hasFix
-WarningCode.INVALID_VISIBLE_OUTSIDE_TEMPLATE_ANNOTATION:
+INVALID_VISIBLE_OUTSIDE_TEMPLATE_ANNOTATION:
   status: needsEvaluation
-WarningCode.MISSING_OVERRIDE_OF_MUST_BE_OVERRIDDEN_ONE:
+MISSING_OVERRIDE_OF_MUST_BE_OVERRIDDEN_ONE:
   status: hasFix
-WarningCode.MISSING_OVERRIDE_OF_MUST_BE_OVERRIDDEN_TWO:
+MISSING_OVERRIDE_OF_MUST_BE_OVERRIDDEN_TWO:
   status: hasFix
-WarningCode.MISSING_OVERRIDE_OF_MUST_BE_OVERRIDDEN_THREE_PLUS:
+MISSING_OVERRIDE_OF_MUST_BE_OVERRIDDEN_THREE_PLUS:
   status: hasFix
-WarningCode.MISSING_REQUIRED_PARAM:
+MISSING_REQUIRED_PARAM:
   status: hasFix
-WarningCode.MISSING_REQUIRED_PARAM_WITH_DETAILS:
+MISSING_REQUIRED_PARAM_WITH_DETAILS:
   status: hasFix
-WarningCode.MIXIN_ON_SEALED_CLASS:
+MIXIN_ON_SEALED_CLASS:
   status: noFix
   notes: |-
     `sealed` annotation is likely to be replaced by the `sealed` keyword
     in the next stable release.
-WarningCode.MULTIPLE_COMBINATORS:
+MULTIPLE_COMBINATORS:
   status: hasFix
-WarningCode.MUST_BE_IMMUTABLE:
+MUST_BE_IMMUTABLE:
   status: noFix
-WarningCode.MUST_CALL_SUPER:
+MUST_CALL_SUPER:
   status: hasFix
-WarningCode.NON_CONST_ARGUMENT_FOR_CONST_PARAMETER:
+NON_CONST_ARGUMENT_FOR_CONST_PARAMETER:
   status: needsEvaluation
-WarningCode.NON_CONST_CALL_TO_LITERAL_CONSTRUCTOR:
+NON_CONST_CALL_TO_LITERAL_CONSTRUCTOR:
   status: needsFix
   notes: |-
     The fix is to add `const` before the constructor invocation.
-WarningCode.NON_CONST_CALL_TO_LITERAL_CONSTRUCTOR_USING_NEW:
+NON_CONST_CALL_TO_LITERAL_CONSTRUCTOR_USING_NEW:
   status: hasFix
-WarningCode.NON_NULLABLE_EQUALS_PARAMETER:
+NON_NULLABLE_EQUALS_PARAMETER:
   status: needsFix
   notes: |-
     The fix is to remove the question mark if the parameter has one (if the
     written type is an alias, it may not).
-WarningCode.NULLABLE_TYPE_IN_CATCH_CLAUSE:
+NULLABLE_TYPE_IN_CATCH_CLAUSE:
   status: hasFix
-WarningCode.NULL_ARGUMENT_TO_NON_NULL_TYPE:
+NULL_ARGUMENT_TO_NON_NULL_TYPE:
   status: noFix
   since: ~2.15
-WarningCode.NULL_CHECK_ALWAYS_FAILS:
+NULL_CHECK_ALWAYS_FAILS:
   status: hasFix
-WarningCode.OVERRIDE_ON_NON_OVERRIDING_FIELD:
+OVERRIDE_ON_NON_OVERRIDING_FIELD:
   status: hasFix
-WarningCode.OVERRIDE_ON_NON_OVERRIDING_GETTER:
+OVERRIDE_ON_NON_OVERRIDING_GETTER:
   status: hasFix
-WarningCode.OVERRIDE_ON_NON_OVERRIDING_METHOD:
+OVERRIDE_ON_NON_OVERRIDING_METHOD:
   status: hasFix
-WarningCode.OVERRIDE_ON_NON_OVERRIDING_SETTER:
+OVERRIDE_ON_NON_OVERRIDING_SETTER:
   status: hasFix
-WarningCode.PATTERN_NEVER_MATCHES_VALUE_TYPE:
+PATTERN_NEVER_MATCHES_VALUE_TYPE:
   status: noFix
-WarningCode.RECEIVER_OF_TYPE_NEVER:
+RECEIVER_OF_TYPE_NEVER:
   status: needsFix
   notes: |-
     We _could_ remove the thing being received (method invocation, etc.)
-WarningCode.REDECLARE_ON_NON_REDECLARING_MEMBER:
+REDECLARE_ON_NON_REDECLARING_MEMBER:
   status: hasFix
-WarningCode.REMOVED_LINT_USE:
+REMOVED_LINT_USE:
   status: needsFix
-WarningCode.REPLACED_LINT_USE:
+REPLACED_LINT_USE:
   status: needsFix
-WarningCode.RETURN_OF_DO_NOT_STORE:
+RETURN_OF_DO_NOT_STORE:
   status: needsFix
   notes: |-
     The fix is to add the annotation to the enclosing function.
-WarningCode.RETURN_OF_INVALID_TYPE_FROM_CATCH_ERROR:
+RETURN_OF_INVALID_TYPE_FROM_CATCH_ERROR:
   status: noFix
-WarningCode.RETURN_TYPE_INVALID_FOR_CATCH_ERROR:
+RETURN_TYPE_INVALID_FOR_CATCH_ERROR:
   status: noFix
-WarningCode.SDK_VERSION_CONSTRUCTOR_TEAROFFS:
+SDK_VERSION_CONSTRUCTOR_TEAROFFS:
   status: needsFix
   since: 2.15
-WarningCode.SDK_VERSION_GT_GT_GT_OPERATOR:
+SDK_VERSION_GT_GT_GT_OPERATOR:
   status: hasFix
-WarningCode.SDK_VERSION_SINCE:
+SDK_VERSION_SINCE:
   status: needsFix
   notes: |-
     The fix would be to update the SDK constraints. The user would still need to
     run `dart pub` before the diagnostic would go away, and there's a question
     whether a fix that doesn't actually fix the problem is something we want.
-WarningCode.STRICT_RAW_TYPE:
+STRICT_RAW_TYPE:
   status: needsFix
   notes: |-
     One fix would be to add an explicit `<dynamic>`, but we can also provide
     more helpful fixes that pretend inference works the way the user may
     have thought it did. For example in: `List a = <int>[];`, we can add
     `<int>` after `List`.
-WarningCode.SUBTYPE_OF_SEALED_CLASS:
+SUBTYPE_OF_SEALED_CLASS:
   status: needsFix
   notes: |-
     `sealed` annotation is likely to be replaced by the `sealed` keyword
     in the next stable release.
     Remove the sealed class in the `extends` or `implements` clause.
     Use RemoveNameFromDeclarationClause.
-WarningCode.TEXT_DIRECTION_CODE_POINT_IN_COMMENT:
+TEXT_DIRECTION_CODE_POINT_IN_COMMENT:
   status: hasFix
-WarningCode.TEXT_DIRECTION_CODE_POINT_IN_LITERAL:
+TEXT_DIRECTION_CODE_POINT_IN_LITERAL:
   status: hasFix
-WarningCode.TYPE_CHECK_IS_NOT_NULL:
+TYPE_CHECK_IS_NOT_NULL:
   status: hasFix
-WarningCode.TYPE_CHECK_IS_NULL:
+TYPE_CHECK_IS_NULL:
   status: hasFix
-WarningCode.UNDEFINED_HIDDEN_NAME:
+UNDEFINED_HIDDEN_NAME:
   status: hasFix
-WarningCode.UNDEFINED_REFERENCED_PARAMETER:
+UNDEFINED_REFERENCED_PARAMETER:
   status: needsFix
   notes: |-
     Can try to find the correct parameter name.
-WarningCode.UNDEFINED_SHOWN_NAME:
+UNDEFINED_SHOWN_NAME:
   status: hasFix
-WarningCode.UNIGNORABLE_IGNORE:
+UNIGNORABLE_IGNORE:
   status: needsFix
   notes: |-
     Remove the ignore comment (or one code in the comment).
-WarningCode.UNNECESSARY_CAST_PATTERN:
+UNNECESSARY_CAST_PATTERN:
   status: needsFix
   notes: |-
     The fix is to remove the cast pattern, assuming that doing so won't produce
     invalid code.
-WarningCode.UNNECESSARY_CAST:
+UNNECESSARY_CAST:
   status: hasFix
-WarningCode.UNNECESSARY_FINAL:
+UNNECESSARY_FINAL:
   status: hasFix
-WarningCode.UNNECESSARY_NAN_COMPARISON_FALSE:
-  status: hasFix
-  notes: |-
-    Add another fix to remove the comparison.
-WarningCode.UNNECESSARY_NAN_COMPARISON_TRUE:
+UNNECESSARY_NAN_COMPARISON_FALSE:
   status: hasFix
   notes: |-
     Add another fix to remove the comparison.
-WarningCode.UNNECESSARY_NO_SUCH_METHOD:
+UNNECESSARY_NAN_COMPARISON_TRUE:
+  status: hasFix
+  notes: |-
+    Add another fix to remove the comparison.
+UNNECESSARY_NO_SUCH_METHOD:
   status: needsFix
   notes: |-
     Remove the noSuchMethod implementation.
-WarningCode.UNNECESSARY_NULL_COMPARISON_ALWAYS_NULL_FALSE:
+UNNECESSARY_NULL_COMPARISON_ALWAYS_NULL_FALSE:
   status: hasFix
-WarningCode.UNNECESSARY_NULL_COMPARISON_ALWAYS_NULL_TRUE:
+UNNECESSARY_NULL_COMPARISON_ALWAYS_NULL_TRUE:
   status: hasFix
-WarningCode.UNNECESSARY_NULL_COMPARISON_NEVER_NULL_FALSE:
+UNNECESSARY_NULL_COMPARISON_NEVER_NULL_FALSE:
   status: hasFix
-WarningCode.UNNECESSARY_NULL_COMPARISON_NEVER_NULL_TRUE:
+UNNECESSARY_NULL_COMPARISON_NEVER_NULL_TRUE:
   status: hasFix
-WarningCode.UNNECESSARY_QUESTION_MARK:
+UNNECESSARY_QUESTION_MARK:
   status: hasFix
-WarningCode.UNNECESSARY_SET_LITERAL:
+UNNECESSARY_SET_LITERAL:
   status: hasFix
-WarningCode.UNNECESSARY_TYPE_CHECK_FALSE:
+UNNECESSARY_TYPE_CHECK_FALSE:
   status: hasFix
-WarningCode.UNNECESSARY_TYPE_CHECK_TRUE:
+UNNECESSARY_TYPE_CHECK_TRUE:
   status: hasFix
-WarningCode.UNNECESSARY_WILDCARD_PATTERN:
+UNNECESSARY_WILDCARD_PATTERN:
   status: hasFix
-WarningCode.UNREACHABLE_SWITCH_CASE:
+UNREACHABLE_SWITCH_CASE:
   status: hasFix
-WarningCode.UNREACHABLE_SWITCH_DEFAULT:
+UNREACHABLE_SWITCH_DEFAULT:
   status: hasFix
-WarningCode.UNUSED_CATCH_CLAUSE:
+UNUSED_CATCH_CLAUSE:
   status: hasFix
-WarningCode.UNUSED_CATCH_STACK:
+UNUSED_CATCH_STACK:
   status: hasFix
-WarningCode.UNUSED_ELEMENT:
+UNUSED_ELEMENT:
   status: hasFix
-WarningCode.UNUSED_ELEMENT_PARAMETER:
+UNUSED_ELEMENT_PARAMETER:
   status: hasFix
-WarningCode.UNUSED_FIELD:
+UNUSED_FIELD:
   status: hasFix
-WarningCode.UNUSED_IMPORT:
+UNUSED_IMPORT:
   status: hasFix
-WarningCode.UNUSED_LABEL:
+UNUSED_LABEL:
   status: hasFix
-WarningCode.UNUSED_LOCAL_VARIABLE:
+UNUSED_LOCAL_VARIABLE:
   status: hasFix
-WarningCode.UNUSED_RESULT:
+UNUSED_RESULT:
   status: noFix
   notes: |-
     There is no predictable common way in which a result _should_ be used.
-WarningCode.UNUSED_RESULT_WITH_MESSAGE:
+UNUSED_RESULT_WITH_MESSAGE:
   status: noFix
   notes: |-
     There is no predictable common way in which a result _should_ be used.
-WarningCode.UNUSED_SHOWN_NAME:
+UNUSED_SHOWN_NAME:
   status: hasFix
-WarningCode.URI_DOES_NOT_EXIST_IN_DOC_IMPORT:
+URI_DOES_NOT_EXIST_IN_DOC_IMPORT:
   status: needsFix
   notes: |-
     The same fix as CompileTimeErrorCode.URI_DOES_NOT_EXIST

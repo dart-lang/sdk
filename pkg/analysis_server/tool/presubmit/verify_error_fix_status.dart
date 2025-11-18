@@ -54,12 +54,14 @@ String? verifyErrorFixStatus() {
   var lintRuleCodes = {
     for (var rule in Registry.ruleRegistry.rules) ...rule.diagnosticCodes,
   };
-  var lintRuleNames = {for (var lintCode in lintRuleCodes) lintCode.uniqueName};
+  var lintRuleNames = {
+    for (var lintCode in lintRuleCodes) lintCode.uniqueName.suffix,
+  };
 
   var errorData = ErrorData();
   for (var code in diagnosticCodeValues) {
-    var name = code.uniqueName;
-    if (name.startsWith('TodoCode.')) {
+    var name = code.uniqueName.suffix;
+    if (code.type == .TODO) {
       // To-do codes are ignored.
       continue;
     }
@@ -81,7 +83,7 @@ String? verifyErrorFixStatus() {
     }
   }
   for (var lintCode in lintRuleCodes) {
-    var name = lintCode.uniqueName;
+    var name = lintCode.uniqueName.suffix;
     var info = statusInfo.nodes[name];
     if (info == null) {
       errorData.codesWithNoEntry.add(name);
@@ -99,7 +101,9 @@ String? verifyErrorFixStatus() {
     }
   }
 
-  var codeNames = {for (var code in diagnosticCodeValues) code.uniqueName};
+  var codeNames = {
+    for (var code in diagnosticCodeValues) code.uniqueName.suffix,
+  };
   for (var key in statusInfo.keys) {
     if (key is String) {
       if (!codeNames.contains(key) && !lintRuleNames.contains(key)) {
@@ -201,4 +205,11 @@ extension on DiagnosticCode {
         AnalysisOptionsFixGenerator.codesWithFixes.contains(self) ||
         PubspecFixGenerator.codesWithFixes.contains(self);
   }
+}
+
+extension on String {
+  String get suffix => switch (split('.')) {
+    [_, var s] => s,
+    _ => throw 'Expected ErrorClass.ERROR_CODE, found $this',
+  };
 }
