@@ -18,7 +18,7 @@ const _loadingUnitKey = 'loading_unit';
 /// example all needing the same asset.
 sealed class Reference {
   final String? loadingUnit;
-  final Location location;
+  final Location? location;
 
   const Reference({required this.loadingUnit, required this.location});
 
@@ -58,7 +58,8 @@ sealed class CallReference extends Reference {
     List<Location> locations,
   ) {
     final loadingUnit = json[_loadingUnitKey] as String?;
-    final location = locations[json[_locationKey] as int];
+    final locationIndex = json[_locationKey] as int?;
+    final location = locationIndex == null ? null : locations[locationIndex];
     return json[_typeKey] == 'tearoff'
         ? CallTearOff(loadingUnit: loadingUnit, location: location)
         : CallWithArguments(
@@ -165,11 +166,12 @@ final class InstanceReference extends Reference {
     List<Constant> constants,
     List<Location> locations,
   ) {
+    final locationIndex = json[_locationKey] as int?;
     return InstanceReference(
       instanceConstant:
           constants[json[_constantKey] as int] as InstanceConstant,
       loadingUnit: json[_loadingUnitKey] as String?,
-      location: locations[json[_locationKey] as int],
+      location: locationIndex == null ? null : locations[locationIndex],
     );
   }
 

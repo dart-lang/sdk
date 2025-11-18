@@ -3245,6 +3245,8 @@ abstract class Map<K, V> extends Iterable {
   Iterable<MapEntry<K, V>> get entries;
   void operator []=(K key, V value) {}
   void addAll(Map<K, V> other) {}
+  V? operator [](Object key);
+  bool containsKey(Object key);
 }
 
 abstract class pragma {

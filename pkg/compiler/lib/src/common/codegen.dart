@@ -15,10 +15,10 @@ import '../io/source_information.dart';
 import '../js/js.dart' as js;
 import '../js_backend/backend.dart';
 import '../js_backend/codegen_inputs.dart';
-import '../js_backend/namer.dart'
-    show AsyncName, Namer, operatorNameToIdentifier, StringBackedName;
 import '../js_backend/deferred_holder_expression.dart'
     show DeferredHolderExpression;
+import '../js_backend/namer.dart'
+    show AsyncName, Namer, operatorNameToIdentifier, StringBackedName;
 import '../js_backend/string_reference.dart' show StringReference;
 import '../js_backend/type_reference.dart' show TypeReference;
 import '../js_emitter/js_emitter.dart' show Emitter;
@@ -1996,13 +1996,11 @@ class JsNodeDeserializer {
   }
 
   Object _readAnnotation() {
-    final kind = source.readEnum(JsAnnotationKind.values);
-    switch (kind) {
-      case JsAnnotationKind.string:
-        return source.readString();
-      case JsAnnotationKind.resourceIdentifier:
-        return ResourceIdentifier.readFromDataSource(source);
-    }
+    return switch (source.readEnum(JsAnnotationKind.values)) {
+      JsAnnotationKind.string => source.readString(),
+      JsAnnotationKind.resourceIdentifier =>
+        ResourceIdentifier.readFromDataSource(source),
+    };
   }
 }
 

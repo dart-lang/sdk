@@ -3,15 +3,28 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:collection' show Queue;
+import 'dart:convert' show jsonEncode;
+import 'dart:io';
 
 // ignore: implementation_imports
-import 'package:front_end/src/api_unstable/dart2js.dart' show Link;
+import 'package:front_end/src/api_unstable/dart2js.dart'
+    show Link, relativizeUri;
+import 'package:record_use/record_use_internal.dart'
+    show
+        Location,
+        Constant,
+        NullConstant,
+        BoolConstant,
+        IntConstant,
+        StringConstant,
+        FlattenConstantsExtension,
+        MapifyIterableExtension;
 
 import '../common.dart';
+import '../common/codegen.dart' show CodegenRegistry;
 import '../common/elements.dart' show JCommonElements;
 import '../common/metrics.dart';
 import '../common/names.dart';
-import '../common/codegen.dart' show CodegenRegistry;
 import '../common/tasks.dart' show CompilerTask;
 import '../constants/constant_system.dart' as constant_system;
 import '../constants/values.dart';
@@ -21,10 +34,10 @@ import '../elements/types.dart';
 import '../inferrer/abstract_value_domain.dart';
 import '../io/source_information.dart';
 import '../js/js.dart' as js;
-import '../js_backend/interceptor_data.dart';
 import '../js_backend/codegen_inputs.dart' show CodegenInputs;
-import '../js_backend/native_data.dart';
+import '../js_backend/interceptor_data.dart';
 import '../js_backend/namer.dart' show ModularNamer;
+import '../js_backend/native_data.dart';
 import '../js_backend/runtime_types_codegen.dart';
 import '../js_backend/runtime_types_new.dart'
     show RecipeEncoder, RecipeEncoding, indexTypeVariable;
@@ -2393,47 +2406,66 @@ class SsaCodeGenerator implements HVisitor<void>, HBlockInformationVisitor {
     List<HInstruction> arguments,
     SourceInformation? sourceInformation,
   ) {
-    ConstantValue? findConstant(HInstruction node) {
-      while (node is HLateValue) {
-        node = node.target;
-      }
-      return node is HConstant ? node.constant : null;
-    }
+    final definition = _closedWorld.elementMap.getMemberContextNode(element);
+    final uri =
+        definition?.enclosingLibrary.importUri ?? element.library.canonicalUri;
 
-    final definition = _closedWorld.elementMap.getMemberDefinition(element);
-    final uri = definition.location.uri;
-
-    final builder = ResourceIdentifierBuilder(element.name!, uri);
-
+    Location? location;
     if (sourceInformation != null) {
-      _addSourceInformationToResourceIdentiferBuilder(
-        builder,
-        sourceInformation,
-      );
-    }
-    for (int i = 0; i < arguments.length; i++) {
-      builder.add('${i + 1}', findConstant(arguments[i]));
+      SourceLocation? sourceLocation =
+          sourceInformation.startPosition ??
+          sourceInformation.innerPosition ??
+          sourceInformation.endPosition;
+      if (sourceLocation != null) {
+        final sourceUri = sourceLocation.sourceUri;
+        if (sourceUri != null) {
+          // Is [sourceUri] normalized in some way or does that need to be done
+          // here?
+          location = Location(
+            uri: relativizeUri(Uri.base, sourceUri, Platform.isWindows),
+          );
+        }
+      }
     }
 
-    return builder.finish();
+    //TODO(mosum): Are named arguments even possible to record in JS?
+    final List<Constant?> constantArguments = [];
+    for (final constant in arguments.map(_findConstant)) {
+      constantArguments.add(constant != null ? _findValue(constant) : null);
+    }
+
+    final constants = constantArguments.nonNulls.flatten().asMapToIndices;
+
+    final argumentJson = jsonEncode(
+      constantArguments.map((argument) => argument?.toJson(constants)).toList(),
+    );
+
+    return ResourceIdentifier(
+      element.name!,
+      element.enclosingClass?.name,
+      relativizeUri(Uri.base, uri, Platform.isWindows),
+      location,
+      constantArguments.any((argument) => argument == null),
+      argumentJson,
+    );
   }
 
-  void _addSourceInformationToResourceIdentiferBuilder(
-    ResourceIdentifierBuilder builder,
-    SourceInformation sourceInformation,
-  ) {
-    SourceLocation? location =
-        sourceInformation.startPosition ??
-        sourceInformation.innerPosition ??
-        sourceInformation.endPosition;
-    if (location != null) {
-      final sourceUri = location.sourceUri;
-      if (sourceUri != null) {
-        // Is [sourceUri] normalized in some way or does that need to be done
-        // here?
-        builder.addLocation(sourceUri, location.line, location.column);
-      }
+  Constant? _findValue(ConstantValue constant) {
+    return switch (constant) {
+      NullConstantValue() => NullConstant(),
+      BoolConstantValue() => BoolConstant(constant.boolValue),
+      IntConstantValue() => IntConstant(constant.intValue.toInt()),
+      StringConstantValue() => StringConstant(constant.stringValue),
+      //TODO(mosum): Add list and map support
+      Object() => null,
+    };
+  }
+
+  ConstantValue? _findConstant(HInstruction node) {
+    while (node is HLateValue) {
+      node = node.target;
     }
+    return node is HConstant ? node.constant : null;
   }
 
   @override

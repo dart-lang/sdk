@@ -1,0 +1,106 @@
+// Copyright (c) 2025, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+import 'dart:io' show File, Directory, Platform;
+
+import 'package:compiler/compiler_api.dart' as api show OutputType;
+import 'package:compiler/compiler_api.dart';
+import 'package:compiler/src/commandline_options.dart' show Flags;
+import 'package:compiler/src/util/memory_compiler.dart';
+import 'package:expect/expect.dart' show Expect;
+import 'package:path/path.dart' as path;
+
+/// Options to pass to the compiler such as
+/// `Flags.disableTypeInference` or `Flags.disableInlining`
+const List<String> compilerOptions = [Flags.writeResources];
+
+/// Run `dart --define=updateExpectations=true pkg/compiler/test/record_use/record_use_test.dart`
+/// to update.
+Future<void> main() async {
+  final directory = Directory.fromUri(Platform.script.resolve('data'));
+  final testFiles =
+      [
+            ...directory.listSync(),
+            ...Directory(
+              'pkg/vm/testcases/transformations/record_use',
+            ).listSync(),
+          ]
+          .whereType<File>()
+          .where((file) => file.path.endsWith('.dart'))
+          .map(
+            (file) => TestFile(
+              file: file,
+              basename: path.basename(file.path),
+              contents: file.readAsStringSync(),
+              uri: _createUri(path.basename(file.path)),
+            ),
+          );
+
+  final allFiles = {for (final file in testFiles) file.uri.path: file.contents};
+  for (final testFile in testFiles.where((element) => element.hasMain)) {
+    final recordedUsages = await compileWithUsages(
+      entryPoint: testFile.uri,
+      memorySourceFiles: allFiles,
+    );
+    final goldenFile = File(
+      path.join(
+        Platform.script.resolve('golden').path,
+        path.setExtension(testFile.basename, '.json.expect'),
+      ),
+    );
+    const update = bool.fromEnvironment('updateExpectations');
+    if (!goldenFile.existsSync() || update) {
+      await goldenFile.create();
+      await goldenFile.writeAsString(recordedUsages);
+    } else {
+      Expect.stringEquals(
+        recordedUsages.trim(),
+        (await goldenFile.readAsString()).trim(),
+        'Recorded usages for ${testFile.uri} do not match golden file.',
+      );
+    }
+  }
+}
+
+class TestFile {
+  final File file;
+  final String basename;
+  final String contents;
+  final Uri uri;
+
+  const TestFile({
+    required this.file,
+    required this.basename,
+    required this.contents,
+    required this.uri,
+  });
+
+  bool get hasMain => contents.contains('main()');
+}
+
+typedef CompiledOutput = Map<api.OutputType, Map<String, String>>;
+
+Future<String> compileWithUsages({
+  Uri? entryPoint,
+  required Map<String, dynamic> memorySourceFiles,
+}) async {
+  final outputProvider = OutputCollector();
+
+  CompilationResult result = await runCompiler(
+    entryPoint: entryPoint,
+    memorySourceFiles: memorySourceFiles,
+    outputProvider: outputProvider,
+    options: [Flags.writeResources],
+  );
+  Expect.isTrue(result.isSuccess);
+
+  return outputProvider.outputMap[OutputType.resourceIdentifiers]!.values.first
+      .toString();
+}
+
+// Pretend this is a dart2js_native test to allow use of 'native' keyword
+// and import of private libraries.
+Uri _createUri(String fileName) {
+  return Uri.parse('memory:sdk/tests/web/native/$fileName');
+}

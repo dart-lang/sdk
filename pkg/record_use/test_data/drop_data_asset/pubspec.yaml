@@ -1,0 +1,27 @@
+name: drop_data_asset
+description: Add four data assets, remove three in linking based on recorded usage.
+
+publish_to: none
+
+environment:
+  sdk: ^3.7.0
+
+dependencies:
+  hooks: any
+  data_assets: any
+  logging: any
+  meta: any
+  record_use:
+    path: ../../../record_use/
+
+dev_dependencies:
+  lints: any
+  test: any
+
+dependency_overrides:
+  meta:
+    path: ../../../meta/
+  hooks:
+    path: ../../../../third_party/pkg/native/pkgs/hooks/
+  data_assets:
+    path: ../../../../third_party/pkg/native/pkgs/data_assets/
