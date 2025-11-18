@@ -6538,7 +6538,6 @@ class _ClassDeclarationBuilder extends _ClassLikeDeclarationBuilder {
       finalKeyword: finalKeyword,
       mixinKeyword: mixinKeyword,
       classKeyword: classKeyword,
-      name: name,
       namePart: buildClassNamePart(
         typeName: name,
         primaryConstructorBuilder: primaryConstructorBuilder,
@@ -6635,7 +6634,6 @@ class _EnumDeclarationBuilder extends _ClassLikeDeclarationBuilder {
         typeName: name,
         primaryConstructorBuilder: primaryConstructorBuilder,
       ),
-      name: name,
       withClause: withClause,
       implementsClause: implementsClause,
       body: body,
@@ -6756,7 +6754,6 @@ class _ExtensionTypeDeclarationBuilder extends _ClassLikeDeclarationBuilder {
       extensionKeyword: extensionKeyword,
       typeKeyword: typeKeyword,
       primaryConstructor: primaryConstructor,
-      name: name,
       implementsClause: implementsClause,
       body: body,
     );

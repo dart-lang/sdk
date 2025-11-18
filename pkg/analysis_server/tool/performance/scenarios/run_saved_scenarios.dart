@@ -7,7 +7,6 @@ import 'dart:isolate';
 
 import 'package:analyzer/file_system/physical_file_system.dart';
 
-import '../../log_player/server_driver.dart';
 import '../project_generator/git_clone_project_generator.dart';
 import '../project_generator/git_worktree_project_generator.dart';
 import 'scenario.dart';
@@ -32,17 +31,19 @@ Future<List<Scenario>> scenarios() async {
   var fileSystem = PhysicalResourceProvider.INSTANCE;
   return [
     Scenario(
-      logFile: fileSystem.getFile(logsRoot.resolve('empty.json').toFilePath()),
+      logFile: fileSystem.getFile(
+        logsRoot.resolve('sdk_rename_driver_class.json').toFilePath(),
+      ),
       project: GitWorktreeProjectGenerator(Directory.fromUri(sdkRoot), 'main'),
-      serverProtocol: ServerProtocol.lsp,
     ),
     Scenario(
-      logFile: fileSystem.getFile(logsRoot.resolve('empty.json').toFilePath()),
+      logFile: fileSystem.getFile(
+        logsRoot.resolve('initialize.json').toFilePath(),
+      ),
       project: GitCloneProjectGenerator(
         'https://github.com/dart-lang/tools',
         'main',
       ),
-      serverProtocol: ServerProtocol.lsp,
     ),
   ];
 }

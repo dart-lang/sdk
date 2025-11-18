@@ -85,9 +85,6 @@ class _Generator {
         .map((entity) {
           var propertyName = entity.getField('name')!.toStringValue()!;
           var isSuper = entity.getField('isSuper')!.toBoolValue()!;
-          var includeIntoChildEntities = entity
-              .getField('includeIntoChildEntities')!
-              .toBoolValue()!;
           var withOverride = entity.getField('withOverride')!.toBoolValue()!;
           var isNodeListFinal = entity
               .getField('isNodeListFinal')!
@@ -123,7 +120,6 @@ class _Generator {
           return _Property(
             name: propertyName,
             isSuper: isSuper,
-            includeIntoChildEntities: includeIntoChildEntities,
             withOverride: withOverride,
             withOverrideSuperNotNull: superNullAssertOverride,
             type: type,
@@ -354,9 +350,6 @@ ChildEntities get _childEntities =>''');
     }
 
     for (var property in implClass.properties) {
-      if (!property.includeIntoChildEntities) {
-        continue;
-      }
       var propertyName = property.name;
       switch (property.typeKind) {
         case _PropertyTypeKindToken():
@@ -868,7 +861,6 @@ class _Property {
   final InterfaceType type;
   final _PropertyTypeKind typeKind;
   final bool isSuper;
-  final bool includeIntoChildEntities;
   final bool withOverride;
   final bool withOverrideSuperNotNull;
 
@@ -877,7 +869,6 @@ class _Property {
     required this.type,
     required this.typeKind,
     required this.isSuper,
-    required this.includeIntoChildEntities,
     required this.withOverride,
     required this.withOverrideSuperNotNull,
   });

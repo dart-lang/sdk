@@ -226,7 +226,7 @@ class RenameConstructorRefactoringImpl extends RenameRefactoringImpl {
     }
 
     var node = result.node;
-    if (node is! NamedCompilationUnitMember) {
+    if (node is! CompilationUnitMember) {
       return;
     }
     if (node is! ClassDeclaration && node is! EnumDeclaration) {

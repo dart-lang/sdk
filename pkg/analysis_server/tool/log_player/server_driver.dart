@@ -83,7 +83,9 @@ class ServerDriver {
       );
     }
     _stdinSink?.close();
+    _stdinSink = null;
     _dtdSocket?.close();
+    _dtdSocket = null;
   }
 
   void sendMessageFromDTD(Message message) {
@@ -149,6 +151,12 @@ class ServerDriver {
 
   /// Create and start the server.
   Future<void> start() async {
+    if (_stdinSink != null) {
+      throw StateError(
+        'Analysis server already started, only one active instance is allowed '
+        'at a time.',
+      );
+    }
     var process = await Process.start(_dartExecutable, [
       'language-server',
       '--protocol=${_protocol.flagValue}',

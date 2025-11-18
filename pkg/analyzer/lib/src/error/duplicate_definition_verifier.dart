@@ -222,75 +222,104 @@ class DuplicateDefinitionVerifier {
     }
 
     for (var member in node.declarations) {
-      if (member is ExtensionDeclarationImpl) {
-        var identifier = member.name;
-        if (identifier != null) {
+      switch (member) {
+        case ClassDeclarationImpl():
           var declaredFragment = member.declaredFragment!;
           if (!declaredFragment.isAugmentation) {
             _checkDuplicateIdentifier(
               definedGetters,
-              identifier,
+              member.namePart.typeName,
               fragment: declaredFragment,
               setterScope: definedSetters,
             );
           }
-        }
-      } else if (member is ClassDeclarationImpl) {
-        var declaredFragment = member.declaredFragment!;
-        _checkDuplicateIdentifier(
-          definedGetters,
-          member.namePart.typeName,
-          fragment: declaredFragment,
-          setterScope: definedSetters,
-        );
-      } else if (member is EnumDeclarationImpl) {
-        var declaredFragment = member.declaredFragment!;
-        _checkDuplicateIdentifier(
-          definedGetters,
-          member.namePart.typeName,
-          fragment: declaredFragment,
-          setterScope: definedSetters,
-        );
-      } else if (member is ExtensionTypeDeclarationImpl) {
-        var declaredFragment = member.declaredFragment!;
-        _checkDuplicateIdentifier(
-          definedGetters,
-          member.primaryConstructor.typeName,
-          fragment: declaredFragment,
-          setterScope: definedSetters,
-        );
-      } else if (member is NamedCompilationUnitMemberImpl) {
-        var declaredFragment = member.declaredFragment!;
-        _checkDuplicateIdentifier(
-          definedGetters,
-          member.name,
-          fragment: declaredFragment,
-          setterScope: definedSetters,
-        );
-      } else if (member is TopLevelVariableDeclarationImpl) {
-        for (var variable in member.variables.variables) {
-          var declaredFragment = variable.declaredFragment;
-          declaredFragment as TopLevelVariableFragmentImpl;
+        case EnumDeclarationImpl():
+          var declaredFragment = member.declaredFragment!;
           if (!declaredFragment.isAugmentation) {
-            var declaredElement = declaredFragment.element;
             _checkDuplicateIdentifier(
               definedGetters,
-              variable.name,
-              originFragment: declaredFragment,
-              fragment: declaredElement.getter?.firstFragment,
+              member.namePart.typeName,
+              fragment: declaredFragment,
               setterScope: definedSetters,
             );
-            if (declaredElement.definesSetter) {
+          }
+        case ExtensionDeclarationImpl():
+          var identifier = member.name;
+          if (identifier != null) {
+            var declaredFragment = member.declaredFragment!;
+            if (!declaredFragment.isAugmentation) {
               _checkDuplicateIdentifier(
                 definedGetters,
-                variable.name,
-                originFragment: declaredFragment,
-                fragment: declaredElement.setter?.firstFragment,
+                identifier,
+                fragment: declaredFragment,
                 setterScope: definedSetters,
               );
             }
           }
-        }
+        case ExtensionTypeDeclarationImpl():
+          var declaredFragment = member.declaredFragment!;
+          if (!declaredFragment.isAugmentation) {
+            _checkDuplicateIdentifier(
+              definedGetters,
+              member.primaryConstructor.typeName,
+              fragment: declaredFragment,
+              setterScope: definedSetters,
+            );
+          }
+        case FunctionDeclarationImpl():
+          var declaredFragment = member.declaredFragment!;
+          if (!declaredFragment.isAugmentation) {
+            _checkDuplicateIdentifier(
+              definedGetters,
+              member.name,
+              fragment: declaredFragment,
+              setterScope: definedSetters,
+            );
+          }
+        case MixinDeclarationImpl():
+          var declaredFragment = member.declaredFragment!;
+          if (!declaredFragment.isAugmentation) {
+            _checkDuplicateIdentifier(
+              definedGetters,
+              member.name,
+              fragment: declaredFragment,
+              setterScope: definedSetters,
+            );
+          }
+        case TopLevelVariableDeclarationImpl():
+          for (var variable in member.variables.variables) {
+            var declaredFragment = variable.declaredFragment;
+            declaredFragment as TopLevelVariableFragmentImpl;
+            if (!declaredFragment.isAugmentation) {
+              var declaredElement = declaredFragment.element;
+              _checkDuplicateIdentifier(
+                definedGetters,
+                variable.name,
+                originFragment: declaredFragment,
+                fragment: declaredElement.getter?.firstFragment,
+                setterScope: definedSetters,
+              );
+              if (declaredElement.definesSetter) {
+                _checkDuplicateIdentifier(
+                  definedGetters,
+                  variable.name,
+                  originFragment: declaredFragment,
+                  fragment: declaredElement.setter?.firstFragment,
+                  setterScope: definedSetters,
+                );
+              }
+            }
+          }
+        case TypeAliasImpl():
+          var declaredFragment = member.declaredFragment!;
+          if (!declaredFragment.isAugmentation) {
+            _checkDuplicateIdentifier(
+              definedGetters,
+              member.name,
+              fragment: declaredFragment,
+              setterScope: definedSetters,
+            );
+          }
       }
     }
   }

@@ -55,7 +55,7 @@ class CreateConstructorForFinalFields extends ResolvedCorrectionProducer {
     }
 
     var container = fieldDeclaration.parent?.parent;
-    if (container is! NamedCompilationUnitMember) {
+    if (container is! CompilationUnitMember) {
       return;
     }
 
@@ -147,7 +147,7 @@ class CreateConstructorForFinalFields extends ResolvedCorrectionProducer {
 
   Future<void> _forFlutterWidget({
     required _FixContext fixContext,
-    required NamedCompilationUnitMember classDeclaration,
+    required CompilationUnitMember classDeclaration,
     required bool requiredNamedParametersFirst,
   }) async {
     if (unit.featureSet.isEnabled(Feature.super_parameters)) {
@@ -167,7 +167,7 @@ class CreateConstructorForFinalFields extends ResolvedCorrectionProducer {
 
   Future<void> _forFlutterWithoutSuperParameters({
     required _FixContext fixContext,
-    required NamedCompilationUnitMember classDeclaration,
+    required CompilationUnitMember classDeclaration,
     required bool requiredNamedParametersFirst,
   }) async {
     var keyClass = await sessionHelper.getFlutterClass('Key');
@@ -222,7 +222,7 @@ class CreateConstructorForFinalFields extends ResolvedCorrectionProducer {
 
   Future<void> _forFlutterWithSuperParameters({
     required _FixContext fixContext,
-    required NamedCompilationUnitMember classDeclaration,
+    required CompilationUnitMember classDeclaration,
     required bool requiredNamedParametersFirst,
   }) async {
     await fixContext.builder.addDartFileEdit(file, (builder) {
@@ -265,7 +265,7 @@ class CreateConstructorForFinalFields extends ResolvedCorrectionProducer {
 
   Future<void> _notFlutterNamed({
     required _FixContext fixContext,
-    required NamedCompilationUnitMember containerDeclaration,
+    required CompilationUnitMember containerDeclaration,
     required bool isConst,
     required List<_Field> fields,
     required bool requiredNamedParametersFirst,
@@ -346,7 +346,7 @@ class CreateConstructorForFinalFields extends ResolvedCorrectionProducer {
 
   Future<void> _notFlutterRequiredPositional({
     required _FixContext fixContext,
-    required NamedCompilationUnitMember containerDeclaration,
+    required CompilationUnitMember containerDeclaration,
     required bool isConst,
     required List<_Field> fields,
   }) async {
@@ -375,7 +375,7 @@ class CreateConstructorForFinalFields extends ResolvedCorrectionProducer {
 
   Future<void> _notFlutterWidget({
     required _FixContext fixContext,
-    required NamedCompilationUnitMember containerDeclaration,
+    required CompilationUnitMember containerDeclaration,
     required bool isConst,
     required bool requiredNamedParametersFirst,
   }) async {

@@ -12,7 +12,7 @@ import 'package:analyzer_plugin/utilities/change_builder/change_builder_dart.dar
 /// Builds and returns a single [SourceEdit] for a new constructor, inserted
 /// into [container].
 Future<SourceEdit?> buildEditForInsertedConstructor(
-  NamedCompilationUnitMember container,
+  CompilationUnitMember container,
   void Function(DartEditBuilder builder) buildEdit, {
   required ResolvedUnitResult resolvedUnit,
   required AnalysisSession session,

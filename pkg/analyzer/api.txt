@@ -1234,6 +1234,7 @@ package:analyzer/dart/ast/ast.dart:
     functionExpression (getter: FunctionExpression)
     isGetter (getter: bool)
     isSetter (getter: bool)
+    name (getter: Token)
     propertyKeyword (getter: Token?)
     returnType (getter: TypeAnnotation?)
   FunctionDeclarationStatement (class extends Object implements Statement):
@@ -1444,6 +1445,7 @@ package:analyzer/dart/ast/ast.dart:
     leftBracket (getter: Token, deprecated)
     members (getter: NodeList<ClassMember>, deprecated)
     mixinKeyword (getter: Token)
+    name (getter: Token)
     onClause (getter: MixinOnClause?)
     rightBracket (getter: Token, deprecated)
     typeParameters (getter: TypeParameterList?)
@@ -1451,8 +1453,8 @@ package:analyzer/dart/ast/ast.dart:
     onKeyword (getter: Token)
     superclassConstraints (getter: NodeList<NamedType>)
   NameWithTypeParameters (class extends Object implements ClassNamePart)
-  NamedCompilationUnitMember (class extends Object implements CompilationUnitMember):
-    name (getter: Token)
+  NamedCompilationUnitMember (class extends Object implements CompilationUnitMember, deprecated):
+    name (getter: Token, deprecated)
   NamedExpression (class extends Object implements Expression):
     element (getter: FormalParameterElement?)
     expression (getter: Expression)
@@ -1740,6 +1742,7 @@ package:analyzer/dart/ast/ast.dart:
     tryKeyword (getter: Token)
   TypeAlias (class extends Object implements NamedCompilationUnitMember):
     augmentKeyword (getter: Token?)
+    name (getter: Token)
     semicolon (getter: Token)
     typedefKeyword (getter: Token)
   TypeAnnotation (class extends Object implements AstNode, sealed (immediate subtypes: GenericFunctionType, NamedType, RecordTypeAnnotation, TypeAnnotationImpl)):

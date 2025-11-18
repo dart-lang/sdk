@@ -27,30 +27,37 @@ DefinedNames computeDefinedNames(CompilationUnit unit) {
   }
 
   void appendTopLevelName(CompilationUnitMember member) {
-    if (member is NamedCompilationUnitMember) {
-      switch (member) {
-        case ClassDeclarationImpl():
-          appendName(names.topLevelNames, member.namePart.typeName);
-          member.body.members.forEach(appendClassMemberName);
-        case EnumDeclaration():
-          appendName(names.topLevelNames, member.namePart.typeName);
-          for (var constant in member.body.constants) {
-            appendName(names.classMemberNames, constant.name);
-          }
-          member.body.members.forEach(appendClassMemberName);
-        case ExtensionTypeDeclarationImpl():
-          appendName(names.topLevelNames, member.primaryConstructor.typeName);
-          member.body.members.forEach(appendClassMemberName);
-        case MixinDeclaration():
-          appendName(names.topLevelNames, member.name);
-          member.body.members.forEach(appendClassMemberName);
-        default:
-          appendName(names.topLevelNames, member.name);
-      }
-    } else if (member is TopLevelVariableDeclaration) {
-      for (VariableDeclaration variable in member.variables.variables) {
-        appendName(names.topLevelNames, variable.name);
-      }
+    switch (member) {
+      case ClassDeclaration():
+        appendName(names.topLevelNames, member.namePart.typeName);
+        if (member.body case BlockClassBody body) {
+          body.members.forEach(appendClassMemberName);
+        }
+      case EnumDeclaration():
+        appendName(names.topLevelNames, member.namePart.typeName);
+        for (var constant in member.body.constants) {
+          appendName(names.classMemberNames, constant.name);
+        }
+        member.body.members.forEach(appendClassMemberName);
+      case ExtensionDeclaration():
+        appendName(names.topLevelNames, member.name);
+        member.body.members.forEach(appendClassMemberName);
+      case ExtensionTypeDeclaration():
+        appendName(names.topLevelNames, member.primaryConstructor.typeName);
+        if (member.body case BlockClassBody body) {
+          body.members.forEach(appendClassMemberName);
+        }
+      case FunctionDeclaration():
+        appendName(names.topLevelNames, member.name);
+      case MixinDeclaration():
+        appendName(names.topLevelNames, member.name);
+        member.body.members.forEach(appendClassMemberName);
+      case TopLevelVariableDeclaration():
+        for (VariableDeclaration variable in member.variables.variables) {
+          appendName(names.topLevelNames, variable.name);
+        }
+      case TypeAlias():
+        appendName(names.topLevelNames, member.name);
     }
   }
 

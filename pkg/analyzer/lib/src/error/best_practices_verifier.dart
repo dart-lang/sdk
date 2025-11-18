@@ -239,7 +239,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
     }
 
     try {
-      _checkForImmutable(node);
+      _checkForImmutable(node, nameToken: node.namePart.typeName);
       _checkForInvalidSealedSuperclass(node);
       super.visitClassDeclaration(node);
     } finally {
@@ -254,7 +254,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
 
   @override
   void visitClassTypeAlias(ClassTypeAlias node) {
-    _checkForImmutable(node);
+    _checkForImmutable(node, nameToken: node.name);
     _checkForInvalidSealedSuperclass(node);
     _deprecatedFunctionalityVerifier.classTypeAlias(node);
     for (var v in _elementUsageFrontierDetectors) {
@@ -768,7 +768,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
     }
 
     try {
-      _checkForImmutable(node);
+      _checkForImmutable(node, nameToken: node.name);
       _checkForInvalidSealedSuperclass(node);
       super.visitMixinDeclaration(node);
     } finally {
@@ -1040,7 +1040,10 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
   /// marked with [immutable], this function searches the fields of [node] and
   /// its superclasses, reporting a warning if any non-final instance fields are
   /// found.
-  void _checkForImmutable(NamedCompilationUnitMember node) {
+  void _checkForImmutable(
+    CompilationUnitMember node, {
+    required Token nameToken,
+  }) {
     /// Return `true` if the given class [element] or any superclass of it is
     /// annotated with the `@immutable` annotation.
     bool isOrInheritsImmutable(
@@ -1110,7 +1113,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
           );
       if (nonFinalFields.isNotEmpty) {
         _diagnosticReporter.atToken(
-          node.name,
+          nameToken,
           diag.mustBeImmutable,
           arguments: [nonFinalFields.join(', ')],
         );
@@ -1168,7 +1171,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
     });
   }
 
-  void _checkForInvalidSealedSuperclass(NamedCompilationUnitMember node) {
+  void _checkForInvalidSealedSuperclass(CompilationUnitMember node) {
     bool currentPackageContains(Element element) {
       return _isLibraryInWorkspacePackage(element.library);
     }

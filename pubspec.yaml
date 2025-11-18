@@ -48,6 +48,7 @@ workspace:
   - pkg/_fe_analyzer_shared
   - pkg/front_end
   - pkg/frontend_server
+  - pkg/frontend_server_client
   - pkg/heap_snapshot
   - pkg/js
   - pkg/js_ast
@@ -96,8 +97,6 @@ workspace:
 
 # All third_party packages are retrieved via the DEPS-file and overridden here.
 dependency_overrides:
-  analysis_config:
-    path: third_party/pkg/webdev/_analysis_config
   args:
     path: third_party/pkg/core/pkgs/args
   async:
@@ -156,8 +155,6 @@ dependency_overrides:
     path: third_party/pkg/tools/pkgs/file_testing
   fixnum:
     path: third_party/pkg/core/pkgs/fixnum
-  frontend_server_client:
-    path: third_party/pkg/webdev/frontend_server_client
   glob:
     path: third_party/pkg/tools/pkgs/glob
   graphs:

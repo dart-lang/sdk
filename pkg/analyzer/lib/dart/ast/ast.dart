@@ -176,6 +176,7 @@ export 'package:analyzer/src/dart/ast/ast.dart'
         MethodReferenceExpression,
         MixinDeclaration,
         MixinOnClause,
+        // ignore: deprecated_member_use_from_same_package
         NamedCompilationUnitMember,
         NamedExpression,
         NamedType,

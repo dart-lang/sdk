@@ -206,6 +206,7 @@ class _Constructor {
                 diag.fieldInitializedInInitializerAndDeclaration,
               );
             }
+            fields[fieldElement] = _InitState.initInInitializer;
           } else if (state == _InitState.initInFieldFormal) {
             diagnosticReporter.atNode(
               fieldName,
@@ -244,6 +245,7 @@ class _Constructor {
               arguments: [fieldElement.displayName],
             );
           }
+          fields[fieldElement] = _InitState.initInFieldFormal;
         } else if (state == _InitState.initInFieldFormal) {
           // Reported in DuplicateDefinitionVerifier._checkDuplicateIdentifier
         }
