@@ -1,5 +1,7 @@
 ## 3.10.1
 
+**Released on:** 2025-11-18
+
 This is a patch release that:
 
 - Fixes an issue with dot shorthand code completion for the `==` operator,
