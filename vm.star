@@ -470,13 +470,13 @@ _vm_builder(
     channels = ["try"],
     location_filters = paths.to_location_filters(paths.dart2bytecode),
 )
-_nightly_builder(
+_vm_builder(
     "vm-aot-dyn-linux-product-x64",
     category = "vm|misc|dyn|p",
     channels = ["try"],
-    location_filters = paths.to_location_filters(paths.dart2bytecode),
+    location_filters = paths.to_location_filters(paths.vm + paths.dart2bytecode),
 )
-_nightly_builder(
+_vm_builder(
     "vm-dyn-linux-debug-x64",
     category = "vm|misc|dyn|j",
     channels = ["try"],
