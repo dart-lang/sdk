@@ -11,6 +11,8 @@ This is a patch release that:
   methods for dot shorthand AST nodes. (issue [dart-lang/sdk#61963])
 - Fixes an analyzer crash that would sometimes occur when the
   `prefer_const_constructors` lint was enabled (issue [dart-lang/sdk#61953][]).
+- Updates dartdoc dependency to dartdoc 9.0.0 which fixes dartdoc rendering of
+  `@Deprecated.extend()` and the other new deprecated annotations.
 
 [dart-lang/sdk#61872]: https://github.com/dart-lang/sdk/issues/61872
 [dart-lang/sdk#61954]: https://github.com/dart-lang/sdk/issues/61954
