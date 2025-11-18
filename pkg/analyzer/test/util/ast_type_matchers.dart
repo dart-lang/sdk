@@ -187,8 +187,6 @@ const isMixinDeclaration = TypeMatcher<MixinDeclaration>();
 
 const isMixinOnClause = TypeMatcher<MixinOnClause>();
 
-const isNamedCompilationUnitMember = TypeMatcher<NamedCompilationUnitMember>();
-
 const isNamedExpression = TypeMatcher<NamedExpression>();
 
 const isNamedType = TypeMatcher<NamedType>();

@@ -50,6 +50,7 @@ class InheritanceOverrideVerifier {
           reporter: _reporter,
           featureSet: unit.featureSet,
           library: library,
+          node: declaration,
           classNameToken: declaration.namePart.typeName,
           classElement: fragment.element,
           implementsClause: declaration.implementsClause,
@@ -70,6 +71,7 @@ class InheritanceOverrideVerifier {
           reporter: _reporter,
           featureSet: unit.featureSet,
           library: library,
+          node: declaration,
           classNameToken: declaration.name,
           classElement: fragment.element,
           implementsClause: declaration.implementsClause,
@@ -89,6 +91,7 @@ class InheritanceOverrideVerifier {
           reporter: _reporter,
           featureSet: unit.featureSet,
           library: library,
+          node: declaration,
           classNameToken: declaration.namePart.typeName,
           classElement: fragment.element,
           implementsClause: declaration.implementsClause,
@@ -108,6 +111,7 @@ class InheritanceOverrideVerifier {
           reporter: _reporter,
           featureSet: unit.featureSet,
           library: library,
+          node: declaration,
           classNameToken: declaration.name,
           classElement: fragment.element,
           implementsClause: declaration.implementsClause,
@@ -133,17 +137,15 @@ class InheritanceOverrideVerifier {
   /// Returns [ExecutableElement] members that are in the interface of the
   /// given class with `@mustBeOverridden`, but don't have implementations.
   static List<ExecutableElement> missingMustBeOverridden(
-    NamedCompilationUnitMember node,
+    CompilationUnitMember node,
   ) {
-    return _missingMustBeOverridden[node.name] ?? const [];
+    return _missingMustBeOverridden[node] ?? const [];
   }
 
   /// Returns [ExecutableElement] members that are in the interface of the
   /// given class, but don't have concrete implementations.
-  static List<ExecutableElement> missingOverrides(
-    NamedCompilationUnitMember node,
-  ) {
-    return _missingOverrides[node.name] ?? const [];
+  static List<ExecutableElement> missingOverrides(CompilationUnitMember node) {
+    return _missingOverrides[node] ?? const [];
   }
 }
 
@@ -158,6 +160,7 @@ class _ClassVerifier {
   final Uri libraryUri;
   final InterfaceElementImpl classElement;
 
+  final CompilationUnitMember node;
   final Token classNameToken;
   final List<ClassMember> members;
   final ImplementsClause? implementsClause;
@@ -178,6 +181,7 @@ class _ClassVerifier {
     required this.reporter,
     required this.featureSet,
     required this.library,
+    required this.node,
     required this.classNameToken,
     required this.classElement,
     this.implementsClause,
@@ -812,7 +816,7 @@ class _ClassVerifier {
       return;
     }
 
-    _missingOverrides[classNameToken] = elements;
+    _missingOverrides[node] = elements;
 
     var descriptions = <String>[];
     for (var element in elements) {
@@ -966,7 +970,7 @@ class _ClassVerifier {
       return;
     }
 
-    _missingMustBeOverridden[classNameToken] = notOverridden.toList();
+    _missingMustBeOverridden[node] = notOverridden.toList();
     var namesForError = notOverridden
         .map((e) {
           var name = e.name!;

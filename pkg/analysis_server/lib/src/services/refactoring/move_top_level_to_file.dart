@@ -311,8 +311,8 @@ class MoveTopLevelToFile extends RefactoringProducer {
     for (var sub in index.findSubclassesOfSealedRecursively(
       candidateMembers.keys.toSet(),
     )) {
-      candidateMembers[sub] ??= sub is NamedCompilationUnitMember
-          ? sub.name.lexeme
+      candidateMembers[sub] ??= sub is ClassDeclaration
+          ? sub.namePart.typeName.lexeme
           : null;
     }
 
@@ -550,7 +550,7 @@ class _SealedSubclassIndex {
   ) {
     return {
       ...members,
-      ...members.whereType<NamedCompilationUnitMember>().expand(
+      ...members.whereType<CompilationUnitMember>().expand(
         (member) => findSubclassesOfSealedRecursively(
           sealedTypeSubclasses[member.declaredFragment?.element] ?? const {},
         ),

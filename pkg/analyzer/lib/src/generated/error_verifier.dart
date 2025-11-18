@@ -1697,7 +1697,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   /// checking is not useful.
   bool _checkClassInheritance(
     InterfaceFragmentImpl declarationElement,
-    NamedCompilationUnitMember node,
+    CompilationUnitMember node,
     Token nameToken,
     NamedType? superclass,
     WithClauseImpl? withClause,
@@ -2480,7 +2480,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   }
 
   void _checkForConflictingGenerics({
-    required NamedCompilationUnitMember node,
+    required CompilationUnitMember node,
     required Token nameToken,
   }) {
     var fragment = node.declaredFragment as InterfaceFragmentImpl;
@@ -4191,7 +4191,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   /// See [diag.mixinClassDeclaresConstructor],
   /// [diag.mixinInheritsFromNotObject].
   void _checkForMixinClassErrorCodes(
-    NamedCompilationUnitMember node,
+    CompilationUnitMember node,
     List<ClassMember> members,
     NamedType? superclass,
     WithClause? withClause,
@@ -6311,7 +6311,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   ) {
     var fields = <FieldElement>{};
     var unitMemberDeclaration =
-        constructor.parent?.parent as NamedCompilationUnitMember;
+        constructor.parent?.parent as CompilationUnitMember;
     late NodeList<ClassMember> membersList;
     switch (unitMemberDeclaration) {
       case TypeAlias() || FunctionDeclaration():

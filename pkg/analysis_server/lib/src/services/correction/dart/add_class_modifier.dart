@@ -55,9 +55,8 @@ class AddClassModifier extends ResolvedCorrectionProducer {
   Future<void> compute(ChangeBuilder builder) async {
     var node = this.node;
 
-    var declaration =
-        node.ifTypeOrNull<NamedCompilationUnitMember>() ?? node.parent;
-    if (declaration is! NamedCompilationUnitMember) return;
+    var declaration = node.ifTypeOrNull<CompilationUnitMember>() ?? node.parent;
+    if (declaration is! CompilationUnitMember) return;
 
     await builder.addDartFileEdit(file, (builder) {
       builder.addSimpleInsertion(

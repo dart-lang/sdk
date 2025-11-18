@@ -28,16 +28,14 @@ extension AstNodeExtension on AstNode {
 
   /// Whether this is the child of a private compilation unit member.
   bool get inPrivateMember {
-    var parent = this.parent;
-    if (parent is BlockClassBody) {
-      parent = parent.parent;
-    } else if (parent is EnumBody) {
-      parent = parent.parent;
-    }
-
+    var parent = this.parent?.parent;
     return switch (parent) {
-      NamedCompilationUnitMember() => parent.name.isPrivate,
+      ClassDeclaration() => parent.namePart.typeName.isPrivate,
+      EnumDeclaration() => parent.namePart.typeName.isPrivate,
       ExtensionDeclaration() => parent.name == null || parent.name.isPrivate,
+      ExtensionTypeDeclaration() =>
+        parent.primaryConstructor.typeName.isPrivate,
+      MixinDeclaration() => parent.name.isPrivate,
       _ => false,
     };
   }

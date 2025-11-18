@@ -2922,7 +2922,10 @@ abstract final class ClassBodyImpl extends AstNodeImpl implements ClassBody {
 ///      | 'abstract'? ('base' | 'interface' | 'final')?
 ///      | 'abstract'? 'base'? 'mixin'
 @AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
-abstract final class ClassDeclaration implements NamedCompilationUnitMember {
+abstract final class ClassDeclaration
+    implements
+        // ignore: deprecated_member_use_from_same_package
+        NamedCompilationUnitMember {
   /// The `abstract` keyword, or `null` if the keyword was absent.
   Token? get abstractKeyword;
 
@@ -3007,11 +3010,6 @@ abstract final class ClassDeclaration implements NamedCompilationUnitMember {
     GenerateNodeProperty('mixinKeyword'),
     GenerateNodeProperty('classKeyword'),
     GenerateNodeProperty('namePart'),
-    GenerateNodeProperty(
-      'name',
-      isSuper: true,
-      includeIntoChildEntities: false,
-    ),
     GenerateNodeProperty('extendsClause'),
     GenerateNodeProperty('withClause'),
     GenerateNodeProperty('implementsClause'),
@@ -3019,7 +3017,10 @@ abstract final class ClassDeclaration implements NamedCompilationUnitMember {
     GenerateNodeProperty('body'),
   ],
 )
-final class ClassDeclarationImpl extends NamedCompilationUnitMemberImpl
+final class ClassDeclarationImpl
+    extends
+        // ignore: deprecated_member_use_from_same_package
+        NamedCompilationUnitMemberImpl
     with AstNodeWithNameScopeMixin
     implements ClassDeclaration {
   @generated
@@ -3088,7 +3089,6 @@ final class ClassDeclarationImpl extends NamedCompilationUnitMemberImpl
     required this.mixinKeyword,
     required this.classKeyword,
     required ClassNamePartImpl namePart,
-    required super.name,
     required ExtendsClauseImpl? extendsClause,
     required WithClauseImpl? withClause,
     required ImplementsClauseImpl? implementsClause,
@@ -3179,6 +3179,10 @@ final class ClassDeclarationImpl extends NamedCompilationUnitMemberImpl
   NodeListImpl<ClassMemberImpl> get members {
     return (body as BlockClassBodyImpl).members;
   }
+
+  @Deprecated('Use namePart instead')
+  @override
+  Token get name => namePart.typeName;
 
   @generated
   @override
@@ -7310,7 +7314,10 @@ final class EnumConstantDeclarationImpl extends DeclarationImpl
 ///        [WithClause]? [ImplementsClause]? '{' [SimpleIdentifier]
 ///        (',' [SimpleIdentifier])* (';' [ClassMember]+)? '}'
 @AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
-abstract final class EnumDeclaration implements NamedCompilationUnitMember {
+abstract final class EnumDeclaration
+    implements
+        // ignore: deprecated_member_use_from_same_package
+        NamedCompilationUnitMember {
   /// The `augment` keyword, or `null` if the keyword was absent.
   Token? get augmentKeyword;
 
@@ -7371,17 +7378,15 @@ abstract final class EnumDeclaration implements NamedCompilationUnitMember {
     GenerateNodeProperty('augmentKeyword'),
     GenerateNodeProperty('enumKeyword'),
     GenerateNodeProperty('namePart'),
-    GenerateNodeProperty(
-      'name',
-      isSuper: true,
-      includeIntoChildEntities: false,
-    ),
     GenerateNodeProperty('withClause'),
     GenerateNodeProperty('implementsClause'),
     GenerateNodeProperty('body'),
   ],
 )
-final class EnumDeclarationImpl extends NamedCompilationUnitMemberImpl
+final class EnumDeclarationImpl
+    extends
+        // ignore: deprecated_member_use_from_same_package
+        NamedCompilationUnitMemberImpl
     with AstNodeWithNameScopeMixin
     implements EnumDeclaration {
   @generated
@@ -7414,7 +7419,6 @@ final class EnumDeclarationImpl extends NamedCompilationUnitMemberImpl
     required this.augmentKeyword,
     required this.enumKeyword,
     required ClassNamePartImpl namePart,
-    required super.name,
     required WithClauseImpl? withClause,
     required ImplementsClauseImpl? implementsClause,
     required EnumBodyImpl body,
@@ -7478,6 +7482,10 @@ final class EnumDeclarationImpl extends NamedCompilationUnitMemberImpl
   NodeListImpl<ClassMemberImpl> get members {
     return body.members;
   }
+
+  @Deprecated('Use namePart instead')
+  @override
+  Token get name => namePart.typeName;
 
   @generated
   @override
@@ -8783,7 +8791,9 @@ final class ExtensionOverrideImpl extends ExpressionImpl
 ///        '}'
 @AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 abstract final class ExtensionTypeDeclaration
-    implements NamedCompilationUnitMember {
+    implements
+        // ignore: deprecated_member_use_from_same_package
+        NamedCompilationUnitMember {
   /// The `augment` keyword, or `null` if the keyword was absent.
   Token? get augmentKeyword;
 
@@ -8841,16 +8851,14 @@ abstract final class ExtensionTypeDeclaration
     GenerateNodeProperty('extensionKeyword'),
     GenerateNodeProperty('typeKeyword'),
     GenerateNodeProperty('primaryConstructor'),
-    GenerateNodeProperty(
-      'name',
-      isSuper: true,
-      includeIntoChildEntities: false,
-    ),
     GenerateNodeProperty('implementsClause'),
     GenerateNodeProperty('body'),
   ],
 )
-final class ExtensionTypeDeclarationImpl extends NamedCompilationUnitMemberImpl
+final class ExtensionTypeDeclarationImpl
+    extends
+        // ignore: deprecated_member_use_from_same_package
+        NamedCompilationUnitMemberImpl
     with AstNodeWithNameScopeMixin
     implements ExtensionTypeDeclaration {
   @generated
@@ -8887,7 +8895,6 @@ final class ExtensionTypeDeclarationImpl extends NamedCompilationUnitMemberImpl
     required this.extensionKeyword,
     required this.typeKeyword,
     required PrimaryConstructorDeclarationImpl primaryConstructor,
-    required super.name,
     required ImplementsClauseImpl? implementsClause,
     required ClassBodyImpl body,
   }) : _primaryConstructor = primaryConstructor,
@@ -8955,6 +8962,10 @@ final class ExtensionTypeDeclarationImpl extends NamedCompilationUnitMemberImpl
   NodeListImpl<ClassMemberImpl> get members {
     return (body as BlockClassBodyImpl).members;
   }
+
+  @Deprecated('Use primaryConstructor instead')
+  @override
+  Token get name => primaryConstructor.typeName;
 
   @generated
   @override
@@ -10889,7 +10900,10 @@ sealed class FunctionBodyImpl extends AstNodeImpl implements FunctionBody {
 //  that are only sometimes applicable. Consider changing the class hierarchy so
 //  that these two kinds of variables can be distinguished.
 @AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
-abstract final class FunctionDeclaration implements NamedCompilationUnitMember {
+abstract final class FunctionDeclaration
+    implements
+        // ignore: deprecated_member_use_from_same_package
+        NamedCompilationUnitMember {
   /// The `augment` keyword, or `null` if there is no `augment` keyword.
   Token? get augmentKeyword;
 
@@ -10913,6 +10927,10 @@ abstract final class FunctionDeclaration implements NamedCompilationUnitMember {
   /// Whether this function declares a setter.
   bool get isSetter;
 
+  /// The name of the function.
+  @override
+  Token get name;
+
   /// The token representing the `get` or `set` keyword, or `null` if this is a
   /// function declaration rather than a property declaration.
   Token? get propertyKeyword;
@@ -10927,11 +10945,14 @@ abstract final class FunctionDeclaration implements NamedCompilationUnitMember {
     GenerateNodeProperty('externalKeyword'),
     GenerateNodeProperty('returnType'),
     GenerateNodeProperty('propertyKeyword'),
-    GenerateNodeProperty('name', isSuper: true),
+    GenerateNodeProperty('name'),
     GenerateNodeProperty('functionExpression'),
   ],
 )
-final class FunctionDeclarationImpl extends NamedCompilationUnitMemberImpl
+final class FunctionDeclarationImpl
+    extends
+        // ignore: deprecated_member_use_from_same_package
+        NamedCompilationUnitMemberImpl
     with AstNodeWithNameScopeMixin
     implements FunctionDeclaration {
   @generated
@@ -10950,6 +10971,10 @@ final class FunctionDeclarationImpl extends NamedCompilationUnitMemberImpl
   final Token? propertyKeyword;
 
   @generated
+  @override
+  final Token name;
+
+  @generated
   FunctionExpressionImpl _functionExpression;
 
   @override
@@ -10963,7 +10988,7 @@ final class FunctionDeclarationImpl extends NamedCompilationUnitMemberImpl
     required this.externalKeyword,
     required TypeAnnotationImpl? returnType,
     required this.propertyKeyword,
-    required super.name,
+    required this.name,
     required FunctionExpressionImpl functionExpression,
   }) : _returnType = returnType,
        _functionExpression = functionExpression {
@@ -11934,10 +11959,6 @@ class GenerateNodeProperty {
   /// Normally [Token] properties are final, but sometimes we mutate nodes.
   final bool isTokenFinal;
 
-  /// Whether to include this property into `_childEntities` getter.
-  /// Usually `true`, set to `false` during API migration steps.
-  final bool includeIntoChildEntities;
-
   /// When the property is from the public interface, its field or getter
   /// should have `@override` annotation. But sometimes we want to have
   /// implementation only property, not in the public interface.
@@ -11971,7 +11992,6 @@ class GenerateNodeProperty {
     this.isSuper = false,
     this.isNodeListFinal = true,
     this.isTokenFinal = true,
-    this.includeIntoChildEntities = true,
     this.withOverride = true,
     this.superNullAssertOverride = false,
     this.tokenGroupId,
@@ -16395,7 +16415,10 @@ abstract final class MethodReferenceExpression implements Expression {
 ///        'base'? 'mixin' name [TypeParameterList]?
 ///        [OnClause]? [ImplementsClause]? '{' [ClassMember]* '}'
 @AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
-abstract final class MixinDeclaration implements NamedCompilationUnitMember {
+abstract final class MixinDeclaration
+    implements
+        // ignore: deprecated_member_use_from_same_package
+        NamedCompilationUnitMember {
   /// The `augment` keyword, or `null` if the keyword was absent.
   Token? get augmentKeyword;
 
@@ -16423,6 +16446,10 @@ abstract final class MixinDeclaration implements NamedCompilationUnitMember {
   /// The token representing the `mixin` keyword.
   Token get mixinKeyword;
 
+  /// The name of the mixin.
+  @override
+  Token get name;
+
   /// The on clause for the mixin, or `null` if the mixin doesn't have any
   /// superclass constraints.
   MixinOnClause? get onClause;
@@ -16441,14 +16468,17 @@ abstract final class MixinDeclaration implements NamedCompilationUnitMember {
     GenerateNodeProperty('augmentKeyword'),
     GenerateNodeProperty('baseKeyword'),
     GenerateNodeProperty('mixinKeyword'),
-    GenerateNodeProperty('name', isSuper: true),
+    GenerateNodeProperty('name'),
     GenerateNodeProperty('typeParameters'),
     GenerateNodeProperty('onClause'),
     GenerateNodeProperty('implementsClause'),
     GenerateNodeProperty('body'),
   ],
 )
-final class MixinDeclarationImpl extends NamedCompilationUnitMemberImpl
+final class MixinDeclarationImpl
+    extends
+        // ignore: deprecated_member_use_from_same_package
+        NamedCompilationUnitMemberImpl
     with AstNodeWithNameScopeMixin
     implements MixinDeclaration {
   @generated
@@ -16462,6 +16492,10 @@ final class MixinDeclarationImpl extends NamedCompilationUnitMemberImpl
   @generated
   @override
   final Token mixinKeyword;
+
+  @generated
+  @override
+  final Token name;
 
   @generated
   TypeParameterListImpl? _typeParameters;
@@ -16485,7 +16519,7 @@ final class MixinDeclarationImpl extends NamedCompilationUnitMemberImpl
     required this.augmentKeyword,
     required this.baseKeyword,
     required this.mixinKeyword,
-    required super.name,
+    required this.name,
     required TypeParameterListImpl? typeParameters,
     required MixinOnClauseImpl? onClause,
     required ImplementsClauseImpl? implementsClause,
@@ -16706,25 +16740,24 @@ final class MixinOnClauseImpl extends AstNodeImpl implements MixinOnClause {
 
 /// A node that declares a single name within the scope of a compilation unit.
 @AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
+@Deprecated('Use specific subclasses and properties')
 abstract final class NamedCompilationUnitMember
     implements CompilationUnitMember {
   /// The name of the member being declared.
+  @Deprecated('Use name or namePart properties of concrete subclasses')
   Token get name;
 }
 
+@Deprecated('Use specific subclasses and properties')
 sealed class NamedCompilationUnitMemberImpl extends CompilationUnitMemberImpl
     implements NamedCompilationUnitMember {
-  @override
-  final Token name;
-
-  /// Initializes a newly created compilation unit member with the given [name].
+  /// Initializes a newly created compilation unit member.
   ///
   /// Either or both of the [comment] and [metadata] can be `null` if the member
   /// doesn't have the corresponding attribute.
   NamedCompilationUnitMemberImpl({
     required super.comment,
     required super.metadata,
-    required this.name,
   });
 }
 
@@ -24419,9 +24452,16 @@ final class TryStatementImpl extends StatementImpl implements TryStatement {
 ///      | [FunctionTypeAlias]
 ///      | [GenericTypeAlias]
 @AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
-abstract final class TypeAlias implements NamedCompilationUnitMember {
+abstract final class TypeAlias
+    implements
+        // ignore: deprecated_member_use_from_same_package
+        NamedCompilationUnitMember {
   /// The `augment` keyword, or `null` if the keyword was absent.
   Token? get augmentKeyword;
+
+  /// The name of the type alias.
+  @override
+  Token get name;
 
   /// The semicolon terminating the declaration.
   Token get semicolon;
@@ -24430,13 +24470,19 @@ abstract final class TypeAlias implements NamedCompilationUnitMember {
   Token get typedefKeyword;
 }
 
-sealed class TypeAliasImpl extends NamedCompilationUnitMemberImpl
+sealed class TypeAliasImpl
+    extends
+        // ignore: deprecated_member_use_from_same_package
+        NamedCompilationUnitMemberImpl
     implements TypeAlias {
   @override
   final Token? augmentKeyword;
 
   @override
   final Token typedefKeyword;
+
+  @override
+  Token name;
 
   @override
   final Token semicolon;
@@ -24450,7 +24496,7 @@ sealed class TypeAliasImpl extends NamedCompilationUnitMemberImpl
     required super.metadata,
     required this.augmentKeyword,
     required this.typedefKeyword,
-    required super.name,
+    required this.name,
     required this.semicolon,
   });
 

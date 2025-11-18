@@ -228,6 +228,10 @@ class GeneralizingAstVisitor<R> implements AstVisitor<R> {
         out.writeln('@override');
       }
 
+      if (node.apiElement.metadata.hasDeprecated) {
+        out.writeln('  // ignore: deprecated_member_use_from_same_package');
+      }
+
       // TODO(fshcheglov): Remove special case after AST hierarchy is fixed.
       // https://github.com/dart-lang/sdk/issues/61224
       if (node.apiElementName == 'FunctionDeclaration') {

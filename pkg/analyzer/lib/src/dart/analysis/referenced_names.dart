@@ -157,12 +157,18 @@ class _LocalNameScope {
           scope.add(declaration.namePart.typeName);
         case EnumDeclaration():
           scope.add(declaration.namePart.typeName);
+        case ExtensionDeclaration():
+          scope.add(declaration.name);
         case ExtensionTypeDeclaration():
           scope.add(declaration.primaryConstructor.typeName);
-        case NamedCompilationUnitMember():
+        case FunctionDeclaration():
+          scope.add(declaration.name);
+        case MixinDeclaration():
           scope.add(declaration.name);
         case TopLevelVariableDeclaration():
           scope.addVariableNames(declaration.variables);
+        case TypeAlias():
+          scope.add(declaration.name);
       }
     }
     return scope;

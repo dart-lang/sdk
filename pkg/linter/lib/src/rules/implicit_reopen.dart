@@ -7,6 +7,7 @@ import 'package:analyzer/analysis_rule/rule_context.dart';
 import 'package:analyzer/analysis_rule/rule_state.dart';
 import 'package:analyzer/analysis_rule/rule_visitor_registry.dart';
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/error/error.dart';
@@ -43,9 +44,9 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   _Visitor(this.rule);
 
-  void checkElement(
-    InterfaceElement? element,
-    NamedCompilationUnitMember node, {
+  void checkElement({
+    required InterfaceElement? element,
+    required Token nameToken,
     required String type,
   }) {
     if (element is! ClassElement) return;
@@ -61,7 +62,7 @@ class _Visitor extends SimpleAstVisitor<void> {
     if (element.isBase) {
       if (supertype.isFinal) {
         reportLint(
-          node,
+          nameToken: nameToken,
           target: element,
           other: supertype,
           reason: 'final',
@@ -70,7 +71,7 @@ class _Visitor extends SimpleAstVisitor<void> {
         return;
       } else if (supertype.isInterface) {
         reportLint(
-          node,
+          nameToken: nameToken,
           target: element,
           other: supertype,
           reason: 'interface',
@@ -81,7 +82,7 @@ class _Visitor extends SimpleAstVisitor<void> {
     } else if (element.hasNoModifiers) {
       if (supertype.isInterface) {
         reportLint(
-          node,
+          nameToken: nameToken,
           target: element,
           other: supertype,
           reason: 'interface',
@@ -92,8 +93,8 @@ class _Visitor extends SimpleAstVisitor<void> {
     }
   }
 
-  void reportLint(
-    NamedCompilationUnitMember member, {
+  void reportLint({
+    required Token nameToken,
     required String type,
     required InterfaceElement target,
     required InterfaceElement other,
@@ -103,7 +104,7 @@ class _Visitor extends SimpleAstVisitor<void> {
     var otherName = other.name;
     if (targetName != null && otherName != null) {
       rule.reportAtToken(
-        member.name,
+        nameToken,
         arguments: [type, targetName, otherName, reason],
       );
     }
@@ -111,12 +112,20 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   @override
   void visitClassDeclaration(ClassDeclaration node) {
-    checkElement(node.declaredFragment?.element, node, type: 'class');
+    checkElement(
+      element: node.declaredFragment?.element,
+      nameToken: node.namePart.typeName,
+      type: 'class',
+    );
   }
 
   @override
   visitClassTypeAlias(ClassTypeAlias node) {
-    checkElement(node.declaredFragment?.element, node, type: 'class');
+    checkElement(
+      element: node.declaredFragment?.element,
+      nameToken: node.name,
+      type: 'class',
+    );
   }
 }
 

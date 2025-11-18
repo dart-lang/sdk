@@ -125,9 +125,7 @@ class _Visitor extends SimpleAstVisitor<void> {
 
     if (parent != null) {
       AstNode? declaration = parent.thisOrAncestorOfType<ClassMember>();
-      declaration ??= parent.thisOrAncestorOfType<NamedCompilationUnitMember>();
-      declaration ??= parent
-          .thisOrAncestorOfType<TopLevelVariableDeclaration>();
+      declaration ??= parent.thisOrAncestorOfType<CompilationUnitMember>();
       if (declaration?.isAugmentation ?? false) return;
     }
 

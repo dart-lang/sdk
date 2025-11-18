@@ -545,30 +545,50 @@ class _Visitor extends SimpleAstVisitor<void> {
     }).toList();
 
     for (var member in unusedMembers) {
-      if (member is ConstructorDeclaration) {
-        var name = member.name;
-        if (name == null) {
-          rule.reportAtNode(
-            member.returnType,
+      switch (member) {
+        case ClassDeclaration():
+          rule.reportAtToken(
+            member.namePart.typeName,
             arguments: [member.nameForError],
           );
-        } else {
-          rule.reportAtToken(name, arguments: [member.nameForError]);
-        }
-      } else if (member is NamedCompilationUnitMember) {
-        rule.reportAtToken(member.name, arguments: [member.nameForError]);
-      } else if (member is MethodDeclaration) {
-        rule.reportAtToken(member.name, arguments: [member.name.lexeme]);
-      } else if (member is VariableDeclaration) {
-        rule.reportAtToken(member.name, arguments: [member.nameForError]);
-      } else if (member is ExtensionDeclaration) {
-        var name = member.name;
-        rule.reportAtToken(
-          name ?? member.extensionKeyword,
-          arguments: [name?.lexeme ?? '<unnamed>'],
-        );
-      } else {
-        throw UnimplementedError('(${member.runtimeType}) $member');
+        case ConstructorDeclaration():
+          var name = member.name;
+          if (name == null) {
+            rule.reportAtNode(
+              member.returnType,
+              arguments: [member.nameForError],
+            );
+          } else {
+            rule.reportAtToken(name, arguments: [member.nameForError]);
+          }
+        case EnumDeclaration():
+          rule.reportAtToken(
+            member.namePart.typeName,
+            arguments: [member.nameForError],
+          );
+        case ExtensionDeclaration():
+          var name = member.name;
+          rule.reportAtToken(
+            name ?? member.extensionKeyword,
+            arguments: [name?.lexeme ?? '<unnamed>'],
+          );
+        case ExtensionTypeDeclaration():
+          rule.reportAtToken(
+            member.primaryConstructor.typeName,
+            arguments: [member.nameForError],
+          );
+        case FunctionDeclaration():
+          rule.reportAtToken(member.name, arguments: [member.name.lexeme]);
+        case MethodDeclaration():
+          rule.reportAtToken(member.name, arguments: [member.name.lexeme]);
+        case MixinDeclaration():
+          rule.reportAtToken(member.name, arguments: [member.name.lexeme]);
+        case TypeAlias():
+          rule.reportAtToken(member.name, arguments: [member.name.lexeme]);
+        case VariableDeclaration():
+          rule.reportAtToken(member.name, arguments: [member.nameForError]);
+        default:
+          throw UnimplementedError('(${member.runtimeType}) $member');
       }
     }
   }
@@ -683,24 +703,35 @@ extension on Declaration {
   String get nameForError {
     // TODO(srawlins): Move this to analyzer when other uses are found.
     var self = this;
-    if (self is ConstructorDeclaration) {
-      var name = self.name?.lexeme ?? 'new';
-      return '${self.returnType.name}.$name';
-    } else if (self is EnumConstantDeclaration) {
-      return self.name.lexeme;
-    } else if (self is ExtensionDeclaration) {
-      var name = self.name;
-      return name?.lexeme ?? 'the unnamed extension';
-    } else if (self is MethodDeclaration) {
-      return self.name.lexeme;
-    } else if (self is NamedCompilationUnitMember) {
-      return self.name.lexeme;
-    } else if (self is VariableDeclaration) {
-      return self.name.lexeme;
+    switch (self) {
+      case ClassDeclaration():
+        return self.namePart.typeName.lexeme;
+      case ConstructorDeclaration():
+        var name = self.name?.lexeme ?? 'new';
+        return '${self.returnType.name}.$name';
+      case EnumConstantDeclaration():
+        return self.name.lexeme;
+      case EnumDeclaration():
+        return self.namePart.typeName.lexeme;
+      case ExtensionDeclaration():
+        var name = self.name;
+        return name?.lexeme ?? 'the unnamed extension';
+      case ExtensionTypeDeclaration():
+        return self.primaryConstructor.typeName.lexeme;
+      case FunctionDeclaration():
+        return self.name.lexeme;
+      case MethodDeclaration():
+        return self.name.lexeme;
+      case MixinDeclaration():
+        return self.name.lexeme;
+      case TypeAlias():
+        return self.name.lexeme;
+      case VariableDeclaration():
+        return self.name.lexeme;
+      default:
+        assert(false, 'Uncovered Declaration subtype: ${self.runtimeType}');
+        return '';
     }
-
-    assert(false, 'Uncovered Declaration subtype: ${self.runtimeType}');
-    return '';
   }
 }
 

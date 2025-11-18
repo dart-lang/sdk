@@ -441,6 +441,7 @@ class GeneralizingAstVisitor<R> implements AstVisitor<R> {
   @override
   R? visitMixinOnClause(MixinOnClause node) => visitNode(node);
 
+  // ignore: deprecated_member_use_from_same_package
   R? visitNamedCompilationUnitMember(NamedCompilationUnitMember node) =>
       visitCompilationUnitMember(node);
 

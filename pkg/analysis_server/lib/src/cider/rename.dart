@@ -376,7 +376,7 @@ class CheckNameResponse {
     }
 
     var node = result.node;
-    if (node is! NamedCompilationUnitMember) {
+    if (node is! CompilationUnitMember) {
       return null;
     }
     var edit = await buildEditForInsertedConstructor(

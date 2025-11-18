@@ -100,10 +100,11 @@ class CreateConstructor extends ResolvedCorrectionProducer {
     }
 
     await _write(
-      builder,
-      resolvedUnit,
-      name,
-      targetNode,
+      builder: builder,
+      resolvedUnit: resolvedUnit,
+      name: name,
+      unitMember: targetNode,
+      unitMemberName: targetNode.namePart.typeName,
       constructorName: name,
       argumentList: argumentList,
     );
@@ -258,21 +259,23 @@ class CreateConstructor extends ResolvedCorrectionProducer {
         '${targetNode.namePart.typeName.lexeme}${arguments?.constructorSelector ?? ''}';
 
     await _write(
-      builder,
-      resolvedUnit,
-      name,
-      targetNode,
+      builder: builder,
+      resolvedUnit: resolvedUnit,
+      name: name,
+      unitMember: targetNode,
+      unitMemberName: targetNode.namePart.typeName,
       isConst: true,
       constructorName: arguments?.constructorSelector?.name.token,
       argumentList: arguments?.argumentList,
     );
   }
 
-  Future<void> _write(
-    ChangeBuilder builder,
-    ResolvedUnitResult resolvedUnit,
-    Token name,
-    NamedCompilationUnitMember unitMember, {
+  Future<void> _write({
+    required ChangeBuilder builder,
+    required ResolvedUnitResult resolvedUnit,
+    required Token name,
+    required CompilationUnitMember unitMember,
+    required Token unitMemberName,
     Token? constructorName,
     bool isConst = false,
     ArgumentList? argumentList,
@@ -281,7 +284,7 @@ class CreateConstructor extends ResolvedCorrectionProducer {
     await builder.addDartFileEdit(targetFile, (builder) {
       builder.insertConstructor(unitMember, (builder) {
         builder.writeConstructorDeclaration(
-          unitMember.name.lexeme,
+          unitMemberName.lexeme,
           isConst: isConst,
           argumentList: argumentList,
           constructorName: constructorName?.lexeme,

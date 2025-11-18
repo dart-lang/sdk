@@ -256,6 +256,16 @@ class U<T1, T2 extends D> = A<T1> with B<T2> implements C<T1, T2>;
     expect(names, unorderedEquals(['A', 'B', 'C', 'D']));
   }
 
+  test_unit_extension() {
+    Set<String> names = _computeReferencedNames('''
+extension E on int {}
+f() {
+  E;
+}
+''');
+    expect(names, unorderedEquals(['int']));
+  }
+
   test_unit_function() {
     Set<String> names = _computeReferencedNames('''
 A f(B b) {
