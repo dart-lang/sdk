@@ -195,13 +195,13 @@ IrAnnotationData processAnnotations(ModularCore modularCore) {
           returnsAnnotations.add(returns);
         }
 
-        PragmaAnnotationData? pragmaAnnotation = _getPragmaAnnotation(constant);
-        if (pragmaAnnotation != null) {
-          if (pragmaAnnotations == null) {
-            data._memberPragmaAnnotations[member] = pragmaAnnotations = [];
-          }
-          pragmaAnnotations.add(pragmaAnnotation);
+        Iterable<PragmaAnnotationData> pragmaAnnotation = _pragmaAnnotations(
+          constant,
+        );
+        if (pragmaAnnotations == null) {
+          data._memberPragmaAnnotations[member] = pragmaAnnotations = [];
         }
+        pragmaAnnotations.addAll(pragmaAnnotation);
       }
     }
   }
@@ -382,16 +382,16 @@ class PragmaAnnotationData {
   }
 }
 
-PragmaAnnotationData? _getPragmaAnnotation(ir.Constant constant) {
-  if (constant is! ir.InstanceConstant) return null;
+Iterable<PragmaAnnotationData> _pragmaAnnotations(ir.Constant constant) {
+  if (constant is! ir.InstanceConstant) return const [];
   ir.InstanceConstant value = constant;
   ir.Class cls = value.classNode;
   Uri uri = cls.enclosingLibrary.importUri;
   if (uri == Uris.packageMetaDart2js) {
     if (cls.name == '_NoInline') {
-      return const PragmaAnnotationData('noInline');
+      return const [PragmaAnnotationData('noInline')];
     } else if (cls.name == '_TryInline') {
-      return const PragmaAnnotationData('tryInline');
+      return const [PragmaAnnotationData('tryInline')];
     }
   } else if (uri == Uris.dartCore && cls.name == 'pragma') {
     ir.Constant? nameValue;
@@ -405,18 +405,27 @@ PragmaAnnotationData? _getPragmaAnnotation(ir.Constant constant) {
       }
     });
     final nameValueFinal = nameValue;
-    if (nameValueFinal is! ir.StringConstant) return null;
+    if (nameValueFinal is! ir.StringConstant) return const [];
     ir.StringConstant stringValue = nameValueFinal;
     String name = stringValue.value;
     String prefix = 'dart2js:';
-    if (!name.startsWith(prefix)) return null;
+    if (!name.startsWith(prefix)) return const [];
     String suffix = name.substring(prefix.length);
-    return PragmaAnnotationData(
-      suffix,
-      options: optionsValue is ir.NullConstant ? null : optionsValue,
-    );
+    return [
+      PragmaAnnotationData(
+        suffix,
+        options: optionsValue is ir.NullConstant ? null : optionsValue,
+      ),
+    ];
+  } else if (uri == Uris.packageMeta) {
+    if (cls.name == 'RecordUse') {
+      return const [
+        PragmaAnnotationData('noInline'),
+        PragmaAnnotationData('resource-identifier'),
+      ];
+    }
   }
-  return null;
+  return [];
 }
 
 List<PragmaAnnotationData> computePragmaAnnotationDataFromIr(
@@ -431,10 +440,8 @@ List<PragmaAnnotationData> computePragmaAnnotationDataFromIr(
       constant is! ir.UnevaluatedConstant,
       "Unexpected unevaluated constant on $node: $metadata",
     );
-    PragmaAnnotationData? data = _getPragmaAnnotation(constant);
-    if (data != null) {
-      annotations.add(data);
-    }
+    Iterable<PragmaAnnotationData> data = _pragmaAnnotations(constant);
+    annotations.addAll(data);
   }
   return annotations;
 }

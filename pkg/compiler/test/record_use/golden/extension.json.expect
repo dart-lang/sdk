@@ -1,0 +1,47 @@
+{
+  "metadata": {
+    "comment": "Resources referenced by annotated resource identifiers",
+    "AppTag": "TBD",
+    "environment": {
+      "dart.web.assertions_enabled": "false",
+      "dart.tool.dart2js": "true",
+      "dart.tool.dart2js.minify": "false",
+      "dart.tool.dart2js.disable_rti_optimization": "false",
+      "dart.tool.dart2js.primitives:trust": "false",
+      "dart.tool.dart2js.types:trust": "false"
+    },
+    "version": "0.4.0"
+  },
+  "constants": [
+    {
+      "type": "String",
+      "value": "42"
+    }
+  ],
+  "locations": [
+    {
+      "uri": "memory:sdk/tests/web/native/extension.dart"
+    }
+  ],
+  "recordings": [
+    {
+      "definition": {
+        "identifier": {
+          "uri": "memory:sdk/tests/web/native/extension.dart",
+          "name": "_extension#0|callWithArgs"
+        }
+      },
+      "calls": [
+        {
+          "type": "with_arguments",
+          "positional": [
+            null,
+            0
+          ],
+          "loading_unit": "out",
+          "@": 0
+        }
+      ]
+    }
+  ]
+}

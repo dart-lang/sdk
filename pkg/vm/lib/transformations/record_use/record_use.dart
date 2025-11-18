@@ -9,7 +9,6 @@ import 'package:_fe_analyzer_shared/src/util/relativize.dart'
     show relativizeUri;
 import 'package:collection/collection.dart';
 import 'package:kernel/ast.dart' as ast;
-import 'package:pub_semver/pub_semver.dart';
 import 'package:record_use/record_use_internal.dart';
 import 'package:vm/metadata/loading_units.dart';
 import 'package:vm/transformations/record_use/record_call.dart';
@@ -92,7 +91,7 @@ Recordings _usages(
     metadata: Metadata.fromJson({
       'comment':
           'Recorded usages of objects tagged with a `RecordUse` annotation',
-      'version': Version(0, 2, 0).toString(),
+      'version': version.toString(),
     }),
     callsForDefinition: calls.map(
       (key, value) => MapEntry(

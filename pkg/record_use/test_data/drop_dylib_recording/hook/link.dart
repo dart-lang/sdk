@@ -22,10 +22,9 @@ void main(List<String> arguments) async {
     print('Received assets: ${codeAssets.map((a) => a.id).join(', ')}.');
 
     final symbols = <String>{};
-    final argumentsFile =
-        await File.fromUri(
-          input.outputDirectory.resolve('arguments.txt'),
-        ).create();
+    final argumentsFile = await File.fromUri(
+      input.outputDirectory.resolve('arguments.txt'),
+    ).create();
 
     final dataLines = <String>[];
     // Tree-shake unused assets using calls
@@ -40,7 +39,8 @@ void main(List<String> arguments) async {
       );
       for (var call in calls) {
         dataLines.add(
-          'A call was made to "$methodName" with the arguments (${call.positional[0] as int},${call.positional[1] as int})',
+          'A call was made to "$methodName" with the arguments ('
+          '${call.positional[0] as int},${call.positional[1] as int})',
         );
         symbols.add(methodName);
       }

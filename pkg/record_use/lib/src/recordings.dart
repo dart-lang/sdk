@@ -3,6 +3,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:convert';
+
 import 'constant.dart';
 import 'definition.dart';
 import 'helper.dart';
@@ -59,59 +61,77 @@ class Recordings {
   /// efficiency. Identifiers and constants are stored in separate tables,
   /// allowing them to be referenced by index in the `recordings` map.
   factory Recordings.fromJson(Map<String, Object?> json) {
-    final constants = <Constant>[];
-    for (final constantJsonObj in json[_constantsKey] as List? ?? []) {
-      final constantJson = constantJsonObj as Map<String, Object?>;
-      constants.add(Constant.fromJson(constantJson, constants));
-    }
-    final locations = <Location>[];
-    for (final locationJsonObj in json[_locationsKey] as List? ?? []) {
-      final locationJson = locationJsonObj as Map<String, Object?>;
-      locations.add(Location.fromJson(locationJson));
-    }
+    if (json case {
+      _constantsKey: List<Object?>? constantJsons,
+      _locationsKey: List<Object?>? locationJsons,
+      _recordingsKey: List<Object?>? recordingJsons,
+    }) {
+      final constants = <Constant>[];
+      for (final constantJsonObj in constantJsons ?? []) {
+        final constantJson = constantJsonObj as Map<String, Object?>;
+        final constant = Constant.fromJson(constantJson, constants);
+        if (!constants.contains(constant)) {
+          constants.add(constant);
+        }
+      }
+      final locations = <Location>[];
+      for (final locationJsonObj in locationJsons ?? []) {
+        final locationJson = locationJsonObj as Map<String, Object?>;
+        final location = Location.fromJson(locationJson);
+        if (!locations.contains(location)) {
+          locations.add(location);
+        }
+      }
 
-    final recordings =
-        (json[_recordingsKey] as List?)?.whereType<Map<String, Object?>>() ??
-        [];
-    final recordedCalls = recordings.where(
-      (recording) => recording[_callsKey] != null,
-    );
-    final recordedInstances = recordings.where(
-      (recording) => recording[_instancesKey] != null,
-    );
-    return Recordings(
-      metadata: Metadata.fromJson(json[_metadataKey] as Map<String, Object?>),
-      callsForDefinition: {
-        for (final recording in recordedCalls)
-          Definition.fromJson(
-                recording[_definitionKey] as Map<String, Object?>,
-              ):
-              (recording[_callsKey] as List)
-                  .map(
-                    (json) => CallReference.fromJson(
-                      json as Map<String, Object?>,
-                      constants,
-                      locations,
-                    ),
-                  )
-                  .toList(),
-      },
-      instancesForDefinition: {
-        for (final recording in recordedInstances)
-          Definition.fromJson(
-                recording[_definitionKey] as Map<String, Object?>,
-              ):
-              (recording[_instancesKey] as List)
-                  .map(
-                    (json) => InstanceReference.fromJson(
-                      json as Map<String, Object?>,
-                      constants,
-                      locations,
-                    ),
-                  )
-                  .toList(),
-      },
-    );
+      final recordings =
+          recordingJsons?.whereType<Map<String, Object?>>() ?? [];
+
+      final recordedCalls = recordings.where(
+        (recording) => recording[_callsKey] != null,
+      );
+      final recordedInstances = recordings.where(
+        (recording) => recording[_instancesKey] != null,
+      );
+
+      return Recordings(
+        metadata: Metadata.fromJson(json[_metadataKey] as Map<String, Object?>),
+        callsForDefinition: {
+          for (final recording in recordedCalls)
+            Definition.fromJson(
+                  recording[_definitionKey] as Map<String, Object?>,
+                ):
+                (recording[_callsKey] as List)
+                    .map(
+                      (json) => CallReference.fromJson(
+                        json as Map<String, Object?>,
+                        constants,
+                        locations,
+                      ),
+                    )
+                    .toList(),
+        },
+        instancesForDefinition: {
+          for (final recording in recordedInstances)
+            Definition.fromJson(
+                  recording[_definitionKey] as Map<String, Object?>,
+                ):
+                (recording[_instancesKey] as List)
+                    .map(
+                      (json) => InstanceReference.fromJson(
+                        json as Map<String, Object?>,
+                        constants,
+                        locations,
+                      ),
+                    )
+                    .toList(),
+        },
+      );
+    } else {
+      throw ArgumentError('''
+Invalid JSON format for Recordings:
+${const JsonEncoder.withIndent('  ').convert(json)}
+''');
+    }
   }
 
   /// Encodes this object into a JSON representation.
@@ -121,7 +141,7 @@ class Recordings {
     final constants =
         {
           ...callsForDefinition.values
-              .expand((element) => element)
+              .expand((calls) => calls)
               .whereType<CallWithArguments>()
               .expand(
                 (call) => [
@@ -131,7 +151,7 @@ class Recordings {
               )
               .nonNulls,
           ...instancesForDefinition.values
-              .expand((element) => element)
+              .expand((instances) => instances)
               .expand(
                 (instance) => {
                   ...instance.instanceConstant.fields.values,
@@ -143,10 +163,12 @@ class Recordings {
         {
           ...callsForDefinition.values
               .expand((calls) => calls)
-              .map((call) => call.location),
+              .map((call) => call.location)
+              .nonNulls,
           ...instancesForDefinition.values
               .expand((instances) => instances)
-              .map((instance) => instance.location),
+              .map((instance) => instance.location)
+              .nonNulls,
         }.asMapToIndices;
     return {
       _metadataKey: metadata.json,
@@ -203,7 +225,7 @@ class Recordings {
   );
 }
 
-extension on Iterable<Constant> {
+extension FlattenConstantsExtension on Iterable<Constant> {
   Set<Constant> flatten() {
     final constants = <Constant>{};
     for (final constant in this) {
@@ -228,7 +250,7 @@ extension on Iterable<Constant> {
   }
 }
 
-extension _PrivateIterableExtension<T> on Iterable<T> {
+extension MapifyIterableExtension<T> on Iterable<T> {
   /// Transform list to map, faster than using list.indexOf
   Map<T, int> get asMapToIndices {
     var i = 0;

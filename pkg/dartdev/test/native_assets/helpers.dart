@@ -284,7 +284,7 @@ Future<void> recordUseTest(
     await runPackageTest(
       packageUnderTest,
       fun,
-      const ['drop_dylib_recording'],
+      const ['drop_dylib_recording', 'drop_data_asset'],
       sdkRootUri.resolve('pkg/record_use/'),
       sdkRootUri,
       false,
