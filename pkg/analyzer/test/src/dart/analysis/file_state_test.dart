@@ -4771,9 +4771,9 @@ files
         libraryImports
           library_3 dart:core synthetic
         partIncludes
-          partOfUriKnown_11
-        fileKinds: library_0 partOfUriKnown_11 partOfUriKnown_2 partOfUriKnown_12
-        cycle_4
+          partOfUriKnown_12
+        fileKinds: library_0 partOfUriKnown_12 partOfUriKnown_2 partOfUriKnown_13
+        cycle_5
           dependencies: dart:core dart:io
           libraries: library_0
           apiSignature_1
@@ -4782,12 +4782,12 @@ files
     uri: package:test/b.dart
     current
       id: file_1
-      kind: partOfUriKnown_11
+      kind: partOfUriKnown_12
         uriFile: file_0
         library: library_0
         partIncludes
           partOfUriKnown_2
-          partOfUriKnown_12
+          partOfUriKnown_13
       referencingFiles: file_0
       unlinkedKey: k03
   /home/test/lib/c.dart
@@ -4804,8 +4804,8 @@ files
   /home/test/lib/d.dart
     uri: package:test/d.dart
     current
-      id: file_11
-      kind: partOfUriKnown_12
+      id: file_12
+      kind: partOfUriKnown_13
         uriFile: file_1
         library: library_0
       referencingFiles: file_1
@@ -4831,9 +4831,9 @@ files
         libraryImports
           library_3 dart:core synthetic
         partIncludes
-          partOfUriKnown_13
-        fileKinds: library_0 partOfUriKnown_13 partOfUriKnown_12
-        cycle_5
+          partOfUriKnown_14
+        fileKinds: library_0 partOfUriKnown_14 partOfUriKnown_13
+        cycle_6
           dependencies: dart:core
           libraries: library_0
           apiSignature_2
@@ -4842,11 +4842,11 @@ files
     uri: package:test/b.dart
     current
       id: file_1
-      kind: partOfUriKnown_13
+      kind: partOfUriKnown_14
         uriFile: file_0
         library: library_0
         partIncludes
-          partOfUriKnown_12
+          partOfUriKnown_13
       referencingFiles: file_0
       unlinkedKey: k05
   /home/test/lib/c.dart
@@ -4861,8 +4861,8 @@ files
   /home/test/lib/d.dart
     uri: package:test/d.dart
     current
-      id: file_11
-      kind: partOfUriKnown_12
+      id: file_12
+      kind: partOfUriKnown_13
         uriFile: file_1
         library: library_0
       referencingFiles: file_1

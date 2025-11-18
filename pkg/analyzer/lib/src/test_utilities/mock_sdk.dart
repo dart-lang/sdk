@@ -99,6 +99,13 @@ abstract interface class StreamSubscription<T> {
   void resume();
 }
 
+abstract interface class EventSink<T> implements Sink<T> {}
+
+abstract interface class StreamConsumer<S> {}
+
+abstract interface class
+    StreamSink<S> implements EventSink<S>, StreamConsumer<S> {}
+
 abstract interface class StreamTransformer<S, T> {}
 
 abstract class StreamTransformerBase<S, T> implements StreamTransformer<S, T> {}
@@ -771,45 +778,49 @@ abstract final class Handle implements NativeType {}
 
 abstract base class Opaque implements NativeType {}
 
+abstract final class _NativeInteger implements SizedNativeType {}
+
+abstract final class _NativeDouble implements SizedNativeType {}
+
 abstract final class Void implements NativeType {}
 
-final class Int8 implements SizedNativeType {
+final class Int8 implements _NativeInteger {
   const Int8();
 }
 
-final class Uint8 implements SizedNativeType {
+final class Uint8 implements _NativeInteger {
   const Uint8();
 }
 
-final class Int16 implements SizedNativeType {
+final class Int16 implements _NativeInteger {
   const Int16();
 }
 
-final class Uint16 implements SizedNativeType {
+final class Uint16 implements _NativeInteger {
   const Uint16();
 }
 
-final class Int32 implements SizedNativeType {
+final class Int32 implements _NativeInteger {
   const Int32();
 }
 
-final class Uint32 implements SizedNativeType {
+final class Uint32 implements _NativeInteger {
   const Uint32();
 }
 
-final class Int64 implements SizedNativeType {
+final class Int64 implements _NativeInteger {
   const Int64();
 }
 
-final class Uint64 implements SizedNativeType {
+final class Uint64 implements _NativeInteger {
   const Uint64();
 }
 
-final class Float implements SizedNativeType {
+final class Float implements _NativeDouble {
   const Float();
 }
 
-final class Double implements SizedNativeType {
+final class Double implements _NativeDouble {
   const Double();
 }
 
@@ -1123,17 +1134,23 @@ class ClipboardEvent extends Event {}
 
 class Event {}
 
-class MouseEvent extends Event {}
+class UIEvent extends Event {}
 
-class FocusEvent extends Event {}
+class MouseEvent extends UIEvent {}
 
-class KeyboardEvent extends Event {}
+class FocusEvent extends UIEvent {}
+
+class KeyboardEvent extends UIEvent {}
 
 class KeyEvent implements KeyboardEvent {}
 
 abstract class ElementStream<T extends Event> implements Stream<T> {}
 
-class Element {
+class EventTarget {}
+
+class Node extends EventTarget {}
+
+class Element extends Node {
   factory Element.html(
     String? html, {
     NodeValidator? validator,
@@ -1348,7 +1365,9 @@ final MockSdkLibrary _LIB_IO = MockSdkLibrary('io', [
   MockSdkLibraryUnit('io/io.dart', r'''
 library dart.io;
 
+import 'dart:async';
 import 'dart:convert';
+import 'dart:typed_data';
 
 Never exit(int code) => throw code;
 
@@ -1401,7 +1420,7 @@ abstract class FileSystemEntity {
   FileStat statSync();
 }
 
-abstract interface class IOSink implements Sink<List<int>> {
+abstract interface class IOSink implements StreamSink<List<int>>, StringSink {
   Future<dynamic> close();
   void write(Object? object);
 }
@@ -1442,7 +1461,7 @@ abstract interface class Process {
   });
 }
 
-abstract interface class Socket implements IOSink {
+abstract interface class Socket implements Stream<Uint8List>, IOSink {
   void destroy();
 
   static Future<Socket> connect(
