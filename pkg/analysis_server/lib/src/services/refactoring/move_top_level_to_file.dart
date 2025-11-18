@@ -260,39 +260,53 @@ class MoveTopLevelToFile extends RefactoringProducer {
     }
 
     var candidateMembers = <CompilationUnitMember, String?>{};
-    var sealedDeclarations = <CompilationUnitMember>[];
     for (var node in selectedNodes) {
-      String? name;
-      if (node is ClassDeclaration && validSelection(node.namePart.typeName)) {
-        if (node.sealedKeyword != null) {
-          sealedDeclarations.add(node);
-        }
-        name = node.namePart.typeName.lexeme;
-      } else if (node is EnumDeclaration &&
-          validSelection(node.namePart.typeName)) {
-        name = node.namePart.typeName.lexeme;
-      } else if (node is ExtensionDeclaration && validSelection(node.name)) {
-        name = node.name?.lexeme;
-      } else if (node is ExtensionTypeDeclaration &&
-          validSelection(node.primaryConstructor.typeName)) {
-        name = node.primaryConstructor.typeName.lexeme;
-      } else if (node is FunctionDeclaration &&
-          node.parent is CompilationUnit &&
-          validSelection(node.name)) {
-        name = node.name.lexeme;
-      } else if (node is MixinDeclaration && validSelection(node.name)) {
-        name = node.name.lexeme;
-      } else if (node is TopLevelVariableDeclaration) {
-        var variables = node.variables.variables;
-        if (variables.length == 1) {
-          name = variables[0].name.lexeme;
-        }
-      } else if (node is TypeAlias && validSelection(node.name)) {
-        name = node.name.lexeme;
-      } else {
-        return null;
+      Token? nameToken;
+      switch (node) {
+        case ClassDeclaration():
+          nameToken = node.namePart.typeName;
+          if (!validSelection(nameToken)) {
+            return null;
+          }
+        case EnumDeclaration():
+          nameToken = node.namePart.typeName;
+          if (!validSelection(nameToken)) {
+            return null;
+          }
+        case ExtensionDeclaration():
+          nameToken = node.name;
+          if (!validSelection(nameToken)) {
+            return null;
+          }
+        case ExtensionTypeDeclaration():
+          nameToken = node.primaryConstructor.typeName;
+          if (!validSelection(nameToken)) {
+            return null;
+          }
+        case FunctionDeclaration():
+          nameToken = node.name;
+          if (!validSelection(nameToken)) {
+            return null;
+          }
+        case MixinDeclaration():
+          nameToken = node.name;
+          if (!validSelection(nameToken)) {
+            return null;
+          }
+        case TopLevelVariableDeclaration():
+          if (node.variables.variables.length == 1) {
+            nameToken = node.variables.variables.first.name;
+          }
+        // No check for selection.
+        case TypeAlias():
+          nameToken = node.name;
+          if (!validSelection(nameToken)) {
+            return null;
+          }
+        default:
+          return null;
       }
-      candidateMembers[node] = name;
+      candidateMembers[node] = nameToken?.lexeme;
     }
 
     var index = _SealedSubclassIndex(
@@ -311,9 +325,12 @@ class MoveTopLevelToFile extends RefactoringProducer {
     for (var sub in index.findSubclassesOfSealedRecursively(
       candidateMembers.keys.toSet(),
     )) {
-      candidateMembers[sub] ??= sub is ClassDeclaration
-          ? sub.namePart.typeName.lexeme
-          : null;
+      candidateMembers[sub] ??= switch (sub) {
+        ClassDeclaration() => sub.namePart.typeName.lexeme,
+        EnumDeclaration() => sub.namePart.typeName.lexeme,
+        MixinDeclaration() => sub.name.lexeme,
+        _ => null,
+      };
     }
 
     // Ensure there aren't any subclasses of sealed items in other parts of this
@@ -578,6 +595,11 @@ extension on CompilationUnitMember {
       var mixesInTypes = declaration.withClause?.mixinTypes;
 
       return [?extendsType, ...?implementsTypes, ...?mixesInTypes];
+    } else if (declaration is EnumDeclaration) {
+      var implementsTypes = declaration.implementsClause?.interfaces;
+      var mixesInTypes = declaration.withClause?.mixinTypes;
+
+      return [...?implementsTypes, ...?mixesInTypes];
     } else if (declaration is MixinDeclaration) {
       var interfaceTypes = declaration.implementsClause?.interfaces;
       var constraintTypes = declaration.onClause?.superclassConstraints;
