@@ -723,6 +723,23 @@ class MicroAssembler : public AssemblerBase {
                   std::memory_order order = std::memory_order_relaxed);
 #endif  // XLEN >= 64
 
+  // ==== RV32V: Vectors ====
+  void vsetvli(Register rd,
+               Register rs1,
+               ElementWidth sew,
+               LengthMultiplier lmul,
+               TailMode vta,
+               MaskMode vma);
+  void vle8v(VRegister vd, Address rs1, VectorMask vm = unmasked);
+  void vle16v(VRegister vd, Address rs1, VectorMask vm = unmasked);
+  void vle32v(VRegister vd, Address rs1, VectorMask vm = unmasked);
+  void vle64v(VRegister vd, Address rs1, VectorMask vm = unmasked);
+  void vse8v(VRegister vs3, Address rs1, VectorMask vm = unmasked);
+  void vse16v(VRegister vs3, Address rs1, VectorMask vm = unmasked);
+  void vse32v(VRegister vs3, Address rs1, VectorMask vm = unmasked);
+  void vse64v(VRegister vs3, Address rs1, VectorMask vm = unmasked);
+  void vmvvx(VRegister vd, Register rs1, VectorMask vm = unmasked);
+
   // ==== Zalasr: Load-acquire, store-release ====
   void lb(Register rd, Address addr, std::memory_order order);
   void lh(Register rd, Address addr, std::memory_order order);

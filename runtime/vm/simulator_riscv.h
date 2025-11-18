@@ -20,6 +20,15 @@ class Mutex;
 class SimulatorSetjmpBuffer;
 class Thread;
 
+#define ELEN 64
+#define VLEN 128
+
+COMPILE_ASSERT(ELEN >= 8);
+COMPILE_ASSERT(Utils::IsPowerOfTwo(ELEN));
+COMPILE_ASSERT(VLEN >= ELEN);
+COMPILE_ASSERT(Utils::IsPowerOfTwo(VLEN));
+COMPILE_ASSERT(VLEN <= 0x10000);
+
 // TODO(riscv): Dynamic rounding mode and other FSCR state.
 class Simulator {
  public:
@@ -284,12 +293,27 @@ class Simulator {
   template <typename type>
   void InterpretSTOREORDERED(Instr instr);
   void InterpretLOADFP(Instr instr);
+  template <typename type>
+  void InterpretLOADV(Instr instr);
   void InterpretSTOREFP(Instr instr);
+  template <typename type>
+  void InterpretSTOREV(Instr instr);
   void InterpretFMADD(Instr instr);
   void InterpretFMSUB(Instr instr);
   void InterpretFNMADD(Instr instr);
   void InterpretFNMSUB(Instr instr);
   void InterpretOPFP(Instr instr);
+  void InterpretOPV(Instr instr);
+  void InterpretOPV_IVV(Instr instr);
+  void InterpretOPV_FVV(Instr instr);
+  void InterpretOPV_MVV(Instr instr);
+  void InterpretOPV_IVI(Instr instr);
+  void InterpretOPV_IVX(Instr instr);
+  template <typename sew_t>
+  void InterpretOPV_IVX(Instr instr);
+  void InterpretOPV_FVF(Instr instr);
+  void InterpretOPV_MVX(Instr instr);
+  void InterpretOPV_CFG(Instr instr);
   DART_NORETURN void IllegalInstruction(Instr instr);
   DART_NORETURN void IllegalInstruction(CInstr instr);
 
@@ -337,6 +361,17 @@ class Simulator {
     fregs_[rd] = bit_cast<double>(bits64);
   }
 
+  template <typename T>
+  T* ref_vreg(VRegister vd) {
+    return reinterpret_cast<T*>(&vregs_[vd][0]);
+  }
+  LengthMultiplier vlmul() const {
+    return static_cast<LengthMultiplier>((vtype_ >> 0) & 7);
+  }
+  ElementWidth vsew() const {
+    return static_cast<ElementWidth>((vtype_ >> 3) & 7);
+  }
+
   // Known bad pc value to ensure that the simulator does not execute
   // without being properly setup.
   static constexpr uword kBadLR = -1;
@@ -362,6 +397,11 @@ class Simulator {
   // Zicfissp state
   bool ss_enabled_ = false;
   uintx_t ssp_ = 0;
+
+  // V state
+  uint8_t vregs_[kNumberOfVectorRegisters][VLEN / 8];
+  uintx_t vl_;
+  uintx_t vtype_;
 
   // Simulator support.
   char* stack_;
