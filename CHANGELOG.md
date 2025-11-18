@@ -27,33 +27,6 @@
 
 [#61550]: https://github.com/dart-lang/sdk/issues/61550
 
-### Tools
-
-#### Pub
-
-- "Glob" support for pub workspaces.
-
-  Now to include all packages inside `pkgs/` in the workspace, simply write:
-
-  ```yaml
-  workspace:
-    - pkgs/*
-  ```
-
-  Supported if the dart sdk constraint of the containing package is 3.11.0 or
-  higher.
-
-- New commmand `dart pub cache gc` for reclaiming disk space from your pub
-  cache.
-
-  It works by removing  packages from your pub cache that are not referenced by
-  any of your current projects.
-
-- New flag `dart pub publish --dry-run --ignore-warnings`
-
-  Given this flag, `dart pub publish --dry-run` will only exit non-zero if your
-  project validation has errors.
-
 ## 3.10.0
 
 **Released on:** 2025-11-12

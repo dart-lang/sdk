@@ -5622,19 +5622,33 @@ class Parser {
       }
     }
 
-    // TODO(danrubel): Consider parsing the name before calling beginMethod
-    // rather than passing the name token into beginMethod.
-    listener.beginMethod(
-      kind,
-      augmentToken,
-      externalToken,
-      staticToken,
-      covariantToken,
-      varFinalOrConst,
-      getOrSet,
-      name,
-      enclosingDeclarationName,
-    );
+    if (isConstructor) {
+      listener.beginConstructor(
+        kind,
+        augmentToken,
+        externalToken,
+        staticToken,
+        covariantToken,
+        varFinalOrConst,
+        getOrSet,
+        name,
+        enclosingDeclarationName,
+      );
+    } else {
+      // TODO(danrubel): Consider parsing the name before calling beginMethod
+      // rather than passing the name token into beginMethod.
+      listener.beginMethod(
+        kind,
+        augmentToken,
+        externalToken,
+        staticToken,
+        covariantToken,
+        varFinalOrConst,
+        getOrSet,
+        name,
+        enclosingDeclarationName,
+      );
+    }
 
     Token token = typeInfo.parseType(beforeType, this);
     assert(

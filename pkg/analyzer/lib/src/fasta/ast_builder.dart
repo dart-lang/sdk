@@ -341,6 +341,31 @@ class AstBuilder extends StackListener {
   void beginConstantPattern(Token? constKeyword) {}
 
   @override
+  void beginConstructor(
+    DeclarationKind declarationKind,
+    Token? augmentToken,
+    Token? externalToken,
+    Token? staticToken,
+    Token? covariantToken,
+    Token? varFinalOrConst,
+    Token? getOrSet,
+    Token name,
+    String? enclosingDeclarationName,
+  ) {
+    _beginMethod(
+      declarationKind,
+      augmentToken,
+      externalToken,
+      staticToken,
+      covariantToken,
+      varFinalOrConst,
+      getOrSet,
+      name,
+      enclosingDeclarationName,
+    );
+  }
+
+  @override
   void beginEnumDeclaration(
     Token beginToken,
     Token? augmentToken,
@@ -471,33 +496,17 @@ class AstBuilder extends StackListener {
     Token name,
     String? enclosingDeclarationName,
   ) {
-    _Modifiers modifiers = _Modifiers();
-    if (augmentToken != null) {
-      assert(augmentToken.isModifier);
-      modifiers.augmentKeyword = augmentToken;
-    }
-    if (externalToken != null) {
-      assert(externalToken.isModifier);
-      modifiers.externalKeyword = externalToken;
-    }
-    if (staticToken != null) {
-      assert(staticToken.isModifier);
-      var builder = _classLikeBuilder;
-      if (builder is! _ClassDeclarationBuilder ||
-          builder.name.lexeme != name.lexeme ||
-          getOrSet != null) {
-        modifiers.staticKeyword = staticToken;
-      }
-    }
-    if (covariantToken != null) {
-      assert(covariantToken.isModifier);
-      modifiers.covariantKeyword = covariantToken;
-    }
-    if (varFinalOrConst != null) {
-      assert(varFinalOrConst.isModifier);
-      modifiers.finalConstOrVarKeyword = varFinalOrConst;
-    }
-    push(modifiers);
+    _beginMethod(
+      declarationKind,
+      augmentToken,
+      externalToken,
+      staticToken,
+      covariantToken,
+      varFinalOrConst,
+      getOrSet,
+      name,
+      enclosingDeclarationName,
+    );
   }
 
   @override
@@ -5886,6 +5895,46 @@ class AstBuilder extends StackListener {
         expression.endToken,
       );
     }
+  }
+
+  void _beginMethod(
+    DeclarationKind declarationKind,
+    Token? augmentToken,
+    Token? externalToken,
+    Token? staticToken,
+    Token? covariantToken,
+    Token? varFinalOrConst,
+    Token? getOrSet,
+    Token name,
+    String? enclosingDeclarationName,
+  ) {
+    _Modifiers modifiers = _Modifiers();
+    if (augmentToken != null) {
+      assert(augmentToken.isModifier);
+      modifiers.augmentKeyword = augmentToken;
+    }
+    if (externalToken != null) {
+      assert(externalToken.isModifier);
+      modifiers.externalKeyword = externalToken;
+    }
+    if (staticToken != null) {
+      assert(staticToken.isModifier);
+      var builder = _classLikeBuilder;
+      if (builder is! _ClassDeclarationBuilder ||
+          builder.name.lexeme != name.lexeme ||
+          getOrSet != null) {
+        modifiers.staticKeyword = staticToken;
+      }
+    }
+    if (covariantToken != null) {
+      assert(covariantToken.isModifier);
+      modifiers.covariantKeyword = covariantToken;
+    }
+    if (varFinalOrConst != null) {
+      assert(varFinalOrConst.isModifier);
+      modifiers.finalConstOrVarKeyword = varFinalOrConst;
+    }
+    push(modifiers);
   }
 
   ConstructorDeclarationImpl _buildConstructorDeclaration({

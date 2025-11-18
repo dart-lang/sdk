@@ -21,17 +21,14 @@ sealed class Variable extends TreeNode {
   }
 }
 
-/// The root of the sealed hierarchy of non-type variables.
-sealed class ExpressionVariable extends Variable {
-  /// Static type of the variable.
+/// This is a helper class to enable mixing a mixin into concrete
+/// implementations of the sealed class [ExpressionVariable]. It's not supposed
+/// to be used as a type annotation, but purely for declaring the class
+/// hierarchy.
+abstract interface class IExpressionVariable {
   abstract DartType type;
-
-  /// Initialization node for the variable, if available.
   abstract VariableInitialization? variableInitialization;
-
-  /// Derived from [variableInitialization], if available.
   abstract Expression? initializer;
-
   abstract bool isFinal;
   abstract bool isConst;
   abstract bool isLate;
@@ -46,8 +43,59 @@ sealed class ExpressionVariable extends Variable {
   abstract bool isWildcard;
   abstract bool isSuperInitializingFormal;
   abstract bool isErroneouslyInitialized;
-
   bool get isAssignable;
+  ExpressionVariable get asExpressionVariable;
+}
+
+/// The root of the sealed hierarchy of non-type variables.
+sealed class ExpressionVariable extends Variable
+    implements IExpressionVariable {
+  /// Static type of the variable.
+  @override
+  abstract DartType type;
+
+  /// Initialization node for the variable, if available.
+  @override
+  abstract VariableInitialization? variableInitialization;
+
+  /// Derived from [variableInitialization], if available.
+  @override
+  abstract Expression? initializer;
+
+  @override
+  abstract bool isFinal;
+  @override
+  abstract bool isConst;
+  @override
+  abstract bool isLate;
+  @override
+  abstract bool isInitializingFormal;
+  @override
+  abstract bool isSynthesized;
+  @override
+  abstract bool isHoisted;
+  @override
+  abstract bool hasDeclaredInitializer;
+  @override
+  abstract bool isCovariantByClass;
+  @override
+  abstract bool isRequired;
+  @override
+  abstract bool isCovariantByDeclaration;
+  @override
+  abstract bool isLowered;
+  @override
+  abstract bool isWildcard;
+  @override
+  abstract bool isSuperInitializingFormal;
+  @override
+  abstract bool isErroneouslyInitialized;
+
+  @override
+  bool get isAssignable;
+
+  @override
+  ExpressionVariable get asExpressionVariable => this;
 }
 
 /// Local variables. They aren't Statements. A [LocalVariable] is "declared" in

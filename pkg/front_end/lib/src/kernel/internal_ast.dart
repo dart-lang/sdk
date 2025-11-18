@@ -853,31 +853,17 @@ class ReturnStatementImpl extends ReturnStatement {
 }
 
 /// Front end specific implementation of [VariableDeclaration].
-class VariableDeclarationImpl extends VariableStatement {
+class VariableDeclarationImpl extends VariableStatement
+    with InternalExpressionVariableMixin
+    implements InternalExpressionVariable {
+  @override
   final bool forSyntheticToken;
 
-  /// Determine whether the given [VariableDeclarationImpl] had an implicit
-  /// type.
-  ///
-  /// This is static to avoid introducing a method that would be visible to
-  /// the kernel.
+  @override
   final bool isImplicitlyTyped;
 
-  /// Determines whether the given [VariableDeclarationImpl] represents a
-  /// local function.
-  ///
-  /// This is static to avoid introducing a method that would be visible to the
-  /// kernel.
-  // TODO(ahe): Investigate if this can be removed.
+  @override
   final bool isLocalFunction;
-
-  /// Whether the variable is final with no initializer in a null safe library.
-  ///
-  /// Such variables behave similar to those declared with the `late` keyword,
-  /// except that the don't have lazy evaluation semantics, and it is statically
-  /// verified by the front end that they are always assigned before they are
-  /// used.
-  bool isStaticLate;
 
   VariableDeclarationImpl(
     String? name, {
@@ -895,8 +881,9 @@ class VariableDeclarationImpl extends VariableStatement {
     bool isRequired = false,
     bool isLowered = false,
     bool isSynthesized = false,
-    this.isStaticLate = false,
+    bool isStaticLate = false,
     bool isWildcard = false,
+    bool isLateFinalWithoutInitializer = false,
   }) : isImplicitlyTyped = type == null,
        isLocalFunction = isLocalFunction,
        super(
@@ -914,52 +901,26 @@ class VariableDeclarationImpl extends VariableStatement {
          isSynthesized: isSynthesized,
          hasDeclaredInitializer: hasDeclaredInitializer,
          isWildcard: isWildcard,
-       );
+       ) {
+    this.isStaticLate = isStaticLate;
+    this.isLateFinalWithoutInitializer = isLateFinalWithoutInitializer;
+  }
 
   VariableDeclarationImpl.forEffect(Expression initializer)
     : forSyntheticToken = false,
       isImplicitlyTyped = false,
       isLocalFunction = false,
-      isStaticLate = false,
-      super.forValue(initializer);
+      super.forValue(initializer) {
+    isStaticLate = false;
+  }
 
   VariableDeclarationImpl.forValue(Expression initializer)
     : forSyntheticToken = false,
       isImplicitlyTyped = true,
       isLocalFunction = false,
-      isStaticLate = false,
-      super.forValue(initializer);
-
-  // The synthesized local getter function for a lowered late variable.
-  //
-  // This is set in `InferenceVisitor.visitVariableDeclaration` when late
-  // lowering is enabled.
-  VariableDeclaration? lateGetter;
-
-  // The synthesized local setter function for an assignable lowered late
-  // variable.
-  //
-  // This is set in `InferenceVisitor.visitVariableDeclaration` when late
-  // lowering is enabled.
-  VariableDeclaration? lateSetter;
-
-  // Is `true` if this a lowered late final variable without an initializer.
-  //
-  // This is set in `InferenceVisitor.visitVariableDeclaration` when late
-  // lowering is enabled.
-  bool isLateFinalWithoutInitializer = false;
-
-  // The original type (declared or inferred) of a lowered late variable.
-  //
-  // This is set in `InferenceVisitor.visitVariableDeclaration` when late
-  // lowering is enabled.
-  DartType? lateType;
-
-  // The original name of a lowered late variable.
-  //
-  // This is set in `InferenceVisitor.visitVariableDeclaration` when late
-  // lowering is enabled.
-  String? lateName;
+      super.forValue(initializer) {
+    isStaticLate = false;
+  }
 
   @override
   bool get isAssignable {
@@ -982,6 +943,296 @@ class VariableDeclarationImpl extends VariableStatement {
   String toString() {
     return "VariableDeclarationImpl(${toStringInternal()})";
   }
+}
+
+// Coverage-ignore(suite): Not run.
+class InternalLocalVariable
+    with InternalExpressionVariableMixin, DelegatingVariableMixin
+    implements InternalExpressionVariable {
+  @override
+  LocalVariable variable;
+
+  @override
+  final bool forSyntheticToken;
+
+  @override
+  final bool isImplicitlyTyped;
+
+  @override
+  final bool isLocalFunction;
+
+  InternalLocalVariable({
+    required this.variable,
+    required this.forSyntheticToken,
+    required this.isImplicitlyTyped,
+    required this.isLocalFunction,
+  });
+}
+
+mixin DelegatingVariableMixin on InternalExpressionVariableMixin
+    implements InternalExpressionVariable {
+  ExpressionVariable get variable;
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  bool get hasDeclaredInitializer => variable.hasDeclaredInitializer;
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  void set hasDeclaredInitializer(bool value) {
+    variable.hasDeclaredInitializer = value;
+  }
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  Expression? get initializer => variable.initializer;
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  void set initializer(Expression? value) {
+    variable.initializer = value;
+  }
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  bool get isConst => variable.isConst;
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  void set isConst(bool value) {
+    variable.isConst = value;
+  }
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  bool get isCovariantByClass => variable.isCovariantByClass;
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  void set isCovariantByClass(bool value) {
+    variable.isCovariantByClass = value;
+  }
+
+  @override
+  bool get isCovariantByDeclaration {
+    // TODO(cstefantsova): Should it return `false` instead?
+    throw new UnsupportedError("${variable.runtimeType}");
+  }
+
+  @override
+  void set isCovariantByDeclaration(bool value) {
+    // TODO(cstefantsova): Should it do nothing instead?
+    throw new UnsupportedError("${variable.runtimeType}");
+  }
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  bool get isErroneouslyInitialized => variable.isErroneouslyInitialized;
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  void set isErroneouslyInitialized(bool value) {
+    variable.isErroneouslyInitialized = value;
+  }
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  bool get isFinal => variable.isFinal;
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  void set isFinal(bool value) {
+    variable.isFinal = value;
+  }
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  bool get isHoisted => variable.isHoisted;
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  void set isHoisted(bool value) {
+    variable.isHoisted = value;
+  }
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  bool get isInitializingFormal => variable.isInitializingFormal;
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  void set isInitializingFormal(bool value) {
+    variable.isInitializingFormal = value;
+  }
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  bool get isLate => variable.isLate;
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  void set isLate(bool value) {
+    variable.isLate = value;
+  }
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  bool get isLowered => variable.isLowered;
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  void set isLowered(bool value) {
+    variable.isLowered = value;
+  }
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  bool get isRequired => variable.isRequired;
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  void set isRequired(bool value) {
+    variable.isRequired = value;
+  }
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  bool get isSuperInitializingFormal => variable.isSuperInitializingFormal;
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  void set isSuperInitializingFormal(bool value) {
+    variable.isSuperInitializingFormal = value;
+  }
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  bool get isSynthesized => variable.isSynthesized;
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  void set isSynthesized(bool value) {
+    variable.isSynthesized = value;
+  }
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  bool get isWildcard => variable.isWildcard;
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  void set isWildcard(bool value) {
+    variable.isWildcard = value;
+  }
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  DartType get type => variable.type;
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  void set type(DartType value) {
+    variable.type = type;
+  }
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  VariableInitialization? get variableInitialization =>
+      variable.variableInitialization;
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  void set variableInitialization(VariableInitialization? value) {
+    variable.variableInitialization = value;
+  }
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  bool get isAssignable => variable.isAssignable;
+}
+
+abstract interface class InternalExpressionVariable
+    implements IExpressionVariable {
+  bool get forSyntheticToken;
+
+  /// Determine whether the given [InternalExpressionVariable] had an implicit
+  /// type.
+  bool get isImplicitlyTyped;
+
+  /// Determines whether the given [InternalExpressionVariable] represents a
+  /// local function.
+  bool get isLocalFunction;
+
+  /// Whether the variable is final with no initializer.
+  ///
+  /// Such variables behave similar to those declared with the `late` keyword,
+  /// except that the don't have lazy evaluation semantics, and it is statically
+  /// verified by the front end that they are always assigned before they are
+  /// used.
+  abstract bool isStaticLate;
+
+  /// The synthesized local getter function for a lowered late variable.
+  ///
+  /// This is set in `InferenceVisitor.visitVariableDeclaration` when late
+  /// lowering is enabled.
+  abstract VariableDeclaration? lateGetter;
+
+  /// The synthesized local setter function for an assignable lowered late
+  /// variable.
+  ///
+  /// This is set in `InferenceVisitor.visitVariableDeclaration` when late
+  /// lowering is enabled.
+  abstract VariableDeclaration? lateSetter;
+
+  /// Is `true` if this a lowered late final variable without an initializer.
+  ///
+  /// This is set in `InferenceVisitor.visitVariableDeclaration` when late
+  /// lowering is enabled.
+  abstract bool isLateFinalWithoutInitializer;
+
+  /// The original type (declared or inferred) of a lowered late variable.
+  ///
+  /// This is set in `InferenceVisitor.visitVariableDeclaration` when late
+  /// lowering is enabled.
+  abstract DartType? lateType;
+
+  /// The original name of a lowered late variable.
+  ///
+  /// This is set in `InferenceVisitor.visitVariableDeclaration` when late
+  /// lowering is enabled.
+  abstract String? lateName;
+}
+
+mixin InternalExpressionVariableMixin implements InternalExpressionVariable {
+  @override
+  bool get forSyntheticToken;
+
+  @override
+  bool get isImplicitlyTyped;
+
+  @override
+  bool get isLocalFunction;
+
+  @override
+  bool isStaticLate = false;
+
+  @override
+  VariableDeclaration? lateGetter;
+
+  @override
+  VariableDeclaration? lateSetter;
+
+  @override
+  bool isLateFinalWithoutInitializer = false;
+
+  @override
+  DartType? lateType;
+
+  @override
+  String? lateName;
+
+  @override
+  ExpressionVariable get asExpressionVariable => this as ExpressionVariable;
 }
 
 /// Front end specific implementation of [LoadLibrary].

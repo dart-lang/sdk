@@ -407,7 +407,7 @@ abstract class Generator {
 /// If the variable is final or read-only (like a parameter in a catch clause) a
 /// [ReadOnlyAccessGenerator] is created instead.
 class VariableUseGenerator extends Generator {
-  final VariableDeclaration variable;
+  final ExpressionVariable variable;
 
   VariableUseGenerator(
     ExpressionGeneratorHelper helper,
@@ -421,7 +421,7 @@ class VariableUseGenerator extends Generator {
   String get _debugName => "VariableUseGenerator";
 
   @override
-  String get _plainNameForRead => variable.name!;
+  String get _plainNameForRead => variable.cosmeticName!;
 
   int get _nameOffset => fileOffset;
 
@@ -592,7 +592,7 @@ class ForInLateFinalVariableUseGenerator extends VariableUseGenerator {
   ForInLateFinalVariableUseGenerator(
     ExpressionGeneratorHelper helper,
     Token token,
-    VariableDeclaration variable,
+    ExpressionVariable variable,
   ) : super(helper, token, variable);
 
   @override
@@ -602,7 +602,9 @@ class ForInLateFinalVariableUseGenerator extends VariableUseGenerator {
   @override
   Expression buildAssignment(Expression value, {bool voidContext = false}) {
     InvalidExpression error = _helper.buildProblem(
-      message: codeCannotAssignToFinalVariable.withArgumentsOld(variable.name!),
+      message: codeCannotAssignToFinalVariable.withArgumentsOld(
+        variable.cosmeticName!,
+      ),
       fileUri: _helper.uri,
       fileOffset: fileOffset,
       length: lengthForToken(token),

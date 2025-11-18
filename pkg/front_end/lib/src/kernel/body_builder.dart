@@ -164,7 +164,7 @@ abstract class BodyBuilder {
 
   BuildSingleExpressionResult buildSingleExpression({
     required Token token,
-    required List<VariableDeclarationImpl> extraKnownVariables,
+    required List<ExpressionVariable> extraKnownVariables,
     required List<NominalParameterBuilder>? typeParameterBuilders,
     required List<FormalParameterBuilder>? formals,
     required int fileOffset,
@@ -345,7 +345,7 @@ class BodyBuilderImpl extends StackListenerImpl
 
   final LocalStack<LocalScope> _localScopes;
 
-  Set<VariableDeclaration>? declaredInCurrentGuard;
+  Set<ExpressionVariable>? declaredInCurrentGuard;
 
   JumpTarget? breakTarget;
 
@@ -807,11 +807,11 @@ class BodyBuilderImpl extends StackListenerImpl
   }
 
   void wrapVariableInitializerInError(
-    VariableDeclaration variable,
+    ExpressionVariable variable,
     Template<Message Function(String name), Function> template,
     List<LocatedMessage> context,
   ) {
-    String name = variable.name!;
+    String name = variable.cosmeticName!;
     int offset = variable.fileOffset;
     Message message = template.withArgumentsOld(name);
     if (variable.initializer == null) {
@@ -832,8 +832,8 @@ class BodyBuilderImpl extends StackListenerImpl
     }
   }
 
-  void declareVariable(VariableDeclaration variable, LocalScope scope) {
-    String name = variable.name!;
+  void declareVariable(ExpressionVariable variable, LocalScope scope) {
+    String name = variable.cosmeticName!;
     Builder? existing = scope.lookupLocalVariable(name);
     if (existing != null) {
       // This reports an error for duplicated declarations in the same scope:
@@ -852,7 +852,7 @@ class BodyBuilderImpl extends StackListenerImpl
     if (isGuardScope(scope)) {
       (declaredInCurrentGuard ??= {}).add(variable);
     }
-    String variableName = variable.name!;
+    String variableName = variable.cosmeticName!;
     List<int>? previousOffsets = scope.declare(
       variableName,
       new VariableBuilderImpl(variableName, variable, uri),
@@ -2590,8 +2590,8 @@ class BodyBuilderImpl extends StackListenerImpl
   }
 
   @override
-  void registerVariableRead(VariableDeclaration variable) {
-    if (!(variable as VariableDeclarationImpl).isLocalFunction &&
+  void registerVariableRead(ExpressionVariable variable) {
+    if (!(variable as InternalExpressionVariable).isLocalFunction &&
         !variable.isWildcard) {
       assignedVariables.read(variable);
     }
@@ -2600,7 +2600,7 @@ class BodyBuilderImpl extends StackListenerImpl
   /// Helper method to create a [VariableGet] of the [variable] using
   /// [charOffset] as the file offset.
   @override
-  VariableGet createVariableGet(VariableDeclaration variable, int charOffset) {
+  VariableGet createVariableGet(ExpressionVariable variable, int charOffset) {
     registerVariableRead(variable);
     return new VariableGet(variable)..fileOffset = charOffset;
   }
@@ -2609,7 +2609,7 @@ class BodyBuilderImpl extends StackListenerImpl
   /// using [token] and [charOffset] for offset information and [name]
   /// for `ExpressionGenerator._plainNameForRead`.
   ReadOnlyAccessGenerator _createReadOnlyVariableAccess(
-    VariableDeclaration variable,
+    ExpressionVariable variable,
     Token token,
     int charOffset,
     String? name,
@@ -2625,7 +2625,7 @@ class BodyBuilderImpl extends StackListenerImpl
   }
 
   @override
-  bool isDeclaredInEnclosingCase(VariableDeclaration variable) {
+  bool isDeclaredInEnclosingCase(ExpressionVariable variable) {
     return declaredInCurrentGuard?.contains(variable) ?? false;
   }
 
@@ -2760,7 +2760,7 @@ class BodyBuilderImpl extends StackListenerImpl
             cfe.codeNotAConstantExpression,
           );
         }
-        VariableDeclaration variable = getable.variable!;
+        ExpressionVariable variable = getable.variable!;
         // TODO(johnniwinther): The handling of for-in variables should be
         //  done through the builder.
         if (forStatementScope &&
@@ -11270,7 +11270,7 @@ class BodyBuilderImpl extends StackListenerImpl
   // Coverage-ignore(suite): Not run.
   BuildSingleExpressionResult buildSingleExpression({
     required Token token,
-    required List<VariableDeclarationImpl> extraKnownVariables,
+    required List<ExpressionVariable> extraKnownVariables,
     required List<NominalParameterBuilder>? typeParameterBuilders,
     required List<FormalParameterBuilder>? formals,
     required int fileOffset,
@@ -11307,7 +11307,7 @@ class BodyBuilderImpl extends StackListenerImpl
         kind: LocalScopeKind.ifElement,
       );
       enterLocalScope(extraKnownVariablesScope);
-      for (VariableDeclarationImpl extraVariable in extraKnownVariables) {
+      for (ExpressionVariable extraVariable in extraKnownVariables) {
         declareVariable(extraVariable, _localScope);
         assignedVariables.declare(extraVariable);
       }

@@ -1925,6 +1925,33 @@ abstract class AbstractParserAstListener implements Listener {
   }
 
   @override
+  void beginConstructor(
+    DeclarationKind declarationKind,
+    Token? augmentToken,
+    Token? externalToken,
+    Token? staticToken,
+    Token? covariantToken,
+    Token? varFinalOrConst,
+    Token? getOrSet,
+    Token name,
+    String? enclosingDeclarationName,
+  ) {
+    ConstructorBegin data = new ConstructorBegin(
+      ParserAstType.BEGIN,
+      declarationKind: declarationKind,
+      augmentToken: augmentToken,
+      externalToken: externalToken,
+      staticToken: staticToken,
+      covariantToken: covariantToken,
+      varFinalOrConst: varFinalOrConst,
+      getOrSet: getOrSet,
+      name: name,
+      enclosingDeclarationName: enclosingDeclarationName,
+    );
+    seen(data);
+  }
+
+  @override
   void endConstructor(
     DeclarationKind kind,
     Token beginToken,
@@ -7077,6 +7104,47 @@ class MethodEnd extends ParserAstNode implements BeginAndEndTokenParserAstNode {
   R accept<R>(ParserAstVisitor<R> v) => v.visitMethodEnd(this);
 }
 
+class ConstructorBegin extends ParserAstNode {
+  final DeclarationKind declarationKind;
+  final Token? augmentToken;
+  final Token? externalToken;
+  final Token? staticToken;
+  final Token? covariantToken;
+  final Token? varFinalOrConst;
+  final Token? getOrSet;
+  final Token name;
+  final String? enclosingDeclarationName;
+
+  ConstructorBegin(
+    ParserAstType type, {
+    required this.declarationKind,
+    this.augmentToken,
+    this.externalToken,
+    this.staticToken,
+    this.covariantToken,
+    this.varFinalOrConst,
+    this.getOrSet,
+    required this.name,
+    this.enclosingDeclarationName,
+  }) : super("Constructor", type);
+
+  @override
+  Map<String, Object?> get deprecatedArguments => {
+    "declarationKind": declarationKind,
+    "augmentToken": augmentToken,
+    "externalToken": externalToken,
+    "staticToken": staticToken,
+    "covariantToken": covariantToken,
+    "varFinalOrConst": varFinalOrConst,
+    "getOrSet": getOrSet,
+    "name": name,
+    "enclosingDeclarationName": enclosingDeclarationName,
+  };
+
+  @override
+  R accept<R>(ParserAstVisitor<R> v) => v.visitConstructorBegin(this);
+}
+
 class ConstructorEnd extends ParserAstNode
     implements BeginAndEndTokenParserAstNode {
   final DeclarationKind kind;
@@ -10716,6 +10784,7 @@ abstract class ParserAstVisitor<R> {
   R visitMemberEnd(MemberEnd node);
   R visitMethodBegin(MethodBegin node);
   R visitMethodEnd(MethodEnd node);
+  R visitConstructorBegin(ConstructorBegin node);
   R visitConstructorEnd(ConstructorEnd node);
   R visitMetadataStarBegin(MetadataStarBegin node);
   R visitMetadataStarEnd(MetadataStarEnd node);
@@ -11579,6 +11648,9 @@ class RecursiveParserAstVisitor implements ParserAstVisitor<void> {
 
   @override
   void visitMethodEnd(MethodEnd node) => node.visitChildren(this);
+
+  @override
+  void visitConstructorBegin(ConstructorBegin node) => node.visitChildren(this);
 
   @override
   void visitConstructorEnd(ConstructorEnd node) => node.visitChildren(this);
@@ -13014,6 +13086,10 @@ class RecursiveParserAstVisitorWithDefaultNodeAsync
 
   @override
   Future<void> visitMethodEnd(MethodEnd node) => defaultNode(node);
+
+  @override
+  Future<void> visitConstructorBegin(ConstructorBegin node) =>
+      defaultNode(node);
 
   @override
   Future<void> visitConstructorEnd(ConstructorEnd node) => defaultNode(node);

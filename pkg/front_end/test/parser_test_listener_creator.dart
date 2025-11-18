@@ -157,6 +157,21 @@ class ParserCreatorListener extends Listener {
   }
 
   @override
+  void beginConstructor(
+    DeclarationKind declarationKind,
+    Token? augmentToken,
+    Token? externalToken,
+    Token? staticToken,
+    Token? covariantToken,
+    Token? varFinalOrConst,
+    Token? getOrSet,
+    Token name,
+    String? enclosingDeclarationName,
+  ) {
+    currentMethodName = name.lexeme;
+  }
+
+  @override
   void beginMethod(
     DeclarationKind declarationKind,
     Token? augmentToken,

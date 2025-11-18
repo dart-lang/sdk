@@ -2181,7 +2181,56 @@ class OutlineBuilder extends StackListenerImpl {
   }
 
   @override
+  void beginConstructor(
+    DeclarationKind declarationKind,
+    Token? augmentToken,
+    Token? externalToken,
+    Token? staticToken,
+    Token? covariantToken,
+    Token? varFinalOrConst,
+    Token? getOrSet,
+    Token name,
+    String? enclosingDeclarationName,
+  ) {
+    _beginMethod(
+      declarationKind,
+      augmentToken,
+      externalToken,
+      staticToken,
+      covariantToken,
+      varFinalOrConst,
+      getOrSet,
+      name,
+      enclosingDeclarationName,
+    );
+  }
+
+  @override
   void beginMethod(
+    DeclarationKind declarationKind,
+    Token? augmentToken,
+    Token? externalToken,
+    Token? staticToken,
+    Token? covariantToken,
+    Token? varFinalOrConst,
+    Token? getOrSet,
+    Token name,
+    String? enclosingDeclarationName,
+  ) {
+    _beginMethod(
+      declarationKind,
+      augmentToken,
+      externalToken,
+      staticToken,
+      covariantToken,
+      varFinalOrConst,
+      getOrSet,
+      name,
+      enclosingDeclarationName,
+    );
+  }
+
+  void _beginMethod(
     DeclarationKind declarationKind,
     Token? augmentToken,
     Token? externalToken,

@@ -1922,6 +1922,9 @@ class VariableStatement extends Statement implements VariableDeclaration {
   VariableContext get context {
     throw new UnsupportedError("${this.runtimeType}");
   }
+
+  @override
+  ExpressionVariable get asExpressionVariable => this;
 }
 
 /// Declaration a local function.
@@ -2230,4 +2233,7 @@ class VariableInitialization extends Statement implements VariableDeclaration {
 
   @override
   VariableContext get context => variable.context;
+
+  @override
+  ExpressionVariable get asExpressionVariable => this;
 }
