@@ -6,6 +6,7 @@
 library;
 
 import 'package:analyzer_utilities/extensions/string.dart';
+import 'package:analyzer_utilities/located_error.dart';
 import 'package:analyzer_utilities/messages.dart';
 
 Uri computeSharedGeneratedFile(Uri repoDir) {
