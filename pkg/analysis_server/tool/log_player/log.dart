@@ -14,8 +14,8 @@ class Log {
 
   /// Creates a log by reading the content of the [file] and decoding it as a
   /// list of entries.
-  factory Log.fromFile(File file) {
-    return Log.fromString(file.readAsStringSync());
+  factory Log.fromFile(File file, Map<String, String> replacements) {
+    return Log.fromString(file.readAsStringSync(), replacements);
   }
 
   /// Creates a log by decoding the [logContent] as a list of entries.
@@ -23,8 +23,14 @@ class Log {
   /// The [logContent] should not include the opening and closing delimiters
   /// for a Json array ('[' and ']'), but otherwise should be a comma-separated
   /// list of json-encoded log entries.
-  factory Log.fromString(String logContent) {
+  ///
+  /// Each entry in [replacements] is all occurences of the key replaced with
+  /// the value.
+  factory Log.fromString(String logContent, Map<String, String> replacements) {
     logContent = logContent.trim();
+    for (var entry in replacements.entries) {
+      logContent = logContent.replaceAll(entry.key, entry.value);
+    }
     if (logContent.endsWith(',')) {
       logContent = logContent.substring(0, logContent.length - 1);
     }

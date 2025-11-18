@@ -25,12 +25,22 @@ class GitWorktreeProjectGenerator implements ProjectGenerator {
   @override
   Future<Directory> setUp() async {
     var projectDir = await Directory.systemTemp.createTemp('as_git_worktree');
-    await runGitCommand(['worktree', 'add', projectDir.path], originalRepo);
+    await runGitCommand([
+      'worktree',
+      'add',
+      '-d',
+      projectDir.path,
+    ], originalRepo);
     return projectDir;
   }
 
   @override
   Future<void> tearDown(Directory projectDir) async {
-    await runGitCommand(['worktree', 'remove', projectDir.path], originalRepo);
+    await runGitCommand([
+      'worktree',
+      'remove',
+      '-f',
+      projectDir.path,
+    ], originalRepo);
   }
 }

@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analysis_server/src/server/driver.dart';
+import 'package:analysis_server/src/session_logger/entry_kind.dart';
 import 'package:analysis_server/src/session_logger/log_entry.dart';
 import 'package:analysis_server/src/session_logger/process_id.dart';
 
@@ -17,7 +19,7 @@ class LogPlayer {
   Log log;
 
   /// The object used to communicate with the running server.
-  ServerDriver server;
+  ServerDriver? server;
 
   /// Whether the `shutdown` method has been seen.
   bool _hasSeenShutdown = false;
@@ -25,34 +27,60 @@ class LogPlayer {
   /// Whether the `exit` method has been seen.
   bool _hasSeenExit = false;
 
-  LogPlayer({required this.log, required this.server});
+  /// Arg parser equivalent to what the real driver uses, used to extract
+  /// options from command line arguments.
+  final driverArgParser = Driver.createArgParser();
+
+  LogPlayer({required this.log});
 
   /// Plays the log.
   Future<void> play() async {
     var entries = log.entries;
     var nextIndex = 0;
-    var entry = entries[nextIndex];
-    if (entry.isCommandLine) {
-      server.additionalArguments.addAll(entry.argList);
-      nextIndex++;
-    }
     while (nextIndex < entries.length) {
       // TODO(brianwilkerson): This doesn't currently attempt to retain the same
       //  timing of messages as was recorded in the log.
       var entry = entries[nextIndex];
-      if (entry.receiver == ProcessId.server) {
-        await _sendMessageToServer(entry);
-      } else if (entry.sender == ProcessId.server) {
-        _handleMessageFromServer(entry);
+      switch (entry.kind) {
+        case EntryKind.commandLine:
+          if (this.server != null) {
+            throw StateError(
+              'Analysis server already started, only one instance is allowed.',
+            );
+          }
+          var parsedArgs = driverArgParser.parse(entry.argList);
+          var protocolOption = parsedArgs.option(Driver.serverProtocolOption);
+          var protocol = switch (protocolOption) {
+            Driver.protocolAnalyzer => ServerProtocol.legacy,
+            Driver.protocolLsp => ServerProtocol.lsp,
+            _ => throw StateError('Unrecognized protocol $protocolOption'),
+          };
+          var server = this.server = ServerDriver(protocol: protocol);
+          server.additionalArguments.addAll(entry.argList);
+          await server.start();
+        case EntryKind.message:
+          if (entry.receiver == ProcessId.server) {
+            await _sendMessageToServer(entry);
+          } else if (entry.sender == ProcessId.server) {
+            _handleMessageFromServer(entry);
+          } else {
+            throw StateError('''
+Unexpected sender/reciever for message:
+
+sender: ${entry.sender}
+receiver: ${entry.receiver}
+''');
+          }
       }
       nextIndex++;
     }
     if (!_hasSeenShutdown) {
-      server.shutdown();
+      server?.shutdown();
     }
     if (!_hasSeenExit) {
-      server.exit();
+      server?.exit();
     }
+    server = null;
   }
 
   /// Responds to a message sent from the server to some other process.
@@ -86,6 +114,10 @@ class LogPlayer {
 
   /// Sends the message in the [entry] to the server.
   Future<void> _sendMessageToServer(LogEntry entry) async {
+    var server = this.server;
+    if (server == null) {
+      throw StateError('Analysis server not started.');
+    }
     var message = entry.message;
     switch (entry.sender) {
       case ProcessId.dtd:
@@ -104,6 +136,7 @@ class LogPlayer {
           _hasSeenShutdown = true;
         } else if (message.isExit) {
           _hasSeenExit = true;
+          this.server = null;
         }
         server.sendMessageFromIde(message);
       case ProcessId.plugin:

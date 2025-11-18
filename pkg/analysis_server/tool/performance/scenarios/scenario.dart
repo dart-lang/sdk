@@ -2,12 +2,16 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:io';
+
 import 'package:analyzer/file_system/file_system.dart';
+import 'package:path/path.dart' as p;
 
 import '../../log_player/log.dart';
 import '../../log_player/log_player.dart';
-import '../../log_player/server_driver.dart';
 import '../project_generator/project_generator.dart';
+
+final dartSdkRoot = p.dirname(p.dirname(Platform.resolvedExecutable));
 
 /// A [Scenario] represents a combination of a [project], a [logFile], and a
 /// [serverProtocol] which can be used to reproduce specific set of actions
@@ -15,13 +19,8 @@ import '../project_generator/project_generator.dart';
 class Scenario {
   final File logFile;
   final ProjectGenerator project;
-  final ServerProtocol serverProtocol;
 
-  Scenario({
-    required this.logFile,
-    required this.project,
-    required this.serverProtocol,
-  });
+  Scenario({required this.logFile, required this.project});
 
   Future<void> run() async {
     var watch = Stopwatch()..start();
@@ -31,20 +30,19 @@ class Scenario {
 
     log('Initializing scenario for project: ${project.description}');
 
-    log('Reading logs');
-    var logs = Log.fromFile(logFile);
-
-    log('Starting analysis server');
-    var server = ServerDriver(protocol: serverProtocol);
-    await server.start();
-
-    log('Creating log player');
-    var logPlayer = LogPlayer(log: logs, server: server);
-
     log('Setting up project');
     var projectDir = await project.setUp();
-    log('Scenario initialized with project at ${projectDir.path}');
 
+    log('Reading logs');
+    var logs = Log.fromFile(logFile, {
+      '{{workspaceRoot}}': projectDir.path,
+      '{{dartSdkRoot}}': dartSdkRoot,
+    });
+
+    log('Creating log player');
+    var logPlayer = LogPlayer(log: logs);
+
+    log('Scenario initialized with project at ${projectDir.path}');
     try {
       var scenarioWatch = Stopwatch()..start();
       log('Replaying scenario');
@@ -60,7 +58,6 @@ $s
     } finally {
       log('Tearing down scenario for project');
       await project.tearDown(projectDir);
-      server.exit();
       log('Scenario cleaned up');
     }
   }
