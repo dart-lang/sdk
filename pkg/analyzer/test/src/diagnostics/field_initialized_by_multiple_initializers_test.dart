@@ -169,7 +169,19 @@ class A {
 ''');
   }
 
-  test_class_two_initializers() async {
+  test_class_two_initializers_initInDeclaration() async {
+    await assertErrorsInCode(
+      r'''
+class A {
+  int x = 0;
+  A() : x = 0, x = 1 {}
+}
+''',
+      [error(_errorCode, 38, 1)],
+    );
+  }
+
+  test_class_two_initializers_noInitInDeclaration() async {
     await assertErrorsInCode(
       r'''
 class A {

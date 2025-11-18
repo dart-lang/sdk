@@ -44,7 +44,19 @@ augment class A {
     ]);
   }
 
-  test_class_fieldFormalParameter_initializer() async {
+  test_class_fieldFormalParameter_initializer_initInDeclaration() async {
+    await assertErrorsInCode(
+      r'''
+class A {
+  int x = 0;
+  A(this.x) : x = 1 {}
+}
+''',
+      [error(diag.fieldInitializedInParameterAndInitializer, 37, 1)],
+    );
+  }
+
+  test_class_fieldFormalParameter_initializer_noInitInDeclaration() async {
     await assertErrorsInCode(
       r'''
 class A {
