@@ -4,11 +4,13 @@
 
 import 'package:analyzer/analysis_rule/analysis_rule.dart';
 import 'package:analyzer/analysis_rule/rule_context.dart';
+import 'package:analyzer/analysis_rule/rule_state.dart';
 import 'package:analyzer/analysis_rule/rule_visitor_registry.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/src/dart/element/extensions.dart'; //ignore: implementation_imports
+import 'package:pub_semver/pub_semver.dart' show Version;
 
 import '../analyzer.dart';
 import '../diagnostic.dart' as diag;
@@ -18,7 +20,11 @@ const _desc =
 
 class PreferFinalParameters extends AnalysisRule {
   PreferFinalParameters()
-    : super(name: LintNames.prefer_final_parameters, description: _desc);
+    : super(
+        name: LintNames.prefer_final_parameters,
+        description: _desc,
+        state: RuleState.deprecated(since: Version(3, 11, 0)),
+      );
 
   @override
   DiagnosticCode get diagnosticCode => diag.preferFinalParameters;

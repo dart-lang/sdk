@@ -1922,14 +1922,14 @@
     "categories": [
       "style"
     ],
-    "state": "stable",
+    "state": "deprecated",
     "incompatible": [
       "unnecessary_final",
       "avoid_final_parameters"
     ],
     "sets": [],
     "fixStatus": "hasFix",
-    "details": "**DO** prefer declaring parameters as final if they are not reassigned in\nthe function body.\n\nDeclaring parameters as final when possible is a good practice because it helps\navoid accidental reassignments.\n\n**BAD:**\n```dart\nvoid badParameter(String label) { // LINT\n  print(label);\n}\n```\n\n**GOOD:**\n```dart\nvoid goodParameter(final String label) { // OK\n  print(label);\n}\n```\n\n**BAD:**\n```dart\nvoid badExpression(int value) => print(value); // LINT\n```\n\n**GOOD:**\n```dart\nvoid goodExpression(final int value) => print(value); // OK\n```\n\n**BAD:**\n```dart\n[1, 4, 6, 8].forEach((value) => print(value + 2)); // LINT\n```\n\n**GOOD:**\n```dart\n[1, 4, 6, 8].forEach((final value) => print(value + 2)); // OK\n```\n\n**GOOD:**\n```dart\nvoid mutableParameter(String label) { // OK\n  print(label);\n  label = 'Hello Linter!';\n  print(label);\n}\n```",
+    "details": "**Note:** This lint rule was deprecated in Dart 3.11 and\nis set to be removed in a future release of the Dart SDK.\nIf you want to ensure parameters aren't reassigned in function bodies,\nconsider enabling the\n[`parameter_assignments`](https://dart.dev/lints/parameter_assignments)\nlint rule instead.\n\n**DO** prefer declaring parameters as final if they are not reassigned in\nthe function body.\n\nDeclaring parameters as final when possible is a good practice because it helps\navoid accidental reassignments.\n\n**BAD:**\n```dart\nvoid badParameter(String label) { // LINT\n  print(label);\n}\n```\n\n**GOOD:**\n```dart\nvoid goodParameter(final String label) { // OK\n  print(label);\n}\n```\n\n**BAD:**\n```dart\nvoid badExpression(int value) => print(value); // LINT\n```\n\n**GOOD:**\n```dart\nvoid goodExpression(final int value) => print(value); // OK\n```\n\n**BAD:**\n```dart\n[1, 4, 6, 8].forEach((value) => print(value + 2)); // LINT\n```\n\n**GOOD:**\n```dart\n[1, 4, 6, 8].forEach((final value) => print(value + 2)); // OK\n```\n\n**GOOD:**\n```dart\nvoid mutableParameter(String label) { // OK\n  print(label);\n  label = 'Hello Linter!';\n  print(label);\n}\n```",
     "sinceDartSdk": "2.14"
   },
   {

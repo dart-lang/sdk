@@ -9394,6 +9394,7 @@ LinterLintCode:
     correctionMessage: "Try making the parameter final."
     state:
       stable: "2.14"
+      deprecated: "3.11"
     categories: [style]
     hasPublishedDocs: true
     documentation: |-
@@ -9419,6 +9420,13 @@ LinterLintCode:
       String f(final String s) => s;
       ```
     deprecatedDetails: |-
+      **Note:** This lint rule was deprecated in Dart 3.11 and
+      is set to be removed in a future release of the Dart SDK.
+      If you want to ensure parameters aren't reassigned in function bodies,
+      consider enabling the
+      [`parameter_assignments`](https://dart.dev/lints/parameter_assignments)
+      lint rule instead.
+
       **DO** prefer declaring parameters as final if they are not reassigned in
       the function body.
 
