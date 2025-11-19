@@ -1,3 +1,13 @@
+## 3.10.2
+
+This is a patch release that:
+
+- Fixes an issue with code completion for argument lists in a dot shorthand
+  invocation, as well as an issue with renaming dot shorthands.
+  (issue [dart-lang/sdk#61969])
+
+[dart-lang/sdk#61969]: https://github.com/dart-lang/sdk/issues/61969
+
 ## 3.10.1
 
 **Released on:** 2025-11-18

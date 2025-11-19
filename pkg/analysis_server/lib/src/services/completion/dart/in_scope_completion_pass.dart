@@ -4374,6 +4374,10 @@ extension on ArgumentList {
     switch (parent) {
       case Annotation invocation:
         return invocation.element;
+      case DotShorthandConstructorInvocation invocation:
+        return invocation.element;
+      case DotShorthandInvocation invocation:
+        return invocation.memberName.element;
       case EnumConstantArguments invocation:
         var grandParent = invocation.parent;
         if (grandParent is EnumConstantDeclaration) {

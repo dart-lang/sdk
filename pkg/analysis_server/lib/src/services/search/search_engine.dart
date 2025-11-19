@@ -33,6 +33,15 @@ class MatchKind {
   static const MatchKind INVOCATION_BY_ENUM_CONSTANT_WITHOUT_ARGUMENTS =
       MatchKind('INVOCATION_BY_ENUM_CONSTANT_WITHOUT_ARGUMENTS');
 
+  /// A reference to a dot shorthand constructor invocation.
+  static const MatchKind DOT_SHORTHANDS_CONSTRUCTOR_INVOCATION = MatchKind(
+    'DOT_SHORTHANDS_CONSTRUCTOR_INVOCATION',
+  );
+
+  /// A reference to a dot shorthand constructor tear-off.
+  static const MatchKind DOT_SHORTHANDS_CONSTRUCTOR_TEAR_OFF =
+      MatchKind.reference('DOT_SHORTHANDS_CONSTRUCTOR_TEAR_OFF');
+
   /// A reference to an element in which it is referenced.
   static const MatchKind REFERENCE = MatchKind.reference('REFERENCE');
 

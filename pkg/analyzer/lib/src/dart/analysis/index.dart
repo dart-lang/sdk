@@ -864,7 +864,7 @@ class _IndexContributor extends GeneralizingAstVisitor {
     var element = _getActualConstructorElement(node.element?.baseElement);
     recordRelation(
       element,
-      IndexRelationKind.IS_INVOKED_BY,
+      IndexRelationKind.IS_INVOKED_BY_DOT_SHORTHANDS_CONSTRUCTOR,
       node.constructorName,
       true,
     );
@@ -885,7 +885,8 @@ class _IndexContributor extends GeneralizingAstVisitor {
     var element = node.propertyName.element;
     if (element is InternalConstructorElement) {
       element = _getActualConstructorElement(element);
-      kind = IndexRelationKind.IS_REFERENCED_BY_CONSTRUCTOR_TEAR_OFF;
+      kind =
+          IndexRelationKind.IS_REFERENCED_BY_DOT_SHORTHAND_CONSTRUCTOR_TEAR_OFF;
     } else {
       kind = IndexRelationKind.IS_REFERENCED_BY;
     }

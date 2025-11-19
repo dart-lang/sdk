@@ -378,6 +378,82 @@ void f() {
 ''');
   }
 
+  Future<void> test_dotShorthandConstructor_tearoff() async {
+    // This is wrong, but we should handle it anyway.
+    verifyNoTestUnitErrors = false;
+    await indexTestUnit('''
+class A {
+  A^();
+}
+A a = .new;
+''');
+    createRenameRefactoring();
+    expect(refactoring.oldName, '');
+    refactoring.newName = 'newName';
+    await assertSuccessfulRefactoring('''
+class A {
+  A.newName();
+}
+A a = .newName;
+''');
+  }
+
+  Future<void> test_dotShorthandConstructor_tearoff_removeName() async {
+    // This is wrong, but we should handle it anyway.
+    verifyNoTestUnitErrors = false;
+    await indexTestUnit('''
+class A {
+  A.^name();
+}
+A a = .name;
+''');
+    createRenameRefactoring();
+    expect(refactoring.oldName, 'name');
+    refactoring.newName = '';
+    await assertSuccessfulRefactoring('''
+class A {
+  A();
+}
+A a = .new;
+''');
+  }
+
+  Future<void> test_dotShorthandConstructorInvocation() async {
+    await indexTestUnit('''
+class A {
+  A^();
+}
+A a = .new();
+''');
+    createRenameRefactoring();
+    expect(refactoring.oldName, '');
+    refactoring.newName = 'newName';
+    await assertSuccessfulRefactoring('''
+class A {
+  A.newName();
+}
+A a = .newName();
+''');
+  }
+
+  Future<void> test_dotShorthandConstructorInvocation_removeName() async {
+    await indexTestUnit('''
+class A {
+  A.^name();
+}
+A a = .name();
+''');
+    createRenameRefactoring();
+    expect(refactoring.oldName, 'name');
+    refactoring.newName = '';
+    await assertSuccessfulRefactoring('''
+class A {
+  A();
+}
+A a = .new();
+''');
+  }
+
   Future<void> test_newInstance_nullElement() async {
     await indexTestUnit('');
     var workspace = RefactoringWorkspace([driverFor(testFile)], searchEngine);

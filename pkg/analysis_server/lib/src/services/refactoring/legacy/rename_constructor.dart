@@ -83,9 +83,19 @@ class RenameConstructorRefactoringImpl extends RenameRefactoringImpl {
 
       String replacement;
       if (newName.isNotEmpty) {
-        replacement = '.$newName';
+        if (reference.isDotShortHandsConstructor) {
+          replacement = newName;
+        } else {
+          replacement = '.$newName';
+        }
       } else {
-        replacement = reference.isConstructorTearOff ? '.new' : '';
+        if (reference.isDotShortHandsConstructor) {
+          replacement = 'new';
+        } else if (reference.isConstructorTearOff) {
+          replacement = '.new';
+        } else {
+          replacement = '';
+        }
       }
       if (reference.isInvocationByEnumConstantWithoutArguments) {
         replacement += '()';
