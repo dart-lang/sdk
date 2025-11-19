@@ -127,14 +127,16 @@ Future<ProcessResult> generateKernelHelper({
 
 Future<ProcessResult> generateAotSnapshotHelper(
     String genSnapshot,
+    String format,
+    String outFlag,
     String kernelFile,
     String snapshotFile,
     String? debugFile,
     bool enableAsserts,
     List<String> extraGenSnapshotOptions) {
   return Process.run(genSnapshot, [
-    '--snapshot-kind=app-aot-elf',
-    '--elf=$snapshotFile',
+    '--snapshot-kind=app-aot-$format',
+    '--$outFlag=$snapshotFile',
     if (debugFile != null) '--save-debugging-info=$debugFile',
     if (debugFile != null) '--dwarf-stack-traces',
     if (debugFile != null) '--strip',

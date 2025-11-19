@@ -262,11 +262,19 @@ class _Generator {
       print('Compiling $_sourcePath to $outputPath using format $_kind:');
       print('Generating AOT snapshot. $_genSnapshot $extraOptions');
     }
+    var format = 'elf';
+    var outFlag = 'elf';
+    if (_targetOS == OS.macOS) {
+      format = 'macho-dylib';
+      outFlag = 'macho';
+    }
     final snapshotFile = _kind == Kind.aot
         ? outputPath
         : path.join(_tempDir.path, 'snapshot.aot');
     final snapshotResult = await generateAotSnapshotHelper(
       _genSnapshot,
+      format,
+      outFlag,
       kernelFile,
       snapshotFile,
       debugPath,

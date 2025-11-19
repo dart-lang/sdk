@@ -450,6 +450,13 @@ void defineCompileTests() {
     expect(File(outFile).existsSync(), true,
         reason: 'File not found: $outFile');
 
+    var magic = (await File(outFile).readAsBytes()).sublist(0, 4);
+    if (Platform.isMacOS) {
+      expect(magic, equals([0xCF, 0xFA, 0xED, 0xFE])); // Mach-O
+    } else {
+      expect(magic, equals([0x7F, 0x45, 0x4C, 0x46])); // ELF
+    }
+
     final Directory binDir = File(Platform.resolvedExecutable).parent;
     result = Process.runSync(
       path.join(binDir.path, 'dartaotruntime'),
