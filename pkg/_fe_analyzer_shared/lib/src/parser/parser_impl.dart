@@ -5204,9 +5204,19 @@ class Parser {
     token = typeInfo.skipType(token);
     next = token.next!;
 
+    Token? newToken;
     Token? getOrSet;
     bool nameIsRecovered = false;
-    if (next.type != TokenType.IDENTIFIER) {
+    if (next.isA(Keyword.NEW)) {
+      newToken = next;
+      if (!_isDeclaringConstructorsFeatureEnabled) {
+        reportExperimentNotEnabled(
+          ExperimentalFlag.declaringConstructors,
+          newToken,
+          newToken,
+        );
+      }
+    } else if (next.type != TokenType.IDENTIFIER) {
       String? value = next.stringValue;
       if (identical(value, 'get') || identical(value, 'set')) {
         if (next.next!.isIdentifier) {
@@ -5284,6 +5294,7 @@ class Parser {
             beforeType,
             typeInfo,
             getOrSet,
+            newToken,
             token.next!,
             kind,
             enclosingDeclarationName,
@@ -5324,6 +5335,7 @@ class Parser {
             beforeType,
             typeInfo,
             getOrSet,
+            newToken,
             token.next!,
             kind,
             enclosingDeclarationName,
@@ -5370,6 +5382,7 @@ class Parser {
           beforeType,
           typeInfo,
           getOrSet,
+          newToken,
           kind,
           enclosingDeclarationName,
         );
@@ -5414,6 +5427,7 @@ class Parser {
     next = next.next!;
     String? value = next.stringValue;
     if (getOrSet != null ||
+        newToken != null ||
         identical(value, '(') ||
         identical(value, '{') ||
         identical(value, '<') ||
@@ -5431,6 +5445,7 @@ class Parser {
         beforeType,
         typeInfo,
         getOrSet,
+        newToken,
         token.next!,
         kind,
         enclosingDeclarationName,
@@ -5470,16 +5485,22 @@ class Parser {
   /// [getOrSet] is the token for `get` or `set` if this occurred prior to the
   /// [name].
   ///
+  /// [newToken] is the token for `new` if this occurred prior to the name.
+  ///
   /// [enclosingDeclarationName] is the name of the enclosing class, mixin,
   /// enum, extension or extension type.
   bool _isConstructor(
     Token name,
     Token? getOrSet,
+    Token? newToken,
     String? enclosingDeclarationName,
     bool isOperator,
   ) {
     // TODO(johnniwinther): Update this to match what we want and not what we
     //  happened to do during error recovery.
+    if (newToken != null) {
+      return true;
+    }
     Token afterName;
     if (name.isKeywordOrIdentifier) {
       afterName = name.next!;
@@ -5545,6 +5566,7 @@ class Parser {
     Token beforeType,
     TypeInfo typeInfo,
     Token? getOrSet,
+    Token? newToken,
     Token name,
     DeclarationKind kind,
     String? enclosingDeclarationName,
@@ -5585,6 +5607,7 @@ class Parser {
     bool isConstructor = _isConstructor(
       name,
       getOrSet,
+      newToken,
       enclosingDeclarationName,
       isOperator,
     );
@@ -5631,6 +5654,7 @@ class Parser {
         covariantToken,
         varFinalOrConst,
         getOrSet,
+        newToken,
         name,
         enclosingDeclarationName,
       );
@@ -5666,6 +5690,17 @@ class Parser {
 
     if (isOperator) {
       token = parseOperatorName(token);
+    } else if (newToken != null) {
+      token = token.next!;
+      if (token.next!.isIdentifier) {
+        Token identifier = token = token.next!;
+        listener.handleIdentifier(
+          identifier,
+          IdentifierContext.methodDeclaration,
+        );
+      } else {
+        listener.handleNoIdentifier(token, IdentifierContext.methodDeclaration);
+      }
     } else {
       token = ensureIdentifierPotentiallyRecovered(
         token,
@@ -5757,32 +5792,11 @@ class Parser {
     }
     asyncState = savedAsyncModifier;
 
-    // TODO(johnniwinther): Remove this when [_isConstructor] is updated.
-    assert(
-      () {
-            bool isConstructor = false;
-            if (name.next!.isA(TokenType.PERIOD) ||
-                beforeInitializers != null) {
-              // This is only legal for constructors.
-              isConstructor = true;
-            } else if (name.lexeme == enclosingDeclarationName) {
-              if (getOrSet != null) {
-                // Recovery: The (simple) get/set member name is invalid.
-              } else {
-                isConstructor = true;
-              }
-            }
-            return isConstructor;
-          }() ==
-          isConstructor,
-      "Unexpected constructor state: $isConstructor.",
-    );
-
     if (isConstructor) {
       //
       // constructor
       //
-      if (name.lexeme != enclosingDeclarationName) {
+      if (newToken == null && name.lexeme != enclosingDeclarationName) {
         reportRecoverableError(name, codes.codeConstructorWithWrongName);
       }
       if (staticToken != null) {
@@ -5825,6 +5839,7 @@ class Parser {
       listener.endConstructor(
         kind,
         beforeStart.next!,
+        newToken,
         beforeParam.next!,
         beforeInitializers?.next,
         token,
@@ -5922,7 +5937,7 @@ class Parser {
 
     listener.beginFactory(kind, beforeStart, externalToken, varFinalOrConst);
     if (!hasName) {
-      listener.handleNoIdentifier(token);
+      listener.handleNoIdentifier(token, IdentifierContext.methodDeclaration);
     } else {
       token = ensureIdentifier(token, IdentifierContext.methodDeclaration);
       token = parseQualifiedRestOpt(
@@ -10876,6 +10891,7 @@ class Parser {
       beforeType,
       typeInfo,
       /* getOrSet = */ null,
+      /* newToken = */ null,
       beforeName.next!,
       kind,
       enclosingDeclarationName,
@@ -10901,6 +10917,7 @@ class Parser {
     Token beforeType,
     TypeInfo typeInfo,
     Token? getOrSet,
+    Token? newToken,
     DeclarationKind kind,
     String? enclosingDeclarationName,
   ) {
@@ -10945,6 +10962,7 @@ class Parser {
         beforeType,
         typeInfo,
         getOrSet,
+        newToken,
         token.next!,
         kind,
         enclosingDeclarationName,

@@ -1,0 +1,100 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/declaring_constructors/redirecting_non_factory.dart:2:3: Error: A method declaration needs an explicit list of parameters.
+// Try adding a parameter list to the method declaration.
+//   new = 42;
+//   ^^^
+//
+// pkg/front_end/testcases/declaring_constructors/redirecting_non_factory.dart:2:7: Error: Only factory constructor can specify '=' redirection.
+// Try making this a factory constructor, or remove the redirection.
+//   new = 42;
+//       ^
+//
+// pkg/front_end/testcases/declaring_constructors/redirecting_non_factory.dart:2:9: Error: Expected an identifier, but got '42'.
+// Try inserting an identifier before '42'.
+//   new = 42;
+//         ^^
+//
+// pkg/front_end/testcases/declaring_constructors/redirecting_non_factory.dart:2:7: Error: Expected ';' after this.
+//   new = 42;
+//       ^
+//
+// pkg/front_end/testcases/declaring_constructors/redirecting_non_factory.dart:2:9: Error: Expected a class member, but got '42'.
+//   new = 42;
+//         ^^
+//
+// pkg/front_end/testcases/declaring_constructors/redirecting_non_factory.dart:2:11: Error: Expected a class member, but got ';'.
+//   new = 42;
+//           ^
+//
+// pkg/front_end/testcases/declaring_constructors/redirecting_non_factory.dart:3:9: Error: Only factory constructor can specify '=' redirection.
+// Try making this a factory constructor, or remove the redirection.
+//   new() = 42;
+//         ^
+//
+// pkg/front_end/testcases/declaring_constructors/redirecting_non_factory.dart:3:11: Error: Expected an identifier, but got '42'.
+// Try inserting an identifier before '42'.
+//   new() = 42;
+//           ^^
+//
+// pkg/front_end/testcases/declaring_constructors/redirecting_non_factory.dart:3:9: Error: Expected ';' after this.
+//   new() = 42;
+//         ^
+//
+// pkg/front_end/testcases/declaring_constructors/redirecting_non_factory.dart:3:11: Error: Expected a class member, but got '42'.
+//   new() = 42;
+//           ^^
+//
+// pkg/front_end/testcases/declaring_constructors/redirecting_non_factory.dart:3:13: Error: Expected a class member, but got ';'.
+//   new() = 42;
+//             ^
+//
+// pkg/front_end/testcases/declaring_constructors/redirecting_non_factory.dart:4:7: Error: Only factory constructor can specify '=' redirection.
+// Try making this a factory constructor, or remove the redirection.
+//   C() = C;
+//       ^
+//
+// pkg/front_end/testcases/declaring_constructors/redirecting_non_factory.dart:5:12: Error: Only factory constructor can specify '=' redirection.
+// Try making this a factory constructor, or remove the redirection.
+//   C.name() = C;
+//            ^
+//
+// pkg/front_end/testcases/declaring_constructors/redirecting_non_factory.dart:4:7: Error: Expected a function body or '=>'.
+// Try adding {}.
+//   C() = C;
+//       ^
+//
+// pkg/front_end/testcases/declaring_constructors/redirecting_non_factory.dart:4:9: Error: Constructors can't have a return type.
+// Try removing the return type.
+//   C() = C;
+//         ^
+//
+// pkg/front_end/testcases/declaring_constructors/redirecting_non_factory.dart:5:12: Error: Expected a function body or '=>'.
+// Try adding {}.
+//   C.name() = C;
+//            ^
+//
+// pkg/front_end/testcases/declaring_constructors/redirecting_non_factory.dart:5:14: Error: Constructors can't have a return type.
+// Try removing the return type.
+//   C.name() = C;
+//              ^
+//
+import self as self;
+import "dart:core" as core;
+
+class C extends core::Object {
+  constructor •() → self::C
+    : super core::Object::•()
+    invalid-expression "pkg/front_end/testcases/declaring_constructors/redirecting_non_factory.dart:4:9: Error: Constructors can't have a return type.
+Try removing the return type.
+  C() = C;
+        ^";
+  constructor name() → self::C
+    : super core::Object::•()
+    invalid-expression "pkg/front_end/testcases/declaring_constructors/redirecting_non_factory.dart:5:14: Error: Constructors can't have a return type.
+Try removing the return type.
+  C.name() = C;
+             ^";
+}

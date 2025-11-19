@@ -832,6 +832,7 @@ class TextualOutlineListener extends Listener {
   void endConstructor(
     DeclarationKind kind,
     Token beginToken,
+    Token? newToken,
     Token beginParam,
     Token? beginInitializers,
     Token endToken,

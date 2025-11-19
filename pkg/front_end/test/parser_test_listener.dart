@@ -2182,6 +2182,7 @@ class ParserTestListener implements Listener {
     Token? covariantToken,
     Token? varFinalOrConst,
     Token? getOrSet,
+    Token? newToken,
     Token name,
     String? enclosingDeclarationName,
   ) {
@@ -2191,6 +2192,7 @@ class ParserTestListener implements Listener {
     seen(covariantToken);
     seen(varFinalOrConst);
     seen(getOrSet);
+    seen(newToken);
     seen(name);
     doPrint(
       'beginConstructor('
@@ -2201,6 +2203,7 @@ class ParserTestListener implements Listener {
       '$covariantToken, '
       '$varFinalOrConst, '
       '$getOrSet, '
+      '$newToken, '
       '$name, '
       '$enclosingDeclarationName)',
     );
@@ -2211,12 +2214,14 @@ class ParserTestListener implements Listener {
   void endConstructor(
     DeclarationKind kind,
     Token beginToken,
+    Token? newToken,
     Token beginParam,
     Token? beginInitializers,
     Token endToken,
   ) {
     indent--;
     seen(beginToken);
+    seen(newToken);
     seen(beginParam);
     seen(beginInitializers);
     seen(endToken);
@@ -2224,6 +2229,7 @@ class ParserTestListener implements Listener {
       'endConstructor('
       '$kind, '
       '$beginToken, '
+      '$newToken, '
       '$beginParam, '
       '$beginInitializers, '
       '$endToken)',
@@ -3820,11 +3826,12 @@ class ParserTestListener implements Listener {
   }
 
   @override
-  void handleNoIdentifier(Token token) {
+  void handleNoIdentifier(Token token, IdentifierContext identifierContext) {
     seen(token);
     doPrint(
       'handleNoIdentifier('
-      '$token)',
+      '$token, '
+      '$identifierContext)',
     );
   }
 

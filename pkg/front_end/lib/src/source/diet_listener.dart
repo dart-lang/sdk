@@ -462,6 +462,12 @@ class DietListener extends StackListenerImpl {
   }
 
   @override
+  void handleNoIdentifier(Token token, IdentifierContext context) {
+    // TODO(johnniwinther): Handle new constructor syntax.
+    push(new ParserRecovery(token.charOffset));
+  }
+
+  @override
   void handleQualified(Token period) {
     assert(
       checkState(period, [
@@ -805,6 +811,7 @@ class DietListener extends StackListenerImpl {
   void endConstructor(
     DeclarationKind kind,
     Token beginToken,
+    Token? newToken,
     Token beginParam,
     Token? beginInitializers,
     Token endToken,

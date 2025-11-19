@@ -144,6 +144,7 @@ class ForwardingListener implements Listener {
     Token? covariantToken,
     Token? varFinalOrConst,
     Token? getOrSet,
+    Token? newToken,
     Token name,
     String? enclosingDeclarationName,
   ) {
@@ -155,6 +156,7 @@ class ForwardingListener implements Listener {
       covariantToken,
       varFinalOrConst,
       getOrSet,
+      newToken,
       name,
       enclosingDeclarationName,
     );
@@ -753,6 +755,7 @@ class ForwardingListener implements Listener {
   void endConstructor(
     DeclarationKind kind,
     Token beginToken,
+    Token? newToken,
     Token beginParam,
     Token? beginInitializers,
     Token endToken,
@@ -760,6 +763,7 @@ class ForwardingListener implements Listener {
     listener?.endConstructor(
       kind,
       beginToken,
+      newToken,
       beginParam,
       beginInitializers,
       endToken,
@@ -2014,8 +2018,8 @@ class ForwardingListener implements Listener {
   }
 
   @override
-  void handleNoIdentifier(Token token) {
-    listener?.handleNoIdentifier(token);
+  void handleNoIdentifier(Token token, IdentifierContext identifierContext) {
+    listener?.handleNoIdentifier(token, identifierContext);
   }
 
   @override

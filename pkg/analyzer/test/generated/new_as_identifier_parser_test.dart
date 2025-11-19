@@ -29,16 +29,13 @@ class C {
 }
 ''',
       diagnostics: [
-        expectedError(diag.missingAssignmentInInitializer, 18, 4),
-        expectedError(diag.missingIdentifier, 23, 3),
-        expectedError(diag.missingFunctionBody, 23, 3),
-        expectedError(diag.expectedClassMember, 23, 3),
-        expectedError(diag.missingKeywordOperator, 27, 1),
-        expectedError(diag.invalidOperator, 27, 1),
-        expectedError(diag.missingMethodParameters, 27, 1),
-        expectedError(diag.missingFunctionBody, 29, 4),
-        expectedError(diag.expectedClassMember, 29, 4),
-        expectedError(diag.expectedClassMember, 33, 1),
+        error(diag.missingAssignmentInInitializer, 18, 4),
+        error(diag.missingIdentifier, 23, 3),
+        error(diag.missingFunctionBody, 23, 3),
+        error(diag.experimentNotEnabledOffByDefault, 23, 3),
+        error(diag.missingMethodParameters, 23, 3),
+        error(diag.redirectionInNonFactoryConstructor, 27, 1),
+        error(diag.expectedIdentifierButGotKeyword, 29, 4),
       ],
     );
   }

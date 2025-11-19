@@ -1203,6 +1203,7 @@ abstract class Listener implements UnescapeErrorListener {
     Token? covariantToken,
     Token? varFinalOrConst,
     Token? getOrSet,
+    Token? newToken,
     Token name,
     String? enclosingDeclarationName,
   ) {}
@@ -1219,6 +1220,7 @@ abstract class Listener implements UnescapeErrorListener {
   void endConstructor(
     DeclarationKind kind,
     Token beginToken,
+    Token? newToken,
     Token beginParam,
     Token? beginInitializers,
     Token endToken,
@@ -2027,7 +2029,7 @@ abstract class Listener implements UnescapeErrorListener {
     logEvent("NoConstructorReferenceContinuationAfterTypeArguments");
   }
 
-  void handleNoIdentifier(Token token) {
+  void handleNoIdentifier(Token token, IdentifierContext identifierContext) {
     logEvent("NoIdentifier");
   }
 

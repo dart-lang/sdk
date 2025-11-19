@@ -349,6 +349,7 @@ class AstBuilder extends StackListener {
     Token? covariantToken,
     Token? varFinalOrConst,
     Token? getOrSet,
+    Token? newToken,
     Token name,
     String? enclosingDeclarationName,
   ) {
@@ -1419,6 +1420,7 @@ class AstBuilder extends StackListener {
   void endConstructor(
     DeclarationKind kind,
     Token beginToken,
+    Token? newToken,
     Token beginParam,
     Token? beginInitializers,
     Token endToken,
@@ -5158,6 +5160,13 @@ class AstBuilder extends StackListener {
         initializer: null,
       ),
     );
+  }
+
+  @override
+  void handleNoIdentifier(Token token, IdentifierContext context) {
+    debugEvent("handleNoIdentifier");
+    // TODO(scheglov): Handle new constructor syntax.
+    push(SimpleIdentifierImpl(token: token));
   }
 
   @override

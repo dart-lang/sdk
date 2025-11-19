@@ -167,6 +167,7 @@ class ParserCreatorListener extends Listener {
     Token? covariantToken,
     Token? varFinalOrConst,
     Token? getOrSet,
+    Token? newToken,
     Token name,
     String? enclosingDeclarationName,
   ) {
@@ -192,6 +193,7 @@ class ParserCreatorListener extends Listener {
   void endConstructor(
     DeclarationKind kind,
     Token beginToken,
+    Token? newToken,
     Token beginParam,
     Token? beginInitializers,
     Token endToken,

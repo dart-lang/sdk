@@ -911,6 +911,12 @@ class OutlineBuilder extends StackListenerImpl {
   }
 
   @override
+  void handleNoIdentifier(Token token, IdentifierContext context) {
+    // TODO(johnniwinther): Handle new constructor syntax.
+    push(new ParserRecovery(token.charOffset));
+  }
+
+  @override
   void handleStringPart(Token token) {
     debugEvent("StringPart");
     // Ignore string parts - report error later.
@@ -2184,6 +2190,7 @@ class OutlineBuilder extends StackListenerImpl {
     Token? covariantToken,
     Token? varFinalOrConst,
     Token? getOrSet,
+    Token? newToken,
     Token name,
     String? enclosingDeclarationName,
   ) {
@@ -2337,6 +2344,7 @@ class OutlineBuilder extends StackListenerImpl {
   void endConstructor(
     DeclarationKind kind,
     Token beginToken,
+    Token? newToken,
     Token beginParam,
     Token? beginInitializers,
     Token endToken,

@@ -172,6 +172,7 @@ class ForwardingTestListener extends ForwardingListener {
     Token? covariantToken,
     Token? varFinalOrConst,
     Token? getOrSet,
+    Token? newToken,
     Token name,
     String? enclosingDeclarationName,
   ) {
@@ -183,6 +184,7 @@ class ForwardingTestListener extends ForwardingListener {
       covariantToken,
       varFinalOrConst,
       getOrSet,
+      newToken,
       name,
       enclosingDeclarationName,
     );
@@ -797,6 +799,7 @@ class ForwardingTestListener extends ForwardingListener {
   void endConstructor(
     DeclarationKind kind,
     Token beginToken,
+    Token? newToken,
     Token beginParam,
     Token? beginInitializers,
     Token endToken,
@@ -805,6 +808,7 @@ class ForwardingTestListener extends ForwardingListener {
     super.endConstructor(
       kind,
       beginToken,
+      newToken,
       beginParam,
       beginInitializers,
       endToken,
