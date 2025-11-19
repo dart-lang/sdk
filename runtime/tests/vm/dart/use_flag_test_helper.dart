@@ -39,7 +39,8 @@ final genKernel = path.join(
   'gen_kernel' + (Platform.isWindows ? '.bat' : ''),
 );
 final genKernelDart = path.join('pkg', 'vm', 'bin', 'gen_kernel.dart');
-final _genSnapshotBase = 'gen_snapshot' + (Platform.isWindows ? '.exe' : '');
+final exeSuffix = Platform.isWindows ? '.exe' : '';
+final _genSnapshotBase = 'gen_snapshot$exeSuffix';
 // Lazily initialize `genSnapshot` so that tests that don't use it on platforms
 // that don't have a `gen_snapshot` don't fail.
 late final genSnapshot = () {
@@ -58,22 +59,19 @@ late final genSnapshot = () {
   }
   throw 'Could not find gen_snapshot for build directory $buildDir';
 }();
-final dart = path.join(buildDir, 'dartvm' + (Platform.isWindows ? '.exe' : ''));
-final dartPrecompiledRuntime = path.join(
-  buildDir,
-  'dartaotruntime' + (Platform.isWindows ? '.exe' : ''),
-);
+final dart = path.join(buildDir, 'dartvm$exeSuffix');
+final dartPrecompiledRuntime = path.join(buildDir, 'dartaotruntime$exeSuffix');
 final checkedInDartVM = path.join(
   'tools',
   'sdks',
   'dart-sdk',
   'bin',
-  'dart' + (Platform.isWindows ? '.exe' : ''),
+  'dart$exeSuffix',
 );
 String? llvmTool(String name, {bool verbose = false}) {
   final clangBuildTools = clangBuildToolsDir;
   if (clangBuildTools != null) {
-    final toolPath = path.join(clangBuildTools, name);
+    final toolPath = path.join(clangBuildTools, '$name$exeSuffix');
     if (File(toolPath).existsSync()) {
       return toolPath;
     }
@@ -91,30 +89,18 @@ String? llvmTool(String name, {bool verbose = false}) {
 final isSimulator = path.basename(buildDir).contains('SIM');
 
 String? get clangBuildToolsDir {
-  String archDir;
-  switch (Abi.current()) {
-    case Abi.linuxX64:
-      archDir = 'linux-x64';
-      break;
-    case Abi.linuxArm64:
-      archDir = 'linux-arm64';
-      break;
-    case Abi.macosX64:
-      archDir = 'mac-x64';
-      break;
-    case Abi.macosArm64:
-      archDir = 'mac-arm64';
-      break;
-    case Abi.windowsX64:
-    case Abi.windowsArm64: // We don't have a proper host win-arm64 toolchain.
-      archDir = 'win-x64';
-      break;
-    default:
-      return null;
+  for (var archDir in [
+    'mac-arm64',
+    'mac-x64',
+    'win-arm64',
+    'win-x64',
+    'linux-arm64',
+    'linux-x64',
+  ]) {
+    var clangDir = path.join(sdkDir, 'buildtools', archDir, 'clang', 'bin');
+    if (Directory(clangDir).existsSync()) return clangDir;
   }
-  var clangDir = path.join(sdkDir, 'buildtools', archDir, 'clang', 'bin');
-  print(clangDir);
-  return Directory(clangDir).existsSync() ? clangDir : null;
+  return null;
 }
 
 Future<void> assembleSnapshot(
@@ -133,7 +119,7 @@ Future<void> assembleSnapshot(
 
   final clangBuildTools = clangBuildToolsDir;
   if (clangBuildTools != null) {
-    cc = path.join(clangBuildTools, Platform.isWindows ? 'clang.exe' : 'clang');
+    cc = path.join(clangBuildTools, 'clang$exeSuffix');
   } else {
     throw 'Cannot assemble for ${path.basename(buildDir)} '
         'without //buildtools on ${Platform.operatingSystem}';
@@ -147,7 +133,7 @@ Future<void> assembleSnapshot(
       ccFlags.add('--target=x86_64-apple-darwin');
     }
   } else if (Platform.isLinux) {
-    if (buildDir.endsWith('ARM')) {
+    if (buildDir.endsWith('ARM') || buildDir.endsWith('SIMARM_X64')) {
       ccFlags.add('--target=armv7-linux-gnueabihf');
     } else if (buildDir.endsWith('ARM64')) {
       ccFlags.add('--target=aarch64-linux-gnu');
@@ -186,10 +172,7 @@ Future<void> stripSnapshot(
 
   final clangBuildTools = clangBuildToolsDir;
   if (clangBuildTools != null) {
-    strip = path.join(
-      clangBuildTools,
-      Platform.isWindows ? 'llvm-strip.exe' : 'llvm-strip',
-    );
+    strip = path.join(clangBuildTools, 'llvm-strip$exeSuffix');
   } else {
     throw 'Cannot strip ELF files for ${path.basename(buildDir)} '
         'without //buildtools on ${Platform.operatingSystem}';
