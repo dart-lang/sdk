@@ -1,134 +1,134 @@
 Problems reported:
 
-parser/general/declaring_parameter_pre_feature:6:9: This requires the experimental 'declaring-constructors' language feature to be enabled.
+parser/declaring_constructors/declaring_parameter_pre_feature:7:9: This requires the experimental 'declaring-constructors' language feature to be enabled.
 class C(var a b) {}
         ^^^
 
-parser/general/declaring_parameter_pre_feature:8:9: This requires the experimental 'declaring-constructors' language feature to be enabled.
+parser/declaring_constructors/declaring_parameter_pre_feature:9:9: This requires the experimental 'declaring-constructors' language feature to be enabled.
 class C(var f()) {}
         ^^^
 
-parser/general/declaring_parameter_pre_feature:9:9: This requires the experimental 'declaring-constructors' language feature to be enabled.
+parser/declaring_constructors/declaring_parameter_pre_feature:10:9: This requires the experimental 'declaring-constructors' language feature to be enabled.
 class C(final f()) {}
         ^^^^^
 
-parser/general/declaring_parameter_pre_feature:10:9: This requires the experimental 'declaring-constructors' language feature to be enabled.
+parser/declaring_constructors/declaring_parameter_pre_feature:11:9: This requires the experimental 'declaring-constructors' language feature to be enabled.
 class C(var void f()) {}
         ^^^
 
-parser/general/declaring_parameter_pre_feature:10:9: This requires the experimental 'declaring-constructors' language feature to be enabled.
+parser/declaring_constructors/declaring_parameter_pre_feature:11:9: This requires the experimental 'declaring-constructors' language feature to be enabled.
 class C(var void f()) {}
         ^^^
 
-parser/general/declaring_parameter_pre_feature:11:9: This requires the experimental 'declaring-constructors' language feature to be enabled.
+parser/declaring_constructors/declaring_parameter_pre_feature:12:9: This requires the experimental 'declaring-constructors' language feature to be enabled.
 class C(final void f()) {}
         ^^^^^
 
-parser/general/declaring_parameter_pre_feature:12:9: This requires the experimental 'declaring-constructors' language feature to be enabled.
+parser/declaring_constructors/declaring_parameter_pre_feature:13:9: This requires the experimental 'declaring-constructors' language feature to be enabled.
 class C(var f<T>()) {}
         ^^^
 
-parser/general/declaring_parameter_pre_feature:13:9: This requires the experimental 'declaring-constructors' language feature to be enabled.
+parser/declaring_constructors/declaring_parameter_pre_feature:14:9: This requires the experimental 'declaring-constructors' language feature to be enabled.
 class C(final f<T>()) {}
         ^^^^^
 
-parser/general/declaring_parameter_pre_feature:14:9: This requires the experimental 'declaring-constructors' language feature to be enabled.
+parser/declaring_constructors/declaring_parameter_pre_feature:15:9: This requires the experimental 'declaring-constructors' language feature to be enabled.
 class C(var void f<T>()) {}
         ^^^
 
-parser/general/declaring_parameter_pre_feature:14:9: This requires the experimental 'declaring-constructors' language feature to be enabled.
+parser/declaring_constructors/declaring_parameter_pre_feature:15:9: This requires the experimental 'declaring-constructors' language feature to be enabled.
 class C(var void f<T>()) {}
         ^^^
 
-parser/general/declaring_parameter_pre_feature:15:9: This requires the experimental 'declaring-constructors' language feature to be enabled.
+parser/declaring_constructors/declaring_parameter_pre_feature:16:9: This requires the experimental 'declaring-constructors' language feature to be enabled.
 class C(final void f<T>()) {}
         ^^^^^
 
-parser/general/declaring_parameter_pre_feature:22:8: This requires the experimental 'declaring-constructors' language feature to be enabled.
+parser/declaring_constructors/declaring_parameter_pre_feature:23:8: This requires the experimental 'declaring-constructors' language feature to be enabled.
 enum E(var a b) {}
        ^^^
 
-parser/general/declaring_parameter_pre_feature:24:8: This requires the experimental 'declaring-constructors' language feature to be enabled.
+parser/declaring_constructors/declaring_parameter_pre_feature:25:8: This requires the experimental 'declaring-constructors' language feature to be enabled.
 enum E(var f()) {}
        ^^^
 
-parser/general/declaring_parameter_pre_feature:25:8: This requires the experimental 'declaring-constructors' language feature to be enabled.
+parser/declaring_constructors/declaring_parameter_pre_feature:26:8: This requires the experimental 'declaring-constructors' language feature to be enabled.
 enum E(final f()) {}
        ^^^^^
 
-parser/general/declaring_parameter_pre_feature:26:8: This requires the experimental 'declaring-constructors' language feature to be enabled.
+parser/declaring_constructors/declaring_parameter_pre_feature:27:8: This requires the experimental 'declaring-constructors' language feature to be enabled.
 enum E(var void f()) {}
        ^^^
 
-parser/general/declaring_parameter_pre_feature:26:8: This requires the experimental 'declaring-constructors' language feature to be enabled.
+parser/declaring_constructors/declaring_parameter_pre_feature:27:8: This requires the experimental 'declaring-constructors' language feature to be enabled.
 enum E(var void f()) {}
        ^^^
 
-parser/general/declaring_parameter_pre_feature:27:8: This requires the experimental 'declaring-constructors' language feature to be enabled.
+parser/declaring_constructors/declaring_parameter_pre_feature:28:8: This requires the experimental 'declaring-constructors' language feature to be enabled.
 enum E(final void f()) {}
        ^^^^^
 
-parser/general/declaring_parameter_pre_feature:28:8: This requires the experimental 'declaring-constructors' language feature to be enabled.
+parser/declaring_constructors/declaring_parameter_pre_feature:29:8: This requires the experimental 'declaring-constructors' language feature to be enabled.
 enum E(var f<T>()) {}
        ^^^
 
-parser/general/declaring_parameter_pre_feature:29:8: This requires the experimental 'declaring-constructors' language feature to be enabled.
+parser/declaring_constructors/declaring_parameter_pre_feature:30:8: This requires the experimental 'declaring-constructors' language feature to be enabled.
 enum E(final f<T>()) {}
        ^^^^^
 
-parser/general/declaring_parameter_pre_feature:30:8: This requires the experimental 'declaring-constructors' language feature to be enabled.
+parser/declaring_constructors/declaring_parameter_pre_feature:31:8: This requires the experimental 'declaring-constructors' language feature to be enabled.
 enum E(var void f<T>()) {}
        ^^^
 
-parser/general/declaring_parameter_pre_feature:30:8: This requires the experimental 'declaring-constructors' language feature to be enabled.
+parser/declaring_constructors/declaring_parameter_pre_feature:31:8: This requires the experimental 'declaring-constructors' language feature to be enabled.
 enum E(var void f<T>()) {}
        ^^^
 
-parser/general/declaring_parameter_pre_feature:31:8: This requires the experimental 'declaring-constructors' language feature to be enabled.
+parser/declaring_constructors/declaring_parameter_pre_feature:32:8: This requires the experimental 'declaring-constructors' language feature to be enabled.
 enum E(final void f<T>()) {}
        ^^^^^
 
-parser/general/declaring_parameter_pre_feature:38:19: This requires the experimental 'declaring-constructors' language feature to be enabled.
+parser/declaring_constructors/declaring_parameter_pre_feature:39:19: This requires the experimental 'declaring-constructors' language feature to be enabled.
 extension type ET(var a b) {}
                   ^^^
 
-parser/general/declaring_parameter_pre_feature:40:19: This requires the experimental 'declaring-constructors' language feature to be enabled.
+parser/declaring_constructors/declaring_parameter_pre_feature:41:19: This requires the experimental 'declaring-constructors' language feature to be enabled.
 extension type ET(var f()) {}
                   ^^^
 
-parser/general/declaring_parameter_pre_feature:41:19: This requires the experimental 'declaring-constructors' language feature to be enabled.
+parser/declaring_constructors/declaring_parameter_pre_feature:42:19: This requires the experimental 'declaring-constructors' language feature to be enabled.
 extension type ET(final f()) {}
                   ^^^^^
 
-parser/general/declaring_parameter_pre_feature:42:19: This requires the experimental 'declaring-constructors' language feature to be enabled.
+parser/declaring_constructors/declaring_parameter_pre_feature:43:19: This requires the experimental 'declaring-constructors' language feature to be enabled.
 extension type ET(var void f()) {}
                   ^^^
 
-parser/general/declaring_parameter_pre_feature:42:19: This requires the experimental 'declaring-constructors' language feature to be enabled.
+parser/declaring_constructors/declaring_parameter_pre_feature:43:19: This requires the experimental 'declaring-constructors' language feature to be enabled.
 extension type ET(var void f()) {}
                   ^^^
 
-parser/general/declaring_parameter_pre_feature:43:19: This requires the experimental 'declaring-constructors' language feature to be enabled.
+parser/declaring_constructors/declaring_parameter_pre_feature:44:19: This requires the experimental 'declaring-constructors' language feature to be enabled.
 extension type ET(final void f()) {}
                   ^^^^^
 
-parser/general/declaring_parameter_pre_feature:44:19: This requires the experimental 'declaring-constructors' language feature to be enabled.
+parser/declaring_constructors/declaring_parameter_pre_feature:45:19: This requires the experimental 'declaring-constructors' language feature to be enabled.
 extension type ET(var f<T>()) {}
                   ^^^
 
-parser/general/declaring_parameter_pre_feature:45:19: This requires the experimental 'declaring-constructors' language feature to be enabled.
+parser/declaring_constructors/declaring_parameter_pre_feature:46:19: This requires the experimental 'declaring-constructors' language feature to be enabled.
 extension type ET(final f<T>()) {}
                   ^^^^^
 
-parser/general/declaring_parameter_pre_feature:46:19: This requires the experimental 'declaring-constructors' language feature to be enabled.
+parser/declaring_constructors/declaring_parameter_pre_feature:47:19: This requires the experimental 'declaring-constructors' language feature to be enabled.
 extension type ET(var void f<T>()) {}
                   ^^^
 
-parser/general/declaring_parameter_pre_feature:46:19: This requires the experimental 'declaring-constructors' language feature to be enabled.
+parser/declaring_constructors/declaring_parameter_pre_feature:47:19: This requires the experimental 'declaring-constructors' language feature to be enabled.
 extension type ET(var void f<T>()) {}
                   ^^^
 
-parser/general/declaring_parameter_pre_feature:47:19: This requires the experimental 'declaring-constructors' language feature to be enabled.
+parser/declaring_constructors/declaring_parameter_pre_feature:48:19: This requires the experimental 'declaring-constructors' language feature to be enabled.
 extension type ET(final void f<T>()) {}
                   ^^^^^
 

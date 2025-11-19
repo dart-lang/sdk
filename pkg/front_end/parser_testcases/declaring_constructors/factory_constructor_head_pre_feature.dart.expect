@@ -1,26 +1,26 @@
 Problems reported:
 
-parser/general/factory_constructor_head_pre_feature:14:14: Only factory constructor can specify '=' redirection.
+parser/declaring_constructors/factory_constructor_head_pre_feature:15:14: Only factory constructor can specify '=' redirection.
   factory () = C;
              ^
 
-parser/general/factory_constructor_head_pre_feature:18:12: Getters, setters and methods can't be declared to be 'const'.
+parser/declaring_constructors/factory_constructor_head_pre_feature:19:12: Getters, setters and methods can't be declared to be 'const'.
   external const factory ();
            ^^^^^
 
-parser/general/factory_constructor_head_pre_feature:22:3: Getters, setters and methods can't be declared to be 'const'.
+parser/declaring_constructors/factory_constructor_head_pre_feature:23:3: Getters, setters and methods can't be declared to be 'const'.
   const factory () => C();
   ^^^^^
 
-parser/general/factory_constructor_head_pre_feature:26:3: Getters, setters and methods can't be declared to be 'const'.
+parser/declaring_constructors/factory_constructor_head_pre_feature:27:3: Getters, setters and methods can't be declared to be 'const'.
   const factory () {}
   ^^^^^
 
-parser/general/factory_constructor_head_pre_feature:30:20: Only factory constructor can specify '=' redirection.
+parser/declaring_constructors/factory_constructor_head_pre_feature:31:20: Only factory constructor can specify '=' redirection.
   const factory () = C;
                    ^
 
-parser/general/factory_constructor_head_pre_feature:30:3: Getters, setters and methods can't be declared to be 'const'.
+parser/declaring_constructors/factory_constructor_head_pre_feature:31:3: Getters, setters and methods can't be declared to be 'const'.
   const factory () = C;
   ^^^^^
 

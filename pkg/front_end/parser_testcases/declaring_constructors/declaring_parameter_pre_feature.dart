@@ -1,3 +1,4 @@
+// @dart=3.10
 class C() {}
 class C(a) {}
 class C(a b) {}

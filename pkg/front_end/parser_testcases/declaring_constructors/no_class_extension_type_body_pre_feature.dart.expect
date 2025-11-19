@@ -1,386 +1,386 @@
 Problems reported:
 
-parser/general/no_class_extension_type_body_pre_feature:1:8: This requires the experimental 'declaring-constructors' language feature to be enabled.
+parser/declaring_constructors/no_class_extension_type_body_pre_feature:2:8: This requires the experimental 'declaring-constructors' language feature to be enabled.
 class C;
        ^
 
-parser/general/no_class_extension_type_body_pre_feature:2:18: This requires the experimental 'declaring-constructors' language feature to be enabled.
+parser/declaring_constructors/no_class_extension_type_body_pre_feature:3:18: This requires the experimental 'declaring-constructors' language feature to be enabled.
 class C extends O;
                  ^
 
-parser/general/no_class_extension_type_body_pre_feature:3:31: This requires the experimental 'declaring-constructors' language feature to be enabled.
+parser/declaring_constructors/no_class_extension_type_body_pre_feature:4:31: This requires the experimental 'declaring-constructors' language feature to be enabled.
 class C extends O implements I;
                               ^
 
-parser/general/no_class_extension_type_body_pre_feature:4:38: This requires the experimental 'declaring-constructors' language feature to be enabled.
+parser/declaring_constructors/no_class_extension_type_body_pre_feature:5:38: This requires the experimental 'declaring-constructors' language feature to be enabled.
 class C extends O with M implements I;
                                      ^
 
-parser/general/no_class_extension_type_body_pre_feature:5:25: This requires the experimental 'declaring-constructors' language feature to be enabled.
+parser/declaring_constructors/no_class_extension_type_body_pre_feature:6:25: This requires the experimental 'declaring-constructors' language feature to be enabled.
 class C extends O with M;
                         ^
 
-parser/general/no_class_extension_type_body_pre_feature:6:21: This requires the experimental 'declaring-constructors' language feature to be enabled.
+parser/declaring_constructors/no_class_extension_type_body_pre_feature:7:21: This requires the experimental 'declaring-constructors' language feature to be enabled.
 class C implements I;
                     ^
 
-parser/general/no_class_extension_type_body_pre_feature:7:28: This requires the experimental 'declaring-constructors' language feature to be enabled.
+parser/declaring_constructors/no_class_extension_type_body_pre_feature:8:28: This requires the experimental 'declaring-constructors' language feature to be enabled.
 class C with M implements I;
                            ^
 
-parser/general/no_class_extension_type_body_pre_feature:8:15: This requires the experimental 'declaring-constructors' language feature to be enabled.
+parser/declaring_constructors/no_class_extension_type_body_pre_feature:9:15: This requires the experimental 'declaring-constructors' language feature to be enabled.
 class C with M;
               ^
 
-parser/general/no_class_extension_type_body_pre_feature:9:11: This requires the experimental 'declaring-constructors' language feature to be enabled.
+parser/declaring_constructors/no_class_extension_type_body_pre_feature:10:11: This requires the experimental 'declaring-constructors' language feature to be enabled.
 class C<T>;
           ^
 
-parser/general/no_class_extension_type_body_pre_feature:10:24: This requires the experimental 'declaring-constructors' language feature to be enabled.
+parser/declaring_constructors/no_class_extension_type_body_pre_feature:11:24: This requires the experimental 'declaring-constructors' language feature to be enabled.
 class C<T> extends O<T>;
                        ^
 
-parser/general/no_class_extension_type_body_pre_feature:11:40: This requires the experimental 'declaring-constructors' language feature to be enabled.
+parser/declaring_constructors/no_class_extension_type_body_pre_feature:12:40: This requires the experimental 'declaring-constructors' language feature to be enabled.
 class C<T> extends O<T> implements I<T>;
                                        ^
 
-parser/general/no_class_extension_type_body_pre_feature:12:50: This requires the experimental 'declaring-constructors' language feature to be enabled.
+parser/declaring_constructors/no_class_extension_type_body_pre_feature:13:50: This requires the experimental 'declaring-constructors' language feature to be enabled.
 class C<T> extends O<T> with M<T> implements I<T>;
                                                  ^
 
-parser/general/no_class_extension_type_body_pre_feature:13:34: This requires the experimental 'declaring-constructors' language feature to be enabled.
+parser/declaring_constructors/no_class_extension_type_body_pre_feature:14:34: This requires the experimental 'declaring-constructors' language feature to be enabled.
 class C<T> extends O<T> with M<T>;
                                  ^
 
-parser/general/no_class_extension_type_body_pre_feature:14:27: This requires the experimental 'declaring-constructors' language feature to be enabled.
+parser/declaring_constructors/no_class_extension_type_body_pre_feature:15:27: This requires the experimental 'declaring-constructors' language feature to be enabled.
 class C<T> implements I<T>;
                           ^
 
-parser/general/no_class_extension_type_body_pre_feature:15:37: This requires the experimental 'declaring-constructors' language feature to be enabled.
+parser/declaring_constructors/no_class_extension_type_body_pre_feature:16:37: This requires the experimental 'declaring-constructors' language feature to be enabled.
 class C<T> with M<T> implements I<T>;
                                     ^
 
-parser/general/no_class_extension_type_body_pre_feature:16:21: This requires the experimental 'declaring-constructors' language feature to be enabled.
+parser/declaring_constructors/no_class_extension_type_body_pre_feature:17:21: This requires the experimental 'declaring-constructors' language feature to be enabled.
 class C<T> with M<T>;
                     ^
 
-parser/general/no_class_extension_type_body_pre_feature:17:10: This requires the experimental 'declaring-constructors' language feature to be enabled.
+parser/declaring_constructors/no_class_extension_type_body_pre_feature:18:10: This requires the experimental 'declaring-constructors' language feature to be enabled.
 class C();
          ^
 
-parser/general/no_class_extension_type_body_pre_feature:18:20: This requires the experimental 'declaring-constructors' language feature to be enabled.
+parser/declaring_constructors/no_class_extension_type_body_pre_feature:19:20: This requires the experimental 'declaring-constructors' language feature to be enabled.
 class C() extends O;
                    ^
 
-parser/general/no_class_extension_type_body_pre_feature:19:33: This requires the experimental 'declaring-constructors' language feature to be enabled.
+parser/declaring_constructors/no_class_extension_type_body_pre_feature:20:33: This requires the experimental 'declaring-constructors' language feature to be enabled.
 class C() extends O implements I;
                                 ^
 
-parser/general/no_class_extension_type_body_pre_feature:20:40: This requires the experimental 'declaring-constructors' language feature to be enabled.
+parser/declaring_constructors/no_class_extension_type_body_pre_feature:21:40: This requires the experimental 'declaring-constructors' language feature to be enabled.
 class C() extends O with M implements I;
                                        ^
 
-parser/general/no_class_extension_type_body_pre_feature:21:27: This requires the experimental 'declaring-constructors' language feature to be enabled.
+parser/declaring_constructors/no_class_extension_type_body_pre_feature:22:27: This requires the experimental 'declaring-constructors' language feature to be enabled.
 class C() extends O with M;
                           ^
 
-parser/general/no_class_extension_type_body_pre_feature:22:23: This requires the experimental 'declaring-constructors' language feature to be enabled.
+parser/declaring_constructors/no_class_extension_type_body_pre_feature:23:23: This requires the experimental 'declaring-constructors' language feature to be enabled.
 class C() implements I;
                       ^
 
-parser/general/no_class_extension_type_body_pre_feature:23:30: This requires the experimental 'declaring-constructors' language feature to be enabled.
+parser/declaring_constructors/no_class_extension_type_body_pre_feature:24:30: This requires the experimental 'declaring-constructors' language feature to be enabled.
 class C() with M implements I;
                              ^
 
-parser/general/no_class_extension_type_body_pre_feature:24:17: This requires the experimental 'declaring-constructors' language feature to be enabled.
+parser/declaring_constructors/no_class_extension_type_body_pre_feature:25:17: This requires the experimental 'declaring-constructors' language feature to be enabled.
 class C() with M;
                 ^
 
-parser/general/no_class_extension_type_body_pre_feature:25:13: This requires the experimental 'declaring-constructors' language feature to be enabled.
+parser/declaring_constructors/no_class_extension_type_body_pre_feature:26:13: This requires the experimental 'declaring-constructors' language feature to be enabled.
 class C<T>();
             ^
 
-parser/general/no_class_extension_type_body_pre_feature:26:26: This requires the experimental 'declaring-constructors' language feature to be enabled.
+parser/declaring_constructors/no_class_extension_type_body_pre_feature:27:26: This requires the experimental 'declaring-constructors' language feature to be enabled.
 class C<T>() extends O<T>;
                          ^
 
-parser/general/no_class_extension_type_body_pre_feature:27:42: This requires the experimental 'declaring-constructors' language feature to be enabled.
+parser/declaring_constructors/no_class_extension_type_body_pre_feature:28:42: This requires the experimental 'declaring-constructors' language feature to be enabled.
 class C<T>() extends O<T> implements I<T>;
                                          ^
 
-parser/general/no_class_extension_type_body_pre_feature:28:52: This requires the experimental 'declaring-constructors' language feature to be enabled.
+parser/declaring_constructors/no_class_extension_type_body_pre_feature:29:52: This requires the experimental 'declaring-constructors' language feature to be enabled.
 class C<T>() extends O<T> with M<T> implements I<T>;
                                                    ^
 
-parser/general/no_class_extension_type_body_pre_feature:29:36: This requires the experimental 'declaring-constructors' language feature to be enabled.
+parser/declaring_constructors/no_class_extension_type_body_pre_feature:30:36: This requires the experimental 'declaring-constructors' language feature to be enabled.
 class C<T>() extends O<T> with M<T>;
                                    ^
 
-parser/general/no_class_extension_type_body_pre_feature:30:29: This requires the experimental 'declaring-constructors' language feature to be enabled.
+parser/declaring_constructors/no_class_extension_type_body_pre_feature:31:29: This requires the experimental 'declaring-constructors' language feature to be enabled.
 class C<T>() implements I<T>;
                             ^
 
-parser/general/no_class_extension_type_body_pre_feature:31:39: This requires the experimental 'declaring-constructors' language feature to be enabled.
+parser/declaring_constructors/no_class_extension_type_body_pre_feature:32:39: This requires the experimental 'declaring-constructors' language feature to be enabled.
 class C<T>() with M<T> implements I<T>;
                                       ^
 
-parser/general/no_class_extension_type_body_pre_feature:32:23: This requires the experimental 'declaring-constructors' language feature to be enabled.
+parser/declaring_constructors/no_class_extension_type_body_pre_feature:33:23: This requires the experimental 'declaring-constructors' language feature to be enabled.
 class C<T>() with M<T>;
                       ^
 
-parser/general/no_class_extension_type_body_pre_feature:33:16: This requires the experimental 'declaring-constructors' language feature to be enabled.
+parser/declaring_constructors/no_class_extension_type_body_pre_feature:34:16: This requires the experimental 'declaring-constructors' language feature to be enabled.
 class const C();
                ^
 
-parser/general/no_class_extension_type_body_pre_feature:34:26: This requires the experimental 'declaring-constructors' language feature to be enabled.
+parser/declaring_constructors/no_class_extension_type_body_pre_feature:35:26: This requires the experimental 'declaring-constructors' language feature to be enabled.
 class const C() extends O;
                          ^
 
-parser/general/no_class_extension_type_body_pre_feature:35:39: This requires the experimental 'declaring-constructors' language feature to be enabled.
+parser/declaring_constructors/no_class_extension_type_body_pre_feature:36:39: This requires the experimental 'declaring-constructors' language feature to be enabled.
 class const C() extends O implements I;
                                       ^
 
-parser/general/no_class_extension_type_body_pre_feature:36:46: This requires the experimental 'declaring-constructors' language feature to be enabled.
+parser/declaring_constructors/no_class_extension_type_body_pre_feature:37:46: This requires the experimental 'declaring-constructors' language feature to be enabled.
 class const C() extends O with M implements I;
                                              ^
 
-parser/general/no_class_extension_type_body_pre_feature:37:33: This requires the experimental 'declaring-constructors' language feature to be enabled.
+parser/declaring_constructors/no_class_extension_type_body_pre_feature:38:33: This requires the experimental 'declaring-constructors' language feature to be enabled.
 class const C() extends O with M;
                                 ^
 
-parser/general/no_class_extension_type_body_pre_feature:38:29: This requires the experimental 'declaring-constructors' language feature to be enabled.
+parser/declaring_constructors/no_class_extension_type_body_pre_feature:39:29: This requires the experimental 'declaring-constructors' language feature to be enabled.
 class const C() implements I;
                             ^
 
-parser/general/no_class_extension_type_body_pre_feature:39:36: This requires the experimental 'declaring-constructors' language feature to be enabled.
+parser/declaring_constructors/no_class_extension_type_body_pre_feature:40:36: This requires the experimental 'declaring-constructors' language feature to be enabled.
 class const C() with M implements I;
                                    ^
 
-parser/general/no_class_extension_type_body_pre_feature:40:23: This requires the experimental 'declaring-constructors' language feature to be enabled.
+parser/declaring_constructors/no_class_extension_type_body_pre_feature:41:23: This requires the experimental 'declaring-constructors' language feature to be enabled.
 class const C() with M;
                       ^
 
-parser/general/no_class_extension_type_body_pre_feature:41:19: This requires the experimental 'declaring-constructors' language feature to be enabled.
+parser/declaring_constructors/no_class_extension_type_body_pre_feature:42:19: This requires the experimental 'declaring-constructors' language feature to be enabled.
 class const C<T>();
                   ^
 
-parser/general/no_class_extension_type_body_pre_feature:42:32: This requires the experimental 'declaring-constructors' language feature to be enabled.
+parser/declaring_constructors/no_class_extension_type_body_pre_feature:43:32: This requires the experimental 'declaring-constructors' language feature to be enabled.
 class const C<T>() extends O<T>;
                                ^
 
-parser/general/no_class_extension_type_body_pre_feature:43:48: This requires the experimental 'declaring-constructors' language feature to be enabled.
+parser/declaring_constructors/no_class_extension_type_body_pre_feature:44:48: This requires the experimental 'declaring-constructors' language feature to be enabled.
 class const C<T>() extends O<T> implements I<T>;
                                                ^
 
-parser/general/no_class_extension_type_body_pre_feature:44:58: This requires the experimental 'declaring-constructors' language feature to be enabled.
+parser/declaring_constructors/no_class_extension_type_body_pre_feature:45:58: This requires the experimental 'declaring-constructors' language feature to be enabled.
 class const C<T>() extends O<T> with M<T> implements I<T>;
                                                          ^
 
-parser/general/no_class_extension_type_body_pre_feature:45:42: This requires the experimental 'declaring-constructors' language feature to be enabled.
+parser/declaring_constructors/no_class_extension_type_body_pre_feature:46:42: This requires the experimental 'declaring-constructors' language feature to be enabled.
 class const C<T>() extends O<T> with M<T>;
                                          ^
 
-parser/general/no_class_extension_type_body_pre_feature:46:35: This requires the experimental 'declaring-constructors' language feature to be enabled.
+parser/declaring_constructors/no_class_extension_type_body_pre_feature:47:35: This requires the experimental 'declaring-constructors' language feature to be enabled.
 class const C<T>() implements I<T>;
                                   ^
 
-parser/general/no_class_extension_type_body_pre_feature:47:45: This requires the experimental 'declaring-constructors' language feature to be enabled.
+parser/declaring_constructors/no_class_extension_type_body_pre_feature:48:45: This requires the experimental 'declaring-constructors' language feature to be enabled.
 class const C<T>() with M<T> implements I<T>;
                                             ^
 
-parser/general/no_class_extension_type_body_pre_feature:48:29: This requires the experimental 'declaring-constructors' language feature to be enabled.
+parser/declaring_constructors/no_class_extension_type_body_pre_feature:49:29: This requires the experimental 'declaring-constructors' language feature to be enabled.
 class const C<T>() with M<T>;
                             ^
 
-parser/general/no_class_extension_type_body_pre_feature:49:16: This requires the experimental 'declaring-constructors' language feature to be enabled.
+parser/declaring_constructors/no_class_extension_type_body_pre_feature:50:16: This requires the experimental 'declaring-constructors' language feature to be enabled.
 class C.named();
                ^
 
-parser/general/no_class_extension_type_body_pre_feature:50:26: This requires the experimental 'declaring-constructors' language feature to be enabled.
+parser/declaring_constructors/no_class_extension_type_body_pre_feature:51:26: This requires the experimental 'declaring-constructors' language feature to be enabled.
 class C.named() extends O;
                          ^
 
-parser/general/no_class_extension_type_body_pre_feature:51:39: This requires the experimental 'declaring-constructors' language feature to be enabled.
+parser/declaring_constructors/no_class_extension_type_body_pre_feature:52:39: This requires the experimental 'declaring-constructors' language feature to be enabled.
 class C.named() extends O implements I;
                                       ^
 
-parser/general/no_class_extension_type_body_pre_feature:52:46: This requires the experimental 'declaring-constructors' language feature to be enabled.
+parser/declaring_constructors/no_class_extension_type_body_pre_feature:53:46: This requires the experimental 'declaring-constructors' language feature to be enabled.
 class C.named() extends O with M implements I;
                                              ^
 
-parser/general/no_class_extension_type_body_pre_feature:53:33: This requires the experimental 'declaring-constructors' language feature to be enabled.
+parser/declaring_constructors/no_class_extension_type_body_pre_feature:54:33: This requires the experimental 'declaring-constructors' language feature to be enabled.
 class C.named() extends O with M;
                                 ^
 
-parser/general/no_class_extension_type_body_pre_feature:54:29: This requires the experimental 'declaring-constructors' language feature to be enabled.
+parser/declaring_constructors/no_class_extension_type_body_pre_feature:55:29: This requires the experimental 'declaring-constructors' language feature to be enabled.
 class C.named() implements I;
                             ^
 
-parser/general/no_class_extension_type_body_pre_feature:55:36: This requires the experimental 'declaring-constructors' language feature to be enabled.
+parser/declaring_constructors/no_class_extension_type_body_pre_feature:56:36: This requires the experimental 'declaring-constructors' language feature to be enabled.
 class C.named() with M implements I;
                                    ^
 
-parser/general/no_class_extension_type_body_pre_feature:56:23: This requires the experimental 'declaring-constructors' language feature to be enabled.
+parser/declaring_constructors/no_class_extension_type_body_pre_feature:57:23: This requires the experimental 'declaring-constructors' language feature to be enabled.
 class C.named() with M;
                       ^
 
-parser/general/no_class_extension_type_body_pre_feature:57:19: This requires the experimental 'declaring-constructors' language feature to be enabled.
+parser/declaring_constructors/no_class_extension_type_body_pre_feature:58:19: This requires the experimental 'declaring-constructors' language feature to be enabled.
 class C<T>.named();
                   ^
 
-parser/general/no_class_extension_type_body_pre_feature:58:32: This requires the experimental 'declaring-constructors' language feature to be enabled.
+parser/declaring_constructors/no_class_extension_type_body_pre_feature:59:32: This requires the experimental 'declaring-constructors' language feature to be enabled.
 class C<T>.named() extends O<T>;
                                ^
 
-parser/general/no_class_extension_type_body_pre_feature:59:48: This requires the experimental 'declaring-constructors' language feature to be enabled.
+parser/declaring_constructors/no_class_extension_type_body_pre_feature:60:48: This requires the experimental 'declaring-constructors' language feature to be enabled.
 class C<T>.named() extends O<T> implements I<T>;
                                                ^
 
-parser/general/no_class_extension_type_body_pre_feature:60:58: This requires the experimental 'declaring-constructors' language feature to be enabled.
+parser/declaring_constructors/no_class_extension_type_body_pre_feature:61:58: This requires the experimental 'declaring-constructors' language feature to be enabled.
 class C<T>.named() extends O<T> with M<T> implements I<T>;
                                                          ^
 
-parser/general/no_class_extension_type_body_pre_feature:61:42: This requires the experimental 'declaring-constructors' language feature to be enabled.
+parser/declaring_constructors/no_class_extension_type_body_pre_feature:62:42: This requires the experimental 'declaring-constructors' language feature to be enabled.
 class C<T>.named() extends O<T> with M<T>;
                                          ^
 
-parser/general/no_class_extension_type_body_pre_feature:62:35: This requires the experimental 'declaring-constructors' language feature to be enabled.
+parser/declaring_constructors/no_class_extension_type_body_pre_feature:63:35: This requires the experimental 'declaring-constructors' language feature to be enabled.
 class C<T>.named() implements I<T>;
                                   ^
 
-parser/general/no_class_extension_type_body_pre_feature:63:45: This requires the experimental 'declaring-constructors' language feature to be enabled.
+parser/declaring_constructors/no_class_extension_type_body_pre_feature:64:45: This requires the experimental 'declaring-constructors' language feature to be enabled.
 class C<T>.named() with M<T> implements I<T>;
                                             ^
 
-parser/general/no_class_extension_type_body_pre_feature:64:29: This requires the experimental 'declaring-constructors' language feature to be enabled.
+parser/declaring_constructors/no_class_extension_type_body_pre_feature:65:29: This requires the experimental 'declaring-constructors' language feature to be enabled.
 class C<T>.named() with M<T>;
                             ^
 
-parser/general/no_class_extension_type_body_pre_feature:65:22: This requires the experimental 'declaring-constructors' language feature to be enabled.
+parser/declaring_constructors/no_class_extension_type_body_pre_feature:66:22: This requires the experimental 'declaring-constructors' language feature to be enabled.
 class const C.named();
                      ^
 
-parser/general/no_class_extension_type_body_pre_feature:66:32: This requires the experimental 'declaring-constructors' language feature to be enabled.
+parser/declaring_constructors/no_class_extension_type_body_pre_feature:67:32: This requires the experimental 'declaring-constructors' language feature to be enabled.
 class const C.named() extends O;
                                ^
 
-parser/general/no_class_extension_type_body_pre_feature:67:45: This requires the experimental 'declaring-constructors' language feature to be enabled.
+parser/declaring_constructors/no_class_extension_type_body_pre_feature:68:45: This requires the experimental 'declaring-constructors' language feature to be enabled.
 class const C.named() extends O implements I;
                                             ^
 
-parser/general/no_class_extension_type_body_pre_feature:68:52: This requires the experimental 'declaring-constructors' language feature to be enabled.
+parser/declaring_constructors/no_class_extension_type_body_pre_feature:69:52: This requires the experimental 'declaring-constructors' language feature to be enabled.
 class const C.named() extends O with M implements I;
                                                    ^
 
-parser/general/no_class_extension_type_body_pre_feature:69:39: This requires the experimental 'declaring-constructors' language feature to be enabled.
+parser/declaring_constructors/no_class_extension_type_body_pre_feature:70:39: This requires the experimental 'declaring-constructors' language feature to be enabled.
 class const C.named() extends O with M;
                                       ^
 
-parser/general/no_class_extension_type_body_pre_feature:70:35: This requires the experimental 'declaring-constructors' language feature to be enabled.
+parser/declaring_constructors/no_class_extension_type_body_pre_feature:71:35: This requires the experimental 'declaring-constructors' language feature to be enabled.
 class const C.named() implements I;
                                   ^
 
-parser/general/no_class_extension_type_body_pre_feature:71:42: This requires the experimental 'declaring-constructors' language feature to be enabled.
+parser/declaring_constructors/no_class_extension_type_body_pre_feature:72:42: This requires the experimental 'declaring-constructors' language feature to be enabled.
 class const C.named() with M implements I;
                                          ^
 
-parser/general/no_class_extension_type_body_pre_feature:72:29: This requires the experimental 'declaring-constructors' language feature to be enabled.
+parser/declaring_constructors/no_class_extension_type_body_pre_feature:73:29: This requires the experimental 'declaring-constructors' language feature to be enabled.
 class const C.named() with M;
                             ^
 
-parser/general/no_class_extension_type_body_pre_feature:73:25: This requires the experimental 'declaring-constructors' language feature to be enabled.
+parser/declaring_constructors/no_class_extension_type_body_pre_feature:74:25: This requires the experimental 'declaring-constructors' language feature to be enabled.
 class const C<T>.named();
                         ^
 
-parser/general/no_class_extension_type_body_pre_feature:74:38: This requires the experimental 'declaring-constructors' language feature to be enabled.
+parser/declaring_constructors/no_class_extension_type_body_pre_feature:75:38: This requires the experimental 'declaring-constructors' language feature to be enabled.
 class const C<T>.named() extends O<T>;
                                      ^
 
-parser/general/no_class_extension_type_body_pre_feature:75:54: This requires the experimental 'declaring-constructors' language feature to be enabled.
+parser/declaring_constructors/no_class_extension_type_body_pre_feature:76:54: This requires the experimental 'declaring-constructors' language feature to be enabled.
 class const C<T>.named() extends O<T> implements I<T>;
                                                      ^
 
-parser/general/no_class_extension_type_body_pre_feature:76:64: This requires the experimental 'declaring-constructors' language feature to be enabled.
+parser/declaring_constructors/no_class_extension_type_body_pre_feature:77:64: This requires the experimental 'declaring-constructors' language feature to be enabled.
 class const C<T>.named() extends O<T> with M<T> implements I<T>;
                                                                ^
 
-parser/general/no_class_extension_type_body_pre_feature:77:48: This requires the experimental 'declaring-constructors' language feature to be enabled.
+parser/declaring_constructors/no_class_extension_type_body_pre_feature:78:48: This requires the experimental 'declaring-constructors' language feature to be enabled.
 class const C<T>.named() extends O<T> with M<T>;
                                                ^
 
-parser/general/no_class_extension_type_body_pre_feature:78:41: This requires the experimental 'declaring-constructors' language feature to be enabled.
+parser/declaring_constructors/no_class_extension_type_body_pre_feature:79:41: This requires the experimental 'declaring-constructors' language feature to be enabled.
 class const C<T>.named() implements I<T>;
                                         ^
 
-parser/general/no_class_extension_type_body_pre_feature:79:51: This requires the experimental 'declaring-constructors' language feature to be enabled.
+parser/declaring_constructors/no_class_extension_type_body_pre_feature:80:51: This requires the experimental 'declaring-constructors' language feature to be enabled.
 class const C<T>.named() with M<T> implements I<T>;
                                                   ^
 
-parser/general/no_class_extension_type_body_pre_feature:80:35: This requires the experimental 'declaring-constructors' language feature to be enabled.
+parser/declaring_constructors/no_class_extension_type_body_pre_feature:81:35: This requires the experimental 'declaring-constructors' language feature to be enabled.
 class const C<T>.named() with M<T>;
                                   ^
 
-parser/general/no_class_extension_type_body_pre_feature:82:25: This requires the experimental 'declaring-constructors' language feature to be enabled.
+parser/declaring_constructors/no_class_extension_type_body_pre_feature:83:25: This requires the experimental 'declaring-constructors' language feature to be enabled.
 extension type ET(int i);
                         ^
 
-parser/general/no_class_extension_type_body_pre_feature:83:38: This requires the experimental 'declaring-constructors' language feature to be enabled.
+parser/declaring_constructors/no_class_extension_type_body_pre_feature:84:38: This requires the experimental 'declaring-constructors' language feature to be enabled.
 extension type ET(int i) implements I;
                                      ^
 
-parser/general/no_class_extension_type_body_pre_feature:84:28: This requires the experimental 'declaring-constructors' language feature to be enabled.
+parser/declaring_constructors/no_class_extension_type_body_pre_feature:85:28: This requires the experimental 'declaring-constructors' language feature to be enabled.
 extension type ET<T>(int i);
                            ^
 
-parser/general/no_class_extension_type_body_pre_feature:85:44: This requires the experimental 'declaring-constructors' language feature to be enabled.
+parser/declaring_constructors/no_class_extension_type_body_pre_feature:86:44: This requires the experimental 'declaring-constructors' language feature to be enabled.
 extension type ET<T>(int i) implements I<T>;
                                            ^
 
-parser/general/no_class_extension_type_body_pre_feature:86:31: This requires the experimental 'declaring-constructors' language feature to be enabled.
+parser/declaring_constructors/no_class_extension_type_body_pre_feature:87:31: This requires the experimental 'declaring-constructors' language feature to be enabled.
 extension type const ET(int i);
                               ^
 
-parser/general/no_class_extension_type_body_pre_feature:87:44: This requires the experimental 'declaring-constructors' language feature to be enabled.
+parser/declaring_constructors/no_class_extension_type_body_pre_feature:88:44: This requires the experimental 'declaring-constructors' language feature to be enabled.
 extension type const ET(int i) implements I;
                                            ^
 
-parser/general/no_class_extension_type_body_pre_feature:88:34: This requires the experimental 'declaring-constructors' language feature to be enabled.
+parser/declaring_constructors/no_class_extension_type_body_pre_feature:89:34: This requires the experimental 'declaring-constructors' language feature to be enabled.
 extension type const ET<T>(int i);
                                  ^
 
-parser/general/no_class_extension_type_body_pre_feature:89:50: This requires the experimental 'declaring-constructors' language feature to be enabled.
+parser/declaring_constructors/no_class_extension_type_body_pre_feature:90:50: This requires the experimental 'declaring-constructors' language feature to be enabled.
 extension type const ET<T>(int i) implements I<T>;
                                                  ^
 
-parser/general/no_class_extension_type_body_pre_feature:90:31: This requires the experimental 'declaring-constructors' language feature to be enabled.
+parser/declaring_constructors/no_class_extension_type_body_pre_feature:91:31: This requires the experimental 'declaring-constructors' language feature to be enabled.
 extension type ET.named(int i);
                               ^
 
-parser/general/no_class_extension_type_body_pre_feature:91:44: This requires the experimental 'declaring-constructors' language feature to be enabled.
+parser/declaring_constructors/no_class_extension_type_body_pre_feature:92:44: This requires the experimental 'declaring-constructors' language feature to be enabled.
 extension type ET.named(int i) implements I;
                                            ^
 
-parser/general/no_class_extension_type_body_pre_feature:92:34: This requires the experimental 'declaring-constructors' language feature to be enabled.
+parser/declaring_constructors/no_class_extension_type_body_pre_feature:93:34: This requires the experimental 'declaring-constructors' language feature to be enabled.
 extension type ET<T>.named(int i);
                                  ^
 
-parser/general/no_class_extension_type_body_pre_feature:93:50: This requires the experimental 'declaring-constructors' language feature to be enabled.
+parser/declaring_constructors/no_class_extension_type_body_pre_feature:94:50: This requires the experimental 'declaring-constructors' language feature to be enabled.
 extension type ET<T>.named(int i) implements I<T>;
                                                  ^
 
-parser/general/no_class_extension_type_body_pre_feature:94:37: This requires the experimental 'declaring-constructors' language feature to be enabled.
+parser/declaring_constructors/no_class_extension_type_body_pre_feature:95:37: This requires the experimental 'declaring-constructors' language feature to be enabled.
 extension type const ET.named(int i);
                                     ^
 
-parser/general/no_class_extension_type_body_pre_feature:95:50: This requires the experimental 'declaring-constructors' language feature to be enabled.
+parser/declaring_constructors/no_class_extension_type_body_pre_feature:96:50: This requires the experimental 'declaring-constructors' language feature to be enabled.
 extension type const ET.named(int i) implements I;
                                                  ^
 
-parser/general/no_class_extension_type_body_pre_feature:96:40: This requires the experimental 'declaring-constructors' language feature to be enabled.
+parser/declaring_constructors/no_class_extension_type_body_pre_feature:97:40: This requires the experimental 'declaring-constructors' language feature to be enabled.
 extension type const ET<T>.named(int i);
                                        ^
 
-parser/general/no_class_extension_type_body_pre_feature:97:56: This requires the experimental 'declaring-constructors' language feature to be enabled.
+parser/declaring_constructors/no_class_extension_type_body_pre_feature:98:56: This requires the experimental 'declaring-constructors' language feature to be enabled.
 extension type const ET<T>.named(int i) implements I<T>;
                                                        ^
 
