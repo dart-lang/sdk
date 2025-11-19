@@ -68,7 +68,7 @@ class ErrorProcessor {
   /// given [severity].
   ///
   /// If [severity] is `null`, matching errors will be filtered.
-  ErrorProcessor(this.code, [this.severity]);
+  ErrorProcessor(String code, [this.severity]) : code = code.toLowerCase();
 
   /// Create an error processor that ignores the given error by [code].
   factory ErrorProcessor.ignore(String code) => ErrorProcessor(code);
@@ -77,13 +77,9 @@ class ErrorProcessor {
   String get description => '$code -> ${severity?.name}';
 
   /// Check if this processor applies to the given [diagnostic].
-  ///
-  /// Note: [code] is normalized to uppercase; `errorCode.name` for regular
-  /// analysis issues uses uppercase; `errorCode.name` for lints uses lowercase.
   @visibleForTesting
   bool appliesTo(Diagnostic diagnostic) =>
-      code == diagnostic.diagnosticCode.name ||
-      code == diagnostic.diagnosticCode.name.toUpperCase();
+      code == diagnostic.diagnosticCode.name.toLowerCase();
 
   @override
   String toString() => "ErrorProcessor[code='$code', severity=$severity]";

@@ -293,7 +293,7 @@ final class AnalysisOptionsBuilder {
           // If the severity of [error] is also changed in this options file
           // to be [severity], we add [error] to the un-ignorable list.
           var processors = errorProcessors.where(
-            (processor) => processor.code == d.name,
+            (processor) => processor.code == d.name.toLowerCase(),
           );
           if (processors.isNotEmpty &&
               processors.first.severity?.displayName == severity) {

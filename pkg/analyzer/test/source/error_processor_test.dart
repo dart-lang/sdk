@@ -103,6 +103,21 @@ analyzer:
 ''');
       expect(context.getProcessor(unused_local_variable), isNull);
     });
+
+    test('applies to analyzer warning even if lower case', () {
+      var errorProcessor = ErrorProcessor('cast_from_null_always_fails');
+      expect(
+        errorProcessor.appliesTo(
+          Diagnostic.tmp(
+            source: TestSource(),
+            offset: 0,
+            length: 1,
+            diagnosticCode: diag.castFromNullAlwaysFails,
+          ),
+        ),
+        true,
+      );
+    });
   });
 
   group('ErrorConfig', () {

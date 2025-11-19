@@ -273,7 +273,9 @@ abstract class _BaseIgnoreDiagnostic extends ResolvedCorrectionProducer {
     // Note: both `ignore` and `false` severity are set to `null` when parsed.
     //       See `ErrorConfig` in `pkg/analyzer/source/error_processor.dart`.
     return analysisOptions.errorProcessors.any(
-      (e) => e.severity == null && e.code == diagnostic.diagnosticCode.name,
+      (e) =>
+          e.severity == null &&
+          e.code == diagnostic.diagnosticCode.name.toLowerCase(),
     );
   }
 }

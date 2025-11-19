@@ -96,13 +96,13 @@ class AnalyticsManagerTest with ResourceProviderMixin {
       _ExpectedEvent.session(),
       _ExpectedEvent.severityAdjustment(
         eventData: {
-          'diagnostic': 'AVOID_DYNAMIC_CALLS',
+          'diagnostic': 'avoid_dynamic_calls',
           'adjustments': '{"ERROR":1}',
         },
       ),
       _ExpectedEvent.severityAdjustment(
         eventData: {
-          'diagnostic': 'AWAIT_ONLY_FUTURES',
+          'diagnostic': 'await_only_futures',
           'adjustments': '{"ignore":1}',
         },
       ),
