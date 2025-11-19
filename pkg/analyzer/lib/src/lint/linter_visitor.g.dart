@@ -881,12 +881,14 @@ class AnalysisRuleVisitor implements AstVisitor<void> {
   }
 
   @override
+  // ignore: deprecated_member_use_from_same_package
   void visitRepresentationConstructorName(RepresentationConstructorName node) {
     _runSubscriptions(node, _registry._forRepresentationConstructorName);
     node.visitChildren(this);
   }
 
   @override
+  // ignore: deprecated_member_use_from_same_package
   void visitRepresentationDeclaration(RepresentationDeclaration node) {
     _runSubscriptions(node, _registry._forRepresentationDeclaration);
     node.visitChildren(this);
@@ -1493,9 +1495,11 @@ class RuleVisitorRegistryImpl implements RuleVisitorRegistry {
 
   final List<_Subscription<RelationalPattern>> _forRelationalPattern = [];
 
+  // ignore: deprecated_member_use_from_same_package
   final List<_Subscription<RepresentationConstructorName>>
   _forRepresentationConstructorName = [];
 
+  // ignore: deprecated_member_use_from_same_package
   final List<_Subscription<RepresentationDeclaration>>
   _forRepresentationDeclaration = [];
 
@@ -2455,6 +2459,7 @@ class RuleVisitorRegistryImpl implements RuleVisitorRegistry {
   }
 
   @override
+  // ignore: deprecated_member_use_from_same_package
   void addRepresentationConstructorName(
     AbstractAnalysisRule rule,
     AstVisitor visitor,
@@ -2465,6 +2470,7 @@ class RuleVisitorRegistryImpl implements RuleVisitorRegistry {
   }
 
   @override
+  // ignore: deprecated_member_use_from_same_package
   void addRepresentationDeclaration(
     AbstractAnalysisRule rule,
     AstVisitor visitor,

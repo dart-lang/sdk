@@ -1612,10 +1612,10 @@ package:analyzer/dart/ast/ast.dart:
     element (getter: MethodElement?)
     operand (getter: Expression)
     operator (getter: Token)
-  RepresentationConstructorName (class extends Object implements AstNode):
+  RepresentationConstructorName (class extends Object implements AstNode, deprecated):
     name (getter: Token)
     period (getter: Token)
-  RepresentationDeclaration (class extends Object implements AstNode):
+  RepresentationDeclaration (class extends Object implements AstNode, deprecated):
     constructorFragment (getter: ConstructorFragment?)
     constructorName (getter: RepresentationConstructorName?)
     fieldFragment (getter: FieldFragment?)

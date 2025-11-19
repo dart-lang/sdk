@@ -1627,31 +1627,6 @@ class _DartUnitHighlightsComputerVisitor extends RecursiveAstVisitor<void> {
   }
 
   @override
-  void visitRepresentationConstructorName(RepresentationConstructorName node) {
-    computer._addRegion_token(
-      node.name,
-      HighlightRegionType.CONSTRUCTOR,
-      semanticTokenType: SemanticTokenTypes.method,
-      semanticTokenModifiers: {
-        CustomSemanticTokenModifiers.constructor,
-        SemanticTokenModifiers.declaration,
-      },
-    );
-
-    super.visitRepresentationConstructorName(node);
-  }
-
-  @override
-  void visitRepresentationDeclaration(RepresentationDeclaration node) {
-    computer._addRegion_token(
-      node.fieldName,
-      HighlightRegionType.INSTANCE_FIELD_DECLARATION,
-    );
-
-    super.visitRepresentationDeclaration(node);
-  }
-
-  @override
   void visitRethrowExpression(RethrowExpression node) {
     computer._addRegion_token(
       node.rethrowKeyword,

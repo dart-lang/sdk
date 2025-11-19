@@ -1250,16 +1250,6 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
   }
 
   @override
-  void visitRepresentationDeclaration(
-    covariant RepresentationDeclarationImpl node,
-  ) {
-    node.fieldFragment = _elementWalker!.getVariable() as FieldFragmentImpl;
-    node.constructorFragment = _elementWalker!.getConstructor();
-
-    super.visitRepresentationDeclaration(node);
-  }
-
-  @override
   void visitSimpleFormalParameter(covariant SimpleFormalParameterImpl node) {
     FormalParameterFragmentImpl fragment;
     if (node.parent is DefaultFormalParameter) {

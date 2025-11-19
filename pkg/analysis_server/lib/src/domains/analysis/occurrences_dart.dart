@@ -318,15 +318,6 @@ class DartUnitOccurrencesComputerVisitor extends GeneralizingAstVisitor<void> {
   }
 
   @override
-  void visitRepresentationDeclaration(RepresentationDeclaration node) {
-    if (node.constructorName case var constructorName?) {
-      _addOccurrence(node.constructorFragment!.element, constructorName.name);
-    }
-
-    super.visitRepresentationDeclaration(node);
-  }
-
-  @override
   void visitReturnStatement(ReturnStatement node) {
     _addNodeOccurrence(_functionStack.lastOrNull, node.returnKeyword);
 

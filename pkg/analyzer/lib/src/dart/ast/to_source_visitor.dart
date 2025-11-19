@@ -1223,12 +1223,14 @@ class ToSourceVisitor implements AstVisitor<void> {
   }
 
   @override
+  // ignore: deprecated_member_use_from_same_package
   void visitRepresentationConstructorName(RepresentationConstructorName node) {
     _visitToken(node.period);
     _visitToken(node.name);
   }
 
   @override
+  // ignore: deprecated_member_use_from_same_package
   void visitRepresentationDeclaration(RepresentationDeclaration node) {
     _visitNode(node.constructorName);
     _visitToken(node.leftParenthesis);

@@ -147,6 +147,9 @@ abstract class AstVisitor<R> {
         if (node.isExperimental) {
           out.writeln('  @experimental');
         }
+        if (node.isDeprecated) {
+          out.writeln('  // ignore: deprecated_member_use_from_same_package');
+        }
         out.writeln('''
   R? visit$name($name node);
 ''');
@@ -228,7 +231,7 @@ class GeneralizingAstVisitor<R> implements AstVisitor<R> {
         out.writeln('@override');
       }
 
-      if (node.apiElement.metadata.hasDeprecated) {
+      if (node.isDeprecated) {
         out.writeln('  // ignore: deprecated_member_use_from_same_package');
       }
 
@@ -280,8 +283,11 @@ class RecursiveAstVisitor<R> implements AstVisitor<R> {
         if (node.isExperimental) {
           out.writeln('  @experimental');
         }
+        out.writeln('  @override');
+        if (node.isDeprecated) {
+          out.writeln('  // ignore: deprecated_member_use_from_same_package');
+        }
         out.writeln('''
-  @override
   R? visit$name($name node) {
     node.visitChildren(this);
     return null;
@@ -310,8 +316,11 @@ class SimpleAstVisitor<R> implements AstVisitor<R> {
         if (node.isExperimental) {
           out.writeln('  @experimental');
         }
+        out.writeln('  @override');
+        if (node.isDeprecated) {
+          out.writeln('  // ignore: deprecated_member_use_from_same_package');
+        }
         out.writeln('''
-  @override
   R? visit$name($name node) => null;
 ''');
       }
@@ -346,8 +355,11 @@ class ThrowingAstVisitor<R> implements AstVisitor<R> {
         if (node.isExperimental) {
           out.writeln('  @experimental');
         }
+        out.writeln('  @override');
+        if (node.isDeprecated) {
+          out.writeln('  // ignore: deprecated_member_use_from_same_package');
+        }
         out.writeln('''
-  @override
   R? visit$name($name node) => _throw(node);
 ''');
       }
@@ -378,8 +390,11 @@ class TimedAstVisitor<T> implements AstVisitor<T> {
         if (node.isExperimental) {
           out.writeln('  @experimental');
         }
+        out.writeln('  @override');
+        if (node.isDeprecated) {
+          out.writeln('  // ignore: deprecated_member_use_from_same_package');
+        }
         out.writeln('''
-  @override
   T? visit$name($name node) {
     stopwatch.start();
     T? result = _baseVisitor.visit$name(node);
@@ -420,8 +435,11 @@ class UnifyingAstVisitor<R> implements AstVisitor<R> {
         if (node.isExperimental) {
           out.writeln('  @experimental');
         }
+        out.writeln('  @override');
+        if (node.isDeprecated) {
+          out.writeln('  // ignore: deprecated_member_use_from_same_package');
+        }
         out.writeln('''
-  @override
   R? visit$name($name node) => visitNode(node);
 ''');
       }
@@ -535,8 +553,11 @@ class AnalysisRuleVisitor implements AstVisitor<void> {
         if (node.isExperimental) {
           out.writeln('  @experimental');
         }
+        out.writeln('  @override');
+        if (node.isDeprecated) {
+          out.writeln('  // ignore: deprecated_member_use_from_same_package');
+        }
         out.writeln('''
-  @override
   void visit$name($name node) {
     _runSubscriptions(node, _registry._for$name);
     node.visitChildren(this);
@@ -575,13 +596,21 @@ class RuleVisitorRegistryImpl implements RuleVisitorRegistry {
     for (var node in astLibrary.nodes) {
       if (node.isConcrete) {
         var name = node.apiElementName;
-        out.writeln('''
-final List<_Subscription<$name>> _for$name = [];
+        if (node.isDeprecated) {
+          out.writeln('  // ignore: deprecated_member_use_from_same_package');
+        }
+        out.writeln('  final List<_Subscription<$name>> _for$name = [];');
 
-@override
-void add$name(AbstractAnalysisRule rule, AstVisitor visitor) {
-  _for$name.add(_Subscription(rule, visitor, _getTimer(rule)));
-}
+        out.writeln();
+
+        out.writeln('  @override');
+        if (node.isDeprecated) {
+          out.writeln('  // ignore: deprecated_member_use_from_same_package');
+        }
+        out.writeln('''
+  void add$name(AbstractAnalysisRule rule, AstVisitor visitor) {
+    _for$name.add(_Subscription(rule, visitor, _getTimer(rule)));
+  }
 ''');
       }
     }
@@ -601,6 +630,10 @@ class _Node {
   });
 
   bool get isConcrete => !implElement.isAbstract;
+
+  bool get isDeprecated {
+    return apiElement.metadata.hasDeprecated;
+  }
 
   bool get isExperimental {
     return apiElement.metadata.hasExperimental;

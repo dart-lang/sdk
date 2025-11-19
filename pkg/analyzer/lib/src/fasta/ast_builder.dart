@@ -1584,34 +1584,49 @@ class AstBuilder extends StackListener {
   ) {
     var implementsClause =
         pop(NullValues.IdentifierList) as ImplementsClauseImpl?;
-    var representation =
-        pop(const NullValue("RepresentationDeclarationImpl"))
-            as RepresentationDeclarationImpl?;
+    var primaryConstructorBuilder =
+        pop(NullValues.PrimaryConstructor) as _PrimaryConstructorBuilder?;
     var constKeyword = pop() as Token?;
 
     if (enableInlineClass) {
       var builder = _classLikeBuilder as _ExtensionTypeDeclarationBuilder;
-      if (representation == null) {
+      if (primaryConstructorBuilder == null) {
         var leftParenthesis = parser.rewriter.insertParens(builder.name, true);
         var typeName = leftParenthesis.next!;
         var rightParenthesis = leftParenthesis.endGroup!;
         var fieldName = parser.rewriter.insertSyntheticIdentifier(typeName);
-        representation = RepresentationDeclarationImpl(
+        primaryConstructorBuilder = _PrimaryConstructorBuilder(
+          constKeyword: constKeyword,
           constructorName: null,
-          leftParenthesis: leftParenthesis,
-          fieldMetadata: [],
-          fieldType: NamedTypeImpl(
-            importPrefix: null,
-            name: typeName,
-            question: null,
-            typeArguments: null,
+          formalParameterList: FormalParameterListImpl(
+            leftParenthesis: leftParenthesis,
+            parameters: [
+              SimpleFormalParameterImpl(
+                comment: null,
+                metadata: [],
+                covariantKeyword: null,
+                requiredKeyword: null,
+                keyword: null,
+                type: NamedTypeImpl(
+                  importPrefix: null,
+                  name: typeName,
+                  question: null,
+                  typeArguments: null,
+                ),
+                name: fieldName,
+              ),
+            ],
+            leftDelimiter: null,
+            rightDelimiter: null,
+            rightParenthesis: rightParenthesis,
           ),
-          fieldName: fieldName,
-          rightParenthesis: rightParenthesis,
         );
       }
       // Check for extension type name conflict.
-      var representationName = representation.fieldName;
+      var representationName =
+          (primaryConstructorBuilder.formalParameterList.parameters.first
+                  as SimpleFormalParameterImpl)
+              .name!;
       if (representationName.lexeme == builder.name.lexeme) {
         diagnosticReporter.diagnosticReporter?.atToken(
           representationName,
@@ -1622,7 +1637,7 @@ class AstBuilder extends StackListener {
         builder.build(
           typeKeyword: typeKeyword,
           constKeyword: constKeyword,
-          representation: representation,
+          primaryConstructorBuilder: primaryConstructorBuilder,
           implementsClause: implementsClause,
         ),
       );
@@ -2782,10 +2797,10 @@ class AstBuilder extends StackListener {
     if (forExtensionType) {
       var leftParenthesis = formalParameterList.leftParenthesis;
 
-      RepresentationConstructorNameImpl? constructorName;
+      PrimaryConstructorNameImpl? constructorName;
       if (hasConstructorName) {
         var nameIdentifier = pop() as SimpleIdentifierImpl;
-        constructorName = RepresentationConstructorNameImpl(
+        constructorName = PrimaryConstructorNameImpl(
           period: beginToken,
           name: nameIdentifier.token,
         );
@@ -2877,13 +2892,26 @@ class AstBuilder extends StackListener {
       push(constKeyword ?? const NullValue("Token"));
 
       push(
-        RepresentationDeclarationImpl(
+        _PrimaryConstructorBuilder(
+          constKeyword: constKeyword,
           constructorName: constructorName,
-          leftParenthesis: leftParenthesis,
-          fieldMetadata: fieldMetadata,
-          fieldType: fieldType,
-          fieldName: fieldName,
-          rightParenthesis: formalParameterList.rightParenthesis,
+          formalParameterList: FormalParameterListImpl(
+            leftParenthesis: leftParenthesis,
+            parameters: [
+              SimpleFormalParameterImpl(
+                comment: null,
+                metadata: fieldMetadata,
+                covariantKeyword: null,
+                requiredKeyword: null,
+                keyword: null,
+                type: fieldType,
+                name: fieldName,
+              ),
+            ],
+            leftDelimiter: null,
+            rightDelimiter: null,
+            rightParenthesis: formalParameterList.rightParenthesis,
+          ),
         ),
       );
     } else {
@@ -2902,6 +2930,8 @@ class AstBuilder extends StackListener {
           name: nameIdentifier.token,
         );
       }
+
+      push(constKeyword ?? const NullValue("Token"));
 
       push(
         _PrimaryConstructorBuilder(
@@ -3989,6 +4019,7 @@ class AstBuilder extends StackListener {
     var extendsClause = pop(NullValues.ExtendsClause) as ExtendsClauseImpl?;
     var primaryConstructorBuilder =
         pop(NullValues.PrimaryConstructor) as _PrimaryConstructorBuilder?;
+    pop() as Token?; // constKeyword
     var mixinKeyword = pop(NullValues.Token) as Token?;
     var augmentKeyword = pop(NullValues.Token) as Token?;
     var finalKeyword = pop(NullValues.Token) as Token?;
@@ -4272,6 +4303,7 @@ class AstBuilder extends StackListener {
     var withClause = pop(NullValues.WithClause) as WithClauseImpl?;
     var primaryConstructorBuilder =
         pop(NullValues.PrimaryConstructor) as _PrimaryConstructorBuilder?;
+    pop() as Token?; // constKeyword
     var typeParameters = pop() as TypeParameterListImpl?;
     var name = pop() as SimpleIdentifierImpl;
     var metadata = pop() as List<AnnotationImpl>?;
@@ -5193,13 +5225,8 @@ class AstBuilder extends StackListener {
     Token? constKeyword,
     bool forExtensionType,
   ) {
-    if (forExtensionType) {
-      push(constKeyword ?? const NullValue("Token"));
-
-      push(const NullValue("RepresentationDeclarationImpl"));
-    } else {
-      push(NullValues.PrimaryConstructor);
-    }
+    push(constKeyword ?? const NullValue("Token"));
+    push(NullValues.PrimaryConstructor);
   }
 
   @override
@@ -6709,7 +6736,7 @@ class _ExtensionTypeDeclarationBuilder extends _ClassLikeDeclarationBuilder {
   ExtensionTypeDeclarationImpl build({
     required Token typeKeyword,
     required Token? constKeyword,
-    required RepresentationDeclarationImpl representation,
+    required _PrimaryConstructorBuilder primaryConstructorBuilder,
     required ImplementsClauseImpl? implementsClause,
   }) {
     ClassBodyImpl body;
@@ -6723,34 +6750,6 @@ class _ExtensionTypeDeclarationBuilder extends _ClassLikeDeclarationBuilder {
       );
     }
 
-    PrimaryConstructorNameImpl? primaryConstructorName;
-    if (representation.constructorName case var representationName?) {
-      primaryConstructorName = PrimaryConstructorNameImpl(
-        period: representationName.period,
-        name: representationName.name,
-      );
-    }
-    var primaryConstructorBuilder = _PrimaryConstructorBuilder(
-      constKeyword: constKeyword,
-      constructorName: primaryConstructorName,
-      formalParameterList: FormalParameterListImpl(
-        leftParenthesis: representation.leftParenthesis,
-        parameters: [
-          SimpleFormalParameterImpl(
-            comment: null,
-            metadata: representation.fieldMetadata,
-            covariantKeyword: null,
-            requiredKeyword: null,
-            keyword: null,
-            type: representation.fieldType,
-            name: representation.fieldName,
-          ),
-        ],
-        leftDelimiter: null,
-        rightDelimiter: null,
-        rightParenthesis: representation.rightParenthesis,
-      ),
-    );
     var primaryConstructor = primaryConstructorBuilder.build(
       typeName: name,
       typeParameters: typeParameters,

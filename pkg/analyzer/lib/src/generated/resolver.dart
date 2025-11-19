@@ -3800,16 +3800,6 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   }
 
   @override
-  void visitRepresentationConstructorName(RepresentationConstructorName node) {}
-
-  @override
-  void visitRepresentationDeclaration(RepresentationDeclaration node) {
-    checkUnreachableNode(node);
-    node.visitChildren(this);
-    elementResolver.visitRepresentationDeclaration(node);
-  }
-
-  @override
   void visitRethrowExpression(
     RethrowExpression node, {
     TypeImpl contextType = UnknownInferredType.instance,

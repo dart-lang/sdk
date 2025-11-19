@@ -242,11 +242,6 @@ class MetadataResolver extends ThrowingAstVisitor<void> {
   }
 
   @override
-  void visitRepresentationDeclaration(RepresentationDeclaration node) {
-    node.fieldMetadata.accept(this);
-  }
-
-  @override
   void visitSimpleFormalParameter(SimpleFormalParameter node) {
     node.metadata.accept(this);
   }

@@ -582,10 +582,12 @@ class GeneralizingAstVisitor<R> implements AstVisitor<R> {
   R? visitRelationalPattern(RelationalPattern node) => visitDartPattern(node);
 
   @override
+  // ignore: deprecated_member_use_from_same_package
   R? visitRepresentationConstructorName(RepresentationConstructorName node) =>
       visitNode(node);
 
   @override
+  // ignore: deprecated_member_use_from_same_package
   R? visitRepresentationDeclaration(RepresentationDeclaration node) =>
       visitNode(node);
 
@@ -1601,12 +1603,14 @@ class RecursiveAstVisitor<R> implements AstVisitor<R> {
   }
 
   @override
+  // ignore: deprecated_member_use_from_same_package
   R? visitRepresentationConstructorName(RepresentationConstructorName node) {
     node.visitChildren(this);
     return null;
   }
 
   @override
+  // ignore: deprecated_member_use_from_same_package
   R? visitRepresentationDeclaration(RepresentationDeclaration node) {
     node.visitChildren(this);
     return null;
@@ -2283,10 +2287,12 @@ class SimpleAstVisitor<R> implements AstVisitor<R> {
   R? visitRelationalPattern(RelationalPattern node) => null;
 
   @override
+  // ignore: deprecated_member_use_from_same_package
   R? visitRepresentationConstructorName(RepresentationConstructorName node) =>
       null;
 
   @override
+  // ignore: deprecated_member_use_from_same_package
   R? visitRepresentationDeclaration(RepresentationDeclaration node) => null;
 
   @override
@@ -2860,10 +2866,12 @@ class ThrowingAstVisitor<R> implements AstVisitor<R> {
   R? visitRelationalPattern(RelationalPattern node) => _throw(node);
 
   @override
+  // ignore: deprecated_member_use_from_same_package
   R? visitRepresentationConstructorName(RepresentationConstructorName node) =>
       _throw(node);
 
   @override
+  // ignore: deprecated_member_use_from_same_package
   R? visitRepresentationDeclaration(RepresentationDeclaration node) =>
       _throw(node);
 
@@ -4144,6 +4152,7 @@ class TimedAstVisitor<T> implements AstVisitor<T> {
   }
 
   @override
+  // ignore: deprecated_member_use_from_same_package
   T? visitRepresentationConstructorName(RepresentationConstructorName node) {
     stopwatch.start();
     T? result = _baseVisitor.visitRepresentationConstructorName(node);
@@ -4152,6 +4161,7 @@ class TimedAstVisitor<T> implements AstVisitor<T> {
   }
 
   @override
+  // ignore: deprecated_member_use_from_same_package
   T? visitRepresentationDeclaration(RepresentationDeclaration node) {
     stopwatch.start();
     T? result = _baseVisitor.visitRepresentationDeclaration(node);
@@ -4937,10 +4947,12 @@ class UnifyingAstVisitor<R> implements AstVisitor<R> {
   R? visitRelationalPattern(RelationalPattern node) => visitNode(node);
 
   @override
+  // ignore: deprecated_member_use_from_same_package
   R? visitRepresentationConstructorName(RepresentationConstructorName node) =>
       visitNode(node);
 
   @override
+  // ignore: deprecated_member_use_from_same_package
   R? visitRepresentationDeclaration(RepresentationDeclaration node) =>
       visitNode(node);
 

@@ -661,18 +661,6 @@ class _DartNavigationComputerVisitor extends RecursiveAstVisitor<void> {
   }
 
   @override
-  void visitRepresentationDeclaration(RepresentationDeclaration node) {
-    if (node.constructorName?.name case var constructorName?) {
-      computer._addRegionForElement(
-        constructorName,
-        node.constructorFragment?.element,
-      );
-    }
-    computer._addRegionForFragment(node.fieldName, node.fieldFragment);
-    super.visitRepresentationDeclaration(node);
-  }
-
-  @override
   void visitSimpleFormalParameter(SimpleFormalParameter node) {
     var nameToken = node.name;
     if (nameToken != null) {

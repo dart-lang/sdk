@@ -1407,24 +1407,6 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
   }
 
   @override
-  void visitRepresentationConstructorName(RepresentationConstructorName node) {
-    _sink.writeln('RepresentationConstructorName');
-    _sink.withIndent(() {
-      _writeNamedChildEntities(node);
-    });
-  }
-
-  @override
-  void visitRepresentationDeclaration(RepresentationDeclaration node) {
-    _sink.writeln('RepresentationDeclaration');
-    _sink.withIndent(() {
-      _writeNamedChildEntities(node);
-      _writeFragment('fieldFragment', node.fieldFragment);
-      _writeFragment('constructorFragment', node.constructorFragment);
-    });
-  }
-
-  @override
   void visitRestPatternElement(RestPatternElement node) {
     _sink.writeln('RestPatternElement');
     _sink.withIndent(() {
