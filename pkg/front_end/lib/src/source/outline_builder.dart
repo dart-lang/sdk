@@ -479,11 +479,6 @@ class OutlineBuilder extends StackListenerImpl {
   final bool enableNative;
   bool inAbstractOrSealedClass = false;
 
-  // TODO(johnniwinther): Avoid discrepancy between [inConstructor] and
-  // `endXConstructor` methods. The former is based on the enclosing declaration
-  // name and get/set keyword. The latter also takes initializers into account.
-  bool inConstructor = false;
-
   String? nativeMethodName;
 
   Link<DeclarationContext> _declarationContext = const Link();
@@ -913,6 +908,12 @@ class OutlineBuilder extends StackListenerImpl {
         push(new ParserRecovery(token.charOffset));
       }
     }
+  }
+
+  @override
+  void handleNoIdentifier(Token token, IdentifierContext context) {
+    // TODO(johnniwinther): Handle new constructor syntax.
+    push(new ParserRecovery(token.charOffset));
   }
 
   @override
@@ -2189,20 +2190,39 @@ class OutlineBuilder extends StackListenerImpl {
     Token? covariantToken,
     Token? varFinalOrConst,
     Token? getOrSet,
+    Token? newToken,
     Token name,
     String? enclosingDeclarationName,
   ) {
-    _beginMethod(
-      declarationKind,
-      augmentToken,
-      externalToken,
-      staticToken,
-      covariantToken,
-      varFinalOrConst,
-      getOrSet,
-      name,
-      enclosingDeclarationName,
+    DeclarationContext declarationContext;
+    switch (declarationKind) {
+      case DeclarationKind.Class:
+        declarationContext = DeclarationContext.ClassConstructor;
+      case DeclarationKind.Mixin:
+        declarationContext = DeclarationContext.MixinConstructor;
+      case DeclarationKind.Extension:
+        declarationContext = DeclarationContext.ExtensionConstructor;
+      case DeclarationKind.ExtensionType:
+        declarationContext = DeclarationContext.ExtensionTypeConstructor;
+      case DeclarationKind.Enum:
+        declarationContext = DeclarationContext.EnumConstructor;
+      // Coverage-ignore(suite): Not run.
+      case DeclarationKind.TopLevel:
+        throw new UnsupportedError(
+          "Unexpected constructor kind $declarationKind.",
+        );
+    }
+    pushDeclarationContext(declarationContext);
+
+    Modifiers modifiers = Modifiers.from(
+      augmentToken: augmentToken,
+      externalToken: externalToken,
+      covariantToken: covariantToken,
+      varFinalOrConst: varFinalOrConst,
     );
+    push(varFinalOrConst?.charOffset ?? -1);
+    push(modifiers);
+    _builderFactory.beginConstructor();
   }
 
   @override
@@ -2217,31 +2237,6 @@ class OutlineBuilder extends StackListenerImpl {
     Token name,
     String? enclosingDeclarationName,
   ) {
-    _beginMethod(
-      declarationKind,
-      augmentToken,
-      externalToken,
-      staticToken,
-      covariantToken,
-      varFinalOrConst,
-      getOrSet,
-      name,
-      enclosingDeclarationName,
-    );
-  }
-
-  void _beginMethod(
-    DeclarationKind declarationKind,
-    Token? augmentToken,
-    Token? externalToken,
-    Token? staticToken,
-    Token? covariantToken,
-    Token? varFinalOrConst,
-    Token? getOrSet,
-    Token name,
-    String? enclosingDeclarationName,
-  ) {
-    inConstructor = name.lexeme == enclosingDeclarationName && getOrSet == null;
     DeclarationContext declarationContext;
     switch (declarationKind) {
       case DeclarationKind.TopLevel:
@@ -2254,45 +2249,35 @@ class OutlineBuilder extends StackListenerImpl {
         declarationContext = DeclarationContext.TopLevelMethod;
         break;
       case DeclarationKind.Class:
-        if (inConstructor) {
-          declarationContext = DeclarationContext.ClassConstructor;
-        } else if (staticToken != null) {
+        if (staticToken != null) {
           declarationContext = DeclarationContext.ClassStaticMethod;
         } else {
           declarationContext = DeclarationContext.ClassInstanceMethod;
         }
         break;
       case DeclarationKind.Mixin:
-        if (inConstructor) {
-          declarationContext = DeclarationContext.MixinConstructor;
-        } else if (staticToken != null) {
+        if (staticToken != null) {
           declarationContext = DeclarationContext.MixinStaticMethod;
         } else {
           declarationContext = DeclarationContext.MixinInstanceMethod;
         }
         break;
       case DeclarationKind.Extension:
-        if (inConstructor) {
-          declarationContext = DeclarationContext.ExtensionConstructor;
-        } else if (staticToken != null) {
+        if (staticToken != null) {
           declarationContext = DeclarationContext.ExtensionStaticMethod;
         } else {
           declarationContext = DeclarationContext.ExtensionInstanceMethod;
         }
         break;
       case DeclarationKind.ExtensionType:
-        if (inConstructor) {
-          declarationContext = DeclarationContext.ExtensionTypeConstructor;
-        } else if (staticToken != null) {
+        if (staticToken != null) {
           declarationContext = DeclarationContext.ExtensionTypeStaticMethod;
         } else {
           declarationContext = DeclarationContext.ExtensionTypeInstanceMethod;
         }
         break;
       case DeclarationKind.Enum:
-        if (inConstructor) {
-          declarationContext = DeclarationContext.EnumConstructor;
-        } else if (staticToken != null) {
+        if (staticToken != null) {
           declarationContext = DeclarationContext.EnumStaticMethod;
         } else {
           declarationContext = DeclarationContext.EnumInstanceMethod;
@@ -2303,15 +2288,13 @@ class OutlineBuilder extends StackListenerImpl {
     Modifiers modifiers = Modifiers.from(
       augmentToken: augmentToken,
       externalToken: externalToken,
-      staticToken: !inConstructor ? staticToken : null,
+      staticToken: staticToken,
       covariantToken: covariantToken,
       varFinalOrConst: varFinalOrConst,
     );
     push(varFinalOrConst?.charOffset ?? -1);
     push(modifiers);
-    if (inConstructor) {
-      _builderFactory.beginConstructor();
-    } else if (staticToken != null) {
+    if (staticToken != null) {
       _builderFactory.beginStaticMethod();
     } else {
       _builderFactory.beginInstanceMethod();
@@ -2361,6 +2344,7 @@ class OutlineBuilder extends StackListenerImpl {
   void endConstructor(
     DeclarationKind kind,
     Token beginToken,
+    Token? newToken,
     Token beginParam,
     Token? beginInitializers,
     Token endToken,
@@ -2403,7 +2387,6 @@ class OutlineBuilder extends StackListenerImpl {
     _MethodKind methodKind,
   ) {
     assert(checkState(beginToken, [ValueKinds.MethodBody]));
-    assert(!inConstructor);
     MethodBody bodyKind = pop() as MethodBody;
     if (bodyKind == MethodBody.RedirectingFactoryBody) {
       // This will cause an error later.
@@ -2455,7 +2438,6 @@ class OutlineBuilder extends StackListenerImpl {
       }
 
       nativeMethodName = null;
-      inConstructor = false;
       popDeclarationContext();
       return;
     }
@@ -2590,7 +2572,6 @@ class OutlineBuilder extends StackListenerImpl {
     );
 
     nativeMethodName = null;
-    inConstructor = false;
     popDeclarationContext();
   }
 
@@ -2653,7 +2634,6 @@ class OutlineBuilder extends StackListenerImpl {
       );
 
       nativeMethodName = null;
-      inConstructor = false;
       popDeclarationContext();
       return;
     }
@@ -2708,7 +2688,6 @@ class OutlineBuilder extends StackListenerImpl {
     );
 
     nativeMethodName = null;
-    inConstructor = false;
     popDeclarationContext();
   }
 
@@ -4378,7 +4357,6 @@ class OutlineBuilder extends StackListenerImpl {
     }
 
     pushDeclarationContext(declarationContext);
-    inConstructor = true;
     _builderFactory.beginFactoryMethod();
     push(Modifiers.from(externalToken: externalToken, constToken: constToken));
   }
@@ -4458,7 +4436,6 @@ class OutlineBuilder extends StackListenerImpl {
       );
     }
     nativeMethodName = null;
-    inConstructor = false;
     popDeclarationContext();
   }
 

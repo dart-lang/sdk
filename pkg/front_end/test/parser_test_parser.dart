@@ -1893,6 +1893,7 @@ class TestParser extends Parser {
     Token beforeType,
     TypeInfo typeInfo,
     Token? getOrSet,
+    Token? newToken,
     Token name,
     DeclarationKind kind,
     String? enclosingDeclarationName,
@@ -1911,6 +1912,7 @@ class TestParser extends Parser {
       '$beforeType, '
       '$typeInfo, '
       '$getOrSet, '
+      '$newToken, '
       '$name, '
       '$kind, '
       '$enclosingDeclarationName, '
@@ -1929,6 +1931,7 @@ class TestParser extends Parser {
       beforeType,
       typeInfo,
       getOrSet,
+      newToken,
       name,
       kind,
       enclosingDeclarationName,
@@ -3534,6 +3537,7 @@ class TestParser extends Parser {
     Token beforeType,
     TypeInfo typeInfo,
     Token? getOrSet,
+    Token? newToken,
     DeclarationKind kind,
     String? enclosingDeclarationName,
   ) {
@@ -3551,6 +3555,7 @@ class TestParser extends Parser {
       '$beforeType, '
       '$typeInfo, '
       '$getOrSet, '
+      '$newToken, '
       '$kind, '
       '$enclosingDeclarationName)',
     );
@@ -3568,6 +3573,7 @@ class TestParser extends Parser {
       beforeType,
       typeInfo,
       getOrSet,
+      newToken,
       kind,
       enclosingDeclarationName,
     );

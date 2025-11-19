@@ -1933,6 +1933,7 @@ abstract class AbstractParserAstListener implements Listener {
     Token? covariantToken,
     Token? varFinalOrConst,
     Token? getOrSet,
+    Token? newToken,
     Token name,
     String? enclosingDeclarationName,
   ) {
@@ -1945,6 +1946,7 @@ abstract class AbstractParserAstListener implements Listener {
       covariantToken: covariantToken,
       varFinalOrConst: varFinalOrConst,
       getOrSet: getOrSet,
+      newToken: newToken,
       name: name,
       enclosingDeclarationName: enclosingDeclarationName,
     );
@@ -1955,6 +1957,7 @@ abstract class AbstractParserAstListener implements Listener {
   void endConstructor(
     DeclarationKind kind,
     Token beginToken,
+    Token? newToken,
     Token beginParam,
     Token? beginInitializers,
     Token endToken,
@@ -1963,6 +1966,7 @@ abstract class AbstractParserAstListener implements Listener {
       ParserAstType.END,
       kind: kind,
       beginToken: beginToken,
+      newToken: newToken,
       beginParam: beginParam,
       beginInitializers: beginInitializers,
       endToken: endToken,
@@ -3381,10 +3385,11 @@ abstract class AbstractParserAstListener implements Listener {
   }
 
   @override
-  void handleNoIdentifier(Token token) {
+  void handleNoIdentifier(Token token, IdentifierContext identifierContext) {
     NoIdentifierHandle data = new NoIdentifierHandle(
       ParserAstType.HANDLE,
       token: token,
+      identifierContext: identifierContext,
     );
     seen(data);
   }
@@ -7112,6 +7117,7 @@ class ConstructorBegin extends ParserAstNode {
   final Token? covariantToken;
   final Token? varFinalOrConst;
   final Token? getOrSet;
+  final Token? newToken;
   final Token name;
   final String? enclosingDeclarationName;
 
@@ -7124,6 +7130,7 @@ class ConstructorBegin extends ParserAstNode {
     this.covariantToken,
     this.varFinalOrConst,
     this.getOrSet,
+    this.newToken,
     required this.name,
     this.enclosingDeclarationName,
   }) : super("Constructor", type);
@@ -7137,6 +7144,7 @@ class ConstructorBegin extends ParserAstNode {
     "covariantToken": covariantToken,
     "varFinalOrConst": varFinalOrConst,
     "getOrSet": getOrSet,
+    "newToken": newToken,
     "name": name,
     "enclosingDeclarationName": enclosingDeclarationName,
   };
@@ -7150,6 +7158,7 @@ class ConstructorEnd extends ParserAstNode
   final DeclarationKind kind;
   @override
   final Token beginToken;
+  final Token? newToken;
   final Token beginParam;
   final Token? beginInitializers;
   @override
@@ -7159,6 +7168,7 @@ class ConstructorEnd extends ParserAstNode
     ParserAstType type, {
     required this.kind,
     required this.beginToken,
+    this.newToken,
     required this.beginParam,
     this.beginInitializers,
     required this.endToken,
@@ -7168,6 +7178,7 @@ class ConstructorEnd extends ParserAstNode
   Map<String, Object?> get deprecatedArguments => {
     "kind": kind,
     "beginToken": beginToken,
+    "newToken": newToken,
     "beginParam": beginParam,
     "beginInitializers": beginInitializers,
     "endToken": endToken,
@@ -9564,12 +9575,19 @@ class NoConstructorReferenceContinuationAfterTypeArgumentsHandle
 
 class NoIdentifierHandle extends ParserAstNode {
   final Token token;
+  final IdentifierContext identifierContext;
 
-  NoIdentifierHandle(ParserAstType type, {required this.token})
-    : super("NoIdentifier", type);
+  NoIdentifierHandle(
+    ParserAstType type, {
+    required this.token,
+    required this.identifierContext,
+  }) : super("NoIdentifier", type);
 
   @override
-  Map<String, Object?> get deprecatedArguments => {"token": token};
+  Map<String, Object?> get deprecatedArguments => {
+    "token": token,
+    "identifierContext": identifierContext,
+  };
 
   @override
   R accept<R>(ParserAstVisitor<R> v) => v.visitNoIdentifierHandle(this);

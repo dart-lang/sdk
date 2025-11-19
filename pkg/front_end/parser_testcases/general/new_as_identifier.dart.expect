@@ -12,33 +12,21 @@ parser/general/new_as_identifier:16:44: Expected a function body, but got 'new'.
   C.constructor_field_initializer() : this.new = null;
                                            ^^^
 
-parser/general/new_as_identifier:16:44: Expected a class member, but got 'new'.
+parser/general/new_as_identifier:16:44: This requires the experimental 'declaring-constructors' language feature to be enabled.
   C.constructor_field_initializer() : this.new = null;
                                            ^^^
 
-parser/general/new_as_identifier:16:48: Operator declarations must be preceded by the keyword 'operator'.
+parser/general/new_as_identifier:16:44: A method declaration needs an explicit list of parameters.
+  C.constructor_field_initializer() : this.new = null;
+                                           ^^^
+
+parser/general/new_as_identifier:16:48: Only factory constructor can specify '=' redirection.
   C.constructor_field_initializer() : this.new = null;
                                                ^
 
-parser/general/new_as_identifier:16:48: The string '=' isn't a user-definable operator.
-  C.constructor_field_initializer() : this.new = null;
-                                               ^
-
-parser/general/new_as_identifier:16:48: A method declaration needs an explicit list of parameters.
-  C.constructor_field_initializer() : this.new = null;
-                                               ^
-
-parser/general/new_as_identifier:16:50: Expected a function body, but got 'null'.
+parser/general/new_as_identifier:16:50: 'null' can't be used as an identifier because it's a keyword.
   C.constructor_field_initializer() : this.new = null;
                                                  ^^^^
-
-parser/general/new_as_identifier:16:50: Expected a class member, but got 'null'.
-  C.constructor_field_initializer() : this.new = null;
-                                                 ^^^^
-
-parser/general/new_as_identifier:16:54: Expected a class member, but got ';'.
-  C.constructor_field_initializer() : this.new = null;
-                                                     ^
 
 beginCompilationUnit(class)
   beginMetadataStar(class)
@@ -57,7 +45,7 @@ beginCompilationUnit(class)
         beginMetadataStar(C)
         endMetadataStar(0)
         beginMember()
-          beginConstructor(DeclarationKind.Class, null, null, null, null, null, null, C, C)
+          beginConstructor(DeclarationKind.Class, null, null, null, null, null, null, null, C, C)
             handleNoType({)
             handleIdentifier(C, methodDeclaration)
             handleNewAsIdentifier(new)
@@ -69,12 +57,12 @@ beginCompilationUnit(class)
             handleNoInitializers()
             handleAsyncModifier(null, null)
             handleEmptyFunctionBody(;)
-          endConstructor(DeclarationKind.Class, C, (, null, ;)
+          endConstructor(DeclarationKind.Class, C, null, (, null, ;)
         endMember()
         beginMetadataStar(C)
         endMetadataStar(0)
         beginMember()
-          beginConstructor(DeclarationKind.Class, null, null, null, null, null, null, C, C)
+          beginConstructor(DeclarationKind.Class, null, null, null, null, null, null, null, C, C)
             handleNoType(;)
             handleIdentifier(C, methodDeclaration)
             handleIdentifier(constructor_field_initializer, methodDeclarationContinuation)
@@ -102,45 +90,33 @@ beginCompilationUnit(class)
             handleAsyncModifier(null, null)
             handleRecoverableError(Message[Template(ExpectedFunctionBody), Expected a function body, but got 'new'., null, {lexeme: new}], new, new)
             handleInvalidFunctionBody({)
-          endConstructor(DeclarationKind.Class, C, (, :, })
+          endConstructor(DeclarationKind.Class, C, null, (, :, })
         endMember()
         beginMetadataStar(new)
         endMetadataStar(0)
         beginMember()
-          handleRecoverableError(Message[Template(ExpectedClassMember), Expected a class member, but got 'new'., null, {lexeme: new}], new, new)
-          handleInvalidMember(new)
-        endMember()
-        beginMetadataStar(=)
-        endMetadataStar(0)
-        beginMember()
-          handleRecoverableError(MissingOperatorKeyword, =, =)
-          beginMethod(DeclarationKind.Class, null, null, null, null, null, null, operator, C)
-            handleNoType(new)
-            handleRecoverableError(Message[Template(InvalidOperator), The string '=' isn't a user-definable operator., null, {lexeme: =}], =, =)
-            handleInvalidOperatorName(operator, =)
-            handleNoTypeVariables(null)
-            handleRecoverableError(MissingMethodParameters, =, =)
+          handleExperimentNotEnabled(ExperimentalFlag.declaringConstructors, new, new)
+          beginConstructor(DeclarationKind.Class, null, null, null, null, null, null, new, new, C)
+            handleNoType(})
+            handleNoIdentifier(new, methodDeclaration)
+            handleNoTypeVariables(=)
+            handleRecoverableError(MissingMethodParameters, new, new)
             beginFormalParameters((, MemberKind.NonStaticMethod)
             endFormalParameters(0, (, ), MemberKind.NonStaticMethod)
             handleNoInitializers()
             handleAsyncModifier(null, null)
-            handleRecoverableError(Message[Template(ExpectedFunctionBody), Expected a function body, but got 'null'., null, {lexeme: null}], null, null)
-            handleInvalidFunctionBody({)
-          endMethod(DeclarationKind.Class, null, operator, (, null, })
+            handleRecoverableError(RedirectionInNonFactory, =, =)
+            beginRedirectingFactoryBody(=)
+              handleRecoverableError(Message[Template(ExpectedIdentifierButGotKeyword), 'null' can't be used as an identifier because it's a keyword., Try renaming this to be an identifier that isn't a keyword., {lexeme: null}], null, null)
+              handleIdentifier(null, constructorReference)
+              beginConstructorReference(null)
+                handleNoTypeArguments(;)
+                handleNoConstructorReferenceContinuationAfterTypeArguments(null)
+              endConstructorReference(null, null, null, ConstructorReferenceContext.RedirectingFactory)
+            endRedirectingFactoryBody(=, ;)
+          endConstructor(DeclarationKind.Class, new, new, (, null, ;)
         endMember()
-        beginMetadataStar(null)
-        endMetadataStar(0)
-        beginMember()
-          handleRecoverableError(Message[Template(ExpectedClassMember), Expected a class member, but got 'null'., null, {lexeme: null}], null, null)
-          handleInvalidMember(null)
-        endMember()
-        beginMetadataStar(;)
-        endMetadataStar(0)
-        beginMember()
-          handleRecoverableError(Message[Template(ExpectedClassMember), Expected a class member, but got ';'., null, {lexeme: ;}], ;, ;)
-          handleInvalidMember(;)
-        endMember()
-      endClassOrMixinOrExtensionBody(DeclarationKind.Class, 6, {, })
+      endClassOrMixinOrExtensionBody(DeclarationKind.Class, 3, {, })
     endClassDeclaration(class, })
   endTopLevelDeclaration(})
   beginMetadataStar(class)
@@ -277,7 +253,7 @@ beginCompilationUnit(class)
         beginMetadataStar(D)
         endMetadataStar(0)
         beginMember()
-          beginConstructor(DeclarationKind.Class, null, null, null, null, null, null, D, D)
+          beginConstructor(DeclarationKind.Class, null, null, null, null, null, null, null, D, D)
             handleNoType(;)
             handleIdentifier(D, methodDeclaration)
             handleIdentifier(super_invocation, methodDeclarationContinuation)
@@ -299,12 +275,12 @@ beginCompilationUnit(class)
             endInitializers(1, :, ))
             handleAsyncModifier(null, null)
             handleEmptyFunctionBody(;)
-          endConstructor(DeclarationKind.Class, D, (, :, ;)
+          endConstructor(DeclarationKind.Class, D, null, (, :, ;)
         endMember()
         beginMetadataStar(D)
         endMetadataStar(0)
         beginMember()
-          beginConstructor(DeclarationKind.Class, null, null, null, null, null, null, D, D)
+          beginConstructor(DeclarationKind.Class, null, null, null, null, null, null, null, D, D)
             handleNoType(;)
             handleIdentifier(D, methodDeclaration)
             handleIdentifier(this_redirection, methodDeclarationContinuation)
@@ -326,7 +302,7 @@ beginCompilationUnit(class)
             endInitializers(1, :, ))
             handleAsyncModifier(null, null)
             handleEmptyFunctionBody(;)
-          endConstructor(DeclarationKind.Class, D, (, :, ;)
+          endConstructor(DeclarationKind.Class, D, null, (, :, ;)
         endMember()
       endClassOrMixinOrExtensionBody(DeclarationKind.Class, 7, {, })
     endClassDeclaration(class, })

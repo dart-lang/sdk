@@ -1,0 +1,59 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/declaring_constructors/new_in_initializer.dart:6:16: Error: Expected an identifier, but got 'new'.
+// Try inserting an identifier before 'new'.
+//   Foo() : this.new = 42;
+//                ^^^
+//
+// pkg/front_end/testcases/declaring_constructors/new_in_initializer.dart:6:11: Error: Expected an assignment after the field name.
+// To initialize a field, use the syntax 'name = value'.
+//   Foo() : this.new = 42;
+//           ^^^^
+//
+// pkg/front_end/testcases/declaring_constructors/new_in_initializer.dart:6:16: Error: Expected '{' before this.
+//   Foo() : this.new = 42;
+//                ^^^
+//
+// pkg/front_end/testcases/declaring_constructors/new_in_initializer.dart:6:16: Error: A method declaration needs an explicit list of parameters.
+// Try adding a parameter list to the method declaration.
+//   Foo() : this.new = 42;
+//                ^^^
+//
+// pkg/front_end/testcases/declaring_constructors/new_in_initializer.dart:6:20: Error: Only factory constructor can specify '=' redirection.
+// Try making this a factory constructor, or remove the redirection.
+//   Foo() : this.new = 42;
+//                    ^
+//
+// pkg/front_end/testcases/declaring_constructors/new_in_initializer.dart:6:22: Error: Expected an identifier, but got '42'.
+// Try inserting an identifier before '42'.
+//   Foo() : this.new = 42;
+//                      ^^
+//
+// pkg/front_end/testcases/declaring_constructors/new_in_initializer.dart:6:20: Error: Expected ';' after this.
+//   Foo() : this.new = 42;
+//                    ^
+//
+// pkg/front_end/testcases/declaring_constructors/new_in_initializer.dart:6:22: Error: Expected a class member, but got '42'.
+//   Foo() : this.new = 42;
+//                      ^^
+//
+// pkg/front_end/testcases/declaring_constructors/new_in_initializer.dart:6:24: Error: Expected a class member, but got ';'.
+//   Foo() : this.new = 42;
+//                        ^
+//
+// pkg/front_end/testcases/declaring_constructors/new_in_initializer.dart:6:16: Error: Expected an identifier, but got ''.
+// Try inserting an identifier before ''.
+//   Foo() : this.new = 42;
+//                ^
+//
+import self as self;
+import "dart:core" as core;
+
+class Foo extends core::Object {
+  constructor •() → self::Foo
+    : final dynamic #t1 = invalid-expression "pkg/front_end/testcases/declaring_constructors/new_in_initializer.dart:6:11: Error: This couldn't be parsed.
+  Foo() : this.new = 42;
+          ^" {}
+}
