@@ -86,7 +86,7 @@ static constexpr uint32_t MH_CIGAM_64 = 0xcffaedfe;
 
 // Filetypes for the Mach-O header.
 
-// A relocatable object file (e.g., an executable).
+// A relocatable object file that has all sections in a single unnamed segment.
 static constexpr uint32_t MH_OBJECT = 0x1;
 // A dynamically bound shared library.
 static constexpr uint32_t MH_DYLIB = 0x6;
@@ -167,7 +167,7 @@ struct segment_command {
   uint32_t nsects;
   //
   uint32_t flags;
-  // section_command[]
+  // section[]
 };
 
 // Contains the same fields as segment_command, but the starting memory
@@ -184,7 +184,7 @@ struct segment_command_64 {
   vm_prot_t initprot;
   uint32_t nsects;
   uint32_t flags;
-  // section_command_64[]
+  // section_64[]
 };
 
 struct section {
@@ -270,6 +270,12 @@ static constexpr char SECT_DEBUG_ABBREV[] = "__debug_abbrev";
 // the non-header contents for other non-segment link commands like the symbol
 // table and code signature.
 static constexpr char SEG_LINKEDIT[] = "__LINKEDIT";
+
+// Segment/section names used for relocatable object files.
+static constexpr char SEG_UNNAMED[] = "";
+
+static constexpr char SEG_LD[] = "__LD";
+static constexpr char SECT_COMPACT_UNWIND[] = "__compact_unwind";
 
 struct symtab_command {
   uint32_t cmd;  // LC_SYMTAB
@@ -653,6 +659,89 @@ struct unwind_info_header {
   // unwind_info_lsda_index lsda[lsda_count]
   // ... regular and compressed second level pages ...
 };
+
+// Relocation information in relocatable objects. The reloff field in
+// the section and section_64 structs gives the starting file offset for
+// the section's relocation information, and nreloc gives the number of
+// structs found starting from that offset.
+struct relocation_info {
+  // The "address" of the relocation entry is the offset into the
+  // corresponding section.
+  int32_t address;
+  // The metadata contains the following bit fields, from low to high:
+  // 0-23:  The index of the section or symbol on which this relation entry
+  //        is based. Note that, as with other parts of the Mach-O format,
+  //        section indices are 1-based, while symbol indices are 0-based.
+  // 24:    Whether or not this relocation is PC-relative.
+  // 25-26: log2(n), where n is the size of the relocation entry in bytes.
+  // 27:    Whether or not this relocation is "external". An external
+  //        relocation is based on a symbol in the symbol table. If false,
+  //        then the relocation is based on a section instead.
+  // 28-31: The type of the relocation entry, see the RELOC_TYPE_*
+  //        constants below.
+  uint32_t metadata;
+};
+
+// The number of low bits used to store the symbol or section index in
+// the relocation entry.
+static constexpr uint32_t RELOC_METADATA_INDEX_BITS = 24;
+
+// The size of the relocation in the section contents.
+static constexpr uint32_t RELOC_SIZE_BYTE = 0 << 25;
+static constexpr uint32_t RELOC_SIZE_2BYTES = 1 << 25;
+static constexpr uint32_t RELOC_SIZE_4BYTES = 2 << 25;
+static constexpr uint32_t RELOC_SIZE_8BYTES = 3 << 25;
+
+// This bit is set if the index in the payload is the index of a symbol
+// in the symbol table. It is unset if the index in the payload is the
+// (1-based) index of a section.
+static constexpr uint32_t RELOC_EXTERN = 1 << 27;
+
+// For our purposes, the MachOWriter only emits two types of relocation entries:
+// UNSIGNED and SUBTRACTOR. The numeric encoding of these types are
+// platform dependent, but the semantics are the same for both X64 and ARM64:
+//
+// Consider a relocation comprised of the following parts:
+//   (Target + TOffset) - (Source + SOffset)
+// at the offset ROffset in section Section with virtual address
+//   RAddress = Section.addr + ROffset
+// in the relocatable object.
+//
+// An UNSIGNED relocation entry specifies Target. It refers either to a section
+// or a symbol via the stored index.
+//
+// A SUBTRACTOR relocation entry specifies Source. It always refers to a symbol,
+// never a section. Additionally, SUBTRACTOR relocation entries are always found
+// immediately before the corresponding UNSIGNED relocation entries.
+//
+// The offsets are combined into a single addend, which is stored in the section
+// contents at the offset of the relocation. If the relocation entries are
+// symbol based, then
+//   addend = TOffset - SOffset
+// and for section-based relocation entries (which have no Source/SOffset),
+//   addend = RAddress + TOffset
+// That is, the virtual address of the relocation is included in the addend for
+// section-based relocation entries.
+
+// X64-specific constants for relocation types.
+
+// A relocation specifying a section or symbol that is the target
+// of the relocation.
+static constexpr uint32_t RELOC_TYPE_X64_UNSIGNED = 0 << 28;
+// A relocation specifying a symbol that is the source of the relocation.
+// Note that in the list of the relocations, the source comes immediately
+// _before_ the target (UNSIGNED) entry that it is subtracted from.
+static constexpr uint32_t RELOC_TYPE_X64_SUBTRACTOR = 5 << 28;
+
+// ARM64-specific constants for relocation types.
+
+// A relocation specifying a section or symbol that is the target
+// of the relocation.
+static constexpr uint32_t RELOC_TYPE_ARM64_UNSIGNED = 0 << 28;
+// A relocation specifying a symbol that is the source of the relocation.
+// Note that in the list of the relocations, the source comes immediately
+// _before_ the target (UNSIGNED) entry that it is subtracted from.
+static constexpr uint32_t RELOC_TYPE_ARM64_SUBTRACTOR = 1 << 28;
 
 #pragma pack(pop)
 

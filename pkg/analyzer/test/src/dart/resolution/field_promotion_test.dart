@@ -1043,7 +1043,9 @@ Block
     ExpressionStatement
       expression: SimpleIdentifier
         token: _t
-        element: <testLibrary>::@class::C::@getter::_t
+        element: GetterMember
+          baseElement: <testLibrary>::@class::C::@getter::_t
+          substitution: {T: T}
         staticType: T
       semicolon: ;
     ExpressionStatement
@@ -1070,7 +1072,9 @@ Block
     ExpressionStatement
       expression: SimpleIdentifier
         token: _t
-        element: <testLibrary>::@class::C::@getter::_t
+        element: GetterMember
+          baseElement: <testLibrary>::@class::C::@getter::_t
+          substitution: {T: T}
         staticType: T?
       semicolon: ;
     ExpressionStatement
@@ -1224,7 +1228,9 @@ Block
       expression: FunctionExpressionInvocation
         function: SimpleIdentifier
           token: _f
-          element: <testLibrary>::@class::C::@getter::_f
+          element: GetterMember
+            baseElement: <testLibrary>::@class::C::@getter::_f
+            substitution: {T: T}
           staticType: T Function()
         argumentList: ArgumentList
           leftParenthesis: (
@@ -1265,7 +1271,9 @@ Block
       expression: FunctionExpressionInvocation
         function: SimpleIdentifier
           token: _f
-          element: <testLibrary>::@class::C::@getter::_f
+          element: GetterMember
+            baseElement: <testLibrary>::@class::C::@getter::_f
+            substitution: {T: T}
           staticType: T? Function()
         argumentList: ArgumentList
           leftParenthesis: (

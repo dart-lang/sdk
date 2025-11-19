@@ -28,6 +28,8 @@ class SharedObjectWriter : public ZoneAllocated {
     // Separately compiled debugging information that should not include
     // most segment contents.
     DebugInfo,
+    // A relocatable object file.
+    Object,
   };
 
   enum class Output {
@@ -55,6 +57,7 @@ class SharedObjectWriter : public ZoneAllocated {
 
   Zone* zone() const { return zone_; }
   Dwarf* dwarf() { return dwarf_; }
+  SharedObjectWriter::Type type() const { return type_; }
 
   // Stores the information needed to appropriately generate a
   // relocation from the target to the source at the given section offset.
@@ -125,7 +128,9 @@ class SharedObjectWriter : public ZoneAllocated {
   using SymbolDataArray = ZoneGrowableArray<SymbolData>;
 
   struct WriteStream : public AbstractWriteStream {
-    WriteStream() {}
+    explicit WriteStream(SharedObjectWriter::Type type) : type_(type) {}
+
+    SharedObjectWriter::Type type() const { return type_; }
 
     void WriteBytesWithRelocations(const uint8_t* bytes,
                                    intptr_t size,
@@ -142,7 +147,13 @@ class SharedObjectWriter : public ZoneAllocated {
       return value;
     }
 
+   protected:
+    virtual void WriteRelocatableValue(intptr_t address,
+                                       const Relocation& reloc,
+                                       intptr_t reloc_index);
+
    private:
+    const SharedObjectWriter::Type type_;
     DISALLOW_COPY_AND_ASSIGN(WriteStream);
   };
 
@@ -150,7 +161,7 @@ class SharedObjectWriter : public ZoneAllocated {
    public:
     DelegatingWriteStream(BaseWriteStream* stream,
                           const SharedObjectWriter& writer)
-        : WriteStream(),
+        : WriteStream(writer.type()),
           stream_(ASSERT_NOTNULL(stream)),
           start_(stream->Position()),
           page_size_(writer.page_size()) {
@@ -184,9 +195,17 @@ class SharedObjectWriter : public ZoneAllocated {
 
   // Must be the same value as the values returned by ImageWriter::SectionLabel
   // for the appropriate section and vm values.
-  static constexpr intptr_t kVmBssLabel = 5;
-  static constexpr intptr_t kIsolateBssLabel = 6;
-  static constexpr intptr_t kBuildIdLabel = 7;
+  enum ReservedLabels : intptr_t {
+    kVmInstructionsLabel = 1,
+    kIsolateInstructionsLabel = 2,
+    kVmDataLabel = 3,
+    kIsolateDataLabel = 4,
+    kVmBssLabel = 5,
+    kIsolateBssLabel = 6,
+    kBuildIdLabel = 7,
+    kMachOEhFrameLabel = 8,
+    kLastReservedLabel = kMachOEhFrameLabel,
+  };
 
   virtual void AddText(const char* name,
                        intptr_t label,

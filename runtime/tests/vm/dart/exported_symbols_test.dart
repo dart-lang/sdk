@@ -70,6 +70,7 @@ main() {
     "Dart_CompileAll",
     "Dart_CompileToKernel",
     "Dart_CopyUTF8EncodingOfString",
+    "Dart_CreateAppAOTSnapshotAndRelocatableObject",
     "Dart_CreateAppAOTSnapshotAsAssemblies",
     "Dart_CreateAppAOTSnapshotAsAssembly",
     "Dart_CreateAppAOTSnapshotAsElf",

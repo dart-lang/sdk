@@ -8882,6 +8882,7 @@ final class ExtensionTypeDeclarationImpl
   @generated
   ClassBodyImpl _body;
 
+  @Deprecated('Use primaryConstructor instead')
   RepresentationDeclarationImpl? _representation;
 
   @override
@@ -20983,6 +20984,7 @@ final class RelationalPatternImpl extends DartPatternImpl
 
 /// The name of the primary constructor of an extension type.
 @AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
+@Deprecated('Use PrimaryConstructorDeclaration instead')
 abstract final class RepresentationConstructorName implements AstNode {
   /// The name of the primary constructor.
   Token get name;
@@ -20997,6 +20999,7 @@ abstract final class RepresentationConstructorName implements AstNode {
     GenerateNodeProperty('name'),
   ],
 )
+@Deprecated('Use PrimaryConstructorDeclaration instead')
 final class RepresentationConstructorNameImpl extends AstNodeImpl
     implements RepresentationConstructorName {
   @generated
@@ -21051,6 +21054,7 @@ final class RepresentationConstructorNameImpl extends AstNodeImpl
 ///    <representationDeclaration> ::=
 ///        ('.' <identifierOrNew>)? '(' <metadata> <type> <identifier> ')'
 @AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
+@Deprecated('Use PrimaryConstructorDeclaration instead')
 abstract final class RepresentationDeclaration implements AstNode {
   /// The fragment of the primary constructor contained in this declaration.
   ConstructorFragment? get constructorFragment;
@@ -21088,6 +21092,7 @@ abstract final class RepresentationDeclaration implements AstNode {
     GenerateNodeProperty('rightParenthesis'),
   ],
 )
+@Deprecated('Use PrimaryConstructorDeclaration instead')
 final class RepresentationDeclarationImpl extends AstNodeImpl
     implements RepresentationDeclaration {
   @generated

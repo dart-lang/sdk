@@ -33,6 +33,7 @@ Future<void> main() async {
     [
       runElf,
       runMachODylib,
+      runMachODsym,
       // Don't run assembly on Windows since DLLs don't contain DWARF.
       if (!Platform.isWindows) runAssembly,
     ],
@@ -309,6 +310,60 @@ Future<DwarfMachOState> runMachODylib(String tempDir, String scriptDill) async {
     singleArchSnapshot,
     multiArchSnapshot,
   );
+}
+
+class DwarfDsymState extends DwarfState<Dwarf> {
+  DwarfDsymState(
+    super.output,
+    super.outputWithOppositeFlag,
+    super.snapshot,
+    super.debugInfo,
+  );
+
+  @override
+  String get description => 'dSYM';
+
+  @override
+  Future<void> check(Trace trace, Dwarf dwarf) =>
+      compareTraces(trace, output, outputWithOppositeFlag, dwarf);
+}
+
+Future<DwarfDsymState> runMachODsym(String tempDir, String scriptDill) async {
+  final dsymutil = llvmTool('dsymutil', verbose: true)!;
+
+  print("Generating Mach-O snapshots");
+  final snapshotPath = path.join(tempDir, 'dwarf_dsym.dylib');
+  final objectPath = path.join(tempDir, 'dwarf_dsym.o');
+  final debugInfoPath = path.join(tempDir, 'debug_info_dsym.so');
+  await run(genSnapshot, <String>[
+    '--dwarf-stack-traces-mode',
+    '--save-debugging-info=$debugInfoPath',
+    '--snapshot-kind=app-aot-macho-dylib',
+    '--macho=$snapshotPath',
+    '--macho-object=$objectPath',
+    scriptDill,
+  ]);
+
+  print("Generating dSYM");
+  final dsymPath = path.join(tempDir, 'dwarf_dsym.dSYM');
+  await run(dsymutil, ['-o', dsymPath, snapshotPath]);
+
+  final dsym = Dwarf.fromFile(dsymPath)!;
+  final debugInfo = Dwarf.fromFile(debugInfoPath)!;
+
+  // Run the resulting Dwarf-AOT compiled script.
+  print("Generating Mach-O snapshot outputs");
+  final output = await runTestProgram(dartPrecompiledRuntime, <String>[
+    '--dwarf-stack-traces-mode',
+    snapshotPath,
+    scriptDill,
+  ]);
+  final outputWithOppositeFlag = await runTestProgram(
+    dartPrecompiledRuntime,
+    <String>['--no-dwarf-stack-traces-mode', snapshotPath, scriptDill],
+  );
+
+  return DwarfDsymState(output, outputWithOppositeFlag, dsym, debugInfo);
 }
 
 Future<void> compareTraces(

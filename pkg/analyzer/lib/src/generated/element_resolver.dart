@@ -324,8 +324,6 @@ class ElementResolver {
     }
   }
 
-  void visitRepresentationDeclaration(RepresentationDeclaration node) {}
-
   void visitSimpleFormalParameter(SimpleFormalParameter node) {}
 
   void visitSuperConstructorInvocation(

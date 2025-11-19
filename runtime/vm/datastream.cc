@@ -33,7 +33,12 @@ void ZoneWriteStream::Realloc(intptr_t new_size) {
 }
 
 StreamingWriteStream::~StreamingWriteStream() {
-  Flush();
+  // Allow a StreamingWriteStream to be created for nullptr callback
+  // data as long as no data is ever written.
+  ASSERT(callback_data_ != nullptr || Position() == 0);
+  if (BaseWriteStream::Position() != 0) {
+    Flush();
+  }
   free(buffer_);
 }
 

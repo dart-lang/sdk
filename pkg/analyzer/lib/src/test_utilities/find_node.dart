@@ -168,9 +168,6 @@ class FindNode {
   RedirectingConstructorInvocation get singleRedirectingConstructorInvocation =>
       _single();
 
-  RepresentationConstructorName get singleRepresentationConstructorName =>
-      _single();
-
   @Deprecated('Use primaryConstructor instead')
   RepresentationDeclaration get singleRepresentationDeclaration => _single();
 

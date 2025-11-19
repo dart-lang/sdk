@@ -17,7 +17,6 @@ import 'package:analysis_server/src/services/refactoring/legacy/refactoring.dart
 import 'package:analysis_server/src/services/search/search_engine.dart';
 import 'package:analysis_server/src/utilities/extensions/ast.dart';
 import 'package:analyzer/dart/analysis/session.dart';
-import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/utilities/cancellation.dart';
 
@@ -316,13 +315,6 @@ class RefactoringManager {
       if (resolvedUnit != null) {
         var node = resolvedUnit.unit.nodeCovering(offset: offset);
         var element = node?.getElement(useMockForImport: true);
-        if (node is RepresentationDeclaration) {
-          var extensionType = node.parent;
-          if (extensionType is ExtensionTypeDeclaration &&
-              extensionType.primaryConstructor.typeName.end == offset) {
-            element = extensionType.declaredFragment?.element;
-          }
-        }
         if (node != null && element != null) {
           var renameElement = RenameRefactoring.getElementToRename(
             node,

@@ -756,12 +756,6 @@ class AnnotationVerifier {
         TargetKind.topLevelVariable,
       ),
       TypeParameter() => kinds.contains(TargetKind.typeParameter),
-      // extension type Foo (int bar) {}
-      //                     ^^^^^^^
-      // This is not a parameter in the *traditional sense, but assume you want
-      // to apply an annotation such as @mustBeConst to it; it makes sense that
-      // this is a valid target.
-      RepresentationDeclaration() => kinds.contains(TargetKind.parameter),
       _ => false,
     };
   }

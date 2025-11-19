@@ -37,6 +37,7 @@ EXECUTABLE_NAMES = {
         'iexplore': 'iexplore.exe',
         'vctip': 'vctip.exe',
         'mspdbsrv': 'mspdbsrv.exe',
+        'explorer': 'explorer.exe',
     },
     'linux': {
         'chrome': 'chrome',
@@ -306,6 +307,16 @@ def Main():
         status += KillVSBuild()
     if options.kill_browsers == 'True':
         status += KillBrowsers()
+    if os_name == 'win32':
+        # On Windows 11, a bunch of files accumulate in temp named `xml_file (#).xml`.
+        # These seem to be created by taskbar widgets. The swarming client is unable
+        # to delete them, presumably because Explorer normally still running. Killing
+        # Explorer should allow these files to be deleted. If it doesn't restart, it
+        # should also prevent them from being created.
+        status += Kill('explorer')
+        for path, dirs, files in os.walk(os.environ['TEMP']):
+            for filename in files:
+                print(os.path.join(path, filename))
     return status
 
 

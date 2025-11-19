@@ -542,11 +542,6 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
   }
 
   @override
-  void visitRepresentationDeclaration(RepresentationDeclaration node) {
-    node.fieldType.accept(this);
-  }
-
-  @override
   void visitSimpleFormalParameter(SimpleFormalParameter node) {
     node.type?.accept(this);
     nodesToBuildType.addDeclaration(node);

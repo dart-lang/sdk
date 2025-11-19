@@ -1928,7 +1928,9 @@ class C<T extends MyFunction> {
 FunctionExpressionInvocation
   function: SimpleIdentifier
     token: foo
-    element: <testLibrary>::@class::C::@getter::foo
+    element: GetterMember
+      baseElement: <testLibrary>::@class::C::@getter::foo
+      substitution: {T: T}
     staticType: T
   argumentList: ArgumentList
     leftParenthesis: (
@@ -4217,7 +4219,9 @@ class C<T extends A> {
 MethodInvocation
   target: SimpleIdentifier
     token: a
-    element: <testLibrary>::@class::C::@getter::a
+    element: GetterMember
+      baseElement: <testLibrary>::@class::C::@getter::a
+      substitution: {T: T}
     staticType: T
   operator: .
   methodName: SimpleIdentifier

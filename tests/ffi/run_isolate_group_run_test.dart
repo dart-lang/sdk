@@ -82,6 +82,9 @@ thefun() {}
 @pragma('vm:shared')
 String default_tag = "";
 
+@pragma('vm:shared')
+double pi = 3.14159;
+
 main(List<String> args) {
   IsolateGroup.runSync(() {
     final l = <int>[];
@@ -246,6 +249,15 @@ main(List<String> args) {
     default_tag = UserTag.defaultTag.toString();
   });
   Expect.notEquals("", default_tag);
+
+  final result = IsolateGroup.runSync(() {
+    return pi.toString();
+  });
+  Expect.equals("3.14159", result);
+  final resultIdentical = IsolateGroup.runSync(() {
+    return identical(pi.toString(), pi.toString());
+  });
+  Expect.isTrue(resultIdentical);
 
   print("All tests completed :)");
 }

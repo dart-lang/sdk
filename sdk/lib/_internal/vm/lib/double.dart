@@ -245,34 +245,26 @@ final class _Double implements double {
     return this;
   }
 
-  static const int CACHE_SIZE_LOG2 = 3;
-  static const int CACHE_LENGTH = 1 << (CACHE_SIZE_LOG2 + 1);
-  static const int CACHE_MASK = CACHE_LENGTH - 1;
   // Each key (double) followed by its toString result.
-  static final List _cache = List.filled(CACHE_LENGTH, null);
-  static int _cacheEvictIndex = 0;
+  @pragma("vm:shared")
+  static final _cacheThreadLocal = FinalThreadLocal<_DoubleToStringCache>(
+    () => _DoubleToStringCache(),
+  );
 
   @pragma("vm:external-name", "Double_toString")
   external String _toString();
 
   String toString() {
-    // TODO(koda): Consider starting at most recently inserted.
-    for (int i = 0; i < CACHE_LENGTH; i += 2) {
-      // Need 'identical' to handle negative zero, etc.
-      if (identical(_cache[i], this)) {
-        return _cache[i + 1];
-      }
+    final cache = _cacheThreadLocal.value;
+    final cachedValue = cache.lookup(this);
+    if (cachedValue != null) {
+      return cachedValue;
     }
     // TODO(koda): Consider optimizing all small integral values.
     if (identical(0.0, this)) {
       return "0.0";
     }
-    String result = _toString();
-    // Replace the least recently inserted entry.
-    _cache[_cacheEvictIndex] = this;
-    _cache[_cacheEvictIndex + 1] = result;
-    _cacheEvictIndex = (_cacheEvictIndex + 2) & CACHE_MASK;
-    return result;
+    return cache.store(this, _toString());
   }
 
   String toStringAsFixed(int fractionDigits) {
@@ -405,5 +397,34 @@ final class _Double implements double {
       // Other is NaN.
       return LESS;
     }
+  }
+}
+
+class _DoubleToStringCache {
+  static const int _CACHE_SIZE_LOG2 = 3;
+  static const int _CACHE_LENGTH = 1 << (_CACHE_SIZE_LOG2 + 1);
+  static const int _CACHE_MASK = _CACHE_LENGTH - 1;
+
+  // Each key (double) followed by its toString result.
+  final List list = List.filled(_CACHE_LENGTH, null);
+  int evictIndex = 0;
+
+  String? lookup(double v) {
+    // TODO(koda): Consider starting at most recently inserted.
+    for (int i = 0; i < _CACHE_LENGTH; i += 2) {
+      // Need 'identical' to handle negative zero, etc.
+      if (identical(list[i], v)) {
+        return list[i + 1];
+      }
+    }
+    return null;
+  }
+
+  String store(double v, String s) {
+    // Replace the least recently inserted entry.
+    list[evictIndex] = v;
+    list[evictIndex + 1] = s;
+    evictIndex = (evictIndex + 2) & _CACHE_MASK;
+    return s;
   }
 }

@@ -2685,41 +2685,6 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
   }
 
   @override
-  void visitRepresentationDeclaration(RepresentationDeclaration node) {
-    bool hasIncompleteAnnotation() {
-      var next = node.leftParenthesis.next!;
-      return next.type == TokenType.AT ||
-          (next.isSynthetic && next.next!.type == TokenType.AT);
-    }
-
-    var fieldName = node.fieldName;
-    if (offset <= fieldName.end) {
-      var fieldType = node.fieldType;
-      if (fieldType.isFullySynthetic) {
-        if (fieldName.isSynthetic && hasIncompleteAnnotation()) {
-          collector.completionLocation = 'Annotation_name';
-          _forAnnotation(node);
-        } else {
-          collector.completionLocation = 'RepresentationDeclaration_fieldType';
-          declarationHelper(mustBeType: true).addLexicalDeclarations(node);
-        }
-      } else {
-        collector.completionLocation = 'RepresentationDeclaration_fieldName';
-        identifierHelper(
-          includePrivateIdentifiers: true,
-        ).addVariable(fieldType);
-      }
-    } else {
-      // The name might be a type and the user might be trying to type a name
-      // for the variable.
-      collector.completionLocation = 'RepresentationDeclaration_fieldName';
-      identifierHelper(
-        includePrivateIdentifiers: true,
-      ).addSuggestionsFromTypeName(fieldName.lexeme);
-    }
-  }
-
-  @override
   void visitRestPatternElement(RestPatternElement node) {
     collector.completionLocation = 'RestPatternElement_pattern';
     _forPattern(node);
@@ -4439,9 +4404,6 @@ extension on AstNode {
       ),
       RecordTypeAnnotationField(:var metadata) => metadata.contains(child),
       RecordTypeAnnotationNamedFields(:var fields) => fields.contains(child),
-      RepresentationDeclaration(:var fieldMetadata) => fieldMetadata.contains(
-        child,
-      ),
       SetOrMapLiteral(:var elements) => elements.contains(child),
       ShowCombinator(:var shownNames) => shownNames.contains(child),
       SwitchExpression(:var cases) => cases.contains(child),

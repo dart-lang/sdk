@@ -5017,7 +5017,9 @@ class C<T> {
 MethodInvocation
   methodName: SimpleIdentifier
     token: m
-    element: <testLibrary>::@class::C::@method::m
+    element: MethodMember
+      baseElement: <testLibrary>::@class::C::@method::m
+      substitution: {T: T, S0: S0, S1: S1}
     staticType: void Function<S0 extends T, S1 extends List<S0>>(S0, S1)
   argumentList: ArgumentList
     leftParenthesis: (
@@ -5025,13 +5027,13 @@ MethodInvocation
       NullLiteral
         literal: null
         correspondingParameter: ParameterMember
-          baseElement: <testLibrary>::@class::C::@method::m::@formalParameter::p0
+          baseElement: p0@null
           substitution: {S0: T, S1: List<T>}
         staticType: Null
       NullLiteral
         literal: null
         correspondingParameter: ParameterMember
-          baseElement: <testLibrary>::@class::C::@method::m::@formalParameter::p1
+          baseElement: p1@null
           substitution: {S0: T, S1: List<T>}
         staticType: Null
     rightParenthesis: )
@@ -5062,7 +5064,9 @@ class C<T> {
 MethodInvocation
   methodName: SimpleIdentifier
     token: m
-    element: <testLibrary>::@class::C::@method::m
+    element: MethodMember
+      baseElement: <testLibrary>::@class::C::@method::m
+      substitution: {T: T, S0: S0, S1: S1}
     staticType: Map<S0, S1> Function<S0 extends T, S1 extends List<S0>>()
   argumentList: ArgumentList
     leftParenthesis: (
@@ -5094,7 +5098,9 @@ class C<T> {
 MethodInvocation
   methodName: SimpleIdentifier
     token: m
-    element: <testLibrary>::@class::C::@method::m
+    element: MethodMember
+      baseElement: <testLibrary>::@class::C::@method::m
+      substitution: {T: T, S: S}
     staticType: void Function<S extends T>(S)
   argumentList: ArgumentList
     leftParenthesis: (
@@ -5102,7 +5108,7 @@ MethodInvocation
       NullLiteral
         literal: null
         correspondingParameter: ParameterMember
-          baseElement: <testLibrary>::@class::C::@method::m::@formalParameter::p0
+          baseElement: p0@null
           substitution: {S: T}
         staticType: Null
     rightParenthesis: )
@@ -5132,7 +5138,9 @@ class C<T> {
 MethodInvocation
   methodName: SimpleIdentifier
     token: m
-    element: <testLibrary>::@class::C::@method::m
+    element: MethodMember
+      baseElement: <testLibrary>::@class::C::@method::m
+      substitution: {T: T, S: S}
     staticType: S Function<S extends T>()
   argumentList: ArgumentList
     leftParenthesis: (
