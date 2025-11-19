@@ -1,3 +1,4 @@
+// @dart=3.10
 class C {
   external factory ();
   external factory C();
