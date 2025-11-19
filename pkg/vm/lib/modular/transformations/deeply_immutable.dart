@@ -139,7 +139,7 @@ class DeeplyImmutableValidator {
       }
     }
 
-    if (node.name == 'ScopedThreadLocal') {
+    if ((node.name == 'ScopedThreadLocal' || node.name == 'FinalThreadLocal')) {
       final uri = node.enclosingLibrary.importUri;
       if (uri.isScheme('dart') && uri.path == '_vm') {
         // ScopedThreadLocal has non-deeply-immutable initializer,
