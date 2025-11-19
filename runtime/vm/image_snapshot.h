@@ -95,6 +95,13 @@ class Image : ValueObject {
   // Only valid for instructions images from precompiled snapshots.
   bool compiled_to_macho() const;
 
+  // Constants used to denote special values for the offsets in the Image
+  // object header and the fields of the InstructionsSection object.
+  static constexpr intptr_t kNoInstructionsSection = 0;
+  static constexpr intptr_t kNoBssSection = 0;
+  static constexpr intptr_t kNoRelocatedAddress = 0;
+  static constexpr intptr_t kNoBuildId = 0;
+
  private:
   // For snapshots directly compiled to a shared object, returns a pointer to
   // the beginning of the build id container. Otherwise returns nullptr;
@@ -121,13 +128,6 @@ class Image : ValueObject {
     return reinterpret_cast<const uword*>(
         raw_memory)[static_cast<intptr_t>(field)];
   }
-
-  // Constants used to denote special values for the offsets in the Image
-  // object header and the fields of the InstructionsSection object.
-  static constexpr intptr_t kNoInstructionsSection = 0;
-  static constexpr intptr_t kNoBssSection = 0;
-  static constexpr intptr_t kNoRelocatedAddress = 0;
-  static constexpr intptr_t kNoBuildId = 0;
 
   // The size of the Image object header.
   //
@@ -385,9 +385,10 @@ class ImageWriter : public ValueObject {
 #if defined(DART_PRECOMPILER)
   ImageWriter(Thread* thread,
               bool generates_assembly,
+              bool needs_unique_names,
               const Trie<const char>* deobfuscation_trie = nullptr);
 #else
-  ImageWriter(Thread* thread, bool generates_assembly);
+  ImageWriter(Thread* thread, bool generates_assembly, bool needs_unique_names);
 #endif
   virtual ~ImageWriter() {}
 
@@ -476,10 +477,22 @@ class ImageWriter : public ValueObject {
   // (if vm is true) or application isolate (otherwise) section. Some sections
   // are shared by both.
   static constexpr intptr_t SectionLabel(ProgramSection section, bool vm) {
-    // Both vm and isolate share the build id section.
-    const bool shared = section == ProgramSection::BuildId;
-    // The initial 1 is to ensure the result is positive.
-    return 1 + 2 * static_cast<int>(section) + ((shared || vm) ? 0 : 1);
+    switch (section) {
+      case ProgramSection::Text:
+        return vm ? SharedObjectWriter::kVmInstructionsLabel
+                  : SharedObjectWriter::kIsolateInstructionsLabel;
+      case ProgramSection::Data:
+        return vm ? SharedObjectWriter::kVmDataLabel
+                  : SharedObjectWriter::kIsolateDataLabel;
+      case ProgramSection::Bss:
+        return vm ? SharedObjectWriter::kVmBssLabel
+                  : SharedObjectWriter::kIsolateBssLabel;
+      case ProgramSection::BuildId:
+        // Both vm and isolate share the build id section.
+        return SharedObjectWriter::kBuildIdLabel;
+    }
+    UNREACHABLE();
+    return 0;
   }
 
   static Trie<const char>* CreateReverseObfuscationTrie(Thread* thread);
@@ -675,7 +688,8 @@ class ImageWriter : public ValueObject {
    public:
     explicit SnapshotTextObjectNamer(Zone* zone,
                                      const Trie<const char>* deobfuscation_trie,
-                                     bool for_assembly)
+                                     bool for_assembly,
+                                     bool create_unique_names)
         : zone_(ASSERT_NOTNULL(zone)),
           deobfuscation_trie_(deobfuscation_trie),
           lib_(Library::Handle(zone)),
@@ -686,6 +700,7 @@ class ImageWriter : public ValueObject {
           insns_(Instructions::Handle(zone)),
           store_(IsolateGroup::Current()->object_store()),
           for_assembly_(for_assembly),
+          create_unique_names_(create_unique_names),
           usage_count_(zone) {}
 
     const char* StubNameForType(const AbstractType& type) const;
@@ -708,6 +723,8 @@ class ImageWriter : public ValueObject {
     void AddNonUniqueNameFor(BaseTextBuffer* buffer, const Object& object);
     // Modifies the symbol name in the buffer as needed for assembly use.
     void ModifyForAssembly(BaseTextBuffer* buffer);
+    // Ensures the final symbol name is unique.
+    void EnsureUniqueName(BaseTextBuffer* buffer);
 
     Zone* const zone_;
     const Trie<const char>* const deobfuscation_trie_;
@@ -718,8 +735,10 @@ class ImageWriter : public ValueObject {
     String& string_;
     Instructions& insns_;
     ObjectStore* const store_;
-    // Used to decide whether we need to add a uniqueness suffix.
+    // Avoids naming conventions that have meaning to the assembler.
     bool for_assembly_;
+    // Used to decide whether we need to add a uniqueness suffix.
+    bool create_unique_names_;
     CStringIntMap usage_count_;
 
     DISALLOW_COPY_AND_ASSIGN(SnapshotTextObjectNamer);
@@ -727,9 +746,8 @@ class ImageWriter : public ValueObject {
 
   SnapshotTextObjectNamer namer_;
 
-  // Reserve two positive labels for each of the ProgramSection values (one for
-  // vm, one for isolate).
-  intptr_t next_label_ = 1 + 2 * kNumProgramSections;
+  intptr_t next_label_ = SharedObjectWriter::kLastReservedLabel + 1;
+
 #endif
 
   IdSpace offset_space_ = IdSpace::kSnapshot;
@@ -874,13 +892,15 @@ class BlobImageWriter : public ImageWriter {
                   NonStreamingWriteStream* isolate_instructions,
                   const Trie<const char>* deobfuscation_trie = nullptr,
                   SharedObjectWriter* debug_so = nullptr,
-                  SharedObjectWriter* so = nullptr);
+                  SharedObjectWriter* so = nullptr,
+                  bool needs_unique_names = false);
 #else
   BlobImageWriter(Thread* thread,
                   NonStreamingWriteStream* vm_instructions,
                   NonStreamingWriteStream* isolate_instructions,
                   SharedObjectWriter* debug_so = nullptr,
-                  SharedObjectWriter* so = nullptr);
+                  SharedObjectWriter* so = nullptr,
+                  bool needs_unique_names = false);
 #endif
 
   virtual void Finalize();

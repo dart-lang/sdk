@@ -445,6 +445,15 @@ typedef Dart_Handle (*Dart_CreateAppAOTSnapshotAsBinaryType)(
     void*,
     const char*,
     const char*);
+typedef Dart_Handle (*Dart_CreateAppAOTSnapshotAndRelocatableObjectType)(
+    Dart_AotBinaryFormat,
+    Dart_StreamingWriteCallback,
+    void*,
+    void*,
+    bool,
+    void*,
+    const char*,
+    const char*);
 typedef Dart_Handle (*Dart_CreateVMAOTSnapshotAsAssemblyType)(
     Dart_StreamingWriteCallback,
     void*);
@@ -756,6 +765,8 @@ static Dart_CreateAppAOTSnapshotAsElfsType Dart_CreateAppAOTSnapshotAsElfsFn =
     NULL;
 static Dart_CreateAppAOTSnapshotAsBinaryType
     Dart_CreateAppAOTSnapshotAsBinaryFn = NULL;
+static Dart_CreateAppAOTSnapshotAndRelocatableObjectType
+    Dart_CreateAppAOTSnapshotAndRelocatableObjectFn = NULL;
 static Dart_CreateVMAOTSnapshotAsAssemblyType
     Dart_CreateVMAOTSnapshotAsAssemblyFn = NULL;
 static Dart_SortClassesType Dart_SortClassesFn = NULL;
@@ -1346,6 +1357,9 @@ BOOL WINAPI DllMain(HINSTANCE hinstDLL, DWORD fdwReason, LPVOID lpvReserved) {
     Dart_CreateAppAOTSnapshotAsBinaryFn =
         (Dart_CreateAppAOTSnapshotAsBinaryType)GetProcAddress(
             process, "Dart_CreateAppAOTSnapshotAsBinary");
+    Dart_CreateAppAOTSnapshotAndRelocatableObjectFn =
+        (Dart_CreateAppAOTSnapshotAndRelocatableObjectType)GetProcAddress(
+            process, "Dart_CreateAppAOTSnapshotAndRelocatableObject");
     Dart_CreateVMAOTSnapshotAsAssemblyFn =
         (Dart_CreateVMAOTSnapshotAsAssemblyType)GetProcAddress(
             process, "Dart_CreateVMAOTSnapshotAsAssembly");
@@ -2655,6 +2669,20 @@ Dart_Handle Dart_CreateAppAOTSnapshotAsBinary(
   return Dart_CreateAppAOTSnapshotAsBinaryFn(format, callback, callback_data,
                                              stripped, debug_callback_data,
                                              identifier, path);
+}
+
+Dart_Handle Dart_CreateAppAOTSnapshotAndRelocatableObject(
+    Dart_AotBinaryFormat format,
+    Dart_StreamingWriteCallback callback,
+    void* snapshot_callback_data,
+    void* object_callback_data,
+    bool stripped,
+    void* debug_callback_data,
+    const char* identifier,
+    const char* path) {
+  return Dart_CreateAppAOTSnapshotAndRelocatableObjectFn(
+      format, callback, snapshot_callback_data, object_callback_data, stripped,
+      debug_callback_data, identifier, path);
 }
 
 Dart_Handle Dart_CreateVMAOTSnapshotAsAssembly(

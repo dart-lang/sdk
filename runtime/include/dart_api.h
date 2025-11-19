@@ -4176,6 +4176,58 @@ Dart_CreateAppAOTSnapshotAsBinary(Dart_AotBinaryFormat format,
                                   const char* path);
 
 /**
+ *  Creates a precompiled snapshot along with a relocatable object file.
+ *   - A root library must have been loaded.
+ *   - Dart_Precompile must have been called.
+ *
+ *  Outputs both a snapshot and a relocatable object file in
+ *  the specified binary format defining the symbols
+ *   - _kDartVmSnapshotData
+ *   - _kDartVmSnapshotInstructions
+ *   - _kDartIsolateSnapshotData
+ *   - _kDartIsolateSnapshotInstructions
+ *  Whether or not the snapshot is stripped, the relocatable object file
+ *  contains all debugging information.
+ *
+ *  The shared library should be dynamically loaded by the embedder.
+ *  Running this snapshot requires a VM compiled with DART_PRECOMPILED_RUNTIME.
+ *  The kDartVmSnapshotData and kDartVmSnapshotInstructions should be passed to
+ *  Dart_Initialize. The kDartIsolateSnapshotData and
+ *  kDartIsolateSnapshotInstructions should be passed to Dart_CreateIsolate.
+ *
+ *  The callback will be invoked one or more times to provide the binary output.
+ *
+ *  If stripped is true, then the binary output will not include DWARF
+ *  debugging sections.
+ *
+ *  If debug_callback_data is provided, debug_callback_data will be used with
+ *  the callback to provide separate debugging information.
+ *
+ *  The identifier should be an appropriate string for identifying the resulting
+ *  dynamic library. For example, the identifier is used in ID_DYLIB and
+ *  CODE_SIGNATURE load commands for Mach-O dynamic libraries and for DW_AT_name
+ *  in the Dart progam's root DWARF compilation unit.
+ *
+ *  The path should be the full path of the resulting relocatable object file.
+ *  Currently, it is only used in Mach-O relocatable object files and snapshots
+ *  to create an appropriate N_OSO symbolic debugging variable
+ *  so dsymutil can be used. Note that an external strip utility is needed to
+ *  remove the N_OSO symbolic debugging variable after dsymutil usage.
+ *
+ * \return A valid handle if no error occurs during the operation.
+ */
+DART_EXPORT DART_API_WARN_UNUSED_RESULT Dart_Handle
+Dart_CreateAppAOTSnapshotAndRelocatableObject(
+    Dart_AotBinaryFormat format,
+    Dart_StreamingWriteCallback callback,
+    void* snapshot_callback_data,
+    void* object_callback_data,
+    bool stripped,
+    void* debug_callback_data,
+    const char* identifier,
+    const char* path);
+
+/**
  *  Like Dart_CreateAppAOTSnapshotAsAssembly, but only includes
  *  kDartVmSnapshotData and kDartVmSnapshotInstructions. It also does
  *  not strip DWARF information from the generated assembly or allow for

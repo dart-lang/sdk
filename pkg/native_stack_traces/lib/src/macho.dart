@@ -189,6 +189,7 @@ class SegmentCommand extends LoadCommand {
   final int initprot;
   final int nsects;
   final int flags;
+  final List<Section> sectionsInOrder;
   final Map<String, Section> sections;
 
   SegmentCommand._(
@@ -203,8 +204,10 @@ class SegmentCommand extends LoadCommand {
       this.initprot,
       this.nsects,
       this.flags,
-      this.sections)
-      : super._();
+      this.sectionsInOrder)
+      : sections = Map.fromEntries(
+            sectionsInOrder.map((s) => MapEntry(s.sectname, s))),
+        super._();
 
   static SegmentCommand fromReader(Reader reader, int cmd, int cmdsize) {
     final segname = reader.readFixedLengthNullTerminatedString(16);
@@ -216,13 +219,13 @@ class SegmentCommand extends LoadCommand {
     final initprot = _readMachOUint32(reader);
     final nsects = _readMachOUint32(reader);
     final flags = _readMachOUint32(reader);
-    final sections = <String, Section>{};
+    final sectionsInOrder = <Section>[];
     for (int i = 0; i < nsects; i++) {
       final section = Section.fromReader(reader);
-      sections[section.sectname] = section;
+      sectionsInOrder.add(section);
     }
     return SegmentCommand._(cmd, cmdsize, segname, vmaddr, vmsize, fileoff,
-        filesize, maxprot, initprot, nsects, flags, sections);
+        filesize, maxprot, initprot, nsects, flags, sectionsInOrder);
   }
 
   @override
@@ -235,7 +238,7 @@ class SegmentCommand extends LoadCommand {
       ..write(' at offset 0x')
       ..writeln(fileoff.toRadixString(16));
     buffer.writeln('Sections:');
-    for (final section in sections.values) {
+    for (final section in sectionsInOrder) {
       section.writeToStringBuffer(buffer);
       buffer.writeln();
     }
@@ -698,14 +701,14 @@ class MachOHeader {
 }
 
 class MachO extends DwarfContainer {
-  final MachOHeader _header;
+  final MachOHeader header;
   final List<LoadCommand> _commands;
   final SymbolTable _symbolTable;
   final SegmentCommand? _dwarfSegment;
   final StringTable? _debugStringTable;
   final StringTable? _debugLineStringTable;
 
-  MachO._(this._header, this._commands, this._symbolTable, this._dwarfSegment,
+  MachO._(this.header, this._commands, this._symbolTable, this._dwarfSegment,
       this._debugStringTable, this._debugLineStringTable);
 
   static MachO? fromReader(Reader machOReader) {
@@ -770,19 +773,19 @@ class MachO extends DwarfContainer {
   static MachO? fromFile(String fileName) =>
       MachO.fromReader(Reader.fromFile(MachO.handleDSYM(fileName)));
 
-  bool get isDSYM => _header.isDSYM;
+  bool get isDSYM => header.isDSYM;
   bool get hasDwarf => _dwarfSegment != null;
 
   Reader applyWordSizeAndEndian(Reader reader) =>
       Reader.fromTypedData(reader.bdata,
-          wordSize: _header.wordSize, endian: _header.endian);
+          wordSize: header.wordSize, endian: header.endian);
 
   Iterable<LoadCommand> get commands => _commands;
   Iterable<T> commandsWhereType<T extends LoadCommand>() =>
       _commands.whereType<T>();
 
   @override
-  String? get architecture => CpuType.fromCode(_header.cputype)?.dartName;
+  String? get architecture => CpuType.fromCode(header.cputype)?.dartName;
 
   @override
   Reader? abbreviationsTableReader(Reader containerReader) =>
@@ -834,7 +837,7 @@ class MachO extends DwarfContainer {
       ..writeln('               Header')
       ..writeln('----------------------------------------')
       ..writeln('');
-    _header.writeToStringBuffer(buffer);
+    header.writeToStringBuffer(buffer);
     buffer
       ..writeln('')
       ..writeln('')
