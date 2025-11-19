@@ -261,7 +261,7 @@ abstract class _BaseIgnoreDiagnostic extends ResolvedCorrectionProducer {
   bool get _isCodeUnignorable {
     var cannotIgnore = (analysisOptions as AnalysisOptionsImpl)
         .unignorableDiagnosticCodeNames
-        .contains(diagnostic.diagnosticCode.name);
+        .contains(diagnostic.diagnosticCode.name.toLowerCase());
 
     if (cannotIgnore) {
       return true;

@@ -56,7 +56,7 @@ analyzer:
     var unignorableCodeNames = analysisOptions.unignorableDiagnosticCodeNames;
     expect(
       unignorableCodeNames,
-      unorderedEquals(['ONE_ERROR_CODE', 'ANOTHER']),
+      unorderedEquals(['one_error_code', 'another']),
     );
   }
 
@@ -68,7 +68,7 @@ analyzer:
 ''');
 
     var unignorableCodeNames = analysisOptions.unignorableDiagnosticCodeNames;
-    expect(unignorableCodeNames, contains('INVALID_ANNOTATION'));
+    expect(unignorableCodeNames, contains('invalid_annotation'));
     expect(unignorableCodeNames.length, greaterThan(500));
   }
 
@@ -82,7 +82,22 @@ analyzer:
 ''');
 
     var unignorableCodeNames = analysisOptions.unignorableDiagnosticCodeNames;
-    expect(unignorableCodeNames, contains('UNUSED_IMPORT'));
+    expect(unignorableCodeNames, contains('unused_import'));
+  }
+
+  test_analyzer_cannotIgnore_severity_withProcessor_oldSeverity() {
+    var analysisOptions = parseOptions('''
+analyzer:
+  errors:
+    unused_import: error
+  cannot-ignore:
+    - warning
+''');
+
+    // Since `unused_import` has been reclassified as an error,
+    // `cannot-ignore: - warning` should not apply to it.
+    var unignorableCodeNames = analysisOptions.unignorableDiagnosticCodeNames;
+    expect(unignorableCodeNames, isNot(contains('unused_import')));
   }
 
   test_analyzer_chromeos_checks() {

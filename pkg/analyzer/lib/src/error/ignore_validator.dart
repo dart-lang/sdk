@@ -58,7 +58,9 @@ class IgnoreValidator {
     this._lineInfo,
     this._unignorableNames,
     this._validateUnnecessaryIgnores,
-  );
+  ) {
+    assert(_unignorableNames.every((n) => n == n.toLowerCase()));
+  }
 
   /// Report any issues with ignore comments in the file being analyzed.
   void reportErrors() {
