@@ -330,6 +330,7 @@ void KernelBytecodeDisassembler::DecodeInstruction(char* hex_buffer,
 
 void KernelBytecodeDisassembler::Disassemble(uword start,
                                              uword end,
+                                             uword base,
                                              DisassemblyFormatter* formatter,
                                              const Bytecode& bytecode) {
 #if !defined(PRODUCT)
@@ -347,7 +348,7 @@ void KernelBytecodeDisassembler::Disassemble(uword start,
                       &object, pc);
     formatter->ConsumeInstruction(hex_buffer, sizeof(hex_buffer), human_buffer,
                                   sizeof(human_buffer), object,
-                                  FLAG_disassemble_relative ? pc - start : pc);
+                                  FLAG_disassemble_relative ? pc - base : pc);
     pc += instruction_length;
   }
 #else

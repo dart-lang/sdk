@@ -432,12 +432,15 @@ DART_FORCE_INLINE bool Interpreter::IsTracingExecution() const {
 }
 
 // Prints bytecode instruction at given pc for instruction tracing.
-DART_NOINLINE void Interpreter::TraceInstruction(const KBCInstr* pc) const {
+DART_NOINLINE void Interpreter::TraceInstruction(const KBCInstr* pc,
+                                                 ObjectPtr* FP) const {
   THR_Print("%" Pu64 " ", icount_);
   if (FLAG_support_disassembler) {
+    auto const bytecode = Function::GetBytecode(FrameFunction(FP));
     KernelBytecodeDisassembler::Disassemble(
         reinterpret_cast<uword>(pc),
-        reinterpret_cast<uword>(KernelBytecode::Next(pc)));
+        reinterpret_cast<uword>(KernelBytecode::Next(pc)),
+        Bytecode::PayloadStartOf(bytecode));
   } else {
     THR_Print("Disassembler not supported in this mode.\n");
   }
@@ -849,7 +852,7 @@ DART_FORCE_INLINE bool Interpreter::InstanceCall(Thread* thread,
 #if defined(DEBUG)
 #define TRACE_INSTRUCTION                                                      \
   if (IsTracingExecution()) {                                                  \
-    TraceInstruction(pc);                                                      \
+    TraceInstruction(pc, FP);                                                  \
   }                                                                            \
   if (IsWritingTraceFile()) {                                                  \
     WriteInstructionToTrace(pc);                                               \

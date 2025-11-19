@@ -255,7 +255,7 @@ class Interpreter {
   bool IsTracingExecution() const;
 
   // Prints bytecode instruction at given pc for instruction tracing.
-  void TraceInstruction(const KBCInstr* pc) const;
+  void TraceInstruction(const KBCInstr* pc, ObjectPtr* FP) const;
 
   bool IsWritingTraceFile() const;
   void FlushTraceBuffer();
