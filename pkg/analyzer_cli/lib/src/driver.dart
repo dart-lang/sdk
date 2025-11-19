@@ -184,7 +184,6 @@ class Driver implements CommandLineStarter {
       var file = analysisDriver!.resourceProvider.getFile(filePath);
       return determineProcessedSeverity(
         diagnostic,
-        options,
         analysisDriver!.getAnalysisOptionsForFile(file),
       );
     };
@@ -299,11 +298,7 @@ class Driver implements CommandLineStarter {
             ),
           ]);
           for (var error in errors) {
-            var severity = determineProcessedSeverity(
-              error,
-              options,
-              analysisOptions,
-            );
+            var severity = determineProcessedSeverity(error, analysisOptions);
             if (severity != null) {
               allResult = allResult.max(severity);
             }
@@ -331,7 +326,6 @@ class Driver implements CommandLineStarter {
               for (var error in diagnostics) {
                 var severity = determineProcessedSeverity(
                   error,
-                  options,
                   analysisOptions,
                 )!;
                 allResult = allResult.max(severity);
@@ -384,7 +378,6 @@ class Driver implements CommandLineStarter {
             for (var error in errors) {
               var severity = determineProcessedSeverity(
                 error,
-                options,
                 analysisOptions,
               )!;
               allResult = allResult.max(severity);
@@ -398,12 +391,7 @@ class Driver implements CommandLineStarter {
 
           final kind = file.kind;
           if (kind is LibraryFileKind) {
-            var status = await _runAnalyzer(
-              file,
-              options,
-              formatter,
-              gotErrorsFor,
-            );
+            var status = await _runAnalyzer(file, formatter, gotErrorsFor);
             allResult = allResult.max(status);
             analyzedFiles.addAll(kind.files);
           } else if (kind is PartFileKind) {
@@ -472,7 +460,6 @@ class Driver implements CommandLineStarter {
   /// Analyze a single source.
   Future<DiagnosticSeverity> _runAnalyzer(
     FileState file,
-    CommandLineOptions options,
     ErrorFormatter formatter,
     Set<String> gotErrorsFor,
   ) {
@@ -485,7 +472,6 @@ class Driver implements CommandLineStarter {
       analysisOptions,
       analysisDriver,
       file,
-      options,
       stats,
       startTime,
       gotErrorsFor,
