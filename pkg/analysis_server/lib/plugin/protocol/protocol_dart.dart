@@ -24,7 +24,7 @@ Element convertElement(engine.Element element) {
     name,
     Element.makeFlags(
       isPrivate: element.isPrivate,
-      isDeprecated: element.metadata.hasDeprecated,
+      isDeprecated: element.isDeprecatedWithKind('use'),
       isAbstract: _isAbstract(element),
       isConst: _isConst(element),
       isFinal: _isFinal(element),
@@ -136,7 +136,7 @@ Element convertLibraryFragment(LibraryFragmentImpl fragment) {
     path.basename(fragment.source.fullName),
     Element.makeFlags(
       isPrivate: fragment.isPrivate,
-      isDeprecated: fragment.library.metadata.hasDeprecated,
+      isDeprecated: fragment.library.isDeprecatedWithKind('use'),
     ),
     location: newLocation_fromFragment(fragment),
   );

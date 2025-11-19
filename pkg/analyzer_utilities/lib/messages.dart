@@ -11,6 +11,7 @@ import 'dart:io';
 import 'package:analyzer_testing/package_root.dart' as pkg_root;
 import 'package:analyzer_utilities/analyzer_messages.dart';
 import 'package:analyzer_utilities/extensions/string.dart';
+import 'package:analyzer_utilities/located_error.dart';
 import 'package:collection/collection.dart';
 import 'package:path/path.dart';
 import 'package:source_span/source_span.dart';
@@ -554,34 +555,6 @@ class LabelerConversion implements Conversion {
   }) => 'labeler.$methodName($name)';
 }
 
-/// An error with an associated source span.
-class LocatedError {
-  final SourceSpan span;
-  final String message;
-
-  LocatedError(this.message, {required this.span});
-
-  @override
-  String toString() => '${span.location}: $message';
-
-  /// Executes [callback], converting any exceptions it generates to a
-  /// [LocatedError] that points to [node].
-  static T wrap<T>(T Function() callback, {required SourceSpan span}) {
-    try {
-      return callback();
-    } catch (error, stackTrace) {
-      if (error is! LocatedError) {
-        Error.throwWithStackTrace(
-          LocatedError(error.toString(), span: span),
-          stackTrace,
-        );
-      } else {
-        rethrow;
-      }
-    }
-  }
-}
-
 /// In-memory representation of diagnostic information obtained from either the
 /// analyzer or the front end's `messages.yaml` file.  This class contains the
 /// common functionality supported by both formats.
@@ -1107,16 +1080,5 @@ class _DuplicateChecker<Code> {
         ].join('\n');
       }
     }
-  }
-}
-
-extension SourceSpanLocation on SourceSpan {
-  /// A string suitable for identifying this span in the source YAML file.
-  String get location {
-    var path = start.sourceUrl?.toFilePath() ?? '<unknown>';
-    // Convert line/column to 1-based because that's what most editors expect
-    var line = start.line + 1;
-    var column = start.column + 1;
-    return '$path:$line:$column';
   }
 }

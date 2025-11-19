@@ -1,4 +1,8 @@
-# 3.10.0-wip
+# 3.11.0-wip
+
+- deprecated lint: `prefer_final_parameters`
+
+# 3.10.0
 
 - new lint: `remove_deprecations_in_breaking_versions`
 

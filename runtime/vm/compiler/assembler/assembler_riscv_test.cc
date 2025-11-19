@@ -8479,6 +8479,261 @@ ASSEMBLER_TEST_RUN(DoubleLessOrEqualQuiet, test) {
   EXPECT_EQ(0, CallI(test->entry(), qNAN, -3.0));
 }
 
+ASSEMBLER_TEST_GENERATE(VectorMemoryCopy, assembler) {
+  __ SetExtensions(RV_GC | RV_V);
+  Label loop;
+  __ Bind(&loop);
+  __ vsetvli(A4, A2, e8, m8, ta, ma);
+  __ vle8v(V0, Address(A1));
+  __ add(A1, A1, A4);
+  __ sub(A2, A2, A4);
+  __ vse8v(V0, Address(A0));
+  __ add(A0, A0, A4);
+  __ bnez(A2, &loop);
+  __ ret();
+}
+ASSEMBLER_TEST_RUN(VectorMemoryCopy, test) {
+  EXPECT_DISASSEMBLY(
+      "0c367757 vsetvli tmp2, a2, e8, m8, ta, ma\n"
+      "02058007 vle8.v v0, (a1)\n"
+      "    95ba add a1, a1, tmp2\n"
+      "    8e19 sub a2, a2, tmp2\n"
+      "02050027 vse8.v v0, (a0)\n"
+      "    953a add a0, a0, tmp2\n"
+      "    f67d bnez a2, -18\n"
+      "    8082 ret\n");
+
+  intptr_t len = 1000;
+  uint8_t* src = reinterpret_cast<uint8_t*>(malloc(len));
+  uint8_t* dst = reinterpret_cast<uint8_t*>(malloc(len));
+  for (intptr_t i = 0; i < len; i++) {
+    src[i] = i & 0xFF;
+    dst[i] = 0xFF;
+  }
+
+  Call(test->entry(), reinterpret_cast<intx_t>(dst),
+       reinterpret_cast<intx_t>(src), len);
+  for (intptr_t i = 0; i < len; i++) {
+    EXPECT_EQ(i & 0xFF, src[i]);
+    EXPECT_EQ(i & 0xFF, dst[i]);
+  }
+
+  // AVL < VLEN
+  dst[0] = 0xFF;
+  Call(test->entry(), reinterpret_cast<intx_t>(dst),
+       reinterpret_cast<intx_t>(src), 1);
+  EXPECT_EQ(0, dst[0]);
+
+  // AVL = 0
+  dst[0] = 0xFF;
+  Call(test->entry(), reinterpret_cast<intx_t>(dst),
+       reinterpret_cast<intx_t>(src), 0);
+  EXPECT_EQ(0xFF, dst[0]);
+
+  free(src);
+  free(dst);
+}
+
+ASSEMBLER_TEST_GENERATE(VectorMemorySet8, assembler) {
+  __ SetExtensions(RV_GC | RV_V);
+  Label loop;
+  __ Bind(&loop);
+  __ vsetvli(A4, A2, e8, m8, ta, ma);
+  __ vmvvx(V0, A1);
+  __ sub(A2, A2, A4);
+  __ vse8v(V0, Address(A0));
+  __ add(A0, A0, A4);
+  __ bnez(A2, &loop);
+  __ ret();
+}
+ASSEMBLER_TEST_RUN(VectorMemorySet8, test) {
+  EXPECT_DISASSEMBLY(
+      "0c367757 vsetvli tmp2, a2, e8, m8, ta, ma\n"
+      "5e05c057 vmv.v.x v0, a1\n"
+      "    8e19 sub a2, a2, tmp2\n"
+      "02050027 vse8.v v0, (a0)\n"
+      "    953a add a0, a0, tmp2\n"
+      "    fa65 bnez a2, -16\n"
+      "    8082 ret\n");
+
+  intptr_t len = 100;
+  uint8_t* dst = reinterpret_cast<uint8_t*>(malloc(len * 1));
+  for (intptr_t i = 0; i < len; i++) {
+    dst[i] = 0;
+  }
+
+  Call(test->entry(), reinterpret_cast<intx_t>(dst), 0x12, len);
+  for (intptr_t i = 0; i < len; i++) {
+    EXPECT_EQ(0x12u, dst[i]);
+  }
+
+  // AVL < VLEN
+  dst[0] = 0;
+  dst[1] = 0;
+  Call(test->entry(), reinterpret_cast<intx_t>(dst), 0x23, 1);
+  EXPECT_EQ(0x23u, dst[0]);
+  EXPECT_EQ(0u, dst[1]);
+
+  // AVL = 0
+  dst[0] = 0;
+  Call(test->entry(), reinterpret_cast<intx_t>(dst), 0xFF, 0);
+  EXPECT_EQ(0u, dst[0]);
+
+  free(dst);
+}
+
+ASSEMBLER_TEST_GENERATE(VectorMemorySet16, assembler) {
+  __ SetExtensions(RV_GC | RV_V);
+  Label loop;
+  __ Bind(&loop);
+  __ vsetvli(A4, A2, e16, m8, ta, ma);
+  __ vmvvx(V0, A1);
+  __ sub(A2, A2, A4);
+  __ vse16v(V0, Address(A0));
+  __ slli(A4, A4, 1);
+  __ add(A0, A0, A4);
+  __ bnez(A2, &loop);
+  __ ret();
+}
+ASSEMBLER_TEST_RUN(VectorMemorySet16, test) {
+  EXPECT_DISASSEMBLY(
+      "0cb67757 vsetvli tmp2, a2, e16, m8, ta, ma\n"
+      "5e05c057 vmv.v.x v0, a1\n"
+      "    8e19 sub a2, a2, tmp2\n"
+      "02055027 vse16.v v0, (a0)\n"
+      "    0706 slli tmp2, tmp2, 0x1\n"
+      "    953a add a0, a0, tmp2\n"
+      "    f67d bnez a2, -18\n"
+      "    8082 ret\n");
+
+  intptr_t len = 100;
+  uint16_t* dst = reinterpret_cast<uint16_t*>(malloc(len * 2));
+  for (intptr_t i = 0; i < len; i++) {
+    dst[i] = 0;
+  }
+
+  Call(test->entry(), reinterpret_cast<intx_t>(dst), 0x1234, len);
+  for (intptr_t i = 0; i < len; i++) {
+    EXPECT_EQ(0x1234u, dst[i]);
+  }
+
+  // AVL < VLEN
+  dst[0] = 0;
+  dst[1] = 0;
+  Call(test->entry(), reinterpret_cast<intx_t>(dst), 0x2345, 1);
+  EXPECT_EQ(0x2345u, dst[0]);
+  EXPECT_EQ(0u, dst[1]);
+
+  // AVL = 0
+  dst[0] = 0;
+  Call(test->entry(), reinterpret_cast<intx_t>(dst), 0xFFFF, 0);
+  EXPECT_EQ(0u, dst[0]);
+
+  free(dst);
+}
+
+ASSEMBLER_TEST_GENERATE(VectorMemorySet32, assembler) {
+  __ SetExtensions(RV_GC | RV_V);
+  Label loop;
+  __ Bind(&loop);
+  __ vsetvli(A4, A2, e32, m8, ta, ma);
+  __ vmvvx(V0, A1);
+  __ sub(A2, A2, A4);
+  __ vse32v(V0, Address(A0));
+  __ slli(A4, A4, 2);
+  __ add(A0, A0, A4);
+  __ bnez(A2, &loop);
+  __ ret();
+}
+ASSEMBLER_TEST_RUN(VectorMemorySet32, test) {
+  EXPECT_DISASSEMBLY(
+      "0d367757 vsetvli tmp2, a2, e32, m8, ta, ma\n"
+      "5e05c057 vmv.v.x v0, a1\n"
+      "    8e19 sub a2, a2, tmp2\n"
+      "02056027 vse32.v v0, (a0)\n"
+      "    070a slli tmp2, tmp2, 0x2\n"
+      "    953a add a0, a0, tmp2\n"
+      "    f67d bnez a2, -18\n"
+      "    8082 ret\n");
+
+  intptr_t len = 100;
+  uint32_t* dst = reinterpret_cast<uint32_t*>(malloc(len * 4));
+  for (intptr_t i = 0; i < len; i++) {
+    dst[i] = 0;
+  }
+
+  Call(test->entry(), reinterpret_cast<intx_t>(dst), 0x12345678, len);
+  for (intptr_t i = 0; i < len; i++) {
+    EXPECT_EQ(0x12345678u, dst[i]);
+  }
+
+  // AVL < VLEN
+  dst[0] = 0;
+  dst[1] = 0;
+  Call(test->entry(), reinterpret_cast<intx_t>(dst), 0x23456789, 1);
+  EXPECT_EQ(0x23456789u, dst[0]);
+  EXPECT_EQ(0u, dst[1]);
+
+  // AVL = 0
+  dst[0] = 0;
+  Call(test->entry(), reinterpret_cast<intx_t>(dst), 0xFFFFFFFF, 0);
+  EXPECT_EQ(0u, dst[0]);
+
+  free(dst);
+}
+
+#if XLEN >= 64
+ASSEMBLER_TEST_GENERATE(VectorMemorySet64, assembler) {
+  __ SetExtensions(RV_GC | RV_V);
+  Label loop;
+  __ Bind(&loop);
+  __ vsetvli(A4, A2, e64, m8, ta, ma);
+  __ vmvvx(V0, A1);
+  __ sub(A2, A2, A4);
+  __ vse64v(V0, Address(A0));
+  __ slli(A4, A4, 3);
+  __ add(A0, A0, A4);
+  __ bnez(A2, &loop);
+  __ ret();
+}
+ASSEMBLER_TEST_RUN(VectorMemorySet64, test) {
+  EXPECT_DISASSEMBLY(
+      "0db67757 vsetvli tmp2, a2, e64, m8, ta, ma\n"
+      "5e05c057 vmv.v.x v0, a1\n"
+      "    8e19 sub a2, a2, tmp2\n"
+      "02057027 vse64.v v0, (a0)\n"
+      "    070e slli tmp2, tmp2, 0x3\n"
+      "    953a add a0, a0, tmp2\n"
+      "    f67d bnez a2, -18\n"
+      "    8082 ret\n");
+
+  intptr_t len = 100;
+  uint64_t* dst = reinterpret_cast<uint64_t*>(malloc(len * 8));
+  for (intptr_t i = 0; i < len; i++) {
+    dst[i] = 0;
+  }
+
+  Call(test->entry(), reinterpret_cast<intx_t>(dst), 0x1234567812345678, len);
+  for (intptr_t i = 0; i < len; i++) {
+    EXPECT_EQ(0x1234567812345678u, dst[i]);
+  }
+
+  // AVL < VLEN
+  dst[0] = 0;
+  dst[1] = 0;
+  Call(test->entry(), reinterpret_cast<intx_t>(dst), 0x2345678923456789, 1);
+  EXPECT_EQ(0x2345678923456789u, dst[0]);
+  EXPECT_EQ(0u, dst[1]);
+
+  // AVL = 0
+  dst[0] = 0;
+  Call(test->entry(), reinterpret_cast<intx_t>(dst), 0xFFFFFFFF, 0);
+  EXPECT_EQ(0u, dst[0]);
+
+  free(dst);
+}
+#endif
+
 ASSEMBLER_TEST_GENERATE(LoadByteAcquire, assembler) {
   __ SetExtensions(RV_GC | RV_Zalasr);
   __ lb(A0, Address(A1), std::memory_order_acquire);

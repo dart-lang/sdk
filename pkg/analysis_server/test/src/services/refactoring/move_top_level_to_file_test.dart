@@ -1379,6 +1379,33 @@ class A {}
     await expectNoCodeActionWithTitle(simpleClassRefactorTitle);
   }
 
+  Future<void> test_sealedClass_enumImplements() async {
+    var originalSource = '''
+sealed class [!Either!] {}
+
+enum Left implements Either { v }
+enum Right implements Either { v }
+
+class Neither {}
+''';
+
+    var expected = '''
+>>>>>>>>>> lib/either.dart created
+sealed class Either {}
+
+enum Left implements Either { v }
+enum Right implements Either { v }
+>>>>>>>>>> lib/main.dart
+
+class Neither {}
+''';
+    await _multipleDeclarations(
+      originalSource: originalSource,
+      expected: expected,
+      count: 3,
+    );
+  }
+
   Future<void> test_sealedClass_extends() async {
     var originalSource = '''
 sealed class [!Either!] {}
@@ -1502,12 +1529,12 @@ class Neither {}
     );
   }
 
-  Future<void> test_sealedClass_implements() async {
+  Future<void> test_sealedClass_mixinImplements() async {
     var originalSource = '''
 sealed class [!Either!] {}
 
-class Left implements Either {}
-class Right implements Either {}
+mixin Left implements Either {}
+mixin Right implements Either {}
 
 class Neither {}
 ''';
@@ -1516,8 +1543,8 @@ class Neither {}
 >>>>>>>>>> lib/either.dart created
 sealed class Either {}
 
-class Left implements Either {}
-class Right implements Either {}
+mixin Left implements Either {}
+mixin Right implements Either {}
 >>>>>>>>>> lib/main.dart
 
 class Neither {}
@@ -1559,6 +1586,30 @@ class SubSubclass extends SealedSubclass {}
       originalSource: originalSource,
       expected: expected,
       count: 4,
+    );
+  }
+
+  Future<void> test_single_class_atName_firstDartDoc() async {
+    var originalSource = '''
+///
+class ^A {}
+
+class B {}
+''';
+    var declarationName = 'A';
+
+    var expected = '''
+>>>>>>>>>> lib/a.dart created
+///
+class A {}
+>>>>>>>>>> lib/main.dart
+
+class B {}
+''';
+    await _singleDeclaration(
+      originalSource: originalSource,
+      expected: expected,
+      declarationName: declarationName,
     );
   }
 
@@ -1918,7 +1969,41 @@ typedef TypeToMove = void Function();
     );
   }
 
-  Future<void> test_single_variable() async {
+  Future<void> test_topLevelVariable_multi_atName() async {
+    var originalSource = '''
+var ^a = 1, b = 2;
+''';
+    addTestSource(originalSource);
+    await initializeServer();
+    await expectNoCodeActionWithTitle(null);
+  }
+
+  Future<void> test_topLevelVariable_multi_whole() async {
+    var originalSource = '''
+class A {}
+
+[!var a = 1, b = 2;!]
+
+class B {}
+''';
+
+    var expected = '''
+>>>>>>>>>> lib/main.dart
+class A {}
+
+class B {}
+>>>>>>>>>> lib/newFile.dart created
+var a = 1, b = 2;
+''';
+
+    await _multipleDeclarations(
+      originalSource: originalSource,
+      expected: expected,
+      count: 2,
+    );
+  }
+
+  Future<void> test_topLevelVariable_single_atName() async {
     var originalSource = '''
 class A {}
 
@@ -1936,30 +2021,6 @@ class A {}
 class B {}
 >>>>>>>>>> lib/variable_to_move.dart created
 int variableToMove = 3;
-''';
-    await _singleDeclaration(
-      originalSource: originalSource,
-      expected: expected,
-      declarationName: declarationName,
-    );
-  }
-
-  Future<void> test_single_variable_firstDartDoc() async {
-    var originalSource = '''
-///
-class ^A {}
-
-class B {}
-''';
-    var declarationName = 'A';
-
-    var expected = '''
->>>>>>>>>> lib/a.dart created
-///
-class A {}
->>>>>>>>>> lib/main.dart
-
-class B {}
 ''';
     await _singleDeclaration(
       originalSource: originalSource,

@@ -2014,6 +2014,79 @@ void MicroAssembler::ssamoswapd(Register rd,
 }
 #endif  // XLEN >= 64
 
+void MicroAssembler::vsetvli(Register rd,
+                             Register rs1,
+                             ElementWidth sew,
+                             LengthMultiplier lmul,
+                             TailMode vta,
+                             MaskMode vma) {
+  ASSERT(Supports(RV_V));
+  intx_t vtypei = (vma << 7) | (vta << 6) | (sew << 3) | (lmul << 0);
+  EmitIType(vtypei, rs1, OPCFG, rd, OPV);
+}
+
+void MicroAssembler::vle8v(VRegister vd, Address rs1, VectorMask vm) {
+  ASSERT(Supports(RV_V));
+  ASSERT(rs1.offset() == 0);
+  Emit32(EncodeOpcode(LOADFP) | EncodeVd(vd) | EncodeRs1(rs1.base()) |
+         EncodeFunct3(E8) | vm);
+}
+
+void MicroAssembler::vle16v(VRegister vd, Address rs1, VectorMask vm) {
+  ASSERT(Supports(RV_V));
+  ASSERT(rs1.offset() == 0);
+  Emit32(EncodeOpcode(LOADFP) | EncodeVd(vd) | EncodeRs1(rs1.base()) |
+         EncodeFunct3(E16) | vm);
+}
+
+void MicroAssembler::vle32v(VRegister vd, Address rs1, VectorMask vm) {
+  ASSERT(Supports(RV_V));
+  ASSERT(rs1.offset() == 0);
+  Emit32(EncodeOpcode(LOADFP) | EncodeVd(vd) | EncodeRs1(rs1.base()) |
+         EncodeFunct3(E32) | vm);
+}
+
+void MicroAssembler::vle64v(VRegister vd, Address rs1, VectorMask vm) {
+  ASSERT(Supports(RV_V));
+  ASSERT(rs1.offset() == 0);
+  Emit32(EncodeOpcode(LOADFP) | EncodeVd(vd) | EncodeRs1(rs1.base()) |
+         EncodeFunct3(E64) | vm);
+}
+
+void MicroAssembler::vse8v(VRegister vs3, Address rs1, VectorMask vm) {
+  ASSERT(Supports(RV_V));
+  ASSERT(rs1.offset() == 0);
+  Emit32(EncodeOpcode(STOREFP) | EncodeVs3(vs3) | EncodeRs1(rs1.base()) |
+         EncodeFunct3(E8) | vm);
+}
+
+void MicroAssembler::vse16v(VRegister vs3, Address rs1, VectorMask vm) {
+  ASSERT(Supports(RV_V));
+  ASSERT(rs1.offset() == 0);
+  Emit32(EncodeOpcode(STOREFP) | EncodeVs3(vs3) | EncodeRs1(rs1.base()) |
+         EncodeFunct3(E16) | vm);
+}
+
+void MicroAssembler::vse32v(VRegister vs3, Address rs1, VectorMask vm) {
+  ASSERT(Supports(RV_V));
+  ASSERT(rs1.offset() == 0);
+  Emit32(EncodeOpcode(STOREFP) | EncodeVs3(vs3) | EncodeRs1(rs1.base()) |
+         EncodeFunct3(E32) | vm);
+}
+
+void MicroAssembler::vse64v(VRegister vs3, Address rs1, VectorMask vm) {
+  ASSERT(Supports(RV_V));
+  ASSERT(rs1.offset() == 0);
+  Emit32(EncodeOpcode(STOREFP) | EncodeVs3(vs3) | EncodeRs1(rs1.base()) |
+         EncodeFunct3(E64) | vm);
+}
+
+void MicroAssembler::vmvvx(VRegister vd, Register rs1, VectorMask vm) {
+  ASSERT(Supports(RV_V));
+  Emit32(EncodeOpcode(OPV) | EncodeVd(vd) | EncodeRs1(rs1) |
+         EncodeFunct3(OPIVX) | EncodeFunct6(VMV) | vm);
+}
+
 void MicroAssembler::lb(Register rd, Address addr, std::memory_order order) {
   ASSERT(addr.offset() == 0);
   ASSERT((order == std::memory_order_acquire) ||

@@ -1702,6 +1702,21 @@ class B extends A{
     expect(hover.elementKind, 'parameter');
   }
 
+  Future<void> test_parameter_reference_deprecated_optional() async {
+    newFile(testFilePath, '''
+void f({@Deprecated.optional() int p}) {}
+void g() {
+  f(p: 1);
+}
+''');
+    var hover = await prepareHover('f(p: 1);');
+    // element
+    expect(hover.containingLibraryPath, testFile.path);
+    expect(hover.elementDescription, 'void f({int p})');
+    expect(hover.elementKind, 'function');
+    expect(hover.isDeprecated, isFalse);
+  }
+
   Future<void> test_parameter_reference_fieldFormal() async {
     newFile(testFilePath, '''
 class A {

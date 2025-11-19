@@ -23,22 +23,22 @@ extension ClassElementExtensions on ClassElement {
 }
 
 extension ElementExtensions on Element {
-  /// Return `true` if this element, the enclosing class (if there is one), or
-  /// the enclosing library, has been annotated with the `@deprecated`
+  /// Whether this element, the enclosing class (if there is one), or
+  /// the enclosing library, has been annotated with the `@Deprecated()`
   /// annotation.
   bool get hasOrInheritsDeprecated {
-    if (metadata.hasDeprecated) {
+    if (isDeprecatedWithKind('use')) {
       return true;
     }
 
     var ancestor = enclosingElement;
     if (ancestor is InterfaceElement) {
-      if (ancestor.metadata.hasDeprecated) {
+      if (ancestor.isDeprecatedWithKind('use')) {
         return true;
       }
       ancestor = ancestor.enclosingElement;
     }
-    return ancestor is LibraryElement && ancestor.metadata.hasDeprecated;
+    return ancestor is LibraryElement && ancestor.isDeprecatedWithKind('use');
   }
 
   /// Return this element and all its enclosing elements.

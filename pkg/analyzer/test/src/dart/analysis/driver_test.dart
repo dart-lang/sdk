@@ -34906,6 +34906,7 @@ export 'dart:math' show min;
 [status] working
 [operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle SDK
 [operation] linkLibraryCycle
   package:test/a.dart
     hashForRequirements: #H2

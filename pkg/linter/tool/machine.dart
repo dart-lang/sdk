@@ -68,7 +68,7 @@ Future<String> getMachineListing(
         'incompatible': rule.incompatibleRules,
         'sets': const [],
         'fixStatus':
-            fixStatusMap[rule.diagnosticCodes.first.uniqueName] ??
+            fixStatusMap[rule.diagnosticCodes.first.uniqueName.suffix] ??
             'unregistered',
         'details': info.deprecatedDetails,
         'sinceDartSdk': _versionToString(info.states.first.since),
@@ -96,7 +96,7 @@ Map<String, String> readFixStatusMap() {
   var yaml = loadYamlNode(contents) as YamlMap;
   return <String, String>{
     for (var MapEntry(key: String code, :YamlMap value) in yaml.entries)
-      if (code.startsWith('LintCode.')) code: value['status'] as String,
+      code: value['status'] as String,
   };
 }
 
@@ -104,4 +104,20 @@ String _versionToString(Version? version) {
   if (version == null) return '2.0';
 
   return '${version.major}.${version.minor}';
+}
+
+class _Error extends Error {
+  final String message;
+
+  _Error(this.message);
+
+  @override
+  String toString() => message;
+}
+
+extension on String {
+  String get suffix => switch (split('.')) {
+    [_, var s] => s,
+    _ => throw _Error('Expected ErrorClass.ERROR_CODE, found $this'),
+  };
 }
