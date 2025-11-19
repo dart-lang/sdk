@@ -98,13 +98,10 @@ declare_args() {
   dart_support_perfetto =
       !((defined(is_watchos) && is_watchos) || dart_runtime_mode == "release")
 
-  # The analyze_snapshot tool is only supported on 64 bit AOT builds that use
-  # ELF.
+  # The analyze_snapshot tool is only supported on 64 bit AOT builds.
   build_analyze_snapshot =
-      (target_os == "linux" || target_os == "mac" || target_os == "android" ||
-       target_os == "fuchsia") &&
-      (dart_target_arch == "x64" || dart_target_arch == "arm64" ||
-       dart_target_arch == "riscv64")
+      dart_target_arch == "x64" || dart_target_arch == "arm64" ||
+      dart_target_arch == "riscv64"
 }
 
 if (is_fuchsia) {

@@ -141,8 +141,6 @@ Future<void> assembleSnapshot(
 
   if (Platform.isMacOS) {
     shared = '-dynamiclib';
-    // Tell Mac linker to give up generating eh_frame from dwarf.
-    ldFlags.add('-Wl,-no_compact_unwind');
     if (buildDir.endsWith('ARM64')) {
       ccFlags.add('--target=arm64-apple-darwin');
     } else {
