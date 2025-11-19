@@ -1736,6 +1736,22 @@ void f() {
 ''');
   }
 
+  test_isReferencedBy_FieldElement_dotSorthandConstructorInvocation() async {
+    await _indexTestUnit('''
+class A {
+  A({this.field});
+  var field;
+}
+void foo() {
+  A _ = .new(field: 42);
+}
+''');
+    var element = findElement2.fieldFormalParameter('field');
+    assertElementIndexText(element, r'''
+70 6:14 |field| IS_REFERENCED_BY qualified
+''');
+  }
+
   test_isReferencedBy_FieldElement_enum() async {
     await _indexTestUnit('''
 enum E {
@@ -2070,6 +2086,21 @@ void f() {
     var element = findElement2.parameter('p');
     assertElementIndexText(element, r'''
 33 3:7 |p| IS_REFERENCED_BY qualified
+''');
+  }
+
+  test_isReferencedBy_ParameterElement_dotSorthandConstructorInvocation() async {
+    await _indexTestUnit('''
+class A {
+  A({p});
+}
+void foo() {
+  A _ = .new(p: 42);
+}
+''');
+    var element = findElement2.parameter('p');
+    assertElementIndexText(element, r'''
+48 5:14 |p| IS_REFERENCED_BY qualified
 ''');
   }
 

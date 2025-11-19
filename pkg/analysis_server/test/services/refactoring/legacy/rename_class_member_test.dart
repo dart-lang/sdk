@@ -757,6 +757,33 @@ class A {
   }
 
   Future<void>
+  test_createChange_FieldElement_fieldFormalParameter_dotShorthandConstructorInvocation() async {
+    await indexTestUnit('''
+void foo() {
+  A _ = .new(va^lue: 42);
+}
+
+class A {
+  A({required this.value});
+  final int value;
+}
+''');
+    createRenameRefactoring();
+    expect(refactoring.oldName, 'value');
+    refactoring.newName = 'newName';
+    await assertSuccessfulRefactoring('''
+void foo() {
+  A _ = .new(newName: 42);
+}
+
+class A {
+  A({required this.newName});
+  final int newName;
+}
+''');
+  }
+
+  Future<void>
   test_createChange_FieldElement_fieldFormalParameter_named() async {
     await indexTestUnit('''
 class A {
