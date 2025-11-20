@@ -26,11 +26,6 @@ const analyzerBaseClasses = DiagnosticBaseClasses(
   withoutArgumentsImplClass: 'DiagnosticWithoutArgumentsImpl',
 );
 
-const codesFile = GeneratedDiagnosticFile(
-  path: 'analyzer/lib/src/error/codes.g.dart',
-  parentLibrary: 'package:analyzer/src/error/codes.dart',
-);
-
 /// Information about all the classes derived from `DiagnosticCode` that are
 /// code-generated based on the contents of the analyzer and front end
 /// `messages.yaml` files.
@@ -39,62 +34,47 @@ const codesFile = GeneratedDiagnosticFile(
 const List<DiagnosticClassInfo> diagnosticClasses = [
   linterLintCodeInfo,
   DiagnosticClassInfo(
-    file: optionCodesFile,
     name: 'AnalysisOptionsErrorCode',
     type: AnalyzerDiagnosticType.compileTimeError,
   ),
   DiagnosticClassInfo(
-    file: optionCodesFile,
     name: 'AnalysisOptionsWarningCode',
     type: AnalyzerDiagnosticType.staticWarning,
   ),
   DiagnosticClassInfo(
-    file: codesFile,
     name: 'CompileTimeErrorCode',
     type: AnalyzerDiagnosticType.compileTimeError,
   ),
   DiagnosticClassInfo(
-    file: syntacticErrorsFile,
     name: 'ScannerErrorCode',
     type: AnalyzerDiagnosticType.syntacticError,
   ),
   DiagnosticClassInfo(
-    file: codesFile,
     name: 'StaticWarningCode',
     type: AnalyzerDiagnosticType.staticWarning,
   ),
   DiagnosticClassInfo(
-    file: codesFile,
     name: 'WarningCode',
     type: AnalyzerDiagnosticType.staticWarning,
   ),
   DiagnosticClassInfo(
-    file: ffiCodesFile,
     name: 'FfiCode',
     type: AnalyzerDiagnosticType.compileTimeError,
   ),
+  DiagnosticClassInfo(name: 'HintCode', type: AnalyzerDiagnosticType.hint),
   DiagnosticClassInfo(
-    file: hintCodesFile,
-    name: 'HintCode',
-    type: AnalyzerDiagnosticType.hint,
-  ),
-  DiagnosticClassInfo(
-    file: syntacticErrorsFile,
     name: 'ParserErrorCode',
     type: AnalyzerDiagnosticType.syntacticError,
   ),
   DiagnosticClassInfo(
-    file: manifestWarningCodeFile,
     name: 'ManifestWarningCode',
     type: AnalyzerDiagnosticType.staticWarning,
   ),
   DiagnosticClassInfo(
-    file: pubspecWarningCodeFile,
     name: 'PubspecWarningCode',
     type: AnalyzerDiagnosticType.staticWarning,
   ),
   DiagnosticClassInfo(
-    file: todoCodesFile,
     name: 'TodoCode',
     type: AnalyzerDiagnosticType.todo,
     comment: '''
@@ -103,7 +83,6 @@ or revisited.
 ''',
   ),
   DiagnosticClassInfo(
-    file: transformSetErrorCodeFile,
     name: 'TransformSetErrorCode',
     type: AnalyzerDiagnosticType.compileTimeError,
     comment: '''
@@ -113,23 +92,7 @@ transform set.
   ),
 ];
 
-const ffiCodesFile = GeneratedDiagnosticFile(
-  path: 'analyzer/lib/src/dart/error/ffi_code.g.dart',
-  parentLibrary: 'package:analyzer/src/dart/error/ffi_code.dart',
-);
-
 const String generatedLintCodesPath = 'linter/lib/src/lint_codes.g.dart';
-
-const hintCodesFile = GeneratedDiagnosticFile(
-  path: 'analyzer/lib/src/dart/error/hint_codes.g.dart',
-  parentLibrary: 'package:analyzer/src/dart/error/hint_codes.dart',
-);
-
-const lintCodesFile = GeneratedDiagnosticFile(
-  path: generatedLintCodesPath,
-  parentLibrary: 'package:linter/src/lint_codes.dart',
-  package: AnalyzerDiagnosticPackage.linter,
-);
 
 /// Base diagnostic classes used for lint messages.
 const linterBaseClasses = DiagnosticBaseClasses(
@@ -141,45 +104,8 @@ const linterBaseClasses = DiagnosticBaseClasses(
 );
 
 const linterLintCodeInfo = DiagnosticClassInfo(
-  file: lintCodesFile,
   name: 'LinterLintCode',
   type: AnalyzerDiagnosticType.lint,
-);
-
-const manifestWarningCodeFile = GeneratedDiagnosticFile(
-  path: 'analyzer/lib/src/manifest/manifest_warning_code.g.dart',
-  parentLibrary: 'package:analyzer/src/manifest/manifest_warning_code.dart',
-);
-
-const optionCodesFile = GeneratedDiagnosticFile(
-  path: 'analyzer/lib/src/analysis_options/error/option_codes.g.dart',
-  parentLibrary:
-      'package:analyzer/src/analysis_options/error/option_codes.dart',
-);
-
-const pubspecWarningCodeFile = GeneratedDiagnosticFile(
-  path: 'analyzer/lib/src/pubspec/pubspec_warning_code.g.dart',
-  parentLibrary: 'package:analyzer/src/pubspec/pubspec_warning_code.dart',
-);
-
-const syntacticErrorsFile = GeneratedDiagnosticFile(
-  path: 'analyzer/lib/src/dart/error/syntactic_errors.g.dart',
-  parentLibrary: 'package:analyzer/src/dart/error/syntactic_errors.dart',
-);
-
-const todoCodesFile = GeneratedDiagnosticFile(
-  path: 'analyzer/lib/src/dart/error/todo_codes.g.dart',
-  parentLibrary: 'package:analyzer/src/dart/error/todo_codes.dart',
-);
-
-const transformSetErrorCodeFile = GeneratedDiagnosticFile(
-  path:
-      'analysis_server/lib/src/services/correction/fix/data_driven/'
-      'transform_set_error_code.g.dart',
-  parentLibrary:
-      'package:analysis_server/src/services/correction/fix/data_driven/'
-      'transform_set_error_code.dart',
-  package: AnalyzerDiagnosticPackage.analysisServer,
 );
 
 /// Decoded messages from the analysis server's `messages.yaml` file.
@@ -576,9 +502,6 @@ class DiagnosticClassInfo {
   /// The name of this class.
   final String name;
 
-  /// The generated file containing this class.
-  final GeneratedDiagnosticFile file;
-
   /// The type of diagnostics in this class.
   final AnalyzerDiagnosticType type;
 
@@ -588,7 +511,6 @@ class DiagnosticClassInfo {
   final String comment;
 
   const DiagnosticClassInfo({
-    required this.file,
     required this.name,
     required this.type,
     this.comment = '',

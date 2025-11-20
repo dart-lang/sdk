@@ -450,15 +450,6 @@ class DiagnosticTables {
                 [])
             .add(message);
         var package = message.package;
-        if (analyzerCode.diagnosticClass.file.package != package) {
-          throw LocatedError(
-            'Expected to generate this analyzer code to '
-            'package:${package.dirName}, but its diagnostic class '
-            '(${analyzerCode.diagnosticClass.name}) lives in '
-            'package:${analyzerCode.diagnosticClass.file.package.dirName}',
-            span: message.keySpan,
-          );
-        }
         if (!message.isRemoved && message is! AliasMessage) {
           (activeMessagesByPackage[package] ??= []).add(message);
         }
@@ -513,25 +504,6 @@ class FrontEndMessage extends CfeStyleMessage {
 
   FrontEndMessage(super.messageYaml)
     : pseudoSharedCode = messageYaml.getOptionalString('pseudoSharedCode');
-}
-
-/// Representation of a single file containing generated diagnostics.
-class GeneratedDiagnosticFile {
-  /// The file path (relative to the SDK's `pkg` directory) of the generated
-  /// file.
-  final String path;
-
-  /// The URI of the library that the generated file will be a part of.
-  final String parentLibrary;
-
-  /// The package that the generated file will be part of.
-  final AnalyzerDiagnosticPackage package;
-
-  const GeneratedDiagnosticFile({
-    required this.path,
-    required this.parentLibrary,
-    this.package = AnalyzerDiagnosticPackage.analyzer,
-  });
 }
 
 /// A [Conversion] that makes use of the [TypeLabeler] class.
