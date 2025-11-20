@@ -17,38 +17,8 @@ import 'package:analyzer/src/dart/scanner/reader.dart';
 import 'package:analyzer/src/dart/scanner/translate_error_token.dart'
     show translateErrorToken;
 import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
-import 'package:analyzer/src/error/codes.dart';
 import 'package:meta/meta.dart';
 import 'package:pub_semver/pub_semver.dart';
-
-/// This class exists as a transitional measure while waiting for
-/// package:dart_style to be updated.
-///
-/// See the documentation for [unexpectedToken] for details.
-@Deprecated('Removed without replacement')
-abstract final class ParserErrorCode {
-  /// The definition of the analyzer's `UNEXPECTED_TOKEN` diagnostic code.
-  ///
-  /// This declaration exists to support version 3.1.3 of `package:dart_style`,
-  /// which used it to generate a diagnostic when an attempt to format a single
-  /// statement failed due to a parse error. Future versions of
-  /// `package:dart_style` will not rely on this declaration thanks to
-  /// https://github.com/dart-lang/dart_style/commit/e8190bf2242654daee7ebf21fd6d8c8046989822.
-  ///
-  /// Note that the pubspec for version 3.1.3 of `package:dart_style` has an
-  /// analyzer requirement of `>=8.2.0 <10.0.0`, so it will not be safe to
-  /// remove this declaration until analyzer version `10.0.0` or later.
-  @Deprecated(
-    'Please use unexpectedToken from '
-    'package:analyzer/src/diagnostic/diagnostic.dart',
-  )
-  static const DiagnosticWithArguments<
-    LocatableDiagnostic Function({required String p0})
-  >
-  unexpectedToken = diag.unexpectedToken;
-
-  factory ParserErrorCode._() => throw 'Do not construct';
-}
 
 /// The class `Scanner` implements a scanner for Dart code.
 ///
