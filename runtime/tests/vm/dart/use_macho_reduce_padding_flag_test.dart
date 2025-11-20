@@ -24,6 +24,12 @@ Future<void> main() async {
     return; // SDK tree and dart_bootstrap not available on the test device.
   }
 
+  if (Platform.isWindows || isSimulator) {
+    // Currently dsymutil isn't available in these cases (but if it is
+    // in the future, go ahead and run them).
+    if (llvmTool('dsymutil') == null) return;
+  }
+
   // These are the tools we need to be available to run on a given platform:
   if (!await testExecutable(genSnapshot)) {
     throw "Cannot run test as $genSnapshot not available";
