@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -10,11 +11,16 @@ import '../rule_test_support.dart';
 void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(AvoidFinalParametersTest);
+    defineReflectiveTests(AvoidFinalParametersPrePrimaryConstructorsTest);
   });
 }
 
 @reflectiveTest
-class AvoidFinalParametersTest extends LintRuleTest {
+class AvoidFinalParametersPrePrimaryConstructorsTest extends LintRuleTest {
+  @override
+  List<String> get experiments =>
+      super.experiments..remove(Feature.declaring_constructors.enableString);
+
   @override
   String get lintRule => LintNames.avoid_final_parameters;
 
@@ -221,5 +227,22 @@ class B extends A {
         lint(98, 13),
       ],
     );
+  }
+}
+
+@reflectiveTest
+class AvoidFinalParametersTest extends LintRuleTest {
+  @override
+  String get lintRule => LintNames.avoid_final_parameters;
+
+  // With primary constructors, this lint is disabled.
+  // No need to repeat all the tests; one will do.
+  test_constructorSimple_final() async {
+    await assertNoDiagnostics(r'''
+class C {
+  // Would be flagged.
+  C(final int p);
+}
+''');
   }
 }

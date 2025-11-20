@@ -9422,6 +9422,9 @@ LinterLintCode:
     deprecatedDetails: |-
       **Note:** This lint rule was deprecated in Dart 3.11 and
       is set to be removed in a future release of the Dart SDK.
+      Also note that the lint is not applied to code that is opted
+      in to the `primary-constructors` language feature where using
+      `final` for a parameter becomes a compile-time error.
       If you want to ensure parameters aren't reassigned in function bodies,
       consider enabling the
       [`parameter_assignments`](https://dart.dev/lints/parameter_assignments)

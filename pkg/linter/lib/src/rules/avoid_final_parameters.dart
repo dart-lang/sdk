@@ -5,6 +5,7 @@
 import 'package:analyzer/analysis_rule/analysis_rule.dart';
 import 'package:analyzer/analysis_rule/rule_context.dart';
 import 'package:analyzer/analysis_rule/rule_visitor_registry.dart';
+import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/error/error.dart';
@@ -31,6 +32,11 @@ class AvoidFinalParameters extends AnalysisRule {
     RuleVisitorRegistry registry,
     RuleContext context,
   ) {
+    // This lint isn't relevant with primary constructors enabled
+    // as `final` is no longer used to indicate a parameter is final,
+    // but rather as a declaring parameter in a primary constructor.
+    if (context.isFeatureEnabled(Feature.declaring_constructors)) return;
+
     var visitor = _Visitor(this);
     registry.addConstructorDeclaration(this, visitor);
     registry.addFunctionExpression(this, visitor);
