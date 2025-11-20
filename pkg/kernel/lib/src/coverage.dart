@@ -963,6 +963,12 @@ class CoverageVisitor implements Visitor<void> {
   }
 
   @override
+  void visitVariableInitialization(VariableInitialization node) {
+    visited.add(StatementKind.VariableInitialization);
+    node.visitChildren(this);
+  }
+
+  @override
   void visitVariableStatement(VariableStatement node) {
     visited.add(StatementKind.VariableStatement);
     node.visitChildren(this);
@@ -971,12 +977,6 @@ class CoverageVisitor implements Visitor<void> {
   @override
   void visitFunctionDeclaration(FunctionDeclaration node) {
     visited.add(StatementKind.FunctionDeclaration);
-    node.visitChildren(this);
-  }
-
-  @override
-  void visitVariableInitialization(VariableInitialization node) {
-    visited.add(StatementKind.VariableInitialization);
     node.visitChildren(this);
   }
 

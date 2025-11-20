@@ -2591,7 +2591,8 @@ class BodyBuilderImpl extends StackListenerImpl
 
   @override
   void registerVariableRead(ExpressionVariable variable) {
-    if (!(variable as InternalExpressionVariable).isLocalFunction &&
+    if (!(variable is InternalExpressionVariable &&
+            (variable as InternalExpressionVariable).isLocalFunction) &&
         !variable.isWildcard) {
       assignedVariables.read(variable);
     }
@@ -3466,23 +3467,39 @@ class BodyBuilderImpl extends StackListenerImpl
       name = createWildcardVariableName(wildcardVariableIndex);
       wildcardVariableIndex++;
     }
-    VariableDeclaration variable =
-        new VariableDeclarationImpl(
-            name,
-            forSyntheticToken: identifier.token.isSynthetic,
-            initializer: initializer,
+    VariableInitialization variable;
+    if (isClosureContextLoweringEnabled) {
+      // Coverage-ignore-block(suite): Not run.
+      variable = new VariableInitialization(
+        variable: new InternalLocalVariable(
+          astVariable: new LocalVariable(
+            cosmeticName: name,
             type: currentLocalVariableType,
-            isFinal: isFinal,
-            isConst: isConst,
-            isLate: isLate,
-            isRequired: isRequired,
-            hasDeclaredInitializer: initializer != null,
-            isStaticLate: isFinal && initializer == null,
-            isWildcard: isWildcard,
-          )
-          ..fileOffset = identifier.nameOffset
-          ..fileEqualsOffset = offsetForToken(equalsToken);
-    assignedVariables.declare(variable);
+          ),
+          forSyntheticToken: identifier.token.isSynthetic,
+          isImplicitlyTyped: currentLocalVariableType == null,
+        ).asExpressionVariable,
+        initializer: initializer,
+      );
+    } else {
+      variable =
+          new VariableDeclarationImpl(
+              name,
+              forSyntheticToken: identifier.token.isSynthetic,
+              initializer: initializer,
+              type: currentLocalVariableType,
+              isFinal: isFinal,
+              isConst: isConst,
+              isLate: isLate,
+              isRequired: isRequired,
+              hasDeclaredInitializer: initializer != null,
+              isStaticLate: isFinal && initializer == null,
+              isWildcard: isWildcard,
+            )
+            ..fileOffset = identifier.nameOffset
+            ..fileEqualsOffset = offsetForToken(equalsToken);
+    }
+    assignedVariables.declare(variable.variable);
     push(variable);
   }
 
@@ -3530,15 +3547,17 @@ class BodyBuilderImpl extends StackListenerImpl
       push(node);
       return;
     }
-    VariableDeclaration variable = node as VariableDeclaration;
-    variable.fileOffset = nameToken.charOffset;
-    push(variable);
+    VariableInitialization variableInitialization =
+        node as VariableInitialization;
+    variableInitialization.fileOffset = nameToken.charOffset;
+    push(variableInitialization);
 
     // Avoid adding the local identifier to scope if it's a wildcard.
     // TODO(kallentu): Emit better error on lookup, rather than not adding it to
     // the scope.
-    if (!(libraryFeatures.wildcardVariables.isEnabled && variable.isWildcard)) {
-      declareVariable(variable, _localScope);
+    if (!(libraryFeatures.wildcardVariables.isEnabled &&
+        variableInitialization.isWildcard)) {
+      declareVariable(variableInitialization.variable, _localScope);
     }
   }
 
@@ -3585,15 +3604,18 @@ class BodyBuilderImpl extends StackListenerImpl
         push(node);
         return;
       }
-      VariableDeclaration variable = node as VariableDeclaration;
+      VariableInitialization variableInitialization =
+          node as VariableInitialization;
       if (annotations != null) {
         for (int i = 0; i < annotations.length; i++) {
-          variable.addAnnotation(annotations[i]);
+          variableInitialization.addAnnotation(annotations[i]);
         }
-        _registerSingleTargetAnnotations(variable);
-        //(variablesWithMetadata ??= <VariableDeclaration>[]).add(variable);
+        _registerSingleTargetAnnotations(variableInitialization);
+        // (variablesWithMetadata ??= <VariableDeclaration>[]).add(
+        //   variableInitialization,
+        // );
       }
-      push(variable);
+      push(variableInitialization);
     } else {
       List<VariableDeclaration>? variables =
           const FixedNullableList<VariableDeclaration>().popNonNullable(

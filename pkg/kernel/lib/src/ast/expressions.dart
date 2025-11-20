@@ -206,7 +206,7 @@ class VariableGet extends Expression {
 
   @override
   DartType getStaticTypeInternal(StaticTypeContext context) {
-    return promotedType ?? variable.type;
+    return promotedType ?? expressionVariable.type;
   }
 
   @override
