@@ -943,6 +943,10 @@ class ParserErrorCode {
       diag.nativeFunctionBodyInNonSdkCode;
 
   /// No parameters.
+  static const DiagnosticWithoutArguments newConstructorQualifiedName =
+      diag.newConstructorQualifiedName;
+
+  /// No parameters.
   static const DiagnosticWithoutArguments nonConstructorFactory =
       diag.nonConstructorFactory;
 

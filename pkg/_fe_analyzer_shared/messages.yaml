@@ -2261,3 +2261,15 @@ ConstWithoutPrimaryConstructor:
   hasPublishedDocs: false
   script: |
     class const C {}
+
+NewConstructorQualifiedName:
+  parameters: none
+  problemMessage: "Constructors declared with the 'new' keyword can't have qualified names."
+  correctionMessage: "Try removing the class name prefix from the qualified name or removing the 'new' keyword."
+  analyzerCode: ParserErrorCode.NEW_CONSTRUCTOR_QUALIFIED_NAME
+  hasPublishedDocs: false
+  experiments: declaring-constructors
+  script: |
+    class C {
+      new C.named();
+    }
