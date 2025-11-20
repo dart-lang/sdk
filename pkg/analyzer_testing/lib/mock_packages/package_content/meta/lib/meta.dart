@@ -486,6 +486,10 @@ const _Reopen reopen = _Reopen();
 /// to mark a named parameter as required.
 /// To learn more about `required`, check out the documentation on
 /// [named parameters](https://dart.dev/language/functions#named-parameters).
+@Deprecated(
+  'In Dart 2.12 and later, use the built-in `required` keyword to mark a '
+  'named parameter as required.',
+)
 const Required required = Required();
 
 /// Annotation marking a class as not allowed as a super-type
@@ -594,6 +598,10 @@ class RecordUse {
 /// to mark a named parameter as required.
 /// To learn more about `required`, check out the documentation on
 /// [named parameters](https://dart.dev/language/functions#named-parameters).
+@Deprecated(
+  'In Dart 2.12 and later, use the built-in `required` keyword to mark a '
+  'named parameter as required.',
+)
 class Required {
   /// A human-readable explanation of the reason why the annotated parameter is
   /// required. For example, the annotation might look like:

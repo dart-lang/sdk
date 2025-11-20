@@ -763,10 +763,11 @@ class MissingDefaultValueForParameterWithAnnotationTest
 import 'package:meta/meta.dart';
 
 class C {
+  // ignore: deprecated_member_use
   void foo({@required int a}) {}
 }
 ''',
-      [error(diag.missingDefaultValueForParameterWithAnnotation, 70, 1)],
+      [error(diag.missingDefaultValueForParameterWithAnnotation, 105, 1)],
     );
   }
 }
