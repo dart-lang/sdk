@@ -132,10 +132,8 @@ class IgnoreValidator {
       var ignoredOnLine = ignoredOnLineMap[lineNumber];
 
       ignoredForFile.removeByName(error.ignoreName);
-      ignoredForFile.removeByName(error.ignoreUniqueName);
 
       ignoredOnLine?.removeByName(error.ignoreName);
-      ignoredOnLine?.removeByName(error.ignoreUniqueName);
     }
     //
     // Report any remaining ignored names as being unnecessary.
@@ -288,15 +286,6 @@ class IgnoreValidator {
 
 extension on Diagnostic {
   String get ignoreName => diagnosticCode.name.toLowerCase();
-
-  String get ignoreUniqueName {
-    String uniqueName = diagnosticCode.uniqueName;
-    int period = uniqueName.indexOf('.');
-    if (period >= 0) {
-      uniqueName = uniqueName.substring(period + 1);
-    }
-    return uniqueName.toLowerCase();
-  }
 }
 
 extension on List<IgnoredElement> {
