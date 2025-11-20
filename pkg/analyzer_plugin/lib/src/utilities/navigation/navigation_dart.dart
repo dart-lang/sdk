@@ -338,11 +338,13 @@ class _DartNavigationComputerVisitor extends RecursiveAstVisitor<void> {
     var nameToken = node.name;
     if (nameToken == null) {
       computer._addRegionForElement(
-        node.returnType,
+        // TODO(scheglov): support primary constructors
+        node.typeName!,
         node.declaredFragment?.element,
       );
     } else {
-      node.returnType.accept(this);
+      // TODO(scheglov): support primary constructors
+      node.typeName!.accept(this);
       computer._addRegionForFragment(nameToken, node.declaredFragment);
     }
 

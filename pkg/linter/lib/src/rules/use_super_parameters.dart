@@ -255,7 +255,8 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   void _reportLint(ConstructorDeclaration node, List<String> identifiers) {
     if (identifiers.isEmpty) return;
-    var target = node.name ?? node.returnType;
+    // TODO(scheglov): support primary constructors
+    var target = node.name ?? node.typeName!;
     if (identifiers.length > 1) {
       var msg = identifiers.quotedAndCommaSeparatedWithAnd;
       rule.reportAtOffset(

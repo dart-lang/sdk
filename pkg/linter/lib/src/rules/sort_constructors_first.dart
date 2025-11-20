@@ -44,7 +44,8 @@ class _Visitor extends SimpleAstVisitor<void> {
     for (var member in members) {
       if (member is ConstructorDeclaration) {
         if (other) {
-          rule.reportAtNode(member.returnType);
+          // TODO(scheglov): support primary constructors
+          rule.reportAtNode(member.typeName);
         }
       } else {
         other = true;

@@ -555,7 +555,8 @@ class _Visitor extends SimpleAstVisitor<void> {
           var name = member.name;
           if (name == null) {
             rule.reportAtNode(
-              member.returnType,
+              // TODO(scheglov): support primary constructors
+              member.typeName,
               arguments: [member.nameForError],
             );
           } else {
@@ -708,7 +709,8 @@ extension on Declaration {
         return self.namePart.typeName.lexeme;
       case ConstructorDeclaration():
         var name = self.name?.lexeme ?? 'new';
-        return '${self.returnType.name}.$name';
+        // TODO(scheglov): support primary constructors
+        return '${self.typeName!.name}.$name';
       case EnumConstantDeclaration():
         return self.name.lexeme;
       case EnumDeclaration():
