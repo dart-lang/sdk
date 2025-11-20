@@ -138,6 +138,36 @@ void f() {
     await assertNoFix();
   }
 
+  Future<void> test_noFixWhenLintIsIgnored() async {
+    createAnalysisOptionsFile(
+      errors: {LintNames.always_specify_types: 'ignore'},
+      lints: [LintNames.always_specify_types],
+    );
+
+    await resolveTestCode('''
+void f() {
+  var a = 1;
+  print(a);
+}
+''');
+    await assertNoFix();
+  }
+
+  Future<void> test_noFixWhenLintIsUnignorable() async {
+    createAnalysisOptionsFile(
+      cannotIgnore: [LintNames.always_specify_types],
+      lints: [LintNames.always_specify_types],
+    );
+
+    await resolveTestCode('''
+void f() {
+  var a = 1;
+  print(a);
+}
+''');
+    await assertNoFix();
+  }
+
   Future<void> test_onlyIncludeLabel() async {
     // This overwrites the file created by `super.setUp` method.
     // Having a newline is important because yaml_edit copies existing

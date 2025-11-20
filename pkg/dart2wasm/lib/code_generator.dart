@@ -4511,9 +4511,16 @@ class SwitchInfo {
       Map<int, SwitchCase> caseMap = {};
       for (final c in node.cases) {
         for (final e in c.expressions) {
+          if (e is NullLiteral ||
+              (e is ConstantExpression && e.constant is NullConstant)) {
+            // Null already handled above.
+            continue;
+          }
+
           final value = e is IntLiteral
               ? e.value
               : ((e as ConstantExpression).constant as IntConstant).value;
+
           caseMap[value] = c;
           if (minValue == null || value < minValue) minValue = value;
           if (maxValue == null || value > maxValue) maxValue = value;
@@ -4552,6 +4559,11 @@ class SwitchInfo {
       outer:
       for (final c in node.cases) {
         for (final e in c.expressions) {
+          if (e is NullLiteral ||
+              (e is ConstantExpression && e.constant is NullConstant)) {
+            // Null already handled above.
+            continue;
+          }
           if (e is! ConstantExpression) {
             isValid = false;
             break outer;

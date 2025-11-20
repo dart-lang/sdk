@@ -37,7 +37,7 @@ class ErrorProcessorMatcher extends Matcher {
   @override
   bool matches(dynamic o, Map<dynamic, dynamic> options) {
     return o is ErrorProcessor &&
-        o.code.toUpperCase() == required.code.toUpperCase() &&
+        o.code == required.code &&
         o.severity == required.severity;
   }
 }
