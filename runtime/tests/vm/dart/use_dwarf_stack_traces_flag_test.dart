@@ -19,6 +19,12 @@ import 'use_flag_test_helper.dart';
 import 'use_dwarf_stack_traces_flag_helper.dart';
 
 Future<void> main() async {
+  bool hasDsymutil = true;
+  if (Platform.isWindows || isSimulator) {
+    // Currently dsymutil isn't available in these cases, so don't run
+    // the corresponding test (but do in the future if it becomes available).
+    hasDsymutil = llvmTool('dsymutil') != null;
+  }
   await runTests(
     'dwarf-flag-test',
     path.join(
@@ -33,7 +39,7 @@ Future<void> main() async {
     [
       runElf,
       runMachODylib,
-      runMachODsym,
+      if (hasDsymutil) runMachODsym,
       // Don't run assembly on Windows since DLLs don't contain DWARF.
       if (!Platform.isWindows) runAssembly,
     ],
