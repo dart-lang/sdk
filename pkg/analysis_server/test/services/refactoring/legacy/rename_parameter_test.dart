@@ -496,6 +496,56 @@ class B extends A {
 ''');
   }
 
+  Future<void> test_dotShorthandConstructorInvocation() async {
+    await indexTestUnit('''
+void foo() {
+  A _ = .new(va^lue: 42);
+}
+
+class A {
+  A({required int value});
+}
+''');
+    createRenameRefactoring();
+    expect(refactoring.oldName, 'value');
+    refactoring.newName = 'newName';
+    await assertSuccessfulRefactoring('''
+void foo() {
+  A _ = .new(newName: 42);
+}
+
+class A {
+  A({required int newName});
+}
+''');
+  }
+
+  Future<void> test_dotShorthandInvocation() async {
+    await indexTestUnit('''
+void foo() {
+  A _ = .foo(va^lue: 42);
+}
+
+class A {
+  A();
+  static A foo({required int value}) => A();
+}
+''');
+    createRenameRefactoring();
+    expect(refactoring.oldName, 'value');
+    refactoring.newName = 'newName';
+    await assertSuccessfulRefactoring('''
+void foo() {
+  A _ = .foo(newName: 42);
+}
+
+class A {
+  A();
+  static A foo({required int newName}) => A();
+}
+''');
+  }
+
   Future<void> test_function_shadow() async {
     await indexTestUnit('''
 void function(int a) {

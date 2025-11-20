@@ -868,6 +868,7 @@ class _IndexContributor extends GeneralizingAstVisitor {
       node.constructorName,
       true,
     );
+    node.argumentList.accept(this);
   }
 
   @override
