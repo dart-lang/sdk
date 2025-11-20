@@ -17,8 +17,6 @@ import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/token.dart';
 import 'package:analyzer/src/fasta/ast_builder.dart';
 
-export 'package:analyzer/src/dart/error/syntactic_errors.dart';
-
 /// A parser used to parse tokens into an AST structure.
 class Parser {
   late Token currentToken;

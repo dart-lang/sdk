@@ -776,30 +776,6 @@ LocatableDiagnostic $withArgumentsName({$withArgumentsParams}) {
     return out.toString();
   }
 
-  /// Generates a dart declaration for this diagnostic, suitable for inclusion
-  /// in the diagnostic class [className].
-  ///
-  /// The generated code simply redirects to the primary definition of the
-  /// diagnostic, imported from `diagnostic.g.dart` using the import prefix
-  /// `diag`.
-  void toAnalyzerRedirectCode({required MemberAccumulator memberAccumulator}) {
-    var ConstantStyle(:staticType) = constantStyle;
-    var constant = StringBuffer();
-    outputConstantHeader(constant);
-    constant.writeln('  static const $staticType $constantName =');
-    constant.writeln('    diag.$constantName;');
-    memberAccumulator.constants[constantName] = constant.toString();
-  }
-
-  /// Generates the appropriate declaration for this diagnostic to include in
-  /// the diagnostic class.
-  void toClassMember({
-    String? sharedNameReference,
-    required MemberAccumulator memberAccumulator,
-  }) {
-    toAnalyzerRedirectCode(memberAccumulator: memberAccumulator);
-  }
-
   String _computeExpectedTypes() {
     var expectedTypes = [
       for (var parameter in parameters.values)
