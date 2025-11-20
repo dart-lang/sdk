@@ -5698,6 +5698,18 @@ class Parser {
           identifier,
           IdentifierContext.methodDeclaration,
         );
+        // Recovery: This call only does something if the next token is
+        // a '.' --- that's not legal for constructors using 'new' so we'll
+        // report an error and recover better by allowing it.
+        Token qualified = parseQualifiedRestOpt(
+          token,
+          IdentifierContext.methodDeclarationContinuation,
+        );
+        if (token != qualified) {
+          hasQualifiedName = true;
+          reportRecoverableError(token, codes.codeNewConstructorQualifiedName);
+        }
+        token = qualified;
       } else {
         listener.handleNoIdentifier(token, IdentifierContext.methodDeclaration);
       }

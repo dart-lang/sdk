@@ -1406,11 +1406,16 @@ class YieldStatement extends Statement {
 }
 
 abstract interface class VariableDeclaration
-    implements Annotatable, Statement, ExpressionVariable {
+    implements
+        Annotatable,
+        Statement,
+        ExpressionVariable,
+        VariableInitialization {
   /// The name of the variable as provided in the source code.
   ///
   /// The name of a variable can only be omitted if the variable is synthesized.
   /// Otherwise, its name is as provided in the source code.
+  @override
   abstract String? name;
 
   /// The declared or inferred type of the variable.
@@ -1533,9 +1538,11 @@ abstract interface class VariableDeclaration
   /// Valid values are from 0 and up, or -1 ([TreeNode.noOffset])
   /// if the equals sign offset is not available (e.g. if not initialized)
   /// (this is the default if none is specifically set).
+  @override
   abstract int fileEqualsOffset;
 
   /// Offset of the declaration, set and used when writing the binary.
+  @override
   abstract int binaryOffsetNoTag;
 
   /// List of metadata annotations on the variable declaration.
@@ -1545,6 +1552,7 @@ abstract interface class VariableDeclaration
   @override
   abstract List<Expression> annotations;
 
+  @override
   void clearAnnotations();
 
   factory VariableDeclaration(String? name,
@@ -1925,6 +1933,9 @@ class VariableStatement extends Statement implements VariableDeclaration {
 
   @override
   ExpressionVariable get asExpressionVariable => this;
+
+  @override
+  ExpressionVariable get variable => this;
 }
 
 /// Declaration a local function.
@@ -1990,10 +2001,9 @@ class FunctionDeclaration extends Statement implements LocalFunction {
 /// The statement that marks the declaration of the variable in the source Dart
 /// program. If the [initializer] is `null`, the variable was declared without
 /// an initializer.
-class VariableInitialization extends Statement implements VariableDeclaration {
+class VariableInitialization extends Statement implements Annotatable {
   final ExpressionVariable variable;
 
-  @override
   Expression? initializer;
 
   VariableInitialization({required this.variable, required this.initializer}) {
@@ -2003,121 +2013,92 @@ class VariableInitialization extends Statement implements VariableDeclaration {
   static const int FlagHasDeclaredInitializer = 1 << 0;
   static const int FlagErroneouslyInitialized = 1 << 1;
 
-  @override
   int flags = 0;
 
-  @override
   bool get hasDeclaredInitializer => flags & FlagHasDeclaredInitializer != 0;
 
-  @override
   void set hasDeclaredInitializer(bool value) {
     flags = value
         ? (flags | FlagHasDeclaredInitializer)
         : (flags & ~FlagHasDeclaredInitializer);
   }
 
-  @override
   bool get isErroneouslyInitialized => flags & FlagErroneouslyInitialized != 0;
 
-  @override
   void set isErroneouslyInitialized(bool value) {
     flags = value
         ? (flags | FlagErroneouslyInitialized)
         : (flags & ~FlagErroneouslyInitialized);
   }
 
-  @override
   bool get isConst => variable.isConst;
 
-  @override
   void set isConst(bool value) {
     variable.isConst = value;
   }
 
-  @override
   bool get isCovariantByClass => variable.isCovariantByClass;
 
-  @override
   void set isCovariantByClass(bool value) {
     variable.isCovariantByClass = value;
   }
 
-  @override
   bool get isCovariantByDeclaration => variable.isCovariantByDeclaration;
 
-  @override
   void set isCovariantByDeclaration(bool value) {
     variable.isCovariantByDeclaration = value;
   }
 
-  @override
   bool get isFinal => variable.isFinal;
 
-  @override
   void set isFinal(bool value) {
     variable.isFinal = value;
   }
 
-  @override
   bool get isHoisted => variable.isHoisted;
 
-  @override
   void set isHoisted(bool value) {
     variable.isHoisted = value;
   }
 
-  @override
   bool get isInitializingFormal => variable.isInitializingFormal;
 
-  @override
   void set isInitializingFormal(bool value) {
     variable.isInitializingFormal = value;
   }
 
-  @override
   bool get isLate => variable.isLate;
 
-  @override
   void set isLate(bool value) {
     variable.isLate = value;
   }
 
-  @override
   bool get isLowered => variable.isLowered;
 
-  @override
   void set isLowered(bool value) {
     variable.isLowered = value;
   }
 
-  @override
   bool get isRequired => variable.isRequired;
 
-  @override
   void set isRequired(bool value) {
     variable.isRequired = value;
   }
 
-  @override
   bool get isSuperInitializingFormal => variable.isSuperInitializingFormal;
 
-  @override
   void set isSuperInitializingFormal(bool value) {
     variable.isSuperInitializingFormal = value;
   }
 
-  @override
   bool get isSynthesized => variable.isSynthesized;
 
-  @override
   void set isSynthesized(bool value) {
     variable.isSynthesized = value;
   }
 
-  @override
   bool get isWildcard => variable.isWildcard;
 
-  @override
   void set isWildcard(bool value) {
     variable.isWildcard = value;
   }
@@ -2177,24 +2158,18 @@ class VariableInitialization extends Statement implements VariableDeclaration {
   @override
   List<Expression> annotations = const <Expression>[];
 
-  @override
   int binaryOffsetNoTag = TreeNode.noOffset;
 
-  @override
   int fileEqualsOffset = TreeNode.noOffset;
 
-  @override
   String? get name => variable.cosmeticName;
 
-  @override
   void set name(String? value) {
     variable.cosmeticName = value;
   }
 
-  @override
   DartType get type => variable.type;
 
-  @override
   void set type(DartType value) {
     variable.type = value;
   }
@@ -2207,33 +2182,25 @@ class VariableInitialization extends Statement implements VariableDeclaration {
     annotations.add(node..parent = this);
   }
 
-  @override
   void clearAnnotations() {
     annotations = const <Expression>[];
   }
 
-  @override
   bool get isAssignable => variable.isAssignable;
 
-  @override
   String? get cosmeticName => variable.cosmeticName;
 
-  @override
   void set cosmeticName(String? value) {
     variable.cosmeticName = value;
   }
 
-  @override
   VariableInitialization? get variableInitialization => this;
 
-  @override
   void set variableInitialization(VariableInitialization? value) {
     throw new UnsupportedError("${this.runtimeType}");
   }
 
-  @override
   VariableContext get context => variable.context;
 
-  @override
-  ExpressionVariable get asExpressionVariable => this;
+  ExpressionVariable get asExpressionVariable => variable;
 }

@@ -108,8 +108,6 @@ abstract class CompilerConfiguration {
       case Compiler.dart2bytecode:
         return BytecodeCompilerConfiguration(configuration);
     }
-
-    throw "unreachable";
   }
 
   CompilerConfiguration._subclass(this._configuration);
@@ -1086,6 +1084,8 @@ class PrecompilerCompilerConfiguration extends CompilerConfiguration
         case Architecture.simriscv64:
           target = ['-arch', 'riscv64'];
           break;
+        default:
+          throw 'Unhandled architecture: ${_configuration.architecture}';
       }
     } else if (Platform.isWindows) {
       cc = 'buildtools\\win-x64\\clang\\bin\\clang.exe';
@@ -1103,6 +1103,8 @@ class PrecompilerCompilerConfiguration extends CompilerConfiguration
         case Architecture.simarm64c:
           target = ['--target=arm64-windows'];
           break;
+        default:
+          throw 'Unhandled architecture: ${_configuration.architecture}';
       }
       ldFlags.add('-nostdlib');
       ldFlags.add('-Wl,/NOENTRY');

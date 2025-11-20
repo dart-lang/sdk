@@ -11336,6 +11336,20 @@ negativeVariableDimension = DiagnosticWithoutArgumentsImpl(
   expectedTypes: [],
 );
 
+/// No parameters.
+const DiagnosticWithoutArguments
+newConstructorQualifiedName = DiagnosticWithoutArgumentsImpl(
+  name: 'NEW_CONSTRUCTOR_QUALIFIED_NAME',
+  problemMessage:
+      "Constructors declared with the 'new' keyword can't have qualified names.",
+  correctionMessage:
+      "Try removing the class name prefix from the qualified name or "
+      "removing the 'new' keyword.",
+  type: DiagnosticType.SYNTACTIC_ERROR,
+  uniqueName: 'ParserErrorCode.NEW_CONSTRUCTOR_QUALIFIED_NAME',
+  expectedTypes: [],
+);
+
 /// Parameters:
 /// String p0: the name of the non-type element
 const DiagnosticWithArguments<

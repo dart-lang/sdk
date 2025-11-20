@@ -25,8 +25,9 @@ sealed class Variable extends TreeNode {
 /// implementations of the sealed class [ExpressionVariable]. It's not supposed
 /// to be used as a type annotation, but purely for declaring the class
 /// hierarchy.
-abstract interface class IExpressionVariable {
+abstract interface class IExpressionVariable implements TreeNode {
   abstract DartType type;
+  abstract String? cosmeticName;
   abstract VariableInitialization? variableInitialization;
   abstract Expression? initializer;
   abstract bool isFinal;

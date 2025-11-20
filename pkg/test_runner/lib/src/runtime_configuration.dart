@@ -57,10 +57,12 @@ abstract class RuntimeConfiguration {
           return DartkFuchsiaEmulatorRuntimeConfiguration(true);
         }
         return DartPrecompiledRuntimeConfiguration(
-            configuration.genSnapshotFormat == GenSnapshotFormat.elf,
-          );
+          configuration.genSnapshotFormat == GenSnapshotFormat.elf,
+        );
+
+      default:
+        throw "unreachable";
     }
-    throw "unreachable";
   }
 
   factory RuntimeConfiguration(TestConfiguration configuration) {
@@ -290,32 +292,33 @@ class JsshellRuntimeConfiguration extends CommandLineJavaScriptRuntime {
   }
 }
 
-class QemuConfig {
+enum QemuConfig {
+  ia32._('qemu-i386', '/usr/lib/i386-linux-gnu/'),
+  x64._('qemu-x86_64', '/usr/lib/x86_64-linux-gnu/'),
+  arm._('qemu-arm', '/usr/arm-linux-gnueabihf/'),
+  arm64._('qemu-aarch64', '/usr/aarch64-linux-gnu/'),
+  riscv32._('qemu-riscv32', '/usr/riscv32-linux-gnu/'),
+  riscv64._('qemu-riscv64', '/usr/riscv64-linux-gnu/');
+
   static const all = <Architecture, QemuConfig>{
-    Architecture.ia32:
-        QemuConfig('qemu-i386', '/usr/lib/i386-linux-gnu/'),
-    Architecture.x64:
-        QemuConfig('qemu-x86_64', '/usr/lib/x86_64-linux-gnu/'),
-    Architecture.x64c:
-        QemuConfig('qemu-x86_64', '/usr/lib/x86_64-linux-gnu/'),
-    Architecture.arm:
-        QemuConfig('qemu-arm', '/usr/arm-linux-gnueabihf/'),
-    Architecture.arm64:
-        QemuConfig('qemu-aarch64', '/usr/aarch64-linux-gnu/'),
-    Architecture.simarm64_arm64:
-        QemuConfig('qemu-aarch64', '/usr/aarch64-linux-gnu/'),
-    Architecture.arm64c:
-        QemuConfig('qemu-aarch64', '/usr/aarch64-linux-gnu/'),
-    Architecture.riscv32:
-        QemuConfig('qemu-riscv32', '/usr/riscv32-linux-gnu/'),
-    Architecture.riscv64:
-        QemuConfig('qemu-riscv64', '/usr/riscv64-linux-gnu/'),
+    Architecture.ia32: QemuConfig.ia32,
+    Architecture.x64: QemuConfig.x64,
+    Architecture.x64c: QemuConfig.x64,
+    Architecture.arm: QemuConfig.arm,
+    Architecture.arm64: QemuConfig.arm64,
+    Architecture.simarm64_arm64: QemuConfig.arm64,
+    Architecture.arm64c: QemuConfig.arm64,
+    Architecture.riscv32: QemuConfig.riscv32,
+    Architecture.riscv64: QemuConfig.riscv64,
   };
 
   final String executable;
   final String elfInterpreterPrefix;
 
-  const QemuConfig(this.executable, this.elfInterpreterPrefix);
+  const QemuConfig._(this.executable, this.elfInterpreterPrefix);
+
+  @override
+  String toString() => executable;
 }
 
 /// Common runtime configuration for runtimes based on the Dart VM.
@@ -338,6 +341,8 @@ class DartVmRuntimeConfiguration extends RuntimeConfiguration {
       case Architecture.simriscv32:
       case Architecture.simriscv64:
         multiplier *= 4;
+        break;
+      default:
         break;
     }
 
@@ -371,6 +376,7 @@ class DartVmRuntimeConfiguration extends RuntimeConfiguration {
       case Sanitizer.ubsan:
         multiplier *= 1;
         break;
+      case Sanitizer.hwasan:
       case Sanitizer.asan:
       case Sanitizer.msan:
         multiplier *= 2;

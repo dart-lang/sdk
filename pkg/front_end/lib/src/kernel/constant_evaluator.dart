@@ -2181,7 +2181,7 @@ class ConstantsTransformer extends RemovingTransformer {
 
   @override
   TreeNode visitVariableGet(VariableGet node, TreeNode? removalSentinel) {
-    final ExpressionVariable variable = node.variable;
+    final ExpressionVariable variable = node.expressionVariable;
     if (variable.isConst) {
       variable.initializer = evaluateAndTransformWithContext(
         variable,

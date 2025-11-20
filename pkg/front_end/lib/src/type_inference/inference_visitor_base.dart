@@ -4289,15 +4289,15 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
   /// If [node] is provided, it is used as the basis for the resulting
   /// expression, otherwise a new [VariableGet] is created.
   ExpressionInferenceResult inferVariableGet({
-    required VariableDeclarationImpl variable,
+    required InternalExpressionVariable variable,
     required DartType typeContext,
     required int nameOffset,
     VariableGet? node,
   }) {
-    node ??= new VariableGet(variable)..fileOffset = nameOffset;
+    node ??= new VariableGet(variable.astVariable)..fileOffset = nameOffset;
     DartType? promotedType;
     DartType declaredOrInferredType = variable.lateType ?? variable.type;
-    if (isExtensionThis(variable)) {
+    if (isExtensionThis(variable.astVariable)) {
       flowAnalysis.thisOrSuper(
         node,
         new SharedTypeView(variable.type),
@@ -4306,7 +4306,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
     } else if (!variable.isLocalFunction) {
       // Don't promote local functions.
       promotedType = flowAnalysis
-          .variableRead(node, variable)
+          .variableRead(node, variable.astVariable)
           ?.unwrapTypeView();
     }
     node.promotedType = promotedType;
@@ -4325,10 +4325,10 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
       // expression information.
       flowAnalysis.forwardExpression(resultExpression, node);
     } else {
-      resultExpression = node;
+      resultExpression = node..expressionVariable = variable.astVariable;
     }
 
-    bool isUnassigned = !flowAnalysis.isAssigned(variable);
+    bool isUnassigned = !flowAnalysis.isAssigned(variable.astVariable);
     if (isUnassigned) {
       dataForTesting
           // Coverage-ignore(suite): Not run.
@@ -4336,7 +4336,9 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
           .potentiallyUnassignedNodes // Coverage-ignore(suite): Not run.
           .add(node);
     }
-    bool isDefinitelyUnassigned = flowAnalysis.isUnassigned(variable);
+    bool isDefinitelyUnassigned = flowAnalysis.isUnassigned(
+      variable.astVariable,
+    );
     if (isDefinitelyUnassigned) {
       dataForTesting
           // Coverage-ignore(suite): Not run.
@@ -4346,12 +4348,12 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
     }
     // Synthetic variables, local functions, and variables with
     // invalid types aren't checked.
-    if (variable.name != null &&
+    if (variable.cosmeticName != null &&
         !variable.isLocalFunction &&
         declaredOrInferredType is! InvalidType) {
       if (variable.isLate || variable.lateGetter != null) {
         if (isDefinitelyUnassigned) {
-          String name = variable.lateName ?? variable.name!;
+          String name = variable.lateName ?? variable.cosmeticName!;
           return new ExpressionInferenceResult(
             resultType,
             problemReporting.wrapInProblem(
@@ -4387,11 +4389,11 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
                 compilerContext: compilerContext,
                 expression: resultExpression,
                 message: codeNonNullableNotAssignedError.withArgumentsOld(
-                  node.variable.name!,
+                  node.expressionVariable.cosmeticName!,
                 ),
                 fileUri: fileUri,
                 fileOffset: node.fileOffset,
-                length: node.variable.name!.length,
+                length: node.expressionVariable.cosmeticName!.length,
               ),
             );
           }
@@ -4405,10 +4407,10 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
   /// Computes the possible promoted variable type of [variable] and the type
   /// context for the value expression in a local set to [variable].
   (DartType variableType, DartType writeContext)
-  computeVariableSetTypeAndWriteContext(VariableDeclarationImpl variable) {
+  computeVariableSetTypeAndWriteContext(InternalExpressionVariable variable) {
     DartType declaredOrInferredType = variable.lateType ?? variable.type;
     DartType? promotedType = flowAnalysis
-        .promotedType(variable)
+        .promotedType(variable.astVariable)
         ?.unwrapTypeView();
     return (declaredOrInferredType, promotedType ?? declaredOrInferredType);
   }
@@ -4419,15 +4421,17 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
   /// If [node] is provided, it is used as the basis for the resulting
   /// expression, otherwise a new [VariableSet] is created.
   ExpressionInferenceResult inferVariableSet({
-    required VariableDeclarationImpl variable,
+    required InternalExpressionVariable variable,
     required DartType variableType,
     required ExpressionInferenceResult rhsResult,
     required int assignOffset,
     required int nameOffset,
     VariableSet? node,
   }) {
-    bool isDefinitelyAssigned = flowAnalysis.isAssigned(variable);
-    bool isDefinitelyUnassigned = flowAnalysis.isUnassigned(variable);
+    bool isDefinitelyAssigned = flowAnalysis.isAssigned(variable.astVariable);
+    bool isDefinitelyUnassigned = flowAnalysis.isUnassigned(
+      variable.astVariable,
+    );
     rhsResult = ensureAssignableResult(
       variableType,
       rhsResult,
@@ -4435,10 +4439,11 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
       isVoidAllowed: variableType is VoidType,
     );
     Expression rhs = rhsResult.expression;
-    node ??= new VariableSet(variable, rhs)..fileOffset = nameOffset;
+    node ??= new VariableSet(variable.astVariable, rhs)
+      ..fileOffset = nameOffset;
     flowAnalysis.write(
       node,
-      variable,
+      variable.astVariable,
       new SharedTypeView(rhsResult.inferredType),
       rhsResult.expression,
     );
@@ -4456,11 +4461,11 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
       flowAnalysis.forwardExpression(resultExpression, node);
     } else {
       node.value = rhs..parent = node;
-      resultExpression = node;
+      resultExpression = node..expressionVariable = variable.astVariable;
     }
     // Synthetic variables, local functions, and variables with
     // invalid types aren't checked.
-    if (variable.name != null &&
+    if (variable.cosmeticName != null &&
         !variable.isLocalFunction &&
         variableType is! InvalidType) {
       if ((variable.isLate && variable.isFinal) ||
@@ -4882,7 +4887,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
       }
     }
     if (expression is VariableGet) {
-      ExpressionVariable variable = expression.variable;
+      ExpressionVariable variable = expression.expressionVariable;
       if (variable is VariableDeclarationImpl && variable.isLocalFunction) {
         return codeInvalidCastLocalFunction;
       }

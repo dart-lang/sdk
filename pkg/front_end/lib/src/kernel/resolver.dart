@@ -1013,8 +1013,7 @@ class Resolver {
     if (!variable.isLocalFunction && !variable.isWildcard) {
       assignedVariables.read(variable);
     }
-    return new VariableGet(variable.asExpressionVariable)
-      ..fileOffset = fileOffset;
+    return new VariableGet(variable.astVariable)..fileOffset = fileOffset;
   }
 
   void _declareFormals({

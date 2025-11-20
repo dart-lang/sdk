@@ -497,7 +497,7 @@ class VariableUseGenerator extends Generator {
     _helper.registerVariableRead(variable);
     _helper.registerVariableAssignment(variable);
     return new LocalIncDec(
-      variable: variable as VariableDeclarationImpl,
+      variable: variable as InternalExpressionVariable,
       forEffect: forEffect,
       isPost: isPost,
       isInc: binaryOperator == plusName,
