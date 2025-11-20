@@ -139,9 +139,10 @@ class DartUnitHoverComputer {
     } else if (node is DotShorthandConstructorInvocation) {
       return (offset: node.offset, length: node.length);
     } else if (node is ConstructorDeclaration) {
-      var offset = node.returnType.offset;
-      var end = node.name?.end ?? node.returnType.end;
-      var length = end - node.returnType.offset;
+      // TODO(scheglov): support primary constructors
+      var offset = node.typeName!.offset;
+      var end = node.name?.end ?? node.typeName!.end;
+      var length = end - node.typeName!.offset;
       return (offset: offset, length: length);
     } else {
       return (offset: entity.offset, length: entity.length);
@@ -201,7 +202,7 @@ class DartUnitHoverComputer {
       PostfixExpression() => node.operator,
       CatchClauseParameter() => node.name,
       ClassDeclaration() => node.namePart.typeName,
-      ConstructorDeclaration() => node.name ?? node.returnType,
+      ConstructorDeclaration() => node.name ?? node.typeName!,
       DeclaredIdentifier() => node.name,
       EnumDeclaration() => node.namePart.typeName,
       Expression() => node,

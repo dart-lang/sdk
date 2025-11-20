@@ -148,9 +148,11 @@ class AstWriter extends UnifyingAstVisitor<void> with TreeWriter {
     } else if (node is ConstructorDeclaration) {
       var name = node.name;
       if (name == null) {
-        return node.returnType.name;
+        // TODO(scheglov): support primary constructors
+        return node.typeName!.name;
       } else {
-        return '${node.returnType.name}.${name.lexeme}';
+        // TODO(scheglov): support primary constructors
+        return '${node.typeName!.name}.${name.lexeme}';
       }
     } else if (node is ConstructorName) {
       return node.toSource();

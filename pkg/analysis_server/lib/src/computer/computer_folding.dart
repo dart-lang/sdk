@@ -279,7 +279,8 @@ class _DartUnitFoldingComputerVisitor extends RecursiveAstVisitor<void> {
   void visitConstructorDeclaration(ConstructorDeclaration node) {
     _computer._addRegionForAnnotations(node.metadata);
     _computer._addRegion(
-      node.name?.end ?? node.returnType.end,
+      // TODO(scheglov): support primary constructors
+      node.name?.end ?? node.typeName!.end,
       node.end,
       FoldingKind.FUNCTION_BODY,
     );

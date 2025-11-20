@@ -116,7 +116,8 @@ class DartUnitOccurrencesComputerVisitor extends GeneralizingAstVisitor<void> {
     } else {
       _addOccurrence(
         node.declaredFragment!.element,
-        node.returnType.beginToken,
+        // TODO(scheglov): support primary constructors
+        node.typeName!.beginToken,
       );
     }
 
@@ -341,8 +342,8 @@ class DartUnitOccurrencesComputerVisitor extends GeneralizingAstVisitor<void> {
     // for the constructor (not the type).
     if (node.parent case ConstructorDeclaration(
       :var name,
-      :var returnType,
-    ) when name == null && node == returnType) {
+      :var typeName,
+    ) when name == null && node == typeName) {
       return;
     }
 
