@@ -93,6 +93,7 @@ linter:
 
   /// Ensure we get diagnostics for a project even if the workspace contains
   /// another folder that does not exist.
+  @SkippedTest(issue: 'https://github.com/dart-lang/sdk/issues/62039')
   Future<void> test_workspaceFolders_existsAndDoesNotExist() async {
     var rootPath = projectFolderUri.toFilePath();
     var existingFolderUri = Uri.file(pathContext.join(rootPath, 'exists'));

@@ -4,6 +4,7 @@
 
 import 'dart:async';
 import 'dart:collection';
+import 'dart:io';
 
 import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/lsp/handlers/handlers.dart';
@@ -169,9 +170,6 @@ abstract class ContextManagerCallbacks {
 /// Class that maintains a mapping from included/excluded paths to a set of
 /// folders that should correspond to analysis contexts.
 class ContextManagerImpl implements ContextManager {
-  /// The max number of tries to add watchers while building contexts.
-  static const int _maxWatcherRetries = 5;
-
   /// The [OverlayResourceProvider] used to check for the existence of overlays
   /// and to convert paths into [Resource].
   final OverlayResourceProvider resourceProvider;
@@ -215,9 +213,6 @@ class ContextManagerImpl implements ContextManager {
   /// [setRoots].
   @override
   List<String> includedPaths = <String>[];
-
-  /// The number of trials to create watchers for the files in the context.
-  int _watcherRetries = 0;
 
   /// The instrumentation service used to report instrumentation data.
   final InstrumentationService _instrumentationService;
@@ -708,16 +703,23 @@ class ContextManagerImpl implements ContextManager {
                 // Errors in the watcher such as "Directory watcher closed
                 // unexpectedly" on Windows when the buffer overflows also
                 // require that we restarted to be consistent.
-                if (_watcherRetries < _maxWatcherRetries) {
-                  needsBuild = true;
-                  _watcherRetries++;
+                if (Platform.isLinux && error is FileSystemException) {
+                  if (error.message == 'Failed to watch path') {
+                    needsBuild = false;
+                    _instrumentationService.logError(
+                      'Watcher error; system limit on watchers has been reached.\n'
+                      '$error\n$stackTrace',
+                    );
+                  } else {
+                    needsBuild = true;
+                  }
                 } else {
-                  needsBuild = false;
+                  needsBuild = true;
+                  _instrumentationService.logError(
+                    'Temporary watcher error; restarting context build.\n'
+                    '$error\n$stackTrace',
+                  );
                 }
-                _instrumentationService.logError(
-                  'Temporary watcher error; restarting context build.\n'
-                  'watcherRetries:$_watcherRetries, needsBuild: $needsBuild, $error\n$stackTrace',
-                );
               },
             ),
           )
@@ -913,19 +915,21 @@ class ContextManagerImpl implements ContextManager {
       return;
     }
 
+    if (Platform.isLinux &&
+        error is FileSystemException &&
+        error.message == 'Failed to watch path') {
+      _instrumentationService.logError(
+        'Watcher error; not refreshing contexts '
+        'system limit on watchers has been reached.\n$error\n$stackTrace',
+      );
+      return;
+    }
+
     // We've handled the error, so we only have to log it.
     _instrumentationService.logError(
       'Watcher error; refreshing contexts.\n$error\n$stackTrace',
     );
-    // Retry a finite number of times.
-    if (_watcherRetries < _maxWatcherRetries) {
-      _watcherRetries++;
-      refresh();
-    } else {
-      _instrumentationService.logError(
-        'Error: Unable to create contexts, exiting ...',
-      );
-    }
+    refresh();
   }
 
   /// Checks whether the current roots were built using the same paths as
