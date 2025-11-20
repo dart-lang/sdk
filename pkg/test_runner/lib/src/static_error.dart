@@ -329,6 +329,8 @@ class StaticError implements Comparable<StaticError> {
         // TODO(rnystrom): If the web compilers report warnings, encode that in
         // the message somehow and then look for it here.
         return false;
+      default:
+        break;
     }
 
     throw UnsupportedError("ErrorSource ${source.name}");

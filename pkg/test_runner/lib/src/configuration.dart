@@ -380,6 +380,8 @@ class TestConfiguration {
       case Runtime.firefox:
         location = firefoxPath;
         break;
+      default:
+        break;
     }
 
     if (location != null) return location;

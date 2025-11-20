@@ -134,7 +134,7 @@ class Configuration {
       }
     }
 
-    T? enumOption<T extends NamedEnum>(
+    T? enumOption<T extends Enum>(
         String option, List<String> allowed, T Function(String) parse) {
       // Look up the value from the words in the name.
       T? fromName;
@@ -715,51 +715,37 @@ class Configuration {
   }
 }
 
-class Architecture extends NamedEnum {
-  static const ia32 = Architecture._('ia32');
-  static const x64 = Architecture._('x64');
-  static const x64c = Architecture._('x64c');
-  static const simx64 = Architecture._('simx64');
-  static const simx64c = Architecture._('simx64c');
-  static const arm = Architecture._('arm');
+enum Architecture {
+  ia32._('ia32'),
+  x64._('x64'),
+  x64c._('x64c'),
+  simx64._('simx64', isSimulator: true),
+  simx64c._('simx64c', isSimulator: true),
+  arm._('arm'),
   // ignore: constant_identifier_names
-  static const arm_x64 = Architecture._('arm_x64');
-  static const arm64 = Architecture._('arm64');
-  static const arm64c = Architecture._('arm64c');
-  static const simarm = Architecture._('simarm');
+  arm_x64._('arm_x64'),
+  arm64._('arm64'),
+  arm64c._('arm64c'),
+  simarm._('simarm', isSimulator: true),
   // ignore: constant_identifier_names
-  static const simarm_x64 = Architecture._('simarm_x64');
-  static const simarm64 = Architecture._('simarm64');
+  simarm_x64._('simarm_x64', isSimulator: true),
+  simarm64._('simarm64', isSimulator: true),
   // ignore: constant_identifier_names
-  static const simarm64_arm64 = Architecture._('simarm64_arm64');
-  static const simarm64c = Architecture._('simarm64c');
-  static const riscv32 = Architecture._('riscv32');
-  static const riscv64 = Architecture._('riscv64');
-  static const simriscv32 = Architecture._('simriscv32');
-  static const simriscv64 = Architecture._('simriscv64');
+  simarm64_arm64._('simarm64_arm64', isSimulator: true),
+  simarm64c._('simarm64c', isSimulator: true),
+  riscv32._('riscv32'),
+  riscv64._('riscv64'),
+  simriscv32._('simriscv32', isSimulator: true),
+  simriscv64._('simriscv64', isSimulator: true);
+
+  final String name;
+  final bool isSimulator;
+  const Architecture._(this.name, {this.isSimulator = false});
 
   static final List<String> names = _all.keys.toList();
 
-  static final _all = Map<String, Architecture>.fromIterable([
-    ia32,
-    x64,
-    x64c,
-    simx64,
-    simx64c,
-    arm,
-    arm_x64,
-    arm64,
-    arm64c,
-    simarm,
-    simarm_x64,
-    simarm64,
-    simarm64_arm64,
-    simarm64c,
-    riscv32,
-    riscv64,
-    simriscv32,
-    simriscv64,
-  ], key: (architecture) => (architecture as Architecture).name);
+  static final _all = Map<String, Architecture>.fromIterable(values,
+      key: (a) => (a as Architecture).name);
 
   static Architecture find(String name) {
     var architecture = _all[name];
@@ -768,23 +754,9 @@ class Architecture extends NamedEnum {
     throw ArgumentError('Unknown architecture "$name".');
   }
 
-  const Architecture._(super.name);
-
-  bool get isSimulator => _simulators.contains(this);
-  static final _simulators = <Architecture>{
-    simx64,
-    simx64c,
-    simarm,
-    simarm_x64,
-    simarm64,
-    simarm64c,
-    simriscv32,
-    simriscv64,
-  };
-
   static final Architecture host = _computeHost();
   static Architecture _computeHost() {
-    if (!const bool.hasEnvironment('dart.library.ffi')){
+    if (!const bool.hasEnvironment('dart.library.ffi')) {
       // We're inside a test which very likely uses the `isXConfiguration`
       // getters from  `package:expect/config.dart` which makes us
       // try to guess the [Configuration]`s architecture if it wasn't passed as
@@ -833,61 +805,92 @@ class Architecture extends NamedEnum {
 
     throw "Unknown host architecture: $arch";
   }
+
+  @override
+  String toString() => name;
 }
 
 /// Specifies the output format used by gen_snapshot to create AOT snapshots.
-class GenSnapshotFormat extends NamedEnum {
-  static const assembly = GenSnapshotFormat._('assembly', 'assembly');
-  static const elf = GenSnapshotFormat._('elf', 'elf');
-  static const machODylib = GenSnapshotFormat._('macho-dylib', 'macho');
+enum GenSnapshotFormat {
+  assembly('assembly', 'assembly'),
+  elf('elf', 'elf'),
+  machODylib('macho-dylib', 'macho');
+
+  final String name;
+  final String fileOption;
+
+  const GenSnapshotFormat(this.name, this.fileOption);
+
+  static final _all = Map<String, GenSnapshotFormat>.fromIterable(
+    values,
+    key: (f) => (f as GenSnapshotFormat).name,
+  );
 
   static final List<String> names = _all.keys.toList();
-
-  static final _all = Map<String, GenSnapshotFormat>.fromIterable([
-    assembly,
-    elf,
-    machODylib,
-  ], key: (format) => (format as GenSnapshotFormat).name);
 
   static GenSnapshotFormat find(String name) {
     var format = _all[name];
     if (format != null) return format;
-
     throw ArgumentError('Unknown gen_snapshot format "$name".');
   }
 
   String get snapshotType => 'app-aot-$name';
 
-  final String fileOption;
-  const GenSnapshotFormat._(super.name, this.fileOption);
+  @override
+  String toString() => name;
 }
 
-class Compiler extends NamedEnum {
-  static const dart2js = Compiler._('dart2js');
-  static const dart2analyzer = Compiler._('dart2analyzer');
-  static const dart2wasm = Compiler._('dart2wasm');
-  static const ddc = Compiler._('ddc');
-  static const appJitk = Compiler._('app_jitk');
-  static const dartk = Compiler._('dartk');
-  static const dartkp = Compiler._('dartkp');
-  static const specParser = Compiler._('spec_parser');
-  static const fasta = Compiler._('fasta');
-  static const dart2bytecode = Compiler._('dart2bytecode');
+enum Compiler {
+  // Note: by adding 'none' as a configuration, if the user
+  // runs test.py -c dart2js -r drt,none the dart2js_none and
+  // dart2js_drt will be duplicating work. If later we don't need 'none'
+  // with dart2js, we should remove it from here.
+  dart2js._('dart2js',
+      supportedRuntimes: [
+        Runtime.d8,
+        Runtime.jsshell,
+        Runtime.none,
+        Runtime.firefox,
+        Runtime.chrome,
+        Runtime.safari,
+        Runtime.edge,
+        Runtime.chromeOnAndroid,
+      ],
+      defaultMode: Mode.release),
+  dart2analyzer._('dart2analyzer', defaultMode: Mode.release),
+  dart2wasm._('dart2wasm',
+      supportedRuntimes: [
+        Runtime.none,
+        Runtime.jsc,
+        Runtime.jsshell,
+        Runtime.d8,
+        Runtime.chrome,
+        Runtime.firefox,
+        Runtime.safari,
+      ],
+      defaultMode: Mode.release),
+  ddc._('ddc',
+      supportedRuntimes: [
+        Runtime.none,
+        Runtime.d8,
+        Runtime.chrome,
+        Runtime.edge,
+        Runtime.firefox,
+        Runtime.safari,
+      ],
+      defaultMode: Mode.release),
+  appJitk._('app_jitk', supportedRuntimes: [Runtime.vm]),
+  dartk._('dartk', supportedRuntimes: [Runtime.vm]),
+  dartkp._('dartkp', supportedRuntimes: [Runtime.dartPrecompiled]),
+  specParser._('spec_parser'),
+  fasta._('fasta', defaultMode: Mode.release),
+  dart2bytecode._('dart2bytecode',
+      supportedRuntimes: [Runtime.vm, Runtime.dartPrecompiled]);
 
   static final List<String> names = _all.keys.toList();
 
-  static final _all = Map<String, Compiler>.fromIterable([
-    dart2js,
-    dart2analyzer,
-    dart2wasm,
-    ddc,
-    appJitk,
-    dartk,
-    dartkp,
-    specParser,
-    fasta,
-    dart2bytecode,
-  ], key: (compiler) => (compiler as Compiler).name);
+  static final _all = Map<String, Compiler>.fromIterable(values,
+      key: (c) => (c as Compiler).name);
 
   static Compiler find(String name) {
     var compiler = _all[name];
@@ -896,64 +899,12 @@ class Compiler extends NamedEnum {
     throw ArgumentError('Unknown compiler "$name".');
   }
 
-  const Compiler._(super.name);
-
-  /// Gets the runtimes this compiler can target.
-  List<Runtime> get supportedRuntimes {
-    switch (this) {
-      case Compiler.dart2js:
-        // Note: by adding 'none' as a configuration, if the user
-        // runs test.py -c dart2js -r drt,none the dart2js_none and
-        // dart2js_drt will be duplicating work. If later we don't need 'none'
-        // with dart2js, we should remove it from here.
-        return const [
-          Runtime.d8,
-          Runtime.jsshell,
-          Runtime.none,
-          Runtime.firefox,
-          Runtime.chrome,
-          Runtime.safari,
-          Runtime.edge,
-          Runtime.chromeOnAndroid,
-        ];
-
-      case Compiler.ddc:
-        return const [
-          Runtime.none,
-          Runtime.d8,
-          Runtime.chrome,
-          Runtime.edge,
-          Runtime.firefox,
-          Runtime.safari,
-        ];
-
-      case Compiler.dart2wasm:
-        return const [
-          Runtime.none,
-          Runtime.jsc,
-          Runtime.jsshell,
-          Runtime.d8,
-          Runtime.chrome,
-          Runtime.firefox,
-          Runtime.safari,
-        ];
-      case Compiler.dart2analyzer:
-        return const [Runtime.none];
-      case Compiler.appJitk:
-      case Compiler.dartk:
-        return const [Runtime.vm];
-      case Compiler.dartkp:
-        return const [Runtime.dartPrecompiled];
-      case Compiler.specParser:
-        return const [Runtime.none];
-      case Compiler.fasta:
-        return const [Runtime.none];
-      case Compiler.dart2bytecode:
-        return const [Runtime.vm, Runtime.dartPrecompiled];
-    }
-
-    throw "unreachable";
-  }
+  final String name;
+  final List<Runtime> supportedRuntimes;
+  final Mode defaultMode;
+  const Compiler._(this.name,
+      {this.supportedRuntimes = const [Runtime.none],
+      this.defaultMode = Mode.debug});
 
   /// The preferred runtime to use with this compiler if no other runtime is
   /// specified.
@@ -965,47 +916,28 @@ class Compiler extends NamedEnum {
         return Runtime.d8;
       case Compiler.ddc:
         return Runtime.chrome;
-      case Compiler.dart2analyzer:
-        return Runtime.none;
-      case Compiler.appJitk:
-      case Compiler.dartk:
-        return Runtime.vm;
       case Compiler.dartkp:
         return Runtime.dartPrecompiled;
-      case Compiler.specParser:
-      case Compiler.fasta:
-        return Runtime.none;
       case Compiler.dart2bytecode:
         return Runtime.dartPrecompiled;
-    }
-
-    throw "unreachable";
-  }
-
-  Mode get defaultMode {
-    switch (this) {
-      case Compiler.dart2analyzer:
-      case Compiler.dart2js:
-      case Compiler.dart2wasm:
-      case Compiler.ddc:
-      case Compiler.fasta:
-        return Mode.release;
-
       default:
-        return Mode.debug;
+        return supportedRuntimes.first;
     }
   }
+
+  @override
+  String toString() => name;
 }
 
-class Mode extends NamedEnum {
-  static const debug = Mode._('debug');
-  static const product = Mode._('product');
-  static const release = Mode._('release');
+enum Mode {
+  debug._('debug'),
+  product._('product'),
+  release._('release');
 
   static final List<String> names = _all.keys.toList();
 
-  static final _all = Map<String, Mode>.fromIterable([debug, product, release],
-      key: (mode) => (mode as Mode).name);
+  static final _all =
+      Map<String, Mode>.fromIterable(values, key: (m) => (m as Mode).name);
 
   static Mode find(String name) {
     var mode = _all[name];
@@ -1014,25 +946,28 @@ class Mode extends NamedEnum {
     throw ArgumentError('Unknown mode "$name".');
   }
 
-  const Mode._(super.name);
+  final String name;
+  const Mode._(this.name);
 
   bool get isDebug => this == debug;
+
+  @override
+  String toString() => name;
 }
 
-class Sanitizer extends NamedEnum {
-  static const none = Sanitizer._('none');
-  static const asan = Sanitizer._('asan');
-  static const hwasan = Sanitizer._('hwasan');
-  static const lsan = Sanitizer._('lsan');
-  static const msan = Sanitizer._('msan');
-  static const tsan = Sanitizer._('tsan');
-  static const ubsan = Sanitizer._('ubsan');
+enum Sanitizer {
+  none._('none'),
+  asan._('asan'),
+  hwasan._('hwasan'),
+  lsan._('lsan'),
+  msan._('msan'),
+  tsan._('tsan'),
+  ubsan._('ubsan');
 
   static final List<String> names = _all.keys.toList();
 
-  static final _all = Map<String, Sanitizer>.fromIterable(
-      [none, asan, hwasan, lsan, msan, tsan, ubsan],
-      key: (mode) => (mode as Sanitizer).name);
+  static final _all = Map<String, Sanitizer>.fromIterable(values,
+      key: (s) => (s as Sanitizer).name);
 
   static Sanitizer find(String name) {
     var mode = _all[name];
@@ -1041,39 +976,31 @@ class Sanitizer extends NamedEnum {
     throw ArgumentError('Unknown sanitizer "$name".');
   }
 
-  const Sanitizer._(super.name);
+  final String name;
+  const Sanitizer._(this.name);
+
+  @override
+  String toString() => name;
 }
 
-class Runtime extends NamedEnum {
-  static const vm = Runtime._('vm');
-  static const flutter = Runtime._('flutter');
-  static const dartPrecompiled = Runtime._('dart_precompiled');
-  static const d8 = Runtime._('d8');
-  static const jsc = Runtime._('jsc');
-  static const jsshell = Runtime._('jsshell');
-  static const firefox = Runtime._('firefox');
-  static const chrome = Runtime._('chrome');
-  static const safari = Runtime._('safari');
-  static const edge = Runtime._('edge');
-  static const chromeOnAndroid = Runtime._('chromeOnAndroid');
-  static const none = Runtime._('none');
+enum Runtime {
+  vm._('vm'),
+  flutter._('flutter'),
+  dartPrecompiled._('dart_precompiled'),
+  d8._('d8', isJSCommandLine: true),
+  jsc._('jsc', isJSCommandLine: true),
+  jsshell._('jsshell', isJSCommandLine: true),
+  firefox._('firefox', isBrowser: true),
+  chrome._('chrome', isBrowser: true),
+  safari._('safari', isBrowser: true),
+  edge._('edge', isBrowser: true),
+  chromeOnAndroid._('chromeOnAndroid', isBrowser: true),
+  none._('none');
 
   static final List<String> names = _all.keys.toList();
 
-  static final _all = Map<String, Runtime>.fromIterable([
-    vm,
-    flutter,
-    dartPrecompiled,
-    d8,
-    jsc,
-    jsshell,
-    firefox,
-    chrome,
-    safari,
-    edge,
-    chromeOnAndroid,
-    none
-  ], key: (runtime) => (runtime as Runtime).name);
+  static final _all = Map<String, Runtime>.fromIterable(values,
+      key: (r) => (r as Runtime).name);
 
   static Runtime find(String name) {
     var runtime = _all[name];
@@ -1082,15 +1009,15 @@ class Runtime extends NamedEnum {
     throw ArgumentError('Unknown runtime "$name".');
   }
 
-  const Runtime._(super.name);
-
-  bool get isBrowser =>
-      const [edge, safari, chrome, firefox, chromeOnAndroid].contains(this);
-
-  bool get isSafari => name.startsWith("safari");
+  final String name;
+  final bool isBrowser;
 
   /// Whether this runtime is a command-line JavaScript environment.
-  bool get isJSCommandLine => const [d8, jsc, jsshell].contains(this);
+  final bool isJSCommandLine;
+  const Runtime._(this.name,
+      {this.isBrowser = false, this.isJSCommandLine = false});
+
+  bool get isSafari => name.startsWith("safari");
 
   /// The preferred compiler to use with this runtime if no other compiler is
   /// specified.
@@ -1119,82 +1046,73 @@ class Runtime extends NamedEnum {
         // If we aren't running it, we probably just want to analyze it.
         return Compiler.dart2analyzer;
     }
-
-    throw "unreachable";
   }
+
+  @override
+  String toString() => name;
 }
 
-class System extends NamedEnum {
-  static const android = System._('android');
-  static const fuchsia = System._('fuchsia');
-  static const linux = System._('linux');
-  static const mac = System._('mac');
-  static const win = System._('win');
+enum System {
+  android._('android'),
+  fuchsia._('fuchsia'),
+  linux._('linux'),
+  mac._('mac', outputDirectory: 'xcodebuild/'),
+  win._('win');
 
   static final List<String> names = _all.keys.toList();
 
-  static final _all = Map<String, System>.fromIterable(
-      [android, fuchsia, linux, mac, win],
-      key: (system) => (system as System).name);
+  static final _all =
+      Map<String, System>.fromIterable(values, key: (s) => (s as System).name);
 
   /// Gets the system of the current machine.
   static System get host => find(Platform.operatingSystem);
 
+  // Alternate allowed names, e.g., the names used by dart:io, that shouldn't
+  // be reported in the [names] getter.
+  static final _alternateNames = <String, System>{
+    "macos": mac,
+    "windows": win,
+  };
+
   static System find(String name) {
     var system = _all[name];
     if (system != null) return system;
-
-    // Also allow dart:io's names for the operating systems.
-    switch (Platform.operatingSystem) {
-      case "macos":
-        return mac;
-      case "windows":
-        return win;
-    }
+    system = _alternateNames[name];
+    if (system != null) return system;
     // TODO(rnystrom): What about ios?
 
     throw ArgumentError('Unknown operating system "$name".');
   }
 
-  const System._(super.name);
+  final String name;
 
   /// The root directory name for build outputs on this system.
-  String get outputDirectory {
-    switch (this) {
-      case android:
-      case fuchsia:
-      case linux:
-      case win:
-        return 'out/';
+  final String outputDirectory;
+  const System._(this.name, {this.outputDirectory = 'out/'});
 
-      case mac:
-        return 'xcodebuild/';
-    }
-
-    throw "unreachable";
-  }
+  @override
+  String toString() => name;
 }
 
 // TODO(rnystrom): NnbdMode.legacy can be removed now that opted out code is no
 // longer supported. This entire enum and the notion of "NNBD modes" can be
 // removed once it's no longer possible to run programs in unsound weak mode.
 /// What level of non-nullability support should be applied to the test files.
-class NnbdMode extends NamedEnum {
+enum NnbdMode {
   /// "Opted out" legacy mode with no NNBD features allowed.
-  static const legacy = NnbdMode._('legacy');
+  legacy._('legacy'),
 
   /// Opted in to NNBD features, but only static checking and weak runtime
   /// checks.
-  static const weak = NnbdMode._('weak');
+  weak._('weak'),
 
   /// Opted in to NNBD features and with full sound runtime checks.
-  static const strong = NnbdMode._('strong');
+  strong._('strong');
 
   static final List<String> names = _all.keys.toList();
 
-  static final _all = {
-    for (var mode in [legacy, weak, strong]) mode.name: mode
-  };
+  static final _all = Map<String, NnbdMode>.fromIterable(values,
+      key: (m) => (m as NnbdMode).name);
 
   static NnbdMode find(String name) {
     var mode = _all[name];
@@ -1203,14 +1121,8 @@ class NnbdMode extends NamedEnum {
     throw ArgumentError('Unknown NNBD mode "$name".');
   }
 
-  const NnbdMode._(super.name);
-}
-
-/// Base class for an enum-like class whose values are identified by name.
-abstract class NamedEnum {
   final String name;
-
-  const NamedEnum(this.name);
+  const NnbdMode._(this.name);
 
   @override
   String toString() => name;
