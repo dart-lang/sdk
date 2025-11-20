@@ -563,6 +563,40 @@ class _P {}
     );
   }
 
+  test_primaryConstructor_declaring_privateParameterType() async {
+    await assertDiagnostics(
+      r'''
+class C(_P p);
+class _P {}
+''',
+      [lint(8, 2)],
+    );
+  }
+
+  test_primaryConstructor_declaring_publicParameterType() async {
+    await assertNoDiagnostics(r'''
+class C(P p);
+class P {}
+''');
+  }
+
+  test_primaryConstructor_named_privateParameterType() async {
+    await assertDiagnostics(
+      r'''
+class C.named(_P p);
+class _P {}
+''',
+      [lint(14, 2)],
+    );
+  }
+
+  test_primaryConstructor_named_publicParameterType() async {
+    await assertNoDiagnostics(r'''
+class C.named(P p);
+class P {}
+''');
+  }
+
   test_topLevelGetter_private_privateReturnType() async {
     await assertNoDiagnostics(r'''
 _P get _g => _P();
