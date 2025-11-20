@@ -2584,20 +2584,22 @@ class _ClosureArgumentsToVtableEntryDispatcherGenerator
           b.unreachable();
           return;
         }
-      } else if (hasMoreMatches && util.compilerAssertsEnabled) {
-        b.comment('Check there are more names passed by the caller,');
-        b.comment('because the currently processed name set');
-        b.comment('(which are: ${currentNames.join('-')}) does not');
-        b.comment(' correspond to a valid name combination.');
-        b.local_get(namedArgsLocal);
-        b.array_len();
-        b.local_get(nameIndexVar);
-        b.i32_eq();
-        b.if_();
-        b.comment('Unsupported name combination.');
-        b.comment('May be bug in closure representation building');
-        b.unreachable();
-        b.end();
+      } else if (hasMoreMatches) {
+        if (util.compilerAssertsEnabled) {
+          b.comment('Check there are more names passed by the caller,');
+          b.comment('because the currently processed name set');
+          b.comment('(which are: ${currentNames.join('-')}) does not');
+          b.comment(' correspond to a valid name combination.');
+          b.local_get(namedArgsLocal);
+          b.array_len();
+          b.local_get(nameIndexVar);
+          b.i32_eq();
+          b.if_();
+          b.comment('Unsupported name combination.');
+          b.comment('May be bug in closure representation building');
+          b.unreachable();
+          b.end();
+        }
       } else {
         b.comment('The names "${currentNames.join('-')}" are not part '
             'of a used name combination.');
