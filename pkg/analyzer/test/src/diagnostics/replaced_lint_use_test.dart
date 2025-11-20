@@ -5,8 +5,13 @@
 import 'package:analyzer/analysis_rule/analysis_rule.dart';
 import 'package:analyzer/analysis_rule/rule_state.dart';
 import 'package:analyzer/error/error.dart';
-import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
+import 'package:analyzer/src/diagnostic/diagnostic.dart'
+    as diag
+    hide removedLint;
+import 'package:analyzer/src/lint/registry.dart';
 import 'package:analyzer/src/test_utilities/lint_registration_mixin.dart';
+import 'package:linter/src/diagnostic.dart' as diag;
+import 'package:linter/src/rules.dart' as linter;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
@@ -26,7 +31,7 @@ class RemovedLint extends AnalysisRule {
       );
 
   @override
-  DiagnosticCode get diagnosticCode => throw UnimplementedError();
+  DiagnosticCode get diagnosticCode => diag.removedLint;
 }
 
 @reflectiveTest
@@ -35,6 +40,16 @@ class ReplacedLintUseTest extends PubPackageResolutionTest
   @override
   void setUp() {
     super.setUp();
+    linter.registerLintRules();
+
+    // TODO(paulberry): remove as part of fixing
+    // https://github.com/dart-lang/sdk/issues/62040.
+    writeTestPackageAnalysisOptionsFile('''
+linter:
+  rules:
+    - unnecessary_ignore
+''');
+
     registerLintRule(RemovedLint());
     registerLintRule(ReplacingLint());
   }
@@ -42,13 +57,12 @@ class ReplacedLintUseTest extends PubPackageResolutionTest
   @override
   Future<void> tearDown() {
     unregisterLintRules();
+    for (var rule in Registry.ruleRegistry.rules) {
+      Registry.ruleRegistry.unregisterLintRule(rule);
+    }
     return super.tearDown();
   }
 
-  @FailingTest(
-    reason: 'Diagnostic reporting disabled',
-    issue: 'https://github.com/dart-lang/sdk/issues/51214',
-  )
   test_file() async {
     await assertErrorsInCode(
       r'''
@@ -60,10 +74,6 @@ void f() { }
     );
   }
 
-  @FailingTest(
-    reason: 'Diagnostic reporting disabled',
-    issue: 'https://github.com/dart-lang/sdk/issues/51214',
-  )
   test_line() async {
     await assertErrorsInCode(
       r'''
@@ -84,5 +94,6 @@ class ReplacingLint extends AnalysisRule {
       );
 
   @override
-  DiagnosticCode get diagnosticCode => throw UnimplementedError();
+  DiagnosticCode get diagnosticCode =>
+      const LintCode('replacing_lint', 'problem message');
 }
