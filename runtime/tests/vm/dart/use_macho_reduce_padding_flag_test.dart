@@ -24,8 +24,14 @@ Future<void> main() async {
     return; // SDK tree and dart_bootstrap not available on the test device.
   }
 
-  if (Platform.isWindows || isSimulator) {
-    // Currently dsymutil isn't available in these cases (but if it is
+  if (isSimulator) {
+    // Output of Mach-O relocatable objects isn't supported for most
+    // simulated architectures, so don't run the test.
+    return;
+  }
+
+  if (Platform.isWindows) {
+    // Currently dsymutil isn't available in this case (but if it is
     // in the future, go ahead and run them).
     if (llvmTool('dsymutil') == null) return;
   }

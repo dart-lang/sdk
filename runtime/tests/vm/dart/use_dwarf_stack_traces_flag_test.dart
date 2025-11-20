@@ -20,8 +20,12 @@ import 'use_dwarf_stack_traces_flag_helper.dart';
 
 Future<void> main() async {
   bool hasDsymutil = true;
-  if (Platform.isWindows || isSimulator) {
-    // Currently dsymutil isn't available in these cases, so don't run
+  if (isSimulator) {
+    // Output of Mach-O relocatable objects isn't supported for most
+    // simulated architectures, so don't run that specific test.
+    hasDsymutil = false;
+  } else if (Platform.isWindows) {
+    // Currently dsymutil isn't available in this case, so don't run
     // the corresponding test (but do in the future if it becomes available).
     hasDsymutil = llvmTool('dsymutil') != null;
   }
