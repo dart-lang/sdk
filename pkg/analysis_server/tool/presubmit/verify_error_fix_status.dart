@@ -12,6 +12,7 @@ import 'package:analyzer/error/error.dart';
 import 'package:analyzer/file_system/physical_file_system.dart';
 import 'package:analyzer/src/lint/registry.dart';
 import 'package:analyzer_testing/package_root.dart' as package_root;
+import 'package:analyzer_utilities/located_error.dart';
 import 'package:linter/src/rules.dart';
 import 'package:yaml/yaml.dart';
 
@@ -44,11 +45,12 @@ String statusFilePath() {
 /// string describing how the file is out-of-date, or `null` if the file is
 /// up-to-date.
 String? verifyErrorFixStatus() {
-  var (error, statusInfo) = _statusInfo();
-  if (error != null) {
-    return error;
+  YamlMap statusInfo;
+  try {
+    statusInfo = _statusInfo();
+  } catch (e) {
+    return e.toString();
   }
-  statusInfo!; // This is non-null when `error` is `null`.
   registerLintRules();
   registerBuiltInFixGenerators();
   var lintRuleCodes = {
@@ -122,14 +124,36 @@ String? verifyErrorFixStatus() {
 
 /// Returns the content of the file containing the status information, parsed
 /// as a YAML map.
-(String? error, YamlMap? info) _statusInfo() {
+YamlMap _statusInfo() {
   var statusFile = _resourceProvider.getFile(statusFilePath());
-  var document = loadYamlDocument(statusFile.readAsStringSync());
+  var document = loadYamlDocument(
+    statusFile.readAsStringSync(),
+    sourceUrl: Uri.file(statusFile.path),
+  );
   var statusInfo = document.contents;
   if (statusInfo is! YamlMap) {
-    return ('Expected a YamlMap, found ${statusInfo.runtimeType}', null);
+    throw LocatedError(
+      'Expected a YamlMap, found ${statusInfo.runtimeType}',
+      span: statusInfo.span,
+    );
   }
-  return (null, statusInfo);
+  for (var value in statusInfo.nodes.values) {
+    if (value is! YamlMap) {
+      throw LocatedError('Expected a map', span: value.span);
+    }
+    switch (value.nodes['status']) {
+      case null:
+        throw LocatedError('A status entry is required', span: value.span);
+      case YamlScalar(
+        value: 'hasFix' || 'needsEvaluation' || 'needsFix' || 'noFix',
+      ):
+        // ok
+        break;
+      case var statusNode:
+        throw LocatedError('Invalid status', span: statusNode.span);
+    }
+  }
+  return statusInfo;
 }
 
 class ErrorData {

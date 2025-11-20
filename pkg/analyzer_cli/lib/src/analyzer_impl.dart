@@ -15,14 +15,12 @@ import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer_cli/src/driver.dart';
 import 'package:analyzer_cli/src/error_formatter.dart';
 import 'package:analyzer_cli/src/error_severity.dart';
-import 'package:analyzer_cli/src/options.dart';
 import 'package:path/path.dart' as path;
 
 int get currentTimeMillis => DateTime.now().millisecondsSinceEpoch;
 
 /// Analyzes single library [File].
 class AnalyzerImpl {
-  final CommandLineOptions options;
   final int startTime;
 
   final AnalysisOptions analysisOptions;
@@ -53,7 +51,6 @@ class AnalyzerImpl {
     this.analysisOptions,
     this.analysisDriver,
     this.libraryFile,
-    this.options,
     this.stats,
     this.startTime,
     this.gotErrorsFor,
@@ -126,9 +123,7 @@ class AnalyzerImpl {
         if (_defaultSeverityProcessor(diagnostic) == null) {
           continue;
         }
-        status = status.max(
-          computeSeverity(diagnostic, options, analysisOptions)!,
-        );
+        status = status.max(computeSeverity(diagnostic, analysisOptions)!);
       }
     }
     return status;
@@ -191,7 +186,7 @@ class AnalyzerImpl {
   }
 
   DiagnosticSeverity? _defaultSeverityProcessor(Diagnostic diagnostic) =>
-      determineProcessedSeverity(diagnostic, options, analysisOptions);
+      determineProcessedSeverity(diagnostic, analysisOptions);
 
   /// Returns true if we want to report diagnostics for this library.
   bool _isAnalyzedLibrary(LibraryElement library) {

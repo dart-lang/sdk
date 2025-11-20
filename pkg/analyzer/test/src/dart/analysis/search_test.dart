@@ -993,7 +993,7 @@ Random v2;
 <testLibraryFragment> v2@38
   31 3:1 |Random| REFERENCE
 dart:math new@null
-  402 16:20 |Random| REFERENCE
+  406 20:20 |Random| REFERENCE
 ''');
   }
 
