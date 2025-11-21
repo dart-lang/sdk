@@ -34,7 +34,7 @@ class C extends core::Object /*hasConstConstructor*/  {
     ;
   constructor missingFactoryKeyword() → self::C
     ;
-  static factory good() → self::C /* redirection-target: self::C::constant */
+  static const factory good() → self::C /* redirection-target: self::C::constant */
     return new self::C::constant();
   method notEvenAConstructor(dynamic a) → self::C
     ;

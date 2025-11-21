@@ -14,7 +14,7 @@ import self as self;
 import "dart:core" as core;
 
 abstract class A<T extends core::Object? = dynamic> extends core::Object {
-  static factory •<T extends core::Object? = dynamic>() → self::A<self::A::•::T%>
+  static const factory •<T extends core::Object? = dynamic>() → self::A<self::A::•::T%>
     return invalid-expression "pkg/front_end/testcases/dart2js/issue47916f.dart:10:17: Error: Cyclic definition of factory 'B'.
   const factory B() = C;
                 ^";
@@ -24,7 +24,7 @@ abstract class A<T extends core::Object? = dynamic> extends core::Object {
                 ^";
 }
 abstract class B<T extends core::Object? = dynamic> extends core::Object implements self::A<self::B::T%> {
-  static factory •<T extends core::Object? = dynamic>() → self::B<self::B::•::T%>
+  static const factory •<T extends core::Object? = dynamic>() → self::B<self::B::•::T%>
     return invalid-expression "pkg/front_end/testcases/dart2js/issue47916f.dart:10:17: Error: Cyclic definition of factory 'B'.
   const factory B() = C;
                 ^";
@@ -34,7 +34,7 @@ abstract class B<T extends core::Object? = dynamic> extends core::Object impleme
                 ^";
 }
 class C<T extends core::Object? = dynamic> extends core::Object implements self::B<self::C::T%> {
-  static factory •<T extends core::Object? = dynamic>() → self::C<self::C::•::T%>
+  static const factory •<T extends core::Object? = dynamic>() → self::C<self::C::•::T%>
     return invalid-expression "pkg/front_end/testcases/dart2js/issue47916f.dart:14:17: Error: Cyclic definition of factory 'C'.
   const factory C() = B;
                 ^";

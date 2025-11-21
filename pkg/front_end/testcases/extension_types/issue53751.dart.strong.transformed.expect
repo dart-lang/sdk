@@ -8,7 +8,7 @@ extension type E(core::int? n) {
   constructor tearoff • = self::E|constructor#_#new#tearOff;
 }
 static const field self::E% /* erasure=core::int?, declared=! */ e = #C1;
-static extension-type-member method E|constructor#(core::int? n) → self::E% /* erasure=core::int?, declared=! */ {
+static extension-type-member const method E|constructor#(core::int? n) → self::E% /* erasure=core::int?, declared=! */ {
   lowered final self::E% /* erasure=core::int?, declared=! */ #this = n;
   return #this;
 }

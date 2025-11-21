@@ -19,7 +19,7 @@ class Class extends core::Object /*hasConstConstructor*/  {
     ;
 }
 abstract class Const<X extends core::Object? = dynamic> extends core::Object {
-  static factory impl<X extends core::Object? = dynamic>() → self::Const<self::Const::impl::X%> /* redirection-target: self::_ConstImpl::•<self::Const::impl::X%>*/
+  static const factory impl<X extends core::Object? = dynamic>() → self::Const<self::Const::impl::X%> /* redirection-target: self::_ConstImpl::•<self::Const::impl::X%>*/
     return new self::_ConstImpl::•<self::Const::impl::X%>();
 }
 class _ConstImpl<T extends core::Object? = dynamic> extends core::Object implements self::Const<self::_ConstImpl::T%> /*hasConstConstructor*/  {

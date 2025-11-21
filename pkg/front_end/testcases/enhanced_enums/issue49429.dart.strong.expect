@@ -6,7 +6,7 @@ class A extends core::Object /*hasConstConstructor*/  {
   const constructor •() → self::A
     : super core::Object::•()
     ;
-  static factory redir() → self::A /* redirection-target: self::A::• */
+  static const factory redir() → self::A /* redirection-target: self::A::• */
     return new self::A::•();
 }
 class E extends core::_Enum /*isEnum*/  {

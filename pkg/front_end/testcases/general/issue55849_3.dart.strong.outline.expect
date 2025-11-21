@@ -6,7 +6,7 @@ abstract class A extends core::Object /*hasConstConstructor*/  {
   const constructor •() → self::A
     : super core::Object::•()
     ;
-  static factory redir() → self::A /* redirection-target: self::B::• */
+  static const factory redir() → self::A /* redirection-target: self::B::• */
     return new self::B::•();
 }
 class B extends self::A /*hasConstConstructor*/  {

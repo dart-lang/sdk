@@ -3,13 +3,13 @@ import self as self;
 import "dart:core" as core;
 
 abstract class A extends core::Object {
-  static factory •() → self::A /* redirection-target: self::B::• */
+  static const factory •() → self::A /* redirection-target: self::B::• */
     return self::B::•();
   static synthetic method _#new#tearOff() → self::A
     return new self::C::•<core::int>();
 }
 abstract class B extends core::Object implements self::A {
-  static factory •() → self::B /* redirection-target: self::C::•<core::int>*/
+  static const factory •() → self::B /* redirection-target: self::C::•<core::int>*/
     return new self::C::•<core::int>();
   static synthetic method _#new#tearOff() → self::B
     return new self::C::•<core::int>();

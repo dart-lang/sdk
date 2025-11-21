@@ -15,7 +15,7 @@ extension type Class(core::int i) {
   static redirecting-factory redirect2 = self::Class|constructor#redirect2;
   static redirecting-factory tearoff redirect2 = self::Class|constructor#_#redirect2#tearOff;
 }
-static extension-type-member method Class|constructor#(core::int i) → self::Class% /* erasure=core::int, declared=! */ {
+static extension-type-member const method Class|constructor#(core::int i) → self::Class% /* erasure=core::int, declared=! */ {
   lowered final self::Class% /* erasure=core::int, declared=! */ #this = i;
   return #this;
 }
@@ -25,7 +25,7 @@ static extension-type-member method Class|constructor#named(core::int i) → sel
   ;
 static extension-type-member synthetic method Class|constructor#_#named#tearOff(core::int i) → self::Class% /* erasure=core::int, declared=! */
   return self::Class|constructor#named(i);
-static extension-type-member method Class|constructor#redirect(core::int i) → self::Class% /* erasure=core::int, declared=! */ /* redirection-target: self::Class|constructor# */
+static extension-type-member const method Class|constructor#redirect(core::int i) → self::Class% /* erasure=core::int, declared=! */ /* redirection-target: self::Class|constructor# */
   return self::Class|constructor#(i);
 static extension-type-member synthetic method Class|constructor#_#redirect#tearOff(core::int i) → self::Class% /* erasure=core::int, declared=! */
   return self::Class|constructor#(i);

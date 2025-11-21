@@ -12,7 +12,7 @@ abstract sealed class B<X extends core::Object? = dynamic> extends core::Object 
   const constructor •({required () →? self::C? foo}) → self::B<self::B::X%>
     : self::B::foo = foo, super core::Object::•()
     ;
-  static factory redir<X extends core::Object? = dynamic>({() →? self::C? foo = #C1}) → self::B<self::B::redir::X%> /* redirection-target: self::A::•<self::B::redir::X%>*/
+  static const factory redir<X extends core::Object? = dynamic>({() →? self::C? foo = #C1}) → self::B<self::B::redir::X%> /* redirection-target: self::A::•<self::B::redir::X%>*/
     return new self::A::•<self::B::redir::X%>(foo: foo);
 }
 abstract class M extends core::Object /*isMixinDeclaration*/  {
