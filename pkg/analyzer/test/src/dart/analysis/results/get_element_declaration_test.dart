@@ -153,7 +153,7 @@ class A {
       var result = await getFragmentDeclaration(element);
       var node = result!.node as ConstructorDeclaration;
       expect(node.name, isNull);
-      expect(node.returnType.offset, this.result.content.indexOf('A(); // 1'));
+      expect(node.typeName!.offset, this.result.content.indexOf('A(); // 1'));
     }
 
     {
@@ -161,7 +161,7 @@ class A {
       var result = await getFragmentDeclaration(element);
       var node = result!.node as ConstructorDeclaration;
       expect(node.name, isNull);
-      expect(node.returnType.offset, this.result.content.indexOf('A(); // 2'));
+      expect(node.typeName!.offset, this.result.content.indexOf('A(); // 2'));
     }
   }
 

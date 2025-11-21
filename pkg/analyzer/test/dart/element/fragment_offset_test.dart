@@ -170,7 +170,7 @@ class C {
     checkOffset<ConstructorFragment>(
       constructorDeclaration,
       constructorDeclaration.declaredFragment!,
-      constructorDeclaration.returnType.offset,
+      constructorDeclaration.typeName!.offset,
     );
   }
 
