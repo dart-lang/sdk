@@ -14,6 +14,8 @@ import 'dart:core' as $core;
 
 import 'package:protobuf/protobuf.dart' as $pb;
 
+import '../mixins.lib.dart' as $mixin;
+
 export 'package:protobuf/protobuf.dart' show GeneratedMessageGenericExtensions;
 
 class FooKeep extends $pb.GeneratedMessage {
@@ -54,6 +56,10 @@ class FooKeep extends $pb.GeneratedMessage {
         protoName: 'hasKeep', subBuilder: HasKeep.create)
     ..aOM<ClearKeep>(7, _omitFieldNames ? '' : 'clearKeep',
         protoName: 'clearKeep', subBuilder: ClearKeep.create)
+    ..aOM<MixinKeep>(8, _omitFieldNames ? '' : 'mixinKeep',
+        protoName: 'mixinKeep', subBuilder: MixinKeep.create)
+    ..aOM<MixinDrop>(9, _omitFieldNames ? '' : 'mixinDrop',
+        protoName: 'mixinDrop', subBuilder: MixinDrop.create)
     ..hasRequiredFields = false;
 
   @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
@@ -132,6 +138,28 @@ class FooKeep extends $pb.GeneratedMessage {
   void clearClearKeep() => $_clearField(7);
   @$pb.TagNumber(7)
   ClearKeep ensureClearKeep() => $_ensure(6);
+
+  @$pb.TagNumber(8)
+  MixinKeep get mixinKeep => $_getN(7);
+  @$pb.TagNumber(8)
+  set mixinKeep(MixinKeep value) => $_setField(8, value);
+  @$pb.TagNumber(8)
+  $core.bool hasMixinKeep() => $_has(7);
+  @$pb.TagNumber(8)
+  void clearMixinKeep() => $_clearField(8);
+  @$pb.TagNumber(8)
+  MixinKeep ensureMixinKeep() => $_ensure(7);
+
+  @$pb.TagNumber(9)
+  MixinDrop get mixinDrop => $_getN(8);
+  @$pb.TagNumber(9)
+  set mixinDrop(MixinDrop value) => $_setField(9, value);
+  @$pb.TagNumber(9)
+  $core.bool hasMixinDrop() => $_has(8);
+  @$pb.TagNumber(9)
+  void clearMixinDrop() => $_clearField(9);
+  @$pb.TagNumber(9)
+  MixinDrop ensureMixinDrop() => $_ensure(8);
 }
 
 class BarKeep extends $pb.GeneratedMessage {
@@ -363,6 +391,108 @@ class MobDrop extends $pb.GeneratedMessage {
   static MobDrop getDefault() =>
       _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<MobDrop>(create);
   static MobDrop? _defaultInstance;
+
+  @$pb.TagNumber(1)
+  $core.int get aDrop => $_getIZ(0);
+  @$pb.TagNumber(1)
+  set aDrop($core.int value) => $_setSignedInt32(0, value);
+  @$pb.TagNumber(1)
+  $core.bool hasADrop() => $_has(0);
+  @$pb.TagNumber(1)
+  void clearADrop() => $_clearField(1);
+}
+
+class MixinKeep extends $pb.GeneratedMessage with $mixin.MyMixin {
+  factory MixinKeep() => create();
+
+  MixinKeep._();
+
+  factory MixinKeep.fromBuffer($core.List<$core.int> data,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(data, registry);
+  factory MixinKeep.fromJson($core.String json,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(json, registry);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
+      _omitMessageNames ? '' : 'MixinKeep',
+      createEmptyInstance: create)
+    ..aI(1, _omitFieldNames ? '' : 'aKeep', protoName: 'aKeep')
+    ..aI(2, _omitFieldNames ? '' : 'bDrop', protoName: 'bDrop')
+    ..hasRequiredFields = false;
+
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  MixinKeep clone() => deepCopy();
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  MixinKeep copyWith(void Function(MixinKeep) updates) =>
+      super.copyWith((message) => updates(message as MixinKeep)) as MixinKeep;
+
+  @$core.override
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  static MixinKeep create() => MixinKeep._();
+  @$core.override
+  MixinKeep createEmptyInstance() => create();
+  @$core.pragma('dart2js:noInline')
+  static MixinKeep getDefault() =>
+      _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<MixinKeep>(create);
+  static MixinKeep? _defaultInstance;
+
+  @$pb.TagNumber(1)
+  $core.int get aKeep => $_getIZ(0);
+  @$pb.TagNumber(1)
+  set aKeep($core.int value) => $_setSignedInt32(0, value);
+  @$pb.TagNumber(1)
+  $core.bool hasAKeep() => $_has(0);
+  @$pb.TagNumber(1)
+  void clearAKeep() => $_clearField(1);
+
+  @$pb.TagNumber(2)
+  $core.int get bDrop => $_getIZ(1);
+  @$pb.TagNumber(2)
+  set bDrop($core.int value) => $_setSignedInt32(1, value);
+  @$pb.TagNumber(2)
+  $core.bool hasBDrop() => $_has(1);
+  @$pb.TagNumber(2)
+  void clearBDrop() => $_clearField(2);
+}
+
+class MixinDrop extends $pb.GeneratedMessage with $mixin.MyMixin {
+  factory MixinDrop() => create();
+
+  MixinDrop._();
+
+  factory MixinDrop.fromBuffer($core.List<$core.int> data,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(data, registry);
+  factory MixinDrop.fromJson($core.String json,
+          [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(json, registry);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
+      _omitMessageNames ? '' : 'MixinDrop',
+      createEmptyInstance: create)
+    ..aI(1, _omitFieldNames ? '' : 'aDrop', protoName: 'aDrop')
+    ..hasRequiredFields = false;
+
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  MixinDrop clone() => deepCopy();
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  MixinDrop copyWith(void Function(MixinDrop) updates) =>
+      super.copyWith((message) => updates(message as MixinDrop)) as MixinDrop;
+
+  @$core.override
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  static MixinDrop create() => MixinDrop._();
+  @$core.override
+  MixinDrop createEmptyInstance() => create();
+  @$core.pragma('dart2js:noInline')
+  static MixinDrop getDefault() =>
+      _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<MixinDrop>(create);
+  static MixinDrop? _defaultInstance;
 
   @$pb.TagNumber(1)
   $core.int get aDrop => $_getIZ(0);

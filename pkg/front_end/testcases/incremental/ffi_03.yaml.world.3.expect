@@ -8,7 +8,7 @@ library from "org-dartlang-test:///lib.dart" as lib {
       ;
   }
   abstract class BarX extends dart.core::Object {
-    static factory •({required lib::HelperClassX bar}) → lib::BarX /* redirection-target: lib::FooX::• */
+    static const factory •({required lib::HelperClassX bar}) → lib::BarX /* redirection-target: lib::FooX::• */
       return new lib::FooX::•(bar: bar);
   }
   class HelperClassX extends dart.core::Object {
@@ -44,7 +44,7 @@ library from "org-dartlang-test:///main.dart" as main {
     }
   }
   abstract class Bar extends dart.core::Object {
-    static factory •({required main::HelperClass bar}) → main::Bar /* redirection-target: main::Foo::• */
+    static const factory •({required main::HelperClass bar}) → main::Bar /* redirection-target: main::Foo::• */
       return block {
         final synthesized main::Foo :expressionValueWrappedFinalizable = new main::Foo::•(bar: bar);
         dart._internal::reachabilityFence(bar);

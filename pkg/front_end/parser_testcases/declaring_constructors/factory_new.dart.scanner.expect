@@ -1,0 +1,17 @@
+class C {
+factory new();
+const factory new();
+factory new() => 0;
+const factory new() => 0;
+factory new() = C;
+const factory new() = C;
+}
+
+class[KeywordToken] C[StringToken] {[BeginToken]
+factory[KeywordToken] new[KeywordToken]([BeginToken])[SimpleToken];[SimpleToken]
+const[KeywordToken] factory[KeywordToken] new[KeywordToken]([BeginToken])[SimpleToken];[SimpleToken]
+factory[KeywordToken] new[KeywordToken]([BeginToken])[SimpleToken] =>[SimpleToken] 0[StringToken];[SimpleToken]
+const[KeywordToken] factory[KeywordToken] new[KeywordToken]([BeginToken])[SimpleToken] =>[SimpleToken] 0[StringToken];[SimpleToken]
+factory[KeywordToken] new[KeywordToken]([BeginToken])[SimpleToken] =[SimpleToken] C[StringToken];[SimpleToken]
+const[KeywordToken] factory[KeywordToken] new[KeywordToken]([BeginToken])[SimpleToken] =[SimpleToken] C[StringToken];[SimpleToken]
+}[SimpleToken][SimpleToken]

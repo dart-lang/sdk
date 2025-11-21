@@ -16,7 +16,7 @@ abstract class A extends core::Object /*hasConstConstructor*/  {
   const constructor •() → self::A
     : super core::Object::•()
     ;
-  static factory foo() → self::A /* redirection-target: self::B::•<dynamic>*/
+  static const factory foo() → self::A /* redirection-target: self::B::•<dynamic>*/
     return new self::B::•<dynamic>();
 }
 static method main() → dynamic

@@ -10,9 +10,9 @@ class C extends core::Object {
     ;
 }
 abstract class A<X extends core::Object? = dynamic> extends core::Object {
-  static factory redir1<X extends core::Object? = dynamic>(core::int x, {required core::String s}) → self::A<self::A::redir1::X%> /* redirection-target: self::B::•<self::A::redir1::X%>*/
+  static const factory redir1<X extends core::Object? = dynamic>(core::int x, {required core::String s}) → self::A<self::A::redir1::X%> /* redirection-target: self::B::•<self::A::redir1::X%>*/
     return new self::B::•<self::A::redir1::X%>(x, s: s);
-  static factory redir2<X extends core::Object? = dynamic>(core::int x, {required core::String s}) → self::A<self::A::redir2::X%> /* redirection-target: self::B::•<self::A::redir2::X%>*/
+  static const factory redir2<X extends core::Object? = dynamic>(core::int x, {required core::String s}) → self::A<self::A::redir2::X%> /* redirection-target: self::B::•<self::A::redir2::X%>*/
     return new self::B::•<self::A::redir2::X%>(x, s: s);
 }
 class B<Y extends core::Object? = dynamic> extends core::Object implements self::A<self::B::Y%> /*hasConstConstructor*/  {

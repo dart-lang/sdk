@@ -8,7 +8,7 @@ class A extends core::Object /*hasConstConstructor*/  {
   const constructor empty() → self::A
     : super core::Object::•()
     ;
-  static factory •() → self::A /* redirection-target: self::B::•<core::String>*/
+  static const factory •() → self::A /* redirection-target: self::B::•<core::String>*/
     return new self::B::•<core::String>();
 }
 class B<T extends core::Object? = dynamic> extends self::A /*hasConstConstructor*/  {

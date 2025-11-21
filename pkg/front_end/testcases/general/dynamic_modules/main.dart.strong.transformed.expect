@@ -466,7 +466,7 @@ class C8 extends core::Object /*hasConstConstructor*/  {
     return mai::C8::fact3();
   static factory fact3() → mai::C8
     return new mai::C8::•();
-  static factory fact4() → mai::C8 /* redirection-target: mai::C8::constConstr */
+  static const factory fact4() → mai::C8 /* redirection-target: mai::C8::constConstr */
     return new mai::C8::constConstr();
 }
 class C9 extends core::Object /*hasConstConstructor*/  {
@@ -481,7 +481,7 @@ class C9 extends core::Object /*hasConstConstructor*/  {
     return mai::C9::fact3();
   static factory fact3() → mai::C9
     return new mai::C9::•();
-  static factory fact4() → mai::C9 /* redirection-target: mai::C9::constConstr */
+  static const factory fact4() → mai::C9 /* redirection-target: mai::C9::constConstr */
     return new mai::C9::constConstr();
 }
 extension Ext1 on core::int {

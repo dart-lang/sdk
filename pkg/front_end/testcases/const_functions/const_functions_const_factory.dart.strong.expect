@@ -12,7 +12,7 @@ class MessageType extends core::Object /*hasConstConstructor*/  {
   const constructor _(core::String name) → self::MessageType
     : self::MessageType::name = name, super core::Object::•()
     ;
-  static factory parse(core::String name) → self::MessageType {
+  static const factory parse(core::String name) → self::MessageType {
     if(name =={core::String::==}{(core::Object) → core::bool} "print") {
       return #C2;
     }

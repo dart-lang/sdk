@@ -41,7 +41,7 @@ class ClassMemberParserTest extends FastaParserTestCase
     expect(constructor.name, isNull);
     expect(constructor.parameters, isNotNull);
     expect(constructor.period, isNull);
-    expect(constructor.returnType, isNotNull);
+    expect(constructor.typeName, isNotNull);
     expect(constructor.initializers, hasLength(2));
 
     {
@@ -294,7 +294,7 @@ class ClassMemberParserTest extends FastaParserTestCase
     expect(constructor.name, isNull);
     expect(constructor.parameters, isNotNull);
     expect(constructor.period, isNull);
-    expect(constructor.returnType, isNotNull);
+    expect(constructor.typeName, isNotNull);
     expect(constructor.initializers, hasLength(1));
 
     var x = constructor.initializers[0] as ConstructorFieldInitializer;
@@ -388,7 +388,7 @@ class ClassMemberParserTest extends FastaParserTestCase
     expect(constructor.name, isNull);
     expect(constructor.parameters, isNotNull);
     expect(constructor.period, isNull);
-    expect(constructor.returnType, isNotNull);
+    expect(constructor.typeName, isNotNull);
     expect(constructor.initializers, hasLength(1));
   }
 
@@ -1393,7 +1393,7 @@ void Function<A>(core.List<core.int> x) m() => null;
     expect(constructor.externalKeyword, isNull);
     expect(constructor.constKeyword!.keyword, Keyword.CONST);
     expect(constructor.factoryKeyword!.keyword, Keyword.FACTORY);
-    expect(constructor.returnType.name, 'C');
+    expect(constructor.typeName!.name, 'C');
     expect(constructor.period, isNull);
     expect(constructor.name, isNull);
     expect(constructor.parameters, isNotNull);
@@ -1419,7 +1419,7 @@ void Function<A>(core.List<core.int> x) m() => null;
     expect(constructor.externalKeyword, isNull);
     expect(constructor.constKeyword, isNull);
     expect(constructor.factoryKeyword!.keyword, Keyword.FACTORY);
-    expect(constructor.returnType.name, 'C');
+    expect(constructor.typeName!.name, 'C');
     expect(constructor.period, isNull);
     expect(constructor.name, isNull);
     expect(constructor.parameters, isNotNull);
@@ -1446,7 +1446,7 @@ void Function<A>(core.List<core.int> x) m() => null;
     expect(constructor.externalKeyword, isNull);
     expect(constructor.constKeyword, isNull);
     expect(constructor.factoryKeyword!.keyword, Keyword.FACTORY);
-    expect(constructor.returnType.name, 'C');
+    expect(constructor.typeName!.name, 'C');
     expect(constructor.period, isNull);
     expect(constructor.name, isNull);
     expect(constructor.parameters, isNotNull);
@@ -1494,7 +1494,7 @@ void Function<A>(core.List<core.int> x) m() => null;
     expect(constructor.externalKeyword, isNull);
     expect(constructor.constKeyword, isNull);
     expect(constructor.factoryKeyword, isNotNull);
-    expect(constructor.returnType.name, 'C');
+    expect(constructor.typeName!.name, 'C');
     expect(constructor.period!.type, TokenType.PERIOD);
     expect(constructor.name!.lexeme, 'foo');
     expect(constructor.parameters, isNotNull);
@@ -1548,7 +1548,7 @@ void Function<A>(core.List<core.int> x) m() => null;
     expect(constructor.externalKeyword, isNull);
     expect(constructor.constKeyword, isNull);
     expect(constructor.factoryKeyword, isNull);
-    expect(constructor.returnType.name, 'C');
+    expect(constructor.typeName!.name, 'C');
     expect(constructor.period!.type, TokenType.PERIOD);
     expect(constructor.name!.lexeme, 'foo');
     expect(constructor.parameters, isNotNull);
@@ -1605,7 +1605,7 @@ void Function<A>(core.List<core.int> x) m() => null;
     expect(constructor.externalKeyword, isNull);
     expect(constructor.constKeyword, isNull);
     expect(constructor.factoryKeyword, isNull);
-    expect(constructor.returnType.name, 'C');
+    expect(constructor.typeName!.name, 'C');
     expect(constructor.name, isNull);
     expect(constructor.parameters, isNotNull);
     expect(constructor.parameters.parameters, isEmpty);
@@ -1628,7 +1628,7 @@ void Function<A>(core.List<core.int> x) m() => null;
     expect(constructor.externalKeyword, isNull);
     expect(constructor.constKeyword, isNull);
     expect(constructor.factoryKeyword, isNull);
-    expect(constructor.returnType.name, 'C');
+    expect(constructor.typeName!.name, 'C');
     expect(constructor.name, isNull);
     expect(constructor.parameters, isNotNull);
     expect(constructor.parameters.parameters, isEmpty);
@@ -1649,7 +1649,7 @@ void Function<A>(core.List<core.int> x) m() => null;
     expect(constructor.externalKeyword, isNull);
     expect(constructor.constKeyword, isNull);
     expect(constructor.factoryKeyword, isNull);
-    expect(constructor.returnType.name, 'C');
+    expect(constructor.typeName!.name, 'C');
     expect(constructor.period, isNull);
     expect(constructor.name, isNull);
     expect(constructor.parameters, isNotNull);
@@ -2014,7 +2014,7 @@ void Function<A>(core.List<core.int> x) m() => null;
     expect(constructor.externalKeyword, isNull);
     expect(constructor.name, isNull);
     expect(constructor.parameters, isNotNull);
-    expect(constructor.returnType, isNotNull);
+    expect(constructor.typeName, isNotNull);
   }
 
   void test_parseGetter_nonStatic() {

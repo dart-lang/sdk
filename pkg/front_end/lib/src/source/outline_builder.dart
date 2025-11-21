@@ -29,7 +29,12 @@ import '../api_prototype/experimental_flags.dart';
 import '../base/combinator.dart' show CombinatorBuilder;
 import '../base/configuration.dart' show Configuration;
 import '../base/identifiers.dart'
-    show Identifier, OperatorIdentifier, SimpleIdentifier, flattenName;
+    show
+        Identifier,
+        OperatorIdentifier,
+        SimpleIdentifier,
+        flattenName,
+        OmittedIdentifier;
 import '../base/ignored_parser_errors.dart' show isIgnoredParserError;
 import '../base/messages.dart';
 import '../base/modifiers.dart' show Modifiers;
@@ -912,8 +917,8 @@ class OutlineBuilder extends StackListenerImpl {
 
   @override
   void handleNoIdentifier(Token token, IdentifierContext context) {
-    // TODO(johnniwinther): Handle new constructor syntax.
-    push(new ParserRecovery(token.charOffset));
+    debugEvent("handleNoIdentifier");
+    push(new OmittedIdentifier(token));
   }
 
   @override
@@ -2320,72 +2325,6 @@ class OutlineBuilder extends StackListenerImpl {
       );
     }
 
-    _endClassMethod(
-      getOrSet,
-      beginToken,
-      beginParam,
-      beginInitializers,
-      endToken,
-      switch (kind) {
-        DeclarationKind.Class => _MethodKind.classMethod,
-        DeclarationKind.Mixin => _MethodKind.mixinMethod,
-        DeclarationKind.Extension => _MethodKind.extensionMethod,
-        DeclarationKind.ExtensionType => _MethodKind.extensionTypeMethod,
-        DeclarationKind.Enum => _MethodKind.enumMethod,
-        // Coverage-ignore(suite): Not run.
-        DeclarationKind.TopLevel => throw new UnsupportedError(
-          "Unexpected method kind $kind.",
-        ),
-      },
-    );
-  }
-
-  @override
-  void endConstructor(
-    DeclarationKind kind,
-    Token beginToken,
-    Token? newToken,
-    Token beginParam,
-    Token? beginInitializers,
-    Token endToken,
-  ) {
-    debugEvent("endConstructor");
-
-    if (kind == DeclarationKind.Enum) {
-      reportIfNotEnabled(
-        libraryFeatures.enhancedEnums,
-        beginToken.charOffset,
-        noLength,
-      );
-    }
-
-    _endClassConstructor(
-      beginToken,
-      beginInitializers,
-      endToken,
-      switch (kind) {
-        DeclarationKind.Class => _ConstructorKind.classConstructor,
-        DeclarationKind.Mixin => _ConstructorKind.mixinConstructor,
-        DeclarationKind.Extension => _ConstructorKind.extensionConstructor,
-        DeclarationKind.ExtensionType =>
-          _ConstructorKind.extensionTypeConstructor,
-        DeclarationKind.Enum => _ConstructorKind.enumConstructor,
-        // Coverage-ignore(suite): Not run.
-        DeclarationKind.TopLevel => throw new UnsupportedError(
-          "Unexpected constructor kind $kind.",
-        ),
-      },
-    );
-  }
-
-  void _endClassMethod(
-    Token? getOrSet,
-    Token beginToken,
-    Token beginParam,
-    Token? beginInitializers,
-    Token endToken,
-    _MethodKind methodKind,
-  ) {
     assert(checkState(beginToken, [ValueKinds.MethodBody]));
     MethodBody bodyKind = pop() as MethodBody;
     if (bodyKind == MethodBody.RedirectingFactoryBody) {
@@ -2450,11 +2389,11 @@ class OutlineBuilder extends StackListenerImpl {
     }
 
     String name;
-    ProcedureKind kind;
+    ProcedureKind procedureKind;
     int nameOffset = identifier.qualifierOffset;
     if (operator != null) {
       name = operator.text;
-      kind = ProcedureKind.Operator;
+      procedureKind = ProcedureKind.Operator;
       int requiredArgumentCount = operator.requiredArgumentCount;
       if ((formals?.length ?? 0) != requiredArgumentCount) {
         Template<Message Function(String name), Function> template;
@@ -2507,7 +2446,7 @@ class OutlineBuilder extends StackListenerImpl {
       }
     } else {
       name = identifier.name;
-      kind = computeProcedureKind(getOrSet);
+      procedureKind = computeProcedureKind(getOrSet);
     }
 
     bool isAbstract = bodyKind == MethodBody.Abstract;
@@ -2545,8 +2484,8 @@ class OutlineBuilder extends StackListenerImpl {
 
     bool forAbstractClassOrMixin = inAbstractOrSealedClass;
 
-    bool isExtensionMember = methodKind == _MethodKind.extensionMethod;
-    bool isExtensionTypeMember = methodKind == _MethodKind.extensionTypeMethod;
+    bool isExtensionMember = kind == DeclarationKind.Extension;
+    bool isExtensionTypeMember = kind == DeclarationKind.ExtensionType;
 
     _builderFactory.addClassMethod(
       offsetMap: _offsetMap,
@@ -2568,19 +2507,32 @@ class OutlineBuilder extends StackListenerImpl {
       forAbstractClassOrMixin: forAbstractClassOrMixin,
       asyncModifier: asyncModifier,
       nativeMethodName: nativeMethodName,
-      kind: kind,
+      kind: procedureKind,
     );
 
     nativeMethodName = null;
     popDeclarationContext();
   }
 
-  void _endClassConstructor(
+  @override
+  void endConstructor(
+    DeclarationKind kind,
     Token beginToken,
+    Token? newToken,
+    Token beginParam,
     Token? beginInitializers,
     Token endToken,
-    _ConstructorKind constructorKind,
   ) {
+    debugEvent("endConstructor");
+
+    if (kind == DeclarationKind.Enum) {
+      reportIfNotEnabled(
+        libraryFeatures.enhancedEnums,
+        beginToken.charOffset,
+        noLength,
+      );
+    }
+
     assert(checkState(beginToken, [ValueKinds.MethodBody]));
     MethodBody bodyKind = pop() as MethodBody;
     if (bodyKind == MethodBody.RedirectingFactoryBody) {
@@ -2669,8 +2621,7 @@ class OutlineBuilder extends StackListenerImpl {
     int endOffset = endToken.charOffset;
 
     bool forAbstractClassOrMixin =
-        inAbstractOrSealedClass ||
-        constructorKind == _ConstructorKind.mixinConstructor;
+        inAbstractOrSealedClass || kind == DeclarationKind.Mixin;
 
     _builderFactory.addConstructor(
       offsetMap: _offsetMap,
@@ -2684,6 +2635,7 @@ class OutlineBuilder extends StackListenerImpl {
       endOffset: endOffset,
       nativeMethodName: nativeMethodName,
       beginInitializers: beginInitializers,
+      hasNewKeyword: newToken != null,
       forAbstractClassOrMixin: forAbstractClassOrMixin,
     );
 
@@ -4717,24 +4669,6 @@ class OutlineBuilder extends StackListenerImpl {
       token.length,
     );
   }
-}
-
-/// TODO(johnniwinther): Use [DeclarationContext] instead of [_MethodKind].
-enum _MethodKind {
-  classMethod,
-  mixinMethod,
-  extensionMethod,
-  extensionTypeMethod,
-  enumMethod,
-}
-
-/// TODO(johnniwinther): Use [DeclarationContext] instead of [_ConstructorKind].
-enum _ConstructorKind {
-  classConstructor,
-  mixinConstructor,
-  extensionConstructor,
-  extensionTypeConstructor,
-  enumConstructor,
 }
 
 extension on MemberKind {

@@ -140,7 +140,7 @@ static extension-type-member synthetic method ET2|constructor#_#new#tearOff(core
   return self::ET2|constructor#(id);
 static extension-type-member method ET2|n() → core::int
   ;
-static extension-type-member method ET2|constructor#n(core::int id) → self::ET2% /* erasure=core::int, declared=! */ {
+static extension-type-member const method ET2|constructor#n(core::int id) → self::ET2% /* erasure=core::int, declared=! */ {
   lowered final self::ET2% /* erasure=core::int, declared=! */ #this = id;
   return #this;
 }

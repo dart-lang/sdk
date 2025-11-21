@@ -1161,6 +1161,7 @@ class Printer extends VisitorDefault<void> with VisitorVoidMixin {
     writeModifier(node.isExtensionMember, 'extension-member');
     writeModifier(node.isExtensionTypeMember, 'extension-type-member');
     writeModifier(node.isSynthetic, 'synthetic');
+    writeModifier(node.isConst, 'const');
     writeModifier(node.isErroneous, 'erroneous');
     switch (node.stubKind) {
       case ProcedureStubKind.Regular:

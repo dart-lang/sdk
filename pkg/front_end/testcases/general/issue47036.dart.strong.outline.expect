@@ -9,15 +9,15 @@ class Default extends core::Object /*hasConstConstructor*/  {
     ;
 }
 class Settings extends core::Object {
-  static factory •({self::Sidebar sidebar = /*original=self::Sidebar::•*/ const self::_$_SSidebar::•()}) → self::Settings /* redirection-target: self::_SSettings::• */
+  static const factory •({self::Sidebar sidebar = /*original=self::Sidebar::•*/ const self::_$_SSidebar::•()}) → self::Settings /* redirection-target: self::_SSettings::• */
     return self::_SSettings::•(sidebar: sidebar);
 }
 class Sidebar extends core::Object {
-  static factory •() → self::Sidebar /* redirection-target: self::_SSidebar::• */
+  static const factory •() → self::Sidebar /* redirection-target: self::_SSidebar::• */
     return self::_SSidebar::•();
 }
 abstract class _SSettings extends core::Object implements self::Settings {
-  static factory •({self::Sidebar sidebar = /*original=self::Sidebar::•*/ const self::_$_SSidebar::•()}) → self::_SSettings /* redirection-target: self::_$_SSettings::• */
+  static const factory •({self::Sidebar sidebar = /*original=self::Sidebar::•*/ const self::_$_SSidebar::•()}) → self::_SSettings /* redirection-target: self::_$_SSettings::• */
     return new self::_$_SSettings::•(sidebar: sidebar);
 }
 class _$_SSettings extends core::Object implements self::_SSettings /*hasConstConstructor*/  {
@@ -27,7 +27,7 @@ class _$_SSettings extends core::Object implements self::_SSettings /*hasConstCo
     ;
 }
 abstract class _SSidebar extends core::Object implements self::Sidebar {
-  static factory •() → self::_SSidebar /* redirection-target: self::_$_SSidebar::• */
+  static const factory •() → self::_SSidebar /* redirection-target: self::_$_SSidebar::• */
     return new self::_$_SSidebar::•();
 }
 class _$_SSidebar extends core::Object implements self::_SSidebar /*hasConstConstructor*/  {

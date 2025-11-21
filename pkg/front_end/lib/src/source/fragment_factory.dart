@@ -345,6 +345,7 @@ abstract class FragmentFactory {
     required int endOffset,
     required String? nativeMethodName,
     required Token? beginInitializers,
+    required bool hasNewKeyword,
     required bool forAbstractClassOrMixin,
   });
 
@@ -385,7 +386,8 @@ abstract class FragmentFactory {
   ConstructorName computeAndValidateConstructorName(
     DeclarationFragmentImpl enclosingDeclaration,
     Identifier identifier, {
-    isFactory = false,
+    bool hasNewKeyword = false,
+    bool isFactory = false,
   });
 
   void addMethod({

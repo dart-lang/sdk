@@ -7,7 +7,7 @@ class Color extends core::Object /*hasConstConstructor*/  {
   const constructor red(core::int x) → self::Color
     : self::Color::x = x, super core::Object::•()
     ;
-  static factory red2(core::int x) → self::Color /* redirection-target: self::Color::red */
+  static const factory red2(core::int x) → self::Color /* redirection-target: self::Color::red */
     return new self::Color::red(x);
 }
 static method main() → void

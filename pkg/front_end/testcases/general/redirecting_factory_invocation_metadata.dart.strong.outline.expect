@@ -20,7 +20,7 @@ class Const extends core::Object /*hasConstConstructor*/  {
   const constructor internal() → self::Const
     : super core::Object::•()
     ;
-  static factory •() → self::Const /* redirection-target: self::Const::internal */
+  static const factory •() → self::Const /* redirection-target: self::Const::internal */
     return new self::Const::internal();
 }
 class Class<@/*original=self::Const::•*/ const self::Const::internal() T extends core::Object? = dynamic> extends core::Object {

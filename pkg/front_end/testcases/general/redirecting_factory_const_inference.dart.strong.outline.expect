@@ -3,7 +3,7 @@ import self as self;
 import "dart:core" as core;
 
 class _X<T extends core::Object? = dynamic> extends core::Object {
-  static factory •<T extends core::Object? = dynamic>() → self::_X<self::_X::•::T%> /* redirection-target: self::_Y::•<self::_X::•::T%>*/
+  static const factory •<T extends core::Object? = dynamic>() → self::_X<self::_X::•::T%> /* redirection-target: self::_Y::•<self::_X::•::T%>*/
     return new self::_Y::•<self::_X::•::T%>();
 }
 class _Y<T extends core::Object? = dynamic> extends core::Object implements self::_X<self::_Y::T%> /*hasConstConstructor*/  {

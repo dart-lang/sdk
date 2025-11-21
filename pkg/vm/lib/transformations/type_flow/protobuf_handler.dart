@@ -43,6 +43,7 @@ class ProtobufHandler {
   };
 
   final CoreTypes coreTypes;
+  final bool handleMixins;
   final Class _generatedMessageClass;
   final Class _tagNumberClass;
   final Field _tagNumberField;
@@ -59,35 +60,43 @@ class ProtobufHandler {
   /// Returns null if protobuf library is not used.
   static ProtobufHandler? forComponent(
     Component component,
-    CoreTypes coreTypes,
-  ) {
+    CoreTypes coreTypes, {
+    bool handleMixins = false,
+  }) {
     final libraryIndex = LibraryIndex(component, [protobufLibraryUri]);
     if (!libraryIndex.containsLibrary(protobufLibraryUri)) {
       return null;
     }
-    return ProtobufHandler._internal(libraryIndex, coreTypes);
+    return ProtobufHandler._internal(
+      libraryIndex,
+      coreTypes,
+      handleMixins: handleMixins,
+    );
   }
 
-  ProtobufHandler._internal(LibraryIndex libraryIndex, this.coreTypes)
-    : _generatedMessageClass = libraryIndex.getClass(
-        protobufLibraryUri,
-        'GeneratedMessage',
-      ),
-      _tagNumberClass = libraryIndex.getClass(protobufLibraryUri, 'TagNumber'),
-      _tagNumberField = libraryIndex.getField(
-        protobufLibraryUri,
-        'TagNumber',
-        'tagNumber',
-      ),
-      _builderInfoClass = libraryIndex.getClass(
-        protobufLibraryUri,
-        'BuilderInfo',
-      ),
-      _builderInfoAddMethod = libraryIndex.getProcedure(
-        protobufLibraryUri,
-        'BuilderInfo',
-        'add',
-      ) {
+  ProtobufHandler._internal(
+    LibraryIndex libraryIndex,
+    this.coreTypes, {
+    this.handleMixins = false,
+  }) : _generatedMessageClass = libraryIndex.getClass(
+         protobufLibraryUri,
+         'GeneratedMessage',
+       ),
+       _tagNumberClass = libraryIndex.getClass(protobufLibraryUri, 'TagNumber'),
+       _tagNumberField = libraryIndex.getField(
+         protobufLibraryUri,
+         'TagNumber',
+         'tagNumber',
+       ),
+       _builderInfoClass = libraryIndex.getClass(
+         protobufLibraryUri,
+         'BuilderInfo',
+       ),
+       _builderInfoAddMethod = libraryIndex.getProcedure(
+         protobufLibraryUri,
+         'BuilderInfo',
+         'add',
+       ) {
     final functionType = _builderInfoAddMethod.getterType as FunctionType;
     _typeOfBuilderInfoAddOfNull = FunctionTypeInstantiator.instantiate(
       functionType,
@@ -98,6 +107,24 @@ class ProtobufHandler {
 
   bool usesAnnotationClass(Class cls) => cls == _tagNumberClass;
 
+  static bool _hasNonMixinSuperclass(Class? cls, Class superclass) {
+    while (cls != null) {
+      if (cls == superclass) {
+        return true;
+      }
+      if (!cls.isEliminatedMixin) {
+        return false;
+      }
+      cls = cls.superclass;
+    }
+    return false;
+  }
+
+  bool isMessageClass(Class cls) =>
+      cls.superclass == _generatedMessageClass ||
+      (handleMixins &&
+          _hasNonMixinSuperclass(cls.superclass, _generatedMessageClass));
+
   /// This method is called from summary collector when analysis discovered
   /// that [member] is called and needs to construct a summary for its body.
   ///
@@ -107,7 +134,7 @@ class ProtobufHandler {
   void beforeSummaryCreation(Member member) {
     // Only interested in members of subclasses of GeneratedMessage class.
     final cls = member.enclosingClass;
-    if (cls == null || cls.superclass != _generatedMessageClass) {
+    if (cls == null || !isMessageClass(cls)) {
       return;
     }
     final messageClass = (_messageClasses[cls] ??= _MessageClass());

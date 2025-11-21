@@ -10,7 +10,7 @@ extension type ET(core::int? i) {
 static const field dynamic a = #C1;
 static const field dynamic b = #C2;
 static const field core::List<core::int?> c = #C3;
-static extension-type-member method ET|constructor#(core::int? i) → self::ET% /* erasure=core::int?, declared=! */ {
+static extension-type-member const method ET|constructor#(core::int? i) → self::ET% /* erasure=core::int?, declared=! */ {
   lowered final self::ET% /* erasure=core::int?, declared=! */ #this = i;
   return #this;
 }

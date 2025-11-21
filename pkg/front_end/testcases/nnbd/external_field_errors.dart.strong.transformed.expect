@@ -111,7 +111,7 @@ extension Extension on self::A {
 external static get topLevelField() → core::int;
 external static set topLevelField(synthesized core::int #externalFieldValue) → void;
 external static get finalTopLevelField() → core::int;
-external static get constField() → core::int;
+external static const get constField() → core::int;
 external static set constField(synthesized core::int #externalFieldValue) → void;
 external static extension-member method Extension|get#extensionInstanceField(lowered self::A #this) → core::int;
 external static extension-member method Extension|set#extensionInstanceField(lowered self::A #this, synthesized core::int #externalFieldValue) → void;

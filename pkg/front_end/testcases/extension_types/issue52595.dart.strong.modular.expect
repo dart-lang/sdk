@@ -8,7 +8,7 @@ extension type V<T extends core::Object? = dynamic>(core::int id) {
   constructor tearoff • = self::V|constructor#_#new#tearOff;
 }
 static const field self::V<core::int>% /* erasure=core::int, declared=! */ c = #C1;
-static extension-type-member method V|constructor#<T extends core::Object? = dynamic>(core::int id) → self::V<self::V|constructor#::T%>% /* erasure=core::int, declared=! */ {
+static extension-type-member const method V|constructor#<T extends core::Object? = dynamic>(core::int id) → self::V<self::V|constructor#::T%>% /* erasure=core::int, declared=! */ {
   lowered final self::V<self::V|constructor#::T%>% /* erasure=core::int, declared=! */ #this = id;
   return #this;
 }

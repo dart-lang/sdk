@@ -472,11 +472,7 @@ class B {
     _assertReplacementForChildren<ConstructorDeclaration>(
       destination: findNode.constructor('A.named'),
       source: findNode.constructor('B.named'),
-      childAccessors: [
-        (node) => node.body,
-        (node) => node.parameters,
-        (node) => node.returnType,
-      ],
+      childAccessors: [(node) => node.body, (node) => node.parameters],
     );
     _assertAnnotatedNode(findNode.constructor('A.named'));
   }
