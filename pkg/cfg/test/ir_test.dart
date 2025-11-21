@@ -20,6 +20,7 @@ import 'package:cfg/front_end/ast_to_ir.dart';
 import 'package:cfg/front_end/recognized_methods.dart';
 import 'package:cfg/ir/functions.dart';
 import 'package:cfg/ir/ir_to_text.dart';
+import 'package:cfg/passes/pass.dart';
 import 'package:kernel/type_environment.dart';
 import 'package:test/test.dart';
 import 'package:vm/modular/target/vm.dart';
@@ -108,6 +109,8 @@ class CompileAndDumpIr extends RecursiveVisitor {
       recognizedMethods,
       enableAsserts: true,
     ).buildFlowGraph();
+    final pipeline = Pipeline([]);
+    pipeline.run(graph);
     buffer.writeln('--- ${node.name}');
     buffer.writeln(
       IrToText(graph, printDominators: true, printLoops: true).toString(),
