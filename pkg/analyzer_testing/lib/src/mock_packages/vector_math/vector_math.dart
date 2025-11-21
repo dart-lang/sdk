@@ -13,11 +13,8 @@ part of 'vector_math_64.dart';
 class Matrix4 {}
 ''');
 
-final MockLibraryUnit _vectorMath64Unit = MockLibraryUnit(
-  'lib/vector_math_64.dart',
-  r'''
+final _vectorMath64Unit = MockLibraryUnit('lib/vector_math_64.dart', r'''
 library vector_math_64;
 
 part 'matrix4.dart';
-''',
-);
+''');

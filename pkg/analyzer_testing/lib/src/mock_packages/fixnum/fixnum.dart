@@ -4,10 +4,10 @@
 
 import 'package:analyzer_testing/src/mock_packages/mock_library.dart';
 
-/// The set of units that make up the mock 'fixnum' package.
-final List<MockLibraryUnit> units = [_fixnumLibrary];
+/// The set of compilation units that make up the mock 'fixnum' package.
+final List<MockLibraryUnit> units = [_fixnumUnit];
 
-final _fixnumLibrary = MockLibraryUnit('lib/fixnum.dart', r'''
+final _fixnumUnit = MockLibraryUnit('lib/fixnum.dart', r'''
 library fixnum;
 
 class Int32 {}

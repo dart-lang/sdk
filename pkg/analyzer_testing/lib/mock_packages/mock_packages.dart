@@ -8,6 +8,7 @@ import 'package:analyzer_testing/package_root.dart' as package_root;
 import 'package:analyzer_testing/src/mock_packages/ffi/ffi.dart' as mock_ffi;
 import 'package:analyzer_testing/src/mock_packages/fixnum/fixnum.dart'
     as mock_fixnum;
+import 'package:analyzer_testing/src/mock_packages/meta/meta.dart' as mock_meta;
 import 'package:analyzer_testing/src/mock_packages/mock_library.dart';
 import 'package:analyzer_testing/src/mock_packages/test_reflective_loader/test_reflective_loader.dart'
     as test_reflective_loader;
@@ -60,7 +61,7 @@ class BlazeMockPackages {
   }
 
   void addMeta(ResourceProvider provider) {
-    _addFiles(provider, 'meta');
+    _addFiles2(provider, 'meta', mock_meta.units);
   }
 
   /// Add files of the given [packageName] to the [provider].
@@ -79,6 +80,25 @@ class BlazeMockPackages {
 
     var packagesFolder = provider.getFolder(packagesPath);
     return packagesFolder.getChildAssumingFolder(packageName);
+  }
+
+  /// Adds files of the given [packageName] to the [provider].
+  Folder _addFiles2(
+    ResourceProvider provider,
+    String packageName,
+    List<MockLibraryUnit> units,
+  ) {
+    var absolutePackagePath = provider.convertPath(
+      '/workspace/third_party/dart/$packageName',
+    );
+    for (var unit in units) {
+      var absoluteUnitPath = provider.convertPath(
+        '$absolutePackagePath/${unit.path}',
+      );
+      provider.getFile(absoluteUnitPath).writeAsStringSync(unit.content);
+    }
+
+    return provider.getFolder(absolutePackagePath);
   }
 }
 
@@ -142,7 +162,7 @@ mixin MockPackagesMixin {
   }
 
   Folder addMeta() {
-    var packageFolder = _addFiles('meta');
+    var packageFolder = _addFiles2('meta', mock_meta.units);
     return packageFolder.getChildAssumingFolder('lib');
   }
 
@@ -210,7 +230,7 @@ mixin MockPackagesMixin {
   /// Adds files of the given [packageName] to the [resourceProvider].
   Folder _addFiles2(String packageName, List<MockLibraryUnit> units) {
     var absolutePackagePath = resourceProvider.convertPath(
-      '$packagesRootPath/$packageName/$packageName',
+      '$packagesRootPath/$packageName',
     );
     for (var unit in units) {
       var absoluteUnitPath = resourceProvider.convertPath(
