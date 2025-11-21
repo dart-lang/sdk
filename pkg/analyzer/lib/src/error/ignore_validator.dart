@@ -31,15 +31,16 @@ class IgnoreValidator {
   /// Whether to report `unignorable_ignore` warnings.
   ///
   /// `unignorable_ignore` warnings were introduced in
-  /// https://dart-review.googlesource.com/c/sdk/+/156402 but never enabled due
-  /// to issues in the Flutter code base.
+  /// https://dart-review.googlesource.com/c/sdk/+/156402 but not enabled until
+  /// https://dart-review.googlesource.com/c/sdk/+/463504.
   ///
-  /// This flag allows the logic for reporting these warnings to be unit tested
-  /// even while they remain disabled.
-  // TODO(paulberry): enable these warnings (hardcode this flag to `true`) once
-  // issues in the Flutter code base have been addressed.
+  /// This flag allows the logic for reporting these warnings to be easily
+  /// disabled again in case this leads to problems, without interfering with
+  /// the ability to unit test the functionality.
+  // TODO(paulberry): remove this flag once sufficient time has elapsed after
+  // rolling https://dart-review.googlesource.com/c/sdk/+/463504 into Flutter.
   @visibleForTesting
-  static bool enableUnignorableIgnore = false;
+  static bool enableUnignorableIgnore = true;
 
   /// The diagnostic reporter to which diagnostics are to be reported.
   final DiagnosticReporter _diagnosticReporter;
