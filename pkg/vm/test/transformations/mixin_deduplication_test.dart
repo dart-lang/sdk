@@ -14,7 +14,7 @@ import 'package:vm/transformations/mixin_deduplication.dart'
 
 import '../common_test_utils.dart';
 
-final String pkgVmDir = Platform.script.resolve('../..').toFilePath();
+final Uri _pkgVmDir = Platform.script.resolve('../..');
 
 runTestCase(Uri source) async {
   final target = VmTarget(new TargetFlags());
@@ -38,14 +38,14 @@ runTestCase(Uri source) async {
       )
       .map(kernelLibraryToString)
       .join('\n\n')
-      .replaceAll(pkgVmDir.toString(), 'file:pkg/vm/');
+      .replaceAll(_pkgVmDir.toString(), 'file:pkg/vm/');
   compareResultWithExpectationsFile(source, actual);
 }
 
 main() {
   group('mixin-deduplication', () {
-    final testCasesDir = Directory(
-      pkgVmDir + '/testcases/transformations/mixin_deduplication',
+    final testCasesDir = Directory.fromUri(
+      _pkgVmDir.resolve('testcases/transformations/mixin_deduplication'),
     );
 
     for (var entry

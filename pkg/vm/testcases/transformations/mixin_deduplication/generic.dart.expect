@@ -77,37 +77,37 @@ static method main() → dynamic {}
 library;
 import self as self;
 import "dart:core" as core;
-import "file://file:pkg/vm//testcases/transformations/mixin_deduplication/generic.dart" as #lib;
+import "file:pkg/vm/testcases/transformations/mixin_deduplication/generic.dart" as #lib;
 
 import "dart:core";
-import "file://file:pkg/vm//testcases/transformations/mixin_deduplication/generic.dart";
+import "file:pkg/vm/testcases/transformations/mixin_deduplication/generic.dart";
 
-abstract class _MixinApplication0&B1&M1<T extends core::Object? = dynamic> extends #lib::B1 implements #lib::M1<self::_MixinApplication0&B1&M1::T%> /*isAnonymousMixin,isEliminatedMixin*/  { // from file://file:pkg/vm//testcases/transformations/mixin_deduplication/generic.dart
+abstract class _MixinApplication0&B1&M1<T extends core::Object? = dynamic> extends #lib::B1 implements #lib::M1<self::_MixinApplication0&B1&M1::T%> /*isAnonymousMixin,isEliminatedMixin*/  { // from file:pkg/vm/testcases/transformations/mixin_deduplication/generic.dart
   synthetic constructor •() → self::_MixinApplication0&B1&M1<self::_MixinApplication0&B1&M1::T%>
     : super #lib::B1::•()
     ;
 }
-abstract class _MixinApplication1&B1&M1<T extends core::Object? = dynamic> extends #lib::B1 implements #lib::M1<self::_MixinApplication1&B1&M1::T?> /*isAnonymousMixin,isEliminatedMixin*/  { // from file://file:pkg/vm//testcases/transformations/mixin_deduplication/generic.dart
+abstract class _MixinApplication1&B1&M1<T extends core::Object? = dynamic> extends #lib::B1 implements #lib::M1<self::_MixinApplication1&B1&M1::T?> /*isAnonymousMixin,isEliminatedMixin*/  { // from file:pkg/vm/testcases/transformations/mixin_deduplication/generic.dart
   synthetic constructor •() → self::_MixinApplication1&B1&M1<self::_MixinApplication1&B1&M1::T%>
     : super #lib::B1::•()
     ;
 }
-abstract class _MixinApplication2&B2&M2<T extends core::Object? = dynamic> extends #lib::B2<self::_MixinApplication2&B2&M2::T%> implements #lib::M2 /*isAnonymousMixin,isEliminatedMixin*/  { // from file://file:pkg/vm//testcases/transformations/mixin_deduplication/generic.dart
+abstract class _MixinApplication2&B2&M2<T extends core::Object? = dynamic> extends #lib::B2<self::_MixinApplication2&B2&M2::T%> implements #lib::M2 /*isAnonymousMixin,isEliminatedMixin*/  { // from file:pkg/vm/testcases/transformations/mixin_deduplication/generic.dart
   synthetic constructor •() → self::_MixinApplication2&B2&M2<self::_MixinApplication2&B2&M2::T%>
     : super #lib::B2::•()
     ;
 }
-abstract class _MixinApplication3&B2&M2<T extends core::Object? = dynamic> extends #lib::B2<self::_MixinApplication3&B2&M2::T?> implements #lib::M2 /*isAnonymousMixin,isEliminatedMixin*/  { // from file://file:pkg/vm//testcases/transformations/mixin_deduplication/generic.dart
+abstract class _MixinApplication3&B2&M2<T extends core::Object? = dynamic> extends #lib::B2<self::_MixinApplication3&B2&M2::T?> implements #lib::M2 /*isAnonymousMixin,isEliminatedMixin*/  { // from file:pkg/vm/testcases/transformations/mixin_deduplication/generic.dart
   synthetic constructor •() → self::_MixinApplication3&B2&M2<self::_MixinApplication3&B2&M2::T%>
     : super #lib::B2::•()
     ;
 }
-abstract class _MixinApplication4&B3&M2<T extends core::Object> extends #lib::B3<self::_MixinApplication4&B3&M2::T> implements #lib::M2 /*isAnonymousMixin,isEliminatedMixin*/  { // from file://file:pkg/vm//testcases/transformations/mixin_deduplication/generic.dart
+abstract class _MixinApplication4&B3&M2<T extends core::Object> extends #lib::B3<self::_MixinApplication4&B3&M2::T> implements #lib::M2 /*isAnonymousMixin,isEliminatedMixin*/  { // from file:pkg/vm/testcases/transformations/mixin_deduplication/generic.dart
   synthetic constructor •() → self::_MixinApplication4&B3&M2<self::_MixinApplication4&B3&M2::T>
     : super #lib::B3::•()
     ;
 }
-abstract class _MixinApplication5&B3&M2<T extends core::Object?> extends #lib::B3<self::_MixinApplication5&B3&M2::T%> implements #lib::M2 /*isAnonymousMixin,isEliminatedMixin*/  { // from file://file:pkg/vm//testcases/transformations/mixin_deduplication/generic.dart
+abstract class _MixinApplication5&B3&M2<T extends core::Object?> extends #lib::B3<self::_MixinApplication5&B3&M2::T%> implements #lib::M2 /*isAnonymousMixin,isEliminatedMixin*/  { // from file:pkg/vm/testcases/transformations/mixin_deduplication/generic.dart
   synthetic constructor •() → self::_MixinApplication5&B3&M2<self::_MixinApplication5&B3&M2::T%>
     : super #lib::B3::•()
     ;

@@ -38,22 +38,22 @@ static method main() → dynamic {}
 library;
 import self as self;
 import "dart:core" as core;
-import "file://file:pkg/vm//testcases/transformations/mixin_deduplication/generic_recursive_bounds.dart" as #lib;
+import "file:pkg/vm/testcases/transformations/mixin_deduplication/generic_recursive_bounds.dart" as #lib;
 
 import "dart:core";
-import "file://file:pkg/vm//testcases/transformations/mixin_deduplication/generic_recursive_bounds.dart";
+import "file:pkg/vm/testcases/transformations/mixin_deduplication/generic_recursive_bounds.dart";
 
-abstract class _MixinApplication0&B1&M1<A extends self::_MixinApplication0&B1&M1::B = dynamic, B extends core::List<self::_MixinApplication0&B1&M1::A> = core::List<dynamic>> extends #lib::B1<self::_MixinApplication0&B1&M1::A> implements #lib::M1 /*isAnonymousMixin,isEliminatedMixin*/  { // from file://file:pkg/vm//testcases/transformations/mixin_deduplication/generic_recursive_bounds.dart
+abstract class _MixinApplication0&B1&M1<A extends self::_MixinApplication0&B1&M1::B = dynamic, B extends core::List<self::_MixinApplication0&B1&M1::A> = core::List<dynamic>> extends #lib::B1<self::_MixinApplication0&B1&M1::A> implements #lib::M1 /*isAnonymousMixin,isEliminatedMixin*/  { // from file:pkg/vm/testcases/transformations/mixin_deduplication/generic_recursive_bounds.dart
   synthetic constructor •() → self::_MixinApplication0&B1&M1<self::_MixinApplication0&B1&M1::A, self::_MixinApplication0&B1&M1::B>
     : super #lib::B1::•()
     ;
 }
-abstract class _MixinApplication1&B1&M1<A extends self::_MixinApplication1&B1&M1::B = dynamic, B extends core::List<self::_MixinApplication1&B1&M1::A?> = core::List<dynamic>> extends #lib::B1<self::_MixinApplication1&B1&M1::A> implements #lib::M1 /*isAnonymousMixin,isEliminatedMixin*/  { // from file://file:pkg/vm//testcases/transformations/mixin_deduplication/generic_recursive_bounds.dart
+abstract class _MixinApplication1&B1&M1<A extends self::_MixinApplication1&B1&M1::B = dynamic, B extends core::List<self::_MixinApplication1&B1&M1::A?> = core::List<dynamic>> extends #lib::B1<self::_MixinApplication1&B1&M1::A> implements #lib::M1 /*isAnonymousMixin,isEliminatedMixin*/  { // from file:pkg/vm/testcases/transformations/mixin_deduplication/generic_recursive_bounds.dart
   synthetic constructor •() → self::_MixinApplication1&B1&M1<self::_MixinApplication1&B1&M1::A, self::_MixinApplication1&B1&M1::B>
     : super #lib::B1::•()
     ;
 }
-abstract class _MixinApplication2&B1&M1<A extends self::_MixinApplication2&B1&M1::B% = dynamic, B extends core::List<self::_MixinApplication2&B1&M1::A%>? = core::List<dynamic>?> extends #lib::B1<self::_MixinApplication2&B1&M1::A%> implements #lib::M1 /*isAnonymousMixin,isEliminatedMixin*/  { // from file://file:pkg/vm//testcases/transformations/mixin_deduplication/generic_recursive_bounds.dart
+abstract class _MixinApplication2&B1&M1<A extends self::_MixinApplication2&B1&M1::B% = dynamic, B extends core::List<self::_MixinApplication2&B1&M1::A%>? = core::List<dynamic>?> extends #lib::B1<self::_MixinApplication2&B1&M1::A%> implements #lib::M1 /*isAnonymousMixin,isEliminatedMixin*/  { // from file:pkg/vm/testcases/transformations/mixin_deduplication/generic_recursive_bounds.dart
   synthetic constructor •() → self::_MixinApplication2&B1&M1<self::_MixinApplication2&B1&M1::A%, self::_MixinApplication2&B1&M1::B%>
     : super #lib::B1::•()
     ;
