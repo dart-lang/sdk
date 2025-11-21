@@ -2,7 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-class Foo {
-  // TODO(johnniwinther): Improve error recovery here.
-  Foo() : this.new = 42;
+class C1 {
+  factory a.b() => throw '';
+}
+
+class C2 {
+  new a.b();
 }

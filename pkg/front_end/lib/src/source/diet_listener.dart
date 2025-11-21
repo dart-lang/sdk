@@ -23,7 +23,8 @@ import '../base/identifiers.dart'
         Identifier,
         OperatorIdentifier,
         QualifiedNameIdentifier,
-        SimpleIdentifier;
+        SimpleIdentifier,
+        OmittedIdentifier;
 import '../base/ignored_parser_errors.dart' show isIgnoredParserError;
 import '../base/scope.dart';
 import '../codes/cfe_codes.dart'
@@ -463,8 +464,8 @@ class DietListener extends StackListenerImpl {
 
   @override
   void handleNoIdentifier(Token token, IdentifierContext context) {
-    // TODO(johnniwinther): Handle new constructor syntax.
-    push(new ParserRecovery(token.charOffset));
+    debugEvent("handleNoIdentifier");
+    push(new OmittedIdentifier(token));
   }
 
   @override

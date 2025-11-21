@@ -1,0 +1,120 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+class C1 extends core::Object {
+  field core::int i;
+  constructor •(core::int i) → self::C1
+    ;
+}
+class C2 extends core::Object /*hasConstConstructor*/  {
+  final field core::int i;
+  const constructor •(core::int i) → self::C2
+    : self::C2::i = i, super core::Object::•()
+    ;
+}
+class C3 extends core::Object {
+  field core::int i;
+  constructor named({required core::int i}) → self::C3
+    ;
+}
+class C4 extends core::Object /*hasConstConstructor*/  {
+  final field core::int i;
+  const constructor named({required core::int i}) → self::C4
+    : self::C4::i = i, super core::Object::•()
+    ;
+}
+class C5 extends core::Object {
+  field core::int i;
+  constructor _(core::int i) → self::C5
+    ;
+  static factory •(core::int i) → self::C5
+    ;
+}
+class C6 extends core::Object /*hasConstConstructor*/  {
+  final field core::int i;
+  const constructor _(core::int i) → self::C6
+    : self::C6::i = i, super core::Object::•()
+    ;
+  static factory •(core::int i) → self::C6
+    ;
+}
+class C7 extends core::Object {
+  field core::int i;
+  constructor _({required core::int i}) → self::C7
+    ;
+  static factory •({required core::int i}) → self::C7 /* redirection-target: self::C7::_ */
+    return new self::C7::_(i: i);
+}
+class C8 extends core::Object /*hasConstConstructor*/  {
+  final field core::int i;
+  const constructor _(core::int i) → self::C8
+    : self::C8::i = i, super core::Object::•()
+    ;
+  static factory •(core::int i) → self::C8 /* redirection-target: self::C8::_ */
+    return new self::C8::_(i);
+}
+class C9 extends core::Object {
+  field core::int i;
+  constructor _(core::int i) → self::C9
+    ;
+  static factory named(core::int i) → self::C9
+    ;
+}
+class C10 extends core::Object /*hasConstConstructor*/  {
+  final field core::int i;
+  const constructor _(core::int i) → self::C10
+    : self::C10::i = i, super core::Object::•()
+    ;
+  static factory named(core::int i) → self::C10
+    ;
+}
+class C11 extends core::Object {
+  field core::int i;
+  constructor _({required core::int i}) → self::C11
+    ;
+  static factory named({required core::int i}) → self::C11 /* redirection-target: self::C11::_ */
+    return new self::C11::_(i: i);
+}
+class C12 extends core::Object /*hasConstConstructor*/  {
+  final field core::int i;
+  const constructor _(core::int i) → self::C12
+    : self::C12::i = i, super core::Object::•()
+    ;
+  static factory named(core::int i) → self::C12 /* redirection-target: self::C12::_ */
+    return new self::C12::_(i);
+}
+class C13 extends core::Object {
+  field core::int i;
+  constructor •(core::int i) → self::C13
+    ;
+  constructor _(core::int i) → self::C13
+    ;
+}
+class C14 extends core::Object /*hasConstConstructor*/  {
+  final field core::int i;
+  const constructor •(core::int i) → self::C14
+    : this self::C14::_(i)
+    ;
+  const constructor _(core::int i) → self::C14
+    : self::C14::i = i, super core::Object::•()
+    ;
+}
+class C15 extends core::Object {
+  field core::int i;
+  constructor named({required core::int i}) → self::C15
+    ;
+  constructor _(core::int i) → self::C15
+    ;
+}
+class C16 extends core::Object /*hasConstConstructor*/  {
+  final field core::int i;
+  const constructor named({required core::int i}) → self::C16
+    : this self::C16::_(i)
+    ;
+  const constructor _(core::int i) → self::C16
+    : self::C16::i = i, super core::Object::•()
+    ;
+}
+static method main() → dynamic
+  ;

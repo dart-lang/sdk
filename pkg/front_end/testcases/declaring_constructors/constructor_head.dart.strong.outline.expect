@@ -2,6 +2,16 @@ library;
 //
 // Problems in library:
 //
+// pkg/front_end/testcases/declaring_constructors/constructor_head.dart:33:3: Error: A const constructor can't have a body.
+// Try removing either the 'const' keyword or the body.
+//   const new () {}
+//   ^^^^^
+//
+// pkg/front_end/testcases/declaring_constructors/constructor_head.dart:38:3: Error: A const constructor can't have a body.
+// Try removing either the 'const' keyword or the body.
+//   const new () : x = 0 {}
+//   ^^^^^
+//
 // pkg/front_end/testcases/declaring_constructors/constructor_head.dart:69:3: Error: A const constructor can't have a body.
 // Try removing either the 'const' keyword or the body.
 //   const new named() {}
@@ -16,39 +26,41 @@ import self as self;
 import "dart:core" as core;
 
 class C1 extends core::Object {
-  synthetic constructor •() → self::C1
+  constructor •() → self::C1
     ;
 }
 class C2 extends core::Object {
   field dynamic x;
-  synthetic constructor •() → self::C2
+  constructor •() → self::C2
     ;
 }
 class C3 extends core::Object {
-  synthetic constructor •() → self::C3
+  constructor •() → self::C3
     ;
 }
 class C4 extends core::Object {
   field dynamic x;
-  synthetic constructor •() → self::C4
+  constructor •() → self::C4
     ;
 }
-class C5 extends core::Object {
-  synthetic constructor •() → self::C5
+class C5 extends core::Object /*hasConstConstructor*/  {
+  const constructor •() → self::C5
+    : super core::Object::•()
     ;
 }
-class C6 extends core::Object {
+class C6 extends core::Object /*hasConstConstructor*/  {
   field dynamic x;
-  synthetic constructor •() → self::C6
+  const constructor •() → self::C6
+    : self::C6::x = 0, super core::Object::•()
     ;
 }
 class C7 extends core::Object {
-  synthetic constructor •() → self::C7
+  constructor •() → self::C7
     ;
 }
 class C8 extends core::Object {
   field dynamic x;
-  synthetic constructor •() → self::C8
+  constructor •() → self::C8
     ;
 }
 class C9 extends core::Object {
