@@ -184,6 +184,8 @@ vm_sources = [
   "metrics.h",
   "microtask_mirror_queues.cc",
   "microtask_mirror_queues.h",
+  "module_snapshot.cc",
+  "module_snapshot.h",
   "native_arguments.h",
   "native_entry.cc",
   "native_entry.h",

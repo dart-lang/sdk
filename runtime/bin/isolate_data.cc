@@ -29,8 +29,8 @@ IsolateGroupData::IsolateGroupData(const char* url,
 }
 
 IsolateGroupData::~IsolateGroupData() {
-  for (intptr_t i = 0; i < loading_units_.length(); i++) {
-    delete loading_units_[i];
+  for (intptr_t i = 0; i < loaded_snapshots_.length(); i++) {
+    delete loaded_snapshots_[i];
   }
   free(script_url);
   free(asset_resolution_base);

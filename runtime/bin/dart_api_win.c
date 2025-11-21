@@ -359,6 +359,8 @@ typedef Dart_Handle (*Dart_DeferredLoadCompleteErrorType)(intptr_t,
 typedef Dart_Handle (*Dart_LoadScriptFromKernelType)(const uint8_t*, intptr_t);
 typedef Dart_Handle (*Dart_LoadScriptFromBytecodeType)(const uint8_t*,
                                                        intptr_t);
+typedef Dart_Handle (*Dart_LoadModuleSnapshotType)(const uint8_t*,
+                                                   const uint8_t*);
 typedef Dart_Handle (*Dart_RootLibraryType)();
 typedef Dart_Handle (*Dart_SetRootLibraryType)(Dart_Handle);
 typedef Dart_Handle (*Dart_GetTypeType)(Dart_Handle,
@@ -722,6 +724,7 @@ static Dart_DeferredLoadCompleteErrorType Dart_DeferredLoadCompleteErrorFn =
     NULL;
 static Dart_LoadScriptFromKernelType Dart_LoadScriptFromKernelFn = NULL;
 static Dart_LoadScriptFromBytecodeType Dart_LoadScriptFromBytecodeFn = NULL;
+static Dart_LoadModuleSnapshotType Dart_LoadModuleSnapshotFn = NULL;
 static Dart_RootLibraryType Dart_RootLibraryFn = NULL;
 static Dart_SetRootLibraryType Dart_SetRootLibraryFn = NULL;
 static Dart_GetTypeType Dart_GetTypeFn = NULL;
@@ -1273,6 +1276,8 @@ BOOL WINAPI DllMain(HINSTANCE hinstDLL, DWORD fdwReason, LPVOID lpvReserved) {
     Dart_LoadScriptFromBytecodeFn =
         (Dart_LoadScriptFromBytecodeType)GetProcAddress(
             process, "Dart_LoadScriptFromBytecode");
+    Dart_LoadModuleSnapshotFn = (Dart_LoadModuleSnapshotType)GetProcAddress(
+        process, "Dart_LoadModuleSnapshot");
     Dart_RootLibraryFn =
         (Dart_RootLibraryType)GetProcAddress(process, "Dart_RootLibrary");
     Dart_SetRootLibraryFn =
@@ -2457,6 +2462,11 @@ Dart_Handle Dart_LoadScriptFromKernel(const uint8_t* kernel_buffer,
 Dart_Handle Dart_LoadScriptFromBytecode(const uint8_t* kernel_buffer,
                                         intptr_t kernel_size) {
   return Dart_LoadScriptFromBytecodeFn(kernel_buffer, kernel_size);
+}
+
+Dart_Handle Dart_LoadModuleSnapshot(const uint8_t* snapshot_data,
+                                    const uint8_t* snapshot_instructions) {
+  return Dart_LoadModuleSnapshotFn(snapshot_data, snapshot_instructions);
 }
 
 Dart_Handle Dart_RootLibrary() {

@@ -4831,6 +4831,7 @@ extern "C" uword /*ObjectPtr*/ InterpretCall(uword /*FunctionPtr*/ function_in,
   // We stay in "in generated code" execution state when interpreting code.
   ASSERT(thread->execution_state() == Thread::kThreadInGenerated);
   ASSERT(Function::HasBytecode(function));
+  ASSERT(Function::IsInterpreted(function));
   ASSERT(interpreter != nullptr);
 #endif
   // Tell MemorySanitizer 'argv' is initialized by generated code.

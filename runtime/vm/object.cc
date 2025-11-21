@@ -8440,6 +8440,10 @@ void Function::ClearBytecode() const {
   ClearCode();
 }
 
+bool Function::IsInterpreted(FunctionPtr function) {
+  return function->untag()->code() == StubCode::InterpretCall().ptr();
+}
+
 #endif  // defined(DART_DYNAMIC_MODULES)
 
 bool Function::HasCode(FunctionPtr function) {

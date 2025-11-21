@@ -3607,6 +3607,18 @@ DART_EXPORT DART_API_WARN_UNUSED_RESULT Dart_Handle
 Dart_LoadScriptFromBytecode(const uint8_t* kernel_buffer, intptr_t kernel_size);
 
 /**
+ * Loads a module snapshot.
+ *
+ * \param snapshot_data Buffer containing the module snapshot data.
+ *   Must remain valid until isolate group shutdown.
+ * \param snapshot_instructions Buffer containing the module snapshot
+ *   instructions. Must remain valid until isolate group shutdown.
+ */
+DART_EXPORT DART_API_WARN_UNUSED_RESULT Dart_Handle
+Dart_LoadModuleSnapshot(const uint8_t* snapshot_data,
+                        const uint8_t* snapshot_instructions);
+
+/**
  * Gets the library for the root script for the current isolate.
  *
  * If the root script has not yet been set for the current isolate,

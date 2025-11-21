@@ -623,6 +623,7 @@ class ObjectStore {
       case Snapshot::kFullJIT:
       case Snapshot::kFullAOT:
         return reinterpret_cast<ObjectPtr*>(&slow_tts_stub_);
+      case Snapshot::kModule:
       case Snapshot::kNone:
       case Snapshot::kInvalid:
         break;
