@@ -53,12 +53,16 @@ static method main() → dynamic {
       [@vm.direct-call.metadata=library file:pkg/vm/testcases/transformations/type_flow/transformer/protobuf_handler/lib/generated/foo.pb.dart::BarKeep.aKeep] [@vm.inferred-type.metadata=? (skip check)] #t3.{pb::BarKeep::aKeep} = 2;
     } =>#t3){(core::String, pb::BarKeep) → void};
     [@vm.direct-call.metadata=library file:pkg/vm/testcases/transformations/type_flow/transformer/protobuf_handler/lib/generated/foo.pb.dart::FooKeep.aKeep] [@vm.inferred-type.metadata=? (skip check)] #t1.{pb::FooKeep::aKeep} = 43;
+    [@vm.direct-call.metadata=library file:pkg/vm/testcases/transformations/type_flow/transformer/protobuf_handler/lib/generated/foo.pb.dart::FooKeep.mixinKeep] [@vm.inferred-type.metadata=? (skip check)] #t1.{pb::FooKeep::mixinKeep} = let final pb::MixinKeep #t4 = [@vm.inferred-type.metadata=library file:pkg/vm/testcases/transformations/type_flow/transformer/protobuf_handler/lib/generated/foo.pb.dart::MixinKeep] pb::MixinKeep::•() in block {
+      [@vm.direct-call.metadata=library file:pkg/vm/testcases/transformations/type_flow/transformer/protobuf_handler/lib/generated/foo.pb.dart::MixinKeep.aKeep] [@vm.inferred-type.metadata=? (skip check)] #t4.{pb::MixinKeep::aKeep} = 42;
+    } =>#t4;
   } =>#t1;
   sca::test([@vm.closure-id=1]() → Null {
     exp::expect([@vm.direct-call.metadata=library file:pkg/vm/testcases/transformations/type_flow/transformer/protobuf_handler/lib/generated/foo.pb.dart::BarKeep.aKeep] [@vm.inferred-type.metadata=int] [@vm.direct-call.metadata=library file:pkg/vm/testcases/transformations/type_flow/transformer/protobuf_handler/lib/generated/foo.pb.dart::FooKeep.barKeep] [@vm.inferred-type.metadata=library file:pkg/vm/testcases/transformations/type_flow/transformer/protobuf_handler/lib/generated/foo.pb.dart::BarKeep] foo.{pb::FooKeep::barKeep}{pb::BarKeep}.{pb::BarKeep::aKeep}{core::int}, 5);
     exp::expect([@vm.direct-call.metadata=library file:pkg/vm/testcases/transformations/type_flow/transformer/protobuf_handler/lib/generated/foo.pb.dart::BarKeep.aKeep] [@vm.inferred-type.metadata=int] [@vm.direct-call.metadata=library package:protobuf/src/protobuf/pb_map.dart::PbMap.[]] [@vm.inferred-type.metadata=library file:pkg/vm/testcases/transformations/type_flow/transformer/protobuf_handler/lib/generated/foo.pb.dart::BarKeep? (skip check)] [@vm.direct-call.metadata=library file:pkg/vm/testcases/transformations/type_flow/transformer/protobuf_handler/lib/generated/foo.pb.dart::FooKeep.mapKeep] [@vm.inferred-type.metadata=library package:protobuf/src/protobuf/pb_map.dart::PbMap] foo.{pb::FooKeep::mapKeep}{pb_::PbMap<core::String, pb::BarKeep>}.{pb_::PbMap::[]}("foo"){(core::Object?) → pb::BarKeep?}!.{pb::BarKeep::aKeep}{core::int}, 2);
     exp::expect([@vm.direct-call.metadata=library file:pkg/vm/testcases/transformations/type_flow/transformer/protobuf_handler/lib/generated/foo.pb.dart::FooKeep.hasHasKeep] [@vm.inferred-type.metadata=dart.core::bool (skip check)] foo.{pb::FooKeep::hasHasKeep}(){() → core::bool}, false);
     exp::expect([@vm.direct-call.metadata=library file:pkg/vm/testcases/transformations/type_flow/transformer/protobuf_handler/lib/generated/foo.pb.dart::FooKeep.aKeep] [@vm.inferred-type.metadata=int] foo.{pb::FooKeep::aKeep}{core::int}, 43);
+    exp::expect([@vm.direct-call.metadata=library file:pkg/vm/testcases/transformations/type_flow/transformer/protobuf_handler/lib/generated/foo.pb.dart::MixinKeep.aKeep] [@vm.inferred-type.metadata=int] [@vm.direct-call.metadata=library file:pkg/vm/testcases/transformations/type_flow/transformer/protobuf_handler/lib/generated/foo.pb.dart::FooKeep.mixinKeep] [@vm.inferred-type.metadata=library file:pkg/vm/testcases/transformations/type_flow/transformer/protobuf_handler/lib/generated/foo.pb.dart::MixinKeep] foo.{pb::FooKeep::mixinKeep}{pb::MixinKeep}.{pb::MixinKeep::aKeep}{core::int}, 42);
     [@vm.direct-call.metadata=library file:pkg/vm/testcases/transformations/type_flow/transformer/protobuf_handler/lib/generated/foo.pb.dart::FooKeep.clearClearKeep] [@vm.inferred-type.metadata=? (skip check)] foo.{pb::FooKeep::clearClearKeep}(){() → void};
   });
 }
@@ -68,8 +72,10 @@ import "package:protobuf/src/protobuf/internal.dart" as int;
 import "dart:core" as core;
 import "package:protobuf/src/protobuf/annotations.dart" as ann;
 import "package:protobuf/src/protobuf/pb_map.dart" as pb_;
+import "../mixins.lib.dart" as lib;
 
 import "dart:core" as $core;
+import "file:pkg/vm/testcases/transformations/type_flow/transformer/protobuf_handler/lib/mixins.lib.dart" as $mixin;
 import "package:protobuf/src/protobuf/internal.dart";
 
 class FooKeep extends int::GeneratedMessage {
@@ -83,6 +89,8 @@ class FooKeep extends int::GeneratedMessage {
     let final core::String #t3 = #C1 ?{core::String} "" : "aKeep" in [@vm.direct-call.metadata=library package:protobuf/src/protobuf/internal.dart::BuilderInfo.aI] [@vm.inferred-type.metadata=? (skip check)] #t1.{int::BuilderInfo::aI}(5){(core::int, core::String, {defaultOrMaker: dynamic, fieldType: core::int, protoName: core::String?}) → void};
     [@vm.direct-call.metadata=library package:protobuf/src/protobuf/internal.dart::BuilderInfo.aOM] [@vm.inferred-type.metadata=? (skip check)] #t1.{int::BuilderInfo::aOM}<self::HasKeep>(6, #C1 ?{core::String} "" : "hasKeep", #C3){(core::int, core::String, {protoName: core::String?, required subBuilder: () → self::HasKeep}) → void};
     [@vm.direct-call.metadata=library package:protobuf/src/protobuf/internal.dart::BuilderInfo.aOM] [@vm.inferred-type.metadata=? (skip check)] #t1.{int::BuilderInfo::aOM}<self::ClearKeep>(7, #C1 ?{core::String} "" : "clearKeep", #C4){(core::int, core::String, {protoName: core::String?, required subBuilder: () → self::ClearKeep}) → void};
+    [@vm.direct-call.metadata=library package:protobuf/src/protobuf/internal.dart::BuilderInfo.aOM] [@vm.inferred-type.metadata=? (skip check)] #t1.{int::BuilderInfo::aOM}<self::MixinKeep>(8, #C1 ?{core::String} "" : "mixinKeep", #C5){(core::int, core::String, {protoName: core::String?, required subBuilder: () → self::MixinKeep}) → void};
+    [@vm.direct-call.metadata=library package:protobuf/src/protobuf/internal.dart::BuilderInfo.add] [@vm.inferred-type.metadata=? (skip check)] #t1.{int::BuilderInfo::add}<Null>(0, null, null, null, null){(core::int, core::String, core::int?, dynamic, () →? int::GeneratedMessage, (core::int) →? int::ProtobufEnum?, core::List<int::ProtobufEnum>?, {protoName: core::String?}) → void};
     [@vm.direct-call.metadata=library package:protobuf/src/protobuf/internal.dart::BuilderInfo.hasRequiredFields] [@vm.inferred-type.metadata=? (skip check)] #t1.{int::BuilderInfo::hasRequiredFields} = false;
   } =>#t1;
   constructor _() → self::FooKeep
@@ -99,51 +107,62 @@ class FooKeep extends int::GeneratedMessage {
     return [@vm.inferred-type.metadata=library package:protobuf/src/protobuf/internal.dart::BuilderInfo] self::FooKeep::_i;
 
   [@vm.inferred-return-type.metadata=foo.pb.dart::FooKeep]
-  @#C7
+  @#C8
   static method create() → self::FooKeep
     return new self::FooKeep::_();
 
   [@vm.inferred-return-type.metadata=foo.pb.dart::BarKeep]
   [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasNonThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:2,getterSelectorId:3]
-  @#C9
+  @#C10
   get barKeep() → self::BarKeep
-    return [@vm.direct-call.metadata=library package:protobuf/src/protobuf/internal.dart::GeneratedMessage.$_getN] [@vm.inferred-type.metadata=foo.pb.dart::BarKeep (skip check)] this.{int::GeneratedMessage::$_getN}<self::BarKeep>(){(core::int) → self::BarKeep};
+    return [@vm.direct-call.metadata=library package:protobuf/src/protobuf/internal.dart::GeneratedMessage.$_getN] [@vm.inferred-type.metadata=foo.pb.dart::BarKeep (skip check)] this.{int::GeneratedMessage::$_getN}<self::BarKeep>(0){(core::int) → self::BarKeep};
 
   [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:2,getterSelectorId:3]
-  @#C9
+  @#C10
   set barKeep([@vm.inferred-arg-type.metadata=foo.pb.dart::BarKeep] self::BarKeep value) → void
-    return [@vm.direct-call.metadata=library package:protobuf/src/protobuf/internal.dart::GeneratedMessage.$_setField] [@vm.inferred-type.metadata=dart.core::Null? (skip check) (value: null)] this.{int::GeneratedMessage::$_setField}(value){(core::int, core::Object) → void};
+    return [@vm.direct-call.metadata=library package:protobuf/src/protobuf/internal.dart::GeneratedMessage.$_setField] [@vm.inferred-type.metadata=dart.core::Null? (skip check) (value: null)] this.{int::GeneratedMessage::$_setField}(1, value){(core::int, core::Object) → void};
 
   [@vm.inferred-return-type.metadata=library package:protobuf/src/protobuf/pb_map.dart::PbMap]
   [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasNonThisUses:false,hasTearOffUses:false,getterSelectorId:4]
-  @#C11
+  @#C12
   get mapKeep() → pb_::PbMap<core::String, self::BarKeep>
     return [@vm.direct-call.metadata=library package:protobuf/src/protobuf/internal.dart::GeneratedMessage.$_getMap] [@vm.inferred-type.metadata=library package:protobuf/src/protobuf/pb_map.dart::PbMap (skip check)] this.{int::GeneratedMessage::$_getMap}<core::String, self::BarKeep>(){(core::int) → pb_::PbMap<core::String, self::BarKeep>};
 
   [@vm.inferred-return-type.metadata=int]
   [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasNonThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:5,getterSelectorId:6]
   [@vm.unboxing-info.metadata=()->i]
-  @#C13
+  @#C14
   get aKeep() → core::int
     return [@vm.direct-call.metadata=library package:protobuf/src/protobuf/internal.dart::GeneratedMessage.$_getIZ] [@vm.inferred-type.metadata=int (skip check)] this.{int::GeneratedMessage::$_getIZ}(4){(core::int) → core::int};
 
   [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:5,getterSelectorId:6]
   [@vm.unboxing-info.metadata=(i)->b]
-  @#C13
+  @#C14
   set aKeep([@vm.inferred-arg-type.metadata=dart.core::_Smi (value: 43)] core::int value) → void
     return [@vm.direct-call.metadata=library package:protobuf/src/protobuf/internal.dart::GeneratedMessage.$_setSignedInt32] [@vm.inferred-type.metadata=dart.core::Null? (skip check) (value: null)] this.{int::GeneratedMessage::$_setSignedInt32}(4, value){(core::int, core::int) → void};
 
   [@vm.inferred-return-type.metadata=dart.core::bool]
   [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:7,getterSelectorId:8]
-  @#C15
+  @#C16
   method hasHasKeep() → core::bool
     return [@vm.direct-call.metadata=library package:protobuf/src/protobuf/internal.dart::GeneratedMessage.$_has] [@vm.inferred-type.metadata=dart.core::bool (skip check)] this.{int::GeneratedMessage::$_has}(){(core::int) → core::bool};
 
   [@vm.inferred-return-type.metadata=dart.core::Null? (value: null)]
   [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:9,getterSelectorId:10]
-  @#C17
+  @#C18
   method clearClearKeep() → void
     return [@vm.direct-call.metadata=library package:protobuf/src/protobuf/internal.dart::GeneratedMessage.$_clearField] [@vm.inferred-type.metadata=dart.core::Null? (skip check) (value: null)] this.{int::GeneratedMessage::$_clearField}(){(core::int) → void};
+
+  [@vm.inferred-return-type.metadata=foo.pb.dart::MixinKeep]
+  [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasNonThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:11,getterSelectorId:12]
+  @#C20
+  get mixinKeep() → self::MixinKeep
+    return [@vm.direct-call.metadata=library package:protobuf/src/protobuf/internal.dart::GeneratedMessage.$_getN] [@vm.inferred-type.metadata=foo.pb.dart::MixinKeep (skip check)] this.{int::GeneratedMessage::$_getN}<self::MixinKeep>(7){(core::int) → self::MixinKeep};
+
+  [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:11,getterSelectorId:12]
+  @#C20
+  set mixinKeep([@vm.inferred-arg-type.metadata=foo.pb.dart::MixinKeep] self::MixinKeep value) → void
+    return [@vm.direct-call.metadata=library package:protobuf/src/protobuf/internal.dart::GeneratedMessage.$_setField] [@vm.inferred-type.metadata=dart.core::Null? (skip check) (value: null)] this.{int::GeneratedMessage::$_setField}(8, value){(core::int, core::Object) → void};
 }
 class BarKeep extends int::GeneratedMessage {
 
@@ -170,25 +189,25 @@ class BarKeep extends int::GeneratedMessage {
     return [@vm.inferred-type.metadata=library package:protobuf/src/protobuf/internal.dart::BuilderInfo] self::BarKeep::_i;
 
   [@vm.inferred-return-type.metadata=foo.pb.dart::BarKeep]
-  @#C7
+  @#C8
   static method create() → self::BarKeep
     return new self::BarKeep::_();
 
   [@vm.inferred-return-type.metadata=foo.pb.dart::BarKeep]
-  @#C7
+  @#C8
   static method getDefault() → self::BarKeep
     return let final self::BarKeep? #t6 = [@vm.inferred-type.metadata=foo.pb.dart::BarKeep?] self::BarKeep::_defaultInstance in #t6 == null ?{self::BarKeep} self::BarKeep::_defaultInstance = [@vm.inferred-type.metadata=foo.pb.dart::BarKeep] int::GeneratedMessage::$_defaultFor<self::BarKeep>() : #t6{self::BarKeep};
 
   [@vm.inferred-return-type.metadata=int]
-  [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasNonThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:11,getterSelectorId:12]
+  [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasNonThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:13,getterSelectorId:14]
   [@vm.unboxing-info.metadata=()->i]
-  @#C9
+  @#C10
   get aKeep() → core::int
     return [@vm.direct-call.metadata=library package:protobuf/src/protobuf/internal.dart::GeneratedMessage.$_getIZ] [@vm.inferred-type.metadata=int (skip check)] this.{int::GeneratedMessage::$_getIZ}(0){(core::int) → core::int};
 
-  [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:11,getterSelectorId:12]
+  [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:13,getterSelectorId:14]
   [@vm.unboxing-info.metadata=(i)->b]
-  @#C9
+  @#C10
   set aKeep([@vm.inferred-arg-type.metadata=dart.core::_Smi] core::int value) → void
     return [@vm.direct-call.metadata=library package:protobuf/src/protobuf/internal.dart::GeneratedMessage.$_setSignedInt32] [@vm.inferred-type.metadata=dart.core::Null? (skip check) (value: null)] this.{int::GeneratedMessage::$_setSignedInt32}(0, value){(core::int, core::int) → void};
 }
@@ -209,7 +228,7 @@ class HasKeep extends int::GeneratedMessage {
     return [@vm.inferred-type.metadata=library package:protobuf/src/protobuf/internal.dart::BuilderInfo] self::HasKeep::_i;
 
   [@vm.inferred-return-type.metadata=foo.pb.dart::HasKeep]
-  @#C7
+  @#C8
   static method create() → self::HasKeep
     return new self::HasKeep::_();
 }
@@ -230,26 +249,79 @@ class ClearKeep extends int::GeneratedMessage {
     return [@vm.inferred-type.metadata=library package:protobuf/src/protobuf/internal.dart::BuilderInfo] self::ClearKeep::_i;
 
   [@vm.inferred-return-type.metadata=foo.pb.dart::ClearKeep]
-  @#C7
+  @#C8
   static method create() → self::ClearKeep
     return new self::ClearKeep::_();
+}
+class MixinKeep extends self::_MixinKeep&GeneratedMessage&MyMixin {
+
+  [@vm.inferred-type.metadata=library package:protobuf/src/protobuf/internal.dart::BuilderInfo]
+  static final field int::BuilderInfo _i = let final int::BuilderInfo #t9 = new int::BuilderInfo::•(#C1 ?{core::String} "" : "MixinKeep") in block {
+    let final core::String #t10 = #C1 ?{core::String} "" : "aKeep" in [@vm.direct-call.metadata=library package:protobuf/src/protobuf/internal.dart::BuilderInfo.aI] [@vm.inferred-type.metadata=? (skip check)] #t9.{int::BuilderInfo::aI}(1){(core::int, core::String, {defaultOrMaker: dynamic, fieldType: core::int, protoName: core::String?}) → void};
+    [@vm.direct-call.metadata=library package:protobuf/src/protobuf/internal.dart::BuilderInfo.add] [@vm.inferred-type.metadata=? (skip check)] #t9.{int::BuilderInfo::add}<Null>(0, null, null, null, null){(core::int, core::String, core::int?, dynamic, () →? int::GeneratedMessage, (core::int) →? int::ProtobufEnum?, core::List<int::ProtobufEnum>?, {protoName: core::String?}) → void};
+    [@vm.direct-call.metadata=library package:protobuf/src/protobuf/internal.dart::BuilderInfo.hasRequiredFields] [@vm.inferred-type.metadata=? (skip check)] #t9.{int::BuilderInfo::hasRequiredFields} = false;
+  } =>#t9;
+  constructor _() → self::MixinKeep
+    : super self::_MixinKeep&GeneratedMessage&MyMixin::•()
+    ;
+
+  [@vm.inferred-return-type.metadata=foo.pb.dart::MixinKeep]
+  static factory •() → self::MixinKeep
+    return [@vm.inferred-type.metadata=foo.pb.dart::MixinKeep] self::MixinKeep::create();
+
+  [@vm.inferred-return-type.metadata=library package:protobuf/src/protobuf/internal.dart::BuilderInfo]
+  [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasNonThisUses:false,hasTearOffUses:false,getterSelectorId:1]
+  get info_() → int::BuilderInfo
+    return [@vm.inferred-type.metadata=library package:protobuf/src/protobuf/internal.dart::BuilderInfo] self::MixinKeep::_i;
+
+  [@vm.inferred-return-type.metadata=foo.pb.dart::MixinKeep]
+  @#C8
+  static method create() → self::MixinKeep
+    return new self::MixinKeep::_();
+
+  [@vm.inferred-return-type.metadata=int]
+  [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasNonThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:15,getterSelectorId:16]
+  [@vm.unboxing-info.metadata=()->i]
+  @#C10
+  get aKeep() → core::int
+    return [@vm.direct-call.metadata=library package:protobuf/src/protobuf/internal.dart::GeneratedMessage.$_getIZ] [@vm.inferred-type.metadata=int (skip check)] this.{int::GeneratedMessage::$_getIZ}(0){(core::int) → core::int};
+
+  [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:15,getterSelectorId:16]
+  [@vm.unboxing-info.metadata=(i)->b]
+  @#C10
+  set aKeep([@vm.inferred-arg-type.metadata=dart.core::_Smi (value: 42)] core::int value) → void
+    return [@vm.direct-call.metadata=library package:protobuf/src/protobuf/internal.dart::GeneratedMessage.$_setSignedInt32] [@vm.inferred-type.metadata=dart.core::Null? (skip check) (value: null)] this.{int::GeneratedMessage::$_setSignedInt32}(0, value){(core::int, core::int) → void};
+}
+abstract class _MixinKeep&GeneratedMessage&MyMixin extends int::GeneratedMessage implements lib::MyMixin /*isAnonymousMixin,isEliminatedMixin*/  {
+  synthetic constructor •() → self::_MixinKeep&GeneratedMessage&MyMixin
+    : super int::GeneratedMessage::•()
+    ;
 }
 constants  {
   #C1 = false
   #C2 = static-tearoff self::BarKeep::create
   #C3 = static-tearoff self::HasKeep::create
   #C4 = static-tearoff self::ClearKeep::create
-  #C5 = "dart2js:noInline"
-  #C6 = null
-  #C7 = core::pragma {name:#C5, options:#C6}
-  #C8 = 1
-  #C9 = ann::TagNumber {tagNumber:#C8}
-  #C10 = 3
-  #C11 = ann::TagNumber {tagNumber:#C10}
-  #C12 = 5
-  #C13 = ann::TagNumber {tagNumber:#C12}
-  #C14 = 6
-  #C15 = ann::TagNumber {tagNumber:#C14}
-  #C16 = 7
-  #C17 = ann::TagNumber {tagNumber:#C16}
+  #C5 = static-tearoff self::MixinKeep::create
+  #C6 = "dart2js:noInline"
+  #C7 = null
+  #C8 = core::pragma {name:#C6, options:#C7}
+  #C9 = 1
+  #C10 = ann::TagNumber {tagNumber:#C9}
+  #C11 = 3
+  #C12 = ann::TagNumber {tagNumber:#C11}
+  #C13 = 5
+  #C14 = ann::TagNumber {tagNumber:#C13}
+  #C15 = 6
+  #C16 = ann::TagNumber {tagNumber:#C15}
+  #C17 = 7
+  #C18 = ann::TagNumber {tagNumber:#C17}
+  #C19 = 8
+  #C20 = ann::TagNumber {tagNumber:#C19}
+}
+library mixins.lib.dart;
+import self as self;
+import "dart:core" as core;
+
+abstract class MyMixin extends core::Object /*isMixinDeclaration*/  {
 }

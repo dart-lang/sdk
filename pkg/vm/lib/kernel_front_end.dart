@@ -188,6 +188,11 @@ void declareCompilerOptions(ArgParser args) {
     help: 'Enable protobuf tree shaker v2 in AOT mode.',
     defaultsTo: false,
   );
+  args.addFlag(
+    'protobuf-tree-shaker-mixins',
+    help: 'Include protobuf messages with mixins in the tree shaker pass.',
+    defaultsTo: false,
+  );
   args.addMultiOption(
     'define',
     abbr: 'D',
@@ -318,6 +323,7 @@ Future<int> runCompiler(ArgResults options, String usage) async {
   final bool embedSources = options['embed-sources'];
   final bool enableAsserts = options['enable-asserts'];
   final bool useProtobufTreeShakerV2 = options['protobuf-tree-shaker-v2'];
+  final bool protobufTreeShakerMixins = options['protobuf-tree-shaker-mixins'];
   final String? manifestFilename = options['manifest'];
   final String? dataDir = options['component-name'] ?? options['data-dir'];
   final bool? supportMirrors = options['support-mirrors'];
@@ -456,6 +462,7 @@ Future<int> runCompiler(ArgResults options, String usage) async {
       environmentDefines: environmentDefines,
       enableAsserts: enableAsserts,
       useProtobufTreeShakerV2: useProtobufTreeShakerV2,
+      protobufTreeShakerMixins: protobufTreeShakerMixins,
       minimalKernel: minimalKernel,
       treeShakeWriteOnlyFields: treeShakeWriteOnlyFields,
       targetOS: targetOS,
@@ -580,6 +587,7 @@ class KernelCompilationArguments {
   final bool useRapidTypeAnalysis;
   final bool treeShakeWriteOnlyFields;
   final bool useProtobufTreeShakerV2;
+  final bool protobufTreeShakerMixins;
   final bool minimalKernel;
   final String? targetOS;
   final String? fromDillFile;
@@ -603,6 +611,7 @@ class KernelCompilationArguments {
     this.useRapidTypeAnalysis = true,
     this.treeShakeWriteOnlyFields = false,
     this.useProtobufTreeShakerV2 = false,
+    this.protobufTreeShakerMixins = false,
     this.minimalKernel = false,
     this.targetOS,
     this.fromDillFile,
@@ -825,6 +834,7 @@ Future runGlobalTransformations(
       treeShakeSignatures: !args.minimalKernel,
       treeShakeWriteOnlyFields: args.treeShakeWriteOnlyFields,
       treeShakeProtobufs: args.useProtobufTreeShakerV2,
+      treeShakeProtobufMixins: args.protobufTreeShakerMixins,
       useRapidTypeAnalysis: args.useRapidTypeAnalysis,
     );
   } else {

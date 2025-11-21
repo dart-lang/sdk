@@ -17,6 +17,7 @@ main() {
         ..mapDrop['zop'] = (ZopDrop()..aDrop = 3)
         ..aKeep = 43
         ..hasKeep = HasKeep()
+        ..mixinKeep = (MixinKeep()..aKeep = 42)
         ..clearKeep = ClearKeep();
   final buffer = foo.writeToBuffer();
   print('List<int> buffer = <int>[');
