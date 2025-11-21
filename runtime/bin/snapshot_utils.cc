@@ -221,8 +221,10 @@ static AppSnapshot* TryReadAppSnapshotDynamicLibrary(
 #if defined(DART_TARGET_OS_LINUX) || defined(DART_TARGET_OS_MACOS)
   // On Linux and OSX, resolve the script path before passing into dlopen()
   // since dlopen will not search the filesystem for paths like 'libtest.so'.
-  CStringUniquePtr absolute_path(realpath(script_name, nullptr));
-  script_name = absolute_path.get();
+  const size_t kPathBufSize = PATH_MAX + 1;
+  char canon_path[kPathBufSize];
+  script_name =
+      File::GetCanonicalPath(nullptr, script_name, canon_path, kPathBufSize);
   if (script_name == nullptr) {
     const intptr_t err = errno;
     const int kBufferSize = 1024;
