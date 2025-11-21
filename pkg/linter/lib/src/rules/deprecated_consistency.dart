@@ -48,7 +48,8 @@ class _Visitor extends SimpleAstVisitor<void> {
     if (constructorElement != null &&
         constructorElement.enclosingElement.hasDeprecated &&
         !constructorElement.hasDeprecated) {
-      var nodeToAnnotate = node.name ?? node.returnType;
+      // TODO(scheglov): support primary constructors
+      var nodeToAnnotate = node.name ?? node.typeName!;
       rule.reportAtOffset(
         nodeToAnnotate.offset,
         nodeToAnnotate.length,

@@ -66,7 +66,8 @@ class KeywordNavigationComputer {
       ConstructorDeclaration() =>
         // For named constructors, return the name.
         // For unnamed constructors, use the return type / class name.
-        function.name ?? function.returnType.beginToken,
+        // TODO(scheglov): support primary constructors
+        function.name ?? function.typeName!.beginToken,
       _ => null,
     };
   }

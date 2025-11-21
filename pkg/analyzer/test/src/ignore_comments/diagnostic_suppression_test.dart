@@ -178,6 +178,7 @@ void f(arg1(int)) {} // AVOID_TYPES_AS_PARAMETER_NAMES
     await assertNoErrorsInCode('''
 import 'package:meta/meta.dart';
 
+// ignore: deprecated_member_use
 int f({@Required('x') int? a}) => 0;
 
 // ignore: missing_required_param_with_details

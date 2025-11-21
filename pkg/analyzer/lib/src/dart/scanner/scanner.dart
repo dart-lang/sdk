@@ -20,8 +20,6 @@ import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:meta/meta.dart';
 import 'package:pub_semver/pub_semver.dart';
 
-export 'package:analyzer/src/dart/error/syntactic_errors.dart';
-
 /// The class `Scanner` implements a scanner for Dart code.
 ///
 /// The lexical structure of Dart is ambiguous without knowledge of the context

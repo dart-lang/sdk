@@ -47,6 +47,11 @@ typedef uint32_t DWORD;
 #endif
 
 #if defined(TARGET_ARCH_X64)
+
+#if !defined(HOST_ARCH_X64)
+#define UNWINDING_RECORDS_HOST_TARGET_MISMATCH 1
+#endif
+
 //
 // Refer to https://learn.microsoft.com/en-us/cpp/build/exception-handling-x64
 //
@@ -119,6 +124,10 @@ struct CodeRangeUnwindingRecord {
 };
 
 #elif defined(TARGET_ARCH_ARM64)
+
+#if !defined(HOST_ARCH_ARM64)
+#define UNWINDING_RECORDS_HOST_TARGET_MISMATCH 1
+#endif
 
 // ARM64 unwind codes are defined in below doc.
 // https://docs.microsoft.com/en-us/cpp/build/arm64-exception-handling#unwind-codes
@@ -252,7 +261,10 @@ struct CodeRangeUnwindingRecord {
 //
 // Make sure that the sizes match, so that TargetRuntimeFunction values
 // can be used as RUNTIME_FUNCTION values and vice versa in the runtime.
-#if defined(UNWINDING_RECORDS_WINDOWS_HOST)
+// The check doesn't make sense when host and target platforms are different
+// though, and no code depends on it in such cross-platform scenario.
+#if defined(UNWINDING_RECORDS_WINDOWS_HOST) &&                                 \
+    !defined(UNWINDING_RECORDS_HOST_TARGET_MISMATCH)
 static_assert(sizeof(TargetRuntimeFunction) == sizeof(RUNTIME_FUNCTION));
 #endif
 

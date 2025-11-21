@@ -34,23 +34,7 @@ final List<GeneratedContent> allTargets = _analyzerGeneratedFiles();
 /// Generates a list of [GeneratedContent] objects describing all the analyzer
 /// files that need to be generated.
 List<GeneratedContent> _analyzerGeneratedFiles() {
-  var classesByFile = <GeneratedDiagnosticFile, List<DiagnosticClassInfo>>{};
-  for (var diagnosticClassInfo in diagnosticClasses) {
-    // Lint codes are generated separately.
-    if (diagnosticClassInfo == linterLintCodeInfo) continue;
-
-    (classesByFile[diagnosticClassInfo.file] ??= []).add(diagnosticClassInfo);
-  }
   return [
-    for (var entry in classesByFile.entries)
-      GeneratedFile(entry.key.path, (pkgRoot) async {
-        var codeGenerator = _AnalyzerDiagnosticClassGenerator(
-          entry.key,
-          entry.value,
-        );
-        codeGenerator.generate();
-        return codeGenerator.out.toString();
-      }),
     GeneratedFile('analyzer/lib/src/diagnostic/diagnostic_code_values.g.dart', (
       pkgRoot,
     ) async {
@@ -72,65 +56,6 @@ List<GeneratedContent> _analyzerGeneratedFiles() {
         },
       ),
   ];
-}
-
-/// Code generator for analyzer diagnostic classes.
-class _AnalyzerDiagnosticClassGenerator {
-  final GeneratedDiagnosticFile file;
-
-  final List<DiagnosticClassInfo> diagnosticClasses;
-
-  final StringBuffer out = StringBuffer('''
-// Copyright (c) 2021, the Dart project authors. Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// THIS FILE IS GENERATED. DO NOT EDIT.
-//
-// Instead modify 'pkg/analyzer/messages.yaml' and run
-// 'dart run pkg/analyzer/tool/messages/generate.dart' to update.
-''');
-
-  _AnalyzerDiagnosticClassGenerator(this.file, this.diagnosticClasses);
-
-  void generate() {
-    file.package.writeIgnoresTo(out);
-    out.writeln();
-    out.write('''
-part of ${json.encode(file.parentLibrary)};
-''');
-    for (var diagnosticClass
-        in diagnosticClasses.toList()
-          ..sort((a, b) => a.name.compareTo(b.name))) {
-      out.writeln();
-      if (diagnosticClass.comment.isNotEmpty) {
-        diagnosticClass.comment.trimRight().split('\n').forEach((line) {
-          out.writeln('/// $line');
-        });
-      }
-      out.write('class ${diagnosticClass.name} {');
-      var memberAccumulator = MemberAccumulator();
-
-      for (var message
-          in diagnosticTables.activeMessagesByPackage[diagnosticClass
-              .file
-              .package]!) {
-        if (message.analyzerCode.diagnosticClass != diagnosticClass) continue;
-
-        LocatedError.wrap(span: message.keySpan, () {
-          message.toClassMember(memberAccumulator: memberAccumulator);
-        });
-      }
-
-      var constructor = StringBuffer();
-      constructor.writeln('/// Do not construct instances of this class.');
-      constructor.writeln('${diagnosticClass.name}._() : assert(false);');
-      memberAccumulator.constructors['_'] = constructor.toString();
-
-      memberAccumulator.writeTo(out);
-      out.writeln('}');
-    }
-  }
 }
 
 /// Code generator for files containing analyzer diagnostics as top level

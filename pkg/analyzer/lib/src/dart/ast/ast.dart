@@ -4731,6 +4731,11 @@ abstract final class ConstructorDeclaration implements ClassMember {
   /// or redirection, or `null` if there are neither initializers nor a
   /// redirection.
   Token? get separator;
+
+  /// The name of the enclosing type, e.g. `C` in `C() {}` or `C.named() {}`.
+  ///
+  /// Or `null` if uses new syntax with `newKeyword` or [factoryKeyword].
+  SimpleIdentifier? get typeName;
 }
 
 @GenerateNodeImpl(
@@ -4894,6 +4899,10 @@ final class ConstructorDeclarationImpl extends ClassMemberImpl
   set returnType(IdentifierImpl returnType) {
     _returnType = _becomeParentOf(returnType);
   }
+
+  @override
+  // TODO(scheglov): flip the implementation to make this property leading
+  SimpleIdentifierImpl? get typeName => returnType as SimpleIdentifierImpl;
 
   @generated
   @override

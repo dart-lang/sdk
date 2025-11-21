@@ -73,7 +73,8 @@ class RenameConstructorRefactoringImpl extends RenameRefactoringImpl {
         );
         continue;
       } else if (coveringParent is ConstructorDeclaration &&
-          coveringParent.returnType.offset == reference.range.offset) {
+          // TODO(scheglov): support primary constructors
+          coveringParent.typeName!.offset == reference.range.offset) {
         _addSuperInvocationToConstructor(
           reference: reference,
           constructor: coveringParent,

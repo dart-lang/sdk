@@ -163,10 +163,11 @@ class DartUnitOutlineComputer {
   }
 
   Outline _newConstructorOutline(ConstructorDeclaration constructor) {
-    var returnType = constructor.returnType;
-    var name = returnType.name;
-    var offset = returnType.offset;
-    var length = returnType.length;
+    // TODO(scheglov): support primary constructors
+    var typeName = constructor.typeName!;
+    var name = typeName.name;
+    var offset = typeName.offset;
+    var length = typeName.length;
     var constructorNameToken = constructor.name;
     var isPrivate = false;
     if (constructorNameToken != null) {

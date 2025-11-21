@@ -54,6 +54,7 @@ class C {
   test_constructor_requiredAnnotationAfterOptional() async {
     await assertDiagnostics(
       r'''
+// ignore_for_file: deprecated_member_use
 import 'package:meta/meta.dart';
 class C {
   C.f({
@@ -62,12 +63,13 @@ class C {
   });
 }
 ''',
-      [lint(82, 1)],
+      [lint(124, 1)],
     );
   }
 
   test_constructor_requiredAnnotationAfterRequiredAnnotation() async {
     await assertNoDiagnostics(r'''
+// ignore_for_file: deprecated_member_use
 import 'package:meta/meta.dart';
 class C {
   C.f({
@@ -102,18 +104,20 @@ void f({
   test_topLevelFunction_requiredAnnotationAfterOptional() async {
     await assertDiagnostics(
       r'''
+// ignore_for_file: deprecated_member_use
 import 'package:meta/meta.dart';
 void f({
   int? a,
   @required int? b,
 }) {}
 ''',
-      [lint(69, 1)],
+      [lint(111, 1)],
     );
   }
 
   test_topLevelFunction_requiredAnnotationAfterRequiredAnnotation() async {
     await assertNoDiagnostics(r'''
+// ignore_for_file: deprecated_member_use
 import 'package:meta/meta.dart';
 void f({
   @required int? a,

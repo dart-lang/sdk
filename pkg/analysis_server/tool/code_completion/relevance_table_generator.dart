@@ -572,7 +572,8 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
 
   @override
   void visitConstructorDeclaration(ConstructorDeclaration node) {
-    _recordDataForNode('ConstructorDeclaration_returnType', node.returnType);
+    // TODO(scheglov): support primary constructors
+    _recordDataForNode('ConstructorDeclaration_returnType', node.typeName!);
     for (var initializer in node.initializers) {
       _recordDataForNode('ConstructorDeclaration_initializer', initializer);
     }
