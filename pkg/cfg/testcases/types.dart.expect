@@ -1,0 +1,41 @@
+--- bar
+B0 = EntryBlock()
+  v6 = Constant(1)
+  v10 = Constant(2)
+  v12 = Constant(null)
+  Parameter(this)
+  v2 = LoadLocal(this)
+  v3 = TypeParameters(v2)
+  v4 = TypeArguments(<int>)
+  v5 = LoadLocal(this)
+  InterfaceCall A.foo(v4, v5, v6)
+  v8 = TypeArguments(v3, <Map<String, A.T%>>)
+  v9 = LoadLocal(this)
+  InterfaceCall A.foo(v8, v9, v10)
+  Return(v12)
+
+--- foo
+B0 = EntryBlock() dominates:(B8, B10, B7)
+  v16 = Constant(null)
+  Parameter(this)
+  Parameter(o)
+  v3 = LoadLocal(this)
+  v4 = TypeParameters(v3)
+  v5 = LoadLocal(o)
+  v6 = TypeTest(v5, v4, List<A.T%>)
+  Branch(v6, true: B7, false: B8)
+B7 = TargetBlock() idom:B0
+  v12 = LoadLocal(o)
+  v13 = TypeCast(v12, v4, List<A.T%>, unchecked)
+  TypeCast(v13, Map<dynamic, dynamic>)
+  Goto(B10)
+B8 = TargetBlock() idom:B0
+  Goto(B10)
+B10 = JoinBlock(B8, B7) idom:B0
+  Return(v16)
+
+--- main
+B0 = EntryBlock()
+  v1 = Constant(null)
+  Return(v1)
+
