@@ -130,7 +130,12 @@ class ElementNameComponents {
     String? classMemberName;
     if (element.enclosingElement is InterfaceElement ||
         element.enclosingElement is ExtensionElement) {
-      classMemberName = element.lookupName;
+      if (element.lookupName case var lookupName?) {
+        if (element is ConstructorElement) {
+          lookupName = '.$lookupName';
+        }
+        classMemberName = lookupName;
+      }
       element = element.enclosingElement!;
     }
 

@@ -58,6 +58,27 @@ class IndexTest extends PubPackageResolutionTest with _IndexMixin {
     expect(actual, expected);
   }
 
+  test_class_constructorElement_methodElement_sameName() async {
+    await _indexTestUnit('''
+class A {
+  A.base() {
+    base();
+  }
+
+  A base() => A.base();
+}
+''');
+
+    var constructor = findElement2.constructor('base');
+    assertElementIndexText(constructor, r'''
+55 6:16 |.base| IS_INVOKED_BY qualified
+''');
+    var method = findElement2.method('base');
+    assertElementIndexText(method, r'''
+27 3:5 |base| IS_INVOKED_BY
+''');
+  }
+
   test_class_constructorElement_unnamed_implicitInvocation() async {
     await _indexTestUnit('''
 class A {

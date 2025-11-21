@@ -833,6 +833,56 @@ class A {}
     }
   }
 
+  test_sameNameDeclarations_class() async {
+    await resolveTestCode('''
+class Foo {
+  Foo.bar() {
+    bar();
+  }
+  void bar() => Foo.bar();
+}
+''');
+    var results = WorkspaceSymbols();
+    await FindDeclarations(
+      [driver],
+      results,
+      '',
+      null,
+      ownedFiles: analysisContextCollection.ownedFiles,
+      performance: performance,
+    ).compute();
+    assertDeclarationsText(
+      results,
+      {testFile: 'testFile'},
+      r'''
+testFile
+  CLASS Foo
+    offset: 6 1:7
+    codeOffset: 0 + 69
+  CONSTRUCTOR bar
+    offset: 18 2:7
+    codeOffset: 14 + 26
+    className: Foo
+    parameters: ()
+  METHOD bar
+    offset: 48 5:8
+    codeOffset: 43 + 24
+    className: Foo
+    parameters: ()
+''',
+    );
+    Element element = findElement2.constructor('bar');
+    await assertElementReferencesText(element, '''
+<testLibraryFragment> bar@48
+  60 5:20 |.bar| INVOCATION qualified
+''');
+    element = findElement2.method('bar');
+    await assertElementReferencesText(element, r'''
+<testLibraryFragment> bar@18
+  30 3:5 |bar| INVOCATION
+''');
+  }
+
   test_searchMemberReferences_qualified_resolved() async {
     await resolveTestCode('''
 class C {

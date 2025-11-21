@@ -1459,6 +1459,36 @@ class A<NewName> {
 ''');
   }
 
+  Future<void> test_memberWithSameName() async {
+    await indexTestUnit('''
+class Foo {
+  Foo.bar() {
+    bar();
+  }
+  void ^bar() {
+    var _ = Foo.bar();
+  }
+}
+''');
+    // configure refactoring
+    createRenameRefactoring();
+    expect(refactoring.refactoringName, 'Rename Method');
+    expect(refactoring.elementKindName, 'method');
+    expect(refactoring.oldName, 'bar');
+    // validate change
+    refactoring.newName = 'newName';
+    return assertSuccessfulRefactoring('''
+class Foo {
+  Foo.bar() {
+    newName();
+  }
+  void newName() {
+    var _ = Foo.bar();
+  }
+}
+''');
+  }
+
   Future<void> test_shadowingLocalVariable_addsThis() async {
     await indexTestUnit('''
 class A {
