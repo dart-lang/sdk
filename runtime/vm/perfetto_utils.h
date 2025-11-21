@@ -308,6 +308,8 @@ class InternedDataBuilder : public ValueObject {
  private:
   using SequenceFlags = perfetto::protos::pbzero::TracePacket_SequenceFlags;
 
+  enum class UnknownMappingState { kNotNeeded, kNeeded, kEmitted };
+
  public:
   // InternedData contains multiple independent interning dictionaries which
   // are used for different attributes.
@@ -330,6 +332,12 @@ class InternedDataBuilder : public ValueObject {
   V(debug_annotation_names, isolateGroupId)
 
   InternedDataBuilder() = default;
+
+  void MarkNeedUnknownMapping() {
+    if (unknown_mapping_ == UnknownMappingState::kNotNeeded) {
+      unknown_mapping_ = UnknownMappingState::kNeeded;
+    }
+  }
 
   // Emit all strings added since the last invocation of |AttachInternedDataTo|
   // into |interned_data| of the given |TracePacket|.
@@ -371,6 +379,18 @@ class InternedDataBuilder : public ValueObject {
         callstack->add_frame_ids(interned.data[i]);
       }
     });
+
+    // Perfetto proto message definition claim that mapping iid 0 means
+    // the same as frame not having mapping information. However Perfetto UI
+    // fails to load profiles if they contain any frames without mapping iid or
+    // with 0 mapping iid - but such mapping (with 0 iid) is not present in
+    // interned mappings. To work-around this bug we simply emit an empty
+    // mapping with 0 iid if we need it.
+    if (unknown_mapping_ == UnknownMappingState::kNeeded) {
+      auto mapping = interned_data->add_mappings();
+      mapping->set_iid(0);
+      unknown_mapping_ = UnknownMappingState::kEmitted;
+    }
 
     mappings_.FlushNewlyInternedTo([interned_data](const auto& interned) {
       auto mapping = interned_data->add_mappings();
@@ -457,6 +477,8 @@ class InternedDataBuilder : public ValueObject {
 
   uint32_t sequence_flags_ = SequenceFlags::SEQ_INCREMENTAL_STATE_CLEARED |
                              SequenceFlags::SEQ_NEEDS_INCREMENTAL_STATE;
+
+  UnknownMappingState unknown_mapping_ = UnknownMappingState::kNotNeeded;
 
   // These are interned in debug_annotation_string_values space.
   IdToIidMap isolate_id_to_iid_of_formatted_string_;

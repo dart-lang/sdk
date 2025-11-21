@@ -7,6 +7,9 @@ import 'dart:io';
 
 import 'package:args/args.dart';
 import 'package:dartdev/src/commands/compile.dart';
+import 'package:dartdev/src/commands/install.dart';
+import 'package:dartdev/src/install/file_system.dart';
+import 'package:dartdev/src/install/pub_formats.dart';
 import 'package:dartdev/src/progress.dart';
 import 'package:front_end/src/api_prototype/compiler_options.dart'
     show Verbosity;
@@ -27,6 +30,9 @@ import 'compilation_server.dart';
 
 class RunCommand extends DartdevCommand {
   static const String cmdName = 'run';
+
+  static const gitRefOption = 'git-ref';
+  static const gitPathOption = 'git-path';
 
   // kErrorExitCode, as defined in runtime/bin/error_exit.h
   static const errorExitCode = 255;
@@ -52,7 +58,44 @@ class RunCommand extends DartdevCommand {
     this.dataAssetsExperimentEnabled = false,
   }) : super(
           cmdName,
-          'Run a Dart program.',
+          '''Run a Dart program from a file, a local package, or a remote package.
+
+Usage: dart [vm-options] run [arguments] [<dart-file>|<local-package>|<remote-executable> [args]]
+
+<dart-file>
+  A path to a Dart script (e.g., `bin/main.dart`).
+
+<local-package>
+  An executable from a local package dependency, in the format <package>[:<executable>].
+  For example, `test:test` runs the `test` executable from the `test` package.
+  If the executable is not specified, the package name is used.
+
+<remote-executable>
+  An executable from a remote package. This can be from a hosted package server
+  (like pub.dev) or a git repository.
+
+  When running a remote executable, all other command-line flags are disabled,
+  except for the options for remote executables. `dart run <remote-executable>`
+  uses `dart install` under the hood and compiles the app into a standalone
+  executable, preventing passing VM options.
+
+  From a hosted package server:
+    <hosted-url>/<package>[@<version>][:<executable>]
+
+    Downloads the package from a hosted package server and runs the specified
+    executable.
+    If a version is provided, the specified version is downloaded.
+    If an executable is not specified, the package name is used.
+    For example, `https://pub.dev/dcli@1.0.0:dcli_complete` runs the
+    `dcli_complete` executable from version 1.0.0 of the `dcli` package.
+
+  From a git repository:
+    <git-url>[:<executable>]
+
+    Clones the git repository and runs the specified executable from it.
+    If an executable is not specified, the package name from the cloned
+    repository's pubspec.yaml is used.
+    The git url can be any valid git url.''',
           verbose,
         ) {
     argParser
@@ -62,7 +105,7 @@ class RunCommand extends DartdevCommand {
         negatable: false,
         help: 'Enable faster startup times by using a resident frontend '
             'compiler for compilation.\n'
-            'If --resident-compiler-info-file is provided in conjunction with '
+            'If --$residentCompilerInfoFileOption is provided in conjunction with '
             'this flag, the specified info file will be used, otherwise the '
             'default info file will be used. If there is not already a '
             'compiler associated with the selected info file, one will be '
@@ -188,36 +231,37 @@ class RunCommand extends DartdevCommand {
             'completed microtasks will be written to the "Microtask" '
             'timeline stream.',
       )
-      ..addFlag('profile-startup',
-          hide: !verbose,
-          negatable: false,
-          help: 'Make the profiler discard new samples once the profiler '
-              'sample buffer is full. When this flag is not set, the '
-              'profiler sample buffer is used as a ring buffer, meaning that '
-              'once it is full, new samples start overwriting the oldest '
-              'ones. This flag itself does not enable the profiler; the '
-              'profiler must be enabled separately, e.g. with --profiler.');
-
-    argParser.addSeparator('Logging options:');
-    argParser.addOption(
-      'verbosity',
-      help: 'Sets the verbosity level of the compilation.',
-      defaultsTo: Verbosity.defaultValue,
-      allowed: Verbosity.allowedValues,
-      allowedHelp: Verbosity.allowedValuesHelp,
-    );
+      ..addFlag(
+        'profile-startup',
+        hide: !verbose,
+        negatable: false,
+        help: 'Make the profiler discard new samples once the profiler '
+            'sample buffer is full. When this flag is not set, the '
+            'profiler sample buffer is used as a ring buffer, meaning that '
+            'once it is full, new samples start overwriting the oldest '
+            'ones. This flag itself does not enable the profiler; the '
+            'profiler must be enabled separately, e.g. with --profiler.',
+      )
+      ..addSeparator('Logging options:')
+      ..addOption(
+        'verbosity',
+        help: 'Sets the verbosity level of the compilation.',
+        defaultsTo: Verbosity.defaultValue,
+        allowed: Verbosity.allowedValues,
+        allowedHelp: Verbosity.allowedValuesHelp,
+      );
 
     if (verbose) {
       argParser.addSeparator('Advanced options:');
     }
-    argParser.addMultiOption(
-      'define',
-      abbr: 'D',
-      valueHelp: 'key=value',
-      help: 'Define an environment declaration.',
-      hide: !verbose,
-    );
     argParser
+      ..addMultiOption(
+        'define',
+        abbr: 'D',
+        valueHelp: 'key=value',
+        help: 'Define an environment declaration.',
+        hide: !verbose,
+      )
       ..addFlag(
         'disable-service-auth-codes',
         hide: !verbose,
@@ -234,8 +278,7 @@ class RunCommand extends DartdevCommand {
         help: 'When the VM service is told to bind to a particular port, '
             'fallback to 0 if it fails to bind instead of failing to '
             'start.',
-      );
-    argParser
+      )
       ..addOption(
         'namespace',
         hide: !verbose,
@@ -269,9 +312,7 @@ class RunCommand extends DartdevCommand {
         valueHelp: 'path',
         help: 'The path to the package resolution configuration file, which '
             'supplies a mapping of package names\ninto paths.',
-      );
-
-    argParser
+      )
       ..addOption(
         'write-service-info',
         help: 'Outputs information necessary to connect to the VM service to '
@@ -301,8 +342,19 @@ class RunCommand extends DartdevCommand {
       ..addFlag(
         'debug-dds',
         hide: true,
+      )
+      ..addExperimentalFlags(verbose: verbose)
+      ..addSeparator('Options for remote executables:')
+      ..addOption(
+        gitPathOption,
+        help: 'Path of git package in repository. '
+            'Only applies when using a git url for <remote-executable>.',
+      )
+      ..addOption(
+        gitRefOption,
+        help: 'Git branch or commit to be retrieved. '
+            'Only applies when using a git url for <remote-executable>.',
       );
-    argParser.addExperimentalFlags(verbose: verbose);
   }
 
   @override
@@ -363,7 +415,7 @@ class RunCommand extends DartdevCommand {
         } else {
           log.stderr(
             'Error: A connection to the Resident Frontend Compiler could '
-            "not be established. Please re-run 'dart run --resident' and a "
+            "not be established. Please re-run 'dart run --$residentOption' and a "
             'new compiler will automatically be started in its place.',
           );
           await shutDownOrForgetResidentFrontendCompiler(
@@ -389,6 +441,42 @@ class RunCommand extends DartdevCommand {
       mainCommand = args.rest.first;
       // The command line arguments after the command name.
       runArgs = args.rest.skip(1).toList();
+    }
+
+    if (_isRemoteRun(mainCommand)) {
+      return _runRemote(args, mainCommand, runArgs);
+    }
+    return _runLocal(args, mainCommand, runArgs);
+  }
+
+  FutureOr<int> _runLocal(
+    ArgResults args,
+    String mainCommand,
+    List<String> runArgs,
+  ) async {
+    final String? residentCompilerInfoFileArg =
+        args[CompilationServerCommand.residentCompilerInfoFileFlag] ??
+            args[CompilationServerCommand.legacyResidentServerInfoFileFlag];
+    final useResidentCompiler = args.wasParsed(residentOption);
+    if (residentCompilerInfoFileArg != null && !useResidentCompiler) {
+      log.stderr(
+        'Error: the --$residentOption flag must be passed whenever the '
+        '--$residentCompilerInfoFileOption option is passed.',
+      );
+      return errorExitCode;
+    }
+    if (args.wasParsed(quietOption) && !useResidentCompiler) {
+      log.stderr(
+        'Error: the --$residentOption flag must be passed whenever the '
+        '--$quietOption flag is passed.',
+      );
+      return errorExitCode;
+    }
+    if (args.wasParsed(gitPathOption) || args.wasParsed(gitRefOption)) {
+      usageException(
+        'Options `--$gitPathOption` and `--$gitRefOption` '
+        'can only be used with a remote executable.',
+      );
     }
 
     String? nativeAssets;
@@ -433,25 +521,6 @@ class RunCommand extends DartdevCommand {
           nativeAssets = assetsYamlFileUri.toFilePath();
         }
       }
-    }
-
-    final String? residentCompilerInfoFileArg =
-        args[CompilationServerCommand.residentCompilerInfoFileFlag] ??
-            args[CompilationServerCommand.legacyResidentServerInfoFileFlag];
-    final useResidentCompiler = args.wasParsed(residentOption);
-    if (residentCompilerInfoFileArg != null && !useResidentCompiler) {
-      log.stderr(
-        'Error: the --resident flag must be passed whenever the '
-        '--resident-compiler-info-file option is passed.',
-      );
-      return errorExitCode;
-    }
-    if (args.wasParsed(quietOption) && !useResidentCompiler) {
-      log.stderr(
-        'Error: the --resident flag must be passed whenever the --quiet flag '
-        'is passed.',
-      );
-      return errorExitCode;
     }
 
     DartExecutableWithPackageConfig executable;
@@ -532,7 +601,244 @@ class RunCommand extends DartdevCommand {
     );
     return 0;
   }
+
+  static RemoteSourceKind? _remoteSourceKindFromArgument(String argument) {
+    if (argument.startsWith('git@')) {
+      return RemoteSourceKind.git;
+    }
+    final potentialUri =
+        argument.split(_colonButNoSlashes).first.split('@').first;
+    final endsWithDotGitRegex = RegExp(r'\.git[/\\]?$');
+    if (endsWithDotGitRegex.hasMatch(potentialUri)) {
+      return RemoteSourceKind.git;
+    }
+    final parsedUri = Uri.tryParse(potentialUri);
+    if (parsedUri != null) {
+      switch (parsedUri.scheme.toLowerCase()) {
+        case 'git':
+          return RemoteSourceKind.git;
+        case 'http':
+        case 'https':
+          return RemoteSourceKind.hosted;
+      }
+    }
+    final parsedGitSshUrl = GitSshUrl.tryParse(potentialUri);
+    if (parsedGitSshUrl != null) {
+      return RemoteSourceKind.git;
+    }
+
+    // Local execution.
+    return null;
+  }
+
+  static bool _isRemoteRun(String mainCommand) {
+    return _remoteSourceKindFromArgument(mainCommand) != null;
+  }
+
+  /// Parse the arguments for remote run.
+  ///
+  /// Constructs a [InstallCommandParsedArguments] to be able to reuse the
+  /// [InstallCommand] implementation.
+  InstallCommandParsedArguments _parseRemoteArguments(String mainCommand) {
+    final argResults = this.argResults!;
+
+    final sourceKind = _remoteSourceKindFromArgument(mainCommand)!;
+
+    final gitPath = argResults.option(gitPathOption);
+    var gitRef = argResults.option(gitRefOption);
+    if (sourceKind != RemoteSourceKind.git &&
+        (gitPath != null || gitRef != null)) {
+      usageException(
+        'Options `--$gitPathOption` and `--$gitRefOption` '
+        'can only be used with a git source.',
+      );
+    }
+
+    for (final option in argResults.options) {
+      if (argResults.wasParsed(option) &&
+          option != gitPathOption &&
+          option != gitRefOption) {
+        usageException(
+          'Option $option cannot be used in remote runs. '
+          '`dart run <remote-executable>` uses `dart install` under the hood '
+          'and compiles the app into a standalone executable.',
+        );
+      }
+    }
+
+    String? hostedUrl;
+    String? versionConstraint;
+    final String source;
+    switch (sourceKind) {
+      case RemoteSourceKind.git:
+        if (mainCommand.startsWith('git@') && mainCommand.contains('.git')) {
+          // Valid values might contain a colon for the command or not:
+          // - git@github.com:org/repo.git
+          // - git@github.com:org/repo.git:executable
+          // Drop everything after the 2nd colon for the git repository.
+          source = mainCommand.split(':').sublist(0, 2).join(':');
+        } else {
+          source = mainCommand.split(_colonButNoSlashes).first;
+        }
+      case RemoteSourceKind.hosted:
+        final parsedUri = Uri.parse(
+            mainCommand.split('@').first.split(_colonButNoSlashes).first);
+        hostedUrl = '${parsedUri.scheme}://${parsedUri.host}';
+        source = parsedUri.path.replaceFirst('/', '');
+        versionConstraint = mainCommand
+                .split('@')
+                .lastButNotFirstOrNull
+                ?.split(_colonButNoSlashes)
+                .first ??
+            'any';
+      case RemoteSourceKind.path:
+        throw StateError('Unreachable');
+    }
+
+    return InstallCommandParsedArguments(
+      source: source,
+      sourceKind: sourceKind,
+      versionConstraint: versionConstraint,
+      gitPath: gitPath,
+      gitRef: gitRef,
+      hostedUrl: hostedUrl,
+      overwrite: false,
+    );
+  }
+
+  Future<String> _findPackageName(
+    InstallCommandParsedArguments parsedArgs,
+  ) async {
+    switch (parsedArgs.sourceKind) {
+      case RemoteSourceKind.git:
+        return await getPackageNameFromGitRepo(
+          parsedArgs.source,
+          ref: parsedArgs.gitRef,
+          path: parsedArgs.gitPath,
+          relativeTo: Directory.current.path,
+          tagPattern: null,
+        );
+      case RemoteSourceKind.hosted:
+        return parsedArgs.source;
+
+      case RemoteSourceKind.path:
+        throw StateError('Unreachable');
+    }
+  }
+
+  /// Installs (if needed) and runs the remote executable.
+  ///
+  /// Installs the app bundle at the same location as `dart install` but does
+  /// not symlink the executable.
+  Future<int> _runRemote(
+    ArgResults args,
+    String mainCommand,
+    List<String> runArgs,
+  ) async {
+    final parsedArgs = _parseRemoteArguments(mainCommand);
+    final packageName = await _findPackageName(parsedArgs);
+
+    return await InstallCommand.inTempDir((tempDirectory) async {
+      try {
+        // Create a helper package for running a pub-resolve and pulling in the
+        // wanted package and its dependencies.
+        final helperPackageDirectory =
+            Directory.fromUri(tempDirectory.uri.resolve('helperPackage/'));
+        helperPackageDirectory.createSync();
+        InstallCommand.createHelperPackagePubspec(
+          helperPackageDir: helperPackageDirectory,
+          packageName: packageName,
+          parsedArgs: parsedArgs,
+        );
+        await InstallCommand.resolveHelperPackage(helperPackageDirectory);
+        final helperPackageLockFile =
+            File.fromUri(helperPackageDirectory.uri.resolve('pubspec.lock'));
+
+        final appBundleDirectory = InstallCommand.selectAppBundleDirectory(
+          parsedArgs,
+          packageName,
+          helperPackageDirectory,
+          helperPackageLockFile,
+        );
+
+        // If the pubspec lock file changed, re-build the executable.
+        if (!appBundleDirectory
+            .pubspecLockIsIdenticalTo(helperPackageLockFile)) {
+          final helperPackageConfigFile = File.fromUri(helperPackageDirectory
+              .uri
+              .resolve('.dart_tool/package_config.json'));
+
+          final sourcePackageRootDirectory = Directory(Uri.parse(
+            PackageConfigFile.loadSync(helperPackageConfigFile)
+                .packages
+                .firstWhere((e) => e.name == packageName)
+                .rootUri,
+          ).toFilePath())
+              .ensureEndWithSeparator;
+
+          final sourcePackagePubspecFile = File.fromUri(
+              sourcePackageRootDirectory.uri.resolve('pubspec.yaml'));
+
+          final executables = InstallCommand.loadDeclaredExecutables(
+            sourcePackagePubspecFile,
+            sourcePackageRootDirectory,
+          );
+
+          final buildDirectory =
+              Directory.fromUri(tempDirectory.uri.resolve('build/'));
+          await InstallCommand.doBuild(
+            executables,
+            buildDirectory,
+            helperPackageConfigFile,
+            sourcePackagePubspecFile,
+            verbose,
+          );
+
+          await InstallCommand.createAppBundleDirectory(
+            appBundleDirectory,
+            buildDirectory,
+            helperPackageLockFile,
+            sourcePackagePubspecFile,
+          );
+        }
+
+        final mainCommandRemainder =
+            mainCommand.substring(parsedArgs.source.length);
+        final executable = mainCommandRemainder
+                .split(_colonButNoSlashes)
+                .lastButNotFirstOrNull ??
+            packageName;
+        final executableUri =
+            appBundleDirectory.directory.uri.resolve('bundle/bin/$executable');
+        final arguments = args.rest.skip(1).toList();
+
+        // The app-bundle contains executables (not AOT snapshots) to make it
+        // self-contained. So, spawn a process instead of loading a snapshot in
+        // the VM.
+        final process = await Process.start(
+          executableUri.toFilePath(),
+          arguments,
+          mode: ProcessStartMode.inheritStdio, // Enable using stdin etc.
+        );
+        return await process.exitCode;
+      } on InstallException catch (e) {
+        stderr.writeln(e.message);
+        return genericErrorExitCode;
+      }
+    });
+  }
 }
+
+extension<T> on List<T> {
+  /// Return the last element, but only if there are at least two elements.
+  T? get lastButNotFirstOrNull {
+    if (length < 2) return null;
+    return last;
+  }
+}
+
+/// Does not match the :// in an url scheme or the :\ in a Windows path.
+final _colonButNoSlashes = RegExp(r':(?!(//|\\))');
 
 /// Keep in sync with [getExecutableForCommand].
 ///

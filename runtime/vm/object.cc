@@ -18737,7 +18737,6 @@ void Code::SetPrologueOffset(intptr_t offset) const {
 
 intptr_t Code::GetPrologueOffset() const {
 #if defined(PRODUCT)
-  UNREACHABLE();
   return -1;
 #else
   const Object& object = Object::Handle(untag()->return_address_metadata());

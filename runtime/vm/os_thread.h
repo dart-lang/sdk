@@ -133,6 +133,11 @@ class OSThread : public BaseThread {
   void DisableThreadInterrupts();
   void EnableThreadInterrupts();
   bool ThreadInterruptsEnabled();
+#else
+  // Used to temporarily disable or enable thread interrupts.
+  void DisableThreadInterrupts() {}
+  void EnableThreadInterrupts() {}
+  bool ThreadInterruptsEnabled() { return false; }
 #endif  // defined(DART_INCLUDE_PROFILER)
 
   // The currently executing thread, or nullptr if not yet initialized.
