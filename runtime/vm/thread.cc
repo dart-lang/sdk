@@ -651,7 +651,7 @@ void Thread::ResumeThreadInternal(Thread* thread) {
   thread->set_os_thread(os_thread);
   os_thread->set_thread(thread);
   Thread::SetCurrent(thread);
-  NOT_IN_PRODUCT(os_thread->EnableThreadInterrupts());
+  os_thread->EnableThreadInterrupts();
 
 #if !defined(PRODUCT) || defined(FORCE_INCLUDE_SAMPLING_HEAP_PROFILER)
   thread->heap_sampler().Initialize();
@@ -667,7 +667,7 @@ void Thread::SuspendThreadInternal(Thread* thread, VMTag::VMTagId tag) {
 
   OSThread* os_thread = thread->os_thread();
   ASSERT(os_thread != nullptr);
-  NOT_IN_PRODUCT(os_thread->DisableThreadInterrupts());
+  os_thread->DisableThreadInterrupts();
   os_thread->set_thread(nullptr);
   OSThread::SetCurrent(os_thread);
   thread->set_os_thread(nullptr);
@@ -1711,7 +1711,7 @@ void Thread::VisitMutators(MutatorThreadVisitor* visitor) {
   });
 }
 
-#if !defined(PRODUCT)
+#if defined(DART_INCLUDE_PROFILER)
 DisableThreadInterruptsScope::DisableThreadInterruptsScope(Thread* thread)
     : StackResource(thread) {
   if (thread != nullptr) {

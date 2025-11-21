@@ -1577,23 +1577,23 @@ DART_EXPORT void Dart_StopProfiling() {
 }
 
 DART_EXPORT void Dart_ThreadDisableProfiling() {
-#if !defined(PRODUCT)
+#if defined(DART_INCLUDE_PROFILER)
   OSThread* os_thread = OSThread::Current();
   if (os_thread == nullptr) {
     return;
   }
   os_thread->DisableThreadInterrupts();
-#endif  // !defined(PRODUCT)
+#endif  // defined(DART_INCLUDE_PROFILER)
 }
 
 DART_EXPORT void Dart_ThreadEnableProfiling() {
-#if !defined(PRODUCT)
+#if defined(DART_INCLUDE_PROFILER)
   OSThread* os_thread = OSThread::Current();
   if (os_thread == nullptr) {
     return;
   }
   os_thread->EnableThreadInterrupts();
-#endif  // !defined(PRODUCT)
+#endif  // defined(DART_INCLUDE_PROFILER)
 }
 
 DART_EXPORT void Dart_AddSymbols(const char* dso_name,
