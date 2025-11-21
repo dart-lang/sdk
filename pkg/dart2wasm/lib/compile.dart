@@ -442,10 +442,20 @@ Future<CompilationResult> _runTfaPhase(
   final moduleStrategy = _createModuleStrategy(options, component, coreTypes,
       target, classHierarchy, dynamicMainModuleUri, dynamicInterfaceUri);
 
-  // DynamicMainModuleStrategy.prepareComponent() includes
-  // dynamic_interface_annotator transformation which annotates AST nodes with
-  // pragmas and should precede other transformations looking at pragmas
-  // (such as mixin_deduplication and TFA).
+  // Ensure we annotate AST nodes as entry points prior to other transformations
+  // looking at pragmas (such as mixin_deduplication and TFA).
+  moduleStrategy.addEntryPoints();
+
+  mixin_deduplication.transformLibraries(
+      librariesToTransform, coreTypes, target,
+      // This puts each canonical mixin application in its own library so that
+      // the import graph does not need to add edges to a single library
+      // containing all mixin applications.
+      useUniqueDeduplicationLibrary:
+          options.translatorOptions.enableDeferredLoading);
+
+  // Ensure this happens after mixin deduplication so that all libraries and
+  // classes are present.
   moduleStrategy.prepareComponent();
 
   final hasDeferredImports = component.libraries
@@ -453,9 +463,6 @@ Future<CompilationResult> _runTfaPhase(
   if (hasDeferredImports) {
     DeferredLoadingLowering.markRuntimeFunctionsAsEntrypoints(coreTypes);
   }
-
-  mixin_deduplication.transformLibraries(
-      librariesToTransform, coreTypes, target);
 
   MainModuleMetadata mainModuleMetadata =
       MainModuleMetadata.empty(options.translatorOptions, options.environment);

@@ -29,7 +29,16 @@ runTestCase(Uri source) async {
     component,
   );
 
-  final actual = kernelLibraryToString(component.mainMethod!.enclosingLibrary);
+  final actual = component.libraries
+      .where(
+        (l) =>
+            l.importUri.path.contains('testcases') ||
+            (l.importUri.scheme == 'dart' &&
+                l.importUri.path.startsWith('mixin_deduplication')),
+      )
+      .map(kernelLibraryToString)
+      .join('\n\n')
+      .replaceAll(pkgVmDir.toString(), 'file:pkg/vm/');
   compareResultWithExpectationsFile(source, actual);
 }
 
@@ -43,7 +52,7 @@ main() {
         in testCasesDir
             .listSync(recursive: true, followLinks: false)
             .reversed) {
-      if (entry.path.endsWith(".dart")) {
+      if (entry.path.endsWith(".dart") && !entry.path.contains('helper')) {
         test(entry.path, () => runTestCase(entry.uri));
       }
     }
