@@ -997,6 +997,46 @@ suggestions
     );
   }
 
+  Future<void> test_superCall_excludesSuperParams() async {
+    await computeSuggestions('''
+class A {
+  final int x;
+  final int y;
+  A({this.x, this.y})
+}
+
+class B extends A {
+  B({super.x}) : super(^);
+}
+''');
+    // Only y is included because x is a super param.
+    assertResponse(r'''
+suggestions
+  |y: |
+    kind: namedArgument
+''');
+  }
+
+  Future<void> test_superCall_excludesUsedNames() async {
+    await computeSuggestions('''
+class A {
+  final int x;
+  final int y;
+  A({this.x, this.y})
+}
+
+class B extends A {
+  B() : super(x: 1, ^);
+}
+''');
+    // Only y is included because x is already used.
+    assertResponse(r'''
+suggestions
+  |y: |
+    kind: namedArgument
+''');
+  }
+
   Future<void> _tryParametersArguments({
     String? languageVersion,
     required String parameters,

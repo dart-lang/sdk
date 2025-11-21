@@ -4517,7 +4517,9 @@ extension on ArgumentList {
 
   /// Returns a record whose fields indicate the number of positional arguments
   /// before the argument at the [argumentIndex], and the names of named
-  /// parameters that are already in use.
+  /// parameters that are already in use either by this argument list or in the
+  /// case of an invocation of a super constructor, already in use as super
+  /// parameters.
   ({int positionalArgumentCount, Set<String> usedNames}) argumentContext(
     int argumentIndex,
   ) {
@@ -4531,6 +4533,25 @@ extension on ArgumentList {
         positionalArgumentCount++;
       }
     }
+
+    // Add in any names used by super parameters.
+    if (parent case SuperConstructorInvocation(
+      parent: ConstructorDeclaration constructor,
+    )) {
+      var parameters = constructor.parameters.parameters;
+      for (var i = 0; i < parameters.length; i++) {
+        var parameter = parameters[i];
+        if (!parameter.isNamed) continue;
+
+        var formalParameter = parameter is DefaultFormalParameter
+            ? parameter.parameter
+            : parameter;
+        if (formalParameter is SuperFormalParameter) {
+          usedNames.add(formalParameter.name.lexeme);
+        }
+      }
+    }
+
     return (
       positionalArgumentCount: positionalArgumentCount,
       usedNames: usedNames,
