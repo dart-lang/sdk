@@ -15,26 +15,16 @@ main() {
 
 @reflectiveTest
 class InvalidFactoryNameNotAClassTest extends PubPackageResolutionTest {
-  test_notClassName() async {
+  test_notClassName_withoutPrimaryConstructors() async {
     await assertErrorsInCode(
       r'''
+// @dart = 3.10
 int B = 0;
 class A {
   factory B() => throw 0;
 }
 ''',
-      [error(diag.invalidFactoryNameNotAClass, 31, 1)],
-    );
-  }
-
-  test_notEnclosingClassName() async {
-    await assertErrorsInCode(
-      r'''
-class A {
-  factory B() => throw 0;
-}
-''',
-      [error(diag.invalidFactoryNameNotAClass, 20, 1)],
+      [error(diag.invalidFactoryNameNotAClass, 47, 1)],
     );
   }
 
@@ -56,6 +46,18 @@ augment class A {
 
     await resolveFile2(b);
     assertErrorsInResult([error(diag.invalidFactoryNameNotAClass, 47, 1)]);
+  }
+
+  test_notEnclosingClassName_withoutPrimaryConstructors() async {
+    await assertErrorsInCode(
+      r'''
+// @dart = 3.10
+class A {
+  factory B() => throw 0;
+}
+''',
+      [error(diag.invalidFactoryNameNotAClass, 36, 1)],
+    );
   }
 
   test_valid() async {

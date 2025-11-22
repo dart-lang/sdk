@@ -1132,7 +1132,8 @@ class FragmentBuilder extends ThrowingAstVisitor<void> {
     fragment.isExternal = node.externalKeyword != null;
     fragment.isFactory = node.factoryKeyword != null;
     fragment.metadata = _buildMetadata(node.metadata);
-    fragment.typeName = node.returnType.name;
+    // TODO(scheglov): https://github.com/dart-lang/sdk/issues/62067
+    fragment.typeName = node.typeName!.name;
 
     if (fragment.isConst || fragment.isFactory) {
       fragment.constantInitializers = node.initializers;

@@ -360,6 +360,7 @@ class AstBuilder extends StackListener {
       staticToken,
       covariantToken,
       varFinalOrConst,
+      newToken,
       getOrSet,
       name,
       enclosingDeclarationName,
@@ -504,6 +505,7 @@ class AstBuilder extends StackListener {
       staticToken,
       covariantToken,
       varFinalOrConst,
+      null,
       getOrSet,
       name,
       enclosingDeclarationName,
@@ -5197,8 +5199,7 @@ class AstBuilder extends StackListener {
   @override
   void handleNoIdentifier(Token token, IdentifierContext context) {
     debugEvent("handleNoIdentifier");
-    // TODO(scheglov): Handle new constructor syntax.
-    push(SimpleIdentifierImpl(token: token));
+    push(NullValues.Identifier);
   }
 
   @override
@@ -5940,6 +5941,7 @@ class AstBuilder extends StackListener {
     Token? staticToken,
     Token? covariantToken,
     Token? varFinalOrConst,
+    Token? newKeyword,
     Token? getOrSet,
     Token name,
     String? enclosingDeclarationName,
@@ -5970,6 +5972,9 @@ class AstBuilder extends StackListener {
       assert(varFinalOrConst.isModifier);
       modifiers.finalConstOrVarKeyword = varFinalOrConst;
     }
+    if (newKeyword != null) {
+      modifiers.newKeyword = newKeyword;
+    }
     push(modifiers);
   }
 
@@ -5982,7 +5987,7 @@ class AstBuilder extends StackListener {
     var separator = pop() as Token?;
     var parameters = pop() as FormalParameterListImpl;
     var typeParameters = pop() as TypeParameterListImpl?;
-    var name = pop();
+    var preliminaryName = pop();
     pop(); // return type
     var modifiers = pop() as _Modifiers?;
     var metadata = pop() as List<AnnotationImpl>?;
@@ -6007,21 +6012,30 @@ class AstBuilder extends StackListener {
       );
     }
 
-    SimpleIdentifierImpl prefixOrName;
+    SimpleIdentifierImpl? typeNameIdentifier;
     Token? period;
-    SimpleIdentifierImpl? nameOrNull;
-    if (name is SimpleIdentifierImpl) {
-      prefixOrName = name;
-    } else if (name is PrefixedIdentifierImpl) {
-      prefixOrName = name.prefix;
-      period = name.period;
-      nameOrNull = name.identifier;
-    } else if (name is _OperatorName) {
-      prefixOrName = name.name;
-    } else {
-      throw UnimplementedError(
-        'name is an instance of ${name.runtimeType} in endClassConstructor',
-      );
+    Token? constructorNameToken;
+
+    var newKeyword = modifiers?.newKeyword;
+    switch (preliminaryName) {
+      case null:
+        break;
+      case SimpleIdentifierImpl():
+        if (newKeyword != null) {
+          constructorNameToken = preliminaryName.token;
+        } else {
+          typeNameIdentifier = preliminaryName;
+        }
+      case PrefixedIdentifierImpl():
+        typeNameIdentifier = preliminaryName.prefix;
+        period = preliminaryName.period;
+        constructorNameToken = preliminaryName.identifier.token;
+      case _OperatorName():
+        typeNameIdentifier = preliminaryName.name;
+      default:
+        throw UnimplementedError(
+          'name is an instance of ${preliminaryName.runtimeType} in endClassConstructor',
+        );
     }
 
     if (typeParameters != null) {
@@ -6063,9 +6077,10 @@ class AstBuilder extends StackListener {
       externalKeyword: modifiers?.externalKeyword,
       constKeyword: modifiers?.finalConstOrVarKeyword,
       factoryKeyword: null,
-      returnType: SimpleIdentifierImpl(token: prefixOrName.token),
+      newKeyword: modifiers?.newKeyword,
+      typeName: typeNameIdentifier,
       period: period,
-      name: nameOrNull?.token,
+      name: constructorNameToken,
       parameters: parameters,
       separator: separator,
       initializers: initializers,
@@ -6103,7 +6118,7 @@ class AstBuilder extends StackListener {
 
     var parameters = pop() as FormalParameterListImpl;
     var typeParameters = pop() as TypeParameterListImpl?;
-    var constructorName = pop() as IdentifierImpl;
+    var preliminaryName = pop() as IdentifierImpl?;
     var modifiers = pop() as _Modifiers?;
     var metadata = pop() as List<AnnotationImpl>?;
     var comment = _findComment(metadata, beginToken);
@@ -6117,20 +6132,35 @@ class AstBuilder extends StackListener {
       );
     }
 
-    // Decompose the preliminary ConstructorName into the type name and
-    // the actual constructor name.
-    SimpleIdentifierImpl returnType;
+    SimpleIdentifierImpl? typeNameIdentifier;
     Token? period;
-    Token? nameToken;
-    IdentifierImpl typeName = constructorName;
-    if (typeName is SimpleIdentifierImpl) {
-      returnType = typeName;
-    } else if (typeName is PrefixedIdentifierImpl) {
-      returnType = typeName.prefix;
-      period = typeName.period;
-      nameToken = typeName.identifier.token;
-    } else {
-      throw UnimplementedError();
+    Token? constructorNameToken;
+    switch (preliminaryName) {
+      case null:
+        break;
+      case SimpleIdentifierImpl():
+        if (_featureSet.isEnabled(Feature.declaring_constructors)) {
+          // Consider a factory constructor declaration of the form
+          // `factory C(...` optionally starting with zero or more of the
+          // modifiers `const`, `augment`, or `external`. Assume that `C` is
+          // the name of the enclosing class, mixin class, enum, or extension
+          // type. In this situation, the declaration declares a constructor
+          // whose name is `C`.
+          var enclosingClassName = _classLikeBuilder?.name;
+          if (enclosingClassName?.lexeme == preliminaryName.token.lexeme) {
+            typeNameIdentifier = preliminaryName;
+          } else {
+            constructorNameToken = preliminaryName.token;
+          }
+        } else {
+          typeNameIdentifier = preliminaryName;
+        }
+      case PrefixedIdentifierImpl():
+        typeNameIdentifier = preliminaryName.prefix;
+        period = preliminaryName.period;
+        constructorNameToken = preliminaryName.identifier.token;
+      default:
+        throw UnimplementedError();
     }
 
     var constructor = ConstructorDeclarationImpl(
@@ -6140,9 +6170,10 @@ class AstBuilder extends StackListener {
       externalKeyword: modifiers?.externalKeyword,
       constKeyword: modifiers?.finalConstOrVarKeyword,
       factoryKeyword: factoryKeyword,
-      returnType: SimpleIdentifierImpl(token: returnType.token),
+      newKeyword: null,
+      typeName: typeNameIdentifier,
       period: period,
-      name: nameToken,
+      name: constructorNameToken,
       parameters: parameters,
       separator: separator,
       initializers: [],
@@ -6522,7 +6553,10 @@ class _ClassDeclarationBuilder extends _ClassLikeDeclarationBuilder {
   final Token? mixinKeyword;
   final Token classKeyword;
   final _PrimaryConstructorBuilder? primaryConstructorBuilder;
+
+  @override
   final Token name;
+
   ExtendsClauseImpl? extendsClause;
   WithClauseImpl? withClause;
   ImplementsClauseImpl? implementsClause;
@@ -6587,7 +6621,7 @@ class _ClassDeclarationBuilder extends _ClassLikeDeclarationBuilder {
   }
 }
 
-class _ClassLikeDeclarationBuilder {
+abstract class _ClassLikeDeclarationBuilder {
   final CommentImpl? comment;
   final List<AnnotationImpl>? metadata;
   final TypeParameterListImpl? typeParameters;
@@ -6604,6 +6638,8 @@ class _ClassLikeDeclarationBuilder {
     required this.leftBracket,
     required this.rightBracket,
   });
+
+  Token? get name;
 
   ClassNamePartImpl buildClassNamePart({
     required Token typeName,
@@ -6631,7 +6667,10 @@ class _EnumDeclarationBuilder extends _ClassLikeDeclarationBuilder {
   final Token? augmentKeyword;
   final Token enumKeyword;
   final _PrimaryConstructorBuilder? primaryConstructorBuilder;
+
+  @override
   final Token name;
+
   final WithClauseImpl? withClause;
   final ImplementsClauseImpl? implementsClause;
   final List<EnumConstantDeclarationImpl> constants = [];
@@ -6680,6 +6719,7 @@ class _EnumDeclarationBuilder extends _ClassLikeDeclarationBuilder {
 class _ExtensionDeclarationBuilder extends _ClassLikeDeclarationBuilder {
   final Token? augmentKeyword;
   final Token extensionKeyword;
+  @override
   final Token? name;
 
   _ExtensionDeclarationBuilder({
@@ -6720,6 +6760,8 @@ class _ExtensionDeclarationBuilder extends _ClassLikeDeclarationBuilder {
 class _ExtensionTypeDeclarationBuilder extends _ClassLikeDeclarationBuilder {
   final Token? augmentKeyword;
   final Token extensionKeyword;
+
+  @override
   final Token name;
 
   _ExtensionTypeDeclarationBuilder({
@@ -6772,7 +6814,10 @@ class _MixinDeclarationBuilder extends _ClassLikeDeclarationBuilder {
   final Token? augmentKeyword;
   final Token? baseKeyword;
   final Token mixinKeyword;
+
+  @override
   final Token name;
+
   MixinOnClauseImpl? onClause;
   ImplementsClauseImpl? implementsClause;
 
@@ -6819,6 +6864,7 @@ class _Modifiers {
   Token? augmentKeyword;
   Token? externalKeyword;
   Token? finalConstOrVarKeyword;
+  Token? newKeyword;
   Token? staticKeyword;
   Token? covariantKeyword;
   Token? requiredToken;
@@ -6831,6 +6877,7 @@ class _Modifiers {
       abstractKeyword,
       externalKeyword,
       finalConstOrVarKeyword,
+      newKeyword,
       staticKeyword,
       covariantKeyword,
       requiredToken,

@@ -343,7 +343,7 @@ class _ReferencedNamesComputer extends GeneralizingAstVisitor<void> {
     }
     // Ignore class names references from constructors.
     var parent = node.parent!;
-    if (parent is ConstructorDeclaration && parent.returnType == node) {
+    if (parent is ConstructorDeclaration && parent.typeName == node) {
       return;
     }
     // Prepare name.

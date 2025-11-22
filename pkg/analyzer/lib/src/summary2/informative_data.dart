@@ -782,9 +782,11 @@ class _InfoBuilder {
         formalParameters: node.parameters,
         constructorInitializers: node.initializers,
       ),
-      typeNameOffset: node.returnType.offset,
+      // TODO(scheglov): https://github.com/dart-lang/sdk/issues/62067
+      typeNameOffset: node.typeName!.offset,
       periodOffset: node.period?.offset,
-      nameEnd: (node.name ?? node.returnType).end,
+      // TODO(scheglov): https://github.com/dart-lang/sdk/issues/62067
+      nameEnd: (node.name ?? node.typeName!).end,
     );
   }
 

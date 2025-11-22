@@ -2674,7 +2674,8 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     if (instanceFields.length == 1) {
       var field = instanceFields.single;
       diagnosticReporter.atNode(
-        constructor.returnType,
+        // TODO(scheglov): https://github.com/dart-lang/sdk/issues/62067
+        constructor.typeName!,
         diag.constConstructorWithMixinWithField,
         arguments: ["'${field.enclosingElement.name}.${field.name}'"],
       );
@@ -2684,7 +2685,8 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
           .map((field) => "'${field.enclosingElement.name}.${field.name}'")
           .join(', ');
       diagnosticReporter.atNode(
-        constructor.returnType,
+        // TODO(scheglov): https://github.com/dart-lang/sdk/issues/62067
+        constructor.typeName!,
         diag.constConstructorWithMixinWithFields,
         arguments: [fieldNames],
       );
@@ -2715,7 +2717,8 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     var superInvocation = constructor.initializers
         .whereType<SuperConstructorInvocation>()
         .firstOrNull;
-    var errorNode = superInvocation ?? constructor.returnType;
+    // TODO(scheglov): https://github.com/dart-lang/sdk/issues/62067
+    var errorNode = superInvocation ?? constructor.typeName!;
 
     diagnosticReporter.atNode(
       errorNode,
@@ -4205,7 +4208,8 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
             // classes.
             if (!member.isTrivial) {
               diagnosticReporter.atNode(
-                member.returnType,
+                // TODO(scheglov): https://github.com/dart-lang/sdk/issues/62067
+                member.typeName!,
                 diag.mixinClassDeclaresConstructor,
                 arguments: [element.name!],
               );
@@ -5301,7 +5305,8 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     var superUnnamedConstructor = superElement.unnamedConstructor;
     if (superUnnamedConstructor == null) {
       diagnosticReporter.atNode(
-        constructor.returnType,
+        // TODO(scheglov): https://github.com/dart-lang/sdk/issues/62067
+        constructor.typeName!,
         diag.undefinedConstructorInInitializerDefault,
         arguments: [superElement.name!],
       );
@@ -5310,7 +5315,8 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
 
     if (superUnnamedConstructor.isFactory) {
       diagnosticReporter.atNode(
-        constructor.returnType,
+        // TODO(scheglov): https://github.com/dart-lang/sdk/issues/62067
+        constructor.typeName!,
         diag.nonGenerativeConstructor,
         arguments: [superUnnamedConstructor],
       );

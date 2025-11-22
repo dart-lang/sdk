@@ -100,8 +100,10 @@ extension ConstructorDeclarationExtension on ConstructorDeclaration {
   /// declaration, accounting for named and unnamed constructors.
   SourceRange get errorRange {
     var name = this.name;
-    var offset = returnType.offset;
-    int length = (name != null ? name.end : returnType.end) - offset;
+    // TODO(scheglov): https://github.com/dart-lang/sdk/issues/62067
+    var offset = typeName!.offset;
+    // TODO(scheglov): https://github.com/dart-lang/sdk/issues/62067
+    int length = (name != null ? name.end : typeName!.end) - offset;
     return SourceRange(offset, length);
   }
 

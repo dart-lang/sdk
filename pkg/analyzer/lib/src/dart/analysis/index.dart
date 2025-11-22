@@ -810,8 +810,10 @@ class _IndexContributor extends GeneralizingAstVisitor {
       var element = node.declaredFragment!.element;
       var superConstructor = element.superConstructor;
       if (superConstructor != null) {
-        var offset = node.returnType.offset;
-        var end = (node.name ?? node.returnType).end;
+        // TODO(scheglov): https://github.com/dart-lang/sdk/issues/62067
+        var offset = node.typeName!.offset;
+        // TODO(scheglov): https://github.com/dart-lang/sdk/issues/62067
+        var end = (node.name ?? node.typeName!).end;
         recordRelationOffset(
           superConstructor,
           IndexRelationKind.IS_INVOKED_BY,

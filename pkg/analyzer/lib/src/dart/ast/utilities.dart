@@ -80,7 +80,8 @@ class NodeLocator2 extends UnifyingAstVisitor<void> {
     // Names do not have AstNodes but offsets at the end should be treated as
     // part of the declaration (not parameter list).
     if (_startOffset == _endOffset &&
-        _startOffset == (node.name ?? node.returnType).end) {
+        // TODO(scheglov): https://github.com/dart-lang/sdk/issues/62067
+        _startOffset == (node.name ?? node.typeName!).end) {
       _foundNode = node;
       return;
     }
@@ -456,10 +457,7 @@ class NodeReplacer extends ThrowingAstVisitor<bool> {
 
   @override
   bool visitConstructorDeclaration(covariant ConstructorDeclarationImpl node) {
-    if (identical(node.returnType, _oldNode)) {
-      node.returnType = _newNode as IdentifierImpl;
-      return true;
-    } else if (identical(node.parameters, _oldNode)) {
+    if (identical(node.parameters, _oldNode)) {
       node.parameters = _newNode as FormalParameterListImpl;
       return true;
     } else if (identical(node.redirectedConstructor, _oldNode)) {

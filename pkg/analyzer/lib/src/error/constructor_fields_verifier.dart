@@ -148,19 +148,22 @@ class _Constructor {
 
     if (names.length == 1) {
       diagnosticReporter.atNode(
-        node.returnType,
+        // TODO(scheglov): https://github.com/dart-lang/sdk/issues/62067
+        node.typeName!,
         diag.finalNotInitializedConstructor1,
         arguments: names,
       );
     } else if (names.length == 2) {
       diagnosticReporter.atNode(
-        node.returnType,
+        // TODO(scheglov): https://github.com/dart-lang/sdk/issues/62067
+        node.typeName!,
         diag.finalNotInitializedConstructor2,
         arguments: names,
       );
     } else {
       diagnosticReporter.atNode(
-        node.returnType,
+        // TODO(scheglov): https://github.com/dart-lang/sdk/issues/62067
+        node.typeName!,
         diag.finalNotInitializedConstructor3Plus,
         arguments: [names[0], names[1], names.length - 2],
       );
@@ -177,7 +180,8 @@ class _Constructor {
 
     for (var name in names) {
       diagnosticReporter.atNode(
-        node.returnType,
+        // TODO(scheglov): https://github.com/dart-lang/sdk/issues/62067
+        node.typeName!,
         diag.notInitializedNonNullableInstanceFieldConstructor,
         arguments: [name],
       );

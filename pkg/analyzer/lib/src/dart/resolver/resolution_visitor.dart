@@ -371,7 +371,7 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
     _withElementHolder(ElementHolder(fragment), () {
       _withElementWalker(null, () {
         _withNameScope(() {
-          node.returnType.accept(this);
+          node.typeName?.accept(this);
 
           _withElementWalker(ElementWalker.forExecutable(fragment), () {
             node.parameters.accept(this);

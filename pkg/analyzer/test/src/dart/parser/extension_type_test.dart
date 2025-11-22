@@ -662,7 +662,7 @@ ExtensionTypeDeclaration
     leftBracket: {
     members
       ConstructorDeclaration
-        returnType: SimpleIdentifier
+        typeName: SimpleIdentifier
           token: A
         period: .
         name: named

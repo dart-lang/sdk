@@ -457,7 +457,8 @@ class MemberDuplicateDefinitionVerifier {
           if (member.augmentKeyword != null) {
             continue;
           }
-          if (member.returnType.name != firstFragment.name) {
+          // TODO(scheglov): https://github.com/dart-lang/sdk/issues/62067
+          if (member.typeName!.name != firstFragment.name) {
             // [member] is erroneous; do not count it as a possible duplicate.
             continue;
           }

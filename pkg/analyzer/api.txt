@@ -970,10 +970,11 @@ package:analyzer/dart/ast/ast.dart:
     factoryKeyword (getter: Token?)
     initializers (getter: NodeList<ConstructorInitializer>)
     name (getter: Token?)
+    newKeyword (getter: Token?)
     parameters (getter: FormalParameterList)
     period (getter: Token?)
     redirectedConstructor (getter: ConstructorName?)
-    returnType (getter: Identifier)
+    returnType (getter: Identifier, deprecated)
     separator (getter: Token?)
     typeName (getter: SimpleIdentifier?)
   ConstructorFieldInitializer (class extends Object implements ConstructorInitializer):

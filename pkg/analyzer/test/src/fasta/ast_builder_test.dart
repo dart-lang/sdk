@@ -269,7 +269,7 @@ class A {
     var node = parseResult.findNode.constructor('A.named()');
     assertParsedNodeText(node, r'''
 ConstructorDeclaration
-  returnType: SimpleIdentifier
+  typeName: SimpleIdentifier
     token: A
   period: .
   name: named
@@ -292,7 +292,7 @@ class A {
     var node = parseResult.findNode.constructor('A()');
     assertParsedNodeText(node, r'''
 ConstructorDeclaration
-  returnType: SimpleIdentifier
+  typeName: SimpleIdentifier
     token: A
   parameters: FormalParameterList
     leftParenthesis: (
@@ -769,8 +769,9 @@ ClassTypeAlias
 ''', withOffsets: true);
   }
 
-  void test_constructor_factory_misnamed() {
+  void test_constructor_factory_misnamed_withoutPrimaryConstructors() {
     var parseResult = parseStringWithErrors(r'''
+// @dart = 3.10
 class A {
   factory B() => null;
 }
@@ -781,7 +782,7 @@ class A {
     assertParsedNodeText(node, r'''
 ConstructorDeclaration
   factoryKeyword: factory
-  returnType: SimpleIdentifier
+  typeName: SimpleIdentifier
     token: B
   parameters: FormalParameterList
     leftParenthesis: (
@@ -808,7 +809,7 @@ class A {
     var node = parseResult.findNode.constructor('A()');
     assertParsedNodeText(node, r'''
 ConstructorDeclaration
-  returnType: SimpleIdentifier
+  typeName: SimpleIdentifier
     token: A
   parameters: FormalParameterList
     leftParenthesis: (
@@ -839,7 +840,7 @@ class B extends A {
     assertParsedNodeText(node, r'''
 ConstructorDeclaration
   constKeyword: const
-  returnType: SimpleIdentifier
+  typeName: SimpleIdentifier
     token: B
   parameters: FormalParameterList
     leftParenthesis: (
@@ -874,7 +875,7 @@ class A {
     var node = parseResult.findNode.constructor('B()');
     assertParsedNodeText(node, r'''
 ConstructorDeclaration
-  returnType: SimpleIdentifier
+  typeName: SimpleIdentifier
     token: B
   parameters: FormalParameterList
     leftParenthesis: (
