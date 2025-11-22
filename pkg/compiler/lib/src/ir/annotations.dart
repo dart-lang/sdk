@@ -425,7 +425,7 @@ Iterable<PragmaAnnotationData> _pragmaAnnotations(ir.Constant constant) {
       ];
     }
   }
-  return [];
+  return const [];
 }
 
 List<PragmaAnnotationData> computePragmaAnnotationDataFromIr(
