@@ -168,7 +168,8 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
       var element = node.declaredFragment!.element;
       if (!element.isCycleFree && !element.isFactory) {
         _diagnosticReporter.atNode(
-          node.returnType,
+          // TODO(scheglov): https://github.com/dart-lang/sdk/issues/62067
+          node.typeName!,
           diag.recursiveConstantConstructor,
         );
       }

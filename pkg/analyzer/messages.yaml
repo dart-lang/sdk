@@ -8608,6 +8608,7 @@ CompileTimeErrorCode:
       constructor (`A`) isn't the same as the surrounding class (`C`):
 
       ```dart
+      // @dart = 3.10
       class A {}
 
       class C {

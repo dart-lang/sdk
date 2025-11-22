@@ -166,7 +166,7 @@ class _ElementMapper2 extends GeneralizingAstVisitor<Element> {
       }
     } else if (parent is ConstructorDeclaration) {
       // Map a constructor declarations to its associated constructor element.
-      var returnType = parent.returnType;
+      var returnType = parent.typeName;
       if (identical(returnType, node)) {
         var name = parent.name;
         if (name != null) {

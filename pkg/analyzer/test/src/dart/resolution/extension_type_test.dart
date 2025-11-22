@@ -137,7 +137,7 @@ ExtensionTypeDeclaration
     leftBracket: {
     members
       ConstructorDeclaration
-        returnType: SimpleIdentifier
+        typeName: SimpleIdentifier
           token: A
           element: <testLibrary>::@extensionType::A
           staticType: null
@@ -201,7 +201,7 @@ ExtensionTypeDeclaration
     members
       ConstructorDeclaration
         constKeyword: const
-        returnType: SimpleIdentifier
+        typeName: SimpleIdentifier
           token: A
           element: <testLibrary>::@extensionType::A
           staticType: null

@@ -4713,6 +4713,11 @@ abstract final class ConstructorDeclaration implements ClassMember {
   /// is unnamed.
   Token? get name;
 
+  /// The token for the `new` keyword, or `null` if the keyword is absent, so
+  /// either [factoryKeyword] is not `null`, or the old syntax with [typeName]
+  /// is used.
+  Token? get newKeyword;
+
   /// The parameters associated with the constructor.
   FormalParameterList get parameters;
 
@@ -4725,6 +4730,7 @@ abstract final class ConstructorDeclaration implements ClassMember {
   ConstructorName? get redirectedConstructor;
 
   /// The type of object being created.
+  @Deprecated('Use typeName instead')
   Identifier get returnType;
 
   /// The token for the separator (colon or equals) before the initializer list
@@ -4734,7 +4740,7 @@ abstract final class ConstructorDeclaration implements ClassMember {
 
   /// The name of the enclosing type, e.g. `C` in `C() {}` or `C.named() {}`.
   ///
-  /// Or `null` if uses new syntax with `newKeyword` or [factoryKeyword].
+  /// Or `null` if uses new syntax with [newKeyword] or [factoryKeyword].
   SimpleIdentifier? get typeName;
 }
 
@@ -4744,7 +4750,8 @@ abstract final class ConstructorDeclaration implements ClassMember {
     GenerateNodeProperty('externalKeyword', tokenGroupId: 0),
     GenerateNodeProperty('constKeyword', tokenGroupId: 0, isTokenFinal: false),
     GenerateNodeProperty('factoryKeyword', tokenGroupId: 0),
-    GenerateNodeProperty('returnType'),
+    GenerateNodeProperty('newKeyword', tokenGroupId: 0),
+    GenerateNodeProperty('typeName'),
     GenerateNodeProperty('period'),
     GenerateNodeProperty('name'),
     GenerateNodeProperty('parameters'),
@@ -4773,7 +4780,11 @@ final class ConstructorDeclarationImpl extends ClassMemberImpl
   final Token? factoryKeyword;
 
   @generated
-  IdentifierImpl _returnType;
+  @override
+  final Token? newKeyword;
+
+  @generated
+  SimpleIdentifierImpl? _typeName;
 
   @generated
   @override
@@ -4812,7 +4823,8 @@ final class ConstructorDeclarationImpl extends ClassMemberImpl
     required this.externalKeyword,
     required this.constKeyword,
     required this.factoryKeyword,
-    required IdentifierImpl returnType,
+    required this.newKeyword,
+    required SimpleIdentifierImpl? typeName,
     required this.period,
     required this.name,
     required FormalParameterListImpl parameters,
@@ -4820,11 +4832,11 @@ final class ConstructorDeclarationImpl extends ClassMemberImpl
     required List<ConstructorInitializerImpl> initializers,
     required ConstructorNameImpl? redirectedConstructor,
     required FunctionBodyImpl body,
-  }) : _returnType = returnType,
+  }) : _typeName = typeName,
        _parameters = parameters,
        _redirectedConstructor = redirectedConstructor,
        _body = body {
-    _becomeParentOf(returnType);
+    _becomeParentOf(typeName);
     _becomeParentOf(parameters);
     this.initializers._initialize(this, initializers);
     _becomeParentOf(redirectedConstructor);
@@ -4854,11 +4866,21 @@ final class ConstructorDeclarationImpl extends ClassMemberImpl
           externalKeyword,
           constKeyword,
           factoryKeyword,
+          newKeyword,
         )
         case var result?) {
       return result;
     }
-    return returnType.beginToken;
+    if (typeName case var typeName?) {
+      return typeName.beginToken;
+    }
+    if (period case var period?) {
+      return period;
+    }
+    if (name case var name?) {
+      return name;
+    }
+    return parameters.beginToken;
   }
 
   /// Whether this is a trivial constructor.
@@ -4891,18 +4913,21 @@ final class ConstructorDeclarationImpl extends ClassMemberImpl
     _redirectedConstructor = _becomeParentOf(redirectedConstructor);
   }
 
-  @generated
+  @Deprecated('Use typeName instead')
   @override
-  IdentifierImpl get returnType => _returnType;
-
-  @generated
-  set returnType(IdentifierImpl returnType) {
-    _returnType = _becomeParentOf(returnType);
+  IdentifierImpl get returnType {
+    // TODO(scheglov): https://github.com/dart-lang/sdk/issues/62067
+    return typeName!;
   }
 
+  @generated
   @override
-  // TODO(scheglov): flip the implementation to make this property leading
-  SimpleIdentifierImpl? get typeName => returnType as SimpleIdentifierImpl;
+  SimpleIdentifierImpl? get typeName => _typeName;
+
+  @generated
+  set typeName(SimpleIdentifierImpl? typeName) {
+    _typeName = _becomeParentOf(typeName);
+  }
 
   @generated
   @override
@@ -4911,7 +4936,8 @@ final class ConstructorDeclarationImpl extends ClassMemberImpl
     ..addToken('externalKeyword', externalKeyword)
     ..addToken('constKeyword', constKeyword)
     ..addToken('factoryKeyword', factoryKeyword)
-    ..addNode('returnType', returnType)
+    ..addToken('newKeyword', newKeyword)
+    ..addNode('typeName', typeName)
     ..addToken('period', period)
     ..addToken('name', name)
     ..addNode('parameters', parameters)
@@ -4929,7 +4955,7 @@ final class ConstructorDeclarationImpl extends ClassMemberImpl
   @override
   void visitChildren(AstVisitor visitor) {
     super.visitChildren(visitor);
-    returnType.accept(visitor);
+    typeName?.accept(visitor);
     parameters.accept(visitor);
     initializers.accept(visitor);
     redirectedConstructor?.accept(visitor);
@@ -4942,8 +4968,10 @@ final class ConstructorDeclarationImpl extends ClassMemberImpl
     if (super._childContainingRange(rangeOffset, rangeEnd) case var result?) {
       return result;
     }
-    if (returnType._containsOffset(rangeOffset, rangeEnd)) {
-      return returnType;
+    if (typeName case var typeName?) {
+      if (typeName._containsOffset(rangeOffset, rangeEnd)) {
+        return typeName;
+      }
     }
     if (parameters._containsOffset(rangeOffset, rangeEnd)) {
       return parameters;

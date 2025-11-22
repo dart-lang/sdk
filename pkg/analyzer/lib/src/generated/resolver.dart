@@ -2250,7 +2250,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
       checkUnreachableNode(node);
       node.documentationComment?.accept(this);
       node.metadata.accept(this);
-      node.returnType.accept(this);
+      node.typeName?.accept(this);
       node.parameters.accept(this);
 
       flowAnalysis.bodyOrInitializer_enter(node, node.parameters);
@@ -4953,7 +4953,7 @@ class ScopeResolverVisitor extends UnifyingAstVisitor<void> {
       var element = node.declaredFragment!.element;
 
       node.metadata.accept(this);
-      node.returnType.accept(this);
+      node.typeName?.accept(this);
       node.parameters.accept(this);
 
       try {
@@ -5467,7 +5467,7 @@ class ScopeResolverVisitor extends UnifyingAstVisitor<void> {
     // Ignore if it cannot be a reference to a local variable.
     if (parent is FieldFormalParameter) {
       return;
-    } else if (parent is ConstructorDeclaration && parent.returnType == node) {
+    } else if (parent is ConstructorDeclaration && parent.typeName == node) {
       return;
     } else if (parent is ConstructorFieldInitializer &&
         parent.fieldName == node) {

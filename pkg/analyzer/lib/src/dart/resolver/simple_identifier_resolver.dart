@@ -76,7 +76,7 @@ class SimpleIdentifierResolver with ScopeHelpers {
       return false;
     }
     if (parent is ConstructorDeclaration) {
-      if (parent.returnType == node) {
+      if (parent.typeName == node) {
         return false;
       }
     }
@@ -345,7 +345,7 @@ class SimpleIdentifierResolver with ScopeHelpers {
   static bool _isConstructorReturnType(SimpleIdentifier identifier) {
     var parent = identifier.parent;
     if (parent is ConstructorDeclaration) {
-      return identical(parent.returnType, identifier);
+      return identical(parent.typeName, identifier);
     }
     return false;
   }
@@ -355,7 +355,7 @@ class SimpleIdentifierResolver with ScopeHelpers {
   static bool _isFactoryConstructorReturnType(SimpleIdentifier identifier) {
     var parent = identifier.parent;
     if (parent is ConstructorDeclaration) {
-      return identical(parent.returnType, identifier) &&
+      return identical(parent.typeName, identifier) &&
           parent.factoryKeyword != null;
     }
     return false;

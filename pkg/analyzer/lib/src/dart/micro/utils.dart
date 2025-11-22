@@ -355,9 +355,8 @@ class ReferencesCollector extends GeneralizingAstVisitor<void> {
         var length = nameToken.end - offset;
         references.add(MatchInfo(offset, length, MatchKind.DECLARATION));
       } else {
-        references.add(
-          MatchInfo(node.returnType.end, 0, MatchKind.DECLARATION),
-        );
+        // TODO(scheglov): https://github.com/dart-lang/sdk/issues/62067
+        references.add(MatchInfo(node.typeName!.end, 0, MatchKind.DECLARATION));
       }
     }
     super.visitConstructorDeclaration(node);

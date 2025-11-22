@@ -181,7 +181,8 @@ class DiagnosticReporter {
     //  declaration and compute the correct range for the name of that
     //  declaration. This might make it easier to be consistent.
     if (node.name case var nameToken?) {
-      var offset = node.returnType.offset;
+      // TODO(scheglov): https://github.com/dart-lang/sdk/issues/62067
+      var offset = node.typeName!.offset;
       return atOffset(
         offset: offset,
         length: nameToken.end - offset,
@@ -189,7 +190,8 @@ class DiagnosticReporter {
         arguments: arguments,
       );
     } else {
-      return atNode(node.returnType, diagnosticCode, arguments: arguments);
+      // TODO(scheglov): https://github.com/dart-lang/sdk/issues/62067
+      return atNode(node.typeName!, diagnosticCode, arguments: arguments);
     }
   }
 

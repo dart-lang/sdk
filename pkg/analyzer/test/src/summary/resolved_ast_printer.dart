@@ -352,6 +352,13 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
 
   @override
   void visitConstructorDeclaration(ConstructorDeclaration node) {
+    if (node.typeName != null) {
+      assert(
+        // ignore: deprecated_member_use_from_same_package
+        identical(node.returnType, node.typeName),
+      );
+    }
+
     _sink.writeln('ConstructorDeclaration');
     _sink.withIndent(() {
       _writeNamedChildEntities(node);
