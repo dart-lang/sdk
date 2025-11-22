@@ -119,6 +119,9 @@ class DefaultModuleStrategy extends ModuleStrategy {
   }
 
   @override
+  void addEntryPoints() {}
+
+  @override
   void prepareComponent() {}
 
   @override
@@ -138,6 +141,7 @@ bool containsWasmExport(CoreTypes coreTypes, Library lib) {
 }
 
 abstract class ModuleStrategy {
+  void addEntryPoints();
   void prepareComponent();
   Future<void> processComponentAfterTfa(DeferredModuleLoadingMap loadingMap);
   ModuleOutputData buildModuleOutputData();

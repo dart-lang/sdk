@@ -177,8 +177,6 @@ getHierarchyMembersAndParameters(
       var subClassMembers = getChildren(subClass, name);
       for (var member in subClassMembers) {
         switch (member) {
-          case ConstructorElement():
-            members.add(member);
           case FieldElement():
             members.add(member);
           case MethodElement():

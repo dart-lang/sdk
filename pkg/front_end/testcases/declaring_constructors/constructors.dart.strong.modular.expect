@@ -55,7 +55,7 @@ class C8 extends core::Object /*hasConstConstructor*/  {
   const constructor _(core::int i) → self::C8
     : self::C8::i = i, super core::Object::•()
     ;
-  static factory •(core::int i) → self::C8 /* redirection-target: self::C8::_ */
+  static const factory •(core::int i) → self::C8 /* redirection-target: self::C8::_ */
     return new self::C8::_(i);
 }
 class C9 extends core::Object {
@@ -87,7 +87,7 @@ class C12 extends core::Object /*hasConstConstructor*/  {
   const constructor _(core::int i) → self::C12
     : self::C12::i = i, super core::Object::•()
     ;
-  static factory named(core::int i) → self::C12 /* redirection-target: self::C12::_ */
+  static const factory named(core::int i) → self::C12 /* redirection-target: self::C12::_ */
     return new self::C12::_(i);
 }
 class C13 extends core::Object {

@@ -360,6 +360,23 @@ class Class extends NamedNode implements TypeDeclaration {
     dirty = false;
   }
 
+  void clearCanonicalNames() {
+    reference.canonicalName = null;
+    for (int i = 0; i < fields.length; ++i) {
+      final Field field = fields[i];
+      field.fieldReference.canonicalName = null;
+      field.getterReference.canonicalName = null;
+      field.setterReference?.canonicalName = null;
+    }
+    for (int i = 0; i < procedures.length; ++i) {
+      procedures[i].reference.canonicalName = null;
+    }
+    for (int i = 0; i < constructors.length; ++i) {
+      constructors[i].reference.canonicalName = null;
+    }
+    dirty = true;
+  }
+
   /// This is an advanced feature. Use of this method should be coordinated
   /// with the kernel team.
   ///

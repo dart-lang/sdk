@@ -4,7 +4,6 @@
 
 import 'dart:async';
 import 'dart:collection';
-import 'dart:io';
 
 import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/lsp/handlers/handlers.dart';
@@ -703,23 +702,11 @@ class ContextManagerImpl implements ContextManager {
                 // Errors in the watcher such as "Directory watcher closed
                 // unexpectedly" on Windows when the buffer overflows also
                 // require that we restarted to be consistent.
-                if (Platform.isLinux && error is FileSystemException) {
-                  if (error.message == 'Failed to watch path') {
-                    needsBuild = false;
-                    _instrumentationService.logError(
-                      'Watcher error; system limit on watchers has been reached.\n'
-                      '$error\n$stackTrace',
-                    );
-                  } else {
-                    needsBuild = true;
-                  }
-                } else {
-                  needsBuild = true;
-                  _instrumentationService.logError(
-                    'Temporary watcher error; restarting context build.\n'
-                    '$error\n$stackTrace',
-                  );
-                }
+                needsBuild = true;
+                _instrumentationService.logError(
+                  'Temporary watcher error; restarting context build.\n'
+                  '$error\n$stackTrace',
+                );
               },
             ),
           )
@@ -915,20 +902,11 @@ class ContextManagerImpl implements ContextManager {
       return;
     }
 
-    if (Platform.isLinux &&
-        error is FileSystemException &&
-        error.message == 'Failed to watch path') {
-      _instrumentationService.logError(
-        'Watcher error; not refreshing contexts '
-        'system limit on watchers has been reached.\n$error\n$stackTrace',
-      );
-      return;
-    }
-
     // We've handled the error, so we only have to log it.
     _instrumentationService.logError(
       'Watcher error; refreshing contexts.\n$error\n$stackTrace',
     );
+    // TODO(mfairhurst): Optimize this, or perhaps be less complete.
     refresh();
   }
 

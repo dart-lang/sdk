@@ -280,6 +280,7 @@ static Dart_Isolate IsolateSetupHelper(Dart_Isolate isolate,
   CHECK_RESULT(result);
 
   auto isolate_data = reinterpret_cast<IsolateData*>(Dart_IsolateData(isolate));
+  auto isolate_group_data = isolate_data->isolate_group_data();
 
   const char* resolved_packages_config = nullptr;
   result =
@@ -289,7 +290,6 @@ static Dart_Isolate IsolateSetupHelper(Dart_Isolate isolate,
   CHECK_RESULT(result);
 
 #if !defined(DART_PRECOMPILED_RUNTIME)
-  auto isolate_group_data = isolate_data->isolate_group_data();
   const uint8_t* kernel_buffer = isolate_group_data->kernel_buffer().get();
   intptr_t kernel_buffer_size = isolate_group_data->kernel_buffer_size();
   if (!isolate_run_app_snapshot && kernel_buffer == nullptr &&
@@ -383,6 +383,28 @@ static Dart_Isolate IsolateSetupHelper(Dart_Isolate isolate,
 #else
     UNREACHABLE();
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
+  }
+
+  if (Options::load_module_snapshot() != nullptr) {
+    auto snapshot =
+        Snapshot::TryReadAppSnapshot(Options::load_module_snapshot());
+    if (snapshot == nullptr) {
+      Syslog::PrintErr("Unable to load module snapshot %s.\n",
+                       Options::load_module_snapshot());
+      Dart_ExitScope();
+      Dart_ShutdownIsolate();
+      return nullptr;
+    }
+    isolate_group_data->AddLoadedSnapshot(snapshot);
+    const uint8_t* ignore_vm_snapshot_data;
+    const uint8_t* ignore_vm_snapshot_instructions;
+    const uint8_t* snapshot_data = nullptr;
+    const uint8_t* snapshot_instructions = nullptr;
+    snapshot->SetBuffers(&ignore_vm_snapshot_data,
+                         &ignore_vm_snapshot_instructions, &snapshot_data,
+                         &snapshot_instructions);
+    result = Dart_LoadModuleSnapshot(snapshot_data, snapshot_instructions);
+    CHECK_RESULT(result);
   }
 
   if ((Options::gen_snapshot_kind() == kAppJIT) && is_main_isolate) {

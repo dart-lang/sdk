@@ -18,7 +18,7 @@ import 'dart:math';
 
 part 'stream.dart';
 
-abstract class Future<T> {
+abstract interface class Future<T> {
   factory Future(FutureOr<T> computation()) => throw 0;
 
   factory Future.delayed(Duration duration, [FutureOr<T> computation()?]) =>
@@ -115,8 +115,8 @@ abstract interface class EventSink<T> implements Sink<T> {}
 
 abstract interface class StreamConsumer<S> {}
 
-abstract interface class
-    StreamSink<S> implements EventSink<S>, StreamConsumer<S> {}
+abstract interface class StreamSink<S>
+    implements EventSink<S>, StreamConsumer<S> {}
 
 abstract interface class StreamTransformer<S, T> {}
 
@@ -1534,7 +1534,13 @@ library dart._internal;
 import 'dart:core' hide Symbol;
 import 'dart:core' as core show Symbol;
 
-class EmptyIterable<E> implements Iterable<E> {
+abstract class EfficientLengthIterable<T> extends Iterable<T> {}
+
+abstract interface class HideEfficientLengthIterable<T>
+    implements Iterable<T> {}
+
+class EmptyIterable<E> extends EfficientLengthIterable<E>
+    implements HideEfficientLengthIterable<E> {
   const EmptyIterable();
 }
 
@@ -1706,6 +1712,8 @@ final class Isolate {
     bool errorsAreFatal = true,
     bool? checked,
     Map<String, String>? environment,
+    @Deprecated('The packages/ dir is not supported in Dart 2')
+    Uri? packageRoot,
     Uri? packageConfig,
     bool automaticPackageResolution = false,
     String? debugName,

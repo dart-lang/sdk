@@ -1,0 +1,130 @@
+--- foo
+B0 = EntryBlock()
+  Parameter(this)
+  Parameter(a)
+  Parameter(b)
+  Parameter(c)
+  v5 = LoadLocal(a)
+  v6 = LoadLocal(b)
+  v7 = BinaryIntOp +(v5, v6)
+  v8 = LoadLocal(c)
+  v9 = BinaryIntOp +(v7, v8)
+  Return(v9)
+
+--- bar
+B0 = EntryBlock()
+  v4 = Constant(null)
+  Parameter(a)
+  Parameter(b)
+  Parameter(c)
+  Return(v4)
+
+--- unreachable1
+B0 = EntryBlock()
+  Constant(10)
+  v4 = Constant("Bye")
+  Constant(null)
+  Parameter(obj)
+  LoadLocal(obj)
+  Throw(v4)
+
+--- unreachable2
+B0 = EntryBlock()
+  v2 = Constant("12")
+  Constant(10)
+  v6 = Constant("Bye")
+  Constant(null)
+  Parameter(obj)
+  DirectCall int.parse(v2)
+  LoadLocal(obj)
+  Throw(v6)
+
+--- unreachableBreak1
+B0 = EntryBlock() dominates:(B4)
+  v2 = Constant(0)
+  v13 = Constant(2)
+  v20 = Constant("Bye")
+  v22 = Constant(null)
+  v24 = Constant(1)
+  Parameter(n)
+  StoreLocal(i, v2)
+  Goto(B4)
+B4 = JoinBlock(B0, B18) idom:B0 dominates:(B10, B9) loop-header (depth:1 body:(B4, B9, B16, B18) back-edges:(B18))
+  v6 = LoadLocal(i)
+  v7 = LoadLocal(n)
+  v8 = Comparison int <(v6, v7)
+  Branch(v8, true: B9, false: B10)
+B9 = TargetBlock() idom:B4 dominates:(B16, B15) in-loop:B4
+  v12 = LoadLocal(i)
+  v14 = Comparison int >(v12, v13)
+  Branch(v14, true: B15, false: B16)
+B15 = TargetBlock() idom:B9
+  Throw(v20)
+B16 = TargetBlock() idom:B9 dominates:(B18) in-loop:B4
+  Goto(B18)
+B18 = JoinBlock(B16) idom:B16 in-loop:B4
+  v23 = LoadLocal(i)
+  v25 = BinaryIntOp +(v23, v24)
+  StoreLocal(i, v25)
+  Goto(B4)
+B10 = TargetBlock() idom:B4
+  Return(v22)
+
+--- unreachableBreak2
+B0 = EntryBlock() dominates:(B4)
+  v2 = Constant(0)
+  v13 = Constant(2)
+  v20 = Constant("Bye")
+  v22 = Constant(null)
+  Parameter(n)
+  StoreLocal(i, v2)
+  Goto(B4)
+B4 = JoinBlock(B0) idom:B0 dominates:(B10, B9)
+  v6 = LoadLocal(i)
+  v7 = LoadLocal(n)
+  v8 = Comparison int <(v6, v7)
+  Branch(v8, true: B9, false: B10)
+B9 = TargetBlock() idom:B4 dominates:(B16, B15)
+  v12 = LoadLocal(i)
+  v14 = Comparison int >(v12, v13)
+  Branch(v14, true: B15, false: B16)
+B15 = TargetBlock() idom:B9
+  Throw(v20)
+B16 = TargetBlock() idom:B9 dominates:(B18)
+  Goto(B18)
+B18 = JoinBlock(B16) idom:B16
+  Return(v22)
+B10 = TargetBlock() idom:B4
+  Return(v22)
+
+--- unreachableFinally
+B0 = EntryBlock() dominates:(B2, B1)
+  v11 = Constant(1)
+  v13 = Constant("Bye")
+  Constant(null)
+  v20 = Constant(3)
+  v22 = Constant("Bye-bye")
+  TryEntry(try-body: B1, catch-block: B2)
+B1 = TargetBlock() exception-handler:B2 idom:B0 dominates:(B5, B4)
+  TryEntry(try-body: B4, catch-block: B5)
+B4 = TargetBlock() exception-handler:B5 idom:B1 dominates:(B7)
+  Goto(B7)
+B7 = JoinBlock(B4) exception-handler:B2 idom:B4
+  DirectCall print(v11)
+  Throw(v13)
+B5 = CatchBlock() exception-handler:B2 idom:B1
+  Parameter(#exception)
+  Parameter(#stackTrace)
+  DirectCall print(v11)
+  Throw(v13)
+B2 = CatchBlock() idom:B0
+  Parameter(#exception)
+  Parameter(#stackTrace)
+  DirectCall print(v20)
+  Throw(v22)
+
+--- main
+B0 = EntryBlock()
+  v1 = Constant(null)
+  Return(v1)
+

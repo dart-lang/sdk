@@ -26,6 +26,7 @@ class Snapshot {
     kFullCore,  // Full snapshot of core libraries.
     kFullJIT,   // Full + JIT code
     kFullAOT,   // Full + AOT code
+    kModule,    // Module snapshot with code.
     kNone,      // gen_snapshot
     kInvalid
   };
@@ -65,7 +66,7 @@ class Snapshot {
            (kind == kFullAOT);
   }
   static bool IncludesCode(Kind kind) {
-    return (kind == kFullJIT) || (kind == kFullAOT);
+    return (kind == kFullJIT) || (kind == kFullAOT) || (kind == kModule);
   }
 
   static bool IncludesStringsInROData(Kind kind) {

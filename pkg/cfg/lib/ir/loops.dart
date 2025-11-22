@@ -105,7 +105,11 @@ Loops computeLoops(FlowGraph graph) {
     if (block is JoinBlock && block.predecessors.length > 1) {
       for (final pred in block.predecessors) {
         if (pred.isDominatedBy(block)) {
-          final loop = (loops[block] ??= Loop._(block));
+          Loop? loop = loops[block];
+          if (loop == null) {
+            loops[block] = loop = Loop._(block);
+            loops._loops.add(loop);
+          }
           loop.addBody(pred);
           loop.backEdges.add(pred);
         }

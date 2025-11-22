@@ -234,6 +234,7 @@ main() {
     "Dart_LoadLibrary",
     "Dart_LoadLibraryFromBytecode",
     "Dart_LoadLibraryFromKernel",
+    "Dart_LoadModuleSnapshot",
     "Dart_LoadScriptFromBytecode",
     "Dart_LoadScriptFromKernel",
     "Dart_LookupLibrary",

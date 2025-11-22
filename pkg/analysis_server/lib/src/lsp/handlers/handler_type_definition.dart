@@ -93,6 +93,14 @@ class TypeDefinitionHandler
         } else if (node is DeclaredIdentifier) {
           originEntity = node.name;
           type = node.declaredFragment?.element.type;
+        } else if (node is VariablePattern) {
+          originEntity = node.name;
+          type = node.matchedValueType;
+        } else if (node is PatternFieldName) {
+          originEntity = node.name;
+          if (node.parent case PatternField field) {
+            type = field.pattern.matchedValueType;
+          }
         } else if (node is Expression) {
           originEntity = node;
           type = _getType(node);

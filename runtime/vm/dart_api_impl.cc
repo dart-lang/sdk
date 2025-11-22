@@ -36,6 +36,7 @@
 #include "vm/message.h"
 #include "vm/message_handler.h"
 #include "vm/message_snapshot.h"
+#include "vm/module_snapshot.h"
 #include "vm/native_entry.h"
 #include "vm/native_symbol.h"
 #include "vm/object.h"
@@ -5633,6 +5634,39 @@ DART_EXPORT Dart_Handle Dart_LoadScriptFromBytecode(const uint8_t* buffer,
       "%s: Cannot load bytecode as dynamic modules are disabled.",
       CURRENT_FUNC);
 #endif  // defined(DART_DYNAMIC_MODULES)
+}
+
+DART_EXPORT DART_API_WARN_UNUSED_RESULT Dart_Handle
+Dart_LoadModuleSnapshot(const uint8_t* snapshot_data,
+                        const uint8_t* snapshot_instructions) {
+#if defined(DART_PRECOMPILED_RUNTIME)
+  return Api::NewError("%s: Cannot load module snapshots on an AOT runtime.",
+                       CURRENT_FUNC);
+#else
+  DARTSCOPE(Thread::Current());
+  API_TIMELINE_DURATION(T);
+  CHECK_CALLBACK_STATE(T);
+
+#if defined(SUPPORT_TIMELINE)
+  TimelineBeginEndScope tbes(T, Timeline::GetIsolateStream(),
+                             "ReadModuleSnapshot");
+#endif  // defined(SUPPORT_TIMELINE)
+  const Snapshot* snapshot = Snapshot::SetupFromBuffer(snapshot_data);
+  if (snapshot == nullptr) {
+    return Api::NewError("Invalid snapshot");
+  }
+  if (snapshot->kind() != Snapshot::kModule) {
+    return Api::NewError("Invalid snapshot kind");
+  }
+
+  const Error& error = Error::Handle(
+      module_snapshot::ReadModuleSnapshot(T, snapshot, snapshot_instructions));
+  if (!error.IsNull()) {
+    return Api::NewHandle(T, error.ptr());
+  }
+
+  return Api::Success();
+#endif  // defined(DART_PRECOMPILED_RUNTIME)
 }
 
 DART_EXPORT Dart_Handle Dart_RootLibrary() {

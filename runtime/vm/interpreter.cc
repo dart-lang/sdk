@@ -695,6 +695,7 @@ DART_FORCE_INLINE bool Interpreter::InvokeBytecode(Thread* thread,
                                                    ObjectPtr** FP,
                                                    ObjectPtr** SP) {
   ASSERT(Function::HasBytecode(function));
+  ASSERT(Function::IsInterpreted(function));
 #if defined(DEBUG)
   if (IsTracingExecution()) {
     THR_Print("%" Pu64 " ", icount_);
@@ -729,7 +730,7 @@ DART_FORCE_INLINE bool Interpreter::Invoke(Thread* thread,
   FunctionPtr function = FrameFunction(callee_fp);
 
   for (;;) {
-    if (Function::HasBytecode(function)) {
+    if (Function::IsInterpreted(function)) {
       return InvokeBytecode(thread, function, call_base, call_top, pc, FP, SP);
     } else if (Function::HasCode(function)) {
       return InvokeCompiled(thread, function, call_base, call_top, pc, FP, SP);
@@ -4164,7 +4165,7 @@ SwitchDispatchNoSingleStep:
     FunctionPtr function = Function::RawCast(SP[1]);
 
     for (;;) {
-      if (Function::HasBytecode(function)) {
+      if (Function::IsInterpreted(function)) {
         ASSERT(function->IsFunction());
         BytecodePtr bytecode = Function::GetBytecode(function);
         ASSERT(bytecode->IsBytecode());

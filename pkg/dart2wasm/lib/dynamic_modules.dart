@@ -127,12 +127,16 @@ class DynamicMainModuleStrategy extends ModuleStrategy with KernelNodes {
       : index = coreTypes.index;
 
   @override
-  void prepareComponent() {
+  void addEntryPoints() {
     // Annotate the kernel with info from dynamic interface.
     dynamic_interface_annotator.annotateComponent(dynamicInterfaceSpecification,
         dynamicInterfaceSpecificationBaseUri, component, coreTypes);
-    _addImplicitPragmas();
 
+    _addImplicitPragmas();
+  }
+
+  @override
+  void prepareComponent() {
     for (final lib in component.libraries) {
       lib.annotations = [...lib.annotations];
       addPragma(lib, _mainModLibPragma, coreTypes);
@@ -224,6 +228,9 @@ class DynamicSubmoduleStrategy extends ModuleStrategy {
 
   DynamicSubmoduleStrategy(this.component, this.options, this.kernelTarget,
       this.coreTypes, this.mainModuleComponentUri);
+
+  @override
+  void addEntryPoints() {}
 
   @override
   void prepareComponent() {

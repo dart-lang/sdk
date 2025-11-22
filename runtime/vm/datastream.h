@@ -47,6 +47,10 @@ struct LEB128Constants : AllStatic {
 
 class NonStreamingWriteStream;
 
+namespace module_snapshot {
+class Deserializer;
+}
+
 // Stream for reading various types from a buffer.
 class ReadStream : public ValueObject {
  public:
@@ -324,6 +328,7 @@ class ReadStream : public ValueObject {
   const uint8_t* end_;
 
   friend class Deserializer;
+  friend class module_snapshot::Deserializer;
   DISALLOW_COPY_AND_ASSIGN(ReadStream);
 };
 

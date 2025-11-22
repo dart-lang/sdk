@@ -1,0 +1,489 @@
+--- if1
+B0 = EntryBlock() dominates:(B6, B16, B5)
+  v22 = Constant("oops")
+  v25 = Constant(null)
+  Parameter(c1)
+  Parameter(c2)
+  Parameter(c3)
+  v4 = LoadLocal(c1)
+  Branch(v4, true: B5, false: B6)
+B5 = TargetBlock() idom:B0 dominates:(B10, B19, B9)
+  v8 = LoadLocal(c2)
+  Branch(v8, true: B9, false: B10)
+B9 = TargetBlock() idom:B5
+  Goto(B19)
+B10 = TargetBlock() idom:B5 dominates:(B14, B13)
+  v12 = LoadLocal(c3)
+  Branch(v12, true: B13, false: B14)
+B13 = TargetBlock() idom:B10
+  Goto(B16)
+B14 = TargetBlock() idom:B10
+  Goto(B19)
+B19 = JoinBlock(B14, B9) idom:B5
+  DirectCall print(v22)
+  Goto(B16)
+B6 = TargetBlock() idom:B0
+  Goto(B16)
+B16 = JoinBlock(B6, B19, B13) idom:B0
+  Return(v25)
+
+--- condition
+B0 = EntryBlock()
+  v3 = Constant(3)
+  v5 = Constant(0)
+  Parameter(i)
+  v2 = LoadLocal(i)
+  v4 = BinaryIntOp %(v2, v3)
+  v6 = Comparison int ==(v4, v5)
+  Return(v6)
+
+--- if2
+B0 = EntryBlock() dominates:(B4, B40, B3)
+  v1 = Constant(1)
+  v6 = Constant(2)
+  v11 = Constant(3)
+  v22 = Constant(4)
+  v27 = Constant(5)
+  v44 = Constant(null)
+  v2 = DirectCall condition(v1)
+  Branch(v2, true: B3, false: B4)
+B3 = TargetBlock() idom:B0 dominates:(B9, B19, B17, B8)
+  v7 = DirectCall condition(v6)
+  Branch(v7, true: B8, false: B9)
+B8 = TargetBlock() idom:B3 dominates:(B14, B13)
+  v12 = DirectCall condition(v11)
+  Branch(v12, true: B13, false: B14)
+B13 = TargetBlock() idom:B8
+  DirectCall print(v1)
+  Goto(B17)
+B14 = TargetBlock() idom:B8
+  Goto(B19)
+B9 = TargetBlock() idom:B3
+  Goto(B19)
+B19 = JoinBlock(B9, B14) idom:B3 dominates:(B25, B32, B34, B24)
+  v23 = DirectCall condition(v22)
+  Branch(v23, true: B24, false: B25)
+B24 = TargetBlock() idom:B19
+  Goto(B34)
+B25 = TargetBlock() idom:B19 dominates:(B30, B29)
+  v28 = DirectCall condition(v27)
+  Branch(v28, true: B29, false: B30)
+B29 = TargetBlock() idom:B25
+  Goto(B34)
+B34 = JoinBlock(B29, B24) idom:B19
+  DirectCall print(v6)
+  Goto(B32)
+B30 = TargetBlock() idom:B25
+  Goto(B32)
+B32 = JoinBlock(B30, B34) idom:B19
+  Goto(B17)
+B17 = JoinBlock(B32, B13) idom:B3
+  Goto(B40)
+B4 = TargetBlock() idom:B0
+  DirectCall print(v11)
+  Goto(B40)
+B40 = JoinBlock(B4, B17) idom:B0
+  Return(v44)
+
+--- forLoop
+B0 = EntryBlock() dominates:(B5)
+  v2 = Constant(0)
+  v18 = Constant(1)
+  Parameter(n)
+  StoreLocal(sum, v2)
+  StoreLocal(i, v2)
+  Goto(B5)
+B5 = JoinBlock(B0, B10) idom:B0 dominates:(B11, B10) loop-header (depth:1 body:(B5, B10) back-edges:(B10))
+  v7 = LoadLocal(i)
+  v8 = LoadLocal(n)
+  v9 = Comparison int <(v7, v8)
+  Branch(v9, true: B10, false: B11)
+B10 = TargetBlock() idom:B5 in-loop:B5
+  v13 = LoadLocal(sum)
+  v14 = LoadLocal(i)
+  v15 = BinaryIntOp +(v13, v14)
+  StoreLocal(sum, v15)
+  v17 = LoadLocal(i)
+  v19 = BinaryIntOp +(v17, v18)
+  StoreLocal(i, v19)
+  Goto(B5)
+B11 = TargetBlock() idom:B5
+  v22 = LoadLocal(sum)
+  Return(v22)
+
+--- whileLoop
+B0 = EntryBlock() dominates:(B5)
+  v2 = Constant(0)
+  v18 = Constant(10)
+  v28 = Constant(1)
+  Parameter(n)
+  StoreLocal(sum, v2)
+  StoreLocal(i, v2)
+  Goto(B5)
+B5 = JoinBlock(B0, B23) idom:B0 dominates:(B11, B25, B10) loop-header (depth:1 body:(B5, B10, B21, B23) back-edges:(B23))
+  v7 = LoadLocal(i)
+  v8 = LoadLocal(n)
+  v9 = Comparison int <(v7, v8)
+  Branch(v9, true: B10, false: B11)
+B10 = TargetBlock() idom:B5 dominates:(B21, B20) in-loop:B5
+  v13 = LoadLocal(sum)
+  v14 = LoadLocal(i)
+  v15 = BinaryIntOp +(v13, v14)
+  StoreLocal(sum, v15)
+  v17 = LoadLocal(sum)
+  v19 = Comparison int >(v17, v18)
+  Branch(v19, true: B20, false: B21)
+B20 = TargetBlock() idom:B10
+  Goto(B25)
+B21 = TargetBlock() idom:B10 dominates:(B23) in-loop:B5
+  Goto(B23)
+B23 = JoinBlock(B21) idom:B21 in-loop:B5
+  v27 = LoadLocal(i)
+  v29 = BinaryIntOp +(v27, v28)
+  StoreLocal(i, v29)
+  Goto(B5)
+B11 = TargetBlock() idom:B5
+  Goto(B25)
+B25 = JoinBlock(B11, B20) idom:B5
+  v33 = LoadLocal(sum)
+  Return(v33)
+
+--- doWhileLoop
+B0 = EntryBlock() dominates:(B6)
+  v2 = Constant(0)
+  v13 = Constant(1)
+  Parameter(n)
+  StoreLocal(sum, v2)
+  v4 = LoadLocal(n)
+  StoreLocal(i, v4)
+  Goto(B6)
+B6 = JoinBlock(B0, B18) idom:B0 dominates:(B19, B18) loop-header (depth:1 body:(B6, B18) back-edges:(B18))
+  v8 = LoadLocal(sum)
+  v9 = LoadLocal(i)
+  v10 = BinaryIntOp +(v8, v9)
+  StoreLocal(sum, v10)
+  v12 = LoadLocal(i)
+  v14 = BinaryIntOp -(v12, v13)
+  StoreLocal(i, v14)
+  v16 = LoadLocal(i)
+  v17 = Comparison int >=(v16, v2)
+  Branch(v17, true: B18, false: B19)
+B18 = TargetBlock() idom:B6 in-loop:B6
+  Goto(B6)
+B19 = TargetBlock() idom:B6
+  v22 = LoadLocal(sum)
+  Return(v22)
+
+--- forInLoop
+B0 = EntryBlock() dominates:(B7)
+  v2 = Constant(0)
+  Parameter(list)
+  StoreLocal(sum, v2)
+  v4 = LoadLocal(list)
+  v5 = InterfaceCall getter Iterable.iterator(v4)
+  StoreLocal(:sync-for-iterator, v5)
+  Goto(B7)
+B7 = JoinBlock(B0, B11) idom:B0 dominates:(B12, B11) loop-header (depth:1 body:(B7, B11) back-edges:(B11))
+  v9 = LoadLocal(:sync-for-iterator)
+  v10 = InterfaceCall Iterator.moveNext(v9)
+  Branch(v10, true: B11, false: B12)
+B11 = TargetBlock() idom:B7 in-loop:B7
+  v14 = LoadLocal(:sync-for-iterator)
+  v15 = InterfaceCall getter Iterator.current(v14)
+  StoreLocal(elem, v15)
+  v17 = LoadLocal(sum)
+  v18 = LoadLocal(elem)
+  v19 = BinaryIntOp +(v17, v18)
+  StoreLocal(sum, v19)
+  Goto(B7)
+B12 = TargetBlock() idom:B7
+  v22 = LoadLocal(sum)
+  Return(v22)
+
+--- breakAndContinue
+B0 = EntryBlock() dominates:(B5)
+  v3 = Constant(0)
+  v23 = Constant(3)
+  v35 = Constant(5)
+  v47 = Constant(1)
+  v56 = Constant(null)
+  Parameter(n)
+  Parameter(m)
+  StoreLocal(i, v3)
+  Goto(B5)
+B5 = JoinBlock(B0, B43) idom:B0 dominates:(B11, B10) loop-header (depth:1 body:(B5, B10, B14, B20, B43, B19, B26, B28, B39, B41, B30, B38, B25) back-edges:(B43))
+  v7 = LoadLocal(i)
+  v8 = LoadLocal(n)
+  v9 = Comparison int <(v7, v8)
+  Branch(v9, true: B10, false: B11)
+B10 = TargetBlock() idom:B5 dominates:(B14) in-loop:B5
+  StoreLocal(j, v3)
+  Goto(B14)
+B14 = JoinBlock(B10, B30) idom:B10 dominates:(B20, B43, B19) loop-header (depth:2 body:(B14, B19, B26, B28, B39, B41, B30, B25) back-edges:(B30))
+  v16 = LoadLocal(j)
+  v17 = LoadLocal(m)
+  v18 = Comparison int <(v16, v17)
+  Branch(v18, true: B19, false: B20)
+B19 = TargetBlock() idom:B14 dominates:(B26, B30, B25) in-loop:B14
+  v22 = LoadLocal(j)
+  v24 = Comparison int <(v22, v23)
+  Branch(v24, true: B25, false: B26)
+B25 = TargetBlock() idom:B19 in-loop:B14
+  Goto(B30)
+B26 = TargetBlock() idom:B19 dominates:(B28) in-loop:B14
+  Goto(B28)
+B28 = JoinBlock(B26) idom:B26 dominates:(B39, B38) in-loop:B14
+  v32 = LoadLocal(i)
+  v33 = LoadLocal(j)
+  v34 = BinaryIntOp +(v32, v33)
+  v36 = BinaryIntOp %(v34, v35)
+  v37 = Comparison int ==(v36, v3)
+  Branch(v37, true: B38, false: B39)
+B38 = TargetBlock() idom:B28 in-loop:B5
+  Goto(B43)
+B39 = TargetBlock() idom:B28 dominates:(B41) in-loop:B14
+  Goto(B41)
+B41 = JoinBlock(B39) idom:B39 in-loop:B14
+  Goto(B30)
+B30 = JoinBlock(B41, B25) idom:B19 in-loop:B14
+  v46 = LoadLocal(j)
+  v48 = BinaryIntOp +(v46, v47)
+  StoreLocal(j, v48)
+  Goto(B14)
+B20 = TargetBlock() idom:B14 in-loop:B5
+  Goto(B43)
+B43 = JoinBlock(B20, B38) idom:B14 in-loop:B5
+  v52 = LoadLocal(i)
+  v53 = BinaryIntOp +(v52, v47)
+  StoreLocal(i, v53)
+  Goto(B5)
+B11 = TargetBlock() idom:B5
+  Return(v56)
+
+--- switchStatement
+B0 = EntryBlock() dominates:(B9, B34, B3, B8)
+  v6 = Constant(1)
+  v12 = Constant(2)
+  v18 = Constant(3)
+  v24 = Constant(4)
+  v32 = Constant("1-2")
+  v36 = Constant("3")
+  v39 = Constant("3-4")
+  v43 = Constant(null)
+  Parameter(x)
+  v2 = LoadLocal(x)
+  v7 = InterfaceCall Object.==(v6, v2)
+  Branch(v7, true: B8, false: B9)
+B8 = TargetBlock() idom:B0
+  Goto(B3)
+B9 = TargetBlock() idom:B0 dominates:(B15, B14)
+  v13 = InterfaceCall Object.==(v12, v2)
+  Branch(v13, true: B14, false: B15)
+B14 = TargetBlock() idom:B9
+  Goto(B3)
+B3 = JoinBlock(B14, B8) idom:B0
+  DirectCall print(v32)
+  Goto(B34)
+B15 = TargetBlock() idom:B9 dominates:(B21, B30, B5, B20)
+  v19 = InterfaceCall Object.==(v18, v2)
+  Branch(v19, true: B20, false: B21)
+B20 = TargetBlock() idom:B15 dominates:(B4)
+  Goto(B4)
+B4 = JoinBlock(B20) idom:B20
+  DirectCall print(v36)
+  Goto(B5)
+B21 = TargetBlock() idom:B15 dominates:(B27, B26)
+  v25 = InterfaceCall Object.==(v24, v2)
+  Branch(v25, true: B26, false: B27)
+B26 = TargetBlock() idom:B21
+  Goto(B5)
+B5 = JoinBlock(B26, B4) idom:B15
+  DirectCall print(v39)
+  Goto(B30)
+B27 = TargetBlock() idom:B21
+  Goto(B30)
+B30 = JoinBlock(B27, B5) idom:B15
+  Goto(B34)
+B34 = JoinBlock(B30, B3) idom:B0
+  Return(v43)
+
+--- tryBlocks
+B0 = EntryBlock() dominates:(B4, B24, B3)
+  v1 = Constant(1)
+  v6 = Constant(2)
+  v11 = Constant(3)
+  v35 = Constant(null)
+  StoreLocal(x, v1)
+  TryEntry(try-body: B3, catch-block: B4)
+B3 = TargetBlock() exception-handler:B4 idom:B0 dominates:(B9, B8)
+  StoreLocal(x, v6)
+  TryEntry(try-body: B8, catch-block: B9)
+B8 = TargetBlock() exception-handler:B9 idom:B3 dominates:(B13)
+  StoreLocal(x, v11)
+  Goto(B13)
+B13 = JoinBlock(B8) exception-handler:B4 idom:B8
+  v22 = LoadLocal(x)
+  DirectCall print(v22)
+  Goto(B24)
+B9 = CatchBlock() exception-handler:B4 idom:B3
+  Parameter(#exception)
+  Parameter(#stackTrace)
+  v17 = LoadLocal(x)
+  DirectCall print(v17)
+  v19 = LoadLocal(#exception)
+  v20 = LoadLocal(#stackTrace)
+  Throw(v19, v20)
+B4 = CatchBlock() idom:B0
+  Parameter(#exception)
+  Parameter(#stackTrace)
+  v28 = LoadLocal(#exception)
+  StoreLocal(e, v28)
+  v30 = LoadLocal(e)
+  DirectCall print(v30)
+  v32 = LoadLocal(x)
+  DirectCall print(v32)
+  Goto(B24)
+B24 = JoinBlock(B4, B13) idom:B0
+  Return(v35)
+
+--- tryFinallyWithBreaks
+B0 = EntryBlock() dominates:(B2, B1)
+  v4 = Constant(10)
+  v6 = Constant(0)
+  v11 = Constant(5)
+  v22 = Constant(3)
+  v34 = Constant(1)
+  v45 = Constant(2)
+  v59 = Constant(20)
+  v84 = Constant(42)
+  TryEntry(try-body: B1, catch-block: B2)
+B1 = TargetBlock() exception-handler:B2 idom:B0 dominates:(B8)
+  DirectCall print(v4)
+  StoreLocal(i, v6)
+  Goto(B8)
+B8 = JoinBlock(B1, B68) exception-handler:B2 idom:B1 dominates:(B14, B65, B13) loop-header (depth:1 body:(B8, B13, B16, B26, B28, B37, B39, B48, B50, B55, B68, B36, B41) back-edges:(B68))
+  v10 = LoadLocal(i)
+  v12 = Comparison int <(v10, v11)
+  Branch(v12, true: B13, false: B14)
+B13 = TargetBlock() exception-handler:B2 idom:B8 dominates:(B17, B16) in-loop:B8
+  TryEntry(try-body: B16, catch-block: B17)
+B16 = TargetBlock() exception-handler:B17 idom:B13 dominates:(B26, B25) in-loop:B8
+  v19 = LoadLocal(i)
+  DirectCall print(v19)
+  v21 = LoadLocal(i)
+  v23 = BinaryIntOp %(v21, v22)
+  v24 = Comparison int ==(v23, v6)
+  Branch(v24, true: B25, false: B26)
+B25 = TargetBlock() exception-handler:B17 idom:B16 dominates:(B30)
+  Goto(B30)
+B30 = JoinBlock(B25) exception-handler:B2 idom:B25
+  DirectCall print(v59)
+  Goto(B65)
+B26 = TargetBlock() exception-handler:B17 idom:B16 dominates:(B28) in-loop:B8
+  Goto(B28)
+B28 = JoinBlock(B26) exception-handler:B17 idom:B26 dominates:(B37, B68, B36) in-loop:B8
+  v32 = LoadLocal(i)
+  v33 = BinaryIntOp %(v32, v22)
+  v35 = Comparison int ==(v33, v34)
+  Branch(v35, true: B36, false: B37)
+B36 = TargetBlock() exception-handler:B17 idom:B28 dominates:(B41) in-loop:B8
+  Goto(B41)
+B41 = JoinBlock(B36) exception-handler:B2 idom:B36 in-loop:B8
+  DirectCall print(v59)
+  Goto(B68)
+B37 = TargetBlock() exception-handler:B17 idom:B28 dominates:(B39) in-loop:B8
+  Goto(B39)
+B39 = JoinBlock(B37) exception-handler:B17 idom:B37 dominates:(B48, B47) in-loop:B8
+  v43 = LoadLocal(i)
+  v44 = BinaryIntOp %(v43, v22)
+  v46 = Comparison int ==(v44, v45)
+  Branch(v46, true: B47, false: B48)
+B47 = TargetBlock() exception-handler:B17 idom:B39 dominates:(B53)
+  LoadLocal(i)
+  Goto(B53)
+B53 = JoinBlock(B47) exception-handler:B2 idom:B47 dominates:(B71)
+  DirectCall print(v59)
+  Goto(B71)
+B71 = JoinBlock(B53) idom:B53
+  Return(v84)
+B48 = TargetBlock() exception-handler:B17 idom:B39 dominates:(B50) in-loop:B8
+  Goto(B50)
+B50 = JoinBlock(B48) exception-handler:B17 idom:B48 dominates:(B55) in-loop:B8
+  Goto(B55)
+B55 = JoinBlock(B50) exception-handler:B2 idom:B50 in-loop:B8
+  DirectCall print(v59)
+  Goto(B68)
+B68 = JoinBlock(B55, B41) exception-handler:B2 idom:B28 in-loop:B8
+  v75 = LoadLocal(i)
+  v76 = BinaryIntOp +(v75, v34)
+  StoreLocal(i, v76)
+  Goto(B8)
+B17 = CatchBlock() exception-handler:B2 idom:B13
+  Parameter(#exception)
+  Parameter(#stackTrace)
+  DirectCall print(v59)
+  v61 = LoadLocal(#exception)
+  v62 = LoadLocal(#stackTrace)
+  Throw(v61, v62)
+B14 = TargetBlock() exception-handler:B2 idom:B8
+  Goto(B65)
+B65 = JoinBlock(B14, B30) exception-handler:B2 idom:B8 dominates:(B80)
+  Goto(B80)
+B80 = JoinBlock(B65) idom:B65
+  Return(v84)
+B2 = CatchBlock() idom:B0
+  Parameter(#exception)
+  Parameter(#stackTrace)
+  Return(v84)
+
+--- tryWithThrowRethrow
+B0 = EntryBlock() dominates:(B4, B17, B3)
+  v6 = Constant(1)
+  v14 = Constant("Boom!")
+  v16 = Constant(null)
+  v26 = Constant(2)
+  Parameter(c1)
+  Parameter(c2)
+  TryEntry(try-body: B3, catch-block: B4)
+B3 = TargetBlock() exception-handler:B4 idom:B0 dominates:(B10, B9)
+  DirectCall print(v6)
+  v8 = LoadLocal(c1)
+  Branch(v8, true: B9, false: B10)
+B9 = TargetBlock() exception-handler:B4 idom:B3
+  Throw(v14)
+B10 = TargetBlock() exception-handler:B4 idom:B3 dominates:(B12)
+  Goto(B12)
+B12 = JoinBlock(B10) exception-handler:B4 idom:B10
+  Goto(B17)
+B4 = CatchBlock() idom:B0 dominates:(B24, B23)
+  Parameter(#exception)
+  Parameter(#stackTrace)
+  v21 = LoadLocal(#exception)
+  v22 = TypeTest(v21, Error)
+  Branch(v22, true: B23, false: B24)
+B23 = TargetBlock() idom:B4 dominates:(B30, B29)
+  DirectCall print(v26)
+  v28 = LoadLocal(c2)
+  Branch(v28, true: B29, false: B30)
+B29 = TargetBlock() idom:B23
+  v34 = LoadLocal(#exception)
+  v35 = LoadLocal(#stackTrace)
+  Throw(v34, v35)
+B30 = TargetBlock() idom:B23 dominates:(B32)
+  Goto(B32)
+B32 = JoinBlock(B30) idom:B30
+  Goto(B17)
+B17 = JoinBlock(B32, B12) idom:B0
+  Return(v16)
+B24 = TargetBlock() idom:B4
+  v38 = LoadLocal(#exception)
+  v39 = LoadLocal(#stackTrace)
+  Throw(v38, v39)
+
+--- main
+B0 = EntryBlock()
+  v1 = Constant("hey")
+  v3 = Constant(null)
+  DirectCall print(v1)
+  Return(v3)
+

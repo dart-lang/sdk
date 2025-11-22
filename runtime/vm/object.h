@@ -3287,8 +3287,11 @@ class Function : public Object {
   static inline BytecodePtr GetBytecode(FunctionPtr function);
   inline bool HasBytecode() const;
   static inline bool HasBytecode(FunctionPtr function);
+  static bool IsInterpreted(FunctionPtr function);
+  inline bool IsInterpreted() const { return IsInterpreted(ptr()); }
 #else
   inline bool HasBytecode() const { return false; }
+  inline bool IsInterpreted() const { return false; }
 #endif
 
   virtual uword Hash() const;
@@ -6993,7 +6996,11 @@ class Code : public Object {
                                    : 0;
     return EntryPointOf(code) - entry_offset;
 #else
-    return Instructions::PayloadStart(InstructionsOf(code));
+    auto instr = InstructionsOf(code);
+    if (instr == Instructions::null()) {
+      return code->untag()->entry_point_;
+    }
+    return Instructions::PayloadStart(instr);
 #endif
   }
 
@@ -7003,7 +7010,11 @@ class Code : public Object {
 #if defined(DART_PRECOMPILED_RUNTIME)
     return code->untag()->entry_point_;
 #else
-    return Instructions::EntryPoint(InstructionsOf(code));
+    auto instr = InstructionsOf(code);
+    if (instr == Instructions::null()) {
+      return code->untag()->entry_point_;
+    }
+    return Instructions::EntryPoint(instr);
 #endif
   }
 
@@ -7024,7 +7035,11 @@ class Code : public Object {
 #if defined(DART_PRECOMPILED_RUNTIME)
     return untag()->monomorphic_entry_point_;
 #else
-    return Instructions::MonomorphicEntryPoint(instructions());
+    auto instr = instructions();
+    if (instr == Instructions::null()) {
+      return untag()->monomorphic_entry_point_;
+    }
+    return Instructions::MonomorphicEntryPoint(instr);
 #endif
   }
   // Returns the unchecked monomorphic entry point of [instructions()].
@@ -7043,7 +7058,12 @@ class Code : public Object {
     if (IsUnknownDartCode(code)) return kUwordMax;
     return code->untag()->instructions_length_;
 #else
-    return Instructions::Size(InstructionsOf(code));
+    auto instr = InstructionsOf(code);
+    if (instr == Instructions::null()) {
+      // TODO(alexmarkov): keep size in the Code objects.
+      return 0;
+    }
+    return Instructions::Size(instr);
 #endif
   }
 
@@ -7531,6 +7551,7 @@ class Code : public Object {
   friend class CodeKeyValueTrait;  // for UncheckedEntryPointOffset
   friend class InstanceCall;       // for StorePointerUnaligned
   friend class StaticCall;         // for StorePointerUnaligned
+  friend class module_snapshot::CodeDeserializationCluster;
   friend void DumpStackFrame(intptr_t frame_index, uword pc, uword fp);
 };
 

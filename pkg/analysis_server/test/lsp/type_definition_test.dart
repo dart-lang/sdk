@@ -331,6 +331,91 @@ void f({String? a}) {
     _expectSdkCoreType(result, 'String');
   }
 
+  Future<void> test_pattern_case_explicitType() async {
+    var code = TestCode.parse('''
+void f(Object o) {
+  if (o case String [!a^!]) {}
+}
+''');
+
+    var result = await _getResult(code);
+    expect(result.originSelectionRange, code.range.range);
+    _expectSdkCoreType(result, 'String');
+  }
+
+  Future<void> test_pattern_case_var() async {
+    var code = TestCode.parse('''
+void f(Object o) {
+  if (o case var [!obj^!]) {}
+}
+''');
+
+    var result = await _getResult(code);
+    expect(result.originSelectionRange, code.range.range);
+    _expectSdkCoreType(result, 'Object');
+  }
+
+  Future<void> test_pattern_object_constant() async {
+    var code = TestCode.parse('''
+void f(Object o) {
+  if (o case int([!isEven^!]: true)) {}
+}
+''');
+
+    var result = await _getResult(code);
+    expect(result.originSelectionRange, code.range.range);
+    _expectSdkCoreType(result, 'bool');
+  }
+
+  Future<void> test_pattern_object_destructure() async {
+    var code = TestCode.parse('''
+void f(Object o) {
+  var Object(:[!hashCode!]^) = o;
+}
+''');
+
+    var result = await _getResult(code);
+    expect(result.originSelectionRange, code.range.range);
+    _expectSdkCoreType(result, 'int');
+  }
+
+  Future<void> test_pattern_object_variable() async {
+    var code = TestCode.parse('''
+void f(Object o) {
+  if (o case int(:final [!isEven^!])) {}
+}
+''');
+
+    var result = await _getResult(code);
+    expect(result.originSelectionRange, code.range.range);
+    _expectSdkCoreType(result, 'bool');
+  }
+
+  Future<void> test_pattern_variable_assignment() async {
+    var code = TestCode.parse('''
+void f(String s) {
+  String a;
+  ([!a^!]) = (s);
+}
+''');
+
+    var result = await _getResult(code);
+    expect(result.originSelectionRange, code.range.range);
+    _expectSdkCoreType(result, 'String');
+  }
+
+  Future<void> test_pattern_variable_declared() async {
+    var code = TestCode.parse('''
+void f(String s) {
+  var ([!a^!]) = (s);
+}
+''');
+
+    var result = await _getResult(code);
+    expect(result.originSelectionRange, code.range.range);
+    _expectSdkCoreType(result, 'String');
+  }
+
   Future<void> test_setter() async {
     var code = TestCode.parse('''
 class A {

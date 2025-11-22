@@ -20,9 +20,7 @@ main() {
 class StaticTypeAnalyzerTest extends PubPackageResolutionTest {
   test_flatten_derived() async {
     await assertNoErrorsInCode('''
-abstract class Derived<T> extends Future<T> {
-  factory Derived() => throw 'foo';
-}
+abstract class Derived<T> implements Future<T> {}
 late Derived<dynamic> derivedDynamic;
 late Derived<int> derivedInt;
 late Derived<Derived> derivedDerived;
@@ -69,24 +67,18 @@ late B b;
   test_flatten_related_derived_types() async {
     await assertErrorsInCode(
       '''
-abstract class Derived<T> extends Future<T> {
-  factory Derived() => throw 'foo';
-}
-abstract class A extends Derived<int> implements Derived<num> {
-  factory A() => throw 'foo';
-}
-abstract class B extends Future<num> implements Future<int> {
-  factory B() => throw 'foo';
-}
+abstract class Derived<T> implements Future<T> {}
+abstract class A extends Derived<int> implements Derived<num> {}
+abstract class B1 implements Future<num> {}
+abstract class B2 extends B1 implements Future<int> {}
 late A a;
-late B b;
+late B2 b;
 ''',
       [
-        error(diag.conflictingGenericInterfaces, 99, 1),
-        error(diag.conflictingGenericInterfaces, 99, 1),
-        error(diag.implementsSuperClass, 133, 12),
-        error(diag.conflictingGenericInterfaces, 195, 1),
-        error(diag.implementsSuperClass, 228, 11),
+        error(diag.conflictingGenericInterfaces, 65, 1),
+        error(diag.conflictingGenericInterfaces, 65, 1),
+        error(diag.implementsSuperClass, 99, 12),
+        error(diag.conflictingGenericInterfaces, 174, 2),
       ],
     );
     InterfaceType intType = typeProvider.intType;
@@ -102,20 +94,16 @@ late B b;
   test_flatten_related_types() async {
     await assertErrorsInCode(
       '''
-abstract class A extends Future<int> implements Future<num> {
-  factory A() => throw 'foo';
-}
-abstract class B extends Future<num> implements Future<int> {
-  factory B() => throw 'foo';
-}
-late A a;
-late B b;
+abstract class A1 implements Future<int> {}
+abstract class A2 extends A1 implements Future<num> {}
+abstract class B1 implements Future<num> {}
+abstract class B2 extends B1 implements Future<int> {}
+late A2 a;
+late B2 b;
 ''',
       [
-        error(diag.conflictingGenericInterfaces, 15, 1),
-        error(diag.implementsSuperClass, 48, 11),
-        error(diag.conflictingGenericInterfaces, 109, 1),
-        error(diag.implementsSuperClass, 142, 11),
+        error(diag.conflictingGenericInterfaces, 59, 2),
+        error(diag.conflictingGenericInterfaces, 158, 2),
       ],
     );
     InterfaceType intType = typeProvider.intType;
@@ -153,26 +141,22 @@ late B b;
   test_flatten_unrelated_types() async {
     await assertErrorsInCode(
       '''
-abstract class A extends Future<int> implements Future<String> {
-  factory A() => throw 'foo';
-}
-abstract class B extends Future<String> implements Future<int> {
-  factory B() => throw 'foo';
-}
-late A a;
-late B b;
+abstract class A1 implements Future<int> {}
+abstract class A2 extends A1 implements Future<String> {}
+abstract class B1 implements Future<String> {}
+abstract class B2 extends B1 implements Future<int> {}
+late A2 a;
+late B2 b;
 ''',
       [
-        error(diag.inconsistentInheritance, 15, 1),
-        error(diag.inconsistentInheritance, 15, 1),
-        error(diag.inconsistentInheritance, 15, 1),
-        error(diag.conflictingGenericInterfaces, 15, 1),
-        error(diag.implementsSuperClass, 48, 14),
-        error(diag.inconsistentInheritance, 112, 1),
-        error(diag.inconsistentInheritance, 112, 1),
-        error(diag.conflictingGenericInterfaces, 112, 1),
-        error(diag.inconsistentInheritance, 112, 1),
-        error(diag.implementsSuperClass, 148, 11),
+        error(diag.inconsistentInheritance, 59, 2),
+        error(diag.inconsistentInheritance, 59, 2),
+        error(diag.inconsistentInheritance, 59, 2),
+        error(diag.conflictingGenericInterfaces, 59, 2),
+        error(diag.inconsistentInheritance, 164, 2),
+        error(diag.inconsistentInheritance, 164, 2),
+        error(diag.inconsistentInheritance, 164, 2),
+        error(diag.conflictingGenericInterfaces, 164, 2),
       ],
     );
     var aType = findElement2.topVar('a').type;

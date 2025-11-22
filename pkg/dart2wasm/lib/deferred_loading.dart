@@ -91,6 +91,9 @@ class DeferredLoadingModuleStrategy extends ModuleStrategy {
       this.component, this.options, this.kernelTarget, this.coreTypes);
 
   @override
+  void addEntryPoints() {}
+
+  @override
   void prepareComponent() {}
 
   @override
@@ -231,6 +234,9 @@ class StressTestModuleStrategy extends ModuleStrategy {
 
   StressTestModuleStrategy(this.component, this.coreTypes, this.options,
       this.kernelTarget, this.classHierarchy);
+
+  @override
+  void addEntryPoints() {}
 
   /// Augments the `_invokeMain` JS->WASM entry point with test mode setup.
   ///
