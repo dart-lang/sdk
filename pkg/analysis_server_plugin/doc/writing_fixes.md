@@ -118,6 +118,9 @@ final plugin = SimplePlugin();
 
 class SimplePlugin extends Plugin {
   @override
+  String get name => 'Simple plugin';
+
+  @override
   void register(PluginRegistry registry) {
     registry.registerWarningRule(MyRule());
     registry.registerFixForRule(MyRule.code, RemoveAwait.new);
