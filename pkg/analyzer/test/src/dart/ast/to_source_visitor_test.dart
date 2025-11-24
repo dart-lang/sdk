@@ -788,7 +788,57 @@ void f(x) {
     _assertSource('true', findNode.constantPattern('true'));
   }
 
-  void test_visitConstructorDeclaration_const() {
+  void test_visitConstructorDeclaration_factoryHead_named() {
+    var code = 'factory named() {}';
+    var findNode = _parseStringToFindNode('''
+class A {
+  $code
+}
+''');
+    _assertSource(code, findNode.constructor(code));
+  }
+
+  void test_visitConstructorDeclaration_factoryHead_unnamed() {
+    var code = 'factory () {}';
+    var findNode = _parseStringToFindNode('''
+class A {
+  $code
+}
+''');
+    _assertSource(code, findNode.constructor(code));
+  }
+
+  void test_visitConstructorDeclaration_newHead_named() {
+    var code = 'new named();';
+    var findNode = _parseStringToFindNode('''
+class A {
+  $code
+}
+''');
+    _assertSource(code, findNode.constructor(code));
+  }
+
+  void test_visitConstructorDeclaration_newHead_unnamed() {
+    var code = 'new ();';
+    var findNode = _parseStringToFindNode('''
+class A {
+  $code
+}
+''');
+    _assertSource(code, findNode.constructor('new'));
+  }
+
+  void test_visitConstructorDeclaration_singleInitializer() {
+    var code = 'A() : a = b;';
+    var findNode = _parseStringToFindNode('''
+class A {
+  $code
+}
+''');
+    _assertSource(code, findNode.constructor(code));
+  }
+
+  void test_visitConstructorDeclaration_typeName_const() {
     var code = 'const A();';
     var findNode = _parseStringToFindNode('''
 class A {
@@ -798,7 +848,7 @@ class A {
     _assertSource(code, findNode.constructor(code));
   }
 
-  void test_visitConstructorDeclaration_external() {
+  void test_visitConstructorDeclaration_typeName_external() {
     var code = 'external A();';
     var findNode = _parseStringToFindNode('''
 class A {
@@ -808,8 +858,8 @@ class A {
     _assertSource(code, findNode.constructor(code));
   }
 
-  void test_visitConstructorDeclaration_minimal() {
-    var code = 'A();';
+  void test_visitConstructorDeclaration_typeName_factory_named() {
+    var code = 'factory A.named() {}';
     var findNode = _parseStringToFindNode('''
 class A {
   $code
@@ -818,8 +868,8 @@ class A {
     _assertSource(code, findNode.constructor(code));
   }
 
-  void test_visitConstructorDeclaration_multipleInitializers() {
-    var code = 'A() : a = b, c = d {}';
+  void test_visitConstructorDeclaration_typeName_factory_unnamed() {
+    var code = 'factory A() {}';
     var findNode = _parseStringToFindNode('''
 class A {
   $code
@@ -828,7 +878,19 @@ class A {
     _assertSource(code, findNode.constructor(code));
   }
 
-  void test_visitConstructorDeclaration_multipleParameters() {
+  void
+  test_visitConstructorDeclaration_typeName_formalParameters_optionalPositional() {
+    var code = 'A(int a, [int b = 0]);';
+    var findNode = _parseStringToFindNode('''
+class A {
+  $code
+}
+''');
+    _assertSource(code, findNode.constructor(code));
+  }
+
+  void
+  test_visitConstructorDeclaration_typeName_formalParameters_requiredPositional() {
     var code = 'A(int a, double b);';
     var findNode = _parseStringToFindNode('''
 class A {
@@ -838,7 +900,17 @@ class A {
     _assertSource(code, findNode.constructor(code));
   }
 
-  void test_visitConstructorDeclaration_named() {
+  void test_visitConstructorDeclaration_typeName_multipleInitializers() {
+    var code = 'A() : a = b, c = d {}';
+    var findNode = _parseStringToFindNode('''
+class A {
+  $code
+}
+''');
+    _assertSource(code, findNode.constructor(code));
+  }
+
+  void test_visitConstructorDeclaration_typeName_named() {
     var code = 'A.foo();';
     var findNode = _parseStringToFindNode('''
 class A {
@@ -848,10 +920,21 @@ class A {
     _assertSource(code, findNode.constructor(code));
   }
 
-  void test_visitConstructorDeclaration_singleInitializer() {
-    var code = 'A() : a = b;';
+  void test_visitConstructorDeclaration_typeName_unnamed() {
+    var code = 'A();';
     var findNode = _parseStringToFindNode('''
 class A {
+  $code
+}
+''');
+    _assertSource(code, findNode.constructor(code));
+  }
+
+  void test_visitConstructorDeclaration_typeName_withInitializers() {
+    var code = 'A() : a = 0, super();';
+    var findNode = _parseStringToFindNode('''
+class A {
+  int a;
   $code
 }
 ''');

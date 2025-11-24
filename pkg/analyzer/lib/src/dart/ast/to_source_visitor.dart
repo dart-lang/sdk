@@ -265,8 +265,13 @@ class ToSourceVisitor implements AstVisitor<void> {
     _visitToken(node.externalKeyword, suffix: ' ');
     _visitToken(node.constKeyword, suffix: ' ');
     _visitToken(node.factoryKeyword, suffix: ' ');
-    _visitNode(node.typeName);
-    _visitToken(node.name, prefix: '.');
+    _visitToken(node.newKeyword, suffix: ' ');
+    if (node.typeName != null) {
+      _visitNode(node.typeName);
+      _visitToken(node.name, prefix: '.');
+    } else {
+      _visitToken(node.name);
+    }
     _visitNode(node.parameters);
     _visitNodeList(node.initializers, prefix: ' : ', separator: ', ');
     _visitNode(node.redirectedConstructor, prefix: ' = ');
