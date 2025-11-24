@@ -2,6 +2,7 @@
 
 - [DAP] `Stopped(reason: 'entry')` events will no longer be lost if an isolate has not yet reached the `PauseStart` state when connecting to the VM.
 - **Breaking change:** [DAP] Support for the custom `supportsDartUris` client capability and `dart-macro+file:///` mappings that supported the Dart macros experiment have been removed.
+- [DAP] `evaluateName` will now be correctly set on child variables of variables in the `Globals` scope.
 
 # 5.1.0
 - Update to version 2.1 of the DDS protocol.

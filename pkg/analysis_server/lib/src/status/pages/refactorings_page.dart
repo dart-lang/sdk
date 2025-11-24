@@ -54,7 +54,7 @@ class RefactoringsPage extends DiagnosticPageWithNav
       var (:time, :details) = producerTimeAndDetails(request);
       buf.writeln(
         '<tr>'
-        '<td class="pre right"><a href="/timing?id=${request.id}&kind=getRefactorings">'
+        '<td class="pre right"><a href="timing?id=${request.id}&kind=getRefactorings">'
         '${formatLatencyTiming(request.elapsedInMilliseconds, request.requestLatency)}'
         '</a></td>'
         '<td><abbr title="$details">${printMilliseconds(time)}</abbr></td>'

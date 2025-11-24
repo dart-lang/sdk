@@ -52,7 +52,7 @@ class CodeCompletionPage extends DiagnosticPageWithNav
       var shortName = pathContext.basename(completion.path);
       buf.writeln(
         '<tr>'
-        '<td class="pre right"><a href="/timing?id=${completion.id}&kind=completion">'
+        '<td class="pre right"><a href="timing?id=${completion.id}&kind=completion">'
         '${formatLatencyTiming(completion.elapsedInMilliseconds, completion.requestLatency)}'
         '</a></td>'
         '<td class="right">${completion.computedSuggestionCountStr}</td>'

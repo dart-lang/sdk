@@ -2055,9 +2055,19 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
         data.kind == FrameScopeDataKind.globals) {
       /// Helper to simplify calling converter.
       Future<Variable> convert(int index, vm.FieldRef fieldRef) async {
-        return _converter.convertFieldRefToVariable(
+        final response = await thread.getObject(fieldRef);
+        // Store the name of this field as we may need it to
+        // compute evaluateNames for child objects later.
+        final value = response is vm.Field ? response.staticValue : response;
+        if (value is vm.InstanceRef) {
+          storeEvaluateName(value, fieldRef.name);
+        }
+
+        return _converter.convertVmResponseToVariable(
           thread,
-          fieldRef,
+          value,
+          name: fieldRef.name,
+          evaluateName: fieldRef.name,
           allowCallingToString:
               evaluateToStringInDebugViews && index < maxToStringsPerEvaluation,
           format: format,

@@ -87,6 +87,35 @@ class MyClass {}
       );
     });
 
+    test('includes correct evaluateNames for children of globals', () async {
+      final client = dap.client;
+      final testFile = dap.createTestFile('''
+final globalMyClass = MyClass();
+
+void main(List<String> args) {
+  globalMyClass; // Force init
+  print(''); $breakpointMarker
+}
+
+class MyClass {
+  final myField = 'myFieldValue';
+}
+    ''');
+      final breakpointLine = lineWith(testFile, breakpointMarker);
+
+      final stop = await client.hitBreakpoint(testFile, breakpointLine);
+      final expectedVariable =
+          await client.getGlobalVariable(stop.threadId!, 'globalMyClass');
+
+      // Check the child fields.
+      return client.expectVariables(
+        expectedVariable.variablesReference,
+        '''
+          myField: "myFieldValue", eval: globalMyClass.myField
+        ''',
+      );
+    });
+
     test('provides simple exception types for frames', () async {
       final client = dap.client;
       final testFile = dap.createTestFile(r'''

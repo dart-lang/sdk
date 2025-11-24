@@ -26,7 +26,13 @@ abstract class Page {
 
   Page(this.id, this.title, {this.description});
 
-  String get path => '/$id';
+  // We could make this absolute which would make it work from multi-path
+  // routes, but that also breaks it when serving through certain proxy servers
+  // which add prefix segments to the path.
+  //
+  // Really, this should be a function that gives you the path from another
+  // page.
+  String get path => id;
 
   Future<void> asyncDiv(void Function() gen, {String? classes}) async {
     if (classes != null) {
@@ -248,7 +254,7 @@ abstract class Site {
     var path = request.uri.path;
 
     await _tryHandleRequest(request, (response, queryParameters) async {
-      var page = _getPage(path);
+      var page = _getPage(path.substring(1));
       if (page == null) {
         await respond(request, createUnknownPage(path), HttpStatus.notFound);
         return;
@@ -307,6 +313,7 @@ abstract class Site {
 
   /// Finds the [Page] that should handle requests to [path].
   Page? _getPage(String path) {
+    path = path.startsWith('/') ? path.substring(1) : path;
     return pages.firstWhereOrNull((page) => page.path == path);
   }
 

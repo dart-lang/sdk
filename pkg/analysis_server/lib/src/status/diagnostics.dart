@@ -182,9 +182,9 @@ abstract class DiagnosticPage extends Page {
       </span>
 
       <nav class="masthead-nav">
-        <a href="/status" ${isNavPage ? ' class="active"' : ''}>Insights</a>
-        <a href="/collect-report" ${isCurrentPage('/collect-report') ? ' class="active"' : ''}>Collect Report</a>
-        <a href="/feedback" ${isCurrentPage('/feedback') ? ' class="active"' : ''}>Feedback</a>
+        <a href="status" ${isNavPage ? ' class="active"' : ''}>Insights</a>
+        <a href="collect-report" ${isCurrentPage('collect-report') ? ' class="active"' : ''}>Collect Report</a>
+        <a href="feedback" ${isCurrentPage('feedback') ? ' class="active"' : ''}>Feedback</a>
         <a href="https://dart.dev/tools/dart-analyze" target="_blank">Docs</a>
         <a href="https://htmlpreview.github.io/?https://github.com/dart-lang/sdk/blob/main/pkg/analysis_server/doc/api.html" target="_blank">Spec</a>
       </nav>

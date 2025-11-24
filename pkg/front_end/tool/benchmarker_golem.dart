@@ -34,6 +34,7 @@ void main(List<String> args) {
       arguments,
       aotRuntime: aotRuntime,
       cacheBenchmarking: false,
+      core: 3,
     ),
     "${name}_",
   );
@@ -44,6 +45,7 @@ void main(List<String> args) {
       arguments,
       aotRuntime: aotRuntime,
       cacheBenchmarking: true,
+      core: 3,
     ),
     "${name}_cache_",
   );
@@ -54,6 +56,7 @@ void main(List<String> args) {
       arguments,
       aotRuntime: aotRuntime,
       cacheBenchmarking: false,
+      core: 3,
     ),
     "${name}_no_gc_",
   );

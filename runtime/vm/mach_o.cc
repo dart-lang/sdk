@@ -2699,25 +2699,32 @@ void MachOHeader::GenerateUnwindingInformation() {
 #if defined(UNWINDING_RECORDS_WINDOWS_PRECOMPILER)
   // Append Windows unwinding instructions as a __unwind_info section at
   // the end of any executable segments.
-  for (auto* const command : commands_) {
-    if (auto* const segment = command->AsMachOSegment()) {
-      if (segment->IsExecutable()) {
-        // Only more zerofill sections can come after zerofill sections, and
-        // the unwinding instructions cover the entire executable segment up
-        // to the unwinding instructions including zerofill sections.
-        ASSERT(use_zerofill || !segment->HasZerofillSections());
-        const intptr_t records_size = UnwindingRecordsPlatform::SizeInBytes();
-        ZoneWriteStream stream(zone(), /*initial_size=*/records_size);
-        uint8_t* unwinding_instructions = zone()->Alloc<uint8_t>(records_size);
-        const intptr_t section_start =
-            Utils::RoundUp(segment->UnpaddedMemorySize(), alignment);
-        stream.WriteBytes(UnwindingRecords::GenerateRecordsInto(
-                              section_start, unwinding_instructions),
-                          records_size);
-        ASSERT_EQUAL(records_size, stream.Position());
-        auto* const section = create_unwind_section(
-            segment->name(), mach_o::SECT_UNWIND_INFO, stream);
-        segment->AddContents(section);
+  //
+  // Don't do this for relocatable objects, because those can't be loaded
+  // by the non-native loader and there's no way to link them into a
+  // program since Mach-O is not a supported object type on Windows anyway.
+  if (type_ != SnapshotType::Object) {
+    for (auto* const command : commands_) {
+      if (auto* const segment = command->AsMachOSegment()) {
+        if (segment->IsExecutable()) {
+          // Only more zerofill sections can come after zerofill sections, and
+          // the unwinding instructions cover the entire executable segment up
+          // to the unwinding instructions including zerofill sections.
+          ASSERT(use_zerofill || !segment->HasZerofillSections());
+          const intptr_t records_size = UnwindingRecordsPlatform::SizeInBytes();
+          ZoneWriteStream stream(zone(), /*initial_size=*/records_size);
+          uint8_t* unwinding_instructions =
+              zone()->Alloc<uint8_t>(records_size);
+          const intptr_t section_start =
+              Utils::RoundUp(segment->UnpaddedMemorySize(), alignment);
+          stream.WriteBytes(UnwindingRecords::GenerateRecordsInto(
+                                section_start, unwinding_instructions),
+                            records_size);
+          ASSERT_EQUAL(records_size, stream.Position());
+          auto* const section = create_unwind_section(
+              segment->name(), mach_o::SECT_UNWIND_INFO, stream);
+          segment->AddContents(section);
+        }
       }
     }
   }
