@@ -27,8 +27,20 @@ class _Foo<T> extends Foo<T> {
   _Foo();
 }
 
-Foo<T> bar<T>() => .a<T>();
-//                  ^
+Foo<T> typeArgsFactory<T>() => .a<T>();
+//                              ^
 // [cfe] A dot shorthand constructor invocation can't have type arguments.
-//                   ^^^
+//                               ^^^
 // [analyzer] COMPILE_TIME_ERROR.WRONG_NUMBER_OF_TYPE_ARGUMENTS_CONSTRUCTOR
+
+Foo<T> typeArgsNotFactory<T>() => .new<T>();
+//                                ^^^^^^^^^
+// [analyzer] COMPILE_TIME_ERROR.INSTANTIATE_ABSTRACT_CLASS
+//                                 ^
+// [cfe] A dot shorthand constructor invocation can't have type arguments.
+
+Foo<T> noTypeArgsNotFactory<T>() => .new();
+//                                  ^^^^^^
+// [analyzer] COMPILE_TIME_ERROR.INSTANTIATE_ABSTRACT_CLASS
+//                                   ^
+// [cfe] The class 'Foo' is abstract and can't be instantiated.
