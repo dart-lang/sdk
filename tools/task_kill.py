@@ -317,6 +317,10 @@ def Main():
         for path, dirs, files in os.walk(os.environ['TEMP']):
             for filename in files:
                 print(os.path.join(path, filename))
+        for path, dirs, files in os.walk(
+                os.path.join(os.environ['LOCALAPPDATA'], 'Temp')):
+            for filename in files:
+                print(os.path.join(path, filename))
     return status
 
 
