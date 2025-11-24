@@ -469,31 +469,6 @@ class ProtocolConverter {
     }
   }
 
-  Future<dap.Variable> convertFieldRefToVariable(
-    ThreadInfo thread,
-    vm.FieldRef fieldRef, {
-    required bool allowCallingToString,
-    required VariableFormat? format,
-  }) async {
-    final field = await thread.getObject(fieldRef);
-    if (field is vm.Field) {
-      return convertVmResponseToVariable(
-        thread,
-        field.staticValue,
-        name: fieldRef.name,
-        allowCallingToString: allowCallingToString,
-        evaluateName: fieldRef.name,
-        format: format,
-      );
-    } else {
-      return dap.Variable(
-        name: fieldRef.name ?? '<unnamed field>',
-        value: '<unavailable>',
-        variablesReference: 0,
-      );
-    }
-  }
-
   /// Converts a [vm.Response] into to a [dap.Variable].
   ///
   /// If provided, [name] is used as the variables name (for example the field

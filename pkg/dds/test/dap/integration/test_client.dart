@@ -1091,6 +1091,20 @@ extension DapTestClientExtension on DapTestClient {
     return getChildVariable(variablesScope.variablesReference, name);
   }
 
+  /// A helper that finds a named variable in the Globals scope for the top
+  /// frame.
+  Future<Variable> getGlobalVariable(int threadId, String name) async {
+    final stack = await getValidStack(
+      threadId,
+      startFrame: 0,
+      numFrames: 1,
+    );
+    final topFrame = stack.stackFrames.first;
+
+    final variablesScope = await getValidScope(topFrame.id, 'Globals');
+    return getChildVariable(variablesScope.variablesReference, name);
+  }
+
   /// A helper that finds a named variable in the child variables for
   /// [variablesReference].
   Future<Variable> getChildVariable(int variablesReference, String name) async {
