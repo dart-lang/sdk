@@ -183,7 +183,6 @@
       "pkg/kernel/",
       "pkg/meta/",
       "pkg/native_stack_traces/",
-      "pkg/hooks_runner/",
       "pkg/pkg.status",
       "pkg/smith/",
       "pkg/status_file/",
@@ -3101,6 +3100,7 @@
             "hooks_runner",
             "hooks",
             "native_toolchain_c",
+            "record_use",
             "package_config",
             "pkg/pkg/dartdev/test/native_assets"
           ]
@@ -3228,6 +3228,7 @@
             "hooks_runner",
             "hooks",
             "native_toolchain_c",
+            "record_use",
             "package_config",
             "pkg/pkg/dartdev/test/native_assets"
           ]

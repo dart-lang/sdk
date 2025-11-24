@@ -28,6 +28,7 @@
 !/pkg/hooks_runner.status
 !/pkg/hooks.status
 !/pkg/native_toolchain_c.status
+!/pkg/record_use.status
 
 # These packages are authored in third_party.
 !/pkg/dap
