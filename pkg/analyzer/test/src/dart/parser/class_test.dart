@@ -34,133 +34,6 @@ ClassDeclaration
 ''');
   }
 
-  test_constructor_factory_typeName_named() {
-    var parseResult = parseStringWithErrors(r'''
-class A {
-  factory A.named() {}
-}
-''');
-    parseResult.assertNoErrors();
-
-    var node = parseResult.findNode.singleConstructorDeclaration;
-    assertParsedNodeText(node, r'''
-ConstructorDeclaration
-  factoryKeyword: factory
-  typeName: SimpleIdentifier
-    token: A
-  period: .
-  name: named
-  parameters: FormalParameterList
-    leftParenthesis: (
-    rightParenthesis: )
-  body: BlockFunctionBody
-    block: Block
-      leftBracket: {
-      rightBracket: }
-''');
-  }
-
-  test_constructor_factory_typeName_named_withoutPrimaryConstructors() {
-    var parseResult = parseStringWithErrors(r'''
-// @dart = 3.10
-class A {
-  factory A.named() {}
-}
-''');
-    parseResult.assertNoErrors();
-
-    var node = parseResult.findNode.singleConstructorDeclaration;
-    assertParsedNodeText(node, r'''
-ConstructorDeclaration
-  factoryKeyword: factory
-  typeName: SimpleIdentifier
-    token: A
-  period: .
-  name: named
-  parameters: FormalParameterList
-    leftParenthesis: (
-    rightParenthesis: )
-  body: BlockFunctionBody
-    block: Block
-      leftBracket: {
-      rightBracket: }
-''');
-  }
-
-  test_constructor_factory_typeName_unnamed() {
-    var parseResult = parseStringWithErrors(r'''
-class A {
-  factory A() {}
-}
-''');
-    parseResult.assertNoErrors();
-
-    var node = parseResult.findNode.singleConstructorDeclaration;
-    assertParsedNodeText(node, r'''
-ConstructorDeclaration
-  factoryKeyword: factory
-  typeName: SimpleIdentifier
-    token: A
-  parameters: FormalParameterList
-    leftParenthesis: (
-    rightParenthesis: )
-  body: BlockFunctionBody
-    block: Block
-      leftBracket: {
-      rightBracket: }
-''');
-  }
-
-  test_constructor_factory_typeName_unnamed_withoutPrimaryConstructors() {
-    var parseResult = parseStringWithErrors(r'''
-// @dart = 3.10
-class A {
-  factory A() {}
-}
-''');
-    parseResult.assertNoErrors();
-
-    var node = parseResult.findNode.singleConstructorDeclaration;
-    assertParsedNodeText(node, r'''
-ConstructorDeclaration
-  factoryKeyword: factory
-  typeName: SimpleIdentifier
-    token: A
-  parameters: FormalParameterList
-    leftParenthesis: (
-    rightParenthesis: )
-  body: BlockFunctionBody
-    block: Block
-      leftBracket: {
-      rightBracket: }
-''');
-  }
-
-  test_constructor_factory_typeName_unnamed_withoutPrimaryConstructors_notEnclosingClass() {
-    var parseResult = parseStringWithErrors(r'''
-// @dart = 3.10
-class A {
-  factory B() {}
-}
-''');
-    parseResult.assertNoErrors();
-
-    var node = parseResult.findNode.singleConstructorDeclaration;
-    assertParsedNodeText(node, r'''
-ConstructorDeclaration
-  factoryKeyword: factory
-  typeName: SimpleIdentifier
-    token: B
-  parameters: FormalParameterList
-    leftParenthesis: (
-    rightParenthesis: )
-  body: BlockFunctionBody
-    block: Block
-      leftBracket: {
-      rightBracket: }
-''');
-  }
-
   test_constructor_factoryHead_named() {
     var parseResult = parseStringWithErrors(r'''
 class A {
@@ -475,73 +348,6 @@ ConstructorDeclaration
 ''');
   }
 
-  test_constructor_notFactory_typeName_named() {
-    var parseResult = parseStringWithErrors(r'''
-class A {
-  A.named();
-}
-''');
-    parseResult.assertNoErrors();
-
-    var node = parseResult.findNode.singleConstructorDeclaration;
-    assertParsedNodeText(node, r'''
-ConstructorDeclaration
-  typeName: SimpleIdentifier
-    token: A
-  period: .
-  name: named
-  parameters: FormalParameterList
-    leftParenthesis: (
-    rightParenthesis: )
-  body: EmptyFunctionBody
-    semicolon: ;
-''');
-  }
-
-  test_constructor_notFactory_typeName_named_missingName() {
-    var parseResult = parseStringWithErrors(r'''
-class A {
-  A.();
-}
-''');
-    parseResult.assertErrors([error(diag.missingIdentifier, 14, 1)]);
-
-    var node = parseResult.findNode.singleConstructorDeclaration;
-    assertParsedNodeText(node, r'''
-ConstructorDeclaration
-  typeName: SimpleIdentifier
-    token: A
-  period: .
-  name: <empty> <synthetic>
-  parameters: FormalParameterList
-    leftParenthesis: (
-    rightParenthesis: )
-  body: EmptyFunctionBody
-    semicolon: ;
-''');
-  }
-
-  test_constructor_notFactory_typeName_unnamed() {
-    var parseResult = parseStringWithErrors(r'''
-class A {
-  A();
-}
-''');
-    parseResult.assertNoErrors();
-
-    var node = parseResult.findNode.singleConstructorDeclaration;
-    assertParsedNodeText(node, r'''
-ConstructorDeclaration
-  typeName: SimpleIdentifier
-    token: A
-  parameters: FormalParameterList
-    leftParenthesis: (
-    rightParenthesis: )
-  body: EmptyFunctionBody
-    semicolon: ;
-''');
-  }
-
   test_constructor_typeName_augment_named() {
     var parseResult = parseStringWithErrors(r'''
 augment class A {
@@ -663,6 +469,133 @@ ConstructorDeclaration
 ''');
   }
 
+  test_constructor_typeName_factory_named() {
+    var parseResult = parseStringWithErrors(r'''
+class A {
+  factory A.named() {}
+}
+''');
+    parseResult.assertNoErrors();
+
+    var node = parseResult.findNode.singleConstructorDeclaration;
+    assertParsedNodeText(node, r'''
+ConstructorDeclaration
+  factoryKeyword: factory
+  typeName: SimpleIdentifier
+    token: A
+  period: .
+  name: named
+  parameters: FormalParameterList
+    leftParenthesis: (
+    rightParenthesis: )
+  body: BlockFunctionBody
+    block: Block
+      leftBracket: {
+      rightBracket: }
+''');
+  }
+
+  test_constructor_typeName_factory_named_withoutPrimaryConstructors() {
+    var parseResult = parseStringWithErrors(r'''
+// @dart = 3.10
+class A {
+  factory A.named() {}
+}
+''');
+    parseResult.assertNoErrors();
+
+    var node = parseResult.findNode.singleConstructorDeclaration;
+    assertParsedNodeText(node, r'''
+ConstructorDeclaration
+  factoryKeyword: factory
+  typeName: SimpleIdentifier
+    token: A
+  period: .
+  name: named
+  parameters: FormalParameterList
+    leftParenthesis: (
+    rightParenthesis: )
+  body: BlockFunctionBody
+    block: Block
+      leftBracket: {
+      rightBracket: }
+''');
+  }
+
+  test_constructor_typeName_factory_unnamed() {
+    var parseResult = parseStringWithErrors(r'''
+class A {
+  factory A() {}
+}
+''');
+    parseResult.assertNoErrors();
+
+    var node = parseResult.findNode.singleConstructorDeclaration;
+    assertParsedNodeText(node, r'''
+ConstructorDeclaration
+  factoryKeyword: factory
+  typeName: SimpleIdentifier
+    token: A
+  parameters: FormalParameterList
+    leftParenthesis: (
+    rightParenthesis: )
+  body: BlockFunctionBody
+    block: Block
+      leftBracket: {
+      rightBracket: }
+''');
+  }
+
+  test_constructor_typeName_factory_unnamed_withoutPrimaryConstructors() {
+    var parseResult = parseStringWithErrors(r'''
+// @dart = 3.10
+class A {
+  factory A() {}
+}
+''');
+    parseResult.assertNoErrors();
+
+    var node = parseResult.findNode.singleConstructorDeclaration;
+    assertParsedNodeText(node, r'''
+ConstructorDeclaration
+  factoryKeyword: factory
+  typeName: SimpleIdentifier
+    token: A
+  parameters: FormalParameterList
+    leftParenthesis: (
+    rightParenthesis: )
+  body: BlockFunctionBody
+    block: Block
+      leftBracket: {
+      rightBracket: }
+''');
+  }
+
+  test_constructor_typeName_factory_unnamed_withoutPrimaryConstructors_notEnclosingClass() {
+    var parseResult = parseStringWithErrors(r'''
+// @dart = 3.10
+class A {
+  factory B() {}
+}
+''');
+    parseResult.assertNoErrors();
+
+    var node = parseResult.findNode.singleConstructorDeclaration;
+    assertParsedNodeText(node, r'''
+ConstructorDeclaration
+  factoryKeyword: factory
+  typeName: SimpleIdentifier
+    token: B
+  parameters: FormalParameterList
+    leftParenthesis: (
+    rightParenthesis: )
+  body: BlockFunctionBody
+    block: Block
+      leftBracket: {
+      rightBracket: }
+''');
+  }
+
   test_constructor_typeName_formalParameter_functionTyped_const() {
     var parseResult = parseStringWithErrors(r'''
 class A {
@@ -777,6 +710,73 @@ ConstructorDeclaration
       type: NamedType
         name: int
       name: a
+    rightParenthesis: )
+  body: EmptyFunctionBody
+    semicolon: ;
+''');
+  }
+
+  test_constructor_typeName_named() {
+    var parseResult = parseStringWithErrors(r'''
+class A {
+  A.named();
+}
+''');
+    parseResult.assertNoErrors();
+
+    var node = parseResult.findNode.singleConstructorDeclaration;
+    assertParsedNodeText(node, r'''
+ConstructorDeclaration
+  typeName: SimpleIdentifier
+    token: A
+  period: .
+  name: named
+  parameters: FormalParameterList
+    leftParenthesis: (
+    rightParenthesis: )
+  body: EmptyFunctionBody
+    semicolon: ;
+''');
+  }
+
+  test_constructor_typeName_named_missingName() {
+    var parseResult = parseStringWithErrors(r'''
+class A {
+  A.();
+}
+''');
+    parseResult.assertErrors([error(diag.missingIdentifier, 14, 1)]);
+
+    var node = parseResult.findNode.singleConstructorDeclaration;
+    assertParsedNodeText(node, r'''
+ConstructorDeclaration
+  typeName: SimpleIdentifier
+    token: A
+  period: .
+  name: <empty> <synthetic>
+  parameters: FormalParameterList
+    leftParenthesis: (
+    rightParenthesis: )
+  body: EmptyFunctionBody
+    semicolon: ;
+''');
+  }
+
+  test_constructor_typeName_unnamed() {
+    var parseResult = parseStringWithErrors(r'''
+class A {
+  A();
+}
+''');
+    parseResult.assertNoErrors();
+
+    var node = parseResult.findNode.singleConstructorDeclaration;
+    assertParsedNodeText(node, r'''
+ConstructorDeclaration
+  typeName: SimpleIdentifier
+    token: A
+  parameters: FormalParameterList
+    leftParenthesis: (
     rightParenthesis: )
   body: EmptyFunctionBody
     semicolon: ;

@@ -131,6 +131,292 @@ EnumDeclaration
 ''');
   }
 
+  test_constructor_factoryHead_named() {
+    var parseResult = parseStringWithErrors(r'''
+enum E {
+  v;
+  factory named() {}
+}
+''');
+    parseResult.assertNoErrors();
+
+    var node = parseResult.findNode.singleConstructorDeclaration;
+    assertParsedNodeText(node, r'''
+ConstructorDeclaration
+  factoryKeyword: factory
+  name: named
+  parameters: FormalParameterList
+    leftParenthesis: (
+    rightParenthesis: )
+  body: BlockFunctionBody
+    block: Block
+      leftBracket: {
+      rightBracket: }
+''');
+  }
+
+  test_constructor_factoryHead_named_const() {
+    var parseResult = parseStringWithErrors(r'''
+enum E {
+  v;
+  const factory named() = B;
+}
+''');
+    parseResult.assertNoErrors();
+
+    var node = parseResult.findNode.singleConstructorDeclaration;
+    assertParsedNodeText(node, r'''
+ConstructorDeclaration
+  constKeyword: const
+  factoryKeyword: factory
+  name: named
+  parameters: FormalParameterList
+    leftParenthesis: (
+    rightParenthesis: )
+  separator: =
+  redirectedConstructor: ConstructorName
+    type: NamedType
+      name: B
+  body: EmptyFunctionBody
+    semicolon: ;
+''');
+  }
+
+  test_constructor_factoryHead_unnamed() {
+    var parseResult = parseStringWithErrors(r'''
+enum E {
+  v;
+  factory () {}
+}
+''');
+    parseResult.assertNoErrors();
+
+    var node = parseResult.findNode.singleConstructorDeclaration;
+    assertParsedNodeText(node, r'''
+ConstructorDeclaration
+  factoryKeyword: factory
+  parameters: FormalParameterList
+    leftParenthesis: (
+    rightParenthesis: )
+  body: BlockFunctionBody
+    block: Block
+      leftBracket: {
+      rightBracket: }
+''');
+  }
+
+  test_constructor_factoryHead_unnamed_const() {
+    var parseResult = parseStringWithErrors(r'''
+enum E {
+  v;
+  const factory () = B;
+}
+''');
+    parseResult.assertNoErrors();
+
+    var node = parseResult.findNode.singleConstructorDeclaration;
+    assertParsedNodeText(node, r'''
+ConstructorDeclaration
+  constKeyword: const
+  factoryKeyword: factory
+  parameters: FormalParameterList
+    leftParenthesis: (
+    rightParenthesis: )
+  separator: =
+  redirectedConstructor: ConstructorName
+    type: NamedType
+      name: B
+  body: EmptyFunctionBody
+    semicolon: ;
+''');
+  }
+
+  test_constructor_newHead_named() {
+    var parseResult = parseStringWithErrors(r'''
+enum E {
+  v;
+  new named();
+}
+''');
+    parseResult.assertNoErrors();
+
+    var node = parseResult.findNode.singleConstructorDeclaration;
+    assertParsedNodeText(node, r'''
+ConstructorDeclaration
+  newKeyword: new
+  name: named
+  parameters: FormalParameterList
+    leftParenthesis: (
+    rightParenthesis: )
+  body: EmptyFunctionBody
+    semicolon: ;
+''');
+  }
+
+  test_constructor_newHead_named_const() {
+    var parseResult = parseStringWithErrors(r'''
+enum E {
+  v;
+  const new named();
+}
+''');
+    parseResult.assertNoErrors();
+
+    var node = parseResult.findNode.singleConstructorDeclaration;
+    assertParsedNodeText(node, r'''
+ConstructorDeclaration
+  constKeyword: const
+  newKeyword: new
+  name: named
+  parameters: FormalParameterList
+    leftParenthesis: (
+    rightParenthesis: )
+  body: EmptyFunctionBody
+    semicolon: ;
+''');
+  }
+
+  test_constructor_newHead_unnamed() {
+    var parseResult = parseStringWithErrors(r'''
+enum E {
+  v;
+  new ();
+}
+''');
+    parseResult.assertNoErrors();
+
+    var node = parseResult.findNode.singleConstructorDeclaration;
+    assertParsedNodeText(node, r'''
+ConstructorDeclaration
+  newKeyword: new
+  parameters: FormalParameterList
+    leftParenthesis: (
+    rightParenthesis: )
+  body: EmptyFunctionBody
+    semicolon: ;
+''');
+  }
+
+  test_constructor_newHead_unnamed_const() {
+    var parseResult = parseStringWithErrors(r'''
+enum E {
+  v;
+  const new ();
+}
+''');
+    parseResult.assertNoErrors();
+
+    var node = parseResult.findNode.singleConstructorDeclaration;
+    assertParsedNodeText(node, r'''
+ConstructorDeclaration
+  constKeyword: const
+  newKeyword: new
+  parameters: FormalParameterList
+    leftParenthesis: (
+    rightParenthesis: )
+  body: EmptyFunctionBody
+    semicolon: ;
+''');
+  }
+
+  test_constructor_typeName_factory_named() {
+    var parseResult = parseStringWithErrors(r'''
+enum E {
+  v;
+  factory E.named() {}
+}
+''');
+    parseResult.assertNoErrors();
+
+    var node = parseResult.findNode.singleConstructorDeclaration;
+    assertParsedNodeText(node, r'''
+ConstructorDeclaration
+  factoryKeyword: factory
+  typeName: SimpleIdentifier
+    token: E
+  period: .
+  name: named
+  parameters: FormalParameterList
+    leftParenthesis: (
+    rightParenthesis: )
+  body: BlockFunctionBody
+    block: Block
+      leftBracket: {
+      rightBracket: }
+''');
+  }
+
+  test_constructor_typeName_factory_unnamed() {
+    var parseResult = parseStringWithErrors(r'''
+enum E {
+  v;
+  factory E() {}
+}
+''');
+    parseResult.assertNoErrors();
+
+    var node = parseResult.findNode.singleConstructorDeclaration;
+    assertParsedNodeText(node, r'''
+ConstructorDeclaration
+  factoryKeyword: factory
+  typeName: SimpleIdentifier
+    token: E
+  parameters: FormalParameterList
+    leftParenthesis: (
+    rightParenthesis: )
+  body: BlockFunctionBody
+    block: Block
+      leftBracket: {
+      rightBracket: }
+''');
+  }
+
+  test_constructor_typeName_named() {
+    var parseResult = parseStringWithErrors(r'''
+enum E {
+  v;
+  E.named();
+}
+''');
+    parseResult.assertNoErrors();
+
+    var node = parseResult.findNode.singleConstructorDeclaration;
+    assertParsedNodeText(node, r'''
+ConstructorDeclaration
+  typeName: SimpleIdentifier
+    token: E
+  period: .
+  name: named
+  parameters: FormalParameterList
+    leftParenthesis: (
+    rightParenthesis: )
+  body: EmptyFunctionBody
+    semicolon: ;
+''');
+  }
+
+  test_constructor_typeName_unnamed() {
+    var parseResult = parseStringWithErrors(r'''
+enum E {
+  v;
+  E();
+}
+''');
+    parseResult.assertNoErrors();
+
+    var node = parseResult.findNode.singleConstructorDeclaration;
+    assertParsedNodeText(node, r'''
+ConstructorDeclaration
+  typeName: SimpleIdentifier
+    token: E
+  parameters: FormalParameterList
+    leftParenthesis: (
+    rightParenthesis: )
+  body: EmptyFunctionBody
+    semicolon: ;
+''');
+  }
+
   test_declaration_empty() {
     var parseResult = parseStringWithErrors(r'''
 enum E {}
