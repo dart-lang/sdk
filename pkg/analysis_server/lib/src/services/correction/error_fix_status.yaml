@@ -2369,8 +2369,6 @@ public_member_api_docs:
   status: noFix
 recursive_getters:
   status: noFix
-removed_lint:
-  status: noFix
 remove_deprecations_in_breaking_versions:
   status: needsFix
   notes: |-

@@ -63,7 +63,6 @@ workspace:
   - pkg/native_compiler
   - pkg/native_stack_traces
   - pkg/node_preamble
-  - pkg/record_use
   - pkg/reload_test
   - pkg/scrape
   - pkg/server_plugin
@@ -227,6 +226,8 @@ dependency_overrides:
     path: third_party/pkg/native/pkgs/pub_formats
   pub_semver:
     path: third_party/pkg/tools/pkgs/pub_semver
+  record_use:
+    path: third_party/pkg/native/pkgs/record_use
   regression_tests:
     path: third_party/pkg/test/integration_tests/regression
   shelf:

@@ -15,6 +15,8 @@
   their parent nodes have changed. This means that code relying on specific parent-child
   relationships for these nodes might break.
 * Deprecate `LintCode.new`'s `hasPublishedDocs` parameter.
+* Add `RemovedAnalysisRule` as the preferred way to represent removed lint
+  rules. Deprecated `RuleState.removed` (which was the previous way to do so).
 
 ## 9.0.0
 * Remove deprecated field `Diagnostic.data`.

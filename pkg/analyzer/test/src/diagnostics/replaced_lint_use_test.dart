@@ -4,13 +4,11 @@
 
 import 'package:analyzer/analysis_rule/analysis_rule.dart';
 import 'package:analyzer/analysis_rule/rule_state.dart';
-import 'package:analyzer/error/error.dart';
 import 'package:analyzer/src/diagnostic/diagnostic.dart'
     as diag
     hide removedLint;
 import 'package:analyzer/src/lint/registry.dart';
 import 'package:analyzer/src/test_utilities/lint_registration_mixin.dart';
-import 'package:linter/src/diagnostic.dart' as diag;
 import 'package:linter/src/rules.dart' as linter;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -20,18 +18,6 @@ main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(ReplacedLintUseTest);
   });
-}
-
-class RemovedLint extends AnalysisRule {
-  RemovedLint()
-    : super(
-        name: 'removed_lint',
-        state: RuleState.removed(since: dart3, replacedBy: 'replacing_lint'),
-        description: '',
-      );
-
-  @override
-  DiagnosticCode get diagnosticCode => diag.removedLint;
 }
 
 @reflectiveTest
@@ -50,8 +36,21 @@ linter:
     - unnecessary_ignore
 ''');
 
-    registerLintRule(RemovedLint());
-    registerLintRule(ReplacingLint());
+    registerLintRule(
+      RemovedAnalysisRule(
+        name: 'removed_lint',
+        since: dart3,
+        replacedBy: 'replacing_lint',
+        description: '',
+      ),
+    );
+    registerLintRule(
+      RemovedAnalysisRule(
+        name: 'replacing_lint',
+        since: dart3,
+        description: '',
+      ),
+    );
   }
 
   @override
@@ -83,17 +82,4 @@ void f() { }
       [error(diag.replacedLintUse, 11, 12)],
     );
   }
-}
-
-class ReplacingLint extends AnalysisRule {
-  ReplacingLint()
-    : super(
-        name: 'replacing_lint',
-        state: RuleState.removed(since: dart3),
-        description: '',
-      );
-
-  @override
-  DiagnosticCode get diagnosticCode =>
-      const LintCode('replacing_lint', 'problem message');
 }

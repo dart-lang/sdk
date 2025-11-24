@@ -4,21 +4,13 @@
 
 import 'package:analyzer/analysis_rule/analysis_rule.dart';
 import 'package:analyzer/analysis_rule/rule_state.dart';
-import 'package:analyzer/error/error.dart';
 
 import '../analyzer.dart';
-import '../diagnostic.dart' as diag;
 
 const _desc = r'Prefer using a boolean as the assert condition.';
 
-class PreferBoolInAsserts extends AnalysisRule {
-  PreferBoolInAsserts()
-    : super(
-        name: LintNames.prefer_bool_in_asserts,
-        description: _desc,
-        state: RuleState.removed(since: dart3),
-      );
-
-  @override
-  DiagnosticCode get diagnosticCode => diag.removedLint;
-}
+final preferBoolInAsserts = RemovedAnalysisRule(
+  name: LintNames.prefer_bool_in_asserts,
+  description: _desc,
+  since: dart3,
+);

@@ -4,21 +4,13 @@
 
 import 'package:analyzer/analysis_rule/analysis_rule.dart';
 import 'package:analyzer/analysis_rule/rule_state.dart';
-import 'package:analyzer/error/error.dart';
 
 import '../analyzer.dart';
-import '../diagnostic.dart' as diag;
 
 const _desc = r'Avoid using `as`.';
 
-class AvoidAs extends AnalysisRule {
-  AvoidAs()
-    : super(
-        name: LintNames.avoid_as,
-        description: _desc,
-        state: RuleState.removed(since: dart2_12),
-      );
-
-  @override
-  DiagnosticCode get diagnosticCode => diag.removedLint;
-}
+final avoidAs = RemovedAnalysisRule(
+  name: LintNames.avoid_as,
+  description: _desc,
+  since: dart2_12,
+);

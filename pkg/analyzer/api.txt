@@ -23,6 +23,9 @@ package:analyzer/analysis_rule/analysis_rule.dart:
     reportAtOffset (method: Diagnostic Function(int, int, {List<Object> arguments, List<DiagnosticMessage>? contextMessages, required DiagnosticCode diagnosticCode}))
     reportAtPubNode (method: Diagnostic Function(PubspecNode, {List<Object> arguments, List<DiagnosticMessage> contextMessages, required DiagnosticCode diagnosticCode}))
     reportAtToken (method: Diagnostic? Function(Token, {List<Object> arguments, List<DiagnosticMessage>? contextMessages, required DiagnosticCode diagnosticCode}))
+  RemovedAnalysisRule (class extends MultiAnalysisRule):
+    new (constructor: RemovedAnalysisRule Function({required String description, required String name, String? replacedBy, Version? since}))
+    diagnosticCodes (getter: List<DiagnosticCode>)
 package:analyzer/analysis_rule/pubspec.dart:
   PubspecDependency (class extends Object):
     new (constructor: PubspecDependency Function())
@@ -106,7 +109,7 @@ package:analyzer/analysis_rule/rule_state.dart:
     deprecated (constructor: RuleState Function({String? replacedBy, Version? since}))
     experimental (constructor: RuleState Function({Version? since}))
     internal (constructor: RuleState Function({Version? since}))
-    removed (constructor: RuleState Function({String? replacedBy, Version? since}))
+    removed (constructor: RuleState Function({String? replacedBy, Version? since}), deprecated)
     stable (constructor: RuleState Function({Version? since}))
     isDeprecated (getter: bool)
     isExperimental (getter: bool)

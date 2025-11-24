@@ -391,6 +391,10 @@ class _RuleBuilder {
             'stable' => RuleState.stable(since: state.version),
             'internal' => RuleState.internal(since: state.version),
             'deprecated' => RuleState.deprecated(since: state.version),
+            // Note: the reason `RuleState.removed` is deprecated is to
+            // encourage clients to use `AbstractAnalysisRule`, so this
+            // reference is ok.
+            // ignore: deprecated_member_use
             'removed' => RuleState.removed(since: state.version),
             _ => _throwLintError('Unexpected state name: ${state.name}.'),
           },
