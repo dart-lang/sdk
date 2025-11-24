@@ -1,5 +1,5 @@
 name: frontend_server_client
-version: 4.0.0
+version: 4.0.1-wip
 description: >-
   Client code to start and interact with the frontend_server compiler from the
   Dart SDK.
@@ -8,7 +8,7 @@ repository: https://github.com/dart-lang/webdev/tree/main/frontend_server_client
 resolution: workspace
 
 environment:
-  sdk: ^3.5.0
+  sdk: ^3.10.0-0.0.dev
 
 dependencies:
   async: ^2.5.0

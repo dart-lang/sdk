@@ -43,7 +43,7 @@ void main(List<String> args) async {
     Process appProcess;
     final vmServiceCompleter = Completer<VmService>();
     appProcess = await Process.start(Platform.resolvedExecutable, [
-      '--enable-vm-service',
+      '--enable-vm-service=0',
       result.dillOutput!,
     ]);
     final sawHelloWorld = Completer<void>();
@@ -51,26 +51,26 @@ void main(List<String> args) async {
         .transform(utf8.decoder)
         .transform(const LineSplitter())
         .listen((line) {
-      stdout.writeln('APP -> $line');
-      if (line == 'hello/world') {
-        sawHelloWorld.complete();
-      }
-      if (line.startsWith(
-        'The Dart DevTools debugger and profiler is available at:',
-      )) {
-        final observatoryUri =
-            '${line.split(' ').last.replaceFirst('http', 'ws')}ws';
-        if (!vmServiceCompleter.isCompleted) {
-          vmServiceCompleter.complete(vmServiceConnectUri(observatoryUri));
-        }
-      }
-    });
+          stdout.writeln('APP -> $line');
+          if (line == 'hello/world') {
+            sawHelloWorld.complete();
+          }
+          if (line.startsWith(
+            'The Dart DevTools debugger and profiler is available at:',
+          )) {
+            final observatoryUri =
+                '${line.split(' ').last.replaceFirst('http', 'ws')}ws';
+            if (!vmServiceCompleter.isCompleted) {
+              vmServiceCompleter.complete(vmServiceConnectUri(observatoryUri));
+            }
+          }
+        });
     appProcess.stderr
         .transform(utf8.decoder)
         .transform(const LineSplitter())
         .listen((line) {
-      stderr.writeln('APP -> $line');
-    });
+          stderr.writeln('APP -> $line');
+        });
 
     final vmService = await vmServiceCompleter.future;
     await sawHelloWorld.future;

@@ -31,7 +31,7 @@ dependencies:
   path: ^1.0.0
 
 environment:
-  sdk: ^3.0.0
+  sdk: ^3.10.0-0.0.dev
       '''),
       d.dir('bin', [
         d.file('main.dart', '''
