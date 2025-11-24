@@ -501,7 +501,10 @@ Usage: dart [vm-options] run [arguments] [<dart-file>|<local-package>|<remote-ex
           packageConfigUri: packageConfigUri,
           packageConfig: packageConfig,
           runPackageName: runPackageName,
-          includeDevDependencies: false,
+          // Enable accessing assets of dev dependencies in the debugger and
+          // enabling commands such as `dart run test` and `dart run
+          // coverage_with_test` that rely on having dev dependencies.
+          includeDevDependencies: true,
           verbose: verbose,
           dataAssetsExperimentEnabled: dataAssetsExperimentEnabled,
         );

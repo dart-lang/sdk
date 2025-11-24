@@ -234,18 +234,19 @@ ArrayPtr Script::CollectConstConstructorCoverageFromKernel() const {
 
   kernel::KernelReaderHelper kernel_reader(zone, &helper, data, 0);
 
-  // Read "constant coverage constructors".
+  // Read "constant coverage constructors". Note that this also includes
+  // "constructors" for extensions type which is actually toplevel methods.
   const intptr_t constant_coverage_constructors =
       kernel_reader.ReadListLength();
   const Array& constructors =
       Array::Handle(Array::New(constant_coverage_constructors));
+  Object& member = Object::Handle(zone);
+  Function& target = Function::Handle(zone);
   for (intptr_t i = 0; i < constant_coverage_constructors; ++i) {
     kernel::NameIndex kernel_name = kernel_reader.ReadCanonicalNameReference();
-    Class& klass = Class::ZoneHandle(
-        zone,
-        helper.LookupClassByKernelClass(helper.EnclosingName(kernel_name)));
-    const Function& target = Function::ZoneHandle(
-        zone, helper.LookupConstructorByKernelConstructor(klass, kernel_name));
+    member = helper.LookupMemberByMember(kernel_name);
+    ASSERT(member.IsFunction());
+    target = Function::Cast(member).ptr();
     constructors.SetAt(i, target);
   }
   return constructors.ptr();
