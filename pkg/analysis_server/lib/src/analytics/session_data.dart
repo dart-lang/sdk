@@ -4,6 +4,7 @@
 
 import 'package:analysis_server/src/analytics/percentile_calculator.dart';
 import 'package:analyzer/src/dart/analysis/status.dart';
+import 'package:analyzer/src/fine/requirement_failure.dart';
 
 /// Accumulated statistics over multiple analysis working periods.
 class AnalyticsAnalysisWorkingStatistics {
@@ -66,6 +67,10 @@ class AnalyticsAnalysisWorkingStatistics {
   /// The sum of line counts for [produceErrorsActualFileCount].
   int produceErrorsActualFileLineCount = 0;
 
+  /// The counts of requirement failures for library diagnostics bundles.
+  final Map<RequirementFailureKindId, int>
+  libraryDiagnosticsBundleRequirementsFailures = {};
+
   AnalyticsAnalysisWorkingStatistics({required this.withFineDependencies});
 
   void append(AnalysisStatusWorkingStatistics statistics) {
@@ -98,6 +103,15 @@ class AnalyticsAnalysisWorkingStatistics {
     produceErrorsActualFileCount += statistics.produceErrorsActualFileCount;
     produceErrorsActualFileLineCount +=
         statistics.produceErrorsActualFileLineCount;
+
+    for (var entry
+        in statistics.libraryDiagnosticsBundleRequirementsFailures.entries) {
+      libraryDiagnosticsBundleRequirementsFailures.update(
+        entry.key,
+        (value) => value + entry.value,
+        ifAbsent: () => entry.value,
+      );
+    }
   }
 }
 

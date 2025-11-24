@@ -4,6 +4,8 @@
 
 import 'dart:async';
 
+import 'package:analyzer/src/fine/requirement_failure.dart';
+
 /// The status of analysis.
 sealed class AnalysisStatus {
   const AnalysisStatus._();
@@ -80,6 +82,10 @@ class AnalysisStatusWorkingStatistics {
 
   /// The sum of line counts for [produceErrorsActualFileCount].
   int produceErrorsActualFileLineCount = 0;
+
+  /// The counts of requirement failures for library diagnostics bundles.
+  final Map<RequirementFailureKindId, int>
+  libraryDiagnosticsBundleRequirementsFailures = {};
 
   AnalysisStatusWorkingStatistics({
     required this.withFineDependencies,

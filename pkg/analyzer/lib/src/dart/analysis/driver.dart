@@ -1950,6 +1950,11 @@ class AnalysisDriver {
         ),
       );
       if (failure != null) {
+        performance.getDataInt(failure.statisticKey).increment();
+        _scheduler
+            ._workingStatistics
+            ?.libraryDiagnosticsBundleRequirementsFailures
+            .update(failure.kindId, (value) => value + 1, ifAbsent: () => 1);
         return null;
       }
 

@@ -46,6 +46,7 @@ import 'package:analyzer/src/dart/resolver/scope.dart'
 import 'package:analyzer/src/error/inference_error.dart';
 import 'package:analyzer/src/fine/annotations.dart';
 import 'package:analyzer/src/fine/library_manifest.dart';
+import 'package:analyzer/src/fine/requirement_failure.dart';
 import 'package:analyzer/src/fine/requirements.dart';
 import 'package:analyzer/src/generated/engine.dart' show AnalysisContext;
 import 'package:analyzer/src/generated/source.dart' show DartUriResolver;
@@ -257,14 +258,22 @@ class ClassElementImpl extends InterfaceElementImpl implements ClassElement {
   @override
   @trackedDirectlyOpaque
   ClassFragmentImpl get firstFragment {
-    globalResultRequirements?.recordOpaqueApiUse(this, 'firstFragment');
+    globalResultRequirements?.recordOpaqueApiUse(
+      kindId: RequirementFailureKindId.opaqueFirstFragment,
+      target: this,
+      method: 'firstFragment',
+    );
     return _firstFragment;
   }
 
   @override
   @trackedDirectlyOpaque
   List<ClassFragmentImpl> get fragments {
-    globalResultRequirements?.recordOpaqueApiUse(this, 'fragments');
+    globalResultRequirements?.recordOpaqueApiUse(
+      kindId: RequirementFailureKindId.opaqueFragments,
+      target: this,
+      method: 'fragments',
+    );
     return _fragments;
   }
 
@@ -420,7 +429,11 @@ class ClassElementImpl extends InterfaceElementImpl implements ClassElement {
   @override
   @trackedDirectlyOpaque
   T? accept<T>(ElementVisitor2<T> visitor) {
-    globalResultRequirements?.recordOpaqueApiUse(this, 'accept');
+    globalResultRequirements?.recordOpaqueApiUse(
+      kindId: RequirementFailureKindId.opaqueAccept,
+      target: this,
+      method: 'accept',
+    );
     return visitor.visitClassElement(this);
   }
 
@@ -687,14 +700,22 @@ class ConstructorElementImpl extends ExecutableElementImpl
   @override
   @trackedDirectlyOpaque
   ConstructorFragmentImpl get firstFragment {
-    globalResultRequirements?.recordOpaqueApiUse(this, 'firstFragment');
+    globalResultRequirements?.recordOpaqueApiUse(
+      kindId: RequirementFailureKindId.opaqueFirstFragment,
+      target: this,
+      method: 'firstFragment',
+    );
     return _firstFragment;
   }
 
   @override
   @trackedDirectlyOpaque
   List<ConstructorFragmentImpl> get fragments {
-    globalResultRequirements?.recordOpaqueApiUse(this, 'fragments');
+    globalResultRequirements?.recordOpaqueApiUse(
+      kindId: RequirementFailureKindId.opaqueFragments,
+      target: this,
+      method: 'fragments',
+    );
     return _fragments;
   }
 
@@ -729,7 +750,11 @@ class ConstructorElementImpl extends ExecutableElementImpl
   @override
   @trackedDirectlyOpaque
   ConstructorFragmentImpl get lastFragment {
-    globalResultRequirements?.recordOpaqueApiUse(this, 'lastFragment');
+    globalResultRequirements?.recordOpaqueApiUse(
+      kindId: RequirementFailureKindId.opaqueLastFragment,
+      target: this,
+      method: 'lastFragment',
+    );
     return super.lastFragment as ConstructorFragmentImpl;
   }
 
@@ -795,7 +820,11 @@ class ConstructorElementImpl extends ExecutableElementImpl
   @override
   @trackedDirectlyOpaque
   T? accept<T>(ElementVisitor2<T> visitor) {
-    globalResultRequirements?.recordOpaqueApiUse(this, 'accept');
+    globalResultRequirements?.recordOpaqueApiUse(
+      kindId: RequirementFailureKindId.opaqueAccept,
+      target: this,
+      method: 'accept',
+    );
     return visitor.visitConstructorElement(this);
   }
 
@@ -840,7 +869,11 @@ class ConstructorElementImpl extends ExecutableElementImpl
   @override
   @trackedDirectlyOpaque
   void visitChildren<T>(ElementVisitor2<T> visitor) {
-    globalResultRequirements?.recordOpaqueApiUse(this, 'visitChildren');
+    globalResultRequirements?.recordOpaqueApiUse(
+      kindId: RequirementFailureKindId.opaqueVisitChildren,
+      target: this,
+      method: 'visitChildren',
+    );
     for (var child in children) {
       child.accept(visitor);
     }
@@ -1691,7 +1724,11 @@ abstract class ElementImpl implements Element {
   @override
   @trackedDirectlyOpaque
   String? get documentationComment {
-    globalResultRequirements?.recordOpaqueApiUse(this, 'documentationComment');
+    globalResultRequirements?.recordOpaqueApiUse(
+      kindId: RequirementFailureKindId.opaqueDocumentationComment,
+      target: this,
+      method: 'documentationComment',
+    );
     var buffer = StringBuffer();
     for (var fragment in fragments) {
       var comment = fragment.documentationComment;
@@ -1770,7 +1807,11 @@ abstract class ElementImpl implements Element {
   @override
   @trackedDirectlyOpaque
   AnalysisSession? get session {
-    globalResultRequirements?.recordOpaqueApiUse(this, 'session');
+    globalResultRequirements?.recordOpaqueApiUse(
+      kindId: RequirementFailureKindId.opaqueSession,
+      target: this,
+      method: 'session',
+    );
     return enclosingElement?.session;
   }
 
@@ -1892,7 +1933,11 @@ abstract class ElementImpl implements Element {
   @override
   @trackedDirectlyOpaque
   void visitChildren<T>(ElementVisitor2<T> visitor) {
-    globalResultRequirements?.recordOpaqueApiUse(this, 'visitChildren');
+    globalResultRequirements?.recordOpaqueApiUse(
+      kindId: RequirementFailureKindId.opaqueVisitChildren,
+      target: this,
+      method: 'visitChildren',
+    );
     for (var child in children) {
       child.accept(visitor);
     }
@@ -1927,14 +1972,22 @@ class EnumElementImpl extends InterfaceElementImpl implements EnumElement {
   @override
   @trackedDirectlyOpaque
   EnumFragmentImpl get firstFragment {
-    globalResultRequirements?.recordOpaqueApiUse(this, 'firstFragment');
+    globalResultRequirements?.recordOpaqueApiUse(
+      kindId: RequirementFailureKindId.opaqueFirstFragment,
+      target: this,
+      method: 'firstFragment',
+    );
     return _firstFragment;
   }
 
   @override
   @trackedDirectlyOpaque
   List<EnumFragmentImpl> get fragments {
-    globalResultRequirements?.recordOpaqueApiUse(this, 'fragments');
+    globalResultRequirements?.recordOpaqueApiUse(
+      kindId: RequirementFailureKindId.opaqueFragments,
+      target: this,
+      method: 'fragments',
+    );
     return [
       for (
         EnumFragmentImpl? fragment = _firstFragment;
@@ -1964,7 +2017,11 @@ class EnumElementImpl extends InterfaceElementImpl implements EnumElement {
   @override
   @trackedDirectlyOpaque
   T? accept<T>(ElementVisitor2<T> visitor) {
-    globalResultRequirements?.recordOpaqueApiUse(this, 'accept');
+    globalResultRequirements?.recordOpaqueApiUse(
+      kindId: RequirementFailureKindId.opaqueAccept,
+      target: this,
+      method: 'accept',
+    );
     return visitor.visitEnumElement(this);
   }
 
@@ -2129,7 +2186,11 @@ abstract class ExecutableElementImpl extends FunctionTypedElementImpl
 
   @trackedDirectlyOpaque
   ExecutableFragmentImpl get lastFragment {
-    globalResultRequirements?.recordOpaqueApiUse(this, 'lastFragment');
+    globalResultRequirements?.recordOpaqueApiUse(
+      kindId: RequirementFailureKindId.opaqueLastFragment,
+      target: this,
+      method: 'lastFragment',
+    );
     var result = _firstFragment;
     while (true) {
       if (result.nextFragment case ExecutableFragmentImpl nextFragment) {
@@ -2321,14 +2382,22 @@ class ExtensionElementImpl extends InstanceElementImpl
   @override
   @trackedDirectlyOpaque
   ExtensionFragmentImpl get firstFragment {
-    globalResultRequirements?.recordOpaqueApiUse(this, 'firstFragment');
+    globalResultRequirements?.recordOpaqueApiUse(
+      kindId: RequirementFailureKindId.opaqueFirstFragment,
+      target: this,
+      method: 'firstFragment',
+    );
     return _firstFragment;
   }
 
   @override
   @trackedDirectlyOpaque
   List<ExtensionFragmentImpl> get fragments {
-    globalResultRequirements?.recordOpaqueApiUse(this, 'fragments');
+    globalResultRequirements?.recordOpaqueApiUse(
+      kindId: RequirementFailureKindId.opaqueFragments,
+      target: this,
+      method: 'fragments',
+    );
     return [
       for (
         ExtensionFragmentImpl? fragment = _firstFragment;
@@ -2410,7 +2479,11 @@ class ExtensionElementImpl extends InstanceElementImpl
   @override
   @trackedDirectlyOpaque
   T? accept<T>(ElementVisitor2<T> visitor) {
-    globalResultRequirements?.recordOpaqueApiUse(this, 'accept');
+    globalResultRequirements?.recordOpaqueApiUse(
+      kindId: RequirementFailureKindId.opaqueAccept,
+      target: this,
+      method: 'accept',
+    );
     return visitor.visitExtensionElement(this);
   }
 
@@ -2517,14 +2590,22 @@ class ExtensionTypeElementImpl extends InterfaceElementImpl
   @override
   @trackedDirectlyOpaque
   ExtensionTypeFragmentImpl get firstFragment {
-    globalResultRequirements?.recordOpaqueApiUse(this, 'firstFragment');
+    globalResultRequirements?.recordOpaqueApiUse(
+      kindId: RequirementFailureKindId.opaqueFirstFragment,
+      target: this,
+      method: 'firstFragment',
+    );
     return _firstFragment;
   }
 
   @override
   @trackedDirectlyOpaque
   List<ExtensionTypeFragmentImpl> get fragments {
-    globalResultRequirements?.recordOpaqueApiUse(this, 'fragments');
+    globalResultRequirements?.recordOpaqueApiUse(
+      kindId: RequirementFailureKindId.opaqueFragments,
+      target: this,
+      method: 'fragments',
+    );
     return _fragments;
   }
 
@@ -2575,7 +2656,11 @@ class ExtensionTypeElementImpl extends InterfaceElementImpl
   @override
   @trackedDirectlyOpaque
   T? accept<T>(ElementVisitor2<T> visitor) {
-    globalResultRequirements?.recordOpaqueApiUse(this, 'accept');
+    globalResultRequirements?.recordOpaqueApiUse(
+      kindId: RequirementFailureKindId.opaqueAccept,
+      target: this,
+      method: 'accept',
+    );
     return visitor.visitExtensionTypeElement(this);
   }
 
@@ -2668,14 +2753,22 @@ class FieldElementImpl extends PropertyInducingElementImpl
   @override
   @trackedDirectlyOpaque
   FieldFragmentImpl get firstFragment {
-    globalResultRequirements?.recordOpaqueApiUse(this, 'firstFragment');
+    globalResultRequirements?.recordOpaqueApiUse(
+      kindId: RequirementFailureKindId.opaqueFirstFragment,
+      target: this,
+      method: 'firstFragment',
+    );
     return _firstFragment;
   }
 
   @override
   @trackedDirectlyOpaque
   List<FieldFragmentImpl> get fragments {
-    globalResultRequirements?.recordOpaqueApiUse(this, 'fragments');
+    globalResultRequirements?.recordOpaqueApiUse(
+      kindId: RequirementFailureKindId.opaqueFragments,
+      target: this,
+      method: 'fragments',
+    );
     return _fragments;
   }
 
@@ -2772,7 +2865,11 @@ class FieldElementImpl extends PropertyInducingElementImpl
 
   @trackedDirectlyOpaque
   FieldFragmentImpl get lastFragment {
-    globalResultRequirements?.recordOpaqueApiUse(this, 'lastFragment');
+    globalResultRequirements?.recordOpaqueApiUse(
+      kindId: RequirementFailureKindId.opaqueLastFragment,
+      target: this,
+      method: 'lastFragment',
+    );
 
     var result = _firstFragment;
     while (true) {
@@ -2824,7 +2921,11 @@ class FieldElementImpl extends PropertyInducingElementImpl
   @override
   @trackedDirectlyOpaque
   T? accept<T>(ElementVisitor2<T> visitor) {
-    globalResultRequirements?.recordOpaqueApiUse(this, 'accept');
+    globalResultRequirements?.recordOpaqueApiUse(
+      kindId: RequirementFailureKindId.opaqueAccept,
+      target: this,
+      method: 'accept',
+    );
     return visitor.visitFieldElement(this);
   }
 
@@ -3856,14 +3957,22 @@ class GetterElementImpl extends PropertyAccessorElementImpl
   @override
   @trackedDirectlyOpaque
   GetterFragmentImpl get firstFragment {
-    globalResultRequirements?.recordOpaqueApiUse(this, 'firstFragment');
+    globalResultRequirements?.recordOpaqueApiUse(
+      kindId: RequirementFailureKindId.opaqueFirstFragment,
+      target: this,
+      method: 'firstFragment',
+    );
     return _firstFragment;
   }
 
   @override
   @trackedDirectlyOpaque
   List<GetterFragmentImpl> get fragments {
-    globalResultRequirements?.recordOpaqueApiUse(this, 'fragments');
+    globalResultRequirements?.recordOpaqueApiUse(
+      kindId: RequirementFailureKindId.opaqueFragments,
+      target: this,
+      method: 'fragments',
+    );
     return _fragments;
   }
 
@@ -3874,7 +3983,11 @@ class GetterElementImpl extends PropertyAccessorElementImpl
   @override
   @trackedDirectlyOpaque
   GetterFragmentImpl get lastFragment {
-    globalResultRequirements?.recordOpaqueApiUse(this, 'lastFragment');
+    globalResultRequirements?.recordOpaqueApiUse(
+      kindId: RequirementFailureKindId.opaqueLastFragment,
+      target: this,
+      method: 'lastFragment',
+    );
     return super.lastFragment as GetterFragmentImpl;
   }
 
@@ -3912,7 +4025,11 @@ class GetterElementImpl extends PropertyAccessorElementImpl
   @override
   @trackedDirectlyOpaque
   T? accept<T>(ElementVisitor2<T> visitor) {
-    globalResultRequirements?.recordOpaqueApiUse(this, 'accept');
+    globalResultRequirements?.recordOpaqueApiUse(
+      kindId: RequirementFailureKindId.opaqueAccept,
+      target: this,
+      method: 'accept',
+    );
     return visitor.visitGetterElement(this);
   }
 
@@ -4012,7 +4129,11 @@ abstract class InstanceElementImpl extends ElementImpl
   @override
   @trackedDirectlyOpaque
   String? get documentationComment {
-    globalResultRequirements?.recordOpaqueApiUse(this, 'documentationComment');
+    globalResultRequirements?.recordOpaqueApiUse(
+      kindId: RequirementFailureKindId.opaqueDocumentationComment,
+      target: this,
+      method: 'documentationComment',
+    );
     return _firstFragment.documentationComment;
   }
 
@@ -4105,7 +4226,11 @@ abstract class InstanceElementImpl extends ElementImpl
   @override
   @trackedDirectlyOpaque
   AnalysisSessionImpl get session {
-    globalResultRequirements?.recordOpaqueApiUse(this, 'session');
+    globalResultRequirements?.recordOpaqueApiUse(
+      kindId: RequirementFailureKindId.opaqueSession,
+      target: this,
+      method: 'session',
+    );
     return library.session;
   }
 
@@ -4222,7 +4347,11 @@ abstract class InstanceElementImpl extends ElementImpl
     required String name,
     required LibraryElement library,
   }) {
-    globalResultRequirements?.recordOpaqueApiUse(this, 'lookUpGetter');
+    globalResultRequirements?.recordOpaqueApiUse(
+      kindId: RequirementFailureKindId.opaqueLookUpGetter,
+      target: this,
+      method: 'lookUpGetter',
+    );
     return _implementationsOfGetter(
           name,
         ).firstWhereOrNull((getter) => getter.isAccessibleIn(library))
@@ -4235,7 +4364,11 @@ abstract class InstanceElementImpl extends ElementImpl
     required String name,
     required LibraryElement library,
   }) {
-    globalResultRequirements?.recordOpaqueApiUse(this, 'lookUpMethod');
+    globalResultRequirements?.recordOpaqueApiUse(
+      kindId: RequirementFailureKindId.opaqueLookUpMethod,
+      target: this,
+      method: 'lookUpMethod',
+    );
     return _implementationsOfMethod(
       name,
     ).firstWhereOrNull((method) => method.isAccessibleIn(library));
@@ -4247,7 +4380,11 @@ abstract class InstanceElementImpl extends ElementImpl
     required String name,
     required LibraryElement library,
   }) {
-    globalResultRequirements?.recordOpaqueApiUse(this, 'lookUpSetter');
+    globalResultRequirements?.recordOpaqueApiUse(
+      kindId: RequirementFailureKindId.opaqueLookUpSetter,
+      target: this,
+      method: 'lookUpSetter',
+    );
     return _implementationsOfSetter(
           name,
         ).firstWhereOrNull((setter) => setter.isAccessibleIn(library))
@@ -4591,7 +4728,11 @@ abstract class InterfaceElementImpl extends InstanceElementImpl
   @override
   @trackedDirectlyOpaque
   List<InterfaceFragmentImpl> get fragments {
-    globalResultRequirements?.recordOpaqueApiUse(this, 'fragments');
+    globalResultRequirements?.recordOpaqueApiUse(
+      kindId: RequirementFailureKindId.opaqueFragments,
+      target: this,
+      method: 'fragments',
+    );
     return [
       for (
         InterfaceFragmentImpl? fragment = _firstFragment;
@@ -4624,8 +4765,9 @@ abstract class InterfaceElementImpl extends InstanceElementImpl
   @trackedDirectlyOpaque
   Map<Name, ExecutableElement> get inheritedConcreteMembers {
     globalResultRequirements?.recordOpaqueApiUse(
-      this,
-      'inheritedConcreteMembers',
+      kindId: RequirementFailureKindId.opaqueInheritedConcreteMembers,
+      target: this,
+      method: 'inheritedConcreteMembers',
     );
     return inheritanceManager.getInheritedConcreteMap(this);
   }
@@ -4633,14 +4775,22 @@ abstract class InterfaceElementImpl extends InstanceElementImpl
   @override
   @trackedDirectlyOpaque
   Map<Name, ExecutableElement> get inheritedMembers {
-    globalResultRequirements?.recordOpaqueApiUse(this, 'inheritedMembers');
+    globalResultRequirements?.recordOpaqueApiUse(
+      kindId: RequirementFailureKindId.opaqueInheritedMembers,
+      target: this,
+      method: 'inheritedMembers',
+    );
     return inheritanceManager.getInheritedMap(this);
   }
 
   @override
   @trackedDirectlyOpaque
   Map<Name, ExecutableElement> get interfaceMembers {
-    globalResultRequirements?.recordOpaqueApiUse(this, 'interfaceMembers');
+    globalResultRequirements?.recordOpaqueApiUse(
+      kindId: RequirementFailureKindId.opaqueInterfaceMembers,
+      target: this,
+      method: 'interfaceMembers',
+    );
     return inheritanceManager.getInterface(this).map;
   }
 
@@ -4744,7 +4894,11 @@ abstract class InterfaceElementImpl extends InstanceElementImpl
   @override
   @trackedDirectlyOpaque
   ExecutableElement? getInheritedMember(Name name) {
-    globalResultRequirements?.recordOpaqueApiUse(this, 'getInheritedMember');
+    globalResultRequirements?.recordOpaqueApiUse(
+      kindId: RequirementFailureKindId.opaqueGetInheritedMember,
+      target: this,
+      method: 'getInheritedMember',
+    );
     return inheritanceManager.getInherited(this, name);
   }
 
@@ -4770,7 +4924,11 @@ abstract class InterfaceElementImpl extends InstanceElementImpl
   @override
   @trackedDirectlyOpaque
   List<ExecutableElement>? getOverridden(Name name) {
-    globalResultRequirements?.recordOpaqueApiUse(this, 'getOverridden');
+    globalResultRequirements?.recordOpaqueApiUse(
+      kindId: RequirementFailureKindId.opaqueGetOverridden,
+      target: this,
+      method: 'getOverridden',
+    );
     return inheritanceManager.getOverridden(this, name);
   }
 
@@ -4889,7 +5047,11 @@ abstract class InterfaceElementImpl extends InstanceElementImpl
     required String methodName,
     required LibraryElement library,
   }) {
-    globalResultRequirements?.recordOpaqueApiUse(this, 'lookUpInheritedMethod');
+    globalResultRequirements?.recordOpaqueApiUse(
+      kindId: RequirementFailureKindId.opaqueLookUpInheritedMethod,
+      target: this,
+      method: 'lookUpInheritedMethod',
+    );
     return inheritanceManager
         .getInherited(this, Name.forLibrary(library, methodName))
         .ifTypeOrNull();
@@ -5568,7 +5730,11 @@ class LibraryElementImpl extends ElementImpl
 
   @trackedDirectlyOpaque
   AnalysisContext get context {
-    globalResultRequirements?.recordOpaqueApiUse(this, 'context');
+    globalResultRequirements?.recordOpaqueApiUse(
+      kindId: RequirementFailureKindId.opaqueContext,
+      target: this,
+      method: 'context',
+    );
     return _context;
   }
 
@@ -5580,7 +5746,11 @@ class LibraryElementImpl extends ElementImpl
   @override
   @trackedDirectlyOpaque
   String? get documentationComment {
-    globalResultRequirements?.recordOpaqueApiUse(this, 'documentationComment');
+    globalResultRequirements?.recordOpaqueApiUse(
+      kindId: RequirementFailureKindId.opaqueDocumentationComment,
+      target: this,
+      method: 'documentationComment',
+    );
     return _documentationComment;
   }
 
@@ -5696,8 +5866,9 @@ class LibraryElementImpl extends ElementImpl
   Map<String, FieldNameNonPromotabilityInfo> get fieldNameNonPromotabilityInfo {
     _ensureReadResolution();
     globalResultRequirements?.recordOpaqueApiUse(
-      this,
-      'fieldNameNonPromotabilityInfo',
+      kindId: RequirementFailureKindId.opaqueFieldNameNonPromotabilityInfo,
+      target: this,
+      method: 'fieldNameNonPromotabilityInfo',
     );
     return _fieldNameNonPromotabilityInfo!;
   }
@@ -5711,7 +5882,11 @@ class LibraryElementImpl extends ElementImpl
   @override
   @trackedDirectlyOpaque
   LibraryFragmentImpl get firstFragment {
-    globalResultRequirements?.recordOpaqueApiUse(this, 'firstFragment');
+    globalResultRequirements?.recordOpaqueApiUse(
+      kindId: RequirementFailureKindId.opaqueFirstFragment,
+      target: this,
+      method: 'firstFragment',
+    );
     return _firstFragment;
   }
 
@@ -5722,7 +5897,11 @@ class LibraryElementImpl extends ElementImpl
   @override
   @trackedDirectlyOpaque
   List<LibraryFragmentImpl> get fragments {
-    globalResultRequirements?.recordOpaqueApiUse(this, 'fragments');
+    globalResultRequirements?.recordOpaqueApiUse(
+      kindId: RequirementFailureKindId.opaqueFragments,
+      target: this,
+      method: 'fragments',
+    );
     return _fragments;
   }
 
@@ -5844,7 +6023,11 @@ class LibraryElementImpl extends ElementImpl
 
   @trackedDirectlyOpaque
   int get nameLength {
-    globalResultRequirements?.recordOpaqueApiUse(this, 'nameLength');
+    globalResultRequirements?.recordOpaqueApiUse(
+      kindId: RequirementFailureKindId.opaqueNameLength,
+      target: this,
+      method: 'nameLength',
+    );
     return _nameLength;
   }
 
@@ -5854,7 +6037,11 @@ class LibraryElementImpl extends ElementImpl
 
   @trackedDirectlyOpaque
   int get nameOffset {
-    globalResultRequirements?.recordOpaqueApiUse(this, 'nameOffset');
+    globalResultRequirements?.recordOpaqueApiUse(
+      kindId: RequirementFailureKindId.opaqueNameOffset,
+      target: this,
+      method: 'nameOffset',
+    );
     return _nameOffset;
   }
 
@@ -5869,7 +6056,11 @@ class LibraryElementImpl extends ElementImpl
   @override
   @trackedDirectlyOpaque
   Namespace get publicNamespace {
-    globalResultRequirements?.recordOpaqueApiUse(this, 'publicNamespace');
+    globalResultRequirements?.recordOpaqueApiUse(
+      kindId: RequirementFailureKindId.opaquePublicNamespace,
+      target: this,
+      method: 'publicNamespace',
+    );
     return _publicNamespace ??= NamespaceBuilder()
         .createPublicNamespaceForLibrary(this);
   }
@@ -5881,7 +6072,11 @@ class LibraryElementImpl extends ElementImpl
   @override
   @trackedDirectlyOpaque
   AnalysisSessionImpl get session {
-    globalResultRequirements?.recordOpaqueApiUse(this, 'session');
+    globalResultRequirements?.recordOpaqueApiUse(
+      kindId: RequirementFailureKindId.opaqueSession,
+      target: this,
+      method: 'session',
+    );
     return _session;
   }
 
@@ -5971,7 +6166,11 @@ class LibraryElementImpl extends ElementImpl
   @override
   @trackedDirectlyOpaque
   T? accept<T>(ElementVisitor2<T> visitor) {
-    globalResultRequirements?.recordOpaqueApiUse(this, 'accept');
+    globalResultRequirements?.recordOpaqueApiUse(
+      kindId: RequirementFailureKindId.opaqueAccept,
+      target: this,
+      method: 'accept',
+    );
     return visitor.visitLibraryElement(this);
   }
 
@@ -6214,7 +6413,11 @@ class LibraryElementImpl extends ElementImpl
   @override
   @trackedDirectlyOpaque
   void visitChildren<T>(ElementVisitor2<T> visitor) {
-    globalResultRequirements?.recordOpaqueApiUse(this, 'visitChildren');
+    globalResultRequirements?.recordOpaqueApiUse(
+      kindId: RequirementFailureKindId.opaqueVisitChildren,
+      target: this,
+      method: 'visitChildren',
+    );
     for (var child in children) {
       child.accept(visitor);
     }
@@ -6853,7 +7056,11 @@ class LocalFunctionElementImpl extends ExecutableElementImpl
   @override
   @trackedDirectlyOpaque
   List<LocalFunctionFragmentImpl> get fragments {
-    globalResultRequirements?.recordOpaqueApiUse(this, 'fragments');
+    globalResultRequirements?.recordOpaqueApiUse(
+      kindId: RequirementFailureKindId.opaqueFragments,
+      target: this,
+      method: 'fragments',
+    );
     return _fragments;
   }
 
@@ -7467,14 +7674,22 @@ class MethodElementImpl extends ExecutableElementImpl
   @override
   @trackedDirectlyOpaque
   MethodFragmentImpl get firstFragment {
-    globalResultRequirements?.recordOpaqueApiUse(this, 'firstFragment');
+    globalResultRequirements?.recordOpaqueApiUse(
+      kindId: RequirementFailureKindId.opaqueFirstFragment,
+      target: this,
+      method: 'firstFragment',
+    );
     return _firstFragment;
   }
 
   @override
   @trackedDirectlyOpaque
   List<MethodFragmentImpl> get fragments {
-    globalResultRequirements?.recordOpaqueApiUse(this, 'fragments');
+    globalResultRequirements?.recordOpaqueApiUse(
+      kindId: RequirementFailureKindId.opaqueFragments,
+      target: this,
+      method: 'fragments',
+    );
     return _fragments;
   }
 
@@ -7489,7 +7704,11 @@ class MethodElementImpl extends ExecutableElementImpl
   @override
   @trackedDirectlyOpaque
   MethodFragmentImpl get lastFragment {
-    globalResultRequirements?.recordOpaqueApiUse(this, 'lastFragment');
+    globalResultRequirements?.recordOpaqueApiUse(
+      kindId: RequirementFailureKindId.opaqueLastFragment,
+      target: this,
+      method: 'lastFragment',
+    );
     return super.lastFragment as MethodFragmentImpl;
   }
 
@@ -7517,7 +7736,11 @@ class MethodElementImpl extends ExecutableElementImpl
   @override
   @trackedDirectlyOpaque
   T? accept<T>(ElementVisitor2<T> visitor) {
-    globalResultRequirements?.recordOpaqueApiUse(this, 'accept');
+    globalResultRequirements?.recordOpaqueApiUse(
+      kindId: RequirementFailureKindId.opaqueAccept,
+      target: this,
+      method: 'accept',
+    );
     return visitor.visitMethodElement(this);
   }
 
@@ -7634,14 +7857,22 @@ class MixinElementImpl extends InterfaceElementImpl implements MixinElement {
   @override
   @trackedDirectlyOpaque
   MixinFragmentImpl get firstFragment {
-    globalResultRequirements?.recordOpaqueApiUse(this, 'firstFragment');
+    globalResultRequirements?.recordOpaqueApiUse(
+      kindId: RequirementFailureKindId.opaqueFirstFragment,
+      target: this,
+      method: 'firstFragment',
+    );
     return _firstFragment;
   }
 
   @override
   @trackedDirectlyOpaque
   List<MixinFragmentImpl> get fragments {
-    globalResultRequirements?.recordOpaqueApiUse(this, 'fragments');
+    globalResultRequirements?.recordOpaqueApiUse(
+      kindId: RequirementFailureKindId.opaqueFragments,
+      target: this,
+      method: 'fragments',
+    );
     return _fragments;
   }
 
@@ -7704,7 +7935,11 @@ class MixinElementImpl extends InterfaceElementImpl implements MixinElement {
   @override
   @trackedDirectlyOpaque
   T? accept<T>(ElementVisitor2<T> visitor) {
-    globalResultRequirements?.recordOpaqueApiUse(this, 'accept');
+    globalResultRequirements?.recordOpaqueApiUse(
+      kindId: RequirementFailureKindId.opaqueAccept,
+      target: this,
+      method: 'accept',
+    );
     return visitor.visitMixinElement(this);
   }
 
@@ -8455,7 +8690,11 @@ abstract class PropertyAccessorElementImpl extends ExecutableElementImpl
   @override
   @trackedDirectlyOpaque
   PropertyAccessorFragmentImpl get lastFragment {
-    globalResultRequirements?.recordOpaqueApiUse(this, 'lastFragment');
+    globalResultRequirements?.recordOpaqueApiUse(
+      kindId: RequirementFailureKindId.opaqueLastFragment,
+      target: this,
+      method: 'lastFragment',
+    );
     return super.lastFragment as PropertyAccessorFragmentImpl;
   }
 
@@ -8563,7 +8802,11 @@ abstract class PropertyInducingElementImpl extends VariableElementImpl
   @override
   @trackedDirectlyOpaque
   List<PropertyInducingFragmentImpl> get fragments {
-    globalResultRequirements?.recordOpaqueApiUse(this, 'fragments');
+    globalResultRequirements?.recordOpaqueApiUse(
+      kindId: RequirementFailureKindId.opaqueFragments,
+      target: this,
+      method: 'fragments',
+    );
     return _fragments;
   }
 
@@ -8740,14 +8983,22 @@ class SetterElementImpl extends PropertyAccessorElementImpl
   @override
   @trackedDirectlyOpaque
   SetterFragmentImpl get firstFragment {
-    globalResultRequirements?.recordOpaqueApiUse(this, 'firstFragment');
+    globalResultRequirements?.recordOpaqueApiUse(
+      kindId: RequirementFailureKindId.opaqueFirstFragment,
+      target: this,
+      method: 'firstFragment',
+    );
     return _firstFragment;
   }
 
   @override
   @trackedDirectlyOpaque
   List<SetterFragmentImpl> get fragments {
-    globalResultRequirements?.recordOpaqueApiUse(this, 'fragments');
+    globalResultRequirements?.recordOpaqueApiUse(
+      kindId: RequirementFailureKindId.opaqueFragments,
+      target: this,
+      method: 'fragments',
+    );
     return _fragments;
   }
 
@@ -8758,7 +9009,11 @@ class SetterElementImpl extends PropertyAccessorElementImpl
   @override
   @trackedDirectlyOpaque
   SetterFragmentImpl get lastFragment {
-    globalResultRequirements?.recordOpaqueApiUse(this, 'lastFragment');
+    globalResultRequirements?.recordOpaqueApiUse(
+      kindId: RequirementFailureKindId.opaqueLastFragment,
+      target: this,
+      method: 'lastFragment',
+    );
     return super.lastFragment as SetterFragmentImpl;
   }
 
@@ -8810,7 +9065,11 @@ class SetterElementImpl extends PropertyAccessorElementImpl
   @override
   @trackedDirectlyOpaque
   T? accept<T>(ElementVisitor2<T> visitor) {
-    globalResultRequirements?.recordOpaqueApiUse(this, 'accept');
+    globalResultRequirements?.recordOpaqueApiUse(
+      kindId: RequirementFailureKindId.opaqueAccept,
+      target: this,
+      method: 'accept',
+    );
     return visitor.visitSetterElement(this);
   }
 
@@ -9084,14 +9343,22 @@ class TopLevelFunctionElementImpl extends ExecutableElementImpl
   @override
   @trackedDirectlyOpaque
   TopLevelFunctionFragmentImpl get firstFragment {
-    globalResultRequirements?.recordOpaqueApiUse(this, 'firstFragment');
+    globalResultRequirements?.recordOpaqueApiUse(
+      kindId: RequirementFailureKindId.opaqueFirstFragment,
+      target: this,
+      method: 'firstFragment',
+    );
     return _firstFragment;
   }
 
   @override
   @trackedDirectlyOpaque
   List<TopLevelFunctionFragmentImpl> get fragments {
-    globalResultRequirements?.recordOpaqueApiUse(this, 'fragments');
+    globalResultRequirements?.recordOpaqueApiUse(
+      kindId: RequirementFailureKindId.opaqueFragments,
+      target: this,
+      method: 'fragments',
+    );
     return _fragments;
   }
 
@@ -9114,7 +9381,11 @@ class TopLevelFunctionElementImpl extends ExecutableElementImpl
   @override
   @trackedDirectlyOpaque
   TopLevelFunctionFragmentImpl get lastFragment {
-    globalResultRequirements?.recordOpaqueApiUse(this, 'lastFragment');
+    globalResultRequirements?.recordOpaqueApiUse(
+      kindId: RequirementFailureKindId.opaqueLastFragment,
+      target: this,
+      method: 'lastFragment',
+    );
     return super.lastFragment as TopLevelFunctionFragmentImpl;
   }
 
@@ -9137,7 +9408,11 @@ class TopLevelFunctionElementImpl extends ExecutableElementImpl
   @override
   @trackedDirectlyOpaque
   T? accept<T>(ElementVisitor2<T> visitor) {
-    globalResultRequirements?.recordOpaqueApiUse(this, 'accept');
+    globalResultRequirements?.recordOpaqueApiUse(
+      kindId: RequirementFailureKindId.opaqueAccept,
+      target: this,
+      method: 'accept',
+    );
     return visitor.visitTopLevelFunctionElement(this);
   }
 
@@ -9220,14 +9495,22 @@ class TopLevelVariableElementImpl extends PropertyInducingElementImpl
   @override
   @trackedDirectlyOpaque
   TopLevelVariableFragmentImpl get firstFragment {
-    globalResultRequirements?.recordOpaqueApiUse(this, 'firstFragment');
+    globalResultRequirements?.recordOpaqueApiUse(
+      kindId: RequirementFailureKindId.opaqueFirstFragment,
+      target: this,
+      method: 'firstFragment',
+    );
     return _firstFragment;
   }
 
   @override
   @trackedDirectlyOpaque
   List<TopLevelVariableFragmentImpl> get fragments {
-    globalResultRequirements?.recordOpaqueApiUse(this, 'fragments');
+    globalResultRequirements?.recordOpaqueApiUse(
+      kindId: RequirementFailureKindId.opaqueFragments,
+      target: this,
+      method: 'fragments',
+    );
     return _fragments;
   }
 
@@ -9267,7 +9550,11 @@ class TopLevelVariableElementImpl extends PropertyInducingElementImpl
 
   @trackedDirectlyOpaque
   TopLevelVariableFragmentImpl get lastFragment {
-    globalResultRequirements?.recordOpaqueApiUse(this, 'lastFragment');
+    globalResultRequirements?.recordOpaqueApiUse(
+      kindId: RequirementFailureKindId.opaqueLastFragment,
+      target: this,
+      method: 'lastFragment',
+    );
     var current = firstFragment;
     while (current.nextFragment != null) {
       current = current.nextFragment!;
@@ -9304,7 +9591,11 @@ class TopLevelVariableElementImpl extends PropertyInducingElementImpl
   @override
   @trackedDirectlyOpaque
   T? accept<T>(ElementVisitor2<T> visitor) {
-    globalResultRequirements?.recordOpaqueApiUse(this, 'accept');
+    globalResultRequirements?.recordOpaqueApiUse(
+      kindId: RequirementFailureKindId.opaqueAccept,
+      target: this,
+      method: 'accept',
+    );
     return visitor.visitTopLevelVariableElement(this);
   }
 
@@ -9406,14 +9697,22 @@ class TypeAliasElementImpl extends ElementImpl
   @override
   @trackedDirectlyOpaque
   TypeAliasFragmentImpl get firstFragment {
-    globalResultRequirements?.recordOpaqueApiUse(this, 'firstFragment');
+    globalResultRequirements?.recordOpaqueApiUse(
+      kindId: RequirementFailureKindId.opaqueFirstFragment,
+      target: this,
+      method: 'firstFragment',
+    );
     return _firstFragment;
   }
 
   @override
   @trackedDirectlyOpaque
   List<TypeAliasFragmentImpl> get fragments {
-    globalResultRequirements?.recordOpaqueApiUse(this, 'fragments');
+    globalResultRequirements?.recordOpaqueApiUse(
+      kindId: RequirementFailureKindId.opaqueFragments,
+      target: this,
+      method: 'fragments',
+    );
     return _fragments;
   }
 
@@ -9515,7 +9814,11 @@ class TypeAliasElementImpl extends ElementImpl
   @override
   @trackedDirectlyOpaque
   T? accept<T>(ElementVisitor2<T> visitor) {
-    globalResultRequirements?.recordOpaqueApiUse(this, 'accept');
+    globalResultRequirements?.recordOpaqueApiUse(
+      kindId: RequirementFailureKindId.opaqueAccept,
+      target: this,
+      method: 'accept',
+    );
     return visitor.visitTypeAliasElement(this);
   }
 
@@ -10039,7 +10342,11 @@ abstract class VariableElementImpl extends ElementImpl
   @override
   @trackedDirectlyOpaque
   void visitChildren<T>(ElementVisitor2<T> visitor) {
-    globalResultRequirements?.recordOpaqueApiUse(this, 'visitChildren');
+    globalResultRequirements?.recordOpaqueApiUse(
+      kindId: RequirementFailureKindId.opaqueVisitChildren,
+      target: this,
+      method: 'visitChildren',
+    );
     for (var child in children) {
       child.accept(visitor);
     }
