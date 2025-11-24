@@ -293,6 +293,7 @@ library
           constructors
             #F2 factory new (nameOffset:<null>) (firstTokenOffset:10) (offset:18)
               element: <testLibrary>::@class::C::@constructor::new
+              factoryKeywordOffset: 10
               typeName: C
               typeNameOffset: 18
   classes
@@ -303,6 +304,131 @@ library
         factory new
           reference: <testLibrary>::@class::C::@constructor::new
           firstFragment: #F2
+''');
+  }
+
+  test_class_constructor_factoryHead_named() async {
+    var library = await buildLibrary(r'''
+class C {
+  factory named() => throw 0;
+}
+''');
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      classes
+        #F1 class C (nameOffset:6) (firstTokenOffset:0) (offset:6)
+          element: <testLibrary>::@class::C
+          constructors
+            #F2 factory named (nameOffset:20) (firstTokenOffset:12) (offset:20)
+              element: <testLibrary>::@class::C::@constructor::named
+              factoryKeywordOffset: 12
+              typeName: null
+  classes
+    class C
+      reference: <testLibrary>::@class::C
+      firstFragment: #F1
+      constructors
+        factory named
+          reference: <testLibrary>::@class::C::@constructor::named
+          firstFragment: #F2
+''');
+  }
+
+  test_class_constructor_factoryHead_named_const() async {
+    var library = await buildLibrary(r'''
+class C {
+  const factory named() = C;
+}
+''');
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      classes
+        #F1 class C (nameOffset:6) (firstTokenOffset:0) (offset:6)
+          element: <testLibrary>::@class::C
+          constructors
+            #F2 const factory named (nameOffset:26) (firstTokenOffset:12) (offset:26)
+              element: <testLibrary>::@class::C::@constructor::named
+              factoryKeywordOffset: 18
+              typeName: null
+  classes
+    class C
+      reference: <testLibrary>::@class::C
+      firstFragment: #F1
+      constructors
+        const factory named
+          reference: <testLibrary>::@class::C::@constructor::named
+          firstFragment: #F2
+''');
+  }
+
+  test_class_constructor_factoryHead_unnamed() async {
+    var library = await buildLibrary(r'''
+class C {
+  factory () => throw 0;
+}
+''');
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      classes
+        #F1 class C (nameOffset:6) (firstTokenOffset:0) (offset:6)
+          element: <testLibrary>::@class::C
+          constructors
+            #F2 factory new (nameOffset:<null>) (firstTokenOffset:12) (offset:12)
+              element: <testLibrary>::@class::C::@constructor::new
+              factoryKeywordOffset: 12
+              typeName: null
+  classes
+    class C
+      reference: <testLibrary>::@class::C
+      firstFragment: #F1
+      constructors
+        factory new
+          reference: <testLibrary>::@class::C::@constructor::new
+          firstFragment: #F2
+''');
+  }
+
+  test_class_constructor_factoryHead_unnamed_const() async {
+    var library = await buildLibrary(r'''
+class C {
+  const factory () = C;
+}
+''');
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      classes
+        #F1 class C (nameOffset:6) (firstTokenOffset:0) (offset:6)
+          element: <testLibrary>::@class::C
+          constructors
+            #F2 const factory new (nameOffset:<null>) (firstTokenOffset:12) (offset:12)
+              element: <testLibrary>::@class::C::@constructor::new
+              factoryKeywordOffset: 18
+              typeName: null
+  classes
+    class C
+      reference: <testLibrary>::@class::C
+      firstFragment: #F1
+      constructors
+        const factory new
+          reference: <testLibrary>::@class::C::@constructor::new
+          firstFragment: #F2
+          redirectedConstructor: <testLibrary>::@class::C::@constructor::new
 ''');
   }
 
@@ -3185,6 +3311,130 @@ library
 ''');
   }
 
+  test_class_constructor_newHead_named() async {
+    var library = await buildLibrary(r'''
+class C {
+  new named();
+}
+''');
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      classes
+        #F1 class C (nameOffset:6) (firstTokenOffset:0) (offset:6)
+          element: <testLibrary>::@class::C
+          constructors
+            #F2 named (nameOffset:16) (firstTokenOffset:12) (offset:16)
+              element: <testLibrary>::@class::C::@constructor::named
+              newKeywordOffset: 12
+              typeName: null
+  classes
+    class C
+      reference: <testLibrary>::@class::C
+      firstFragment: #F1
+      constructors
+        named
+          reference: <testLibrary>::@class::C::@constructor::named
+          firstFragment: #F2
+''');
+  }
+
+  test_class_constructor_newHead_named_const() async {
+    var library = await buildLibrary(r'''
+class C {
+  const new named();
+}
+''');
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      classes
+        #F1 class C (nameOffset:6) (firstTokenOffset:0) (offset:6)
+          element: <testLibrary>::@class::C
+          constructors
+            #F2 const named (nameOffset:22) (firstTokenOffset:12) (offset:22)
+              element: <testLibrary>::@class::C::@constructor::named
+              newKeywordOffset: 18
+              typeName: null
+  classes
+    class C
+      reference: <testLibrary>::@class::C
+      firstFragment: #F1
+      constructors
+        const named
+          reference: <testLibrary>::@class::C::@constructor::named
+          firstFragment: #F2
+''');
+  }
+
+  test_class_constructor_newHead_unnamed() async {
+    var library = await buildLibrary(r'''
+class C {
+  new ();
+}
+''');
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      classes
+        #F1 class C (nameOffset:6) (firstTokenOffset:0) (offset:6)
+          element: <testLibrary>::@class::C
+          constructors
+            #F2 new (nameOffset:<null>) (firstTokenOffset:12) (offset:12)
+              element: <testLibrary>::@class::C::@constructor::new
+              newKeywordOffset: 12
+              typeName: null
+  classes
+    class C
+      reference: <testLibrary>::@class::C
+      firstFragment: #F1
+      constructors
+        new
+          reference: <testLibrary>::@class::C::@constructor::new
+          firstFragment: #F2
+''');
+  }
+
+  test_class_constructor_newHead_unnamed_const() async {
+    var library = await buildLibrary(r'''
+class C {
+  const new ();
+}
+''');
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      classes
+        #F1 class C (nameOffset:6) (firstTokenOffset:0) (offset:6)
+          element: <testLibrary>::@class::C
+          constructors
+            #F2 const new (nameOffset:<null>) (firstTokenOffset:12) (offset:12)
+              element: <testLibrary>::@class::C::@constructor::new
+              newKeywordOffset: 18
+              typeName: null
+  classes
+    class C
+      reference: <testLibrary>::@class::C
+      firstFragment: #F1
+      constructors
+        const new
+          reference: <testLibrary>::@class::C::@constructor::new
+          firstFragment: #F2
+''');
+  }
+
   test_class_constructor_parameters_super_explicitType_function() async {
     var library = await buildLibrary('''
 class A {
@@ -4444,6 +4694,7 @@ library
           constructors
             #F2 factory new (nameOffset:<null>) (firstTokenOffset:12) (offset:20)
               element: <testLibrary>::@class::C::@constructor::new
+              factoryKeywordOffset: 12
               typeName: C
               typeNameOffset: 20
             #F3 _ (nameOffset:39) (firstTokenOffset:37) (offset:39)
@@ -4510,6 +4761,7 @@ library
           constructors
             #F4 factory new (nameOffset:<null>) (firstTokenOffset:18) (offset:26)
               element: <testLibrary>::@class::C::@constructor::new
+              factoryKeywordOffset: 18
               typeName: C
               typeNameOffset: 26
             #F5 _ (nameOffset:51) (firstTokenOffset:49) (offset:51)
@@ -4608,6 +4860,7 @@ library
           constructors
             #F8 factory new (nameOffset:<null>) (firstTokenOffset:71) (offset:79)
               element: <testLibrary>::@class::B::@constructor::new
+              factoryKeywordOffset: 71
               typeName: B
               typeNameOffset: 79
   classes
@@ -4671,6 +4924,7 @@ library
           constructors
             #F4 factory new (nameOffset:<null>) (firstTokenOffset:45) (offset:53)
               element: <testLibrary>::@class::B::@constructor::new
+              factoryKeywordOffset: 45
               typeName: B
               typeNameOffset: 53
             #F5 _ (nameOffset:78) (firstTokenOffset:76) (offset:78)
@@ -4771,6 +5025,7 @@ library
           constructors
             #F2 factory new (nameOffset:<null>) (firstTokenOffset:31) (offset:39)
               element: <testLibrary>::@class::C::@constructor::new
+              factoryKeywordOffset: 31
               typeName: C
               typeNameOffset: 39
             #F3 _ (nameOffset:58) (firstTokenOffset:56) (offset:58)
@@ -4826,6 +5081,7 @@ library
           constructors
             #F4 factory new (nameOffset:<null>) (firstTokenOffset:37) (offset:45)
               element: <testLibrary>::@class::C::@constructor::new
+              factoryKeywordOffset: 37
               typeName: C
               typeNameOffset: 45
             #F5 _ (nameOffset:70) (firstTokenOffset:68) (offset:70)
@@ -4886,6 +5142,7 @@ library
           constructors
             #F2 factory new (nameOffset:<null>) (firstTokenOffset:38) (offset:46)
               element: <testLibrary>::@class::C::@constructor::new
+              factoryKeywordOffset: 38
               typeName: C
               typeNameOffset: 46
             #F3 _ (nameOffset:69) (firstTokenOffset:67) (offset:69)
@@ -4944,6 +5201,7 @@ library
           constructors
             #F4 factory new (nameOffset:<null>) (firstTokenOffset:44) (offset:52)
               element: <testLibrary>::@class::C::@constructor::new
+              factoryKeywordOffset: 44
               typeName: C
               typeNameOffset: 52
             #F5 _ (nameOffset:81) (firstTokenOffset:79) (offset:81)
@@ -4994,6 +5252,7 @@ library
           constructors
             #F3 factory new (nameOffset:<null>) (firstTokenOffset:15) (offset:23)
               element: <testLibrary>::@class::C::@constructor::new
+              factoryKeywordOffset: 15
               typeName: C
               typeNameOffset: 23
   classes
@@ -5038,6 +5297,7 @@ library
           constructors
             #F5 factory new (nameOffset:<null>) (firstTokenOffset:26) (offset:34)
               element: <testLibrary>::@class::C::@constructor::new
+              factoryKeywordOffset: 26
               typeName: C
               typeNameOffset: 34
   classes
@@ -5083,6 +5343,7 @@ library
           constructors
             #F2 factory new (nameOffset:<null>) (firstTokenOffset:12) (offset:20)
               element: <testLibrary>::@class::C::@constructor::new
+              factoryKeywordOffset: 12
               typeName: C
               typeNameOffset: 20
             #F3 _ (nameOffset:33) (firstTokenOffset:31) (offset:33)
@@ -5148,6 +5409,7 @@ library
           constructors
             #F4 factory new (nameOffset:<null>) (firstTokenOffset:18) (offset:26)
               element: <testLibrary>::@class::C::@constructor::new
+              factoryKeywordOffset: 18
               typeName: C
               typeNameOffset: 26
             #F5 _ (nameOffset:45) (firstTokenOffset:43) (offset:45)
@@ -5244,6 +5506,7 @@ library
           constructors
             #F8 factory new (nameOffset:<null>) (firstTokenOffset:65) (offset:73)
               element: <testLibrary>::@class::B::@constructor::new
+              factoryKeywordOffset: 65
               typeName: B
               typeNameOffset: 73
   classes
@@ -5305,6 +5568,7 @@ library
               typeNameOffset: 15
             #F4 factory redirected (nameOffset:32) (firstTokenOffset:22) (offset:32)
               element: <testLibrary>::@class::A::@constructor::redirected
+              factoryKeywordOffset: 22
               typeName: A
               typeNameOffset: 30
               periodOffset: 31
@@ -5356,6 +5620,7 @@ library
           constructors
             #F4 factory new (nameOffset:<null>) (firstTokenOffset:45) (offset:53)
               element: <testLibrary>::@class::B::@constructor::new
+              factoryKeywordOffset: 45
               typeName: B
               typeNameOffset: 53
           methods
@@ -5456,6 +5721,7 @@ library
           constructors
             #F2 factory new (nameOffset:<null>) (firstTokenOffset:31) (offset:39)
               element: <testLibrary>::@class::C::@constructor::new
+              factoryKeywordOffset: 31
               typeName: C
               typeNameOffset: 39
             #F3 _ (nameOffset:52) (firstTokenOffset:50) (offset:52)
@@ -5511,6 +5777,7 @@ library
           constructors
             #F4 factory new (nameOffset:<null>) (firstTokenOffset:37) (offset:45)
               element: <testLibrary>::@class::C::@constructor::new
+              factoryKeywordOffset: 37
               typeName: C
               typeNameOffset: 45
             #F5 _ (nameOffset:64) (firstTokenOffset:62) (offset:64)
@@ -5569,6 +5836,7 @@ library
           constructors
             #F2 factory new (nameOffset:<null>) (firstTokenOffset:31) (offset:39)
               element: <testLibrary>::@class::C::@constructor::new
+              factoryKeywordOffset: 31
               typeName: C
               typeNameOffset: 39
             #F3 _ (nameOffset:52) (firstTokenOffset:50) (offset:52)
@@ -5622,6 +5890,7 @@ library
           constructors
             #F2 factory new (nameOffset:<null>) (firstTokenOffset:38) (offset:46)
               element: <testLibrary>::@class::C::@constructor::new
+              factoryKeywordOffset: 38
               typeName: C
               typeNameOffset: 46
             #F3 _ (nameOffset:63) (firstTokenOffset:61) (offset:63)
@@ -5680,6 +5949,7 @@ library
           constructors
             #F4 factory new (nameOffset:<null>) (firstTokenOffset:44) (offset:52)
               element: <testLibrary>::@class::C::@constructor::new
+              factoryKeywordOffset: 44
               typeName: C
               typeNameOffset: 52
             #F5 _ (nameOffset:75) (firstTokenOffset:73) (offset:75)
@@ -5741,6 +6011,7 @@ library
           constructors
             #F2 factory new (nameOffset:<null>) (firstTokenOffset:38) (offset:46)
               element: <testLibrary>::@class::C::@constructor::new
+              factoryKeywordOffset: 38
               typeName: C
               typeNameOffset: 46
             #F3 _ (nameOffset:63) (firstTokenOffset:61) (offset:63)
@@ -5784,6 +6055,7 @@ library
           constructors
             #F3 factory new (nameOffset:<null>) (firstTokenOffset:15) (offset:23)
               element: <testLibrary>::@class::C::@constructor::new
+              factoryKeywordOffset: 15
               typeName: C
               typeNameOffset: 23
   classes
@@ -5823,6 +6095,7 @@ library
           constructors
             #F2 factory new (nameOffset:<null>) (firstTokenOffset:27) (offset:35)
               element: <testLibrary>::@class::B::@constructor::new
+              factoryKeywordOffset: 27
               typeName: B
               typeNameOffset: 35
             #F3 _ (nameOffset:48) (firstTokenOffset:46) (offset:48)
@@ -6196,6 +6469,7 @@ library
           constructors
             #F2 factory new (nameOffset:<null>) (firstTokenOffset:96) (offset:104)
               element: <testLibrary>::@class::C::@constructor::new
+              factoryKeywordOffset: 96
               typeName: C
               typeNameOffset: 104
   classes
@@ -6241,6 +6515,7 @@ library
           constructors
             #F2 factory new (nameOffset:<null>) (firstTokenOffset:100) (offset:108)
               element: <testLibrary>::@class::C::@constructor::new
+              factoryKeywordOffset: 100
               typeName: C
               typeNameOffset: 108
   classes

@@ -1114,26 +1114,14 @@ class FragmentBuilder extends ThrowingAstVisitor<void> {
 
   @override
   void visitConstructorDeclaration(covariant ConstructorDeclarationImpl node) {
-    var name = node.name?.lexeme ?? '';
-    if (name == 'new') {
-      // A constructor declared as `C.new` is unnamed, and is modeled as such.
-      name = '';
-    }
-    String fragmentName;
-    if ((node.period, node.name) case (var _?, var name?)) {
-      fragmentName = _getFragmentName(name) ?? 'new';
-    } else {
-      fragmentName = 'new';
-    }
-
+    var fragmentName = _getFragmentName(node.name) ?? 'new';
     var fragment = ConstructorFragmentImpl(name: fragmentName);
     fragment.isAugmentation = node.augmentKeyword != null;
     fragment.isConst = node.constKeyword != null;
     fragment.isExternal = node.externalKeyword != null;
     fragment.isFactory = node.factoryKeyword != null;
     fragment.metadata = _buildMetadata(node.metadata);
-    // TODO(scheglov): https://github.com/dart-lang/sdk/issues/62067
-    fragment.typeName = node.typeName!.name;
+    fragment.typeName = node.typeName?.name;
 
     if (fragment.isConst || fragment.isFactory) {
       fragment.constantInitializers = node.initializers;

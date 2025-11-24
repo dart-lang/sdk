@@ -426,6 +426,14 @@ class _Element2Writer extends _AbstractElementWriter {
       _writeFragmentCodeRange(f);
       // _writeDisplayName(f);
 
+      if (f.newKeywordOffset case var newKeywordOffset?) {
+        _sink.writelnWithIndent('newKeywordOffset: $newKeywordOffset');
+      }
+
+      if (f.factoryKeywordOffset case var factoryKeywordOffset?) {
+        _sink.writelnWithIndent('factoryKeywordOffset: $factoryKeywordOffset');
+      }
+
       _sink.writelnWithIndent('typeName: ${f.typeName}');
       if (f.typeNameOffset case var typeNameOffset?) {
         _sink.writelnWithIndent('typeNameOffset: $typeNameOffset');

@@ -859,6 +859,12 @@ class ConstructorFragmentImpl extends ExecutableFragmentImpl
   List<ConstructorInitializer> _constantInitializers = const [];
 
   @override
+  int? newKeywordOffset;
+
+  @override
+  int? factoryKeywordOffset;
+
+  @override
   String? typeName;
 
   @override
@@ -868,13 +874,13 @@ class ConstructorFragmentImpl extends ExecutableFragmentImpl
   int? periodOffset;
 
   @override
-  int? nameEnd;
-
-  @override
   final String name;
 
   @override
   int? nameOffset;
+
+  @override
+  int? nameEnd;
 
   @override
   ConstructorFragmentImpl? previousFragment;

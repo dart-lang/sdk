@@ -783,6 +783,7 @@ library
           constructors
             #F4 factory named (nameOffset:26) (firstTokenOffset:16) (offset:26)
               element: <testLibrary>::@enum::E::@constructor::named
+              factoryKeywordOffset: 16
               typeName: E
               typeNameOffset: 24
               periodOffset: 25
@@ -883,6 +884,7 @@ library
           constructors
             #F4 factory new (nameOffset:<null>) (firstTokenOffset:16) (offset:24)
               element: <testLibrary>::@enum::E::@constructor::new
+              factoryKeywordOffset: 16
               typeName: E
               typeNameOffset: 24
           getters
@@ -925,6 +927,212 @@ library
         synthetic static values
           reference: <testLibrary>::@enum::E::@getter::values
           firstFragment: #F6
+          returnType: List<E>
+          variable: <testLibrary>::@enum::E::@field::values
+''');
+  }
+
+  test_enum_constructor_factoryHead_named() async {
+    var library = await buildLibrary(r'''
+enum E {
+  v;
+  factory named() => v;
+}
+''');
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      enums
+        #F1 enum E (nameOffset:5) (firstTokenOffset:0) (offset:5)
+          element: <testLibrary>::@enum::E
+          fields
+            #F2 hasInitializer v (nameOffset:11) (firstTokenOffset:11) (offset:11)
+              element: <testLibrary>::@enum::E::@field::v
+              initializer: expression_0
+                InstanceCreationExpression
+                  constructorName: ConstructorName
+                    type: NamedType
+                      name: E @-1
+                      element: <testLibrary>::@enum::E
+                      type: E
+                    element: <testLibrary>::@enum::E::@constructor::new
+                  argumentList: ArgumentList
+                    leftParenthesis: ( @0
+                    rightParenthesis: ) @0
+                  staticType: E
+            #F3 synthetic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
+              element: <testLibrary>::@enum::E::@field::values
+              initializer: expression_1
+                ListLiteral
+                  leftBracket: [ @0
+                  elements
+                    SimpleIdentifier
+                      token: v @-1
+                      element: <testLibrary>::@enum::E::@getter::v
+                      staticType: E
+                  rightBracket: ] @0
+                  staticType: List<E>
+          constructors
+            #F4 factory named (nameOffset:24) (firstTokenOffset:16) (offset:24)
+              element: <testLibrary>::@enum::E::@constructor::named
+              factoryKeywordOffset: 16
+              typeName: null
+            #F5 synthetic const new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
+              element: <testLibrary>::@enum::E::@constructor::new
+              typeName: E
+          getters
+            #F6 synthetic v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:11)
+              element: <testLibrary>::@enum::E::@getter::v
+            #F7 synthetic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
+              element: <testLibrary>::@enum::E::@getter::values
+  enums
+    enum E
+      reference: <testLibrary>::@enum::E
+      firstFragment: #F1
+      supertype: Enum
+      fields
+        static const enumConstant hasImplicitType hasInitializer v
+          reference: <testLibrary>::@enum::E::@field::v
+          firstFragment: #F2
+          type: E
+          constantInitializer
+            fragment: #F2
+            expression: expression_0
+          getter: <testLibrary>::@enum::E::@getter::v
+        synthetic static const values
+          reference: <testLibrary>::@enum::E::@field::values
+          firstFragment: #F3
+          type: List<E>
+          constantInitializer
+            fragment: #F3
+            expression: expression_1
+          getter: <testLibrary>::@enum::E::@getter::values
+      constructors
+        factory named
+          reference: <testLibrary>::@enum::E::@constructor::named
+          firstFragment: #F4
+        synthetic const new
+          reference: <testLibrary>::@enum::E::@constructor::new
+          firstFragment: #F5
+      getters
+        synthetic static v
+          reference: <testLibrary>::@enum::E::@getter::v
+          firstFragment: #F6
+          returnType: E
+          variable: <testLibrary>::@enum::E::@field::v
+        synthetic static values
+          reference: <testLibrary>::@enum::E::@getter::values
+          firstFragment: #F7
+          returnType: List<E>
+          variable: <testLibrary>::@enum::E::@field::values
+''');
+  }
+
+  test_enum_constructor_factoryHead_unnamed() async {
+    var library = await buildLibrary(r'''
+enum E {
+  v.named();
+  const E.named();
+  factory () => v;
+}
+''');
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      enums
+        #F1 enum E (nameOffset:5) (firstTokenOffset:0) (offset:5)
+          element: <testLibrary>::@enum::E
+          fields
+            #F2 hasInitializer v (nameOffset:11) (firstTokenOffset:11) (offset:11)
+              element: <testLibrary>::@enum::E::@field::v
+              initializer: expression_0
+                InstanceCreationExpression
+                  constructorName: ConstructorName
+                    type: NamedType
+                      name: E @-1
+                      element: <testLibrary>::@enum::E
+                      type: E
+                    period: . @0
+                    name: SimpleIdentifier
+                      token: named @-1
+                      element: <testLibrary>::@enum::E::@constructor::named
+                      staticType: null
+                    element: <testLibrary>::@enum::E::@constructor::named
+                  argumentList: ArgumentList
+                    leftParenthesis: ( @18
+                    rightParenthesis: ) @19
+                  staticType: E
+            #F3 synthetic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
+              element: <testLibrary>::@enum::E::@field::values
+              initializer: expression_1
+                ListLiteral
+                  leftBracket: [ @0
+                  elements
+                    SimpleIdentifier
+                      token: v @-1
+                      element: <testLibrary>::@enum::E::@getter::v
+                      staticType: E
+                  rightBracket: ] @0
+                  staticType: List<E>
+          constructors
+            #F4 const named (nameOffset:32) (firstTokenOffset:24) (offset:32)
+              element: <testLibrary>::@enum::E::@constructor::named
+              typeName: E
+              typeNameOffset: 30
+              periodOffset: 31
+            #F5 factory new (nameOffset:<null>) (firstTokenOffset:43) (offset:43)
+              element: <testLibrary>::@enum::E::@constructor::new
+              factoryKeywordOffset: 43
+              typeName: null
+          getters
+            #F6 synthetic v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:11)
+              element: <testLibrary>::@enum::E::@getter::v
+            #F7 synthetic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
+              element: <testLibrary>::@enum::E::@getter::values
+  enums
+    enum E
+      reference: <testLibrary>::@enum::E
+      firstFragment: #F1
+      supertype: Enum
+      fields
+        static const enumConstant hasImplicitType hasInitializer v
+          reference: <testLibrary>::@enum::E::@field::v
+          firstFragment: #F2
+          type: E
+          constantInitializer
+            fragment: #F2
+            expression: expression_0
+          getter: <testLibrary>::@enum::E::@getter::v
+        synthetic static const values
+          reference: <testLibrary>::@enum::E::@field::values
+          firstFragment: #F3
+          type: List<E>
+          constantInitializer
+            fragment: #F3
+            expression: expression_1
+          getter: <testLibrary>::@enum::E::@getter::values
+      constructors
+        const named
+          reference: <testLibrary>::@enum::E::@constructor::named
+          firstFragment: #F4
+        factory new
+          reference: <testLibrary>::@enum::E::@constructor::new
+          firstFragment: #F5
+      getters
+        synthetic static v
+          reference: <testLibrary>::@enum::E::@getter::v
+          firstFragment: #F6
+          returnType: E
+          variable: <testLibrary>::@enum::E::@field::v
+        synthetic static values
+          reference: <testLibrary>::@enum::E::@getter::values
+          firstFragment: #F7
           returnType: List<E>
           variable: <testLibrary>::@enum::E::@field::values
 ''');
@@ -2124,6 +2332,388 @@ library
           firstFragment: #F10
           returnType: int
           variable: <testLibrary>::@enum::E::@field::x
+''');
+  }
+
+  test_enum_constructor_newHead_named() async {
+    var library = await buildLibrary(r'''
+enum E {
+  v.named();
+  new named();
+}
+''');
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      enums
+        #F1 enum E (nameOffset:5) (firstTokenOffset:0) (offset:5)
+          element: <testLibrary>::@enum::E
+          fields
+            #F2 hasInitializer v (nameOffset:11) (firstTokenOffset:11) (offset:11)
+              element: <testLibrary>::@enum::E::@field::v
+              initializer: expression_0
+                InstanceCreationExpression
+                  constructorName: ConstructorName
+                    type: NamedType
+                      name: E @-1
+                      element: <testLibrary>::@enum::E
+                      type: E
+                    period: . @0
+                    name: SimpleIdentifier
+                      token: named @-1
+                      element: <testLibrary>::@enum::E::@constructor::named
+                      staticType: null
+                    element: <testLibrary>::@enum::E::@constructor::named
+                  argumentList: ArgumentList
+                    leftParenthesis: ( @18
+                    rightParenthesis: ) @19
+                  staticType: E
+            #F3 synthetic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
+              element: <testLibrary>::@enum::E::@field::values
+              initializer: expression_1
+                ListLiteral
+                  leftBracket: [ @0
+                  elements
+                    SimpleIdentifier
+                      token: v @-1
+                      element: <testLibrary>::@enum::E::@getter::v
+                      staticType: E
+                  rightBracket: ] @0
+                  staticType: List<E>
+          constructors
+            #F4 named (nameOffset:28) (firstTokenOffset:24) (offset:28)
+              element: <testLibrary>::@enum::E::@constructor::named
+              newKeywordOffset: 24
+              typeName: null
+          getters
+            #F5 synthetic v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:11)
+              element: <testLibrary>::@enum::E::@getter::v
+            #F6 synthetic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
+              element: <testLibrary>::@enum::E::@getter::values
+  enums
+    enum E
+      reference: <testLibrary>::@enum::E
+      firstFragment: #F1
+      supertype: Enum
+      fields
+        static const enumConstant hasImplicitType hasInitializer v
+          reference: <testLibrary>::@enum::E::@field::v
+          firstFragment: #F2
+          type: E
+          constantInitializer
+            fragment: #F2
+            expression: expression_0
+          getter: <testLibrary>::@enum::E::@getter::v
+        synthetic static const values
+          reference: <testLibrary>::@enum::E::@field::values
+          firstFragment: #F3
+          type: List<E>
+          constantInitializer
+            fragment: #F3
+            expression: expression_1
+          getter: <testLibrary>::@enum::E::@getter::values
+      constructors
+        named
+          reference: <testLibrary>::@enum::E::@constructor::named
+          firstFragment: #F4
+      getters
+        synthetic static v
+          reference: <testLibrary>::@enum::E::@getter::v
+          firstFragment: #F5
+          returnType: E
+          variable: <testLibrary>::@enum::E::@field::v
+        synthetic static values
+          reference: <testLibrary>::@enum::E::@getter::values
+          firstFragment: #F6
+          returnType: List<E>
+          variable: <testLibrary>::@enum::E::@field::values
+''');
+  }
+
+  test_enum_constructor_newHead_named_const() async {
+    var library = await buildLibrary(r'''
+enum E {
+  v.named();
+  const new named();
+}
+''');
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      enums
+        #F1 enum E (nameOffset:5) (firstTokenOffset:0) (offset:5)
+          element: <testLibrary>::@enum::E
+          fields
+            #F2 hasInitializer v (nameOffset:11) (firstTokenOffset:11) (offset:11)
+              element: <testLibrary>::@enum::E::@field::v
+              initializer: expression_0
+                InstanceCreationExpression
+                  constructorName: ConstructorName
+                    type: NamedType
+                      name: E @-1
+                      element: <testLibrary>::@enum::E
+                      type: E
+                    period: . @0
+                    name: SimpleIdentifier
+                      token: named @-1
+                      element: <testLibrary>::@enum::E::@constructor::named
+                      staticType: null
+                    element: <testLibrary>::@enum::E::@constructor::named
+                  argumentList: ArgumentList
+                    leftParenthesis: ( @18
+                    rightParenthesis: ) @19
+                  staticType: E
+            #F3 synthetic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
+              element: <testLibrary>::@enum::E::@field::values
+              initializer: expression_1
+                ListLiteral
+                  leftBracket: [ @0
+                  elements
+                    SimpleIdentifier
+                      token: v @-1
+                      element: <testLibrary>::@enum::E::@getter::v
+                      staticType: E
+                  rightBracket: ] @0
+                  staticType: List<E>
+          constructors
+            #F4 const named (nameOffset:34) (firstTokenOffset:24) (offset:34)
+              element: <testLibrary>::@enum::E::@constructor::named
+              newKeywordOffset: 30
+              typeName: null
+          getters
+            #F5 synthetic v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:11)
+              element: <testLibrary>::@enum::E::@getter::v
+            #F6 synthetic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
+              element: <testLibrary>::@enum::E::@getter::values
+  enums
+    enum E
+      reference: <testLibrary>::@enum::E
+      firstFragment: #F1
+      supertype: Enum
+      fields
+        static const enumConstant hasImplicitType hasInitializer v
+          reference: <testLibrary>::@enum::E::@field::v
+          firstFragment: #F2
+          type: E
+          constantInitializer
+            fragment: #F2
+            expression: expression_0
+          getter: <testLibrary>::@enum::E::@getter::v
+        synthetic static const values
+          reference: <testLibrary>::@enum::E::@field::values
+          firstFragment: #F3
+          type: List<E>
+          constantInitializer
+            fragment: #F3
+            expression: expression_1
+          getter: <testLibrary>::@enum::E::@getter::values
+      constructors
+        const named
+          reference: <testLibrary>::@enum::E::@constructor::named
+          firstFragment: #F4
+      getters
+        synthetic static v
+          reference: <testLibrary>::@enum::E::@getter::v
+          firstFragment: #F5
+          returnType: E
+          variable: <testLibrary>::@enum::E::@field::v
+        synthetic static values
+          reference: <testLibrary>::@enum::E::@getter::values
+          firstFragment: #F6
+          returnType: List<E>
+          variable: <testLibrary>::@enum::E::@field::values
+''');
+  }
+
+  test_enum_constructor_newHead_unnamed() async {
+    var library = await buildLibrary(r'''
+enum E {
+  v;
+  new ();
+}
+''');
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      enums
+        #F1 enum E (nameOffset:5) (firstTokenOffset:0) (offset:5)
+          element: <testLibrary>::@enum::E
+          fields
+            #F2 hasInitializer v (nameOffset:11) (firstTokenOffset:11) (offset:11)
+              element: <testLibrary>::@enum::E::@field::v
+              initializer: expression_0
+                InstanceCreationExpression
+                  constructorName: ConstructorName
+                    type: NamedType
+                      name: E @-1
+                      element: <testLibrary>::@enum::E
+                      type: E
+                    element: <testLibrary>::@enum::E::@constructor::new
+                  argumentList: ArgumentList
+                    leftParenthesis: ( @0
+                    rightParenthesis: ) @0
+                  staticType: E
+            #F3 synthetic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
+              element: <testLibrary>::@enum::E::@field::values
+              initializer: expression_1
+                ListLiteral
+                  leftBracket: [ @0
+                  elements
+                    SimpleIdentifier
+                      token: v @-1
+                      element: <testLibrary>::@enum::E::@getter::v
+                      staticType: E
+                  rightBracket: ] @0
+                  staticType: List<E>
+          constructors
+            #F4 new (nameOffset:<null>) (firstTokenOffset:16) (offset:16)
+              element: <testLibrary>::@enum::E::@constructor::new
+              newKeywordOffset: 16
+              typeName: null
+          getters
+            #F5 synthetic v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:11)
+              element: <testLibrary>::@enum::E::@getter::v
+            #F6 synthetic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
+              element: <testLibrary>::@enum::E::@getter::values
+  enums
+    enum E
+      reference: <testLibrary>::@enum::E
+      firstFragment: #F1
+      supertype: Enum
+      fields
+        static const enumConstant hasImplicitType hasInitializer v
+          reference: <testLibrary>::@enum::E::@field::v
+          firstFragment: #F2
+          type: E
+          constantInitializer
+            fragment: #F2
+            expression: expression_0
+          getter: <testLibrary>::@enum::E::@getter::v
+        synthetic static const values
+          reference: <testLibrary>::@enum::E::@field::values
+          firstFragment: #F3
+          type: List<E>
+          constantInitializer
+            fragment: #F3
+            expression: expression_1
+          getter: <testLibrary>::@enum::E::@getter::values
+      constructors
+        new
+          reference: <testLibrary>::@enum::E::@constructor::new
+          firstFragment: #F4
+      getters
+        synthetic static v
+          reference: <testLibrary>::@enum::E::@getter::v
+          firstFragment: #F5
+          returnType: E
+          variable: <testLibrary>::@enum::E::@field::v
+        synthetic static values
+          reference: <testLibrary>::@enum::E::@getter::values
+          firstFragment: #F6
+          returnType: List<E>
+          variable: <testLibrary>::@enum::E::@field::values
+''');
+  }
+
+  test_enum_constructor_newHead_unnamed_const() async {
+    var library = await buildLibrary(r'''
+enum E {
+  v;
+  const new ();
+}
+''');
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      enums
+        #F1 enum E (nameOffset:5) (firstTokenOffset:0) (offset:5)
+          element: <testLibrary>::@enum::E
+          fields
+            #F2 hasInitializer v (nameOffset:11) (firstTokenOffset:11) (offset:11)
+              element: <testLibrary>::@enum::E::@field::v
+              initializer: expression_0
+                InstanceCreationExpression
+                  constructorName: ConstructorName
+                    type: NamedType
+                      name: E @-1
+                      element: <testLibrary>::@enum::E
+                      type: E
+                    element: <testLibrary>::@enum::E::@constructor::new
+                  argumentList: ArgumentList
+                    leftParenthesis: ( @0
+                    rightParenthesis: ) @0
+                  staticType: E
+            #F3 synthetic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
+              element: <testLibrary>::@enum::E::@field::values
+              initializer: expression_1
+                ListLiteral
+                  leftBracket: [ @0
+                  elements
+                    SimpleIdentifier
+                      token: v @-1
+                      element: <testLibrary>::@enum::E::@getter::v
+                      staticType: E
+                  rightBracket: ] @0
+                  staticType: List<E>
+          constructors
+            #F4 const new (nameOffset:<null>) (firstTokenOffset:16) (offset:16)
+              element: <testLibrary>::@enum::E::@constructor::new
+              newKeywordOffset: 22
+              typeName: null
+          getters
+            #F5 synthetic v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:11)
+              element: <testLibrary>::@enum::E::@getter::v
+            #F6 synthetic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
+              element: <testLibrary>::@enum::E::@getter::values
+  enums
+    enum E
+      reference: <testLibrary>::@enum::E
+      firstFragment: #F1
+      supertype: Enum
+      fields
+        static const enumConstant hasImplicitType hasInitializer v
+          reference: <testLibrary>::@enum::E::@field::v
+          firstFragment: #F2
+          type: E
+          constantInitializer
+            fragment: #F2
+            expression: expression_0
+          getter: <testLibrary>::@enum::E::@getter::v
+        synthetic static const values
+          reference: <testLibrary>::@enum::E::@field::values
+          firstFragment: #F3
+          type: List<E>
+          constantInitializer
+            fragment: #F3
+            expression: expression_1
+          getter: <testLibrary>::@enum::E::@getter::values
+      constructors
+        const new
+          reference: <testLibrary>::@enum::E::@constructor::new
+          firstFragment: #F4
+      getters
+        synthetic static v
+          reference: <testLibrary>::@enum::E::@getter::v
+          firstFragment: #F5
+          returnType: E
+          variable: <testLibrary>::@enum::E::@field::v
+        synthetic static values
+          reference: <testLibrary>::@enum::E::@getter::values
+          firstFragment: #F6
+          returnType: List<E>
+          variable: <testLibrary>::@enum::E::@field::values
 ''');
   }
 

@@ -1355,6 +1355,7 @@ library
           constructors
             #F3 factory new (nameOffset:<null>) (firstTokenOffset:27) (offset:35)
               element: <testLibrary>::@class::C::@constructor::new
+              factoryKeywordOffset: 27
               typeName: C
               typeNameOffset: 35
               formalParameters
