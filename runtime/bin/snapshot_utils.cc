@@ -218,7 +218,7 @@ static AppSnapshot* TryReadAppSnapshotDynamicLibrary(
   *error = Utils::StrDup("running on a simulated architecture");
   return nullptr;
 #else
-#if defined(DART_TARGET_OS_LINUX) || defined(DART_TARGET_OS_MACOS)
+#if defined(DART_HOST_OS_LINUX) || defined(DART_HOST_OS_MACOS)
   // On Linux and OSX, resolve the script path before passing into dlopen()
   // since dlopen will not search the filesystem for paths like 'libtest.so'.
   const size_t kPathBufSize = PATH_MAX + 1;
