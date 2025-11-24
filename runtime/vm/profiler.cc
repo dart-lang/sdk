@@ -909,12 +909,7 @@ Sample* SampleBlockBuffer::ReserveSampleImpl(Isolate* isolate,
   if (block != nullptr) {
     block->MarkCompleted();
     if (!Isolate::IsSystemIsolate(isolate)) {
-      Thread* mutator = isolate->IGNORE_RACE(mutator_thread)();
-      // The mutator thread might be NULL if we sample in the middle of
-      // Thread::Enter/ExitIsolate.
-      if ((mutator != nullptr) && isolate->TrySetHasCompletedBlocks()) {
-        mutator->ScheduleInterrupts(Thread::kVMInterrupt);
-      }
+      isolate->TrySetHasCompletedBlocks();
     }
   }
   return next->ReserveSample();

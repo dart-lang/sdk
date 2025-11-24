@@ -857,13 +857,6 @@ ErrorPtr Thread::HandleInterrupts(uword interrupt_bits) {
     }
     heap()->CheckFinalizeMarking(this);
 
-#if !defined(PRODUCT)
-    // TODO(dartbug.com/60508): Allow profiling of isolate-group-shared code.
-    if (isolate() != nullptr && isolate()->TakeHasCompletedBlocks()) {
-      Profiler::ProcessCompletedBlocks(isolate());
-    }
-#endif  // !defined(PRODUCT)
-
 #if !defined(PRODUCT) || defined(FORCE_INCLUDE_SAMPLING_HEAP_PROFILER)
     HeapProfileSampler& sampler = heap_sampler();
     if (sampler.ShouldSetThreadSamplingInterval()) {
