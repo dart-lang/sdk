@@ -36,26 +36,11 @@ class DeprecatedRule extends AnalysisRule {
   DiagnosticCode get diagnosticCode => code;
 }
 
-class RemovedRule extends AnalysisRule {
-  static const LintCode code = LintCode(
-    'removed_rule',
-    'Removed rule.',
-    correctionMessage: 'Try removed rule.',
-    uniqueName: 'LintCode.removed_rule',
-  );
-
-  RemovedRule()
-    : super(name: 'removed_rule', description: '', state: RuleState.removed());
-
-  @override
-  DiagnosticCode get diagnosticCode => code;
-}
-
 @reflectiveTest
 class RemoveLintTest extends AnalysisOptionsFixTest with LintRegistrationMixin {
   // Keep track of these rules so they can be unregistered in `tearDown`.
   var deprecatedRule = DeprecatedRule();
-  var removedRule = RemovedRule();
+  var removedRule = RemovedAnalysisRule(name: 'removed_rule', description: '');
 
   void setUp() {
     registerLintRules();

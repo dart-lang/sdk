@@ -627,8 +627,17 @@ mixin OptionsRuleValidatorTestMixin on AbstractAnalysisOptionsTest {
       StableLint(),
       RuleNeg(),
       RulePos(),
-      RemovedIn2_12Lint(),
-      ReplacedLint(),
+      RemovedAnalysisRule(
+        name: 'removed_in_2_12_lint',
+        since: dart2_12,
+        description: '',
+      ),
+      RemovedAnalysisRule(
+        name: 'replaced_lint',
+        since: dart3,
+        replacedBy: 'replacing_lint',
+        description: '',
+      ),
       ReplacingLint(),
     ]);
     super.setUp();
@@ -708,22 +717,6 @@ linter:
     rule_pos: warning
 ''');
   }
-}
-
-class RemovedIn2_12Lint extends TestLintRule {
-  RemovedIn2_12Lint()
-    : super(
-        name: 'removed_in_2_12_lint',
-        state: RuleState.removed(since: dart2_12),
-      );
-}
-
-class ReplacedLint extends TestLintRule {
-  ReplacedLint()
-    : super(
-        name: 'replaced_lint',
-        state: RuleState.removed(since: dart3, replacedBy: 'replacing_lint'),
-      );
 }
 
 class ReplacingLint extends TestLintRule {

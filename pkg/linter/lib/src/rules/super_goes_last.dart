@@ -4,22 +4,14 @@
 
 import 'package:analyzer/analysis_rule/analysis_rule.dart';
 import 'package:analyzer/analysis_rule/rule_state.dart';
-import 'package:analyzer/error/error.dart';
 
 import '../analyzer.dart';
-import '../diagnostic.dart' as diag;
 
 const _desc =
     r'Place the `super` call last in a constructor initialization list.';
 
-class SuperGoesLast extends AnalysisRule {
-  SuperGoesLast()
-    : super(
-        name: LintNames.super_goes_last,
-        description: _desc,
-        state: RuleState.removed(since: dart3),
-      );
-
-  @override
-  DiagnosticCode get diagnosticCode => diag.removedLint;
-}
+final superGoesLast = RemovedAnalysisRule(
+  name: LintNames.super_goes_last,
+  description: _desc,
+  since: dart3,
+);

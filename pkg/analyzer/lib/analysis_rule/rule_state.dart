@@ -2,6 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+/// @docImport 'package:analyzer/analysis_rule/analysis_rule.dart';
+library;
+
 import 'package:pub_semver/pub_semver.dart';
 
 /// A version describing Dart language version 2.12.0.
@@ -39,7 +42,11 @@ final class RuleState {
     : _type = _RuleStateType.internal,
       replacedBy = null;
 
-  /// Initializes a state that identifies an analysis rule as having been removed.
+  /// Initializes a state that identifies an analysis rule as having been
+  /// removed.
+  ///
+  /// Deprecated; clients should use [RemovedAnalysisRule] instead.
+  @Deprecated('Use RemovedAnalysisRule instead')
   const RuleState.removed({this.since, this.replacedBy})
     : _type = _RuleStateType.removed;
 

@@ -4,23 +4,15 @@
 
 import 'package:analyzer/analysis_rule/analysis_rule.dart';
 import 'package:analyzer/analysis_rule/rule_state.dart';
-import 'package:analyzer/error/error.dart';
 
 import '../analyzer.dart';
-import '../diagnostic.dart' as diag;
 
 const _desc =
     r'Invocation of `Iterable<E>.contains` with references of'
     r' unrelated types.';
 
-class IterableContainsUnrelatedType extends AnalysisRule {
-  IterableContainsUnrelatedType()
-    : super(
-        name: LintNames.iterable_contains_unrelated_type,
-        description: _desc,
-        state: RuleState.removed(since: dart3_3),
-      );
-
-  @override
-  DiagnosticCode get diagnosticCode => diag.removedLint;
-}
+final iterableContainsUnrelatedType = RemovedAnalysisRule(
+  name: LintNames.iterable_contains_unrelated_type,
+  description: _desc,
+  since: dart3_3,
+);
