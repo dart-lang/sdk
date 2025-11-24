@@ -12581,7 +12581,7 @@ CompileTimeErrorCode:
 
         C(this.x);
 
-        [!C!].n();
+        [!C.n!]();
       }
       ```
 

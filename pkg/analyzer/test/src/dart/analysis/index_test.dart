@@ -79,7 +79,26 @@ class A {
 ''');
   }
 
-  test_class_constructorElement_unnamed_implicitInvocation() async {
+  test_class_constructorElement_newHead_implicitInvocation() async {
+    await _indexTestUnit('''
+class A {
+  A();
+}
+
+class B extends A {
+  new ();
+  new named();
+}
+''');
+
+    var element = findElement2.unnamedConstructor('A');
+    assertElementIndexText(element, r'''
+42 6:3 |new| IS_INVOKED_BY qualified
+52 7:3 |new named| IS_INVOKED_BY qualified
+''');
+  }
+
+  test_class_constructorElement_typeName_implicitInvocation() async {
     await _indexTestUnit('''
 class A {
   A();

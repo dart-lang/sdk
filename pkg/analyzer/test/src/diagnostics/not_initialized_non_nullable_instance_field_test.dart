@@ -177,7 +177,7 @@ class A {
   A.b();
 }
 ''',
-      [error(diag.notInitializedNonNullableInstanceFieldConstructor, 38, 1)],
+      [error(diag.notInitializedNonNullableInstanceFieldConstructor, 38, 3)],
     );
   }
 

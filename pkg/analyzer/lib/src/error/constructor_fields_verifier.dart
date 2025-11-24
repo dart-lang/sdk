@@ -146,28 +146,20 @@ class _Constructor {
     var names = notInitFinalFields.map((f) => f.name).toList();
     names.sort();
 
-    if (names.length == 1) {
-      diagnosticReporter.atNode(
-        // TODO(scheglov): https://github.com/dart-lang/sdk/issues/62067
-        node.typeName!,
-        diag.finalNotInitializedConstructor1,
-        arguments: names,
-      );
-    } else if (names.length == 2) {
-      diagnosticReporter.atNode(
-        // TODO(scheglov): https://github.com/dart-lang/sdk/issues/62067
-        node.typeName!,
-        diag.finalNotInitializedConstructor2,
-        arguments: names,
-      );
-    } else {
-      diagnosticReporter.atNode(
-        // TODO(scheglov): https://github.com/dart-lang/sdk/issues/62067
-        node.typeName!,
+    var (code, arguments) = switch (names.length) {
+      1 => (diag.finalNotInitializedConstructor1, names),
+      2 => (diag.finalNotInitializedConstructor2, names),
+      _ => (
         diag.finalNotInitializedConstructor3Plus,
-        arguments: [names[0], names[1], names.length - 2],
-      );
-    }
+        [names[0], names[1], names.length - 2],
+      ),
+    };
+
+    diagnosticReporter.atConstructorDeclaration(
+      node,
+      code,
+      arguments: arguments,
+    );
   }
 
   void reportNotInitializedNonNullable(List<_Field> notInitNonNullableFields) {
@@ -179,9 +171,8 @@ class _Constructor {
     names.sort();
 
     for (var name in names) {
-      diagnosticReporter.atNode(
-        // TODO(scheglov): https://github.com/dart-lang/sdk/issues/62067
-        node.typeName!,
+      diagnosticReporter.atConstructorDeclaration(
+        node,
         diag.notInitializedNonNullableInstanceFieldConstructor,
         arguments: [name],
       );

@@ -99,12 +99,9 @@ extension ConstructorDeclarationExtension on ConstructorDeclaration {
   /// The offset and length to use as an error range for this constructor
   /// declaration, accounting for named and unnamed constructors.
   SourceRange get errorRange {
-    var name = this.name;
-    // TODO(scheglov): https://github.com/dart-lang/sdk/issues/62067
-    var offset = typeName!.offset;
-    // TODO(scheglov): https://github.com/dart-lang/sdk/issues/62067
-    int length = (name != null ? name.end : typeName!.end) - offset;
-    return SourceRange(offset, length);
+    var startEntity = typeName ?? (newKeyword ?? factoryKeyword)!;
+    var endEntity = name ?? startEntity;
+    return SourceRange(startEntity.offset, endEntity.end - startEntity.offset);
   }
 
   bool get isNonRedirectingGenerative {

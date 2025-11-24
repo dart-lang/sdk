@@ -213,7 +213,7 @@ class A {
   A._();
 }
 ''',
-      [error(diag.finalNotInitializedConstructor1, 45, 1)],
+      [error(diag.finalNotInitializedConstructor1, 45, 3)],
     );
   }
 
@@ -289,7 +289,7 @@ enum E {
   const E._();
 }
 ''',
-      [error(diag.finalNotInitializedConstructor1, 70, 1)],
+      [error(diag.finalNotInitializedConstructor1, 70, 3)],
     );
   }
 
@@ -322,7 +322,7 @@ extension type A(int it) {
   A.named();
 }
 ''',
-      [error(diag.finalNotInitializedConstructor1, 29, 1)],
+      [error(diag.finalNotInitializedConstructor1, 29, 7)],
     );
   }
 

@@ -457,11 +457,14 @@ class MemberDuplicateDefinitionVerifier {
           if (member.augmentKeyword != null) {
             continue;
           }
-          // TODO(scheglov): https://github.com/dart-lang/sdk/issues/62067
-          if (member.typeName!.name != firstFragment.name) {
-            // [member] is erroneous; do not count it as a possible duplicate.
-            continue;
+
+          // Skip if the typeName is wrong.
+          if (member.typeName case var typeName?) {
+            if (typeName.name != firstFragment.name) {
+              continue;
+            }
           }
+
           var name = member.name?.lexeme ?? 'new';
           if (!constructorNames.add(name)) {
             if (name == 'new') {

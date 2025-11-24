@@ -35,8 +35,8 @@ main() {
 }
 ''',
       [
-        error(diag.notInitializedNonNullableInstanceFieldConstructor, 94, 1),
-        error(diag.notInitializedNonNullableInstanceFieldConstructor, 94, 1),
+        error(diag.notInitializedNonNullableInstanceFieldConstructor, 94, 3),
+        error(diag.notInitializedNonNullableInstanceFieldConstructor, 94, 3),
         error(diag.couldNotInfer, 154, 3),
         error(diag.couldNotInfer, 154, 3),
         error(
