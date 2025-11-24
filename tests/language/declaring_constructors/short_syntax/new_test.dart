@@ -26,12 +26,6 @@ class C3 {
   const new named(this.x); // Equivalent to `const C2.named(this.x);`
 }
 
-class C4 {
-  final int x;
-  const new(this.x) {} // Equivalent to `const C2(this.x) {}`
-  const new named(this.x) {} // Equivalent to `const C2.named(this.x) {}`
-}
-
 void main() {
   Expect.equals(1, C1().x);
   Expect.equals(1, C1.named().x);
@@ -39,6 +33,4 @@ void main() {
   Expect.equals(1, C2.named().x);
   Expect.equals(1, C3(1).x);
   Expect.equals(1, C3.named(1).x);
-  Expect.equals(1, C4(1).x);
-  Expect.equals(1, C4.named(1).x);
 }
