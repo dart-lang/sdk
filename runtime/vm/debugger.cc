@@ -790,7 +790,14 @@ const Context& ActivationFrame::GetSavedCurrentContext() {
       }
       const auto variable_index = VariableIndex(var_info.index());
       obj = GetStackVar(variable_index);
-      if (obj.IsClosure()) {
+      if (function_.IsImplicitInstanceClosureFunction()) {
+        // The context of an implicit instance closure contains only one slot
+        // for "this", so the instance is stored as the context and accessed
+        // directly by generated code to avoid allocating a separate context.
+        // Here, we create the elided context object for debugging purposes.
+        ctx_ = Context::New(1);
+        ctx_.SetAt(0, obj);
+      } else if (obj.IsClosure()) {
         ASSERT(function().IsClosureCallDispatcher());
         // Closure.call frames.
         ctx_ = Closure::Cast(obj).GetContext();
