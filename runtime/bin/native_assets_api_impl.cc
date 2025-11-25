@@ -32,7 +32,7 @@ namespace bin {
   snprintf(msg, len + 1, format, __VA_ARGS__);                                 \
   *error_msg = msg
 
-#if defined(DART_TARGET_OS_WINDOWS)
+#if defined(DART_HOST_OS_WINDOWS)
 // Replaces back slashes with forward slashes in place.
 static void ReplaceBackSlashes(char* cstr) {
   const intptr_t length = strlen(cstr);
@@ -114,7 +114,7 @@ void* NativeAssets::DlopenRelative(const char* path,
   }
   void* handle = nullptr;
 
-#if defined(DART_TARGET_OS_WINDOWS)
+#if defined(DART_HOST_OS_WINDOWS)
   char* path_copy = strdup(path);
   char* base_path_copy = strdup(base_path);
   ReplaceBackSlashes(path_copy);
@@ -129,7 +129,7 @@ void* NativeAssets::DlopenRelative(const char* path,
     SET_ERROR_MSG(error, "Failed to resolve '%s' relative to '%s'.", path,
                   base_path);
   } else {
-#if defined(DART_TARGET_OS_WINDOWS)
+#if defined(DART_HOST_OS_WINDOWS)
     ReplaceForwardSlashes(target_path.get());
 #endif
     handle = LoadDynamicLibrary(target_path.get(),

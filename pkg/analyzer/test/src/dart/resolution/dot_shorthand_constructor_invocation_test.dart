@@ -65,6 +65,36 @@ DotShorthandConstructorInvocation
 ''');
   }
 
+  test_abstractClass() async {
+    await assertErrorsInCode(
+      r'''
+abstract class Foo<T> {
+  Foo();
+}
+
+void main() {
+  Foo _ = .new();
+}
+''',
+      [error(diag.instantiateAbstractClass, 60, 6)],
+    );
+  }
+
+  test_abstractClass_typeArguments() async {
+    await assertErrorsInCode(
+      r'''
+abstract class Foo<T> {
+  Foo();
+}
+
+void main() {
+  Foo _ = .new<int>();
+}
+''',
+      [error(diag.instantiateAbstractClass, 60, 11)],
+    );
+  }
+
   test_chain_method() async {
     await assertNoErrorsInCode(r'''
 class C {
@@ -471,6 +501,22 @@ DotShorthandConstructorInvocation
     rightParenthesis: )
   isDotShorthand: true
   staticType: C
+''');
+  }
+
+  test_factory() async {
+    await assertNoErrorsInCode(r'''
+abstract class Foo<T> {
+  factory Foo.a() = _Foo;
+
+  Foo();
+}
+
+class _Foo<T> extends Foo<T> {
+  _Foo();
+}
+
+Foo<T> bar<T>() => .a();
 ''');
   }
 

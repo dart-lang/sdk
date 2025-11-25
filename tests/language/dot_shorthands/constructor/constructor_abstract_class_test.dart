@@ -6,9 +6,22 @@
 
 // SharedOptions=--enable-experiment=dot-shorthands
 
+abstract class Foo<T> {
+  factory Foo.a() = _Foo;
+  Foo();
+}
+
+class _Foo<T> extends Foo<T> {
+  _Foo();
+}
+
+Foo<T> noTypeArgsFactory<T>() => .a();
+
 void main() async {
   var iter = [1, 2];
   await for (var x in .fromIterable(iter)) {
     print(x);
   }
+
+  noTypeArgsFactory();
 }

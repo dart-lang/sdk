@@ -69,6 +69,372 @@ ExtensionTypeDeclaration
 ''');
   }
 
+  test_constructor_factoryHead_named() {
+    var parseResult = parseStringWithErrors(r'''
+extension type A(int it) {
+  factory named() => A(0);
+}
+''');
+    parseResult.assertNoErrors();
+
+    var node = parseResult.findNode.singleConstructorDeclaration;
+    assertParsedNodeText(node, r'''
+ConstructorDeclaration
+  factoryKeyword: factory
+  name: named
+  parameters: FormalParameterList
+    leftParenthesis: (
+    rightParenthesis: )
+  body: ExpressionFunctionBody
+    functionDefinition: =>
+    expression: MethodInvocation
+      methodName: SimpleIdentifier
+        token: A
+      argumentList: ArgumentList
+        leftParenthesis: (
+        arguments
+          IntegerLiteral
+            literal: 0
+        rightParenthesis: )
+    semicolon: ;
+''');
+  }
+
+  test_constructor_factoryHead_named_const() {
+    var parseResult = parseStringWithErrors(r'''
+extension type A(int it) {
+  const factory named() = B;
+}
+''');
+    parseResult.assertNoErrors();
+
+    var node = parseResult.findNode.singleConstructorDeclaration;
+    assertParsedNodeText(node, r'''
+ConstructorDeclaration
+  constKeyword: const
+  factoryKeyword: factory
+  name: named
+  parameters: FormalParameterList
+    leftParenthesis: (
+    rightParenthesis: )
+  separator: =
+  redirectedConstructor: ConstructorName
+    type: NamedType
+      name: B
+  body: EmptyFunctionBody
+    semicolon: ;
+''');
+  }
+
+  test_constructor_factoryHead_unnamed() {
+    var parseResult = parseStringWithErrors(r'''
+extension type A(int it) {
+  factory () => A(0);
+}
+''');
+    parseResult.assertNoErrors();
+
+    var node = parseResult.findNode.singleConstructorDeclaration;
+    assertParsedNodeText(node, r'''
+ConstructorDeclaration
+  factoryKeyword: factory
+  parameters: FormalParameterList
+    leftParenthesis: (
+    rightParenthesis: )
+  body: ExpressionFunctionBody
+    functionDefinition: =>
+    expression: MethodInvocation
+      methodName: SimpleIdentifier
+        token: A
+      argumentList: ArgumentList
+        leftParenthesis: (
+        arguments
+          IntegerLiteral
+            literal: 0
+        rightParenthesis: )
+    semicolon: ;
+''');
+  }
+
+  test_constructor_factoryHead_unnamed_const() {
+    var parseResult = parseStringWithErrors(r'''
+extension type A(int it) {
+  const factory () = B;
+}
+''');
+    parseResult.assertNoErrors();
+
+    var node = parseResult.findNode.singleConstructorDeclaration;
+    assertParsedNodeText(node, r'''
+ConstructorDeclaration
+  constKeyword: const
+  factoryKeyword: factory
+  parameters: FormalParameterList
+    leftParenthesis: (
+    rightParenthesis: )
+  separator: =
+  redirectedConstructor: ConstructorName
+    type: NamedType
+      name: B
+  body: EmptyFunctionBody
+    semicolon: ;
+''');
+  }
+
+  test_constructor_newHead_named() {
+    var parseResult = parseStringWithErrors(r'''
+extension type A(int it) {
+  new named() : this.it = 0;
+}
+''');
+    parseResult.assertNoErrors();
+
+    var node = parseResult.findNode.singleConstructorDeclaration;
+    assertParsedNodeText(node, r'''
+ConstructorDeclaration
+  newKeyword: new
+  name: named
+  parameters: FormalParameterList
+    leftParenthesis: (
+    rightParenthesis: )
+  separator: :
+  initializers
+    ConstructorFieldInitializer
+      thisKeyword: this
+      period: .
+      fieldName: SimpleIdentifier
+        token: it
+      equals: =
+      expression: IntegerLiteral
+        literal: 0
+  body: EmptyFunctionBody
+    semicolon: ;
+''');
+  }
+
+  test_constructor_newHead_named_const() {
+    var parseResult = parseStringWithErrors(r'''
+extension type A(int it) {
+  const new named() : this.it = 0;
+}
+''');
+    parseResult.assertNoErrors();
+
+    var node = parseResult.findNode.singleConstructorDeclaration;
+    assertParsedNodeText(node, r'''
+ConstructorDeclaration
+  constKeyword: const
+  newKeyword: new
+  name: named
+  parameters: FormalParameterList
+    leftParenthesis: (
+    rightParenthesis: )
+  separator: :
+  initializers
+    ConstructorFieldInitializer
+      thisKeyword: this
+      period: .
+      fieldName: SimpleIdentifier
+        token: it
+      equals: =
+      expression: IntegerLiteral
+        literal: 0
+  body: EmptyFunctionBody
+    semicolon: ;
+''');
+  }
+
+  test_constructor_newHead_unnamed() {
+    var parseResult = parseStringWithErrors(r'''
+extension type A(int it) {
+  new () : this.it = 0;
+}
+''');
+    parseResult.assertNoErrors();
+
+    var node = parseResult.findNode.singleConstructorDeclaration;
+    assertParsedNodeText(node, r'''
+ConstructorDeclaration
+  newKeyword: new
+  parameters: FormalParameterList
+    leftParenthesis: (
+    rightParenthesis: )
+  separator: :
+  initializers
+    ConstructorFieldInitializer
+      thisKeyword: this
+      period: .
+      fieldName: SimpleIdentifier
+        token: it
+      equals: =
+      expression: IntegerLiteral
+        literal: 0
+  body: EmptyFunctionBody
+    semicolon: ;
+''');
+  }
+
+  test_constructor_newHead_unnamed_const() {
+    var parseResult = parseStringWithErrors(r'''
+extension type A(int it) {
+  const new () : this.it = 0;
+}
+''');
+    parseResult.assertNoErrors();
+
+    var node = parseResult.findNode.singleConstructorDeclaration;
+    assertParsedNodeText(node, r'''
+ConstructorDeclaration
+  constKeyword: const
+  newKeyword: new
+  parameters: FormalParameterList
+    leftParenthesis: (
+    rightParenthesis: )
+  separator: :
+  initializers
+    ConstructorFieldInitializer
+      thisKeyword: this
+      period: .
+      fieldName: SimpleIdentifier
+        token: it
+      equals: =
+      expression: IntegerLiteral
+        literal: 0
+  body: EmptyFunctionBody
+    semicolon: ;
+''');
+  }
+
+  test_constructor_typeName_factory_named() {
+    var parseResult = parseStringWithErrors(r'''
+extension type A(int it) {
+  factory A.named() => A(0);
+}
+''');
+    parseResult.assertNoErrors();
+
+    var node = parseResult.findNode.singleConstructorDeclaration;
+    assertParsedNodeText(node, r'''
+ConstructorDeclaration
+  factoryKeyword: factory
+  typeName: SimpleIdentifier
+    token: A
+  period: .
+  name: named
+  parameters: FormalParameterList
+    leftParenthesis: (
+    rightParenthesis: )
+  body: ExpressionFunctionBody
+    functionDefinition: =>
+    expression: MethodInvocation
+      methodName: SimpleIdentifier
+        token: A
+      argumentList: ArgumentList
+        leftParenthesis: (
+        arguments
+          IntegerLiteral
+            literal: 0
+        rightParenthesis: )
+    semicolon: ;
+''');
+  }
+
+  test_constructor_typeName_factory_unnamed() {
+    var parseResult = parseStringWithErrors(r'''
+extension type A(int it) {
+  factory A() => A(0);
+}
+''');
+    parseResult.assertNoErrors();
+
+    var node = parseResult.findNode.singleConstructorDeclaration;
+    assertParsedNodeText(node, r'''
+ConstructorDeclaration
+  factoryKeyword: factory
+  typeName: SimpleIdentifier
+    token: A
+  parameters: FormalParameterList
+    leftParenthesis: (
+    rightParenthesis: )
+  body: ExpressionFunctionBody
+    functionDefinition: =>
+    expression: MethodInvocation
+      methodName: SimpleIdentifier
+        token: A
+      argumentList: ArgumentList
+        leftParenthesis: (
+        arguments
+          IntegerLiteral
+            literal: 0
+        rightParenthesis: )
+    semicolon: ;
+''');
+  }
+
+  test_constructor_typeName_named() {
+    var parseResult = parseStringWithErrors(r'''
+extension type A(int it) {
+  A.named() : this.it = 0;
+}
+''');
+    parseResult.assertNoErrors();
+
+    var node = parseResult.findNode.singleConstructorDeclaration;
+    assertParsedNodeText(node, r'''
+ConstructorDeclaration
+  typeName: SimpleIdentifier
+    token: A
+  period: .
+  name: named
+  parameters: FormalParameterList
+    leftParenthesis: (
+    rightParenthesis: )
+  separator: :
+  initializers
+    ConstructorFieldInitializer
+      thisKeyword: this
+      period: .
+      fieldName: SimpleIdentifier
+        token: it
+      equals: =
+      expression: IntegerLiteral
+        literal: 0
+  body: EmptyFunctionBody
+    semicolon: ;
+''');
+  }
+
+  test_constructor_typeName_unnamed() {
+    var parseResult = parseStringWithErrors(r'''
+extension type A(int it) {
+  A() : this.it = 0;
+}
+''');
+    parseResult.assertNoErrors();
+
+    var node = parseResult.findNode.singleConstructorDeclaration;
+    assertParsedNodeText(node, r'''
+ConstructorDeclaration
+  typeName: SimpleIdentifier
+    token: A
+  parameters: FormalParameterList
+    leftParenthesis: (
+    rightParenthesis: )
+  separator: :
+  initializers
+    ConstructorFieldInitializer
+      thisKeyword: this
+      period: .
+      fieldName: SimpleIdentifier
+        token: it
+      equals: =
+      expression: IntegerLiteral
+        literal: 0
+  body: EmptyFunctionBody
+    semicolon: ;
+''');
+  }
+
   test_error_fieldModifier_const() {
     var parseResult = parseStringWithErrors(r'''
 extension type A(const int it) {}
