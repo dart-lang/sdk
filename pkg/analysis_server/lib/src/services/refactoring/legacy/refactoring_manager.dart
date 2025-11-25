@@ -111,6 +111,7 @@ class RefactoringManager {
     // process the request
     var file = params.file;
     if (server.sendResponseErrorIfInvalidFilePath(request, file)) {
+      this.request = null;
       return;
     }
 
@@ -178,6 +179,7 @@ class RefactoringManager {
           server.sendResponse(
             Response.serverError(request, exception, stackTrace),
           );
+          this.request = null;
         }
         _reset();
       },
