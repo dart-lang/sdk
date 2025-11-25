@@ -863,6 +863,7 @@ enum Funct3 {
   WIDTH16 = 0b001,
   WIDTH32 = 0b010,
   WIDTH64 = 0b011,
+  WIDTH128 = 0b100,
 
   H = 0b001,
   S = 0b010,
@@ -1007,6 +1008,7 @@ enum Funct5 {
   LOADORDERED = 0b00110,
   STOREORDERED = 0b00111,
   SSAMOSWAP = 0b01001,
+  AMOCAS = 0b00101,
 };
 
 enum Funct2 {
@@ -1906,6 +1908,7 @@ static constexpr Extension RV_Zicfiss(15);  // Shadow stack
 static constexpr Extension RV_Zabha(16);    // Byte and halfword AMOs
 static constexpr Extension RV_Zalasr(17);   // Load-acquire, store-release
 static constexpr Extension RV_Zfhmin(18);   // Load-acquire, store-release
+static constexpr Extension RV_Zacas(19);    // Compare-and-swap
 
 #if defined(DART_TARGET_OS_ANDROID)
 static constexpr ExtensionSet RV_baseline = RVA23;

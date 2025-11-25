@@ -8852,6 +8852,74 @@ ASSEMBLER_TEST_RUN(StoreDoubleWordRelease, test) {
 }
 #endif  // XLEN >= 64
 
+ASSEMBLER_TEST_GENERATE(AmoCompareAndSwapWord, assembler) {
+  __ SetExtensions(RV_GC | RV_Zacas);
+  __ lw(A1, Address(A0));
+  Label retry;
+  __ Bind(&retry);
+  __ addi(A2, A1, 1);
+  __ mv(A3, A1);
+  __ amocasw(A1, A2, Address(A0), std::memory_order_relaxed);
+  __ bne(A1, A3, &retry);
+  __ ret();
+}
+ASSEMBLER_TEST_RUN(AmoCompareAndSwapWord, test) {
+  EXPECT_DISASSEMBLY(
+      "    410c lw a1, 0(a0)\n"
+      "00158613 addi a2, a1, 1\n"
+      "    86ae mv tmp, a1\n"
+      "28c525af amocas.w a1, a2, (a0)\n"
+      "fed59be3 bne a1, tmp, -10\n"
+      "    8082 ret\n");
+
+  int32_t counter = 0;
+  Call(test->entry(), reinterpret_cast<intx_t>(&counter));
+  EXPECT_EQ(1, counter);
+  Call(test->entry(), reinterpret_cast<intx_t>(&counter));
+  EXPECT_EQ(2, counter);
+  Call(test->entry(), reinterpret_cast<intx_t>(&counter));
+  EXPECT_EQ(3, counter);
+}
+
+#if XLEN >= 64
+ASSEMBLER_TEST_GENERATE(AmoCompareAndSwapDoubleWord, assembler) {
+  __ SetExtensions(RV_GC | RV_Zacas);
+  __ ld(A1, Address(A0));
+  Label retry;
+  __ Bind(&retry);
+  __ addi(A2, A1, 1);
+  __ mv(A3, A1);
+  __ amocasd(A1, A2, Address(A0), std::memory_order_relaxed);
+  __ bne(A1, A3, &retry);
+  __ ret();
+}
+ASSEMBLER_TEST_RUN(AmoCompareAndSwapDoubleWord, test) {
+  EXPECT_DISASSEMBLY(
+      "    610c ld a1, 0(a0)\n"
+      "00158613 addi a2, a1, 1\n"
+      "    86ae mv tmp, a1\n"
+      "28c535af amocas.d a1, a2, (a0)\n"
+      "fed59be3 bne a1, tmp, -10\n"
+      "    8082 ret\n");
+
+  int64_t counter = 0;
+  Call(test->entry(), reinterpret_cast<intx_t>(&counter));
+  EXPECT_EQ(1, counter);
+  Call(test->entry(), reinterpret_cast<intx_t>(&counter));
+  EXPECT_EQ(2, counter);
+  Call(test->entry(), reinterpret_cast<intx_t>(&counter));
+  EXPECT_EQ(3, counter);
+}
+
+ASSEMBLER_TEST_GENERATE(AmoCompareAndSwapQuadWord, assembler) {
+  __ SetExtensions(RV_GC | RV_Zacas);
+  __ amocasq(T1, T3, Address(A0), std::memory_order_acq_rel);
+}
+ASSEMBLER_TEST_RUN(AmoCompareAndSwapQuadWord, test) {
+  EXPECT_DISASSEMBLY("2fc5432f amocas.q.aqrl t1, t3, (a0)\n");
+}
+#endif
+
 ASSEMBLER_TEST_GENERATE(ShadowStack, assembler) {
   __ SetExtensions(RV_G | RV_Zicfiss);
   Label f;

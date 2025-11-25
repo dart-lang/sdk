@@ -753,6 +753,22 @@ class MicroAssembler : public AssemblerBase {
   void sd(Register rs2, Address addr, std::memory_order order);
 #endif
 
+  // ==== Zacas: Compare-and-swap ====
+  void amocasw(Register rd,
+               Register rs2,
+               Address addr,
+               std::memory_order order = std::memory_order_relaxed);
+  void amocasd(Register rd,
+               Register rs2,
+               Address addr,
+               std::memory_order order = std::memory_order_relaxed);
+#if XLEN >= 64
+  void amocasq(Register rd,
+               Register rs2,
+               Address addr,
+               std::memory_order order = std::memory_order_relaxed);
+#endif
+
   // ==== Dart Simulator Debugging ====
   void SimulatorPrintObject(Register rs1);
 
