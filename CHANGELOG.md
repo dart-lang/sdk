@@ -1,3 +1,12 @@
+## 3.10.3
+
+This is a patch release that:
+
+- Fixes an issue with the color picker not working with dot shorthands. (issue
+   [Dart-Code/Dart-Code#61978])
+
+[Dart-Code/Dart-Code#61978]: https://github.com/Dart-Code/Dart-Code/issues/5810
+
 ## 3.10.2
 
 **Released on:** 2025-11-25

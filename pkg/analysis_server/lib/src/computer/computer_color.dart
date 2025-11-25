@@ -72,15 +72,23 @@ class ColorComputer {
   /// This handles constructor calls that cannot be evaluated (for example
   /// because they are not const) but are simple well-known dart:ui/Flutter
   /// color constructors that we can manually parse.
-  bool tryAddKnownColorConstructor(InstanceCreationExpression expression) {
+  bool tryAddKnownColorConstructor(
+    // InvocationExpression or InstanceCreationExpression
+    Expression expression,
+    ConstructorReferenceNode? constructor,
+    ArgumentList argumentList,
+  ) {
     if (!expression.staticType.isColor) return false;
 
-    var constructor = expression.constructorName;
-    var staticElement = constructor.element;
-    var classElement = staticElement?.enclosingElement;
+    var classElement = constructor?.element?.enclosingElement;
     var className = classElement?.name;
-    var constructorName = constructor.name?.name;
-    var constructorArgs = expression.argumentList.arguments.toList();
+    var constructorName = constructor?.element?.name;
+    var constructorArgs = argumentList.arguments.toList();
+
+    // Handle `.new` constructors the same as if called without `.new`.
+    if (constructorName == 'new') {
+      constructorName = null;
+    }
 
     ColorInformation? color;
     if (_isDartUi(classElement) && className == 'Color') {
@@ -340,6 +348,19 @@ class _ColorBuilder extends RecursiveAstVisitor<void> {
   _ColorBuilder(this.computer);
 
   @override
+  void visitDotShorthandConstructorInvocation(
+    DotShorthandConstructorInvocation node,
+  ) {
+    if (!computer.tryAddColor(node)) {
+      // If we couldn't evaluate the constant, try the well-known color
+      // constructors for dart:ui/Flutter.
+      computer.tryAddKnownColorConstructor(node, node, node.argumentList);
+    }
+
+    super.visitDotShorthandConstructorInvocation(node);
+  }
+
+  @override
   void visitIndexExpression(IndexExpression node) {
     // Colors.redAccent[500].
     var index = node.index;
@@ -363,7 +384,11 @@ class _ColorBuilder extends RecursiveAstVisitor<void> {
     if (!computer.tryAddColor(node)) {
       // If we couldn't evaluate the constant, try the well-known color
       // constructors for dart:ui/Flutter.
-      computer.tryAddKnownColorConstructor(node);
+      computer.tryAddKnownColorConstructor(
+        node,
+        node.constructorName,
+        node.argumentList,
+      );
     }
 
     super.visitInstanceCreationExpression(node);
