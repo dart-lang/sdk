@@ -8,7 +8,6 @@ analyzer:
 linter:
   rules:
     - always_declare_return_types
-    - always_require_non_null_named_parameters
     - annotate_overrides
     - avoid_empty_else
     - avoid_function_literals_in_foreach_calls
@@ -17,8 +16,6 @@ linter:
     - avoid_relative_lib_imports
     - avoid_renaming_method_parameters
     - avoid_return_types_on_setters
-    - avoid_returning_null
-    - avoid_returning_null_for_future
     - avoid_shadowing_type_parameters
     - avoid_types_as_parameter_names
     - avoid_unused_constructor_parameters
@@ -54,7 +51,6 @@ linter:
     - prefer_conditional_assignment
     - prefer_const_constructors
     - prefer_contains
-    - prefer_equal_for_default_values
     - prefer_final_fields
     - prefer_final_locals
     - prefer_for_elements_to_map_fromIterable
