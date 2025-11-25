@@ -69072,6 +69072,136 @@ class A {
     );
   }
 
+  test_manifest_class_method_topMerge_mixins_interfaces() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+abstract class A {
+  Future<void> foo();
+}
+
+abstract mixin class B implements A {
+  Future<dynamic> foo() async {}
+}
+
+abstract mixin class C implements A {}
+
+class D with B, C implements A {}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    hashForRequirements: #H0
+    declaredClasses
+      A: #M0
+        declaredMethods
+          foo: #M1
+        interface: #M2
+          map
+            foo: #M1
+      B: #M3
+        declaredMethods
+          foo: #M4
+        interface: #M5
+          map
+            foo: #M4
+          implemented
+            foo: #M4
+          inherited
+            foo: #M1
+      C: #M6
+        interface: #M7
+          map
+            foo: #M1
+          inherited
+            foo: #M1
+      D: #M8
+        interface: #M9
+          map
+            foo: #M10
+          combinedIds
+            [#M4, #M1]: #M10
+          implemented
+            foo: #M4
+          superImplemented
+            [1]
+              foo: #M4
+            [2]
+              foo: #M4
+          inherited
+            foo: #M10
+    exportMapId: #M11
+    exportMap
+      A: #M0
+      B: #M3
+      C: #M6
+      D: #M8
+''',
+      updatedCode: r'''
+abstract class A {
+  Future<void> foo();
+}
+
+abstract mixin class B implements A {
+  Future<int> foo() async {} // was Future<dynamic>
+}
+
+abstract mixin class C implements A {}
+
+class D with B, C implements A {}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    hashForRequirements: #H1
+    declaredClasses
+      A: #M0
+        declaredMethods
+          foo: #M1
+        interface: #M2
+          map
+            foo: #M1
+      B: #M3
+        declaredMethods
+          foo: #M12
+        interface: #M13
+          map
+            foo: #M12
+          implemented
+            foo: #M12
+          inherited
+            foo: #M1
+      C: #M6
+        interface: #M7
+          map
+            foo: #M1
+          inherited
+            foo: #M1
+      D: #M8
+        interface: #M14
+          map
+            foo: #M15
+          combinedIds
+            [#M12, #M1]: #M15
+          implemented
+            foo: #M12
+          superImplemented
+            [1]
+              foo: #M12
+            [2]
+              foo: #M12
+          inherited
+            foo: #M12
+    exportMapId: #M11
+    exportMap
+      A: #M0
+      B: #M3
+      C: #M6
+      D: #M8
+''',
+    );
+  }
+
   test_manifest_class_method_typeParameter() async {
     configuration.withElementManifests = true;
     await _runLibraryManifestScenario(

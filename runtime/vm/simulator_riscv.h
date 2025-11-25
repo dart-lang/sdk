@@ -266,6 +266,7 @@ class Simulator {
   void InterpretAMO16(Instr instr);
   void InterpretAMO32(Instr instr);
   void InterpretAMO64(Instr instr);
+  void InterpretAMO128(Instr instr);
   template <typename type>
   void InterpretLR(Instr instr);
   template <typename type>
@@ -292,6 +293,8 @@ class Simulator {
   void InterpretLOADORDERED(Instr instr);
   template <typename type>
   void InterpretSTOREORDERED(Instr instr);
+  template <typename type>
+  void InterpretAMOCAS(Instr instr);
   void InterpretLOADFP(Instr instr);
   template <typename type>
   void InterpretLOADV(Instr instr);

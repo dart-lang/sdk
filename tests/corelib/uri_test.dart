@@ -131,12 +131,47 @@ void testUriPerRFCs() {
   // Additional tests (not from RFC 3986).
   testResolve("http://a/b/g;p/h;s", "../g;p/h;s");
 
+  base = Uri.parse("http://a?q");
+  testResolve("http://a?p", "?p");
+  testResolve("http://a/b/c", "b/c");
+
+  base = Uri.parse("foo:/a/b?q");
+  testResolve("foo:/a/b?p", "?p");
+  testResolve("foo:/c", "../c");
+  testResolve("foo:/a/c", "c");
+  testResolve("foo:/c", "../../c");
+  testResolve("foo:/c", "/c");
+
   // Test non-URI base (no scheme, no authority, relative path).
   base = Uri.parse("a/b/c?_#_");
   testResolve("a/b/g?q#f", "g?q#f");
   testResolve("../", "../../..");
+  testResolve("./", "../..");
   testResolve("a/b/", ".");
   testResolve("c", "../../c");
+  testResolve("//foo/a", "//foo/a");
+  testResolve("a/b/c?_#f", "#f");
+  testResolve("a/b/c?q", "?q");
+  testResolve("a/b/c?q#c", "?q#c");
+  testResolve("a/b/c?_", "");
+  testResolve("/a", "/a");
+  testResolve("/b", "/a/../../b");
+
+  base = Uri.parse("/a/b?_#_");
+  testResolve("/a/c", "c");
+  testResolve("/c", "../../c");
+
+  base = Uri.parse("//foo/a");
+  testResolve("//foo/b", "b");
+  testResolve("//foo/", "..");
+  testResolve("//foo/c", "../c");
+  testResolve("s:/a/b", "s:/a/b");
+  testResolve("//bar/b", "//bar/b");
+
+  base = Uri.parse("?_#_");
+  testResolve("?q", "?q");
+  testResolve("?_#f", "#f");
+  testResolve("a/b", "a/b");
 
   base = Uri.parse("s:a/b");
   testResolve("s:/c", "../c");

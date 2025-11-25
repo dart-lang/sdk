@@ -35,26 +35,32 @@ class ColorComputerTest extends AbstractContextTest {
     // dart:ui Colors
     'Colors.white': 0xFFFFFFFF,
     'Color(0xFF0000FF)': 0xFF0000FF,
+    'Color.new(0xFF0000FF)': 0xFF0000FF,
     'Color.fromARGB(255, 0, 0, 255)': 0xFF0000FF,
     'Color.fromRGBO(0, 0, 255, 1)': 0xFF0000FF,
     'Color.fromRGBO(0, 0, 255, 1.0)': 0xFF0000FF,
     'Color.from(alpha: 1, red: 0.75, green: 0.5, blue: 0.25)': 0xFFBF8040,
     // dart:ui Colors with const keyword
     'const Color(0xFF0000FF)': 0xFF0000FF,
+    'const Color.new(0xFF0000FF)': 0xFF0000FF,
     'const Color.fromARGB(255, 0, 0, 255)': 0xFF0000FF,
     'const Color.fromRGBO(0, 0, 255, 1)': 0xFF0000FF,
     'const Color.fromRGBO(0, 0, 255, 1.0)': 0xFF0000FF,
     'const Color.from(alpha: 1, red: 0.75, green: 0.5, blue: 0.25)': 0xFFBF8040,
     // Flutter Painting
     'ColorSwatch(0xFF89ABCD, {})': 0xFF89ABCD,
+    'ColorSwatch.new(0xFF89ABCD, {})': 0xFF89ABCD,
     // Flutter Painting with const keyword
     'const ColorSwatch(0xFF89ABCD, {})': 0xFF89ABCD,
+    'const ColorSwatch.new(0xFF89ABCD, {})': 0xFF89ABCD,
     // Flutter Material
     'Colors.red': 0xFFFF0000,
     'Colors.redAccent': 0xFFFFAA00,
     'MaterialAccentColor(0xFF89ABCD, {})': 0xFF89ABCD,
+    'MaterialAccentColor.new(0xFF89ABCD, {})': 0xFF89ABCD,
     // Flutter Material with const keyword
     'const MaterialAccentColor(0xFF89ABCD, {})': 0xFF89ABCD,
+    'const MaterialAccentColor.new(0xFF89ABCD, {})': 0xFF89ABCD,
     // Flutter Cupertino
     'CupertinoColors.black': 0xFF000000,
     'CupertinoColors.systemBlue': 0xFF0000FF,
@@ -231,6 +237,19 @@ void f() {
 }
 ''';
     await checkAllColors(testCode);
+  }
+
+  Future<void> test_constructor_dotShorthand() async {
+    const testCode = '''
+void f() {
+  Color c1 = .new(0xFF000000);
+  Color c2 = .fromARGB(255, 0, 0, 0);
+}
+''';
+    await expectColors(testCode, {
+      '.new(0xFF000000)': 0xFF000000,
+      '.fromARGB(255, 0, 0, 0)': 0xFF000000,
+    });
   }
 
   Future<void> test_customClass() async {

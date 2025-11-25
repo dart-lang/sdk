@@ -829,7 +829,7 @@ class LegacyAnalysisServer extends AnalysisServer {
     bool fatal = false,
   }) {
     var msg = '$message: $exception';
-    if (stackTrace != null && exception is! CaughtException) {
+    if (stackTrace == null && exception is! CaughtException) {
       stackTrace = StackTrace.current;
     }
 

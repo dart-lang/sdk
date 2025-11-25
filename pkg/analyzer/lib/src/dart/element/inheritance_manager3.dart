@@ -405,7 +405,23 @@ class InheritanceManager3 {
       return null;
     }
 
-    (_combinedSignatures[targetClass] ??= {})[name] = candidates;
+    // https://github.com/flutter/flutter/issues/178925#issuecomment-3573399510
+    // TODO(scheglov): Consider having only one merge pass of candidates.
+    var expandedCandidates = candidates;
+    if (candidates.any((c) => c.enclosingElement == targetClass)) {
+      expandedCandidates = [];
+      for (var candidate in candidates) {
+        if (candidate.enclosingElement == targetClass) {
+          if (_combinedSignatures[targetClass]?[name] case var previous?) {
+            expandedCandidates.addAll(previous);
+            continue;
+          }
+        }
+        expandedCandidates.add(candidate);
+      }
+    }
+
+    (_combinedSignatures[targetClass] ??= {})[name] = expandedCandidates;
 
     return _topMerge(typeSystem, targetClass, validOverrides);
   }

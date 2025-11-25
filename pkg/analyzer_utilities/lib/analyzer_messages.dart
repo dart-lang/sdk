@@ -15,7 +15,8 @@ import 'package:analyzer_utilities/located_error.dart';
 import 'package:analyzer_utilities/messages.dart';
 import 'package:analyzer_utilities/tools.dart';
 import 'package:path/path.dart';
-import 'package:yaml/yaml.dart' show YamlMap, YamlScalar, loadYamlNode;
+import 'package:yaml/yaml.dart'
+    show YamlMap, YamlScalar, loadYamlNode, YamlNode;
 
 /// Base diagnostic classes used for analyzer messages.
 const analyzerBaseClasses = DiagnosticBaseClasses(
@@ -386,6 +387,10 @@ enum AnalyzerDiagnosticType {
   syntacticError,
   todo;
 
+  static final Map<String, AnalyzerDiagnosticType> _stringToValue = {
+    for (var value in values) value.name: value,
+  };
+
   /// Base classes used for messages of this type.
   final DiagnosticBaseClasses baseClasses;
 
@@ -393,6 +398,8 @@ enum AnalyzerDiagnosticType {
 
   /// The representation of this type in analyzer source code.
   String get code => 'DiagnosticType.${name.toSnakeCase().toUpperCase()}';
+
+  static AnalyzerDiagnosticType? fromString(String s) => _stringToValue[s];
 }
 
 /// In-memory representation of diagnostic information obtained from the
@@ -406,6 +413,9 @@ class AnalyzerMessage extends Message with MessageWithAnalyzerCode {
 
   @override
   final AnalyzerDiagnosticPackage package;
+
+  @override
+  final AnalyzerDiagnosticType? type;
 
   factory AnalyzerMessage(
     MessageYaml messageYaml, {
@@ -437,6 +447,11 @@ class AnalyzerMessage extends Message with MessageWithAnalyzerCode {
     required bool allowLinterKeys,
     required this.package,
   }) : hasPublishedDocs = messageYaml.getBool('hasPublishedDocs'),
+       type = messageYaml.get(
+         'type',
+         decode: MessageWithAnalyzerCode.decodeType,
+         ifAbsent: () => null,
+       ),
        super(messageYaml) {
     // Ignore extra keys related to analyzer example-based tests.
     messageYaml.allowExtraKeys({'experiment'});
@@ -580,6 +595,10 @@ mixin MessageWithAnalyzerCode on Message {
   /// The package into which this error code will be generated.
   AnalyzerDiagnosticPackage get package;
 
+  /// The type of this diagnostic, if present in `messages.yaml`. Otherwise
+  /// `null`.
+  AnalyzerDiagnosticType? get type;
+
   void outputConstantHeader(StringSink out) {
     out.write(toAnalyzerComments(indent: '  '));
     if (deprecatedMessage != null) {
@@ -712,4 +731,11 @@ LocatableDiagnostic $withArgumentsName({$withArgumentsParams}) {
     // But we also need to escape `$`.
     return jsonEncoded.replaceAll(r'$', r'\$');
   }
+
+  static AnalyzerDiagnosticType decodeType(YamlNode node) => switch (node) {
+    YamlScalar(:String value) =>
+      AnalyzerDiagnosticType.fromString(value) ??
+          (throw 'Unknown analyzer diagnostic type'),
+    _ => throw 'Must be a bool',
+  };
 }

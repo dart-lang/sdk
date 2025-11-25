@@ -559,7 +559,7 @@ class LspAnalysisServer extends AnalysisServer {
         logException(errorMessage, error, stackTrace);
         completer?.setComplete();
       }
-    }, socketError);
+    }, unhandledZoneError);
   }
 
   /// Logs the error on the client using window/logMessage.
@@ -991,8 +991,20 @@ class LspAnalysisServer extends AnalysisServer {
   /// There was an error related to the socket from which messages are being
   /// read.
   void socketError(Object error, StackTrace? stackTrace) {
-    // Don't send to instrumentation service; not an internal error.
+    // Don't send to instrumentation service; not an internal error. Probably
+    // caused by server shutdown or similar.
     sendServerErrorNotification('Socket error', error, stackTrace);
+  }
+
+  /// There was an unhandled async error in the zone used to execute the
+  /// message handler.
+  void unhandledZoneError(Object error, StackTrace? stackTrace) {
+    // Record to the instrumentation log so the stack trace is accessible. This
+    // is an unhandled exception that was not awaited and is almost certainly a
+    // bug.
+    instrumentationService.logException(error, stackTrace);
+
+    sendServerErrorNotification('Unhandled handler error', error, stackTrace);
   }
 
   /// Updates the active set of workspace folders.

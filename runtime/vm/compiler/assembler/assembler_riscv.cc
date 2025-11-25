@@ -2153,6 +2153,43 @@ void MicroAssembler::sd(Register rs2, Address addr, std::memory_order order) {
 }
 #endif
 
+void MicroAssembler::amocasw(Register rd,
+                             Register rs2,
+                             Address addr,
+                             std::memory_order order) {
+  ASSERT(addr.offset() == 0);
+  ASSERT(Supports(RV_Zacas));
+  EmitRType(AMOCAS, order, rs2, addr.base(), WIDTH32, rd, AMO);
+}
+
+void MicroAssembler::amocasd(Register rd,
+                             Register rs2,
+                             Address addr,
+                             std::memory_order order) {
+  ASSERT(addr.offset() == 0);
+#if XLEN == 32
+  ASSERT((rd % 2) == 0);
+  ASSERT((rs2 % 2) == 0);
+#endif
+  ASSERT(Supports(RV_Zacas));
+  EmitRType(AMOCAS, order, rs2, addr.base(), WIDTH64, rd, AMO);
+}
+
+#if XLEN >= 64
+void MicroAssembler::amocasq(Register rd,
+                             Register rs2,
+                             Address addr,
+                             std::memory_order order) {
+  ASSERT(addr.offset() == 0);
+#if XLEN == 64
+  ASSERT((rd % 2) == 0);
+  ASSERT((rs2 % 2) == 0);
+#endif
+  ASSERT(Supports(RV_Zacas));
+  EmitRType(AMOCAS, order, rs2, addr.base(), WIDTH128, rd, AMO);
+}
+#endif
+
 void MicroAssembler::c_lwsp(Register rd, Address addr) {
   ASSERT(rd != ZR);
   ASSERT(addr.base() == SP);

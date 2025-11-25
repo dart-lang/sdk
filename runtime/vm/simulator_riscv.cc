@@ -5,6 +5,8 @@
 #include <setjmp.h>  // NOLINT
 #include <stdlib.h>
 
+#include <cmath>
+
 #include "vm/globals.h"
 #if defined(TARGET_ARCH_RISCV32) || defined(TARGET_ARCH_RISCV64)
 
@@ -2381,9 +2383,13 @@ void Simulator::InterpretAMO(Instr instr) {
     case WIDTH64:
       InterpretAMO64(instr);
       break;
+    case WIDTH128:
+      InterpretAMO128(instr);
+      break;
     default:
       IllegalInstruction(instr);
   }
+  pc_ += instr.length();
 }
 
 // Note: This implementation does not give full LR/SC semantics because it
@@ -2546,6 +2552,19 @@ void Simulator::InterpretSTOREORDERED(Instr instr) {
   atomic->store(value, instr.memory_order());
 }
 
+template <typename type>
+void Simulator::InterpretAMOCAS(Instr instr) {
+  uintx_t addr = get_xreg(instr.rs1());
+  if ((addr & (sizeof(type) - 1)) != 0) {
+    FATAL("Misaligned atomic memory operation");
+  }
+  type expected = get_xreg(instr.rd());
+  type desired = get_xreg(instr.rs2());
+  std::atomic<type>* atomic = reinterpret_cast<std::atomic<type>*>(addr);
+  atomic->compare_exchange_weak(expected, desired, instr.memory_order());
+  set_xreg(instr.rd(), expected);
+}
+
 void Simulator::InterpretAMO8(Instr instr) {
   switch (instr.funct5()) {
     case AMOSWAP:
@@ -2584,7 +2603,6 @@ void Simulator::InterpretAMO8(Instr instr) {
     default:
       IllegalInstruction(instr);
   }
-  pc_ += instr.length();
 }
 
 void Simulator::InterpretAMO16(Instr instr) {
@@ -2625,7 +2643,6 @@ void Simulator::InterpretAMO16(Instr instr) {
     default:
       IllegalInstruction(instr);
   }
-  pc_ += instr.length();
 }
 
 void Simulator::InterpretAMO32(Instr instr) {
@@ -2669,10 +2686,12 @@ void Simulator::InterpretAMO32(Instr instr) {
     case STOREORDERED:
       InterpretSTOREORDERED<int32_t>(instr);
       break;
+    case AMOCAS:
+      InterpretAMOCAS<int32_t>(instr);
+      break;
     default:
       IllegalInstruction(instr);
   }
-  pc_ += instr.length();
 }
 
 void Simulator::InterpretAMO64(Instr instr) {
@@ -2717,11 +2736,30 @@ void Simulator::InterpretAMO64(Instr instr) {
     case STOREORDERED:
       InterpretSTOREORDERED<int64_t>(instr);
       break;
+    case AMOCAS:
+      InterpretAMOCAS<int64_t>(instr);
+      break;
+#endif  // XLEN >= 64
+#if XLEN == 32
+    case AMOCAS:
+      UNIMPLEMENTED();  // Need double-wide CAS from host.
+      break;
+#endif
+    default:
+      IllegalInstruction(instr);
+  }
+}
+
+void Simulator::InterpretAMO128(Instr instr) {
+  switch (instr.funct5()) {
+#if XLEN >= 64
+    case AMOCAS:
+      UNIMPLEMENTED();  // Need double-wide CAS from host.
+      break;
 #endif  // XLEN >= 64
     default:
       IllegalInstruction(instr);
   }
-  pc_ += instr.length();
 }
 
 void Simulator::InterpretFMADD(Instr instr) {
@@ -2730,14 +2768,14 @@ void Simulator::InterpretFMADD(Instr instr) {
       float rs1 = get_fregs(instr.frs1());
       float rs2 = get_fregs(instr.frs2());
       float rs3 = get_fregs(instr.frs3());
-      set_fregs(instr.frd(), (rs1 * rs2) + rs3);
+      set_fregs(instr.frd(), std::fma(rs1, rs2, rs3));
       break;
     }
     case F2_D: {
       double rs1 = get_fregd(instr.frs1());
       double rs2 = get_fregd(instr.frs2());
       double rs3 = get_fregd(instr.frs3());
-      set_fregd(instr.frd(), (rs1 * rs2) + rs3);
+      set_fregd(instr.frd(), std::fma(rs1, rs2, rs3));
       break;
     }
     default:
@@ -2752,14 +2790,14 @@ void Simulator::InterpretFMSUB(Instr instr) {
       float rs1 = get_fregs(instr.frs1());
       float rs2 = get_fregs(instr.frs2());
       float rs3 = get_fregs(instr.frs3());
-      set_fregs(instr.frd(), (rs1 * rs2) - rs3);
+      set_fregs(instr.frd(), std::fma(rs1, rs2, -rs3));
       break;
     }
     case F2_D: {
       double rs1 = get_fregd(instr.frs1());
       double rs2 = get_fregd(instr.frs2());
       double rs3 = get_fregd(instr.frs3());
-      set_fregd(instr.frd(), (rs1 * rs2) - rs3);
+      set_fregd(instr.frd(), std::fma(rs1, rs2, -rs3));
       break;
     }
     default:
@@ -2774,14 +2812,14 @@ void Simulator::InterpretFNMSUB(Instr instr) {
       float rs1 = get_fregs(instr.frs1());
       float rs2 = get_fregs(instr.frs2());
       float rs3 = get_fregs(instr.frs3());
-      set_fregs(instr.frd(), -(rs1 * rs2) + rs3);
+      set_fregs(instr.frd(), -std::fma(rs1, rs2, -rs3));
       break;
     }
     case F2_D: {
       double rs1 = get_fregd(instr.frs1());
       double rs2 = get_fregd(instr.frs2());
       double rs3 = get_fregd(instr.frs3());
-      set_fregd(instr.frd(), -(rs1 * rs2) + rs3);
+      set_fregd(instr.frd(), -std::fma(rs1, rs2, -rs3));
       break;
     }
     default:
@@ -2796,14 +2834,14 @@ void Simulator::InterpretFNMADD(Instr instr) {
       float rs1 = get_fregs(instr.frs1());
       float rs2 = get_fregs(instr.frs2());
       float rs3 = get_fregs(instr.frs3());
-      set_fregs(instr.frd(), -(rs1 * rs2) - rs3);
+      set_fregs(instr.frd(), -std::fma(rs1, rs2, rs3));
       break;
     }
     case F2_D: {
       double rs1 = get_fregd(instr.frs1());
       double rs2 = get_fregd(instr.frs2());
       double rs3 = get_fregd(instr.frs3());
-      set_fregd(instr.frd(), -(rs1 * rs2) - rs3);
+      set_fregd(instr.frd(), -std::fma(rs1, rs2, rs3));
       break;
     }
     default:

@@ -8,6 +8,7 @@
 # See pkg/front_end/messages.yaml for documentation about this file.
 
 ExperimentNotEnabled:
+  type: syntacticError
   parameters:
     String string: undocumented
     String string2: undocumented
@@ -17,6 +18,7 @@ ExperimentNotEnabled:
   hasPublishedDocs: false
 
 ExperimentNotEnabledOffByDefault:
+  type: syntacticError
   parameters:
     String string: undocumented
   problemMessage: "This requires the experimental '#string' language feature to be enabled."
@@ -30,6 +32,7 @@ ExperimentNotEnabledOffByDefault:
     }
 
 RecordLiteralOnePositionalFieldNoTrailingComma:
+  type: syntacticError
   parameters: none
   problemMessage: "A record literal with exactly one positional field requires a trailing comma."
   correctionMessage: "Try adding a trailing comma."
@@ -67,6 +70,7 @@ RecordLiteralOnePositionalFieldNoTrailingComma:
     }
 
 RecordLiteralZeroFieldsWithTrailingComma:
+  type: syntacticError
   parameters: none
   problemMessage: "A record literal without fields can't have a trailing comma."
   correctionMessage: "Try removing the trailing comma."
@@ -107,6 +111,7 @@ RecordLiteralZeroFieldsWithTrailingComma:
     }
 
 EmptyRecordTypeNamedFieldsList:
+  type: syntacticError
   parameters: none
   problemMessage: "The list of named fields in a record type can't be empty."
   correctionMessage: "Try adding a named field to the list."
@@ -148,6 +153,7 @@ EmptyRecordTypeNamedFieldsList:
     }
 
 RecordTypeZeroFieldsButTrailingComma:
+  type: syntacticError
   parameters: none
   problemMessage: "A record type without fields can't have a trailing comma."
   correctionMessage: "Try removing the trailing comma."
@@ -188,6 +194,7 @@ RecordTypeZeroFieldsButTrailingComma:
     }
 
 RecordTypeOnePositionalFieldNoTrailingComma:
+  type: syntacticError
   parameters: none
   problemMessage: "A record type with exactly one positional field requires a trailing comma."
   correctionMessage: "Try adding a trailing comma."
@@ -225,6 +232,7 @@ RecordTypeOnePositionalFieldNoTrailingComma:
     }
 
 ExpectedElseOrComma:
+  type: syntacticError
   parameters: none
   problemMessage: "Expected 'else' or comma."
   analyzerCode: ParserErrorCode.EXPECTED_ELSE_OR_COMMA
@@ -238,6 +246,7 @@ ExpectedElseOrComma:
     }
 
 ExpectedStatement:
+  type: syntacticError
   parameters: none
   problemMessage: "Expected a statement."
   analyzerCode: ParserErrorCode.MISSING_STATEMENT
@@ -245,6 +254,7 @@ ExpectedStatement:
   statement: "void;"
 
 ExpectedInstead:
+  type: syntacticError
   parameters:
     String string: undocumented
   problemMessage: "Expected '#string' instead of this."
@@ -269,6 +279,7 @@ ExpectedInstead:
     - "class B {} mixin A extends B { }"
 
 MultipleLibraryDirectives:
+  type: syntacticError
   parameters: none
   problemMessage: "Only one library directive may be declared in a file."
   correctionMessage: "Try removing all but one of the library directives."
@@ -279,6 +290,7 @@ MultipleLibraryDirectives:
     library bar;
 
 MultipleExtends:
+  type: syntacticError
   parameters: none
   problemMessage: "Each class definition can have at most one extends clause."
   correctionMessage: "Try choosing one superclass and define your class to implement (or mix in) the others."
@@ -289,6 +301,7 @@ MultipleExtends:
     - "class B{} class C{} class A extends B, C {}"
 
 MultipleWith:
+  type: syntacticError
   parameters: none
   problemMessage: "Each class definition can have at most one with clause."
   correctionMessage: "Try combining all of the with clauses into a single clause."
@@ -298,6 +311,7 @@ MultipleWith:
   exampleAllowOtherCodes: true
 
 WithBeforeExtends:
+  type: syntacticError
   parameters: none
   problemMessage: "The extends clause must be before the with clause."
   correctionMessage: "Try moving the extends clause before the with clause."
@@ -306,6 +320,7 @@ WithBeforeExtends:
   script: "mixin B {} class C {} class A with B extends C {}"
 
 ImplementsBeforeExtends:
+  type: syntacticError
   parameters: none
   problemMessage: "The extends clause must be before the implements clause."
   correctionMessage: "Try moving the extends clause before the implements clause."
@@ -315,6 +330,7 @@ ImplementsBeforeExtends:
   exampleAllowOtherCodes: true
 
 ImplementsBeforeOn:
+  type: syntacticError
   parameters: none
   problemMessage: "The on clause must be before the implements clause."
   correctionMessage: "Try moving the on clause before the implements clause."
@@ -324,6 +340,7 @@ ImplementsBeforeOn:
   exampleAllowOtherCodes: true
 
 ImplementsBeforeWith:
+  type: syntacticError
   parameters: none
   problemMessage: "The with clause must be before the implements clause."
   correctionMessage: "Try moving the with clause before the implements clause."
@@ -333,6 +350,7 @@ ImplementsBeforeWith:
   exampleAllowOtherCodes: true
 
 MultipleClauses:
+  type: syntacticError
   parameters:
     String string: undocumented
     String string2: undocumented
@@ -345,6 +363,7 @@ MultipleClauses:
     - "mixin B {} enum A with B with C, D { v; }"
 
 OutOfOrderClauses:
+  type: syntacticError
   parameters:
     String string: undocumented
     String string2: undocumented
@@ -355,6 +374,7 @@ OutOfOrderClauses:
   script: "class B {} class D {} enum A implements B with D { v; }"
 
 MultipleOnClauses:
+  type: syntacticError
   parameters: none
   problemMessage: "Each mixin definition can have at most one on clause."
   correctionMessage: "Try combining all of the on clauses into a single clause."
@@ -364,6 +384,7 @@ MultipleOnClauses:
   exampleAllowOtherCodes: true
 
 MixinWithClause:
+  type: syntacticError
   parameters: none
   problemMessage: "A mixin can't have a with clause."
   analyzerCode: ParserErrorCode.MIXIN_WITH_CLAUSE
@@ -371,6 +392,7 @@ MixinWithClause:
   script: "mixin M {} mixin N with M {}"
 
 ExpectedClassBody:
+  type: syntacticError
   parameters: none
   problemMessage: "A class declaration must have a body, even if it is empty."
   correctionMessage: "Try adding an empty body."
@@ -381,6 +403,7 @@ ExpectedClassBody:
     class Class
 
 ExpectedMixinBody:
+  type: syntacticError
   parameters: none
   problemMessage: "A mixin declaration must have a body, even if it is empty."
   correctionMessage: "Try adding an empty body."
@@ -391,6 +414,7 @@ ExpectedMixinBody:
     mixin Mixin
 
 ExpectedExtensionBody:
+  type: syntacticError
   parameters: none
   problemMessage: "An extension declaration must have a body, even if it is empty."
   correctionMessage: "Try adding an empty body."
@@ -401,6 +425,7 @@ ExpectedExtensionBody:
     extension Extension on int
 
 ExpectedExtensionTypeBody:
+  type: syntacticError
   parameters: none
   problemMessage: "An extension type declaration must have a body, even if it is empty."
   correctionMessage: "Try adding an empty body."
@@ -411,6 +436,7 @@ ExpectedExtensionTypeBody:
     extension type ExtensionType(int i)
 
 ExpectedTryStatementBody:
+  type: syntacticError
   parameters: none
   problemMessage: "A try statement must have a body, even if it is empty."
   correctionMessage: "Try adding an empty body."
@@ -423,6 +449,7 @@ ExpectedTryStatementBody:
     }
 
 ExpectedCatchClauseBody:
+  type: syntacticError
   parameters: none
   problemMessage: "A catch clause must have a body, even if it is empty."
   correctionMessage: "Try adding an empty body."
@@ -435,6 +462,7 @@ ExpectedCatchClauseBody:
     }
 
 ExpectedFinallyClauseBody:
+  type: syntacticError
   parameters: none
   problemMessage: "A finally clause must have a body, even if it is empty."
   correctionMessage: "Try adding an empty body."
@@ -447,6 +475,7 @@ ExpectedFinallyClauseBody:
     }
 
 ExpectedSwitchExpressionBody:
+  type: syntacticError
   parameters: none
   problemMessage: "A switch expression must have a body, even if it is empty."
   correctionMessage: "Try adding an empty body."
@@ -457,6 +486,7 @@ ExpectedSwitchExpressionBody:
     method(Never n) => switch (n);
 
 ExpectedSwitchStatementBody:
+  type: syntacticError
   parameters: none
   problemMessage: "A switch statement must have a body, even if it is empty."
   correctionMessage: "Try adding an empty body."
@@ -469,6 +499,7 @@ ExpectedSwitchStatementBody:
     }
 
 ExpectedIdentifierButGotKeyword:
+  type: syntacticError
   parameters:
     Token lexeme: undocumented
   problemMessage: "'#lexeme' can't be used as an identifier because it's a keyword."
@@ -478,6 +509,7 @@ ExpectedIdentifierButGotKeyword:
   script: "var default = 42;"
 
 EqualityCannotBeEqualityOperand:
+  type: syntacticError
   parameters: none
   problemMessage: "A comparison expression can't be an operand of another comparison expression."
   correctionMessage: "Try putting parentheses around one of the comparisons."
@@ -489,6 +521,7 @@ EqualityCannotBeEqualityOperand:
     - "main() { var b = a == b != c; }"
 
 VarAsTypeName:
+  type: syntacticError
   parameters: none
   problemMessage: "The keyword 'var' can't be used as a type name."
   analyzerCode: ParserErrorCode.VAR_AS_TYPE_NAME
@@ -498,6 +531,7 @@ VarAsTypeName:
   exampleAllowOtherCodes: true
 
 MissingExpressionInThrow:
+  type: syntacticError
   parameters: none
   problemMessage: "Missing expression after 'throw'."
   correctionMessage: "Add an expression after 'throw' or use 'rethrow' to throw a caught exception"
@@ -507,6 +541,7 @@ MissingExpressionInThrow:
     - "throw;"
 
 MissingConstFinalVarOrType:
+  type: syntacticError
   parameters: none
   problemMessage: "Variables must be declared using the keywords 'const', 'final', 'var' or a type name."
   correctionMessage: "Try adding the name of the type of the variable or the keyword 'var'."
@@ -516,6 +551,7 @@ MissingConstFinalVarOrType:
     - "class C { static f; }"
 
 FunctionTypedParameterVar:
+  type: syntacticError
   parameters: none
   problemMessage: "Function-typed parameters can't specify 'const', 'final' or 'var' in place of a return type."
   correctionMessage: "Try replacing the keyword with a return type."
@@ -528,6 +564,7 @@ FunctionTypedParameterVar:
   exampleAllowOtherCodes: true
 
 AbstractClassMember:
+  type: syntacticError
   parameters: none
   problemMessage: "Members of classes can't be declared to be 'abstract'."
   correctionMessage: "Try removing the 'abstract' keyword. You can add the 'abstract' keyword before the class declaration."
@@ -544,6 +581,7 @@ AbstractClassMember:
       abstract class C {abstract set m(int x);}
 
 AbstractExternalField:
+  type: syntacticError
   parameters: none
   problemMessage: "Fields can't be declared both 'abstract' and 'external'."
   analyzerCode: ParserErrorCode.ABSTRACT_EXTERNAL_FIELD
@@ -554,6 +592,7 @@ AbstractExternalField:
     - "abstract class C {external abstract var f;}"
 
 AbstractStaticField:
+  type: syntacticError
   parameters: none
   problemMessage: "Static fields can't be declared 'abstract'."
   analyzerCode: ParserErrorCode.ABSTRACT_STATIC_FIELD
@@ -563,6 +602,7 @@ AbstractStaticField:
     - "abstract class C {abstract static var f;}"
 
 AbstractLateField:
+  type: syntacticError
   parameters: none
   problemMessage: "Abstract fields cannot be late."
   analyzerCode: ParserErrorCode.ABSTRACT_LATE_FIELD
@@ -572,6 +612,7 @@ AbstractLateField:
     - "abstract class C {abstract late var f;}"
 
 AbstractFinalBaseClass:
+  type: syntacticError
   parameters: none
   problemMessage: "An 'abstract' class can't be declared as both 'final' and 'base'."
   correctionMessage: "Try removing either the 'final' or 'base' keyword."
@@ -581,6 +622,7 @@ AbstractFinalBaseClass:
     - "abstract final base class C {}"
 
 AbstractFinalInterfaceClass:
+  type: syntacticError
   parameters: none
   problemMessage: "An 'abstract' class can't be declared as both 'final' and 'interface'."
   correctionMessage: "Try removing either the 'final' or 'interface' keyword."
@@ -590,6 +632,7 @@ AbstractFinalInterfaceClass:
     - "abstract final interface class C {}"
 
 AbstractSealedClass:
+  type: syntacticError
   parameters: none
   problemMessage: "A 'sealed' class can't be marked 'abstract' because it's already implicitly abstract."
   correctionMessage: "Try removing the 'abstract' keyword."
@@ -631,6 +674,7 @@ AbstractSealedClass:
     - "abstract sealed class C {}"
 
 ClassInClass:
+  type: syntacticError
   parameters: none
   problemMessage: "Classes can't be declared inside other classes."
   correctionMessage: "Try moving the class to the top-level."
@@ -640,6 +684,7 @@ ClassInClass:
     - "class C { class B {} }"
 
 EnumInClass:
+  type: syntacticError
   parameters: none
   problemMessage: "Enums can't be declared inside classes."
   correctionMessage: "Try moving the enum to the top-level."
@@ -649,6 +694,7 @@ EnumInClass:
     - "class Foo { enum Bar { Bar1, Bar2, Bar3 } }"
 
 TypedefInClass:
+  type: syntacticError
   parameters: none
   problemMessage: "Typedefs can't be declared inside classes."
   correctionMessage: "Try moving the typedef to the top-level."
@@ -658,6 +704,7 @@ TypedefInClass:
     - "abstract class C { typedef int F(int x); }"
 
 CovariantMember:
+  type: syntacticError
   parameters: none
   problemMessage: "Getters, setters and methods can't be declared to be 'covariant'."
   correctionMessage: "Try removing the 'covariant' keyword."
@@ -668,6 +715,7 @@ CovariantMember:
     - "class A { covariant int m() => 0; }"
 
 VarReturnType:
+  type: syntacticError
   parameters: none
   problemMessage: "The return type can't be 'var'."
   correctionMessage: "Try removing the keyword 'var', or replacing it with the name of the return type."
@@ -678,6 +726,7 @@ VarReturnType:
     - "class C { var C() {} }"
 
 ConstClass:
+  type: syntacticError
   parameters: none
   problemMessage: "Classes can't be declared to be 'const'."
   correctionMessage: "Try removing the 'const' keyword. If you're trying to indicate that instances of the class can be constants, place the 'const' keyword on  the class' constructor(s)."
@@ -686,6 +735,7 @@ ConstClass:
   script: "const class C {}"
 
 ConstAndFinal:
+  type: syntacticError
   parameters: none
   problemMessage: "Members can't be declared to be both 'const' and 'final'."
   correctionMessage: "Try removing either the 'const' or 'final' keyword."
@@ -698,6 +748,7 @@ ConstAndFinal:
     - "final const int x = 5;"
 
 ConflictingModifiers:
+  type: syntacticError
   parameters:
     String string: undocumented
     String string2: undocumented
@@ -711,6 +762,7 @@ ConflictingModifiers:
   exampleAllowOtherCodes: true
 
 ConstFactory:
+  type: syntacticError
   parameters: none
   problemMessage: "Only redirecting factory constructors can be declared to be 'const'."
   correctionMessage: "Try removing the 'const' keyword, or replacing the body with '=' followed by a valid target."
@@ -723,6 +775,7 @@ ConstFactory:
     }
 
 ModifierOutOfOrder:
+  type: syntacticError
   parameters:
     String string: undocumented
     String string2: undocumented
@@ -741,6 +794,7 @@ ModifierOutOfOrder:
   exampleAllowOtherCodes: true
 
 TypeBeforeFactory:
+  type: syntacticError
   parameters: none
   problemMessage: "Factory constructors cannot have a return type."
   correctionMessage: "Try removing the type appearing before 'factory'."
@@ -753,6 +807,7 @@ TypeBeforeFactory:
     }
 
 ConstMethod:
+  type: syntacticError
   parameters: none
   problemMessage: "Getters, setters and methods can't be declared to be 'const'."
   correctionMessage: "Try removing the 'const' keyword."
@@ -762,6 +817,7 @@ ConstMethod:
     - "class C { const m() {} }"
 
 CovariantAndStatic:
+  type: syntacticError
   parameters: none
   problemMessage: "Members can't be declared to be both 'covariant' and 'static'."
   correctionMessage: "Try removing either the 'covariant' or 'static' keyword."
@@ -772,6 +828,7 @@ CovariantAndStatic:
     - "class A {} class C { static covariant A? f; }"
 
 DuplicatedModifier:
+  type: syntacticError
   parameters:
     Token lexeme: undocumented
   problemMessage: "The modifier '#lexeme' was already specified."
@@ -790,6 +847,7 @@ DuplicatedModifier:
     - "class C { var var m; }"
 
 ExternalConstructorWithFieldInitializers:
+  type: syntacticError
   parameters: none
   problemMessage: "An external constructor can't initialize fields."
   correctionMessage: "Try removing the field initializers, or removing the keyword 'external'."
@@ -802,6 +860,7 @@ ExternalConstructorWithFieldInitializers:
     }
 
 ExternalFactoryWithBody:
+  type: syntacticError
   parameters: none
   problemMessage: "External factories can't have a body."
   correctionMessage: "Try removing the body of the factory, or removing the keyword 'external'."
@@ -812,6 +871,7 @@ ExternalFactoryWithBody:
   exampleAllowOtherCodes: true
 
 ExternalLateField:
+  type: syntacticError
   parameters: none
   problemMessage: "External fields cannot be late."
   analyzerCode: ParserErrorCode.EXTERNAL_LATE_FIELD
@@ -822,6 +882,7 @@ ExternalLateField:
     - "abstract class C {external late var f;}"
 
 ExtraneousModifier:
+  type: syntacticError
   parameters:
     Token lexeme: undocumented
   problemMessage: "Can't have modifier '#lexeme' here."
@@ -843,6 +904,7 @@ ExtraneousModifier:
   exampleAllowOtherCodes: true
 
 ExtraneousModifierInExtension:
+  type: syntacticError
   parameters:
     Token lexeme: undocumented
   problemMessage: "Can't have modifier '#lexeme' in an extension."
@@ -882,6 +944,7 @@ ExtraneousModifierInExtension:
     - "extension on String { foo(covariant String child) {} }"
 
 ExtraneousModifierInExtensionType:
+  type: syntacticError
   parameters:
     Token lexeme: undocumented
   problemMessage: "Can't have modifier '#lexeme' in an extension type."
@@ -892,6 +955,7 @@ ExtraneousModifierInExtensionType:
     - "extension type ET(String i) { foo(covariant String child) {} }"
 
 ExtraneousModifierInPrimaryConstructor:
+  type: syntacticError
   parameters:
     Token lexeme: undocumented
   problemMessage: "Can't have modifier '#lexeme' in a primary constructor."
@@ -902,6 +966,7 @@ ExtraneousModifierInPrimaryConstructor:
     - "extension type ET(covariant String i) { }"
 
 FinalAndCovariant:
+  type: syntacticError
   parameters: none
   problemMessage: "Members can't be declared to be both 'final' and 'covariant'."
   correctionMessage: "Try removing either the 'final' or 'covariant' keyword."
@@ -913,6 +978,7 @@ FinalAndCovariant:
   exampleAllowOtherCodes: true
 
 FinalAndCovariantLateWithInitializer:
+  type: syntacticError
   parameters: none
   problemMessage: "Members marked 'late' with an initializer can't be declared to be both 'final' and 'covariant'."
   correctionMessage: "Try removing either the 'final' or 'covariant' keyword, or removing the initializer."
@@ -923,6 +989,7 @@ FinalAndCovariantLateWithInitializer:
     - "class C { covariant late final f = 5; }"
 
 FinalAndVar:
+  type: syntacticError
   parameters: none
   problemMessage: "Members can't be declared to be both 'final' and 'var'."
   correctionMessage: "Try removing the keyword 'var'."
@@ -933,6 +1000,7 @@ FinalAndVar:
     - "class C { var final x = 5; }"
 
 StaticConstructor:
+  type: syntacticError
   parameters: none
   problemMessage: "Constructors can't be static."
   correctionMessage: "Try removing the keyword 'static'."
@@ -943,6 +1011,7 @@ StaticConstructor:
     - "class C { static C.m() {} }"
 
 GetterConstructor:
+  type: syntacticError
   parameters: none
   problemMessage: "Constructors can't be a getter."
   correctionMessage: "Try removing 'get'."
@@ -952,6 +1021,7 @@ GetterConstructor:
     - "class C { get C.m() {} }"
 
 SetterConstructor:
+  type: syntacticError
   parameters: none
   problemMessage: "Constructors can't be a setter."
   correctionMessage: "Try removing 'set'."
@@ -961,6 +1031,7 @@ SetterConstructor:
     - "class C { set C.m(x) {} }"
 
 StaticOperator:
+  type: syntacticError
   parameters: none
   problemMessage: "Operators can't be static."
   correctionMessage: "Try removing the keyword 'static'."
@@ -970,6 +1041,7 @@ StaticOperator:
     - "class C { static operator +(int x) => x + 1; }"
 
 BreakOutsideOfLoop:
+  type: syntacticError
   parameters: none
   problemMessage: "A break statement can't be used outside of a loop or switch statement."
   correctionMessage: "Try removing the break statement."
@@ -979,6 +1051,7 @@ BreakOutsideOfLoop:
     - "main() { break; }"
 
 ContinueOutsideOfLoop:
+  type: syntacticError
   parameters: none
   problemMessage: "A continue statement can't be used outside of a loop or switch statement."
   correctionMessage: "Try removing the continue statement."
@@ -989,6 +1062,7 @@ ContinueOutsideOfLoop:
   exampleAllowOtherCodes: true
 
 ContinueWithoutLabelInCase:
+  type: syntacticError
   parameters: none
   problemMessage: "A continue statement in a switch statement must have a label as a target."
   correctionMessage: "Try adding a label associated with one of the case clauses to the continue statement."
@@ -998,6 +1072,7 @@ ContinueWithoutLabelInCase:
     - "main(List<String> x) { switch (x) {case 1: continue;} }"
 
 DuplicateLabelInSwitchStatement:
+  type: syntacticError
   parameters:
     Name name: undocumented
   problemMessage: "The label '#name' was already used in this switch statement."
@@ -1011,6 +1086,7 @@ DuplicateLabelInSwitchStatement:
     - "switch (0) {l1: case 0: break; l1: case 1: break;}"
 
 InitializedVariableInForEach:
+  type: syntacticError
   parameters: none
   problemMessage: "The loop variable in a for-each loop can't be initialized."
   correctionMessage: "Try removing the initializer, or using a different kind of loop."
@@ -1020,6 +1096,7 @@ InitializedVariableInForEach:
     - "for (int a = 0 in <int>[10]) {}"
 
 InvalidAwaitFor:
+  type: syntacticError
   parameters: none
   problemMessage: "The keyword 'await' isn't allowed for a normal 'for' statement."
   correctionMessage: "Try removing the keyword, or use a for-each statement."
@@ -1029,6 +1106,7 @@ InvalidAwaitFor:
     - "f() async {await for (int i = 0; i < 5; i++) {}}"
 
 VoidWithTypeArguments:
+  type: syntacticError
   parameters: none
   problemMessage: "Type 'void' can't have type arguments."
   correctionMessage: "Try removing the type arguments."
@@ -1040,6 +1118,7 @@ VoidWithTypeArguments:
 # TODO(danrubel): Review where this error is generated and consider generating
 # FieldInitializedOutsideDeclaringClass instead of this in some situations.
 InvalidInitializer:
+  type: syntacticError
   parameters: none
   problemMessage: "Not a valid initializer."
   correctionMessage: "To initialize a field, use the syntax 'name = value'."
@@ -1056,6 +1135,7 @@ InvalidInitializer:
   exampleAllowOtherCodes: true
 
 FieldInitializedOutsideDeclaringClass:
+  type: syntacticError
   parameters: none
   problemMessage: "A field can only be initialized in its declaring class"
   correctionMessage: "Try passing a value into the superclass constructor, or moving the initialization into the constructor body."
@@ -1066,6 +1146,7 @@ FieldInitializedOutsideDeclaringClass:
   exampleAllowOtherCodes: true
 
 StackOverflow:
+  type: syntacticError
   parameters: none
   problemMessage: "The file has too many nested expressions or statements."
   correctionMessage: "Try simplifying the code."
@@ -1073,6 +1154,7 @@ StackOverflow:
   hasPublishedDocs: false
 
 InvalidHexEscape:
+  type: syntacticError
   parameters: none
   problemMessage: "An escape sequence starting with '\\x' must be followed by 2 hexadecimal digits."
   analyzerCode: ParserErrorCode.INVALID_HEX_ESCAPE
@@ -1082,6 +1164,7 @@ InvalidHexEscape:
     - "'\\x0y'"
 
 InvalidUnicodeEscapeUStarted:
+  type: syntacticError
   parameters: none
   problemMessage: "An escape sequence starting with '\\u' must be followed by 4 hexadecimal digits or from 1 to 6 digits between '{' and '}'."
   analyzerCode: ParserErrorCode.INVALID_UNICODE_ESCAPE_U_STARTED
@@ -1090,6 +1173,7 @@ InvalidUnicodeEscapeUStarted:
     - "'\\u'"
 
 InvalidUnicodeEscapeUNoBracket:
+  type: syntacticError
   parameters: none
   problemMessage: "An escape sequence starting with '\\u' must be followed by 4 hexadecimal digits."
   analyzerCode: ParserErrorCode.INVALID_UNICODE_ESCAPE_U_NO_BRACKET
@@ -1098,6 +1182,7 @@ InvalidUnicodeEscapeUNoBracket:
     - "'\\u0F'"
 
 InvalidUnicodeEscapeUBracket:
+  type: syntacticError
   parameters: none
   problemMessage: "An escape sequence starting with '\\u{' must be followed by 1 to 6 hexadecimal digits followed by a '}'."
   analyzerCode: ParserErrorCode.INVALID_UNICODE_ESCAPE_U_BRACKET
@@ -1109,6 +1194,7 @@ InvalidUnicodeEscapeUBracket:
     - "'\\u{0000003}'"
 
 InvalidEscapeStarted:
+  type: syntacticError
   parameters: none
   problemMessage: "The string '\\' can't stand alone."
   correctionMessage: "Try adding another backslash (\\) to escape the '\\'."
@@ -1121,6 +1207,7 @@ InvalidEscapeStarted:
       ');
 
 UnexpectedTokens:
+  type: syntacticError
   parameters: none
   problemMessage: "Unexpected tokens."
   analyzerCode: ParserErrorCode.UNEXPECTED_TOKENS
@@ -1128,6 +1215,7 @@ UnexpectedTokens:
   script: "enum E w Foo { v; }"
 
 LiteralWithClassAndNew:
+  type: syntacticError
   parameters:
     String string: undocumented
     Token lexeme: undocumented
@@ -1144,6 +1232,7 @@ LiteralWithClassAndNew:
     - "var x = new List[1];"
 
 LiteralWithClass:
+  type: syntacticError
   parameters:
     String string: undocumented
     Token lexeme: undocumented
@@ -1166,6 +1255,7 @@ LiteralWithClass:
     - "var x = const List[1];"
 
 LiteralWithNew:
+  type: syntacticError
   parameters: none
   problemMessage: "A literal can't be prefixed by 'new'."
   correctionMessage: "Try removing 'new'"
@@ -1183,6 +1273,7 @@ LiteralWithNew:
     - "var x = new ['a'];"
 
 OnlyTry:
+  type: syntacticError
   parameters: none
   problemMessage: "A try block must be followed by an 'on', 'catch', or 'finally' clause."
   correctionMessage: "Try adding either a catch or finally clause, or remove the try statement."
@@ -1191,6 +1282,7 @@ OnlyTry:
   statement: "try {}"
 
 TypeAfterVar:
+  type: syntacticError
   parameters: none
   problemMessage: "Variables can't be declared using both 'var' and a type name."
   correctionMessage: "Try removing 'var.'"
@@ -1201,6 +1293,7 @@ TypeAfterVar:
   exampleAllowOtherCodes: true
 
 CatchSyntax:
+  type: syntacticError
   parameters: none
   problemMessage: "'catch' must be followed by '(identifier)' or '(identifier, identifier)'."
   correctionMessage: "No types are needed, the first is given by 'on', the second is always 'StackTrace'."
@@ -1212,6 +1305,7 @@ CatchSyntax:
     - "try {} catch (e,) {}"
 
 CatchSyntaxExtraParameters:
+  type: syntacticError
   parameters: none
   problemMessage: "'catch' must be followed by '(identifier)' or '(identifier, identifier)'."
   correctionMessage: "No types are needed, the first is given by 'on', the second is always 'StackTrace'."
@@ -1221,6 +1315,7 @@ CatchSyntaxExtraParameters:
     - "try {} catch (e, s, x) {}"
 
 SuperNullAware:
+  type: syntacticError
   parameters: none
   problemMessage: "The operator '?.' cannot be used with 'super' because 'super' cannot be null."
   correctionMessage: "Try replacing '?.' with '.'"
@@ -1236,6 +1331,7 @@ SuperNullAware:
   exampleAllowOtherCodes: true
 
 NullAwareCascadeOutOfOrder:
+  type: syntacticError
   parameters: none
   problemMessage: "The '?..' cascade operator must be first in the cascade sequence."
   correctionMessage: "Try moving the '?..' operator to be the first cascade operator in the sequence."
@@ -1250,6 +1346,7 @@ NullAwareCascadeOutOfOrder:
   exampleAllowOtherCodes: true
 
 MetadataTypeArguments:
+  type: syntacticError
   parameters: none
   problemMessage: "An annotation can't use type arguments."
   analyzerCode: ParserErrorCode.ANNOTATION_WITH_TYPE_ARGUMENTS
@@ -1263,6 +1360,7 @@ MetadataTypeArguments:
     void foo() {}
 
 MetadataTypeArgumentsUninstantiated:
+  type: syntacticError
   parameters: none
   problemMessage: "An annotation with type arguments must be followed by an argument list."
   analyzerCode: ParserErrorCode.ANNOTATION_WITH_TYPE_ARGUMENTS_UNINSTANTIATED
@@ -1271,6 +1369,7 @@ MetadataTypeArgumentsUninstantiated:
     - "@deprecated<int> class C {}"
 
 MetadataSpaceBeforeParenthesis:
+  type: syntacticError
   parameters: none
   problemMessage: "Annotations can't have spaces or comments before the parenthesis."
   correctionMessage: Remove any spaces or comments before the parenthesis.
@@ -1289,6 +1388,7 @@ MetadataSpaceBeforeParenthesis:
       @Foo () class Bar {}
 
 ConstructorWithReturnType:
+  type: syntacticError
   parameters: none
   problemMessage: "Constructors can't have a return type."
   correctionMessage: "Try removing the return type."
@@ -1299,6 +1399,7 @@ ConstructorWithReturnType:
     - "class C { void C.m() {} }"
 
 ConstructorWithTypeParameters:
+  type: syntacticError
   parameters: none
   problemMessage: "Constructors can't have type parameters."
   analyzerCode: ParserErrorCode.TYPE_PARAMETER_ON_CONSTRUCTOR
@@ -1321,6 +1422,7 @@ ConstructorWithTypeParameters:
       }
 
 ConstructorWithTypeArguments:
+  type: syntacticError
   parameters: none
   problemMessage: "A constructor invocation can't have type arguments after the constructor name."
   correctionMessage: "Try removing the type arguments or placing them after the class name."
@@ -1331,6 +1433,7 @@ ConstructorWithTypeArguments:
     - "class C<X> { C.foo(); } bar() { C.foo<int>(); }"
 
 ConstructorWithWrongName:
+  type: syntacticError
   parameters: none
   problemMessage: "The name of a constructor must match the name of the enclosing class."
   analyzerCode: ParserErrorCode.INVALID_CONSTRUCTOR_NAME
@@ -1350,6 +1453,7 @@ ConstructorWithWrongName:
       }
 
 FieldInitializerOutsideConstructor:
+  type: compileTimeError
   parameters: none
   problemMessage: "Field formal parameters can only be used in a constructor."
   correctionMessage: "Try removing 'this.'."
@@ -1394,6 +1498,7 @@ FieldInitializerOutsideConstructor:
   exampleAllowOtherCodes: true
 
 NativeClauseShouldBeAnnotation:
+  type: syntacticError
   parameters: none
   problemMessage: "Native clause in this form is deprecated."
   correctionMessage: "Try removing this native clause and adding @native() or @native('native-name') before the declaration."
@@ -1401,6 +1506,7 @@ NativeClauseShouldBeAnnotation:
   hasPublishedDocs: false
 
 MissingPrefixInDeferredImport:
+  type: syntacticError
   parameters: none
   problemMessage: "Deferred imports should have a prefix."
   correctionMessage: "Try adding a prefix to the import by adding an 'as' clause."
@@ -1412,6 +1518,7 @@ MissingPrefixInDeferredImport:
     lib.dart: ""
 
 DeferredAfterPrefix:
+  type: syntacticError
   parameters: none
   problemMessage: "The deferred keyword should come immediately before the prefix ('as' clause)."
   correctionMessage: "Try moving the deferred keyword before the prefix."
@@ -1423,6 +1530,7 @@ DeferredAfterPrefix:
     lib.dart: ""
 
 DuplicateDeferred:
+  type: syntacticError
   parameters: none
   problemMessage: "An import directive can only have one 'deferred' keyword."
   correctionMessage: "Try removing all but one 'deferred' keyword."
@@ -1434,6 +1542,7 @@ DuplicateDeferred:
     lib.dart: ""
 
 DuplicatePrefix:
+  type: syntacticError
   parameters: none
   problemMessage: "An import directive can only have one prefix ('as' clause)."
   correctionMessage: "Try removing all but one prefix."
@@ -1445,6 +1554,7 @@ DuplicatePrefix:
     lib.dart: ""
 
 PrefixAfterCombinator:
+  type: syntacticError
   parameters: none
   problemMessage: "The prefix ('as' clause) should come before any show/hide combinators."
   correctionMessage: "Try moving the prefix before the combinators."
@@ -1456,6 +1566,7 @@ PrefixAfterCombinator:
     lib.dart: ""
 
 MixinDeclaresConstructor:
+  type: syntacticError
   parameters: none
   problemMessage: "Mixins can't declare constructors."
   analyzerCode: ParserErrorCode.MIXIN_DECLARES_CONSTRUCTOR
@@ -1466,6 +1577,7 @@ MixinDeclaresConstructor:
     }
 
 ExtensionDeclaresAbstractMember:
+  type: syntacticError
   parameters: none
   problemMessage: "Extensions can't declare abstract members."
   correctionMessage: "Try providing an implementation for the member."
@@ -1498,6 +1610,7 @@ ExtensionDeclaresAbstractMember:
   hasPublishedDocs: true
 
 ExtensionDeclaresConstructor:
+  type: syntacticError
   parameters: none
   problemMessage: "Extensions can't declare constructors."
   correctionMessage: "Try removing the constructor declaration."
@@ -1532,6 +1645,7 @@ ExtensionDeclaresConstructor:
   hasPublishedDocs: true
 
 ExtensionAugmentationHasOnClause:
+  type: syntacticError
   parameters: none
   problemMessage: "Extension augmentations can't have 'on' clauses."
   correctionMessage: "Try removing the 'on' clause."
@@ -1542,6 +1656,7 @@ ExtensionAugmentationHasOnClause:
   comment: No parameters.
 
 AnnotationOnTypeArgument:
+  type: syntacticError
   parameters: none
   problemMessage: "Type arguments can't have annotations because they aren't declarations."
   analyzerCode: ParserErrorCode.ANNOTATION_ON_TYPE_ARGUMENT
@@ -1550,6 +1665,7 @@ AnnotationOnTypeArgument:
     - "class A<E> {} class C { m() => new A<@Object() C>(); }"
 
 ExternalClass:
+  type: syntacticError
   parameters: none
   problemMessage: "Classes can't be declared to be 'external'."
   correctionMessage: "Try removing the keyword 'external'."
@@ -1559,6 +1675,7 @@ ExternalClass:
     - "external class C {}"
 
 ExternalEnum:
+  type: syntacticError
   parameters: none
   problemMessage: "Enums can't be declared to be 'external'."
   correctionMessage: "Try removing the keyword 'external'."
@@ -1568,6 +1685,7 @@ ExternalEnum:
     - "external enum E {ONE}"
 
 ExternalMethodWithBody:
+  type: syntacticError
   parameters: none
   problemMessage: "An external or native method can't have a body."
   analyzerCode: ParserErrorCode.EXTERNAL_METHOD_WITH_BODY
@@ -1578,6 +1696,7 @@ ExternalMethodWithBody:
     - "class C {foo() native 'bar' {}}"
 
 ExternalConstructorWithInitializer:
+  type: syntacticError
   parameters: none
   problemMessage: "An external constructor can't have any initializers."
   analyzerCode: ParserErrorCode.EXTERNAL_CONSTRUCTOR_WITH_INITIALIZER
@@ -1587,6 +1706,7 @@ ExternalConstructorWithInitializer:
     - "class C { int? x; external C.foo() : x = 1; }"
 
 ExternalTypedef:
+  type: syntacticError
   parameters: none
   problemMessage: "Typedefs can't be declared to be 'external'."
   correctionMessage: "Try removing the keyword 'external'."
@@ -1596,6 +1716,7 @@ ExternalTypedef:
     - "external typedef F();"
 
 OperatorWithTypeParameters:
+  type: syntacticError
   parameters: none
   problemMessage: "Types parameters aren't allowed when defining an operator."
   correctionMessage: "Try removing the type parameters."
@@ -1608,6 +1729,7 @@ OperatorWithTypeParameters:
     - "class C { operator []<T>(T t) => null; }"
 
 LibraryDirectiveNotFirst:
+  type: syntacticError
   parameters: none
   problemMessage: "The library directive must appear before all other directives."
   correctionMessage: "Try moving the library directive before any other directives."
@@ -1620,6 +1742,7 @@ LibraryDirectiveNotFirst:
   exampleAllowOtherCodes: true
 
 ImportAfterPart:
+  type: syntacticError
   parameters: none
   problemMessage: "Import directives must precede part directives."
   correctionMessage: "Try moving the import directives before the part directives."
@@ -1630,6 +1753,7 @@ ImportAfterPart:
   exampleAllowOtherCodes: true
 
 ExportAfterPart:
+  type: syntacticError
   parameters: none
   problemMessage: "Export directives must precede part directives."
   correctionMessage: "Try moving the export directives before the part directives."
@@ -1640,6 +1764,7 @@ ExportAfterPart:
     - "part 'foo.dart'; export 'bar.dart';"
 
 DirectiveAfterDeclaration:
+  type: syntacticError
   parameters: none
   problemMessage: "Directives must appear before any declarations."
   correctionMessage: "Try moving the directive before any declarations."
@@ -1656,6 +1781,7 @@ DirectiveAfterDeclaration:
       bar.dart: ""
 
 PartOfTwice:
+  type: syntacticError
   parameters: none
   problemMessage: "Only one part-of directive may be declared in a file."
   correctionMessage: "Try removing all but one of the part-of directives."
@@ -1682,6 +1808,7 @@ PartOfTwice:
         part of "main.dart";
 
 FactoryTopLevelDeclaration:
+  type: syntacticError
   parameters: none
   problemMessage: "Top-level declarations can't be declared to be 'factory'."
   correctionMessage: "Try removing the keyword 'factory'."
@@ -1691,6 +1818,7 @@ FactoryTopLevelDeclaration:
     - "factory class C {}"
 
 RedirectionInNonFactory:
+  type: syntacticError
   parameters: none
   problemMessage: "Only factory constructor can specify '=' redirection."
   correctionMessage: "Try making this a factory constructor, or remove the redirection."
@@ -1701,6 +1829,7 @@ RedirectionInNonFactory:
   exampleAllowOtherCodes: true
 
 TopLevelOperator:
+  type: syntacticError
   parameters: none
   problemMessage: "Operators must be declared within a class."
   correctionMessage: "Try removing the operator, moving it to a class, or converting it to be a function."
@@ -1712,6 +1841,7 @@ TopLevelOperator:
     - "void operator +(bool x, bool y) => x | y;"
 
 TypeArgumentsOnTypeVariable:
+  type: syntacticError
   parameters:
     Name name: undocumented
   problemMessage: "Can't use type arguments with type variable '#name'."
@@ -1737,6 +1867,7 @@ TypeArgumentsOnTypeVariable:
 # definitions. Consequently, it is more convenient to use the word
 # "declaration" instead of "definition" as the former implies less.
 MemberWithSameNameAsClass:
+  type: syntacticError
   parameters: none
   problemMessage: "A class member can't have the same name as the enclosing class."
   correctionMessage: "Try renaming the member."
@@ -1751,6 +1882,7 @@ MemberWithSameNameAsClass:
     - "class C { int? A, B, C, D, E; }"
 
 MissingOperatorKeyword:
+  type: syntacticError
   parameters: none
   problemMessage: "Operator declarations must be preceded by the keyword 'operator'."
   correctionMessage: "Try adding the keyword 'operator'."
@@ -1760,6 +1892,7 @@ MissingOperatorKeyword:
     - "class C { +(x) {} }"
 
 InvalidOperator:
+  type: syntacticError
   parameters:
     Token lexeme: undocumented
   problemMessage: "The string '#lexeme' isn't a user-definable operator."
@@ -1772,18 +1905,21 @@ InvalidOperator:
     - "class C { void operator %=(x) {} }"
 
 InvalidSuperInInitializer:
+  type: syntacticError
   parameters: none
   problemMessage: "Can only use 'super' in an initializer for calling the superclass constructor (e.g. 'super()' or 'super.namedConstructor()')"
   analyzerCode: ParserErrorCode.INVALID_SUPER_IN_INITIALIZER
   hasPublishedDocs: false
 
 InvalidThisInInitializer:
+  type: syntacticError
   parameters: none
   problemMessage: "Can only use 'this' in an initializer for field initialization (e.g. 'this.x = something') and constructor redirection (e.g. 'this()' or 'this.namedConstructor())"
   analyzerCode: ParserErrorCode.INVALID_THIS_IN_INITIALIZER
   hasPublishedDocs: false
 
 SwitchHasCaseAfterDefault:
+  type: syntacticError
   parameters: none
   problemMessage: "The default case should be the last case in a switch statement."
   correctionMessage: "Try moving the default case after the other case clauses."
@@ -1793,6 +1929,7 @@ SwitchHasCaseAfterDefault:
     - "class C { foo(int a) {switch (a) {default: return 0; case 1: return 1;}} }"
 
 SwitchHasMultipleDefaults:
+  type: syntacticError
   parameters: none
   problemMessage: "The 'default' case can only be declared once."
   correctionMessage: "Try removing all but one default case."
@@ -1802,6 +1939,7 @@ SwitchHasMultipleDefaults:
     - "class C { foo(int a) {switch (a) {default: return 0; default: return 1;}} }"
 
 ExpectedAnInitializer:
+  type: syntacticError
   parameters: none
   problemMessage: "Expected an initializer."
   analyzerCode: ParserErrorCode.MISSING_INITIALIZER
@@ -1810,6 +1948,7 @@ ExpectedAnInitializer:
     - "class C { C() : {} }"
 
 MissingAssignmentInInitializer:
+  type: syntacticError
   parameters: none
   problemMessage: "Expected an assignment after the field name."
   correctionMessage: "To initialize a field, use the syntax 'name = value'."
@@ -1820,6 +1959,7 @@ MissingAssignmentInInitializer:
   exampleAllowOtherCodes: true
 
 RedirectingConstructorWithBody:
+  type: syntacticError
   parameters: none
   problemMessage: "Redirecting constructors can't have a body."
   correctionMessage: "Try removing the body, or not making this a redirecting constructor."
@@ -1830,6 +1970,7 @@ RedirectingConstructorWithBody:
   exampleAllowOtherCodes: true
 
 IllegalAssignmentToNonAssignable:
+  type: syntacticError
   parameters: none
   problemMessage: "Illegal assignment to non-assignable expression."
   analyzerCode: ParserErrorCode.ILLEGAL_ASSIGNMENT_TO_NON_ASSIGNABLE
@@ -1838,6 +1979,7 @@ IllegalAssignmentToNonAssignable:
     - "main(){ f()++; }"
 
 MissingAssignableSelector:
+  type: syntacticError
   parameters: none
   problemMessage: "Missing selector such as '.identifier' or '[0]'."
   correctionMessage: "Try adding a selector."
@@ -1847,6 +1989,7 @@ MissingAssignableSelector:
     - "main(){ ++f(); }"
 
 ColonInPlaceOfIn:
+  type: syntacticError
   parameters: none
   problemMessage: "For-in loops use 'in' rather than a colon."
   correctionMessage: "Try replacing the colon with the keyword 'in'."
@@ -1858,6 +2001,7 @@ ColonInPlaceOfIn:
     }
 
 BinaryOperatorWrittenOut:
+  type: syntacticError
   parameters:
     String string: undocumented
     String string2: undocumented
@@ -1869,6 +2013,7 @@ BinaryOperatorWrittenOut:
     int foo(int x, int y) => x xor y;
 
 ExternalFactoryRedirection:
+  type: syntacticError
   parameters: none
   problemMessage: "A redirecting factory can't be external."
   correctionMessage: "Try removing the 'external' modifier."
@@ -1881,6 +2026,7 @@ ExternalFactoryRedirection:
     }
 
 MultipleVarianceModifiers:
+  type: syntacticError
   parameters: none
   problemMessage: "Each type parameter can have at most one variance modifier."
   correctionMessage: "Use at most one of the 'in', 'out', or 'inout' modifiers."
@@ -1892,6 +2038,7 @@ MultipleVarianceModifiers:
 
 
 BaseEnum:
+  type: syntacticError
   parameters: none
   problemMessage: "Enums can't be declared to be 'base'."
   correctionMessage: "Try removing the keyword 'base'."
@@ -1901,6 +2048,7 @@ BaseEnum:
     - "base enum E { v }"
 
 FinalEnum:
+  type: syntacticError
   parameters: none
   problemMessage: "Enums can't be declared to be 'final'."
   correctionMessage: "Try removing the keyword 'final'."
@@ -1910,6 +2058,7 @@ FinalEnum:
     - "final enum E { v }"
 
 InterfaceEnum:
+  type: syntacticError
   parameters: none
   problemMessage: "Enums can't be declared to be 'interface'."
   correctionMessage: "Try removing the keyword 'interface'."
@@ -1919,6 +2068,7 @@ InterfaceEnum:
     - "interface enum E { v }"
 
 SealedEnum:
+  type: syntacticError
   parameters: none
   problemMessage: "Enums can't be declared to be 'sealed'."
   correctionMessage: "Try removing the keyword 'sealed'."
@@ -1928,6 +2078,7 @@ SealedEnum:
     - "sealed enum E { v }"
 
 FinalMixin:
+  type: syntacticError
   parameters: none
   problemMessage: "A mixin can't be declared 'final'."
   correctionMessage: "Try removing the 'final' keyword."
@@ -1937,6 +2088,7 @@ FinalMixin:
     - "final mixin M {}"
 
 InterfaceMixin:
+  type: syntacticError
   parameters: none
   problemMessage: "A mixin can't be declared 'interface'."
   correctionMessage: "Try removing the 'interface' keyword."
@@ -1946,6 +2098,7 @@ InterfaceMixin:
     - "interface mixin M {}"
 
 SealedMixin:
+  type: syntacticError
   parameters: none
   problemMessage: "A mixin can't be declared 'sealed'."
   correctionMessage: "Try removing the 'sealed' keyword."
@@ -1955,6 +2108,7 @@ SealedMixin:
     - "sealed mixin M {}"
 
 FinalMixinClass:
+  type: syntacticError
   parameters: none
   problemMessage: "A mixin class can't be declared 'final'."
   correctionMessage: "Try removing the 'final' keyword."
@@ -1964,6 +2118,7 @@ FinalMixinClass:
     - "final mixin class C {}"
 
 InterfaceMixinClass:
+  type: syntacticError
   parameters: none
   problemMessage: "A mixin class can't be declared 'interface'."
   correctionMessage: "Try removing the 'interface' keyword."
@@ -1973,6 +2128,7 @@ InterfaceMixinClass:
     - "interface mixin class C {}"
 
 SealedMixinClass:
+  type: syntacticError
   parameters: none
   problemMessage: "A mixin class can't be declared 'sealed'."
   correctionMessage: "Try removing the 'sealed' keyword."
@@ -1982,6 +2138,7 @@ SealedMixinClass:
     - "sealed mixin class C {}"
 
 InvalidConstantPatternNegation:
+  type: syntacticError
   parameters: none
   problemMessage: "Only negation of a numeric literal is supported as a constant pattern."
   correctionMessage: "Try wrapping the expression in 'const ( ... )'."
@@ -1994,6 +2151,7 @@ InvalidConstantPatternNegation:
     }
 
 InvalidConstantPatternUnary:
+  type: syntacticError
   parameters:
     Name name: undocumented
   problemMessage: "The unary operator #name is not supported as a constant pattern."
@@ -2007,6 +2165,7 @@ InvalidConstantPatternUnary:
     }
 
 InvalidConstantPatternDuplicateConst:
+  type: syntacticError
   parameters: none
   problemMessage: "Duplicate 'const' keyword in constant expression."
   correctionMessage: "Try removing one of the 'const' keywords."
@@ -2018,6 +2177,7 @@ InvalidConstantPatternDuplicateConst:
     }
 
 InvalidConstantPatternEmptyRecordLiteral:
+  type: syntacticError
   parameters: none
   problemMessage: "The empty record literal is not supported as a constant pattern."
   analyzerCode: ParserErrorCode.INVALID_CONSTANT_PATTERN_EMPTY_RECORD_LITERAL
@@ -2028,6 +2188,7 @@ InvalidConstantPatternEmptyRecordLiteral:
     }
 
 InvalidConstantPatternGeneric:
+  type: syntacticError
   parameters: none
   problemMessage: "This expression is not supported as a constant pattern."
   correctionMessage: "Try wrapping the expression in 'const ( ... )'."
@@ -2039,6 +2200,7 @@ InvalidConstantPatternGeneric:
     }
 
 InvalidConstantPatternConstPrefix:
+  type: syntacticError
   parameters: none
   problemMessage: "The expression can't be prefixed by 'const' to form a constant pattern."
   correctionMessage: "Try wrapping the expression in 'const ( ... )' instead."
@@ -2050,6 +2212,7 @@ InvalidConstantPatternConstPrefix:
     }
 
 InvalidConstantPatternBinary:
+  type: syntacticError
   parameters:
     Name name: undocumented
   problemMessage: "The binary operator #name is not supported as a constant pattern."
@@ -2062,6 +2225,7 @@ InvalidConstantPatternBinary:
     }
 
 PatternAssignmentDeclaresVariable:
+  type: syntacticError
   parameters:
     Name name: undocumented
   problemMessage: "Variable '#name' can't be declared in a pattern assignment."
@@ -2075,6 +2239,7 @@ PatternAssignmentDeclaresVariable:
     }
 
 VariablePatternKeywordInDeclarationContext:
+  type: syntacticError
   parameters: none
   problemMessage: Variable patterns in declaration context can't specify 'var' or 'final' keyword.
   correctionMessage: Try removing the keyword.
@@ -2116,6 +2281,7 @@ VariablePatternKeywordInDeclarationContext:
     ```
 
 IllegalPatternVariableName:
+  type: syntacticError
   parameters:
     Token lexeme: undocumented
   problemMessage: The variable declared by a variable pattern can't be named '#lexeme'.
@@ -2133,6 +2299,7 @@ IllegalPatternVariableName:
     }
 
 IllegalPatternAssignmentVariableName:
+  type: syntacticError
   parameters:
     Token lexeme: undocumented
   problemMessage: A variable assigned by a pattern assignment can't be named '#lexeme'.
@@ -2149,6 +2316,7 @@ IllegalPatternAssignmentVariableName:
     }
 
 IllegalPatternIdentifierName:
+  type: syntacticError
   parameters:
     Token lexeme: undocumented
   problemMessage: A pattern can't refer to an identifier named '#lexeme'.
@@ -2167,6 +2335,7 @@ IllegalPatternIdentifierName:
     }
 
 InvalidInsideUnaryPattern:
+  type: syntacticError
   parameters: none
   problemMessage: This pattern cannot appear inside a unary pattern (cast pattern, null check pattern, or null assert pattern) without parentheses.
   correctionMessage: Try combining into a single pattern if possible, or enclose the inner pattern in parentheses.
@@ -2179,6 +2348,7 @@ InvalidInsideUnaryPattern:
     }
 
 LatePatternVariableDeclaration:
+  type: syntacticError
   parameters: none
   problemMessage: A pattern variable declaration may not use the `late` keyword.
   correctionMessage: Try removing the keyword `late`.
@@ -2191,6 +2361,7 @@ LatePatternVariableDeclaration:
     }
 
 PatternVariableDeclarationOutsideFunctionOrMethod:
+  type: syntacticError
   parameters: none
   problemMessage: A pattern variable declaration may not appear outside a function or method.
   correctionMessage: Try declaring ordinary variables and assigning from within a function or method.
@@ -2203,6 +2374,7 @@ PatternVariableDeclarationOutsideFunctionOrMethod:
     }
 
 DefaultInSwitchExpression:
+  type: syntacticError
   parameters: none
   problemMessage: A switch expression may not use the `default` keyword.
   correctionMessage: Try replacing `default` with `_`.
@@ -2216,6 +2388,7 @@ DefaultInSwitchExpression:
     };
 
 MissingPrimaryConstructor:
+  type: syntacticError
   parameters: none
   problemMessage: "An extension type declaration must have a primary constructor declaration."
   correctionMessage: "Try adding a primary constructor to the extension type declaration."
@@ -2225,6 +2398,7 @@ MissingPrimaryConstructor:
     extension type E {}
 
 MissingPrimaryConstructorParameters:
+  type: syntacticError
   parameters: none
   problemMessage: "A primary constructor declaration must have formal parameters."
   correctionMessage: "Try adding formal parameters after the primary constructor name."
@@ -2234,6 +2408,7 @@ MissingPrimaryConstructorParameters:
     extension type E.name {}
 
 ExtensionTypeExtends:
+  type: syntacticError
   parameters: none
   problemMessage: "An extension type declaration can't have an 'extends' clause."
   correctionMessage: "Try removing the 'extends' clause or replacing the 'extends' with 'implements'."
@@ -2244,6 +2419,7 @@ ExtensionTypeExtends:
     extension type E(int i) extends F {}
 
 ExtensionTypeWith:
+  type: syntacticError
   parameters: none
   problemMessage: "An extension type declaration can't have a 'with' clause."
   correctionMessage: "Try removing the 'with' clause or replacing the 'with' with 'implements'."
@@ -2254,6 +2430,7 @@ ExtensionTypeWith:
     extension type E(int i) with F {}
 
 ConstWithoutPrimaryConstructor:
+  type: syntacticError
   parameters: none
   problemMessage: "'const' can only be used together with a primary constructor declaration."
   correctionMessage: "Try removing the 'const' keyword or adding a primary constructor declaration."
@@ -2263,6 +2440,7 @@ ConstWithoutPrimaryConstructor:
     class const C {}
 
 NewConstructorQualifiedName:
+  type: syntacticError
   parameters: none
   problemMessage: "Constructors declared with the 'new' keyword can't have qualified names."
   correctionMessage: "Try removing the class name prefix from the qualified name or removing the 'new' keyword."

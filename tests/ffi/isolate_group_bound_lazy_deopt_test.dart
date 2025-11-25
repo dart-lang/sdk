@@ -28,6 +28,7 @@ AA(C c, bool b) {
 T1(C c, bool b) {
   try {
     AA(c, b);
+    // ignore: nullable_type_in_catch_clause
   } on dynamic {}
   return c.x + 1;
 }
