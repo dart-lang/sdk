@@ -9,6 +9,7 @@
 
 #include <process.h>  // NOLINT
 #include <psapi.h>    // NOLINT
+#include <source_location>
 #include <vector>
 
 #include "bin/builtin.h"
@@ -294,12 +295,15 @@ static void CloseProcessPipes(HANDLE handles1[2],
   CloseProcessPipe(handles4);
 }
 
-static int SetOsErrorMessage(char** os_error_message) {
+static int SetOsErrorMessage(
+    CStringUniquePtr* os_error_message,
+    std::source_location location = std::source_location::current()) {
   int error_code = GetLastError();
   const int kMaxMessageLength = 256;
   wchar_t message[kMaxMessageLength];
   FormatMessageIntoBuffer(error_code, message, kMaxMessageLength);
-  *os_error_message = StringUtilsWin::WideToUtf8(message);
+  os_error_message->reset(Utils::SCreate(
+      "%ls (at %s:%d)", message, location.file_name(), location.line()));
   return error_code;
 }
 
@@ -356,7 +360,7 @@ class ProcessStarter {
                  intptr_t* err,
                  intptr_t* id,
                  intptr_t* exit_handler,
-                 char** os_error_message)
+                 CStringUniquePtr* os_error_message)
       : path_(path),
         working_directory_(working_directory),
         mode_(mode),
@@ -617,7 +621,13 @@ class ProcessStarter {
     if (!InitializeProcThreadAttributeList(attribute_list_, 1, 0, &size)) {
       return CleanupAndReturnError();
     }
-    inherited_handles_ = {stdin_handle, stdout_handle, stderr_handle};
+    inherited_handles_ = {stdin_handle};
+    if (stdout_handle != stdin_handle) {
+      inherited_handles_.push_back(stdout_handle);
+    }
+    if (stderr_handle != stdout_handle && stderr_handle != stdin_handle) {
+      inherited_handles_.push_back(stderr_handle);
+    }
     if (!UpdateProcThreadAttribute(
             attribute_list_, 0, PROC_THREAD_ATTRIBUTE_HANDLE_LIST,
             inherited_handles_.data(),
@@ -707,8 +717,9 @@ class ProcessStarter {
     return 0;
   }
 
-  int CleanupAndReturnError() {
-    int error_code = SetOsErrorMessage(os_error_message_);
+  int CleanupAndReturnError(
+      std::source_location location = std::source_location::current()) {
+    int error_code = SetOsErrorMessage(os_error_message_, location);
     CloseProcessPipes(stdin_handles_, stdout_handles_, stderr_handles_,
                       exit_handles_);
     return error_code;
@@ -734,7 +745,7 @@ class ProcessStarter {
   intptr_t* err_;
   intptr_t* id_;
   intptr_t* exit_handler_;
-  char** os_error_message_;
+  CStringUniquePtr* os_error_message_;
 
  private:
   DISALLOW_ALLOCATION();
@@ -755,10 +766,15 @@ int Process::Start(Namespace* namespc,
                    intptr_t* id,
                    intptr_t* exit_handler,
                    char** os_error_message) {
+  CStringUniquePtr error;
   ProcessStarter starter(path, arguments, arguments_length, working_directory,
                          environment, environment_length, mode, in, out, err,
-                         id, exit_handler, os_error_message);
-  return starter.Start();
+                         id, exit_handler, &error);
+  const auto result = starter.Start();
+  if (result != 0 && error != nullptr) {
+    *os_error_message = DartUtils::ScopedCopyCString(error.get());
+  }
+  return result;
 }
 
 class BufferList : public BufferListBase {
@@ -981,7 +997,7 @@ int Process::Exec(Namespace* namespc,
   HANDLE hjob = CreateJobObject(nullptr, nullptr);
   if (hjob == nullptr) {
     BufferFormatter f(errmsg, errmsg_len);
-    f.Printf("Process::Exec - CreateJobObject failed %d\n", GetLastError());
+    f.Printf("Process::Exec - CreateJobObject failed %d", GetLastError());
     return -1;
   }
   JOBOBJECT_EXTENDED_LIMIT_INFORMATION info;
@@ -991,7 +1007,7 @@ int Process::Exec(Namespace* namespc,
                                  sizeof(JOBOBJECT_EXTENDED_LIMIT_INFORMATION),
                                  &qresult)) {
     BufferFormatter f(errmsg, errmsg_len);
-    f.Printf("Process::Exec - QueryInformationJobObject failed %d\n",
+    f.Printf("Process::Exec - QueryInformationJobObject failed %d",
              GetLastError());
     return -1;
   }
@@ -1005,7 +1021,7 @@ int Process::Exec(Namespace* namespc,
   if (!SetInformationJobObject(hjob, JobObjectExtendedLimitInformation, &info,
                                sizeof(JOBOBJECT_EXTENDED_LIMIT_INFORMATION))) {
     BufferFormatter f(errmsg, errmsg_len);
-    f.Printf("Process::Exec - SetInformationJobObject failed %d\n",
+    f.Printf("Process::Exec - SetInformationJobObject failed %d",
              GetLastError());
     return -1;
   }
@@ -1015,7 +1031,7 @@ int Process::Exec(Namespace* namespc,
   // we haven't spawned any children yet this race is harmless)
   if (!AssignProcessToJobObject(hjob, GetCurrentProcess())) {
     BufferFormatter f(errmsg, errmsg_len);
-    f.Printf("Process::Exec - AssignProcessToJobObject failed %d\n",
+    f.Printf("Process::Exec - AssignProcessToJobObject failed %d",
              GetLastError());
     return -1;
   }
@@ -1028,14 +1044,14 @@ int Process::Exec(Namespace* namespc,
   // as the value passed in 'path', we strip that off when starting the
   // process.
   intptr_t pid = -1;
-  char* os_error_message = nullptr;  // Scope allocated by Process::Start.
+  CStringUniquePtr os_error_message;
   ProcessStarter starter(path, &(arguments[1]), (arguments_length - 1),
                          working_directory, nullptr, 0, kInheritStdio, nullptr,
                          nullptr, nullptr, &pid, nullptr, &os_error_message);
   int result = starter.StartForExec(hjob);
   if (result != 0) {
     BufferFormatter f(errmsg, errmsg_len);
-    f.Printf("Process::Exec - %s\n", os_error_message);
+    f.Printf("ProcessStarter::StartForExec failed: %s", os_error_message.get());
     return -1;
   }
 
@@ -1047,14 +1063,14 @@ int Process::Exec(Namespace* namespc,
   DWORD wait_result = WaitForSingleObject(child_process, INFINITE);
   if (wait_result != WAIT_OBJECT_0) {
     BufferFormatter f(errmsg, errmsg_len);
-    f.Printf("Process::Exec - WaitForSingleObject failed %d\n", GetLastError());
+    f.Printf("Process::Exec - WaitForSingleObject failed %d", GetLastError());
     CloseHandle(child_process);
     return -1;
   }
   int retval;
   if (!GetExitCodeProcess(child_process, reinterpret_cast<DWORD*>(&retval))) {
     BufferFormatter f(errmsg, errmsg_len);
-    f.Printf("Process::Exec - GetExitCodeProcess failed %d\n", GetLastError());
+    f.Printf("Process::Exec - GetExitCodeProcess failed %d", GetLastError());
     CloseHandle(child_process);
     return -1;
   }

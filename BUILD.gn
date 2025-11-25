@@ -51,8 +51,8 @@ group("runtime") {
     "samples/embedder:kernel",
     "samples/ffi/http:fake_http",
     "samples/ffi/httpIG:fake_httpIG",
-    "utils/dartdev:dartdev",
-    "utils/kernel-service:kernel-service",
+    "utils/dartdev",
+    "utils/kernel-service",
   ]
 
   # The following dependencies allow dartdev to start the resident frontend
@@ -68,8 +68,8 @@ group("runtime") {
     ]
   } else {
     deps += [
-      "utils/dds:dds",
-      "utils/dtd:dtd",
+      "utils/dds",
+      "utils/dtd",
       "utils/kernel-service:frontend_server",
     ]
   }
@@ -104,6 +104,8 @@ group("runtime") {
     deps += [ "runtime/bin:abstract_socket_test" ]
   } else if (is_fuchsia) {
     deps += [ ":fuchsia_test_package" ]
+  } else if (is_win) {
+    deps += [ "runtime/bin:create_process_test_helper" ]
   }
 }
 
