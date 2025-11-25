@@ -139,8 +139,22 @@ class B extends test::A { // from org-dartlang:///test.dart
     expect(hierarchy.isSubclassOf(a, c), false);
     expect(hierarchy.isSubclassOf(c, a), true);
 
-    // Remove so A should no longer be a super of anything.
+    // Remove C - after this C should be unknown.
     expect(hierarchy.applyTreeChanges([libWithC], [], []), same(hierarchy));
+    expectThrows(() => hierarchy.isSubclassOf(a, c));
+    expectThrows(() => hierarchy.isSubclassOf(c, a));
+  }
+
+  void expectThrows(Function() f) {
+    bool hasThrown = false;
+    try {
+      f();
+    } catch (e) {
+      hasThrown = true;
+    }
+    if (!hasThrown) {
+      throw "Expected the function to throw an exception.";
+    }
   }
 
   void test_applyMemberChanges() {
@@ -302,6 +316,24 @@ class H extends self::G implements self::C, self::A {}
     ClosedWorldClassHierarchy cwch = hierarchy as ClosedWorldClassHierarchy;
     ClassHierarchySubtypes cwchst = cwch.computeSubtypesInformation();
 
+    expect(cwchst.getSubtypesOf(a), unorderedEquals([a, d, f, h]));
+    expect(cwchst.getSubtypesOf(b), unorderedEquals([b, e, f]));
+    expect(cwchst.getSubtypesOf(c), unorderedEquals([c, e, f, h]));
+    expect(cwchst.getSubtypesOf(d), unorderedEquals([d]));
+    expect(cwchst.getSubtypesOf(e), unorderedEquals([e, f]));
+    expect(cwchst.getSubtypesOf(f), unorderedEquals([f]));
+    expect(cwchst.getSubtypesOf(g), unorderedEquals([g, h]));
+    expect(cwchst.getSubtypesOf(h), unorderedEquals([h]));
+
+    // Update hierarchy.
+    expect(
+        hierarchy.applyTreeChanges([library], [library], []), same(hierarchy));
+
+    // The existing ClassHierarchySubtypes should be invalidated.
+    expect((cwchst as dynamic).invalidated, true);
+
+    // Asking for it again gives one that works.
+    cwchst = cwch.computeSubtypesInformation();
     expect(cwchst.getSubtypesOf(a), unorderedEquals([a, d, f, h]));
     expect(cwchst.getSubtypesOf(b), unorderedEquals([b, e, f]));
     expect(cwchst.getSubtypesOf(c), unorderedEquals([c, e, f, h]));

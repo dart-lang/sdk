@@ -1181,6 +1181,7 @@ class ClosedWorldClassHierarchy
     // caching it.
     if (_cachedClassHierarchySubtypes != null) {
       _cachedClassHierarchySubtypes!.invalidated = true;
+      _cachedClassHierarchySubtypes = null;
     }
 
     if (_recordedAmbiguousSupertypes.isNotEmpty &&

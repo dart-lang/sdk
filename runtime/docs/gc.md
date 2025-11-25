@@ -45,6 +45,8 @@ Note that a mutator can be at a safepoint without being suspended. It might be p
 
 Because a safepoint operation excludes execution of Dart code, it is sometimes used for non-GC tasks that requires only this property. For example, when a background compilation has completed and wants to install its result, it uses a safepoint operation to ensure no Dart execution sees the intermediate states during installation.
 
+The state of each thread is represented using `Thread::ExecutionState` enum. A thread is considered to be at a safepoint if its state is `kThreadInNative` (executing external native code) or `kThreadInBlockedState` (blocked on a lock). Conversely, a thread in `kThreadInVM` (executing C++ VM code) or `kThreadInGenerated` (executing compiled Dart code) is not at a safepoint. The VM relies on threads transitioning between these states carefully to ensure that a safepoint operation can begin only when all threads are in a safe state.
+
 ## Scavenge
 
 See [Cheney's algorithm](https://en.wikipedia.org/wiki/Cheney's_algorithm).
