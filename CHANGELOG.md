@@ -1,5 +1,7 @@
 ## 3.10.2
 
+**Released on:** 2025-11-25
+
 This is a patch release that:
 
 - Fixes an issue with code completion for argument lists in a dot shorthand
