@@ -12134,6 +12134,11 @@ CompileTimeErrorCode:
 
       class B implements A {}
       ```
+  NON_REDIRECTING_GENERATIVE_CONSTRUCTOR_WITH_PRIMARY:
+    parameters: none
+    problemMessage: "Classes with primary constructors can't have non-redirecting generative constructors."
+    correctionMessage: "Try making the constructor redirect to the primary constructor, or remove the primary constructor."
+    hasPublishedDocs: false
   NON_SYNC_FACTORY:
     parameters: none
     problemMessage: "Factory bodies can't use 'async', 'async*', or 'sync*'."

@@ -797,6 +797,7 @@ const List<DiagnosticCode> diagnosticCodeValues = [
   diag.nonNullableEqualsParameter,
   diag.nonPartOfDirectiveInPart,
   diag.nonPositiveArrayDimension,
+  diag.nonRedirectingGenerativeConstructorWithPrimary,
   diag.nonResizableActivity,
   diag.nonSizedTypeArgument,
   diag.nonStringLiteralAsUri,

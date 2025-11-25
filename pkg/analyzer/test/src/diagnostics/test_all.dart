@@ -672,6 +672,8 @@ import 'non_native_function_type_argument_to_pointer_test.dart'
     as non_native_function_type_argument_to_pointer;
 import 'non_nullable_equals_parameter_test.dart' as non_null_equals_parameters;
 import 'non_positive_array_dimension_test.dart' as non_positive_array_dimension;
+import 'non_redirecting_generative_constructor_with_primary_test.dart'
+    as non_redirecting_generative_constructor_with_primary;
 import 'non_sized_type_argument_test.dart' as non_sized_type_argument;
 import 'non_type_as_type_argument_test.dart' as non_type_as_type_argument;
 import 'non_type_in_catch_clause_test.dart' as non_type_in_catch_clause;
@@ -1384,6 +1386,7 @@ main() {
     non_native_function_type_argument_to_pointer.main();
     non_null_equals_parameters.main();
     non_positive_array_dimension.main();
+    non_redirecting_generative_constructor_with_primary.main();
     non_sized_type_argument.main();
     non_type_as_type_argument.main();
     non_type_in_catch_clause.main();

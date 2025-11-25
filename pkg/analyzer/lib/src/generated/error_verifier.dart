@@ -640,6 +640,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
         }
         _checkForUndefinedConstructorInInitializerImplicit(node);
         _checkForReturnInGenerativeConstructor(node);
+        _checkForNonRedirectingGenerativeConstructorWithPrimary(node);
         super.visitConstructorDeclaration(node);
       },
       isAsynchronous: fragment.isAsynchronous,
@@ -4685,6 +4686,27 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     diagnosticReporter.atToken(
       variableList.variables.first.name,
       diag.nonFinalFieldInEnum,
+    );
+  }
+
+  void _checkForNonRedirectingGenerativeConstructorWithPrimary(
+    ConstructorDeclaration node,
+  ) {
+    var enclosingClass = _enclosingClass;
+    if (enclosingClass == null ||
+        enclosingClass is ExtensionTypeElement ||
+        enclosingClass.constructors.none((c) => c.isPrimary)) {
+      return;
+    }
+
+    if (node.factoryKeyword != null ||
+        node.initializers.any((i) => i is RedirectingConstructorInvocation)) {
+      return;
+    }
+
+    diagnosticReporter.atConstructorDeclaration(
+      node,
+      diag.nonRedirectingGenerativeConstructorWithPrimary,
     );
   }
 
