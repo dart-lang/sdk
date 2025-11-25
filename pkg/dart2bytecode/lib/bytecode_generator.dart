@@ -4339,7 +4339,16 @@ class BytecodeGenerator extends RecursiveVisitor {
       final initializer = node.initializer;
       final bool emitStore = !_skipVariableInitialization(node, isCaptured);
       int maxInitializerPosition = node.fileOffset;
+      if (node.isSynthesized) {
+        asm.currentSourcePositionFlags |= SourcePositions.syntheticFlag;
+      }
       if (emitStore) {
+        // Record the source position at the start of the bytecode generated
+        // for storing the variable.
+        if (initializer != null) {
+          _recordSourcePosition(node.fileEqualsOffset);
+        }
+        _emitSourcePosition();
         if (isCaptured) {
           _genPushContextForVariable(node);
         }
@@ -4359,12 +4368,6 @@ class BytecodeGenerator extends RecursiveVisitor {
       }
 
       if (emitStore) {
-        if (!node.isSynthesized) {
-          if (initializer != null) {
-            _recordSourcePosition(node.fileEqualsOffset);
-          }
-          _emitSourcePosition();
-        }
         _genStoreVar(node);
       }
     }
