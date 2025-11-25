@@ -611,12 +611,14 @@ library
               element: <testLibrary>::@class::C::@constructor::new
               codeOffset: 12
               codeLength: 23
+              factoryKeywordOffset: 12
               typeName: C
               typeNameOffset: 20
             #F3 factory raw (nameOffset:49) (firstTokenOffset:39) (offset:49)
               element: <testLibrary>::@class::C::@constructor::raw
               codeOffset: 39
               codeLength: 27
+              factoryKeywordOffset: 39
               typeName: C
               typeNameOffset: 47
               periodOffset: 48
@@ -625,6 +627,7 @@ library
               documentationComment: /// Comment 1.\n/// Comment 2.
               codeOffset: 70
               codeLength: 71
+              factoryKeywordOffset: 104
               typeName: C
               typeNameOffset: 112
               periodOffset: 113
@@ -643,6 +646,7 @@ library
                   element: dart:core::@class::Object::@constructor::new
               codeOffset: 145
               codeLength: 49
+              factoryKeywordOffset: 157
               typeName: C
               typeNameOffset: 165
               periodOffset: 166
@@ -662,6 +666,7 @@ library
                   element: dart:core::@class::Object::@constructor::new
               codeOffset: 198
               codeLength: 91
+              factoryKeywordOffset: 244
               typeName: C
               typeNameOffset: 252
               periodOffset: 253
@@ -681,6 +686,7 @@ library
                   element: dart:core::@class::Object::@constructor::new
               codeOffset: 293
               codeLength: 91
+              factoryKeywordOffset: 339
               typeName: C
               typeNameOffset: 347
               periodOffset: 348
@@ -700,6 +706,7 @@ library
                   element: dart:core::@class::Object::@constructor::new
               codeOffset: 405
               codeLength: 76
+              factoryKeywordOffset: 434
               typeName: C
               typeNameOffset: 442
               periodOffset: 443

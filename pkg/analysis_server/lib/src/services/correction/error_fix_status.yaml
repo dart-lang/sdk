@@ -1277,6 +1277,8 @@ NON_GENERATIVE_IMPLICIT_CONSTRUCTOR:
   status: needsFix
   notes: |-
     Suggest generative constructors that could be invoked.
+NON_REDIRECTING_GENERATIVE_CONSTRUCTOR_WITH_PRIMARY:
+  status: needsEvaluation
 NON_SYNC_FACTORY:
   status: needsFix
   notes: |-

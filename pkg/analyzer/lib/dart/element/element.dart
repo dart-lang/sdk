@@ -280,8 +280,18 @@ abstract class ConstructorFragment implements ExecutableFragment {
   @override
   InstanceFragment? get enclosingFragment;
 
+  /// The offset of the `factory` keyword.
+  ///
+  /// It is `null` if the fragment is synthetic, or does not have the keyword.
+  int? get factoryKeywordOffset;
+
   @override
   String get name;
+
+  /// The offset of the `new` keyword.
+  ///
+  /// It is `null` if the fragment is synthetic, or does not have the keyword.
+  int? get newKeywordOffset;
 
   @override
   ConstructorFragment? get nextFragment;

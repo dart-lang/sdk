@@ -62,7 +62,7 @@ void main() {
 
   Expect.equals(1, const ExtConst(1).x);
 
-  Expect.equals(1, const EnumConst.e.x);
+  Expect.equals(1, EnumConst.e.x);
 
   Expect.equals(1, CInitParameters(1).y);
 
@@ -72,18 +72,18 @@ void main() {
   Expect.equals(1, CNamedParameters(y: 2).x);
   Expect.equals(2, CNamedParameters(y: 2).y);
 
-  Expect.equals(2, const EnumNamedParameters.e.x);
-  Expect.equals(3, const EnumNamedParameters.e.y);
-  Expect.equals(1, const EnumNamedParameters.f.x);
-  Expect.equals(3, const EnumNamedParameters.f.y);
+  Expect.equals(2, EnumNamedParameters.e.x);
+  Expect.equals(3, EnumNamedParameters.e.y);
+  Expect.equals(1, EnumNamedParameters.f.x);
+  Expect.equals(3, EnumNamedParameters.f.y);
 
   Expect.equals(1, COptionalParameters().x);
   Expect.equals(2, COptionalParameters().y);
 
-  Expect.equals(3, const EnumOptionalParameters.e.x);
-  Expect.equals(4, const EnumOptionalParameters.e.y);
-  Expect.equals(3, const EnumOptionalParameters.f.x);
-  Expect.equals(2, const EnumOptionalParameters.f.y);
-  Expect.equals(1, const EnumOptionalParameters.g.x);
-  Expect.equals(2, const EnumOptionalParameters.g.y);
+  Expect.equals(3, EnumOptionalParameters.e.x);
+  Expect.equals(4, EnumOptionalParameters.e.y);
+  Expect.equals(3, EnumOptionalParameters.f.x);
+  Expect.equals(2, EnumOptionalParameters.f.y);
+  Expect.equals(1, EnumOptionalParameters.g.x);
+  Expect.equals(2, EnumOptionalParameters.g.y);
 }

@@ -160,6 +160,157 @@ library
 ''');
   }
 
+  test_constructor_factoryHead_named() async {
+    var library = await buildLibrary(r'''
+extension type A(int it) {
+  factory named(int it) => A(it);
+}
+''');
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      extensionTypes
+        #F1 extension type A (nameOffset:15) (firstTokenOffset:0) (offset:15)
+          element: <testLibrary>::@extensionType::A
+          fields
+            #F2 it (nameOffset:21) (firstTokenOffset:17) (offset:21)
+              element: <testLibrary>::@extensionType::A::@field::it
+          constructors
+            #F3 new (nameOffset:<null>) (firstTokenOffset:15) (offset:15)
+              element: <testLibrary>::@extensionType::A::@constructor::new
+              typeName: A
+              typeNameOffset: 15
+              formalParameters
+                #F4 requiredPositional final this.it (nameOffset:21) (firstTokenOffset:17) (offset:21)
+                  element: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
+            #F5 factory named (nameOffset:37) (firstTokenOffset:29) (offset:37)
+              element: <testLibrary>::@extensionType::A::@constructor::named
+              factoryKeywordOffset: 29
+              typeName: null
+              formalParameters
+                #F6 requiredPositional it (nameOffset:47) (firstTokenOffset:43) (offset:47)
+                  element: <testLibrary>::@extensionType::A::@constructor::named::@formalParameter::it
+          getters
+            #F7 synthetic it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:21)
+              element: <testLibrary>::@extensionType::A::@getter::it
+  extensionTypes
+    extension type A
+      reference: <testLibrary>::@extensionType::A
+      firstFragment: #F1
+      representation: <testLibrary>::@extensionType::A::@field::it
+      primaryConstructor: <testLibrary>::@extensionType::A::@constructor::new
+      typeErasure: int
+      fields
+        final it
+          reference: <testLibrary>::@extensionType::A::@field::it
+          firstFragment: #F2
+          type: int
+          getter: <testLibrary>::@extensionType::A::@getter::it
+          declaringFormalParameter: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
+      constructors
+        declaring isExtensionTypeMember primary new
+          reference: <testLibrary>::@extensionType::A::@constructor::new
+          firstFragment: #F3
+          formalParameters
+            #E0 requiredPositional final hasImplicitType declaring this.it
+              firstFragment: #F4
+              type: int
+              field: <testLibrary>::@extensionType::A::@field::it
+        factory isExtensionTypeMember named
+          reference: <testLibrary>::@extensionType::A::@constructor::named
+          firstFragment: #F5
+          formalParameters
+            #E1 requiredPositional it
+              firstFragment: #F6
+              type: int
+      getters
+        synthetic isExtensionTypeMember it
+          reference: <testLibrary>::@extensionType::A::@getter::it
+          firstFragment: #F7
+          returnType: int
+          variable: <testLibrary>::@extensionType::A::@field::it
+''');
+  }
+
+  test_constructor_factoryHead_unnamed() async {
+    var library = await buildLibrary(r'''
+extension type A.primary(int it) {
+  factory (int it) => A.primary(it);
+}
+''');
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      extensionTypes
+        #F1 extension type A (nameOffset:15) (firstTokenOffset:0) (offset:15)
+          element: <testLibrary>::@extensionType::A
+          fields
+            #F2 it (nameOffset:29) (firstTokenOffset:25) (offset:29)
+              element: <testLibrary>::@extensionType::A::@field::it
+          constructors
+            #F3 primary (nameOffset:17) (firstTokenOffset:15) (offset:17)
+              element: <testLibrary>::@extensionType::A::@constructor::primary
+              typeName: A
+              typeNameOffset: 15
+              periodOffset: 16
+              formalParameters
+                #F4 requiredPositional final this.it (nameOffset:29) (firstTokenOffset:25) (offset:29)
+                  element: <testLibrary>::@extensionType::A::@constructor::primary::@formalParameter::it
+            #F5 factory new (nameOffset:<null>) (firstTokenOffset:37) (offset:37)
+              element: <testLibrary>::@extensionType::A::@constructor::new
+              factoryKeywordOffset: 37
+              typeName: null
+              formalParameters
+                #F6 requiredPositional it (nameOffset:50) (firstTokenOffset:46) (offset:50)
+                  element: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
+          getters
+            #F7 synthetic it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:29)
+              element: <testLibrary>::@extensionType::A::@getter::it
+  extensionTypes
+    extension type A
+      reference: <testLibrary>::@extensionType::A
+      firstFragment: #F1
+      representation: <testLibrary>::@extensionType::A::@field::it
+      primaryConstructor: <testLibrary>::@extensionType::A::@constructor::primary
+      typeErasure: int
+      fields
+        final it
+          reference: <testLibrary>::@extensionType::A::@field::it
+          firstFragment: #F2
+          type: int
+          getter: <testLibrary>::@extensionType::A::@getter::it
+          declaringFormalParameter: <testLibrary>::@extensionType::A::@constructor::primary::@formalParameter::it
+      constructors
+        declaring isExtensionTypeMember primary primary
+          reference: <testLibrary>::@extensionType::A::@constructor::primary
+          firstFragment: #F3
+          formalParameters
+            #E0 requiredPositional final hasImplicitType declaring this.it
+              firstFragment: #F4
+              type: int
+              field: <testLibrary>::@extensionType::A::@field::it
+        factory isExtensionTypeMember new
+          reference: <testLibrary>::@extensionType::A::@constructor::new
+          firstFragment: #F5
+          formalParameters
+            #E1 requiredPositional it
+              firstFragment: #F6
+              type: int
+      getters
+        synthetic isExtensionTypeMember it
+          reference: <testLibrary>::@extensionType::A::@getter::it
+          firstFragment: #F7
+          returnType: int
+          variable: <testLibrary>::@extensionType::A::@field::it
+''');
+  }
+
   test_constructor_named() async {
     var library = await buildLibrary(r'''
 extension type A.named(int it) {}
@@ -219,6 +370,312 @@ library
         synthetic isExtensionTypeMember it
           reference: <testLibrary>::@extensionType::A::@getter::it
           firstFragment: #F5
+          returnType: int
+          variable: <testLibrary>::@extensionType::A::@field::it
+''');
+  }
+
+  test_constructor_newHead_named() async {
+    var library = await buildLibrary(r'''
+extension type A(int it) {
+  new named(this.it);
+}
+''');
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      extensionTypes
+        #F1 extension type A (nameOffset:15) (firstTokenOffset:0) (offset:15)
+          element: <testLibrary>::@extensionType::A
+          fields
+            #F2 it (nameOffset:21) (firstTokenOffset:17) (offset:21)
+              element: <testLibrary>::@extensionType::A::@field::it
+          constructors
+            #F3 new (nameOffset:<null>) (firstTokenOffset:15) (offset:15)
+              element: <testLibrary>::@extensionType::A::@constructor::new
+              typeName: A
+              typeNameOffset: 15
+              formalParameters
+                #F4 requiredPositional final this.it (nameOffset:21) (firstTokenOffset:17) (offset:21)
+                  element: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
+            #F5 named (nameOffset:33) (firstTokenOffset:29) (offset:33)
+              element: <testLibrary>::@extensionType::A::@constructor::named
+              newKeywordOffset: 29
+              typeName: null
+              formalParameters
+                #F6 requiredPositional final this.it (nameOffset:44) (firstTokenOffset:39) (offset:44)
+                  element: <testLibrary>::@extensionType::A::@constructor::named::@formalParameter::it
+          getters
+            #F7 synthetic it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:21)
+              element: <testLibrary>::@extensionType::A::@getter::it
+  extensionTypes
+    extension type A
+      reference: <testLibrary>::@extensionType::A
+      firstFragment: #F1
+      representation: <testLibrary>::@extensionType::A::@field::it
+      primaryConstructor: <testLibrary>::@extensionType::A::@constructor::new
+      typeErasure: int
+      fields
+        final it
+          reference: <testLibrary>::@extensionType::A::@field::it
+          firstFragment: #F2
+          type: int
+          getter: <testLibrary>::@extensionType::A::@getter::it
+          declaringFormalParameter: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
+      constructors
+        declaring isExtensionTypeMember primary new
+          reference: <testLibrary>::@extensionType::A::@constructor::new
+          firstFragment: #F3
+          formalParameters
+            #E0 requiredPositional final hasImplicitType declaring this.it
+              firstFragment: #F4
+              type: int
+              field: <testLibrary>::@extensionType::A::@field::it
+        isExtensionTypeMember named
+          reference: <testLibrary>::@extensionType::A::@constructor::named
+          firstFragment: #F5
+          formalParameters
+            #E1 requiredPositional final hasImplicitType this.it
+              firstFragment: #F6
+              type: int
+              field: <testLibrary>::@extensionType::A::@field::it
+      getters
+        synthetic isExtensionTypeMember it
+          reference: <testLibrary>::@extensionType::A::@getter::it
+          firstFragment: #F7
+          returnType: int
+          variable: <testLibrary>::@extensionType::A::@field::it
+''');
+  }
+
+  test_constructor_newHead_named_const() async {
+    var library = await buildLibrary(r'''
+extension type A(int it) {
+  const new named(this.it);
+}
+''');
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      extensionTypes
+        #F1 extension type A (nameOffset:15) (firstTokenOffset:0) (offset:15)
+          element: <testLibrary>::@extensionType::A
+          fields
+            #F2 it (nameOffset:21) (firstTokenOffset:17) (offset:21)
+              element: <testLibrary>::@extensionType::A::@field::it
+          constructors
+            #F3 new (nameOffset:<null>) (firstTokenOffset:15) (offset:15)
+              element: <testLibrary>::@extensionType::A::@constructor::new
+              typeName: A
+              typeNameOffset: 15
+              formalParameters
+                #F4 requiredPositional final this.it (nameOffset:21) (firstTokenOffset:17) (offset:21)
+                  element: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
+            #F5 const named (nameOffset:39) (firstTokenOffset:29) (offset:39)
+              element: <testLibrary>::@extensionType::A::@constructor::named
+              newKeywordOffset: 35
+              typeName: null
+              formalParameters
+                #F6 requiredPositional final this.it (nameOffset:50) (firstTokenOffset:45) (offset:50)
+                  element: <testLibrary>::@extensionType::A::@constructor::named::@formalParameter::it
+          getters
+            #F7 synthetic it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:21)
+              element: <testLibrary>::@extensionType::A::@getter::it
+  extensionTypes
+    extension type A
+      reference: <testLibrary>::@extensionType::A
+      firstFragment: #F1
+      representation: <testLibrary>::@extensionType::A::@field::it
+      primaryConstructor: <testLibrary>::@extensionType::A::@constructor::new
+      typeErasure: int
+      fields
+        final it
+          reference: <testLibrary>::@extensionType::A::@field::it
+          firstFragment: #F2
+          type: int
+          getter: <testLibrary>::@extensionType::A::@getter::it
+          declaringFormalParameter: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
+      constructors
+        declaring isExtensionTypeMember primary new
+          reference: <testLibrary>::@extensionType::A::@constructor::new
+          firstFragment: #F3
+          formalParameters
+            #E0 requiredPositional final hasImplicitType declaring this.it
+              firstFragment: #F4
+              type: int
+              field: <testLibrary>::@extensionType::A::@field::it
+        const isExtensionTypeMember named
+          reference: <testLibrary>::@extensionType::A::@constructor::named
+          firstFragment: #F5
+          formalParameters
+            #E1 requiredPositional final hasImplicitType this.it
+              firstFragment: #F6
+              type: int
+              field: <testLibrary>::@extensionType::A::@field::it
+      getters
+        synthetic isExtensionTypeMember it
+          reference: <testLibrary>::@extensionType::A::@getter::it
+          firstFragment: #F7
+          returnType: int
+          variable: <testLibrary>::@extensionType::A::@field::it
+''');
+  }
+
+  test_constructor_newHead_unnamed() async {
+    var library = await buildLibrary(r'''
+extension type A.primary(int it) {
+  new (this.it);
+}
+''');
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      extensionTypes
+        #F1 extension type A (nameOffset:15) (firstTokenOffset:0) (offset:15)
+          element: <testLibrary>::@extensionType::A
+          fields
+            #F2 it (nameOffset:29) (firstTokenOffset:25) (offset:29)
+              element: <testLibrary>::@extensionType::A::@field::it
+          constructors
+            #F3 primary (nameOffset:17) (firstTokenOffset:15) (offset:17)
+              element: <testLibrary>::@extensionType::A::@constructor::primary
+              typeName: A
+              typeNameOffset: 15
+              periodOffset: 16
+              formalParameters
+                #F4 requiredPositional final this.it (nameOffset:29) (firstTokenOffset:25) (offset:29)
+                  element: <testLibrary>::@extensionType::A::@constructor::primary::@formalParameter::it
+            #F5 new (nameOffset:<null>) (firstTokenOffset:37) (offset:37)
+              element: <testLibrary>::@extensionType::A::@constructor::new
+              newKeywordOffset: 37
+              typeName: null
+              formalParameters
+                #F6 requiredPositional final this.it (nameOffset:47) (firstTokenOffset:42) (offset:47)
+                  element: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
+          getters
+            #F7 synthetic it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:29)
+              element: <testLibrary>::@extensionType::A::@getter::it
+  extensionTypes
+    extension type A
+      reference: <testLibrary>::@extensionType::A
+      firstFragment: #F1
+      representation: <testLibrary>::@extensionType::A::@field::it
+      primaryConstructor: <testLibrary>::@extensionType::A::@constructor::primary
+      typeErasure: int
+      fields
+        final it
+          reference: <testLibrary>::@extensionType::A::@field::it
+          firstFragment: #F2
+          type: int
+          getter: <testLibrary>::@extensionType::A::@getter::it
+          declaringFormalParameter: <testLibrary>::@extensionType::A::@constructor::primary::@formalParameter::it
+      constructors
+        declaring isExtensionTypeMember primary primary
+          reference: <testLibrary>::@extensionType::A::@constructor::primary
+          firstFragment: #F3
+          formalParameters
+            #E0 requiredPositional final hasImplicitType declaring this.it
+              firstFragment: #F4
+              type: int
+              field: <testLibrary>::@extensionType::A::@field::it
+        isExtensionTypeMember new
+          reference: <testLibrary>::@extensionType::A::@constructor::new
+          firstFragment: #F5
+          formalParameters
+            #E1 requiredPositional final hasImplicitType this.it
+              firstFragment: #F6
+              type: int
+              field: <testLibrary>::@extensionType::A::@field::it
+      getters
+        synthetic isExtensionTypeMember it
+          reference: <testLibrary>::@extensionType::A::@getter::it
+          firstFragment: #F7
+          returnType: int
+          variable: <testLibrary>::@extensionType::A::@field::it
+''');
+  }
+
+  test_constructor_newHead_unnamed_const() async {
+    var library = await buildLibrary(r'''
+extension type A.primary(int it) {
+  const new (this.it);
+}
+''');
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      extensionTypes
+        #F1 extension type A (nameOffset:15) (firstTokenOffset:0) (offset:15)
+          element: <testLibrary>::@extensionType::A
+          fields
+            #F2 it (nameOffset:29) (firstTokenOffset:25) (offset:29)
+              element: <testLibrary>::@extensionType::A::@field::it
+          constructors
+            #F3 primary (nameOffset:17) (firstTokenOffset:15) (offset:17)
+              element: <testLibrary>::@extensionType::A::@constructor::primary
+              typeName: A
+              typeNameOffset: 15
+              periodOffset: 16
+              formalParameters
+                #F4 requiredPositional final this.it (nameOffset:29) (firstTokenOffset:25) (offset:29)
+                  element: <testLibrary>::@extensionType::A::@constructor::primary::@formalParameter::it
+            #F5 const new (nameOffset:<null>) (firstTokenOffset:37) (offset:37)
+              element: <testLibrary>::@extensionType::A::@constructor::new
+              newKeywordOffset: 43
+              typeName: null
+              formalParameters
+                #F6 requiredPositional final this.it (nameOffset:53) (firstTokenOffset:48) (offset:53)
+                  element: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
+          getters
+            #F7 synthetic it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:29)
+              element: <testLibrary>::@extensionType::A::@getter::it
+  extensionTypes
+    extension type A
+      reference: <testLibrary>::@extensionType::A
+      firstFragment: #F1
+      representation: <testLibrary>::@extensionType::A::@field::it
+      primaryConstructor: <testLibrary>::@extensionType::A::@constructor::primary
+      typeErasure: int
+      fields
+        final it
+          reference: <testLibrary>::@extensionType::A::@field::it
+          firstFragment: #F2
+          type: int
+          getter: <testLibrary>::@extensionType::A::@getter::it
+          declaringFormalParameter: <testLibrary>::@extensionType::A::@constructor::primary::@formalParameter::it
+      constructors
+        declaring isExtensionTypeMember primary primary
+          reference: <testLibrary>::@extensionType::A::@constructor::primary
+          firstFragment: #F3
+          formalParameters
+            #E0 requiredPositional final hasImplicitType declaring this.it
+              firstFragment: #F4
+              type: int
+              field: <testLibrary>::@extensionType::A::@field::it
+        const isExtensionTypeMember new
+          reference: <testLibrary>::@extensionType::A::@constructor::new
+          firstFragment: #F5
+          formalParameters
+            #E1 requiredPositional final hasImplicitType this.it
+              firstFragment: #F6
+              type: int
+              field: <testLibrary>::@extensionType::A::@field::it
+      getters
+        synthetic isExtensionTypeMember it
+          reference: <testLibrary>::@extensionType::A::@getter::it
+          firstFragment: #F7
           returnType: int
           variable: <testLibrary>::@extensionType::A::@field::it
 ''');

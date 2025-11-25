@@ -79,11 +79,12 @@ class NodeLocator2 extends UnifyingAstVisitor<void> {
   void visitConstructorDeclaration(ConstructorDeclaration node) {
     // Names do not have AstNodes but offsets at the end should be treated as
     // part of the declaration (not parameter list).
-    if (_startOffset == _endOffset &&
-        // TODO(scheglov): https://github.com/dart-lang/sdk/issues/62067
-        _startOffset == (node.name ?? node.typeName!).end) {
-      _foundNode = node;
-      return;
+    if (_startOffset == _endOffset) {
+      var end = node.name?.end ?? node.typeName?.end;
+      if (end != null && _startOffset == end) {
+        _foundNode = node;
+        return;
+      }
     }
 
     super.visitConstructorDeclaration(node);

@@ -65,43 +65,7 @@ augment class A {
     assertErrorsInResult([error(diag.duplicateConstructorDefault, 42, 1)]);
   }
 
-  test_class_empty_empty() async {
-    await assertErrorsInCode(
-      r'''
-class C {
-  C();
-  C();
-}
-''',
-      [error(diag.duplicateConstructorDefault, 19, 1)],
-    );
-  }
-
-  test_class_empty_new() async {
-    await assertErrorsInCode(
-      r'''
-class C {
-  C();
-  C.new();
-}
-''',
-      [error(diag.duplicateConstructorDefault, 19, 5)],
-    );
-  }
-
-  test_class_new_empty() async {
-    await assertErrorsInCode(
-      r'''
-class C {
-  C.new();
-  C();
-}
-''',
-      [error(diag.duplicateConstructorDefault, 23, 1)],
-    );
-  }
-
-  test_class_new_new() async {
+  test_class_typeName_new_typeName_new() async {
     await assertErrorsInCode(
       r'''
 class C {
@@ -113,49 +77,92 @@ class C {
     );
   }
 
-  test_enum_empty_empty() async {
+  test_class_typeName_new_typeName_unnamed() async {
+    await assertErrorsInCode(
+      r'''
+class C {
+  C.new();
+  C();
+}
+''',
+      [error(diag.duplicateConstructorDefault, 23, 1)],
+    );
+  }
+
+  test_class_typeName_unnamed_factoryHead_unnamed() async {
+    await assertErrorsInCode(
+      r'''
+class C {
+  factory C() => throw 0;
+  factory () => throw 0;
+}
+''',
+      [error(diag.duplicateConstructorDefault, 38, 7)],
+    );
+  }
+
+  test_class_typeName_unnamed_newHead_unnamed() async {
+    await assertErrorsInCode(
+      r'''
+class C {
+  C();
+  new ();
+}
+''',
+      [error(diag.duplicateConstructorDefault, 19, 3)],
+    );
+  }
+
+  test_class_typeName_unnamed_typeName_new() async {
+    await assertErrorsInCode(
+      r'''
+class C {
+  C();
+  C.new();
+}
+''',
+      [error(diag.duplicateConstructorDefault, 19, 5)],
+    );
+  }
+
+  test_class_typeName_unnamed_typeName_unnamed() async {
+    await assertErrorsInCode(
+      r'''
+class C {
+  C();
+  C();
+}
+''',
+      [error(diag.duplicateConstructorDefault, 19, 1)],
+    );
+  }
+
+  test_class_wrongTypeName_unnamed_typeName_unnamed() async {
+    await assertErrorsInCode(
+      r'''
+class A {
+  factory B.new() => throw 0;
+  A();
+}
+''',
+      [error(diag.invalidFactoryNameNotAClass, 20, 1)],
+    );
+  }
+
+  test_enum_newHead_unnamed_newHead_unnamed() async {
     await assertErrorsInCode(
       r'''
 enum E {
   v;
-  const E();
-  const E();
+  const new ();
+  const new ();
 }
 ''',
-      [error(diag.duplicateConstructorDefault, 35, 1)],
+      [error(diag.duplicateConstructorDefault, 38, 3)],
     );
   }
 
-  test_enum_empty_new() async {
-    await assertErrorsInCode(
-      r'''
-enum E {
-  v;
-  const E();
-  const E.new();
-}
-''',
-      [
-        error(diag.duplicateConstructorDefault, 35, 5),
-        error(diag.unusedElement, 37, 3),
-      ],
-    );
-  }
-
-  test_enum_new_empty() async {
-    await assertErrorsInCode(
-      r'''
-enum E {
-  v;
-  const E.new();
-  const E();
-}
-''',
-      [error(diag.duplicateConstructorDefault, 39, 1)],
-    );
-  }
-
-  test_enum_new_new() async {
+  test_enum_typeName_new_typeName_new() async {
     await assertErrorsInCode(
       r'''
 enum E {
@@ -171,29 +178,86 @@ enum E {
     );
   }
 
-  test_extensionType_empty_empty() async {
+  test_enum_typeName_new_typeName_unnamed() async {
     await assertErrorsInCode(
       r'''
-extension type A(int it) {
-  A(this.it);
+enum E {
+  v;
+  const E.new();
+  const E();
 }
 ''',
-      [error(diag.duplicateConstructorDefault, 29, 1)],
+      [error(diag.duplicateConstructorDefault, 39, 1)],
     );
   }
 
-  test_extensionType_empty_new() async {
+  test_enum_typeName_unnamed_factoryHead_unnamed() async {
     await assertErrorsInCode(
       r'''
-extension type A(int it) {
+enum E {
+  v;
+  const E();
+  factory () => v;
+}
+''',
+      [error(diag.duplicateConstructorDefault, 29, 7)],
+    );
+  }
+
+  test_enum_typeName_unnamed_newHead_unnamed() async {
+    await assertErrorsInCode(
+      r'''
+enum E {
+  v;
+  const E();
+  const new ();
+}
+''',
+      [error(diag.duplicateConstructorDefault, 35, 3)],
+    );
+  }
+
+  test_enum_typeName_unnamed_typeName_new() async {
+    await assertErrorsInCode(
+      r'''
+enum E {
+  v;
+  const E();
+  const E.new();
+}
+''',
+      [
+        error(diag.duplicateConstructorDefault, 35, 5),
+        error(diag.unusedElement, 37, 3),
+      ],
+    );
+  }
+
+  test_enum_typeName_unnamed_typeName_unnamed() async {
+    await assertErrorsInCode(
+      r'''
+enum E {
+  v;
+  const E();
+  const E();
+}
+''',
+      [error(diag.duplicateConstructorDefault, 35, 1)],
+    );
+  }
+
+  test_extensionType_primary_new_secondary_typeName_new() async {
+    await assertErrorsInCode(
+      r'''
+extension type A.new(int it) {
   A.new(this.it);
 }
 ''',
-      [error(diag.duplicateConstructorDefault, 29, 5)],
+      [error(diag.duplicateConstructorDefault, 33, 5)],
     );
   }
 
-  test_extensionType_new_empty() async {
+  test_extensionType_primary_new_secondary_typeName_unnamed() async {
     await assertErrorsInCode(
       r'''
 extension type A.new(int it) {
@@ -204,14 +268,60 @@ extension type A.new(int it) {
     );
   }
 
-  test_extensionType_new_new() async {
+  test_extensionType_primary_unnamed_secondary_newHead_unnamed() async {
     await assertErrorsInCode(
       r'''
-extension type A.new(int it) {
+extension type A(int it) {
+  new(this.it);
+}
+''',
+      [error(diag.duplicateConstructorDefault, 29, 3)],
+    );
+  }
+
+  test_extensionType_primary_unnamed_secondary_typeName_new() async {
+    await assertErrorsInCode(
+      r'''
+extension type A(int it) {
   A.new(this.it);
 }
 ''',
-      [error(diag.duplicateConstructorDefault, 33, 5)],
+      [error(diag.duplicateConstructorDefault, 29, 5)],
+    );
+  }
+
+  test_extensionType_primary_unnamed_secondary_typeName_unnamed() async {
+    await assertErrorsInCode(
+      r'''
+extension type A(int it) {
+  A(this.it);
+}
+''',
+      [error(diag.duplicateConstructorDefault, 29, 1)],
+    );
+  }
+
+  test_extensionType_secondary_factoryHead_unnamed_factoryHead_unnamed() async {
+    await assertErrorsInCode(
+      r'''
+extension type A.named(int it) {
+  factory (int it) => A.named(it);
+  factory (int it) => A.named(it);
+}
+''',
+      [error(diag.duplicateConstructorDefault, 70, 7)],
+    );
+  }
+
+  test_extensionType_secondary_newHead_unnamed_newHead_unnamed() async {
+    await assertErrorsInCode(
+      r'''
+extension type A.named(int it) {
+  new(this.it);
+  new(this.it);
+}
+''',
+      [error(diag.duplicateConstructorDefault, 51, 3)],
     );
   }
 }

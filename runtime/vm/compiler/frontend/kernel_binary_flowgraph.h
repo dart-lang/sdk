@@ -51,6 +51,7 @@ class StreamingFlowGraphBuilder : public KernelReaderHelper {
   void ReportUnexpectedTag(const char* variant, Tag tag) override;
 
   Fragment BuildStatementAt(intptr_t kernel_offset);
+  Fragment BuildStatementAtWithBranchCoverage(intptr_t kernel_offset);
 
   intptr_t num_ast_nodes() const { return num_ast_nodes_; }
 

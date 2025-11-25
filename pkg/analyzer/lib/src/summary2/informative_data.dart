@@ -260,6 +260,8 @@ class InformativeDataApplier {
   ) {
     forCorrespondingPairs(elementList, infoList, (element, info) {
       element.setCodeRange(info.codeOffset, info.codeLength);
+      element.newKeywordOffset = info.newKeywordOffset;
+      element.factoryKeywordOffset = info.factoryKeywordOffset;
       element.typeNameOffset = info.typeNameOffset;
       element.periodOffset = info.periodOffset;
       element.firstTokenOffset = info.firstTokenOffset;
@@ -782,11 +784,11 @@ class _InfoBuilder {
         formalParameters: node.parameters,
         constructorInitializers: node.initializers,
       ),
-      // TODO(scheglov): https://github.com/dart-lang/sdk/issues/62067
-      typeNameOffset: node.typeName!.offset,
+      newKeywordOffset: node.newKeyword?.offset,
+      factoryKeywordOffset: node.factoryKeyword?.offset,
+      typeNameOffset: node.typeName?.offset,
       periodOffset: node.period?.offset,
-      // TODO(scheglov): https://github.com/dart-lang/sdk/issues/62067
-      nameEnd: (node.name ?? node.typeName!).end,
+      nameEnd: (node.name ?? node.typeName)?.end,
     );
   }
 
@@ -1187,6 +1189,8 @@ class _InfoBuilder {
       constantOffsets: _buildConstantOffsets(
         formalParameters: node.formalParameters,
       ),
+      newKeywordOffset: null,
+      factoryKeywordOffset: null,
       typeNameOffset: node.typeName.offset,
       periodOffset: node.constructorName?.period.offset,
       nameEnd: (node.constructorName?.name ?? node.typeName).end,
@@ -1350,7 +1354,9 @@ class _InfoCombinator {
 }
 
 class _InfoConstructorDeclaration extends _InfoExecutableDeclaration {
-  final int typeNameOffset;
+  final int? newKeywordOffset;
+  final int? factoryKeywordOffset;
+  final int? typeNameOffset;
   final int? periodOffset;
   final int? nameEnd;
 
@@ -1363,20 +1369,26 @@ class _InfoConstructorDeclaration extends _InfoExecutableDeclaration {
     required super.typeParameters,
     required super.parameters,
     required super.constantOffsets,
+    required this.newKeywordOffset,
+    required this.factoryKeywordOffset,
     required this.typeNameOffset,
     required this.periodOffset,
     required this.nameEnd,
   });
 
   _InfoConstructorDeclaration.read(super.reader)
-    : typeNameOffset = reader.readUint30(),
+    : newKeywordOffset = reader.readOptionalUint30(),
+      factoryKeywordOffset = reader.readOptionalUint30(),
+      typeNameOffset = reader.readOptionalUint30(),
       periodOffset = reader.readOptionalUint30(),
       nameEnd = reader.readOptionalUint30(),
       super.read();
 
   @override
   void write(BinaryWriter writer) {
-    writer.writeUint30(typeNameOffset);
+    writer.writeOptionalUint30(newKeywordOffset);
+    writer.writeOptionalUint30(factoryKeywordOffset);
+    writer.writeOptionalUint30(typeNameOffset);
     writer.writeOptionalUint30(periodOffset);
     writer.writeOptionalUint30(nameEnd);
     super.write(writer);

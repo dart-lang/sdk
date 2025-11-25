@@ -795,12 +795,14 @@ class LibraryRequirements {
 /// dependencies. If such API is used, we have to decide that the requirements
 /// are not satisfied, because we don't know for sure.
 class OpaqueApiUse {
+  final RequirementFailureKindId kindId;
   final String targetRuntimeType;
   final String methodName;
   final Uri? targetElementLibraryUri;
   final String? targetElementName;
 
   OpaqueApiUse({
+    required this.kindId,
     required this.targetRuntimeType,
     required this.methodName,
     this.targetElementLibraryUri,
@@ -809,6 +811,7 @@ class OpaqueApiUse {
 
   factory OpaqueApiUse.read(BinaryReader reader) {
     return OpaqueApiUse(
+      kindId: reader.readEnum(RequirementFailureKindId.values),
       targetRuntimeType: reader.readStringUtf8(),
       methodName: reader.readStringUtf8(),
       targetElementLibraryUri: reader.readOptionalObject(
@@ -819,6 +822,7 @@ class OpaqueApiUse {
   }
 
   void write(BinaryWriter writer) {
+    writer.writeEnum(kindId);
     writer.writeStringUtf8(targetRuntimeType);
     writer.writeStringUtf8(methodName);
     writer.writeOptionalObject(
@@ -951,7 +955,10 @@ class RequirementsManifest {
     required OperationPerformanceImpl performance,
   }) {
     if (opaqueApiUses.isNotEmpty) {
-      return OpaqueApiUseFailure(uses: opaqueApiUses);
+      return OpaqueApiUseFailure(
+        kindId: opaqueApiUses.first.kindId,
+        uses: opaqueApiUses,
+      );
     }
 
     for (var libraryEntry in libraries.entries) {
@@ -2513,7 +2520,11 @@ class RequirementsManifest {
     }
   }
 
-  void recordOpaqueApiUse(Object target, String method) {
+  void recordOpaqueApiUse({
+    required RequirementFailureKindId kindId,
+    required Object target,
+    required String method,
+  }) {
     if (_recordingLockLevel != 0) {
       return;
     }
@@ -2528,22 +2539,18 @@ class RequirementsManifest {
       }
     }
 
-    untracked(
-      reason: 'We are recording failure',
-      operation: () {
-        // TODO(scheglov): remove after adding all tracking
-        // print('[${target.runtimeType}.$method]');
-        // print(StackTrace.current);
+    // TODO(scheglov): remove after adding all tracking
+    // print('[${target.runtimeType}.$method]');
+    // print(StackTrace.current);
 
-        opaqueApiUses.add(
-          OpaqueApiUse(
-            targetRuntimeType: target.runtimeType.toString(),
-            methodName: method,
-            targetElementName: targetElementName,
-            targetElementLibraryUri: targetElementLibraryUri,
-          ),
-        );
-      },
+    opaqueApiUses.add(
+      OpaqueApiUse(
+        kindId: kindId,
+        targetRuntimeType: target.runtimeType.toString(),
+        methodName: method,
+        targetElementName: targetElementName,
+        targetElementLibraryUri: targetElementLibraryUri,
+      ),
     );
   }
 
@@ -2612,6 +2619,7 @@ class RequirementsManifest {
 
     return RequirementsManifestDigest(
       bundleId: bundleId,
+      hasOpaqueApiUses: opaqueApiUses.isNotEmpty,
       libraryHashes: libraryHashes,
     );
   }
@@ -2624,9 +2632,12 @@ class RequirementsManifest {
       writeValue: (library) => library.write(writer),
     );
 
-    writer.writeList(exportRequirements, (export) => export.write(writer));
+    writer.writeList(
+      exportRequirements,
+      (requirements) => requirements.write(writer),
+    );
 
-    writer.writeList(opaqueApiUses, (usage) => usage.write(writer));
+    writer.writeList(opaqueApiUses, (use) => use.write(writer));
   }
 
   _InstanceItemWithRequirements? _getInstanceItem(InstanceElementImpl element) {
@@ -2767,16 +2778,19 @@ class RequirementsManifestDigest {
   /// Digests are stored separately from bundles.
   final ManifestItemId bundleId;
 
+  final bool hasOpaqueApiUses;
   final Map<Uri, Hash> libraryHashes;
 
   RequirementsManifestDigest({
     required this.bundleId,
+    required this.hasOpaqueApiUses,
     required this.libraryHashes,
   });
 
   factory RequirementsManifestDigest.read(BinaryReader reader) {
     return RequirementsManifestDigest(
       bundleId: ManifestItemId.read(reader),
+      hasOpaqueApiUses: reader.readBool(),
       libraryHashes: reader.readMap(
         readKey: () => reader.readUri(),
         readValue: () => Hash.read(reader),
@@ -2785,6 +2799,10 @@ class RequirementsManifestDigest {
   }
 
   bool isSatisfied(LinkedElementFactory elementFactory) {
+    if (hasOpaqueApiUses) {
+      return false;
+    }
+
     for (var entry in libraryHashes.entries) {
       var manifest = elementFactory.libraryManifests[entry.key];
       if (manifest == null) {
@@ -2801,6 +2819,7 @@ class RequirementsManifestDigest {
     var writer = BinaryWriter();
 
     bundleId.write(writer);
+    writer.writeBool(hasOpaqueApiUses);
     writer.writeMap(
       libraryHashes,
       writeKey: (uri) => writer.writeUri(uri),

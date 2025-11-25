@@ -1653,6 +1653,131 @@ main() {
       buffer);
 }
 
+ISOLATE_UNIT_TEST_CASE(SourceReport_BranchCoverage_finallyEdgeCases) {
+  // Regression test for https://github.com/dart-lang/tools/issues/2241
+  // The cases covered in this test are the same as those listed in
+  // StreamingFlowGraphBuilder::BuildTryFinally.
+  const int kBufferSize = 1024;
+  char buffer[kBufferSize];
+  const char* kScript = R"(
+int viaReturn() {
+  try {
+    return 6 * 7;
+  } finally {
+  }
+}
+
+void viaBreak() {
+  for (int i = 0; i < 10; ++i) {
+    try {
+      break;
+    } finally {
+    }
+  }
+}
+
+void viaContinue() {
+  for (int i = 0; i < 10; ++i) {
+    try {
+      continue;
+    } finally {
+    }
+  }
+}
+
+int viaSwitchContinue(int x) {
+  switch (x) {
+    case 123:
+      try {
+        continue otherCase;
+      } finally {
+      }
+    otherCase:
+    case 456:
+      return 789;
+  }
+  return 0;
+}
+
+void viaOpenBody() {
+  try {
+  } finally {
+  }
+}
+
+void viaThrow() {
+  try {
+    throw 123;
+  } catch (e) {
+  } finally {
+  }
+}
+
+main() {
+  viaReturn();
+  viaBreak();
+  viaContinue();
+  viaSwitchContinue(123);
+  viaOpenBody();
+  viaThrow();
+}
+)";
+
+  Library& lib = Library::Handle();
+  const bool old_branch_coverage = IsolateGroup::Current()->branch_coverage();
+  IsolateGroup::Current()->set_branch_coverage(true);
+  lib ^= ExecuteScript(kScript);
+  IsolateGroup::Current()->set_branch_coverage(old_branch_coverage);
+  ASSERT(!lib.IsNull());
+  const Script& script =
+      Script::Handle(lib.LookupScript(String::Handle(String::New("test-lib"))));
+
+  SourceReport report(SourceReport::kBranchCoverage,
+                      SourceReport::kForceCompile);
+  JSONStream js;
+  report.PrintJSON(&js, script);
+  const char* json_str = js.ToCString();
+  ASSERT(strlen(json_str) < kBufferSize);
+  ElideJSONSubstring("classes", json_str, buffer);
+  ElideJSONSubstring("libraries", buffer, buffer);
+  EXPECT_STREQ(
+      "{\"type\":\"SourceReport\",\"ranges\":["
+
+      // viaReturn's finally is hit.
+      "{\"scriptIndex\":0,\"startPos\":1,\"endPos\":63,\"compiled\":true,"
+      "\"branchCoverage\":{\"hits\":[1,25,57],\"misses\":[]}},"
+
+      // viaBreak's finally is hit.
+      "{\"scriptIndex\":0,\"startPos\":66,\"endPos\":166,\"compiled\":true,"
+      "\"branchCoverage\":{\"hits\":[66,115,125,154],\"misses\":[]}},"
+
+      // viaContinue's finally is hit.
+      "{\"scriptIndex\":0,\"startPos\":169,\"endPos\":275,\"compiled\":true,"
+      "\"branchCoverage\":{\"hits\":[169,221,231,263],\"misses\":[]}},"
+
+      // viaSwitchContinue's finally is hit.
+      "{\"scriptIndex\":0,\"startPos\":278,\"endPos\":467,\"compiled\":true,"
+      "\"branchCoverage\":{\"hits\":[278,328,348,394,408],\"misses\":[]}},"
+
+      // viaOpenBody's finally is hit.
+      "{\"scriptIndex\":0,\"startPos\":470,\"endPos\":517,\"compiled\":true,"
+      "\"branchCoverage\":{\"hits\":[470,497,511],\"misses\":[]}},"
+
+      // viaThrow's finally is hit.
+      "{\"scriptIndex\":0,\"startPos\":520,\"endPos\":595,\"compiled\":true,"
+      "\"branchCoverage\":{\"hits\":[520,544,575,589],\"misses\":[]}},"
+
+      // Main is hit.
+      "{\"scriptIndex\":0,\"startPos\":598,\"endPos\":710,\"compiled\":true,"
+      "\"branchCoverage\":{\"hits\":[598],\"misses\":[]}}],"
+
+      // Only one script in the script table.
+      "\"scripts\":[{\"type\":\"@Script\",\"fixedId\":true,\"id\":\"\",\""
+      "uri\":\"file:\\/\\/\\/test-lib\",\"_kind\":\"kernel\"}]}",
+
+      buffer);
+}
+
 #endif  // !PRODUCT
 
 }  // namespace dart

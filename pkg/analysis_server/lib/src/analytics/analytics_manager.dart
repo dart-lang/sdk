@@ -627,6 +627,11 @@ class AnalyticsManager {
             statistics.produceErrorsActualFileLineCount,
         produceErrorsDurationMs: statistics.produceErrorsMs,
         produceErrorsElementsDurationMs: statistics.produceErrorsElementsMs,
+        libraryDiagnosticsBundleFailures: statistics
+            .libraryDiagnosticsBundleRequirementsFailures
+            .entries
+            .map((e) => '${e.key.id}:${e.value}')
+            .join(','),
       ),
     );
 

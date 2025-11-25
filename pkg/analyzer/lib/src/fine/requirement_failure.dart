@@ -23,6 +23,11 @@ final class ExportCountMismatch extends ExportFailure {
   });
 
   @override
+  RequirementFailureKindId get kindId {
+    return RequirementFailureKindId.exportCountMismatch;
+  }
+
+  @override
   String toString() {
     return 'ExportCountMismatch(fragmentUri: $fragmentUri, '
         'exportedUri: $exportedUri, '
@@ -41,6 +46,11 @@ class ExportedExtensionsMismatch extends RequirementFailure {
     required this.expectedIds,
     required this.actualIds,
   });
+
+  @override
+  RequirementFailureKindId get kindId {
+    return RequirementFailureKindId.exportedExtensionsMismatch;
+  }
 
   @override
   String toString() {
@@ -67,6 +77,11 @@ final class ExportIdMismatch extends ExportFailure {
   });
 
   @override
+  RequirementFailureKindId get kindId {
+    return RequirementFailureKindId.exportIdMismatch;
+  }
+
+  @override
   String toString() {
     return 'ExportIdMismatch(fragmentUri: $fragmentUri, '
         'exportedUri: $exportedUri, '
@@ -80,6 +95,11 @@ final class ExportLibraryMissing extends ExportFailure {
   final Uri uri;
 
   ExportLibraryMissing({required this.uri});
+
+  @override
+  RequirementFailureKindId get kindId {
+    return RequirementFailureKindId.exportLibraryMissing;
+  }
 
   @override
   String toString() {
@@ -101,6 +121,11 @@ class ImplementedMethodIdMismatch extends RequirementFailure {
     required this.expectedId,
     required this.actualId,
   });
+
+  @override
+  RequirementFailureKindId get kindId {
+    return RequirementFailureKindId.implementedMethodIdMismatch;
+  }
 
   @override
   String toString() {
@@ -127,6 +152,14 @@ class InstanceChildrenIdsMismatch extends RequirementFailure {
   });
 
   @override
+  RequirementFailureKindId get kindId {
+    return RequirementFailureKindId.instanceChildrenIdsMismatch;
+  }
+
+  @override
+  String get statisticKey => '$runtimeType.$childrenPropertyName';
+
+  @override
   String toString() {
     return 'InstanceChildrenIdsMismatch(libraryUri: $libraryUri, '
         'instanceName: ${instanceName.asString}, '
@@ -149,6 +182,11 @@ class InstanceFieldIdMismatch extends RequirementFailure {
     required this.expectedId,
     required this.actualId,
   });
+
+  @override
+  RequirementFailureKindId get kindId {
+    return RequirementFailureKindId.instanceFieldIdMismatch;
+  }
 
   @override
   String toString() {
@@ -176,6 +214,11 @@ class InstanceMethodIdMismatch extends RequirementFailure {
   });
 
   @override
+  RequirementFailureKindId get kindId {
+    return RequirementFailureKindId.instanceMethodIdMismatch;
+  }
+
+  @override
   String toString() {
     return 'InstanceMethodIdMismatch(libraryUri: $libraryUri, '
         'interfaceName: ${interfaceName.asString}, '
@@ -198,6 +241,14 @@ class InterfaceChildrenIdsMismatch extends RequirementFailure {
     required this.expectedIds,
     required this.actualIds,
   });
+
+  @override
+  RequirementFailureKindId get kindId {
+    return RequirementFailureKindId.interfaceChildrenIdsMismatch;
+  }
+
+  @override
+  String get statisticKey => '$runtimeType.$childrenPropertyName';
 
   @override
   String toString() {
@@ -224,6 +275,11 @@ class InterfaceConstructorIdMismatch extends RequirementFailure {
   });
 
   @override
+  RequirementFailureKindId get kindId {
+    return RequirementFailureKindId.interfaceConstructorIdMismatch;
+  }
+
+  @override
   String toString() {
     return 'InterfaceConstructorIdMismatch(libraryUri: $libraryUri, '
         'interfaceName: ${interfaceName.asString}, '
@@ -245,6 +301,11 @@ class InterfaceHasNonFinalFieldMismatch extends RequirementFailure {
     required this.expected,
     required this.actual,
   });
+
+  @override
+  RequirementFailureKindId get kindId {
+    return RequirementFailureKindId.interfaceHasNonFinalFieldMismatch;
+  }
 
   @override
   String toString() {
@@ -269,6 +330,11 @@ class InterfaceIdMismatch extends RequirementFailure {
   });
 
   @override
+  RequirementFailureKindId get kindId {
+    return RequirementFailureKindId.interfaceIdMismatch;
+  }
+
+  @override
   String toString() {
     return 'InterfaceIdMismatch(libraryUri: $libraryUri, '
         'interfaceName: ${interfaceName.asString}, '
@@ -291,6 +357,14 @@ class LibraryChildrenIdsMismatch extends RequirementFailure {
   });
 
   @override
+  RequirementFailureKindId get kindId {
+    return RequirementFailureKindId.libraryChildrenIdsMismatch;
+  }
+
+  @override
+  String get statisticKey => '$runtimeType.$childrenPropertyName';
+
+  @override
   String toString() {
     return 'LibraryChildrenIdsMismatch(libraryUri: $libraryUri, '
         'childrenPropertyName: $childrenPropertyName, '
@@ -308,6 +382,11 @@ class LibraryExportedUrisMismatch extends RequirementFailure {
     required this.expected,
     required this.actual,
   });
+
+  @override
+  RequirementFailureKindId get kindId {
+    return RequirementFailureKindId.libraryExportedUrisMismatch;
+  }
 
   @override
   String toString() {
@@ -328,6 +407,11 @@ class LibraryFeatureSetMismatch extends RequirementFailure {
   });
 
   @override
+  RequirementFailureKindId get kindId {
+    return RequirementFailureKindId.libraryFeatureSetMismatch;
+  }
+
+  @override
   String toString() {
     return 'LibraryFeatureSetMismatch(libraryUri: $libraryUri, '
         'expected: $expected, actual: $actual)';
@@ -344,6 +428,11 @@ class LibraryIsSyntheticMismatch extends RequirementFailure {
     required this.expected,
     required this.actual,
   });
+
+  @override
+  RequirementFailureKindId get kindId {
+    return RequirementFailureKindId.libraryIsSyntheticMismatch;
+  }
 
   @override
   String toString() {
@@ -364,6 +453,11 @@ class LibraryLanguageVersionMismatch extends RequirementFailure {
   });
 
   @override
+  RequirementFailureKindId get kindId {
+    return RequirementFailureKindId.libraryLanguageVersionMismatch;
+  }
+
+  @override
   String toString() {
     return 'LibraryLanguageVersionMismatch(libraryUri: $libraryUri, '
         'expected: $expected, actual: $actual)';
@@ -376,6 +470,11 @@ class LibraryMetadataMismatch extends RequirementFailure {
   LibraryMetadataMismatch({required this.libraryUri});
 
   @override
+  RequirementFailureKindId get kindId {
+    return RequirementFailureKindId.libraryMetadataMismatch;
+  }
+
+  @override
   String toString() => 'LibraryMetadataMismatch(libraryUri: $libraryUri)';
 }
 
@@ -383,6 +482,11 @@ class LibraryMissing extends RequirementFailure {
   final Uri uri;
 
   LibraryMissing({required this.uri});
+
+  @override
+  RequirementFailureKindId get kindId {
+    return RequirementFailureKindId.libraryMissing;
+  }
 
   @override
   String toString() {
@@ -402,6 +506,11 @@ class LibraryNameMismatch extends RequirementFailure {
   });
 
   @override
+  RequirementFailureKindId get kindId {
+    return RequirementFailureKindId.libraryNameMismatch;
+  }
+
+  @override
   String toString() {
     return 'LibraryNameMismatch(libraryUri: $libraryUri, '
         'expected: $expected, actual: $actual)';
@@ -409,13 +518,22 @@ class LibraryNameMismatch extends RequirementFailure {
 }
 
 final class OpaqueApiUseFailure extends RequirementFailure {
+  @override
+  final RequirementFailureKindId kindId;
+
   final List<OpaqueApiUse> uses;
 
-  OpaqueApiUseFailure({required this.uses});
+  OpaqueApiUseFailure({required this.kindId, required this.uses});
+
+  @override
+  String get statisticKey {
+    var use = uses.first;
+    return '$runtimeType.${use.targetRuntimeType}.${use.methodName}';
+  }
 
   @override
   String toString() {
-    return 'OpaqueApiUseFailure(uses: $uses)';
+    return 'OpaqueApiUseFailure(kindId: $kindId, uses: $uses)';
   }
 }
 
@@ -433,13 +551,76 @@ class ReExportDeprecatedOnlyMismatch extends RequirementFailure {
   });
 
   @override
+  RequirementFailureKindId get kindId {
+    return RequirementFailureKindId.reExportDeprecatedOnlyMismatch;
+  }
+
+  @override
   String toString() {
     return 'ReExportDeprecatedOnlyMismatch(libraryUri: $libraryUri, '
         'name: ${name.asString}, expected: $expected, actual: $actual)';
   }
 }
 
-sealed class RequirementFailure {}
+sealed class RequirementFailure {
+  RequirementFailureKindId get kindId;
+
+  String get statisticKey => '$runtimeType';
+}
+
+enum RequirementFailureKindId {
+  exportCountMismatch(0),
+  exportIdMismatch(1),
+  exportLibraryMissing(2),
+  exportedExtensionsMismatch(3),
+  implementedMethodIdMismatch(4),
+  instanceChildrenIdsMismatch(5),
+  instanceFieldIdMismatch(6),
+  instanceGetterIdMismatch(7),
+  instanceMethodIdMismatch(8),
+  interfaceChildrenIdsMismatch(9),
+  interfaceConstructorIdMismatch(10),
+  interfaceHasNonFinalFieldMismatch(11),
+  interfaceIdMismatch(12),
+  libraryChildrenIdsMismatch(13),
+  libraryExportedUrisMismatch(14),
+  libraryFeatureSetMismatch(15),
+  libraryIsSyntheticMismatch(16),
+  libraryLanguageVersionMismatch(17),
+  libraryMetadataMismatch(18),
+  libraryMissing(19),
+  libraryNameMismatch(20),
+  opaqueAccept(21),
+  opaqueContext(22),
+  opaqueDocumentationComment(23),
+  opaqueFieldNameNonPromotabilityInfo(24),
+  opaqueFirstFragment(25),
+  opaqueFragments(26),
+  opaqueGetInheritedMember(27),
+  opaqueGetOverridden(28),
+  opaqueInheritedConcreteMembers(29),
+  opaqueInheritedMembers(30),
+  opaqueInterfaceMembers(31),
+  opaqueLastFragment(32),
+  opaqueLookUpGetter(33),
+  opaqueLookUpInheritedMethod(34),
+  opaqueLookUpMethod(35),
+  opaqueLookUpSetter(36),
+  opaqueNameLength(37),
+  opaqueNameOffset(38),
+  opaquePublicNamespace(39),
+  opaqueSession(40),
+  opaqueVisitChildren(41),
+  reExportDeprecatedOnlyMismatch(42),
+  superImplementedMethodIdMismatch(43),
+  topLevelIdMismatch(44),
+  topLevelNotInstance(45),
+  topLevelNotInterface(46);
+
+  final int id;
+
+  const RequirementFailureKindId(this.id);
+}
 
 class SuperImplementedMethodIdMismatch extends RequirementFailure {
   final Uri libraryUri;
@@ -457,6 +638,11 @@ class SuperImplementedMethodIdMismatch extends RequirementFailure {
     required this.expectedId,
     required this.actualId,
   });
+
+  @override
+  RequirementFailureKindId get kindId {
+    return RequirementFailureKindId.superImplementedMethodIdMismatch;
+  }
 
   @override
   String toString() {
@@ -487,6 +673,11 @@ class TopLevelIdMismatch extends TopLevelFailure {
   });
 
   @override
+  RequirementFailureKindId get kindId {
+    return RequirementFailureKindId.topLevelIdMismatch;
+  }
+
+  @override
   String toString() {
     return 'TopLevelIdMismatch(libraryUri: $libraryUri, '
         'name: ${name.asString}, '
@@ -505,6 +696,11 @@ class TopLevelNotInstance extends TopLevelFailure {
   });
 
   @override
+  RequirementFailureKindId get kindId {
+    return RequirementFailureKindId.topLevelNotInstance;
+  }
+
+  @override
   String toString() {
     return 'TopLevelNotInstance(libraryUri: $libraryUri, '
         'name: ${name.asString})';
@@ -513,6 +709,11 @@ class TopLevelNotInstance extends TopLevelFailure {
 
 class TopLevelNotInterface extends TopLevelFailure {
   TopLevelNotInterface({required super.libraryUri, required super.name});
+
+  @override
+  RequirementFailureKindId get kindId {
+    return RequirementFailureKindId.topLevelNotInterface;
+  }
 
   @override
   String toString() {

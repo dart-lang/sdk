@@ -666,7 +666,7 @@ main() {
 }
 ''',
       [
-        error(diag.notInitializedNonNullableInstanceFieldConstructor, 23, 1),
+        error(diag.notInitializedNonNullableInstanceFieldConstructor, 23, 3),
         error(diag.invalidAssignment, 149, 7),
       ],
     );
@@ -701,7 +701,7 @@ main() {
 }
 ''',
       [
-        error(diag.notInitializedNonNullableInstanceFieldConstructor, 22, 1),
+        error(diag.notInitializedNonNullableInstanceFieldConstructor, 22, 7),
         error(diag.invalidAssignment, 95, 7),
       ],
     );
@@ -1026,7 +1026,7 @@ void f([List<int> l = const [1]]) {}
 // We do this inference in an early task but don't preserve the infos.
 Function2<List<int>, String> g = ([llll = const [1]]) => "hello";
 ''',
-      [error(diag.notInitializedNonNullableInstanceFieldConstructor, 92, 3)],
+      [error(diag.notInitializedNonNullableInstanceFieldConstructor, 92, 9)],
     );
   }
 

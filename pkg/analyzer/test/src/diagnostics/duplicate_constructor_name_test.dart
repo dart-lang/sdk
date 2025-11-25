@@ -15,18 +15,6 @@ main() {
 
 @reflectiveTest
 class DuplicateConstructorNameTest extends PubPackageResolutionTest {
-  test_class() async {
-    await assertErrorsInCode(
-      r'''
-class C {
-  C.foo();
-  C.foo();
-}
-''',
-      [error(diag.duplicateConstructorName, 23, 5)],
-    );
-  }
-
   @SkippedTest() // TODO(scheglov): implement augmentation
   test_class_augmentation_augments() async {
     newFile(testFile.path, r'''
@@ -103,7 +91,67 @@ augment class A {
     assertErrorsInResult([error(diag.duplicateConstructorName, 42, 7)]);
   }
 
-  test_enum() async {
+  test_class_newHead_named_newHead_named() async {
+    await assertErrorsInCode(
+      r'''
+class C {
+  new foo();
+  new foo();
+}
+''',
+      [error(diag.duplicateConstructorName, 25, 7)],
+    );
+  }
+
+  test_class_typeName_named_factoryHead_named() async {
+    await assertErrorsInCode(
+      r'''
+class C {
+  factory C.foo() => throw 0;
+  factory foo() => throw 0;
+}
+''',
+      [error(diag.duplicateConstructorName, 42, 11)],
+    );
+  }
+
+  test_class_typeName_named_newHead_named() async {
+    await assertErrorsInCode(
+      r'''
+class C {
+  C.foo();
+  new foo();
+}
+''',
+      [error(diag.duplicateConstructorName, 23, 7)],
+    );
+  }
+
+  test_class_typeName_named_typeName_named() async {
+    await assertErrorsInCode(
+      r'''
+class C {
+  C.foo();
+  C.foo();
+}
+''',
+      [error(diag.duplicateConstructorName, 23, 5)],
+    );
+  }
+
+  test_class_wrongTypeName_named_typeName_named() async {
+    await assertErrorsInCode(
+      r'''
+class A {
+  factory B.foo() => throw 0;
+  A.foo();
+}
+''',
+      [error(diag.invalidFactoryNameNotAClass, 20, 1)],
+    );
+  }
+
+  test_enum_typeName_named_typeName_named() async {
     await assertErrorsInCode(
       r'''
 enum E {
@@ -119,7 +167,42 @@ enum E {
     );
   }
 
-  test_extensionType_secondary() async {
+  test_extensionType_primary_typeName_named_secondary_typeName_named() async {
+    await assertErrorsInCode(
+      r'''
+extension type A.foo(int it) {
+  A.foo(this.it);
+}
+''',
+      [error(diag.duplicateConstructorName, 33, 5)],
+    );
+  }
+
+  test_extensionType_secondary_typeName_named_factoryHead_named() async {
+    await assertErrorsInCode(
+      r'''
+extension type A(int it) {
+  factory A.foo(int it) => A(it);
+  factory foo(int it) => A(it);
+}
+''',
+      [error(diag.duplicateConstructorName, 63, 11)],
+    );
+  }
+
+  test_extensionType_secondary_typeName_named_newHead_named() async {
+    await assertErrorsInCode(
+      r'''
+extension type A(int it) {
+  A.foo(this.it);
+  new foo(this.it);
+}
+''',
+      [error(diag.duplicateConstructorName, 47, 7)],
+    );
+  }
+
+  test_extensionType_secondary_typeName_named_secondary_typeName_named() async {
     await assertErrorsInCode(
       r'''
 extension type A(int it) {
@@ -128,17 +211,6 @@ extension type A(int it) {
 }
 ''',
       [error(diag.duplicateConstructorName, 47, 5)],
-    );
-  }
-
-  test_extensionType_withPrimary() async {
-    await assertErrorsInCode(
-      r'''
-extension type A.foo(int it) {
-  A.foo(this.it);
-}
-''',
-      [error(diag.duplicateConstructorName, 33, 5)],
     );
   }
 }

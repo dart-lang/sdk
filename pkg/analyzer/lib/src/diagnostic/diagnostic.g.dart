@@ -12280,6 +12280,22 @@ const DiagnosticWithoutArguments nonPositiveArrayDimension =
       expectedTypes: [],
     );
 
+/// No parameters.
+const DiagnosticWithoutArguments
+nonRedirectingGenerativeConstructorWithPrimary = DiagnosticWithoutArgumentsImpl(
+  name: 'NON_REDIRECTING_GENERATIVE_CONSTRUCTOR_WITH_PRIMARY',
+  problemMessage:
+      "Classes with primary constructors can't have non-redirecting generative "
+      "constructors.",
+  correctionMessage:
+      "Try making the constructor redirect to the primary constructor, or "
+      "remove the primary constructor.",
+  type: DiagnosticType.COMPILE_TIME_ERROR,
+  uniqueName:
+      'CompileTimeErrorCode.NON_REDIRECTING_GENERATIVE_CONSTRUCTOR_WITH_PRIMARY',
+  expectedTypes: [],
+);
+
 /// A code indicating that the activity is set to be non resizable.
 ///
 /// No parameters.

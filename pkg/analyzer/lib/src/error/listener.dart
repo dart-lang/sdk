@@ -13,6 +13,7 @@ import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/diagnostic/diagnostic.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/source/source.dart';
+import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/dart/element/extensions.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/diagnostic/diagnostic_message.dart';
@@ -180,19 +181,14 @@ class DiagnosticReporter {
     // TODO(brianwilkerson): Consider extending this method to take any
     //  declaration and compute the correct range for the name of that
     //  declaration. This might make it easier to be consistent.
-    if (node.name case var nameToken?) {
-      // TODO(scheglov): https://github.com/dart-lang/sdk/issues/62067
-      var offset = node.typeName!.offset;
-      return atOffset(
-        offset: offset,
-        length: nameToken.end - offset,
-        diagnosticCode: diagnosticCode,
-        arguments: arguments,
-      );
-    } else {
-      // TODO(scheglov): https://github.com/dart-lang/sdk/issues/62067
-      return atNode(node.typeName!, diagnosticCode, arguments: arguments);
-    }
+    var range = node.errorRange;
+    return atOffset(
+      offset: range.offset,
+      length: range.length,
+      diagnosticCode: diagnosticCode,
+      arguments: arguments,
+      contextMessages: contextMessages,
+    );
   }
 
   /// Reports a diagnostic with the given [diagnosticCode] and [arguments].

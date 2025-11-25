@@ -1053,6 +1053,12 @@ Fragment StreamingFlowGraphBuilder::BuildStatementAt(intptr_t kernel_offset) {
   return BuildStatement();  // read statement.
 }
 
+Fragment StreamingFlowGraphBuilder::BuildStatementAtWithBranchCoverage(
+    intptr_t kernel_offset) {
+  SetOffset(kernel_offset);
+  return BuildStatementWithBranchCoverage();  // read statement.
+}
+
 Fragment StreamingFlowGraphBuilder::BuildExpression(TokenPosition* position) {
   ++num_ast_nodes_;
   uint8_t payload = 0;
@@ -1774,7 +1780,7 @@ Fragment StreamingFlowGraphBuilder::TranslateFinallyFinalizers(
     intptr_t finalizer_kernel_offset =
         B->try_finally_block_->finalizer_kernel_offset();
     B->try_finally_block_ = B->try_finally_block_->outer();
-    instructions += BuildStatementAt(finalizer_kernel_offset);
+    instructions += BuildStatementAtWithBranchCoverage(finalizer_kernel_offset);
 
     // We only need to make sure that if the finalizer ended normally, we
     // continue towards the next outer try-finally.
