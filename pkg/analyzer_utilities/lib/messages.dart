@@ -451,11 +451,18 @@ class DiagnosticTables {
             .add(message);
         var package = message.package;
         var type = message.type;
-        if (type != null && analyzerCode.diagnosticClass.type != type) {
+        if (analyzerCode.diagnosticClass.type != type) {
           throw LocatedError(
             'Diagnostic type is ${type.name}, but its diagnostic class '
             '(${analyzerCode.diagnosticClass.name}) implies a type of '
             '${analyzerCode.diagnosticClass.type.name}',
+            span: message.keySpan,
+          );
+        }
+        if (!package.permittedTypes.contains(type)) {
+          throw LocatedError(
+            'Diagnostic type is ${type.name}, which may not be used in '
+            'package:${package.dirName}',
             span: message.keySpan,
           );
         }
@@ -935,7 +942,7 @@ class SharedMessage extends CfeStyleMessage with MessageWithAnalyzerCode {
   final bool hasPublishedDocs;
 
   @override
-  final AnalyzerDiagnosticType? type;
+  final AnalyzerDiagnosticType type;
 
   SharedMessage(super.messageYaml)
     : analyzerCode = messageYaml.get(
@@ -946,7 +953,6 @@ class SharedMessage extends CfeStyleMessage with MessageWithAnalyzerCode {
       type = messageYaml.get(
         'type',
         decode: MessageWithAnalyzerCode.decodeType,
-        ifAbsent: () => null,
       );
 
   @override

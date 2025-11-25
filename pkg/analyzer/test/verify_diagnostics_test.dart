@@ -371,7 +371,7 @@ class DocumentationValidator {
         }
         for (int i = 0; i < exampleSnippets.length; i++) {
           _SnippetData snippet = exampleSnippets[i];
-          if (message.analyzerCode.diagnosticClass == linterLintCodeInfo) {
+          if (message.type == AnalyzerDiagnosticType.lint) {
             snippet.lintCode = codeName;
           }
           await _validateSnippet('example', i, snippet);
@@ -386,7 +386,7 @@ class DocumentationValidator {
           if (firstExample != null) {
             snippet.auxiliaryFiles.addAll(firstExample.auxiliaryFiles);
           }
-          if (message.analyzerCode.diagnosticClass == linterLintCodeInfo) {
+          if (message.type == AnalyzerDiagnosticType.lint) {
             snippet.lintCode = codeName;
           }
           await _validateSnippet('fixes', i, snippet);
