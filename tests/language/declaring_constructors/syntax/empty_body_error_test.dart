@@ -43,8 +43,3 @@ enum const E4(final int x);
 //   ^
 // [analyzer] unspecified
 // [cfe] unspecified
-
-class B = C1 with M1;
-//    ^
-// [analyzer] unspecified
-// [cfe] unspecified
