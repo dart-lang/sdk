@@ -41,9 +41,12 @@ class OutlineTest extends AbstractLspAnalysisServerTest {
   }
 
   Future<void> test_extensions() async {
+    failTestOnErrorDiagnostic = false;
+
     var initialContent = '''
 extension StringExtensions on String {}
 extension on String {}
+extension on {}
     ''';
     await initialize(initializationOptions: {'outline': true});
 
@@ -52,9 +55,10 @@ extension on String {}
     var outline = await outlineUpdate;
 
     expect(outline, isNotNull);
-    expect(outline.children, hasLength(2));
+    expect(outline.children, hasLength(3));
     expect(outline.children![0].element.name, equals('StringExtensions'));
-    expect(outline.children![1].element.name, equals('<unnamed extension>'));
+    expect(outline.children![1].element.name, equals('extension on String'));
+    expect(outline.children![2].element.name, equals('<unnamed extension>'));
   }
 
   Future<void> test_initial() async {

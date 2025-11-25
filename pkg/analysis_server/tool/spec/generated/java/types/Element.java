@@ -96,9 +96,16 @@ public class Element {
   private final String aliasedType;
 
   /**
+   * If the element is an extension, this field is the name of the type that is extended. This can be
+   * useful to show in UIs for unnamed extension, for example "extension on {extendedType}". This
+   * field might not be defined even for an extension in the case of invalid code.
+   */
+  private final String extendedType;
+
+  /**
    * Constructor for {@link Element}.
    */
-  public Element(String kind, String name, Location location, int flags, String parameters, String returnType, String typeParameters, String aliasedType) {
+  public Element(String kind, String name, Location location, int flags, String parameters, String returnType, String typeParameters, String aliasedType, String extendedType) {
     this.kind = kind;
     this.name = name;
     this.location = location;
@@ -107,6 +114,7 @@ public class Element {
     this.returnType = returnType;
     this.typeParameters = typeParameters;
     this.aliasedType = aliasedType;
+    this.extendedType = extendedType;
   }
 
   @Override
@@ -120,7 +128,8 @@ public class Element {
         Objects.equals(other.parameters, parameters) &&
         Objects.equals(other.returnType, returnType) &&
         Objects.equals(other.typeParameters, typeParameters) &&
-        Objects.equals(other.aliasedType, aliasedType);
+        Objects.equals(other.aliasedType, aliasedType) &&
+        Objects.equals(other.extendedType, extendedType);
     }
     return false;
   }
@@ -134,7 +143,8 @@ public class Element {
     String returnType = jsonObject.get("returnType") == null ? null : jsonObject.get("returnType").getAsString();
     String typeParameters = jsonObject.get("typeParameters") == null ? null : jsonObject.get("typeParameters").getAsString();
     String aliasedType = jsonObject.get("aliasedType") == null ? null : jsonObject.get("aliasedType").getAsString();
-    return new Element(kind, name, location, flags, parameters, returnType, typeParameters, aliasedType);
+    String extendedType = jsonObject.get("extendedType") == null ? null : jsonObject.get("extendedType").getAsString();
+    return new Element(kind, name, location, flags, parameters, returnType, typeParameters, aliasedType, extendedType);
   }
 
   public static List<Element> fromJsonArray(JsonArray jsonArray) {
@@ -154,6 +164,15 @@ public class Element {
    */
   public String getAliasedType() {
     return aliasedType;
+  }
+
+  /**
+   * If the element is an extension, this field is the name of the type that is extended. This can be
+   * useful to show in UIs for unnamed extension, for example "extension on {extendedType}". This
+   * field might not be defined even for an extension in the case of invalid code.
+   */
+  public String getExtendedType() {
+    return extendedType;
   }
 
   /**
@@ -227,7 +246,8 @@ public class Element {
       parameters,
       returnType,
       typeParameters,
-      aliasedType
+      aliasedType,
+      extendedType
     );
   }
 
@@ -275,6 +295,9 @@ public class Element {
     if (aliasedType != null) {
       jsonObject.addProperty("aliasedType", aliasedType);
     }
+    if (extendedType != null) {
+      jsonObject.addProperty("extendedType", extendedType);
+    }
     return jsonObject;
   }
 
@@ -305,6 +328,9 @@ public class Element {
     builder.append(", ");
     builder.append("aliasedType=");
     builder.append(aliasedType);
+    builder.append(", ");
+    builder.append("extendedType=");
+    builder.append(extendedType);
     builder.append("]");
     return builder.toString();
   }

@@ -6,7 +6,7 @@
 </head>
 <body>
 <h1>Common Types</h1>
-<version>1.5.0</version>
+<version>1.5.1</version>
 <p>
   This document contains a specification of the types that are common between
   the analysis server wire protocol and the analysis server plugin wire
@@ -613,6 +613,15 @@
         <p>
           If the element is a type alias, this field is the aliased type.
           Otherwise this field will not be defined.
+        </p>
+      </field>
+      <field name="extendedType" optional="true">
+        <ref>String</ref>
+        <p>
+          If the element is an extension, this field is the name of the type
+          that is extended. This can be useful to show in UIs for unnamed
+          extension, for example "extension on {extendedType}". This field
+          might not be defined even for an extension in the case of invalid code.
         </p>
       </field>
     </object>

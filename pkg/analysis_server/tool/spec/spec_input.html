@@ -7,7 +7,7 @@
 <body>
 <h1>Analysis Server API Specification</h1>
 <h1 style="color:#999999">Version
-  <version>1.40.0</version>
+  <version>1.40.1</version>
 </h1>
 <p>
   This document contains a specification of the API provided by the
@@ -142,6 +142,10 @@
   ignoring the item or treating it with some default/fallback handling.
 </p>
 <h3>Changelog</h3>
+<h4>1.40.1</h4>
+<ul>
+  <li>Added an optional <tt>extendedType</tt> field to <tt>Element</tt> to store the name of the type that extensions apply to that can be used to improve the display names for unnamed extensions.</li>
+</ul>
 <h4>1.40.0</h4>
 <ul>
   <li>Added an optional <tt>version</tt> field to <tt>AddContentOverlay</tt> and <tt>ChangeContentOverlay</tt> to allow clients/servers to have a way to identify specific versions of documents.</li>

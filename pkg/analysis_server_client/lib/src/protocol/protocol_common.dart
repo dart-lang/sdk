@@ -1182,6 +1182,7 @@ class DiagnosticMessage implements HasToJson {
 ///       "returnType": optional String
 ///       "typeParameters": optional String
 ///       "aliasedType": optional String
+///       "extendedType": optional String
 ///     }
 ///
 /// Clients may not extend, implement or mix-in this class.
@@ -1250,12 +1251,19 @@ class Element implements HasToJson {
   /// this field will not be defined.
   String? aliasedType;
 
+  /// If the element is an extension, this field is the name of the type that
+  /// is extended. This can be useful to show in UIs for unnamed extension, for
+  /// example "extension on {extendedType}". This field might not be defined
+  /// even for an extension in the case of invalid code.
+  String? extendedType;
+
   Element(this.kind, this.name, this.flags,
       {this.location,
       this.parameters,
       this.returnType,
       this.typeParameters,
-      this.aliasedType});
+      this.aliasedType,
+      this.extendedType});
 
   factory Element.fromJson(
       JsonDecoder jsonDecoder, String jsonPath, Object? json) {
@@ -1305,12 +1313,18 @@ class Element implements HasToJson {
         aliasedType = jsonDecoder.decodeString(
             '$jsonPath.aliasedType', json['aliasedType']);
       }
+      String? extendedType;
+      if (json.containsKey('extendedType')) {
+        extendedType = jsonDecoder.decodeString(
+            '$jsonPath.extendedType', json['extendedType']);
+      }
       return Element(kind, name, flags,
           location: location,
           parameters: parameters,
           returnType: returnType,
           typeParameters: typeParameters,
-          aliasedType: aliasedType);
+          aliasedType: aliasedType,
+          extendedType: extendedType);
     } else {
       throw jsonDecoder.mismatch(jsonPath, "'Element'", json);
     }
@@ -1349,6 +1363,10 @@ class Element implements HasToJson {
     if (aliasedType != null) {
       result['aliasedType'] = aliasedType;
     }
+    var extendedType = this.extendedType;
+    if (extendedType != null) {
+      result['extendedType'] = extendedType;
+    }
     return result;
   }
 
@@ -1365,7 +1383,8 @@ class Element implements HasToJson {
           parameters == other.parameters &&
           returnType == other.returnType &&
           typeParameters == other.typeParameters &&
-          aliasedType == other.aliasedType;
+          aliasedType == other.aliasedType &&
+          extendedType == other.extendedType;
     }
     return false;
   }
@@ -1380,6 +1399,7 @@ class Element implements HasToJson {
         returnType,
         typeParameters,
         aliasedType,
+        extendedType,
       );
 }
 

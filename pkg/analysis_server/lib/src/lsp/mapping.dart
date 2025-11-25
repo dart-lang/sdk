@@ -1382,7 +1382,9 @@ String toElementName(server.Element element) {
   return element.name.isNotEmpty
       ? element.name
       : (element.kind == server.ElementKind.EXTENSION
-            ? '<unnamed extension>'
+            ? (element.extendedType?.isNotEmpty ?? false)
+                  ? 'extension on ${element.extendedType}'
+                  : '<unnamed extension>'
             : '<unnamed>');
 }
 
