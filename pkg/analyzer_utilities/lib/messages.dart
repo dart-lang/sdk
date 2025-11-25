@@ -450,6 +450,15 @@ class DiagnosticTables {
                 [])
             .add(message);
         var package = message.package;
+        var type = message.type;
+        if (type != null && analyzerCode.diagnosticClass.type != type) {
+          throw LocatedError(
+            'Diagnostic type is ${type.name}, but its diagnostic class '
+            '(${analyzerCode.diagnosticClass.name}) implies a type of '
+            '${analyzerCode.diagnosticClass.type.name}',
+            span: message.keySpan,
+          );
+        }
         if (!message.isRemoved && message is! AliasMessage) {
           (activeMessagesByPackage[package] ??= []).add(message);
         }
@@ -925,12 +934,20 @@ class SharedMessage extends CfeStyleMessage with MessageWithAnalyzerCode {
   @override
   final bool hasPublishedDocs;
 
+  @override
+  final AnalyzerDiagnosticType? type;
+
   SharedMessage(super.messageYaml)
     : analyzerCode = messageYaml.get(
         'analyzerCode',
         decode: _decodeAnalyzerCode,
       ),
-      hasPublishedDocs = messageYaml.getBool('hasPublishedDocs');
+      hasPublishedDocs = messageYaml.getBool('hasPublishedDocs'),
+      type = messageYaml.get(
+        'type',
+        decode: MessageWithAnalyzerCode.decodeType,
+        ifAbsent: () => null,
+      );
 
   @override
   AnalyzerDiagnosticPackage get package => AnalyzerDiagnosticPackage.analyzer;
