@@ -29,6 +29,7 @@
 
 LinterLintCode:
   always_declare_return_types_of_functions:
+    type: lint
     parameters:
       Object p0: undocumented
     sharedName: always_declare_return_types
@@ -92,6 +93,7 @@ LinterLintCode:
       typedef predicate = bool Function(Object o);
       ```
   always_declare_return_types_of_methods:
+    type: lint
     parameters:
       Object p0: undocumented
     sharedName: always_declare_return_types
@@ -99,6 +101,7 @@ LinterLintCode:
     correctionMessage: "Try adding a return type to the method."
     hasPublishedDocs: true
   always_put_control_body_on_new_line:
+    type: lint
     parameters: none
     problemMessage: "Statement should be on a separate line."
     correctionMessage: "Try moving the statement to a new line."
@@ -173,6 +176,7 @@ LinterLintCode:
       [Dart formatter](https://dart.dev/tools/dart-format), and should not be enabled
       when the Dart formatter is used.
   always_put_required_named_parameters_first:
+    type: lint
     parameters: none
     problemMessage: "Required named parameters should be before optional named parameters."
     correctionMessage: "Try moving the required named parameter to be before any optional named parameters."
@@ -226,6 +230,7 @@ LinterLintCode:
       m({@required a, b, c}) ;
       ```
   always_require_non_null_named_parameters:
+    type: lint
     parameters: none
     state:
       stable: "2.0"
@@ -257,6 +262,7 @@ LinterLintCode:
 
       NOTE: Only asserts at the start of the bodies will be taken into account.
   always_specify_types_add_type:
+    type: lint
     parameters: none
     sharedName: always_specify_types
     problemMessage: "Missing type annotation."
@@ -309,6 +315,7 @@ LinterLintCode:
       }
       ```
   always_specify_types_replace_keyword:
+    type: lint
     parameters:
       Object p0: undocumented
       Object p1: undocumented
@@ -317,6 +324,7 @@ LinterLintCode:
     correctionMessage: "Try replacing '#p0' with '#p1'."
     hasPublishedDocs: false
   always_specify_types_specify_type:
+    type: lint
     parameters:
       Object p0: undocumented
     sharedName: always_specify_types
@@ -324,12 +332,14 @@ LinterLintCode:
     correctionMessage: "Try specifying the type '#p0'."
     hasPublishedDocs: false
   always_specify_types_split_to_types:
+    type: lint
     parameters: none
     sharedName: always_specify_types
     problemMessage: "Missing type annotation."
     correctionMessage: "Try splitting the declaration and specify the different type annotations."
     hasPublishedDocs: false
   always_use_package_imports:
+    type: lint
     parameters: none
     problemMessage: "Use 'package:' imports for files in the 'lib' directory."
     correctionMessage: "Try converting the URI to a 'package:' URI."
@@ -395,6 +405,7 @@ LinterLintCode:
       ...
       ```
   analyzer_element_model_tracking_bad:
+    type: lint
     parameters: none
     problemMessage: "Bad tracking annotation for this member."
     state:
@@ -403,6 +414,7 @@ LinterLintCode:
     deprecatedDetails: "For internal use only."
     hasPublishedDocs: false
   analyzer_element_model_tracking_more_than_one:
+    type: lint
     parameters: none
     problemMessage: "There can be only one tracking annotation."
     state:
@@ -411,6 +423,7 @@ LinterLintCode:
     deprecatedDetails: "For internal use only."
     hasPublishedDocs: false
   analyzer_element_model_tracking_zero:
+    type: lint
     parameters: none
     problemMessage: "No required tracking annotation."
     state:
@@ -419,6 +432,7 @@ LinterLintCode:
     deprecatedDetails: "For internal use only."
     hasPublishedDocs: false
   analyzer_public_api_bad_part_directive:
+    type: lint
     parameters: none
     problemMessage: "Part directives in the analyzer public API should point to files in the analyzer public API."
     hasPublishedDocs: false
@@ -438,6 +452,7 @@ LinterLintCode:
       but it may do so in the future once augmentations and enhanced parts are
       supported.
   analyzer_public_api_bad_type:
+    type: lint
     parameters:
       String types: "list of types, separated by `, `"
     problemMessage: "Element makes use of type(s) which is not part of the analyzer public API: #types."
@@ -471,6 +486,7 @@ LinterLintCode:
       marking the referenced type with `@AnalyzerPublicApi(...)` is that it
       causes the members of referenced type to be checked by this lint.
   analyzer_public_api_experimental_inconsistency:
+    type: lint
     parameters:
       String types: "list of types, separated by `, `"
     problemMessage: "Element makes use of experimental type(s), but is not itself marked with `@experimental`: #types."
@@ -500,6 +516,7 @@ LinterLintCode:
         public API class with a getter called `x`, then a client can
         access `T.x` via `var g = f; g = (t) { print(t.x); }`.
   analyzer_public_api_exports_non_public_name:
+    type: lint
     parameters:
       String elements: "List of elements, separated by `, `"
     problemMessage: "Export directive exports element(s) that are not part of the analyzer public API: #elements."
@@ -517,6 +534,7 @@ LinterLintCode:
       marking the exported declaration with `@AnalyzerPublicApi(...)` is that it
       causes the members of the exported declaration to be checked by this lint.
   analyzer_public_api_impl_in_public_api:
+    type: lint
     parameters: none
     problemMessage: 'Declarations in the analyzer public API should not end in "Impl".'
     hasPublishedDocs: false
@@ -532,6 +550,7 @@ LinterLintCode:
       so if they are either declared outside of `package:analyzer/src`, or
       marked with `@AnalyzerPublicApi(...)`, that is almost certainly a mistake.
   annotate_overrides:
+    type: lint
     parameters:
       Object p0: undocumented
     problemMessage: "The member '#p0' overrides an inherited member but isn't annotated with '@override'."
@@ -622,6 +641,7 @@ LinterLintCode:
       }
       ```
   annotate_redeclares:
+    type: lint
     parameters:
       Object p0: undocumented
     problemMessage: "The member '#p0' is redeclaring but isn't annotated with '@redeclare'."
@@ -666,6 +686,7 @@ LinterLintCode:
       }
       ```
   avoid_annotating_with_dynamic:
+    type: lint
     parameters: none
     problemMessage: "Unnecessary 'dynamic' type annotation."
     correctionMessage: "Try removing the type 'dynamic'."
@@ -697,6 +718,7 @@ LinterLintCode:
       }
       ```
   avoid_as:
+    type: lint
     parameters: none
     state:
       stable: "2.0"
@@ -741,6 +763,7 @@ LinterLintCode:
       HasScrollDirection scrollable = renderObject as dynamic;
       ```
   avoid_bool_literals_in_conditional_expressions:
+    type: lint
     parameters: none
     problemMessage: "Conditional expressions with a 'bool' literal can be simplified."
     correctionMessage: "Try rewriting the expression to use either '&&' or '||'."
@@ -767,6 +790,7 @@ LinterLintCode:
       condition && boolExpression
       ```
   avoid_catches_without_on_clauses:
+    type: lint
     parameters: none
     problemMessage: "Catch clause should use 'on' to specify the type of exception being caught."
     correctionMessage: "Try adding an 'on' clause before the 'catch'."
@@ -813,6 +837,7 @@ LinterLintCode:
       referenced _before_ the relevant code, for example to instantiate a wrapper
       exception, the variable is not "directly used."
   avoid_catching_errors_class:
+    type: lint
     parameters: none
     sharedName: avoid_catching_errors
     problemMessage: "The type 'Error' should not be caught."
@@ -845,6 +870,7 @@ LinterLintCode:
       }
       ```
   avoid_catching_errors_subclass:
+    type: lint
     parameters:
       Object p0: undocumented
     sharedName: avoid_catching_errors
@@ -852,6 +878,7 @@ LinterLintCode:
     correctionMessage: "Try removing the catch or catching an 'Exception' instead."
     hasPublishedDocs: false
   avoid_classes_with_only_static_members:
+    type: lint
     parameters: none
     problemMessage: "Classes should define instance members."
     correctionMessage: "Try adding instance behavior or moving the members out of the class."
@@ -890,6 +917,7 @@ LinterLintCode:
       const _favoriteMammal = 'weasel';
       ```
   avoid_double_and_int_checks:
+    type: lint
     parameters: none
     problemMessage: "Explicit check for double or int."
     correctionMessage: "Try removing the check."
@@ -926,6 +954,7 @@ LinterLintCode:
       }
       ```
   avoid_dynamic_calls:
+    type: lint
     parameters: none
     problemMessage: "Method invocation or property access on a 'dynamic' target."
     correctionMessage: "Try giving the target a type."
@@ -1040,6 +1069,7 @@ LinterLintCode:
       }
       ```
   avoid_empty_else:
+    type: lint
     parameters: none
     problemMessage: "Empty statements are not allowed in an 'else' clause."
     correctionMessage: "Try removing the empty statement or removing the else clause."
@@ -1136,6 +1166,7 @@ LinterLintCode:
       print('2');
       ```
   avoid_equals_and_hash_code_on_mutable_classes:
+    type: lint
     parameters:
       Object p0: undocumented
     problemMessage: "The method '#p0' should not be overridden in classes not annotated with '@immutable'."
@@ -1192,6 +1223,7 @@ LinterLintCode:
       }
       ```
   avoid_escaping_inner_quotes:
+    type: lint
     parameters:
       Object p0: undocumented
       Object p1: undocumented
@@ -1214,6 +1246,7 @@ LinterLintCode:
       var s = "It's not fun";
       ```
   avoid_field_initializers_in_const_classes:
+    type: lint
     parameters: none
     problemMessage: "Fields in 'const' classes should not have initializers."
     correctionMessage: "Try converting the field to a getter or initialize the field in the constructors."
@@ -1246,6 +1279,7 @@ LinterLintCode:
       }
       ```
   avoid_final_parameters:
+    type: lint
     parameters: none
     problemMessage: "Parameters should not be marked as 'final'."
     correctionMessage: "Try removing the keyword 'final'."
@@ -1293,6 +1327,7 @@ LinterLintCode:
       [1, 4, 6, 8].forEach((value) => print(value + 2)); // OK
       ```
   avoid_function_literals_in_foreach_calls:
+    type: lint
     parameters: none
     problemMessage: "Function literals shouldn't be passed to 'forEach'."
     correctionMessage: "Try using a 'for' loop."
@@ -1360,6 +1395,7 @@ LinterLintCode:
       }
       ```
   avoid_futureor_void:
+    type: lint
     parameters: none
     problemMessage: "Don't use the type 'FutureOr<void>'."
     correctionMessage: "Try using 'Future<void>?' or 'void'."
@@ -1456,6 +1492,7 @@ LinterLintCode:
       or removed. Feedback on its behavior is welcome! The main issue is here:
       https://github.com/dart-lang/sdk/issues/59232.
   avoid_implementing_value_types:
+    type: lint
     parameters: none
     problemMessage: "Classes that override '==' should not be implemented."
     correctionMessage: "Try removing the class from the 'implements' clause."
@@ -1538,6 +1575,7 @@ LinterLintCode:
       }
       ```
   avoid_init_to_null:
+    type: lint
     parameters: none
     problemMessage: "Redundant initialization to 'null'."
     correctionMessage: "Try removing the initializer."
@@ -1632,6 +1670,7 @@ LinterLintCode:
       }
       ```
   avoid_js_rounded_ints:
+    type: lint
     parameters: none
     problemMessage: "Integer literal can't be represented exactly when compiled to JavaScript."
     correctionMessage: "Try using a 'BigInt' to represent the value."
@@ -1660,6 +1699,7 @@ LinterLintCode:
       BigInt value = BigInt.parse('9007199254740995');
       ```
   avoid_multiple_declarations_per_line:
+    type: lint
     parameters: none
     problemMessage: "Multiple variables declared on a single line."
     correctionMessage: "Try splitting the variable declarations into multiple lines."
@@ -1682,6 +1722,7 @@ LinterLintCode:
       String? baz;
       ```
   avoid_null_checks_in_equality_operators:
+    type: lint
     parameters: none
     problemMessage: "Unnecessary null comparison in implementation of '=='."
     correctionMessage: "Try removing the comparison."
@@ -1721,6 +1762,7 @@ LinterLintCode:
       }
       ```
   avoid_positional_boolean_parameters:
+    type: lint
     parameters: none
     problemMessage: "'bool' parameters should be named parameters."
     correctionMessage: "Try converting the parameter to a named parameter."
@@ -1754,6 +1796,7 @@ LinterLintCode:
       Button(ButtonState.enabled);
       ```
   avoid_print:
+    type: lint
     parameters: none
     problemMessage: "Don't invoke 'print' in production code."
     correctionMessage: "Try using a logging framework."
@@ -1841,6 +1884,7 @@ LinterLintCode:
       }
       ```
   avoid_private_typedef_functions:
+    type: lint
     parameters: none
     problemMessage: "The typedef is unnecessary because it is only used in one place."
     correctionMessage: "Try inlining the type or using it in other places."
@@ -1863,6 +1907,7 @@ LinterLintCode:
       m(void Function() f);
       ```
   avoid_redundant_argument_values:
+    type: lint
     parameters: none
     problemMessage: "The value of the argument is redundant because it matches the default value."
     correctionMessage: "Try removing the argument."
@@ -1910,6 +1955,7 @@ LinterLintCode:
       }
       ```
   avoid_relative_lib_imports:
+    type: lint
     parameters: none
     problemMessage: "Can't use a relative path to import a library in 'lib'."
     correctionMessage: "Try fixing the relative path or changing the import to a 'package:' import."
@@ -1975,6 +2021,7 @@ LinterLintCode:
       ...
       ```
   avoid_renaming_method_parameters:
+    type: lint
     parameters:
       Object p0: undocumented
       Object p1: undocumented
@@ -2051,6 +2098,7 @@ LinterLintCode:
       }
       ```
   avoid_return_types_on_setters:
+    type: lint
     parameters: none
     problemMessage: "Unnecessary return type on a setter."
     correctionMessage: "Try removing the return type."
@@ -2098,6 +2146,7 @@ LinterLintCode:
       set speed(int ms);
       ```
   avoid_returning_null:
+    type: lint
     parameters: none
     state:
       stable: "2.0"
@@ -2129,6 +2178,7 @@ LinterLintCode:
       double getDouble() => -1.0;
       ```
   avoid_returning_null_for_future:
+    type: lint
     parameters: none
     state:
       stable: "2.1"
@@ -2142,6 +2192,7 @@ LinterLintCode:
       It is almost always wrong to return `null` for a `Future`.  Most of the time the
       developer simply forgot to put an `async` keyword on the function.
   avoid_returning_null_for_void_from_function:
+    type: lint
     parameters: none
     sharedName: avoid_returning_null_for_void
     problemMessage: "Don't return 'null' from a function with a return type of 'void'."
@@ -2205,12 +2256,14 @@ LinterLintCode:
       }
       ```
   avoid_returning_null_for_void_from_method:
+    type: lint
     parameters: none
     sharedName: avoid_returning_null_for_void
     problemMessage: "Don't return 'null' from a method with a return type of 'void'."
     correctionMessage: "Try removing the 'null'."
     hasPublishedDocs: true
   avoid_returning_this:
+    type: lint
     parameters: none
     problemMessage: "Don't return 'this' from a method."
     correctionMessage: "Try changing the return type to 'void' and removing the return."
@@ -2249,6 +2302,7 @@ LinterLintCode:
         ..write('three');
       ```
   avoid_setters_without_getters:
+    type: lint
     parameters: none
     problemMessage: "Setter has no corresponding getter."
     correctionMessage: "Try adding a corresponding getter or removing the setter."
@@ -2287,6 +2341,7 @@ LinterLintCode:
       }
       ```
   avoid_shadowing_type_parameters:
+    type: lint
     parameters:
       Object p0: undocumented
       Object p1: undocumented
@@ -2343,6 +2398,7 @@ LinterLintCode:
       }
       ```
   avoid_single_cascade_in_expression_statements:
+    type: lint
     parameters:
       Object p0: undocumented
     problemMessage: "Unnecessary cascade expression."
@@ -2391,6 +2447,7 @@ LinterLintCode:
       o.m();
       ```
   avoid_slow_async_io:
+    type: lint
     parameters: none
     problemMessage: "Use of an async 'dart:io' method."
     correctionMessage: "Try using the synchronous version of the method."
@@ -2476,6 +2533,7 @@ LinterLintCode:
       }
       ```
   avoid_type_to_string:
+    type: lint
     parameters: none
     problemMessage: "Using 'toString' on a 'Type' is not safe in production code."
     correctionMessage: "Try a normal type check or compare the 'runtimeType' directly."
@@ -2555,6 +2613,7 @@ LinterLintCode:
       }
       ```
   avoid_types_as_parameter_names_formal_parameter:
+    type: lint
     parameters:
       Object p0: undocumented
     sharedName: avoid_types_as_parameter_names
@@ -2562,6 +2621,7 @@ LinterLintCode:
     correctionMessage: "Try adding a name for the parameter or changing the parameter name to not match an existing type."
     hasPublishedDocs: true
   avoid_types_as_parameter_names_type_parameter:
+    type: lint
     parameters:
       Object p0: undocumented
     sharedName: avoid_types_as_parameter_names
@@ -2626,6 +2686,7 @@ LinterLintCode:
       m(f(int v));
       ```
   avoid_types_on_closure_parameters:
+    type: lint
     parameters: none
     problemMessage: "Unnecessary type annotation on a function expression parameter."
     correctionMessage: "Try removing the type annotation."
@@ -2650,6 +2711,7 @@ LinterLintCode:
       var names = people.map((person) => person.name);
       ```
   avoid_unnecessary_containers:
+    type: lint
     parameters: none
     problemMessage: "Unnecessary instance of 'Container'."
     correctionMessage: "Try removing the 'Container' (but not its children) from the widget tree."
@@ -2755,6 +2817,7 @@ LinterLintCode:
       }
       ```
   avoid_unstable_final_fields:
+    type: lint
     parameters: none
     state:
       experimental: "3.3"
@@ -2763,6 +2826,7 @@ LinterLintCode:
     deprecatedDetails: |-
       This rule has been removed.
   avoid_unused_constructor_parameters:
+    type: lint
     parameters:
       Object p0: undocumented
     problemMessage: "The parameter '#p0' is not used in the constructor."
@@ -2791,6 +2855,7 @@ LinterLintCode:
       }
       ```
   avoid_void_async:
+    type: lint
     parameters: none
     problemMessage: "An 'async' function should have a 'Future' return type when it doesn't return a value."
     correctionMessage: "Try changing the return type."
@@ -2830,6 +2895,7 @@ LinterLintCode:
       }
       ```
   avoid_web_libraries_in_flutter:
+    type: lint
     parameters: none
     problemMessage: "Don't use web-only libraries outside Flutter web plugins."
     correctionMessage: "Try finding a different library for your needs."
@@ -2901,6 +2967,7 @@ LinterLintCode:
 
       otherwise, imports of `dart:html`, `dart:js` and  `dart:js_util` are disallowed.
   await_only_futures:
+    type: lint
     parameters:
       Object p0: undocumented
     problemMessage: "Uses 'await' on an instance of '#p0', which is not a subtype of 'Future'."
@@ -2966,6 +3033,7 @@ LinterLintCode:
       }
       ```
   camel_case_extensions:
+    type: lint
     parameters:
       Object p0: undocumented
     problemMessage: "The extension name '#p0' isn't an UpperCamelCase identifier."
@@ -3023,6 +3091,7 @@ LinterLintCode:
       }
       ```
   camel_case_types:
+    type: lint
     parameters:
       Object p0: undocumented
     problemMessage: "The type name '#p0' isn't an UpperCamelCase identifier."
@@ -3075,6 +3144,7 @@ LinterLintCode:
       typedef num Adder(num x, num y);
       ```
   cancel_subscriptions:
+    type: lint
     parameters: none
     problemMessage: "Uncancelled instance of 'StreamSubscription'."
     correctionMessage: "Try invoking 'cancel' in the function in which the 'StreamSubscription' was created."
@@ -3165,6 +3235,7 @@ LinterLintCode:
       cancellations. See [linter#317](https://github.com/dart-lang/sdk/issues/57387)
       for more information.
   cascade_invocations:
+    type: lint
     parameters: none
     problemMessage: "Unnecessary duplication of receiver."
     correctionMessage: "Try using a cascade to avoid the duplication."
@@ -3210,6 +3281,7 @@ LinterLintCode:
           ..secondMethod();
       ```
   cast_nullable_to_non_nullable:
+    type: lint
     parameters: none
     problemMessage: "Don't cast a nullable value to a non-nullable type."
     correctionMessage: "Try adding a not-null assertion ('!') to make the type non-nullable."
@@ -3241,6 +3313,7 @@ LinterLintCode:
       var v = a!;
       ```
   close_sinks:
+    type: lint
     parameters: none
     problemMessage: "Unclosed instance of 'Sink'."
     correctionMessage: "Try invoking 'close' in the function in which the 'Sink' was created."
@@ -3331,6 +3404,7 @@ LinterLintCode:
       closures. See [sdk#57882](https://github.com/dart-lang/sdk/issues/57882)
       for more information.
   collection_methods_unrelated_type:
+    type: lint
     parameters:
       Object p0: undocumented
       Object p1: undocumented
@@ -3435,6 +3509,7 @@ LinterLintCode:
       }
       ```
   combinators_ordering:
+    type: lint
     parameters: none
     problemMessage: "Sort combinator names alphabetically."
     correctionMessage: "Try sorting the combinator names alphabetically."
@@ -3457,6 +3532,7 @@ LinterLintCode:
       export 'a.dart' show A, B hide C, D;
       ```
   comment_references:
+    type: lint
     parameters: none
     problemMessage: "The referenced name isn't visible in scope."
     correctionMessage: "Try adding an import for the referenced name."
@@ -3518,6 +3594,7 @@ LinterLintCode:
       [sdk#57783](https://github.com/dart-lang/sdk/issues/57783) for more
       information.
   conditional_uri_does_not_exist:
+    type: lint
     parameters:
       Object p0: undocumented
     problemMessage: "The target of the conditional URI '#p0' doesn't exist."
@@ -3544,6 +3621,7 @@ LinterLintCode:
         if (condition) 'file_that_also_does_exist.dart';
       ```
   constant_identifier_names:
+    type: lint
     parameters:
       Object p0: undocumented
     problemMessage: "The constant name '#p0' isn't a lowerCamelCase identifier."
@@ -3604,6 +3682,7 @@ LinterLintCode:
       }
       ```
   control_flow_in_finally:
+    type: lint
     parameters:
       Object p0: undocumented
     problemMessage: "Use of '#p0' in a 'finally' clause."
@@ -3735,6 +3814,7 @@ LinterLintCode:
       }
       ```
   curly_braces_in_flow_control_structures:
+    type: lint
     parameters:
       Object p0: undocumented
     problemMessage: "Statements in #p0 should be enclosed in a block."
@@ -3813,6 +3893,7 @@ LinterLintCode:
       }
       ```
   dangling_library_doc_comments:
+    type: lint
     parameters: none
     problemMessage: "Dangling library doc comment."
     correctionMessage: "Add a 'library' directive after the library comment."
@@ -3899,6 +3980,7 @@ LinterLintCode:
       2.19 and later. Code which might run in earlier versions of Dart will need to
       provide a name in the `library` directive.
   depend_on_referenced_packages:
+    type: lint
     parameters:
       Object p0: undocumented
     problemMessage: "The imported package '#p0' isn't a dependency of the importing package."
@@ -3992,6 +4074,7 @@ LinterLintCode:
         a: ^1.0.0
       ```
   deprecated_consistency_constructor:
+    type: lint
     parameters: none
     sharedName: deprecated_consistency
     problemMessage: "Constructors in a deprecated class should be deprecated."
@@ -4042,18 +4125,21 @@ LinterLintCode:
       }
       ```
   deprecated_consistency_field:
+    type: lint
     parameters: none
     sharedName: deprecated_consistency
     problemMessage: "Fields that are initialized by a deprecated parameter should be deprecated."
     correctionMessage: "Try marking the field as deprecated."
     hasPublishedDocs: false
   deprecated_consistency_parameter:
+    type: lint
     parameters: none
     sharedName: deprecated_consistency
     problemMessage: "Parameters that initialize a deprecated field should be deprecated."
     correctionMessage: "Try marking the parameter as deprecated."
     hasPublishedDocs: false
   deprecated_member_use_from_same_package_with_message:
+    type: lint
     parameters:
       Object p0: undocumented
       Object p1: undocumented
@@ -4122,6 +4208,7 @@ LinterLintCode:
       }
       ```
   deprecated_member_use_from_same_package_without_message:
+    type: lint
     parameters:
       Object p0: undocumented
     sharedName: deprecated_member_use_from_same_package
@@ -4129,6 +4216,7 @@ LinterLintCode:
     correctionMessage: "Try replacing the use of the deprecated member with the replacement, if a replacement is specified."
     hasPublishedDocs: false
   diagnostic_describe_all_properties:
+    type: lint
     parameters: none
     problemMessage: "The public property isn't described by either 'debugFillProperties' or 'debugDescribeChildren'."
     correctionMessage: "Try describing the property."
@@ -4240,6 +4328,7 @@ LinterLintCode:
       }
       ```
   directives_ordering_alphabetical:
+    type: lint
     parameters: none
     sharedName: directives_ordering
     problemMessage: "Sort directive sections alphabetically."
@@ -4347,6 +4436,7 @@ LinterLintCode:
       import 'a/b.dart'; // OK
       ```
   directives_ordering_dart:
+    type: lint
     parameters:
       Object p0: undocumented
     sharedName: directives_ordering
@@ -4354,12 +4444,14 @@ LinterLintCode:
     correctionMessage: "Try sorting the directives."
     hasPublishedDocs: false
   directives_ordering_exports:
+    type: lint
     parameters: none
     sharedName: directives_ordering
     problemMessage: "Specify exports in a separate section after all imports."
     correctionMessage: "Try sorting the directives."
     hasPublishedDocs: false
   directives_ordering_package_before_relative:
+    type: lint
     parameters:
       Object p0: undocumented
     sharedName: directives_ordering
@@ -4367,6 +4459,7 @@ LinterLintCode:
     correctionMessage: "Try sorting the directives."
     hasPublishedDocs: false
   discarded_futures:
+    type: lint
     parameters: none
     problemMessage: "'Future'-returning calls in a non-'async' function."
     correctionMessage: "Try converting the enclosing function to be 'async' and then 'await' the future, or wrap the expression in 'unawaited'."
@@ -4405,6 +4498,7 @@ LinterLintCode:
       Future<void> createDir(String path) async {}
       ```
   do_not_use_environment:
+    type: lint
     parameters: none
     problemMessage: "Invalid use of an environment declaration."
     correctionMessage: "Try removing the environment declaration usage."
@@ -4424,6 +4518,7 @@ LinterLintCode:
         bool.hasEnvironment('logging') ? String.fromEnvironment('logging') : null;
       ```
   document_ignores:
+    type: lint
     parameters: none
     problemMessage: "Missing documentation explaining why the diagnostic is ignored."
     correctionMessage: "Try adding a comment immediately above the ignore comment."
@@ -4447,6 +4542,7 @@ LinterLintCode:
       int _x = 1;
       ```
   empty_catches:
+    type: lint
     parameters: none
     problemMessage: "Empty catch block."
     correctionMessage: "Try adding statements to the block, adding a comment to the block, or removing the 'catch' clause."
@@ -4547,6 +4643,7 @@ LinterLintCode:
       }
       ```
   empty_constructor_bodies:
+    type: lint
     parameters: none
     problemMessage: "Empty constructor bodies should be written using a ';' rather than '{}'."
     correctionMessage: "Try replacing the constructor body with ';'."
@@ -4605,6 +4702,7 @@ LinterLintCode:
       }
       ```
   empty_statements:
+    type: lint
     parameters: none
     problemMessage: "Unnecessary empty statement."
     correctionMessage: "Try removing the empty statement or restructuring the code."
@@ -4701,6 +4799,7 @@ LinterLintCode:
         bar();
       ```
   enable_null_safety:
+    type: lint
     parameters: none
     state:
       stable: "2.19"
@@ -4724,6 +4823,7 @@ LinterLintCode:
       }
       ```
   eol_at_end_of_file:
+    type: lint
     parameters: none
     problemMessage: "Missing a newline at the end of the file."
     correctionMessage: "Try adding a newline at the end of the file."
@@ -4748,6 +4848,7 @@ LinterLintCode:
       ```
   erase_dart_type_extension_types:
     # TODO(nshahan): Update.
+    type: lint
     parameters: none
     problemMessage: "Unsafe use of 'DartType' in an 'is' check."
     correctionMessage: "Ensure DartType extension types are erased by using a helper method."
@@ -4760,6 +4861,7 @@ LinterLintCode:
 
       **For internal use only.**
   exhaustive_cases:
+    type: lint
     parameters:
       Object p0: undocumented
     problemMessage: "Missing case clauses for some constants in '#p0'."
@@ -4829,6 +4931,7 @@ LinterLintCode:
       }
       ```
   file_names:
+    type: lint
     parameters:
       Object p0: undocumented
     problemMessage: "The file name '#p0' isn't a lower_case_with_underscores identifier."
@@ -4882,6 +4985,7 @@ LinterLintCode:
       The lint `library_names` can be used to enforce the same kind of naming on the
       library.
   flutter_style_todos:
+    type: lint
     parameters: none
     problemMessage: "To-do comment doesn't follow the Flutter style."
     correctionMessage: "Try following the Flutter style for to-do comments."
@@ -4908,6 +5012,7 @@ LinterLintCode:
       // TODO(username): message, https://URL-to-issue.
       ```
   hash_and_equals:
+    type: lint
     parameters:
       Object p0: undocumented
       Object p1: undocumented
@@ -5018,6 +5123,7 @@ LinterLintCode:
       }
       ```
   implementation_imports:
+    type: lint
     parameters: none
     problemMessage: "Import of a library in the 'lib/src' directory of another package."
     correctionMessage: "Try importing a public library that exports this library, or removing the import."
@@ -5079,6 +5185,7 @@ LinterLintCode:
       import 'package:acme/src/internals.dart';
       ```
   implicit_call_tearoffs:
+    type: lint
     parameters: none
     problemMessage: "Implicit tear-off of the 'call' method."
     correctionMessage: "Try explicitly tearing off the 'call' method."
@@ -5159,6 +5266,7 @@ LinterLintCode:
       callIt(Callable().call);
       ```
   implicit_reopen:
+    type: lint
     parameters:
       Object p0: undocumented
       Object p1: undocumented
@@ -5206,6 +5314,7 @@ LinterLintCode:
       class C extends I {}
       ```
   invalid_case_patterns:
+    type: lint
     parameters: none
     problemMessage: "This expression is not valid in a 'case' clause in Dart 3.0."
     correctionMessage: "Try refactoring the expression to be valid in 3.0."
@@ -5437,6 +5546,7 @@ LinterLintCode:
       }
       ```
   invalid_runtime_check_with_js_interop_types_dart_as_js:
+    type: lint
     parameters:
       Object p0: undocumented
       Object p1: undocumented
@@ -5601,6 +5711,7 @@ LinterLintCode:
       }
       ```
   invalid_runtime_check_with_js_interop_types_dart_is_js:
+    type: lint
     parameters:
       Object p0: undocumented
       Object p1: undocumented
@@ -5608,6 +5719,7 @@ LinterLintCode:
     problemMessage: "Runtime check between '#p0' and '#p1' checks whether a Dart value is a JS interop type, which might not be platform-consistent."
     hasPublishedDocs: false
   invalid_runtime_check_with_js_interop_types_js_as_dart:
+    type: lint
     parameters:
       Object p0: undocumented
       Object p1: undocumented
@@ -5616,6 +5728,7 @@ LinterLintCode:
     correctionMessage: "Try using conversion methods from 'dart:js_interop' to convert between JS interop types and Dart types."
     hasPublishedDocs: false
   invalid_runtime_check_with_js_interop_types_js_as_incompatible_js:
+    type: lint
     parameters:
       Object p0: undocumented
       Object p1: undocumented
@@ -5623,6 +5736,7 @@ LinterLintCode:
     problemMessage: "Cast from '#p0' to '#p1' casts a JS interop value to an incompatible JS interop type, which might not be platform-consistent."
     hasPublishedDocs: false
   invalid_runtime_check_with_js_interop_types_js_is_dart:
+    type: lint
     parameters:
       Object p0: undocumented
       Object p1: undocumented
@@ -5630,6 +5744,7 @@ LinterLintCode:
     problemMessage: "Runtime check between '#p0' and '#p1' checks whether a JS interop value is a Dart type, which might not be platform-consistent."
     hasPublishedDocs: false
   invalid_runtime_check_with_js_interop_types_js_is_inconsistent_js:
+    type: lint
     parameters:
       Object p0: undocumented
       Object p1: undocumented
@@ -5638,6 +5753,7 @@ LinterLintCode:
     correctionMessage: "Try using a JS interop member like 'isA' from 'dart:js_interop' to check the underlying type of JS interop values."
     hasPublishedDocs: false
   invalid_runtime_check_with_js_interop_types_js_is_unrelated_js:
+    type: lint
     parameters:
       Object p0: undocumented
       Object p1: undocumented
@@ -5646,6 +5762,7 @@ LinterLintCode:
     correctionMessage: "Try using a JS interop member like 'isA' from 'dart:js_interop' to check the underlying type of JS interop values, or make the JS interop type a supertype using 'implements'."
     hasPublishedDocs: false
   invariant_booleans:
+    type: lint
     parameters: none
     state:
       stable: "2.0"
@@ -5733,6 +5850,7 @@ LinterLintCode:
       }
       ```
   iterable_contains_unrelated_type:
+    type: lint
     parameters: none
     state:
       stable: "2.0"
@@ -5847,6 +5965,7 @@ LinterLintCode:
       class DerivedClass3 extends ClassBase implements Mixin {}
       ```
   join_return_with_assignment:
+    type: lint
     parameters: none
     problemMessage: "Assignment could be inlined in 'return' statement."
     correctionMessage: "Try inlining the assigned value in the 'return' statement."
@@ -5876,6 +5995,7 @@ LinterLintCode:
       }
       ```
   leading_newlines_in_multiline_strings:
+    type: lint
     parameters: none
     problemMessage: "Missing a newline at the beginning of a multiline string."
     correctionMessage: "Try adding a newline at the beginning of the string."
@@ -5906,6 +6026,7 @@ LinterLintCode:
       var s2 = '''This one-liner multiline string is ok. It usually allows to escape both ' and " in the string.''';
       ```
   library_annotations:
+    type: lint
     parameters: none
     problemMessage: "This annotation should be attached to a library directive."
     correctionMessage: "Try attaching the annotation to a library directive."
@@ -5973,6 +6094,7 @@ LinterLintCode:
       2.19 and later. Code which might run in earlier versions of Dart will need to
       provide a name in the `library` directive.
   library_names:
+    type: lint
     parameters:
       Object p0: undocumented
     problemMessage: "The library name '#p0' isn't a lower_case_with_underscores identifier."
@@ -6032,6 +6154,7 @@ LinterLintCode:
       The lint `file_names` can be used to enforce the same kind of naming on the
       file.
   library_prefixes:
+    type: lint
     parameters:
       Object p0: undocumented
     problemMessage: "The prefix '#p0' isn't a lower_case_with_underscores identifier."
@@ -6082,6 +6205,7 @@ LinterLintCode:
       import 'package:javascript_utils/javascript_utils.dart' as js_utils;
       ```
   library_private_types_in_public_api:
+    type: lint
     parameters: none
     problemMessage: "Invalid use of a private type in a public API."
     correctionMessage: "Try making the private type public, or making the API that uses the private type also be private."
@@ -6155,6 +6279,7 @@ LinterLintCode:
       f(String s) { ... }
       ```
   lines_longer_than_80_chars:
+    type: lint
     parameters: none
     problemMessage: "The line length exceeds the 80-character limit."
     correctionMessage: "Try breaking the line across multiple lines."
@@ -6184,6 +6309,7 @@ LinterLintCode:
       if they go over the line limit. This makes it easier to search source files for
       a given path.
   list_remove_unrelated_type:
+    type: lint
     parameters: none
     state:
       stable: "2.0"
@@ -6299,6 +6425,7 @@ LinterLintCode:
       class DerivedClass3 extends ClassBase implements Mixin {}
       ```
   literal_only_boolean_expressions:
+    type: lint
     parameters: none
     problemMessage: "The Boolean expression has a constant value."
     correctionMessage: "Try changing the expression."
@@ -6441,6 +6568,7 @@ LinterLintCode:
       }
       ```
   matching_super_parameters:
+    type: lint
     parameters:
       Object p0: undocumented
       Object p1: undocumented
@@ -6496,6 +6624,7 @@ LinterLintCode:
       }
       ```
   missing_code_block_language_in_doc_comment:
+    type: lint
     parameters: none
     problemMessage: "The code block is missing a specified language."
     correctionMessage: "Try adding a language to the code block."
@@ -6531,6 +6660,7 @@ LinterLintCode:
       class A {}
       ```
   missing_whitespace_between_adjacent_strings:
+    type: lint
     parameters: none
     problemMessage: "Missing whitespace between adjacent strings."
     correctionMessage: "Try adding whitespace between the strings."
@@ -6588,6 +6718,7 @@ LinterLintCode:
         'do eiusmod tempor incididunt ut labore et dolore magna';
       ```
   no_adjacent_strings_in_list:
+    type: lint
     parameters: none
     problemMessage: "Don't use adjacent strings in a list literal."
     correctionMessage: "Try adding a comma between the strings."
@@ -6656,6 +6787,7 @@ LinterLintCode:
       ];
       ```
   no_default_cases:
+    type: lint
     parameters: none
     problemMessage: "Invalid use of 'default' member in a switch."
     correctionMessage: "Try enumerating all the possible values of the switch expression."
@@ -6697,6 +6829,7 @@ LinterLintCode:
         return null;
       ```
   no_duplicate_case_values:
+    type: lint
     parameters:
       Object p0: undocumented
       Object p1: undocumented
@@ -6790,6 +6923,7 @@ LinterLintCode:
       and below. In Dart 3.0 and after, duplicate cases are reported as dead code
       by the analyzer.
   no_leading_underscores_for_library_prefixes:
+    type: lint
     parameters:
       Object p0: undocumented
     problemMessage: "The library prefix '#p0' starts with an underscore."
@@ -6839,6 +6973,7 @@ LinterLintCode:
       import 'dart:core' as core;
       ```
   no_leading_underscores_for_local_identifiers:
+    type: lint
     parameters:
       Object p0: undocumented
     problemMessage: "The local variable '#p0' starts with an underscore."
@@ -6908,6 +7043,7 @@ LinterLintCode:
       [1,2,3].map((_) => print('Hello'));
       ```
   no_literal_bool_comparisons:
+    type: lint
     parameters: none
     problemMessage: "Unnecessary comparison to a boolean literal."
     correctionMessage: "Remove the comparison and use the negate `!` operator if necessary."
@@ -6942,6 +7078,7 @@ LinterLintCode:
       }
       ```
   no_logic_in_create_state:
+    type: lint
     parameters: none
     problemMessage: "Don't put any logic in 'createState'."
     correctionMessage: "Try moving the logic out of 'createState'."
@@ -7041,6 +7178,7 @@ LinterLintCode:
       }
       ```
   no_runtimeType_toString:
+    type: lint
     parameters: none
     problemMessage: "Using 'toString' on a 'Type' is not safe in production code."
     correctionMessage: "Try removing the usage of 'toString' or restructuring the code."
@@ -7075,6 +7213,7 @@ LinterLintCode:
       * in a mixin declaration
       * in an abstract class declaration
   no_self_assignments:
+    type: lint
     parameters: none
     problemMessage: "The variable or property is being assigned to itself."
     correctionMessage: "Try removing the assignment that has no direct effect."
@@ -7182,6 +7321,7 @@ LinterLintCode:
       }
       ```
   no_solo_tests:
+    type: lint
     parameters: none
     problemMessage: "Don't commit soloed tests."
     correctionMessage: "Try removing the 'soloTest' annotation or 'solo_' prefix."
@@ -7191,6 +7331,7 @@ LinterLintCode:
     categories: [errorProne]
     deprecatedDetails: "For internal use only."
   no_trailing_spaces:
+    type: lint
     parameters: none
     problemMessage: "Don't create string literals with trailing spaces in tests."
     correctionMessage: 'Try removing the trailing spaces.'
@@ -7200,6 +7341,7 @@ LinterLintCode:
     categories: [errorProne]
     deprecatedDetails: "For internal use only."
   no_wildcard_variable_uses:
+    type: lint
     parameters: none
     problemMessage: "The referenced identifier is a wildcard."
     correctionMessage: "Use an identifier name that is not a wildcard."
@@ -7289,6 +7431,7 @@ LinterLintCode:
       var [a, _, b, _] = [1, 2, 3, 4];
       ```
   non_constant_identifier_names:
+    type: lint
     parameters:
       Object p0: undocumented
     problemMessage: "The variable name '#p0' isn't a lowerCamelCase identifier."
@@ -7340,6 +7483,7 @@ LinterLintCode:
       }
       ```
   noop_primitive_operations:
+    type: lint
     parameters: none
     problemMessage: "The expression has no effect and can be removed."
     correctionMessage: "Try removing the expression."
@@ -7385,6 +7529,7 @@ LinterLintCode:
           '';
       ```
   null_check_on_nullable_type_parameter:
+    type: lint
     parameters: none
     problemMessage: "The null check operator shouldn't be used on a variable whose type is a potentially nullable type parameter."
     correctionMessage: "Try explicitly testing for 'null'."
@@ -7454,6 +7599,7 @@ LinterLintCode:
       }
       ```
   null_closures:
+    type: lint
     parameters: none
     problemMessage: "Closure can't be 'null' because it might be invoked."
     correctionMessage: "Try providing a non-null closure."
@@ -7528,6 +7674,7 @@ LinterLintCode:
       [1, 3, 5].firstWhere((e) => e.isOdd, orElse: () => null);
       ```
   omit_local_variable_types:
+    type: lint
     parameters: none
     problemMessage: "Unnecessary type annotation on a local variable."
     correctionMessage: "Try removing the type annotation."
@@ -7585,6 +7732,7 @@ LinterLintCode:
       }
       ```
   omit_obvious_local_variable_types:
+    type: lint
     parameters: none
     problemMessage: "Omit the type annotation on a local variable when the type is obvious."
     correctionMessage: "Try removing the type annotation."
@@ -7657,6 +7805,7 @@ LinterLintCode:
       or removed. Feedback on its behavior is welcome! The main issue is here:
       https://github.com/dart-lang/sdk/issues/58773.
   omit_obvious_property_types:
+    type: lint
     parameters: none
     problemMessage: "The type annotation isn't needed because it is obvious."
     correctionMessage: "Try removing the type annotation."
@@ -7709,6 +7858,7 @@ LinterLintCode:
       or removed. Feedback on its behavior is welcome! The main issue is here:
       https://github.com/dart-lang/sdk/issues/59550.
   one_member_abstracts:
+    type: lint
     parameters:
       Object p0: undocumented
     problemMessage: "Unnecessary use of an abstract class."
@@ -7740,6 +7890,7 @@ LinterLintCode:
       typedef Predicate = bool Function(item);
       ```
   only_throw_errors:
+    type: lint
     parameters: none
     problemMessage: "Don't throw instances of classes that don't extend either 'Exception' or 'Error'."
     correctionMessage: "Try throwing a different class of object."
@@ -7793,6 +7944,7 @@ LinterLintCode:
       }
       ```
   overridden_fields:
+    type: lint
     parameters:
       Object p0: undocumented
     problemMessage: "Field overrides a field inherited from '#p0'."
@@ -7908,6 +8060,7 @@ LinterLintCode:
       }
       ```
   package_api_docs:
+    type: lint
     parameters: none
     problemMessage: "Missing documentation for public API."
     correctionMessage: "Try adding a documentation comment."
@@ -7966,6 +8119,7 @@ LinterLintCode:
       Advice for writing good doc comments can be found in the
       [Doc Writing Guidelines](https://dart.dev/effective-dart/documentation).
   package_names:
+    type: lint
     parameters:
       Object p0: undocumented
     problemMessage: "The package name '#p0' isn't a lower_case_with_underscores identifier."
@@ -8007,6 +8161,7 @@ LinterLintCode:
       Also, make sure the name is a valid Dart identifier -- that it doesn't start
       with digits and isn't a reserved word.
   package_prefixed_library_names:
+    type: lint
     parameters:
       Object p0: undocumented
     problemMessage: "The library name is not a dot-separated path prefixed by the package name."
@@ -8095,6 +8250,7 @@ LinterLintCode:
       library my_package.src.private;
       ```
   parameter_assignments:
+    type: lint
     parameters:
       Object p0: undocumented
     problemMessage: "Invalid assignment to the parameter '#p0'."
@@ -8170,6 +8326,7 @@ LinterLintCode:
       }
       ```
   prefer_adjacent_string_concatenation:
+    type: lint
     parameters: none
     problemMessage: "String literals shouldn't be concatenated by the '+' operator."
     correctionMessage: "Try removing the operator to use adjacent strings."
@@ -8216,6 +8373,7 @@ LinterLintCode:
           'parts are overrun by martians. Unclear which are which.');
       ```
   prefer_asserts_in_initializer_lists:
+    type: lint
     parameters: none
     problemMessage: "Assert should be in the initializer list."
     correctionMessage: "Try moving the assert to the initializer list."
@@ -8271,6 +8429,7 @@ LinterLintCode:
       }
       ```
   prefer_asserts_with_message:
+    type: lint
     parameters: none
     problemMessage: "Missing a message in an assert."
     correctionMessage: "Try adding a message to the assert."
@@ -8330,6 +8489,7 @@ LinterLintCode:
       }
       ```
   prefer_bool_in_asserts:
+    type: lint
     parameters: none
     state:
       stable: "2.0"
@@ -8359,6 +8519,7 @@ LinterLintCode:
       }());
       ```
   prefer_collection_literals:
+    type: lint
     parameters: none
     problemMessage: "Unnecessary constructor invocation."
     correctionMessage: "Try using a collection literal."
@@ -8431,6 +8592,7 @@ LinterLintCode:
       void printHashMap(LinkedHashMap map) => printMap(map);
       ```
   prefer_conditional_assignment:
+    type: lint
     parameters: none
     problemMessage: "The 'if' statement could be replaced by a null-aware assignment."
     correctionMessage: "Try using the '??=' operator to conditionally assign a value."
@@ -8493,6 +8655,7 @@ LinterLintCode:
       }
       ```
   prefer_const_constructors:
+    type: lint
     parameters: none
     problemMessage: "Use 'const' with the constructor to improve performance."
     correctionMessage: "Try adding the 'const' keyword to the constructor invocation."
@@ -8581,6 +8744,7 @@ LinterLintCode:
       A foo(int x) => new A(x);
       ```
   prefer_const_constructors_in_immutables:
+    type: lint
     parameters: none
     problemMessage: "Constructors in '@immutable' classes should be declared as 'const'."
     correctionMessage: "Try adding 'const' to the constructor declaration."
@@ -8659,6 +8823,7 @@ LinterLintCode:
       }
       ```
   prefer_const_declarations:
+    type: lint
     parameters: none
     problemMessage: "Use 'const' for final variables initialized to a constant value."
     correctionMessage: "Try replacing 'final' with 'const'."
@@ -8735,6 +8900,7 @@ LinterLintCode:
       }
       ```
   prefer_const_literals_to_create_immutables:
+    type: lint
     parameters: none
     problemMessage: "Use 'const' literals as arguments to constructors of '@immutable' classes."
     correctionMessage: "Try adding 'const' before the literal."
@@ -8840,6 +9006,7 @@ LinterLintCode:
       A a2 = new A(const {});
       ```
   prefer_constructors_over_static_methods:
+    type: lint
     parameters: none
     problemMessage: "Static method should be a constructor."
     correctionMessage: "Try converting the method into a constructor."
@@ -8908,6 +9075,7 @@ LinterLintCode:
   prefer_contains_always_false:
     # TODO(brianwilkerson): Should be warning rather than lint,
     # as represents a bug rather than style preference.
+    type: lint
     parameters: none
     sharedName: prefer_contains
     problemMessage: "Always 'false' because 'indexOf' is always greater than or equal to -1."
@@ -8916,11 +9084,13 @@ LinterLintCode:
   prefer_contains_always_true:
     # TODO(brianwilkerson): Should be warning rather than lint,
     # as represents a bug rather than style preference.
+    type: lint
     parameters: none
     sharedName: prefer_contains
     problemMessage: "Always 'true' because 'indexOf' is always greater than or equal to -1."
     hasPublishedDocs: false
   prefer_contains_use_contains:
+    type: lint
     parameters: none
     sharedName: prefer_contains
     problemMessage: "Unnecessary use of 'indexOf' to test for containment."
@@ -8977,6 +9147,7 @@ LinterLintCode:
       if (!lunchBox.contains('sandwich')) return 'so hungry...';
       ```
   prefer_double_quotes:
+    type: lint
     parameters: none
     problemMessage: "Unnecessary use of single quotes."
     correctionMessage: "Try using double quotes unless the string contains double quotes."
@@ -9042,6 +9213,7 @@ LinterLintCode:
           "and nested \${a ? 'strings' : 'can be double quoted themselves'}");
       ```
   prefer_equal_for_default_values:
+    type: lint
     parameters: none
     state:
       stable: "2.0"
@@ -9062,6 +9234,7 @@ LinterLintCode:
       m({a = 1})
       ```
   prefer_expression_function_bodies:
+    type: lint
     parameters: none
     problemMessage: "Unnecessary use of a block function body."
     correctionMessage: "Try using an expression function body."
@@ -9134,6 +9307,7 @@ LinterLintCode:
       containsValue(String value) => getValues().contains(value);
       ```
   prefer_final_fields:
+    type: lint
     parameters:
       Object p0: undocumented
     problemMessage: "The private field #p0 could be 'final'."
@@ -9243,6 +9417,7 @@ LinterLintCode:
       }
       ```
   prefer_final_in_for_each_pattern:
+    type: lint
     parameters: none
     sharedName: prefer_final_in_for_each
     problemMessage: "The pattern should be final."
@@ -9312,6 +9487,7 @@ LinterLintCode:
       }
       ```
   prefer_final_in_for_each_variable:
+    type: lint
     parameters:
       Object p0: undocumented
     sharedName: prefer_final_in_for_each
@@ -9319,6 +9495,7 @@ LinterLintCode:
     correctionMessage: "Try making the variable final."
     hasPublishedDocs: false
   prefer_final_locals:
+    type: lint
     parameters: none
     problemMessage: "Local variables should be final."
     correctionMessage: "Try making the variable final."
@@ -9388,6 +9565,7 @@ LinterLintCode:
       }
       ```
   prefer_final_parameters:
+    type: lint
     parameters:
       Object p0: undocumented
     problemMessage: "The parameter '#p0' should be final."
@@ -9479,6 +9657,7 @@ LinterLintCode:
       }
       ```
   prefer_for_elements_to_map_fromIterable:
+    type: lint
     parameters: none
     problemMessage: "Use 'for' elements when building maps from iterables."
     correctionMessage: "Try using a collection literal with a 'for' element."
@@ -9558,6 +9737,7 @@ LinterLintCode:
       };
       ```
   prefer_foreach:
+    type: lint
     parameters: none
     problemMessage: "Use 'forEach' and a tear-off rather than a 'for' loop to apply a function to every element."
     correctionMessage: "Try using 'forEach' and a tear-off rather than a 'for' loop."
@@ -9625,6 +9805,7 @@ LinterLintCode:
       myList.forEach(foo().f); // But this one invokes foo() just once.
       ```
   prefer_function_declarations_over_variables:
+    type: lint
     parameters: none
     problemMessage: "Use a function declaration rather than a variable assignment to bind a function to a name."
     correctionMessage: "Try rewriting the closure assignment as a function declaration."
@@ -9686,6 +9867,7 @@ LinterLintCode:
       }
       ```
   prefer_generic_function_type_aliases:
+    type: lint
     parameters:
       Object p0: undocumented
     problemMessage: "Use the generic function type syntax in 'typedef's."
@@ -9738,6 +9920,7 @@ LinterLintCode:
       typedef F = void Function();
       ```
   prefer_if_elements_to_conditional_expressions:
+    type: lint
     parameters: none
     problemMessage: "Use an 'if' element to conditionally add elements."
     correctionMessage: "Try using an 'if' element rather than a conditional expression."
@@ -9759,6 +9942,7 @@ LinterLintCode:
       var list = ['a', 'b', if (condition) 'c'];
       ```
   prefer_if_null_operators:
+    type: lint
     parameters: none
     problemMessage: "Use the '??' operator rather than '?:' when testing for 'null'."
     correctionMessage: "Try rewriting the code to use '??'."
@@ -9804,6 +9988,7 @@ LinterLintCode:
       v = a ?? b;
       ```
   prefer_initializing_formals:
+    type: lint
     parameters:
       Object p0: undocumented
     problemMessage: "Use an initializing formal to assign a parameter to a field."
@@ -9915,6 +10100,7 @@ LinterLintCode:
       }
       ```
   prefer_inlined_adds_multiple:
+    type: lint
     parameters: none
     sharedName: prefer_inlined_adds
     problemMessage: "The addition of multiple list items could be inlined."
@@ -9940,6 +10126,7 @@ LinterLintCode:
       var l2 = ['a', 'b', 'c'];
       ```
   prefer_inlined_adds_single:
+    type: lint
     parameters: none
     sharedName: prefer_inlined_adds
     problemMessage: "The addition of a list item could be inlined."
@@ -9994,6 +10181,7 @@ LinterLintCode:
       }
       ```
   prefer_int_literals:
+    type: lint
     parameters: none
     problemMessage: "Unnecessary use of a 'double' literal."
     correctionMessage: "Try using an 'int' literal."
@@ -10022,6 +10210,7 @@ LinterLintCode:
       }
       ```
   prefer_interpolation_to_compose_strings:
+    type: lint
     parameters: none
     problemMessage: "Use interpolation to compose strings and values."
     correctionMessage: "Try using string interpolation to build the composite string."
@@ -10074,6 +10263,7 @@ LinterLintCode:
   prefer_is_empty_always_false:
     # TODO(brianwilkerson): Should be warning rather than lint,
     # as represents a bug rather than style preference.
+    type: lint
     parameters: none
     sharedName: prefer_is_empty
     problemMessage: "The comparison is always 'false' because the length is always greater than or equal to 0."
@@ -10082,11 +10272,13 @@ LinterLintCode:
   prefer_is_empty_always_true:
     # TODO(brianwilkerson): Should be warning rather than lint,
     # as represents a bug rather than style preference.
+    type: lint
     parameters: none
     sharedName: prefer_is_empty
     problemMessage: "The comparison is always 'true' because the length is always greater than or equal to 0."
     hasPublishedDocs: false
   prefer_is_empty_use_is_empty:
+    type: lint
     parameters: none
     sharedName: prefer_is_empty
     problemMessage: "Use 'isEmpty' instead of 'length' to test whether the collection is empty."
@@ -10140,12 +10332,14 @@ LinterLintCode:
       if (words.isNotEmpty) return words.join(' ');
       ```
   prefer_is_empty_use_is_not_empty:
+    type: lint
     parameters: none
     sharedName: prefer_is_empty
     problemMessage: "Use 'isNotEmpty' instead of 'length' to test whether the collection is empty."
     correctionMessage: "Try rewriting the expression to use 'isNotEmpty'."
     hasPublishedDocs: true
   prefer_is_not_empty:
+    type: lint
     parameters: none
     problemMessage: "Use 'isNotEmpty' rather than negating the result of 'isEmpty'."
     correctionMessage: "Try rewriting the expression to use 'isNotEmpty'."
@@ -10195,6 +10389,7 @@ LinterLintCode:
       }
       ```
   prefer_is_not_operator:
+    type: lint
     parameters: none
     problemMessage: "Use the 'is!' operator rather than negating the value of the 'is' operator."
     correctionMessage: "Try rewriting the condition to use the 'is!' operator."
@@ -10251,6 +10446,7 @@ LinterLintCode:
       }
       ```
   prefer_iterable_whereType:
+    type: lint
     parameters: none
     problemMessage: "Use 'whereType' to select elements of a given type."
     correctionMessage: "Try rewriting the expression to use 'whereType'."
@@ -10296,6 +10492,7 @@ LinterLintCode:
       iterable.whereType<MyClass>();
       ```
   prefer_mixin:
+    type: lint
     parameters:
       Object p0: undocumented
     problemMessage: "Only mixins should be mixed in."
@@ -10322,6 +10519,7 @@ LinterLintCode:
       class C with M {}
       ```
   prefer_null_aware_method_calls:
+    type: lint
     parameters: none
     problemMessage: "Use a null-aware invocation of the 'call' method rather than explicitly testing for 'null'."
     correctionMessage: "Try using '?.call()' to invoke the function."
@@ -10343,6 +10541,7 @@ LinterLintCode:
       f?.call();
       ```
   prefer_null_aware_operators:
+    type: lint
     parameters: none
     problemMessage: "Use the null-aware operator '?.' rather than an explicit 'null' comparison."
     correctionMessage: "Try using '?.'."
@@ -10392,6 +10591,7 @@ LinterLintCode:
       v = a?.b;
       ```
   prefer_relative_imports:
+    type: lint
     parameters: none
     problemMessage: "Use relative imports for files in the 'lib' directory."
     correctionMessage: "Try converting the URI to a relative URI."
@@ -10440,6 +10640,7 @@ LinterLintCode:
       import 'bar.dart';
       ```
   prefer_single_quotes:
+    type: lint
     parameters: none
     problemMessage: "Unnecessary use of double quotes."
     correctionMessage: "Try using single quotes unless the string contains single quotes."
@@ -10505,6 +10706,7 @@ LinterLintCode:
           'and nested \${a ? "strings" : "can be double quoted themselves"}');
       ```
   prefer_spread_collections:
+    type: lint
     parameters: none
     problemMessage: "The addition of multiple elements could be inlined."
     correctionMessage: "Try using the spread operator ('...') to inline the addition."
@@ -10569,6 +10771,7 @@ LinterLintCode:
       var l = ['a', ...?things];
       ```
   prefer_typing_uninitialized_variables_for_field:
+    type: lint
     parameters: none
     sharedName: prefer_typing_uninitialized_variables
     problemMessage: "An uninitialized field should have an explicit type annotation."
@@ -10665,12 +10868,14 @@ LinterLintCode:
       }
       ```
   prefer_typing_uninitialized_variables_for_local_variable:
+    type: lint
     parameters: none
     sharedName: prefer_typing_uninitialized_variables
     problemMessage: "An uninitialized variable should have an explicit type annotation."
     correctionMessage: "Try adding a type annotation."
     hasPublishedDocs: true
   prefer_void_to_null:
+    type: lint
     parameters: none
     problemMessage: "Unnecessary use of the type 'Null'."
     correctionMessage: "Try using 'void' instead."
@@ -10734,6 +10939,7 @@ LinterLintCode:
       <int, Null>{};
       ```
   provide_deprecation_message:
+    type: lint
     parameters: none
     problemMessage: "Missing a deprecation message."
     correctionMessage: "Try using the constructor to provide a message ('@Deprecated(\"message\")')."
@@ -10785,6 +10991,7 @@ LinterLintCode:
       void oldFunction(arg1, arg2) {}
       ```
   public_member_api_docs:
+    type: lint
     parameters: none
     problemMessage: "Missing documentation for a public member."
     correctionMessage: "Try adding documentation for the member."
@@ -10862,6 +11069,7 @@ LinterLintCode:
       documented getters have corresponding undocumented setters.  In this case the
       setters inherit the docs from the getters.
   recursive_getters:
+    type: lint
     parameters:
       Object p0: undocumented
     problemMessage: "The getter '#p0' recursively returns itself."
@@ -10923,6 +11131,7 @@ LinterLintCode:
       int get field => _field;
       ```
   remove_deprecations_in_breaking_versions:
+    type: lint
     parameters: none
     problemMessage: "Remove deprecated elements in breaking versions."
     correctionMessage: "Try removing the deprecated element."
@@ -11010,6 +11219,7 @@ LinterLintCode:
         sdk: ^3.9.0
       ```
   require_trailing_commas:
+    type: lint
     parameters: none
     problemMessage: "Missing a required trailing comma."
     correctionMessage: "Try adding a trailing comma."
@@ -11049,6 +11259,7 @@ LinterLintCode:
       **NOTE:** This lint rule assumes that code has been formatted with `dart format`
       and may produce false positives on unformatted code.
   secure_pubspec_urls:
+    type: lint
     parameters:
       Object p0: undocumented
     problemMessage: "The '#p0' protocol shouldn't be used because it isn't secure."
@@ -11103,6 +11314,7 @@ LinterLintCode:
       repository: https://github.com/dart-lang/example
       ```
   sized_box_for_whitespace:
+    type: lint
     parameters: none
     problemMessage: "Use a 'SizedBox' to add whitespace to a layout."
     correctionMessage: "Try using a 'SizedBox' rather than a 'Container'."
@@ -11198,6 +11410,7 @@ LinterLintCode:
       }
       ```
   sized_box_shrink_expand:
+    type: lint
     parameters:
       Object p0: undocumented
     problemMessage: "Use 'SizedBox.#p0' to avoid needing to specify the 'height' and 'width'."
@@ -11318,6 +11531,7 @@ LinterLintCode:
       }
       ```
   slash_for_doc_comments:
+    type: lint
     parameters: none
     problemMessage: "Use the end-of-line form ('///') for doc comments."
     correctionMessage: "Try rewriting the comment to use '///'."
@@ -11373,6 +11587,7 @@ LinterLintCode:
 
       Within a doc comment, you can use markdown for formatting.
   sort_child_properties_last:
+    type: lint
     parameters:
       Object p0: undocumented
     problemMessage: "The '#p0' argument should be last in widget constructor invocations."
@@ -11487,6 +11702,7 @@ LinterLintCode:
       Exception: It's allowed to have parameter with a function expression after the
       `child` property.
   sort_constructors_first:
+    type: lint
     parameters: none
     problemMessage: "Constructor declarations should be before non-constructor declarations."
     correctionMessage: "Try moving the constructor declaration before all other members."
@@ -11545,6 +11761,7 @@ LinterLintCode:
       }
       ```
   sort_pub_dependencies:
+    type: lint
     parameters: none
     problemMessage: "Dependencies not sorted alphabetically."
     correctionMessage: "Try sorting the dependencies alphabetically (A to Z)."
@@ -11585,6 +11802,7 @@ LinterLintCode:
 
       Sorting list of pub dependencies makes maintenance easier.
   sort_unnamed_constructors_first:
+    type: lint
     parameters: none
     problemMessage: "Invalid location for the unnamed constructor."
     correctionMessage: "Try moving the unnamed constructor before all other constructors."
@@ -11643,6 +11861,7 @@ LinterLintCode:
       }
       ```
   specify_nonobvious_local_variable_types:
+    type: lint
     parameters: none
     problemMessage: "Specify the type of a local variable when the type is non-obvious."
     correctionMessage: "Try adding a type annotation."
@@ -11726,6 +11945,7 @@ LinterLintCode:
       or removed. Feedback on its behavior is welcome! The main issue is here:
       https://github.com/dart-lang/sdk/issues/58773.
   specify_nonobvious_property_types:
+    type: lint
     parameters: none
     problemMessage: "A type annotation is needed because it isn't obvious."
     correctionMessage: "Try adding a type annotation."
@@ -11797,6 +12017,7 @@ LinterLintCode:
       or removed. Feedback on its behavior is welcome! The main issue is here:
       https://github.com/dart-lang/sdk/issues/59550.
   strict_top_level_inference_add_type:
+    type: lint
     parameters: none
     sharedName: strict_top_level_inference
     problemMessage: "Missing type annotation."
@@ -11848,6 +12069,7 @@ LinterLintCode:
       int _sq(int v) => v * v;
       ```
   strict_top_level_inference_replace_keyword:
+    type: lint
     parameters:
       Object p0: undocumented
     sharedName: strict_top_level_inference
@@ -11855,12 +12077,14 @@ LinterLintCode:
     correctionMessage: "Try replacing '#p0' with a type annotation."
     hasPublishedDocs: false
   strict_top_level_inference_split_to_types:
+    type: lint
     parameters: none
     sharedName: strict_top_level_inference
     problemMessage: "Missing type annotation."
     correctionMessage: "Try splitting the declaration and specify the different type annotations."
     hasPublishedDocs: false
   super_goes_last:
+    type: lint
     parameters: none
     state:
       stable: "2.0"
@@ -11899,6 +12123,7 @@ LinterLintCode:
             super(style) {
       ```
   switch_on_type:
+    type: lint
     parameters: none
     problemMessage: "Avoid switch statements on a 'Type'."
     correctionMessage: "Try using pattern matching on a variable instead."
@@ -11976,6 +12201,7 @@ LinterLintCode:
       }
       ```
   test_types_in_equals:
+    type: lint
     parameters:
       Object p0: undocumented
     problemMessage: "Missing type test for '#p0' in '=='."
@@ -12080,6 +12306,7 @@ LinterLintCode:
       }
       ```
   throw_in_finally:
+    type: lint
     parameters:
       Object p0: undocumented
     problemMessage: "Use of '#p0' in 'finally' block."
@@ -12162,6 +12389,7 @@ LinterLintCode:
       }
       ```
   tighten_type_of_initializing_formals:
+    type: lint
     parameters: none
     problemMessage: "Use a type annotation rather than 'assert' to enforce non-nullability."
     correctionMessage: "Try adding a type annotation and removing the 'assert'."
@@ -12233,6 +12461,7 @@ LinterLintCode:
       }
       ```
   type_annotate_public_apis:
+    type: lint
     parameters: none
     problemMessage: "Missing type annotation on a public API."
     correctionMessage: "Try adding a type annotation."
@@ -12298,6 +12527,7 @@ LinterLintCode:
 
       With types, all of this is clarified.
   type_init_formals:
+    type: lint
     parameters: none
     problemMessage: "Don't needlessly type annotate initializing formals."
     correctionMessage: "Try removing the type."
@@ -12410,6 +12640,7 @@ LinterLintCode:
       }
       ```
   type_literal_in_constant_pattern:
+    type: lint
     parameters: none
     problemMessage: "Use 'TypeName _' instead of a type literal."
     correctionMessage: "Replace with 'TypeName _'."
@@ -12512,6 +12743,7 @@ LinterLintCode:
       }
       ```
   unawaited_futures:
+    type: lint
     parameters: none
     problemMessage: "Missing an 'await' for the 'Future' computed by this expression."
     correctionMessage: "Try adding an 'await' or wrapping the expression with 'unawaited'."
@@ -12602,6 +12834,7 @@ LinterLintCode:
       }
       ```
   unintended_html_in_doc_comment:
+    type: lint
     parameters: none
     problemMessage: "Angle brackets will be interpreted as HTML."
     correctionMessage: "Try using backticks around the content with angle brackets, or try replacing `<` with `&lt;` and `>` with `&gt;`."
@@ -12721,6 +12954,7 @@ LinterLintCode:
       /// <https://example.com/example>
       ```
   unnecessary_async:
+    type: lint
     parameters: none
     problemMessage: "Don't make a function 'async' if it doesn't use 'await'."
     correctionMessage: "Try removing the 'async' modifier."
@@ -12751,6 +12985,7 @@ LinterLintCode:
       }
       ```
   unnecessary_await_in_return:
+    type: lint
     parameters: none
     problemMessage: "Unnecessary 'await'."
     correctionMessage: "Try removing the 'await'."
@@ -12781,6 +13016,7 @@ LinterLintCode:
       }
       ```
   unnecessary_brace_in_string_interps:
+    type: lint
     parameters: none
     problemMessage: "Unnecessary braces in a string interpolation."
     correctionMessage: "Try removing the braces."
@@ -12831,6 +13067,7 @@ LinterLintCode:
       print("Hi, $name!");
       ```
   unnecessary_breaks:
+    type: lint
     parameters: none
     problemMessage: "Unnecessary 'break' statement."
     correctionMessage: "Try removing the 'break'."
@@ -12887,6 +13124,7 @@ LinterLintCode:
       [language version](https://dart.dev/resources/language/evolution#language-versioning)
       of 3.0 or greater. Explicit breaks are still required in Dart 2.19 and below.
   unnecessary_const:
+    type: lint
     parameters: none
     problemMessage: "Unnecessary 'const' keyword."
     correctionMessage: "Try removing the keyword."
@@ -12940,6 +13178,7 @@ LinterLintCode:
       }
       ```
   unnecessary_constructor_name:
+    type: lint
     parameters: none
     problemMessage: "Unnecessary '.new' constructor name."
     correctionMessage: "Try removing the '.new'."
@@ -12998,6 +13237,7 @@ LinterLintCode:
       var makeA = A.new;
       ```
   unnecessary_final_with_type:
+    type: lint
     parameters: none
     sharedName: unnecessary_final
     problemMessage: "Local variables should not be marked as 'final'."
@@ -13075,12 +13315,14 @@ LinterLintCode:
       }
       ```
   unnecessary_final_without_type:
+    type: lint
     parameters: none
     sharedName: unnecessary_final
     problemMessage: "Local variables should not be marked as 'final'."
     correctionMessage: "Replace 'final' with 'var'."
     hasPublishedDocs: false
   unnecessary_getters_setters:
+    type: lint
     parameters: none
     problemMessage: "Unnecessary use of getter and setter to wrap a field."
     correctionMessage: "Try removing the getter and setter and renaming the field."
@@ -13152,6 +13394,7 @@ LinterLintCode:
       }
       ```
   unnecessary_ignore:
+    type: lint
     parameters:
       Object p0: undocumented
     sharedName: unnecessary_ignore
@@ -13187,6 +13430,7 @@ LinterLintCode:
     deprecatedDetails: |-
       **DON'T** specify an ignore for a diagnostic that is not produced.
   unnecessary_ignore_file:
+    type: lint
     parameters:
       Object p0: undocumented
     sharedName: unnecessary_ignore
@@ -13194,6 +13438,7 @@ LinterLintCode:
     correctionMessage: "Try removing the ignore comment."
     hasPublishedDocs: false
   unnecessary_ignore_name:
+    type: lint
     parameters:
       Object p0: undocumented
     sharedName: unnecessary_ignore
@@ -13201,6 +13446,7 @@ LinterLintCode:
     correctionMessage: "Try removing the name from the list."
     hasPublishedDocs: false
   unnecessary_ignore_name_file:
+    type: lint
     parameters:
       Object p0: undocumented
     sharedName: unnecessary_ignore
@@ -13208,6 +13454,7 @@ LinterLintCode:
     correctionMessage: "Try removing the name from the list."
     hasPublishedDocs: false
   unnecessary_lambdas:
+    type: lint
     parameters: none
     problemMessage: "Closure should be a tearoff."
     correctionMessage: "Try using a tearoff rather than a closure."
@@ -13260,6 +13507,7 @@ LinterLintCode:
       names.forEach(print);
       ```
   unnecessary_late:
+    type: lint
     parameters: none
     problemMessage: "Unnecessary 'late' modifier."
     correctionMessage: "Try removing the 'late'."
@@ -13326,6 +13574,7 @@ LinterLintCode:
       }
       ```
   unnecessary_library_directive:
+    type: lint
     parameters: none
     problemMessage: "Library directives without comments or annotations should be avoided."
     correctionMessage: "Try deleting the library directive."
@@ -13356,6 +13605,7 @@ LinterLintCode:
       NOTE: Due to limitations with this lint, libraries with parts will not be
       flagged for unnecessary library directives.
   unnecessary_library_name:
+    type: lint
     parameters: none
     problemMessage: "Library names are not necessary."
     correctionMessage: "Remove the library name."
@@ -13429,6 +13679,7 @@ LinterLintCode:
       part "apart.dart"; // contains: `part of "good_library.dart";`
       ```
   unnecessary_new:
+    type: lint
     parameters: none
     problemMessage: "Unnecessary 'new' keyword."
     correctionMessage: "Try removing the 'new' keyword."
@@ -13477,6 +13728,7 @@ LinterLintCode:
       }
       ```
   unnecessary_null_aware_assignments:
+    type: lint
     parameters: none
     problemMessage: "Unnecessary assignment of 'null'."
     correctionMessage: "Try removing the assignment."
@@ -13537,6 +13789,7 @@ LinterLintCode:
       x ??= 1;
       ```
   unnecessary_null_aware_operator_on_extension_on_nullable:
+    type: lint
     parameters: none
     problemMessage: "Unnecessary use of a null-aware operator to invoke an extension method on a nullable type."
     correctionMessage: "Try removing the '?'."
@@ -13597,6 +13850,7 @@ LinterLintCode:
       f(int? i) => i.m();
       ```
   unnecessary_null_checks:
+    type: lint
     parameters: none
     problemMessage: "Unnecessary use of a null check ('!')."
     correctionMessage: "Try removing the null check."
@@ -13652,6 +13906,7 @@ LinterLintCode:
       }
       ```
   unnecessary_null_in_if_null_operators:
+    type: lint
     parameters: none
     problemMessage: "Unnecessary use of '??' with 'null'."
     correctionMessage: "Try removing the '??' operator and the 'null' operand."
@@ -13706,6 +13961,7 @@ LinterLintCode:
       var x = a ?? 1;
       ```
   unnecessary_nullable_for_final_variable_declarations:
+    type: lint
     parameters: none
     problemMessage: "Type could be non-nullable."
     correctionMessage: "Try changing the type to be non-nullable."
@@ -13749,6 +14005,7 @@ LinterLintCode:
       final int i = 1;
       ```
   unnecessary_overrides:
+    type: lint
     parameters: none
     problemMessage: "Unnecessary override."
     correctionMessage: "Try adding behavior in the overriding member or removing the override."
@@ -13858,6 +14115,7 @@ LinterLintCode:
 
       `noSuchMethod` is a special method and is not checked by this rule.
   unnecessary_parenthesis:
+    type: lint
     parameters: none
     problemMessage: "Unnecessary use of parentheses."
     correctionMessage: "Try removing the parentheses."
@@ -13916,6 +14174,7 @@ LinterLintCode:
         grouping defined by precedence. For example, the expression
         `(a && b) || c && d`.
   unnecessary_raw_strings:
+    type: lint
     parameters: none
     problemMessage: "Unnecessary use of a raw string."
     correctionMessage: "Try using a normal string."
@@ -13961,6 +14220,7 @@ LinterLintCode:
       var s3 = r'\a';
       ```
   unnecessary_statements:
+    type: lint
     parameters: none
     problemMessage: "Unnecessary statement."
     correctionMessage: "Try completing the statement or breaking it up."
@@ -14044,6 +14304,7 @@ LinterLintCode:
       return myvar;
       ```
   unnecessary_string_escapes:
+    type: lint
     parameters: none
     problemMessage: "Unnecessary escape in string literal."
     correctionMessage: "Remove the '\\' escape."
@@ -14088,6 +14349,7 @@ LinterLintCode:
       "this string contains 2 'single quotes' ";
       ```
   unnecessary_string_interpolations:
+    type: lint
     parameters: none
     problemMessage: "Unnecessary use of string interpolation."
     correctionMessage: "Try replacing the string literal with the variable name."
@@ -14134,6 +14396,7 @@ LinterLintCode:
       String o = message;
       ```
   unnecessary_this:
+    type: lint
     parameters: none
     problemMessage: "Unnecessary 'this.' qualifier."
     correctionMessage: "Try removing 'this.'."
@@ -14206,6 +14469,7 @@ LinterLintCode:
       }
       ```
   unnecessary_to_list_in_spreads:
+    type: lint
     parameters: none
     problemMessage: "Unnecessary use of 'toList' in a spread."
     correctionMessage: "Try removing the invocation of 'toList'."
@@ -14263,6 +14527,7 @@ LinterLintCode:
       ]
       ```
   unnecessary_unawaited:
+    type: lint
     parameters: none
     problemMessage: "Unnecessary use of 'unawaited'."
     correctionMessage: "Try removing the use of 'unawaited', as the unawaited element is annotated with '@awaitNotRequired'."
@@ -14335,6 +14600,7 @@ LinterLintCode:
       }
       ```
   unnecessary_underscores:
+    type: lint
     parameters: none
     problemMessage: "Unnecessary use of multiple underscores."
     correctionMessage: "Try using '_'."
@@ -14379,6 +14645,7 @@ LinterLintCode:
 
 
   unreachable_from_main:
+    type: lint
     parameters:
       Object p0: undocumented
     problemMessage: "Unreachable member '#p0' in an executable library."
@@ -14413,6 +14680,7 @@ LinterLintCode:
       void f() {}
       ```
   unrelated_type_equality_checks_in_expression:
+    type: lint
     parameters:
       Object p0: undocumented
       Object p1: undocumented
@@ -14578,6 +14846,7 @@ LinterLintCode:
       class DerivedClass2 extends ClassBase with Mixin {}
       ```
   unrelated_type_equality_checks_in_pattern:
+    type: lint
     parameters:
       Object p0: undocumented
       Object p1: undocumented
@@ -14586,6 +14855,7 @@ LinterLintCode:
     correctionMessage: "Try changing one or both of the operands."
     hasPublishedDocs: true
   unsafe_html_attribute:
+    type: lint
     parameters:
       Object p0: undocumented
     sharedName: unsafe_html
@@ -14620,6 +14890,7 @@ LinterLintCode:
 
       This rule has been removed.
   unsafe_html_constructor:
+    type: lint
     parameters:
       Object p0: undocumented
     sharedName: unsafe_html
@@ -14627,6 +14898,7 @@ LinterLintCode:
     correctionMessage: "Try finding a different way to implement the page."
     hasPublishedDocs: false
   unsafe_html_method:
+    type: lint
     parameters:
       Object p0: undocumented
     sharedName: unsafe_html
@@ -14634,6 +14906,7 @@ LinterLintCode:
     correctionMessage: "Try finding a different way to implement the page."
     hasPublishedDocs: false
   unsafe_variance:
+    type: lint
     parameters: none
     problemMessage: "This type is unsafe: a type parameter occurs in a non-covariant position."
     correctionMessage: "Try using a more general type that doesn't contain any type parameters in such a position."
@@ -14820,6 +15093,7 @@ LinterLintCode:
       }
       ```
   use_build_context_synchronously_async_use:
+    type: lint
     parameters: none
     sharedName: use_build_context_synchronously
     problemMessage: "Don't use 'BuildContext's across async gaps."
@@ -14936,12 +15210,14 @@ LinterLintCode:
       }
       ```
   use_build_context_synchronously_wrong_mounted:
+    type: lint
     parameters: none
     sharedName: use_build_context_synchronously
     problemMessage: "Don't use 'BuildContext's across async gaps, guarded by an unrelated 'mounted' check."
     correctionMessage: "Guard a 'State.context' use with a 'mounted' check on the State, and other BuildContext use with a 'mounted' check on the BuildContext."
     hasPublishedDocs: true
   use_colored_box:
+    type: lint
     parameters: none
     problemMessage: "Use a 'ColoredBox' rather than a 'Container' with only a 'Color'."
     correctionMessage: "Try replacing the 'Container' with a 'ColoredBox'."
@@ -15011,6 +15287,7 @@ LinterLintCode:
       }
       ```
   use_decorated_box:
+    type: lint
     parameters: none
     problemMessage: "Use 'DecoratedBox' rather than a 'Container' with only a 'Decoration'."
     correctionMessage: "Try replacing the 'Container' with a 'DecoratedBox'."
@@ -15100,6 +15377,7 @@ LinterLintCode:
       }
       ```
   use_enums:
+    type: lint
     parameters: none
     problemMessage: "Class should be an enum."
     correctionMessage: "Try using an enum rather than a class."
@@ -15154,6 +15432,7 @@ LinterLintCode:
       }
       ```
   use_full_hex_values_for_flutter_colors:
+    type: lint
     parameters: none
     problemMessage: "Instances of 'Color' should be created using an 8-digit hexadecimal integer (such as '0xFFFFFFFF')."
     state:
@@ -15203,6 +15482,7 @@ LinterLintCode:
       Color(0x00000001);
       ```
   use_function_type_syntax_for_parameters:
+    type: lint
     parameters:
       Object p0: undocumented
     problemMessage: "Use the generic function type syntax to declare the parameter '#p0'."
@@ -15246,6 +15526,7 @@ LinterLintCode:
       Iterable<T> where(bool Function(T) predicate) {}
       ```
   use_if_null_to_convert_nulls_to_bools:
+    type: lint
     parameters: none
     problemMessage: "Use an if-null operator to convert a 'null' to a 'bool'."
     correctionMessage: "Try using an if-null operator."
@@ -15304,6 +15585,7 @@ LinterLintCode:
       }
       ```
   use_is_even_rather_than_modulo:
+    type: lint
     parameters:
       Object p0: undocumented
     problemMessage: "Use '#p0' rather than '% 2'."
@@ -15327,6 +15609,7 @@ LinterLintCode:
       bool isOdd = 13.isOdd;
       ```
   use_key_in_widget_constructors:
+    type: lint
     parameters: none
     problemMessage: "Constructors for public widgets should have a named 'key' parameter."
     correctionMessage: "Try adding a named parameter to the constructor."
@@ -15394,6 +15677,7 @@ LinterLintCode:
       }
       ```
   use_late_for_private_fields_and_variables:
+    type: lint
     parameters: none
     problemMessage: "Use 'late' for private members with a non-nullable type."
     correctionMessage: "Try making adding the modifier 'late'."
@@ -15464,6 +15748,7 @@ LinterLintCode:
       }
       ```
   use_named_constants:
+    type: lint
     parameters:
       Object p0: undocumented
     problemMessage: "Use the constant '#p0' rather than a constructor returning the same object."
@@ -15509,6 +15794,7 @@ LinterLintCode:
       Duration.zero;
       ```
   use_null_aware_elements:
+    type: lint
     parameters: none
     problemMessage: "Use the null-aware marker '?' rather than a null check via an 'if'."
     correctionMessage: "Try using '?'."
@@ -15552,6 +15838,7 @@ LinterLintCode:
       f(String? key) => {?key: "value"};
       ```
   use_raw_strings:
+    type: lint
     parameters: none
     problemMessage: "Use a raw string to avoid using escapes."
     correctionMessage: "Try making the string a raw string and removing the escapes."
@@ -15596,6 +15883,7 @@ LinterLintCode:
       var s = r'A string with only \ and $';
       ```
   use_rethrow_when_possible:
+    type: lint
     parameters: none
     problemMessage: "Use 'rethrow' to rethrow a caught exception."
     correctionMessage: "Try replacing the 'throw' with a 'rethrow'."
@@ -15665,6 +15953,7 @@ LinterLintCode:
       }
       ```
   use_setters_to_change_properties:
+    type: lint
     parameters: none
     problemMessage: "The method is used to change a property."
     correctionMessage: "Try converting the method to a setter."
@@ -15718,6 +16007,7 @@ LinterLintCode:
       button.visible = false;
       ```
   use_string_buffers:
+    type: lint
     parameters: none
     problemMessage: "Use a string buffer rather than '+' to compose strings."
     correctionMessage: "Try writing the parts of a string to a string buffer."
@@ -15788,6 +16078,7 @@ LinterLintCode:
       }
       ```
   use_string_in_part_of_directives:
+    type: lint
     parameters: none
     problemMessage: "The part-of directive uses a library name."
     correctionMessage: "Try converting the directive to use the URI of the library."
@@ -15844,6 +16135,7 @@ LinterLintCode:
       part of '../../my_library.dart';
       ```
   use_super_parameters_multiple:
+    type: lint
     parameters:
       Object p0: undocumented
     sharedName: use_super_parameters
@@ -15915,6 +16207,7 @@ LinterLintCode:
       }
       ```
   use_super_parameters_single:
+    type: lint
     parameters:
       Object p0: undocumented
     sharedName: use_super_parameters
@@ -15922,6 +16215,7 @@ LinterLintCode:
     correctionMessage: "Trying converting '#p0' to a super parameter."
     hasPublishedDocs: true
   use_test_throws_matchers:
+    type: lint
     parameters: none
     problemMessage: "Use the 'throwsA' matcher instead of using 'fail' when there is no exception thrown."
     correctionMessage: "Try removing the try-catch and using 'throwsA' to expect an exception."
@@ -15967,6 +16261,7 @@ LinterLintCode:
       );
       ```
   use_to_and_as_if_applicable:
+    type: lint
     parameters: none
     problemMessage: "Start the name of the method with 'to' or 'as'."
     correctionMessage: "Try renaming the method to use either 'to' or 'as'."
@@ -16010,6 +16305,7 @@ LinterLintCode:
       }
       ```
   use_truncating_division:
+    type: lint
     parameters: none
     problemMessage: "Use truncating division."
     correctionMessage: "Try using truncating division, '~/', instead of regular division ('/') followed by 'toInt()'."
@@ -16060,6 +16356,7 @@ LinterLintCode:
       var x = 2 ~/ 3;
       ```
   valid_regexps:
+    type: lint
     parameters: none
     problemMessage: "Invalid regular expression syntax."
     correctionMessage: "Try correcting the regular expression."
@@ -16110,6 +16407,7 @@ LinterLintCode:
       print(RegExp(r'\(').hasMatch('foo()'));
       ```
   visit_registered_nodes:
+    type: lint
     parameters: none
     problemMessage: "Declare 'visit' methods for all registered node types."
     correctionMessage: "Try declaring a 'visit' method for all registered node types."
@@ -16119,6 +16417,7 @@ LinterLintCode:
     categories: [errorProne]
     deprecatedDetails: "For internal use only."
   void_checks:
+    type: lint
     parameters: none
     problemMessage: "Assignment to a variable of type 'void'."
     correctionMessage: "Try removing the assignment or changing the type of the variable."
