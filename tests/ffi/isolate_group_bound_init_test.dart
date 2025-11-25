@@ -14,14 +14,11 @@
 
 import 'dart:async';
 import 'dart:concurrent';
-import 'dart:ffi';
-import 'dart:io';
 import 'dart:isolate';
 
 import 'package:dart_internal/isolate_group.dart' show IsolateGroup;
 import "package:expect/async_helper.dart";
 import "package:expect/expect.dart";
-import 'package:ffi/ffi.dart';
 
 @pragma('vm:shared')
 late final Mutex mutex;
@@ -60,7 +57,7 @@ testInitStrings() async {
     }
   });
   for (int i = 0; i < nWorkers; i++) {
-    Isolate.spawn(
+    await Isolate.spawn(
       (sendPort) {
         @pragma('vm:shared')
         final sp = sendPort;
@@ -100,7 +97,7 @@ testInitThrows() async {
       print('errorCounter: $errorCounter, error: $e');
     });
   for (int i = 0; i < nWorkers; i++) {
-    Isolate.spawn(
+    await Isolate.spawn(
       (sendPort) {
         @pragma('vm:shared')
         final sp = sendPort;
