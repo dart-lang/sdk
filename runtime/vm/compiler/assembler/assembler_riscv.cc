@@ -1969,29 +1969,48 @@ void MicroAssembler::fleqd(Register rd, FRegister rs1, FRegister rs2) {
   EmitRType(FCMPD, rs2, rs1, FLEQ, rd, OPFP);
 }
 
+void MicroAssembler::mopr(intptr_t n, Register rd, Register rs1) {
+  ASSERT(Supports(RV_Zimop));
+  Emit32(EncodeMoprn(n) | EncodeFunct12(MOP_R) | EncodeRs1(rs1) |
+         EncodeFunct3(MOP) | EncodeRd(rd) | EncodeOpcode(SYSTEM));
+}
+
+void MicroAssembler::moprr(intptr_t n,
+                           Register rd,
+                           Register rs1,
+                           Register rs2) {
+  ASSERT(Supports(RV_Zimop));
+  Emit32(EncodeMoprrn(n) | EncodeFunct7(MOP_RR) | EncodeRs2(rs2) |
+         EncodeRs1(rs1) | EncodeFunct3(MOP) | EncodeRd(rd) |
+         EncodeOpcode(SYSTEM));
+}
+
+void MicroAssembler::cmop(intptr_t n) {
+  ASSERT(Supports(RV_Zcmop));
+  ASSERT(Utils::IsUint(4, n) && ((n & 1) == 1));
+  Emit16(C_LUI | EncodeCMopn(n));
+}
+
 void MicroAssembler::sspush(Register rs2) {
   ASSERT((rs2 == Register(1)) || (rs2 == Register(5)));
-  ASSERT(Supports(RV_Zicfiss));
-  if (Supports(RV_C) && (rs2 == Register(1))) {
-    Emit16(C_SSPUSH);
+  if (Supports(RV_Zcmop) && (rs2 == Register(1))) {
+    cmop(1);
   } else {
-    EmitRType(SSPUSH, rs2, ZR, F3_100, ZR, SYSTEM);
+    moprr(7, ZR, ZR, rs2);
   }
 }
 
 void MicroAssembler::sspopchk(Register rs1) {
   ASSERT((rs1 == Register(1)) || (rs1 == Register(5)));
-  ASSERT(Supports(RV_Zicfiss));
-  if (Supports(RV_C) && (rs1 == Register(5))) {
-    Emit16(C_SSPOPCHK);
+  if (Supports(RV_Zcmop) && (rs1 == Register(5))) {
+    cmop(5);
   } else {
-    EmitIType(SSPOPCHK, rs1, F3_100, ZR, SYSTEM);
+    mopr(28, ZR, rs1);
   }
 }
 
 void MicroAssembler::ssrdp(Register rd) {
-  ASSERT(Supports(RV_Zicfiss));
-  EmitIType(SSRDP, ZR, F3_100, rd, SYSTEM);
+  mopr(28, rd, ZR);
 }
 
 void MicroAssembler::ssamoswapw(Register rd,
