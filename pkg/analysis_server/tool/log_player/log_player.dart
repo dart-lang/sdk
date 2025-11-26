@@ -6,6 +6,7 @@ import 'package:analysis_server/src/server/driver.dart';
 import 'package:analysis_server/src/session_logger/entry_kind.dart';
 import 'package:analysis_server/src/session_logger/log_entry.dart';
 import 'package:analysis_server/src/session_logger/process_id.dart';
+import 'package:collection/collection.dart';
 
 import 'log.dart';
 import 'server_driver.dart';
@@ -48,6 +49,10 @@ class LogPlayer {
               'Analysis server already started, only one instance is allowed.',
             );
           }
+          // TODO(brianwilkerson): Stop parsing out the protocol. Instead,
+          //  consider verifying that a protocol was specified, throwing if not,
+          //  and then just pass all of the arguments to the constructor. This
+          //  would require allow-listing the protocol option.
           var parsedArgs = driverArgParser.parse(entry.argList);
           var protocolOption = parsedArgs.option(Driver.serverProtocolOption);
           var protocol = switch (protocolOption) {
@@ -56,7 +61,12 @@ class LogPlayer {
             _ => throw StateError('Unrecognized protocol $protocolOption'),
           };
           var server = this.server = ServerDriver(protocol: protocol);
-          server.additionalArguments.addAll(entry.argList);
+          server.additionalArguments.addAll(
+            entry.argList.whereNot(
+              (element) =>
+                  element.startsWith('--${Driver.serverProtocolOption}'),
+            ),
+          );
           await server.start();
         case EntryKind.message:
           if (entry.receiver == ProcessId.server) {
@@ -65,7 +75,7 @@ class LogPlayer {
             _handleMessageFromServer(entry);
           } else {
             throw StateError('''
-Unexpected sender/reciever for message:
+Unexpected sender/receiver for message:
 
 sender: ${entry.sender}
 receiver: ${entry.receiver}
@@ -74,12 +84,14 @@ receiver: ${entry.receiver}
       }
       nextIndex++;
     }
+    await _readMessagesFromServer();
     if (!_hasSeenShutdown) {
       server?.shutdown();
     }
     if (!_hasSeenExit) {
       server?.exit();
     }
+    await _readMessagesFromServer();
     server = null;
   }
 
@@ -110,6 +122,12 @@ receiver: ${entry.receiver}
           'Cannot send a message from the server to the file watcher.',
         );
     }
+  }
+
+  /// Wait for the server to process any messages that it may have received and
+  /// for any responses to be sent back.
+  Future<void> _readMessagesFromServer() async {
+    await Future.delayed(const Duration(seconds: 1));
   }
 
   /// Sends the message in the [entry] to the server.
