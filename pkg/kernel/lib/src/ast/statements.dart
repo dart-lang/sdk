@@ -1936,6 +1936,11 @@ class VariableStatement extends Statement implements VariableDeclaration {
 
   @override
   ExpressionVariable get variable => this;
+
+  @override
+  void set variable(ExpressionVariable value) {
+    throw new UnsupportedError("${this.runtimeType}");
+  }
 }
 
 /// Declaration a local function.
@@ -2002,7 +2007,7 @@ class FunctionDeclaration extends Statement implements LocalFunction {
 /// program. If the [initializer] is `null`, the variable was declared without
 /// an initializer.
 class VariableInitialization extends Statement implements Annotatable {
-  final ExpressionVariable variable;
+  ExpressionVariable variable;
 
   Expression? initializer;
 

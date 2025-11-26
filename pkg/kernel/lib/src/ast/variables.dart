@@ -283,6 +283,11 @@ class LocalVariable extends ExpressionVariable {
   }
 
   @override
+  void toTextInternal(AstPrinter printer) {
+    printer.writeExpressionVariable(this);
+  }
+
+  @override
   Expression? get initializer => variableInitialization?.initializer;
 
   @override

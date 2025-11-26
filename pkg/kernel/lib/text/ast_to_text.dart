@@ -2062,7 +2062,7 @@ class Printer extends VisitorDefault<void> with VisitorVoidMixin {
 
   @override
   void visitVariableGet(VariableGet node) {
-    writeVariableReference(node.variable);
+    writeVariableReference(node.expressionVariable);
     DartType? promotedType = node.promotedType;
     if (promotedType != null) {
       writeSymbol('{');
@@ -2074,7 +2074,7 @@ class Printer extends VisitorDefault<void> with VisitorVoidMixin {
 
   @override
   void visitVariableSet(VariableSet node) {
-    writeVariableReference(node.variable);
+    writeVariableReference(node.expressionVariable);
     writeSpaced('=');
     writeExpression(node.value);
   }
@@ -2500,6 +2500,13 @@ class Printer extends VisitorDefault<void> with VisitorVoidMixin {
   }
 
   @override
+  void visitVariableInitialization(VariableInitialization node) {
+    writeIndentation();
+    writeVariableInitialization(node);
+    endLine(';');
+  }
+
+  @override
   void visitFunctionDeclaration(FunctionDeclaration node) {
     writeAnnotationList(node.variable.annotations);
     writeIndentation();
@@ -2540,6 +2547,32 @@ class Printer extends VisitorDefault<void> with VisitorVoidMixin {
     Expression? initializer = node.initializer;
     if (initializer != null) {
       writeSpaced('=');
+      writeExpression(initializer);
+    }
+  }
+
+  void writeVariableInitialization(
+    VariableInitialization node,
+  ) {
+    if (showOffsets) writeWord("[${node.fileOffset}]");
+    if (showMetadata) writeMetadata(node);
+    writeAnnotationList(node.annotations, separateLines: false);
+    writeModifier(node.isErroneouslyInitialized, 'erroneously-initialized');
+    bool hasImplicitInitializer = node.initializer is NullLiteral ||
+        (node.initializer is ConstantExpression &&
+            (node.initializer as ConstantExpression).constant is NullConstant);
+    if ((node.initializer == null || hasImplicitInitializer) &&
+        node.hasDeclaredInitializer) {
+      writeModifier(node.hasDeclaredInitializer, 'has-declared-initializer');
+    } else if (node.initializer != null &&
+        !hasImplicitInitializer &&
+        !node.hasDeclaredInitializer) {
+      writeModifier(node.hasDeclaredInitializer, 'has-no-declared-initializer');
+    }
+    writeWord(getVariableName(node.variable));
+    Expression? initializer = node.initializer;
+    if (initializer != null) {
+      writeSpaced(':=');
       writeExpression(initializer);
     }
   }

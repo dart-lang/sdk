@@ -208,13 +208,14 @@ class AstPrinter {
       case NamedParameter(:var name):
       case PositionalParameter(cosmeticName: var name?):
       case TypeVariable(cosmeticName: var name?):
+      case LocalVariable(cosmeticName: var name?):
         return name;
       case ThisVariable():
         return 'this';
       case PositionalParameter(cosmeticName: null):
       case TypeVariable(cosmeticName: null):
+      case LocalVariable(cosmeticName: null):
       case SyntheticVariable():
-      case LocalVariable():
         return _variableNames[node] ??= '#${_variableNames.length}';
       case VariableDeclaration():
         String? name = node.name;
@@ -500,6 +501,35 @@ class AstPrinter {
       _sb.write(' = ');
       writeExpression(node.initializer!);
     }
+  }
+
+  /// Writes the variable declaration [node] to the printer buffer.
+  ///
+  /// If [includeModifiersAndType] is `true`, the declaration is prefixed by
+  /// the modifiers and declared type of the variable. Otherwise only the
+  /// name and the initializer, if present, are included.
+  ///
+  /// If [isLate] and [type] are provided, these values are used instead of
+  /// the corresponding properties on [node].
+  void writeExpressionVariable(ExpressionVariable node,
+      {bool includeModifiersAndType = true, bool? isLate, DartType? type}) {
+    if (includeModifiersAndType) {
+      if (node is FunctionParameter && node.isRequired) {
+        _sb.write('required ');
+      }
+      if (isLate ?? (node is! FunctionParameter && node.isLate)) {
+        _sb.write('late ');
+      }
+      if (node is! FunctionParameter && node.isFinal) {
+        _sb.write('final ');
+      }
+      if (node is! FunctionParameter && node.isConst) {
+        _sb.write('const ');
+      }
+      writeType(type ?? node.type);
+      _sb.write(' ');
+    }
+    _sb.write(getVariableName(node));
   }
 
   void writeFunctionNode(FunctionNode node, String name) {

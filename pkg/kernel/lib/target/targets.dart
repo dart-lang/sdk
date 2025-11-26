@@ -768,11 +768,10 @@ class TestTargetFlags extends TargetFlags {
       this.forceConstructorTearOffLoweringForTesting,
       this.supportedDartLibraries = const {},
       this.unsupportedDartLibraries = const {},
-      bool? isClosureContextLoweringEnabled})
+      bool isClosureContextLoweringEnabled = false})
       : super(
             trackWidgetCreation: trackWidgetCreation,
-            isClosureContextLoweringEnabled:
-                isClosureContextLoweringEnabled ?? false);
+            isClosureContextLoweringEnabled: isClosureContextLoweringEnabled);
 }
 
 mixin TestTargetMixin on Target {
