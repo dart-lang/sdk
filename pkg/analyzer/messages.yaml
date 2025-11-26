@@ -14362,6 +14362,37 @@ CompileTimeErrorCode:
 
       If you need both of the mixins, then rename the conflicting member in one
       of the two mixins.
+  PRIVATE_NAMED_PARAMETER_DUPLICATE_PUBLIC_NAME:
+    type: compileTimeError
+    parameters:
+      String publicName: the corresponding public name of private named parameter
+    problemMessage: "The corresponding public name '#publicName' is already the name of another parameter."
+    correctionMessage: "Try renaming one of the parameters."
+    hasPublishedDocs: false
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when a private named parameter's
+      corresponding public name with the leading `_` removed is the same as
+      another parameter in the parameter list.
+
+      #### Example
+
+      The following code produces this diagnostic because the private named
+      parameter `_x`'s public name is `x` and there is another parameter with
+      that name:
+
+      ```dart
+      class C {
+        int? _x;
+        C({int? x, this.[!_x!]});
+        int? get x => _x;
+      }
+      ```
+
+      #### Common fixes
+
+      Rename one of the two parameters.
   PRIVATE_NAMED_PARAMETER_WITHOUT_PUBLIC_NAME:
     type: compileTimeError
     parameters: none
@@ -22601,7 +22632,6 @@ ParserErrorCode:
         C({int x = 0});
       }
       ```
-
   REPRESENTATION_FIELD_MODIFIER:
     type: syntacticError
     parameters: none

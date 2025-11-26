@@ -874,6 +874,7 @@ const List<DiagnosticCode> diagnosticCodeValues = [
   diag.prefixShadowedByLocalDeclaration,
   diag.privateCollisionInMixinApplication,
   diag.privateNamedNonFieldParameter,
+  diag.privateNamedParameterDuplicatePublicName,
   diag.privateNamedParameterWithoutPublicName,
   diag.privateOptionalParameter,
   diag.privateSetter,

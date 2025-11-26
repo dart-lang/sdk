@@ -76,6 +76,20 @@ class DuplicateDefinitionVerifier {
 
       scope.add(identifier, node: parameter);
     }
+
+    // For private named parameters, also look for collisions with their public
+    // name and other parameters.
+    for (var parameter in node.parameters) {
+      if (parameter.declaredFragment
+          case FieldFormalParameterFragment fragment) {
+        if (fragment.privateName != null) {
+          scope.checkPublicName(
+            privateName: parameter.name!,
+            publicName: fragment.name!,
+          );
+        }
+      }
+    }
   }
 
   /// Check that all of the variables have unique names.
@@ -958,13 +972,10 @@ class _DuplicateIdentifierScope<T extends AstNode> {
 
     if (_scope[identifier.lexeme] case (var previousNode, var previousToken)) {
       _verifier._reportedTokens.add(identifier);
-
-      var code = getDiagnostic(previousNode, node);
-
       _verifier._diagnosticReporter.reportError(
         _verifier._diagnosticFactory.duplicateDefinitionForNodes(
           _verifier._diagnosticReporter.source,
-          code,
+          getDiagnostic(previousNode, node),
           identifier,
           previousToken,
           [identifier.lexeme],
@@ -991,6 +1002,26 @@ class _DuplicateIdentifierScope<T extends AstNode> {
 class _FormalParameterDuplicateIdentifierScope
     extends _DuplicateIdentifierScope<FormalParameter> {
   _FormalParameterDuplicateIdentifierScope(super.verifier);
+
+  /// Given a private named parameter with [privateName] and corresponding
+  /// [publicName], checks that the public name doesn't collide with any other
+  /// parameter.
+  void checkPublicName({
+    required Token privateName,
+    required String publicName,
+  }) {
+    if (_scope[publicName] case (var _, var previousToken)) {
+      _verifier._diagnosticReporter.reportError(
+        _verifier._diagnosticFactory.duplicateDefinitionForNodes(
+          _verifier._diagnosticReporter.source,
+          diag.privateNamedParameterDuplicatePublicName,
+          privateName,
+          previousToken,
+          [publicName],
+        ),
+      );
+    }
+  }
 
   @override
   DiagnosticCode getDiagnostic(
