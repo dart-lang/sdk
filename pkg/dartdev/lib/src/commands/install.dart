@@ -7,6 +7,8 @@ import 'dart:io';
 import 'package:dartdev/src/commands/build.dart';
 import 'package:dartdev/src/install/file_system.dart';
 import 'package:dartdev/src/install/pub_formats.dart';
+import 'package:front_end/src/api_prototype/compiler_options.dart'
+    show Verbosity;
 import 'package:path/path.dart' as p;
 import 'package:pub/pub.dart';
 import 'package:pub_formats/pub_formats.dart';
@@ -260,6 +262,7 @@ You can specify three different values for the <package> argument:
     File helperPackageConfigFile,
     File sourcePackagePubspecFile,
     bool verbose,
+    String verbosity,
   ) async {
     // TODO(https://github.com/dart-lang/native/issues/2465): Add a test for
     // user-defines in the source package pubspec.
@@ -272,7 +275,7 @@ You can specify three different values for the <package> argument:
       recordUseEnabled: false,
       dataAssetsExperimentEnabled: false,
       verbose: verbose,
-      verbosity: 'all',
+      verbosity: verbosity,
     );
     if (buildResult != 0) {
       installException('Build failed.', exitCode: buildResult);
@@ -536,12 +539,14 @@ You can specify three different values for the <package> argument:
 
         final buildDirectory =
             Directory.fromUri(tempDirectory.uri.resolve('build/'));
+
         await doBuild(
           executables,
           buildDirectory,
           helperPackageConfigFile,
           sourcePackagePubspecFile,
           verbose,
+          Verbosity.all.name,
         );
 
         _uniinstallAllPackageVersions(packageName);

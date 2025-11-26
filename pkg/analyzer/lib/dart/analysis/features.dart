@@ -9,6 +9,9 @@ import 'package:pub_semver/pub_semver.dart';
 /// depends on the supported Dart SDK version, and possibly on the presence of
 /// experimental flags.
 abstract class Feature {
+  /// Feature information for anonymous methods.
+  static final anonymous_methods = ExperimentalFeatures.anonymous_methods;
+
   /// Feature information for augmentations.
   static final augmentations = ExperimentalFeatures.augmentations;
 

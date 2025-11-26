@@ -5,6 +5,9 @@
 import 'dart:io';
 
 import 'package:code_assets/code_assets.dart' show OS;
+// ignore: implementation_imports (This file is imported in other packages.)
+import 'package:front_end/src/api_prototype/compiler_options.dart'
+    show Verbosity;
 import 'package:path/path.dart' as path;
 
 import 'dart2native.dart';
@@ -304,7 +307,9 @@ class _Generator {
       }
     }
 
-    print('Generated: $outputPath');
+    if (_verbosity != Verbosity.error.name) {
+      print('Generated: $outputPath');
+    }
   }
 
   Future<String> _concatenateAssetsToKernel(String? nativeAssets) async {

@@ -1190,7 +1190,7 @@ class ConstantCreator extends ConstantVisitor<ConstantInfo?>
             b, typeArgsArrayConstantInfo.constant, typeArgsListLocal.type);
         b.local_get(posArgsListLocal);
         b.local_get(namedArgsListLocal);
-        translator.callFunction(tearOffClosure.dynamicCallEntry, b);
+        translator.callFunction(tearOffClosure.dynamicCallEntry!, b);
         b.end();
 
         return function;
@@ -1235,8 +1235,8 @@ class ConstantCreator extends ConstantVisitor<ConstantInfo?>
       void fillVtableEntry(int posArgCount, NameCombination nameCombination) {
         final fieldIndex = instantiationOfTearOffRepresentation
             .fieldIndexForSignature(posArgCount, nameCombination.names);
-        final signature =
-            instantiationOfTearOffRepresentation.getVtableFieldType(fieldIndex);
+        final signature = instantiationOfTearOffRepresentation.vtableStruct
+            .getVtableEntryAt(fieldIndex);
 
         w.BaseFunction function;
         if (nameCombination.names.isNotEmpty &&
@@ -1269,8 +1269,10 @@ class ConstantCreator extends ConstantVisitor<ConstantInfo?>
         declareAndAddRefFunc(function);
       }
 
-      void makeVtable(w.BaseFunction dynamicCallEntry) {
-        declareAndAddRefFunc(dynamicCallEntry);
+      void makeVtable(w.BaseFunction? dynamicCallEntry) {
+        if (dynamicCallEntry != null) {
+          declareAndAddRefFunc(dynamicCallEntry);
+        }
         assert(!instantiationOfTearOffRepresentation.isGeneric);
 
         if (translator.dynamicModuleSupportEnabled) {
@@ -1304,7 +1306,10 @@ class ConstantCreator extends ConstantVisitor<ConstantInfo?>
       }
       b.struct_new(tearOffRepresentation.instantiationContextStruct!);
 
-      makeVtable(makeDynamicCallEntry());
+      makeVtable((translator.dynamicModuleSupportEnabled ||
+              translator.closureLayouter.usesFunctionApplyWithNamedArguments)
+          ? makeDynamicCallEntry()
+          : null);
       constants.instantiateConstant(
           b, functionTypeInfo.constant, types.nonNullableTypeType);
       b.struct_new(closureStruct);

@@ -5549,6 +5549,18 @@ const DiagnosticWithoutArguments extraSizeAnnotationCarray =
     );
 
 /// No parameters.
+const DiagnosticWithoutArguments factoryConstructorNewName =
+    DiagnosticWithoutArgumentsImpl(
+      name: 'FACTORY_CONSTRUCTOR_NEW_NAME',
+      problemMessage: "Factory constructors can't be named 'new'.",
+      correctionMessage:
+          "Try removing the 'new' keyword or changing it to a different name.",
+      type: DiagnosticType.SYNTACTIC_ERROR,
+      uniqueName: 'ParserErrorCode.FACTORY_CONSTRUCTOR_NEW_NAME',
+      expectedTypes: [],
+    );
+
+/// No parameters.
 const DiagnosticWithoutArguments factoryTopLevelDeclaration =
     DiagnosticWithoutArgumentsImpl(
       name: 'FACTORY_TOP_LEVEL_DECLARATION',
@@ -11335,6 +11347,19 @@ negativeVariableDimension = DiagnosticWithoutArgumentsImpl(
   uniqueName: 'FfiCode.NEGATIVE_VARIABLE_DIMENSION',
   expectedTypes: [],
 );
+
+/// No parameters.
+const DiagnosticWithoutArguments newConstructorNewName =
+    DiagnosticWithoutArgumentsImpl(
+      name: 'NEW_CONSTRUCTOR_NEW_NAME',
+      problemMessage:
+          "Constructors declared with the 'new' keyword can't be named 'new'.",
+      correctionMessage:
+          "Try removing the second 'new' or changing it to a different name.",
+      type: DiagnosticType.SYNTACTIC_ERROR,
+      uniqueName: 'ParserErrorCode.NEW_CONSTRUCTOR_NEW_NAME',
+      expectedTypes: [],
+    );
 
 /// No parameters.
 const DiagnosticWithoutArguments

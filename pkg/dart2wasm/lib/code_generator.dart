@@ -2502,7 +2502,7 @@ abstract class AstCodeGenerator
     final int vtableFieldIndex = representation.fieldIndexForSignature(
         node.arguments.positional.length, argNames);
     final w.FunctionType functionType =
-        representation.getVtableFieldType(vtableFieldIndex);
+        representation.vtableStruct.getVtableEntryAt(vtableFieldIndex);
 
     // Call entry point in vtable
     b.local_get(closureLocal);
@@ -2550,14 +2550,18 @@ abstract class AstCodeGenerator
       }
 
       // Instantiation function
+      final vtableIndex =
+          translator.closureLayouter.vtableInstantiationFunctionIndex;
+      final instantiationFunctionType =
+          representation.vtableStruct.getVtableEntryAt(vtableIndex);
+
       b.local_get(closureTemp);
       b.struct_get(representation.closureStruct, FieldIndex.closureVtable);
-      b.struct_get(
-          representation.vtableStruct, FieldIndex.vtableInstantiationFunction);
+      b.struct_get(representation.vtableStruct, vtableIndex);
 
       // Call instantiation function
-      b.call_ref(representation.instantiationFunctionType);
-      return representation.instantiationFunctionType.outputs.single;
+      b.call_ref(instantiationFunctionType);
+      return instantiationFunctionType.outputs.single;
     } else {
       // Only other alternative is `NeverType`.
       assert(type is NeverType);
@@ -4677,6 +4681,39 @@ extension MacroAssembler on w.InstructionsBuilder {
       }
     }
     return outputs;
+  }
+
+  /// Switches on the [pushBranchExpression] and calls [handleCase] for each
+  /// case or [handleDefault] for the default case.
+  ///
+  /// Assumes that [handleCase] and [handleDefault] will push [outputs] on the
+  /// stack.
+  ///
+  /// Leaves [outputs] on the stack.
+  void emitDenseTableBranch(
+      List<w.ValueType> outputs,
+      int n,
+      void Function() pushBranchExpression,
+      void Function(int) handleCase,
+      void Function() handleDefault) {
+    final done = block([], outputs);
+    final defaultCase = block();
+
+    final labelStack = <w.Label>[];
+    for (int i = 0; i < n; ++i) {
+      labelStack.add(block());
+    }
+    pushBranchExpression();
+    br_table(labelStack, defaultCase);
+    for (int i = n - 1; i >= 0; --i) {
+      end();
+      handleCase(i);
+      br(done);
+    }
+
+    end(); // defaultCase
+    handleDefault();
+    end(); // done
   }
 
   void incrementingLoop(

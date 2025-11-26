@@ -6,6 +6,7 @@ import 'package:kernel/ast.dart';
 import 'package:wasm_builder/wasm_builder.dart' as w;
 
 import 'class_info.dart';
+import 'closures.dart';
 import 'code_generator.dart' show CallTarget, CodeGenerator, MacroAssembler;
 import 'dispatch_table.dart';
 import 'reference_extensions.dart';
@@ -53,9 +54,7 @@ class CallShape {
 
   CallShape(this.name, this.typeCount, this.positionalCount, this.named);
 
-  @override
-  int get hashCode =>
-      Object.hash(name, typeCount, positionalCount, Object.hashAll(named));
+  int get totalArgumentCount => typeCount + positionalCount + named.length;
 
   bool matchesTarget(FunctionNode target) {
     if (typeCount != target.typeParameters.length && typeCount != 0) {
@@ -78,6 +77,10 @@ class CallShape {
     }
     return true;
   }
+
+  @override
+  int get hashCode =>
+      Object.hash(name, typeCount, positionalCount, Object.hashAll(named));
 
   @override
   bool operator ==(other) {
@@ -617,7 +620,7 @@ class _DynamicForwarderCodeGenerator extends CodeGenerator {
           b.ref_cast(closureBaseType);
           b.local_set(closureLocal);
 
-          generateDynamicFunctionCall(
+          generateDynamicClosureCallShapeAndTypeCheck(
               translator,
               b,
               closureLocal,
@@ -625,6 +628,82 @@ class _DynamicForwarderCodeGenerator extends CodeGenerator {
               positionalArgsLocal,
               namedArgsLocal,
               noSuchMethodBlock);
+          if (translator.dynamicModuleSupportEnabled) {
+            generateDynamicClosureCallViaDynamicEntry(
+                translator,
+                b,
+                closureLocal,
+                typeArgsLocal,
+                positionalArgsLocal,
+                namedArgsLocal);
+          } else {
+            void emitCallForTypeCount(int typeCount) {
+              final representation = translator.closureLayouter
+                  .getClosureRepresentation(typeCount,
+                      callerShape.positionalCount, callerShape.named);
+              if (representation == null) {
+                // This is a call combination that the closure layouter determined
+                // cannot occur in the program (it means the shape&type checks
+                // we already performed earlier must have thrown an NSM error
+                // and we cannot get here).
+                b.unreachable();
+                return;
+              }
+
+              b.local_get(closureLocal);
+              b.struct_get(translator.closureLayouter.closureBaseStruct,
+                  FieldIndex.closureContext);
+              for (int i = 0; i < typeCount; ++i) {
+                b.local_get(typeArgsLocal);
+                b.i32_const(i);
+                b.array_get(translator.typeArrayType);
+              }
+              for (int i = 0; i < callerShape.positionalCount; ++i) {
+                b.local_get(function.locals[1 + callerShape.typeCount + i]);
+              }
+              for (int i = 0; i < callerShape.named.length; ++i) {
+                b.local_get(function.locals[1 +
+                    callerShape.typeCount +
+                    callerShape.positionalCount +
+                    i]);
+              }
+
+              final vtable = representation.vtableStruct;
+              final vtableIndex = representation.fieldIndexForSignature(
+                  callerShape.positionalCount, callerShape.named);
+
+              b.local_get(closureLocal);
+              b.struct_get(translator.closureLayouter.closureBaseStruct,
+                  FieldIndex.closureVtable);
+              b.ref_cast(w.RefType(vtable, nullable: false));
+              b.struct_get(vtable, vtableIndex);
+              b.call_ref(vtable.getVtableEntryAt(vtableIndex));
+            }
+
+            // The closure representation algorithm has considered dynamic
+            // callsites and will have therefore specialized vtable entries
+            // for valid call shape of dynamic closure calls.
+            if (callerShape.typeCount == 0) {
+              // The dynamic callsite has not provided type arguments but the
+              // target closure may be generic. The shape&type checking we
+              // already performed may have populated default type arguments (of
+              // unknown length) for the closure.
+              //
+              // So we
+              final maxTypeCount =
+                  translator.closureLayouter.maxTypeArgumentCount();
+              b.emitDenseTableBranch([translator.topType], maxTypeCount, () {
+                b.local_get(typeArgsLocal);
+                b.array_len();
+              }, (int typeCount) {
+                emitCallForTypeCount(typeCount);
+              }, () {
+                b.unreachable();
+              });
+            } else {
+              emitCallForTypeCount(callerShape.typeCount);
+            }
+          }
           b.return_();
 
           b.end(); // class ID
@@ -676,26 +755,26 @@ enum _ForwarderKind {
   }
 }
 
-/// Generate code that checks shape and type of the closure and generate a call
-/// to its dynamic call vtable entry.
+/// Generate code that checks shape and type of the closure.
 ///
 /// [closureLocal] should be a local of type `ref #ClosureBase` containing a
 /// closure value.
 ///
-/// [typeArgsLocal], [posArgsLocal], [namedArgsLocal] are the locals for type,
-/// positional, and named arguments, respectively. Types of these locals must
-/// be `ref WasmListBase`.
+///   * [typeArgsLocal] is a `WasmArray<_Type>`
+///   * [posArgsLocal] is a `WasmArray<Object?>`
+///   * [namedArgsLocal] is a `WasmArray<Object?>` - (symbol, value) pairs
+///
+/// Will update `typeArgsLocal` with default type arguments (if needed).
 ///
 /// [noSuchMethodBlock] is used as the `br` target when the shape check fails.
-void generateDynamicFunctionCall(
-  Translator translator,
-  w.InstructionsBuilder b,
-  w.Local closureLocal,
-  w.Local typeArgsLocal,
-  w.Local posArgsLocal,
-  w.Local namedArgsLocal,
-  w.Label noSuchMethodBlock,
-) {
+void generateDynamicClosureCallShapeAndTypeCheck(
+    Translator translator,
+    w.InstructionsBuilder b,
+    w.Local closureLocal,
+    w.Local typeArgsLocal,
+    w.Local posArgsLocal,
+    w.Local namedArgsLocal,
+    w.Label noSuchMethodBlock) {
   assert(typeArgsLocal.type == translator.typeArrayTypeRef);
   assert(posArgsLocal.type == translator.nullableObjectArrayTypeRef);
   assert(namedArgsLocal.type == translator.nullableObjectArrayTypeRef);
@@ -723,6 +802,7 @@ void generateDynamicFunctionCall(
   b.end();
 
   // Check closure shape
+  // [functionTypeLocal] already on the stack.
   b.local_get(typeArgsLocal);
   b.local_get(posArgsLocal);
   b.local_get(namedArgsLocal);
@@ -740,6 +820,19 @@ void generateDynamicFunctionCall(
     b.drop();
   }
 
+  // Type check passed \o/
+}
+
+void generateDynamicClosureCallViaDynamicEntry(
+    Translator translator,
+    w.InstructionsBuilder b,
+    w.Local closureLocal,
+    w.Local typeArgsLocal,
+    w.Local posArgsLocal,
+    w.Local namedArgsLocal) {
+  assert(translator.dynamicModuleSupportEnabled ||
+      translator.closureLayouter.usesFunctionApplyWithNamedArguments);
+
   // Type check passed, call vtable entry
   b.local_get(closureLocal);
   b.local_get(typeArgsLocal);
@@ -752,9 +845,69 @@ void generateDynamicFunctionCall(
       translator.closureLayouter.closureBaseStruct, FieldIndex.closureVtable);
 
   // Get entry function
-  b.struct_get(translator.closureLayouter.vtableBaseStruct, 0);
-
+  b.struct_get(translator.closureLayouter.vtableBaseStruct,
+      translator.closureLayouter.vtableDynamicClosureCallEntryIndex!);
   b.call_ref(translator.dynamicCallVtableEntryFunctionType);
+}
+
+void generateDynamicClosureCallViaPositionalArgs(
+    Translator translator,
+    w.InstructionsBuilder b,
+    w.Local closureLocal,
+    w.Local typeArgsLocal,
+    w.Local posArgsLocal) {
+  assert(!translator.dynamicModuleSupportEnabled &&
+      !translator.closureLayouter.usesFunctionApplyWithNamedArguments);
+
+  final maxTypeCount = translator.closureLayouter.maxTypeArgumentCount();
+  b.emitDenseTableBranch([translator.topType], maxTypeCount, () {
+    b.local_get(typeArgsLocal);
+    b.array_len();
+  }, (typeCount) {
+    final maxPositionalCount =
+        translator.closureLayouter.maxPositionalCountFor(typeCount);
+    b.emitDenseTableBranch([translator.topType], maxPositionalCount, () {
+      b.local_get(posArgsLocal);
+      b.array_len();
+    }, (posCount) {
+      final representation = translator.closureLayouter
+          .getClosureRepresentation(typeCount, posCount, []);
+      if (representation == null) {
+        // This is a call combination that the closure layouter determined
+        // cannot occur in the program.
+        b.unreachable();
+        return;
+      }
+
+      b.local_get(closureLocal);
+      b.struct_get(translator.closureLayouter.closureBaseStruct,
+          FieldIndex.closureContext);
+      for (int i = 0; i < typeCount; ++i) {
+        b.local_get(typeArgsLocal);
+        b.i32_const(i);
+        b.array_get(translator.typeArrayType);
+      }
+      for (int i = 0; i < posCount; ++i) {
+        b.local_get(posArgsLocal);
+        b.i32_const(i);
+        b.array_get(translator.nullableObjectArrayType);
+      }
+
+      final vtable = representation.vtableStruct;
+      final vtableIndex = representation.fieldIndexForSignature(posCount, []);
+
+      b.local_get(closureLocal);
+      b.struct_get(translator.closureLayouter.closureBaseStruct,
+          FieldIndex.closureVtable);
+      b.ref_cast(w.RefType(vtable, nullable: false));
+      b.struct_get(vtable, vtableIndex);
+      b.call_ref(vtable.getVtableEntryAt(vtableIndex));
+    }, () {
+      b.unreachable();
+    });
+  }, () {
+    b.unreachable();
+  });
 }
 
 void createInvocationObject(

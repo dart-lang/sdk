@@ -1,17 +1,31 @@
 class C {
-factory new();
-const factory new();
+external factory new();
+external const factory new();
 factory new() => 0;
 const factory new() => 0;
 factory new() = C;
 const factory new() = C;
+
+external factory new.named();
+external const factory new.named();
+factory new.named() => 0;
+const factory new.named() => 0;
+factory new.named() = C;
+const factory new.named() = C;
 }
 
 class[KeywordToken] C[StringToken] {[BeginToken]
-factory[KeywordToken] new[KeywordToken]([BeginToken])[SimpleToken];[SimpleToken]
-const[KeywordToken] factory[KeywordToken] new[KeywordToken]([BeginToken])[SimpleToken];[SimpleToken]
+external[KeywordToken] factory[KeywordToken] new[KeywordToken]([BeginToken])[SimpleToken];[SimpleToken]
+external[KeywordToken] const[KeywordToken] factory[KeywordToken] new[KeywordToken]([BeginToken])[SimpleToken];[SimpleToken]
 factory[KeywordToken] new[KeywordToken]([BeginToken])[SimpleToken] =>[SimpleToken] 0[StringToken];[SimpleToken]
 const[KeywordToken] factory[KeywordToken] new[KeywordToken]([BeginToken])[SimpleToken] =>[SimpleToken] 0[StringToken];[SimpleToken]
 factory[KeywordToken] new[KeywordToken]([BeginToken])[SimpleToken] =[SimpleToken] C[StringToken];[SimpleToken]
 const[KeywordToken] factory[KeywordToken] new[KeywordToken]([BeginToken])[SimpleToken] =[SimpleToken] C[StringToken];[SimpleToken]
+
+external[KeywordToken] factory[KeywordToken] new[KeywordToken].[SimpleToken]named[StringToken]([BeginToken])[SimpleToken];[SimpleToken]
+external[KeywordToken] const[KeywordToken] factory[KeywordToken] new[KeywordToken].[SimpleToken]named[StringToken]([BeginToken])[SimpleToken];[SimpleToken]
+factory[KeywordToken] new[KeywordToken].[SimpleToken]named[StringToken]([BeginToken])[SimpleToken] =>[SimpleToken] 0[StringToken];[SimpleToken]
+const[KeywordToken] factory[KeywordToken] new[KeywordToken].[SimpleToken]named[StringToken]([BeginToken])[SimpleToken] =>[SimpleToken] 0[StringToken];[SimpleToken]
+factory[KeywordToken] new[KeywordToken].[SimpleToken]named[StringToken]([BeginToken])[SimpleToken] =[SimpleToken] C[StringToken];[SimpleToken]
+const[KeywordToken] factory[KeywordToken] new[KeywordToken].[SimpleToken]named[StringToken]([BeginToken])[SimpleToken] =[SimpleToken] C[StringToken];[SimpleToken]
 }[SimpleToken][SimpleToken]

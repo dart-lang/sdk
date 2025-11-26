@@ -727,6 +727,8 @@ EXTRA_POSITIONAL_ARGUMENTS:
   status: hasFix
 EXTRA_POSITIONAL_ARGUMENTS_COULD_BE_NAMED:
   status: hasFix
+FACTORY_CONSTRUCTOR_NEW_NAME:
+  status: needsEvaluation
 FIELD_INITIALIZED_BY_MULTIPLE_INITIALIZERS:
   status: needsFix
   notes: |-
@@ -1157,6 +1159,8 @@ MULTIPLE_SUPER_INITIALIZERS:
   status: needsFix
   notes: |-
     Remove all but one of the redirecting constructor invocations.
+NEW_CONSTRUCTOR_NEW_NAME:
+  status: needsEvaluation
 NEW_CONSTRUCTOR_QUALIFIED_NAME:
   status: needsEvaluation
 NEW_WITH_NON_TYPE:

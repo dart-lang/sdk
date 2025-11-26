@@ -202,10 +202,6 @@ while [ $# -gt 0 ]; do
   esac
 done
 
-if [ $GENERATE_SOURCE_MAP -eq 1 ]; then
-  BINARYEN_FLAGS+=("-ism" "${OUTPUT_FILE}.map" "-osm" "${OUTPUT_FILE}.map")
-fi
-
 if [ -z "$DART_FILE" -o -z "$OUTPUT_FILE" ]; then
   echo "Expected <file.dart> <file.wasm>"
   exit 1
@@ -283,7 +279,14 @@ BINARYEN_SIZE=0
 BINARYEN_GZIP_SIZE=0
 
 function run_binaryen_single() {
-  binaryen_command=("$BINARYEN" "$@" "${ADDITIONAL_BINARYEN_FLAGS[@]}" "$OUTPUT_FILE" -o "$OUTPUT_FILE")
+  OUTPUT_FILE="$1"
+  shift
+
+  if [ $GENERATE_SOURCE_MAP -eq 1 ]; then
+    SOURCE_MAP_FLAGS=("-ism" "${OUTPUT_FILE}.map" "-osm" "${OUTPUT_FILE}.map")
+  fi
+
+  binaryen_command=("$BINARYEN" "${ADDITIONAL_BINARYEN_FLAGS[@]}" "$@" "${SOURCE_MAP_FLAGS[@]}" "$OUTPUT_FILE" -o "$OUTPUT_FILE")
   if [ -n "$COMPILE_BENCHMARK_BASE_NAME" ]; then
     # If we're measuring run each binaryen command sequentially.
     measure ${binaryen_command[@]}
@@ -302,10 +305,10 @@ function run_binaryen() {
     # Iterate over all matching wasm files and optimize them concurrently in
     # different processes.
     for OUTPUT_FILE in "${OUTPUT_FILE%.wasm}"*.wasm; do
-      run_binaryen_single "${BINARYEN_FLAGS_DEFERRED_LOADING[@]}"
+      run_binaryen_single "$OUTPUT_FILE" "${BINARYEN_FLAGS_DEFERRED_LOADING[@]}"
     done
   else
-    run_binaryen_single "${BINARYEN_FLAGS[@]}"
+    run_binaryen_single "$OUTPUT_FILE" "${BINARYEN_FLAGS[@]}"
   fi
   wait
 

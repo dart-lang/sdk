@@ -2451,3 +2451,29 @@ NewConstructorQualifiedName:
     class C {
       new C.named();
     }
+
+NewConstructorNewName:
+  type: syntacticError
+  parameters: none
+  problemMessage: "Constructors declared with the 'new' keyword can't be named 'new'."
+  correctionMessage: "Try removing the second 'new' or changing it to a different name."
+  analyzerCode: ParserErrorCode.NEW_CONSTRUCTOR_NEW_NAME
+  hasPublishedDocs: false
+  experiments: declaring-constructors
+  script: |
+    class C {
+      new new();
+    }
+
+FactoryConstructorNewName:
+  type: syntacticError
+  parameters: none
+  problemMessage: "Factory constructors can't be named 'new'."
+  correctionMessage: "Try removing the 'new' keyword or changing it to a different name."
+  analyzerCode: ParserErrorCode.FACTORY_CONSTRUCTOR_NEW_NAME
+  hasPublishedDocs: false
+  experiments: declaring-constructors
+  script: |
+    class C {
+      factory new() => throw '';
+    }
