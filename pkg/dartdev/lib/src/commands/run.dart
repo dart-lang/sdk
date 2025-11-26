@@ -513,10 +513,14 @@ Usage: dart [vm-options] run [arguments] [<dart-file>|<local-package>|<remote-ex
             return errorExitCode;
           }
         } else if (await builder.hasHooks()) {
-          final assetsYamlFileUri = await progress(
-            'Running build hooks',
-            builder.compileNativeAssetsJitYamlFile,
-          );
+          final verbosity = args.option('verbosity')!;
+          final showProgress = verbosity != Verbosity.error.name;
+          final assetsYamlFileUri = await (showProgress
+              ? progress(
+                  'Running build hooks',
+                  builder.compileNativeAssetsJitYamlFile,
+                )
+              : builder.compileNativeAssetsJitYamlFile());
           if (assetsYamlFileUri == null) {
             log.stderr('Error: Running build hooks failed.');
             return errorExitCode;
