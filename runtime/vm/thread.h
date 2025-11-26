@@ -425,9 +425,9 @@ class Thread : public ThreadState, public IntrusiveDListEntry<Thread> {
   void SetStackLimit(uword value);
   void ClearStackLimit();
 
-  // Access to the current stack limit for generated code. Either the true OS
-  // thread's stack limit minus some headroom, or a special value to trigger
-  // interrupts.
+  // The stack limit used by stack overflow checks in generated code. Either the
+  // true OS thread's stack limit minus some headroom, or a special value to
+  // trigger interrupts.
   uword stack_limit_address() const {
     return reinterpret_cast<uword>(&stack_limit_);
   }
@@ -435,19 +435,27 @@ class Thread : public ThreadState, public IntrusiveDListEntry<Thread> {
     return OFFSET_OF(Thread, stack_limit_);
   }
 
-  // The true stack limit for this OS thread.
+  // The true stack limit for this OS thread minus some headroom. Used on ARM64
+  // to keep CSP/R31 signal-handler safe while Dart uses R15 as its stack
+  // pointer.
   static intptr_t saved_stack_limit_offset() {
     return OFFSET_OF(Thread, saved_stack_limit_);
   }
   uword saved_stack_limit() const { return saved_stack_limit_; }
 
 #if defined(USING_SAFE_STACK)
-  uword saved_safestack_limit() const { return saved_safestack_limit_; }
-  void set_saved_safestack_limit(uword limit) {
-    saved_safestack_limit_ = limit;
-  }
+  // The SafeStack pointer during the top-most DartEntry. Needs to be restored
+  // on Dart throw like longjmp would.
+  uword saved_safestack() const { return saved_safestack_; }
+  void set_saved_safestack(uword ssp) { saved_safestack_ = ssp; }
 #endif
+
+  // The ShadowCallStack pointer during the top-most entry frame. Needs to be
+  // restored on Dart throw like longjmp would.
   uword saved_shadow_call_stack() const { return saved_shadow_call_stack_; }
+  void set_saved_shadow_call_stack(uword ssp) {
+    saved_shadow_call_stack_ = ssp;
+  }
   static uword saved_shadow_call_stack_offset() {
     return OFFSET_OF(Thread, saved_shadow_call_stack_);
   }
@@ -1634,7 +1642,7 @@ class Thread : public ThreadState, public IntrusiveDListEntry<Thread> {
   }
 
 #if defined(USING_SAFE_STACK)
-  uword saved_safestack_limit_ = 0;
+  uword saved_safestack_ = 0;
 #endif
 
   Thread* next_;  // Used to chain the thread structures in an isolate.

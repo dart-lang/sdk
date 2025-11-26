@@ -153,7 +153,7 @@ void OSThread::Join(ThreadJoinId id) {
 }
 
 void OSThread::Detach(ThreadJoinId id) {
-  int result = pthread_detach(id);
+  int result = pthread_detach(id);  // NOLINT
   VALIDATE_PTHREAD_RESULT(result);
 }
 
@@ -202,6 +202,10 @@ uword OSThread::GetCurrentSafestackPointer() {
   asm volatile("mrs %0, TPIDR_EL0;\n" _loadword(ZX_TLS_UNSAFE_SP_OFFSET)
                : "=r"(result)  // outputs
   );
+#elif defined(HOST_ARCH_RISCV64)
+  asm volatile("ld %0, " STRINGIFY(ZX_TLS_UNSAFE_SP_OFFSET) "(tp)"
+               : "=r"(result)  // outputs
+  );
 #else
 #error "Architecture not supported"
 #endif
@@ -228,6 +232,12 @@ void OSThread::SetCurrentSafestackPointer(uword ssp) {
                : "=r"(tmp)  // outputs.
                : "r"(ssp)   // inputs.
                :            // clobbered.
+  );
+#elif defined(HOST_ARCH_RISCV64)
+  asm volatile("sd %0, " STRINGIFY(ZX_TLS_UNSAFE_SP_OFFSET) "(tp)"
+               :           // outputs.
+               : "r"(ssp)  // inputs.
+               :           // clobbered.
   );
 #else
 #error "Architecture not supported"

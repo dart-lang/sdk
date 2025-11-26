@@ -52,8 +52,11 @@ class DartEntryScope : public TransitionToGenerated {
 #if defined(USING_SAFE_STACK)
     // Remember the safestack pointer at entry so it can be restored in
     // Exceptions::JumpToFrame when a Dart exception jumps over C++ frames.
-    saved_safestack_limit_ = OSThread::GetCurrentSafestackPointer();
-    thread->set_saved_safestack_limit(saved_safestack_limit_);
+    saved_safestack_ = thread->saved_safestack();
+    thread->set_saved_safestack(OSThread::GetCurrentSafestackPointer());
+#endif
+#if defined(USING_SHADOW_CALL_STACK)
+    saved_shadow_call_stack_ = thread->saved_shadow_call_stack();
 #endif
 
     saved_api_scope_ = thread->api_top_scope();
@@ -67,8 +70,11 @@ class DartEntryScope : public TransitionToGenerated {
       thread()->ExitApiScope();
     }
 
+#if defined(USING_SHADOW_CALL_STACK)
+    thread()->set_saved_shadow_call_stack(saved_shadow_call_stack_);
+#endif
 #if defined(USING_SAFE_STACK)
-    thread()->set_saved_safestack_limit(saved_safestack_limit_);
+    thread()->set_saved_safestack(saved_safestack_);
 #endif
 
     ASSERT(thread()->long_jump_base() == nullptr);
@@ -78,7 +84,10 @@ class DartEntryScope : public TransitionToGenerated {
  private:
   LongJumpScope* saved_long_jump_base_;
 #if defined(USING_SAFE_STACK)
-  uword saved_safestack_limit_ = 0;
+  uword saved_safestack_ = 0;
+#endif
+#if defined(USING_SHADOW_CALL_STACK)
+  uword saved_shadow_call_stack_ = 0;
 #endif
   ApiLocalScope* saved_api_scope_;
 };
