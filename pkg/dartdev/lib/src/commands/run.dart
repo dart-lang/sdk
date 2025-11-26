@@ -664,7 +664,8 @@ Usage: dart [vm-options] run [arguments] [<dart-file>|<local-package>|<remote-ex
     for (final option in argResults.options) {
       if (argResults.wasParsed(option) &&
           option != gitPathOption &&
-          option != gitRefOption) {
+          option != gitRefOption &&
+          option != verbosityOption) {
         usageException(
           'Option $option cannot be used in remote runs. '
           '`dart run <remote-executable>` uses `dart install` under the hood '
@@ -793,12 +794,14 @@ Usage: dart [vm-options] run [arguments] [<dart-file>|<local-package>|<remote-ex
 
           final buildDirectory =
               Directory.fromUri(tempDirectory.uri.resolve('build/'));
+          final verbosity = args.option('verbosity')!;
           await InstallCommand.doBuild(
             executables,
             buildDirectory,
             helperPackageConfigFile,
             sourcePackagePubspecFile,
             verbose,
+            verbosity,
           );
 
           await InstallCommand.createAppBundleDirectory(

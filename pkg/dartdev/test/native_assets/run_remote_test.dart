@@ -337,6 +337,9 @@ void main(List<String> args) async {
       expect(firstRunResult.stdout, contains('Hello World'));
       expect(firstRunResult.exitCode, 0);
       expect(firstRunResult.stdout, contains('Generated: '));
+      // No hooks.
+      expect(firstRunResult.stdout, isNot(contains('Running build hooks')));
+      expect(firstRunResult.stdout, isNot(contains('Running link hooks')));
 
       // 4. Second run - should be cached
       final secondRunResult = await _runDartdev(
@@ -352,6 +355,63 @@ void main(List<String> args) async {
       expect(secondRunResult.stdout, isNot(contains('Generated: ')));
     });
   });
+
+  for (final verbosityError in [true, false]) {
+    final testName = verbosityError ? ' --verbosity=error' : '';
+    test('dart run from git with build hook$testName', timeout: longTimeout,
+        () async {
+      await inTempDir((tempUri) async {
+        const packageName = 'test_app_with_hook';
+        final (gitUri, gitRef) = await _setupGitRepoWithHook(
+          tempUri,
+          packageName: packageName,
+        );
+
+        final arguments = [
+          if (verbosityError) '--verbosity=error',
+          '--git-ref',
+          gitRef,
+          '${gitUri.toFilePath()}:$packageName',
+          'ignored',
+          'arguments',
+        ];
+
+        final dartDataHome = tempUri.resolve('dart_home/');
+        await Directory.fromUri(dartDataHome).create();
+        final binDir = Directory.fromUri(dartDataHome.resolve('install/bin'));
+
+        final environment = {
+          _dartDirectoryEnvKey: dartDataHome.toFilePath(),
+          'PATH':
+              '${binDir.path}$_pathEnvVarSeparator${Platform.environment['PATH']!}',
+        };
+
+        print(environment);
+        print('dart run ${arguments.join(' ')}');
+        final runResult = await _runDartdev(
+          fromDartdevSource,
+          'run',
+          arguments,
+          null,
+          environment,
+        );
+
+        expect(runResult.stdout, contains('Hello World'));
+        expect(runResult.exitCode, 0);
+        if (verbosityError) {
+          expect(runResult.stdout, isNot(contains('Running build hooks')));
+          expect(runResult.stdout, isNot(contains('Running link hooks')));
+          expect(runResult.stdout, isNot(contains('Generated: ')));
+          // Should have no other output then the program.
+          expect(runResult.stdout.trim(), equals('Hello World'));
+        } else {
+          expect(runResult.stdout, contains('Running build hooks'));
+          expect(runResult.stdout, contains('Running link hooks'));
+          expect(runResult.stdout, contains('Generated: '));
+        }
+      });
+    });
+  }
 }
 
 Future<(Uri gitUri, String gitRef)> _setupGitRepo(
@@ -392,6 +452,57 @@ Future<(Uri gitUri, String gitRef)> _setupGitRepo(
           .stdout as String)
       .trim();
   return (gitUri, gitRef);
+}
+
+Future<(Uri gitUri, String gitRef)> _setupGitRepoWithHook(
+  Uri tempUri, {
+  String packageName = 'test_app_with_hook',
+}) async {
+  return await _setupGitRepo(
+    tempUri,
+    repoName: '$packageName.git',
+    files: {
+      'pubspec.yaml': jsonEncode(PubspecYamlFileSyntax(
+        name: packageName,
+        environment: EnvironmentSyntax(
+          sdk: '^3.8.0',
+        ),
+        executables: {
+          packageName: null,
+        },
+        dependencies: {
+          // Git dependencies can't have path dependencies outside the git repo
+          // so use a published dependency.
+          'hooks': HostedDependencySourceSyntax(
+            version: '^1.0.0',
+          ),
+        },
+      ).json),
+      'bin/$packageName.dart': '''
+void main(List<String> args) {
+  print('Hello World');
+}
+''',
+      'hook/build.dart': '''
+import 'package:hooks/hooks.dart';
+
+void main(List<String> args) async {
+  await build(args, (input, output) async {
+    // Succeeds.
+  });
+}
+''',
+      'hook/link.dart': '''
+import 'package:hooks/hooks.dart';
+
+void main(List<String> args) async {
+  await link(args, (input, output) async {
+    // Succeeds.
+  });
+}
+''',
+    },
+  );
 }
 
 Future<(Uri gitUri, String gitRef)> _setupSimpleGitRepo(Uri tempUri) async {
