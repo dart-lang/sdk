@@ -97,6 +97,31 @@ void main([List<String> args = const []]) async {
     });
   });
 
+  for (final subcommand in ['test', 'test/my_test.dart']) {
+    test('dart run $subcommand (dev_dependency_with_hook)',
+        timeout: longTimeout, () async {
+      await nativeAssetsTest('dev_dependency_with_hook', (packageUri) async {
+        final result = await runDart(
+          arguments: [
+            'run',
+            subcommand,
+          ],
+          workingDirectory: packageUri,
+          logger: logger,
+        );
+        expect(
+          result.stdout,
+          stringContainsInOrder(
+            [
+              'native add test',
+              'All tests passed!',
+            ],
+          ),
+        );
+      });
+    });
+  }
+
   test('dart run some_dev_dep', timeout: longTimeout, () async {
     await nativeAssetsTest('native_add', (packageUri) async {
       final result = await runDart(
@@ -109,7 +134,7 @@ void main([List<String> args = const []]) async {
         logger: logger,
       );
       // It should not build native_add for running ffigen.
-      expect(result.stdout, isNot(contains('build.dart')));
+      expect(result.stdout, isNot(contains('Running build hooks')));
     });
   });
 
