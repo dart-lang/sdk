@@ -24,21 +24,14 @@ class BooleanDiagnosticListener implements DiagnosticListener {
   void onDiagnostic(Diagnostic diagnostic) {
     _diagnosticReported = true;
   }
-
-  @Deprecated("Call 'onDiagnostic' instead")
-  void onError(Diagnostic diagnostic) => onDiagnostic(diagnostic);
 }
 
-// ignore: deprecated_member_use_from_same_package
-abstract class DiagnosticListener implements DiagnosticOrErrorListener {
+abstract class DiagnosticListener {
   /// A diagnostic listener that ignores diagnostics that are reported to it.
   static const DiagnosticListener nullListener = _NullDiagnosticListener();
 
   void onDiagnostic(Diagnostic diagnostic);
 }
-
-@Deprecated("Use 'DiagnosticListener' instead")
-sealed class DiagnosticOrErrorListener {}
 
 /// A diagnostic listener that records the diagnostics that are reported to it
 /// in a way that is appropriate for caching those diagnostic within an
@@ -58,9 +51,6 @@ class RecordingDiagnosticListener implements DiagnosticListener {
   void onDiagnostic(Diagnostic diagnostic) {
     (_diagnostics ??= {}).add(diagnostic);
   }
-
-  @Deprecated("Call 'onDiagnostic' instead")
-  void onError(Diagnostic diagnostic) => onDiagnostic(diagnostic);
 }
 
 /// A [DiagnosticListener] that ignores everything.
@@ -71,11 +61,4 @@ class _NullDiagnosticListener implements DiagnosticListener {
   void onDiagnostic(Diagnostic diagnostic) {
     // Ignore diagnostics.
   }
-}
-
-// ignore: deprecated_member_use_from_same_package
-extension DiagnosticOrErrorListenerExtension on DiagnosticOrErrorListener {
-  void onDiagnostic(Diagnostic diagnostic) => switch (this) {
-    DiagnosticListener self => self.onDiagnostic(diagnostic),
-  };
 }

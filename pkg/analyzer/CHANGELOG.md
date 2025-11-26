@@ -14,6 +14,10 @@
 * **Breaking Change:** While the deprecated members mentioned above still exist in the AST,
   their parent nodes have changed. This means that code relying on specific parent-child
   relationships for these nodes might break.
+* **Breaking Change:** Remove deprecated `DiagnosticOrErrorListener` and the
+  `DiagnosticOrErrorListenerExtension` extension.
+* **Breaking Change:** Remove deprecated `RecordingDiagnosticListener.onError`
+  and `BooleanDiagnosticListener.onError` methods.
 * Deprecate `LintCode.new`'s `hasPublishedDocs` parameter.
 * Add `RemovedAnalysisRule` as the preferred way to represent removed lint
   rules. Deprecated `RuleState.removed` (which was the previous way to do so).
