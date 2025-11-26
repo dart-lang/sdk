@@ -4,8 +4,11 @@ This is a patch release that:
 
 - Fixes an issue with the color picker not working with dot shorthands. (issue
    [Dart-Code/Dart-Code#61978])
+- Enables hiding `Running build hooks` in `dart run` with `--verbosity=error`.
+  (issue [dart-lang/sdk#61996])
 
 [Dart-Code/Dart-Code#61978]: https://github.com/Dart-Code/Dart-Code/issues/5810
+[dart-lang/sdk#61996]: https://github.com/dart-lang/sdk/issues/61996
 
 ## 3.10.2
 
