@@ -62,6 +62,15 @@ class ExperimentalFlag {
         experimentReleasedVersion: const Version(2, 18),
       );
 
+  static const ExperimentalFlag anonymousMethods = const ExperimentalFlag(
+    name: 'anonymous-methods',
+    isEnabledByDefault: false,
+    isExpired: false,
+    enabledVersion: defaultLanguageVersion,
+    experimentEnabledVersion: defaultLanguageVersion,
+    experimentReleasedVersion: defaultLanguageVersion,
+  );
+
   static const ExperimentalFlag augmentations = const ExperimentalFlag(
     name: 'augmentations',
     isEnabledByDefault: false,
@@ -518,6 +527,10 @@ class GlobalFeatures {
         ExperimentalFlag.alternativeInvalidationStrategy,
       );
 
+  GlobalFeature? _anonymousMethods;
+  GlobalFeature get anonymousMethods => _anonymousMethods ??=
+      _computeGlobalFeature(ExperimentalFlag.anonymousMethods);
+
   GlobalFeature? _augmentations;
   GlobalFeature get augmentations =>
       _augmentations ??= _computeGlobalFeature(ExperimentalFlag.augmentations);
@@ -711,6 +724,14 @@ class LibraryFeatures {
             canonicalUri,
             libraryVersion,
           );
+
+  LibraryFeature? _anonymousMethods;
+  LibraryFeature get anonymousMethods =>
+      _anonymousMethods ??= globalFeatures._computeLibraryFeature(
+        ExperimentalFlag.anonymousMethods,
+        canonicalUri,
+        libraryVersion,
+      );
 
   LibraryFeature? _augmentations;
   LibraryFeature get augmentations =>
@@ -1061,6 +1082,8 @@ class LibraryFeatures {
     shared.ExperimentalFlag experimentalFlag,
   ) {
     switch (experimentalFlag) {
+      case shared.ExperimentalFlag.anonymousMethods:
+        return anonymousMethods;
       case shared.ExperimentalFlag.augmentations:
         return augmentations;
       case shared.ExperimentalFlag.classModifiers:
@@ -1155,6 +1178,8 @@ ExperimentalFlag? parseExperimentalFlag(String flag) {
   switch (flag) {
     case "alternative-invalidation-strategy":
       return ExperimentalFlag.alternativeInvalidationStrategy;
+    case "anonymous-methods":
+      return ExperimentalFlag.anonymousMethods;
     case "augmentations":
       return ExperimentalFlag.augmentations;
     case "class-modifiers":
@@ -1248,6 +1273,8 @@ ExperimentalFlag? parseExperimentalFlag(String flag) {
 final Map<ExperimentalFlag, bool> defaultExperimentalFlags = {
   ExperimentalFlag.alternativeInvalidationStrategy:
       ExperimentalFlag.alternativeInvalidationStrategy.isEnabledByDefault,
+  ExperimentalFlag.anonymousMethods:
+      ExperimentalFlag.anonymousMethods.isEnabledByDefault,
   ExperimentalFlag.augmentations:
       ExperimentalFlag.augmentations.isEnabledByDefault,
   ExperimentalFlag.classModifiers:
@@ -1335,6 +1362,7 @@ const AllowedExperimentalFlags defaultAllowedExperimentalFlags =
 ExperimentalFlag fromSharedExperimentalFlag(
   shared.ExperimentalFlag flag,
 ) => switch (flag) {
+  shared.ExperimentalFlag.anonymousMethods => ExperimentalFlag.anonymousMethods,
   shared.ExperimentalFlag.augmentations => ExperimentalFlag.augmentations,
   shared.ExperimentalFlag.classModifiers => ExperimentalFlag.classModifiers,
   shared.ExperimentalFlag.constFunctions => ExperimentalFlag.constFunctions,
