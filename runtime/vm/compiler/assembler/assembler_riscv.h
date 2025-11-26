@@ -708,6 +708,12 @@ class MicroAssembler : public AssemblerBase {
   void fltqd(Register rd, FRegister rs1, FRegister rs2);
   void fleqd(Register rd, FRegister rs1, FRegister rs2);
 
+  // ==== Zimop: May-be-operations ====
+  void mopr(intptr_t n, Register rd, Register rs1);
+  void moprr(intptr_t n, Register rd, Register rs1, Register rs2);
+  // ==== Zcmop: Compressed may-be-operations ====
+  void cmop(intptr_t n);
+
   // ==== Zicfiss: Shadow stack ====
   void sspush(Register rs2);
   void sspopchk(Register rs1);

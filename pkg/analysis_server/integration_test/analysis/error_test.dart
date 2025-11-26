@@ -118,6 +118,30 @@ void f() {
     expect(currentAnalysisErrors[fileToDeletePath], isNotNull);
   }
 
+  Future<void> test_contextMessage() async {
+    var pathname = sourcePath('test.dart');
+    writeFile(pathname, '''
+void f() {
+  x = 0;
+  int x = 1;
+  x;
+}''');
+    await standardAnalysisSetup();
+
+    await analysisFinished;
+    expect(currentAnalysisErrors[pathname], isList);
+    var errors = existingErrorsForFile(pathname);
+    var error = errors.single;
+    expect(
+      error.message,
+      "Local variable 'x' can't be referenced before it is declared.",
+    );
+    expect(
+      error.contextMessages!.single.message,
+      "The declaration of 'x' is here.",
+    );
+  }
+
   Future<void> test_detect_simple_error() async {
     var pathname = sourcePath('test.dart');
     writeFile(pathname, '''

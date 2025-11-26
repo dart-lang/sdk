@@ -786,6 +786,8 @@ enum Funct12 {
   ECALL = 0,
   EBREAK = 1,
 
+  MOP_R_MASK = 0b101100111100,
+  MOP_R = 0b100000011100,
   SSPOPCHK = 0b110011011100,
   SSRDP = 0b110011011100,
 };
@@ -793,7 +795,6 @@ enum Funct12 {
 enum Funct3 {
   F3_0 = 0,
   F3_1 = 1,
-  F3_100 = 0b100,
 
   BEQ = 0b000,
   BNE = 0b001,
@@ -843,6 +844,7 @@ enum Funct3 {
   CSRRWI = 0b101,
   CSRRSI = 0b110,
   CSRRCI = 0b111,
+  MOP = 0b100,
 
   MUL = 0b000,
   MULH = 0b001,
@@ -975,6 +977,8 @@ enum Funct7 {
 
   CZERO = 0b0000111,
 
+  MOP_RR_MASK = 0b1011001,
+  MOP_RR = 0b1000001,
   SSPUSH = 0b1100111,
 };
 
@@ -1309,6 +1313,40 @@ inline intptr_t DecodeSTypeImm(uint32_t encoded) {
   imm |= (((encoded >> 25) & 0x7f) << 5);
   imm |= (((encoded >> 7) & 0x1f) << 0);
   return SignExtend(12, imm);
+}
+inline bool IsMoprn(intptr_t imm) {
+  return Utils::IsUint(5, imm);
+}
+inline uint32_t EncodeMoprn(intptr_t imm) {
+  ASSERT(IsMoprn(imm));
+  uint32_t encoded = 0;
+  encoded |= ((imm >> 4) & 0x1) << 30;
+  encoded |= ((imm >> 2) & 0x3) << 26;
+  encoded |= ((imm >> 0) & 0x3) << 20;
+  return encoded;
+}
+inline intptr_t DecodeMoprn(uint32_t encoded) {
+  uint32_t n = 0;
+  n |= (((encoded >> 30) & 0x1) << 4);
+  n |= (((encoded >> 26) & 0x3) << 2);
+  n |= (((encoded >> 20) & 0x3) << 0);
+  return n;
+}
+inline bool IsMoprrn(intptr_t imm) {
+  return Utils::IsUint(3, imm);
+}
+inline uint32_t EncodeMoprrn(intptr_t imm) {
+  ASSERT(IsMoprrn(imm));
+  uint32_t encoded = 0;
+  encoded |= ((imm >> 2) & 0x1) << 30;
+  encoded |= ((imm >> 0) & 0x3) << 26;
+  return encoded;
+}
+inline intptr_t DecodeMoprrn(uint32_t encoded) {
+  uint32_t n = 0;
+  n |= (((encoded >> 30) & 0x1) << 2);
+  n |= (((encoded >> 26) & 0x3) << 0);
+  return n;
 }
 
 inline bool IsCInstruction(uint16_t parcel) {
@@ -1702,6 +1740,21 @@ inline uint32_t DecodeCShamt(uint32_t encoding) {
   return imm;
 }
 
+inline bool IsCMopn(uint32_t imm) {
+  return (imm < 16) && ((imm & 1) == 1);
+}
+inline uint32_t EncodeCMopn(intptr_t imm) {
+  ASSERT(IsCMopn(imm));
+  uint32_t encoding = 0;
+  encoding |= ((imm >> 0) & 0xF) << 7;
+  return encoding;
+}
+inline intptr_t DecodeCMopn(uint32_t encoding) {
+  uint32_t imm = 0;
+  imm |= ((encoding >> 7) & 0xF) << 0;
+  return imm;
+}
+
 enum COpcode {
   C_OP_MASK = 0b1110000000000011,
 
@@ -1772,6 +1825,8 @@ enum COpcode {
   C_SB = 0b1000100000000000,
   C_SH = 0b1000110000000000,
 
+  C_MOP_MASK = 0b1111100011111111,
+  C_MOP = 0b0110000010000001,
   C_SSPUSH = 0b0110000010000001,
   C_SSPOPCHK = 0b0110001010000001,
 };
@@ -1902,13 +1957,15 @@ static constexpr Extension RV_V(11);       // Vector
 static constexpr Extension RV_Zicond(12);  // Integer conditional operations
 static constexpr Extension RV_Zcb(13);     // More compressed instructions
 static constexpr Extension RV_Zfa(14);     // Additional floating-point
+static constexpr Extension RV_Zimop(15);   // May-be-operations
+static constexpr Extension RV_Zcmop(16);   // Compressed may-be-operations
 static constexpr ExtensionSet RVA23 =
-    RV_GCB | RV_V | RV_Zicond | RV_Zcb | RV_Zfa;
-static constexpr Extension RV_Zicfiss(15);  // Shadow stack
-static constexpr Extension RV_Zabha(16);    // Byte and halfword AMOs
-static constexpr Extension RV_Zalasr(17);   // Load-acquire, store-release
-static constexpr Extension RV_Zfhmin(18);   // Load-acquire, store-release
-static constexpr Extension RV_Zacas(19);    // Compare-and-swap
+    RVA22 | RV_V | RV_Zicond | RV_Zcb | RV_Zfa | RV_Zimop | RV_Zcmop;
+static constexpr Extension RV_Zicfiss(17);  // Shadow stack
+static constexpr Extension RV_Zabha(18);    // Byte and halfword AMOs
+static constexpr Extension RV_Zalasr(19);   // Load-acquire, store-release
+static constexpr Extension RV_Zfhmin(20);   // Load-acquire, store-release
+static constexpr Extension RV_Zacas(21);    // Compare-and-swap
 
 #if defined(DART_TARGET_OS_ANDROID)
 static constexpr ExtensionSet RV_baseline = RVA23;

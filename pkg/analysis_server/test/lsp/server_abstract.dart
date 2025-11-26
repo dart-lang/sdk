@@ -262,6 +262,9 @@ abstract class AbstractLspAnalysisServerTest
 
   @mustCallSuper
   void setUp() {
+    // Reset default in case a single test changed it.
+    failTestOnErrorDiagnostic = true;
+
     httpClient = MockHttpClient();
     processRunner = MockProcessRunner();
     channel = MockLspServerChannel(debugPrintCommunication);

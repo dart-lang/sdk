@@ -19,6 +19,7 @@ Element convertElement(engine.Element element) {
   var aliasedType = getAliasedTypeString(element);
   var elementParameters = getParametersString(element);
   var elementReturnType = getReturnTypeString(element);
+  var extendedType = getExtendedTypeString(element);
   return Element(
     kind,
     name,
@@ -35,6 +36,7 @@ Element convertElement(engine.Element element) {
     aliasedType: aliasedType,
     parameters: elementParameters,
     returnType: elementReturnType,
+    extendedType: extendedType,
   );
 }
 

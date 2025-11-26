@@ -311,15 +311,24 @@ enum AnalyzerDiagnosticPackage {
   analyzer(
     diagnosticPathPart: 'src/diagnostic/diagnostic',
     dirName: 'analyzer',
+    permittedTypes: {
+      .compileTimeError,
+      .hint,
+      .staticWarning,
+      .syntacticError,
+      .todo,
+    },
   ),
   analysisServer(
     diagnosticPathPart: 'src/diagnostic',
     dirName: 'analysis_server',
+    permittedTypes: {.compileTimeError},
     shouldIgnorePreferSingleQuotes: true,
   ),
   linter(
     diagnosticPathPart: 'src/diagnostic',
     dirName: 'linter',
+    permittedTypes: {.lint},
     shouldIgnorePreferExpressionFunctionBodies: true,
     shouldIgnorePreferSingleQuotes: true,
   );
@@ -335,6 +344,9 @@ enum AnalyzerDiagnosticPackage {
   /// file will be `pkg/linter/lib/src/diagnostic/diagnostic.g.dart`.
   final String diagnosticPathPart;
 
+  /// The set of [AnalyzerDiagnosticType]s that may be used in this package.
+  final Set<AnalyzerDiagnosticType> permittedTypes;
+
   /// Whether code generated in this package needs an "ignore" comment to ignore
   /// the `prefer_expression_function_bodies` lint.
   final bool shouldIgnorePreferExpressionFunctionBodies;
@@ -346,6 +358,7 @@ enum AnalyzerDiagnosticPackage {
   const AnalyzerDiagnosticPackage({
     required this.diagnosticPathPart,
     required this.dirName,
+    required this.permittedTypes,
     this.shouldIgnorePreferExpressionFunctionBodies = false,
     this.shouldIgnorePreferSingleQuotes = false,
   });
@@ -415,7 +428,7 @@ class AnalyzerMessage extends Message with MessageWithAnalyzerCode {
   final AnalyzerDiagnosticPackage package;
 
   @override
-  final AnalyzerDiagnosticType? type;
+  final AnalyzerDiagnosticType type;
 
   factory AnalyzerMessage(
     MessageYaml messageYaml, {
@@ -450,7 +463,6 @@ class AnalyzerMessage extends Message with MessageWithAnalyzerCode {
        type = messageYaml.get(
          'type',
          decode: MessageWithAnalyzerCode.decodeType,
-         ifAbsent: () => null,
        ),
        super(messageYaml) {
     // Ignore extra keys related to analyzer example-based tests.
@@ -545,7 +557,7 @@ mixin MessageWithAnalyzerCode on Message {
       (value) =>
           value != null && value.any((part) => part is TemplateParameterPart),
     );
-    var baseClasses = analyzerCode.diagnosticClass.type.baseClasses;
+    var baseClasses = type.baseClasses;
     if (parameters.isNotEmpty && !usesParameters) {
       throw 'Error code declares parameters using a `parameters` entry, but '
           "doesn't use them";
@@ -595,9 +607,8 @@ mixin MessageWithAnalyzerCode on Message {
   /// The package into which this error code will be generated.
   AnalyzerDiagnosticPackage get package;
 
-  /// The type of this diagnostic, if present in `messages.yaml`. Otherwise
-  /// `null`.
-  AnalyzerDiagnosticType? get type;
+  /// The type of this diagnostic.
+  AnalyzerDiagnosticType get type;
 
   void outputConstantHeader(StringSink out) {
     out.write(toAnalyzerComments(indent: '  '));
@@ -617,7 +628,7 @@ mixin MessageWithAnalyzerCode on Message {
     var diagnosticCode = analyzerCode.snakeCaseName;
     var correctionMessage = this.correctionMessage;
     String? withArgumentsName;
-    var baseClasses = analyzerCode.diagnosticClass.type.baseClasses;
+    var baseClasses = type.baseClasses;
     var ConstantStyle(:concreteClassName, :staticType) = constantStyle;
     if (constantStyle case WithArgumentsConstantStyle(
       :var withArgumentsParams,
@@ -662,7 +673,7 @@ LocatableDiagnostic $withArgumentsName({$withArgumentsParams}) {
       constant.writeln('isUnresolvedIdentifier:true,');
     }
     if (baseClasses.requiresTypeArgument) {
-      constant.writeln('type: ${diagnosticClassInfo.type.code},');
+      constant.writeln('type: ${type.code},');
     }
     String uniqueName = analyzerCode.toString().replaceFirst(
       'LinterLintCode.',

@@ -110,7 +110,7 @@ a:focus, a:hover {
 <body>
 <h1>Analysis Server API Specification</h1>
 <h1 style="color:#999999">Version
-  1.40.0
+  1.40.1
 </h1>
 <p>
   This document contains a specification of the API provided by the
@@ -245,6 +245,10 @@ a:focus, a:hover {
   ignoring the item or treating it with some default/fallback handling.
 </p>
 <h3>Changelog</h3>
+<h4>1.40.1</h4>
+<ul>
+  <li>Added an optional <tt>extendedType</tt> field to <tt>Element</tt> to store the name of the type that extensions apply to that can be used to improve the display names for unnamed extensions.</li>
+</ul>
 <h4>1.40.0</h4>
 <ul>
   <li>Added an optional <tt>version</tt> field to <tt>AddContentOverlay</tt> and <tt>ChangeContentOverlay</tt> to allow clients/servers to have a way to identify specific versions of documents.</li>
@@ -3974,6 +3978,14 @@ a:focus, a:hover {
         <p>
           If the element is a type alias, this field is the aliased type.
           Otherwise this field will not be defined.
+        </p>
+      </dd><dt class="field"><b>extendedType: String<span style="color:#999999"> (optional)</span></b></dt><dd>
+        
+        <p>
+          If the element is an extension, this field is the name of the type
+          that is extended. This can be useful to show in UIs for unnamed
+          extension, for example "extension on {extendedType}". This field
+          might not be defined even for an extension in the case of invalid code.
         </p>
       </dd></dl></dd><dt class="typeDefinition"><a name="type_ElementDeclaration">ElementDeclaration: object</a></dt><dd>
     <p>

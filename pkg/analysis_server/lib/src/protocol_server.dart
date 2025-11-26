@@ -89,6 +89,14 @@ String? getColorHexString(engine.Element? element) {
   return null;
 }
 
+String? getExtendedTypeString(engine.Element element) {
+  if (element is engine.ExtensionElement) {
+    var extendedType = element.extendedType;
+    return extendedType.getDisplayString();
+  }
+  return null;
+}
+
 String? getReturnTypeString(engine.Element element) {
   if (element is engine.ExecutableElement) {
     if (element.kind == engine.ElementKind.SETTER) {

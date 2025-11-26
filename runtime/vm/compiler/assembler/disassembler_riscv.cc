@@ -307,6 +307,8 @@ void RISCVDisassembler::DisassembleInstruction(CInstr instr) {
         Print("sspush ra", instr, RV_Zicfiss | RV_C);
       } else if (instr.encoding() == C_SSPOPCHK) {
         Print("sspopchk t0", instr, RV_Zicfiss | RV_C);
+      } else if ((instr.encoding() & C_MOP_MASK) == C_MOP) {
+        Print("c.mop.'mopn", instr, RV_Zcmop);
       } else {
         UnknownInstruction(instr);
       }
@@ -1169,7 +1171,7 @@ void RISCVDisassembler::DisassembleSYSTEM(Instr instr) {
           UnknownInstruction(instr);
       }
       break;
-    case F3_100: {
+    case MOP: {
       if ((instr.funct7() == SSPUSH) && (instr.rd() == ZR) &&
           (instr.rs1() == ZR) &&
           ((instr.rs2() == Register(1)) || (instr.rs2() == Register(5)))) {
@@ -1180,6 +1182,10 @@ void RISCVDisassembler::DisassembleSYSTEM(Instr instr) {
         Print("sspopchk 'rs1", instr, RV_Zicfiss);
       } else if ((instr.funct12() == SSRDP) && (instr.rs1() == ZR)) {
         Print("ssrdp 'rd", instr, RV_Zicfiss);
+      } else if ((instr.funct12() & MOP_R_MASK) == MOP_R) {
+        Print("mop.r.'moprn 'rd, 'rs1", instr, RV_Zimop);
+      } else if ((instr.funct7() & MOP_RR_MASK) == MOP_RR) {
+        Print("mop.rr.'moprrn 'rd, 'rs1, 'rs2", instr, RV_Zimop);
       } else {
         UnknownInstruction(instr);
       }
@@ -2043,6 +2049,12 @@ const char* RISCVDisassembler::PrintOption(const char* format, Instr instr) {
       if ((succ & HartEffects::kWrite) != 0) Printf("w");
     }
     return format + 8;
+  } else if (STRING_STARTS_WITH(format, "moprn")) {
+    Printf("%" Pd, DecodeMoprn(instr.encoding()));
+    return format + 5;
+  } else if (STRING_STARTS_WITH(format, "moprrn")) {
+    Printf("%" Pd, DecodeMoprrn(instr.encoding()));
+    return format + 6;
   } else if (STRING_STARTS_WITH(format, "frd")) {
     Printf("%s", fpu_reg_names[instr.frd()]);
     return format + 3;
@@ -2260,6 +2272,9 @@ const char* RISCVDisassembler::PrintOption(const char* format, CInstr instr) {
   } else if (STRING_STARTS_WITH(format, "shamt")) {
     Printf("0x%x", instr.shamt());
     return format + 5;
+  } else if (STRING_STARTS_WITH(format, "mopn")) {
+    Printf("%" Pd, DecodeCMopn(instr.encoding()));
+    return format + 4;
   }
 
   FATAL("Bad format %s\n", format);

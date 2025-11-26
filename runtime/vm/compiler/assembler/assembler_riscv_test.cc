@@ -8920,8 +8920,53 @@ ASSEMBLER_TEST_RUN(AmoCompareAndSwapQuadWord, test) {
 }
 #endif
 
+ASSEMBLER_TEST_GENERATE(MayBeOp_OneSource, assembler) {
+  __ SetExtensions(RV_G | RV_Zimop);
+  __ mopr(1, A0, A1);
+  __ mopr(31, A0, A1);
+  __ ret();
+}
+ASSEMBLER_TEST_RUN(MayBeOp_OneSource, test) {
+  EXPECT_DISASSEMBLY(
+      "81d5c573 mop.r.1 a0, a1\n"
+      "cdf5c573 mop.r.31 a0, a1\n"
+      "00008067 ret\n");
+
+  EXPECT_EQ(0, Call(test->entry(), 1, 2));
+}
+
+ASSEMBLER_TEST_GENERATE(MayBeOp_TwoSource, assembler) {
+  __ SetExtensions(RV_G | RV_Zimop);
+  __ moprr(1, A0, A1, A2);
+  __ moprr(7, A0, A1, A2);
+  __ ret();
+}
+ASSEMBLER_TEST_RUN(MayBeOp_TwoSource, test) {
+  EXPECT_DISASSEMBLY(
+      "86c5c573 mop.rr.1 a0, a1, a2\n"
+      "cec5c573 mop.rr.7 a0, a1, a2\n"
+      "00008067 ret\n");
+
+  EXPECT_EQ(0, Call(test->entry(), 1, 2, 3));
+}
+
+ASSEMBLER_TEST_GENERATE(CompressedMayBeOp, assembler) {
+  __ SetExtensions(RV_GC | RV_Zcmop);
+  __ cmop(11);
+  __ mv(A0, A1);  // A1=11
+  __ ret();
+}
+ASSEMBLER_TEST_RUN(CompressedMayBeOp, test) {
+  EXPECT_DISASSEMBLY(
+      "    6581 c.mop.11\n"
+      "    852e mv a0, a1\n"
+      "    8082 ret\n");
+
+  EXPECT_EQ(42, Call(test->entry(), 0, 42));
+}
+
 ASSEMBLER_TEST_GENERATE(ShadowStack, assembler) {
-  __ SetExtensions(RV_G | RV_Zicfiss);
+  __ SetExtensions(RV_G | RV_Zicfiss | RV_Zimop);
   Label f;
   __ sspush(RA);
   __ jal(RA2, &f);
@@ -8945,7 +8990,7 @@ ASSEMBLER_TEST_RUN(ShadowStack, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(CompressedShadowStack, assembler) {
-  __ SetExtensions(RV_GC | RV_Zicfiss);
+  __ SetExtensions(RV_GC | RV_Zicfiss | RV_Zimop | RV_Zcmop);
   Label f;
   __ sspush(RA);
   __ jal(RA2, &f);
@@ -8995,7 +9040,7 @@ ASSEMBLER_TEST_RUN(ShadowStackAmoSwapDoubleWord, test) {
 #endif  // XLEN >= 64
 
 ASSEMBLER_TEST_GENERATE(ShadowStackLongJump, assembler) {
-  __ SetExtensions(RV_G | RV_Zicfiss);
+  __ SetExtensions(RV_GC | RV_Zicfiss | RV_Zimop | RV_Zcmop);
   Label nlr, func2, setjmp, longjmp, ss_disabled;
   __ sspush(RA);
   __ subi(SP, SP, 6 * target::kWordSize);
@@ -9528,6 +9573,10 @@ TEST_ENCODING(FRegister, FRd)
 TEST_ENCODING(FRegister, FRs1)
 TEST_ENCODING(FRegister, FRs2)
 TEST_ENCODING(FRegister, FRs3)
+TEST_ENCODING(VRegister, Vd)
+TEST_ENCODING(VRegister, Vs1)
+TEST_ENCODING(VRegister, Vs2)
+TEST_ENCODING(VRegister, Vs3)
 TEST_ENCODING(Funct2, Funct2)
 TEST_ENCODING(Funct3, Funct3)
 TEST_ENCODING(Funct5, Funct5)
@@ -9539,6 +9588,8 @@ TEST_ENCODING(intptr_t, JTypeImm)
 TEST_ENCODING(intptr_t, ITypeImm)
 TEST_ENCODING(intptr_t, STypeImm)
 TEST_ENCODING(intptr_t, UTypeImm)
+TEST_ENCODING(intptr_t, Moprn)
+TEST_ENCODING(intptr_t, Moprrn)
 
 TEST_ENCODING(Register, CRd)
 TEST_ENCODING(Register, CRs1)
@@ -9567,6 +9618,7 @@ TEST_ENCODING(intptr_t, CUImm)
 TEST_ENCODING(intptr_t, CI16Imm)
 TEST_ENCODING(intptr_t, CI4SPNImm)
 TEST_ENCODING(intptr_t, CShamt)
+TEST_ENCODING(intptr_t, CMopn)
 
 #undef TEST_ENCODING
 

@@ -237,6 +237,8 @@ class DartUnitOutlineComputer {
       location = _getLocationNode(onClause.extendedType);
     }
 
+    var extendedType = node.onClause?.extendedType;
+
     var element = Element(
       ElementKind.EXTENSION,
       name,
@@ -246,6 +248,7 @@ class DartUnitOutlineComputer {
       ),
       location: location,
       typeParameters: _getTypeParametersStr(node.typeParameters),
+      extendedType: extendedType != null ? _safeToSource(extendedType) : null,
     );
     return _nodeOutline(node, element, extensionContents);
   }

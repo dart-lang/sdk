@@ -1430,6 +1430,14 @@ a:focus, a:hover {
           If the element is a type alias, this field is the aliased type.
           Otherwise this field will not be defined.
         </p>
+      </dd><dt class="field"><b>extendedType: String<span style="color:#999999"> (optional)</span></b></dt><dd>
+        
+        <p>
+          If the element is an extension, this field is the name of the type
+          that is extended. This can be useful to show in UIs for unnamed
+          extension, for example "extension on {extendedType}". This field
+          might not be defined even for an extension in the case of invalid code.
+        </p>
       </dd></dl></dd><dt class="typeDefinition"><a name="type_ElementKind">ElementKind: String</a></dt><dd>
     <p>
       An enumeration of the kinds of elements.
