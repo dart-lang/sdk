@@ -60,6 +60,21 @@ void main([List<String> args = const []]) async {
     });
   }
 
+  test('dart run --verbosity=error', timeout: longTimeout, () async {
+    await nativeAssetsTest('dart_app', (dartAppUri) async {
+      final result = await runDart(
+        arguments: [
+          'run',
+          '--verbosity=error',
+        ],
+        workingDirectory: dartAppUri,
+        logger: logger,
+      );
+      expect(result.stdout, isNot(contains('Running build hooks')));
+      expectDartAppStdout(result.stdout);
+    });
+  });
+
   test('dart run test/xxx_test.dart', timeout: longTimeout, () async {
     await nativeAssetsTest('native_add', (packageUri) async {
       final result = await runDart(
