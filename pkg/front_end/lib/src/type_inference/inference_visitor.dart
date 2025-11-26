@@ -16515,10 +16515,12 @@ class InferenceVisitorImpl extends InferenceVisitorBase
   StatementInferenceResult visitVariableInitialization(
     VariableInitialization node,
   ) {
-    return _inferInternalExpressionVariableDeclaration(
-      node,
-      node.variable as InternalExpressionVariable,
-    );
+    InternalExpressionVariable nodeVariable =
+        node.variable as InternalExpressionVariable;
+    StatementInferenceResult statementInferenceResult =
+        _inferInternalExpressionVariableDeclaration(node, nodeVariable);
+    node.variable = nodeVariable.astVariable;
+    return statementInferenceResult;
   }
 
   StatementInferenceResult _inferInternalExpressionVariableDeclaration(

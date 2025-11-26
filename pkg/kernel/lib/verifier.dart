@@ -134,9 +134,9 @@ class VerifyingVisitor extends RecursiveResultVisitor<void> {
   Set<TypeParameter> typeParametersInScope = new Set<TypeParameter>();
   Set<StructuralParameter> structuralParametersInScope =
       new Set<StructuralParameter>();
-  Set<VariableDeclaration> variableDeclarationsInScope =
-      new Set<VariableDeclaration>();
-  final List<VariableDeclaration> variableStack = <VariableDeclaration>[];
+  Set<ExpressionVariable> variableDeclarationsInScope =
+      new Set<ExpressionVariable>();
+  final List<ExpressionVariable> variableStack = <ExpressionVariable>[];
   final Map<Typedef, TypedefState> typedefState = <Typedef, TypedefState>{};
   final Set<Constant> seenConstants = <Constant>{};
 
@@ -286,7 +286,7 @@ class VerifyingVisitor extends RecursiveResultVisitor<void> {
     exitTreeNode(node);
   }
 
-  void declareVariable(VariableDeclaration variable) {
+  void declareVariable(ExpressionVariable variable) {
     if (variableDeclarationsInScope.contains(variable)) {
       problem(variable, "Variable '$variable' declared more than once.");
     }
@@ -294,7 +294,7 @@ class VerifyingVisitor extends RecursiveResultVisitor<void> {
     variableStack.add(variable);
   }
 
-  void undeclareVariable(VariableDeclaration variable) {
+  void undeclareVariable(ExpressionVariable variable) {
     variableDeclarationsInScope.remove(variable);
   }
 
@@ -993,6 +993,15 @@ class VerifyingVisitor extends RecursiveResultVisitor<void> {
 
   @override
   void visitVariableDeclaration(VariableDeclaration node) {
+    return _verifyVariableInitialization(node);
+  }
+
+  @override
+  void visitVariableInitialization(VariableInitialization node) {
+    return _verifyVariableInitialization(node);
+  }
+
+  void _verifyVariableInitialization(VariableInitialization node) {
     enterTreeNode(node);
     TreeNode? parent = node.parent;
     if (parent is! Block &&
@@ -1010,7 +1019,7 @@ class VerifyingVisitor extends RecursiveResultVisitor<void> {
           "not ${parent.runtimeType}.");
     }
     visitChildren(node);
-    declareVariable(node);
+    declareVariable(node.variable);
     if (afterConst && node.isConst && constantLocalsShouldBeRemoved) {
       Expression? initializer = node.initializer;
       if (!(initializer is InvalidExpression ||
@@ -1025,13 +1034,14 @@ class VerifyingVisitor extends RecursiveResultVisitor<void> {
   @override
   void visitVariableGet(VariableGet node) {
     enterTreeNode(node);
-    checkVariableInScope(node.variable, node);
+    checkVariableInScope(node.expressionVariable, node);
     visitChildren(node);
     if (constantsAreAlwaysInlined &&
         afterConst &&
-        node.variable.isConst &&
+        node.expressionVariable.isConst &&
         !inUnevaluatedConstant) {
-      problem(node, "VariableGet of const variable '${node.variable}'.");
+      problem(
+          node, "VariableGet of const variable '${node.expressionVariable}'.");
     }
     exitTreeNode(node);
   }
@@ -1039,7 +1049,7 @@ class VerifyingVisitor extends RecursiveResultVisitor<void> {
   @override
   void visitVariableSet(VariableSet node) {
     enterTreeNode(node);
-    checkVariableInScope(node.variable, node);
+    checkVariableInScope(node.expressionVariable, node);
     visitChildren(node);
     exitTreeNode(node);
   }
