@@ -1,60 +1,52 @@
 Problems reported:
 
-parser/declaring_constructors/factory_new:3:3: Variables must be declared using the keywords 'const', 'final', 'var' or a type name.
-  factory new();
-  ^^^^^^^
+parser/declaring_constructors/factory_new:2:20: Factory constructors can't be named 'new'.
+  external factory new();
+                   ^^^
 
-parser/declaring_constructors/factory_new:3:3: Expected ';' after this.
-  factory new();
-  ^^^^^^^
+parser/declaring_constructors/factory_new:3:26: Factory constructors can't be named 'new'.
+  external const factory new();
+                         ^^^
 
-parser/declaring_constructors/factory_new:4:9: The const variable 'factory' must be initialized.
-  const factory new();
-        ^^^^^^^
-
-parser/declaring_constructors/factory_new:4:9: Expected ';' after this.
-  const factory new();
-        ^^^^^^^
-
-parser/declaring_constructors/factory_new:5:3: Variables must be declared using the keywords 'const', 'final', 'var' or a type name.
+parser/declaring_constructors/factory_new:4:11: Factory constructors can't be named 'new'.
   factory new() => 0;
-  ^^^^^^^
+          ^^^
 
-parser/declaring_constructors/factory_new:5:3: Expected ';' after this.
-  factory new() => 0;
-  ^^^^^^^
-
-parser/declaring_constructors/factory_new:6:9: The const variable 'factory' must be initialized.
+parser/declaring_constructors/factory_new:5:17: Factory constructors can't be named 'new'.
   const factory new() => 0;
-        ^^^^^^^
+                ^^^
 
-parser/declaring_constructors/factory_new:6:9: Expected ';' after this.
-  const factory new() => 0;
-        ^^^^^^^
-
-parser/declaring_constructors/factory_new:7:3: Variables must be declared using the keywords 'const', 'final', 'var' or a type name.
+parser/declaring_constructors/factory_new:6:11: Factory constructors can't be named 'new'.
   factory new() = C;
-  ^^^^^^^
+          ^^^
 
-parser/declaring_constructors/factory_new:7:3: Expected ';' after this.
-  factory new() = C;
-  ^^^^^^^
-
-parser/declaring_constructors/factory_new:7:17: Only factory constructor can specify '=' redirection.
-  factory new() = C;
-                ^
-
-parser/declaring_constructors/factory_new:8:9: The const variable 'factory' must be initialized.
+parser/declaring_constructors/factory_new:7:17: Factory constructors can't be named 'new'.
   const factory new() = C;
-        ^^^^^^^
+                ^^^
 
-parser/declaring_constructors/factory_new:8:9: Expected ';' after this.
-  const factory new() = C;
-        ^^^^^^^
+parser/declaring_constructors/factory_new:9:20: 'new' can't be used as an identifier because it's a keyword.
+  external factory new.named();
+                   ^^^
 
-parser/declaring_constructors/factory_new:8:23: Only factory constructor can specify '=' redirection.
-  const factory new() = C;
-                      ^
+parser/declaring_constructors/factory_new:10:26: 'new' can't be used as an identifier because it's a keyword.
+  external const factory new.named();
+                         ^^^
+
+parser/declaring_constructors/factory_new:11:11: 'new' can't be used as an identifier because it's a keyword.
+  factory new.named() => 0;
+          ^^^
+
+parser/declaring_constructors/factory_new:12:17: 'new' can't be used as an identifier because it's a keyword.
+  const factory new.named() => 0;
+                ^^^
+
+parser/declaring_constructors/factory_new:13:11: 'new' can't be used as an identifier because it's a keyword.
+  factory new.named() = C;
+          ^^^
+
+parser/declaring_constructors/factory_new:14:17: 'new' can't be used as an identifier because it's a keyword.
+  const factory new.named() = C;
+                ^^^
 
 beginCompilationUnit(class)
   beginMetadataStar(class)
@@ -70,131 +62,71 @@ beginCompilationUnit(class)
       handleImplements(null, 0)
       handleClassHeader(class, class, null)
       beginClassOrMixinOrExtensionBody(DeclarationKind.Class, {)
+        beginMetadataStar(external)
+        endMetadataStar(0)
+        beginMember()
+          beginFactory(DeclarationKind.Class, {, external, null)
+            handleRecoverableError(FactoryConstructorNewName, new, new)
+            handleIdentifier(new, methodDeclaration)
+            handleNoTypeVariables(()
+            beginFormalParameters((, MemberKind.Factory)
+            endFormalParameters(0, (, ), MemberKind.Factory)
+            handleAsyncModifier(null, null)
+            handleEmptyFunctionBody(;)
+          endFactory(DeclarationKind.Class, external, factory, ;)
+        endMember()
+        beginMetadataStar(external)
+        endMetadataStar(0)
+        beginMember()
+          beginFactory(DeclarationKind.Class, ;, external, const)
+            handleRecoverableError(FactoryConstructorNewName, new, new)
+            handleIdentifier(new, methodDeclaration)
+            handleNoTypeVariables(()
+            beginFormalParameters((, MemberKind.Factory)
+            endFormalParameters(0, (, ), MemberKind.Factory)
+            handleAsyncModifier(null, null)
+            handleEmptyFunctionBody(;)
+          endFactory(DeclarationKind.Class, external, factory, ;)
+        endMember()
         beginMetadataStar(factory)
         endMetadataStar(0)
         beginMember()
-          beginFields(DeclarationKind.Class, null, null, null, null, null, null, null, {)
-            handleRecoverableError(MissingConstFinalVarOrType, factory, factory)
-            handleNoType({)
-            handleIdentifier(factory, fieldDeclaration)
-            handleNoFieldInitializer(new)
-            handleRecoverableError(Message[Template(ExpectedAfterButGot), Expected ';' after this., null, {string: ;}], factory, factory)
-          endFields(DeclarationKind.Class, null, null, null, null, null, null, null, 1, factory, ;)
-        endMember()
-        beginMetadataStar(new)
-        endMetadataStar(0)
-        beginMember()
-          beginConstructor(DeclarationKind.Class, null, null, null, null, null, null, new, new, C)
-            handleNoType(;)
-            handleNoIdentifier(new, methodDeclaration)
+          beginFactory(DeclarationKind.Class, ;, null, null)
+            handleRecoverableError(FactoryConstructorNewName, new, new)
+            handleIdentifier(new, methodDeclaration)
             handleNoTypeVariables(()
-            beginFormalParameters((, MemberKind.NonStaticMethod)
-            endFormalParameters(0, (, ), MemberKind.NonStaticMethod)
-            handleNoInitializers()
+            beginFormalParameters((, MemberKind.Factory)
+            endFormalParameters(0, (, ), MemberKind.Factory)
             handleAsyncModifier(null, null)
-            handleEmptyFunctionBody(;)
-          endConstructor(DeclarationKind.Class, new, new, (, null, ;)
+            handleLiteralInt(0)
+            handleExpressionFunctionBody(=>, ;)
+          endFactory(DeclarationKind.Class, factory, factory, ;)
         endMember()
         beginMetadataStar(const)
         endMetadataStar(0)
         beginMember()
-          beginFields(DeclarationKind.Class, null, null, null, null, null, null, const, ;)
-            handleNoType(const)
-            handleIdentifier(factory, fieldDeclaration)
-            handleRecoverableError(Message[Template(ConstFieldWithoutInitializer), The const variable 'factory' must be initialized., Try adding an initializer ('= expression') to the declaration., {name: factory}], factory, factory)
-            handleNoFieldInitializer(new)
-            handleRecoverableError(Message[Template(ExpectedAfterButGot), Expected ';' after this., null, {string: ;}], factory, factory)
-          endFields(DeclarationKind.Class, null, null, null, null, null, null, const, 1, const, ;)
-        endMember()
-        beginMetadataStar(new)
-        endMetadataStar(0)
-        beginMember()
-          beginConstructor(DeclarationKind.Class, null, null, null, null, null, null, new, new, C)
-            handleNoType(;)
-            handleNoIdentifier(new, methodDeclaration)
+          beginFactory(DeclarationKind.Class, ;, null, const)
+            handleRecoverableError(FactoryConstructorNewName, new, new)
+            handleIdentifier(new, methodDeclaration)
             handleNoTypeVariables(()
-            beginFormalParameters((, MemberKind.NonStaticMethod)
-            endFormalParameters(0, (, ), MemberKind.NonStaticMethod)
-            handleNoInitializers()
+            beginFormalParameters((, MemberKind.Factory)
+            endFormalParameters(0, (, ), MemberKind.Factory)
             handleAsyncModifier(null, null)
-            handleEmptyFunctionBody(;)
-          endConstructor(DeclarationKind.Class, new, new, (, null, ;)
+            handleConstFactory(const)
+            handleLiteralInt(0)
+            handleExpressionFunctionBody(=>, ;)
+          endFactory(DeclarationKind.Class, const, factory, ;)
         endMember()
         beginMetadataStar(factory)
         endMetadataStar(0)
         beginMember()
-          beginFields(DeclarationKind.Class, null, null, null, null, null, null, null, ;)
-            handleRecoverableError(MissingConstFinalVarOrType, factory, factory)
-            handleNoType(;)
-            handleIdentifier(factory, fieldDeclaration)
-            handleNoFieldInitializer(new)
-            handleRecoverableError(Message[Template(ExpectedAfterButGot), Expected ';' after this., null, {string: ;}], factory, factory)
-          endFields(DeclarationKind.Class, null, null, null, null, null, null, null, 1, factory, ;)
-        endMember()
-        beginMetadataStar(new)
-        endMetadataStar(0)
-        beginMember()
-          beginConstructor(DeclarationKind.Class, null, null, null, null, null, null, new, new, C)
-            handleNoType(;)
-            handleNoIdentifier(new, methodDeclaration)
+          beginFactory(DeclarationKind.Class, ;, null, null)
+            handleRecoverableError(FactoryConstructorNewName, new, new)
+            handleIdentifier(new, methodDeclaration)
             handleNoTypeVariables(()
-            beginFormalParameters((, MemberKind.NonStaticMethod)
-            endFormalParameters(0, (, ), MemberKind.NonStaticMethod)
-            handleNoInitializers()
+            beginFormalParameters((, MemberKind.Factory)
+            endFormalParameters(0, (, ), MemberKind.Factory)
             handleAsyncModifier(null, null)
-            handleLiteralInt(0)
-            handleExpressionFunctionBody(=>, ;)
-          endConstructor(DeclarationKind.Class, new, new, (, null, ;)
-        endMember()
-        beginMetadataStar(const)
-        endMetadataStar(0)
-        beginMember()
-          beginFields(DeclarationKind.Class, null, null, null, null, null, null, const, ;)
-            handleNoType(const)
-            handleIdentifier(factory, fieldDeclaration)
-            handleRecoverableError(Message[Template(ConstFieldWithoutInitializer), The const variable 'factory' must be initialized., Try adding an initializer ('= expression') to the declaration., {name: factory}], factory, factory)
-            handleNoFieldInitializer(new)
-            handleRecoverableError(Message[Template(ExpectedAfterButGot), Expected ';' after this., null, {string: ;}], factory, factory)
-          endFields(DeclarationKind.Class, null, null, null, null, null, null, const, 1, const, ;)
-        endMember()
-        beginMetadataStar(new)
-        endMetadataStar(0)
-        beginMember()
-          beginConstructor(DeclarationKind.Class, null, null, null, null, null, null, new, new, C)
-            handleNoType(;)
-            handleNoIdentifier(new, methodDeclaration)
-            handleNoTypeVariables(()
-            beginFormalParameters((, MemberKind.NonStaticMethod)
-            endFormalParameters(0, (, ), MemberKind.NonStaticMethod)
-            handleNoInitializers()
-            handleAsyncModifier(null, null)
-            handleLiteralInt(0)
-            handleExpressionFunctionBody(=>, ;)
-          endConstructor(DeclarationKind.Class, new, new, (, null, ;)
-        endMember()
-        beginMetadataStar(factory)
-        endMetadataStar(0)
-        beginMember()
-          beginFields(DeclarationKind.Class, null, null, null, null, null, null, null, ;)
-            handleRecoverableError(MissingConstFinalVarOrType, factory, factory)
-            handleNoType(;)
-            handleIdentifier(factory, fieldDeclaration)
-            handleNoFieldInitializer(new)
-            handleRecoverableError(Message[Template(ExpectedAfterButGot), Expected ';' after this., null, {string: ;}], factory, factory)
-          endFields(DeclarationKind.Class, null, null, null, null, null, null, null, 1, factory, ;)
-        endMember()
-        beginMetadataStar(new)
-        endMetadataStar(0)
-        beginMember()
-          beginConstructor(DeclarationKind.Class, null, null, null, null, null, null, new, new, C)
-            handleNoType(;)
-            handleNoIdentifier(new, methodDeclaration)
-            handleNoTypeVariables(()
-            beginFormalParameters((, MemberKind.NonStaticMethod)
-            endFormalParameters(0, (, ), MemberKind.NonStaticMethod)
-            handleNoInitializers()
-            handleAsyncModifier(null, null)
-            handleRecoverableError(RedirectionInNonFactory, =, =)
             beginRedirectingFactoryBody(=)
               handleIdentifier(C, constructorReference)
               beginConstructorReference(C)
@@ -202,31 +134,18 @@ beginCompilationUnit(class)
                 handleNoConstructorReferenceContinuationAfterTypeArguments(C)
               endConstructorReference(C, null, C, ConstructorReferenceContext.RedirectingFactory)
             endRedirectingFactoryBody(=, ;)
-          endConstructor(DeclarationKind.Class, new, new, (, null, ;)
+          endFactory(DeclarationKind.Class, factory, factory, ;)
         endMember()
         beginMetadataStar(const)
         endMetadataStar(0)
         beginMember()
-          beginFields(DeclarationKind.Class, null, null, null, null, null, null, const, ;)
-            handleNoType(const)
-            handleIdentifier(factory, fieldDeclaration)
-            handleRecoverableError(Message[Template(ConstFieldWithoutInitializer), The const variable 'factory' must be initialized., Try adding an initializer ('= expression') to the declaration., {name: factory}], factory, factory)
-            handleNoFieldInitializer(new)
-            handleRecoverableError(Message[Template(ExpectedAfterButGot), Expected ';' after this., null, {string: ;}], factory, factory)
-          endFields(DeclarationKind.Class, null, null, null, null, null, null, const, 1, const, ;)
-        endMember()
-        beginMetadataStar(new)
-        endMetadataStar(0)
-        beginMember()
-          beginConstructor(DeclarationKind.Class, null, null, null, null, null, null, new, new, C)
-            handleNoType(;)
-            handleNoIdentifier(new, methodDeclaration)
+          beginFactory(DeclarationKind.Class, ;, null, const)
+            handleRecoverableError(FactoryConstructorNewName, new, new)
+            handleIdentifier(new, methodDeclaration)
             handleNoTypeVariables(()
-            beginFormalParameters((, MemberKind.NonStaticMethod)
-            endFormalParameters(0, (, ), MemberKind.NonStaticMethod)
-            handleNoInitializers()
+            beginFormalParameters((, MemberKind.Factory)
+            endFormalParameters(0, (, ), MemberKind.Factory)
             handleAsyncModifier(null, null)
-            handleRecoverableError(RedirectionInNonFactory, =, =)
             beginRedirectingFactoryBody(=)
               handleIdentifier(C, constructorReference)
               beginConstructorReference(C)
@@ -234,7 +153,112 @@ beginCompilationUnit(class)
                 handleNoConstructorReferenceContinuationAfterTypeArguments(C)
               endConstructorReference(C, null, C, ConstructorReferenceContext.RedirectingFactory)
             endRedirectingFactoryBody(=, ;)
-          endConstructor(DeclarationKind.Class, new, new, (, null, ;)
+          endFactory(DeclarationKind.Class, const, factory, ;)
+        endMember()
+        beginMetadataStar(external)
+        endMetadataStar(0)
+        beginMember()
+          beginFactory(DeclarationKind.Class, ;, external, null)
+            handleRecoverableError(Message[Template(ExpectedIdentifierButGotKeyword), 'new' can't be used as an identifier because it's a keyword., Try renaming this to be an identifier that isn't a keyword., {lexeme: new}], new, new)
+            handleIdentifier(new, methodDeclaration)
+            handleIdentifier(named, methodDeclarationContinuation)
+            handleQualified(.)
+            handleNoTypeVariables(()
+            beginFormalParameters((, MemberKind.Factory)
+            endFormalParameters(0, (, ), MemberKind.Factory)
+            handleAsyncModifier(null, null)
+            handleEmptyFunctionBody(;)
+          endFactory(DeclarationKind.Class, external, factory, ;)
+        endMember()
+        beginMetadataStar(external)
+        endMetadataStar(0)
+        beginMember()
+          beginFactory(DeclarationKind.Class, ;, external, const)
+            handleRecoverableError(Message[Template(ExpectedIdentifierButGotKeyword), 'new' can't be used as an identifier because it's a keyword., Try renaming this to be an identifier that isn't a keyword., {lexeme: new}], new, new)
+            handleIdentifier(new, methodDeclaration)
+            handleIdentifier(named, methodDeclarationContinuation)
+            handleQualified(.)
+            handleNoTypeVariables(()
+            beginFormalParameters((, MemberKind.Factory)
+            endFormalParameters(0, (, ), MemberKind.Factory)
+            handleAsyncModifier(null, null)
+            handleEmptyFunctionBody(;)
+          endFactory(DeclarationKind.Class, external, factory, ;)
+        endMember()
+        beginMetadataStar(factory)
+        endMetadataStar(0)
+        beginMember()
+          beginFactory(DeclarationKind.Class, ;, null, null)
+            handleRecoverableError(Message[Template(ExpectedIdentifierButGotKeyword), 'new' can't be used as an identifier because it's a keyword., Try renaming this to be an identifier that isn't a keyword., {lexeme: new}], new, new)
+            handleIdentifier(new, methodDeclaration)
+            handleIdentifier(named, methodDeclarationContinuation)
+            handleQualified(.)
+            handleNoTypeVariables(()
+            beginFormalParameters((, MemberKind.Factory)
+            endFormalParameters(0, (, ), MemberKind.Factory)
+            handleAsyncModifier(null, null)
+            handleLiteralInt(0)
+            handleExpressionFunctionBody(=>, ;)
+          endFactory(DeclarationKind.Class, factory, factory, ;)
+        endMember()
+        beginMetadataStar(const)
+        endMetadataStar(0)
+        beginMember()
+          beginFactory(DeclarationKind.Class, ;, null, const)
+            handleRecoverableError(Message[Template(ExpectedIdentifierButGotKeyword), 'new' can't be used as an identifier because it's a keyword., Try renaming this to be an identifier that isn't a keyword., {lexeme: new}], new, new)
+            handleIdentifier(new, methodDeclaration)
+            handleIdentifier(named, methodDeclarationContinuation)
+            handleQualified(.)
+            handleNoTypeVariables(()
+            beginFormalParameters((, MemberKind.Factory)
+            endFormalParameters(0, (, ), MemberKind.Factory)
+            handleAsyncModifier(null, null)
+            handleConstFactory(const)
+            handleLiteralInt(0)
+            handleExpressionFunctionBody(=>, ;)
+          endFactory(DeclarationKind.Class, const, factory, ;)
+        endMember()
+        beginMetadataStar(factory)
+        endMetadataStar(0)
+        beginMember()
+          beginFactory(DeclarationKind.Class, ;, null, null)
+            handleRecoverableError(Message[Template(ExpectedIdentifierButGotKeyword), 'new' can't be used as an identifier because it's a keyword., Try renaming this to be an identifier that isn't a keyword., {lexeme: new}], new, new)
+            handleIdentifier(new, methodDeclaration)
+            handleIdentifier(named, methodDeclarationContinuation)
+            handleQualified(.)
+            handleNoTypeVariables(()
+            beginFormalParameters((, MemberKind.Factory)
+            endFormalParameters(0, (, ), MemberKind.Factory)
+            handleAsyncModifier(null, null)
+            beginRedirectingFactoryBody(=)
+              handleIdentifier(C, constructorReference)
+              beginConstructorReference(C)
+                handleNoTypeArguments(;)
+                handleNoConstructorReferenceContinuationAfterTypeArguments(C)
+              endConstructorReference(C, null, C, ConstructorReferenceContext.RedirectingFactory)
+            endRedirectingFactoryBody(=, ;)
+          endFactory(DeclarationKind.Class, factory, factory, ;)
+        endMember()
+        beginMetadataStar(const)
+        endMetadataStar(0)
+        beginMember()
+          beginFactory(DeclarationKind.Class, ;, null, const)
+            handleRecoverableError(Message[Template(ExpectedIdentifierButGotKeyword), 'new' can't be used as an identifier because it's a keyword., Try renaming this to be an identifier that isn't a keyword., {lexeme: new}], new, new)
+            handleIdentifier(new, methodDeclaration)
+            handleIdentifier(named, methodDeclarationContinuation)
+            handleQualified(.)
+            handleNoTypeVariables(()
+            beginFormalParameters((, MemberKind.Factory)
+            endFormalParameters(0, (, ), MemberKind.Factory)
+            handleAsyncModifier(null, null)
+            beginRedirectingFactoryBody(=)
+              handleIdentifier(C, constructorReference)
+              beginConstructorReference(C)
+                handleNoTypeArguments(;)
+                handleNoConstructorReferenceContinuationAfterTypeArguments(C)
+              endConstructorReference(C, null, C, ConstructorReferenceContext.RedirectingFactory)
+            endRedirectingFactoryBody(=, ;)
+          endFactory(DeclarationKind.Class, const, factory, ;)
         endMember()
       endClassOrMixinOrExtensionBody(DeclarationKind.Class, 12, {, })
     endClassDeclaration(class, })

@@ -1813,14 +1813,12 @@ class FragmentFactoryImpl implements FragmentFactory {
       } else if (name == className) {
         // Old style unnamed constructor.
         name = '';
+      } else if (isFactory && name == "new") {
+        // Erroneous case reported in the parser, normalize `Class`.
+        name = '';
+        fullName = className;
       } else if (isFactory && libraryFeatures.declaringConstructors.isEnabled) {
-        if (name == "new") {
-          // Erroneous case reported in the parser, normalize `Class`.
-          name = '';
-          fullName = className;
-        } else {
-          fullName = '$className.$name';
-        }
+        fullName = '$className.$name';
       } else {
         _problemReporting.addProblem(
           codeConstructorWithWrongName,

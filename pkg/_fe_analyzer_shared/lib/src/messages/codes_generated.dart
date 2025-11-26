@@ -1396,6 +1396,15 @@ Message _withArgumentsOldExtraneousModifierInPrimaryConstructor(Token lexeme) =>
     _withArgumentsExtraneousModifierInPrimaryConstructor(lexeme: lexeme);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode codeFactoryConstructorNewName = const MessageCode(
+  "FactoryConstructorNewName",
+  sharedCode: SharedCode.factoryConstructorNewName,
+  problemMessage: """Factory constructors can't be named 'new'.""",
+  correctionMessage:
+      """Try removing the 'new' keyword or changing it to a different name.""",
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode codeFactoryNotSync = const MessageCode(
   "FactoryNotSync",
   pseudoSharedCode: PseudoSharedCode.nonSyncFactory,
@@ -3322,6 +3331,7 @@ enum SharedCode {
   extraneousModifier,
   extraneousModifierInExtensionType,
   extraneousModifierInPrimaryConstructor,
+  factoryConstructorNewName,
   factoryTopLevelDeclaration,
   fieldInitializedOutsideDeclaringClass,
   fieldInitializerOutsideConstructor,

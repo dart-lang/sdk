@@ -5232,7 +5232,7 @@ class Parser {
         // Fall through to continue parsing `get` or `set` as an identifier.
       } else if (identical(value, 'factory')) {
         Token next2 = next.next!;
-        if (next2.isIdentifier || next2.isModifier) {
+        if (next2.isIdentifier || next2.isModifier || next2.isA(Keyword.NEW)) {
           if (beforeType != token) {
             reportRecoverableError(token, codes.codeTypeBeforeFactory);
           }
@@ -5958,6 +5958,14 @@ class Parser {
     listener.beginFactory(kind, beforeStart, externalToken, varFinalOrConst);
     if (!hasName) {
       listener.handleNoIdentifier(token, IdentifierContext.methodDeclaration);
+    } else if (token.next!.isA(Keyword.NEW) &&
+        !token.next!.next!.isA(TokenType.PERIOD)) {
+      Token identifier = token = token.next!;
+      reportRecoverableError(identifier, codes.codeFactoryConstructorNewName);
+      listener.handleIdentifier(
+        identifier,
+        IdentifierContext.methodDeclaration,
+      );
     } else {
       token = ensureIdentifier(token, IdentifierContext.methodDeclaration);
       token = parseQualifiedRestOpt(

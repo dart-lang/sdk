@@ -2464,3 +2464,16 @@ NewConstructorNewName:
     class C {
       new new();
     }
+
+FactoryConstructorNewName:
+  type: syntacticError
+  parameters: none
+  problemMessage: "Factory constructors can't be named 'new'."
+  correctionMessage: "Try removing the 'new' keyword or changing it to a different name."
+  analyzerCode: ParserErrorCode.FACTORY_CONSTRUCTOR_NEW_NAME
+  hasPublishedDocs: false
+  experiments: declaring-constructors
+  script: |
+    class C {
+      factory new() => throw '';
+    }
