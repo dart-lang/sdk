@@ -1,5 +1,7 @@
 # Language Fidelity
 
+[Dart Language Specification]: https://storage.googleapis.com/dart-specification/DartLangSpecDraft.pdf
+
 __The tooling should never mislead the user about the syntax or semantics of
 the language.__
 
@@ -12,7 +14,12 @@ probably a result of misunderstandings about the language. In this document
 we'll look at some of the complexities of the language and how that impacts the
 design of the UX.
 
-## Reserved words, build-in identifiers, and positionally significant identifiers
+## Syntax
+
+Dart's syntax is fairly straightforward, but there are a few places where it can
+impact the user experience.
+
+### Reserved words, build-in identifiers, and positionally significant identifiers
 
 Dart has three categories of identifiers with special semantics:
 
@@ -20,7 +27,12 @@ Dart has three categories of identifiers with special semantics:
 <dt>Reserved words</dt>
 <dd>
 Identifiers that can only be used in specified places in the grammar. They
-can't be used in any declaration.
+can't be used in any kind of declaration.
+</dd>
+<p></p>
+<dd>
+Examples include `class` and `if`. The complete list is in the
+[Dart Language Specification][] in section 21.1.1.
 </dd>
 <dt>Build-in identifiers</dt>
 <dd>
@@ -28,37 +40,40 @@ Identifiers that are used as keywords in Dart, but are not reserved words. A
 built-in identifier may not be used to name a class or type, but can be used in
 other declarations.
 </dd>
-<dt>Significant identifiers</dt>
+<p></p>
+<dd>
+Examples include `import` and `extension`. The complete list is in the
+[Dart Language Specification][] in section 17.38.
+</dd>
+<dt>Positionally significant identifiers</dt>
 <dd>
 Identifiers that can be used for any kind of declaration but which have a
 special meaning when used in certain locations.
 </dd>
+<p></p>
+<dd>
+Examples include `show` and `on`. The complete list is in the
+[Dart Language Specification][] in section 17.38.
+</dd>
 </dl>
 
-### Semantic highlighting
-
-We needed to decide whether to explicitly represent these three categories of
+The question is whether to explicitly represent these three categories of
 identifiers or whether to ignore the distinctions. It could be argued that
 ignoring the distinction would violate this design principle. It could also be
 argued that making the distinction might be confusing for the user.
 
 In the end, we decided that the better interpretation of the language spec is
 that there are two important categories: identifiers that are functioning as a
-keyword and identifiers that are not. As a result, we treat all of these as
-keywords whenever they serve the function of a keyword, and treat them as
-identifiers when they don't.
+keyword and identifiers that are not.
 
-### Code completion
-
-This also impacts code completion in that it needs to be careful about where
-each kind of identifier is suggested. There is support for suggesting names in
-certain declarations, but some identifiers can't be used, depending on the kind
-of declaration.
+This has implications for
+- Semantic highlighting
+- Code completion
 
 ## The type system
 
-For the purposes of this document, Dart's type system has three categories of
-types:
+For the purposes of this document, we'll classify the types in Dart's type
+system into three categories:
 
 <dl>
 <dt>Nominal types</dt>
@@ -88,7 +103,7 @@ we "unwrap" the type until we get to a type that is not introduced by a
 `typedef`. The fact that a `typedef` introduces a name does _not_ make the type
 a nominal type.
 
-Two nominal types are the same if they are introduced by the same
+Two nominal types are the same if they are introduced by the same unwrapped
 (non-`typedef`) declaration. Given the following class declarations
 ```dart
 class Point {
@@ -106,7 +121,7 @@ class `Pair`, have different types, despite the fact that both have the same
 number of fields, with the same types and names.
 
 Two structural types are the same if they have the same structure. Given the
-following record declarations
+following record-typed variables
 ```dart
 ({int x, int y}) point = (x: 1, y: 2);
 ({int x, int y}) pair = (x: 3, y: 4);
@@ -115,8 +130,11 @@ the record assigned to `point` and the record assigned to `pair` have the same
 type.
 
 Nominal types are only equal to other nominal types, structural types are only
-equal to other structural types, and the other types are only equal to
+equal to other structural types, and each of the other types are only equal to
 themselves.
+
+The differences between the different kinds of types impacts many features,
+including occurrences and navigation.
 
 ### Occurences
 
@@ -176,29 +194,97 @@ to not highlight occurrences of members of structural types.
 ### Go to declaration
 
 The same reasoning that led us to not highlight occurrences of members of
-structural types led us to not support navigation from references to a member
-and the declaration(s) of the member.
+structural types led us to not support navigation from references to a member of
+a structural type and the declaration(s) of the member.
+
+## Elements without a declaration
+
+There are some elements that exist in the element model for which there is no
+explicit declaration. These cases are listed below.
+
+In all such cases the principle of language fidelity dictates that the tools
+shouldn't pretend that there is a declaration.
+
+For example, go-to-declaration isn't available for references to these elements.
+
+### Default constructors
+
+If a class does not have any explicit constructor declarations, then there is an
+implicit unnamed constructor, sometimes refered to as the "default" constructor.
+
+### Enums
+
+An enum declaration has two implicit members (in addition to the possible
+default constructor). The first is the implicit instance member `index`, the
+second is the implicit static member `values`.
+
+### Built-in types
+
+Several of the types don't have a declaration. These include types such as
+`void` and `dynamic`.
 
 ## Multiple elements from a single declaration
 
-TBD
+A single declaration can sometimes give rise to more than one element.
+That means that that a single name can refer to semantically distinct elements
+at different points in the code. The kinds of declarations for which this is
+true are given below.
+
+This has implications for features like occurences and navigation.
 
 ### Fields, getters, and setters
 
-TBD
+Every field declaration generates two or three separate elements:
+- the field itself,
+- the induced getter used to access the field, and
+- the induced setter used to assign to the field, as long as the field is
+  neither `final` nor `const`.
+
+A field cannot be overridden, but getters and setters _can_ be overridden,
+either by an explicit getter or setter or by the getter and setter induced by
+another field declaration.
+
+In most places, a reference to a field is actually a reference to either the
+getter or the setter. The only places where a field can actually be referenced
+are in the parameter list or initializer list of a constructor.
 
 ### Declaring parameters
 
-TBD
+A declaring parameter (found in a primary constructor) introduces a parameter,
+a field, and the getter and setter induced by that field.
+
+### Object patterns with a matching pattern variable
+
+An object pattern specifies a list of properties and patterns to be matched to
+each listed property. But if the pattern is a variable pattern and the name of
+the variable is the same as the name of the property, then the name of the
+property can be omitted. This leads to the name of the variable playing two
+roles and raising questions about how to reconcile them.
 
 ## A single element from multiple declarations
 
-TBD
+A single element can sometimes be composed from multiple declarations.
 
-### Augmentations
-
-TBD
+This has implications for features like navigation.
 
 ### Primary constructors
 
-TBD
+The parameters for a primary constructor are declared in the header of the
+class (or emun), but the body of the constructor can be provided in the list of
+members.
+
+### Augmentations
+
+Augmentations allow some or all of any member declaration to be in a separate
+declaration, and that declaration can be in either the same part of the library
+or in a different part.
+
+### Pattern variables in switch statements
+
+When there are multiple cases that share a body, or when there's an and-pattern,
+if any of those cases (or operand in the and-pattern) define a pattern variable,
+then every case (and operand in the and-pattern) must define a pattern variable
+with the same name.
+
+There's only one variable with that name, in the case body, but the declaration
+is split across all of the cases (or operands in the and-pattern).

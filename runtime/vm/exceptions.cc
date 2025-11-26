@@ -650,7 +650,7 @@ NO_SANITIZE_SAFE_STACK  // This function manipulates the safestack pointer.
   // We are jumping over C++ frames, so we have to set the safestack pointer
   // back to what it was when we entered the runtime from Dart code.
 #if defined(USING_SAFE_STACK)
-  const uword saved_ssp = thread->saved_safestack_limit();
+  const uword saved_ssp = thread->saved_safestack();
   OSThread::SetCurrentSafestackPointer(saved_ssp);
 #endif
 
