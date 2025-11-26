@@ -4612,14 +4612,12 @@ package:analyzer/error/listener.dart:
     new (constructor: BooleanDiagnosticListener Function())
     errorReported (getter: bool)
     onDiagnostic (method: void Function(Diagnostic))
-    onError (method: void Function(Diagnostic), deprecated)
-  DiagnosticListener (class extends Object implements DiagnosticOrErrorListener):
+  DiagnosticListener (class extends Object):
     nullListener (static getter: DiagnosticListener)
     new (constructor: DiagnosticListener Function())
     onDiagnostic (method: void Function(Diagnostic))
-  DiagnosticOrErrorListener (class extends Object, sealed (immediate subtypes: DiagnosticListener), deprecated)
   DiagnosticReporter (class extends Object):
-    new (constructor: DiagnosticReporter Function(DiagnosticOrErrorListener, Source))
+    new (constructor: DiagnosticReporter Function(DiagnosticListener, Source))
     lockLevel (getter: int)
     lockLevel= (setter: int)
     source (getter: Source)
@@ -4634,9 +4632,6 @@ package:analyzer/error/listener.dart:
   RecordingDiagnosticListener (class extends Object implements DiagnosticListener):
     new (constructor: RecordingDiagnosticListener Function())
     diagnostics (getter: List<Diagnostic>)
-    onDiagnostic (method: void Function(Diagnostic))
-    onError (method: void Function(Diagnostic), deprecated)
-  DiagnosticOrErrorListenerExtension (extension on DiagnosticOrErrorListener):
     onDiagnostic (method: void Function(Diagnostic))
   ErrorReporter (type alias for DiagnosticReporter, deprecated)
 package:analyzer/exception/exception.dart:

@@ -2,8 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// VMOptions=--experimental-shared-data
+// VMOptions=--experimental-shared-data --no-osr --no-background-compilation
 
+import "dart:ffi";
 import "dart:io";
 import "dart:isolate";
 import "dart:typed_data";
@@ -13,34 +14,48 @@ import "package:expect/expect.dart";
 Uint8List box = Uint8List(1);
 
 @pragma("vm:never-inline")
-noopt() {}
-
-@pragma("vm:never-inline")
 dataRaceFromMain() {
   final localBox = box;
-  for (var i = 0; i < 10000000; i++) {
-    localBox[0] += 1;
-    noopt();
+  for (var i = 0; i < 50000; i++) {
+    usleep(100);
+    var t = localBox[0];
+    usleep(100);
+    localBox[0] = t + 1;
   }
 }
 
 @pragma("vm:never-inline")
 dataRaceFromChild() {
   final localBox = box;
-  for (var i = 0; i < 10000000; i++) {
-    localBox[0] += 1;
-    noopt();
+  for (var i = 0; i < 50000; i++) {
+    usleep(100);
+    var t = localBox[0];
+    usleep(100);
+    localBox[0] = t + 1;
   }
 }
 
-child(_) {
+child(replyPort) {
   dataRaceFromChild();
+  replyPort.send(null);
 }
+
+// Leaf: we don't want the two threads to synchronize via safepoint.
+final usleep = DynamicLibrary.process()
+    .lookupFunction<Void Function(Long), void Function(int)>(
+      'usleep',
+      isLeaf: true,
+    );
 
 main(List<String> arguments) {
   if (arguments.contains("--testee")) {
-    print(box); // side effect initialization
-    Isolate.spawn(child, null);
+    // Avoid synchronizing via lazy compilation and initialization.
+    usleep(0);
+    box![0] += 0;
+
+    var port = new RawReceivePort();
+    port.handler = (_) => port.close();
+    Isolate.spawn(child, port.sendPort);
     dataRaceFromMain();
     return;
   }

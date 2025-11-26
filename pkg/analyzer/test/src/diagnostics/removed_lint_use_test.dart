@@ -3,9 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
-import 'package:analyzer/src/lint/registry.dart';
 import 'package:analyzer/src/test_utilities/lint_registration_mixin.dart';
-import 'package:linter/src/rules.dart' as linter;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
@@ -22,7 +20,6 @@ class RemovedLintUseTest extends PubPackageResolutionTest
   @override
   void setUp() {
     super.setUp();
-    linter.registerLintRules();
 
     // TODO(paulberry): remove as part of fixing
     // https://github.com/dart-lang/sdk/issues/62040.
@@ -31,14 +28,6 @@ linter:
   rules:
     - unnecessary_ignore
 ''');
-  }
-
-  @override
-  Future<void> tearDown() {
-    for (var rule in Registry.ruleRegistry.rules) {
-      Registry.ruleRegistry.unregisterLintRule(rule);
-    }
-    return super.tearDown();
   }
 
   test_file() async {
