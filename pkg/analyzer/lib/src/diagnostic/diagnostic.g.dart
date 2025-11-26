@@ -11337,6 +11337,19 @@ negativeVariableDimension = DiagnosticWithoutArgumentsImpl(
 );
 
 /// No parameters.
+const DiagnosticWithoutArguments newConstructorNewName =
+    DiagnosticWithoutArgumentsImpl(
+      name: 'NEW_CONSTRUCTOR_NEW_NAME',
+      problemMessage:
+          "Constructors declared with the 'new' keyword can't be named 'new'.",
+      correctionMessage:
+          "Try removing the second 'new' or changing it to a different name.",
+      type: DiagnosticType.SYNTACTIC_ERROR,
+      uniqueName: 'ParserErrorCode.NEW_CONSTRUCTOR_NEW_NAME',
+      expectedTypes: [],
+    );
+
+/// No parameters.
 const DiagnosticWithoutArguments
 newConstructorQualifiedName = DiagnosticWithoutArgumentsImpl(
   name: 'NEW_CONSTRUCTOR_QUALIFIED_NAME',

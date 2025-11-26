@@ -2476,6 +2476,16 @@ const MessageCode codeNativeClauseShouldBeAnnotation = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode codeNewConstructorNewName = const MessageCode(
+  "NewConstructorNewName",
+  sharedCode: SharedCode.newConstructorNewName,
+  problemMessage:
+      """Constructors declared with the 'new' keyword can't be named 'new'.""",
+  correctionMessage:
+      """Try removing the second 'new' or changing it to a different name.""",
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode codeNewConstructorQualifiedName = const MessageCode(
   "NewConstructorQualifiedName",
   sharedCode: SharedCode.newConstructorQualifiedName,
@@ -3384,6 +3394,7 @@ enum SharedCode {
   multipleVarianceModifiers,
   multipleWithClauses,
   nativeClauseShouldBeAnnotation,
+  newConstructorNewName,
   newConstructorQualifiedName,
   nullAwareCascadeOutOfOrder,
   outOfOrderClauses,

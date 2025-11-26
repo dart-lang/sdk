@@ -5710,6 +5710,14 @@ class Parser {
           reportRecoverableError(token, codes.codeNewConstructorQualifiedName);
         }
         token = qualified;
+      } else if (token.next!.isA(Keyword.NEW)) {
+        // This a constructor declaration like `new new();` which isn't allowed.
+        Token identifier = token = token.next!;
+        reportRecoverableError(identifier, codes.codeNewConstructorNewName);
+        listener.handleIdentifier(
+          identifier,
+          IdentifierContext.methodDeclaration,
+        );
       } else {
         listener.handleNoIdentifier(token, IdentifierContext.methodDeclaration);
       }

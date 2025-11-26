@@ -1,66 +1,34 @@
 Problems reported:
 
-parser/declaring_constructors/new_new:3:3: A method declaration needs an explicit list of parameters.
-  new new();
-  ^^^
-
-parser/declaring_constructors/new_new:3:7: Expected a function body, but got 'new'.
+parser/declaring_constructors/new_new:2:7: Constructors declared with the 'new' keyword can't be named 'new'.
   new new();
       ^^^
 
-parser/declaring_constructors/new_new:4:9: A method declaration needs an explicit list of parameters.
-  const new new();
-        ^^^
-
-parser/declaring_constructors/new_new:4:13: Expected a function body, but got 'new'.
+parser/declaring_constructors/new_new:3:13: Constructors declared with the 'new' keyword can't be named 'new'.
   const new new();
             ^^^
 
-parser/declaring_constructors/new_new:5:3: A method declaration needs an explicit list of parameters.
-  new new() : this.x = 0;
-  ^^^
-
-parser/declaring_constructors/new_new:5:7: Expected a function body, but got 'new'.
+parser/declaring_constructors/new_new:4:7: Constructors declared with the 'new' keyword can't be named 'new'.
   new new() : this.x = 0;
       ^^^
 
-parser/declaring_constructors/new_new:6:9: A method declaration needs an explicit list of parameters.
-  const new new() : this.x = 0;
-        ^^^
-
-parser/declaring_constructors/new_new:6:13: Expected a function body, but got 'new'.
+parser/declaring_constructors/new_new:5:13: Constructors declared with the 'new' keyword can't be named 'new'.
   const new new() : this.x = 0;
             ^^^
 
-parser/declaring_constructors/new_new:7:3: A method declaration needs an explicit list of parameters.
-  new new() {}
-  ^^^
-
-parser/declaring_constructors/new_new:7:7: Expected a function body, but got 'new'.
+parser/declaring_constructors/new_new:6:7: Constructors declared with the 'new' keyword can't be named 'new'.
   new new() {}
       ^^^
 
-parser/declaring_constructors/new_new:8:9: A method declaration needs an explicit list of parameters.
-  const new new() {}
-        ^^^
-
-parser/declaring_constructors/new_new:8:13: Expected a function body, but got 'new'.
+parser/declaring_constructors/new_new:7:13: Constructors declared with the 'new' keyword can't be named 'new'.
   const new new() {}
             ^^^
 
-parser/declaring_constructors/new_new:9:3: A method declaration needs an explicit list of parameters.
-  new new() : this.x = 0 {}
-  ^^^
-
-parser/declaring_constructors/new_new:9:7: Expected a function body, but got 'new'.
+parser/declaring_constructors/new_new:8:7: Constructors declared with the 'new' keyword can't be named 'new'.
   new new() : this.x = 0 {}
       ^^^
 
-parser/declaring_constructors/new_new:10:9: A method declaration needs an explicit list of parameters.
-  const new new() : this.x = 0 {}
-        ^^^
-
-parser/declaring_constructors/new_new:10:13: Expected a function body, but got 'new'.
+parser/declaring_constructors/new_new:9:13: Constructors declared with the 'new' keyword can't be named 'new'.
   const new new() : this.x = 0 {}
             ^^^
 
@@ -83,23 +51,8 @@ beginCompilationUnit(class)
         beginMember()
           beginConstructor(DeclarationKind.Class, null, null, null, null, null, null, new, new, C)
             handleNoType({)
-            handleNoIdentifier(new, methodDeclaration)
-            handleNoTypeVariables(new)
-            handleRecoverableError(MissingMethodParameters, new, new)
-            beginFormalParameters((, MemberKind.NonStaticMethod)
-            endFormalParameters(0, (, ), MemberKind.NonStaticMethod)
-            handleNoInitializers()
-            handleAsyncModifier(null, null)
-            handleRecoverableError(Message[Template(ExpectedFunctionBody), Expected a function body, but got 'new'., null, {lexeme: new}], new, new)
-            handleInvalidFunctionBody({)
-          endConstructor(DeclarationKind.Class, new, new, (, null, })
-        endMember()
-        beginMetadataStar(new)
-        endMetadataStar(0)
-        beginMember()
-          beginConstructor(DeclarationKind.Class, null, null, null, null, null, null, new, new, C)
-            handleNoType(})
-            handleNoIdentifier(new, methodDeclaration)
+            handleRecoverableError(NewConstructorNewName, new, new)
+            handleIdentifier(new, methodDeclaration)
             handleNoTypeVariables(()
             beginFormalParameters((, MemberKind.NonStaticMethod)
             endFormalParameters(0, (, ), MemberKind.NonStaticMethod)
@@ -113,53 +66,23 @@ beginCompilationUnit(class)
         beginMember()
           beginConstructor(DeclarationKind.Class, null, null, null, null, const, null, new, new, C)
             handleNoType(const)
-            handleNoIdentifier(new, methodDeclaration)
-            handleNoTypeVariables(new)
-            handleRecoverableError(MissingMethodParameters, new, new)
-            beginFormalParameters((, MemberKind.NonStaticMethod)
-            endFormalParameters(0, (, ), MemberKind.NonStaticMethod)
-            handleNoInitializers()
-            handleAsyncModifier(null, null)
-            handleRecoverableError(Message[Template(ExpectedFunctionBody), Expected a function body, but got 'new'., null, {lexeme: new}], new, new)
-            handleInvalidFunctionBody({)
-          endConstructor(DeclarationKind.Class, const, new, (, null, })
-        endMember()
-        beginMetadataStar(new)
-        endMetadataStar(0)
-        beginMember()
-          beginConstructor(DeclarationKind.Class, null, null, null, null, null, null, new, new, C)
-            handleNoType(})
-            handleNoIdentifier(new, methodDeclaration)
+            handleRecoverableError(NewConstructorNewName, new, new)
+            handleIdentifier(new, methodDeclaration)
             handleNoTypeVariables(()
             beginFormalParameters((, MemberKind.NonStaticMethod)
             endFormalParameters(0, (, ), MemberKind.NonStaticMethod)
             handleNoInitializers()
             handleAsyncModifier(null, null)
             handleEmptyFunctionBody(;)
-          endConstructor(DeclarationKind.Class, new, new, (, null, ;)
+          endConstructor(DeclarationKind.Class, const, new, (, null, ;)
         endMember()
         beginMetadataStar(new)
         endMetadataStar(0)
         beginMember()
           beginConstructor(DeclarationKind.Class, null, null, null, null, null, null, new, new, C)
             handleNoType(;)
-            handleNoIdentifier(new, methodDeclaration)
-            handleNoTypeVariables(new)
-            handleRecoverableError(MissingMethodParameters, new, new)
-            beginFormalParameters((, MemberKind.NonStaticMethod)
-            endFormalParameters(0, (, ), MemberKind.NonStaticMethod)
-            handleNoInitializers()
-            handleAsyncModifier(null, null)
-            handleRecoverableError(Message[Template(ExpectedFunctionBody), Expected a function body, but got 'new'., null, {lexeme: new}], new, new)
-            handleInvalidFunctionBody({)
-          endConstructor(DeclarationKind.Class, new, new, (, null, })
-        endMember()
-        beginMetadataStar(new)
-        endMetadataStar(0)
-        beginMember()
-          beginConstructor(DeclarationKind.Class, null, null, null, null, null, null, new, new, C)
-            handleNoType(})
-            handleNoIdentifier(new, methodDeclaration)
+            handleRecoverableError(NewConstructorNewName, new, new)
+            handleIdentifier(new, methodDeclaration)
             handleNoTypeVariables(()
             beginFormalParameters((, MemberKind.NonStaticMethod)
             endFormalParameters(0, (, ), MemberKind.NonStaticMethod)
@@ -184,23 +107,8 @@ beginCompilationUnit(class)
         beginMember()
           beginConstructor(DeclarationKind.Class, null, null, null, null, const, null, new, new, C)
             handleNoType(const)
-            handleNoIdentifier(new, methodDeclaration)
-            handleNoTypeVariables(new)
-            handleRecoverableError(MissingMethodParameters, new, new)
-            beginFormalParameters((, MemberKind.NonStaticMethod)
-            endFormalParameters(0, (, ), MemberKind.NonStaticMethod)
-            handleNoInitializers()
-            handleAsyncModifier(null, null)
-            handleRecoverableError(Message[Template(ExpectedFunctionBody), Expected a function body, but got 'new'., null, {lexeme: new}], new, new)
-            handleInvalidFunctionBody({)
-          endConstructor(DeclarationKind.Class, const, new, (, null, })
-        endMember()
-        beginMetadataStar(new)
-        endMetadataStar(0)
-        beginMember()
-          beginConstructor(DeclarationKind.Class, null, null, null, null, null, null, new, new, C)
-            handleNoType(})
-            handleNoIdentifier(new, methodDeclaration)
+            handleRecoverableError(NewConstructorNewName, new, new)
+            handleIdentifier(new, methodDeclaration)
             handleNoTypeVariables(()
             beginFormalParameters((, MemberKind.NonStaticMethod)
             endFormalParameters(0, (, ), MemberKind.NonStaticMethod)
@@ -218,30 +126,15 @@ beginCompilationUnit(class)
             endInitializers(1, :, 0)
             handleAsyncModifier(null, null)
             handleEmptyFunctionBody(;)
-          endConstructor(DeclarationKind.Class, new, new, (, :, ;)
+          endConstructor(DeclarationKind.Class, const, new, (, :, ;)
         endMember()
         beginMetadataStar(new)
         endMetadataStar(0)
         beginMember()
           beginConstructor(DeclarationKind.Class, null, null, null, null, null, null, new, new, C)
             handleNoType(;)
-            handleNoIdentifier(new, methodDeclaration)
-            handleNoTypeVariables(new)
-            handleRecoverableError(MissingMethodParameters, new, new)
-            beginFormalParameters((, MemberKind.NonStaticMethod)
-            endFormalParameters(0, (, ), MemberKind.NonStaticMethod)
-            handleNoInitializers()
-            handleAsyncModifier(null, null)
-            handleRecoverableError(Message[Template(ExpectedFunctionBody), Expected a function body, but got 'new'., null, {lexeme: new}], new, new)
-            handleInvalidFunctionBody({)
-          endConstructor(DeclarationKind.Class, new, new, (, null, })
-        endMember()
-        beginMetadataStar(new)
-        endMetadataStar(0)
-        beginMember()
-          beginConstructor(DeclarationKind.Class, null, null, null, null, null, null, new, new, C)
-            handleNoType(})
-            handleNoIdentifier(new, methodDeclaration)
+            handleRecoverableError(NewConstructorNewName, new, new)
+            handleIdentifier(new, methodDeclaration)
             handleNoTypeVariables(()
             beginFormalParameters((, MemberKind.NonStaticMethod)
             endFormalParameters(0, (, ), MemberKind.NonStaticMethod)
@@ -256,23 +149,8 @@ beginCompilationUnit(class)
         beginMember()
           beginConstructor(DeclarationKind.Class, null, null, null, null, const, null, new, new, C)
             handleNoType(const)
-            handleNoIdentifier(new, methodDeclaration)
-            handleNoTypeVariables(new)
-            handleRecoverableError(MissingMethodParameters, new, new)
-            beginFormalParameters((, MemberKind.NonStaticMethod)
-            endFormalParameters(0, (, ), MemberKind.NonStaticMethod)
-            handleNoInitializers()
-            handleAsyncModifier(null, null)
-            handleRecoverableError(Message[Template(ExpectedFunctionBody), Expected a function body, but got 'new'., null, {lexeme: new}], new, new)
-            handleInvalidFunctionBody({)
-          endConstructor(DeclarationKind.Class, const, new, (, null, })
-        endMember()
-        beginMetadataStar(new)
-        endMetadataStar(0)
-        beginMember()
-          beginConstructor(DeclarationKind.Class, null, null, null, null, null, null, new, new, C)
-            handleNoType(})
-            handleNoIdentifier(new, methodDeclaration)
+            handleRecoverableError(NewConstructorNewName, new, new)
+            handleIdentifier(new, methodDeclaration)
             handleNoTypeVariables(()
             beginFormalParameters((, MemberKind.NonStaticMethod)
             endFormalParameters(0, (, ), MemberKind.NonStaticMethod)
@@ -280,30 +158,15 @@ beginCompilationUnit(class)
             handleAsyncModifier(null, null)
             beginBlockFunctionBody({)
             endBlockFunctionBody(0, {, })
-          endConstructor(DeclarationKind.Class, new, new, (, null, })
+          endConstructor(DeclarationKind.Class, const, new, (, null, })
         endMember()
         beginMetadataStar(new)
         endMetadataStar(0)
         beginMember()
           beginConstructor(DeclarationKind.Class, null, null, null, null, null, null, new, new, C)
             handleNoType(})
-            handleNoIdentifier(new, methodDeclaration)
-            handleNoTypeVariables(new)
-            handleRecoverableError(MissingMethodParameters, new, new)
-            beginFormalParameters((, MemberKind.NonStaticMethod)
-            endFormalParameters(0, (, ), MemberKind.NonStaticMethod)
-            handleNoInitializers()
-            handleAsyncModifier(null, null)
-            handleRecoverableError(Message[Template(ExpectedFunctionBody), Expected a function body, but got 'new'., null, {lexeme: new}], new, new)
-            handleInvalidFunctionBody({)
-          endConstructor(DeclarationKind.Class, new, new, (, null, })
-        endMember()
-        beginMetadataStar(new)
-        endMetadataStar(0)
-        beginMember()
-          beginConstructor(DeclarationKind.Class, null, null, null, null, null, null, new, new, C)
-            handleNoType(})
-            handleNoIdentifier(new, methodDeclaration)
+            handleRecoverableError(NewConstructorNewName, new, new)
+            handleIdentifier(new, methodDeclaration)
             handleNoTypeVariables(()
             beginFormalParameters((, MemberKind.NonStaticMethod)
             endFormalParameters(0, (, ), MemberKind.NonStaticMethod)
@@ -329,23 +192,8 @@ beginCompilationUnit(class)
         beginMember()
           beginConstructor(DeclarationKind.Class, null, null, null, null, const, null, new, new, C)
             handleNoType(const)
-            handleNoIdentifier(new, methodDeclaration)
-            handleNoTypeVariables(new)
-            handleRecoverableError(MissingMethodParameters, new, new)
-            beginFormalParameters((, MemberKind.NonStaticMethod)
-            endFormalParameters(0, (, ), MemberKind.NonStaticMethod)
-            handleNoInitializers()
-            handleAsyncModifier(null, null)
-            handleRecoverableError(Message[Template(ExpectedFunctionBody), Expected a function body, but got 'new'., null, {lexeme: new}], new, new)
-            handleInvalidFunctionBody({)
-          endConstructor(DeclarationKind.Class, const, new, (, null, })
-        endMember()
-        beginMetadataStar(new)
-        endMetadataStar(0)
-        beginMember()
-          beginConstructor(DeclarationKind.Class, null, null, null, null, null, null, new, new, C)
-            handleNoType(})
-            handleNoIdentifier(new, methodDeclaration)
+            handleRecoverableError(NewConstructorNewName, new, new)
+            handleIdentifier(new, methodDeclaration)
             handleNoTypeVariables(()
             beginFormalParameters((, MemberKind.NonStaticMethod)
             endFormalParameters(0, (, ), MemberKind.NonStaticMethod)
@@ -364,9 +212,9 @@ beginCompilationUnit(class)
             handleAsyncModifier(null, null)
             beginBlockFunctionBody({)
             endBlockFunctionBody(0, {, })
-          endConstructor(DeclarationKind.Class, new, new, (, :, })
+          endConstructor(DeclarationKind.Class, const, new, (, :, })
         endMember()
-      endClassOrMixinOrExtensionBody(DeclarationKind.Class, 16, {, })
+      endClassOrMixinOrExtensionBody(DeclarationKind.Class, 8, {, })
     endClassDeclaration(class, })
   endTopLevelDeclaration(})
 endCompilationUnit(1, )

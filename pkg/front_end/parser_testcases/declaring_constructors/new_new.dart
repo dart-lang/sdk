@@ -1,4 +1,3 @@
-// TODO(johnniwinther): Improve error recovery.
 class C {
   new new();
   const new new();
