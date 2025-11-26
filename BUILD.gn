@@ -378,6 +378,7 @@ if (is_fuchsia) {
     "tests/ffi/vmspecific_highmem_32bit_test.dart",
     "tests/ffi/vmspecific_leaf_call_test.dart",
     "tests/ffi/vmspecific_native_finalizer_2_test.dart",
+    "tests/ffi/vmspecific_native_finalizer_api_calls_test.dart",
     "tests/ffi/vmspecific_native_finalizer_deeply_immutable_test.dart",
     "tests/ffi/vmspecific_native_finalizer_isolate_groups_test.dart",
     "tests/ffi/vmspecific_native_finalizer_isolates_test.dart",
