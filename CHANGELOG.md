@@ -6,9 +6,12 @@ This is a patch release that:
    [Dart-Code/Dart-Code#61978])
 - Enables hiding `Running build hooks` in `dart run` with `--verbosity=error`.
   (issue [dart-lang/sdk#61996])
+- Fixes an issue with test_with_coverage and build hooks in dev depencencies.
+  (issue [dart-lang/tools#2237])
 
 [Dart-Code/Dart-Code#61978]: https://github.com/Dart-Code/Dart-Code/issues/5810
 [dart-lang/sdk#61996]: https://github.com/dart-lang/sdk/issues/61996
+[dart-lang/tools#2237]: https://github.com/dart-lang/tools/issues/2237
 
 ## 3.10.2
 
