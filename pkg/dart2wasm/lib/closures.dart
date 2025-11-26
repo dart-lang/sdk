@@ -31,7 +31,10 @@ class ClosureImplementation {
   final List<w.BaseFunction> functions;
 
   /// The vtable entry used for dynamic calls.
-  final w.BaseFunction dynamicCallEntry;
+  ///
+  /// This will be non-null only if we emit dynamic call entries in the closure
+  /// vtable (see [ClosureLayouter.vtableBaseStruct]).
+  final w.BaseFunction? dynamicCallEntry;
 
   /// The constant global variable pointing to the vtable.
   final w.Global vtable;
@@ -59,6 +62,9 @@ class ClosureImplementation {
 /// an entry for each (non-empty) combination of argument names that closures
 /// with this layout can be called with.
 class ClosureRepresentation {
+  /// Where the vtable entries for function calls start in the vtable struct.
+  final int vtableBaseIndex;
+
   /// The number of type arguments.
   final int typeCount;
 
@@ -118,18 +124,9 @@ class ClosureRepresentation {
       _instantiationTypeHashFunction.putIfAbsent(
           module, () => _instantiationTypeHashFunctionGenerator(module));
 
-  /// The signature of the function that instantiates this generic closure.
-  w.FunctionType get instantiationFunctionType {
-    assert(isGeneric);
-    return getVtableFieldType(FieldIndex.vtableInstantiationFunction);
-  }
-
-  /// The type of the vtable function at given index.
-  w.FunctionType getVtableFieldType(int index) =>
-      (vtableStruct.fields[index].type as w.RefType).heapType as w.FunctionType;
-
   ClosureRepresentation(
       Translator translator,
+      this.vtableBaseIndex,
       this.typeCount,
       this.maxPositionalCount,
       this.vtableStruct,
@@ -140,11 +137,6 @@ class ClosureRepresentation {
   bool get isGeneric => typeCount > 0;
 
   bool get hasNamed => _indexOfCombination != null;
-
-  /// Where the vtable entries for function calls start in the vtable struct.
-  int get vtableBaseIndex => isGeneric
-      ? ClosureLayouter.vtableBaseIndexGeneric
-      : ClosureLayouter.vtableBaseIndexNonGeneric;
 
   /// The field index in the vtable struct for the function entry to use when
   /// calling the closure with the given number of positional arguments and the
@@ -225,21 +217,8 @@ class ClosureLayouter extends RecursiveVisitor {
   /// non-empty map for named arguments.
   late bool usesFunctionApplyWithNamedArguments;
 
-  // For non-generic closures. The entries are:
-  // 0: Dynamic call entry
-  // 1-...: Entries for calling the closure
-  static const int vtableBaseIndexNonGeneric = 1;
-
-  // For generic closures. The entries are:
-  // 0: Dynamic call entry
-  // 1: Instantiation type comparison function
-  // 2: Instantiation type hash function
-  // 3: Instantiation function
-  // 4-...: Entries for calling the closure
-  static const int vtableBaseIndexGeneric = 4;
-
   // Uninitialized (no field types added yet) struct for base vtable to allow
-  // cyclic types:
+  // cyclic types, e.g.:
   //
   //   closureBaseStruct.vtable     = ref vtableBase
   //   vtableBaseStruct.dynamicCall = Function(ref closureBaseStruct, ...)
@@ -248,16 +227,32 @@ class ClosureLayouter extends RecursiveVisitor {
       _defineStruct("#VtableBase");
 
   /// Base struct for all closure vtables.
+  ///
+  /// The entries are:
+  ///
+  ///   0: Dynamic call entry (**)
+  ///
+  /// (**) Only if the application enables dynamic modules or uses
+  /// `Function.apply` with named arguments we'll include a dynamic call entry.
   late final w.StructType vtableBaseStruct = (() {
     final vtable = _vtableBaseStructUninitialized;
     final index = vtable.fields.length;
-    vtable.fields.add(w.FieldType(
-        w.RefType.def(translator.dynamicCallVtableEntryFunctionType,
-            nullable: false),
-        mutable: false));
-    vtable.fieldNames[index] = 'dynamiClosureCallEntry';
+    if (translator.dynamicModuleSupportEnabled ||
+        usesFunctionApplyWithNamedArguments) {
+      vtable.fields.add(w.FieldType(
+          w.RefType.def(translator.dynamicCallVtableEntryFunctionType,
+              nullable: false),
+          mutable: false));
+      vtable.fieldNames[index] = 'dynamicClosureCallEntry';
+    }
     return vtable;
   })();
+
+  /// The vtable index of dynamic call entry (if we emit it)
+  late final int? vtableDynamicClosureCallEntryIndex =
+      vtableBaseStruct.fields.isEmpty
+          ? null
+          : vtableBaseStruct.fields.length - 1;
 
   /// Base struct for instantiation closure contexts. Type tests against this
   /// type is used in `_Closure._equals` to check if a closure is an
@@ -270,10 +265,24 @@ class ClosureLayouter extends RecursiveVisitor {
   });
 
   /// Base struct for non-generic closure vtables.
+  ///
+  /// For non-generic closures the entries are:
+  ///
+  ///  vtableBase.length + i: Entries for calling the closure
+  ///
   late final w.StructType nonGenericVtableBaseStruct =
       _defineStruct("#NonGenericVtableBase", superType: vtableBaseStruct);
 
   /// Base struct for generic closure vtables.
+  ///
+  /// For generic closures the entries are:
+  ///
+  ///  vtableBase.length + 0: Entries for calling the closure
+  ///  vtableBase.length + 1: Instantiation type comparison function
+  ///  vtableBase.length + 2: Instantiation type hash function
+  ///  vtableBase.length + 3: Instantiation function
+  ///  vtableBase.length + 4 + i: Entries for calling the closure
+  ///
   late final w.StructType genericVtableBaseStruct =
       _defineStruct("#GenericVtableBase",
           namedFields: {
@@ -285,8 +294,17 @@ class ClosureLayouter extends RecursiveVisitor {
                 w.RefType.def(instantiationClosureTypeHashFunctionType,
                     nullable: false),
                 mutable: false),
+            'instantiateGenericClosureFun':
+                w.FieldType(w.RefType.func(nullable: false), mutable: false),
           },
           superType: vtableBaseStruct);
+
+  late final int vtableInstantiationTypeComparisonFunctionIndex =
+      genericVtableBaseStruct.fields.length - 3;
+  late final int vtableInstantiationTypeHashFunctionIndex =
+      genericVtableBaseStruct.fields.length - 2;
+  late final int vtableInstantiationFunctionIndex =
+      genericVtableBaseStruct.fields.length - 1;
 
   /// Type of [ClosureRepresentation._instantiationTypeComparisonFunction].
   late final w.FunctionType instantiationClosureTypeComparisonFunctionType =
@@ -446,6 +464,18 @@ class ClosureLayouter extends RecursiveVisitor {
     }
   }
 
+  int maxTypeArgumentCount() => representations.length;
+
+  int maxPositionalCountFor(int typeCount) => representations[typeCount].length;
+
+  void forEachPositionalArgumentCount(int typeCount, void Function(int) fun) {
+    for (int positionalCount = 0;
+        positionalCount < representations[positionalCount].length;
+        ++positionalCount) {
+      fun(positionalCount);
+    }
+  }
+
   /// Get the representation for closures with a specific signature, described
   /// by the number of type parameters, the maximum number of positional
   /// parameters and the names of named parameters.
@@ -523,23 +553,17 @@ class ClosureLayouter extends RecursiveVisitor {
       w.RefType outputType = w.RefType.def(
           instantiatedRepresentation.closureStruct,
           nullable: false);
+
+      final instantiationTypeOfParent = parent?.vtableStruct.getVtableEntryAt(
+          translator.closureLayouter.vtableInstantiationFunctionIndex);
       w.FunctionType instantiationFunctionType = translator.typesBuilder
           .defineFunction(
               [inputType, ...List.filled(typeCount, typeType)], [outputType],
-              superType: parent?.instantiationFunctionType);
+              superType: instantiationTypeOfParent);
       w.FieldType functionFieldType = w.FieldType(
           w.RefType.def(instantiationFunctionType, nullable: false),
           mutable: false);
-      if (parent == null) {
-        assert(vtableStruct.fields.length ==
-            FieldIndex.vtableInstantiationFunction);
-        final index = vtableStruct.fields.length;
-        vtableStruct.fields.add(functionFieldType);
-        vtableStruct.fieldNames[index] = 'instantiateGenericClosureFun';
-      } else {
-        vtableStruct.fields[FieldIndex.vtableInstantiationFunction] =
-            functionFieldType;
-      }
+      vtableStruct.fields[vtableInstantiationFunctionIndex] = functionFieldType;
 
       // Build layout for the context of instantiated closures, containing the
       // original closure plus the type arguments.
@@ -571,8 +595,13 @@ class ClosureLayouter extends RecursiveVisitor {
           'closureCallEntry-$typeCount-$paramCount';
     }
 
+    final vTableBaseIndex = typeCount > 0
+        ? genericVtableBaseStruct.fields.length
+        : nonGenericVtableBaseStruct.fields.length;
+
     ClosureRepresentation representation = ClosureRepresentation(
         translator,
+        vTableBaseIndex,
         typeCount,
         maxPositionalCount,
         vtableStruct,
@@ -606,9 +635,11 @@ class ClosureLayouter extends RecursiveVisitor {
               closureStruct,
               _getInstantiationContextBaseStruct(typeCount),
               instantiatedRepresentation!.vtableStruct,
-              vtableBaseIndexNonGeneric + instantiationTrampolines.length,
+              nonGenericVtableBaseStruct.fields.length +
+                  instantiationTrampolines.length,
               vtableStruct,
-              vtableBaseIndexGeneric + instantiationTrampolines.length);
+              genericVtableBaseStruct.fields.length +
+                  instantiationTrampolines.length);
           instantiationTrampolines.add(trampoline);
         } else {
           // For each name combination in the instantiated closure, add a
@@ -626,16 +657,17 @@ class ClosureLayouter extends RecursiveVisitor {
                     closureStruct,
                     _getInstantiationContextBaseStruct(typeCount),
                     instantiatedRepresentation.vtableStruct,
-                    vtableBaseIndexNonGeneric + instantiationTrampolines.length,
+                    nonGenericVtableBaseStruct.fields.length +
+                        instantiationTrampolines.length,
                     vtableStruct,
-                    vtableBaseIndexGeneric +
+                    genericVtableBaseStruct.fields.length +
                         (maxPositionalCount + 1) +
                         genericIndex)
                 : translator
                     .getDummyValuesCollectorForModule(module)
                     .getDummyFunction((instantiatedRepresentation
                             .vtableStruct
-                            .fields[vtableBaseIndexNonGeneric +
+                            .fields[vtableBaseStruct.fields.length +
                                 instantiationTrampolines.length]
                             .type as w.RefType)
                         .heapType as w.FunctionType);
@@ -646,6 +678,9 @@ class ClosureLayouter extends RecursiveVisitor {
       };
 
       representation._instantiationFunctionGenerator = (module) {
+        final instantiationFunctionType = representation.vtableStruct
+            .getVtableEntryAt(
+                translator.closureLayouter.vtableInstantiationFunctionIndex);
         String instantiationFunctionName =
             ["#Instantiation", ...nameTags].join("-");
         return _createInstantiationFunction(
@@ -653,7 +688,7 @@ class ClosureLayouter extends RecursiveVisitor {
             typeCount,
             instantiatedRepresentation!,
             representation._instantiationTrampolinesForModule(module),
-            representation.instantiationFunctionType,
+            instantiationFunctionType,
             instantiationContextStruct!,
             closureStruct,
             instantiationFunctionName);
@@ -680,12 +715,10 @@ class ClosureLayouter extends RecursiveVisitor {
       w.StructType genericVtableStruct,
       int genericVtableFieldIndex) {
     assert(instantiationContextBaseStruct.fields.length == 1 + typeCount);
-    w.FunctionType instantiatedFunctionType = (instantiatedVtableStruct
-            .fields[instantiatedVtableFieldIndex].type as w.RefType)
-        .heapType as w.FunctionType;
+    w.FunctionType instantiatedFunctionType =
+        instantiatedVtableStruct.getVtableEntryAt(instantiatedVtableFieldIndex);
     w.FunctionType genericFunctionType =
-        (genericVtableStruct.fields[genericVtableFieldIndex].type as w.RefType)
-            .heapType as w.FunctionType;
+        genericVtableStruct.getVtableEntryAt(genericVtableFieldIndex);
     assert(genericFunctionType.inputs.length ==
         instantiatedFunctionType.inputs.length + typeCount);
 
@@ -775,7 +808,7 @@ class ClosureLayouter extends RecursiveVisitor {
     b.struct_get(
         instantiationContextStruct, FieldIndex.instantiationContextInner);
     b.struct_get(closureBaseStruct, FieldIndex.closureVtable);
-    b.struct_get(vtableBaseStruct, FieldIndex.vtableDynamicCallEntry);
+    b.struct_get(vtableBaseStruct, vtableDynamicClosureCallEntryIndex!);
     b.call_ref(translator.dynamicCallVtableEntryFunctionType);
     b.end();
 
@@ -804,8 +837,11 @@ class ClosureLayouter extends RecursiveVisitor {
         w.RefType.def(instantiatedRepresentation.vtableStruct, nullable: false),
         mutable: false));
     final ib = vtable.initializer;
-    ib.ref_func(
-        _createInstantiationDynamicCallEntry(module, typeCount, contextStruct));
+    if (translator.dynamicModuleSupportEnabled ||
+        translator.closureLayouter.usesFunctionApplyWithNamedArguments) {
+      ib.ref_func(_createInstantiationDynamicCallEntry(
+          module, typeCount, contextStruct));
+    }
     for (w.BaseFunction trampoline in instantiationTrampolines) {
       ib.ref_func(trampoline);
     }
@@ -1729,5 +1765,11 @@ class _ContextCollector extends RecursiveVisitor {
   void visitVariableSet(VariableSet node) {
     closures.captures[node.variable]?.written = true;
     super.visitVariableSet(node);
+  }
+}
+
+extension StructVtableExtension on w.StructType {
+  w.FunctionType getVtableEntryAt(int index) {
+    return (fields[index].type as w.RefType).heapType as w.FunctionType;
   }
 }

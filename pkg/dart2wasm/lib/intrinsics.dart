@@ -1933,8 +1933,10 @@ class Intrinsifier {
         b.ref_cast(w.RefType.def(
             translator.closureLayouter.genericVtableBaseStruct,
             nullable: false));
-        b.struct_get(translator.closureLayouter.genericVtableBaseStruct,
-            FieldIndex.vtableInstantiationTypeHashFunction);
+        b.struct_get(
+            translator.closureLayouter.genericVtableBaseStruct,
+            translator
+                .closureLayouter.vtableInstantiationTypeHashFunctionIndex);
         b.call_ref(translator
             .closureLayouter.instantiationClosureTypeHashFunctionType);
 
@@ -1964,9 +1966,11 @@ class Intrinsifier {
         b.ref_cast(w.RefType.def(
             translator.closureLayouter.genericVtableBaseStruct,
             nullable: false));
-        b.struct_get(translator.closureLayouter.genericVtableBaseStruct,
-            FieldIndex.vtableInstantiationTypeComparisonFunction);
 
+        final vtableIndex = translator
+            .closureLayouter.vtableInstantiationTypeComparisonFunctionIndex;
+        b.struct_get(
+            translator.closureLayouter.genericVtableBaseStruct, vtableIndex);
         b.call_ref(translator
             .closureLayouter.instantiationClosureTypeComparisonFunctionType);
 
@@ -2032,8 +2036,25 @@ class Intrinsifier {
 
         final noSuchMethodBlock = b.block();
 
-        generateDynamicFunctionCall(translator, b, closureLocal, typeArgsLocal,
-            posArgsLocal, namedArgsListLocal, noSuchMethodBlock);
+        generateDynamicClosureCallShapeAndTypeCheck(translator, b, closureLocal,
+            typeArgsLocal, posArgsLocal, namedArgsListLocal, noSuchMethodBlock);
+        if (translator.dynamicModuleSupportEnabled ||
+            translator.closureLayouter.usesFunctionApplyWithNamedArguments) {
+          generateDynamicClosureCallViaDynamicEntry(translator, b, closureLocal,
+              typeArgsLocal, posArgsLocal, namedArgsListLocal);
+        } else {
+          if (compilerAssertsEnabled) {
+            final good = b.block();
+            b.local_get(namedArgsListLocal);
+            b.array_len();
+            b.i32_eqz();
+            b.br_if(good);
+            b.unreachable();
+            b.end();
+          }
+          generateDynamicClosureCallViaPositionalArgs(
+              translator, b, closureLocal, typeArgsLocal, posArgsLocal);
+        }
         b.return_();
 
         b.end(); // noSuchMethodBlock

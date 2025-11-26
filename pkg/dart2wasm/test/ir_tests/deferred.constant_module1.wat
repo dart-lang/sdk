@@ -1,24 +1,23 @@
 (module $module1
   (type $#Top <...>)
   (type $Object <...>)
-  (type $Array<Object?> <...>)
   (type $_Type <...>)
   (type $Array<_Type> <...>)
   (type $JSStringImpl <...>)
-  (type $type21 <...>)
+  (type $type18 <...>)
+  (type $Array<Object?> <...>)
   (type $_TopType <...>)
+  (type $#Vtable-0-1 <...>)
   (type $Array<_NamedParameter> <...>)
   (type $_FunctionType <...>)
-  (type $#ClosureBase <...>)
-  (type $#Vtable-0-1 <...>)
   (type $#Closure-0-1 <...>)
-  (type $#Vtable-1-1 <...>)
-  (type $#Closure-1-1 <...>)
-  (type $#InstantiationContext-1-1 <...>)
   (type $H1 (sub final $Object (struct
     (field $field0 i32)
     (field $field1 (mut i32))
     (field $fun (ref $#Closure-0-1)))))
+  (type $#Vtable-1-1 <...>)
+  (type $#Closure-1-1 <...>)
+  (type $#InstantiationContext-1-1 <...>)
   (type $#DummyStruct <...>)
   (type $_InterfaceType <...>)
   (type $BoxedInt <...>)
@@ -70,7 +69,7 @@
     local.get $var0
     struct.get $#Closure-0-1 $vtable
     struct.get $#Vtable-0-1 $closureCallEntry-0-1
-    call_ref $type21
+    call_ref $type18
     drop
     ref.null none
   )
@@ -84,25 +83,13 @@
     call $JSStringImpl._interpolate
     call $print
   )
-  (func $"C468 globalH1Foo tear-off (lazy initializer)}" (result (ref $#Closure-1-1))
-    (local $var0 (ref $#Closure-1-1))
-    i32.const 32
-    i32.const 0
-    global.get $global4
-    global.get $global7
-    global.get $"C467 _FunctionType"
-    struct.new $#Closure-1-1
-    local.tee $var0
-    global.set $"C468 globalH1Foo tear-off"
-    local.get $var0
-  )
-  (func $dynamic call entry (param $var0 (ref $#ClosureBase)) (param $var1 (ref $Array<_Type>)) (param $var2 (ref $Array<Object?>)) (param $var3 (ref $Array<Object?>)) (result (ref null $#Top)) <...>)
   (func $#dummy function (ref struct) -> (ref null #Top) (param $var0 (ref struct)) (result (ref null $#Top)) <...>)
   (func $instantiation constant trampoline (param $var0 (ref struct)) (param $var1 (ref null $#Top)) (result (ref null $#Top)) <...>)
   (func $"C470 H1 (lazy initializer)}" (result (ref $H1))
-    (local $var0 (ref $_FunctionType))
-    (local $var1 (ref $#Closure-0-1))
-    (local $var2 (ref $H1))
+    (local $var0 (ref $#Closure-1-1))
+    (local $var1 (ref $_FunctionType))
+    (local $var2 (ref $#Closure-0-1))
+    (local $var3 (ref $H1))
     i32.const 115
     i32.const 0
     block $label0 (result (ref $#Closure-0-1))
@@ -113,11 +100,18 @@
       block $label1 (result (ref $#Closure-1-1))
         global.get $"C468 globalH1Foo tear-off"
         br_on_non_null $label1
-        call $"C468 globalH1Foo tear-off (lazy initializer)}"
+        i32.const 32
+        i32.const 0
+        global.get $global4
+        global.get $global7
+        global.get $"C467 _FunctionType"
+        struct.new $#Closure-1-1
+        local.tee $var0
+        global.set $"C468 globalH1Foo tear-off"
+        local.get $var0
       end $label1
       global.get $"C28 _InterfaceType"
       struct.new $#InstantiationContext-1-1
-      ref.func $"dynamic call entry"
       ref.func $"#dummy function (ref struct) -> (ref null #Top)"
       ref.func $"instantiation constant trampoline"
       struct.new $#Vtable-0-1
@@ -137,18 +131,18 @@
         i64.const 1
         global.get $"C314 WasmArray<_NamedParameter>[0]"
         struct.new $_FunctionType
-        local.tee $var0
+        local.tee $var1
         table.set $module0.constant-table0
-        local.get $var0
+        local.get $var1
       end $label2
       struct.new $#Closure-0-1
-      local.tee $var1
+      local.tee $var2
       global.set $"C469 InstantiationConstant(globalH1Foo<int>)"
-      local.get $var1
+      local.get $var2
     end $label0
     struct.new $H1
-    local.tee $var2
+    local.tee $var3
     global.set $"C470 H1"
-    local.get $var2
+    local.get $var3
   )
 )

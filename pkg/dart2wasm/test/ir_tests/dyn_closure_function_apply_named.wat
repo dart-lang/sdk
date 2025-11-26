@@ -12,7 +12,7 @@
     (type $#Vtable-0-0 <...>)
   )
   (type $#Vtable-0-2 (sub final $#Vtable-0-0 (struct
-    (field $dynamiClosureCallEntry (ref $type3))
+    (field $dynamicClosureCallEntry (ref $type3))
     (field $closureCallEntry-0-2 (ref $type6)))))
   (type $#Closure-0-2 (sub final $#Closure-0-0 (struct
     (field $field0 i32)

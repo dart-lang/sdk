@@ -1,8 +1,8 @@
 (module $module2
   (type $#Top <...>)
   (type $Object <...>)
-  (type $Array<_Type> <...>)
   (type $JSStringImpl <...>)
+  (type $Array<_Type> <...>)
   (type $Array<_NamedParameter> <...>)
   (type $_FunctionType <...>)
   (type $#Vtable-0-1 <...>)

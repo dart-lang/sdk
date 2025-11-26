@@ -1269,7 +1269,8 @@ class Translator with KernelNodes {
       int fieldIndex = representation.vtableBaseIndex + functions.length;
       assert(fieldIndex ==
           representation.fieldIndexForSignature(posArgCount, argNames));
-      w.FunctionType signature = representation.getVtableFieldType(fieldIndex);
+      w.FunctionType signature =
+          representation.vtableStruct.getVtableEntryAt(fieldIndex);
       w.BaseFunction function = canBeCalledWith(posArgCount, argNames)
           ? makeTrampoline(signature, posArgCount, argNames)
           : getDummyValuesCollectorForModule(ib.moduleBuilder)
@@ -1298,11 +1299,11 @@ class Translator with KernelNodes {
     // representation specific vtable entry. This saves code size as we don't
     // have 1 dynamic call entry function per closure but rather 1 per closure
     // shape / representation.
-    final dynamicCallEntry = (dynamicModuleSupportEnabled ||
-            closureLayouter.usesFunctionApplyWithNamedArguments)
-        ? makeDynamicCallEntry()
-        : getClosureArgumentsDispatcher(closureModule, representation);
-    ib.ref_func(dynamicCallEntry);
+    w.BaseFunction? dynamicCallEntry;
+    if (dynamicModuleSupportEnabled ||
+        closureLayouter.usesFunctionApplyWithNamedArguments) {
+      ib.ref_func(dynamicCallEntry = makeDynamicCallEntry());
+    }
     if (representation.isGeneric) {
       ib.ref_func(representation
           .instantiationTypeComparisonFunctionForModule(ib.moduleBuilder));
