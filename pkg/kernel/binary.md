@@ -147,7 +147,7 @@ type CanonicalName {
 
 type ComponentFile {
   UInt32 magic = 0x90ABCDEF;
-  UInt32 formatVersion = 126;
+  UInt32 formatVersion = 127;
   Byte[10] shortSdkHash;
   List<String> problemsAsJson; // Described in problems.md.
   Library[] libraries;
@@ -469,28 +469,28 @@ abstract type Initializer extends Node {}
 
 type InvalidInitializer extends Initializer {
   Byte tag = 7;
-  Byte isSynthetic;
+  FileOffset fileOffset;
+  StringReference message;
 }
 
 type FieldInitializer extends Initializer {
   Byte tag = 8;
-  Byte isSynthetic;
   FileOffset fileOffset;
+  Byte isSynthetic;
   FieldReference field;
   Expression value;
 }
 
 type SuperInitializer extends Initializer {
   Byte tag = 9;
-  Byte isSynthetic;
   FileOffset fileOffset;
+  Byte isSynthetic;
   ConstructorReference target;
   Arguments arguments;
 }
 
 type RedirectingInitializer extends Initializer {
   Byte tag = 10;
-  Byte isSynthetic;
   FileOffset fileOffset;
   ConstructorReference target;
   Arguments arguments;
@@ -498,13 +498,13 @@ type RedirectingInitializer extends Initializer {
 
 type LocalInitializer extends Initializer {
   Byte tag = 11;
-  Byte isSynthetic;
+  FileOffset fileOffset;
   VariableDeclarationPlain variable;
 }
 
 type AssertInitializer extends Initializer {
   Byte tag = 12;
-  Byte isSynthetic;
+  FileOffset fileOffset;
   AssertStatement statement;
 }
 

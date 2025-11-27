@@ -1484,15 +1484,21 @@ class KernelTarget {
               offset = cls.fileOffset;
               fileUri = cls.fileUri;
             }
+            Message message = codeSuperclassHasNoDefaultConstructor
+                .withArgumentsOld(cls.superclass!.name);
             classBuilder.libraryBuilder.addProblem(
-              codeSuperclassHasNoDefaultConstructor.withArgumentsOld(
-                cls.superclass!.name,
-              ),
+              message,
               offset,
               noLength,
               fileUri,
             );
-            initializer = new InvalidInitializer();
+            String text = context
+                .format(
+                  message.withLocation(fileUri, offset, noLength),
+                  CfeSeverity.error,
+                )
+                .plain;
+            initializer = new InvalidInitializer(text);
           } else {
             initializer = new SuperInitializer(
               superTarget,

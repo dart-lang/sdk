@@ -1460,14 +1460,15 @@ class BinaryPrinter
   @override
   void visitInvalidInitializer(InvalidInitializer node) {
     writeByte(Tag.InvalidInitializer);
-    writeByte(node.isSynthetic ? 1 : 0);
+    writeOffset(node.fileOffset);
+    writeStringReference(node.message);
   }
 
   @override
   void visitFieldInitializer(FieldInitializer node) {
     writeByte(Tag.FieldInitializer);
-    writeByte(node.isSynthetic ? 1 : 0);
     writeOffset(node.fileOffset);
+    writeByte(node.isSynthetic ? 1 : 0);
     writeNonNullReference(node.fieldReference);
     writeNode(node.value);
   }
@@ -1475,8 +1476,8 @@ class BinaryPrinter
   @override
   void visitSuperInitializer(SuperInitializer node) {
     writeByte(Tag.SuperInitializer);
-    writeByte(node.isSynthetic ? 1 : 0);
     writeOffset(node.fileOffset);
+    writeByte(node.isSynthetic ? 1 : 0);
     writeNonNullReference(node.targetReference);
     writeArgumentsNode(node.arguments);
   }
@@ -1484,7 +1485,6 @@ class BinaryPrinter
   @override
   void visitRedirectingInitializer(RedirectingInitializer node) {
     writeByte(Tag.RedirectingInitializer);
-    writeByte(node.isSynthetic ? 1 : 0);
     writeOffset(node.fileOffset);
     writeNonNullReference(node.targetReference);
     writeArgumentsNode(node.arguments);
@@ -1493,14 +1493,14 @@ class BinaryPrinter
   @override
   void visitLocalInitializer(LocalInitializer node) {
     writeByte(Tag.LocalInitializer);
-    writeByte(node.isSynthetic ? 1 : 0);
+    writeOffset(node.fileOffset);
     writeVariableDeclaration(node.variable);
   }
 
   @override
   void visitAssertInitializer(AssertInitializer node) {
     writeByte(Tag.AssertInitializer);
-    writeByte(node.isSynthetic ? 1 : 0);
+    writeOffset(node.fileOffset);
     writeNode(node.statement);
   }
 
