@@ -56,7 +56,7 @@ class Foo extends core::Object {
   constructor x() → self::Foo
     : super core::Object::•() {}
   constructor foo() → self::Foo
-    : final dynamic #t1 = invalid-expression "pkg/front_end/testcases/general/error_recovery/constructor_recovery_bad_name_get.crash_dart:7:15: Error: 'initializer' isn't an instance field of this class.
+    : invalid-initializer "pkg/front_end/testcases/general/error_recovery/constructor_recovery_bad_name_get.crash_dart:7:15: Error: 'initializer' isn't an instance field of this class.
   get foo() : initializer = true { }
               ^^^^^^^^^^^" {}
 }

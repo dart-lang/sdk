@@ -35,6 +35,8 @@ Try inserting an identifier before ''.
 }
 class B extends self::A {
   synthetic constructor •() → self::B
-    : invalid-initializer
+    : invalid-initializer "pkg/front_end/testcases/rasta/issue_000039.dart:13:7: Error: The superclass, 'A', has no unnamed constructor that takes no arguments.
+class B extends A {
+      ^"
     ;
 }

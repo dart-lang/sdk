@@ -21,7 +21,9 @@ class D = pri::A with self::M {
 }
 class E = pri::B with self::M {
   synthetic constructor •() → self::E
-    : invalid-initializer
+    : invalid-initializer "pkg/front_end/testcases/constructor_tearoffs/private.dart:11:7: Error: The superclass, 'B', has no unnamed constructor that takes no arguments.
+class E = B with M; // TODO(johnniwinther): This should not be an error.
+      ^"
     ;
 }
 class F = pri::C with self::M {
@@ -103,14 +105,14 @@ class C extends core::Object {
 }
 class G extends self::D {
   constructor _() → pri::G
-    : final dynamic #t1 = invalid-expression "pkg/front_end/testcases/constructor_tearoffs/private_lib.dart:23:11: Error: Superclass has no constructor named 'A._'.
+    : invalid-initializer "pkg/front_end/testcases/constructor_tearoffs/private_lib.dart:23:11: Error: Superclass has no constructor named 'A._'.
   G._() : super._(); // Error
           ^^^^^"
     ;
 }
 class H extends self::E {
   constructor _() → pri::H
-    : final dynamic #t2 = invalid-expression "pkg/front_end/testcases/constructor_tearoffs/private_lib.dart:27:11: Error: Superclass has no constructor named 'B._'.
+    : invalid-initializer "pkg/front_end/testcases/constructor_tearoffs/private_lib.dart:27:11: Error: Superclass has no constructor named 'B._'.
   H._() : super._(); // Error
           ^^^^^"
     ;
@@ -120,7 +122,7 @@ class I extends self::F {
     : super self::F::named()
     ;
   constructor _() → pri::I
-    : final dynamic #t3 = invalid-expression "pkg/front_end/testcases/constructor_tearoffs/private_lib.dart:32:11: Error: Superclass has no constructor named 'C._'.
+    : invalid-initializer "pkg/front_end/testcases/constructor_tearoffs/private_lib.dart:32:11: Error: Superclass has no constructor named 'C._'.
   I._() : super._(); // Error
           ^^^^^"
     ;

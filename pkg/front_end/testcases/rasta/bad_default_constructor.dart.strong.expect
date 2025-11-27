@@ -21,7 +21,9 @@ class A extends core::Object {
 }
 class B extends self::A {
   synthetic constructor •() → self::B
-    : invalid-initializer
+    : invalid-initializer "pkg/front_end/testcases/rasta/bad_default_constructor.dart:9:7: Error: The superclass, 'A', has no unnamed constructor that takes no arguments.
+class B extends A {}
+      ^"
     ;
 }
 static method main() → dynamic {

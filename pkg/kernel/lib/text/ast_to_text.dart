@@ -2605,6 +2605,7 @@ class Printer extends VisitorDefault<void> with VisitorVoidMixin {
   @override
   void visitInvalidInitializer(InvalidInitializer node) {
     writeWord('invalid-initializer');
+    writeWord('"${escapeString(node.message)}"');
   }
 
   @override

@@ -212,7 +212,6 @@ abstract class Generator {
           fileOffset: fileOffset,
           length: lengthForToken(token),
         ),
-        fileOffset,
       ),
     ];
   }
@@ -4946,7 +4945,7 @@ abstract class ErroneousExpressionGenerator extends Generator {
   ErroneousExpressionGenerator(ExpressionGeneratorHelper helper, Token token)
     : super(helper, token);
 
-  Expression buildError({
+  InvalidExpression buildError({
     Arguments? arguments,
     required UnresolvedKind kind,
     int? charOffset,
@@ -5144,7 +5143,7 @@ class DuplicateDeclarationGenerator extends ErroneousExpressionGenerator {
     );
   }
 
-  Expression _createInvalidExpression() {
+  InvalidExpression _createInvalidExpression() {
     return LookupResult.createDuplicateExpression(
       _lookupResult,
       context: _helper.libraryBuilder.loader.target.context,
@@ -5156,7 +5155,7 @@ class DuplicateDeclarationGenerator extends ErroneousExpressionGenerator {
   }
 
   @override
-  Expression buildError({
+  InvalidExpression buildError({
     Arguments? arguments,
     required UnresolvedKind kind,
     int? charOffset,
@@ -5184,7 +5183,7 @@ class DuplicateDeclarationGenerator extends ErroneousExpressionGenerator {
   // Coverage-ignore(suite): Not run.
   List<Initializer> buildFieldInitializer(Map<String, int>? initializedFields) {
     return <Initializer>[
-      _helper.buildInvalidInitializer(_createInvalidExpression(), fileOffset),
+      _helper.buildInvalidInitializer(_createInvalidExpression()),
     ];
   }
 
@@ -5288,7 +5287,7 @@ class UnresolvedNameGenerator extends ErroneousExpressionGenerator {
   }
 
   @override
-  Expression buildError({
+  InvalidExpression buildError({
     Arguments? arguments,
     required UnresolvedKind kind,
     int? charOffset,
@@ -6067,11 +6066,11 @@ class ParserErrorGenerator extends Generator {
   // Coverage-ignore(suite): Not run.
   void printOn(StringSink sink) {}
 
-  Expression buildProblem() {
+  InvalidExpression buildProblem() {
     return buildProblemExpression(_helper, message, fileOffset);
   }
 
-  static Expression buildProblemExpression(
+  static InvalidExpression buildProblemExpression(
     ExpressionGeneratorHelper _helper,
     Message message,
     int fileOffset,
@@ -6336,7 +6335,9 @@ class ThisAccessGenerator extends Generator {
     }
   }
 
-  Expression buildFieldInitializerError(Map<String, int>? initializedFields) {
+  InvalidExpression buildFieldInitializerError(
+    Map<String, int>? initializedFields,
+  ) {
     String keyword = isSuper ? "super" : "this";
     return _helper.buildProblem(
       message: codeThisOrSuperAccessInFieldInitializer.withArgumentsOld(
@@ -6350,10 +6351,8 @@ class ThisAccessGenerator extends Generator {
 
   @override
   List<Initializer> buildFieldInitializer(Map<String, int>? initializedFields) {
-    Expression error = buildFieldInitializerError(initializedFields);
-    return <Initializer>[
-      _helper.buildInvalidInitializer(error, error.fileOffset),
-    ];
+    InvalidExpression error = buildFieldInitializerError(initializedFields);
+    return <Initializer>[_helper.buildInvalidInitializer(error)];
   }
 
   @override
@@ -6524,7 +6523,6 @@ class ThisAccessGenerator extends Generator {
               fileOffset: offset,
               length: noLength,
             ),
-            offset,
           );
         }
         MemberBuilder? memberBuilder = result.getable;
@@ -6542,12 +6540,13 @@ class ThisAccessGenerator extends Generator {
       }
       if (constructor == null) {
         String fullName = _helper.superConstructorNameForDiagnostics(name.text);
-        LocatedMessage message = codeSuperclassHasNoConstructor
-            .withArgumentsOld(fullName)
-            .withLocation(_fileUri, fileOffset, lengthForToken(token));
         return _helper.buildInvalidInitializer(
-          _helper.buildProblemFromLocatedMessage(message),
-          offset,
+          _helper.buildProblem(
+            message: codeSuperclassHasNoConstructor.withArgumentsOld(fullName),
+            fileUri: _fileUri,
+            fileOffset: fileOffset,
+            length: lengthForToken(token),
+          ),
         );
       } else {
         return _helper.buildSuperInitializer(
@@ -6683,7 +6682,7 @@ class IncompleteErrorGenerator extends ErroneousExpressionGenerator {
   String get _debugName => "IncompleteErrorGenerator";
 
   @override
-  Expression buildError({
+  InvalidExpression buildError({
     Arguments? arguments,
     required UnresolvedKind kind,
     String? name,

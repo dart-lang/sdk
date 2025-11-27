@@ -105,10 +105,7 @@ abstract class ExpressionGeneratorHelper {
     bool isTypeArgumentsInForest = false,
   });
 
-  Initializer buildInvalidInitializer(
-    Expression expression, [
-    int offset = TreeNode.noOffset,
-  ]);
+  Initializer buildInvalidInitializer(InvalidExpression expression);
 
   List<Initializer> createFieldInitializer(
     String name,
@@ -137,7 +134,7 @@ abstract class ExpressionGeneratorHelper {
     required int fileOffset,
   });
 
-  Expression buildUnresolvedError(
+  InvalidExpression buildUnresolvedError(
     String name,
     int fileOffset, {
     bool isSuper,
@@ -145,8 +142,6 @@ abstract class ExpressionGeneratorHelper {
     int? length,
     bool errorHasBeenReported,
   });
-
-  Expression buildProblemFromLocatedMessage(LocatedMessage message);
 
   Expression wrapInDeferredCheck(
     Expression expression,

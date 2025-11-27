@@ -29,7 +29,7 @@ static abstract extension-type-member method Foo|get#y(lowered core::int #this) 
 static abstract extension-type-member method Foo|set#y(lowered core::int #this, synthesized core::int #externalFieldValue) → void;
 static extension-type-member method Foo|constructor#secondConstructor() → self::Foo% /* erasure=core::int, declared=! */ {
   lowered final self::Foo% /* erasure=core::int, declared=! */ #this = 42;
-  final dynamic #t1 = invalid-expression "pkg/front_end/testcases/regress/extension_type_declared_instance_field_01.dart:6:7: Error: Extension types can't declare instance fields
+  invalid-expression "pkg/front_end/testcases/regress/extension_type_declared_instance_field_01.dart:6:7: Error: Extension types can't declare instance fields
 Try removing the field declaration or making it a static field
   int y;
       ^";

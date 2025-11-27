@@ -845,9 +845,8 @@ class InferenceVisitorImpl extends InferenceVisitorBase
   }
 
   @override
-  // Coverage-ignore(suite): Not run.
   InitializerInferenceResult visitInvalidInitializer(InvalidInitializer node) {
-    _unhandledInitializer(node);
+    return new SuccessfulInitializerInferenceResult(node);
   }
 
   @override
