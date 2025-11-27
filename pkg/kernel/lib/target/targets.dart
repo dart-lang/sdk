@@ -492,19 +492,6 @@ abstract class Target {
   Expression instantiateInvocation(CoreTypes coreTypes, Expression receiver,
       String name, Arguments arguments, int offset, bool isSuper);
 
-  Expression instantiateNoSuchMethodError(CoreTypes coreTypes,
-      Expression receiver, String name, Arguments arguments, int offset,
-      {bool isMethod = false,
-      bool isGetter = false,
-      bool isSetter = false,
-      bool isField = false,
-      bool isLocalVariable = false,
-      bool isDynamic = false,
-      bool isSuper = false,
-      bool isStatic = false,
-      bool isConstructor = false,
-      bool isTopLevel = false});
-
   /// Configure the given [Component] in a target specific way.
   /// Returns the configured component.
   Component configureComponent(Component component) => component;
@@ -615,22 +602,6 @@ class NoneTarget extends Target {
   @override
   Expression instantiateInvocation(CoreTypes coreTypes, Expression receiver,
       String name, Arguments arguments, int offset, bool isSuper) {
-    return new InvalidExpression(null);
-  }
-
-  @override
-  Expression instantiateNoSuchMethodError(CoreTypes coreTypes,
-      Expression receiver, String name, Arguments arguments, int offset,
-      {bool isMethod = false,
-      bool isGetter = false,
-      bool isSetter = false,
-      bool isField = false,
-      bool isLocalVariable = false,
-      bool isDynamic = false,
-      bool isSuper = false,
-      bool isStatic = false,
-      bool isConstructor = false,
-      bool isTopLevel = false}) {
     return new InvalidExpression(null);
   }
 
@@ -924,33 +895,6 @@ class TargetWrapper extends Target {
       String name, Arguments arguments, int offset, bool isSuper) {
     return _target.instantiateInvocation(
         coreTypes, receiver, name, arguments, offset, isSuper);
-  }
-
-  @override
-  Expression instantiateNoSuchMethodError(CoreTypes coreTypes,
-      Expression receiver, String name, Arguments arguments, int offset,
-      {bool isMethod = false,
-      bool isGetter = false,
-      bool isSetter = false,
-      bool isField = false,
-      bool isLocalVariable = false,
-      bool isDynamic = false,
-      bool isSuper = false,
-      bool isStatic = false,
-      bool isConstructor = false,
-      bool isTopLevel = false}) {
-    return _target.instantiateNoSuchMethodError(
-        coreTypes, receiver, name, arguments, offset,
-        isMethod: isMethod,
-        isGetter: isGetter,
-        isSetter: isSetter,
-        isField: isField,
-        isLocalVariable: isLocalVariable,
-        isDynamic: isDynamic,
-        isSuper: isSuper,
-        isStatic: isStatic,
-        isConstructor: isConstructor,
-        isTopLevel: isTopLevel);
   }
 
   @override

@@ -4013,9 +4013,6 @@ class EquivalenceStrategy {
     if (other is! AuxiliaryInitializer) return false;
     visitor.pushNodeState(node, other);
     bool result = true;
-    if (!checkAuxiliaryInitializer_isSynthetic(visitor, node, other)) {
-      result = visitor.resultOnInequivalence;
-    }
     if (!checkAuxiliaryInitializer_fileOffset(visitor, node, other)) {
       result = visitor.resultOnInequivalence;
     }
@@ -4030,7 +4027,7 @@ class EquivalenceStrategy {
     if (other is! InvalidInitializer) return false;
     visitor.pushNodeState(node, other);
     bool result = true;
-    if (!checkInvalidInitializer_isSynthetic(visitor, node, other)) {
+    if (!checkInvalidInitializer_message(visitor, node, other)) {
       result = visitor.resultOnInequivalence;
     }
     if (!checkInvalidInitializer_fileOffset(visitor, node, other)) {
@@ -4099,9 +4096,6 @@ class EquivalenceStrategy {
     if (!checkRedirectingInitializer_arguments(visitor, node, other)) {
       result = visitor.resultOnInequivalence;
     }
-    if (!checkRedirectingInitializer_isSynthetic(visitor, node, other)) {
-      result = visitor.resultOnInequivalence;
-    }
     if (!checkRedirectingInitializer_fileOffset(visitor, node, other)) {
       result = visitor.resultOnInequivalence;
     }
@@ -4119,9 +4113,6 @@ class EquivalenceStrategy {
     if (!checkLocalInitializer_variable(visitor, node, other)) {
       result = visitor.resultOnInequivalence;
     }
-    if (!checkLocalInitializer_isSynthetic(visitor, node, other)) {
-      result = visitor.resultOnInequivalence;
-    }
     if (!checkLocalInitializer_fileOffset(visitor, node, other)) {
       result = visitor.resultOnInequivalence;
     }
@@ -4137,9 +4128,6 @@ class EquivalenceStrategy {
     visitor.pushNodeState(node, other);
     bool result = true;
     if (!checkAssertInitializer_statement(visitor, node, other)) {
-      result = visitor.resultOnInequivalence;
-    }
-    if (!checkAssertInitializer_isSynthetic(visitor, node, other)) {
       result = visitor.resultOnInequivalence;
     }
     if (!checkAssertInitializer_fileOffset(visitor, node, other)) {
@@ -8440,17 +8428,6 @@ class EquivalenceStrategy {
     return checkTreeNode_fileOffset(visitor, node, other);
   }
 
-  bool checkInitializer_isSynthetic(
-      EquivalenceVisitor visitor, Initializer node, Initializer other) {
-    return visitor.checkValues(
-        node.isSynthetic, other.isSynthetic, 'isSynthetic');
-  }
-
-  bool checkAuxiliaryInitializer_isSynthetic(EquivalenceVisitor visitor,
-      AuxiliaryInitializer node, AuxiliaryInitializer other) {
-    return checkInitializer_isSynthetic(visitor, node, other);
-  }
-
   bool checkInitializer_fileOffset(
       EquivalenceVisitor visitor, Initializer node, Initializer other) {
     return checkTreeNode_fileOffset(visitor, node, other);
@@ -8461,9 +8438,9 @@ class EquivalenceStrategy {
     return checkInitializer_fileOffset(visitor, node, other);
   }
 
-  bool checkInvalidInitializer_isSynthetic(EquivalenceVisitor visitor,
+  bool checkInvalidInitializer_message(EquivalenceVisitor visitor,
       InvalidInitializer node, InvalidInitializer other) {
-    return checkInitializer_isSynthetic(visitor, node, other);
+    return visitor.checkValues(node.message, other.message, 'message');
   }
 
   bool checkInvalidInitializer_fileOffset(EquivalenceVisitor visitor,
@@ -8484,7 +8461,8 @@ class EquivalenceStrategy {
 
   bool checkFieldInitializer_isSynthetic(EquivalenceVisitor visitor,
       FieldInitializer node, FieldInitializer other) {
-    return checkInitializer_isSynthetic(visitor, node, other);
+    return visitor.checkValues(
+        node.isSynthetic, other.isSynthetic, 'isSynthetic');
   }
 
   bool checkFieldInitializer_fileOffset(EquivalenceVisitor visitor,
@@ -8505,7 +8483,8 @@ class EquivalenceStrategy {
 
   bool checkSuperInitializer_isSynthetic(EquivalenceVisitor visitor,
       SuperInitializer node, SuperInitializer other) {
-    return checkInitializer_isSynthetic(visitor, node, other);
+    return visitor.checkValues(
+        node.isSynthetic, other.isSynthetic, 'isSynthetic');
   }
 
   bool checkSuperInitializer_fileOffset(EquivalenceVisitor visitor,
@@ -8524,11 +8503,6 @@ class EquivalenceStrategy {
     return visitor.checkNodes(node.arguments, other.arguments, 'arguments');
   }
 
-  bool checkRedirectingInitializer_isSynthetic(EquivalenceVisitor visitor,
-      RedirectingInitializer node, RedirectingInitializer other) {
-    return checkInitializer_isSynthetic(visitor, node, other);
-  }
-
   bool checkRedirectingInitializer_fileOffset(EquivalenceVisitor visitor,
       RedirectingInitializer node, RedirectingInitializer other) {
     return checkInitializer_fileOffset(visitor, node, other);
@@ -8539,11 +8513,6 @@ class EquivalenceStrategy {
     return visitor.checkNodes(node.variable, other.variable, 'variable');
   }
 
-  bool checkLocalInitializer_isSynthetic(EquivalenceVisitor visitor,
-      LocalInitializer node, LocalInitializer other) {
-    return checkInitializer_isSynthetic(visitor, node, other);
-  }
-
   bool checkLocalInitializer_fileOffset(EquivalenceVisitor visitor,
       LocalInitializer node, LocalInitializer other) {
     return checkInitializer_fileOffset(visitor, node, other);
@@ -8552,11 +8521,6 @@ class EquivalenceStrategy {
   bool checkAssertInitializer_statement(EquivalenceVisitor visitor,
       AssertInitializer node, AssertInitializer other) {
     return visitor.checkNodes(node.statement, other.statement, 'statement');
-  }
-
-  bool checkAssertInitializer_isSynthetic(EquivalenceVisitor visitor,
-      AssertInitializer node, AssertInitializer other) {
-    return checkInitializer_isSynthetic(visitor, node, other);
   }
 
   bool checkAssertInitializer_fileOffset(EquivalenceVisitor visitor,

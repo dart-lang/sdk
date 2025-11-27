@@ -1904,15 +1904,14 @@ class BinaryBuilder {
 
   Initializer readInitializer() {
     int tag = readByte();
-    bool isSynthetic = readByte() == 1;
     switch (tag) {
       // 52.71% (43.80% - 59.02%).
       case Tag.FieldInitializer:
-        return _readFieldInitializer(isSynthetic);
+        return _readFieldInitializer();
 
       // 42.01% (28.38% - 55.93%)
       case Tag.SuperInitializer:
-        return _readSuperInitializer(isSynthetic);
+        return _readSuperInitializer();
 
       // 4.69% (0.00% - 16.00%).
       case Tag.AssertInitializer:
@@ -1931,11 +1930,14 @@ class BinaryBuilder {
   }
 
   Initializer _readInvalidInitializer() {
-    return new InvalidInitializer();
+    int offset = readOffset();
+    String message = readStringReference();
+    return new InvalidInitializer(message)..fileOffset = offset;
   }
 
-  Initializer _readFieldInitializer(bool isSynthetic) {
+  Initializer _readFieldInitializer() {
     int offset = readOffset();
+    bool isSynthetic = readByte() == 1;
     Reference reference = readNonNullMemberReference();
     Expression value = readExpression();
     return new FieldInitializer.byReference(reference, value)
@@ -1943,8 +1945,9 @@ class BinaryBuilder {
       ..fileOffset = offset;
   }
 
-  Initializer _readSuperInitializer(bool isSynthetic) {
+  Initializer _readSuperInitializer() {
     int offset = readOffset();
+    bool isSynthetic = readByte() == 1;
     Reference reference = readNonNullMemberReference();
     Arguments arguments = readArguments();
     return new SuperInitializer.byReference(reference, arguments)
@@ -1960,11 +1963,15 @@ class BinaryBuilder {
   }
 
   Initializer _readLocalInitializer() {
-    return new LocalInitializer(readAndPushVariableDeclaration());
+    int offset = readOffset();
+    return new LocalInitializer(readAndPushVariableDeclaration())
+      ..fileOffset = offset;
   }
 
   Initializer _readAssertInitializer() {
-    return new AssertInitializer(readStatement() as AssertStatement);
+    int offset = readOffset();
+    return new AssertInitializer(readStatement() as AssertStatement)
+      ..fileOffset = offset;
   }
 
   FunctionNode readFunctionNode(

@@ -240,8 +240,8 @@ Fragment StreamingFlowGraphBuilder::BuildInitializers(
       } else if (PeekTag() == kFieldInitializer) {
         has_field_initializers = true;
         ReadTag();
-        ReadBool();
         ReadPosition();
+        ReadBool();
         const NameIndex field_name = ReadCanonicalNameReference();
         const Field& field =
             Field::Handle(Z, H.LookupFieldByKernelField(field_name));
@@ -342,13 +342,20 @@ Fragment StreamingFlowGraphBuilder::BuildInitializers(
     intptr_t list_length = ReadListLength();  // read initializers list length.
     for (intptr_t i = 0; i < list_length; ++i) {
       Tag tag = ReadTag();
-      bool isSynthetic = ReadBool();  // read isSynthetic flag.
       switch (tag) {
-        case kInvalidInitializer:
-          UNIMPLEMENTED();
+        case kInvalidInitializer: {
+          ReadPosition();
+          const String& message = H.DartString(ReadStringReference());
+          // Invalid initializer message has pointer to the source code, no
+          // need to report it twice.
+          const auto& script = Script::Handle(Z, Script());
+          H.ReportError(script, TokenPosition::kNoSource, "%s",
+                        message.ToCString());
           return Fragment();
+        }
         case kFieldInitializer: {
           ReadPosition();  // read position.
+          ReadBool();      // read isSynthetic flag.
           ReadCanonicalNameReference();
           instructions += BuildFieldInitializer(
               Field::ZoneHandle(Z, initializer_fields[i]->ptr()),
@@ -356,11 +363,13 @@ Fragment StreamingFlowGraphBuilder::BuildInitializers(
           break;
         }
         case kAssertInitializer: {
+          ReadPosition();  // read position.
           instructions += BuildStatement();
           break;
         }
         case kSuperInitializer: {
           TokenPosition position = ReadPosition();  // read position.
+          bool isSynthetic = ReadBool();            // read isSynthetic flag.
           NameIndex canonical_target =
               ReadCanonicalNameReference();  // read target_reference.
 
@@ -402,13 +411,13 @@ Fragment StreamingFlowGraphBuilder::BuildInitializers(
 
           const Function& target = Function::ZoneHandle(
               Z, H.LookupConstructorByKernelConstructor(canonical_target));
-          instructions += StaticCall(
-              isSynthetic ? TokenPosition::kNoSource : position, target,
-              argument_count, argument_names, ICData::kStatic);
+          instructions += StaticCall(position, target, argument_count,
+                                     argument_names, ICData::kStatic);
           instructions += Drop();
           break;
         }
         case kLocalInitializer: {
+          ReadPosition();  // read position.
           // The other initializers following this one might read the variable.
           // This is used e.g. for evaluating the arguments to a super call
           // first, run normal field initializers next and then make the actual

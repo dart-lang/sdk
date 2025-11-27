@@ -12,7 +12,7 @@ part of '../../ast.dart';
 sealed class Initializer extends TreeNode {
   /// True if this is a synthetic constructor initializer.
   @informative
-  bool isSynthetic = false;
+  bool get isSynthetic => false;
 
   @override
   R accept<R>(InitializerVisitor<R> v);
@@ -33,10 +33,11 @@ abstract class AuxiliaryInitializer extends Initializer {
 /// An initializer with a compile-time error.
 ///
 /// Should throw an exception at runtime.
-//
-// DESIGN TODO: The frontend should use this in a lot more cases to catch
-// invalid cases.
 class InvalidInitializer extends Initializer {
+  final String message;
+
+  InvalidInitializer(this.message);
+
   @override
   R accept<R>(InitializerVisitor<R> v) => v.visitInvalidInitializer(this);
 
@@ -60,7 +61,9 @@ class InvalidInitializer extends Initializer {
 
   @override
   void toTextInternal(AstPrinter printer) {
-    // TODO(johnniwinther): Implement this.
+    printer.write('<invalid:');
+    printer.write(message);
+    printer.write('>');
   }
 }
 
@@ -76,6 +79,9 @@ class FieldInitializer extends Initializer {
   /// Reference to the field being initialized.  Not null.
   Reference fieldReference;
   Expression value;
+
+  @override
+  bool isSynthetic = false;
 
   FieldInitializer(Field field, Expression value)
       : this.byReference(field.fieldReference, value);
@@ -139,6 +145,9 @@ class SuperInitializer extends Initializer {
   /// Reference to the constructor being invoked in the super class. Not null.
   Reference targetReference;
   Arguments arguments;
+
+  @override
+  bool isSynthetic = false;
 
   SuperInitializer(Constructor target, Arguments arguments)
       : this.byReference(

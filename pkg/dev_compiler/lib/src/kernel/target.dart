@@ -301,28 +301,6 @@ class DevCompilerTarget extends Target {
   }
 
   @override
-  Expression instantiateNoSuchMethodError(
-    CoreTypes coreTypes,
-    Expression receiver,
-    String name,
-    Arguments arguments,
-    int offset, {
-    bool isMethod = false,
-    bool isGetter = false,
-    bool isSetter = false,
-    bool isField = false,
-    bool isLocalVariable = false,
-    bool isDynamic = false,
-    bool isSuper = false,
-    bool isStatic = false,
-    bool isConstructor = false,
-    bool isTopLevel = false,
-  }) {
-    // TODO(sigmund): implement;
-    return InvalidExpression(null);
-  }
-
-  @override
   ConstantsBackend get constantsBackend => const DevCompilerConstantsBackend();
 
   @override

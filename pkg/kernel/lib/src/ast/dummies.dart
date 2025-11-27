@@ -317,7 +317,7 @@ final Typedef dummyTypedef = new Typedef('', null, fileUri: dummyUri);
 /// This is used as the removal sentinel in [RemovingTransformer] and can be
 /// used for instance as a dummy initial value for the `List.filled`
 /// constructor.
-final Initializer dummyInitializer = new InvalidInitializer();
+final Initializer dummyInitializer = new InvalidInitializer('');
 
 /// Non-nullable [FunctionNode] dummy value.
 ///

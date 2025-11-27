@@ -180,6 +180,7 @@ general/error_recovery/empty_for: RuntimeError
 general/expressions: RuntimeError
 general/hierarchy/conflict: TypeCheckError
 general/hierarchy/duplicates: TypeCheckError
+general/invalid_initializer: RuntimeError # Deliberate crash using InvalidInitializer
 general/invocations: RuntimeError
 general/issue37776: RuntimeError
 general/issue47994b: RuntimeError
