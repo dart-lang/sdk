@@ -218,6 +218,33 @@ void f() {
 ''');
   }
 
+  test_is_expression_both_operands_known() async {
+    await assertDiagnostics(
+      r'''
+void f() {
+  if (20 is int) {}
+}
+''',
+      [lint(13, 17), error(diag.unnecessaryTypeCheckTrue, 17, 9)],
+    );
+  }
+
+  test_is_expression_only_left_operand_unknown() async {
+    await assertNoDiagnostics(r'''
+void f(a) {
+  if (a is int) {}
+}
+''');
+  }
+
+  test_is_expression_only_right_operand_unknown() async {
+    await assertNoDiagnostics(r'''
+void f<T>(a) {
+  if (20 is T) {}
+}
+''');
+  }
+
   test_nullAware() async {
     await assertDiagnostics(
       r'''
