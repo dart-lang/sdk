@@ -13521,6 +13521,25 @@ privateNamedNonFieldParameter = DiagnosticWithoutArgumentsImpl(
   expectedTypes: [],
 );
 
+/// Parameters:
+/// String publicName: the corresponding public name of private named
+///                    parameter
+const DiagnosticWithArguments<
+  LocatableDiagnostic Function({required String publicName})
+>
+privateNamedParameterDuplicatePublicName = DiagnosticWithArguments(
+  name: 'PRIVATE_NAMED_PARAMETER_DUPLICATE_PUBLIC_NAME',
+  problemMessage:
+      "The corresponding public name '{0}' is already the name of another "
+      "parameter.",
+  correctionMessage: "Try renaming one of the parameters.",
+  type: DiagnosticType.COMPILE_TIME_ERROR,
+  uniqueName:
+      'CompileTimeErrorCode.PRIVATE_NAMED_PARAMETER_DUPLICATE_PUBLIC_NAME',
+  withArguments: _withArgumentsPrivateNamedParameterDuplicatePublicName,
+  expectedTypes: [ExpectedType.string],
+);
+
 /// No parameters.
 const DiagnosticWithoutArguments
 privateNamedParameterWithoutPublicName = DiagnosticWithoutArgumentsImpl(
@@ -20276,6 +20295,15 @@ LocatableDiagnostic _withArgumentsPrivateCollisionInMixinApplication({
     p1,
     p2,
   ]);
+}
+
+LocatableDiagnostic _withArgumentsPrivateNamedParameterDuplicatePublicName({
+  required String publicName,
+}) {
+  return LocatableDiagnosticImpl(
+    diag.privateNamedParameterDuplicatePublicName,
+    [publicName],
+  );
 }
 
 LocatableDiagnostic _withArgumentsPrivateSetter({required String p0}) {

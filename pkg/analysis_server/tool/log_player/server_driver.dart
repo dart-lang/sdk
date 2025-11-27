@@ -6,6 +6,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:analysis_server/lsp_protocol/protocol.dart' show jsonRpcVersion;
+import 'package:analysis_server/src/lsp/lsp_packet_transformer.dart';
 import 'package:analysis_server/src/server/driver.dart';
 import 'package:analysis_server/src/session_logger/log_entry.dart';
 
@@ -109,7 +110,20 @@ class ServerDriver {
   /// used by the IDE.
   void sendMessageFromIde(Message message) {
     if (_stdinSink case IOSink writeSink) {
-      writeSink.writeln(json.encode(message));
+      var jsonEncodedBody = jsonEncode(message);
+      if (_protocol == ServerProtocol.lsp) {
+        var utf8EncodedBody = utf8.encode(jsonEncodedBody);
+        var header =
+            'Content-Length: ${utf8EncodedBody.length}\r\n'
+            'Content-Type: application/vscode-jsonrpc; charset=utf-8\r\n\r\n';
+        var asciiEncodedHeader = ascii.encode(header);
+
+        // Header is always ascii, body is always utf8!
+        writeSink.add(asciiEncodedHeader);
+        writeSink.add(utf8EncodedBody);
+      } else {
+        writeSink.write(jsonEncodedBody);
+      }
     } else {
       throw StateError(
         "The method 'start' must be invoked before "
@@ -164,10 +178,16 @@ class ServerDriver {
       ...filteredAdditionalArguments,
     ]);
     _stdinSink = process.stdin;
-    process.stdout
-        .transform(const Utf8Decoder())
-        .transform(const LineSplitter())
-        .listen(_receiveMessageFromServer);
+    if (_protocol == ServerProtocol.lsp) {
+      process.stdout
+          .transform(LspPacketTransformer())
+          .listen(_receiveMessageFromServer);
+    } else {
+      process.stdout
+          .transform(const Utf8Decoder())
+          .transform(const LineSplitter())
+          .listen(_receiveMessageFromServer);
+    }
   }
 
   void _receiveMessageFromServer(String message) {
