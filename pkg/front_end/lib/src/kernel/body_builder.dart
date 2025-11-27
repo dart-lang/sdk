@@ -9849,7 +9849,21 @@ class BodyBuilderImpl extends StackListenerImpl
         // Operating on an invalid field. Don't report anything though
         // as we've already reported that the field isn't valid.
         return <Initializer>[
-          buildInvalidInitializer(new InvalidExpression(null), fieldNameOffset),
+          buildInvalidInitializer(
+            new InvalidExpression(
+              compilerContext
+                  .format(
+                    codeExtensionTypeDeclaresInstanceField.withLocation(
+                      builder.fileUri,
+                      builder.fileOffset,
+                      builder.name.length,
+                    ),
+                    cfe.CfeSeverity.error,
+                  )
+                  .plain,
+            ),
+            fieldNameOffset,
+          ),
         ];
       }
 

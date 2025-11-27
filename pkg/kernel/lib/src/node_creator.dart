@@ -790,7 +790,6 @@ class NodeCreator {
         return IntLiteral(42)..fileOffset = _needFileOffset();
       case ExpressionKind.InvalidExpression:
         return _createOneOf(_pendingExpressions, kind, index, [
-          () => InvalidExpression(null)..fileOffset = _needFileOffset(),
           () => InvalidExpression('foo')..fileOffset = _needFileOffset(),
           () => InvalidExpression('foo', _createExpression())
             ..fileOffset = _needFileOffset(),

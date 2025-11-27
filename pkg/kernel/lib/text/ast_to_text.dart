@@ -1484,9 +1484,7 @@ class Printer extends VisitorDefault<void> with VisitorVoidMixin {
   @override
   void visitInvalidExpression(InvalidExpression node) {
     writeWord('invalid-expression');
-    if (node.message != null) {
-      writeWord('"${escapeString(node.message!)}"');
-    }
+    writeWord('"${escapeString(node.message)}"');
     if (node.expression != null) {
       writeSpaced('in');
       writeNode(node.expression!);

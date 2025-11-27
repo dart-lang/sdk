@@ -125,8 +125,7 @@ abstract class AuxiliaryExpression extends Expression {
 /// The [fileOffset] of an [InvalidExpression] indicates the location in the
 /// tree where the expression occurs, rather than the location of the error.
 class InvalidExpression extends Expression {
-  // TODO(johnniwinther): Avoid using `null` as the empty string.
-  String? message;
+  String message;
 
   /// The expression containing the error.
   Expression? expression;
@@ -179,7 +178,7 @@ class InvalidExpression extends Expression {
   @override
   void toTextInternal(AstPrinter printer) {
     printer.write('<invalid:');
-    printer.write(message ?? '');
+    printer.write(message);
     if (expression != null) {
       printer.write(', ');
       printer.writeExpression(expression!);
