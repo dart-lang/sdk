@@ -1103,7 +1103,6 @@ class BodyBuilderImpl extends StackListenerImpl
                     fileOffset: formal.fileOffset,
                     length: formal.name.length,
                   ),
-                  formal.fileOffset,
                 ),
               ];
             } else {
@@ -1211,7 +1210,7 @@ class BodyBuilderImpl extends StackListenerImpl
       ];
     } else {
       Expression value = toValue(node);
-      if (!forest.isThrow(node)) {
+      if (value is! InvalidExpression) {
         // TODO(johnniwinther): Derive the message position from the [node]
         // and not the [value].  For instance this occurs for `super()?.foo()`
         // in an initializer list, pointing to `foo` as expecting an
@@ -1226,10 +1225,7 @@ class BodyBuilderImpl extends StackListenerImpl
         );
       }
       initializers = <Initializer>[
-        // TODO(johnniwinther): This should probably be [value] instead of
-        //  [node].
-        // TODO(jensj): Does this offset make sense?
-        buildInvalidInitializer(node as Expression, endToken.next!.charOffset),
+        buildInvalidInitializer(value as InvalidExpression),
       ];
     }
 
@@ -2344,7 +2340,7 @@ class BodyBuilderImpl extends StackListenerImpl
   }
 
   @override
-  Expression buildUnresolvedError(
+  InvalidExpression buildUnresolvedError(
     String name,
     int charOffset, {
     bool isSuper = false,
@@ -2418,8 +2414,7 @@ class BodyBuilderImpl extends StackListenerImpl
     );
   }
 
-  @override
-  Expression buildProblemFromLocatedMessage(LocatedMessage message) {
+  InvalidExpression _buildProblemFromLocatedMessage(LocatedMessage message) {
     return buildProblem(
       message: message.messageObject,
       fileUri: uri,
@@ -6626,7 +6621,6 @@ class BodyBuilderImpl extends StackListenerImpl
     }
 
     String? errorName;
-    LocatedMessage? message;
 
     if (typeDeclarationBuilder is TypeAliasBuilder) {
       errorName = debugName(typeDeclarationBuilder.name, name);
@@ -6673,15 +6667,18 @@ class BodyBuilderImpl extends StackListenerImpl
                 // Not found. Reported below.
                 target = null;
               } else if (result.isInvalidLookup) {
-                message = LookupResult.createDuplicateMessage(
-                  result,
-                  enclosingDeclaration: typeDeclarationBuilder,
-                  name: name,
-                  fileUri: uri,
-                  fileOffset: charOffset,
-                  length: noLength,
+                return new ErroneousConstructorResolutionResult(
+                  errorExpression: _buildProblemFromLocatedMessage(
+                    LookupResult.createDuplicateMessage(
+                      result,
+                      enclosingDeclaration: typeDeclarationBuilder,
+                      name: name,
+                      fileUri: uri,
+                      fileOffset: charOffset,
+                      length: noLength,
+                    ),
+                  ),
                 );
-                target = null;
               } else {
                 MemberBuilder? constructorBuilder = result.getable!;
                 if (constructorBuilder is ConstructorBuilder) {
@@ -6718,18 +6715,12 @@ class BodyBuilderImpl extends StackListenerImpl
                   ),
                 );
               } else {
-                if (message != null) {
-                  return new ErroneousConstructorResolutionResult(
-                    errorExpression: buildProblemFromLocatedMessage(message),
-                  );
-                } else {
-                  return new UnresolvedConstructorResolutionResult(
-                    helper: this,
-                    errorName: errorName,
-                    charOffset: nameLastToken.charOffset,
-                    unresolvedKind: unresolvedKind,
-                  );
-                }
+                return new UnresolvedConstructorResolutionResult(
+                  helper: this,
+                  errorName: errorName,
+                  charOffset: nameLastToken.charOffset,
+                  unresolvedKind: unresolvedKind,
+                );
               }
             case ExtensionTypeDeclarationBuilder():
               // TODO(johnniwinther): Add shared interface between
@@ -6739,13 +6730,17 @@ class BodyBuilderImpl extends StackListenerImpl
               MemberBuilder? constructorBuilder = result?.getable;
               if (result != null && result.isInvalidLookup) {
                 // Coverage-ignore-block(suite): Not run.
-                message = LookupResult.createDuplicateMessage(
-                  result,
-                  enclosingDeclaration: typeDeclarationBuilder,
-                  name: name,
-                  fileUri: uri,
-                  fileOffset: charOffset,
-                  length: noLength,
+                return new ErroneousConstructorResolutionResult(
+                  errorExpression: _buildProblemFromLocatedMessage(
+                    LookupResult.createDuplicateMessage(
+                      result,
+                      enclosingDeclaration: typeDeclarationBuilder,
+                      name: name,
+                      fileUri: uri,
+                      fileOffset: charOffset,
+                      length: noLength,
+                    ),
+                  ),
                 );
               } else if (constructorBuilder == null) {
                 // Not found. Reported below.
@@ -6764,19 +6759,12 @@ class BodyBuilderImpl extends StackListenerImpl
                   ),
                 );
               }
-              if (message != null) {
-                // Coverage-ignore-block(suite): Not run.
-                return new ErroneousConstructorResolutionResult(
-                  errorExpression: buildProblemFromLocatedMessage(message),
-                );
-              } else {
-                return new UnresolvedConstructorResolutionResult(
-                  helper: this,
-                  errorName: errorName,
-                  charOffset: nameLastToken.charOffset,
-                  unresolvedKind: unresolvedKind,
-                );
-              }
+              return new UnresolvedConstructorResolutionResult(
+                helper: this,
+                errorName: errorName,
+                charOffset: nameLastToken.charOffset,
+                unresolvedKind: unresolvedKind,
+              );
             case InvalidBuilder():
               // Coverage-ignore(suite): Not run.
               LocatedMessage message = typeDeclarationBuilder.message;
@@ -7005,13 +6993,17 @@ class BodyBuilderImpl extends StackListenerImpl
         MemberBuilder? constructorBuilder = result?.getable;
         Member? target;
         if (result != null && result.isInvalidLookup) {
-          message = LookupResult.createDuplicateMessage(
-            result,
-            enclosingDeclaration: typeDeclarationBuilder,
-            name: name,
-            fileUri: uri,
-            fileOffset: charOffset,
-            length: noLength,
+          return new ErroneousConstructorResolutionResult(
+            errorExpression: _buildProblemFromLocatedMessage(
+              LookupResult.createDuplicateMessage(
+                result,
+                enclosingDeclaration: typeDeclarationBuilder,
+                name: name,
+                fileUri: uri,
+                fileOffset: charOffset,
+                length: noLength,
+              ),
+            ),
           );
         } else if (constructorBuilder == null) {
           // Not found. Reported below.
@@ -7078,13 +7070,17 @@ class BodyBuilderImpl extends StackListenerImpl
         Member? target;
         if (result != null && result.isInvalidLookup) {
           // Coverage-ignore-block(suite): Not run.
-          message = LookupResult.createDuplicateMessage(
-            result,
-            enclosingDeclaration: typeDeclarationBuilder,
-            name: name,
-            fileUri: uri,
-            fileOffset: charOffset,
-            length: noLength,
+          return new ErroneousConstructorResolutionResult(
+            errorExpression: _buildProblemFromLocatedMessage(
+              LookupResult.createDuplicateMessage(
+                result,
+                enclosingDeclaration: typeDeclarationBuilder,
+                name: name,
+                fileUri: uri,
+                fileOffset: charOffset,
+                length: noLength,
+              ),
+            ),
           );
         } else if (constructorBuilder == null) {
           // Not found. Reported below.
@@ -7129,18 +7125,12 @@ class BodyBuilderImpl extends StackListenerImpl
           name,
         );
     }
-    if (message != null) {
-      return new ErroneousConstructorResolutionResult(
-        errorExpression: buildProblemFromLocatedMessage(message),
-      );
-    } else {
-      return new UnresolvedConstructorResolutionResult(
-        helper: this,
-        errorName: errorName,
-        charOffset: nameLastToken.charOffset,
-        unresolvedKind: unresolvedKind,
-      );
-    }
+    return new UnresolvedConstructorResolutionResult(
+      helper: this,
+      errorName: errorName,
+      charOffset: nameLastToken.charOffset,
+      unresolvedKind: unresolvedKind,
+    );
   }
 
   @override
@@ -9770,14 +9760,10 @@ class BodyBuilderImpl extends StackListenerImpl
   }
 
   @override
-  Initializer buildInvalidInitializer(
-    Expression expression, [
-    int charOffset = -1,
-  ]) {
+  Initializer buildInvalidInitializer(InvalidExpression expression) {
     _needsImplicitSuperInitializer = false;
-    return new ShadowInvalidInitializer(
-      new VariableDeclaration.forValue(expression),
-    )..fileOffset = charOffset;
+    return new InvalidInitializer(expression.message)
+      ..fileOffset = expression.fileOffset;
   }
 
   Initializer buildDuplicatedInitializer(
@@ -9839,7 +9825,6 @@ class BodyBuilderImpl extends StackListenerImpl
             fileOffset: fieldNameOffset,
             length: name.length,
           ),
-          fieldNameOffset,
         ),
       ];
     } else if (builder is SourcePropertyBuilder &&
@@ -9849,7 +9834,20 @@ class BodyBuilderImpl extends StackListenerImpl
         // Operating on an invalid field. Don't report anything though
         // as we've already reported that the field isn't valid.
         return <Initializer>[
-          buildInvalidInitializer(new InvalidExpression(null), fieldNameOffset),
+          buildInvalidInitializer(
+            new InvalidExpression(
+              compilerContext
+                  .format(
+                    codeExtensionTypeDeclaresInstanceField.withLocation(
+                      builder.fileUri,
+                      builder.fileOffset,
+                      builder.name.length,
+                    ),
+                    cfe.CfeSeverity.error,
+                  )
+                  .plain,
+            ),
+          ),
         ];
       }
 
@@ -9875,7 +9873,6 @@ class BodyBuilderImpl extends StackListenerImpl
               fileOffset: fieldNameOffset,
               length: name.length,
             ),
-            fieldNameOffset,
           ),
         ];
       } else if (builder.hasExternalField) {
@@ -9887,7 +9884,6 @@ class BodyBuilderImpl extends StackListenerImpl
               fileOffset: fieldNameOffset,
               length: name.length,
             ),
-            fieldNameOffset,
           ),
         ];
       } else if (builder.isFinal && builder.hasInitializer) {
@@ -9956,7 +9952,6 @@ class BodyBuilderImpl extends StackListenerImpl
             fileOffset: fieldNameOffset,
             length: name.length,
           ),
-          fieldNameOffset,
         ),
       ];
     }
@@ -9996,12 +9991,13 @@ class BodyBuilderImpl extends StackListenerImpl
         length = "this".length;
       }
       String fullName = constructorNameForDiagnostics(name.text);
-      LocatedMessage message = cfe.codeConstructorNotFound
-          .withArgumentsOld(fullName)
-          .withLocation(uri, fileOffset, length);
       return buildInvalidInitializer(
-        buildProblemFromLocatedMessage(message),
-        fileOffset,
+        buildProblem(
+          message: cfe.codeConstructorNotFound.withArgumentsOld(fullName),
+          fileUri: uri,
+          fileOffset: fileOffset,
+          length: length,
+        ),
       );
     } else {
       if (_context.isConstructorCyclic(name.text)) {

@@ -47,7 +47,7 @@ extension type ET3(core::int id) {
 }
 static extension-type-member method ET1|constructor#(core::int id) → self::ET1% /* erasure=core::int, declared=! */ {
   lowered final self::ET1% /* erasure=core::int, declared=! */ #this;
-  final dynamic #t1 = invalid-expression "pkg/front_end/testcases/extension_types/field_initializer.dart:5:24: Error: Can't use 'id' because it is declared more than once.
+  invalid-expression "pkg/front_end/testcases/extension_types/field_initializer.dart:5:24: Error: Can't use 'id' because it is declared more than once.
 extension type ET1(int id) {
                        ^^";
   return #this;

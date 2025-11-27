@@ -84,7 +84,7 @@ static extension-type-member synthetic method Foo|constructor#_#named#tearOff(co
   return self::Foo|constructor#named(value, subtract: subtract);
 static extension-type-member erroneous method Foo|constructor#erroneous() → self::Foo% /* erasure=core::int, declared=! */ {
   lowered final self::Foo% /* erasure=core::int, declared=! */ #this;
-  final dynamic #t2 = invalid-expression "pkg/front_end/testcases/extension_types/issue52119.dart:12:26: Error: Couldn't find constructor 'Foo.unresolved'.
+  invalid-expression "pkg/front_end/testcases/extension_types/issue52119.dart:12:26: Error: Couldn't find constructor 'Foo.unresolved'.
   Foo.erroneous() : this.unresolved(); // Error
                          ^^^^^^^^^^";
   return #this;

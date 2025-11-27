@@ -1556,7 +1556,7 @@ class BinaryPrinter
   void visitInvalidExpression(InvalidExpression node) {
     writeByte(Tag.InvalidExpression);
     writeOffset(node.fileOffset);
-    writeStringReference(node.message ?? '');
+    writeStringReference(node.message);
     writeOptionalNode(node.expression);
   }
 

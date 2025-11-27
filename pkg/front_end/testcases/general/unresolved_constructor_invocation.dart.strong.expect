@@ -494,22 +494,22 @@ class Super extends core::Object {
 }
 class Class extends self::Super {
   constructor constructor1() → self::Class
-    : final dynamic #t1 = invalid-expression "pkg/front_end/testcases/general/unresolved_constructor_invocation.dart:14:26: Error: Superclass has no constructor named 'Super'.
+    : invalid-initializer "pkg/front_end/testcases/general/unresolved_constructor_invocation.dart:14:26: Error: Superclass has no constructor named 'Super'.
   Class.constructor1() : super();
                          ^^^^^"
     ;
   constructor constructor2() → self::Class
-    : final dynamic #t2 = invalid-expression "pkg/front_end/testcases/general/unresolved_constructor_invocation.dart:15:26: Error: Superclass has no constructor named 'Super.unresolved'.
+    : invalid-initializer "pkg/front_end/testcases/general/unresolved_constructor_invocation.dart:15:26: Error: Superclass has no constructor named 'Super.unresolved'.
   Class.constructor2() : super.unresolved();
                          ^^^^^"
     ;
   constructor constructor3() → self::Class
-    : final dynamic #t3 = invalid-expression "pkg/front_end/testcases/general/unresolved_constructor_invocation.dart:16:26: Error: Couldn't find constructor 'Class'.
+    : invalid-initializer "pkg/front_end/testcases/general/unresolved_constructor_invocation.dart:16:26: Error: Couldn't find constructor 'Class'.
   Class.constructor3() : this();
                          ^^^^"
     ;
   constructor constructor4() → self::Class
-    : final dynamic #t4 = invalid-expression "pkg/front_end/testcases/general/unresolved_constructor_invocation.dart:17:31: Error: Couldn't find constructor 'Class.unresolved'.
+    : invalid-initializer "pkg/front_end/testcases/general/unresolved_constructor_invocation.dart:17:31: Error: Couldn't find constructor 'Class.unresolved'.
   Class.constructor4() : this.unresolved();
                               ^^^^^^^^^^"
     ;

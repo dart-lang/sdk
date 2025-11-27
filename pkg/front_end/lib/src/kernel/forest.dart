@@ -621,8 +621,6 @@ class Forest {
     return new Throw(expression)..fileOffset = fileOffset;
   }
 
-  bool isThrow(Object? o) => o is Throw;
-
   Statement createTryStatement(
     int fileOffset,
     Statement tryBlock,

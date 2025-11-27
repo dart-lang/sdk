@@ -22,7 +22,7 @@ import "dart:core" as core;
 
 class C extends core::Object {
   constructor •() → self::C
-    : final dynamic #t1 = invalid-expression "pkg/front_end/testcases/regress/issue_37285.dart:6:16: Error: Not a valid initializer.
+    : invalid-initializer "pkg/front_end/testcases/regress/issue_37285.dart:6:16: Error: Not a valid initializer.
 To initialize a field, use the syntax 'name = value'.
   C() : super()[];
                ^"

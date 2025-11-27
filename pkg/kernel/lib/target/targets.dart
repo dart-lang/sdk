@@ -602,7 +602,8 @@ class NoneTarget extends Target {
   @override
   Expression instantiateInvocation(CoreTypes coreTypes, Expression receiver,
       String name, Arguments arguments, int offset, bool isSuper) {
-    return new InvalidExpression(null);
+    return new InvalidExpression(
+        'Unsupported: NoneTarget.instantiateInvocation');
   }
 
   @override

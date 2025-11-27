@@ -237,7 +237,9 @@ class FooWithHashCodeField extends core::Object /*hasConstConstructor*/  {
 }
 class ExtendsFoo1 extends self::Foo {
   synthetic constructor •() → self::ExtendsFoo1
-    : invalid-initializer
+    : invalid-initializer "pkg/front_end/testcases/general/constants/various.dart:124:7: Error: The superclass, 'Foo', has no unnamed constructor that takes no arguments.
+class ExtendsFoo1 extends Foo {
+      ^"
     ;
 }
 class ExtendsFoo2 extends self::Foo /*hasConstConstructor*/  {

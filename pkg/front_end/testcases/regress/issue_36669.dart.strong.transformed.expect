@@ -18,7 +18,9 @@ abstract class MixMeIn extends core::Object /*isMixinDeclaration*/  {
 }
 class Foo extends self::_Foo&NoUnnamedConstructor&MixMeIn {
   synthetic constructor •() → self::Foo
-    : invalid-initializer
+    : invalid-initializer "pkg/front_end/testcases/regress/issue_36669.dart:11:7: Error: The superclass, 'NoUnnamedConstructor with MixMeIn', has no unnamed constructor that takes no arguments.
+class Foo extends NoUnnamedConstructor with MixMeIn {}
+      ^"
     ;
 }
 abstract class _Foo&NoUnnamedConstructor&MixMeIn extends self::NoUnnamedConstructor implements self::MixMeIn /*isAnonymousMixin,isEliminatedMixin*/  {

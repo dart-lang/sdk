@@ -825,11 +825,10 @@ class _ExtensionTypeInitializerToStatementConverter
   }
 
   @override
-  // Coverage-ignore(suite): Not run.
   void visitInvalidInitializer(InvalidInitializer node) {
     statements.add(
       new ExpressionStatement(
-        new InvalidExpression(null)..fileOffset = node.fileOffset,
+        new InvalidExpression(node.message)..fileOffset = node.fileOffset,
       )..fileOffset,
     );
   }

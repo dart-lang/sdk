@@ -335,7 +335,7 @@ class Foo extends core::Object {
   constructor x() → self::Foo
     : super core::Object::•() {}
   constructor foo() → self::Foo
-    : final dynamic #t1 = invalid-expression "pkg/front_end/testcases/general/error_recovery/constructor_recovery_bad_name_general.crash_dart:7:11: Error: 'initializer' isn't an instance field of this class.
+    : invalid-initializer "pkg/front_end/testcases/general/error_recovery/constructor_recovery_bad_name_general.crash_dart:7:11: Error: 'initializer' isn't an instance field of this class.
   foo() : initializer = true { }
           ^^^^^^^^^^^" {}
   constructor X() → self::Foo
@@ -345,7 +345,7 @@ Try removing the return type.
   get Foo.X => 0;
                ^";
   constructor •() → self::Foo
-    : final dynamic #t2 = invalid-expression "pkg/front_end/testcases/general/error_recovery/constructor_recovery_bad_name_general.crash_dart:16:13: Error: 'bla' isn't an instance field of this class.
+    : invalid-initializer "pkg/front_end/testcases/general/error_recovery/constructor_recovery_bad_name_general.crash_dart:16:13: Error: 'bla' isn't an instance field of this class.
   get Foo : bla = null => 0;
             ^^^"
     invalid-expression "pkg/front_end/testcases/general/error_recovery/constructor_recovery_bad_name_general.crash_dart:16:27: Error: Constructors can't have a return type.

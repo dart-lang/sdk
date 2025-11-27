@@ -70,7 +70,7 @@ import "dart:core" as core;
 
 class Foo extends core::Object {
   constructor •() → self::Foo
-    : final dynamic #t1 = invalid-expression "pkg/front_end/testcases/declaring_constructors/new_in_initializer.dart:7:11: Error: This couldn't be parsed.
+    : invalid-initializer "pkg/front_end/testcases/declaring_constructors/new_in_initializer.dart:7:11: Error: This couldn't be parsed.
   Foo() : this.new = 42;
           ^" {}
 }
