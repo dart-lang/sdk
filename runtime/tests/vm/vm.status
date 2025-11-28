@@ -334,6 +334,7 @@ dart/regress_48196_test: SkipSlow
 dart/regress_52703_test: SkipSlow
 dart/use_dwarf_stack_traces_flag_deferred_test: SkipSlow
 dart/use_dwarf_stack_traces_flag_test: SkipSlow
+dart/use_macho_reduce_padding_flag_test: SkipSlow
 
 [ $compiler == dartkp && $simulator ]
 dart/awaiter_stacks/stream_methods_test/1: Pass, Slow
