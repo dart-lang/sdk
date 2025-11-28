@@ -146,7 +146,7 @@ while [ $# -gt 0 ]; do
       shift
       ;;
 
-    --extra-compiler-option=--enable-deferred-loading)
+    --enable-deferred-loading | --extra-compiler-option=--enable-deferred-loading)
       MULTI_MODULE=1
       DART2WASM_ARGS+=("--enable-deferred-loading")
       shift

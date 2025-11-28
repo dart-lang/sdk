@@ -4,7 +4,7 @@
 
 // Test that closurizing a function implies a dependency on its type.
 
-// dart2wasmOptions=--extra-compiler-option=--enable-deferred-loading -O0
+// dart2wasmOptions=--enable-deferred-loading -O0
 
 import "package:expect/expect.dart";
 

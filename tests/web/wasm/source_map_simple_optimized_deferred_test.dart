@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// dart2wasmOptions=-O4 --no-strip-wasm --extra-compiler-option=--enable-deferred-loading --extra-compiler-option=-DTEST_COMPILATION_DIR=$TEST_COMPILATION_DIR
+// dart2wasmOptions=-O4 --no-strip-wasm --enable-deferred-loading --extra-compiler-option=-DTEST_COMPILATION_DIR=$TEST_COMPILATION_DIR
 
 import 'source_map_simple_lib.dart' as Lib;
 

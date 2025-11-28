@@ -1557,7 +1557,7 @@ class _ConstantAccessor {
 
     if (existingDefinition != null) {
       // We already have a defined constant. Possibly import it and then use it.
-      return _readDefinedConstant(b, info, existingDefinition);
+      return _readDefinedConstant(b, b.moduleBuilder, info, existingDefinition);
     }
 
     // We have to guarantee that using the constant synchronously works. If the
@@ -1573,7 +1573,7 @@ class _ConstantAccessor {
         usingModule == translator.mainModule) {
       final definition =
           _defineConstantInModuleRecursive(translator.mainModule, info);
-      return _readDefinedConstant(b, info, definition);
+      return _readDefinedConstant(b, usingModule, info, definition);
     }
 
     // Remember for the transitive DAG of [constant] that we use it in this
@@ -1602,18 +1602,30 @@ class _ConstantAccessor {
     if (patchInstructions != null) {
       translator.linkingActions.add(() {
         // All constant uses have been discovered during codegen phase so we can
-        // know decide into which module to place the constant and patch the
+        // now decide into which module to place the constant and patch the
         // constant access to load it from there.
         final definition =
             info._definition ?? _defineConstantInModuleRecursive(null, info);
-        _readDefinedConstant(patchInstructions, info, definition);
+        _readDefinedConstant(patchInstructions, usingModule, info, definition);
       });
     }
 
     return info.type;
   }
 
-  w.ValueType _readDefinedConstant(w.InstructionsBuilder b, ConstantInfo info,
+  /// Reads the given constant.
+  ///
+  /// Normally `b.moduleBuilder == usingModule`, except for the situation where
+  /// the read happens under a load guard.
+  ///
+  /// In that case the `b.moduleBuilder` may not have an initializer function
+  /// (to reduce its size) and instead it can rely on the load guarded deferred
+  /// module to be loaded by the time we read the constant, so it can use that
+  /// deferred module's constant initializer.
+  w.ValueType _readDefinedConstant(
+      w.InstructionsBuilder b,
+      w.ModuleBuilder usingModule,
+      ConstantInfo info,
       ConstantDefinition definition) {
     // Eagerly initialized constant.
     if (definition is GlobalBasedConstantDefinition && !definition.isLazy) {
@@ -1630,7 +1642,7 @@ class _ConstantAccessor {
         w.Label done = b.block(const [], [info.type]);
         translator.globals.readGlobal(b, definition.global);
         b.br_on_non_null(done);
-        translator.callFunction(definition.initializer(b.moduleBuilder), b);
+        translator.callFunction(definition.initializer(usingModule), b);
         b.end();
         break;
       case TableBasedConstantDefinition():
@@ -1639,7 +1651,7 @@ class _ConstantAccessor {
         b.i32_const(definition.tableIndex);
         b.table_get(tableImporter.get(definition.table, b.moduleBuilder));
         b.br_on_non_null(done);
-        translator.callFunction(definition.initializer(b.moduleBuilder), b);
+        translator.callFunction(definition.initializer(usingModule), b);
         b.end();
         break;
     }
