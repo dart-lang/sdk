@@ -72,13 +72,6 @@ class ModuleMetadata {
   ModuleMetadata._(this.moduleImportName, this.moduleName,
       {this.skipEmit = false, this.isMain = false});
 
-  /// Whether or not the provided kernel [Reference] is included in this module.
-  bool containsReference(Reference reference) {
-    final enclosingLibrary = _enclosingLibraryForReference(reference);
-    if (enclosingLibrary == null) return false;
-    return libraries.contains(enclosingLibrary);
-  }
-
   @override
   String toString() => '$moduleImportName($libraries)';
 }
@@ -88,6 +81,12 @@ class ModuleOutputData {
   /// All [ModuleMetadata]s generated for the program.
   final List<ModuleMetadata> modules;
 
+  /// Maps the [Library] to the corresponding [ModuleMetadata].
+  late final Map<Library, ModuleMetadata> _libraryToModuleMetadata = {
+    for (final metadata in modules)
+      for (final library in metadata.libraries) library: metadata,
+  };
+
   ModuleOutputData(this.modules) : assert(modules[0].isMain);
 
   ModuleMetadata get mainModule => modules[0];
@@ -96,8 +95,9 @@ class ModuleOutputData {
   bool get hasMultipleModules => modules.length > 1;
 
   /// Returns the module that contains [reference].
-  ModuleMetadata moduleForReference(Reference reference) =>
-      modules.firstWhere((e) => e.containsReference(reference));
+  ModuleMetadata moduleForReference(Reference reference) {
+    return _libraryToModuleMetadata[_enclosingLibraryForReference(reference)]!;
+  }
 }
 
 /// Module strategy that puts all libraries into a single module.
