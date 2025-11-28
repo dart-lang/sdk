@@ -8,10 +8,13 @@ This is a patch release that:
   (issue [dart-lang/sdk#61996])
 - Fixes an issue with test_with_coverage and build hooks in dev depencencies.
   (issue [dart-lang/tools#2237])
+- Fixes an issue where a crash could occur when evaluating expressions
+  after a recompilation (issue [flutter/flutter#178740]).
 
 [Dart-Code/Dart-Code#61978]: https://github.com/Dart-Code/Dart-Code/issues/5810
 [dart-lang/sdk#61996]: https://github.com/dart-lang/sdk/issues/61996
 [dart-lang/tools#2237]: https://github.com/dart-lang/tools/issues/2237
+[flutter/flutter#178740]: https://github.com/flutter/flutter/issues/178740
 
 ## 3.10.2
 
