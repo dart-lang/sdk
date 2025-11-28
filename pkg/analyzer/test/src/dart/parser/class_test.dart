@@ -83,6 +83,29 @@ ConstructorDeclaration
 ''');
   }
 
+  test_constructor_factoryHead_new() {
+    var parseResult = parseStringWithErrors(r'''
+class A {
+  factory new() {}
+}
+''');
+    parseResult.assertErrors([error(diag.factoryConstructorNewName, 20, 3)]);
+
+    var node = parseResult.findNode.singleConstructorDeclaration;
+    assertParsedNodeText(node, r'''
+ConstructorDeclaration
+  factoryKeyword: factory
+  name: new
+  parameters: FormalParameterList
+    leftParenthesis: (
+    rightParenthesis: )
+  body: BlockFunctionBody
+    block: Block
+      leftBracket: {
+      rightBracket: }
+''');
+  }
+
   test_constructor_factoryHead_unnamed() {
     var parseResult = parseStringWithErrors(r'''
 class A {
@@ -220,6 +243,27 @@ ConstructorDeclaration
       equals: =
       expression: IntegerLiteral
         literal: 0
+  body: EmptyFunctionBody
+    semicolon: ;
+''');
+  }
+
+  test_constructor_newHead_new() {
+    var parseResult = parseStringWithErrors(r'''
+class A {
+  new new();
+}
+''');
+    parseResult.assertErrors([error(diag.newConstructorNewName, 16, 3)]);
+
+    var node = parseResult.findNode.singleConstructorDeclaration;
+    assertParsedNodeText(node, r'''
+ConstructorDeclaration
+  newKeyword: new
+  name: new
+  parameters: FormalParameterList
+    leftParenthesis: (
+    rightParenthesis: )
   body: EmptyFunctionBody
     semicolon: ;
 ''');
