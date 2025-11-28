@@ -335,7 +335,7 @@ contexts
         workspacePackage_0_0
       /home/test/lib/nestedNoYaml/a.dart
         uri: package:test/nestedNoYaml/a.dart
-        analysisOptions_0
+        analysisOptions_1
         workspacePackage_0_0
   /home/test/lib/nested
     packagesFile: /home/test/lib/nested/.dart_tool/package_config.json
@@ -344,11 +344,12 @@ contexts
     analyzedFiles
       /home/test/lib/nested/lib/c.dart
         uri: package:nested/c.dart
-        analysisOptions_1
+        analysisOptions_2
         workspacePackage_1_0
 analysisOptions
   analysisOptions_0: /home/test/lib/analysis_options.yaml
   analysisOptions_1: /home/test/lib/analysis_options.yaml
+  analysisOptions_2: /home/test/lib/analysis_options.yaml
 workspaces
   workspace_0: PackageConfigWorkspace
     root: /home/test
@@ -1543,6 +1544,126 @@ workspaces
         sdkVersionConstraint: ^3.6.0
       workspacePackage_0_1: PubPackage
         root: /home/package2
+        sdkVersionConstraint: ^3.6.0
+''');
+  }
+
+  test_resolutionWorkspace_singlePackage_analysisOptions_intermediate() async {
+    var workspaceRootPath = '/home';
+    var package1RootPath = '$workspaceRootPath/packages/package1';
+
+    newPubspecYamlFile(workspaceRootPath, r'''
+name: root_package
+environment:
+  sdk: ^3.6.0
+workspace:
+  - packages/package1
+''');
+    newAnalysisOptionsYamlFile('$workspaceRootPath/packages', r'''
+linter:
+  rules:
+    - prefer_final_locals
+''');
+    newFile('$workspaceRootPath/lib/main.dart', '');
+
+    newPubspecYamlFile(package1RootPath, r'''
+name: package1
+environment:
+  sdk: ^3.6.0
+resolution: workspace
+''');
+    newFile('$package1RootPath/lib/package1.dart', '');
+
+    newPackageConfigJsonFileFromBuilder(
+      workspaceRootPath,
+      PackageConfigFileBuilder()
+        ..add(name: 'root_package', rootPath: workspaceRootPath)
+        ..add(name: 'package1', rootPath: package1RootPath),
+    );
+
+    var collection = AnalysisContextCollectionImpl(
+      resourceProvider: resourceProvider,
+      sdkPath: sdkRoot.path,
+      includedPaths: [getFolder(package1RootPath).path],
+      withFineDependencies: true,
+    );
+
+    configuration.withLintRules = true;
+    _assertCollectionText(collection, r'''
+contexts
+  /home
+    packagesFile: /home/.dart_tool/package_config.json
+    workspace: workspace_0
+    analyzedFiles
+      /home/packages/package1/lib/package1.dart
+        uri: package:package1/package1.dart
+        analysisOptions_0
+        workspacePackage_0_0
+analysisOptions
+  analysisOptions_0: /home/packages/analysis_options.yaml
+    lintRules
+      prefer_final_locals
+workspaces
+  workspace_0: PackageConfigWorkspace
+    root: /home
+    pubPackages
+      workspacePackage_0_0: PubPackage
+        root: /home/packages/package1
+        sdkVersionConstraint: ^3.6.0
+''');
+  }
+
+  test_resolutionWorkspace_singlePackage_nestedInLib() async {
+    var workspaceRootPath = '/home';
+    var package1RootPath = '$workspaceRootPath/lib/package1';
+
+    newPubspecYamlFile(workspaceRootPath, r'''
+name: root_package
+environment:
+  sdk: ^3.6.0
+workspace:
+  - lib/package1
+''');
+    newFile('$workspaceRootPath/lib/main.dart', '');
+
+    newPubspecYamlFile(package1RootPath, r'''
+name: package1
+environment:
+  sdk: ^3.6.0
+resolution: workspace
+''');
+    newFile('$package1RootPath/lib/package1.dart', '');
+
+    newPackageConfigJsonFileFromBuilder(
+      workspaceRootPath,
+      PackageConfigFileBuilder()
+        ..add(name: 'root_package', rootPath: workspaceRootPath)
+        ..add(name: 'package1', rootPath: package1RootPath),
+    );
+
+    var collection = AnalysisContextCollectionImpl(
+      resourceProvider: resourceProvider,
+      sdkPath: sdkRoot.path,
+      includedPaths: [getFolder(package1RootPath).path],
+      withFineDependencies: true,
+    );
+
+    // Note: `package:package1/package1.dart` URI.
+    _assertCollectionText(collection, r'''
+contexts
+  /home
+    packagesFile: /home/.dart_tool/package_config.json
+    workspace: workspace_0
+    analyzedFiles
+      /home/lib/package1/lib/package1.dart
+        uri: package:package1/package1.dart
+        workspacePackage_0_0
+workspaces
+  workspace_0: PackageConfigWorkspace
+    root: /home
+    pubPackages
+      workspacePackage_0_0: PubPackage
+        root: /home/lib/package1
         sdkVersionConstraint: ^3.6.0
 ''');
   }

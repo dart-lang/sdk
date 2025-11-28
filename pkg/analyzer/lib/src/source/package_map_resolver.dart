@@ -46,6 +46,8 @@ class PackageMapUriResolver extends UriResolver {
     // See for instance https://github.com/dart-lang/package_config/pull/117
     // for inspiration, but also, maybe just use package:package_config?
     pathos.Context pathContext = resourceProvider.pathContext;
+    Uri? bestUri;
+    int bestLength = -1;
     for (var packageEntry in packageMap.entries) {
       String pkgName = packageEntry.key;
       Folder pkgFolder = packageEntry.value[0];
@@ -53,13 +55,16 @@ class PackageMapUriResolver extends UriResolver {
       if (path.length >= pkgFolderPath.length + pathContext.separator.length &&
           path.startsWith(pkgFolderPath) &&
           path.startsWith(pathContext.separator, pkgFolderPath.length)) {
-        String relPath = path.substring(pkgFolderPath.length + 1);
-        List<String> relPathComponents = pathContext.split(relPath);
-        String relUriPath = pathos.posix.joinAll(relPathComponents);
-        return uriCache.parse('$_packageScheme:$pkgName/$relUriPath');
+        if (pkgFolderPath.length > bestLength) {
+          String relPath = path.substring(pkgFolderPath.length + 1);
+          List<String> relPathComponents = pathContext.split(relPath);
+          String relUriPath = pathos.posix.joinAll(relPathComponents);
+          bestUri = uriCache.parse('$_packageScheme:$pkgName/$relUriPath');
+          bestLength = pkgFolderPath.length;
+        }
       }
     }
-    return null;
+    return bestUri;
   }
 
   @override
