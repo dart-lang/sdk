@@ -593,7 +593,7 @@ abstract class ResolvedCorrectionProducer
         var variableElement = variableDeclaration.declaredFragment?.element;
         if (variableElement case VariableElement(:var type)) {
           if (type is InvalidType) {
-            return typeProvider.dynamicType;
+            return typeProvider.objectQuestionType;
           }
           return type;
         }
@@ -733,12 +733,34 @@ abstract class ResolvedCorrectionProducer
       if (grandParent is ExpressionStatement) {
         return typeProvider.futureType(typeProvider.voidType);
       }
-      var inferredParentType =
-          inferUndefinedExpressionType(parent) ?? typeProvider.dynamicType;
-      if (inferredParentType is InvalidType) {
-        inferredParentType = typeProvider.dynamicType;
+      var inferredParentType = inferUndefinedExpressionType(parent);
+      if (inferredParentType == null || inferredParentType is InvalidType) {
+        inferredParentType = typeProvider.objectQuestionType;
       }
       return typeProvider.futureType(inferredParentType);
+    }
+    // for (int x in myFunction()) { }
+    if (parent
+        case ForEachPartsWithDeclaration(
+              :var iterable,
+              :var type,
+              parent: var statement,
+            ) ||
+            ForEachPartsWithIdentifier(
+              :var iterable,
+              :var type,
+              parent: var statement,
+            ) ||
+            ForEachPartsWithPattern(
+              :var iterable,
+              :var type,
+              parent: var statement,
+            ) when iterable == expression) {
+      var inferredType = type ?? typeProvider.objectQuestionType;
+      if (statement.awaitKeyword != null) {
+        return typeProvider.streamType(inferredType);
+      }
+      return typeProvider.iterableType(inferredType);
     }
     // We don't know.
     return null;
@@ -910,5 +932,19 @@ sealed class _AbstractCorrectionProducer<T extends ParsedUnitResult> {
   /// extension members with the [memberName].
   Stream<LibraryElement> librariesWithExtensions(Name memberName) {
     return _context.dartFixContext!.librariesWithExtensions(memberName);
+  }
+}
+
+extension on ForEachParts {
+  DartType? get type {
+    return switch (this) {
+      ForEachPartsWithDeclaration(
+        loopVariable: DeclaredIdentifier(type: TypeAnnotation(:var type)),
+      ) ||
+      ForEachPartsWithIdentifier(
+        identifier: Identifier(staticType: var type),
+      ) => type,
+      _ => null,
+    };
   }
 }

@@ -406,7 +406,7 @@ Future<void> f() async {
   print(x);
 }
 
-Future<dynamic> myUndefinedFunction() async {
+Future<Object?> myUndefinedFunction() async {
 }
 ''');
   }
