@@ -14372,15 +14372,15 @@ CompileTimeErrorCode:
     documentation: |-
       #### Description
 
-      The analyzer produces this diagnostic when a private named parameter's
-      corresponding public name with the leading `_` removed is the same as
-      another parameter in the parameter list.
+      The analyzer produces this diagnostic when a private named parameter
+      (leading `_`) has a corresponding public name that conflicts with an
+      existing parameter name in the same parameter list.
 
       #### Example
 
       The following code produces this diagnostic because the private named
-      parameter `_x`'s public name is `x` and there is another parameter with
-      that name:
+      parameter `_x`'s public name is `x`, which conflicts with the existing
+      parameter named `x`:
 
       ```dart
       class C {
