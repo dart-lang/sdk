@@ -13,6 +13,7 @@
 // VMOptions=--experimental-shared-data --profiler --profile_vm=false
 
 import 'package:dart_internal/isolate_group.dart' show IsolateGroup;
+import 'dart:convert';
 import 'dart:developer';
 import 'dart:isolate';
 
@@ -258,6 +259,13 @@ main(List<String> args) {
     return identical(pi.toString(), pi.toString());
   });
   Expect.isTrue(resultIdentical);
+
+  Expect.listEquals(
+    "abcdefghijklmnopqrstuvwxyz".codeUnits,
+    IsolateGroup.runSync(() {
+      return Base64Decoder().convert("YWJjZGVmZ2hpamtsbW5vcHFyc3R1dnd4eXo=");
+    }),
+  );
 
   print("All tests completed :)");
 }
