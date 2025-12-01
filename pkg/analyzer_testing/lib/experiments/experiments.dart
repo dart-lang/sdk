@@ -16,9 +16,9 @@ import 'package:analyzer/dart/analysis/features.dart';
 /// whether a given flag is already included.
 List<String> experimentsForTests = [
   Feature.augmentations.enableString,
-  Feature.declaring_constructors.enableString,
   Feature.enhanced_parts.enableString,
   Feature.macros.enableString,
+  Feature.primary_constructors.enableString,
   Feature.private_named_parameters.enableString,
   Feature.static_extensions.enableString,
   Feature.variance.enableString,

@@ -14,7 +14,7 @@ abstract class I implements S;
 // [cfe] 'I' is already declared in this scope.
 //                           ^
 // [analyzer] SYNTACTIC_ERROR.EXPERIMENT_NOT_ENABLED_OFF_BY_DEFAULT
-// [cfe] This requires the experimental 'declaring-constructors' language feature to be enabled.
+// [cfe] This requires the experimental 'primary-constructors' language feature to be enabled.
 
 class C implements I { }
 

@@ -1839,7 +1839,7 @@ class OutlineBuilder extends StackListenerImpl {
 
     if (!forExtensionType) {
       reportIfNotEnabled(
-        libraryFeatures.declaringConstructors,
+        libraryFeatures.primaryConstructors,
         beginToken.charOffset,
         noLength,
       );
@@ -1987,7 +1987,7 @@ class OutlineBuilder extends StackListenerImpl {
       ]),
     );
 
-    // TODO(declaring-constructors): Implement primary constructor body.
+    // TODO(primary-constructors): Implement primary constructor body.
     // ignore: unused_local_variable
     MethodBody bodyKind = pop() as MethodBody;
     // ignore: unused_local_variable

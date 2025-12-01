@@ -19,7 +19,7 @@ void main() {
 class AvoidFinalParametersPrePrimaryConstructorsTest extends LintRuleTest {
   @override
   List<String> get experiments =>
-      super.experiments..remove(Feature.declaring_constructors.enableString);
+      super.experiments..remove(Feature.primary_constructors.enableString);
 
   @override
   String get lintRule => LintNames.avoid_final_parameters;

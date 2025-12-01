@@ -1199,7 +1199,7 @@ class DietListener extends StackListenerImpl {
     assert(
       checkState(beginToken, [/* metadata token */ ValueKinds.TokenOrNull]),
     );
-    // TODO(declaring-constructors): Implement primary constructor body.
+    // TODO(primary-constructors): Implement primary constructor body.
     pop() as Token?;
     checkEmpty(beginToken.charOffset);
   }

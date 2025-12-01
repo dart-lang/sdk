@@ -176,7 +176,7 @@ features:
     #     print(C(message: 'feature enabled')._message);
     #   }
 
-  declaring-constructors:
+  primary-constructors:
     help: "Less verbose constructors."
 
   anonymous-methods:

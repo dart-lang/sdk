@@ -44,7 +44,7 @@ class PreferFinalParameters extends AnalysisRule {
     // This lint isn't relevant with primary constructors enabled
     // as `final` is no longer used to indicate a parameter is final,
     // but rather as a declaring parameter in a primary constructor.
-    if (context.isFeatureEnabled(Feature.declaring_constructors)) return;
+    if (context.isFeatureEnabled(Feature.primary_constructors)) return;
 
     var visitor = _Visitor(this);
     registry.addConstructorDeclaration(this, visitor);

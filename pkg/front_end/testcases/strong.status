@@ -22,7 +22,6 @@ dart2js/sealed_class: semiFuzzFailureOnForceRebuildBodies # can't split because 
 dartdevc/inference_update_2/issue52452: semiFuzzFailureOnForceRebuildBodies # privacy.
 dartdevc/redirecting_factory_from_dill/main.no_link: semiFuzzFailureOnForceRebuildBodies # privacy.
 dartdevc/redirecting_factory_from_dill/main: semiFuzzFailureOnForceRebuildBodies # privacy.
-declaring_constructors/constructors: semiFuzzFailureOnForceRebuildBodies
 extension_types/inherited_representation_field: semiFuzzFailureOnForceRebuildBodies # privacy.
 extension_types/issue53446: semiFuzzFailureOnForceRebuildBodies # privacy.
 extensions/internal_resolution: semiFuzzFailureOnForceRebuildBodies # unnamed extensions
@@ -74,6 +73,7 @@ patterns/issue51009: semiFuzzFailureOnForceRebuildBodies # private extension met
 patterns/issue55310: semiFuzzFailureOnForceRebuildBodies # can't split because of sealed class.
 patterns/pattern_matching: semiFuzzFailureOnForceRebuildBodies # can't split because of sealed class.
 patterns/private_names_in_object_patterns: semiFuzzFailureOnForceRebuildBodies # can't match on private field in split out library.
+primary_constructors/constructors: semiFuzzFailureOnForceRebuildBodies
 private_named_parameters/access_in_initializer: semiFuzzFailureOnForceRebuildBodies # private fields in class.
 private_named_parameters/initializing_formal: semiFuzzFailureOnForceRebuildBodies # private field in class.
 records/issue51940: semiFuzzFailureOnForceRebuildBodies # can't split because of sealed class.

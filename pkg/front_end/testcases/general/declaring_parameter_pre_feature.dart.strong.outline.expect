@@ -2,8 +2,8 @@ library;
 //
 // Problems in library:
 //
-// pkg/front_end/testcases/general/declaring_parameter_pre_feature.dart:6:20: Error: This requires the experimental 'declaring-constructors' language feature to be enabled.
-// Try passing the '--enable-experiment=declaring-constructors' command line option.
+// pkg/front_end/testcases/general/declaring_parameter_pre_feature.dart:6:20: Error: This requires the experimental 'primary-constructors' language feature to be enabled.
+// Try passing the '--enable-experiment=primary-constructors' command line option.
 // extension type ET1(var int a) {}
 //                    ^^^
 //
