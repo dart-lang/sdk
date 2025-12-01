@@ -412,13 +412,13 @@ ASSEMBLER_TEST_GENERATE(Overflow, assembler) {
   __ LoadImmediate(R3, 0x7FFFFFFFFFFFFFFF);
   __ adds(IP0, R2, Operand(R1));  // c_out = 1.
   __ adcs(IP0, R3, R0);           // c_in = 1, c_out = 1, v = 1.
-  __ csinc(R0, R0, R0, VS);       // R0 = v ? R0 : R0 + 1.
+  __ cset(R0, VS);                // R0 = v ? 1 : 0
   __ ret();
 }
 
 ASSEMBLER_TEST_RUN(Overflow, test) {
   typedef int64_t (*Int64Return)() DART_UNUSED;
-  EXPECT_EQ(0, EXECUTE_TEST_CODE_INT64(Int64Return, test->entry()));
+  EXPECT_EQ(1, EXECUTE_TEST_CODE_INT64(Int64Return, test->entry()));
   EXPECT_DISASSEMBLY(
       "movz r0, #0x0\n"
       "movz r1, #0x1\n"
@@ -426,7 +426,7 @@ ASSEMBLER_TEST_RUN(Overflow, test) {
       "mov r3, 0x7fffffffffffffff\n"
       "adds tmp, r2, r1\n"
       "adcs tmp, r3, r0\n"
-      "csinc r0, r0, r0, vs\n"
+      "cset r0, vs\n"
       "ret\n");
 }
 
@@ -481,13 +481,13 @@ ASSEMBLER_TEST_GENERATE(WordOverflow, assembler) {
   __ LoadImmediate(R3, 0x7FFFFFFF);
   __ addsw(IP0, R2, Operand(R1));  // c_out = 1.
   __ adcsw(IP0, R3, R0);           // c_in = 1, c_out = 1, v = 1.
-  __ csinc(R0, R0, R0, VS);        // R0 = v ? R0 : R0 + 1.
+  __ cset(R0, VS);                 // R0 = v ? 1 : 0
   __ ret();
 }
 
 ASSEMBLER_TEST_RUN(WordOverflow, test) {
   typedef int64_t (*Int64Return)() DART_UNUSED;
-  EXPECT_EQ(0, EXECUTE_TEST_CODE_INT64(Int64Return, test->entry()));
+  EXPECT_EQ(1, EXECUTE_TEST_CODE_INT64(Int64Return, test->entry()));
   EXPECT_DISASSEMBLY(
       "movz r0, #0x0\n"
       "movz r1, #0x1\n"
@@ -495,7 +495,7 @@ ASSEMBLER_TEST_RUN(WordOverflow, test) {
       "mov r3, 0x7fffffff\n"
       "addws tmp, r2, r1\n"
       "adcws tmp, r3, r0\n"
-      "csinc r0, r0, r0, vs\n"
+      "cset r0, vs\n"
       "ret\n");
 }
 
@@ -4165,7 +4165,7 @@ ASSEMBLER_TEST_RUN(CsincTrue, test) {
       "movz r1, #0x2a\n"
       "movz r2, #0x4d2\n"
       "cmp r1, r2\n"
-      "cinc r0, r2, ge\n"
+      "csinc r0, r2, r1, lt\n"
       "ret\n");
 }
 
@@ -4243,6 +4243,31 @@ ASSEMBLER_TEST_RUN(CsnegTrue, test) {
       "cmp r1, r2\n"
       "csneg r0, r2, r1, lt\n"
       "ret\n");
+}
+
+ASSEMBLER_TEST_GENERATE(CSelAliases, assembler) {
+  __ csel(R0, R1, R2, LT);
+  __ cset(R0, LT);
+  __ csetm(R0, LT);
+  __ csinc(R0, R1, R2, LT);
+  __ cinc(R0, R1, LT);
+  __ csinv(R0, R1, R2, LT);
+  __ cinv(R0, R1, LT);
+  __ csneg(R0, R1, R2, LT);
+  __ cneg(R0, R1, LT);
+}
+
+ASSEMBLER_TEST_RUN(CSelAliases, test) {
+  EXPECT_DISASSEMBLY(
+      "csel r0, r1, r2, lt\n"
+      "cset r0, lt\n"
+      "csetm r0, lt\n"
+      "csinc r0, r1, r2, lt\n"
+      "cinc r0, r1, lt\n"
+      "csinv r0, r1, r2, lt\n"
+      "cinv r0, r1, lt\n"
+      "csneg r0, r1, r2, lt\n"
+      "cneg r0, r1, lt\n");
 }
 
 ASSEMBLER_TEST_GENERATE(Ubfx, assembler) {

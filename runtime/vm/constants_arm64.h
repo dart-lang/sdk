@@ -1614,7 +1614,8 @@ class Instr {
 
   static int64_t VFPExpandImm(uint8_t imm8) {
     const int64_t sign = static_cast<int64_t>((imm8 & 0x80) >> 7) << 63;
-    const int64_t hi_exp = static_cast<int64_t>(!((imm8 & 0x40) >> 6)) << 62;
+    const int64_t hi_exp = static_cast<int64_t>(((imm8 & 0x40) >> 6) == 0)
+                           << 62;
     const int64_t mid_exp = (((imm8 & 0x40) >> 6) == 0) ? 0 : (0xffLL << 54);
     const int64_t low_exp = static_cast<int64_t>((imm8 & 0x30) >> 4) << 52;
     const int64_t frac = static_cast<int64_t>(imm8 & 0x0f) << 48;
