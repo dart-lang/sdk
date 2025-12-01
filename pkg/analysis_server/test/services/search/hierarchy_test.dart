@@ -4,7 +4,9 @@
 
 import 'package:analysis_server/src/services/search/hierarchy.dart';
 import 'package:analysis_server/src/services/search/search_engine_internal.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/util/performance/operation_performance.dart';
+import 'package:collection/collection.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -362,16 +364,28 @@ class B extends A {
   mb2() {}
 }
 ''');
-    {
-      var classA = findElement2.class_('A');
-      var members = getClassMembers(classA);
-      expect(members.map((e) => e.name), unorderedEquals(['ma1', 'ma2']));
+
+    void check(InterfaceElement element, String expected) {
+      var members = getClassMembers(element);
+      var lines = members.map((e) => '${e.kind.name}: ${e.name}\n').sorted();
+      expect(lines.join(), expected);
     }
-    {
-      var classB = findElement2.class_('B');
-      var members = getClassMembers(classB);
-      expect(members.map((e) => e.name), unorderedEquals(['mb1', 'mb2']));
-    }
+
+    var A = findElement2.class_('A');
+    check(A, '''
+FIELD: ma1
+GETTER: ma1
+METHOD: ma2
+SETTER: ma1
+''');
+
+    var B = findElement2.class_('B');
+    check(B, '''
+FIELD: mb1
+GETTER: mb1
+METHOD: mb2
+SETTER: mb1
+''');
   }
 
   Future<void> test_getHierarchyNamedParameters() async {
@@ -477,45 +491,51 @@ class B extends A {
   mb2() {}
 }
 ''');
-    {
-      var classA = findElement2.class_('A');
-      var members = getMembers(classA);
-      expect(
-        members.map((e) => e.name),
-        unorderedEquals([
-          'ma1',
-          'ma2',
-          '==',
-          'toString',
-          'hashCode',
-          'noSuchMethod',
-          'runtimeType',
-          'hash',
-          'hashAll',
-          'hashAllUnordered',
-        ]),
-      );
+
+    void check(InterfaceElement element, String expected) {
+      var members = getMembers(element);
+      var lines = members.map((e) => '${e.kind.name}: ${e.name}\n').sorted();
+      expect(lines.join(), expected);
     }
-    {
-      var classB = findElement2.class_('B');
-      var members = getMembers(classB);
-      expect(
-        members.map((e) => e.name),
-        unorderedEquals([
-          'mb1',
-          'mb2',
-          'ma1',
-          'ma2',
-          '==',
-          'toString',
-          'hashCode',
-          'noSuchMethod',
-          'runtimeType',
-          'hash',
-          'hashAll',
-          'hashAllUnordered',
-        ]),
-      );
-    }
+
+    var A = findElement2.class_('A');
+    check(A, '''
+FIELD: hashCode
+FIELD: ma1
+FIELD: runtimeType
+GETTER: hashCode
+GETTER: ma1
+GETTER: runtimeType
+METHOD: ==
+METHOD: hash
+METHOD: hashAll
+METHOD: hashAllUnordered
+METHOD: ma2
+METHOD: noSuchMethod
+METHOD: toString
+SETTER: ma1
+''');
+
+    var B = findElement2.class_('B');
+    check(B, '''
+FIELD: hashCode
+FIELD: ma1
+FIELD: mb1
+FIELD: runtimeType
+GETTER: hashCode
+GETTER: ma1
+GETTER: mb1
+GETTER: runtimeType
+METHOD: ==
+METHOD: hash
+METHOD: hashAll
+METHOD: hashAllUnordered
+METHOD: ma2
+METHOD: mb2
+METHOD: noSuchMethod
+METHOD: toString
+SETTER: ma1
+SETTER: mb1
+''');
   }
 }
