@@ -15,6 +15,16 @@ main() {
 
 @reflectiveTest
 class TodoTest extends PubPackageResolutionTest {
+  test_eof() async {
+    await assertErrorsInCode(
+      r'''
+main() {}
+// TODO: Implement something else
+''',
+      [error(diag.todo, 13, 30, text: 'TODO: Implement something else')],
+    );
+  }
+
   test_fixme() async {
     await assertErrorsInCode(
       r'''
