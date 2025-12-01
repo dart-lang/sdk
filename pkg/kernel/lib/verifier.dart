@@ -417,7 +417,17 @@ class VerifyingVisitor extends RecursiveResultVisitor<void> {
     enterTreeNode(node);
     fileUri = checkLocation(node, node.name, node.fileUri);
     currentLibrary = node;
-    super.visitLibrary(node);
+    TreeNode? oldParent = enterParent(node);
+    _visitAnnotations(node.annotations);
+    visitList(node.dependencies, this);
+    visitList(node.parts, this);
+    visitList(node.typedefs, this);
+    visitList(node.classes, this);
+    visitList(node.extensions, this);
+    visitList(node.extensionTypeDeclarations, this);
+    visitList(node.procedures, this);
+    visitList(node.fields, this);
+    exitParent(oldParent);
     currentLibrary = null;
     exitTreeNode(node);
     _extensionsMembers = null;
@@ -463,6 +473,25 @@ class VerifyingVisitor extends RecursiveResultVisitor<void> {
       }
     }
     return _extensionsMembers!;
+  }
+
+  @override
+  void visitLibraryPart(LibraryPart node) {
+    enterTreeNode(node);
+    TreeNode? oldParent = enterParent(node);
+    _visitAnnotations(node.annotations);
+    exitParent(oldParent);
+    exitTreeNode(node);
+  }
+
+  @override
+  void visitLibraryDependency(LibraryDependency node) {
+    enterTreeNode(node);
+    TreeNode? oldParent = enterParent(node);
+    _visitAnnotations(node.annotations);
+    visitList(node.combinators, this);
+    exitParent(oldParent);
+    exitTreeNode(node);
   }
 
   Map<Reference, ExtensionTypeMemberDescriptor> _computeExtensionTypeMembers(
@@ -518,7 +547,9 @@ class VerifyingVisitor extends RecursiveResultVisitor<void> {
     _computeExtensionMembers(node.enclosingLibrary);
     declareTypeParameters(node.typeParameters);
     final TreeNode? oldParent = enterParent(node);
-    node.visitChildren(this);
+    _visitAnnotations(node.annotations);
+    visitList(node.typeParameters, this);
+    node.onType.accept(this);
     exitParent(oldParent);
     undeclareTypeParameters(node.typeParameters);
     currentExtension = null;
@@ -548,7 +579,10 @@ class VerifyingVisitor extends RecursiveResultVisitor<void> {
             "Found $type.");
       }
     }
-    node.visitChildren(this);
+    _visitAnnotations(node.annotations);
+    visitList(node.typeParameters, this);
+    node.declaredRepresentationType.accept(this);
+    visitList(node.procedures, this);
     exitParent(oldParent);
     undeclareTypeParameters(node.typeParameters);
     currentExtensionTypeDeclaration = null;
@@ -570,7 +604,9 @@ class VerifyingVisitor extends RecursiveResultVisitor<void> {
     currentParent = node;
     // Visit children without checking the parent pointer on the typedef itself
     // since this can be called from a context other than its true parent.
-    node.visitChildren(this);
+    _visitAnnotations(node.annotations);
+    visitList(node.typeParameters, this);
+    node.type?.accept(this);
     currentParent = savedParent;
     typeParametersInScope = savedTypeParameters;
     typedefState[node] = TypedefState.Done;
@@ -667,10 +703,25 @@ class VerifyingVisitor extends RecursiveResultVisitor<void> {
     node.initializer?.accept(this);
     node.type.accept(this);
     classTypeParametersAreInScope = false;
-    visitList(node.annotations, this);
+    _visitAnnotations(node.annotations);
     exitParent(oldParent);
     currentMember = null;
     exitTreeNode(node);
+  }
+
+  void _visitAnnotations(List<Expression> annotations) {
+    for (Expression annotation in annotations) {
+      if (stage >= VerificationStage.afterConstantEvaluation) {
+        if (!(annotation is ConstantExpression ||
+            annotation is InvalidExpression)) {
+          problem(
+              annotation,
+              "Unexpected annotation $annotation (${annotation.runtimeType}). "
+                  "Expected a ConstantExpression or InvalidExpression.");
+        }
+      }
+      annotation.accept(this);
+    }
   }
 
   @override
@@ -742,7 +793,7 @@ class VerifyingVisitor extends RecursiveResultVisitor<void> {
     }
     node.function.accept(this);
     classTypeParametersAreInScope = false;
-    visitList(node.annotations, this);
+    _visitAnnotations(node.annotations);
     exitParent(oldParent);
     // TODO(johnniwinther): Enable this invariant. Possibly by removing bodies
     // from external procedures declared with a body or by removing the external
@@ -788,7 +839,7 @@ class VerifyingVisitor extends RecursiveResultVisitor<void> {
     }
     exitLocalScope(stackHeight);
     classTypeParametersAreInScope = false;
-    visitList(node.annotations, this);
+    _visitAnnotations(node.annotations);
     exitParent(oldParent);
     // TODO(johnniwinther): Enable this invariant. Possibly by removing bodies
     // from external constructors declared with a body or by removing the
@@ -815,7 +866,7 @@ class VerifyingVisitor extends RecursiveResultVisitor<void> {
     declareTypeParameters(node.typeParameters);
     TreeNode? oldParent = enterParent(node);
     classTypeParametersAreInScope = false;
-    visitList(node.annotations, this);
+    _visitAnnotations(node.annotations);
     classTypeParametersAreInScope = true;
     visitList(node.typeParameters, this);
     visitList(node.fields, this);
@@ -1018,7 +1069,10 @@ class VerifyingVisitor extends RecursiveResultVisitor<void> {
           "VariableDeclaration must be a direct child of a Block, "
           "not ${parent.runtimeType}.");
     }
-    visitChildren(node);
+    TreeNode? oldParent = enterParent(node);
+    _visitAnnotations(node.annotations);
+    node.initializer?.accept(this);
+    exitParent(oldParent);
     declareVariable(node.variable);
     if (afterConst && node.isConst && constantLocalsShouldBeRemoved) {
       Expression? initializer = node.initializer;
