@@ -16,6 +16,7 @@ import 'package:dart_internal/isolate_group.dart' show IsolateGroup;
 import 'dart:convert';
 import 'dart:developer';
 import 'dart:isolate';
+import 'dart:math';
 
 import "package:expect/expect.dart";
 
@@ -266,6 +267,10 @@ main(List<String> args) {
       return Base64Decoder().convert("YWJjZGVmZ2hpamtsbW5vcHFyc3R1dnd4eXo=");
     }),
   );
+
+  IsolateGroup.runSync(() {
+    Random().nextInt(10);
+  });
 
   print("All tests completed :)");
 }
