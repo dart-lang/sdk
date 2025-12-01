@@ -262,6 +262,7 @@ class _Annotator extends RecursiveVisitor {
         annotateMember(tearOff as Member);
       }
     }
+    node.declaredRepresentationType.accept(this);
   }
 }
 
@@ -396,6 +397,9 @@ class _ImplicitUsesAnnotator extends RecursiveVisitor {
     if (node.isRedirectingFactory) {
       final target = node.function.redirectingFactoryTarget?.target;
       target?.acceptReference(this);
+    }
+    if (node.isConst) {
+      node.visitChildren(this);
     }
   }
 
