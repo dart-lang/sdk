@@ -754,8 +754,11 @@ class LateLowering {
           ConstantExpression(annotation.constant, annotation.type)
             ..fileOffset = annotation.fileOffset,
         );
-      } else {
-        throw StateError('Non-constant annotation on $source');
+      } else if (annotation is! InvalidExpression) {
+        throw StateError(
+          'Non-constant annotation on $source (${annotation.runtimeType}): '
+          '$annotation',
+        );
       }
     }
   }
