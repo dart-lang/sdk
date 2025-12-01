@@ -10,7 +10,10 @@
 #include <utility>
 
 #include "lib/stacktrace.h"
+#include "platform/address_sanitizer.h"
 #include "platform/assert.h"
+#include "platform/memory_sanitizer.h"
+#include "platform/thread_sanitizer.h"
 #include "platform/unicode.h"
 #include "vm/app_snapshot.h"
 #include "vm/bytecode_reader.h"
@@ -5409,6 +5412,30 @@ StringPtr Api::GetEnvironmentValue(Thread* thread, const String& name) {
 
     if (name.Equals(Symbols::DartVMProduct())) {
 #ifdef PRODUCT
+      return Symbols::True().ptr();
+#else
+      return Symbols::False().ptr();
+#endif
+    }
+
+    if (name.Equals(Symbols::DartVMASAN())) {
+#ifdef USING_ADDRESS_SANITIZER
+      return Symbols::True().ptr();
+#else
+      return Symbols::False().ptr();
+#endif
+    }
+
+    if (name.Equals(Symbols::DartVMMSAN())) {
+#ifdef USING_MEMORY_SANITIZER
+      return Symbols::True().ptr();
+#else
+      return Symbols::False().ptr();
+#endif
+    }
+
+    if (name.Equals(Symbols::DartVMTSAN())) {
+#ifdef USING_THREAD_SANITIZER
       return Symbols::True().ptr();
 #else
       return Symbols::False().ptr();

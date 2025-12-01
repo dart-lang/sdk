@@ -177,6 +177,9 @@ template("gen_vm_platform") {
     args = [ "dart:core" ]
     args += [
       "-Ddart.vm.product=$is_product_flag",
+      "-Ddart.vm.asan=$is_asan",
+      "-Ddart.vm.msan=$is_msan",
+      "-Ddart.vm.tsan=$is_tsan",
       "-Ddart.isVM=true",
     ]
     if (defined(invoker.exclude_source) && invoker.exclude_source) {

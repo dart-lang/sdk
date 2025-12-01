@@ -92,12 +92,13 @@ template("aot_snapshot") {
       # (Instead of ensuring every user of the "application_snapshot" /
       # "kernel_snapshot" passes this if needed, we always pass it)
       "-Dsdk_hash=$sdk_hash",
+      "-Ddart.vm.product=$product_mode",
+      "-Ddart.vm.asan=$is_asan",
+      "-Ddart.vm.msan=$is_msan",
+      "-Ddart.vm.tsan=$is_tsan",
     ]
     args += gen_kernel_args
     args += [ rebase_path(main_dart, root_build_dir) ]
-    if (product_mode) {
-      args += [ "-Ddart.vm.product=true" ]
-    }
     if (defined(invoker.args)) {
       args += invoker.args
     }

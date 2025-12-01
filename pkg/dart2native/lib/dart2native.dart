@@ -104,7 +104,10 @@ Future<ProcessResult> generateKernelHelper({
   final args = [
     sdk.genKernelSnapshot,
     '--platform=${product ? sdk.vmPlatformProductDill : sdk.vmPlatformDill}',
-    if (product) '-Ddart.vm.product=true',
+    '-Ddart.vm.product=$product',
+    '-Ddart.vm.asan=${const bool.fromEnvironment("dart.vm.asan")}',
+    '-Ddart.vm.msan=${const bool.fromEnvironment("dart.vm.msan")}',
+    '-Ddart.vm.tsan=${const bool.fromEnvironment("dart.vm.tsan")}',
     if (enableExperiment.isNotEmpty) '--enable-experiment=$enableExperiment',
     if (targetOS != null) '--target-os=$targetOS',
     if (fromDill) '--from-dill=$sourceFile',
