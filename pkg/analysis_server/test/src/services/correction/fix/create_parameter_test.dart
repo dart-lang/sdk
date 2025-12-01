@@ -19,26 +19,6 @@ class CreateParameterTest extends FixProcessorTest {
   @override
   FixKind get kind => DartFixKind.createParameter;
 
-  Future<void> test_dynamic_type() async {
-    await resolveTestCode('''
-int f(
-  int b,
-) {
-  var i = b2;
-  return i;
-}
-''');
-    await assertHasFix('''
-int f(
-  int b,
-  dynamic b2,
-) {
-  var i = b2;
-  return i;
-}
-''');
-  }
-
   Future<void> test_final_comma() async {
     await resolveTestCode('''
 int f(
@@ -93,6 +73,26 @@ int f(int b) {
     await assertHasFix('''
 int f(int b, int b2) {
   int i = b2;
+  return i;
+}
+''');
+  }
+
+  Future<void> test_nullableObject_type() async {
+    await resolveTestCode('''
+int f(
+  int b,
+) {
+  var i = b2;
+  return i;
+}
+''');
+    await assertHasFix('''
+int f(
+  int b,
+  Object? b2,
+) {
+  var i = b2;
   return i;
 }
 ''');
