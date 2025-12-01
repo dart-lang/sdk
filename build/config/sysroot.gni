@@ -51,7 +51,10 @@ if (is_linux) {
 
 if ((current_toolchain == host_toolchain ||
      current_toolchain == default_toolchain ||
-     current_toolchain == "${default_toolchain}_shared") &&
+     current_toolchain == "${default_toolchain}_shared" ||
+     current_toolchain == "${default_toolchain}_asan" ||
+     current_toolchain == "${default_toolchain}_msan" ||
+     current_toolchain == "${default_toolchain}_tsan") &&
     target_sysroot != "") {
   sysroot = target_sysroot
 } else if (is_android) {
