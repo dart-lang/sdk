@@ -212,25 +212,25 @@ class Node {
     events.value.as_array.length = 0;
     for (size_t i = 0; i < num_events; i++) {
       char* path = reinterpret_cast<char**>(event_paths)[i];
-      path += node->base_path_length();
-      // If path is longer the base, skip next character ('/').
-      if (path[0] != '\0') {
-        path += 1;
+      char* relative_path = path;
+
+      relative_path += node->base_path_length();
+      // If path is longer than the base, skip next character ('/').
+      if (relative_path[0] != '\0') {
+        relative_path += 1;
       }
-      if (!node->recursive() && (strstr(path, "/") != nullptr)) {
+      if (!node->recursive() && (strstr(relative_path, "/") != nullptr)) {
         continue;
       }
 
-      const bool is_path_empty = path[0] == '\0';
+      const bool is_self = relative_path[0] == '\0';
       const bool path_exists =
-          !is_path_empty &&
           File::GetType(nullptr, path, false) != File::kDoesNotExist;
 
       events.value.as_array.values[events.value.as_array.length++] =
           CreateCObjectArray(
-              /*flags=*/ConvertEventFlags(event_flags[i], is_path_empty,
-                                          path_exists),
-              /*cookie=*/static_cast<int64_t>(0), path,
+              /*flags=*/ConvertEventFlags(event_flags[i], is_self, path_exists),
+              /*cookie=*/static_cast<int64_t>(0), relative_path,
               /*path_id=*/reinterpret_cast<int64_t>(node));
     }
 
@@ -245,11 +245,11 @@ class Node {
   }
 
   static int64_t ConvertEventFlags(FSEventStreamEventFlags flags,
-                                   bool is_path_empty,
+                                   bool is_self,
                                    bool path_exists) {
     int64_t mask = 0;
     if ((flags & kFSEventStreamEventFlagItemRenamed) != 0) {
-      if (is_path_empty) {
+      if (is_self) {
         // The moved path is the path being watched.
         mask |= FileSystemWatcher::kDeleteSelf;
       } else if (path_exists) {
@@ -271,7 +271,7 @@ class Node {
       mask |= FileSystemWatcher::kIsDir;
     }
     if ((flags & kFSEventStreamEventFlagItemRemoved) != 0) {
-      if (is_path_empty) {
+      if (is_self) {
         // The removed path is the path being watched.
         mask |= FileSystemWatcher::kDeleteSelf;
       } else {
