@@ -4,4 +4,51 @@
 
 import 'analyzer.dart';
 
-part 'lint_codes.g.dart';
+class LinterLintCode extends LintCodeWithExpectedTypes {
+  const LinterLintCode({
+    required super.name,
+    required super.problemMessage,
+    required super.uniqueName,
+    super.expectedTypes,
+    super.correctionMessage,
+    super.hasPublishedDocs,
+  });
+
+  @override
+  String get url {
+    if (hasPublishedDocs) {
+      return 'https://dart.dev/diagnostics/$name';
+    }
+    return 'https://dart.dev/lints/$name';
+  }
+}
+
+final class LinterLintTemplate<T extends Function> extends LinterLintCode
+    implements DiagnosticWithArguments<T> {
+  @override
+  final T withArguments;
+
+  /// Initialize a newly created error code to have the given [name].
+  const LinterLintTemplate({
+    required super.name,
+    required super.problemMessage,
+    required this.withArguments,
+    required super.expectedTypes,
+    required super.uniqueName,
+    super.correctionMessage,
+    super.hasPublishedDocs = false,
+  });
+}
+
+final class LinterLintWithoutArguments extends LinterLintCode
+    with DiagnosticWithoutArguments {
+  /// Initialize a newly created error code to have the given [name].
+  const LinterLintWithoutArguments({
+    required super.name,
+    required super.problemMessage,
+    required super.expectedTypes,
+    required super.uniqueName,
+    super.correctionMessage,
+    super.hasPublishedDocs = false,
+  });
+}

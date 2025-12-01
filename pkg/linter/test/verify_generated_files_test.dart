@@ -20,16 +20,5 @@ void main() {
             "Run 'dart run pkg/linter/tool/generate_lints.dart' to update.",
       );
     });
-
-    test('ensure lint codes are up to date', () async {
-      expect(
-        await generatedCodesFile.check(pkg_root.packageRoot),
-        isTrue,
-        reason:
-            "The generated lint codes at 'lib/src/lint_codes.g.dart' need "
-            'to be regenerated. '
-            "Run 'dart run pkg/linter/tool/generate_lints.dart' to update.",
-      );
-    });
   });
 }
