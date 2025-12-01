@@ -119,6 +119,7 @@ class CompiledApp {
       ...additionalImports,
       <<MODULE_LOADING_IMPORT>>
       <<JS_POLYFILL_IMPORT>>
+      "$moduleHelpers": {"this": () => dartInstance},
     });
 
     return new InstantiatedApp(this, dartInstance);
@@ -196,11 +197,13 @@ final moduleLoadingHelperTemplate = Template(r'''
           const module = await ((source instanceof Response)
               ? WebAssembly.compileStreaming(source, builtins)
               : WebAssembly.compile(source, builtins));
-          await WebAssembly.instantiate(module, {
+          let moduleInstance;
+          moduleInstance = await WebAssembly.instantiate(module, {
             ...baseImports,
             ...additionalImports,
             <<JS_POLYFILL_IMPORT>>
             "<<MAIN_MODULE_NAME>>": dartInstance.exports,
+            "$moduleHelpers": {"this": () => moduleInstance},
           });
         }
         const promises = [];
@@ -218,11 +221,13 @@ final moduleLoadingHelperTemplate = Template(r'''
           const module = await ((source instanceof Response)
               ? WebAssembly.compileStreaming(source, this.builtins)
               : WebAssembly.compile(source, this.builtins));
-          await WebAssembly.instantiate(module, {
+          let moduleInstance;
+          moduleInstance = await WebAssembly.instantiate(module, {
             ...baseImports,
             ...additionalImports,
             <<JS_POLYFILL_IMPORT>>
             "<<MAIN_MODULE_NAME>>": dartInstance.exports,
+            "$moduleHelpers": {"this": () => moduleInstance},
           });
         }
       },
@@ -231,14 +236,16 @@ final moduleLoadingHelperTemplate = Template(r'''
           throw "No implementation of loadDynamicModule provided.";
         }
         const [source, jsModule] = await loadDynamicModule(wasmUri, jsUri);
+        let moduleInstance;
         const module = await ((source instanceof Response)
             ? WebAssembly.compileStreaming(source, this.builtins)
             : WebAssembly.compile(source, this.builtins));
-        const loadedModule = await WebAssembly.instantiate(module, {
+        moduleInstance = await WebAssembly.instantiate(module, {
           "<<MAIN_MODULE_NAME>>": dartInstance.exports,
+            "$moduleHelpers": {"this": () => moduleInstance},
           ...jsModule.imports(finalizeWrapper),
         });
-        return loadedModule.exports.$invokeEntryPoint;
+        return moduleInstance.exports.$invokeEntryPoint;
       },
     };
 ''');

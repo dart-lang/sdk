@@ -234,10 +234,10 @@ class CallbackSpecializer {
     String argumentsLength =
         captureThis ? 'arguments.length + 1' : 'arguments.length';
     String dartArguments = 'f,$argumentsLength';
-    String jsMethodParams = 'f';
+    String jsMethodParams = '(module,f)';
     if (needsCastClosure) {
       dartArguments = '$dartArguments,castClosure';
-      jsMethodParams = '($jsMethodParams,castClosure)';
+      jsMethodParams = '(module,f,castClosure)';
     }
     if (captureThis) dartArguments = '$dartArguments,this';
     if (jsParameters.isNotEmpty) {
@@ -251,6 +251,9 @@ class CallbackSpecializer {
         'dart2wasm.$jsMethodName',
         FunctionNode(null,
             positionalParameters: [
+              VariableDeclaration('thisModule',
+                  type: _util.nonNullableWasmExternRefType,
+                  isSynthesized: true),
               VariableDeclaration('dartFunction',
                   type: _util.nonNullableWasmExternRefType,
                   isSynthesized: true),
@@ -271,7 +274,7 @@ class CallbackSpecializer {
         dartProcedure,
         jsMethodName,
         "$jsMethodParams => finalizeWrapper(f, function($jsWrapperParams) {"
-        " return dartInstance.exports.${functionTrampoline.name.text}($dartArguments) "
+        " return module.exports.${functionTrampoline.name.text}($dartArguments) "
         "})");
 
     return (dartProcedure, functionTrampoline);
@@ -356,6 +359,7 @@ class CallbackSpecializer {
         StaticInvocation(
             jsWrapperFunction,
             Arguments([
+              StaticGet(_util.thisModuleGetter),
               StaticInvocation(
                   _util.jsObjectFromDartObjectTarget, Arguments([argument])),
               if (castClosure != null)

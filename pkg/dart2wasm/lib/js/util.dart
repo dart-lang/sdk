@@ -68,6 +68,7 @@ class CoreTypesUtil {
   final Procedure jsifyJSArrayBufferImpl; // JS ByteBuffer
   final Procedure jsArrayBufferFromDartByteBuffer; // Wasm ByteBuffer
   final Procedure jsifyFunction;
+  final Procedure thisModuleGetter;
 
   // Classes used in type tests for the converters.
   final Class jsInt8ArrayImplClass;
@@ -268,6 +269,8 @@ class CoreTypesUtil {
             'dart:_js_helper', 'jsArrayBufferFromDartByteBuffer'),
         jsifyFunction = coreTypes.index
             .getTopLevelProcedure('dart:_js_helper', 'jsifyFunction'),
+        thisModuleGetter = coreTypes.index
+            .getTopLevelProcedure('dart:_js_helper', 'get:thisModule'),
         jsInt8ArrayImplClass =
             coreTypes.index.getClass('dart:_js_types', 'JSInt8ArrayImpl'),
         jsUint8ArrayImplClass =
