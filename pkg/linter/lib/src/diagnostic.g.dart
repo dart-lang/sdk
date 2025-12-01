@@ -30,7 +30,7 @@ alwaysDeclareReturnTypesOfFunctions = LinterLintTemplate(
   problemMessage: "The function '{0}' should have a return type but doesn't.",
   correctionMessage: "Try adding a return type to the function.",
   hasPublishedDocs: true,
-  uniqueName: 'LintCode.always_declare_return_types_of_functions',
+  uniqueName: 'always_declare_return_types_of_functions',
   withArguments: _withArgumentsAlwaysDeclareReturnTypesOfFunctions,
   expectedTypes: [ExpectedType.object],
 );
@@ -45,7 +45,7 @@ alwaysDeclareReturnTypesOfMethods = LinterLintTemplate(
   problemMessage: "The method '{0}' should have a return type but doesn't.",
   correctionMessage: "Try adding a return type to the method.",
   hasPublishedDocs: true,
-  uniqueName: 'LintCode.always_declare_return_types_of_methods',
+  uniqueName: 'always_declare_return_types_of_methods',
   withArguments: _withArgumentsAlwaysDeclareReturnTypesOfMethods,
   expectedTypes: [ExpectedType.object],
 );
@@ -57,7 +57,7 @@ const LinterLintWithoutArguments alwaysPutControlBodyOnNewLine =
       problemMessage: "Statement should be on a separate line.",
       correctionMessage: "Try moving the statement to a new line.",
       hasPublishedDocs: true,
-      uniqueName: 'LintCode.always_put_control_body_on_new_line',
+      uniqueName: 'always_put_control_body_on_new_line',
       expectedTypes: [],
     );
 
@@ -71,7 +71,7 @@ alwaysPutRequiredNamedParametersFirst = LinterLintWithoutArguments(
       "Try moving the required named parameter to be before any optional "
       "named parameters.",
   hasPublishedDocs: true,
-  uniqueName: 'LintCode.always_put_required_named_parameters_first',
+  uniqueName: 'always_put_required_named_parameters_first',
   expectedTypes: [],
 );
 
@@ -80,7 +80,7 @@ const LinterLintWithoutArguments alwaysRequireNonNullNamedParameters =
     LinterLintWithoutArguments(
       name: 'always_require_non_null_named_parameters',
       problemMessage: "",
-      uniqueName: 'LintCode.always_require_non_null_named_parameters',
+      uniqueName: 'always_require_non_null_named_parameters',
       expectedTypes: [],
     );
 
@@ -90,7 +90,7 @@ const LinterLintWithoutArguments alwaysSpecifyTypesAddType =
       name: 'always_specify_types',
       problemMessage: "Missing type annotation.",
       correctionMessage: "Try adding a type annotation.",
-      uniqueName: 'LintCode.always_specify_types_add_type',
+      uniqueName: 'always_specify_types_add_type',
       expectedTypes: [],
     );
 
@@ -104,7 +104,7 @@ alwaysSpecifyTypesReplaceKeyword = LinterLintTemplate(
   name: 'always_specify_types',
   problemMessage: "Missing type annotation.",
   correctionMessage: "Try replacing '{0}' with '{1}'.",
-  uniqueName: 'LintCode.always_specify_types_replace_keyword',
+  uniqueName: 'always_specify_types_replace_keyword',
   withArguments: _withArgumentsAlwaysSpecifyTypesReplaceKeyword,
   expectedTypes: [ExpectedType.object, ExpectedType.object],
 );
@@ -118,7 +118,7 @@ alwaysSpecifyTypesSpecifyType = LinterLintTemplate(
   name: 'always_specify_types',
   problemMessage: "Missing type annotation.",
   correctionMessage: "Try specifying the type '{0}'.",
-  uniqueName: 'LintCode.always_specify_types_specify_type',
+  uniqueName: 'always_specify_types_specify_type',
   withArguments: _withArgumentsAlwaysSpecifyTypesSpecifyType,
   expectedTypes: [ExpectedType.object],
 );
@@ -131,7 +131,7 @@ const LinterLintWithoutArguments alwaysSpecifyTypesSplitToTypes =
       correctionMessage:
           "Try splitting the declaration and specify the different type "
           "annotations.",
-      uniqueName: 'LintCode.always_specify_types_split_to_types',
+      uniqueName: 'always_specify_types_split_to_types',
       expectedTypes: [],
     );
 
@@ -143,7 +143,7 @@ const LinterLintWithoutArguments alwaysUsePackageImports =
           "Use 'package:' imports for files in the 'lib' directory.",
       correctionMessage: "Try converting the URI to a 'package:' URI.",
       hasPublishedDocs: true,
-      uniqueName: 'LintCode.always_use_package_imports',
+      uniqueName: 'always_use_package_imports',
       expectedTypes: [],
     );
 
@@ -152,7 +152,7 @@ const LinterLintWithoutArguments analyzerElementModelTrackingBad =
     LinterLintWithoutArguments(
       name: 'analyzer_element_model_tracking_bad',
       problemMessage: "Bad tracking annotation for this member.",
-      uniqueName: 'LintCode.analyzer_element_model_tracking_bad',
+      uniqueName: 'analyzer_element_model_tracking_bad',
       expectedTypes: [],
     );
 
@@ -161,7 +161,7 @@ const LinterLintWithoutArguments analyzerElementModelTrackingMoreThanOne =
     LinterLintWithoutArguments(
       name: 'analyzer_element_model_tracking_more_than_one',
       problemMessage: "There can be only one tracking annotation.",
-      uniqueName: 'LintCode.analyzer_element_model_tracking_more_than_one',
+      uniqueName: 'analyzer_element_model_tracking_more_than_one',
       expectedTypes: [],
     );
 
@@ -170,7 +170,7 @@ const LinterLintWithoutArguments analyzerElementModelTrackingZero =
     LinterLintWithoutArguments(
       name: 'analyzer_element_model_tracking_zero',
       problemMessage: "No required tracking annotation.",
-      uniqueName: 'LintCode.analyzer_element_model_tracking_zero',
+      uniqueName: 'analyzer_element_model_tracking_zero',
       expectedTypes: [],
     );
 
@@ -192,7 +192,7 @@ analyzerPublicApiBadPartDirective = LinterLintWithoutArguments(
   problemMessage:
       "Part directives in the analyzer public API should point to files in the "
       "analyzer public API.",
-  uniqueName: 'LintCode.analyzer_public_api_bad_part_directive',
+  uniqueName: 'analyzer_public_api_bad_part_directive',
   expectedTypes: [],
 );
 
@@ -230,7 +230,7 @@ analyzerPublicApiBadType = LinterLintTemplate(
   problemMessage:
       "Element makes use of type(s) which is not part of the analyzer public "
       "API: {0}.",
-  uniqueName: 'LintCode.analyzer_public_api_bad_type',
+  uniqueName: 'analyzer_public_api_bad_type',
   withArguments: _withArgumentsAnalyzerPublicApiBadType,
   expectedTypes: [ExpectedType.string],
 );
@@ -265,7 +265,7 @@ analyzerPublicApiExperimentalInconsistency = LinterLintTemplate(
   problemMessage:
       "Element makes use of experimental type(s), but is not itself marked with "
       "`@experimental`: {0}.",
-  uniqueName: 'LintCode.analyzer_public_api_experimental_inconsistency',
+  uniqueName: 'analyzer_public_api_experimental_inconsistency',
   withArguments: _withArgumentsAnalyzerPublicApiExperimentalInconsistency,
   expectedTypes: [ExpectedType.string],
 );
@@ -288,7 +288,7 @@ analyzerPublicApiExportsNonPublicName = LinterLintTemplate(
   problemMessage:
       "Export directive exports element(s) that are not part of the analyzer "
       "public API: {0}.",
-  uniqueName: 'LintCode.analyzer_public_api_exports_non_public_name',
+  uniqueName: 'analyzer_public_api_exports_non_public_name',
   withArguments: _withArgumentsAnalyzerPublicApiExportsNonPublicName,
   expectedTypes: [ExpectedType.string],
 );
@@ -306,7 +306,7 @@ const LinterLintWithoutArguments analyzerPublicApiImplInPublicApi =
       name: 'analyzer_public_api_impl_in_public_api',
       problemMessage:
           "Declarations in the analyzer public API should not end in \"Impl\".",
-      uniqueName: 'LintCode.analyzer_public_api_impl_in_public_api',
+      uniqueName: 'analyzer_public_api_impl_in_public_api',
       expectedTypes: [],
     );
 
@@ -322,7 +322,7 @@ annotateOverrides = LinterLintTemplate(
       "'@override'.",
   correctionMessage: "Try adding the '@override' annotation.",
   hasPublishedDocs: true,
-  uniqueName: 'LintCode.annotate_overrides',
+  uniqueName: 'annotate_overrides',
   withArguments: _withArgumentsAnnotateOverrides,
   expectedTypes: [ExpectedType.object],
 );
@@ -337,7 +337,7 @@ annotateRedeclares = LinterLintTemplate(
   problemMessage:
       "The member '{0}' is redeclaring but isn't annotated with '@redeclare'.",
   correctionMessage: "Try adding the '@redeclare' annotation.",
-  uniqueName: 'LintCode.annotate_redeclares',
+  uniqueName: 'annotate_redeclares',
   withArguments: _withArgumentsAnnotateRedeclares,
   expectedTypes: [ExpectedType.object],
 );
@@ -348,7 +348,7 @@ const LinterLintWithoutArguments avoidAnnotatingWithDynamic =
       name: 'avoid_annotating_with_dynamic',
       problemMessage: "Unnecessary 'dynamic' type annotation.",
       correctionMessage: "Try removing the type 'dynamic'.",
-      uniqueName: 'LintCode.avoid_annotating_with_dynamic',
+      uniqueName: 'avoid_annotating_with_dynamic',
       expectedTypes: [],
     );
 
@@ -356,7 +356,7 @@ const LinterLintWithoutArguments avoidAnnotatingWithDynamic =
 const LinterLintWithoutArguments avoidAs = LinterLintWithoutArguments(
   name: 'avoid_as',
   problemMessage: "",
-  uniqueName: 'LintCode.avoid_as',
+  uniqueName: 'avoid_as',
   expectedTypes: [],
 );
 
@@ -368,7 +368,7 @@ const LinterLintWithoutArguments avoidBoolLiteralsInConditionalExpressions =
           "Conditional expressions with a 'bool' literal can be simplified.",
       correctionMessage:
           "Try rewriting the expression to use either '&&' or '||'.",
-      uniqueName: 'LintCode.avoid_bool_literals_in_conditional_expressions',
+      uniqueName: 'avoid_bool_literals_in_conditional_expressions',
       expectedTypes: [],
     );
 
@@ -380,7 +380,7 @@ const LinterLintWithoutArguments avoidCatchesWithoutOnClauses =
           "Catch clause should use 'on' to specify the type of exception being "
           "caught.",
       correctionMessage: "Try adding an 'on' clause before the 'catch'.",
-      uniqueName: 'LintCode.avoid_catches_without_on_clauses',
+      uniqueName: 'avoid_catches_without_on_clauses',
       expectedTypes: [],
     );
 
@@ -391,7 +391,7 @@ const LinterLintWithoutArguments avoidCatchingErrorsClass =
       problemMessage: "The type 'Error' should not be caught.",
       correctionMessage:
           "Try removing the catch or catching an 'Exception' instead.",
-      uniqueName: 'LintCode.avoid_catching_errors_class',
+      uniqueName: 'avoid_catching_errors_class',
       expectedTypes: [],
     );
 
@@ -406,7 +406,7 @@ avoidCatchingErrorsSubclass = LinterLintTemplate(
       "The type '{0}' should not be caught because it is a subclass of 'Error'.",
   correctionMessage:
       "Try removing the catch or catching an 'Exception' instead.",
-  uniqueName: 'LintCode.avoid_catching_errors_subclass',
+  uniqueName: 'avoid_catching_errors_subclass',
   withArguments: _withArgumentsAvoidCatchingErrorsSubclass,
   expectedTypes: [ExpectedType.object],
 );
@@ -418,7 +418,7 @@ avoidClassesWithOnlyStaticMembers = LinterLintWithoutArguments(
   problemMessage: "Classes should define instance members.",
   correctionMessage:
       "Try adding instance behavior or moving the members out of the class.",
-  uniqueName: 'LintCode.avoid_classes_with_only_static_members',
+  uniqueName: 'avoid_classes_with_only_static_members',
   expectedTypes: [],
 );
 
@@ -428,7 +428,7 @@ const LinterLintWithoutArguments avoidDoubleAndIntChecks =
       name: 'avoid_double_and_int_checks',
       problemMessage: "Explicit check for double or int.",
       correctionMessage: "Try removing the check.",
-      uniqueName: 'LintCode.avoid_double_and_int_checks',
+      uniqueName: 'avoid_double_and_int_checks',
       expectedTypes: [],
     );
 
@@ -438,7 +438,7 @@ const LinterLintWithoutArguments avoidDynamicCalls = LinterLintWithoutArguments(
   problemMessage: "Method invocation or property access on a 'dynamic' target.",
   correctionMessage: "Try giving the target a type.",
   hasPublishedDocs: true,
-  uniqueName: 'LintCode.avoid_dynamic_calls',
+  uniqueName: 'avoid_dynamic_calls',
   expectedTypes: [],
 );
 
@@ -449,7 +449,7 @@ const LinterLintWithoutArguments avoidEmptyElse = LinterLintWithoutArguments(
   correctionMessage:
       "Try removing the empty statement or removing the else clause.",
   hasPublishedDocs: true,
-  uniqueName: 'LintCode.avoid_empty_else',
+  uniqueName: 'avoid_empty_else',
   expectedTypes: [],
 );
 
@@ -465,7 +465,7 @@ avoidEqualsAndHashCodeOnMutableClasses = LinterLintTemplate(
       "'@immutable'.",
   correctionMessage:
       "Try removing the override or annotating the class with '@immutable'.",
-  uniqueName: 'LintCode.avoid_equals_and_hash_code_on_mutable_classes',
+  uniqueName: 'avoid_equals_and_hash_code_on_mutable_classes',
   withArguments: _withArgumentsAvoidEqualsAndHashCodeOnMutableClasses,
   expectedTypes: [ExpectedType.object],
 );
@@ -480,7 +480,7 @@ avoidEscapingInnerQuotes = LinterLintTemplate(
   name: 'avoid_escaping_inner_quotes',
   problemMessage: "Unnecessary escape of '{0}'.",
   correctionMessage: "Try changing the outer quotes to '{1}'.",
-  uniqueName: 'LintCode.avoid_escaping_inner_quotes',
+  uniqueName: 'avoid_escaping_inner_quotes',
   withArguments: _withArgumentsAvoidEscapingInnerQuotes,
   expectedTypes: [ExpectedType.object, ExpectedType.object],
 );
@@ -493,7 +493,7 @@ const LinterLintWithoutArguments avoidFieldInitializersInConstClasses =
       correctionMessage:
           "Try converting the field to a getter or initialize the field in the "
           "constructors.",
-      uniqueName: 'LintCode.avoid_field_initializers_in_const_classes',
+      uniqueName: 'avoid_field_initializers_in_const_classes',
       expectedTypes: [],
     );
 
@@ -503,7 +503,7 @@ const LinterLintWithoutArguments avoidFinalParameters =
       name: 'avoid_final_parameters',
       problemMessage: "Parameters should not be marked as 'final'.",
       correctionMessage: "Try removing the keyword 'final'.",
-      uniqueName: 'LintCode.avoid_final_parameters',
+      uniqueName: 'avoid_final_parameters',
       expectedTypes: [],
     );
 
@@ -514,7 +514,7 @@ const LinterLintWithoutArguments avoidFunctionLiteralsInForeachCalls =
       problemMessage: "Function literals shouldn't be passed to 'forEach'.",
       correctionMessage: "Try using a 'for' loop.",
       hasPublishedDocs: true,
-      uniqueName: 'LintCode.avoid_function_literals_in_foreach_calls',
+      uniqueName: 'avoid_function_literals_in_foreach_calls',
       expectedTypes: [],
     );
 
@@ -524,7 +524,7 @@ const LinterLintWithoutArguments avoidFutureorVoid = LinterLintWithoutArguments(
   problemMessage: "Don't use the type 'FutureOr<void>'.",
   correctionMessage: "Try using 'Future<void>?' or 'void'.",
   hasPublishedDocs: true,
-  uniqueName: 'LintCode.avoid_futureor_void',
+  uniqueName: 'avoid_futureor_void',
   expectedTypes: [],
 );
 
@@ -534,7 +534,7 @@ const LinterLintWithoutArguments avoidImplementingValueTypes =
       name: 'avoid_implementing_value_types',
       problemMessage: "Classes that override '==' should not be implemented.",
       correctionMessage: "Try removing the class from the 'implements' clause.",
-      uniqueName: 'LintCode.avoid_implementing_value_types',
+      uniqueName: 'avoid_implementing_value_types',
       expectedTypes: [],
     );
 
@@ -544,7 +544,7 @@ const LinterLintWithoutArguments avoidInitToNull = LinterLintWithoutArguments(
   problemMessage: "Redundant initialization to 'null'.",
   correctionMessage: "Try removing the initializer.",
   hasPublishedDocs: true,
-  uniqueName: 'LintCode.avoid_init_to_null',
+  uniqueName: 'avoid_init_to_null',
   expectedTypes: [],
 );
 
@@ -555,7 +555,7 @@ avoidJsRoundedInts = LinterLintWithoutArguments(
   problemMessage:
       "Integer literal can't be represented exactly when compiled to JavaScript.",
   correctionMessage: "Try using a 'BigInt' to represent the value.",
-  uniqueName: 'LintCode.avoid_js_rounded_ints',
+  uniqueName: 'avoid_js_rounded_ints',
   expectedTypes: [],
 );
 
@@ -566,7 +566,7 @@ const LinterLintWithoutArguments avoidMultipleDeclarationsPerLine =
       problemMessage: "Multiple variables declared on a single line.",
       correctionMessage:
           "Try splitting the variable declarations into multiple lines.",
-      uniqueName: 'LintCode.avoid_multiple_declarations_per_line',
+      uniqueName: 'avoid_multiple_declarations_per_line',
       expectedTypes: [],
     );
 
@@ -576,7 +576,7 @@ const LinterLintWithoutArguments avoidNullChecksInEqualityOperators =
       name: 'avoid_null_checks_in_equality_operators',
       problemMessage: "Unnecessary null comparison in implementation of '=='.",
       correctionMessage: "Try removing the comparison.",
-      uniqueName: 'LintCode.avoid_null_checks_in_equality_operators',
+      uniqueName: 'avoid_null_checks_in_equality_operators',
       expectedTypes: [],
     );
 
@@ -586,7 +586,7 @@ const LinterLintWithoutArguments avoidPositionalBooleanParameters =
       name: 'avoid_positional_boolean_parameters',
       problemMessage: "'bool' parameters should be named parameters.",
       correctionMessage: "Try converting the parameter to a named parameter.",
-      uniqueName: 'LintCode.avoid_positional_boolean_parameters',
+      uniqueName: 'avoid_positional_boolean_parameters',
       expectedTypes: [],
     );
 
@@ -596,7 +596,7 @@ const LinterLintWithoutArguments avoidPrint = LinterLintWithoutArguments(
   problemMessage: "Don't invoke 'print' in production code.",
   correctionMessage: "Try using a logging framework.",
   hasPublishedDocs: true,
-  uniqueName: 'LintCode.avoid_print',
+  uniqueName: 'avoid_print',
   expectedTypes: [],
 );
 
@@ -607,7 +607,7 @@ const LinterLintWithoutArguments avoidPrivateTypedefFunctions =
       problemMessage:
           "The typedef is unnecessary because it is only used in one place.",
       correctionMessage: "Try inlining the type or using it in other places.",
-      uniqueName: 'LintCode.avoid_private_typedef_functions',
+      uniqueName: 'avoid_private_typedef_functions',
       expectedTypes: [],
     );
 
@@ -619,7 +619,7 @@ avoidRedundantArgumentValues = LinterLintWithoutArguments(
       "The value of the argument is redundant because it matches the default "
       "value.",
   correctionMessage: "Try removing the argument.",
-  uniqueName: 'LintCode.avoid_redundant_argument_values',
+  uniqueName: 'avoid_redundant_argument_values',
   expectedTypes: [],
 );
 
@@ -632,7 +632,7 @@ const LinterLintWithoutArguments avoidRelativeLibImports =
           "Try fixing the relative path or changing the import to a 'package:' "
           "import.",
       hasPublishedDocs: true,
-      uniqueName: 'LintCode.avoid_relative_lib_imports',
+      uniqueName: 'avoid_relative_lib_imports',
       expectedTypes: [],
     );
 
@@ -649,7 +649,7 @@ avoidRenamingMethodParameters = LinterLintTemplate(
       "method.",
   correctionMessage: "Try changing the name to '{1}'.",
   hasPublishedDocs: true,
-  uniqueName: 'LintCode.avoid_renaming_method_parameters',
+  uniqueName: 'avoid_renaming_method_parameters',
   withArguments: _withArgumentsAvoidRenamingMethodParameters,
   expectedTypes: [ExpectedType.object, ExpectedType.object],
 );
@@ -659,7 +659,7 @@ const LinterLintWithoutArguments avoidReturningNull =
     LinterLintWithoutArguments(
       name: 'avoid_returning_null',
       problemMessage: "",
-      uniqueName: 'LintCode.avoid_returning_null',
+      uniqueName: 'avoid_returning_null',
       expectedTypes: [],
     );
 
@@ -668,7 +668,7 @@ const LinterLintWithoutArguments avoidReturningNullForFuture =
     LinterLintWithoutArguments(
       name: 'avoid_returning_null_for_future',
       problemMessage: "",
-      uniqueName: 'LintCode.avoid_returning_null_for_future',
+      uniqueName: 'avoid_returning_null_for_future',
       expectedTypes: [],
     );
 
@@ -680,7 +680,7 @@ const LinterLintWithoutArguments avoidReturningNullForVoidFromFunction =
           "Don't return 'null' from a function with a return type of 'void'.",
       correctionMessage: "Try removing the 'null'.",
       hasPublishedDocs: true,
-      uniqueName: 'LintCode.avoid_returning_null_for_void_from_function',
+      uniqueName: 'avoid_returning_null_for_void_from_function',
       expectedTypes: [],
     );
 
@@ -692,7 +692,7 @@ const LinterLintWithoutArguments avoidReturningNullForVoidFromMethod =
           "Don't return 'null' from a method with a return type of 'void'.",
       correctionMessage: "Try removing the 'null'.",
       hasPublishedDocs: true,
-      uniqueName: 'LintCode.avoid_returning_null_for_void_from_method',
+      uniqueName: 'avoid_returning_null_for_void_from_method',
       expectedTypes: [],
     );
 
@@ -703,7 +703,7 @@ const LinterLintWithoutArguments avoidReturningThis =
       problemMessage: "Don't return 'this' from a method.",
       correctionMessage:
           "Try changing the return type to 'void' and removing the return.",
-      uniqueName: 'LintCode.avoid_returning_this',
+      uniqueName: 'avoid_returning_this',
       expectedTypes: [],
     );
 
@@ -714,7 +714,7 @@ const LinterLintWithoutArguments avoidReturnTypesOnSetters =
       problemMessage: "Unnecessary return type on a setter.",
       correctionMessage: "Try removing the return type.",
       hasPublishedDocs: true,
-      uniqueName: 'LintCode.avoid_return_types_on_setters',
+      uniqueName: 'avoid_return_types_on_setters',
       expectedTypes: [],
     );
 
@@ -725,7 +725,7 @@ const LinterLintWithoutArguments avoidSettersWithoutGetters =
       problemMessage: "Setter has no corresponding getter.",
       correctionMessage:
           "Try adding a corresponding getter or removing the setter.",
-      uniqueName: 'LintCode.avoid_setters_without_getters',
+      uniqueName: 'avoid_setters_without_getters',
       expectedTypes: [],
     );
 
@@ -741,7 +741,7 @@ avoidShadowingTypeParameters = LinterLintTemplate(
       "The type parameter '{0}' shadows a type parameter from the enclosing {1}.",
   correctionMessage: "Try renaming one of the type parameters.",
   hasPublishedDocs: true,
-  uniqueName: 'LintCode.avoid_shadowing_type_parameters',
+  uniqueName: 'avoid_shadowing_type_parameters',
   withArguments: _withArgumentsAvoidShadowingTypeParameters,
   expectedTypes: [ExpectedType.object, ExpectedType.object],
 );
@@ -756,7 +756,7 @@ avoidSingleCascadeInExpressionStatements = LinterLintTemplate(
   problemMessage: "Unnecessary cascade expression.",
   correctionMessage: "Try using the operator '{0}'.",
   hasPublishedDocs: true,
-  uniqueName: 'LintCode.avoid_single_cascade_in_expression_statements',
+  uniqueName: 'avoid_single_cascade_in_expression_statements',
   withArguments: _withArgumentsAvoidSingleCascadeInExpressionStatements,
   expectedTypes: [ExpectedType.object],
 );
@@ -767,7 +767,7 @@ const LinterLintWithoutArguments avoidSlowAsyncIo = LinterLintWithoutArguments(
   problemMessage: "Use of an async 'dart:io' method.",
   correctionMessage: "Try using the synchronous version of the method.",
   hasPublishedDocs: true,
-  uniqueName: 'LintCode.avoid_slow_async_io',
+  uniqueName: 'avoid_slow_async_io',
   expectedTypes: [],
 );
 
@@ -783,7 +783,7 @@ avoidTypesAsParameterNamesFormalParameter = LinterLintTemplate(
       "Try adding a name for the parameter or changing the parameter name to "
       "not match an existing type.",
   hasPublishedDocs: true,
-  uniqueName: 'LintCode.avoid_types_as_parameter_names_formal_parameter',
+  uniqueName: 'avoid_types_as_parameter_names_formal_parameter',
   withArguments: _withArgumentsAvoidTypesAsParameterNamesFormalParameter,
   expectedTypes: [ExpectedType.object],
 );
@@ -799,7 +799,7 @@ avoidTypesAsParameterNamesTypeParameter = LinterLintTemplate(
   correctionMessage:
       "Try changing the type parameter name to not match an existing type.",
   hasPublishedDocs: true,
-  uniqueName: 'LintCode.avoid_types_as_parameter_names_type_parameter',
+  uniqueName: 'avoid_types_as_parameter_names_type_parameter',
   withArguments: _withArgumentsAvoidTypesAsParameterNamesTypeParameter,
   expectedTypes: [ExpectedType.object],
 );
@@ -811,7 +811,7 @@ const LinterLintWithoutArguments avoidTypesOnClosureParameters =
       problemMessage:
           "Unnecessary type annotation on a function expression parameter.",
       correctionMessage: "Try removing the type annotation.",
-      uniqueName: 'LintCode.avoid_types_on_closure_parameters',
+      uniqueName: 'avoid_types_on_closure_parameters',
       expectedTypes: [],
     );
 
@@ -823,7 +823,7 @@ const LinterLintWithoutArguments avoidTypeToString = LinterLintWithoutArguments(
   correctionMessage:
       "Try a normal type check or compare the 'runtimeType' directly.",
   hasPublishedDocs: true,
-  uniqueName: 'LintCode.avoid_type_to_string',
+  uniqueName: 'avoid_type_to_string',
   expectedTypes: [],
 );
 
@@ -836,7 +836,7 @@ const LinterLintWithoutArguments avoidUnnecessaryContainers =
           "Try removing the 'Container' (but not its children) from the widget "
           "tree.",
       hasPublishedDocs: true,
-      uniqueName: 'LintCode.avoid_unnecessary_containers',
+      uniqueName: 'avoid_unnecessary_containers',
       expectedTypes: [],
     );
 
@@ -845,7 +845,7 @@ const LinterLintWithoutArguments avoidUnstableFinalFields =
     LinterLintWithoutArguments(
       name: 'avoid_unstable_final_fields',
       problemMessage: "",
-      uniqueName: 'LintCode.avoid_unstable_final_fields',
+      uniqueName: 'avoid_unstable_final_fields',
       expectedTypes: [],
     );
 
@@ -858,7 +858,7 @@ avoidUnusedConstructorParameters = LinterLintTemplate(
   name: 'avoid_unused_constructor_parameters',
   problemMessage: "The parameter '{0}' is not used in the constructor.",
   correctionMessage: "Try using the parameter or removing it.",
-  uniqueName: 'LintCode.avoid_unused_constructor_parameters',
+  uniqueName: 'avoid_unused_constructor_parameters',
   withArguments: _withArgumentsAvoidUnusedConstructorParameters,
   expectedTypes: [ExpectedType.object],
 );
@@ -870,7 +870,7 @@ const LinterLintWithoutArguments avoidVoidAsync = LinterLintWithoutArguments(
       "An 'async' function should have a 'Future' return type when it doesn't "
       "return a value.",
   correctionMessage: "Try changing the return type.",
-  uniqueName: 'LintCode.avoid_void_async',
+  uniqueName: 'avoid_void_async',
   expectedTypes: [],
 );
 
@@ -882,7 +882,7 @@ const LinterLintWithoutArguments avoidWebLibrariesInFlutter =
           "Don't use web-only libraries outside Flutter web plugins.",
       correctionMessage: "Try finding a different library for your needs.",
       hasPublishedDocs: true,
-      uniqueName: 'LintCode.avoid_web_libraries_in_flutter',
+      uniqueName: 'avoid_web_libraries_in_flutter',
       expectedTypes: [],
     );
 
@@ -897,7 +897,7 @@ awaitOnlyFutures = LinterLintTemplate(
       "Uses 'await' on an instance of '{0}', which is not a subtype of 'Future'.",
   correctionMessage: "Try removing the 'await' or changing the expression.",
   hasPublishedDocs: true,
-  uniqueName: 'LintCode.await_only_futures',
+  uniqueName: 'await_only_futures',
   withArguments: _withArgumentsAwaitOnlyFutures,
   expectedTypes: [ExpectedType.object],
 );
@@ -914,7 +914,7 @@ camelCaseExtensions = LinterLintTemplate(
   correctionMessage:
       "Try changing the name to follow the UpperCamelCase style.",
   hasPublishedDocs: true,
-  uniqueName: 'LintCode.camel_case_extensions',
+  uniqueName: 'camel_case_extensions',
   withArguments: _withArgumentsCamelCaseExtensions,
   expectedTypes: [ExpectedType.object],
 );
@@ -930,7 +930,7 @@ camelCaseTypes = LinterLintTemplate(
   correctionMessage:
       "Try changing the name to follow the UpperCamelCase style.",
   hasPublishedDocs: true,
-  uniqueName: 'LintCode.camel_case_types',
+  uniqueName: 'camel_case_types',
   withArguments: _withArgumentsCamelCaseTypes,
   expectedTypes: [ExpectedType.object],
 );
@@ -944,7 +944,7 @@ const LinterLintWithoutArguments cancelSubscriptions =
           "Try invoking 'cancel' in the function in which the "
           "'StreamSubscription' was created.",
       hasPublishedDocs: true,
-      uniqueName: 'LintCode.cancel_subscriptions',
+      uniqueName: 'cancel_subscriptions',
       expectedTypes: [],
     );
 
@@ -954,7 +954,7 @@ const LinterLintWithoutArguments cascadeInvocations =
       name: 'cascade_invocations',
       problemMessage: "Unnecessary duplication of receiver.",
       correctionMessage: "Try using a cascade to avoid the duplication.",
-      uniqueName: 'LintCode.cascade_invocations',
+      uniqueName: 'cascade_invocations',
       expectedTypes: [],
     );
 
@@ -965,7 +965,7 @@ castNullableToNonNullable = LinterLintWithoutArguments(
   problemMessage: "Don't cast a nullable value to a non-nullable type.",
   correctionMessage:
       "Try adding a not-null assertion ('!') to make the type non-nullable.",
-  uniqueName: 'LintCode.cast_nullable_to_non_nullable',
+  uniqueName: 'cast_nullable_to_non_nullable',
   expectedTypes: [],
 );
 
@@ -976,7 +976,7 @@ const LinterLintWithoutArguments closeSinks = LinterLintWithoutArguments(
   correctionMessage:
       "Try invoking 'close' in the function in which the 'Sink' was created.",
   hasPublishedDocs: true,
-  uniqueName: 'LintCode.close_sinks',
+  uniqueName: 'close_sinks',
   expectedTypes: [],
 );
 
@@ -991,7 +991,7 @@ collectionMethodsUnrelatedType = LinterLintTemplate(
   problemMessage: "The argument type '{0}' isn't related to '{1}'.",
   correctionMessage: "Try changing the argument or element type to match.",
   hasPublishedDocs: true,
-  uniqueName: 'LintCode.collection_methods_unrelated_type',
+  uniqueName: 'collection_methods_unrelated_type',
   withArguments: _withArgumentsCollectionMethodsUnrelatedType,
   expectedTypes: [ExpectedType.object, ExpectedType.object],
 );
@@ -1002,7 +1002,7 @@ const LinterLintWithoutArguments combinatorsOrdering =
       name: 'combinators_ordering',
       problemMessage: "Sort combinator names alphabetically.",
       correctionMessage: "Try sorting the combinator names alphabetically.",
-      uniqueName: 'LintCode.combinators_ordering',
+      uniqueName: 'combinators_ordering',
       expectedTypes: [],
     );
 
@@ -1011,7 +1011,7 @@ const LinterLintWithoutArguments commentReferences = LinterLintWithoutArguments(
   name: 'comment_references',
   problemMessage: "The referenced name isn't visible in scope.",
   correctionMessage: "Try adding an import for the referenced name.",
-  uniqueName: 'LintCode.comment_references',
+  uniqueName: 'comment_references',
   expectedTypes: [],
 );
 
@@ -1026,7 +1026,7 @@ conditionalUriDoesNotExist = LinterLintTemplate(
   correctionMessage:
       "Try creating the file referenced by the URI, or try using a URI for a "
       "file that does exist.",
-  uniqueName: 'LintCode.conditional_uri_does_not_exist',
+  uniqueName: 'conditional_uri_does_not_exist',
   withArguments: _withArgumentsConditionalUriDoesNotExist,
   expectedTypes: [ExpectedType.object],
 );
@@ -1042,7 +1042,7 @@ constantIdentifierNames = LinterLintTemplate(
   correctionMessage:
       "Try changing the name to follow the lowerCamelCase style.",
   hasPublishedDocs: true,
-  uniqueName: 'LintCode.constant_identifier_names',
+  uniqueName: 'constant_identifier_names',
   withArguments: _withArgumentsConstantIdentifierNames,
   expectedTypes: [ExpectedType.object],
 );
@@ -1057,7 +1057,7 @@ controlFlowInFinally = LinterLintTemplate(
   problemMessage: "Use of '{0}' in a 'finally' clause.",
   correctionMessage: "Try restructuring the code.",
   hasPublishedDocs: true,
-  uniqueName: 'LintCode.control_flow_in_finally',
+  uniqueName: 'control_flow_in_finally',
   withArguments: _withArgumentsControlFlowInFinally,
   expectedTypes: [ExpectedType.object],
 );
@@ -1072,7 +1072,7 @@ curlyBracesInFlowControlStructures = LinterLintTemplate(
   problemMessage: "Statements in {0} should be enclosed in a block.",
   correctionMessage: "Try wrapping the statement in a block.",
   hasPublishedDocs: true,
-  uniqueName: 'LintCode.curly_braces_in_flow_control_structures',
+  uniqueName: 'curly_braces_in_flow_control_structures',
   withArguments: _withArgumentsCurlyBracesInFlowControlStructures,
   expectedTypes: [ExpectedType.object],
 );
@@ -1084,7 +1084,7 @@ const LinterLintWithoutArguments danglingLibraryDocComments =
       problemMessage: "Dangling library doc comment.",
       correctionMessage: "Add a 'library' directive after the library comment.",
       hasPublishedDocs: true,
-      uniqueName: 'LintCode.dangling_library_doc_comments',
+      uniqueName: 'dangling_library_doc_comments',
       expectedTypes: [],
     );
 
@@ -1100,7 +1100,7 @@ dependOnReferencedPackages = LinterLintTemplate(
   correctionMessage:
       "Try adding a dependency for '{0}' in the 'pubspec.yaml' file.",
   hasPublishedDocs: true,
-  uniqueName: 'LintCode.depend_on_referenced_packages',
+  uniqueName: 'depend_on_referenced_packages',
   withArguments: _withArgumentsDependOnReferencedPackages,
   expectedTypes: [ExpectedType.object],
 );
@@ -1112,7 +1112,7 @@ const LinterLintWithoutArguments deprecatedConsistencyConstructor =
       problemMessage:
           "Constructors in a deprecated class should be deprecated.",
       correctionMessage: "Try marking the constructor as deprecated.",
-      uniqueName: 'LintCode.deprecated_consistency_constructor',
+      uniqueName: 'deprecated_consistency_constructor',
       expectedTypes: [],
     );
 
@@ -1124,7 +1124,7 @@ const LinterLintWithoutArguments deprecatedConsistencyField =
           "Fields that are initialized by a deprecated parameter should be "
           "deprecated.",
       correctionMessage: "Try marking the field as deprecated.",
-      uniqueName: 'LintCode.deprecated_consistency_field',
+      uniqueName: 'deprecated_consistency_field',
       expectedTypes: [],
     );
 
@@ -1135,7 +1135,7 @@ const LinterLintWithoutArguments deprecatedConsistencyParameter =
       problemMessage:
           "Parameters that initialize a deprecated field should be deprecated.",
       correctionMessage: "Try marking the parameter as deprecated.",
-      uniqueName: 'LintCode.deprecated_consistency_parameter',
+      uniqueName: 'deprecated_consistency_parameter',
       expectedTypes: [],
     );
 
@@ -1151,7 +1151,7 @@ deprecatedMemberUseFromSamePackageWithMessage = LinterLintTemplate(
   correctionMessage:
       "Try replacing the use of the deprecated member with the replacement, "
       "if a replacement is specified.",
-  uniqueName: 'LintCode.deprecated_member_use_from_same_package_with_message',
+  uniqueName: 'deprecated_member_use_from_same_package_with_message',
   withArguments: _withArgumentsDeprecatedMemberUseFromSamePackageWithMessage,
   expectedTypes: [ExpectedType.object, ExpectedType.object],
 );
@@ -1167,8 +1167,7 @@ deprecatedMemberUseFromSamePackageWithoutMessage = LinterLintTemplate(
   correctionMessage:
       "Try replacing the use of the deprecated member with the replacement, "
       "if a replacement is specified.",
-  uniqueName:
-      'LintCode.deprecated_member_use_from_same_package_without_message',
+  uniqueName: 'deprecated_member_use_from_same_package_without_message',
   withArguments: _withArgumentsDeprecatedMemberUseFromSamePackageWithoutMessage,
   expectedTypes: [ExpectedType.object],
 );
@@ -1182,7 +1181,7 @@ diagnosticDescribeAllProperties = LinterLintWithoutArguments(
       "'debugDescribeChildren'.",
   correctionMessage: "Try describing the property.",
   hasPublishedDocs: true,
-  uniqueName: 'LintCode.diagnostic_describe_all_properties',
+  uniqueName: 'diagnostic_describe_all_properties',
   expectedTypes: [],
 );
 
@@ -1192,7 +1191,7 @@ const LinterLintWithoutArguments directivesOrderingAlphabetical =
       name: 'directives_ordering',
       problemMessage: "Sort directive sections alphabetically.",
       correctionMessage: "Try sorting the directives.",
-      uniqueName: 'LintCode.directives_ordering_alphabetical',
+      uniqueName: 'directives_ordering_alphabetical',
       expectedTypes: [],
     );
 
@@ -1205,7 +1204,7 @@ directivesOrderingDart = LinterLintTemplate(
   name: 'directives_ordering',
   problemMessage: "Place 'dart:' {0} before other {0}.",
   correctionMessage: "Try sorting the directives.",
-  uniqueName: 'LintCode.directives_ordering_dart',
+  uniqueName: 'directives_ordering_dart',
   withArguments: _withArgumentsDirectivesOrderingDart,
   expectedTypes: [ExpectedType.object],
 );
@@ -1217,7 +1216,7 @@ const LinterLintWithoutArguments directivesOrderingExports =
       problemMessage:
           "Specify exports in a separate section after all imports.",
       correctionMessage: "Try sorting the directives.",
-      uniqueName: 'LintCode.directives_ordering_exports',
+      uniqueName: 'directives_ordering_exports',
       expectedTypes: [],
     );
 
@@ -1230,7 +1229,7 @@ directivesOrderingPackageBeforeRelative = LinterLintTemplate(
   name: 'directives_ordering',
   problemMessage: "Place 'package:' {0} before relative {0}.",
   correctionMessage: "Try sorting the directives.",
-  uniqueName: 'LintCode.directives_ordering_package_before_relative',
+  uniqueName: 'directives_ordering_package_before_relative',
   withArguments: _withArgumentsDirectivesOrderingPackageBeforeRelative,
   expectedTypes: [ExpectedType.object],
 );
@@ -1242,7 +1241,7 @@ const LinterLintWithoutArguments discardedFutures = LinterLintWithoutArguments(
   correctionMessage:
       "Try converting the enclosing function to be 'async' and then 'await' "
       "the future, or wrap the expression in 'unawaited'.",
-  uniqueName: 'LintCode.discarded_futures',
+  uniqueName: 'discarded_futures',
   expectedTypes: [],
 );
 
@@ -1253,7 +1252,7 @@ const LinterLintWithoutArguments documentIgnores = LinterLintWithoutArguments(
       "Missing documentation explaining why the diagnostic is ignored.",
   correctionMessage:
       "Try adding a comment immediately above the ignore comment.",
-  uniqueName: 'LintCode.document_ignores',
+  uniqueName: 'document_ignores',
   expectedTypes: [],
 );
 
@@ -1263,7 +1262,7 @@ const LinterLintWithoutArguments doNotUseEnvironment =
       name: 'do_not_use_environment',
       problemMessage: "Invalid use of an environment declaration.",
       correctionMessage: "Try removing the environment declaration usage.",
-      uniqueName: 'LintCode.do_not_use_environment',
+      uniqueName: 'do_not_use_environment',
       expectedTypes: [],
     );
 
@@ -1275,7 +1274,7 @@ const LinterLintWithoutArguments emptyCatches = LinterLintWithoutArguments(
       "Try adding statements to the block, adding a comment to the block, or "
       "removing the 'catch' clause.",
   hasPublishedDocs: true,
-  uniqueName: 'LintCode.empty_catches',
+  uniqueName: 'empty_catches',
   expectedTypes: [],
 );
 
@@ -1287,7 +1286,7 @@ emptyConstructorBodies = LinterLintWithoutArguments(
       "Empty constructor bodies should be written using a ';' rather than '{}'.",
   correctionMessage: "Try replacing the constructor body with ';'.",
   hasPublishedDocs: true,
-  uniqueName: 'LintCode.empty_constructor_bodies',
+  uniqueName: 'empty_constructor_bodies',
   expectedTypes: [],
 );
 
@@ -1298,7 +1297,7 @@ const LinterLintWithoutArguments emptyStatements = LinterLintWithoutArguments(
   correctionMessage:
       "Try removing the empty statement or restructuring the code.",
   hasPublishedDocs: true,
-  uniqueName: 'LintCode.empty_statements',
+  uniqueName: 'empty_statements',
   expectedTypes: [],
 );
 
@@ -1306,7 +1305,7 @@ const LinterLintWithoutArguments emptyStatements = LinterLintWithoutArguments(
 const LinterLintWithoutArguments enableNullSafety = LinterLintWithoutArguments(
   name: 'enable_null_safety',
   problemMessage: "",
-  uniqueName: 'LintCode.enable_null_safety',
+  uniqueName: 'enable_null_safety',
   expectedTypes: [],
 );
 
@@ -1315,7 +1314,7 @@ const LinterLintWithoutArguments eolAtEndOfFile = LinterLintWithoutArguments(
   name: 'eol_at_end_of_file',
   problemMessage: "Missing a newline at the end of the file.",
   correctionMessage: "Try adding a newline at the end of the file.",
-  uniqueName: 'LintCode.eol_at_end_of_file',
+  uniqueName: 'eol_at_end_of_file',
   expectedTypes: [],
 );
 
@@ -1326,7 +1325,7 @@ eraseDartTypeExtensionTypes = LinterLintWithoutArguments(
   problemMessage: "Unsafe use of 'DartType' in an 'is' check.",
   correctionMessage:
       "Ensure DartType extension types are erased by using a helper method.",
-  uniqueName: 'LintCode.erase_dart_type_extension_types',
+  uniqueName: 'erase_dart_type_extension_types',
   expectedTypes: [],
 );
 
@@ -1339,7 +1338,7 @@ exhaustiveCases = LinterLintTemplate(
   name: 'exhaustive_cases',
   problemMessage: "Missing case clauses for some constants in '{0}'.",
   correctionMessage: "Try adding case clauses for the missing constants.",
-  uniqueName: 'LintCode.exhaustive_cases',
+  uniqueName: 'exhaustive_cases',
   withArguments: _withArgumentsExhaustiveCases,
   expectedTypes: [ExpectedType.object],
 );
@@ -1357,7 +1356,7 @@ fileNames = LinterLintTemplate(
       "Try changing the name to follow the lower_case_with_underscores "
       "style.",
   hasPublishedDocs: true,
-  uniqueName: 'LintCode.file_names',
+  uniqueName: 'file_names',
   withArguments: _withArgumentsFileNames,
   expectedTypes: [ExpectedType.object],
 );
@@ -1367,7 +1366,7 @@ const LinterLintWithoutArguments flutterStyleTodos = LinterLintWithoutArguments(
   name: 'flutter_style_todos',
   problemMessage: "To-do comment doesn't follow the Flutter style.",
   correctionMessage: "Try following the Flutter style for to-do comments.",
-  uniqueName: 'LintCode.flutter_style_todos',
+  uniqueName: 'flutter_style_todos',
   expectedTypes: [],
 );
 
@@ -1382,7 +1381,7 @@ hashAndEquals = LinterLintTemplate(
   problemMessage: "Missing a corresponding override of '{0}'.",
   correctionMessage: "Try overriding '{0}' or removing '{1}'.",
   hasPublishedDocs: true,
-  uniqueName: 'LintCode.hash_and_equals',
+  uniqueName: 'hash_and_equals',
   withArguments: _withArgumentsHashAndEquals,
   expectedTypes: [ExpectedType.object, ExpectedType.object],
 );
@@ -1397,7 +1396,7 @@ implementationImports = LinterLintWithoutArguments(
       "Try importing a public library that exports this library, or removing "
       "the import.",
   hasPublishedDocs: true,
-  uniqueName: 'LintCode.implementation_imports',
+  uniqueName: 'implementation_imports',
   expectedTypes: [],
 );
 
@@ -1408,7 +1407,7 @@ const LinterLintWithoutArguments implicitCallTearoffs =
       problemMessage: "Implicit tear-off of the 'call' method.",
       correctionMessage: "Try explicitly tearing off the 'call' method.",
       hasPublishedDocs: true,
-      uniqueName: 'LintCode.implicit_call_tearoffs',
+      uniqueName: 'implicit_call_tearoffs',
       expectedTypes: [],
     );
 
@@ -1429,7 +1428,7 @@ implicitReopen = LinterLintTemplate(
   name: 'implicit_reopen',
   problemMessage: "The {0} '{1}' reopens '{2}' because it is not marked '{3}'.",
   correctionMessage: "Try marking '{1}' '{3}' or annotating it with '@reopen'.",
-  uniqueName: 'LintCode.implicit_reopen',
+  uniqueName: 'implicit_reopen',
   withArguments: _withArgumentsImplicitReopen,
   expectedTypes: [
     ExpectedType.object,
@@ -1446,7 +1445,7 @@ const LinterLintWithoutArguments invalidCasePatterns =
       problemMessage:
           "This expression is not valid in a 'case' clause in Dart 3.0.",
       correctionMessage: "Try refactoring the expression to be valid in 3.0.",
-      uniqueName: 'LintCode.invalid_case_patterns',
+      uniqueName: 'invalid_case_patterns',
       expectedTypes: [],
     );
 
@@ -1465,7 +1464,7 @@ invalidRuntimeCheckWithJsInteropTypesDartAsJs = LinterLintTemplate(
       "Try using conversion methods from 'dart:js_interop' to convert "
       "between Dart types and JS interop types.",
   hasPublishedDocs: true,
-  uniqueName: 'LintCode.invalid_runtime_check_with_js_interop_types_dart_as_js',
+  uniqueName: 'invalid_runtime_check_with_js_interop_types_dart_as_js',
   withArguments: _withArgumentsInvalidRuntimeCheckWithJsInteropTypesDartAsJs,
   expectedTypes: [ExpectedType.object, ExpectedType.object],
 );
@@ -1481,7 +1480,7 @@ invalidRuntimeCheckWithJsInteropTypesDartIsJs = LinterLintTemplate(
   problemMessage:
       "Runtime check between '{0}' and '{1}' checks whether a Dart value is a JS "
       "interop type, which might not be platform-consistent.",
-  uniqueName: 'LintCode.invalid_runtime_check_with_js_interop_types_dart_is_js',
+  uniqueName: 'invalid_runtime_check_with_js_interop_types_dart_is_js',
   withArguments: _withArgumentsInvalidRuntimeCheckWithJsInteropTypesDartIsJs,
   expectedTypes: [ExpectedType.object, ExpectedType.object],
 );
@@ -1500,7 +1499,7 @@ invalidRuntimeCheckWithJsInteropTypesJsAsDart = LinterLintTemplate(
   correctionMessage:
       "Try using conversion methods from 'dart:js_interop' to convert "
       "between JS interop types and Dart types.",
-  uniqueName: 'LintCode.invalid_runtime_check_with_js_interop_types_js_as_dart',
+  uniqueName: 'invalid_runtime_check_with_js_interop_types_js_as_dart',
   withArguments: _withArgumentsInvalidRuntimeCheckWithJsInteropTypesJsAsDart,
   expectedTypes: [ExpectedType.object, ExpectedType.object],
 );
@@ -1517,7 +1516,7 @@ invalidRuntimeCheckWithJsInteropTypesJsAsIncompatibleJs = LinterLintTemplate(
       "Cast from '{0}' to '{1}' casts a JS interop value to an incompatible JS "
       "interop type, which might not be platform-consistent.",
   uniqueName:
-      'LintCode.invalid_runtime_check_with_js_interop_types_js_as_incompatible_js',
+      'invalid_runtime_check_with_js_interop_types_js_as_incompatible_js',
   withArguments:
       _withArgumentsInvalidRuntimeCheckWithJsInteropTypesJsAsIncompatibleJs,
   expectedTypes: [ExpectedType.object, ExpectedType.object],
@@ -1534,7 +1533,7 @@ invalidRuntimeCheckWithJsInteropTypesJsIsDart = LinterLintTemplate(
   problemMessage:
       "Runtime check between '{0}' and '{1}' checks whether a JS interop value "
       "is a Dart type, which might not be platform-consistent.",
-  uniqueName: 'LintCode.invalid_runtime_check_with_js_interop_types_js_is_dart',
+  uniqueName: 'invalid_runtime_check_with_js_interop_types_js_is_dart',
   withArguments: _withArgumentsInvalidRuntimeCheckWithJsInteropTypesJsIsDart,
   expectedTypes: [ExpectedType.object, ExpectedType.object],
 );
@@ -1555,7 +1554,7 @@ invalidRuntimeCheckWithJsInteropTypesJsIsInconsistentJs = LinterLintTemplate(
       "Try using a JS interop member like 'isA' from 'dart:js_interop' to "
       "check the underlying type of JS interop values.",
   uniqueName:
-      'LintCode.invalid_runtime_check_with_js_interop_types_js_is_inconsistent_js',
+      'invalid_runtime_check_with_js_interop_types_js_is_inconsistent_js',
   withArguments:
       _withArgumentsInvalidRuntimeCheckWithJsInteropTypesJsIsInconsistentJs,
   expectedTypes: [ExpectedType.object, ExpectedType.object],
@@ -1577,8 +1576,7 @@ invalidRuntimeCheckWithJsInteropTypesJsIsUnrelatedJs = LinterLintTemplate(
       "Try using a JS interop member like 'isA' from 'dart:js_interop' to "
       "check the underlying type of JS interop values, or make the JS "
       "interop type a supertype using 'implements'.",
-  uniqueName:
-      'LintCode.invalid_runtime_check_with_js_interop_types_js_is_unrelated_js',
+  uniqueName: 'invalid_runtime_check_with_js_interop_types_js_is_unrelated_js',
   withArguments:
       _withArgumentsInvalidRuntimeCheckWithJsInteropTypesJsIsUnrelatedJs,
   expectedTypes: [ExpectedType.object, ExpectedType.object],
@@ -1588,7 +1586,7 @@ invalidRuntimeCheckWithJsInteropTypesJsIsUnrelatedJs = LinterLintTemplate(
 const LinterLintWithoutArguments invariantBooleans = LinterLintWithoutArguments(
   name: 'invariant_booleans',
   problemMessage: "",
-  uniqueName: 'LintCode.invariant_booleans',
+  uniqueName: 'invariant_booleans',
   expectedTypes: [],
 );
 
@@ -1597,7 +1595,7 @@ const LinterLintWithoutArguments iterableContainsUnrelatedType =
     LinterLintWithoutArguments(
       name: 'iterable_contains_unrelated_type',
       problemMessage: "",
-      uniqueName: 'LintCode.iterable_contains_unrelated_type',
+      uniqueName: 'iterable_contains_unrelated_type',
       expectedTypes: [],
     );
 
@@ -1608,7 +1606,7 @@ const LinterLintWithoutArguments joinReturnWithAssignment =
       problemMessage: "Assignment could be inlined in 'return' statement.",
       correctionMessage:
           "Try inlining the assigned value in the 'return' statement.",
-      uniqueName: 'LintCode.join_return_with_assignment',
+      uniqueName: 'join_return_with_assignment',
       expectedTypes: [],
     );
 
@@ -1619,7 +1617,7 @@ const LinterLintWithoutArguments leadingNewlinesInMultilineStrings =
       problemMessage:
           "Missing a newline at the beginning of a multiline string.",
       correctionMessage: "Try adding a newline at the beginning of the string.",
-      uniqueName: 'LintCode.leading_newlines_in_multiline_strings',
+      uniqueName: 'leading_newlines_in_multiline_strings',
       expectedTypes: [],
     );
 
@@ -1631,7 +1629,7 @@ const LinterLintWithoutArguments libraryAnnotations =
           "This annotation should be attached to a library directive.",
       correctionMessage: "Try attaching the annotation to a library directive.",
       hasPublishedDocs: true,
-      uniqueName: 'LintCode.library_annotations',
+      uniqueName: 'library_annotations',
       expectedTypes: [],
     );
 
@@ -1648,7 +1646,7 @@ libraryNames = LinterLintTemplate(
       "Try changing the name to follow the lower_case_with_underscores "
       "style.",
   hasPublishedDocs: true,
-  uniqueName: 'LintCode.library_names',
+  uniqueName: 'library_names',
   withArguments: _withArgumentsLibraryNames,
   expectedTypes: [ExpectedType.object],
 );
@@ -1666,7 +1664,7 @@ libraryPrefixes = LinterLintTemplate(
       "Try changing the prefix to follow the lower_case_with_underscores "
       "style.",
   hasPublishedDocs: true,
-  uniqueName: 'LintCode.library_prefixes',
+  uniqueName: 'library_prefixes',
   withArguments: _withArgumentsLibraryPrefixes,
   expectedTypes: [ExpectedType.object],
 );
@@ -1680,7 +1678,7 @@ const LinterLintWithoutArguments libraryPrivateTypesInPublicApi =
           "Try making the private type public, or making the API that uses the "
           "private type also be private.",
       hasPublishedDocs: true,
-      uniqueName: 'LintCode.library_private_types_in_public_api',
+      uniqueName: 'library_private_types_in_public_api',
       expectedTypes: [],
     );
 
@@ -1690,7 +1688,7 @@ const LinterLintWithoutArguments linesLongerThan80Chars =
       name: 'lines_longer_than_80_chars',
       problemMessage: "The line length exceeds the 80-character limit.",
       correctionMessage: "Try breaking the line across multiple lines.",
-      uniqueName: 'LintCode.lines_longer_than_80_chars',
+      uniqueName: 'lines_longer_than_80_chars',
       expectedTypes: [],
     );
 
@@ -1699,7 +1697,7 @@ const LinterLintWithoutArguments listRemoveUnrelatedType =
     LinterLintWithoutArguments(
       name: 'list_remove_unrelated_type',
       problemMessage: "",
-      uniqueName: 'LintCode.list_remove_unrelated_type',
+      uniqueName: 'list_remove_unrelated_type',
       expectedTypes: [],
     );
 
@@ -1710,7 +1708,7 @@ const LinterLintWithoutArguments literalOnlyBooleanExpressions =
       problemMessage: "The Boolean expression has a constant value.",
       correctionMessage: "Try changing the expression.",
       hasPublishedDocs: true,
-      uniqueName: 'LintCode.literal_only_boolean_expressions',
+      uniqueName: 'literal_only_boolean_expressions',
       expectedTypes: [],
     );
 
@@ -1728,7 +1726,7 @@ matchingSuperParameters = LinterLintTemplate(
   correctionMessage:
       "Try using the name of the corresponding parameter in the super "
       "constructor.",
-  uniqueName: 'LintCode.matching_super_parameters',
+  uniqueName: 'matching_super_parameters',
   withArguments: _withArgumentsMatchingSuperParameters,
   expectedTypes: [ExpectedType.object, ExpectedType.object],
 );
@@ -1739,7 +1737,7 @@ const LinterLintWithoutArguments missingCodeBlockLanguageInDocComment =
       name: 'missing_code_block_language_in_doc_comment',
       problemMessage: "The code block is missing a specified language.",
       correctionMessage: "Try adding a language to the code block.",
-      uniqueName: 'LintCode.missing_code_block_language_in_doc_comment',
+      uniqueName: 'missing_code_block_language_in_doc_comment',
       expectedTypes: [],
     );
 
@@ -1750,7 +1748,7 @@ const LinterLintWithoutArguments missingWhitespaceBetweenAdjacentStrings =
       problemMessage: "Missing whitespace between adjacent strings.",
       correctionMessage: "Try adding whitespace between the strings.",
       hasPublishedDocs: true,
-      uniqueName: 'LintCode.missing_whitespace_between_adjacent_strings',
+      uniqueName: 'missing_whitespace_between_adjacent_strings',
       expectedTypes: [],
     );
 
@@ -1761,7 +1759,7 @@ const LinterLintWithoutArguments noAdjacentStringsInList =
       problemMessage: "Don't use adjacent strings in a list literal.",
       correctionMessage: "Try adding a comma between the strings.",
       hasPublishedDocs: true,
-      uniqueName: 'LintCode.no_adjacent_strings_in_list',
+      uniqueName: 'no_adjacent_strings_in_list',
       expectedTypes: [],
     );
 
@@ -1771,7 +1769,7 @@ const LinterLintWithoutArguments noDefaultCases = LinterLintWithoutArguments(
   problemMessage: "Invalid use of 'default' member in a switch.",
   correctionMessage:
       "Try enumerating all the possible values of the switch expression.",
-  uniqueName: 'LintCode.no_default_cases',
+  uniqueName: 'no_default_cases',
   expectedTypes: [],
 );
 
@@ -1788,7 +1786,7 @@ noDuplicateCaseValues = LinterLintTemplate(
       "case clause ('{1}').",
   correctionMessage: "Try removing or changing the value.",
   hasPublishedDocs: true,
-  uniqueName: 'LintCode.no_duplicate_case_values',
+  uniqueName: 'no_duplicate_case_values',
   withArguments: _withArgumentsNoDuplicateCaseValues,
   expectedTypes: [ExpectedType.object, ExpectedType.object],
 );
@@ -1803,7 +1801,7 @@ noLeadingUnderscoresForLibraryPrefixes = LinterLintTemplate(
   problemMessage: "The library prefix '{0}' starts with an underscore.",
   correctionMessage: "Try renaming the prefix to not start with an underscore.",
   hasPublishedDocs: true,
-  uniqueName: 'LintCode.no_leading_underscores_for_library_prefixes',
+  uniqueName: 'no_leading_underscores_for_library_prefixes',
   withArguments: _withArgumentsNoLeadingUnderscoresForLibraryPrefixes,
   expectedTypes: [ExpectedType.object],
 );
@@ -1819,7 +1817,7 @@ noLeadingUnderscoresForLocalIdentifiers = LinterLintTemplate(
   correctionMessage:
       "Try renaming the variable to not start with an underscore.",
   hasPublishedDocs: true,
-  uniqueName: 'LintCode.no_leading_underscores_for_local_identifiers',
+  uniqueName: 'no_leading_underscores_for_local_identifiers',
   withArguments: _withArgumentsNoLeadingUnderscoresForLocalIdentifiers,
   expectedTypes: [ExpectedType.object],
 );
@@ -1831,7 +1829,7 @@ const LinterLintWithoutArguments noLiteralBoolComparisons =
       problemMessage: "Unnecessary comparison to a boolean literal.",
       correctionMessage:
           "Remove the comparison and use the negate `!` operator if necessary.",
-      uniqueName: 'LintCode.no_literal_bool_comparisons',
+      uniqueName: 'no_literal_bool_comparisons',
       expectedTypes: [],
     );
 
@@ -1842,7 +1840,7 @@ const LinterLintWithoutArguments noLogicInCreateState =
       problemMessage: "Don't put any logic in 'createState'.",
       correctionMessage: "Try moving the logic out of 'createState'.",
       hasPublishedDocs: true,
-      uniqueName: 'LintCode.no_logic_in_create_state',
+      uniqueName: 'no_logic_in_create_state',
       expectedTypes: [],
     );
 
@@ -1857,7 +1855,7 @@ nonConstantIdentifierNames = LinterLintTemplate(
   correctionMessage:
       "Try changing the name to follow the lowerCamelCase style.",
   hasPublishedDocs: true,
-  uniqueName: 'LintCode.non_constant_identifier_names',
+  uniqueName: 'non_constant_identifier_names',
   withArguments: _withArgumentsNonConstantIdentifierNames,
   expectedTypes: [ExpectedType.object],
 );
@@ -1868,7 +1866,7 @@ const LinterLintWithoutArguments noopPrimitiveOperations =
       name: 'noop_primitive_operations',
       problemMessage: "The expression has no effect and can be removed.",
       correctionMessage: "Try removing the expression.",
-      uniqueName: 'LintCode.noop_primitive_operations',
+      uniqueName: 'noop_primitive_operations',
       expectedTypes: [],
     );
 
@@ -1880,7 +1878,7 @@ const LinterLintWithoutArguments noRuntimetypeTostring =
           "Using 'toString' on a 'Type' is not safe in production code.",
       correctionMessage:
           "Try removing the usage of 'toString' or restructuring the code.",
-      uniqueName: 'LintCode.no_runtimeType_toString',
+      uniqueName: 'no_runtimeType_toString',
       expectedTypes: [],
     );
 
@@ -1889,7 +1887,7 @@ const LinterLintWithoutArguments noSelfAssignments = LinterLintWithoutArguments(
   name: 'no_self_assignments',
   problemMessage: "The variable or property is being assigned to itself.",
   correctionMessage: "Try removing the assignment that has no direct effect.",
-  uniqueName: 'LintCode.no_self_assignments',
+  uniqueName: 'no_self_assignments',
   expectedTypes: [],
 );
 
@@ -1900,7 +1898,7 @@ const LinterLintWithoutArguments noSoloTests = LinterLintWithoutArguments(
   correctionMessage:
       "Try removing the 'soloTest' annotation or 'solo_' prefix.",
   hasPublishedDocs: true,
-  uniqueName: 'LintCode.no_solo_tests',
+  uniqueName: 'no_solo_tests',
   expectedTypes: [],
 );
 
@@ -1910,7 +1908,7 @@ const LinterLintWithoutArguments noTrailingSpaces = LinterLintWithoutArguments(
   problemMessage: "Don't create string literals with trailing spaces in tests.",
   correctionMessage: "Try removing the trailing spaces.",
   hasPublishedDocs: true,
-  uniqueName: 'LintCode.no_trailing_spaces',
+  uniqueName: 'no_trailing_spaces',
   expectedTypes: [],
 );
 
@@ -1921,7 +1919,7 @@ const LinterLintWithoutArguments noWildcardVariableUses =
       problemMessage: "The referenced identifier is a wildcard.",
       correctionMessage: "Use an identifier name that is not a wildcard.",
       hasPublishedDocs: true,
-      uniqueName: 'LintCode.no_wildcard_variable_uses',
+      uniqueName: 'no_wildcard_variable_uses',
       expectedTypes: [],
     );
 
@@ -1934,7 +1932,7 @@ nullCheckOnNullableTypeParameter = LinterLintWithoutArguments(
       "potentially nullable type parameter.",
   correctionMessage: "Try explicitly testing for 'null'.",
   hasPublishedDocs: true,
-  uniqueName: 'LintCode.null_check_on_nullable_type_parameter',
+  uniqueName: 'null_check_on_nullable_type_parameter',
   expectedTypes: [],
 );
 
@@ -1943,7 +1941,7 @@ const LinterLintWithoutArguments nullClosures = LinterLintWithoutArguments(
   name: 'null_closures',
   problemMessage: "Closure can't be 'null' because it might be invoked.",
   correctionMessage: "Try providing a non-null closure.",
-  uniqueName: 'LintCode.null_closures',
+  uniqueName: 'null_closures',
   expectedTypes: [],
 );
 
@@ -1953,7 +1951,7 @@ const LinterLintWithoutArguments omitLocalVariableTypes =
       name: 'omit_local_variable_types',
       problemMessage: "Unnecessary type annotation on a local variable.",
       correctionMessage: "Try removing the type annotation.",
-      uniqueName: 'LintCode.omit_local_variable_types',
+      uniqueName: 'omit_local_variable_types',
       expectedTypes: [],
     );
 
@@ -1964,7 +1962,7 @@ omitObviousLocalVariableTypes = LinterLintWithoutArguments(
   problemMessage:
       "Omit the type annotation on a local variable when the type is obvious.",
   correctionMessage: "Try removing the type annotation.",
-  uniqueName: 'LintCode.omit_obvious_local_variable_types',
+  uniqueName: 'omit_obvious_local_variable_types',
   expectedTypes: [],
 );
 
@@ -1974,7 +1972,7 @@ const LinterLintWithoutArguments omitObviousPropertyTypes =
       name: 'omit_obvious_property_types',
       problemMessage: "The type annotation isn't needed because it is obvious.",
       correctionMessage: "Try removing the type annotation.",
-      uniqueName: 'LintCode.omit_obvious_property_types',
+      uniqueName: 'omit_obvious_property_types',
       expectedTypes: [],
     );
 
@@ -1988,7 +1986,7 @@ oneMemberAbstracts = LinterLintTemplate(
   problemMessage: "Unnecessary use of an abstract class.",
   correctionMessage:
       "Try making '{0}' a top-level function and removing the class.",
-  uniqueName: 'LintCode.one_member_abstracts',
+  uniqueName: 'one_member_abstracts',
   withArguments: _withArgumentsOneMemberAbstracts,
   expectedTypes: [ExpectedType.object],
 );
@@ -2001,7 +1999,7 @@ const LinterLintWithoutArguments onlyThrowErrors = LinterLintWithoutArguments(
       "'Error'.",
   correctionMessage: "Try throwing a different class of object.",
   hasPublishedDocs: true,
-  uniqueName: 'LintCode.only_throw_errors',
+  uniqueName: 'only_throw_errors',
   expectedTypes: [],
 );
 
@@ -2017,7 +2015,7 @@ overriddenFields = LinterLintTemplate(
       "Try removing the field, overriding the getter and setter if "
       "necessary.",
   hasPublishedDocs: true,
-  uniqueName: 'LintCode.overridden_fields',
+  uniqueName: 'overridden_fields',
   withArguments: _withArgumentsOverriddenFields,
   expectedTypes: [ExpectedType.object],
 );
@@ -2027,7 +2025,7 @@ const LinterLintWithoutArguments packageApiDocs = LinterLintWithoutArguments(
   name: 'package_api_docs',
   problemMessage: "Missing documentation for public API.",
   correctionMessage: "Try adding a documentation comment.",
-  uniqueName: 'LintCode.package_api_docs',
+  uniqueName: 'package_api_docs',
   expectedTypes: [],
 );
 
@@ -2044,7 +2042,7 @@ packageNames = LinterLintTemplate(
       "Try changing the name to follow the lower_case_with_underscores "
       "style.",
   hasPublishedDocs: true,
-  uniqueName: 'LintCode.package_names',
+  uniqueName: 'package_names',
   withArguments: _withArgumentsPackageNames,
   expectedTypes: [ExpectedType.object],
 );
@@ -2061,7 +2059,7 @@ packagePrefixedLibraryNames = LinterLintTemplate(
       "name.",
   correctionMessage: "Try changing the name to '{0}'.",
   hasPublishedDocs: true,
-  uniqueName: 'LintCode.package_prefixed_library_names',
+  uniqueName: 'package_prefixed_library_names',
   withArguments: _withArgumentsPackagePrefixedLibraryNames,
   expectedTypes: [ExpectedType.object],
 );
@@ -2075,7 +2073,7 @@ parameterAssignments = LinterLintTemplate(
   name: 'parameter_assignments',
   problemMessage: "Invalid assignment to the parameter '{0}'.",
   correctionMessage: "Try using a local variable in place of the parameter.",
-  uniqueName: 'LintCode.parameter_assignments',
+  uniqueName: 'parameter_assignments',
   withArguments: _withArgumentsParameterAssignments,
   expectedTypes: [ExpectedType.object],
 );
@@ -2088,7 +2086,7 @@ const LinterLintWithoutArguments preferAdjacentStringConcatenation =
           "String literals shouldn't be concatenated by the '+' operator.",
       correctionMessage: "Try removing the operator to use adjacent strings.",
       hasPublishedDocs: true,
-      uniqueName: 'LintCode.prefer_adjacent_string_concatenation',
+      uniqueName: 'prefer_adjacent_string_concatenation',
       expectedTypes: [],
     );
 
@@ -2099,7 +2097,7 @@ const LinterLintWithoutArguments preferAssertsInInitializerLists =
       problemMessage: "Assert should be in the initializer list.",
       correctionMessage: "Try moving the assert to the initializer list.",
       hasPublishedDocs: true,
-      uniqueName: 'LintCode.prefer_asserts_in_initializer_lists',
+      uniqueName: 'prefer_asserts_in_initializer_lists',
       expectedTypes: [],
     );
 
@@ -2110,7 +2108,7 @@ const LinterLintWithoutArguments preferAssertsWithMessage =
       problemMessage: "Missing a message in an assert.",
       correctionMessage: "Try adding a message to the assert.",
       hasPublishedDocs: true,
-      uniqueName: 'LintCode.prefer_asserts_with_message',
+      uniqueName: 'prefer_asserts_with_message',
       expectedTypes: [],
     );
 
@@ -2119,7 +2117,7 @@ const LinterLintWithoutArguments preferBoolInAsserts =
     LinterLintWithoutArguments(
       name: 'prefer_bool_in_asserts',
       problemMessage: "",
-      uniqueName: 'LintCode.prefer_bool_in_asserts',
+      uniqueName: 'prefer_bool_in_asserts',
       expectedTypes: [],
     );
 
@@ -2130,7 +2128,7 @@ const LinterLintWithoutArguments preferCollectionLiterals =
       problemMessage: "Unnecessary constructor invocation.",
       correctionMessage: "Try using a collection literal.",
       hasPublishedDocs: true,
-      uniqueName: 'LintCode.prefer_collection_literals',
+      uniqueName: 'prefer_collection_literals',
       expectedTypes: [],
     );
 
@@ -2143,7 +2141,7 @@ const LinterLintWithoutArguments preferConditionalAssignment =
       correctionMessage:
           "Try using the '??=' operator to conditionally assign a value.",
       hasPublishedDocs: true,
-      uniqueName: 'LintCode.prefer_conditional_assignment',
+      uniqueName: 'prefer_conditional_assignment',
       expectedTypes: [],
     );
 
@@ -2156,7 +2154,7 @@ const LinterLintWithoutArguments preferConstConstructors =
       correctionMessage:
           "Try adding the 'const' keyword to the constructor invocation.",
       hasPublishedDocs: true,
-      uniqueName: 'LintCode.prefer_const_constructors',
+      uniqueName: 'prefer_const_constructors',
       expectedTypes: [],
     );
 
@@ -2168,7 +2166,7 @@ const LinterLintWithoutArguments preferConstConstructorsInImmutables =
           "Constructors in '@immutable' classes should be declared as 'const'.",
       correctionMessage: "Try adding 'const' to the constructor declaration.",
       hasPublishedDocs: true,
-      uniqueName: 'LintCode.prefer_const_constructors_in_immutables',
+      uniqueName: 'prefer_const_constructors_in_immutables',
       expectedTypes: [],
     );
 
@@ -2180,7 +2178,7 @@ const LinterLintWithoutArguments preferConstDeclarations =
           "Use 'const' for final variables initialized to a constant value.",
       correctionMessage: "Try replacing 'final' with 'const'.",
       hasPublishedDocs: true,
-      uniqueName: 'LintCode.prefer_const_declarations',
+      uniqueName: 'prefer_const_declarations',
       expectedTypes: [],
     );
 
@@ -2193,7 +2191,7 @@ const LinterLintWithoutArguments preferConstLiteralsToCreateImmutables =
           "classes.",
       correctionMessage: "Try adding 'const' before the literal.",
       hasPublishedDocs: true,
-      uniqueName: 'LintCode.prefer_const_literals_to_create_immutables',
+      uniqueName: 'prefer_const_literals_to_create_immutables',
       expectedTypes: [],
     );
 
@@ -2204,7 +2202,7 @@ const LinterLintWithoutArguments preferConstructorsOverStaticMethods =
       problemMessage: "Static method should be a constructor.",
       correctionMessage: "Try converting the method into a constructor.",
       hasPublishedDocs: true,
-      uniqueName: 'LintCode.prefer_constructors_over_static_methods',
+      uniqueName: 'prefer_constructors_over_static_methods',
       expectedTypes: [],
     );
 
@@ -2214,7 +2212,7 @@ preferContainsAlwaysFalse = LinterLintWithoutArguments(
   name: 'prefer_contains',
   problemMessage:
       "Always 'false' because 'indexOf' is always greater than or equal to -1.",
-  uniqueName: 'LintCode.prefer_contains_always_false',
+  uniqueName: 'prefer_contains_always_false',
   expectedTypes: [],
 );
 
@@ -2224,7 +2222,7 @@ preferContainsAlwaysTrue = LinterLintWithoutArguments(
   name: 'prefer_contains',
   problemMessage:
       "Always 'true' because 'indexOf' is always greater than or equal to -1.",
-  uniqueName: 'LintCode.prefer_contains_always_true',
+  uniqueName: 'prefer_contains_always_true',
   expectedTypes: [],
 );
 
@@ -2235,7 +2233,7 @@ const LinterLintWithoutArguments preferContainsUseContains =
       problemMessage: "Unnecessary use of 'indexOf' to test for containment.",
       correctionMessage: "Try using 'contains'.",
       hasPublishedDocs: true,
-      uniqueName: 'LintCode.prefer_contains_use_contains',
+      uniqueName: 'prefer_contains_use_contains',
       expectedTypes: [],
     );
 
@@ -2247,7 +2245,7 @@ const LinterLintWithoutArguments preferDoubleQuotes =
       correctionMessage:
           "Try using double quotes unless the string contains double quotes.",
       hasPublishedDocs: true,
-      uniqueName: 'LintCode.prefer_double_quotes',
+      uniqueName: 'prefer_double_quotes',
       expectedTypes: [],
     );
 
@@ -2256,7 +2254,7 @@ const LinterLintWithoutArguments preferEqualForDefaultValues =
     LinterLintWithoutArguments(
       name: 'prefer_equal_for_default_values',
       problemMessage: "",
-      uniqueName: 'LintCode.prefer_equal_for_default_values',
+      uniqueName: 'prefer_equal_for_default_values',
       expectedTypes: [],
     );
 
@@ -2267,7 +2265,7 @@ const LinterLintWithoutArguments preferExpressionFunctionBodies =
       problemMessage: "Unnecessary use of a block function body.",
       correctionMessage: "Try using an expression function body.",
       hasPublishedDocs: true,
-      uniqueName: 'LintCode.prefer_expression_function_bodies',
+      uniqueName: 'prefer_expression_function_bodies',
       expectedTypes: [],
     );
 
@@ -2281,7 +2279,7 @@ preferFinalFields = LinterLintTemplate(
   problemMessage: "The private field {0} could be 'final'.",
   correctionMessage: "Try making the field 'final'.",
   hasPublishedDocs: true,
-  uniqueName: 'LintCode.prefer_final_fields',
+  uniqueName: 'prefer_final_fields',
   withArguments: _withArgumentsPreferFinalFields,
   expectedTypes: [ExpectedType.object],
 );
@@ -2293,7 +2291,7 @@ const LinterLintWithoutArguments preferFinalInForEachPattern =
       problemMessage: "The pattern should be final.",
       correctionMessage: "Try making the pattern final.",
       hasPublishedDocs: true,
-      uniqueName: 'LintCode.prefer_final_in_for_each_pattern',
+      uniqueName: 'prefer_final_in_for_each_pattern',
       expectedTypes: [],
     );
 
@@ -2306,7 +2304,7 @@ preferFinalInForEachVariable = LinterLintTemplate(
   name: 'prefer_final_in_for_each',
   problemMessage: "The variable '{0}' should be final.",
   correctionMessage: "Try making the variable final.",
-  uniqueName: 'LintCode.prefer_final_in_for_each_variable',
+  uniqueName: 'prefer_final_in_for_each_variable',
   withArguments: _withArgumentsPreferFinalInForEachVariable,
   expectedTypes: [ExpectedType.object],
 );
@@ -2317,7 +2315,7 @@ const LinterLintWithoutArguments preferFinalLocals = LinterLintWithoutArguments(
   problemMessage: "Local variables should be final.",
   correctionMessage: "Try making the variable final.",
   hasPublishedDocs: true,
-  uniqueName: 'LintCode.prefer_final_locals',
+  uniqueName: 'prefer_final_locals',
   expectedTypes: [],
 );
 
@@ -2331,7 +2329,7 @@ preferFinalParameters = LinterLintTemplate(
   problemMessage: "The parameter '{0}' should be final.",
   correctionMessage: "Try making the parameter final.",
   hasPublishedDocs: true,
-  uniqueName: 'LintCode.prefer_final_parameters',
+  uniqueName: 'prefer_final_parameters',
   withArguments: _withArgumentsPreferFinalParameters,
   expectedTypes: [ExpectedType.object],
 );
@@ -2345,7 +2343,7 @@ const LinterLintWithoutArguments preferForeach = LinterLintWithoutArguments(
   correctionMessage:
       "Try using 'forEach' and a tear-off rather than a 'for' loop.",
   hasPublishedDocs: true,
-  uniqueName: 'LintCode.prefer_foreach',
+  uniqueName: 'prefer_foreach',
   expectedTypes: [],
 );
 
@@ -2356,7 +2354,7 @@ const LinterLintWithoutArguments preferForElementsToMapFromiterable =
       problemMessage: "Use 'for' elements when building maps from iterables.",
       correctionMessage: "Try using a collection literal with a 'for' element.",
       hasPublishedDocs: true,
-      uniqueName: 'LintCode.prefer_for_elements_to_map_fromIterable',
+      uniqueName: 'prefer_for_elements_to_map_fromIterable',
       expectedTypes: [],
     );
 
@@ -2370,7 +2368,7 @@ preferFunctionDeclarationsOverVariables = LinterLintWithoutArguments(
   correctionMessage:
       "Try rewriting the closure assignment as a function declaration.",
   hasPublishedDocs: true,
-  uniqueName: 'LintCode.prefer_function_declarations_over_variables',
+  uniqueName: 'prefer_function_declarations_over_variables',
   expectedTypes: [],
 );
 
@@ -2384,7 +2382,7 @@ preferGenericFunctionTypeAliases = LinterLintTemplate(
   problemMessage: "Use the generic function type syntax in 'typedef's.",
   correctionMessage: "Try using the generic function type syntax ('{0}').",
   hasPublishedDocs: true,
-  uniqueName: 'LintCode.prefer_generic_function_type_aliases',
+  uniqueName: 'prefer_generic_function_type_aliases',
   withArguments: _withArgumentsPreferGenericFunctionTypeAliases,
   expectedTypes: [ExpectedType.object],
 );
@@ -2396,7 +2394,7 @@ const LinterLintWithoutArguments preferIfElementsToConditionalExpressions =
       problemMessage: "Use an 'if' element to conditionally add elements.",
       correctionMessage:
           "Try using an 'if' element rather than a conditional expression.",
-      uniqueName: 'LintCode.prefer_if_elements_to_conditional_expressions',
+      uniqueName: 'prefer_if_elements_to_conditional_expressions',
       expectedTypes: [],
     );
 
@@ -2408,7 +2406,7 @@ const LinterLintWithoutArguments preferIfNullOperators =
           "Use the '??' operator rather than '?:' when testing for 'null'.",
       correctionMessage: "Try rewriting the code to use '??'.",
       hasPublishedDocs: true,
-      uniqueName: 'LintCode.prefer_if_null_operators',
+      uniqueName: 'prefer_if_null_operators',
       expectedTypes: [],
     );
 
@@ -2424,7 +2422,7 @@ preferInitializingFormals = LinterLintTemplate(
   correctionMessage:
       "Try using an initialing formal ('this.{0}') to initialize the field.",
   hasPublishedDocs: true,
-  uniqueName: 'LintCode.prefer_initializing_formals',
+  uniqueName: 'prefer_initializing_formals',
   withArguments: _withArgumentsPreferInitializingFormals,
   expectedTypes: [ExpectedType.object],
 );
@@ -2436,7 +2434,7 @@ const LinterLintWithoutArguments preferInlinedAddsMultiple =
       problemMessage: "The addition of multiple list items could be inlined.",
       correctionMessage: "Try adding the items to the list literal directly.",
       hasPublishedDocs: true,
-      uniqueName: 'LintCode.prefer_inlined_adds_multiple',
+      uniqueName: 'prefer_inlined_adds_multiple',
       expectedTypes: [],
     );
 
@@ -2447,7 +2445,7 @@ const LinterLintWithoutArguments preferInlinedAddsSingle =
       problemMessage: "The addition of a list item could be inlined.",
       correctionMessage: "Try adding the item to the list literal directly.",
       hasPublishedDocs: true,
-      uniqueName: 'LintCode.prefer_inlined_adds_single',
+      uniqueName: 'prefer_inlined_adds_single',
       expectedTypes: [],
     );
 
@@ -2459,7 +2457,7 @@ const LinterLintWithoutArguments preferInterpolationToComposeStrings =
       correctionMessage:
           "Try using string interpolation to build the composite string.",
       hasPublishedDocs: true,
-      uniqueName: 'LintCode.prefer_interpolation_to_compose_strings',
+      uniqueName: 'prefer_interpolation_to_compose_strings',
       expectedTypes: [],
     );
 
@@ -2468,7 +2466,7 @@ const LinterLintWithoutArguments preferIntLiterals = LinterLintWithoutArguments(
   name: 'prefer_int_literals',
   problemMessage: "Unnecessary use of a 'double' literal.",
   correctionMessage: "Try using an 'int' literal.",
-  uniqueName: 'LintCode.prefer_int_literals',
+  uniqueName: 'prefer_int_literals',
   expectedTypes: [],
 );
 
@@ -2479,7 +2477,7 @@ preferIsEmptyAlwaysFalse = LinterLintWithoutArguments(
   problemMessage:
       "The comparison is always 'false' because the length is always greater "
       "than or equal to 0.",
-  uniqueName: 'LintCode.prefer_is_empty_always_false',
+  uniqueName: 'prefer_is_empty_always_false',
   expectedTypes: [],
 );
 
@@ -2490,7 +2488,7 @@ preferIsEmptyAlwaysTrue = LinterLintWithoutArguments(
   problemMessage:
       "The comparison is always 'true' because the length is always greater than "
       "or equal to 0.",
-  uniqueName: 'LintCode.prefer_is_empty_always_true',
+  uniqueName: 'prefer_is_empty_always_true',
   expectedTypes: [],
 );
 
@@ -2503,7 +2501,7 @@ const LinterLintWithoutArguments preferIsEmptyUseIsEmpty =
           "empty.",
       correctionMessage: "Try rewriting the expression to use 'isEmpty'.",
       hasPublishedDocs: true,
-      uniqueName: 'LintCode.prefer_is_empty_use_is_empty',
+      uniqueName: 'prefer_is_empty_use_is_empty',
       expectedTypes: [],
     );
 
@@ -2516,7 +2514,7 @@ preferIsEmptyUseIsNotEmpty = LinterLintWithoutArguments(
       "empty.",
   correctionMessage: "Try rewriting the expression to use 'isNotEmpty'.",
   hasPublishedDocs: true,
-  uniqueName: 'LintCode.prefer_is_empty_use_is_not_empty',
+  uniqueName: 'prefer_is_empty_use_is_not_empty',
   expectedTypes: [],
 );
 
@@ -2527,7 +2525,7 @@ const LinterLintWithoutArguments preferIsNotEmpty = LinterLintWithoutArguments(
       "Use 'isNotEmpty' rather than negating the result of 'isEmpty'.",
   correctionMessage: "Try rewriting the expression to use 'isNotEmpty'.",
   hasPublishedDocs: true,
-  uniqueName: 'LintCode.prefer_is_not_empty',
+  uniqueName: 'prefer_is_not_empty',
   expectedTypes: [],
 );
 
@@ -2541,7 +2539,7 @@ const LinterLintWithoutArguments preferIsNotOperator =
       correctionMessage:
           "Try rewriting the condition to use the 'is!' operator.",
       hasPublishedDocs: true,
-      uniqueName: 'LintCode.prefer_is_not_operator',
+      uniqueName: 'prefer_is_not_operator',
       expectedTypes: [],
     );
 
@@ -2552,7 +2550,7 @@ const LinterLintWithoutArguments preferIterableWheretype =
       problemMessage: "Use 'whereType' to select elements of a given type.",
       correctionMessage: "Try rewriting the expression to use 'whereType'.",
       hasPublishedDocs: true,
-      uniqueName: 'LintCode.prefer_iterable_whereType',
+      uniqueName: 'prefer_iterable_whereType',
       expectedTypes: [],
     );
 
@@ -2565,7 +2563,7 @@ preferMixin = LinterLintTemplate(
   name: 'prefer_mixin',
   problemMessage: "Only mixins should be mixed in.",
   correctionMessage: "Try converting '{0}' to a mixin.",
-  uniqueName: 'LintCode.prefer_mixin',
+  uniqueName: 'prefer_mixin',
   withArguments: _withArgumentsPreferMixin,
   expectedTypes: [ExpectedType.object],
 );
@@ -2578,7 +2576,7 @@ preferNullAwareMethodCalls = LinterLintWithoutArguments(
       "Use a null-aware invocation of the 'call' method rather than explicitly "
       "testing for 'null'.",
   correctionMessage: "Try using '?.call()' to invoke the function.",
-  uniqueName: 'LintCode.prefer_null_aware_method_calls',
+  uniqueName: 'prefer_null_aware_method_calls',
   expectedTypes: [],
 );
 
@@ -2591,7 +2589,7 @@ const LinterLintWithoutArguments preferNullAwareOperators =
           "comparison.",
       correctionMessage: "Try using '?.'.",
       hasPublishedDocs: true,
-      uniqueName: 'LintCode.prefer_null_aware_operators',
+      uniqueName: 'prefer_null_aware_operators',
       expectedTypes: [],
     );
 
@@ -2602,7 +2600,7 @@ const LinterLintWithoutArguments preferRelativeImports =
       problemMessage: "Use relative imports for files in the 'lib' directory.",
       correctionMessage: "Try converting the URI to a relative URI.",
       hasPublishedDocs: true,
-      uniqueName: 'LintCode.prefer_relative_imports',
+      uniqueName: 'prefer_relative_imports',
       expectedTypes: [],
     );
 
@@ -2614,7 +2612,7 @@ const LinterLintWithoutArguments preferSingleQuotes =
       correctionMessage:
           "Try using single quotes unless the string contains single quotes.",
       hasPublishedDocs: true,
-      uniqueName: 'LintCode.prefer_single_quotes',
+      uniqueName: 'prefer_single_quotes',
       expectedTypes: [],
     );
 
@@ -2625,7 +2623,7 @@ const LinterLintWithoutArguments preferSpreadCollections =
       problemMessage: "The addition of multiple elements could be inlined.",
       correctionMessage:
           "Try using the spread operator ('...') to inline the addition.",
-      uniqueName: 'LintCode.prefer_spread_collections',
+      uniqueName: 'prefer_spread_collections',
       expectedTypes: [],
     );
 
@@ -2637,7 +2635,7 @@ const LinterLintWithoutArguments preferTypingUninitializedVariablesForField =
           "An uninitialized field should have an explicit type annotation.",
       correctionMessage: "Try adding a type annotation.",
       hasPublishedDocs: true,
-      uniqueName: 'LintCode.prefer_typing_uninitialized_variables_for_field',
+      uniqueName: 'prefer_typing_uninitialized_variables_for_field',
       expectedTypes: [],
     );
 
@@ -2649,8 +2647,7 @@ preferTypingUninitializedVariablesForLocalVariable = LinterLintWithoutArguments(
       "An uninitialized variable should have an explicit type annotation.",
   correctionMessage: "Try adding a type annotation.",
   hasPublishedDocs: true,
-  uniqueName:
-      'LintCode.prefer_typing_uninitialized_variables_for_local_variable',
+  uniqueName: 'prefer_typing_uninitialized_variables_for_local_variable',
   expectedTypes: [],
 );
 
@@ -2660,7 +2657,7 @@ const LinterLintWithoutArguments preferVoidToNull = LinterLintWithoutArguments(
   problemMessage: "Unnecessary use of the type 'Null'.",
   correctionMessage: "Try using 'void' instead.",
   hasPublishedDocs: true,
-  uniqueName: 'LintCode.prefer_void_to_null',
+  uniqueName: 'prefer_void_to_null',
   expectedTypes: [],
 );
 
@@ -2673,7 +2670,7 @@ const LinterLintWithoutArguments provideDeprecationMessage =
           "Try using the constructor to provide a message "
           "('@Deprecated(\"message\")').",
       hasPublishedDocs: true,
-      uniqueName: 'LintCode.provide_deprecation_message',
+      uniqueName: 'provide_deprecation_message',
       expectedTypes: [],
     );
 
@@ -2684,7 +2681,7 @@ const LinterLintWithoutArguments publicMemberApiDocs =
       problemMessage: "Missing documentation for a public member.",
       correctionMessage: "Try adding documentation for the member.",
       hasPublishedDocs: true,
-      uniqueName: 'LintCode.public_member_api_docs',
+      uniqueName: 'public_member_api_docs',
       expectedTypes: [],
     );
 
@@ -2698,7 +2695,7 @@ recursiveGetters = LinterLintTemplate(
   problemMessage: "The getter '{0}' recursively returns itself.",
   correctionMessage: "Try changing the value being returned.",
   hasPublishedDocs: true,
-  uniqueName: 'LintCode.recursive_getters',
+  uniqueName: 'recursive_getters',
   withArguments: _withArgumentsRecursiveGetters,
   expectedTypes: [ExpectedType.object],
 );
@@ -2710,7 +2707,7 @@ const LinterLintWithoutArguments removeDeprecationsInBreakingVersions =
       problemMessage: "Remove deprecated elements in breaking versions.",
       correctionMessage: "Try removing the deprecated element.",
       hasPublishedDocs: true,
-      uniqueName: 'LintCode.remove_deprecations_in_breaking_versions',
+      uniqueName: 'remove_deprecations_in_breaking_versions',
       expectedTypes: [],
     );
 
@@ -2720,7 +2717,7 @@ const LinterLintWithoutArguments requireTrailingCommas =
       name: 'require_trailing_commas',
       problemMessage: "Missing a required trailing comma.",
       correctionMessage: "Try adding a trailing comma.",
-      uniqueName: 'LintCode.require_trailing_commas',
+      uniqueName: 'require_trailing_commas',
       expectedTypes: [],
     );
 
@@ -2735,7 +2732,7 @@ securePubspecUrls = LinterLintTemplate(
       "The '{0}' protocol shouldn't be used because it isn't secure.",
   correctionMessage: "Try using a secure protocol, such as 'https'.",
   hasPublishedDocs: true,
-  uniqueName: 'LintCode.secure_pubspec_urls',
+  uniqueName: 'secure_pubspec_urls',
   withArguments: _withArgumentsSecurePubspecUrls,
   expectedTypes: [ExpectedType.object],
 );
@@ -2747,7 +2744,7 @@ const LinterLintWithoutArguments sizedBoxForWhitespace =
       problemMessage: "Use a 'SizedBox' to add whitespace to a layout.",
       correctionMessage: "Try using a 'SizedBox' rather than a 'Container'.",
       hasPublishedDocs: true,
-      uniqueName: 'LintCode.sized_box_for_whitespace',
+      uniqueName: 'sized_box_for_whitespace',
       expectedTypes: [],
     );
 
@@ -2764,7 +2761,7 @@ sizedBoxShrinkExpand = LinterLintTemplate(
       "Try using 'SizedBox.{0}' and removing the 'height' and 'width' "
       "arguments.",
   hasPublishedDocs: true,
-  uniqueName: 'LintCode.sized_box_shrink_expand',
+  uniqueName: 'sized_box_shrink_expand',
   withArguments: _withArgumentsSizedBoxShrinkExpand,
   expectedTypes: [ExpectedType.object],
 );
@@ -2776,7 +2773,7 @@ const LinterLintWithoutArguments slashForDocComments =
       problemMessage: "Use the end-of-line form ('///') for doc comments.",
       correctionMessage: "Try rewriting the comment to use '///'.",
       hasPublishedDocs: true,
-      uniqueName: 'LintCode.slash_for_doc_comments',
+      uniqueName: 'slash_for_doc_comments',
       expectedTypes: [],
     );
 
@@ -2791,7 +2788,7 @@ sortChildPropertiesLast = LinterLintTemplate(
       "The '{0}' argument should be last in widget constructor invocations.",
   correctionMessage: "Try moving the argument to the end of the argument list.",
   hasPublishedDocs: true,
-  uniqueName: 'LintCode.sort_child_properties_last',
+  uniqueName: 'sort_child_properties_last',
   withArguments: _withArgumentsSortChildPropertiesLast,
   expectedTypes: [ExpectedType.object],
 );
@@ -2805,7 +2802,7 @@ sortConstructorsFirst = LinterLintWithoutArguments(
   correctionMessage:
       "Try moving the constructor declaration before all other members.",
   hasPublishedDocs: true,
-  uniqueName: 'LintCode.sort_constructors_first',
+  uniqueName: 'sort_constructors_first',
   expectedTypes: [],
 );
 
@@ -2817,7 +2814,7 @@ const LinterLintWithoutArguments sortPubDependencies =
       correctionMessage:
           "Try sorting the dependencies alphabetically (A to Z).",
       hasPublishedDocs: true,
-      uniqueName: 'LintCode.sort_pub_dependencies',
+      uniqueName: 'sort_pub_dependencies',
       expectedTypes: [],
     );
 
@@ -2829,7 +2826,7 @@ const LinterLintWithoutArguments sortUnnamedConstructorsFirst =
       correctionMessage:
           "Try moving the unnamed constructor before all other constructors.",
       hasPublishedDocs: true,
-      uniqueName: 'LintCode.sort_unnamed_constructors_first',
+      uniqueName: 'sort_unnamed_constructors_first',
       expectedTypes: [],
     );
 
@@ -2840,7 +2837,7 @@ const LinterLintWithoutArguments specifyNonobviousLocalVariableTypes =
       problemMessage:
           "Specify the type of a local variable when the type is non-obvious.",
       correctionMessage: "Try adding a type annotation.",
-      uniqueName: 'LintCode.specify_nonobvious_local_variable_types',
+      uniqueName: 'specify_nonobvious_local_variable_types',
       expectedTypes: [],
     );
 
@@ -2850,7 +2847,7 @@ const LinterLintWithoutArguments specifyNonobviousPropertyTypes =
       name: 'specify_nonobvious_property_types',
       problemMessage: "A type annotation is needed because it isn't obvious.",
       correctionMessage: "Try adding a type annotation.",
-      uniqueName: 'LintCode.specify_nonobvious_property_types',
+      uniqueName: 'specify_nonobvious_property_types',
       expectedTypes: [],
     );
 
@@ -2860,7 +2857,7 @@ const LinterLintWithoutArguments strictTopLevelInferenceAddType =
       name: 'strict_top_level_inference',
       problemMessage: "Missing type annotation.",
       correctionMessage: "Try adding a type annotation.",
-      uniqueName: 'LintCode.strict_top_level_inference_add_type',
+      uniqueName: 'strict_top_level_inference_add_type',
       expectedTypes: [],
     );
 
@@ -2873,7 +2870,7 @@ strictTopLevelInferenceReplaceKeyword = LinterLintTemplate(
   name: 'strict_top_level_inference',
   problemMessage: "Missing type annotation.",
   correctionMessage: "Try replacing '{0}' with a type annotation.",
-  uniqueName: 'LintCode.strict_top_level_inference_replace_keyword',
+  uniqueName: 'strict_top_level_inference_replace_keyword',
   withArguments: _withArgumentsStrictTopLevelInferenceReplaceKeyword,
   expectedTypes: [ExpectedType.object],
 );
@@ -2886,7 +2883,7 @@ const LinterLintWithoutArguments strictTopLevelInferenceSplitToTypes =
       correctionMessage:
           "Try splitting the declaration and specify the different type "
           "annotations.",
-      uniqueName: 'LintCode.strict_top_level_inference_split_to_types',
+      uniqueName: 'strict_top_level_inference_split_to_types',
       expectedTypes: [],
     );
 
@@ -2894,7 +2891,7 @@ const LinterLintWithoutArguments strictTopLevelInferenceSplitToTypes =
 const LinterLintWithoutArguments superGoesLast = LinterLintWithoutArguments(
   name: 'super_goes_last',
   problemMessage: "",
-  uniqueName: 'LintCode.super_goes_last',
+  uniqueName: 'super_goes_last',
   expectedTypes: [],
 );
 
@@ -2904,7 +2901,7 @@ const LinterLintWithoutArguments switchOnType = LinterLintWithoutArguments(
   problemMessage: "Avoid switch statements on a 'Type'.",
   correctionMessage: "Try using pattern matching on a variable instead.",
   hasPublishedDocs: true,
-  uniqueName: 'LintCode.switch_on_type',
+  uniqueName: 'switch_on_type',
   expectedTypes: [],
 );
 
@@ -2918,7 +2915,7 @@ testTypesInEquals = LinterLintTemplate(
   problemMessage: "Missing type test for '{0}' in '=='.",
   correctionMessage: "Try testing the type of '{0}'.",
   hasPublishedDocs: true,
-  uniqueName: 'LintCode.test_types_in_equals',
+  uniqueName: 'test_types_in_equals',
   withArguments: _withArgumentsTestTypesInEquals,
   expectedTypes: [ExpectedType.object],
 );
@@ -2933,7 +2930,7 @@ throwInFinally = LinterLintTemplate(
   problemMessage: "Use of '{0}' in 'finally' block.",
   correctionMessage: "Try moving the '{0}' outside the 'finally' block.",
   hasPublishedDocs: true,
-  uniqueName: 'LintCode.throw_in_finally',
+  uniqueName: 'throw_in_finally',
   withArguments: _withArgumentsThrowInFinally,
   expectedTypes: [ExpectedType.object],
 );
@@ -2946,7 +2943,7 @@ tightenTypeOfInitializingFormals = LinterLintWithoutArguments(
       "Use a type annotation rather than 'assert' to enforce non-nullability.",
   correctionMessage: "Try adding a type annotation and removing the 'assert'.",
   hasPublishedDocs: true,
-  uniqueName: 'LintCode.tighten_type_of_initializing_formals',
+  uniqueName: 'tighten_type_of_initializing_formals',
   expectedTypes: [],
 );
 
@@ -2957,7 +2954,7 @@ const LinterLintWithoutArguments typeAnnotatePublicApis =
       problemMessage: "Missing type annotation on a public API.",
       correctionMessage: "Try adding a type annotation.",
       hasPublishedDocs: true,
-      uniqueName: 'LintCode.type_annotate_public_apis',
+      uniqueName: 'type_annotate_public_apis',
       expectedTypes: [],
     );
 
@@ -2967,7 +2964,7 @@ const LinterLintWithoutArguments typeInitFormals = LinterLintWithoutArguments(
   problemMessage: "Don't needlessly type annotate initializing formals.",
   correctionMessage: "Try removing the type.",
   hasPublishedDocs: true,
-  uniqueName: 'LintCode.type_init_formals',
+  uniqueName: 'type_init_formals',
   expectedTypes: [],
 );
 
@@ -2978,7 +2975,7 @@ const LinterLintWithoutArguments typeLiteralInConstantPattern =
       problemMessage: "Use 'TypeName _' instead of a type literal.",
       correctionMessage: "Replace with 'TypeName _'.",
       hasPublishedDocs: true,
-      uniqueName: 'LintCode.type_literal_in_constant_pattern',
+      uniqueName: 'type_literal_in_constant_pattern',
       expectedTypes: [],
     );
 
@@ -2990,7 +2987,7 @@ const LinterLintWithoutArguments unawaitedFutures = LinterLintWithoutArguments(
   correctionMessage:
       "Try adding an 'await' or wrapping the expression with 'unawaited'.",
   hasPublishedDocs: true,
-  uniqueName: 'LintCode.unawaited_futures',
+  uniqueName: 'unawaited_futures',
   expectedTypes: [],
 );
 
@@ -3003,7 +3000,7 @@ const LinterLintWithoutArguments unintendedHtmlInDocComment =
           "Try using backticks around the content with angle brackets, or try "
           "replacing `<` with `&lt;` and `>` with `&gt;`.",
       hasPublishedDocs: true,
-      uniqueName: 'LintCode.unintended_html_in_doc_comment',
+      uniqueName: 'unintended_html_in_doc_comment',
       expectedTypes: [],
     );
 
@@ -3012,7 +3009,7 @@ const LinterLintWithoutArguments unnecessaryAsync = LinterLintWithoutArguments(
   name: 'unnecessary_async',
   problemMessage: "Don't make a function 'async' if it doesn't use 'await'.",
   correctionMessage: "Try removing the 'async' modifier.",
-  uniqueName: 'LintCode.unnecessary_async',
+  uniqueName: 'unnecessary_async',
   expectedTypes: [],
 );
 
@@ -3022,7 +3019,7 @@ const LinterLintWithoutArguments unnecessaryAwaitInReturn =
       name: 'unnecessary_await_in_return',
       problemMessage: "Unnecessary 'await'.",
       correctionMessage: "Try removing the 'await'.",
-      uniqueName: 'LintCode.unnecessary_await_in_return',
+      uniqueName: 'unnecessary_await_in_return',
       expectedTypes: [],
     );
 
@@ -3033,7 +3030,7 @@ const LinterLintWithoutArguments unnecessaryBraceInStringInterps =
       problemMessage: "Unnecessary braces in a string interpolation.",
       correctionMessage: "Try removing the braces.",
       hasPublishedDocs: true,
-      uniqueName: 'LintCode.unnecessary_brace_in_string_interps',
+      uniqueName: 'unnecessary_brace_in_string_interps',
       expectedTypes: [],
     );
 
@@ -3042,7 +3039,7 @@ const LinterLintWithoutArguments unnecessaryBreaks = LinterLintWithoutArguments(
   name: 'unnecessary_breaks',
   problemMessage: "Unnecessary 'break' statement.",
   correctionMessage: "Try removing the 'break'.",
-  uniqueName: 'LintCode.unnecessary_breaks',
+  uniqueName: 'unnecessary_breaks',
   expectedTypes: [],
 );
 
@@ -3052,7 +3049,7 @@ const LinterLintWithoutArguments unnecessaryConst = LinterLintWithoutArguments(
   problemMessage: "Unnecessary 'const' keyword.",
   correctionMessage: "Try removing the keyword.",
   hasPublishedDocs: true,
-  uniqueName: 'LintCode.unnecessary_const',
+  uniqueName: 'unnecessary_const',
   expectedTypes: [],
 );
 
@@ -3063,7 +3060,7 @@ const LinterLintWithoutArguments unnecessaryConstructorName =
       problemMessage: "Unnecessary '.new' constructor name.",
       correctionMessage: "Try removing the '.new'.",
       hasPublishedDocs: true,
-      uniqueName: 'LintCode.unnecessary_constructor_name',
+      uniqueName: 'unnecessary_constructor_name',
       expectedTypes: [],
     );
 
@@ -3073,7 +3070,7 @@ const LinterLintWithoutArguments unnecessaryFinalWithoutType =
       name: 'unnecessary_final',
       problemMessage: "Local variables should not be marked as 'final'.",
       correctionMessage: "Replace 'final' with 'var'.",
-      uniqueName: 'LintCode.unnecessary_final_without_type',
+      uniqueName: 'unnecessary_final_without_type',
       expectedTypes: [],
     );
 
@@ -3084,7 +3081,7 @@ const LinterLintWithoutArguments unnecessaryFinalWithType =
       problemMessage: "Local variables should not be marked as 'final'.",
       correctionMessage: "Remove the 'final'.",
       hasPublishedDocs: true,
-      uniqueName: 'LintCode.unnecessary_final_with_type',
+      uniqueName: 'unnecessary_final_with_type',
       expectedTypes: [],
     );
 
@@ -3096,7 +3093,7 @@ const LinterLintWithoutArguments unnecessaryGettersSetters =
       correctionMessage:
           "Try removing the getter and setter and renaming the field.",
       hasPublishedDocs: true,
-      uniqueName: 'LintCode.unnecessary_getters_setters',
+      uniqueName: 'unnecessary_getters_setters',
       expectedTypes: [],
     );
 
@@ -3112,7 +3109,7 @@ unnecessaryIgnore = LinterLintTemplate(
       "to be ignored.",
   correctionMessage: "Try removing the ignore comment.",
   hasPublishedDocs: true,
-  uniqueName: 'LintCode.unnecessary_ignore',
+  uniqueName: 'unnecessary_ignore',
   withArguments: _withArgumentsUnnecessaryIgnore,
   expectedTypes: [ExpectedType.object],
 );
@@ -3128,7 +3125,7 @@ unnecessaryIgnoreFile = LinterLintTemplate(
       "The diagnostic '{0}' isn't produced in this file so it doesn't need to be "
       "ignored.",
   correctionMessage: "Try removing the ignore comment.",
-  uniqueName: 'LintCode.unnecessary_ignore_file',
+  uniqueName: 'unnecessary_ignore_file',
   withArguments: _withArgumentsUnnecessaryIgnoreFile,
   expectedTypes: [ExpectedType.object],
 );
@@ -3144,7 +3141,7 @@ unnecessaryIgnoreName = LinterLintTemplate(
       "The diagnostic '{0}' isn't produced at this location so it doesn't need "
       "to be ignored.",
   correctionMessage: "Try removing the name from the list.",
-  uniqueName: 'LintCode.unnecessary_ignore_name',
+  uniqueName: 'unnecessary_ignore_name',
   withArguments: _withArgumentsUnnecessaryIgnoreName,
   expectedTypes: [ExpectedType.object],
 );
@@ -3160,7 +3157,7 @@ unnecessaryIgnoreNameFile = LinterLintTemplate(
       "The diagnostic '{0}' isn't produced in this file so it doesn't need to be "
       "ignored.",
   correctionMessage: "Try removing the name from the list.",
-  uniqueName: 'LintCode.unnecessary_ignore_name_file',
+  uniqueName: 'unnecessary_ignore_name_file',
   withArguments: _withArgumentsUnnecessaryIgnoreNameFile,
   expectedTypes: [ExpectedType.object],
 );
@@ -3172,7 +3169,7 @@ const LinterLintWithoutArguments unnecessaryLambdas =
       problemMessage: "Closure should be a tearoff.",
       correctionMessage: "Try using a tearoff rather than a closure.",
       hasPublishedDocs: true,
-      uniqueName: 'LintCode.unnecessary_lambdas',
+      uniqueName: 'unnecessary_lambdas',
       expectedTypes: [],
     );
 
@@ -3182,7 +3179,7 @@ const LinterLintWithoutArguments unnecessaryLate = LinterLintWithoutArguments(
   problemMessage: "Unnecessary 'late' modifier.",
   correctionMessage: "Try removing the 'late'.",
   hasPublishedDocs: true,
-  uniqueName: 'LintCode.unnecessary_late',
+  uniqueName: 'unnecessary_late',
   expectedTypes: [],
 );
 
@@ -3193,7 +3190,7 @@ unnecessaryLibraryDirective = LinterLintWithoutArguments(
   problemMessage:
       "Library directives without comments or annotations should be avoided.",
   correctionMessage: "Try deleting the library directive.",
-  uniqueName: 'LintCode.unnecessary_library_directive',
+  uniqueName: 'unnecessary_library_directive',
   expectedTypes: [],
 );
 
@@ -3204,7 +3201,7 @@ const LinterLintWithoutArguments unnecessaryLibraryName =
       problemMessage: "Library names are not necessary.",
       correctionMessage: "Remove the library name.",
       hasPublishedDocs: true,
-      uniqueName: 'LintCode.unnecessary_library_name',
+      uniqueName: 'unnecessary_library_name',
       expectedTypes: [],
     );
 
@@ -3214,7 +3211,7 @@ const LinterLintWithoutArguments unnecessaryNew = LinterLintWithoutArguments(
   problemMessage: "Unnecessary 'new' keyword.",
   correctionMessage: "Try removing the 'new' keyword.",
   hasPublishedDocs: true,
-  uniqueName: 'LintCode.unnecessary_new',
+  uniqueName: 'unnecessary_new',
   expectedTypes: [],
 );
 
@@ -3225,7 +3222,7 @@ unnecessaryNullableForFinalVariableDeclarations = LinterLintWithoutArguments(
   problemMessage: "Type could be non-nullable.",
   correctionMessage: "Try changing the type to be non-nullable.",
   hasPublishedDocs: true,
-  uniqueName: 'LintCode.unnecessary_nullable_for_final_variable_declarations',
+  uniqueName: 'unnecessary_nullable_for_final_variable_declarations',
   expectedTypes: [],
 );
 
@@ -3236,7 +3233,7 @@ const LinterLintWithoutArguments unnecessaryNullAwareAssignments =
       problemMessage: "Unnecessary assignment of 'null'.",
       correctionMessage: "Try removing the assignment.",
       hasPublishedDocs: true,
-      uniqueName: 'LintCode.unnecessary_null_aware_assignments',
+      uniqueName: 'unnecessary_null_aware_assignments',
       expectedTypes: [],
     );
 
@@ -3249,8 +3246,7 @@ unnecessaryNullAwareOperatorOnExtensionOnNullable = LinterLintWithoutArguments(
       "a nullable type.",
   correctionMessage: "Try removing the '?'.",
   hasPublishedDocs: true,
-  uniqueName:
-      'LintCode.unnecessary_null_aware_operator_on_extension_on_nullable',
+  uniqueName: 'unnecessary_null_aware_operator_on_extension_on_nullable',
   expectedTypes: [],
 );
 
@@ -3261,7 +3257,7 @@ const LinterLintWithoutArguments unnecessaryNullChecks =
       problemMessage: "Unnecessary use of a null check ('!').",
       correctionMessage: "Try removing the null check.",
       hasPublishedDocs: true,
-      uniqueName: 'LintCode.unnecessary_null_checks',
+      uniqueName: 'unnecessary_null_checks',
       expectedTypes: [],
     );
 
@@ -3273,7 +3269,7 @@ const LinterLintWithoutArguments unnecessaryNullInIfNullOperators =
       correctionMessage:
           "Try removing the '??' operator and the 'null' operand.",
       hasPublishedDocs: true,
-      uniqueName: 'LintCode.unnecessary_null_in_if_null_operators',
+      uniqueName: 'unnecessary_null_in_if_null_operators',
       expectedTypes: [],
     );
 
@@ -3286,7 +3282,7 @@ const LinterLintWithoutArguments unnecessaryOverrides =
           "Try adding behavior in the overriding member or removing the "
           "override.",
       hasPublishedDocs: true,
-      uniqueName: 'LintCode.unnecessary_overrides',
+      uniqueName: 'unnecessary_overrides',
       expectedTypes: [],
     );
 
@@ -3297,7 +3293,7 @@ const LinterLintWithoutArguments unnecessaryParenthesis =
       problemMessage: "Unnecessary use of parentheses.",
       correctionMessage: "Try removing the parentheses.",
       hasPublishedDocs: true,
-      uniqueName: 'LintCode.unnecessary_parenthesis',
+      uniqueName: 'unnecessary_parenthesis',
       expectedTypes: [],
     );
 
@@ -3308,7 +3304,7 @@ const LinterLintWithoutArguments unnecessaryRawStrings =
       problemMessage: "Unnecessary use of a raw string.",
       correctionMessage: "Try using a normal string.",
       hasPublishedDocs: true,
-      uniqueName: 'LintCode.unnecessary_raw_strings',
+      uniqueName: 'unnecessary_raw_strings',
       expectedTypes: [],
     );
 
@@ -3319,7 +3315,7 @@ const LinterLintWithoutArguments unnecessaryStatements =
       problemMessage: "Unnecessary statement.",
       correctionMessage: "Try completing the statement or breaking it up.",
       hasPublishedDocs: true,
-      uniqueName: 'LintCode.unnecessary_statements',
+      uniqueName: 'unnecessary_statements',
       expectedTypes: [],
     );
 
@@ -3330,7 +3326,7 @@ const LinterLintWithoutArguments unnecessaryStringEscapes =
       problemMessage: "Unnecessary escape in string literal.",
       correctionMessage: "Remove the '\\' escape.",
       hasPublishedDocs: true,
-      uniqueName: 'LintCode.unnecessary_string_escapes',
+      uniqueName: 'unnecessary_string_escapes',
       expectedTypes: [],
     );
 
@@ -3342,7 +3338,7 @@ const LinterLintWithoutArguments unnecessaryStringInterpolations =
       correctionMessage:
           "Try replacing the string literal with the variable name.",
       hasPublishedDocs: true,
-      uniqueName: 'LintCode.unnecessary_string_interpolations',
+      uniqueName: 'unnecessary_string_interpolations',
       expectedTypes: [],
     );
 
@@ -3352,7 +3348,7 @@ const LinterLintWithoutArguments unnecessaryThis = LinterLintWithoutArguments(
   problemMessage: "Unnecessary 'this.' qualifier.",
   correctionMessage: "Try removing 'this.'.",
   hasPublishedDocs: true,
-  uniqueName: 'LintCode.unnecessary_this',
+  uniqueName: 'unnecessary_this',
   expectedTypes: [],
 );
 
@@ -3363,7 +3359,7 @@ const LinterLintWithoutArguments unnecessaryToListInSpreads =
       problemMessage: "Unnecessary use of 'toList' in a spread.",
       correctionMessage: "Try removing the invocation of 'toList'.",
       hasPublishedDocs: true,
-      uniqueName: 'LintCode.unnecessary_to_list_in_spreads',
+      uniqueName: 'unnecessary_to_list_in_spreads',
       expectedTypes: [],
     );
 
@@ -3376,7 +3372,7 @@ const LinterLintWithoutArguments unnecessaryUnawaited =
           "Try removing the use of 'unawaited', as the unawaited element is "
           "annotated with '@awaitNotRequired'.",
       hasPublishedDocs: true,
-      uniqueName: 'LintCode.unnecessary_unawaited',
+      uniqueName: 'unnecessary_unawaited',
       expectedTypes: [],
     );
 
@@ -3387,7 +3383,7 @@ const LinterLintWithoutArguments unnecessaryUnderscores =
       problemMessage: "Unnecessary use of multiple underscores.",
       correctionMessage: "Try using '_'.",
       hasPublishedDocs: true,
-      uniqueName: 'LintCode.unnecessary_underscores',
+      uniqueName: 'unnecessary_underscores',
       expectedTypes: [],
     );
 
@@ -3400,7 +3396,7 @@ unreachableFromMain = LinterLintTemplate(
   name: 'unreachable_from_main',
   problemMessage: "Unreachable member '{0}' in an executable library.",
   correctionMessage: "Try referencing the member or removing it.",
-  uniqueName: 'LintCode.unreachable_from_main',
+  uniqueName: 'unreachable_from_main',
   withArguments: _withArgumentsUnreachableFromMain,
   expectedTypes: [ExpectedType.object],
 );
@@ -3418,7 +3414,7 @@ unrelatedTypeEqualityChecksInExpression = LinterLintTemplate(
       "the left operand ('{1}').",
   correctionMessage: "Try changing one or both of the operands.",
   hasPublishedDocs: true,
-  uniqueName: 'LintCode.unrelated_type_equality_checks_in_expression',
+  uniqueName: 'unrelated_type_equality_checks_in_expression',
   withArguments: _withArgumentsUnrelatedTypeEqualityChecksInExpression,
   expectedTypes: [ExpectedType.object, ExpectedType.object],
 );
@@ -3436,7 +3432,7 @@ unrelatedTypeEqualityChecksInPattern = LinterLintTemplate(
       "value being matched ('{1}').",
   correctionMessage: "Try changing one or both of the operands.",
   hasPublishedDocs: true,
-  uniqueName: 'LintCode.unrelated_type_equality_checks_in_pattern',
+  uniqueName: 'unrelated_type_equality_checks_in_pattern',
   withArguments: _withArgumentsUnrelatedTypeEqualityChecksInPattern,
   expectedTypes: [ExpectedType.object, ExpectedType.object],
 );
@@ -3450,7 +3446,7 @@ unsafeHtmlAttribute = LinterLintTemplate(
   name: 'unsafe_html',
   problemMessage: "Assigning to the attribute '{0}' is unsafe.",
   correctionMessage: "Try finding a different way to implement the page.",
-  uniqueName: 'LintCode.unsafe_html_attribute',
+  uniqueName: 'unsafe_html_attribute',
   withArguments: _withArgumentsUnsafeHtmlAttribute,
   expectedTypes: [ExpectedType.object],
 );
@@ -3464,7 +3460,7 @@ unsafeHtmlConstructor = LinterLintTemplate(
   name: 'unsafe_html',
   problemMessage: "Invoking the constructor '{0}' is unsafe.",
   correctionMessage: "Try finding a different way to implement the page.",
-  uniqueName: 'LintCode.unsafe_html_constructor',
+  uniqueName: 'unsafe_html_constructor',
   withArguments: _withArgumentsUnsafeHtmlConstructor,
   expectedTypes: [ExpectedType.object],
 );
@@ -3478,7 +3474,7 @@ unsafeHtmlMethod = LinterLintTemplate(
   name: 'unsafe_html',
   problemMessage: "Invoking the method '{0}' is unsafe.",
   correctionMessage: "Try finding a different way to implement the page.",
-  uniqueName: 'LintCode.unsafe_html_method',
+  uniqueName: 'unsafe_html_method',
   withArguments: _withArgumentsUnsafeHtmlMethod,
   expectedTypes: [ExpectedType.object],
 );
@@ -3492,7 +3488,7 @@ const LinterLintWithoutArguments unsafeVariance = LinterLintWithoutArguments(
       "Try using a more general type that doesn't contain any type "
       "parameters in such a position.",
   hasPublishedDocs: true,
-  uniqueName: 'LintCode.unsafe_variance',
+  uniqueName: 'unsafe_variance',
   expectedTypes: [],
 );
 
@@ -3505,7 +3501,7 @@ const LinterLintWithoutArguments useBuildContextSynchronouslyAsyncUse =
           "Try rewriting the code to not use the 'BuildContext', or guard the "
           "use with a 'mounted' check.",
       hasPublishedDocs: true,
-      uniqueName: 'LintCode.use_build_context_synchronously_async_use',
+      uniqueName: 'use_build_context_synchronously_async_use',
       expectedTypes: [],
     );
 
@@ -3520,7 +3516,7 @@ useBuildContextSynchronouslyWrongMounted = LinterLintWithoutArguments(
       "Guard a 'State.context' use with a 'mounted' check on the State, and "
       "other BuildContext use with a 'mounted' check on the BuildContext.",
   hasPublishedDocs: true,
-  uniqueName: 'LintCode.use_build_context_synchronously_wrong_mounted',
+  uniqueName: 'use_build_context_synchronously_wrong_mounted',
   expectedTypes: [],
 );
 
@@ -3531,7 +3527,7 @@ const LinterLintWithoutArguments useColoredBox = LinterLintWithoutArguments(
       "Use a 'ColoredBox' rather than a 'Container' with only a 'Color'.",
   correctionMessage: "Try replacing the 'Container' with a 'ColoredBox'.",
   hasPublishedDocs: true,
-  uniqueName: 'LintCode.use_colored_box',
+  uniqueName: 'use_colored_box',
   expectedTypes: [],
 );
 
@@ -3542,7 +3538,7 @@ const LinterLintWithoutArguments useDecoratedBox = LinterLintWithoutArguments(
       "Use 'DecoratedBox' rather than a 'Container' with only a 'Decoration'.",
   correctionMessage: "Try replacing the 'Container' with a 'DecoratedBox'.",
   hasPublishedDocs: true,
-  uniqueName: 'LintCode.use_decorated_box',
+  uniqueName: 'use_decorated_box',
   expectedTypes: [],
 );
 
@@ -3551,7 +3547,7 @@ const LinterLintWithoutArguments useEnums = LinterLintWithoutArguments(
   name: 'use_enums',
   problemMessage: "Class should be an enum.",
   correctionMessage: "Try using an enum rather than a class.",
-  uniqueName: 'LintCode.use_enums',
+  uniqueName: 'use_enums',
   expectedTypes: [],
 );
 
@@ -3563,7 +3559,7 @@ const LinterLintWithoutArguments useFullHexValuesForFlutterColors =
           "Instances of 'Color' should be created using an 8-digit hexadecimal "
           "integer (such as '0xFFFFFFFF').",
       hasPublishedDocs: true,
-      uniqueName: 'LintCode.use_full_hex_values_for_flutter_colors',
+      uniqueName: 'use_full_hex_values_for_flutter_colors',
       expectedTypes: [],
     );
 
@@ -3578,7 +3574,7 @@ useFunctionTypeSyntaxForParameters = LinterLintTemplate(
       "Use the generic function type syntax to declare the parameter '{0}'.",
   correctionMessage: "Try using the generic function type syntax.",
   hasPublishedDocs: true,
-  uniqueName: 'LintCode.use_function_type_syntax_for_parameters',
+  uniqueName: 'use_function_type_syntax_for_parameters',
   withArguments: _withArgumentsUseFunctionTypeSyntaxForParameters,
   expectedTypes: [ExpectedType.object],
 );
@@ -3591,7 +3587,7 @@ const LinterLintWithoutArguments useIfNullToConvertNullsToBools =
           "Use an if-null operator to convert a 'null' to a 'bool'.",
       correctionMessage: "Try using an if-null operator.",
       hasPublishedDocs: true,
-      uniqueName: 'LintCode.use_if_null_to_convert_nulls_to_bools',
+      uniqueName: 'use_if_null_to_convert_nulls_to_bools',
       expectedTypes: [],
     );
 
@@ -3604,7 +3600,7 @@ useIsEvenRatherThanModulo = LinterLintTemplate(
   name: 'use_is_even_rather_than_modulo',
   problemMessage: "Use '{0}' rather than '% 2'.",
   correctionMessage: "Try using '{0}'.",
-  uniqueName: 'LintCode.use_is_even_rather_than_modulo',
+  uniqueName: 'use_is_even_rather_than_modulo',
   withArguments: _withArgumentsUseIsEvenRatherThanModulo,
   expectedTypes: [ExpectedType.object],
 );
@@ -3617,7 +3613,7 @@ useKeyInWidgetConstructors = LinterLintWithoutArguments(
       "Constructors for public widgets should have a named 'key' parameter.",
   correctionMessage: "Try adding a named parameter to the constructor.",
   hasPublishedDocs: true,
-  uniqueName: 'LintCode.use_key_in_widget_constructors',
+  uniqueName: 'use_key_in_widget_constructors',
   expectedTypes: [],
 );
 
@@ -3629,7 +3625,7 @@ const LinterLintWithoutArguments useLateForPrivateFieldsAndVariables =
           "Use 'late' for private members with a non-nullable type.",
       correctionMessage: "Try making adding the modifier 'late'.",
       hasPublishedDocs: true,
-      uniqueName: 'LintCode.use_late_for_private_fields_and_variables',
+      uniqueName: 'use_late_for_private_fields_and_variables',
       expectedTypes: [],
     );
 
@@ -3645,7 +3641,7 @@ useNamedConstants = LinterLintTemplate(
       "object.",
   correctionMessage: "Try using '{0}'.",
   hasPublishedDocs: true,
-  uniqueName: 'LintCode.use_named_constants',
+  uniqueName: 'use_named_constants',
   withArguments: _withArgumentsUseNamedConstants,
   expectedTypes: [ExpectedType.object],
 );
@@ -3658,7 +3654,7 @@ const LinterLintWithoutArguments useNullAwareElements =
           "Use the null-aware marker '?' rather than a null check via an 'if'.",
       correctionMessage: "Try using '?'.",
       hasPublishedDocs: true,
-      uniqueName: 'LintCode.use_null_aware_elements',
+      uniqueName: 'use_null_aware_elements',
       expectedTypes: [],
     );
 
@@ -3669,7 +3665,7 @@ const LinterLintWithoutArguments useRawStrings = LinterLintWithoutArguments(
   correctionMessage:
       "Try making the string a raw string and removing the escapes.",
   hasPublishedDocs: true,
-  uniqueName: 'LintCode.use_raw_strings',
+  uniqueName: 'use_raw_strings',
   expectedTypes: [],
 );
 
@@ -3680,7 +3676,7 @@ const LinterLintWithoutArguments useRethrowWhenPossible =
       problemMessage: "Use 'rethrow' to rethrow a caught exception.",
       correctionMessage: "Try replacing the 'throw' with a 'rethrow'.",
       hasPublishedDocs: true,
-      uniqueName: 'LintCode.use_rethrow_when_possible',
+      uniqueName: 'use_rethrow_when_possible',
       expectedTypes: [],
     );
 
@@ -3691,7 +3687,7 @@ const LinterLintWithoutArguments useSettersToChangeProperties =
       problemMessage: "The method is used to change a property.",
       correctionMessage: "Try converting the method to a setter.",
       hasPublishedDocs: true,
-      uniqueName: 'LintCode.use_setters_to_change_properties',
+      uniqueName: 'use_setters_to_change_properties',
       expectedTypes: [],
     );
 
@@ -3701,7 +3697,7 @@ const LinterLintWithoutArguments useStringBuffers = LinterLintWithoutArguments(
   problemMessage: "Use a string buffer rather than '+' to compose strings.",
   correctionMessage: "Try writing the parts of a string to a string buffer.",
   hasPublishedDocs: true,
-  uniqueName: 'LintCode.use_string_buffers',
+  uniqueName: 'use_string_buffers',
   expectedTypes: [],
 );
 
@@ -3713,7 +3709,7 @@ const LinterLintWithoutArguments useStringInPartOfDirectives =
       correctionMessage:
           "Try converting the directive to use the URI of the library.",
       hasPublishedDocs: true,
-      uniqueName: 'LintCode.use_string_in_part_of_directives',
+      uniqueName: 'use_string_in_part_of_directives',
       expectedTypes: [],
     );
 
@@ -3727,7 +3723,7 @@ useSuperParametersMultiple = LinterLintTemplate(
   problemMessage: "Parameters '{0}' could be super parameters.",
   correctionMessage: "Trying converting '{0}' to super parameters.",
   hasPublishedDocs: true,
-  uniqueName: 'LintCode.use_super_parameters_multiple',
+  uniqueName: 'use_super_parameters_multiple',
   withArguments: _withArgumentsUseSuperParametersMultiple,
   expectedTypes: [ExpectedType.object],
 );
@@ -3742,7 +3738,7 @@ useSuperParametersSingle = LinterLintTemplate(
   problemMessage: "Parameter '{0}' could be a super parameter.",
   correctionMessage: "Trying converting '{0}' to a super parameter.",
   hasPublishedDocs: true,
-  uniqueName: 'LintCode.use_super_parameters_single',
+  uniqueName: 'use_super_parameters_single',
   withArguments: _withArgumentsUseSuperParametersSingle,
   expectedTypes: [ExpectedType.object],
 );
@@ -3757,7 +3753,7 @@ const LinterLintWithoutArguments useTestThrowsMatchers =
       correctionMessage:
           "Try removing the try-catch and using 'throwsA' to expect an "
           "exception.",
-      uniqueName: 'LintCode.use_test_throws_matchers',
+      uniqueName: 'use_test_throws_matchers',
       expectedTypes: [],
     );
 
@@ -3767,7 +3763,7 @@ const LinterLintWithoutArguments useToAndAsIfApplicable =
       name: 'use_to_and_as_if_applicable',
       problemMessage: "Start the name of the method with 'to' or 'as'.",
       correctionMessage: "Try renaming the method to use either 'to' or 'as'.",
-      uniqueName: 'LintCode.use_to_and_as_if_applicable',
+      uniqueName: 'use_to_and_as_if_applicable',
       expectedTypes: [],
     );
 
@@ -3780,7 +3776,7 @@ const LinterLintWithoutArguments useTruncatingDivision =
           "Try using truncating division, '~/', instead of regular division "
           "('/') followed by 'toInt()'.",
       hasPublishedDocs: true,
-      uniqueName: 'LintCode.use_truncating_division',
+      uniqueName: 'use_truncating_division',
       expectedTypes: [],
     );
 
@@ -3790,7 +3786,7 @@ const LinterLintWithoutArguments validRegexps = LinterLintWithoutArguments(
   problemMessage: "Invalid regular expression syntax.",
   correctionMessage: "Try correcting the regular expression.",
   hasPublishedDocs: true,
-  uniqueName: 'LintCode.valid_regexps',
+  uniqueName: 'valid_regexps',
   expectedTypes: [],
 );
 
@@ -3802,7 +3798,7 @@ const LinterLintWithoutArguments visitRegisteredNodes =
       correctionMessage:
           "Try declaring a 'visit' method for all registered node types.",
       hasPublishedDocs: true,
-      uniqueName: 'LintCode.visit_registered_nodes',
+      uniqueName: 'visit_registered_nodes',
       expectedTypes: [],
     );
 
@@ -3813,7 +3809,7 @@ const LinterLintWithoutArguments voidChecks = LinterLintWithoutArguments(
   correctionMessage:
       "Try removing the assignment or changing the type of the variable.",
   hasPublishedDocs: true,
-  uniqueName: 'LintCode.void_checks',
+  uniqueName: 'void_checks',
   expectedTypes: [],
 );
 
