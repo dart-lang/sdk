@@ -1,5 +1,5 @@
 name: vm_service_protos
-version: 2.0.1-wip
+version: 2.0.1
 description: >-
   A library for decoding protos returned by a service implementing the Dart VM
   service protocol.
@@ -13,7 +13,7 @@ resolution: workspace
 
 dependencies:
   fixnum: ^1.0.0
-  protobuf: '>=5.0.0 <6.0.0'
+  protobuf: ">=5.0.0 <6.0.0"
 
 # We use 'any' version constraints here as we get our package versions from
 # the dart-lang/sdk repo's DEPS file. Note that this is a special case; the

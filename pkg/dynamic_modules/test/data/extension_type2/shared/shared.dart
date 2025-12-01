@@ -9,3 +9,10 @@ B get value => B(A());
 extension type B(A _internal) {
   int foo() => 1;
 }
+
+extension type const C(int Function(int) raw) {
+  const C.foo42() : this(_foo42);
+  const C.foo43() : this(foo43);
+}
+
+int _foo42(int x) => x + 42;

@@ -56,7 +56,13 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   @override
   void visitFormalParameterList(FormalParameterList node) {
-    late Set<Element> referencedElements = collectReferences(node.parent);
+    late Set<Element> referencedElements = {
+      ...collectReferences(node.parent),
+      if (node.parent?.parent case FunctionDeclaration(
+        :var documentationComment,
+      ))
+        ...collectReferences(documentationComment),
+    };
 
     for (var parameter in node.parameters) {
       var parameterName = parameter.name;

@@ -1919,24 +1919,16 @@ f() => A()._m();
   test_optionalParameter_notUsed_overrideRequired() async {
     await assertNoErrorsInCode(r'''
 class A {
-  const A({
-    required this.a,
-    required this.b,
-  });
+  A({required this.a, required this.b});
   final String a;
   final String b;
 }
 
 class _B extends A {
-  const _B({
-    required super.a,
-    super.b = 'b',
-  });
+  _B({required super.a, super.b = 'b'});
 }
 
-const foo = _B(
-  a: 'a',
-);
+var foo = _B(a: 'a');
 ''');
   }
 
@@ -2058,14 +2050,30 @@ f() => _A.named(f: 0);
   test_parameter_optionalNamed_fieldFormal_isUsed_superInvocation() async {
     await assertNoErrorsInCode(r'''
 class _A {
-  final int e;
-  final int? f;
-  _A(this.e, {this.f});
+  final int? e;
+  _A({this.e});
 }
 
-class B extends _A {
-  B(int e) : super(e, f: 1);
+class _B extends _A {
+  _B([int? e]) : super(e: 1);
 }
+
+var b = _B(1);
+''');
+  }
+
+  test_parameter_optionalNamed_fieldFormal_isUsed_superParameter() async {
+    await assertNoErrorsInCode(r'''
+class _A {
+  final int? e;
+  _A({this.e});
+}
+
+class _B extends _A {
+  _B({super.e});
+}
+
+var b = _B(e: 2);
 ''');
   }
 
@@ -2132,14 +2140,30 @@ f() => _A.named(0);
   test_parameter_optionalPositional_fieldFormal_isUsed_superInvocation() async {
     await assertNoErrorsInCode(r'''
 class _A {
-  final int e;
-  final int? f;
-  _A(this.e, [this.f]);
+  final int? e;
+  _A([this.e]);
 }
 
-class B extends _A {
-  B(int e) : super(e, 1);
+class _B extends _A {
+  _B(int e) : super(e);
 }
+
+var b = _B(1);
+''');
+  }
+
+  test_parameter_optionalPositional_fieldFormal_isUsed_superParameter() async {
+    await assertNoErrorsInCode(r'''
+class _A {
+  final int? e;
+  _A([this.e]);
+}
+
+class _B extends _A {
+  _B(super.e);
+}
+
+var b = _B(2);
 ''');
   }
 
