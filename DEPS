@@ -131,25 +131,25 @@ vars = {
   ### /third_party/pkg dependencies
   # 'tools/rev_sdk_deps.dart' will rev pkg dependencies to their latest; put an
   # EOL comment after a dependency to instead pin at the current revision.
-  "ai_rev": "058f8f571b0ab74784d218d43de23d95803e2877",
+  "ai_rev": "4eb2446144a8af374e08da8d3c743dcce129f87f",
   "core_rev": "5c3e2c38df268be2347f3aad30ced0147dd012bb", # b/444274553
   "dartdoc_rev": "6d1aa6f5045c33d3723aba05e3e0dc1403b763c0",
-  "ecosystem_rev": "35b4e6fb5a790ca31081ac9d70e893268c7bda09",
+  "ecosystem_rev": "eac66d93142907b39f2271647c111f36ff3365b9",
   "flute_rev": "b84119fba67016a80c3eb80765762bcc4d0d0b8d",
-  "http_rev": "907782f5a792e7a5b0ed92f118c0ad91f3ecde51",
+  "http_rev": "a22386e9c390290c916d1c53a3d3c1447ec120ce",
   "i18n_rev": "dd8a792a8492370a594706c8304d2eb8db844d7a",
   "leak_tracker_rev": "f5620600a5ce1c44f65ddaa02001e200b096e14c", # rolled manually
   "material_color_utilities_rev": "799b6ba2f3f1c28c67cc7e0b4f18e0c7d7f3c03e",
   "native_rev": "93039d7ef0b71cd01567e00e6b5be90a3e7d0668", # rolled manually while record_use is experimental
-  "protobuf_rev": "3ed04a91ff4de8493226e8fd0d89678c2986edf6",
+  "protobuf_rev": "9e30258e0aa6a6430ee36c84b75308a9702fde42",
   "pub_rev": "b297f1f5e42f2569f15a98548f44b4b9a48487c1", # rolled manually
-  "shelf_rev": "b924de80e122d1e17b1132bedb02ddb1445b337c",
+  "shelf_rev": "dd830a0338b31bee92fe7ebc20b9bb963403b6b0",
   "sync_http_rev": "6666fff944221891182e1f80bf56569338164d72",
   "tar_rev": "13479f7c2a18f499e840ad470cfcca8c579f6909",
-  "test_rev": "80a49347e4a3dbc3ed70782df5e8c76a67f9256c",
-  "tools_rev": "30c418bdd4b46d462e29e9ea360bbf9d62296c3b",
+  "test_rev": "c15153b9618afc4c5e8a43bac43339de130c2149",
+  "tools_rev": "d03c394b24829f662098e590a2c812a076b01199",
   "vector_math_rev": "70a9a2cb610d040b247f3ca2cd70a94c1c6f6f23",
-  "web_rev": "7b94cf8908d320179678fc24557f163e2924c830",
+  "web_rev": "35fc98dd8f9da175ed0a2dcf246299e922e1e1e2",
   "webdev_rev": "b9c39c00853dfad0e235bec3b265f86a0f4f328a",
   "webdriver_rev": "09104f459ed834d48b132f6b7734923b1fbcf2e9",
   "webkit_inspection_protocol_rev": "0f7685804d77ec02c6564d7ac1a6c8a2341c5bdf",
