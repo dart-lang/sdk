@@ -11,7 +11,8 @@ import 'package:analyzer_testing/src/mock_packages/fixnum/fixnum.dart'
 import 'package:analyzer_testing/src/mock_packages/meta/meta.dart' as mock_meta;
 import 'package:analyzer_testing/src/mock_packages/mock_library.dart';
 import 'package:analyzer_testing/src/mock_packages/test_reflective_loader/test_reflective_loader.dart'
-    as test_reflective_loader;
+    as mock_test_reflective_loader;
+import 'package:analyzer_testing/src/mock_packages/ui/ui.dart' as mock_ui;
 import 'package:analyzer_testing/src/mock_packages/vector_math/vector_math.dart'
     as mock_vector_math;
 import 'package:analyzer_testing/utilities/extensions/resource_provider.dart';
@@ -178,13 +179,13 @@ mixin MockPackagesMixin {
   Folder addTestReflectiveLoader() {
     var packageFolder = _addFiles2(
       'test_reflective_loader',
-      test_reflective_loader.units,
+      mock_test_reflective_loader.units,
     );
     return packageFolder.getChildAssumingFolder('lib');
   }
 
   Folder addUI() {
-    var packageFolder = _addFiles('ui');
+    var packageFolder = _addFiles2('ui', mock_ui.units);
     return packageFolder.getChildAssumingFolder('lib');
   }
 
