@@ -288,10 +288,7 @@ class AliasMessage extends AnalyzerMessage {
   String get aliasForClass => aliasFor.split('.').first;
 
   @override
-  void toAnalyzerCode({
-    String? sharedNameReference,
-    required MemberAccumulator memberAccumulator,
-  }) {
+  void toAnalyzerCode({required MemberAccumulator memberAccumulator}) {
     var constant = StringBuffer();
     outputConstantHeader(constant);
     constant.writeln('const $aliasForClass $constantName =');
@@ -613,10 +610,7 @@ mixin MessageWithAnalyzerCode on Message {
   /// in the diagnostic class [className].
   ///
   /// [diagnosticCode] is the name of the diagnostic to be generated.
-  void toAnalyzerCode({
-    String? sharedNameReference,
-    required MemberAccumulator memberAccumulator,
-  }) {
+  void toAnalyzerCode({required MemberAccumulator memberAccumulator}) {
     var diagnosticCode = analyzerCode.snakeCaseName;
     var correctionMessage = this.correctionMessage;
     String? withArgumentsName;
@@ -639,9 +633,7 @@ LocatableDiagnostic $withArgumentsName({$withArgumentsParams}) {
     outputConstantHeader(constant);
     constant.writeln('const $staticType $constantName =');
     constant.writeln('$concreteClassName(');
-    constant.writeln(
-      'name: ${sharedNameReference ?? "'${sharedName ?? diagnosticCode}'"},',
-    );
+    constant.writeln("name: '${sharedName ?? diagnosticCode}',");
     var maxWidth = 80 - 8 /* indentation */ - 2 /* quotes */ - 1 /* comma */;
     var messageAsCode = convertTemplate(problemMessage);
     var messageLines = _splitText(
