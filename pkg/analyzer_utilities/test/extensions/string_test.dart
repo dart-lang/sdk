@@ -18,6 +18,15 @@ void main() {
 
 @reflectiveTest
 class StringExtensionTest {
+  void test_isCamelCase() {
+    expect('UPPER_CASE_WITH_UNDERSCORES'.isCamelCase, false);
+    expect('lower_case_with_underscores'.isCamelCase, false);
+    expect('camelCase'.isCamelCase, true);
+    expect('alllowercase'.isCamelCase, true);
+    expect('foo123Bar'.isCamelCase, true);
+    expect('123'.isCamelCase, false);
+  }
+
   void test_toCamelCase() {
     expect('CAMEL_CASE'.toCamelCase(), 'camelCase');
     expect('alreadyCamel_case'.toCamelCase(), 'alreadycamelCase');

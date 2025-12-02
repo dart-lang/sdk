@@ -185,6 +185,9 @@ class ConstructorItem extends ExecutableItem<ConstructorElementImpl> {
           flags.isConst == element.isConst &&
           flags.isDeclaring == element.isDeclaring &&
           flags.isFactory == element.isFactory &&
+          flags.isOriginDeclaration == element.isOriginDeclaration &&
+          flags.isOriginImplicitDefault == element.isOriginImplicitDefault &&
+          flags.isOriginMixinApplication == element.isOriginMixinApplication &&
           flags.isPrimary == element.isPrimary &&
           constantInitializers.match(context, element.constantInitializers) &&
           redirectedConstructor.match(context, element.redirectedConstructor) &&
@@ -1596,7 +1599,15 @@ enum _ClassItemFlag {
   isSealed,
 }
 
-enum _ConstructorItemFlag { isConst, isDeclaring, isFactory, isPrimary }
+enum _ConstructorItemFlag {
+  isConst,
+  isDeclaring,
+  isFactory,
+  isOriginDeclaration,
+  isOriginImplicitDefault,
+  isOriginMixinApplication,
+  isPrimary,
+}
 
 enum _ExecutableItemFlag {
   hasEnclosingTypeParameterReference,
@@ -1738,6 +1749,15 @@ extension type _ConstructorItemFlags._(int _bits)
     if (element.isFactory) {
       bits |= _maskFor(_ConstructorItemFlag.isFactory);
     }
+    if (element.isOriginDeclaration) {
+      bits |= _maskFor(_ConstructorItemFlag.isOriginDeclaration);
+    }
+    if (element.isOriginImplicitDefault) {
+      bits |= _maskFor(_ConstructorItemFlag.isOriginImplicitDefault);
+    }
+    if (element.isOriginMixinApplication) {
+      bits |= _maskFor(_ConstructorItemFlag.isOriginMixinApplication);
+    }
     if (element.isPrimary) {
       bits |= _maskFor(_ConstructorItemFlag.isPrimary);
     }
@@ -1758,6 +1778,18 @@ extension type _ConstructorItemFlags._(int _bits)
 
   bool get isFactory {
     return _has(_ConstructorItemFlag.isFactory);
+  }
+
+  bool get isOriginDeclaration {
+    return _has(_ConstructorItemFlag.isOriginDeclaration);
+  }
+
+  bool get isOriginImplicitDefault {
+    return _has(_ConstructorItemFlag.isOriginImplicitDefault);
+  }
+
+  bool get isOriginMixinApplication {
+    return _has(_ConstructorItemFlag.isOriginMixinApplication);
   }
 
   bool get isPrimary {

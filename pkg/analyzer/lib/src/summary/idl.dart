@@ -366,6 +366,11 @@ enum IndexRelationKind {
   /// Right: location.
   IS_REFERENCED_BY,
 
+  /// Left: a pattern field.
+  ///  Is referenced at.
+  /// Right: location.
+  IS_REFERENCED_BY_PATTERN_FIELD,
+
   /// Left: a constructor.
   ///   Is referenced by a constructor tear-off at, which is special because
   ///   the name of the constructor is required (`new` for unnamed).

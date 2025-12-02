@@ -243,10 +243,37 @@ abstract class ConstructorElement implements ExecutableElement {
   /// Whether the constructor represents a generative constructor.
   bool get isGenerative;
 
+  /// Whether the constructor is from an explicit [ConstructorDeclaration]
+  /// or [PrimaryConstructorDeclaration].
+  ///
+  /// When this is `true`, [isOriginImplicitDefault] and
+  /// [isOriginMixinApplication] are `false`.
+  bool get isOriginDeclaration;
+
+  /// Whether the constructor was created because there are no explicit
+  /// constructors.
+  ///
+  /// When this is `true`, [isOriginDeclaration] and
+  /// [isOriginMixinApplication] are `false`.
+  bool get isOriginImplicitDefault;
+
+  /// Whether the constructor was created for a mixin application.
+  ///
+  /// When this is `true`, [isOriginDeclaration] and
+  /// [isOriginImplicitDefault] are `false`.
+  bool get isOriginMixinApplication;
+
   /// Whether this is a primary constructor.
   /// When `true`, [isDeclaring] is also `true`.
   @experimental
   bool get isPrimary;
+
+  @Deprecated(
+    'Use isOriginDeclaration / isOriginImplicitDefault / '
+    'isOriginMixinApplication instead, depending on intent.',
+  )
+  @override
+  bool get isSynthetic;
 
   /// The name of this constructor.
   ///
@@ -284,6 +311,13 @@ abstract class ConstructorFragment implements ExecutableFragment {
   ///
   /// It is `null` if the fragment is synthetic, or does not have the keyword.
   int? get factoryKeywordOffset;
+
+  @override
+  @Deprecated(
+    'Use isOriginDeclaration / isOriginImplicitDefault / '
+    'isOriginMixinApplication instead, depending on intent.',
+  )
+  bool get isSynthetic;
 
   @override
   String get name;

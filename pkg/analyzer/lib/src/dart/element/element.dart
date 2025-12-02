@@ -404,7 +404,7 @@ class ClassElementImpl extends InterfaceElementImpl implements ClassElement {
       return false;
     }
     for (var constructor in constructors) {
-      if (!constructor.isSynthetic && !constructor.isFactory) {
+      if (constructor.isOriginDeclaration && !constructor.isFactory) {
         return false;
       }
     }
@@ -495,7 +495,7 @@ class ClassElementImpl extends InterfaceElementImpl implements ClassElement {
       var constructorFragment = ConstructorFragmentImpl(
         name: superConstructor.name ?? 'new',
       );
-      constructorFragment.isSynthetic = true;
+      constructorFragment.isOriginMixinApplication = true;
       constructorFragment.typeName = name;
       constructorFragment.isConst =
           superConstructor.isConst && !mixins.any(typeHasInstanceVariables);
@@ -741,7 +741,27 @@ class ConstructorElementImpl extends ExecutableElementImpl
 
   @override
   @trackedIncludedInId
+  bool get isOriginDeclaration => _firstFragment.isOriginDeclaration;
+
+  @override
+  @trackedIncludedInId
+  bool get isOriginImplicitDefault => _firstFragment.isOriginImplicitDefault;
+
+  @override
+  @trackedIncludedInId
+  bool get isOriginMixinApplication => _firstFragment.isOriginMixinApplication;
+
+  @override
+  @trackedIncludedInId
   bool get isPrimary => _firstFragment.isPrimary;
+
+  @Deprecated(
+    'Use isOriginDeclaration / isOriginImplicitDefault / '
+    'isOriginMixinApplication instead, depending on intent.',
+  )
+  @override
+  @trackedIncludedInId
+  bool get isSynthetic => !isOriginDeclaration;
 
   @override
   @trackedIncludedInId
@@ -765,10 +785,10 @@ class ConstructorElementImpl extends ExecutableElementImpl
   @override
   @trackedIncludedInId
   Element get nonSynthetic {
-    if (isSynthetic) {
-      return enclosingElement;
-    } else {
+    if (isOriginDeclaration) {
       return this;
+    } else {
+      return enclosingElement;
     }
   }
 
@@ -972,6 +992,13 @@ class ConstructorFragmentImpl extends ExecutableFragmentImpl
   bool get isGenerative {
     return !isFactory;
   }
+
+  @Deprecated(
+    'Use isOriginDeclaration / isOriginImplicitDefault / '
+    'isOriginMixinApplication instead, depending on intent.',
+  )
+  @override
+  bool get isSynthetic => !isOriginDeclaration;
 
   @override
   int get offset =>
@@ -8106,6 +8133,17 @@ enum Modifier {
   /// annotations, but also inferred types.
   NO_ENCLOSING_TYPE_PARAMETER_REFERENCE,
 
+  /// Whether the constructor is from an explicit [ConstructorDeclaration]
+  /// or [PrimaryConstructorDeclaration].
+  ORIGIN_DECLARATION,
+
+  /// Whether the constructor was created because there are no explicit
+  /// constructors.
+  ORIGIN_IMPLICIT_DEFAULT,
+
+  /// Whether the constructor was created for a mixin application.
+  ORIGIN_MIXIN_APPLICATION,
+
   /// Whether the constructor is primary.
   PRIMARY,
 
@@ -10418,6 +10456,9 @@ enum _ConstructorFragmentImplModifiers {
   isConst,
   isDeclaring,
   isFactory,
+  isOriginDeclaration,
+  isOriginImplicitDefault,
+  isOriginMixinApplication,
   isPrimary,
 }
 

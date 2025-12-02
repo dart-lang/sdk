@@ -119,7 +119,7 @@ library
             #F3 hasInitializer f (nameOffset:21) (firstTokenOffset:21) (offset:21)
               element: <testLibrary>::@class::C::@field::f
           constructors
-            #F4 synthetic new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
+            #F4 synthetic isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
               element: <testLibrary>::@class::C::@constructor::new
               typeName: C
           getters
@@ -139,7 +139,7 @@ library
           type: InvalidType
           getter: <testLibrary>::@class::C::@getter::f
       constructors
-        synthetic new
+        synthetic isOriginImplicitDefault new
           reference: <testLibrary>::@class::C::@constructor::new
           firstFragment: #F4
       getters
@@ -174,7 +174,7 @@ library
             #F2 V (nameOffset:45) (firstTokenOffset:45) (offset:45)
               element: #E0 V
           constructors
-            #F3 const new (nameOffset:<null>) (firstTokenOffset:52) (offset:58)
+            #F3 const isOriginDeclaration new (nameOffset:<null>) (firstTokenOffset:52) (offset:58)
               element: <testLibrary>::@class::C::@constructor::new
               typeName: C
               typeNameOffset: 58
@@ -189,7 +189,7 @@ library
             #F7 U (nameOffset:81) (firstTokenOffset:81) (offset:81)
               element: #E2 U
           constructors
-            #F8 synthetic new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:77)
+            #F8 synthetic isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:77)
               element: <testLibrary>::@class::D::@constructor::new
               typeName: D
       typeAliases
@@ -238,7 +238,7 @@ library
         #E0 V
           firstFragment: #F2
       constructors
-        const new
+        const isOriginDeclaration new
           reference: <testLibrary>::@class::C::@constructor::new
           firstFragment: #F3
           formalParameters
@@ -257,7 +257,7 @@ library
         #E2 U
           firstFragment: #F7
       constructors
-        synthetic new
+        synthetic isOriginImplicitDefault new
           reference: <testLibrary>::@class::D::@constructor::new
           firstFragment: #F8
   typeAliases
@@ -314,7 +314,7 @@ library
         #F1 class C (nameOffset:38) (firstTokenOffset:32) (offset:38)
           element: <testLibrary>::@class::C
           constructors
-            #F2 const new (nameOffset:<null>) (firstTokenOffset:44) (offset:50)
+            #F2 const isOriginDeclaration new (nameOffset:<null>) (firstTokenOffset:44) (offset:50)
               element: <testLibrary>::@class::C::@constructor::new
               typeName: C
               typeNameOffset: 50
@@ -327,7 +327,7 @@ library
             #F5 T (nameOffset:68) (firstTokenOffset:68) (offset:68)
               element: #E0 T
           constructors
-            #F6 synthetic new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:66)
+            #F6 synthetic isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:66)
               element: <testLibrary>::@class::D::@constructor::new
               typeName: D
       typeAliases
@@ -368,7 +368,7 @@ library
       reference: <testLibrary>::@class::C
       firstFragment: #F1
       constructors
-        const new
+        const isOriginDeclaration new
           reference: <testLibrary>::@class::C::@constructor::new
           firstFragment: #F2
           formalParameters
@@ -383,7 +383,7 @@ library
         #E0 T
           firstFragment: #F5
       constructors
-        synthetic new
+        synthetic isOriginImplicitDefault new
           reference: <testLibrary>::@class::D::@constructor::new
           firstFragment: #F6
   typeAliases
@@ -439,13 +439,13 @@ library
         #F1 class A (nameOffset:6) (firstTokenOffset:0) (offset:6)
           element: <testLibrary>::@class::A
           constructors
-            #F2 synthetic new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
+            #F2 synthetic isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
               element: <testLibrary>::@class::A::@constructor::new
               typeName: A
         #F3 class B (nameOffset:18) (firstTokenOffset:12) (offset:18)
           element: <testLibrary>::@class::B
           constructors
-            #F4 synthetic new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:18)
+            #F4 synthetic isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:18)
               element: <testLibrary>::@class::B::@constructor::new
               typeName: B
         #F5 class S (nameOffset:40) (firstTokenOffset:34) (offset:40)
@@ -454,7 +454,7 @@ library
             #F6 T (nameOffset:42) (firstTokenOffset:42) (offset:42)
               element: #E0 T
           constructors
-            #F7 new (nameOffset:<null>) (firstTokenOffset:59) (offset:59)
+            #F7 isOriginDeclaration new (nameOffset:<null>) (firstTokenOffset:59) (offset:59)
               element: <testLibrary>::@class::S::@constructor::new
               typeName: S
               typeNameOffset: 59
@@ -478,7 +478,7 @@ library
       reference: <testLibrary>::@class::A
       firstFragment: #F1
       constructors
-        synthetic new
+        synthetic isOriginImplicitDefault new
           reference: <testLibrary>::@class::A::@constructor::new
           firstFragment: #F2
     class B
@@ -486,7 +486,7 @@ library
       firstFragment: #F3
       supertype: A
       constructors
-        synthetic new
+        synthetic isOriginImplicitDefault new
           reference: <testLibrary>::@class::B::@constructor::new
           firstFragment: #F4
           superConstructor: <testLibrary>::@class::A::@constructor::new
@@ -498,7 +498,7 @@ library
           firstFragment: #F6
           bound: A
       constructors
-        new
+        isOriginDeclaration new
           reference: <testLibrary>::@class::S::@constructor::new
           firstFragment: #F7
           formalParameters
@@ -558,7 +558,7 @@ library
             #F2 b (nameOffset:14) (firstTokenOffset:14) (offset:14)
               element: <testLibrary>::@class::A::@field::b
           constructors
-            #F3 synthetic new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
+            #F3 synthetic isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
               element: <testLibrary>::@class::A::@constructor::new
               typeName: A
           getters
@@ -576,7 +576,7 @@ library
             #F8 synthetic c (nameOffset:<null>) (firstTokenOffset:<null>) (offset:25)
               element: <testLibrary>::@class::B::@field::c
           constructors
-            #F9 synthetic new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:25)
+            #F9 synthetic isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:25)
               element: <testLibrary>::@class::B::@constructor::new
               typeName: B
           getters
@@ -591,13 +591,13 @@ library
         #F13 class C (nameOffset:81) (firstTokenOffset:75) (offset:81)
           element: <testLibrary>::@class::C
           constructors
-            #F14 synthetic new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:81)
+            #F14 synthetic isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:81)
               element: <testLibrary>::@class::C::@constructor::new
               typeName: C
         #F15 class D (nameOffset:92) (firstTokenOffset:86) (offset:92)
           element: <testLibrary>::@class::D
           constructors
-            #F16 synthetic new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:92)
+            #F16 synthetic isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:92)
               element: <testLibrary>::@class::D::@constructor::new
               typeName: D
       topLevelVariables
@@ -633,7 +633,7 @@ library
           getter: <testLibrary>::@class::A::@getter::b
           setter: <testLibrary>::@class::A::@setter::b
       constructors
-        synthetic new
+        synthetic isOriginImplicitDefault new
           reference: <testLibrary>::@class::A::@constructor::new
           firstFragment: #F3
       getters
@@ -663,7 +663,7 @@ library
           getter: <testLibrary>::@class::B::@getter::c
           setter: <testLibrary>::@class::B::@setter::c
       constructors
-        synthetic new
+        synthetic isOriginImplicitDefault new
           reference: <testLibrary>::@class::B::@constructor::new
           firstFragment: #F9
       getters
@@ -686,7 +686,7 @@ library
       reference: <testLibrary>::@class::C
       firstFragment: #F13
       constructors
-        synthetic new
+        synthetic isOriginImplicitDefault new
           reference: <testLibrary>::@class::C::@constructor::new
           firstFragment: #F14
     class D
@@ -694,7 +694,7 @@ library
       firstFragment: #F15
       supertype: C
       constructors
-        synthetic new
+        synthetic isOriginImplicitDefault new
           reference: <testLibrary>::@class::D::@constructor::new
           firstFragment: #F16
           superConstructor: <testLibrary>::@class::C::@constructor::new
@@ -874,7 +874,7 @@ library
             #F2 p (nameOffset:16) (firstTokenOffset:16) (offset:16)
               element: <testLibrary>::@class::C::@field::p
           constructors
-            #F3 synthetic new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
+            #F3 synthetic isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
               element: <testLibrary>::@class::C::@constructor::new
               typeName: C
           getters
@@ -919,7 +919,7 @@ library
           getter: <testLibrary>::@class::C::@getter::p
           setter: <testLibrary>::@class::C::@setter::p
       constructors
-        synthetic new
+        synthetic isOriginImplicitDefault new
           reference: <testLibrary>::@class::C::@constructor::new
           firstFragment: #F3
       getters
@@ -1046,7 +1046,7 @@ library
             #F4 x (nameOffset:24) (firstTokenOffset:24) (offset:24)
               element: <testLibrary>::@class::C::@field::x
           constructors
-            #F5 new (nameOffset:<null>) (firstTokenOffset:29) (offset:29)
+            #F5 isOriginDeclaration new (nameOffset:<null>) (firstTokenOffset:29) (offset:29)
               element: <testLibrary>::@class::C::@constructor::new
               typeName: C
               typeNameOffset: 29
@@ -1069,7 +1069,7 @@ library
           type: dynamic
           getter: <testLibrary>::@class::C::@getter::x
       constructors
-        new
+        isOriginDeclaration new
           reference: <testLibrary>::@class::C::@constructor::new
           firstFragment: #F5
       getters
@@ -1107,7 +1107,7 @@ library
             #F4 synthetic x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
               element: <testLibrary>::@class::C::@field::x
           constructors
-            #F5 synthetic new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
+            #F5 synthetic isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
               element: <testLibrary>::@class::C::@constructor::new
               typeName: C
           getters
@@ -1129,7 +1129,7 @@ library
           type: dynamic
           getter: <testLibrary>::@class::C::@getter::x
       constructors
-        synthetic new
+        synthetic isOriginImplicitDefault new
           reference: <testLibrary>::@class::C::@constructor::new
           firstFragment: #F5
       getters
@@ -1165,7 +1165,7 @@ library
             #F2 T (nameOffset:8) (firstTokenOffset:8) (offset:8)
               element: #E0 T
           constructors
-            #F3 synthetic new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
+            #F3 synthetic isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
               element: <testLibrary>::@class::C::@constructor::new
               typeName: C
           methods
@@ -1184,7 +1184,7 @@ library
         #E0 T
           firstFragment: #F2
       constructors
-        synthetic new
+        synthetic isOriginImplicitDefault new
           reference: <testLibrary>::@class::C::@constructor::new
           firstFragment: #F3
       methods
@@ -1228,7 +1228,7 @@ library
             #F4 synthetic x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
               element: <testLibrary>::@class::C::@field::x
           constructors
-            #F5 synthetic new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
+            #F5 synthetic isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
               element: <testLibrary>::@class::C::@constructor::new
               typeName: C
           setters
@@ -1253,7 +1253,7 @@ library
           type: dynamic
           setter: <testLibrary>::@class::C::@setter::x
       constructors
-        synthetic new
+        synthetic isOriginImplicitDefault new
           reference: <testLibrary>::@class::C::@constructor::new
           firstFragment: #F5
       setters
@@ -1353,7 +1353,7 @@ library
             #F2 P (nameOffset:8) (firstTokenOffset:8) (offset:8)
               element: #E0 P
           constructors
-            #F3 factory new (nameOffset:<null>) (firstTokenOffset:27) (offset:35)
+            #F3 factory isOriginDeclaration new (nameOffset:<null>) (firstTokenOffset:27) (offset:35)
               element: <testLibrary>::@class::C::@constructor::new
               factoryKeywordOffset: 27
               typeName: C
@@ -1361,7 +1361,7 @@ library
               formalParameters
                 #F4 requiredPositional p (nameOffset:49) (firstTokenOffset:37) (offset:49)
                   element: <testLibrary>::@class::C::@constructor::new::@formalParameter::p
-            #F5 _ (nameOffset:66) (firstTokenOffset:64) (offset:66)
+            #F5 isOriginDeclaration _ (nameOffset:66) (firstTokenOffset:64) (offset:66)
               element: <testLibrary>::@class::C::@constructor::_
               typeName: C
               typeNameOffset: 64
@@ -1387,14 +1387,14 @@ library
           firstFragment: #F2
           bound: num
       constructors
-        factory new
+        factory isOriginDeclaration new
           reference: <testLibrary>::@class::C::@constructor::new
           firstFragment: #F3
           formalParameters
             #E1 requiredPositional p
               firstFragment: #F4
               type: Iterable<P>
-        _
+        isOriginDeclaration _
           reference: <testLibrary>::@class::C::@constructor::_
           firstFragment: #F5
   topLevelVariables
@@ -1447,7 +1447,7 @@ library
             #F3 hasInitializer bar (nameOffset:56) (firstTokenOffset:56) (offset:56)
               element: <testLibrary>::@class::A::@field::bar
           constructors
-            #F4 synthetic new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
+            #F4 synthetic isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
               element: <testLibrary>::@class::A::@constructor::new
               typeName: A
           getters
@@ -1474,7 +1474,7 @@ library
           type: int Function(double)
           getter: <testLibrary>::@class::A::@getter::bar
       constructors
-        synthetic new
+        synthetic isOriginImplicitDefault new
           reference: <testLibrary>::@class::A::@constructor::new
           firstFragment: #F4
       getters
@@ -1890,7 +1890,7 @@ library
             #F2 v (nameOffset:49) (firstTokenOffset:49) (offset:49)
               element: <testLibrary>::@class::C::@field::v
           constructors
-            #F3 synthetic new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:31)
+            #F3 synthetic isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:31)
               element: <testLibrary>::@class::C::@constructor::new
               typeName: C
           getters
@@ -1908,7 +1908,7 @@ library
             #F8 synthetic v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:69)
               element: <testLibrary>::@class::D::@field::v
           constructors
-            #F9 synthetic new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:69)
+            #F9 synthetic isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:69)
               element: <testLibrary>::@class::D::@constructor::new
               typeName: D
           getters
@@ -1931,7 +1931,7 @@ library
           getter: <testLibrary>::@class::C::@getter::v
           setter: <testLibrary>::@class::C::@setter::v
       constructors
-        synthetic new
+        synthetic isOriginImplicitDefault new
           reference: <testLibrary>::@class::C::@constructor::new
           firstFragment: #F3
           superConstructor: <testLibrary>::@class::D::@constructor::new
@@ -1964,7 +1964,7 @@ library
             alias: <testLibrary>::@typeAlias::F
           getter: <testLibrary>::@class::D::@getter::v
       constructors
-        synthetic new
+        synthetic isOriginImplicitDefault new
           reference: <testLibrary>::@class::D::@constructor::new
           firstFragment: #F9
       getters
@@ -2215,7 +2215,7 @@ library
             #F3 v (nameOffset:37) (firstTokenOffset:37) (offset:37)
               element: <testLibrary>::@class::C::@field::v
           constructors
-            #F4 synthetic new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
+            #F4 synthetic isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
               element: <testLibrary>::@class::C::@constructor::new
               typeName: C
           getters
@@ -2238,7 +2238,7 @@ library
             #F11 synthetic v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:57)
               element: <testLibrary>::@class::D::@field::v
           constructors
-            #F12 synthetic new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:57)
+            #F12 synthetic isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:57)
               element: <testLibrary>::@class::D::@constructor::new
               typeName: D
           getters
@@ -2261,7 +2261,7 @@ library
           getter: <testLibrary>::@class::C::@getter::v
           setter: <testLibrary>::@class::C::@setter::v
       constructors
-        synthetic new
+        synthetic isOriginImplicitDefault new
           reference: <testLibrary>::@class::C::@constructor::new
           firstFragment: #F4
           superConstructor: ConstructorMember
@@ -2301,7 +2301,7 @@ library
           type: Map<V, U>
           getter: <testLibrary>::@class::D::@getter::v
       constructors
-        synthetic new
+        synthetic isOriginImplicitDefault new
           reference: <testLibrary>::@class::D::@constructor::new
           firstFragment: #F12
       getters
@@ -2411,7 +2411,7 @@ library
             #F3 U (nameOffset:11) (firstTokenOffset:11) (offset:11)
               element: #E1 U
           constructors
-            #F4 synthetic new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
+            #F4 synthetic isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
               element: <testLibrary>::@class::C::@constructor::new
               typeName: C
           methods
@@ -2430,7 +2430,7 @@ library
             #F10 W (nameOffset:78) (firstTokenOffset:78) (offset:78)
               element: #E3 W
           constructors
-            #F11 synthetic new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:73)
+            #F11 synthetic isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:73)
               element: <testLibrary>::@class::D::@constructor::new
               typeName: D
           methods
@@ -2455,7 +2455,7 @@ library
           firstFragment: #F3
       supertype: D<U, int>
       constructors
-        synthetic new
+        synthetic isOriginImplicitDefault new
           reference: <testLibrary>::@class::C::@constructor::new
           firstFragment: #F4
           superConstructor: ConstructorMember
@@ -2483,7 +2483,7 @@ library
         #E3 W
           firstFragment: #F10
       constructors
-        synthetic new
+        synthetic isOriginImplicitDefault new
           reference: <testLibrary>::@class::D::@constructor::new
           firstFragment: #F11
       methods
@@ -2534,7 +2534,7 @@ library
         #F1 class C (nameOffset:23) (firstTokenOffset:17) (offset:23)
           element: <testLibrary>::@class::C
           constructors
-            #F2 synthetic new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:23)
+            #F2 synthetic isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:23)
               element: <testLibrary>::@class::C::@constructor::new
               typeName: C
           methods
@@ -2551,7 +2551,7 @@ library
       firstFragment: #F1
       supertype: D
       constructors
-        synthetic new
+        synthetic isOriginImplicitDefault new
           reference: <testLibrary>::@class::C::@constructor::new
           firstFragment: #F2
           superConstructor: package:test/a.dart::@class::D::@constructor::new
@@ -2585,7 +2585,7 @@ library
         #F1 class C (nameOffset:6) (firstTokenOffset:0) (offset:6)
           element: <testLibrary>::@class::C
           constructors
-            #F2 synthetic new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
+            #F2 synthetic isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
               element: <testLibrary>::@class::C::@constructor::new
               typeName: C
           methods
@@ -2599,7 +2599,7 @@ library
         #F6 class D (nameOffset:57) (firstTokenOffset:42) (offset:57)
           element: <testLibrary>::@class::D
           constructors
-            #F7 synthetic new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:57)
+            #F7 synthetic isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:57)
               element: <testLibrary>::@class::D::@constructor::new
               typeName: D
           methods
@@ -2619,7 +2619,7 @@ library
       firstFragment: #F1
       supertype: D
       constructors
-        synthetic new
+        synthetic isOriginImplicitDefault new
           reference: <testLibrary>::@class::C::@constructor::new
           firstFragment: #F2
           superConstructor: <testLibrary>::@class::D::@constructor::new
@@ -2639,7 +2639,7 @@ library
       reference: <testLibrary>::@class::D
       firstFragment: #F6
       constructors
-        synthetic new
+        synthetic isOriginImplicitDefault new
           reference: <testLibrary>::@class::D::@constructor::new
           firstFragment: #F7
       methods
@@ -2831,7 +2831,7 @@ library
             #F2 synthetic f (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
               element: <testLibrary>::@class::C::@field::f
           constructors
-            #F3 synthetic new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
+            #F3 synthetic isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
               element: <testLibrary>::@class::C::@constructor::new
               typeName: C
           setters
@@ -2846,7 +2846,7 @@ library
             #F7 synthetic f (nameOffset:<null>) (firstTokenOffset:<null>) (offset:54)
               element: <testLibrary>::@class::D::@field::f
           constructors
-            #F8 synthetic new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:54)
+            #F8 synthetic isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:54)
               element: <testLibrary>::@class::D::@constructor::new
               typeName: D
           setters
@@ -2870,7 +2870,7 @@ library
           type: int Function(String)
           setter: <testLibrary>::@class::C::@setter::f
       constructors
-        synthetic new
+        synthetic isOriginImplicitDefault new
           reference: <testLibrary>::@class::C::@constructor::new
           firstFragment: #F3
           superConstructor: <testLibrary>::@class::D::@constructor::new
@@ -2894,7 +2894,7 @@ library
           type: int Function(String)
           setter: <testLibrary>::@class::D::@setter::f
       constructors
-        synthetic new
+        synthetic isOriginImplicitDefault new
           reference: <testLibrary>::@class::D::@constructor::new
           firstFragment: #F8
       setters
@@ -2939,7 +2939,7 @@ library
         #F1 class B (nameOffset:23) (firstTokenOffset:17) (offset:23)
           element: <testLibrary>::@class::B
           constructors
-            #F2 synthetic new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:23)
+            #F2 synthetic isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:23)
               element: <testLibrary>::@class::B::@constructor::new
               typeName: B
           methods
@@ -2954,7 +2954,7 @@ library
       firstFragment: #F1
       supertype: A
       constructors
-        synthetic new
+        synthetic isOriginImplicitDefault new
           reference: <testLibrary>::@class::B::@constructor::new
           firstFragment: #F2
           superConstructor: package:test/a.dart::@class::A::@constructor::new
@@ -2999,11 +2999,11 @@ library
         #F1 class A (nameOffset:6) (firstTokenOffset:0) (offset:6)
           element: <testLibrary>::@class::A
           constructors
-            #F2 new (nameOffset:<null>) (firstTokenOffset:12) (offset:12)
+            #F2 isOriginDeclaration new (nameOffset:<null>) (firstTokenOffset:12) (offset:12)
               element: <testLibrary>::@class::A::@constructor::new
               typeName: A
               typeNameOffset: 12
-            #F3 named (nameOffset:21) (firstTokenOffset:19) (offset:21)
+            #F3 isOriginDeclaration named (nameOffset:21) (firstTokenOffset:19) (offset:21)
               element: <testLibrary>::@class::A::@constructor::named
               typeName: A
               typeNameOffset: 19
@@ -3034,10 +3034,10 @@ library
       reference: <testLibrary>::@class::A
       firstFragment: #F1
       constructors
-        new
+        isOriginDeclaration new
           reference: <testLibrary>::@class::A::@constructor::new
           firstFragment: #F2
-        named
+        isOriginDeclaration named
           reference: <testLibrary>::@class::A::@constructor::named
           firstFragment: #F3
   topLevelVariables
@@ -3296,7 +3296,7 @@ library
         #F1 class A (nameOffset:15) (firstTokenOffset:0) (offset:15)
           element: <testLibrary>::@class::A
           constructors
-            #F2 synthetic new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:15)
+            #F2 synthetic isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:15)
               element: <testLibrary>::@class::A::@constructor::new
               typeName: A
           methods
@@ -3305,7 +3305,7 @@ library
         #F4 class B (nameOffset:48) (firstTokenOffset:33) (offset:48)
           element: <testLibrary>::@class::B
           constructors
-            #F5 synthetic new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:48)
+            #F5 synthetic isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:48)
               element: <testLibrary>::@class::B::@constructor::new
               typeName: B
           methods
@@ -3314,7 +3314,7 @@ library
         #F7 class C (nameOffset:84) (firstTokenOffset:69) (offset:84)
           element: <testLibrary>::@class::C
           constructors
-            #F8 synthetic new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:84)
+            #F8 synthetic isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:84)
               element: <testLibrary>::@class::C::@constructor::new
               typeName: C
         #F9 class D (nameOffset:121) (firstTokenOffset:106) (offset:121)
@@ -3323,7 +3323,7 @@ library
             #F10 f (nameOffset:141) (firstTokenOffset:141) (offset:141)
               element: <testLibrary>::@class::D::@field::f
           constructors
-            #F11 synthetic new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:121)
+            #F11 synthetic isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:121)
               element: <testLibrary>::@class::D::@constructor::new
               typeName: D
           getters
@@ -3340,7 +3340,7 @@ library
       reference: <testLibrary>::@class::A
       firstFragment: #F1
       constructors
-        synthetic new
+        synthetic isOriginImplicitDefault new
           reference: <testLibrary>::@class::A::@constructor::new
           firstFragment: #F2
       methods
@@ -3352,7 +3352,7 @@ library
       reference: <testLibrary>::@class::B
       firstFragment: #F4
       constructors
-        synthetic new
+        synthetic isOriginImplicitDefault new
           reference: <testLibrary>::@class::B::@constructor::new
           firstFragment: #F5
       methods
@@ -3367,7 +3367,7 @@ library
         A
         B
       constructors
-        synthetic new
+        synthetic isOriginImplicitDefault new
           reference: <testLibrary>::@class::C::@constructor::new
           firstFragment: #F8
     abstract hasNonFinalField class D
@@ -3382,7 +3382,7 @@ library
           getter: <testLibrary>::@class::D::@getter::f
           setter: <testLibrary>::@class::D::@setter::f
       constructors
-        synthetic new
+        synthetic isOriginImplicitDefault new
           reference: <testLibrary>::@class::D::@constructor::new
           firstFragment: #F11
           superConstructor: <testLibrary>::@class::C::@constructor::new
@@ -3425,7 +3425,7 @@ library
         #F1 class A (nameOffset:6) (firstTokenOffset:0) (offset:6)
           element: <testLibrary>::@class::A
           constructors
-            #F2 synthetic new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
+            #F2 synthetic isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
               element: <testLibrary>::@class::A::@constructor::new
               typeName: A
           methods
@@ -3437,7 +3437,7 @@ library
             #F5 a (nameOffset:50) (firstTokenOffset:50) (offset:50)
               element: <testLibrary>::@class::B::@field::a
           constructors
-            #F6 synthetic new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:42)
+            #F6 synthetic isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:42)
               element: <testLibrary>::@class::B::@constructor::new
               typeName: B
           getters
@@ -3466,7 +3466,7 @@ library
       reference: <testLibrary>::@class::A
       firstFragment: #F1
       constructors
-        synthetic new
+        synthetic isOriginImplicitDefault new
           reference: <testLibrary>::@class::A::@constructor::new
           firstFragment: #F2
       methods
@@ -3485,7 +3485,7 @@ library
           getter: <testLibrary>::@class::B::@getter::a
           setter: <testLibrary>::@class::B::@setter::a
       constructors
-        synthetic new
+        synthetic isOriginImplicitDefault new
           reference: <testLibrary>::@class::B::@constructor::new
           firstFragment: #F6
       getters
@@ -3837,7 +3837,7 @@ library
             #F3 hasInitializer y (nameOffset:51) (firstTokenOffset:51) (offset:51)
               element: <testLibrary>::@class::A::@field::y
           constructors
-            #F4 synthetic new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
+            #F4 synthetic isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
               element: <testLibrary>::@class::A::@constructor::new
               typeName: A
           getters
@@ -3865,7 +3865,7 @@ library
           type: dynamic
           getter: <testLibrary>::@class::A::@getter::y
       constructors
-        synthetic new
+        synthetic isOriginImplicitDefault new
           reference: <testLibrary>::@class::A::@constructor::new
           firstFragment: #F4
       getters
@@ -3907,7 +3907,7 @@ library
             #F4 hasInitializer c (nameOffset:66) (firstTokenOffset:66) (offset:66)
               element: <testLibrary>::@class::A::@field::c
           constructors
-            #F5 synthetic new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
+            #F5 synthetic isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
               element: <testLibrary>::@class::A::@constructor::new
               typeName: A
           getters
@@ -3942,7 +3942,7 @@ library
           type: dynamic
           getter: <testLibrary>::@class::A::@getter::c
       constructors
-        synthetic new
+        synthetic isOriginImplicitDefault new
           reference: <testLibrary>::@class::A::@constructor::new
           firstFragment: #F5
       getters
@@ -3992,7 +3992,7 @@ library
             #F3 value (nameOffset:17) (firstTokenOffset:17) (offset:17)
               element: <testLibrary>::@class::A::@field::value
           constructors
-            #F4 new (nameOffset:<null>) (firstTokenOffset:27) (offset:27)
+            #F4 isOriginDeclaration new (nameOffset:<null>) (firstTokenOffset:27) (offset:27)
               element: <testLibrary>::@class::A::@constructor::new
               typeName: A
               typeNameOffset: 27
@@ -4014,7 +4014,7 @@ library
             #F10 hasInitializer a (nameOffset:61) (firstTokenOffset:61) (offset:61)
               element: <testLibrary>::@class::B::@field::a
           constructors
-            #F11 synthetic new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:51)
+            #F11 synthetic isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:51)
               element: <testLibrary>::@class::B::@constructor::new
               typeName: B
           getters
@@ -4042,7 +4042,7 @@ library
           getter: <testLibrary>::@class::A::@getter::value
           setter: <testLibrary>::@class::A::@setter::value
       constructors
-        new
+        isOriginDeclaration new
           reference: <testLibrary>::@class::A::@constructor::new
           firstFragment: #F4
           formalParameters
@@ -4079,7 +4079,7 @@ library
           getter: <testLibrary>::@class::B::@getter::a
           setter: <testLibrary>::@class::B::@setter::a
       constructors
-        synthetic new
+        synthetic isOriginImplicitDefault new
           reference: <testLibrary>::@class::B::@constructor::new
           firstFragment: #F11
       getters
@@ -4133,7 +4133,7 @@ library
             #F3 value (nameOffset:17) (firstTokenOffset:17) (offset:17)
               element: <testLibrary>::@class::A::@field::value
           constructors
-            #F4 new (nameOffset:<null>) (firstTokenOffset:27) (offset:27)
+            #F4 isOriginDeclaration new (nameOffset:<null>) (firstTokenOffset:27) (offset:27)
               element: <testLibrary>::@class::A::@constructor::new
               typeName: A
               typeNameOffset: 27
@@ -4155,7 +4155,7 @@ library
             #F10 T (nameOffset:53) (firstTokenOffset:53) (offset:53)
               element: #E1 T
           constructors
-            #F11 synthetic new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:51)
+            #F11 synthetic isOriginMixinApplication new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:51)
               element: <testLibrary>::@class::B::@constructor::new
               typeName: B
               formalParameters
@@ -4167,7 +4167,7 @@ library
             #F14 hasInitializer a (nameOffset:88) (firstTokenOffset:88) (offset:88)
               element: <testLibrary>::@class::C::@field::a
           constructors
-            #F15 synthetic new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:78)
+            #F15 synthetic isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:78)
               element: <testLibrary>::@class::C::@constructor::new
               typeName: C
           getters
@@ -4198,7 +4198,7 @@ library
           getter: <testLibrary>::@class::A::@getter::value
           setter: <testLibrary>::@class::A::@setter::value
       constructors
-        new
+        isOriginDeclaration new
           reference: <testLibrary>::@class::A::@constructor::new
           firstFragment: #F4
           formalParameters
@@ -4234,7 +4234,7 @@ library
       mixins
         M
       constructors
-        synthetic new
+        synthetic isOriginMixinApplication new
           reference: <testLibrary>::@class::B::@constructor::new
           firstFragment: #F11
           formalParameters
@@ -4267,7 +4267,7 @@ library
           getter: <testLibrary>::@class::C::@getter::a
           setter: <testLibrary>::@class::C::@setter::a
       constructors
-        synthetic new
+        synthetic isOriginImplicitDefault new
           reference: <testLibrary>::@class::C::@constructor::new
           firstFragment: #F15
       getters
@@ -4318,7 +4318,7 @@ library
             #F3 hasInitializer f (nameOffset:19) (firstTokenOffset:19) (offset:19)
               element: <testLibrary>::@class::A::@field::f
           constructors
-            #F4 new (nameOffset:<null>) (firstTokenOffset:28) (offset:28)
+            #F4 isOriginDeclaration new (nameOffset:<null>) (firstTokenOffset:28) (offset:28)
               element: <testLibrary>::@class::A::@constructor::new
               typeName: A
               typeNameOffset: 28
@@ -4349,7 +4349,7 @@ library
           getter: <testLibrary>::@class::A::@getter::f
           setter: <testLibrary>::@class::A::@setter::f
       constructors
-        new
+        isOriginDeclaration new
           reference: <testLibrary>::@class::A::@constructor::new
           firstFragment: #F4
           formalParameters
@@ -4394,7 +4394,7 @@ library
         #F1 class A (nameOffset:6) (firstTokenOffset:0) (offset:6)
           element: <testLibrary>::@class::A
           constructors
-            #F2 new (nameOffset:<null>) (firstTokenOffset:12) (offset:12)
+            #F2 isOriginDeclaration new (nameOffset:<null>) (firstTokenOffset:12) (offset:12)
               element: <testLibrary>::@class::A::@constructor::new
               typeName: A
               typeNameOffset: 12
@@ -4416,7 +4416,7 @@ library
       reference: <testLibrary>::@class::A
       firstFragment: #F1
       constructors
-        new
+        isOriginDeclaration new
           reference: <testLibrary>::@class::A::@constructor::new
           firstFragment: #F2
           formalParameters
@@ -4967,13 +4967,13 @@ library
         #F1 class A (nameOffset:6) (firstTokenOffset:0) (offset:6)
           element: <testLibrary>::@class::A
           constructors
-            #F2 synthetic new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
+            #F2 synthetic isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
               element: <testLibrary>::@class::A::@constructor::new
               typeName: A
         #F3 class B (nameOffset:18) (firstTokenOffset:12) (offset:18)
           element: <testLibrary>::@class::B
           constructors
-            #F4 synthetic new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:18)
+            #F4 synthetic isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:18)
               element: <testLibrary>::@class::B::@constructor::new
               typeName: B
         #F5 class C (nameOffset:40) (firstTokenOffset:34) (offset:40)
@@ -4985,7 +4985,7 @@ library
             #F7 f (nameOffset:67) (firstTokenOffset:67) (offset:67)
               element: <testLibrary>::@class::C::@field::f
           constructors
-            #F8 const new (nameOffset:<null>) (firstTokenOffset:72) (offset:78)
+            #F8 const isOriginDeclaration new (nameOffset:<null>) (firstTokenOffset:72) (offset:78)
               element: <testLibrary>::@class::C::@constructor::new
               typeName: C
               typeNameOffset: 78
@@ -5010,7 +5010,7 @@ library
       reference: <testLibrary>::@class::A
       firstFragment: #F1
       constructors
-        synthetic new
+        synthetic isOriginImplicitDefault new
           reference: <testLibrary>::@class::A::@constructor::new
           firstFragment: #F2
     class B
@@ -5018,7 +5018,7 @@ library
       firstFragment: #F3
       supertype: A
       constructors
-        synthetic new
+        synthetic isOriginImplicitDefault new
           reference: <testLibrary>::@class::B::@constructor::new
           firstFragment: #F4
           superConstructor: <testLibrary>::@class::A::@constructor::new
@@ -5037,7 +5037,7 @@ library
           type: T
           getter: <testLibrary>::@class::C::@getter::f
       constructors
-        const new
+        const isOriginDeclaration new
           reference: <testLibrary>::@class::C::@constructor::new
           firstFragment: #F8
           formalParameters
@@ -5176,7 +5176,7 @@ library
             #F2 T (nameOffset:8) (firstTokenOffset:8) (offset:8)
               element: #E0 T
           constructors
-            #F3 synthetic new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
+            #F3 synthetic isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
               element: <testLibrary>::@class::C::@constructor::new
               typeName: C
       typeAliases
@@ -5218,7 +5218,7 @@ library
           firstFragment: #F2
           bound: dynamic
       constructors
-        synthetic new
+        synthetic isOriginImplicitDefault new
           reference: <testLibrary>::@class::C::@constructor::new
           firstFragment: #F3
   typeAliases
@@ -5378,7 +5378,7 @@ library
             #F2 T (nameOffset:8) (firstTokenOffset:8) (offset:8)
               element: #E0 T
           constructors
-            #F3 synthetic new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
+            #F3 synthetic isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
               element: <testLibrary>::@class::C::@constructor::new
               typeName: C
           methods
@@ -5395,7 +5395,7 @@ library
         #E0 T
           firstFragment: #F2
       constructors
-        synthetic new
+        synthetic isOriginImplicitDefault new
           reference: <testLibrary>::@class::C::@constructor::new
           firstFragment: #F3
       methods
@@ -5526,7 +5526,7 @@ library
             #F3 t (nameOffset:17) (firstTokenOffset:17) (offset:17)
               element: <testLibrary>::@class::C::@field::t
           constructors
-            #F4 synthetic new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
+            #F4 synthetic isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
               element: <testLibrary>::@class::C::@constructor::new
               typeName: C
           getters
@@ -5554,7 +5554,7 @@ library
           getter: <testLibrary>::@class::C::@getter::t
           setter: <testLibrary>::@class::C::@setter::t
       constructors
-        synthetic new
+        synthetic isOriginImplicitDefault new
           reference: <testLibrary>::@class::C::@constructor::new
           firstFragment: #F4
       getters
@@ -5600,7 +5600,7 @@ library
             #F3 t (nameOffset:18) (firstTokenOffset:18) (offset:18)
               element: <testLibrary>::@class::C::@field::t
           constructors
-            #F4 synthetic new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
+            #F4 synthetic isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
               element: <testLibrary>::@class::C::@constructor::new
               typeName: C
           getters
@@ -5628,7 +5628,7 @@ library
           getter: <testLibrary>::@class::C::@getter::t
           setter: <testLibrary>::@class::C::@setter::t
       constructors
-        synthetic new
+        synthetic isOriginImplicitDefault new
           reference: <testLibrary>::@class::C::@constructor::new
           firstFragment: #F4
       getters
@@ -5670,7 +5670,7 @@ library
         #F1 class C (nameOffset:6) (firstTokenOffset:0) (offset:6)
           element: <testLibrary>::@class::C
           constructors
-            #F2 synthetic new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
+            #F2 synthetic isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
               element: <testLibrary>::@class::C::@constructor::new
               typeName: C
       enums
@@ -5704,7 +5704,7 @@ library
                   rightBracket: ] @0
                   staticType: List<E>
           constructors
-            #F6 synthetic const new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
+            #F6 synthetic const isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
               element: <testLibrary>::@enum::E::@constructor::new
               typeName: E
           getters
@@ -5750,7 +5750,7 @@ library
       reference: <testLibrary>::@class::C
       firstFragment: #F1
       constructors
-        synthetic new
+        synthetic isOriginImplicitDefault new
           reference: <testLibrary>::@class::C::@constructor::new
           firstFragment: #F2
   enums
@@ -5776,7 +5776,7 @@ library
             expression: expression_1
           getter: <testLibrary>::@enum::E::@getter::values
       constructors
-        synthetic const new
+        synthetic const isOriginImplicitDefault new
           reference: <testLibrary>::@enum::E::@constructor::new
           firstFragment: #F6
       getters
@@ -5923,7 +5923,7 @@ library
         #F14 class C (nameOffset:17) (firstTokenOffset:11) (offset:17)
           element: <testLibrary>::@class::C
           constructors
-            #F15 synthetic new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:17)
+            #F15 synthetic isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:17)
               element: <testLibrary>::@class::C::@constructor::new
               typeName: C
       enums
@@ -5957,7 +5957,7 @@ library
                   rightBracket: ] @0
                   staticType: List<E>
           constructors
-            #F19 synthetic const new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:27)
+            #F19 synthetic const isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:27)
               element: <testLibrary>::@enum::E::@constructor::new
               typeName: E
           getters
@@ -5973,7 +5973,7 @@ library
       reference: <testLibrary>::@class::C
       firstFragment: #F14
       constructors
-        synthetic new
+        synthetic isOriginImplicitDefault new
           reference: <testLibrary>::@class::C::@constructor::new
           firstFragment: #F15
   enums
@@ -5999,7 +5999,7 @@ library
             expression: expression_1
           getter: <testLibrary>::@enum::E::@getter::values
       constructors
-        synthetic const new
+        synthetic const isOriginImplicitDefault new
           reference: <testLibrary>::@enum::E::@constructor::new
           firstFragment: #F19
       getters
@@ -6109,7 +6109,7 @@ library
         #F2 class C (nameOffset:32) (firstTokenOffset:26) (offset:32)
           element: <testLibrary>::@class::C
           constructors
-            #F3 synthetic new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:32)
+            #F3 synthetic isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:32)
               element: <testLibrary>::@class::C::@constructor::new
               typeName: C
       enums
@@ -6143,7 +6143,7 @@ library
                   rightBracket: ] @0
                   staticType: List<E>
           constructors
-            #F7 synthetic const new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:42)
+            #F7 synthetic const isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:42)
               element: <testLibrary>::@enum::E::@constructor::new
               typeName: E
           getters
@@ -6193,7 +6193,7 @@ library
       reference: <testLibrary>::@class::C
       firstFragment: #F2
       constructors
-        synthetic new
+        synthetic isOriginImplicitDefault new
           reference: <testLibrary>::@class::C::@constructor::new
           firstFragment: #F3
   enums
@@ -6219,7 +6219,7 @@ library
             expression: expression_1
           getter: <testLibrary>::@enum::E::@getter::values
       constructors
-        synthetic const new
+        synthetic const isOriginImplicitDefault new
           reference: <testLibrary>::@enum::E::@constructor::new
           firstFragment: #F7
       getters
@@ -6342,7 +6342,7 @@ library
         #F3 class C (nameOffset:17) (firstTokenOffset:11) (offset:17)
           element: <testLibrary>::@class::C
           constructors
-            #F4 synthetic new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:17)
+            #F4 synthetic isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:17)
               element: <testLibrary>::@class::C::@constructor::new
               typeName: C
       enums
@@ -6376,7 +6376,7 @@ library
                   rightBracket: ] @0
                   staticType: List<E>
           constructors
-            #F8 synthetic const new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:27)
+            #F8 synthetic const isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:27)
               element: <testLibrary>::@enum::E::@constructor::new
               typeName: E
           getters
@@ -6426,7 +6426,7 @@ library
       reference: <testLibrary>::@class::C
       firstFragment: #F3
       constructors
-        synthetic new
+        synthetic isOriginImplicitDefault new
           reference: <testLibrary>::@class::C::@constructor::new
           firstFragment: #F4
   enums
@@ -6452,7 +6452,7 @@ library
             expression: expression_1
           getter: <testLibrary>::@enum::E::@getter::values
       constructors
-        synthetic const new
+        synthetic const isOriginImplicitDefault new
           reference: <testLibrary>::@enum::E::@constructor::new
           firstFragment: #F8
       getters
@@ -6567,7 +6567,7 @@ library
         #F2 class C (nameOffset:17) (firstTokenOffset:11) (offset:17)
           element: <testLibrary>::@class::C
           constructors
-            #F3 synthetic new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:17)
+            #F3 synthetic isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:17)
               element: <testLibrary>::@class::C::@constructor::new
               typeName: C
       enums
@@ -6601,7 +6601,7 @@ library
                   rightBracket: ] @0
                   staticType: List<E>
           constructors
-            #F7 synthetic const new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:27)
+            #F7 synthetic const isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:27)
               element: <testLibrary>::@enum::E::@constructor::new
               typeName: E
           getters
@@ -6647,7 +6647,7 @@ library
       reference: <testLibrary>::@class::C
       firstFragment: #F2
       constructors
-        synthetic new
+        synthetic isOriginImplicitDefault new
           reference: <testLibrary>::@class::C::@constructor::new
           firstFragment: #F3
   enums
@@ -6673,7 +6673,7 @@ library
             expression: expression_1
           getter: <testLibrary>::@enum::E::@getter::values
       constructors
-        synthetic const new
+        synthetic const isOriginImplicitDefault new
           reference: <testLibrary>::@enum::E::@constructor::new
           firstFragment: #F7
       getters
@@ -6773,7 +6773,7 @@ library
         #F1 class C (nameOffset:6) (firstTokenOffset:0) (offset:6)
           element: <testLibrary>::@class::C
           constructors
-            #F2 synthetic new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
+            #F2 synthetic isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
               element: <testLibrary>::@class::C::@constructor::new
               typeName: C
       topLevelVariables
@@ -6793,7 +6793,7 @@ library
       reference: <testLibrary>::@class::C
       firstFragment: #F1
       constructors
-        synthetic new
+        synthetic isOriginImplicitDefault new
           reference: <testLibrary>::@class::C::@constructor::new
           firstFragment: #F2
   topLevelVariables
@@ -6839,7 +6839,7 @@ library
             #F3 U (nameOffset:11) (firstTokenOffset:11) (offset:11)
               element: #E1 U
           constructors
-            #F4 synthetic new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
+            #F4 synthetic isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
               element: <testLibrary>::@class::C::@constructor::new
               typeName: C
       topLevelVariables
@@ -6864,7 +6864,7 @@ library
         #E1 U
           firstFragment: #F3
       constructors
-        synthetic new
+        synthetic isOriginImplicitDefault new
           reference: <testLibrary>::@class::C::@constructor::new
           firstFragment: #F4
   topLevelVariables
@@ -6910,7 +6910,7 @@ library
             #F3 U (nameOffset:11) (firstTokenOffset:11) (offset:11)
               element: #E1 U
           constructors
-            #F4 synthetic new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
+            #F4 synthetic isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
               element: <testLibrary>::@class::C::@constructor::new
               typeName: C
       topLevelVariables
@@ -6935,7 +6935,7 @@ library
         #E1 U
           firstFragment: #F3
       constructors
-        synthetic new
+        synthetic isOriginImplicitDefault new
           reference: <testLibrary>::@class::C::@constructor::new
           firstFragment: #F4
   topLevelVariables
@@ -7003,7 +7003,7 @@ library
                   rightBracket: ] @0
                   staticType: List<E>
           constructors
-            #F4 synthetic const new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
+            #F4 synthetic const isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::E::@constructor::new
               typeName: E
           getters
@@ -7046,7 +7046,7 @@ library
             expression: expression_1
           getter: <testLibrary>::@enum::E::@getter::values
       constructors
-        synthetic const new
+        synthetic const isOriginImplicitDefault new
           reference: <testLibrary>::@enum::E::@constructor::new
           firstFragment: #F4
       getters

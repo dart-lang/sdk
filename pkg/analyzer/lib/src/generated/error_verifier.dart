@@ -3483,7 +3483,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     if (fragment is InterfaceFragmentImpl) {
       var element = fragment.element;
       for (var constructor in element.constructors) {
-        if (constructor.isGenerative && !constructor.isSynthetic) {
+        if (constructor.isGenerative && constructor.isOriginDeclaration) {
           return;
         }
       }
@@ -4176,7 +4176,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     InterfaceElement mixinElement,
   ) {
     for (var constructor in mixinElement.constructors) {
-      if (!constructor.isSynthetic && !constructor.isFactory) {
+      if (constructor.isOriginDeclaration && !constructor.isFactory) {
         diagnosticReporter.atNode(
           mixinName,
           diag.mixinClassDeclaresConstructor,
@@ -4532,7 +4532,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   void _checkForNoDefaultSuperConstructorImplicit(ClassFragmentImpl fragment) {
     // do nothing if there is explicit constructor
     var constructors = fragment.element.constructors;
-    if (!constructors[0].isSynthetic) {
+    if (constructors[0].isOriginDeclaration) {
       return;
     }
     // prepare super

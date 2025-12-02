@@ -107,6 +107,30 @@ mixin _ConstructorFragmentImplMixin {
     setModifier(Modifier.FACTORY, value);
   }
 
+  bool get isOriginDeclaration {
+    return hasModifier(Modifier.ORIGIN_DECLARATION);
+  }
+
+  set isOriginDeclaration(bool value) {
+    setModifier(Modifier.ORIGIN_DECLARATION, value);
+  }
+
+  bool get isOriginImplicitDefault {
+    return hasModifier(Modifier.ORIGIN_IMPLICIT_DEFAULT);
+  }
+
+  set isOriginImplicitDefault(bool value) {
+    setModifier(Modifier.ORIGIN_IMPLICIT_DEFAULT, value);
+  }
+
+  bool get isOriginMixinApplication {
+    return hasModifier(Modifier.ORIGIN_MIXIN_APPLICATION);
+  }
+
+  set isOriginMixinApplication(bool value) {
+    setModifier(Modifier.ORIGIN_MIXIN_APPLICATION, value);
+  }
+
   bool get isPrimary {
     return hasModifier(Modifier.PRIMARY);
   }

@@ -309,8 +309,8 @@ class A {
     await findElementReferences(search: 'foo =>', false);
     expect(searchElement!.kind, ElementKind.FIELD);
     expect(results, hasLength(2));
-    assertHasResult(SearchResultKind.READ, 'foo: 0');
-    assertHasResult(SearchResultKind.READ, ': var foo');
+    assertHasResult(SearchResultKind.REFERENCE, 'foo: 0');
+    assertHasResult(SearchResultKind.REFERENCE, ': var foo');
   }
 
   Future<void> test_class_method() async {
@@ -1270,7 +1270,7 @@ void f(String? maybeString) {
   Future<void> test_pattern_object_field() async {
     await assertReferences(
       kind: ElementKind.FIELD,
-      resultKinds: {0: SearchResultKind.READ},
+      resultKinds: {0: SearchResultKind.REFERENCE},
       '''
 double calculateArea(Shape shape) =>
   switch (shape) {
@@ -1288,7 +1288,7 @@ class Square extends Shape {
   Future<void> test_pattern_object_fieldName_explicit() async {
     await assertReferences(
       kind: ElementKind.FIELD,
-      resultKinds: {0: SearchResultKind.READ},
+      resultKinds: {0: SearchResultKind.REFERENCE},
       '''
 double calculateArea(Object a) =>
   switch (a) {
@@ -1305,7 +1305,7 @@ class Square {
   Future<void> test_pattern_object_fieldName_implicit() async {
     await assertReferences(
       kind: ElementKind.FIELD,
-      resultKinds: {0: SearchResultKind.READ},
+      resultKinds: {0: SearchResultKind.REFERENCE},
       '''
 double calculateArea(Object a) =>
   switch (a) {

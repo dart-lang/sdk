@@ -55,6 +55,9 @@ enum MatchKind {
   /// A reference to an element in an implements clause.
   REFERENCE_IN_IMPLEMENTS_CLAUSE(isReference: true),
 
+  /// A reference to an element in a pattern field.
+  REFERENCE_IN_PATTERN_FIELD(isReference: true),
+
   /// A reference to an element in a with clause.
   REFERENCE_IN_WITH_CLAUSE(isReference: true),
 

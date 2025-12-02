@@ -799,11 +799,15 @@ class Search {
       await _addResults(results, field, searchedFiles, const {
         IndexRelationKind.IS_WRITTEN_BY: SearchResultKind.WRITE,
         IndexRelationKind.IS_REFERENCED_BY: SearchResultKind.REFERENCE,
+        IndexRelationKind.IS_REFERENCED_BY_PATTERN_FIELD:
+            SearchResultKind.REFERENCE_IN_PATTERN_FIELD,
       });
     }
     if (getter != null) {
       await _addResults(results, getter, searchedFiles, const {
         IndexRelationKind.IS_REFERENCED_BY: SearchResultKind.READ,
+        IndexRelationKind.IS_REFERENCED_BY_PATTERN_FIELD:
+            SearchResultKind.REFERENCE_IN_PATTERN_FIELD,
         IndexRelationKind.IS_INVOKED_BY: SearchResultKind.INVOCATION,
       });
     }
@@ -821,6 +825,8 @@ class Search {
   ) async {
     List<SearchResult> results = <SearchResult>[];
     await _addResults(results, element.baseElement, searchedFiles, const {
+      IndexRelationKind.IS_REFERENCED_BY_PATTERN_FIELD:
+          SearchResultKind.REFERENCE,
       IndexRelationKind.IS_REFERENCED_BY: SearchResultKind.REFERENCE,
       IndexRelationKind.IS_INVOKED_BY: SearchResultKind.INVOCATION,
     });
@@ -834,6 +840,8 @@ class Search {
     List<SearchResult> results = <SearchResult>[];
     await _addResults(results, getter, searchedFiles, const {
       IndexRelationKind.IS_REFERENCED_BY: SearchResultKind.REFERENCE,
+      IndexRelationKind.IS_REFERENCED_BY_PATTERN_FIELD:
+          SearchResultKind.REFERENCE_IN_PATTERN_FIELD,
       IndexRelationKind.IS_INVOKED_BY: SearchResultKind.INVOCATION,
     });
     return results;
@@ -1124,6 +1132,7 @@ enum SearchResultKind {
   DOT_SHORTHANDS_CONSTRUCTOR_INVOCATION,
   DOT_SHORTHANDS_CONSTRUCTOR_TEAR_OFF,
   REFERENCE,
+  REFERENCE_IN_PATTERN_FIELD,
   REFERENCE_BY_CONSTRUCTOR_TEAR_OFF,
   REFERENCE_IN_EXTENDS_CLAUSE,
   REFERENCE_IN_WITH_CLAUSE,
@@ -1308,7 +1317,7 @@ class _FindLibraryDeclarations {
   void _addConstructors(List<ConstructorElement> elements) {
     for (var i = 0; i < elements.length; i++) {
       var element = elements[i];
-      if (!element.isSynthetic) {
+      if (element.isOriginDeclaration) {
         _addDeclaration(element, element.name!);
       }
     }

@@ -187,6 +187,7 @@ class _LibraryBuilder {
     required _Scope classScope,
   }) {
     var fragment = ConstructorFragmentImpl(name: spec.name);
+    fragment.isOriginDeclaration = true;
     fragment.isConst = spec.isConst;
     fragment.isFactory = spec.isFactory;
 

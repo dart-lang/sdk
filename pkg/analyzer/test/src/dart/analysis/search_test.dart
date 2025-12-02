@@ -1005,8 +1005,8 @@ class A {
     var element = findElement2.getter('foo');
     await assertElementReferencesText(element, r'''
 <testLibraryFragment> f@5
-  35 2:16 |foo| REFERENCE qualified
-  62 3:16 || REFERENCE qualified
+  35 2:16 |foo| REFERENCE_IN_PATTERN_FIELD qualified
+  62 3:16 || REFERENCE_IN_PATTERN_FIELD qualified
 ''');
   }
 

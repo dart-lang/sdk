@@ -164,7 +164,7 @@ class CheckNameResponse {
         }
         replaceMatches.addMatch(match.path, replaceInfo);
       }
-      if (element.isSynthetic) {
+      if (element.isOriginImplicitDefault) {
         var result = await _replaceSyntheticConstructor();
         if (result != null) {
           replaceMatches.addMatch(result.path, result.matches.toList());

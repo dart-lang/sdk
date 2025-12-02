@@ -53,37 +53,37 @@ library
         #F1 class Raw (nameOffset:6) (firstTokenOffset:0) (offset:6)
           element: <testLibrary>::@class::Raw
           constructors
-            #F2 synthetic new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
+            #F2 synthetic isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
               element: <testLibrary>::@class::Raw::@constructor::new
               typeName: Raw
         #F3 class HasDocComment (nameOffset:50) (firstTokenOffset:14) (offset:50)
           element: <testLibrary>::@class::HasDocComment
           constructors
-            #F4 synthetic new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:50)
+            #F4 synthetic isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:50)
               element: <testLibrary>::@class::HasDocComment::@constructor::new
               typeName: HasDocComment
         #F5 class HasAnnotation (nameOffset:84) (firstTokenOffset:68) (offset:84)
           element: <testLibrary>::@class::HasAnnotation
           constructors
-            #F6 synthetic new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:84)
+            #F6 synthetic isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:84)
               element: <testLibrary>::@class::HasAnnotation::@constructor::new
               typeName: HasAnnotation
         #F7 class AnnotationThenComment (nameOffset:148) (firstTokenOffset:102) (offset:148)
           element: <testLibrary>::@class::AnnotationThenComment
           constructors
-            #F8 synthetic new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:148)
+            #F8 synthetic isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:148)
               element: <testLibrary>::@class::AnnotationThenComment::@constructor::new
               typeName: AnnotationThenComment
         #F9 class CommentThenAnnotation (nameOffset:220) (firstTokenOffset:174) (offset:220)
           element: <testLibrary>::@class::CommentThenAnnotation
           constructors
-            #F10 synthetic new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:220)
+            #F10 synthetic isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:220)
               element: <testLibrary>::@class::CommentThenAnnotation::@constructor::new
               typeName: CommentThenAnnotation
         #F11 class CommentAroundAnnotation (nameOffset:292) (firstTokenOffset:261) (offset:292)
           element: <testLibrary>::@class::CommentAroundAnnotation
           constructors
-            #F12 synthetic new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:292)
+            #F12 synthetic isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:292)
               element: <testLibrary>::@class::CommentAroundAnnotation::@constructor::new
               typeName: CommentAroundAnnotation
   classes
@@ -91,7 +91,7 @@ library
       reference: <testLibrary>::@class::Raw
       firstFragment: #F1
       constructors
-        synthetic new
+        synthetic isOriginImplicitDefault new
           reference: <testLibrary>::@class::Raw::@constructor::new
           firstFragment: #F2
     class HasDocComment
@@ -99,14 +99,14 @@ library
       firstFragment: #F3
       documentationComment: /// Comment 1.\n/// Comment 2.
       constructors
-        synthetic new
+        synthetic isOriginImplicitDefault new
           reference: <testLibrary>::@class::HasDocComment::@constructor::new
           firstFragment: #F4
     class HasAnnotation
       reference: <testLibrary>::@class::HasAnnotation
       firstFragment: #F5
       constructors
-        synthetic new
+        synthetic isOriginImplicitDefault new
           reference: <testLibrary>::@class::HasAnnotation::@constructor::new
           firstFragment: #F6
     class AnnotationThenComment
@@ -114,7 +114,7 @@ library
       firstFragment: #F7
       documentationComment: /// Comment 1.\n/// Comment 2.
       constructors
-        synthetic new
+        synthetic isOriginImplicitDefault new
           reference: <testLibrary>::@class::AnnotationThenComment::@constructor::new
           firstFragment: #F8
     class CommentThenAnnotation
@@ -122,7 +122,7 @@ library
       firstFragment: #F9
       documentationComment: /// Comment 1.\n/// Comment 2.
       constructors
-        synthetic new
+        synthetic isOriginImplicitDefault new
           reference: <testLibrary>::@class::CommentThenAnnotation::@constructor::new
           firstFragment: #F10
     class CommentAroundAnnotation
@@ -130,7 +130,7 @@ library
       firstFragment: #F11
       documentationComment: /// Comment 2.
       constructors
-        synthetic new
+        synthetic isOriginImplicitDefault new
           reference: <testLibrary>::@class::CommentAroundAnnotation::@constructor::new
           firstFragment: #F12
 ''');
@@ -177,49 +177,49 @@ library
         #F1 class A (nameOffset:6) (firstTokenOffset:0) (offset:6)
           element: <testLibrary>::@class::A
           constructors
-            #F2 synthetic new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
+            #F2 synthetic isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
               element: <testLibrary>::@class::A::@constructor::new
               typeName: A
         #F3 class B (nameOffset:18) (firstTokenOffset:12) (offset:18)
           element: <testLibrary>::@class::B
           constructors
-            #F4 synthetic new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:18)
+            #F4 synthetic isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:18)
               element: <testLibrary>::@class::B::@constructor::new
               typeName: B
         #F5 class Raw (nameOffset:30) (firstTokenOffset:24) (offset:30)
           element: <testLibrary>::@class::Raw
           constructors
-            #F6 synthetic const new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:30)
+            #F6 synthetic const isOriginMixinApplication new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:30)
               element: <testLibrary>::@class::Raw::@constructor::new
               typeName: Raw
         #F7 class HasDocComment (nameOffset:91) (firstTokenOffset:55) (offset:91)
           element: <testLibrary>::@class::HasDocComment
           constructors
-            #F8 synthetic const new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:91)
+            #F8 synthetic const isOriginMixinApplication new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:91)
               element: <testLibrary>::@class::HasDocComment::@constructor::new
               typeName: HasDocComment
         #F9 class HasAnnotation (nameOffset:142) (firstTokenOffset:126) (offset:142)
           element: <testLibrary>::@class::HasAnnotation
           constructors
-            #F10 synthetic const new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:142)
+            #F10 synthetic const isOriginMixinApplication new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:142)
               element: <testLibrary>::@class::HasAnnotation::@constructor::new
               typeName: HasAnnotation
         #F11 class AnnotationThenComment (nameOffset:223) (firstTokenOffset:177) (offset:223)
           element: <testLibrary>::@class::AnnotationThenComment
           constructors
-            #F12 synthetic const new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:223)
+            #F12 synthetic const isOriginMixinApplication new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:223)
               element: <testLibrary>::@class::AnnotationThenComment::@constructor::new
               typeName: AnnotationThenComment
         #F13 class CommentThenAnnotation (nameOffset:312) (firstTokenOffset:266) (offset:312)
           element: <testLibrary>::@class::CommentThenAnnotation
           constructors
-            #F14 synthetic const new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:312)
+            #F14 synthetic const isOriginMixinApplication new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:312)
               element: <testLibrary>::@class::CommentThenAnnotation::@constructor::new
               typeName: CommentThenAnnotation
         #F15 class CommentAroundAnnotation (nameOffset:401) (firstTokenOffset:370) (offset:401)
           element: <testLibrary>::@class::CommentAroundAnnotation
           constructors
-            #F16 synthetic const new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:401)
+            #F16 synthetic const isOriginMixinApplication new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:401)
               element: <testLibrary>::@class::CommentAroundAnnotation::@constructor::new
               typeName: CommentAroundAnnotation
   classes
@@ -227,14 +227,14 @@ library
       reference: <testLibrary>::@class::A
       firstFragment: #F1
       constructors
-        synthetic new
+        synthetic isOriginImplicitDefault new
           reference: <testLibrary>::@class::A::@constructor::new
           firstFragment: #F2
     class B
       reference: <testLibrary>::@class::B
       firstFragment: #F3
       constructors
-        synthetic new
+        synthetic isOriginImplicitDefault new
           reference: <testLibrary>::@class::B::@constructor::new
           firstFragment: #F4
     class alias Raw
@@ -245,7 +245,7 @@ library
         A
         B
       constructors
-        synthetic const new
+        synthetic const isOriginMixinApplication new
           reference: <testLibrary>::@class::Raw::@constructor::new
           firstFragment: #F6
           constantInitializers
@@ -264,7 +264,7 @@ library
         A
         B
       constructors
-        synthetic const new
+        synthetic const isOriginMixinApplication new
           reference: <testLibrary>::@class::HasDocComment::@constructor::new
           firstFragment: #F8
           constantInitializers
@@ -282,7 +282,7 @@ library
         A
         B
       constructors
-        synthetic const new
+        synthetic const isOriginMixinApplication new
           reference: <testLibrary>::@class::HasAnnotation::@constructor::new
           firstFragment: #F10
           constantInitializers
@@ -301,7 +301,7 @@ library
         A
         B
       constructors
-        synthetic const new
+        synthetic const isOriginMixinApplication new
           reference: <testLibrary>::@class::AnnotationThenComment::@constructor::new
           firstFragment: #F12
           constantInitializers
@@ -320,7 +320,7 @@ library
         A
         B
       constructors
-        synthetic const new
+        synthetic const isOriginMixinApplication new
           reference: <testLibrary>::@class::CommentThenAnnotation::@constructor::new
           firstFragment: #F14
           constantInitializers
@@ -339,7 +339,7 @@ library
         A
         B
       constructors
-        synthetic const new
+        synthetic const isOriginMixinApplication new
           reference: <testLibrary>::@class::CommentAroundAnnotation::@constructor::new
           firstFragment: #F16
           constantInitializers
@@ -393,20 +393,20 @@ library
         #F1 class C (nameOffset:6) (firstTokenOffset:0) (offset:6)
           element: <testLibrary>::@class::C
           constructors
-            #F2 new (nameOffset:<null>) (firstTokenOffset:12) (offset:12)
+            #F2 isOriginDeclaration new (nameOffset:<null>) (firstTokenOffset:12) (offset:12)
               element: <testLibrary>::@class::C::@constructor::new
               codeOffset: 12
               codeLength: 4
               typeName: C
               typeNameOffset: 12
-            #F3 raw (nameOffset:22) (firstTokenOffset:20) (offset:22)
+            #F3 isOriginDeclaration raw (nameOffset:22) (firstTokenOffset:20) (offset:22)
               element: <testLibrary>::@class::C::@constructor::raw
               codeOffset: 20
               codeLength: 10
               typeName: C
               typeNameOffset: 20
               periodOffset: 21
-            #F4 hasDocComment (nameOffset:70) (firstTokenOffset:34) (offset:70)
+            #F4 isOriginDeclaration hasDocComment (nameOffset:70) (firstTokenOffset:34) (offset:70)
               element: <testLibrary>::@class::C::@constructor::hasDocComment
               documentationComment: /// Comment 1.\n/// Comment 2.
               codeOffset: 34
@@ -414,7 +414,7 @@ library
               typeName: C
               typeNameOffset: 68
               periodOffset: 69
-            #F5 hasAnnotation (nameOffset:106) (firstTokenOffset:92) (offset:106)
+            #F5 isOriginDeclaration hasAnnotation (nameOffset:106) (firstTokenOffset:92) (offset:106)
               element: <testLibrary>::@class::C::@constructor::hasAnnotation
               metadata
                 Annotation
@@ -432,7 +432,7 @@ library
               typeName: C
               typeNameOffset: 104
               periodOffset: 105
-            #F6 annotationThenComment (nameOffset:176) (firstTokenOffset:128) (offset:176)
+            #F6 isOriginDeclaration annotationThenComment (nameOffset:176) (firstTokenOffset:128) (offset:176)
               element: <testLibrary>::@class::C::@constructor::annotationThenComment
               documentationComment: /// Comment 1.\n/// Comment 2.
               metadata
@@ -451,7 +451,7 @@ library
               typeName: C
               typeNameOffset: 174
               periodOffset: 175
-            #F7 commentThenAnnotation (nameOffset:254) (firstTokenOffset:206) (offset:254)
+            #F7 isOriginDeclaration commentThenAnnotation (nameOffset:254) (firstTokenOffset:206) (offset:254)
               element: <testLibrary>::@class::C::@constructor::commentThenAnnotation
               documentationComment: /// Comment 1.\n/// Comment 2.
               metadata
@@ -470,7 +470,7 @@ library
               typeName: C
               typeNameOffset: 252
               periodOffset: 253
-            #F8 commentAroundAnnotation (nameOffset:332) (firstTokenOffset:301) (offset:332)
+            #F8 isOriginDeclaration commentAroundAnnotation (nameOffset:332) (firstTokenOffset:301) (offset:332)
               element: <testLibrary>::@class::C::@constructor::commentAroundAnnotation
               documentationComment: /// Comment 2.
               metadata
@@ -494,17 +494,17 @@ library
       reference: <testLibrary>::@class::C
       firstFragment: #F1
       constructors
-        new
+        isOriginDeclaration new
           reference: <testLibrary>::@class::C::@constructor::new
           firstFragment: #F2
-        raw
+        isOriginDeclaration raw
           reference: <testLibrary>::@class::C::@constructor::raw
           firstFragment: #F3
-        hasDocComment
+        isOriginDeclaration hasDocComment
           reference: <testLibrary>::@class::C::@constructor::hasDocComment
           firstFragment: #F4
           documentationComment: /// Comment 1.\n/// Comment 2.
-        hasAnnotation
+        isOriginDeclaration hasAnnotation
           reference: <testLibrary>::@class::C::@constructor::hasAnnotation
           firstFragment: #F5
           metadata
@@ -518,7 +518,7 @@ library
                 leftParenthesis: ( @99
                 rightParenthesis: ) @100
               element: dart:core::@class::Object::@constructor::new
-        annotationThenComment
+        isOriginDeclaration annotationThenComment
           reference: <testLibrary>::@class::C::@constructor::annotationThenComment
           firstFragment: #F6
           documentationComment: /// Comment 1.\n/// Comment 2.
@@ -533,7 +533,7 @@ library
                 leftParenthesis: ( @135
                 rightParenthesis: ) @136
               element: dart:core::@class::Object::@constructor::new
-        commentThenAnnotation
+        isOriginDeclaration commentThenAnnotation
           reference: <testLibrary>::@class::C::@constructor::commentThenAnnotation
           firstFragment: #F7
           documentationComment: /// Comment 1.\n/// Comment 2.
@@ -548,7 +548,7 @@ library
                 leftParenthesis: ( @247
                 rightParenthesis: ) @248
               element: dart:core::@class::Object::@constructor::new
-        commentAroundAnnotation
+        isOriginDeclaration commentAroundAnnotation
           reference: <testLibrary>::@class::C::@constructor::commentAroundAnnotation
           firstFragment: #F8
           documentationComment: /// Comment 2.
@@ -607,14 +607,14 @@ library
         #F1 class C (nameOffset:6) (firstTokenOffset:0) (offset:6)
           element: <testLibrary>::@class::C
           constructors
-            #F2 factory new (nameOffset:<null>) (firstTokenOffset:12) (offset:20)
+            #F2 factory isOriginDeclaration new (nameOffset:<null>) (firstTokenOffset:12) (offset:20)
               element: <testLibrary>::@class::C::@constructor::new
               codeOffset: 12
               codeLength: 23
               factoryKeywordOffset: 12
               typeName: C
               typeNameOffset: 20
-            #F3 factory raw (nameOffset:49) (firstTokenOffset:39) (offset:49)
+            #F3 factory isOriginDeclaration raw (nameOffset:49) (firstTokenOffset:39) (offset:49)
               element: <testLibrary>::@class::C::@constructor::raw
               codeOffset: 39
               codeLength: 27
@@ -622,7 +622,7 @@ library
               typeName: C
               typeNameOffset: 47
               periodOffset: 48
-            #F4 factory hasDocComment (nameOffset:114) (firstTokenOffset:70) (offset:114)
+            #F4 factory isOriginDeclaration hasDocComment (nameOffset:114) (firstTokenOffset:70) (offset:114)
               element: <testLibrary>::@class::C::@constructor::hasDocComment
               documentationComment: /// Comment 1.\n/// Comment 2.
               codeOffset: 70
@@ -631,7 +631,7 @@ library
               typeName: C
               typeNameOffset: 112
               periodOffset: 113
-            #F5 factory hasAnnotation (nameOffset:167) (firstTokenOffset:145) (offset:167)
+            #F5 factory isOriginDeclaration hasAnnotation (nameOffset:167) (firstTokenOffset:145) (offset:167)
               element: <testLibrary>::@class::C::@constructor::hasAnnotation
               metadata
                 Annotation
@@ -650,7 +650,7 @@ library
               typeName: C
               typeNameOffset: 165
               periodOffset: 166
-            #F6 factory annotationThenComment (nameOffset:254) (firstTokenOffset:198) (offset:254)
+            #F6 factory isOriginDeclaration annotationThenComment (nameOffset:254) (firstTokenOffset:198) (offset:254)
               element: <testLibrary>::@class::C::@constructor::annotationThenComment
               documentationComment: /// Comment 1.\n/// Comment 2.
               metadata
@@ -670,7 +670,7 @@ library
               typeName: C
               typeNameOffset: 252
               periodOffset: 253
-            #F7 factory commentThenAnnotation (nameOffset:349) (firstTokenOffset:293) (offset:349)
+            #F7 factory isOriginDeclaration commentThenAnnotation (nameOffset:349) (firstTokenOffset:293) (offset:349)
               element: <testLibrary>::@class::C::@constructor::commentThenAnnotation
               documentationComment: /// Comment 1.\n/// Comment 2.
               metadata
@@ -690,7 +690,7 @@ library
               typeName: C
               typeNameOffset: 347
               periodOffset: 348
-            #F8 factory commentAroundAnnotation (nameOffset:444) (firstTokenOffset:405) (offset:444)
+            #F8 factory isOriginDeclaration commentAroundAnnotation (nameOffset:444) (firstTokenOffset:405) (offset:444)
               element: <testLibrary>::@class::C::@constructor::commentAroundAnnotation
               documentationComment: /// Comment 2.
               metadata
@@ -715,17 +715,17 @@ library
       reference: <testLibrary>::@class::C
       firstFragment: #F1
       constructors
-        factory new
+        factory isOriginDeclaration new
           reference: <testLibrary>::@class::C::@constructor::new
           firstFragment: #F2
-        factory raw
+        factory isOriginDeclaration raw
           reference: <testLibrary>::@class::C::@constructor::raw
           firstFragment: #F3
-        factory hasDocComment
+        factory isOriginDeclaration hasDocComment
           reference: <testLibrary>::@class::C::@constructor::hasDocComment
           firstFragment: #F4
           documentationComment: /// Comment 1.\n/// Comment 2.
-        factory hasAnnotation
+        factory isOriginDeclaration hasAnnotation
           reference: <testLibrary>::@class::C::@constructor::hasAnnotation
           firstFragment: #F5
           metadata
@@ -739,7 +739,7 @@ library
                 leftParenthesis: ( @152
                 rightParenthesis: ) @153
               element: dart:core::@class::Object::@constructor::new
-        factory annotationThenComment
+        factory isOriginDeclaration annotationThenComment
           reference: <testLibrary>::@class::C::@constructor::annotationThenComment
           firstFragment: #F6
           documentationComment: /// Comment 1.\n/// Comment 2.
@@ -754,7 +754,7 @@ library
                 leftParenthesis: ( @205
                 rightParenthesis: ) @206
               element: dart:core::@class::Object::@constructor::new
-        factory commentThenAnnotation
+        factory isOriginDeclaration commentThenAnnotation
           reference: <testLibrary>::@class::C::@constructor::commentThenAnnotation
           firstFragment: #F7
           documentationComment: /// Comment 1.\n/// Comment 2.
@@ -769,7 +769,7 @@ library
                 leftParenthesis: ( @334
                 rightParenthesis: ) @335
               element: dart:core::@class::Object::@constructor::new
-        factory commentAroundAnnotation
+        factory isOriginDeclaration commentAroundAnnotation
           reference: <testLibrary>::@class::C::@constructor::commentAroundAnnotation
           firstFragment: #F8
           documentationComment: /// Comment 2.
@@ -826,7 +826,7 @@ library
         #F1 class A (nameOffset:6) (firstTokenOffset:0) (offset:6)
           element: <testLibrary>::@class::A
           constructors
-            #F2 synthetic new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
+            #F2 synthetic isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
               element: <testLibrary>::@class::A::@constructor::new
               typeName: A
       extensions
@@ -847,7 +847,7 @@ library
       reference: <testLibrary>::@class::A
       firstFragment: #F1
       constructors
-        synthetic new
+        synthetic isOriginImplicitDefault new
           reference: <testLibrary>::@class::A::@constructor::new
           firstFragment: #F2
   extensions
@@ -920,7 +920,7 @@ library
             #F6 hasInitializer multiWithInit2 (nameOffset:94) (firstTokenOffset:94) (offset:94)
               element: <testLibrary>::@class::C::@field::multiWithInit2
           constructors
-            #F7 synthetic new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
+            #F7 synthetic isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
               element: <testLibrary>::@class::C::@constructor::new
               typeName: C
           getters
@@ -996,7 +996,7 @@ library
           getter: <testLibrary>::@class::C::@getter::multiWithInit2
           setter: <testLibrary>::@class::C::@setter::multiWithInit2
       constructors
-        synthetic new
+        synthetic isOriginImplicitDefault new
           reference: <testLibrary>::@class::C::@constructor::new
           firstFragment: #F7
       getters
@@ -1220,7 +1220,7 @@ library
                     rightParenthesis: ) @359
                   element: dart:core::@class::Object::@constructor::new
           constructors
-            #F12 synthetic new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
+            #F12 synthetic isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
               element: <testLibrary>::@class::C::@constructor::new
               typeName: C
           getters
@@ -1449,7 +1449,7 @@ library
           getter: <testLibrary>::@class::C::@getter::commentAroundAnnotation2
           setter: <testLibrary>::@class::C::@setter::commentAroundAnnotation2
       constructors
-        synthetic new
+        synthetic isOriginImplicitDefault new
           reference: <testLibrary>::@class::C::@constructor::new
           firstFragment: #F12
       getters
@@ -1806,7 +1806,7 @@ library
         #F1 class C (nameOffset:6) (firstTokenOffset:0) (offset:6)
           element: <testLibrary>::@class::C
           constructors
-            #F2 synthetic new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
+            #F2 synthetic isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
               element: <testLibrary>::@class::C::@constructor::new
               typeName: C
           methods
@@ -1887,7 +1887,7 @@ library
       reference: <testLibrary>::@class::C
       firstFragment: #F1
       constructors
-        synthetic new
+        synthetic isOriginImplicitDefault new
           reference: <testLibrary>::@class::C::@constructor::new
           firstFragment: #F2
       methods
@@ -2812,7 +2812,7 @@ library
             #F2 T (nameOffset:8) (firstTokenOffset:8) (offset:8)
               element: #E0 T
           constructors
-            #F3 synthetic new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
+            #F3 synthetic isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
               element: <testLibrary>::@class::A::@constructor::new
               typeName: A
       functions
@@ -2829,7 +2829,7 @@ library
         #E0 T
           firstFragment: #F2
       constructors
-        synthetic new
+        synthetic isOriginImplicitDefault new
           reference: <testLibrary>::@class::A::@constructor::new
           firstFragment: #F3
   functions
@@ -2861,11 +2861,11 @@ library
         #F1 class A (nameOffset:6) (firstTokenOffset:0) (offset:6)
           element: <testLibrary>::@class::A
           constructors
-            #F2 new (nameOffset:<null>) (firstTokenOffset:12) (offset:12)
+            #F2 isOriginDeclaration new (nameOffset:<null>) (firstTokenOffset:12) (offset:12)
               element: <testLibrary>::@class::A::@constructor::new
               typeName: A
               typeNameOffset: 12
-            #F3 named (nameOffset:21) (firstTokenOffset:19) (offset:21)
+            #F3 isOriginDeclaration named (nameOffset:21) (firstTokenOffset:19) (offset:21)
               element: <testLibrary>::@class::A::@constructor::named
               typeName: A
               typeNameOffset: 19
@@ -2875,10 +2875,10 @@ library
       reference: <testLibrary>::@class::A
       firstFragment: #F1
       constructors
-        new
+        isOriginDeclaration new
           reference: <testLibrary>::@class::A::@constructor::new
           firstFragment: #F2
-        named
+        isOriginDeclaration named
           reference: <testLibrary>::@class::A::@constructor::named
           firstFragment: #F3
 ''');
@@ -2900,7 +2900,7 @@ library
         #F1 class A (nameOffset:6) (firstTokenOffset:0) (offset:6)
           element: <testLibrary>::@class::A
           constructors
-            #F2 new (nameOffset:<null>) (firstTokenOffset:12) (offset:12)
+            #F2 isOriginDeclaration new (nameOffset:<null>) (firstTokenOffset:12) (offset:12)
               element: <testLibrary>::@class::A::@constructor::new
               typeName: A
               typeNameOffset: 12
@@ -2912,7 +2912,7 @@ library
       reference: <testLibrary>::@class::A
       firstFragment: #F1
       constructors
-        new
+        isOriginDeclaration new
           reference: <testLibrary>::@class::A::@constructor::new
           firstFragment: #F2
           formalParameters
@@ -2941,7 +2941,7 @@ library
             #F2 hasInitializer foo (nameOffset:16) (firstTokenOffset:16) (offset:16)
               element: <testLibrary>::@class::A::@field::foo
           constructors
-            #F3 synthetic new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
+            #F3 synthetic isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
               element: <testLibrary>::@class::A::@constructor::new
               typeName: A
           getters
@@ -2965,7 +2965,7 @@ library
           getter: <testLibrary>::@class::A::@getter::foo
           setter: <testLibrary>::@class::A::@setter::foo
       constructors
-        synthetic new
+        synthetic isOriginImplicitDefault new
           reference: <testLibrary>::@class::A::@constructor::new
           firstFragment: #F3
       getters
@@ -3006,7 +3006,7 @@ library
             #F2 synthetic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
               element: <testLibrary>::@class::A::@field::foo
           constructors
-            #F3 synthetic new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
+            #F3 synthetic isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
               element: <testLibrary>::@class::A::@constructor::new
               typeName: A
           getters
@@ -3023,7 +3023,7 @@ library
           type: int
           getter: <testLibrary>::@class::A::@getter::foo
       constructors
-        synthetic new
+        synthetic isOriginImplicitDefault new
           reference: <testLibrary>::@class::A::@constructor::new
           firstFragment: #F3
       getters
@@ -3051,7 +3051,7 @@ library
         #F1 class A (nameOffset:6) (firstTokenOffset:0) (offset:6)
           element: <testLibrary>::@class::A
           constructors
-            #F2 synthetic new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
+            #F2 synthetic isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
               element: <testLibrary>::@class::A::@constructor::new
               typeName: A
           methods
@@ -3068,7 +3068,7 @@ library
       reference: <testLibrary>::@class::A
       firstFragment: #F1
       constructors
-        synthetic new
+        synthetic isOriginImplicitDefault new
           reference: <testLibrary>::@class::A::@constructor::new
           firstFragment: #F2
       methods
@@ -3105,7 +3105,7 @@ library
             #F2 synthetic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
               element: <testLibrary>::@class::A::@field::foo
           constructors
-            #F3 synthetic new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
+            #F3 synthetic isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
               element: <testLibrary>::@class::A::@constructor::new
               typeName: A
           setters
@@ -3125,7 +3125,7 @@ library
           type: int
           setter: <testLibrary>::@class::A::@setter::foo
       constructors
-        synthetic new
+        synthetic isOriginImplicitDefault new
           reference: <testLibrary>::@class::A::@constructor::new
           firstFragment: #F3
       setters
@@ -3158,7 +3158,7 @@ library
             #F2 T (nameOffset:8) (firstTokenOffset:8) (offset:8)
               element: #E0 T
           constructors
-            #F3 synthetic new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
+            #F3 synthetic isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
               element: <testLibrary>::@class::A::@constructor::new
               typeName: A
   classes
@@ -3169,7 +3169,7 @@ library
         #E0 T
           firstFragment: #F2
       constructors
-        synthetic new
+        synthetic isOriginImplicitDefault new
           reference: <testLibrary>::@class::A::@constructor::new
           firstFragment: #F3
 ''');

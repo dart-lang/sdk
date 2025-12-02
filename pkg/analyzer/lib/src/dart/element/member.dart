@@ -62,6 +62,15 @@ class SubstitutedConstructorElementImpl extends SubstitutedExecutableElementImpl
   bool get isGenerative => baseElement.isGenerative;
 
   @override
+  bool get isOriginDeclaration => baseElement.isOriginDeclaration;
+
+  @override
+  bool get isOriginImplicitDefault => baseElement.isOriginImplicitDefault;
+
+  @override
+  bool get isOriginMixinApplication => baseElement.isOriginMixinApplication;
+
+  @override
   bool get isPrimary => baseElement.isPrimary;
 
   @override

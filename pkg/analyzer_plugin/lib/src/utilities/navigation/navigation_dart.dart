@@ -230,7 +230,7 @@ class _DartNavigationComputerVisitor extends RecursiveAstVisitor<void> {
   @override
   void visitAnnotation(Annotation node) {
     var element = node.element;
-    if (element is ConstructorElement && element.isSynthetic) {
+    if (element is ConstructorElement && element.isOriginImplicitDefault) {
       element = element.enclosingElement;
     }
     var name = node.name;

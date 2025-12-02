@@ -140,6 +140,9 @@ class ConvertGetterToMethodRefactoringImpl extends RefactoringImpl
     var matches = await searchEngine.searchReferences(element);
     var references = getSourceReferences(matches);
     for (var reference in references) {
+      if (reference.isReferenceInPatternField) {
+        continue;
+      }
       var refRange = reference.range;
       // insert "()"
       var edit = SourceEdit(refRange.end, 0, '()');

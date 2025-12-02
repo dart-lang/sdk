@@ -119,8 +119,7 @@ class CreateConstructor extends ResolvedCorrectionProducer {
     _constructorName = node.toSource();
     // should be synthetic default constructor
     if (constructorElement == null ||
-        !constructorElement.isDefaultConstructor ||
-        !constructorElement.isSynthetic) {
+        !constructorElement.isOriginImplicitDefault) {
       return;
     }
 
