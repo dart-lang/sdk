@@ -8,12 +8,13 @@ library;
 
 import 'dart:async';
 import 'dart:convert';
-import 'dart:io' show Platform, Process, ProcessResult;
+import 'dart:io' show Platform, ProcessResult;
 
 import 'package:analysis_server/src/analytics/percentile_calculator.dart';
 import 'package:analysis_server/src/plugin/notification_manager.dart';
 import 'package:analysis_server/src/plugin/plugin_isolate.dart';
 import 'package:analysis_server/src/session_logger/session_logger.dart';
+import 'package:analysis_server/src/utilities/process.dart';
 import 'package:analysis_server/src/utilities/sdk.dart';
 import 'package:analyzer/dart/analysis/context_root.dart' as analyzer;
 import 'package:analyzer/exception/exception.dart';
@@ -121,16 +122,21 @@ class PluginManager {
   /// the analysis server.
   Completer<void> initializedCompleter = Completer();
 
-  /// Initialize a newly created plugin manager. The notifications from the
-  /// running plugins will be handled by the given [_notificationManager].
+  final ProcessRunner _processRunner;
+
+  /// Initializes a newly created plugin manager.
+  ///
+  /// The notifications from the running plugins will be handled by the given
+  /// [_notificationManager].
   PluginManager(
     this._resourceProvider,
     this._byteStorePath,
     this._sdkPath,
     this._notificationManager,
     this.instrumentationService,
-    this.sessionLogger,
-  );
+    this.sessionLogger, {
+    ProcessRunner processRunner = const ProcessRunner(),
+  }) : _processRunner = processRunner;
 
   /// All of the legacy plugins that are currently known.
   List<PluginIsolate> get legacyPluginIsolates =>
@@ -287,24 +293,38 @@ class PluginManager {
   ///
   /// Throws a [PluginException] if there is a problem that prevents the plugin
   /// from being executing.
+  ///
+  /// [builtAsAot] can be passed in during a test, to simulate a different flow.
   @visibleForTesting
-  PluginFiles filesFor(String pluginPath, {required bool isLegacyPlugin}) {
+  PluginFiles filesFor(
+    String pluginPath, {
+    required bool isLegacyPlugin,
+    @visibleForTesting bool builtAsAot = _builtAsAot,
+  }) {
     var pluginFolder = _resourceProvider.getFolder(pluginPath);
     var pubspecFile = pluginFolder.getChildAssumingFile(file_paths.pubspecYaml);
     if (!pubspecFile.exists) {
       // If there's no pubspec file, then we don't need to copy the package
       // because we won't be running pub.
-      return _computeFiles(pluginFolder);
+      return _computeFiles(pluginFolder, builtAsAot: builtAsAot);
     }
     var workspace = BlazeWorkspace.find(_resourceProvider, pluginFolder.path);
     if (workspace != null) {
       // Similarly, we won't be running pub if we're in a workspace because
       // there is exactly one version of each package.
-      return _computeFiles(pluginFolder, workspace: workspace);
+      return _computeFiles(
+        pluginFolder,
+        builtAsAot: builtAsAot,
+        workspace: workspace,
+      );
     }
 
     if (!isLegacyPlugin) {
-      return _computeFiles(pluginFolder, pubCommand: 'upgrade');
+      return _computeFiles(
+        pluginFolder,
+        builtAsAot: builtAsAot,
+        pubCommand: 'upgrade',
+      );
     }
 
     // Copy the plugin directory to a unique subdirectory of the plugin
@@ -317,10 +337,18 @@ class PluginManager {
       var executionFolder = parentFolder.getChildAssumingFolder(
         pluginFolder.shortName,
       );
-      return _computeFiles(executionFolder, pubCommand: 'upgrade');
+      return _computeFiles(
+        executionFolder,
+        builtAsAot: builtAsAot,
+        pubCommand: 'upgrade',
+      );
     }
     var executionFolder = pluginFolder.copyTo(parentFolder);
-    return _computeFiles(executionFolder, pubCommand: 'get');
+    return _computeFiles(
+      executionFolder,
+      builtAsAot: builtAsAot,
+      pubCommand: 'get',
+    );
   }
 
   /// Return a list of all of the plugin isolates that are currently associated
@@ -493,7 +521,7 @@ class PluginManager {
     );
 
     var stopwatch = Stopwatch()..start();
-    var result = Process.runSync(
+    var result = _processRunner.runSync(
       sdk.dart,
       ['compile', 'aot-snapshot', entrypoint],
       stderrEncoding: utf8,
@@ -539,6 +567,7 @@ class PluginManager {
   /// Runs `pub` if [pubCommand] is not `null`.
   PluginFiles _computeFiles(
     Folder pluginFolder, {
+    required bool builtAsAot,
     String? pubCommand,
     Workspace? workspace,
   }) {
@@ -571,7 +600,7 @@ class PluginManager {
         throw PluginException(exceptionReason);
       }
 
-      if (_builtAsAot) {
+      if (builtAsAot) {
         // Update the entrypoint path to be the AOT-compiled file.
         pluginFile = _compileAsAot(
           pluginFile: pluginFile,
@@ -599,7 +628,7 @@ class PluginManager {
       }
     }
 
-    if (_builtAsAot) {
+    if (builtAsAot) {
       // Update the entrypoint path to be the AOT-compiled file.
       pluginFile = _compileAsAot(
         pluginFile: pluginFile,
@@ -720,13 +749,13 @@ class PluginManager {
     );
 
     var stopwatch = Stopwatch()..start();
-    var result = Process.runSync(
+    var result = _processRunner.runSync(
       sdk.dart,
       ['pub', pubCommand],
-      stderrEncoding: utf8,
-      stdoutEncoding: utf8,
       workingDirectory: folder.path,
       environment: {_pubEnvironmentKey: _getPubEnvironmentValue()},
+      stderrEncoding: utf8,
+      stdoutEncoding: utf8,
     );
     stopwatch.stop();
 
