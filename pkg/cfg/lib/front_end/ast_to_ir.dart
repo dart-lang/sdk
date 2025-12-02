@@ -143,7 +143,7 @@ class AstToIr extends ast.RecursiveVisitor {
   /// any of the argument expressions ended control flow.
   int _translateArguments(ast.Expression? receiver, ast.Arguments arguments) {
     assert(builder.hasOpenBlock);
-    int inputCount = 0;
+    var inputCount = 0;
     if (arguments.types.isNotEmpty) {
       builder.addTypeArguments(
         arguments.types,
@@ -698,12 +698,12 @@ class AstToIr extends ast.RecursiveVisitor {
     final value = builder.pop();
 
     final switchCases = this.switchCases ??= <ast.SwitchCase, JoinBlock>{};
-    final List<JoinBlock> caseBlocks = List<JoinBlock>.generate(
+    final caseBlocks = List<JoinBlock>.generate(
       node.cases.length,
       (_) => builder.newJoinBlock(),
     );
 
-    for (int i = 0; i < node.cases.length; i++) {
+    for (var i = 0; i < node.cases.length; i++) {
       final switchCase = node.cases[i];
       final caseBlock = caseBlocks[i];
       switchCases[switchCase] = caseBlock;
@@ -713,7 +713,7 @@ class AstToIr extends ast.RecursiveVisitor {
         builder.addGoto(caseBlock);
       } else {
         final savedSourcePosition = builder.currentSourcePosition;
-        for (int i = 0; i < switchCase.expressions.length; ++i) {
+        for (var i = 0; i < switchCase.expressions.length; ++i) {
           builder.currentSourcePosition = SourcePosition(
             switchCase.expressionOffsets[i],
           );
@@ -745,7 +745,7 @@ class AstToIr extends ast.RecursiveVisitor {
       builder.addGoto(done);
     }
 
-    for (int i = 0; i < node.cases.length; i++) {
+    for (var i = 0; i < node.cases.length; i++) {
       final switchCase = node.cases[i];
       final caseBlock = caseBlocks[i];
 

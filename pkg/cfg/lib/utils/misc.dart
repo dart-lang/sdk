@@ -5,7 +5,7 @@
 /// Compares elements of the given lists.
 bool listEquals(List<Object?> a, List<Object?> b) {
   if (a.length != b.length) return false;
-  for (int i = 0; i < a.length; i++) {
+  for (var i = 0; i < a.length; i++) {
     if (a[i] != b[i]) return false;
   }
   return true;
@@ -35,7 +35,7 @@ int finalizeHash(int hash) {
 /// stable over different runs, which is needed to keep compiler
 /// fully deterministic.
 int listHashCode(List<Object?> list) {
-  int hash = 1;
+  var hash = 1;
   for (final e in list) {
     hash = combineHash(hash, e.hashCode);
   }

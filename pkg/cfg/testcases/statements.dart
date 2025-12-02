@@ -23,16 +23,16 @@ void if2() {
 }
 
 int forLoop(int n) {
-  int sum = 0;
-  for (int i = 0; i < n; ++i) {
+  var sum = 0;
+  for (var i = 0; i < n; ++i) {
     sum += i;
   }
   return sum;
 }
 
 int whileLoop(int n) {
-  int sum = 0;
-  int i = 0;
+  var sum = 0;
+  var i = 0;
   while (i < n) {
     sum += i;
     if (sum > 10) break;
@@ -42,8 +42,8 @@ int whileLoop(int n) {
 }
 
 int doWhileLoop(int n) {
-  int sum = 0;
-  int i = n;
+  var sum = 0;
+  var i = n;
   do {
     sum += i;
     --i;
@@ -52,16 +52,16 @@ int doWhileLoop(int n) {
 }
 
 int forInLoop(List<int> list) {
-  int sum = 0;
-  for (int elem in list) {
+  var sum = 0;
+  for (var elem in list) {
     sum += elem;
   }
   return sum;
 }
 
 void breakAndContinue(int n, int m) {
-  for (int i = 0; i < n; i++) {
-    for (int j = 0; j < m; j++) {
+  for (var i = 0; i < n; i++) {
+    for (var j = 0; j < m; j++) {
       if (j < 3) {
         continue;
       }
@@ -88,7 +88,7 @@ void switchStatement(int x) {
 }
 
 void tryBlocks() {
-  int x = 1;
+  var x = 1;
   try {
     x = 2;
     try {
@@ -105,7 +105,7 @@ void tryBlocks() {
 int tryFinallyWithBreaks() {
   try {
     print(10);
-    for (int i = 0; i < 5; ++i) {
+    for (var i = 0; i < 5; ++i) {
       try {
         print(i);
         if (i % 3 == 0) {

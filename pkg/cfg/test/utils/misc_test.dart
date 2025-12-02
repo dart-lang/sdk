@@ -49,7 +49,7 @@ void main() {
     expect(isPowerOf2(0x20001), isFalse);
     expect(isPowerOf2(0x80000000_40000000), isFalse);
 
-    for (int i = 0; i < 64; ++i) {
+    for (var i = 0; i < 64; ++i) {
       expect(isPowerOf2(1 << i), isTrue);
       expect(log2OfPowerOf2(1 << i), equals(i));
 
@@ -61,13 +61,13 @@ void main() {
   });
 
   test('roundDown and roundUp', () {
-    for (int i = 0; i < 20; ++i) {
+    for (var i = 0; i < 20; ++i) {
       expect(roundDown(i, 1), equals(i));
       expect(roundUp(i, 1), equals(i));
     }
 
-    for (int align = 2; align <= 1024; align <<= 1) {
-      for (int k = 0; k < 20; ++k) {
+    for (var align = 2; align <= 1024; align <<= 1) {
+      for (var k = 0; k < 20; ++k) {
         expect(roundDown(k * align, align), equals(k * align));
         expect(roundDown(k * align + 1, align), equals(k * align));
         expect(roundDown(k * align + align - 1, align), equals(k * align));

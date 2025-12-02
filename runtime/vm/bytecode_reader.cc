@@ -1123,6 +1123,13 @@ ObjectPtr BytecodeReaderHelper::ReadObjectContents(uint32_t header) {
             cls.ptr() == scoped_function_class_.ptr()) {
           return scoped_function_.ptr();
         }
+        // If this is a reference to the expression evaluation function, then
+        // reading the class has substituted in the real class.
+        if (name.ptr() == Symbols::DebugProcedureName().ptr() &&
+            cls.ptr() == thread_->bytecode_loader()
+                             ->GetExpressionEvaluationRealClass()) {
+          return thread_->bytecode_loader()->GetExpressionEvaluationFunction();
+        }
         FunctionPtr function = Function::null();
         if ((flags & kFlagIsConstructor) != 0) {
           if (cls.EnsureIsAllocateFinalized(thread_) == Error::null()) {
@@ -1782,6 +1789,7 @@ void BytecodeReaderHelper::ReadFieldDeclarations(const Class& cls,
   const int kHasAnnotationsFlag = 1 << 14;
   const int kHasPragmaFlag = 1 << 15;
   const int kHasCustomScriptFlag = 1 << 16;
+  const int kIsExtensionTypeMemberFlag = 1 << 17;
 
   const int num_fields = reader_.ReadListLength();
   if ((num_fields == 0) && !cls.is_enum_class()) {
@@ -1807,6 +1815,8 @@ void BytecodeReaderHelper::ReadFieldDeclarations(const Class& cls,
         (flags & kHasNontrivialInitializerFlag) != 0;
     const bool has_pragma = (flags & kHasPragmaFlag) != 0;
     const bool is_extension_member = (flags & kIsExtensionMemberFlag) != 0;
+    const bool is_extension_type_member =
+        (flags & kIsExtensionTypeMemberFlag) != 0;
     const bool has_initializer = (flags & kHasInitializerFlag) != 0;
 
     name ^= ReadObject();
@@ -1836,6 +1846,7 @@ void BytecodeReaderHelper::ReadFieldDeclarations(const Class& cls,
     field.set_is_generic_covariant_impl((flags & kIsCovariantByClassFlag) != 0);
     field.set_has_nontrivial_initializer(has_nontrivial_initializer);
     field.set_is_extension_member(is_extension_member);
+    field.set_is_extension_type_member(is_extension_type_member);
     field.set_has_initializer(has_initializer);
 
     if (!has_nontrivial_initializer) {
@@ -1881,6 +1892,7 @@ void BytecodeReaderHelper::ReadFieldDeclarations(const Class& cls,
       function.set_is_debuggable(false);
       function.set_accessor_field(field);
       function.set_is_extension_member(is_extension_member);
+      function.set_is_extension_type_member(is_extension_type_member);
       SetupFieldAccessorFunction(cls, function, type);
       if (is_static) {
         function.AttachBytecode(Object::implicit_static_getter_bytecode());
@@ -1907,6 +1919,7 @@ void BytecodeReaderHelper::ReadFieldDeclarations(const Class& cls,
       function.set_is_debuggable(false);
       function.set_accessor_field(field);
       function.set_is_extension_member(is_extension_member);
+      function.set_is_extension_type_member(is_extension_type_member);
       SetupFieldAccessorFunction(cls, function, type);
       if (is_static) {
         function.AttachBytecode(Object::implicit_static_setter_bytecode());
@@ -2032,6 +2045,7 @@ void BytecodeReaderHelper::ReadFunctionDeclarations(const Class& cls) {
   const int kHasAnnotationsFlag = 1 << 21;
   const int kHasPragmaFlag = 1 << 22;
   const int kHasCustomScriptFlag = 1 << 23;
+  const int kIsExtensionTypeMemberFlag = 1 << 24;
 
   const intptr_t num_functions = reader_.ReadListLength();
   ASSERT(function_index_ + num_functions == functions_->Length());
@@ -2057,6 +2071,8 @@ void BytecodeReaderHelper::ReadFunctionDeclarations(const Class& cls) {
     const bool is_native = (flags & kIsNativeFlag) != 0;
     const bool has_pragma = (flags & kHasPragmaFlag) != 0;
     const bool is_extension_member = (flags & kIsExtensionMemberFlag) != 0;
+    const bool is_extension_type_member =
+        (flags & kIsExtensionTypeMemberFlag) != 0;
 
     name ^= ReadObject();
 
@@ -2100,12 +2116,20 @@ void BytecodeReaderHelper::ReadFunctionDeclarations(const Class& cls) {
     FunctionScope function_scope(this, function, name, cls);
     FunctionTypeScope function_type_scope(this, signature);
 
+    // Set the expression evaluation function now so that references to it
+    // can be appropriately substituted as needed when reading objects below.
+    if (is_expression_evaluation) {
+      ASSERT(!function.is_abstract());
+      thread_->bytecode_loader()->SetExpressionEvaluationFunction(function);
+    }
+
     function.set_has_pragma(has_pragma);
     NOT_IN_PRECOMPILED(function.set_end_token_pos(end_position));
     function.set_is_synthetic((flags & kIsNoSuchMethodForwarderFlag) != 0);
     function.set_is_reflectable((flags & kIsReflectableFlag) != 0);
     function.set_is_debuggable((flags & kIsDebuggableFlag) != 0);
     function.set_is_extension_member(is_extension_member);
+    function.set_is_extension_type_member(is_extension_type_member);
 
     if ((flags & kIsSyncStarFlag) != 0) {
       function.set_modifier(UntaggedFunction::kSyncGen);
@@ -2212,17 +2236,7 @@ void BytecodeReaderHelper::ReadFunctionDeclarations(const Class& cls) {
     }
 
     if (is_expression_evaluation) {
-      ASSERT(!function.is_abstract());
-      BytecodeLoader* loader = thread_->bytecode_loader();
-      ASSERT(loader != nullptr);
-      loader->SetExpressionEvaluationFunction(function);
-      // Read bytecode of expression evaluation function within FunctionScope.
-      // Replace class of the function in scope as we're going to look for
-      // expression evaluation function in a real class.
-      if (!cls.IsTopLevel()) {
-        scoped_function_class_ = loader->GetExpressionEvaluationRealClass();
-      }
-      ReadCode(function, loader->GetOffset(function));
+      ReadCode(function, thread_->bytecode_loader()->GetOffset(function));
     }
 
     functions_->SetAt(function_index_++, function);

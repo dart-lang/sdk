@@ -67,7 +67,7 @@ class Loop {
   Iterable<Block> get body => _LoopBodyIterable(this);
 
   int _computeDepth() {
-    int depth = 0;
+    var depth = 0;
     for (Loop? loop = this; loop != null; loop = loop.enclosingLoop) {
       ++depth;
     }

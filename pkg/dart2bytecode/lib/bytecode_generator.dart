@@ -502,6 +502,9 @@ class BytecodeGenerator extends RecursiveVisitor {
     if (field.isExtensionMember) {
       flags |= FieldDeclaration.isExtensionMemberFlag;
     }
+    if (field.isExtensionTypeMember) {
+      flags |= FieldDeclaration.isExtensionTypeMemberFlag;
+    }
     // In NNBD libraries, static fields with initializers are implicitly late.
     if (field.isLate || (field.isStatic && field.initializer != null)) {
       flags |= FieldDeclaration.isLateFlag;
@@ -568,6 +571,9 @@ class BytecodeGenerator extends RecursiveVisitor {
     }
     if (member.isExtensionMember) {
       flags |= FunctionDeclaration.isExtensionMemberFlag;
+    }
+    if (member.isExtensionTypeMember) {
+      flags |= FunctionDeclaration.isExtensionTypeMemberFlag;
     }
 
     FunctionNode function = member.function!;

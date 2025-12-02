@@ -775,7 +775,8 @@ bool ActivationFrame::HandlesException(const Instance& exc_obj) {
 
 // Get the saved current context of this activation.
 const Context& ActivationFrame::GetSavedCurrentContext() {
-  if (!ctx_.IsNull()) return ctx_;
+  if (context_initialized_) return ctx_;
+  context_initialized_ = true;
   GetVarDescriptors();
   intptr_t var_desc_len = var_descriptors_.Length();
   Object& obj = Object::Handle();

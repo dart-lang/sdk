@@ -56,8 +56,8 @@ class Dominators {
     final blockNums = Int32List(graph.preorder.length * 2);
     final workList = <(Block, int)>[];
     workList.add((graph.entryBlock, 0));
-    int preorderNumber = 0;
-    int postorderNumber = 0;
+    var preorderNumber = 0;
+    var postorderNumber = 0;
     while (workList.isNotEmpty) {
       final (block, index) = workList.removeLast();
       if (index == 0) {
@@ -94,7 +94,7 @@ class Dominators {
       graph.instructions.length,
     ));
     if (instructionNums[block.id] == 0) {
-      int instrNumber = 1;
+      var instrNumber = 1;
       instructionNums[block.id] = instrNumber++;
       for (final instr in block) {
         assert(instructionNums[instr.id] == 0);
@@ -129,7 +129,7 @@ Dominators computeDominators(FlowGraph graph) {
   // Label for link-eval forest.
   final label = Int32List(size);
 
-  for (int i = 0; i < size; ++i) {
+  for (var i = 0; i < size; ++i) {
     parent[i] = (i == 0) ? -1 : preorder[i].predecessors.first.preorderNumber;
     idom[i] = parent[i];
     semi[i] = i;
@@ -159,7 +159,7 @@ Dominators computeDominators(FlowGraph graph) {
       // Look for the semidominator by ascending the semidominator path
       // starting from pred.
       int predIndex = pred.preorderNumber;
-      int best = predIndex;
+      var best = predIndex;
       if (predIndex > blockIndex) {
         compressPath(blockIndex, predIndex);
         best = label[predIndex];
@@ -175,7 +175,7 @@ Dominators computeDominators(FlowGraph graph) {
 
   // 2. Compute the immediate dominators as the nearest common ancestor of
   // spanning tree parent and semidominator, for all blocks except the entry.
-  for (int blockIndex = 1; blockIndex < size; ++blockIndex) {
+  for (var blockIndex = 1; blockIndex < size; ++blockIndex) {
     int domIndex = idom[blockIndex];
     while (domIndex > semi[blockIndex]) {
       domIndex = idom[domIndex];
@@ -215,7 +215,7 @@ List<BitVector> computeDominanceFrontier(
     (i) => BitVector(size),
     growable: false,
   );
-  for (int blockIndex = 0; blockIndex < size; ++blockIndex) {
+  for (var blockIndex = 0; blockIndex < size; ++blockIndex) {
     final block = preorder[blockIndex];
     if (includeExceptionHandlers) {
       final exceptionHandler = block.exceptionHandler;
@@ -225,7 +225,7 @@ List<BitVector> computeDominanceFrontier(
     }
     final count = block.predecessors.length;
     if (count <= 1) continue;
-    for (int i = 0; i < count; ++i) {
+    for (var i = 0; i < count; ++i) {
       Block? runner = block.predecessors[i];
       while (runner != block.dominator) {
         dominanceFrontier[runner!.preorderNumber].add(blockIndex);
