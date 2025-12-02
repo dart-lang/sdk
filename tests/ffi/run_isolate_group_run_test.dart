@@ -272,5 +272,12 @@ main(List<String> args) {
     Random().nextInt(10);
   });
 
+  Expect.listEquals(
+    [0x31, 0x32, 0x33, 0x61, 0x62, 0x63],
+    IsolateGroup.runSync(
+      () => Encoding.getByName("us-ascii")!.encode("123abc"),
+    ),
+  );
+
   print("All tests completed :)");
 }
