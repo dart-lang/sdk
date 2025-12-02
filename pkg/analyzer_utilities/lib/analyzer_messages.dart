@@ -633,7 +633,8 @@ LocatableDiagnostic $withArgumentsName({$withArgumentsParams}) {
     outputConstantHeader(constant);
     constant.writeln('const $staticType $constantName =');
     constant.writeln('$concreteClassName(');
-    constant.writeln("name: '${sharedName ?? diagnosticCode}',");
+    var name = sharedName?.snakeCaseName ?? diagnosticCode;
+    constant.writeln("name: '$name',");
     var maxWidth = 80 - 8 /* indentation */ - 2 /* quotes */ - 1 /* comma */;
     var messageAsCode = convertTemplate(problemMessage);
     var messageLines = _splitText(

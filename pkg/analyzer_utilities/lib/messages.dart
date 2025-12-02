@@ -435,8 +435,8 @@ class DiagnosticTables {
         analyzerCodeDuplicateChecker[analyzerCode] = message;
         analyzerCodeCamelCaseNameDuplicateChecker[analyzerCode.camelCaseName] =
             message;
-        (analyzerSharedNameToMessages[message.sharedName ??
-                    analyzerCode.snakeCaseName] ??=
+        (analyzerSharedNameToMessages[(message.sharedName ?? analyzerCode)
+                    .snakeCaseName] ??=
                 [])
             .add(message);
         var package = message.package;
@@ -556,7 +556,7 @@ abstract class Message {
   /// If present, indicates that this error code has a special name for
   /// presentation to the user, that is potentially shared with other error
   /// codes.
-  final String? sharedName;
+  final AnalyzerCode? sharedName;
 
   /// If present, indicates that this error code has been renamed from
   /// [previousName] to its current name (or [sharedName]).
@@ -601,7 +601,10 @@ abstract class Message {
             isRequired: requireProblemMessage,
           ) ??
           [],
-      sharedName = messageYaml.getOptionalString('sharedName'),
+      sharedName = switch (messageYaml.getOptionalString('sharedName')) {
+        var s? => AnalyzerCode(snakeCaseName: s),
+        null => null,
+      },
       removedIn = messageYaml.getOptionalString('removedIn'),
       previousName = messageYaml.getOptionalString('previousName'),
       parameters = messageYaml.parameters,
