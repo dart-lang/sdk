@@ -9,15 +9,14 @@ import 'package:kernel/ast.dart';
 import 'package:kernel/binary/ast_from_binary.dart'
     show BinaryBuilderWithMetadata;
 import 'package:kernel/core_types.dart';
-import 'package:kernel/kernel.dart'
-    show writeComponentToBinary, writeComponentToBytes;
+import 'package:kernel/kernel.dart' show writeComponentToBytes;
 import 'package:kernel/library_index.dart';
-import 'package:path/path.dart' as path;
 
 import 'class_info.dart';
 import 'compiler_options.dart';
 import 'dispatch_table.dart';
 import 'dynamic_modules.dart';
+import 'io_util.dart';
 import 'js/method_collector.dart' show JSMethods;
 import 'serialization.dart';
 import 'translator.dart';
@@ -460,11 +459,13 @@ String _makeOptDillPath(String path) =>
     '${path.substring(0, path.length - '.dill'.length)}.opt.dill';
 
 Future<void> serializeMainModuleComponent(
-    Component component, Uri dynamicModuleMainUri,
+    CompilerPhaseInputOutputManager ioManager,
+    Component component,
+    Uri dynamicModuleMainUri,
     {required bool optimized}) async {
   // TODO(natebiggs): Serialize as a summary and filter to only necessary
   // libraries.
-  await writeComponentToBinary(
+  await ioManager.writeComponent(
       component,
       optimized
           ? _makeOptDillPath(dynamicModuleMainUri.path)
@@ -505,21 +506,15 @@ Future<(Component, JSMethods)> generateDynamicSubmoduleComponent(
 }
 
 Future<MainModuleMetadata> deserializeMainModuleMetadata(
-    Component component, WasmCompilerOptions options) async {
-  final filename = options.dynamicModuleMetadataFile ??
-      Uri.parse(path.setExtension(
-          options.dynamicMainModuleUri!.toFilePath(), '.dyndata'));
-  final dynamicModuleMetadataBytes = await File.fromUri(filename).readAsBytes();
-  final source = DataDeserializer(dynamicModuleMetadataBytes, component);
+    Component component, CompilerPhaseInputOutputManager ioManager) async {
+  final source = DataDeserializer(
+      await ioManager.readMainDynModuleMetadataBytes(), component);
   return MainModuleMetadata.deserialize(source);
 }
 
 Future<void> serializeMainModuleMetadata(Component component,
-    Translator translator, WasmCompilerOptions options) async {
-  final filename = options.dynamicModuleMetadataFile ??
-      Uri.parse(path.setExtension(
-          options.dynamicMainModuleUri!.toFilePath(), '.dyndata'));
+    Translator translator, CompilerPhaseInputOutputManager ioManager) async {
   final serializer = DataSerializer(component);
   translator.dynamicModuleInfo!.metadata.serialize(serializer, translator);
-  await File.fromUri(filename).writeAsBytes(serializer.takeBytes());
+  await ioManager.writeMainDynModuleMetadataBytes(serializer.takeBytes());
 }

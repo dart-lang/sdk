@@ -2,11 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:io' show File;
-import 'dart:typed_data';
-
-import 'package:build_integration/file_system/multi_root.dart'
-    show MultiRootFileSystem, MultiRootFileSystemEntity;
 import 'package:front_end/src/api_prototype/dynamic_module_validator.dart'
     show DynamicInterfaceYamlFile;
 import 'package:front_end/src/api_prototype/file_system.dart' show FileSystem;
@@ -18,14 +13,9 @@ import 'package:front_end/src/api_unstable/vm.dart'
         kernelForProgram,
         CfeSeverity;
 import 'package:kernel/ast.dart';
-import 'package:kernel/binary/ast_from_binary.dart'
-    show BinaryBuilderWithMetadata;
 import 'package:kernel/class_hierarchy.dart';
 import 'package:kernel/core_types.dart';
-import 'package:kernel/kernel.dart'
-    show writeComponentToText, loadComponentFromBytes;
 import 'package:kernel/library_index.dart';
-import 'package:kernel/text/ast_to_text.dart';
 import 'package:kernel/type_environment.dart';
 import 'package:kernel/verifier.dart';
 import 'package:vm/kernel_front_end.dart' show writeDepfile;
@@ -46,6 +36,7 @@ import 'deferred_loading.dart';
 import 'dry_run.dart';
 import 'dynamic_module_kernel_metadata.dart';
 import 'dynamic_modules.dart';
+import 'io_util.dart';
 import 'js/method_collector.dart' show JSMethods;
 import 'js/runtime_generator.dart' as js;
 import 'modules.dart';
@@ -93,11 +84,17 @@ class TfaResult extends CompilationSuccess {
 }
 
 class CodegenResult extends CompilationSuccess {
-  final Map<String, ({Uint8List moduleBytes, String? sourceMap})> wasmModules;
-  final String jsRuntime;
-  final String supportJs;
+  final String mainWasmFile;
+  final int numModules;
 
-  CodegenResult(this.wasmModules, this.jsRuntime, this.supportJs);
+  CodegenResult(this.mainWasmFile, this.numModules);
+}
+
+class OptResult extends CompilationSuccess {
+  final String mainWasmFile;
+  final int numModules;
+
+  OptResult(this.mainWasmFile, this.numModules);
 }
 
 abstract class CompilationError extends CompilationResult {}
@@ -148,6 +145,43 @@ const List<String> _librariesToIndex = [
   "dart:typed_data",
 ];
 
+const List<String> _binaryenFlags = [
+  '--enable-gc',
+  '--enable-reference-types',
+  '--enable-multivalue',
+  '--enable-exception-handling',
+  '--enable-nontrapping-float-to-int',
+  '--enable-sign-ext',
+  '--enable-bulk-memory',
+  '--enable-threads',
+  '--no-inline=*<noInline>*',
+  '--closed-world',
+  '--traps-never-happen',
+  '--type-unfinalizing',
+  '-Os',
+  '--type-ssa',
+  '--gufa',
+  '-Os',
+  '--type-merging',
+  '-Os',
+  '--type-finalizing',
+  '--minimize-rec-groups',
+];
+
+const List<String> _binaryenFlagsMultiModule = [
+  '--enable-gc',
+  '--enable-reference-types',
+  '--enable-multivalue',
+  '--enable-exception-handling',
+  '--enable-nontrapping-float-to-int',
+  '--enable-sign-ext',
+  '--enable-bulk-memory',
+  '--enable-threads',
+  '--no-inline=*<noInline>*',
+  '--traps-never-happen',
+  '-Os',
+];
+
 /// Compile a Dart file into a Wasm module.
 ///
 /// Returns `null` if an error occurred during compilation. The
@@ -161,8 +195,7 @@ const List<String> _librariesToIndex = [
 /// mappings.
 Future<CompilationResult> compile(
     compiler.WasmCompilerOptions options,
-    FileSystem fileSystem,
-    Uri Function(String moduleName)? sourceMapUrlGenerator,
+    CompilerPhaseInputOutputManager ioManager,
     void Function(CfeDiagnosticMessage) handleDiagnosticMessage) async {
   final wasm.Mode mode;
   if (options.translatorOptions.jsCompatibility) {
@@ -177,15 +210,9 @@ Future<CompilationResult> compile(
       removeAsserts: !options.translatorOptions.enableAsserts,
       mode: mode);
 
-  if (options.multiRootScheme != null) {
-    fileSystem = MultiRootFileSystem(
-        options.multiRootScheme!,
-        options.multiRoots.isEmpty ? [Uri.base] : options.multiRoots,
-        fileSystem);
-  }
-
   CfeResult? cfeResult;
   TfaResult? tfaResult;
+  CodegenResult? codegenResult;
   CompilationResult? lastResult;
 
   for (final phase in options.phases) {
@@ -194,7 +221,8 @@ Future<CompilationResult> compile(
         lastResult = await _runCfePhase(
           options,
           target,
-          fileSystem,
+          ioManager.fileSystem,
+          ioManager,
           handleDiagnosticMessage,
         );
         if (lastResult is! CfeResult) return lastResult;
@@ -202,31 +230,40 @@ Future<CompilationResult> compile(
 
       case compiler.CompilerPhase.tfa:
         lastResult = await _runTfaPhase(
-          cfeResult ?? await _loadCfeResult(options, fileSystem),
+          cfeResult ?? await _loadCfeResult(options, ioManager),
           options,
           target,
-          fileSystem,
+          ioManager,
         );
         if (lastResult is! TfaResult) return lastResult;
         tfaResult = lastResult;
 
       case compiler.CompilerPhase.codegen:
         lastResult = await _runCodegenPhase(
-            tfaResult ?? await _loadTfaResult(options, target, fileSystem),
+            tfaResult ?? await _loadTfaResult(options, target, ioManager),
             options,
-            fileSystem,
-            sourceMapUrlGenerator);
+            ioManager);
+
+        if (lastResult is! CodegenResult) return lastResult;
+        codegenResult = lastResult;
+
+      case compiler.CompilerPhase.opt:
+        lastResult = await _runOptPhase(
+            codegenResult ?? await _loadCodegenResult(options, ioManager),
+            options,
+            ioManager);
+
+        if (lastResult is! OptResult) return lastResult;
     }
   }
 
   return lastResult!;
 }
 
-Future<CfeResult> _loadCfeResult(
-    compiler.WasmCompilerOptions options, FileSystem fileSystem) async {
-  final component = loadComponentFromBytes(
-      await File.fromUri((await _resolveUri(fileSystem, options.mainUri))!)
-          .readAsBytes());
+Future<CfeResult> _loadCfeResult(compiler.WasmCompilerOptions options,
+    CompilerPhaseInputOutputManager ioManager) async {
+  final component = Component();
+  await ioManager.readComponent(options.mainUri, component);
   final coreTypes = CoreTypes(component);
   return CfeResult(component, coreTypes);
 }
@@ -235,6 +272,7 @@ Future<CompilationResult> _runCfePhase(
     compiler.WasmCompilerOptions options,
     WasmTarget target,
     FileSystem fileSystem,
+    CompilerPhaseInputOutputManager ioManager,
     void Function(CfeDiagnosticMessage) handleDiagnosticMessage) async {
   var hadCompileTimeError = false;
   void diagnosticMessageHandler(CfeDiagnosticMessage message) {
@@ -276,10 +314,7 @@ Future<CompilationResult> _runCfePhase(
   if (isDynamicMainModule) {
     final dynamicInterfaceUri = options.dynamicInterfaceUri;
     if (dynamicInterfaceUri != null) {
-      final resolvedDynamicInterfaceUri =
-          await _resolveUri(fileSystem, dynamicInterfaceUri);
-      final contents =
-          File.fromUri(resolvedDynamicInterfaceUri!).readAsStringSync();
+      final contents = await ioManager.readString(dynamicInterfaceUri);
       final dynamicInterfaceYamlFile = DynamicInterfaceYamlFile(contents);
       additionalSources = dynamicInterfaceYamlFile
           .getUserLibraryUris(dynamicInterfaceUri)
@@ -288,7 +323,7 @@ Future<CompilationResult> _runCfePhase(
   }
 
   final dynamicMainModuleUri =
-      await _resolveUri(fileSystem, options.dynamicMainModuleUri);
+      await ioManager.resolveUri(options.dynamicMainModuleUri);
   final isDynamicSubmodule =
       options.dynamicModuleType == DynamicModuleType.submodule;
   if (isDynamicSubmodule) {
@@ -324,35 +359,43 @@ Future<CompilationResult> _runCfePhase(
   final component = compilerResult!.component!;
 
   if (options.dumpKernelAfterCfe != null) {
-    writeComponentToText(component,
-        path: options.dumpKernelAfterCfe!, showMetadata: true);
+    ioManager.writeComponentAsText(component, options.dumpKernelAfterCfe!);
+  }
+
+  if (options.emitCfe) {
+    await ioManager.writeComponent(component, options.outputFile);
   }
 
   return CfeResult(component, compilerResult.coreTypes!);
 }
 
 Future<TfaResult> _loadTfaResult(compiler.WasmCompilerOptions options,
-    WasmTarget target, FileSystem fileSystem) async {
+    WasmTarget target, CompilerPhaseInputOutputManager ioManager) async {
   final component = createEmptyComponent();
   final recordClassesRepository = _RecordClassesRepository();
   final interopMethodsRepository = _InteropMethodsRepository();
   component.addMetadataRepository(recordClassesRepository);
   component.addMetadataRepository(interopMethodsRepository);
 
-  BinaryBuilderWithMetadata(
-          await File.fromUri((await _resolveUri(fileSystem, options.mainUri))!)
-              .readAsBytes())
-      .readComponent(component);
+  await ioManager.readComponent(options.mainUri, component);
+
   final coreTypes = CoreTypes(component);
   final libraryIndex = LibraryIndex(component, _librariesToIndex);
   final classHierarchy = ClassHierarchy(component, coreTypes);
   final dynamicMainModuleUri =
-      await _resolveUri(fileSystem, options.dynamicMainModuleUri);
+      await ioManager.resolveUri(options.dynamicMainModuleUri);
   final dynamicInterfaceUri =
-      await _resolveUri(fileSystem, options.dynamicInterfaceUri);
+      await ioManager.resolveUri(options.dynamicInterfaceUri);
 
-  final moduleStrategy = _createModuleStrategy(options, component, coreTypes,
-      target, classHierarchy, dynamicMainModuleUri, dynamicInterfaceUri);
+  final moduleStrategy = await _createModuleStrategy(
+      options,
+      ioManager,
+      component,
+      coreTypes,
+      target,
+      classHierarchy,
+      dynamicMainModuleUri,
+      dynamicInterfaceUri);
 
   final recordClasses = <RecordShape, Class>{};
   recordClassesRepository.mapping.forEach((cls, shape) {
@@ -368,7 +411,7 @@ Future<TfaResult> _loadTfaResult(compiler.WasmCompilerOptions options,
 
   if (isDynamicSubmodule) {
     mainModuleMetadata =
-        await deserializeMainModuleMetadata(component, options);
+        await deserializeMainModuleMetadata(component, ioManager);
     mainModuleMetadata.verifyDynamicSubmoduleOptions(options);
   } else if (isDynamicMainModule) {
     MainModuleMetadata.verifyMainModuleOptions(options);
@@ -382,7 +425,7 @@ Future<CompilationResult> _runTfaPhase(
     CfeResult cfeResult,
     compiler.WasmCompilerOptions options,
     WasmTarget target,
-    FileSystem fileSystem) async {
+    CompilerPhaseInputOutputManager ioManager) async {
   var CfeResult(:component, :coreTypes) = cfeResult;
 
   ClosedWorldClassHierarchy classHierarchy =
@@ -400,9 +443,9 @@ Future<CompilationResult> _runTfaPhase(
       classHierarchy);
 
   final dynamicMainModuleUri =
-      await _resolveUri(fileSystem, options.dynamicMainModuleUri);
+      await ioManager.resolveUri(options.dynamicMainModuleUri);
   final dynamicInterfaceUri =
-      await _resolveUri(fileSystem, options.dynamicInterfaceUri);
+      await ioManager.resolveUri(options.dynamicInterfaceUri);
   final isDynamicMainModule =
       options.dynamicModuleType == DynamicModuleType.main;
   final isDynamicSubmodule =
@@ -435,12 +478,18 @@ Future<CompilationResult> _runTfaPhase(
   target.recordClasses = recordClasses;
 
   if (options.dumpKernelBeforeTfa != null) {
-    writeComponentToText(component,
-        path: options.dumpKernelBeforeTfa!, showMetadata: true);
+    ioManager.writeComponentAsText(component, options.dumpKernelBeforeTfa!);
   }
 
-  final moduleStrategy = _createModuleStrategy(options, component, coreTypes,
-      target, classHierarchy, dynamicMainModuleUri, dynamicInterfaceUri);
+  final moduleStrategy = await _createModuleStrategy(
+      options,
+      ioManager,
+      component,
+      coreTypes,
+      target,
+      classHierarchy,
+      dynamicMainModuleUri,
+      dynamicInterfaceUri);
 
   // Ensure we annotate AST nodes as entry points prior to other transformations
   // looking at pragmas (such as mixin_deduplication and TFA).
@@ -469,11 +518,12 @@ Future<CompilationResult> _runTfaPhase(
 
   if (isDynamicSubmodule) {
     mainModuleMetadata =
-        await deserializeMainModuleMetadata(component, options);
+        await deserializeMainModuleMetadata(component, ioManager);
     mainModuleMetadata.verifyDynamicSubmoduleOptions(options);
   } else if (isDynamicMainModule) {
     MainModuleMetadata.verifyMainModuleOptions(options);
-    await serializeMainModuleComponent(component, dynamicMainModuleUri!,
+    await serializeMainModuleComponent(
+        ioManager, component, dynamicMainModuleUri!,
         optimized: false);
   }
 
@@ -498,7 +548,7 @@ Future<CompilationResult> _runTfaPhase(
     libraryIndex = LibraryIndex(component, _librariesToIndex);
   }
 
-  if (options.phases.last == compiler.CompilerPhase.tfa) {
+  if (options.emitTfa) {
     // Store metadata needed for codegen so that it can be serialized.
     final recordClassesRepo = _RecordClassesRepository();
     recordClasses.forEach((shape, cls) {
@@ -520,19 +570,27 @@ Future<CompilationResult> _runTfaPhase(
   }());
 
   if (options.dumpKernelAfterTfa != null) {
-    writeComponentToText(component,
-        path: options.dumpKernelAfterTfa!, showMetadata: true);
+    ioManager.writeComponentAsText(component, options.dumpKernelAfterTfa!);
+  }
+
+  if (options.emitTfa) {
+    await ioManager.writeComponent(component, options.outputFile);
   }
 
   return TfaResult(component, coreTypes, libraryIndex, moduleStrategy,
       mainModuleMetadata, jsInteropMethods, recordClasses);
 }
 
+Future<CodegenResult> _loadCodegenResult(compiler.WasmCompilerOptions options,
+    CompilerPhaseInputOutputManager ioManager) async {
+  return CodegenResult(options.mainUri.toFilePath(),
+      await ioManager.getModuleCount(options.mainUri));
+}
+
 Future<CompilationResult> _runCodegenPhase(
     TfaResult tfaSuccess,
     compiler.WasmCompilerOptions options,
-    FileSystem fileSystem,
-    Uri Function(String moduleName)? sourceMapUrlGenerator) async {
+    CompilerPhaseInputOutputManager ioManager) async {
   final TfaResult(
     :component,
     :coreTypes,
@@ -558,29 +616,32 @@ Future<CompilationResult> _runCodegenPhase(
 
   String? depFile = options.depFile;
   if (depFile != null) {
-    writeDepfile(
-        fileSystem, component.uriToSource.keys, options.outputFile, depFile);
+    writeDepfile(ioManager.fileSystem, component.uriToSource.keys,
+        options.outputFile, depFile);
   }
 
   final generateSourceMaps = options.translatorOptions.generateSourceMaps;
-  final modules = translator.translate(sourceMapUrlGenerator);
-  final wasmModules = <String, ({Uint8List moduleBytes, String? sourceMap})>{};
+  final modules = translator.translate(ioManager.sourceMapUrlGenerator);
+  final writeFutures = <Future<void>>[];
   modules.forEach((moduleOutput, module) {
     if (moduleOutput.skipEmit) return;
     final serializer = Serializer();
     module.serialize(serializer);
-    final wasmModuleSerialized = serializer.data;
+    writeFutures.add(
+        ioManager.writeWasmModule(serializer.data, moduleOutput.moduleName));
 
-    final sourceMap =
-        generateSourceMaps ? serializer.sourceMapSerializer.serialize() : null;
-    wasmModules[moduleOutput.moduleName] =
-        (moduleBytes: wasmModuleSerialized, sourceMap: sourceMap);
+    if (generateSourceMaps) {
+      final sourceMap = serializer.sourceMapSerializer.serialize();
+      writeFutures.add(
+          ioManager.writeWasmSourceMap(sourceMap, moduleOutput.moduleName));
+    }
   });
+  await Future.wait(writeFutures);
 
   final jsRuntimeFinalizer = js.RuntimeFinalizer(jsInteropMethods);
 
   final dynamicMainModuleUri =
-      await _resolveUri(fileSystem, options.dynamicMainModuleUri);
+      await ioManager.resolveUri(options.dynamicMainModuleUri);
   final isDynamicMainModule =
       options.dynamicModuleType == DynamicModuleType.main;
   final isDynamicSubmodule =
@@ -602,8 +663,9 @@ Future<CompilationResult> _runCodegenPhase(
 
   final supportJs = _generateSupportJs(options.translatorOptions);
   if (isDynamicMainModule) {
-    await serializeMainModuleMetadata(component, translator, options);
-    await serializeMainModuleComponent(component, dynamicMainModuleUri!,
+    await serializeMainModuleMetadata(component, translator, ioManager);
+    await serializeMainModuleComponent(
+        ioManager, component, dynamicMainModuleUri!,
         optimized: true);
   }
 
@@ -612,17 +674,39 @@ Future<CompilationResult> _runCodegenPhase(
     await writeLoadIdsFile(component, coreTypes, options, loadingMap);
   }
 
-  return CodegenResult(wasmModules, jsRuntime, supportJs);
+  await ioManager.writeJsRuntime(jsRuntime);
+  await ioManager.writeSupportJs(supportJs);
+
+  return CodegenResult(options.outputFile, modules.length);
 }
 
-ModuleStrategy _createModuleStrategy(
+Future<CompilationResult> _runOptPhase(
+    CodegenResult codegenResult,
     compiler.WasmCompilerOptions options,
+    CompilerPhaseInputOutputManager ioManager) async {
+  final futures = <Future<void>>[];
+  final numModules = codegenResult.numModules;
+  for (int i = 0; i < numModules; i++) {
+    futures.add(ioManager.runWasmOpt(
+        codegenResult.mainWasmFile,
+        i,
+        options.useMultiModuleOpt
+            ? _binaryenFlagsMultiModule
+            : _binaryenFlags));
+  }
+  await Future.wait(futures);
+  return OptResult(options.outputFile, numModules);
+}
+
+Future<ModuleStrategy> _createModuleStrategy(
+    compiler.WasmCompilerOptions options,
+    CompilerPhaseInputOutputManager ioManager,
     Component component,
     CoreTypes coreTypes,
     WasmTarget target,
     ClassHierarchy classHierarchy,
     Uri? dynamicMainModuleUri,
-    Uri? dynamicInterfaceUri) {
+    Uri? dynamicInterfaceUri) async {
   final isDynamicMainModule =
       options.dynamicModuleType == DynamicModuleType.main;
   final isDynamicSubmodule =
@@ -637,7 +721,7 @@ ModuleStrategy _createModuleStrategy(
         component,
         coreTypes,
         options,
-        File.fromUri(dynamicInterfaceUri!).readAsStringSync(),
+        await ioManager.readString(dynamicInterfaceUri!),
         options.dynamicInterfaceUri!);
   } else if (isDynamicSubmodule) {
     return DynamicSubmoduleStrategy(
@@ -675,15 +759,6 @@ void _patchMainTearOffs(CoreTypes coreTypes, Component component) {
   if (mainHasType(mainArg2Type)) return patchToReturnMainTearOff(mainTearOff2);
   if (mainHasType(mainArg1Type)) return patchToReturnMainTearOff(mainTearOff1);
   if (mainHasType(mainArg0Type)) return patchToReturnMainTearOff(mainTearOff0);
-}
-
-Future<Uri?> _resolveUri(FileSystem fileSystem, Uri? uri) async {
-  if (uri == null) return null;
-  var fileSystemEntity = fileSystem.entityForUri(uri);
-  if (fileSystemEntity is MultiRootFileSystemEntity) {
-    fileSystemEntity = await fileSystemEntity.delegate;
-  }
-  return fileSystemEntity.uri;
 }
 
 class _RecordClassesRepository extends MetadataRepository<RecordShape> {
@@ -779,10 +854,4 @@ String _generateSupportJs(TranslatorOptions options) {
     if (options.requireJsStringBuiltin) supportsJsStringBuiltins
   ];
   return '(${requiredFeatures.join('&&')})';
-}
-
-String writeComponentToString(Component component) {
-  final buffer = StringBuffer();
-  Printer(buffer).writeComponentFile(component);
-  return '$buffer';
 }

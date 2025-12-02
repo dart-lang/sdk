@@ -44,15 +44,16 @@ import 'util.dart' as util;
 class TranslatorOptions {
   bool enableAsserts = false;
   bool importSharedMemory = false;
-  bool inlining = true;
+  int optimizationLevel = 1;
+  bool? inliningOverride;
   bool jsCompatibility = false;
-  bool omitImplicitTypeChecks = false;
+  bool? omitImplicitTypeChecksOverride;
   bool omitExplicitTypeChecks = false;
-  bool omitBoundsChecks = false;
+  bool? omitBoundsChecksOverride;
   bool polymorphicSpecialization = false;
   bool printKernel = false;
   bool printWasm = false;
-  bool minify = false;
+  bool? minifyOverride;
   bool verifyTypeChecks = false;
   bool verbose = false;
   bool enableExperimentalFfi = false;
@@ -67,18 +68,26 @@ class TranslatorOptions {
   bool requireJsStringBuiltin = false;
   List<int> watchPoints = [];
 
+  bool get inlining => inliningOverride ?? optimizationLevel >= 1;
+  bool get minify => minifyOverride ?? optimizationLevel >= 2;
+  bool get omitImplicitTypeChecks =>
+      omitImplicitTypeChecksOverride ?? optimizationLevel >= 3;
+  bool get omitBoundsChecks =>
+      omitBoundsChecksOverride ?? optimizationLevel >= 4;
+
   void serialize(DataSerializer sink) {
     sink.writeBool(enableAsserts);
     sink.writeBool(importSharedMemory);
-    sink.writeBool(inlining);
+    sink.writeInt(optimizationLevel);
+    sink.writeNullable(inliningOverride, sink.writeBool);
     sink.writeBool(jsCompatibility);
-    sink.writeBool(omitImplicitTypeChecks);
+    sink.writeNullable(omitImplicitTypeChecksOverride, sink.writeBool);
     sink.writeBool(omitExplicitTypeChecks);
-    sink.writeBool(omitBoundsChecks);
+    sink.writeNullable(omitBoundsChecksOverride, sink.writeBool);
     sink.writeBool(polymorphicSpecialization);
     sink.writeBool(printKernel);
     sink.writeBool(printWasm);
-    sink.writeBool(minify);
+    sink.writeNullable(minifyOverride, sink.writeBool);
     sink.writeBool(verifyTypeChecks);
     sink.writeBool(verbose);
     sink.writeBool(enableExperimentalFfi);
@@ -97,15 +106,17 @@ class TranslatorOptions {
     final TranslatorOptions options = TranslatorOptions();
     options.enableAsserts = source.readBool();
     options.importSharedMemory = source.readBool();
-    options.inlining = source.readBool();
+    options.optimizationLevel = source.readInt();
+    options.inliningOverride = source.readNullable(source.readBool);
     options.jsCompatibility = source.readBool();
-    options.omitImplicitTypeChecks = source.readBool();
+    options.omitImplicitTypeChecksOverride =
+        source.readNullable(source.readBool);
     options.omitExplicitTypeChecks = source.readBool();
-    options.omitBoundsChecks = source.readBool();
+    options.omitBoundsChecksOverride = source.readNullable(source.readBool);
     options.polymorphicSpecialization = source.readBool();
     options.printKernel = source.readBool();
     options.printWasm = source.readBool();
-    options.minify = source.readBool();
+    options.minifyOverride = source.readNullable(source.readBool);
     options.verifyTypeChecks = source.readBool();
     options.verbose = source.readBool();
     options.enableExperimentalFfi = source.readBool();

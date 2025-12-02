@@ -723,86 +723,6 @@ class CompileWasmCommand extends CompileSubcommandCommand {
   static const String commandName = 'wasm';
   static const String help = 'Compile Dart to a WebAssembly/WasmGC module.';
 
-  // The unique place where we store various flags for dart2wasm & binaryen.
-  //
-  // Other uses (e.g. pkg/dart2wasm/tool/compile_benchmark) will grep in this
-  // file for the flags. So please keep the formatting.
-
-  final List<String> binaryenFlags = _flagList('''
-      --enable-gc
-      --enable-reference-types
-      --enable-multivalue
-      --enable-exception-handling
-      --enable-nontrapping-float-to-int
-      --enable-sign-ext
-      --enable-bulk-memory
-      --enable-threads
-
-      --no-inline=*<noInline>*
-
-      --closed-world
-      --traps-never-happen
-      --type-unfinalizing
-      -Os
-      --type-ssa
-      --gufa
-      -Os
-      --type-merging
-      -Os
-      --type-finalizing
-      --minimize-rec-groups
-    '''); // end of binaryenFlags
-
-  final List<String> binaryenFlagsDeferredLoading = _flagList('''
-      --enable-gc
-      --enable-reference-types
-      --enable-multivalue
-      --enable-exception-handling
-      --enable-nontrapping-float-to-int
-      --enable-sign-ext
-      --enable-bulk-memory
-      --enable-threads
-
-      --no-inline=*<noInline>*
-
-      --traps-never-happen
-      -Os
-    '''); // end of binaryenFlagsDeferredLoading
-
-  final List<String> optimizationLevel0Flags = _flagList('''
-      --no-inlining
-      --no-minify
-    '''); // end of optimizationLevel0Flags
-
-  final List<String> optimizationLevel1Flags = _flagList('''
-      --inlining
-      --no-minify
-    '''); // end of optimizationLevel1Flags
-
-  final List<String> optimizationLevel2Flags = _flagList('''
-      --inlining
-      --minify
-    '''); // end of optimizationLevel2Flags
-
-  final List<String> optimizationLevel3Flags = _flagList('''
-      --inlining
-      --minify
-      --omit-implicit-checks
-    '''); // end of optimizationLevel3Flags
-
-  final List<String> optimizationLevel4Flags = _flagList('''
-      --inlining
-      --minify
-      --omit-implicit-checks
-      --omit-bounds-checks
-    '''); // end of optimizationLevel4Flags
-
-  static List<String> _flagList(String lines) => lines
-      .split('\n')
-      .map((line) => line.trim())
-      .where((line) => line.isNotEmpty)
-      .toList();
-
   CompileWasmCommand({bool verbose = false})
       : super(commandName, help, verbose) {
     argParser
@@ -857,6 +777,14 @@ class CompileWasmCommand extends CompileSubcommandCommand {
         valueHelp: 'page count',
         hide: !verbose,
       )
+      ..addMultiOption('phases',
+          help: 'Specifies which phases of the dart2wasm compiler to run. Each '
+              'phase will emit a partial result that is then the input to the '
+              'next phase.',
+          allowed: ['cfe', 'tfa', 'codegen', 'opt'],
+          defaultsTo: ['cfe', 'tfa', 'codegen', 'opt'],
+          hide: !verbose,
+          splitCommas: true)
       ..addMultiOption(
         'extra-compiler-option',
         abbr: 'E',
@@ -872,13 +800,6 @@ class CompileWasmCommand extends CompileSubcommandCommand {
         allowed: ['0', '1', '2', '3', '4'],
         defaultsTo: '1',
         valueHelp: 'level',
-        allowedHelp: {
-          '0': optimizationLevel0Flags.join(' '),
-          '1': optimizationLevel1Flags.join(' '),
-          '2': optimizationLevel2Flags.join(' '),
-          '3': optimizationLevel3Flags.join(' '),
-          '4': optimizationLevel4Flags.join(' '),
-        },
         hide: !verbose,
       )
       ..addFlag(
@@ -964,42 +885,22 @@ class CompileWasmCommand extends CompileSubcommandCommand {
       }
     }
 
-    final isDeferredLoading = args.flag('enable-deferred-loading');
-    // Used in testing to force multiple modules.
-    final isMultiStressTestMode = extraCompilerOptions
-        .any((e) => e.contains('enable-multi-module-stress-test'));
-    final isMultiModule = isDeferredLoading || isMultiStressTestMode;
-    final optimizationLevel = int.parse(args.option('optimization-level')!);
-
-    final runWasmOpt =
-        optimizationLevel >= 1 && path.extension(outputFile) == '.wasm';
-
-    if (runWasmOpt && !checkArtifactExists(sdk.wasmOpt)) {
-      return 255;
+    int? optimizationLevel;
+    List<String> phases = args.multiOption('phases');
+    if (args.wasParsed('phases')) {}
+    if (args.option('optimization-level') != null) {
+      optimizationLevel = int.tryParse(args.option('optimization-level')!);
+      if (optimizationLevel == null) {
+        usageException(
+            'Error: The --optimization-level flag must specify a number!');
+      }
+      if (optimizationLevel == 0) {
+        if (!args.wasParsed('phases')) {
+          // Don't add the opt phase.
+          phases.removeLast();
+        }
+      }
     }
-
-    void handleOverride(List<String> flags, String name, bool? value) {
-      // If no override provided, default to what -O implies.
-      if (value == null) return;
-
-      flags.removeWhere((option) => option == '--no-$name');
-      flags.removeWhere((option) => option == '--$name');
-
-      // Explicitly use the flag value, irrespective of -O settings.
-      value ? flags.add('--$name') : flags.add('--no-$name');
-    }
-
-    final optimizationFlags = (switch (optimizationLevel) {
-      0 => optimizationLevel0Flags,
-      1 => optimizationLevel1Flags,
-      2 => optimizationLevel2Flags,
-      3 => optimizationLevel3Flags,
-      4 => optimizationLevel4Flags,
-      _ => throw 'unreachable',
-    })
-        .toList();
-    handleOverride(optimizationFlags, 'minify',
-        args.wasParsed('minify') ? args.flag('minify') : null);
 
     final generateSourceMap = args.flag('source-maps');
     final enabledExperiments = args.enabledExperiments;
@@ -1013,20 +914,19 @@ class CompileWasmCommand extends CompileSubcommandCommand {
       if (args.flag('print-kernel')) '--print-kernel',
       if (args.flag(enableAssertsOption.flag)) '--${enableAssertsOption.flag}',
       if (!generateSourceMap) '--no-source-maps',
-      if (isDeferredLoading) '--enable-deferred-loading',
+      if (optimizationLevel != null) '--optimization-level=$optimizationLevel',
+      if (args.flag('minify')) '--minify',
+      if (args.flag('strip-wasm')) '--strip-wasm',
+      if (args.flag('enable-deferred-loading')) '--enable-deferred-loading',
       for (final define in defines) '-D$define',
       if (maxPages != null) ...[
         '--import-shared-memory',
         '--shared-memory-max-pages=$maxPages',
       ],
+      '--phases=${phases.join(",")}',
+      '--wasm-opt=${sdk.wasmOpt}',
       ...enabledExperiments.map((e) => '--enable-experiment=$e'),
-
-      // First we pass flags based on the optimization level.
-      ...optimizationFlags,
-
-      // Then we pass any extra compiler flags through.
       ...extraCompilerOptions,
-
       sourcePath,
       outputFile,
     ];
@@ -1042,100 +942,14 @@ class CompileWasmCommand extends CompileSubcommandCommand {
       return compileErrorExitCode;
     }
 
-    final bool strip = args.flag('strip-wasm');
-
     // When running in dry run mode there will not be any file emitted.
     final isDryRun = extraCompilerOptions.any((e) => e.contains('dry-run'));
 
     if (isDryRun) return 0;
 
-    if (runWasmOpt) {
-      if (isMultiModule) {
-        // Iterate over all matching wasm files and optimize them concurrently
-        // in different processes.
-        final outputFiles = await _listMultiWasmModules(
-            path.dirname(outputFile), outputFileBasename);
-        final futures = <Future<int>>[];
-        for (final f in outputFiles) {
-          final baseFileName = path.setExtension(f.path, '');
-          futures.add(optimize(baseFileName, f.path,
-              deferredLoadingEnabled: true,
-              generateSourceMap: generateSourceMap,
-              strip: strip));
-        }
-        final exitCode = (await Future.wait(futures))
-            .firstWhere((r) => r != 0, orElse: () => 0);
-        if (exitCode != 0) return exitCode;
-      } else {
-        final exitCode = await optimize(outputFileBasename, outputFile,
-            deferredLoadingEnabled: false,
-            generateSourceMap: generateSourceMap,
-            strip: strip);
-        if (exitCode != 0) return exitCode;
-      }
-    }
-
     final mjsFile = '$outputFileBasename.mjs';
     log.stdout(
         "Generated wasm module '$outputFile', and JS init file '$mjsFile'.");
-    return 0;
-  }
-
-  Future<List<File>> _listMultiWasmModules(
-      String outputDir, String outputFileBasename) async {
-    final files = <File>[];
-    final outputFiles = await Directory(outputDir).list().toList();
-    // When multiple modules are produced from wasm (e.g. with deferred
-    // loading), the compiler emits files:
-    // - basename.wasm (main module)
-    // - basename_module{1...N}.wasm (extra modules)
-    for (final f in outputFiles) {
-      if (f is! File) continue;
-      if (!path.split(f.path).last.startsWith(outputFileBasename)) continue;
-      if (path.extension(f.path) != '.wasm') continue;
-
-      files.add(f);
-    }
-    return files;
-  }
-
-  Future<int> optimize(String outputFileBasename, String outputFile,
-      {required bool deferredLoadingEnabled,
-      required bool generateSourceMap,
-      required bool strip}) async {
-    final unoptFile = '$outputFileBasename.unopt.wasm';
-    File(outputFile).renameSync(unoptFile);
-
-    final unoptSourceMapFile = '$outputFileBasename.unopt.wasm.map';
-    if (generateSourceMap) {
-      File('$outputFile.map').renameSync(unoptSourceMapFile);
-    }
-
-    final flags = [
-      ...(deferredLoadingEnabled
-          ? binaryenFlagsDeferredLoading
-          : binaryenFlags),
-      if (!strip) '-g',
-      if (generateSourceMap) ...[
-        '-ism',
-        unoptSourceMapFile,
-        '-osm',
-        '$outputFile.map'
-      ]
-    ];
-
-    if (verbose) {
-      log.stdout('Optimizing output with: ${sdk.wasmOpt} $flags');
-    }
-    final processResult = Process.runSync(
-      sdk.wasmOpt,
-      [...flags, '-o', outputFile, unoptFile],
-    );
-    if (processResult.exitCode != 0) {
-      log.stderr('Error: Wasm compilation failed while optimizing output');
-      log.stderr(processResult.stderr);
-      return compileErrorExitCode;
-    }
     return 0;
   }
 }

@@ -4,13 +4,10 @@
 
 import 'package:kernel/ast.dart';
 import 'package:kernel/core_types.dart';
-import 'package:path/path.dart' as path;
 
 import 'compiler_options.dart';
 import 'target.dart';
 import 'util.dart';
-
-const _mainModuleId = 0;
 
 Library? _enclosingLibraryForReference(Reference reference) {
   TreeNode? current = reference.node;
@@ -24,7 +21,7 @@ Library? _enclosingLibraryForReference(Reference reference) {
 }
 
 class ModuleMetadataBuilder {
-  int _counter = _mainModuleId;
+  int _counter = WasmCompilerOptions.mainModuleId;
   final WasmCompilerOptions options;
 
   ModuleMetadataBuilder(this.options);
@@ -34,14 +31,9 @@ class ModuleMetadataBuilder {
     final id = _counter++;
     final moduleImportName =
         options.translatorOptions.minify ? intToMinString(id) : 'module$id';
-    return ModuleMetadata._(
-        moduleImportName,
-        emitAsMain || id == _mainModuleId
-            ? path.basename(options.outputFile)
-            : path.basename(
-                path.setExtension(options.outputFile, '_module$id.wasm')),
-        skipEmit: skipEmit,
-        isMain: id == _mainModuleId);
+    return ModuleMetadata._(moduleImportName,
+        options.moduleNameForId(options.outputFile, id, emitAsMain: emitAsMain),
+        skipEmit: skipEmit, isMain: id == WasmCompilerOptions.mainModuleId);
   }
 }
 
