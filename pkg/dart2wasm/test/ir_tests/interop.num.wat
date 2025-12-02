@@ -1,35 +1,37 @@
 (module $module0
   (type $#Top (struct
     (field $field0 i32)))
-  (type $_Type (sub $#Top (struct
-    (field $field0 i32)
-    (field $isDeclaredNullable i32))))
+  (type $Array<WasmArray<_Type>> (array (field (mut (ref $Array<_Type>)))))
   (type $Array<_Type> (array (field (mut (ref $_Type)))))
   (type $BoxedDouble (sub final $#Top (struct
     (field $field0 i32)
     (field $value f64))))
+  (type $_Environment (struct
+    (field $depth i64)))
   (type $_TopType (sub final $_Type (struct
     (field $field0 i32)
     (field $isDeclaredNullable i32))))
-  (type $_Environment (struct
-    (field $depth i64)))
-  (type $Array<WasmArray<_Type>> (array (field (mut (ref $Array<_Type>)))))
-  (func $"dart2wasm._274 (import)" (import "dart2wasm" "_274") (param externref) (result externref))
-  (func $"dart2wasm._275 (import)" (import "dart2wasm" "_275") (param externref) (result externref))
+  (type $_Type (sub $#Top (struct
+    (field $field0 i32)
+    (field $isDeclaredNullable i32))))
   (func $"dart2wasm._147 (import)" (import "dart2wasm" "_147") (param externref) (result f64))
   (func $"dart2wasm._148 (import)" (import "dart2wasm" "_148") (param f64) (result externref))
-  (table $dtable1 745 funcref)
+  (func $"dart2wasm._274 (import)" (import "dart2wasm" "_274") (param externref) (result externref))
+  (func $"dart2wasm._275 (import)" (import "dart2wasm" "_275") (param externref) (result externref))
+  (table $dtable0 745 funcref)
+  (global $"C319 _TopType" (ref $_TopType) <...>)
+  (global $"C66 WasmArray<WasmArray<_Type>>[729]" (ref $Array<WasmArray<_Type>>) <...>)
+  (global $"ktrue initialized" (mut i32) <...>)
+  (global $"numValueNullable initialized" (mut i32) <...>)
   (global $ktrue (mut i32) <...>)
   (global $numValue (mut (ref null $#Top)) <...>)
-  (global $"ktrue initialized" (mut i32) <...>)
-  (global $"C66 WasmArray<WasmArray<_Type>>[729]" (ref $Array<WasmArray<_Type>>) <...>)
-  (global $"C319 _TopType" (ref $_TopType) <...>)
-  (global $"numValueNullable initialized" (mut i32) <...>)
   (global $numValueNullable (mut (ref null $#Top)) <...>)
-  (elem $dtable1 <...>)
-  (func $_TypeUniverse.isSubtype (param $var0 (ref $_Type)) (param $var1 (ref null $_Environment)) (param $var2 (ref $_Type)) (param $var3 (ref null $_Environment)) (result i32) <...>)
-  (func $_TypeUniverse._checkSubclassRelationshipViaTable (param $var0 i32) (param $var1 i32) (result i32) <...>)
-  (func $_TypeUniverse.substituteTypeArgument (param $var0 (ref $_Type)) (param $var1 (ref $Array<_Type>)) (result (ref $_Type)) <...>)
+  (elem $dtable0 <...>)
+  (func $_throwArgumentNullError <noInline>  <...>)
+  (func $ktrue implicit getter (result i32) <...>)
+  (func $numValue implicit getter (result (ref $#Top)) <...>)
+  (func $sinkNum <noInline> (param $var0 f64) <...>)
+  (func $sinkNumNullable <noInline> (param $var0 (ref null $BoxedDouble)) <...>)
   (func $"testNumConstant <noInline>"
     (local $var0 externref)
     i64.const 1
@@ -281,12 +283,10 @@
     end
     call $"sinkNumNullable <noInline>"
   )
+  (func $_TypeUniverse._checkSubclassRelationshipViaTable (param $var0 i32) (param $var1 i32) (result i32) <...>)
+  (func $_TypeUniverse.isSubtype (param $var0 (ref $_Type)) (param $var1 (ref null $_Environment)) (param $var2 (ref $_Type)) (param $var3 (ref null $_Environment)) (result i32) <...>)
+  (func $_TypeUniverse.substituteTypeArgument (param $var0 (ref $_Type)) (param $var1 (ref $Array<_Type>)) (result (ref $_Type)) <...>)
   (func $isDartNull (param $var0 externref) (result i32) <...>)
-  (func $sinkNumNullable <noInline> (param $var0 (ref null $BoxedDouble)) <...>)
-  (func $jsifyNum (param $var0 (ref $#Top)) (result externref) <...>)
   (func $jsifyInt (param $var0 i64) (result externref) <...>)
-  (func $_throwArgumentNullError <noInline>  <...>)
-  (func $ktrue implicit getter (result i32) <...>)
-  (func $numValue implicit getter (result (ref $#Top)) <...>)
-  (func $sinkNum <noInline> (param $var0 f64) <...>)
+  (func $jsifyNum (param $var0 (ref $#Top)) (result externref) <...>)
 )

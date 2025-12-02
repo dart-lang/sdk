@@ -1,9 +1,6 @@
 (module $module1
   (type $#Top (struct
     (field $field0 i32)))
-  (type $Object (sub $#Top (struct
-    (field $field0 i32)
-    (field $field1 (mut i32)))))
   (type $JSStringImpl (sub final $Object (struct
     (field $field0 i32)
     (field $field1 (mut i32))
@@ -12,6 +9,9 @@
     (field $field0 i32)
     (field $field1 (mut i32))
     (field $b (ref $JSStringImpl)))))
+  (type $Object (sub $#Top (struct
+    (field $field0 i32)
+    (field $field1 (mut i32)))))
   (global $.h1-nonshared-const (import "" "h1-nonshared-const") (ref extern))
   (global $.shared-const (import "" "shared-const") (ref extern))
   (table $module0.constant-table0 (import "module0" "constant-table0") 1 (ref null $JSStringImpl))

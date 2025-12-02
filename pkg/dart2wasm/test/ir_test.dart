@@ -185,7 +185,8 @@ Module parseModule(Uint8List wasmBytes) {
         globalFilters: globalFilters,
         typeFilters: typeFilters,
         preferMultiline: true,
-        scrubAbsoluteUris: true),
+        scrubAbsoluteUris: true,
+        printInSortedOrder: true),
     compilerOptions
   );
 }

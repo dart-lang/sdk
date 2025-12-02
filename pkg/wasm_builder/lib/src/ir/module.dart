@@ -257,39 +257,27 @@ class Module implements Serializable {
     if (settings.hasFilters) {
       // If we have any filters, we treat those as roots.
       if (settings.typeFilters.isNotEmpty) {
-        for (final type in types.defined) {
-          final name = mp.typeNamer
-              .nameDefType(type, activateOnReferenceCallback: false);
-          if (settings.printTypeConstituents(name)) {
-            mp.enqueueType(type);
-          }
+        for (final type in mp.typeNamer.sort(mp.typeNamer
+            .filter(types.defined, settings.printTypeConstituents))) {
+          mp.enqueueType(type);
         }
       }
       if (settings.globalFilters.isNotEmpty) {
-        for (final global in globals.defined) {
-          final name = mp.globalNamer
-              .nameGlobal(global, activateOnReferenceCallback: false);
-          if (settings.printGlobalInitializer(name)) {
-            mp.enqueueGlobal(global);
-          }
+        for (final global in mp.globalNamer.sort(mp.globalNamer
+            .filter(globals.defined, settings.printGlobalInitializer))) {
+          mp.enqueueGlobal(global);
         }
       }
       if (settings.functionFilters.isNotEmpty) {
-        for (final function in functions.defined) {
-          final name = mp.functionNamer
-              .nameFunction(function, activateOnReferenceCallback: false);
-          if (settings.printFunctionBody(name)) {
-            mp.enqueueFunction(function);
-          }
+        for (final function in mp.functionNamer.sort(mp.functionNamer
+            .filter(functions.defined, settings.printFunctionBody))) {
+          mp.enqueueFunction(function);
         }
       }
       if (settings.tableFilters.isNotEmpty) {
-        for (final table in tables.defined) {
-          final name = mp.tableNamer
-              .nameTable(table, activateOnReferenceCallback: false);
-          if (settings.printFunctionBody(name)) {
-            mp.enqueueTable(table);
-          }
+        for (final table in mp.tableNamer.sort(mp.tableNamer
+            .filter(tables.defined, settings.printTableElements))) {
+          mp.enqueueTable(table);
         }
       }
     } else {
