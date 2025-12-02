@@ -21,10 +21,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 @reflectiveTest
 class MyRuleTest extends AnalysisRuleTest {
   @override
-  void setUp() {
-    rule = MyRule();
-    super.setUp();
-  }
+  String get analysisRule => 'my_rule';
 
   // Test cases go here.
 }
@@ -45,10 +42,8 @@ components of the `MyRuleTest` class.
   `AnalysisRuleTest`, from the `analyzer_testing` package, as a base.
   `AnalysisRuleTest` provides common functionality like `assertDiagnostics` and
   `newFile`.
-* `void setUp` - Override this method to provide some set-up code that is
-  executed before each test. This method must call `super.setUp()`. This method
-  is where we instantiate the analysis rule that we are testing:
-  `rule = MyRule();`.
+* `String get analysisRule` - Override this getter to specify which analysis rule
+  we are testing. This value must match your rule's diagnostic code's name.
 
 ## The test cases
 
