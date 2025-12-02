@@ -1,9 +1,6 @@
 (module $module0
   (type $#Top (struct
     (field $field0 i32)))
-  (type $Object (sub $#Top (struct
-    (field $field0 i32)
-    (field $field1 (mut i32)))))
   (type $JSStringImpl (sub final $Object (struct
     (field $field0 i32)
     (field $field1 (mut i32))
@@ -12,12 +9,14 @@
     (field $field0 i32)
     (field $field1 (mut i32))
     (field $b (ref $JSStringImpl)))))
-  (type $type1 (func 
+  (type $Object (sub $#Top (struct
+    (field $field0 i32)
+    (field $field1 (mut i32)))))
+  (type $type0 (func 
     (param $var0 i32)
     (result (ref $MyConstClass))))
-  (table $static0-0 (export "static0-0") 2 (ref null $type1))
+  (table $static0-0 (export "static0-0") 2 (ref null $type0))
   (global $"C378 \"bad\"" (ref $JSStringImpl) <...>)
-  (func $Error._throwWithCurrentStackTrace (param $var0 (ref $#Top)) <...>)
   (func $"mainImpl <noInline>" (param $var0 i32)
     (local $var1 (ref $MyConstClass))
     i64.const 0
@@ -38,5 +37,6 @@
       unreachable
     end
   )
+  (func $Error._throwWithCurrentStackTrace (param $var0 (ref $#Top)) <...>)
   (func $checkLibraryIsLoadedFromLoadId (param $var0 i64) <...>)
 )

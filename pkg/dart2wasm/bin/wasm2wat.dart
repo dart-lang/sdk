@@ -12,13 +12,31 @@ import 'package:wasm_builder/wasm_builder.dart';
 void main(List<String> args) {
   final result = argParser.parse(args);
   if (result.flag('help')) {
-    print('Usage: wasm2wat.dart [...options...] <input.wasm>');
+    print('Usage: wasm2wat.dart [...options...] <input.wasm> <...wasm>');
     print(argParser.usage);
-    exit(0);
+    exit(1);
   }
 
-  final input = result.rest.single;
-  final output = result['output'] as String?;
+  final sort = result.flag('sort');
+  final writeWat = result.flag('write');
+  final outputFile = result['output'] as String?;
+  final wasmFiles = result.rest;
+  if (outputFile != null && wasmFiles.length != 1) {
+    print('Specified --output=$outputFile but number of wasm files is not 1 '
+        '(${wasmFiles.join(' ')})');
+    print(argParser.usage);
+    exit(1);
+  }
+  if (wasmFiles.isEmpty) {
+    print('No wasm files specified');
+    print(argParser.usage);
+    exit(1);
+  }
+  if (wasmFiles.length > 1 && !writeWat) {
+    print('More than one wasm file specified without `--write` flag.');
+    print(argParser.usage);
+    exit(1);
+  }
 
   List<RegExp> getFilter(String optionName) {
     final filterStrings = result[optionName] as List<String>;
@@ -31,17 +49,24 @@ void main(List<String> args) {
   final settings = ModulePrintSettings(
       functionFilters: functionFilters,
       typeFilters: typeFilters,
-      globalFilters: globalFilters);
+      globalFilters: globalFilters,
+      printInSortedOrder: sort);
 
-  final wasmBytes = File(input).readAsBytesSync();
+  for (final input in wasmFiles) {
+    final wasmBytes = File(input).readAsBytesSync();
 
-  final deserializer = Deserializer(wasmBytes);
-  final module = Module.deserialize(deserializer);
-  final wat = module.printAsWat(settings: settings);
-  if (output != null) {
-    File(output).writeAsStringSync(wat);
-  } else {
-    print(wat);
+    final deserializer = Deserializer(wasmBytes);
+    final module = Module.deserialize(deserializer);
+    final wat = module.printAsWat(settings: settings);
+    if (outputFile != null) {
+      File(outputFile).writeAsStringSync(wat);
+      print('-> Written $outputFile');
+    } else if (writeWat) {
+      File('$input.wat').writeAsStringSync(wat);
+      print('-> Written $input.wat');
+    } else {
+      print(wat);
+    }
   }
 }
 
@@ -58,6 +83,11 @@ final argParser = ArgParser()
       abbr: 'g',
       help: 'Only print global initializers if the global name matches. '
           'The name filter is interpreted as a Dart `RegExp`.')
+  ..addFlag('sort',
+      abbr: 's',
+      help: 'Print functions/types/... in sorted order (sort by name).')
+  ..addFlag('write',
+      abbr: 'w', help: 'Write the resulting wat code to <input.wasm>.wat.')
   ..addFlag('help', abbr: 'h', help: 'Print the help of this tool.')
   ..addFlag('prefer-multiline',
       abbr: 'm',
@@ -67,4 +97,5 @@ final argParser = ArgParser()
   ..addOption('output',
       abbr: 'o',
       help:
-          'The filepath where the output will be written to (default: stdout).');
+          'The filepath where the output will be written to (default: stdout). '
+          'The number of input wasm files must be 1 if --output was provided.');

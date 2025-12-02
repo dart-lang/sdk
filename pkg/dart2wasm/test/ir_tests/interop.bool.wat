@@ -1,18 +1,23 @@
 (module $module0
   (type $#Top (struct
     (field $field0 i32)))
-  (func $"dart2wasm._274 (import)" (import "dart2wasm" "_274") (param externref) (result externref))
-  (func $"dart2wasm._275 (import)" (import "dart2wasm" "_275") (param externref) (result externref))
   (func $"dart2wasm._149 (import)" (import "dart2wasm" "_149") (param externref) (result i32))
   (func $"dart2wasm._150 (import)" (import "dart2wasm" "_150") (param i32) (result externref))
+  (func $"dart2wasm._274 (import)" (import "dart2wasm" "_274") (param externref) (result externref))
+  (func $"dart2wasm._275 (import)" (import "dart2wasm" "_275") (param externref) (result externref))
   (global $"C2 false" (ref $#Top) <...>)
   (global $"C40 true" (ref $#Top) <...>)
-  (global $ktrue (mut i32) <...>)
-  (global $boolValue (mut i32) <...>)
-  (global $"ktrue initialized" (mut i32) <...>)
   (global $"boolValue initialized" (mut i32) <...>)
   (global $"boolValueNullable initialized" (mut i32) <...>)
+  (global $"ktrue initialized" (mut i32) <...>)
+  (global $boolValue (mut i32) <...>)
   (global $boolValueNullable (mut (ref null $#Top)) <...>)
+  (global $ktrue (mut i32) <...>)
+  (func $_throwArgumentNullError <noInline>  <...>)
+  (func $boolValue implicit getter (result i32) <...>)
+  (func $ktrue implicit getter (result i32) <...>)
+  (func $sinkBool <noInline> (param $var0 i32) <...>)
+  (func $sinkBoolNullable <noInline> (param $var0 (ref null $#Top)) <...>)
   (func $"testBoolConstant <noInline>"
     (local $var0 externref)
     i32.const 1
@@ -119,11 +124,6 @@
     end
     call $"sinkBoolNullable <noInline>"
   )
-  (func $jsifyRaw (param $var0 (ref null $#Top)) (result externref) <...>)
   (func $isDartNull (param $var0 externref) (result i32) <...>)
-  (func $sinkBoolNullable <noInline> (param $var0 (ref null $#Top)) <...>)
-  (func $_throwArgumentNullError <noInline>  <...>)
-  (func $ktrue implicit getter (result i32) <...>)
-  (func $boolValue implicit getter (result i32) <...>)
-  (func $sinkBool <noInline> (param $var0 i32) <...>)
+  (func $jsifyRaw (param $var0 (ref null $#Top)) (result externref) <...>)
 )

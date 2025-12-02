@@ -11,17 +11,17 @@ class ModulePrinter {
   final ir.Module _module;
 
   late final typeNamer =
-      _TypeNamer(settings.scrubAbsoluteUris, _module, enqueueType);
+      TypeNamer(settings.scrubAbsoluteUris, _module, enqueueType);
   late final globalNamer =
-      _GlobalNamer(settings.scrubAbsoluteUris, _module, enqueueGlobal);
+      GlobalNamer(settings.scrubAbsoluteUris, _module, enqueueGlobal);
   late final functionNamer =
-      _FunctionNamer(settings.scrubAbsoluteUris, _module, enqueueFunction);
+      FunctionNamer(settings.scrubAbsoluteUris, _module, enqueueFunction);
   late final tagNamer =
-      _TagNamer(settings.scrubAbsoluteUris, _module, enqueueTag);
+      TagNamer(settings.scrubAbsoluteUris, _module, enqueueTag);
   late final tableNamer =
-      _TableNamer(settings.scrubAbsoluteUris, _module, enqueueTable);
+      TableNamer(settings.scrubAbsoluteUris, _module, enqueueTable);
   late final dataNamer =
-      _DataNamer(settings.scrubAbsoluteUris, _module, enqueueDataSegment);
+      DataNamer(settings.scrubAbsoluteUris, _module, enqueueDataSegment);
 
   final _types = <ir.DefType, String>{};
   final _tags = <ir.Tag, String>{};
@@ -50,7 +50,7 @@ class ModulePrinter {
       _types[type] = '';
       _generateDefType(type,
           includeConstituents: settings.printTypeConstituents(
-              typeNamer.nameDefType(type, activateOnReferenceCallback: false)));
+              typeNamer.name(type, activateOnReferenceCallback: false)));
     }
   }
 
@@ -58,8 +58,8 @@ class ModulePrinter {
     if (!_globals.containsKey(global)) {
       _globals[global] = '';
       _generateGlobal(global,
-          includeInitializer: settings.printGlobalInitializer(globalNamer
-              .nameGlobal(global, activateOnReferenceCallback: false)));
+          includeInitializer: settings.printGlobalInitializer(
+              globalNamer.name(global, activateOnReferenceCallback: false)));
     }
   }
 
@@ -104,7 +104,7 @@ class ModulePrinter {
           ):
           final printedEntries =
               _activeElementSegments.putIfAbsent(table, () => {});
-          if (settings.printTableElements(tableNamer.nameTable(segment.table,
+          if (settings.printTableElements(tableNamer.name(segment.table,
               activateOnReferenceCallback: false))) {
             for (int i = 0; i < entries.length; ++i) {
               final index = start + i;
@@ -124,7 +124,7 @@ class ModulePrinter {
           ):
           final printedEntries =
               _activeElementSegments.putIfAbsent(table, () => {});
-          if (settings.printTableElements(tableNamer.nameTable(segment.table,
+          if (settings.printTableElements(tableNamer.name(segment.table,
               activateOnReferenceCallback: false))) {
             for (int i = 0; i < expressions.length; ++i) {
               final index = start + i;
@@ -182,15 +182,34 @@ class ModulePrinter {
         final fun = _functionsQueue.removeFirst();
 
         _generateFunction(fun,
-            includingBody: settings.printFunctionBody(functionNamer
-                .nameFunction(fun, activateOnReferenceCallback: false)));
+            includingBody: settings.printFunctionBody(
+                functionNamer.name(fun, activateOnReferenceCallback: false)));
       }
     }
 
     final mp = IndentPrinter();
     mp.writeln('(module \$${_module.moduleName}');
     mp.withIndent(() {
-      for (final group in _module.types.recursionGroups) {
+      final groups = _module.types.recursionGroups
+          .where((group) => group.any((t) => _types.containsKey(t)))
+          .toList();
+      if (settings.printInSortedOrder) {
+        groups.sort((a, b) {
+          final firstA = typeNamer.name(
+              a.firstWhere((t) => !typeNamer
+                  .name(t, activateOnReferenceCallback: false)
+                  .startsWith('\$brand')),
+              activateOnReferenceCallback: false);
+          final firstB = typeNamer.name(
+              b.firstWhere((t) => !typeNamer
+                  .name(t, activateOnReferenceCallback: false)
+                  .startsWith('\$brand')),
+              activateOnReferenceCallback: false);
+          return firstA.compareTo(firstB);
+        });
+      }
+
+      for (final group in groups) {
         final filtered = group.where((t) => _types.containsKey(t)).toList();
         if (filtered.isNotEmpty) {
           if (filtered.length == 1) {
@@ -208,48 +227,28 @@ class ModulePrinter {
           }
         }
       }
-      for (final fun in _module.functions.imported) {
-        final s = _functions[fun];
-        if (s != null) {
-          mp.write(s);
+
+      void printOrdered<T>(
+          List<T> all, Namer<T> namer, Map<T, String> enqueued) {
+        /// Either we print the elements in the name order (defined by a
+        /// [Namer]) or we print them in same order as they appear in the wasm
+        /// module.
+        final filtered = all.where((v) => enqueued.containsKey(v)).toList();
+        for (final key in (settings.printInSortedOrder
+            ? namer.sort(filtered)
+            : filtered)) {
+          mp.write(enqueued[key]!);
           mp.writeln();
         }
       }
-      for (final global in _module.globals.imported) {
-        final s = _globals[global];
-        if (s != null) {
-          mp.write(s);
-          mp.writeln();
-        }
-      }
-      for (final table in _module.tables.imported) {
-        final s = _tables[table];
-        if (s != null) {
-          mp.write(s);
-          mp.writeln();
-        }
-      }
-      for (final table in _module.tables.defined) {
-        final s = _tables[table];
-        if (s != null) {
-          mp.write(s);
-          mp.writeln();
-        }
-      }
-      for (final tag in _module.tags.defined) {
-        final s = _tags[tag];
-        if (s != null) {
-          mp.write(s);
-          mp.writeln();
-        }
-      }
-      for (final global in _module.globals.defined) {
-        final s = _globals[global];
-        if (s != null) {
-          mp.write(s);
-          mp.writeln();
-        }
-      }
+
+      printOrdered(_module.functions.imported, functionNamer, _functions);
+      printOrdered(_module.globals.imported, globalNamer, _globals);
+      printOrdered(_module.tables.imported, tableNamer, _tables);
+      printOrdered(_module.tables.defined, tableNamer, _tables);
+      printOrdered(_module.tags.defined, tagNamer, _tags);
+      printOrdered(_module.globals.defined, globalNamer, _globals);
+
       _activeElementSegments.forEach((table, values) {
         final ip = newIrPrinter();
         ip.write('(elem ');
@@ -274,20 +273,8 @@ class ModulePrinter {
         mp.writeln(value);
       });
 
-      for (final fun in _module.functions.defined) {
-        final s = _functions[fun];
-        if (s != null) {
-          mp.write(s);
-          mp.writeln();
-        }
-      }
-      for (final d in _module.dataSegments.defined) {
-        final s = _dataSegments[d];
-        if (s != null) {
-          mp.write(s);
-          mp.writeln();
-        }
-      }
+      printOrdered(_module.functions.defined, functionNamer, _functions);
+      printOrdered(_module.dataSegments.defined, dataNamer, _dataSegments);
     });
     mp.write(')');
     return mp.getText();
@@ -348,6 +335,7 @@ class ModulePrintSettings {
   final List<RegExp> typeFilters;
   final bool preferMultiline;
   final bool scrubAbsoluteUris;
+  final bool printInSortedOrder;
 
   const ModulePrintSettings(
       {this.functionFilters = const [],
@@ -355,7 +343,8 @@ class ModulePrintSettings {
       this.globalFilters = const [],
       this.typeFilters = const [],
       this.preferMultiline = false,
-      this.scrubAbsoluteUris = false});
+      this.scrubAbsoluteUris = false,
+      this.printInSortedOrder = false});
 
   bool printFunctionBody(String name) {
     if (functionFilters.isEmpty) return true;
@@ -461,12 +450,12 @@ class IrPrinter extends IndentPrinter {
   final bool preferMultiline;
   final ir.Module module;
 
-  final _TypeNamer _typeNamer;
-  final _GlobalNamer _globalNamer;
-  final _FunctionNamer _functionNamer;
-  final _TagNamer _tagNamer;
-  final _TableNamer _tableNamer;
-  final _DataNamer _dataNamer;
+  final TypeNamer _typeNamer;
+  final GlobalNamer _globalNamer;
+  final FunctionNamer _functionNamer;
+  final TagNamer _tagNamer;
+  final TableNamer _tableNamer;
+  final DataNamer _dataNamer;
 
   _LocalNamer? _localNamer;
   final _labelNamer = _LabelNamer();
@@ -505,11 +494,11 @@ class IrPrinter extends IndentPrinter {
   }
 
   void writeLocalReference(ir.Local local) {
-    write(_localNamer!.nameLocal(local.index));
+    write(_localNamer!.name(local.index));
   }
 
   void writeLocalIndexReference(int localIndex) {
-    write(_localNamer!.nameLocal(localIndex));
+    write(_localNamer!.name(localIndex));
   }
 
   void withLocalNames(Map<int, String> names, void Function() fun) {
@@ -528,7 +517,7 @@ class IrPrinter extends IndentPrinter {
   }
 
   String _defTypeName(ir.DefType type, bool nullable, bool ref) {
-    final name = _typeNamer.nameDefType(type);
+    final name = _typeNamer.name(type);
     if (ref) {
       return nullable ? '(ref null $name)' : '(ref $name)';
     }
@@ -565,7 +554,7 @@ class IrPrinter extends IndentPrinter {
   }
 
   void writeDefTypeReference(ir.DefType type) {
-    write(_typeNamer.nameDefType(type));
+    write(_typeNamer.name(type));
   }
 
   void writeFunctionType(ir.FunctionType type) {
@@ -581,7 +570,7 @@ class IrPrinter extends IndentPrinter {
   }
 
   void writeTableReference(ir.Table? table, {bool alwaysPrint = false}) {
-    final name = _tableNamer.nameTable(table);
+    final name = _tableNamer.name(table);
     if (alwaysPrint) {
       write(name);
       return;
@@ -599,19 +588,19 @@ class IrPrinter extends IndentPrinter {
   }
 
   void writeGlobalReference(ir.Global global) {
-    write(_globalNamer.nameGlobal(global));
+    write(_globalNamer.name(global));
   }
 
   void writeFunctionReference(ir.BaseFunction function) {
-    write(_functionNamer.nameFunction(function));
+    write(_functionNamer.name(function));
   }
 
   void writeTagReference(ir.Tag tag) {
-    write(_tagNamer.nameTag(tag));
+    write(_tagNamer.name(tag));
   }
 
   void writeDataReference(ir.BaseDataSegment dataSegment) {
-    write(_dataNamer.nameDataSegment(dataSegment));
+    write(_dataNamer.name(dataSegment));
   }
 
   void writeMemoryReference(ir.Memory memory) {
@@ -619,7 +608,7 @@ class IrPrinter extends IndentPrinter {
   }
 }
 
-class _Namer<T> {
+abstract class Namer<T> {
   final ir.Module _module;
   final bool _scrubAbsoluteFileUris;
 
@@ -646,7 +635,9 @@ class _Namer<T> {
     return map;
   })();
 
-  _Namer(this._scrubAbsoluteFileUris, this._module, this._onReference);
+  Namer(this._scrubAbsoluteFileUris, this._module, this._onReference);
+
+  String name(T key, {bool activateOnReferenceCallback = true});
 
   String _name(T key, String? name, String unnamedPrefix,
       bool activateOnReferenceCallback) {
@@ -666,37 +657,51 @@ class _Namer<T> {
     if (name != null && _scrubAbsoluteFileUris) {
       name = _sanitizeAbsoluteFileUris(name);
     }
-    final sanitizedName =
-        name != null ? _sanitizeName(name) : '$unnamedPrefix${_nextId++}';
+    final sanitizedName = name != null
+        ? _sanitizeName(name)
+        : '$unnamedPrefix${activateOnReferenceCallback ? _nextId++ : 0}';
     final quotedName = '\$$sanitizedName';
     return activateOnReferenceCallback
         ? _names[key] ??= quotedName
         : quotedName;
   }
+
+  List<T> filter(List<T> values, bool Function(String) filter) => values
+      .where((value) => filter(name(value, activateOnReferenceCallback: false)))
+      .toList();
+
+  List<T> sort(List<T> values) => values.toList()
+    ..sort((a, b) {
+      return name(a, activateOnReferenceCallback: false)
+          .compareTo(name(b, activateOnReferenceCallback: false));
+    });
 }
 
-class _FunctionNamer extends _Namer<ir.BaseFunction> {
-  _FunctionNamer(super.scrubAbsoluteUris, super.module, super.onReference);
+class FunctionNamer extends Namer<ir.BaseFunction> {
+  FunctionNamer(super.scrubAbsoluteUris, super.module, super.onReference);
 
-  String nameFunction(ir.BaseFunction function,
+  @override
+  String name(ir.BaseFunction function,
       {bool activateOnReferenceCallback = true}) {
     return super._name(
         function, function.functionName, '', activateOnReferenceCallback);
   }
 }
 
-class _TagNamer extends _Namer<ir.Tag> {
-  _TagNamer(super.scrubAbsoluteUris, super.module, super.onReference);
+class TagNamer extends Namer<ir.Tag> {
+  TagNamer(super.scrubAbsoluteUris, super.module, super.onReference);
 
-  String nameTag(ir.Tag tag, {bool activateOnReferenceCallback = true}) {
+  @override
+  String name(ir.Tag tag, {bool activateOnReferenceCallback = true}) {
     return super._name(tag, null, 'tag', activateOnReferenceCallback);
   }
 }
 
-class _TableNamer extends _Namer<ir.Table> {
-  _TableNamer(super.scubUris, super.module, super.onReference);
+class TableNamer extends Namer<ir.Table> {
+  TableNamer(super.scubUris, super.module, super.onReference);
 
-  String nameTable(ir.Table? table, {bool activateOnReferenceCallback = true}) {
+  @override
+  String name(ir.Table? table, {bool activateOnReferenceCallback = true}) {
     table ??= _module.tables.defined.first;
 
     // Try to use cache first to avoid O(n) scan in the exports.
@@ -708,33 +713,34 @@ class _TableNamer extends _Namer<ir.Table> {
   }
 }
 
-class _TypeNamer extends _Namer<ir.DefType> {
-  _TypeNamer(super.scrubAbsoluteUris, super.module, super.onReference);
+class TypeNamer extends Namer<ir.DefType> {
+  TypeNamer(super.scrubAbsoluteUris, super.module, super.onReference);
 
-  String nameDefType(ir.DefType type,
-      {bool activateOnReferenceCallback = true}) {
+  @override
+  String name(ir.DefType type, {bool activateOnReferenceCallback = true}) {
     return super._name(type, type is ir.DataType ? type.name : null, 'type',
         activateOnReferenceCallback);
   }
 }
 
-class _LocalNamer extends _Namer<int> {
+class _LocalNamer extends Namer<int> {
   final Map<int, String> _namedVariables;
 
   _LocalNamer(bool scrubAbsoluteUris, ir.Module module, this._namedVariables)
       : super(scrubAbsoluteUris, module, (_) {});
 
-  String nameLocal(int index, {bool activateOnReferenceCallback = true}) {
+  @override
+  String name(int index, {bool activateOnReferenceCallback = true}) {
     return super._name(
         index, _namedVariables[index], 'var', activateOnReferenceCallback);
   }
 }
 
-class _GlobalNamer extends _Namer<ir.Global> {
-  _GlobalNamer(super.scrubAbsoluteUris, super.module, super.onReference);
+class GlobalNamer extends Namer<ir.Global> {
+  GlobalNamer(super.scrubAbsoluteUris, super.module, super.onReference);
 
-  String nameGlobal(ir.Global global,
-      {bool activateOnReferenceCallback = true}) {
+  @override
+  String name(ir.Global global, {bool activateOnReferenceCallback = true}) {
     String? gn = global.globalName;
     if (gn == null && global is ir.ImportedGlobal) {
       gn = '${global.module}.${global.name}';
@@ -743,10 +749,12 @@ class _GlobalNamer extends _Namer<ir.Global> {
   }
 }
 
-class _DataNamer extends _Namer<ir.BaseDataSegment> {
-  _DataNamer(super.scubUris, super.module, super.onReference);
+class DataNamer extends Namer<ir.BaseDataSegment> {
+  DataNamer(super.scubUris, super.module, super.onReference);
 
-  String nameDataSegment(ir.BaseDataSegment data) {
+  @override
+  String name(ir.BaseDataSegment data,
+      {bool activateOnReferenceCallback = true}) {
     return super._name(data, null, 'data', true);
   }
 }

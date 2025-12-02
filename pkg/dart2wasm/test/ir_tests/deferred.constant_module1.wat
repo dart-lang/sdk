@@ -1,38 +1,36 @@
 (module $module1
-  (type $#Top <...>)
-  (type $Object <...>)
-  (type $_Type <...>)
-  (type $Array<_Type> <...>)
-  (type $JSStringImpl <...>)
-  (type $type18 <...>)
-  (type $Array<Object?> <...>)
-  (type $_TopType <...>)
-  (type $#Vtable-0-1 <...>)
-  (type $Array<_NamedParameter> <...>)
-  (type $_FunctionType <...>)
   (type $#Closure-0-1 <...>)
+  (type $#Closure-1-1 <...>)
+  (type $#DummyStruct <...>)
+  (type $#InstantiationContext-1-1 <...>)
+  (type $#Top <...>)
+  (type $#Vtable-0-1 <...>)
+  (type $#Vtable-1-1 <...>)
+  (type $Array<Object?> <...>)
+  (type $Array<_NamedParameter> <...>)
+  (type $Array<_Type> <...>)
+  (type $BoxedInt <...>)
   (type $H1 (sub final $Object (struct
     (field $field0 i32)
     (field $field1 (mut i32))
     (field $fun (ref $#Closure-0-1)))))
-  (type $#Vtable-1-1 <...>)
-  (type $#Closure-1-1 <...>)
-  (type $#InstantiationContext-1-1 <...>)
-  (type $#DummyStruct <...>)
+  (type $JSStringImpl <...>)
+  (type $Object <...>)
+  (type $_FunctionType <...>)
   (type $_InterfaceType <...>)
-  (type $BoxedInt <...>)
-  (func $print (import "module0" "func5") (param (ref null $#Top)) (result (ref null $#Top)))
+  (type $_TopType <...>)
+  (type $_Type <...>)
+  (type $type0 <...>)
   (func $JSStringImpl._interpolate (import "module0" "func6") (param (ref $Array<Object?>)) (result (ref $JSStringImpl)))
-  (global $"C21 \")\"" (import "module0" "global0") (ref $JSStringImpl))
+  (func $print (import "module0" "func5") (param (ref null $#Top)) (result (ref null $#Top)))
   (global $"C1 WasmArray<_Type>[0]" (import "module0" "global1") (ref $Array<_Type>))
+  (global $"C21 \")\"" (import "module0" "global0") (ref $JSStringImpl))
+  (global $"C28 _InterfaceType" (import "module0" "global7") (ref $_InterfaceType))
+  (global $"C314 WasmArray<_NamedParameter>[0]" (import "module0" "global4") (ref $Array<_NamedParameter>))
   (global $"C339 _TopType" (import "module0" "global2") (ref $_TopType))
   (global $"C61 WasmArray<_Type>[1]" (import "module0" "global3") (ref $Array<_Type>))
-  (global $"C314 WasmArray<_NamedParameter>[0]" (import "module0" "global4") (ref $Array<_NamedParameter>))
-  (global $"C28 _InterfaceType" (import "module0" "global7") (ref $_InterfaceType))
   (global $.globalH1Bar< (import "" "globalH1Bar<") (ref extern))
   (table $module0.constant-table0 (import "module0" "constant-table0") 1 (ref null $_FunctionType))
-  (global $global7 (ref $#Vtable-1-1) <...>)
-  (global $global4 (ref $#DummyStruct) <...>)
   (global $"C467 _FunctionType" (ref $_FunctionType) <...>)
   (global $"C468 globalH1Foo tear-off" (mut (ref null $#Closure-1-1))
     (ref.null none))
@@ -46,45 +44,9 @@
     (global.get $.globalH1Bar<)
     (struct.new $JSStringImpl))
   (global $"C472 \">(\"" (ref $JSStringImpl) <...>)
-  (func $"modH1UseH1 <noInline>" (result (ref null $#Top))
-    (local $var0 (ref $#Closure-0-1))
-    block $label0 (result (ref $H1))
-      global.get $"C470 H1"
-      br_on_non_null $label0
-      call $"C470 H1 (lazy initializer)}"
-    end $label0
-    call $print
-    drop
-    block $label1 (result (ref $H1))
-      global.get $"C470 H1"
-      br_on_non_null $label1
-      call $"C470 H1 (lazy initializer)}"
-    end $label1
-    struct.get $H1 $fun
-    local.tee $var0
-    struct.get $#Closure-0-1 $context
-    i32.const 84
-    i64.const 1
-    struct.new $BoxedInt
-    local.get $var0
-    struct.get $#Closure-0-1 $vtable
-    struct.get $#Vtable-0-1 $closureCallEntry-0-1
-    call_ref $type18
-    drop
-    ref.null none
-  )
-  (func $"globalH1Foo tear-off trampoline" (param $var0 (ref struct)) (param $var1 (ref $_Type)) (param $var2 (ref null $#Top)) (result (ref null $#Top))
-    global.get $"C471 \"globalH1Bar<\""
-    local.get $var1
-    global.get $"C472 \">(\""
-    local.get $var2
-    global.get $"C21 \")\""
-    array.new_fixed $Array<Object?> 5
-    call $JSStringImpl._interpolate
-    call $print
-  )
+  (global $global0 (ref $#DummyStruct) <...>)
+  (global $global2 (ref $#Vtable-1-1) <...>)
   (func $#dummy function (ref struct) -> (ref null #Top) (param $var0 (ref struct)) (result (ref null $#Top)) <...>)
-  (func $instantiation constant trampoline (param $var0 (ref struct)) (param $var1 (ref null $#Top)) (result (ref null $#Top)) <...>)
   (func $"C470 H1 (lazy initializer)}" (result (ref $H1))
     (local $var0 (ref $#Closure-1-1))
     (local $var1 (ref $_FunctionType))
@@ -102,8 +64,8 @@
         br_on_non_null $label1
         i32.const 32
         i32.const 0
-        global.get $global4
-        global.get $global7
+        global.get $global0
+        global.get $global2
         global.get $"C467 _FunctionType"
         struct.new $#Closure-1-1
         local.tee $var0
@@ -144,5 +106,43 @@
     local.tee $var3
     global.set $"C470 H1"
     local.get $var3
+  )
+  (func $"globalH1Foo tear-off trampoline" (param $var0 (ref struct)) (param $var1 (ref $_Type)) (param $var2 (ref null $#Top)) (result (ref null $#Top))
+    global.get $"C471 \"globalH1Bar<\""
+    local.get $var1
+    global.get $"C472 \">(\""
+    local.get $var2
+    global.get $"C21 \")\""
+    array.new_fixed $Array<Object?> 5
+    call $JSStringImpl._interpolate
+    call $print
+  )
+  (func $instantiation constant trampoline (param $var0 (ref struct)) (param $var1 (ref null $#Top)) (result (ref null $#Top)) <...>)
+  (func $"modH1UseH1 <noInline>" (result (ref null $#Top))
+    (local $var0 (ref $#Closure-0-1))
+    block $label0 (result (ref $H1))
+      global.get $"C470 H1"
+      br_on_non_null $label0
+      call $"C470 H1 (lazy initializer)}"
+    end $label0
+    call $print
+    drop
+    block $label1 (result (ref $H1))
+      global.get $"C470 H1"
+      br_on_non_null $label1
+      call $"C470 H1 (lazy initializer)}"
+    end $label1
+    struct.get $H1 $fun
+    local.tee $var0
+    struct.get $#Closure-0-1 $context
+    i32.const 84
+    i64.const 1
+    struct.new $BoxedInt
+    local.get $var0
+    struct.get $#Closure-0-1 $vtable
+    struct.get $#Vtable-0-1 $closureCallEntry-0-1
+    call_ref $type0
+    drop
+    ref.null none
   )
 )
