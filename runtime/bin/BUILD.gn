@@ -1142,6 +1142,11 @@ executable("abstract_socket_test") {
   include_dirs = [ ".." ]
 }
 
+executable("create_process_test_helper") {
+  sources = [ "create_process_test_helper.cc" ]
+  include_dirs = [ ".." ]
+}
+
 source_set("run_vm_tests_set") {
   if (target_os == "fuchsia") {
     testonly = true

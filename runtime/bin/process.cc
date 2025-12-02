@@ -155,7 +155,7 @@ void FUNCTION_NAME(Process_Start)(Dart_NativeArguments args) {
   Dart_Handle stderr_handle = Dart_GetNativeArgument(args, 9);
   Dart_Handle exit_handle = Dart_GetNativeArgument(args, 10);
   intptr_t pid = -1;
-  char* os_error_message = nullptr;  // Scope allocated by Process::Start.
+  char* os_error_message = nullptr;
 
   int error_code = Process::Start(
       namespc, path, string_args, args_length, working_directory,
