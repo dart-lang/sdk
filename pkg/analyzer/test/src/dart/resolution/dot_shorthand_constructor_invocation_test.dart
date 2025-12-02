@@ -481,6 +481,32 @@ DotShorthandConstructorInvocation
 ''');
   }
 
+  test_factory_typeArguments() async {
+    await assertErrorsInCode(
+      r'''
+abstract class Foo<T> {
+  factory Foo.a() = _Foo;
+
+  Foo();
+}
+
+class _Foo<T> extends Foo<T> {
+  _Foo();
+}
+
+Foo<T> bar<T>() => .a<T>();
+''',
+      [
+        error(
+          CompileTimeErrorCode
+              .wrongNumberOfTypeArgumentsDotShorthandConstructor,
+          128,
+          3,
+        ),
+      ],
+    );
+  }
+
   test_nested_invocation() async {
     await assertNoErrorsInCode(r'''
 class C<T> {

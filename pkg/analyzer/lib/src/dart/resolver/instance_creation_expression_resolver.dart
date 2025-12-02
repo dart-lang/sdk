@@ -72,7 +72,6 @@ class InstanceCreationExpressionResolver {
       dotShorthandContextType,
     );
 
-    // TODO(kallentu): Support other context types
     if (dotShorthandContextType is InterfaceTypeImpl) {
       InterfaceElementImpl? contextElement = dotShorthandContextType.element;
       // This branch will be true if we're resolving an explicitly marked
@@ -94,14 +93,15 @@ class InstanceCreationExpressionResolver {
       }
 
       var typeArguments = node.typeArguments;
-      if (contextElement is ClassElementImpl && contextElement.isAbstract) {
-        var constructorElement = node.element;
-        if (constructorElement != null && !constructorElement.isFactory) {
-          _resolver.diagnosticReporter.atNode(
-            node,
-            CompileTimeErrorCode.instantiateAbstractClass,
-          );
-        }
+      var constructorElement = node.element;
+      if (contextElement is ClassElementImpl &&
+          contextElement.isAbstract &&
+          constructorElement != null &&
+          !constructorElement.isFactory) {
+        _resolver.diagnosticReporter.atNode(
+          node,
+          CompileTimeErrorCode.instantiateAbstractClass,
+        );
       } else if (typeArguments != null) {
         _resolver.diagnosticReporter.atNode(
           typeArguments,
