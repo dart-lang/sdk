@@ -3140,6 +3140,26 @@ class OutlineBuilder extends StackListenerImpl {
             ],
           );
         }
+
+        // For private named parameters, also look for a collision between the
+        // corresponding public name and another parameter's name.
+        if (formals[0].publicName case var publicName?
+            when publicName == formals[1].name) {
+          _privateNamedParameterPublicNameCollision(
+            publicName,
+            formals[0],
+            formals[1],
+          );
+        }
+
+        if (formals[1].publicName case var publicName?
+            when publicName == formals[0].name) {
+          _privateNamedParameterPublicNameCollision(
+            publicName,
+            formals[1],
+            formals[0],
+          );
+        }
       } else if (formals.length > 2) {
         Map<String, FormalParameterBuilder> seenNames =
             <String, FormalParameterBuilder>{};
@@ -3166,6 +3186,20 @@ class OutlineBuilder extends StackListenerImpl {
             );
           } else {
             seenNames[formal.name] = formal;
+          }
+        }
+
+        // For private named parameters, also look for a collision between the
+        // corresponding public name and another parameter's name.
+        for (FormalParameterBuilder formal in formals) {
+          if (formal.publicName case var publicName?) {
+            if (seenNames[publicName] case var previous?) {
+              _privateNamedParameterPublicNameCollision(
+                publicName,
+                formal,
+                previous,
+              );
+            }
           }
         }
       }
@@ -3197,6 +3231,25 @@ class OutlineBuilder extends StackListenerImpl {
     }
     push(beginToken.charOffset);
     push(formals ?? NullValues.FormalParameters);
+  }
+
+  /// Report a duplicate declaration error between a private named [formal]
+  /// with [publicName] and another [previous] parameter.
+  void _privateNamedParameterPublicNameCollision(
+    String publicName,
+    FormalParameterBuilder formal,
+    FormalParameterBuilder previous,
+  ) {
+    addProblem(
+      codePrivateNamedParameterDuplicatePublicName.withArgumentsOld(publicName),
+      formal.fileOffset,
+      formal.name.length,
+      context: [
+        codeDuplicatedParameterNameCause
+            .withArgumentsOld(publicName)
+            .withLocation(uri, previous.fileOffset, previous.name.length),
+      ],
+    );
   }
 
   @override

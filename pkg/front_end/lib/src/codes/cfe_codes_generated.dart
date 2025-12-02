@@ -13938,6 +13938,35 @@ const MessageCode codePositionalSuperParametersAndArguments = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<
+  Message Function(String name),
+  Message Function({required String name})
+>
+codePrivateNamedParameterDuplicatePublicName = const Template(
+  "PrivateNamedParameterDuplicatePublicName",
+  withArgumentsOld: _withArgumentsOldPrivateNamedParameterDuplicatePublicName,
+  withArguments: _withArgumentsPrivateNamedParameterDuplicatePublicName,
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsPrivateNamedParameterDuplicatePublicName({
+  required String name,
+}) {
+  var name_0 = conversions.validateString(name);
+  return new Message(
+    codePrivateNamedParameterDuplicatePublicName,
+    problemMessage:
+        """The corresponding public name '${name_0}' is already the name of another parameter.""",
+    arguments: {'name': name},
+  );
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsOldPrivateNamedParameterDuplicatePublicName(
+  String name,
+) => _withArgumentsPrivateNamedParameterDuplicatePublicName(name: name);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode
 codePrivateNamedParameterWithoutPublicName = const MessageCode(
   "PrivateNamedParameterWithoutPublicName",
