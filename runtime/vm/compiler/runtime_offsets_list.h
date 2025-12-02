@@ -254,6 +254,7 @@
   FIELD(Thread, dispatch_table_array_offset)                                   \
   FIELD(Thread, double_truncate_round_supported_offset)                        \
   FIELD(Thread, service_extension_stream_offset)                               \
+  FIELD(Thread, thread_locals_offset)                                          \
   FIELD(Thread, optimize_entry_offset)                                         \
   FIELD(Thread, optimize_stub_offset)                                          \
   FIELD(Thread, deoptimize_entry_offset)                                       \

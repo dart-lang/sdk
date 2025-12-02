@@ -670,6 +670,8 @@ namespace dart {
   V(TypedDataLibrary, _Float64x2, /, Float64x2Div, 0x12925562)                 \
   V(TypedDataLibrary, _Float64x2, -, Float64x2Sub, 0x2f258e89)                 \
   V(TypedDataLibrary, _Float64x2, +, Float64x2Add, 0x09ecc418)                 \
+  V(VMLibrary, ThreadLocal, _getValue, ThreadLocalGetValue, 0xad8f22db)        \
+  V(VMLibrary, ThreadLocal, _hasValue, ThreadLocalHasValue, 0xa6d3b876)        \
 
 #define RECOGNIZED_LIST(V)                                                     \
   OTHER_RECOGNIZED_LIST(V)                                                     \

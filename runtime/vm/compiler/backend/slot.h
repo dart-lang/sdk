@@ -233,7 +233,8 @@ class ParsedFunction;
   V(ObjectStore, _, record_field_names, Array, VAR)                            \
   V(PersistentHandle, _, ptr, Dynamic, VAR)                                    \
   V(Thread, _, current_tag, UserTag, VAR)                                      \
-  V(Thread, _, default_tag, UserTag, VAR)
+  V(Thread, _, default_tag, UserTag, VAR)                                      \
+  V(Thread, _, thread_locals, Array, VAR)
 
 // List of slots that correspond to fields of non-Dart objects containing
 // unboxed values in the following format:
