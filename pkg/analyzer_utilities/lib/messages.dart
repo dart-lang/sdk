@@ -159,7 +159,7 @@ class AnalyzerCode implements Comparable<AnalyzerCode> {
   /// separated by underscores. Those words might be lower case or upper case.
   ///
   // TODO(paulberry): change `messages.yaml` to consistently use lower snake
-  // case.
+  // case, and remove [lowerSnakeCaseName].
   final String snakeCaseName;
 
   AnalyzerCode({required this.diagnosticClass, required this.snakeCaseName});
@@ -173,6 +173,9 @@ class AnalyzerCode implements Comparable<AnalyzerCode> {
 
   @override
   int get hashCode => Object.hash(diagnosticClass, snakeCaseName);
+
+  /// The diagnostic name, converted to lower snake case.
+  String get lowerSnakeCaseName => snakeCaseName.toLowerCase();
 
   /// The diagnostic name, converted to PascalCase.
   String get pascalCaseName => snakeCaseName.toPascalCase();

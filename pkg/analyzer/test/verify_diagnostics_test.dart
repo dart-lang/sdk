@@ -33,171 +33,171 @@ class DocumentationValidator {
   /// verifier.
   static const List<String> unverifiedDocs = [
     // Needs to be able to specify two expected diagnostics.
-    'CompileTimeErrorCode.AMBIGUOUS_IMPORT',
+    'ambiguous_import',
     // Produces two diagnostics when it should only produce one.
-    'CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE',
+    'built_in_identifier_as_type',
     // TODO(kallentu): This is always reported with
-    // `ARGUMENT_TYPE_NOT_ASSIGNABLE` or is reported as
-    // `CONST_EVAL_THROWS_EXCEPTION` in const constructor evaluation.
-    'CompileTimeErrorCode.CONST_CONSTRUCTOR_PARAM_TYPE_MISMATCH',
+    // `argument_type_not_assignable` or is reported as
+    // `const_eval_throws_exception` in const constructor evaluation.
+    'const_constructor_param_type_mismatch',
     // Produces two diagnostics when it should only produce one.
-    'CompileTimeErrorCode.CONST_DEFERRED_CLASS',
+    'const_deferred_class',
     // The mock SDK doesn't define any internal libraries.
-    'CompileTimeErrorCode.EXPORT_INTERNAL_LIBRARY',
-    // Also reports CompileTimeErrorCode.SUBTYPE_OF_BASE_OR_FINAL_IS_NOT_BASE_FINAL_OR_SEALED
-    'CompileTimeErrorCode.EXTENDS_DISALLOWED_CLASS',
+    'export_internal_library',
+    // Also reports subtype_of_base_or_final_is_not_base_final_or_sealed
+    'extends_disallowed_class',
     // The following codes produce two diagnostics because they illustrate a
     // cycle.
-    'CompileTimeErrorCode.EXTENSION_TYPE_IMPLEMENTS_ITSELF',
-    'CompileTimeErrorCode.EXTENSION_TYPE_REPRESENTATION_DEPENDS_ON_ITSELF',
+    'extension_type_implements_itself',
+    'extension_type_representation_depends_on_itself',
     // Not reported with `getter-setter-error` feature enabled.
-    'CompileTimeErrorCode.GETTER_NOT_SUBTYPE_SETTER_TYPES',
+    'getter_not_subtype_setter_types',
     // Has code in the example section that needs to be skipped (because it's
     // part of the explanatory text not part of the example), but there's
     // currently no way to do that.
-    'CompileTimeErrorCode.INVALID_IMPLEMENTATION_OVERRIDE',
+    'invalid_implementation_override',
     // Produces two diagnostics when it should only produce one. We could get
     // rid of the invalid error by adding a declaration of a top-level variable
     // (such as `JSBool b;`), but that would complicate the example.
-    'CompileTimeErrorCode.IMPORT_INTERNAL_LIBRARY',
+    'import_internal_library',
     // Produces two diagnostics when it should only produce one.
-    'CompileTimeErrorCode.INVALID_URI',
+    'invalid_uri',
     // No example, by design.
-    'CompileTimeErrorCode.MISSING_DART_LIBRARY',
+    'missing_dart_library',
     // Produces two diagnostics when it should only produce one.
-    'CompileTimeErrorCode.NON_SYNC_FACTORY',
+    'non_sync_factory',
     // Need a way to make auxiliary files that (a) are not included in the
     // generated docs or (b) can be made persistent for fixes.
-    'CompileTimeErrorCode.PART_OF_NON_PART',
+    'part_of_non_part',
     // Produces multiple diagnostics when it should only produce one.
-    'CompileTimeErrorCode.PREFIX_COLLIDES_WITH_TOP_LEVEL_MEMBER',
+    'prefix_collides_with_top_level_member',
     // Produces two diagnostic out of necessity.
-    'CompileTimeErrorCode.RECURSIVE_COMPILE_TIME_CONSTANT',
+    'recursive_compile_time_constant',
     // Produces two diagnostic out of necessity.
-    'CompileTimeErrorCode.RECURSIVE_CONSTRUCTOR_REDIRECT',
+    'recursive_constructor_redirect',
     // Produces two diagnostic out of necessity.
-    'CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE',
+    'recursive_interface_inheritance',
     // Produces two diagnostics out of necessity.
-    'CompileTimeErrorCode.REFERENCED_BEFORE_DECLARATION',
+    'referenced_before_declaration',
     // Produces two diagnostic out of necessity.
-    'CompileTimeErrorCode.TOP_LEVEL_CYCLE',
+    'top_level_cycle',
     // Produces two diagnostic out of necessity.
-    'CompileTimeErrorCode.TYPE_ALIAS_CANNOT_REFERENCE_ITSELF',
+    'type_alias_cannot_reference_itself',
     // Produces two diagnostic out of necessity.
-    'CompileTimeErrorCode.TYPE_PARAMETER_SUPERTYPE_OF_ITS_BOUND',
-    // Produces the diagnostic HintCode.UNUSED_LOCAL_VARIABLE when it shouldn't.
-    'CompileTimeErrorCode.UNDEFINED_IDENTIFIER_AWAIT',
+    'type_parameter_supertype_of_its_bound',
+    // Produces the diagnostic unused_local_variable when it shouldn't.
+    'undefined_identifier_await',
     // Produces multiple diagnostic because of poor recovery.
-    'CompileTimeErrorCode.YIELD_EACH_IN_NON_GENERATOR',
+    'yield_each_in_non_generator',
 
     // This is not reported after 2.12, and the examples don't compile after 3.0.
-    'FfiCode.FIELD_INITIALIZER_IN_STRUCT',
+    'field_initializer_in_struct',
     // This is not reported after 2.12, and the examples don't compile after 3.0.
-    'FfiCode.FIELD_IN_STRUCT_WITH_INITIALIZER',
+    'field_in_struct_with_initializer',
 
     // This no longer works in 3.0.
-    'HintCode.DEPRECATED_COLON_FOR_DEFAULT_VALUE',
+    'deprecated_colon_for_default_value',
     // The code has been replaced but is not yet removed.
-    'HintCode.DEPRECATED_MEMBER_USE',
+    'deprecated_member_use',
 
     // Need a way to specify the existance of files whose content is irrelevant.
-    'LinterLintCode.always_use_package_imports',
+    'always_use_package_imports',
     // Missing support for example files outside of `lib`.
-    'LinterLintCode.avoid_relative_lib_imports',
+    'avoid_relative_lib_imports',
     // The example isn't being recognized as a flutter app. We might need to
     // build a pubspec.yaml when analyzing flutter code.
-    'LinterLintCode.avoid_web_libraries_in_flutter',
-    // Produces a CompileTimeErrorCode.BODY_MIGHT_COMPLETE_NORMALLY.
-    'LinterLintCode.control_flow_in_finally',
+    'avoid_web_libraries_in_flutter',
+    // Produces a body_might_complete_normally.
+    'control_flow_in_finally',
     // Missing support for creating an indirect dependency on a package.
-    'LinterLintCode.depend_on_referenced_packages',
+    'depend_on_referenced_packages',
     // Missing support for specifying the name of the test file.
-    'LinterLintCode.file_names',
+    'file_names',
     // Produces an unused import diagnostic.
-    'LinterLintCode.implementation_imports',
+    'implementation_imports',
     // Doesn't produce a lint for the second example, even though the analyzer
     // does when the example is pasted into a file.
-    'LinterLintCode.prefer_inlined_adds_single',
+    'prefer_inlined_adds_single',
     // No mock 'test' package, no good library annotations in 'meta'.
-    'LinterLintCode.library_annotations',
+    'library_annotations',
     // Produces an unused import diagnostic.
-    'LinterLintCode.library_prefixes',
+    'library_prefixes',
     // Produces an unused element diagnostic.
-    'LinterLintCode.library_private_types_in_public_api',
+    'library_private_types_in_public_api',
     // Missing support for YAML files.
-    'LinterLintCode.package_names',
+    'package_names',
     // The lint does nothing.
-    'LinterLintCode.package_prefixed_library_names',
+    'package_prefixed_library_names',
     // Need a way to specify the existance of files whose content is irrelevant.
-    'LinterLintCode.prefer_relative_imports',
+    'prefer_relative_imports',
     // The test file is in a basic workspace, so it can't have public API. I
     // think we'd need to add a `pubspec.yaml` file to the example.
-    'LinterLintCode.public_member_api_docs',
+    'public_member_api_docs',
     // Missing support for YAML files.
-    'LinterLintCode.secure_pubspec_urls',
+    'secure_pubspec_urls',
     // The test framework doesn't yet support lints in non-dart files.
-    'LinterLintCode.sort_pub_dependencies',
+    'sort_pub_dependencies',
     // Doesn't produce a lint for the first example, even though the analyzer
     // does when the example is pasted into a file.
-    'LinterLintCode.unnecessary_lambdas',
+    'unnecessary_lambdas',
     // Produces an unused_field warning.
-    'LinterLintCode.use_setters_to_change_properties',
+    'use_setters_to_change_properties',
     // Extra warning.
-    'LinterLintCode.recursive_getters',
+    'recursive_getters',
 
     // Has `language=2.9`
-    'CompileTimeErrorCode.EXTENSION_DECLARES_INSTANCE_FIELD',
+    'extension_declares_instance_field',
 
-    // Produces the newer PRIVATE_NAMED_NON_FIELD_PARAMETER diagnostic instead
+    // Produces the newer private_named_non_field_parameter diagnostic instead
     // as part of the "private named parameters" feature.
-    'ParserErrorCode.PRIVATE_OPTIONAL_PARAMETER',
+    'private_optional_parameter',
 
     //
     // The following can't currently be verified because the examples aren't
     // Dart code.
     //
-    'PubspecWarningCode.ASSET_DOES_NOT_EXIST',
-    'PubspecWarningCode.ASSET_DIRECTORY_DOES_NOT_EXIST',
-    'PubspecWarningCode.ASSET_FIELD_NOT_LIST',
-    'PubspecWarningCode.ASSET_MISSING_PATH',
-    'PubspecWarningCode.ASSET_NOT_STRING',
-    'PubspecWarningCode.ASSET_NOT_STRING_OR_MAP',
-    'PubspecWarningCode.ASSET_PATH_NOT_STRING',
-    'PubspecWarningCode.DEPENDENCIES_FIELD_NOT_MAP',
-    'PubspecWarningCode.DEPRECATED_FIELD',
-    'PubspecWarningCode.FLUTTER_FIELD_NOT_MAP',
-    'PubspecWarningCode.INVALID_DEPENDENCY',
-    'PubspecWarningCode.INVALID_PLATFORMS_FIELD',
-    'PubspecWarningCode.MISSING_NAME',
-    'PubspecWarningCode.MISSING_DEPENDENCY',
-    'PubspecWarningCode.NAME_NOT_STRING',
-    'PubspecWarningCode.PATH_DOES_NOT_EXIST',
-    'PubspecWarningCode.PATH_NOT_POSIX',
-    'PubspecWarningCode.PATH_PUBSPEC_DOES_NOT_EXIST',
-    'PubspecWarningCode.PLATFORM_VALUE_DISALLOWED',
-    'PubspecWarningCode.UNKNOWN_PLATFORM',
-    'PubspecWarningCode.UNNECESSARY_DEV_DEPENDENCY',
-    'PubspecWarningCode.WORKSPACE_FIELD_NOT_LIST',
-    'PubspecWarningCode.WORKSPACE_VALUE_NOT_STRING',
-    'PubspecWarningCode.WORKSPACE_VALUE_NOT_SUBDIRECTORY',
+    'asset_does_not_exist',
+    'asset_directory_does_not_exist',
+    'asset_field_not_list',
+    'asset_missing_path',
+    'asset_not_string',
+    'asset_not_string_or_map',
+    'asset_path_not_string',
+    'dependencies_field_not_map',
+    'deprecated_field',
+    'flutter_field_not_map',
+    'invalid_dependency',
+    'invalid_platforms_field',
+    'missing_name',
+    'missing_dependency',
+    'name_not_string',
+    'path_does_not_exist',
+    'path_not_posix',
+    'path_pubspec_does_not_exist',
+    'platform_value_disallowed',
+    'unknown_platform',
+    'unnecessary_dev_dependency',
+    'workspace_field_not_list',
+    'workspace_value_not_string',
+    'workspace_value_not_subdirectory',
 
     // Produces two diagnostics out of necessity.
-    'StaticWarningCode.DEAD_NULL_AWARE_EXPRESSION',
+    'dead_null_aware_expression',
 
-    // Reports CompileTimeErrorCode.FINAL_CLASS_EXTENDED_OUTSIDE_OF_LIBRARY
-    'WarningCode.DEPRECATED_EXTENDS_FUNCTION',
+    // Reports final_class_extended_outside_of_library
+    'deprecated_extends_function',
     // Doesn't apply to Dart files.
     // TODO(brianwilkerson): Provide better support for non-Dart files.
-    'WarningCode.REMOVED_LINT_USE',
+    'removed_lint_use',
     // Produces more than one error range by design.
     // TODO(srawlins): update verification to allow for multiple highlight ranges.
-    'WarningCode.TEXT_DIRECTION_CODE_POINT_IN_COMMENT',
+    'text_direction_code_point_in_comment',
     // Produces more than one error range by design.
-    'WarningCode.TEXT_DIRECTION_CODE_POINT_IN_LITERAL',
+    'text_direction_code_point_in_literal',
     // Produces two diagnostics out of necessity.
-    'WarningCode.UNNECESSARY_NULL_COMPARISON_NEVER_NULL_FALSE',
+    'unnecessary_null_comparison_never_null_false',
     // Produced two diagnostics because `mustBeConst` is experimental.
-    'WarningCode.NON_CONST_ARGUMENT_FOR_CONST_PARAMETER',
+    'non_const_argument_for_const_parameter',
   ];
 
   /// The buffer to which validation errors are written.
@@ -353,7 +353,7 @@ class DocumentationValidator {
       );
       if (docs != null) {
         codeName = message.sharedName ?? message.analyzerCode.snakeCaseName;
-        variableName = message.analyzerCode.toString();
+        variableName = message.analyzerCode.lowerSnakeCaseName;
         if (unverifiedDocs.contains(variableName)) {
           continue;
         }
