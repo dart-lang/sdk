@@ -27,11 +27,12 @@ void checkExists(String path) {
 }
 
 main() async {
-  var sanitizer = find(Platform.executable, ["MSAN", "TSAN"]);
+  var sanitizer = find(Platform.executable, ["ASAN", "MSAN", "TSAN"]);
   var mode = find(Platform.executable, ["Debug", "Release", "Product"]);
   var arch = find(Platform.executable, ["X64", "ARM64", "RISCV64"]);
   var out = find(Platform.executable, ["out", "xcodebuild"]);
   var targetFlag = {
+    "ASAN": "--target_address_sanitizer",
     "MSAN": "--target_memory_sanitizer",
     "TSAN": "--target_thread_sanitizer",
   }[sanitizer]!;

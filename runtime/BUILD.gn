@@ -112,10 +112,12 @@ config("dart_precompiler_config") {
 
   # In our GN build rules we'll always compile AOT compiler & AOT runtime in
   # the same mode (TSAN or non-TSAN).
-  if (is_tsan) {
-    defines += [ "TARGET_USES_THREAD_SANITIZER" ]
+  if (is_asan && !is_win) {
+    defines += [ "TARGET_USES_ADDRESS_SANITIZER" ]
   } else if (is_msan) {
     defines += [ "TARGET_USES_MEMORY_SANITIZER" ]
+  } else if (is_tsan) {
+    defines += [ "TARGET_USES_THREAD_SANITIZER" ]
   }
 }
 

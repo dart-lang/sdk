@@ -5,7 +5,6 @@
 #ifndef RUNTIME_VM_FLAG_LIST_H_
 #define RUNTIME_VM_FLAG_LIST_H_
 
-#include "platform/thread_sanitizer.h"
 #include "vm/globals.h"
 
 // Don't use USING_PRODUCT outside of this file.
